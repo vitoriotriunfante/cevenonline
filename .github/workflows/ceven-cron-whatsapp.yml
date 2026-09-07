@@ -1,0 +1,159 @@
+name: CEVEN NOC — Sync & Dispatch Automático
+
+on:
+  schedule:
+    # =========================================
+    # HORÁRIOS UTC (Brasília = UTC - 3)
+    # =========================================
+    # 07:00 BRT = 10:00 UTC — Abertura (Pipeline 2)
+    - cron: '0 10 * * 1-6'
+    # 09:00 BRT = 12:00 UTC — Sync Horário (Pipeline 3)
+    - cron: '0 12 * * 1-6'
+    # 10:00 BRT = 13:00 UTC — Sync + Zerados
+    - cron: '0 13 * * 1-6'
+    # 11:00 BRT = 14:00 UTC
+    - cron: '0 14 * * 1-6'
+    # 12:00 BRT = 15:00 UTC — Parcial do Almoço
+    - cron: '0 15 * * 1-6'
+    # 13:00 BRT = 16:00 UTC
+    - cron: '0 16 * * 1-6'
+    # 14:00 BRT = 17:00 UTC — Zerados críticos
+    - cron: '0 17 * * 1-6'
+    # 15:00 BRT = 18:00 UTC
+    - cron: '0 18 * * 1-6'
+    # 16:00 BRT = 19:00 UTC — Bloqueados
+    - cron: '0 19 * * 1-6'
+    # 17:00 BRT = 20:00 UTC
+    - cron: '0 20 * * 1-6'
+    # 18:30 BRT = 21:30 UTC — Fechamento
+    - cron: '30 21 * * 1-6'
+  workflow_dispatch:
+    inputs:
+      tipo:
+        description: 'Tipo de disparo manual'
+        required: false
+        default: 'horario'
+        type: choice
+        options:
+          - abertura_07h
+          - horario
+          - zerados_10h
+          - almoco_12h
+          - zerados_14h
+          - bloqueados_16h
+          - fechamento_18h30
+          - sync_cadastros
+
+env:
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_D1_DATABASE_ID: '2e5bb59c-8db4-43a2-a13c-5c78e404e52d'
+
+jobs:
+  sync_and_dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar Wrangler CLI
+        run: npm install -g wrangler
+
+      - name: Determinar tipo de operação
+        id: tipo
+        run: |
+          HORA_UTC=$(date -u +"%H:%M")
+          echo "hora_utc=$HORA_UTC" >> $GITHUB_OUTPUT
+
+          # Mapear hora UTC para tipo de disparo
+          if [ "${{ github.event.inputs.tipo }}" != "" ]; then
+            TIPO="${{ github.event.inputs.tipo }}"
+          elif [ "$HORA_UTC" = "10:00" ]; then
+            TIPO="abertura_07h"
+          elif [ "$HORA_UTC" = "13:00" ]; then
+            TIPO="zerados_10h"
+          elif [ "$HORA_UTC" = "15:00" ]; then
+            TIPO="almoco_12h"
+          elif [ "$HORA_UTC" = "17:00" ]; then
+            TIPO="zerados_14h"
+          elif [ "$HORA_UTC" = "19:00" ]; then
+            TIPO="bloqueados_16h"
+          elif [ "$HORA_UTC" = "21:30" ]; then
+            TIPO="fechamento_18h30"
+          else
+            TIPO="horario"
+          fi
+
+          # Determinar se é sync de dados ou só disparo
+          if [ "$TIPO" = "abertura_07h" ] || [ "$TIPO" = "sync_cadastros" ]; then
+            PIPELINE="abertura"
+          else
+            PIPELINE="intraday"
+          fi
+
+          echo "tipo=$TIPO" >> $GITHUB_OUTPUT
+          echo "pipeline=$PIPELINE" >> $GITHUB_OUTPUT
+          echo "📊 Tipo: $TIPO | Pipeline: $PIPELINE | Hora UTC: $HORA_UTC"
+
+      - name: 🔄 Executar Pipeline de Coleta (519 RCAs)
+        run: |
+          echo "🚀 Iniciando coleta de dados dos 519 RCAs..."
+          echo "Pipeline: ${{ steps.tipo.outputs.pipeline }}"
+
+          # Executa o script de coleta que faz os 519 fetches
+          # e gera SQL para inserir no D1
+          node pipeline/github_actions_runner.js \
+            --pipeline "${{ steps.tipo.outputs.pipeline }}" \
+            --data "$(date -u +%Y-%m-%d)" \
+            --hora "$(TZ='America/Sao_Paulo' date +%H:%M)"
+
+      - name: 📤 Sincronizar dados com Cloudflare D1
+        run: |
+          if [ -f "d1_github_sync.sql" ]; then
+            echo "📦 Enviando dados para o Cloudflare D1..."
+            wrangler d1 execute ceven_noc_d1 \
+              --remote \
+              --file=d1_github_sync.sql \
+              --config=wrangler.toml
+            echo "✅ D1 atualizado com sucesso!"
+          else
+            echo "⚠️ Nenhum arquivo SQL gerado. Pulando sync do D1."
+          fi
+
+      - name: 📱 Disparar Mensagens WhatsApp
+        run: |
+          TIPO="${{ steps.tipo.outputs.tipo }}"
+          echo "📱 Disparando WhatsApp: $TIPO"
+
+          # Chamar o endpoint do Cloudflare Pages para enviar as mensagens
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            "https://ceven-cftv-matrix.pages.dev/api/cron-whatsapp-dispatcher?tipo=$TIPO")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+
+          echo "HTTP Status: $HTTP_CODE"
+          echo "$BODY" | head -c 2000
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "⚠️ Disparo retornou HTTP $HTTP_CODE"
+          fi
+
+      - name: 📊 Relatório de Execução
+        if: always()
+        run: |
+          echo "=========================================="
+          echo "📊 RELATÓRIO DE EXECUÇÃO"
+          echo "=========================================="
+          echo "Tipo: ${{ steps.tipo.outputs.tipo }}"
+          echo "Pipeline: ${{ steps.tipo.outputs.pipeline }}"
+          echo "Hora UTC: ${{ steps.tipo.outputs.hora_utc }}"
+          echo "Status: ${{ job.status }}"
+          echo "=========================================="

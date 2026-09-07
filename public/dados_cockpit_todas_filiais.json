@@ -1,0 +1,3242 @@
+{
+  "API": {
+    "filial": "FILIAL API",
+    "sigla": "API",
+    "gerente": "Fabio Colares",
+    "diasUteisRestantes": 21,
+    "metaFinanceira": 5319999.96,
+    "faturadoOficial": 0,
+    "vendidoHoje": 244720,
+    "metaDiariaFat": 253333,
+    "metaPositivacao": 3831,
+    "positivadosOficial": 1,
+    "comPedidoHoje": 165,
+    "metaDiariaCli": 182,
+    "rotasHoje": 578,
+    "inativosNaRota": 185,
+    "vendedoresAtivos": 47,
+    "pedidosTotal": 165,
+    "liberadosValor": 217311,
+    "liberadosQtd": 145,
+    "bloqueadosValor": 27409,
+    "bloqueadosQtd": 20,
+    "devolucoesValor": 11012,
+    "devolucoesQtd": 9,
+    "cortesValor": 0,
+    "cortesQtd": 0,
+    "supervisores": [
+      {
+        "id": 80,
+        "nome": "ALESSANDRO JUNIOR LOPES",
+        "rcas": 4,
+        "metaFat": 1030549.37,
+        "metaCli": 337,
+        "rotasHoje": 47,
+        "visitasReal": 24,
+        "positivados": 0
+      },
+      {
+        "id": 23,
+        "nome": "ANDERSON FERNANDES CORREIA",
+        "rcas": 5,
+        "metaFat": 1088770.4300000002,
+        "metaCli": 362,
+        "rotasHoje": 101,
+        "visitasReal": 24,
+        "positivados": 1
+      },
+      {
+        "id": 24,
+        "nome": "ARILDO ZAGO",
+        "rcas": 6,
+        "metaFat": 1252694.3,
+        "metaCli": 157,
+        "rotasHoje": 19,
+        "visitasReal": 10,
+        "positivados": 0
+      },
+      {
+        "id": 100,
+        "nome": "CLT-WASHINGTON FLORES DA ROSA",
+        "rcas": 13,
+        "metaFat": 772883.67,
+        "metaCli": 1189,
+        "rotasHoje": 163,
+        "visitasReal": 147,
+        "positivados": 0
+      },
+      {
+        "id": 87,
+        "nome": "GERENTE API",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 26,
+        "nome": "LUIZ CESAR OLIVEIRA DA SILVA",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 27,
+        "nome": "RODRIGO FARIAS",
+        "rcas": 14,
+        "metaFat": 908809.56,
+        "metaCli": 1213,
+        "rotasHoje": 162,
+        "visitasReal": 107,
+        "positivados": 0
+      },
+      {
+        "id": 28,
+        "nome": "SUELI APARECIDA TEIXEIRA POLLI",
+        "rcas": 5,
+        "metaFat": 266292.63000000006,
+        "metaCli": 573,
+        "rotasHoje": 86,
+        "visitasReal": 55,
+        "positivados": 0
+      }
+    ],
+    "inativosLista": [
+      {
+        "id": "78383",
+        "nome": "BIG MASSAS COMERCIO DE ALIMENTOS",
+        "cnpj": "55902595000162",
+        "rca": "249",
+        "dias": "82 dias",
+        "ult": "R$ 118.75"
+      },
+      {
+        "id": "77533",
+        "nome": "BUENO E CARDOSO",
+        "cnpj": "46154611000195",
+        "rca": "1074",
+        "dias": "81 dias",
+        "ult": "R$ 102.57"
+      },
+      {
+        "id": "55754",
+        "nome": ".",
+        "cnpj": "03658024000120",
+        "rca": "267",
+        "dias": "81 dias",
+        "ult": "R$ 128.59"
+      },
+      {
+        "id": "72979",
+        "nome": "PANIFICADORA CHATEAUBRIAND",
+        "cnpj": "22064994000142",
+        "rca": "267",
+        "dias": "81 dias",
+        "ult": "R$ 130.63"
+      },
+      {
+        "id": "77327",
+        "nome": "CASA CHINA",
+        "cnpj": "44553240000199",
+        "rca": "245",
+        "dias": "81 dias",
+        "ult": "R$ 3041.70"
+      },
+      {
+        "id": "78082",
+        "nome": "CASA CHINA",
+        "cnpj": "52027153000126",
+        "rca": "245",
+        "dias": "81 dias",
+        "ult": "R$ 5943.12"
+      },
+      {
+        "id": "82207",
+        "nome": "POSTO IPIRANGA",
+        "cnpj": "78934783000178",
+        "rca": "267",
+        "dias": "81 dias",
+        "ult": "R$ 373.74"
+      },
+      {
+        "id": "384052",
+        "nome": "MERCEARIA VITORIA",
+        "cnpj": "64719083000156",
+        "rca": "245",
+        "dias": "81 dias",
+        "ult": "R$ 235.47"
+      },
+      {
+        "id": "65352",
+        "nome": "PAGUE MENOS FRUTARIA",
+        "cnpj": "08849099000102",
+        "rca": "243",
+        "dias": "80 dias",
+        "ult": "R$ 253.77"
+      },
+      {
+        "id": "54286",
+        "nome": "TROMBETA MAT DE CONSTRUCAO",
+        "cnpj": "03098458000113",
+        "rca": "267",
+        "dias": "80 dias",
+        "ult": "R$ 3140.65"
+      },
+      {
+        "id": "75067",
+        "nome": "TO NO TRABALHO DISTRIBUIDORA E CONVENIEN",
+        "cnpj": "30536431000138",
+        "rca": "267",
+        "dias": "80 dias",
+        "ult": "R$ 695.12"
+      },
+      {
+        "id": "72335",
+        "nome": "POSTO RUI BARBOSA",
+        "cnpj": "19566310000104",
+        "rca": "279",
+        "dias": "80 dias",
+        "ult": "R$ 127.16"
+      },
+      {
+        "id": "82911",
+        "nome": "APAMAR PANIFICADORA",
+        "cnpj": "79625612000120",
+        "rca": "267",
+        "dias": "80 dias",
+        "ult": "R$ 608.52"
+      },
+      {
+        "id": "54841",
+        "nome": "LANCHONETE MANARIM",
+        "cnpj": "03304418000180",
+        "rca": "529",
+        "dias": "80 dias",
+        "ult": "R$ 122.31"
+      },
+      {
+        "id": "67325",
+        "nome": "KARANELAR DOCES",
+        "cnpj": "10609274000136",
+        "rca": "527",
+        "dias": "80 dias",
+        "ult": "R$ 316.28"
+      },
+      {
+        "id": "51688",
+        "nome": "JPS",
+        "cnpj": "01831013000256",
+        "rca": "250",
+        "dias": "80 dias",
+        "ult": "R$ 279.16"
+      },
+      {
+        "id": "64415",
+        "nome": "DELIGHT SUSHI LANCHES LTDA",
+        "cnpj": "08223096000169",
+        "rca": "247",
+        "dias": "80 dias",
+        "ult": "R$ 160.63"
+      },
+      {
+        "id": "63793",
+        "nome": "BOX S CELULARES LTDA",
+        "cnpj": "07848028000122",
+        "rca": "250",
+        "dias": "80 dias",
+        "ult": "R$ 179.49"
+      },
+      {
+        "id": "80587",
+        "nome": "MERCEARIA SAYONARA",
+        "cnpj": "76645563000107",
+        "rca": "250",
+        "dias": "80 dias",
+        "ult": "R$ 322.26"
+      },
+      {
+        "id": "73838",
+        "nome": "MINIMERCADO BOM DIA 2",
+        "cnpj": "25250421000100",
+        "rca": "272",
+        "dias": "80 dias",
+        "ult": "R$ 3850.93"
+      }
+    ],
+    "bloqueadosLista": [
+      {
+        "num": "58102",
+        "cli": "SUPERMERCADO ESTRELA LTDA",
+        "rca": "101",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "ALESSANDRO JUNIOR LOPES",
+        "vl": "R$ 8222.70",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "1h 30m"
+      },
+      {
+        "num": "58108",
+        "cli": "MERCEARIA CENTRAL",
+        "rca": "102",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "ANDERSON FERNANDES CORREIA",
+        "vl": "R$ 6852.25",
+        "motivo": "Boleto Vencido há 4 dias",
+        "tempo": "1h 15m"
+      },
+      {
+        "num": "58115",
+        "cli": "PANIFICADORA DO VALE",
+        "rca": "103",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "ALESSANDRO JUNIOR LOPES",
+        "vl": "R$ 5481.80",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "50m"
+      },
+      {
+        "num": "58122",
+        "cli": "CASA DE CARNES PRIMOR",
+        "rca": "104",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "ARILDO ZAGO",
+        "vl": "R$ 4111.35",
+        "motivo": "Preço abaixo da alçada",
+        "tempo": "35m"
+      }
+    ]
+  },
+  "ABC": {
+    "filial": "FILIAL ABC",
+    "sigla": "ABC",
+    "gerente": "Marcos Colling",
+    "diasUteisRestantes": 21,
+    "metaFinanceira": 5605124.869999999,
+    "faturadoOficial": 0,
+    "vendidoHoje": 257836,
+    "metaDiariaFat": 266911,
+    "metaPositivacao": 3047,
+    "positivadosOficial": 1,
+    "comPedidoHoje": 130,
+    "metaDiariaCli": 145,
+    "rotasHoje": 521,
+    "inativosNaRota": 167,
+    "vendedoresAtivos": 37,
+    "pedidosTotal": 130,
+    "liberadosValor": 228958,
+    "liberadosQtd": 114,
+    "bloqueadosValor": 28878,
+    "bloqueadosQtd": 16,
+    "devolucoesValor": 11603,
+    "devolucoesQtd": 10,
+    "cortesValor": 0,
+    "cortesQtd": 0,
+    "supervisores": [
+      {
+        "id": 9,
+        "nome": "CARLOS HENRIQUE SAMPAIO",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 10,
+        "nome": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+        "rcas": 7,
+        "metaFat": 717960.82,
+        "metaCli": 822,
+        "rotasHoje": 142,
+        "visitasReal": 134,
+        "positivados": 0
+      },
+      {
+        "id": 85,
+        "nome": "GERENTE ABC",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 24,
+        "visitasReal": 1,
+        "positivados": 1
+      },
+      {
+        "id": 11,
+        "nome": "GILBERTO GOMES DOMINGOS",
+        "rcas": 6,
+        "metaFat": 1627683.9,
+        "metaCli": 170,
+        "rotasHoje": 25,
+        "visitasReal": 25,
+        "positivados": 0
+      },
+      {
+        "id": 12,
+        "nome": "IVONEI PEDRO DE MOURA",
+        "rcas": 6,
+        "metaFat": 732125.28,
+        "metaCli": 637,
+        "rotasHoje": 101,
+        "visitasReal": 95,
+        "positivados": 0
+      },
+      {
+        "id": 105,
+        "nome": "MARCIO ROSA SOBRAL BATISTA",
+        "rcas": 4,
+        "metaFat": 188246.5,
+        "metaCli": 294,
+        "rotasHoje": 51,
+        "visitasReal": 39,
+        "positivados": 0
+      },
+      {
+        "id": 13,
+        "nome": "MISSAID MAINARDES RAMOS",
+        "rcas": 5,
+        "metaFat": 1686671.4300000002,
+        "metaCli": 211,
+        "rotasHoje": 16,
+        "visitasReal": 13,
+        "positivados": 0
+      },
+      {
+        "id": 113,
+        "nome": "RCAS INATIVOS",
+        "rcas": 3,
+        "metaFat": 134756.93,
+        "metaCli": 230,
+        "rotasHoje": 57,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 14,
+        "nome": "RODRIGO STELLEO COSTA LEITE",
+        "rcas": 6,
+        "metaFat": 517680.00999999995,
+        "metaCli": 683,
+        "rotasHoje": 105,
+        "visitasReal": 92,
+        "positivados": 0
+      }
+    ],
+    "inativosLista": [
+      {
+        "id": "15324",
+        "nome": "TROPEIRO AGROPECUARIA",
+        "cnpj": "36399362000144",
+        "rca": "224",
+        "dias": "81 dias",
+        "ult": "R$ 412.62"
+      },
+      {
+        "id": "266307",
+        "nome": "DOIDAO BEBIDAS",
+        "cnpj": "47733311000123",
+        "rca": "222",
+        "dias": "81 dias",
+        "ult": "R$ 153.58"
+      },
+      {
+        "id": "14213",
+        "nome": "CAMPO E CASA UTENSILIOS E MAQUINAS AGRIC",
+        "cnpj": "27409512000162",
+        "rca": "215",
+        "dias": "81 dias",
+        "ult": "R$ 118.10"
+      },
+      {
+        "id": "15492",
+        "nome": "POSTO MAX",
+        "cnpj": "37729102000152",
+        "rca": "534",
+        "dias": "81 dias",
+        "ult": "R$ 214.32"
+      },
+      {
+        "id": "15717",
+        "nome": "NA BODEGA",
+        "cnpj": "40916898000167",
+        "rca": "534",
+        "dias": "81 dias",
+        "ult": "R$ 114.22"
+      },
+      {
+        "id": "378312",
+        "nome": "AGROPET LOCATELLI",
+        "cnpj": "64761314000190",
+        "rca": "228",
+        "dias": "80 dias",
+        "ult": "R$ 404.49"
+      },
+      {
+        "id": "5089",
+        "nome": "CASA DO AGRICULTOR",
+        "cnpj": "03760334000151",
+        "rca": "1052",
+        "dias": "80 dias",
+        "ult": "R$ 857.02"
+      },
+      {
+        "id": "16707",
+        "nome": "57 722 150 IRENICE DAS GRACAS DA SILVA M",
+        "cnpj": "57722150000126",
+        "rca": "1052",
+        "dias": "80 dias",
+        "ult": "R$ 136.74"
+      },
+      {
+        "id": "19519",
+        "nome": "CASA DO CRIADOR",
+        "cnpj": "81672289000197",
+        "rca": "1052",
+        "dias": "80 dias",
+        "ult": "R$ 1037.79"
+      },
+      {
+        "id": "14617",
+        "nome": "FERRAGENS SAO VALENTIN",
+        "cnpj": "30206568000124",
+        "rca": "1056",
+        "dias": "80 dias",
+        "ult": "R$ 159.62"
+      },
+      {
+        "id": "12748",
+        "nome": "MARILUZ LONDON CAFE",
+        "cnpj": "18067045000149",
+        "rca": "229",
+        "dias": "79 dias",
+        "ult": "R$ 1049.35"
+      },
+      {
+        "id": "14429",
+        "nome": "CANTINA TIA CAROL",
+        "cnpj": "28904538000140",
+        "rca": "236",
+        "dias": "78 dias",
+        "ult": "R$ 111.15"
+      },
+      {
+        "id": "15879",
+        "nome": "ZELINDA TEREZINHA PAGNO 00789868938",
+        "cnpj": "42671338000115",
+        "rca": "1052",
+        "dias": "78 dias",
+        "ult": "R$ 628.80"
+      },
+      {
+        "id": "16135",
+        "nome": "PANIFICADORA VILLA FAVORITA",
+        "cnpj": "46088595000180",
+        "rca": "227",
+        "dias": "77 dias",
+        "ult": "R$ 388.93"
+      },
+      {
+        "id": "371933",
+        "nome": "MERCADO FERREIRA",
+        "cnpj": "64053518000176",
+        "rca": "206",
+        "dias": "77 dias",
+        "ult": "R$ 176.70"
+      },
+      {
+        "id": "15848",
+        "nome": "VET CLIN",
+        "cnpj": "42323994000127",
+        "rca": "215",
+        "dias": "77 dias",
+        "ult": "R$ 1134.42"
+      },
+      {
+        "id": "13227",
+        "nome": "CLINICA VETERINARIA SAO FRANCISCO",
+        "cnpj": "20937409000146",
+        "rca": "217",
+        "dias": "74 dias",
+        "ult": "R$ 345.78"
+      },
+      {
+        "id": "17793",
+        "nome": "LANCHONETE CARAMURU",
+        "cnpj": "76737030000147",
+        "rca": "236",
+        "dias": "74 dias",
+        "ult": "R$ 127.22"
+      },
+      {
+        "id": "9517",
+        "nome": "FARMACIA SANTO ANJO",
+        "cnpj": "08756122000114",
+        "rca": "534",
+        "dias": "74 dias",
+        "ult": "R$ 342.84"
+      },
+      {
+        "id": "371956",
+        "nome": "CASA DA RACAO",
+        "cnpj": "58987532000144",
+        "rca": "224",
+        "dias": "73 dias",
+        "ult": "R$ 227.53"
+      }
+    ],
+    "bloqueadosLista": [
+      {
+        "num": "58102",
+        "cli": "SUPERMERCADO ESTRELA LTDA",
+        "rca": "101",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "CARLOS HENRIQUE SAMPAIO",
+        "vl": "R$ 8663.40",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "1h 30m"
+      },
+      {
+        "num": "58108",
+        "cli": "MERCEARIA CENTRAL",
+        "rca": "102",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+        "vl": "R$ 7219.50",
+        "motivo": "Boleto Vencido há 4 dias",
+        "tempo": "1h 15m"
+      },
+      {
+        "num": "58115",
+        "cli": "PANIFICADORA DO VALE",
+        "rca": "103",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "CARLOS HENRIQUE SAMPAIO",
+        "vl": "R$ 5775.60",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "50m"
+      },
+      {
+        "num": "58122",
+        "cli": "CASA DE CARNES PRIMOR",
+        "rca": "104",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "GERENTE ABC",
+        "vl": "R$ 4331.70",
+        "motivo": "Preço abaixo da alçada",
+        "tempo": "35m"
+      }
+    ]
+  },
+  "TCV": {
+    "filial": "FILIAL TCV",
+    "sigla": "TCV",
+    "gerente": "Leonardo",
+    "diasUteisRestantes": 21,
+    "metaFinanceira": 5960000,
+    "faturadoOficial": 0,
+    "vendidoHoje": 274160,
+    "metaDiariaFat": 283810,
+    "metaPositivacao": 3116,
+    "positivadosOficial": 0,
+    "comPedidoHoje": 175,
+    "metaDiariaCli": 148,
+    "rotasHoje": 447,
+    "inativosNaRota": 143,
+    "vendedoresAtivos": 50,
+    "pedidosTotal": 175,
+    "liberadosValor": 243454,
+    "liberadosQtd": 154,
+    "bloqueadosValor": 30706,
+    "bloqueadosQtd": 21,
+    "devolucoesValor": 12337,
+    "devolucoesQtd": 10,
+    "cortesValor": 0,
+    "cortesQtd": 0,
+    "supervisores": [
+      {
+        "id": 15,
+        "nome": "CARLOS EDUARDO DA SILVA CAMARGO",
+        "rcas": 4,
+        "metaFat": 593004.16,
+        "metaCli": 148,
+        "rotasHoje": 16,
+        "visitasReal": 12,
+        "positivados": 0
+      },
+      {
+        "id": 86,
+        "nome": "GERENTE TCV",
+        "rcas": 3,
+        "metaFat": 3445.08,
+        "metaCli": 3,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 16,
+        "nome": "GESSANDRO SPEROTTO",
+        "rcas": 10,
+        "metaFat": 904677.36,
+        "metaCli": 811,
+        "rotasHoje": 111,
+        "visitasReal": 109,
+        "positivados": 0
+      },
+      {
+        "id": 17,
+        "nome": "GIANI GREGOLIN",
+        "rcas": 9,
+        "metaFat": 651208.8799999999,
+        "metaCli": 767,
+        "rotasHoje": 124,
+        "visitasReal": 79,
+        "positivados": 0
+      },
+      {
+        "id": 18,
+        "nome": "JORGE BONI",
+        "rcas": 4,
+        "metaFat": 1022621.25,
+        "metaCli": 187,
+        "rotasHoje": 22,
+        "visitasReal": 13,
+        "positivados": 0
+      },
+      {
+        "id": 20,
+        "nome": "LEANDRO MARINHO ABRANCHES",
+        "rcas": 4,
+        "metaFat": 1109728.4,
+        "metaCli": 148,
+        "rotasHoje": 9,
+        "visitasReal": 7,
+        "positivados": 0
+      },
+      {
+        "id": 21,
+        "nome": "ROBERTO OTFINOSKI",
+        "rcas": 5,
+        "metaFat": 995502.5800000001,
+        "metaCli": 149,
+        "rotasHoje": 12,
+        "visitasReal": 12,
+        "positivados": 0
+      },
+      {
+        "id": 22,
+        "nome": "ROSIVAL JESUINO DA SILVA",
+        "rcas": 11,
+        "metaFat": 679812.29,
+        "metaCli": 903,
+        "rotasHoje": 153,
+        "visitasReal": 119,
+        "positivados": 0
+      }
+    ],
+    "inativosLista": [
+      {
+        "id": "263081",
+        "nome": "HULK EMBALAGENS",
+        "cnpj": "24715763000187",
+        "rca": "325",
+        "dias": "81 dias",
+        "ult": "R$ 150.98"
+      },
+      {
+        "id": "263633",
+        "nome": "HOSTEL INN LAGO",
+        "cnpj": "27812272000142",
+        "rca": "349",
+        "dias": "81 dias",
+        "ult": "R$ 113.78"
+      },
+      {
+        "id": "16485",
+        "nome": "GIASON SUPERMERCADO",
+        "cnpj": "51561565000189",
+        "rca": "352",
+        "dias": "81 dias",
+        "ult": "R$ 493.58"
+      },
+      {
+        "id": "12664",
+        "nome": "MERCADO SAO JOAO",
+        "cnpj": "17710954000190",
+        "rca": "357",
+        "dias": "81 dias",
+        "ult": "R$ 40.65"
+      },
+      {
+        "id": "256575",
+        "nome": "CELEIRO CORBELIA",
+        "cnpj": "08080107000107",
+        "rca": "357",
+        "dias": "81 dias",
+        "ult": "R$ 222.81"
+      },
+      {
+        "id": "8485",
+        "nome": "RESTAURANTE TURANI",
+        "cnpj": "07429296000100",
+        "rca": "337",
+        "dias": "81 dias",
+        "ult": "R$ 151.84"
+      },
+      {
+        "id": "265284",
+        "nome": "CASA DE CARNES NORTE",
+        "cnpj": "37783895000198",
+        "rca": "337",
+        "dias": "81 dias",
+        "ult": "R$ 109.44"
+      },
+      {
+        "id": "266903",
+        "nome": "RESTAURANTE WATIO",
+        "cnpj": "55709441000159",
+        "rca": "333",
+        "dias": "80 dias",
+        "ult": "R$ 193.17"
+      },
+      {
+        "id": "266555",
+        "nome": "MERCEARIA OLIVEIRA",
+        "cnpj": "50573139000100",
+        "rca": "349",
+        "dias": "80 dias",
+        "ult": "R$ 345.76"
+      },
+      {
+        "id": "265314",
+        "nome": "MERCADO CASTELLI",
+        "cnpj": "38043218000104",
+        "rca": "356",
+        "dias": "80 dias",
+        "ult": "R$ 130.42"
+      },
+      {
+        "id": "260733",
+        "nome": "POSTO SAO MATEUS",
+        "cnpj": "15307412000146",
+        "rca": "348",
+        "dias": "79 dias",
+        "ult": "R$ 355.56"
+      },
+      {
+        "id": "15529",
+        "nome": "MERCADO IGUACU",
+        "cnpj": "38123601000245",
+        "rca": "333",
+        "dias": "78 dias",
+        "ult": "R$ 429.26"
+      },
+      {
+        "id": "16555",
+        "nome": "MEGA REAL GUARAPUAVA LTDA",
+        "cnpj": "53503003000104",
+        "rca": "349",
+        "dias": "78 dias",
+        "ult": "R$ 1469.92"
+      },
+      {
+        "id": "15007",
+        "nome": "MARIO VANDERLEI MARQUES 03933274931",
+        "cnpj": "33357077000172",
+        "rca": "356",
+        "dias": "78 dias",
+        "ult": "R$ 121.72"
+      },
+      {
+        "id": "372724",
+        "nome": "MERCADO CINELANDIA",
+        "cnpj": "81682015000189",
+        "rca": "359",
+        "dias": "78 dias",
+        "ult": "R$ 309.18"
+      },
+      {
+        "id": "10968",
+        "nome": "PANIFICADORA DOCE MEL",
+        "cnpj": "11154469000100",
+        "rca": "349",
+        "dias": "77 dias",
+        "ult": "R$ 110.62"
+      },
+      {
+        "id": "13556",
+        "nome": "MERCEARIA RIOS",
+        "cnpj": "22929203000108",
+        "rca": "1057",
+        "dias": "77 dias",
+        "ult": "R$ 281.59"
+      },
+      {
+        "id": "19175",
+        "nome": "HEBROM SUPERMERCADO",
+        "cnpj": "80772247000165",
+        "rca": "1057",
+        "dias": "77 dias",
+        "ult": "R$ 24264.72"
+      },
+      {
+        "id": "265342",
+        "nome": "FEST NUTRICAO LTDA",
+        "cnpj": "38241117000130",
+        "rca": "548",
+        "dias": "77 dias",
+        "ult": "R$ 120.23"
+      },
+      {
+        "id": "2755",
+        "nome": "MERCEARIA IOP",
+        "cnpj": "00658924000180",
+        "rca": "343",
+        "dias": "74 dias",
+        "ult": "R$ 432.23"
+      }
+    ],
+    "bloqueadosLista": [
+      {
+        "num": "58102",
+        "cli": "SUPERMERCADO ESTRELA LTDA",
+        "rca": "101",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "CARLOS EDUARDO DA SILVA CAMARGO",
+        "vl": "R$ 9211.80",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "1h 30m"
+      },
+      {
+        "num": "58108",
+        "cli": "MERCEARIA CENTRAL",
+        "rca": "102",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "GERENTE TCV",
+        "vl": "R$ 7676.50",
+        "motivo": "Boleto Vencido há 4 dias",
+        "tempo": "1h 15m"
+      },
+      {
+        "num": "58115",
+        "cli": "PANIFICADORA DO VALE",
+        "rca": "103",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "CARLOS EDUARDO DA SILVA CAMARGO",
+        "vl": "R$ 6141.20",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "50m"
+      },
+      {
+        "num": "58122",
+        "cli": "CASA DE CARNES PRIMOR",
+        "rca": "104",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "GESSANDRO SPEROTTO",
+        "vl": "R$ 4605.90",
+        "motivo": "Preço abaixo da alçada",
+        "tempo": "35m"
+      }
+    ]
+  },
+  "TCA": {
+    "filial": "FILIAL TCA",
+    "sigla": "TCA",
+    "gerente": "Becher",
+    "diasUteisRestantes": 21,
+    "metaFinanceira": 8400000.04,
+    "faturadoOficial": 0,
+    "vendidoHoje": 386400,
+    "metaDiariaFat": 400000,
+    "metaPositivacao": 2451,
+    "positivadosOficial": 0,
+    "comPedidoHoje": 147,
+    "metaDiariaCli": 117,
+    "rotasHoje": 310,
+    "inativosNaRota": 99,
+    "vendedoresAtivos": 42,
+    "pedidosTotal": 147,
+    "liberadosValor": 343123,
+    "liberadosQtd": 129,
+    "bloqueadosValor": 43277,
+    "bloqueadosQtd": 18,
+    "devolucoesValor": 17388,
+    "devolucoesQtd": 14,
+    "cortesValor": 0,
+    "cortesQtd": 0,
+    "supervisores": [
+      {
+        "id": 1,
+        "nome": "FRANCISCO FRANCO FILHO",
+        "rcas": 5,
+        "metaFat": 964758.1499999999,
+        "metaCli": 444,
+        "rotasHoje": 43,
+        "visitasReal": 33,
+        "positivados": 0
+      },
+      {
+        "id": 84,
+        "nome": "GERENTE TCA",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 104,
+        "nome": "IVAIR PRINCIPE FREITAS DE MIRANDA",
+        "rcas": 8,
+        "metaFat": 409856.2899999999,
+        "metaCli": 517,
+        "rotasHoje": 80,
+        "visitasReal": 50,
+        "positivados": 0
+      },
+      {
+        "id": 2,
+        "nome": "JANAINA DA COSTA ALBUQUERQUE",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 3,
+        "nome": "JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR",
+        "rcas": 6,
+        "metaFat": 699146.29,
+        "metaCli": 395,
+        "rotasHoje": 65,
+        "visitasReal": 59,
+        "positivados": 0
+      },
+      {
+        "id": 4,
+        "nome": "MAICON DION NOVAIS SILVA",
+        "rcas": 6,
+        "metaFat": 1805704.48,
+        "metaCli": 563,
+        "rotasHoje": 60,
+        "visitasReal": 41,
+        "positivados": 0
+      },
+      {
+        "id": 5,
+        "nome": "PEDRO FIDENCIO JUNIOR",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 6,
+        "nome": "RODRIGO SOARES MAIA",
+        "rcas": 5,
+        "metaFat": 707026.88,
+        "metaCli": 310,
+        "rotasHoje": 32,
+        "visitasReal": 12,
+        "positivados": 0
+      },
+      {
+        "id": 7,
+        "nome": "VALDCLEY DE CAMPOS SILVA",
+        "rcas": 5,
+        "metaFat": 2787975.46,
+        "metaCli": 73,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 8,
+        "nome": "YASMIM PRISCILA DA SILVA",
+        "rcas": 7,
+        "metaFat": 1025532.49,
+        "metaCli": 149,
+        "rotasHoje": 30,
+        "visitasReal": 26,
+        "positivados": 0
+      }
+    ],
+    "inativosLista": [
+      {
+        "id": "235619",
+        "nome": "MERCEARIA C A",
+        "cnpj": "21289762000120",
+        "rca": "378",
+        "dias": "56 dias",
+        "ult": "R$ 858.48"
+      },
+      {
+        "id": "241347",
+        "nome": "BOA COMPRA",
+        "cnpj": "47885893000163",
+        "rca": "378",
+        "dias": "56 dias",
+        "ult": "R$ 884.74"
+      },
+      {
+        "id": "228425",
+        "nome": "MERCADO BIRIGUI",
+        "cnpj": "05064467000119",
+        "rca": "390",
+        "dias": "53 dias",
+        "ult": "R$ 1822.98"
+      },
+      {
+        "id": "234451",
+        "nome": "VILLA CONVENIENCIA",
+        "cnpj": "17209406000181",
+        "rca": "390",
+        "dias": "53 dias",
+        "ult": "R$ 541.73"
+      },
+      {
+        "id": "238041",
+        "nome": "DROGA CERTA",
+        "cnpj": "29946302000139",
+        "rca": "405",
+        "dias": "53 dias",
+        "ult": "R$ 154.11"
+      },
+      {
+        "id": "372426",
+        "nome": "MERCEARIA SANTOS",
+        "cnpj": "17947287000164",
+        "rca": "372",
+        "dias": "53 dias",
+        "ult": "R$ 618.55"
+      },
+      {
+        "id": "224425",
+        "nome": "POSTO SALTO DAS ANDORINHAS",
+        "cnpj": "01208169000285",
+        "rca": "373",
+        "dias": "53 dias",
+        "ult": "R$ 427.80"
+      },
+      {
+        "id": "228138",
+        "nome": "POSTO DEMENECK AVENIDA",
+        "cnpj": "04790451000201",
+        "rca": "373",
+        "dias": "53 dias",
+        "ult": "R$ 877.04"
+      },
+      {
+        "id": "236011",
+        "nome": "SUPERMERCADO MALUCAO",
+        "cnpj": "22521781000100",
+        "rca": "373",
+        "dias": "53 dias",
+        "ult": "R$ 424.64"
+      },
+      {
+        "id": "232879",
+        "nome": "SUPER SETE DE SETEMBRO",
+        "cnpj": "12503328000100",
+        "rca": "406",
+        "dias": "53 dias",
+        "ult": "R$ 1132.80"
+      },
+      {
+        "id": "233085",
+        "nome": "VIP CONVENIENCIA",
+        "cnpj": "13054211000159",
+        "rca": "406",
+        "dias": "53 dias",
+        "ult": "R$ 479.28"
+      },
+      {
+        "id": "234042",
+        "nome": "DIRCE MARIA SULZBACHER 52060594049",
+        "cnpj": "15363408000103",
+        "rca": "406",
+        "dias": "53 dias",
+        "ult": "R$ 164.21"
+      },
+      {
+        "id": "241091",
+        "nome": "FACILL SUPERMERCADO",
+        "cnpj": "45580474000198",
+        "rca": "406",
+        "dias": "53 dias",
+        "ult": "R$ 1671.01"
+      },
+      {
+        "id": "241746",
+        "nome": "DROGARIA BEM POPULAR BRASIL",
+        "cnpj": "51945744000110",
+        "rca": "406",
+        "dias": "53 dias",
+        "ult": "R$ 163.44"
+      },
+      {
+        "id": "240893",
+        "nome": "MERCADO E CONVENIENCIA CONSTANTINO",
+        "cnpj": "43945434000177",
+        "rca": "384",
+        "dias": "53 dias",
+        "ult": "R$ 679.04"
+      },
+      {
+        "id": "233975",
+        "nome": "JR PANIFICADORA",
+        "cnpj": "15238493000170",
+        "rca": "404",
+        "dias": "53 dias",
+        "ult": "R$ 317.83"
+      },
+      {
+        "id": "239796",
+        "nome": "MERCADO GONCALVES",
+        "cnpj": "36969400000157",
+        "rca": "404",
+        "dias": "53 dias",
+        "ult": "R$ 1550.76"
+      },
+      {
+        "id": "234076",
+        "nome": "PANIFICADORA VIP",
+        "cnpj": "15428062000176",
+        "rca": "385",
+        "dias": "53 dias",
+        "ult": "R$ 1056.74"
+      },
+      {
+        "id": "232396",
+        "nome": "TAPAJOS FESTAS",
+        "cnpj": "11409566000198",
+        "rca": "1028",
+        "dias": "52 dias",
+        "ult": "R$ 163.44"
+      },
+      {
+        "id": "235359",
+        "nome": "PANIFICADORA SUPER PAO",
+        "cnpj": "20214084000173",
+        "rca": "403",
+        "dias": "52 dias",
+        "ult": "R$ 523.20"
+      }
+    ],
+    "bloqueadosLista": [
+      {
+        "num": "58102",
+        "cli": "SUPERMERCADO ESTRELA LTDA",
+        "rca": "101",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "FRANCISCO FRANCO FILHO",
+        "vl": "R$ 12983.10",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "1h 30m"
+      },
+      {
+        "num": "58108",
+        "cli": "MERCEARIA CENTRAL",
+        "rca": "102",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "GERENTE TCA",
+        "vl": "R$ 10819.25",
+        "motivo": "Boleto Vencido há 4 dias",
+        "tempo": "1h 15m"
+      },
+      {
+        "num": "58115",
+        "cli": "PANIFICADORA DO VALE",
+        "rca": "103",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "FRANCISCO FRANCO FILHO",
+        "vl": "R$ 8655.40",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "50m"
+      },
+      {
+        "num": "58122",
+        "cli": "CASA DE CARNES PRIMOR",
+        "rca": "104",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "IVAIR PRINCIPE FREITAS DE MIRANDA",
+        "vl": "R$ 6491.55",
+        "motivo": "Preço abaixo da alçada",
+        "tempo": "35m"
+      }
+    ]
+  },
+  "TPA": {
+    "filial": "FILIAL TPA",
+    "sigla": "TPA",
+    "gerente": "Leandro Souza",
+    "diasUteisRestantes": 21,
+    "metaFinanceira": 6100000.04,
+    "faturadoOficial": 0,
+    "vendidoHoje": 280600,
+    "metaDiariaFat": 290476,
+    "metaPositivacao": 2479,
+    "positivadosOficial": 0,
+    "comPedidoHoje": 112,
+    "metaDiariaCli": 118,
+    "rotasHoje": 346,
+    "inativosNaRota": 111,
+    "vendedoresAtivos": 32,
+    "pedidosTotal": 112,
+    "liberadosValor": 249173,
+    "liberadosQtd": 99,
+    "bloqueadosValor": 31427,
+    "bloqueadosQtd": 13,
+    "devolucoesValor": 12627,
+    "devolucoesQtd": 11,
+    "cortesValor": 0,
+    "cortesQtd": 0,
+    "supervisores": [
+      {
+        "id": 29,
+        "nome": "ANDERSON GIOVANI FERREIRA BOLTER",
+        "rcas": 4,
+        "metaFat": 1351704.77,
+        "metaCli": 226,
+        "rotasHoje": 18,
+        "visitasReal": 2,
+        "positivados": 0
+      },
+      {
+        "id": 30,
+        "nome": "DOUGLAS CRISTIANO DOS SANTOS",
+        "rcas": 8,
+        "metaFat": 803876.2000000001,
+        "metaCli": 637,
+        "rotasHoje": 111,
+        "visitasReal": 39,
+        "positivados": 0
+      },
+      {
+        "id": 88,
+        "nome": "GERENTE TPA",
+        "rcas": 1,
+        "metaFat": 1294590.99,
+        "metaCli": 28,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 31,
+        "nome": "JEFERSON ANTONIO HOESER",
+        "rcas": 3,
+        "metaFat": 1840627.3900000001,
+        "metaCli": 142,
+        "rotasHoje": 13,
+        "visitasReal": 6,
+        "positivados": 0
+      },
+      {
+        "id": 32,
+        "nome": "PAULO CAJA SANTOS SOUZA",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 33,
+        "nome": "ROGERIO DORNELLES PASSOS",
+        "rcas": 9,
+        "metaFat": 279001.41000000003,
+        "metaCli": 865,
+        "rotasHoje": 122,
+        "visitasReal": 56,
+        "positivados": 0
+      },
+      {
+        "id": 34,
+        "nome": "SAMUEL PALHANO DE OLIVEIRA",
+        "rcas": 7,
+        "metaFat": 530199.28,
+        "metaCli": 581,
+        "rotasHoje": 82,
+        "visitasReal": 45,
+        "positivados": 0
+      }
+    ],
+    "inativosLista": [
+      {
+        "id": "372824",
+        "nome": "PADRE REUS SUPERMERCADOS LTDA",
+        "cnpj": "62957015000108",
+        "rca": "1019",
+        "dias": "53 dias",
+        "ult": "R$ 888.12"
+      },
+      {
+        "id": "296098",
+        "nome": "MERCADO DA AVENIDA",
+        "cnpj": "35377593000194",
+        "rca": "160",
+        "dias": "53 dias",
+        "ult": "R$ 1331.82"
+      },
+      {
+        "id": "287112",
+        "nome": "PRATIKA PRODUTOS HIGIENE E LIMPEZA",
+        "cnpj": "08688033000188",
+        "rca": "162",
+        "dias": "52 dias",
+        "ult": "R$ 262.56"
+      },
+      {
+        "id": "295068",
+        "nome": "MERCADO SILVEIRA",
+        "cnpj": "29102737000105",
+        "rca": "145",
+        "dias": "52 dias",
+        "ult": "R$ 188.79"
+      },
+      {
+        "id": "282302",
+        "nome": "SUPERMERCADO PIENEGONDA LTDA - ME",
+        "cnpj": "05141131000102",
+        "rca": "139",
+        "dias": "52 dias",
+        "ult": "R$ 1392.63"
+      },
+      {
+        "id": "372888",
+        "nome": "MINIMERCADO MARTINS",
+        "cnpj": "26940842000117",
+        "rca": "164",
+        "dias": "52 dias",
+        "ult": "R$ 119.13"
+      },
+      {
+        "id": "179288",
+        "nome": "SUPER SANTOS",
+        "cnpj": "89885214000104",
+        "rca": "143",
+        "dias": "52 dias",
+        "ult": "R$ 944.64"
+      },
+      {
+        "id": "172568",
+        "nome": "MARIA BERNADETE DA SILVA",
+        "cnpj": "21458895000182",
+        "rca": "142",
+        "dias": "51 dias",
+        "ult": "R$ 1551.30"
+      },
+      {
+        "id": "278166",
+        "nome": "SUPERMERCADO FLESCH",
+        "cnpj": "02519501000104",
+        "rca": "142",
+        "dias": "51 dias",
+        "ult": "R$ 2814.25"
+      },
+      {
+        "id": "289372",
+        "nome": "SUPERMERCADO ZAGONEL",
+        "cnpj": "10810213000132",
+        "rca": "142",
+        "dias": "51 dias",
+        "ult": "R$ 1661.85"
+      },
+      {
+        "id": "372878",
+        "nome": "DAI CAMAROES E PEIXES",
+        "cnpj": "65137609000152",
+        "rca": "155",
+        "dias": "51 dias",
+        "ult": "R$ 416.93"
+      },
+      {
+        "id": "161992",
+        "nome": "MERCADO MILANEZZI",
+        "cnpj": "05243983000100",
+        "rca": "145",
+        "dias": "51 dias",
+        "ult": "R$ 131.28"
+      },
+      {
+        "id": "169625",
+        "nome": "SUPER SILVEIRA",
+        "cnpj": "12237651000189",
+        "rca": "147",
+        "dias": "51 dias",
+        "ult": "R$ 445.77"
+      },
+      {
+        "id": "176383",
+        "nome": "ELIZANDRO DE OLIVEIRA DE CAMARGO",
+        "cnpj": "46341534000182",
+        "rca": "147",
+        "dias": "51 dias",
+        "ult": "R$ 525.52"
+      },
+      {
+        "id": "291691",
+        "nome": "MINI MERCADO ACOUG LITORAL NORTE",
+        "cnpj": "14260332000110",
+        "rca": "1025",
+        "dias": "51 dias",
+        "ult": "R$ 423.75"
+      },
+      {
+        "id": "169488",
+        "nome": "MERCADO DOS AMIGOS",
+        "cnpj": "11997116000163",
+        "rca": "144",
+        "dias": "50 dias",
+        "ult": "R$ 147.83"
+      },
+      {
+        "id": "296025",
+        "nome": "CELEIRO SUPERMERCADO LTDA",
+        "cnpj": "34814290000129",
+        "rca": "150",
+        "dias": "50 dias",
+        "ult": "R$ 464.13"
+      },
+      {
+        "id": "181819",
+        "nome": "SUPERMERCADO OLIVEIRA",
+        "cnpj": "93726800000175",
+        "rca": "144",
+        "dias": "50 dias",
+        "ult": "R$ 1111.08"
+      },
+      {
+        "id": "181820",
+        "nome": "SUPERMERCADO OLIVEIRA",
+        "cnpj": "93726800000256",
+        "rca": "144",
+        "dias": "50 dias",
+        "ult": "R$ 1123.92"
+      },
+      {
+        "id": "181821",
+        "nome": "SUPERMERCADO OLIVEIRA",
+        "cnpj": "93726800000337",
+        "rca": "144",
+        "dias": "50 dias",
+        "ult": "R$ 850.44"
+      }
+    ],
+    "bloqueadosLista": [
+      {
+        "num": "58102",
+        "cli": "SUPERMERCADO ESTRELA LTDA",
+        "rca": "101",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "ANDERSON GIOVANI FERREIRA BOLTER",
+        "vl": "R$ 9428.10",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "1h 30m"
+      },
+      {
+        "num": "58108",
+        "cli": "MERCEARIA CENTRAL",
+        "rca": "102",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "DOUGLAS CRISTIANO DOS SANTOS",
+        "vl": "R$ 7856.75",
+        "motivo": "Boleto Vencido há 4 dias",
+        "tempo": "1h 15m"
+      },
+      {
+        "num": "58115",
+        "cli": "PANIFICADORA DO VALE",
+        "rca": "103",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "ANDERSON GIOVANI FERREIRA BOLTER",
+        "vl": "R$ 6285.40",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "50m"
+      },
+      {
+        "num": "58122",
+        "cli": "CASA DE CARNES PRIMOR",
+        "rca": "104",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "GERENTE TPA",
+        "vl": "R$ 4714.05",
+        "motivo": "Preço abaixo da alçada",
+        "tempo": "35m"
+      }
+    ]
+  },
+  "TCG": {
+    "filial": "FILIAL TCG",
+    "sigla": "TCG",
+    "gerente": "Danilo",
+    "diasUteisRestantes": 21,
+    "metaFinanceira": 5500000,
+    "faturadoOficial": 0,
+    "vendidoHoje": 253000,
+    "metaDiariaFat": 261905,
+    "metaPositivacao": 1775,
+    "positivadosOficial": 0,
+    "comPedidoHoje": 105,
+    "metaDiariaCli": 85,
+    "rotasHoje": 336,
+    "inativosNaRota": 108,
+    "vendedoresAtivos": 30,
+    "pedidosTotal": 105,
+    "liberadosValor": 224664,
+    "liberadosQtd": 92,
+    "bloqueadosValor": 28336,
+    "bloqueadosQtd": 13,
+    "devolucoesValor": 11385,
+    "devolucoesQtd": 9,
+    "cortesValor": 0,
+    "cortesQtd": 0,
+    "supervisores": [
+      {
+        "id": 36,
+        "nome": "DELINLSON ANTONIO LIMA SILVA",
+        "rcas": 8,
+        "metaFat": 885000,
+        "metaCli": 642,
+        "rotasHoje": 111,
+        "visitasReal": 87,
+        "positivados": 0
+      },
+      {
+        "id": 37,
+        "nome": "EDSON RODRIGO LINIA",
+        "rcas": 7,
+        "metaFat": 880000,
+        "metaCli": 496,
+        "rotasHoje": 96,
+        "visitasReal": 55,
+        "positivados": 0
+      },
+      {
+        "id": 38,
+        "nome": "ELIENAY VIANA DA SILVA",
+        "rcas": 4,
+        "metaFat": 1050000,
+        "metaCli": 94,
+        "rotasHoje": 14,
+        "visitasReal": 14,
+        "positivados": 0
+      },
+      {
+        "id": 89,
+        "nome": "GERENTE TCG",
+        "rcas": 1,
+        "metaFat": 20000,
+        "metaCli": 20,
+        "rotasHoje": 48,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 39,
+        "nome": "PEDRO PAULO PERICLES SALAZAR",
+        "rcas": 4,
+        "metaFat": 2095000,
+        "metaCli": 94,
+        "rotasHoje": 15,
+        "visitasReal": 12,
+        "positivados": 0
+      },
+      {
+        "id": 40,
+        "nome": "TIAGO SANTOS CORREA",
+        "rcas": 6,
+        "metaFat": 570000,
+        "metaCli": 429,
+        "rotasHoje": 52,
+        "visitasReal": 52,
+        "positivados": 0
+      }
+    ],
+    "inativosLista": [
+      {
+        "id": "10291",
+        "nome": "COMERCIAL DE ALIMENTOS UNIÃO LTDA",
+        "cnpj": "11.222.333/0001-44",
+        "rca": "201",
+        "dias": "45 dias",
+        "ult": "R$ 2.450,00"
+      },
+      {
+        "id": "10294",
+        "nome": "SUPERMERCADO BOA PRAÇA",
+        "cnpj": "22.333.444/0001-55",
+        "rca": "202",
+        "dias": "60 dias",
+        "ult": "R$ 1.890,00"
+      },
+      {
+        "id": "10298",
+        "nome": "MERCEARIA E QUITANDA SÃO JOSÉ",
+        "cnpj": "33.444.555/0001-66",
+        "rca": "203",
+        "dias": "38 dias",
+        "ult": "R$ 3.120,00"
+      }
+    ],
+    "bloqueadosLista": [
+      {
+        "num": "58102",
+        "cli": "SUPERMERCADO ESTRELA LTDA",
+        "rca": "101",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "DELINLSON ANTONIO LIMA SILVA",
+        "vl": "R$ 8500.80",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "1h 30m"
+      },
+      {
+        "num": "58108",
+        "cli": "MERCEARIA CENTRAL",
+        "rca": "102",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "EDSON RODRIGO LINIA",
+        "vl": "R$ 7084.00",
+        "motivo": "Boleto Vencido há 4 dias",
+        "tempo": "1h 15m"
+      },
+      {
+        "num": "58115",
+        "cli": "PANIFICADORA DO VALE",
+        "rca": "103",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "DELINLSON ANTONIO LIMA SILVA",
+        "vl": "R$ 5667.20",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "50m"
+      },
+      {
+        "num": "58122",
+        "cli": "CASA DE CARNES PRIMOR",
+        "rca": "104",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "ELIENAY VIANA DA SILVA",
+        "vl": "R$ 4250.40",
+        "motivo": "Preço abaixo da alçada",
+        "tempo": "35m"
+      }
+    ]
+  },
+  "TBL": {
+    "filial": "FILIAL TBL",
+    "sigla": "TBL",
+    "gerente": "Fabio Machado",
+    "diasUteisRestantes": 21,
+    "metaFinanceira": 3804999.9899999998,
+    "faturadoOficial": 0,
+    "vendidoHoje": 175030,
+    "metaDiariaFat": 181190,
+    "metaPositivacao": 2565,
+    "positivadosOficial": 0,
+    "comPedidoHoje": 116,
+    "metaDiariaCli": 122,
+    "rotasHoje": 444,
+    "inativosNaRota": 142,
+    "vendedoresAtivos": 33,
+    "pedidosTotal": 116,
+    "liberadosValor": 155427,
+    "liberadosQtd": 102,
+    "bloqueadosValor": 19603,
+    "bloqueadosQtd": 14,
+    "devolucoesValor": 7876,
+    "devolucoesQtd": 7,
+    "cortesValor": 0,
+    "cortesQtd": 0,
+    "supervisores": [
+      {
+        "id": 111,
+        "nome": "CLT - CRISTIANE DE FREITAS DUARTE",
+        "rcas": 5,
+        "metaFat": 247607.19999999998,
+        "metaCli": 373,
+        "rotasHoje": 68,
+        "visitasReal": 61,
+        "positivados": 0
+      },
+      {
+        "id": 110,
+        "nome": "CLT CLEBER DA SILVA BEZEERA",
+        "rcas": 6,
+        "metaFat": 397958.4099999999,
+        "metaCli": 502,
+        "rotasHoje": 88,
+        "visitasReal": 81,
+        "positivados": 0
+      },
+      {
+        "id": 41,
+        "nome": "CLT- CIRLENE DE FATIMA GOMES VITORINO",
+        "rcas": 2,
+        "metaFat": 420480.02,
+        "metaCli": 59,
+        "rotasHoje": 5,
+        "visitasReal": 1,
+        "positivados": 0
+      },
+      {
+        "id": 43,
+        "nome": "CLT- EVERTON APARECIDO DA SILVA",
+        "rcas": 7,
+        "metaFat": 762398.15,
+        "metaCli": 546,
+        "rotasHoje": 101,
+        "visitasReal": 94,
+        "positivados": 0
+      },
+      {
+        "id": 78,
+        "nome": "CLT- FABIO FURLAN MACHADO",
+        "rcas": 1,
+        "metaFat": 438410.21,
+        "metaCli": 24,
+        "rotasHoje": 29,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 45,
+        "nome": "CLT- KLEBERSON BATISTA LIDUARIO",
+        "rcas": 6,
+        "metaFat": 864246.08,
+        "metaCli": 557,
+        "rotasHoje": 62,
+        "visitasReal": 57,
+        "positivados": 0
+      },
+      {
+        "id": 46,
+        "nome": "CLT- SERGIO LOPES DE OLIVEIRA",
+        "rcas": 6,
+        "metaFat": 673899.92,
+        "metaCli": 504,
+        "rotasHoje": 91,
+        "visitasReal": 60,
+        "positivados": 0
+      },
+      {
+        "id": 91,
+        "nome": "GERENTE TBL",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      }
+    ],
+    "inativosLista": [
+      {
+        "id": "209949",
+        "nome": "CANTINHO DA RODOVIARIA DE BANDEIRANTES",
+        "cnpj": "39679367000119",
+        "rca": "187",
+        "dias": "81 dias",
+        "ult": "R$ 141.83"
+      },
+      {
+        "id": "201132",
+        "nome": "SACOLAO INGLATERRA",
+        "cnpj": "10175559000106",
+        "rca": "194",
+        "dias": "81 dias",
+        "ult": "R$ 100.16"
+      },
+      {
+        "id": "213753",
+        "nome": "MERCADO SANTA LUCIA",
+        "cnpj": "78385192000199",
+        "rca": "195",
+        "dias": "81 dias",
+        "ult": "R$ 153.90"
+      },
+      {
+        "id": "208210",
+        "nome": "AMARO SUPERMERCADO",
+        "cnpj": "27153491000248",
+        "rca": "197",
+        "dias": "81 dias",
+        "ult": "R$ 1230.43"
+      },
+      {
+        "id": "209192",
+        "nome": "MERCADO DE PAULA",
+        "cnpj": "32832723000143",
+        "rca": "191",
+        "dias": "80 dias",
+        "ult": "R$ 158.75"
+      },
+      {
+        "id": "208212",
+        "nome": "L AMARO DE OLIVEIRA LTDA",
+        "cnpj": "27153491000400",
+        "rca": "197",
+        "dias": "80 dias",
+        "ult": "R$ 1450.31"
+      },
+      {
+        "id": "210730",
+        "nome": "LEIA REGINA ALVES FERREIRA 00699135958",
+        "cnpj": "48154692000159",
+        "rca": "177",
+        "dias": "79 dias",
+        "ult": "R$ 114.58"
+      },
+      {
+        "id": "216085",
+        "nome": "REDE FAMA SUPERMERCADOS",
+        "cnpj": "82450974000131",
+        "rca": "190",
+        "dias": "79 dias",
+        "ult": "R$ 3591.00"
+      },
+      {
+        "id": "194865",
+        "nome": "AUTO POSTO PRA FRENTE BRASIL",
+        "cnpj": "04868412000280",
+        "rca": "183",
+        "dias": "79 dias",
+        "ult": "R$ 1097.80"
+      },
+      {
+        "id": "202248",
+        "nome": "COMERCIAL BEM BARATO",
+        "cnpj": "10941125000170",
+        "rca": "1018",
+        "dias": "79 dias",
+        "ult": "R$ 250.33"
+      },
+      {
+        "id": "211225",
+        "nome": "MERCADO VOLPATO EXPRESS",
+        "cnpj": "55208262000138",
+        "rca": "1018",
+        "dias": "79 dias",
+        "ult": "R$ 306.24"
+      },
+      {
+        "id": "207848",
+        "nome": "DINGO",
+        "cnpj": "25137510000136",
+        "rca": "171",
+        "dias": "78 dias",
+        "ult": "R$ 403.76"
+      },
+      {
+        "id": "199585",
+        "nome": "N M DIAS BONILHA",
+        "cnpj": "08663556000170",
+        "rca": "184",
+        "dias": "78 dias",
+        "ult": "R$ 147.44"
+      },
+      {
+        "id": "208542",
+        "nome": "ANA CARLA CUSTODIO FERREIRA",
+        "cnpj": "28737026000217",
+        "rca": "184",
+        "dias": "78 dias",
+        "ult": "R$ 434.99"
+      },
+      {
+        "id": "210480",
+        "nome": "MERCADO NACOES",
+        "cnpj": "45110170000167",
+        "rca": "184",
+        "dias": "78 dias",
+        "ult": "R$ 650.23"
+      },
+      {
+        "id": "192325",
+        "nome": "POSTO IVAIPORA",
+        "cnpj": "03198614000118",
+        "rca": "195",
+        "dias": "78 dias",
+        "ult": "R$ 153.90"
+      },
+      {
+        "id": "209417",
+        "nome": "MERCADO ELIANE",
+        "cnpj": "34377003000160",
+        "rca": "197",
+        "dias": "78 dias",
+        "ult": "R$ 1034.63"
+      },
+      {
+        "id": "196939",
+        "nome": "MERCADINHO AEROPORTO",
+        "cnpj": "06282872000176",
+        "rca": "183",
+        "dias": "78 dias",
+        "ult": "R$ 886.20"
+      },
+      {
+        "id": "385522",
+        "nome": "AUTO POSTO FORINI",
+        "cnpj": "08384466000140",
+        "rca": "171",
+        "dias": "77 dias",
+        "ult": "R$ 111.45"
+      },
+      {
+        "id": "385540",
+        "nome": "VILSON DE FARIAS CUSTODIO",
+        "cnpj": "57977150000177",
+        "rca": "171",
+        "dias": "77 dias",
+        "ult": "R$ 180.24"
+      }
+    ],
+    "bloqueadosLista": [
+      {
+        "num": "58102",
+        "cli": "SUPERMERCADO ESTRELA LTDA",
+        "rca": "101",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "CLT - CRISTIANE DE FREITAS DUARTE",
+        "vl": "R$ 5880.90",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "1h 30m"
+      },
+      {
+        "num": "58108",
+        "cli": "MERCEARIA CENTRAL",
+        "rca": "102",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "CLT CLEBER DA SILVA BEZEERA",
+        "vl": "R$ 4900.75",
+        "motivo": "Boleto Vencido há 4 dias",
+        "tempo": "1h 15m"
+      },
+      {
+        "num": "58115",
+        "cli": "PANIFICADORA DO VALE",
+        "rca": "103",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "CLT - CRISTIANE DE FREITAS DUARTE",
+        "vl": "R$ 3920.60",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "50m"
+      },
+      {
+        "num": "58122",
+        "cli": "CASA DE CARNES PRIMOR",
+        "rca": "104",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "CLT- CIRLENE DE FATIMA GOMES VITORINO",
+        "vl": "R$ 2940.45",
+        "motivo": "Preço abaixo da alçada",
+        "tempo": "35m"
+      }
+    ]
+  },
+  "TPH": {
+    "filial": "FILIAL TPH",
+    "sigla": "TPH",
+    "gerente": "Vagner",
+    "diasUteisRestantes": 21,
+    "metaFinanceira": 12654724.64,
+    "faturadoOficial": 0,
+    "vendidoHoje": 582117,
+    "metaDiariaFat": 602606,
+    "metaPositivacao": 7009,
+    "positivadosOficial": 0,
+    "comPedidoHoje": 294,
+    "metaDiariaCli": 334,
+    "rotasHoje": 1062,
+    "inativosNaRota": 340,
+    "vendedoresAtivos": 84,
+    "pedidosTotal": 294,
+    "liberadosValor": 516920,
+    "liberadosQtd": 259,
+    "bloqueadosValor": 65197,
+    "bloqueadosQtd": 35,
+    "devolucoesValor": 26195,
+    "devolucoesQtd": 22,
+    "cortesValor": 0,
+    "cortesQtd": 0,
+    "supervisores": [
+      {
+        "id": 102,
+        "nome": "CLT AILTON LUIZ ARENDT JUNIOR",
+        "rcas": 5,
+        "metaFat": 1876886.0299999998,
+        "metaCli": 228,
+        "rotasHoje": 21,
+        "visitasReal": 17,
+        "positivados": 0
+      },
+      {
+        "id": 47,
+        "nome": "CLT ALLISON ANTONIO FAGUNDES M PINHEIRO",
+        "rcas": 6,
+        "metaFat": 2127785.05,
+        "metaCli": 301,
+        "rotasHoje": 36,
+        "visitasReal": 32,
+        "positivados": 0
+      },
+      {
+        "id": 103,
+        "nome": "CLT ANDREY CAMILLO PIRAGINE",
+        "rcas": 8,
+        "metaFat": 352827.51,
+        "metaCli": 793,
+        "rotasHoje": 104,
+        "visitasReal": 64,
+        "positivados": 0
+      },
+      {
+        "id": 48,
+        "nome": "CLT CLAUDETE DE SOUZA SCHULTZ",
+        "rcas": 8,
+        "metaFat": 537082.47,
+        "metaCli": 743,
+        "rotasHoje": 100,
+        "visitasReal": 88,
+        "positivados": 0
+      },
+      {
+        "id": 73,
+        "nome": "CLT CRISTIAN EDUARDO RAFFAELLI",
+        "rcas": 9,
+        "metaFat": 1368618.52,
+        "metaCli": 449,
+        "rotasHoje": 79,
+        "visitasReal": 49,
+        "positivados": 0
+      },
+      {
+        "id": 81,
+        "nome": "CLT EDI CARLOS MEIRA",
+        "rcas": 7,
+        "metaFat": 582474.2200000001,
+        "metaCli": 726,
+        "rotasHoje": 83,
+        "visitasReal": 79,
+        "positivados": 0
+      },
+      {
+        "id": 96,
+        "nome": "CLT JEFFERSON POLETTO",
+        "rcas": 5,
+        "metaFat": 628894.1100000001,
+        "metaCli": 330,
+        "rotasHoje": 55,
+        "visitasReal": 52,
+        "positivados": 0
+      },
+      {
+        "id": 50,
+        "nome": "CLT LUCAS RAMOS MONTAGNHANI",
+        "rcas": 6,
+        "metaFat": 3215892.06,
+        "metaCli": 206,
+        "rotasHoje": 29,
+        "visitasReal": 14,
+        "positivados": 0
+      },
+      {
+        "id": 51,
+        "nome": "CLT LUIZ AUGUSTO RAMOS",
+        "rcas": 8,
+        "metaFat": 456839.28,
+        "metaCli": 842,
+        "rotasHoje": 117,
+        "visitasReal": 99,
+        "positivados": 0
+      },
+      {
+        "id": 97,
+        "nome": "CLT PRISCILA A D NASCIMENTO STRAPASSON",
+        "rcas": 6,
+        "metaFat": 413776.1400000001,
+        "metaCli": 711,
+        "rotasHoje": 124,
+        "visitasReal": 53,
+        "positivados": 0
+      },
+      {
+        "id": 52,
+        "nome": "CLT RODRIGO DE ARRUDA DARROS",
+        "rcas": 8,
+        "metaFat": 536746.9,
+        "metaCli": 798,
+        "rotasHoje": 126,
+        "visitasReal": 88,
+        "positivados": 0
+      },
+      {
+        "id": 55,
+        "nome": "CLT VITOR MANUEL PAULOS CORREIA",
+        "rcas": 7,
+        "metaFat": 377070.68,
+        "metaCli": 831,
+        "rotasHoje": 111,
+        "visitasReal": 74,
+        "positivados": 0
+      },
+      {
+        "id": 92,
+        "nome": "GERENTE TPH",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 1,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 76,
+        "nome": "RODRIGO BERTONI",
+        "rcas": 1,
+        "metaFat": 179831.67,
+        "metaCli": 51,
+        "rotasHoje": 76,
+        "visitasReal": 1,
+        "positivados": 0
+      },
+      {
+        "id": 82,
+        "nome": "VAGO TPH",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      }
+    ],
+    "inativosLista": [
+      {
+        "id": "78342",
+        "nome": "PANIFICADORA TRIGO DE OURO",
+        "cnpj": "55207110000110",
+        "rca": "76",
+        "dias": "81 dias",
+        "ult": "R$ 136.87"
+      },
+      {
+        "id": "327841",
+        "nome": "MERCEARIA SAO JOSE",
+        "cnpj": "16704946000179",
+        "rca": "76",
+        "dias": "81 dias",
+        "ult": "R$ 242.00"
+      },
+      {
+        "id": "59332",
+        "nome": "MV COMERCIO DE ALIMENTOS",
+        "cnpj": "05211734000133",
+        "rca": "97",
+        "dias": "81 dias",
+        "ult": "R$ 687.36"
+      },
+      {
+        "id": "71014",
+        "nome": "BANCA MARCO ZERO",
+        "cnpj": "15186691000137",
+        "rca": "97",
+        "dias": "81 dias",
+        "ult": "R$ 519.08"
+      },
+      {
+        "id": "333611",
+        "nome": "FORT POPULAR",
+        "cnpj": "32855457000174",
+        "rca": "78",
+        "dias": "81 dias",
+        "ult": "R$ 124.74"
+      },
+      {
+        "id": "86522",
+        "nome": "SM ADRIANE",
+        "cnpj": "95396586000161",
+        "rca": "59",
+        "dias": "80 dias",
+        "ult": "R$ 2494.19"
+      },
+      {
+        "id": "60616",
+        "nome": "SUPERMERCADO IDEAL",
+        "cnpj": "05792691000127",
+        "rca": "1041",
+        "dias": "80 dias",
+        "ult": "R$ 171.58"
+      },
+      {
+        "id": "323276",
+        "nome": "QUITANDA",
+        "cnpj": "10308189000138",
+        "rca": "1041",
+        "dias": "80 dias",
+        "ult": "R$ 208.77"
+      },
+      {
+        "id": "75260",
+        "nome": "HERMANOS TABACARIA E COMERCIO DE BEBIDAS",
+        "cnpj": "31394319000172",
+        "rca": "76",
+        "dias": "80 dias",
+        "ult": "R$ 935.72"
+      },
+      {
+        "id": "328545",
+        "nome": "TOKO FRIOS",
+        "cnpj": "18190026000610",
+        "rca": "76",
+        "dias": "80 dias",
+        "ult": "R$ 1957.78"
+      },
+      {
+        "id": "71308",
+        "nome": "AUTO POSTO SEIS PRIMOS LTDA",
+        "cnpj": "15865625000193",
+        "rca": "1044",
+        "dias": "80 dias",
+        "ult": "R$ 433.32"
+      },
+      {
+        "id": "57350",
+        "nome": "SUPERMERCADO CAMBARA",
+        "cnpj": "04351431000153",
+        "rca": "114",
+        "dias": "80 dias",
+        "ult": "R$ 278.55"
+      },
+      {
+        "id": "56494",
+        "nome": "PANIF CONF MIHRA",
+        "cnpj": "04000809000174",
+        "rca": "103",
+        "dias": "80 dias",
+        "ult": "R$ 129.73"
+      },
+      {
+        "id": "57757",
+        "nome": "SM MOTTIN",
+        "cnpj": "04518977000156",
+        "rca": "111",
+        "dias": "80 dias",
+        "ult": "R$ 312.32"
+      },
+      {
+        "id": "64958",
+        "nome": "HIPERFARMA",
+        "cnpj": "08629078000181",
+        "rca": "103",
+        "dias": "80 dias",
+        "ult": "R$ 184.00"
+      },
+      {
+        "id": "74669",
+        "nome": "BEBIDAS COSTA",
+        "cnpj": "28897736000123",
+        "rca": "76",
+        "dias": "79 dias",
+        "ult": "R$ 138.32"
+      },
+      {
+        "id": "79928",
+        "nome": "PANIF ALADIM",
+        "cnpj": "75758615000180",
+        "rca": "70",
+        "dias": "79 dias",
+        "ult": "R$ 278.23"
+      },
+      {
+        "id": "333704",
+        "nome": "MERCADO XAVIER",
+        "cnpj": "33115925000137",
+        "rca": "112",
+        "dias": "79 dias",
+        "ult": "R$ 903.12"
+      },
+      {
+        "id": "68454",
+        "nome": "PANIFICADORA E CONF NOGUEIRA",
+        "cnpj": "11379668000108",
+        "rca": "1090",
+        "dias": "79 dias",
+        "ult": "R$ 103.68"
+      },
+      {
+        "id": "54255",
+        "nome": "PANIF DINDA",
+        "cnpj": "03081944000129",
+        "rca": "71",
+        "dias": "79 dias",
+        "ult": "R$ 121.60"
+      }
+    ],
+    "bloqueadosLista": [
+      {
+        "num": "58102",
+        "cli": "SUPERMERCADO ESTRELA LTDA",
+        "rca": "101",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "CLT AILTON LUIZ ARENDT JUNIOR",
+        "vl": "R$ 19559.10",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "1h 30m"
+      },
+      {
+        "num": "58108",
+        "cli": "MERCEARIA CENTRAL",
+        "rca": "102",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "CLT ALLISON ANTONIO FAGUNDES M PINHEIRO",
+        "vl": "R$ 16299.25",
+        "motivo": "Boleto Vencido há 4 dias",
+        "tempo": "1h 15m"
+      },
+      {
+        "num": "58115",
+        "cli": "PANIFICADORA DO VALE",
+        "rca": "103",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "CLT AILTON LUIZ ARENDT JUNIOR",
+        "vl": "R$ 13039.40",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "50m"
+      },
+      {
+        "num": "58122",
+        "cli": "CASA DE CARNES PRIMOR",
+        "rca": "104",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "CLT ANDREY CAMILLO PIRAGINE",
+        "vl": "R$ 9779.55",
+        "motivo": "Preço abaixo da alçada",
+        "tempo": "35m"
+      }
+    ]
+  },
+  "MCD": {
+    "filial": "FILIAL MCD",
+    "sigla": "MCD",
+    "gerente": "Adriano",
+    "diasUteisRestantes": 21,
+    "metaFinanceira": 8075000.01,
+    "faturadoOficial": 0,
+    "vendidoHoje": 371450,
+    "metaDiariaFat": 384524,
+    "metaPositivacao": 2903,
+    "positivadosOficial": 18,
+    "comPedidoHoje": 182,
+    "metaDiariaCli": 138,
+    "rotasHoje": 396,
+    "inativosNaRota": 127,
+    "vendedoresAtivos": 52,
+    "pedidosTotal": 182,
+    "liberadosValor": 329848,
+    "liberadosQtd": 160,
+    "bloqueadosValor": 41602,
+    "bloqueadosQtd": 22,
+    "devolucoesValor": 16715,
+    "devolucoesQtd": 14,
+    "cortesValor": 0,
+    "cortesQtd": 0,
+    "supervisores": [
+      {
+        "id": 106,
+        "nome": "0000",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 77,
+        "nome": "ADRIANO MARQUES SOLER",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 35,
+        "nome": "ALYFER PEREIRA MENDES",
+        "rcas": 9,
+        "metaFat": 1230769.76,
+        "metaCli": 352,
+        "rotasHoje": 61,
+        "visitasReal": 53,
+        "positivados": 0
+      },
+      {
+        "id": 112,
+        "nome": "CARLOS ALAGUEZ DA SILVA",
+        "rcas": 7,
+        "metaFat": 346362.98000000004,
+        "metaCli": 447,
+        "rotasHoje": 55,
+        "visitasReal": 30,
+        "positivados": 2
+      },
+      {
+        "id": 57,
+        "nome": "CLEOMAR DINIZ BARBOSA",
+        "rcas": 9,
+        "metaFat": 675673.8799999999,
+        "metaCli": 629,
+        "rotasHoje": 73,
+        "visitasReal": 59,
+        "positivados": 2
+      },
+      {
+        "id": 56,
+        "nome": "FLAVIO RUFINO",
+        "rcas": 13,
+        "metaFat": 1308564.26,
+        "metaCli": 755,
+        "rotasHoje": 96,
+        "visitasReal": 43,
+        "positivados": 7
+      },
+      {
+        "id": 93,
+        "nome": "GERENTE MCD",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 34,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 58,
+        "nome": "JONATAS DA SILVA DE OLIVEIRA",
+        "rcas": 8,
+        "metaFat": 983909.2000000001,
+        "metaCli": 473,
+        "rotasHoje": 51,
+        "visitasReal": 15,
+        "positivados": 3
+      },
+      {
+        "id": 60,
+        "nome": "MARCELO ALEXANDRE NERI",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 61,
+        "nome": "MATTHEUS MELO DOS SANTOS",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 62,
+        "nome": "THIAGO DA SILVA CONEGUNDES",
+        "rcas": 6,
+        "metaFat": 3529719.93,
+        "metaCli": 247,
+        "rotasHoje": 26,
+        "visitasReal": 13,
+        "positivados": 4
+      }
+    ],
+    "inativosLista": [
+      {
+        "id": "10291",
+        "nome": "COMERCIAL DE ALIMENTOS UNIÃO LTDA",
+        "cnpj": "11.222.333/0001-44",
+        "rca": "201",
+        "dias": "45 dias",
+        "ult": "R$ 2.450,00"
+      },
+      {
+        "id": "10294",
+        "nome": "SUPERMERCADO BOA PRAÇA",
+        "cnpj": "22.333.444/0001-55",
+        "rca": "202",
+        "dias": "60 dias",
+        "ult": "R$ 1.890,00"
+      },
+      {
+        "id": "10298",
+        "nome": "MERCEARIA E QUITANDA SÃO JOSÉ",
+        "cnpj": "33.444.555/0001-66",
+        "rca": "203",
+        "dias": "38 dias",
+        "ult": "R$ 3.120,00"
+      }
+    ],
+    "bloqueadosLista": [
+      {
+        "num": "58102",
+        "cli": "SUPERMERCADO ESTRELA LTDA",
+        "rca": "101",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "0000",
+        "vl": "R$ 12480.60",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "1h 30m"
+      },
+      {
+        "num": "58108",
+        "cli": "MERCEARIA CENTRAL",
+        "rca": "102",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "ADRIANO MARQUES SOLER",
+        "vl": "R$ 10400.50",
+        "motivo": "Boleto Vencido há 4 dias",
+        "tempo": "1h 15m"
+      },
+      {
+        "num": "58115",
+        "cli": "PANIFICADORA DO VALE",
+        "rca": "103",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "0000",
+        "vl": "R$ 8320.40",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "50m"
+      },
+      {
+        "num": "58122",
+        "cli": "CASA DE CARNES PRIMOR",
+        "rca": "104",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "ALYFER PEREIRA MENDES",
+        "vl": "R$ 6240.30",
+        "motivo": "Preço abaixo da alçada",
+        "tempo": "35m"
+      }
+    ]
+  },
+  "TSJ": {
+    "filial": "FILIAL TSJ",
+    "sigla": "TSJ",
+    "gerente": "Saldanha",
+    "diasUteisRestantes": 21,
+    "metaFinanceira": 9204999.99,
+    "faturadoOficial": 0,
+    "vendidoHoje": 423430,
+    "metaDiariaFat": 438333,
+    "metaPositivacao": 3031,
+    "positivadosOficial": 0,
+    "comPedidoHoje": 137,
+    "metaDiariaCli": 144,
+    "rotasHoje": 469,
+    "inativosNaRota": 150,
+    "vendedoresAtivos": 39,
+    "pedidosTotal": 137,
+    "liberadosValor": 376006,
+    "liberadosQtd": 121,
+    "bloqueadosValor": 47424,
+    "bloqueadosQtd": 16,
+    "devolucoesValor": 19054,
+    "devolucoesQtd": 16,
+    "cortesValor": 0,
+    "cortesQtd": 0,
+    "supervisores": [
+      {
+        "id": 63,
+        "nome": "CLT - ANA CRISTINA DOS SANTOS YAMATO",
+        "rcas": 10,
+        "metaFat": 1670582.1800000004,
+        "metaCli": 983,
+        "rotasHoje": 120,
+        "visitasReal": 93,
+        "positivados": 0
+      },
+      {
+        "id": 65,
+        "nome": "CLT - CRISTIANO RODRIGUES MACHADO",
+        "rcas": 9,
+        "metaFat": 5250430.77,
+        "metaCli": 412,
+        "rotasHoje": 57,
+        "visitasReal": 36,
+        "positivados": 0
+      },
+      {
+        "id": 67,
+        "nome": "CLT - JULIO CESAR SOARES DE PAULO",
+        "rcas": 9,
+        "metaFat": 1664144.09,
+        "metaCli": 633,
+        "rotasHoje": 80,
+        "visitasReal": 62,
+        "positivados": 0
+      },
+      {
+        "id": 68,
+        "nome": "CLT - VENDA EMPRESA (INTERNO)",
+        "rcas": 1,
+        "metaFat": 75910.92,
+        "metaCli": 1,
+        "rotasHoje": 50,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 109,
+        "nome": "CLT - VICTOR HUGO FONSECA CARVALHO",
+        "rcas": 10,
+        "metaFat": 543932.03,
+        "metaCli": 1002,
+        "rotasHoje": 162,
+        "visitasReal": 113,
+        "positivados": 0
+      },
+      {
+        "id": 94,
+        "nome": "GERENTE TSJ",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      }
+    ],
+    "inativosLista": [
+      {
+        "id": "367351",
+        "nome": "JT MANUTENCOES E JARDINAGEM",
+        "cnpj": "45214033000172",
+        "rca": "1075",
+        "dias": "116 dias",
+        "ult": "R$ 179.72"
+      },
+      {
+        "id": "368383",
+        "nome": "Q-TUDO",
+        "cnpj": "50340382000170",
+        "rca": "1021",
+        "dias": "114 dias",
+        "ult": "R$ 564.04"
+      },
+      {
+        "id": "368136",
+        "nome": "MERCADO MIX MOGI",
+        "cnpj": "48949437000100",
+        "rca": "1073",
+        "dias": "114 dias",
+        "ult": "R$ 1485.72"
+      },
+      {
+        "id": "351797",
+        "nome": "EDISON DE JESUS EMPORIO ME",
+        "cnpj": "02161509000141",
+        "rca": "33",
+        "dias": "112 dias",
+        "ult": "R$ 102.88"
+      },
+      {
+        "id": "357957",
+        "nome": "FRUTI CITY",
+        "cnpj": "08303677000100",
+        "rca": "8",
+        "dias": "111 dias",
+        "ult": "R$ 348.55"
+      },
+      {
+        "id": "358938",
+        "nome": "MERCADO OLIVEIRA",
+        "cnpj": "09434748000177",
+        "rca": "1075",
+        "dias": "105 dias",
+        "ult": "R$ 100.45"
+      },
+      {
+        "id": "366388",
+        "nome": "RIO TAMA DISTRIBUIDORA",
+        "cnpj": "38711880000187",
+        "rca": "36",
+        "dias": "105 dias",
+        "ult": "R$ 619.20"
+      },
+      {
+        "id": "365312",
+        "nome": "ARMAZEM SANTA CLARA",
+        "cnpj": "31881571000106",
+        "rca": "42",
+        "dias": "104 dias",
+        "ult": "R$ 175.89"
+      },
+      {
+        "id": "362432",
+        "nome": "MINIMERCADO JOSEPHI",
+        "cnpj": "18753247000144",
+        "rca": "3",
+        "dias": "102 dias",
+        "ult": "R$ 678.49"
+      },
+      {
+        "id": "361622",
+        "nome": "CANTINA DANNYS",
+        "cnpj": "15081676000124",
+        "rca": "42",
+        "dias": "99 dias",
+        "ult": "R$ 186.00"
+      },
+      {
+        "id": "350548",
+        "nome": "RESTAURANTE YAMABUKI",
+        "cnpj": "00398936000112",
+        "rca": "42",
+        "dias": "99 dias",
+        "ult": "R$ 638.28"
+      },
+      {
+        "id": "364610",
+        "nome": "MERCEARIA LOPES",
+        "cnpj": "28349542000193",
+        "rca": "25",
+        "dias": "98 dias",
+        "ult": "R$ 375.26"
+      },
+      {
+        "id": "369863",
+        "nome": "PADARIA SCALA",
+        "cnpj": "59432682000154",
+        "rca": "40",
+        "dias": "98 dias",
+        "ult": "R$ 276.12"
+      },
+      {
+        "id": "366533",
+        "nome": "RANIERI DE C BOAVENTURA 33888278856",
+        "cnpj": "40079992000109",
+        "rca": "23",
+        "dias": "98 dias",
+        "ult": "R$ 154.61"
+      },
+      {
+        "id": "361253",
+        "nome": "RAFAEL AUGUSTO ALVES",
+        "cnpj": "13979213000230",
+        "rca": "44",
+        "dias": "98 dias",
+        "ult": "R$ 203.22"
+      },
+      {
+        "id": "365139",
+        "nome": "LOJA SANTA CLARA",
+        "cnpj": "30953173000195",
+        "rca": "17",
+        "dias": "90 dias",
+        "ult": "R$ 246.65"
+      },
+      {
+        "id": "365481",
+        "nome": "MERCEARIA RECANTO FORMOSO",
+        "cnpj": "32851992000157",
+        "rca": "1023",
+        "dias": "84 dias",
+        "ult": "R$ 613.74"
+      },
+      {
+        "id": "367892",
+        "nome": "ADEGA VDN",
+        "cnpj": "47759650000189",
+        "rca": "30",
+        "dias": "84 dias",
+        "ult": "R$ 174.06"
+      },
+      {
+        "id": "369420",
+        "nome": "DROGARIA AREAO",
+        "cnpj": "56332208000162",
+        "rca": "23",
+        "dias": "84 dias",
+        "ult": "R$ 628.76"
+      },
+      {
+        "id": "366017",
+        "nome": "MERCADO REAL",
+        "cnpj": "35833248000118",
+        "rca": "1021",
+        "dias": "84 dias",
+        "ult": "R$ 119.34"
+      }
+    ],
+    "bloqueadosLista": [
+      {
+        "num": "58102",
+        "cli": "SUPERMERCADO ESTRELA LTDA",
+        "rca": "101",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "CLT - ANA CRISTINA DOS SANTOS YAMATO",
+        "vl": "R$ 14227.20",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "1h 30m"
+      },
+      {
+        "num": "58108",
+        "cli": "MERCEARIA CENTRAL",
+        "rca": "102",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "CLT - CRISTIANO RODRIGUES MACHADO",
+        "vl": "R$ 11856.00",
+        "motivo": "Boleto Vencido há 4 dias",
+        "tempo": "1h 15m"
+      },
+      {
+        "num": "58115",
+        "cli": "PANIFICADORA DO VALE",
+        "rca": "103",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "CLT - ANA CRISTINA DOS SANTOS YAMATO",
+        "vl": "R$ 9484.80",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "50m"
+      },
+      {
+        "num": "58122",
+        "cli": "CASA DE CARNES PRIMOR",
+        "rca": "104",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "CLT - JULIO CESAR SOARES DE PAULO",
+        "vl": "R$ 7113.60",
+        "motivo": "Preço abaixo da alçada",
+        "tempo": "35m"
+      }
+    ]
+  },
+  "TBE": {
+    "filial": "FILIAL TBE",
+    "sigla": "TBE",
+    "gerente": "Diego",
+    "diasUteisRestantes": 21,
+    "metaFinanceira": 6391999.99,
+    "faturadoOficial": 0,
+    "vendidoHoje": 294032,
+    "metaDiariaFat": 304381,
+    "metaPositivacao": 2338,
+    "positivadosOficial": 0,
+    "comPedidoHoje": 105,
+    "metaDiariaCli": 111,
+    "rotasHoje": 510,
+    "inativosNaRota": 163,
+    "vendedoresAtivos": 30,
+    "pedidosTotal": 105,
+    "liberadosValor": 261100,
+    "liberadosQtd": 92,
+    "bloqueadosValor": 32932,
+    "bloqueadosQtd": 13,
+    "devolucoesValor": 13231,
+    "devolucoesQtd": 11,
+    "cortesValor": 0,
+    "cortesQtd": 0,
+    "supervisores": [
+      {
+        "id": 75,
+        "nome": "ALESSANDRO DE OLIVEIRA ALMEIDA",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 69,
+        "nome": "ALEX SANDRO SOARES ELIAS",
+        "rcas": 5,
+        "metaFat": 2630113.46,
+        "metaCli": 219,
+        "rotasHoje": 22,
+        "visitasReal": 11,
+        "positivados": 0
+      },
+      {
+        "id": 114,
+        "nome": "DIEGO GV",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 95,
+        "nome": "GERENTE TBE",
+        "rcas": 0,
+        "metaFat": 0,
+        "metaCli": 0,
+        "rotasHoje": 0,
+        "visitasReal": 0,
+        "positivados": 0
+      },
+      {
+        "id": 70,
+        "nome": "HAMILTON RICARDO DOS SANTOS MENDES",
+        "rcas": 7,
+        "metaFat": 391786.99,
+        "metaCli": 662,
+        "rotasHoje": 159,
+        "visitasReal": 57,
+        "positivados": 0
+      },
+      {
+        "id": 101,
+        "nome": "LUIS THIAGO VIRTUOSO BOEIRA",
+        "rcas": 4,
+        "metaFat": 2022024.0499999998,
+        "metaCli": 147,
+        "rotasHoje": 21,
+        "visitasReal": 13,
+        "positivados": 0
+      },
+      {
+        "id": 71,
+        "nome": "NEIVA CLEONICE SERRA ISOPPO",
+        "rcas": 6,
+        "metaFat": 830381.23,
+        "metaCli": 538,
+        "rotasHoje": 92,
+        "visitasReal": 92,
+        "positivados": 0
+      },
+      {
+        "id": 72,
+        "nome": "PATRICIA CHAVES MACHADO",
+        "rcas": 8,
+        "metaFat": 517694.26,
+        "metaCli": 772,
+        "rotasHoje": 216,
+        "visitasReal": 133,
+        "positivados": 0
+      }
+    ],
+    "inativosLista": [
+      {
+        "id": "170557",
+        "nome": "SUPER GAUCHO",
+        "cnpj": "13976922000180",
+        "rca": "302",
+        "dias": "56 dias",
+        "ult": "R$ 608.74"
+      },
+      {
+        "id": "176139",
+        "nome": "CIA DAS BEBIDAS",
+        "cnpj": "44037200000194",
+        "rca": "290",
+        "dias": "56 dias",
+        "ult": "R$ 118.73"
+      },
+      {
+        "id": "372191",
+        "nome": "JOSE FERNANDO SANTOS DE JESUS",
+        "cnpj": "52741887000172",
+        "rca": "285",
+        "dias": "55 dias",
+        "ult": "R$ 118.81"
+      },
+      {
+        "id": "177433",
+        "nome": "MARIA THALITA",
+        "cnpj": "60464411000160",
+        "rca": "287",
+        "dias": "50 dias",
+        "ult": "R$ 161.14"
+      },
+      {
+        "id": "177482",
+        "nome": "RIBEIRO E SILVA",
+        "cnpj": "61650857000141",
+        "rca": "302",
+        "dias": "50 dias",
+        "ult": "R$ 1788.71"
+      },
+      {
+        "id": "167242",
+        "nome": "ARMAZEM DOS DOCES",
+        "cnpj": "09294154000108",
+        "rca": "303",
+        "dias": "50 dias",
+        "ult": "R$ 429.86"
+      },
+      {
+        "id": "157944",
+        "nome": "RIVERSIDES",
+        "cnpj": "02584281000100",
+        "rca": "299",
+        "dias": "49 dias",
+        "ult": "R$ 489.57"
+      },
+      {
+        "id": "173203",
+        "nome": "FRUTEIRA ROCKER",
+        "cnpj": "24538743000188",
+        "rca": "287",
+        "dias": "48 dias",
+        "ult": "R$ 431.01"
+      },
+      {
+        "id": "161497",
+        "nome": "BAITA SUPER",
+        "cnpj": "04890459000169",
+        "rca": "136",
+        "dias": "48 dias",
+        "ult": "R$ 28425.18"
+      },
+      {
+        "id": "281001",
+        "nome": "MINI MERCADO ACOUGUE STA RITA",
+        "cnpj": "04334949000189",
+        "rca": "298",
+        "dias": "47 dias",
+        "ult": "R$ 1303.84"
+      },
+      {
+        "id": "292943",
+        "nome": "MERCADO RAUPP",
+        "cnpj": "18316557000100",
+        "rca": "290",
+        "dias": "46 dias",
+        "ult": "R$ 460.08"
+      },
+      {
+        "id": "176082",
+        "nome": "POSTO CENTER",
+        "cnpj": "43648976000773",
+        "rca": "304",
+        "dias": "42 dias",
+        "ult": "R$ 692.20"
+      },
+      {
+        "id": "392219",
+        "nome": "VICTOR HUGO DORNELES GONCALVES",
+        "cnpj": "49117408000137",
+        "rca": "285",
+        "dias": "42 dias",
+        "ult": "R$ 102.55"
+      },
+      {
+        "id": "177007",
+        "nome": "MINIMERCADO VARGAS",
+        "cnpj": "53105271000178",
+        "rca": "302",
+        "dias": "42 dias",
+        "ult": "R$ 281.53"
+      },
+      {
+        "id": "173739",
+        "nome": "SERGIO OLI FALLER",
+        "cnpj": "27983504000125",
+        "rca": "287",
+        "dias": "40 dias",
+        "ult": "R$ 109.63"
+      },
+      {
+        "id": "182582",
+        "nome": "BAR E ARMAZEM RECANTO DA AMIZADE",
+        "cnpj": "94641933000101",
+        "rca": "287",
+        "dias": "40 dias",
+        "ult": "R$ 236.13"
+      },
+      {
+        "id": "293675",
+        "nome": "SUKA LANCHES",
+        "cnpj": "21293750000179",
+        "rca": "308",
+        "dias": "35 dias",
+        "ult": "R$ 612.84"
+      },
+      {
+        "id": "168173",
+        "nome": "KEPPLER IND E COM DE ALILMENTOS LTDA",
+        "cnpj": "10525324000873",
+        "rca": "311",
+        "dias": "34 dias",
+        "ult": "R$ 107460.00"
+      },
+      {
+        "id": "176759",
+        "nome": "MERCADO BOM DE PRECO",
+        "cnpj": "49981371000190",
+        "rca": "302",
+        "dias": "34 dias",
+        "ult": "R$ 981.42"
+      },
+      {
+        "id": "384894",
+        "nome": "KI KIOSKE",
+        "cnpj": "54717164000163",
+        "rca": "308",
+        "dias": "33 dias",
+        "ult": "R$ 134.64"
+      }
+    ],
+    "bloqueadosLista": [
+      {
+        "num": "58102",
+        "cli": "SUPERMERCADO ESTRELA LTDA",
+        "rca": "101",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "ALESSANDRO DE OLIVEIRA ALMEIDA",
+        "vl": "R$ 9879.60",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "1h 30m"
+      },
+      {
+        "num": "58108",
+        "cli": "MERCEARIA CENTRAL",
+        "rca": "102",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "ALEX SANDRO SOARES ELIAS",
+        "vl": "R$ 8233.00",
+        "motivo": "Boleto Vencido há 4 dias",
+        "tempo": "1h 15m"
+      },
+      {
+        "num": "58115",
+        "cli": "PANIFICADORA DO VALE",
+        "rca": "103",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "ALESSANDRO DE OLIVEIRA ALMEIDA",
+        "vl": "R$ 6586.40",
+        "motivo": "Limite de Crédito Excedido",
+        "tempo": "50m"
+      },
+      {
+        "num": "58122",
+        "cli": "CASA DE CARNES PRIMOR",
+        "rca": "104",
+        "vendedor": "CLT VENDEDOR",
+        "sup": "DIEGO GV",
+        "vl": "R$ 4939.80",
+        "motivo": "Preço abaixo da alçada",
+        "tempo": "35m"
+      }
+    ]
+  }
+}

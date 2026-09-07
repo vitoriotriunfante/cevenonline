@@ -1,0 +1,9 @@
+name = "ceven-cftv-matrix"
+compatibility_date = "2024-08-01"
+pages_build_output_dir = "./public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ceven_noc_d1"
+database_id = "2e5bb59c-8db4-43a2-a13c-5c78e404e52d"
+migrations_dir = "./migrations"

@@ -1,0 +1,67 @@
+# =============================================
+# CEVEN NOC — .gitignore Oficial
+# =============================================
+
+# Banco de dados local (378 MB — só para extração local)
+*.db
+*.db-shm
+*.db-wal
+
+# Scripts descartáveis de análise pontual (120+ temporários)
+scripts/
+
+# Dependências
+node_modules/
+
+# Cache do Wrangler (local)
+.wrangler/
+
+# Arquivos de captura de rede (HAR do Chrome)
+*.har
+
+# Planilhas e CSVs de dados sensíveis
+*.xlsx
+*.csv
+
+# SQLs de sincronização gerados localmente
+d1_*.sql
+
+# Relatórios de WhatsApp gerados
+FECHAMENTO_*.txt
+RELATORIO_*.txt
+MENSAGEM_*.txt
+PROPOSTA_*.txt
+
+# Outputs temporários de JSON
+resultado_*.json
+temp_*.json
+lista_zerados_*.json
+efetividade_*.json
+consolidado_grupo_*.json
+recuperacao_*.json
+relatorio_anomalias_*.json
+relatorio_real_*.json
+relatorio_todas_*.json
+auditoria_cortes_*.json
+prospects_petshops.json
+resumo_executivo_30d.json
+fechamento_executivo_*.json
+varredura_todas_filiais_modelo.json
+perguntas_historico_usuario.json
+analises_regras_negocio_ia.json
+analise_geral_abc.json
+
+# Imagens geradas e campanhas
+Imagens/
+*.jpg
+premiacao_*.jpg
+CAMPANHA_*.jpg
+
+# Seeds de dados (gerados localmente)
+seed_*.sql
+
+# Ambiente e sistema
+.env
+.DS_Store
+*.log
+Projeto.txt

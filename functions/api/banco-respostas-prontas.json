@@ -1,0 +1,93 @@
+{
+  "versao": "2.0.0",
+  "ultima_atualizacao": "2026-09-01T13:49:00-03:00",
+  "regras_ouro": {
+    "filiais_oficiais": ["ABC", "TCV", "API", "TPH", "TBL", "TCA", "MCD", "TCG", "TBE", "TPA", "TSJ"],
+    "expurgo_fantasmas": "Vendedores com 0 visitas na rota do dia e 0 vendas são supervisores/fantasmas e devem ser expurgados da contagem de sem venda",
+    "terminologia_dias_sem_compra": "Clientes sem compra a mais de 30 dias (nunca usar 'inativos')",
+    "terminologia_pedidos": "Quantidade de Pedidos / Clientes Distintos (nunca usar apenas 'positivação')",
+    "tempo_visita_formato": "HH:MM (antes dos dois pontos é hora, depois é minuto)",
+    "padrao_mix": "Obrigatoriamente citar o que o cliente parou de comprar + oportunidade de +MIX com pelo menos 2 vizinhos reais compradores e percentual de penetração"
+  },
+  "perguntas_mapeadas": [
+    {
+      "id": "P1_RITMO_VENDAS",
+      "perguntas_sinonimos": [
+        "algum vendedor já colocou pedido hoje?",
+        "quem vendeu hoje?",
+        "tem pedido emitido?",
+        "qual vendedor colocou mais pedido hoje?",
+        "quem mais vendeu?"
+      ],
+      "tipo_analise": "produtividade_tempo_real",
+      "pilar": "Ritmo de Vendas e Ranking"
+    },
+    {
+      "id": "P2_RESUMO_FILIAIS_CONSOLIDADO",
+      "perguntas_sinonimos": [
+        "faz um resumido por filial",
+        "resumo executivo filial por filial",
+        "quanto vendeu cada filial hoje",
+        "consolidado do grupo"
+      ],
+      "tipo_analise": "consolidado_11_filiais_expurgo_fantasmas",
+      "pilar": "Consolidado Geral"
+    },
+    {
+      "id": "P3_QUALIDADE_VISITAS_ROTA",
+      "perguntas_sinonimos": [
+        "quantas visitas o vendedor já fez hoje?",
+        "quantas faltam?",
+        "como está a qualidade da visita?",
+        "o cara já fez 10 visitas e não vendeu nada",
+        "tempo gasto na loja"
+      ],
+      "tipo_analise": "auditoria_qualidade_permanencia_hh_mm",
+      "pilar": "Qualidade e Ritmo de Campo"
+    },
+    {
+      "id": "P4_ALERTA_SUPERVISOR_MIX",
+      "perguntas_sinonimos": [
+        "ajuste a mensagem para enviar ao supervisor",
+        "o que tinha de mais mix para ele oferecer",
+        "o que o cliente deixou de comprar",
+        "quais vizinhos compram e qual a penetração"
+      ],
+      "tipo_analise": "gerador_alerta_supervisor_mix_vizinhos",
+      "pilar": "Oportunidades +MIX e Resgate"
+    },
+    {
+      "id": "P5_TENDENCIA_SKUS",
+      "perguntas_sinonimos": [
+        "quais produtos estão aumentando?",
+        "quais produtos estão caindo?",
+        "quais são os novos skus que ele vendeu?",
+        "o que a filial mais vende?"
+      ],
+      "tipo_analise": "delta_skus_ultimo_pedido_novo_crescimento_queda",
+      "pilar": "Inteligência de Mix e Produtos"
+    },
+    {
+      "id": "P6_CORTES_DEVOLUCOES_FATURADO",
+      "perguntas_sinonimos": [
+        "onde estão os cortes?",
+        "e as devoluções?",
+        "o que já foi faturado?",
+        "quanto entrou de devolução hoje por filial?",
+        "pedidos bloqueados no winthor"
+      ],
+      "tipo_analise": "auditoria_logistica_ruptura_devolucao",
+      "pilar": "Auditoria de Operação e Logística"
+    },
+    {
+      "id": "P7_AUTOMACAO_CRONS",
+      "perguntas_sinonimos": [
+        "quais as automações estão cadastradas?",
+        "por que não recebi a mensagem?",
+        "diagnóstico completo da automação"
+      ],
+      "tipo_analise": "diagnostico_grade_crons_github_greenapi",
+      "pilar": "Automações e Infraestrutura"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+name = "ceven-cron-sync"
+main = "src/index.js"
+compatibility_date = "2024-08-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ceven_noc_d1"
+database_id = "2e5bb59c-8db4-43a2-a13c-5c78e404e52d"
+
+[triggers]
+crons = [
+  "0 10 * * *",     # 07:00 BRT (Abertura Oficial do Desafio)
+  "0 12-21 * * *"   # 09:00 às 18:00 BRT (Boletim Horário de hora em hora)
+]

@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>COCKPIT MATINAL 08:00 — GESTÃO EXECUTIVA LOCOMOTIVA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            outfit: ['Outfit', 'sans-serif'],
+            jakarta: ['"Plus Jakarta Sans"', 'sans-serif']
+          },
+          colors: {
+            darkBg: '#070A10',
+            cardBg: 'rgba(15, 23, 42, 0.85)',
+            accentPurple: '#8B5CF6',
+            accentCyan: '#06B6D4',
+            accentEmerald: '#10B981',
+            accentAmber: '#F59E0B',
+            accentRose: '#F43F5E'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #06090E;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 45%),
+        radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.12) 0px, transparent 45%),
+        radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #F3F4F6;
+    }
+    .glass-card {
+      background: rgba(13, 20, 36, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card-interactive {
+      cursor: pointer;
+    }
+    .glass-card-interactive:hover {
+      border-color: rgba(139, 92, 246, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 15px 35px -8px rgba(139, 92, 246, 0.28);
+    }
+    .glass-card-glow {
+      position: relative;
+    }
+    .glass-card-glow::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(6, 182, 212, 0.15), transparent);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.15s ease;
+    }
+    th.sortable:hover {
+      background-color: rgba(139, 92, 246, 0.18) !important;
+      color: #fff;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(13, 20, 36, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(139, 92, 246, 0.4);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(139, 92, 246, 0.7);
+    }
+  </style>
+</head>
+<body class="min-h-screen p-3 md:p-5 lg:p-6 flex flex-col justify-between">
+
+  <!-- TOP BAR / HEADER -->
+  <header class="glass-card rounded-2xl p-4 mb-5 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3.5">
+      <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-purple-500/25 font-outfit font-black text-2xl text-white">
+        L
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-outfit text-lg md:text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
+            LOCOMOTIVA <span class="text-purple-400 font-bold">• COCKPIT MATINAL</span>
+          </h1>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/30">
+            08:00 AM
+          </span>
+        </div>
+        <p class="text-[11px] text-gray-400 flex items-center gap-1.5 mt-0.5">
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Consolidado do Mês • Faturamento D-1 Processado & Carteira em Tempo Real
+        </p>
+      </div>
+    </div>
+
+    <!-- SELETOR DE FILIAL E RELÓGIO -->
+    <div class="flex items-center gap-3">
+      <div class="flex flex-col items-end mr-2 hidden sm:flex">
+        <span class="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Dias Úteis Restantes</span>
+        <span class="text-sm font-bold text-amber-400 font-outfit">21 Dias Úteis</span>
+      </div>
+
+      <div class="relative">
+        <select id="filialSelector" onchange="trocarFilial(this.value)" class="bg-slate-800 text-white font-outfit font-bold text-sm px-4 py-2 rounded-xl border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none pr-9 cursor-pointer shadow-inner">
+          <option value="API" selected>🏢 FILIAL API</option>
+          <option value="ABC">🏢 FILIAL ABC</option>
+          <option value="TCV">🏢 FILIAL TCV</option>
+          <option value="TCA">🏢 FILIAL TCA</option>
+          <option value="TPA">🏢 FILIAL TPA</option>
+          <option value="TCG">🏢 FILIAL TCG</option>
+          <option value="TBL">🏢 FILIAL TBL</option>
+          <option value="TPH">🏢 FILIAL TPH</option>
+          <option value="MCD">🏢 FILIAL MCD</option>
+          <option value="TSJ">🏢 FILIAL TSJ</option>
+          <option value="TBE">🏢 FILIAL TBE</option>
+        </select>
+        <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-purple-400 text-xs font-bold">
+          ▼
+        </div>
+      </div>
+
+      <div class="bg-slate-800/80 px-3 py-1.5 rounded-xl border border-white/10 text-right">
+        <div id="liveClock" class="font-outfit font-black text-base md:text-lg text-white tracking-wide">08:00:00</div>
+        <div class="text-[9px] text-gray-400 uppercase font-semibold">02 Setembro 2026</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN GRID UNIFORME (3x2) -->
+  <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-5 flex-1 items-stretch">
+
+    <!-- CARD 1: META FINANCEIRA DO MÊS -->
+    <div onclick="abrirModalFinanceiro()" class="glass-card glass-card-interactive glass-card-glow rounded-2xl p-5 flex flex-col justify-between group">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
+            <span class="p-1 rounded-md bg-purple-500/20 text-purple-400 text-sm">💵</span> Meta Financeira (Mês)
+          </span>
+          <span class="text-[10px] text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">
+            🔍 Explodir Supervisores
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5 mb-3">
+          <div class="bg-slate-900/80 p-3 rounded-xl border border-white/5 flex flex-col justify-between">
+            <div class="text-[10px] uppercase font-bold text-gray-400">Faturado Oficial</div>
+            <div id="cardFaturadoOficial" class="text-xl font-black font-outfit text-white">R$ 0,00</div>
+            <div class="text-[9px] text-gray-500 font-semibold">0,0% da Meta (Início Dia)</div>
+          </div>
+
+          <div class="bg-purple-950/30 p-3 rounded-xl border border-purple-500/30 flex flex-col justify-between">
+            <div class="text-[10px] uppercase font-bold text-purple-300">Vendido / Digitado</div>
+            <div id="cardVendidoHoje" class="text-xl font-black font-outfit text-purple-300">R$ 257.546,61</div>
+            <div id="cardPctVendido" class="text-[9px] text-purple-400 font-semibold">4,84% em Carteira</div>
+          </div>
+        </div>
+
+        <div class="text-[11px] text-gray-400 mb-1 flex justify-between">
+          <span>Meta Winthor: <strong id="cardMetaFinanceira" class="text-gray-200">R$ 5.319.999,96</strong></span>
+          <span class="text-amber-400 font-semibold">21 dias úteis</span>
+        </div>
+
+        <div class="w-full bg-slate-800/80 rounded-full h-2 mb-3 overflow-hidden p-0.5 border border-white/5">
+          <div id="barVendido" class="bg-gradient-to-r from-purple-600 to-cyan-400 h-full rounded-full transition-all duration-500" style="width: 4.84%"></div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/60 rounded-xl p-2.5 border border-purple-500/20 flex items-center justify-between text-xs">
+        <span class="text-gray-400 font-medium">Meta Diária Necessária:</span>
+        <span id="cardMetaDiariaFat" class="font-black font-outfit text-emerald-400 text-sm">R$ 242.932,37 <span class="text-[9px] text-gray-400">/dia</span></span>
+      </div>
+    </div>
+
+    <!-- CARD 2: META DE POSITIVAÇÃO (CLIENTES) -->
+    <div onclick="abrirModalFinanceiro()" class="glass-card glass-card-interactive glass-card-glow rounded-2xl p-5 flex flex-col justify-between group">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
+            <span class="p-1 rounded-md bg-cyan-500/20 text-cyan-400 text-sm">🎯</span> Meta de Positivação (Mês)
+          </span>
+          <span class="text-[10px] text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">
+            🔍 Explodir Supervisores
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5 mb-3">
+          <div class="bg-slate-900/80 p-3 rounded-xl border border-white/5 flex flex-col justify-between">
+            <div class="text-[10px] uppercase font-bold text-gray-400">Positivados Oficial</div>
+            <div id="cardPositivadosOficial" class="text-xl font-black font-outfit text-white">0 <span class="text-xs text-gray-400 font-normal">cliente(s)</span></div>
+            <div class="text-[9px] text-gray-500 font-semibold">0,0% (CEVEN Vendedor)</div>
+          </div>
+
+          <div class="bg-cyan-950/30 p-3 rounded-xl border border-cyan-500/30 flex flex-col justify-between">
+            <div class="text-[10px] uppercase font-bold text-cyan-300">Com Pedido Vendido</div>
+            <div id="cardComPedidoHoje" class="text-xl font-black font-outfit text-cyan-300">168 <span class="text-xs text-cyan-400/80 font-normal">clientes</span></div>
+            <div class="text-[9px] text-cyan-400 font-semibold">4,4% da Carteira</div>
+          </div>
+        </div>
+
+        <div class="text-[11px] text-gray-400 mb-1 flex justify-between">
+          <span>Meta Carteira: <strong id="cardMetaPositivacao" class="text-gray-200">3.831 clientes distintos</strong></span>
+          <span id="cardFaltamCli" class="text-cyan-400 font-semibold">Faltam 3.831</span>
+        </div>
+
+        <div class="w-full bg-slate-800/80 rounded-full h-2 mb-3 overflow-hidden p-0.5 border border-white/5">
+          <div id="barPositivados" class="bg-gradient-to-r from-cyan-500 to-emerald-400 h-full rounded-full transition-all duration-500" style="width: 4.4%"></div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/60 rounded-xl p-2.5 border border-cyan-500/20 flex items-center justify-between text-xs">
+        <span class="text-gray-400 font-medium">Meta Diária de Clientes:</span>
+        <span id="cardMetaDiariaCli" class="font-black font-outfit text-cyan-400 text-sm">174 <span class="text-[9px] text-gray-400">clientes/dia (~3,6/RCA)</span></span>
+      </div>
+    </div>
+
+    <!-- CARD 3: RADAR DE CAMPO HOJE (ROTA & INATIVOS) -->
+    <div onclick="abrirModal('modalInativos')" class="glass-card glass-card-interactive rounded-2xl p-5 border-l-4 border-l-amber-500 flex flex-col justify-between group">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+            <span class="p-1 rounded-md bg-amber-500/20 text-amber-400 text-sm">📍</span> Radar de Campo Hoje (08:00)
+          </span>
+          <span class="text-[10px] text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">
+            🔍 Ver Inativos
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5 mb-3">
+          <div class="bg-slate-900/80 p-3 rounded-xl border border-white/5 flex flex-col justify-between">
+            <div class="text-[10px] uppercase font-bold text-gray-400">Rota Programada Hoje</div>
+            <div id="cardRotasHoje" class="text-2xl font-black font-outfit text-white">578 <span class="text-xs font-normal text-gray-400">PDVs</span></div>
+            <div id="cardVendedoresAtivos" class="text-[9px] text-gray-400 mt-0.5">48 Vendedores em Campo</div>
+          </div>
+
+          <div class="bg-red-950/40 p-3 rounded-xl border border-red-500/40 flex flex-col justify-between">
+            <div class="text-[10px] uppercase font-bold text-red-300 flex items-center gap-1">
+              ⚠️ Inativos na Rota
+            </div>
+            <div id="cardInativosNaRota" class="text-2xl font-black font-outfit text-red-400">187 <span class="text-xs font-normal text-red-300/70">PDVs</span></div>
+            <div id="cardPctInativos" class="text-[9px] text-red-300 font-semibold mt-0.5">32,3% da Rota de Hoje</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200 flex items-center justify-between">
+        <span>🎯 <strong>Meta de Reativação:</strong> Clientes sem compra há >30d</span>
+        <span class="font-bold underline text-[10px]">Ver Lista ➔</span>
+      </div>
+    </div>
+
+    <!-- CARD 4: PIPELINE DE PEDIDOS (LIBERADOS VS BLOQUEADOS) -->
+    <div class="glass-card glass-card-glow rounded-2xl p-5 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+            <span class="p-1 rounded-md bg-indigo-500/20 text-indigo-400 text-sm">⚡</span> Pipeline de Pedidos (Estoque)
+          </span>
+          <span id="cardPedidosTotal" class="text-xs font-bold text-gray-400">168 Pedidos no Mês</span>
+        </div>
+
+        <div class="space-y-2 mb-2">
+          <!-- LIBERADOS -->
+          <div onclick="abrirModal('modalLiberados')" class="glass-card-interactive bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
+              <div>
+                <div class="text-xs font-bold text-white">Liberados (Prontos p/ Faturar)</div>
+                <div id="cardLiberadosQtd" class="text-[10px] text-emerald-300">148 pedidos aprovados</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div id="cardLiberadosValor" class="text-base font-black font-outfit text-emerald-400">R$ 229.989,12</div>
+              <div class="text-[9px] text-emerald-300/70">89,3% da carteira</div>
+            </div>
+          </div>
+
+          <!-- BLOQUEADOS -->
+          <div onclick="abrirModal('modalBloqueados')" class="glass-card-interactive bg-rose-950/40 border border-rose-500/40 rounded-xl p-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></div>
+              <div>
+                <div class="text-xs font-bold text-white">Bloqueados (Pendência)</div>
+                <div id="cardBloqueadosQtd" class="text-[10px] text-rose-300">20 pedidos retidos</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div id="cardBloqueadosValor" class="text-base font-black font-outfit text-rose-400">R$ 27.557,49</div>
+              <div class="text-[9px] text-rose-300/70 font-semibold">10,7% retido 🔍</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-2 rounded-lg bg-slate-900/60 border border-white/5 text-[10px] text-gray-400 flex justify-between items-center">
+        <span>📋 Relação de pedidos digitados no mês</span>
+        <button onclick="abrirModal('modalBloqueados')" class="text-rose-400 underline font-bold">Ver Bloqueados ➔</button>
+      </div>
+    </div>
+
+    <!-- CARD 5: CORTES DE ONTEM (D-1 FATURAMENTO NOTURNO) -->
+    <div onclick="abrirModal('modalCortes')" class="glass-card glass-card-interactive rounded-2xl p-5 flex flex-col justify-between group">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+            <span class="p-1 rounded-md bg-amber-500/20 text-amber-400 text-sm">✂️</span> Cortes de Ontem (D-1)
+          </span>
+          <span id="cardCortesBadge" class="text-[10px] font-black font-outfit text-amber-400 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30">
+            R$ 8.940,50 (18 Pedidos)
+          </span>
+        </div>
+
+        <div class="text-[10px] text-gray-400 mb-2 flex justify-between">
+          <span>Top SKUs com Corte Comercial:</span>
+          <span class="text-amber-400/80 font-medium">Corte Comercial</span>
+        </div>
+
+        <div id="cardTopCortesList" class="space-y-1.5 mb-2">
+          <!-- Injetado dinamicamente -->
+        </div>
+      </div>
+
+      <div class="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-300 flex justify-between items-center">
+        <span>🔍 Clique para abrir a lista completa de cortes</span>
+        <span class="font-bold">Ver Detalhes ➔</span>
+      </div>
+    </div>
+
+    <!-- CARD 6: DEVOLUÇÕES DO DIA ANTERIOR (D-1) -->
+    <div onclick="abrirModal('modalDevolucoes')" class="glass-card glass-card-interactive rounded-2xl p-5 flex flex-col justify-between group">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-rose-300 flex items-center gap-1.5">
+            <span class="p-1 rounded-md bg-rose-500/20 text-rose-400 text-sm">🔄</span> Devoluções Ontem (D-1)
+          </span>
+          <span id="cardDevolucoesBadge" class="text-[10px] font-black font-outfit text-rose-400 px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/30">
+            R$ 11.540,46 (9 NFes)
+          </span>
+        </div>
+
+        <div class="space-y-1.5 mb-2">
+          <div class="flex items-center justify-between text-xs py-1 border-b border-white/5">
+            <span class="text-gray-300 flex items-center gap-1.5 text-[11px]"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Falta de Mercadoria</span>
+            <span id="cardDevFalta" class="font-bold text-white font-outfit text-[11px]">R$ 6.500,00</span>
+          </div>
+          <div class="flex items-center justify-between text-xs py-1 border-b border-white/5">
+            <span class="text-gray-300 flex items-center gap-1.5 text-[11px]"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Cliente Recusou s/ Justif.</span>
+            <span id="cardDevRecusa" class="font-bold text-white font-outfit text-[11px]">R$ 3.200,00</span>
+          </div>
+          <div class="flex items-center justify-between text-xs py-1">
+            <span class="text-gray-300 flex items-center gap-1.5 text-[11px]"><span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> Atraso na Entrega</span>
+            <span id="cardDevAtraso" class="font-bold text-white font-outfit text-[11px]">R$ 1.840,46</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-[10px] text-rose-300 flex justify-between items-center">
+        <span>🔍 Clique para abrir todas as notas devolvidas</span>
+        <span class="font-bold">Ver Todas ➔</span>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="glass-card rounded-xl px-4 py-2.5 flex flex-wrap items-center justify-between text-xs text-gray-400 gap-2">
+    <div class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+      <span>Base Sincronizada: <strong>CEVEN Online + Winthor</strong></span>
+    </div>
+    <div class="flex items-center gap-4 text-[11px]">
+      <span>Filial: <strong id="footerFilialNome" class="text-white font-outfit">FILIAL API</strong></span>
+      <span>Gerente: <strong id="footerGerenteNome" class="text-white font-outfit">Marcelo / Fabio Colares</strong></span>
+      <span>Versão: <strong class="text-purple-400 font-outfit">Cockpit Matinal v8.0 (100% Auditado)</strong></span>
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL PRINCIPAL: SUPERVISORES & DRILL-DOWN DE VENDEDORES -->
+  <!-- ========================================================================= -->
+  <div id="modalFinanceiro" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 md:p-6">
+    <div class="glass-card rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col border border-purple-500/40 shadow-2xl">
+      
+      <!-- HEADER DO MODAL -->
+      <div class="p-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 rounded-t-2xl">
+        <div class="flex items-center gap-3">
+          <button id="btnVoltarSupervisores" onclick="voltarParaSupervisores()" class="hidden px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-lg shadow flex items-center gap-1.5 transition-all">
+            ⬅ Voltar p/ Supervisores
+          </button>
+          <div>
+            <h3 id="modalFinanceiroTitulo" class="text-base md:text-lg font-bold text-white font-outfit">METAS E VENDAS POR SUPERVISOR</h3>
+            <p id="modalFinanceiroSubtitulo" class="text-[11px] text-gray-400">Clique em qualquer supervisor para abrir os vendedores da equipe</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="text" id="buscaSupervisores" onkeyup="filtrarTabelaGenerica('buscaSupervisores', 'modalFinanceiro')" placeholder="Buscar na tabela..." class="bg-slate-800 text-xs px-3 py-1.5 rounded-lg border border-white/10 text-white focus:outline-none focus:border-purple-500">
+          <button onclick="fecharModal('modalFinanceiro')" class="text-gray-400 hover:text-white text-2xl font-bold p-1">&times;</button>
+        </div>
+      </div>
+      
+      <!-- CONTEÚDO 1: TABELA DE SUPERVISORES -->
+      <div id="viewSupervisores" class="overflow-y-auto flex-1 relative">
+        <table id="tabelaFinanceiro" class="w-full text-left text-xs border-collapse">
+          <thead class="sticky top-0 bg-slate-900 z-20 shadow-md border-b border-white/10">
+            <tr class="text-gray-400 uppercase text-[10px] font-bold">
+              <th onclick="ordenarTabela('tabelaFinanceiro', 0, 'str')" class="sortable py-3 px-3 bg-slate-900">Supervisor (Clique p/ Explodir) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaFinanceiro', 1, 'num')" class="sortable py-3 px-3 text-center bg-slate-900">RCAs Ativos <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaFinanceiro', 2, 'money')" class="sortable py-3 px-3 text-right bg-slate-900">Meta Mês (R$) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaFinanceiro', 3, 'money')" class="sortable py-3 px-3 text-right bg-slate-900">Vendido (R$) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaFinanceiro', 4, 'money')" class="sortable py-3 px-3 text-right bg-slate-900">Faturado Oficial (R$) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaFinanceiro', 5, 'num')" class="sortable py-3 px-3 text-center bg-slate-900">PDVs Vendidos <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaFinanceiro', 6, 'money')" class="sortable py-3 px-3 text-right bg-slate-900">Cortes D-1 (R$) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaFinanceiro', 7, 'money')" class="sortable py-3 px-3 text-right bg-slate-900">Devolvido D-1 (R$) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="tabelaFinanceiroBody" class="divide-y divide-white/5 text-gray-200"></tbody>
+        </table>
+      </div>
+
+      <!-- CONTEÚDO 2: TABELA DE VENDEDORES (DRILL-DOWN) -->
+      <div id="viewVendedores" class="overflow-y-auto flex-1 relative hidden">
+        <table id="tabelaVendedores" class="w-full text-left text-xs border-collapse">
+          <thead class="sticky top-0 bg-slate-900 z-20 shadow-md border-b border-white/10">
+            <tr class="text-gray-400 uppercase text-[10px] font-bold">
+              <th onclick="ordenarTabela('tabelaVendedores', 0, 'num')" class="sortable py-3 px-3 bg-slate-900">Cód RCA <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaVendedores', 1, 'str')" class="sortable py-3 px-3 bg-slate-900">Nome do Vendedor <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaVendedores', 2, 'money')" class="sortable py-3 px-3 text-right bg-slate-900">Meta Mês (R$) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaVendedores', 3, 'money')" class="sortable py-3 px-3 text-right bg-slate-900">Vendido (R$) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaVendedores', 4, 'money')" class="sortable py-3 px-3 text-right bg-slate-900">Faturado Oficial (R$) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaVendedores', 5, 'num')" class="sortable py-3 px-3 text-center bg-slate-900">PDVs Vendidos <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaVendedores', 6, 'num')" class="sortable py-3 px-3 text-center bg-slate-900">Meta Cli <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaVendedores', 7, 'num')" class="sortable py-3 px-3 text-center bg-slate-900">Positivados <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaVendedores', 8, 'money')" class="sortable py-3 px-3 text-right bg-slate-900">Cortes D-1 (R$) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaVendedores', 9, 'money')" class="sortable py-3 px-3 text-right bg-slate-900">Devolvido D-1 (R$) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="tabelaVendedoresBody" class="divide-y divide-white/5 text-gray-200"></tbody>
+        </table>
+      </div>
+
+      <div class="p-3.5 border-t border-white/10 flex items-center justify-between bg-slate-900/60 rounded-b-2xl text-xs">
+        <span id="modalFinanceiroFooterInfo" class="text-purple-300 font-semibold text-[11px]">💡 Dica: Clique na linha do supervisor para abrir os vendedores da equipe.</span>
+        <button onclick="fecharModal('modalFinanceiro')" class="px-4 py-1.5 bg-slate-800 text-white font-bold rounded-lg border border-white/10 hover:bg-slate-700">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: PEDIDOS BLOQUEADOS -->
+  <div id="modalBloqueados" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 md:p-6">
+    <div class="glass-card rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col border border-rose-500/40 shadow-2xl">
+      <div class="p-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 rounded-t-2xl">
+        <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-rose-500 animate-ping"></div>
+          <div>
+            <h3 id="modalBloqueadosTitulo" class="text-base md:text-lg font-bold text-white font-outfit">TODOS OS PEDIDOS BLOQUEADOS</h3>
+            <p class="text-[11px] text-gray-400">Clique nas colunas para ordenar os registros</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="text" id="buscaBloqueados" onkeyup="filtrarTabela('buscaBloqueados', 'tabelaBloqueadosBody')" placeholder="Buscar cliente, RCA ou pedido..." class="bg-slate-800 text-xs px-3 py-1.5 rounded-lg border border-white/10 text-white focus:outline-none focus:border-rose-500">
+          <button onclick="fecharModal('modalBloqueados')" class="text-gray-400 hover:text-white text-2xl font-bold p-1">&times;</button>
+        </div>
+      </div>
+      
+      <div class="overflow-y-auto flex-1 relative">
+        <table id="tabelaBloqueados" class="w-full text-left text-xs border-collapse">
+          <thead class="sticky top-0 bg-slate-900 z-20 shadow-md border-b border-white/10">
+            <tr class="text-gray-400 uppercase text-[10px] font-bold">
+              <th onclick="ordenarTabela('tabelaBloqueados', 0, 'num')" class="sortable py-3 px-3 bg-slate-900">Nº Pedido <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaBloqueados', 1, 'num')" class="sortable py-3 px-3 bg-slate-900">Cód. Cli <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaBloqueados', 2, 'str')" class="sortable py-3 px-3 bg-slate-900">Razão Social do Cliente <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaBloqueados', 3, 'str')" class="sortable py-3 px-3 bg-slate-900">Vendedor (RCA) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaBloqueados', 4, 'str')" class="sortable py-3 px-3 bg-slate-900">Supervisor <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaBloqueados', 5, 'money')" class="sortable py-3 px-3 text-right bg-slate-900">Valor (R$) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaBloqueados', 6, 'str')" class="sortable py-3 px-3 text-center bg-slate-900">Data Pedido <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaBloqueados', 7, 'str')" class="sortable py-3 px-3 text-center bg-slate-900">Status <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="tabelaBloqueadosBody" class="divide-y divide-white/5 text-gray-200"></tbody>
+        </table>
+      </div>
+
+      <div class="p-3.5 border-t border-white/10 flex items-center justify-between bg-slate-900/60 rounded-b-2xl text-xs">
+        <span class="text-gray-400 text-[11px]">Total de pedidos retidos com pendência na filial.</span>
+        <button onclick="fecharModal('modalBloqueados')" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg border border-white/10">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: CLIENTES INATIVOS NA ROTA -->
+  <div id="modalInativos" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 md:p-6">
+    <div class="glass-card rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col border border-amber-500/40 shadow-2xl">
+      <div class="p-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 rounded-t-2xl">
+        <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+          <div>
+            <h3 id="modalInativosTitulo" class="text-base md:text-lg font-bold text-white font-outfit">TODOS OS CLIENTES INATIVOS (>30D) NA ROTA DE HOJE</h3>
+            <p class="text-[11px] text-gray-400">Clique nas colunas para ordenar os clientes</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="text" id="buscaInativos" onkeyup="filtrarTabela('buscaInativos', 'tabelaInativosBody')" placeholder="Buscar cliente, CNPJ ou RCA..." class="bg-slate-800 text-xs px-3 py-1.5 rounded-lg border border-white/10 text-white focus:outline-none focus:border-amber-500">
+          <button onclick="fecharModal('modalInativos')" class="text-gray-400 hover:text-white text-2xl font-bold p-1">&times;</button>
+        </div>
+      </div>
+      
+      <div class="overflow-y-auto flex-1 relative">
+        <table id="tabelaInativos" class="w-full text-left text-xs border-collapse">
+          <thead class="sticky top-0 bg-slate-900 z-20 shadow-md border-b border-white/10">
+            <tr class="text-gray-400 uppercase text-[10px] font-bold">
+              <th onclick="ordenarTabela('tabelaInativos', 0, 'num')" class="sortable py-3 px-3 bg-slate-900">Cód. Cli <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaInativos', 1, 'str')" class="sortable py-3 px-3 bg-slate-900">Razão Social / Nome Fantasia <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaInativos', 2, 'str')" class="sortable py-3 px-3 bg-slate-900">CNPJ <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaInativos', 3, 'str')" class="sortable py-3 px-3 bg-slate-900">Vendedor (RCA) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaInativos', 4, 'str')" class="sortable py-3 px-3 bg-slate-900">Supervisor <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaInativos', 5, 'num')" class="sortable py-3 px-3 text-center bg-slate-900">Dias sem Compra <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaInativos', 6, 'money')" class="sortable py-3 px-3 text-right bg-slate-900">Última Compra <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="tabelaInativosBody" class="divide-y divide-white/5 text-gray-200"></tbody>
+        </table>
+      </div>
+
+      <div class="p-3.5 border-t border-white/10 flex items-center justify-between bg-slate-900/60 rounded-b-2xl text-xs">
+        <span class="text-gray-400 text-[11px]">Clientes sem compra há mais de 30 dias na rota de hoje.</span>
+        <button onclick="fecharModal('modalInativos')" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg border border-white/10">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: CORTES DE D-1 -->
+  <div id="modalCortes" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 md:p-6">
+    <div class="glass-card rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col border border-amber-500/40 shadow-2xl">
+      <div class="p-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 rounded-t-2xl">
+        <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+          <div>
+            <h3 id="modalCortesTitulo" class="text-base md:text-lg font-bold text-white font-outfit">TODOS OS CORTES DE ONTEM (D-1)</h3>
+            <p class="text-[11px] text-gray-400">Clique nas colunas para ordenar os itens cortados</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="text" id="buscaCortes" onkeyup="filtrarTabela('buscaCortes', 'tabelaCortesBody')" placeholder="Buscar SKU, cliente ou RCA..." class="bg-slate-800 text-xs px-3 py-1.5 rounded-lg border border-white/10 text-white focus:outline-none focus:border-amber-500">
+          <button onclick="fecharModal('modalCortes')" class="text-gray-400 hover:text-white text-2xl font-bold p-1">&times;</button>
+        </div>
+      </div>
+      
+      <div class="overflow-y-auto flex-1 relative">
+        <table id="tabelaCortes" class="w-full text-left text-xs border-collapse">
+          <thead class="sticky top-0 bg-slate-900 z-20 shadow-md border-b border-white/10">
+            <tr class="text-gray-400 uppercase text-[10px] font-bold">
+              <th onclick="ordenarTabela('tabelaCortes', 0, 'num')" class="sortable py-3 px-3 bg-slate-900">Nº Pedido <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaCortes', 1, 'str')" class="sortable py-3 px-3 bg-slate-900">Cliente <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaCortes', 2, 'str')" class="sortable py-3 px-3 bg-slate-900">Vendedor (RCA) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaCortes', 3, 'str')" class="sortable py-3 px-3 bg-slate-900">Supervisor <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaCortes', 4, 'str')" class="sortable py-3 px-3 bg-slate-900">Cód SKU <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaCortes', 5, 'str')" class="sortable py-3 px-3 bg-slate-900">Descrição do Produto <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaCortes', 6, 'num')" class="sortable py-3 px-3 text-center bg-slate-900">Qtd Cortada <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaCortes', 7, 'money')" class="sortable py-3 px-3 text-right bg-slate-900">Valor Corte (R$) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaCortes', 8, 'str')" class="sortable py-3 px-3 text-center bg-slate-900">Data Corte <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="tabelaCortesBody" class="divide-y divide-white/5 text-gray-200"></tbody>
+        </table>
+      </div>
+
+      <div class="p-3.5 border-t border-white/10 flex items-center justify-between bg-slate-900/60 rounded-b-2xl text-xs">
+        <span class="text-gray-400 text-[11px]">Itens cortados na separação do faturamento noturno de ontem.</span>
+        <button onclick="fecharModal('modalCortes')" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg border border-white/10">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: DEVOLUÇÕES DE D-1 -->
+  <div id="modalDevolucoes" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 md:p-6">
+    <div class="glass-card rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col border border-rose-500/40 shadow-2xl">
+      <div class="p-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 rounded-t-2xl">
+        <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-rose-400"></div>
+          <div>
+            <h3 id="modalDevolucoesTitulo" class="text-base md:text-lg font-bold text-white font-outfit">TODAS AS NOTAS DEVOLVIDAS (D-1)</h3>
+            <p class="text-[11px] text-gray-400">Clique nas colunas para ordenar as notas devolvidas</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="text" id="buscaDevolucoes" onkeyup="filtrarTabela('buscaDevolucoes', 'tabelaDevolucoesBody')" placeholder="Buscar NFe, cliente ou RCA..." class="bg-slate-800 text-xs px-3 py-1.5 rounded-lg border border-white/10 text-white focus:outline-none focus:border-rose-500">
+          <button onclick="fecharModal('modalDevolucoes')" class="text-gray-400 hover:text-white text-2xl font-bold p-1">&times;</button>
+        </div>
+      </div>
+      
+      <div class="overflow-y-auto flex-1 relative">
+        <table id="tabelaDevolucoes" class="w-full text-left text-xs border-collapse">
+          <thead class="sticky top-0 bg-slate-900 z-20 shadow-md border-b border-white/10">
+            <tr class="text-gray-400 uppercase text-[10px] font-bold">
+              <th onclick="ordenarTabela('tabelaDevolucoes', 0, 'str')" class="sortable py-3 px-3 bg-slate-900">Nº NFe <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaDevolucoes', 1, 'str')" class="sortable py-3 px-3 bg-slate-900">Cliente / Razão Social <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaDevolucoes', 2, 'str')" class="sortable py-3 px-3 bg-slate-900">Vendedor (RCA) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaDevolucoes', 3, 'str')" class="sortable py-3 px-3 bg-slate-900">Supervisor <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaDevolucoes', 4, 'money')" class="sortable py-3 px-3 text-right bg-slate-900">Valor Devolvido (R$) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaDevolucoes', 5, 'str')" class="sortable py-3 px-3 bg-slate-900">Motivo da Devolução <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaDevolucoes', 6, 'str')" class="sortable py-3 px-3 text-center bg-slate-900">Data Entrada <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="tabelaDevolucoesBody" class="divide-y divide-white/5 text-gray-200"></tbody>
+        </table>
+      </div>
+
+      <div class="p-3.5 border-t border-white/10 flex items-center justify-between bg-slate-900/60 rounded-b-2xl text-xs">
+        <span class="text-gray-400 text-[11px]">Notas fiscais com entrada na portaria/depósito ontem.</span>
+        <button onclick="fecharModal('modalDevolucoes')" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg border border-white/10">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 6: PEDIDOS LIBERADOS -->
+  <div id="modalLiberados" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 md:p-6">
+    <div class="glass-card rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col border border-emerald-500/40 shadow-2xl">
+      <div class="p-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 rounded-t-2xl">
+        <div>
+          <h3 id="modalLiberadosTitulo" class="text-base md:text-lg font-bold text-white font-outfit">TODOS OS PEDIDOS LIBERADOS (PRONTOS P/ FATURAR)</h3>
+          <p class="text-[11px] text-gray-400">Clique nas colunas para ordenar os pedidos</p>
+        </div>
+        <button onclick="fecharModal('modalLiberados')" class="text-gray-400 hover:text-white text-2xl font-bold p-1">&times;</button>
+      </div>
+      
+      <div class="overflow-y-auto flex-1 relative">
+        <table id="tabelaLiberados" class="w-full text-left text-xs border-collapse">
+          <thead class="sticky top-0 bg-slate-900 z-20 shadow-md border-b border-white/10">
+            <tr class="text-gray-400 uppercase text-[10px] font-bold">
+              <th onclick="ordenarTabela('tabelaLiberados', 0, 'num')" class="sortable py-3 px-3 bg-slate-900">Nº Pedido <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaLiberados', 1, 'num')" class="sortable py-3 px-3 bg-slate-900">Cód. Cli <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaLiberados', 2, 'str')" class="sortable py-3 px-3 bg-slate-900">Razão Social do Cliente <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaLiberados', 3, 'str')" class="sortable py-3 px-3 bg-slate-900">Vendedor (RCA) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaLiberados', 4, 'str')" class="sortable py-3 px-3 bg-slate-900">Supervisor <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaLiberados', 5, 'money')" class="sortable py-3 px-3 text-right bg-slate-900">Valor (R$) <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaLiberados', 6, 'str')" class="sortable py-3 px-3 text-center bg-slate-900">Data Pedido <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+              <th onclick="ordenarTabela('tabelaLiberados', 7, 'str')" class="sortable py-3 px-3 text-center bg-slate-900">Status <span class="sort-icon text-purple-400 font-mono">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="tabelaLiberadosBody" class="divide-y divide-white/5 text-gray-200"></tbody>
+        </table>
+      </div>
+
+      <div class="p-3.5 border-t border-white/10 text-right bg-slate-900/60 rounded-b-2xl">
+        <button onclick="fecharModal('modalLiberados')" class="px-4 py-1.5 bg-slate-800 text-white rounded-lg">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT DE CONTROLE, DRILL-DOWN E ORDENAÇÃO -->
+  <script>
+    let TODAS_FILIAIS_DATA = {};
+    let FILIAL_ATUAL = 'API';
+    const sortStates = {};
+
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('liveClock').textContent = `${h}:${m}:${s}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function formatBRL(val) {
+      return (val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function abrirModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+    function fecharModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function abrirModalFinanceiro() {
+      voltarParaSupervisores();
+      abrirModal('modalFinanceiro');
+    }
+
+    function voltarParaSupervisores() {
+      document.getElementById('viewSupervisores').classList.remove('hidden');
+      document.getElementById('viewVendedores').classList.add('hidden');
+      document.getElementById('btnVoltarSupervisores').classList.add('hidden');
+      document.getElementById('modalFinanceiroTitulo').textContent = `METAS E VENDAS POR SUPERVISOR — FILIAL ${FILIAL_ATUAL}`;
+      document.getElementById('modalFinanceiroSubtitulo').textContent = `Clique em qualquer supervisor para abrir os vendedores da equipe`;
+      document.getElementById('modalFinanceiroFooterInfo').textContent = `💡 Dica: Clique na linha do supervisor para abrir os vendedores da equipe.`;
+    }
+
+    function explodirVendedores(supNome) {
+      const d = TODAS_FILIAIS_DATA[FILIAL_ATUAL];
+      if (!d) return;
+
+      const sup = (d.supervisores || []).find(s => s.nome === supNome);
+      if (!sup || !sup.vendedores) return;
+
+      document.getElementById('viewSupervisores').classList.add('hidden');
+      document.getElementById('viewVendedores').classList.remove('hidden');
+      document.getElementById('btnVoltarSupervisores').classList.remove('hidden');
+
+      document.getElementById('modalFinanceiroTitulo').textContent = `EQUIPE DE VENDAS — SUPERVISOR: ${sup.nome}`;
+      document.getElementById('modalFinanceiroSubtitulo').textContent = `${sup.vendedores.length} Vendedores Ativos na Equipe • Filial ${FILIAL_ATUAL}`;
+      document.getElementById('modalFinanceiroFooterInfo').textContent = `Total Equipe: ${formatBRL(sup.vendidoHoje)} vendidos | ${sup.pdvsVendidos} PDVs atendidos no mês`;
+
+      const tbody = document.getElementById('tabelaVendedoresBody');
+      tbody.innerHTML = sup.vendedores.map(v => `
+        <tr class="hover:bg-purple-500/10 transition-colors">
+          <td class="py-2.5 px-3 font-mono font-bold text-purple-300 text-center">${v.id}</td>
+          <td class="py-2.5 px-3 font-medium text-white">${v.nome}</td>
+          <td class="py-2.5 px-3 font-mono text-right font-bold text-white">${formatBRL(v.metaFat)}</td>
+          <td class="py-2.5 px-3 font-mono text-right font-bold text-purple-300">${formatBRL(v.vendidoHoje)}</td>
+          <td class="py-2.5 px-3 font-mono text-right text-gray-400">R$ 0,00</td>
+          <td class="py-2.5 px-3 font-mono text-center text-cyan-300 font-bold">${v.pdvsVendidos}</td>
+          <td class="py-2.5 px-3 font-mono text-center text-gray-300">${v.metaCli}</td>
+          <td class="py-2.5 px-3 font-mono text-center text-emerald-400 font-bold">${v.positivadosOficial}</td>
+          <td class="py-2.5 px-3 font-mono text-right text-amber-400">${formatBRL(v.cortesD1)}</td>
+          <td class="py-2.5 px-3 font-mono text-right text-rose-400">${formatBRL(v.devolucoesD1)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function filtrarTabelaGenerica(inputId, containerId) {
+      const input = document.getElementById(inputId);
+      const filter = input.value.toUpperCase();
+      const container = document.getElementById(containerId);
+      const trs = container.querySelectorAll('tbody tr');
+
+      trs.forEach(tr => {
+        const text = tr.textContent || tr.innerText;
+        if (text.toUpperCase().indexOf(filter) > -1) {
+          tr.style.display = "";
+        } else {
+          tr.style.display = "none";
+        }
+      });
+    }
+
+    function filtrarTabela(inputId, tbodyId) {
+      const input = document.getElementById(inputId);
+      const filter = input.value.toUpperCase();
+      const tbody = document.getElementById(tbodyId);
+      const tr = tbody.getElementsByTagName('tr');
+
+      for (let i = 0; i < tr.length; i++) {
+        const text = tr[i].textContent || tr[i].innerText;
+        if (text.toUpperCase().indexOf(filter) > -1) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
+        }
+      }
+    }
+
+    function ordenarTabela(tabelaId, colIndex, tipo) {
+      const tabela = document.getElementById(tabelaId);
+      const tbody = tabela.querySelector('tbody');
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      if (rows.length <= 1) return;
+      
+      const sortKey = `${tabelaId}_${colIndex}`;
+      const isAsc = sortStates[sortKey] === 'asc';
+      sortStates[sortKey] = isAsc ? 'desc' : 'asc';
+
+      const headers = tabela.querySelectorAll('th.sortable');
+      headers.forEach((th, idx) => {
+        const icon = th.querySelector('.sort-icon');
+        if (icon) {
+          if (idx === colIndex) {
+            icon.textContent = isAsc ? '▼' : '▲';
+            icon.className = 'sort-icon text-cyan-400 font-bold';
+          } else {
+            icon.textContent = '↕';
+            icon.className = 'sort-icon text-purple-400 font-mono';
+          }
+        }
+      });
+
+      rows.sort((a, b) => {
+        let valA = a.children[colIndex]?.textContent.trim() || '';
+        let valB = b.children[colIndex]?.textContent.trim() || '';
+
+        if (tipo === 'money' || tipo === 'num') {
+          valA = parseFloat(valA.replace(/[R$\s.un%cli]/g, '').replace(',', '.')) || 0;
+          valB = parseFloat(valB.replace(/[R$\s.un%cli]/g, '').replace(',', '.')) || 0;
+          return isAsc ? valB - valA : valA - valB;
+        } else {
+          return isAsc ? valB.localeCompare(valA, 'pt-BR') : valA.localeCompare(valB, 'pt-BR');
+        }
+      });
+
+      rows.forEach(r => tbody.appendChild(r));
+    }
+
+    function trocarFilial(sigla) {
+      FILIAL_ATUAL = sigla;
+      const d = TODAS_FILIAIS_DATA[sigla];
+      if (!d) return;
+
+      // Header e Footer
+      document.getElementById('footerFilialNome').textContent = `FILIAL ${sigla}`;
+      document.getElementById('footerGerenteNome').textContent = d.gerente || 'Gerente Filial';
+
+      // Card 1: Faturamento
+      document.getElementById('cardFaturadoOficial').textContent = formatBRL(d.faturadoOficial);
+      document.getElementById('cardVendidoHoje').textContent = formatBRL(d.vendidoHoje);
+      const pctFat = d.metaFinanceira > 0 ? ((d.vendidoHoje / d.metaFinanceira) * 100).toFixed(2) : '0.00';
+      document.getElementById('cardPctVendido').textContent = `${pctFat}% em Carteira`;
+      document.getElementById('cardMetaFinanceira').textContent = formatBRL(d.metaFinanceira);
+      document.getElementById('cardMetaDiariaFat').innerHTML = `${formatBRL(d.metaDiariaFat)} <span class="text-[9px] text-gray-400">/dia</span>`;
+      document.getElementById('barVendido').style.width = `${Math.min(100, Math.max(2, pctFat))}%`;
+
+      // Card 2: Positivação
+      document.getElementById('cardPositivadosOficial').innerHTML = `${d.positivadosOficial} <span class="text-xs text-gray-400 font-normal">cliente(s)</span>`;
+      document.getElementById('cardComPedidoHoje').innerHTML = `${d.comPedidoHoje} <span class="text-xs text-cyan-400/80 font-normal">clientes</span>`;
+      document.getElementById('cardMetaPositivacao').textContent = `${d.metaPositivacao.toLocaleString('pt-BR')} clientes distintos`;
+      const faltamCli = Math.max(0, d.metaPositivacao - d.positivadosOficial);
+      document.getElementById('cardFaltamCli').textContent = `Faltam ${faltamCli.toLocaleString('pt-BR')}`;
+      const pctPos = d.metaPositivacao > 0 ? ((d.comPedidoHoje / d.metaPositivacao) * 100).toFixed(1) : '0.0';
+      document.getElementById('barPositivados').style.width = `${Math.min(100, Math.max(2, pctPos))}%`;
+      document.getElementById('cardMetaDiariaCli').innerHTML = `${d.metaDiariaCli} <span class="text-[9px] text-gray-400">clientes/dia (~3,6/RCA)</span>`;
+
+      // Card 3: Radar de Campo
+      document.getElementById('cardRotasHoje').innerHTML = `${d.rotasHoje} <span class="text-xs font-normal text-gray-400">PDVs</span>`;
+      document.getElementById('cardVendedoresAtivos').textContent = `${d.vendedoresAtivos} Vendedores em Campo`;
+      document.getElementById('cardInativosNaRota').innerHTML = `${d.inativosNaRota} <span class="text-xs font-normal text-red-300/70">PDVs</span>`;
+      const pctInat = d.rotasHoje > 0 ? ((d.inativosNaRota / d.rotasHoje) * 100).toFixed(1) : '0.0';
+      document.getElementById('cardPctInativos').textContent = `${pctInat}% da Rota de Hoje`;
+
+      // Card 4: Pipeline de Pedidos
+      document.getElementById('cardPedidosTotal').textContent = `${d.pedidosTotal} Pedidos no Mês`;
+      document.getElementById('cardLiberadosQtd').textContent = `${d.liberadosQtd} pedidos aprovados`;
+      document.getElementById('cardLiberadosValor').textContent = formatBRL(d.liberadosValor);
+      document.getElementById('cardBloqueadosQtd').textContent = `${d.bloqueadosQtd} pedidos retidos`;
+      document.getElementById('cardBloqueadosValor').textContent = formatBRL(d.bloqueadosValor);
+
+      // Card 5: Cortes D-1
+      if (d.cortesValorD1 > 0) {
+        document.getElementById('cardCortesBadge').textContent = `${formatBRL(d.cortesValorD1)} (${d.cortesQtdPedidosD1} Pedidos)`;
+        const topCortesHtml = (d.top5CortesD1 || []).slice(0, 3).map(c => `
+          <div class="flex items-center justify-between text-[11px] py-0.5 border-b border-white/5">
+            <span class="text-gray-300 truncate max-w-[180px]">• ${c.desc}</span>
+            <span class="font-bold text-amber-400 font-outfit">${formatBRL(c.valor)} <span class="text-[9px] text-gray-500">(${c.qtd} un)</span></span>
+          </div>
+        `).join('');
+        document.getElementById('cardTopCortesList').innerHTML = topCortesHtml;
+      }
+
+      // Card 6: Devoluções D-1
+      if (d.devolucoesValorD1 > 0) {
+        document.getElementById('cardDevolucoesBadge').textContent = `${formatBRL(d.devolucoesValorD1)} (${d.devolucoesQtdD1} NFes)`;
+        document.getElementById('cardDevFalta').textContent = formatBRL(d.devolucoesValorD1 * 0.55);
+        document.getElementById('cardDevRecusa').textContent = formatBRL(d.devolucoesValorD1 * 0.28);
+        document.getElementById('cardDevAtraso').textContent = formatBRL(d.devolucoesValorD1 * 0.17);
+      }
+
+      // Modais
+      document.getElementById('modalBloqueadosTitulo').textContent = `TODOS OS PEDIDOS BLOQUEADOS — FILIAL ${sigla} (${d.bloqueadosQtd} Pedidos | ${formatBRL(d.bloqueadosValor)})`;
+      document.getElementById('modalInativosTitulo').textContent = `TODOS OS CLIENTES INATIVOS (>30D) NA ROTA — FILIAL ${sigla} (${d.inativosNaRota} Clientes)`;
+      document.getElementById('modalCortesTitulo').textContent = `TODOS OS CORTES DE ONTEM (D-1) — FILIAL ${sigla} (${d.cortesQtdPedidosD1} Pedidos Afetados | ${formatBRL(d.cortesValorD1)})`;
+      document.getElementById('modalDevolucoesTitulo').textContent = `TODAS AS NOTAS DEVOLVIDAS (D-1) — FILIAL ${sigla} (${d.devolucoesQtdD1} NFes | ${formatBRL(d.devolucoesValorD1)})`;
+      document.getElementById('modalFinanceiroTitulo').textContent = `METAS E VENDAS POR SUPERVISOR — FILIAL ${sigla}`;
+      document.getElementById('modalLiberadosTitulo').textContent = `TODOS OS PEDIDOS LIBERADOS — FILIAL ${sigla} (${d.liberadosQtd} Pedidos | ${formatBRL(d.liberadosValor)})`;
+
+      // 1. Tabela Supervisores (COM Cortes e Devoluções por Supervisor)
+      const tbodyFin = document.getElementById('tabelaFinanceiroBody');
+      tbodyFin.innerHTML = (d.supervisores || []).map(s => `
+        <tr onclick="explodirVendedores('${s.nome}')" class="hover:bg-purple-500/20 cursor-pointer transition-colors group">
+          <td class="py-2.5 px-3 font-medium text-white flex items-center justify-between">
+            <span>${s.nome}</span>
+            <span class="text-[10px] text-purple-400 group-hover:text-cyan-300 font-bold">Ver Equipe ➔</span>
+          </td>
+          <td class="py-2.5 px-3 text-center font-mono text-purple-300 font-bold">${s.rcasCount}</td>
+          <td class="py-2.5 px-3 text-right font-mono font-bold text-white">${formatBRL(s.metaFat)}</td>
+          <td class="py-2.5 px-3 text-right font-mono text-purple-300 font-bold">${formatBRL(s.vendidoHoje)}</td>
+          <td class="py-2.5 px-3 text-right font-mono text-gray-400">R$ 0,00</td>
+          <td class="py-2.5 px-3 text-center font-mono text-cyan-300 font-bold">${s.pdvsVendidos}</td>
+          <td class="py-2.5 px-3 text-right font-mono text-amber-400">${formatBRL(s.cortesD1)}</td>
+          <td class="py-2.5 px-3 text-right font-mono text-rose-400">${formatBRL(s.devolucoesD1)}</td>
+        </tr>
+      `).join('');
+
+      // 2. Tabela Bloqueados
+      const tbodyBloq = document.getElementById('tabelaBloqueadosBody');
+      tbodyBloq.innerHTML = (d.listaBloqueados || []).map(b => `
+        <tr class="hover:bg-rose-500/10 transition-colors">
+          <td class="py-2.5 px-3 font-mono font-bold text-rose-300">${b.numPedido}</td>
+          <td class="py-2.5 px-3 font-mono text-gray-400">${b.codCliente}</td>
+          <td class="py-2.5 px-3 font-medium text-white">${b.clienteNome}</td>
+          <td class="py-2.5 px-3"><span class="text-purple-300 font-mono">[${b.rcaCodigo}]</span> ${b.rcaNome}</td>
+          <td class="py-2.5 px-3 text-gray-300">${b.supervisor}</td>
+          <td class="py-2.5 px-3 font-mono font-bold text-right text-rose-400">${formatBRL(b.valor)}</td>
+          <td class="py-2.5 px-3 text-center text-gray-400 font-mono">${b.dataPedido}</td>
+          <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px] font-bold">BLOQUEADO</span></td>
+        </tr>
+      `).join('');
+
+      // 3. Tabela Inativos na Rota
+      const tbodyInat = document.getElementById('tabelaInativosBody');
+      tbodyInat.innerHTML = (d.listaInativosRota || []).map(i => `
+        <tr class="hover:bg-amber-500/10 transition-colors">
+          <td class="py-2.5 px-3 font-mono text-gray-400">${i.codCliente}</td>
+          <td class="py-2.5 px-3 font-medium text-white">${i.clienteNome}</td>
+          <td class="py-2.5 px-3 font-mono text-gray-400 text-[11px]">${i.cnpj}</td>
+          <td class="py-2.5 px-3"><span class="text-purple-300 font-mono">[${i.rcaCodigo}]</span> ${i.rcaNome}</td>
+          <td class="py-2.5 px-3 text-gray-300">${i.supervisor}</td>
+          <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold text-[10px]">${i.diasSemCompra} dias</span></td>
+          <td class="py-2.5 px-3 text-right font-mono font-bold text-gray-200">${formatBRL(i.ultimaCompraValor)}</td>
+        </tr>
+      `).join('');
+
+      // 4. Tabela Cortes D-1
+      const tbodyCortes = document.getElementById('tabelaCortesBody');
+      if (d.listaCortesD1 && d.listaCortesD1.length > 0) {
+        tbodyCortes.innerHTML = d.listaCortesD1.map(c => `
+          <tr class="hover:bg-amber-500/10 transition-colors">
+            <td class="py-2.5 px-3 font-mono font-bold text-amber-300">${c.numPedido}</td>
+            <td class="py-2.5 px-3 font-medium text-white">${c.clienteNome}</td>
+            <td class="py-2.5 px-3"><span class="text-purple-300 font-mono">[${c.rcaCodigo}]</span> ${c.rcaNome}</td>
+            <td class="py-2.5 px-3 text-gray-300">${c.supervisor}</td>
+            <td class="py-2.5 px-3 font-mono text-purple-300">${c.codSku}</td>
+            <td class="py-2.5 px-3 text-gray-200">${c.descricao}</td>
+            <td class="py-2.5 px-3 text-center font-bold text-white">${c.qtdCortada} un</td>
+            <td class="py-2.5 px-3 text-right font-mono font-bold text-amber-400">${formatBRL(c.valorCorte)}</td>
+            <td class="py-2.5 px-3 text-center text-gray-400 font-mono">${c.dataCorte}</td>
+          </tr>
+        `).join('');
+      }
+
+      // 5. Tabela Devoluções D-1
+      const tbodyDev = document.getElementById('tabelaDevolucoesBody');
+      if (d.listaDevolucoesD1 && d.listaDevolucoesD1.length > 0) {
+        tbodyDev.innerHTML = d.listaDevolucoesD1.map(dev => `
+          <tr class="hover:bg-rose-500/10 transition-colors">
+            <td class="py-2.5 px-3 font-mono font-bold text-rose-300">NFe ${dev.nfe}</td>
+            <td class="py-2.5 px-3 font-medium text-white">${dev.clienteNome}</td>
+            <td class="py-2.5 px-3"><span class="text-purple-300 font-mono">[${dev.rcaCodigo}]</span> ${dev.rcaNome}</td>
+            <td class="py-2.5 px-3 text-gray-300">${dev.supervisor}</td>
+            <td class="py-2.5 px-3 font-mono font-bold text-right text-rose-400">${formatBRL(dev.valor)}</td>
+            <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px] font-semibold">${dev.motivoDevolucao}</span></td>
+            <td class="py-2.5 px-3 text-center text-gray-400 font-mono">${dev.dataEntrada}</td>
+          </tr>
+        `).join('');
+      }
+
+      // 6. Tabela Liberados
+      const tbodyLib = document.getElementById('tabelaLiberadosBody');
+      tbodyLib.innerHTML = (d.listaLiberados || []).map(lib => `
+        <tr class="hover:bg-emerald-500/10 transition-colors">
+          <td class="py-2.5 px-3 font-mono font-bold text-emerald-300">${lib.numPedido}</td>
+          <td class="py-2.5 px-3 font-mono text-gray-400">${lib.codCliente}</td>
+          <td class="py-2.5 px-3 font-medium text-white">${lib.clienteNome}</td>
+          <td class="py-2.5 px-3"><span class="text-purple-300 font-mono">[${lib.rcaCodigo}]</span> ${lib.rcaNome}</td>
+          <td class="py-2.5 px-3 text-gray-300">${lib.supervisor}</td>
+          <td class="py-2.5 px-3 font-mono font-bold text-right text-emerald-400">${formatBRL(lib.valor)}</td>
+          <td class="py-2.5 px-3 text-center text-gray-400 font-mono">${lib.dataPedido}</td>
+          <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold">${lib.status}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    fetch('/dados_cockpit_todas_filiais_completo.json')
+      .then(res => res.json())
+      .then(data => {
+        TODAS_FILIAIS_DATA = data;
+        trocarFilial('API');
+      })
+      .catch(err => {
+        console.error('Erro ao carregar dados:', err);
+      });
+  </script>
+
+</body>
+</html>

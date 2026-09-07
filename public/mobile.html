@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CEVEN Mobile | Copiloto Comercial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-app: #f4f6f9;
+      --card-bg: #ffffff;
+      --primary: #00875a;
+      --primary-light: #e3fcef;
+      --text-main: #172b4d;
+      --text-muted: #6b778c;
+      --danger: #de350b;
+      --warning: #ffab00;
+      --whatsapp-green: #25d366;
+      --border-color: #ebecf0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #0b132b;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 10px;
+    }
+
+    /* Moldura Mobile Simulator */
+    .mobile-frame {
+      width: 100%;
+      max-width: 440px;
+      height: 900px;
+      background: var(--bg-app);
+      border-radius: 40px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 10px #1e293b;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Top Status Bar & Header */
+    .mobile-header {
+      background: #ffffff;
+      padding: 14px 18px 10px 18px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .logo-brand {
+      font-size: 19px;
+      font-weight: 900;
+      color: #091e42;
+      letter-spacing: -0.5px;
+    }
+
+    .badge-filial {
+      color: #6b778c;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .version-tag {
+      font-size: 10px;
+      color: #eb5a46;
+      font-weight: 700;
+      border: 1px solid #eb5a46;
+      padding: 1px 5px;
+      border-radius: 12px;
+      margin-left: 2px;
+    }
+
+    .btn-mix-top {
+      background: #f4f5f7;
+      color: #0052cc;
+      border: 1px solid #dfe1e6;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    /* Barra Superior: Faturado + Pendente */
+    .top-finance-bar {
+      background: #ffffff;
+      padding: 12px 18px 8px 18px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .top-finance-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #5e6c84;
+    }
+
+    .top-finance-header strong {
+      color: #172b4d;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .double-bar {
+      width: 100%;
+      height: 10px;
+      background: #ebecf0;
+      border-radius: 5px;
+      margin-top: 8px;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .bar-faturado {
+      background: #ffab00;
+      height: 100%;
+      transition: width 0.6s ease;
+    }
+
+    .bar-pendente {
+      background: #4c9aff;
+      height: 100%;
+      transition: width 0.6s ease;
+    }
+
+    .top-finance-legend {
+      display: flex;
+      gap: 14px;
+      margin-top: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b778c;
+    }
+
+    .dot-fat {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #00875a;
+      margin-right: 4px;
+    }
+
+    .dot-pen {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4c9aff;
+      margin-right: 4px;
+    }
+
+    .top-devolucao-row {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #f4f5f7;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #de350b;
+      font-weight: 600;
+    }
+
+    /* Seleção de Vendedor */
+    .rca-selector-bar {
+      background: #fafbfc;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .rca-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .rca-name {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .rca-code {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .select-rca-input {
+      background: #ffffff;
+      border: 1px solid #dfe1e6;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #091e42;
+      outline: none;
+      max-width: 170px;
+    }
+
+    /* Scrollable Content */
+    .mobile-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Cards Brancos Arredondados */
+    .kpi-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 1px 4px rgba(9,30,66,0.08);
+      border: 1px solid #ebecf0;
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: #6b778c;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    /* Positivação Layout Oficial */
+    .positivacao-layout {
+      display: grid;
+      grid-template-columns: 85px 1fr 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .gauge-circle {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      border: 7px solid #00875a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #fbfcfd;
+    }
+
+    .gauge-val {
+      font-size: 16px;
+      font-weight: 900;
+      color: #00875a;
+    }
+
+    .gauge-lbl {
+      font-size: 10px;
+      color: #6b778c;
+      font-weight: 600;
+    }
+
+    .pos-info small {
+      font-size: 11px;
+      color: #6b778c;
+      display: block;
+    }
+
+    .pos-info strong {
+      font-size: 15px;
+      color: #172b4d;
+      font-weight: 800;
+    }
+
+    .bar-pos-full {
+      width: 100%;
+      height: 8px;
+      background: #ebecf0;
+      border-radius: 4px;
+      margin-top: 14px;
+      overflow: hidden;
+    }
+
+    .bar-pos-fill {
+      background: #00875a;
+      height: 100%;
+      transition: width 0.6s ease;
+    }
+
+    /* Produtividade Layout Oficial */
+    .prod-header {
+      font-size: 11px;
+      font-weight: 800;
+      color: #6b778c;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .prod-sub {
+      font-size: 12px;
+      color: #5e6c84;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .prod-boxes {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .prod-box {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 10px 8px;
+      text-align: center;
+      border: 1px solid #ebecf0;
+    }
+
+    .prod-box small {
+      font-size: 10px;
+      color: #6b778c;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .prod-box strong {
+      font-size: 13px;
+      color: #172b4d;
+      font-weight: 800;
+    }
+
+    /* Roteiro Hoje & Roteiro Mês */
+    .roteiro-row {
+      margin-top: 12px;
+    }
+
+    .roteiro-row-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: #5e6c84;
+    }
+
+    .roteiro-row-header .eficacia-val {
+      color: #de350b;
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .roteiro-row-header .eficiencia-val {
+      color: #00875a;
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .bar-roteiro {
+      width: 100%;
+      height: 7px;
+      background: #ebecf0;
+      border-radius: 4px;
+      margin-top: 6px;
+      overflow: hidden;
+    }
+
+    .bar-roteiro-fill-red {
+      background: #ff5630;
+      height: 100%;
+    }
+
+    .bar-roteiro-fill-green {
+      background: #00875a;
+      height: 100%;
+    }
+
+    .roteiro-row-footer {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #6b778c;
+      margin-top: 4px;
+    }
+
+    /* Mix do Mês */
+    .mix-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #6b778c;
+      margin-top: 14px;
+      margin-bottom: 8px;
+    }
+
+    .mix-boxes {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .mix-box {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 10px 8px;
+      text-align: center;
+      border: 1px solid #ebecf0;
+    }
+
+    .mix-box small {
+      font-size: 10px;
+      color: #6b778c;
+      display: block;
+    }
+
+    .mix-box strong {
+      font-size: 14px;
+      color: #172b4d;
+      font-weight: 800;
+    }
+
+    .mix-footer-text {
+      text-align: center;
+      font-size: 10px;
+      color: #8993a4;
+      margin-top: 6px;
+    }
+
+    /* Rota List */
+    .rota-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid #edf0f5;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .rota-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cli-nome {
+      font-size: 12px;
+      font-weight: 700;
+      color: #091e42;
+    }
+
+    .cli-dias {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #ffab00;
+      color: #172b4d;
+    }
+
+    .cli-tag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      width: fit-content;
+    }
+
+    .tag-snickers { background: #fff0b3; color: #172b4d; }
+    .tag-skittles { background: #ffe380; color: #172b4d; }
+    .tag-p9 { background: #ffebe6; color: #de350b; }
+
+    /* Floating Botão IA */
+    .btn-floating-ia {
+      position: absolute;
+      bottom: 64px;
+      right: 18px;
+      background: linear-gradient(135deg, #00875a, #0052cc);
+      color: #ffffff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 24px;
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 20px rgba(0, 135, 90, 0.4);
+      cursor: pointer;
+      z-index: 50;
+      transition: transform 0.2s;
+    }
+
+    .btn-floating-ia:active {
+      transform: scale(0.95);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: #57d9a3;
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(87, 217, 163, 0.7);
+      animation: pulse 1.6s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(87, 217, 163, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(87, 217, 163, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(87, 217, 163, 0); }
+    }
+
+    /* Bottom Navigation Oficial */
+    .mobile-bottom-nav {
+      background: #ffffff;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0;
+      z-index: 40;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: #6b778c;
+      cursor: pointer;
+      gap: 2px;
+    }
+
+    .nav-item.active {
+      color: #0052cc;
+      font-weight: 800;
+    }
+
+    .nav-icon {
+      font-size: 16px;
+    }
+
+    /* Modal Copiloto IA */
+    .ia-modal-backdrop {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(9, 30, 66, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .ia-chat-sheet {
+      background: #ffffff;
+      border-radius: 24px 24px 0 0;
+      height: 75%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .chat-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chat-header-user {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .avatar-bot {
+      width: 32px;
+      height: 32px;
+      background: #deebff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .chat-header-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #091e42;
+    }
+
+    .chat-header-sub {
+      font-size: 10px;
+      color: #00875a;
+      font-weight: 600;
+    }
+
+    .btn-close-chat {
+      background: #f4f5f7;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #f8f9fa;
+    }
+
+    .msg-bubble {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .msg-bot {
+      background: #ffffff;
+      color: #172b4d;
+      border: 1px solid #ebecf0;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg-user {
+      background: #00875a;
+      color: #ffffff;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+      font-weight: 500;
+    }
+
+    .quick-chips {
+      padding: 8px 12px;
+      background: #ffffff;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .quick-chips::-webkit-scrollbar { display: none; }
+
+    .chip-btn {
+      background: #f4f5f7;
+      border: 1px solid #dfe1e6;
+      padding: 6px 10px;
+      border-radius: 14px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #091e42;
+      cursor: pointer;
+    }
+
+    .chat-input-bar {
+      padding: 10px 14px;
+      background: #f0f2f5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: #ffffff;
+      border: 1px solid #dfe1e6;
+      padding: 10px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .btn-send {
+      background: #00875a;
+      color: #ffffff;
+      border: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="mobile-frame">
+    <!-- Top Header -->
+    <header class="mobile-header">
+      <div class="header-left">
+        <span class="logo-brand">CEVEN</span>
+        <span class="badge-filial">· <span id="top-filial-badge">TBL</span> · VENDEDOR</span>
+        <span class="version-tag">v7.890</span>
+      </div>
+      <button class="btn-mix-top">📅 0d +MIX</button>
+    </header>
+
+    <!-- Barra Superior: Faturado + Pendente -->
+    <div class="top-finance-bar">
+      <div class="top-finance-header">
+        <span>Faturado + Pendente</span>
+        <strong id="top-total-fat-pen">R$ 0,00</strong>
+      </div>
+      <div class="double-bar">
+        <div class="bar-faturado" id="bar-top-fat" style="width: 0%;"></div>
+        <div class="bar-pendente" id="bar-top-pen" style="width: 0%;"></div>
+      </div>
+      <div class="top-finance-legend">
+        <span><span class="dot-fat"></span> Faturado liq.</span>
+        <span><span class="dot-pen"></span> Pendente</span>
+      </div>
+      <div class="top-devolucao-row">
+        <span>↩ Devolução no mês</span>
+        <strong id="top-devolucao-val">- R$ 0,00 ▾</strong>
+      </div>
+    </div>
+
+    <!-- RCA Selector -->
+    <div class="rca-selector-bar">
+      <div class="rca-info">
+        <span class="rca-name" id="rca-name-display">MARIELI BRUM GREGHI</span>
+        <span class="rca-code" id="rca-code-display">RCA 193 · Filial TBL</span>
+      </div>
+      <select class="select-rca-input" id="rca-select-dropdown" onchange="trocarRCA(this.value)">
+        <option value="193">193 - Marieli Brum (TBL)</option>
+        <option value="171">171 - Almir Rogerio (TBL)</option>
+        <option value="199">199 - Alan Diogo (TBL)</option>
+        <option value="172">172 - Andrea do Rocio (TBL)</option>
+        <option value="174">174 - Bruno Gustavo (TBL)</option>
+        <option value="181">181 - Giovana Batista (TBL)</option>
+      </select>
+    </div>
+
+    <!-- Scrollable Content -->
+    <main class="mobile-content">
+      <!-- 1. Card Positivação (Layout Oficial CEVEN) -->
+      <section class="kpi-card">
+        <div class="card-title">POSITIVAÇÃO</div>
+        <div class="positivacao-layout">
+          <div class="gauge-circle">
+            <span class="gauge-val" id="pos-pct-val">80.7%</span>
+            <span class="gauge-lbl">meta</span>
+          </div>
+          <div class="pos-info">
+            <small>Meta</small>
+            <strong id="pos-meta-val">88 cli.</strong>
+            <small style="margin-top: 8px;">Faltam</small>
+            <strong id="pos-falta-val" style="color: #172b4d;">17 cli.</strong>
+          </div>
+          <div class="pos-info">
+            <small>Realizado</small>
+            <strong id="pos-real-val">71 cli.</strong>
+          </div>
+        </div>
+        <div class="bar-pos-full">
+          <div class="bar-pos-fill" id="bar-pos-progress" style="width: 80.7%;"></div>
+        </div>
+      </section>
+
+      <!-- 2. Card Produtividade (Layout Oficial CEVEN) -->
+      <section class="kpi-card">
+        <div class="prod-header">PRODUTIVIDADE</div>
+        <div class="prod-sub">Hoje</div>
+
+        <!-- 3 Caixas de Produtividade do Dia -->
+        <div class="prod-boxes">
+          <div class="prod-box">
+            <small>Digitação</small>
+            <strong id="prod-digitacao-hoje">R$ 569,79</strong>
+          </div>
+          <div class="prod-box">
+            <small>Positivação</small>
+            <strong id="prod-positivacao-hoje">1 cli.</strong>
+          </div>
+          <div class="prod-box">
+            <small>Faturamento</small>
+            <strong id="prod-faturamento-hoje">R$ 0</strong>
+          </div>
+        </div>
+
+        <!-- Roteiro Hoje -->
+        <div class="roteiro-row">
+          <div class="roteiro-row-header">
+            <span>Roteiro hoje</span>
+            <span class="eficacia-val" id="roteiro-hoje-eficacia">6.7% eficácia</span>
+          </div>
+          <div class="bar-roteiro">
+            <div class="bar-roteiro-fill-red" id="bar-roteiro-hoje-fill" style="width: 6.7%;"></div>
+          </div>
+          <div class="roteiro-row-footer">
+            <span id="roteiro-hoje-venda">1 com venda</span>
+            <span id="roteiro-hoje-prog">15 programados</span>
+          </div>
+        </div>
+
+        <!-- Roteiro do Mês -->
+        <div class="roteiro-row">
+          <div class="roteiro-row-header">
+            <span>Roteiro do mês</span>
+            <span class="eficiencia-val" id="roteiro-mes-eficiencia">86.4% eficiência</span>
+          </div>
+          <div class="bar-roteiro">
+            <div class="bar-roteiro-fill-green" id="bar-roteiro-mes-fill" style="width: 86.4%;"></div>
+          </div>
+          <div class="roteiro-row-footer">
+            <span id="roteiro-mes-real">229 realizadas</span>
+            <span id="roteiro-mes-plan">265 planejadas até hoje</span>
+          </div>
+        </div>
+
+        <!-- Mix do Mês -->
+        <div class="mix-section-title">Mix do mês</div>
+        <div class="mix-boxes">
+          <div class="mix-box">
+            <small>SKUs distintos</small>
+            <strong id="mix-skus-val">200</strong>
+          </div>
+          <div class="mix-box">
+            <small>Clientes</small>
+            <strong id="mix-cli-val">87</strong>
+          </div>
+          <div class="mix-box">
+            <small>Média SKU/cli</small>
+            <strong id="mix-media-val">10.2</strong>
+          </div>
+        </div>
+        <div class="mix-footer-text">do início do mês até hoje</div>
+      </section>
+
+      <!-- 3. Card Rota de Hoje -->
+      <section class="kpi-card">
+        <div class="card-title" style="display: flex; justify-content: space-between;">
+          <span>ROTEIRO DE HOJE (<span id="total-rota-count">15</span>)</span>
+          <span style="color: #0052cc; cursor: pointer;" onclick="abrirChatIA('quais sao as maiores oportunidades de hoje?')">Ver Análise IA ➔</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;" id="rota-lista-container">
+          <div class="rota-card">
+            <div class="rota-header">
+              <span class="cli-nome">#190088 · BAR E MERCEARIA JR</span>
+              <span class="cli-dias">8 dias s/ compra</span>
+            </div>
+            <span class="cli-tag tag-snickers">🟡 NÃO COMPROU SNICKERS CORE</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Botão Flutuante de IA -->
+    <button class="btn-floating-ia" onclick="abrirChatIA()">
+      <div class="pulse-dot"></div>
+      <span>💬 Copiloto IA</span>
+    </button>
+
+    <!-- Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+      <div class="nav-item active">
+        <span class="nav-icon">🏠</span>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item">
+        <span class="nav-icon">📅</span>
+        <span>Hoje</span>
+      </div>
+      <div class="nav-item">
+        <span class="nav-icon">🗺️</span>
+        <span>Mapa</span>
+      </div>
+      <div class="nav-item">
+        <span class="nav-icon">📊</span>
+        <span>Mês</span>
+      </div>
+    </nav>
+
+    <!-- Modal do Copiloto de IA -->
+    <div class="ia-modal-backdrop" id="ia-modal">
+      <div class="ia-chat-sheet">
+        <div class="chat-header">
+          <div class="chat-header-user">
+            <div class="avatar-bot">🤖</div>
+            <div>
+              <div class="chat-header-title">Copiloto CEVEN IA</div>
+              <div class="chat-header-sub">Online · Respostas em tempo real</div>
+            </div>
+          </div>
+          <button class="btn-close-chat" onclick="fecharChatIA()">✕</button>
+        </div>
+
+        <div class="chat-messages" id="chat-messages-box">
+          <div class="msg-bubble msg-bot">
+            Olá! Sou o seu **Copiloto CEVEN**. Estou conectado com seus dados de faturamento, produtividade de hoje, roteiro e devoluções. Como posso ajudar?
+          </div>
+        </div>
+
+        <div class="quick-chips">
+          <button class="chip-btn" onclick="enviarPerguntaRapida('Qual é a minha produtividade hoje?')">⚡ Produtividade Hoje</button>
+          <button class="chip-btn" onclick="enviarPerguntaRapida('Quantos faltam pra bater a positivação?')">👥 Meta Positivação</button>
+          <button class="chip-btn" onclick="enviarPerguntaRapida('Quem tá há mais tempo sem comprar na minha rota?')">🚨 Clientes Críticos</button>
+          <button class="chip-btn" onclick="enviarPerguntaRapida('Tive alguma devolução alta no mês?')">💣 Devoluções</button>
+        </div>
+
+        <div class="chat-input-bar">
+          <button class="btn-send" id="btn-mic" onclick="toggleGravacaoAudio()" title="Falar por áudio" style="background: #3b82f6;">
+            🎙️
+          </button>
+          <input type="text" class="chat-input" id="chat-text-input" placeholder="Fale ou digite sua dúvida..." onkeypress="handleEnter(event)">
+          <button class="btn-send" onclick="enviarMensagem()" title="Enviar mensagem">
+            ➤
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let rcaAtual = '193';
+    let filialAtual = 'TBL';
+    let recognition = null;
+    let gravando = false;
+
+    // Inicialização ao carregar a página
+    window.addEventListener('DOMContentLoaded', () => {
+      carregarListaVendedores();
+      trocarRCA('193');
+    });
+
+    async function carregarListaVendedores() {
+      try {
+        const res = await fetch('/api/representantes?filial=TODAS');
+        if (res.ok) {
+          const reps = await res.json();
+          const select = document.getElementById('rca-select-dropdown');
+          if (reps && reps.length > 0) {
+            select.innerHTML = reps.map(r => `
+              <option value="${r.codigo}" ${r.codigo == '193' ? 'selected' : ''}>
+                ${r.codigo} - ${r.nome.replace(/^CLT\s*-\s*/i, '')} (${r.filial || 'TBL'})
+              </option>
+            `).join('');
+          }
+        }
+      } catch (_) {}
+    }
+
+    async function trocarRCA(codigo) {
+      rcaAtual = codigo;
+      const select = document.getElementById('rca-select-dropdown');
+      let sigla = 'TBL';
+      let nome = 'MARIELI BRUM GREGHI';
+
+      if (select && select.options && select.selectedIndex >= 0) {
+        const label = select.options[select.selectedIndex].text;
+        const parts = label.split(' - ');
+        nome = parts[1] ? parts[1].split(' (')[0] : 'VENDEDOR';
+        const matchFilial = label.match(/\(([^)]+)\)/);
+        if (matchFilial && matchFilial[1]) sigla = matchFilial[1].toUpperCase();
+      }
+
+      filialAtual = sigla;
+      document.getElementById('rca-name-display').innerText = nome.toUpperCase();
+      document.getElementById('rca-code-display').innerText = `RCA ${codigo} · Filial ${sigla}`;
+      document.getElementById('top-filial-badge').innerText = sigla;
+
+      // Carrega dados completos do Vendedor (Dashboard + Produtividade Oficial)
+      try {
+        const res = await fetch(`/api/vendedor-detalhe?filial=${sigla}&id=${codigo}`);
+        if (res.ok) {
+          const data = await res.json();
+          
+          // 1. Barra Superior Financeira
+          const totFatPen = (data.fat_liq || 0) + (data.pendente || 0);
+          document.getElementById('top-total-fat-pen').innerText = `R$ ${totFatPen.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+          
+          const maxRef = data.meta_fat > 0 ? data.meta_fat : Math.max(totFatPen, 1);
+          document.getElementById('bar-top-fat').style.width = `${Math.min(100, ((data.fat_liq || 0) / maxRef) * 100)}%`;
+          document.getElementById('bar-top-pen').style.width = `${Math.min(100, ((data.pendente || 0) / maxRef) * 100)}%`;
+          document.getElementById('top-devolucao-val').innerText = `- R$ ${(data.devolucao || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ▾`;
+
+          // 2. Card Positivação
+          document.getElementById('pos-pct-val').innerText = `${data.pct_pos || 0}%`;
+          document.getElementById('pos-meta-val').innerText = `${data.meta_cli || 0} cli.`;
+          document.getElementById('pos-real-val').innerText = `${data.real_cli || 0} cli.`;
+          document.getElementById('pos-falta-val').innerText = `${data.falta_cli || 0} cli.`;
+          document.getElementById('bar-pos-progress').style.width = `${Math.min(100, data.pct_pos || 0)}%`;
+
+          // 3. Card Produtividade Oficial
+          const prod = data.produtividade || {};
+          const hoje = prod.hoje || {};
+          const mes = prod.mes || {};
+          const mix = prod.mix || {};
+
+          document.getElementById('prod-digitacao-hoje').innerText = `R$ ${(hoje.digitacao || data.digitacao_hoje || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+          document.getElementById('prod-positivacao-hoje').innerText = `${hoje.positivacao || data.positivacao_hoje || 0} cli.`;
+          document.getElementById('prod-faturamento-hoje').innerText = `R$ ${(hoje.faturamento || data.faturamento_hoje || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+          // Roteiro Hoje
+          const eficHoje = hoje.eficacia_pct || data.eficacia_hoje || 0;
+          document.getElementById('roteiro-hoje-eficacia').innerText = `${eficHoje}% eficácia`;
+          document.getElementById('bar-roteiro-hoje-fill').style.width = `${Math.min(100, eficHoje)}%`;
+          document.getElementById('roteiro-hoje-venda').innerText = `${hoje.visitas_com_venda || 0} com venda`;
+          document.getElementById('roteiro-hoje-prog').innerText = `${hoje.visitas_programadas || data.roteiro_hoje?.length || 0} programados`;
+
+          // Roteiro Mês
+          const eficMes = mes.eficiencia_pct || data.eficiencia_mes || 0;
+          document.getElementById('roteiro-mes-eficiencia').innerText = `${eficMes}% eficiência`;
+          document.getElementById('bar-roteiro-mes-fill').style.width = `${Math.min(100, eficMes)}%`;
+          document.getElementById('roteiro-mes-real').innerText = `${mes.visitas_realizadas || 0} realizadas`;
+          document.getElementById('roteiro-mes-plan').innerText = `${mes.visitas_planejadas || 0} planejadas até hoje`;
+
+          // Mix do Mês
+          document.getElementById('mix-skus-val').innerText = mix.skus_distintos || 0;
+          document.getElementById('mix-cli-val').innerText = mix.clientes_distintos || 0;
+          document.getElementById('mix-media-val').innerText = mix.media_sku_cli || 0;
+
+          // 4. Roteiro Lista Enriquecida
+          document.getElementById('total-rota-count').innerText = `${data.roteiro_hoje?.length || 0}${data.clientes_criticos_30d > 0 ? ` · 🚨 ${data.clientes_criticos_30d} >30d` : ''}`;
+          const rotaContainer = document.getElementById('rota-lista-container');
+          if (data.roteiro_hoje && data.roteiro_hoje.length > 0) {
+            rotaContainer.innerHTML = data.roteiro_hoje.map((r, i) => `
+              <div class="rota-card" style="${r.is_critico_30d ? 'border: 1px solid #ffbdad; background: #fffaf8;' : ''}">
+                <div class="rota-header">
+                  <span class="cli-nome">#${r.id_cliente} · ${r.nome_cliente}</span>
+                  <span class="cli-dias" style="${r.is_critico_30d ? 'background: #de350b; color: white;' : ''}">
+                    ${r.dias_sem_compra > 0 ? `${r.dias_sem_compra} dias s/ compra` : (r.status || 'ABERTO')}
+                  </span>
+                </div>
+                <div style="font-size: 11px; color: #5e6c84;">📍 ${r.endereco || 'Endereço'} ${r.bairro ? '· ' + r.bairro : ''}</div>
+                <div style="font-size: 10px; color: ${r.is_critico_30d ? '#de350b' : '#6b778c'}; font-weight: 600; margin-top: 2px;">
+                  🗓️ Última Compra: <b>${r.ultima_compra_data}</b>
+                </div>
+                ${r.focos_pex && r.focos_pex.length > 0 ? `
+                  <div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px;">
+                    ${r.focos_pex.map(f => `<span class="cli-tag tag-snickers">🎯 ${f.industria_foco}</span>`).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            `).join('');
+          } else {
+            rotaContainer.innerHTML = `<div style="text-align: center; color: #8993a4; font-size: 11px; padding: 10px;">Sem visitas programadas para hoje.</div>`;
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao carregar dados do vendedor:', err);
+      }
+    }
+
+    // Copiloto IA Functions
+    function abrirChatIA(perguntaInicial = null) {
+      document.getElementById('ia-modal').style.display = 'flex';
+      if (perguntaInicial) enviarPerguntaRapida(perguntaInicial);
+    }
+
+    function fecharChatIA() {
+      document.getElementById('ia-modal').style.display = 'none';
+    }
+
+    function handleEnter(e) {
+      if (e.key === 'Enter') enviarMensagem();
+    }
+
+    function enviarPerguntaRapida(texto) {
+      document.getElementById('chat-text-input').value = texto;
+      enviarMensagem();
+    }
+
+    async function enviarMensagem() {
+      const input = document.getElementById('chat-text-input');
+      const texto = input.value.trim();
+      if (!texto) return;
+
+      const chatBox = document.getElementById('chat-messages-box');
+      const userBubble = document.createElement('div');
+      userBubble.className = 'msg-bubble msg-user';
+      userBubble.innerText = texto;
+      chatBox.appendChild(userBubble);
+      input.value = '';
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      const typing = document.createElement('div');
+      typing.className = 'msg-bubble msg-bot';
+      typing.id = 'typing-indicator';
+      typing.innerText = 'Consultando produtividade e metas... ⚡';
+      chatBox.appendChild(typing);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const res = await fetch('/api/ia-whatsapp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mensagem: texto,
+            rca_codigo: rcaAtual,
+            filial: filialAtual
+          })
+        });
+
+        const data = await res.json();
+        typing.remove();
+
+        const respostaTexto = data.resposta || 'Não foi possível obter resposta no momento.';
+        const botBubble = document.createElement('div');
+        botBubble.className = 'msg-bubble msg-bot';
+        botBubble.innerHTML = `<div>${respostaTexto}</div>`;
+        chatBox.appendChild(botBubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      } catch (err) {
+        typing.remove();
+        const errBubble = document.createElement('div');
+        errBubble.className = 'msg-bubble msg-bot';
+        errBubble.innerText = 'Erro ao consultar a IA. Tente novamente.';
+        chatBox.appendChild(errBubble);
+      }
+    }
+  </script>
+</body>
+</html>
