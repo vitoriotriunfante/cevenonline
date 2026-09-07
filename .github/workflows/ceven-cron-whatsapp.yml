@@ -13,8 +13,8 @@ on:
     - cron: '30 17 * * 1-6'
     # 17:00 BRT = 20:00 UTC — Relatório Oficial Consolidado
     - cron: '0 20 * * 1-6'
-    # 18:30 BRT = 21:30 UTC — Fechamento Oficial do Dia
-    - cron: '30 21 * * 1-6'
+    # 18:00 BRT = 21:00 UTC — Fechamento Oficial do Dia
+    - cron: '0 21 * * 1-6'
   workflow_dispatch:
     inputs:
       tipo:
@@ -27,7 +27,7 @@ on:
           - relatorio_11h
           - relatorio_14h30
           - relatorio_17h
-          - fechamento_18h30
+          - fechamento_18h
           - relatorio_consolidado
           - sync_cadastros
 
@@ -70,8 +70,8 @@ jobs:
             TIPO="relatorio_14h30"
           elif [ "$HORA_UTC" = "20:00" ]; then
             TIPO="relatorio_17h"
-          elif [ "$HORA_UTC" = "21:30" ]; then
-            TIPO="fechamento_18h30"
+          elif [ "$HORA_UTC" = "21:00" ]; then
+            TIPO="fechamento_18h"
           else
             TIPO="relatorio_consolidado"
           fi
