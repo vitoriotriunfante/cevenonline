@@ -145,21 +145,22 @@ async function main() {
             `INSERT OR REPLACE INTO rca_kpis (data, filial_id, rca_codigo, meta_fat, fat_liq, pendente, falta, pct_fat, devolucao_total, meta_cli, real_cli, falta_cli, pct_pos, dig_pedido_dia, visitas_programadas_dia, visitas_na_rota_dia, visitas_com_venda_dia, updated_at) VALUES (${esc(DATA_HOJE)}, ${esc(fil.codigo)}, ${esc(rcaId)}, ${metaFat}, ${fatLiq}, ${pendente}, ${Math.max(0, metaFat - fatLiq - pendente)}, ${pctFat}, ${devolucao}, ${metaCli}, ${realCli}, ${Math.max(0, metaCli - realCli)}, ${pctPos}, ${digitadoHoje}, ${visitasPlan}, ${visitasReal}, ${visitasComVenda}, CURRENT_TIMESTAMP);`
           );
 
-          // Acumular totais
-          filFat += fatLiq; filMeta += metaFat;
+          // Acumular totais diários reais (vendas digitadas hoje)
+          filFat += digitadoHoje;
+          filMeta += metaFat;
           filPendente += pendente; filDev += devolucao;
           filMetaCli += metaCli; filRealCli += realCli;
           filVisitasPlan += visitasPlan; filVisitasReal += visitasReal;
           filRcas++;
 
-          if (fatLiq === 0 && digitadoHoje === 0) {
+          if (digitadoHoje === 0) {
             filZerados++;
             zeradosList.push({ codigo: rcaId, nome: rcaNome, meta_fat: metaFat, visitas_rota: visitasPlan });
           } else {
             filComVenda++;
           }
 
-          topRcas.push({ codigo: rcaId, nome: rcaNome, fat_liq: fatLiq, pct_fat: pctFat, meta_fat: metaFat });
+          topRcas.push({ codigo: rcaId, nome: rcaNome, fat_liq: digitadoHoje, pct_fat: pctFat, meta_fat: metaFat });
           totalRcas++;
         } catch (err) {
           totalErros++;

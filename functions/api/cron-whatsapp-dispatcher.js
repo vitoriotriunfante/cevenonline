@@ -265,10 +265,12 @@ async function montarRelatorioOficialConsolidado(env, dataHoje, horaLabel = '15:
       const qKpis = await env.DB.prepare(`
         SELECT 
           UPPER(filial_id) as sigla,
-          SUM(fat_liq) as vendido,
-          SUM(CASE WHEN fat_liq > 0 THEN 1 ELSE 0 END) as vendCom,
-          SUM(CASE WHEN fat_liq = 0 OR fat_liq IS NULL THEN 1 ELSE 0 END) as vendSem,
-          COUNT(*) as totalVend
+          COALESCE(SUM(dig_pedido_dia), 0) as vendido,
+          COUNT(CASE WHEN dig_pedido_dia > 0 THEN 1 END) as vendCom,
+          COUNT(CASE WHEN dig_pedido_dia = 0 OR dig_pedido_dia IS NULL THEN 1 END) as vendSem,
+          COUNT(*) as totalVend,
+          COALESCE(SUM(visitas_na_rota_dia), 0) as visReal,
+          COALESCE(SUM(visitas_programadas_dia), 0) as visTotal
         FROM rca_kpis
         WHERE data = ?
         GROUP BY filial_id
@@ -277,11 +279,15 @@ async function montarRelatorioOficialConsolidado(env, dataHoje, horaLabel = '15:
       if (qKpis?.results && qKpis.results.length > 0) {
         for (const row of qKpis.results) {
           const s = (row.sigla || '').toUpperCase();
-          if (dadosFiliais[s] && row.vendido > 0) {
-            dadosFiliais[s].vendido = parseFloat(row.vendido) || dadosFiliais[s].vendido;
-            dadosFiliais[s].vendCom = parseInt(row.vendCom, 10) || dadosFiliais[s].vendCom;
-            dadosFiliais[s].vendSem = parseInt(row.vendSem, 10) || dadosFiliais[s].vendSem;
-            dadosFiliais[s].totalVend = parseInt(row.totalVend, 10) || dadosFiliais[s].totalVend;
+          if (dadosFiliais[s]) {
+            dadosFiliais[s].vendido = parseFloat(row.vendido) || 0;
+            dadosFiliais[s].vendCom = parseInt(row.vendCom, 10) || 0;
+            dadosFiliais[s].vendSem = parseInt(row.vendSem, 10) || 0;
+            dadosFiliais[s].totalVend = parseInt(row.totalVend, 10) || 0;
+            if (row.visTotal > 0) {
+              dadosFiliais[s].visReal = parseInt(row.visReal, 10) || 0;
+              dadosFiliais[s].visTotal = parseInt(row.visTotal, 10) || 0;
+            }
           }
         }
       }
@@ -389,10 +395,12 @@ async function montarRelatorioFechamento(env, dataHoje, horaLabel = '18:30') {
       const qKpis = await env.DB.prepare(`
         SELECT 
           UPPER(filial_id) as sigla,
-          SUM(fat_liq) as vendido,
-          SUM(CASE WHEN fat_liq > 0 THEN 1 ELSE 0 END) as vendCom,
-          SUM(CASE WHEN fat_liq = 0 OR fat_liq IS NULL THEN 1 ELSE 0 END) as vendSem,
-          COUNT(*) as totalVend
+          COALESCE(SUM(dig_pedido_dia), 0) as vendido,
+          COUNT(CASE WHEN dig_pedido_dia > 0 THEN 1 END) as vendCom,
+          COUNT(CASE WHEN dig_pedido_dia = 0 OR dig_pedido_dia IS NULL THEN 1 END) as vendSem,
+          COUNT(*) as totalVend,
+          COALESCE(SUM(visitas_na_rota_dia), 0) as visReal,
+          COALESCE(SUM(visitas_programadas_dia), 0) as visTotal
         FROM rca_kpis
         WHERE data = ?
         GROUP BY filial_id
@@ -401,11 +409,15 @@ async function montarRelatorioFechamento(env, dataHoje, horaLabel = '18:30') {
       if (qKpis?.results && qKpis.results.length > 0) {
         for (const row of qKpis.results) {
           const s = (row.sigla || '').toUpperCase();
-          if (dadosFiliais[s] && row.vendido > 0) {
-            dadosFiliais[s].vendido = parseFloat(row.vendido) || dadosFiliais[s].vendido;
-            dadosFiliais[s].vendCom = parseInt(row.vendCom, 10) || dadosFiliais[s].vendCom;
-            dadosFiliais[s].vendSem = parseInt(row.vendSem, 10) || dadosFiliais[s].vendSem;
-            dadosFiliais[s].totalVend = parseInt(row.totalVend, 10) || dadosFiliais[s].totalVend;
+          if (dadosFiliais[s]) {
+            dadosFiliais[s].vendido = parseFloat(row.vendido) || 0;
+            dadosFiliais[s].vendCom = parseInt(row.vendCom, 10) || 0;
+            dadosFiliais[s].vendSem = parseInt(row.vendSem, 10) || 0;
+            dadosFiliais[s].totalVend = parseInt(row.totalVend, 10) || 0;
+            if (row.visTotal > 0) {
+              dadosFiliais[s].visReal = parseInt(row.visReal, 10) || 0;
+              dadosFiliais[s].visTotal = parseInt(row.visTotal, 10) || 0;
+            }
           }
         }
       }
