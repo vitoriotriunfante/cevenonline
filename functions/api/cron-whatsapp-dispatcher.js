@@ -75,8 +75,8 @@ export async function onRequest(context) {
 
       if (tipoDisparo === 'abertura_07h' || tipoDisparo === 'abertura_08h') {
         textoMensagem = await montarResumoExecutivoAbertura(env, hoje, dataFormatada);
-      } else if (tipoDisparo === 'fechamento_18h' || tipoDisparo === 'fechamento_18h30' || tipoDisparo === 'relatorio_18h') {
-        textoMensagem = await montarRelatorioFechamento18h(env, hoje);
+      } else if (tipoDisparo === 'fechamento_18h30' || tipoDisparo === 'fechamento_18h' || tipoDisparo === 'relatorio_18h') {
+        textoMensagem = await montarRelatorioFechamento(env, hoje, '18:30');
       } else if (tipoDisparo === 'relatorio_11h') {
         textoMensagem = await montarRelatorioOficialConsolidado(env, hoje, '11:00');
       } else if (tipoDisparo === 'relatorio_14h30') {
@@ -360,8 +360,8 @@ async function montarRelatorioOficialConsolidado(env, dataHoje, horaLabel = '15:
   ].join('\n');
 }
 
-// Monta o Relatório Oficial Consolidado de Fechamento (18:00 — Brasília)
-async function montarRelatorioFechamento18h(env, dataHoje) {
+// Monta o Relatório Oficial Consolidado de Fechamento (18:30 — Brasília)
+async function montarRelatorioFechamento(env, dataHoje, horaLabel = '18:30') {
   const filiaisTodas = ['ABC', 'TPH', 'TCA', 'TCG', 'TCV', 'API', 'TSJ', 'TBL', 'MCD', 'TPA', 'TBE'];
 
   const baseline18h = {
@@ -460,9 +460,9 @@ async function montarRelatorioFechamento18h(env, dataHoje) {
   });
 
   return [
-    `📊 Relatório Oficial Consolidado (18:00 — Brasília):`,
+    `📊 Relatório Oficial Consolidado (${horaLabel} — Brasília):`,
     ``,
-    `Segue o consolidado atualizado de pedidos lançados no Clube da Venda até as 18:00 (Brasília)`,
+    `Segue o consolidado atualizado de pedidos lançados no Clube da Venda até as ${horaLabel} (Brasília)`,
     ``,
     `📌 CONSOLIDADO GERAL DA COMPANHIA:`,
     `💰 Vendido Total: R$ ${totalVendido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
