@@ -11,6 +11,7 @@
  */
 
 const fs = require('fs');
+const path = require('path');
 const https = require('https');
 
 const CEVEN_BASE = 'https://ceven.drivetriunfante-locomotiva.com.br';
@@ -37,7 +38,10 @@ const HORA_ATUAL = args.hora || new Date().toLocaleTimeString('pt-BR', { hour: '
 function fetchJson(url) {
   return new Promise((resolve) => {
     https.get(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (CEVEN-NOC-GHA/3.0)' },
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Referer': 'https://ceven.drivetriunfante-locomotiva.com.br/dashboard'
+      },
       timeout: 15000,
       rejectUnauthorized: false
     }, (res) => {
@@ -62,6 +66,16 @@ async function main() {
   console.log(`📅 Data: ${DATA_HOJE} | Hora: ${HORA_ATUAL} | Pipeline: ${PIPELINE}`);
   console.log(`========================================\n`);
 
+  // Carrega base oficial dos 519 representantes
+  const repsPath = path.join(__dirname, '../public/reps_data.json');
+  let repsData = [];
+  try {
+    repsData = JSON.parse(fs.readFileSync(repsPath, 'utf8'));
+    console.log(`📋 Base mestre carregada: ${repsData.length} representantes em public/reps_data.json`);
+  } catch (e) {
+    console.warn(`⚠️ Não foi possível ler reps_data.json: ${e.message}`);
+  }
+
   const sqlStatements = [];
   sqlStatements.push(`-- SYNC AUTOMÁTICO CEVEN NOC — ${DATA_HOJE} ${HORA_ATUAL}`);
   sqlStatements.push(`-- Pipeline: ${PIPELINE}`);
@@ -73,10 +87,10 @@ async function main() {
   for (const fil of FILIAIS) {
     console.log(`\n📡 Processando ${fil.codigo}...`);
 
-    // Buscar lista de RCAs
-    const rcasList = await fetchJson(`${CEVEN_BASE}/api/rcas?filial=${fil.id}`);
-    if (!rcasList || !Array.isArray(rcasList) || rcasList.length === 0) {
-      console.log(`  ⚠️ Sem RCAs para ${fil.codigo}`);
+    // Filtrar RCAs da filial pela base mestre
+    const rcasList = repsData.filter(r => (r.filial || '').toUpperCase() === fil.codigo.toUpperCase());
+    if (!rcasList || rcasList.length === 0) {
+      console.log(`  ⚠️ Nenhum RCA encontrado para ${fil.codigo} em reps_data.json`);
       totalErros++;
       continue;
     }
