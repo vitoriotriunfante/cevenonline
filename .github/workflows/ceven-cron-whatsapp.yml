@@ -3,45 +3,32 @@ name: CEVEN NOC — Sync & Dispatch Automático
 on:
   schedule:
     # =========================================
-    # HORÁRIOS UTC (Brasília = UTC - 3)
+    # HORÁRIOS OFICIAIS UTC (Brasília = UTC - 3)
     # =========================================
-    # 07:00 BRT = 10:00 UTC — Abertura (Pipeline 2)
+    # 07:00 BRT = 10:00 UTC — Resumo Executivo de Abertura
     - cron: '0 10 * * 1-6'
-    # 09:00 BRT = 12:00 UTC — Sync Horário (Pipeline 3)
-    - cron: '0 12 * * 1-6'
-    # 10:00 BRT = 13:00 UTC — Sync + Zerados
-    - cron: '0 13 * * 1-6'
-    # 11:00 BRT = 14:00 UTC
+    # 11:00 BRT = 14:00 UTC — Relatório Oficial Consolidado
     - cron: '0 14 * * 1-6'
-    # 12:00 BRT = 15:00 UTC — Parcial do Almoço
-    - cron: '0 15 * * 1-6'
-    # 13:00 BRT = 16:00 UTC
-    - cron: '0 16 * * 1-6'
-    # 14:00 BRT = 17:00 UTC — Zerados críticos
-    - cron: '0 17 * * 1-6'
-    # 15:00 BRT = 18:00 UTC
-    - cron: '0 18 * * 1-6'
-    # 16:00 BRT = 19:00 UTC — Bloqueados
-    - cron: '0 19 * * 1-6'
-    # 17:00 BRT = 20:00 UTC
+    # 14:30 BRT = 17:30 UTC — Relatório Oficial Consolidado
+    - cron: '30 17 * * 1-6'
+    # 17:00 BRT = 20:00 UTC — Relatório Oficial Consolidado
     - cron: '0 20 * * 1-6'
-    # 18:30 BRT = 21:30 UTC — Fechamento
+    # 18:30 BRT = 21:30 UTC — Fechamento Oficial do Dia
     - cron: '30 21 * * 1-6'
   workflow_dispatch:
     inputs:
       tipo:
-        description: 'Tipo de disparo manual'
+        description: 'Tipo de disparo manual (ou dia especial)'
         required: false
-        default: 'horario'
+        default: 'relatorio_consolidado'
         type: choice
         options:
           - abertura_07h
-          - horario
-          - zerados_10h
-          - almoco_12h
-          - zerados_14h
-          - bloqueados_16h
+          - relatorio_11h
+          - relatorio_14h30
+          - relatorio_17h
           - fechamento_18h30
+          - relatorio_consolidado
           - sync_cadastros
 
 env:
@@ -77,18 +64,16 @@ jobs:
             TIPO="${{ github.event.inputs.tipo }}"
           elif [ "$HORA_UTC" = "10:00" ]; then
             TIPO="abertura_07h"
-          elif [ "$HORA_UTC" = "13:00" ]; then
-            TIPO="zerados_10h"
-          elif [ "$HORA_UTC" = "15:00" ]; then
-            TIPO="almoco_12h"
-          elif [ "$HORA_UTC" = "17:00" ]; then
-            TIPO="zerados_14h"
-          elif [ "$HORA_UTC" = "19:00" ]; then
-            TIPO="bloqueados_16h"
+          elif [ "$HORA_UTC" = "14:00" ]; then
+            TIPO="relatorio_11h"
+          elif [ "$HORA_UTC" = "17:30" ]; then
+            TIPO="relatorio_14h30"
+          elif [ "$HORA_UTC" = "20:00" ]; then
+            TIPO="relatorio_17h"
           elif [ "$HORA_UTC" = "21:30" ]; then
             TIPO="fechamento_18h30"
           else
-            TIPO="horario"
+            TIPO="relatorio_consolidado"
           fi
 
           # Determinar se é sync de dados ou só disparo
