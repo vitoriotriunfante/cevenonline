@@ -7,20 +7,40 @@ on:
     # =========================================
     # 07:00 BRT = 10:00 UTC — Resumo Executivo de Abertura
     - cron: '0 10 * * 1-6'
-    # 11:00 BRT = 14:00 UTC — Relatório Oficial Consolidado
+    # 08:00 BRT = 11:00 UTC — Sync TV
+    - cron: '0 11 * * 1-6'
+    # 09:00 BRT = 12:00 UTC — Sync TV
+    - cron: '0 12 * * 1-6'
+    # 10:00 BRT = 13:00 UTC — Sync TV
+    - cron: '0 13 * * 1-6'
+    # 11:00 BRT = 14:00 UTC — Relatório Oficial Consolidado (WhatsApp)
     - cron: '0 14 * * 1-6'
-    # 14:30 BRT = 17:30 UTC — Relatório Oficial Consolidado
+    # 12:00 BRT = 15:00 UTC — Sync TV
+    - cron: '0 15 * * 1-6'
+    # 13:00 BRT = 16:00 UTC — Sync TV
+    - cron: '0 16 * * 1-6'
+    # 14:00 BRT = 17:00 UTC — Sync TV
+    - cron: '0 17 * * 1-6'
+    # 14:30 BRT = 17:30 UTC — Relatório Oficial Consolidado (WhatsApp)
     - cron: '30 17 * * 1-6'
-    # 17:00 BRT = 20:00 UTC — Relatório Oficial Consolidado
+    # 15:00 BRT = 18:00 UTC — Sync TV
+    - cron: '0 18 * * 1-6'
+    # 16:00 BRT = 19:00 UTC — Sync TV
+    - cron: '0 19 * * 1-6'
+    # 17:00 BRT = 20:00 UTC — Relatório Oficial Consolidado (WhatsApp)
     - cron: '0 20 * * 1-6'
-    # 18:30 BRT = 21:30 UTC — Fechamento Oficial do Dia
+    # 18:00 BRT = 21:00 UTC — Sync TV
+    - cron: '0 21 * * 1-6'
+    # 18:30 BRT = 21:30 UTC — Fechamento Oficial do Dia (WhatsApp)
     - cron: '30 21 * * 1-6'
+    # 23:00 BRT = 02:00 UTC (+1d) — Cravar Fechamento Noturno Definitivo no D1
+    - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
       tipo:
         description: 'Tipo de disparo manual (ou dia especial)'
         required: false
-        default: 'relatorio_consolidado'
+        default: 'sync_tv_horario'
         type: choice
         options:
           - abertura_07h
@@ -28,6 +48,8 @@ on:
           - relatorio_14h30
           - relatorio_17h
           - fechamento_18h30
+          - fechamento_23h
+          - sync_tv_horario
           - relatorio_consolidado
           - sync_cadastros
 
@@ -72,8 +94,10 @@ jobs:
             TIPO="relatorio_17h"
           elif [ "$HORA_UTC" = "21:30" ]; then
             TIPO="fechamento_18h30"
+          elif [ "$HORA_UTC" = "02:00" ]; then
+            TIPO="fechamento_23h"
           else
-            TIPO="relatorio_consolidado"
+            TIPO="sync_tv_horario"
           fi
 
           # Determinar se é sync de dados ou só disparo
@@ -92,12 +116,13 @@ jobs:
           echo "🚀 Iniciando coleta de dados dos 519 RCAs..."
           echo "Pipeline: ${{ steps.tipo.outputs.pipeline }}"
 
-          # Executa o script de coleta que faz os 519 fetches
-          # e gera SQL para inserir no D1
+          DATA_BR=$(TZ='America/Sao_Paulo' date +%Y-%m-%d)
+          HORA_BR=$(TZ='America/Sao_Paulo' date +%H:%M)
+
           node pipeline/github_actions_runner.js \
             --pipeline "${{ steps.tipo.outputs.pipeline }}" \
-            --data "$(date -u +%Y-%m-%d)" \
-            --hora "$(TZ='America/Sao_Paulo' date +%H:%M)"
+            --data "$DATA_BR" \
+            --hora "$HORA_BR"
 
       - name: 📤 Sincronizar dados com Cloudflare D1
         run: |

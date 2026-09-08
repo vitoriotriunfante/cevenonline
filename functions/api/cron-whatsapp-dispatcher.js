@@ -19,6 +19,14 @@ export async function onRequest(context) {
   const tipoDisparo = url.searchParams.get('tipo') || 'fechamento_18h30';
   const filialFiltro = url.searchParams.get('filial') || 'TODAS';
 
+  if (tipoDisparo.startsWith('sync_') || tipoDisparo === 'fechamento_23h' || tipoDisparo === 'none') {
+    return jsonResponse({
+      ok: true,
+      tipo: tipoDisparo,
+      mensagem: `Sincronização horária / Fechamento ${tipoDisparo} concluído no banco. Disparo de WhatsApp silenciado para este ciclo.`
+    });
+  }
+
   try {
     if (!env || !env.DB) {
       return jsonResponse({ erro: 'Cloudflare D1 não disponível' }, 500);

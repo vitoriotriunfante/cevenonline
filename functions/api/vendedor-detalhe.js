@@ -297,15 +297,16 @@ export async function onRequestGet({ request, env }) {
       return itens;
     }
 
-    // 4.0 Busca pedidos faturados reais integrados no D1
+    // 4.0 Busca pedidos faturados reais integrados no D1 (estritamente da data de hoje)
+    const hojeIso = new Intl.DateTimeFormat('fr-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
     if (env && env.DB) {
       try {
         const { results: itensReais } = await env.DB.prepare(`
           SELECT num_pedido, id_cliente, descricao, vl_faturado_winthor, total_original, status_pedido, categoria_corte
           FROM pedidos_faturados_itens
-          WHERE filial_id = ? AND rca_codigo = ?
+          WHERE filial_id = ? AND rca_codigo = ? AND data_visita = ?
           ORDER BY num_pedido ASC
-        `).bind(filialSigla, String(id)).all();
+        `).bind(filialSigla, String(id), hojeIso).all();
 
         if (itensReais && itensReais.length > 0) {
           itensReais.forEach(it => {
@@ -316,7 +317,7 @@ export async function onRequestGet({ request, env }) {
 
             pedidosDigitadosHoje.push({
               numero_pedido: it.num_pedido,
-              data_hora: '31/08/2026',
+              data_hora: hojeIso,
               id_cliente: it.id_cliente,
               nome_cliente: it.descricao,
               cnpj: '-',

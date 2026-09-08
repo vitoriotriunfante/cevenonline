@@ -183,6 +183,11 @@ async function main() {
       `INSERT OR REPLACE INTO consolidado_executivo_live (filial_id, filial_sigla, data_ref, hora_snapshot, fat_liq_total, meta_fat_total, pct_fat, pendente_total, devolucoes_total, meta_cli_total, real_cli_total, pct_pos, rcas_ativos, rcas_zerados, rcas_com_venda, visitas_plan, visitas_real, ticket_medio, top5_rcas_json, zerados_json, updated_at) VALUES (${esc(fil.id)}, ${esc(fil.codigo)}, ${esc(DATA_HOJE)}, ${esc(HORA_ATUAL)}, ${filFat}, ${filMeta}, ${pctFatFil}, ${filPendente}, ${filDev}, ${filMetaCli}, ${filRealCli}, ${pctPosFil}, ${filRcas}, ${filZerados}, ${filComVenda}, ${filVisitasPlan}, ${filVisitasReal}, ${ticketMedio}, ${esc(JSON.stringify(top5))}, ${esc(JSON.stringify(zeradosList.slice(0, 20)))}, CURRENT_TIMESTAMP);`
     );
 
+    // SQL para consolidado_diario_filial (Histórico Perpétuo por Data)
+    sqlStatements.push(
+      `INSERT OR REPLACE INTO consolidado_diario_filial (data_snapshot, filial_id, total_rcas_ativos, rcas_zerados, total_fat_liq, total_meta_fat, pct_atingimento, total_pendente, total_devolucoes, total_clientes_meta, total_clientes_positivados, pct_positivacao_geral, total_visitas_planejadas, total_visitas_efetivadas, updated_at) VALUES (${esc(DATA_HOJE)}, ${esc(fil.id)}, ${filRcas}, ${filZerados}, ${filFat}, ${filMeta}, ${pctFatFil}, ${filPendente}, ${filDev}, ${filMetaCli}, ${filRealCli}, ${pctPosFil}, ${filVisitasPlan}, ${filVisitasReal}, CURRENT_TIMESTAMP);`
+    );
+
     console.log(`  ✅ ${fil.codigo}: R$ ${filFat.toLocaleString('pt-BR')} | ${filRcas} RCAs | ${filZerados} zerados`);
   }
 
