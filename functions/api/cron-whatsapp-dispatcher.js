@@ -54,29 +54,23 @@ export async function onRequest(context) {
     const relatorioEnvios = [];
 
     for (const ger of gerentes) {
-      // 2. Ler snapshot REAL do D1
-      const filialId = ger.filial_id || ger.filial_sigla.toLowerCase() + '1';
-      const snap = await env.DB.prepare(
-        `SELECT * FROM consolidado_executivo_live WHERE filial_id = ? AND data_ref = ?`
-      ).bind(filialId, hoje).first();
+      // 2. Ler snapshot REAL do D1 (com tolerância a indisponibilidade de quota)
+      let snap = null;
+      let snapGrupo = null;
+      try {
+        if (env && env.DB) {
+          const filialId = ger.filial_id || ger.filial_sigla.toLowerCase() + '1';
+          snap = await env.DB.prepare(
+            `SELECT * FROM consolidado_executivo_live WHERE filial_id = ? AND data_ref = ?`
+          ).bind(filialId, hoje).first();
 
-      const snapGrupo = await env.DB.prepare(
-        `SELECT * FROM consolidado_executivo_live WHERE filial_id = 'GRUPO' AND data_ref = ?`
-      ).bind(hoje).first();
-
-      // Se não há dados do dia ainda, avisar
-      if (!snap) {
-        relatorioEnvios.push({
-          filial: ger.filial_sigla, gerente: ger.nome_gerente,
-          status: 'sem_dados_do_dia', tipo: tipoDisparo
-        });
-        continue;
+          snapGrupo = await env.DB.prepare(
+            `SELECT * FROM consolidado_executivo_live WHERE filial_id = 'GRUPO' AND data_ref = ?`
+          ).bind(hoje).first();
+        }
+      } catch (d1Err) {
+        console.warn('D1 quota ou erro:', d1Err);
       }
-
-      // Parsear JSONs
-      const top5 = JSON.parse(snap.top5_rcas_json || '[]');
-      const zerados = JSON.parse(snap.zerados_json || '[]');
-      const alertas = JSON.parse(snap.alertas_json || '[]');
 
       // 3. Montar mensagem baseada no tipo de disparo
       let textoMensagem = '';
@@ -87,8 +81,8 @@ export async function onRequest(context) {
         textoMensagem = await montarRelatorioFechamento(env, hoje, '18:30');
       } else if (tipoDisparo === 'relatorio_11h') {
         textoMensagem = await montarRelatorioOficialConsolidado(env, hoje, '11:00');
-      } else if (tipoDisparo === 'relatorio_14h30') {
-        textoMensagem = await montarRelatorioOficialConsolidado(env, hoje, '14:30');
+      } else if (tipoDisparo === 'relatorio_14h' || tipoDisparo === 'relatorio_14h30') {
+        textoMensagem = await montarRelatorioOficialConsolidado(env, hoje, '14:00');
       } else if (tipoDisparo === 'relatorio_17h') {
         textoMensagem = await montarRelatorioOficialConsolidado(env, hoje, '17:00');
       } else {

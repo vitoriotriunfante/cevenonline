@@ -19,10 +19,8 @@ on:
     - cron: '0 15 * * 1-6'
     # 13:00 BRT = 16:00 UTC — Sync TV
     - cron: '0 16 * * 1-6'
-    # 14:00 BRT = 17:00 UTC — Sync TV
+    # 14:00 BRT = 17:00 UTC — Relatório Oficial Consolidado (WhatsApp)
     - cron: '0 17 * * 1-6'
-    # 14:30 BRT = 17:30 UTC — Relatório Oficial Consolidado (WhatsApp)
-    - cron: '30 17 * * 1-6'
     # 15:00 BRT = 18:00 UTC — Sync TV
     - cron: '0 18 * * 1-6'
     # 16:00 BRT = 19:00 UTC — Sync TV
@@ -94,9 +92,9 @@ jobs:
           # 14:00 UTC = 840 min (11:00 BRT 1º Parcial) -> Janela 830 a 880 min
           elif [ $TOTAL_MIN -ge 830 ] && [ $TOTAL_MIN -le 880 ]; then
             TIPO="relatorio_11h"
-          # 17:30 UTC = 1050 min (14:30 BRT 2º Parcial) -> Janela 1040 a 1075 min
-          elif [ $TOTAL_MIN -ge 1040 ] && [ $TOTAL_MIN -le 1075 ]; then
-            TIPO="relatorio_14h30"
+          # 17:00 UTC = 1020 min (14:00 BRT 2º Parcial) -> Janela 1010 a 1060 min
+          elif [ $TOTAL_MIN -ge 1010 ] && [ $TOTAL_MIN -le 1060 ]; then
+            TIPO="relatorio_14h"
           # 20:00 UTC = 1200 min (17:00 BRT 3º Parcial) -> Janela 1190 a 1240 min
           elif [ $TOTAL_MIN -ge 1190 ] && [ $TOTAL_MIN -le 1240 ]; then
             TIPO="relatorio_17h"

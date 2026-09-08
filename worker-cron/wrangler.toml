@@ -11,7 +11,7 @@ database_id = "2e5bb59c-8db4-43a2-a13c-5c78e404e52d"
 crons = [
   "0 10 * * 1-6",    # 07:00 BRT (Abertura)
   "0 14 * * 1-6",    # 11:00 BRT (Relatório Oficial 1)
-  "30 17 * * 1-6",   # 14:30 BRT (Relatório Oficial 2)
+  "0 17 * * 1-6",    # 14:00 BRT (Relatório Oficial 2)
   "0 20 * * 1-6",    # 17:00 BRT (Relatório Oficial 3)
   "30 21 * * 1-6"    # 18:30 BRT (Fechamento Oficial)
 ]

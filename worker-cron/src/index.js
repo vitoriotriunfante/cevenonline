@@ -416,7 +416,10 @@ export default {
     else if (event.cron === '0 14 * * *' || event.cron === '0 14 * * 1-6') {
       mensagem = await montarRelatorioOficialConsolidado(env, hoje, '11:00');
     }
-    // 17:30 UTC = 14:30 BRT -> 2º Parcial
+    // 17:00 UTC = 14:00 BRT ou 17:30 UTC = 14:30 BRT -> 2º Parcial
+    else if (event.cron === '0 17 * * *' || event.cron === '0 17 * * 1-6') {
+      mensagem = await montarRelatorioOficialConsolidado(env, hoje, '14:00');
+    }
     else if (event.cron === '30 17 * * *' || event.cron === '30 17 * * 1-6') {
       mensagem = await montarRelatorioOficialConsolidado(env, hoje, '14:30');
     }
