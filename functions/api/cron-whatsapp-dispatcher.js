@@ -89,36 +89,52 @@ export async function onRequest(context) {
         textoMensagem = await montarRelatorioOficialConsolidado(env, hoje, horaStr);
       }
 
-      // 4. Envio via Green-API
-      const greenApiUrl = env.GREEN_API_URL || 'https://7107.api.greenapi.com';
-      const greenIdInstance = env.GREEN_ID_INSTANCE || '710722724828';
-      const greenToken = env.GREEN_API_TOKEN || '0206610482f54377a4161f6e7daf4866ee0bef8ac6c842b1bd';
+      // 4. Envio via Evolution API (Railway - sem limite de contatos) com fallback
+      const evoUrl = env.EVOLUTION_API_URL || 'https://evolution-api-production-8999.up.railway.app';
+      const evoApiKey = env.EVOLUTION_API_KEY || '143c2820271dfa4c2f6c920aff3205f0c5dec92d7c3f3dfaf90a9d8bb023eaaa';
+      const evoInstance = env.EVOLUTION_INSTANCE || 'ceven-noc';
 
-      let statusEnvio = 'pronto';
+      let statusEnvio = 'pendente';
       let digits = ger.whatsapp_numero.replace(/\D/g, '');
       if (!digits.startsWith('55')) digits = `55${digits}`;
 
-      const candidatePhones = [digits];
-      if (digits.length === 13 && digits.startsWith('55')) {
-        candidatePhones.push(digits.slice(0, 4) + digits.slice(5));
-      }
+      try {
+        const sendUrl = `${evoUrl}/message/sendText/${evoInstance}`;
+        const resGateway = await fetch(sendUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': evoApiKey
+          },
+          body: JSON.stringify({
+            number: digits,
+            text: textoMensagem,
+            delay: 1200,
+            linkPreview: false
+          })
+        });
 
-      for (const phone of candidatePhones) {
-        try {
-          const sendUrl = `${greenApiUrl}/waInstance${greenIdInstance}/sendMessage/${greenToken}`;
-          const resGateway = await fetch(sendUrl, {
+        if (resGateway.ok) {
+          const resJson = await resGateway.json().catch(() => ({}));
+          statusEnvio = `entregue Evolution (${digits} - id: ${resJson.key?.id || 'ok'})`;
+        } else {
+          // Fallback Green-API se necessário
+          const greenApiUrl = env.GREEN_API_URL || 'https://7107.api.greenapi.com';
+          const greenIdInstance = env.GREEN_ID_INSTANCE || '710722724828';
+          const greenToken = env.GREEN_API_TOKEN || '0206610482f54377a4161f6e7daf4866ee0bef8ac6c842b1bd';
+          const greenRes = await fetch(`${greenApiUrl}/waInstance${greenIdInstance}/sendMessage/${greenToken}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chatId: `${phone}@c.us`, message: textoMensagem })
+            body: JSON.stringify({ chatId: `${digits}@c.us`, message: textoMensagem })
           });
-          if (resGateway.ok) {
-            const resJson = await resGateway.json().catch(() => ({}));
-            statusEnvio = `entregue (${phone} - id: ${resJson.idMessage || 'ok'})`;
-            break; // Parar no primeiro envio bem-sucedido
+          if (greenRes.ok) {
+            statusEnvio = `entregue Green-API fallback (${digits})`;
+          } else {
+            statusEnvio = `falha Evolution (${resGateway.status}) e Green (${greenRes.status})`;
           }
-        } catch (e) {
-          statusEnvio = 'erro: ' + e.message;
         }
+      } catch (e) {
+        statusEnvio = 'erro gateway: ' + e.message;
       }
 
       relatorioEnvios.push({
