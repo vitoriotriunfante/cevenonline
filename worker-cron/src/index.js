@@ -194,14 +194,14 @@ async function montarRelatorioOficialConsolidado(env, dataHoje, horaLabel = '11:
         }
       }
 
-      // 2. Complementar com rca_kpis
+      // 2. Complementar com métricas dos vendedores em rota de rca_kpis
       const qKpis = await env.DB.prepare(`
         SELECT 
           UPPER(filial_id) as sigla,
           COALESCE(SUM(dig_pedido_dia), 0) as vendido,
-          COUNT(CASE WHEN dig_pedido_dia > 0 THEN 1 END) as vendCom,
-          COUNT(CASE WHEN dig_pedido_dia = 0 OR dig_pedido_dia IS NULL THEN 1 END) as vendSem,
-          COUNT(*) as totalVend,
+          COUNT(CASE WHEN visitas_programadas_dia > 0 AND dig_pedido_dia > 0 THEN 1 END) as vendCom,
+          COUNT(CASE WHEN visitas_programadas_dia > 0 AND (dig_pedido_dia = 0 OR dig_pedido_dia IS NULL) THEN 1 END) as vendSem,
+          COUNT(CASE WHEN visitas_programadas_dia > 0 THEN 1 END) as totalVend,
           COALESCE(SUM(visitas_na_rota_dia), 0) as visReal,
           COALESCE(SUM(visitas_programadas_dia), 0) as visTotal,
           COALESCE(SUM(visitas_com_venda_dia), 0) as pedRota
@@ -215,9 +215,10 @@ async function montarRelatorioOficialConsolidado(env, dataHoje, horaLabel = '11:
           const s = (row.sigla || '').toUpperCase();
           if (dadosFiliais[s]) {
             if (!dadosFiliais[s].vendido) dadosFiliais[s].vendido = parseFloat(row.vendido) || 0;
-            if (!dadosFiliais[s].vendCom) dadosFiliais[s].vendCom = parseInt(row.vendCom, 10) || 0;
-            if (!dadosFiliais[s].vendSem) dadosFiliais[s].vendSem = parseInt(row.vendSem, 10) || 0;
-            if (!dadosFiliais[s].totalVend) dadosFiliais[s].totalVend = parseInt(row.totalVend, 10) || 0;
+            // Baseado estritamente nos vendedores com rota hoje
+            dadosFiliais[s].vendCom = parseInt(row.vendCom, 10) || 0;
+            dadosFiliais[s].vendSem = parseInt(row.vendSem, 10) || 0;
+            dadosFiliais[s].totalVend = parseInt(row.totalVend, 10) || 0;
             if (!dadosFiliais[s].visReal) dadosFiliais[s].visReal = parseInt(row.visReal, 10) || 0;
             if (!dadosFiliais[s].visTotal) dadosFiliais[s].visTotal = parseInt(row.visTotal, 10) || 0;
             dadosFiliais[s].pedRota = parseInt(row.pedRota, 10) || 0;
@@ -259,7 +260,7 @@ async function montarRelatorioOficialConsolidado(env, dataHoje, horaLabel = '11:
     return [
       `🏢 Filial ${f.sigla}`,
       `Vendido: R$ ${f.vendido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      `Vendedores com venda: ${f.vendCom} | *Vendedores sem pedido: ${f.vendSem}* (Total: ${f.totalVend})`,
+      `Vendedores com venda: ${f.vendCom} | *Vendedores sem pedido: ${f.vendSem}* (Total: ${f.totalVend} em rota)`,
       `Pedidos: ${f.pedTotal} (${f.pedRota} na rota | ${f.pedFora} fora) • Eficiência: ${efici}% | Eficácia: ${efica}%`,
       `Visitas: ${f.visReal.toLocaleString('pt-BR')} de ${f.visTotal.toLocaleString('pt-BR')} programadas`
     ].join('\n');
@@ -272,7 +273,7 @@ async function montarRelatorioOficialConsolidado(env, dataHoje, horaLabel = '11:
     ``,
     `📌 CONSOLIDADO GERAL DA COMPANHIA:`,
     `💰 Vendido Total: R$ ${totalVendido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-    `👥 Força de Vendas: ${totalComVenda} com venda (${pctComVenda}%) | *${totalSemVenda} SEM NENHUM PEDIDO (${pctSemVenda}%)* (Total: ${totalVendCampo} em campo)`,
+    `👥 Força de Vendas em Rota: ${totalComVenda} com venda (${pctComVenda}%) | *${totalSemVenda} SEM NENHUM PEDIDO (${pctSemVenda}%)* (Total: ${totalVendCampo} em rota hoje)`,
     `📦 Total de Pedidos: ${totalPedidos.toLocaleString('pt-BR')} (${totalPedRota.toLocaleString('pt-BR')} na rota | ${totalPedFora.toLocaleString('pt-BR')} fora da rota)`,
     `📍 Roteiros / Visitas na Rota: ${totalVisReal.toLocaleString('pt-BR')} de ${totalVisTotal.toLocaleString('pt-BR')} realizadas (${pctVisitas}%)`,
     `⚡ Eficiência de Rota: ${eficiGeral}% • Eficácia de Pedidos: ${eficaGeral}%`,
