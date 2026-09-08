@@ -32,9 +32,21 @@ export async function onRequest(context) {
       return jsonResponse({ erro: 'Cloudflare D1 não disponível' }, 500);
     }
 
-    // 1. Buscar gerentes ativos
+    // 1. Buscar gerentes ativos (com fallback completo dos 13 gerentes das 11 filiais)
     let gerentes = [
-      { filial_id: 'tbl1', filial_sigla: 'TBL', nome_gerente: 'Vitório Neto', whatsapp_numero: '556696389884', ativo: 1 }
+      { filial_id: 'tca1', filial_sigla: 'TCA', nome_gerente: 'BECHER', whatsapp_numero: '556599438498', ativo: 1 },
+      { filial_id: 'tcg1', filial_sigla: 'TCG', nome_gerente: 'DANILO', whatsapp_numero: '556792831186', ativo: 1 },
+      { filial_id: 'mcd1', filial_sigla: 'MCD', nome_gerente: 'CLEVERSON', whatsapp_numero: '556599730698', ativo: 1 },
+      { filial_id: 'mcd2', filial_sigla: 'MCD', nome_gerente: 'ADRIANO', whatsapp_numero: '556799877927', ativo: 1 },
+      { filial_id: 'abc1', filial_sigla: 'ABC', nome_gerente: 'MARCOS', whatsapp_numero: '554588226371', ativo: 1 },
+      { filial_id: 'tcv1', filial_sigla: 'TCV', nome_gerente: 'LEONARDO', whatsapp_numero: '554588210792', ativo: 1 },
+      { filial_id: 'tbl1', filial_sigla: 'TBL', nome_gerente: 'FÁBIO', whatsapp_numero: '554388683191', ativo: 1 },
+      { filial_id: 'api1', filial_sigla: 'API', nome_gerente: 'MARCELO', whatsapp_numero: '554188317101', ativo: 1 },
+      { filial_id: 'tph1', filial_sigla: 'TPH', nome_gerente: 'VAGNER', whatsapp_numero: '554188559703', ativo: 1 },
+      { filial_id: 'tsj1', filial_sigla: 'TSJ', nome_gerente: 'SALDANHA', whatsapp_numero: '551291224077', ativo: 1 },
+      { filial_id: 'tbe1', filial_sigla: 'TBE', nome_gerente: 'DIEGO', whatsapp_numero: '554298022298', ativo: 1 },
+      { filial_id: 'tpa1', filial_sigla: 'TPA', nome_gerente: 'RADKE', whatsapp_numero: '555197245332', ativo: 1 },
+      { filial_id: 'tpa2', filial_sigla: 'TPA', nome_gerente: 'LEANDRO', whatsapp_numero: '555197195688', ativo: 1 }
     ];
     try {
       const { results } = await env.DB.prepare(
