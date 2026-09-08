@@ -225,7 +225,8 @@ export async function onRequestGet({ request, env }) {
 
     const totalVisitasRota = roteiroEnriquecido.length;
     const visitasPendentes = Math.max(0, totalVisitasRota - visitasRealizadas);
-    const mediaMinutosVisita = totalVisitasComTempo > 0 ? Math.round(somaSegundosVisitas / totalVisitasComTempo) : 0;
+    const mediaSegundosVisita = totalVisitasComTempo > 0 ? Math.round(somaSegundosVisitas / totalVisitasComTempo) : 0;
+    const mediaMinutosVisita = mediaSegundosVisita;
     const mediaTempoFormatado = mediaMinutosVisita > 0 
       ? `${String(Math.floor(mediaMinutosVisita / 60)).padStart(2, '0')}:${String(mediaMinutosVisita % 60).padStart(2, '0')}`
       : '00:00';
@@ -591,8 +592,41 @@ export async function onRequestGet({ request, env }) {
     });
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
+    console.error(`Erro ao processar vendedor ${id}:`, err);
+    let nomeFallback = `RCA ${id}`;
+    if (env && env.DB) {
+      try {
+        const rep = await env.DB.prepare("SELECT nome FROM representantes WHERE codigo = ?").bind(String(id)).first();
+        if (rep && rep.nome) nomeFallback = rep.nome.replace(/^CLT\s*-\s*/i, '');
+      } catch (_) {}
+    }
+
+    return new Response(JSON.stringify({
+      id,
+      filial: filialSigla,
+      nome: nomeFallback,
+      meta_fat: 0,
+      fat_liq: 0,
+      pendente: 0,
+      falta: 0,
+      pct_fat: 0,
+      devolucao: 0,
+      meta_cli: 0,
+      real_cli: 0,
+      falta_cli: 0,
+      pct_pos: 0,
+      digitacao_hoje: 0,
+      positivacao_hoje: 0,
+      faturamento_hoje: 0,
+      eficacia_hoje: 0,
+      eficiencia_mes: 0,
+      roteiro_hoje: [],
+      prospects_rota: [],
+      pedidos_digitados_hoje: [],
+      devolucoes_lista: [],
+      error: err.message
+    }), {
+      status: 200,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     });
   }

@@ -1677,6 +1677,24 @@
       try {
         const res = await fetch(`/api/vendedor-detalhe?filial=${filial}&id=${id}`);
         const data = await res.json();
+        
+        // Sanitização defensiva completa para blindar contra campos undefined
+        data.id = data.id || id;
+        data.filial = data.filial || filial;
+        data.nome = (data.nome || `RCA ${id}`).replace(/^CLT\s*-\s*/i, '');
+        data.fat_liq = Number(data.fat_liq) || 0;
+        data.meta_fat = Number(data.meta_fat) || 0;
+        data.pendente = Number(data.pendente) || 0;
+        data.pct_fat = Number(data.pct_fat) || 0;
+        data.pct_pos = Number(data.pct_pos) || 0;
+        data.real_cli = Number(data.real_cli) || 0;
+        data.meta_cli = Number(data.meta_cli) || 0;
+        data.falta_cli = data.falta_cli !== undefined ? Number(data.falta_cli) : Math.max(0, data.meta_cli - data.real_cli);
+        data.devolucao = Number(data.devolucao) || 0;
+        data.digitacao_hoje = Number(data.digitacao_hoje) || 0;
+        data.positivacao_hoje = Number(data.positivacao_hoje) || 0;
+        data.eficacia_hoje = Number(data.eficacia_hoje) || 0;
+
         cachedVendorsData[index] = data;
 
         const body = document.getElementById(`body-slot-${index}`);
