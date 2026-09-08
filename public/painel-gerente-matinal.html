@@ -984,11 +984,24 @@
       `).join('');
     }
 
-    fetch('/dados_cockpit_todas_filiais_completo.json')
-      .then(res => res.json())
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialFilial = (urlParams.get('filial') || 'API').toUpperCase();
+
+    const apiUrl = `/api/cockpit-matinal?t=${Date.now()}`;
+    const fallbackUrl = `/dados_cockpit_todas_filiais_completo.json?t=${Date.now()}`;
+
+    fetch(apiUrl)
+      .then(res => {
+        if (!res.ok) throw new Error('API offline');
+        return res.json();
+      })
+      .catch(() => fetch(fallbackUrl).then(res => res.json()))
       .then(data => {
         TODAS_FILIAIS_DATA = data;
-        trocarFilial('API');
+        const filialValida = (data && data[initialFilial]) ? initialFilial : 'API';
+        trocarFilial(filialValida);
+        const sel = document.getElementById('filialSelect');
+        if (sel) sel.value = filialValida;
       })
       .catch(err => {
         console.error('Erro ao carregar dados:', err);

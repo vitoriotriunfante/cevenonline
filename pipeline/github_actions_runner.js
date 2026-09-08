@@ -101,6 +101,7 @@ async function main() {
     let filPendente = 0, filDev = 0;
     let filRcas = 0, filZerados = 0, filComVenda = 0;
     let filVisitasPlan = 0, filVisitasReal = 0;
+    let filPedTotal = 0, filPedRota = 0, filPedFora = 0;
     const topRcas = [];
     const zeradosList = [];
 
@@ -136,13 +137,15 @@ async function main() {
           const pctPos = metaCli > 0 ? parseFloat(((realCli / metaCli) * 100).toFixed(1)) : 0;
 
           const digitadoHoje = parseFloat(prodDia.dig_pedido) || 0;
-          const visitasPlan = parseInt(prodDia.visitas_programadas) || 0;
+          const visitasPlan = parseInt(prodDia.total_programado ?? prodDia.visitas_programadas) || 0;
           const visitasReal = parseInt(prodDia.visitas_na_rota) || 0;
-          const visitasComVenda = parseInt(prodDia.visitas_com_venda) || 0;
+          const pedidosRota = parseInt(prodDia.visitas_com_venda) || 0;
+          const pedidosTotal = parseInt(prodDia.positivacao) || 0;
+          const pedidosFora = Math.max(0, pedidosTotal - pedidosRota);
 
           // SQL para rca_kpis
           sqlStatements.push(
-            `INSERT OR REPLACE INTO rca_kpis (data, filial_id, rca_codigo, meta_fat, fat_liq, pendente, falta, pct_fat, devolucao_total, meta_cli, real_cli, falta_cli, pct_pos, dig_pedido_dia, visitas_programadas_dia, visitas_na_rota_dia, visitas_com_venda_dia, updated_at) VALUES (${esc(DATA_HOJE)}, ${esc(fil.codigo)}, ${esc(rcaId)}, ${metaFat}, ${fatLiq}, ${pendente}, ${Math.max(0, metaFat - fatLiq - pendente)}, ${pctFat}, ${devolucao}, ${metaCli}, ${realCli}, ${Math.max(0, metaCli - realCli)}, ${pctPos}, ${digitadoHoje}, ${visitasPlan}, ${visitasReal}, ${visitasComVenda}, CURRENT_TIMESTAMP);`
+            `INSERT OR REPLACE INTO rca_kpis (data, filial_id, rca_codigo, meta_fat, fat_liq, pendente, falta, pct_fat, devolucao_total, meta_cli, real_cli, falta_cli, pct_pos, dig_pedido_dia, visitas_programadas_dia, visitas_na_rota_dia, visitas_com_venda_dia, updated_at) VALUES (${esc(DATA_HOJE)}, ${esc(fil.codigo)}, ${esc(rcaId)}, ${metaFat}, ${fatLiq}, ${pendente}, ${Math.max(0, metaFat - fatLiq - pendente)}, ${pctFat}, ${devolucao}, ${metaCli}, ${realCli}, ${Math.max(0, metaCli - realCli)}, ${pctPos}, ${digitadoHoje}, ${visitasPlan}, ${visitasReal}, ${pedidosRota}, CURRENT_TIMESTAMP);`
           );
 
           // Acumular totais diários reais (vendas digitadas hoje)
@@ -151,6 +154,7 @@ async function main() {
           filPendente += pendente; filDev += devolucao;
           filMetaCli += metaCli; filRealCli += realCli;
           filVisitasPlan += visitasPlan; filVisitasReal += visitasReal;
+          filPedTotal += pedidosTotal; filPedRota += pedidosRota; filPedFora += pedidosFora;
           filRcas++;
 
           if (digitadoHoje === 0) {
@@ -180,7 +184,7 @@ async function main() {
 
     // SQL para consolidado_executivo_live da filial
     sqlStatements.push(
-      `INSERT OR REPLACE INTO consolidado_executivo_live (filial_id, filial_sigla, data_ref, hora_snapshot, fat_liq_total, meta_fat_total, pct_fat, pendente_total, devolucoes_total, meta_cli_total, real_cli_total, pct_pos, rcas_ativos, rcas_zerados, rcas_com_venda, visitas_plan, visitas_real, ticket_medio, top5_rcas_json, zerados_json, updated_at) VALUES (${esc(fil.id)}, ${esc(fil.codigo)}, ${esc(DATA_HOJE)}, ${esc(HORA_ATUAL)}, ${filFat}, ${filMeta}, ${pctFatFil}, ${filPendente}, ${filDev}, ${filMetaCli}, ${filRealCli}, ${pctPosFil}, ${filRcas}, ${filZerados}, ${filComVenda}, ${filVisitasPlan}, ${filVisitasReal}, ${ticketMedio}, ${esc(JSON.stringify(top5))}, ${esc(JSON.stringify(zeradosList.slice(0, 20)))}, CURRENT_TIMESTAMP);`
+      `INSERT OR REPLACE INTO consolidado_executivo_live (filial_id, filial_sigla, data_ref, hora_snapshot, fat_liq_total, meta_fat_total, pct_fat, pendente_total, devolucoes_total, meta_cli_total, real_cli_total, pct_pos, rcas_ativos, rcas_zerados, rcas_com_venda, visitas_plan, visitas_real, pedidos_dia, ticket_medio, top5_rcas_json, zerados_json, updated_at) VALUES (${esc(fil.id)}, ${esc(fil.codigo)}, ${esc(DATA_HOJE)}, ${esc(HORA_ATUAL)}, ${filFat}, ${filMeta}, ${pctFatFil}, ${filPendente}, ${filDev}, ${filMetaCli}, ${filRealCli}, ${pctPosFil}, ${filRcas}, ${filZerados}, ${filComVenda}, ${filVisitasPlan}, ${filVisitasReal}, ${filPedTotal}, ${ticketMedio}, ${esc(JSON.stringify(top5))}, ${esc(JSON.stringify(zeradosList.slice(0, 20)))}, CURRENT_TIMESTAMP);`
     );
 
     // SQL para consolidado_diario_filial (Histórico Perpétuo por Data)
@@ -188,11 +192,11 @@ async function main() {
       `INSERT OR REPLACE INTO consolidado_diario_filial (data_snapshot, filial_id, total_rcas_ativos, rcas_zerados, total_fat_liq, total_meta_fat, pct_atingimento, total_pendente, total_devolucoes, total_clientes_meta, total_clientes_positivados, pct_positivacao_geral, total_visitas_planejadas, total_visitas_efetivadas, updated_at) VALUES (${esc(DATA_HOJE)}, ${esc(fil.id)}, ${filRcas}, ${filZerados}, ${filFat}, ${filMeta}, ${pctFatFil}, ${filPendente}, ${filDev}, ${filMetaCli}, ${filRealCli}, ${pctPosFil}, ${filVisitasPlan}, ${filVisitasReal}, CURRENT_TIMESTAMP);`
     );
 
-    console.log(`  ✅ ${fil.codigo}: R$ ${filFat.toLocaleString('pt-BR')} | ${filRcas} RCAs | ${filZerados} zerados`);
+    console.log(`  ✅ ${fil.codigo}: R$ ${filFat.toLocaleString('pt-BR')} | ${filRcas} RCAs | ${filZerados} zerados | ${filPedTotal} pedidos (${filPedRota} rota / ${filPedFora} fora) | ${filVisitasReal}/${filVisitasPlan} visitas`);
   }
 
   // Linha de GRUPO
-  const grupoQuery = `INSERT OR REPLACE INTO consolidado_executivo_live (filial_id, filial_sigla, data_ref, hora_snapshot, fat_liq_total, meta_fat_total, pct_fat, rcas_ativos, rcas_zerados, rcas_com_venda, updated_at) SELECT 'GRUPO', 'GRUPO', ${esc(DATA_HOJE)}, ${esc(HORA_ATUAL)}, COALESCE(SUM(fat_liq_total), 0), COALESCE(SUM(meta_fat_total), 0), CASE WHEN SUM(meta_fat_total) > 0 THEN ROUND(SUM(fat_liq_total) / SUM(meta_fat_total) * 100, 1) ELSE 0 END, COALESCE(SUM(rcas_ativos), 0), COALESCE(SUM(rcas_zerados), 0), COALESCE(SUM(rcas_com_venda), 0), CURRENT_TIMESTAMP FROM consolidado_executivo_live WHERE data_ref = ${esc(DATA_HOJE)} AND filial_id != 'GRUPO';`;
+  const grupoQuery = `INSERT OR REPLACE INTO consolidado_executivo_live (filial_id, filial_sigla, data_ref, hora_snapshot, fat_liq_total, meta_fat_total, pct_fat, rcas_ativos, rcas_zerados, rcas_com_venda, visitas_plan, visitas_real, pedidos_dia, updated_at) SELECT 'GRUPO', 'GRUPO', ${esc(DATA_HOJE)}, ${esc(HORA_ATUAL)}, COALESCE(SUM(fat_liq_total), 0), COALESCE(SUM(meta_fat_total), 0), CASE WHEN SUM(meta_fat_total) > 0 THEN ROUND(SUM(fat_liq_total) / SUM(meta_fat_total) * 100, 1) ELSE 0 END, COALESCE(SUM(rcas_ativos), 0), COALESCE(SUM(rcas_zerados), 0), COALESCE(SUM(rcas_com_venda), 0), COALESCE(SUM(visitas_plan), 0), COALESCE(SUM(visitas_real), 0), COALESCE(SUM(pedidos_dia), 0), CURRENT_TIMESTAMP FROM consolidado_executivo_live WHERE data_ref = ${esc(DATA_HOJE)} AND filial_id != 'GRUPO';`;
   sqlStatements.push(grupoQuery);
 
   // Salvar arquivo SQL

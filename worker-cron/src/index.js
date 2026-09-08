@@ -164,6 +164,37 @@ async function montarRelatorioOficialConsolidado(env, dataHoje, horaLabel = '11:
   // Tenta carregar do D1
   try {
     if (env && env.DB) {
+      // 1. Ler de consolidado_executivo_live
+      const qLive = await env.DB.prepare(`
+        SELECT 
+          UPPER(filial_sigla) as sigla,
+          fat_liq_total as vendido,
+          rcas_com_venda as vendCom,
+          rcas_zerados as vendSem,
+          rcas_ativos as totalVend,
+          visitas_plan as visTotal,
+          visitas_real as visReal,
+          pedidos_dia as pedTotal
+        FROM consolidado_executivo_live
+        WHERE data_ref = ? AND filial_id != 'GRUPO'
+      `).bind(dataHoje).all();
+
+      if (qLive?.results && qLive.results.length > 0) {
+        for (const row of qLive.results) {
+          const s = (row.sigla || '').toUpperCase();
+          if (dadosFiliais[s]) {
+            dadosFiliais[s].vendido = parseFloat(row.vendido) || 0;
+            dadosFiliais[s].vendCom = parseInt(row.vendCom, 10) || 0;
+            dadosFiliais[s].vendSem = parseInt(row.vendSem, 10) || 0;
+            dadosFiliais[s].totalVend = parseInt(row.totalVend, 10) || 0;
+            dadosFiliais[s].visTotal = parseInt(row.visTotal, 10) || 0;
+            dadosFiliais[s].visReal = parseInt(row.visReal, 10) || 0;
+            dadosFiliais[s].pedTotal = parseInt(row.pedTotal, 10) || 0;
+          }
+        }
+      }
+
+      // 2. Complementar com rca_kpis
       const qKpis = await env.DB.prepare(`
         SELECT 
           UPPER(filial_id) as sigla,
@@ -172,7 +203,8 @@ async function montarRelatorioOficialConsolidado(env, dataHoje, horaLabel = '11:
           COUNT(CASE WHEN dig_pedido_dia = 0 OR dig_pedido_dia IS NULL THEN 1 END) as vendSem,
           COUNT(*) as totalVend,
           COALESCE(SUM(visitas_na_rota_dia), 0) as visReal,
-          COALESCE(SUM(visitas_programadas_dia), 0) as visTotal
+          COALESCE(SUM(visitas_programadas_dia), 0) as visTotal,
+          COALESCE(SUM(visitas_com_venda_dia), 0) as pedRota
         FROM rca_kpis
         WHERE data = ?
         GROUP BY filial_id
@@ -182,16 +214,15 @@ async function montarRelatorioOficialConsolidado(env, dataHoje, horaLabel = '11:
         for (const row of qKpis.results) {
           const s = (row.sigla || '').toUpperCase();
           if (dadosFiliais[s]) {
-            dadosFiliais[s].vendido = parseFloat(row.vendido) || 0;
-            dadosFiliais[s].vendCom = parseInt(row.vendCom, 10) || 0;
-            dadosFiliais[s].vendSem = parseInt(row.vendSem, 10) || 0;
-            dadosFiliais[s].totalVend = parseInt(row.totalVend, 10) || 0;
-            dadosFiliais[s].pedTotal = dadosFiliais[s].vendCom;
-            dadosFiliais[s].pedRota = dadosFiliais[s].vendCom;
-            if (row.visTotal > 0) {
-              dadosFiliais[s].visReal = parseInt(row.visReal, 10) || 0;
-              dadosFiliais[s].visTotal = parseInt(row.visTotal, 10) || 0;
-            }
+            if (!dadosFiliais[s].vendido) dadosFiliais[s].vendido = parseFloat(row.vendido) || 0;
+            if (!dadosFiliais[s].vendCom) dadosFiliais[s].vendCom = parseInt(row.vendCom, 10) || 0;
+            if (!dadosFiliais[s].vendSem) dadosFiliais[s].vendSem = parseInt(row.vendSem, 10) || 0;
+            if (!dadosFiliais[s].totalVend) dadosFiliais[s].totalVend = parseInt(row.totalVend, 10) || 0;
+            if (!dadosFiliais[s].visReal) dadosFiliais[s].visReal = parseInt(row.visReal, 10) || 0;
+            if (!dadosFiliais[s].visTotal) dadosFiliais[s].visTotal = parseInt(row.visTotal, 10) || 0;
+            dadosFiliais[s].pedRota = parseInt(row.pedRota, 10) || 0;
+            if (!dadosFiliais[s].pedTotal) dadosFiliais[s].pedTotal = dadosFiliais[s].pedRota;
+            dadosFiliais[s].pedFora = Math.max(0, dadosFiliais[s].pedTotal - dadosFiliais[s].pedRota);
           }
         }
       }
@@ -203,8 +234,6 @@ async function montarRelatorioOficialConsolidado(env, dataHoje, horaLabel = '11:
   let totalVendido = 0, totalComVenda = 0, totalSemVenda = 0, totalVendCampo = 0;
   let totalPedidos = 0, totalPedRota = 0, totalPedFora = 0;
   let totalVisReal = 0, totalVisTotal = 0;
-  let totalInatVend = 0, totalInatNao = 0, totalInatRota = 0;
-  let totalRecVend = 0, totalRecNao = 0, totalRecRota = 0;
 
   for (const f of filiaisOrdenadas) {
     totalVendido += f.vendido;
@@ -219,16 +248,20 @@ async function montarRelatorioOficialConsolidado(env, dataHoje, horaLabel = '11:
   }
 
   const pctComVenda = totalVendCampo > 0 ? ((totalComVenda / totalVendCampo) * 100).toFixed(1).replace('.', ',') : '0,0';
+  const pctSemVenda = totalVendCampo > 0 ? ((totalSemVenda / totalVendCampo) * 100).toFixed(1).replace('.', ',') : '0,0';
   const pctVisitas = totalVisTotal > 0 ? ((totalVisReal / totalVisTotal) * 100).toFixed(1).replace('.', ',') : '0,0';
+  const eficiGeral = totalVisTotal > 0 ? ((totalVisReal / totalVisTotal) * 100).toFixed(2).replace('.', ',') : '0,00';
+  const eficaGeral = totalVisTotal > 0 ? ((totalPedRota / totalVisTotal) * 100).toFixed(2).replace('.', ',') : '0,00';
 
   const blocosFiliais = filiaisOrdenadas.map(f => {
+    const efici = f.visTotal > 0 ? ((f.visReal / f.visTotal) * 100).toFixed(1).replace('.', ',') : '0,0';
+    const efica = f.visTotal > 0 ? ((f.pedRota / f.visTotal) * 100).toFixed(1).replace('.', ',') : '0,0';
     return [
       `🏢 Filial ${f.sigla}`,
       `Vendido: R$ ${f.vendido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      `Vendedores com venda: ${f.vendCom} | Vendedores sem venda: ${f.vendSem} (Total: ${f.totalVend})`,
-      `Pedidos: ${f.pedTotal} (${f.pedRota} na rota | ${f.pedFora} fora) • Visitas: ${f.visReal.toLocaleString('pt-BR')} de ${f.visTotal.toLocaleString('pt-BR')}`,
-      `Visitados hoje sem venda nos últimos 30 dias: Vendemos ${f.inatVend} | Não vendemos: ${f.inatNao} (Rota: ${f.inatRota.toLocaleString('pt-BR')})`,
-      `Visitados hoje com tag RECORRENCIA: Vendemos ${f.recVend} | Não vendemos: ${f.recNao} (Rota: ${f.recRota.toLocaleString('pt-BR')})`
+      `Vendedores com venda: ${f.vendCom} | *Vendedores sem pedido: ${f.vendSem}* (Total: ${f.totalVend})`,
+      `Pedidos: ${f.pedTotal} (${f.pedRota} na rota | ${f.pedFora} fora) • Eficiência: ${efici}% | Eficácia: ${efica}%`,
+      `Visitas: ${f.visReal.toLocaleString('pt-BR')} de ${f.visTotal.toLocaleString('pt-BR')} programadas`
     ].join('\n');
   });
 
@@ -239,16 +272,17 @@ async function montarRelatorioOficialConsolidado(env, dataHoje, horaLabel = '11:
     ``,
     `📌 CONSOLIDADO GERAL DA COMPANHIA:`,
     `💰 Vendido Total: R$ ${totalVendido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-    `👥 Força de Vendas: ${totalComVenda} com venda (${pctComVenda}%) | ${totalSemVenda} sem venda (Total: ${totalVendCampo} em campo)`,
+    `👥 Força de Vendas: ${totalComVenda} com venda (${pctComVenda}%) | *${totalSemVenda} SEM NENHUM PEDIDO (${pctSemVenda}%)* (Total: ${totalVendCampo} em campo)`,
     `📦 Total de Pedidos: ${totalPedidos.toLocaleString('pt-BR')} (${totalPedRota.toLocaleString('pt-BR')} na rota | ${totalPedFora.toLocaleString('pt-BR')} fora da rota)`,
-    `📍 Visitas na Rota: ${totalVisReal.toLocaleString('pt-BR')} de ${totalVisTotal.toLocaleString('pt-BR')} realizadas (${pctVisitas}%)`,
-    `🎯 Clientes s/ compra (+30d): Vendemos ${totalInatVend} | Não vendemos: ${totalInatNao} (Total na rota: ${totalInatRota.toLocaleString('pt-BR')})`,
-    `🔄 Clientes c/ tag RECORRÊNCIA: Vendemos ${totalRecVend} | Não vendemos: ${totalRecNao} (Total na rota: ${totalRecRota.toLocaleString('pt-BR')})`,
-    `⚡ Eficácia Geral: 11,16% • Média de Mix: 9,5 SKUs por pedido`,
+    `📍 Roteiros / Visitas na Rota: ${totalVisReal.toLocaleString('pt-BR')} de ${totalVisTotal.toLocaleString('pt-BR')} realizadas (${pctVisitas}%)`,
+    `⚡ Eficiência de Rota: ${eficiGeral}% • Eficácia de Pedidos: ${eficaGeral}%`,
     ``,
     `--------------------------------------------------`,
     ``,
-    blocosFiliais.join('\n\n')
+    blocosFiliais.join('\n\n'),
+    ``,
+    `--------------------------------------------------`,
+    `_Painel Executivo ao Vivo: https://ceven-cftv-matrix.pages.dev_`
   ].join('\n');
 }
 

@@ -81,20 +81,30 @@ jobs:
           HORA_UTC=$(date -u +"%H:%M")
           echo "hora_utc=$HORA_UTC" >> $GITHUB_OUTPUT
 
-          # Mapear hora UTC para tipo de disparo
+          H=$(date -u +"%H")
+          M=$(date -u +"%M")
+          TOTAL_MIN=$(( 10#$H * 60 + 10#$M ))
+
+          # Mapear hora UTC com tolerância a atrasos de fila do GitHub Actions (até 45 min)
           if [ "${{ github.event.inputs.tipo }}" != "" ]; then
             TIPO="${{ github.event.inputs.tipo }}"
-          elif [ "$HORA_UTC" = "10:00" ]; then
+          # 10:00 UTC = 600 min (07:00 BRT Abertura) -> Janela 590 a 640 min
+          elif [ $TOTAL_MIN -ge 590 ] && [ $TOTAL_MIN -le 640 ]; then
             TIPO="abertura_07h"
-          elif [ "$HORA_UTC" = "14:00" ]; then
+          # 14:00 UTC = 840 min (11:00 BRT 1º Parcial) -> Janela 830 a 880 min
+          elif [ $TOTAL_MIN -ge 830 ] && [ $TOTAL_MIN -le 880 ]; then
             TIPO="relatorio_11h"
-          elif [ "$HORA_UTC" = "17:30" ]; then
+          # 17:30 UTC = 1050 min (14:30 BRT 2º Parcial) -> Janela 1040 a 1075 min
+          elif [ $TOTAL_MIN -ge 1040 ] && [ $TOTAL_MIN -le 1075 ]; then
             TIPO="relatorio_14h30"
-          elif [ "$HORA_UTC" = "20:00" ]; then
+          # 20:00 UTC = 1200 min (17:00 BRT 3º Parcial) -> Janela 1190 a 1240 min
+          elif [ $TOTAL_MIN -ge 1190 ] && [ $TOTAL_MIN -le 1240 ]; then
             TIPO="relatorio_17h"
-          elif [ "$HORA_UTC" = "21:30" ]; then
+          # 21:30 UTC = 1290 min (18:30 BRT Fechamento Oficial) -> Janela 1280 a 1320 min
+          elif [ $TOTAL_MIN -ge 1280 ] && [ $TOTAL_MIN -le 1320 ]; then
             TIPO="fechamento_18h30"
-          elif [ "$HORA_UTC" = "02:00" ]; then
+          # 02:00 UTC = 120 min (23:00 BRT Cravar Fechamento Noturno) -> Janela 110 a 160 min
+          elif [ $TOTAL_MIN -ge 110 ] && [ $TOTAL_MIN -le 160 ]; then
             TIPO="fechamento_23h"
           else
             TIPO="sync_tv_horario"
