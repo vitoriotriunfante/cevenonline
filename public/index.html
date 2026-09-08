@@ -3417,7 +3417,7 @@
     }
 
     function copiarAlertaWhatsApp(titulo, msg) {
-      const texto = `🚨 *ALERTA COMERCIAL CEVEN NOC*\n\n📌 *${titulo}*\n\n${msg}\n\n_Acesse o Painel para detalhes ao vivo: https://ceven-cftv-matrix.pages.dev_`;
+      const texto = `🚨 *ALERTA COMERCIAL CEVEN NOC*\n\n📌 *${titulo}*\n\n${msg}`;
       navigator.clipboard.writeText(texto).then(() => {
         showToast('📋 Alerta copiado para o WhatsApp!', 'success');
       }).catch(() => {

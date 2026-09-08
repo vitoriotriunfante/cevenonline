@@ -225,8 +225,7 @@ export async function onRequestGet(context) {
     relatorioMasterWhatsApp += `6️⃣ *INATIVOS > 30D EM ROTA:* ${listaInativosRotaAberta.length} cliente(s) em risco\n`;
     relatorioMasterWhatsApp += `7️⃣ *REATIVAÇÕES > 30D HOJE:* 🏆 ${listaReativadosHoje.length} clientes recuperados!\n`;
     relatorioMasterWhatsApp += `8️⃣ *OPORTUNIDADES DE MIX:* 3 recados estratégicos ativos\n`;
-    relatorioMasterWhatsApp += `9️⃣ *PRODUTOS NOVOS/LANÇAMENTOS:* ${listaProdutosNovos.length} positivações de inovação hoje!\n\n`;
-    relatorioMasterWhatsApp += `_Painel Executivo ao Vivo: https://ceven-cftv-matrix.pages.dev_`;
+    relatorioMasterWhatsApp += `9️⃣ *PRODUTOS NOVOS/LANÇAMENTOS:* ${listaProdutosNovos.length} positivações de inovação hoje!`;
 
     return new Response(JSON.stringify({
       sucesso: true,

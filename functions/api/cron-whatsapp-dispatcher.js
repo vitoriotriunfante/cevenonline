@@ -411,10 +411,7 @@ async function montarRelatorioOficialConsolidado(env, dataHoje, horaLabel = '15:
     ``,
     `--------------------------------------------------`,
     ``,
-    blocosFiliais.join('\n\n'),
-    ``,
-    `--------------------------------------------------`,
-    `_Painel Executivo ao Vivo: https://ceven-cftv-matrix.pages.dev_`
+    blocosFiliais.join('\n\n')
   ].join('\n');
 }
 
