@@ -186,20 +186,20 @@ export async function onRequest(context) {
 
 // Monta o Resumo Executivo Oficial de Abertura da Companhia (11 Filiais)
 async function montarResumoExecutivoAbertura(env, dataHoje, dataFormatada) {
-  const filiaisOrdem = ['TPH', 'ABC', 'API', 'TBE', 'TSJ', 'TCV', 'MCD', 'TBL', 'TPA', 'TCA', 'TCG'];
+  const filiaisOrdem = ['TPH', 'TBE', 'API', 'TBL', 'ABC', 'TCV', 'TSJ', 'TPA', 'MCD', 'TCA', 'TCG'];
 
   const baseline = {
-    TPH: { vend: 83, vis: 1054, inat: 417, rec: 197, prosp: 1826 },
-    ABC: { vend: 37, vis: 555, inat: 100, rec: 83, prosp: 814 },
-    API: { vend: 41, vis: 550, inat: 180, rec: 136, prosp: 902 },
-    TBE: { vend: 30, vis: 542, inat: 241, rec: 59, prosp: 660 },
-    TSJ: { vend: 35, vis: 458, inat: 140, rec: 70, prosp: 770 },
-    TCV: { vend: 45, vis: 410, inat: 57, rec: 52, prosp: 990 },
-    MCD: { vend: 48, vis: 407, inat: 136, rec: 124, prosp: 1056 },
-    TBL: { vend: 29, vis: 393, inat: 123, rec: 65, prosp: 638 },
-    TPA: { vend: 28, vis: 364, inat: 112, rec: 57, prosp: 616 },
-    TCA: { vend: 34, vis: 308, inat: 133, rec: 61, prosp: 748 },
-    TCG: { vend: 30, vis: 261, inat: 108, rec: 82, prosp: 660 }
+    TPH: { vend: 75, vis: 1054, inat: 417, rec: 197, prosp: 1826 },
+    TBE: { vend: 27, vis: 519, inat: 231, rec: 57, prosp: 660 },
+    API: { vend: 32, vis: 496, inat: 163, rec: 123, prosp: 902 },
+    TBL: { vend: 26, vis: 422, inat: 133, rec: 70, prosp: 638 },
+    ABC: { vend: 27, vis: 417, inat: 75, rec: 63, prosp: 814 },
+    TCV: { vend: 36, vis: 375, inat: 52, rec: 47, prosp: 990 },
+    TSJ: { vend: 25, vis: 351, inat: 107, rec: 54, prosp: 770 },
+    TPA: { vend: 23, vis: 325, inat: 100, rec: 51, prosp: 616 },
+    MCD: { vend: 38, vis: 310, inat: 104, rec: 94, prosp: 1056 },
+    TCA: { vend: 30, vis: 297, inat: 128, rec: 59, prosp: 748 },
+    TCG: { vend: 20, vis: 199, inat: 83, rec: 63, prosp: 660 }
   };
 
   const dadosFiliais = {};
