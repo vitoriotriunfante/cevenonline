@@ -18,7 +18,7 @@
 | `320` | VAGO SUPERVISOR 603 |
 
 ### 👤 2. Supervisor: **ALEX SANDRO SOARES ELIAS** (ID CEVEN: `69`)
-*Equipe com **5** vendedor(es) vinculado(s):*
+*Equipe com **7** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
 | :---: | :--- |
@@ -27,6 +27,8 @@
 | `311` | ANDRE LUCCAS PICOLLOTTO |
 | `314` | LUIZ CARLOS PEREIRA |
 | `316` | TAIS OLIVEIRA DA SILVA |
+| `1094` | EDSON DOS SANTOS MACHADO |
+| `1096` | WILLIAN KENEDDY RODRIGUES PEDROSC |
 
 ### 👤 3. Supervisor: **DIEGO GV** (ID CEVEN: `114`)
 *Equipe com **0** vendedor(es) vinculado(s):*
@@ -34,13 +36,11 @@
 *⚠️ Nenhum vendedor vinculado no momento.*
 
 ### 👤 4. Supervisor: **GERENTE TBE** (ID CEVEN: `95`)
-*Equipe com **3** vendedor(es) vinculado(s):*
+*Equipe com **1** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
 | :---: | :--- |
-| `1094` | EDSON DOS SANTOS MACHADO |
 | `1095` | JANAINA MORALES TADINI |
-| `1096` | WILLIAN KENEDDY RODRIGUES PEDROSC |
 
 ### 👤 5. Supervisor: **HAMILTON RICARDO DOS SANTOS MENDES** (ID CEVEN: `70`)
 *Equipe com **9** vendedor(es) vinculado(s):*
@@ -104,7 +104,7 @@
 > **Total de Supervisores:** 6
 
 ### 👤 1. Supervisor: **CLT - ANA CRISTINA DOS SANTOS YAMATO** (ID CEVEN: `63`)
-*Equipe com **10** vendedor(es) vinculado(s):*
+*Equipe com **11** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
 | :---: | :--- |
@@ -118,6 +118,7 @@
 | `38` | CLT - ANA CRISTINA DOS SANTOS YAMATO |
 | `1021` | CLT - JANAINA FONTES MONTESI |
 | `1092` | CLT - EWERTON ARAUJO DO NASCIMENTO |
+| `1114` | CLT - APARECIDA JOYCE GOMES FERREIRA |
 
 ### 👤 2. Supervisor: **CLT - CRISTIANO RODRIGUES MACHADO** (ID CEVEN: `65`)
 *Equipe com **9** vendedor(es) vinculado(s):*
@@ -185,7 +186,7 @@
 ---
 
 ## 🏢 FILIAL MCD (MCD1) — Gerente: **Adriano**
-> **Total de Supervisores:** 11
+> **Total de Supervisores:** 13
 
 ### 👤 1. Supervisor: **0000** (ID CEVEN: `106`)
 *Equipe com **0** vendedor(es) vinculado(s):*
@@ -198,7 +199,7 @@
 *⚠️ Nenhum vendedor vinculado no momento.*
 
 ### 👤 3. Supervisor: **ALYFER PEREIRA MENDES** (ID CEVEN: `35`)
-*Equipe com **9** vendedor(es) vinculado(s):*
+*Equipe com **8** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
 | :---: | :--- |
@@ -208,12 +209,11 @@
 | `432` | JESUS DA SILVA SOUZA |
 | `436` | LIDIA FRANCA BLANCO |
 | `448` | ALAN AFFONSO ALMIRAO |
-| `449` | SAMIRA BARCELOS ALBRES |
 | `464` | CINTIA RENATA DA CRUZ |
 | `467` | JOAO CARLOS SOUZA |
 
 ### 👤 4. Supervisor: **CARLOS ALAGUEZ DA SILVA** (ID CEVEN: `112`)
-*Equipe com **7** vendedor(es) vinculado(s):*
+*Equipe com **8** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
 | :---: | :--- |
@@ -222,6 +222,7 @@
 | `438` | KENEDY LUAN ESPINDOLA MENDES DE ASSIS |
 | `439` | LUIS FERNANDO CASTILHO ALVES |
 | `440` | LUAN FELIPE DE SOUZA MEDEIROS |
+| `449` | SAMIRA BARCELOS ALBRES |
 | `454` | TIEGO RISALDI RAMOS |
 | `463` | RODRIGO ALBUQUERQUE DE SOUZA |
 
@@ -270,7 +271,12 @@
 | `1011` | GERENTE MCD |
 | `1070` | INTERNO |
 
-### 👤 8. Supervisor: **JONATAS DA SILVA DE OLIVEIRA** (ID CEVEN: `58`)
+### 👤 8. Supervisor: **GLAUCE MARLIONE NOGUEIRA** (ID CEVEN: `116`)
+*Equipe com **0** vendedor(es) vinculado(s):*
+
+*⚠️ Nenhum vendedor vinculado no momento.*
+
+### 👤 9. Supervisor: **JONATAS DA SILVA DE OLIVEIRA** (ID CEVEN: `58`)
 *Equipe com **8** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
@@ -284,17 +290,22 @@
 | `1060` | WILLIAN VINICIUS ROJA SERPA |
 | `1063` | WALTER PEREIRA CORDEIRO |
 
-### 👤 9. Supervisor: **MARCELO ALEXANDRE NERI** (ID CEVEN: `60`)
+### 👤 10. Supervisor: **MARCELO ALEXANDRE NERI** (ID CEVEN: `60`)
 *Equipe com **0** vendedor(es) vinculado(s):*
 
 *⚠️ Nenhum vendedor vinculado no momento.*
 
-### 👤 10. Supervisor: **MATTHEUS MELO DOS SANTOS** (ID CEVEN: `61`)
+### 👤 11. Supervisor: **MATTHEUS MELO DOS SANTOS** (ID CEVEN: `61`)
 *Equipe com **0** vendedor(es) vinculado(s):*
 
 *⚠️ Nenhum vendedor vinculado no momento.*
 
-### 👤 11. Supervisor: **THIAGO DA SILVA CONEGUNDES** (ID CEVEN: `62`)
+### 👤 12. Supervisor: **Milene Godoi Maciel** (ID CEVEN: `117`)
+*Equipe com **0** vendedor(es) vinculado(s):*
+
+*⚠️ Nenhum vendedor vinculado no momento.*
+
+### 👤 13. Supervisor: **THIAGO DA SILVA CONEGUNDES** (ID CEVEN: `62`)
 *Equipe com **7** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
@@ -366,12 +377,11 @@
 | `1040` | CLT RUI MATEUS ANSAK |
 
 ### 👤 5. Supervisor: **CLT CRISTIAN EDUARDO RAFFAELLI** (ID CEVEN: `73`)
-*Equipe com **10** vendedor(es) vinculado(s):*
+*Equipe com **9** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
 | :---: | :--- |
 | `54` | CLT MIQUEIAS LOPES DE MATOS RODRIGUES |
-| `89` | CLT MARIA DE FATIMA FELIX |
 | `90` | CLT TATIANE BILL |
 | `91` | CLT SERGIO ALVES DOS SANTOS |
 | `93` | CLT ALAIS APARECIDA TELES |
@@ -421,7 +431,7 @@
 | `543` | CLT LUCAS RAMOS MONTAGNHANI |
 
 ### 👤 9. Supervisor: **CLT LUIZ AUGUSTO RAMOS** (ID CEVEN: `51`)
-*Equipe com **9** vendedor(es) vinculado(s):*
+*Equipe com **10** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
 | :---: | :--- |
@@ -434,6 +444,7 @@
 | `544` | CLT LUIZ AUGUSTO RAMOS |
 | `1047` | CLT KARULINI BARANSKI |
 | `1090` | CLT DEISI DE SOUZA DA SILVA |
+| `1112` | CLT GERMANO LEMOS CAVALHEIRO JUNIOR |
 
 ### 👤 10. Supervisor: **CLT PRISCILA A D NASCIMENTO STRAPASSON** (ID CEVEN: `97`)
 *Equipe com **8** vendedor(es) vinculado(s):*
@@ -450,11 +461,10 @@
 | `1031` | CLT WILLIAM LISBOA NUNES |
 
 ### 👤 11. Supervisor: **CLT RODRIGO DE ARRUDA DARROS** (ID CEVEN: `52`)
-*Equipe com **10** vendedor(es) vinculado(s):*
+*Equipe com **9** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
 | :---: | :--- |
-| `82` | CLT RODRIGO CESAR RODRIGUES |
 | `83` | VAGO 606 |
 | `84` | CLT MARCELO HOLOVATY |
 | `85` | CLT ANGELA APARECIDA SCHON |
@@ -688,20 +698,19 @@
 | `1100` | CLT-ANDERSON FERNANDES CORREIA |
 
 ### 👤 3. Supervisor: **ARILDO ZAGO** (ID CEVEN: `24`)
-*Equipe com **7** vendedor(es) vinculado(s):*
+*Equipe com **6** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
 | :---: | :--- |
 | `240` | PJ-SERGIO AUGUSTO BRAUZA |
 | `242` | CLODOALDO DOS SANTOS |
-| `260` | VALDECIR |
 | `265` | CLT-MARCOS JOSE WALESKO |
 | `275` | PJ-FABIANO APARECIDO SANTOS |
 | `278` | PJ-PEDRO PAULO DO NASCIMENTO |
 | `1101` | CLT-ARILDO ZAGO |
 
 ### 👤 4. Supervisor: **CLT-WASHINGTON FLORES DA ROSA** (ID CEVEN: `100`)
-*Equipe com **14** vendedor(es) vinculado(s):*
+*Equipe com **13** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
 | :---: | :--- |
@@ -713,7 +722,6 @@
 | `252` | CLT-LUCIANA AGATA PINTO |
 | `253` | CLT-APARECIDO AGNALDO ARAUJO |
 | `255` | CLT-WILLIANS DE ALCANTRA CORREA |
-| `262` | VAGO39 |
 | `267` | CLT-KAMILA APARECIDA XAVIER FERREIRA |
 | `271` | CLT-CLEVERSON RODRIGUES FERREIRA |
 | `527` | CLT-MARIA MADALENA |
@@ -887,7 +895,7 @@
 *⚠️ Nenhum vendedor vinculado no momento.*
 
 ### 👤 2. Supervisor: **EDER LUCAS DAS FLORES DE OLIVEIRA** (ID CEVEN: `10`)
-*Equipe com **7** vendedor(es) vinculado(s):*
+*Equipe com **9** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
 | :---: | :--- |
@@ -898,16 +906,16 @@
 | `227` | CLT CARLOS AUGUSTO CUETO |
 | `234` | CLT DILNEI MARCOLIN |
 | `1056` | CLT ELTON PEREIRA ALVES |
+| `1104` | EDER LUCAS DAS FLORES DE OLIVEIRA |
+| `1116` | KELLY CRISTINA GONCALVES |
 
 ### 👤 3. Supervisor: **GERENTE ABC** (ID CEVEN: `85`)
-*Equipe com **7** vendedor(es) vinculado(s):*
+*Equipe com **5** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
 | :---: | :--- |
 | `1003` | GERENTE ABC |
-| `1058` | MARCIO ROSA SOBRAL BATISTA |
 | `1091` | MISSAID MAINARDES RAMOS |
-| `1104` | EDER LUCAS DAS FLORES DE OLIVEIRA |
 | `1105` | GILBERTO GOMES DOMINGOS |
 | `1106` | IVONEI PEDRO DE MOURA |
 | `1107` | RODRIGO STELLEO COSTA LEITE |
@@ -937,7 +945,7 @@
 | `233` | CLT DOUGLAS CERRI |
 
 ### 👤 6. Supervisor: **MARCIO ROSA SOBRAL BATISTA** (ID CEVEN: `105`)
-*Equipe com **4** vendedor(es) vinculado(s):*
+*Equipe com **5** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
 | :---: | :--- |
@@ -945,6 +953,7 @@
 | `228` | CLT LEONIDAS JOSE PORTELLA |
 | `237` | CLT PAULO HENRIQUE MEDINA |
 | `1052` | DAVID REINALDO VEBER DA SILVA |
+| `1058` | MARCIO ROSA SOBRAL BATISTA |
 
 ### 👤 7. Supervisor: **MISSAID MAINARDES RAMOS** (ID CEVEN: `13`)
 *Equipe com **6** vendedor(es) vinculado(s):*
@@ -1096,10 +1105,10 @@
 ---
 
 ## 🏢 FILIAL TBL (TBL1) — Gerente: **Fabio Machado**
-> **Total de Supervisores:** 8
+> **Total de Supervisores:** 9
 
 ### 👤 1. Supervisor: **CLT - CRISTIANE DE FREITAS DUARTE** (ID CEVEN: `111`)
-*Equipe com **6** vendedor(es) vinculado(s):*
+*Equipe com **7** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
 | :---: | :--- |
@@ -1109,17 +1118,13 @@
 | `531` | CRISTIANE DE FREITAS DUARTE |
 | `551` | CLT - ELIAS GARCIA SOBRINHO |
 | `1087` | POLIANA JESSICA DE ALMEIDA |
+| `1115` | ERIC FELIPE CARDOSO DE OLIVEIRA |
 
 ### 👤 2. Supervisor: **CLT CLEBER DA SILVA BEZEERA** (ID CEVEN: `110`)
-*Equipe com **6** vendedor(es) vinculado(s):*
+*Equipe com **1** vendedor(es) vinculado(s):*
 
 | Cód. RCA | Nome do Vendedor / Representante |
 | :---: | :--- |
-| `171` | CLT - ALMIR ROGERIO DE OLIVEIRA |
-| `190` | CLT - LUCAS FREITAS SEPULVIDA |
-| `195` | CLT - REGINALDO FERNANDES DOS SANTOS |
-| `1018` | LINCON LUIZ ROMAO |
-| `1054` | CLT ADRIANO IGNEZ DOS REIS |
 | `1088` | CLEBER DA SILVA BEZERRA |
 
 ### 👤 3. Supervisor: **CLT- CIRLENE DE FATIMA GOMES VITORINO** (ID CEVEN: `41`)
@@ -1186,9 +1191,22 @@
 | :---: | :--- |
 | `1009` | GERENTE TBL |
 
+### 👤 9. Supervisor: **LEONARDO MANOSSO DE GODOI** (ID CEVEN: `115`)
+*Equipe com **7** vendedor(es) vinculado(s):*
+
+| Cód. RCA | Nome do Vendedor / Representante |
+| :---: | :--- |
+| `171` | CLT - ALMIR ROGERIO DE OLIVEIRA |
+| `190` | CLT - LUCAS FREITAS SEPULVIDA |
+| `195` | CLT - REGINALDO FERNANDES DOS SANTOS |
+| `1018` | LINCON LUIZ ROMAO |
+| `1054` | CLT ADRIANO IGNEZ DOS REIS |
+| `1113` | LEONARDO MANOSSO DE GODOI(VENDAS) |
+| `1117` | ALEXSANDRO AUGUSTO TAVARES |
+
 ---
 
 ## 📊 Resumo Consolidado do Grupo
 - **Total de Filiais:** 11
-- **Total de Supervisores Conectados:** 96
-- **Total de Vendedores/RCAs Mapeados:** 564
+- **Total de Supervisores Conectados:** 99
+- **Total de Vendedores/RCAs Mapeados:** 566
