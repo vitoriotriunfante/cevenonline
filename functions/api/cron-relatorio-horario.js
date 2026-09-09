@@ -6,7 +6,7 @@
 const GREEN_API_URL = 'https://7107.api.greenapi.com';
 const GREEN_ID_INSTANCE = '710722724828';
 const GREEN_TOKEN = '0206610482f54377a4161f6e7daf4866ee0bef8ac6c842b1bd';
-const VALID_CHAT_ID = '556696389884@c.us';
+const VALID_CHAT_ID = '5541987525605@c.us';
 
 const FILIAIS_OFICIAIS = [
   { key: 'abc1', sigla: 'ABC' },

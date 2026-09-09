@@ -16,7 +16,7 @@
 const GREEN_API_URL = 'https://7107.api.greenapi.com';
 const GREEN_ID_INSTANCE = '710722724828';
 const GREEN_TOKEN = '0206610482f54377a4161f6e7daf4866ee0bef8ac6c842b1bd';
-const PHONES = ['556696389884@c.us', '5566996389884@c.us'];
+const PHONES = ['5541987525605@c.us'];
 
 const FILIAIS_ORDEM = ['TPH', 'ABC', 'TBL', 'TCV', 'API', 'TCG', 'TSJ', 'TCA', 'MCD', 'TPA', 'TBE'];
 
