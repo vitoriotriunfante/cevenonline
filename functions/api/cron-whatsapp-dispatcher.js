@@ -55,6 +55,18 @@ export async function onRequest(context) {
       if (results && results.length > 0) gerentes = results;
     } catch (_) {}
 
+    // Garantir que a Diretoria Geral (Vitório Neto) sempre receba todos os disparos executivos
+    const jaTemVitorio = gerentes.some(g => (g.whatsapp_numero || '').includes('987525605'));
+    if (!jaTemVitorio) {
+      gerentes.push({
+        filial_id: 'GRUPO',
+        filial_sigla: 'GRUPO',
+        nome_gerente: 'VITÓRIO NETO',
+        whatsapp_numero: '5541987525605',
+        ativo: 1
+      });
+    }
+
     if (filialFiltro !== 'TODAS') {
       gerentes = gerentes.filter(g => g.filial_sigla.toUpperCase() === filialFiltro.toUpperCase());
     }
