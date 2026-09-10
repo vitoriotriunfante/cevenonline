@@ -383,10 +383,26 @@ async function coletarAberturaVarejo(repsValidationMap) {
         const url = `${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${fKey}&id=${rca.codigo}`;
         const res = await axios.get(url, { timeout: 6000 });
         const clients = res.data || [];
-        if (clients.length >= 5) {
+
+        // Isolar a sincronização oficial mais recente (Clube da Venda)
+        let rotaOficial = clients.filter(c => c.id >= 1083000 && c.id < 1085000);
+        if (rotaOficial.length === 0) {
+          const seen = new Set();
+          const sorted = [...clients].sort((a, b) => b.id - a.id);
+          rotaOficial = [];
+          sorted.forEach(c => {
+            if (!seen.has(c.id_cliente)) {
+              seen.add(c.id_cliente);
+              rotaOficial.push(c);
+            }
+          });
+          rotaOficial.reverse();
+        }
+
+        if (rotaOficial.length >= 5) {
           rFil.vjs++;
-          rFil.visitas += clients.length;
-          clients.forEach(c => {
+          rFil.visitas += rotaOficial.length;
+          rotaOficial.forEach(c => {
             if (!c.data_ultima_compra || new Date(c.data_ultima_compra) < dataLimite) {
               rFil.inativos++;
             }
