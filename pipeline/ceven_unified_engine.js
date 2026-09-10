@@ -465,19 +465,14 @@ async function coletarAberturaVarejo(repsValidationMap) {
 }
 
 // 5. Formatar Relatório de Vendas (Consolidado e Gerentes)
-function formatarRelatoriosVendas(filialVendas, horaLabel, cvTotals = null) {
+function formatarRelatoriosVendas(filialVendas, horaLabel) {
   const ranking = Object.values(filialVendas).map(f => {
-    // Se tiver totais oficiais do Clube da Venda informados, usa como base de faturamento
-    const cv = cvTotals && cvTotals[f.sigla] ? cvTotals[f.sigla] : null;
-    const fat = cv ? cv.fat : f.fatTotalDigitado;
-    const ped = cv ? cv.pedTot : f.pedidosTotal;
-    const vis = cv ? cv.vis : f.visReal;
-    const rot = cv ? cv.rot : f.visProg;
-    const pedRot = cv ? cv.pedRot : f.pedidosTotal;
-    const pedFora = cv ? cv.pedFora : 0;
-    const sku = cv ? cv.sku : 9.5;
-    const efici = cv ? cv.efici : (rot > 0 ? ((vis / rot) * 100).toFixed(1).replace('.', ',') : '0,0');
-    const efica = cv ? cv.efica : (rot > 0 ? ((pedRot / rot) * 100).toFixed(1).replace('.', ',') : '0,0');
+    const fat = f.fatTotalDigitado || 0;
+    const ped = f.pedidosTotal || 0;
+    const vis = f.visReal || 0;
+    const rot = f.visProg || 0;
+    const efici = rot > 0 ? ((vis / rot) * 100).toFixed(1).replace('.', ',') : '0,0';
+    const efica = rot > 0 ? ((ped / rot) * 100).toFixed(1).replace('.', ',') : '0,0';
 
     const pctCom = f.vjTotal > 0 ? Math.round((f.vjCom / f.vjTotal) * 100) : 0;
     const pctSem = f.vjTotal > 0 ? Math.round((f.vjSem / f.vjTotal) * 100) : 0;
@@ -531,7 +526,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel, cvTotals = null) {
     else if (idx === 2) prefix = '🥉 ';
     let b = `${prefix}*${idx + 1}. FILIAL ${r.sigla} — ${r.gerente.toUpperCase()}*\n`;
     b += `💰 Total de Pedidos: R$ ${fmtMoeda(r.fat)} • 📦 Pedidos: ${r.ped}\n`;
-    b += `📍 Visitas: ${r.vis} de ${r.rot} (${r.efici}%) • Eficácia: ${r.efica}% • SKU Médio: ${r.sku}\n`;
+    b += `📍 Visitas Varejo: ${r.vis} de ${r.rot} (${r.efici}%) • Eficácia: ${r.efica}%\n`;
     b += `👥 Varejo com Pedido: ${r.vjCom} de ${r.vjTotal} (${r.pctCom}%) | 🚨 Varejo SEM PEDIDO: *${r.vjSem} (${r.pctSem}%)*`;
     return b;
   });
@@ -706,17 +701,8 @@ async function main() {
 
   // B) Vendas & Zerados do Varejo
   if (acao === 'vendas_zerados' || acao === 'completo') {
-    // Carregar dados oficiais do Clube da Venda se existirem
-    let cvTotals = null;
-    const cvPath = path.join(__dirname, '../scripts/dados_oficiais_17h_cv.json');
-    if (fs.existsSync(cvPath)) {
-      const cvArray = JSON.parse(fs.readFileSync(cvPath, 'utf8'));
-      cvTotals = {};
-      cvArray.forEach(item => { cvTotals[item.sigla] = item; });
-    }
-
     const filialVendas = await coletarVendasEZerados(repsMap, dataHoje);
-    const relatorios = formatarRelatoriosVendas(filialVendas, hora, cvTotals);
+    const relatorios = formatarRelatoriosVendas(filialVendas, hora);
     console.log(`✅ Vendas e Varejo Zerados apurados com sucesso.`);
 
     if (destino === 'vitorio' || destino === 'todos') {
