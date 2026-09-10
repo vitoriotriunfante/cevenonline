@@ -65,39 +65,62 @@ async function getAdminToken() {
   return res.data.access_token;
 }
 
+// Lista Oficial dos 13 Gerentes de Filial
+const GERENTES_MAP = [
+  { filial: 'TCA', gerente: 'BECHER', whatsapp: '556599438498' },
+  { filial: 'TCG', gerente: 'DANILO', whatsapp: '556792831186' },
+  { filial: 'MCD', gerente: 'CLEVERSON', whatsapp: '556599730698' },
+  { filial: 'MCD', gerente: 'ADRIANO', whatsapp: '556799877927' },
+  { filial: 'ABC', gerente: 'MARCOS', whatsapp: '554588226371' },
+  { filial: 'TCV', gerente: 'LEONARDO', whatsapp: '554588210792' },
+  { filial: 'TBL', gerente: 'FÁBIO', whatsapp: '554388683191' },
+  { filial: 'API', gerente: 'MARCELO', whatsapp: '554188317101' },
+  { filial: 'TPH', gerente: 'VAGNER', whatsapp: '554188559703' },
+  { filial: 'TSJ', gerente: 'SALDANHA', whatsapp: '551291224077' },
+  { filial: 'TBE', gerente: 'DIEGO', whatsapp: '554699047249' },
+  { filial: 'TPA', gerente: 'RADKE', whatsapp: '554499092497' },
+  { filial: 'TPA', gerente: 'LEANDRO', whatsapp: '554499427329' }
+];
+
 // 2. Carregar Mapa de Vendedores (Validação VJ vs AS)
 function carregarValidacaoVendedores() {
   const excelPath = path.join(__dirname, '../VALIDACAO_VENDEDORES_VJ_AS.xlsx');
-  const wb = XLSX.readFile(excelPath);
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
-
   const map = {};
-  for (let r = 2; r < rows.length; r++) {
-    const row = rows[r];
-    if (!row || !row[0]) continue;
-    const fil = String(row[0]).trim().toUpperCase();
-    const ger = String(row[1] || '').trim();
-    const supCod = String(row[2] || '').trim();
-    const supNome = cleanName(String(row[3] || ''));
-    const rca = String(row[4] || '').trim();
-    const nome = cleanName(String(row[5] || ''));
-    const canal = String(row[6] || 'VJ').trim().toUpperCase();
-    const metaFat = parseFloat(row[10] || 0);
-    const metaPos = parseInt(row[11] || 0, 10);
+  if (fs.existsSync(excelPath)) {
+    try {
+      const wb = XLSX.readFile(excelPath);
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
 
-    const key = `${fil}_${rca}`;
-    map[key] = {
-      filial: fil,
-      gerente: ger,
-      supCod,
-      supNome: supNome || 'SUPERVISÃO GERAL',
-      rca,
-      nome,
-      canal,
-      metaFat,
-      metaPos
-    };
+      for (let r = 2; r < rows.length; r++) {
+        const row = rows[r];
+        if (!row || !row[0]) continue;
+        const fil = String(row[0]).trim().toUpperCase();
+        const ger = String(row[1] || '').trim();
+        const supCod = String(row[2] || '').trim();
+        const supNome = cleanName(String(row[3] || ''));
+        const rca = String(row[4] || '').trim();
+        const nome = cleanName(String(row[5] || ''));
+        const canal = String(row[6] || 'VJ').trim().toUpperCase();
+        const metaFat = parseFloat(row[10] || 0);
+        const metaPos = parseInt(row[11] || 0, 10);
+
+        const key = `${fil}_${rca}`;
+        map[key] = {
+          filial: fil,
+          gerente: ger,
+          supCod,
+          supNome: supNome || 'SUPERVISÃO GERAL',
+          rca,
+          nome,
+          canal,
+          metaFat,
+          metaPos
+        };
+      }
+    } catch (e) {
+      console.warn('Aviso: Erro ao carregar planilha de validacao:', e.message);
+    }
   }
   return map;
 }
@@ -489,7 +512,11 @@ async function main() {
   console.log(`📅 Data: ${dataHoje} | Hora: ${hora} | Ação: ${acao} | Destino: ${destino}`);
   console.log(`==================================================\n`);
 
-  const gerentes = JSON.parse(fs.readFileSync(path.join(__dirname, '../scripts/gerentes_contatos.json'), 'utf8'));
+  let gerentes = GERENTES_MAP;
+  const gerPath = path.join(__dirname, '../scripts/gerentes_contatos.json');
+  if (fs.existsSync(gerPath)) {
+    try { gerentes = JSON.parse(fs.readFileSync(gerPath, 'utf8')); } catch (e) {}
+  }
   const repsMap = carregarValidacaoVendedores();
 
   let token = null;
