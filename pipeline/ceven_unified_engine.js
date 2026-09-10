@@ -118,6 +118,11 @@ function carregarValidacaoVendedores() {
           metaPos
         };
       }
+    } catch (e) {
+      console.warn('Aviso: Erro ao carregar planilha de validacao:', e.message);
+    }
+  }
+
   // Enriquecer e atualizar com a árvore viva online dos gerentes (cascata oficial)
   const onlineTreePath = path.join(__dirname, '../scripts/supervisores_11_filiais_completo.json');
   if (fs.existsSync(onlineTreePath)) {
@@ -695,10 +700,65 @@ async function main() {
 
       if (destino === 'vitorio' || destino === 'todos') {
         console.log(`🚀 Enviando Gestão de Campo Consolidada para Vitório Neto (${WHATSAPP_VITORIO})...`);
-        let resumoCampo = `📋 *GESTÃO DE CAMPO CONSOLIDADA (11 FILIAIS)*\n⏱️ Referência: ${hora}\n\n`;
-        Object.entries(auditoria).forEach(([sigla, d]) => {
-          resumoCampo += `📍 *${sigla}*\n${d.texto}\n\n`;
+
+        let totSups = 0, totComp = 0, totRet = 0;
+        const rankingFiliais = Object.values(auditoria).map(d => {
+          totSups += d.totalSups;
+          totComp += d.countComp;
+          totRet += d.countRet;
+          const pctComp = d.totalSups > 0 ? (d.countComp / d.totalSups) * 100 : 0;
+          const pctRet = d.totalSups > 0 ? (d.countRet / d.totalSups) * 100 : 0;
+          return {
+            sigla: d.sigla,
+            gerente: d.gerente,
+            totalSups: d.totalSups,
+            countComp: d.countComp,
+            countRet: d.countRet,
+            pctComp,
+            pctRet
+          };
         });
+
+        // Ordenar por taxa de RET e Compromissos
+        rankingFiliais.sort((a, b) => (b.pctRet + b.pctComp) - (a.pctRet + a.pctComp));
+
+        const pctGeralComp = totSups > 0 ? ((totComp / totSups) * 100).toFixed(1).replace('.', ',') : '0,0';
+        const pctGeralRet = totSups > 0 ? ((totRet / totSups) * 100).toFixed(1).replace('.', ',') : '0,0';
+
+        const blocosRanking = rankingFiliais.map((f, idx) => {
+          let prefix = '🏢 ';
+          if (idx === 0) prefix = '🥇 ';
+          else if (idx === 1) prefix = '🥈 ';
+          else if (idx === 2) prefix = '🥉 ';
+          return `${prefix}*${idx + 1}. FILIAL ${f.sigla} — ${f.gerente.toUpperCase()}*\n` +
+                 `📝 Compromissos: *${f.countComp} de ${f.totalSups}* (${f.pctComp.toFixed(0)}%) • 🚗 Em Rota: *${f.countRet} de ${f.totalSups}* (${f.pctRet.toFixed(0)}%)`;
+        });
+
+        const semComp = totSups - totComp;
+        const semRet = totSups - totRet;
+
+        const resumoCampo = [
+          `📋 *PAINEL EXECUTIVO — GESTÃO DE CAMPO (11 FILIAIS)*`,
+          `📅 ${new Date().toLocaleDateString('pt-BR')} • ⏱️ Referência: ${hora}`,
+          `🏢 *Grupo Triunfante*`,
+          `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+          ``,
+          `📌 *RESULTADO GERAL DA COMPANHIA:*`,
+          `👥 *Supervisores em Campo:* ${totSups} supervisores`,
+          `📝 *Compromissos Lançados:* ${totComp} de ${totSups} (${pctGeralComp}%)`,
+          `🚗 *Em Rota (RET Ativo):* ${totRet} de ${totSups} (${pctGeralRet}%)`,
+          ``,
+          `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+          `📊 *DESEMPENHO POR FILIAL (RANKING DE ATIVIDADE):*`,
+          ``,
+          blocosRanking.join('\n\n'),
+          ``,
+          `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+          `⚠️ *ATENÇÃO OPERACIONAL:*`,
+          `🚨 *${semComp} supervisores* sem compromisso lançado`,
+          `🚨 *${semRet} supervisores* sem início de rota (RET) no sistema`
+        ].join('\n');
+
         const r = await enviarWhatsapp(WHATSAPP_VITORIO, resumoCampo.trim());
         console.log(`  Diretoria Geral — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
       }
