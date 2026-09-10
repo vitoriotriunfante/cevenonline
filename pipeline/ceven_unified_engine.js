@@ -855,7 +855,7 @@ async function main() {
           if (rel && rel.texto) {
             const r = await enviarWhatsapp(g.whatsapp, rel.texto);
             console.log(`  [${g.filial}] Enviado para ${g.gerente} — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
-            await new Promise(res => setTimeout(res, 3500));
+            await new Promise(res => setTimeout(res, 30000));
           }
         }
       } else if (destino === 'dry_run') {
@@ -884,7 +884,7 @@ async function main() {
         if (txt) {
           const r = await enviarWhatsapp(g.whatsapp, txt);
           console.log(`  [${g.filial}] Enviado para ${g.gerente} — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
-          await new Promise(res => setTimeout(res, 1500));
+          await new Promise(res => setTimeout(res, 30000));
         }
       }
     } else if (destino === 'dry_run') {
