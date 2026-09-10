@@ -567,82 +567,111 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
 
   // Texto Consolidado da Diretoria
   const isFechamento = (horaLabel === '18:30');
-  const blocosRanking = ranking.map((r, idx) => {
-    let prefix = '🏢 ';
-    if (idx === 0) prefix = '🥇 ';
-    else if (idx === 1) prefix = '🥈 ';
-    else if (idx === 2) prefix = '🥉 ';
-    let b = `${prefix}*${idx + 1}. FILIAL ${r.sigla} — ${r.gerente.toUpperCase()}*\n`;
-    b += `💰 Total de Pedidos: R$ ${fmtMoeda(r.fat)} • 📦 Pedidos: ${r.ped}\n`;
-    b += `📍 Visitas Varejo: ${r.vis} de ${r.rot} (${r.efici}%) • Eficácia: ${r.efica}%\n`;
-    b += `👥 Varejo com Pedido: ${r.vjCom} de ${r.vjTotal} (${r.pctCom}%) | 🚨 Varejo SEM PEDIDO: *${r.vjSem} (${r.pctSem}%)*`;
-    if (isFechamento && r.inativosRota > 0) {
-      b += `\n🔄 *Inativos Reativados (+30d):* ${r.inativosRecuperados} de ${r.inativosRota} PDVs`;
-    }
-    return b;
-  });
 
-  const tituloConsolidado = isFechamento
-    ? `🏆 *RELATÓRIO DE FECHAMENTO OFICIAL DO DIA — 18:30*`
-    : `📊 *RELATÓRIO OFICIAL CONSOLIDADO — ${horaLabel}*`;
-  const tituloFilial = isFechamento
-    ? `🏢 *RELATÓRIO DE FECHAMENTO OFICIAL — 18:30*`
-    : `🏢 *RELATÓRIO OPERACIONAL — ${horaLabel}*`;
+  let msgConsolidado = '';
+  if (isFechamento) {
+    const blocosRanking = ranking.map((r, idx) => {
+      let prefix = '🏢 ';
+      if (idx === 0) prefix = '🥇 ';
+      else if (idx === 1) prefix = '🥈 ';
+      else if (idx === 2) prefix = '🥉 ';
+      let b = `${prefix}*${idx + 1}. FILIAL ${r.sigla} — ${r.gerente.toUpperCase()}*\n`;
+      b += `💰 Digitado Hoje: R$ ${fmtMoeda(r.fat)} • 📦 ${r.ped} pedidos\n`;
+      b += `🟢 Inativos Reativados: ${r.inativosRecuperados} de ${r.inativosRota} PDVs`;
+      return b;
+    });
 
-  const msgConsolidado = [
-    tituloConsolidado,
-    `📅 ${new Date().toLocaleDateString('pt-BR')}`,
-    `🏢 *Grupo Triunfante — 11 Filiais*`,
-    `⚡ Conciliado 100% com o Clube da Venda — Foco Exclusivo Varejo (VJ)`,
-    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-    ``,
-    `📌 *RESULTADO GERAL DA COMPANHIA:*`,
-    `💰 *Total Digitado:* R$ ${fmtMoeda(totFat)}`,
-    `📦 *Total de Pedidos:* ${totPed.toLocaleString('pt-BR')} pedidos`,
-    `📍 *Visitas Realizadas:* ${totVis.toLocaleString('pt-BR')} de ${totRot.toLocaleString('pt-BR')} (${eficiGeral}%)`,
-    ``,
-    `🎯 *FORÇA DE VENDAS VAREJO:*`,
-    `👥 *Total Varejo em Campo (Metas + Rota >= 5):* ${totVj} vendedores`,
-    `✅ *Positivados no Dia:* ${totVjCom} vendedores (${pctGeralCom}%)`,
-    `🚨 *Zerados no Fechamento:* *${totVjSem} vendedores (${pctGeralSem}%)*`,
-    isFechamento ? `\n🔄 *BALANÇO DE RECUPERAÇÃO DE INATIVOS (+30D):*\n🎯 *PDVs Inativos na Rota:* ${totInatRota.toLocaleString('pt-BR')} PDVs\n🟢 *Inativos Reativados Hoje:* *${totInatRec.toLocaleString('pt-BR')} PDVs recuperados*` : ``,
-    ``,
-    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-    isFechamento ? `🏆 *RANKING FINAL DE FECHAMENTO (11 FILIAIS)*` : `📊 *DESEMPENHO POR FILIAL (RANKING DE VENDAS)*`,
-    ``,
-    blocosRanking.join('\n\n')
-  ].filter(line => line !== undefined).join('\n');
+    msgConsolidado = [
+      `🏆 *BOLETIM DE FECHAMENTO OFICIAL DO DIA — 18:30*`,
+      `📅 ${new Date().toLocaleDateString('pt-BR')} • Grupo Triunfante (11 Filiais)`,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      ``,
+      `📌 *RESULTADO FINANCEIRO DO DIA:*`,
+      `💰 *Total Digitado Hoje:* R$ ${fmtMoeda(totFat)}`,
+      `📦 *Total de Pedidos Colocados:* ${totPed.toLocaleString('pt-BR')} pedidos`,
+      ``,
+      `🟢 *CONQUISTAS E RECUPERAÇÃO DE BASE HOJE:*`,
+      `🟢 *Inativos Reativados (+30d):* ${totInatRec.toLocaleString('pt-BR')} PDVs recuperados (de ${totInatRota.toLocaleString('pt-BR')} na rota)`,
+      `📍 *Positivação Geral:* ${totVjCom} de ${totVj} vendedores Varejo positivados (${pctGeralCom}%)`,
+      ``,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      `🏆 *RANKING FINAL DE FECHAMENTO (11 FILIAIS)*`,
+      ``,
+      blocosRanking.join('\n\n')
+    ].join('\n');
+  } else {
+    const blocosRanking = ranking.map((r, idx) => {
+      let prefix = '🏢 ';
+      if (idx === 0) prefix = '🥇 ';
+      else if (idx === 1) prefix = '🥈 ';
+      else if (idx === 2) prefix = '🥉 ';
+      let b = `${prefix}*${idx + 1}. FILIAL ${r.sigla} — ${r.gerente.toUpperCase()}*\n`;
+      b += `💰 Total de Pedidos: R$ ${fmtMoeda(r.fat)} • 📦 Pedidos: ${r.ped}\n`;
+      b += `📍 Visitas Varejo: ${r.vis} de ${r.rot} (${r.efici}%) • Eficácia: ${r.efica}%\n`;
+      b += `👥 Varejo com Pedido: ${r.vjCom} de ${r.vjTotal} (${r.pctCom}%) | 🚨 Varejo SEM PEDIDO: *${r.vjSem} (${r.pctSem}%)*`;
+      return b;
+    });
+
+    msgConsolidado = [
+      `📊 *RELATÓRIO OFICIAL CONSOLIDADO — ${horaLabel}*`,
+      `📅 ${new Date().toLocaleDateString('pt-BR')}`,
+      `🏢 *Grupo Triunfante — 11 Filiais*`,
+      `⚡ Conciliado 100% com o Clube da Venda — Foco Exclusivo Varejo (VJ)`,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      ``,
+      `📌 *RESULTADO GERAL DA COMPANHIA:*`,
+      `💰 *Total Digitado:* R$ ${fmtMoeda(totFat)}`,
+      `📦 *Total de Pedidos:* ${totPed.toLocaleString('pt-BR')} pedidos`,
+      `📍 *Visitas Realizadas:* ${totVis.toLocaleString('pt-BR')} de ${totRot.toLocaleString('pt-BR')} (${eficiGeral}%)`,
+      ``,
+      `🎯 *FORÇA DE VENDAS VAREJO:*`,
+      `👥 *Total Varejo em Campo (Metas + Rota >= 5):* ${totVj} vendedores`,
+      `✅ *Positivados no Dia:* ${totVjCom} vendedores (${pctGeralCom}%)`,
+      `🚨 *Zerados no Fechamento:* *${totVjSem} vendedores (${pctGeralSem}%)*`,
+      ``,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      `📊 *DESEMPENHO POR FILIAL (RANKING DE VENDAS)*`,
+      ``,
+      blocosRanking.join('\n\n')
+    ].join('\n');
+  }
 
   // Mensagens individuais por filial para os gerentes
   const mensagensGerentes = {};
   ranking.forEach(r => {
-    let m = `${tituloFilial}\n`;
+    let m = isFechamento ? `🏢 *BOLETIM DE FECHAMENTO OFICIAL — 18:30*\n` : `🏢 *RELATÓRIO OPERACIONAL — ${horaLabel}*\n`;
     m += `📅 ${new Date().toLocaleDateString('pt-BR')}\n`;
     m += `📍 *FILIAL ${r.sigla} — ${r.gerente.toUpperCase()}*\n`;
     m += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-    m += `💰 *Total de Pedidos:* R$ ${fmtMoeda(r.fat)}\n`;
+    m += `💰 *Total Digitado Hoje:* R$ ${fmtMoeda(r.fat)}\n`;
     m += `📦 *Pedidos Colocados:* ${r.ped} pedidos\n`;
     m += `📍 *Visitas Realizadas:* ${r.vis} de ${r.rot} (${r.efici}%)\n`;
     m += `👥 *Vendedores Varejo com Pedido:* ${r.vjCom} de ${r.vjTotal} (${r.pctCom}%)\n`;
-    m += `🚨 *Zerados no Fechamento:* ${r.vjSem} (${r.pctSem}%)\n`;
-    if (isFechamento && r.inativosRota > 0) {
-      m += `🔄 *Recuperação de Inativos (+30d):* ${r.inativosRecuperados} de ${r.inativosRota} PDVs reativados hoje\n`;
-    }
-    m += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
 
-    const supsComZerados = Object.entries(r.supervisores).filter(([k, v]) => v.vjSem > 0);
-    if (supsComZerados.length > 0) {
-      m += `🚨 *VENDEDORES DE VAREJO QUE FECHARAM ZERADOS:*\n`;
-      m += `_(Visitas realizadas sem conversão de pedido)_\n\n`;
-      supsComZerados.forEach(([supNome, s]) => {
-        m += `👤 *Supervisor: ${supNome}* (${s.vjSem} zerados)\n`;
-        s.zeradosVj.forEach(z => {
-          m += `  ▫️ Cód. ${z.rca} • ${z.nome}: *${z.visReal} visitas feitas* (de ${z.prog} na rota) • R$ 0\n`;
-        });
-        m += `\n`;
-      });
+    if (isFechamento) {
+      if (r.inativosRota > 0) {
+        m += `🟢 *Recuperação de Inativos (+30d):* ${r.inativosRecuperados} de ${r.inativosRota} PDVs reativados hoje\n`;
+      }
+      m += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      m += `🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*\n`;
     } else {
-      m += `✅ *PARABÉNS! 100% DOS VENDEDORES DE VAREJO POSITIVADOS HOJE!*\n\n`;
+      m += `🚨 *Zerados no Fechamento:* ${r.vjSem} (${r.pctSem}%)\n\n`;
+      m += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+
+      const supsComZerados = Object.entries(r.supervisores).filter(([k, v]) => v.vjSem > 0);
+      if (supsComZerados.length > 0) {
+        m += `🚨 *VENDEDORES DE VAREJO QUE FECHARAM ZERADOS:*\n`;
+        m += `_(Visitas realizadas sem conversão de pedido)_\n\n`;
+        supsComZerados.forEach(([supNome, s]) => {
+          m += `👤 *Supervisor: ${supNome}* (${s.vjSem} zerados)\n`;
+          s.zeradosVj.forEach(z => {
+            m += `  ▫️ Cód. ${z.rca} • ${z.nome}: *${z.visReal} visitas feitas* (de ${z.prog} na rota) • R$ 0\n`;
+          });
+          m += `\n`;
+        });
+      } else {
+        m += `✅ *PARABÉNS! 100% DOS VENDEDORES DE VAREJO POSITIVADOS HOJE!*\n\n`;
+      }
     }
 
     mensagensGerentes[r.sigla] = m.trim();
