@@ -282,6 +282,10 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
       asSem: 0,
       inativosRota: 0,
       inativosRecuperados: 0,
+      recorrenciaPositivados: 0,
+      voltaPositivados: 0,
+      cortesValor: 0,
+      devolucoesValor: 0,
       supervisores: {}
     };
   }
@@ -319,6 +323,8 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
         // Faturamento e pedidos totais da filial (todos os RCAs/canais)
         resFil.fatTotalDigitado += dig;
         resFil.pedidosTotal += pedTot;
+        resFil.cortesValor += parseFloat(dia.valor_corte || 0);
+        resFil.devolucoesValor += Math.abs(parseFloat(fin.devolucao || 0));
 
         // KPI Estrito de Força de Vendas e Visitas de Rota
         const valKey = `${fSigla}_${rca.codigo}`;
@@ -353,11 +359,16 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
               dataLimite.setDate(dataLimite.getDate() - 30);
               clients.forEach(c => {
                 const isInativo = !c.data_ultima_compra || new Date(c.data_ultima_compra) < dataLimite;
+                const comprou = c.status === 'CONCLUIDO' || (parseFloat(c.valor_pedido) || 0) > 0;
                 if (isInativo) {
                   resFil.inativosRota++;
-                  if (c.status === 'CONCLUIDO' || (parseFloat(c.valor_pedido) || 0) > 0) {
-                    resFil.inativosRecuperados++;
-                  }
+                  if (comprou) resFil.inativosRecuperados++;
+                }
+                if (comprou && (c.focos || []).some(f => (f.industria_foco || '').toUpperCase().includes('RECORRENCIA'))) {
+                  resFil.recorrenciaPositivados++;
+                }
+                if (comprou && fSigla === 'TPH' && (c.focos || []).some(f => (f.industria_foco || '').toUpperCase().includes('VOLTA'))) {
+                  resFil.voltaPositivados++;
                 }
               });
             } catch (e) {}
@@ -537,6 +548,10 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       vjSem: f.vjSem,
       inativosRota: f.inativosRota || 0,
       inativosRecuperados: f.inativosRecuperados || 0,
+      recorrenciaPositivados: f.recorrenciaPositivados || 0,
+      voltaPositivados: f.voltaPositivados || 0,
+      cortesValor: f.cortesValor || 0,
+      devolucoesValor: f.devolucoesValor || 0,
       pctCom,
       pctSem,
       supervisores: f.supervisores
@@ -548,7 +563,8 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
   // Totais Gerais
   let totFat = 0, totPed = 0, totVis = 0, totRot = 0;
   let totVj = 0, totVjCom = 0, totVjSem = 0;
-  let totInatRota = 0, totInatRec = 0;
+  let totInatRota = 0, totInatRec = 0, totRec = 0, totVolta = 0;
+  let totCortes = 0, totDev = 0;
   ranking.forEach(r => {
     totFat += r.fat;
     totPed += r.ped;
@@ -559,6 +575,10 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
     totVjSem += r.vjSem;
     totInatRota += r.inativosRota;
     totInatRec += r.inativosRecuperados;
+    totRec += r.recorrenciaPositivados;
+    totVolta += r.voltaPositivados;
+    totCortes += r.cortesValor;
+    totDev += r.devolucoesValor;
   });
 
   const pctGeralCom = totVj > 0 ? ((totVjCom / totVj) * 100).toFixed(1).replace('.', ',') : '0,0';
@@ -577,7 +597,11 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       else if (idx === 2) prefix = '🥉 ';
       let b = `${prefix}*${idx + 1}. FILIAL ${r.sigla} — ${r.gerente.toUpperCase()}*\n`;
       b += `💰 Digitado Hoje: R$ ${fmtMoeda(r.fat)} • 📦 ${r.ped} pedidos\n`;
-      b += `🟢 Inativos Reativados: ${r.inativosRecuperados} de ${r.inativosRota} PDVs`;
+      let conquistas = [`🟢 Inativos Reativados: ${r.inativosRecuperados} PDVs`];
+      if (r.recorrenciaPositivados > 0) conquistas.push(`🔄 Recorrência: ${r.recorrenciaPositivados} PDVs`);
+      if (r.sigla === 'TPH' && r.voltaPositivados > 0) conquistas.push(`🔁 Volta Comigo: ${r.voltaPositivados} PDVs`);
+      b += conquistas.join(' • ') + '\n';
+      b += `🚨 Cortes Hoje: R$ ${fmtMoeda(r.cortesValor)} • 🚛 Devoluções Entradas Hoje: R$ ${fmtMoeda(r.devolucoesValor)}`;
       return b;
     });
 
@@ -585,17 +609,20 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       `🏆 *BOLETIM DE FECHAMENTO OFICIAL DO DIA — 18:30*`,
       `📅 ${new Date().toLocaleDateString('pt-BR')} • Grupo Triunfante (11 Filiais)`,
       `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-      ``,
       `📌 *RESULTADO FINANCEIRO DO DIA:*`,
       `💰 *Total Digitado Hoje:* R$ ${fmtMoeda(totFat)}`,
       `📦 *Total de Pedidos Colocados:* ${totPed.toLocaleString('pt-BR')} pedidos`,
       ``,
       `🟢 *CONQUISTAS E RECUPERAÇÃO DE BASE HOJE:*`,
-      `🟢 *Inativos Reativados (+30d):* ${totInatRec.toLocaleString('pt-BR')} PDVs recuperados (de ${totInatRota.toLocaleString('pt-BR')} na rota)`,
-      `📍 *Positivação Geral:* ${totVjCom} de ${totVj} vendedores Varejo positivados (${pctGeralCom}%)`,
+      `🟢 *Inativos Reativados (+30d):* ${totInatRec.toLocaleString('pt-BR')} PDVs recuperados`,
+      `🔄 *Positivados com TAG Recorrência:* ${totRec.toLocaleString('pt-BR')} PDVs`,
+      `🔁 *Positivados com TAG Volta Comigo (TPH):* ${totVolta.toLocaleString('pt-BR')} PDVs`,
       ``,
+      `🚨 *PERDAS E ATENÇÃO OPERACIONAL HOJE:*`,
+      `✂️ *Cortes nos Pedidos de Hoje:* R$ ${fmtMoeda(totCortes)}`,
+      `🚛 *Devoluções Entradas Hoje:* R$ ${fmtMoeda(totDev)}`,
       `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-      `🏆 *RANKING FINAL DE FECHAMENTO (11 FILIAIS)*`,
+      `🏆 *RANKING FINAL DE FECHAMENTO (11 FILIAIS):*`,
       ``,
       blocosRanking.join('\n\n')
     ].join('\n');
