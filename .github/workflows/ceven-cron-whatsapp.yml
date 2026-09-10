@@ -1,177 +1,112 @@
-name: CEVEN NOC — Sync & Dispatch Automático
+name: CEVEN NOC — Disparos Oficiais WhatsApp
 
 on:
   schedule:
-    # =========================================
-    # HORÁRIOS OFICIAIS UTC (Brasília = UTC - 3)
-    # =========================================
-    # 07:00 BRT = 10:00 UTC — Resumo Executivo de Abertura
+    # =========================================================================
+    # GRADE OFICIAL DE HORÁRIOS UTC (Brasília = UTC - 3)
+    # =========================================================================
+    # 07:00 BRT (10:00 UTC) — Abertura Matinal (Diretoria)
     - cron: '0 10 * * 1-6'
-    # 08:00 BRT = 11:00 UTC — Sync TV
-    - cron: '0 11 * * 1-6'
-    # 09:00 BRT = 12:00 UTC — Sync TV
-    - cron: '0 12 * * 1-6'
-    # 10:00 BRT = 13:00 UTC — Sync TV
-    - cron: '0 13 * * 1-6'
-    # 11:00 BRT = 14:00 UTC — Relatório Oficial Consolidado (WhatsApp)
+    # 11:00 BRT (14:00 UTC) — 1ª Parcial de Vendas & Varejo Zerados (Todos)
     - cron: '0 14 * * 1-6'
-    # 12:00 BRT = 15:00 UTC — Sync TV
-    - cron: '0 15 * * 1-6'
-    # 13:00 BRT = 16:00 UTC — Sync TV
-    - cron: '0 16 * * 1-6'
-    # 14:00 BRT = 17:00 UTC — Relatório Oficial Consolidado (WhatsApp)
-    - cron: '0 17 * * 1-6'
-    # 15:00 BRT = 18:00 UTC — Sync TV
-    - cron: '0 18 * * 1-6'
-    # 16:00 BRT = 19:00 UTC — Sync TV
-    - cron: '0 19 * * 1-6'
-    # 17:00 BRT = 20:00 UTC — Relatório Oficial Consolidado (WhatsApp)
+    # 11:30 BRT (14:30 UTC) — Gestão de Campo: Compromissos & RET (Gerentes)
+    - cron: '30 14 * * 1-6'
+    # 14:30 BRT (17:30 UTC) — Relatório Operacional de Tração (Todos)
+    - cron: '30 17 * * 1-6'
+    # 17:00 BRT (20:00 UTC) — Fechamento de Campo (Todos)
     - cron: '0 20 * * 1-6'
-    # 18:00 BRT = 21:00 UTC — Sync TV
-    - cron: '0 21 * * 1-6'
-    # 18:30 BRT = 21:30 UTC — Fechamento Oficial do Dia (WhatsApp)
+    # 18:30 BRT (21:30 UTC) — Fechamento Oficial do Dia (Todos)
     - cron: '30 21 * * 1-6'
-    # 23:00 BRT = 02:00 UTC (+1d) — Cravar Fechamento Noturno Definitivo no D1
-    - cron: '0 2 * * *'
+
   workflow_dispatch:
     inputs:
-      tipo:
-        description: 'Tipo de disparo manual (ou dia especial)'
-        required: false
-        default: 'sync_tv_horario'
+      ciclo:
+        description: 'Ciclo a disparar'
+        required: true
+        default: '11:00'
         type: choice
         options:
-          - abertura_07h
-          - relatorio_11h
-          - relatorio_14h30
-          - relatorio_17h
-          - fechamento_18h30
-          - fechamento_23h
-          - sync_tv_horario
-          - relatorio_consolidado
-          - sync_cadastros
-
-env:
-  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  CLOUDFLARE_D1_DATABASE_ID: '2e5bb59c-8db4-43a2-a13c-5c78e404e52d'
+          - '07:00'
+          - '11:00'
+          - '11:30'
+          - '14:30'
+          - '17:00'
+          - '18:30'
 
 jobs:
-  sync_and_dispatch:
+  executar_disparo:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
 
     steps:
-      - name: Checkout código
+      - name: Checkout do Repositório
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Instalar Wrangler CLI
-        run: npm install -g wrangler
+      - name: Instalar Dependências do Motor
+        run: |
+          npm install axios xlsx
 
-      - name: Determinar tipo de operação
-        id: tipo
+      - name: Determinar Ciclo e Parâmetros de Disparo
+        id: config
         run: |
           HORA_UTC=$(date -u +"%H:%M")
-          echo "hora_utc=$HORA_UTC" >> $GITHUB_OUTPUT
-
           H=$(date -u +"%H")
           M=$(date -u +"%M")
           TOTAL_MIN=$(( 10#$H * 60 + 10#$M ))
 
-          # Mapear hora UTC com tolerância a atrasos de fila do GitHub Actions (até 45 min)
-          if [ "${{ github.event.inputs.tipo }}" != "" ]; then
-            TIPO="${{ github.event.inputs.tipo }}"
-          # 10:00 UTC = 600 min (07:00 BRT Abertura) -> Janela 590 a 640 min
-          elif [ $TOTAL_MIN -ge 590 ] && [ $TOTAL_MIN -le 640 ]; then
-            TIPO="abertura_07h"
-          # 14:00 UTC = 840 min (11:00 BRT 1º Parcial) -> Janela 830 a 880 min
-          elif [ $TOTAL_MIN -ge 830 ] && [ $TOTAL_MIN -le 880 ]; then
-            TIPO="relatorio_11h"
-          # 17:00 UTC = 1020 min (14:00 BRT 2º Parcial) -> Janela 1010 a 1060 min
-          elif [ $TOTAL_MIN -ge 1010 ] && [ $TOTAL_MIN -le 1060 ]; then
-            TIPO="relatorio_14h"
-          # 20:00 UTC = 1200 min (17:00 BRT 3º Parcial) -> Janela 1190 a 1240 min
-          elif [ $TOTAL_MIN -ge 1190 ] && [ $TOTAL_MIN -le 1240 ]; then
-            TIPO="relatorio_17h"
-          # 21:30 UTC = 1290 min (18:30 BRT Fechamento Oficial) -> Janela 1280 a 1320 min
-          elif [ $TOTAL_MIN -ge 1280 ] && [ $TOTAL_MIN -le 1320 ]; then
-            TIPO="fechamento_18h30"
-          # 02:00 UTC = 120 min (23:00 BRT Cravar Fechamento Noturno) -> Janela 110 a 160 min
-          elif [ $TOTAL_MIN -ge 110 ] && [ $TOTAL_MIN -le 160 ]; then
-            TIPO="fechamento_23h"
+          if [ "${{ github.event.inputs.ciclo }}" != "" ]; then
+            CICLO="${{ github.event.inputs.ciclo }}"
+          # 10:00 UTC = 600 min (07:00 BRT Abertura) -> Janela 585 a 620 min
+          elif [ $TOTAL_MIN -ge 585 ] && [ $TOTAL_MIN -le 620 ]; then
+            CICLO="07:00"
+          # 14:00 UTC = 840 min (11:00 BRT Vendas) -> Janela 825 a 855 min
+          elif [ $TOTAL_MIN -ge 825 ] && [ $TOTAL_MIN -le 855 ]; then
+            CICLO="11:00"
+          # 14:30 UTC = 870 min (11:30 BRT Gestão Campo) -> Janela 856 a 900 min
+          elif [ $TOTAL_MIN -ge 856 ] && [ $TOTAL_MIN -le 900 ]; then
+            CICLO="11:30"
+          # 17:30 UTC = 1050 min (14:30 BRT Tração) -> Janela 1035 a 1080 min
+          elif [ $TOTAL_MIN -ge 1035 ] && [ $TOTAL_MIN -le 1080 ]; then
+            CICLO="14:30"
+          # 20:00 UTC = 1200 min (17:00 BRT Reta Final) -> Janela 1185 a 1230 min
+          elif [ $TOTAL_MIN -ge 1185 ] && [ $TOTAL_MIN -le 1230 ]; then
+            CICLO="17:00"
+          # 21:30 UTC = 1290 min (18:30 BRT Fechamento) -> Janela 1275 a 1320 min
+          elif [ $TOTAL_MIN -ge 1275 ] && [ $TOTAL_MIN -le 1320 ]; then
+            CICLO="18:30"
           else
-            TIPO="sync_tv_horario"
+            CICLO="11:00"
           fi
 
-          # Determinar se é sync de dados ou só disparo
-          if [ "$TIPO" = "abertura_07h" ] || [ "$TIPO" = "sync_cadastros" ]; then
-            PIPELINE="abertura"
+          if [ "$CICLO" = "07:00" ]; then
+            ACAO="abertura"
+            DESTINO="vitorio"
+          elif [ "$CICLO" = "11:30" ]; then
+            ACAO="gestao_campo"
+            DESTINO="gerentes"
           else
-            PIPELINE="intraday"
+            ACAO="vendas_zerados"
+            DESTINO="todos"
           fi
 
-          echo "tipo=$TIPO" >> $GITHUB_OUTPUT
-          echo "pipeline=$PIPELINE" >> $GITHUB_OUTPUT
-          echo "📊 Tipo: $TIPO | Pipeline: $PIPELINE | Hora UTC: $HORA_UTC"
+          echo "ciclo=$CICLO" >> $GITHUB_OUTPUT
+          echo "acao=$ACAO" >> $GITHUB_OUTPUT
+          echo "destino=$DESTINO" >> $GITHUB_OUTPUT
+          echo "🚀 Executando Ciclo: $CICLO | Ação: $ACAO | Destino: $DESTINO (Hora UTC: $HORA_UTC)"
 
-      - name: 🔄 Executar Pipeline de Coleta (519 RCAs)
+      - name: ⚡ Executar Motor Unificado CEVEN (WhatsApp)
         run: |
-          echo "🚀 Iniciando coleta de dados dos 519 RCAs..."
-          echo "Pipeline: ${{ steps.tipo.outputs.pipeline }}"
+          CICLO="${{ steps.config.outputs.ciclo }}"
+          ACAO="${{ steps.config.outputs.acao }}"
+          DESTINO="${{ steps.config.outputs.destino }}"
 
-          DATA_BR=$(TZ='America/Sao_Paulo' date +%Y-%m-%d)
-          HORA_BR=$(TZ='America/Sao_Paulo' date +%H:%M)
-
-          node pipeline/github_actions_runner.js \
-            --pipeline "${{ steps.tipo.outputs.pipeline }}" \
-            --data "$DATA_BR" \
-            --hora "$HORA_BR"
-
-      - name: 📤 Sincronizar dados com Cloudflare D1
-        run: |
-          if [ -f "d1_github_sync.sql" ]; then
-            echo "📦 Enviando dados para o Cloudflare D1..."
-            wrangler d1 execute ceven_noc_d1 \
-              --remote \
-              --file=d1_github_sync.sql \
-              --config=wrangler.toml
-            echo "✅ D1 atualizado com sucesso!"
-          else
-            echo "⚠️ Nenhum arquivo SQL gerado. Pulando sync do D1."
-          fi
-
-      - name: 📱 Disparar Mensagens WhatsApp
-        run: |
-          TIPO="${{ steps.tipo.outputs.tipo }}"
-          echo "📱 Disparando WhatsApp: $TIPO"
-
-          # Chamar o endpoint do Cloudflare Pages para enviar as mensagens
-          RESPONSE=$(curl -s -w "\n%{http_code}" \
-            "https://ceven-cftv-matrix.pages.dev/api/cron-whatsapp-dispatcher?tipo=$TIPO")
-
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          BODY=$(echo "$RESPONSE" | head -n -1)
-
-          echo "HTTP Status: $HTTP_CODE"
-          echo "$BODY" | head -c 2000
-
-          if [ "$HTTP_CODE" != "200" ]; then
-            echo "⚠️ Disparo retornou HTTP $HTTP_CODE"
-          fi
-
-      - name: 📊 Relatório de Execução
-        if: always()
-        run: |
-          echo "=========================================="
-          echo "📊 RELATÓRIO DE EXECUÇÃO"
-          echo "=========================================="
-          echo "Tipo: ${{ steps.tipo.outputs.tipo }}"
-          echo "Pipeline: ${{ steps.tipo.outputs.pipeline }}"
-          echo "Hora UTC: ${{ steps.tipo.outputs.hora_utc }}"
-          echo "Status: ${{ job.status }}"
-          echo "=========================================="
+          echo "Iniciando ceven_unified_engine.js..."
+          node pipeline/ceven_unified_engine.js \
+            --hora="$CICLO" \
+            --acao="$ACAO" \
+            --destino="$DESTINO"
