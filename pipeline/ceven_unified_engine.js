@@ -118,10 +118,39 @@ function carregarValidacaoVendedores() {
           metaPos
         };
       }
-    } catch (e) {
-      console.warn('Aviso: Erro ao carregar planilha de validacao:', e.message);
-    }
+  // Enriquecer e atualizar com a árvore viva online dos gerentes (cascata oficial)
+  const onlineTreePath = path.join(__dirname, '../scripts/supervisores_11_filiais_completo.json');
+  if (fs.existsSync(onlineTreePath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(onlineTreePath, 'utf8'));
+      for (const [sigla, f] of Object.entries(data)) {
+        (f.cascata?.supervisores || []).forEach(s => {
+          const supNome = cleanName(s.supervisorNome);
+          ['produtividade', 'faturamento', 'positivacao'].forEach(t => {
+            (s.tabelas?.[t] || []).forEach(v => {
+              const key = `${sigla}_${v.id}`;
+              if (!map[key]) {
+                map[key] = {
+                  filial: sigla,
+                  gerente: f.gerente,
+                  supCod: String(s.supervisorId || ''),
+                  supNome: supNome || 'SUPERVISÃO GERAL',
+                  rca: String(v.id),
+                  nome: cleanName(v.nome),
+                  canal: 'VJ',
+                  metaFat: parseFloat(v.meta || 0),
+                  metaPos: parseInt(v.meta || 0, 10)
+                };
+              } else {
+                map[key].supNome = supNome || map[key].supNome;
+              }
+            });
+          });
+        });
+      }
+    } catch (e) {}
   }
+
   return map;
 }
 
