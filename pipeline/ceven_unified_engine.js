@@ -677,6 +677,16 @@ async function main() {
       const auditoria = await coletarAuditoriaCampo(token, dataHoje);
       console.log(`✅ Auditoria de campo processada para 11 filiais.`);
 
+      if (destino === 'vitorio' || destino === 'todos') {
+        console.log(`🚀 Enviando Gestão de Campo Consolidada para Vitório Neto (${WHATSAPP_VITORIO})...`);
+        let resumoCampo = `📋 *GESTÃO DE CAMPO CONSOLIDADA (11 FILIAIS)*\n⏱️ Referência: ${hora}\n\n`;
+        Object.entries(auditoria).forEach(([sigla, d]) => {
+          resumoCampo += `📍 *${sigla}*\n${d.texto}\n\n`;
+        });
+        const r = await enviarWhatsapp(WHATSAPP_VITORIO, resumoCampo.trim());
+        console.log(`  Diretoria Geral — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
+      }
+
       if (destino === 'gerentes' || destino === 'todos') {
         console.log(`🚀 Disparando Gestão de Campo para os ${gerentes.length} gerentes...`);
         for (const g of gerentes) {
