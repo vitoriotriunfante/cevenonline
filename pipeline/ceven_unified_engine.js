@@ -290,8 +290,8 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
         const supNome = valInfo.supNome;
         const canal = valInfo.canal;
 
-        // Considera visitas e roteiro APENAS dos vendedores com meta ativa e rota >= 5
-        if (prog >= 5 && metaFat > 0 && metaPos > 0) {
+        // Considera visitas e roteiro APENAS dos vendedores de VAREJO (VJ) com meta ativa e rota >= 5
+        if (canal === 'VJ' && prog >= 5 && metaFat > 0 && metaPos > 0) {
           resFil.visitasReal += visReal;
           resFil.visitasProg += prog;
 
@@ -469,8 +469,8 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
   const ranking = Object.values(filialVendas).map(f => {
     const fat = f.fatTotalDigitado || 0;
     const ped = f.pedidosTotal || 0;
-    const vis = f.visReal || 0;
-    const rot = f.visProg || 0;
+    const vis = f.visitasReal || 0;
+    const rot = f.visitasProg || 0;
     const efici = rot > 0 ? ((vis / rot) * 100).toFixed(1).replace('.', ',') : '0,0';
     const efica = rot > 0 ? ((ped / rot) * 100).toFixed(1).replace('.', ',') : '0,0';
 
@@ -484,9 +484,6 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       ped,
       vis,
       rot,
-      pedRot,
-      pedFora,
-      sku,
       efici,
       efica,
       vjTotal: f.vjTotal,
