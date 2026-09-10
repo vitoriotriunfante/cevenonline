@@ -335,6 +335,119 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
   return filialResult;
 }
 
+// 4B. Coleta Dinâmica de Abertura Matinal (Exclusivo Varejo Estrito)
+async function coletarAberturaVarejo(repsValidationMap) {
+  console.log('📡 Coletando dados reais da rota de abertura matinal para Varejo (VJ)...');
+  const repsPath = path.join(__dirname, '../public/reps_data.json');
+  const reps = JSON.parse(fs.readFileSync(repsPath, 'utf8'));
+
+  const dataLimite = new Date();
+  dataLimite.setDate(dataLimite.getDate() - 30);
+
+  const PROSPECTS_4712 = {
+    TPH: 1826, MCD: 1056, TCV: 990, API: 902, ABC: 814,
+    TSJ: 770, TCA: 748, TBE: 660, TCG: 660, TBL: 638, TPA: 616
+  };
+
+  const resultado = {};
+  for (const [fKey, meta] of Object.entries(FILIAIS_MAP)) {
+    resultado[meta.sigla] = {
+      sigla: meta.sigla,
+      gerente: meta.gerente,
+      vjs: 0,
+      visitas: 0,
+      inativos: 0,
+      rec: 0,
+      volta: 0,
+      prospects: PROSPECTS_4712[meta.sigla] || 0
+    };
+  }
+
+  const vjsValidos = reps.filter(r => {
+    const fSigla = (r.filial || '').toUpperCase();
+    const val = repsValidationMap[fSigla + '_' + r.codigo];
+    return val && val.canal === 'VJ' && val.metaFat > 0 && val.metaPos > 0;
+  });
+
+  const BATCH = 30;
+  for (let i = 0; i < vjsValidos.length; i += BATCH) {
+    const lote = vjsValidos.slice(i, i + BATCH);
+    await Promise.all(lote.map(async rca => {
+      const fSigla = (rca.filial || '').toUpperCase();
+      const filEntry = Object.entries(FILIAIS_MAP).find(([k, v]) => v.sigla === fSigla);
+      if (!filEntry) return;
+      const fKey = filEntry[0];
+      const rFil = resultado[fSigla];
+
+      try {
+        const url = `${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${fKey}&id=${rca.codigo}`;
+        const res = await axios.get(url, { timeout: 6000 });
+        const clients = res.data || [];
+        if (clients.length >= 5) {
+          rFil.vjs++;
+          rFil.visitas += clients.length;
+          clients.forEach(c => {
+            if (!c.data_ultima_compra || new Date(c.data_ultima_compra) < dataLimite) {
+              rFil.inativos++;
+            }
+            if ((c.focos || []).some(f => (f.industria_foco || '').toUpperCase().includes('RECORRENCIA'))) {
+              rFil.rec++;
+            }
+            if (fSigla === 'TPH' && (c.focos || []).some(f => (f.industria_foco || '').toUpperCase().includes('VOLTA'))) {
+              rFil.volta++;
+            }
+          });
+        }
+      } catch (e) {}
+    }));
+  }
+
+  let totVj = 0, totVis = 0, totInat = 0, totRec = 0, totVolta = 0, totProsp = 0;
+  Object.values(resultado).forEach(r => {
+    totVj += r.vjs;
+    totVis += r.visitas;
+    totInat += r.inativos;
+    totRec += r.rec;
+    totVolta += r.volta;
+    totProsp += r.prospects;
+  });
+
+  const pctInatGeral = totVis > 0 ? ((totInat / totVis) * 100).toFixed(1).replace('.', ',') : '0,0';
+  const pctRecGeral = totVis > 0 ? ((totRec / totVis) * 100).toFixed(1).replace('.', ',') : '0,0';
+
+  const dataFormatada = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+  const dataCapitalizada = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
+
+  let msg = `🌅 *CEVEN NOC — ABERTURA MATINAL DE OPERAÇÃO (07:00)*\n`;
+  msg += `📅 ${dataCapitalizada} • Grupo Triunfante\n`;
+  msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  msg += `📌 *PANORAMA GERAL DA LARGADA (FORÇA DE VENDAS VAREJO):*\n`;
+  msg += `👥 *Vendedores Varejo em Rota (Metas + Rota >= 5):* ${totVj} vendedores\n`;
+  msg += `📍 *Visitas Planejadas na Rota:* ${totVis.toLocaleString('pt-BR')} PDVs\n`;
+  msg += `🎯 *Oportunidades Inativos (+30d sem compra na rota):* ${totInat.toLocaleString('pt-BR')} PDVs (${pctInatGeral}% da rota — Ouro para Positivação)\n`;
+  msg += `🔄 *Clientes c/ TAG Recorrência na rota:* ${totRec.toLocaleString('pt-BR')} PDVs (${pctRecGeral}% da rota — Alavanca de Faturamento)\n`;
+  msg += `🏬 *Oportunidades no Mapa (CNAE 4712 - Minimercados/Mercearias):* +${totProsp.toLocaleString('pt-BR')} PDVs mapeados no trajeto\n\n`;
+  msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  msg += `🏢 *POTENCIAL DE LARGADA POR FILIAL (VAREJO)*\n\n`;
+
+  // Ordenar filiais por volume de visitas
+  const filiaisOrd = Object.values(resultado).sort((a, b) => b.visitas - a.visitas);
+  filiaisOrd.forEach(f => {
+    const pInat = f.visitas > 0 ? ((f.inativos / f.visitas) * 100).toFixed(1).replace('.', ',') : '0,0';
+    const pRec = f.visitas > 0 ? ((f.rec / f.visitas) * 100).toFixed(1).replace('.', ',') : '0,0';
+
+    msg += `📍 *${f.sigla} — ${f.gerente.toUpperCase()}*\n`;
+    msg += `• Vendedores em campo: ${f.vjs} • Visitas agendadas: ${f.visitas}\n`;
+    msg += `• 🎯 Sem compra +30d: ${f.inativos} PDVs (${pInat}%) • 🔄 Recorrência: ${f.rec} PDVs (${pRec}%)\n`;
+    if (f.sigla === 'TPH') {
+      msg += `• 🔥 *Campanha VOLTA COMIGO: ${f.volta} PDVs na rota (Foco prioritário de reativação)*\n`;
+    }
+    msg += `• 🏬 Oportunidades CNAE 4712 no trajeto: +${f.prospects.toLocaleString('pt-BR')} PDVs para cadastro\n\n`;
+  });
+
+  return { textoAbertura: msg.trim(), dadosAbertura: resultado };
+}
+
 // 5. Formatar Relatório de Vendas (Consolidado e Gerentes)
 function formatarRelatoriosVendas(filialVendas, horaLabel, cvTotals = null) {
   const ranking = Object.values(filialVendas).map(f => {
@@ -529,39 +642,16 @@ async function main() {
 
   // 0) Abertura Matinal (07:00)
   if (acao === 'abertura') {
-    const dataFormatada = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
-    const dataCapitalizada = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
-
-    let msgAbertura = `🌅 *CEVEN NOC — ABERTURA MATINAL DE OPERAÇÃO (07:00)*\n`;
-    msgAbertura += `📅 ${dataCapitalizada} • Grupo Triunfante\n`;
-    msgAbertura += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-    msgAbertura += `📌 *PANORAMA GERAL DA LARGADA (11 FILIAIS):*\n`;
-    msgAbertura += `👥 *Força de Vendas em Rota:* 387 vendedores escalados\n`;
-    msgAbertura += `📍 *Visitas Planejadas na Rota:* 5.348 PDVs\n`;
-    msgAbertura += `🎯 *Oportunidades Inativos (+30d sem compra na rota):* 1.747 PDVs (32,7% da rota — Ouro para Positivação)\n`;
-    msgAbertura += `🔄 *Clientes c/ TAG Recorrência na rota:* 986 PDVs (18,4% da rota — Alavanca de Faturamento)\n`;
-    msgAbertura += `🏬 *Oportunidades no Mapa (CNAE 4712 - Minimercados/Mercearias):* +9.680 PDVs mapeados no trajeto\n\n`;
-    msgAbertura += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-    msgAbertura += `🏢 *POTENCIAL DE LARGADA POR FILIAL*\n\n`;
-    msgAbertura += `📍 *TPH — VAGNER*\n• Vendedores em campo: 83 • Visitas agendadas: 1.140\n• 🎯 Sem compra +30d: 417 PDVs (36,6%) • 🔄 Recorrência: 197 PDVs (17,3%)\n• 🔥 *Campanha VOLTA COMIGO: 215 PDVs na rota (Foco prioritário de reativação)*\n• 🏬 Oportunidades CNAE 4712 no trajeto: +1.826 PDVs para cadastro\n\n`;
-    msgAbertura += `📍 *ABC — MARCOS*\n• Vendedores em campo: 37 • Visitas agendadas: 547\n• 🎯 Sem compra +30d: 100 PDVs (18,3%) • 🔄 Recorrência: 83 PDVs (15,2%)\n• 🏬 Oportunidades CNAE 4712 no trajeto: +814 PDVs para cadastro\n\n`;
-    msgAbertura += `📍 *API — MARCELO*\n• Vendedores em campo: 41 • Visitas agendadas: 567\n• 🎯 Sem compra +30d: 180 PDVs (31,7%) • 🔄 Recorrência: 136 PDVs (24,0%)\n• 🏬 Oportunidades CNAE 4712 no trajeto: +902 PDVs para cadastro\n\n`;
-    msgAbertura += `📍 *TBE — DIEGO*\n• Vendedores em campo: 30 • Visitas agendadas: 523\n• 🎯 Sem compra +30d: 241 PDVs (46,1%) • 🔄 Recorrência: 59 PDVs (11,3%)\n• 🏬 Oportunidades CNAE 4712 no trajeto: +660 PDVs para cadastro\n\n`;
-    msgAbertura += `📍 *TSJ — SALDANHA*\n• Vendedores em campo: 35 • Visitas agendadas: 403\n• 🎯 Sem compra +30d: 140 PDVs (34,7%) • 🔄 Recorrência: 70 PDVs (17,4%)\n• 🏬 Oportunidades CNAE 4712 no trajeto: +770 PDVs para cadastro\n\n`;
-    msgAbertura += `📍 *TCV — LEONARDO*\n• Vendedores em campo: 45 • Visitas agendadas: 399\n• 🎯 Sem compra +30d: 57 PDVs (14,3%) • 🔄 Recorrência: 52 PDVs (13,0%)\n• 🏬 Oportunidades CNAE 4712 no trajeto: +990 PDVs para cadastro\n\n`;
-    msgAbertura += `📍 *MCD — CLEVERSON / ADRIANO*\n• Vendedores em campo: 48 • Visitas agendadas: 414\n• 🎯 Sem compra +30d: 136 PDVs (32,9%) • 🔄 Recorrência: 124 PDVs (30,0%)\n• 🏬 Oportunidades CNAE 4712 no trajeto: +1.056 PDVs para cadastro\n\n`;
-    msgAbertura += `📍 *TBL — FÁBIO*\n• Vendedores em campo: 29 • Visitas agendadas: 445\n• 🎯 Sem compra +30d: 123 PDVs (27,6%) • 🔄 Recorrência: 65 PDVs (14,6%)\n• 🏬 Oportunidades CNAE 4712 no trajeto: +638 PDVs para cadastro\n\n`;
-    msgAbertura += `📍 *TPA — LEANDRO / RADKE*\n• Vendedores em campo: 28 • Visitas agendadas: 349\n• 🎯 Sem compra +30d: 112 PDVs (32,1%) • 🔄 Recorrência: 57 PDVs (16,3%)\n• 🏬 Oportunidades CNAE 4712 no trajeto: +616 PDVs para cadastro\n\n`;
-    msgAbertura += `📍 *TCA — BECHER*\n• Vendedores em campo: 34 • Visitas agendadas: 328\n• 🎯 Sem compra +30d: 133 PDVs (40,5%) • 🔄 Recorrência: 61 PDVs (18,6%)\n• 🏬 Oportunidades CNAE 4712 no trajeto: +748 PDVs para cadastro\n\n`;
-    msgAbertura += `📍 *TCG — DANILO*\n• Vendedores em campo: 30 • Visitas agendadas: 233\n• 🎯 Sem compra +30d: 108 PDVs (46,4%) • 🔄 Recorrência: 82 PDVs (35,2%)\n• 🏬 Oportunidades CNAE 4712 no trajeto: +660 PDVs para cadastro`;
+    const abertura = await coletarAberturaVarejo(repsMap);
+    console.log(`✅ Dados de Abertura Matinal apurados com sucesso para 11 filiais.`);
 
     if (destino === 'vitorio' || destino === 'todos') {
       console.log(`🚀 Enviando Abertura Matinal para Vitório Neto (${WHATSAPP_VITORIO})...`);
-      const r = await enviarWhatsapp(WHATSAPP_VITORIO, msgAbertura);
+      const r = await enviarWhatsapp(WHATSAPP_VITORIO, abertura.textoAbertura);
       console.log(`  Abertura Matinal — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
     } else {
       console.log(`\n--- PREVIEW ABERTURA MATINAL ---`);
-      console.log(msgAbertura);
+      console.log(abertura.textoAbertura);
     }
   }
 
