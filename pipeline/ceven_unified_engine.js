@@ -280,6 +280,8 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
       asTotal: 0,
       asCom: 0,
       asSem: 0,
+      inativosRota: 0,
+      inativosRecuperados: 0,
       supervisores: {}
     };
   }
@@ -344,6 +346,21 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
           if (hasVenda) {
             resFil.vjCom++;
             s.vjCom++;
+            try {
+              const rotRes = await axios.get(`${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${fKey}&id=${rca.codigo}`, { timeout: 4000 });
+              const clients = rotRes.data || [];
+              const dataLimite = new Date();
+              dataLimite.setDate(dataLimite.getDate() - 30);
+              clients.forEach(c => {
+                const isInativo = !c.data_ultima_compra || new Date(c.data_ultima_compra) < dataLimite;
+                if (isInativo) {
+                  resFil.inativosRota++;
+                  if (c.status === 'CONCLUIDO' || (parseFloat(c.valor_pedido) || 0) > 0) {
+                    resFil.inativosRecuperados++;
+                  }
+                }
+              });
+            } catch (e) {}
           } else {
             resFil.vjSem++;
             s.vjSem++;
@@ -518,6 +535,8 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       vjTotal: f.vjTotal,
       vjCom: f.vjCom,
       vjSem: f.vjSem,
+      inativosRota: f.inativosRota || 0,
+      inativosRecuperados: f.inativosRecuperados || 0,
       pctCom,
       pctSem,
       supervisores: f.supervisores
@@ -529,6 +548,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
   // Totais Gerais
   let totFat = 0, totPed = 0, totVis = 0, totRot = 0;
   let totVj = 0, totVjCom = 0, totVjSem = 0;
+  let totInatRota = 0, totInatRec = 0;
   ranking.forEach(r => {
     totFat += r.fat;
     totPed += r.ped;
@@ -537,6 +557,8 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
     totVj += r.vjTotal;
     totVjCom += r.vjCom;
     totVjSem += r.vjSem;
+    totInatRota += r.inativosRota;
+    totInatRec += r.inativosRecuperados;
   });
 
   const pctGeralCom = totVj > 0 ? ((totVjCom / totVj) * 100).toFixed(1).replace('.', ',') : '0,0';
@@ -554,6 +576,9 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
     b += `💰 Total de Pedidos: R$ ${fmtMoeda(r.fat)} • 📦 Pedidos: ${r.ped}\n`;
     b += `📍 Visitas Varejo: ${r.vis} de ${r.rot} (${r.efici}%) • Eficácia: ${r.efica}%\n`;
     b += `👥 Varejo com Pedido: ${r.vjCom} de ${r.vjTotal} (${r.pctCom}%) | 🚨 Varejo SEM PEDIDO: *${r.vjSem} (${r.pctSem}%)*`;
+    if (isFechamento && r.inativosRota > 0) {
+      b += `\n🔄 *Inativos Reativados (+30d):* ${r.inativosRecuperados} de ${r.inativosRota} PDVs`;
+    }
     return b;
   });
 
@@ -580,12 +605,13 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
     `👥 *Total Varejo em Campo (Metas + Rota >= 5):* ${totVj} vendedores`,
     `✅ *Positivados no Dia:* ${totVjCom} vendedores (${pctGeralCom}%)`,
     `🚨 *Zerados no Fechamento:* *${totVjSem} vendedores (${pctGeralSem}%)*`,
+    isFechamento ? `\n🔄 *BALANÇO DE RECUPERAÇÃO DE INATIVOS (+30D):*\n🎯 *PDVs Inativos na Rota:* ${totInatRota.toLocaleString('pt-BR')} PDVs\n🟢 *Inativos Reativados Hoje:* *${totInatRec.toLocaleString('pt-BR')} PDVs recuperados*` : ``,
     ``,
     `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-    isFechamento ? `🏆 *RANKING FINAL DE VENDAS (11 FILIAIS)*` : `📊 *DESEMPENHO POR FILIAL (RANKING DE VENDAS)*`,
+    isFechamento ? `🏆 *RANKING FINAL DE FECHAMENTO (11 FILIAIS)*` : `📊 *DESEMPENHO POR FILIAL (RANKING DE VENDAS)*`,
     ``,
     blocosRanking.join('\n\n')
-  ].join('\n');
+  ].filter(line => line !== undefined).join('\n');
 
   // Mensagens individuais por filial para os gerentes
   const mensagensGerentes = {};
@@ -598,8 +624,11 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
     m += `📦 *Pedidos Colocados:* ${r.ped} pedidos\n`;
     m += `📍 *Visitas Realizadas:* ${r.vis} de ${r.rot} (${r.efici}%)\n`;
     m += `👥 *Vendedores Varejo com Pedido:* ${r.vjCom} de ${r.vjTotal} (${r.pctCom}%)\n`;
-    m += `🚨 *Zerados no Fechamento:* ${r.vjSem} (${r.pctSem}%)\n\n`;
-    m += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    m += `🚨 *Zerados no Fechamento:* ${r.vjSem} (${r.pctSem}%)\n`;
+    if (isFechamento && r.inativosRota > 0) {
+      m += `🔄 *Recuperação de Inativos (+30d):* ${r.inativosRecuperados} de ${r.inativosRota} PDVs reativados hoje\n`;
+    }
+    m += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
 
     const supsComZerados = Object.entries(r.supervisores).filter(([k, v]) => v.vjSem > 0);
     if (supsComZerados.length > 0) {
