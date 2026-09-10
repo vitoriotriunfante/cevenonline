@@ -846,6 +846,9 @@ async function main() {
 
         const r = await enviarWhatsapp(WHATSAPP_VITORIO, resumoCampo.trim());
         console.log(`  Diretoria Geral — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
+        if (destino === 'todos') {
+          await new Promise(res => setTimeout(res, 30000));
+        }
       }
 
       if (destino === 'gerentes' || destino === 'todos') {
@@ -875,6 +878,9 @@ async function main() {
       console.log(`🚀 Enviando Consolidado para Vitório Neto (${WHATSAPP_VITORIO})...`);
       const r = await enviarWhatsapp(WHATSAPP_VITORIO, relatorios.msgConsolidado);
       console.log(`  Diretoria Geral — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
+      if (destino === 'todos') {
+        await new Promise(res => setTimeout(res, 30000));
+      }
     }
 
     if (destino === 'gerentes' || destino === 'todos') {
