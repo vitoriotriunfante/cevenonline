@@ -278,7 +278,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
         const posDia = parseInt(dia.positivacao || 0, 10);
         const visReal = parseInt(dia.visitas_na_rota || 0, 10);
         const visVend = parseInt(dia.visitas_com_venda || 0, 10);
-        const pedTot = parseInt(dia.total_pedidos || visVend, 10);
+        const pedTot = Math.max(parseInt(dia.total_pedidos || 0, 10), posDia, visVend, dig > 0 ? 1 : 0);
 
         // Faturamento e pedidos totais da filial (todos os RCAs/canais)
         resFil.fatTotalDigitado += dig;
@@ -305,30 +305,25 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
           const s = resFil.supervisores[supNome];
           const hasVenda = (dig > 0 || posDia > 0 || visVend > 0);
 
-          if (canal === 'AS') {
-            resFil.asTotal++;
-            s.asTot++;
-            if (hasVenda) { resFil.asCom++; s.asCom++; }
-            else { resFil.asSem++; s.asSem++; }
+          resFil.vjTotal++;
+          s.vjTot++;
+          if (hasVenda) {
+            resFil.vjCom++;
+            s.vjCom++;
           } else {
-            resFil.vjTotal++;
-            s.vjTot++;
-            if (hasVenda) {
-              resFil.vjCom++;
-              s.vjCom++;
-            } else {
-              resFil.vjSem++;
-              s.vjSem++;
-              s.zeradosVj.push({
-                rca: rca.codigo,
-                nome: cleanName(rca.nome),
-                visReal,
-                prog
-              });
-            }
+            resFil.vjSem++;
+            s.vjSem++;
+            s.zeradosVj.push({
+              rca: rca.codigo,
+              nome: cleanName(rca.nome),
+              visReal,
+              prog
+            });
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error(`[ERRO RCA ${rca.codigo} - ${fSigla}]:`, e.message);
+      }
     }));
   }
 
