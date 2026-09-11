@@ -470,14 +470,14 @@ async function coletarAberturaVarejo(repsValidationMap) {
     }));
   }
 
-  const RATIOS_PROSPECT_4712 = {
-    TPH: 2.38, MCD: 4.55, TCV: 4.05, API: 2.48, ABC: 3.06,
-    TSJ: 2.19, TCA: 4.40, TBE: 1.61, TCG: 4.78, TBL: 1.78, TPA: 2.38
+  const RATIOS_PROSPECT_5611 = {
+    TPH: 2.15, MCD: 3.80, TCV: 3.20, API: 2.10, ABC: 2.50,
+    TSJ: 1.85, TCA: 3.60, TBE: 1.35, TCG: 3.90, TBL: 1.45, TPA: 1.95
   };
 
   let totVj = 0, totVis = 0, totInat = 0, totRec = 0, totVolta = 0, totProsp = 0;
   Object.values(resultado).forEach(r => {
-    const ratio = RATIOS_PROSPECT_4712[r.sigla] || 2.5;
+    const ratio = RATIOS_PROSPECT_5611[r.sigla] || 2.0;
     r.prospects = Math.round(r.visitas * ratio);
     totVj += r.vjs;
     totVis += r.visitas;
@@ -501,7 +501,7 @@ async function coletarAberturaVarejo(repsValidationMap) {
   msg += `📍 *Visitas Planejadas na Rota:* ${totVis.toLocaleString('pt-BR')} PDVs\n`;
   msg += `🎯 *Oportunidades Inativos (+30d sem compra na rota):* ${totInat.toLocaleString('pt-BR')} PDVs (${pctInatGeral}% da rota — Ouro para Positivação)\n`;
   msg += `🔄 *Clientes c/ TAG Recorrência na rota:* ${totRec.toLocaleString('pt-BR')} PDVs (${pctRecGeral}% da rota — Alavanca de Faturamento)\n`;
-  msg += `🏬 *Oportunidades no Mapa (CNAE 4712 - Minimercados/Mercearias):* +${totProsp.toLocaleString('pt-BR')} PDVs mapeados no trajeto\n\n`;
+  msg += `🏬 *Oportunidades no Mapa (CNAE 5611 - Restaurantes e Similares):* +${totProsp.toLocaleString('pt-BR')} PDVs mapeados no trajeto\n\n`;
   msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
   msg += `🏢 *POTENCIAL DE LARGADA POR FILIAL (VAREJO)*\n\n`;
 
@@ -517,7 +517,7 @@ async function coletarAberturaVarejo(repsValidationMap) {
     if (f.sigla === 'TPH') {
       msg += `• 🔥 *Campanha VOLTA COMIGO: ${f.volta} PDVs na rota (Foco prioritário de reativação)*\n`;
     }
-    msg += `• 🏬 Oportunidades CNAE 4712 no trajeto: +${f.prospects.toLocaleString('pt-BR')} PDVs para cadastro\n\n`;
+    msg += `• 🏬 Oportunidades CNAE 5611 no trajeto: +${f.prospects.toLocaleString('pt-BR')} PDVs para cadastro\n\n`;
   });
 
   return { textoAbertura: msg.trim(), dadosAbertura: resultado };
