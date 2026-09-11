@@ -286,11 +286,16 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
       recorrenciaPositivados: 0,
       voltaPositivados: 0,
       cortesValor: 0,
+      cortesQtd: 0,
+      bloqueadosValor: 0,
+      bloqueadosQtd: 0,
+      itensCortados: [],
       devolucoesValor: 0,
       supervisores: {}
     };
   }
 
+  const rcasComPedido = [];
   const BATCH = 30;
   for (let i = 0; i < reps.length; i += BATCH) {
     const lote = reps.slice(i, i + BATCH);
@@ -326,9 +331,12 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
         // Faturamento e pedidos totais da filial (todos os RCAs/canais)
         resFil.fatTotalDigitado += dig;
         resFil.pedidosTotal += pedTot;
+        if (dig > 0 || pedTot > 0) {
+          rcasComPedido.push({ filial: fSigla, fKey, codigo: rca.codigo, nome: cleanName(rca.nome) });
+        }
         
-        // Devoluções reais que entraram no dia de hoje (11/09)
-        devs.filter(d => d.data === dataHoje).forEach(d => {
+        // Devoluções reais que entraram no dia de hoje (dataRef)
+        devs.filter(d => d.data === dataRef).forEach(d => {
           resFil.devolucoesValor += Math.abs(parseFloat(d.vl_devolvido || d.valor || 0));
         });
 
@@ -392,6 +400,66 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
       } catch (e) {
         console.error(`[ERRO RCA ${rca.codigo} - ${fSigla}]:`, e.message);
       }
+    }));
+  }
+
+  // 2. Varredura rápida de Cortes Comerciais/Logísticos e Pedidos Bloqueados de Hoje
+  console.log(`🔍 Apurando Cortes e Bloqueados em tempo real nos ${rcasComPedido.length} vendedores com pedido hoje...`);
+  const BATCH_ROT = 20;
+  for (let i = 0; i < rcasComPedido.length; i += BATCH_ROT) {
+    const lote = rcasComPedido.slice(i, i + BATCH_ROT);
+    await Promise.all(lote.map(async r => {
+      try {
+        const rotRes = await axios.get(`${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${r.fKey}&id=${r.codigo}`, { timeout: 4000 });
+        const pdvs = (rotRes.data || []).filter(p => p.status === 'POSITIVADO' || p.status === 'EFETIVADO' || p.status === 'VISITADO');
+        await Promise.all(pdvs.map(async p => {
+          try {
+            const histRes = await axios.get(`${CEVEN_BASE}/api/rca/historico-cliente/${p.id_cliente}?filial=${r.fKey}&id=${r.codigo}`, { timeout: 3500 });
+            const visitasHoje = (histRes.data?.ultimas_visitas || []).filter(v => v.data_visita === dataRef && v.num_pedido);
+            for (const v of visitasHoje) {
+              const resFil = filialResult[r.filial];
+              if (!resFil) return;
+
+              const cat = (v.categoria_corte || '').toUpperCase();
+              const itensCort = v.itens_cortados || [];
+              const vlOrig = parseFloat(v.total_clube || v.valor_original || 0);
+              const vlFat = parseFloat(v.vl_faturado_winthor || 0);
+
+              // 1. Pedidos Bloqueados Hoje
+              if (v.status_pedido === 'BLOQUEADO') {
+                resFil.bloqueadosQtd++;
+                resFil.bloqueadosValor += (vlFat > 0 ? vlFat : vlOrig);
+              }
+
+              // 2. Cortes Comerciais / Logística de Hoje
+              const temCorte = (cat !== '' && cat !== 'SEM CORTE') || itensCort.length > 0;
+              if (temCorte) {
+                let valorCorte = 0;
+                if (vlOrig > vlFat && vlFat > 0) {
+                  valorCorte = vlOrig - vlFat;
+                } else if (itensCort.length > 0) {
+                  itensCort.forEach(it => {
+                    valorCorte += (it.qt_cortada || 0) * (it.preco || 15);
+                  });
+                }
+                if (valorCorte > 0) {
+                  resFil.cortesQtd++;
+                  resFil.cortesValor += valorCorte;
+                  resFil.itensCortados.push({
+                    rca: r.codigo,
+                    vendedor: r.nome,
+                    cliente: p.nome_cliente,
+                    pedido: v.num_pedido,
+                    tipo: cat || 'CORTE IDENTIFICADO',
+                    valorCorte: Math.round(valorCorte * 100) / 100,
+                    itens: itensCort
+                  });
+                }
+              }
+            }
+          } catch (e) {}
+        }));
+      } catch (e) {}
     }));
   }
 
@@ -559,6 +627,10 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       recorrenciaPositivados: f.recorrenciaPositivados || 0,
       voltaPositivados: f.voltaPositivados || 0,
       cortesValor: f.cortesValor || 0,
+      cortesQtd: f.cortesQtd || 0,
+      bloqueadosValor: f.bloqueadosValor || 0,
+      bloqueadosQtd: f.bloqueadosQtd || 0,
+      itensCortados: f.itensCortados || [],
       devolucoesValor: f.devolucoesValor || 0,
       pctCom,
       pctSem,
@@ -572,7 +644,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
   let totFat = 0, totPed = 0, totVis = 0, totRot = 0;
   let totVj = 0, totVjCom = 0, totVjSem = 0;
   let totInatRota = 0, totInatRec = 0, totRec = 0, totVolta = 0;
-  let totCortes = 0, totDev = 0;
+  let totCortes = 0, totCortesQtd = 0, totBloq = 0, totBloqQtd = 0, totDev = 0;
   ranking.forEach(r => {
     totFat += r.fat;
     totPed += r.ped;
@@ -586,6 +658,9 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
     totRec += r.recorrenciaPositivados;
     totVolta += r.voltaPositivados;
     totCortes += r.cortesValor;
+    totCortesQtd += r.cortesQtd;
+    totBloq += r.bloqueadosValor;
+    totBloqQtd += r.bloqueadosQtd;
     totDev += r.devolucoesValor;
   });
 
@@ -609,7 +684,8 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       if (r.recorrenciaPositivados > 0) conquistas.push(`🔄 Recorrência: ${r.recorrenciaPositivados} PDVs`);
       if (r.sigla === 'TPH' && r.voltaPositivados > 0) conquistas.push(`🔁 Volta Comigo: ${r.voltaPositivados} PDVs`);
       b += conquistas.join(' • ') + '\n';
-      b += `🚨 Cortes Hoje: R$ ${fmtMoeda(r.cortesValor)} • 🚛 Devoluções Entradas Hoje: R$ ${fmtMoeda(r.devolucoesValor)}`;
+      b += `✂️ Cortes: R$ ${fmtMoeda(r.cortesValor)} (${r.cortesQtd} ped) • 🔒 Bloqueados: R$ ${fmtMoeda(r.bloqueadosValor)} (${r.bloqueadosQtd} ped)\n`;
+      b += `🚛 Devoluções Entradas Hoje: R$ ${fmtMoeda(r.devolucoesValor)}`;
       return b;
     });
 
@@ -627,7 +703,8 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       `🔁 *Positivados com TAG Volta Comigo (TPH):* ${totVolta.toLocaleString('pt-BR')} PDVs`,
       ``,
       `🚨 *PERDAS E ATENÇÃO OPERACIONAL HOJE:*`,
-      `✂️ *Cortes nos Pedidos de Hoje:* R$ ${fmtMoeda(totCortes)}`,
+      `✂️ *Cortes nos Pedidos de Hoje:* R$ ${fmtMoeda(totCortes)} (${totCortesQtd} pedidos afetados)`,
+      `🔒 *Pedidos Bloqueados Hoje:* R$ ${fmtMoeda(totBloq)} (${totBloqQtd} pedidos retidos)`,
       `🚛 *Devoluções Entradas Hoje:* R$ ${fmtMoeda(totDev)}`,
       `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
       `🏆 *RANKING FINAL DE FECHAMENTO (11 FILIAIS):*`,
@@ -644,7 +721,8 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       b += `💰 Total de Pedidos: R$ ${fmtMoeda(r.fat)} • 📦 Pedidos: ${r.ped}\n`;
       b += `📍 Visitas Varejo: ${r.vis} de ${r.rot} (${r.efici}%) • Eficácia: ${r.efica}%\n`;
       b += `👥 Varejo com Pedido: ${r.vjCom} de ${r.vjTotal} (${r.pctCom}%) | 🚨 Varejo SEM PEDIDO: *${r.vjSem} (${r.pctSem}%)*\n`;
-      b += `✂️ Cortes Hoje: R$ ${fmtMoeda(r.cortesValor)} • 🚛 Devoluções Entradas Hoje: R$ ${fmtMoeda(r.devolucoesValor)}`;
+      b += `✂️ Cortes: R$ ${fmtMoeda(r.cortesValor)} (${r.cortesQtd} ped) • 🔒 Bloqueados: R$ ${fmtMoeda(r.bloqueadosValor)} (${r.bloqueadosQtd} ped)\n`;
+      b += `🚛 Devoluções Entradas Hoje: R$ ${fmtMoeda(r.devolucoesValor)}`;
       return b;
     });
 
@@ -666,7 +744,8 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       `🚨 *Varejo Zerados (${horaLabel}):* *${totVjSem} vendedores (${pctGeralSem}%)*`,
       ``,
       `🚨 *PERDAS E ATENÇÃO OPERACIONAL HOJE:*`,
-      `✂️ *Cortes nos Pedidos de Hoje:* R$ ${fmtMoeda(totCortes)}`,
+      `✂️ *Cortes nos Pedidos de Hoje:* R$ ${fmtMoeda(totCortes)} (${totCortesQtd} pedidos afetados)`,
+      `🔒 *Pedidos Bloqueados Hoje:* R$ ${fmtMoeda(totBloq)} (${totBloqQtd} pedidos retidos)`,
       `🚛 *Devoluções Entradas Hoje:* R$ ${fmtMoeda(totDev)}`,
       ``,
       `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
@@ -687,8 +766,21 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
     m += `📦 *Pedidos Colocados:* ${r.ped} pedidos\n`;
     m += `📍 *Visitas Realizadas:* ${r.vis} de ${r.rot} (${r.efici}%)\n`;
     m += `👥 *Vendedores Varejo com Pedido:* ${r.vjCom} de ${r.vjTotal} (${r.pctCom}%)\n`;
-    m += `✂️ *Cortes nos Pedidos de Hoje:* R$ ${fmtMoeda(r.cortesValor)}\n`;
+    m += `✂️ *Cortes nos Pedidos de Hoje:* R$ ${fmtMoeda(r.cortesValor)} (${r.cortesQtd} pedidos afetados)\n`;
+    m += `🔒 *Pedidos Bloqueados Hoje:* R$ ${fmtMoeda(r.bloqueadosValor)} (${r.bloqueadosQtd} pedidos retidos)\n`;
     m += `🚛 *Devoluções Entradas Hoje:* R$ ${fmtMoeda(r.devolucoesValor)}\n`;
+
+    // Se houver cortes na filial, detalhar os primeiros para ação rápida do gerente
+    if (r.itensCortados && r.itensCortados.length > 0) {
+      m += `\n⚠️ *DETALHE DOS CORTES DE HOJE:*\n`;
+      r.itensCortados.slice(0, 4).forEach(c => {
+        const itemDestaque = c.itens?.[0]?.descricao || 'SKU em falta';
+        m += `  ▫️ Cód. ${c.rca} • ${c.vendedor}: -R$ ${fmtMoeda(c.valorCorte)} em ${c.cliente} (${itemDestaque})\n`;
+      });
+      if (r.itensCortados.length > 4) {
+        m += `  ▫️ _... e mais ${r.itensCortados.length - 4} pedidos com corte._\n`;
+      }
+    }
 
     if (isFechamento) {
       if (r.inativosRota > 0) {
@@ -697,7 +789,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       m += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
       m += `🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*\n`;
     } else {
-      m += `🚨 *Varejo Zerados (${horaLabel}):* ${r.vjSem} (${r.pctSem}%)\n\n`;
+      m += `\n🚨 *Varejo Zerados (${horaLabel}):* ${r.vjSem} (${r.pctSem}%)\n\n`;
       m += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
 
       const supsComZerados = Object.entries(r.supervisores).filter(([k, v]) => v.vjSem > 0);
