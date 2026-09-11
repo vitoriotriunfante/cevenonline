@@ -36,7 +36,7 @@ const FILIAIS_MAP = {
   tcg1: { sigla: 'TCG', gerente: 'Danilo' },
   tcv1: { sigla: 'TCV', gerente: 'Leonardo' },
   tpa1: { sigla: 'TPA', gerente: 'Radke / Leandro' },
-  tph1: { sigla: 'TPH', gerente: 'Vagner' },
+  tph1: { sigla: 'TPH', gerente: 'Vagner / Fábio' },
   tsj1: { sigla: 'TSJ', gerente: 'Saldanha' }
 };
 
@@ -65,7 +65,7 @@ async function getAdminToken() {
   return res.data.access_token;
 }
 
-// Lista Oficial dos 13 Gerentes de Filial
+// Lista Oficial dos 14 Gerentes de Filial
 const GERENTES_MAP = [
   { filial: 'TCA', gerente: 'BECHER', whatsapp: '556599438498' },
   { filial: 'TCG', gerente: 'DANILO', whatsapp: '556792831186' },
@@ -76,6 +76,7 @@ const GERENTES_MAP = [
   { filial: 'TBL', gerente: 'FÁBIO', whatsapp: '554388683191' },
   { filial: 'API', gerente: 'MARCELO', whatsapp: '554188317101' },
   { filial: 'TPH', gerente: 'VAGNER', whatsapp: '554188559703' },
+  { filial: 'TPH', gerente: 'FÁBIO', whatsapp: '556799877931' },
   { filial: 'TSJ', gerente: 'SALDANHA', whatsapp: '551291224077' },
   { filial: 'TBE', gerente: 'DIEGO', whatsapp: '554699047249' },
   { filial: 'TPA', gerente: 'RADKE', whatsapp: '554499092497' },

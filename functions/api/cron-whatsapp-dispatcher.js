@@ -43,6 +43,7 @@ export async function onRequest(context) {
       { filial_id: 'tbl1', filial_sigla: 'TBL', nome_gerente: 'FÁBIO', whatsapp_numero: '554388683191', ativo: 1 },
       { filial_id: 'api1', filial_sigla: 'API', nome_gerente: 'MARCELO', whatsapp_numero: '554188317101', ativo: 1 },
       { filial_id: 'tph1', filial_sigla: 'TPH', nome_gerente: 'VAGNER', whatsapp_numero: '554188559703', ativo: 1 },
+      { filial_id: 'tph2', filial_sigla: 'TPH', nome_gerente: 'FÁBIO', whatsapp_numero: '556799877931', ativo: 1 },
       { filial_id: 'tsj1', filial_sigla: 'TSJ', nome_gerente: 'SALDANHA', whatsapp_numero: '551291224077', ativo: 1 },
       { filial_id: 'tbe1', filial_sigla: 'TBE', nome_gerente: 'DIEGO', whatsapp_numero: '554298022298', ativo: 1 },
       { filial_id: 'tpa1', filial_sigla: 'TPA', nome_gerente: 'RADKE', whatsapp_numero: '555197245332', ativo: 1 },
