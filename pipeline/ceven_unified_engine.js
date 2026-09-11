@@ -303,14 +303,16 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
       const resFil = filialResult[fSigla];
 
       try {
-        const [prodRes, dashRes] = await Promise.all([
+        const [prodRes, dashRes, devRes] = await Promise.all([
           axios.get(`${CEVEN_BASE}/api/rca/produtividade?filial=${fKey}&id=${rca.codigo}`, { timeout: 8000 }),
-          axios.get(`${CEVEN_BASE}/api/rca/dashboard?filial=${fKey}&id=${rca.codigo}`, { timeout: 8000 })
+          axios.get(`${CEVEN_BASE}/api/rca/dashboard?filial=${fKey}&id=${rca.codigo}`, { timeout: 8000 }),
+          axios.get(`${CEVEN_BASE}/api/rca/devolucoes?filial=${fKey}&id=${rca.codigo}`, { timeout: 8000 })
         ]);
 
         const dia = prodRes.data?.dia || {};
         const fin = dashRes.data?.financeiro || {};
         const pos = dashRes.data?.positivacao || {};
+        const devs = Array.isArray(devRes.data) ? devRes.data : [];
 
         const prog = parseInt(dia.total_programado || dia.visitas_programadas || 0, 10);
         const metaFat = parseFloat(fin.meta || 0);
@@ -324,8 +326,11 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
         // Faturamento e pedidos totais da filial (todos os RCAs/canais)
         resFil.fatTotalDigitado += dig;
         resFil.pedidosTotal += pedTot;
-        resFil.cortesValor += parseFloat(dia.valor_corte || 0);
-        resFil.devolucoesValor += Math.abs(parseFloat(fin.devolucao || 0));
+        
+        // Devoluções reais que entraram no dia de hoje (11/09)
+        devs.filter(d => d.data === dataHoje).forEach(d => {
+          resFil.devolucoesValor += Math.abs(parseFloat(d.vl_devolvido || d.valor || 0));
+        });
 
         // KPI Estrito de Força de Vendas e Visitas de Rota
         const valKey = `${fSigla}_${rca.codigo}`;
