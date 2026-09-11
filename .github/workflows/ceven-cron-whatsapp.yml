@@ -11,8 +11,8 @@ on:
     - cron: '0 14 * * 1-6'
     # 11:30 BRT (14:30 UTC) — Gestão de Campo: Compromissos & RET (Gerentes)
     - cron: '30 14 * * 1-6'
-    # 14:30 BRT (17:30 UTC) — Relatório Operacional de Tração (Todos)
-    - cron: '30 17 * * 1-6'
+    # 14:30 BRT (17:30 UTC) — Relatório Operacional de Tração (Pausado para validação do Vitório)
+    # - cron: '30 17 * * 1-6'
     # 17:00 BRT (20:00 UTC) — Fechamento de Campo (Todos)
     - cron: '0 20 * * 1-6'
     # 18:30 BRT (21:30 UTC) — Fechamento Oficial do Dia (Todos)
