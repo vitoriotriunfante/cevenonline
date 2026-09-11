@@ -656,7 +656,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       `🎯 *FORÇA DE VENDAS VAREJO:*`,
       `👥 *Total Varejo em Campo (Metas + Rota >= 5):* ${totVj} vendedores`,
       `✅ *Positivados no Dia:* ${totVjCom} vendedores (${pctGeralCom}%)`,
-      `🚨 *Zerados no Fechamento:* *${totVjSem} vendedores (${pctGeralSem}%)*`,
+      `🚨 *Varejo Zerados (${horaLabel}):* *${totVjSem} vendedores (${pctGeralSem}%)*`,
       ``,
       `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
       `📊 *DESEMPENHO POR FILIAL (RANKING DE VENDAS)*`,
@@ -684,12 +684,12 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       m += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
       m += `🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*\n`;
     } else {
-      m += `🚨 *Zerados no Fechamento:* ${r.vjSem} (${r.pctSem}%)\n\n`;
+      m += `🚨 *Varejo Zerados (${horaLabel}):* ${r.vjSem} (${r.pctSem}%)\n\n`;
       m += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
 
       const supsComZerados = Object.entries(r.supervisores).filter(([k, v]) => v.vjSem > 0);
       if (supsComZerados.length > 0) {
-        m += `🚨 *VENDEDORES DE VAREJO QUE FECHARAM ZERADOS:*\n`;
+        m += `🚨 *VENDEDORES DE VAREJO ZERADOS NO HORÁRIO (${horaLabel}):*\n`;
         m += `_(Visitas realizadas sem conversão de pedido)_\n\n`;
         supsComZerados.forEach(([supNome, s]) => {
           m += `👤 *Supervisor: ${supNome}* (${s.vjSem} zerados)\n`;
