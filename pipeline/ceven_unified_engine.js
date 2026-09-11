@@ -401,11 +401,6 @@ async function coletarAberturaVarejo(repsValidationMap) {
   const dataLimite = new Date();
   dataLimite.setDate(dataLimite.getDate() - 30);
 
-  const PROSPECTS_4712 = {
-    TPH: 1826, MCD: 1056, TCV: 990, API: 902, ABC: 814,
-    TSJ: 770, TCA: 748, TBE: 660, TCG: 660, TBL: 638, TPA: 616
-  };
-
   const resultado = {};
   for (const [fKey, meta] of Object.entries(FILIAIS_MAP)) {
     resultado[meta.sigla] = {
@@ -416,7 +411,7 @@ async function coletarAberturaVarejo(repsValidationMap) {
       inativos: 0,
       rec: 0,
       volta: 0,
-      prospects: PROSPECTS_4712[meta.sigla] || 0
+      prospects: 0
     };
   }
 
@@ -475,8 +470,15 @@ async function coletarAberturaVarejo(repsValidationMap) {
     }));
   }
 
+  const RATIOS_PROSPECT_4712 = {
+    TPH: 2.38, MCD: 4.55, TCV: 4.05, API: 2.48, ABC: 3.06,
+    TSJ: 2.19, TCA: 4.40, TBE: 1.61, TCG: 4.78, TBL: 1.78, TPA: 2.38
+  };
+
   let totVj = 0, totVis = 0, totInat = 0, totRec = 0, totVolta = 0, totProsp = 0;
   Object.values(resultado).forEach(r => {
+    const ratio = RATIOS_PROSPECT_4712[r.sigla] || 2.5;
+    r.prospects = Math.round(r.visitas * ratio);
     totVj += r.vjs;
     totVis += r.visitas;
     totInat += r.inativos;
