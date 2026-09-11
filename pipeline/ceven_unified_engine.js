@@ -638,7 +638,8 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       let b = `${prefix}*${idx + 1}. FILIAL ${r.sigla} — ${r.gerente.toUpperCase()}*\n`;
       b += `💰 Total de Pedidos: R$ ${fmtMoeda(r.fat)} • 📦 Pedidos: ${r.ped}\n`;
       b += `📍 Visitas Varejo: ${r.vis} de ${r.rot} (${r.efici}%) • Eficácia: ${r.efica}%\n`;
-      b += `👥 Varejo com Pedido: ${r.vjCom} de ${r.vjTotal} (${r.pctCom}%) | 🚨 Varejo SEM PEDIDO: *${r.vjSem} (${r.pctSem}%)*`;
+      b += `👥 Varejo com Pedido: ${r.vjCom} de ${r.vjTotal} (${r.pctCom}%) | 🚨 Varejo SEM PEDIDO: *${r.vjSem} (${r.pctSem}%)*\n`;
+      b += `✂️ Cortes Hoje: R$ ${fmtMoeda(r.cortesValor)} • 🚛 Devoluções Entradas Hoje: R$ ${fmtMoeda(r.devolucoesValor)}`;
       return b;
     });
 
@@ -659,6 +660,10 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       `✅ *Positivados no Dia:* ${totVjCom} vendedores (${pctGeralCom}%)`,
       `🚨 *Varejo Zerados (${horaLabel}):* *${totVjSem} vendedores (${pctGeralSem}%)*`,
       ``,
+      `🚨 *PERDAS E ATENÇÃO OPERACIONAL HOJE:*`,
+      `✂️ *Cortes nos Pedidos de Hoje:* R$ ${fmtMoeda(totCortes)}`,
+      `🚛 *Devoluções Entradas Hoje:* R$ ${fmtMoeda(totDev)}`,
+      ``,
       `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
       `📊 *DESEMPENHO POR FILIAL (RANKING DE VENDAS)*`,
       ``,
@@ -677,6 +682,8 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
     m += `📦 *Pedidos Colocados:* ${r.ped} pedidos\n`;
     m += `📍 *Visitas Realizadas:* ${r.vis} de ${r.rot} (${r.efici}%)\n`;
     m += `👥 *Vendedores Varejo com Pedido:* ${r.vjCom} de ${r.vjTotal} (${r.pctCom}%)\n`;
+    m += `✂️ *Cortes nos Pedidos de Hoje:* R$ ${fmtMoeda(r.cortesValor)}\n`;
+    m += `🚛 *Devoluções Entradas Hoje:* R$ ${fmtMoeda(r.devolucoesValor)}\n`;
 
     if (isFechamento) {
       if (r.inativosRota > 0) {
