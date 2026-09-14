@@ -4,7 +4,7 @@ on:
   schedule:
     # Grade Oficial Automática (Horário UTC = BRT + 3)
     - cron: '0 10 * * 1-6'   # 07:00 BRT (Abertura Matinal)
-    - cron: '0 14 * * 1-6'   # 11:00 BRT (1ª Parcial de Vendas & Zerados)
+    # - cron: '0 14 * * 1-6' # 11:00 BRT (SILENCIADO HOJE: já enviado às 10:05)
     - cron: '30 14 * * 1-6'  # 11:30 BRT (Gestão de Campo: Compromissos & RETs)
     - cron: '30 17 * * 1-6'  # 14:30 BRT (2ª Parcial de Vendas)
     - cron: '0 20 * * 1-6'   # 17:00 BRT (3ª Parcial de Vendas)
@@ -15,7 +15,7 @@ on:
       ciclo:
         description: 'Ciclo a disparar'
         required: true
-        default: '11:00'
+        default: '11:30'
         type: choice
         options:
           - '07:00'
@@ -24,6 +24,15 @@ on:
           - '14:30'
           - '17:00'
           - '18:30'
+      destino:
+        description: 'Destinatário (segurança: vitorio por padrão)'
+        required: true
+        default: 'vitorio'
+        type: choice
+        options:
+          - 'vitorio'
+          - 'todos'
+          - 'dry_run'
 
 jobs:
   executar_disparo:
@@ -75,7 +84,9 @@ jobs:
             CICLO="11:00"
           fi
 
-          if [ "$CICLO" = "07:00" ]; then
+          if [ "${{ github.event.inputs.destino }}" != "" ]; then
+            DESTINO="${{ github.event.inputs.destino }}"
+          elif [ "$CICLO" = "07:00" ]; then
             ACAO="abertura"
             DESTINO="vitorio"
           elif [ "$CICLO" = "11:30" ]; then
