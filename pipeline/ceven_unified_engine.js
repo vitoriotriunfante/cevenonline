@@ -23,7 +23,7 @@ const CEVEN_PASS = 'Triunfante@2026';
 const EVO_URL = 'https://evolution-api-production-8999.up.railway.app';
 const EVO_KEY = '143c2820271dfa4c2f6c920aff3205f0c5dec92d7c3f3dfaf90a9d8bb023eaaa';
 const EVO_INSTANCE = 'ceven-noc';
-const WHATSAPP_VITORIO = '5541987525605';
+const WHATSAPP_VITORIO = ['556696389884', '5541987525605'];
 
 // Mapeamento Oficial das 11 Filiais
 const FILIAIS_MAP = {
@@ -875,9 +875,12 @@ async function main() {
     console.log(`✅ Dados de Abertura Matinal apurados com sucesso para 11 filiais.`);
 
     if (destino === 'vitorio' || destino === 'todos') {
-      console.log(`🚀 Enviando Abertura Matinal para Vitório Neto (${WHATSAPP_VITORIO})...`);
-      const r = await enviarWhatsapp(WHATSAPP_VITORIO, abertura.textoAbertura);
-      console.log(`  Abertura Matinal — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
+      console.log(`🚀 Enviando Abertura Matinal para Vitório Neto (${WHATSAPP_VITORIO.join(', ')})...`);
+      const telefones = Array.isArray(WHATSAPP_VITORIO) ? WHATSAPP_VITORIO : [WHATSAPP_VITORIO];
+      for (const tel of telefones) {
+        const r = await enviarWhatsapp(tel, abertura.textoAbertura);
+        console.log(`  Abertura Matinal (${tel}) — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
+      }
     } else {
       console.log(`\n--- PREVIEW ABERTURA MATINAL ---`);
       console.log(abertura.textoAbertura);
@@ -951,8 +954,11 @@ async function main() {
           `🚨 *${semRet} supervisores* sem início de rota (RET) no sistema`
         ].join('\n');
 
-        const r = await enviarWhatsapp(WHATSAPP_VITORIO, resumoCampo.trim());
-        console.log(`  Diretoria Geral — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
+        const telefones = Array.isArray(WHATSAPP_VITORIO) ? WHATSAPP_VITORIO : [WHATSAPP_VITORIO];
+        for (const tel of telefones) {
+          const r = await enviarWhatsapp(tel, resumoCampo.trim());
+          console.log(`  Diretoria Geral (${tel}) — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
+        }
         if (destino === 'todos') {
           await new Promise(res => setTimeout(res, 30000));
         }
@@ -982,9 +988,12 @@ async function main() {
     console.log(`✅ Vendas e Varejo Zerados apurados com sucesso.`);
 
     if (destino === 'vitorio' || destino === 'todos') {
-      console.log(`🚀 Enviando Consolidado para Vitório Neto (${WHATSAPP_VITORIO})...`);
-      const r = await enviarWhatsapp(WHATSAPP_VITORIO, relatorios.msgConsolidado);
-      console.log(`  Diretoria Geral — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
+      console.log(`🚀 Enviando Consolidado para Vitório Neto (${WHATSAPP_VITORIO.join(', ')})...`);
+      const telefones = Array.isArray(WHATSAPP_VITORIO) ? WHATSAPP_VITORIO : [WHATSAPP_VITORIO];
+      for (const tel of telefones) {
+        const r = await enviarWhatsapp(tel, relatorios.msgConsolidado);
+        console.log(`  Diretoria Geral (${tel}) — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
+      }
       if (destino === 'todos') {
         await new Promise(res => setTimeout(res, 30000));
       }

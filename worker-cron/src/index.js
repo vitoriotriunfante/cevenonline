@@ -13,32 +13,59 @@
  * ============================================================================
  */
 
+const EVO_URL = 'https://evolution-api-production-8999.up.railway.app';
+const EVO_API_KEY = '143c2820271dfa4c2f6c920aff3205f0c5dec92d7c3f3dfaf90a9d8bb023eaaa';
+const EVO_INSTANCE = 'ceven-noc';
+
 const GREEN_API_URL = 'https://7107.api.greenapi.com';
 const GREEN_ID_INSTANCE = '710722724828';
 const GREEN_TOKEN = '0206610482f54377a4161f6e7daf4866ee0bef8ac6c842b1bd';
-const PHONES = ['5541987525605@c.us'];
+
+const PHONES = ['556696389884', '5541987525605'];
 
 const FILIAIS_ORDEM = ['TPH', 'ABC', 'TBL', 'TCV', 'API', 'TCG', 'TSJ', 'TCA', 'MCD', 'TPA', 'TBE'];
 
 async function enviarWhatsApp(mensagem) {
-  const url = `${GREEN_API_URL}/waInstance${GREEN_ID_INSTANCE}/sendMessage/${GREEN_TOKEN}`;
-  for (const chatId of PHONES) {
+  let anySuccess = false;
+  for (const phone of PHONES) {
+    // 1. Tenta Evolution API (Ativa e Online no Railway)
     try {
-      const res = await fetch(url, {
+      const evoRes = await fetch(`${EVO_URL}/message/sendText/${EVO_INSTANCE}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chatId, message: mensagem })
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': EVO_API_KEY
+        },
+        body: JSON.stringify({ number: phone, text: mensagem, delay: 1000 })
       });
-      const data = await res.json();
-      if (data && data.idMessage) {
-        console.log(`✅ Enviado para ${chatId} (ID: ${data.idMessage})`);
-        return { sucesso: true, idMessage: data.idMessage };
+      const data = await evoRes.json();
+      if (data?.key?.id || data?.idMessage) {
+        console.log(`✅ [Evolution] Enviado para ${phone}: ${data?.key?.id || data?.idMessage}`);
+        anySuccess = true;
+        continue;
       }
     } catch (e) {
-      console.warn(`Tentativa em ${chatId} falhou: ${e.message}`);
+      console.warn(`[Evolution] Falha em ${phone}: ${e.message}`);
+    }
+
+    // 2. Fallback Green-API se Evolution falhar
+    try {
+      const greenUrl = `${GREEN_API_URL}/waInstance${GREEN_ID_INSTANCE}/sendMessage/${GREEN_TOKEN}`;
+      const greenRes = await fetch(greenUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatId: `${phone}@c.us`, message: mensagem })
+      });
+      const gData = await greenRes.json();
+      if (gData?.idMessage) {
+        console.log(`✅ [GreenAPI] Enviado para ${phone}: ${gData.idMessage}`);
+        anySuccess = true;
+      }
+    } catch (err) {
+      console.warn(`[GreenAPI] Falha em ${phone}: ${err.message}`);
     }
   }
-  return { sucesso: false };
+  return { sucesso: anySuccess };
 }
 
 // ----------------------------------------------------------------------------
@@ -46,17 +73,17 @@ async function enviarWhatsApp(mensagem) {
 // ----------------------------------------------------------------------------
 async function montarResumoExecutivoAbertura(env, dataHoje, dataFormatada) {
   const baseline = {
-    TPH: { vend: 88, vis: 1117, inat: 442, rec: 209, prosp: 1826 },
-    API: { vend: 40, vis: 583, inat: 191, rec: 144, prosp: 902 },
-    TBE: { vend: 30, vis: 534, inat: 238, rec: 58, prosp: 660 },
-    TSJ: { vend: 37, vis: 438, inat: 134, rec: 67, prosp: 770 },
-    ABC: { vend: 35, vis: 431, inat: 78, rec: 65, prosp: 814 },
-    MCD: { vend: 50, vis: 404, inat: 135, rec: 123, prosp: 1056 },
-    TPA: { vend: 27, vis: 402, inat: 124, rec: 63, prosp: 616 },
-    TCV: { vend: 45, vis: 389, inat: 54, rec: 49, prosp: 990 },
-    TCA: { vend: 40, vis: 389, inat: 168, rec: 77, prosp: 748 },
-    TBL: { vend: 30, vis: 373, inat: 117, rec: 62, prosp: 638 },
-    TCG: { vend: 31, vis: 231, inat: 96, rec: 73, prosp: 660 }
+    TPH: { vend: 45, vis: 700, inat: 277, rec: 131, prosp: 1826 },
+    TSJ: { vend: 24, vis: 405, inat: 124, rec: 62, prosp: 770 },
+    TBE: { vend: 19, vis: 383, inat: 171, rec: 42, prosp: 660 },
+    API: { vend: 26, vis: 341, inat: 112, rec: 84, prosp: 902 },
+    TBL: { vend: 28, vis: 325, inat: 102, rec: 54, prosp: 638 },
+    TPA: { vend: 22, vis: 319, inat: 98, rec: 50, prosp: 616 },
+    TCV: { vend: 29, vis: 303, inat: 42, rec: 38, prosp: 990 },
+    ABC: { vend: 18, vis: 294, inat: 53, rec: 44, prosp: 814 },
+    MCD: { vend: 42, vis: 280, inat: 94, rec: 85, prosp: 1056 },
+    TCA: { vend: 31, vis: 245, inat: 106, rec: 49, prosp: 748 },
+    TCG: { vend: 20, vis: 156, inat: 65, rec: 49, prosp: 660 }
   };
 
   const dadosFiliais = {};
@@ -123,9 +150,9 @@ async function montarResumoExecutivoAbertura(env, dataHoje, dataFormatada) {
 
   return [
     `🏢 RESUMO EXECUTIVO DE ABERTURA (ROTA DO DIA — ${dataFormatada})`,
-    `📌 CONSOLIDADO GERAL DA COMPANHIA:`,
-    `👥 Força de Vendas em Campo: ${totalVend} Vendedores`,
-    `📍 Total de Visitas Agendadas: ${totalVis.toLocaleString('pt-BR')} PDVs`,
+    `📌 CONSOLIDADO VAREJO (VJ) DA COMPANHIA:`,
+    `👥 Força de Vendas em Campo (VJ): ${totalVend} Vendedores`,
+    `📍 Total de Visitas Agendadas (VJ): ${totalVis.toLocaleString('pt-BR')} PDVs`,
     `⚡ Produtividade Média: ${mediaGeral} visitas/vendedor (GAP de ${gapGeral} para a meta de 20)`,
     `🎯 Carteira Inativa (+30d sem compra): ${totalInat.toLocaleString('pt-BR')} PDVs (${pctInatGeral}% da rota)`,
     `🔄 Oportunidade Máxima de Recorrência: ${totalRec.toLocaleString('pt-BR')} PDVs (${pctRecGeral}% da rota)`,
@@ -480,7 +507,7 @@ export default {
     return new Response(JSON.stringify({
       status: 'CEVEN Cloud Cron Worker v3.0 Ativo',
       horarios_oficiais: ['07:00', '11:00', '14:30', '17:00', '18:30'],
-      green_api_destinatarios: PHONES
+      destinatarios: PHONES
     }, null, 2), { headers: { 'Content-Type': 'application/json' } });
   }
 };

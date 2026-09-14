@@ -2,15 +2,13 @@ name: CEVEN NOC — Disparos Oficiais WhatsApp
 
 on:
   schedule:
-    # =========================================================================
-    # GRADE OFICIAL - TODOS PAUSADOS PARA CONTROLE MANUAL E APROVAÇÃO
-    # =========================================================================
-    # - cron: '0 10 * * 1-6'
-    # - cron: '0 14 * * 1-6'
-    # - cron: '30 14 * * 1-6'
-    # - cron: '30 17 * * 1-6'
-    # - cron: '0 20 * * 1-6'
-    # - cron: '30 21 * * 1-6'
+    # Grade Oficial Automática (Horário UTC = BRT + 3)
+    - cron: '0 10 * * 1-6'   # 07:00 BRT (Abertura Matinal)
+    - cron: '0 14 * * 1-6'   # 11:00 BRT (1ª Parcial de Vendas & Zerados)
+    - cron: '30 14 * * 1-6'  # 11:30 BRT (Gestão de Campo: Compromissos & RETs)
+    - cron: '30 17 * * 1-6'  # 14:30 BRT (2ª Parcial de Vendas)
+    - cron: '0 20 * * 1-6'   # 17:00 BRT (3ª Parcial de Vendas)
+    - cron: '30 21 * * 1-6'  # 18:30 BRT (Fechamento Oficial do Dia)
 
   workflow_dispatch:
     inputs:
