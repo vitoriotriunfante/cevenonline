@@ -84,16 +84,21 @@ jobs:
             CICLO="11:00"
           fi
 
+          # 1. Determinar Ação baseada no Ciclo
+          if [ "$CICLO" = "07:00" ]; then
+            ACAO="abertura"
+          elif [ "$CICLO" = "11:30" ]; then
+            ACAO="gestao_campo"
+          else
+            ACAO="vendas_zerados"
+          fi
+
+          # 2. Determinar Destino
           if [ "${{ github.event.inputs.destino }}" != "" ]; then
             DESTINO="${{ github.event.inputs.destino }}"
           elif [ "$CICLO" = "07:00" ]; then
-            ACAO="abertura"
             DESTINO="vitorio"
-          elif [ "$CICLO" = "11:30" ]; then
-            ACAO="gestao_campo"
-            DESTINO="todos"
           else
-            ACAO="vendas_zerados"
             DESTINO="todos"
           fi
 
