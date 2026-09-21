@@ -1,5 +1,9 @@
 name: CEVEN NOC — Disparos Oficiais WhatsApp
 
+concurrency:
+  group: ceven-whatsapp-dispatch
+  cancel-in-progress: false
+
 on:
   schedule:
     # Grade Oficial Automática (Horário UTC = BRT + 3) — Segunda a Sexta (1-5)
