@@ -2,13 +2,14 @@ name: CEVEN NOC — Disparos Oficiais WhatsApp
 
 on:
   schedule:
-    # Grade Oficial Automática (Horário UTC = BRT + 3)
-    - cron: '0 10 * * 1-6'   # 07:00 BRT (Abertura Matinal)
-    # - cron: '0 14 * * 1-6' # 11:00 BRT (SILENCIADO HOJE: já enviado às 10:05)
-    - cron: '30 14 * * 1-6'  # 11:30 BRT (Gestão de Campo: Compromissos & RETs)
-    - cron: '30 17 * * 1-6'  # 14:30 BRT (2ª Parcial de Vendas)
-    - cron: '0 20 * * 1-6'   # 17:00 BRT (3ª Parcial de Vendas)
-    - cron: '30 21 * * 1-6'  # 18:30 BRT (Fechamento Oficial do Dia)
+    # Grade Oficial Automática (Horário UTC = BRT + 3) — Segunda a Sexta (1-5)
+    - cron: '0 7 * * 1-5'    # 04:00 BRT (Aquecimento Matinal Noturno de Rotas)
+    - cron: '0 10 * * 1-5'   # 07:00 BRT (Abertura Matinal Instantânea)
+    - cron: '0 14 * * 1-5'   # 11:00 BRT (1ª Parcial de Vendas & Zerados)
+    - cron: '30 14 * * 1-5'  # 11:30 BRT (Gestão de Campo: Compromissos & RETs)
+    - cron: '30 17 * * 1-5'  # 14:30 BRT (2ª Parcial de Vendas & Zerados)
+    - cron: '0 20 * * 1-5'   # 17:00 BRT (3ª Parcial de Vendas & Zerados)
+    - cron: '30 21 * * 1-5'  # 18:30 BRT (Fechamento Oficial do Dia)
 
   workflow_dispatch:
     inputs:
@@ -18,6 +19,7 @@ on:
         default: '11:30'
         type: choice
         options:
+          - '04:00'
           - '07:00'
           - '11:00'
           - '11:30'
@@ -37,7 +39,9 @@ on:
 jobs:
   executar_disparo:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout do Repositório
@@ -62,30 +66,36 @@ jobs:
 
           if [ "${{ github.event.inputs.ciclo }}" != "" ]; then
             CICLO="${{ github.event.inputs.ciclo }}"
-          # 10:00 UTC = 600 min (07:00 BRT Abertura) -> Janela 585 a 620 min
-          elif [ $TOTAL_MIN -ge 585 ] && [ $TOTAL_MIN -le 620 ]; then
-            CICLO="07:00"
-          # 14:00 UTC = 840 min (11:00 BRT Vendas) -> Janela 825 a 855 min
-          elif [ $TOTAL_MIN -ge 825 ] && [ $TOTAL_MIN -le 855 ]; then
-            CICLO="11:00"
-          # 14:30 UTC = 870 min (11:30 BRT Gestão Campo) -> Janela 856 a 900 min
-          elif [ $TOTAL_MIN -ge 856 ] && [ $TOTAL_MIN -le 900 ]; then
-            CICLO="11:30"
-          # 17:30 UTC = 1050 min (14:30 BRT Tração) -> Janela 1035 a 1080 min
-          elif [ $TOTAL_MIN -ge 1035 ] && [ $TOTAL_MIN -le 1080 ]; then
-            CICLO="14:30"
-          # 20:00 UTC = 1200 min (17:00 BRT Reta Final) -> Janela 1185 a 1230 min
-          elif [ $TOTAL_MIN -ge 1185 ] && [ $TOTAL_MIN -le 1230 ]; then
-            CICLO="17:00"
-          # 21:30 UTC = 1290 min (18:30 BRT Fechamento) -> Janela 1275 a 1320 min
-          elif [ $TOTAL_MIN -ge 1275 ] && [ $TOTAL_MIN -le 1320 ]; then
+          # 21:30 UTC = 1290 min (18:30 BRT Fechamento) -> Se disparar após 21:00 UTC (>= 1260 min)
+          elif [ $TOTAL_MIN -ge 1260 ]; then
             CICLO="18:30"
-          else
+          # 20:00 UTC = 1200 min (17:00 BRT Reta Final) -> Janela 1170 a 1259 min (16:30 a 17:59 BRT)
+          elif [ $TOTAL_MIN -ge 1170 ] && [ $TOTAL_MIN -le 1259 ]; then
+            CICLO="17:00"
+          # 17:30 UTC = 1050 min (14:30 BRT Virada Tarde) -> Janela 990 a 1169 min (13:30 a 16:29 BRT)
+          elif [ $TOTAL_MIN -ge 990 ] && [ $TOTAL_MIN -le 1169 ]; then
+            CICLO="14:30"
+          # 14:30 UTC = 870 min (11:30 BRT Gestão Campo) -> Janela 856 a 989 min (11:16 a 13:29 BRT)
+          elif [ $TOTAL_MIN -ge 856 ] && [ $TOTAL_MIN -le 989 ]; then
+            CICLO="11:30"
+          # 14:00 UTC = 840 min (11:00 BRT Vendas) -> Janela 750 a 855 min (09:30 a 11:15 BRT)
+          elif [ $TOTAL_MIN -ge 750 ] && [ $TOTAL_MIN -le 855 ]; then
             CICLO="11:00"
+          # 10:00 UTC = 600 min (07:00 BRT Abertura) -> Janela 510 a 749 min (05:30 a 09:29 BRT)
+          elif [ $TOTAL_MIN -ge 510 ] && [ $TOTAL_MIN -le 749 ]; then
+            CICLO="07:00"
+          # 07:00 UTC = 420 min (04:00 BRT Aquecimento Noturno) -> Janela 360 a 509 min (03:00 a 05:29 BRT)
+          elif [ $TOTAL_MIN -ge 360 ] && [ $TOTAL_MIN -le 509 ]; then
+            CICLO="04:00"
+          else
+            echo "⚠️ Execução fora das janelas operacionais comerciais ($TOTAL_MIN min UTC). Abortando com segurança."
+            exit 0
           fi
 
           # 1. Determinar Ação baseada no Ciclo
-          if [ "$CICLO" = "07:00" ]; then
+          if [ "$CICLO" = "04:00" ]; then
+            ACAO="aquecimento_matinal"
+          elif [ "$CICLO" = "07:00" ]; then
             ACAO="abertura"
           elif [ "$CICLO" = "11:30" ]; then
             ACAO="gestao_campo"
@@ -96,6 +106,8 @@ jobs:
           # 2. Determinar Destino
           if [ "${{ github.event.inputs.destino }}" != "" ]; then
             DESTINO="${{ github.event.inputs.destino }}"
+          elif [ "$CICLO" = "04:00" ]; then
+            DESTINO="dry_run"
           elif [ "$CICLO" = "07:00" ]; then
             DESTINO="vitorio"
           else
@@ -113,8 +125,25 @@ jobs:
           ACAO="${{ steps.config.outputs.acao }}"
           DESTINO="${{ steps.config.outputs.destino }}"
 
+          if [ -z "$CICLO" ]; then
+            echo "Nenhum ciclo definido para esta execução. Finalizando."
+            exit 0
+          fi
+
           echo "Iniciando ceven_unified_engine.js..."
           node pipeline/ceven_unified_engine.js \
             --hora="$CICLO" \
             --acao="$ACAO" \
             --destino="$DESTINO"
+
+      - name: 💾 Salvar Cache Matinal no Repositório (se ciclo 04:00)
+        if: steps.config.outputs.ciclo == '04:00'
+        run: |
+          if [ -f "pipeline/dados_abertura_matinal.json" ]; then
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git add pipeline/dados_abertura_matinal.json
+            git commit -m "chore: atualizacao automatica do cache matinal 04h [skip ci]" || true
+            git push || true
+            echo "✅ Cache matinal salvo com sucesso para o disparo das 07:00."
+          fi

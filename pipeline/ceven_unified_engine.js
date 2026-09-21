@@ -466,9 +466,68 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
   return filialResult;
 }
 
+// 4A. Leitura das Diretrizes Operacionais Dinâmicas
+function carregarDiretrizesOperacionais(cliOverrides = {}) {
+  const cfgPath = path.join(__dirname, '../config/diretrizes_operacionais.json');
+  let config = {
+    cnae_foco: {
+      codigo: '5611',
+      descricao: 'Restaurantes e Similares',
+      ratios_por_filial: {
+        TPH: 2.15, MCD: 3.80, TCV: 3.20, API: 2.10, ABC: 2.50,
+        TSJ: 1.85, TCA: 3.60, TBE: 1.35, TCG: 3.90, TBL: 1.45, TPA: 1.95
+      }
+    },
+    produtos_foco: [],
+    campanhas_ativas: [
+      { filial: 'TPH', tag: 'VOLTA', label: 'Campanha VOLTA COMIGO' }
+    ],
+    controles_dia: {
+      silenciar_ciclos: []
+    }
+  };
+
+  if (fs.existsSync(cfgPath)) {
+    try {
+      config = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+    } catch (e) {
+      console.warn('⚠️ Erro ao ler config/diretrizes_operacionais.json:', e.message);
+    }
+  }
+
+  // Overrides via argumentos de linha de comando
+  if (cliOverrides['cnae-foco']) {
+    config.cnae_foco = config.cnae_foco || {};
+    config.cnae_foco.codigo = String(cliOverrides['cnae-foco']).trim();
+  }
+  if (cliOverrides['cnae-desc']) {
+    config.cnae_foco = config.cnae_foco || {};
+    config.cnae_foco.descricao = String(cliOverrides['cnae-desc']).trim();
+  }
+  if (cliOverrides['produtos-foco']) {
+    const prods = String(cliOverrides['produtos-foco']).split(',').map(p => p.trim()).filter(Boolean);
+    config.produtos_foco = prods.map(p => ({ nome: p, tag: p.toUpperCase(), motivo: 'Foco prioritário do dia' }));
+  }
+  if (cliOverrides['silenciar-ciclo']) {
+    config.controles_dia = config.controles_dia || {};
+    config.controles_dia.silenciar_ciclos = config.controles_dia.silenciar_ciclos || [];
+    config.controles_dia.silenciar_ciclos.push(String(cliOverrides['silenciar-ciclo']).trim());
+  }
+
+  return config;
+}
+
 // 4B. Coleta Dinâmica de Abertura Matinal (Exclusivo Varejo Estrito)
-async function coletarAberturaVarejo(repsValidationMap) {
-  console.log('📡 Coletando dados reais da rota de abertura matinal para Varejo (VJ)...');
+async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
+  const dir = diretrizes || carregarDiretrizesOperacionais();
+  const cnaeCodigo = dir?.cnae_foco?.codigo || '5611';
+  const cnaeDesc = dir?.cnae_foco?.descricao || 'Restaurantes e Similares';
+  const ratiosCnae = dir?.cnae_foco?.ratios_por_filial || {
+    TPH: 2.15, MCD: 3.80, TCV: 3.20, API: 2.10, ABC: 2.50,
+    TSJ: 1.85, TCA: 3.60, TBE: 1.35, TCG: 3.90, TBL: 1.45, TPA: 1.95
+  };
+
+  console.log(`📡 Coletando dados da rota de abertura matinal para Varejo (CNAE Foco: ${cnaeCodigo} · ${cnaeDesc})...`);
   const repsPath = path.join(__dirname, '../public/reps_data.json');
   const reps = JSON.parse(fs.readFileSync(repsPath, 'utf8'));
 
@@ -544,14 +603,9 @@ async function coletarAberturaVarejo(repsValidationMap) {
     }));
   }
 
-  const RATIOS_PROSPECT_5611 = {
-    TPH: 2.15, MCD: 3.80, TCV: 3.20, API: 2.10, ABC: 2.50,
-    TSJ: 1.85, TCA: 3.60, TBE: 1.35, TCG: 3.90, TBL: 1.45, TPA: 1.95
-  };
-
   let totVj = 0, totVis = 0, totInat = 0, totRec = 0, totVolta = 0, totProsp = 0;
   Object.values(resultado).forEach(r => {
-    const ratio = RATIOS_PROSPECT_5611[r.sigla] || 2.0;
+    const ratio = ratiosCnae[r.sigla] || 2.0;
     r.prospects = Math.round(r.visitas * ratio);
     totVj += r.vjs;
     totVis += r.visitas;
@@ -575,8 +629,14 @@ async function coletarAberturaVarejo(repsValidationMap) {
   msg += `📍 *Visitas Planejadas na Rota:* ${totVis.toLocaleString('pt-BR')} PDVs\n`;
   msg += `🎯 *Oportunidades Inativos (+30d sem compra na rota):* ${totInat.toLocaleString('pt-BR')} PDVs (${pctInatGeral}% da rota — Ouro para Positivação)\n`;
   msg += `🔄 *Clientes c/ TAG Recorrência na rota:* ${totRec.toLocaleString('pt-BR')} PDVs (${pctRecGeral}% da rota — Alavanca de Faturamento)\n`;
-  msg += `🏬 *Oportunidades no Mapa (CNAE 5611 - Restaurantes e Similares):* +${totProsp.toLocaleString('pt-BR')} PDVs mapeados no trajeto\n\n`;
-  msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  msg += `🏬 *Oportunidades no Mapa (CNAE ${cnaeCodigo} - ${cnaeDesc}):* +${totProsp.toLocaleString('pt-BR')} PDVs mapeados no trajeto\n`;
+
+  // Se houver produtos foco configurados nas diretrizes
+  if (dir.produtos_foco && dir.produtos_foco.length > 0) {
+    const prodsTxt = dir.produtos_foco.map(p => `*${p.nome}* (${p.motivo || 'foco do dia'})`).join(' • ');
+    msg += `🔥 *Diretriz de Produtos do Dia:* ${prodsTxt}\n`;
+  }
+  msg += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
   msg += `🏢 *POTENCIAL DE LARGADA POR FILIAL (VAREJO)*\n\n`;
 
   // Ordenar filiais por volume de visitas
@@ -591,10 +651,10 @@ async function coletarAberturaVarejo(repsValidationMap) {
     if (f.sigla === 'TPH') {
       msg += `• 🔥 *Campanha VOLTA COMIGO: ${f.volta} PDVs na rota (Foco prioritário de reativação)*\n`;
     }
-    msg += `• 🏬 Oportunidades CNAE 5611 no trajeto: +${f.prospects.toLocaleString('pt-BR')} PDVs para cadastro\n\n`;
+    msg += `• 🏬 Oportunidades CNAE ${cnaeCodigo} no trajeto: +${f.prospects.toLocaleString('pt-BR')} PDVs para cadastro\n\n`;
   });
 
-  return { textoAbertura: msg.trim(), dadosAbertura: resultado };
+  return { textoAbertura: msg.trim(), dadosAbertura: resultado, cnaeFoco: { codigo: cnaeCodigo, descricao: cnaeDesc } };
 }
 
 // 5. Formatar Relatório de Vendas (Consolidado e Gerentes)
@@ -854,12 +914,41 @@ async function main() {
   console.log(`📅 Data: ${dataHoje} | Hora: ${hora} | Ação: ${acao} | Destino: ${destino}`);
   console.log(`==================================================\n`);
 
+  const diretrizes = carregarDiretrizesOperacionais(args);
+
+  if (diretrizes.controles_dia?.silenciar_ciclos?.includes(hora)) {
+    console.log(`⏸️ Ciclo [${hora}] está marcado em 'silenciar_ciclos' nas diretrizes operacionais. Execução abortada sem envio.`);
+    return;
+  }
+
   let gerentes = GERENTES_MAP;
   const gerPath = path.join(__dirname, '../scripts/gerentes_contatos.json');
   if (fs.existsSync(gerPath)) {
     try { gerentes = JSON.parse(fs.readFileSync(gerPath, 'utf8')); } catch (e) {}
   }
   const repsMap = carregarValidacaoVendedores();
+
+  const CACHE_ABERTURA = path.join(__dirname, 'dados_abertura_matinal.json');
+
+  // -1) Aquecimento Matinal (04:00 BRT): Coleta pesada noturna de todas as rotas
+  if (acao === 'aquecimento_matinal') {
+    console.log(`🌅 Executando AQUECIMENTO MATINAL (04:00 BRT)...`);
+    console.log(`⚙️ Diretrizes ativas: CNAE ${diretrizes.cnae_foco.codigo} (${diretrizes.cnae_foco.descricao}) | ${diretrizes.produtos_foco.length} produtos em foco.`);
+    const abertura = await coletarAberturaVarejo(repsMap, diretrizes);
+    const payload = {
+      data: dataHoje,
+      geradoEm: new Date().toISOString(),
+      diretrizesUsadas: {
+        cnae: diretrizes.cnae_foco,
+        produtos: diretrizes.produtos_foco
+      },
+      abertura
+    };
+    fs.writeFileSync(CACHE_ABERTURA, JSON.stringify(payload, null, 2), 'utf8');
+    console.log(`💾 Cache de abertura matinal salvo com sucesso em: ${CACHE_ABERTURA}`);
+    console.log(`✅ Aquecimento noturno finalizado. Às 07:00 o disparo será instantâneo (< 10s)!`);
+    return;
+  }
 
   let token = null;
   try {
@@ -871,7 +960,25 @@ async function main() {
 
   // 0) Abertura Matinal (07:00)
   if (acao === 'abertura') {
-    const abertura = await coletarAberturaVarejo(repsMap);
+    let abertura = null;
+    if (fs.existsSync(CACHE_ABERTURA)) {
+      try {
+        const cache = JSON.parse(fs.readFileSync(CACHE_ABERTURA, 'utf8'));
+        if (cache.data === dataHoje && cache.abertura?.textoAbertura) {
+          console.log(`⚡ Usando dados pré-processados do Aquecimento Matinal (${cache.geradoEm}). Disparo instantâneo!`);
+          abertura = cache.abertura;
+        } else {
+          console.log(`⚠️ Cache existente é de outra data (${cache.data}). Coletando dados ao vivo...`);
+        }
+      } catch (e) {
+        console.warn(`⚠️ Erro ao ler cache matinal: ${e.message}. Coletando dados ao vivo...`);
+      }
+    }
+
+    if (!abertura) {
+      console.log(`🔄 Coletando dados de abertura matinal ao vivo...`);
+      abertura = await coletarAberturaVarejo(repsMap, diretrizes);
+    }
     console.log(`✅ Dados de Abertura Matinal apurados com sucesso para 11 filiais.`);
 
     if (destino === 'vitorio' || destino === 'todos') {
@@ -1022,7 +1129,9 @@ module.exports = {
   getAdminToken,
   coletarAuditoriaCampo,
   coletarVendasEZerados,
+  coletarAberturaVarejo,
   formatarRelatoriosVendas,
+  carregarDiretrizesOperacionais,
   enviarWhatsapp
 };
 

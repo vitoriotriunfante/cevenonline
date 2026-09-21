@@ -1,0 +1,47 @@
+{
+  "versao": "1.0",
+  "descricao": "Diretrizes Operacionais Diárias do CEVEN NOC — Parametrização Dinâmica de Campo",
+  "data_vigencia": "2026-09-21",
+  "cnae_foco": {
+    "codigo": "5611",
+    "descricao": "Restaurantes e Similares",
+    "justificativa": "Alavancagem de Food Service, penetração de sobremesas e doces no canal de alimentação fora do lar",
+    "ratios_por_filial": {
+      "TPH": 2.15,
+      "MCD": 3.80,
+      "TCV": 3.20,
+      "API": 2.10,
+      "ABC": 2.50,
+      "TSJ": 1.85,
+      "TCA": 3.60,
+      "TBE": 1.35,
+      "TCG": 3.90,
+      "TBL": 1.45,
+      "TPA": 1.95
+    }
+  },
+  "produtos_foco": [
+    {
+      "nome": "Linha Snickers",
+      "tag": "SNICKERS",
+      "motivo": "Reposição de rupturas e alavancagem de positivação rápida no varejo"
+    },
+    {
+      "nome": "Linha Hemmer",
+      "tag": "HEMMER",
+      "motivo": "Campanha de condimentos e conservas para clientes sem compra recente"
+    }
+  ],
+  "campanhas_ativas": [
+    {
+      "filial": "TPH",
+      "tag": "VOLTA",
+      "label": "Campanha VOLTA COMIGO",
+      "descricao": "Foco prioritário de reativação de clientes inativos"
+    }
+  ],
+  "controles_dia": {
+    "silenciar_ciclos": [],
+    "destino_padrao_abertura": "vitorio"
+  }
+}

@@ -436,26 +436,23 @@ export default {
     let mensagem = null;
 
     // 10:00 UTC = 07:00 BRT -> Abertura
-    if (event.cron === '0 10 * * *' || event.cron === '0 10 * * 1-6') {
+    if (event.cron === '0 10 * * *' || event.cron === '0 10 * * 1-5' || event.cron === '0 10 * * 1-6') {
       mensagem = await montarResumoExecutivoAbertura(env, hoje, dataFormatada);
     }
     // 14:00 UTC = 11:00 BRT -> 1º Parcial
-    else if (event.cron === '0 14 * * *' || event.cron === '0 14 * * 1-6') {
+    else if (event.cron === '0 14 * * *' || event.cron === '0 14 * * 1-5' || event.cron === '0 14 * * 1-6') {
       mensagem = await montarRelatorioOficialConsolidado(env, hoje, '11:00');
     }
-    // 17:00 UTC = 14:00 BRT ou 17:30 UTC = 14:30 BRT -> 2º Parcial
-    else if (event.cron === '0 17 * * *' || event.cron === '0 17 * * 1-6') {
-      mensagem = await montarRelatorioOficialConsolidado(env, hoje, '14:00');
-    }
-    else if (event.cron === '30 17 * * *' || event.cron === '30 17 * * 1-6') {
+    // 17:30 UTC = 14:30 BRT -> 2º Parcial
+    else if (event.cron === '30 17 * * *' || event.cron === '30 17 * * 1-5' || event.cron === '30 17 * * 1-6') {
       mensagem = await montarRelatorioOficialConsolidado(env, hoje, '14:30');
     }
     // 20:00 UTC = 17:00 BRT -> 3º Parcial
-    else if (event.cron === '0 20 * * *' || event.cron === '0 20 * * 1-6') {
+    else if (event.cron === '0 20 * * *' || event.cron === '0 20 * * 1-5' || event.cron === '0 20 * * 1-6') {
       mensagem = await montarRelatorioOficialConsolidado(env, hoje, '17:00');
     }
     // 21:30 UTC = 18:30 BRT -> Fechamento Oficial
-    else if (event.cron === '30 21 * * *' || event.cron === '30 21 * * 1-6') {
+    else if (event.cron === '30 21 * * *' || event.cron === '30 21 * * 1-5' || event.cron === '30 21 * * 1-6') {
       mensagem = await montarRelatorioFechamento(env, hoje, '18:30');
     } else {
       console.log(`[IGNORADO] Cron ${event.cron} não faz parte dos 5 horários oficiais.`);
