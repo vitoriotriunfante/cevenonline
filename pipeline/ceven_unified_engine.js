@@ -56,6 +56,21 @@ function fmtMoeda(val) {
   return (val || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+async function safeGet(url, maxRetries = 3, timeout = 10000) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const res = await axios.get(url, { timeout });
+      return res.data;
+    } catch (err) {
+      if (attempt === maxRetries) {
+        throw err;
+      }
+      await new Promise(r => setTimeout(r, 600 * attempt));
+    }
+  }
+  return null;
+}
+
 // 1. Autenticação no CEVEN Admin
 async function getAdminToken() {
   const res = await axios.post(`${CEVEN_BASE}/api/admin/login`, {
@@ -296,7 +311,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
   }
 
   const rcasComPedido = [];
-  const BATCH = 30;
+  const BATCH = 8;
   for (let i = 0; i < reps.length; i += BATCH) {
     const lote = reps.slice(i, i + BATCH);
     await Promise.all(lote.map(async rca => {
@@ -308,16 +323,16 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
       const resFil = filialResult[fSigla];
 
       try {
-        const [prodRes, dashRes, devRes] = await Promise.all([
-          axios.get(`${CEVEN_BASE}/api/rca/produtividade?filial=${fKey}&id=${rca.codigo}`, { timeout: 8000 }),
-          axios.get(`${CEVEN_BASE}/api/rca/dashboard?filial=${fKey}&id=${rca.codigo}`, { timeout: 8000 }),
-          axios.get(`${CEVEN_BASE}/api/rca/devolucoes?filial=${fKey}&id=${rca.codigo}`, { timeout: 8000 })
+        const [diaData, finData, devData] = await Promise.all([
+          safeGet(`${CEVEN_BASE}/api/rca/produtividade?filial=${fKey}&id=${rca.codigo}`),
+          safeGet(`${CEVEN_BASE}/api/rca/dashboard?filial=${fKey}&id=${rca.codigo}`),
+          safeGet(`${CEVEN_BASE}/api/rca/devolucoes?filial=${fKey}&id=${rca.codigo}`)
         ]);
 
-        const dia = prodRes.data?.dia || {};
-        const fin = dashRes.data?.financeiro || {};
-        const pos = dashRes.data?.positivacao || {};
-        const devs = Array.isArray(devRes.data) ? devRes.data : [];
+        const dia = diaData?.dia || {};
+        const fin = finData?.financeiro || {};
+        const pos = finData?.positivacao || {};
+        const devs = Array.isArray(devData) ? devData : [];
 
         const prog = parseInt(dia.total_programado || dia.visitas_programadas || 0, 10);
         const metaFat = parseFloat(fin.meta || 0);
@@ -367,8 +382,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
             resFil.vjCom++;
             s.vjCom++;
             try {
-              const rotRes = await axios.get(`${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${fKey}&id=${rca.codigo}`, { timeout: 4000 });
-              const clients = rotRes.data || [];
+              const clients = await safeGet(`${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${fKey}&id=${rca.codigo}`) || [];
               const dataLimite = new Date();
               dataLimite.setDate(dataLimite.getDate() - 30);
               clients.forEach(c => {
@@ -405,17 +419,17 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
 
   // 2. Varredura rápida de Cortes Comerciais/Logísticos e Pedidos Bloqueados de Hoje
   console.log(`🔍 Apurando Cortes e Bloqueados em tempo real nos ${rcasComPedido.length} vendedores com pedido hoje...`);
-  const BATCH_ROT = 20;
+  const BATCH_ROT = 10;
   for (let i = 0; i < rcasComPedido.length; i += BATCH_ROT) {
     const lote = rcasComPedido.slice(i, i + BATCH_ROT);
     await Promise.all(lote.map(async r => {
       try {
-        const rotRes = await axios.get(`${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${r.fKey}&id=${r.codigo}`, { timeout: 4000 });
-        const pdvs = (rotRes.data || []).filter(p => p.status === 'POSITIVADO' || p.status === 'EFETIVADO' || p.status === 'VISITADO');
+        const roteiroData = await safeGet(`${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${r.fKey}&id=${r.codigo}`);
+        const pdvs = (roteiroData || []).filter(p => p.status === 'POSITIVADO' || p.status === 'EFETIVADO' || p.status === 'VISITADO');
         await Promise.all(pdvs.map(async p => {
           try {
-            const histRes = await axios.get(`${CEVEN_BASE}/api/rca/historico-cliente/${p.id_cliente}?filial=${r.fKey}&id=${r.codigo}`, { timeout: 3500 });
-            const visitasHoje = (histRes.data?.ultimas_visitas || []).filter(v => v.data_visita === dataRef && v.num_pedido);
+            const histData = await safeGet(`${CEVEN_BASE}/api/rca/historico-cliente/${p.id_cliente}?filial=${r.fKey}&id=${r.codigo}`);
+            const visitasHoje = (histData?.ultimas_visitas || []).filter(v => v.data_visita === dataRef && v.num_pedido);
             for (const v of visitasHoje) {
               const resFil = filialResult[r.filial];
               if (!resFil) return;
