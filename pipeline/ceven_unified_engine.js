@@ -23,7 +23,7 @@ const CEVEN_PASS = 'Triunfante@2026';
 const EVO_URL = 'https://evolution-api-production-8999.up.railway.app';
 const EVO_KEY = '143c2820271dfa4c2f6c920aff3205f0c5dec92d7c3f3dfaf90a9d8bb023eaaa';
 const EVO_INSTANCE = 'ceven-noc';
-const WHATSAPP_VITORIO = ['556696389884', '5541987525605'];
+const WHATSAPP_VITORIO = ['5566996389884', '556696389884', '5541987525605'];
 
 // Mapeamento Oficial das 11 Filiais
 const FILIAIS_MAP = {
