@@ -52,6 +52,27 @@ function cleanName(name) {
   return name.replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
 }
 
+// Classificação de canal real (area_atuacao do CEVEN). Grupos de negócio definidos por Vitório em 22/09/2026:
+// Varejo = VJ + FARMA + PET VJ + ESP · AS = AS + PET AS · Excluídos de ambos: SUP, GER, NULO (sem classificação).
+// Lista de exclusões adicionais (contas específicas) a ser fornecida por Vitório — ainda não aplicada.
+const CANAIS_VAREJO = ['VJ', 'FARMA', 'PET VJ', 'ESP'];
+const CANAIS_AS = ['AS', 'PET AS'];
+function isCanalVarejo(canal) { return CANAIS_VAREJO.includes(canal); }
+function isCanalAS(canal) { return CANAIS_AS.includes(canal); }
+
+// Classifica risco de PDV: null = sem risco (comprou há <=30 dias)
+// 'amarelo' = 1ª quinzena, sem compra há +30 dias (ainda tem 2ª visita este mês)
+// 'vermelho' = 2ª quinzena, sem compra há +30 dias (não tem mais visita este mês)
+function classificarRisco(dataUltimaCompraISO, hojeDate) {
+  let diffDias = Infinity;
+  if (dataUltimaCompraISO) {
+    const dataCompra = new Date(dataUltimaCompraISO);
+    diffDias = Math.floor((hojeDate - dataCompra) / 86400000);
+  }
+  if (diffDias <= 30) return null;
+  return hojeDate.getDate() <= 15 ? 'amarelo' : 'vermelho';
+}
+
 function fmtMoeda(val) {
   return (val || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
@@ -357,7 +378,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
         const canal = valInfo.canal;
 
         // Considera visitas e roteiro APENAS dos vendedores de VAREJO (VJ) com meta ativa e rota >= 5
-        if (canal === 'VJ' && prog >= 5 && metaFat > 0 && metaPos > 0) {
+        if (isCanalVarejo(canal) && prog >= 5 && metaFat > 0 && metaPos > 0) {
           resFil.visitasReal += visReal;
           resFil.visitasProg += prog;
 
@@ -475,6 +496,29 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
   return filialResult;
 }
 
+// 3B. Enriquecimento de Canal Real (area_atuacao) — sobrescreve o canal:'VJ' hardcoded
+// pelo valor real do CEVEN. Valores observados até 22/09/2026: VJ, AS, SUP, ESP, ou nulo
+// (~35% dos cadastros não têm area_atuacao preenchida no CEVEN — tratado como 'NULO').
+async function enriquecerCanalReal(repsValidationMap) {
+  const entries = Object.entries(repsValidationMap);
+  const BATCH = 20;
+  for (let i = 0; i < entries.length; i += BATCH) {
+    const lote = entries.slice(i, i + BATCH);
+    await Promise.all(lote.map(async ([key, val]) => {
+      const filEntry = Object.entries(FILIAIS_MAP).find(([k, v]) => v.sigla === val.filial);
+      if (!filEntry) return;
+      const fKey = filEntry[0];
+      try {
+        const res = await axios.get(`${CEVEN_BASE}/api/filiais/${fKey}/representante/${val.rca}`, { timeout: 6000 });
+        val.canal = res.data?.area_atuacao || 'NULO';
+      } catch (e) {
+        val.canal = 'NULO';
+      }
+    }));
+  }
+  return repsValidationMap;
+}
+
 // 4A. Leitura das Diretrizes Operacionais Dinâmicas
 function carregarDiretrizesOperacionais(cliOverrides = {}) {
   const cfgPath = path.join(__dirname, '../config/diretrizes_operacionais.json');
@@ -543,24 +587,41 @@ async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
   const dataLimite = new Date();
   dataLimite.setDate(dataLimite.getDate() - 30);
 
+  // Total de visitas planejadas hoje, TODAS as contas da árvore viva (todos os canais,
+  // sem filtro de canal real — ver seção 9 do OPERACAO_WHATSAPP/REGRAS_E_MEMORIA_OPERACIONAL.md,
+  // integração do campo `area_atuacao` ainda pendente pra excluir SUP/GER com precisão).
+  let totalVisitasTodasContas = 0;
+  try {
+    const arvorePath = path.join(__dirname, '../scripts/supervisores_11_filiais_completo.json');
+    if (fs.existsSync(arvorePath)) {
+      const arvore = JSON.parse(fs.readFileSync(arvorePath, 'utf8'));
+      Object.values(arvore).forEach(f => {
+        (f.cascata?.supervisores || []).forEach(s => {
+          (s.tabelas?.produtividade || []).forEach(v => {
+            if (cleanName(v.nome).toUpperCase() !== 'INTERNO') {
+              totalVisitasTodasContas += parseInt(v.visit_plan_hoje || 0, 10);
+            }
+          });
+        });
+      });
+    }
+  } catch (e) {}
+
+  // resultado é indexado por chave composta "SIGLA::gerente" pra permitir separar
+  // MCD e TPH em dois blocos (um por gerente) em vez de um bloco só com "/".
   const resultado = {};
-  for (const [fKey, meta] of Object.entries(FILIAIS_MAP)) {
-    resultado[meta.sigla] = {
-      sigla: meta.sigla,
-      gerente: meta.gerente,
-      vjs: 0,
-      visitas: 0,
-      inativos: 0,
-      rec: 0,
-      volta: 0,
-      prospects: 0
-    };
-  }
+  const getOrCriarBloco = (fSigla, gerente) => {
+    const chave = `${fSigla}::${gerente}`;
+    if (!resultado[chave]) {
+      resultado[chave] = { sigla: fSigla, gerente, vjs: 0, visitas: 0, inativos: 0, rec: 0, volta: 0, prospects: 0 };
+    }
+    return resultado[chave];
+  };
 
   const vjsValidos = reps.filter(r => {
     const fSigla = (r.filial || '').toUpperCase();
     const val = repsValidationMap[fSigla + '_' + r.codigo];
-    return val && val.canal === 'VJ' && val.metaFat > 0 && val.metaPos > 0;
+    return val && isCanalVarejo(val.canal) && val.metaFat > 0 && val.metaPos > 0;
   });
 
   const BATCH = 30;
@@ -571,7 +632,9 @@ async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
       const filEntry = Object.entries(FILIAIS_MAP).find(([k, v]) => v.sigla === fSigla);
       if (!filEntry) return;
       const fKey = filEntry[0];
-      const rFil = resultado[fSigla];
+      const valInfo = repsValidationMap[fSigla + '_' + rca.codigo] || {};
+      const gerente = valInfo.gerente || FILIAIS_MAP[fKey].gerente;
+      const rFil = getOrCriarBloco(fSigla, gerente);
 
       try {
         const url = `${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${fKey}&id=${rca.codigo}`;
@@ -630,23 +693,20 @@ async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
   const dataFormatada = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
   const dataCapitalizada = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
 
-  let msg = `🌅 *CEVEN NOC — ABERTURA MATINAL DE OPERAÇÃO (07:00)*\n`;
+  const quinzenaEmoji = new Date().getDate() <= 15 ? '🟡' : '🔴';
+  const quinzenaLabel = new Date().getDate() <= 15 ? 'Alerta Preventivo' : 'Última Chance do Mês';
+
+  let msg = `🌅 *ABERTURA MATINAL DE OPERAÇÃO (07:45)*\n`;
   msg += `📅 ${dataCapitalizada} • Grupo Triunfante\n`;
   msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-  msg += `📌 *PANORAMA GERAL DA LARGADA (FORÇA DE VENDAS VAREJO):*\n`;
-  msg += `👥 *Vendedores Varejo em Rota (Metas + Rota >= 5):* ${totVj} vendedores\n`;
-  msg += `📍 *Visitas Planejadas na Rota:* ${totVis.toLocaleString('pt-BR')} PDVs\n`;
-  msg += `🎯 *Oportunidades Inativos (+30d sem compra na rota):* ${totInat.toLocaleString('pt-BR')} PDVs (${pctInatGeral}% da rota — Ouro para Positivação)\n`;
-  msg += `🔄 *Clientes c/ TAG Recorrência na rota:* ${totRec.toLocaleString('pt-BR')} PDVs (${pctRecGeral}% da rota — Alavanca de Faturamento)\n`;
-  msg += `🏬 *Oportunidades no Mapa (CNAE ${cnaeCodigo} - ${cnaeDesc}):* +${totProsp.toLocaleString('pt-BR')} PDVs mapeados no trajeto\n`;
-
-  // Se houver produtos foco configurados nas diretrizes
-  if (dir.produtos_foco && dir.produtos_foco.length > 0) {
-    const prodsTxt = dir.produtos_foco.map(p => `*${p.nome}* (${p.motivo || 'foco do dia'})`).join(' • ');
-    msg += `🔥 *Diretriz de Produtos do Dia:* ${prodsTxt}\n`;
-  }
+  msg += `📌 *PANORAMA GERAL*\n`;
+  msg += `👥 *Vendedores Varejo em Rota:* ${totVj}\n`;
+  msg += `📍 *Visitas Planejadas:* ${totVis.toLocaleString('pt-BR')} PDVs (Varejo) de ${totalVisitasTodasContas.toLocaleString('pt-BR')} (Total)\n`;
+  msg += `${quinzenaEmoji} *${quinzenaLabel}:* ${totInat.toLocaleString('pt-BR')} PDVs (${pctInatGeral}% da rota)\n`;
+  msg += `🔄 *Recorrência na rota:* ${totRec.toLocaleString('pt-BR')} PDVs (${pctRecGeral}%)\n`;
+  msg += `🏬 *Oportunidades CNAE ${cnaeCodigo} (${cnaeDesc}):* +${totProsp.toLocaleString('pt-BR')} PDVs\n`;
   msg += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-  msg += `🏢 *POTENCIAL DE LARGADA POR FILIAL (VAREJO)*\n\n`;
+  msg += `🏢 *POR FILIAL (VAREJO)*\n\n`;
 
   // Ordenar filiais por volume de visitas
   const filiaisOrd = Object.values(resultado).sort((a, b) => b.visitas - a.visitas);
@@ -655,15 +715,151 @@ async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
     const pRec = f.visitas > 0 ? ((f.rec / f.visitas) * 100).toFixed(1).replace('.', ',') : '0,0';
 
     msg += `📍 *${f.sigla} — ${f.gerente.toUpperCase()}*\n`;
-    msg += `• Vendedores em campo: ${f.vjs} • Visitas agendadas: ${f.visitas}\n`;
-    msg += `• 🎯 Sem compra +30d: ${f.inativos} PDVs (${pInat}%) • 🔄 Recorrência: ${f.rec} PDVs (${pRec}%)\n`;
+    msg += `• Vendedores: ${f.vjs} • Visitas: ${f.visitas}\n`;
+    msg += `• Sem compra +30d: ${f.inativos} (${pInat}%) • Recorrência: ${f.rec} (${pRec}%)\n`;
     if (f.sigla === 'TPH') {
-      msg += `• 🔥 *Campanha VOLTA COMIGO: ${f.volta} PDVs na rota (Foco prioritário de reativação)*\n`;
+      msg += `• 🔥 *Volta Comigo: ${f.volta} PDVs*\n`;
     }
-    msg += `• 🏬 Oportunidades CNAE ${cnaeCodigo} no trajeto: +${f.prospects.toLocaleString('pt-BR')} PDVs para cadastro\n\n`;
+    msg += `• CNAE ${cnaeCodigo}: +${f.prospects.toLocaleString('pt-BR')} PDVs\n\n`;
   });
 
   return { textoAbertura: msg.trim(), dadosAbertura: resultado, cnaeFoco: { codigo: cnaeCodigo, descricao: cnaeDesc } };
+}
+
+// 4C. Coleta de PDVs em Risco (Última Chance / Alerta Preventivo) — reaproveita o mesmo
+// critério de "inativo +30 dias" já usado na abertura, só reclassificado pela quinzena do mês.
+async function coletarAlertaRisco(repsValidationMap, dataHoje) {
+  const repsPath = path.join(__dirname, '../public/reps_data.json');
+  const reps = JSON.parse(fs.readFileSync(repsPath, 'utf8'));
+  const hojeDate = new Date(dataHoje + 'T12:00:00');
+
+  const vjsValidos = reps.filter(r => {
+    const fSigla = (r.filial || '').toUpperCase();
+    const val = repsValidationMap[fSigla + '_' + r.codigo];
+    return val && isCanalVarejo(val.canal) && val.metaFat > 0 && val.metaPos > 0;
+  });
+
+  // porGerente["SIGLA::gerente"][supNome] = [ {cliente, vendedor, rca, dataUltimaCompra, valorUltimaCompra, risco, sigla} ]
+  // Chave composta (filial + gerente) evita colisão entre gerentes de filiais diferentes com o mesmo nome (ex: "Fábio" existe em TBL e em TPH).
+  const porGerente = {};
+
+  const BATCH = 30;
+  for (let i = 0; i < vjsValidos.length; i += BATCH) {
+    const lote = vjsValidos.slice(i, i + BATCH);
+    await Promise.all(lote.map(async rca => {
+      const fSigla = (rca.filial || '').toUpperCase();
+      const filEntry = Object.entries(FILIAIS_MAP).find(([k, v]) => v.sigla === fSigla);
+      if (!filEntry) return;
+      const fKey = filEntry[0];
+      const valInfo = repsValidationMap[fSigla + '_' + rca.codigo] || {};
+      const gerente = valInfo.gerente || FILIAIS_MAP[fKey].gerente;
+      const chaveGerente = `${fSigla}::${gerente}`;
+      const supNome = valInfo.supNome || 'SUPERVISÃO GERAL';
+
+      try {
+        const url = `${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${fKey}&id=${rca.codigo}`;
+        const res = await axios.get(url, { timeout: 6000 });
+        const clients = res.data || [];
+
+        let rotaOficial = clients.filter(c => c.id >= 1083000 && c.id < 1085000);
+        if (rotaOficial.length === 0) {
+          const seen = new Set();
+          const sorted = [...clients].sort((a, b) => b.id - a.id);
+          rotaOficial = [];
+          sorted.forEach(c => {
+            if (!seen.has(c.id_cliente)) {
+              seen.add(c.id_cliente);
+              rotaOficial.push(c);
+            }
+          });
+          rotaOficial.reverse();
+        }
+        if (rotaOficial.length < 5) return;
+
+        rotaOficial.forEach(c => {
+          const risco = classificarRisco(c.data_ultima_compra, hojeDate);
+          if (!risco) return;
+          if (!porGerente[chaveGerente]) porGerente[chaveGerente] = {};
+          if (!porGerente[chaveGerente][supNome]) porGerente[chaveGerente][supNome] = [];
+          porGerente[chaveGerente][supNome].push({
+            cliente: c.nome_cliente,
+            vendedor: cleanName(rca.nome),
+            rca: rca.codigo,
+            sigla: fSigla,
+            dataUltimaCompra: c.data_ultima_compra,
+            valorUltimaCompra: parseFloat(c.valor_ultima_compra || 0),
+            risco
+          });
+        });
+      } catch (e) {}
+    }));
+  }
+
+  return porGerente;
+}
+
+// Mensagem GERAL (só Vitório) — visão consolidada de todas as filiais
+function formatarAlertaRiscoGeral(porGerente, horaLabel) {
+  let totalVermelho = 0, totalAmarelo = 0;
+  const porFilial = {};
+
+  Object.values(porGerente).forEach(supMap => {
+    Object.values(supMap).forEach(itens => {
+      itens.forEach(it => {
+        if (it.risco === 'vermelho') totalVermelho++; else totalAmarelo++;
+        if (!porFilial[it.sigla]) porFilial[it.sigla] = { vermelho: 0, amarelo: 0 };
+        if (it.risco === 'vermelho') porFilial[it.sigla].vermelho++; else porFilial[it.sigla].amarelo++;
+      });
+    });
+  });
+
+  const quinzena = new Date().getDate() <= 15 ? '1ª quinzena' : '2ª quinzena';
+
+  let m = `🚨 *ALERTA DE PDVs EM RISCO — ${horaLabel}*\n`;
+  m += `📅 ${new Date().toLocaleDateString('pt-BR')} • ${quinzena} do mês\n`;
+  m += `🏢 *Grupo Triunfante — 11 Filiais*\n`;
+  m += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  m += `🔴 *Última Chance do Mês:* ${totalVermelho} PDVs (2ª quinzena, +30d sem compra — não tem mais visita este mês)\n`;
+  m += `🟡 *Alerta Preventivo:* ${totalAmarelo} PDVs (1ª quinzena, +30d sem compra — ainda tem a 2ª visita do mês)\n\n`;
+  m += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  m += `📊 *POR FILIAL:*\n\n`;
+
+  const filiaisOrd = Object.entries(porFilial).sort((a, b) => (b[1].vermelho + b[1].amarelo) - (a[1].vermelho + a[1].amarelo));
+  filiaisOrd.forEach(([sigla, c]) => {
+    m += `📍 *${sigla}:* 🔴 ${c.vermelho} • 🟡 ${c.amarelo}\n`;
+  });
+
+  return m.trim();
+}
+
+// Mensagem por GERENTE — aberta por supervisor que responde a ele
+function formatarAlertaRiscoGerente(gerente, sigla, supervisoresMap, horaLabel) {
+  let totalVermelho = 0, totalAmarelo = 0;
+  Object.values(supervisoresMap).forEach(lista => lista.forEach(it => it.risco === 'vermelho' ? totalVermelho++ : totalAmarelo++));
+
+  let m = `🚨 *PDVs EM RISCO — ${horaLabel}*\n`;
+  m += `📍 *${sigla} — ${gerente.toUpperCase()}* • ${new Date().toLocaleDateString('pt-BR')}\n`;
+  m += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  m += `🔴 Última Chance: ${totalVermelho}  •  🟡 Preventivo: ${totalAmarelo}\n\n`;
+
+  const MAX_POR_SUPERVISOR = 5;
+  Object.entries(supervisoresMap).forEach(([supNome, itens]) => {
+    const ordenados = itens.sort((a, b) => b.valorUltimaCompra - a.valorUltimaCompra);
+    m += `👤 *${supNome}* (${itens.length} em risco)\n`;
+    ordenados.slice(0, MAX_POR_SUPERVISOR).forEach(it => {
+      const emoji = it.risco === 'vermelho' ? '🔴' : '🟡';
+      const dataFmt = it.dataUltimaCompra
+        ? new Date(it.dataUltimaCompra).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+        : 'nunca';
+      m += `  ${emoji} ${it.cliente} (${it.rca}) — ${dataFmt}\n`;
+    });
+    if (ordenados.length > MAX_POR_SUPERVISOR) {
+      m += `  _+${ordenados.length - MAX_POR_SUPERVISOR} outros_\n`;
+    }
+    m += `\n`;
+  });
+
+  return m.trim();
 }
 
 // 5. Formatar Relatório de Vendas (Consolidado e Gerentes)
@@ -787,7 +983,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       else if (idx === 1) prefix = '🥈 ';
       else if (idx === 2) prefix = '🥉 ';
       let b = `${prefix}*${idx + 1}. FILIAL ${r.sigla} — ${r.gerente.toUpperCase()}*\n`;
-      b += `💰 Total de Pedidos: R$ ${fmtMoeda(r.fat)} • 📦 Pedidos: ${r.ped}\n`;
+      b += `💰 Total Digitado: R$ ${fmtMoeda(r.fat)} • 📦 Pedidos: ${r.ped}\n`;
       b += `📍 Visitas Varejo: ${r.vis} de ${r.rot} (${r.efici}%) • Eficácia: ${r.efica}%\n`;
       b += `👥 Varejo com Pedido: ${r.vjCom} de ${r.vjTotal} (${r.pctCom}%) | 🚨 Varejo SEM PEDIDO: *${r.vjSem} (${r.pctSem}%)*\n`;
       b += `✂️ Cortes: R$ ${fmtMoeda(r.cortesValor)} (${r.cortesQtd} ped) • 🔒 Bloqueados: R$ ${fmtMoeda(r.bloqueadosValor)} (${r.bloqueadosQtd} ped)\n`;
@@ -936,6 +1132,8 @@ async function main() {
     try { gerentes = JSON.parse(fs.readFileSync(gerPath, 'utf8')); } catch (e) {}
   }
   const repsMap = carregarValidacaoVendedores();
+  console.log(`📡 Enriquecendo canal real (area_atuacao) de ${Object.keys(repsMap).length} contas...`);
+  await enriquecerCanalReal(repsMap);
 
   const CACHE_ABERTURA = path.join(__dirname, 'dados_abertura_matinal.json');
 
@@ -1141,7 +1339,17 @@ module.exports = {
   coletarAberturaVarejo,
   formatarRelatoriosVendas,
   carregarDiretrizesOperacionais,
-  enviarWhatsapp
+  carregarValidacaoVendedores,
+  enriquecerCanalReal,
+  isCanalVarejo,
+  isCanalAS,
+  coletarAlertaRisco,
+  formatarAlertaRiscoGeral,
+  formatarAlertaRiscoGerente,
+  enviarWhatsapp,
+  GERENTES_MAP,
+  FILIAIS_MAP,
+  WHATSAPP_VITORIO
 };
 
 if (require.main === module) {

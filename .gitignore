@@ -8,7 +8,14 @@
 *.db-wal
 
 # Scripts descartáveis de análise pontual (120+ temporários)
-scripts/
+scripts/*
+# Exceções: scripts oficiais de auditoria do pipeline de WhatsApp (não são descartáveis)
+!scripts/gerar_auditoria_mensagens.js
+!scripts/gerar_alerta_risco.js
+!scripts/amostrar_cnae_nacional.js
+
+# Saída gerada pelos scripts de auditoria (dado real de cliente, regenerável, não versionar)
+auditoria_mensagens/
 
 # Dependências
 node_modules/
