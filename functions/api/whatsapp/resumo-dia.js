@@ -87,7 +87,7 @@ export async function onRequestGet(context) {
 
 _Relatório oficial gerado pela Central de Monitoramento CEVEN Matrix._`;
 
-    const numero = '5566996389884';
+    const numero = '5541987525605';
     const whatsappWebLink = `https://api.whatsapp.com/send?phone=${numero}&text=${encodeURIComponent(textoMensagem)}`;
 
     // 2. Disparo Imediato via Green-API Cloud Gateway

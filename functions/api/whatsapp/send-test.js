@@ -2,7 +2,7 @@ export async function onRequestPost(context) {
   const { request, env } = context;
   try {
     const data = await request.json().catch(() => ({}));
-    const numero = data.numero || '5566996389884';
+    const numero = data.numero || '5541987525605';
     const filial = data.filial || 'TBL';
     const gerente = data.gerente || 'Vitório Neto';
 

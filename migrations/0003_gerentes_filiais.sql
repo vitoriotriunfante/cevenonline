@@ -18,4 +18,4 @@ CREATE TABLE IF NOT EXISTS gerentes_filiais (
 INSERT OR REPLACE INTO gerentes_filiais 
 (filial_id, filial_sigla, nome_gerente, whatsapp_numero, ativo, alertas_cortes, resumo_abertura, resumo_parcial, resumo_fechamento)
 VALUES 
-('tbl1', 'TBL', 'Vitório Neto', '5566996389884', 1, 1, 1, 1, 1);
+('tbl1', 'TBL', 'Vitório Neto', '5541987525605', 1, 1, 1, 1, 1);

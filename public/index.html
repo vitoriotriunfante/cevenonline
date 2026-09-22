@@ -2913,7 +2913,7 @@
             </span>
           </td>
           <td class="py-3 px-4 text-right space-x-1.5">
-            <button onclick="dispararTesteWhatsApp('${g.whatsapp_numero || '5566996389884'}', '${g.filial_sigla}', '${g.nome_gerente || 'Gerente'}')" class="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600 text-emerald-300 hover:text-white text-[10px] font-bold transition">
+            <button onclick="dispararTesteWhatsApp('${g.whatsapp_numero || '5541987525605'}', '${g.filial_sigla}', '${g.nome_gerente || 'Gerente'}')" class="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600 text-emerald-300 hover:text-white text-[10px] font-bold transition">
               ⚡ Testar
             </button>
             <button onclick="gerarResumoWhatsApp('${g.filial_sigla}')" class="px-2.5 py-1 rounded-lg bg-purple-600/30 hover:bg-purple-600 text-purple-300 hover:text-white text-[10px] font-bold transition">
@@ -2925,7 +2925,7 @@
       lucide.createIcons();
     }
 
-    async function dispararTesteWhatsApp(num = '5566996389884', fil = 'TBL', ger = 'Vitório Neto') {
+    async function dispararTesteWhatsApp(num = '5541987525605', fil = 'TBL', ger = 'Vitório Neto') {
       try {
         showToast(`Enviando mensagem de teste para ${num}...`, 'info');
         const res = await fetch('/api/whatsapp/send-test', {

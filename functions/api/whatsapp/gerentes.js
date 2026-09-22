@@ -2,7 +2,7 @@ export async function onRequestGet(context) {
   const { env } = context;
   
   const filiaisBase = [
-    { filial_id: 'tbl1', filial_sigla: 'TBL', nome_gerente: 'Vitório Neto', whatsapp_numero: '5566996389884', ativo: 1, alertas_cortes: 1, resumo_abertura: 1, resumo_parcial: 1, resumo_fechamento: 1 },
+    { filial_id: 'tbl1', filial_sigla: 'TBL', nome_gerente: 'Vitório Neto', whatsapp_numero: '5541987525605', ativo: 1, alertas_cortes: 1, resumo_abertura: 1, resumo_parcial: 1, resumo_fechamento: 1 },
     { filial_id: 'abc1', filial_sigla: 'ABC', nome_gerente: 'Gerente Comercial ABC', whatsapp_numero: '', ativo: 0, alertas_cortes: 1, resumo_abertura: 1, resumo_parcial: 1, resumo_fechamento: 1 },
     { filial_id: 'tcv1', filial_sigla: 'TCV', nome_gerente: 'Gerente Comercial TCV', whatsapp_numero: '', ativo: 0, alertas_cortes: 1, resumo_abertura: 1, resumo_parcial: 1, resumo_fechamento: 1 },
     { filial_id: 'api1', filial_sigla: 'API', nome_gerente: 'Gerente Comercial API', whatsapp_numero: '', ativo: 0, alertas_cortes: 1, resumo_abertura: 1, resumo_parcial: 1, resumo_fechamento: 1 },

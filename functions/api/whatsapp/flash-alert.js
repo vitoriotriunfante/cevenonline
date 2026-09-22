@@ -5,7 +5,7 @@ export async function onRequestPost(context) {
     const data = await request.json().catch(() => ({}));
     const tipo = data.tipo || 'corte'; // 'corte' ou 'devolucao'
     const filial = (data.filial || 'TBL').toUpperCase();
-    const numero = data.numero || '556696389884';
+    const numero = data.numero || '5541987525605';
 
     let textoMensagem = '';
 
