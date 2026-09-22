@@ -98,78 +98,73 @@ const GERENTES_MAP = [
   { filial: 'TPA', gerente: 'LEANDRO', whatsapp: '554499427329' }
 ];
 
-// 2. Carregar Mapa de Vendedores (Validação VJ vs AS)
+// 2. Carregar Mapa de Vendedores puramente da Árvore Viva do CEVEN (Zero Planilhas)
 function carregarValidacaoVendedores() {
-  const excelPath = path.join(__dirname, '../VALIDACAO_VENDEDORES_VJ_AS.xlsx');
   const map = {};
-  if (fs.existsSync(excelPath)) {
-    try {
-      const wb = XLSX.readFile(excelPath);
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+  const onlineTreePath = path.join(__dirname, '../scripts/supervisores_11_filiais_completo.json');
 
-      for (let r = 2; r < rows.length; r++) {
-        const row = rows[r];
-        if (!row || !row[0]) continue;
-        const fil = String(row[0]).trim().toUpperCase();
-        const ger = String(row[1] || '').trim();
-        const supCod = String(row[2] || '').trim();
-        const supNome = cleanName(String(row[3] || ''));
-        const rca = String(row[4] || '').trim();
-        const nome = cleanName(String(row[5] || ''));
-        const canal = String(row[6] || 'VJ').trim().toUpperCase();
-        const metaFat = parseFloat(row[10] || 0);
-        const metaPos = parseInt(row[11] || 0, 10);
-
-        const key = `${fil}_${rca}`;
-        map[key] = {
-          filial: fil,
-          gerente: ger,
-          supCod,
-          supNome: supNome || 'SUPERVISÃO GERAL',
-          rca,
-          nome,
-          canal,
-          metaFat,
-          metaPos
-        };
-      }
-    } catch (e) {
-      console.warn('Aviso: Erro ao carregar planilha de validacao:', e.message);
-    }
+  if (!fs.existsSync(onlineTreePath)) {
+    console.error('ERRO CRÍTICO: Árvore de supervisores do CEVEN não encontrada em', onlineTreePath);
+    return map;
   }
 
-  // Enriquecer e atualizar com a árvore viva online dos gerentes (cascata oficial)
-  const onlineTreePath = path.join(__dirname, '../scripts/supervisores_11_filiais_completo.json');
-  if (fs.existsSync(onlineTreePath)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(onlineTreePath, 'utf8'));
-      for (const [sigla, f] of Object.entries(data)) {
-        (f.cascata?.supervisores || []).forEach(s => {
-          const supNome = cleanName(s.supervisorNome);
-          ['produtividade', 'faturamento', 'positivacao'].forEach(t => {
-            (s.tabelas?.[t] || []).forEach(v => {
-              const key = `${sigla}_${v.id}`;
-              if (!map[key]) {
-                map[key] = {
-                  filial: sigla,
-                  gerente: f.gerente,
-                  supCod: String(s.supervisorId || ''),
-                  supNome: supNome || 'SUPERVISÃO GERAL',
-                  rca: String(v.id),
-                  nome: cleanName(v.nome),
-                  canal: 'VJ',
-                  metaFat: parseFloat(v.meta || 0),
-                  metaPos: parseInt(v.meta || 0, 10)
-                };
-              } else {
-                map[key].supNome = supNome || map[key].supNome;
-              }
-            });
+  try {
+    const data = JSON.parse(fs.readFileSync(onlineTreePath, 'utf8'));
+
+    // Mapeamento Oficial das Sub-Gerências de MCD e TPH
+    const extrairGerente = (filial, supNome, gerenteBase) => {
+      const s = (supNome || '').toUpperCase();
+      if (filial === 'MCD') {
+        if (s.includes('THIAGO') || s.includes('FLAVIO') || s.includes('JONATAS')) return 'Cleverson';
+        if (s.includes('ALYFER') || s.includes('CARLOS ALAGUEZ') || s.includes('CLEOMAR')) return 'Adriano';
+        return 'Cleverson';
+      }
+      if (filial === 'TPH') {
+        if (s.includes('AILTON') || s.includes('CRISTIAN') || s.includes('PRISCILA') || s.includes('EDI CARLOS') || s.includes('BERTONI') || s.includes('VITOR MANUEL')) return 'Fábio';
+        if (s.includes('LUCAS') || s.includes('ALLISON') || s.includes('DARROS') || s.includes('ANDREY') || s.includes('LUIZ') || s.includes('JEFFERSON') || s.includes('CLAUDETE')) return 'Vagner';
+        return 'Fábio';
+      }
+      return gerenteBase;
+    };
+
+    for (const [sigla, f] of Object.entries(data)) {
+      const gerentePadrao = f.gerente || `Gerente ${sigla}`;
+      (f.cascata?.supervisores || []).forEach(s => {
+        const supNome = cleanName(s.supervisorNome);
+        const supCod = String(s.supervisorId || '');
+        const gerenteOficial = extrairGerente(sigla, supNome, gerentePadrao);
+
+        ['produtividade', 'faturamento', 'positivacao'].forEach(t => {
+          (s.tabelas?.[t] || []).forEach(v => {
+            const key = `${sigla}_${v.id}`;
+            const metaFat = t === 'faturamento' ? parseFloat(v.meta || 0) : 0;
+            const metaPos = t === 'positivacao' ? parseInt(v.meta || 0, 10) : 0;
+
+            if (!map[key]) {
+              map[key] = {
+                filial: sigla,
+                gerente: gerenteOficial,
+                supCod,
+                supNome: supNome || 'SUPERVISÃO GERAL',
+                rca: String(v.id),
+                nome: cleanName(v.nome),
+                canal: 'VJ',
+                metaFat,
+                metaPos
+              };
+            } else {
+              if (metaFat > 0) map[key].metaFat = metaFat;
+              if (metaPos > 0) map[key].metaPos = metaPos;
+              map[key].supNome = supNome || map[key].supNome;
+              map[key].gerente = gerenteOficial;
+            }
           });
         });
-      }
-    } catch (e) {}
+      });
+    }
+    console.log(`✅ Árvore viva do CEVEN carregada: ${Object.keys(map).length} vendedores mapeados diretamente dos endpoints.`);
+  } catch (e) {
+    console.error('Erro ao processar árvore de supervisores do CEVEN:', e.message);
   }
 
   return map;

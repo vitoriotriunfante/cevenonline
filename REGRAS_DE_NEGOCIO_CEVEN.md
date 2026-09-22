@@ -125,26 +125,71 @@ O sistema **NUNCA** deve operar em modo parcial ou segmentado. Toda informação
 9. `oportunidades_mix_gap` (Penetração e GAP regional por vizinhança de CNPJs)
 10. `ceven_raw_payloads` (Data Lake bruto com hash SHA-256)
 
-## 👥 7. Regras Oficiais de Classificação de Canal e Filtro dos Acompanhamentos
+## 👥 7. Regras Oficiais de Classificação de Canais (Tabela Mestre: Cód. Área WinThor / CEVEN)
 
-### 🏷️ A. Classificação de Canal (Perfil do Vendedor)
-* **`AS` (Autosserviço / Atacado / Key Account)**:
-  * Identificado pela tag explícita `AS` ao lado da versão do aplicativo no CEVEN.
-  * Perfil de atendimento a grandes contas com pedidos pontuais/mensais, predominantemente fora de rotas fixas.
-* **`VJ` (Varejo — Padrão Geral)**:
-  * Identificado pela tag `VJ` ou quando **não houver qualquer tag escrita ao lado da versão**.
-  * Perfil de atendimento de varejo tradicional com roteiro fixo e cobrança diária de visitas e positivação.
+> ⚠️ **REGRA DE NEGÓCIO SUPREMA — APLICÁVEL A TUDO NO PROJETO CEVEN VÁRIAS TELAS**:
+> Toda e qualquer rotina, script, pipeline, auditoria, banco de dados e relatório (WhatsApp/Dashboard/TV) deve obrigatoriamente respeitar a taxonomia oficial de **Cód. Área**:
 
-### 🛡️ B. Filtro Rigoroso de Elegibilidade para Acompanhamentos
-Ao processar parciais, fechamentos diários e relatórios para Diretoria/Gerência (WhatsApp e Dashboard):
-1. **Critério Duplo Obrigatório para Entrar no Acompanhamento do Dia**:
-   * ✅ **Meta Cadastrada Ativa**: `Meta Financeira > 0` ou `Meta Positivação > 0` no CEVEN para o mês corrente;
+| Cód. Área (WinThor) | Tag CEVEN API | Descrição Oficial | Papel Operacional / Natureza da Carteira | Régua de Acompanhamento |
+| :---: | :---: | :--- | :--- | :--- |
+| **`A`** | **`AS`** | **AS** | Autosserviço tradicional / Atacados / Redes | Acompanhamento por volume financeiro e positivação de contas-chave (sem cobrança de visitas diárias de rota). |
+| **`E`** | **`ESP`** | **ESPECIALISTA** | Linhas técnicas, contratos exclusivos ou produtos foco | Foco em mix técnico e conversão de metas de categoria especializada. |
+| **`F`** | **`FARMA`** | **FARMACÊUTICO** | Canal Farma, drogarias e distribuidoras de medicamentos | Régua específica de positivação e sortimento farmacêutico. |
+| **`G`** | **`GER`** | **GERENTE** | Contas gerenciais, corporativas ou de apoio da diretoria | Nível hierárquico de gestão (sem carteira operacional direta de rota). |
+| **`P`** | **`PET VJ`** | **PET VAREJO** | Lojas Pet, agropecuárias e clínicas veterinárias de varejo | Roteiro estruturado de varejo diário, positivação de rota pet e recompra recorrente. |
+| **`Q`** | **`PET AS`** | **PET AS** | Grandes redes de Pet Shop, Pet Centers e atacados pet | Grandes volumes, compras programadas e abastecimento de redes pet. |
+| **`S`** | **`SUP`** | **SUPERVISOR** | Matrículas e contas de supervisão comercial | Nível hierárquico intermediário (gestão de equipe e vendas diretas/intervenção). |
+| **`V`** | **`VJ`** | **VAREJO** | Varejo tradicional alimentar (mercados, padarias, mercearias) | Roteiro fixo diário de campo, cobrança rigorosa de visitas programadas, positivação e negativação. |
+
+---
+
+### 🛡️ B. Aplicação nos Filtros e Acompanhamentos do Sistema
+1. **Cobrança de Rota Diária / Eficácia de Campo**:
+   * Aplica-se estritamente aos canais de rota: **`V` (VAREJO)** e **`P` (PET VAREJO)**.
+   * Canais corporativos / grandes contas (**`A` - AS**, **`Q` - PET AS**) não podem sofrer penalização de roteiro diário ou cálculo de visita em aberto.
+2. **Camadas de Gestão**:
+   * Contas com perfil **`G` (GERENTE)** e **`S` (SUPERVISOR)** são separadas das métricas de vendedores operacionais para não inflar ou distorcer médias da filial.
+3. **Canais Verticais Especializados**:
+   * Contas **`F` (FARMACÊUTICO)** e **`E` (ESPECIALISTA)** possuem metas e positivações segregadas para cálculo de campanhas e premiações.
+4. **Filtro Rigoroso de Elegibilidade para Disparos Matinais / WhatsApp**:
+   * ✅ **Meta Cadastrada Ativa**: `Meta Financeira > 0` ou `Meta Positivação > 0` para o mês corrente;
    * ✅ **Carteira e Rota Ativa**: `Carteira de Clientes > 0` e `Visitas Programadas no Dia > 0` (`total_programado > 0`).
-2. **Exclusão Automática**:
-   * Vendedores sem metas cadastradas, sem carteira vinculada ou sem rota agendada no dia são **100% ignorados**.
-   * Não compõem a base de "Vendedores em Campo" da filial.
-   * Não são contabilizados como "Vendedores sem Venda".
-   * Não distorcem o cálculo de eficácia e cobertura de campo.
+   * Vendedores sem metas ou sem carteira alocada são reportados na auditoria de cadastro, mas excluídos do ranking diário de produtividade.
+
+## 🏷️ 8. Marcas Exclusivas Próprias Triunfante (Campanhas, Boletins & Metas de Mix)
+
+### A. Malha de Filiais Elegíveis por Marca Exclusiva
+| Marca Própria | Categoria | Filiais Elegíveis (Venda Autorizada) | Total Filiais |
+| :--- | :--- | :--- | :---: |
+| **BELLARONE** | Conservas, Palmitos, Ovos de Codorna, Azeitonas, Cogumelos | **`API, ABC, TCA, TSJ, MCD, TPA, TBL`** | **7** |
+| **SKIVE** | Batata Ondulada (37g / 80g) | **`API, TPH, TCA, TSJ, MCD, TPA, TBL, TCV`** | **8** |
+| **MITBIT** | Salgadinhos de Trigo (35g / 90g) | **`API, TPH, TCA, TSJ, MCD, TPA, TBL, TCV`** | **8** |
+| **CALIRA** | Batata Palha (Tradicional / Extra Fina 70g) | **`API, TPH, TCA, TSJ, MCD, TPA, TBL, TCV`** | **8** |
+| **ZIPOCA** | Pipocas de Canjica de Milho Doce / Salgada (45g, 55g, 80g) | **`API, TPH, TCA, TSJ, MCD, TPA, TBL, TCV`** | **8** |
+
+### ⛔ B. Exclusão Absoluta Obrigatória (Canal Institucional)
+* **SKU `12229` — `BATATA ATLANTIC ESPECIAL KG` (Seção 1100)**:
+  * **REGRA**: Deve ser **SEMPRE IGNORADA** em todos os boletins, relatórios de WhatsApp, rankings de positivação, metas de mix e auditorias de força de vendas.
+  * **MOTIVO**: Produto de venda estritamente **Institucional (B2B Corporativo)**, não participando da dinâmica de rotas comerciais de Varejo (`VJ`), Autosserviço (`AS`) ou Boletins de Vendas.
+
+---
+
+## 👥 9. Mapeamento Gerencial Forçado (Sub-Gerências MCD e TPH)
+
+Nas filiais **MCD** e **TPH**, a operação é segregada por Gerente Geral nos relatórios, auditorias e disparos diários de WhatsApp:
+
+### 🏢 Filial MCD
+* **Gerente Cleverson**:
+  * Supervisores: `THIAGO DA SILVA CONEGUNDES`, `FLAVIO RUFINO`, `JONATAS DA SILVA DE OLIVEIRA`.
+* **Gerente Adriano**:
+  * Supervisores: `ALYFER PEREIRA MENDES`, `CARLOS ALAGUEZ DA SILVA`, `CLEOMAR DINIZ BARBOSA`.
+
+### 🏢 Filial TPH
+* **Gerente Vagner Pflanzer**:
+  * Supervisores: `LUCAS RAMOS MONTAGNHANI`, `ALLISON ANTONIO FAGUNDES M PINHEIRO`, `RODRIGO DE ARRUDA DARROS`, `ANDREY CAMILLO PIRAGINE`, `LUIZ AUGUSTO RAMOS`, `JEFFERSON POLETTO`, `CLAUDETE DE SOUZA SCHULTZ`.
+* **Gerente Fábio**:
+  * Supervisores: `AILTON LUIZ ARENDT JUNIOR`, `CRISTIAN EDUARDO RAFFAELLI`, `PRISCILA A D NASCIMENTO STRAPASSON`, `EDI CARLOS MEIRA`, `RODRIGO BERTONI`, `CLT VITOR MANUEL PAULOS CORREIA`.
 
 ---
 *Documento registrado e persistido no repositório.*
+
