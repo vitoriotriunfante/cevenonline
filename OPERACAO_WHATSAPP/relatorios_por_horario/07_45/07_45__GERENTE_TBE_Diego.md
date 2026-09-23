@@ -1,28 +1,7 @@
-🚨 *PDVs EM RISCO — 07:45*
-📍 *TBE — DIEGO* • 22/09/2026
+🌅 *ABERTURA MATINAL — TBE (07:45)*
+📅 quarta-feira, 23/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 78  •  🟡 Preventivo: 0
 
-👤 *NEIVA CLEONICE SERRA ISOPPO* (11 em risco)
-  🔴 SUMMER ACAI DELIVERY (289) — 27/07
-  🔴 COMERCIAL UNIAO (289) — 04/12
-  🔴 KEILA JOHNES (289) — 04/12
-  🔴 POSTO PETROMAR (292) — 31/12
-  🔴 SUPERO EBERHARDT (292) — 04/12
-  _+6 outros_
-
-👤 *HAMILTON RICARDO DOS SANTOS MENDES* (30 em risco)
-  🔴 EDUARDO ARAUJO CARDOSO FILHO LTDA (307) — 31/12
-  🔴 NARA CRISTINA DOMINGUES MOREIRA (307) — 31/12
-  🔴 GB BEER (307) — 16/08
-  🔴 GB BEER (307) — 16/08
-  🔴 ALTAS HORAS BEER (307) — 04/12
-  _+25 outros_
-
-👤 *PATRICIA CHAVES MACHADO* (37 em risco)
-  🔴 RESTAURANTE AGOSTINI (303) — 04/12
-  🔴 LENIO LUIZ WEBBER (285) — 31/12
-  🔴 SANAR REDE DE FARMACIAS (285) — 14/07
-  🔴 MARILENE MOREIRA SCHREIBER (285) — 26/05
-  🔴 ALINE BEBIDAS (285) — 26/05
-  _+32 outros_
+👥 Vendedores: 15 • Visitas: 304 (média 20,3/vendedor)
+Sem compra +30d: 121 (39,8%) • Recorrência: 13 (4,3%)
+Oportunidades CNAE 4639: +1.216 PDVs

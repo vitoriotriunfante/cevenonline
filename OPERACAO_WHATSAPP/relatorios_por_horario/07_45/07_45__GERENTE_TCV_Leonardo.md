@@ -1,28 +1,7 @@
-🚨 *PDVs EM RISCO — 07:45*
-📍 *TCV — LEONARDO* • 22/09/2026
+🌅 *ABERTURA MATINAL — TCV (07:45)*
+📅 quarta-feira, 23/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 38  •  🟡 Preventivo: 0
 
-👤 *ROSIVAL JESUINO DA SILVA* (11 em risco)
-  🔴 POSTO PARAVIS - FILIAL I (352) — 04/08
-  🔴 LANCHONETE ESTRELA (352) — 13/08
-  🔴 57.012.889 ELIZANDRA SEITENFUS FLORES (342) — 16/08
-  🔴 SALGADINHOS DA MARTINHA (342) — 06/08
-  🔴 IPANEMA BEBIDAS (337) — 18/08
-  _+6 outros_
-
-👤 *GESSANDRO SPEROTTO* (13 em risco)
-  🔴 MERCADO MATTES (1057) — 18/08
-  🔴 DELICIAS DO TRIGO (357) — 16/08
-  🔴 LANCHONETE DO DE (357) — 30/07
-  🔴 CIANA KARINE SCHNEIDER 00784606978 (346) — 04/12
-  🔴 STOPETROLEO S A (346) — 04/12
-  _+8 outros_
-
-👤 *GIANI GREGOLIN* (14 em risco)
-  🔴 SUPERMERCADO AZALEIA (349) — 26/05
-  🔴 W G AMARAL (349) — 16/08
-  🔴 SER NATURAL (349) — 30/07
-  🔴 IDALISIO BERGAMASCHI 16940946934 (349) — 07/08
-  🔴 RESTAURANTE BONFIM (333) — 16/08
-  _+9 outros_
+👥 Vendedores: 27 • Visitas: 279 (média 10,3/vendedor)
+Sem compra +30d: 42 (15,1%) • Recorrência: 0 (0,0%)
+Oportunidades CNAE 4639: +349 PDVs

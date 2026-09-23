@@ -1,27 +1,7 @@
-🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — ADRIANO* • 22/09/2026
+🌅 *ABERTURA MATINAL — MCD (07:45)*
+📅 quarta-feira, 23/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 31  •  🟡 Preventivo: 0
 
-👤 *CARLOS ALAGUEZ DA SILVA* (12 em risco)
-  🔴 SUPERMERCADO DOIS IRMAOS (423) — 04/12
-  🔴 CENTRAL SUPERMERCADOS (423) — 04/12
-  🔴 MERCEARIA BRASIL (423) — 19/08
-  🔴 SUPERMERCADO ULIAN (423) — 04/12
-  🔴 MERCEARIA GUARANI (439) — 04/12
-  _+7 outros_
-
-👤 *CLEOMAR DINIZ BARBOSA* (14 em risco)
-  🔴 LUANA CARNEIRO FERNANDES (415) — 19/08
-  🔴 MERCEARIA SAO BENTO (415) — 17/02
-  🔴 SM FRAZAO (415) — 19/08
-  🔴 MERCADO TRES PODERES (415) — 16/08
-  🔴 BEEF CHIC (426) — 04/12
-  _+9 outros_
-
-👤 *ALYFER PEREIRA MENDES* (5 em risco)
-  🔴 SUPERCAO (436) — 04/12
-  🔴 LOVE PETS (436) — 04/12
-  🔴 FAMILIA ANIMAL LTDA (436) — 04/12
-  🔴 PET DA VILA (436) — 19/08
-  🔴 MARCA PET SHOP (436) — 31/12
+👥 Vendedores: 19 • Visitas: 164 (média 8,6/vendedor)
+Sem compra +30d: 38 (23,2%) • Recorrência: 29 (17,7%)
+Oportunidades CNAE 4639: +171 PDVs
