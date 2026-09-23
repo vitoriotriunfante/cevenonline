@@ -12,10 +12,14 @@ const path = require('path');
 const ANALISES = path.join(__dirname, '..', 'analises');
 
 const PASSOS = [
+  { nome: 'Hierarquia (supervisores/vendedores)', cmd: 'node', args: ['extrair_hierarquia_completa.js'] },
   { nome: 'PDVs + Prospects (base do dia)', cmd: 'python', args: ['coletar_todos_os_pdvs_e_prospects_100pct.py'] },
   { nome: 'Produtividade/Dashboard/RET ao vivo', cmd: 'python', args: ['extrair_produtividade_ret_dashboard_todos.py'] },
   { nome: 'Histórico de Pedidos', cmd: 'node', args: ['extrair_historico_completo_11_filiais.js'] },
-  { nome: 'Devoluções + LinkUp', cmd: 'node', args: ['extrair_tudo_devolucoes_cadastros.js'] }
+  { nome: 'Devoluções + LinkUp', cmd: 'node', args: ['extrair_tudo_devolucoes_cadastros.js'] },
+  { nome: 'Segmentos/Canal Real dos RCAs', cmd: 'node', args: ['extrair_segmentos_rcas.js'] },
+  { nome: 'Metas e Produtividade dos RCAs', cmd: 'node', args: ['extrair_metas_dashboard_rcas.js'] },
+  { nome: 'Premiação RV + Ticket Médio/Mix', cmd: 'python', args: ['extrair_premiacao_e_ret_novo_har.py'] }
 ];
 
 function rodar(passo) {
