@@ -28,14 +28,13 @@ const REPO = 'vitoriobergamobrazil/cevenonline';
 const REF = 'clean-v3';
 
 // mapa cron (UTC) -> { workflow, inputs }
+// Conta Cloudflare free = 5 crons NA CONTA INTEIRA, e o worker "comandda" já
+// usa 2 — sobram só 3 pra este worker. Ficam só os 3 mais críticos (fundação
+// de madrugada, primeiro relatório, fechamento). 04:00, 10:00, 11:30, 14:30
+// e 17:00 ficam só no `schedule` nativo do .yml no GitHub Actions.
 const GATILHOS = {
   '0 6 * * 1-5':   { workflow: 'ceven-cron-datalake.yml', inputs: {} },          // 03:00 BRT
-  '0 7 * * 1-5':   { workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '04:00' } }, // 04:00 BRT
   '45 10 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '07:45' } }, // 07:45 BRT
-  '0 13 * * 1-5':  { workflow: 'ceven-cron-marca-propria.yml', inputs: {} },     // 10:00 BRT
-  '30 14 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '11:30' } }, // 11:30 BRT
-  '30 17 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '14:30' } }, // 14:30 BRT
-  '0 20 * * 1-5':  { workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '17:00' } }, // 17:00 BRT
   '30 21 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '18:30' } }  // 18:30 BRT
 };
 
