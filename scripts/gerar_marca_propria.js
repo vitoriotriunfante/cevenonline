@@ -53,6 +53,7 @@ function main() {
 
   const rows = db.prepare(`
     SELECT ph.filial_sigla, ph.gerente_nome, ph.supervisor_nome, ph.nome_cliente,
+           ph.rca_id, ph.rca_nome,
            phi.codprod, phi.descricao, phi.quantidade, phi.valor_total
     FROM pedidos_historico ph
     JOIN pedidos_historico_itens phi ON phi.chave_pedido = ph.chave
@@ -63,6 +64,16 @@ function main() {
 
   // FILIAIS FORA DO ENVIO (não vendem marca própria)
   const FILIAIS_EXCLUIDAS = new Set(['TBE', 'TCG']);
+
+  // Zerados de Marca Própria: vendedores de Varejo que fizeram pedido HOJE (de qualquer
+  // produto) mas NENHUM item era marca própria — isso é o que dá pro gerente cobrar de
+  // verdade, em vez de só ver quem vendeu pouco.
+  const todosPedidosHoje = db.prepare(`
+    SELECT DISTINCT ph.filial_sigla, ph.rca_id, ph.rca_nome, ph.supervisor_nome
+    FROM pedidos_historico ph
+    WHERE ph.data_pedido = ?
+  `).all(dataRef);
+  const rcasComMPHoje = new Set(rows.map(r => `${r.filial_sigla}_${r.rca_id}`));
 
   // Chave composta "SIGLA::gerente" — evita colisão entre gerentes de filiais diferentes
   // com o mesmo nome, e permite separar MCD/TPH em blocos por sub-gerente.
@@ -116,18 +127,48 @@ function main() {
     msgGeral += `📍 *${sigla} — ${s.gerentes.join(' / ').toUpperCase()}:* R$ ${fmtMoeda(s.fat)} (${s.positivados.size} PDVs)${nota}\n`;
   });
 
+  // Monta zerados por chave "SIGLA::gerente" (mesmo padrão de agrupamento de porFilial)
+  const zeradosPorFilial = {};
+  todosPedidosHoje.forEach(p => {
+    if (FILIAIS_EXCLUIDAS.has(p.filial_sigla)) return;
+    const chaveRca = `${p.filial_sigla}_${p.rca_id}`;
+    if (rcasComMPHoje.has(chaveRca)) return; // já vendeu MP hoje, não é zerado
+    const val = repsMap[chaveRca];
+    if (!val || !engine.isCanalVarejo(val.canal)) return; // só cobra de Varejo válido
+    const gerente = resolverGerente(p.filial_sigla, p.supervisor_nome);
+    const chaveFilial = `${p.filial_sigla}::${gerente}`;
+    if (!zeradosPorFilial[chaveFilial]) zeradosPorFilial[chaveFilial] = {};
+    const sup = (p.supervisor_nome || 'SUPERVISÃO GERAL').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
+    if (!zeradosPorFilial[chaveFilial][sup]) zeradosPorFilial[chaveFilial][sup] = [];
+    zeradosPorFilial[chaveFilial][sup].push(p.rca_nome.replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim());
+  });
+
   const outDir = path.join(__dirname, '..', 'auditoria_mensagens', dataRef);
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(path.join(outDir, '10_00__VITORIO.txt'), msgGeral.trim(), 'utf8');
 
-  // ===== MENSAGENS POR GERENTE (aberta por supervisor) =====
+  // ===== MENSAGENS POR GERENTE (aberta por supervisor, com zerados de MP) =====
   let nGerentes = 0;
-  Object.values(porFilial).forEach(f => {
+  const chavesTodas = new Set([...Object.keys(porFilial), ...Object.keys(zeradosPorFilial)]);
+  chavesTodas.forEach(chaveFilial => {
+    const f = porFilial[chaveFilial] || { sigla: chaveFilial.split('::')[0], gerente: chaveFilial.split('::')[1], fatMP: 0, positivados: new Set(), porSupervisor: {} };
+    const zerados = zeradosPorFilial[chaveFilial] || {};
+    const totalZerados = Object.values(zerados).reduce((a, l) => a + l.length, 0);
+
     let m = `🎯 *MARCAS PRÓPRIAS — 10:00*\n📍 ${f.sigla} — ${(f.gerente || '').toUpperCase()} • ${dataFmt}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     m += `💰 R$ ${fmtMoeda(f.fatMP)} • ${f.positivados.size} PDVs positivados\n\n`;
     Object.entries(f.porSupervisor).forEach(([sup, v]) => {
       m += `👤 *${sup}* — R$ ${fmtMoeda(v.fat)} (${v.positivados.size} PDVs)\n`;
     });
+
+    if (totalZerados > 0) {
+      m += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (${totalZerados})*\n`;
+      m += `_(fizeram pedido hoje, mas nenhum item era marca própria)_\n\n`;
+      Object.entries(zerados).forEach(([sup, vendedores]) => {
+        m += `👤 *${sup}*: ${vendedores.join(', ')}\n`;
+      });
+    }
+
     const nomeArquivo = `10_00__GERENTE_${f.sigla}_${f.gerente.replace(/[^a-zA-Z0-9]+/g, '_')}.txt`;
     fs.writeFileSync(path.join(outDir, nomeArquivo), m.trim(), 'utf8');
     nGerentes++;

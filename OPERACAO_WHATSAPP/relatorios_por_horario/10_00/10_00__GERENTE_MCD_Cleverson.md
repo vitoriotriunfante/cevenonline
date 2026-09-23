@@ -1,0 +1,13 @@
+🎯 *MARCAS PRÓPRIAS — 10:00*
+📍 MCD — CLEVERSON • 22/09/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 R$ 0,00 • 0 PDVs positivados
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (4)*
+_(fizeram pedido hoje, mas nenhum item era marca própria)_
+
+👤 *FLAVIO RUFINO*: CRISTIAN DE OLIVEIRA VARANDA, DEYSIANE GONCALVES DA COSTA
+👤 *THIAGO DA SILVA CONEGUNDES*: JOSE LUCAS SALLES DE OLIVEIRA
+👤 *JONATAS DA SILVA DE OLIVEIRA*: WALTER PEREIRA CORDEIRO

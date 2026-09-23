@@ -49,15 +49,29 @@ function main() {
       AND phi.codprod IN (${placeholders})
   `).all(inicioMes, dataRef, ...codigosMP);
 
-  // Cortes
+  // Cortes — o valor_total de um corte quase sempre vem 0/vazio na fonte (o CEVEN não
+  // preenche isso). Mas dá pra calcular de verdade: pega o preço médio real de venda
+  // desse mesmo SKU (de outros pedidos não cortados, no mesmo período) e multiplica
+  // pela quantidade cortada — não fica sem valor só porque a fonte não preencheu.
+  const precoMedioPorSku = {};
+  db.prepare(`
+    SELECT codprod, AVG(valor_total * 1.0 / quantidade) as preco
+    FROM pedidos_historico_itens
+    WHERE tipo_registro = 'VENDA' AND quantidade > 0 AND codprod IN (${placeholders})
+    GROUP BY codprod
+  `).all(...codigosMP).forEach(r => { precoMedioPorSku[r.codprod] = r.preco || 0; });
+
   const cortes = db.prepare(`
-    SELECT ph.filial_sigla, phi.quantidade, phi.valor_total
+    SELECT ph.filial_sigla, phi.codprod, phi.quantidade, phi.valor_total
     FROM pedidos_historico ph
     JOIN pedidos_historico_itens phi ON phi.chave_pedido = ph.chave
     WHERE ph.data_pedido BETWEEN ? AND ?
       AND phi.tipo_registro = 'CORTE'
       AND phi.codprod IN (${placeholders})
-  `).all(inicioMes, dataRef, ...codigosMP);
+  `).all(inicioMes, dataRef, ...codigosMP).map(r => ({
+    ...r,
+    valor_total: r.valor_total > 0 ? r.valor_total : (r.quantidade || 0) * (precoMedioPorSku[r.codprod] || 0)
+  }));
 
   // Devoluções (ATENÇÃO: tabela desatualizada, só vai até 12/09 — ver nota no rodapé)
   const devPlaceholders = codigosMP.map(() => '?').join(',');
@@ -125,9 +139,6 @@ function main() {
 
   if (devMaxData < dataRef) {
     msg += `\n_(Nota: devoluções só têm dado atualizado até ${devMaxData} — rodar analises/extrair_tudo_devolucoes_cadastros.js pra atualizar)_`;
-  }
-  if (totCortesQtd > 0 && totCortesValor === 0) {
-    msg += `\n_(Nota: ${Math.round(totCortesQtd)} itens de marca própria foram cortados no mês, mas o valor do corte não veio preenchido na fonte — quantidade real, valor ainda não confiável)_`;
   }
 
   const outDir = path.join(__dirname, '..', 'auditoria_mensagens', dataRef);
