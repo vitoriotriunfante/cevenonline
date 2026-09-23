@@ -1,18 +1,19 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
 📍 TPA — RADKE / LEANDRO • 22/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+*HOJE*
 💰 R$ 244,58 • 5 PDVs positivados
+👤 SAMUEL PALHANO DE OLIVEIRA — R$ 69,86 (2 PDVs)
+👤 ROGERIO DORNELLES PASSOS — R$ 174,72 (3 PDVs)
 
-👤 *SAMUEL PALHANO DE OLIVEIRA* — R$ 69,86 (2 PDVs)
-👤 *ROGERIO DORNELLES PASSOS* — R$ 174,72 (3 PDVs)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (11)*
 _(fez pedido hoje, mas nenhum item era marca própria)_
 
 👤 *SAMUEL PALHANO DE OLIVEIRA*
   • BRUNO SPENGLER — nunca vendeu MP
   • ROMULO MICHAEL SEEFELDT — 6d sem vender MP
+
 👤 *DOUGLAS CRISTIANO DOS SANTOS*
   • BRUNO JOSE LORENZON POSPICHIL — nunca vendeu MP
   • LEONARDO BITTENCOURT DOS SANTOS — 69d sem vender MP
@@ -20,7 +21,15 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
   • BRENDA MARQUES DOS SANTOS — 27d sem vender MP
   • DAVID LUIZ ROMEIRA BOMBARDELLI — 5d sem vender MP
   • ALEXSANDRO VALDIR DA SILVA VASQUES — -48d sem vender MP
+
 👤 *ROGERIO DORNELLES PASSOS*
   • ORLI CLOVIS OLIVEIRA COSTA — 41d sem vender MP
   • EDUARDO BATISTA PINTO — 11d sem vender MP
   • PAULO BRITES MENDIETA — -48d sem vender MP
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+💰 R$ 35.900,04 • 41 PDVs • ✂️ R$ 213,88 (95 un) • 🚛 R$ 4.498,85 _(filial toda)_
+👤 DOUGLAS CRISTIANO DOS SANTOS — R$ 27.148,65 (7 PDVs)
+👤 ROGERIO DORNELLES PASSOS — R$ 6.473,55 (25 PDVs)
+👤 SAMUEL PALHANO DE OLIVEIRA — R$ 2.277,84 (9 PDVs)

@@ -1,11 +1,11 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
 📍 ABC — MARCOS • 22/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+*HOJE*
 💰 R$ 569,13 • 1 PDVs positivados
+👤 IVONEI PEDRO DE MOURA — R$ 569,13 (1 PDVs)
 
-👤 *IVONEI PEDRO DE MOURA* — R$ 569,13 (1 PDVs)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (18)*
 _(fez pedido hoje, mas nenhum item era marca própria)_
 
@@ -16,18 +16,28 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
   • CARLOS AUGUSTO CUETO — 12d sem vender MP
   • JOAO GABRIEL TAVARES DA LUZ — 8d sem vender MP
   • DILNEI MARCOLIN — 4d sem vender MP
+
 👤 *IVONEI PEDRO DE MOURA*
   • GISELE DE OLIVEIRA DA SILVA — nunca vendeu MP
   • GABRIEL JUNIO DE MORAES — 13d sem vender MP
   • GILSON DE ALMEIDA ALVES — 8d sem vender MP
   • MARCOS VINICIUS CZEKAY PIRES — 1d sem vender MP
   • ALEKSANDRO RODRIGO DE FARIA — 1d sem vender MP
+
 👤 *RODRIGO STELLEO COSTA LEITE*
   • PATRIK DE JESUS SANTOS — nunca vendeu MP
   • VIVIANE RIBEIRO BRANCO — nunca vendeu MP
   • KAUE DOS SANTOS — 14d sem vender MP
   • CAMILA TURCZINSKI — 6d sem vender MP
   • DIEGO FERNANDES — 5d sem vender MP
+
 👤 *MARCIO ROSA SOBRAL BATISTA*
   • MARLON SERGIO MARQUES DOS ANJOS — nunca vendeu MP
   • LEONIDAS JOSE PORTELLA — nunca vendeu MP
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+💰 R$ 37.193,05 • 38 PDVs • ✂️ R$ 0,00 (0 un)
+👤 IVONEI PEDRO DE MOURA — R$ 28.857,75 (25 PDVs)
+👤 EDER LUCAS DAS FLORES DE OLIVEIRA — R$ 5.347,45 (6 PDVs)
+👤 RODRIGO STELLEO COSTA LEITE — R$ 2.987,85 (7 PDVs)

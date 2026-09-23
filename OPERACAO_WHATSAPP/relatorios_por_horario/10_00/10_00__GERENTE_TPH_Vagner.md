@@ -1,13 +1,13 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
 📍 TPH — VAGNER • 22/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-💰 R$ 717,52 • 6 PDVs positivados
 
-👤 *ANDREY CAMILLO PIRAGINE* — R$ 220,64 (2 PDVs)
-👤 *LUIZ AUGUSTO RAMOS* — R$ 466,76 (3 PDVs)
-👤 *CLAUDETE DE SOUZA SCHULTZ* — R$ 30,12 (1 PDVs)
+*HOJE*
+💰 R$ 573,00 • 5 PDVs positivados
+👤 ANDREY CAMILLO PIRAGINE — R$ 76,12 (1 PDVs)
+👤 LUIZ AUGUSTO RAMOS — R$ 466,76 (3 PDVs)
+👤 CLAUDETE DE SOUZA SCHULTZ — R$ 30,12 (1 PDVs)
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (23)*
 _(fez pedido hoje, mas nenhum item era marca própria)_
 
@@ -20,12 +20,14 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
   • ELYAN JANDES RODRIGUES DOS SANTOS — 7d sem vender MP
   • ALAERCIO FERNANDES DE CAMPOS — 6d sem vender MP
   • ARTHUR MAIKI LEAL GERMANO — 1d sem vender MP
+
 👤 *ANDREY CAMILLO PIRAGINE*
   • ANA PAULA FERREIRA DA CRUZ — 64d sem vender MP
   • ALEXSANDRO LIMA CARDOZO — 6d sem vender MP
   • ALDER ALVES BELINI — 6d sem vender MP
   • MARCIA SILVA DO NASCIMENTO — 6d sem vender MP
   • CRISTIANE DOS SANTOS CANFILD WOISNER — -7d sem vender MP
+
 👤 *CLAUDETE DE SOUZA SCHULTZ*
   • JULIA DE OLIVEIRA BATISTA — nunca vendeu MP
   • PAOLA CRISTINA LEAL COLLI — nunca vendeu MP
@@ -34,7 +36,15 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
   • MARCELO LUIZ DE ALMEIDA GARRETT — nunca vendeu MP
   • RUI MATEUS ANSAK — nunca vendeu MP
   • NATIELY KAUANA TEODORO DONATO — 20d sem vender MP
+
 👤 *JEFFERSON POLETTO*
   • CLAUDIO EIZO BRANCO — nunca vendeu MP
   • RENAN LECHUK — nunca vendeu MP
   • CLAUDEMIR LINO DE ALMEIDA — 97d sem vender MP
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+💰 R$ 38.026,52 • 41 PDVs • ✂️ R$ 48,95 (22 un) • 🚛 R$ 3.523,74 _(filial toda)_
+👤 LUIZ AUGUSTO RAMOS — R$ 23.560,49 (23 PDVs)
+👤 ANDREY CAMILLO PIRAGINE — R$ 13.790,58 (16 PDVs)
+👤 CLAUDETE DE SOUZA SCHULTZ — R$ 675,45 (2 PDVs)

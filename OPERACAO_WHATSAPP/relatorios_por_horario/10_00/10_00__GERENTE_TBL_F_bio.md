@@ -1,14 +1,14 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
 📍 TBL — FÁBIO • 22/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+*HOJE*
 💰 R$ 964,78 • 7 PDVs positivados
+👤 LEONARDO MANOSSO DE GODOI — R$ 73,08 (1 PDVs)
+👤 KLEBERSON BATISTA LIDUARIO — R$ 479,30 (3 PDVs)
+👤 SERGIO LOPES DE OLIVEIRA — R$ 320,40 (2 PDVs)
+👤 EVERTON APARECIDO DA SILVA — R$ 92,00 (1 PDVs)
 
-👤 *LEONARDO MANOSSO DE GODOI* — R$ 73,08 (1 PDVs)
-👤 *KLEBERSON BATISTA LIDUARIO* — R$ 479,30 (3 PDVs)
-👤 *SERGIO LOPES DE OLIVEIRA* — R$ 320,40 (2 PDVs)
-👤 *EVERTON APARECIDO DA SILVA* — R$ 92,00 (1 PDVs)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (20)*
 _(fez pedido hoje, mas nenhum item era marca própria)_
 
@@ -17,6 +17,7 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
   • BRUNO GUSTAVO NATAL — 5d sem vender MP
   • EWERSON CANDIDO DE OLIVEIRA — 4d sem vender MP
   • RICARDO MORENO SATURNINO — 1d sem vender MP
+
 👤 *EVERTON APARECIDO DA SILVA*
   • ISIDIO VALDEVINO DA SILVA NETO — 69d sem vender MP
   • IVAN FAGUNDES DA SILVA — 21d sem vender MP
@@ -24,16 +25,28 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
   • ESROM LIMA SAMPAIO — 4d sem vender MP
   • MARCOS MILITAO DA SILVA — 4d sem vender MP
   • FERNANDO LOPES BRUM — -8d sem vender MP
+
 👤 *LEONARDO MANOSSO DE GODOI*
   • ADRIANO IGNEZ DOS REIS — 36d sem vender MP
   • LUCAS FREITAS SEPULVIDA — 20d sem vender MP
   • LINCON LUIZ ROMAO — 6d sem vender MP
   • REGINALDO FERNANDES DOS SANTOS — 5d sem vender MP
   • ALEXSANDRO AUGUSTO TAVARES — 5d sem vender MP
+
 👤 *CRISTIANE DE FREITAS DUARTE*
   • POLIANA JESSICA DE ALMEIDA — 12d sem vender MP
   • RAFAEL DOS SANTOS CABRAL — 11d sem vender MP
   • ELIAS GARCIA SOBRINHO — -6d sem vender MP
   • ERIC FELIPE CARDOSO DE OLIVEIRA — -10d sem vender MP
+
 👤 *SERGIO LOPES DE OLIVEIRA*
   • FABIO SEREIA — 7d sem vender MP
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+💰 R$ 29.586,00 • 113 PDVs • ✂️ R$ 180,24 (65 un) • 🚛 R$ 5.273,44 _(filial toda)_
+👤 KLEBERSON BATISTA LIDUARIO — R$ 15.437,82 (48 PDVs)
+👤 SERGIO LOPES DE OLIVEIRA — R$ 5.126,63 (16 PDVs)
+👤 EVERTON APARECIDO DA SILVA — R$ 3.841,97 (17 PDVs)
+👤 LEONARDO MANOSSO DE GODOI — R$ 3.557,17 (25 PDVs)
+👤 CRISTIANE DE FREITAS DUARTE — R$ 1.622,41 (7 PDVs)

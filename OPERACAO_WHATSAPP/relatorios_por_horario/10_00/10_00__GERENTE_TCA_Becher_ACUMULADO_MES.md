@@ -1,9 +1,0 @@
-🎯 *MARCAS PRÓPRIAS — ACUMULADO DO MÊS*
-📍 TCA — BECHER • 01/09/2026 a 22/09/2026
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-💰 R$ 38.209,64 • 71 PDVs • ✂️ R$ 334,62 (83 un) • 🚛 R$ 267,26 _(filial toda, não só esse sub-gerente)_
-
-👤 *IVAIR PRINCIPE FREITAS DE MIRANDA* — R$ 14.006,76 (30 PDVs)
-👤 *MAICON DION NOVAIS SILVA* — R$ 10.746,72 (15 PDVs)
-👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR* — R$ 9.170,82 (14 PDVs)
-👤 *FRANCISCO FRANCO FILHO* — R$ 4.285,34 (13 PDVs)

@@ -1,12 +1,13 @@
 /**
- * Ciclo 10:00 — Marcas Próprias. Usa o banco local `analises/pedidos_historico_ceven.db`
- * (populado e mantido pelo extrair_historico_completo_11_filiais.js) em vez de varrer a
- * API ao vivo — muito mais rápido, e o dado já está lá.
+ * Ciclo 10:00 — Marcas Próprias. UM arquivo por destinatário (Vitório + cada gerente),
+ * com HOJE e ACUMULADO DO MÊS juntos no mesmo arquivo. Usa o banco local
+ * `analises/pedidos_historico_ceven.db` direto via SQL, sem varrer a API ao vivo.
  *
  * Regras de negócio (definidas com Vitório em 22/09/2026):
  * - TBE e TCG não vendem nenhuma marca própria — ficam de fora do envio
  * - ABC só tem 1 marca (Bellarone) — cobrar mais dele, não tratar com pena
  * - Sem ranking por ora — só visibilidade (consolidado + por filial + por supervisor)
+ * - Zerados de hoje mostram há quantos dias o vendedor não vende MP (histórico), não só "zerou hoje"
  */
 const Database = require('better-sqlite3');
 const XLSX = require('xlsx');
@@ -19,68 +20,63 @@ function carregarMarcaPropria() {
   const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
   const codigos = [];
   data.forEach(r => {
-    if ((r.FILIAIS_VENDA || '').includes('IGNORAR')) return; // exclusivo institucional
+    if ((r.FILIAIS_VENDA || '').includes('IGNORAR')) return;
     codigos.push(String(r.CODPROD));
   });
   return codigos;
 }
 
 function fmtMoeda(v) { return (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function limparNome(n) { return (n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim(); }
 
 async function main() {
   const dataRef = process.argv[2] || new Date().toISOString().split('T')[0];
+  const inicioMes = dataRef.slice(0, 8) + '01';
   const codigosMP = carregarMarcaPropria();
   const placeholders = codigosMP.map(() => '?').join(',');
+  const dataFmt = new Date(dataRef + 'T12:00:00').toLocaleDateString('pt-BR');
+  const inicioFmt = new Date(inicioMes + 'T12:00:00').toLocaleDateString('pt-BR');
 
-  // Hierarquia oficial (mesma fonte usada no resto do pipeline) para resolver o gerente
-  // real por supervisor, incluindo o split de sub-gerência de MCD/TPH.
   const repsMap = engine.carregarValidacaoVendedores();
-  // IMPORTANTE: sem isso o canal fica hardcoded 'VJ' pra todo mundo (inclusive contas de
-  // GERENTE/SUP), deixando essas contas passarem pelo filtro de "Varejo válido" por engano.
   await engine.enriquecerCanalReal(repsMap);
-  function limparNome(n) {
-    return (n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').toUpperCase().trim();
+  function resolverGerente(sigla, rcaId) {
+    const val = repsMap[`${sigla}_${rcaId}`];
+    if (val) return val.gerente;
+    return (Object.values(engine.FILIAIS_MAP).find(f => f.sigla === sigla)?.gerente) || sigla;
   }
-  const supParaGerente = {}; // "SIGLA::SUPNOME" -> gerente
-  Object.values(repsMap).forEach(v => {
-    const chave = `${v.filial}::${limparNome(v.supNome)}`;
-    supParaGerente[chave] = v.gerente;
-  });
-  function resolverGerente(sigla, supNome) {
-    const chave = `${sigla}::${limparNome(supNome)}`;
-    if (supParaGerente[chave]) return supParaGerente[chave];
-    return (engine.FILIAIS_MAP && Object.values(engine.FILIAIS_MAP).find(f => f.sigla === sigla)?.gerente) || sigla;
+  function resolverSupervisor(sigla, rcaId) {
+    const val = repsMap[`${sigla}_${rcaId}`];
+    return (val?.supNome || 'SUPERVISÃO GERAL').toUpperCase().trim();
+  }
+  function isRcaVarejoValido(sigla, rcaId) {
+    const val = repsMap[`${sigla}_${rcaId}`];
+    return val && engine.isCanalVarejo(val.canal);
   }
 
   const db = new Database(path.join(__dirname, '..', 'analises', 'pedidos_historico_ceven.db'), { readonly: true });
+  const FILIAIS_EXCLUIDAS = new Set(['TBE', 'TCG']);
+  const ORDEM_FILIAIS = ['TPH', 'API', 'TBL', 'TCA', 'TSJ', 'TPA', 'ABC', 'TCV', 'MCD'];
 
-  const rows = db.prepare(`
-    SELECT ph.filial_sigla, ph.gerente_nome, ph.supervisor_nome, ph.nome_cliente,
-           ph.rca_id, ph.rca_nome,
+  // =====================================================================
+  // DADOS DE HOJE
+  // =====================================================================
+  const vendasHoje = db.prepare(`
+    SELECT ph.filial_sigla, ph.rca_id, ph.nome_cliente,
            phi.codprod, phi.descricao, phi.quantidade, phi.valor_total
     FROM pedidos_historico ph
     JOIN pedidos_historico_itens phi ON phi.chave_pedido = ph.chave
     WHERE ph.data_pedido = ?
       AND phi.tipo_registro = 'VENDA'
       AND phi.codprod IN (${placeholders})
-  `).all(dataRef, ...codigosMP);
+  `).all(dataRef, ...codigosMP).filter(r => isRcaVarejoValido(r.filial_sigla, r.rca_id));
 
-  // FILIAIS FORA DO ENVIO (não vendem marca própria)
-  const FILIAIS_EXCLUIDAS = new Set(['TBE', 'TCG']);
-
-  // Zerados de Marca Própria: vendedores de Varejo que fizeram pedido HOJE (de qualquer
-  // produto) mas NENHUM item era marca própria — isso é o que dá pro gerente cobrar de
-  // verdade, em vez de só ver quem vendeu pouco.
   const todosPedidosHoje = db.prepare(`
-    SELECT DISTINCT ph.filial_sigla, ph.rca_id, ph.rca_nome, ph.supervisor_nome
+    SELECT DISTINCT ph.filial_sigla, ph.rca_id, ph.rca_nome
     FROM pedidos_historico ph
     WHERE ph.data_pedido = ?
   `).all(dataRef);
-  const rcasComMPHoje = new Set(rows.map(r => `${r.filial_sigla}_${r.rca_id}`));
+  const rcasComMPHoje = new Set(vendasHoje.map(r => `${r.filial_sigla}_${r.rca_id}`));
 
-  // Histórico: última vez que cada RCA vendeu QUALQUER marca própria (não só hoje).
-  // Sem isso a lista de zerados é só uma parede de nomes sem peso nenhum — com isso,
-  // dá pra dizer "zerado há X dias" em vez de só "zerou hoje".
   const ultimaVendaPorRca = {};
   db.prepare(`
     SELECT ph.filial_sigla, ph.rca_id, MAX(ph.data_pedido) as ultima_data
@@ -88,112 +84,199 @@ async function main() {
     JOIN pedidos_historico_itens phi ON phi.chave_pedido = ph.chave
     WHERE phi.tipo_registro = 'VENDA' AND phi.codprod IN (${placeholders})
     GROUP BY ph.filial_sigla, ph.rca_id
-  `).all(...codigosMP).forEach(r => {
-    ultimaVendaPorRca[`${r.filial_sigla}_${r.rca_id}`] = r.ultima_data;
-  });
+  `).all(...codigosMP).forEach(r => { ultimaVendaPorRca[`${r.filial_sigla}_${r.rca_id}`] = r.ultima_data; });
   function diasSemVenderMP(chaveRca) {
     const ultima = ultimaVendaPorRca[chaveRca];
-    if (!ultima) return null; // nunca vendeu nenhuma marca própria no histórico
-    const dias = Math.round((new Date(dataRef) - new Date(ultima)) / 86400000);
-    return { dias, ultima };
+    if (!ultima) return null;
+    return { dias: Math.round((new Date(dataRef) - new Date(ultima)) / 86400000), ultima };
   }
 
-  // Chave composta "SIGLA::gerente" — evita colisão entre gerentes de filiais diferentes
-  // com o mesmo nome, e permite separar MCD/TPH em blocos por sub-gerente.
-  const porFilial = {};
-  rows.forEach(r => {
+  const hojePorGerente = {}; // "SIGLA::gerente" -> { sigla, gerente, fatMP, positivados, porSupervisor }
+  function getHoje(sigla, gerente) {
+    const chave = `${sigla}::${gerente}`;
+    if (!hojePorGerente[chave]) hojePorGerente[chave] = { sigla, gerente, fatMP: 0, qtdItens: 0, positivados: new Set(), porSupervisor: {} };
+    return hojePorGerente[chave];
+  }
+  vendasHoje.forEach(r => {
     if (FILIAIS_EXCLUIDAS.has(r.filial_sigla)) return;
-    const gerente = resolverGerente(r.filial_sigla, r.supervisor_nome);
-    const chaveFilial = `${r.filial_sigla}::${gerente}`;
-    if (!porFilial[chaveFilial]) {
-      porFilial[chaveFilial] = { sigla: r.filial_sigla, gerente, fatMP: 0, qtdItens: 0, positivados: new Set(), porSku: {}, porSupervisor: {} };
-    }
-    const f = porFilial[chaveFilial];
-    f.fatMP += r.valor_total || 0;
-    f.qtdItens += r.quantidade || 0;
-    f.positivados.add(r.nome_cliente);
-    if (!f.porSku[r.codprod]) f.porSku[r.codprod] = { qtd: 0, fat: 0, descricao: r.descricao };
-    f.porSku[r.codprod].qtd += r.quantidade || 0;
-    f.porSku[r.codprod].fat += r.valor_total || 0;
-    const sup = (r.supervisor_nome || 'SUPERVISÃO GERAL').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
-    if (!f.porSupervisor[sup]) f.porSupervisor[sup] = { fat: 0, positivados: new Set() };
-    f.porSupervisor[sup].fat += r.valor_total || 0;
-    f.porSupervisor[sup].positivados.add(r.nome_cliente);
+    const gerente = resolverGerente(r.filial_sigla, r.rca_id);
+    const sup = resolverSupervisor(r.filial_sigla, r.rca_id);
+    const g = getHoje(r.filial_sigla, gerente);
+    g.fatMP += r.valor_total || 0;
+    g.qtdItens += r.quantidade || 0;
+    g.positivados.add(r.nome_cliente);
+    if (!g.porSupervisor[sup]) g.porSupervisor[sup] = { fat: 0, positivados: new Set() };
+    g.porSupervisor[sup].fat += r.valor_total || 0;
+    g.porSupervisor[sup].positivados.add(r.nome_cliente);
   });
 
-  // ===== MENSAGEM GERAL (Vitório) =====
-  let totalFat = 0, totalItens = 0;
-  const totalPositivados = new Set();
-  Object.values(porFilial).forEach(f => { totalFat += f.fatMP; totalItens += f.qtdItens; f.positivados.forEach(c => totalPositivados.add(c)); });
-
-  const dataFmt = new Date(dataRef + 'T12:00:00').toLocaleDateString('pt-BR');
-  let msgGeral = `🎯 *MARCAS PRÓPRIAS — 10:00*\n📅 ${dataFmt}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-  msgGeral += `💰 *Faturado Hoje:* R$ ${fmtMoeda(totalFat)}\n`;
-  msgGeral += `📦 *Itens Vendidos:* ${Math.round(totalItens)} un\n`;
-  msgGeral += `✅ *PDVs Positivados:* ${totalPositivados.size}\n\n`;
-  msgGeral += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏢 *POR FILIAL*\n\n`;
-
-  // Agrupar por filial pra exibição no geral (soma os sub-gerentes de MCD/TPH numa linha só)
-  const somaPorSigla = {};
-  Object.values(porFilial).forEach(f => {
-    if (!somaPorSigla[f.sigla]) somaPorSigla[f.sigla] = { fat: 0, positivados: new Set(), gerentes: [] };
-    somaPorSigla[f.sigla].fat += f.fatMP;
-    f.positivados.forEach(c => somaPorSigla[f.sigla].positivados.add(c));
-    somaPorSigla[f.sigla].gerentes.push(f.gerente);
-  });
-
-  const ORDEM_FILIAIS = ['TPH', 'API', 'TBL', 'TCA', 'TSJ', 'TPA', 'ABC', 'TCV', 'MCD'];
-  ORDEM_FILIAIS.forEach(sigla => {
-    const s = somaPorSigla[sigla];
-    if (!s) { msgGeral += `📍 *${sigla}:* R$ 0,00 (0 PDVs)\n`; return; }
-    const nota = sigla === 'ABC' ? ' _(só 1 marca disponível)_' : '';
-    msgGeral += `📍 *${sigla} — ${s.gerentes.join(' / ').toUpperCase()}:* R$ ${fmtMoeda(s.fat)} (${s.positivados.size} PDVs)${nota}\n`;
-  });
-
-  // Monta zerados por chave "SIGLA::gerente" (mesmo padrão de agrupamento de porFilial).
-  // Usa o supervisor da ÁRVORE VIVA (val.supNome), não o supervisor_nome gravado no
-  // pedido histórico — esse último às vezes vem com o próprio nome do vendedor por
-  // inconsistência de dado antigo, o que gerava grupos errados.
-  const zeradosPorFilial = {};
+  const zeradosPorGerente = {};
   todosPedidosHoje.forEach(p => {
     if (FILIAIS_EXCLUIDAS.has(p.filial_sigla)) return;
     const chaveRca = `${p.filial_sigla}_${p.rca_id}`;
-    if (rcasComMPHoje.has(chaveRca)) return; // já vendeu MP hoje, não é zerado
-    const val = repsMap[chaveRca];
-    if (!val || !engine.isCanalVarejo(val.canal)) return; // só cobra de Varejo válido
-    const gerente = resolverGerente(p.filial_sigla, val.supNome);
-    const chaveFilial = `${p.filial_sigla}::${gerente}`;
-    if (!zeradosPorFilial[chaveFilial]) zeradosPorFilial[chaveFilial] = {};
-    const sup = (val.supNome || 'SUPERVISÃO GERAL').toUpperCase().trim();
-    if (!zeradosPorFilial[chaveFilial][sup]) zeradosPorFilial[chaveFilial][sup] = [];
-    const nome = p.rca_nome.replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
-    const hist = diasSemVenderMP(chaveRca);
-    zeradosPorFilial[chaveFilial][sup].push({ nome, hist });
+    if (rcasComMPHoje.has(chaveRca)) return;
+    if (!isRcaVarejoValido(p.filial_sigla, p.rca_id)) return;
+    const gerente = resolverGerente(p.filial_sigla, p.rca_id);
+    const sup = resolverSupervisor(p.filial_sigla, p.rca_id);
+    const chave = `${p.filial_sigla}::${gerente}`;
+    if (!zeradosPorGerente[chave]) zeradosPorGerente[chave] = {};
+    if (!zeradosPorGerente[chave][sup]) zeradosPorGerente[chave][sup] = [];
+    zeradosPorGerente[chave][sup].push({ nome: limparNome(p.rca_nome), hist: diasSemVenderMP(chaveRca) });
   });
 
+  // =====================================================================
+  // DADOS DO MÊS (ACUMULADO)
+  // =====================================================================
+  const vendasMes = db.prepare(`
+    SELECT ph.filial_sigla, ph.rca_id, ph.nome_cliente, phi.codprod, phi.quantidade, phi.valor_total
+    FROM pedidos_historico ph
+    JOIN pedidos_historico_itens phi ON phi.chave_pedido = ph.chave
+    WHERE ph.data_pedido BETWEEN ? AND ?
+      AND phi.tipo_registro = 'VENDA'
+      AND phi.codprod IN (${placeholders})
+  `).all(inicioMes, dataRef, ...codigosMP).filter(r => isRcaVarejoValido(r.filial_sigla, r.rca_id));
+
+  const precoMedioPorSku = {};
+  db.prepare(`
+    SELECT codprod, AVG(valor_total * 1.0 / quantidade) as preco
+    FROM pedidos_historico_itens
+    WHERE tipo_registro = 'VENDA' AND quantidade > 0 AND codprod IN (${placeholders})
+    GROUP BY codprod
+  `).all(...codigosMP).forEach(r => { precoMedioPorSku[r.codprod] = r.preco || 0; });
+
+  const cortesMes = db.prepare(`
+    SELECT ph.filial_sigla, ph.rca_id, phi.codprod, phi.quantidade, phi.valor_total
+    FROM pedidos_historico ph
+    JOIN pedidos_historico_itens phi ON phi.chave_pedido = ph.chave
+    WHERE ph.data_pedido BETWEEN ? AND ?
+      AND phi.tipo_registro = 'CORTE'
+      AND phi.codprod IN (${placeholders})
+  `).all(inicioMes, dataRef, ...codigosMP)
+    .filter(r => isRcaVarejoValido(r.filial_sigla, r.rca_id))
+    .map(r => ({ ...r, valor_total: r.valor_total > 0 ? r.valor_total : (r.quantidade || 0) * (precoMedioPorSku[r.codprod] || 0) }));
+
+  const devPlaceholders = codigosMP.map(() => '?').join(',');
+  const devolucoesMes = db.prepare(`
+    SELECT filial_codigo as filial_sigla, qtdev, vl_devolvido, data_devolucao
+    FROM devolucoes_itens
+    WHERE data_devolucao BETWEEN ? AND ?
+      AND codprod IN (${devPlaceholders})
+  `).all(inicioMes, dataRef, ...codigosMP);
+  const devMaxData = db.prepare('SELECT MAX(data_devolucao) as max FROM devolucoes_itens').get().max;
+
+  const mesPorGerente = {};
+  function getMes(sigla, gerente) {
+    const chave = `${sigla}::${gerente}`;
+    if (!mesPorGerente[chave]) mesPorGerente[chave] = { sigla, gerente, fat: 0, qtd: 0, positivados: new Set(), cortesValor: 0, cortesQtd: 0, porSupervisor: {} };
+    return mesPorGerente[chave];
+  }
+  vendasMes.forEach(r => {
+    if (FILIAIS_EXCLUIDAS.has(r.filial_sigla)) return;
+    const gerente = resolverGerente(r.filial_sigla, r.rca_id);
+    const sup = resolverSupervisor(r.filial_sigla, r.rca_id);
+    const g = getMes(r.filial_sigla, gerente);
+    g.fat += r.valor_total || 0;
+    g.qtd += r.quantidade || 0;
+    g.positivados.add(r.nome_cliente);
+    if (!g.porSupervisor[sup]) g.porSupervisor[sup] = { fat: 0, positivados: new Set() };
+    g.porSupervisor[sup].fat += r.valor_total || 0;
+    g.porSupervisor[sup].positivados.add(r.nome_cliente);
+  });
+  cortesMes.forEach(r => {
+    if (FILIAIS_EXCLUIDAS.has(r.filial_sigla)) return;
+    const gerente = resolverGerente(r.filial_sigla, r.rca_id);
+    const g = getMes(r.filial_sigla, gerente);
+    g.cortesValor += r.valor_total || 0;
+    g.cortesQtd += r.quantidade || 0;
+  });
+  const devPorFilial = {};
+  devolucoesMes.forEach(r => {
+    if (FILIAIS_EXCLUIDAS.has(r.filial_sigla)) return;
+    if (!devPorFilial[r.filial_sigla]) devPorFilial[r.filial_sigla] = { valor: 0, qtd: 0 };
+    devPorFilial[r.filial_sigla].valor += r.vl_devolvido || 0;
+    devPorFilial[r.filial_sigla].qtd += r.qtdev || 0;
+  });
+
+  // =====================================================================
+  // MONTAGEM DOS ARQUIVOS (1 por destinatário)
+  // =====================================================================
   const outDir = path.join(__dirname, '..', 'auditoria_mensagens', dataRef);
   fs.mkdirSync(outDir, { recursive: true });
-  fs.writeFileSync(path.join(outDir, '10_00__VITORIO.txt'), msgGeral.trim(), 'utf8');
 
-  // ===== MENSAGENS POR GERENTE (aberta por supervisor, com zerados de MP) =====
+  // ---- VITÓRIO: consolidado hoje + consolidado mês, tudo num arquivo ----
+  let totFatHoje = 0, totItensHoje = 0;
+  const totPositivadosHoje = new Set();
+  const somaPorSiglaHoje = {};
+  Object.values(hojePorGerente).forEach(g => {
+    totFatHoje += g.fatMP; totItensHoje += g.qtdItens;
+    g.positivados.forEach(c => totPositivadosHoje.add(c));
+    if (!somaPorSiglaHoje[g.sigla]) somaPorSiglaHoje[g.sigla] = { fat: 0, positivados: new Set(), gerentes: [] };
+    somaPorSiglaHoje[g.sigla].fat += g.fatMP;
+    g.positivados.forEach(c => somaPorSiglaHoje[g.sigla].positivados.add(c));
+    somaPorSiglaHoje[g.sigla].gerentes.push(g.gerente);
+  });
+
+  let totFatMes = 0, totQtdMes = 0, totCortesValorMes = 0, totCortesQtdMes = 0, totDevValorMes = 0, totDevQtdMes = 0;
+  const totPositivadosMes = new Set();
+  const somaPorSiglaMes = {};
+  Object.values(mesPorGerente).forEach(g => {
+    totFatMes += g.fat; totQtdMes += g.qtd; totCortesValorMes += g.cortesValor; totCortesQtdMes += g.cortesQtd;
+    g.positivados.forEach(c => totPositivadosMes.add(c));
+    if (!somaPorSiglaMes[g.sigla]) somaPorSiglaMes[g.sigla] = { fat: 0, positivados: new Set(), cortesValor: 0 };
+    somaPorSiglaMes[g.sigla].fat += g.fat;
+    g.positivados.forEach(c => somaPorSiglaMes[g.sigla].positivados.add(c));
+    somaPorSiglaMes[g.sigla].cortesValor += g.cortesValor;
+  });
+  Object.values(devPorFilial).forEach(d => { totDevValorMes += d.valor; totDevQtdMes += d.qtd; });
+
+  let msgVitorio = `🎯 *MARCAS PRÓPRIAS — 10:00*\n📅 ${dataFmt}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  msgVitorio += `*HOJE*\n`;
+  msgVitorio += `💰 Faturado: R$ ${fmtMoeda(totFatHoje)} • 📦 ${Math.round(totItensHoje)} itens • ✅ ${totPositivadosHoje.size} PDVs\n\n`;
+  ORDEM_FILIAIS.forEach(sigla => {
+    const s = somaPorSiglaHoje[sigla];
+    const nota = sigla === 'ABC' ? ' _(só 1 marca)_' : '';
+    if (!s) { msgVitorio += `📍 ${sigla}: R$ 0,00${nota}\n`; return; }
+    msgVitorio += `📍 ${sigla} — ${s.gerentes.join('/').toUpperCase()}: R$ ${fmtMoeda(s.fat)} (${s.positivados.size} PDVs)${nota}\n`;
+  });
+
+  msgVitorio += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n*ACUMULADO DO MÊS (${inicioFmt} a ${dataFmt})*\n`;
+  msgVitorio += `💰 Faturado: R$ ${fmtMoeda(totFatMes)} • 📦 ${Math.round(totQtdMes)} itens • ✅ ${totPositivadosMes.size} PDVs\n`;
+  msgVitorio += `✂️ Cortes: R$ ${fmtMoeda(totCortesValorMes)} (${Math.round(totCortesQtdMes)} un) • 🚛 Devoluções: R$ ${fmtMoeda(totDevValorMes)} (${Math.round(totDevQtdMes)} un)\n\n`;
+  ORDEM_FILIAIS.forEach(sigla => {
+    const f = somaPorSiglaMes[sigla];
+    const dev = devPorFilial[sigla];
+    const nota = sigla === 'ABC' ? ' _(só 1 marca)_' : '';
+    if (!f) { msgVitorio += `📍 ${sigla}: R$ 0,00${nota}\n`; return; }
+    msgVitorio += `📍 ${sigla}: R$ ${fmtMoeda(f.fat)} • ${f.positivados.size} PDVs • ✂️ R$ ${fmtMoeda(f.cortesValor)} • 🚛 R$ ${fmtMoeda(dev?.valor || 0)}${nota}\n`;
+  });
+  if (devMaxData < dataRef) {
+    msgVitorio += `\n_(Nota: devoluções só têm dado até ${devMaxData} — rodar analises/extrair_tudo_devolucoes_cadastros.js)_`;
+  }
+  fs.writeFileSync(path.join(outDir, '10_00__VITORIO.txt'), msgVitorio.trim(), 'utf8');
+
+  // ---- POR GERENTE: hoje + zerados + mês, tudo num arquivo só ----
+  const chavesTodas = new Set([...Object.keys(hojePorGerente), ...Object.keys(zeradosPorGerente), ...Object.keys(mesPorGerente)]);
   let nGerentes = 0;
-  const chavesTodas = new Set([...Object.keys(porFilial), ...Object.keys(zeradosPorFilial)]);
-  chavesTodas.forEach(chaveFilial => {
-    const f = porFilial[chaveFilial] || { sigla: chaveFilial.split('::')[0], gerente: chaveFilial.split('::')[1], fatMP: 0, positivados: new Set(), porSupervisor: {} };
-    const zerados = zeradosPorFilial[chaveFilial] || {};
+  chavesTodas.forEach(chave => {
+    const [sigla, gerente] = chave.split('::');
+    const hoje = hojePorGerente[chave] || { fatMP: 0, positivados: new Set(), porSupervisor: {} };
+    const zerados = zeradosPorGerente[chave] || {};
     const totalZerados = Object.values(zerados).reduce((a, l) => a + l.length, 0);
+    const mes = mesPorGerente[chave] || { fat: 0, qtd: 0, positivados: new Set(), cortesValor: 0, cortesQtd: 0, porSupervisor: {} };
+    const dev = devPorFilial[sigla];
 
-    let m = `🎯 *MARCAS PRÓPRIAS — 10:00*\n📍 ${f.sigla} — ${(f.gerente || '').toUpperCase()} • ${dataFmt}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-    m += `💰 R$ ${fmtMoeda(f.fatMP)} • ${f.positivados.size} PDVs positivados\n\n`;
-    Object.entries(f.porSupervisor).forEach(([sup, v]) => {
-      m += `👤 *${sup}* — R$ ${fmtMoeda(v.fat)} (${v.positivados.size} PDVs)\n`;
+    let m = `🎯 *MARCAS PRÓPRIAS — 10:00*\n📍 ${sigla} — ${gerente.toUpperCase()} • ${dataFmt}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+    m += `*HOJE*\n💰 R$ ${fmtMoeda(hoje.fatMP)} • ${hoje.positivados.size} PDVs positivados\n`;
+    Object.entries(hoje.porSupervisor).forEach(([sup, v]) => {
+      m += `👤 ${sup} — R$ ${fmtMoeda(v.fat)} (${v.positivados.size} PDVs)\n`;
     });
 
     if (totalZerados > 0) {
-      m += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (${totalZerados})*\n`;
-      m += `_(fez pedido hoje, mas nenhum item era marca própria)_\n\n`;
+      m += `\n🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (${totalZerados})*\n`;
+      m += `_(fez pedido hoje, mas nenhum item era marca própria)_\n`;
       Object.entries(zerados).forEach(([sup, vendedores]) => {
-        m += `👤 *${sup}*\n`;
+        m += `\n👤 *${sup}*\n`;
         vendedores
           .sort((a, b) => (b.hist?.dias ?? 9999) - (a.hist?.dias ?? 9999))
           .forEach(v => {
@@ -203,13 +286,23 @@ async function main() {
       });
     }
 
-    const nomeArquivo = `10_00__GERENTE_${f.sigla}_${f.gerente.replace(/[^a-zA-Z0-9]+/g, '_')}.txt`;
+    m += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n*ACUMULADO DO MÊS (${inicioFmt} a ${dataFmt})*\n`;
+    m += `💰 R$ ${fmtMoeda(mes.fat)} • ${mes.positivados.size} PDVs • ✂️ R$ ${fmtMoeda(mes.cortesValor)} (${Math.round(mes.cortesQtd)} un)`;
+    if (dev) m += ` • 🚛 R$ ${fmtMoeda(dev.valor)} _(filial toda)_`;
+    m += `\n`;
+    Object.entries(mes.porSupervisor)
+      .sort((a, b) => b[1].fat - a[1].fat)
+      .forEach(([sup, v]) => {
+        m += `👤 ${sup} — R$ ${fmtMoeda(v.fat)} (${v.positivados.size} PDVs)\n`;
+      });
+
+    const nomeArquivo = `10_00__GERENTE_${sigla}_${gerente.replace(/[^a-zA-Z0-9]+/g, '_')}.txt`;
     fs.writeFileSync(path.join(outDir, nomeArquivo), m.trim(), 'utf8');
     nGerentes++;
   });
 
-  console.log(`Geral: R$ ${fmtMoeda(totalFat)} | ${totalPositivados.size} PDVs`);
-  console.log(`${nGerentes} filiais com dado, salvos em ${outDir}`);
+  console.log(`Vitório: hoje R$ ${fmtMoeda(totFatHoje)} | mês R$ ${fmtMoeda(totFatMes)}`);
+  console.log(`${nGerentes} gerentes (1 arquivo cada, hoje+mês juntos) salvos em ${outDir}`);
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

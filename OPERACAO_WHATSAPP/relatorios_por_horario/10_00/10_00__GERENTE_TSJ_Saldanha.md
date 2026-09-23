@@ -1,14 +1,13 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
 📍 TSJ — SALDANHA • 22/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-💰 R$ 5.460,00 • 23 PDVs positivados
 
-👤 *ANA CRISTINA DOS SANTOS YAMATO* — R$ 1.703,04 (7 PDVs)
-👤 *CRISTIANO RODRIGUES MACHADO* — R$ 1.944,00 (5 PDVs)
-👤 *VICTOR HUGO FONSECA CARVALHO* — R$ 1.580,52 (10 PDVs)
-👤 *JULIO CESAR SOARES DE PAULO* — R$ 232,44 (1 PDVs)
+*HOJE*
+💰 R$ 2.267,76 • 12 PDVs positivados
+👤 ANA CRISTINA DOS SANTOS YAMATO — R$ 1.703,04 (7 PDVs)
+👤 VICTOR HUGO FONSECA CARVALHO — R$ 332,28 (4 PDVs)
+👤 JULIO CESAR SOARES DE PAULO — R$ 232,44 (1 PDVs)
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (13)*
 _(fez pedido hoje, mas nenhum item era marca própria)_
 
@@ -18,13 +17,22 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
   • NAJILA DE OLIVEIRA GOMES — 4d sem vender MP
   • LUCIENE CRISTINA DOS SANTOS — 1d sem vender MP
   • APARECIDA JOYCE GOMES FERREIRA — 1d sem vender MP
+
 👤 *JULIO CESAR SOARES DE PAULO*
   • ANDRE MARTINS RODRIGUES — 20d sem vender MP
   • TATIANE PEREIRA DE SOUZA — 1d sem vender MP
   • DAVI DE JESUS FERREIRA — 1d sem vender MP
+
 👤 *VICTOR HUGO FONSECA CARVALHO*
   • CARLOS GABRIEL DOS SANTOS FERREIRA — 20d sem vender MP
   • THIAGO AUGUSTO BARBOSA — 13d sem vender MP
   • MONICA SALDANHA DE BRITO — 5d sem vender MP
   • PAULO HENRIQUE SIQUETTO SILVA — 4d sem vender MP
   • JOAO PEDRO GONCALVES DA SILVA — 1d sem vender MP
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+💰 R$ 75.730,00 • 160 PDVs • ✂️ R$ 79,86 (32 un) • 🚛 R$ 1.573,98 _(filial toda)_
+👤 ANA CRISTINA DOS SANTOS YAMATO — R$ 59.086,14 (103 PDVs)
+👤 VICTOR HUGO FONSECA CARVALHO — R$ 12.059,53 (37 PDVs)
+👤 JULIO CESAR SOARES DE PAULO — R$ 4.584,33 (20 PDVs)

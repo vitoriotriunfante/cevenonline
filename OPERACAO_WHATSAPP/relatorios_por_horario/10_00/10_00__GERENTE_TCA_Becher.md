@@ -1,13 +1,12 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
 📍 TCA — BECHER • 22/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-💰 R$ 4.307,84 • 7 PDVs positivados
 
-👤 *IVAIR PRINCIPE FREITAS DE MIRANDA* — R$ 1.854,80 (4 PDVs)
-👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR* — R$ 2.002,56 (2 PDVs)
-👤 *YASMIM PRISCILA DA SILVA* — R$ 450,48 (1 PDVs)
+*HOJE*
+💰 R$ 3.857,36 • 6 PDVs positivados
+👤 IVAIR PRINCIPE FREITAS DE MIRANDA — R$ 1.854,80 (4 PDVs)
+👤 JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR — R$ 2.002,56 (2 PDVs)
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (19)*
 _(fez pedido hoje, mas nenhum item era marca própria)_
 
@@ -16,16 +15,19 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
   • RODOLFO DE JESUS — 20d sem vender MP
   • PJ ALEXANDRE ROMERO SCHARDOSIN — 5d sem vender MP
   • PJ PAULO MARCOS PEREIRA ESTEVES — -69d sem vender MP
+
 👤 *FRANCISCO FRANCO FILHO*
   • PJ ADILSON PEREIRA RODRIGUES — 11d sem vender MP
   • ADEVANE BANDEIRA RODRIGUES — 4d sem vender MP
   • ROMILDO NUNES DE SOUSA — -43d sem vender MP
+
 👤 *IVAIR PRINCIPE FREITAS DE MIRANDA*
   • CAROLINE APARECIDA SILVA AGUIAR — 70d sem vender MP
   • SILVIA BARROS E SILVA — 13d sem vender MP
   • JOSEANNE CRISTINA FRANCA DIAS — 7d sem vender MP
   • ROBSON JANIO GOMES ROSA — 5d sem vender MP
   • MOISES SENABIO GASPAR — 1d sem vender MP
+
 👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR*
   • WESLLEY SOARES DA ANUNCIACAO — nunca vendeu MP
   • FELIPE DE OLIVEIRA LIMA — nunca vendeu MP
@@ -34,3 +36,11 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
   • SILVIA MARQUES DE SOUZA — 42d sem vender MP
   • LUANA FERREIRA DE BRITO — 40d sem vender MP
   • VINICIUS AUGUSTO CONIGLIA — 12d sem vender MP
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+💰 R$ 38.209,64 • 71 PDVs • ✂️ R$ 334,62 (83 un) • 🚛 R$ 267,26 _(filial toda)_
+👤 IVAIR PRINCIPE FREITAS DE MIRANDA — R$ 14.006,76 (30 PDVs)
+👤 MAICON DION NOVAIS SILVA — R$ 10.746,72 (15 PDVs)
+👤 JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR — R$ 9.170,82 (14 PDVs)
+👤 FRANCISCO FRANCO FILHO — R$ 4.285,34 (13 PDVs)
