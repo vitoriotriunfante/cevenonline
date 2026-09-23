@@ -354,8 +354,8 @@ async function coletarAuditoriaCampo(token, dataRef) {
 // 4. Coleta de Produtividade e Varejo Zerados
 async function coletarVendasEZerados(repsValidationMap, dataRef) {
   console.log(`📡 Coletando produtividade e vendedores de varejo para ${dataRef}...`);
-  const repsPath = path.join(__dirname, '../public/reps_data.json');
-  const reps = JSON.parse(fs.readFileSync(repsPath, 'utf8'));
+  // Antes lia public/reps_data.json (estático, 13 dias desatualizado). Deriva do repsValidationMap.
+  const reps = Object.values(repsValidationMap).map(v => ({ codigo: v.rca, nome: v.nome, filial: v.filial }));
 
   const filialResult = {};
   for (const [fKey, meta] of Object.entries(FILIAIS_MAP)) {
@@ -714,7 +714,7 @@ async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
   const vjsValidos = reps.filter(r => {
     const fSigla = (r.filial || '').toUpperCase();
     const val = repsValidationMap[fSigla + '_' + r.codigo];
-    return val && isCanalVarejo(val.canal) && val.metaFat > 0 && val.metaPos > 0;
+    return val && isCanalVarejo(val.canal);
   });
 
   const BATCH = 30;
@@ -822,14 +822,15 @@ async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
 // 4C. Coleta de PDVs em Risco (Última Chance / Alerta Preventivo) — reaproveita o mesmo
 // critério de "inativo +30 dias" já usado na abertura, só reclassificado pela quinzena do mês.
 async function coletarAlertaRisco(repsValidationMap, dataHoje) {
-  const repsPath = path.join(__dirname, '../public/reps_data.json');
-  const reps = JSON.parse(fs.readFileSync(repsPath, 'utf8'));
+  // Antes lia public/reps_data.json (estático, 13 dias desatualizado -- mesmo bug
+  // achado em coletarAberturaVarejo em 23/09/2026). Deriva direto do repsValidationMap.
+  const reps = Object.values(repsValidationMap).map(v => ({ codigo: v.rca, nome: v.nome, filial: v.filial }));
   const hojeDate = new Date(dataHoje + 'T12:00:00');
 
   const vjsValidos = reps.filter(r => {
     const fSigla = (r.filial || '').toUpperCase();
     const val = repsValidationMap[fSigla + '_' + r.codigo];
-    return val && isCanalVarejo(val.canal) && val.metaFat > 0 && val.metaPos > 0;
+    return val && isCanalVarejo(val.canal);
   });
 
   // porGerente["SIGLA::gerente"][supNome] = [ {cliente, vendedor, rca, dataUltimaCompra, valorUltimaCompra, risco, sigla} ]
