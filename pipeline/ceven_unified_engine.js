@@ -1326,6 +1326,36 @@ async function main() {
       console.log(`\n--- PREVIEW ABERTURA MATINAL ---`);
       console.log(abertura.textoAbertura);
     }
+
+    // Abertura individual por gerente (só o bloco da própria filial) — ordem de
+    // GERENTES_MAP respeita a regra de deixar TCA/TCG/MCD por último (fuso horário).
+    if (destino === 'todos') {
+      console.log(`🚀 Enviando Abertura Matinal individual para ${GERENTES_MAP.length} gerentes...`);
+      for (const g of GERENTES_MAP) {
+        const chave = Object.keys(abertura.dadosAbertura || {}).find(k => {
+          const [sigla, gerenteNome] = k.split('::');
+          return sigla === g.filial && gerenteNome.toUpperCase() === g.gerente.toUpperCase();
+        });
+        const f = chave ? abertura.dadosAbertura[chave] : null;
+        if (!f) {
+          console.log(`  ⚠️ Sem dados de abertura pra ${g.filial} — ${g.gerente}, pulando.`);
+          continue;
+        }
+        const pInat = f.visitas > 0 ? ((f.inativos / f.visitas) * 100).toFixed(1).replace('.', ',') : '0,0';
+        const pRec = f.visitas > 0 ? ((f.rec / f.visitas) * 100).toFixed(1).replace('.', ',') : '0,0';
+        let msgGerente = `🌅 *ABERTURA MATINAL — ${g.filial} (07:45)*\n`;
+        msgGerente += `📅 ${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}\n`;
+        msgGerente += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        msgGerente += `👥 Vendedores: ${f.vjs} • Visitas: ${f.visitas}\n`;
+        msgGerente += `Sem compra +30d: ${f.inativos} (${pInat}%) • Recorrência: ${f.rec} (${pRec}%)\n`;
+        if (f.sigla === 'TPH') msgGerente += `🔥 Volta Comigo: ${f.volta} PDVs\n`;
+        msgGerente += `Oportunidades CNAE ${abertura.cnaeFoco?.codigo || ''}: +${f.prospects.toLocaleString('pt-BR')} PDVs\n`;
+
+        const r = await enviarWhatsapp(g.whatsapp, msgGerente);
+        console.log(`  Abertura (${g.filial} — ${g.gerente}, ${g.whatsapp}) — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
+        await new Promise(res => setTimeout(res, 3000));
+      }
+    }
   }
 
   // A) Gestão de Campo (Compromissos & RETs)
