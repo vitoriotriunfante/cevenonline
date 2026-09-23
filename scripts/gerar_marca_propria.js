@@ -78,6 +78,26 @@ async function main() {
   `).all(dataRef);
   const rcasComMPHoje = new Set(rows.map(r => `${r.filial_sigla}_${r.rca_id}`));
 
+  // Histórico: última vez que cada RCA vendeu QUALQUER marca própria (não só hoje).
+  // Sem isso a lista de zerados é só uma parede de nomes sem peso nenhum — com isso,
+  // dá pra dizer "zerado há X dias" em vez de só "zerou hoje".
+  const ultimaVendaPorRca = {};
+  db.prepare(`
+    SELECT ph.filial_sigla, ph.rca_id, MAX(ph.data_pedido) as ultima_data
+    FROM pedidos_historico ph
+    JOIN pedidos_historico_itens phi ON phi.chave_pedido = ph.chave
+    WHERE phi.tipo_registro = 'VENDA' AND phi.codprod IN (${placeholders})
+    GROUP BY ph.filial_sigla, ph.rca_id
+  `).all(...codigosMP).forEach(r => {
+    ultimaVendaPorRca[`${r.filial_sigla}_${r.rca_id}`] = r.ultima_data;
+  });
+  function diasSemVenderMP(chaveRca) {
+    const ultima = ultimaVendaPorRca[chaveRca];
+    if (!ultima) return null; // nunca vendeu nenhuma marca própria no histórico
+    const dias = Math.round((new Date(dataRef) - new Date(ultima)) / 86400000);
+    return { dias, ultima };
+  }
+
   // Chave composta "SIGLA::gerente" — evita colisão entre gerentes de filiais diferentes
   // com o mesmo nome, e permite separar MCD/TPH em blocos por sub-gerente.
   const porFilial = {};
@@ -130,7 +150,10 @@ async function main() {
     msgGeral += `📍 *${sigla} — ${s.gerentes.join(' / ').toUpperCase()}:* R$ ${fmtMoeda(s.fat)} (${s.positivados.size} PDVs)${nota}\n`;
   });
 
-  // Monta zerados por chave "SIGLA::gerente" (mesmo padrão de agrupamento de porFilial)
+  // Monta zerados por chave "SIGLA::gerente" (mesmo padrão de agrupamento de porFilial).
+  // Usa o supervisor da ÁRVORE VIVA (val.supNome), não o supervisor_nome gravado no
+  // pedido histórico — esse último às vezes vem com o próprio nome do vendedor por
+  // inconsistência de dado antigo, o que gerava grupos errados.
   const zeradosPorFilial = {};
   todosPedidosHoje.forEach(p => {
     if (FILIAIS_EXCLUIDAS.has(p.filial_sigla)) return;
@@ -138,12 +161,14 @@ async function main() {
     if (rcasComMPHoje.has(chaveRca)) return; // já vendeu MP hoje, não é zerado
     const val = repsMap[chaveRca];
     if (!val || !engine.isCanalVarejo(val.canal)) return; // só cobra de Varejo válido
-    const gerente = resolverGerente(p.filial_sigla, p.supervisor_nome);
+    const gerente = resolverGerente(p.filial_sigla, val.supNome);
     const chaveFilial = `${p.filial_sigla}::${gerente}`;
     if (!zeradosPorFilial[chaveFilial]) zeradosPorFilial[chaveFilial] = {};
-    const sup = (p.supervisor_nome || 'SUPERVISÃO GERAL').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
+    const sup = (val.supNome || 'SUPERVISÃO GERAL').toUpperCase().trim();
     if (!zeradosPorFilial[chaveFilial][sup]) zeradosPorFilial[chaveFilial][sup] = [];
-    zeradosPorFilial[chaveFilial][sup].push(p.rca_nome.replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim());
+    const nome = p.rca_nome.replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
+    const hist = diasSemVenderMP(chaveRca);
+    zeradosPorFilial[chaveFilial][sup].push({ nome, hist });
   });
 
   const outDir = path.join(__dirname, '..', 'auditoria_mensagens', dataRef);
@@ -166,9 +191,15 @@ async function main() {
 
     if (totalZerados > 0) {
       m += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (${totalZerados})*\n`;
-      m += `_(fizeram pedido hoje, mas nenhum item era marca própria)_\n\n`;
+      m += `_(fez pedido hoje, mas nenhum item era marca própria)_\n\n`;
       Object.entries(zerados).forEach(([sup, vendedores]) => {
-        m += `👤 *${sup}*: ${vendedores.join(', ')}\n`;
+        m += `👤 *${sup}*\n`;
+        vendedores
+          .sort((a, b) => (b.hist?.dias ?? 9999) - (a.hist?.dias ?? 9999))
+          .forEach(v => {
+            const tag = v.hist ? `${v.hist.dias}d sem vender MP` : 'nunca vendeu MP';
+            m += `  • ${v.nome} — ${tag}\n`;
+          });
       });
     }
 
