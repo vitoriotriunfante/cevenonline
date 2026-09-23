@@ -10,11 +10,36 @@
 👤 FRANCISCO FRANCO FILHO — R$ 1.272,26 (8 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*HOJE*
-💰 R$ 0,00 • 0 PDVs positivados
+*COMO FECHOU ONTEM (22/09/2026)*
+💰 R$ 1.928,68 • 6 PDVs positivados
+👤 IVAIR PRINCIPE FREITAS DE MIRANDA — R$ 927,40 (4 PDVs)
+👤 JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR — R$ 1.001,28 (2 PDVs)
 
-🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (1)*
-_(fez pedido hoje, mas nenhum item era marca própria)_
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (18)*
+_(fez pedido ontem, mas nenhum item era marca própria)_
+
+👤 *MAICON DION NOVAIS SILVA*
+  • DIOGO VIEIRA DA SILVA — 55d sem vender MP
+  • RODOLFO DE JESUS — 21d sem vender MP
+  • PJ ALEXANDRE ROMERO SCHARDOSIN — 6d sem vender MP
+  • PJ PAULO MARCOS PEREIRA ESTEVES — -68d sem vender MP
+
+👤 *FRANCISCO FRANCO FILHO*
+  • PJ ADILSON PEREIRA RODRIGUES — 12d sem vender MP
+  • ROMILDO NUNES DE SOUSA — -42d sem vender MP
+
+👤 *IVAIR PRINCIPE FREITAS DE MIRANDA*
+  • CAROLINE APARECIDA SILVA AGUIAR — 71d sem vender MP
+  • SILVIA BARROS E SILVA — 14d sem vender MP
+  • JOSEANNE CRISTINA FRANCA DIAS — 8d sem vender MP
+  • ROBSON JANIO GOMES ROSA — 6d sem vender MP
+  • MOISES SENABIO GASPAR — 2d sem vender MP
 
 👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR*
-  • VINICIUS MARTINS BATISTA — 1d sem vender MP
+  • WESLLEY SOARES DA ANUNCIACAO — nunca vendeu MP
+  • FELIPE DE OLIVEIRA LIMA — nunca vendeu MP
+  • PJ PEDRO HENRIQUE DE MELO MACIEL — nunca vendeu MP
+  • NILCIENE BATISTA DOS SANTOS — 57d sem vender MP
+  • SILVIA MARQUES DE SOUZA — 43d sem vender MP
+  • LUANA FERREIRA DE BRITO — 41d sem vender MP
+  • VINICIUS AUGUSTO CONIGLIA — 13d sem vender MP

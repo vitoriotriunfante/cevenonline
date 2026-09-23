@@ -9,11 +9,27 @@
 👤 SAMUEL PALHANO DE OLIVEIRA — R$ 958,87 (8 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*HOJE*
-💰 R$ 0,00 • 0 PDVs positivados
+*COMO FECHOU ONTEM (22/09/2026)*
+💰 R$ 122,29 • 5 PDVs positivados
+👤 SAMUEL PALHANO DE OLIVEIRA — R$ 34,93 (2 PDVs)
+👤 ROGERIO DORNELLES PASSOS — R$ 87,36 (3 PDVs)
 
-🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (1)*
-_(fez pedido hoje, mas nenhum item era marca própria)_
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (11)*
+_(fez pedido ontem, mas nenhum item era marca própria)_
+
+👤 *SAMUEL PALHANO DE OLIVEIRA*
+  • BRUNO SPENGLER — nunca vendeu MP
+  • ROMULO MICHAEL SEEFELDT — 7d sem vender MP
+
+👤 *DOUGLAS CRISTIANO DOS SANTOS*
+  • BRUNO JOSE LORENZON POSPICHIL — nunca vendeu MP
+  • LEONARDO BITTENCOURT DOS SANTOS — 70d sem vender MP
+  • TIAGO MORAES DA SILVA — 69d sem vender MP
+  • BRENDA MARQUES DOS SANTOS — 28d sem vender MP
+  • DAVID LUIZ ROMEIRA BOMBARDELLI — 6d sem vender MP
+  • ALEXSANDRO VALDIR DA SILVA VASQUES — -47d sem vender MP
 
 👤 *ROGERIO DORNELLES PASSOS*
+  • ORLI CLOVIS OLIVEIRA COSTA — 42d sem vender MP
   • EDUARDO BATISTA PINTO — 12d sem vender MP
+  • PAULO BRITES MENDIETA — -47d sem vender MP

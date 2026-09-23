@@ -52,6 +52,13 @@ async function main() {
   const dataFmt = new Date(dataRef + 'T12:00:00').toLocaleDateString('pt-BR');
   const inicioFmt = new Date(inicioMes + 'T12:00:00').toLocaleDateString('pt-BR');
 
+  // Disparo é às 10:00 -- ainda cedo demais no dia pra "hoje" significar algo (venda
+  // do dia mal começou). Pedido do Vitório em 23/09/2026: mostrar como FECHOU ONTEM
+  // em vez de "hoje" quase sempre zerado. O bloco abaixo (antes "DADOS DE HOJE") usa
+  // diaAnterior pra tudo que antes usava dataRef como "hoje".
+  const diaAnterior = new Date(new Date(dataRef + 'T12:00:00').getTime() - 86400000).toISOString().split('T')[0];
+  const diaAnteriorFmt = new Date(diaAnterior + 'T12:00:00').toLocaleDateString('pt-BR');
+
   const repsMap = engine.carregarValidacaoVendedores();
   await engine.enriquecerCanalReal(repsMap);
   engine.aplicarMostraDisparos(repsMap);
@@ -84,13 +91,13 @@ async function main() {
     WHERE ph.data_pedido = ?
       AND phi.tipo_registro = 'VENDA'
       AND phi.codprod IN (${placeholders})
-  `).all(dataRef, ...codigosMP).filter(r => isRcaVarejoValido(r.filial_sigla, r.rca_id));
+  `).all(diaAnterior, ...codigosMP).filter(r => isRcaVarejoValido(r.filial_sigla, r.rca_id));
 
   const todosPedidosHoje = db.prepare(`
     SELECT DISTINCT ph.filial_sigla, ph.rca_id, ph.rca_nome
     FROM pedidos_historico ph
     WHERE ph.data_pedido = ?
-  `).all(dataRef);
+  `).all(diaAnterior);
   const rcasComMPHoje = new Set(vendasHoje.map(r => `${r.filial_sigla}_${r.rca_id}`));
 
   const ultimaVendaPorRca = {};
@@ -258,7 +265,7 @@ async function main() {
     msgVitorio += `\n_(Nota: devoluções só têm dado até ${devMaxData} — rodar analises/extrair_tudo_devolucoes_cadastros.js)_`;
   }
 
-  msgVitorio += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n*HOJE*\n`;
+  msgVitorio += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n*COMO FECHOU ONTEM (${diaAnteriorFmt})*\n`;
   msgVitorio += `💰 Faturado: R$ ${fmtMoeda(totFatHoje)} • 📦 ${Math.round(totItensHoje)} itens • ✅ ${totPositivadosHoje.size} PDVs\n\n`;
   ORDEM_FILIAIS.forEach(sigla => {
     const lista = somaPorSiglaHoje[sigla];
@@ -293,14 +300,14 @@ async function main() {
         m += `👤 ${sup} — R$ ${fmtMoeda(v.fat)} (${v.positivados.size} PDVs)\n`;
       });
 
-    m += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n*HOJE*\n💰 R$ ${fmtMoeda(hoje.fatMP)} • ${hoje.positivados.size} PDVs positivados\n`;
+    m += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n*COMO FECHOU ONTEM (${diaAnteriorFmt})*\n💰 R$ ${fmtMoeda(hoje.fatMP)} • ${hoje.positivados.size} PDVs positivados\n`;
     Object.entries(hoje.porSupervisor).forEach(([sup, v]) => {
       m += `👤 ${sup} — R$ ${fmtMoeda(v.fat)} (${v.positivados.size} PDVs)\n`;
     });
 
     if (totalZerados > 0) {
-      m += `\n🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (${totalZerados})*\n`;
-      m += `_(fez pedido hoje, mas nenhum item era marca própria)_\n`;
+      m += `\n🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (${totalZerados})*\n`;
+      m += `_(fez pedido ontem, mas nenhum item era marca própria)_\n`;
       Object.entries(zerados).forEach(([sup, vendedores]) => {
         m += `\n👤 *${sup}*\n`;
         vendedores
@@ -317,7 +324,7 @@ async function main() {
     nGerentes++;
   });
 
-  console.log(`Vitório: hoje R$ ${fmtMoeda(totFatHoje)} | mês R$ ${fmtMoeda(totFatMes)}`);
+  console.log(`Vitório: ontem (${diaAnteriorFmt}) R$ ${fmtMoeda(totFatHoje)} | mês R$ ${fmtMoeda(totFatMes)}`);
   console.log(`${nGerentes} gerentes (1 arquivo cada, hoje+mês juntos) salvos em ${outDir}`);
 }
 

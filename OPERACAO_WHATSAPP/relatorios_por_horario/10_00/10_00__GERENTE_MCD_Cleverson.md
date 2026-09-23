@@ -7,5 +7,18 @@
 👤 JONATAS DA SILVA DE OLIVEIRA — R$ 65,40 (1 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*HOJE*
+*COMO FECHOU ONTEM (22/09/2026)*
 💰 R$ 0,00 • 0 PDVs positivados
+
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (4)*
+_(fez pedido ontem, mas nenhum item era marca própria)_
+
+👤 *FLAVIO RUFINO*
+  • DEYSIANE GONCALVES DA COSTA — nunca vendeu MP
+  • CRISTIAN DE OLIVEIRA VARANDA — 27d sem vender MP
+
+👤 *THIAGO DA SILVA CONEGUNDES*
+  • JOSE LUCAS SALLES DE OLIVEIRA — 33d sem vender MP
+
+👤 *JONATAS DA SILVA DE OLIVEIRA*
+  • WALTER PEREIRA CORDEIRO — 29d sem vender MP

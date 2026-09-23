@@ -9,5 +9,35 @@
 👤 RODRIGO STELLEO COSTA LEITE — R$ 867,28 (7 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*HOJE*
-💰 R$ 0,00 • 0 PDVs positivados
+*COMO FECHOU ONTEM (22/09/2026)*
+💰 R$ 189,71 • 1 PDVs positivados
+👤 IVONEI PEDRO DE MOURA — R$ 189,71 (1 PDVs)
+
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (18)*
+_(fez pedido ontem, mas nenhum item era marca própria)_
+
+👤 *EDER LUCAS DAS FLORES DE OLIVEIRA*
+  • WILLIAN PATRICK VIEIRA DOS SANTOS — nunca vendeu MP
+  • LUIZ FELIPE LUCIANO DOS SANTOS — 29d sem vender MP
+  • ELTON PEREIRA ALVES — 14d sem vender MP
+  • CARLOS AUGUSTO CUETO — 13d sem vender MP
+  • JOAO GABRIEL TAVARES DA LUZ — 9d sem vender MP
+  • DILNEI MARCOLIN — 5d sem vender MP
+
+👤 *IVONEI PEDRO DE MOURA*
+  • GISELE DE OLIVEIRA DA SILVA — nunca vendeu MP
+  • GABRIEL JUNIO DE MORAES — 14d sem vender MP
+  • GILSON DE ALMEIDA ALVES — 9d sem vender MP
+  • MARCOS VINICIUS CZEKAY PIRES — 2d sem vender MP
+  • ALEKSANDRO RODRIGO DE FARIA — 2d sem vender MP
+
+👤 *RODRIGO STELLEO COSTA LEITE*
+  • PATRIK DE JESUS SANTOS — nunca vendeu MP
+  • VIVIANE RIBEIRO BRANCO — nunca vendeu MP
+  • KAUE DOS SANTOS — 15d sem vender MP
+  • CAMILA TURCZINSKI — 7d sem vender MP
+  • DIEGO FERNANDES — 6d sem vender MP
+
+👤 *MARCIO ROSA SOBRAL BATISTA*
+  • MARLON SERGIO MARQUES DOS ANJOS — nunca vendeu MP
+  • LEONIDAS JOSE PORTELLA — nunca vendeu MP

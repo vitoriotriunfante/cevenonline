@@ -21,15 +21,16 @@
 _(Nota: devoluções só têm dado até 2026-09-22 — rodar analises/extrair_tudo_devolucoes_cadastros.js)_
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*HOJE*
-💰 Faturado: R$ 0,00 • 📦 0 itens • ✅ 0 PDVs
+*COMO FECHOU ONTEM (22/09/2026)*
+💰 Faturado: R$ 5.786,15 • 📦 1627 itens • ✅ 55 PDVs
 
-📍 TPH: R$ 0,00
-📍 API: R$ 0,00
-📍 TBL: R$ 0,00
-📍 TCA: R$ 0,00
-📍 TSJ: R$ 0,00
-📍 TPA: R$ 0,00
-📍 ABC: R$ 0,00 _(só 1 marca)_
-📍 TCV: R$ 0,00
+📍 TPH — VAGNER: R$ 286,50 (5 PDVs)
+📍 TPH — FÁBIO: R$ 18,40 (2 PDVs)
+📍 API — MARCELO: R$ 696,12 (8 PDVs)
+📍 TBL — FÁBIO: R$ 482,39 (7 PDVs)
+📍 TCA — BECHER: R$ 1.928,68 (6 PDVs)
+📍 TSJ — SALDANHA: R$ 1.152,36 (12 PDVs)
+📍 TPA — RADKE / LEANDRO: R$ 122,29 (5 PDVs)
+📍 ABC — MARCOS: R$ 189,71 (1 PDVs) _(só 1 marca)_
+📍 TCV — LEONARDO: R$ 909,70 (9 PDVs)
 📍 MCD: R$ 0,00

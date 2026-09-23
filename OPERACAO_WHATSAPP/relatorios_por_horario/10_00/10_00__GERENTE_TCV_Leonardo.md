@@ -9,11 +9,37 @@
 👤 GIANI GREGOLIN — R$ 2.775,35 (46 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*HOJE*
-💰 R$ 0,00 • 0 PDVs positivados
+*COMO FECHOU ONTEM (22/09/2026)*
+💰 R$ 909,70 • 9 PDVs positivados
+👤 GESSANDRO SPEROTTO — R$ 535,70 (5 PDVs)
+👤 ROSIVAL JESUINO DA SILVA — R$ 303,80 (3 PDVs)
+👤 GIANI GREGOLIN — R$ 70,20 (1 PDVs)
 
-🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (1)*
-_(fez pedido hoje, mas nenhum item era marca própria)_
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (20)*
+_(fez pedido ontem, mas nenhum item era marca própria)_
+
+👤 *GESSANDRO SPEROTTO*
+  • CARLOS ROBERTO HANNA — 34d sem vender MP
+  • GRACIELA BONAMIGO — 6d sem vender MP
+  • EDUARDO ALVES ALBERGHINI — 5d sem vender MP
+  • KAUANA DANIELI SPRENGOSKI — 2d sem vender MP
+  • MARCOS ANTONIO DE BRITO — 2d sem vender MP
+  • VANDERLEI MARTINS DA SILVA — 2d sem vender MP
 
 👤 *GIANI GREGOLIN*
   • NILTON MARTINELLI JUNIOR — 36d sem vender MP
+  • LUCIVANIA PAULA DE OLIVEIRA — 34d sem vender MP
+  • GILSON PEDRO GRANDO — 2d sem vender MP
+  • JIZANDRA KLEINERT DE SOUZA — 2d sem vender MP
+  • LUCIANA BINOTTO — 2d sem vender MP
+  • MONICA KUNZEL TOLFO — 2d sem vender MP
+  • ALESSANDRA CARLA DETOFOL — 2d sem vender MP
+
+👤 *ROSIVAL JESUINO DA SILVA*
+  • TANA DE ALMEIDA MORAIS — 13d sem vender MP
+  • SANDRAMARA APARECIDA SCHUCK — 9d sem vender MP
+  • PAULO ROBSON OLIVEIRA — 7d sem vender MP
+  • CRISTIANE CHAVES — 7d sem vender MP
+  • CLEITON DUARTE DE CARVALHO — 5d sem vender MP
+  • EDUARDO RODRIGUES SILVA — 2d sem vender MP
+  • WESLEI DE SOUZA ZANATTA — 2d sem vender MP

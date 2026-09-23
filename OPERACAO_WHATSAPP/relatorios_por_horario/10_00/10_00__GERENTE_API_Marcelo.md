@@ -10,5 +10,37 @@
 👤 ARILDO ZAGO — R$ 349,44 (2 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*HOJE*
-💰 R$ 0,00 • 0 PDVs positivados
+*COMO FECHOU ONTEM (22/09/2026)*
+💰 R$ 696,12 • 8 PDVs positivados
+👤 SUELI APARECIDA TEIXEIRA POLLI — R$ 297,58 (4 PDVs)
+👤 CLT-WASHINGTON FLORES DA ROSA — R$ 23,40 (1 PDVs)
+👤 RODRIGO FARIAS — R$ 92,96 (2 PDVs)
+👤 ARILDO ZAGO — R$ 282,18 (1 PDVs)
+
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (19)*
+_(fez pedido ontem, mas nenhum item era marca própria)_
+
+👤 *RODRIGO FARIAS*
+  • EDER DA SILVA VIANA — nunca vendeu MP
+  • THAIS LIMA DE SOUZA VINTEM — 70d sem vender MP
+  • BEATRIZ APARECIDA CRUZ VICENTE — 55d sem vender MP
+  • LUIZ FELIPE FERNANDES — 40d sem vender MP
+  • PLINIO BULDUINO VIANA — 35d sem vender MP
+  • FABIO LOPES FIDELIZ — 32d sem vender MP
+  • LIDIANE CRISTINA HENNING — 29d sem vender MP
+  • GLACILDA FARIA CRUZ — 8d sem vender MP
+  • MARIA CRISTINA — 7d sem vender MP
+  • CLEYTON ALBERTO CARVALHO — 2d sem vender MP
+  • RAFAEL MACHADO DE SOUZA — 2d sem vender MP
+
+👤 *CLT-WASHINGTON FLORES DA ROSA*
+  • LUCIANA AGATA PINTO — nunca vendeu MP
+  • JORGE DOS SANTOS — 42d sem vender MP
+  • CLEVERSON RODRIGUES FERREIRA — 8d sem vender MP
+  • MARIA MADALENA — 7d sem vender MP
+  • MARCIA MARTINS GONCALVES — 6d sem vender MP
+  • ANA CAROLINA MACIEL BROTO — 6d sem vender MP
+  • WILLIANS DE ALCANTRA CORREA — 5d sem vender MP
+
+👤 *SUELI APARECIDA TEIXEIRA POLLI*
+  • PEDRO HENRIQUE DESCHK GOMES — 9d sem vender MP

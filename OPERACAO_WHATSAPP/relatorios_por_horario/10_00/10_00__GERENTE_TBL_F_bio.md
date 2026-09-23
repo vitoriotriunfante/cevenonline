@@ -11,15 +11,42 @@
 👤 CRISTIANE DE FREITAS DUARTE — R$ 837,70 (7 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*HOJE*
-💰 R$ 0,00 • 0 PDVs positivados
+*COMO FECHOU ONTEM (22/09/2026)*
+💰 R$ 482,39 • 7 PDVs positivados
+👤 LEONARDO MANOSSO DE GODOI — R$ 36,54 (1 PDVs)
+👤 KLEBERSON BATISTA LIDUARIO — R$ 239,65 (3 PDVs)
+👤 SERGIO LOPES DE OLIVEIRA — R$ 160,20 (2 PDVs)
+👤 IGOR RODRIGUES DUARTE — R$ 46,00 (1 PDVs)
 
-🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (3)*
-_(fez pedido hoje, mas nenhum item era marca própria)_
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (20)*
+_(fez pedido ontem, mas nenhum item era marca própria)_
 
 👤 *KLEBERSON BATISTA LIDUARIO*
+  • INOCENCIO DA SILVA — 12d sem vender MP
   • BRUNO GUSTAVO NATAL — 6d sem vender MP
-  • ANDREA DO ROCIO FERREIRA DE MELO — 1d sem vender MP
+  • EWERSON CANDIDO DE OLIVEIRA — 5d sem vender MP
+  • RICARDO MORENO SATURNINO — 2d sem vender MP
+
+👤 *IGOR RODRIGUES DUARTE*
+  • ISIDIO VALDEVINO DA SILVA NETO — 70d sem vender MP
+  • IVAN FAGUNDES DA SILVA — 22d sem vender MP
+  • REGINALDO ROSA DA SILVA — 22d sem vender MP
+  • ESROM LIMA SAMPAIO — 5d sem vender MP
+  • MARCOS MILITAO DA SILVA — 5d sem vender MP
+  • FERNANDO LOPES BRUM — -7d sem vender MP
 
 👤 *LEONARDO MANOSSO DE GODOI*
+  • ADRIANO IGNEZ DOS REIS — 37d sem vender MP
   • LUCAS FREITAS SEPULVIDA — 21d sem vender MP
+  • LINCON LUIZ ROMAO — 7d sem vender MP
+  • REGINALDO FERNANDES DOS SANTOS — 6d sem vender MP
+  • ALEXSANDRO AUGUSTO TAVARES — 6d sem vender MP
+
+👤 *CRISTIANE DE FREITAS DUARTE*
+  • POLIANA JESSICA DE ALMEIDA — 13d sem vender MP
+  • RAFAEL DOS SANTOS CABRAL — 12d sem vender MP
+  • ELIAS GARCIA SOBRINHO — -5d sem vender MP
+  • ERIC FELIPE CARDOSO DE OLIVEIRA — -9d sem vender MP
+
+👤 *SERGIO LOPES DE OLIVEIRA*
+  • FABIO SEREIA — 8d sem vender MP

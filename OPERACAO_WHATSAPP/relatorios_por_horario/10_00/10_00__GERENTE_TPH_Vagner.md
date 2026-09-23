@@ -9,5 +9,42 @@
 👤 CLAUDETE DE SOUZA SCHULTZ — R$ 230,17 (2 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*HOJE*
-💰 R$ 0,00 • 0 PDVs positivados
+*COMO FECHOU ONTEM (22/09/2026)*
+💰 R$ 286,50 • 5 PDVs positivados
+👤 ANDREY CAMILLO PIRAGINE — R$ 38,06 (1 PDVs)
+👤 LUIZ AUGUSTO RAMOS — R$ 233,38 (3 PDVs)
+👤 CLAUDETE DE SOUZA SCHULTZ — R$ 15,06 (1 PDVs)
+
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (23)*
+_(fez pedido ontem, mas nenhum item era marca própria)_
+
+👤 *LUIZ AUGUSTO RAMOS*
+  • LUCAS GABRIEL PEDROSO — nunca vendeu MP
+  • KARULINI BARANSKI — 104d sem vender MP
+  • DEISI DE SOUZA DA SILVA — 23d sem vender MP
+  • GERMANO LEMOS CAVALHEIRO JUNIOR — 23d sem vender MP
+  • DEISIELE VIEIRA DA SILVA — 8d sem vender MP
+  • ELYAN JANDES RODRIGUES DOS SANTOS — 8d sem vender MP
+  • ALAERCIO FERNANDES DE CAMPOS — 7d sem vender MP
+  • ARTHUR MAIKI LEAL GERMANO — 2d sem vender MP
+
+👤 *ANDREY CAMILLO PIRAGINE*
+  • ANA PAULA FERREIRA DA CRUZ — 65d sem vender MP
+  • ALEXSANDRO LIMA CARDOZO — 7d sem vender MP
+  • ALDER ALVES BELINI — 7d sem vender MP
+  • MARCIA SILVA DO NASCIMENTO — 7d sem vender MP
+  • CRISTIANE DOS SANTOS CANFILD WOISNER — -6d sem vender MP
+
+👤 *CLAUDETE DE SOUZA SCHULTZ*
+  • JULIA DE OLIVEIRA BATISTA — nunca vendeu MP
+  • PAOLA CRISTINA LEAL COLLI — nunca vendeu MP
+  • MATHEUS W KOKOTY ALVES DE OLIVEIRA — nunca vendeu MP
+  • ALTEMIO HENRIQUE DIVINO — nunca vendeu MP
+  • MARCELO LUIZ DE ALMEIDA GARRETT — nunca vendeu MP
+  • RUI MATEUS ANSAK — nunca vendeu MP
+  • NATIELY KAUANA TEODORO DONATO — 21d sem vender MP
+
+👤 *JEFFERSON POLETTO*
+  • CLAUDIO EIZO BRANCO — nunca vendeu MP
+  • RENAN LECHUK — nunca vendeu MP
+  • CLAUDEMIR LINO DE ALMEIDA — 98d sem vender MP
