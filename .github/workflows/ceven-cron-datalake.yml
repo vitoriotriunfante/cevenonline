@@ -63,7 +63,7 @@ jobs:
 
       - name: Subir banco de dados atualizado pro Google Drive
         if: always()
-        run: rclone copy analises/pedidos_historico_ceven.db gdrive:
+        run: rclone copy analises/pedidos_historico_ceven.db gdrive:/
 
       - name: Resumo
         if: always()
