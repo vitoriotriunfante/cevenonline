@@ -499,21 +499,52 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
 // 3B. Enriquecimento de Canal Real (area_atuacao) — sobrescreve o canal:'VJ' hardcoded
 // pelo valor real do CEVEN. Valores observados até 22/09/2026: VJ, AS, SUP, ESP, ou nulo
 // (~35% dos cadastros não têm area_atuacao preenchida no CEVEN — tratado como 'NULO').
+function comTimeoutForcadoCanal(promessa, ms) {
+  return Promise.race([promessa, new Promise((resolve) => setTimeout(() => resolve(null), ms))]);
+}
+
 async function enriquecerCanalReal(repsValidationMap) {
-  const entries = Object.entries(repsValidationMap);
+  // 1ª fonte: rca_segmentos (banco local, populado por scripts/extrair_segmentos_rcas.js).
+  // Muito mais rápido e confiável que bater na API ao vivo pra cada um dos 500+ vendedores
+  // — já vimos travar/falhar em massa pra uma filial inteira sem aviso (ex: TBL 22/09).
+  // Só cai pra API ao vivo quem não estiver na tabela local (contratado recente, etc).
+  const resolvidos = new Set();
+  try {
+    const path = require('path');
+    const Database = require('better-sqlite3');
+    const dbPath = path.join(__dirname, '..', 'analises', 'pedidos_historico_ceven.db');
+    if (require('fs').existsSync(dbPath)) {
+      const db = new Database(dbPath, { readonly: true });
+      const rows = db.prepare('SELECT filial_sigla, rca_id, area_atuacao FROM rca_segmentos').all();
+      db.close();
+      const canalLocal = {};
+      rows.forEach(r => { canalLocal[`${r.filial_sigla}_${r.rca_id}`] = r.area_atuacao || 'NULO'; });
+      Object.entries(repsValidationMap).forEach(([key, val]) => {
+        const chave = `${val.filial}_${val.rca}`;
+        if (canalLocal[chave] !== undefined) {
+          val.canal = canalLocal[chave] || 'NULO';
+          resolvidos.add(key);
+        }
+      });
+    }
+  } catch (e) {
+    console.warn('⚠️ Não consegui ler rca_segmentos local, caindo pra API ao vivo pra todo mundo:', e.message);
+  }
+
+  // 2ª fonte: API ao vivo, só pra quem não foi resolvido pela tabela local
+  const faltantes = Object.entries(repsValidationMap).filter(([key]) => !resolvidos.has(key));
   const BATCH = 20;
-  for (let i = 0; i < entries.length; i += BATCH) {
-    const lote = entries.slice(i, i + BATCH);
+  for (let i = 0; i < faltantes.length; i += BATCH) {
+    const lote = faltantes.slice(i, i + BATCH);
     await Promise.all(lote.map(async ([key, val]) => {
       const filEntry = Object.entries(FILIAIS_MAP).find(([k, v]) => v.sigla === val.filial);
       if (!filEntry) return;
       const fKey = filEntry[0];
-      try {
-        const res = await axios.get(`${CEVEN_BASE}/api/filiais/${fKey}/representante/${val.rca}`, { timeout: 6000 });
-        val.canal = res.data?.area_atuacao || 'NULO';
-      } catch (e) {
-        val.canal = 'NULO';
-      }
+      const resultado = await comTimeoutForcadoCanal(
+        axios.get(`${CEVEN_BASE}/api/filiais/${fKey}/representante/${val.rca}`, { timeout: 6000 }).catch(() => null),
+        7000
+      );
+      val.canal = resultado?.data?.area_atuacao || 'NULO';
     }));
   }
   return repsValidationMap;

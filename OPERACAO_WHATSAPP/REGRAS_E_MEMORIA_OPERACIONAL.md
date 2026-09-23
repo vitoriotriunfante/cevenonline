@@ -157,6 +157,14 @@ Pasta `OPERACAO_WHATSAPP/relatorios_por_horario/` — cópias em `.md` dos relat
 
 **Estratégia combinada com Vitório para retomar depois:** lotes de 10 vendedores — dispara os 10 (fire-and-forget), espera 3 minutos fixos, busca os 10 resultados, próximo lote. Script já implementado em `scripts/amostrar_cnae_nacional.js` com essa lógica. Rodar SOZINHO (não simultâneo com o job de histórico) na próxima tentativa, pra eliminar a variável de contenção de rede.
 
+## 18. BUG CRÍTICO ENCONTRADO E CORRIGIDO: enriquecerCanalReal instável
+
+Achado em 22/09/2026 quando o relatório de Marca Própria mostrou o TBL colapsando de R$ 29.586 pra R$ 2.232 entre duas rodadas consecutivas, sem nenhuma mudança de dado real no meio. Causa: `enriquecerCanalReal()` batia na API ao vivo (`/api/filiais/{filial}/representante/{id}`) pra cada um dos 528 vendedores TODA VEZ que qualquer script rodava, sem trava de retry — numa das rodadas, os 40 vendedores do TBL falharam TODOS de uma vez (rede/servidor), caíram pra canal "NULO" e sumiram da contagem de "Varejo válido" inteira, sem nenhum aviso.
+
+**Corrigido:** `enriquecerCanalReal()` agora lê primeiro do banco local `rca_segmentos` (populado por `analises/extrair_segmentos_rcas.js`, dado real e já mais estável) e só cai pra API ao vivo pra quem não estiver na tabela local (contratados recentes). Muito mais rápido e não depende mais de 528 chamadas de rede toda vez que um script precisa saber o canal de alguém.
+
+**Lição pra manter:** sempre que um número mudar entre duas rodadas SEM nenhuma ingestão de dado nova no meio, desconfiar de instabilidade de rede em alguma chamada ao vivo, não assumir que é dado real mudando.
+
 ## 17. CNAE dinâmico — resultado real e regra de priorização
 
 Amostragem completa concluída em 22/09/2026: **250 de 284 vendedores (88%)** com dado real via `/api/ceven/prospeccao-roteiro`, usando a estratégia de lotes de 10 (dispara → espera 3min → busca) — funcionou bem, ~93 minutos pro total. Resultado salvo em `auditoria_mensagens/2026-09-22/RANKING_CNAE_NACIONAL.json`.
