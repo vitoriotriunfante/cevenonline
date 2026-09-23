@@ -19,7 +19,8 @@ const PASSOS = [
   { nome: 'Devoluções + LinkUp', cmd: 'node', args: ['extrair_tudo_devolucoes_cadastros.js'] },
   { nome: 'Segmentos/Canal Real dos RCAs', cmd: 'node', args: ['extrair_segmentos_rcas.js'] },
   { nome: 'Metas e Produtividade dos RCAs', cmd: 'node', args: ['extrair_metas_dashboard_rcas.js'] },
-  { nome: 'Premiação RV + Ticket Médio/Mix', cmd: 'python', args: ['extrair_premiacao_e_ret_novo_har.py'] }
+  { nome: 'Premiação RV + Ticket Médio/Mix', cmd: 'python', args: ['extrair_premiacao_e_ret_novo_har.py'] },
+  { nome: 'Mix Gap Real (raio 3km, endpoint oficial)', cmd: 'node', args: ['gerar_mix_gap_real.js'] }
 ];
 
 function rodar(passo) {
