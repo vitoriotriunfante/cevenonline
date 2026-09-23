@@ -210,10 +210,8 @@ async function main() {
   Object.values(hojePorGerente).forEach(g => {
     totFatHoje += g.fatMP; totItensHoje += g.qtdItens;
     g.positivados.forEach(c => totPositivadosHoje.add(c));
-    if (!somaPorSiglaHoje[g.sigla]) somaPorSiglaHoje[g.sigla] = { fat: 0, positivados: new Set(), gerentes: [] };
-    somaPorSiglaHoje[g.sigla].fat += g.fatMP;
-    g.positivados.forEach(c => somaPorSiglaHoje[g.sigla].positivados.add(c));
-    somaPorSiglaHoje[g.sigla].gerentes.push(g.gerente);
+    if (!somaPorSiglaHoje[g.sigla]) somaPorSiglaHoje[g.sigla] = [];
+    somaPorSiglaHoje[g.sigla].push({ gerente: g.gerente, fat: g.fatMP, positivados: g.positivados });
   });
 
   let totFatMes = 0, totQtdMes = 0, totCortesValorMes = 0, totCortesQtdMes = 0, totDevValorMes = 0, totDevQtdMes = 0;
@@ -222,36 +220,38 @@ async function main() {
   Object.values(mesPorGerente).forEach(g => {
     totFatMes += g.fat; totQtdMes += g.qtd; totCortesValorMes += g.cortesValor; totCortesQtdMes += g.cortesQtd;
     g.positivados.forEach(c => totPositivadosMes.add(c));
-    if (!somaPorSiglaMes[g.sigla]) somaPorSiglaMes[g.sigla] = { fat: 0, positivados: new Set(), cortesValor: 0 };
-    somaPorSiglaMes[g.sigla].fat += g.fat;
-    g.positivados.forEach(c => somaPorSiglaMes[g.sigla].positivados.add(c));
-    somaPorSiglaMes[g.sigla].cortesValor += g.cortesValor;
+    if (!somaPorSiglaMes[g.sigla]) somaPorSiglaMes[g.sigla] = [];
+    somaPorSiglaMes[g.sigla].push({ gerente: g.gerente, fat: g.fat, positivados: g.positivados, cortesValor: g.cortesValor });
   });
   Object.values(devPorFilial).forEach(d => { totDevValorMes += d.valor; totDevQtdMes += d.qtd; });
 
   let msgVitorio = `🎯 *MARCAS PRÓPRIAS — 10:00*\n📅 ${dataFmt}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-  msgVitorio += `*HOJE*\n`;
-  msgVitorio += `💰 Faturado: R$ ${fmtMoeda(totFatHoje)} • 📦 ${Math.round(totItensHoje)} itens • ✅ ${totPositivadosHoje.size} PDVs\n\n`;
-  ORDEM_FILIAIS.forEach(sigla => {
-    const s = somaPorSiglaHoje[sigla];
-    const nota = sigla === 'ABC' ? ' _(só 1 marca)_' : '';
-    if (!s) { msgVitorio += `📍 ${sigla}: R$ 0,00${nota}\n`; return; }
-    msgVitorio += `📍 ${sigla} — ${s.gerentes.join('/').toUpperCase()}: R$ ${fmtMoeda(s.fat)} (${s.positivados.size} PDVs)${nota}\n`;
-  });
-
-  msgVitorio += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n*ACUMULADO DO MÊS (${inicioFmt} a ${dataFmt})*\n`;
+  msgVitorio += `*ACUMULADO DO MÊS (${inicioFmt} a ${dataFmt})*\n`;
   msgVitorio += `💰 Faturado: R$ ${fmtMoeda(totFatMes)} • 📦 ${Math.round(totQtdMes)} itens • ✅ ${totPositivadosMes.size} PDVs\n`;
   msgVitorio += `✂️ Cortes: R$ ${fmtMoeda(totCortesValorMes)} (${Math.round(totCortesQtdMes)} un) • 🚛 Devoluções: R$ ${fmtMoeda(totDevValorMes)} (${Math.round(totDevQtdMes)} un)\n\n`;
   ORDEM_FILIAIS.forEach(sigla => {
-    const f = somaPorSiglaMes[sigla];
+    const lista = somaPorSiglaMes[sigla];
     const dev = devPorFilial[sigla];
     const nota = sigla === 'ABC' ? ' _(só 1 marca)_' : '';
-    if (!f) { msgVitorio += `📍 ${sigla}: R$ 0,00${nota}\n`; return; }
-    msgVitorio += `📍 ${sigla}: R$ ${fmtMoeda(f.fat)} • ${f.positivados.size} PDVs • ✂️ R$ ${fmtMoeda(f.cortesValor)} • 🚛 R$ ${fmtMoeda(dev?.valor || 0)}${nota}\n`;
+    if (!lista) { msgVitorio += `📍 ${sigla}: R$ 0,00${nota}\n`; return; }
+    lista.forEach(g => {
+      msgVitorio += `📍 ${sigla} — ${g.gerente.toUpperCase()}: R$ ${fmtMoeda(g.fat)} • ${g.positivados.size} PDVs • ✂️ R$ ${fmtMoeda(g.cortesValor)} • 🚛 R$ ${fmtMoeda(dev?.valor || 0)}${nota}\n`;
+    });
   });
   if (devMaxData < dataRef) {
     msgVitorio += `\n_(Nota: devoluções só têm dado até ${devMaxData} — rodar analises/extrair_tudo_devolucoes_cadastros.js)_`;
   }
+
+  msgVitorio += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n*HOJE*\n`;
+  msgVitorio += `💰 Faturado: R$ ${fmtMoeda(totFatHoje)} • 📦 ${Math.round(totItensHoje)} itens • ✅ ${totPositivadosHoje.size} PDVs\n\n`;
+  ORDEM_FILIAIS.forEach(sigla => {
+    const lista = somaPorSiglaHoje[sigla];
+    const nota = sigla === 'ABC' ? ' _(só 1 marca)_' : '';
+    if (!lista) { msgVitorio += `📍 ${sigla}: R$ 0,00${nota}\n`; return; }
+    lista.forEach(g => {
+      msgVitorio += `📍 ${sigla} — ${g.gerente.toUpperCase()}: R$ ${fmtMoeda(g.fat)} (${g.positivados.size} PDVs)${nota}\n`;
+    });
+  });
   fs.writeFileSync(path.join(outDir, '10_00__VITORIO.txt'), msgVitorio.trim(), 'utf8');
 
   // ---- POR GERENTE: hoje + zerados + mês, tudo num arquivo só ----
@@ -267,7 +267,17 @@ async function main() {
 
     let m = `🎯 *MARCAS PRÓPRIAS — 10:00*\n📍 ${sigla} — ${gerente.toUpperCase()} • ${dataFmt}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
-    m += `*HOJE*\n💰 R$ ${fmtMoeda(hoje.fatMP)} • ${hoje.positivados.size} PDVs positivados\n`;
+    m += `*ACUMULADO DO MÊS (${inicioFmt} a ${dataFmt})*\n`;
+    m += `💰 R$ ${fmtMoeda(mes.fat)} • ${mes.positivados.size} PDVs • ✂️ R$ ${fmtMoeda(mes.cortesValor)} (${Math.round(mes.cortesQtd)} un)`;
+    if (dev) m += ` • 🚛 R$ ${fmtMoeda(dev.valor)} _(filial toda)_`;
+    m += `\n`;
+    Object.entries(mes.porSupervisor)
+      .sort((a, b) => b[1].fat - a[1].fat)
+      .forEach(([sup, v]) => {
+        m += `👤 ${sup} — R$ ${fmtMoeda(v.fat)} (${v.positivados.size} PDVs)\n`;
+      });
+
+    m += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n*HOJE*\n💰 R$ ${fmtMoeda(hoje.fatMP)} • ${hoje.positivados.size} PDVs positivados\n`;
     Object.entries(hoje.porSupervisor).forEach(([sup, v]) => {
       m += `👤 ${sup} — R$ ${fmtMoeda(v.fat)} (${v.positivados.size} PDVs)\n`;
     });
@@ -285,16 +295,6 @@ async function main() {
           });
       });
     }
-
-    m += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n*ACUMULADO DO MÊS (${inicioFmt} a ${dataFmt})*\n`;
-    m += `💰 R$ ${fmtMoeda(mes.fat)} • ${mes.positivados.size} PDVs • ✂️ R$ ${fmtMoeda(mes.cortesValor)} (${Math.round(mes.cortesQtd)} un)`;
-    if (dev) m += ` • 🚛 R$ ${fmtMoeda(dev.valor)} _(filial toda)_`;
-    m += `\n`;
-    Object.entries(mes.porSupervisor)
-      .sort((a, b) => b[1].fat - a[1].fat)
-      .forEach(([sup, v]) => {
-        m += `👤 ${sup} — R$ ${fmtMoeda(v.fat)} (${v.positivados.size} PDVs)\n`;
-      });
 
     const nomeArquivo = `10_00__GERENTE_${sigla}_${gerente.replace(/[^a-zA-Z0-9]+/g, '_')}.txt`;
     fs.writeFileSync(path.join(outDir, nomeArquivo), m.trim(), 'utf8');

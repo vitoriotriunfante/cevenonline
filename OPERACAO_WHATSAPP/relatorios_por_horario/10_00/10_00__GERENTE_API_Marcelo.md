@@ -2,6 +2,14 @@
 📍 API — MARCELO • 22/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+💰 R$ 47.026,92 • 76 PDVs • ✂️ R$ 1.028,71 (191 un) • 🚛 R$ 756,05 _(filial toda)_
+👤 RODRIGO FARIAS — R$ 36.053,63 (19 PDVs)
+👤 WASHINGTON FLORES DA ROSA — R$ 5.254,86 (24 PDVs)
+👤 SUELI APARECIDA TEIXEIRA POLLI — R$ 4.670,11 (31 PDVs)
+👤 ARILDO ZAGO — R$ 1.048,32 (2 PDVs)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
 💰 R$ 1.950,70 • 8 PDVs positivados
 👤 SUELI APARECIDA TEIXEIRA POLLI — R$ 796,94 (4 PDVs)
@@ -37,11 +45,3 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
 👤 *SUELI APARECIDA TEIXEIRA POLLI*
   • ADAO EXPEDITO VIEIRA DA ROCHA — 22d sem vender MP
   • PEDRO HENRIQUE DESCHK GOMES — 8d sem vender MP
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 47.026,92 • 76 PDVs • ✂️ R$ 1.028,71 (191 un) • 🚛 R$ 756,05 _(filial toda)_
-👤 RODRIGO FARIAS — R$ 36.053,63 (19 PDVs)
-👤 WASHINGTON FLORES DA ROSA — R$ 5.254,86 (24 PDVs)
-👤 SUELI APARECIDA TEIXEIRA POLLI — R$ 4.670,11 (31 PDVs)
-👤 ARILDO ZAGO — R$ 1.048,32 (2 PDVs)

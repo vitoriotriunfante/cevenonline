@@ -2,6 +2,13 @@
 📍 TPH — FÁBIO • 22/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+💰 R$ 327.589,98 • 49 PDVs • ✂️ R$ 163,05 (57 un) • 🚛 R$ 3.523,74 _(filial toda)_
+👤 RODRIGO BERTONI — R$ 321.647,70 (2 PDVs)
+👤 EDI CARLOS MEIRA — R$ 3.880,94 (36 PDVs)
+👤 PRISCILA A D NASCIMENTO STRAPASSON — R$ 2.061,34 (11 PDVs)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
 💰 R$ 36,80 • 2 PDVs positivados
 👤 PRISCILA A D NASCIMENTO STRAPASSON — R$ 36,80 (2 PDVs)
@@ -29,10 +36,3 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
   • EDERSON LUIZ RIBEIRO — 98d sem vender MP
   • JEFERSON JUSTINO — 34d sem vender MP
   • FLORENTINO PIANA NETO — 8d sem vender MP
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 327.589,98 • 49 PDVs • ✂️ R$ 163,05 (57 un) • 🚛 R$ 3.523,74 _(filial toda)_
-👤 RODRIGO BERTONI — R$ 321.647,70 (2 PDVs)
-👤 EDI CARLOS MEIRA — R$ 3.880,94 (36 PDVs)
-👤 PRISCILA A D NASCIMENTO STRAPASSON — R$ 2.061,34 (11 PDVs)

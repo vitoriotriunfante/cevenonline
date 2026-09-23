@@ -2,6 +2,13 @@
 📍 TPA — RADKE / LEANDRO • 22/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+💰 R$ 35.900,04 • 41 PDVs • ✂️ R$ 213,88 (95 un) • 🚛 R$ 4.498,85 _(filial toda)_
+👤 DOUGLAS CRISTIANO DOS SANTOS — R$ 27.148,65 (7 PDVs)
+👤 ROGERIO DORNELLES PASSOS — R$ 6.473,55 (25 PDVs)
+👤 SAMUEL PALHANO DE OLIVEIRA — R$ 2.277,84 (9 PDVs)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
 💰 R$ 244,58 • 5 PDVs positivados
 👤 SAMUEL PALHANO DE OLIVEIRA — R$ 69,86 (2 PDVs)
@@ -26,10 +33,3 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
   • ORLI CLOVIS OLIVEIRA COSTA — 41d sem vender MP
   • EDUARDO BATISTA PINTO — 11d sem vender MP
   • PAULO BRITES MENDIETA — -48d sem vender MP
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 35.900,04 • 41 PDVs • ✂️ R$ 213,88 (95 un) • 🚛 R$ 4.498,85 _(filial toda)_
-👤 DOUGLAS CRISTIANO DOS SANTOS — R$ 27.148,65 (7 PDVs)
-👤 ROGERIO DORNELLES PASSOS — R$ 6.473,55 (25 PDVs)
-👤 SAMUEL PALHANO DE OLIVEIRA — R$ 2.277,84 (9 PDVs)

@@ -2,6 +2,13 @@
 📍 TSJ — SALDANHA • 22/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+💰 R$ 75.730,00 • 160 PDVs • ✂️ R$ 79,86 (32 un) • 🚛 R$ 1.573,98 _(filial toda)_
+👤 ANA CRISTINA DOS SANTOS YAMATO — R$ 59.086,14 (103 PDVs)
+👤 VICTOR HUGO FONSECA CARVALHO — R$ 12.059,53 (37 PDVs)
+👤 JULIO CESAR SOARES DE PAULO — R$ 4.584,33 (20 PDVs)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
 💰 R$ 2.267,76 • 12 PDVs positivados
 👤 ANA CRISTINA DOS SANTOS YAMATO — R$ 1.703,04 (7 PDVs)
@@ -29,10 +36,3 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
   • MONICA SALDANHA DE BRITO — 5d sem vender MP
   • PAULO HENRIQUE SIQUETTO SILVA — 4d sem vender MP
   • JOAO PEDRO GONCALVES DA SILVA — 1d sem vender MP
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 75.730,00 • 160 PDVs • ✂️ R$ 79,86 (32 un) • 🚛 R$ 1.573,98 _(filial toda)_
-👤 ANA CRISTINA DOS SANTOS YAMATO — R$ 59.086,14 (103 PDVs)
-👤 VICTOR HUGO FONSECA CARVALHO — R$ 12.059,53 (37 PDVs)
-👤 JULIO CESAR SOARES DE PAULO — R$ 4.584,33 (20 PDVs)

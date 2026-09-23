@@ -2,6 +2,13 @@
 📍 TCV — LEONARDO • 22/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+💰 R$ 24.807,28 • 161 PDVs • ✂️ R$ 1.041,35 (319 un) • 🚛 R$ 9.816,98 _(filial toda)_
+👤 ROSIVAL JESUINO DA SILVA — R$ 10.039,87 (62 PDVs)
+👤 GESSANDRO SPEROTTO — R$ 8.470,93 (53 PDVs)
+👤 GIANI GREGOLIN — R$ 6.296,48 (46 PDVs)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
 💰 R$ 1.697,40 • 9 PDVs positivados
 👤 GESSANDRO SPEROTTO — R$ 949,40 (5 PDVs)
@@ -36,10 +43,3 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
   • CLEITON DUARTE DE CARVALHO — 4d sem vender MP
   • EDUARDO RODRIGUES SILVA — 1d sem vender MP
   • WESLEI DE SOUZA ZANATTA — 1d sem vender MP
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 24.807,28 • 161 PDVs • ✂️ R$ 1.041,35 (319 un) • 🚛 R$ 9.816,98 _(filial toda)_
-👤 ROSIVAL JESUINO DA SILVA — R$ 10.039,87 (62 PDVs)
-👤 GESSANDRO SPEROTTO — R$ 8.470,93 (53 PDVs)
-👤 GIANI GREGOLIN — R$ 6.296,48 (46 PDVs)

@@ -2,6 +2,13 @@
 📍 ABC — MARCOS • 22/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+💰 R$ 37.193,05 • 38 PDVs • ✂️ R$ 0,00 (0 un)
+👤 IVONEI PEDRO DE MOURA — R$ 28.857,75 (25 PDVs)
+👤 EDER LUCAS DAS FLORES DE OLIVEIRA — R$ 5.347,45 (6 PDVs)
+👤 RODRIGO STELLEO COSTA LEITE — R$ 2.987,85 (7 PDVs)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
 💰 R$ 569,13 • 1 PDVs positivados
 👤 IVONEI PEDRO DE MOURA — R$ 569,13 (1 PDVs)
@@ -34,10 +41,3 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
 👤 *MARCIO ROSA SOBRAL BATISTA*
   • MARLON SERGIO MARQUES DOS ANJOS — nunca vendeu MP
   • LEONIDAS JOSE PORTELLA — nunca vendeu MP
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 37.193,05 • 38 PDVs • ✂️ R$ 0,00 (0 un)
-👤 IVONEI PEDRO DE MOURA — R$ 28.857,75 (25 PDVs)
-👤 EDER LUCAS DAS FLORES DE OLIVEIRA — R$ 5.347,45 (6 PDVs)
-👤 RODRIGO STELLEO COSTA LEITE — R$ 2.987,85 (7 PDVs)

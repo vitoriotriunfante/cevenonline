@@ -2,6 +2,13 @@
 📍 TPH — VAGNER • 22/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+💰 R$ 38.026,52 • 41 PDVs • ✂️ R$ 48,95 (22 un) • 🚛 R$ 3.523,74 _(filial toda)_
+👤 LUIZ AUGUSTO RAMOS — R$ 23.560,49 (23 PDVs)
+👤 ANDREY CAMILLO PIRAGINE — R$ 13.790,58 (16 PDVs)
+👤 CLAUDETE DE SOUZA SCHULTZ — R$ 675,45 (2 PDVs)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
 💰 R$ 573,00 • 5 PDVs positivados
 👤 ANDREY CAMILLO PIRAGINE — R$ 76,12 (1 PDVs)
@@ -41,10 +48,3 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
   • CLAUDIO EIZO BRANCO — nunca vendeu MP
   • RENAN LECHUK — nunca vendeu MP
   • CLAUDEMIR LINO DE ALMEIDA — 97d sem vender MP
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 38.026,52 • 41 PDVs • ✂️ R$ 48,95 (22 un) • 🚛 R$ 3.523,74 _(filial toda)_
-👤 LUIZ AUGUSTO RAMOS — R$ 23.560,49 (23 PDVs)
-👤 ANDREY CAMILLO PIRAGINE — R$ 13.790,58 (16 PDVs)
-👤 CLAUDETE DE SOUZA SCHULTZ — R$ 675,45 (2 PDVs)

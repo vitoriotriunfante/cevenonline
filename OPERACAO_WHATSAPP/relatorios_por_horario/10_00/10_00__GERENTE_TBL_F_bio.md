@@ -2,6 +2,15 @@
 📍 TBL — FÁBIO • 22/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+💰 R$ 29.586,00 • 113 PDVs • ✂️ R$ 180,24 (65 un) • 🚛 R$ 5.273,44 _(filial toda)_
+👤 KLEBERSON BATISTA LIDUARIO — R$ 15.437,82 (48 PDVs)
+👤 SERGIO LOPES DE OLIVEIRA — R$ 5.126,63 (16 PDVs)
+👤 EVERTON APARECIDO DA SILVA — R$ 3.841,97 (17 PDVs)
+👤 LEONARDO MANOSSO DE GODOI — R$ 3.557,17 (25 PDVs)
+👤 CRISTIANE DE FREITAS DUARTE — R$ 1.622,41 (7 PDVs)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
 💰 R$ 964,78 • 7 PDVs positivados
 👤 LEONARDO MANOSSO DE GODOI — R$ 73,08 (1 PDVs)
@@ -41,12 +50,3 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
 
 👤 *SERGIO LOPES DE OLIVEIRA*
   • FABIO SEREIA — 7d sem vender MP
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 29.586,00 • 113 PDVs • ✂️ R$ 180,24 (65 un) • 🚛 R$ 5.273,44 _(filial toda)_
-👤 KLEBERSON BATISTA LIDUARIO — R$ 15.437,82 (48 PDVs)
-👤 SERGIO LOPES DE OLIVEIRA — R$ 5.126,63 (16 PDVs)
-👤 EVERTON APARECIDO DA SILVA — R$ 3.841,97 (17 PDVs)
-👤 LEONARDO MANOSSO DE GODOI — R$ 3.557,17 (25 PDVs)
-👤 CRISTIANE DE FREITAS DUARTE — R$ 1.622,41 (7 PDVs)

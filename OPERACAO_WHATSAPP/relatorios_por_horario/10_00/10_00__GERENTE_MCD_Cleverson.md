@@ -2,6 +2,11 @@
 📍 MCD — CLEVERSON • 22/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+💰 R$ 261,60 • 1 PDVs • ✂️ R$ 0,00 (0 un) • 🚛 R$ 252,66 _(filial toda)_
+👤 JONATAS DA SILVA DE OLIVEIRA — R$ 261,60 (1 PDVs)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
 💰 R$ 0,00 • 0 PDVs positivados
 
@@ -17,8 +22,3 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
 
 👤 *JONATAS DA SILVA DE OLIVEIRA*
   • WALTER PEREIRA CORDEIRO — 28d sem vender MP
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 261,60 • 1 PDVs • ✂️ R$ 0,00 (0 un) • 🚛 R$ 252,66 _(filial toda)_
-👤 JONATAS DA SILVA DE OLIVEIRA — R$ 261,60 (1 PDVs)
