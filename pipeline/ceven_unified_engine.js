@@ -115,11 +115,9 @@ async function getAdminToken() {
 }
 
 // Lista Oficial dos 14 Gerentes de Filial
+// Ordem de envio: TCA, TCG e MCD sempre por último (pedido do Vitório em 22/09/2026,
+// por causa do fuso horário dessas filiais) — não mexer nessa ordem sem confirmar com ele.
 const GERENTES_MAP = [
-  { filial: 'TCA', gerente: 'BECHER', whatsapp: '556599438498' },
-  { filial: 'TCG', gerente: 'DANILO', whatsapp: '556792831186' },
-  { filial: 'MCD', gerente: 'CLEVERSON', whatsapp: '556599730698' },
-  { filial: 'MCD', gerente: 'ADRIANO', whatsapp: '556799877927' },
   { filial: 'ABC', gerente: 'MARCOS', whatsapp: '554588226371' },
   { filial: 'TCV', gerente: 'LEONARDO', whatsapp: '554588210792' },
   { filial: 'TBL', gerente: 'FÁBIO', whatsapp: '554388683191' },
@@ -129,7 +127,11 @@ const GERENTES_MAP = [
   { filial: 'TSJ', gerente: 'SALDANHA', whatsapp: '551291224077' },
   { filial: 'TBE', gerente: 'DIEGO', whatsapp: '554699047249' },
   { filial: 'TPA', gerente: 'RADKE', whatsapp: '554499092497' },
-  { filial: 'TPA', gerente: 'LEANDRO', whatsapp: '554499427329' }
+  { filial: 'TPA', gerente: 'LEANDRO', whatsapp: '554499427329' },
+  { filial: 'TCA', gerente: 'BECHER', whatsapp: '556599438498' },
+  { filial: 'TCG', gerente: 'DANILO', whatsapp: '556792831186' },
+  { filial: 'MCD', gerente: 'CLEVERSON', whatsapp: '556599730698' },
+  { filial: 'MCD', gerente: 'ADRIANO', whatsapp: '556799877927' }
 ];
 
 // 2. Carregar Mapa de Vendedores puramente da Árvore Viva do CEVEN (Zero Planilhas)
