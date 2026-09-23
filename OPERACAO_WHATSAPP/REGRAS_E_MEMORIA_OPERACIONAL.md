@@ -213,3 +213,13 @@ Consolidar os 4 scripts acima num único orquestrador que roda em sequência 1x 
 - `GET /api/admin/supervisores` retorna os **hashes bcrypt de senha de todos os supervisores** na resposta — não deveria vir no payload público da API.
 - Credenciais do CEVEN (admin e Evolution API key) estão hardcoded em `pipeline/ceven_unified_engine.js` — considerar mover pra variáveis de ambiente/secrets do GitHub Actions.
 - `RETs/` (pasta na raiz do repo) contém PDFs nominais de processos trabalhistas (CLT) de pessoas reais — dado sensível de RH versionado no git, recomendado remover.
+
+## 12. `VENDEDORES AUDITADOS.xlsx` — fonte de verdade manual sobre quem aparece nos disparos
+
+Planilha na raiz do projeto (fora do git, tem dado de pessoa real — mesmo tratamento do `RETs/`). Estrutura: 13 abas por filial/sub-gerência com a auditoria de campo do Vitório (coluna "Feedback Campo" = tag curta tipo OK/GERENTE/SUPERVISOR/DESLIGADO/etc, coluna seguinte = nota detalhada) + **1 aba única `MOSTRA_DISPAROS`** (gerada a partir das 13 acima) com todos os 529 vendedores, coluna `MOSTRA NOS DISPAROS` (SIM/NÃO) + `MOTIVO`.
+
+- **Fonte de verdade**: `engine.aplicarMostraDisparos(repsMap)` em `pipeline/ceven_unified_engine.js` lê essa aba **ao vivo a cada execução** (não é cache/snapshot) e aplica sobre o `repsMap`: remove quem está NÃO, corrige o nome/código do supervisor de quem mudou de time mas o CEVEN ainda não foi atualizado (ex: time do Everton em TBL, agora sob Igor Rodrigues Duarte — 22/09/2026).
+- Chamado logo após `enriquecerCanalReal()` em: motor principal (`executarCiclo`), `gerar_marca_propria.js`, `gerar_alerta_risco.js`, `gerar_auditoria_mensagens.js`.
+- **Vitório vai editar a aba `MOSTRA_DISPAROS` direto no Excel periodicamente (esperado: pelo menos 1x/semana — vendedor entra/sai com frequência)**. Isso não precisa de nenhum script/deploy — é só editar a célula SIM/NÃO ou o nome do supervisor e salvar; o próximo disparo já usa a versão nova.
+- Script `scripts/aplicar_mostra_dispatch.js` é a ferramenta que **gera do zero** a aba `MOSTRA_DISPAROS` a partir das 13 abas por filial (útil só se o Vitório reconstruir a auditoria de campo inteira de novo — não roda automático, não faz parte do pipeline diário).
+- Números de referência em 22/09/2026: 529 vendedores auditados, 65 marcados NÃO (72 antes de resolver 4 pontos em aberto com o Vitório — Fabiana/TCV fora, MCD-1070/interno dentro, TCG-489/ESP dentro, Paulo Caja/TPA fora), 464 SIM (335 VJ + 127 AS + 2 FARMA).
