@@ -1533,6 +1533,17 @@ async function main() {
     const relatorios = formatarRelatoriosVendas(filialVendas, hora);
     console.log(`✅ Vendas e Varejo Zerados apurados com sucesso.`);
 
+    // Salva sempre em OPERACAO_WHATSAPP/relatorios_por_horario/<hora>/ (revisão manual,
+    // mesmo padrão de 07:45/10:00/11:30), independente do destino. Serve os 3 ciclos
+    // que passam por aqui: 14:30, 17:00 e 18:30.
+    const horaPasta = hora.replace(':', '_');
+    const outDirVendas = path.join(__dirname, `../OPERACAO_WHATSAPP/relatorios_por_horario/${horaPasta}`);
+    fs.mkdirSync(outDirVendas, { recursive: true });
+    fs.writeFileSync(path.join(outDirVendas, `${horaPasta}__VITORIO.md`), relatorios.msgConsolidado, 'utf8');
+    Object.entries(relatorios.mensagensGerentes || {}).forEach(([sigla, txt]) => {
+      if (txt) fs.writeFileSync(path.join(outDirVendas, `${horaPasta}__${sigla}.md`), txt, 'utf8');
+    });
+
     if (destino === 'vitorio' || destino === 'todos') {
       console.log(`🚀 Enviando Consolidado para Vitório Neto (${WHATSAPP_VITORIO.join(', ')})...`);
       const telefones = Array.isArray(WHATSAPP_VITORIO) ? WHATSAPP_VITORIO : [WHATSAPP_VITORIO];
