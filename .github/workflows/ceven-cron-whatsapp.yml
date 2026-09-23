@@ -14,24 +14,16 @@ concurrency:
 
 on:
   schedule:
-    # Grade Oficial Automática (Horário UTC = BRT + 3) — Segunda a Sexta (1-5)
-    - cron: '0 7 * * 1-5'    # 04:00 BRT (Aquecimento Matinal Noturno de Rotas)
-    - cron: '45 10 * * 1-5'  # 07:45 BRT (Abertura Matinal Instantânea)
-    - cron: '30 14 * * 1-5'  # 11:30 BRT (Gestão de Campo: Compromissos & RETs)
-    - cron: '30 17 * * 1-5'  # 14:30 BRT (2ª Parcial de Vendas & Zerados)
-    - cron: '0 20 * * 1-5'   # 17:00 BRT (3ª Parcial de Vendas & Zerados)
-    - cron: '30 21 * * 1-5'  # 18:30 BRT (Fechamento Oficial do Dia)
-    # Réplicas de segurança, 15min depois de cada horário oficial — o GitHub Actions
-    # documenta que execuções agendadas PODEM ser puladas sob alta carga da plataforma
-    # (sem aviso, sem log). Como agora existe trava de idempotência (ver
-    # controles_dia.ultimo_disparo_por_ciclo em pipeline/ceven_unified_engine.js), essas
-    # réplicas são seguras: se o horário oficial já disparou, a réplica não faz nada.
-    - cron: '15 7 * * 1-5'
-    - cron: '0 11 * * 1-5'
-    - cron: '45 14 * * 1-5'
-    - cron: '45 17 * * 1-5'
-    - cron: '15 20 * * 1-5'
-    - cron: '45 21 * * 1-5'
+    # UM ÚNICO horário de cron, rodando a cada 10min de 06:00 a 23:59 UTC (03:00 a
+    # 20:59 BRT), seg-sex. Evidência real de hoje (23/09): ceven-cron-datalake.yml
+    # (1 unico cron) disparou sozinho; este arquivo, com 12 entradas de cron
+    # diferentes, NÃO disparou nenhuma vez em 2 janelas + 2 réplicas. Muitas entradas
+    # de schedule no mesmo workflow parecem atrapalhar o agendador do GitHub. Solução:
+    # só 1 entrada (como o datalake, que funcionou), rodando com frequência — a lógica
+    # de janela de horário (abaixo, "Determinar Ciclo") e a trava de idempotência
+    # (controles_dia.ultimo_disparo_por_ciclo) já decidem sozinhas o que fazer a cada
+    # execução, sem duplicar envio.
+    - cron: '*/10 6-23 * * 1-5'
 
   workflow_dispatch:
     inputs:
