@@ -80,6 +80,9 @@ jobs:
         run: rclone copy "gdrive:VENDEDORES AUDITADOS.xlsx" . || echo "Planilha não encontrada no Drive ainda — disparo segue só com filtro de canal."
         continue-on-error: true
 
+      - name: Gerar árvore viva de vendedores (ao vivo do CEVEN)
+        run: node scripts/atualizar_arvore_viva_11_filiais.js
+
       - name: Determinar Ciclo e Parâmetros de Disparo
         id: config
         run: |
