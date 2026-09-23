@@ -56,6 +56,9 @@ jobs:
         run: rclone copy "gdrive:VENDEDORES AUDITADOS.xlsx" . || echo "Planilha não encontrada no Drive — usando filtro só por canal."
         continue-on-error: true
 
+      - name: Baixar lista de SKUs de Marca Própria do Google Drive
+        run: rclone copy "gdrive:Produtos - Marcas Exclusivas.xls" .
+
       - name: Gerar relatórios de Marca Própria (hoje + acumulado do mês)
         run: node scripts/gerar_marca_propria.js "$(date -u -d '-3 hours' +%Y-%m-%d)"
 
