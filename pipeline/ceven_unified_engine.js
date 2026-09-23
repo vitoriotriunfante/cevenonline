@@ -1361,7 +1361,8 @@ async function main() {
         let msgGerente = `🌅 *ABERTURA MATINAL — ${g.filial} (07:45)*\n`;
         msgGerente += `📅 ${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}\n`;
         msgGerente += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        msgGerente += `👥 Vendedores: ${f.vjs} • Visitas: ${f.visitas}\n`;
+        const mediaVend = f.vjs > 0 ? (f.visitas / f.vjs).toFixed(1).replace('.', ',') : '0,0';
+        msgGerente += `👥 Vendedores: ${f.vjs} • Visitas: ${f.visitas} (média ${mediaVend}/vendedor)\n`;
         msgGerente += `Sem compra +30d: ${f.inativos} (${pInat}%) • Recorrência: ${f.rec} (${pRec}%)\n`;
         if (f.sigla === 'TPH') msgGerente += `🔥 Volta Comigo: ${f.volta} PDVs\n`;
         msgGerente += `Oportunidades CNAE ${abertura.cnaeFoco?.codigo || ''}: +${f.prospects.toLocaleString('pt-BR')} PDVs\n`;
@@ -1369,6 +1370,34 @@ async function main() {
         const r = await enviarWhatsapp(g.whatsapp, msgGerente);
         console.log(`  Abertura (${g.filial} — ${g.gerente}, ${g.whatsapp}) — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
         await new Promise(res => setTimeout(res, 30000));
+      }
+    }
+
+    // Alerta de Risco (PDVs Última Chance/Preventivo) — gera e salva em
+    // OPERACAO_WHATSAPP/relatorios_por_horario/07_45/, um arquivo por gerente + o
+    // geral, pra revisão do Vitório (mesmo padrão do marca própria 10:00). Combinado
+    // em 22/09/2026, nunca tinha sido conectado ao ciclo real até 23/09/2026.
+    if (destino !== 'dry_run') {
+      try {
+        console.log(`📋 Coletando Alerta de Risco (07:45)...`);
+        const porGerenteRisco = await coletarAlertaRisco(repsMap, dataHoje);
+        const outDirRisco = path.join(__dirname, '../OPERACAO_WHATSAPP/relatorios_por_horario/07_45');
+        fs.mkdirSync(outDirRisco, { recursive: true });
+
+        const geralRisco = formatarAlertaRiscoGeral(porGerenteRisco, '07:45');
+        fs.writeFileSync(path.join(outDirRisco, '07_45__ALERTA_RISCO_GERAL.md'), geralRisco, 'utf8');
+
+        let nRisco = 0;
+        for (const [chave, supMap] of Object.entries(porGerenteRisco)) {
+          const [sigla, gerenteNome] = chave.split('::');
+          const textoRisco = formatarAlertaRiscoGerente(gerenteNome, sigla, supMap, '07:45');
+          const fname = `07_45__ALERTA_RISCO__${sigla}_${gerenteNome.replace(/[^a-zA-Z0-9]+/g, '_')}.md`;
+          fs.writeFileSync(path.join(outDirRisco, fname), textoRisco, 'utf8');
+          nRisco++;
+        }
+        console.log(`📋 Alerta de Risco: geral + ${nRisco} arquivos de gerente salvos em ${outDirRisco}`);
+      } catch (e) {
+        console.warn(`⚠️ Falha ao gerar Alerta de Risco: ${e.message}`);
       }
     }
   }
