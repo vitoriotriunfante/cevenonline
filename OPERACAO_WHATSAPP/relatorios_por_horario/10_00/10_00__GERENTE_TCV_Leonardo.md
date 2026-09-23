@@ -1,0 +1,9 @@
+🎯 *MARCAS PRÓPRIAS — 10:00*
+📍 TCV — LEONARDO • 22/09/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 R$ 1.006,10 • 9 PDVs positivados
+
+👤 *GESSANDRO SPEROTTO* — R$ 413,70 (4 PDVs)
+👤 *ROSIVAL JESUINO DA SILVA* — R$ 303,80 (3 PDVs)
+👤 *GIANI GREGOLIN* — R$ 70,20 (1 PDVs)
+👤 *CARLOS EDUARDO DA SILVA CAMARGO* — R$ 218,40 (1 PDVs)

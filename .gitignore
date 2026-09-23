@@ -13,6 +13,8 @@ scripts/*
 !scripts/gerar_auditoria_mensagens.js
 !scripts/gerar_alerta_risco.js
 !scripts/amostrar_cnae_nacional.js
+!scripts/gerar_marca_propria.js
+!scripts/gerar_marca_propria_acumulado.js
 
 # Saída gerada pelos scripts de auditoria (dado real de cliente, regenerável, não versionar)
 auditoria_mensagens/

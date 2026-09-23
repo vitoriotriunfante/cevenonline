@@ -128,6 +128,74 @@ Pasta `OPERACAO_WHATSAPP/relatorios_por_horario/` — cópias em `.md` dos relat
 
 **Observação aberta:** TPA tem 2 números de gerente cadastrados no `GERENTES_MAP` (Radke e Leandro), mas ao contrário de MCD/TPH não tem regra de sub-gerência por supervisor no código — os dois números hoje recebem o mesmo texto consolidado da filial inteira (não dividido). Perguntar ao Vitório se isso é intencional (ambos co-gerenciam igualmente) ou se TPA também precisa de divisão por supervisor como MCD/TPH.
 
+## 14. Frente nova: Marca Própria (ciclo 10:00) + correção do histórico de pedidos
+
+**Contexto (22/09/2026):** ciclo das 11:00 abandonado, substituído por um ciclo novo às 10:00 focado em Marcas Próprias (37 SKUs — Zipoca, Calira, Mitbit, Bellarone, Skive — arquivo `Produtos - Marcas Exclusivas.xls`). TBE e TCG não vendem nenhuma marca própria (fora do envio). ABC só tem 1 marca (Bellarone) — cobrar mais dele por ter só 1, não tratar com pena.
+
+**Fonte de dado real confirmada:** `historico-cliente` já retorna item a item (`skus_winthor`/`skus` com `codprod`), então dá pra cruzar com os 37 CODPROD de marca própria sem precisar de endpoint novo. Protótipo em `scripts/prototipo_marca_propria.js` já validado com dado real de 22/09 (R$ 1.924,13 faturado, 26 PDVs positivados, ranking por marca: Bellarone > Mitbit > Skive > Calira).
+
+**Vitório pediu: sem ranking por ora** (só visibilidade), formato ainda em definição.
+
+**BUG RAIZ ENCONTRADO em `analises/extrair_historico_completo_11_filiais.js`:** o script só processa cada cliente UMA VEZ NA VIDA (linha `jaProcessados` filtrava clientes já com histórico salvo, pra nunca mais atualizar). Corrigido em 22/09 removendo esse filtro — agora reprocessa todos sempre, seguro porque o insert é `INSERT OR REPLACE` pela chave (filial+cliente+num_pedido).
+
+**Rodada de correção em andamento (22/09, iniciada ~16:28):**
+- Roda LOCALMENTE via `nohup` em `analises/extrair_historico_completo_11_filiais.js` (log: `analises/extracao_completa.log`), escrevendo em `analises/pedidos_historico_ceven.db`
+- Etapa 1 (recoleta de clientes por filial): concluída, 43.319 clientes
+- **CONCLUÍDO 100% em 22/09/2026**: 44.282 clientes, 106.260 pedidos, 2.378.509 itens vendidos, 168.086 itens cortados, R$ 172,6 milhões faturado, ZERO erros. Planilha gerada em `analises/AUDITORIA_COMPLETA_11_FILIAIS.xlsx`.
+- **Bug de performance encontrado e corrigido durante a execução**: o `fetchJson` original relava no timeout nativo do `https.get`, que às vezes nunca disparava (trava real, CPU 0s, sem view de erro). Corrigido com trava de timeout forçada via `Promise.race` (independente do timeout do axios/https) — ver função `comTimeoutForcado` no script. Timeout ajustado pra 6s (esse endpoint responde em <1s no caso normal, diferente do prospeccao-roteiro) e concorrência subiu de 8 para 16, o que acelerou o ritmo em ~7x (de 6,6/min pra ~45/min em média).
+- **Próximo passo:** migrar essa rotina pro GitHub Actions (rodar toda noite às 03h-04h, não depender da máquina do Vitório ligada)
+- **É um processo LOCAL — morre se a máquina for desligada/hibernar.** Vitório avisou que vai fechar a máquina; combinado que ele avisa quando religar pra eu retomar
+- **Retomar é seguro**: como o insert é idempotente por chave, basta rodar o script de novo do zero (ele vai reprocessar tudo de novo, ~10-14h) ou, melhor, adaptar pra continuar de onde parou (verificar último cliente processado)
+
+**Decisão arquitetural pendente:** isso precisa rodar automaticamente às 03:00-04:00 TODA NOITE, o que exige migrar de "rodar local via nohup" pra "rodar no GitHub Actions" (nuvem, não depende da máquina do Vitório ligada) — hoje só está rodando local porque estamos em modo de correção pontual. Avaliar migração pro workflow `.github/workflows/ceven-cron-whatsapp.yml` (ou um novo workflow dedicado) quando essa base estiver estável.
+
+## 15. Frente pausada: CNAE dinâmico via prospecção real
+
+**Status:** abandonado temporariamente em 22/09/2026 após 6 estratégias diferentes falharem (paralelo, disparo em massa, sequencial simples, sequencial com timeout curto/longo, lotes de 10 com espera de 3min) — o processo trava sem aviso, CPU fica em 0s, nem timeout do axios dispara. Suspeita: contenção de rede por rodar 2 jobs pesados ao mesmo tempo na mesma máquina (não confirmado).
+
+**Comportamento real do endpoint** (confirmado por print do app oficial do usuário): `/api/ceven/prospeccao-roteiro?cod_rca=X&hoje=1` cruza o roteiro com a base da Receita Federal, "pode levar alguns minutos na 1ª vez do dia" (por região/vendedor, aparentemente), depois responde em ~30s.
+
+**Estratégia combinada com Vitório para retomar depois:** lotes de 10 vendedores — dispara os 10 (fire-and-forget), espera 3 minutos fixos, busca os 10 resultados, próximo lote. Script já implementado em `scripts/amostrar_cnae_nacional.js` com essa lógica. Rodar SOZINHO (não simultâneo com o job de histórico) na próxima tentativa, pra eliminar a variável de contenção de rede.
+
+## 17. CNAE dinâmico — resultado real e regra de priorização
+
+Amostragem completa concluída em 22/09/2026: **250 de 284 vendedores (88%)** com dado real via `/api/ceven/prospeccao-roteiro`, usando a estratégia de lotes de 10 (dispara → espera 3min → busca) — funcionou bem, ~93 minutos pro total. Resultado salvo em `auditoria_mensagens/2026-09-22/RANKING_CNAE_NACIONAL.json`.
+
+**Ranking real (substituiu a suposição de que Restaurantes/5611 seria o principal — na real é só o 9º colocado):**
+1. Comércio varejista de suvenires/bijuterias/artesanatos (4789) — 280 clientes
+2. Padaria e confeitaria (4721) — 162 clientes
+3. Atacado de alimentícios em geral (4639) — 132 clientes
+4. Minimercados/mercearias (4712) — 126 clientes
+5. Farmácias (4771) — 108 clientes
+... (lista completa no JSON)
+**Última posição (de propósito):** Tabacaria (4729) — apesar de ter o MAIOR volume (339 clientes), Vitório pediu pra colocar por último na priorização — não é CNAE de foco estratégico mesmo sendo o mais numeroso. Regra permanente: **nunca colocar Tabacaria no topo da lista de CNAE em foco**, mesmo que os dados digam que é o maior volume.
+
+## 16. DIRETIVA DO VITÓRIO: "quero TUDO de todos os ENDPOINTS populado todo dia"
+
+Isso não é uma correção pontual — é uma exigência estrutural recorrente (repetida "um milhão e 245 vezes" segundo o próprio Vitório). O banco `analises/pedidos_historico_ceven.db` tem ~27 tabelas, cada uma alimentada por um script Python/JS diferente, escrito em momentos diferentes, sem nenhum orquestrador único que rode todos todo dia. Resultado: cada tabela fica desatualizada de um jeito diferente, e cada vez que alguém precisa do dado, descobre a defasagem na hora, por acidente.
+
+### Status de atualidade por tabela (checado e corrigido em 22/09/2026):
+
+| Tabela | Status | Script responsável |
+|---|---|---|
+| `pedidos_historico` / `pedidos_historico_itens` | ✅ CORRIGIDO — até 22/09, 106.260 pedidos | `analises/extrair_historico_completo_11_filiais.js` — tinha bug de "só processa 1x na vida", corrigido; timeout blindado |
+| `devolucoes_notas` / `devolucoes_itens` | ✅ CORRIGIDO — até 22/09, 2.533 notas, R$ 3.147.834,53 | `analises/extrair_tudo_devolucoes_cadastros.js` — não rodava desde 12/09, timeout blindado |
+| `pdvs_roteiro_hoje_gps` | ✅ CORRIGIDO — até 22/09, 5.176 PDVs (estava 8 dias parado, até 14/09) | `analises/coletar_todos_os_pdvs_e_prospects_100pct.py` |
+| `prospects_mapa_radar` | ✅ ATUALIZADO junto — 8.172 prospects únicos capturados | mesmo script acima |
+| `rca_produtividade_live`, `rca_dashboard_financeiro_live`, `rca_ret_execucao_hoje` | ✅ CORRIGIDO — 449 vendedores atualizados (dependiam do `pdvs_roteiro_hoje_gps`, que estava travado) | `analises/extrair_produtividade_ret_dashboard_todos.py` |
+| `cadastros_linkup` | ⚠️ NÃO É BUG NOSSO — fonte (API LinkUp) genuinamente não retorna nada mais recente que 31/08, mesmo rodando hoje (20.000 registros, todos antigos). Suspeita: API despagina sem ordenar por mais recente, ou o volume de solicitações realmente parou. **Não investigado a fundo, não inventar causa.** | `analises/extrair_tudo_devolucoes_cadastros.js` |
+| `rca_segmentos`, `rca_metas_dashboard`, `mix_aderencia_regional`, `rf_clientes_2026` | ❓ sem coluna de data — não investigado, provavelmente cadastral/estático (ok não ser diário, mas não confirmado) | não identificado |
+| `metas_premiacao_rv_setembro`, `apuracao_premiacao_rv_setembro` | ❓ nome sugere específico de setembro — mês que vem precisa virar `_outubro`? não investigado | não identificado |
+
+### Scripts que compõem o pipeline diário completo (rodar nessa ordem):
+1. `analises/coletar_todos_os_pdvs_e_prospects_100pct.py` (gera `pdvs_roteiro_hoje_gps`, base pra tudo abaixo)
+2. `analises/extrair_produtividade_ret_dashboard_todos.py` (depende do 1)
+3. `analises/extrair_historico_completo_11_filiais.js` (pedidos)
+4. `analises/extrair_tudo_devolucoes_cadastros.js` (devoluções + linkup)
+
+### Próximo passo real (não fazer sozinho sem alinhar): 
+Consolidar os 4 scripts acima num único orquestrador que roda em sequência 1x por dia, e virar o job oficial do GitHub Actions das 03h-04h — em vez de continuar dependendo de alguém lembrar de rodar cada um manualmente.
+
 ## 11. Achados de segurança fora do escopo de WhatsApp (registrados aqui pra não esquecer)
 
 - `GET /api/admin/supervisores` retorna os **hashes bcrypt de senha de todos os supervisores** na resposta — não deveria vir no payload público da API.

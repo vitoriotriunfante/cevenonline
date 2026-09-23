@@ -1,13 +1,9 @@
 /**
- * Amostra o endpoint real /api/ceven/prospeccao-roteiro em todos os vendedores de Varejo
- * válidos das 11 filiais e agrega o perfil_cnae (carteira real) pra descobrir quais CNAEs
- * mais aparecem entre nossos clientes atuais, nacionalmente e por filial.
- *
- * Estratégia (o endpoint dispara um job assíncrono no CEVEN na primeira batida, que leva
- * um tempo pra popular o mapa antes de responder "pronto"):
- *   1. Dispara TODAS as chamadas em massa (fire-and-forget, sem esperar resposta pronta)
- *   2. Espera 2 minutos pro CEVEN processar tudo em paralelo do lado dele
- *   3. Coleta os resultados em lotes, com poucas tentativas por item (já deve estar pronto)
+ * Amostra o endpoint /api/ceven/prospeccao-roteiro em lotes de 10 vendedores:
+ * 1. Dispara os 10 (fire-and-forget, ativa o processamento no CEVEN)
+ * 2. Espera 3 minutos fixos (tempo de "cruzar com a base da Receita")
+ * 3. Busca o resultado dos 10 (já deve estar pronto)
+ * 4. Próximo lote de 10
  */
 const axios = require('axios');
 const fs = require('fs');
@@ -15,28 +11,29 @@ const path = require('path');
 const engine = require('../pipeline/ceven_unified_engine');
 
 const CEVEN_BASE = 'https://ceven.drivetriunfante-locomotiva.com.br';
+const TAMANHO_LOTE = 10;
+const ESPERA_MS = 3 * 60 * 1000;
 
-async function dispararTrigger(codRca) {
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function disparar(codRca) {
   try {
     await axios.get(`${CEVEN_BASE}/api/ceven/prospeccao-roteiro`, {
       params: { cod_rca: codRca, hoje: 1, max: 120 },
-      timeout: 8000
+      timeout: 10000
     });
   } catch (e) {}
 }
 
-async function coletarResultado(codRca, maxTentativas = 5) {
-  for (let i = 0; i < maxTentativas; i++) {
+async function buscar(codRca, tentativas = 5) {
+  for (let i = 0; i < tentativas; i++) {
     try {
       const res = await axios.get(`${CEVEN_BASE}/api/ceven/prospeccao-roteiro`, {
         params: { cod_rca: codRca, hoje: 1, max: 120 },
-        timeout: 10000
+        timeout: 15000
       });
       if (res.data?.status === 'pronto') return res.data;
-      if (res.data?.status === 'processando') {
-        await new Promise(r => setTimeout(r, 4000));
-        continue;
-      }
+      if (res.data?.status === 'processando') { await sleep(15000); continue; }
       return null;
     } catch (e) {
       return null;
@@ -44,8 +41,6 @@ async function coletarResultado(codRca, maxTentativas = 5) {
   }
   return null;
 }
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 async function main() {
   const reps = JSON.parse(fs.readFileSync(path.join(__dirname, '../public/reps_data.json'), 'utf8'));
@@ -60,45 +55,44 @@ async function main() {
     return val && engine.isCanalVarejo(val.canal) && val.metaFat > 0 && val.metaPos > 0;
   });
 
-  console.log(`${vjsValidos.length} vendedores válidos. Disparando gatilho em massa (fire-and-forget)...`);
+  console.log(`${vjsValidos.length} vendedores válidos. Processando em lotes de ${TAMANHO_LOTE} (dispara -> espera 3min -> busca)...`);
 
-  // Fase 1: dispara todos em massa, concorrência alta, sem esperar resposta pronta
-  const DISPARO_BATCH = 40;
-  for (let i = 0; i < vjsValidos.length; i += DISPARO_BATCH) {
-    const lote = vjsValidos.slice(i, i + DISPARO_BATCH);
-    await Promise.all(lote.map(r => dispararTrigger(r.codigo)));
-    console.log(`  Disparados ${Math.min(i + DISPARO_BATCH, vjsValidos.length)}/${vjsValidos.length}...`);
-  }
-
-  console.log('Todos disparados. Aguardando 2 minutos o CEVEN processar o mapa...');
-  await sleep(120000);
-
-  console.log('Coletando resultados...');
   const agregadoNacional = {};
   const agregadoPorFilial = {};
   const outPath = path.join(__dirname, '..', 'auditoria_mensagens', new Date().toISOString().split('T')[0], 'RANKING_CNAE_NACIONAL.json');
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
 
-  function salvar(processados, total, comSucesso, completo) {
+  function salvar(processados, total, comSucesso) {
     const rankingNacional = Object.entries(agregadoNacional)
       .map(([familia, v]) => ({ familia, clientes: v.clientes, exemplo: v.exemplo }))
       .sort((a, b) => b.clientes - a.clientes);
     fs.writeFileSync(outPath, JSON.stringify({
       geradoEm: new Date().toISOString(),
       progresso: `${processados}/${total} (${comSucesso} com dado real)`,
-      completo,
+      completo: processados === total,
       rankingNacional,
       porFilial: agregadoPorFilial
     }, null, 2), 'utf8');
   }
 
-  const COLETA_BATCH = 20;
   let processados = 0;
   let comSucesso = 0;
-  for (let i = 0; i < vjsValidos.length; i += COLETA_BATCH) {
-    const lote = vjsValidos.slice(i, i + COLETA_BATCH);
+  const inicio = Date.now();
+
+  for (let i = 0; i < vjsValidos.length; i += TAMANHO_LOTE) {
+    const lote = vjsValidos.slice(i, i + TAMANHO_LOTE);
+    const numLote = Math.floor(i / TAMANHO_LOTE) + 1;
+    const totalLotes = Math.ceil(vjsValidos.length / TAMANHO_LOTE);
+
+    console.log(`\n[Lote ${numLote}/${totalLotes}] Disparando ${lote.length} vendedores...`);
+    await Promise.all(lote.map(r => disparar(r.codigo)));
+
+    console.log(`[Lote ${numLote}/${totalLotes}] Aguardando 3 minutos...`);
+    await sleep(ESPERA_MS);
+
+    console.log(`[Lote ${numLote}/${totalLotes}] Buscando resultados...`);
     await Promise.all(lote.map(async rca => {
-      const data = await coletarResultado(rca.codigo);
+      const data = await buscar(rca.codigo);
       processados++;
       if (data && data.perfil_cnae) {
         comSucesso++;
@@ -113,16 +107,15 @@ async function main() {
         });
       }
     }));
-    console.log(`  Coletados ${processados}/${vjsValidos.length} (${comSucesso} com dado real)...`);
-    salvar(processados, vjsValidos.length, comSucesso, processados === vjsValidos.length);
+
+    const decorridoMin = ((Date.now() - inicio) / 60000).toFixed(1);
+    console.log(`[Lote ${numLote}/${totalLotes}] OK. Total: ${processados}/${vjsValidos.length} (${comSucesso} com dado real) | ${decorridoMin}min decorridos`);
+    salvar(processados, vjsValidos.length, comSucesso);
   }
 
-  const rankingFinal = Object.entries(agregadoNacional)
-    .map(([familia, v]) => ({ familia, clientes: v.clientes, exemplo: v.exemplo }))
-    .sort((a, b) => b.clientes - a.clientes);
-
   console.log('\n=== RANKING NACIONAL DE CNAEs (completo) ===');
-  rankingFinal.forEach((r, i) => console.log(`${i + 1}. CNAE ${r.familia} — ${r.clientes} clientes — ${r.exemplo}`));
+  Object.entries(agregadoNacional).sort((a, b) => b[1].clientes - a[1].clientes)
+    .forEach(([fam, v], i) => console.log(`${i + 1}. CNAE ${fam} — ${v.clientes} clientes — ${v.exemplo}`));
   console.log(`\nSalvo em: ${outPath}`);
 }
 

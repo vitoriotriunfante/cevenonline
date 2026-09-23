@@ -1,0 +1,8 @@
+🎯 *MARCAS PRÓPRIAS — 10:00*
+📍 TPH — VAGNER • 22/09/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 R$ 358,76 • 6 PDVs positivados
+
+👤 *ANDREY CAMILLO PIRAGINE* — R$ 110,32 (2 PDVs)
+👤 *LUIZ AUGUSTO RAMOS* — R$ 233,38 (3 PDVs)
+👤 *CLAUDETE DE SOUZA SCHULTZ* — R$ 15,06 (1 PDVs)

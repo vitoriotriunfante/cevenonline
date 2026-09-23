@@ -1,0 +1,70 @@
+name: CEVEN Data Lake — Atualização Diária (Pedidos, Devoluções, PDVs, Live)
+
+on:
+  schedule:
+    # 03:00 BRT = 06:00 UTC, todos os dias
+    - cron: '0 6 * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: ceven-datalake-update
+  cancel-in-progress: false
+
+jobs:
+  atualizar_datalake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependências Node
+        run: npm install better-sqlite3 xlsx axios
+
+      - name: Instalar dependências Python
+        run: pip install requests openpyxl
+
+      - name: Instalar rclone
+        run: curl https://rclone.org/install.sh | sudo bash
+
+      - name: Configurar rclone (Google Drive)
+        env:
+          GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "$GDRIVE_SA_JSON" > /tmp/gdrive-sa.json
+          cat > ~/.config/rclone/rclone.conf << EOF
+          [gdrive]
+          type = drive
+          scope = drive
+          service_account_file = /tmp/gdrive-sa.json
+          root_folder_id = $GDRIVE_FOLDER_ID
+          EOF
+
+      - name: Baixar banco de dados do Google Drive
+        run: |
+          mkdir -p analises
+          rclone copy gdrive:pedidos_historico_ceven.db analises/ || echo "Banco não encontrado no Drive ainda, vai ser criado do zero."
+
+      - name: Rodar orquestrador diário
+        run: node pipeline/orquestrador_diario.js
+        continue-on-error: true
+
+      - name: Subir banco de dados atualizado pro Google Drive
+        if: always()
+        run: rclone copy analises/pedidos_historico_ceven.db gdrive:
+
+      - name: Resumo
+        if: always()
+        run: echo "Atualização do data lake concluída (ver logs acima pra detalhes por etapa)."

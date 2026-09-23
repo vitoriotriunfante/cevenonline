@@ -1,0 +1,7 @@
+🎯 *MARCAS PRÓPRIAS — 10:00*
+📍 TPA — RADKE / LEANDRO • 22/09/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 R$ 122,29 • 5 PDVs positivados
+
+👤 *SAMUEL PALHANO DE OLIVEIRA* — R$ 34,93 (2 PDVs)
+👤 *ROGERIO DORNELLES PASSOS* — R$ 87,36 (3 PDVs)
