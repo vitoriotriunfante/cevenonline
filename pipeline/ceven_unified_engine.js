@@ -478,20 +478,35 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
               const clients = await safeGet(`${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${fKey}&id=${rca.codigo}`) || [];
               const dataLimite = new Date();
               dataLimite.setDate(dataLimite.getDate() - 30);
-              clients.forEach(c => {
-                const isInativo = !c.data_ultima_compra || new Date(c.data_ultima_compra) < dataLimite;
-                const comprou = c.status === 'CONCLUIDO' || (parseFloat(c.valor_pedido) || 0) > 0;
-                if (isInativo) {
-                  resFil.inativosRota++;
-                  if (comprou) resFil.inativosRecuperados++;
-                }
-                if (comprou && (c.focos || []).some(f => (f.industria_foco || '').toUpperCase().includes('RECORRENCIA'))) {
-                  resFil.recorrenciaPositivados++;
-                }
-                if (comprou && fSigla === 'TPH' && (c.focos || []).some(f => (f.industria_foco || '').toUpperCase().includes('VOLTA'))) {
-                  resFil.voltaPositivados++;
-                }
-              });
+              // roteiro-hoje só tem status de VISITA (VISITADO/FORA_ROTA), não de pedido --
+              // não existe c.status='CONCLUIDO' nem c.valor_pedido nessa resposta (confirmado
+              // em teste ao vivo em 23/09/2026). O status real do pedido do dia (EFETIVADO)
+              // só sai em /api/rca/historico-cliente/{id}. Pra não estourar a API com 1
+              // chamada por cliente da rota inteira, só busca o histórico dos clientes que
+              // realmente importam pra estes 3 contadores: inativos (+30d) ou com foco de
+              // campanha (recorrência/volta comigo).
+              const CLIENTES_BATCH = 6;
+              for (let ci = 0; ci < clients.length; ci += CLIENTES_BATCH) {
+                const loteClientes = clients.slice(ci, ci + CLIENTES_BATCH);
+                await Promise.all(loteClientes.map(async c => {
+                  const isInativo = !c.data_ultima_compra || new Date(c.data_ultima_compra) < dataLimite;
+                  const temFocoRecorrencia = (c.focos || []).some(f => (f.industria_foco || '').toUpperCase().includes('RECORRENCIA'));
+                  const temFocoVolta = fSigla === 'TPH' && (c.focos || []).some(f => (f.industria_foco || '').toUpperCase().includes('VOLTA'));
+                  if (isInativo) resFil.inativosRota++;
+                  if (!isInativo && !temFocoRecorrencia && !temFocoVolta) return;
+
+                  let comprou = false;
+                  try {
+                    const hist = await safeGet(`${CEVEN_BASE}/api/rca/historico-cliente/${c.id_cliente}?filial=${fKey}&id=${rca.codigo}`);
+                    const ultimaVisita = hist?.ultimas_visitas?.[0];
+                    comprou = !!(ultimaVisita && ultimaVisita.data_visita === dataRef && ultimaVisita.status === 'EFETIVADO');
+                  } catch (e) {}
+
+                  if (isInativo && comprou) resFil.inativosRecuperados++;
+                  if (comprou && temFocoRecorrencia) resFil.recorrenciaPositivados++;
+                  if (comprou && temFocoVolta) resFil.voltaPositivados++;
+                }));
+              }
             } catch (e) {}
           } else {
             resFil.vjSem++;
