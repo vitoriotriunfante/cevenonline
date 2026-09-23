@@ -3,11 +3,11 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 *ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 18.570,41 • 71 PDVs • ✂️ R$ 155,75 (35 un) • 🚛 R$ 267,26 _(filial toda)_
+💰 R$ 17.611,91 • 66 PDVs • ✂️ R$ 151,39 (34 un) • 🚛 R$ 267,26 _(filial toda)_
 👤 IVAIR PRINCIPE FREITAS DE MIRANDA — R$ 6.385,77 (30 PDVs)
 👤 MAICON DION NOVAIS SILVA — R$ 5.035,72 (15 PDVs)
 👤 JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR — R$ 4.918,16 (14 PDVs)
-👤 FRANCISCO FRANCO FILHO — R$ 2.230,76 (13 PDVs)
+👤 FRANCISCO FRANCO FILHO — R$ 1.272,26 (8 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
@@ -15,7 +15,7 @@
 👤 IVAIR PRINCIPE FREITAS DE MIRANDA — R$ 927,40 (4 PDVs)
 👤 JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR — R$ 1.001,28 (2 PDVs)
 
-🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (19)*
+🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (18)*
 _(fez pedido hoje, mas nenhum item era marca própria)_
 
 👤 *MAICON DION NOVAIS SILVA*
@@ -26,7 +26,6 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
 
 👤 *FRANCISCO FRANCO FILHO*
   • PJ ADILSON PEREIRA RODRIGUES — 11d sem vender MP
-  • ADEVANE BANDEIRA RODRIGUES — 4d sem vender MP
   • ROMILDO NUNES DE SOUSA — -43d sem vender MP
 
 👤 *IVAIR PRINCIPE FREITAS DE MIRANDA*

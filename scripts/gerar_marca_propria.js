@@ -39,6 +39,7 @@ async function main() {
 
   const repsMap = engine.carregarValidacaoVendedores();
   await engine.enriquecerCanalReal(repsMap);
+  engine.aplicarMostraDisparos(repsMap);
   function resolverGerente(sigla, rcaId) {
     const val = repsMap[`${sigla}_${rcaId}`];
     if (val) return val.gerente;

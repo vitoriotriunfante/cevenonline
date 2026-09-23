@@ -7,6 +7,7 @@ async function main() {
   const repsMap = engine.carregarValidacaoVendedores();
   console.log(`Enriquecendo canal real (area_atuacao) de ${Object.keys(repsMap).length} contas...`);
   await engine.enriquecerCanalReal(repsMap);
+  engine.aplicarMostraDisparos(repsMap);
 
   console.log('Coletando alerta de risco (isso pode levar alguns minutos)...');
   const porGerente = await engine.coletarAlertaRisco(repsMap, dataHoje);

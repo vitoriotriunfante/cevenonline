@@ -6,18 +6,18 @@
 💰 R$ 13.291,73 • 76 PDVs • ✂️ R$ 288,10 (54 un) • 🚛 R$ 756,05 _(filial toda)_
 👤 RODRIGO FARIAS — R$ 9.931,31 (19 PDVs)
 👤 SUELI APARECIDA TEIXEIRA POLLI — R$ 1.533,60 (31 PDVs)
-👤 WASHINGTON FLORES DA ROSA — R$ 1.477,38 (24 PDVs)
+👤 CLT-WASHINGTON FLORES DA ROSA — R$ 1.477,38 (24 PDVs)
 👤 ARILDO ZAGO — R$ 349,44 (2 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
 💰 R$ 696,12 • 8 PDVs positivados
 👤 SUELI APARECIDA TEIXEIRA POLLI — R$ 297,58 (4 PDVs)
-👤 WASHINGTON FLORES DA ROSA — R$ 23,40 (1 PDVs)
+👤 CLT-WASHINGTON FLORES DA ROSA — R$ 23,40 (1 PDVs)
 👤 RODRIGO FARIAS — R$ 92,96 (2 PDVs)
 👤 ARILDO ZAGO — R$ 282,18 (1 PDVs)
 
-🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (20)*
+🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (19)*
 _(fez pedido hoje, mas nenhum item era marca própria)_
 
 👤 *RODRIGO FARIAS*
@@ -33,7 +33,7 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
   • CLEYTON ALBERTO CARVALHO — 1d sem vender MP
   • RAFAEL MACHADO DE SOUZA — 1d sem vender MP
 
-👤 *WASHINGTON FLORES DA ROSA*
+👤 *CLT-WASHINGTON FLORES DA ROSA*
   • LUCIANA AGATA PINTO — nunca vendeu MP
   • JORGE DOS SANTOS — 41d sem vender MP
   • CLEVERSON RODRIGUES FERREIRA — 7d sem vender MP
@@ -43,5 +43,4 @@ _(fez pedido hoje, mas nenhum item era marca própria)_
   • WILLIANS DE ALCANTRA CORREA — 4d sem vender MP
 
 👤 *SUELI APARECIDA TEIXEIRA POLLI*
-  • ADAO EXPEDITO VIEIRA DA ROCHA — 22d sem vender MP
   • PEDRO HENRIQUE DESCHK GOMES — 8d sem vender MP

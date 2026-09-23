@@ -87,6 +87,7 @@ async function main() {
   const repsMap = engine.carregarValidacaoVendedores();
   console.log(`Enriquecendo canal real (area_atuacao) de ${Object.keys(repsMap).length} contas...`);
   await engine.enriquecerCanalReal(repsMap);
+  engine.aplicarMostraDisparos(repsMap);
 
   for (const hora of horas) {
     if (!CICLOS[hora]) {

@@ -191,6 +191,53 @@ function carregarValidacaoVendedores() {
   return map;
 }
 
+// 2.1 Aplica a planilha "VENDEDORES AUDITADOS.xlsx" (aba MOSTRA_DISPAROS) como fonte de verdade
+// manual sobre o repsMap: remove quem está marcado NÃO e corrige o supervisor de quem mudou
+// de time mas ainda não foi ajustado no CEVEN. Deve ser chamado sempre depois de
+// carregarValidacaoVendedores(), em todo script de disparo — não só marca própria.
+function aplicarMostraDisparos(repsMap) {
+  const filePath = path.join(__dirname, '..', 'VENDEDORES AUDITADOS.xlsx');
+  if (!fs.existsSync(filePath)) {
+    console.warn('⚠️  VENDEDORES AUDITADOS.xlsx não encontrado — MOSTRA_DISPAROS não aplicado.');
+    return { excluidos: 0, corrigidos: 0 };
+  }
+  const wb = XLSX.readFile(filePath);
+  const ws = wb.Sheets['MOSTRA_DISPAROS'];
+  if (!ws) {
+    console.warn('⚠️  Aba MOSTRA_DISPAROS não encontrada — nada aplicado.');
+    return { excluidos: 0, corrigidos: 0 };
+  }
+  const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+  const header = data[0];
+  const idxFilial = header.indexOf('Filial');
+  const idxRca = header.indexOf('Cód. Vendedor (RCA)');
+  const idxMostra = header.indexOf('MOSTRA NOS DISPAROS');
+  const idxCodSup = header.indexOf('Cód. Supervisor');
+  const idxNomeSup = header.indexOf('Nome Supervisor');
+
+  let excluidos = 0, corrigidos = 0;
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const key = `${row[idxFilial]}_${row[idxRca]}`;
+    const val = repsMap[key];
+    if (!val) continue;
+
+    if (String(row[idxMostra]).trim().toUpperCase() === 'NÃO') {
+      delete repsMap[key];
+      excluidos++;
+      continue;
+    }
+    const supNovo = String(row[idxNomeSup] || '').toUpperCase().trim();
+    if (supNovo && supNovo !== val.supNome) {
+      val.supNome = supNovo;
+      val.supCod = String(row[idxCodSup] || val.supCod);
+      corrigidos++;
+    }
+  }
+  console.log(`📋 MOSTRA_DISPAROS aplicado: ${excluidos} vendedores excluídos, ${corrigidos} com supervisor corrigido manualmente.`);
+  return { excluidos, corrigidos };
+}
+
 // 3. Auditoria de Campo (Compromissos & RETs)
 async function coletarAuditoriaCampo(token, dataRef) {
   console.log(`📡 Coletando auditoria de campo para ${dataRef}...`);
@@ -1165,6 +1212,7 @@ async function main() {
   const repsMap = carregarValidacaoVendedores();
   console.log(`📡 Enriquecendo canal real (area_atuacao) de ${Object.keys(repsMap).length} contas...`);
   await enriquecerCanalReal(repsMap);
+  aplicarMostraDisparos(repsMap);
 
   const CACHE_ABERTURA = path.join(__dirname, 'dados_abertura_matinal.json');
 
@@ -1371,6 +1419,7 @@ module.exports = {
   formatarRelatoriosVendas,
   carregarDiretrizesOperacionais,
   carregarValidacaoVendedores,
+  aplicarMostraDisparos,
   enriquecerCanalReal,
   isCanalVarejo,
   isCanalAS,

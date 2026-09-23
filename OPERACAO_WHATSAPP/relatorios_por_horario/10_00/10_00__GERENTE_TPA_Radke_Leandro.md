@@ -3,10 +3,10 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 *ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 20.446,97 • 41 PDVs • ✂️ R$ 96,29 (40 un) • 🚛 R$ 4.498,85 _(filial toda)_
+💰 R$ 20.360,10 • 40 PDVs • ✂️ R$ 96,29 (40 un) • 🚛 R$ 4.498,85 _(filial toda)_
 👤 DOUGLAS CRISTIANO DOS SANTOS — R$ 16.684,42 (7 PDVs)
 👤 ROGERIO DORNELLES PASSOS — R$ 2.716,81 (25 PDVs)
-👤 SAMUEL PALHANO DE OLIVEIRA — R$ 1.045,74 (9 PDVs)
+👤 SAMUEL PALHANO DE OLIVEIRA — R$ 958,87 (8 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
