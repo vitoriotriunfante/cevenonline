@@ -48,6 +48,10 @@ async function main() {
         clients.forEach(c => {
           const motivo = (c.motivo_nao_visita || '').trim();
           if (!motivo) return; // só grava quando o vendedor de fato justificou algo
+          const dataUltimaCompra = c.data_ultima_compra ? String(c.data_ultima_compra).slice(0, 10) : null;
+          const diasSemCompra = dataUltimaCompra
+            ? Math.floor((new Date(hoje) - new Date(dataUltimaCompra)) / (1000 * 60 * 60 * 24))
+            : null;
           linhas.push({
             data: hoje,
             filial: v.filial,
@@ -60,7 +64,9 @@ async function main() {
             cnpj: c.cnpj,
             status_visita: c.status,
             motivo,
-            observacao: (c.observacao_nao_visita || '').trim() || null
+            observacao: (c.observacao_nao_visita || '').trim() || null,
+            data_ultima_compra: dataUltimaCompra,
+            dias_sem_compra: diasSemCompra
           });
         });
       } catch (e) {}
