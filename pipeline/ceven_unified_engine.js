@@ -1123,7 +1123,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       `📍 *Visitas Realizadas:* ${totVis.toLocaleString('pt-BR')} de ${totRot.toLocaleString('pt-BR')} (${eficiGeral}%)`,
       ``,
       `🎯 *FORÇA DE VENDAS VAREJO:*`,
-      `👥 *Total Varejo em Campo (Metas + Rota >= 5):* ${totVj} vendedores`,
+      `👥 *Total Varejo em Campo:* ${totVj} vendedores`,
       `✅ *Positivados no Dia:* ${totVjCom} vendedores (${pctGeralCom}%)`,
       `🚨 *Varejo Zerados (${horaLabel}):* *${totVjSem} vendedores (${pctGeralSem}%)*`,
       ``,
