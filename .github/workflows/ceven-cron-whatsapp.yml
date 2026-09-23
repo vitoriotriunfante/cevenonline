@@ -21,6 +21,17 @@ on:
     - cron: '30 17 * * 1-5'  # 14:30 BRT (2ª Parcial de Vendas & Zerados)
     - cron: '0 20 * * 1-5'   # 17:00 BRT (3ª Parcial de Vendas & Zerados)
     - cron: '30 21 * * 1-5'  # 18:30 BRT (Fechamento Oficial do Dia)
+    # Réplicas de segurança, 15min depois de cada horário oficial — o GitHub Actions
+    # documenta que execuções agendadas PODEM ser puladas sob alta carga da plataforma
+    # (sem aviso, sem log). Como agora existe trava de idempotência (ver
+    # controles_dia.ultimo_disparo_por_ciclo em pipeline/ceven_unified_engine.js), essas
+    # réplicas são seguras: se o horário oficial já disparou, a réplica não faz nada.
+    - cron: '15 7 * * 1-5'
+    - cron: '0 11 * * 1-5'
+    - cron: '45 14 * * 1-5'
+    - cron: '45 17 * * 1-5'
+    - cron: '15 20 * * 1-5'
+    - cron: '45 21 * * 1-5'
 
   workflow_dispatch:
     inputs:
@@ -181,3 +192,18 @@ jobs:
             git push || true
             echo "✅ Cache matinal salvo com sucesso para o disparo das 07:45."
           fi
+
+      - name: 🔒 Salvar marca de "ciclo já disparado hoje" (trava anti-duplicidade)
+        if: always()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add config/diretrizes_operacionais.json
+          git diff --cached --quiet && echo "Sem mudança na marca de disparo." || (
+            git commit -m "chore: marca ciclo ${{ steps.config.outputs.ciclo }} como ja disparado hoje [skip ci]"
+            for i in 1 2 3; do
+              git pull --rebase origin clean-v3 && git push && break
+              echo "Push falhou (tentativa $i), tentando de novo..."
+              sleep 5
+            done
+          )

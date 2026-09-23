@@ -1217,6 +1217,31 @@ async function main() {
     return;
   }
 
+  // Trava de idempotência: evita disparo duplicado se o cron agendado atrasar/pular
+  // e um gatilho de segurança (ou reexecução manual) rodar o MESMO ciclo no MESMO dia.
+  // Vale pra qualquer destino que realmente manda mensagem (vitorio ou todos) —
+  // dry_run (só preview/log) nunca marca nada e nunca é bloqueado.
+  const DIRETRIZES_PATH = path.join(__dirname, '../config/diretrizes_operacionais.json');
+  function marcarCicloDisparado() {
+    if (destino === 'dry_run') return;
+    try {
+      const cfg = JSON.parse(fs.readFileSync(DIRETRIZES_PATH, 'utf8'));
+      if (!cfg.controles_dia) cfg.controles_dia = {};
+      if (!cfg.controles_dia.ultimo_disparo_por_ciclo) cfg.controles_dia.ultimo_disparo_por_ciclo = {};
+      cfg.controles_dia.ultimo_disparo_por_ciclo[hora] = dataHoje;
+      fs.writeFileSync(DIRETRIZES_PATH, JSON.stringify(cfg, null, 2), 'utf8');
+    } catch (e) {
+      console.warn(`⚠️ Não consegui marcar o ciclo [${hora}] como disparado: ${e.message}`);
+    }
+  }
+  if (destino === 'vitorio' || destino === 'todos') {
+    const jaDisparado = diretrizes.controles_dia?.ultimo_disparo_por_ciclo?.[hora];
+    if (jaDisparado === dataHoje) {
+      console.log(`⏸️ Ciclo [${hora}] já foi disparado hoje (${dataHoje}) — abortando pra evitar duplicidade. Se precisar reenviar de propósito, apague a marca em controles_dia.ultimo_disparo_por_ciclo antes de rodar de novo.`);
+      return;
+    }
+  }
+
   let gerentes = GERENTES_MAP;
   const gerPath = path.join(__dirname, '../scripts/gerentes_contatos.json');
   if (fs.existsSync(gerPath)) {
@@ -1246,6 +1271,7 @@ async function main() {
     fs.writeFileSync(CACHE_ABERTURA, JSON.stringify(payload, null, 2), 'utf8');
     console.log(`💾 Cache de abertura matinal salvo com sucesso em: ${CACHE_ABERTURA}`);
     console.log(`✅ Aquecimento noturno finalizado. Às 07:00 o disparo será instantâneo (< 10s)!`);
+    marcarCicloDisparado();
     return;
   }
 
@@ -1421,6 +1447,7 @@ async function main() {
     }
   }
 
+  marcarCicloDisparado();
   console.log(`\n🏁 Execução do ciclo ${hora} finalizada com sucesso.\n`);
 }
 
