@@ -190,17 +190,31 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add config/diretrizes_operacionais.json OPERACAO_WHATSAPP/relatorios_por_horario/07_45/ OPERACAO_WHATSAPP/relatorios_por_horario/11_30/ OPERACAO_WHATSAPP/relatorios_por_horario/14_30/ OPERACAO_WHATSAPP/relatorios_por_horario/17_00/ OPERACAO_WHATSAPP/relatorios_por_horario/18_30/
+          CICLO="${{ steps.config.outputs.ciclo }}"
+          DATA_REF="$(date -u -d '-3 hours' +%Y-%m-%d)"
+          FILES="config/diretrizes_operacionais.json OPERACAO_WHATSAPP/relatorios_por_horario/07_45/ OPERACAO_WHATSAPP/relatorios_por_horario/11_30/ OPERACAO_WHATSAPP/relatorios_por_horario/14_30/ OPERACAO_WHATSAPP/relatorios_por_horario/17_00/ OPERACAO_WHATSAPP/relatorios_por_horario/18_30/"
+          git add $FILES
           git diff --cached --quiet && echo "Sem mudança pra commitar." || (
-            git commit -m "chore: marca ciclo ${{ steps.config.outputs.ciclo }} disparado + alerta de risco [skip ci]"
+            git commit -m "chore: marca ciclo $CICLO disparado + alerta de risco [skip ci]"
             OK=0
             for i in 1 2 3 4 5 6 7 8; do
-              git pull --rebase origin clean-v3 && git push && OK=1 && break
-              echo "Push falhou (tentativa $i), tentando de novo..."
+              if git push; then
+                OK=1
+                break
+              fi
+              echo "Push falhou (tentativa $i) -- reconstruindo o commit em cima do origin mais recente (evita ficar preso no mesmo conflito de rebase)..."
+              git fetch origin clean-v3
+              # Sempre parte do diretrizes_operacionais.json mais recente do origin e só
+              # reaplica nossa marca de disparo por cima (evita conflito textual no resto do arquivo).
+              git show origin/clean-v3:config/diretrizes_operacionais.json > /tmp/diretrizes_origin.json
+              jq --arg c "$CICLO" --arg d "$DATA_REF" '.controles_dia.ultimo_disparo_por_ciclo[$c] = $d' /tmp/diretrizes_origin.json > config/diretrizes_operacionais.json
+              git reset --soft origin/clean-v3
+              git add $FILES
+              git diff --cached --quiet || git commit -m "chore: marca ciclo $CICLO disparado + alerta de risco [skip ci]"
               sleep $((i * 5))
             done
             if [ "$OK" != "1" ]; then
-              echo "::error::Push da marca de disparo ${{ steps.config.outputs.ciclo }} falhou apos 8 tentativas -- marca de idempotencia NAO foi salva, risco de reenvio duplicado."
+              echo "::error::Push da marca de disparo $CICLO falhou apos 8 tentativas -- marca de idempotencia NAO foi salva, risco de reenvio duplicado."
               exit 1
             fi
           )

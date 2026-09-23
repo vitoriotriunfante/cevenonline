@@ -89,13 +89,24 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add OPERACAO_WHATSAPP/relatorios_por_horario/10_00/ config/diretrizes_operacionais.json
+          DATA_REF="$(date -u -d '-3 hours' +%Y-%m-%d)"
+          FILES="OPERACAO_WHATSAPP/relatorios_por_horario/10_00/ config/diretrizes_operacionais.json"
+          git add $FILES
           git diff --cached --quiet && echo "Sem mudança pra commitar." || (
             git commit -m "chore: relatorios de marca propria 10:00 + marca de disparo [skip ci]"
             OK=0
             for i in 1 2 3 4 5 6 7 8; do
-              git pull --rebase origin clean-v3 && git push && OK=1 && break
-              echo "Push falhou (tentativa $i), tentando de novo..."
+              if git push; then
+                OK=1
+                break
+              fi
+              echo "Push falhou (tentativa $i) -- reconstruindo o commit em cima do origin mais recente (evita ficar preso no mesmo conflito de rebase)..."
+              git fetch origin clean-v3
+              git show origin/clean-v3:config/diretrizes_operacionais.json > /tmp/diretrizes_origin.json
+              jq --arg d "$DATA_REF" '.controles_dia.ultimo_disparo_por_ciclo["10:00"] = $d' /tmp/diretrizes_origin.json > config/diretrizes_operacionais.json
+              git reset --soft origin/clean-v3
+              git add $FILES
+              git diff --cached --quiet || git commit -m "chore: relatorios de marca propria 10:00 + marca de disparo [skip ci]"
               sleep $((i * 5))
             done
             if [ "$OK" != "1" ]; then
