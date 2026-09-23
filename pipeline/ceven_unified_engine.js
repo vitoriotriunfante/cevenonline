@@ -125,9 +125,9 @@ const GERENTES_MAP = [
   { filial: 'TPH', gerente: 'VAGNER', whatsapp: '554188559703' },
   { filial: 'TPH', gerente: 'FÁBIO', whatsapp: '556799877931' },
   { filial: 'TSJ', gerente: 'SALDANHA', whatsapp: '551291224077' },
-  { filial: 'TBE', gerente: 'DIEGO', whatsapp: '554699047249' },
-  { filial: 'TPA', gerente: 'RADKE', whatsapp: '554499092497' },
-  { filial: 'TPA', gerente: 'LEANDRO', whatsapp: '554499427329' },
+  { filial: 'TBE', gerente: 'DIEGO', whatsapp: '554298022298' }, // corrigido 23/09/2026: numero antigo era de outra pessoa (Edson, promotor de eventos)
+  { filial: 'TPA', gerente: 'RADKE', whatsapp: '555197245332' }, // alinhado com scripts/gerentes_contatos.json em 23/09/2026
+  { filial: 'TPA', gerente: 'LEANDRO', whatsapp: '555197195688' }, // idem
   { filial: 'TCA', gerente: 'BECHER', whatsapp: '556599438498' },
   { filial: 'TCG', gerente: 'DANILO', whatsapp: '556792831186' },
   { filial: 'MCD', gerente: 'CLEVERSON', whatsapp: '556599730698' },
@@ -1363,8 +1363,8 @@ async function main() {
     // cada um) — ordem de GERENTES_MAP respeita a regra de deixar TCA/TCG/MCD por
     // último (fuso horário).
     if (destino === 'todos' || destino === 'dry_run') {
-      console.log(`🚀 Montando Abertura + Alerta de Risco individual para ${GERENTES_MAP.length} gerentes...`);
-      for (const g of GERENTES_MAP) {
+      console.log(`🚀 Montando Abertura + Alerta de Risco individual para ${gerentes.length} gerentes...`);
+      for (const g of gerentes) {
         const chaves = Object.keys(abertura.dadosAbertura || {});
         // Match exato (funciona pra MCD/TPH, que já são separados por sub-gerente).
         let chave = chaves.find(k => {

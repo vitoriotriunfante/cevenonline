@@ -3,7 +3,7 @@
 🏢 *Grupo Triunfante — 11 Filiais*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🔴 *Última Chance do Mês:* 1466 PDVs (2ª quinzena, +30d sem compra — não tem mais visita este mês)
+🔴 *Última Chance do Mês:* 1468 PDVs (2ª quinzena, +30d sem compra — não tem mais visita este mês)
 🟡 *Alerta Preventivo:* 0 PDVs (1ª quinzena, +30d sem compra — ainda tem a 2ª visita do mês)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -18,5 +18,5 @@
 📍 *TCA:* 🔴 116 • 🟡 0
 📍 *TPA:* 🔴 96 • 🟡 0
 📍 *TCG:* 🔴 72 • 🟡 0
-📍 *ABC:* 🔴 66 • 🟡 0
+📍 *ABC:* 🔴 68 • 🟡 0
 📍 *TCV:* 🔴 42 • 🟡 0
