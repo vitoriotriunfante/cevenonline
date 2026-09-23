@@ -73,7 +73,7 @@ jobs:
         run: node scripts/atualizar_arvore_viva_11_filiais.js
 
       - name: Gerar relatórios de Marca Própria (hoje + acumulado do mês)
-        run: node scripts/gerar_marca_propria.js "$(date -u -d '-3 hours' +%Y-%m-%d)"
+        run: node scripts/gerar_marca_propria.js "$(date -u -d '-3 hours' +%Y-%m-%d)" todos
 
       - name: Copiar para a pasta oficial de entrega
         run: |
@@ -84,10 +84,17 @@ jobs:
             cp "$f" "$DEST/$(basename "$f" .txt).md"
           done
 
-      - name: Commitar relatórios atualizados
+      - name: Commitar relatórios + marca de disparo
+        if: always()
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add OPERACAO_WHATSAPP/relatorios_por_horario/10_00/
-          git commit -m "chore: relatorios de marca propria 10:00 [skip ci]" || true
-          git push || true
+          git add OPERACAO_WHATSAPP/relatorios_por_horario/10_00/ config/diretrizes_operacionais.json
+          git diff --cached --quiet && echo "Sem mudança pra commitar." || (
+            git commit -m "chore: relatorios de marca propria 10:00 + marca de disparo [skip ci]"
+            for i in 1 2 3; do
+              git pull --rebase origin clean-v3 && git push && break
+              echo "Push falhou (tentativa $i), tentando de novo..."
+              sleep 5
+            done
+          )

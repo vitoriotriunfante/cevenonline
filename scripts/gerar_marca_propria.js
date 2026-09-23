@@ -13,8 +13,11 @@
  *     baixada do Drive).
  * ESCREVE: auditoria_mensagens/<data>/10_00__*.txt, copiados como .md pro próprio
  *          workflow em OPERACAO_WHATSAPP/relatorios_por_horario/10_00/ e commitados.
- * USADO POR: ninguém programaticamente — é revisão manual do Vitório (arquivos
- *            .md ficam no repo pra ele abrir e conferir, não envia WhatsApp sozinho ainda).
+ *          Se chamado com destino=todos, TAMBÉM envia de verdade (Vitório +
+ *          um WhatsApp por gerente, número via engine.carregarGerentesComCorrecoes()).
+ * USADO POR: o próprio workflow, com destino=todos (envio real). Rodar sem esse
+ *            argumento (ou com qualquer outro valor) só gera os arquivos, sem enviar
+ *            nada — seguro pra testar local.
  * FRESCOR ESPERADO: 1x/dia às 10:00. Depende do banco ter sido atualizado às 03:00
  *                   pelo orquestrador (pipeline/orquestrador_diario.js) no mesmo dia.
  *
@@ -46,6 +49,30 @@ function limparNome(n) { return (n || '').replace(/^CLT\s*-\s*/i, '').replace(/^
 
 async function main() {
   const dataRef = process.argv[2] || new Date().toISOString().split('T')[0];
+  // destino=todos manda de verdade pro WhatsApp (Vitório + cada gerente); qualquer
+  // outro valor (ou omitido) só gera os arquivos, sem enviar nada -- seguro pra
+  // rodar local sem risco de disparo acidental.
+  const destino = process.argv[3] || 'arquivo';
+  const gerentesContatos = engine.carregarGerentesComCorrecoes();
+  function telefoneDoGerente(sigla, gerenteNome) {
+    const gUp = String(gerenteNome).toUpperCase();
+    let g = gerentesContatos.find(x => x.filial === sigla && x.gerente.toUpperCase() === gUp);
+    if (!g) g = gerentesContatos.find(x => x.filial === sigla);
+    return g?.whatsapp;
+  }
+
+  // Trava de idempotência (mesmo padrão do motor de WhatsApp): evita duplicar envio
+  // se o workflow rodar 2x no mesmo dia.
+  const DIRETRIZES_PATH = path.join(__dirname, '..', 'config', 'diretrizes_operacionais.json');
+  if (destino === 'todos') {
+    try {
+      const cfg = JSON.parse(fs.readFileSync(DIRETRIZES_PATH, 'utf8'));
+      if (cfg.controles_dia?.ultimo_disparo_por_ciclo?.['10:00'] === dataRef) {
+        console.log(`⏸️ Marca Própria 10:00 já foi disparada hoje (${dataRef}) — abortando pra evitar duplicidade.`);
+        return;
+      }
+    } catch (e) {}
+  }
   const inicioMes = dataRef.slice(0, 8) + '01';
   const codigosMP = carregarMarcaPropria();
   const placeholders = codigosMP.map(() => '?').join(',');
@@ -276,11 +303,17 @@ async function main() {
     });
   });
   fs.writeFileSync(path.join(outDir, '10_00__VITORIO.txt'), msgVitorio.trim(), 'utf8');
+  if (destino === 'todos') {
+    for (const tel of engine.WHATSAPP_VITORIO) {
+      const r = await engine.enviarWhatsapp(tel, msgVitorio.trim());
+      console.log(`  Marca Própria Vitório (${tel}) — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
+    }
+  }
 
   // ---- POR GERENTE: hoje + zerados + mês, tudo num arquivo só ----
   const chavesTodas = new Set([...Object.keys(hojePorGerente), ...Object.keys(zeradosPorGerente), ...Object.keys(mesPorGerente)]);
   let nGerentes = 0;
-  chavesTodas.forEach(chave => {
+  for (const chave of chavesTodas) {
     const [sigla, gerente] = chave.split('::');
     const hoje = hojePorGerente[chave] || { fatMP: 0, positivados: new Set(), porSupervisor: {} };
     const zerados = zeradosPorGerente[chave] || {};
@@ -322,10 +355,33 @@ async function main() {
     const nomeArquivo = `10_00__GERENTE_${sigla}_${gerente.replace(/[^a-zA-Z0-9]+/g, '_')}.txt`;
     fs.writeFileSync(path.join(outDir, nomeArquivo), m.trim(), 'utf8');
     nGerentes++;
-  });
+
+    if (destino === 'todos') {
+      const tel = telefoneDoGerente(sigla, gerente);
+      if (!tel) {
+        console.log(`  ⚠️ Sem telefone pra ${sigla} — ${gerente}, pulando envio.`);
+      } else {
+        const r = await engine.enviarWhatsapp(tel, m.trim());
+        console.log(`  Marca Própria (${sigla} — ${gerente}, ${tel}) — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
+        await new Promise(res => setTimeout(res, 30000));
+      }
+    }
+  }
 
   console.log(`Vitório: ontem (${diaAnteriorFmt}) R$ ${fmtMoeda(totFatHoje)} | mês R$ ${fmtMoeda(totFatMes)}`);
   console.log(`${nGerentes} gerentes (1 arquivo cada, hoje+mês juntos) salvos em ${outDir}`);
+
+  if (destino === 'todos') {
+    try {
+      const cfg = JSON.parse(fs.readFileSync(DIRETRIZES_PATH, 'utf8'));
+      if (!cfg.controles_dia) cfg.controles_dia = {};
+      if (!cfg.controles_dia.ultimo_disparo_por_ciclo) cfg.controles_dia.ultimo_disparo_por_ciclo = {};
+      cfg.controles_dia.ultimo_disparo_por_ciclo['10:00'] = dataRef;
+      fs.writeFileSync(DIRETRIZES_PATH, JSON.stringify(cfg, null, 2), 'utf8');
+    } catch (e) {
+      console.warn(`⚠️ Não consegui marcar o ciclo 10:00 como disparado: ${e.message}`);
+    }
+  }
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

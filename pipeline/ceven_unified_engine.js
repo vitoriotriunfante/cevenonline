@@ -134,6 +134,19 @@ const GERENTES_MAP = [
   { filial: 'MCD', gerente: 'ADRIANO', whatsapp: '556799877927' }
 ];
 
+// Sempre usar esta função pra pegar a lista de gerentes (nunca GERENTES_MAP direto) --
+// scripts/gerentes_contatos.json é a correção manual real de telefone (achado bug
+// real em 23/09/2026: um script novo usou GERENTES_MAP direto e mandou mensagem pro
+// número errado da TBE porque esse arquivo de correção não foi consultado).
+function carregarGerentesComCorrecoes() {
+  let gerentes = GERENTES_MAP;
+  const gerPath = path.join(__dirname, '../scripts/gerentes_contatos.json');
+  if (fs.existsSync(gerPath)) {
+    try { gerentes = JSON.parse(fs.readFileSync(gerPath, 'utf8')); } catch (e) {}
+  }
+  return gerentes;
+}
+
 // 2. Carregar Mapa de Vendedores puramente da Árvore Viva do CEVEN (Zero Planilhas)
 function carregarValidacaoVendedores() {
   const map = {};
@@ -1257,11 +1270,7 @@ async function main() {
     }
   }
 
-  let gerentes = GERENTES_MAP;
-  const gerPath = path.join(__dirname, '../scripts/gerentes_contatos.json');
-  if (fs.existsSync(gerPath)) {
-    try { gerentes = JSON.parse(fs.readFileSync(gerPath, 'utf8')); } catch (e) {}
-  }
+  const gerentes = carregarGerentesComCorrecoes();
   const repsMap = carregarValidacaoVendedores();
   console.log(`📡 Enriquecendo canal real (area_atuacao) de ${Object.keys(repsMap).length} contas...`);
   await enriquecerCanalReal(repsMap);
@@ -1563,6 +1572,7 @@ module.exports = {
   formatarAlertaRiscoGerente,
   enviarWhatsapp,
   GERENTES_MAP,
+  carregarGerentesComCorrecoes,
   FILIAIS_MAP,
   WHATSAPP_VITORIO
 };
