@@ -162,37 +162,45 @@ t_prospects = time.time() - t1
 print(f"Prospects consultados em {t_prospects:.2f}s:")
 print(f" - Total de prospects únicos capturados: {len(prospects_coletados)}")
 
-# 4. Atualizar o Excel EXPANSAO_CADASTROS_E_PROSPECTS.xlsx
+# 4. Atualizar o Excel EXPANSAO_CADASTROS_E_PROSPECTS.xlsx (espelho legivel dos mesmos
+# dados que vao pro SQLite abaixo -- nao pode ser bloqueante: se o arquivo nao existir
+# nesta maquina (ex: runner do GitHub Actions, que nao tem esse arquivo local/manual),
+# a atualizacao do SQLite (que e a fonte real usada pelo resto do pipeline) tem que
+# continuar mesmo assim.
 excel_path = os.path.join(os.path.dirname(__file__), 'EXPANSAO_CADASTROS_E_PROSPECTS.xlsx')
-print(f"\n--- ATUALIZANDO PLANILHA EXCEL ({excel_path}) ---")
-wb = openpyxl.load_workbook(excel_path)
+try:
+    print(f"\n--- ATUALIZANDO PLANILHA EXCEL ({excel_path}) ---")
+    wb = openpyxl.load_workbook(excel_path) if os.path.exists(excel_path) else openpyxl.Workbook()
 
-# Atualizar PDVs_Roteiro_Hoje_Geolocalizados
-if 'PDVs_Roteiro_Hoje_Geolocalizados' in wb.sheetnames:
-    del wb['PDVs_Roteiro_Hoje_Geolocalizados']
+    if 'PDVs_Roteiro_Hoje_Geolocalizados' in wb.sheetnames:
+        del wb['PDVs_Roteiro_Hoje_Geolocalizados']
 
-ws_pdvs = wb.create_sheet('PDVs_Roteiro_Hoje_Geolocalizados')
-if pdvs_hoje:
-    headers_pdvs = list(pdvs_hoje[0].keys())
-    ws_pdvs.append(headers_pdvs)
-    for row in pdvs_hoje:
-        ws_pdvs.append([row[h] for h in headers_pdvs])
-print(f" - Aba 'PDVs_Roteiro_Hoje_Geolocalizados' regravada com {len(pdvs_hoje)} PDVs!")
+    ws_pdvs = wb.create_sheet('PDVs_Roteiro_Hoje_Geolocalizados')
+    if pdvs_hoje:
+        headers_pdvs = list(pdvs_hoje[0].keys())
+        ws_pdvs.append(headers_pdvs)
+        for row in pdvs_hoje:
+            ws_pdvs.append([row[h] for h in headers_pdvs])
+    print(f" - Aba 'PDVs_Roteiro_Hoje_Geolocalizados' regravada com {len(pdvs_hoje)} PDVs!")
 
-# Atualizar Prospects_Mapa_Radar
-if 'Prospects_Mapa_Radar' in wb.sheetnames:
-    del wb['Prospects_Mapa_Radar']
+    if 'Prospects_Mapa_Radar' in wb.sheetnames:
+        del wb['Prospects_Mapa_Radar']
 
-ws_prosp = wb.create_sheet('Prospects_Mapa_Radar')
-if prospects_coletados:
-    headers_prosp = list(prospects_coletados[0].keys())
-    ws_prosp.append(headers_prosp)
-    for row in prospects_coletados:
-        ws_prosp.append([row[h] for h in headers_prosp])
-print(f" - Aba 'Prospects_Mapa_Radar' regravada com {len(prospects_coletados)} prospects de TODOS os CNAEs!")
+    ws_prosp = wb.create_sheet('Prospects_Mapa_Radar')
+    if prospects_coletados:
+        headers_prosp = list(prospects_coletados[0].keys())
+        ws_prosp.append(headers_prosp)
+        for row in prospects_coletados:
+            ws_prosp.append([row[h] for h in headers_prosp])
+    print(f" - Aba 'Prospects_Mapa_Radar' regravada com {len(prospects_coletados)} prospects de TODOS os CNAEs!")
 
-wb.save(excel_path)
-print(f"Planilha {excel_path} salva com sucesso!")
+    if 'Sheet' in wb.sheetnames and wb['Sheet'].max_row == 1 and wb['Sheet'].max_column == 1:
+        del wb['Sheet']
+
+    wb.save(excel_path)
+    print(f"Planilha {excel_path} salva com sucesso!")
+except Exception as e:
+    print(f"⚠️  Não foi possível atualizar a planilha Excel ({e}) — seguindo para o SQLite normalmente.")
 
 # 5. Atualizar SQLite
 print("\n--- ATUALIZANDO BASE SQLITE ---")
