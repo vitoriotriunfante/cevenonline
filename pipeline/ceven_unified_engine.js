@@ -439,8 +439,10 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
         const supNome = valInfo.supNome;
         const canal = valInfo.canal;
 
-        // Considera visitas e roteiro APENAS dos vendedores de VAREJO (VJ) com meta ativa e rota >= 5
-        if (isCanalVarejo(canal) && prog >= 5 && metaFat > 0 && metaPos > 0) {
+        // Considera TODO vendedor classificado como varejo (VJ/FARMA/PET VJ/ESP),
+        // independente de meta cadastrada ou tamanho da rota hoje (pedido do Vitório
+        // em 23/09/2026: "dados completos... tudo que eu classifiquei como varejo").
+        if (isCanalVarejo(canal)) {
           resFil.visitasReal += visReal;
           resFil.visitasProg += prog;
 
@@ -751,7 +753,11 @@ async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
           rotaOficial.reverse();
         }
 
-        if (rotaOficial.length >= 5) {
+        // Conta TODO vendedor classificado como varejo (VJ/FARMA/PET VJ/ESP), mesmo
+        // com poucas ou nenhuma visita hoje -- antes só contava com >=5 visitas
+        // planejadas, escondendo gente real da conta (pedido do Vitório em 23/09/2026:
+        // "dados completos... tudo que eu classifiquei como varejo").
+        {
           rFil.vjs++;
           rFil.visitas += rotaOficial.length;
           rotaOficial.forEach(c => {
@@ -766,7 +772,11 @@ async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
             }
           });
         }
-      } catch (e) {}
+      } catch (e) {
+        // Mesmo se a API falhar pra esse RCA, ele já foi classificado como varejo
+        // (isCanalVarejo) -- conta pra não perder gente por instabilidade de rede.
+        rFil.vjs++;
+      }
     }));
   }
 
@@ -870,7 +880,7 @@ async function coletarAlertaRisco(repsValidationMap, dataHoje) {
           });
           rotaOficial.reverse();
         }
-        if (rotaOficial.length < 5) return;
+        // Antes pulava vendedores com rota < 5 hoje (mesmo pedido de "dados completos" de 23/09/2026).
 
         rotaOficial.forEach(c => {
           const risco = classificarRisco(c.data_ultima_compra, hojeDate);
