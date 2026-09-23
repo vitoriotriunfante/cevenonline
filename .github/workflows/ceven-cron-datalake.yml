@@ -21,15 +21,15 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Instalar dependências Node
-        run: npm install better-sqlite3 xlsx axios
+      - name: Instalar dependências Node (npm ci, mesma versão travada localmente)
+        run: npm ci
 
       - name: Instalar dependências Python
         run: pip install requests openpyxl

@@ -52,11 +52,10 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
-      - name: Instalar Dependências do Motor
-        run: |
-          npm install axios xlsx
+      - name: Instalar Dependências do Motor (npm ci, mesma versão travada localmente)
+        run: npm ci
 
       - name: Instalar rclone
         run: curl https://rclone.org/install.sh | sudo bash
