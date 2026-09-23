@@ -1,23 +1,23 @@
 {
   "versao": "1.0",
   "descricao": "Diretrizes Operacionais Diárias do CEVEN NOC — Parametrização Dinâmica de Campo",
-  "data_vigencia": "2026-09-21",
+  "data_vigencia": "2026-09-23",
   "cnae_foco": {
-    "codigo": "5611",
-    "descricao": "Restaurantes e Similares",
-    "justificativa": "Alavancagem de Food Service, penetração de sobremesas e doces no canal de alimentação fora do lar",
+    "codigo": "4639",
+    "descricao": "Comércio atacadista de produtos alimentícios em geral",
+    "justificativa": "Rotação automática seg-sex — CNAE nacional #3 entre os 5 candidatos com amostra >= 20 (132 clientes na amostra nacional).",
     "ratios_por_filial": {
-      "TPH": 2.15,
-      "MCD": 3.80,
-      "TCV": 3.20,
-      "API": 2.10,
-      "ABC": 2.50,
-      "TSJ": 1.85,
-      "TCA": 3.60,
-      "TBE": 1.35,
-      "TCG": 3.90,
-      "TBL": 1.45,
-      "TPA": 1.95
+      "TBE": 4,
+      "TSJ": 1.08,
+      "MCD": 1.04,
+      "TPH": 1.75,
+      "TCG": 1,
+      "TPA": 1.08,
+      "API": 2.04,
+      "TCV": 1.25,
+      "ABC": 1,
+      "TCA": 1.08,
+      "TBL": 1.17
     }
   },
   "produtos_foco": [
