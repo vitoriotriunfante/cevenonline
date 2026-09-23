@@ -92,9 +92,14 @@ jobs:
           git add OPERACAO_WHATSAPP/relatorios_por_horario/10_00/ config/diretrizes_operacionais.json
           git diff --cached --quiet && echo "Sem mudança pra commitar." || (
             git commit -m "chore: relatorios de marca propria 10:00 + marca de disparo [skip ci]"
-            for i in 1 2 3; do
-              git pull --rebase origin clean-v3 && git push && break
+            OK=0
+            for i in 1 2 3 4 5 6 7 8; do
+              git pull --rebase origin clean-v3 && git push && OK=1 && break
               echo "Push falhou (tentativa $i), tentando de novo..."
-              sleep 5
+              sleep $((i * 5))
             done
+            if [ "$OK" != "1" ]; then
+              echo "::error::Push da marca de disparo 10:00 falhou apos 8 tentativas -- marca de idempotencia NAO foi salva, risco de reenvio duplicado."
+              exit 1
+            fi
           )

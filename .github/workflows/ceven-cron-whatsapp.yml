@@ -193,9 +193,14 @@ jobs:
           git add config/diretrizes_operacionais.json OPERACAO_WHATSAPP/relatorios_por_horario/07_45/ OPERACAO_WHATSAPP/relatorios_por_horario/11_30/ OPERACAO_WHATSAPP/relatorios_por_horario/14_30/ OPERACAO_WHATSAPP/relatorios_por_horario/17_00/ OPERACAO_WHATSAPP/relatorios_por_horario/18_30/
           git diff --cached --quiet && echo "Sem mudança pra commitar." || (
             git commit -m "chore: marca ciclo ${{ steps.config.outputs.ciclo }} disparado + alerta de risco [skip ci]"
-            for i in 1 2 3; do
-              git pull --rebase origin clean-v3 && git push && break
+            OK=0
+            for i in 1 2 3 4 5 6 7 8; do
+              git pull --rebase origin clean-v3 && git push && OK=1 && break
               echo "Push falhou (tentativa $i), tentando de novo..."
-              sleep 5
+              sleep $((i * 5))
             done
+            if [ "$OK" != "1" ]; then
+              echo "::error::Push da marca de disparo ${{ steps.config.outputs.ciclo }} falhou apos 8 tentativas -- marca de idempotencia NAO foi salva, risco de reenvio duplicado."
+              exit 1
+            fi
           )
