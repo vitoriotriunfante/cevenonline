@@ -1332,10 +1332,15 @@ async function main() {
     if (destino === 'todos') {
       console.log(`🚀 Enviando Abertura Matinal individual para ${GERENTES_MAP.length} gerentes...`);
       for (const g of GERENTES_MAP) {
-        const chave = Object.keys(abertura.dadosAbertura || {}).find(k => {
+        const chaves = Object.keys(abertura.dadosAbertura || {});
+        // Match exato (funciona pra MCD/TPH, que já são separados por sub-gerente).
+        let chave = chaves.find(k => {
           const [sigla, gerenteNome] = k.split('::');
           return sigla === g.filial && gerenteNome.toUpperCase() === g.gerente.toUpperCase();
         });
+        // Fallback por sigla (TPA não é separado por sub-gerente ainda -- Radke e
+        // Leandro recebem o mesmo bloco combinado da filial até isso ser corrigido).
+        if (!chave) chave = chaves.find(k => k.split('::')[0] === g.filial);
         const f = chave ? abertura.dadosAbertura[chave] : null;
         if (!f) {
           console.log(`  ⚠️ Sem dados de abertura pra ${g.filial} — ${g.gerente}, pulando.`);
