@@ -1,0 +1,77 @@
+name: CEVEN — Marca Própria 10:00
+
+on:
+  schedule:
+    # 10:00 BRT = 13:00 UTC, Segunda a Sexta
+    - cron: '0 13 * * 1-5'
+  workflow_dispatch: {}
+
+concurrency:
+  group: ceven-marca-propria
+  cancel-in-progress: false
+
+jobs:
+  gerar_marca_propria:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependências
+        run: npm install better-sqlite3 xlsx axios
+
+      - name: Instalar rclone
+        run: curl https://rclone.org/install.sh | sudo bash
+
+      - name: Configurar rclone (Google Drive)
+        env:
+          GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "$GDRIVE_SA_JSON" > /tmp/gdrive-sa.json
+          cat > ~/.config/rclone/rclone.conf << EOF
+          [gdrive]
+          type = drive
+          scope = drive
+          service_account_file = /tmp/gdrive-sa.json
+          root_folder_id = $GDRIVE_FOLDER_ID
+          EOF
+
+      - name: Baixar banco de dados do Google Drive
+        run: |
+          mkdir -p analises
+          rclone copy gdrive:pedidos_historico_ceven.db analises/
+
+      - name: Baixar VENDEDORES AUDITADOS.xlsx do Google Drive (fonte de verdade manual)
+        run: rclone copy gdrive:VENDEDORES_AUDITADOS.xlsx . || echo "Planilha não encontrada no Drive — usando filtro só por canal."
+        continue-on-error: true
+
+      - name: Gerar relatórios de Marca Própria (hoje + acumulado do mês)
+        run: node scripts/gerar_marca_propria.js "$(date -u -d '-3 hours' +%Y-%m-%d)"
+
+      - name: Copiar para a pasta oficial de entrega
+        run: |
+          DATA_REF="$(date -u -d '-3 hours' +%Y-%m-%d)"
+          DEST="OPERACAO_WHATSAPP/relatorios_por_horario/10_00"
+          mkdir -p "$DEST"
+          for f in auditoria_mensagens/$DATA_REF/10_00__*.txt; do
+            cp "$f" "$DEST/$(basename "$f" .txt).md"
+          done
+
+      - name: Commitar relatórios atualizados
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add OPERACAO_WHATSAPP/relatorios_por_horario/10_00/
+          git commit -m "chore: relatorios de marca propria 10:00 [skip ci]" || true
+          git push || true
