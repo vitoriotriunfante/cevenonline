@@ -53,7 +53,7 @@ jobs:
           rclone copy gdrive:pedidos_historico_ceven.db analises/
 
       - name: Baixar VENDEDORES AUDITADOS.xlsx do Google Drive (fonte de verdade manual)
-        run: rclone copy gdrive:VENDEDORES_AUDITADOS.xlsx . || echo "Planilha não encontrada no Drive — usando filtro só por canal."
+        run: rclone copy "gdrive:VENDEDORES AUDITADOS.xlsx" . || echo "Planilha não encontrada no Drive — usando filtro só por canal."
         continue-on-error: true
 
       - name: Gerar relatórios de Marca Própria (hoje + acumulado do mês)

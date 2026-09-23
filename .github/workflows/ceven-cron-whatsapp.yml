@@ -58,6 +58,28 @@ jobs:
         run: |
           npm install axios xlsx
 
+      - name: Instalar rclone
+        run: curl https://rclone.org/install.sh | sudo bash
+
+      - name: Configurar rclone (Google Drive)
+        env:
+          GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "$GDRIVE_SA_JSON" > /tmp/gdrive-sa.json
+          cat > ~/.config/rclone/rclone.conf << EOF
+          [gdrive]
+          type = drive
+          scope = drive
+          service_account_file = /tmp/gdrive-sa.json
+          root_folder_id = $GDRIVE_FOLDER_ID
+          EOF
+
+      - name: Baixar VENDEDORES AUDITADOS.xlsx do Google Drive (fonte de verdade manual)
+        run: rclone copy "gdrive:VENDEDORES AUDITADOS.xlsx" . || echo "Planilha não encontrada no Drive ainda — disparo segue só com filtro de canal."
+        continue-on-error: true
+
       - name: Determinar Ciclo e Parâmetros de Disparo
         id: config
         run: |
