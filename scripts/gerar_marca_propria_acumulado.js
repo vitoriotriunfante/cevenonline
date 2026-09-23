@@ -23,31 +23,39 @@ function carregarMarcaPropria() {
 function fmtMoeda(v) { return (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function limparNome(n) { return (n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').toUpperCase().trim(); }
 
-function main() {
+async function main() {
   const dataRef = process.argv[2] || new Date().toISOString().split('T')[0];
   const inicioMes = dataRef.slice(0, 8) + '01'; // YYYY-MM-01
   const codigosMP = carregarMarcaPropria();
   const placeholders = codigosMP.map(() => '?').join(',');
 
   const engineRepsMap = engine.carregarValidacaoVendedores();
+  // Sem isso o canal fica hardcoded 'VJ' pra todo mundo, deixando contas de GERENTE/SUP
+  // entrarem nos totais de faturamento como se fossem vendedor de Varejo comum.
+  await engine.enriquecerCanalReal(engineRepsMap);
   const supParaGerente = {};
   Object.values(engineRepsMap).forEach(v => { supParaGerente[`${v.filial}::${limparNome(v.supNome)}`] = v.gerente; });
   function resolverGerente(sigla, supNome) {
     return supParaGerente[`${sigla}::${limparNome(supNome)}`]
       || (Object.values(engine.FILIAIS_MAP).find(f => f.sigla === sigla)?.gerente) || sigla;
   }
+  function isRcaVarejoValido(sigla, rcaId) {
+    const val = engineRepsMap[`${sigla}_${rcaId}`];
+    return val && engine.isCanalVarejo(val.canal);
+  }
 
   const db = new Database(path.join(__dirname, '..', 'analises', 'pedidos_historico_ceven.db'), { readonly: true });
 
-  // Vendas (faturamento + positivação)
+  // Vendas (faturamento + positivação) — só de vendedores de Varejo válidos (exclui
+  // contas de GERENTE/SUP que às vezes fazem pedido direto no sistema)
   const vendas = db.prepare(`
-    SELECT ph.filial_sigla, ph.supervisor_nome, ph.nome_cliente, phi.codprod, phi.quantidade, phi.valor_total
+    SELECT ph.filial_sigla, ph.rca_id, ph.supervisor_nome, ph.nome_cliente, phi.codprod, phi.quantidade, phi.valor_total
     FROM pedidos_historico ph
     JOIN pedidos_historico_itens phi ON phi.chave_pedido = ph.chave
     WHERE ph.data_pedido BETWEEN ? AND ?
       AND phi.tipo_registro = 'VENDA'
       AND phi.codprod IN (${placeholders})
-  `).all(inicioMes, dataRef, ...codigosMP);
+  `).all(inicioMes, dataRef, ...codigosMP).filter(r => isRcaVarejoValido(r.filial_sigla, r.rca_id));
 
   // Cortes — o valor_total de um corte quase sempre vem 0/vazio na fonte (o CEVEN não
   // preenche isso). Mas dá pra calcular de verdade: pega o preço médio real de venda
@@ -147,4 +155,4 @@ function main() {
   console.log(msg);
 }
 
-main();
+main().catch(e => { console.error(e); process.exit(1); });

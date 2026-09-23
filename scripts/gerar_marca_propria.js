@@ -27,7 +27,7 @@ function carregarMarcaPropria() {
 
 function fmtMoeda(v) { return (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-function main() {
+async function main() {
   const dataRef = process.argv[2] || new Date().toISOString().split('T')[0];
   const codigosMP = carregarMarcaPropria();
   const placeholders = codigosMP.map(() => '?').join(',');
@@ -35,6 +35,9 @@ function main() {
   // Hierarquia oficial (mesma fonte usada no resto do pipeline) para resolver o gerente
   // real por supervisor, incluindo o split de sub-gerência de MCD/TPH.
   const repsMap = engine.carregarValidacaoVendedores();
+  // IMPORTANTE: sem isso o canal fica hardcoded 'VJ' pra todo mundo (inclusive contas de
+  // GERENTE/SUP), deixando essas contas passarem pelo filtro de "Varejo válido" por engano.
+  await engine.enriquecerCanalReal(repsMap);
   function limparNome(n) {
     return (n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').toUpperCase().trim();
   }
@@ -178,4 +181,4 @@ function main() {
   console.log(`${nGerentes} filiais com dado, salvos em ${outDir}`);
 }
 
-main();
+main().catch(e => { console.error(e); process.exit(1); });
