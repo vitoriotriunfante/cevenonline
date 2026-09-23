@@ -2,11 +2,24 @@
  * ============================================================================
  * CEVEN NOC — MOTOR UNIFICADO DE INTELIGÊNCIA OPERACIONAL (v4.0)
  * ============================================================================
- * Centraliza e automatiza:
- * 1. Coleta de Gestão de Campo (Compromissos & RETs dos 68 Supervisores);
- * 2. Apuração de Vendas Globais da Filial (Rota + Fora da Rota);
- * 3. KPI Estrito de Força de Vendas Varejo (VJ Zerados por Supervisor);
- * 4. Disparo Resiliente via WhatsApp (Evolution API).
+ * FICHA DO ARQUIVO
+ * O QUE É: motor central de TODOS os ciclos de WhatsApp (04:00 a 18:30). Puxa
+ *          dados AO VIVO da API do CEVEN (não usa o SQLite de analises/) —
+ *          coleta vendas/zerados, gestão de campo (compromissos/RETs), alerta
+ *          de risco e monta/dispara as mensagens via Evolution API.
+ * RODA: a cada disparo agendado em .github/workflows/ceven-cron-whatsapp.yml
+ *       (chamado como `node pipeline/ceven_unified_engine.js --hora=X --acao=Y --destino=Z`).
+ * LÊ: API do CEVEN ao vivo + scripts/supervisores_11_filiais_completo.json
+ *     (árvore de vendedores — REGERADA a cada execução por
+ *     scripts/atualizar_arvore_viva_11_filiais.js, chamado antes deste script
+ *     pelo próprio workflow) + VENDEDORES AUDITADOS.xlsx (fonte de verdade
+ *     manual, baixada do Google Drive pelo workflow — ver aplicarMostraDisparos).
+ * ESCREVE: mensagens no WhatsApp (grupos/contatos reais) + pipeline/dados_abertura_matinal.json
+ *          (cache do ciclo 04:00, commitado de volta pro repo pelo próprio workflow,
+ *          consumido pelo ciclo 07:45).
+ * USADO POR: ninguém além do próprio workflow de disparo — é o entrypoint.
+ * FRESCOR ESPERADO: tempo real, a cada execução — não depende de nenhum dado
+ *                   pré-calculado de um dia anterior (exceto o cache 04:00→07:45).
  * ============================================================================
  */
 

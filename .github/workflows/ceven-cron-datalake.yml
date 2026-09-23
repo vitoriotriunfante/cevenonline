@@ -1,3 +1,14 @@
+# FICHA DO ARQUIVO
+# O QUE É: "atualiza TUDO" — roda pipeline/orquestrador_diario.js (9 extratores),
+#     popula analises/pedidos_historico_ceven.db inteiro.
+# RODA: todo dia às 03:00 BRT (cron abaixo) ou manual via workflow_dispatch.
+# LÊ do Google Drive: pedidos_historico_ceven.db (se existir; senão cria do zero).
+# ESCREVE no Google Drive: pedidos_historico_ceven.db atualizado (upload sempre no
+#     final, mesmo se algum dos 9 passos falhar — "if: always()").
+# USADO POR: ceven-cron-marca-propria.yml (10:00) depende do banco já atualizado aqui.
+# DEPENDE DE: secrets GDRIVE_SA_JSON e GDRIVE_FOLDER_ID.
+# ÚLTIMA REVISÃO: 23/09/2026 (Node 24 + npm ci; corrigido YAML invalido "gdrive:" solto
+#     no fim de linha, que quebrava o parse do arquivo inteiro desde a criação).
 name: CEVEN Data Lake — Atualização Diária (Pedidos, Devoluções, PDVs, Live)
 
 on:

@@ -1,3 +1,13 @@
+# FICHA DO ARQUIVO
+# O QUE É: gera os relatórios de Marca Própria (hoje + acumulado do mês) por gerente.
+# RODA: cron abaixo (seg-sex, 10:00 BRT) ou manual via workflow_dispatch.
+# LÊ do Google Drive: pedidos_historico_ceven.db, VENDEDORES AUDITADOS.xlsx,
+#     Produtos - Marcas Exclusivas.xls. Gera a árvore viva de vendedores ao vivo.
+# ESCREVE: OPERACAO_WHATSAPP/relatorios_por_horario/10_00/*.md (commitado no repo,
+#     revisão manual do Vitório — não envia WhatsApp automático ainda).
+# DEPENDE DE: secrets GDRIVE_SA_JSON e GDRIVE_FOLDER_ID + o banco ter sido atualizado
+#     às 03:00 pelo ceven-cron-datalake.yml no mesmo dia.
+# ÚLTIMA REVISÃO: 23/09/2026 (criado + Node 24/npm ci pra corrigir segfault do better-sqlite3).
 name: CEVEN — Marca Própria 10:00
 
 on:

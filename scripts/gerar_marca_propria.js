@@ -1,7 +1,22 @@
 /**
- * Ciclo 10:00 — Marcas Próprias. UM arquivo por destinatário (Vitório + cada gerente),
- * com HOJE e ACUMULADO DO MÊS juntos no mesmo arquivo. Usa o banco local
- * `analises/pedidos_historico_ceven.db` direto via SQL, sem varrer a API ao vivo.
+ * FICHA DO ARQUIVO
+ * O QUE É: Ciclo 10:00 — Marcas Próprias. Gera UM arquivo por destinatário
+ *          (Vitório + cada gerente/sub-gerente), com HOJE e ACUMULADO DO MÊS
+ *          juntos no mesmo arquivo (não usar 2 arquivos separados).
+ * RODA: todo dia às 10:00 BRT via .github/workflows/ceven-cron-marca-propria.yml
+ *       (ou manual: `node scripts/gerar_marca_propria.js [YYYY-MM-DD]`).
+ * LÊ: analises/pedidos_historico_ceven.db (SQL direto, sem API ao vivo — banco
+ *     baixado do Google Drive pelo workflow) + scripts/supervisores_11_filiais_completo.json
+ *     (árvore viva, regerada antes por atualizar_arvore_viva_11_filiais.js) +
+ *     "VENDEDORES AUDITADOS.xlsx" (aba MOSTRA_DISPAROS — fonte de verdade manual,
+ *     baixada do Drive) + "Produtos - Marcas Exclusivas.xls" (lista de SKUs de MP,
+ *     baixada do Drive).
+ * ESCREVE: auditoria_mensagens/<data>/10_00__*.txt, copiados como .md pro próprio
+ *          workflow em OPERACAO_WHATSAPP/relatorios_por_horario/10_00/ e commitados.
+ * USADO POR: ninguém programaticamente — é revisão manual do Vitório (arquivos
+ *            .md ficam no repo pra ele abrir e conferir, não envia WhatsApp sozinho ainda).
+ * FRESCOR ESPERADO: 1x/dia às 10:00. Depende do banco ter sido atualizado às 03:00
+ *                   pelo orquestrador (pipeline/orquestrador_diario.js) no mesmo dia.
  *
  * Regras de negócio (definidas com Vitório em 22/09/2026):
  * - TBE e TCG não vendem nenhuma marca própria — ficam de fora do envio

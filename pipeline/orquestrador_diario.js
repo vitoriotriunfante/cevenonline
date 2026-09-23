@@ -1,10 +1,22 @@
 /**
- * ORQUESTRADOR DIÁRIO — roda os 4 extratores que alimentam analises/pedidos_historico_ceven.db
- * na ordem certa (2 e 3 dependem do 1 já ter rodado). Continua mesmo se um passo falhar,
- * pra não travar os outros por causa de um problema pontual — e reporta no final o que
- * funcionou e o que não funcionou.
+ * FICHA DO ARQUIVO
+ * O QUE É: orquestrador que roda os 9 extratores (analises/*.js e *.py) na ordem certa
+ *          (PDVs depende de hierarquia; produtividade depende de PDVs) e popula TODAS
+ *          as tabelas de analises/pedidos_historico_ceven.db. Continua mesmo se um passo
+ *          falhar (não trava os outros), e reporta no final o que funcionou/não funcionou.
+ * RODA: todo dia às 03:00 BRT via .github/workflows/ceven-cron-datalake.yml (ou manual:
+ *       `node pipeline/orquestrador_diario.js`).
+ * LÊ: nada além do que cada extrator individual lê (API do CEVEN, principalmente).
+ * ESCREVE: analises/pedidos_historico_ceven.db (todas as tabelas — ver PASSOS abaixo).
+ * USADO POR: scripts/gerar_marca_propria.js, scripts/gerar_alerta_risco.js e qualquer
+ *            relatório que leia esse banco (não os ciclos de WhatsApp em si, que puxam
+ *            a API ao vivo direto — ver pipeline/ceven_unified_engine.js).
+ * DEPENDE DE: o workflow que chama isso já baixou o banco do Google Drive antes (senão
+ *             cria do zero) e faz upload de volta depois — ver ceven-cron-datalake.yml.
+ * FRESCOR ESPERADO: 1x/dia. Se um passo aparecer "❌" no resumo final, só aquela tabela
+ *                   ficou desatualizada — as outras 8 continuam valendo.
  *
- * Uso: node pipeline/orquestrador_diario.js
+ * Uso manual: node pipeline/orquestrador_diario.js
  */
 const { spawn } = require('child_process');
 const path = require('path');

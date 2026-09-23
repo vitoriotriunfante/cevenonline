@@ -1,3 +1,21 @@
+/**
+ * FICHA DO ARQUIVO
+ * O QUE É: loga como cada um dos 11 gerentes de filial no CEVEN e monta a árvore
+ *          completa supervisor→vendedor de cada filial ("árvore viva").
+ * RODA: no INÍCIO de todo workflow que precisa do repsMap (carregarValidacaoVendedores)
+ *       — ceven-cron-whatsapp.yml e ceven-cron-marca-propria.yml chamam este script
+ *       antes de qualquer outra coisa. Puro API ao vivo, não depende de banco nem Drive.
+ * LÊ: API do CEVEN (/api/gerente-auth/login + endpoints de cascata por filial).
+ * ESCREVE: scripts/supervisores_11_filiais_completo.json (sobrescreve sempre).
+ *          ⚠️ Esse arquivo cai no .gitignore "scripts/*" — NÃO fica versionado nem
+ *          persiste entre execuções do GitHub Actions. Por isso todo workflow que
+ *          precisa dele tem que rodar ESTE script antes, sempre, do zero.
+ * USADO POR: pipeline/ceven_unified_engine.js (carregarValidacaoVendedores),
+ *            scripts/gerar_marca_propria.js, scripts/gerar_alerta_risco.js,
+ *            scripts/gerar_auditoria_mensagens.js.
+ * FRESCOR ESPERADO: sempre "agora" — regerado a cada execução, nunca reaproveitado
+ *                   de uma execução anterior.
+ */
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');

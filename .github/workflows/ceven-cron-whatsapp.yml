@@ -1,3 +1,11 @@
+# FICHA DO ARQUIVO
+# O QUE É: dispara os 6 ciclos de WhatsApp do dia (04:00, 07:45, 11:30, 14:30, 17:00, 18:30).
+# RODA: cron abaixo (seg-sex, horário UTC = BRT+3) ou manual via workflow_dispatch.
+# LÊ: API do CEVEN ao vivo (via pipeline/ceven_unified_engine.js) + VENDEDORES AUDITADOS.xlsx
+#     e a árvore viva de vendedores, ambos baixados/gerados dentro deste próprio workflow.
+# ESCREVE: mensagens reais no WhatsApp + pipeline/dados_abertura_matinal.json (cache 04:00→07:45).
+# DEPENDE DE: secrets GDRIVE_SA_JSON e GDRIVE_FOLDER_ID (só pra planilha de vendedores).
+# ÚLTIMA REVISÃO: 23/09/2026 (Node 24 + npm ci, geração da árvore viva embutida).
 name: CEVEN NOC — Disparos Oficiais WhatsApp
 
 concurrency:
