@@ -5,3 +5,42 @@
 👥 Vendedores: 23 • Visitas: 372 (média 16,2/vendedor)
 Sem compra +30d: 152 (40,9%) • Recorrência: 35 (9,4%)
 Oportunidades CNAE 4639: +402 PDVs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 *PDVs EM RISCO — 07:45*
+📍 *TSJ — SALDANHA* • 23/09/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 Última Chance: 151  •  🟡 Preventivo: 0
+
+👤 *ANA CRISTINA DOS SANTOS YAMATO* (24 em risco)
+  🔴 SUPERMERCADO JK (5) — 04/12
+  🔴 MERCADINHO KOVALSKI (5) — 12/08
+  🔴 AQUI TEM (33) — 12/08
+  🔴 61.398.049 PATRICIA BENEDITA ELIDIA PEGG (33) — 12/08
+  🔴 MERCADINHO CEREJEIRA (1092) — 18/06
+  _+19 outros_
+
+👤 *JULIO CESAR SOARES DE PAULO* (33 em risco)
+  🔴 MERCEARIA DO ALEXANDRE (3) — 13/05
+  🔴 PADARIA E CONFEITARIA SAO FRANCISCO (3) — 12/08
+  🔴 45.081.671 FABIANO PEREIRA CORNETTI (3) — 12/08
+  🔴 MERCADO SOUZA (3) — 19/08
+  🔴 MERCEARIA DO JAPAO (3) — 12/08
+  _+28 outros_
+
+👤 *VENDA EMPRESA (INTERNO)* (39 em risco)
+  🔴 EMPORIO E CONV DO MORAES (2) — 04/12
+  🔴 SUPERMERCADO DIAMANTE (2) — 04/12
+  🔴 MERCADO RENNER (2) — 04/12
+  🔴 AUT BEER (2) — 04/12
+  🔴 CASA CARNE MIRANDA (2) — 04/12
+  _+34 outros_
+
+👤 *VICTOR HUGO FONSECA CARVALHO* (55 em risco)
+  🔴 LANCHONETE BROTHERS (16) — 19/08
+  🔴 ENCANTO FLORES E PRESENTES (16) — 30/07
+  🔴 JOSE BATISTA RODRIGUES ARAUJO84276762634 (16) — 28/07
+  🔴 AVICOLA E MERCEARIA DO MINEIRO (16) — 19/08
+  🔴 MERCADINHO DINHA (40) — 04/12
+  _+50 outros_
