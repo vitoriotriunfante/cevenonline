@@ -3,15 +3,15 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 *ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 37.193,05 • 38 PDVs • ✂️ R$ 0,00 (0 un)
-👤 IVONEI PEDRO DE MOURA — R$ 28.857,75 (25 PDVs)
-👤 EDER LUCAS DAS FLORES DE OLIVEIRA — R$ 5.347,45 (6 PDVs)
-👤 RODRIGO STELLEO COSTA LEITE — R$ 2.987,85 (7 PDVs)
+💰 R$ 9.598,15 • 38 PDVs • ✂️ R$ 0,00 (0 un)
+👤 IVONEI PEDRO DE MOURA — R$ 7.243,64 (25 PDVs)
+👤 EDER LUCAS DAS FLORES DE OLIVEIRA — R$ 1.487,23 (6 PDVs)
+👤 RODRIGO STELLEO COSTA LEITE — R$ 867,28 (7 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
-💰 R$ 569,13 • 1 PDVs positivados
-👤 IVONEI PEDRO DE MOURA — R$ 569,13 (1 PDVs)
+💰 R$ 189,71 • 1 PDVs positivados
+👤 IVONEI PEDRO DE MOURA — R$ 189,71 (1 PDVs)
 
 🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (18)*
 _(fez pedido hoje, mas nenhum item era marca própria)_

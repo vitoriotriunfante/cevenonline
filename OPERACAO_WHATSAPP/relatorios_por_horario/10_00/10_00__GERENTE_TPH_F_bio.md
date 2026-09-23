@@ -3,15 +3,15 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 *ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 327.589,98 • 49 PDVs • ✂️ R$ 163,05 (57 un) • 🚛 R$ 3.523,74 _(filial toda)_
-👤 RODRIGO BERTONI — R$ 321.647,70 (2 PDVs)
-👤 EDI CARLOS MEIRA — R$ 3.880,94 (36 PDVs)
-👤 PRISCILA A D NASCIMENTO STRAPASSON — R$ 2.061,34 (11 PDVs)
+💰 R$ 117.289,18 • 49 PDVs • ✂️ R$ 64,72 (22 un) • 🚛 R$ 3.523,74 _(filial toda)_
+👤 RODRIGO BERTONI — R$ 114.568,85 (2 PDVs)
+👤 EDI CARLOS MEIRA — R$ 1.771,94 (36 PDVs)
+👤 PRISCILA A D NASCIMENTO STRAPASSON — R$ 948,39 (11 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
-💰 R$ 36,80 • 2 PDVs positivados
-👤 PRISCILA A D NASCIMENTO STRAPASSON — R$ 36,80 (2 PDVs)
+💰 R$ 18,40 • 2 PDVs positivados
+👤 PRISCILA A D NASCIMENTO STRAPASSON — R$ 18,40 (2 PDVs)
 
 🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (13)*
 _(fez pedido hoje, mas nenhum item era marca própria)_

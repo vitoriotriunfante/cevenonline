@@ -3,17 +3,17 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 *ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 38.026,52 • 41 PDVs • ✂️ R$ 48,95 (22 un) • 🚛 R$ 3.523,74 _(filial toda)_
-👤 LUIZ AUGUSTO RAMOS — R$ 23.560,49 (23 PDVs)
-👤 ANDREY CAMILLO PIRAGINE — R$ 13.790,58 (16 PDVs)
-👤 CLAUDETE DE SOUZA SCHULTZ — R$ 675,45 (2 PDVs)
+💰 R$ 13.409,88 • 41 PDVs • ✂️ R$ 23,19 (10 un) • 🚛 R$ 3.523,74 _(filial toda)_
+👤 LUIZ AUGUSTO RAMOS — R$ 8.095,92 (23 PDVs)
+👤 ANDREY CAMILLO PIRAGINE — R$ 5.083,79 (16 PDVs)
+👤 CLAUDETE DE SOUZA SCHULTZ — R$ 230,17 (2 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
-💰 R$ 573,00 • 5 PDVs positivados
-👤 ANDREY CAMILLO PIRAGINE — R$ 76,12 (1 PDVs)
-👤 LUIZ AUGUSTO RAMOS — R$ 466,76 (3 PDVs)
-👤 CLAUDETE DE SOUZA SCHULTZ — R$ 30,12 (1 PDVs)
+💰 R$ 286,50 • 5 PDVs positivados
+👤 ANDREY CAMILLO PIRAGINE — R$ 38,06 (1 PDVs)
+👤 LUIZ AUGUSTO RAMOS — R$ 233,38 (3 PDVs)
+👤 CLAUDETE DE SOUZA SCHULTZ — R$ 15,06 (1 PDVs)
 
 🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (23)*
 _(fez pedido hoje, mas nenhum item era marca própria)_

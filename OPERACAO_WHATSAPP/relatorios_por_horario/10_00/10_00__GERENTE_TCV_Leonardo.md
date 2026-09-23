@@ -3,17 +3,17 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 *ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 24.807,28 • 161 PDVs • ✂️ R$ 1.041,35 (319 un) • 🚛 R$ 9.816,98 _(filial toda)_
-👤 ROSIVAL JESUINO DA SILVA — R$ 10.039,87 (62 PDVs)
-👤 GESSANDRO SPEROTTO — R$ 8.470,93 (53 PDVs)
-👤 GIANI GREGOLIN — R$ 6.296,48 (46 PDVs)
+💰 R$ 10.643,32 • 161 PDVs • ✂️ R$ 443,79 (133 un) • 🚛 R$ 9.816,98 _(filial toda)_
+👤 ROSIVAL JESUINO DA SILVA — R$ 4.079,33 (62 PDVs)
+👤 GESSANDRO SPEROTTO — R$ 3.788,64 (53 PDVs)
+👤 GIANI GREGOLIN — R$ 2.775,35 (46 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
-💰 R$ 1.697,40 • 9 PDVs positivados
-👤 GESSANDRO SPEROTTO — R$ 949,40 (5 PDVs)
-👤 ROSIVAL JESUINO DA SILVA — R$ 607,60 (3 PDVs)
-👤 GIANI GREGOLIN — R$ 140,40 (1 PDVs)
+💰 R$ 909,70 • 9 PDVs positivados
+👤 GESSANDRO SPEROTTO — R$ 535,70 (5 PDVs)
+👤 ROSIVAL JESUINO DA SILVA — R$ 303,80 (3 PDVs)
+👤 GIANI GREGOLIN — R$ 70,20 (1 PDVs)
 
 🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (20)*
 _(fez pedido hoje, mas nenhum item era marca própria)_

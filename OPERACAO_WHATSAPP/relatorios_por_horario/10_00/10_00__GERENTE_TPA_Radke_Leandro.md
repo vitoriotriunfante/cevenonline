@@ -3,16 +3,16 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 *ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 35.900,04 • 41 PDVs • ✂️ R$ 213,88 (95 un) • 🚛 R$ 4.498,85 _(filial toda)_
-👤 DOUGLAS CRISTIANO DOS SANTOS — R$ 27.148,65 (7 PDVs)
-👤 ROGERIO DORNELLES PASSOS — R$ 6.473,55 (25 PDVs)
-👤 SAMUEL PALHANO DE OLIVEIRA — R$ 2.277,84 (9 PDVs)
+💰 R$ 20.446,97 • 41 PDVs • ✂️ R$ 96,29 (40 un) • 🚛 R$ 4.498,85 _(filial toda)_
+👤 DOUGLAS CRISTIANO DOS SANTOS — R$ 16.684,42 (7 PDVs)
+👤 ROGERIO DORNELLES PASSOS — R$ 2.716,81 (25 PDVs)
+👤 SAMUEL PALHANO DE OLIVEIRA — R$ 1.045,74 (9 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
-💰 R$ 244,58 • 5 PDVs positivados
-👤 SAMUEL PALHANO DE OLIVEIRA — R$ 69,86 (2 PDVs)
-👤 ROGERIO DORNELLES PASSOS — R$ 174,72 (3 PDVs)
+💰 R$ 122,29 • 5 PDVs positivados
+👤 SAMUEL PALHANO DE OLIVEIRA — R$ 34,93 (2 PDVs)
+👤 ROGERIO DORNELLES PASSOS — R$ 87,36 (3 PDVs)
 
 🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (11)*
 _(fez pedido hoje, mas nenhum item era marca própria)_

@@ -315,6 +315,7 @@ async function extrairHistoricoPedidos() {
       tipo_registro, codprod, descricao, quantidade, valor_total
     ) VALUES (?,?,?,?,?,?,?,?,?)
   `);
+  const deleteItensDoPedido = db.prepare(`DELETE FROM pedidos_historico_itens WHERE chave_pedido = ?`);
 
   // Pegar todos os clientes do banco
   const todosClientes = db.prepare(`
@@ -394,6 +395,7 @@ async function extrairHistoricoPedidos() {
                 parseFloat(v.total_clube) || vlFat,
                 skus.length, cortes.length
               );
+              deleteItensDoPedido.run(chave);
 
               totalPedidos++;
               totalValor += vlFat;

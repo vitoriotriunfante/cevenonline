@@ -3,9 +3,9 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 *ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
-💰 R$ 1.938,83 • 10 PDVs • ✂️ R$ 151,16 (63 un) • 🚛 R$ 252,66 _(filial toda)_
-👤 CLEOMAR DINIZ BARBOSA — R$ 1.710,35 (7 PDVs)
-👤 CARLOS ALAGUEZ DA SILVA — R$ 228,48 (3 PDVs)
+💰 R$ 644,55 • 10 PDVs • ✂️ R$ 52,01 (19 un) • 🚛 R$ 252,66 _(filial toda)_
+👤 CLEOMAR DINIZ BARBOSA — R$ 568,39 (7 PDVs)
+👤 CARLOS ALAGUEZ DA SILVA — R$ 76,16 (3 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
