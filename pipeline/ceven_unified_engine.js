@@ -1358,7 +1358,7 @@ async function main() {
 
         const r = await enviarWhatsapp(g.whatsapp, msgGerente);
         console.log(`  Abertura (${g.filial} — ${g.gerente}, ${g.whatsapp}) — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
-        await new Promise(res => setTimeout(res, 3000));
+        await new Promise(res => setTimeout(res, 30000));
       }
     }
   }
