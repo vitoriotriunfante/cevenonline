@@ -62,14 +62,6 @@ jobs:
       - name: Gerar árvore viva de vendedores (ao vivo do CEVEN)
         run: node scripts/atualizar_arvore_viva_11_filiais.js
 
-      - name: Diagnóstico (isolar causa do segfault)
-        run: |
-          ls -la analises/pedidos_historico_ceven.db "VENDEDORES AUDITADOS.xlsx" "Produtos - Marcas Exclusivas.xls"
-          node -e "console.log('node', process.version)"
-          node -e "const D=require('better-sqlite3'); const db=new D('analises/pedidos_historico_ceven.db',{readonly:true}); console.log('DB OK, itens:', db.prepare('SELECT COUNT(*) c FROM pedidos_historico_itens').get());"
-          node -e "const X=require('xlsx'); const wb=X.readFile('VENDEDORES AUDITADOS.xlsx'); console.log('XLSX vendedores OK, abas:', wb.SheetNames);"
-          node -e "const X=require('xlsx'); const wb=X.readFile('Produtos - Marcas Exclusivas.xls'); console.log('XLSX SKUs OK, abas:', wb.SheetNames);"
-
       - name: Gerar relatórios de Marca Própria (hoje + acumulado do mês)
         run: node scripts/gerar_marca_propria.js "$(date -u -d '-3 hours' +%Y-%m-%d)"
 
