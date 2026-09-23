@@ -2,23 +2,19 @@ name = "ceven-cron-sync"
 main = "src/index.js"
 compatibility_date = "2024-08-01"
 
-[[d1_databases]]
-binding = "DB"
-database_name = "ceven_noc_d1"
-database_id = "2e5bb59c-8db4-43a2-a13c-5c78e404e52d"
+# Repropositado em 23/09/2026: este worker NÃO manda mais WhatsApp (ver FICHA em
+# src/index.js). Agora é só um gatilho externo confiável pro GitHub Actions, porque
+# o agendador nativo (`schedule` no .yml) está falhando repetidamente. D1 removido,
+# não é mais usado por este worker.
 
 [triggers]
-# DESATIVADO em 23/09/2026 (Vitório) — esse worker era um sistema paralelo
-# esquecido, ainda rodando com dados estáticos e mandando pra um número
-# antigo (5566996389884), enquanto o sistema oficial (GitHub Actions,
-# pipeline/ceven_unified_engine.js) já cobre os mesmos horários com dados
-# reais. Reversível: basta descomentar a lista abaixo e rodar
-# `npx wrangler deploy` de novo dentro de worker-cron/.
-crons = []
-# crons_antigos_desativados = [
-#   "0 10 * * 1-5",    # 07:00 BRT (Abertura)
-#   "0 14 * * 1-5",    # 11:00 BRT (Relatório Oficial 1)
-#   "30 17 * * 1-5",   # 14:30 BRT (Relatório Oficial 2)
-#   "0 20 * * 1-5",    # 17:00 BRT (Relatório Oficial 3)
-#   "30 21 * * 1-5"    # 18:30 BRT (Fechamento Oficial)
-# ]
+crons = [
+  "0 6 * * 1-5",    # 03:00 BRT -> ceven-cron-datalake.yml
+  "0 7 * * 1-5",    # 04:00 BRT -> ceven-cron-whatsapp.yml (04:00)
+  "45 10 * * 1-5",  # 07:45 BRT -> ceven-cron-whatsapp.yml (07:45)
+  "0 13 * * 1-5",   # 10:00 BRT -> ceven-cron-marca-propria.yml
+  "30 14 * * 1-5",  # 11:30 BRT -> ceven-cron-whatsapp.yml (11:30)
+  "30 17 * * 1-5",  # 14:30 BRT -> ceven-cron-whatsapp.yml (14:30)
+  "0 20 * * 1-5",   # 17:00 BRT -> ceven-cron-whatsapp.yml (17:00)
+  "30 21 * * 1-5"   # 18:30 BRT -> ceven-cron-whatsapp.yml (18:30)
+]
