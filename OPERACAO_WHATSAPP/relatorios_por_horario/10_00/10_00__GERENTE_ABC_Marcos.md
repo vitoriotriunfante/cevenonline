@@ -1,8 +1,8 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 ABC — MARCOS • 22/09/2026
+📍 ABC — MARCOS • 23/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+*ACUMULADO DO MÊS (01/09/2026 a 23/09/2026)*
 💰 R$ 9.598,15 • 38 PDVs • ✂️ R$ 0,00 (0 un)
 👤 IVONEI PEDRO DE MOURA — R$ 7.243,64 (25 PDVs)
 👤 EDER LUCAS DAS FLORES DE OLIVEIRA — R$ 1.487,23 (6 PDVs)
@@ -10,34 +10,4 @@
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
-💰 R$ 189,71 • 1 PDVs positivados
-👤 IVONEI PEDRO DE MOURA — R$ 189,71 (1 PDVs)
-
-🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (18)*
-_(fez pedido hoje, mas nenhum item era marca própria)_
-
-👤 *EDER LUCAS DAS FLORES DE OLIVEIRA*
-  • WILLIAN PATRICK VIEIRA DOS SANTOS — nunca vendeu MP
-  • LUIZ FELIPE LUCIANO DOS SANTOS — 28d sem vender MP
-  • ELTON PEREIRA ALVES — 13d sem vender MP
-  • CARLOS AUGUSTO CUETO — 12d sem vender MP
-  • JOAO GABRIEL TAVARES DA LUZ — 8d sem vender MP
-  • DILNEI MARCOLIN — 4d sem vender MP
-
-👤 *IVONEI PEDRO DE MOURA*
-  • GISELE DE OLIVEIRA DA SILVA — nunca vendeu MP
-  • GABRIEL JUNIO DE MORAES — 13d sem vender MP
-  • GILSON DE ALMEIDA ALVES — 8d sem vender MP
-  • MARCOS VINICIUS CZEKAY PIRES — 1d sem vender MP
-  • ALEKSANDRO RODRIGO DE FARIA — 1d sem vender MP
-
-👤 *RODRIGO STELLEO COSTA LEITE*
-  • PATRIK DE JESUS SANTOS — nunca vendeu MP
-  • VIVIANE RIBEIRO BRANCO — nunca vendeu MP
-  • KAUE DOS SANTOS — 14d sem vender MP
-  • CAMILA TURCZINSKI — 6d sem vender MP
-  • DIEGO FERNANDES — 5d sem vender MP
-
-👤 *MARCIO ROSA SOBRAL BATISTA*
-  • MARLON SERGIO MARQUES DOS ANJOS — nunca vendeu MP
-  • LEONIDAS JOSE PORTELLA — nunca vendeu MP
+💰 R$ 0,00 • 0 PDVs positivados

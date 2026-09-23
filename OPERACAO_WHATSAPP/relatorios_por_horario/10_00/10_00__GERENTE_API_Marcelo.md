@@ -1,8 +1,8 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 API — MARCELO • 22/09/2026
+📍 API — MARCELO • 23/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+*ACUMULADO DO MÊS (01/09/2026 a 23/09/2026)*
 💰 R$ 13.291,73 • 76 PDVs • ✂️ R$ 288,10 (54 un) • 🚛 R$ 756,05 _(filial toda)_
 👤 RODRIGO FARIAS — R$ 9.931,31 (19 PDVs)
 👤 SUELI APARECIDA TEIXEIRA POLLI — R$ 1.533,60 (31 PDVs)
@@ -11,36 +11,4 @@
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
-💰 R$ 696,12 • 8 PDVs positivados
-👤 SUELI APARECIDA TEIXEIRA POLLI — R$ 297,58 (4 PDVs)
-👤 CLT-WASHINGTON FLORES DA ROSA — R$ 23,40 (1 PDVs)
-👤 RODRIGO FARIAS — R$ 92,96 (2 PDVs)
-👤 ARILDO ZAGO — R$ 282,18 (1 PDVs)
-
-🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (19)*
-_(fez pedido hoje, mas nenhum item era marca própria)_
-
-👤 *RODRIGO FARIAS*
-  • EDER DA SILVA VIANA — nunca vendeu MP
-  • THAIS LIMA DE SOUZA VINTEM — 69d sem vender MP
-  • BEATRIZ APARECIDA CRUZ VICENTE — 54d sem vender MP
-  • LUIZ FELIPE FERNANDES — 39d sem vender MP
-  • PLINIO BULDUINO VIANA — 34d sem vender MP
-  • FABIO LOPES FIDELIZ — 31d sem vender MP
-  • LIDIANE CRISTINA HENNING — 28d sem vender MP
-  • GLACILDA FARIA CRUZ — 7d sem vender MP
-  • MARIA CRISTINA — 6d sem vender MP
-  • CLEYTON ALBERTO CARVALHO — 1d sem vender MP
-  • RAFAEL MACHADO DE SOUZA — 1d sem vender MP
-
-👤 *CLT-WASHINGTON FLORES DA ROSA*
-  • LUCIANA AGATA PINTO — nunca vendeu MP
-  • JORGE DOS SANTOS — 41d sem vender MP
-  • CLEVERSON RODRIGUES FERREIRA — 7d sem vender MP
-  • MARIA MADALENA — 6d sem vender MP
-  • MARCIA MARTINS GONCALVES — 5d sem vender MP
-  • ANA CAROLINA MACIEL BROTO — 5d sem vender MP
-  • WILLIANS DE ALCANTRA CORREA — 4d sem vender MP
-
-👤 *SUELI APARECIDA TEIXEIRA POLLI*
-  • PEDRO HENRIQUE DESCHK GOMES — 8d sem vender MP
+💰 R$ 0,00 • 0 PDVs positivados

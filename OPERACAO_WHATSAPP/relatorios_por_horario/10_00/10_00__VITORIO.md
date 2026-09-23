@@ -1,8 +1,8 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📅 22/09/2026
+📅 23/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+*ACUMULADO DO MÊS (01/09/2026 a 23/09/2026)*
 💰 Faturado: R$ 245.439,35 • 📦 217340 itens • ✅ 744 PDVs
 ✂️ Cortes: R$ 1.228,51 (351 un) • 🚛 Devoluções: R$ 25.962,96 (13369 un)
 
@@ -18,18 +18,18 @@
 📍 MCD — CLEVERSON: R$ 65,40 • 1 PDVs • ✂️ R$ 0,00 • 🚛 R$ 252,66
 📍 MCD — ADRIANO: R$ 644,55 • 10 PDVs • ✂️ R$ 52,01 • 🚛 R$ 252,66
 
+_(Nota: devoluções só têm dado até 2026-09-22 — rodar analises/extrair_tudo_devolucoes_cadastros.js)_
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
-💰 Faturado: R$ 5.786,15 • 📦 1627 itens • ✅ 55 PDVs
+💰 Faturado: R$ 0,00 • 📦 0 itens • ✅ 0 PDVs
 
-📍 TPH — VAGNER: R$ 286,50 (5 PDVs)
-📍 TPH — FÁBIO: R$ 18,40 (2 PDVs)
-📍 API — MARCELO: R$ 696,12 (8 PDVs)
-📍 TBL — FÁBIO: R$ 482,39 (7 PDVs)
-📍 TCA — BECHER: R$ 1.928,68 (6 PDVs)
-📍 TSJ — SALDANHA: R$ 1.152,36 (12 PDVs)
-📍 TPA — RADKE / LEANDRO: R$ 122,29 (5 PDVs)
-📍 ABC — MARCOS: R$ 189,71 (1 PDVs) _(só 1 marca)_
-📍 TCV — LEONARDO: R$ 909,70 (9 PDVs)
+📍 TPH: R$ 0,00
+📍 API: R$ 0,00
+📍 TBL: R$ 0,00
+📍 TCA: R$ 0,00
+📍 TSJ: R$ 0,00
+📍 TPA: R$ 0,00
+📍 ABC: R$ 0,00 _(só 1 marca)_
+📍 TCV: R$ 0,00
 📍 MCD: R$ 0,00

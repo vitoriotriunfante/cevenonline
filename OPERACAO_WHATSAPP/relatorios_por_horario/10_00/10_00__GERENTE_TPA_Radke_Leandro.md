@@ -1,8 +1,8 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 TPA — RADKE / LEANDRO • 22/09/2026
+📍 TPA — RADKE / LEANDRO • 23/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+*ACUMULADO DO MÊS (01/09/2026 a 23/09/2026)*
 💰 R$ 20.360,10 • 40 PDVs • ✂️ R$ 96,29 (40 un) • 🚛 R$ 4.498,85 _(filial toda)_
 👤 DOUGLAS CRISTIANO DOS SANTOS — R$ 16.684,42 (7 PDVs)
 👤 ROGERIO DORNELLES PASSOS — R$ 2.716,81 (25 PDVs)
@@ -10,26 +10,10 @@
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
-💰 R$ 122,29 • 5 PDVs positivados
-👤 SAMUEL PALHANO DE OLIVEIRA — R$ 34,93 (2 PDVs)
-👤 ROGERIO DORNELLES PASSOS — R$ 87,36 (3 PDVs)
+💰 R$ 0,00 • 0 PDVs positivados
 
-🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (11)*
+🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (1)*
 _(fez pedido hoje, mas nenhum item era marca própria)_
 
-👤 *SAMUEL PALHANO DE OLIVEIRA*
-  • BRUNO SPENGLER — nunca vendeu MP
-  • ROMULO MICHAEL SEEFELDT — 6d sem vender MP
-
-👤 *DOUGLAS CRISTIANO DOS SANTOS*
-  • BRUNO JOSE LORENZON POSPICHIL — nunca vendeu MP
-  • LEONARDO BITTENCOURT DOS SANTOS — 69d sem vender MP
-  • TIAGO MORAES DA SILVA — 68d sem vender MP
-  • BRENDA MARQUES DOS SANTOS — 27d sem vender MP
-  • DAVID LUIZ ROMEIRA BOMBARDELLI — 5d sem vender MP
-  • ALEXSANDRO VALDIR DA SILVA VASQUES — -48d sem vender MP
-
 👤 *ROGERIO DORNELLES PASSOS*
-  • ORLI CLOVIS OLIVEIRA COSTA — 41d sem vender MP
-  • EDUARDO BATISTA PINTO — 11d sem vender MP
-  • PAULO BRITES MENDIETA — -48d sem vender MP
+  • EDUARDO BATISTA PINTO — 12d sem vender MP

@@ -1,8 +1,8 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 TBL — FÁBIO • 22/09/2026
+📍 TBL — FÁBIO • 23/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+*ACUMULADO DO MÊS (01/09/2026 a 23/09/2026)*
 💰 R$ 12.834,64 • 113 PDVs • ✂️ R$ 77,35 (27 un) • 🚛 R$ 5.273,44 _(filial toda)_
 👤 KLEBERSON BATISTA LIDUARIO — R$ 6.518,74 (48 PDVs)
 👤 SERGIO LOPES DE OLIVEIRA — R$ 2.601,44 (16 PDVs)
@@ -12,41 +12,14 @@
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
-💰 R$ 482,39 • 7 PDVs positivados
-👤 LEONARDO MANOSSO DE GODOI — R$ 36,54 (1 PDVs)
-👤 KLEBERSON BATISTA LIDUARIO — R$ 239,65 (3 PDVs)
-👤 SERGIO LOPES DE OLIVEIRA — R$ 160,20 (2 PDVs)
-👤 IGOR RODRIGUES DUARTE — R$ 46,00 (1 PDVs)
+💰 R$ 0,00 • 0 PDVs positivados
 
-🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (20)*
+🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (3)*
 _(fez pedido hoje, mas nenhum item era marca própria)_
 
 👤 *KLEBERSON BATISTA LIDUARIO*
-  • INOCENCIO DA SILVA — 11d sem vender MP
-  • BRUNO GUSTAVO NATAL — 5d sem vender MP
-  • EWERSON CANDIDO DE OLIVEIRA — 4d sem vender MP
-  • RICARDO MORENO SATURNINO — 1d sem vender MP
-
-👤 *IGOR RODRIGUES DUARTE*
-  • ISIDIO VALDEVINO DA SILVA NETO — 69d sem vender MP
-  • IVAN FAGUNDES DA SILVA — 21d sem vender MP
-  • REGINALDO ROSA DA SILVA — 21d sem vender MP
-  • ESROM LIMA SAMPAIO — 4d sem vender MP
-  • MARCOS MILITAO DA SILVA — 4d sem vender MP
-  • FERNANDO LOPES BRUM — -8d sem vender MP
+  • BRUNO GUSTAVO NATAL — 6d sem vender MP
+  • ANDREA DO ROCIO FERREIRA DE MELO — 1d sem vender MP
 
 👤 *LEONARDO MANOSSO DE GODOI*
-  • ADRIANO IGNEZ DOS REIS — 36d sem vender MP
-  • LUCAS FREITAS SEPULVIDA — 20d sem vender MP
-  • LINCON LUIZ ROMAO — 6d sem vender MP
-  • REGINALDO FERNANDES DOS SANTOS — 5d sem vender MP
-  • ALEXSANDRO AUGUSTO TAVARES — 5d sem vender MP
-
-👤 *CRISTIANE DE FREITAS DUARTE*
-  • POLIANA JESSICA DE ALMEIDA — 12d sem vender MP
-  • RAFAEL DOS SANTOS CABRAL — 11d sem vender MP
-  • ELIAS GARCIA SOBRINHO — -6d sem vender MP
-  • ERIC FELIPE CARDOSO DE OLIVEIRA — -10d sem vender MP
-
-👤 *SERGIO LOPES DE OLIVEIRA*
-  • FABIO SEREIA — 7d sem vender MP
+  • LUCAS FREITAS SEPULVIDA — 21d sem vender MP

@@ -1,8 +1,8 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 TPH — VAGNER • 22/09/2026
+📍 TPH — VAGNER • 23/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/09/2026 a 22/09/2026)*
+*ACUMULADO DO MÊS (01/09/2026 a 23/09/2026)*
 💰 R$ 13.409,88 • 41 PDVs • ✂️ R$ 23,19 (10 un) • 🚛 R$ 3.523,74 _(filial toda)_
 👤 LUIZ AUGUSTO RAMOS — R$ 8.095,92 (23 PDVs)
 👤 ANDREY CAMILLO PIRAGINE — R$ 5.083,79 (16 PDVs)
@@ -10,41 +10,4 @@
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 *HOJE*
-💰 R$ 286,50 • 5 PDVs positivados
-👤 ANDREY CAMILLO PIRAGINE — R$ 38,06 (1 PDVs)
-👤 LUIZ AUGUSTO RAMOS — R$ 233,38 (3 PDVs)
-👤 CLAUDETE DE SOUZA SCHULTZ — R$ 15,06 (1 PDVs)
-
-🚨 *ZERADOS EM MARCA PRÓPRIA HOJE (23)*
-_(fez pedido hoje, mas nenhum item era marca própria)_
-
-👤 *LUIZ AUGUSTO RAMOS*
-  • LUCAS GABRIEL PEDROSO — nunca vendeu MP
-  • KARULINI BARANSKI — 103d sem vender MP
-  • DEISI DE SOUZA DA SILVA — 22d sem vender MP
-  • GERMANO LEMOS CAVALHEIRO JUNIOR — 22d sem vender MP
-  • DEISIELE VIEIRA DA SILVA — 7d sem vender MP
-  • ELYAN JANDES RODRIGUES DOS SANTOS — 7d sem vender MP
-  • ALAERCIO FERNANDES DE CAMPOS — 6d sem vender MP
-  • ARTHUR MAIKI LEAL GERMANO — 1d sem vender MP
-
-👤 *ANDREY CAMILLO PIRAGINE*
-  • ANA PAULA FERREIRA DA CRUZ — 64d sem vender MP
-  • ALEXSANDRO LIMA CARDOZO — 6d sem vender MP
-  • ALDER ALVES BELINI — 6d sem vender MP
-  • MARCIA SILVA DO NASCIMENTO — 6d sem vender MP
-  • CRISTIANE DOS SANTOS CANFILD WOISNER — -7d sem vender MP
-
-👤 *CLAUDETE DE SOUZA SCHULTZ*
-  • JULIA DE OLIVEIRA BATISTA — nunca vendeu MP
-  • PAOLA CRISTINA LEAL COLLI — nunca vendeu MP
-  • MATHEUS W KOKOTY ALVES DE OLIVEIRA — nunca vendeu MP
-  • ALTEMIO HENRIQUE DIVINO — nunca vendeu MP
-  • MARCELO LUIZ DE ALMEIDA GARRETT — nunca vendeu MP
-  • RUI MATEUS ANSAK — nunca vendeu MP
-  • NATIELY KAUANA TEODORO DONATO — 20d sem vender MP
-
-👤 *JEFFERSON POLETTO*
-  • CLAUDIO EIZO BRANCO — nunca vendeu MP
-  • RENAN LECHUK — nunca vendeu MP
-  • CLAUDEMIR LINO DE ALMEIDA — 97d sem vender MP
+💰 R$ 0,00 • 0 PDVs positivados
