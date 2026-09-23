@@ -672,8 +672,10 @@ async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
   };
 
   console.log(`📡 Coletando dados da rota de abertura matinal para Varejo (CNAE Foco: ${cnaeCodigo} · ${cnaeDesc})...`);
-  const repsPath = path.join(__dirname, '../public/reps_data.json');
-  const reps = JSON.parse(fs.readFileSync(repsPath, 'utf8'));
+  // Antes lia public/reps_data.json (arquivo estático, ficou 13 dias desatualizado --
+  // achado em 23/09/2026). Agora deriva direto do repsValidationMap (árvore viva +
+  // MOSTRA_DISPAROS já aplicados), sempre fresco na execução atual.
+  const reps = Object.values(repsValidationMap).map(v => ({ codigo: v.rca, nome: v.nome, filial: v.filial }));
 
   const dataLimite = new Date();
   dataLimite.setDate(dataLimite.getDate() - 30);
@@ -1289,11 +1291,15 @@ async function main() {
     if (fs.existsSync(CACHE_ABERTURA)) {
       try {
         const cache = JSON.parse(fs.readFileSync(CACHE_ABERTURA, 'utf8'));
-        if (cache.data === dataHoje && cache.abertura?.textoAbertura) {
+        const cnaeCacheado = cache.diretrizesUsadas?.cnae?.codigo;
+        const cnaeAtual = diretrizes?.cnae_foco?.codigo;
+        if (cache.data === dataHoje && cache.abertura?.textoAbertura && cnaeCacheado === cnaeAtual) {
           console.log(`⚡ Usando dados pré-processados do Aquecimento Matinal (${cache.geradoEm}). Disparo instantâneo!`);
           abertura = cache.abertura;
-        } else {
+        } else if (cache.data !== dataHoje) {
           console.log(`⚠️ Cache existente é de outra data (${cache.data}). Coletando dados ao vivo...`);
+        } else {
+          console.log(`⚠️ Cache é da mesma data mas o CNAE do dia mudou (cache=${cnaeCacheado}, atual=${cnaeAtual}). Coletando dados ao vivo...`);
         }
       } catch (e) {
         console.warn(`⚠️ Erro ao ler cache matinal: ${e.message}. Coletando dados ao vivo...`);
