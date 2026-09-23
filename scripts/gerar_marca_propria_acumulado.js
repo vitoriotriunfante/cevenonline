@@ -1,7 +1,7 @@
 /**
  * Panorama ACUMULADO do mês (dia 1 até hoje) de Marcas Próprias: faturamento,
- * positivação, cortes e devoluções. Complementa o gerar_marca_propria.js (que só
- * mostra o dia). Usa o mesmo banco local `analises/pedidos_historico_ceven.db`.
+ * positivação, cortes e devoluções. Gera UMA mensagem geral (Vitório) E uma
+ * por gerente (aberta por supervisor), não só o consolidado.
  */
 const Database = require('better-sqlite3');
 const XLSX = require('xlsx');
@@ -30,14 +30,15 @@ async function main() {
   const placeholders = codigosMP.map(() => '?').join(',');
 
   const engineRepsMap = engine.carregarValidacaoVendedores();
-  // Sem isso o canal fica hardcoded 'VJ' pra todo mundo, deixando contas de GERENTE/SUP
-  // entrarem nos totais de faturamento como se fossem vendedor de Varejo comum.
   await engine.enriquecerCanalReal(engineRepsMap);
-  const supParaGerente = {};
-  Object.values(engineRepsMap).forEach(v => { supParaGerente[`${v.filial}::${limparNome(v.supNome)}`] = v.gerente; });
-  function resolverGerente(sigla, supNome) {
-    return supParaGerente[`${sigla}::${limparNome(supNome)}`]
-      || (Object.values(engine.FILIAIS_MAP).find(f => f.sigla === sigla)?.gerente) || sigla;
+  function resolverGerente(sigla, rcaId) {
+    const val = engineRepsMap[`${sigla}_${rcaId}`];
+    if (val) return val.gerente;
+    return (Object.values(engine.FILIAIS_MAP).find(f => f.sigla === sigla)?.gerente) || sigla;
+  }
+  function resolverSupervisor(sigla, rcaId) {
+    const val = engineRepsMap[`${sigla}_${rcaId}`];
+    return (val?.supNome || 'SUPERVISÃO GERAL').toUpperCase().trim();
   }
   function isRcaVarejoValido(sigla, rcaId) {
     const val = engineRepsMap[`${sigla}_${rcaId}`];
@@ -46,10 +47,8 @@ async function main() {
 
   const db = new Database(path.join(__dirname, '..', 'analises', 'pedidos_historico_ceven.db'), { readonly: true });
 
-  // Vendas (faturamento + positivação) — só de vendedores de Varejo válidos (exclui
-  // contas de GERENTE/SUP que às vezes fazem pedido direto no sistema)
   const vendas = db.prepare(`
-    SELECT ph.filial_sigla, ph.rca_id, ph.supervisor_nome, ph.nome_cliente, phi.codprod, phi.quantidade, phi.valor_total
+    SELECT ph.filial_sigla, ph.rca_id, ph.nome_cliente, phi.codprod, phi.quantidade, phi.valor_total
     FROM pedidos_historico ph
     JOIN pedidos_historico_itens phi ON phi.chave_pedido = ph.chave
     WHERE ph.data_pedido BETWEEN ? AND ?
@@ -57,10 +56,6 @@ async function main() {
       AND phi.codprod IN (${placeholders})
   `).all(inicioMes, dataRef, ...codigosMP).filter(r => isRcaVarejoValido(r.filial_sigla, r.rca_id));
 
-  // Cortes — o valor_total de um corte quase sempre vem 0/vazio na fonte (o CEVEN não
-  // preenche isso). Mas dá pra calcular de verdade: pega o preço médio real de venda
-  // desse mesmo SKU (de outros pedidos não cortados, no mesmo período) e multiplica
-  // pela quantidade cortada — não fica sem valor só porque a fonte não preencheu.
   const precoMedioPorSku = {};
   db.prepare(`
     SELECT codprod, AVG(valor_total * 1.0 / quantidade) as preco
@@ -70,18 +65,21 @@ async function main() {
   `).all(...codigosMP).forEach(r => { precoMedioPorSku[r.codprod] = r.preco || 0; });
 
   const cortes = db.prepare(`
-    SELECT ph.filial_sigla, phi.codprod, phi.quantidade, phi.valor_total
+    SELECT ph.filial_sigla, ph.rca_id, phi.codprod, phi.quantidade, phi.valor_total
     FROM pedidos_historico ph
     JOIN pedidos_historico_itens phi ON phi.chave_pedido = ph.chave
     WHERE ph.data_pedido BETWEEN ? AND ?
       AND phi.tipo_registro = 'CORTE'
       AND phi.codprod IN (${placeholders})
-  `).all(inicioMes, dataRef, ...codigosMP).map(r => ({
-    ...r,
-    valor_total: r.valor_total > 0 ? r.valor_total : (r.quantidade || 0) * (precoMedioPorSku[r.codprod] || 0)
-  }));
+  `).all(inicioMes, dataRef, ...codigosMP)
+    .filter(r => isRcaVarejoValido(r.filial_sigla, r.rca_id))
+    .map(r => ({
+      ...r,
+      valor_total: r.valor_total > 0 ? r.valor_total : (r.quantidade || 0) * (precoMedioPorSku[r.codprod] || 0)
+    }));
 
-  // Devoluções (ATENÇÃO: tabela desatualizada, só vai até 12/09 — ver nota no rodapé)
+  // Devoluções não têm rca_id direto ligado facilmente à árvore (usa rca_nome da tabela
+  // de devolução, que já vem no formato certo) — mantém a granularidade por filial só.
   const devPlaceholders = codigosMP.map(() => '?').join(',');
   const devolucoes = db.prepare(`
     SELECT filial_codigo as filial_sigla, qtdev, vl_devolvido, data_devolucao
@@ -92,67 +90,114 @@ async function main() {
   const devMaxData = db.prepare('SELECT MAX(data_devolucao) as max FROM devolucoes_itens').get().max;
 
   const FILIAIS_EXCLUIDAS = new Set(['TBE', 'TCG']);
-  const porFilial = {};
-  function getFilial(sigla) {
-    if (!porFilial[sigla]) porFilial[sigla] = { fat: 0, qtd: 0, positivados: new Set(), cortesValor: 0, cortesQtd: 0, devValor: 0, devQtd: 0 };
-    return porFilial[sigla];
+
+  // porGerente: chave composta "SIGLA::gerente" — permite separar MCD/TPH por sub-gerente
+  const porGerente = {};
+  function getGerente(sigla, gerente) {
+    const chave = `${sigla}::${gerente}`;
+    if (!porGerente[chave]) {
+      porGerente[chave] = {
+        sigla, gerente, fat: 0, qtd: 0, positivados: new Set(),
+        cortesValor: 0, cortesQtd: 0, devValor: 0, devQtd: 0,
+        porSupervisor: {}
+      };
+    }
+    return porGerente[chave];
   }
 
   vendas.forEach(r => {
     if (FILIAIS_EXCLUIDAS.has(r.filial_sigla)) return;
-    const f = getFilial(r.filial_sigla);
-    f.fat += r.valor_total || 0;
-    f.qtd += r.quantidade || 0;
-    f.positivados.add(r.nome_cliente);
+    const gerente = resolverGerente(r.filial_sigla, r.rca_id);
+    const sup = resolverSupervisor(r.filial_sigla, r.rca_id);
+    const g = getGerente(r.filial_sigla, gerente);
+    g.fat += r.valor_total || 0;
+    g.qtd += r.quantidade || 0;
+    g.positivados.add(r.nome_cliente);
+    if (!g.porSupervisor[sup]) g.porSupervisor[sup] = { fat: 0, positivados: new Set() };
+    g.porSupervisor[sup].fat += r.valor_total || 0;
+    g.porSupervisor[sup].positivados.add(r.nome_cliente);
   });
   cortes.forEach(r => {
     if (FILIAIS_EXCLUIDAS.has(r.filial_sigla)) return;
-    const f = getFilial(r.filial_sigla);
-    f.cortesValor += r.valor_total || 0;
-    f.cortesQtd += r.quantidade || 0;
-  });
-  devolucoes.forEach(r => {
-    if (FILIAIS_EXCLUIDAS.has(r.filial_sigla)) return;
-    const f = getFilial(r.filial_sigla);
-    f.devValor += r.vl_devolvido || 0;
-    f.devQtd += r.qtdev || 0;
+    const gerente = resolverGerente(r.filial_sigla, r.rca_id);
+    const g = getGerente(r.filial_sigla, gerente);
+    g.cortesValor += r.valor_total || 0;
+    g.cortesQtd += r.quantidade || 0;
   });
 
+  // Devoluções: só dá pra atribuir por FILIAL (não por gerente/sub-gerente), soma em
+  // todos os gerentes daquela filial proporcionalmente não faz sentido — guarda à parte
+  // por filial e mostra só no consolidado geral e uma vez por filial (não duplicado por sub-gerente).
+  const devPorFilial = {};
+  devolucoes.forEach(r => {
+    if (FILIAIS_EXCLUIDAS.has(r.filial_sigla)) return;
+    if (!devPorFilial[r.filial_sigla]) devPorFilial[r.filial_sigla] = { valor: 0, qtd: 0 };
+    devPorFilial[r.filial_sigla].valor += r.vl_devolvido || 0;
+    devPorFilial[r.filial_sigla].qtd += r.qtdev || 0;
+  });
+
+  // ===== Agregados gerais e por filial (pro Vitório) =====
   let totFat = 0, totQtd = 0, totCortesValor = 0, totCortesQtd = 0, totDevValor = 0, totDevQtd = 0;
   const totPositivados = new Set();
-  Object.values(porFilial).forEach(f => {
-    totFat += f.fat; totQtd += f.qtd; totCortesValor += f.cortesValor; totCortesQtd += f.cortesQtd;
-    totDevValor += f.devValor; totDevQtd += f.devQtd;
-    f.positivados.forEach(c => totPositivados.add(c));
+  const porFilialSoma = {};
+  Object.values(porGerente).forEach(g => {
+    totFat += g.fat; totQtd += g.qtd; totCortesValor += g.cortesValor; totCortesQtd += g.cortesQtd;
+    g.positivados.forEach(c => totPositivados.add(c));
+    if (!porFilialSoma[g.sigla]) porFilialSoma[g.sigla] = { fat: 0, positivados: new Set(), cortesValor: 0 };
+    porFilialSoma[g.sigla].fat += g.fat;
+    g.positivados.forEach(c => porFilialSoma[g.sigla].positivados.add(c));
+    porFilialSoma[g.sigla].cortesValor += g.cortesValor;
   });
+  Object.entries(devPorFilial).forEach(([sigla, d]) => { totDevValor += d.valor; totDevQtd += d.qtd; });
 
   const dataFmt = new Date(dataRef + 'T12:00:00').toLocaleDateString('pt-BR');
   const inicioFmt = new Date(inicioMes + 'T12:00:00').toLocaleDateString('pt-BR');
+  const outDir = path.join(__dirname, '..', 'auditoria_mensagens', dataRef);
+  fs.mkdirSync(outDir, { recursive: true });
 
-  let msg = `🎯 *MARCAS PRÓPRIAS — ACUMULADO DO MÊS*\n📅 ${inicioFmt} a ${dataFmt}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-  msg += `💰 *Faturado no mês:* R$ ${fmtMoeda(totFat)}\n`;
-  msg += `📦 *Itens vendidos:* ${Math.round(totQtd)} un\n`;
-  msg += `✅ *PDVs positivados (distintos):* ${totPositivados.size}\n`;
-  msg += `✂️ *Cortes no mês:* R$ ${fmtMoeda(totCortesValor)} (${Math.round(totCortesQtd)} un)\n`;
-  msg += `🚛 *Devoluções no mês:* R$ ${fmtMoeda(totDevValor)} (${Math.round(totDevQtd)} un)\n\n`;
-  msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏢 *POR FILIAL*\n\n`;
+  // ===== MENSAGEM GERAL (Vitório) =====
+  let msgGeral = `🎯 *MARCAS PRÓPRIAS — ACUMULADO DO MÊS*\n📅 ${inicioFmt} a ${dataFmt}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  msgGeral += `💰 *Faturado no mês:* R$ ${fmtMoeda(totFat)}\n`;
+  msgGeral += `📦 *Itens vendidos:* ${Math.round(totQtd)} un\n`;
+  msgGeral += `✅ *PDVs positivados (distintos):* ${totPositivados.size}\n`;
+  msgGeral += `✂️ *Cortes no mês:* R$ ${fmtMoeda(totCortesValor)} (${Math.round(totCortesQtd)} un)\n`;
+  msgGeral += `🚛 *Devoluções no mês:* R$ ${fmtMoeda(totDevValor)} (${Math.round(totDevQtd)} un)\n\n`;
+  msgGeral += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏢 *POR FILIAL*\n\n`;
 
   const ORDEM_FILIAIS = ['TPH', 'API', 'TBL', 'TCA', 'TSJ', 'TPA', 'ABC', 'TCV', 'MCD'];
   ORDEM_FILIAIS.forEach(sigla => {
-    const f = porFilial[sigla];
+    const f = porFilialSoma[sigla];
+    const dev = devPorFilial[sigla];
     const nota = sigla === 'ABC' ? ' _(só 1 marca disponível)_' : '';
-    if (!f) { msg += `📍 *${sigla}:* R$ 0,00${nota}\n`; return; }
-    msg += `📍 *${sigla}:* R$ ${fmtMoeda(f.fat)} • ${f.positivados.size} PDVs • ✂️ R$ ${fmtMoeda(f.cortesValor)} • 🚛 R$ ${fmtMoeda(f.devValor)}${nota}\n`;
+    if (!f) { msgGeral += `📍 *${sigla}:* R$ 0,00${nota}\n`; return; }
+    msgGeral += `📍 *${sigla}:* R$ ${fmtMoeda(f.fat)} • ${f.positivados.size} PDVs • ✂️ R$ ${fmtMoeda(f.cortesValor)} • 🚛 R$ ${fmtMoeda(dev?.valor || 0)}${nota}\n`;
   });
 
   if (devMaxData < dataRef) {
-    msg += `\n_(Nota: devoluções só têm dado atualizado até ${devMaxData} — rodar analises/extrair_tudo_devolucoes_cadastros.js pra atualizar)_`;
+    msgGeral += `\n_(Nota: devoluções só têm dado atualizado até ${devMaxData} — rodar analises/extrair_tudo_devolucoes_cadastros.js pra atualizar)_`;
   }
+  fs.writeFileSync(path.join(outDir, '10_00__VITORIO_ACUMULADO_MES.txt'), msgGeral.trim(), 'utf8');
 
-  const outDir = path.join(__dirname, '..', 'auditoria_mensagens', dataRef);
-  fs.mkdirSync(outDir, { recursive: true });
-  fs.writeFileSync(path.join(outDir, '10_00__VITORIO_ACUMULADO_MES.txt'), msg.trim(), 'utf8');
-  console.log(msg);
+  // ===== MENSAGENS POR GERENTE (aberta por supervisor) =====
+  let nGerentes = 0;
+  Object.values(porGerente).forEach(g => {
+    const dev = devPorFilial[g.sigla];
+    let m = `🎯 *MARCAS PRÓPRIAS — ACUMULADO DO MÊS*\n📍 ${g.sigla} — ${(g.gerente || '').toUpperCase()} • ${inicioFmt} a ${dataFmt}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    m += `💰 R$ ${fmtMoeda(g.fat)} • ${g.positivados.size} PDVs • ✂️ R$ ${fmtMoeda(g.cortesValor)} (${Math.round(g.cortesQtd)} un)`;
+    if (dev) m += ` • 🚛 R$ ${fmtMoeda(dev.valor)} _(filial toda, não só esse sub-gerente)_`;
+    m += `\n\n`;
+    Object.entries(g.porSupervisor)
+      .sort((a, b) => b[1].fat - a[1].fat)
+      .forEach(([sup, v]) => {
+        m += `👤 *${sup}* — R$ ${fmtMoeda(v.fat)} (${v.positivados.size} PDVs)\n`;
+      });
+    const nomeArquivo = `10_00__GERENTE_${g.sigla}_${g.gerente.replace(/[^a-zA-Z0-9]+/g, '_')}_ACUMULADO_MES.txt`;
+    fs.writeFileSync(path.join(outDir, nomeArquivo), m.trim(), 'utf8');
+    nGerentes++;
+  });
+
+  console.log(`Geral: R$ ${fmtMoeda(totFat)} | ${totPositivados.size} PDVs`);
+  console.log(`${nGerentes} gerentes com acumulado do mês salvos em ${outDir}`);
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
