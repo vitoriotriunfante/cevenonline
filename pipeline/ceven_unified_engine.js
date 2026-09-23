@@ -1429,9 +1429,7 @@ async function main() {
       const auditoria = await coletarAuditoriaCampo(token, dataHoje);
       console.log(`✅ Auditoria de campo processada para 11 filiais.`);
 
-      if (destino === 'vitorio' || destino === 'todos') {
-        console.log(`🚀 Enviando Gestão de Campo Consolidada para Vitório Neto (${WHATSAPP_VITORIO})...`);
-
+      {
         let totSups = 0, totComp = 0, totRet = 0;
         const rankingFiliais = Object.values(auditoria).map(d => {
           totSups += d.totalSups;
@@ -1490,29 +1488,41 @@ async function main() {
           `🚨 *${semRet} supervisores* sem início de rota (RET) no sistema`
         ].join('\n');
 
-        const telefones = Array.isArray(WHATSAPP_VITORIO) ? WHATSAPP_VITORIO : [WHATSAPP_VITORIO];
-        for (const tel of telefones) {
-          const r = await enviarWhatsapp(tel, resumoCampo.trim());
-          console.log(`  Diretoria Geral (${tel}) — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
-        }
-        if (destino === 'todos') {
-          await new Promise(res => setTimeout(res, 30000));
-        }
-      }
+        // Salva sempre em OPERACAO_WHATSAPP/relatorios_por_horario/11_30/ (revisão
+        // manual, mesmo padrão de 07:45 e 10:00), independente do destino.
+        const outDir1130 = path.join(__dirname, '../OPERACAO_WHATSAPP/relatorios_por_horario/11_30');
+        fs.mkdirSync(outDir1130, { recursive: true });
+        fs.writeFileSync(path.join(outDir1130, '11_30__VITORIO.md'), resumoCampo.trim(), 'utf8');
+        Object.entries(auditoria).forEach(([sigla, rel]) => {
+          if (rel?.texto) fs.writeFileSync(path.join(outDir1130, `11_30__${sigla}.md`), rel.texto, 'utf8');
+        });
 
-      if (destino === 'gerentes' || destino === 'todos') {
-        console.log(`🚀 Disparando Gestão de Campo para os ${gerentes.length} gerentes...`);
-        for (const g of gerentes) {
-          const rel = auditoria[g.filial];
-          if (rel && rel.texto) {
-            const r = await enviarWhatsapp(g.whatsapp, rel.texto);
-            console.log(`  [${g.filial}] Enviado para ${g.gerente} — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
+        if (destino === 'vitorio' || destino === 'todos') {
+          console.log(`🚀 Enviando Gestão de Campo Consolidada para Vitório Neto (${WHATSAPP_VITORIO})...`);
+          const telefones = Array.isArray(WHATSAPP_VITORIO) ? WHATSAPP_VITORIO : [WHATSAPP_VITORIO];
+          for (const tel of telefones) {
+            const r = await enviarWhatsapp(tel, resumoCampo.trim());
+            console.log(`  Diretoria Geral (${tel}) — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
+          }
+          if (destino === 'todos') {
             await new Promise(res => setTimeout(res, 30000));
           }
         }
-      } else if (destino === 'dry_run') {
-        console.log(`\n--- PREVIEW FILIAL ABC (GESTAO DE CAMPO) ---`);
-        console.log(auditoria['ABC']?.texto);
+
+        if (destino === 'gerentes' || destino === 'todos') {
+          console.log(`🚀 Disparando Gestão de Campo para os ${gerentes.length} gerentes...`);
+          for (const g of gerentes) {
+            const rel = auditoria[g.filial];
+            if (rel && rel.texto) {
+              const r = await enviarWhatsapp(g.whatsapp, rel.texto);
+              console.log(`  [${g.filial}] Enviado para ${g.gerente} — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
+              await new Promise(res => setTimeout(res, 30000));
+            }
+          }
+        } else if (destino === 'dry_run') {
+          console.log(`\n--- PREVIEW FILIAL ABC (GESTAO DE CAMPO) ---`);
+          console.log(auditoria['ABC']?.texto);
+        }
       }
     }
   }
