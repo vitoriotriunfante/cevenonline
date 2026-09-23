@@ -15,6 +15,7 @@ scripts/*
 !scripts/amostrar_cnae_nacional.js
 !scripts/gerar_marca_propria.js
 !scripts/gerar_marca_propria_acumulado.js
+!scripts/coletar_justificativas_visitas.js
 
 # Saída gerada pelos scripts de auditoria (dado real de cliente, regenerável, não versionar)
 auditoria_mensagens/
