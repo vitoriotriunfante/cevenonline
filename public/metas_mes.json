@@ -1,0 +1,19 @@
+{
+  "mes": "2026-09",
+  "fonte": "PNA - tela 'Metas por filial' do CEVEN, print enviado pelo Vitorio em 23/09/2026",
+  "regra": "A meta da filial e o PNA e NAO e a soma dos vendedores exibidos. Vale para o mes indicado; nos meses seguintes o Vitorio define como atualizar.",
+  "total": { "vendedores": 485, "meta_fat": 76372000, "meta_pos": 26050, "carteira_ativa": 42646, "carteira_total": 50495, "positivou_3m": 36154, "base_3m": 72157466, "cresc_pct": 5.8 },
+  "filiais": {
+    "ABC": { "vendedores": 39, "meta_fat": 6085000, "peso_pct": 8.0, "carteira_ativa": 4008, "carteira_total": 4475, "positivou_3m": 3662, "base_3m": 5291915, "cresc_pct": 15.0, "meta_pos": 2950 },
+    "API": { "vendedores": 47, "meta_fat": 5320000, "peso_pct": 7.0, "carteira_ativa": 5032, "carteira_total": 5665, "positivou_3m": 4136, "base_3m": 5799408, "cresc_pct": -8.3, "meta_pos": 3200 },
+    "MCD": { "vendedores": 52, "meta_fat": 8075000, "peso_pct": 10.6, "carteira_ativa": 3099, "carteira_total": 3356, "positivou_3m": 2679, "base_3m": 8801667, "cresc_pct": -8.3, "meta_pos": 1550 },
+    "TBE": { "vendedores": 32, "meta_fat": 6392000, "peso_pct": 8.4, "carteira_ativa": 2865, "carteira_total": 4395, "positivou_3m": 2458, "base_3m": 6721298, "cresc_pct": -4.9, "meta_pos": 1925 },
+    "TBL": { "vendedores": 36, "meta_fat": 3805000, "peso_pct": 5.0, "carteira_ativa": 3245, "carteira_total": 3994, "positivou_3m": 3082, "base_3m": 3526050, "cresc_pct": 7.9, "meta_pos": 2525 },
+    "TCA": { "vendedores": 42, "meta_fat": 8400000, "peso_pct": 11.0, "carteira_ativa": 2902, "carteira_total": 3627, "positivou_3m": 2764, "base_3m": 7104456, "cresc_pct": 18.2, "meta_pos": 2250 },
+    "TCG": { "vendedores": 28, "meta_fat": 5000000, "peso_pct": 6.5, "carteira_ativa": 1683, "carteira_total": 1969, "positivou_3m": 1493, "base_3m": 4682860, "cresc_pct": 6.8, "meta_pos": 1375 },
+    "TCV": { "vendedores": 50, "meta_fat": 5960000, "peso_pct": 7.8, "carteira_ativa": 3577, "carteira_total": 3654, "positivou_3m": 3298, "base_3m": 5341982, "cresc_pct": 11.6, "meta_pos": 2550 },
+    "TPA": { "vendedores": 32, "meta_fat": 6100000, "peso_pct": 8.0, "carteira_ativa": 3032, "carteira_total": 3685, "positivou_3m": 2371, "base_3m": 5411291, "cresc_pct": 12.7, "meta_pos": 1650 },
+    "TPH": { "vendedores": 87, "meta_fat": 12730000, "peso_pct": 16.7, "carteira_ativa": 9311, "carteira_total": 11237, "positivou_3m": 6963, "base_3m": 11414793, "cresc_pct": 11.5, "meta_pos": 3925 },
+    "TSJ": { "vendedores": 40, "meta_fat": 8505000, "peso_pct": 11.1, "carteira_ativa": 3892, "carteira_total": 4438, "positivou_3m": 3248, "base_3m": 8061745, "cresc_pct": 5.5, "meta_pos": 2150 }
+  }
+}

@@ -2,6 +2,15 @@
 
 Este repositório tem **dois projetos independentes** que compartilham os mesmos dados. **Nunca misturar.** Antes de editar, descubra a qual projeto o pedido pertence. Se não estiver claro, pergunte.
 
+## 🌐 PREMISSA INEGOCIÁVEL — TUDO RODA ONLINE (Vitório, 23/09/2026)
+
+**O projeto CEVEN várias telas roda ONLINE. Nada — nenhum dado, arquivo, cálculo, publicação ou execução — pode depender do computador do Vitório (nem de qualquer computador pessoal).**
+
+- Dados vêm de fontes online (API do CEVEN, Google Drive, Cloudflare D1, GitHub) — nunca de arquivo local.
+- Quem executa é a nuvem (Cloudflare Pages/Functions/D1, GitHub Actions) — nunca "rodar no PC".
+- Se uma tarefa hoje exige o PC (rodar script, copiar planilha, publicar à mão), isso é uma **dívida a eliminar**, nunca um padrão a repetir. Não criar novas dependências do PC; se for inevitável, avisar o Vitório e registrar em `PREMISSA_ONLINE.md`.
+- Ver `PREMISSA_ONLINE.md` (lista das dependências do PC que ainda existem e o plano para eliminá-las).
+
 ## Projeto A — CFTV Matrix (TV + celular)
 Central visual ao vivo das 11 filiais: link por filial/gerente, link central (matriz), ronda entre vendedores mostrando **as informações mais importantes** (não a tela do CEVEN), alertas por gatilho, e versão para celular.
 - **Pertence a este projeto:** `public/` (index.html, mobile.html), `server.js`, `INICIAR_CFTV.bat`, `functions/api/` **exceto** `whatsapp/` e `cron-*`, `docs/CFTV_*`.
@@ -10,6 +19,7 @@ Central visual ao vivo das 11 filiais: link por filial/gerente, link central (ma
 - **REGRA — TVs se atualizam sozinhas (Vitório, 23/09/2026):** toda mudança publicada tem que chegar sozinha nas TVs já conectadas. Por isso **publicar SEMPRE com `node publicar_tv.js "mensagem"`** (ou `PUBLICAR_TV.bat`), que troca a versão em `functions/api/version.js` automaticamente e faz o deploy. A `tv.html` consulta `/api/version` a cada 30 s e recarrega quando muda. **Nunca** publicar direto com `wrangler` sem trocar a versão. O diário/lances do dia ficam no navegador (localStorage) e sobrevivem ao recarregamento.
 - **Estrutura da TV (23/09/2026):** `public/tv.html` = **casca** (iframe 100%; cuida de tela cheia, link lembrado e atualização automática) e `public/tvapp.html` = a **tela real**. A casca nunca navega, por isso a tela cheia do navegador não sai quando publicamos. Alterar a casca (`tv.html`) é raro e derruba a tela cheia uma vez; o dia a dia é só `tvapp.html`.
 - **Quem aparece na TV = planilha (Vitório, 23/09/2026):** `VENDEDORES AUDITADOS.xlsx`, aba `MOSTRA_DISPAROS` (coluna "MOSTRA NOS DISPAROS" = SIM). `publicar_tv.js` roda `gerar_mostra_tv.js` e publica `public/mostra_vendedores.json`. A cópia LOCAL da planilha precisa estar igual à do Drive antes de publicar. A planilha também dá o supervisor de cada vendedor.
+- **Meta do mês = PNA oficial (Vitório, 23/09/2026):** a meta de faturamento e de positivação da FILIAL é a do PNA, gravada em `public/metas_mes.json` (print do CEVEN 'Metas por filial'; setembro/2026). **Nunca** usar a soma dos vendedores exibidos como meta da filial. Nos meses seguintes o Vitório define como atualizar; se o mês do arquivo não for o mês atual, a TV cai para a soma dos vendedores e avisa no rótulo.
 - **Links da TV:** `https://ceven-cftv-matrix.pages.dev/tbl` (curto, um por filial: /tbl /tph /tcv /abc /tca /mcd /tcg /api /tbe /tpa /tsj) ou `/?filial=TBL`; ambos levam à tela nova `/tv`.
 - **Link travado (decisão do Vitório, 23/09/2026):** cada filial/gerente tem um link específico que fica **fixo na TV**. **Ninguém troca de filial** nessa tela: sem seletor de filial nem login de escolha. Só se ajustam os botões **internos** daquela filial (ex.: tempo da ronda, layout, vendedores da ronda). Só o link central (matriz) enxerga várias filiais.
 - Documento de referência: `docs/CFTV_MATRIX_VISAO_E_ESTADO_ATUAL.md` (atualizar a cada decisão).

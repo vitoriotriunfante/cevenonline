@@ -1,5 +1,14 @@
 # Memória Operacional — Disparos WhatsApp CEVEN NOC
 
+## 🌐 PREMISSA INEGOCIÁVEL — TUDO RODA ONLINE (Vitório, 23/09/2026)
+
+**O projeto CEVEN várias telas roda ONLINE. Nada — nenhum dado, arquivo, cálculo, publicação ou execução — pode depender do computador do Vitório (nem de qualquer computador pessoal).**
+
+- Dados vêm de fontes online (API do CEVEN, Google Drive, Cloudflare D1, GitHub) — nunca de arquivo local.
+- Quem executa é a nuvem (Cloudflare Pages/Functions/D1, GitHub Actions) — nunca "rodar no PC".
+- Se uma tarefa hoje exige o PC (rodar script, copiar planilha, publicar à mão), isso é uma **dívida a eliminar**, nunca um padrão a repetir. Não criar novas dependências do PC; se for inevitável, avisar o Vitório e registrar em `PREMISSA_ONLINE.md`.
+- Ver `PREMISSA_ONLINE.md` (lista das dependências do PC que ainda existem e o plano para eliminá-las).
+
 > Documento vivo. Atualizar sempre que uma regra for validada, um horário mudar, ou um bug for corrigido.
 > Fonte de código: `pipeline/ceven_unified_engine.js` (Sistema A — único confirmado ativo, via `.github/workflows/ceven-cron-whatsapp.yml`).
 > Última atualização: 22/09/2026.

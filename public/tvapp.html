@@ -5,7 +5,8 @@
 <!--
 FICHA DO ARQUIVO
 O QUE É: a tela real da TV da filial. Aberta DENTRO da casca /tv (iframe) — quem cuida de tela cheia e atualização é a casca.
-PROJETO: CFTV/TV (não é WhatsApp). Ver CLAUDE.md e docs/CFTV_MATRIX_VISAO_E_ESTADO_ATUAL.md.
+PROJETO: CFTV/TV (não é WhatsApp).
+PREMISSA: 100% ONLINE - nada aqui pode depender do PC do Vitório (ver PREMISSA_ONLINE.md). Ver CLAUDE.md e docs/CFTV_MATRIX_VISAO_E_ESTADO_ATUAL.md.
 LÊ: /api/representantes?filial= e /api/tv-vendedor?filial=&id= (dado ao vivo do CEVEN).
 REGRA: nunca inventa dado. Sem resposta = "—" e mantém a última leitura real.
 ALTERNÂNCIA: a partir das 08:00 (Brasília) alterna blocos de 10 min: RONDA / PAINEL.
@@ -27,9 +28,9 @@ header{display:flex;align-items:center;gap:20px;padding:10px 22px;background:#0a
 .upd{color:var(--mut);font-size:13px}.upd.old{color:var(--bad);font-weight:800}
 .modo{font-size:12px;font-weight:800;letter-spacing:.08em;padding:3px 10px;border-radius:6px;background:#1a2440;color:var(--acc)}
 .clock{font-size:26px;font-weight:700}
-.tot{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.tot{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
 .tot div{background:var(--card);padding:10px 18px}
-.tot b{display:block;font-size:26px;margin-top:2px}
+.tot b{display:block;font-size:24px;margin-top:2px}
 .tot span{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
 main{flex:1;min-height:0;padding:14px 22px;display:flex}
 #ronda{flex:1;display:grid;grid-template-columns:1.55fr 1fr;gap:14px;min-height:0}
@@ -145,6 +146,7 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   </div>
 </footer>
 <div id="fshint" style="display:none;position:fixed;left:50%;bottom:54px;transform:translateX(-50%);background:#38bdf8;color:#04202e;font-weight:800;padding:8px 18px;border-radius:99px;z-index:50;font-size:15px">A TV foi atualizada · clique em qualquer lugar para voltar à tela cheia</div>
+<div id="toast" style="display:none;position:fixed;top:66px;left:50%;transform:translateX(-50%);background:#7f1d1d;color:#fff;border:1px solid #ef4444;font-weight:800;padding:8px 20px;border-radius:99px;z-index:60;font-size:16px"></div>
 <div id="ov"></div>
 <script>
 'use strict';
@@ -210,6 +212,11 @@ async function j(url, ms = 25000) {
 const limpaNome = n => String(n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
 const norm = n => String(n || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z ]/g, '').replace(/\s+/g, ' ').trim();
 let listaMostra = false;
+let METAS = null; // metas oficiais do mês (PNA) — public/metas_mes.json
+async function carregaMetas() {
+  const d = await j('/metas_mes.json?t=' + Date.now(), 15000);
+  if (d && d.filiais && d.filiais[FIL] && d.mes === sp().date.slice(0, 7)) METAS = d.filiais[FIL]; else METAS = null; // mês diferente = não usa (evita meta velha)
+}
 async function carregaReps() {
   // Fonte de verdade: planilha VENDEDORES AUDITADOS (aba MOSTRA_DISPAROS) -> só vendedor com MOSTRA = SIM
   const m = await j('/mostra_vendedores.json?t=' + Date.now(), 15000);
@@ -242,12 +249,14 @@ async function carregaSup() {
   const d = await j(`/api/tv-supervisores?filial=${FIL}`);
   if (d && !d.erro && Array.isArray(d.supervisores)) { SUP = d; gatilhoSup(); }
 }
-function gatilhoSup() {
+async function gatilhoSup() {
   const t = sp(), m = t.h * 60 + t.m, k = 'sup|' + t.date;
   if (m < SUP_INI || m >= SUP_FIM || seen.has(k)) return;
   const pend = supPend(); if (!pend.length) return;
   seen.add(k); store.set(K.seen + HOJE0, [...seen]);
-  LOG.push({t: t.hms, nivel: 'supervisor', vendedor: pend.length + ' supervisor(es) pendente(s)', filial: FIL, supervisores: pend.map(x => ({nome: x.nome, compromisso: x.fez_compromisso, ret: x.iniciou_ret}))}); store.set(K.log + HOJE0, LOG);
+  const d = await registraLances([{key: k, nivel: 'supervisor', v: {id: 'sup', nome: pend.length + ' supervisor(es) pendente(s)', sup: ''}}]);
+  if (d && !d.novos.includes(k)) return; // outra TV já mostrou
+  LOG.push({key: k, t: t.hms, nivel: 'supervisor', rca: 'sup', vendedor: pend.length + ' supervisor(es) pendente(s)', filial: FIL, supervisores: pend.map(x => ({nome: x.nome, compromisso: x.fez_compromisso, ret: x.iniciou_ret}))}); store.set(K.log + HOJE0, LOG);
   FILA.push({tipo: 'sup', lista: pend}); proximoVAR();
 }
 async function atualiza() {
@@ -312,24 +321,46 @@ function calcAlertas(vs) {
   return out;
 }
 const PESO = {visita10: 4, venda10: 3, penalti: 2};
-function processa() {
-  const vs = VS();
-  ALERTAS = calcAlertas(vs).sort((a, b) => PESO[b.nivel] - PESO[a.nivel]);
-  const novos = ALERTAS.filter(a => !seen.has(a.key));
-  if (novos.length) {
-    const t = sp();
-    // Se é a 1ª leitura do dia neste navegador, o que já existe é registrado sem VAR (não repete o que já aconteceu).
-    const aoLigar = primeiraCarga && !primeiraLeituraFeita;
-    novos.forEach(a => { seen.add(a.key); LOG.push(evento(a, t, aoLigar)); });
-    store.set(K.seen + HOJE0, [...seen]); store.set(K.log + HOJE0, LOG);
-    if (!aoLigar) enfileira(novos);
-  }
-  primeiraLeituraFeita = true;
-  snapshot(vs);
+let primeiraSync = false, processando = false, primeiraLeituraFeita = false;
+async function registraLances(cands) {
+  const corpo = {filial: FIL, lances: cands.map(a => ({chave: a.key, nivel: a.nivel, rca: a.v.id, vendedor: a.v.nome, supervisor: a.v.sup || '',
+    cliente_id: a.c ? String(a.c.id) : null, cliente: a.c ? a.c.nome : null, motivo: a.c ? a.c.motivo : null, dias_sem_compra: a.dias != null ? a.dias : null,
+    ultima_compra: a.c ? a.c.ultima_compra : null, tempo_visita: a.c ? a.c.tempo_visita : null, obs: a.c ? a.c.obs : null}))};
+  try { const r = await fetch('/api/tv-lances', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(corpo)}); const d = await r.json(); return r.ok && !d.erro ? d : null; }
+  catch { return null; }
 }
-let primeiraLeituraFeita = false;
+async function carregaLancesServidor() {
+  const d = await j(`/api/tv-lances?filial=${FIL}`, 15000);
+  if (!d || !Array.isArray(d.lances)) return;
+  const tem = new Set(LOG.map(e => e.key).filter(Boolean));
+  d.lances.forEach(r => { seen.add(r.chave); if (!tem.has(r.chave)) LOG.push({key: r.chave, t: r.hora_sp, nivel: r.nivel, rca: r.rca, vendedor: r.vendedor, supervisor: r.supervisor || '', cliente: r.cliente, id_cliente: r.cliente_id, motivo: r.motivo, dias_sem_compra: r.dias_sem_compra, ultima_compra: r.ultima_compra, tempo_visita: r.tempo_visita, obs: r.obs, filial: FIL, ao_ligar: !!r.baseline}); });
+  LOG.sort((x, y) => secDe(x.t) - secDe(y.t)); store.set(K.seen + HOJE0, [...seen]); store.set(K.log + HOJE0, LOG);
+}
+async function processa() {
+  if (processando) return; processando = true;
+  try {
+    const vs = VS();
+    ALERTAS = calcAlertas(vs).sort((a, b) => PESO[b.nivel] - PESO[a.nivel]);
+    const cands = ALERTAS.filter(a => !seen.has(a.key));
+    if (cands.length || !primeiraSync) {
+      // O servidor (D1) é a fonte da verdade: só é "novo" o que nenhuma TV registrou antes.
+      const d = await registraLances(cands);
+      let novos, baseline;
+      if (d) { primeiraSync = true; baseline = !!d.baseline; const set = new Set(d.novos); novos = cands.filter(a => set.has(a.key)); }
+      else { baseline = primeiraCarga && !primeiraLeituraFeita; novos = cands; } // servidor fora do ar: controle local
+      const t = sp();
+      cands.forEach(a => seen.add(a.key));
+      novos.forEach(a => LOG.push(evento(a, t, baseline)));
+      store.set(K.seen + HOJE0, [...seen]); store.set(K.log + HOJE0, LOG);
+      if (!baseline && novos.length) enfileira(novos);
+      if (cands.length > novos.length || (d && !LOG.length)) carregaLancesServidor();
+    }
+    primeiraLeituraFeita = true;
+    snapshot(vs);
+  } finally { processando = false; }
+}
 function evento(a, t, aoLigar) {
-  const e = {t: t.hms, nivel: a.nivel, rca: a.v.id, vendedor: a.v.nome, filial: FIL};
+  const e = {key: a.key, t: t.hms, nivel: a.nivel, rca: a.v.id, vendedor: a.v.nome, supervisor: a.v.sup || '', filial: FIL};
   if (a.nivel === 'penalti') Object.assign(e, {tipo: a.tipo, cliente: a.c.nome, id_cliente: a.c.id, motivo: a.c.motivo, obs: a.c.obs, dias_sem_compra: a.dias, ultima_compra: a.c.ultima_compra, valor_ultima_compra: a.c.valor_ultima, tempo_visita: a.c.tempo_visita, status_cliente: a.c.status});
   else Object.assign(e, {rota: a.v.rota, feitas: a.v.feitas, digitado: a.v.dig, positivacoes: a.v.pos});
   if (aoLigar) e.ao_ligar = true;
@@ -350,10 +381,32 @@ function snapshot(vs) {
 
 // ============================== VAR (overlay) ==============================
 const FILA = []; let emVAR = false;
+const ESPERA = [], VARS = [];                                   // ESPERA = lances aguardando vez; VARS = horários dos últimos VAR
+const VAR_GAP_S = +P.get('vargap') || 180, VAR_MAX_H = +P.get('varmax') || 6; // LIMITADOR: 1 VAR a cada 3 min e no máx. 6 por hora
+function rankingPenaltis() {
+  const m = new Map();
+  LOG.filter(e => e.nivel === 'penalti').forEach(e => { const x = m.get(e.rca) || {rca: e.rca, nome: e.vendedor, sup: e.supervisor || '', n: 0}; x.n++; m.set(e.rca, x); });
+  return [...m.values()].sort((a, b) => b.n - a.n || a.nome.localeCompare(b.nome));
+}
+const penaltisDe = rca => LOG.filter(e => e.nivel === 'penalti' && e.rca === rca).length;
 function enfileira(novos) {
-  novos.filter(a => a.nivel === 'penalti').forEach(a => FILA.push({tipo: 'penalti', a}));
-  ['visita10', 'venda10'].forEach(n => { const l = novos.filter(a => a.nivel === n); if (l.length) FILA.push({tipo: n, l}); });
-  proximoVAR();
+  // pênaltis: UM lance por vendedor (junta todas as justificativas suspeitas dele)
+  const porV = new Map();
+  novos.filter(a => a.nivel === 'penalti').forEach(a => { if (!porV.has(a.v.id)) porV.set(a.v.id, {tipo: 'penalti', v: a.v, itens: []}); porV.get(a.v.id).itens.push(a); });
+  ESPERA.push(...[...porV.values()].sort((x, y) => y.itens.length - x.itens.length));
+  ['visita10', 'venda10'].forEach(n => { const l = novos.filter(a => a.nivel === n); if (l.length) ESPERA.push({tipo: n, l}); });
+  liberaEspera();
+}
+function podeVAR() {
+  const agora = Date.now(); while (VARS.length && agora - VARS[0] > 3600e3) VARS.shift();
+  return !emVAR && !FILA.length && VARS.length < VAR_MAX_H && (!VARS.length || agora - VARS[VARS.length - 1] >= VAR_GAP_S * 1000);
+}
+function liberaEspera() {
+  if (ESPERA.length && podeVAR()) {
+    const item = ESPERA.length >= 4 ? {tipo: 'resumo', grupos: ESPERA.splice(0)} : ESPERA.shift(); // muita coisa junta = 1 resumo só
+    VARS.push(Date.now()); FILA.push(item); proximoVAR();
+  }
+  const t = $('toast'); if (t) { t.style.display = ESPERA.length ? 'block' : 'none'; t.textContent = `🚨 ${ESPERA.length} lance(s) aguardando a vez do VAR · veja o Painel`; }
 }
 function beep(seq) {
   if (!somOn) return;
@@ -375,13 +428,26 @@ function telaVAR(item) {
     dec = n ? l.slice(-7).reverse().map(linhaRevisao).join('') + (n > 7 ? `<div class="ln"><b>+${n - 7}</b><span>lances mais antigos nesta janela</span></div>` : '')
             : '<div class="ln"><b>—</b><span>Nenhum lance nos últimos 30 minutos.</span></div>';
     veredito = n ? `${n} lance(s) nos últimos 30 minutos.` : 'Tudo tranquilo nos últimos 30 minutos.';
+  } else if (item.tipo === 'resumo') {
+    titulo = '🚨 VÁRIOS LANCES'; const tot = item.grupos.reduce((x, g) => x + (g.itens ? g.itens.length : (g.l || []).length), 0);
+    sub = `${tot} lances de ${item.grupos.length} ocorrências chegaram juntos`;
+    dec = item.grupos.slice(0, 8).map(g => g.tipo === 'penalti'
+      ? `<div class="ln hot"><b>PÊNALTI</b><span>${esc(g.v.nome)} — ${g.itens.length} justificativa(s) suspeita(s)</span></div>`
+      : `<div class="ln hot"><b>${g.tipo === 'venda10' ? 'CARTÃO' : 'EXPULSÃO'}</b><span>${g.l.length} vendedor(es): ${esc(g.l.slice(0, 3).map(a => a.v.nome.split(' ')[0]).join(', '))}${g.l.length > 3 ? '…' : ''}</span></div>`).join('');
+    veredito = 'Detalhes no Painel (ranking de pênaltis) e em "Revisar 30 min".';
   } else if (item.tipo === 'penalti') {
-    const {v, c, dias, tipo} = item.a;
-    titulo = '🚨 PÊNALTI'; sub = `${v.nome} · ${tipo === 'estoque' ? 'justificou "ESTOQUE SUFICIENTE"' : 'justificou cliente fechado'} em cliente parado`;
-    const tv = c.tempo_visita;
-    dec = linhas({'Vendedor': `${v.nome} (RCA ${v.id})`, 'Cliente': c.nome, 'Justificativa': '!' + c.motivo, 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c.ultima_compra)}${c.valor_ultima > 0 ? ', ' + brl(c.valor_ultima) : ''})` : 'sem compra registrada'),
-      'Tempo na visita': tv ? (tv === '00:00' ? '!' + tv + ' (visita de 0 minuto)' : tv) : null, 'Observação': c.obs});
-    veredito = 'Lance para revisão do supervisor: cliente parado + justificativa que não explica a ausência de compra.';
+    const v = item.v, it = item.itens, n = it.length, totalDia = penaltisDe(v.id), rk = rankingPenaltis(), pos = rk.findIndex(x => x.rca === v.id) + 1;
+    titulo = '🚨 PÊNALTI';
+    sub = n === 1 ? `${v.nome} · ${it[0].tipo === 'estoque' ? 'justificou "ESTOQUE SUFICIENTE"' : 'justificou cliente fechado'} em cliente parado` : `${v.nome} · ${n} justificativas suspeitas de uma vez`;
+    const cab = {'Vendedor': `${v.nome} (RCA ${v.id})`, 'Supervisor': v.sup, 'Ranking de pênaltis': `${pos}º lugar · ${totalDia} pênalti(s) hoje${totalDia >= 3 ? ' — REINCIDENTE' : ''}`};
+    if (n === 1) {
+      const {c, dias} = it[0], tv = c.tempo_visita;
+      dec = linhas({...cab, 'Cliente': c.nome, 'Justificativa': '!' + c.motivo, 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c.ultima_compra)}${c.valor_ultima > 0 ? ', ' + brl(c.valor_ultima) : ''})` : 'sem compra registrada'),
+        'Tempo na visita': tv ? (tv === '00:00' ? '!' + tv + ' (visita de 0 minuto)' : tv) : null, 'Observação': c.obs});
+    } else {
+      dec = linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot"><b>${esc(a.c.nome)}</b><span>${esc(a.c.motivo)} · ${a.dias != null ? a.dias + 'd s/ compra' : 'sem compra'}${a.c.tempo_visita === '00:00' ? ' · visita de 0 min' : ''}</span></div>`).join('') + (n > 5 ? `<div class="ln"><b>+${n - 5}</b><span>outros clientes</span></div>` : '');
+    }
+    veredito = totalDia >= 3 ? '⚠ REINCIDENTE: vendedor acumula pênaltis no dia — supervisor deve acionar.' : 'Lance para revisão do supervisor: cliente parado + justificativa que não explica a ausência de compra.';
   } else if (item.tipo === 'venda10') {
     titulo = '🟥 CARTÃO VERMELHO'; sub = `${LIMITE_H}h e ${item.l.length} vendedor(es) COM ROTA e SEM NENHUMA VENDA`; cls = 'f1';
     dec = item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${esc(a.v.nome)}</b><span>${a.v.feitas}/${a.v.rota} visitas · digitado ${brl(a.v.dig)}</span></div>`).join('') + (item.l.length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
@@ -396,17 +462,18 @@ function telaVAR(item) {
 function proximoVAR() {
   if (emVAR || !FILA.length) return;
   emVAR = true; const item = FILA.shift(); const T = telaVAR(item); const ov = $('ov');
-  const fecha = () => { clearInterval(ov._i); ov.className = ''; ov.innerHTML = ''; emVAR = false; setTimeout(proximoVAR, 400); };
+  const T_TOTAL = 60, t0 = Date.now(); let animStop = null; // o lance fica ~60 s na tela (ou até clicar)
+  const fecha = () => { clearInterval(ov._i); if (animStop) { animStop(); animStop = null; } ov.className = ''; ov.innerHTML = ''; emVAR = false; setTimeout(() => { proximoVAR(); liberaEspera(); }, 400); };
   ov.onclick = () => { clearTimeout(ov._t1); clearTimeout(ov._t2); clearTimeout(ov._t3); fecha(); };
-  const T_TOTAL = 60; // segundos que o lance fica na tela (ou até clicar)
-  const t0 = Date.now();
-  const mostraDecisao = () => { ov.className = 'show'; ov.innerHTML = `<div class="dec${item.tipo === 'revisao' ? ' rev' : ''}"><h1>${esc(T.titulo)}${item.tipo === 'revisao' ? '' : ' · DECISÃO DO VAR'}</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
+  const mostraDecisao = () => { if (animStop) { animStop(); animStop = null; } ov.className = 'show'; ov.innerHTML = `<div class="dec${item.tipo === 'revisao' ? ' rev' : ''}"><h1>${esc(T.titulo)}${item.tipo === 'revisao' ? '' : ' · DECISÃO DO VAR'}</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
     ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha sozinho em ${Math.max(0, T_TOTAL - Math.round((Date.now() - t0) / 1000))}s`; }, 500); };
   if (item.tipo === 'revisao') { mostraDecisao(); ov._t3 = setTimeout(fecha, T_TOTAL * 1000); return; }
-  ov.className = 'show ' + T.cls; ov.innerHTML = `<div class="big">${esc(T.titulo)}</div><div class="sub">${esc(T.sub)}</div>`; beep([[880, .25], [660, .25], [880, .5]]);
-  ov._t1 = setTimeout(() => { ov.className = 'show'; ov.innerHTML = `<div class="var">VAR</div><div class="sub">REVISANDO O LANCE…</div><div class="scan"><i></i></div>`; beep([[440, .15], [440, .15]]); }, 3000);
-  ov._t2 = setTimeout(() => { ov.innerHTML = `<div class="dec"><h1>${esc(T.titulo)} · DECISÃO DO VAR</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
-    ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha sozinho em ${Math.max(0, T_TOTAL - Math.round((Date.now() - t0) / 1000))}s`; }, 500); }, 5800);
+  const anim = item.tipo === 'penalti' && typeof iniciaAnimPenalti === 'function';
+  const A = anim ? 7000 : 3000;
+  if (anim) { ov.className = 'show'; ov.innerHTML = '<canvas id="cvp"></canvas>'; animStop = iniciaAnimPenalti($('cvp'), {vendedor: item.v.nome, cliente: item.itens.length === 1 ? item.itens[0].c.nome : `${item.itens.length} CLIENTES`}); }
+  else { ov.className = 'show ' + T.cls; ov.innerHTML = `<div class="big">${esc(T.titulo)}</div><div class="sub">${esc(T.sub)}</div>`; beep([[880, .25], [660, .25], [880, .5]]); }
+  ov._t1 = setTimeout(() => { if (animStop) { animStop(); animStop = null; } ov.className = 'show'; ov.innerHTML = `<div class="var">VAR</div><div class="sub">REVISANDO O LANCE…</div><div class="scan"><i></i></div>`; beep([[440, .15], [440, .15]]); }, A);
+  ov._t2 = setTimeout(mostraDecisao, A + 2800);
   ov._t3 = setTimeout(fecha, T_TOTAL * 1000);
 }
 const secDe = hms => { const [h, m, x] = String(hms || '0:0:0').split(':').map(Number); return h * 3600 + m * 60 + (x || 0); };
@@ -437,7 +504,14 @@ function textoAlerta(a) {
 }
 function renderTotais(vs) {
   const campo = vs.filter(v => v.campo && v.temRota); const s = (a, f) => a.reduce((x, v) => x + (f(v) || 0), 0);
-  $('tot').innerHTML = [['Faturado no mês', brl(s(vs, v => v.fat))], ['Meta do mês', brl(s(vs, v => v.meta))], ['Digitado hoje', brl(s(vs, v => v.dig))], ['Positivações hoje', nv(s(vs, v => v.pos))],
+  const fat = s(vs, v => v.fat), metaSoma = s(vs, v => v.meta), realCli = s(vs, v => v.realCli), metaCliSoma = s(vs, v => v.metaCli);
+  const metaFat = METAS ? METAS.meta_fat : metaSoma, metaPos = METAS ? METAS.meta_pos : metaCliSoma, oficial = !!METAS;
+  const pctF = metaFat ? fat / metaFat * 100 : null, pctP = metaPos ? realCli / metaPos * 100 : null;
+  $('tot').innerHTML = [
+    ['Faturado no mês', `${brl(fat)} <small style="font-size:14px;color:var(--mut)">${pctF != null ? pc(pctF) : ''}</small>`],
+    [oficial ? 'Meta do mês (PNA)' : 'Meta (soma dos vendedores)', brl(metaFat)],
+    ['Positivados no mês', `${nv(realCli)} <small style="font-size:14px;color:var(--mut)">de ${nv(metaPos)} · ${pctP != null ? pc(pctP) : ''}</small>`],
+    ['Digitado hoje', brl(s(vs, v => v.dig))], ['Positivações hoje', nv(s(vs, v => v.pos))],
     ['Visitas feitas / rota', s(campo, v => v.feitas) + ' / ' + s(campo, v => v.rota)], ['Zerados hoje', campo.filter(zerado).length + ' de ' + campo.length]]
     .map(([l, v]) => `<div><span>${l}</span><b class="mono">${v}</b></div>`).join('');
   $('nv').textContent = vs.length;
@@ -489,8 +563,10 @@ function renderPainel(vs) {
   $('p2').innerHTML = `<h2><span>Justificativas de hoje</span><b>${tot}</b></h2>` + (ms.length ? ms.map(([m, n]) => { const red = /ESTOQUE SUFICIENTE|FECHADO|ENCERROU/.test(m); return `<div><div class="row" style="border:0;grid-template-columns:1fr auto"><div class="n">${esc(m)}</div><b class="mono">${n}</b></div><div class="hb${red ? ' red' : ''}"><i style="width:${n / mx * 100}%"></i></div></div>`; }).join('') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Nenhuma justificativa registrada hoje.</div>');
   const rk = [...vs].filter(v => v.dig > 0).sort((a, b) => b.dig - a.dig).slice(0, 8), mr = rk.length ? rk[0].dig : 1;
   $('p3').innerHTML = `<h2><span>Digitado hoje · ranking</span><b>${brl(vs.reduce((x, v) => x + (v.dig || 0), 0))}</b></h2>` + (rk.length ? rk.map((v, i) => `<div><div class="row" style="border:0;grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${esc(v.nome)}</div><b class="mono">${brl(v.dig)}</b></div><div class="hb"><i style="width:${v.dig / mr * 100}%"></i></div></div>`).join('') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Ninguém digitou ainda hoje.</div>');
-  const dv = [...vs].filter(v => v.dev > 0).sort((a, b) => b.dev - a.dev).slice(0, 8), md = dv.length ? dv[0].dev : 1;
-  $('p4').innerHTML = `<h2><span>Devoluções no mês</span><b>${brl(vs.reduce((x, v) => x + (v.dev || 0), 0))}</b></h2>` + (dv.length ? dv.map(v => `<div><div class="row" style="border:0;grid-template-columns:1fr auto"><div class="n">${esc(v.nome)}</div><b class="mono" style="color:var(--warn)">${brl(v.dev)}</b></div><div class="hb"><i style="width:${v.dev / md * 100}%;background:var(--warn)"></i></div></div>`).join('') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Sem devoluções no mês.</div>');
+  const rk2 = rankingPenaltis(), top2 = rk2.slice(0, 8), mx2 = top2.length ? top2[0].n : 1, totPen = rk2.reduce((x, y) => x + y.n, 0);
+  const porSup = {}; rk2.forEach(x => { const k = x.sup || 'sem supervisor'; porSup[k] = (porSup[k] || 0) + x.n; });
+  const supTxt = Object.entries(porSup).sort((x, y) => y[1] - x[1]).slice(0, 3).map(([k, n]) => `${k.split(' ')[0]} ${n}`).join(' · ');
+  $('p4').innerHTML = `<h2><span>Ranking de pênaltis · hoje</span><b>${totPen}</b></h2>` + (top2.length ? top2.map((x, i) => `<div><div class="row" style="border:0;grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${esc(x.nome)}</div><b class="mono" style="color:var(--bad)">${x.n}</b></div><div class="hb red"><i style="width:${x.n / mx2 * 100}%"></i></div></div>`).join('') + (supTxt ? `<div style="color:var(--mut);font-size:14px;margin-top:4px">Supervisores: ${esc(supTxt)}</div>` : '') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Nenhum pênalti hoje.</div>');
 }
 function renderSup() {
   const el = $('sup'), lista = supLista();
@@ -542,7 +618,7 @@ function exportar() {
 
 // ============================== INÍCIO ==============================
 function relogio() {
-  $('clock').textContent = sp().hms;
+  $('clock').textContent = sp().hms; liberaEspera();
   if (lastOk) { const min = Math.floor((Date.now() - lastOk) / 60000); const u = $('upd'); u.textContent = 'dados de ' + sp(new Date(lastOk)).hms; u.className = 'upd' + (min >= 5 ? ' old' : ''); if (min >= 5) u.textContent = `SEM ATUALIZAR HÁ ${min} MIN`; }
   if (modoAtual() !== modoVisivel) render();
   if (precisaRecarregar && !emVAR && !FILA.length) location.reload(); // atualização automática, sem interromper um lance
@@ -567,7 +643,9 @@ if (!VALID.includes(FIL)) {
 } else {
   document.title = `CEVEN CFTV — ${FIL}`; $('fil').textContent = 'FILIAL ' + FIL; ctl(); relogio();
   setInterval(relogio, 1000); setInterval(avancaRonda, ROTA_S * 1000);
+  carregaMetas(); setInterval(carregaMetas, 30 * 60 * 1000);
+  carregaLancesServidor(); setInterval(carregaLancesServidor, 5 * 60 * 1000);
   atualiza(); setInterval(atualiza, CICLO_S * 1000); setInterval(checaVersao, 30000); checaVersao();
-  window.__tv = {ocupado: () => emVAR || FILA.length > 0, DATA, get ALERTAS() { return ALERTAS; }, get LOG() { return LOG; }, get SNAP() { return SNAP; }, VS, calcAlertas, revisar, exportar};
+  window.__tv = {ocupado: () => emVAR || FILA.length > 0, DATA, get ALERTAS() { return ALERTAS; }, get LOG() { return LOG; }, get SNAP() { return SNAP; }, VS, calcAlertas, revisar, exportar, rankingPenaltis, ESPERA};
 }
 </script></body></html>

@@ -3,6 +3,15 @@
 > Documento de continuidade. Criado em 23/09/2026 para que nenhuma sessão futura precise reconstruir o contexto.
 > Atualizar sempre que uma decisão mudar. Documentos irmãos: `REGRAS_DE_NEGOCIO_CEVEN.md`, `MAPA_DEFINITIVO_ENDPOINTS_CEVEN.md`, `docs/DICIONARIO_CICLOS_WHATSAPP.md`, `OPERACAO_WHATSAPP/REGRAS_E_MEMORIA_OPERACIONAL.md`, `AUDITORIA_COMPLETA_PROJETO_23-09-2026.md`.
 
+## 🌐 PREMISSA INEGOCIÁVEL — TUDO RODA ONLINE (Vitório, 23/09/2026)
+
+**O projeto CEVEN várias telas roda ONLINE. Nada — nenhum dado, arquivo, cálculo, publicação ou execução — pode depender do computador do Vitório (nem de qualquer computador pessoal).**
+
+- Dados vêm de fontes online (API do CEVEN, Google Drive, Cloudflare D1, GitHub) — nunca de arquivo local.
+- Quem executa é a nuvem (Cloudflare Pages/Functions/D1, GitHub Actions) — nunca "rodar no PC".
+- Se uma tarefa hoje exige o PC (rodar script, copiar planilha, publicar à mão), isso é uma **dívida a eliminar**, nunca um padrão a repetir. Não criar novas dependências do PC; se for inevitável, avisar o Vitório e registrar em `PREMISSA_ONLINE.md`.
+- Ver `PREMISSA_ONLINE.md` (lista das dependências do PC que ainda existem e o plano para eliminá-las).
+
 ---
 
 ## 1. Visão (dita pelo Vitório em 23/09/2026)
