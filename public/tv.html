@@ -78,6 +78,14 @@ main{flex:1;min-height:0;padding:14px 22px;display:flex}
 .mini .bar{height:9px;grid-column:1/3;margin-top:4px}
 .mini small{color:var(--mut);font-size:12px}
 .mini .r{text-align:right}
+.rota{display:flex;flex-direction:column;gap:4px;flex:1;min-height:0;overflow:hidden}
+.rota h4{font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.rt{display:grid;grid-template-columns:92px 1fr auto;gap:12px;align-items:center;padding:6px 10px;border-radius:10px;background:var(--card2);font-size:16px}
+.rt.pen{background:#2a0a0a;border:1px solid var(--bad)}
+.rt .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rt .n small{display:block;color:var(--mut);font-size:12px}
+.rt .d{color:var(--mut);font-size:14px;white-space:nowrap}
+.st{font-size:11px;font-weight:800;letter-spacing:.05em;padding:3px 8px;border-radius:6px;text-align:center}
+.s-v{background:#22c55e26;color:#86efac}.s-x{background:#f59e0b26;color:#fcd34d}.s-a{background:#8b9bbd22;color:var(--mut)}
 .prog{position:absolute;left:0;bottom:0;height:4px;background:var(--acc);width:0}
 footer{padding:8px 22px 10px;border-top:1px solid var(--line);background:#0a1020;display:flex;gap:14px;align-items:center;font-size:15px}
 footer .tag{background:var(--warn);color:#1a1200;font-weight:800;padding:3px 10px;border-radius:6px;font-size:12px;letter-spacing:.06em}
@@ -159,7 +167,7 @@ function sp(d) {
   return {date: `${o.year}-${o.month}-${o.day}`, h, m: +o.minute, hms: `${String(h).padStart(2,'0')}:${o.minute}:${o.second}`, hm: `${String(h).padStart(2,'0')}:${o.minute}`};
 }
 function diasDesde(dataISO) {
-  if (!dataISO) return null;
+  if (!dataISO || +dataISO.slice(0, 4) < 2000) return null; // data ausente ou inválida (ex.: 1900) = sem data de compra
   const a = Date.UTC(...sp().date.split('-').map((x,i)=>i===1?+x-1:+x));
   const b = Date.UTC(...dataISO.split('-').map((x,i)=>i===1?+x-1:+x));
   return Math.round((a - b) / 86400000);
@@ -242,12 +250,13 @@ function calcAlertas(vs) {
     v.cl.forEach(c => {
       if (['POSITIVADO', 'EFETIVADO'].includes(c.status) || !c.motivo) return;
       const m = c.motivo.toUpperCase(); const dias = diasDesde(c.ultima_compra);
-      const parado = c.ultima_compra == null || dias > DIAS_PENALTI;
+      const parado = dias == null || dias > DIAS_PENALTI;
       if (!parado) return;
       let tipo = null;
       if (m.includes('ESTOQUE SUFICIENTE')) tipo = 'estoque';
       else if (m.includes('FECHADO') || m.includes('ENCERROU')) tipo = 'fechado';
       if (!tipo) return;
+      if (out.some(o => o.key === `pen|${tipo}|${v.id}|${c.id}`)) return; // mesmo cliente repetido na rota
       out.push({key: `pen|${tipo}|${v.id}|${c.id}`, nivel: 'penalti', tipo, v, c, dias});
     });
     if (v.campo && v.temRota && depois10) {
@@ -315,7 +324,7 @@ function telaVAR(item) {
     const {v, c, dias, tipo} = item.a;
     titulo = '🚨 PÊNALTI'; sub = `${v.nome} · ${tipo === 'estoque' ? 'justificou "ESTOQUE SUFICIENTE"' : 'justificou cliente fechado'} em cliente parado`;
     const tv = c.tempo_visita;
-    dec = linhas({'Vendedor': `${v.nome} (RCA ${v.id})`, 'Cliente': c.nome, 'Justificativa': '!' + c.motivo, 'Sem comprar': '!' + (c.ultima_compra ? `${dias} dias (última compra ${ddmm(c.ultima_compra)}${c.valor_ultima > 0 ? ', ' + brl(c.valor_ultima) : ''})` : 'nunca comprou'),
+    dec = linhas({'Vendedor': `${v.nome} (RCA ${v.id})`, 'Cliente': c.nome, 'Justificativa': '!' + c.motivo, 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c.ultima_compra)}${c.valor_ultima > 0 ? ', ' + brl(c.valor_ultima) : ''})` : 'sem compra registrada'),
       'Tempo na visita': tv ? (tv === '00:00' ? '!' + tv + ' (visita de 0 minuto)' : tv) : null, 'Observação': c.obs});
     veredito = 'Lance para revisão do supervisor: cliente parado + justificativa que não explica a ausência de compra.';
   } else if (item.tipo === 'venda10') {
@@ -357,7 +366,7 @@ function montaOrdem(vs) {
 }
 function tagAlerta(a) { return a.nivel === 'penalti' ? '<span class="tg t-pen">PÊNALTI</span>' : a.nivel === 'venda10' ? '<span class="tg t-ven">SEM VENDA</span>' : '<span class="tg t-vis">SEM VISITA</span>'; }
 function textoAlerta(a) {
-  if (a.nivel === 'penalti') return `${a.c.nome || 'cliente'} · ${a.tipo === 'estoque' ? 'ESTOQUE SUFICIENTE' : 'CLIENTE FECHADO'} · ${a.c.ultima_compra ? a.dias + ' dias sem compra' : 'nunca comprou'}`;
+  if (a.nivel === 'penalti') return `${a.c.nome || 'cliente'} · ${a.tipo === 'estoque' ? 'ESTOQUE SUFICIENTE' : 'CLIENTE FECHADO'} · ${a.dias != null ? a.dias + ' dias sem compra' : 'sem compra registrada'}`;
   if (a.nivel === 'venda10') return `${a.v.feitas}/${a.v.rota} visitas · nenhuma venda às ${LIMITE_H}h`;
   return `0/${a.v.rota} visitas · nenhum cliente visitado às ${LIMITE_H}h`;
 }
@@ -367,6 +376,19 @@ function renderTotais(vs) {
     ['Visitas feitas / rota', s(campo, v => v.feitas) + ' / ' + s(campo, v => v.rota)], ['Zerados hoje', campo.filter(zerado).length + ' de ' + campo.length]]
     .map(([l, v]) => `<div><span>${l}</span><b class="mono">${v}</b></div>`).join('');
   $('nv').textContent = vs.length;
+}
+function rotaHtml(v) {
+  if (!v.cl || !v.cl.length) return '';
+  const pen = new Set(alertasDe(v.id).filter(a => a.c).map(a => String(a.c.id)));
+  const peso = c => pen.has(String(c.id)) ? 0 : c.status === 'VISITADO' ? 1 : ['POSITIVADO', 'EFETIVADO'].includes(c.status) ? 2 : 3;
+  const rows = [...v.cl].sort((a, b) => peso(a) - peso(b)).slice(0, 8).map(c => {
+    const venda = ['POSITIVADO', 'EFETIVADO'].includes(c.status), fez = c.status === 'VISITADO';
+    const dias = diasDesde(c.ultima_compra);
+    return `<div class="rt${pen.has(String(c.id)) ? ' pen' : ''}"><span class="st ${venda ? 's-v' : fez ? 's-x' : 's-a'}">${venda ? 'VENDEU' : fez ? 'VISITOU' : 'A FAZER'}</span>
+      <div class="n">${esc(c.nome || 'cliente')}${c.motivo ? `<small>${esc(c.motivo)}${c.tempo_visita ? ' · ' + esc(c.tempo_visita) + ' na visita' : ''}</small>` : ''}</div>
+      <span class="d mono">${dias != null ? dias + 'd s/ compra' : 'sem compra'}</span></div>`;
+  }).join('');
+  return `<div class="rota"><h4>Rota de hoje · ${v.cl.length} clientes</h4>${rows}${v.cl.length > 8 ? `<div style="color:var(--mut);font-size:13px">+${v.cl.length - 8} clientes</div>` : ''}</div>`;
 }
 function renderMaster(v) {
   const el = $('master'); if (!v) { el.innerHTML = '<div style="color:var(--mut);font-size:22px">Aguardando dados do CEVEN…</div>'; return; }
@@ -384,7 +406,7 @@ function renderMaster(v) {
    <div class="kpi"><span>Visitas hoje</span><b class="mono">${nv(v.feitas)} / ${nv(v.rota)}</b><small>${nv(v.comVenda)} com venda · ${nv(v.aFazer)} a fazer</small></div>
    <div class="kpi"><span>Devoluções no mês</span><b class="mono" style="color:${v.dev > 0 ? 'var(--warn)' : 'inherit'}">${brl(v.dev)}</b><small>acumulado do mês</small></div>
    <div class="kpi"><span>Visitou e não vendeu</span><b class="mono">${nv(v.semVenda)}</b><small>na rota de hoje</small></div>
-  </div><div class="prog" id="prog"></div>`;
+  </div>${rotaHtml(v)}<div class="prog" id="prog"></div>`;
   const p = $('prog'); p.style.transition = 'none'; p.style.width = '0';
   requestAnimationFrame(() => requestAnimationFrame(() => { p.style.transition = `width ${ROTA_S}s linear`; p.style.width = '100%'; }));
 }
@@ -417,7 +439,7 @@ function render() {
   const m = modoAtual(); $('modo').textContent = (m === 'ronda' ? 'RONDA' : 'PAINEL') + (modoManual === 'auto' ? ' · AUTO' : '');
   $('ronda').style.display = m === 'ronda' ? 'grid' : 'none'; $('painel').style.display = m === 'painel' ? 'grid' : 'none';
   if (m === 'painel') renderPainel(vs);
-  else { ordem = ordem.filter(id => vs.some(v => v.id === id)); vs.forEach(v => { if (!ordem.includes(v.id)) ordem.push(v.id); }); if (m !== modoVisivel || !ordem.length) ordem = montaOrdem(vs); mostraRonda(vs); }
+  else { const vazia = !ordem.length; ordem = ordem.filter(id => vs.some(v => v.id === id)); vs.forEach(v => { if (!ordem.includes(v.id)) ordem.push(v.id); }); if (m !== modoVisivel || vazia) { ordem = montaOrdem(vs); idxRonda = 0; } mostraRonda(vs); }
   modoVisivel = m;
   const camp = vs.filter(v => v.campo && v.temRota);
   $('alert').textContent = ALERTAS.length ? `${ALERTAS.length} alerta(s) ativo(s): ` + ALERTAS.slice(0, 3).map(a => `${a.nivel === 'penalti' ? 'PÊNALTI' : a.nivel === 'venda10' ? 'SEM VENDA' : 'SEM VISITA'} ${a.v.nome.split(' ')[0]}`).join(' · ') + (ALERTAS.length > 3 ? ' …' : '') + ` · lances do dia: ${LOG.length}`

@@ -5,7 +5,9 @@ Este repositório tem **dois projetos independentes** que compartilham os mesmos
 ## Projeto A — CFTV Matrix (TV + celular)
 Central visual ao vivo das 11 filiais: link por filial/gerente, link central (matriz), ronda entre vendedores mostrando **as informações mais importantes** (não a tela do CEVEN), alertas por gatilho, e versão para celular.
 - **Pertence a este projeto:** `public/` (index.html, mobile.html), `server.js`, `INICIAR_CFTV.bat`, `functions/api/` **exceto** `whatsapp/` e `cron-*`, `docs/CFTV_*`.
-- **Branch de trabalho:** `cftv`. **Produção (Cloudflare Pages `ceven-cftv-matrix.pages.dev`) publica da `clean-v3`** (confirmado: a versão no ar `v2.17.0-blocked-orders-6x-daily-schedule` é a da `clean-v3`). Só levar para a `clean-v3` quando o Vitório pedir.
+- **Branch de trabalho:** `cftv`.
+- **Como publica (confirmado 23/09/2026):** o Cloudflare Pages `ceven-cftv-matrix` **NÃO está ligado ao Git** (Git Provider = No). A publicação é **manual**, pelo terminal, na pasta do projeto: `npx wrangler pages deploy public --project-name ceven-cftv-matrix --branch main --commit-dirty=true`. A produção do Pages é a branch **`main`** (parâmetro `--branch`). Dar push no GitHub **não** atualiza o site. Publicar só quando o Vitório mandar.
+- **Links da TV:** `https://ceven-cftv-matrix.pages.dev/tbl` (curto, um por filial: /tbl /tph /tcv /abc /tca /mcd /tcg /api /tbe /tpa /tsj) ou `/?filial=TBL`; ambos levam à tela nova `/tv`.
 - **Link travado (decisão do Vitório, 23/09/2026):** cada filial/gerente tem um link específico que fica **fixo na TV**. **Ninguém troca de filial** nessa tela: sem seletor de filial nem login de escolha. Só se ajustam os botões **internos** daquela filial (ex.: tempo da ronda, layout, vendedores da ronda). Só o link central (matriz) enxerga várias filiais.
 - Documento de referência: `docs/CFTV_MATRIX_VISAO_E_ESTADO_ATUAL.md` (atualizar a cada decisão).
 
