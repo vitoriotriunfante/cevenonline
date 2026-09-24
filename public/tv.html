@@ -110,6 +110,7 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #ov .dec .ln{font-size:min(2.1vw,30px);padding:.7vh 0;border-bottom:1px solid var(--line);display:flex;gap:16px}
 #ov .dec .ln b{color:var(--mut);min-width:14ch;font-weight:600}
 #ov .dec .ln.hot span{color:#fca5a5;font-weight:800}
+#ov .dec.rev .ln{font-size:min(1.55vw,23px);padding:.5vh 0}#ov .dec.rev h1{font-size:min(3vw,44px);margin-bottom:1vh}#ov .dec.rev .vd{font-size:min(2vw,28px);margin-top:1vh}
 #ov .dec .vd{margin-top:2vh;font-size:min(2.4vw,34px);font-weight:800;color:#fca5a5}
 #ov small{margin-top:2vh;color:var(--mut);font-size:16px}
 @media(max-width:900px){#ronda,#painel{grid-template-columns:1fr;grid-template-rows:auto}.tot{grid-template-columns:repeat(2,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}.side{display:none}body{overflow:auto}}
@@ -323,7 +324,7 @@ function telaVAR(item) {
   if (item.tipo === 'revisao') {
     const l = item.lista, n = l.length;
     titulo = '🔎 REVISÃO DO VAR'; sub = '';
-    dec = n ? l.slice(-9).reverse().map(linhaRevisao).join('') + (n > 9 ? `<div class="ln"><b>+${n - 9}</b><span>lances mais antigos nesta janela</span></div>` : '')
+    dec = n ? l.slice(-7).reverse().map(linhaRevisao).join('') + (n > 7 ? `<div class="ln"><b>+${n - 7}</b><span>lances mais antigos nesta janela</span></div>` : '')
             : '<div class="ln"><b>—</b><span>Nenhum lance nos últimos 30 minutos.</span></div>';
     veredito = n ? `${n} lance(s) nos últimos 30 minutos.` : 'Tudo tranquilo nos últimos 30 minutos.';
   } else if (item.tipo === 'penalti') {
@@ -351,7 +352,7 @@ function proximoVAR() {
   ov.onclick = () => { clearTimeout(ov._t1); clearTimeout(ov._t2); clearTimeout(ov._t3); fecha(); };
   const T_TOTAL = 60; // segundos que o lance fica na tela (ou até clicar)
   const t0 = Date.now();
-  const mostraDecisao = () => { ov.className = 'show'; ov.innerHTML = `<div class="dec"><h1>${esc(T.titulo)}${item.tipo === 'revisao' ? '' : ' · DECISÃO DO VAR'}</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
+  const mostraDecisao = () => { ov.className = 'show'; ov.innerHTML = `<div class="dec${item.tipo === 'revisao' ? ' rev' : ''}"><h1>${esc(T.titulo)}${item.tipo === 'revisao' ? '' : ' · DECISÃO DO VAR'}</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
     ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha sozinho em ${Math.max(0, T_TOTAL - Math.round((Date.now() - t0) / 1000))}s`; }, 500); };
   if (item.tipo === 'revisao') { mostraDecisao(); ov._t3 = setTimeout(fecha, T_TOTAL * 1000); return; }
   ov.className = 'show ' + T.cls; ov.innerHTML = `<div class="big">${esc(T.titulo)}</div><div class="sub">${esc(T.sub)}</div>`; beep([[880, .25], [660, .25], [880, .5]]);
