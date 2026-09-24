@@ -455,7 +455,7 @@ function telaVAR(item) {
     } else {
       dec = linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot"><b>${esc(a.c.nome)}</b><span>${esc(a.c.motivo)} · ${a.dias != null ? a.dias + 'd s/ compra' : 'sem compra'}${a.c.tempo_visita === '00:00' ? ' · visita de 0 min' : ''}</span></div>`).join('') + (n > 5 ? `<div class="ln"><b>+${n - 5}</b><span>outros clientes</span></div>` : '');
     }
-    veredito = totalDia >= 3 ? '⚠ REINCIDENTE: vendedor acumula pênaltis no dia — supervisor deve acionar.' : 'Lance para revisão do supervisor: cliente parado + justificativa que não explica a ausência de compra.';
+    veredito = `📞 LIGAR AGORA: ${v.sup || 'supervisor'} (supervisor de ${v.nome.split(' ')[0]})${totalDia >= 3 ? ' — REINCIDENTE, ' + totalDia + 'º pênalti hoje' : ''}`;
   } else if (item.tipo === 'venda10') {
     titulo = '🟥 CARTÃO VERMELHO'; sub = `${LIMITE_H}h e ${item.l.length} vendedor(es) COM ROTA e SEM NENHUMA VENDA`; cls = 'f1';
     dec = item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${esc(a.v.nome)}</b><span>${a.v.feitas}/${a.v.rota} visitas · digitado ${brl(a.v.dig)}</span></div>`).join('') + (item.l.length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
@@ -470,7 +470,7 @@ function telaVAR(item) {
 function proximoVAR() {
   if (emVAR || !FILA.length) return;
   emVAR = true; const item = FILA.shift(); const T = telaVAR(item); const ov = $('ov');
-  const T_TOTAL = 60, t0 = Date.now(); let animStop = null; // o lance fica ~60 s na tela (ou até clicar)
+  const T_TOTAL = 90, t0 = Date.now(); let animStop = null; // pênalti fica MAIS TEMPO parado na decisão (chamar atenção pra agir agora) // o lance fica ~60 s na tela (ou até clicar)
   const fecha = () => { clearInterval(ov._i); if (animStop) { animStop(); animStop = null; } ov.className = ''; ov.innerHTML = ''; emVAR = false; setTimeout(() => { proximoVAR(); liberaEspera(); }, 400); };
   ov.onclick = () => { clearTimeout(ov._t1); clearTimeout(ov._t2); clearTimeout(ov._t3); fecha(); };
   const mostraDecisao = () => { if (animStop) { animStop(); animStop = null; } ov.className = 'show'; ov.innerHTML = `<div class="dec${item.tipo === 'revisao' ? ' rev' : ''}"><h1>${esc(T.titulo)}${item.tipo === 'revisao' ? '' : ' · DECISÃO DO VAR'}</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;

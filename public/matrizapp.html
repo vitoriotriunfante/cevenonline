@@ -48,8 +48,9 @@ main{flex:1;min-height:0;padding:14px 22px;display:grid;grid-template-columns:.9
 .tb td.bad{color:#fca5a5;font-weight:800}
 .tg{font-size:11px;font-weight:800;letter-spacing:.05em;padding:3px 8px;border-radius:6px}
 .t-pen{background:var(--bad);color:#fff}.t-ven{background:#7f1d1d;color:#fecaca;border:1px solid var(--bad)}.t-vis{background:#450a0a;color:#fff;border:2px solid var(--bad)}
-.crit{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;font-size:16px;padding:4px 0;border-top:1px solid #16203a}
-.crit small{color:var(--mut);display:block;font-size:12px}
+.crit{display:grid;grid-template-columns:130px 1fr;gap:14px;align-items:start;font-size:16px;padding:7px 0;border-top:1px solid #16203a}
+.crit small{color:var(--mut);display:block;font-size:13px;margin-top:2px}
+.crit>div:first-child small{margin-top:6px}
 .prog{position:absolute;left:0;bottom:0;height:4px;background:var(--acc);width:0}
 .subtab{flex:1;min-height:0;overflow:hidden}
 .subprog{height:3px;background:#1a2440;border-radius:99px;overflow:hidden}.subprog i{display:block;height:100%;background:var(--warn)}
@@ -253,7 +254,7 @@ function telaVAR(item) {
     const cab = {'Filial': item.sig, 'Vendedor': `${v.nome} (RCA ${v.id})`, 'Supervisor': v.sup, 'Nota da filial': statFilial(item.sig).nota + ' / 100'};
     if (n === 1) { const {c, dias} = it[0], tv = c.tempo_visita; dec = linhas({...cab, 'Cliente': c.nome, 'Justificativa': '!' + c.motivo, 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c.ultima_compra)})` : 'sem compra registrada'), 'Tempo na visita': tv ? (tv === '00:00' ? '!' + tv + ' (visita de 0 minuto)' : tv) : null}); }
     else dec = linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot"><b>${esc(a.c.nome)}</b><span>${esc(a.c.motivo)} · ${a.dias != null ? a.dias + 'd s/ compra' : 'sem compra'}</span></div>`).join('');
-    veredito = 'Caso crítico priorizado pela matriz — acionar o gerente/supervisor da filial.';
+    veredito = `📞 LIGAR AGORA: ${v.sup || 'supervisor'} · ${item.sig} (supervisor de ${v.nome.split(' ')[0]})`;
   } else {
     titulo = item.tipo === 'venda10' ? '🟥 CARTÃO VERMELHO' : '⛔ EXPULSÃO'; sub = `${item.sig} · ${LIMITE_H}h e ${item.l.length} vendedor(es) COM ROTA e SEM ${item.tipo === 'venda10' ? 'NENHUMA VENDA' : 'NENHUMA VISITA'}`;
     dec = item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${esc(a.v.nome)}</b><span>${a.v.feitas}/${a.v.rota} visitas · digitado ${brl(a.v.dig)}</span></div>`).join(''); veredito = item.tipo === 'venda10' ? 'Nenhuma venda registrada até agora.' : 'Nenhuma visita registrada — verificar se está em campo.';
@@ -400,7 +401,7 @@ function renderFilial(x) {
   const porSup = {}; x.vs.forEach(v => { const k = v.sup || 'sem supervisor'; const o = porSup[k] = porSup[k] || {nome: k, n: 0, dig: 0, pos: 0, zer: 0, pen: 0}; o.n++; o.dig += v.dig || 0; o.pos += v.pos || 0; if (zerado(v)) o.zer++; });
   ALERTAS.filter(a => a.sig === x.sig && a.nivel === 'penalti').forEach(a => { const k = a.v.sup || 'sem supervisor'; if (porSup[k]) porSup[k].pen++; });
   const sups = Object.values(porSup).sort((a, b) => (b.pen + b.zer) - (a.pen + a.zer) || b.dig - a.dig);
-  const crit = x.vs.map(v => ({v, al: ALERTAS.filter(a => a.sig === x.sig && a.v.id === v.id)})).filter(o => o.al.length || zerado(o.v)).sort((a, b) => b.al.length - a.al.length).slice(0, 5);
+  const crit = x.vs.map(v => ({v, al: ALERTAS.filter(a => a.sig === x.sig && a.v.id === v.id)})).filter(o => o.al.length || zerado(o.v)).sort((a, b) => (b.al.filter(x=>x.nivel==='penalti').length - a.al.filter(x=>x.nivel==='penalti').length) || (zerado(b.v) - zerado(a.v)) || (b.al.length - a.al.length)).slice(0, 5);
   const porGrupo = {}; x.vs.forEach(v => { if (!v.grupo) return; const o = porGrupo[v.grupo] = porGrupo[v.grupo] || {g: v.grupo, n: 0, dig: 0, zer: 0, pen: 0}; o.n++; o.dig += v.dig || 0; if (zerado(v)) o.zer++; });
   ALERTAS.filter(a => a.sig === x.sig && a.nivel === 'penalti').forEach(a => { if (a.v.grupo && porGrupo[a.v.grupo]) porGrupo[a.v.grupo].pen++; });
   const gruposHtml = Object.keys(porGrupo).length > 1 ? `<div style="display:flex;gap:10px;flex-wrap:wrap">${Object.values(porGrupo).map(o => `<span class="tg" style="background:#1a2440;font-size:14px;padding:5px 12px">${esc(o.g)}: ${o.n} vend. · ${brl(o.dig)} hoje · ${o.zer} zerado(s) · ${o.pen} pênalti(s)</span>`).join('')}</div>` : '';
