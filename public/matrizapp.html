@@ -30,7 +30,7 @@ header{display:flex;align-items:center;gap:20px;padding:10px 22px;background:#0a
 .tot div{background:var(--card);padding:10px 18px}.tot b{display:block;font-size:24px;margin-top:2px}
 .tot span{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.06em}.tot small{font-size:14px;color:var(--mut)}
 main{flex:1;min-height:0;padding:14px 22px;display:grid;grid-template-columns:.9fr 2.1fr;gap:14px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 20px;display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden;position:relative}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 20px;display:flex;flex-direction:column;gap:8px;min-height:0;overflow-y:auto;overflow-x:hidden;position:relative}
 .panel h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);display:flex;justify-content:space-between;gap:8px}
 .panel h2 b{color:var(--tx)}
 .rk{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;padding:7px 10px;border-radius:12px;background:var(--card2);cursor:pointer;border:1px solid transparent}
@@ -408,7 +408,7 @@ function renderFilial(x) {
     <div class="kpi"><span>Positivados no mês</span><b class="mono">${nv(x.realCli)}</b><small>${pc(pctP)} de ${nv(x.metaPos)}</small></div>
     <div class="kpi"><span>Digitado hoje</span><b class="mono">${brl(x.dig)}</b><small>${nv(x.pos)} positivações</small></div>
     <div class="kpi"><span>Visitas hoje</span><b class="mono">${nv(x.feitas)} / ${nv(x.rota)}</b><small>${x.nZer} zerados · ${x.pen} pênaltis</small></div></div>
-   <table class="tb"><tr><th>Supervisor</th><th>Vend.</th><th>Digitado hoje</th><th>Zerados</th><th>Pênaltis</th></tr>${sups.slice(0, 8).map(s => `<tr><td>${esc(s.nome)}</td><td>${s.n}</td><td>${brl(s.dig)}</td><td class="${s.zer ? 'bad' : ''}">${s.zer}</td><td class="${s.pen ? 'bad' : ''}">${s.pen}</td></tr>`).join('')}</table>
+   <table class="tb"><tr><th>Supervisor</th><th>Vend.</th><th>Digitado hoje</th><th>Zerados</th><th>Pênaltis</th></tr>${sups.slice(0, 5).map(s => `<tr><td>${esc(s.nome)}</td><td>${s.n}</td><td>${brl(s.dig)}</td><td class="${s.zer ? 'bad' : ''}">${s.zer}</td><td class="${s.pen ? 'bad' : ''}">${s.pen}</td></tr>`).join('')}</table>
    <div><h2 style="margin:6px 0 2px"><span>Casos críticos da filial</span></h2>${crit.length ? crit.map(o => `<div class="crit">${o.al.length ? tag(o.al[0]) : '<span class="tg t-ven">ZERADO</span>'}<div>${esc(o.v.nome)}<small>${o.al.length ? o.al.length + ' lance(s) · ' + esc(o.v.sup) : 'sem venda hoje · ' + esc(o.v.sup)}</small></div></div>`).join('') : '<div style="color:var(--mut);padding:8px 0">Nenhum caso crítico agora.</div>'}</div>
    <div class="prog" id="prog"></div>`;
 }
