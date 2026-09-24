@@ -26,6 +26,8 @@ if (!/const RELEASE_VERSION = '[^']*';/.test(src)) { console.error('version.js f
 fs.writeFileSync(arq, src.replace(/const RELEASE_VERSION = '[^']*';/, `const RELEASE_VERSION = '${versao}';`));
 console.log('Versao:', versao);
 
+try { execSync('node gerar_mostra_tv.js', { stdio: 'inherit', cwd: __dirname }); } catch { console.warn('AVISO: nao consegui atualizar a lista MOSTRA (mantendo a anterior).'); }
+
 execSync(`npx wrangler pages deploy public --project-name ceven-cftv-matrix --branch main --commit-dirty=true --commit-message "${msg.replace(/"/g, "'")} (${versao})"`, { stdio: 'inherit', cwd: __dirname });
 
 (async () => {

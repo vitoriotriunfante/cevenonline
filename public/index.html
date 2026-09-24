@@ -420,8 +420,16 @@
 
       // TV da filial: link travado vai para a nova tela (/tv.html). Use &legacy=1 para ver a antiga.
       if (filialParam && /^(TBL|TPH|TCV|ABC|TCA|MCD|TCG|API|TBE|TPA|TSJ)$/.test(filialParam) && !urlParams.get('legacy')) {
-        window.location.replace('/tv.html?filial=' + filialParam);
+        window.location.replace('/tv?filial=' + filialParam);
       }
+
+      // Aparelho que já abriu uma TV de filial: abrir só o endereço do site leva direto para ela (link curto p/ controle remoto).
+      try {
+        const lembrada = localStorage.getItem('ceven_tv_filial');
+        if (!filialParam && lembrada && !urlParams.get('legacy') && /^(TBL|TPH|TCV|ABC|TCA|MCD|TCG|API|TBE|TPA|TSJ)$/.test(lembrada)) {
+          window.location.replace('/tv?filial=' + lembrada);
+        }
+      } catch (e) {}
 
       if (filialParam) {
         document.documentElement.classList.add('tv-mode-active');

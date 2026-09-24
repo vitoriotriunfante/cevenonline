@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CEVEN CFTV — TV da Filial</title>
+<!--
+FICHA DO ARQUIVO
+O QUE É: a tela real da TV da filial. Aberta DENTRO da casca /tv (iframe) — quem cuida de tela cheia e atualização é a casca.
+PROJETO: CFTV/TV (não é WhatsApp). Ver CLAUDE.md e docs/CFTV_MATRIX_VISAO_E_ESTADO_ATUAL.md.
+LÊ: /api/representantes?filial= e /api/tv-vendedor?filial=&id= (dado ao vivo do CEVEN).
+REGRA: nunca inventa dado. Sem resposta = "—" e mantém a última leitura real.
+ALTERNÂNCIA: a partir das 08:00 (Brasília) alterna blocos de 10 min: RONDA / PAINEL.
+ALERTAS: pênalti (ESTOQUE SUFICIENTE ou cliente fechado, com >30 dias sem compra),
+         cartão vermelho (10h sem venda), expulsão (10h sem visita). Ver docs.
+DIÁRIO: guarda no navegador os lances e snapshots do dia (botão Exportar).
+-->
+<style>
+:root{--bg:#070b14;--card:#0f1626;--card2:#131c30;--line:#1e2a44;--tx:#e8eefc;--mut:#8b9bbd;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--acc:#38bdf8;--pend:#a78bfa}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:Segoe UI,Inter,system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.mono{font-variant-numeric:tabular-nums}
+header{display:flex;align-items:center;gap:20px;padding:10px 22px;background:#0a1020;border-bottom:1px solid var(--line)}
+.rec{color:var(--bad);font-weight:800;font-size:13px;letter-spacing:.08em;display:flex;align-items:center;gap:8px}
+.rec i{width:10px;height:10px;border-radius:50%;background:var(--bad);animation:p 1.2s infinite}
+@keyframes p{50%{opacity:.25}}
+.fil{font-size:22px;font-weight:800}.fil small{color:var(--mut);font-weight:500;font-size:14px;margin-left:8px}
+.sp{flex:1}
+.upd{color:var(--mut);font-size:13px}.upd.old{color:var(--bad);font-weight:800}
+.modo{font-size:12px;font-weight:800;letter-spacing:.08em;padding:3px 10px;border-radius:6px;background:#1a2440;color:var(--acc)}
+.clock{font-size:26px;font-weight:700}
+.tot{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.tot div{background:var(--card);padding:10px 18px}
+.tot b{display:block;font-size:26px;margin-top:2px}
+.tot span{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+main{flex:1;min-height:0;padding:14px 22px;display:flex}
+#ronda{flex:1;display:grid;grid-template-columns:1.55fr 1fr;gap:14px;min-height:0}
+#painel{flex:1;display:none;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:14px;min-height:0}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 20px;display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden}
+.panel h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);display:flex;justify-content:space-between}
+.panel h2 b{color:var(--tx)}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-size:16px;padding:4px 0;border-bottom:1px solid #16203a}
+.row:last-child{border:0}
+.row .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row small{color:var(--mut);display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tg{font-size:11px;font-weight:800;letter-spacing:.05em;padding:3px 8px;border-radius:6px}
+.t-pen{background:var(--bad);color:#fff}
+.t-ven{background:#7f1d1d;color:#fecaca;border:1px solid var(--bad)}
+.t-vis{background:#450a0a;color:#fff;border:2px solid var(--bad);animation:p 1s infinite}
+.hb{height:8px;border-radius:99px;background:#1a2440;overflow:hidden;margin-top:3px}
+.hb i{display:block;height:100%;background:var(--acc)}
+.hb.red i{background:var(--bad)}
+.master{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 26px;display:flex;flex-direction:column;gap:16px;min-height:0;position:relative;overflow:hidden}
+.master.zer{border-color:var(--bad);box-shadow:0 0 0 1px var(--bad),0 0 40px #ef444433}
+.mh{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.mh h1{font-size:34px;font-weight:800;line-height:1.1}
+.mh .cod{color:var(--mut);font-size:16px}
+.badge{padding:4px 12px;border-radius:99px;font-size:13px;font-weight:800;letter-spacing:.05em}
+.b-bad{background:#ef444426;color:#fca5a5;border:1px solid var(--bad)}
+.b-mut{background:#8b9bbd22;color:var(--mut);border:1px solid #8b9bbd55}
+.b-ok{background:#22c55e22;color:#86efac;border:1px solid var(--ok)}
+.lances{background:#2a0a0a;border:1px solid var(--bad);border-radius:12px;padding:8px 14px;font-size:14px;display:flex;flex-direction:column;gap:3px}
+.sec{display:flex;flex-direction:column;gap:8px}
+.lab{display:flex;justify-content:space-between;align-items:baseline;color:var(--mut);font-size:14px;text-transform:uppercase;letter-spacing:.07em;gap:12px}
+.lab b{color:var(--tx);font-size:30px;letter-spacing:0;text-transform:none}
+.bar{height:22px;border-radius:99px;background:#1a2440;overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.leg{display:flex;gap:18px;font-size:13px;color:var(--mut);flex-wrap:wrap}
+.leg span:before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;background:var(--c)}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.kpi span{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.kpi b{display:block;font-size:30px;margin-top:4px}
+.kpi small{color:var(--mut);font-size:13px}
+.side{display:grid;grid-template-rows:repeat(5,1fr);gap:10px;min-height:0}
+.mini{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 16px;display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-content:center}
+.mini.zer{border-color:var(--bad)}
+.mini h3{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini .v{font-size:20px;font-weight:800;text-align:right}
+.mini .bar{height:9px;grid-column:1/3;margin-top:4px}
+.mini small{color:var(--mut);font-size:12px}
+.mini .r{text-align:right}
+.rota{display:flex;flex-direction:column;gap:4px;flex:1;min-height:0;overflow:hidden}
+.rota h4{font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.rt{display:grid;grid-template-columns:92px 1fr auto;gap:12px;align-items:center;padding:6px 10px;border-radius:10px;background:var(--card2);font-size:16px}
+.rt.pen{background:#2a0a0a;border:1px solid var(--bad)}
+.rt .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rt .n small{display:block;color:var(--mut);font-size:12px}
+.rt .d{color:var(--mut);font-size:14px;white-space:nowrap}
+.st{font-size:11px;font-weight:800;letter-spacing:.05em;padding:3px 8px;border-radius:6px;text-align:center}
+.s-v{background:#22c55e26;color:#86efac}.s-x{background:#f59e0b26;color:#fcd34d}.s-a{background:#8b9bbd22;color:var(--mut)}
+.supr{display:grid;grid-template-columns:1fr auto auto;gap:18px;align-items:center;padding:12px 20px;border-radius:12px;background:var(--card2);font-size:min(2.1vw,30px)}
+.supr.bad{background:#2a0a0a;border:2px solid var(--bad)}.supr.warn{border:1px solid var(--warn)}
+.chip{font-size:min(1.4vw,20px);font-weight:800;padding:6px 14px;border-radius:99px;white-space:nowrap}
+.c-ok{background:#22c55e26;color:#86efac}.c-no{background:var(--bad);color:#fff}
+.prog{position:absolute;left:0;bottom:0;height:4px;background:var(--acc);width:0}
+footer{padding:8px 22px 10px;border-top:1px solid var(--line);background:#0a1020;display:flex;gap:14px;align-items:center;font-size:15px}
+footer .tag{background:var(--warn);color:#1a1200;font-weight:800;padding:3px 10px;border-radius:6px;font-size:12px;letter-spacing:.06em}
+footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ctl{display:flex;gap:6px;opacity:.35;transition:opacity .2s}
+#ctl:hover{opacity:1}
+#ctl button{background:#1a2440;color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer}
+#ctl button.on{background:var(--acc);color:#04202e;font-weight:800}
+/* ===== VAR ===== */
+#ov{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:4vh 4vw;background:#000e}
+#ov.show{display:flex}
+#ov.f1{animation:fl .5s steps(2) infinite}
+@keyframes fl{0%{background:#7f1d1dee}50%{background:#000e}}
+#ov .big{font-size:min(15vw,240px);font-weight:900;color:#fff;letter-spacing:.04em;text-shadow:0 0 60px var(--bad);line-height:1}
+#ov .sub{font-size:min(3.4vw,46px);margin-top:2vh;color:#fecaca;font-weight:700}
+#ov .var{font-size:min(6vw,90px);font-weight:900;color:var(--acc);letter-spacing:.12em}
+#ov .scan{width:60vw;height:8px;background:#1a2440;margin-top:4vh;border-radius:9px;overflow:hidden}
+#ov .scan i{display:block;height:100%;width:30%;background:var(--acc);animation:sc 1s linear infinite}
+@keyframes sc{from{margin-left:-30%}to{margin-left:100%}}
+#ov .dec{background:var(--card);border:3px solid var(--bad);border-radius:24px;padding:3vh 3vw;width:min(1500px,92vw);text-align:left}
+#ov .dec h1{font-size:min(3.6vw,52px);color:#fff;margin-bottom:2vh}
+#ov .dec .ln{font-size:min(2.1vw,30px);padding:.7vh 0;border-bottom:1px solid var(--line);display:flex;gap:16px}
+#ov .dec .ln b{color:var(--mut);min-width:14ch;font-weight:600}
+#ov .dec .ln.hot span{color:#fca5a5;font-weight:800}
+#ov .dec.rev .ln{font-size:min(1.55vw,23px);padding:.5vh 0}#ov .dec.rev h1{font-size:min(3vw,44px);margin-bottom:1vh}#ov .dec.rev .vd{font-size:min(2vw,28px);margin-top:1vh}
+#ov .dec .vd{margin-top:2vh;font-size:min(2.4vw,34px);font-weight:800;color:#fca5a5}
+#ov small{margin-top:2vh;color:var(--mut);font-size:16px}
+@media(max-width:900px){#ronda,#painel{grid-template-columns:1fr;grid-template-rows:auto}.tot{grid-template-columns:repeat(2,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}.side{display:none}body{overflow:auto}}
+</style></head><body>
+<header>
+  <div class="rec"><i></i>CFTV AO VIVO</div>
+  <div class="fil"><span id="fil">—</span><small><span id="nv">0</span> vendedores com meta</small></div>
+  <span class="modo" id="modo">RONDA</span><span id="aviso" class="modo" style="display:none;background:#7f1d1d;color:#fecaca">LISTA MOSTRA INDISPONÍVEL</span>
+  <div class="sp"></div>
+  <div class="upd" id="upd">carregando…</div>
+  <div class="clock mono" id="clock"></div>
+</header>
+<section class="tot" id="tot"></section>
+<main>
+  <div id="ronda"><div class="master" id="master"></div><div class="side" id="side"></div></div>
+  <div id="painel">
+    <div class="panel" id="p1"></div><div class="panel" id="p2"></div>
+    <div class="panel" id="p3"></div><div class="panel" id="p4"></div>
+  </div>
+  <div class="panel" id="sup" style="display:none;flex:1;gap:10px"></div>
+</main>
+<footer>
+  <span class="tag">ALERTAS</span>
+  <span class="msg" id="alert">—</span>
+  <div id="ctl">
+    <button data-m="auto" class="on">Auto</button><button data-m="ronda">Ronda</button><button data-m="painel">Painel</button><button data-m="sup">Supervisores</button>
+    <button id="bfs">⛶ Tela cheia</button><button id="bsom">🔇 Som</button><button id="brev">Revisar 30 min</button><button id="bexp">Exportar diário</button>
+  </div>
+</footer>
+<div id="fshint" style="display:none;position:fixed;left:50%;bottom:54px;transform:translateX(-50%);background:#38bdf8;color:#04202e;font-weight:800;padding:8px 18px;border-radius:99px;z-index:50;font-size:15px">A TV foi atualizada · clique em qualquer lugar para voltar à tela cheia</div>
+<div id="ov"></div>
+<script>
+'use strict';
+// ============================== CONFIG ==============================
+const P = new URLSearchParams(location.search);
+const FIL = (P.get('filial') || '').toUpperCase();
+const VALID = ['TBL','TPH','TCV','ABC','TCA','MCD','TCG','API','TBE','TPA','TSJ'];
+const CICLO_S = +P.get('ciclo') || 90;          // atualização dos dados
+const BLOCO_MIN = +P.get('bloco') || 10;        // minutos por bloco na alternância
+const ROTA_S = +P.get('rotacao') || 10;         // segundos por vendedor na ronda
+const INICIO_H = 8, FIM_H = 19, LIMITE_H = 10;  // alternância 08h–19h; regras "10h"
+const DIAS_PENALTI = 30;
+const CAMPO = ['VJ','PET VJ'];                  // canais com cobrança de rota (regra de negócio)
+const EXCLUI = ['GER','SUP'];
+
+// ============================== UTIL ==============================
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = v => (typeof v === 'number' && isFinite(v)) ? v : null;
+const brl = v => num(v) == null ? '—' : 'R$ ' + Math.round(v).toLocaleString('pt-BR');
+const pc = v => num(v) == null ? '—' : (Math.round(v * 10) / 10).toLocaleString('pt-BR') + '%';
+const nv = v => num(v) == null ? '—' : v.toLocaleString('pt-BR');
+const fmtSP = new Intl.DateTimeFormat('en-GB', {timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+function sp(d) {
+  const o = {}; fmtSP.formatToParts(d || new Date()).forEach(p => o[p.type] = p.value);
+  const h = (+o.hour) % 24;
+  return {date: `${o.year}-${o.month}-${o.day}`, h, m: +o.minute, hms: `${String(h).padStart(2,'0')}:${o.minute}:${o.second}`, hm: `${String(h).padStart(2,'0')}:${o.minute}`};
+}
+function diasDesde(dataISO) {
+  if (!dataISO || +dataISO.slice(0, 4) < 2000) return null; // data ausente ou inválida (ex.: 1900) = sem data de compra
+  const a = Date.UTC(...sp().date.split('-').map((x,i)=>i===1?+x-1:+x));
+  const b = Date.UTC(...dataISO.split('-').map((x,i)=>i===1?+x-1:+x));
+  return Math.round((a - b) / 86400000);
+}
+const ddmm = iso => iso ? iso.slice(8,10) + '/' + iso.slice(5,7) : '—';
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+const HOJE0 = sp().date;
+const K = {seen:`ceven_tv_seen_${FIL}_`, log:`ceven_tv_log_${FIL}_`, snap:`ceven_tv_snap_${FIL}_`};
+(function limpaAntigos() { try { Object.keys(localStorage).forEach(k => { if (/^ceven_tv_(seen|log|snap)_/.test(k) && !k.endsWith(HOJE0)) localStorage.removeItem(k); }); } catch {} })();
+
+// ============================== ESTADO ==============================
+let REPS = [];            // [{id,nome,canal}]
+const DATA = {};          // id -> última leitura real (tv-vendedor)
+let lastOk = null, refreshing = false, ordem = [], idxRonda = 0, modoManual = ['auto','ronda','painel','sup'].includes(P.get('modo')) ? P.get('modo') : store.get('ceven_tv_modo', 'auto');
+const SUP_INI = 11 * 60 + 30, SUP_FIM = 12 * 60; // janela do alerta de supervisores (Brasília)
+let SUP = null;   // situação dos supervisores no dia (tv-supervisores)
+let ALERTAS = [];         // ativos agora
+let seen = new Set(store.get(K.seen + HOJE0, []));
+let LOG = store.get(K.log + HOJE0, []);
+let SNAP = store.get(K.snap + HOJE0, []);
+const primeiraCarga = seen.size === 0 && LOG.length === 0;
+let somOn = store.get('ceven_tv_som', false);
+
+// ============================== DADOS ==============================
+async function j(url, ms = 25000) {
+  const c = new AbortController(); const t = setTimeout(() => c.abort(), ms);
+  try { const r = await fetch(url, {signal: c.signal, cache: 'no-store'}); if (!r.ok) return null; return await r.json(); }
+  catch { return null; } finally { clearTimeout(t); }
+}
+const limpaNome = n => String(n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
+const norm = n => String(n || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z ]/g, '').replace(/\s+/g, ' ').trim();
+let listaMostra = false;
+async function carregaReps() {
+  // Fonte de verdade: planilha VENDEDORES AUDITADOS (aba MOSTRA_DISPAROS) -> só vendedor com MOSTRA = SIM
+  const m = await j('/mostra_vendedores.json?t=' + Date.now(), 15000);
+  const lista = m && m.filiais && m.filiais[FIL];
+  if (Array.isArray(lista) && lista.length) {
+    REPS = lista.filter(r => r.mostra && !EXCLUI.includes((r.canal || '').toUpperCase()))
+      .map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor)}));
+    listaMostra = true; $('aviso').style.display = 'none';
+    return REPS.length > 0;
+  }
+  // Sem a lista da planilha: usa o cadastro do sistema e AVISA na tela (pode mostrar contas que não deveriam aparecer)
+  listaMostra = false; $('aviso').style.display = 'inline-block';
+  const lst = await j(`/api/representantes?filial=${FIL}`);
+  if (!Array.isArray(lst)) return false;
+  const doFil = lst.filter(r => ((r.filial || '').toUpperCase() === FIL) || ((r.filial_id || '').toUpperCase().replace(/1$/, '') === FIL));
+  REPS = doFil.map(r => ({id: String(r.codigo), nome: limpaNome(r.nome), canal: (r.area_atuacao || '').toUpperCase(), sup: ''}))
+    .filter(r => !EXCLUI.includes(r.canal) && !/^VAGO/i.test(r.nome));
+  return REPS.length > 0;
+}
+const supLista = () => {
+  const todos = ((SUP && SUP.supervisores) || []).filter(x => !/GERENTE/i.test(x.nome));
+  const ok = new Set(REPS.map(r => norm(r.sup)).filter(Boolean)); // supervisores de vendedores que a planilha manda mostrar
+  const so = ok.size ? todos.filter(x => ok.has(norm(x.nome))) : todos;
+  return so.length ? so : todos;
+};
+const supPend = () => supLista().filter(x => !x.fez_compromisso || !x.iniciou_ret);
+async function carregaSup() {
+  const t = sp(), m = t.h * 60 + t.m;
+  if (!(m >= 11 * 60 && m <= 12 * 60 + 30) && modoManual !== 'sup') return; // só busca perto da janela (evita chamadas à toa)
+  const d = await j(`/api/tv-supervisores?filial=${FIL}`);
+  if (d && !d.erro && Array.isArray(d.supervisores)) { SUP = d; gatilhoSup(); }
+}
+function gatilhoSup() {
+  const t = sp(), m = t.h * 60 + t.m, k = 'sup|' + t.date;
+  if (m < SUP_INI || m >= SUP_FIM || seen.has(k)) return;
+  const pend = supPend(); if (!pend.length) return;
+  seen.add(k); store.set(K.seen + HOJE0, [...seen]);
+  LOG.push({t: t.hms, nivel: 'supervisor', vendedor: pend.length + ' supervisor(es) pendente(s)', filial: FIL, supervisores: pend.map(x => ({nome: x.nome, compromisso: x.fez_compromisso, ret: x.iniciou_ret}))}); store.set(K.log + HOJE0, LOG);
+  FILA.push({tipo: 'sup', lista: pend}); proximoVAR();
+}
+async function atualiza() {
+  if (refreshing) return; refreshing = true;
+  try {
+    if (!REPS.length && !(await carregaReps())) { $('upd').textContent = 'sem lista de vendedores'; $('upd').className = 'upd old'; return; }
+    const fila = [...REPS]; let ok = 0;
+    await Promise.all(Array.from({length: 6}, async () => {
+      while (fila.length) {
+        const r = fila.shift();
+        const d = await j(`/api/tv-vendedor?filial=${FIL}&id=${r.id}`);
+        if (d && !d.erro && !(d.falhas && d.falhas.length === 3)) {
+          if (!d.falhas || !d.falhas.length || !DATA[r.id]) DATA[r.id] = d; // leitura parcial só entra se não houver anterior
+          ok++;
+        }
+      }
+    }));
+    if (ok > 0) { lastOk = Date.now(); processa(); }
+    await carregaSup();
+  } finally { refreshing = false; render(); }
+}
+
+// ============================== DERIVADOS E ALERTAS ==============================
+function vend(r) {
+  const d = DATA[r.id] || {}; const cl = Array.isArray(d.clientes) ? d.clientes : null;
+  const st = s => cl ? cl.filter(c => s.includes(c.status)).length : null;
+  const feitas = cl ? cl.filter(c => !['AGENDADO', 'ABERTO'].includes(c.status)).length : null;
+  const comVenda = st(['POSITIVADO', 'EFETIVADO']);
+  const campo = CAMPO.includes(r.canal);
+  return {
+    id: r.id, nome: r.nome, canal: r.canal, sup: r.sup || '', campo, d, cl,
+    meta: num(d.meta_fat), fat: num(d.faturado), pend: num(d.pendente), dev: num(d.devolucao),
+    metaCli: num(d.meta_cli), realCli: num(d.real_cli), dig: num(d.dig_hoje), pos: num(d.pos_hoje),
+    rota: cl ? cl.length : null, feitas, comVenda, semVenda: st(['VISITADO']), aFazer: st(['AGENDADO', 'ABERTO']),
+    temRota: !!(cl && cl.length), tem: !!DATA[r.id]
+  };
+}
+const inclui = v => v.tem && ((v.meta || 0) > 0 || (v.metaCli || 0) > 0);
+function VS() { return REPS.map(vend).filter(inclui); }
+function calcAlertas(vs) {
+  const t = sp(), out = [];
+  const depois10 = t.h >= LIMITE_H && t.h < FIM_H;
+  vs.forEach(v => {
+    if (!v.cl) return;
+    v.cl.forEach(c => {
+      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) || !c.motivo) return;
+      const m = c.motivo.toUpperCase(); const dias = diasDesde(c.ultima_compra);
+      const parado = dias == null || dias > DIAS_PENALTI;
+      if (!parado) return;
+      let tipo = null;
+      if (m.includes('ESTOQUE SUFICIENTE')) tipo = 'estoque';
+      else if (m.includes('FECHADO') || m.includes('ENCERROU')) tipo = 'fechado';
+      if (!tipo) return;
+      if (out.some(o => o.key === `pen|${tipo}|${v.id}|${c.id}`)) return; // mesmo cliente repetido na rota
+      out.push({key: `pen|${tipo}|${v.id}|${c.id}`, nivel: 'penalti', tipo, v, c, dias});
+    });
+    if (v.campo && v.temRota && depois10) {
+      if (v.feitas === 0) out.push({key: `vis10|${v.id}`, nivel: 'visita10', v});
+      else if (!(v.dig > 0) && !(v.pos > 0)) out.push({key: `ven10|${v.id}`, nivel: 'venda10', v});
+    }
+  });
+  return out;
+}
+const PESO = {visita10: 4, venda10: 3, penalti: 2};
+function processa() {
+  const vs = VS();
+  ALERTAS = calcAlertas(vs).sort((a, b) => PESO[b.nivel] - PESO[a.nivel]);
+  const novos = ALERTAS.filter(a => !seen.has(a.key));
+  if (novos.length) {
+    const t = sp();
+    // Se é a 1ª leitura do dia neste navegador, o que já existe é registrado sem VAR (não repete o que já aconteceu).
+    const aoLigar = primeiraCarga && !primeiraLeituraFeita;
+    novos.forEach(a => { seen.add(a.key); LOG.push(evento(a, t, aoLigar)); });
+    store.set(K.seen + HOJE0, [...seen]); store.set(K.log + HOJE0, LOG);
+    if (!aoLigar) enfileira(novos);
+  }
+  primeiraLeituraFeita = true;
+  snapshot(vs);
+}
+let primeiraLeituraFeita = false;
+function evento(a, t, aoLigar) {
+  const e = {t: t.hms, nivel: a.nivel, rca: a.v.id, vendedor: a.v.nome, filial: FIL};
+  if (a.nivel === 'penalti') Object.assign(e, {tipo: a.tipo, cliente: a.c.nome, id_cliente: a.c.id, motivo: a.c.motivo, obs: a.c.obs, dias_sem_compra: a.dias, ultima_compra: a.c.ultima_compra, valor_ultima_compra: a.c.valor_ultima, tempo_visita: a.c.tempo_visita, status_cliente: a.c.status});
+  else Object.assign(e, {rota: a.v.rota, feitas: a.v.feitas, digitado: a.v.dig, positivacoes: a.v.pos});
+  if (aoLigar) e.ao_ligar = true;
+  return e;
+}
+function snapshot(vs) {
+  const t = sp(); const ult = SNAP[SNAP.length - 1];
+  const cur = t.h * 60 + t.m;
+  if (ult && cur - (ult.min || 0) < 10 && ult.data === t.date) return;
+  const campo = vs.filter(v => v.campo && v.temRota);
+  const s = (a, f) => a.reduce((x, v) => x + (f(v) || 0), 0);
+  SNAP.push({data: t.date, hora: t.hm, min: cur, faturado: s(vs, v => v.fat), pendente: s(vs, v => v.pend), digitado_hoje: s(vs, v => v.dig), positivacoes_hoje: s(vs, v => v.pos),
+    visitas_feitas: s(campo, v => v.feitas), visitas_rota: s(campo, v => v.rota), campo_com_rota: campo.length,
+    zerados: campo.filter(v => !(v.dig > 0) && !(v.pos > 0)).length, sem_visita: campo.filter(v => v.feitas === 0).length,
+    alertas_ativos: ALERTAS.length, por_vendedor: vs.map(v => ({rca: v.id, dig: v.dig, pos: v.pos, feitas: v.feitas, rota: v.rota}))});
+  store.set(K.snap + HOJE0, SNAP);
+}
+
+// ============================== VAR (overlay) ==============================
+const FILA = []; let emVAR = false;
+function enfileira(novos) {
+  novos.filter(a => a.nivel === 'penalti').forEach(a => FILA.push({tipo: 'penalti', a}));
+  ['visita10', 'venda10'].forEach(n => { const l = novos.filter(a => a.nivel === n); if (l.length) FILA.push({tipo: n, l}); });
+  proximoVAR();
+}
+function beep(seq) {
+  if (!somOn) return;
+  try {
+    const C = new (window.AudioContext || window.webkitAudioContext)(); let t = C.currentTime;
+    seq.forEach(([f, d]) => { const o = C.createOscillator(), g = C.createGain(); o.frequency.value = f; o.type = 'square'; g.gain.value = .12; o.connect(g); g.connect(C.destination); o.start(t); o.stop(t + d); t += d + .05; });
+  } catch {}
+}
+function linhas(o) { return Object.entries(o).filter(([, v]) => v != null && v !== '').map(([k, v]) => `<div class="ln${String(v).startsWith('!') ? ' hot' : ''}"><b>${esc(k)}</b><span>${esc(String(v).replace(/^!/, ''))}</span></div>`).join(''); }
+function telaVAR(item) {
+  let titulo, sub, dec, veredito, cls = 'f1';
+  if (item.tipo === 'sup') {
+    titulo = '📋 SUPERVISORES'; sub = `${LIMITE_SUP_TXT}: ${item.lista.length} sem matinal e/ou rota (RET)`;
+    dec = item.lista.slice(0, 8).map(x => `<div class="ln${!x.fez_compromisso && !x.iniciou_ret ? ' hot' : ''}"><b>${esc(x.nome)}</b><span>Compromisso ${x.fez_compromisso ? '✅' : '❌ não lançado'} · RET ${x.iniciou_ret ? '✅' : '❌ não iniciou'}</span></div>`).join('') + (item.lista.length > 8 ? `<div class="ln"><b>+${item.lista.length - 8}</b><span>outros</span></div>` : '');
+    veredito = 'Esta lista fica em destaque na tela até as 12:00.';
+  } else if (item.tipo === 'revisao') {
+    const l = item.lista, n = l.length;
+    titulo = '🔎 REVISÃO DO VAR'; sub = '';
+    dec = n ? l.slice(-7).reverse().map(linhaRevisao).join('') + (n > 7 ? `<div class="ln"><b>+${n - 7}</b><span>lances mais antigos nesta janela</span></div>` : '')
+            : '<div class="ln"><b>—</b><span>Nenhum lance nos últimos 30 minutos.</span></div>';
+    veredito = n ? `${n} lance(s) nos últimos 30 minutos.` : 'Tudo tranquilo nos últimos 30 minutos.';
+  } else if (item.tipo === 'penalti') {
+    const {v, c, dias, tipo} = item.a;
+    titulo = '🚨 PÊNALTI'; sub = `${v.nome} · ${tipo === 'estoque' ? 'justificou "ESTOQUE SUFICIENTE"' : 'justificou cliente fechado'} em cliente parado`;
+    const tv = c.tempo_visita;
+    dec = linhas({'Vendedor': `${v.nome} (RCA ${v.id})`, 'Cliente': c.nome, 'Justificativa': '!' + c.motivo, 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c.ultima_compra)}${c.valor_ultima > 0 ? ', ' + brl(c.valor_ultima) : ''})` : 'sem compra registrada'),
+      'Tempo na visita': tv ? (tv === '00:00' ? '!' + tv + ' (visita de 0 minuto)' : tv) : null, 'Observação': c.obs});
+    veredito = 'Lance para revisão do supervisor: cliente parado + justificativa que não explica a ausência de compra.';
+  } else if (item.tipo === 'venda10') {
+    titulo = '🟥 CARTÃO VERMELHO'; sub = `${LIMITE_H}h e ${item.l.length} vendedor(es) COM ROTA e SEM NENHUMA VENDA`; cls = 'f1';
+    dec = item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${esc(a.v.nome)}</b><span>${a.v.feitas}/${a.v.rota} visitas · digitado ${brl(a.v.dig)}</span></div>`).join('') + (item.l.length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
+    veredito = 'Nenhuma venda registrada até agora.';
+  } else {
+    titulo = '⛔ EXPULSÃO'; sub = `${LIMITE_H}h e ${item.l.length} vendedor(es) COM ROTA e SEM NENHUMA VISITA`;
+    dec = item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${esc(a.v.nome)}</b><span>0/${a.v.rota} visitas — nenhum cliente da rota visitado</span></div>`).join('') + (item.l.length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
+    veredito = 'Nenhuma visita registrada. Verificar se o vendedor está em campo.';
+  }
+  return {titulo, sub, dec, veredito, cls};
+}
+function proximoVAR() {
+  if (emVAR || !FILA.length) return;
+  emVAR = true; const item = FILA.shift(); const T = telaVAR(item); const ov = $('ov');
+  const fecha = () => { clearInterval(ov._i); ov.className = ''; ov.innerHTML = ''; emVAR = false; setTimeout(proximoVAR, 400); };
+  ov.onclick = () => { clearTimeout(ov._t1); clearTimeout(ov._t2); clearTimeout(ov._t3); fecha(); };
+  const T_TOTAL = 60; // segundos que o lance fica na tela (ou até clicar)
+  const t0 = Date.now();
+  const mostraDecisao = () => { ov.className = 'show'; ov.innerHTML = `<div class="dec${item.tipo === 'revisao' ? ' rev' : ''}"><h1>${esc(T.titulo)}${item.tipo === 'revisao' ? '' : ' · DECISÃO DO VAR'}</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
+    ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha sozinho em ${Math.max(0, T_TOTAL - Math.round((Date.now() - t0) / 1000))}s`; }, 500); };
+  if (item.tipo === 'revisao') { mostraDecisao(); ov._t3 = setTimeout(fecha, T_TOTAL * 1000); return; }
+  ov.className = 'show ' + T.cls; ov.innerHTML = `<div class="big">${esc(T.titulo)}</div><div class="sub">${esc(T.sub)}</div>`; beep([[880, .25], [660, .25], [880, .5]]);
+  ov._t1 = setTimeout(() => { ov.className = 'show'; ov.innerHTML = `<div class="var">VAR</div><div class="sub">REVISANDO O LANCE…</div><div class="scan"><i></i></div>`; beep([[440, .15], [440, .15]]); }, 3000);
+  ov._t2 = setTimeout(() => { ov.innerHTML = `<div class="dec"><h1>${esc(T.titulo)} · DECISÃO DO VAR</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
+    ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha sozinho em ${Math.max(0, T_TOTAL - Math.round((Date.now() - t0) / 1000))}s`; }, 500); }, 5800);
+  ov._t3 = setTimeout(fecha, T_TOTAL * 1000);
+}
+const secDe = hms => { const [h, m, x] = String(hms || '0:0:0').split(':').map(Number); return h * 3600 + m * 60 + (x || 0); };
+function revisar() {
+  const agora = secDe(sp().hms), lista = LOG.filter(e => { const d = agora - secDe(e.t); return d >= 0 && d <= 1800; });
+  FILA.push({tipo: 'revisao', lista}); proximoVAR();
+}
+const LIMITE_SUP_TXT = '11:30';
+const NOME_NIVEL = {penalti: 'PÊNALTI', venda10: 'CARTÃO VERMELHO', visita10: 'EXPULSÃO', supervisor: 'SUPERVISORES'};
+function linhaRevisao(e) {
+  const det = e.nivel === 'penalti' ? `${e.cliente || 'cliente'} · ${e.motivo || ''}${e.dias_sem_compra != null ? ' · ' + e.dias_sem_compra + 'd s/ compra' : ''}` : (e.nivel === 'venda10' ? 'sem nenhuma venda às 10h' : e.nivel === 'supervisor' ? 'pendentes de matinal/RET' : 'sem nenhuma visita às 10h');
+  return `<div class="ln hot"><b>${esc((e.t || '').slice(0, 5))} ${NOME_NIVEL[e.nivel] || ''}</b><span>${esc(e.vendedor)} — ${esc(det)}${e.ao_ligar ? ' (já existia ao ligar a TV)' : ''}</span></div>`;
+}
+
+// ============================== RENDER ==============================
+const seg = v => { const m = v.meta || 0; if (!m) return ''; const f = Math.max(v.fat || 0, 0) / m * 100, p = Math.max(v.pend || 0, 0) / m * 100; const fw = Math.min(f, 100);
+  return `<i style="width:${fw}%;background:var(--ok)"></i><i style="width:${Math.min(p, 100 - fw)}%;background:var(--pend)"></i>`; };
+const zerado = v => v.campo && v.temRota && !(v.dig > 0) && !(v.pos > 0);
+const alertasDe = id => ALERTAS.filter(a => a.v.id === id);
+function montaOrdem(vs) {
+  return [...vs].sort((a, b) => (Math.max(0, ...alertasDe(b.id).map(x => PESO[x.nivel])) - Math.max(0, ...alertasDe(a.id).map(x => PESO[x.nivel]))) || (zerado(b) - zerado(a)) || ((b.dig || 0) - (a.dig || 0))).map(v => v.id);
+}
+function tagAlerta(a) { return a.nivel === 'penalti' ? '<span class="tg t-pen">PÊNALTI</span>' : a.nivel === 'venda10' ? '<span class="tg t-ven">SEM VENDA</span>' : '<span class="tg t-vis">SEM VISITA</span>'; }
+function textoAlerta(a) {
+  if (a.nivel === 'penalti') return `${a.c.nome || 'cliente'} · ${a.tipo === 'estoque' ? 'ESTOQUE SUFICIENTE' : 'CLIENTE FECHADO'} · ${a.dias != null ? a.dias + ' dias sem compra' : 'sem compra registrada'}`;
+  if (a.nivel === 'venda10') return `${a.v.feitas}/${a.v.rota} visitas · nenhuma venda às ${LIMITE_H}h`;
+  return `0/${a.v.rota} visitas · nenhum cliente visitado às ${LIMITE_H}h`;
+}
+function renderTotais(vs) {
+  const campo = vs.filter(v => v.campo && v.temRota); const s = (a, f) => a.reduce((x, v) => x + (f(v) || 0), 0);
+  $('tot').innerHTML = [['Faturado no mês', brl(s(vs, v => v.fat))], ['Meta do mês', brl(s(vs, v => v.meta))], ['Digitado hoje', brl(s(vs, v => v.dig))], ['Positivações hoje', nv(s(vs, v => v.pos))],
+    ['Visitas feitas / rota', s(campo, v => v.feitas) + ' / ' + s(campo, v => v.rota)], ['Zerados hoje', campo.filter(zerado).length + ' de ' + campo.length]]
+    .map(([l, v]) => `<div><span>${l}</span><b class="mono">${v}</b></div>`).join('');
+  $('nv').textContent = vs.length;
+}
+function rotaHtml(v) {
+  if (!v.cl || !v.cl.length) return '';
+  const pen = new Set(alertasDe(v.id).filter(a => a.c).map(a => String(a.c.id)));
+  const peso = c => pen.has(String(c.id)) ? 0 : c.status === 'VISITADO' ? 1 : ['POSITIVADO', 'EFETIVADO'].includes(c.status) ? 2 : 3;
+  const rows = [...v.cl].sort((a, b) => peso(a) - peso(b)).slice(0, 8).map(c => {
+    const venda = ['POSITIVADO', 'EFETIVADO'].includes(c.status), fez = c.status === 'VISITADO';
+    const dias = diasDesde(c.ultima_compra);
+    return `<div class="rt${pen.has(String(c.id)) ? ' pen' : ''}"><span class="st ${venda ? 's-v' : fez ? 's-x' : 's-a'}">${venda ? 'VENDEU' : fez ? 'VISITOU' : 'A FAZER'}</span>
+      <div class="n">${esc(c.nome || 'cliente')}${c.motivo ? `<small>${esc(c.motivo)}${c.tempo_visita ? ' · ' + esc(c.tempo_visita) + ' na visita' : ''}</small>` : ''}</div>
+      <span class="d mono">${dias != null ? dias + 'd s/ compra' : 'sem compra'}</span></div>`;
+  }).join('');
+  return `<div class="rota"><h4>Rota de hoje · ${v.cl.length} clientes</h4>${rows}${v.cl.length > 8 ? `<div style="color:var(--mut);font-size:13px">+${v.cl.length - 8} clientes</div>` : ''}</div>`;
+}
+function renderMaster(v) {
+  const el = $('master'); if (!v) { el.innerHTML = '<div style="color:var(--mut);font-size:22px">Aguardando dados do CEVEN…</div>'; return; }
+  const zer = zerado(v), al = alertasDe(v.id);
+  el.className = 'master' + (zer || al.length ? ' zer' : '');
+  const badge = zer ? '<span class="badge b-bad">ZERADO HOJE</span>' : (!v.temRota ? '<span class="badge b-mut">SEM ROTA HOJE</span>' : (v.pos > 0 ? '<span class="badge b-ok">VENDENDO</span>' : ''));
+  const cliPct = v.metaCli ? Math.min((v.realCli || 0) / v.metaCli * 100, 100) : 0;
+  const lances = al.length ? `<div class="lances">${al.slice(0, 3).map(a => `<div>${tagAlerta(a)} ${esc(textoAlerta(a))}</div>`).join('')}${al.length > 3 ? `<div style="color:var(--mut)">+${al.length - 3} lances</div>` : ''}</div>` : '';
+  el.innerHTML = `<div class="mh"><h1>${esc(v.nome)}</h1><span class="cod mono">RCA ${esc(v.id)} · ${esc(v.canal || '—')}${v.sup ? ' · Sup. ' + esc(v.sup) : ''}</span>${badge}</div>${lances}
+  <div class="sec"><div class="lab"><span>Faturamento do mês</span><b class="mono">${brl(v.fat)} <span style="font-size:17px;color:var(--mut)">de ${brl(v.meta)}</span></b></div><div class="bar">${seg(v)}</div>
+   <div class="leg"><span style="--c:var(--ok)">Faturado ${v.meta ? pc((v.fat || 0) / v.meta * 100) : '—'}</span><span style="--c:var(--pend)">Pendente ${brl(v.pend)}</span></div></div>
+  <div class="sec"><div class="lab"><span>Positivação do mês</span><b class="mono">${nv(v.realCli)} <span style="font-size:17px;color:var(--mut)">de ${nv(v.metaCli)} clientes · faltam ${v.metaCli == null ? '—' : Math.max(v.metaCli - (v.realCli || 0), 0)}</span></b></div><div class="bar"><i style="width:${cliPct}%;background:var(--acc)"></i></div></div>
+  <div class="grid4">
+   <div class="kpi"><span>Digitado hoje</span><b class="mono">${brl(v.dig)}</b><small>${nv(v.pos)} positivações</small></div>
+   <div class="kpi"><span>Visitas hoje</span><b class="mono">${nv(v.feitas)} / ${nv(v.rota)}</b><small>${nv(v.comVenda)} com venda · ${nv(v.aFazer)} a fazer</small></div>
+   <div class="kpi"><span>Devoluções no mês</span><b class="mono" style="color:${v.dev > 0 ? 'var(--warn)' : 'inherit'}">${brl(v.dev)}</b><small>acumulado do mês</small></div>
+   <div class="kpi"><span>Visitou e não vendeu</span><b class="mono">${nv(v.semVenda)}</b><small>na rota de hoje</small></div>
+  </div>${rotaHtml(v)}<div class="prog" id="prog"></div>`;
+  const p = $('prog'); p.style.transition = 'none'; p.style.width = '0';
+  requestAnimationFrame(() => requestAnimationFrame(() => { p.style.transition = `width ${ROTA_S}s linear`; p.style.width = '100%'; }));
+}
+function renderSide(vs, cur) {
+  const nx = []; for (let i = 1; i <= 5 && i < ordem.length; i++) { const v = vs.find(x => x.id === ordem[(cur + i) % ordem.length]); if (v) nx.push(v); }
+  $('side').innerHTML = nx.map(v => `<div class="mini${zerado(v) || alertasDe(v.id).length ? ' zer' : ''}"><h3>${esc(v.nome)}</h3><div class="v mono">${brl(v.dig)}</div>
+   <small>${alertasDe(v.id).length ? '<b style="color:#fca5a5">' + alertasDe(v.id).length + ' LANCE(S)</b> · ' : (zerado(v) ? '<b style="color:#fca5a5">ZERADO</b> · ' : '')}${v.temRota ? nv(v.feitas) + '/' + nv(v.rota) + ' visitas' : 'sem rota'} · ${nv(v.pos)} pos.</small>
+   <small class="r mono">mês ${brl(v.fat)} / ${brl(v.meta)}</small><div class="bar">${seg(v)}</div></div>`).join('');
+}
+function renderPainel(vs) {
+  const top = ALERTAS.slice(0, 8);
+  $('p1').innerHTML = `<h2><span>Alertas ativos</span><b>${ALERTAS.length}</b></h2>` + (top.length ? top.map(a => `<div class="row">${tagAlerta(a)}<div class="n">${esc(a.v.nome)}<small>${esc(textoAlerta(a))}</small></div><span></span></div>`).join('') + (ALERTAS.length > 8 ? `<div class="row"><span></span><div class="n" style="color:var(--mut)">+${ALERTAS.length - 8} alertas</div><span></span></div>` : '') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Nenhum alerta ativo.</div>');
+  const cont = {}; vs.forEach(v => (v.cl || []).forEach(c => { if (c.motivo) cont[c.motivo] = (cont[c.motivo] || 0) + 1; }));
+  const ms = Object.entries(cont).sort((a, b) => b[1] - a[1]).slice(0, 8), mx = ms.length ? ms[0][1] : 1, tot = Object.values(cont).reduce((a, b) => a + b, 0);
+  $('p2').innerHTML = `<h2><span>Justificativas de hoje</span><b>${tot}</b></h2>` + (ms.length ? ms.map(([m, n]) => { const red = /ESTOQUE SUFICIENTE|FECHADO|ENCERROU/.test(m); return `<div><div class="row" style="border:0;grid-template-columns:1fr auto"><div class="n">${esc(m)}</div><b class="mono">${n}</b></div><div class="hb${red ? ' red' : ''}"><i style="width:${n / mx * 100}%"></i></div></div>`; }).join('') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Nenhuma justificativa registrada hoje.</div>');
+  const rk = [...vs].filter(v => v.dig > 0).sort((a, b) => b.dig - a.dig).slice(0, 8), mr = rk.length ? rk[0].dig : 1;
+  $('p3').innerHTML = `<h2><span>Digitado hoje · ranking</span><b>${brl(vs.reduce((x, v) => x + (v.dig || 0), 0))}</b></h2>` + (rk.length ? rk.map((v, i) => `<div><div class="row" style="border:0;grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${esc(v.nome)}</div><b class="mono">${brl(v.dig)}</b></div><div class="hb"><i style="width:${v.dig / mr * 100}%"></i></div></div>`).join('') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Ninguém digitou ainda hoje.</div>');
+  const dv = [...vs].filter(v => v.dev > 0).sort((a, b) => b.dev - a.dev).slice(0, 8), md = dv.length ? dv[0].dev : 1;
+  $('p4').innerHTML = `<h2><span>Devoluções no mês</span><b>${brl(vs.reduce((x, v) => x + (v.dev || 0), 0))}</b></h2>` + (dv.length ? dv.map(v => `<div><div class="row" style="border:0;grid-template-columns:1fr auto"><div class="n">${esc(v.nome)}</div><b class="mono" style="color:var(--warn)">${brl(v.dev)}</b></div><div class="hb"><i style="width:${v.dev / md * 100}%;background:var(--warn)"></i></div></div>`).join('') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Sem devoluções no mês.</div>');
+}
+function renderSup() {
+  const el = $('sup'), lista = supLista();
+  if (!SUP) { el.innerHTML = '<h2><span>Supervisores · matinal e rota (RET)</span></h2><div style="color:var(--mut);font-size:24px;padding:20px 0">Aguardando dados dos supervisores…</div>'; return; }
+  const peso = x => (!x.fez_compromisso && !x.iniciou_ret) ? 0 : (!x.fez_compromisso || !x.iniciou_ret) ? 1 : 2;
+  const ord = [...lista].sort((a, b) => peso(a) - peso(b) || a.nome.localeCompare(b.nome));
+  const t = sp(), restam = Math.max(0, SUP_FIM - (t.h * 60 + t.m));
+  el.innerHTML = `<h2><span>Supervisores · matinal (compromisso) e rota (RET)</span><b>${supPend().length} pendente(s) de ${lista.length}${restam && (t.h * 60 + t.m) >= SUP_INI ? ' · em destaque até 12:00 (' + restam + ' min)' : ''}</b></h2>` +
+    ord.map(x => `<div class="supr ${peso(x) === 0 ? 'bad' : peso(x) === 1 ? 'warn' : ''}"><span>${esc(x.nome)}</span><span class="chip ${x.fez_compromisso ? 'c-ok' : 'c-no'}">${x.fez_compromisso ? '✅ Compromisso' : '❌ Sem compromisso'}</span><span class="chip ${x.iniciou_ret ? 'c-ok' : 'c-no'}">${x.iniciou_ret ? '✅ Em rota (RET)' : '❌ RET não iniciou'}</span></div>`).join('');
+}
+function modoAtual() {
+  const tt = sp(), mm = tt.h * 60 + tt.m;
+  if (modoManual === 'auto' && mm >= SUP_INI && mm < SUP_FIM && supPend().length) return 'sup'; // 11:30–12:00: supervisores em destaque
+  if (modoManual !== 'auto') return modoManual;
+  const t = sp(), min = t.h * 60 + t.m - INICIO_H * 60;
+  if (min < 0 || t.h >= FIM_H) return 'ronda';
+  return Math.floor(min / BLOCO_MIN) % 2 === 0 ? 'ronda' : 'painel';
+}
+let modoVisivel = null;
+function render() {
+  const vs = VS(); renderTotais(vs);
+  const m = modoAtual(); $('modo').textContent = ({ronda: 'RONDA', painel: 'PAINEL', sup: 'SUPERVISORES'}[m]) + (modoManual === 'auto' ? ' · AUTO' : '');
+  $('ronda').style.display = m === 'ronda' ? 'grid' : 'none'; $('painel').style.display = m === 'painel' ? 'grid' : 'none'; $('sup').style.display = m === 'sup' ? 'flex' : 'none';
+  if (m === 'painel') renderPainel(vs);
+  else if (m === 'sup') renderSup();
+  else { const vazia = !ordem.length; ordem = ordem.filter(id => vs.some(v => v.id === id)); vs.forEach(v => { if (!ordem.includes(v.id)) ordem.push(v.id); }); if (m !== modoVisivel || vazia) { ordem = montaOrdem(vs); idxRonda = 0; } mostraRonda(vs); }
+  modoVisivel = m;
+  const camp = vs.filter(v => v.campo && v.temRota);
+  $('alert').textContent = ALERTAS.length ? `${ALERTAS.length} alerta(s) ativo(s): ` + ALERTAS.slice(0, 3).map(a => `${a.nivel === 'penalti' ? 'PÊNALTI' : a.nivel === 'venda10' ? 'SEM VENDA' : 'SEM VISITA'} ${a.v.nome.split(' ')[0]}`).join(' · ') + (ALERTAS.length > 3 ? ' …' : '') + ` · lances do dia: ${LOG.length}`
+    : (camp.length ? `Nenhum alerta ativo · ${camp.filter(zerado).length} zerado(s) · lances do dia: ${LOG.length}` : `Sem rota de campo hoje · lances do dia: ${LOG.length}`);
+}
+let rondaTimer = null;
+function mostraRonda(vs) {
+  if (!ordem.length) { renderMaster(null); $('side').innerHTML = ''; return; }
+  const v = vs.find(x => x.id === ordem[idxRonda % ordem.length]); renderMaster(v); renderSide(vs, idxRonda % ordem.length);
+}
+function avancaRonda() { if (modoAtual() !== 'ronda' || !ordem.length) return; idxRonda = (idxRonda + 1) % ordem.length; if (idxRonda === 0) ordem = montaOrdem(VS()); mostraRonda(VS()); }
+
+// ============================== DIÁRIO ==============================
+function exportar() {
+  const vs = VS();
+  const doc = {filial: FIL, data: HOJE0, exportado_em: sp().hms, lances: LOG, snapshots: SNAP, supervisores: SUP, alertas_ativos: ALERTAS.map(a => ({nivel: a.nivel, rca: a.v.id, vendedor: a.v.nome, cliente: a.c && a.c.nome, motivo: a.c && a.c.motivo, dias: a.dias})),
+    vendedores_agora: vs.map(v => ({rca: v.id, nome: v.nome, canal: v.canal, meta: v.meta, faturado: v.fat, pendente: v.pend, devolucao: v.dev, meta_cli: v.metaCli, real_cli: v.realCli, digitado_hoje: v.dig, positivacoes_hoje: v.pos, rota: v.rota, feitas: v.feitas, com_venda: v.comVenda,
+      justificativas: (v.cl || []).filter(c => c.motivo).map(c => ({cliente: c.nome, motivo: c.motivo, status: c.status, ultima_compra: c.ultima_compra, tempo_visita: c.tempo_visita}))}))};
+  const txt = JSON.stringify(doc, null, 2);
+  try { const b = new Blob([txt], {type: 'application/json'}), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `diario_tv_${FIL}_${HOJE0}.json`; document.body.appendChild(a); a.click(); a.remove(); } catch {}
+  try { navigator.clipboard && navigator.clipboard.writeText(txt); } catch {}
+}
+
+// ============================== INÍCIO ==============================
+function relogio() {
+  $('clock').textContent = sp().hms;
+  if (lastOk) { const min = Math.floor((Date.now() - lastOk) / 60000); const u = $('upd'); u.textContent = 'dados de ' + sp(new Date(lastOk)).hms; u.className = 'upd' + (min >= 5 ? ' old' : ''); if (min >= 5) u.textContent = `SEM ATUALIZAR HÁ ${min} MIN`; }
+  if (modoAtual() !== modoVisivel) render();
+  if (precisaRecarregar && !emVAR && !FILA.length) location.reload(); // atualização automática, sem interromper um lance
+}
+function ctl() {
+  const marca = () => document.querySelectorAll('#ctl [data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === modoManual));
+  document.querySelectorAll('#ctl [data-m]').forEach(b => b.onclick = () => { modoManual = b.dataset.m; store.set('ceven_tv_modo', modoManual); marca(); idxRonda = 0; render(); });
+  $('bsom').textContent = somOn ? '🔊 Som' : '🔇 Som'; $('bsom').onclick = () => { somOn = !somOn; store.set('ceven_tv_som', somOn); $('bsom').textContent = somOn ? '🔊 Som' : '🔇 Som'; beep([[660, .15]]); };
+  $('brev').onclick = revisar;
+  const fs = () => { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch {} };
+  const raiz = () => { try { return window.top.document; } catch { return document; } };
+  const alterna = () => { const d = raiz(); store.set('ceven_tv_fs', !d.fullscreenElement); try { d.fullscreenElement ? d.exitFullscreen() : d.documentElement.requestFullscreen(); } catch {} };
+  $('bfs').onclick = alterna; document.addEventListener('keydown', e => { if (e.key === 'f' || e.key === 'F') alterna(); });
+  if (window.top === window && store.get('ceven_tv_fs', false) && !document.fullscreenElement) { const h = $('fshint'); h.style.display = 'block'; const volta = () => { try { document.documentElement.requestFullscreen(); } catch {} h.style.display = 'none'; removeEventListener('pointerdown', volta); removeEventListener('keydown', volta); }; addEventListener('pointerdown', volta); addEventListener('keydown', volta); }
+  raiz().addEventListener('fullscreenchange', () => { $('bfs').textContent = raiz().fullscreenElement ? '⛶ Sair da tela cheia' : '⛶ Tela cheia'; }); $('bexp').onclick = exportar; marca();
+}
+let versao = null;
+async function checaVersao() { const d = await j('/api/version', 8000); if (d && d.version) { if (versao && versao !== d.version && window.top === window) precisaRecarregar = true; else if (!versao) versao = d.version; } }
+let precisaRecarregar = false;
+if (!VALID.includes(FIL)) {
+  document.body.innerHTML = '<div style="padding:60px;font-size:28px">Link inválido. Use <b>?filial=</b> com uma das siglas: ' + VALID.join(', ') + '</div>';
+} else {
+  document.title = `CEVEN CFTV — ${FIL}`; $('fil').textContent = 'FILIAL ' + FIL; ctl(); relogio();
+  setInterval(relogio, 1000); setInterval(avancaRonda, ROTA_S * 1000);
+  atualiza(); setInterval(atualiza, CICLO_S * 1000); setInterval(checaVersao, 30000); checaVersao();
+  window.__tv = {ocupado: () => emVAR || FILA.length > 0, DATA, get ALERTAS() { return ALERTAS; }, get LOG() { return LOG; }, get SNAP() { return SNAP; }, VS, calcAlertas, revisar, exportar};
+}
+</script></body></html>
