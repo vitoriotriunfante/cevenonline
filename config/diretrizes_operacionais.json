@@ -1,23 +1,23 @@
 {
   "versao": "1.0",
   "descricao": "Diretrizes Operacionais Diárias do CEVEN NOC — Parametrização Dinâmica de Campo",
-  "data_vigencia": "2026-09-23",
+  "data_vigencia": "2026-09-24",
   "cnae_foco": {
-    "codigo": "4639",
-    "descricao": "Comércio atacadista de produtos alimentícios em geral",
-    "justificativa": "Rotação automática seg-sex — CNAE nacional #3 entre os 5 candidatos com amostra >= 20 (132 clientes na amostra nacional).",
+    "codigo": "4712",
+    "descricao": "Comércio varejista de mercadorias em geral, com predominância de produtos alimentícios - minimercados, mercearias e armazéns",
+    "justificativa": "Rotação automática seg-sex — CNAE nacional #4 entre os 5 candidatos com amostra >= 20 (126 clientes na amostra nacional).",
     "ratios_por_filial": {
-      "TBE": 4,
-      "TSJ": 1.08,
-      "MCD": 1.04,
-      "TPH": 1.75,
-      "TCG": 1,
-      "TPA": 1.08,
-      "API": 2.04,
-      "TCV": 1.25,
+      "TBE": 1,
+      "TSJ": 4,
+      "MCD": 2.73,
+      "TPH": 2.73,
+      "TCG": 1.45,
+      "TPA": 1.36,
+      "API": 2.18,
+      "TCV": 1.55,
       "ABC": 1,
-      "TCA": 1.08,
-      "TBL": 1.17
+      "TCA": 3.36,
+      "TBL": 1.09
     }
   },
   "produtos_foco": [
