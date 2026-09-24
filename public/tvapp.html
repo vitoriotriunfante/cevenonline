@@ -488,6 +488,103 @@ function linhaRevisao(e) {
   return `<div class="ln hot"><b>${esc((e.t || '').slice(0, 5))} ${NOME_NIVEL[e.nivel] || ''}</b><span>${esc(e.vendedor)} — ${esc(det)}${e.ao_ligar ? ' (já existia ao ligar a TV)' : ''}</span></div>`;
 }
 
+// ============================== ANIMAÇÃO DO PÊNALTI (mini jogo em canvas) ==============================
+// Cena de ~7 s: o CLIENTE (camisa azul, com o nome dele) dribla com a bola, o VENDEDOR (camisa vermelha) dá o carrinho,
+// o cliente cai, o juiz apita e aponta a marca do pênalti. Depois entra o "VAR revisando".
+const TORCIDA = (() => { const a = []; let x = 12345; const r = () => (x = (x * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  for (let i = 0; i < 900; i++) a.push({x: r(), y: 250 + r() * 260, c: ['#38bdf8', '#f59e0b', '#ef4444', '#e8eefc', '#22c55e', '#a78bfa'][Math.floor(r() * 6)], ph: r() * 6.28}); return a; })();
+const rr = (c, x, y, w, h, r) => { c.beginPath(); if (c.roundRect) c.roundRect(x, y, w, h, r); else c.rect(x, y, w, h); };
+function membro(c, x, y, ang, len, w, col) { c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'round'; c.beginPath(); c.moveTo(x, y); const ex = x + Math.sin(ang) * len, ey = y + Math.cos(ang) * len; c.lineTo(ex, ey); c.stroke(); return [ex, ey]; }
+function pessoa(c, o) {
+  c.save(); c.translate(o.x, o.y); if (o.rot) c.rotate(o.rot); c.scale(o.k, o.k);
+  const sw = Math.sin(o.fase || 0), pele = o.pele || '#f1c9a5'; let aL1 = .1, aL2 = -.1, aA1 = .2, aA2 = -.2;
+  if (o.pose === 'run') { aL1 = sw * .9; aL2 = -sw * .9; aA1 = -sw * .9; aA2 = sw * .9; }
+  else if (o.pose === 'slide') { aL1 = 1.35; aL2 = 1.1; aA1 = -1.3; aA2 = -.9; }
+  else if (o.pose === 'fall') { aL1 = .35; aL2 = -.3; aA1 = 2.5; aA2 = -2.4; }
+  else if (o.pose === 'protesto') { aL1 = .1; aL2 = -.1; aA1 = 2.7; aA2 = -2.7; }
+  else if (o.pose === 'aponta') { aA1 = o.alvo != null ? o.alvo : 1.35; }
+  const quadril = [0, -75], ombro = [0, -140];
+  const perna = (a, cor) => { const [ex, ey] = membro(c, quadril[0], quadril[1], a, 76, 17, cor); c.fillStyle = '#111'; c.beginPath(); c.ellipse(ex + 8, ey, 15, 8, 0, 0, 7); c.fill(); };
+  perna(aL2, pele); membro(c, ombro[0], ombro[1], aA2, 58, 13, pele);
+  c.fillStyle = o.camisa; rr(c, -26, -152, 52, 82, 10); c.fill();
+  if (o.num) { c.fillStyle = '#fff'; c.font = '900 34px Segoe UI'; c.textAlign = 'center'; c.fillText(o.num, 0, -100); }
+  c.fillStyle = o.calcao; c.fillRect(-26, -78, 52, 30);
+  perna(aL1, pele);
+  c.fillStyle = pele; c.beginPath(); c.arc(0, -176, 25, 0, 7); c.fill();
+  c.fillStyle = o.cabelo || '#2b1b10'; c.beginPath(); c.arc(0, -180, 25, Math.PI, 0); c.fill();
+  c.fillStyle = '#111'; c.beginPath(); c.arc(9, -174, 3, 0, 7); c.fill();
+  if (o.grito) { c.fillStyle = '#7a1f1f'; c.beginPath(); c.ellipse(12, -162, 6, 9, 0, 0, 7); c.fill(); }
+  if (o.pose === 'apito') { // mão na boca com o apito
+    c.strokeStyle = pele; c.lineWidth = 13; c.lineCap = 'round'; c.beginPath(); c.moveTo(0, -140); c.lineTo(24, -122); c.lineTo(20, -164); c.stroke();
+    c.fillStyle = '#e5e7eb'; c.beginPath(); c.arc(28, -164, 9, 0, 7); c.fill();
+  } else membro(c, ombro[0], ombro[1], aA1, o.pose === 'aponta' ? 74 : 58, 13, pele);
+  c.restore();
+}
+function bola(c, x, y, r, rot) { c.save(); c.translate(x, y); c.rotate(rot); c.fillStyle = '#fff'; c.beginPath(); c.arc(0, 0, r, 0, 7); c.fill(); c.strokeStyle = '#111'; c.lineWidth = 2; c.stroke(); c.fillStyle = '#111';
+  for (let i = 0; i < 5; i++) { c.beginPath(); c.arc(Math.cos(i * 1.2566) * r * .55, Math.sin(i * 1.2566) * r * .55, r * .2, 0, 7); c.fill(); } c.restore(); }
+function etiqueta(c, txt, x, y, cor) { c.font = '800 26px Segoe UI'; c.textAlign = 'center'; const w = c.measureText(txt).width + 26; c.fillStyle = 'rgba(0,0,0,.65)'; rr(c, x - w / 2, y - 26, w, 38, 12); c.fill(); c.strokeStyle = cor; c.lineWidth = 3; c.stroke(); c.fillStyle = '#fff'; c.fillText(txt, x, y + 2); }
+function desenhaCena(c, W, H, t, P) {
+  const S = H / 1080, ox = (W / S - 1920) / 2, LX = -ox, LW = 1920 + 2 * ox, CH = 940, K = 1.5;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, W, H); c.save(); c.scale(S, S); c.translate(ox, 0);
+  if (t > 4400 && t < 4900) c.translate((Math.random() - .5) * 10, (Math.random() - .5) * 10);
+  const g = c.createLinearGradient(0, 0, 0, 540); g.addColorStop(0, '#050a1a'); g.addColorStop(1, '#16264d'); c.fillStyle = g; c.fillRect(LX, 0, LW, 540);
+  for (const fx of [200, 700, 1200, 1700]) { c.fillStyle = 'rgba(255,255,220,.07)'; c.beginPath(); c.moveTo(fx - 30, 0); c.lineTo(fx + 30, 0); c.lineTo(fx + 230, 540); c.lineTo(fx - 230, 540); c.fill(); c.fillStyle = '#fffbe0'; c.fillRect(fx - 40, 18, 80, 14); }
+  c.fillStyle = '#0d1530'; c.fillRect(LX, 240, LW, 300);
+  for (const d of TORCIDA) { const px = LX + d.x * LW, pulo = t > 5000 ? Math.abs(Math.sin(t * .01 + d.ph)) * 9 : 0; c.globalAlpha = .4 + .35 * (.5 + .5 * Math.sin(t * .004 + d.ph)); c.fillStyle = d.c; c.fillRect(px, d.y - pulo, 9, 12);
+    if (Math.sin(t * .02 + d.ph * 9) > .987) { c.globalAlpha = .9; c.fillStyle = '#fff'; c.beginPath(); c.arc(px, d.y, 13, 0, 7); c.fill(); } }
+  c.globalAlpha = 1;
+  c.fillStyle = '#0f5a2b'; c.fillRect(LX, 540, LW, 540);
+  for (let i = -3; i < 16; i++) { c.fillStyle = i % 2 ? 'rgba(255,255,255,.045)' : 'rgba(0,0,0,.07)'; c.fillRect(i * 160, 540, 160, 540); }
+  c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 5; c.beginPath(); c.moveTo(LX, 575); c.lineTo(1920 + ox, 575); c.stroke();
+  c.beginPath(); c.moveTo(880, 575); c.lineTo(800, 1080); c.stroke();
+  c.lineWidth = 8; c.strokeRect(1560, 405, 300, 170); c.lineWidth = 1; c.strokeStyle = 'rgba(255,255,255,.3)';
+  for (let x = 1580; x < 1860; x += 20) { c.beginPath(); c.moveTo(x, 405); c.lineTo(x, 575); c.stroke(); } for (let y = 425; y < 575; y += 20) { c.beginPath(); c.moveTo(1560, y); c.lineTo(1860, y); c.stroke(); }
+  c.fillStyle = '#fff'; c.beginPath(); c.ellipse(1400, 880, 16, 6, 0, 0, 7); c.fill();
+  if (t > 5000) { const q = ((t - 5000) % 900) / 900; c.strokeStyle = `rgba(250,204,21,${1 - q})`; c.lineWidth = 6; c.beginPath(); c.ellipse(1400, 880, 16 + q * 70, 6 + q * 26, 0, 0, 7); c.stroke(); }
+  c.fillStyle = 'rgba(0,0,0,.3)'; // sombras
+  // ---- jogadores ----
+  const ax0 = -150 + Math.min(t, 2800) * .42, pf = t < 2800 ? 0 : Math.min(1, (t - 2800) / 600);
+  const ax = ax0 + 70 * pf, ay = CH - Math.sin(pf * Math.PI) * 70;
+  const dx = t < 2500 ? -900 + t * .712 : (t < 3300 ? 880 + (t - 2500) * .34 : 1152 - Math.min(1, (t - 3300) / 400) * 190);
+  const drot = t < 2500 ? 0 : (t < 3300 ? -1.3 * Math.min(1, (t - 2500) / 250) : -1.3 * (1 - Math.min(1, (t - 3300) / 400)));
+  const dpose = t < 2500 ? 'run' : (t < 3300 ? 'slide' : 'protesto');
+  const rx = t < 3300 ? -300 : (t < 4400 ? -200 + (t - 3300) * .82 : 702), rpose = t < 4400 ? 'run' : (t < 5000 ? 'apito' : 'aponta');
+  for (const [sx, sy] of [[ax, CH], [dx, CH], [rx, CH]]) { c.fillStyle = 'rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(sx, sy + 4, 80, 14, 0, 0, 7); c.fill(); }
+  const bx = t < 2800 ? ax0 + 78 : 1101 + 430 * (1 - Math.exp(-(t - 2800) / 520)), by = t < 2800 ? CH - 16 - Math.abs(Math.sin(t * .018)) * 14 : CH - 16 - Math.abs(Math.sin((t - 2800) / 170)) * 55 * Math.exp(-(t - 2800) / 500);
+  pessoa(c, {x: rx, y: CH, k: K, camisa: '#facc15', calcao: '#111', cabelo: '#111', pose: rpose, fase: t * .018, alvo: 1.37});
+  pessoa(c, {x: dx, y: CH, k: K, camisa: '#ef4444', calcao: '#450a0a', num: '4', pose: dpose, rot: drot, fase: t * .02, grito: t > 3300});
+  pessoa(c, {x: ax, y: ay, k: K, camisa: '#38bdf8', calcao: '#0b3b5c', num: '10', pele: '#c98f5f', pose: t < 2800 ? 'run' : 'fall', rot: 1.45 * pf, fase: t * .018, grito: t > 2900});
+  bola(c, bx, by, 16, t * .01);
+  const nomeC = String(P.cliente || 'CLIENTE').slice(0, 26), nomeV = String(P.vendedor || '').split(' ')[0];
+  if (t < 2800) etiqueta(c, nomeC, ax, CH - 335, '#38bdf8'); else etiqueta(c, nomeC, ax + 190, CH + 70, '#38bdf8');
+  if (t > 300) etiqueta(c, nomeV, dx - (t > 2500 && t < 3300 ? 60 : 0), CH - (t > 2500 && t < 3300 ? 250 : 335), '#ef4444');
+  if (t > 3000) { c.font = '900 40px Segoe UI'; c.fillStyle = '#facc15'; for (let i = 0; i < 3; i++) { const a = t * .006 + i * 2.1; c.fillText('★', ax + 300 + Math.cos(a) * 45, CH - 60 + Math.sin(a) * 14); } }
+  if (t > 4400 && t < 5300) { const q = (t - 4400) / 900; c.save(); c.translate(rx + 60, CH - 395); c.scale(1 + .12 * Math.sin(t * .05), 1 + .12 * Math.sin(t * .05));
+    c.font = 'italic 900 84px Segoe UI'; c.textAlign = 'left'; c.lineWidth = 12; c.strokeStyle = '#111'; c.strokeText('PIIIIII!', 0, 0); c.fillStyle = '#facc15'; c.fillText('PIIIIII!', 0, 0);
+    c.strokeStyle = `rgba(250,204,21,${1 - q})`; c.lineWidth = 5; for (let i = 1; i <= 3; i++) { c.beginPath(); c.arc(-30, 30, 30 * i + q * 60, -.9, .9); c.stroke(); } c.restore(); }
+  if (t > 5000) { const p = Math.min(1, (t - 5000) / 300), e = 1 - Math.pow(1 - p, 3), sc = (.3 + .7 * e) * (1 + .03 * Math.sin(t * .02));
+    c.save(); c.translate(960, 235); c.scale(sc, sc); c.shadowColor = '#ef4444'; c.shadowBlur = 60; c.textAlign = 'center'; c.font = '900 250px Segoe UI'; c.lineWidth = 24; c.strokeStyle = '#7f1d1d'; c.strokeText('PÊNALTI!', 0, 0); c.fillStyle = '#fff'; c.fillText('PÊNALTI!', 0, 0); c.restore();
+    c.textAlign = 'center'; c.font = '800 46px Segoe UI'; c.fillStyle = '#fecaca'; c.globalAlpha = e; c.fillText('⚠ ' + (P.vendedor || ''), 960, 330); c.globalAlpha = 1; }
+  if (t > 6200) { c.textAlign = 'center'; c.font = '700 34px Segoe UI'; c.fillStyle = 'rgba(255,255,255,' + Math.min(1, (t - 6200) / 400) + ')'; c.fillText('o VAR vai revisar o lance…', 960, 1030); }
+  if (t > 4400 && t < 4560) { c.fillStyle = `rgba(255,255,255,${(1 - (t - 4400) / 160) * .7})`; c.fillRect(LX, 0, LW, 1080); }
+  if (t > 5000 && t < 5180) { c.fillStyle = `rgba(239,68,68,${(1 - (t - 5000) / 180) * .5})`; c.fillRect(LX, 0, LW, 1080); }
+  const v = c.createRadialGradient(960, 540, 400, 960, 540, 1150); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.55)'); c.fillStyle = v; c.fillRect(LX, 0, LW, 1080);
+  c.restore();
+}
+function apito() {
+  if (!somOn) return;
+  try { const C = new (window.AudioContext || window.webkitAudioContext)(), o = C.createOscillator(), l = C.createOscillator(), g = C.createGain(), lg = C.createGain(), n = C.currentTime;
+    o.type = 'sine'; o.frequency.value = 2900; l.frequency.value = 38; lg.gain.value = 180; l.connect(lg); lg.connect(o.frequency);
+    g.gain.setValueAtTime(.0001, n); g.gain.exponentialRampToValueAtTime(.25, n + .03); g.gain.exponentialRampToValueAtTime(.0001, n + 1.1); o.connect(g); g.connect(C.destination); o.start(); l.start(); o.stop(n + 1.2); l.stop(n + 1.2); } catch {}
+}
+function iniciaAnimPenalti(cv, P) {
+  cv.width = innerWidth; cv.height = innerHeight; cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
+  const c = cv.getContext('2d'); const t0 = performance.now(); let raf = 0, parou = false, apitou = false;
+  const quadro = () => { if (parou) return; const t = performance.now() - t0; desenhaCena(c, cv.width, cv.height, t, P); if (t > 4380 && !apitou) { apitou = true; apito(); } raf = requestAnimationFrame(quadro); };
+  quadro(); return () => { parou = true; cancelAnimationFrame(raf); };
+}
+function animTeste(t) { const ov = $('ov'); ov.className = 'show'; ov.innerHTML = '<canvas id="cvp"></canvas>'; const cv = $('cvp'); cv.width = innerWidth; cv.height = innerHeight; cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%'; desenhaCena(cv.getContext('2d'), cv.width, cv.height, t, {vendedor: 'ANDREA DO ROCIO', cliente: 'SUPERMERCADO RAVI'}); }
+
 // ============================== RENDER ==============================
 const seg = v => { const m = v.meta || 0; if (!m) return ''; const f = Math.max(v.fat || 0, 0) / m * 100, p = Math.max(v.pend || 0, 0) / m * 100; const fw = Math.min(f, 100);
   return `<i style="width:${fw}%;background:var(--ok)"></i><i style="width:${Math.min(p, 100 - fw)}%;background:var(--pend)"></i>`; };
@@ -646,6 +743,6 @@ if (!VALID.includes(FIL)) {
   carregaMetas(); setInterval(carregaMetas, 30 * 60 * 1000);
   carregaLancesServidor(); setInterval(carregaLancesServidor, 5 * 60 * 1000);
   atualiza(); setInterval(atualiza, CICLO_S * 1000); setInterval(checaVersao, 30000); checaVersao();
-  window.__tv = {ocupado: () => emVAR || FILA.length > 0, DATA, get ALERTAS() { return ALERTAS; }, get LOG() { return LOG; }, get SNAP() { return SNAP; }, VS, calcAlertas, revisar, exportar, rankingPenaltis, ESPERA};
+  window.__tv = {ocupado: () => emVAR || FILA.length > 0, DATA, get ALERTAS() { return ALERTAS; }, get LOG() { return LOG; }, get SNAP() { return SNAP; }, VS, calcAlertas, revisar, exportar, rankingPenaltis, ESPERA, animTeste};
 }
 </script></body></html>
