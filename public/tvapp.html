@@ -222,10 +222,13 @@ async function carregaReps() {
   // 1º: lê direto do Google Drive (online, sempre atual). 2º: cópia publicada (aviso na tela).
   let m = await j('/api/tv-mostra', 25000), origem = 'drive';
   if (!(m && m.filiais && !m.erro)) { m = await j('/mostra_vendedores.json?t=' + Date.now(), 15000); origem = 'copia'; }
-  const lista = m && m.filiais && m.filiais[FIL];
+  // Filial canônica (o servidor já junta TPH_VAGNER + TPH_FABIO em TPH, com campo `grupo`). Tolera JSON antigo com chaves SIGLA_GRUPO.
+  // ?grupo=VAGNER filtra por gerente/subdivisão (link por gerente).
+  const GRUPO = (P.get('grupo') || '').toUpperCase();
+  const lista = m && m.filiais ? Object.keys(m.filiais).filter(k => k === FIL || k.startsWith(FIL + '_')).flatMap(k => m.filiais[k].map(r => ({...r, grupo: r.grupo || (k.includes('_') ? k.split('_').slice(1).join('_') : '')}))).filter(r => !GRUPO || r.grupo === GRUPO) : null;
   if (Array.isArray(lista) && lista.length) {
     REPS = lista.filter(r => r.mostra && !EXCLUI.includes((r.canal || '').toUpperCase()))
-      .map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor)}));
+      .map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor), grupo: r.grupo || ''}));
     listaMostra = true;
     const av = $('aviso');
     if (origem === 'copia') { const d = m.planilha_em ? new Date(m.planilha_em) : null; av.textContent = 'LISTA: CÓPIA' + (d ? ' DE ' + d.toLocaleDateString('pt-BR', {timeZone: 'America/Sao_Paulo'}) : '') + ' · DRIVE INDISPONÍVEL'; av.style.display = 'inline-block'; }

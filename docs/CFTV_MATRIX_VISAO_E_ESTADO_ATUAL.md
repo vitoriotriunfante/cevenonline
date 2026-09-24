@@ -176,6 +176,10 @@ Observações técnicas: o relógio da regra das 10h deve usar `America/Sao_Paul
 - **TV da Matriz (link central):** mostra **filiais e supervisores** conforme combinado (~4 min por filial). **Nos momentos de pênalti, pega os casos mais críticos de todas as filiais.** Ideia do Vitório: **ranking com notas (criticidade)** para priorizar. **Objetivo declarado: tratar problemas** — a matriz é uma ferramenta de triagem (o que atacar primeiro), não só de exibição.
 - Pendente de desenho: fórmula da "nota de criticidade" (peso de cada tipo de lance, reincidência, valor em risco, tempo sem resolução) e ciclo de atualização da matriz (519 vendedores).
 
+## 5g. Subdivisões de filial (engenharia, 24/09/2026)
+
+A planilha pode dividir uma filial por gerente (`TPH_VAGNER`, `TPH_FABIO`, `MCD_CLEVERSON`, `MCD_ADRIANO`). Um bug inicial fez TPH e MCD ficarem vazias na matriz e caírem no fallback na TV de filial. Solução estrutural: normalização única na leitura da planilha (`SIGLA_GRUPO` -> filial canônica + `grupo`), consumidores tolerantes a JSON antigo, filtro `?grupo=` na TV e subtotal por grupo na matriz. Qualquer divisão futura (ex.: `TCA_NORTE`) funciona só editando a planilha.
+
 ## 6. Perguntas em aberto para o Vitório
 
 1. A tela do CFTV deve continuar **desenhando os cards com dados da API** (como hoje) ou **embutir o próprio app do CEVEN em iframes** (uma sessão por vendedor, via isolador 6101–6140)? "Passando / trocando o CEVEN dos vendedores" quer dizer exatamente qual das duas?

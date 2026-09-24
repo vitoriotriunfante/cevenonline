@@ -20,10 +20,14 @@ PROJETO: CFTV/TV. Ver CLAUDE.md.
 'use strict';
 const f = document.getElementById('app');
 const P = new URLSearchParams(location.search);
-let fil = (P.get('filial') || '').toUpperCase();
-try { if (fil) localStorage.setItem('ceven_tv_filial', fil); else fil = localStorage.getItem('ceven_tv_filial') || ''; } catch {}
-if (fil) P.set('filial', fil);
-f.src = '/tvapp?' + P.toString();
+let fil = (P.get('filial') || '').toUpperCase(), matriz = P.get('matriz') === '1';
+try {
+  if (matriz) localStorage.setItem('ceven_tv_filial', 'MATRIZ');
+  else if (fil) localStorage.setItem('ceven_tv_filial', fil);
+  else { fil = localStorage.getItem('ceven_tv_filial') || ''; if (fil === 'MATRIZ') { matriz = true; fil = ''; } }
+} catch {}
+if (fil && !matriz) P.set('filial', fil);
+f.src = (matriz ? '/matrizapp?' : '/tvapp?') + P.toString();
 f.onload = () => { try { document.title = f.contentDocument.title; } catch {} f.contentWindow.focus(); };
 
 // tela cheia (a página de cima nunca recarrega, então a tela cheia se mantém)

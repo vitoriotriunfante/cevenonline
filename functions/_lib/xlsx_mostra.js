@@ -80,12 +80,16 @@ export function montaMostra(linhas) {
   const I = { f: ix('Filial'), g: ix('Gerente Geral'), ns: ix('Nome Supervisor'), rca: ix('Cód. Vendedor (RCA)'), nv: ix('Nome do Vendedor'), can: ix('Canal Oficial'), m: ix('MOSTRA NOS DISPAROS'), mot: ix('MOTIVO (se NÃO)') };
   if (I.f < 0 || I.rca < 0 || I.m < 0) throw new Error('colunas esperadas nao encontradas na aba MOSTRA_DISPAROS');
   const clean = (s) => String(s == null ? '' : s).replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
-  const filiais = {}; let sim = 0, nao = 0;
+  // NORMALIZAÇÃO ÚNICA: na planilha uma filial pode vir dividida (ex.: TPH_VAGNER, TPH_FABIO, MCD_CLEVERSON).
+  // Aqui vira filial canônica (TPH) + campo `grupo` (VAGNER). Divisão nova = só escrever SIGLA_NOME na planilha.
+  const filiais = {}, grupos = {}; let sim = 0, nao = 0;
   for (const r of linhas.slice(1)) {
-    const f = String(r[I.f] || '').toUpperCase().trim(); const rca = String(r[I.rca] == null ? '' : r[I.rca]).trim().replace(/\.0+$/, '');
+    const bruto = String(r[I.f] || '').toUpperCase().trim(), f = bruto.split('_')[0], grupo = bruto.split('_').slice(1).join('_');
+    if (grupo) (grupos[f] = grupos[f] || new Set()).add(grupo); const rca = String(r[I.rca] == null ? '' : r[I.rca]).trim().replace(/\.0+$/, '');
     if (!f || !rca) continue;
     const mostra = String(r[I.m] || '').toUpperCase().trim() === 'SIM'; mostra ? sim++ : nao++;
-    (filiais[f] = filiais[f] || []).push({ rca, nome: clean(r[I.nv]), supervisor: clean(r[I.ns]), gerente: String(r[I.g] || '').trim(), canal: String(r[I.can] || '').trim(), mostra, motivo: mostra ? '' : String(r[I.mot] || '') });
+    (filiais[f] = filiais[f] || []).push({ rca, grupo, nome: clean(r[I.nv]), supervisor: clean(r[I.ns]), gerente: String(r[I.g] || '').trim(), canal: String(r[I.can] || '').trim(), mostra, motivo: mostra ? '' : String(r[I.mot] || '') });
   }
-  return { total_sim: sim, total_nao: nao, filiais };
+  const g = {}; Object.keys(grupos).forEach((k) => (g[k] = [...grupos[k]]));
+  return { total_sim: sim, total_nao: nao, grupos: g, filiais };
 }

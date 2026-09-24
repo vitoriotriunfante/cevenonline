@@ -19,20 +19,23 @@ const ws = wb.Sheets['MOSTRA_DISPAROS'];
 if (!ws) { console.error('Aba MOSTRA_DISPAROS nao encontrada'); process.exit(1); }
 
 const clean = s => String(s == null ? '' : s).replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
-const filiais = {};
+const filiais = {}, grupos = {};
 let sim = 0, nao = 0;
 for (const r of X.utils.sheet_to_json(ws, { defval: '' })) {
-  const f = String(r['Filial'] || '').toUpperCase().trim();
+  // normalização única: TPH_VAGNER -> filial TPH + grupo VAGNER (divisão nova = só escrever SIGLA_NOME na planilha)
+  const bruto = String(r['Filial'] || '').toUpperCase().trim(), f = bruto.split('_')[0], grupo = bruto.split('_').slice(1).join('_');
+  if (grupo) (grupos[f] = grupos[f] || new Set()).add(grupo);
   const rca = String(r['Cód. Vendedor (RCA)'] || '').trim();
   if (!f || !rca) continue;
   const mostra = String(r['MOSTRA NOS DISPAROS']).toUpperCase().trim() === 'SIM';
   mostra ? sim++ : nao++;
   (filiais[f] = filiais[f] || []).push({
-    rca, nome: clean(r['Nome do Vendedor']), supervisor: clean(r['Nome Supervisor']), gerente: String(r['Gerente Geral'] || '').trim(),
+    rca, grupo, nome: clean(r['Nome do Vendedor']), supervisor: clean(r['Nome Supervisor']), gerente: String(r['Gerente Geral'] || '').trim(),
     canal: String(r['Canal Oficial'] || '').trim(), mostra, motivo: mostra ? '' : String(r['MOTIVO (se NÃO)'] || '')
   });
 }
 const mtime = fs.statSync(origem).mtime;
-const out = { gerado_em: new Date().toISOString(), planilha_em: mtime.toISOString(), total_sim: sim, total_nao: nao, filiais };
+const g = {}; Object.keys(grupos).forEach((k) => (g[k] = [...grupos[k]]));
+const out = { gerado_em: new Date().toISOString(), planilha_em: mtime.toISOString(), total_sim: sim, total_nao: nao, grupos: g, filiais };
 fs.writeFileSync(path.join(__dirname, 'public', 'mostra_vendedores.json'), JSON.stringify(out));
 console.log(`mostra_vendedores.json: ${sim} SIM / ${nao} NAO em ${Object.keys(filiais).length} filiais (planilha de ${mtime.toLocaleString('pt-BR')})`);
