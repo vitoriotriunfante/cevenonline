@@ -1,5 +1,5 @@
 // Versão estática da build (Aciona Hot Reload Automático nas Smart TVs das Filiais)
-const RELEASE_VERSION = 'v3.1.4-tv-revisao-compacta';
+const RELEASE_VERSION = 'v3.1.5-tv-tela-cheia';
 
 export async function onRequestGet() {
   return new Response(JSON.stringify({

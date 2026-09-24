@@ -136,7 +136,7 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   <span class="msg" id="alert">—</span>
   <div id="ctl">
     <button data-m="auto" class="on">Auto</button><button data-m="ronda">Ronda</button><button data-m="painel">Painel</button>
-    <button id="bsom">🔇 Som</button><button id="brev">Revisar 30 min</button><button id="bexp">Exportar diário</button>
+    <button id="bfs">⛶ Tela cheia</button><button id="bsom">🔇 Som</button><button id="brev">Revisar 30 min</button><button id="bexp">Exportar diário</button>
   </div>
 </footer>
 <div id="ov"></div>
@@ -489,7 +489,10 @@ function ctl() {
   const marca = () => document.querySelectorAll('#ctl [data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === modoManual));
   document.querySelectorAll('#ctl [data-m]').forEach(b => b.onclick = () => { modoManual = b.dataset.m; store.set('ceven_tv_modo', modoManual); marca(); idxRonda = 0; render(); });
   $('bsom').textContent = somOn ? '🔊 Som' : '🔇 Som'; $('bsom').onclick = () => { somOn = !somOn; store.set('ceven_tv_som', somOn); $('bsom').textContent = somOn ? '🔊 Som' : '🔇 Som'; beep([[660, .15]]); };
-  $('brev').onclick = revisar; $('bexp').onclick = exportar; marca();
+  $('brev').onclick = revisar;
+  const fs = () => { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch {} };
+  $('bfs').onclick = fs; document.addEventListener('keydown', e => { if (e.key === 'f' || e.key === 'F') fs(); });
+  document.addEventListener('fullscreenchange', () => { $('bfs').textContent = document.fullscreenElement ? '⛶ Sair da tela cheia' : '⛶ Tela cheia'; }); $('bexp').onclick = exportar; marca();
 }
 let versao = null;
 async function checaVersao() { const d = await j('/api/version', 8000); if (d && d.version) { if (versao && versao !== d.version) location.reload(); versao = d.version; } }
