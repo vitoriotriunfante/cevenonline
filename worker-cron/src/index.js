@@ -24,7 +24,7 @@
  *          workflow do GitHub.
  */
 
-const REPO = 'vitoriobergamobrazil/cevenonline';
+const REPO = 'vitoriotriunfante/cevenonline';
 const REF = 'clean-v3';
 
 // mapa cron (UTC) -> { workflow, inputs }
