@@ -135,7 +135,7 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   <span class="msg" id="alert">—</span>
   <div id="ctl">
     <button data-m="auto" class="on">Auto</button><button data-m="ronda">Ronda</button><button data-m="painel">Painel</button>
-    <button id="bsom">🔇 Som</button><button id="btest">Simular lance</button><button id="bexp">Exportar diário</button>
+    <button id="bsom">🔇 Som</button><button id="brev">Revisar 30 min</button><button id="bexp">Exportar diário</button>
   </div>
 </footer>
 <div id="ov"></div>
@@ -320,7 +320,13 @@ function beep(seq) {
 function linhas(o) { return Object.entries(o).filter(([, v]) => v != null && v !== '').map(([k, v]) => `<div class="ln${String(v).startsWith('!') ? ' hot' : ''}"><b>${esc(k)}</b><span>${esc(String(v).replace(/^!/, ''))}</span></div>`).join(''); }
 function telaVAR(item) {
   let titulo, sub, dec, veredito, cls = 'f1';
-  if (item.tipo === 'penalti') {
+  if (item.tipo === 'revisao') {
+    const l = item.lista, n = l.length;
+    titulo = '🔎 REVISÃO DO VAR'; sub = '';
+    dec = n ? l.slice(-9).reverse().map(linhaRevisao).join('') + (n > 9 ? `<div class="ln"><b>+${n - 9}</b><span>lances mais antigos nesta janela</span></div>` : '')
+            : '<div class="ln"><b>—</b><span>Nenhum lance nos últimos 30 minutos.</span></div>';
+    veredito = n ? `${n} lance(s) nos últimos 30 minutos.` : 'Tudo tranquilo nos últimos 30 minutos.';
+  } else if (item.tipo === 'penalti') {
     const {v, c, dias, tipo} = item.a;
     titulo = '🚨 PÊNALTI'; sub = `${v.nome} · ${tipo === 'estoque' ? 'justificou "ESTOQUE SUFICIENTE"' : 'justificou cliente fechado'} em cliente parado`;
     const tv = c.tempo_visita;
@@ -345,18 +351,24 @@ function proximoVAR() {
   ov.onclick = () => { clearTimeout(ov._t1); clearTimeout(ov._t2); clearTimeout(ov._t3); fecha(); };
   const T_TOTAL = 60; // segundos que o lance fica na tela (ou até clicar)
   const t0 = Date.now();
+  const mostraDecisao = () => { ov.className = 'show'; ov.innerHTML = `<div class="dec"><h1>${esc(T.titulo)}${item.tipo === 'revisao' ? '' : ' · DECISÃO DO VAR'}</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
+    ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha sozinho em ${Math.max(0, T_TOTAL - Math.round((Date.now() - t0) / 1000))}s`; }, 500); };
+  if (item.tipo === 'revisao') { mostraDecisao(); ov._t3 = setTimeout(fecha, T_TOTAL * 1000); return; }
   ov.className = 'show ' + T.cls; ov.innerHTML = `<div class="big">${esc(T.titulo)}</div><div class="sub">${esc(T.sub)}</div>`; beep([[880, .25], [660, .25], [880, .5]]);
   ov._t1 = setTimeout(() => { ov.className = 'show'; ov.innerHTML = `<div class="var">VAR</div><div class="sub">REVISANDO O LANCE…</div><div class="scan"><i></i></div>`; beep([[440, .15], [440, .15]]); }, 3000);
   ov._t2 = setTimeout(() => { ov.innerHTML = `<div class="dec"><h1>${esc(T.titulo)} · DECISÃO DO VAR</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
     ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha sozinho em ${Math.max(0, T_TOTAL - Math.round((Date.now() - t0) / 1000))}s`; }, 500); }, 5800);
   ov._t3 = setTimeout(fecha, T_TOTAL * 1000);
 }
-function simular() {
-  const real = ALERTAS.find(a => a.nivel === 'penalti');
-  if (real) { FILA.push({tipo: 'penalti', a: real}); proximoVAR(); return; }
-  const v = {id: '000', nome: 'SIMULAÇÃO — sem lance real agora', rota: 0, feitas: 0, dig: 0};
-  FILA.push({tipo: 'penalti', a: {tipo: 'estoque', v, dias: 0, c: {nome: 'SIMULAÇÃO', motivo: 'ESTOQUE SUFICIENTE', ultima_compra: null, tempo_visita: '00:00', obs: 'Isto é apenas um teste da tela.'}}});
-  proximoVAR();
+const secDe = hms => { const [h, m, x] = String(hms || '0:0:0').split(':').map(Number); return h * 3600 + m * 60 + (x || 0); };
+function revisar() {
+  const agora = secDe(sp().hms), lista = LOG.filter(e => { const d = agora - secDe(e.t); return d >= 0 && d <= 1800; });
+  FILA.push({tipo: 'revisao', lista}); proximoVAR();
+}
+const NOME_NIVEL = {penalti: 'PÊNALTI', venda10: 'CARTÃO VERMELHO', visita10: 'EXPULSÃO'};
+function linhaRevisao(e) {
+  const det = e.nivel === 'penalti' ? `${e.cliente || 'cliente'} · ${e.motivo || ''}${e.dias_sem_compra != null ? ' · ' + e.dias_sem_compra + 'd s/ compra' : ''}` : (e.nivel === 'venda10' ? 'sem nenhuma venda às 10h' : 'sem nenhuma visita às 10h');
+  return `<div class="ln hot"><b>${esc((e.t || '').slice(0, 5))} ${NOME_NIVEL[e.nivel] || ''}</b><span>${esc(e.vendedor)} — ${esc(det)}${e.ao_ligar ? ' (já existia ao ligar a TV)' : ''}</span></div>`;
 }
 
 // ============================== RENDER ==============================
@@ -476,7 +488,7 @@ function ctl() {
   const marca = () => document.querySelectorAll('#ctl [data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === modoManual));
   document.querySelectorAll('#ctl [data-m]').forEach(b => b.onclick = () => { modoManual = b.dataset.m; store.set('ceven_tv_modo', modoManual); marca(); idxRonda = 0; render(); });
   $('bsom').textContent = somOn ? '🔊 Som' : '🔇 Som'; $('bsom').onclick = () => { somOn = !somOn; store.set('ceven_tv_som', somOn); $('bsom').textContent = somOn ? '🔊 Som' : '🔇 Som'; beep([[660, .15]]); };
-  $('btest').onclick = simular; $('bexp').onclick = exportar; marca();
+  $('brev').onclick = revisar; $('bexp').onclick = exportar; marca();
 }
 let versao = null;
 async function checaVersao() { const d = await j('/api/version', 8000); if (d && d.version) { if (versao && versao !== d.version) location.reload(); versao = d.version; } }
@@ -486,6 +498,6 @@ if (!VALID.includes(FIL)) {
   document.title = `CEVEN CFTV — ${FIL}`; $('fil').textContent = 'FILIAL ' + FIL; ctl(); relogio();
   setInterval(relogio, 1000); setInterval(avancaRonda, ROTA_S * 1000);
   atualiza(); setInterval(atualiza, CICLO_S * 1000); setInterval(checaVersao, 30000); checaVersao();
-  window.__tv = {DATA, get ALERTAS() { return ALERTAS; }, get LOG() { return LOG; }, get SNAP() { return SNAP; }, VS, calcAlertas, simular, exportar};
+  window.__tv = {DATA, get ALERTAS() { return ALERTAS; }, get LOG() { return LOG; }, get SNAP() { return SNAP; }, VS, calcAlertas, revisar, exportar};
 }
 </script></body></html>
