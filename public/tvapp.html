@@ -219,12 +219,17 @@ async function carregaMetas() {
 }
 async function carregaReps() {
   // Fonte de verdade: planilha VENDEDORES AUDITADOS (aba MOSTRA_DISPAROS) -> só vendedor com MOSTRA = SIM
-  const m = await j('/mostra_vendedores.json?t=' + Date.now(), 15000);
+  // 1º: lê direto do Google Drive (online, sempre atual). 2º: cópia publicada (aviso na tela).
+  let m = await j('/api/tv-mostra', 25000), origem = 'drive';
+  if (!(m && m.filiais && !m.erro)) { m = await j('/mostra_vendedores.json?t=' + Date.now(), 15000); origem = 'copia'; }
   const lista = m && m.filiais && m.filiais[FIL];
   if (Array.isArray(lista) && lista.length) {
     REPS = lista.filter(r => r.mostra && !EXCLUI.includes((r.canal || '').toUpperCase()))
       .map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor)}));
-    listaMostra = true; $('aviso').style.display = 'none';
+    listaMostra = true;
+    const av = $('aviso');
+    if (origem === 'copia') { const d = m.planilha_em ? new Date(m.planilha_em) : null; av.textContent = 'LISTA: CÓPIA' + (d ? ' DE ' + d.toLocaleDateString('pt-BR', {timeZone: 'America/Sao_Paulo'}) : '') + ' · DRIVE INDISPONÍVEL'; av.style.display = 'inline-block'; }
+    else av.style.display = 'none';
     return REPS.length > 0;
   }
   // Sem a lista da planilha: usa o cadastro do sistema e AVISA na tela (pode mostrar contas que não deveriam aparecer)
@@ -741,6 +746,7 @@ if (!VALID.includes(FIL)) {
   document.title = `CEVEN CFTV — ${FIL}`; $('fil').textContent = 'FILIAL ' + FIL; ctl(); relogio();
   setInterval(relogio, 1000); setInterval(avancaRonda, ROTA_S * 1000);
   carregaMetas(); setInterval(carregaMetas, 30 * 60 * 1000);
+  setInterval(async () => { if (await carregaReps()) render(); }, 10 * 60 * 1000);
   carregaLancesServidor(); setInterval(carregaLancesServidor, 5 * 60 * 1000);
   atualiza(); setInterval(atualiza, CICLO_S * 1000); setInterval(checaVersao, 30000); checaVersao();
   window.__tv = {ocupado: () => emVAR || FILA.length > 0, DATA, get ALERTAS() { return ALERTAS; }, get LOG() { return LOG; }, get SNAP() { return SNAP; }, VS, calcAlertas, revisar, exportar, rankingPenaltis, ESPERA, animTeste};
