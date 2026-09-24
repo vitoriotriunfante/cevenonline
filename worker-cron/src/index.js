@@ -28,14 +28,15 @@ const REPO = 'vitoriobergamobrazil/cevenonline';
 const REF = 'clean-v3';
 
 // mapa cron (UTC) -> { workflow, inputs }
-// Conta Cloudflare free = 5 crons NA CONTA INTEIRA, e o worker "comandda" já
-// usa 2 — sobram só 3 pra este worker. Ficam só os 3 mais críticos (fundação
-// de madrugada, primeiro relatório, fechamento). 04:00, 10:00, 11:30, 14:30
-// e 17:00 ficam só no `schedule` nativo do .yml no GitHub Actions.
+// Conta Cloudflare free = 5 crons NA CONTA INTEIRA.
+// Em 24/09/2026: comandda liberou 2 slots — todos os 5 agora são deste worker.
+// 10:00 e 14:30 BRT adicionados com gatilho real para WhatsApp (destino: todos).
 const GATILHOS = {
-  '0 6 * * 1-5':   { workflow: 'ceven-cron-datalake.yml', inputs: {} },          // 03:00 BRT
-  '45 10 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '07:45' } }, // 07:45 BRT
-  '30 21 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '18:30' } }  // 18:30 BRT
+  '0 6 * * 1-5':   { workflow: 'ceven-cron-datalake.yml',    inputs: {} },                       // 03:00 BRT — sync dados
+  '45 10 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml',    inputs: { ciclo: '07:45', destino: 'todos' } }, // 07:45 BRT — abertura
+  '0 13 * * 1-5':  { workflow: 'ceven-cron-marca-propria.yml', inputs: {} },                     // 10:00 BRT — marcas proprias
+  '30 17 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml',    inputs: { ciclo: '14:30', destino: 'todos' } }, // 14:30 BRT — tarde
+  '30 21 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml',    inputs: { ciclo: '18:30', destino: 'todos' } }  // 18:30 BRT — fechamento
 };
 
 async function dispararWorkflow(env, workflow, inputs) {

@@ -1,19 +1,20 @@
 # FICHA DO ARQUIVO
-# O QUE É: gera os relatórios de Marca Própria (hoje + acumulado do mês) por gerente.
-# RODA: cron abaixo (seg-sex, 10:00 BRT) ou manual via workflow_dispatch.
+# O QUE É: gera os relatórios de Marca Própria (hoje + acumulado do mês) por gerente
+#     e envia via WhatsApp para todos (Vitório + gerentes).
+# RODA: workflow_dispatch disparado pelo Cloudflare ceven-cron-sync às 10:00 BRT.
+#     NÃO tem mais schedule próprio aqui — o Cloudflare é o gatilho único (evita
+#     duplicação: GH schedule + CF workflow_dispatch no mesmo horário = 2 runs).
 # LÊ do Google Drive: pedidos_historico_ceven.db, VENDEDORES AUDITADOS.xlsx,
 #     Produtos - Marcas Exclusivas.xls. Gera a árvore viva de vendedores ao vivo.
-# ESCREVE: OPERACAO_WHATSAPP/relatorios_por_horario/10_00/*.md (commitado no repo,
-#     revisão manual do Vitório — não envia WhatsApp automático ainda).
+# ESCREVE: OPERACAO_WHATSAPP/relatorios_por_horario/10_00/*.md + envia WhatsApp.
 # DEPENDE DE: secrets GDRIVE_SA_JSON e GDRIVE_FOLDER_ID + o banco ter sido atualizado
 #     às 03:00 pelo ceven-cron-datalake.yml no mesmo dia.
-# ÚLTIMA REVISÃO: 23/09/2026 (criado + Node 24/npm ci pra corrigir segfault do better-sqlite3).
+# ÚLTIMA REVISÃO: 24/09/2026 (envio WA ligado + schedule removido, CF assume gatilho).
 name: CEVEN — Marca Própria 10:00
 
 on:
-  schedule:
-    # 10:00 BRT = 13:00 UTC, Segunda a Sexta
-    - cron: '0 13 * * 1-5'
+  # SEM schedule aqui — o Cloudflare (ceven-cron-sync) dispara workflow_dispatch
+  # exatamente às 10:00 BRT. Ter schedule E CF = duplicação garantida.
   workflow_dispatch: {}
 
 concurrency:
@@ -83,6 +84,13 @@ jobs:
           for f in auditoria_mensagens/$DATA_REF/10_00__*.txt; do
             cp "$f" "$DEST/$(basename "$f" .txt).md"
           done
+
+      - name: ⚡ Enviar via WhatsApp (ciclo 10:00 — todos)
+        run: |
+          node pipeline/ceven_unified_engine.js \
+            --hora="10:00" \
+            --acao="marca_propria" \
+            --destino="todos"
 
       - name: Commitar relatórios + marca de disparo
         if: always()

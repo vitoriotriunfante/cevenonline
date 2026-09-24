@@ -7,15 +7,16 @@ compatibility_date = "2024-08-01"
 # o agendador nativo (`schedule` no .yml) está falhando repetidamente. D1 removido,
 # não é mais usado por este worker.
 #
-# Conta Cloudflare free = limite de 5 cron triggers NA CONTA INTEIRA (não só
-# deste worker) — o worker "comandda" já usa 2, sobram só 3 pra este. Ficam os
-# 3 mais críticos: fundação da madrugada, primeiro relatório e fechamento do
-# dia. Os demais (10:00, 11:30, 14:30, 17:00) ficam só no `schedule` nativo do
-# próprio .yml no GitHub Actions.
+# Conta Cloudflare free = limite de 5 cron triggers NA CONTA INTEIRA.
+# Em 24/09/2026: crons do "comandda" removidos (2 slots liberados).
+# Agora todos os 5 slots desta conta estão alocados para ceven-cron-sync.
+# 10:00 e 14:30 BRT adicionados via API (marcas proprias + tarde) -> destino "todos".
 
 [triggers]
 crons = [
-  "0 6 * * 1-5",    # 03:00 BRT -> ceven-cron-datalake.yml
-  "45 10 * * 1-5",  # 07:45 BRT -> ceven-cron-whatsapp.yml (07:45)
-  "30 21 * * 1-5"   # 18:30 BRT -> ceven-cron-whatsapp.yml (18:30)
+  "0 6 * * 1-5",    # 03:00 BRT -> ceven-cron-datalake.yml (sync dados)
+  "45 10 * * 1-5",  # 07:45 BRT -> ceven-cron-whatsapp.yml (abertura) -> todos
+  "0 13 * * 1-5",   # 10:00 BRT -> ceven-cron-whatsapp.yml (marcas proprias) -> todos (NOVO 24/09/2026)
+  "30 17 * * 1-5",  # 14:30 BRT -> ceven-cron-whatsapp.yml (tarde) -> todos (NOVO 24/09/2026)
+  "30 21 * * 1-5"   # 18:30 BRT -> ceven-cron-whatsapp.yml (fechamento) -> todos
 ]
