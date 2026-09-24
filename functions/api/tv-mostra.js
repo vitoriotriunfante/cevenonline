@@ -37,9 +37,12 @@ async function tokenDrive(sa) {
 export async function onRequestGet({ env }) {
   const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: CORS });
   if (cache.corpo && Date.now() < cache.exp) return resp(cache.corpo);
-  if (!env.GDRIVE_SA_JSON) return resp({ erro: 'GDRIVE_SA_JSON nao configurado' }, 503);
+  const bruto = env.GDRIVE_SA_JSON;
+  if (!bruto) return resp({ erro: 'GDRIVE_SA_JSON nao configurado', tamanho: 0 }, 503);
+  let sa;
+  try { sa = JSON.parse(bruto); } catch { return resp({ erro: 'GDRIVE_SA_JSON nao e um JSON valido (colou so uma parte?)', tamanho: String(bruto).length, primeiro_caractere: String(bruto).trim()[0] }, 503); }
+  if (!sa.client_email || !sa.private_key) return resp({ erro: 'GDRIVE_SA_JSON sem client_email/private_key', tamanho: String(bruto).length }, 503);
   try {
-    const sa = JSON.parse(env.GDRIVE_SA_JSON);
     const tk = await tokenDrive(sa), H = { Authorization: 'Bearer ' + tk };
     const pasta = env.GDRIVE_FOLDER_ID || PASTA_PADRAO;
     const q = encodeURIComponent(`'${pasta}' in parents and name='${NOME_ARQUIVO}' and trashed=false`);

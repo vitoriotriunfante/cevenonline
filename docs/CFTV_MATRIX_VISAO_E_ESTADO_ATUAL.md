@@ -170,6 +170,12 @@ Observações técnicas: o relógio da regra das 10h deve usar `America/Sao_Paul
 
 ---
 
+## 5f. Decisões do Vitório (24/09/2026, madrugada)
+
+- **TV e WhatsApp têm a mesma base de vendedores** ("projetos primos"): a fonte é a coluna `MOSTRA NOS DISPAROS` da aba `MOSTRA_DISPAROS` de `VENDEDORES AUDITADOS.xlsx` (Drive). **Não** criar coluna separada "MOSTRA NA TV".
+- **TV da Matriz (link central):** mostra **filiais e supervisores** conforme combinado (~4 min por filial). **Nos momentos de pênalti, pega os casos mais críticos de todas as filiais.** Ideia do Vitório: **ranking com notas (criticidade)** para priorizar. **Objetivo declarado: tratar problemas** — a matriz é uma ferramenta de triagem (o que atacar primeiro), não só de exibição.
+- Pendente de desenho: fórmula da "nota de criticidade" (peso de cada tipo de lance, reincidência, valor em risco, tempo sem resolução) e ciclo de atualização da matriz (519 vendedores).
+
 ## 6. Perguntas em aberto para o Vitório
 
 1. A tela do CFTV deve continuar **desenhando os cards com dados da API** (como hoje) ou **embutir o próprio app do CEVEN em iframes** (uma sessão por vendedor, via isolador 6101–6140)? "Passando / trocando o CEVEN dos vendedores" quer dizer exatamente qual das duas?
