@@ -1,5 +1,5 @@
 // Versão estática da build (Aciona Hot Reload Automático nas Smart TVs das Filiais)
-const RELEASE_VERSION = 'v3.1.1-tv-rota';
+const RELEASE_VERSION = 'v3.1.2-tv-lance-60s';
 
 export async function onRequestGet() {
   return new Response(JSON.stringify({

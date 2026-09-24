@@ -341,12 +341,15 @@ function telaVAR(item) {
 function proximoVAR() {
   if (emVAR || !FILA.length) return;
   emVAR = true; const item = FILA.shift(); const T = telaVAR(item); const ov = $('ov');
-  const fecha = () => { ov.className = ''; ov.innerHTML = ''; emVAR = false; setTimeout(proximoVAR, 400); };
+  const fecha = () => { clearInterval(ov._i); ov.className = ''; ov.innerHTML = ''; emVAR = false; setTimeout(proximoVAR, 400); };
   ov.onclick = () => { clearTimeout(ov._t1); clearTimeout(ov._t2); clearTimeout(ov._t3); fecha(); };
+  const T_TOTAL = 60; // segundos que o lance fica na tela (ou até clicar)
+  const t0 = Date.now();
   ov.className = 'show ' + T.cls; ov.innerHTML = `<div class="big">${esc(T.titulo)}</div><div class="sub">${esc(T.sub)}</div>`; beep([[880, .25], [660, .25], [880, .5]]);
   ov._t1 = setTimeout(() => { ov.className = 'show'; ov.innerHTML = `<div class="var">VAR</div><div class="sub">REVISANDO O LANCE…</div><div class="scan"><i></i></div>`; beep([[440, .15], [440, .15]]); }, 3000);
-  ov._t2 = setTimeout(() => { ov.innerHTML = `<div class="dec"><h1>${esc(T.titulo)} · DECISÃO DO VAR</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small>toque para fechar</small>`; }, 5800);
-  ov._t3 = setTimeout(fecha, 5800 + 13000);
+  ov._t2 = setTimeout(() => { ov.innerHTML = `<div class="dec"><h1>${esc(T.titulo)} · DECISÃO DO VAR</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
+    ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha sozinho em ${Math.max(0, T_TOTAL - Math.round((Date.now() - t0) / 1000))}s`; }, 500); }, 5800);
+  ov._t3 = setTimeout(fecha, T_TOTAL * 1000);
 }
 function simular() {
   const real = ALERTAS.find(a => a.nivel === 'penalti');
