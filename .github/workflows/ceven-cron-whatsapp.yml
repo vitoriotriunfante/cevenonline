@@ -141,12 +141,12 @@ jobs:
           fi
 
           # 2. Determinar Destino
+          # 07:45 liberado para "todos" (Vitorio + gerentes) em 24/09/2026 -- ate aqui
+          # ficava so "vitorio" (fase de validacao do modelo, ja aprovado pelo Vitorio).
           if [ "${{ github.event.inputs.destino }}" != "" ]; then
             DESTINO="${{ github.event.inputs.destino }}"
           elif [ "$CICLO" = "04:00" ]; then
             DESTINO="dry_run"
-          elif [ "$CICLO" = "07:45" ]; then
-            DESTINO="vitorio"
           else
             DESTINO="todos"
           fi
