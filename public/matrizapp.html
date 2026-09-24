@@ -86,6 +86,7 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   <div class="fil">MATRIZ<small>11 filiais · <span id="nv">0</span> vendedores</small></div>
   <span class="modo" id="modo">FILIAL</span>
   <span id="aviso" class="modo" style="display:none;background:#7f1d1d;color:#fecaca"></span>
+  <span id="fila" class="modo" style="display:none;background:#7f1d1d;color:#fecaca;cursor:pointer" title="Clique para ver a lista completa em Exportar diário"></span>
   <div class="sp"></div>
   <div class="upd" id="upd">carregando…</div>
   <div class="clock mono" id="clock"></div>
@@ -99,7 +100,6 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   <span class="tag">ALERTAS</span><span class="msg" id="alert">—</span>
   <div id="ctl"><button id="bprev">◀</button><button id="bauto" class="on">Auto</button><button id="bnext">▶</button><button id="bfs">⛶ Tela cheia</button><button id="bsom">🔇 Som</button><button id="bexp">Exportar diário</button></div>
 </footer>
-<div id="toast" style="display:none;position:fixed;top:66px;left:50%;transform:translateX(-50%);background:#7f1d1d;color:#fff;border:1px solid #ef4444;font-weight:800;padding:8px 20px;border-radius:99px;z-index:60;font-size:16px"></div>
 <div id="ov"></div>
 <script>
 'use strict';
@@ -233,7 +233,7 @@ const penaltisDe = (rca, sig) => LOG.filter(e => e.nivel === 'penalti' && e.rca 
 function podeVAR() { const agora = Date.now(); while (VARS.length && agora - VARS[0] > 3600e3) VARS.shift(); return !emVAR && !FILA.length && VARS.length < VAR_MAX_H && (!VARS.length || agora - VARS[VARS.length - 1] >= VAR_GAP_S * 1000); }
 function liberaEspera() {
   if (ESPERA.length && podeVAR()) { const item = ESPERA.length >= 4 ? {tipo: 'resumo', grupos: ESPERA.splice(0)} : ESPERA.shift(); VARS.push(Date.now()); FILA.push(item); proximoVAR(); }
-  const t = $('toast'); if (t) { t.style.display = ESPERA.length ? 'block' : 'none'; t.textContent = `🚨 ${ESPERA.length} lance(s) aguardando a vez do VAR (os mais críticos primeiro)`; }
+  const t = $('fila'); if (t) { t.style.display = ESPERA.length ? 'inline-block' : 'none'; t.textContent = `⏳ ${ESPERA.length} na fila do VAR`; }
 }
 function beep(seq) { if (!somOn) return; try { const C = new (window.AudioContext || window.webkitAudioContext)(); let t = C.currentTime; seq.forEach(([f, d]) => { const o = C.createOscillator(), g = C.createGain(); o.frequency.value = f; o.type = 'square'; g.gain.value = .12; o.connect(g); g.connect(C.destination); o.start(t); o.stop(t + d); t += d + .05; }); } catch {} }
 function linhas(o) { return Object.entries(o).filter(([, v]) => v != null && v !== '').map(([k, v]) => `<div class="ln${String(v).startsWith('!') ? ' hot' : ''}"><b>${esc(k)}</b><span>${esc(String(v).replace(/^!/, ''))}</span></div>`).join(''); }
