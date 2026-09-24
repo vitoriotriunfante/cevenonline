@@ -86,6 +86,10 @@ main{flex:1;min-height:0;padding:14px 22px;display:flex}
 .rt .d{color:var(--mut);font-size:14px;white-space:nowrap}
 .st{font-size:11px;font-weight:800;letter-spacing:.05em;padding:3px 8px;border-radius:6px;text-align:center}
 .s-v{background:#22c55e26;color:#86efac}.s-x{background:#f59e0b26;color:#fcd34d}.s-a{background:#8b9bbd22;color:var(--mut)}
+.supr{display:grid;grid-template-columns:1fr auto auto;gap:18px;align-items:center;padding:12px 20px;border-radius:12px;background:var(--card2);font-size:min(2.1vw,30px)}
+.supr.bad{background:#2a0a0a;border:2px solid var(--bad)}.supr.warn{border:1px solid var(--warn)}
+.chip{font-size:min(1.4vw,20px);font-weight:800;padding:6px 14px;border-radius:99px;white-space:nowrap}
+.c-ok{background:#22c55e26;color:#86efac}.c-no{background:var(--bad);color:#fff}
 .prog{position:absolute;left:0;bottom:0;height:4px;background:var(--acc);width:0}
 footer{padding:8px 22px 10px;border-top:1px solid var(--line);background:#0a1020;display:flex;gap:14px;align-items:center;font-size:15px}
 footer .tag{background:var(--warn);color:#1a1200;font-weight:800;padding:3px 10px;border-radius:6px;font-size:12px;letter-spacing:.06em}
@@ -130,15 +134,17 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     <div class="panel" id="p1"></div><div class="panel" id="p2"></div>
     <div class="panel" id="p3"></div><div class="panel" id="p4"></div>
   </div>
+  <div class="panel" id="sup" style="display:none;flex:1;gap:10px"></div>
 </main>
 <footer>
   <span class="tag">ALERTAS</span>
   <span class="msg" id="alert">—</span>
   <div id="ctl">
-    <button data-m="auto" class="on">Auto</button><button data-m="ronda">Ronda</button><button data-m="painel">Painel</button>
+    <button data-m="auto" class="on">Auto</button><button data-m="ronda">Ronda</button><button data-m="painel">Painel</button><button data-m="sup">Supervisores</button>
     <button id="bfs">⛶ Tela cheia</button><button id="bsom">🔇 Som</button><button id="brev">Revisar 30 min</button><button id="bexp">Exportar diário</button>
   </div>
 </footer>
+<div id="fshint" style="display:none;position:fixed;left:50%;bottom:54px;transform:translateX(-50%);background:#38bdf8;color:#04202e;font-weight:800;padding:8px 18px;border-radius:99px;z-index:50;font-size:15px">A TV foi atualizada · clique em qualquer lugar para voltar à tela cheia</div>
 <div id="ov"></div>
 <script>
 'use strict';
@@ -185,7 +191,9 @@ const K = {seen:`ceven_tv_seen_${FIL}_`, log:`ceven_tv_log_${FIL}_`, snap:`ceven
 // ============================== ESTADO ==============================
 let REPS = [];            // [{id,nome,canal}]
 const DATA = {};          // id -> última leitura real (tv-vendedor)
-let lastOk = null, refreshing = false, ordem = [], idxRonda = 0, modoManual = ['auto','ronda','painel'].includes(P.get('modo')) ? P.get('modo') : store.get('ceven_tv_modo', 'auto');
+let lastOk = null, refreshing = false, ordem = [], idxRonda = 0, modoManual = ['auto','ronda','painel','sup'].includes(P.get('modo')) ? P.get('modo') : store.get('ceven_tv_modo', 'auto');
+const SUP_INI = 11 * 60 + 30, SUP_FIM = 12 * 60; // janela do alerta de supervisores (Brasília)
+let SUP = null;   // situação dos supervisores no dia (tv-supervisores)
 let ALERTAS = [];         // ativos agora
 let seen = new Set(store.get(K.seen + HOJE0, []));
 let LOG = store.get(K.log + HOJE0, []);
@@ -207,6 +215,22 @@ async function carregaReps() {
     .filter(r => !EXCLUI.includes(r.canal) && !/^VAGO/i.test(r.nome));
   return REPS.length > 0;
 }
+const supLista = () => ((SUP && SUP.supervisores) || []).filter(x => !/GERENTE/i.test(x.nome));
+const supPend = () => supLista().filter(x => !x.fez_compromisso || !x.iniciou_ret);
+async function carregaSup() {
+  const t = sp(), m = t.h * 60 + t.m;
+  if (!(m >= 11 * 60 && m <= 12 * 60 + 30) && modoManual !== 'sup') return; // só busca perto da janela (evita chamadas à toa)
+  const d = await j(`/api/tv-supervisores?filial=${FIL}`);
+  if (d && !d.erro && Array.isArray(d.supervisores)) { SUP = d; gatilhoSup(); }
+}
+function gatilhoSup() {
+  const t = sp(), m = t.h * 60 + t.m, k = 'sup|' + t.date;
+  if (m < SUP_INI || m >= SUP_FIM || seen.has(k)) return;
+  const pend = supPend(); if (!pend.length) return;
+  seen.add(k); store.set(K.seen + HOJE0, [...seen]);
+  LOG.push({t: t.hms, nivel: 'supervisor', vendedor: pend.length + ' supervisor(es) pendente(s)', filial: FIL, supervisores: pend.map(x => ({nome: x.nome, compromisso: x.fez_compromisso, ret: x.iniciou_ret}))}); store.set(K.log + HOJE0, LOG);
+  FILA.push({tipo: 'sup', lista: pend}); proximoVAR();
+}
 async function atualiza() {
   if (refreshing) return; refreshing = true;
   try {
@@ -223,6 +247,7 @@ async function atualiza() {
       }
     }));
     if (ok > 0) { lastOk = Date.now(); processa(); }
+    await carregaSup();
   } finally { refreshing = false; render(); }
 }
 
@@ -321,7 +346,11 @@ function beep(seq) {
 function linhas(o) { return Object.entries(o).filter(([, v]) => v != null && v !== '').map(([k, v]) => `<div class="ln${String(v).startsWith('!') ? ' hot' : ''}"><b>${esc(k)}</b><span>${esc(String(v).replace(/^!/, ''))}</span></div>`).join(''); }
 function telaVAR(item) {
   let titulo, sub, dec, veredito, cls = 'f1';
-  if (item.tipo === 'revisao') {
+  if (item.tipo === 'sup') {
+    titulo = '📋 SUPERVISORES'; sub = `${LIMITE_SUP_TXT}: ${item.lista.length} sem matinal e/ou rota (RET)`;
+    dec = item.lista.slice(0, 8).map(x => `<div class="ln${!x.fez_compromisso && !x.iniciou_ret ? ' hot' : ''}"><b>${esc(x.nome)}</b><span>Compromisso ${x.fez_compromisso ? '✅' : '❌ não lançado'} · RET ${x.iniciou_ret ? '✅' : '❌ não iniciou'}</span></div>`).join('') + (item.lista.length > 8 ? `<div class="ln"><b>+${item.lista.length - 8}</b><span>outros</span></div>` : '');
+    veredito = 'Esta lista fica em destaque na tela até as 12:00.';
+  } else if (item.tipo === 'revisao') {
     const l = item.lista, n = l.length;
     titulo = '🔎 REVISÃO DO VAR'; sub = '';
     dec = n ? l.slice(-7).reverse().map(linhaRevisao).join('') + (n > 7 ? `<div class="ln"><b>+${n - 7}</b><span>lances mais antigos nesta janela</span></div>` : '')
@@ -366,9 +395,10 @@ function revisar() {
   const agora = secDe(sp().hms), lista = LOG.filter(e => { const d = agora - secDe(e.t); return d >= 0 && d <= 1800; });
   FILA.push({tipo: 'revisao', lista}); proximoVAR();
 }
-const NOME_NIVEL = {penalti: 'PÊNALTI', venda10: 'CARTÃO VERMELHO', visita10: 'EXPULSÃO'};
+const LIMITE_SUP_TXT = '11:30';
+const NOME_NIVEL = {penalti: 'PÊNALTI', venda10: 'CARTÃO VERMELHO', visita10: 'EXPULSÃO', supervisor: 'SUPERVISORES'};
 function linhaRevisao(e) {
-  const det = e.nivel === 'penalti' ? `${e.cliente || 'cliente'} · ${e.motivo || ''}${e.dias_sem_compra != null ? ' · ' + e.dias_sem_compra + 'd s/ compra' : ''}` : (e.nivel === 'venda10' ? 'sem nenhuma venda às 10h' : 'sem nenhuma visita às 10h');
+  const det = e.nivel === 'penalti' ? `${e.cliente || 'cliente'} · ${e.motivo || ''}${e.dias_sem_compra != null ? ' · ' + e.dias_sem_compra + 'd s/ compra' : ''}` : (e.nivel === 'venda10' ? 'sem nenhuma venda às 10h' : e.nivel === 'supervisor' ? 'pendentes de matinal/RET' : 'sem nenhuma visita às 10h');
   return `<div class="ln hot"><b>${esc((e.t || '').slice(0, 5))} ${NOME_NIVEL[e.nivel] || ''}</b><span>${esc(e.vendedor)} — ${esc(det)}${e.ao_ligar ? ' (já existia ao ligar a TV)' : ''}</span></div>`;
 }
 
@@ -443,7 +473,18 @@ function renderPainel(vs) {
   const dv = [...vs].filter(v => v.dev > 0).sort((a, b) => b.dev - a.dev).slice(0, 8), md = dv.length ? dv[0].dev : 1;
   $('p4').innerHTML = `<h2><span>Devoluções no mês</span><b>${brl(vs.reduce((x, v) => x + (v.dev || 0), 0))}</b></h2>` + (dv.length ? dv.map(v => `<div><div class="row" style="border:0;grid-template-columns:1fr auto"><div class="n">${esc(v.nome)}</div><b class="mono" style="color:var(--warn)">${brl(v.dev)}</b></div><div class="hb"><i style="width:${v.dev / md * 100}%;background:var(--warn)"></i></div></div>`).join('') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Sem devoluções no mês.</div>');
 }
+function renderSup() {
+  const el = $('sup'), lista = supLista();
+  if (!SUP) { el.innerHTML = '<h2><span>Supervisores · matinal e rota (RET)</span></h2><div style="color:var(--mut);font-size:24px;padding:20px 0">Aguardando dados dos supervisores…</div>'; return; }
+  const peso = x => (!x.fez_compromisso && !x.iniciou_ret) ? 0 : (!x.fez_compromisso || !x.iniciou_ret) ? 1 : 2;
+  const ord = [...lista].sort((a, b) => peso(a) - peso(b) || a.nome.localeCompare(b.nome));
+  const t = sp(), restam = Math.max(0, SUP_FIM - (t.h * 60 + t.m));
+  el.innerHTML = `<h2><span>Supervisores · matinal (compromisso) e rota (RET)</span><b>${supPend().length} pendente(s) de ${lista.length}${restam && (t.h * 60 + t.m) >= SUP_INI ? ' · em destaque até 12:00 (' + restam + ' min)' : ''}</b></h2>` +
+    ord.map(x => `<div class="supr ${peso(x) === 0 ? 'bad' : peso(x) === 1 ? 'warn' : ''}"><span>${esc(x.nome)}</span><span class="chip ${x.fez_compromisso ? 'c-ok' : 'c-no'}">${x.fez_compromisso ? '✅ Compromisso' : '❌ Sem compromisso'}</span><span class="chip ${x.iniciou_ret ? 'c-ok' : 'c-no'}">${x.iniciou_ret ? '✅ Em rota (RET)' : '❌ RET não iniciou'}</span></div>`).join('');
+}
 function modoAtual() {
+  const tt = sp(), mm = tt.h * 60 + tt.m;
+  if (modoManual === 'auto' && mm >= SUP_INI && mm < SUP_FIM && supPend().length) return 'sup'; // 11:30–12:00: supervisores em destaque
   if (modoManual !== 'auto') return modoManual;
   const t = sp(), min = t.h * 60 + t.m - INICIO_H * 60;
   if (min < 0 || t.h >= FIM_H) return 'ronda';
@@ -452,9 +493,10 @@ function modoAtual() {
 let modoVisivel = null;
 function render() {
   const vs = VS(); renderTotais(vs);
-  const m = modoAtual(); $('modo').textContent = (m === 'ronda' ? 'RONDA' : 'PAINEL') + (modoManual === 'auto' ? ' · AUTO' : '');
-  $('ronda').style.display = m === 'ronda' ? 'grid' : 'none'; $('painel').style.display = m === 'painel' ? 'grid' : 'none';
+  const m = modoAtual(); $('modo').textContent = ({ronda: 'RONDA', painel: 'PAINEL', sup: 'SUPERVISORES'}[m]) + (modoManual === 'auto' ? ' · AUTO' : '');
+  $('ronda').style.display = m === 'ronda' ? 'grid' : 'none'; $('painel').style.display = m === 'painel' ? 'grid' : 'none'; $('sup').style.display = m === 'sup' ? 'flex' : 'none';
   if (m === 'painel') renderPainel(vs);
+  else if (m === 'sup') renderSup();
   else { const vazia = !ordem.length; ordem = ordem.filter(id => vs.some(v => v.id === id)); vs.forEach(v => { if (!ordem.includes(v.id)) ordem.push(v.id); }); if (m !== modoVisivel || vazia) { ordem = montaOrdem(vs); idxRonda = 0; } mostraRonda(vs); }
   modoVisivel = m;
   const camp = vs.filter(v => v.campo && v.temRota);
@@ -471,7 +513,7 @@ function avancaRonda() { if (modoAtual() !== 'ronda' || !ordem.length) return; i
 // ============================== DIÁRIO ==============================
 function exportar() {
   const vs = VS();
-  const doc = {filial: FIL, data: HOJE0, exportado_em: sp().hms, lances: LOG, snapshots: SNAP, alertas_ativos: ALERTAS.map(a => ({nivel: a.nivel, rca: a.v.id, vendedor: a.v.nome, cliente: a.c && a.c.nome, motivo: a.c && a.c.motivo, dias: a.dias})),
+  const doc = {filial: FIL, data: HOJE0, exportado_em: sp().hms, lances: LOG, snapshots: SNAP, supervisores: SUP, alertas_ativos: ALERTAS.map(a => ({nivel: a.nivel, rca: a.v.id, vendedor: a.v.nome, cliente: a.c && a.c.nome, motivo: a.c && a.c.motivo, dias: a.dias})),
     vendedores_agora: vs.map(v => ({rca: v.id, nome: v.nome, canal: v.canal, meta: v.meta, faturado: v.fat, pendente: v.pend, devolucao: v.dev, meta_cli: v.metaCli, real_cli: v.realCli, digitado_hoje: v.dig, positivacoes_hoje: v.pos, rota: v.rota, feitas: v.feitas, com_venda: v.comVenda,
       justificativas: (v.cl || []).filter(c => c.motivo).map(c => ({cliente: c.nome, motivo: c.motivo, status: c.status, ultima_compra: c.ultima_compra, tempo_visita: c.tempo_visita}))}))};
   const txt = JSON.stringify(doc, null, 2);
@@ -484,6 +526,7 @@ function relogio() {
   $('clock').textContent = sp().hms;
   if (lastOk) { const min = Math.floor((Date.now() - lastOk) / 60000); const u = $('upd'); u.textContent = 'dados de ' + sp(new Date(lastOk)).hms; u.className = 'upd' + (min >= 5 ? ' old' : ''); if (min >= 5) u.textContent = `SEM ATUALIZAR HÁ ${min} MIN`; }
   if (modoAtual() !== modoVisivel) render();
+  if (precisaRecarregar && !emVAR && !FILA.length) location.reload(); // atualização automática, sem interromper um lance
 }
 function ctl() {
   const marca = () => document.querySelectorAll('#ctl [data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === modoManual));
@@ -491,11 +534,14 @@ function ctl() {
   $('bsom').textContent = somOn ? '🔊 Som' : '🔇 Som'; $('bsom').onclick = () => { somOn = !somOn; store.set('ceven_tv_som', somOn); $('bsom').textContent = somOn ? '🔊 Som' : '🔇 Som'; beep([[660, .15]]); };
   $('brev').onclick = revisar;
   const fs = () => { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch {} };
-  $('bfs').onclick = fs; document.addEventListener('keydown', e => { if (e.key === 'f' || e.key === 'F') fs(); });
+  const alterna = () => { store.set('ceven_tv_fs', !document.fullscreenElement); fs(); };
+  $('bfs').onclick = alterna; document.addEventListener('keydown', e => { if (e.key === 'f' || e.key === 'F') alterna(); });
+  if (store.get('ceven_tv_fs', false)) { const h = $('fshint'); h.style.display = 'block'; const volta = () => { try { document.documentElement.requestFullscreen(); } catch {} h.style.display = 'none'; removeEventListener('pointerdown', volta); removeEventListener('keydown', volta); }; addEventListener('pointerdown', volta); addEventListener('keydown', volta); }
   document.addEventListener('fullscreenchange', () => { $('bfs').textContent = document.fullscreenElement ? '⛶ Sair da tela cheia' : '⛶ Tela cheia'; }); $('bexp').onclick = exportar; marca();
 }
 let versao = null;
-async function checaVersao() { const d = await j('/api/version', 8000); if (d && d.version) { if (versao && versao !== d.version) location.reload(); versao = d.version; } }
+async function checaVersao() { const d = await j('/api/version', 8000); if (d && d.version) { if (versao && versao !== d.version) precisaRecarregar = true; else if (!versao) versao = d.version; } }
+let precisaRecarregar = false;
 if (!VALID.includes(FIL)) {
   document.body.innerHTML = '<div style="padding:60px;font-size:28px">Link inválido. Use <b>?filial=</b> com uma das siglas: ' + VALID.join(', ') + '</div>';
 } else {

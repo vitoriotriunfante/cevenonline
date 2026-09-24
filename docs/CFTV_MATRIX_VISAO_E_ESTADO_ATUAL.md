@@ -142,6 +142,25 @@ Observações técnicas: o relógio da regra das 10h deve usar `America/Sao_Paul
 
 ---
 
+## 5d. Estado em 23/09/2026 (noite) — o que já está no ar
+
+- **TV da filial** `/tbl` (e as 10 outras siglas) → `/tv?filial=XXX`: ronda (vendedor a vendedor, com rota do dia), painel (alertas, justificativas, ranking, devoluções), visão de supervisores, alternância 08–19h em blocos de 10 min, diário de bordo exportável, botão Revisar 30 min, Tela cheia (F), atualização automática por versão.
+- **Alertas em tela cheia (VAR):** pênalti (ESTOQUE SUFICIENTE / cliente fechado com mais de 30 dias sem compra), cartão vermelho (10h sem venda), expulsão (10h sem visita), supervisores (11:30). O lance fica 60 s na tela (ou até clicar).
+- **Supervisores 11:30–12:00:** `functions/api/tv-supervisores.js` (login admin guardado como **segredo do Cloudflare**: `CEVEN_ADMIN_USER`/`CEVEN_ADMIN_PASS`). Às 11:30 aparece o VAR com a lista e, até as 12:00, a visão "Supervisores" fica em destaque (só se houver pendentes). Pendente = não lançou compromisso (matinal) e/ou não iniciou RET. **Risco aceito:** o site é público, então o nome do supervisor + 2 booleanos ficam acessíveis a quem tiver o link; proteção real = Cloudflare Access (pendente).
+- **Publicação:** sempre `node publicar_tv.js "mensagem"` (troca a versão sozinho → as TVs abertas recarregam em até 30 s, sem interromper um lance). Tela cheia do **navegador (F11/kiosk)** sobrevive à atualização; a do botão volta com um clique.
+- **Achados de dados (TBL, 23/09):** 25% das visitas com 0 min; 36 "PEDIDO A DIGITAR" sem venda; GPS de check-out inutilizável hoje (150 de 336 com coordenada > 50 km); 22 pênaltis; 239 justificativas (47 "estoque suficiente").
+
+## 5e. Próximas ideias já pedidas (backlog)
+
+1. **TV da Matriz (link central):** em vez de vendedor a vendedor, **filial e supervisor no consolidado**, mantendo pênaltis. Proposta do Vitório: 11 filiais × ~4 min = ~44 min por volta; o restante do tempo para pênaltis e insights.
+2. **Cadência:** cada vendedor faz 2–3 visitas/hora (≤ 20 PDVs/dia) → o estado de um vendedor muda a cada ~20 min. Blocos fixos de 10/10 min talvez não sejam necessários; avaliar ronda contínua + painel curto periódico + janelas por horário (ex.: supervisores 11:30–12:00) + interrupções por lance.
+3. Alertas novos: visita de 0 min em série, "pedido a digitar" sem venda após 17h, comemorações (primeira venda, zerado que vendeu, meta batida), devolução nova, corte do dia, pedidos bloqueados, zerados por supervisor, ranking de filiais, recuperação de inativos / Volta Comigo (TPH).
+4. **Supervisor na ronda dos vendedores:** agrupar por supervisor (fonte: `/api/gerente/supervisor/rcas` ou árvore viva versionada).
+5. **App de celular** (qualquer filial) — a `public/mobile.html` é só ponto de partida.
+6. Investigar o formato das coordenadas de GPS (check-out) antes de usar como alerta.
+
+---
+
 ## 6. Perguntas em aberto para o Vitório
 
 1. A tela do CFTV deve continuar **desenhando os cards com dados da API** (como hoje) ou **embutir o próprio app do CEVEN em iframes** (uma sessão por vendedor, via isolador 6101–6140)? "Passando / trocando o CEVEN dos vendedores" quer dizer exatamente qual das duas?
