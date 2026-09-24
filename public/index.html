@@ -418,6 +418,11 @@
         document.documentElement.classList.add('dark');
       }
 
+      // TV da filial: link travado vai para a nova tela (/tv.html). Use &legacy=1 para ver a antiga.
+      if (filialParam && /^(TBL|TPH|TCV|ABC|TCA|MCD|TCG|API|TBE|TPA|TSJ)$/.test(filialParam) && !urlParams.get('legacy')) {
+        window.location.replace('/tv.html?filial=' + filialParam);
+      }
+
       if (filialParam) {
         document.documentElement.classList.add('tv-mode-active');
       }

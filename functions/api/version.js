@@ -1,5 +1,5 @@
 // Versão estática da build (Aciona Hot Reload Automático nas Smart TVs das Filiais)
-const RELEASE_VERSION = 'v2.17.0-blocked-orders-6x-daily-schedule';
+const RELEASE_VERSION = 'v3.1.0-tv-var-alertas';
 
 export async function onRequestGet() {
   return new Response(JSON.stringify({
