@@ -1,0 +1,77 @@
+# FICHA DO ARQUIVO
+# O QUE É: publica a TV/CFTV no Cloudflare Pages (ceven-cftv-matrix) AUTOMATICAMENTE a cada push na branch
+#          clean-v3 que mexa em public/, functions/ ou wrangler.toml. Assim NADA depende do PC do Vitório
+#          (premissa online — ver PREMISSA_ONLINE.md). Também troca a versão sozinha: as TVs abertas se
+#          atualizam em até 30 s sem ninguém mexer.
+# PROJETO: CFTV/TV (não é WhatsApp). Não roda nos commits automáticos dos disparos de WhatsApp (filtro paths).
+# SECRETS NECESSÁRIOS (GitHub -> Settings -> Secrets and variables -> Actions):
+#   CLOUDFLARE_API_TOKEN  = token do Cloudflare com permissão "Account > Cloudflare Pages > Edit"
+#   (GDRIVE_SA_JSON já existe — é reaproveitado para o segredo do Cloudflare, ver passo "Sincronizar")
+# SEM O TOKEN: o workflow apenas avisa e termina sem erro (não publica).
+name: TV CFTV — Publicar no Cloudflare
+
+on:
+  push:
+    branches: [clean-v3]
+    paths:
+      - 'public/**'
+      - 'functions/**'
+      - 'wrangler.toml'
+      - '.github/workflows/tv-deploy.yml'
+  workflow_dispatch:
+    inputs:
+      sincronizar_chave_drive:
+        description: 'Copiar o segredo GDRIVE_SA_JSON do GitHub para o Cloudflare (1x, ou quando a chave mudar)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: tv-deploy
+  cancel-in-progress: false
+
+env:
+  CLOUDFLARE_ACCOUNT_ID: 70c0b29be90046574ff5965b1f4b31a8
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Conferir token do Cloudflare
+        id: tk
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::warning::CLOUDFLARE_API_TOKEN ainda nao configurado no GitHub — publicacao automatica DESLIGADA. Veja PREMISSA_ONLINE.md."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Node
+        if: steps.tk.outputs.ok == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Trocar a versão (as TVs abertas recarregam sozinhas)
+        if: steps.tk.outputs.ok == 'true'
+        run: |
+          V="tv-$(TZ=America/Sao_Paulo date +%Y%m%d-%H%M%S)-${GITHUB_SHA::7}"
+          sed -i "s/const RELEASE_VERSION = '[^']*';/const RELEASE_VERSION = '$V';/" functions/api/version.js
+          grep "RELEASE_VERSION =" functions/api/version.js
+
+      - name: Sincronizar chave do Google Drive (GitHub -> Cloudflare)
+        if: steps.tk.outputs.ok == 'true' && github.event_name == 'workflow_dispatch' && inputs.sincronizar_chave_drive
+        env:
+          GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
+        run: |
+          printf '%s' "$GDRIVE_SA_JSON" | npx --yes wrangler@4 pages secret put GDRIVE_SA_JSON --project-name ceven-cftv-matrix
+
+      - name: Publicar (produção)
+        if: steps.tk.outputs.ok == 'true'
+        run: |
+          npx --yes wrangler@4 pages deploy public --project-name ceven-cftv-matrix --branch main --commit-dirty=true --commit-message "auto: ${GITHUB_SHA::7}"
