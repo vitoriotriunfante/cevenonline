@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CEVEN // POSITIVAÇÃO AO VIVO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:           #030712;
+  --panel:        #080e1d;
+  --panel2:       #0c1428;
+  --line:         #14213a;
+  --txt:          #f1f5f9;
+  --muted:        #475569;
+  --dim:          #94a3b8;
+  --green:        #00f59b;
+  --green-dim:    rgba(0,245,155,.15);
+  --amber:        #ffb703;
+  --amber-dim:    rgba(255,183,3,.15);
+  --red:          #ff2a5f;
+  --red-dim:      rgba(255,42,95,.15);
+  --cyan:         #00d2ff;
+  --cyan-dim:     rgba(0,210,255,.12);
+  --purple:       #a855f7;
+  --dF: 'Chakra Petch', sans-serif;
+  --dM: 'JetBrains Mono', monospace;
+  --dS: 'Plus Jakarta Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+body {
+  background: var(--bg);
+  color: var(--txt);
+  font-family: var(--dS);
+  height: 100vh; width: 100vw;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 104px 1fr 148px;
+  grid-template-areas: "header" "middle" "footer";
+  gap: 10px;
+  padding: 10px 16px;
+  background-image: radial-gradient(ellipse 120% 50% at 50% 0%, #0a1e42 0%, transparent 70%);
+}
+
+/* ══════════════════════════════════════
+   HEADER — PLACAR GIGANTE
+══════════════════════════════════════ */
+.header {
+  grid-area: header;
+  display: grid;
+  grid-template-columns: 2.2fr 1fr 1fr 1fr 1fr;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.score-main {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--green);
+  border-radius: 10px;
+  padding: 10px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+.score-main .lbl {
+  font-size: 10px; font-weight: 800;
+  letter-spacing: .14em; color: var(--muted);
+  text-transform: uppercase;
+}
+.score-main .val {
+  font-family: var(--dF);
+  font-size: 52px; font-weight: 800;
+  color: var(--green);
+  text-shadow: 0 0 28px rgba(0,245,155,.45);
+  line-height: 1; letter-spacing: -.02em;
+}
+.score-main .sub {
+  font-size: 12px; color: var(--dim);
+}
+.score-main .sub b { color: #fff; }
+
+.kpi-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+}
+.kpi-card .k-lbl {
+  font-size: 9px; font-weight: 800;
+  letter-spacing: .12em; color: var(--muted);
+  text-transform: uppercase;
+}
+.kpi-card .k-val {
+  font-family: var(--dM);
+  font-size: 30px; font-weight: 800;
+  line-height: 1;
+}
+.kpi-card .k-sub {
+  font-size: 10px; font-weight: 600;
+}
+
+/* ══════════════════════════════════════
+   MIDDLE — GRÁFICO + RANKING
+══════════════════════════════════════ */
+.middle {
+  grid-area: middle;
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 10px;
+  min-height: 0;
+}
+
+.chart-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.panel-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 6px; flex-shrink: 0;
+}
+.panel-title {
+  font-family: var(--dF); font-size: 12px; font-weight: 700;
+  letter-spacing: .08em; color: var(--cyan);
+  display: flex; align-items: center; gap: 6px;
+}
+#live-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .4; transform: scale(.7); }
+}
+.panel-ts {
+  font-size: 10px; font-family: var(--dM); color: var(--muted);
+}
+#pulseCanvas { flex: 1; width: 100%; min-height: 0; }
+
+/* Ranking */
+.ranking-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+  overflow: hidden;
+}
+.rk-title {
+  font-family: var(--dF); font-size: 12px; font-weight: 700;
+  letter-spacing: .08em; color: var(--amber);
+  flex-shrink: 0; margin-bottom: 2px;
+}
+.rk-list {
+  flex: 1; display: flex; flex-direction: column;
+  gap: 3px; overflow-y: auto;
+}
+.rk-row {
+  display: grid;
+  grid-template-columns: 38px 1fr 52px 60px;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  transition: background .3s;
+}
+.rk-row:hover { background: #0f1e3a; }
+.rk-pos {
+  font-family: var(--dM); font-size: 11px;
+  color: var(--muted); text-align: center;
+}
+.rk-bar-wrap {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.rk-sigla {
+  font-family: var(--dF); font-size: 12px; font-weight: 800; color: #fff;
+}
+.rk-bar-bg {
+  height: 5px; background: var(--line); border-radius: 3px; overflow: hidden;
+}
+.rk-bar-fill {
+  height: 100%; border-radius: 3px;
+  transition: width .8s ease;
+}
+.rk-pos-num {
+  font-family: var(--dM); font-size: 16px; font-weight: 800;
+  text-align: right;
+}
+.rk-pct {
+  font-family: var(--dM); font-size: 11px; font-weight: 700;
+  text-align: right;
+}
+
+/* ══════════════════════════════════════
+   FOOTER — GABARITO 11 FILIAIS
+══════════════════════════════════════ */
+.footer {
+  grid-area: footer;
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 6px;
+}
+
+.fil-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 8px 6px;
+  display: flex; flex-direction: column;
+  justify-content: space-between;
+  position: relative; overflow: hidden;
+}
+.fil-card::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 0 0 8px 8px;
+  transition: background .4s, width .8s;
+}
+.fil-card.fc-ok::after    { background: var(--green); }
+.fil-card.fc-warn::after  { background: var(--amber); }
+.fil-card.fc-bad::after   { background: var(--red); }
+.fil-card.fc-crit::after  { background: var(--red); animation: blink 1s steps(1) infinite; }
+.fil-card.fc-zero::after  { background: var(--muted); }
+@keyframes blink { 50% { opacity: 0; } }
+
+.fc-sigla {
+  font-family: var(--dF); font-size: 14px; font-weight: 800;
+  color: #fff; line-height: 1;
+}
+.fc-pos {
+  font-family: var(--dM); font-size: 22px; font-weight: 800;
+  line-height: 1; margin: 2px 0;
+}
+.fc-bar-wrap {
+  height: 4px; background: var(--line); border-radius: 2px;
+  overflow: hidden; margin: 3px 0;
+}
+.fc-bar-fill {
+  height: 100%; border-radius: 2px;
+  transition: width .8s ease;
+}
+.fc-pct {
+  font-family: var(--dM); font-size: 10px; font-weight: 700;
+}
+.fc-sub {
+  font-size: 9px; color: var(--muted); line-height: 1.2;
+}
+
+/* Utilitários de cor */
+.c-green  { color: var(--green)  !important; }
+.c-amber  { color: var(--amber)  !important; }
+.c-red    { color: var(--red)    !important; }
+.c-cyan   { color: var(--cyan)   !important; }
+.c-purple { color: var(--purple) !important; }
+.c-muted  { color: var(--muted)  !important; }
+
+.bg-green { background: var(--green)  !important; }
+.bg-amber { background: var(--amber)  !important; }
+.bg-red   { background: var(--red)    !important; }
+.bg-cyan  { background: var(--cyan)   !important; }
+.bg-muted { background: var(--muted)  !important; }
+
+/* Spinner de loading */
+.loading-overlay {
+  position: fixed; inset: 0;
+  background: rgba(3,7,18,.85);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999; flex-direction: column; gap: 16px;
+  font-family: var(--dM); font-size: 14px; color: var(--dim);
+  transition: opacity .5s;
+}
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--line);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="overlay">
+  <div class="spinner"></div>
+  <span id="overlay-msg">Conectando ao CEVEN...</span>
+</div>
+
+<!-- ══ HEADER ══ -->
+<div class="header">
+  <!-- KPI PRINCIPAL: POSITIVAÇÃO -->
+  <div class="score-main">
+    <span class="lbl">▲ POSITIVADOS HOJE — CLIENTES COM PEDIDO NO DIA</span>
+    <div class="val" id="totPos">—</div>
+    <div class="sub">META: <b id="metaPos">1.400</b> clientes &nbsp;|&nbsp; FALTA: <b class="c-amber" id="faltaPos">—</b> &nbsp;|&nbsp; <b id="pctPos">—</b> atingido</div>
+  </div>
+
+  <!-- DIGITADO R$ -->
+  <div class="kpi-card" style="border-top: 3px solid var(--cyan)">
+    <span class="k-lbl">Digitado Hoje (R$)</span>
+    <div class="k-val c-cyan" id="totFat">—</div>
+    <div class="k-sub c-muted" id="ticketMedio">aguardando...</div>
+  </div>
+
+  <!-- VISITAS -->
+  <div class="kpi-card" style="border-top: 3px solid var(--amber)">
+    <span class="k-lbl">Visitas Realizadas</span>
+    <div class="k-val" id="totVis">—</div>
+    <div class="k-sub" id="eficienciaVis">vs programadas</div>
+  </div>
+
+  <!-- EFICÁCIA -->
+  <div class="kpi-card" style="border-top: 3px solid var(--purple)">
+    <span class="k-lbl">Eficácia (Visita → Venda)</span>
+    <div class="k-val c-purple" id="eficacia">—</div>
+    <div class="k-sub c-muted">meta: acima de 40%</div>
+  </div>
+
+  <!-- RELÓGIO / ATUALIZAÇÃO -->
+  <div class="kpi-card" style="border-top: 3px solid var(--muted)">
+    <span class="k-lbl">Horário BRT</span>
+    <div class="k-val c-dim" id="relogio">--:--</div>
+    <div class="k-sub c-muted">atualiza em <span id="countdown">60</span>s</div>
+  </div>
+</div>
+
+<!-- ══ MIDDLE ══ -->
+<div class="middle">
+
+  <!-- GRÁFICO DE ENTRADA DE PEDIDOS -->
+  <div class="chart-panel">
+    <div class="panel-head">
+      <div class="panel-title">
+        <div id="live-dot"></div>
+        ENTRADA DE PEDIDOS — POSITIVAÇÃO POR HORA (BRT)
+      </div>
+      <div class="panel-ts" id="chart-ts">última atualização: —</div>
+    </div>
+    <canvas id="pulseCanvas"></canvas>
+  </div>
+
+  <!-- RANKING DINÂMICO DAS FILIAIS -->
+  <div class="ranking-panel">
+    <div class="rk-title">📊 RANKING DE POSITIVAÇÃO — FILIAIS</div>
+    <div class="rk-list" id="rkList">
+      <!-- preenchido dinamicamente -->
+    </div>
+  </div>
+</div>
+
+<!-- ══ FOOTER — GABARITO ══ -->
+<footer class="footer" id="gabarito">
+  <!-- preenchido dinamicamente -->
+</footer>
+
+<script>
+'use strict';
+
+/* ──────────────────────────────────────────────
+   CONFIGURAÇÃO
+────────────────────────────────────────────── */
+const API   = 'https://ceven-cftv-matrix.pages.dev/api';
+const META_POS = 1400;   // meta do dia de positivação
+const META_FAT = 2500000; // meta do dia R$
+const FILIAIS = ['TCG','TPH','TBE','TBL','MCD','ABC','API','TPA','TSJ','TCA','TCV'];
+const POLL_MS = 60_000;  // atualiza a cada 60 segundos
+
+/* ──────────────────────────────────────────────
+   ESTADO GLOBAL
+────────────────────────────────────────────── */
+let estado = {
+  pos:      {},   // { TCG: 65, TPH: 264, ... }
+  fat:      {},   // { TCG: 753838, ... }
+  visReal:  {},
+  visProg:  {},
+  vjCom:    {},
+  vjTot:    {},
+  ultimaAtual: null,
+  pulsoHoras: []  // [{hora: '08:00', pos: 120}, ...]
+};
+
+/* ──────────────────────────────────────────────
+   BUSCA DE DADOS — APIS EM PARALELO
+────────────────────────────────────────────── */
+async function fetchTudo() {
+  const overlay = document.getElementById('overlay');
+  const overlayMsg = document.getElementById('overlay-msg');
+
+  // Busca cada filial em paralelo via /api/tv-supervisores
+  // E também busca lances de cada filial via /api/tv-lances para positivação horária
+  const promises = FILIAIS.map(f =>
+    fetch(`${API}/tv-supervisores?filial=${f}`, { signal: AbortSignal.timeout(15000) })
+      .then(r => r.ok ? r.json() : null)
+      .catch(() => null)
+  );
+
+  const lancesPromises = FILIAIS.map(f =>
+    fetch(`${API}/tv-lances?filial=${f}`, { signal: AbortSignal.timeout(15000) })
+      .then(r => r.ok ? r.json() : null)
+      .catch(() => null)
+  );
+
+  const [supResults, lancesResults] = await Promise.all([
+    Promise.all(promises),
+    Promise.all(lancesPromises)
+  ]);
+
+  // Processa supervisores (visitas, eficiência)
+  const posNovo = {}, visRealNovo = {}, visProgNovo = {}, vjComNovo = {}, vjTotNovo = {};
+
+  FILIAIS.forEach((f, i) => {
+    const d = supResults[i];
+    // Supervisores retornam dados agregados da filial
+    if (d && d.supervisores && d.supervisores.length > 0) {
+      let retPdvs = 0;
+      d.supervisores.forEach(s => {
+        if (s.retDetalhe && s.retDetalhe.pdvs) retPdvs += s.retDetalhe.pdvs;
+      });
+      visRealNovo[f] = retPdvs;
+    } else {
+      visRealNovo[f] = estado.visReal[f] || 0;
+    }
+  });
+
+  // Processa lances para positivação
+  const pulsoMap = {}; // hora -> count
+  FILIAIS.forEach((f, i) => {
+    const d = lancesResults[i];
+    let posCount = 0;
+    if (d && d.lances) {
+      // Conta lances de venda (gol = venda convertida)
+      const vendas = d.lances.filter(l =>
+        ['gol','venda10','penalti'].includes(l.nivel) && !l.baseline
+      );
+      posCount = vendas.length;
+
+      // Acumula por hora para o gráfico
+      vendas.forEach(l => {
+        if (l.hora_sp) {
+          const h = l.hora_sp.slice(0,5); // HH:MM
+          const hk = h.slice(0,2) + ':00';
+          pulsoMap[hk] = (pulsoMap[hk] || 0) + 1;
+        }
+      });
+    }
+    posNovo[f] = posCount;
+  });
+
+  // Atualiza estado
+  if (Object.values(posNovo).some(v => v > 0)) {
+    estado.pos = posNovo;
+  }
+  estado.visReal = { ...estado.visReal, ...visRealNovo };
+  estado.pulsoHoras = Object.entries(pulsoMap)
+    .sort((a,b) => a[0].localeCompare(b[0]))
+    .map(([hora, pos]) => ({ hora, pos }));
+  estado.ultimaAtual = new Date();
+
+  // Esconde overlay após primeira carga
+  overlay.style.opacity = '0';
+  setTimeout(() => overlay.style.display = 'none', 500);
+
+  renderTudo();
+}
+
+/* ──────────────────────────────────────────────
+   RENDER PRINCIPAL
+────────────────────────────────────────────── */
+function renderTudo() {
+  const totPos = Object.values(estado.pos).reduce((a, b) => a + b, 0);
+  const totFat = Object.values(estado.fat).reduce((a, b) => a + b, 0);
+  const totVisReal = Object.values(estado.visReal).reduce((a, b) => a + b, 0);
+  const totVisProg = Object.values(estado.visProg).reduce((a, b) => a + b, 0);
+  const totVjCom = Object.values(estado.vjCom).reduce((a, b) => a + b, 0);
+  const totVjTot = Object.values(estado.vjTot).reduce((a, b) => a + b, 0);
+
+  const pctPos = totPos > 0 ? Math.round((totPos / META_POS) * 100) : 0;
+  const faltaPos = Math.max(0, META_POS - totPos);
+  const eficacia = totVjTot > 0 ? Math.round((totVjCom / totVjTot) * 100) : 0;
+
+  // Header
+  setText('totPos', totPos > 0 ? totPos.toLocaleString('pt-BR') : '—');
+  setColor('totPos', pctPos >= 90 ? 'green' : pctPos >= 70 ? 'amber' : 'red');
+  setText('pctPos', totPos > 0 ? pctPos + '%' : '—');
+  setText('faltaPos', faltaPos > 0 ? faltaPos.toLocaleString('pt-BR') + ' clientes' : '✓ META BATIDA!');
+  setText('totFat', totFat > 0 ? 'R$ ' + fmt(totFat) : '—');
+  setText('ticketMedio', totPos > 0 && totFat > 0 ? 'Ticket médio: R$ ' + fmt(totFat/totPos) : 'aguardando...');
+  setText('totVis', totVisReal > 0 ? totVisReal.toLocaleString('pt-BR') : '—');
+  setText('eficienciaVis', totVisProg > 0 ? Math.round((totVisReal/totVisProg)*100) + '% da rota cumprida' : 'dados em carregamento');
+  setText('eficacia', totVjTot > 0 ? eficacia + '%' : '—');
+  setColor('eficacia', eficacia >= 40 ? 'green' : eficacia >= 25 ? 'amber' : 'red');
+
+  // Timestamp
+  if (estado.ultimaAtual) {
+    const ts = estado.ultimaAtual.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'America/Sao_Paulo' });
+    setText('chart-ts', 'última atualização: ' + ts + ' BRT');
+  }
+
+  renderRanking();
+  renderGabarito();
+  drawChart();
+}
+
+/* ──────────────────────────────────────────────
+   RANKING LATERAL
+────────────────────────────────────────────── */
+function renderRanking() {
+  const sorted = FILIAIS
+    .map(f => ({ f, pos: estado.pos[f] || 0 }))
+    .sort((a, b) => b.pos - a.pos);
+
+  const maxPos = sorted[0]?.pos || 1;
+  const list = document.getElementById('rkList');
+  list.innerHTML = '';
+
+  sorted.forEach(({ f, pos }, idx) => {
+    const pct = Math.round((pos / META_POS) * 100);
+    const barPct = Math.round((pos / Math.max(maxPos, 1)) * 100);
+    const cls = pct >= 90 ? 'green' : pct >= 70 ? 'amber' : pct > 0 ? 'red' : 'muted';
+    const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx+1}`;
+
+    const row = document.createElement('div');
+    row.className = 'rk-row';
+    row.innerHTML = `
+      <span class="rk-pos">${medal}</span>
+      <div class="rk-bar-wrap">
+        <span class="rk-sigla">${f}</span>
+        <div class="rk-bar-bg">
+          <div class="rk-bar-fill bg-${cls}" style="width:${barPct}%"></div>
+        </div>
+      </div>
+      <span class="rk-pos-num c-${cls}">${pos > 0 ? pos : '—'}</span>
+      <span class="rk-pct c-${cls}">${pos > 0 ? pct+'%' : '—'}</span>
+    `;
+    list.appendChild(row);
+  });
+}
+
+/* ──────────────────────────────────────────────
+   GABARITO — 11 CARDS NO RODAPÉ
+────────────────────────────────────────────── */
+function renderGabarito() {
+  const gab = document.getElementById('gabarito');
+  const metaPorFilial = Math.round(META_POS / FILIAIS.length); // meta simplificada
+
+  gab.innerHTML = FILIAIS.map(f => {
+    const pos = estado.pos[f] || 0;
+    const fat = estado.fat[f] || 0;
+    const pct = Math.round((pos / metaPorFilial) * 100);
+    const barW = Math.min(pct, 100);
+    const cls = pos === 0 ? 'fc-zero' : pct >= 90 ? 'fc-ok' : pct >= 65 ? 'fc-warn' : pct >= 40 ? 'fc-bad' : 'fc-crit';
+    const txtCls = pos === 0 ? 'c-muted' : pct >= 90 ? 'c-green' : pct >= 65 ? 'c-amber' : 'c-red';
+    const barCls = pos === 0 ? 'bg-muted' : pct >= 90 ? 'bg-green' : pct >= 65 ? 'bg-amber' : 'bg-red';
+    const fatFmt = fat > 0 ? 'R$ ' + fmt(fat) : pos > 0 ? 'carregando...' : '—';
+
+    return `
+      <div class="fil-card ${cls}">
+        <span class="fc-sigla">${f}</span>
+        <div class="fc-pos ${txtCls}">${pos > 0 ? pos : '—'}</div>
+        <div class="fc-bar-wrap">
+          <div class="fc-bar-fill ${barCls}" style="width:${barW}%"></div>
+        </div>
+        <div class="fc-pct ${txtCls}">${pos > 0 ? pct+'% meta' : 'sem pedidos'}</div>
+        <div class="fc-sub">${fatFmt}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ──────────────────────────────────────────────
+   GRÁFICO DE PULSO
+────────────────────────────────────────────── */
+const canvas = document.getElementById('pulseCanvas');
+const ctx = canvas.getContext('2d');
+
+function drawChart() {
+  const parent = canvas.parentElement;
+  canvas.width  = parent.clientWidth  - 32;
+  canvas.height = parent.clientHeight - 48;
+
+  const w = canvas.width, h = canvas.height;
+  if (w < 10 || h < 10) return;
+  ctx.clearRect(0, 0, w, h);
+
+  // Slots: 07:00 às 19:00 (12h) em blocos de 1h = 12 slots
+  const slots = [];
+  for (let hh = 7; hh <= 18; hh++) {
+    const key = String(hh).padStart(2,'0') + ':00';
+    const found = estado.pulsoHoras.find(p => p.hora === key);
+    slots.push({ hora: hh + 'h', pos: found ? found.pos : 0 });
+  }
+
+  // Hora atual BRT
+  const nowBRT = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+  const horaAtual = nowBRT.getHours();
+
+  const nSlots  = slots.length;
+  const padX    = 28, padY = 16;
+  const slotW   = (w - padX * 2) / nSlots;
+  const maxPos  = Math.max(...slots.map(s => s.pos), 5);
+  const maxY    = maxPos * 1.3;
+  const drawH   = h - padY - 24;
+
+  // Linhas de grade
+  ctx.strokeStyle = 'rgba(20,33,58,.8)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = padY + (drawH / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(padX, y);
+    ctx.lineTo(w - padX, y);
+    ctx.stroke();
+  }
+
+  // Faixas de hora passada vs futura
+  slots.forEach((s, i) => {
+    const x = padX + i * slotW;
+    const isPast = (s.hora.replace('h','') | 0) < horaAtual;
+    const isCurrent = (s.hora.replace('h','') | 0) === horaAtual;
+
+    if (isCurrent) {
+      ctx.fillStyle = 'rgba(0,210,255,.05)';
+      ctx.fillRect(x, padY, slotW, drawH);
+    }
+
+    const barH = s.pos > 0 ? (s.pos / maxY) * drawH : 0;
+    const barY = padY + drawH - barH;
+
+    if (s.pos > 0) {
+      // Gradiente vertical na barra
+      const grad = ctx.createLinearGradient(0, barY, 0, padY + drawH);
+      grad.addColorStop(0, isPast || isCurrent ? 'rgba(0,245,155,.9)' : 'rgba(0,210,255,.4)');
+      grad.addColorStop(1, isPast || isCurrent ? 'rgba(0,245,155,.2)' : 'rgba(0,210,255,.05)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(x + 2, barY, slotW - 4, barH);
+    }
+
+    // Rótulo hora
+    ctx.fillStyle = isCurrent ? '#00d2ff' : 'rgba(71,85,105,.8)';
+    ctx.font = `${isCurrent ? '700' : '500'} 10px 'JetBrains Mono'`;
+    ctx.textAlign = 'center';
+    ctx.fillText(s.hora, x + slotW / 2, h - 4);
+  });
+
+  // Linha acumulada
+  let acum = 0;
+  const pts = [];
+  slots.forEach((s, i) => {
+    const hrSlot = s.hora.replace('h','') | 0;
+    if (hrSlot <= horaAtual) {
+      acum += s.pos;
+      pts.push({ x: padX + i * slotW + slotW / 2, y: padY + drawH - (acum / Math.max(acum * 1.2, 1)) * drawH });
+    }
+  });
+
+  if (pts.length > 1) {
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      const mx = (pts[i-1].x + pts[i].x) / 2;
+      ctx.bezierCurveTo(mx, pts[i-1].y, mx, pts[i].y, pts[i].x, pts[i].y);
+    }
+    ctx.strokeStyle = '#00d2ff';
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'rgba(0,210,255,.5)';
+    ctx.shadowBlur = 10;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  // Ponto laser no último
+  if (pts.length > 0) {
+    const lp = pts[pts.length - 1];
+    ctx.beginPath();
+    ctx.arc(lp.x, lp.y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#00d2ff';
+    ctx.shadowColor = '#00d2ff';
+    ctx.shadowBlur = 18;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Label "AGORA"
+    ctx.font = '700 10px JetBrains Mono';
+    ctx.fillStyle = '#00d2ff';
+    ctx.textAlign = 'center';
+    ctx.fillText('AGORA', lp.x, lp.y - 12);
+  }
+
+  // Label Y (quantidade)
+  if (maxPos > 0) {
+    ctx.fillStyle = 'rgba(71,85,105,.7)';
+    ctx.font = '500 9px JetBrains Mono';
+    ctx.textAlign = 'right';
+    [0, Math.round(maxPos/2), maxPos].forEach(v => {
+      const y = padY + drawH - (v / maxY) * drawH;
+      ctx.fillText(v, padX - 4, y + 4);
+    });
+  }
+}
+
+/* ──────────────────────────────────────────────
+   UTILITÁRIOS
+────────────────────────────────────────────── */
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+function setColor(id, cor) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = el.className.replace(/\bc-(green|amber|red|cyan|purple|muted)\b/g, '');
+  el.classList.add('c-' + cor);
+}
+function fmt(n) {
+  if (n >= 1_000_000) return (n/1_000_000).toFixed(1).replace('.',',') + 'M';
+  if (n >= 1_000)     return (n/1_000).toFixed(0) + 'k';
+  return n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+}
+
+/* ──────────────────────────────────────────────
+   RELÓGIO + COUNTDOWN
+────────────────────────────────────────────── */
+let countdown = 60;
+function tickRelogio() {
+  const agora = new Date();
+  const brt = agora.toLocaleTimeString('pt-BR', {
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    timeZone: 'America/Sao_Paulo'
+  });
+  setText('relogio', brt);
+
+  countdown--;
+  if (countdown <= 0) {
+    countdown = 60;
+    fetchTudo();
+  }
+  setText('countdown', countdown);
+}
+
+/* ──────────────────────────────────────────────
+   RESIZE
+────────────────────────────────────────────── */
+window.addEventListener('resize', () => drawChart());
+
+/* ──────────────────────────────────────────────
+   INICIALIZAÇÃO
+────────────────────────────────────────────── */
+window.addEventListener('load', () => {
+  setInterval(tickRelogio, 1000);
+  fetchTudo();
+  // Renderiza gabarito vazio imediatamente
+  renderGabarito();
+  renderRanking();
+});
+</script>
+</body>
+</html>
