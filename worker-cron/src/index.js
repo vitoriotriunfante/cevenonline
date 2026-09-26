@@ -25,18 +25,19 @@
  */
 
 const REPO = 'vitoriotriunfante/cevenonline';
-const REF = 'clean-v3';
+const REF = 'main';
 
-// mapa cron (UTC) -> { workflow, inputs }
-// Conta Cloudflare free = 5 crons NA CONTA INTEIRA.
-// Em 24/09/2026: comandda liberou 2 slots — todos os 5 agora são deste worker.
-// 10:00 e 14:30 BRT adicionados com gatilho real para WhatsApp (destino: todos).
+// Mapa oficial de gatilhos cron (UTC) -> { workflow, inputs }
+// Executado com precisão no Cloudflare Pago (Maestro Único)
 const GATILHOS = {
-  '0 6 * * 1-5':   { workflow: 'ceven-cron-datalake.yml',    inputs: {} },                       // 03:00 BRT — sync dados
-  '45 10 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml',    inputs: { ciclo: '07:45', destino: 'todos' } }, // 07:45 BRT — abertura
-  '0 13 * * 1-5':  { workflow: 'ceven-cron-marca-propria.yml', inputs: {} },                     // 10:00 BRT — marcas proprias
-  '30 17 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml',    inputs: { ciclo: '14:30', destino: 'todos' } }, // 14:30 BRT — tarde
-  '30 21 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml',    inputs: { ciclo: '18:30', destino: 'todos' } }  // 18:30 BRT — fechamento
+  '0 6 * * *':     { workflow: 'ceven-cron-datalake.yml',      inputs: {} },                                   // 03:00 BRT — Atualiza TUDO no Drive (zero msg)
+  '0 7 * * 1-5':   { workflow: 'ceven-cron-whatsapp.yml',      inputs: { ciclo: '04:00', destino: 'dry_run' } },// 04:00 BRT — Aquecimento matinal (zero msg)
+  '45 10 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml',      inputs: { ciclo: '07:45', destino: 'todos' } }, // 07:45 BRT — Abertura oficial (WhatsApp)
+  '0 13 * * 1-5':  { workflow: 'ceven-cron-marca-propria.yml', inputs: {} },                                   // 10:00 BRT — Marcas próprias (WhatsApp)
+  '30 14 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml',      inputs: { ciclo: '11:30', destino: 'todos' } }, // 11:30 BRT — Gestão de campo (WhatsApp)
+  '30 17 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml',      inputs: { ciclo: '14:30', destino: 'todos' } }, // 14:30 BRT — Parcial da tarde (WhatsApp)
+  '0 20 * * 1-5':  { workflow: 'ceven-cron-whatsapp.yml',      inputs: { ciclo: '17:00', destino: 'todos' } }, // 17:00 BRT — Reta final (WhatsApp)
+  '30 21 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml',      inputs: { ciclo: '18:30', destino: 'todos' } }  // 18:30 BRT — Fechamento oficial (WhatsApp)
 };
 
 async function dispararWorkflow(env, workflow, inputs) {
