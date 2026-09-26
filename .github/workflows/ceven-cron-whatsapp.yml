@@ -10,21 +10,11 @@ name: CEVEN NOC — Disparos Oficiais WhatsApp
 
 concurrency:
   group: ceven-whatsapp-dispatch
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 on:
-  schedule:
-    # UM ÚNICO horário de cron, rodando a cada 10min de 06:00 a 23:59 UTC (03:00 a
-    # 20:59 BRT), seg-sex. Evidência real de hoje (23/09): ceven-cron-datalake.yml
-    # (1 unico cron) disparou sozinho; este arquivo, com 12 entradas de cron
-    # diferentes, NÃO disparou nenhuma vez em 2 janelas + 2 réplicas. Muitas entradas
-    # de schedule no mesmo workflow parecem atrapalhar o agendador do GitHub. Solução:
-    # só 1 entrada (como o datalake, que funcionou), rodando com frequência — a lógica
-    # de janela de horário (abaixo, "Determinar Ciclo") e a trava de idempotência
-    # (controles_dia.ultimo_disparo_por_ciclo) já decidem sozinhas o que fazer a cada
-    # execução, sem duplicar envio.
-    - cron: '*/10 6-23 * * 1-5'
-
+  # SEM schedule no GitHub — O Cloudflare Pago (ceven-cron-sync) e o Maestro Unico
+  # que dispara via workflow_dispatch com pontualidade suica nos horarios oficiais.
   workflow_dispatch:
     inputs:
       ciclo:
@@ -203,12 +193,12 @@ jobs:
                 break
               fi
               echo "Push falhou (tentativa $i) -- reconstruindo o commit em cima do origin mais recente (evita ficar preso no mesmo conflito de rebase)..."
-              git fetch origin clean-v3
+              git fetch origin ${{ github.ref_name }}
               # Sempre parte do diretrizes_operacionais.json mais recente do origin e só
               # reaplica nossa marca de disparo por cima (evita conflito textual no resto do arquivo).
-              git show origin/clean-v3:config/diretrizes_operacionais.json > /tmp/diretrizes_origin.json
+              git show origin/${{ github.ref_name }}:config/diretrizes_operacionais.json > /tmp/diretrizes_origin.json
               jq --arg c "$CICLO" --arg d "$DATA_REF" '.controles_dia.ultimo_disparo_por_ciclo[$c] = $d' /tmp/diretrizes_origin.json > config/diretrizes_operacionais.json
-              git reset --soft origin/clean-v3
+              git reset --soft origin/${{ github.ref_name }}
               git add $FILES
               git diff --cached --quiet || git commit -m "chore: marca ciclo $CICLO disparado + alerta de risco [skip ci]"
               sleep $((i * 5))
