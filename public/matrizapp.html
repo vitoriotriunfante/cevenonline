@@ -560,13 +560,17 @@ function proximoVAR() {
       ov._t3 = setTimeout(fecha, 45000);
     };
 
+    // Duração base por tipo + variação aleatória de ±3s (ritmo mais orgânico, inspirado no VAR
+    // real: checagem silenciosa 15-25s, offside ~20s — nossa faixa é uma versão condensada disso).
+    const variaMs = () => Math.round((Math.random() * 6 - 3) * 1000);
     let duracaoAnim = 14000, videoNome = null;
-    if (animGol) { duracaoAnim = 13000; videoNome = 'gol'; }
-    else if (animVermelho) { duracaoAnim = 12000; videoNome = 'vermelho'; }
-    else if (animAmarelo) { duracaoAnim = 10000; videoNome = 'amarelo'; }
-    else if (animImpedimento) { duracaoAnim = 12000; videoNome = 'impedimento'; }
-    else if (animDefesa) { duracaoAnim = 12000; videoNome = 'defesa'; }
-    else { duracaoAnim = 14000; videoNome = 'penalti'; }
+    if (animGol) { duracaoAnim = 13000 + variaMs(); videoNome = 'gol'; }
+    else if (animVermelho) { duracaoAnim = 12000 + variaMs(); videoNome = 'vermelho'; }
+    else if (animAmarelo) { duracaoAnim = 10000 + variaMs(); videoNome = 'amarelo'; }
+    else if (animImpedimento) { duracaoAnim = 12000 + variaMs(); videoNome = 'impedimento'; }
+    else if (animDefesa) { duracaoAnim = 12000 + variaMs(); videoNome = 'defesa'; }
+    else { duracaoAnim = 14000 + variaMs(); videoNome = 'penalti'; }
+    duracaoAnim = Math.max(8000, duracaoAnim);
 
     // Vídeo real (se existir): toca por um TEMPO FIXO (5s, o tamanho real dos vídeos) e SEMPRE
     // troca pra decisão nesse tempo — não depende do vídeo avisar quando "terminou de verdade"

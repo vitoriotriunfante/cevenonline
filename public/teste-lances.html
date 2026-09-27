@@ -4,21 +4,22 @@
 <title>CEVEN CFTV — Teste de Lances</title>
 <!--
 FICHA DO ARQUIVO
-O QUE É: página isolada só para validar visualmente as animações de lance (gol, cartões,
-impedimento, pênalti, defesa, hat-trick, semana invicta) sem precisar abrir uma filial real.
-PROJETO: CFTV/TV. Usa os mesmos vídeos/canvas de public/animacoes/tv-animacoes.js.
-NÃO lê dados do CEVEN — é só uma bancada de teste manual.
+O QUE É: bancada de teste isolada que simula a EXPERIÊNCIA COMPLETA de cada lance, igual à TV
+real: LANCE (vídeo/animação) → VAR REVISANDO → REPLAY → DECISÃO (nome/motivo/valor, 45s).
+Usa dados de exemplo fixos por lance (não é dado real do CEVEN). Textos e dinâmica de tempo
+copiados de public/tvapp.html (telaVAR/proximoVAR) — mudou lá, mudar aqui também.
+PROJETO: CFTV/TV. Não lê dado do CEVEN.
 -->
 <style>
-:root{--bg:#070b14;--card:#0f1626;--line:#1e2a44;--tx:#e8eefc;--mut:#8b9bbd}
+:root{--bg:#070b14;--tx:#e8eefc;--mut:#8b9bbd}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--tx);font-family:Segoe UI,Inter,system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
-header{padding:16px 22px;background:#0a1020;border-bottom:1px solid var(--line)}
+body{background:var(--bg);color:var(--tx);font-family:Segoe UI,Inter,system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{padding:16px 22px;background:#0a1020;border-bottom:1px solid #1e2a44}
 h1{font-size:20px}
 header small{color:var(--mut);display:block;margin-top:4px}
 #ctl{display:flex;flex-wrap:wrap;gap:10px;padding:18px 22px}
 #ctl button{border:0;border-radius:10px;padding:14px 20px;font-size:16px;font-weight:800;cursor:pointer;color:#fff}
-#ov{position:fixed;inset:0;background:#000;display:none;align-items:center;justify-content:center;z-index:9999;flex-direction:column}
+#ov{position:fixed;inset:0;background:#000e;display:none;align-items:center;justify-content:center;z-index:99;flex-direction:column;text-align:center;padding:4vh 4vw}
 #ov.show{display:flex}
 #ov .big{font-size:min(9vw,120px);font-weight:900;text-align:center}
 #ov .sub{font-size:min(3.2vw,40px);margin-top:2vh;color:#cbd5e1;text-align:center}
@@ -32,37 +33,157 @@ header small{color:var(--mut);display:block;margin-top:4px}
 #ov .dec .ln.hot{color:#fca5a5;font-weight:800}
 #ov .dec .vd{margin-top:2vh;font-size:min(2.4vw,34px);font-weight:800;color:#fca5a5}
 #ov small{margin-top:2vh;color:var(--mut);font-size:16px}
-#video-lance-fixo{position:fixed;inset:0;z-index:9998;display:none}
+#video-lance-fixo{position:fixed;inset:0;z-index:9998}
 </style>
 <script src="/animacoes/tv-animacoes.js"></script>
 </head><body>
 <header>
   <h1>🧪 Bancada de teste de lances — CFTV</h1>
-  <small>Não mostra dado real. Só dispara as animações para validar visual, som e tempos. Clique na tela para fechar antes da hora.</small>
+  <small>Simula a experiência completa: LANCE → VAR revisando → replay → decisão (45s), igual à TV real. Dados de exemplo, não reais. Clique na tela para fechar antes da hora.</small>
 </header>
 <div id="ctl">
-  <button id="bt-gol" style="background:#166534" title="Testar animação de Gol">⚽ Gol</button>
-  <button id="bt-def" style="background:#0284c7" title="Testar animação de Defesa Milagrosa">🧤 Defesa</button>
-  <button id="bt-imp" style="background:#d97706" title="Testar animação de Impedimento VAR">🚩 Impedimento</button>
-  <button id="bt-ver" style="background:#991b1b" title="Testar animação de Cartão Vermelho">🟥 Vermelho</button>
-  <button id="bt-ama" style="background:#854d0e" title="Testar animação de Cartão Amarelo">🟨 Amarelo</button>
-  <button id="bt-pen" style="background:#1e3a8a" title="Testar animação de Pênalti VAR">🚨 Pênalti</button>
-  <button id="bt-hat" style="background:#ea580c" title="Testar animação de Hat-Trick">🔥 Hat-Trick</button>
-  <button id="bt-inv" style="background:#b45309" title="Testar animação de Semana Invicta">👑 Invicta</button>
+  <button id="bt-gol" style="background:#166534">⚽ Gol</button>
+  <button id="bt-hat" style="background:#ea580c">🔥 Hat-Trick</button>
+  <button id="bt-ver" style="background:#991b1b">🟥 Vermelho</button>
+  <button id="bt-ama" style="background:#854d0e">🟨 Amarelo</button>
+  <button id="bt-imp" style="background:#d97706">🚩 Impedimento</button>
+  <button id="bt-pen" style="background:#1e3a8a">🚨 Pênalti</button>
+  <button id="bt-def" style="background:#0284c7">🧤 Defesa</button>
+  <button id="bt-inv" style="background:#b45309">👑 Invicta (demo)</button>
 </div>
 <div id="ov"></div>
-<div id="video-lance-fixo"></div>
+<div id="video-lance-fixo" style="display:none"></div>
 <script>
 'use strict';
 window.somOn = true;
-if ($('bt-gol')) $('bt-gol').onclick = () => animTeste('gol', 'SUPER PEDIDO DE R$ 25.000!');
-if ($('bt-def')) $('bt-def').onclick = () => animTeste('defesa', 'Defesa milagrosa: salvou a meta no cliente');
-if ($('bt-imp')) $('bt-imp').onclick = () => animTeste('impedimento', 'Visita relâmpago de 00:00');
-if ($('bt-ver')) $('bt-ver').onclick = () => animTeste('vermelho', 'Devolução: CLIENTE NÃO PEDIU');
-if ($('bt-ama')) $('bt-ama').onclick = () => animTeste('amarelo', 'Rota ativa sem vendas às 10h');
-if ($('bt-pen')) $('bt-pen').onclick = () => animTeste('penalti');
-if ($('bt-hat')) $('bt-hat').onclick = () => animTeste('hattrick');
-if ($('bt-inv')) $('bt-inv').onclick = () => animTeste('semanainvicta');
-function $(id) { return document.getElementById(id); }
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function beep(seq) {
+  if (!window.somOn) return;
+  try {
+    const C = new (window.AudioContext || window.webkitAudioContext)(); let t = C.currentTime;
+    seq.forEach(([f, d]) => { const o = C.createOscillator(), g = C.createGain(); o.frequency.value = f; o.type = 'square'; g.gain.value = .12; o.connect(g); g.connect(C.destination); o.start(t); o.stop(t + d); t += d + .05; });
+  } catch {}
+}
+
+// Casos de exemplo por lance — dados fictícios coerentes só para a simulação visual.
+const CASOS = {
+  gol: { titulo: '⚽ GOL DE PLACA!', veredito: '⚽ GOLAÇO NA REDE! Parabéns à equipe!',
+    dec: { VENDEDOR: 'GABRIEL MEDINA (TBL)', LANCE: 'SUPER PEDIDO DE R$ 28.500 FATURADO HOJE!' },
+    animParam: { vendedor: 'GABRIEL MEDINA (TBL)', cliente: 'SUPERMERCADO ALVORADA', valor: 'R$ 28.500', sub: 'SUPER PEDIDO DE R$ 28.500 FATURADO HOJE!' } },
+  hattrick: { titulo: '🔥 HAT-TRICK!', veredito: '🔥 HAT-TRICK DE OURO! Constância que decide o mês!',
+    dec: { VENDEDOR: 'PAULO ROBSON (TBL)', LANCE: '3 pedidos digitados em sequência (~11h) · aprox.' },
+    animParam: { vendedor: 'PAULO ROBSON (TBL)', sub: '3 pedidos digitados em sequência!', clientes: [{nome:'PEDIDO 1',valor:'R$ 8.450'},{nome:'PEDIDO 2',valor:'R$ 12.800'},{nome:'PEDIDO 3',valor:'R$ 9.150'}] } },
+  vermelho: { titulo: '🟥 CARTÃO VERMELHO', veredito: '🟥 EXPULSÃO! Rever rota e devolução imediatamente!',
+    dec: { VENDEDOR: 'ELIAS GARCIA (TBL)', MOTIVO: 'Devolução: CLIENTE NÃO PEDIU (R$ 8.900)' },
+    animParam: { vendedor: 'ELIAS GARCIA (TBL)', cliente: 'COMERCIAL SILVA', sub: 'Devolução registrada: CLIENTE NÃO PEDIU (R$ 8.900)' } },
+  amarelo: { titulo: '🟨 CARTÃO AMARELO', veredito: '🟨 ATENÇÃO! Acelerar positivação do dia!',
+    dec: { VENDEDOR: 'MARCOS MILITAO (TBL)', ALERTA: 'Rota ativa sem nenhuma venda até às 10h' },
+    animParam: { vendedor: 'MARCOS MILITAO (TBL)', sub: 'Rota ativa sem nenhuma venda até às 10h' } },
+  impedimento: { titulo: '🚩 IMPEDIMENTO VAR', veredito: '🚩 LANCE ANULADO! Check-in sem permanência mínima!',
+    dec: { VENDEDOR: 'RODRIGO FARIA (TBL)', ANULADO: 'Visita de 00:00 no cliente SUPERMERCADO MODELO' },
+    animParam: { vendedor: 'RODRIGO FARIA (TBL)', cliente: 'SUPERMERCADO MODELO', sub: 'Visita instantânea de 00:00 (check-in/check-out simultâneo)' } },
+  penalti: { titulo: '🚨 PÊNALTI', veredito: '📞 LIGAR AGORA: supervisor de Andrea',
+    dec: { VENDEDOR: 'ANDREA DO ROCIO (TBL)', CLIENTE: 'SUPERMERCADO RAVI', JUSTIFICATIVA: 'ESTOQUE SUFICIENTE', 'SEM COMPRAR': '45 dias (última compra 12/08)' },
+    animParam: { vendedor: 'ANDREA DO ROCIO (TBL)', cliente: 'SUPERMERCADO RAVI', motivo: 'Cliente com 45+ dias sem compra e estoque disponível na filial' } },
+  defesa: { titulo: '🧤 DEFESA MILAGROSA', veredito: '🧤 MILAGRE NO GOL! Cliente blindado!',
+    dec: { VENDEDOR: 'TIAGO SILVA (TBL)', DEFESA: 'Venda de R$ 7.200 em cliente recorrente MERCEARIA CENTRAL' },
+    animParam: { vendedor: 'TIAGO SILVA (TBL)', cliente: 'MERCEARIA CENTRAL', sub: 'Venda de R$ 7.200 em cliente recorrente na bacia das almas' } },
+  semanainvicta: { titulo: '👑 SEMANA INVICTA (demo)', veredito: '👑 Ainda não é lance real — critério de disparo pendente de definição.',
+    dec: { FILIAL: 'TBL (LONDRINA)', STATUS: '5 vitórias de segunda a sexta · demo visual' },
+    animParam: { vendedor: 'EQUIPE TBL (LONDRINA)', sub: '5 VITÓRIAS DE SEGUNDA A SEXTA · +30 PTS EXTRAS' } }
+};
+
+function linhasDec(o) { return Object.entries(o).map(([k, v]) => `<div class="ln hot"><b>${esc(k)}</b><span>${esc(v)}</span></div>`).join(''); }
+
+async function simulaLance(tipo) {
+  const caso = CASOS[tipo]; if (!caso) return;
+  if (window.__fechaAnimAtual) { window.__fechaAnimAtual(); window.__fechaAnimAtual = null; }
+  // Espera a checagem dos vídeos terminar (evita cair no vetorial só por corrida no 1º clique
+  // logo após carregar a página — ver videosProntos() em tv-animacoes.js).
+  if (typeof videosProntos === 'function') await videosProntos();
+  const ov = $('ov');
+  let animStop = null, t0 = Date.now();
+  const fecha = () => {
+    clearInterval(ov._i); clearTimeout(ov._t1); clearTimeout(ov._t2); clearTimeout(ov._t3);
+    if (animStop) { animStop(); animStop = null; }
+    ov.className = ''; ov.innerHTML = ''; window.__fechaAnimAtual = null;
+  };
+  window.__fechaAnimAtual = fecha;
+  ov.onclick = fecha;
+
+  const mostraDecisao = () => {
+    if (animStop) { animStop(); animStop = null; }
+    ov.className = 'show';
+    ov.innerHTML = `<div class="dec"><h1>${esc(caso.titulo)} · DECISÃO DO VAR</h1>${linhasDec(caso.dec)}<div class="vd">${esc(caso.veredito)}</div></div><small id="vcd"></small>`;
+    ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha em ${Math.max(0, 45 - Math.round((Date.now() - t0) / 1000))}s`; }, 500);
+    ov._t3 = setTimeout(fecha, 45000);
+  };
+
+  // Hat-Trick e Semana Invicta não têm vídeo real — vão direto pra animação vetorial dedicada.
+  if (tipo === 'hattrick' && typeof iniciaAnimHatTrick === 'function') {
+    ov.className = 'show';
+    ov.innerHTML = '<canvas id="cvp"></canvas><button id="btn-fechar-anim" style="position:fixed;top:20px;right:20px;z-index:999999;background:rgba(15,23,42,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 18px;font-size:15px;font-weight:700;cursor:pointer">✕ FECHAR</button>';
+    if ($('btn-fechar-anim')) $('btn-fechar-anim').onclick = e => { e.stopPropagation(); fecha(); };
+    animStop = iniciaAnimHatTrick($('cvp'), caso.animParam);
+    ov._t2 = setTimeout(mostraDecisao, 9500);
+    return;
+  }
+  if (tipo === 'semanainvicta' && typeof iniciaAnimSemanaInvicta === 'function') {
+    ov.className = 'show';
+    ov.innerHTML = '<canvas id="cvp"></canvas><button id="btn-fechar-anim" style="position:fixed;top:20px;right:20px;z-index:999999;background:rgba(15,23,42,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 18px;font-size:15px;font-weight:700;cursor:pointer">✕ FECHAR</button>';
+    if ($('btn-fechar-anim')) $('btn-fechar-anim').onclick = e => { e.stopPropagation(); fecha(); };
+    animStop = iniciaAnimSemanaInvicta($('cvp'), caso.animParam);
+    ov._t2 = setTimeout(mostraDecisao, 9500);
+    return;
+  }
+
+  ov.className = 'show';
+  ov.innerHTML = '<canvas id="cvp"></canvas><button id="btn-fechar-anim" style="position:fixed;top:20px;right:20px;z-index:999999;background:rgba(15,23,42,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 18px;font-size:15px;font-weight:700;cursor:pointer">✕ FECHAR</button>';
+  const cv = $('cvp');
+  if ($('btn-fechar-anim')) $('btn-fechar-anim').onclick = e => { e.stopPropagation(); fecha(); };
+
+  const variaMs = () => Math.round((Math.random() * 6 - 3) * 1000);
+  const DURACAO_BASE = { gol: 13000, vermelho: 12000, amarelo: 10000, impedimento: 12000, defesa: 12000, penalti: 14000 };
+  let duracaoAnim = Math.max(8000, (DURACAO_BASE[tipo] || 14000) + variaMs());
+
+  let arquivoLance = null; // captura o vídeo exato do LANCE, para o REPLAY repetir o mesmo (nunca sortear outro)
+  const mostraVarRevisando = () => {
+    if (animStop) { arquivoLance = animStop.arquivo || null; animStop(); animStop = null; }
+    ov.className = 'show';
+    ov.innerHTML = `<div class="var">VAR</div><div class="sub">REVISANDO O LANCE…</div><div class="scan"><i></i></div>`;
+    beep([[440, .15], [440, .15]]);
+    ov._t2 = setTimeout(iniciaReplay, 2500);
+  };
+  const iniciaReplay = () => {
+    // A tela "VAR REVISANDO" trocou o innerHTML e removeu o canvas — recria antes do replay.
+    ov.className = 'show';
+    ov.innerHTML = '<canvas id="cvp"></canvas>';
+    const cv2 = $('cvp');
+    animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance(cv2, tipo, null, 6000, mostraDecisao, arquivoLance) : null;
+    if (!animStop) mostraDecisao();
+  };
+
+  animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance(cv, tipo, null, duracaoAnim, mostraVarRevisando) : null;
+  if (!animStop) {
+    // Sem vídeo pronto para este lance: cai na animação vetorial dedicada.
+    if (tipo === 'gol') animStop = iniciaAnimGol(cv, caso.animParam);
+    else if (tipo === 'vermelho') animStop = iniciaAnimCartao(cv, caso.animParam, true);
+    else if (tipo === 'amarelo') animStop = iniciaAnimCartao(cv, caso.animParam, false);
+    else if (tipo === 'impedimento') animStop = iniciaAnimImpedimento(cv, caso.animParam);
+    else if (tipo === 'defesa') animStop = iniciaAnimDefesa(cv, caso.animParam);
+    else animStop = iniciaAnimPenalti(cv, caso.animParam);
+    ov._t2 = setTimeout(mostraVarRevisando, duracaoAnim);
+  }
+}
+
+if ($('bt-gol')) $('bt-gol').onclick = () => simulaLance('gol');
+if ($('bt-hat')) $('bt-hat').onclick = () => simulaLance('hattrick');
+if ($('bt-ver')) $('bt-ver').onclick = () => simulaLance('vermelho');
+if ($('bt-ama')) $('bt-ama').onclick = () => simulaLance('amarelo');
+if ($('bt-imp')) $('bt-imp').onclick = () => simulaLance('impedimento');
+if ($('bt-pen')) $('bt-pen').onclick = () => simulaLance('penalti');
+if ($('bt-def')) $('bt-def').onclick = () => simulaLance('defesa');
+if ($('bt-inv')) $('bt-inv').onclick = () => simulaLance('semanainvicta');
 </script>
 </body></html>

@@ -97,13 +97,33 @@ const GOL_POR_SUBTIPO = {
 const VIDEO_OK = {}; // arquivo -> true (existe e já testado) | false (não existe)
 function testaVideo(arquivo) {
   if (VIDEO_OK[arquivo] !== undefined) return;
-  const v = document.createElement('video');
-  v.onloadedmetadata = () => { VIDEO_OK[arquivo] = true; };
-  v.onerror = () => { VIDEO_OK[arquivo] = false; };
-  v.src = arquivo;
   VIDEO_OK[arquivo] = undefined;
+  // Elemento <video> fora do DOM não carrega metadados de forma confiável em vários navegadores
+  // (fica preso em "waiting" para sempre) — por isso anexa escondido, remove ao terminar o teste.
+  const v = document.createElement('video');
+  v.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px';
+  v.preload = 'metadata';
+  v.muted = true;
+  const limpa = () => { try { v.remove(); } catch {} };
+  v.onloadedmetadata = () => { VIDEO_OK[arquivo] = true; limpa(); };
+  v.onerror = () => { VIDEO_OK[arquivo] = false; limpa(); };
+  v.src = arquivo;
+  (document.body || document.documentElement).appendChild(v);
 }
 Object.values(VIDEO_ARQUIVOS).flat().forEach(testaVideo);
+// Promise que resolve quando todos os testes de vídeo já responderam (true/false), com um teto de
+// segurança de 4s — evita que um clique rápido logo após carregar a página caia no vetorial só
+// porque o teste do <video> (assíncrono) ainda não terminou.
+const videosProntosPromise = new Promise((resolve) => {
+  const arquivos = Object.values(VIDEO_ARQUIVOS).flat();
+  const checa = () => arquivos.every((a) => VIDEO_OK[a] !== undefined);
+  if (checa()) return resolve();
+  const t0 = Date.now();
+  const iv = setInterval(() => {
+    if (checa() || Date.now() - t0 > 4000) { clearInterval(iv); resolve(); }
+  }, 100);
+});
+function videosProntos() { return videosProntosPromise; }
 
 // Escolhe qual arquivo tocar para um lance: usa o dedicado ao subtipo (se existir e estiver
 // pronto), senão sorteia entre os disponíveis do nível. Devolve null se nenhum estiver pronto.
@@ -148,15 +168,19 @@ function pegaIframePlayer() {
 // 'duracao'), a decisão aparece nesse tempo de qualquer forma, para a TV nunca ficar presa
 // esperando. Quando o player avisa a duração real, o cronômetro é reajustado para ela (cada
 // vídeo toca o tempo que realmente dura, sem cortar nem esticar).
-function tocaVideoLance(cv, nivel, subtipo, duracaoMaxMs, aoTerminar) {
-  const arquivo = escolheVideo(nivel, subtipo);
+// arquivoFixo: quando informado, toca esse arquivo específico em vez de sortear um novo — usado
+// pelo REPLAY, para repetir exatamente o mesmo vídeo do LANCE (nunca sortear outro no meio do lance).
+function tocaVideoLance(cv, nivel, subtipo, duracaoMaxMs, aoTerminar, arquivoFixo) {
+  const arquivo = arquivoFixo || escolheVideo(nivel, subtipo);
   if (!arquivo) return null;
   const frame = pegaIframePlayer();
   if (!frame) return null;
   const container = document.getElementById('video-lance-fixo');
   const mudo = window.somOn === false;
-  const escondeVideo = () => { if (container) container.style.display = 'none'; cv.style.display = ''; };
-  const mostraVideo = () => { if (container) container.style.display = ''; cv.style.display = 'none'; };
+  // cv pode não existir no momento da chamada (ex.: durante a tela "VAR REVISANDO", sem canvas
+  // no DOM) — tolera null/undefined em vez de travar a sequência inteira.
+  const escondeVideo = () => { if (container) container.style.display = 'none'; if (cv) cv.style.display = ''; };
+  const mostraVideo = () => { if (container) container.style.display = ''; if (cv) cv.style.display = 'none'; };
 
   let parou = false, t = null;
   const finaliza = () => {
@@ -184,7 +208,7 @@ function tocaVideoLance(cv, nivel, subtipo, duracaoMaxMs, aoTerminar) {
 
   rearmaCronometro(duracaoMaxMs); // teto de segurança, reajustado se a duração real chegar antes
 
-  return () => {
+  const stop = () => {
     window.removeEventListener('message', onDuracaoReal);
     if (parou) return;
     parou = true;
@@ -192,6 +216,8 @@ function tocaVideoLance(cv, nivel, subtipo, duracaoMaxMs, aoTerminar) {
     if (frame.contentWindow) frame.contentWindow.postMessage({ tipo: 'parar' }, '*');
     escondeVideo();
   };
+  stop.arquivo = arquivo; // exposto para o REPLAY reaproveitar exatamente o mesmo vídeo do LANCE
+  return stop;
 }
 function membro(c, x, y, ang, len, w, col) { c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'round'; c.beginPath(); c.moveTo(x, y); const ex = x + Math.sin(ang) * len, ey = y + Math.cos(ang) * len; c.lineTo(ex, ey); c.stroke(); return [ex, ey]; }
 function pessoa(c, o) {
@@ -1420,8 +1446,9 @@ function animTeste(tipo, sub) {
   };
   window.__fechaAnimAtual = fecha;
 
-  // Em testes manuais, executa sempre a animação completa em canvas (sem travar em vídeo inexistente)
-  const nivelVideo = null;
+  // Testa vídeo real quando o lance tem um pronto (hoje só "gol"); os demais ainda não têm vídeo
+  // gerado, então caem direto na animação vetorial (ver VIDEO_ARQUIVOS acima).
+  const nivelVideo = ['gol', 'vermelho', 'amarelo', 'impedimento', 'penalti', 'defesa'].includes(tipo) ? tipo : null;
   stopAnim = nivelVideo && typeof tocaVideoLance === 'function' ? tocaVideoLance(cv, nivelVideo, null, 30000, fecha) : null;
   if (!stopAnim) {
     if (tipo === 'hattrick') stopAnim = iniciaAnimHatTrick(cv, {
@@ -1459,4 +1486,6 @@ window.iniciaAnimImpedimento = iniciaAnimImpedimento;
 window.iniciaAnimDefesa = iniciaAnimDefesa;
 window.iniciaAnimPenalti = iniciaAnimPenalti;
 window.animTeste = animTeste;
+window.videosProntos = videosProntos;
+window.tocaVideoLance = tocaVideoLance;
 })(window);

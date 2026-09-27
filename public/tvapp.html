@@ -731,27 +731,36 @@ function proximoVAR() {
       ov._t3 = setTimeout(fecha, 45000);
     };
 
+    // Duração base por tipo + variação aleatória de ±3s (ritmo mais orgânico, inspirado no VAR
+    // real: checagem silenciosa 15-25s, offside ~20s — nossa faixa é uma versão condensada disso).
+    const variaMs = () => Math.round((Math.random() * 6 - 3) * 1000);
     let duracaoAnim = 14000, videoNome = null;
-    if (animGol) { duracaoAnim = 13000; videoNome = 'gol'; }
-    else if (animVermelho) { duracaoAnim = 12000; videoNome = 'vermelho'; }
-    else if (animAmarelo) { duracaoAnim = 10000; videoNome = 'amarelo'; }
-    else if (animImpedimento) { duracaoAnim = 12000; videoNome = 'impedimento'; }
-    else if (animDefesa) { duracaoAnim = 12000; videoNome = 'defesa'; }
-    else { duracaoAnim = 14000; videoNome = 'penalti'; }
+    if (animGol) { duracaoAnim = 13000 + variaMs(); videoNome = 'gol'; }
+    else if (animVermelho) { duracaoAnim = 12000 + variaMs(); videoNome = 'vermelho'; }
+    else if (animAmarelo) { duracaoAnim = 10000 + variaMs(); videoNome = 'amarelo'; }
+    else if (animImpedimento) { duracaoAnim = 12000 + variaMs(); videoNome = 'impedimento'; }
+    else if (animDefesa) { duracaoAnim = 12000 + variaMs(); videoNome = 'defesa'; }
+    else { duracaoAnim = 14000 + variaMs(); videoNome = 'penalti'; }
+    duracaoAnim = Math.max(8000, duracaoAnim); // nunca menor que 8s, mesmo com a variação
 
     // DINÂMICA VAR COMPLETA no caminho de vídeo: LANCE (vídeo) → "VAR REVISANDO" (pausa
     // dramática) → REPLAY (o mesmo vídeo de novo, mais curto) → DECISÃO (texto, 45s).
     const subtipoLance = item.subtipo || (item.a && item.a.subtipo);
+    let arquivoLance = null; // captura o vídeo exato do LANCE, para o REPLAY repetir o mesmo (nunca sortear outro)
     const mostraVarRevisando = () => {
-      if (animStop) { animStop(); animStop = null; }
+      if (animStop) { arquivoLance = animStop.arquivo || null; animStop(); animStop = null; }
       ov.className = 'show';
       ov.innerHTML = `<div class="var">VAR</div><div class="sub">REVISANDO O LANCE…</div><div class="scan"><i></i></div>`;
       beep([[440, .15], [440, .15]]);
       ov._t2 = setTimeout(iniciaReplay, 2500);
     };
     const iniciaReplay = () => {
+      // A tela "VAR REVISANDO" trocou o innerHTML e removeu o canvas — recria antes de tocar o
+      // replay (tocaVideoLance precisa de um elemento vivo para esconder/mostrar durante o vídeo).
+      ov.className = 'show';
+      ov.innerHTML = '<canvas id="cvp"></canvas>';
       const cv2 = $('cvp');
-      animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance(cv2, videoNome, subtipoLance, 6000, mostraDecisaoLance) : null;
+      animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance(cv2, videoNome, subtipoLance, 6000, mostraDecisaoLance, arquivoLance) : null;
       if (!animStop) mostraDecisaoLance(); // sem vídeo para replay: vai direto pra decisão
     };
     animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance(cv, videoNome, subtipoLance, duracaoAnim, mostraVarRevisando) : null;
