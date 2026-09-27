@@ -24,8 +24,8 @@ compatibility_date = "2024-08-01"
 
 [triggers]
 crons = [
-  "0 6 * * *",     # 03:00 BRT -> ceven-cron-datalake.yml (Atualiza TUDO no Drive)
-  "0 7 * * 1-5",   # 04:00 BRT -> ceven-cron-whatsapp.yml (Aquecimento matinal / dry_run)
+  "0 6 * * *",     # 03:00 BRT -> ceven-cron-datalake.yml (Atualiza TUDO no Drive, todo dia)
+  "0 7 * * *",     # 04:00 BRT -> ceven-cron-whatsapp.yml (Aquecimento matinal / dry_run, todo dia -- pode haver faturamento em fim de semana)
   "45 10 * * 1-5", # 07:45 BRT -> ceven-cron-whatsapp.yml (Abertura oficial)
   "0 13 * * 1-5",  # 10:00 BRT -> ceven-cron-marca-propria.yml (Marcas proprias)
   "30 14 * * 1-5", # 11:30 BRT -> ceven-cron-whatsapp.yml (Gestao de campo)

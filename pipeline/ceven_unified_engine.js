@@ -1318,13 +1318,19 @@ async function main() {
   const diretrizes = carregarDiretrizesOperacionais(args);
 
   // VALIDAÇÃO RIGOROSA DE CALENDÁRIO (FINS DE SEMANA, FERIADOS E ESPORÁDICOS)
-  const permissao = verificarPermissaoCalendario(dataHoje, diretrizes, args);
-  if (!permissao.permitido) {
-    console.log(`\n🛑 [DISPARO BLOQUEADO POR CALENDÁRIO OPERACIONAL]`);
-    console.log(`📅 Data: ${dataHoje} | Ciclo: ${hora}`);
-    console.log(`⛔ Motivo: ${permissao.motivo}`);
-    console.log(`💡 Para autorizar um disparo extraordinário, adicione '${dataHoje}' no campo 'esporadicos.datas_autorizadas' em config/diretrizes_operacionais.json ou passe --force-weekend.\n`);
-    return;
+  // dry_run NUNCA manda mensagem real (só monta/loga a prévia) — pode rodar todo dia,
+  // inclusive fim de semana/feriado, sem passar pela trava de calendário. Isso mantém o
+  // cache/aquecimento (ciclo 04:00) útil mesmo em dias sem operação comercial, já que pode
+  // haver faturamento em sábado/domingo e o objetivo do 04:00 não é disparar, é aquecer dado.
+  if (destino !== 'dry_run') {
+    const permissao = verificarPermissaoCalendario(dataHoje, diretrizes, args);
+    if (!permissao.permitido) {
+      console.log(`\n🛑 [DISPARO BLOQUEADO POR CALENDÁRIO OPERACIONAL]`);
+      console.log(`📅 Data: ${dataHoje} | Ciclo: ${hora}`);
+      console.log(`⛔ Motivo: ${permissao.motivo}`);
+      console.log(`💡 Para autorizar um disparo extraordinário, adicione '${dataHoje}' no campo 'esporadicos.datas_autorizadas' em config/diretrizes_operacionais.json ou passe --force-weekend.\n`);
+      return;
+    }
   }
 
   console.log(`\n==================================================`);

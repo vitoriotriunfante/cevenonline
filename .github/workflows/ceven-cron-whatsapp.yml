@@ -56,6 +56,12 @@ jobs:
           DIA=$(TZ='America/Sao_Paulo' date +%u)
           DATA_HOJE=$(TZ='America/Sao_Paulo' date +%Y-%m-%d)
           BLOQUEADO=false
+          DESTINO_INPUT="${{ github.event.inputs.destino }}"
+          if [ "$DESTINO_INPUT" = "dry_run" ]; then
+            echo "🔎 destino=dry_run (nunca manda mensagem real) — trava de calendário não se aplica. Aquecimento pode rodar todo dia."
+            echo "bloqueado=$BLOQUEADO" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           if [ "$DIA" -ge 6 ]; then
             if grep -q "\"$DATA_HOJE\"" config/diretrizes_operacionais.json; then
               echo "⚠️ Fim de semana com autorização esporádica ativa em diretrizes_operacionais.json. Prosseguindo..."

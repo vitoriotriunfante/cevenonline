@@ -30,8 +30,8 @@ const REF = 'main';
 // Mapa oficial de gatilhos cron (UTC) -> { workflow, inputs }
 // Executado com precisão no Cloudflare Pago (Maestro Único)
 const GATILHOS = {
-  '0 6 * * *':     { workflow: 'ceven-cron-datalake.yml',      inputs: {} },                                   // 03:00 BRT — Atualiza TUDO no Drive (zero msg)
-  '0 7 * * 1-5':   { workflow: 'ceven-cron-whatsapp.yml',      inputs: { ciclo: '04:00', destino: 'dry_run' } },// 04:00 BRT — Aquecimento matinal (zero msg)
+  '0 6 * * *':     { workflow: 'ceven-cron-datalake.yml',      inputs: {} },                                   // 03:00 BRT — Atualiza TUDO no Drive (zero msg, todo dia)
+  '0 7 * * *':     { workflow: 'ceven-cron-whatsapp.yml',      inputs: { ciclo: '04:00', destino: 'dry_run' } },// 04:00 BRT — Aquecimento matinal (zero msg, todo dia — pode haver faturamento em fim de semana, objetivo é aquecer dado, não disparar)
   '45 10 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml',      inputs: { ciclo: '07:45', destino: 'todos' } }, // 07:45 BRT — Abertura oficial (WhatsApp)
   '0 13 * * 1-5':  { workflow: 'ceven-cron-marca-propria.yml', inputs: {} },                                   // 10:00 BRT — Marcas próprias (WhatsApp)
   '30 14 * * 1-5': { workflow: 'ceven-cron-whatsapp.yml',      inputs: { ciclo: '11:30', destino: 'todos' } }, // 11:30 BRT — Gestão de campo (WhatsApp)
@@ -72,7 +72,10 @@ export default {
       '2026-05-01', '2026-06-04', '2026-09-07', '2026-10-12', '2026-11-02',
       '2026-11-15', '2026-11-20', '2026-12-25'
     ];
-    const isMensagemComercial = gatilho.workflow.includes('whatsapp') || gatilho.workflow.includes('marca-propria');
+    // dry_run nunca manda mensagem real — não conta como "comercial" pra trava de calendário
+    // (permite o aquecimento de 04:00 rodar todo dia, inclusive fim de semana/feriado).
+    const isDryRun = gatilho.inputs && gatilho.inputs.destino === 'dry_run';
+    const isMensagemComercial = !isDryRun && (gatilho.workflow.includes('whatsapp') || gatilho.workflow.includes('marca-propria'));
 
     if (isMensagemComercial) {
       if (diaSemana === 0 || diaSemana === 6) {
