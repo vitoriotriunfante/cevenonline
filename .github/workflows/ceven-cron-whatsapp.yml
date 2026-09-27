@@ -50,6 +50,28 @@ jobs:
       - name: Checkout do Repositório
         uses: actions/checkout@v4
 
+      - name: Trava de Segurança - Bloqueio de Fim de Semana e Feriados (com Exceção em Esporádicos)
+        run: |
+          DIA=$(TZ='America/Sao_Paulo' date +%u)
+          DATA_HOJE=$(TZ='America/Sao_Paulo' date +%Y-%m-%d)
+          if [ "$DIA" -ge 6 ]; then
+            if grep -q "\"$DATA_HOJE\"" config/diretrizes_operacionais.json; then
+              echo "⚠️ Fim de semana com autorização esporádica ativa em diretrizes_operacionais.json. Prosseguindo..."
+            else
+              echo "🛑 [ABORTADO] Hoje é fim de semana em Brasília ($DATA_HOJE). Disparos comerciais suspensos."
+              exit 0
+            fi
+          fi
+          FERIADOS="2026-01-01 2026-02-16 2026-02-17 2026-04-03 2026-04-21 2026-05-01 2026-06-04 2026-09-07 2026-10-12 2026-11-02 2026-11-15 2026-11-20 2026-12-25"
+          if echo "$FERIADOS" | grep -qw "$DATA_HOJE"; then
+            if grep -q "\"$DATA_HOJE\"" config/diretrizes_operacionais.json; then
+              echo "⚠️ Feriado com autorização esporádica ativa em diretrizes_operacionais.json. Prosseguindo..."
+            else
+              echo "🛑 [ABORTADO] Hoje é feriado nacional ($DATA_HOJE). Disparos comerciais suspensos."
+              exit 0
+            fi
+          fi
+
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:

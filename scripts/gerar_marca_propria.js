@@ -53,6 +53,17 @@ async function main() {
   // outro valor (ou omitido) só gera os arquivos, sem enviar nada -- seguro pra
   // rodar local sem risco de disparo acidental.
   const destino = process.argv[3] || 'arquivo';
+
+  // Validação Rigorosa de Calendário (Fins de semana, feriados e esporádicos)
+  const permissao = engine.verificarPermissaoCalendario(dataRef);
+  if (!permissao.permitido) {
+    console.log(`\n🛑 [MARCA PRÓPRIA BLOQUEADA POR CALENDÁRIO OPERACIONAL]`);
+    console.log(`📅 Data: ${dataRef} | Destino: ${destino}`);
+    console.log(`⛔ Motivo: ${permissao.motivo}`);
+    console.log(`💡 Para autorizar disparo extraordinário, configure 'esporadicos' em config/diretrizes_operacionais.json.\n`);
+    return;
+  }
+
   const gerentesContatos = engine.carregarGerentesComCorrecoes();
   function telefoneDoGerente(sigla, gerenteNome) {
     const gUp = String(gerenteNome).toUpperCase();
