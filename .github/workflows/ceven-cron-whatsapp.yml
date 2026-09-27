@@ -198,7 +198,7 @@ jobs:
             --destino="$DESTINO"
 
       - name: 💾 Salvar Cache Matinal no Repositório (se ciclo 04:00)
-        if: steps.config.outputs.ciclo == '04:00'
+        if: steps.calendario.outputs.bloqueado != 'true' && steps.config.outputs.ciclo == '04:00'
         run: |
           if [ -f "pipeline/dados_abertura_matinal.json" ]; then
             git config --global user.name "github-actions[bot]"
