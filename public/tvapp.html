@@ -119,7 +119,8 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #ov .dec .vd{margin-top:2vh;font-size:min(2.4vw,34px);font-weight:800;color:#fca5a5}
 #ov small{margin-top:2vh;color:var(--mut);font-size:16px}
 @media(max-width:900px){#ronda,#painel{grid-template-columns:1fr;grid-template-rows:auto}.tot{grid-template-columns:repeat(2,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}.side{display:none}body{overflow:auto}}
-</style></head><body>
+</style><script src="/animacoes/tv-animacoes.js"></script>
+</head><body>
 <header>
   <div class="rec"><i></i>CFTV AO VIVO</div>
   <div class="fil"><span id="fil">—</span><small><span id="nv">0</span> vendedores com meta</small></div>
@@ -141,6 +142,14 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   <span class="tag">ALERTAS</span>
   <span class="msg" id="alert">—</span>
   <div id="ctl">
+    <button id="bt-gol" style="background:#166534;color:#86efac;font-weight:700" title="Testar animação de Gol">⚽ Teste Gol</button>
+    <button id="bt-def" style="background:#0284c7;color:#bae6fd;font-weight:700" title="Testar animação de Defesa Milagrosa">🧤 Defesa</button>
+    <button id="bt-imp" style="background:#d97706;color:#fef3c7;font-weight:700" title="Testar animação de Impedimento VAR">🚩 Impedimento</button>
+    <button id="bt-ver" style="background:#991b1b;color:#fca5a5;font-weight:700" title="Testar animação de Cartão Vermelho">🟥 Vermelho</button>
+    <button id="bt-ama" style="background:#854d0e;color:#fef08a;font-weight:700" title="Testar animação de Cartão Amarelo">🟨 Amarelo</button>
+    <button id="bt-pen" style="background:#1e3a8a;color:#93c5fd;font-weight:700" title="Testar animação de Pênalti VAR">🚨 Pênalti</button>
+    <button id="bt-hat" style="background:#ea580c;color:#ffedd5;font-weight:700" title="Testar animação de Hat-Trick">🔥 Hat-Trick</button>
+    <button id="bt-inv" style="background:#b45309;color:#fef3c7;font-weight:700" title="Testar animação de Semana Invicta">👑 Invicta</button>
     <button data-m="auto" class="on">Auto</button><button data-m="ronda">Ronda</button><button data-m="painel">Painel</button><button data-m="sup">Supervisores</button>
     <button id="bfs">⛶ Tela cheia</button><button id="bsom">🔇 Som</button><button id="brev">Revisar 30 min</button><button id="bexp">Exportar diário</button>
   </div>
@@ -148,6 +157,7 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 <div id="fshint" style="display:none;position:fixed;left:50%;bottom:54px;transform:translateX(-50%);background:#38bdf8;color:#04202e;font-weight:800;padding:8px 18px;border-radius:99px;z-index:50;font-size:15px">A TV foi atualizada · clique em qualquer lugar para voltar à tela cheia</div>
 <div id="toast" style="display:none;position:fixed;top:66px;left:50%;transform:translateX(-50%);background:#7f1d1d;color:#fff;border:1px solid #ef4444;font-weight:800;padding:8px 20px;border-radius:99px;z-index:60;font-size:16px"></div>
 <div id="ov"></div>
+<div id="video-lance-fixo" style="position:fixed;inset:0;z-index:9998;display:none"></div>
 <script>
 'use strict';
 // ============================== CONFIG ==============================
@@ -158,7 +168,7 @@ const CICLO_S = +P.get('ciclo') || 90;          // atualização dos dados
 const BLOCO_MIN = +P.get('bloco') || 10;        // minutos por bloco na alternância
 const ROTA_S = +P.get('rotacao') || 10;         // segundos por vendedor na ronda
 const INICIO_H = 8, FIM_H = 19, LIMITE_H = 10;  // alternância 08h–19h; regras "10h"
-const DIAS_PENALTI = 30;
+const DIAS_PENALTI_ESTOQUE = 30, DIAS_PENALTI_FECHADO = 45; // limiares dos pênaltis P01/P02
 const CAMPO = ['VJ','PET VJ'];                  // canais com cobrança de rota (regra de negócio)
 const EXCLUI = ['GER','SUP'];
 
@@ -181,6 +191,45 @@ function diasDesde(dataISO) {
   const b = Date.UTC(...dataISO.split('-').map((x,i)=>i===1?+x-1:+x));
   return Math.round((a - b) / 86400000);
 }
+// Dias úteis (seg-sex) do mês corrente até hoje e no mês inteiro — para meta diária pro-rata (G11).
+function diasUteisMes() {
+  const [ano, mes] = sp().date.split('-').map(Number);
+  const ultimoDia = new Date(Date.UTC(ano, mes, 0)).getUTCDate();
+  let totalUteis = 0, uteisAteHoje = 0;
+  const hoje = +sp().date.split('-')[2];
+  for (let dia = 1; dia <= ultimoDia; dia++) {
+    const diaSemana = new Date(Date.UTC(ano, mes - 1, dia)).getUTCDay(); // 0=domingo, 6=sábado
+    if (diaSemana !== 0 && diaSemana !== 6) {
+      totalUteis++;
+      if (dia <= hoje) uteisAteHoje++;
+    }
+  }
+  return { totalUteis, uteisAteHoje };
+}
+// Texto do "porquê" do gol, por subtipo. relampago/acrescimos são APROXIMADOS (ver
+// DIG_DETECTADO_EM) — o texto sempre avisa isso, nunca finge precisão que não temos.
+function textoGol(subtipo, valor, c, horaAprox) {
+  if (subtipo === 'super_pedido') return `Super Pedido: ${brl(valor)}!`;
+  if (subtipo === 'inativo_recuperado') return `${c && c.nome} · cliente inativo resgatado!`;
+  if (subtipo === 'relampago_aprox') return `Gol Relâmpago (detectado ~${String(horaAprox).padStart(2,'0')}h) · aprox.`;
+  if (subtipo === 'acrescimos_aprox') return `Gol nos Acréscimos (detectado ~${String(horaAprox).padStart(2,'0')}h) · aprox.`;
+  if (subtipo === 'conversao') return `Máquina de Conversão: ${valor.toFixed(0)}% de aproveitamento!`;
+  if (subtipo === 'goleada') return `Goleada! ${valor} clientes positivados hoje!`;
+  if (subtipo === 'campeao') return `Campeão da Rodada: 100% da meta do mês batida!`;
+  if (subtipo === 'dobrou_mix') return `${c && c.nome} · dobrou o mix do cliente!`;
+  if (subtipo === 'hattrick_aprox') return `Hat-Trick (3 pedidos seguidos, ~${String(horaAprox).padStart(2,'0')}h) · aprox.`;
+  if (subtipo === 'meta1tempo_aprox') return `Meta do 1º Tempo batida (~${String(horaAprox).padStart(2,'0')}h) · aprox.`;
+  if (subtipo === 'dobradinha_quinzenas') return `${c && c.nome} · dobradinha das quinzenas!`;
+  return 'GOL DE PLACA';
+}
+// I02: distância Haversine entre check-out do vendedor e o cadastro do cliente (metros)
+function distanciaM(lat1, lon1, lat2, lon2) {
+  if ([lat1, lon1, lat2, lon2].some(v => v == null || isNaN(v))) return null;
+  const R = 6371000, rad = x => x * Math.PI / 180;
+  const dLat = rad(lat2 - lat1), dLon = rad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 const ddmm = iso => iso ? iso.slice(8,10) + '/' + iso.slice(5,7) : '—';
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
@@ -193,6 +242,19 @@ const K = {seen:`ceven_tv_seen_${FIL}_`, log:`ceven_tv_log_${FIL}_`, snap:`ceven
 // ============================== ESTADO ==============================
 let REPS = [];            // [{id,nome,canal}]
 const DATA = {};          // id -> última leitura real (tv-vendedor)
+// id -> {valor: dig_hoje na última mudança percebida, em: timestamp em que percebemos}.
+// APROXIMAÇÃO: o CEVEN não expõe horário exato de pedido (confirmado — ver
+// REGRAS_CFTV/PLANO_AMANHA_27_09_2026.md). Isso usa o momento em que A NOSSA CHECAGEM (a cada
+// ~90s) percebeu o valor subir, como proxy do horário real do pedido — margem de erro de até
+// ~90s. Serve para lances de JANELA DE HORÁRIO do dia (ex.: "antes das 9h", "depois das 17h").
+const DIG_DETECTADO_EM = {};
+// id -> [{valor, em}, ...] TODAS as detecções do dia (não só a última) — usado só pelo Hat-Trick
+// (G06), que precisa contar 3+ detecções dentro de uma janela de 120min. APROXIMAÇÃO AINDA MAIS
+// GROSSEIRA que DIG_DETECTADO_EM: cada detecção já carrega ~90s de erro, então "3 pedidos em
+// 120min" pode, no pior caso dos 3, ter sido na real ~4.5min mais apertado ou mais largo do que
+// o texto mostra. Sempre marcado como aproximado na tela — nunca "confirmado". Validar contra
+// pedidos reais do dia seguinte (ver plano) antes de confiar nisso para decisão de negócio.
+const DIG_HISTORICO = {};
 let lastOk = null, refreshing = false, ordem = [], idxRonda = 0, modoManual = ['auto','ronda','painel','sup'].includes(P.get('modo')) ? P.get('modo') : store.get('ceven_tv_modo', 'auto');
 const SUP_INI = 11 * 60 + 30, SUP_FIM = 12 * 60; // janela do alerta de supervisores (Brasília)
 let SUP = null;   // situação dos supervisores no dia (tv-supervisores)
@@ -217,32 +279,32 @@ async function carregaMetas() {
   const d = await j('/metas_mes.json?t=' + Date.now(), 15000);
   if (d && d.filiais && d.filiais[FIL] && d.mes === sp().date.slice(0, 7)) METAS = d.filiais[FIL]; else METAS = null; // mês diferente = não usa (evita meta velha)
 }
+const MOSTRA_TUDO = P.get('mostrartudo') === '1'; // flag explícita: ignora a coluna MOSTRA NOS DISPAROS (uso excepcional, por link)
 async function carregaReps() {
   // Fonte de verdade: planilha VENDEDORES AUDITADOS (aba MOSTRA_DISPAROS) -> só vendedor com MOSTRA = SIM
-  // 1º: lê direto do Google Drive (online, sempre atual). 2º: cópia publicada (aviso na tela).
-  let m = await j('/api/tv-mostra', 25000), origem = 'drive';
-  if (!(m && m.filiais && !m.erro)) { m = await j('/mostra_vendedores.json?t=' + Date.now(), 15000); origem = 'copia'; }
+  // Essa lista é uma regra do negócio (quem os gerentes aprovaram ver), não um detalhe técnico:
+  // sem ela, a tela NUNCA mostra vendedor por conta própria (nem cadastro geral do CEVEN).
+  let m = await j('/api/tv-mostra', 25000);
+  if (!(m && m.filiais && !m.erro)) { m = await j('/mostra_vendedores.json?t=' + Date.now(), 15000); }
   // Filial canônica (o servidor já junta TPH_VAGNER + TPH_FABIO em TPH, com campo `grupo`). Tolera JSON antigo com chaves SIGLA_GRUPO.
   // ?grupo=VAGNER filtra por gerente/subdivisão (link por gerente).
   const GRUPO = (P.get('grupo') || '').toUpperCase();
   const lista = m && m.filiais ? Object.keys(m.filiais).filter(k => k === FIL || k.startsWith(FIL + '_')).flatMap(k => m.filiais[k].map(r => ({...r, grupo: r.grupo || (k.includes('_') ? k.split('_').slice(1).join('_') : '')}))).filter(r => !GRUPO || r.grupo === GRUPO) : null;
   if (Array.isArray(lista) && lista.length) {
-    REPS = lista.filter(r => r.mostra && !EXCLUI.includes((r.canal || '').toUpperCase()))
+    REPS = lista.filter(r => (MOSTRA_TUDO || r.mostra) && !EXCLUI.includes((r.canal || '').toUpperCase()))
       .map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor), grupo: r.grupo || ''}));
     listaMostra = true;
     const av = $('aviso');
-    if (origem === 'copia') { const d = m.planilha_em ? new Date(m.planilha_em) : null; av.textContent = 'LISTA: CÓPIA' + (d ? ' DE ' + d.toLocaleDateString('pt-BR', {timeZone: 'America/Sao_Paulo'}) : '') + ' · DRIVE INDISPONÍVEL'; av.style.display = 'inline-block'; }
-    else av.style.display = 'none';
+    if (av) av.style.display = 'none';
     return REPS.length > 0;
   }
-  // Sem a lista da planilha: usa o cadastro do sistema e AVISA na tela (pode mostrar contas que não deveriam aparecer)
-  listaMostra = false; $('aviso').style.display = 'inline-block';
-  const lst = await j(`/api/representantes?filial=${FIL}`);
-  if (!Array.isArray(lst)) return false;
-  const doFil = lst.filter(r => ((r.filial || '').toUpperCase() === FIL) || ((r.filial_id || '').toUpperCase().replace(/1$/, '') === FIL));
-  REPS = doFil.map(r => ({id: String(r.codigo), nome: limpaNome(r.nome), canal: (r.area_atuacao || '').toUpperCase(), sup: ''}))
-    .filter(r => !EXCLUI.includes(r.canal) && !/^VAGO/i.test(r.nome));
-  return REPS.length > 0;
+  // Sem a lista da planilha (Drive e cópia local indisponíveis): NÃO mostra ninguém.
+  // Nunca cai para o cadastro geral do CEVEN — exporia vendedor que os gerentes marcaram para não aparecer.
+  listaMostra = false;
+  REPS = [];
+  const av = $('aviso');
+  if (av) { av.textContent = 'LISTA MOSTRA_DISPAROS INDISPONÍVEL — TV sem vendedores até ela voltar'; av.style.display = 'inline-block'; }
+  return false;
 }
 const supLista = () => {
   const todos = ((SUP && SUP.supervisores) || []).filter(x => !/GERENTE/i.test(x.nome));
@@ -277,6 +339,14 @@ async function atualiza() {
         const r = fila.shift();
         const d = await j(`/api/tv-vendedor?filial=${FIL}&id=${r.id}`);
         if (d && !d.erro && !(d.falhas && d.falhas.length === 3)) {
+          // Detecta ANTES de sobrescrever: se dig_hoje subiu desde a última leitura, marca agora
+          // como o horário aproximado desse novo valor (ver DIG_DETECTADO_EM acima).
+          const digNovo = num(d.dig_hoje), digAntes = DATA[r.id] ? num(DATA[r.id].dig_hoje) : null;
+          if (digNovo != null && (digAntes == null || digNovo > digAntes)) {
+            const agora = Date.now();
+            DIG_DETECTADO_EM[r.id] = { valor: digNovo, em: agora };
+            (DIG_HISTORICO[r.id] = DIG_HISTORICO[r.id] || []).push({ valor: digNovo, em: agora });
+          }
           if (!d.falhas || !d.falhas.length || !DATA[r.id]) DATA[r.id] = d; // leitura parcial só entra se não houver anterior
           ok++;
         }
@@ -306,24 +376,129 @@ const inclui = v => v.tem && ((v.meta || 0) > 0 || (v.metaCli || 0) > 0);
 function VS() { return REPS.map(vend).filter(inclui); }
 function calcAlertas(vs) {
   const t = sp(), out = [];
-  const depois10 = t.h >= LIMITE_H && t.h < FIM_H;
+  const fuso1h = ['TCG','MCD','TCA'].includes(FIL);
+  const limiteHora = fuso1h ? 11 : 10;
+  const depois10 = t.h >= limiteHora && t.h < FIM_H;
   vs.forEach(v => {
     if (!v.cl) return;
+    // --- LANCE G02 / G01: GOL DE PLACA (Super Pedido ou Venda Alta) ---
+    if ((v.dig || 0) >= 15000) {
+      out.push({key: `gol_super|${v.id}`, nivel: 'gol', subtipo: 'super_pedido', v, valor: v.dig});
+    }
+    // --- LANCE G01/G10: horário APROXIMADO (quando a TV detectou o 1º dig_hoje > 0 do dia, ou o
+    // aumento mais recente) — usa DIG_DETECTADO_EM, nunca o relógio "agora" da TV. Margem de erro
+    // de até ~90s (ciclo de leitura). G01 = antes das 9h/10h; G10 = depois das 17h/18h (fuso).
+    const det = DIG_DETECTADO_EM[v.id];
+    if (det && det.valor > 0) {
+      const hDet = sp(new Date(det.em)).h;
+      const limiteRelampago = fuso1h ? 10 : 9;
+      if (hDet < limiteRelampago && !out.some(o => o.key === `gol_relampago|${v.id}`)) {
+        out.push({key: `gol_relampago|${v.id}`, nivel: 'gol', subtipo: 'relampago_aprox', v, valor: det.valor, horaAprox: hDet});
+      }
+      const limiteAcrescimos = fuso1h ? 18 : 17;
+      if (hDet >= limiteAcrescimos && !out.some(o => o.key === `gol_acrescimos|${v.id}`)) {
+        out.push({key: `gol_acrescimos|${v.id}`, nivel: 'gol', subtipo: 'acrescimos_aprox', v, valor: det.valor, horaAprox: hDet});
+      }
+    }
+    // --- LANCE G06: HAT-TRICK APROXIMADO (3+ detecções de aumento em até 120min) ---
+    // Margem de erro maior que G01/G10 — cada detecção já carrega ~90s de imprecisão. Ver aviso
+    // em DIG_HISTORICO acima. Só dispara 1x por "trinca" (marca no `seen` global do lance).
+    const hist = DIG_HISTORICO[v.id];
+    if (hist && hist.length >= 3) {
+      for (let i = 0; i <= hist.length - 3; i++) {
+        const janela = hist[i + 2].em - hist[i].em;
+        if (janela <= 120 * 60000) {
+          const chave = `gol_hattrick|${v.id}|${hist[i + 2].em}`;
+          if (!out.some(o => o.key === chave)) {
+            // Incrementos reais de dig_hoje entre cada detecção — nunca nome de cliente (não
+            // temos esse dado por pedido, só o total do dia; ver DIG_HISTORICO acima).
+            const inc1 = hist[i].valor - (i > 0 ? hist[i - 1].valor : 0);
+            const inc2 = hist[i + 1].valor - hist[i].valor;
+            const inc3 = hist[i + 2].valor - hist[i + 1].valor;
+            out.push({key: chave, nivel: 'hattrick', subtipo: 'hattrick_aprox', v, horaAprox: sp(new Date(hist[i + 2].em)).h, valores: [inc1, inc2, inc3]});
+          }
+          break; // 1 trinca por ciclo já basta
+        }
+      }
+    }
+    // --- LANCE G11: META 1º TEMPO APROXIMADO (bateu meta diária pro-rata, detectado antes das 14h) ---
+    if ((v.meta || 0) > 0 && det && det.valor > 0) {
+      const { totalUteis, uteisAteHoje } = diasUteisMes();
+      const metaDiaria = totalUteis > 0 ? (v.meta / totalUteis) * uteisAteHoje : 0;
+      const hDetMeta = sp(new Date(det.em)).h;
+      if (metaDiaria > 0 && det.valor >= metaDiaria && hDetMeta < 14 && !out.some(o => o.key === `gol_meta1t|${v.id}`)) {
+        out.push({key: `gol_meta1t|${v.id}`, nivel: 'gol', subtipo: 'meta1tempo_aprox', v, valor: det.valor, horaAprox: hDetMeta});
+      }
+    }
+    // --- LANCE G05: MÁQUINA DE CONVERSÃO (≥8 visitas, taxa de conversão ≥50%) ---
+    if ((v.feitas || 0) >= 8 && v.comVenda != null) {
+      const txConv = v.feitas > 0 ? (v.comVenda / v.feitas) * 100 : 0;
+      if (txConv >= 50) out.push({key: `gol_conversao|${v.id}`, nivel: 'gol', subtipo: 'conversao', v, valor: txConv});
+    }
+    // --- LANCE G09: GOLEADA (+10 clientes positivados no dia) ---
+    if ((v.pos || 0) >= 10) {
+      out.push({key: `gol_goleada|${v.id}`, nivel: 'gol', subtipo: 'goleada', v, valor: v.pos});
+    }
+    // --- LANCE G12: CAMPEÃO DA RODADA (100% da meta mensal batida) ---
+    if ((v.meta || 0) > 0 && (v.fat || 0) >= v.meta) {
+      out.push({key: `gol_campeao|${v.id}`, nivel: 'gol', subtipo: 'campeao', v, valor: v.fat});
+    }
+    // --- LANCE V01: DEVOLUÇÃO "CLIENTE NÃO PEDIU" / DEVOLUÇÃO DO DIA ---
+    if ((v.dev || 0) > 0) {
+      out.push({key: `ver_dev|${v.id}`, nivel: 'vermelho', subtipo: 'devolucao_nao_pediu', v, valor: v.dev});
+    }
     v.cl.forEach(c => {
+      // --- LANCE G07: GOL DRIBLE DA VACA (Cliente Inativo > 90 dias recuperado com venda) ---
+      const diasC = diasDesde(c.ultima_compra);
+      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && diasC != null && diasC > 90) {
+        out.push({key: `gol_inativo|${v.id}|${c.id}`, nivel: 'gol', subtipo: 'inativo_recuperado', v, c, dias: diasC});
+      }
+      // --- LANCE G03: DOBROU O MIX (calculado em tv-vendedor.js contra o histórico do cliente) ---
+      if (c.dobrouMix) {
+        out.push({key: `gol_mix|${v.id}|${c.id}`, nivel: 'gol', subtipo: 'dobrou_mix', v, c});
+      }
+      // --- LANCE G04: DOBRADINHA DAS QUINZENAS (comprou na 1ª E na 2ª quinzena do mês) ---
+      if (c.dobradinhaQuinzenas) {
+        out.push({key: `gol_quinzenas|${v.id}|${c.id}`, nivel: 'gol', subtipo: 'dobradinha_quinzenas', v, c});
+      }
+      // --- LANCE V03: BONIFICAÇÃO SEM VENDA (pedido com 2+ itens e soma de valor = R$0) ---
+      if (c.bonificacao) {
+        out.push({key: `ver_bonif|${v.id}|${c.id}`, nivel: 'vermelho', subtipo: 'bonificacao', v, c});
+      }
+      // --- LANCE G08: DEFESA MILAGROSA (cliente marcado RECORRENCIA, salvo no dia da rota) ---
+      if (c.recorrencia && ['POSITIVADO', 'EFETIVADO'].includes(c.status)) {
+        out.push({key: `def|${v.id}|${c.id}`, nivel: 'defesa', v, c});
+      }
+      // --- IMPEDIMENTO I02: check-out a mais de 500m do cadastro do cliente ---
+      const distM = distanciaM(c.lat, c.lon, c.checkout_lat, c.checkout_lon);
+      if (distM != null && distM > 500) {
+        out.push({key: `imp|gps|${v.id}|${c.id}`, nivel: 'impedimento', subtipo: 'gps_fora', v, c, distM: Math.round(distM)});
+      }
       if (['POSITIVADO', 'EFETIVADO'].includes(c.status) || !c.motivo) return;
       const m = c.motivo.toUpperCase(); const dias = diasDesde(c.ultima_compra);
-      const parado = dias == null || dias > DIAS_PENALTI;
-      if (!parado) return;
-      let tipo = null;
-      if (m.includes('ESTOQUE SUFICIENTE')) tipo = 'estoque';
-      else if (m.includes('FECHADO') || m.includes('ENCERROU')) tipo = 'fechado';
-      if (!tipo) return;
-      if (out.some(o => o.key === `pen|${tipo}|${v.id}|${c.id}`)) return; // mesmo cliente repetido na rota
-      out.push({key: `pen|${tipo}|${v.id}|${c.id}`, nivel: 'penalti', tipo, v, c, dias});
+      // PÊNALTI P01: Estoque suficiente com > 30 dias sem compra
+      if (m.includes('ESTOQUE SUFICIENTE') && (dias == null || dias > DIAS_PENALTI_ESTOQUE)) {
+        if (!out.some(o => o.key === `pen|estoque|${v.id}|${c.id}`)) {
+          out.push({key: `pen|estoque|${v.id}|${c.id}`, nivel: 'penalti', tipo: 'estoque', v, c, dias});
+        }
+      }
+      // PÊNALTI P02: Encerrou atividades com > 45 dias sem compra
+      else if ((m.includes('FECHADO') || m.includes('ENCERROU')) && (dias == null || dias > DIAS_PENALTI_FECHADO)) {
+        if (!out.some(o => o.key === `pen|fechado|${v.id}|${c.id}`)) {
+          out.push({key: `pen|fechado|${v.id}|${c.id}`, nivel: 'penalti', tipo: 'fechado', v, c, dias});
+        }
+      }
+      // IMPEDIMENTO I01: Visita relâmpago de 00:00
+      else if (c.tempo_visita === '00:00') {
+        if (!out.some(o => o.key === `imp|visita0|${v.id}|${c.id}`)) {
+          out.push({key: `imp|visita0|${v.id}|${c.id}`, nivel: 'impedimento', v, c});
+        }
+      }
     });
+    // CARTÃO VERMELHO V02 / AMARELO: Zero visitas às 10h (ou 11h fuso)
     if (v.campo && v.temRota && depois10) {
-      if (v.feitas === 0) out.push({key: `vis10|${v.id}`, nivel: 'visita10', v});
-      else if (!(v.dig > 0) && !(v.pos > 0)) out.push({key: `ven10|${v.id}`, nivel: 'venda10', v});
+      if (v.feitas === 0) out.push({key: `vis10|${v.id}`, nivel: 'vermelho', subtipo: 'abandono_campo', v});
+      else if (!(v.dig > 0) && !(v.pos > 0)) out.push({key: `ven10|${v.id}`, nivel: 'amarelo', subtipo: 'sem_venda', v});
     }
   });
   return out;
@@ -398,7 +573,20 @@ function rankingPenaltis() {
 }
 const penaltisDe = rca => LOG.filter(e => e.nivel === 'penalti' && e.rca === rca).length;
 function enfileira(novos) {
-  // pênaltis: UM lance por vendedor (junta todas as justificativas suspeitas dele)
+  // Gols têm prioridade máxima de comemoração
+  novos.filter(a => a.nivel === 'gol').forEach(a => {
+    ESPERA.unshift({tipo: 'gol', v: a.v, c: a.c, sub: textoGol(a.subtipo, a.valor, a.c, a.horaAprox), score: 99});
+  });
+  novos.filter(a => a.nivel === 'hattrick').forEach(a => {
+    ESPERA.unshift({tipo: 'hattrick', v: a.v, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaAprox), score: 99});
+  });
+  // Vermelhos e impedimentos entram na fila
+  novos.filter(a => ['vermelho', 'impedimento', 'amarelo', 'defesa'].includes(a.nivel)).forEach(a => {
+    let sub;
+    if (a.nivel === 'impedimento' && a.subtipo === 'gps_fora') sub = `Check-out a ${a.distM}m do cliente ${a.c && a.c.nome}`;
+    else if (a.nivel === 'vermelho' && a.subtipo === 'bonificacao') sub = `${a.c && a.c.nome} · pedido com itens e valor R$0 (bonificação disfarçada)`;
+    ESPERA.push({tipo: a.nivel, a, v: a.v, c: a.c, sub, score: a.nivel === 'vermelho' ? 30 : 20});
+  });
   const porV = new Map();
   novos.filter(a => a.nivel === 'penalti').forEach(a => { if (!porV.has(a.v.id)) porV.set(a.v.id, {tipo: 'penalti', v: a.v, itens: []}); porV.get(a.v.id).itens.push(a); });
   ESPERA.push(...[...porV.values()].sort((x, y) => y.itens.length - x.itens.length));
@@ -426,7 +614,31 @@ function beep(seq) {
 function linhas(o) { return Object.entries(o).filter(([, v]) => v != null && v !== '').map(([k, v]) => `<div class="ln${String(v).startsWith('!') ? ' hot' : ''}"><b>${esc(k)}</b><span>${esc(String(v).replace(/^!/, ''))}</span></div>`).join(''); }
 function telaVAR(item) {
   let titulo, sub, dec, veredito, cls = 'f1';
-  if (item.tipo === 'sup') {
+  if (item.tipo === 'gol') {
+    titulo = '⚽ GOL DE PLACA!'; sub = item.sub || 'Destaque de vendas e positivação!'; cls = 'f1';
+    dec = `<div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : '—')}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'GOL DE PLACA')}</span></div>`;
+    veredito = '⚽ GOLAÇO NA REDE! Parabéns à equipe!';
+  } else if (item.tipo === 'hattrick') {
+    titulo = '🔥 HAT-TRICK!'; sub = item.sub || '3 pedidos digitados em sequência!'; cls = 'f1';
+    dec = `<div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : '—')}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'HAT-TRICK')}</span></div>`;
+    veredito = '🔥 HAT-TRICK DE OURO! Constância que decide o mês!';
+  } else if (item.tipo === 'vermelho') {
+    titulo = '🟥 CARTÃO VERMELHO'; sub = item.sub || 'Infração disciplinar grave detectada!'; cls = 'f1';
+    dec = `<div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>MOTIVO</b><span>${esc(item.sub || 'EXPULSÃO DIRETA')}</span></div>`;
+    veredito = '🟥 EXPULSÃO! Rever rota e devolução imediatamente!';
+  } else if (item.tipo === 'amarelo') {
+    titulo = '🟨 CARTÃO AMARELO'; sub = item.sub || 'Advertência de rota'; cls = 'f1';
+    dec = `<div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>ALERTA</b><span>${esc(item.sub || 'Sem venda até as 10h')}</span></div>`;
+    veredito = '🟨 ATENÇÃO! Acelerar positivação do dia!';
+  } else if (item.tipo === 'impedimento') {
+    titulo = '🚩 IMPEDIMENTO VAR'; sub = item.sub || 'Visita instantânea não computada'; cls = 'f1';
+    dec = `<div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>ANULADO</b><span>${esc(item.sub || 'Visita de 00:00 sem contato real')}</span></div>`;
+    veredito = '🚩 LANCE ANULADO! Check-in sem permanência mínima!';
+  } else if (item.tipo === 'defesa') {
+    titulo = '🧤 DEFESA MILAGROSA'; sub = item.sub || 'Carteira recorrente protegida!'; cls = 'f1';
+    dec = `<div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>DEFESA</b><span>${esc(item.sub || 'Recorrente salvo')}</span></div>`;
+    veredito = '🧤 MILAGRE NO GOL! Cliente blindado!';
+  } else if (item.tipo === 'sup') {
     titulo = '📋 SUPERVISORES'; sub = `${LIMITE_SUP_TXT}: ${item.lista.length} sem matinal e/ou rota (RET)`;
     dec = item.lista.slice(0, 8).map(x => `<div class="ln${!x.fez_compromisso && !x.iniciou_ret ? ' hot' : ''}"><b>${esc(x.nome)}</b><span>Compromisso ${x.fez_compromisso ? '✅' : '❌ não lançado'} · RET ${x.iniciou_ret ? '✅' : '❌ não iniciou'}</span></div>`).join('') + (item.lista.length > 8 ? `<div class="ln"><b>+${item.lista.length - 8}</b><span>outros</span></div>` : '');
     veredito = 'Esta lista fica em destaque na tela até as 12:00.';
@@ -469,19 +681,109 @@ function telaVAR(item) {
 }
 function proximoVAR() {
   if (emVAR || !FILA.length) return;
+  // Se o botão de teste manual deixou um vídeo/canvas aberto, fecha ele DIREITO antes de começar
+  // um lance real — nunca sobrescrever via innerHTML por cima de um <video> vivo (tela preta).
+  if (window.__fechaAnimAtual) { window.__fechaAnimAtual(); window.__fechaAnimAtual = null; }
   emVAR = true; const item = FILA.shift(); const T = telaVAR(item); const ov = $('ov');
-  const T_TOTAL = 90, t0 = Date.now(); let animStop = null; // pênalti fica MAIS TEMPO parado na decisão (chamar atenção pra agir agora) // o lance fica ~60 s na tela (ou até clicar)
-  const fecha = () => { clearInterval(ov._i); if (animStop) { animStop(); animStop = null; } ov.className = ''; ov.innerHTML = ''; emVAR = false; setTimeout(() => { proximoVAR(); liberaEspera(); }, 400); };
-  ov.onclick = () => { clearTimeout(ov._t1); clearTimeout(ov._t2); clearTimeout(ov._t3); fecha(); };
+  const T_TOTAL = 60, t0 = Date.now(); let animStop = null;
+  const fecha = () => { clearInterval(ov._i); clearTimeout(ov._t1); clearTimeout(ov._t2); clearTimeout(ov._t3); if (animStop) { animStop(); animStop = null; } ov.className = ''; ov.innerHTML = ''; emVAR = false; window.__fechaAnimAtual = null; setTimeout(() => { proximoVAR(); liberaEspera(); }, 400); };
+  window.__fechaAnimAtual = fecha;
+  ov.onclick = () => { fecha(); };
   const mostraDecisao = () => { if (animStop) { animStop(); animStop = null; } ov.className = 'show'; ov.innerHTML = `<div class="dec${item.tipo === 'revisao' ? ' rev' : ''}"><h1>${esc(T.titulo)}${item.tipo === 'revisao' ? '' : ' · DECISÃO DO VAR'}</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
     ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha sozinho em ${Math.max(0, T_TOTAL - Math.round((Date.now() - t0) / 1000))}s`; }, 500); };
   if (item.tipo === 'revisao') { mostraDecisao(); ov._t3 = setTimeout(fecha, T_TOTAL * 1000); return; }
-  const anim = item.tipo === 'penalti' && typeof iniciaAnimPenalti === 'function';
-  const A = anim ? 7000 : 3000;
-  if (anim) { ov.className = 'show'; ov.innerHTML = '<canvas id="cvp"></canvas>'; animStop = iniciaAnimPenalti($('cvp'), {vendedor: item.v.nome, cliente: item.itens.length === 1 ? item.itens[0].c.nome : `${item.itens.length} CLIENTES`}); }
-  else { ov.className = 'show ' + T.cls; ov.innerHTML = `<div class="big">${esc(T.titulo)}</div><div class="sub">${esc(T.sub)}</div>`; beep([[880, .25], [660, .25], [880, .5]]); }
-  ov._t1 = setTimeout(() => { if (animStop) { animStop(); animStop = null; } ov.className = 'show'; ov.innerHTML = `<div class="var">VAR</div><div class="sub">REVISANDO O LANCE…</div><div class="scan"><i></i></div>`; beep([[440, .15], [440, .15]]); }, A);
-  ov._t2 = setTimeout(mostraDecisao, A + 2800);
+
+  if (item.tipo === 'hattrick' && typeof iniciaAnimHatTrick === 'function') {
+    // Sem vídeo real para Hat-Trick — vai direto para a animação vetorial dedicada.
+    ov.className = 'show';
+    ov.innerHTML = '<canvas id="cvp"></canvas><button id="btn-fechar-anim" style="position:fixed;top:20px;right:20px;z-index:999999;background:rgba(15,23,42,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 18px;font-size:15px;font-weight:700;cursor:pointer">✕ FECHAR</button>';
+    if ($('btn-fechar-anim')) $('btn-fechar-anim').onclick = e => { e.stopPropagation(); fecha(); };
+    const valores = (item.a && item.a.valores) || [];
+    animStop = iniciaAnimHatTrick($('cvp'), {
+      vendedor: item.v ? item.v.nome : 'VENDEDOR',
+      sub: item.sub || 'HAT-TRICK',
+      clientes: valores.map((val, i) => ({ nome: `PEDIDO ${i + 1}`, valor: val > 0 ? brl(val) : '—' }))
+    });
+    ov._t2 = setTimeout(mostraDecisao, 9500);
+    ov._t3 = setTimeout(fecha, T_TOTAL * 1000);
+    return;
+  }
+
+  const animGol = item.tipo === 'gol' && typeof iniciaAnimGol === 'function';
+  const animVermelho = item.tipo === 'vermelho' && typeof iniciaAnimCartao === 'function';
+  const animAmarelo = item.tipo === 'amarelo' && typeof iniciaAnimCartao === 'function';
+  const animImpedimento = item.tipo === 'impedimento' && typeof iniciaAnimImpedimento === 'function';
+  const animDefesa = item.tipo === 'defesa' && typeof iniciaAnimDefesa === 'function';
+  const animPenalti = item.tipo === 'penalti' && typeof iniciaAnimPenalti === 'function';
+  const anim = animGol || animVermelho || animAmarelo || animImpedimento || animDefesa || animPenalti;
+
+  if (anim) {
+    ov.className = 'show';
+    ov.innerHTML = '<canvas id="cvp"></canvas><button id="btn-fechar-anim" style="position:fixed;top:20px;right:20px;z-index:999999;background:rgba(15,23,42,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 18px;font-size:15px;font-weight:700;cursor:pointer">✕ FECHAR</button>';
+    const cv = $('cvp');
+    if ($('btn-fechar-anim')) $('btn-fechar-anim').onclick = e => { e.stopPropagation(); fecha(); };
+
+    const mostraDecisaoLance = () => {
+      if (animStop) { animStop(); animStop = null; }
+      ov.className = 'show';
+      ov.innerHTML = `<div class="dec"><h1>${esc(T.titulo)} · DECISÃO DO VAR</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
+      ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha em ${Math.max(0, 45 - Math.round((Date.now() - t0) / 1000))}s`; }, 500);
+      ov._t3 = setTimeout(fecha, 45000);
+    };
+
+    let duracaoAnim = 14000, videoNome = null;
+    if (animGol) { duracaoAnim = 13000; videoNome = 'gol'; }
+    else if (animVermelho) { duracaoAnim = 12000; videoNome = 'vermelho'; }
+    else if (animAmarelo) { duracaoAnim = 10000; videoNome = 'amarelo'; }
+    else if (animImpedimento) { duracaoAnim = 12000; videoNome = 'impedimento'; }
+    else if (animDefesa) { duracaoAnim = 12000; videoNome = 'defesa'; }
+    else { duracaoAnim = 14000; videoNome = 'penalti'; }
+
+    // DINÂMICA VAR COMPLETA no caminho de vídeo: LANCE (vídeo) → "VAR REVISANDO" (pausa
+    // dramática) → REPLAY (o mesmo vídeo de novo, mais curto) → DECISÃO (texto, 45s).
+    const subtipoLance = item.subtipo || (item.a && item.a.subtipo);
+    const mostraVarRevisando = () => {
+      if (animStop) { animStop(); animStop = null; }
+      ov.className = 'show';
+      ov.innerHTML = `<div class="var">VAR</div><div class="sub">REVISANDO O LANCE…</div><div class="scan"><i></i></div>`;
+      beep([[440, .15], [440, .15]]);
+      ov._t2 = setTimeout(iniciaReplay, 2500);
+    };
+    const iniciaReplay = () => {
+      const cv2 = $('cvp');
+      animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance(cv2, videoNome, subtipoLance, 6000, mostraDecisaoLance) : null;
+      if (!animStop) mostraDecisaoLance(); // sem vídeo para replay: vai direto pra decisão
+    };
+    animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance(cv, videoNome, subtipoLance, duracaoAnim, mostraVarRevisando) : null;
+    if (animStop) return;
+
+    // Sem vídeo pronto: cai na animação vetorial de sempre (mesmo comportamento de hoje).
+    if (animGol) {
+      animStop = iniciaAnimGol(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || (item.a ? textoGol(item.a.subtipo, item.a.valor, item.a.c, item.a.horaAprox) : 'GOL DE PLACA')});
+    } else if (animVermelho) {
+      animStop = iniciaAnimCartao(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || (item.a && item.a.subtipo === 'devolucao_nao_pediu' ? `Devolução: CLIENTE NÃO PEDIU (${brl(item.a.valor)})` : item.a && item.a.subtipo === 'bonificacao' ? `${item.a.c && item.a.c.nome} · bonificação disfarçada` : 'Abandono de campo: 0 visitas às 10h')}, true);
+    } else if (animAmarelo) {
+      animStop = iniciaAnimCartao(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || 'Rota ativa sem nenhuma venda faturada'}, false);
+    } else if (animImpedimento) {
+      animStop = iniciaAnimImpedimento(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || `Visita 00:00 no cliente ${esc((item.a && item.a.c && item.a.c.nome) || '')}`});
+    } else if (animDefesa) {
+      animStop = iniciaAnimDefesa(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || 'Fechamento de venda em cliente recorrente!'});
+    } else {
+      animStop = iniciaAnimPenalti(cv, {vendedor: item.v ? item.v.nome : 'VENDEDOR', cliente: item.itens && item.itens.length === 1 ? item.itens[0].c.nome : `${item.itens ? item.itens.length : 1} CLIENTES`});
+    }
+    ov._t2 = setTimeout(mostraDecisaoLance, duracaoAnim);
+    return;
+  }
+
+  ov.className = 'show ' + T.cls;
+  ov.innerHTML = `<div class="big">${esc(T.titulo)}</div><div class="sub">${esc(T.sub)}</div>`;
+  beep([[880, .25], [660, .25], [880, .5]]);
+  ov._t1 = setTimeout(() => {
+    ov.className = 'show';
+    ov.innerHTML = `<div class="var">VAR</div><div class="sub">REVISANDO O LANCE…</div><div class="scan"><i></i></div>`;
+    beep([[440, .15], [440, .15]]);
+  }, 3500);
+  ov._t2 = setTimeout(mostraDecisao, 6300);
   ov._t3 = setTimeout(fecha, T_TOTAL * 1000);
 }
 const secDe = hms => { const [h, m, x] = String(hms || '0:0:0').split(':').map(Number); return h * 3600 + m * 60 + (x || 0); };
@@ -495,103 +797,6 @@ function linhaRevisao(e) {
   const det = e.nivel === 'penalti' ? `${e.cliente || 'cliente'} · ${e.motivo || ''}${e.dias_sem_compra != null ? ' · ' + e.dias_sem_compra + 'd s/ compra' : ''}` : (e.nivel === 'venda10' ? 'sem nenhuma venda às 10h' : e.nivel === 'supervisor' ? 'pendentes de matinal/RET' : 'sem nenhuma visita às 10h');
   return `<div class="ln hot"><b>${esc((e.t || '').slice(0, 5))} ${NOME_NIVEL[e.nivel] || ''}</b><span>${esc(e.vendedor)} — ${esc(det)}${e.ao_ligar ? ' (já existia ao ligar a TV)' : ''}</span></div>`;
 }
-
-// ============================== ANIMAÇÃO DO PÊNALTI (mini jogo em canvas) ==============================
-// Cena de ~7 s: o CLIENTE (camisa azul, com o nome dele) dribla com a bola, o VENDEDOR (camisa vermelha) dá o carrinho,
-// o cliente cai, o juiz apita e aponta a marca do pênalti. Depois entra o "VAR revisando".
-const TORCIDA = (() => { const a = []; let x = 12345; const r = () => (x = (x * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
-  for (let i = 0; i < 900; i++) a.push({x: r(), y: 250 + r() * 260, c: ['#38bdf8', '#f59e0b', '#ef4444', '#e8eefc', '#22c55e', '#a78bfa'][Math.floor(r() * 6)], ph: r() * 6.28}); return a; })();
-const rr = (c, x, y, w, h, r) => { c.beginPath(); if (c.roundRect) c.roundRect(x, y, w, h, r); else c.rect(x, y, w, h); };
-function membro(c, x, y, ang, len, w, col) { c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'round'; c.beginPath(); c.moveTo(x, y); const ex = x + Math.sin(ang) * len, ey = y + Math.cos(ang) * len; c.lineTo(ex, ey); c.stroke(); return [ex, ey]; }
-function pessoa(c, o) {
-  c.save(); c.translate(o.x, o.y); if (o.rot) c.rotate(o.rot); c.scale(o.k, o.k);
-  const sw = Math.sin(o.fase || 0), pele = o.pele || '#f1c9a5'; let aL1 = .1, aL2 = -.1, aA1 = .2, aA2 = -.2;
-  if (o.pose === 'run') { aL1 = sw * .9; aL2 = -sw * .9; aA1 = -sw * .9; aA2 = sw * .9; }
-  else if (o.pose === 'slide') { aL1 = 1.35; aL2 = 1.1; aA1 = -1.3; aA2 = -.9; }
-  else if (o.pose === 'fall') { aL1 = .35; aL2 = -.3; aA1 = 2.5; aA2 = -2.4; }
-  else if (o.pose === 'protesto') { aL1 = .1; aL2 = -.1; aA1 = 2.7; aA2 = -2.7; }
-  else if (o.pose === 'aponta') { aA1 = o.alvo != null ? o.alvo : 1.35; }
-  const quadril = [0, -75], ombro = [0, -140];
-  const perna = (a, cor) => { const [ex, ey] = membro(c, quadril[0], quadril[1], a, 76, 17, cor); c.fillStyle = '#111'; c.beginPath(); c.ellipse(ex + 8, ey, 15, 8, 0, 0, 7); c.fill(); };
-  perna(aL2, pele); membro(c, ombro[0], ombro[1], aA2, 58, 13, pele);
-  c.fillStyle = o.camisa; rr(c, -26, -152, 52, 82, 10); c.fill();
-  if (o.num) { c.fillStyle = '#fff'; c.font = '900 34px Segoe UI'; c.textAlign = 'center'; c.fillText(o.num, 0, -100); }
-  c.fillStyle = o.calcao; c.fillRect(-26, -78, 52, 30);
-  perna(aL1, pele);
-  c.fillStyle = pele; c.beginPath(); c.arc(0, -176, 25, 0, 7); c.fill();
-  c.fillStyle = o.cabelo || '#2b1b10'; c.beginPath(); c.arc(0, -180, 25, Math.PI, 0); c.fill();
-  c.fillStyle = '#111'; c.beginPath(); c.arc(9, -174, 3, 0, 7); c.fill();
-  if (o.grito) { c.fillStyle = '#7a1f1f'; c.beginPath(); c.ellipse(12, -162, 6, 9, 0, 0, 7); c.fill(); }
-  if (o.pose === 'apito') { // mão na boca com o apito
-    c.strokeStyle = pele; c.lineWidth = 13; c.lineCap = 'round'; c.beginPath(); c.moveTo(0, -140); c.lineTo(24, -122); c.lineTo(20, -164); c.stroke();
-    c.fillStyle = '#e5e7eb'; c.beginPath(); c.arc(28, -164, 9, 0, 7); c.fill();
-  } else membro(c, ombro[0], ombro[1], aA1, o.pose === 'aponta' ? 74 : 58, 13, pele);
-  c.restore();
-}
-function bola(c, x, y, r, rot) { c.save(); c.translate(x, y); c.rotate(rot); c.fillStyle = '#fff'; c.beginPath(); c.arc(0, 0, r, 0, 7); c.fill(); c.strokeStyle = '#111'; c.lineWidth = 2; c.stroke(); c.fillStyle = '#111';
-  for (let i = 0; i < 5; i++) { c.beginPath(); c.arc(Math.cos(i * 1.2566) * r * .55, Math.sin(i * 1.2566) * r * .55, r * .2, 0, 7); c.fill(); } c.restore(); }
-function etiqueta(c, txt, x, y, cor) { c.font = '800 26px Segoe UI'; c.textAlign = 'center'; const w = c.measureText(txt).width + 26; c.fillStyle = 'rgba(0,0,0,.65)'; rr(c, x - w / 2, y - 26, w, 38, 12); c.fill(); c.strokeStyle = cor; c.lineWidth = 3; c.stroke(); c.fillStyle = '#fff'; c.fillText(txt, x, y + 2); }
-function desenhaCena(c, W, H, t, P) {
-  const S = H / 1080, ox = (W / S - 1920) / 2, LX = -ox, LW = 1920 + 2 * ox, CH = 940, K = 1.5;
-  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, W, H); c.save(); c.scale(S, S); c.translate(ox, 0);
-  if (t > 4400 && t < 4900) c.translate((Math.random() - .5) * 10, (Math.random() - .5) * 10);
-  const g = c.createLinearGradient(0, 0, 0, 540); g.addColorStop(0, '#050a1a'); g.addColorStop(1, '#16264d'); c.fillStyle = g; c.fillRect(LX, 0, LW, 540);
-  for (const fx of [200, 700, 1200, 1700]) { c.fillStyle = 'rgba(255,255,220,.07)'; c.beginPath(); c.moveTo(fx - 30, 0); c.lineTo(fx + 30, 0); c.lineTo(fx + 230, 540); c.lineTo(fx - 230, 540); c.fill(); c.fillStyle = '#fffbe0'; c.fillRect(fx - 40, 18, 80, 14); }
-  c.fillStyle = '#0d1530'; c.fillRect(LX, 240, LW, 300);
-  for (const d of TORCIDA) { const px = LX + d.x * LW, pulo = t > 5000 ? Math.abs(Math.sin(t * .01 + d.ph)) * 9 : 0; c.globalAlpha = .4 + .35 * (.5 + .5 * Math.sin(t * .004 + d.ph)); c.fillStyle = d.c; c.fillRect(px, d.y - pulo, 9, 12);
-    if (Math.sin(t * .02 + d.ph * 9) > .987) { c.globalAlpha = .9; c.fillStyle = '#fff'; c.beginPath(); c.arc(px, d.y, 13, 0, 7); c.fill(); } }
-  c.globalAlpha = 1;
-  c.fillStyle = '#0f5a2b'; c.fillRect(LX, 540, LW, 540);
-  for (let i = -3; i < 16; i++) { c.fillStyle = i % 2 ? 'rgba(255,255,255,.045)' : 'rgba(0,0,0,.07)'; c.fillRect(i * 160, 540, 160, 540); }
-  c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 5; c.beginPath(); c.moveTo(LX, 575); c.lineTo(1920 + ox, 575); c.stroke();
-  c.beginPath(); c.moveTo(880, 575); c.lineTo(800, 1080); c.stroke();
-  c.lineWidth = 8; c.strokeRect(1560, 405, 300, 170); c.lineWidth = 1; c.strokeStyle = 'rgba(255,255,255,.3)';
-  for (let x = 1580; x < 1860; x += 20) { c.beginPath(); c.moveTo(x, 405); c.lineTo(x, 575); c.stroke(); } for (let y = 425; y < 575; y += 20) { c.beginPath(); c.moveTo(1560, y); c.lineTo(1860, y); c.stroke(); }
-  c.fillStyle = '#fff'; c.beginPath(); c.ellipse(1400, 880, 16, 6, 0, 0, 7); c.fill();
-  if (t > 5000) { const q = ((t - 5000) % 900) / 900; c.strokeStyle = `rgba(250,204,21,${1 - q})`; c.lineWidth = 6; c.beginPath(); c.ellipse(1400, 880, 16 + q * 70, 6 + q * 26, 0, 0, 7); c.stroke(); }
-  c.fillStyle = 'rgba(0,0,0,.3)'; // sombras
-  // ---- jogadores ----
-  const ax0 = -150 + Math.min(t, 2800) * .42, pf = t < 2800 ? 0 : Math.min(1, (t - 2800) / 600);
-  const ax = ax0 + 70 * pf, ay = CH - Math.sin(pf * Math.PI) * 70;
-  const dx = t < 2500 ? -900 + t * .712 : (t < 3300 ? 880 + (t - 2500) * .34 : 1152 - Math.min(1, (t - 3300) / 400) * 190);
-  const drot = t < 2500 ? 0 : (t < 3300 ? -1.3 * Math.min(1, (t - 2500) / 250) : -1.3 * (1 - Math.min(1, (t - 3300) / 400)));
-  const dpose = t < 2500 ? 'run' : (t < 3300 ? 'slide' : 'protesto');
-  const rx = t < 3300 ? -300 : (t < 4400 ? -200 + (t - 3300) * .82 : 702), rpose = t < 4400 ? 'run' : (t < 5000 ? 'apito' : 'aponta');
-  for (const [sx, sy] of [[ax, CH], [dx, CH], [rx, CH]]) { c.fillStyle = 'rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(sx, sy + 4, 80, 14, 0, 0, 7); c.fill(); }
-  const bx = t < 2800 ? ax0 + 78 : 1101 + 430 * (1 - Math.exp(-(t - 2800) / 520)), by = t < 2800 ? CH - 16 - Math.abs(Math.sin(t * .018)) * 14 : CH - 16 - Math.abs(Math.sin((t - 2800) / 170)) * 55 * Math.exp(-(t - 2800) / 500);
-  pessoa(c, {x: rx, y: CH, k: K, camisa: '#facc15', calcao: '#111', cabelo: '#111', pose: rpose, fase: t * .018, alvo: 1.37});
-  pessoa(c, {x: dx, y: CH, k: K, camisa: '#ef4444', calcao: '#450a0a', num: '4', pose: dpose, rot: drot, fase: t * .02, grito: t > 3300});
-  pessoa(c, {x: ax, y: ay, k: K, camisa: '#38bdf8', calcao: '#0b3b5c', num: '10', pele: '#c98f5f', pose: t < 2800 ? 'run' : 'fall', rot: 1.45 * pf, fase: t * .018, grito: t > 2900});
-  bola(c, bx, by, 16, t * .01);
-  const nomeC = String(P.cliente || 'CLIENTE').slice(0, 26), nomeV = String(P.vendedor || '').split(' ')[0];
-  if (t < 2800) etiqueta(c, nomeC, ax, CH - 335, '#38bdf8'); else etiqueta(c, nomeC, ax + 190, CH + 70, '#38bdf8');
-  if (t > 300) etiqueta(c, nomeV, dx - (t > 2500 && t < 3300 ? 60 : 0), CH - (t > 2500 && t < 3300 ? 250 : 335), '#ef4444');
-  if (t > 3000) { c.font = '900 40px Segoe UI'; c.fillStyle = '#facc15'; for (let i = 0; i < 3; i++) { const a = t * .006 + i * 2.1; c.fillText('★', ax + 300 + Math.cos(a) * 45, CH - 60 + Math.sin(a) * 14); } }
-  if (t > 4400 && t < 5300) { const q = (t - 4400) / 900; c.save(); c.translate(rx + 60, CH - 395); c.scale(1 + .12 * Math.sin(t * .05), 1 + .12 * Math.sin(t * .05));
-    c.font = 'italic 900 84px Segoe UI'; c.textAlign = 'left'; c.lineWidth = 12; c.strokeStyle = '#111'; c.strokeText('PIIIIII!', 0, 0); c.fillStyle = '#facc15'; c.fillText('PIIIIII!', 0, 0);
-    c.strokeStyle = `rgba(250,204,21,${1 - q})`; c.lineWidth = 5; for (let i = 1; i <= 3; i++) { c.beginPath(); c.arc(-30, 30, 30 * i + q * 60, -.9, .9); c.stroke(); } c.restore(); }
-  if (t > 5000) { const p = Math.min(1, (t - 5000) / 300), e = 1 - Math.pow(1 - p, 3), sc = (.3 + .7 * e) * (1 + .03 * Math.sin(t * .02));
-    c.save(); c.translate(960, 235); c.scale(sc, sc); c.shadowColor = '#ef4444'; c.shadowBlur = 60; c.textAlign = 'center'; c.font = '900 250px Segoe UI'; c.lineWidth = 24; c.strokeStyle = '#7f1d1d'; c.strokeText('PÊNALTI!', 0, 0); c.fillStyle = '#fff'; c.fillText('PÊNALTI!', 0, 0); c.restore();
-    c.textAlign = 'center'; c.font = '800 46px Segoe UI'; c.fillStyle = '#fecaca'; c.globalAlpha = e; c.fillText('⚠ ' + (P.vendedor || ''), 960, 330); c.globalAlpha = 1; }
-  if (t > 6200) { c.textAlign = 'center'; c.font = '700 34px Segoe UI'; c.fillStyle = 'rgba(255,255,255,' + Math.min(1, (t - 6200) / 400) + ')'; c.fillText('o VAR vai revisar o lance…', 960, 1030); }
-  if (t > 4400 && t < 4560) { c.fillStyle = `rgba(255,255,255,${(1 - (t - 4400) / 160) * .7})`; c.fillRect(LX, 0, LW, 1080); }
-  if (t > 5000 && t < 5180) { c.fillStyle = `rgba(239,68,68,${(1 - (t - 5000) / 180) * .5})`; c.fillRect(LX, 0, LW, 1080); }
-  const v = c.createRadialGradient(960, 540, 400, 960, 540, 1150); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.55)'); c.fillStyle = v; c.fillRect(LX, 0, LW, 1080);
-  c.restore();
-}
-function apito() {
-  if (!somOn) return;
-  try { const C = new (window.AudioContext || window.webkitAudioContext)(), o = C.createOscillator(), l = C.createOscillator(), g = C.createGain(), lg = C.createGain(), n = C.currentTime;
-    o.type = 'sine'; o.frequency.value = 2900; l.frequency.value = 38; lg.gain.value = 180; l.connect(lg); lg.connect(o.frequency);
-    g.gain.setValueAtTime(.0001, n); g.gain.exponentialRampToValueAtTime(.25, n + .03); g.gain.exponentialRampToValueAtTime(.0001, n + 1.1); o.connect(g); g.connect(C.destination); o.start(); l.start(); o.stop(n + 1.2); l.stop(n + 1.2); } catch {}
-}
-function iniciaAnimPenalti(cv, P) {
-  cv.width = innerWidth; cv.height = innerHeight; cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
-  const c = cv.getContext('2d'); const t0 = performance.now(); let raf = 0, parou = false, apitou = false;
-  const quadro = () => { if (parou) return; const t = performance.now() - t0; desenhaCena(c, cv.width, cv.height, t, P); if (t > 4380 && !apitou) { apitou = true; apito(); } raf = requestAnimationFrame(quadro); };
-  quadro(); return () => { parou = true; cancelAnimationFrame(raf); };
-}
-function animTeste(t) { const ov = $('ov'); ov.className = 'show'; ov.innerHTML = '<canvas id="cvp"></canvas>'; const cv = $('cvp'); cv.width = innerWidth; cv.height = innerHeight; cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%'; desenhaCena(cv.getContext('2d'), cv.width, cv.height, t, {vendedor: 'ANDREA DO ROCIO', cliente: 'SUPERMERCADO RAVI'}); }
 
 // ============================== RENDER ==============================
 const seg = v => { const m = v.meta || 0; if (!m) return ''; const f = Math.max(v.fat || 0, 0) / m * 100, p = Math.max(v.pend || 0, 0) / m * 100; const fw = Math.min(f, 100);
@@ -722,8 +927,52 @@ function exportar() {
 }
 
 // ============================== INÍCIO ==============================
+let ultLanceAuto = Date.now(), idxDestaque = 0;
+function confereLanceAuto() {
+  if (emVAR || FILA.length || !ALERTAS.length) return;
+  const t = sp();
+  if (t.h < 8) return;
+  if (Date.now() - ultLanceAuto >= 150000) {
+    ultLanceAuto = Date.now();
+    const categorias = [
+      { tipo: 'gol', lista: ALERTAS.filter(a => a.nivel === 'gol') },
+      { tipo: 'hattrick', lista: ALERTAS.filter(a => a.nivel === 'hattrick') },
+      { tipo: 'penalti', lista: ALERTAS.filter(a => a.nivel === 'penalti') },
+      { tipo: 'impedimento', lista: ALERTAS.filter(a => a.nivel === 'impedimento') },
+      { tipo: 'vermelho', lista: ALERTAS.filter(a => a.nivel === 'vermelho') },
+      { tipo: 'amarelo', lista: ALERTAS.filter(a => a.nivel === 'amarelo') },
+      { tipo: 'defesa', lista: ALERTAS.filter(a => a.nivel === 'defesa') }
+    ].filter(c => c.lista && c.lista.length > 0);
+
+    if (!categorias.length) return;
+    const cat = categorias[idxDestaque % categorias.length];
+    idxDestaque++;
+    // Pega o item mais relevante da categoria (ex: maior valor no gol, maior tempo/risco nas infrações)
+    const lance = cat.lista.slice().sort((a,b) => (b.valor || b.dias || 0) - (a.valor || a.dias || 0))[0] || cat.lista[0];
+    if (lance.nivel === 'gol') {
+      FILA.push({tipo: 'gol', v: lance.v, c: lance.c, a: lance, sub: textoGol(lance.subtipo, lance.valor, lance.c, lance.horaAprox)});
+    } else if (lance.nivel === 'hattrick') {
+      FILA.push({tipo: 'hattrick', v: lance.v, a: lance, sub: textoGol(lance.subtipo, lance.valor, lance.c, lance.horaAprox)});
+    } else if (lance.nivel === 'penalti') {
+      FILA.push({tipo: 'penalti', v: lance.v, itens: [lance], a: lance});
+    } else if (lance.nivel === 'vermelho') {
+      FILA.push({tipo: 'vermelho', v: lance.v, a: lance, sub: lance.subtipo === 'devolucao_nao_pediu' ? `Devolução: CLIENTE NÃO PEDIU (${brl(lance.valor)})` : lance.subtipo === 'bonificacao' ? `${lance.c && lance.c.nome} · bonificação disfarçada` : 'Abandono de campo: 0 visitas às 10h'});
+    } else if (lance.nivel === 'amarelo') {
+      FILA.push({tipo: 'amarelo', v: lance.v, a: lance, sub: 'Rota ativa sem vendas às 10h'});
+    } else if (lance.nivel === 'impedimento') {
+      const sub = lance.subtipo === 'gps_fora' ? `Check-out a ${lance.distM}m do cliente ${lance.c && lance.c.nome}` : `Visita 00:00 no cliente ${lance.c && lance.c.nome}`;
+      FILA.push({tipo: 'impedimento', v: lance.v, c: lance.c, a: lance, sub});
+    } else if (lance.nivel === 'defesa') {
+      FILA.push({tipo: 'defesa', v: lance.v, c: lance.c, a: lance, sub: `Cliente recorrente ${lance.c && lance.c.nome} · positivado hoje!`});
+    } else {
+      FILA.push({tipo: lance.nivel, a: lance, v: lance.v, l: [lance]});
+    }
+    VARS.push(Date.now());
+    proximoVAR();
+  }
+}
 function relogio() {
-  $('clock').textContent = sp().hms; liberaEspera();
+  $('clock').textContent = sp().hms; liberaEspera(); confereLanceAuto();
   if (lastOk) { const min = Math.floor((Date.now() - lastOk) / 60000); const u = $('upd'); u.textContent = 'dados de ' + sp(new Date(lastOk)).hms; u.className = 'upd' + (min >= 5 ? ' old' : ''); if (min >= 5) u.textContent = `SEM ATUALIZAR HÁ ${min} MIN`; }
   if (modoAtual() !== modoVisivel) render();
   if (precisaRecarregar && !emVAR && !FILA.length) location.reload(); // atualização automática, sem interromper um lance
@@ -731,8 +980,16 @@ function relogio() {
 function ctl() {
   const marca = () => document.querySelectorAll('#ctl [data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === modoManual));
   document.querySelectorAll('#ctl [data-m]').forEach(b => b.onclick = () => { modoManual = b.dataset.m; store.set('ceven_tv_modo', modoManual); marca(); idxRonda = 0; render(); });
-  $('bsom').textContent = somOn ? '🔊 Som' : '🔇 Som'; $('bsom').onclick = () => { somOn = !somOn; store.set('ceven_tv_som', somOn); $('bsom').textContent = somOn ? '🔊 Som' : '🔇 Som'; beep([[660, .15]]); };
+  $('bsom').textContent = somOn ? '🔊 Som' : '🔇 Som'; $('bsom').onclick = () => { somOn = !somOn; window.somOn = somOn; store.set('ceven_tv_som', somOn); $('bsom').textContent = somOn ? '🔊 Som' : '🔇 Som'; beep([[660, .15]]); };
   $('brev').onclick = revisar;
+  if ($('bt-gol')) $('bt-gol').onclick = () => (typeof animTeste === 'function' ? animTeste('gol', 'SUPER PEDIDO DE R$ 25.000!') : null);
+  if ($('bt-def')) $('bt-def').onclick = () => (typeof animTeste === 'function' ? animTeste('defesa', 'Defesa milagrosa: salvou a meta no cliente') : null);
+  if ($('bt-imp')) $('bt-imp').onclick = () => (typeof animTeste === 'function' ? animTeste('impedimento', 'Visita relâmpago de 00:00') : null);
+  if ($('bt-ver')) $('bt-ver').onclick = () => (typeof animTeste === 'function' ? animTeste('vermelho', 'Devolução: CLIENTE NÃO PEDIU') : null);
+  if ($('bt-ama')) $('bt-ama').onclick = () => (typeof animTeste === 'function' ? animTeste('amarelo', 'Rota ativa sem vendas às 10h') : null);
+  if ($('bt-pen')) $('bt-pen').onclick = () => (typeof animTeste === 'function' ? animTeste('penalti') : null);
+  if ($('bt-hat')) $('bt-hat').onclick = () => (typeof animTeste === 'function' ? animTeste('hattrick') : null);
+  if ($('bt-inv')) $('bt-inv').onclick = () => (typeof animTeste === 'function' ? animTeste('semanainvicta') : null);
   const fs = () => { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch {} };
   const raiz = () => { try { return window.top.document; } catch { return document; } };
   const alterna = () => { const d = raiz(); store.set('ceven_tv_fs', !d.fullscreenElement); try { d.fullscreenElement ? d.exitFullscreen() : d.documentElement.requestFullscreen(); } catch {} };

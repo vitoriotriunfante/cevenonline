@@ -74,22 +74,18 @@ export async function lerAbaXlsx(arrayBuffer, nomeAba) {
 }
 
 // Converte as linhas da aba MOSTRA_DISPAROS no mesmo formato de public/mostra_vendedores.json
+// Normalização (filial dividida -> canônica + grupo) é ÚNICA: functions/_lib/normaliza_mostra.cjs
+// (a mesma usada por gerar_mostra_tv.js). Mudou a regra? Mexe só lá.
+import { montaMostraDeObjetos } from './normaliza_mostra.cjs';
+
 export function montaMostra(linhas) {
   const cab = (linhas[0] || []).map((x) => String(x || '').trim());
   const ix = (nome) => cab.indexOf(nome);
   const I = { f: ix('Filial'), g: ix('Gerente Geral'), ns: ix('Nome Supervisor'), rca: ix('Cód. Vendedor (RCA)'), nv: ix('Nome do Vendedor'), can: ix('Canal Oficial'), m: ix('MOSTRA NOS DISPAROS'), mot: ix('MOTIVO (se NÃO)') };
   if (I.f < 0 || I.rca < 0 || I.m < 0) throw new Error('colunas esperadas nao encontradas na aba MOSTRA_DISPAROS');
-  const clean = (s) => String(s == null ? '' : s).replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
-  // NORMALIZAÇÃO ÚNICA: na planilha uma filial pode vir dividida (ex.: TPH_VAGNER, TPH_FABIO, MCD_CLEVERSON).
-  // Aqui vira filial canônica (TPH) + campo `grupo` (VAGNER). Divisão nova = só escrever SIGLA_NOME na planilha.
-  const filiais = {}, grupos = {}; let sim = 0, nao = 0;
-  for (const r of linhas.slice(1)) {
-    const bruto = String(r[I.f] || '').toUpperCase().trim(), f = bruto.split('_')[0], grupo = bruto.split('_').slice(1).join('_');
-    if (grupo) (grupos[f] = grupos[f] || new Set()).add(grupo); const rca = String(r[I.rca] == null ? '' : r[I.rca]).trim().replace(/\.0+$/, '');
-    if (!f || !rca) continue;
-    const mostra = String(r[I.m] || '').toUpperCase().trim() === 'SIM'; mostra ? sim++ : nao++;
-    (filiais[f] = filiais[f] || []).push({ rca, grupo, nome: clean(r[I.nv]), supervisor: clean(r[I.ns]), gerente: String(r[I.g] || '').trim(), canal: String(r[I.can] || '').trim(), mostra, motivo: mostra ? '' : String(r[I.mot] || '') });
-  }
-  const g = {}; Object.keys(grupos).forEach((k) => (g[k] = [...grupos[k]]));
-  return { total_sim: sim, total_nao: nao, grupos: g, filiais };
+  const objetos = linhas.slice(1).map((r) => ({
+    'Filial': r[I.f], 'Gerente Geral': r[I.g], 'Nome Supervisor': r[I.ns], 'Cód. Vendedor (RCA)': r[I.rca],
+    'Nome do Vendedor': r[I.nv], 'Canal Oficial': r[I.can], 'MOSTRA NOS DISPAROS': r[I.m], 'MOTIVO (se NÃO)': r[I.mot]
+  }));
+  return montaMostraDeObjetos(objetos);
 }

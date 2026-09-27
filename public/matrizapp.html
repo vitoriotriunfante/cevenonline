@@ -109,6 +109,8 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     <button id="bt-ver" style="background:#991b1b;color:#fca5a5;font-weight:700" title="Testar animação de Cartão Vermelho">🟥 Vermelho</button>
     <button id="bt-ama" style="background:#854d0e;color:#fef08a;font-weight:700" title="Testar animação de Cartão Amarelo">🟨 Amarelo</button>
     <button id="bt-pen" style="background:#1e3a8a;color:#93c5fd;font-weight:700" title="Testar animação de Pênalti VAR">🚨 Pênalti</button>
+    <button id="bt-hat" style="background:#ea580c;color:#ffedd5;font-weight:700" title="Testar animação de Hat-Trick">🔥 Hat-Trick</button>
+    <button id="bt-inv" style="background:#b45309;color:#fef3c7;font-weight:700" title="Testar animação de Semana Invicta">👑 Invicta</button>
     <button id="bprev">◀</button><button id="bauto" class="on">Auto</button><button id="bnext">▶</button><button id="bfs">⛶ Tela cheia</button><button id="bsom">🔇 Som</button><button id="bexp">Exportar diário</button>
   </div>
 </footer>
@@ -135,12 +137,34 @@ const fmtSP = new Intl.DateTimeFormat('en-GB', {timeZone:'America/Sao_Paulo',yea
 function sp(d) { const o = {}; fmtSP.formatToParts(d || new Date()).forEach(p => o[p.type] = p.value); const h = (+o.hour) % 24;
   return {date: `${o.year}-${o.month}-${o.day}`, h, m: +o.minute, hms: `${String(h).padStart(2,'0')}:${o.minute}:${o.second}`, hm: `${String(h).padStart(2,'0')}:${o.minute}`}; }
 function diasDesde(iso) { if (!iso || +iso.slice(0, 4) < 2000) return null; const a = Date.UTC(...sp().date.split('-').map((x,i)=>i===1?+x-1:+x)), b = Date.UTC(...iso.split('-').map((x,i)=>i===1?+x-1:+x)); return Math.round((a - b) / 86400000); }
+// Dias úteis (seg-sex) do mês corrente até hoje e no mês inteiro — para meta diária pro-rata (G11).
+function diasUteisMes() {
+  const [ano, mes] = sp().date.split('-').map(Number);
+  const ultimoDia = new Date(Date.UTC(ano, mes, 0)).getUTCDate();
+  let totalUteis = 0, uteisAteHoje = 0;
+  const hoje = +sp().date.split('-')[2];
+  for (let dia = 1; dia <= ultimoDia; dia++) {
+    const diaSemana = new Date(Date.UTC(ano, mes - 1, dia)).getUTCDay();
+    if (diaSemana !== 0 && diaSemana !== 6) {
+      totalUteis++;
+      if (dia <= hoje) uteisAteHoje++;
+    }
+  }
+  return { totalUteis, uteisAteHoje };
+}
 // Texto do "porquê" do gol, por subtipo — ver mesma função em tvapp.html.
 function textoGol(subtipo, valor, c, horaAprox) {
   if (subtipo === 'super_pedido') return `Super Pedido: ${brl(valor)}!`;
   if (subtipo === 'inativo_recuperado') return `${c && c.nome} · cliente inativo resgatado!`;
   if (subtipo === 'relampago_aprox') return `Gol Relâmpago (detectado ~${String(horaAprox).padStart(2,'0')}h) · aprox.`;
   if (subtipo === 'acrescimos_aprox') return `Gol nos Acréscimos (detectado ~${String(horaAprox).padStart(2,'0')}h) · aprox.`;
+  if (subtipo === 'conversao') return `Máquina de Conversão: ${valor.toFixed(0)}% de aproveitamento!`;
+  if (subtipo === 'goleada') return `Goleada! ${valor} clientes positivados hoje!`;
+  if (subtipo === 'campeao') return `Campeão da Rodada: 100% da meta do mês batida!`;
+  if (subtipo === 'dobrou_mix') return `${c && c.nome} · dobrou o mix do cliente!`;
+  if (subtipo === 'hattrick_aprox') return `Hat-Trick (3 pedidos seguidos, ~${String(horaAprox).padStart(2,'0')}h) · aprox.`;
+  if (subtipo === 'meta1tempo_aprox') return `Meta do 1º Tempo batida (~${String(horaAprox).padStart(2,'0')}h) · aprox.`;
+  if (subtipo === 'dobradinha_quinzenas') return `${c && c.nome} · dobradinha das quinzenas!`;
   return 'GOL DE PLACA';
 }
 // I02: distância Haversine entre check-out do vendedor e o cadastro do cliente (metros)
@@ -164,6 +188,9 @@ const DATA = {}, TS = {}, SUPS = {};                       // DATA[sig][rca] = l
 // `${sig}|${id}` -> {valor: dig_hoje na última mudança percebida, em: timestamp em que percebemos}.
 // Mesma aproximação de tvapp.html — ver comentário lá e REGRAS_CFTV/PLANO_AMANHA_27_09_2026.md.
 const DIG_DETECTADO_EM = {};
+// `${sig}|${id}` -> [{valor, em}, ...] TODAS as detecções do dia — usado só pelo Hat-Trick (G06).
+// Ver aviso completo em tvapp.html (mesma lógica, mesma aproximação).
+const DIG_HISTORICO = {};
 let seen = new Set(store.get(K.seen + HOJE0, [])), LOG = store.get(K.log + HOJE0, []);
 // ============================== BASE (Drive, metas) ==============================
 // ============================== BASE (CEVEN Soberano, metas) ==============================
@@ -191,7 +218,11 @@ async function atualizaFilial(sig) {
   await Promise.all(Array.from({length: 6}, async () => { while (fila.length) { const r = fila.shift(); const d = await j(`/api/tv-vendedor?filial=${sig}&id=${r.id}`);
     if (d && !d.erro && !(d.falhas && d.falhas.length === 3)) {
       const chave = sig + '|' + r.id, digNovo = num(d.dig_hoje), digAntes = DATA[sig][r.id] ? num(DATA[sig][r.id].dig_hoje) : null;
-      if (digNovo != null && (digAntes == null || digNovo > digAntes)) DIG_DETECTADO_EM[chave] = { valor: digNovo, em: Date.now() };
+      if (digNovo != null && (digAntes == null || digNovo > digAntes)) {
+        const agora = Date.now();
+        DIG_DETECTADO_EM[chave] = { valor: digNovo, em: agora };
+        (DIG_HISTORICO[chave] = DIG_HISTORICO[chave] || []).push({ valor: digNovo, em: agora });
+      }
       if (!d.falhas || !d.falhas.length || !DATA[sig][r.id]) DATA[sig][r.id] = d;
     } } }));
   TS[sig] = Date.now();
@@ -234,6 +265,45 @@ function calcAlertas() {
         out.push({key: `${sig}|gol_acrescimos|${v.id}`, sig, nivel: 'gol', subtipo: 'acrescimos_aprox', v, valor: det.valor, horaAprox: hDet});
       }
     }
+    // --- LANCE G06: HAT-TRICK APROXIMADO (3+ detecções de aumento em até 120min) ---
+    const chaveHist = sig + '|' + v.id, hist = DIG_HISTORICO[chaveHist];
+    if (hist && hist.length >= 3) {
+      for (let i = 0; i <= hist.length - 3; i++) {
+        const janela = hist[i + 2].em - hist[i].em;
+        if (janela <= 120 * 60000) {
+          const chave = `${sig}|gol_hattrick|${v.id}|${hist[i + 2].em}`;
+          if (!out.some(o => o.key === chave)) {
+            const inc1 = hist[i].valor - (i > 0 ? hist[i - 1].valor : 0);
+            const inc2 = hist[i + 1].valor - hist[i].valor;
+            const inc3 = hist[i + 2].valor - hist[i + 1].valor;
+            out.push({key: chave, sig, nivel: 'hattrick', subtipo: 'hattrick_aprox', v, horaAprox: sp(new Date(hist[i + 2].em)).h, valores: [inc1, inc2, inc3]});
+          }
+          break;
+        }
+      }
+    }
+    // --- LANCE G11: META 1º TEMPO APROXIMADO ---
+    if ((v.meta || 0) > 0 && det && det.valor > 0) {
+      const { totalUteis, uteisAteHoje } = diasUteisMes();
+      const metaDiaria = totalUteis > 0 ? (v.meta / totalUteis) * uteisAteHoje : 0;
+      const hDetMeta = sp(new Date(det.em)).h;
+      if (metaDiaria > 0 && det.valor >= metaDiaria && hDetMeta < 14 && !out.some(o => o.key === `${sig}|gol_meta1t|${v.id}`)) {
+        out.push({key: `${sig}|gol_meta1t|${v.id}`, sig, nivel: 'gol', subtipo: 'meta1tempo_aprox', v, valor: det.valor, horaAprox: hDetMeta});
+      }
+    }
+    // --- LANCE G05: MÁQUINA DE CONVERSÃO (≥8 visitas, taxa de conversão ≥50%) ---
+    if ((v.feitas || 0) >= 8 && v.comVenda != null) {
+      const txConv = v.feitas > 0 ? (v.comVenda / v.feitas) * 100 : 0;
+      if (txConv >= 50) out.push({key: `${sig}|gol_conversao|${v.id}`, sig, nivel: 'gol', subtipo: 'conversao', v, valor: txConv});
+    }
+    // --- LANCE G09: GOLEADA (+10 clientes positivados no dia) ---
+    if ((v.pos || 0) >= 10) {
+      out.push({key: `${sig}|gol_goleada|${v.id}`, sig, nivel: 'gol', subtipo: 'goleada', v, valor: v.pos});
+    }
+    // --- LANCE G12: CAMPEÃO DA RODADA (100% da meta mensal batida) ---
+    if ((v.meta || 0) > 0 && (v.fat || 0) >= v.meta) {
+      out.push({key: `${sig}|gol_campeao|${v.id}`, sig, nivel: 'gol', subtipo: 'campeao', v, valor: v.fat});
+    }
     // --- LANCE V01: DEVOLUÇÃO "CLIENTE NÃO PEDIU" / DEVOLUÇÃO DO DIA ---
     if ((v.dev || 0) > 0) {
       out.push({key: `${sig}|ver_dev|${v.id}`, sig, nivel: 'vermelho', subtipo: 'devolucao_nao_pediu', v, valor: v.dev});
@@ -243,6 +313,18 @@ function calcAlertas() {
       const diasC = diasDesde(c.ultima_compra);
       if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && diasC != null && diasC > 90) {
         out.push({key: `${sig}|gol_inativo|${v.id}|${c.id}`, sig, nivel: 'gol', subtipo: 'inativo_recuperado', v, c, dias: diasC});
+      }
+      // --- LANCE G03: DOBROU O MIX (calculado em tv-vendedor.js contra o histórico do cliente) ---
+      if (c.dobrouMix) {
+        out.push({key: `${sig}|gol_mix|${v.id}|${c.id}`, sig, nivel: 'gol', subtipo: 'dobrou_mix', v, c});
+      }
+      // --- LANCE G04: DOBRADINHA DAS QUINZENAS (comprou na 1ª E na 2ª quinzena do mês) ---
+      if (c.dobradinhaQuinzenas) {
+        out.push({key: `${sig}|gol_quinzenas|${v.id}|${c.id}`, sig, nivel: 'gol', subtipo: 'dobradinha_quinzenas', v, c});
+      }
+      // --- LANCE V03: BONIFICAÇÃO SEM VENDA (pedido com 2+ itens e soma de valor = R$0) ---
+      if (c.bonificacao) {
+        out.push({key: `${sig}|ver_bonif|${v.id}|${c.id}`, sig, nivel: 'vermelho', subtipo: 'bonificacao', v, c});
       }
       // --- LANCE G08: DEFESA MILAGROSA (cliente marcado RECORRENCIA, salvo no dia da rota) ---
       if (c.recorrencia && ['POSITIVADO', 'EFETIVADO'].includes(c.status)) {
@@ -328,6 +410,10 @@ function enfileira(novos) {
   novos.filter(a => a.nivel === 'gol').forEach(a => {
     ESPERA.push({tipo: 'gol', sig: a.sig, v: a.v, c: a.c, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaAprox), score: 25});
   });
+  // HAT-TRICK
+  novos.filter(a => a.nivel === 'hattrick').forEach(a => {
+    ESPERA.push({tipo: 'hattrick', sig: a.sig, v: a.v, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaAprox), score: 25});
+  });
   // PÊNALTIS
   novos.filter(a => a.nivel === 'penalti').forEach(a => { const k = a.sig + '|' + a.v.id; if (!porV.has(k)) porV.set(k, {tipo: 'penalti', sig: a.sig, v: a.v, itens: []}); porV.get(k).itens.push(a); });
   porV.forEach(g => { g.score = 20 + g.itens.length * 3 + statFilial(g.sig).nota / 10 + penaltisDe(g.v.id, g.sig); ESPERA.push(g); });
@@ -338,7 +424,7 @@ function enfileira(novos) {
   });
   // CARTÃO VERMELHO
   novos.filter(a => a.nivel === 'vermelho').forEach(a => {
-    ESPERA.push({tipo: 'vermelho', sig: a.sig, v: a.v, a, sub: a.subtipo === 'devolucao_nao_pediu' ? `Devolução: CLIENTE NÃO PEDIU (${brl(a.valor)})` : 'Abandono de campo: 0 visitas às 10h', score: 22});
+    ESPERA.push({tipo: 'vermelho', sig: a.sig, v: a.v, c: a.c, a, sub: a.subtipo === 'devolucao_nao_pediu' ? `Devolução: CLIENTE NÃO PEDIU (${brl(a.valor)})` : a.subtipo === 'bonificacao' ? `${a.c && a.c.nome} · pedido com itens e valor R$0 (bonificação disfarçada)` : 'Abandono de campo: 0 visitas às 10h', score: 22});
   });
   // CARTÃO AMARELO
   novos.filter(a => a.nivel === 'amarelo').forEach(a => {
@@ -365,6 +451,10 @@ function telaVAR(item) {
     titulo = '⚽ GOL DE PLACA!'; sub = item.sub || 'Destaque nacional de vendas e positivação!'; cls = 'f1';
     dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'GOL DE PLACA')}</span></div>`;
     veredito = '⚽ GOLAÇO NA REDE! Parabéns à equipe!';
+  } else if (item.tipo === 'hattrick') {
+    titulo = '🔥 HAT-TRICK!'; sub = item.sub || '3 pedidos digitados em sequência!'; cls = 'f1';
+    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'HAT-TRICK')}</span></div>`;
+    veredito = '🔥 HAT-TRICK DE OURO! Constância que decide o mês!';
   } else if (item.tipo === 'vermelho') {
     titulo = '🟥 CARTÃO VERMELHO'; sub = item.sub || 'Infração disciplinar grave detectada!'; cls = 'f1';
     dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>MOTIVO</b><span>${esc(item.sub || 'EXPULSÃO DIRETA')}</span></div>`;
@@ -425,6 +515,28 @@ function proximoVAR() {
   window.__fechaAnimAtual = fecha;
   ov.onclick = () => { fecha(); };
 
+  if (item.tipo === 'hattrick' && typeof iniciaAnimHatTrick === 'function') {
+    // Sem vídeo real para Hat-Trick — vai direto para a animação vetorial dedicada.
+    ov.className = 'show';
+    ov.innerHTML = '<canvas id="cvp"></canvas><button id="btn-fechar-anim" style="position:fixed;top:20px;right:20px;z-index:999999;background:rgba(15,23,42,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 18px;font-size:15px;font-weight:700;cursor:pointer">✕ FECHAR</button>';
+    if ($('btn-fechar-anim')) $('btn-fechar-anim').onclick = e => { e.stopPropagation(); fecha(); };
+    const valores = (item.a && item.a.valores) || [];
+    animStop = iniciaAnimHatTrick($('cvp'), {
+      vendedor: item.v ? item.v.nome : 'VENDEDOR',
+      sub: item.sub || 'HAT-TRICK',
+      clientes: valores.map((val, i) => ({ nome: `PEDIDO ${i + 1}`, valor: val > 0 ? brl(val) : '—' }))
+    });
+    const mostraDecisaoHat = () => {
+      if (animStop) { animStop(); animStop = null; }
+      ov.className = 'show';
+      ov.innerHTML = `<div class="dec"><h1>${esc(T.titulo)} · DECISÃO DO VAR</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
+      ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha em ${Math.max(0, 45 - Math.round((Date.now() - t0) / 1000))}s`; }, 500);
+      ov._t3 = setTimeout(fecha, 45000);
+    };
+    ov._t2 = setTimeout(mostraDecisaoHat, 9500);
+    return;
+  }
+
   // Suporte a TODAS as animações da TV (Gol, Pênalti, Vermelho, Amarelo, Impedimento, Defesa)
   const animGol = item.tipo === 'gol' && typeof iniciaAnimGol === 'function';
   const animVermelho = item.tipo === 'vermelho' && typeof iniciaAnimCartao === 'function';
@@ -468,7 +580,7 @@ function proximoVAR() {
     if (animGol) {
       animStop = iniciaAnimGol(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || (item.a ? textoGol(item.a.subtipo, item.a.valor, item.a.c, item.a.horaAprox) : 'GOL DE PLACA')});
     } else if (animVermelho) {
-      animStop = iniciaAnimCartao(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || (item.a && item.a.subtipo === 'devolucao_nao_pediu' ? `Devolução: CLIENTE NÃO PEDIU (${brl(item.a.valor)})` : 'Abandono de campo: 0 visitas às 10h')}, true);
+      animStop = iniciaAnimCartao(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || (item.a && item.a.subtipo === 'devolucao_nao_pediu' ? `Devolução: CLIENTE NÃO PEDIU (${brl(item.a.valor)})` : item.a && item.a.subtipo === 'bonificacao' ? `${item.a.c && item.a.c.nome} · bonificação disfarçada` : 'Abandono de campo: 0 visitas às 10h')}, true);
     } else if (animAmarelo) {
       animStop = iniciaAnimCartao(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || 'Rota ativa sem nenhuma venda faturada'}, false);
     } else if (animImpedimento) {
@@ -617,6 +729,7 @@ function confereLanceAuto() {
     ultLanceAuto = Date.now();
     const categorias = [
       { tipo: 'gol', lista: ALERTAS.filter(a => a.nivel === 'gol') },
+      { tipo: 'hattrick', lista: ALERTAS.filter(a => a.nivel === 'hattrick') },
       { tipo: 'penalti', lista: ALERTAS.filter(a => a.nivel === 'penalti') },
       { tipo: 'impedimento', lista: ALERTAS.filter(a => a.nivel === 'impedimento') },
       { tipo: 'vermelho', lista: ALERTAS.filter(a => a.nivel === 'vermelho') },
@@ -631,10 +744,12 @@ function confereLanceAuto() {
     const lance = cat.lista.slice().sort((a,b) => (b.valor || b.dias || 0) - (a.valor || a.dias || 0))[0] || cat.lista[0];
     if (lance.nivel === 'gol') {
       FILA.push({tipo: 'gol', sig: lance.sig, v: lance.v, c: lance.c, a: lance, sub: textoGol(lance.subtipo, lance.valor, lance.c, lance.horaAprox)});
+    } else if (lance.nivel === 'hattrick') {
+      FILA.push({tipo: 'hattrick', sig: lance.sig, v: lance.v, a: lance, sub: textoGol(lance.subtipo, lance.valor, lance.c, lance.horaAprox)});
     } else if (lance.nivel === 'penalti') {
       FILA.push({tipo: 'penalti', sig: lance.sig, v: lance.v, itens: [lance], a: lance});
     } else if (lance.nivel === 'vermelho') {
-      FILA.push({tipo: 'vermelho', sig: lance.sig, v: lance.v, a: lance, sub: lance.subtipo === 'devolucao_nao_pediu' ? `Devolução: CLIENTE NÃO PEDIU (${brl(lance.valor)})` : 'Abandono de campo: 0 visitas às 10h'});
+      FILA.push({tipo: 'vermelho', sig: lance.sig, v: lance.v, c: lance.c, a: lance, sub: lance.subtipo === 'devolucao_nao_pediu' ? `Devolução: CLIENTE NÃO PEDIU (${brl(lance.valor)})` : lance.subtipo === 'bonificacao' ? `${lance.c && lance.c.nome} · bonificação disfarçada` : 'Abandono de campo: 0 visitas às 10h'});
     } else if (lance.nivel === 'amarelo') {
       FILA.push({tipo: 'amarelo', sig: lance.sig, v: lance.v, a: lance, sub: 'Rota ativa sem vendas às 10h'});
     } else if (lance.nivel === 'impedimento') {
@@ -677,6 +792,8 @@ function ctl() {
   if ($('bt-ver')) $('bt-ver').onclick = () => (typeof animTeste === 'function' ? animTeste('vermelho', 'Devolução: CLIENTE NÃO PEDIU') : null);
   if ($('bt-ama')) $('bt-ama').onclick = () => (typeof animTeste === 'function' ? animTeste('amarelo', 'Rota ativa sem vendas às 10h') : null);
   if ($('bt-pen')) $('bt-pen').onclick = () => (typeof animTeste === 'function' ? animTeste('penalti', 'Simulação de falta / estoque suficiente') : null);
+  if ($('bt-hat')) $('bt-hat').onclick = () => (typeof animTeste === 'function' ? animTeste('hattrick') : null);
+  if ($('bt-inv')) $('bt-inv').onclick = () => (typeof animTeste === 'function' ? animTeste('semanainvicta') : null);
 }
 // ============================== LAÇO PRINCIPAL ==============================
 async function laco() {

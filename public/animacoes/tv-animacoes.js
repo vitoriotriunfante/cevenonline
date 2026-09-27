@@ -380,11 +380,23 @@ function desenhaCena(c, W, H, t, P) {
 
     c.font = '900 210px Segoe UI'; c.lineWidth = 24; c.strokeStyle = '#7f1d1d'; c.strokeText('PÊNALTI!', 0, 0); c.fillStyle = '#fff'; c.fillText('PÊNALTI!', 0, 0); c.restore();
     
-    c.textAlign = 'center'; c.font = '800 46px Segoe UI'; c.fillStyle = '#fecaca'; c.globalAlpha = e;
-    c.fillText('⚠ ' + (P.vendedor || ''), 960, 350);
+    c.textAlign = 'center'; c.font = '800 44px Segoe UI'; c.fillStyle = '#fecaca'; c.globalAlpha = e;
+    c.fillText('⚠ VENDEDOR: ' + (P.vendedor || 'VENDEDOR'), 960, 320);
     c.globalAlpha = 1;
 
-    c.font = '700 32px Segoe UI'; c.fillStyle = '#fff';
+    // Card em destaque: CLIENTE e MOTIVO DO PÊNALTI
+    c.save();
+    c.translate(960, 420);
+    rr(c, -480, -45, 960, 95, 16);
+    c.fillStyle = 'rgba(15, 23, 42, 0.95)'; c.fill();
+    c.strokeStyle = '#ef4444'; c.lineWidth = 3; c.stroke();
+    c.font = '900 25px Segoe UI'; c.fillStyle = '#38bdf8'; c.textAlign = 'center';
+    c.fillText(`CLIENTE PREJUDICADO: ${P.cliente || nomeC || 'SUPERMERCADO RAVI'}`, 0, -10);
+    c.font = '800 20px Segoe UI'; c.fillStyle = '#fca5a5';
+    c.fillText(`MOTIVO DO PÊNALTI: ${P.motivo || P.sub || 'Cliente parado há 45+ dias sem compra com estoque suficiente'}`, 0, 24);
+    c.restore();
+
+    c.font = '700 30px Segoe UI'; c.fillStyle = '#fff';
     c.fillText('O árbitro confirma a penalidade máxima. Abrindo o relatório…', 960, 1020);
   }
 
@@ -556,10 +568,12 @@ function desenhaCenaGol(c, W, H, t, P) {
     c.lineWidth = 20; c.strokeStyle = '#064e3b'; c.strokeText('⚽ GOLAÇO DE PLACA!', 0, 0);
     c.fillStyle = '#facc15'; c.fillText('⚽ GOLAÇO DE PLACA!', 0, 0);
 
-    rr(c, -420, 45, 840, 68, 18); c.fillStyle = 'rgba(15, 23, 42, 0.9)'; c.fill();
+    rr(c, -460, 40, 920, 84, 18); c.fillStyle = 'rgba(15, 23, 42, 0.94)'; c.fill();
     c.strokeStyle = '#22c55e'; c.lineWidth = 4; c.stroke();
-    c.font = '800 34px Segoe UI'; c.fillStyle = '#fff';
-    c.fillText(P.sub || 'SUPER PEDIDO DIGITADO HOJE!', 0, 92);
+    c.font = '900 32px Segoe UI'; c.fillStyle = '#fef08a';
+    c.fillText(P.sub || 'SUPER PEDIDO DIGITADO HOJE!', 0, 76);
+    c.font = '800 24px Segoe UI'; c.fillStyle = '#86efac';
+    c.fillText(`CLIENTE: ${P.cliente || 'SUPERMERCADO ALVORADA'} · VALOR: ${P.valor || 'R$ 28.500'}`, 0, 110);
     c.restore();
   }
 
@@ -704,11 +718,16 @@ function desenhaCenaHatTrick(c, W, H, t, P) {
   for (let y = 360; y < 600; y += 20) { c.beginPath(); c.moveTo(1380, y); c.lineTo(1820, y); c.stroke(); }
 
   const nomeV = (P.vendedor || 'VENDEDOR').split(' ')[0];
+  const clientesHat = (Array.isArray(P.clientes) && P.clientes.length >= 3) ? P.clientes : [
+    { nome: (P.cliente1 || 'PEDIDO 1'), valor: (P.valor1 || '—') },
+    { nome: (P.cliente2 || 'PEDIDO 2'), valor: (P.valor2 || '—') },
+    { nome: (P.cliente3 || 'PEDIDO 3'), valor: (P.valor3 || '—') }
+  ];
 
   // FASE 1: O TRIPLO DISPARO (0 a 3800 ms)
   if (t < 3800) {
     c.save(); c.translate(960, 140);
-    rr(c, -300, -40, 600, 80, 20); c.fillStyle = 'rgba(15,23,42,0.92)'; c.fill();
+    rr(c, -340, -40, 680, 80, 20); c.fillStyle = 'rgba(15,23,42,0.95)'; c.fill();
     c.strokeStyle = '#f59e0b'; c.lineWidth = 4; c.stroke();
     c.font = '900 36px Segoe UI'; c.fillStyle = '#fff'; c.textAlign = 'center';
     c.fillText('🔥 SEQUÊNCIA DO HAT-TRICK 🔥', 0, 14);
@@ -725,11 +744,13 @@ function desenhaCenaHatTrick(c, W, H, t, P) {
       bola(c, b1x, b1y, 20, t * 0.04);
     }
     if (t >= 1100) {
-      c.save(); c.translate(1480, 310);
-      rr(c, -90, -30, 180, 60, 12); c.fillStyle = '#16a34a'; c.fill();
-      c.strokeStyle = '#fff'; c.lineWidth = 3; c.stroke();
-      c.font = '900 30px Segoe UI'; c.fillStyle = '#fff'; c.textAlign = 'center';
-      c.fillText('⚽ GOL 1!', 0, 12);
+      c.save(); c.translate(1440, 290);
+      rr(c, -170, -40, 340, 80, 14); c.fillStyle = '#166534'; c.fill();
+      c.strokeStyle = '#86efac'; c.lineWidth = 3; c.stroke();
+      c.font = '900 24px Segoe UI'; c.fillStyle = '#fef08a'; c.textAlign = 'center';
+      c.fillText(`⚽ 1º GOL · ${clientesHat[0].valor || ''}`, 0, -8);
+      c.font = '800 18px Segoe UI'; c.fillStyle = '#fff';
+      c.fillText(clientesHat[0].nome || 'CLIENTE 1', 0, 20);
       c.restore();
     }
 
@@ -746,11 +767,13 @@ function desenhaCenaHatTrick(c, W, H, t, P) {
       }
     }
     if (t >= 2300) {
-      c.save(); c.translate(1660, 310);
-      rr(c, -90, -30, 180, 60, 12); c.fillStyle = '#ea580c'; c.fill();
-      c.strokeStyle = '#fff'; c.lineWidth = 3; c.stroke();
-      c.font = '900 30px Segoe UI'; c.fillStyle = '#fff'; c.textAlign = 'center';
-      c.fillText('⚽ GOL 2!', 0, 12);
+      c.save(); c.translate(1600, 290);
+      rr(c, -170, -40, 340, 80, 14); c.fillStyle = '#ea580c'; c.fill();
+      c.strokeStyle = '#fed7aa'; c.lineWidth = 3; c.stroke();
+      c.font = '900 24px Segoe UI'; c.fillStyle = '#fef08a'; c.textAlign = 'center';
+      c.fillText(`⚽ 2º GOL · ${clientesHat[1].valor || ''}`, 0, -8);
+      c.font = '800 18px Segoe UI'; c.fillStyle = '#fff';
+      c.fillText(clientesHat[1].nome || 'CLIENTE 2', 0, 20);
       c.restore();
     }
 
@@ -765,11 +788,13 @@ function desenhaCenaHatTrick(c, W, H, t, P) {
       bola(c, b3x, b3y, 24, t * 0.06);
     }
     if (t >= 3500) {
-      c.save(); c.translate(1570, 230);
-      rr(c, -140, -35, 280, 70, 14); c.fillStyle = '#dc2626'; c.fill();
+      c.save(); c.translate(1520, 180);
+      rr(c, -190, -45, 380, 90, 16); c.fillStyle = '#b91c1c'; c.fill();
       c.strokeStyle = '#fde047'; c.lineWidth = 4; c.stroke();
-      c.font = '900 32px Segoe UI'; c.fillStyle = '#fff'; c.textAlign = 'center';
-      c.fillText('🔥 GOL 3! HAT-TRICK!', 0, 10);
+      c.font = '900 26px Segoe UI'; c.fillStyle = '#fde047'; c.textAlign = 'center';
+      c.fillText(`🔥 3º GOL (HAT-TRICK!) · ${clientesHat[2].valor || ''}`, 0, -10);
+      c.font = '800 19px Segoe UI'; c.fillStyle = '#fff';
+      c.fillText(clientesHat[2].nome || 'CLIENTE 3', 0, 22);
       c.restore();
     }
 
@@ -790,26 +815,43 @@ function desenhaCenaHatTrick(c, W, H, t, P) {
     etiqueta(c, `⭐ CRAQUE DA CONSTÂNCIA: ${nomeV} ⭐`, jx, CH - 300, '#facc15');
 
     c.save();
-    c.translate(960, 240);
-    const pulso = 1 + 0.05 * Math.sin(t * 0.008);
+    c.translate(960, 210);
+    const pulso = 1 + 0.04 * Math.sin(t * 0.008);
     c.scale(pulso, pulso);
 
-    c.font = '900 120px Segoe UI, Chakra Petch, sans-serif'; c.textAlign = 'center';
-    c.lineWidth = 22; c.strokeStyle = '#7c2d12'; c.strokeText('🔥 HAT-TRICK DE OURO! 🔥', 0, -40);
+    c.font = '900 110px Segoe UI, Chakra Petch, sans-serif'; c.textAlign = 'center';
+    c.lineWidth = 20; c.strokeStyle = '#7c2d12'; c.strokeText('🔥 HAT-TRICK DE OURO! 🔥', 0, -40);
     c.fillStyle = '#facc15'; c.fillText('🔥 HAT-TRICK DE OURO! 🔥', 0, -40);
 
-    rr(c, -440, 30, 880, 84, 22);
+    rr(c, -440, 25, 880, 72, 18);
     const gCard = c.createLinearGradient(-440, 0, 440, 0);
     gCard.addColorStop(0, '#ea580c'); gCard.addColorStop(0.5, '#f59e0b'); gCard.addColorStop(1, '#ea580c');
     c.fillStyle = gCard; c.fill();
-    c.strokeStyle = '#fef08a'; c.lineWidth = 5; c.stroke();
+    c.strokeStyle = '#fef08a'; c.lineWidth = 4; c.stroke();
 
-    c.font = '900 46px Segoe UI'; c.fillStyle = '#ffffff';
-    c.fillText('🏆 +15 PONTOS DE CONSTÂNCIA NA TABELA! 🏆', 0, 88);
+    c.font = '900 40px Segoe UI'; c.fillStyle = '#ffffff';
+    c.fillText('🏆 +15 PONTOS DE CONSTÂNCIA NA TABELA! 🏆', 0, 74);
 
-    c.font = '800 28px Segoe UI'; c.fillStyle = '#fef3c7';
-    c.fillText(P.sub || '3 VITÓRIAS SEGUIDAS DE RODADA · DISCIPLINA E EXECUÇÃO', 0, 155);
+    // TRINCA DE CLIENTES LADO A LADO NA DECISÃO FINAL
+    c.restore();
 
+    c.save();
+    c.translate(960, 390);
+    const posTrinca = [-340, 0, 340];
+    const coresGols = ['#166534', '#ea580c', '#b91c1c'];
+    const bordasGols = ['#86efac', '#fed7aa', '#fde047'];
+    for (let i = 0; i < 3; i++) {
+      const xOffset = posTrinca[i];
+      c.save(); c.translate(xOffset, 0);
+      rr(c, -160, -45, 320, 90, 14);
+      c.fillStyle = coresGols[i]; c.fill();
+      c.strokeStyle = bordasGols[i]; c.lineWidth = 3; c.stroke();
+      c.font = '900 20px Segoe UI'; c.fillStyle = '#fef08a'; c.textAlign = 'center';
+      c.fillText(`GOL ${i + 1} · ${clientesHat[i].valor || ''}`, 0, -12);
+      c.font = '800 17px Segoe UI'; c.fillStyle = '#ffffff';
+      c.fillText(clientesHat[i].nome || `CLIENTE ${i + 1}`, 0, 18);
+      c.restore();
+    }
     c.restore();
   }
 
@@ -1378,19 +1420,26 @@ function animTeste(tipo, sub) {
   };
   window.__fechaAnimAtual = fecha;
 
-  // Vídeo real (se existir para o tipo testado): toca por 5s fixos e depois fecha o teste.
-  // Sem vídeo pronto: cai na animação vetorial de sempre (mesmo comportamento de antes).
-  const nivelVideo = tipo === 'hattrick' || tipo === 'semanainvicta' ? null : tipo;
+  // Em testes manuais, executa sempre a animação completa em canvas (sem travar em vídeo inexistente)
+  const nivelVideo = null;
   stopAnim = nivelVideo && typeof tocaVideoLance === 'function' ? tocaVideoLance(cv, nivelVideo, null, 30000, fecha) : null;
   if (!stopAnim) {
-    if (tipo === 'hattrick') stopAnim = iniciaAnimHatTrick(cv, {vendedor: 'PAULO ROBSON (TBL)', sub: sub || '3 VITÓRIAS CONSECUTIVAS DE RODADA · +15 PTS BÔNUS'});
+    if (tipo === 'hattrick') stopAnim = iniciaAnimHatTrick(cv, {
+      vendedor: 'PAULO ROBSON (TBL)',
+      sub: sub || '3 VITÓRIAS CONSECUTIVAS DE RODADA · +15 PTS BÔNUS',
+      clientes: [
+        { nome: 'SUPERMERCADO RAVI', valor: 'R$ 8.450' },
+        { nome: 'CASA DE CARNES MODELO', valor: 'R$ 12.800' },
+        { nome: 'MERCADO BOM DIA', valor: 'R$ 9.150' }
+      ]
+    });
     else if (tipo === 'semanainvicta') stopAnim = iniciaAnimSemanaInvicta(cv, {vendedor: 'EQUIPE TBL (LONDRINA)', sub: sub || '5 VITÓRIAS DE SEGUNDA A SEXTA · +30 PTS EXTRAS'});
-    else if (tipo === 'gol') stopAnim = iniciaAnimGol(cv, {vendedor: 'GABRIEL MEDINA', sub: sub || 'SUPER PEDIDO DE R$ 25.000'});
-    else if (tipo === 'vermelho') stopAnim = iniciaAnimCartao(cv, {vendedor: 'ELIAS GARCIA', sub: sub || 'Devolução registrada: CLIENTE NÃO PEDIU'}, true);
-    else if (tipo === 'amarelo') stopAnim = iniciaAnimCartao(cv, {vendedor: 'MARCOS MILITAO', sub: sub || '1º Check-in atrasado às 09:45'}, false);
-    else if (tipo === 'impedimento') stopAnim = iniciaAnimImpedimento(cv, {vendedor: 'RODRIGO FARIA', sub: sub || 'Visita instantânea 00:00 auditada'});
-    else if (tipo === 'defesa') stopAnim = iniciaAnimDefesa(cv, {vendedor: 'TIAGO SILVA', sub: sub || 'Venda em cliente recorrente na bacia das almas'});
-    else stopAnim = iniciaAnimPenalti(cv, {vendedor: 'ANDREA DO ROCIO', cliente: 'SUPERMERCADO RAVI'});
+    else if (tipo === 'gol') stopAnim = iniciaAnimGol(cv, {vendedor: 'GABRIEL MEDINA (TBL)', cliente: 'SUPERMERCADO ALVORADA', valor: 'R$ 28.500', sub: sub || 'SUPER PEDIDO DE R$ 28.500 FATURADO HOJE!'});
+    else if (tipo === 'vermelho') stopAnim = iniciaAnimCartao(cv, {vendedor: 'ELIAS GARCIA (TBL)', cliente: 'COMERCIAL SILVA', sub: sub || 'Devolução registrada: CLIENTE NÃO PEDIU (R$ 8.900)'}, true);
+    else if (tipo === 'amarelo') stopAnim = iniciaAnimCartao(cv, {vendedor: 'MARCOS MILITAO (TBL)', sub: sub || '1º Check-in atrasado: rota ativa sem nenhuma venda até às 10h'}, false);
+    else if (tipo === 'impedimento') stopAnim = iniciaAnimImpedimento(cv, {vendedor: 'RODRIGO FARIA (TBL)', cliente: 'SUPERMERCADO MODELO', sub: sub || 'Visita instantânea de 00:00 (check-in/check-out simultâneo)'});
+    else if (tipo === 'defesa') stopAnim = iniciaAnimDefesa(cv, {vendedor: 'TIAGO SILVA (TBL)', cliente: 'MERCEARIA CENTRAL', sub: sub || 'Venda de R$ 7.200 em cliente recorrente na bacia das almas'});
+    else stopAnim = iniciaAnimPenalti(cv, {vendedor: 'ANDREA DO ROCIO (TBL)', cliente: 'SUPERMERCADO RAVI', motivo: 'Cliente com 45+ dias sem compra e estoque disponível na filial'});
   }
 
   const timerAuto = setTimeout(fecha, 35000); // teto do teste manual: acima do maior vídeo real possível (até 30s)

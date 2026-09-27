@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CEVEN CFTV — Teste de Lances</title>
+<!--
+FICHA DO ARQUIVO
+O QUE É: página isolada só para validar visualmente as animações de lance (gol, cartões,
+impedimento, pênalti, defesa, hat-trick, semana invicta) sem precisar abrir uma filial real.
+PROJETO: CFTV/TV. Usa os mesmos vídeos/canvas de public/animacoes/tv-animacoes.js.
+NÃO lê dados do CEVEN — é só uma bancada de teste manual.
+-->
+<style>
+:root{--bg:#070b14;--card:#0f1626;--line:#1e2a44;--tx:#e8eefc;--mut:#8b9bbd}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:Segoe UI,Inter,system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{padding:16px 22px;background:#0a1020;border-bottom:1px solid var(--line)}
+h1{font-size:20px}
+header small{color:var(--mut);display:block;margin-top:4px}
+#ctl{display:flex;flex-wrap:wrap;gap:10px;padding:18px 22px}
+#ctl button{border:0;border-radius:10px;padding:14px 20px;font-size:16px;font-weight:800;cursor:pointer;color:#fff}
+#ov{position:fixed;inset:0;background:#000;display:none;align-items:center;justify-content:center;z-index:9999;flex-direction:column}
+#ov.show{display:flex}
+#ov .big{font-size:min(9vw,120px);font-weight:900;text-align:center}
+#ov .sub{font-size:min(3.2vw,40px);margin-top:2vh;color:#cbd5e1;text-align:center}
+#ov .var{font-size:min(10vw,160px);font-weight:900;color:#38bdf8}
+#ov .scan{width:60vw;height:6px;background:#1e293b;margin-top:3vh;border-radius:99px;overflow:hidden}
+#ov .scan i{display:block;width:30%;height:100%;background:#38bdf8;animation:sc 1.4s linear infinite}
+@keyframes sc{0%{margin-left:-30%}100%{margin-left:100%}}
+#ov .dec{background:#0f1626;border:1px solid #1e2a44;border-radius:18px;padding:5vh 6vw;max-width:80vw}
+#ov .dec h1{font-size:min(4vw,46px);margin-bottom:2vh}
+#ov .dec .ln{display:flex;justify-content:space-between;gap:20px;padding:1vh 0;border-bottom:1px solid #1e2a44;font-size:min(2.2vw,26px)}
+#ov .dec .ln.hot{color:#fca5a5;font-weight:800}
+#ov .dec .vd{margin-top:2vh;font-size:min(2.4vw,34px);font-weight:800;color:#fca5a5}
+#ov small{margin-top:2vh;color:var(--mut);font-size:16px}
+#video-lance-fixo{position:fixed;inset:0;z-index:9998;display:none}
+</style>
+<script src="/animacoes/tv-animacoes.js"></script>
+</head><body>
+<header>
+  <h1>🧪 Bancada de teste de lances — CFTV</h1>
+  <small>Não mostra dado real. Só dispara as animações para validar visual, som e tempos. Clique na tela para fechar antes da hora.</small>
+</header>
+<div id="ctl">
+  <button id="bt-gol" style="background:#166534" title="Testar animação de Gol">⚽ Gol</button>
+  <button id="bt-def" style="background:#0284c7" title="Testar animação de Defesa Milagrosa">🧤 Defesa</button>
+  <button id="bt-imp" style="background:#d97706" title="Testar animação de Impedimento VAR">🚩 Impedimento</button>
+  <button id="bt-ver" style="background:#991b1b" title="Testar animação de Cartão Vermelho">🟥 Vermelho</button>
+  <button id="bt-ama" style="background:#854d0e" title="Testar animação de Cartão Amarelo">🟨 Amarelo</button>
+  <button id="bt-pen" style="background:#1e3a8a" title="Testar animação de Pênalti VAR">🚨 Pênalti</button>
+  <button id="bt-hat" style="background:#ea580c" title="Testar animação de Hat-Trick">🔥 Hat-Trick</button>
+  <button id="bt-inv" style="background:#b45309" title="Testar animação de Semana Invicta">👑 Invicta</button>
+</div>
+<div id="ov"></div>
+<div id="video-lance-fixo"></div>
+<script>
+'use strict';
+window.somOn = true;
+if ($('bt-gol')) $('bt-gol').onclick = () => animTeste('gol', 'SUPER PEDIDO DE R$ 25.000!');
+if ($('bt-def')) $('bt-def').onclick = () => animTeste('defesa', 'Defesa milagrosa: salvou a meta no cliente');
+if ($('bt-imp')) $('bt-imp').onclick = () => animTeste('impedimento', 'Visita relâmpago de 00:00');
+if ($('bt-ver')) $('bt-ver').onclick = () => animTeste('vermelho', 'Devolução: CLIENTE NÃO PEDIU');
+if ($('bt-ama')) $('bt-ama').onclick = () => animTeste('amarelo', 'Rota ativa sem vendas às 10h');
+if ($('bt-pen')) $('bt-pen').onclick = () => animTeste('penalti');
+if ($('bt-hat')) $('bt-hat').onclick = () => animTeste('hattrick');
+if ($('bt-inv')) $('bt-inv').onclick = () => animTeste('semanainvicta');
+function $(id) { return document.getElementById(id); }
+</script>
+</body></html>

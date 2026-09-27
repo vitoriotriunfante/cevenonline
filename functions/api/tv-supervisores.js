@@ -63,12 +63,56 @@ export async function onRequestGet({ request, env }) {
 
   const key = filial + '1';
   const feito = (s) => !!(s && ((s.porDia && s.porDia[0]) || (s.dias && s.dias[0])));
-  const supervisores = (comp.supervisores || [])
-    .filter((s) => s.filial === key)
-    .map((s) => {
+  const supsComp = (comp.supervisores || []).filter((s) => s.filial === key);
+
+  // Busca detalhes de RET (visitas e fotos) para quem iniciou rota
+  const supervisores = await Promise.all(
+    supsComp.map(async (s) => {
       const r = (ret.supervisores || []).find((x) => x.id === s.id || x.nome === s.nome);
-      return { id: s.id, nome: limpa(s.nome), fez_compromisso: feito(s), iniciou_ret: feito(r) };
-    });
+      const fezRet = feito(r);
+      let retDetalhe = null;
+
+      if (fezRet) {
+        try {
+          const det = await getJson(
+            `${CEVEN}/api/admin/ret/periodo?filial=${key}&supervisorName=${encodeURIComponent(s.nome)}&dataInicio=${dia}&dataFim=${dia}`,
+            tk
+          );
+          const d0 = det && det.dias && det.dias[0];
+          if (d0 && d0.visitas && d0.visitas.length) {
+            const fotos = [];
+            d0.visitas.forEach((v) => {
+              if (v.photo_url) fotos.push({ url: v.photo_url, cliente: v.client_name, rca: v.rca_name, score: v.ia_score });
+              (v.checklist?.photos || []).forEach((cp) => {
+                if (cp && cp.url && !fotos.some((f) => f.url === cp.url)) {
+                  fotos.push({ url: cp.url, cliente: v.client_name, rca: v.rca_name, score: v.ia_score });
+                }
+              });
+            });
+            const scores = d0.visitas.map((v) => v.ia_score || 0);
+            const scoreMedio = Math.round(scores.reduce((a, b) => a + b, 0) / (scores.length || 1));
+            retDetalhe = {
+              pdvs: d0.visitas.length,
+              primeiroCheckin: d0.overview?.primeiroCheckin ? d0.overview.primeiroCheckin.slice(11, 16) : null,
+              ultimoCheckout: d0.overview?.ultimoCheckout ? d0.overview.ultimoCheckout.slice(11, 16) : null,
+              rca: d0.visitas[0]?.rca_name ? limpa(d0.visitas[0].rca_name) : null,
+              ultimoCliente: d0.visitas[d0.visitas.length - 1]?.client_name || null,
+              scoreMedio,
+              fotos: fotos.slice(0, 6) // Até 6 fotos da rota
+            };
+          }
+        } catch {}
+      }
+
+      return {
+        id: s.id,
+        nome: limpa(s.nome),
+        fez_compromisso: feito(s),
+        iniciou_ret: fezRet,
+        retDetalhe
+      };
+    })
+  );
 
   return new Response(JSON.stringify({ data: dia, filial: filial.toUpperCase(), supervisores, consultado_em: new Date().toISOString() }), { headers: cors });
 }
