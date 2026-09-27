@@ -53,6 +53,7 @@ header small{color:var(--mut);display:block;margin-top:4px}
 </div>
 <div id="ov"></div>
 <div id="video-lance-fixo" style="display:none"></div>
+<button id="btn-fechar-global" style="display:none;position:fixed;top:20px;right:20px;z-index:2147483647;background:rgba(15,23,42,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 18px;font-size:15px;font-weight:700;cursor:pointer">✕ FECHAR</button>
 <script>
 'use strict';
 window.somOn = true;
@@ -103,14 +104,17 @@ async function simulaLance(tipo) {
   // logo após carregar a página — ver videosProntos() em tv-animacoes.js).
   if (typeof videosProntos === 'function') await videosProntos();
   const ov = $('ov');
+  const btnFechar = $('btn-fechar-global');
   let animStop = null, t0 = Date.now();
   const fecha = () => {
     clearInterval(ov._i); clearTimeout(ov._t1); clearTimeout(ov._t2); clearTimeout(ov._t3);
     if (animStop) { animStop(); animStop = null; }
     ov.className = ''; ov.innerHTML = ''; window.__fechaAnimAtual = null;
+    if (btnFechar) btnFechar.style.display = 'none';
   };
   window.__fechaAnimAtual = fecha;
   ov.onclick = fecha;
+  if (btnFechar) { btnFechar.style.display = ''; btnFechar.onclick = e => { e.stopPropagation(); fecha(); }; }
 
   const mostraDecisao = () => {
     if (animStop) { animStop(); animStop = null; }
@@ -123,25 +127,22 @@ async function simulaLance(tipo) {
   // Hat-Trick e Semana Invicta não têm vídeo real — vão direto pra animação vetorial dedicada.
   if (tipo === 'hattrick' && typeof iniciaAnimHatTrick === 'function') {
     ov.className = 'show';
-    ov.innerHTML = '<canvas id="cvp"></canvas><button id="btn-fechar-anim" style="position:fixed;top:20px;right:20px;z-index:999999;background:rgba(15,23,42,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 18px;font-size:15px;font-weight:700;cursor:pointer">✕ FECHAR</button>';
-    if ($('btn-fechar-anim')) $('btn-fechar-anim').onclick = e => { e.stopPropagation(); fecha(); };
+    ov.innerHTML = '<canvas id="cvp"></canvas>';
     animStop = iniciaAnimHatTrick($('cvp'), caso.animParam);
     ov._t2 = setTimeout(mostraDecisao, 9500);
     return;
   }
   if (tipo === 'semanainvicta' && typeof iniciaAnimSemanaInvicta === 'function') {
     ov.className = 'show';
-    ov.innerHTML = '<canvas id="cvp"></canvas><button id="btn-fechar-anim" style="position:fixed;top:20px;right:20px;z-index:999999;background:rgba(15,23,42,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 18px;font-size:15px;font-weight:700;cursor:pointer">✕ FECHAR</button>';
-    if ($('btn-fechar-anim')) $('btn-fechar-anim').onclick = e => { e.stopPropagation(); fecha(); };
+    ov.innerHTML = '<canvas id="cvp"></canvas>';
     animStop = iniciaAnimSemanaInvicta($('cvp'), caso.animParam);
     ov._t2 = setTimeout(mostraDecisao, 9500);
     return;
   }
 
   ov.className = 'show';
-  ov.innerHTML = '<canvas id="cvp"></canvas><button id="btn-fechar-anim" style="position:fixed;top:20px;right:20px;z-index:999999;background:rgba(15,23,42,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 18px;font-size:15px;font-weight:700;cursor:pointer">✕ FECHAR</button>';
+  ov.innerHTML = '<canvas id="cvp"></canvas>';
   const cv = $('cvp');
-  if ($('btn-fechar-anim')) $('btn-fechar-anim').onclick = e => { e.stopPropagation(); fecha(); };
 
   const variaMs = () => Math.round((Math.random() * 6 - 3) * 1000);
   const DURACAO_BASE = { gol: 13000, vermelho: 12000, amarelo: 10000, impedimento: 12000, defesa: 12000, penalti: 14000 };

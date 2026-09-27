@@ -82,10 +82,10 @@ function fundoDeCampo(c, LX, LW, W1080, desenhaVetorial) {
 // REGRAS_CFTV/PROMPTS_VIDEOS_ANIMACOES_TV.md e preencher aqui quando prontos.
 const VIDEO_ARQUIVOS = {
   gol: ['/animacoes/videos/gol_1.mp4', '/animacoes/videos/gol_2.mp4', '/animacoes/videos/gol_3.mp4', '/animacoes/videos/gol_4.mp4'],
-  vermelho: [],
-  amarelo: [],
-  impedimento: [],
-  penalti: [],
+  vermelho: ['/animacoes/videos/vermelho_1.mp4', '/animacoes/videos/vermelho_2.mp4', '/animacoes/videos/vermelho_3.mp4'],
+  amarelo: ['/animacoes/videos/amarelo_1.mp4', '/animacoes/videos/amarelo_2.mp4', '/animacoes/videos/amarelo_3.mp4'],
+  impedimento: ['/animacoes/videos/impedimento_1.mp4', '/animacoes/videos/impedimento_2.mp4', '/animacoes/videos/impedimento_3.mp4'],
+  penalti: ['/animacoes/videos/penalti_1.mp4', '/animacoes/videos/penalti_2.mp4', '/animacoes/videos/penalti_3.mp4'],
   defesa: []
 };
 // Gol com subtipo conhecido usa um vídeo dedicado (ex.: super pedido é mais "explosivo", cliente
@@ -1425,12 +1425,10 @@ function animTeste(tipo, sub) {
   // vídeo da Smart TV num estado inconsistente e a próxima tentativa vira tela preta.
   if (window.__fechaAnimAtual) { window.__fechaAnimAtual(); window.__fechaAnimAtual = null; }
   ov.className = 'show';
-  ov.innerHTML = `
-    <canvas id="cvp"></canvas>
-    <button id="btn-fechar-anim" style="position:fixed;top:24px;right:24px;z-index:999999;background:rgba(15,23,42,0.92);color:#fff;border:2px solid #ef4444;border-radius:12px;padding:12px 26px;font-size:18px;font-weight:900;letter-spacing:.05em;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,0.8);display:flex;align-items:center;gap:10px;transition:transform .15s,background .15s" onmouseover="this.style.background='#dc2626';this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(15,23,42,0.92)';this.style.transform='none'">
-      <span style="font-size:20px;line-height:1">✕</span> VOLTAR / FECHAR
-    </button>
-  `;
+  ov.innerHTML = '<canvas id="cvp"></canvas>';
+  // Botão global (fora de #ov, ver #btn-fechar-global no HTML): não fica escondido atrás do
+  // vídeo real, que vive num container irmão de #ov com z-index maior (#video-lance-fixo).
+  const btnFechar = $('btn-fechar-global');
   const cv = $('cvp');
   let stopAnim = null;
   let finalizado = false;
@@ -1443,8 +1441,10 @@ function animTeste(tipo, sub) {
     ov.className = '';
     ov.innerHTML = '';
     window.__fechaAnimAtual = null;
+    if (btnFechar) btnFechar.style.display = 'none';
   };
   window.__fechaAnimAtual = fecha;
+  if (btnFechar) { btnFechar.style.display = ''; btnFechar.onclick = e => { e.stopPropagation(); fecha(); }; }
 
   // Testa vídeo real quando o lance tem um pronto (hoje só "gol"); os demais ainda não têm vídeo
   // gerado, então caem direto na animação vetorial (ver VIDEO_ARQUIVOS acima).
@@ -1473,8 +1473,6 @@ function animTeste(tipo, sub) {
   const onKey = e => { if (e.key === 'Escape') fecha(); };
   window.addEventListener('keydown', onKey);
 
-  const btn = $('btn-fechar-anim');
-  if (btn) btn.onclick = e => { e.stopPropagation(); fecha(); };
   ov.onclick = e => { if (e.target === ov || e.target === cv) fecha(); };
 }
 

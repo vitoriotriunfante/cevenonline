@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CEVEN CFTV — Apresentação Diretoria</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070b14;--card:#0f1626;--line:#1e2a44;
+  --tx:#e8eefc;--mut:#8b9bbd;
+  --ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;
+  --acc:#38bdf8;--pur:#a855f7;--org:#fb923c;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'Inter',system-ui,sans-serif}
+#nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:rgba(7,11,20,.85);backdrop-filter:blur(12px);border-bottom:1px solid rgba(56,189,248,.15)}
+#nav .logo{font-size:15px;font-weight:800;letter-spacing:.06em;color:var(--acc)}
+#nav .logo span{color:var(--mut);font-weight:400}
+#nav .prog-wrap{flex:1;max-width:320px;margin:0 24px;height:3px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden}
+#nav .prog-bar{height:100%;background:linear-gradient(90deg,var(--acc),var(--pur));border-radius:99px;transition:width .4s ease}
+#nav .slide-num{font-size:13px;color:var(--mut);font-weight:600;min-width:60px;text-align:right}
+#nav .ctrl{display:flex;gap:8px}
+#nav button{background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.25);color:var(--acc);border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+#nav button:hover{background:rgba(56,189,248,.25)}
+#deck{position:fixed;inset:60px 0 50px 0;overflow:hidden}
+.slide{position:absolute;inset:0;opacity:0;transform:translateX(80px);transition:all .45s cubic-bezier(.4,0,.2,1);pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px}
+.slide.active{opacity:1;transform:translateX(0);pointer-events:all}
+.slide.prev{opacity:0;transform:translateX(-80px)}
+#footer{position:fixed;bottom:0;left:0;right:0;height:50px;background:rgba(7,11,20,.85);backdrop-filter:blur(8px);border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;gap:32px;font-size:13px;color:var(--mut)}
+#footer kbd{background:#1a2440;border:1px solid var(--line);border-radius:6px;padding:3px 9px;font-size:12px;color:var(--acc);font-family:monospace}
+/* SLIDE 1 CAPA */
+#s1{background:radial-gradient(ellipse 120% 80% at 50% 30%,#0d2055 0%,var(--bg) 70%)}
+.badge{background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.3);border-radius:99px;padding:8px 22px;font-size:13px;font-weight:700;color:var(--acc);letter-spacing:.1em;margin-bottom:28px}
+.hero-title{font-size:clamp(52px,8vw,100px);font-weight:900;line-height:1;text-align:center;background:linear-gradient(135deg,#fff 30%,var(--acc) 65%,var(--pur) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{margin-top:18px;font-size:clamp(15px,2.2vw,24px);color:var(--mut);text-align:center}
+.meta-row{margin-top:36px;display:flex;gap:28px;flex-wrap:wrap;justify-content:center}
+.meta-box{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px 24px;text-align:center}
+.meta-box b{display:block;font-size:28px;font-weight:900;color:var(--acc)}
+.meta-box span{font-size:12px;color:var(--mut)}
+/* GENERIC */
+.sh{text-align:center;margin-bottom:28px}
+.sh .ey{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);margin-bottom:8px}
+.sh h2{font-size:clamp(26px,4vw,50px);font-weight:900;line-height:1.1}
+.sh p{margin-top:10px;font-size:16px;color:var(--mut);max-width:680px;margin-inline:auto;line-height:1.5}
+.grid{display:grid;gap:16px;width:100%;max-width:1100px}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px}
+.card .ic{font-size:32px;margin-bottom:10px}
+.card h3{font-size:17px;font-weight:800;margin-bottom:6px}
+.card p,.card small{font-size:13px;color:var(--mut);line-height:1.5}
+.card.green{border-color:rgba(34,197,94,.4);box-shadow:0 0 28px rgba(34,197,94,.06)}
+.card.blue{border-color:rgba(56,189,248,.4);box-shadow:0 0 28px rgba(56,189,248,.06)}
+.card.red{border-color:rgba(239,68,68,.4);box-shadow:0 0 28px rgba(239,68,68,.06)}
+.card.yellow{border-color:rgba(250,204,21,.4)}
+.card.purple{border-color:rgba(168,85,247,.4);box-shadow:0 0 28px rgba(168,85,247,.06)}
+.card.orange{border-color:rgba(251,146,60,.4)}
+.gtag{display:inline-block;font-size:11px;font-weight:800;padding:4px 12px;border-radius:7px;letter-spacing:.05em;margin-bottom:10px}
+.gtag.green{background:rgba(34,197,94,.18);color:#86efac;border:1px solid rgba(34,197,94,.4)}
+.gtag.red{background:rgba(239,68,68,.18);color:#fca5a5;border:1px solid rgba(239,68,68,.4)}
+.gtag.yellow{background:rgba(250,204,21,.18);color:#fef08a;border:1px solid rgba(250,204,21,.4)}
+.gtag.blue{background:rgba(56,189,248,.18);color:#bae6fd;border:1px solid rgba(56,189,248,.4)}
+.gtag.purple{background:rgba(168,85,247,.18);color:#e9d5ff;border:1px solid rgba(168,85,247,.4)}
+.gtag.orange{background:rgba(251,146,60,.18);color:#fdba74;border:1px solid rgba(251,146,60,.4)}
+/* table */
+.tb{width:100%;border-collapse:collapse;font-size:14px}
+.tb th{text-align:left;padding:11px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);border-bottom:2px solid var(--line)}
+.tb td{padding:12px 14px;border-bottom:1px solid rgba(30,42,68,.5)}
+.tb tr:last-child td{border:0}
+.tb tr:hover td{background:rgba(255,255,255,.02)}
+.ttag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;padding:4px 10px;border-radius:6px}
+/* timeline */
+.timeline{display:flex;gap:0;width:100%;max-width:960px;margin-bottom:24px}
+.tl-step{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative}
+.tl-step:not(:last-child)::after{content:'';position:absolute;top:20px;left:50%;width:100%;height:2px;background:linear-gradient(90deg,var(--acc),var(--pur));z-index:-1}
+.tl-dot{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;border:3px solid var(--acc);background:var(--bg);color:var(--acc);margin-bottom:12px;z-index:1}
+.tl-step h4{font-size:13px;font-weight:800;margin-bottom:3px}
+.tl-step p{font-size:11px;color:var(--mut);line-height:1.4;padding:0 6px}
+/* split */
+.hs{display:flex;gap:28px;width:100%;max-width:1100px;align-items:flex-start}
+.hs .l{flex:1.1}.hs .r{flex:1}
+/* rank */
+.ri{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 18px;margin-bottom:10px}
+.ri .pos{font-size:20px;font-weight:900;color:var(--mut);min-width:28px}
+.ri .inf{flex:1}
+.ri .inf h4{font-size:15px;font-weight:700}
+.ri .inf small{color:var(--mut);font-size:12px}
+.ri .sc{font-size:18px;font-weight:900;color:var(--acc)}
+/* arch */
+.arch{display:flex;gap:0;align-items:stretch;max-width:1100px;width:100%}
+.arch-col{flex:1;padding:0 8px}
+.arch-head{text-align:center;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--acc);padding:8px 0;border-bottom:2px solid rgba(56,189,248,.3);margin-bottom:10px}
+.arch-item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:12px;font-weight:600;text-align:center;margin-bottom:8px}
+.arch-item small{display:block;font-size:10px;color:var(--mut);font-weight:400}
+.arch-arrow{display:flex;align-items:center;justify-content:center;color:var(--acc);font-size:18px;padding:0 3px;align-self:center}
+/* big stat */
+.big-num{font-size:clamp(60px,9vw,110px);font-weight:900;line-height:1;background:linear-gradient(135deg,var(--acc),var(--pur));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+/* hbox */
+.hbox{background:linear-gradient(135deg,rgba(56,189,248,.07),rgba(168,85,247,.05));border:1px solid rgba(56,189,248,.22);border-radius:16px;padding:20px 26px;max-width:840px;text-align:center;width:100%}
+.hbox h3{font-size:21px;font-weight:800;margin-bottom:6px}
+.hbox p{color:var(--mut);font-size:15px;line-height:1.5}
+/* vant */
+.vant-row{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}
+.vant-row .vi{font-size:26px;line-height:1;flex-shrink:0}
+.vant-row h4{font-size:15px;font-weight:800;margin-bottom:2px}
+.vant-row p{font-size:13px;color:var(--mut)}
+/* kpi bar */
+.kpib{display:flex;gap:14px;max-width:1100px;width:100%}
+.kpib-box{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center}
+.kpib-box .nn{font-size:38px;font-weight:900;line-height:1}
+.kpib-box .ll{font-size:11px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-top:4px}
+/* big quote */
+.bq{font-size:clamp(20px,3vw,36px);font-weight:300;line-height:1.55;text-align:center;max-width:800px;color:var(--tx)}
+.bq strong{font-weight:900;color:var(--acc)}
+/* dot bg */
+.dot-bg{position:absolute;inset:0;background-image:radial-gradient(rgba(56,189,248,.11) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 40%,transparent 100%)}
+.scan-line{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,248,.35),transparent);animation:scanMove 5s linear infinite}
+@keyframes scanMove{from{top:60px}to{top:calc(100vh - 50px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+.a1{animation:fadeUp .5s .05s both}.a2{animation:fadeUp .5s .15s both}.a3{animation:fadeUp .5s .25s both}.a4{animation:fadeUp .5s .35s both}.a5{animation:fadeUp .5s .45s both}
+.scroll-hint{position:absolute;bottom:14px;font-size:12px;color:var(--mut);animation:bounce 1.5s infinite}
+</style>
+</head>
+<body>
+<nav id="nav">
+  <div class="logo">CEVEN <span>CFTV</span></div>
+  <div class="prog-wrap"><div class="prog-bar" id="pb" style="width:8.33%"></div></div>
+  <div class="slide-num" id="sn">1 / 12</div>
+  <div class="ctrl">
+    <button onclick="prev()">← Anterior</button>
+    <button onclick="next()">Próximo →</button>
+  </div>
+</nav>
+
+<div id="deck">
+
+<!-- S1 CAPA -->
+<section class="slide active" id="s1">
+  <div class="dot-bg"></div>
+  <div class="scan-line"></div>
+  <div class="badge a1">PROJETO ESTRATÉGICO · DIRETORIA TRIUNFANTE 2026</div>
+  <div class="hero-title a2">CEVEN CFTV</div>
+  <div class="hero-sub a3">Central de Inteligência Comercial em Tempo Real<br>Monitoramento ao Vivo · Gamificação · VAR de Vendas</div>
+  <div class="meta-row a4">
+    <div class="meta-box"><b>11</b><span>Filiais</span></div>
+    <div class="meta-box"><b>90s</b><span>Ciclo de atualização</span></div>
+    <div class="meta-box"><b>7</b><span>Tipos de lances</span></div>
+    <div class="meta-box"><b>24/7</b><span>100% Online</span></div>
+    <div class="meta-box"><b>R$ 0</b><span>Custo de infra/mês</span></div>
+  </div>
+  <div class="scroll-hint">▼ Avançar</div>
+</section>
+
+<!-- S2 O PROBLEMA -->
+<section class="slide" id="s2">
+  <div class="sh a1">
+    <div class="ey">O Desafio</div>
+    <h2>Gestão de campo às cegas</h2>
+    <p>Como acompanhar dezenas de vendedores em rota, ao mesmo tempo, sem depender de ligações e planilhas manuais?</p>
+  </div>
+  <div class="grid g3 a2" style="max-width:1000px">
+    <div class="card red">
+      <div class="ic">🔇</div>
+      <h3>Sem visibilidade</h3>
+      <p>Supervisores não sabem o que está acontecendo na rota até o fim do dia — quando já é tarde demais para agir.</p>
+    </div>
+    <div class="card yellow">
+      <div class="ic">⏳</div>
+      <h3>Reação lenta</h3>
+      <p>Pênaltis, devoluções e clientes parados só aparecem em relatórios noturnos. A cobrança chega 24h depois.</p>
+    </div>
+    <div class="card red">
+      <div class="ic">📉</div>
+      <h3>Sem reconhecimento</h3>
+      <p>Bons resultados passam despercebidos. Não há como celebrar um super pedido ou a recuperação de um cliente em tempo real.</p>
+    </div>
+  </div>
+  <div class="hbox a3" style="margin-top:22px">
+    <h3>A pergunta que originou o projeto</h3>
+    <p>E se a gestão comercial funcionasse como uma transmissão de futebol — com alertas ao vivo, replay, VAR e celebrações instantâneas?</p>
+  </div>
+</section>
+
+<!-- S3 SOLUÇÃO -->
+<section class="slide" id="s3">
+  <div class="sh a1">
+    <div class="ey">A Solução</div>
+    <h2>TV ao vivo na filial, 100% online</h2>
+    <p>Uma central que roda no navegador de qualquer TV da filial, sem instalação, atualizando dados do CEVEN automaticamente.</p>
+  </div>
+  <div class="grid g3 a2" style="max-width:1100px">
+    <div class="card blue">
+      <div class="ic">📡</div>
+      <h3>Dados ao vivo</h3>
+      <p>Conecta direto ao CEVEN. Atualiza todos os vendedores a cada <strong style="color:var(--acc)">90 segundos</strong>, 24/7, sem intervenção manual.</p>
+    </div>
+    <div class="card green">
+      <div class="ic">⚽</div>
+      <h3>Gamificação real</h3>
+      <p>Cada evento vira um <strong style="color:var(--ok)">LANCE</strong>: Gol, Pênalti, Cartão, Impedimento — com animação cinematográfica na TV.</p>
+    </div>
+    <div class="card purple">
+      <div class="ic">📺</div>
+      <h3>VAR de vendas</h3>
+      <p>Análise automática tipo VAR: câmera lenta, replay, linhas virtuais e <strong style="color:var(--pur)">decisão fundamentada</strong> na tela.</p>
+    </div>
+    <div class="card orange">
+      <div class="ic">🗺️</div>
+      <h3>11 Filiais</h3>
+      <p>TBL · TPH · TCV · ABC · TCA · MCD · TCG · API · TBE · TPA · TSJ — cada uma com TV independente e rankings próprios.</p>
+    </div>
+    <div class="card blue">
+      <div class="ic">📊</div>
+      <h3>Matriz central</h3>
+      <p>Visão consolidada de todas as filiais em um único painel para a diretoria acompanhar o todo em tempo real.</p>
+    </div>
+    <div class="card green">
+      <div class="ic">📋</div>
+      <h3>Supervisores</h3>
+      <p>Monitoramento automático de <strong style="color:var(--ok)">Compromisso do Dia</strong> e <strong style="color:var(--ok)">RET</strong> — com destaque na TV se houver pendentes.</p>
+    </div>
+  </div>
+</section>
+
+<!-- S4 COMO FUNCIONA -->
+<section class="slide" id="s4">
+  <div class="sh a1">
+    <div class="ey">Como Funciona</div>
+    <h2>Do dado ao VAR em 90 segundos</h2>
+  </div>
+  <div class="timeline a2">
+    <div class="tl-step">
+      <div class="tl-dot">1</div>
+      <h4>CEVEN</h4>
+      <p>Registra visitas, pedidos, justificativas e status dos clientes</p>
+    </div>
+    <div class="tl-step">
+      <div class="tl-dot">2</div>
+      <h4>API</h4>
+      <p>CFTV busca dados de cada vendedor a cada 90s via API</p>
+    </div>
+    <div class="tl-step">
+      <div class="tl-dot" style="border-color:var(--warn);color:var(--warn)">3</div>
+      <h4>Análise</h4>
+      <p>Regras detectam: Gol, Pênalti, Cartão, Impedimento</p>
+    </div>
+    <div class="tl-step">
+      <div class="tl-dot" style="border-color:var(--ok);color:var(--ok)">4</div>
+      <h4>Fila VAR</h4>
+      <p>Lance é priorizado (máx. 1 a cada 3 min, 6/hora)</p>
+    </div>
+    <div class="tl-step">
+      <div class="tl-dot" style="border-color:var(--pur);color:var(--pur)">5</div>
+      <h4>TV ao vivo</h4>
+      <p>Animação + decisão fundamentada na tela da filial</p>
+    </div>
+  </div>
+  <div class="grid g2 a3" style="max-width:900px">
+    <div class="card">
+      <h3>🔄 Modos da TV</h3>
+      <p style="margin-top:8px;line-height:1.8">
+        <strong>RONDA:</strong> vendedor por vendedor, 10s cada, mais críticos primeiro<br>
+        <strong>PAINEL:</strong> ranking geral + alertas ativos + justificativas<br>
+        <strong>SUPERVISORES:</strong> destaque 11:30–12:00 para pendentes
+      </p>
+    </div>
+    <div class="card">
+      <h3>🛡️ Controles inteligentes</h3>
+      <p style="margin-top:8px;line-height:1.8">
+        <strong>Anti-duplicação:</strong> um lance não aparece 2x em TVs diferentes<br>
+        <strong>Limitador:</strong> máx. 6 VARs/hora, 1 a cada 3 min<br>
+        <strong>Diário:</strong> log completo exportável para auditoria
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- S5 LANCES POSITIVOS -->
+<section class="slide" id="s5">
+  <div class="sh a1">
+    <div class="ey">Lances · Meritocracia Comercial</div>
+    <h2>⚽ Os 12 Gols Oficiais — Pedido Tirado & Justiça de Canal</h2>
+    <p>Gatilhos automáticos no CEVEN para premiar atitude, volume e abertura de mix no dia a dia.</p>
+  </div>
+  <div class="grid g3 a2" style="max-width:1150px;font-size:13px">
+    <div class="card green" style="padding:16px">
+      <div class="gtag green">G01 · GOL RELÂMPAGO (+15 pts)</div>
+      <h3 style="font-size:15px;margin-bottom:4px">Venda Rápida Matinal</h3>
+      <p>1º pedido tirado <strong>antes das 09h</strong> (10h MT/MS). Saiu da matinal e já converteu.</p>
+    </div>
+    <div class="card green" style="padding:16px">
+      <div class="gtag green">G02 · SUPER PEDIDO (+25 pts)</div>
+      <h3 style="font-size:15px;margin-bottom:4px">Bomba no Ângulo (por Canal)</h3>
+      <p>• <strong>Varejo (VJ/Pet):</strong> Pedido tirado &ge; <strong>R$ 3.000</strong><br>• <strong>Auto Serviço (AS):</strong> Pedido tirado &ge; <strong>R$ 15.000</strong></p>
+    </div>
+    <div class="card green" style="padding:16px">
+      <div class="gtag green">G03 · DOBROU O MIX (+20 pts)</div>
+      <h3 style="font-size:15px;margin-bottom:4px">Bicicleta Acrobática</h3>
+      <p>Pedido com <strong>&ge; 2&times; a média histórica</strong> de SKUs do cliente (ex: comprava 2 e levou 4).</p>
+    </div>
+    <div class="card green" style="padding:16px">
+      <div class="gtag green">G04 · DOBRADINHA (+15 pts)</div>
+      <h3 style="font-size:15px;margin-bottom:4px">Tabela Quinzenal (1-2)</h3>
+      <p>Pedido tirado na <strong>1ª quinzena</strong> (dias 01–15) e recompra tirada na <strong>2ª quinzena</strong>.</p>
+    </div>
+    <div class="card green" style="padding:16px">
+      <div class="gtag green">G05 · CONVERSÃO CRAQUE (+20 pts)</div>
+      <h3 style="font-size:15px;margin-bottom:4px">Pontaria Cirúrgica</h3>
+      <p>Dia com &ge; 8 visitas concluídas e <strong>Taxa de Conversão &ge; 50%</strong> em pedidos tirados.</p>
+    </div>
+    <div class="card green" style="padding:16px">
+      <div class="gtag green">G06 · HAT-TRICK (+25 pts)</div>
+      <h3 style="font-size:15px;margin-bottom:4px">3 Pedidos Seguidos</h3>
+      <p>3 pedidos tirados consecutivos em menos de 2h na rota, sem nenhuma negativação intercalada.</p>
+    </div>
+    <div class="card green" style="padding:16px">
+      <div class="gtag green">G07 · DRIBLE DA VACA (+30 pts)</div>
+      <h3 style="font-size:15px;margin-bottom:4px">Resgate de Inativo VIP</h3>
+      <p>Pedido tirado em cliente que estava parado há <strong>mais de 90 dias</strong> sem comprar.</p>
+    </div>
+    <div class="card green" style="padding:16px">
+      <div class="gtag green">G08 · PAREDÃO RECORRENTE (+15 pts)</div>
+      <h3 style="font-size:15px;margin-bottom:4px">Defesa Milagrosa</h3>
+      <p>Pedido tirado em cliente com <strong>TAG Recorrência</strong> no limite do ciclo de recompra.</p>
+    </div>
+    <div class="card green" style="padding:16px">
+      <div class="gtag green">G09 · GOLEADA (+30 pts)</div>
+      <h3 style="font-size:15px;margin-bottom:4px">+10 Positivações no Dia</h3>
+      <p>Alcançar <strong>10 ou mais clientes distintos</strong> com pedido tirado no mesmo dia de trabalho.</p>
+    </div>
+    <div class="card green" style="padding:16px">
+      <div class="gtag green">G10 · GOL NOS ACRÉSCIMOS (+15 pts)</div>
+      <h3 style="font-size:15px;margin-bottom:4px">Raça no Fechamento</h3>
+      <p>Pedido tirado <strong>após as 17:00</strong> (18:00 fuso). Vendedor que luta até o apito final.</p>
+    </div>
+    <div class="card green" style="padding:16px">
+      <div class="gtag green">G11 · META NO 1º TEMPO (+25 pts)</div>
+      <h3 style="font-size:15px;margin-bottom:4px">Meta Diária antes das 14h</h3>
+      <p>Atinge 100% da cota diária (Meta Mensal / Dias Úteis) em <code>dig_hoje</code> antes das 14h.</p>
+    </div>
+    <div class="card green" style="padding:16px">
+      <div class="gtag green">G12 · TRÍPLICE COROA (+30 a +50 pts)</div>
+      <h3 style="font-size:15px;margin-bottom:4px">Metas Mensais Batidas</h3>
+      <p>• <strong>G12A:</strong> 100% Meta R$ (+30 pts)<br>• <strong>G12B:</strong> 100% Positivação (+30 pts)<br>• <strong>G12C:</strong> Ambas batidas (+50 pts)</p>
+    </div>
+  </div>
+</section>
+
+<!-- S6 PÊNALTI E SIMULAÇÕES -->
+<section class="slide" id="s6">
+  <div class="sh a1">
+    <div class="ey">Lances · Disciplinar & VAR</div>
+    <h2>🚨 Pênaltis de Campo — Desculpas que Prejudicam o Caixa</h2>
+    <p>O VAR é acionado quando a justificativa inserida no app não se sustenta perante o histórico real do cliente.</p>
+  </div>
+  <div class="grid g2 a2" style="max-width:1050px">
+    <div class="card red" style="padding:22px">
+      <div class="gtag red">P01 · ESTOQUE SUFICIENTE (-20 pts)</div>
+      <h3 style="margin-bottom:6px">Inatividade Disfarçada</h3>
+      <p style="font-size:14px;line-height:1.6">Vendedor justifica como <strong>"ESTOQUE SUFICIENTE"</strong> em cliente sem compras há <strong>mais de 30 dias</strong>.</p>
+      <div style="margin-top:10px;padding:8px 12px;background:rgba(239,68,68,.1);border-radius:8px;font-size:12px;color:#fca5a5">
+        Se o comerciante não compra há 1 mês, o estoque dele é de produto do concorrente!
+      </div>
+    </div>
+    <div class="card red" style="padding:22px">
+      <div class="gtag red">P02 · CLIENTE ENCERROU (-20 pts)</div>
+      <h3 style="margin-bottom:6px">Falso Fechamento Cadastral</h3>
+      <p style="font-size:14px;line-height:1.6">Justifica como <strong>"ENCERROU ATIVIDADES / FECHADO"</strong> em cliente que comprou recentemente (< 45 dias).</p>
+      <div style="margin-top:10px;padding:8px 12px;background:rgba(239,68,68,.1);border-radius:8px;font-size:12px;color:#fca5a5">
+        Tentativa de "matar" a visita sem ir ao local. Fraude cadastral passível de auditoria.
+      </div>
+    </div>
+    <div class="card red" style="padding:22px">
+      <div class="gtag red">P03 · ENTRADA TARDIA CRÍTICA (-20 pts)</div>
+      <h3 style="margin-bottom:6px">Início após as 10h da Manhã</h3>
+      <p style="font-size:14px;line-height:1.6">Vendedor de campo cujo 1º check-in do dia só ocorre <strong>após as 10:00</strong> (11:00 no fuso de MS e MT).</p>
+      <div style="margin-top:10px;padding:8px 12px;background:rgba(239,68,68,.1);border-radius:8px;font-size:12px;color:#fca5a5">
+        Perda irreparável da manhã comercial, onde o pequeno varejista mais emite compras.
+      </div>
+    </div>
+    <div class="card red" style="padding:22px">
+      <div class="gtag red">P04 · CORPO MOLE EM CAMPO (-20 pts)</div>
+      <h3 style="margin-bottom:6px">Ritmo Desacelerado às 15:30</h3>
+      <p style="font-size:14px;line-height:1.6">Menos de <strong>10 visitas concluídas até as 15:30</strong> (em carteira padrão que prevê 20 atendimentos/dia).</p>
+      <div style="margin-top:10px;padding:8px 12px;background:rgba(239,68,68,.1);border-radius:8px;font-size:12px;color:#fca5a5">
+        Queda drástica de intensidade operacional antes do término da jornada.
+      </div>
+    </div>
+  </div>
+  <div class="hbox a3" style="margin-top:16px">
+    <p>📞 <strong>Veredito do VAR ao Vivo na TV:</strong> <em>"LIGAR AGORA PARA O SUPERVISOR"</em> — reincidências no dia disparam alerta sonoro e travamento visual na tela.</p>
+  </div>
+</section>
+
+<!-- S7 CARTÕES E IMPEDIMENTOS -->
+<section class="slide" id="s7">
+  <div class="sh a1">
+    <div class="ey">Lances · Processo de Campo & Fair Play</div>
+    <h2>Cartões Vermelhos, Amarelos e os 5 Impedimentos</h2>
+    <p>Regras severas para coibir fraudes operacionais e garantir execução impecável da rota.</p>
+  </div>
+  <div class="grid g2 a2" style="max-width:1150px">
+    <div>
+      <h3 style="font-size:16px;color:var(--bad);margin-bottom:10px">🟥 Cartões Vermelhos (Prejuízo Direto)</h3>
+      <div class="card red" style="margin-bottom:10px;padding:14px">
+        <strong>V01 · Devolução "Cliente Não Pediu" (-35 pts)</strong>
+        <p style="font-size:12px;color:var(--tx-mut);margin-top:3px">Venda forçada ou desacordo comercial que volta no caminhão. Custo de frete duplo e avaria.</p>
+      </div>
+      <div class="card red" style="margin-bottom:10px;padding:14px">
+        <strong>V02 · Abandono Total de Campo (-35 pts)</strong>
+        <p style="font-size:12px;color:var(--tx-mut);margin-top:3px">Vendedor escalado com rota ativa e ZERO visitas feitas até as 10:00 (11h fuso).</p>
+      </div>
+      <div class="card red" style="padding:14px">
+        <strong>V03 · Golpe de Bonificação (-35 pts)</strong>
+        <p style="font-size:12px;color:var(--tx-mut);margin-top:3px">Entrega de produto bonificado/brinde sem nenhum pedido de venda normal acompanhado.</p>
+      </div>
+
+      <h3 style="font-size:16px;color:var(--warn);margin:14px 0 10px 0">🟨 Cartões Amarelos (Desvios)</h3>
+      <div class="card yellow" style="padding:12px 14px;font-size:12px">
+        <strong>A01:</strong> 1º check-in atrasado (09:30–10:00) | <strong>A02:</strong> Fim precoce (&lt; 16:00)<br>
+        <strong>A03:</strong> Menos de 15 visitas no dia todo | <strong>A04:</strong> AS abaixo da média trimestral
+      </div>
+    </div>
+
+    <div>
+      <h3 style="font-size:16px;color:var(--org);margin-bottom:10px">🚩 Os 5 Impedimentos de Processo (Tentativas de Burlar o App)</h3>
+      <div class="card orange" style="margin-bottom:8px;padding:12px">
+        <strong>I01 · Check-in Fantasma (-5 pts)</strong>
+        <p style="font-size:12px;color:var(--tx-mut)">Visita de <code>00:00</code> (menos de 60 segundos). Bateu ponto sem entrar no PDV.</p>
+      </div>
+      <div class="card orange" style="margin-bottom:8px;padding:12px">
+        <strong>I02 · GPS Fora de Campo (-10 pts)</strong>
+        <p style="font-size:12px;color:var(--tx-mut)">Check-in registrado a mais de 500 metros do endereço cadastrado na Receita Federal.</p>
+      </div>
+      <div class="card orange" style="margin-bottom:8px;padding:12px">
+        <strong>I03 · Canetada no Posto (-15 pts)</strong>
+        <p style="font-size:12px;color:var(--tx-mut)">Negativar 3 ou mais clientes em menos de 5 minutos, sentado no posto de gasolina.</p>
+      </div>
+      <div class="card orange" style="margin-bottom:8px;padding:12px">
+        <strong>I04 · Visita Esquecida Aberta (-10 pts)</strong>
+        <p style="font-size:12px;color:var(--tx-mut)">Deixar visita aberta por mais de 2 horas no app sem fechar check-out.</p>
+      </div>
+      <div class="card orange" style="padding:12px">
+        <strong>I05 · Pula-Pula Desordenado (-5 pts)</strong>
+        <p style="font-size:12px;color:var(--tx-mut)">Pular clientes do dia sem motivo e ir atender outro bairro, gerando ziguezague ineficiente.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S8 SUPERVISORES & BRASILEIRÃO -->
+<section class="slide" id="s8">
+  <div class="sh a1">
+    <div class="ey">Liderança de Gestão</div>
+    <h2>O Papel do Supervisor & O Painel do Brasileirão</h2>
+    <p>O Supervisor agora é pontuado pela média do seu time somada aos seus próprios processos de campo.</p>
+  </div>
+  <div class="hs a2">
+    <div class="l">
+      <div class="card purple" style="padding:22px">
+        <h3 style="font-size:18px;margin-bottom:12px">👔 Fórmula do Supervisor Oficial</h3>
+        <p style="font-size:14px;line-height:1.7">
+          $$\text{Score} = \underbrace{\text{Média do Time}}_{\text{Gols e Cartões dos RCAs}} + \underbrace{\text{Plus de Liderança}}_{\text{Processos do Próprio Supervisor}}$$
+        </p>
+        <div style="margin-top:14px;border-top:1px solid rgba(255,255,255,.1);padding-top:12px;font-size:13px;line-height:1.8">
+          ✅ <strong>Compromisso Matinal até 11:30:</strong> +15 pts (se atrasar: -15 pts)<br>
+          ✅ <strong>Início e Execução do RET de Campo:</strong> +25 pts (se faltar: -35 pts Vermelho)<br>
+          ✅ <strong>Destravamento de Bloqueados no Dia:</strong> +20 pts por pedido salvo<br>
+          🛡️ <strong>Zero Devoluções na Equipe no Dia:</strong> +30 pts bônus Fair Play
+        </div>
+      </div>
+    </div>
+    <div class="r" style="display:flex;flex-direction:column;gap:14px">
+      <div class="card green" style="padding:22px;text-align:center">
+        <div style="font-size:40px;margin-bottom:8px">🏆</div>
+        <h3 style="font-size:19px">Painel Oficial do Brasileirão</h3>
+        <p style="font-size:13px;margin:8px 0 16px 0;color:var(--tx-mut)">
+          Acompanhamento dinâmico estilo tabela de futebol com 4 níveis: <strong>Filial</strong>, <strong>Gerência</strong>, <strong>Supervisão</strong> e <strong>Vendedor</strong> (Brasil e por Loja).
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          <a href="/brasileirao" target="_blank" style="display:inline-block;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:800;font-size:14px;padding:12px 20px;border-radius:10px;text-decoration:none;box-shadow:0 0 20px rgba(34,197,94,.4)">
+            ⚽ Abrir Brasileirão ➔
+          </a>
+          <a href="/gestao-equipe" target="_blank" style="display:inline-block;background:rgba(56,189,248,0.15);border:1px solid var(--acc);color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:10px;text-decoration:none;">
+            👥 Gestão de Equipe ➔
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S9 KPIs -->
+<section class="slide" id="s9">
+  <div class="sh a1">
+    <div class="ey">Indicadores</div>
+    <h2>O que a TV mostra em tempo real</h2>
+  </div>
+  <div class="kpib a2">
+    <div class="kpib-box" style="border-color:rgba(34,197,94,.4)"><div class="nn" style="color:var(--ok)">💰</div><div class="ll">Faturamento do mês</div></div>
+    <div class="kpib-box" style="border-color:rgba(56,189,248,.4)"><div class="nn" style="color:var(--acc)">📦</div><div class="ll">Digitado hoje</div></div>
+    <div class="kpib-box" style="border-color:rgba(168,85,247,.4)"><div class="nn" style="color:var(--pur)">🎯</div><div class="ll">Positivação</div></div>
+    <div class="kpib-box" style="border-color:rgba(250,204,21,.4)"><div class="nn" style="color:var(--warn)">🗺️</div><div class="ll">Visitas/rota</div></div>
+    <div class="kpib-box" style="border-color:rgba(239,68,68,.4)"><div class="nn" style="color:var(--bad)">🚨</div><div class="ll">Alertas ativos</div></div>
+  </div>
+  <div class="grid g4 a3" style="margin-top:16px;max-width:1100px">
+    <div class="card" style="padding:16px"><h3 style="font-size:15px">📊 Painel 1</h3><p style="margin-top:6px;font-size:13px"><strong>Alertas ativos</strong> — todos os lances em vigor agora com nome do vendedor e detalhe da ocorrência</p></div>
+    <div class="card" style="padding:16px"><h3 style="font-size:15px">📋 Painel 2</h3><p style="margin-top:6px;font-size:13px"><strong>Justificativas do dia</strong> — ranking dos motivos mais usados na rota hoje (estoque, fechado, etc.)</p></div>
+    <div class="card" style="padding:16px"><h3 style="font-size:15px">🏆 Painel 3</h3><p style="margin-top:6px;font-size:13px"><strong>Ranking de vendas</strong> — quem mais digitou hoje em R$ com barra de progresso da meta</p></div>
+    <div class="card" style="padding:16px"><h3 style="font-size:15px">🚨 Painel 4</h3><p style="margin-top:6px;font-size:13px"><strong>Ranking de pênaltis</strong> — quem acumulou mais infrações no dia por filial e supervisor</p></div>
+  </div>
+  <div class="a4" style="margin-top:14px;text-align:center;color:var(--mut);font-size:13px">
+    💡 Supervisores aparecem em destaque das <strong style="color:var(--acc)">11:30 às 12:00</strong> — com status de <strong>Compromisso do Dia</strong> e <strong>RET iniciado</strong> (✅ ou ❌)
+  </div>
+</section>
+
+<!-- S10 ARQUITETURA -->
+<section class="slide" id="s10">
+  <div class="sh a1">
+    <div class="ey">Tecnologia</div>
+    <h2>Arquitetura 100% em nuvem</h2>
+    <p>Sem servidores dedicados, sem instalação, sem manutenção de infraestrutura. Zero dependência local.</p>
+  </div>
+  <div class="arch a2">
+    <div class="arch-col">
+      <div class="arch-head">🏭 Fontes</div>
+      <div class="arch-item">CEVEN<small>Pedidos, visitas, clientes</small></div>
+      <div class="arch-item">CEVEN Soberano<small>Gestão de Equipe (Sem Drive)</small></div>
+      <div class="arch-item">CEVEN RET<small>Check-in supervisores</small></div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-col">
+      <div class="arch-head">⚙️ Processamento</div>
+      <div class="arch-item">Cloudflare Workers<small>API serverless edge</small></div>
+      <div class="arch-item">D1 Database<small>Diário de lances (SQL)</small></div>
+      <div class="arch-item">Cron automático<small>Atualização periódica</small></div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-col">
+      <div class="arch-head">📺 Frontend</div>
+      <div class="arch-item">tvapp.html<small>TV por filial</small></div>
+      <div class="arch-item">matrizapp.html<small>Visão consolidada</small></div>
+      <div class="arch-item">tv-animacoes.js<small>Motor VAR canvas</small></div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-col">
+      <div class="arch-head">🖥️ Telas</div>
+      <div class="arch-item">TV da Filial<small>Smart TV / TV Box</small></div>
+      <div class="arch-item">Notebook / Tablet<small>Supervisores</small></div>
+      <div class="arch-item">Diretoria<small>Visão Matriz</small></div>
+    </div>
+  </div>
+  <div class="grid g3 a3" style="max-width:1100px;margin-top:18px">
+    <div class="card green" style="padding:16px 20px"><div class="ic">🔐</div><h3>Segurança</h3><p style="font-size:13px;margin-top:4px">Credenciais criptografadas em Wrangler Secrets. Nunca expostas no código ou logs.</p></div>
+    <div class="card blue" style="padding:16px 20px"><div class="ic">🌐</div><h3>100% Online</h3><p style="font-size:13px;margin-top:4px">Funciona em qualquer browser, de qualquer lugar, sem VPN ou configuração local.</p></div>
+    <div class="card purple" style="padding:16px 20px"><div class="ic">⚡</div><h3>Edge Computing</h3><p style="font-size:13px;margin-top:4px">Cloudflare Workers roda nos servidores mais próximos — latência mínima em todo o Brasil.</p></div>
+  </div>
+</section>
+
+<!-- S11 IMPACTO -->
+<section class="slide" id="s11">
+  <div class="sh a1">
+    <div class="ey">Impacto do Projeto</div>
+    <h2>O que muda com o CEVEN CFTV?</h2>
+  </div>
+  <div class="hs a2">
+    <div class="l" style="display:flex;flex-direction:column">
+      <div class="vant-row"><div class="vi">⚡</div><div><h4>Reação em tempo real</h4><p>Supervisor sabe em 90s se o vendedor está em campo, visitando e vendendo — sem precisar ligar.</p></div></div>
+      <div class="vant-row"><div class="vi">🎯</div><div><h4>Cobrança precisa</h4><p>Pênaltis, devoluções e abandonos identificados com nome do vendedor, cliente e motivo exato.</p></div></div>
+      <div class="vant-row"><div class="vi">🏆</div><div><h4>Cultura de alta performance</h4><p>Gols celebrados na TV criam competição saudável. A filial inteira vê quem está se destacando.</p></div></div>
+      <div class="vant-row"><div class="vi">📊</div><div><h4>Dados auditáveis</h4><p>Log de todos os lances do dia, snapshots a cada 10 min e histórico exportável para análise.</p></div></div>
+      <div class="vant-row"><div class="vi">💰</div><div><h4>Custo zero de infraestrutura</h4><p>Rode em Cloudflare Workers free tier. Sem servidor dedicado, sem manutenção de hardware.</p></div></div>
+    </div>
+    <div class="r">
+      <div style="text-align:center;margin-bottom:20px">
+        <div class="big-num">90s</div>
+        <div style="font-size:16px;color:var(--mut)">Tempo máximo para detectar um lance</div>
+      </div>
+      <div class="grid g2">
+        <div class="card green" style="text-align:center;padding:16px"><div style="font-size:32px;font-weight:900;color:var(--ok)">11</div><div style="font-size:12px;color:var(--mut);margin-top:4px">Filiais simultâneas</div></div>
+        <div class="card blue" style="text-align:center;padding:16px"><div style="font-size:32px;font-weight:900;color:var(--acc)">7</div><div style="font-size:12px;color:var(--mut);margin-top:4px">Tipos de lances</div></div>
+        <div class="card purple" style="text-align:center;padding:16px"><div style="font-size:32px;font-weight:900;color:var(--pur)">R$0</div><div style="font-size:12px;color:var(--mut);margin-top:4px">Custo de infra/mês</div></div>
+        <div class="card orange" style="text-align:center;padding:16px"><div style="font-size:32px;font-weight:900;color:var(--org)">∞</div><div style="font-size:12px;color:var(--mut);margin-top:4px">Vendedores monitorados</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S12 FIM -->
+<section class="slide" id="s12" style="background:radial-gradient(ellipse 120% 80% at 50% 30%,#0d2055 0%,var(--bg) 70%)">
+  <div class="dot-bg"></div>
+  <div class="badge a1">TRIUNFANTE DISTRIBUIDORA · INOVAÇÃO COMERCIAL 2026</div>
+  <div class="bq a2">
+    A TV da filial não é mais apenas um monitor.<br>
+    É o <strong>árbitro do campo comercial</strong> —<br>vendo tudo, registrando tudo, em tempo real.
+  </div>
+  <div class="grid g3 a3" style="max-width:900px;margin-top:32px">
+    <div class="card" style="text-align:center;padding:20px">
+      <div style="font-size:30px;margin-bottom:10px">📺</div>
+      <h3 style="font-size:15px">TV por Filial</h3>
+      <p style="font-size:12px;margin-top:8px"><code style="background:#1a2440;padding:4px 10px;border-radius:6px;color:var(--acc)">/tv?filial=TBL</code></p>
+    </div>
+    <div class="card" style="text-align:center;padding:20px">
+      <div style="font-size:30px;margin-bottom:10px">🗺️</div>
+      <h3 style="font-size:15px">Matriz (todas)</h3>
+      <p style="font-size:12px;margin-top:8px"><code style="background:#1a2440;padding:4px 10px;border-radius:6px;color:var(--acc)">/matriz</code></p>
+    </div>
+    <div class="card" style="text-align:center;padding:20px">
+      <div style="font-size:30px;margin-bottom:10px">🌐</div>
+      <h3 style="font-size:15px">Domínio</h3>
+      <p style="font-size:11px;margin-top:8px"><code style="background:#1a2440;padding:4px 8px;border-radius:6px;color:var(--acc)">cftv-triunfante.ceven-cftv-matrix.pages.dev</code></p>
+    </div>
+  </div>
+  <div class="a4" style="margin-top:28px;text-align:center;color:var(--mut);font-size:15px">
+    Desenvolvido por <strong style="color:var(--tx)">Vitório Neto</strong> · Setembro 2026 · Triunfante Distribuidora
+  </div>
+</section>
+
+</div>
+
+<footer id="footer">
+  <span>Navegar: <kbd>←</kbd> <kbd>→</kbd> setas do teclado</span>
+  <span>Avançar: <kbd>Espaço</kbd> ou clique na tela</span>
+  <span>Tela cheia: <kbd>F11</kbd></span>
+</footer>
+
+<script>
+const slides=document.querySelectorAll('.slide');
+const pb=document.getElementById('pb');
+const sn=document.getElementById('sn');
+let cur=0;const N=slides.length;
+function go(to){
+  if(to<0||to>=N)return;
+  slides[cur].classList.remove('active');
+  slides[cur].classList.add('prev');
+  const old=cur;
+  setTimeout(()=>slides[old].classList.remove('prev'),500);
+  cur=to;
+  slides[cur].classList.add('active');
+  pb.style.width=((cur+1)/N*100)+'%';
+  sn.textContent=(cur+1)+' / '+N;
+}
+function next(){go(cur+1);}
+function prev(){go(cur-1);}
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight','ArrowDown',' ','Enter'].includes(e.key)){e.preventDefault();next();}
+  if(['ArrowLeft','ArrowUp'].includes(e.key)){e.preventDefault();prev();}
+});
+let tx=0;
+document.addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>60)dx<0?next():prev();});
+document.getElementById('deck').addEventListener('click',e=>{
+  if(e.target.closest('button,a,table,code,kbd'))return;
+  next();
+});
+</script>
+</body>
+</html>
