@@ -32,18 +32,47 @@ jobs:
       - name: Checkout do repositório
         uses: actions/checkout@v4
 
+      - name: Trava de Segurança - Bloqueio de Fim de Semana e Feriados (com Exceção em Esporádicos)
+        id: calendario
+        run: |
+          DIA=$(TZ='America/Sao_Paulo' date +%u)
+          DATA_HOJE=$(TZ='America/Sao_Paulo' date +%Y-%m-%d)
+          BLOQUEADO=false
+          if [ "$DIA" -ge 6 ]; then
+            if grep -q "\"$DATA_HOJE\"" config/diretrizes_operacionais.json; then
+              echo "⚠️ Fim de semana com autorização esporádica ativa em diretrizes_operacionais.json. Prosseguindo..."
+            else
+              echo "🛑 [ABORTADO] Hoje é fim de semana em Brasília ($DATA_HOJE). Disparos comerciais suspensos."
+              BLOQUEADO=true
+            fi
+          fi
+          FERIADOS="2026-01-01 2026-02-16 2026-02-17 2026-04-03 2026-04-21 2026-05-01 2026-06-04 2026-09-07 2026-10-12 2026-11-02 2026-11-15 2026-11-20 2026-12-25"
+          if [ "$BLOQUEADO" = "false" ] && echo "$FERIADOS" | grep -qw "$DATA_HOJE"; then
+            if grep -q "\"$DATA_HOJE\"" config/diretrizes_operacionais.json; then
+              echo "⚠️ Feriado com autorização esporádica ativa em diretrizes_operacionais.json. Prosseguindo..."
+            else
+              echo "🛑 [ABORTADO] Hoje é feriado nacional ($DATA_HOJE). Disparos comerciais suspensos."
+              BLOQUEADO=true
+            fi
+          fi
+          echo "bloqueado=$BLOQUEADO" >> $GITHUB_OUTPUT
+
       - name: Configurar Node.js
+        if: steps.calendario.outputs.bloqueado != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '24'
 
       - name: Instalar dependências (npm ci, mesma versão travada localmente)
+        if: steps.calendario.outputs.bloqueado != 'true'
         run: npm ci
 
       - name: Instalar rclone
+        if: steps.calendario.outputs.bloqueado != 'true'
         run: curl https://rclone.org/install.sh | sudo bash
 
       - name: Configurar rclone (Google Drive)
+        if: steps.calendario.outputs.bloqueado != 'true'
         env:
           GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
           GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
@@ -59,24 +88,30 @@ jobs:
           EOF
 
       - name: Baixar banco de dados do Google Drive
+        if: steps.calendario.outputs.bloqueado != 'true'
         run: |
           mkdir -p analises
           rclone copy gdrive:pedidos_historico_ceven.db analises/
 
       - name: Baixar VENDEDORES AUDITADOS.xlsx do Google Drive (fonte de verdade manual)
+        if: steps.calendario.outputs.bloqueado != 'true'
         run: rclone copy "gdrive:VENDEDORES AUDITADOS.xlsx" . || echo "Planilha não encontrada no Drive — usando filtro só por canal."
         continue-on-error: true
 
       - name: Baixar lista de SKUs de Marca Própria do Google Drive
+        if: steps.calendario.outputs.bloqueado != 'true'
         run: rclone copy "gdrive:Produtos - Marcas Exclusivas.xls" .
 
       - name: Gerar árvore viva de vendedores (ao vivo do CEVEN)
+        if: steps.calendario.outputs.bloqueado != 'true'
         run: node scripts/atualizar_arvore_viva_11_filiais.js
 
       - name: Gerar relatórios de Marca Própria (hoje + acumulado do mês)
+        if: steps.calendario.outputs.bloqueado != 'true'
         run: node scripts/gerar_marca_propria.js "$(date -u -d '-3 hours' +%Y-%m-%d)" todos
 
       - name: Copiar para a pasta oficial de entrega
+        if: steps.calendario.outputs.bloqueado != 'true'
         run: |
           DATA_REF="$(date -u -d '-3 hours' +%Y-%m-%d)"
           DEST="OPERACAO_WHATSAPP/relatorios_por_horario/10_00"
@@ -86,6 +121,7 @@ jobs:
           done
 
       - name: ⚡ Enviar via WhatsApp (ciclo 10:00 — todos)
+        if: steps.calendario.outputs.bloqueado != 'true'
         run: |
           node pipeline/ceven_unified_engine.js \
             --hora="10:00" \
@@ -93,7 +129,7 @@ jobs:
             --destino="todos"
 
       - name: Commitar relatórios + marca de disparo
-        if: always()
+        if: always() && steps.calendario.outputs.bloqueado != 'true'
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -109,10 +145,10 @@ jobs:
                 break
               fi
               echo "Push falhou (tentativa $i) -- reconstruindo o commit em cima do origin mais recente (evita ficar preso no mesmo conflito de rebase)..."
-              git fetch origin clean-v3
-              git show origin/clean-v3:config/diretrizes_operacionais.json > /tmp/diretrizes_origin.json
+              git fetch origin ${{ github.ref_name }}
+              git show origin/${{ github.ref_name }}:config/diretrizes_operacionais.json > /tmp/diretrizes_origin.json
               jq --arg d "$DATA_REF" '.controles_dia.ultimo_disparo_por_ciclo["10:00"] = $d' /tmp/diretrizes_origin.json > config/diretrizes_operacionais.json
-              git reset --soft origin/clean-v3
+              git reset --soft origin/${{ github.ref_name }}
               git add $FILES
               git diff --cached --quiet || git commit -m "chore: relatorios de marca propria 10:00 + marca de disparo [skip ci]"
               sleep $((i * 5))

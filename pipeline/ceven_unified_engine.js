@@ -1213,8 +1213,75 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
   return { msgConsolidado, mensagensGerentes };
 }
 
-// 6. Envio Resiliente via WhatsApp (com retry automático)
+// Validador Oficial de Calendário Operacional (Fins de Semana, Feriados e Exceções Esporádicas)
+function verificarPermissaoCalendario(dataIso, diretrizes = null, args = {}) {
+  const dataHoje = dataIso || new Date().toISOString().split('T')[0];
+  const dtBrt = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+  const diaSemana = dtBrt.getDay(); // 0 = Domingo, 6 = Sábado
+  const isFimDeSemana = (diaSemana === 0 || diaSemana === 6);
+
+  if (!diretrizes) {
+    try {
+      const cfgPath = path.join(__dirname, '../config/diretrizes_operacionais.json');
+      if (fs.existsSync(cfgPath)) diretrizes = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+    } catch {}
+    diretrizes = diretrizes || {};
+  }
+
+  const esporadicos = diretrizes.esporadicos || {};
+  const calendario = diretrizes.calendario || {};
+  const feriados = calendario.feriados_nacionais_2026 || [
+    '2026-01-01', '2026-02-16', '2026-02-17', '2026-04-03', '2026-04-21',
+    '2026-05-01', '2026-06-04', '2026-09-07', '2026-10-12', '2026-11-02',
+    '2026-11-15', '2026-11-20', '2026-12-25'
+  ];
+  const isFeriado = feriados.includes(dataHoje);
+
+  // 1. Sobrescrita manual via linha de comando
+  if (args['force-weekend'] || args['esporadico'] || process.env.FORCE_WEEKEND === '1') {
+    return { permitido: true, motivo: 'Sobrescrita manual ativa (--force-weekend / --esporadico).' };
+  }
+
+  // 2. Liberação explícita configurada no bloco "esporadicos" do diretrizes_operacionais.json
+  if (Array.isArray(esporadicos.datas_autorizadas) && esporadicos.datas_autorizadas.includes(dataHoje)) {
+    return { permitido: true, motivo: `Data [${dataHoje}] expressamente autorizada em 'esporadicos.datas_autorizadas'.` };
+  }
+  if (isFimDeSemana && esporadicos.permitir_fim_de_semana === true) {
+    return { permitido: true, motivo: `Fim de semana liberado em 'esporadicos.permitir_fim_de_semana'.` };
+  }
+  if (isFeriado && esporadicos.permitir_feriados === true) {
+    return { permitido: true, motivo: `Feriado liberado em 'esporadicos.permitir_feriados'.` };
+  }
+
+  // 3. Bloqueio padrão para Fim de Semana
+  if (isFimDeSemana) {
+    const nomeDia = diaSemana === 0 ? 'DOMINGO' : 'SÁBADO';
+    return {
+      permitido: false,
+      motivo: `Hoje é ${nomeDia} (${dataHoje}). Disparos de WhatsApp são PROIBIDOS aos finais de semana por padrão (sem autorização em 'esporadicos').`
+    };
+  }
+
+  // 4. Bloqueio padrão para Feriados Nacionais
+  if (isFeriado) {
+    return {
+      permitido: false,
+      motivo: `Hoje é FERIADO NACIONAL (${dataHoje}). Disparos de WhatsApp são PROIBIDOS em feriados por padrão (sem autorização em 'esporadicos').`
+    };
+  }
+
+  return { permitido: true, motivo: 'Dia útil regular de operação comercial.' };
+}
+
+// 6. Envio Resiliente via WhatsApp (com retry automático e trava final de calendário)
 async function enviarWhatsapp(numero, texto, tentativas = 3) {
+  // Trava de Segurança Final no Envio (Double-check)
+  const perm = verificarPermissaoCalendario();
+  if (!perm.permitido) {
+    console.warn(`  🛑 [ENVIO BLOQUEADO] Para ${numero}: ${perm.motivo}`);
+    return { sucesso: false, erro: perm.motivo, bloqueadoCalendario: true };
+  }
+
   for (let i = 1; i <= tentativas; i++) {
     try {
       const res = await axios.post(`${EVO_URL}/message/sendText/${EVO_INSTANCE}`, {
@@ -1248,12 +1315,22 @@ async function main() {
   const hora = args.hora || '11:00';
   const dataHoje = args.data || new Date().toISOString().split('T')[0];
 
+  const diretrizes = carregarDiretrizesOperacionais(args);
+
+  // VALIDAÇÃO RIGOROSA DE CALENDÁRIO (FINS DE SEMANA, FERIADOS E ESPORÁDICOS)
+  const permissao = verificarPermissaoCalendario(dataHoje, diretrizes, args);
+  if (!permissao.permitido) {
+    console.log(`\n🛑 [DISPARO BLOQUEADO POR CALENDÁRIO OPERACIONAL]`);
+    console.log(`📅 Data: ${dataHoje} | Ciclo: ${hora}`);
+    console.log(`⛔ Motivo: ${permissao.motivo}`);
+    console.log(`💡 Para autorizar um disparo extraordinário, adicione '${dataHoje}' no campo 'esporadicos.datas_autorizadas' em config/diretrizes_operacionais.json ou passe --force-weekend.\n`);
+    return;
+  }
+
   console.log(`\n==================================================`);
   console.log(`🚀 CEVEN UNIFIED ENGINE v4.0`);
   console.log(`📅 Data: ${dataHoje} | Hora: ${hora} | Ação: ${acao} | Destino: ${destino}`);
   console.log(`==================================================\n`);
-
-  const diretrizes = carregarDiretrizesOperacionais(args);
 
   if (diretrizes.controles_dia?.silenciar_ciclos?.includes(hora)) {
     console.log(`⏸️ Ciclo [${hora}] está marcado em 'silenciar_ciclos' nas diretrizes operacionais. Execução abortada sem envio.`);
@@ -1607,6 +1684,7 @@ module.exports = {
   formatarAlertaRiscoGeral,
   formatarAlertaRiscoGerente,
   enviarWhatsapp,
+  verificarPermissaoCalendario,
   GERENTES_MAP,
   carregarGerentesComCorrecoes,
   FILIAIS_MAP,

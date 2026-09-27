@@ -62,6 +62,29 @@ export default {
       console.log(`[IGNORADO] Cron "${event.cron}" não está no mapa de gatilhos.`);
       return;
     }
+
+    // TRAVA DE SEGURANÇA: NUNCA disparar mensagens aos sábados, domingos ou feriados
+    const dtBrt = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+    const diaSemana = dtBrt.getDay(); // 0 = Domingo, 6 = Sábado
+    const dataIso = dtBrt.toISOString().split('T')[0];
+    const feriados = [
+      '2026-01-01', '2026-02-16', '2026-02-17', '2026-04-03', '2026-04-21',
+      '2026-05-01', '2026-06-04', '2026-09-07', '2026-10-12', '2026-11-02',
+      '2026-11-15', '2026-11-20', '2026-12-25'
+    ];
+    const isMensagemComercial = gatilho.workflow.includes('whatsapp') || gatilho.workflow.includes('marca-propria');
+
+    if (isMensagemComercial) {
+      if (diaSemana === 0 || diaSemana === 6) {
+        console.log(`[BLOQUEADO FIM DE SEMANA] Hoje é ${diaSemana === 0 ? 'DOMINGO' : 'SÁBADO'} (${dataIso}) em Brasília. Disparo abortado.`);
+        return;
+      }
+      if (feriados.includes(dataIso)) {
+        console.log(`[BLOQUEADO FERIADO] Hoje é FERIADO NACIONAL (${dataIso}) em Brasília. Disparo abortado.`);
+        return;
+      }
+    }
+
     console.log(`[DISPARANDO] ${gatilho.workflow} (cron "${event.cron}", inputs=${JSON.stringify(gatilho.inputs)})`);
     const r = await dispararWorkflow(env, gatilho.workflow, gatilho.inputs);
     console.log(`[RESULTADO] status=${r.status} ok=${r.ok} ${r.body}`);
