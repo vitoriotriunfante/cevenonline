@@ -86,7 +86,11 @@ const VIDEO_ARQUIVOS = {
   amarelo: ['/animacoes/videos/amarelo_1.mp4', '/animacoes/videos/amarelo_2.mp4', '/animacoes/videos/amarelo_3.mp4'],
   impedimento: ['/animacoes/videos/impedimento_1.mp4', '/animacoes/videos/impedimento_2.mp4', '/animacoes/videos/impedimento_3.mp4'],
   penalti: ['/animacoes/videos/penalti_1.mp4', '/animacoes/videos/penalti_2.mp4', '/animacoes/videos/penalti_3.mp4'],
-  defesa: []
+  defesa: [],
+  // Hat-Trick e Semana Invicta: vídeo de FUNDO genérico (sem valores/números — esses continuam
+  // aparecendo só na tela de decisão, como hoje). 1 arquivo cada, sem variações.
+  hattrick: [],
+  semanainvicta: []
 };
 // Gol com subtipo conhecido usa um vídeo dedicado (ex.: super pedido é mais "explosivo", cliente
 // recuperado é mais "resgate emocionado"). Sem entrada aqui = sorteia entre todos os de VIDEO_ARQUIVOS.gol.

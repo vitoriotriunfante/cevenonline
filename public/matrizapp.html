@@ -574,12 +574,25 @@ function proximoVAR() {
     else { duracaoAnim = 14000 + variaMs(); videoNome = 'penalti'; }
     duracaoAnim = Math.max(8000, duracaoAnim);
 
-    // Vídeo real (se existir): toca por um TEMPO FIXO (5s, o tamanho real dos vídeos) e SEMPRE
-    // troca pra decisão nesse tempo — não depende do vídeo avisar quando "terminou de verdade"
-    // (evento 'ended'), que pode não disparar a tempo em alguma Smart TV. O vídeo é só o gancho
-    // visual; quem mostra "o porquê do gol" é sempre a tela de decisão, no tempo que definimos.
+    // DINÂMICA VAR COMPLETA (igual tvapp.html): LANCE (vídeo) → "VAR REVISANDO" (pausa
+    // dramática) → REPLAY (o mesmo vídeo, mais curto) → DECISÃO (texto, 45s).
     const subtipoLance = item.subtipo || (item.a && item.a.subtipo);
-    animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance(cv, videoNome, subtipoLance, 30000, mostraDecisaoLance) : null;
+    let arquivoLance = null;
+    const mostraVarRevisando = () => {
+      if (animStop) { arquivoLance = animStop.arquivo || null; animStop(); animStop = null; }
+      ov.className = 'show';
+      ov.innerHTML = `<div class="var">VAR</div><div class="sub">REVISANDO O LANCE…</div><div class="scan"><i></i></div>`;
+      beep([[440, .15], [440, .15]]);
+      ov._t2 = setTimeout(iniciaReplay, 2500);
+    };
+    const iniciaReplay = () => {
+      ov.className = 'show';
+      ov.innerHTML = '<canvas id="cvp"></canvas>';
+      const cv2 = $('cvp');
+      animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance(cv2, videoNome, subtipoLance, 6000, mostraDecisaoLance, arquivoLance) : null;
+      if (!animStop) mostraDecisaoLance();
+    };
+    animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance(cv, videoNome, subtipoLance, duracaoAnim, mostraVarRevisando) : null;
     if (animStop) return;
 
     // Sem vídeo pronto: cai na animação vetorial de sempre (mesmo comportamento de hoje).

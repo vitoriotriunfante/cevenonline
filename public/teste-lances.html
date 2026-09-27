@@ -124,19 +124,31 @@ async function simulaLance(tipo) {
     ov._t3 = setTimeout(fecha, 45000);
   };
 
-  // Hat-Trick e Semana Invicta não têm vídeo real — vão direto pra animação vetorial dedicada.
-  if (tipo === 'hattrick' && typeof iniciaAnimHatTrick === 'function') {
+  // Hat-Trick e Semana Invicta: tenta vídeo de fundo real (ver VIDEO_ARQUIVOS), senão cai na
+  // animação vetorial dedicada (que já mostra os valores dinamicamente).
+  if (tipo === 'hattrick' || tipo === 'semanainvicta') {
     ov.className = 'show';
     ov.innerHTML = '<canvas id="cvp"></canvas>';
-    animStop = iniciaAnimHatTrick($('cvp'), caso.animParam);
-    ov._t2 = setTimeout(mostraDecisao, 9500);
-    return;
-  }
-  if (tipo === 'semanainvicta' && typeof iniciaAnimSemanaInvicta === 'function') {
-    ov.className = 'show';
-    ov.innerHTML = '<canvas id="cvp"></canvas>';
-    animStop = iniciaAnimSemanaInvicta($('cvp'), caso.animParam);
-    ov._t2 = setTimeout(mostraDecisao, 9500);
+    let arquivoLanceEsp = null;
+    const mostraVarRevisandoEsp = () => {
+      if (animStop) { arquivoLanceEsp = animStop.arquivo || null; animStop(); animStop = null; }
+      ov.className = 'show';
+      ov.innerHTML = `<div class="var">VAR</div><div class="sub">REVISANDO O LANCE…</div><div class="scan"><i></i></div>`;
+      beep([[440, .15], [440, .15]]);
+      ov._t2 = setTimeout(iniciaReplayEsp, 2500);
+    };
+    const iniciaReplayEsp = () => {
+      ov.className = 'show';
+      ov.innerHTML = '<canvas id="cvp"></canvas>';
+      animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance($('cvp'), tipo, null, 6000, mostraDecisao, arquivoLanceEsp) : null;
+      if (!animStop) mostraDecisao();
+    };
+    animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance($('cvp'), tipo, null, 9500, mostraVarRevisandoEsp) : null;
+    if (!animStop) {
+      if (tipo === 'hattrick' && typeof iniciaAnimHatTrick === 'function') animStop = iniciaAnimHatTrick($('cvp'), caso.animParam);
+      else if (typeof iniciaAnimSemanaInvicta === 'function') animStop = iniciaAnimSemanaInvicta($('cvp'), caso.animParam);
+      ov._t2 = setTimeout(mostraDecisao, 9500);
+    }
     return;
   }
 

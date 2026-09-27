@@ -697,16 +697,35 @@ function proximoVAR() {
   if (item.tipo === 'revisao') { mostraDecisao(); ov._t3 = setTimeout(fecha, T_TOTAL * 1000); return; }
 
   if (item.tipo === 'hattrick' && typeof iniciaAnimHatTrick === 'function') {
-    // Sem vídeo real para Hat-Trick — vai direto para a animação vetorial dedicada.
     ov.className = 'show';
     ov.innerHTML = '<canvas id="cvp"></canvas>';
     const valores = (item.a && item.a.valores) || [];
-    animStop = iniciaAnimHatTrick($('cvp'), {
+    const paramHat = {
       vendedor: item.v ? item.v.nome : 'VENDEDOR',
       sub: item.sub || 'HAT-TRICK',
       clientes: valores.map((val, i) => ({ nome: `PEDIDO ${i + 1}`, valor: val > 0 ? brl(val) : '—' }))
-    });
-    ov._t2 = setTimeout(mostraDecisao, 9500);
+    };
+    let arquivoLanceHat = null;
+    const mostraVarRevisandoHat = () => {
+      if (animStop) { arquivoLanceHat = animStop.arquivo || null; animStop(); animStop = null; }
+      ov.className = 'show';
+      ov.innerHTML = `<div class="var">VAR</div><div class="sub">REVISANDO O LANCE…</div><div class="scan"><i></i></div>`;
+      beep([[440, .15], [440, .15]]);
+      ov._t2 = setTimeout(iniciaReplayHat, 2500);
+    };
+    const iniciaReplayHat = () => {
+      ov.className = 'show';
+      ov.innerHTML = '<canvas id="cvp"></canvas>';
+      animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance($('cvp'), 'hattrick', null, 6000, mostraDecisao, arquivoLanceHat) : null;
+      if (!animStop) mostraDecisao();
+    };
+    // Vídeo real, se já existir (ver VIDEO_ARQUIVOS.hattrick) — senão cai na animação vetorial
+    // de sempre (que já mostra os 3 valores dinamicamente, sem precisar de vídeo).
+    animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance($('cvp'), 'hattrick', null, 9500, mostraVarRevisandoHat) : null;
+    if (!animStop) {
+      animStop = iniciaAnimHatTrick($('cvp'), paramHat);
+      ov._t2 = setTimeout(mostraDecisao, 9500);
+    }
     ov._t3 = setTimeout(fecha, T_TOTAL * 1000);
     return;
   }

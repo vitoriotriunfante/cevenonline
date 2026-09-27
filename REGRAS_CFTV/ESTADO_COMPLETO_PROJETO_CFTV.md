@@ -84,38 +84,73 @@ isolado (`public/animacoes/player_video.html`), carregado num container FIXO
 `gol_3.mp4` (29s), `gol_4.mp4` (10s). Sorteiam entre si; `super_pedido`→sempre gol_1,
 `inativo_recuperado`→sempre gol_2.
 
-**Outros 5 lances (Vermelho, Amarelo, Impedimento, Pênalti, Defesa)**: ainda só vetorial
-(desenho em canvas). Prompts prontos em `REGRAS_CFTV/PROMPTS_VIDEOS_ANIMACOES_TV.md` (3
-variações cada = 15 vídeos). **Gerar em conversas SEPARADAS no Gemini** (lição aprendida: manter
-a mesma conversa faz o Gemini repetir a cena anterior em vez de criar do zero).
+**Status em 27/09 fim do dia**: Vermelho (3), Amarelo (3), Impedimento (3) e Pênalti (3) já
+têm vídeo real publicado e no ar. **Falta só Defesa** (3 variações) para fechar os 6 lances
+principais. Prompts em `REGRAS_CFTV/PROMPTS_VIDEOS_ANIMACOES_TV.md` — os prompts do Pênalti
+foram revisados para tom estilizado/câmera lenta (não "flagrante realista", a pedido do
+Vitório, para não soar como acusação ao vendedor).
+
+**Hat-Trick e Semana Invicta**: hoje usam animação vetorial (já mostra os valores reais dos
+3 pedidos dinamicamente). Vitório pediu vídeo de fundo genérico também para esses dois (1
+vídeo cada, sem variações) — prompts já adicionados ao documento de prompts. Como isso muda
+o fluxo (perde o "1º GOL·RX, 2º GOL·RY" aparecendo durante a cena, os valores só aparecem na
+decisão final depois), ainda não foi implementado no código — só os prompts estão prontos.
+
+**Gerar sempre em conversas SEPARADAS no Gemini** (lição aprendida: manter a mesma conversa
+faz o Gemini repetir a cena anterior em vez de criar do zero).
 
 ---
 
-## 5. Dinâmica VAR — o que falta (pedido do Vitório, ainda não implementado)
+## 5. Dinâmica VAR — CONCLUÍDA (27/09, fim do dia)
 
-Estrutura correta pedida:
+Estrutura implementada e validada ao vivo pelo Vitório (testou o Gol em `/testar`):
 ```
-1. LANCE          → vídeo/animação chama atenção
-2. VAR REVISANDO  → pausa dramática (JÁ EXISTE no motor vetorial antigo, falta reconectar ao vídeo)
-3. REPLAY         → repete/destaca o lance de novo (falta implementar no caminho de vídeo)
-4. DECISÃO FINAL  → fica tempo bom na tela com o "porquê" e direcionamento (JÁ EXISTE, 45s)
+1. LANCE          → vídeo real (ou animação vetorial se não houver vídeo pronto)
+2. VAR REVISANDO  → pausa dramática ~2.5s
+3. REPLAY         → repete o MESMO vídeo do lance (arquivoFixo — não sorteia outro)
+4. DECISÃO FINAL  → texto com nome/motivo/valor, fica 45s na tela
 ```
+Implementado em `tvapp.html` (`proximoVAR`) e replicado em `teste-lances.html`
+(`simulaLance`). **`matrizapp.html` ainda NÃO tem as fases 2 e 3** — só LANCE→DECISÃO direto
+(decisão registrada, não é bug, é pendência de produto a confirmar com o Vitório se vale
+igualar).
 
-Hoje (vídeo): LANCE → decisão direto, sem fase 2 e 3. **Prioridade de hoje**: implementar essas
-duas fases faltantes no caminho de vídeo, e também a faixa lateral com "o porquê" (nome, filial,
-motivo, valor) SOBREPOSTA desde o início do vídeo (mockup já aprovado antes, publicado como
-artifact — reconstruir se o link não estiver mais acessível).
+Bugs sérios encontrados e corrigidos nessa implementação (ver commits de 27/09):
+- `tocaVideoLance` nunca estava exposta em `window` — todo vídeo real caía sempre no
+  vetorial, silenciosamente, até isso ser corrigido.
+- `iniciaReplay()` buscava o `<canvas>` depois que a tela VAR já tinha apagado ele do DOM —
+  travava a sequência antes da decisão. Corrigido recriando o canvas antes do replay.
+- `escolheVideo()` sorteava de novo a cada chamada — replay podia mostrar vídeo diferente do
+  lance (ex: gol normal no lance, bicicleta no replay). Corrigido com `arquivoFixo`.
+- Botão FECHAR ficava escondido atrás do vídeo real (`#ov` z-index 99 menor que
+  `#video-lance-fixo` 9998). Corrigido: botão global fora de `#ov`, sempre no topo.
+
+A faixa lateral sobreposta (nome/filial/motivo/valor por cima do vídeo desde o início) segue
+**não implementada** — decisão explícita do Vitório foi focar em fechar a dinâmica LANCE→VAR→
+REPLAY→DECISÃO primeiro; a faixa lateral fica pendente de retomada.
 
 ---
 
 ## 6. Outras pendências conhecidas (menor prioridade)
 
-- `functions/_lib/xlsx_mostra.js` órfão (decidir apagar ou manter fallback).
-- `public/animacoes/teste_video.html` — página de diagnóstico do bug de vídeo, pode apagar.
-- Nada foi commitado ainda em toda essa sessão — revisar `git status`/`git diff` com calma antes
-  de commitar (muita coisa mudou, cuidado para não incluir lixo).
-- Scores de prioridade da fila divergem do manual antigo (Gol manual=20, código=99) — decidir se
-  alinha ou mantém como está (código prioriza gol mais agressivamente).
+- `matrizapp.html` sem a dinâmica VAR→REPLAY completa (ver seção 5) — confirmar com o Vitório
+  se vale igualar ao `tvapp.html` ou é intencional (a matriz alterna 11 filiais, pode não
+  valer alongar cada lance).
+- `tvapp.html`/`matrizapp.html` não esperam `videosProntos()` antes do primeiro lance real da
+  sessão (só `teste-lances.html` faz isso) — risco baixo de cair no vetorial no 1º lance do
+  dia por corrida, mas é o mesmo padrão de bug já corrigido em outros lugares.
+- Critério de disparo da "Semana Invicta" como lance real (não só demo) ainda não foi fechado
+  com o Vitório — discussão iniciada 27/09, ideia inicial de ≥80% dos vendedores com rota
+  positivando todo dia útil da semana, não decidido.
+- **Commits feitos localmente na branch `cftv-triunfante` (27/09), mas SEM PUSH ao remoto** —
+  o push foi bloqueado pelo classificador de segurança do Claude Code por causa de um token
+  do GitHub exposto na URL do remote (`ghp_...`). Vitório decidiu deixar só local por ora;
+  fazer push manual quando quiser, ou resolver a exposição do token primeiro.
+- `gestao-equipe.html`, `apresentacao-diretoria.html`, `brasileirao.html` e os endpoints
+  `equipe-solicitacoes.js`/`equipe-salvar.js` foram recuperados de um commit órfão (hash
+  `4f81029`) que nunca tinha entrado numa branch de verdade — agora commitados e publicados
+  no domínio principal `ceven-cftv-matrix.pages.dev` (antes só existiam no domínio custom
+  `cftv-triunfante.ceven-cftv-matrix.pages.dev`, fora do controle deste repositório).
 
 ---
 
