@@ -24,7 +24,9 @@ concurrency:
 jobs:
   gerar_marca_propria:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # 15min estourava quando a API do CEVEN ficava lenta (mesma causa do ceven-cron-whatsapp.yml,
+    # achado em 28/09/2026). 25min da folga sem deixar o job preso indefinidamente.
+    timeout-minutes: 25
     permissions:
       contents: write
 
