@@ -1,0 +1,26 @@
+# FICHA DO ARQUIVO
+# O QUE É: dispara a varredura ao vivo do mapa da TV Executiva (functions/api/cron-mapa-executivo.js)
+#          a cada 5 minutos. A varredura em si (560 RCAs na API do CEVEN) leva ~90s — tempo demais
+#          para acoplar ao carregamento da própria TV (o fetch sem await era cortado antes de
+#          terminar, achado em 28/09/2026: TV Executiva ficava com "Visitas em Campo Hoje: 0" para
+#          sempre). Aqui é um disparo independente, fora do navegador de ninguém — 100% online
+#          (ver PREMISSA_ONLINE.md).
+# PROJETO: CFTV/TV. Só faz um GET no endpoint público — não usa secrets, não toca no SQLite nem
+#          no Google Drive, não interfere no pipeline do WhatsApp.
+name: TV Executiva — Atualizar Mapa ao Vivo
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  atualizar_mapa_live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Disparar varredura do mapa executivo (cron-mapa-executivo)
+        run: |
+          curl -sS -m 240 "https://ceven-cftv-matrix.pages.dev/api/cron-mapa-executivo" \
+            -o resultado.json -w "\nHTTP %{http_code}\n"
+          cat resultado.json
