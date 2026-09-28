@@ -42,7 +42,10 @@ on:
 jobs:
   executar_disparo:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # 15min estourava quando a API do CEVEN ficava lenta (achado em 28/09/2026: 8 de 30 runs
+    # recentes cancelados por timeout, cortando o envio no meio -- 9 gerentes sem receber a
+    # mensagem das 17:00 nesse dia). 25min da folga sem deixar o job preso indefinidamente.
+    timeout-minutes: 25
     permissions:
       contents: write
 
