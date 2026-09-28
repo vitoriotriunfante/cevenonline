@@ -1,7 +1,54 @@
 🌅 *ABERTURA MATINAL — TBL (07:45)*
-📅 domingo, 27/09/2026
+📅 segunda-feira, 28/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 30 • Visitas: 0 (média 0,0/vendedor)
-Sem compra +30d: 0 (0,0%) • Recorrência: 0 (0,0%)
-Oportunidades CNAE 4789: +0 PDVs
+👥 Vendedores: 30 • Visitas: 371 (média 12,4/vendedor)
+Sem compra +30d: 167 (45,0%) • Recorrência: 24 (6,5%)
+Oportunidades CNAE 4789: +371 PDVs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 *PDVs EM RISCO — 07:45*
+📍 *TBL — FÁBIO* • 28/09/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 Última Chance: 167  •  🟡 Preventivo: 0
+
+👤 *IGOR RODRIGUES DUARTE* (27 em risco)
+  🔴 VANDERLEY CHAGAS 59340487915 (189) — 08/08
+  🔴 REDE DE POSTOS CIAFLEX (189) — 21/08
+  🔴 POSTO CIAFLEX UN 2 (189) — 28/08
+  🔴 COMERCIAL SPERANDIO (177) — 27/05
+  🔴 RESTAURANTE BORA BORA (177) — 05/12
+  _+22 outros_
+
+👤 *CRISTIANE DE FREITAS DUARTE* (32 em risco)
+  🔴 MERCADO SOURASSO (551) — 07/08
+  🔴 MARISA DE SOUZA (551) — 26/08
+  🔴 TANIA FERNANDES DA SILVA 04114052925 (551) — 01/01
+  🔴 LEGADO ONE CONVENIENCIA (551) — 27/08
+  🔴 MASTER ATACADO E VAREJO (551) — 27/08
+  _+27 outros_
+
+👤 *KLEBERSON BATISTA LIDUARIO* (24 em risco)
+  🔴 RESTAURANTE DEDUCH (172) — 05/12
+  🔴 MERCADO ARAUCARIA (172) — 26/08
+  🔴 MERCADO SANTA TEREZINHA (172) — 26/08
+  🔴 CONFIANCA CONVENIENCIA (172) — 26/08
+  🔴 GUSTAVO GONCALVES BASTOS (172) — 27/05
+  _+19 outros_
+
+👤 *LEONARDO MANOSSO DE GODOI* (47 em risco)
+  🔴 81071623000823 (1054) — 08/08
+  🔴 SEMPRE BOM (1054) — 31/07
+  🔴 POSTO OASIS (1054) — 05/12
+  🔴 BACANINHA RESTAURANTE E LANCHONETE (1054) — 05/12
+  🔴 DOCELA (1054) — 30/07
+  _+42 outros_
+
+👤 *SERGIO LOPES DE OLIVEIRA* (37 em risco)
+  🔴 OBA OBA QUEIJOS E IOGURTES (181) — 05/12
+  🔴 OBA OBA FILIAL QUADRA NORTE SAUL LON (181) — 05/12
+  🔴 OBA OBA QUEIJOS E IOGURTES (181) — 05/12
+  🔴 OBA OBA FILIAL JOAO CANDIDO (181) — 05/12
+  🔴 OBA OBA QUEIJOS E IOGURTES FILIAL TIRA (181) — 05/12
+  _+32 outros_

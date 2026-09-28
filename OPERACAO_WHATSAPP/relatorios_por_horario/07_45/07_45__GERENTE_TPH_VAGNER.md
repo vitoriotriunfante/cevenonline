@@ -1,8 +1,55 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 domingo, 27/09/2026
+📅 segunda-feira, 28/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 36 • Visitas: 0 (média 0,0/vendedor)
-Sem compra +30d: 0 (0,0%) • Recorrência: 0 (0,0%)
-🔥 Volta Comigo: 0 PDVs
-Oportunidades CNAE 4789: +0 PDVs
+👥 Vendedores: 36 • Visitas: 470 (média 13,1/vendedor)
+Sem compra +30d: 167 (35,5%) • Recorrência: 53 (11,3%)
+🔥 Volta Comigo: 97 PDVs
+Oportunidades CNAE 4789: +1.880 PDVs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 *PDVs EM RISCO — 07:45*
+📍 *TPH — VAGNER* • 28/09/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 Última Chance: 165  •  🟡 Preventivo: 0
+
+👤 *ANDREY CAMILLO PIRAGINE* (28 em risco)
+  🔴 HIPER FARMA (73) — 05/12
+  🔴 FRUTARIA MILHO VERDE (73) — 11/07
+  🔴 NATURALLE (73) — 31/07
+  🔴 GULA MANIA (70) — 05/12
+  🔴 PANIFICADORA MAGIA DO PAO (70) — 31/07
+  _+23 outros_
+
+👤 *LUIZ AUGUSTO RAMOS* (57 em risco)
+  🔴 MERCADO BETTIO (1090) — 31/07
+  🔴 SUPERMERCADO TELEMACO BORBA (1090) — 31/07
+  🔴 DISTRIBUIDORA SILVA (1090) — 29/07
+  🔴 ANTONIO GOMES HARMONIA (1090) — 31/07
+  🔴 GV DISTRIBUIDORA (1090) — 03/07
+  _+52 outros_
+
+👤 *CLAUDETE DE SOUZA SCHULTZ* (49 em risco)
+  🔴 CACAU PET (123) — 05/12
+  🔴 AGROPECUARIA LOPES (123) — 05/12
+  🔴 O ARMAZEM DOS MASCOTES (123) — 30/06
+  🔴 CLNICA VETERINARIA S O S (123) — 05/12
+  🔴 UNIDADE ANIMAL (123) — 02/07
+  _+44 outros_
+
+👤 *JEFFERSON POLETTO* (17 em risco)
+  🔴 AVIARIO ESQUINA DA RACAO (133) — 05/12
+  🔴 TOSSEIRA- AVIARIO PARA FAMILIA (133) — 25/08
+  🔴 AVIARIO FAMILIA (133) — 25/08
+  🔴 ESTACAO WORK NET (133) — 30/06
+  🔴 AGROPECUARIA CHIQUINHO CARVALH (133) — 05/12
+  _+12 outros_
+
+👤 *RODRIGO DE ARRUDA DARROS* (14 em risco)
+  🔴 SUPERMERCADO GELLY LTDA (88) — 13/06
+  🔴 AUTO POSTO CASTROLANDA (86) — 29/07
+  🔴 FARMACIA CAROL MULETA (86) — 29/07
+  🔴 MERCEARIA CRISTO REI (87) — 05/12
+  🔴 N/D (87) — 01/01
+  _+9 outros_

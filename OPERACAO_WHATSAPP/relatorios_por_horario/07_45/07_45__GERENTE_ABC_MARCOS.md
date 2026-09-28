@@ -1,7 +1,51 @@
 🌅 *ABERTURA MATINAL — ABC (07:45)*
-📅 domingo, 27/09/2026
+📅 segunda-feira, 28/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 23 • Visitas: 0 (média 0,0/vendedor)
-Sem compra +30d: 0 (0,0%) • Recorrência: 0 (0,0%)
-Oportunidades CNAE 4789: +0 PDVs
+👥 Vendedores: 23 • Visitas: 350 (média 15,2/vendedor)
+Sem compra +30d: 108 (30,9%) • Recorrência: 19 (5,4%)
+Oportunidades CNAE 4789: +882 PDVs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 *PDVs EM RISCO — 07:45*
+📍 *ABC — MARCOS* • 28/09/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 Última Chance: 108  •  🟡 Preventivo: 0
+
+👤 *EDER LUCAS DAS FLORES DE OLIVEIRA* (32 em risco)
+  🔴 SUP MERC MASCARELLO (1116) — 27/05
+  🔴 F X C DISTRIBUIDORA DE ALIMENTOS (1116) — 01/01
+  🔴 A M COMERCIO DE COMBUSTIVEIS EIRELI (1116) — 22/07
+  🔴 BETO AUTO POSTO (1116) — 26/08
+  🔴 MERCADO CENTRAL (1116) — 01/01
+  _+27 outros_
+
+👤 *IVONEI PEDRO DE MOURA* (21 em risco)
+  🔴 SUPERMERCADO MARIPA (202) — 19/08
+  🔴 POSTO MARIPA (202) — 19/08
+  🔴 LOURDES DIVINA MAGALHAES FRISON (202) — 01/01
+  🔴 DOUGLAS PAIS PACHECO (202) — 01/01
+  🔴 AUTO POSTO PEROLA (202) — 01/01
+  _+16 outros_
+
+👤 *MARCIO ROSA SOBRAL BATISTA* (21 em risco)
+  🔴 PATTA RACOES E ACESSORIOS (237) — 01/01
+  🔴 PLANETA BICHO (215) — 03/05
+  🔴 AGROCEZER (215) — 03/05
+  🔴 MARE ALTA (215) — 03/05
+  🔴 RIZZOS AGROVETERINARIA (215) — 27/06
+  _+16 outros_
+
+👤 *RODRIGO STELLEO COSTA LEITE* (31 em risco)
+  🔴 SHOPPING DAS AGUAS (236) — 05/12
+  🔴 POSTOS MOISES LTDA (236) — 08/08
+  🔴 RESTAURANTE 4 RODAS (217) — 27/08
+  🔴 FEITO BICHO PET SHOP (217) — 08/08
+  🔴 AGROVETERINARIA ZARTH (534) — 05/12
+  _+26 outros_
+
+👤 *RCAS INATIVOS* (3 em risco)
+  🔴 AGRO TORRES (231) — 20/08
+  🔴 BARETA SUPERMERCADO (231) — 19/08
+  🔴 BARETA SUPERMERCADO (231) — 19/08
