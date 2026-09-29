@@ -195,3 +195,88 @@ A planilha pode dividir uma filial por gerente (`TPH_VAGNER`, `TPH_FABIO`, `MCD_
 - Local: `INICIAR_CFTV.bat` (mata `node.exe`, abre `http://localhost:3000`, roda `node server.js`, que também sobe o isolador nas portas 6101–6140). TV de uma filial: `http://localhost:3000/?filial=TBL`.
 - Nuvem: `wrangler pages deploy` (saída `public/`, D1 `ceven_noc_d1`).
 - Disparos automáticos: GitHub Actions (`.github/workflows/ceven-cron-*.yml`); branch de trabalho `clean-v3`.
+
+---
+
+## 8. Estado em 27/09/2026 — lances completos, VAR com vídeo, Hat-Trick real
+
+**Escopo ativo bloqueado (CLAUDE.md):** todo trabalho está confinado a `public/matrizapp.html` e
+`public/tvapp.html` (e suas mecânicas de futebol/VAR). `public/tv_executiva.html` é **outro
+projeto** — nunca mexer nele aqui.
+
+### 8.1 Todos os 26 lances do livro de regras implementados
+Ver `REGRAS_CFTV/LIVRO_DE_REGRAS_CFTV.md` para a tabela completa (G01–G12, V01–V03, A01, P01–P02,
+I01–I02, D01). Cálculo idêntico em `tvapp.html` e `matrizapp.html` (funções compartilhadas
+`textoGol`, `diasUteisMes`, `distanciaM` — conferido byte a byte).
+
+**Hat-Trick (G06) virou lance real de produção** (antes só existia como demo no botão de teste):
+detectado por 3+ aumentos de `dig_hoje` em até 120min, dispara a animação dedicada do Gemini
+(`iniciaAnimHatTrick`) com os valores reais dos incrementos — nunca nome de cliente inventado.
+**Definição travada pelo Vitório:** só existe o Hat-Trick diário; não há conceito de "3 dias/
+semana" como lance separado.
+
+"Semana Invicta" segue só como demo (`/testar`) — critério de disparo real ainda não definido.
+
+### 8.2 Dinâmica VAR completa
+LANCE (vídeo real ou animação vetorial) → VAR REVISANDO (pausa dramática ~2.5s) → REPLAY (mesmo
+vídeo, mais curto) → DECISÃO (texto com vendedor/motivo/valor, 45s na tela). Objetivo: dar tempo
+de ver o que aconteceu e agir (comemorar ou cobrar).
+
+### 8.3 Bug de tela preta — resolvido
+Causa raiz: `ov.innerHTML = ''` (chamado a cada novo lance) destruía o `<video>` mesmo mantendo a
+referência JS. Fix: vídeo isolado em `<iframe>` (`public/animacoes/player_video.html`) dentro de
+`#video-lance-fixo`, um `<div>` **irmão** de `#ov` — nunca tocado pelo reset de HTML.
+
+### 8.4 Regressão corrigida: `tv-mostra.js` tinha voltado a depender do PC
+Em algum momento entre sessões, `functions/api/tv-mostra.js` perdeu a leitura direta do Google
+Drive e passou a depender de uma tabela D1 (`config_equipe_soberana`) sem nenhum script
+alimentando-a — na prática caía sempre no fallback do JSON estático gerado só pelo PC
+(`publicar_tv.js`). **Corrigido em 27/09/2026**: restaurada a leitura direta do Drive como fonte
+primária (confirmado ao vivo: `/api/tv-mostra` responde `"origem":"drive"`), cópia estática só
+como fallback de rede. Vendedor novo na planilha aparece na TV em até 3 min, sem ninguém rodar
+nada no PC.
+
+### 8.5 Ferramentas de teste (novas)
+- `/testar` — todos os botões de animação, sem precisar abrir filial real.
+- `/debugvideo` — toca os vídeos reais com log de eventos do `<video>` na tela (para diagnosticar
+  em Smart TV real, sem console do navegador).
+
+### 8.6 Pendências
+1. Gerar os 15 vídeos restantes (Vermelho, Amarelo, Impedimento, Pênalti, Defesa) — prompts a
+   recriar em `REGRAS_CFTV/PROMPTS_VIDEOS_ANIMACOES_TV.md`.
+2. Definir critério real da "Semana Invicta" da filial (discussão iniciada 27/09, não fechada).
+3. Documento de gestão de equipe (`/gestao-equipe`, `/apresentacao-diretoria`, `/brasileirao`)
+   apareceu em domínio fora deste repositório local durante a sessão de 27/09 — origem ainda não
+   esclarecida; não é código deste diretório.
+4. Commit feito na branch `cftv-triunfante` em 27/09 (13 arquivos, sem tocar `tv_executiva.html`)
+   — sem push ainda.
+
+### 8.7 Faturado/Meta do mês da TV Executiva — corrigido, cuidado com carga no CEVEN (29/09/2026)
+**Causa raiz do "faturamento errado":** `public/executiva_resumo_mes.json` era um arquivo
+estático (nem versionado no git), gerado manualmente uma vez em 27/09 22:54h e nunca mais
+atualizado — violava a premissa online. A TV Executiva mostrava R$47,6M parado enquanto a matriz
+(dado ao vivo) já mostrava R$50,5M.
+
+**Fix:** faturado/meta/positivados do mês agora vêm de `/api/rca/dashboard` (único endpoint do
+CEVEN com `financeiro.faturado/meta` e `positivacao.realizado/meta` — não existe endpoint
+agregado por filial, só por RCA), gravados em `resumo_executivo_live` (migration 0005) e lidos
+por `tv_executiva.html` via `/api/mapa-executivo-live`.
+
+**Incidente evitado por pouco:** a 1ª versão somou essa chamada de `dashboard` DENTRO do cron de
+5min (`cron-mapa-executivo.js`, que já varre roteiro-hoje + produtividade para ~560 RCAs em
+lotes de 40) — 560 chamadas extras por ciclo, 33% a mais de carga. O CEVEN caiu por completo
+minutos depois (confirmado por `curl` direto na raiz do domínio: timeout total). Não dá pra
+provar causalidade com certeza, mas o timing foi imediato o suficiente pra não arriscar de novo.
+
+**Decisão do Vitório:** "cuidado para não sermos nós a derrubar ele com muitas requisições... tem
+que sempre ir buscando aos poucos e em lote." — vale como regra permanente pra qualquer cron
+novo neste projeto, não só este caso.
+
+**Solução final:** cron **separado** (`cron-faturado-mes.js` + `tv-faturado-mes-cron.yml`), a
+cada 15min (offset dos minutos do cron de 5min, nunca corre junto), lotes de 10 RCAs (não 40) com
+pausa de 400ms entre lotes. Grava via `INSERT ... ON CONFLICT DO UPDATE` só nas colunas do mês,
+sem mexer nas colunas de visita/pedido que o outro cron já grava.
+
+**Regra geral daqui pra frente:** nenhuma chamada nova ao CEVEN entra no cron de 5min existente.
+Qualquer indicador novo que exija 1 chamada por RCA ganha cron próprio, mais espaçado, lotes
+pequenos.
