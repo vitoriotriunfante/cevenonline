@@ -1,0 +1,28 @@
+{
+  "_comentario": "Reconstruido em 29/09/2026 apos perda do arquivo original (nunca foi commitado). Valores sao uma PROPOSTA coerente com o regulamento ja documentado em public/brasileirao.html (vitoria >10pts, empate 1-10pts, derrota <=0pts) -- pendente de revisao/ajuste do Vitorio, os numeros exatos definidos na sessao anterior nao puderam ser recuperados.",
+  "pontos_por_lance": {
+    "gol_super": { "nome": "Super Pedido", "pontos": 5, "motivo": "Pedido de valor muito acima do padrao do vendedor" },
+    "gol_relampago": { "nome": "Gol Relâmpago", "pontos": 4, "motivo": "Pedido fechado logo no inicio do dia" },
+    "gol_acrescimos": { "nome": "Gol nos Acréscimos", "pontos": 4, "motivo": "Pedido fechado no fim do expediente, sem desistir" },
+    "gol_meta1t": { "nome": "Meta do 1º Tempo", "pontos": 6, "motivo": "Bateu a meta do dia antes das 14h" },
+    "gol_conversao": { "nome": "Máquina de Conversão", "pontos": 5, "motivo": "Alto aproveitamento de visitas em vendas (>=50%)" },
+    "gol_goleada": { "nome": "Goleada", "pontos": 7, "motivo": "Volume excepcional de clientes positivados no dia" },
+    "gol_campeao": { "nome": "Campeão da Rodada", "pontos": 8, "motivo": "Bateu 100% da meta do mês" },
+    "gol_inativo": { "nome": "Resgate de Inativo", "pontos": 6, "motivo": "Recuperou cliente parado há mais de 30 dias" },
+    "gol_mix": { "nome": "Dobrou o Mix", "pontos": 4, "motivo": "Vendeu o dobro de SKUs do que costuma no cliente" },
+    "gol_hattrick": { "nome": "Hat-Trick", "pontos": 6, "motivo": "3 pedidos seguidos em curto intervalo" },
+    "gol_quinzenas": { "nome": "Dobradinha das Quinzenas", "pontos": 3, "motivo": "Comprou na 1ª e na 2ª quinzena do mês" },
+    "defesa": { "nome": "Defesa (Recorrência)", "pontos": 3, "motivo": "Cliente recorrente positivado, mantendo a base ativa" },
+    "amarelo": { "nome": "Cartão Amarelo", "pontos": -3, "motivo": "Rota ativa sem nenhuma venda até 10h" },
+    "impedimento": { "nome": "Impedimento", "pontos": -5, "motivo": "Check-in fora do local (GPS) ou às 00:00" },
+    "penalti_estoque": { "nome": "Pênalti (Estoque)", "pontos": -6, "motivo": "Cliente sem visita há dias por falta de estoque" },
+    "penalti_fechado": { "nome": "Pênalti (Cliente Fechado)", "pontos": -6, "motivo": "Cliente sem visita há dias por estar fechado" },
+    "venda10": { "nome": "Cartão Vermelho (Sem Venda)", "pontos": -10, "motivo": "Rota completa sem nenhuma venda até o fim do dia" },
+    "visita10": { "nome": "Expulsão (Sem Visita)", "pontos": -10, "motivo": "Nenhuma visita registrada no dia inteiro" }
+  },
+  "faixas_pontos_liga": {
+    "vitoria": { "min_pontos": 11, "pontos_tabela": 3 },
+    "empate": { "min_pontos": 1, "pontos_tabela": 1 },
+    "derrota": { "min_pontos": -999, "pontos_tabela": 0 }
+  }
+}

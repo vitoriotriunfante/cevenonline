@@ -423,6 +423,22 @@ footer {
       </div>
     </div>
     <div class="header-actions">
+      <select id="minha-filial" class="select-ctl" style="font-weight:800" onchange="mudarMinhaFilial(this.value)" title="Filtra Vendedores, Supervisores e Lances pra essa filial">
+        <option value="">🏳️ Minha Filial (todas)</option>
+        <option value="MTZ">MATRIZ</option>
+        <option value="ABC">ABC</option>
+        <option value="API">API</option>
+        <option value="MCD">MCD</option>
+        <option value="TBE">TBE</option>
+        <option value="TBL">TBL</option>
+        <option value="TCA">TCA</option>
+        <option value="TCG">TCG</option>
+        <option value="TCV">TCV</option>
+        <option value="TPA">TPA</option>
+        <option value="TPH">TPH</option>
+        <option value="TSJ">TSJ</option>
+      </select>
+      <a href="#" id="link-minha-tv" class="btn-nav" style="display:none" target="_blank" rel="noopener">📺 Abrir Minha TV</a>
       <a href="/gestao-equipe" class="btn-nav">👥 Gestão de Equipe</a>
       <a href="/apresentacao-diretoria" class="btn-nav">📊 Apresentação</a>
       <a href="/matriz" class="btn-nav">📺 TV Matriz</a>
@@ -435,6 +451,7 @@ footer {
     <button class="tab-btn" onclick="switchTab('gerencias')">👔 Campeonato de Gerências</button>
     <button class="tab-btn" onclick="switchTab('supervisores')">⭐ Liga dos Supervisores</button>
     <button class="tab-btn" onclick="switchTab('vendedores')">⚽ Artilharia de Vendedores</button>
+    <button class="tab-btn" onclick="switchTab('lances')">📋 Lances do Dia</button>
     <button class="tab-btn" onclick="switchTab('regulamento')">📖 Regulamento da Liga</button>
   </div>
 </header>
@@ -641,6 +658,71 @@ footer {
     </div>
   </section>
 
+  <!-- ABA 5: LANCES DO DIA (auditoria lance a lance, direto de tv_lances/D1) -->
+  <section id="tab-lances" class="tab-content">
+    <div class="table-card">
+      <div class="table-header">
+        <div>
+          <h2>Lances do Dia — Auditoria Completa</h2>
+          <div class="table-subtitle">Gols, pênaltis, cartões, impedimentos e defesas — cada linha é um lance real registrado no D1, nunca dado inventado</div>
+        </div>
+        <div class="filter-row">
+          <input type="date" id="lances-data" class="input-search" style="max-width:180px" onchange="carregarLances()">
+          <select id="lances-filial" class="select-ctl" onchange="carregarLances()">
+            <option value="TODAS">TODAS AS FILIAIS</option>
+            <option value="MTZ">MATRIZ</option>
+            <option value="ABC">ABC</option>
+            <option value="API">API</option>
+            <option value="MCD">MCD</option>
+            <option value="TBE">TBE</option>
+            <option value="TBL">TBL</option>
+            <option value="TCA">TCA</option>
+            <option value="TCG">TCG</option>
+            <option value="TCV">TCV</option>
+            <option value="TPA">TPA</option>
+            <option value="TPH">TPH</option>
+            <option value="TSJ">TSJ</option>
+          </select>
+          <input type="text" id="lances-supervisor" class="input-search" placeholder="Filtrar supervisor..." style="max-width:200px" oninput="filtrarLancesRenderizados()">
+          <input type="text" id="lances-vendedor" class="input-search" placeholder="Filtrar vendedor..." style="max-width:200px" oninput="filtrarLancesRenderizados()">
+          <select id="lances-nivel" class="select-ctl" onchange="filtrarLancesRenderizados()">
+            <option value="TODOS">TODOS OS TIPOS</option>
+            <option value="gol">⚽ Gol</option>
+            <option value="hattrick">🔥 Hat-Trick</option>
+            <option value="golcontra">⚽ Gol Contra</option>
+            <option value="penalti">🚨 Pênalti</option>
+            <option value="vermelho">🟥 Cartão Vermelho</option>
+            <option value="amarelo">🟨 Cartão Amarelo</option>
+            <option value="impedimento">🚩 Impedimento</option>
+            <option value="defesa">🧤 Defesa</option>
+          </select>
+          <button class="tab-btn" style="white-space:nowrap" onclick="exportarLancesCsv()">⬇️ Exportar CSV</button>
+        </div>
+      </div>
+      <div id="lances-resumo-chips" style="display:flex;gap:10px;flex-wrap:wrap;padding:0 20px 16px"></div>
+      <div style="overflow-x:auto">
+        <table class="tb-league">
+          <thead>
+            <tr>
+              <th style="width:80px">Hora</th>
+              <th style="width:70px">Filial</th>
+              <th style="width:130px">Tipo</th>
+              <th>Vendedor</th>
+              <th>Supervisor</th>
+              <th>Cliente / Detalhe</th>
+              <th style="text-align:center">Sem Comprar</th>
+              <th style="text-align:center;width:90px">Pontos</th>
+              <th>Por quê (memória de cálculo)</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-lances">
+            <tr><td colspan="9" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando lances...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- ABA 5: REGULAMENTO & TROFEUS -->
   <section id="tab-regulamento" class="tab-content">
     <div class="table-card" style="padding:28px">
@@ -654,33 +736,68 @@ footer {
       <div class="rule-card">
         <h3>1. A Regra do Jogo: Cada Dia é uma Rodada (Você Contra o Seu Dia)</h3>
         <p>
-          O vendedor não disputa contra o tamanho da rota do colega. Ele disputa contra o seu próprio desafio diário.
+          O vendedor não disputa contra o tamanho da rota do colega. Ele disputa contra o seu próprio desafio diário —
+          todo lance real que o CEVEN registra (gol, cartão, pênalti, impedimento) vale pontos, positivos ou negativos
+          (ver tabela completa no item 2). A soma de pontos do dia decide o resultado:
           <br><br>
-          🟢 <strong>Vitória no Dia (3 Pontos de Tabela):</strong> Vendedor fez a maioria das coisas boas — cumpriu $\ge 80\%$ da agenda de visitas do CEVEN, positivou clientes batendo a cota proporcional do dia e teve <strong>zero cartões vermelhos</strong>.
+          🟢 <strong>Vitória no Dia (3 Pontos de Tabela):</strong> Somou <strong>mais de 10 pontos</strong> no dia.
           <br>
-          🟡 <strong>Empate no Dia (1 Ponto de Tabela):</strong> Ficou na meiuca — trabalhou em campo ($50\%$ a $79\%$ de visitas), teve venda parcial, mas faltou pontaria para bater o dia cheio.
+          🟡 <strong>Empate no Dia (1 Ponto de Tabela):</strong> Somou <strong>entre 1 e 10 pontos</strong> no dia.
           <br>
-          🔴 <strong>Derrota no Dia (0 Pontos de Tabela):</strong> Só deu B.O. — menos de $50\%$ de visitas, zerado em vendas sem motivo de campo, OU cometeu infração grave (cartão vermelho/check-in 00:00).
+          🔴 <strong>Derrota no Dia (0 Pontos de Tabela):</strong> Somou <strong>0 pontos ou negativo</strong> no dia.
         </p>
       </div>
 
       <div class="rule-card">
-        <h3>2. Bônus de Constância (Streak / Regularidade)</h3>
+        <h3>2. Tabela Oficial de Pontos por Lance</h3>
+        <p style="margin-bottom:14px">
+          Cada lance tem um valor fixo, pensado para valorizar mais o <strong>processo</strong> (trabalho consistente,
+          recuperação de clientes, conversão) do que a sorte isolada, e para punir mais a <strong>quebra de confiança</strong>
+          (fraude, abandono) do que uma venda perdida.
+        </p>
+        <table class="tb-league" style="margin-bottom:6px">
+          <thead>
+            <tr><th>Lance</th><th style="text-align:center">Pontos</th><th>Por quê</th></tr>
+          </thead>
+          <tbody id="tbody-regulamento-pontos"><!-- preenchido via JS a partir de config/pontuacao_brasileirao.json --></tbody>
+        </table>
+        <small style="color:var(--tx-mut)">Valores oficiais em <code>config/pontuacao_brasileirao.json</code> — sujeitos a ajuste pela diretoria comercial.</small>
+      </div>
+
+      <div class="rule-card">
+        <h3>3. Bônus de Constância (Streak / Regularidade)</h3>
         <p>
           Não adianta arrebentar na terça e sumir no resto da semana. A constância gera bônus na tabela:
           <br><br>
-          🔥 <strong>Hat-Trick (3 Vitórias Seguidas):</strong> +3 Pontos extras na tabela de classificação.
+          🔥 <strong>Trinca de Ouro (3 Vitórias Seguidas):</strong> +3 Pontos extras na tabela de classificação.
           <br>
-          👑 <strong>Semana Invicta (5 Vitórias de Segunda a Sexta):</strong> +6 Pontos extras na tabela (equivalente a 2 vitórias de bônus!).
+          👑 <strong>Semana Invicta (Vitória em TODOS os dias úteis da semana, seg-sex, excluindo feriados nacionais):</strong> +3 Pontos extras na tabela.
         </p>
       </div>
 
       <div class="rule-card">
-        <h3>3. Critérios de Desempate (Saldo de Lances & Artilharia)</h3>
+        <h3>4. Supervisores, Filiais e Gerentes: A Liga dos Times</h3>
+        <p>
+          Cada nível de liderança também joga <strong>contra o seu próprio dia</strong> — não é a soma dos pontos dos
+          vendedores, é o resultado da equipe:
+          <br><br>
+          🟢 <strong>Vitória:</strong> a <strong>maioria (mais da metade)</strong> dos vendedores da equipe bateu Vitória no dia.
+          <br>
+          🟡 <strong>Empate:</strong> pelo menos 1 vendedor bateu Vitória, mas não é maioria.
+          <br>
+          🔴 <strong>Derrota:</strong> nenhum vendedor da equipe bateu Vitória no dia.
+          <br><br>
+          Essa regra vale igual para Supervisor (equipe = vendedores dele), Filial (equipe = todos os vendedores da
+          filial) e Gerente (equipe = vendedores de todas as filiais/equipes sob ele).
+        </p>
+      </div>
+
+      <div class="rule-card">
+        <h3>5. Critérios de Desempate (Saldo de Lances & Artilharia)</h3>
         <p>
           Se houver empate em pontos de tabela, os critérios oficiais de desempate são:
           <br>
-          1º) Maior Número de Vitórias (V) • 2º) Maior Saldo de Gols (SG = Gols Pró - Faltas Contra) • 3º) Mais Inativos Resgatados • 4º) Maior Positivação Total.
+          1º) Maior Número de Vitórias (V) • 2º) Maior Saldo de Gols (SG = Pontos Positivos - Pontos Negativos) • 3º) Mais Inativos Resgatados • 4º) Maior Positivação Total.
         </p>
       </div>
 
@@ -698,6 +815,39 @@ footer {
 <script>
 let DADOS = null;
 
+// Botão "Minha Filial" (pedido do Vitório, 28/09/2026): cada gerente abre o link já filtrado pra
+// sua filial. Sincroniza os seletores de filial das abas Vendedores/Supervisores/Lances de uma vez
+// só, guarda em localStorage (mesmo navegador) e no ?filial= da URL (pra virar link fixo do gerente).
+function mudarMinhaFilial(sigla) {
+  try { localStorage.setItem('brasileirao_minha_filial', sigla || ''); } catch (e) {}
+  const url = new URL(window.location.href);
+  if (sigla) url.searchParams.set('filial', sigla); else url.searchParams.delete('filial');
+  window.history.replaceState({}, '', url);
+
+  const selVend = document.getElementById('seletor-filial-vend');
+  const selSup = document.getElementById('filtro-sup-filial');
+  const selLances = document.getElementById('lances-filial');
+  if (selVend) { selVend.value = sigla || 'BRASIL'; filtrarVendedores(); }
+  if (selSup) { selSup.value = sigla || ''; filtrarSupervisores(); }
+  if (selLances) { selLances.value = sigla || 'TODAS'; if (LANCES_CARREGADOS_HOJE) carregarLances(); }
+
+  const linkTv = document.getElementById('link-minha-tv');
+  if (linkTv) {
+    if (sigla) { linkTv.href = '/tv?filial=' + encodeURIComponent(sigla); linkTv.style.display = ''; }
+    else { linkTv.style.display = 'none'; }
+  }
+}
+
+function iniciarMinhaFilial() {
+  const url = new URL(window.location.href);
+  let sigla = url.searchParams.get('filial');
+  if (!sigla) {
+    try { sigla = localStorage.getItem('brasileirao_minha_filial') || ''; } catch (e) { sigla = ''; }
+  }
+  const sel = document.getElementById('minha-filial');
+  if (sel && sigla) { sel.value = sigla.toUpperCase(); mudarMinhaFilial(sigla.toUpperCase()); }
+}
+
 async function carregarDados() {
   try {
     const res = await fetch('/dados_brasileirao.json?t=' + Date.now(), { cache: 'no-store' });
@@ -710,13 +860,158 @@ async function carregarDados() {
   }
 }
 
+// Tabela de pontos do regulamento (aba "Regulamento da Liga") — direto de
+// config/pontuacao_brasileirao.json (copiado pra public/ pra poder ser servido), nunca hardcoded
+// na página, pra ficar fácil de ajustar sem mexer em HTML (decisão do Vitório, 28/09/2026).
+async function carregarTabelaPontos() {
+  const tbody = document.getElementById('tbody-regulamento-pontos');
+  if (!tbody) return;
+  try {
+    const res = await fetch('/pontuacao_brasileirao.json?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const cfg = await res.json();
+    const itens = Object.values(cfg.pontos_por_lance || {}).sort((a, b) => b.pontos - a.pontos);
+    tbody.innerHTML = itens.map(it => {
+      const cor = it.pontos > 0 ? '#22c55e' : '#ef4444';
+      const sinal = it.pontos > 0 ? '+' : '';
+      return `<tr><td>${esc(it.nome)}</td><td style="text-align:center"><b style="color:${cor}">${sinal}${it.pontos}</b></td><td style="color:var(--tx-mut);font-size:13px">${esc(it.motivo)}</td></tr>`;
+    }).join('');
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--tx-mut);padding:20px">Não foi possível carregar a tabela de pontos.</td></tr>';
+  }
+}
+
 function switchTab(tabId) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  
+
   event.currentTarget.classList.add('active');
   const target = document.getElementById('tab-' + tabId);
   if (target) target.classList.add('active');
+
+  if (tabId === 'lances' && !LANCES_CARREGADOS_HOJE) carregarLances();
+}
+
+// ═══════════════════════════════════════════════════════════
+// ABA "LANCES DO DIA" — auditoria lance a lance, direto do D1
+// (tv_lances, o mesmo registro que a TV/Matriz usa pra nunca
+// apitar duas vezes o mesmo lance). Nunca mostra dado inventado:
+// campo ausente na API do CEVEN vira "—", nunca um valor plausível.
+// ═══════════════════════════════════════════════════════════
+let LANCES_ATUAIS = [];
+let LANCES_CARREGADOS_HOJE = false;
+
+const ROTULO_LANCE = {
+  gol: '⚽ Gol', hattrick: '🔥 Hat-Trick', golcontra: '⚽ Gol Contra', penalti: '🚨 Pênalti',
+  vermelho: '🟥 Cartão Vermelho', amarelo: '🟨 Cartão Amarelo',
+  impedimento: '🚩 Impedimento', defesa: '🧤 Defesa'
+};
+
+function hojeISOBrasilia() {
+  const p = {};
+  new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' })
+    .formatToParts(new Date()).forEach(x => p[x.type] = x.value);
+  return `${p.year}-${p.month}-${p.day}`;
+}
+
+async function carregarLances() {
+  const tbody = document.getElementById('tbody-lances');
+  const inputData = document.getElementById('lances-data');
+  if (inputData && !inputData.value) inputData.value = hojeISOBrasilia();
+  const dia = inputData ? inputData.value : hojeISOBrasilia();
+  const filial = document.getElementById('lances-filial').value;
+
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando lances...</td></tr>';
+  try {
+    const qs = new URLSearchParams({ dia });
+    if (filial && filial !== 'TODAS') qs.set('filial', filial);
+    const res = await fetch('/api/brasileirao-lances?' + qs.toString(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+    LANCES_ATUAIS = Array.isArray(d.lances) ? d.lances : [];
+    LANCES_CARREGADOS_HOJE = true;
+    renderizarChipsResumo(d.porNivel || {}, d.total || 0);
+    filtrarLancesRenderizados();
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--bad)">Falha ao carregar lances — tente de novo em instantes.</td></tr>';
+  }
+}
+
+function renderizarChipsResumo(porNivel, total) {
+  const box = document.getElementById('lances-resumo-chips');
+  if (!box) return;
+  const chips = [`<span style="background:var(--surface-hover);padding:6px 14px;border-radius:8px;font-weight:700;font-size:13px">TOTAL: ${total}</span>`];
+  Object.entries(ROTULO_LANCE).forEach(([nivel, rotulo]) => {
+    const n = porNivel[nivel] || 0;
+    if (n > 0) chips.push(`<span style="background:var(--surface-hover);padding:6px 14px;border-radius:8px;font-weight:700;font-size:13px">${rotulo}: ${n}</span>`);
+  });
+  box.innerHTML = chips.join('');
+}
+
+function filtrarLancesRenderizados() {
+  const nivel = document.getElementById('lances-nivel').value;
+  const supBusca = (document.getElementById('lances-supervisor').value || '').trim().toUpperCase();
+  const vendBusca = (document.getElementById('lances-vendedor').value || '').trim().toUpperCase();
+  let filtrados = nivel === 'TODOS' ? LANCES_ATUAIS : LANCES_ATUAIS.filter(l => l.nivel === nivel);
+  if (supBusca) filtrados = filtrados.filter(l => (l.supervisor || '').toUpperCase().includes(supBusca));
+  if (vendBusca) filtrados = filtrados.filter(l => (l.vendedor || '').toUpperCase().includes(vendBusca));
+  const tbody = document.getElementById('tbody-lances');
+  if (!filtrados.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--tx-mut)">Nenhum lance registrado para este filtro.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtrados.map(l => {
+    const detalhe = l.cliente ? esc(l.cliente) + (l.motivo ? ' — ' + esc(l.motivo) : '') : (l.obs ? esc(l.obs) : '—');
+    const semComprar = l.dias_sem_compra != null ? l.dias_sem_compra + 'd' : '—';
+    const temPontos = l.pontos != null && l.pontos_nome != null;
+    const corPts = temPontos ? (l.pontos > 0 ? '#22c55e' : (l.pontos < 0 ? '#ef4444' : 'var(--tx-mut)')) : 'var(--tx-mut)';
+    const sinalPts = temPontos && l.pontos > 0 ? '+' : '';
+    const pontosTxt = temPontos ? `<b style="color:${corPts}">${sinalPts}${l.pontos}</b>` : '<span style="color:var(--tx-mut)">—</span>';
+    const memoria = temPontos ? `<b>${esc(l.pontos_nome)}</b>: ${esc(l.pontos_motivo || '')}` : '<span style="color:var(--tx-mut)">sem regra mapeada</span>';
+    return `<tr>
+      <td class="mono">${esc(l.hora ? l.hora.slice(0,5) : '—')}</td>
+      <td><b>${esc(l.filial || '—')}</b></td>
+      <td>${ROTULO_LANCE[l.nivel] || esc(l.nivel)}</td>
+      <td>${esc(l.vendedor || '—')}${l.rca ? ' <span class="mono" style="color:var(--tx-mut)">(RCA ' + esc(l.rca) + ')</span>' : ''}</td>
+      <td>${esc(l.supervisor || '—')}</td>
+      <td>${detalhe}</td>
+      <td style="text-align:center" class="mono">${semComprar}</td>
+      <td style="text-align:center">${pontosTxt}</td>
+      <td style="color:var(--tx-mut);font-size:12.5px">${memoria}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Exporta exatamente o que está filtrado na tela (mesmos filtros de filial/supervisor/vendedor/tipo)
+// pronto pra mandar pra quem questionar uma pontuação — nunca inventa coluna nem valor.
+function exportarLancesCsv() {
+  const nivel = document.getElementById('lances-nivel').value;
+  const supBusca = (document.getElementById('lances-supervisor').value || '').trim().toUpperCase();
+  const vendBusca = (document.getElementById('lances-vendedor').value || '').trim().toUpperCase();
+  let filtrados = nivel === 'TODOS' ? LANCES_ATUAIS : LANCES_ATUAIS.filter(l => l.nivel === nivel);
+  if (supBusca) filtrados = filtrados.filter(l => (l.supervisor || '').toUpperCase().includes(supBusca));
+  if (vendBusca) filtrados = filtrados.filter(l => (l.vendedor || '').toUpperCase().includes(vendBusca));
+  if (!filtrados.length) { alert('Nenhum lance para exportar com esse filtro.'); return; }
+
+  const cabecalho = ['Data', 'Hora', 'Filial', 'Tipo', 'RCA', 'Vendedor', 'Supervisor', 'Cliente', 'Motivo', 'Dias Sem Comprar', 'Pontos', 'Nome da Regra', 'Explicação'];
+  const linhas = filtrados.map(l => [
+    document.getElementById('lances-data').value,
+    l.hora || '', l.filial || '', ROTULO_LANCE[l.nivel] || l.nivel, l.rca || '', l.vendedor || '',
+    l.supervisor || '', l.cliente || '', l.motivo || '', l.dias_sem_compra != null ? l.dias_sem_compra : '',
+    l.pontos != null ? l.pontos : '', l.pontos_nome || '', l.pontos_motivo || ''
+  ]);
+  const csvEsc = (v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const csv = [cabecalho, ...linhas].map(l => l.map(csvEsc).join(';')).join('\r\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `lances_brasileirao_${document.getElementById('lances-data').value || 'hoje'}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 }
 
 function renderizarTudo() {
@@ -884,6 +1179,8 @@ function filtrarVendedores() {
 }
 
 window.addEventListener('load', carregarDados);
+window.addEventListener('load', carregarTabelaPontos);
+window.addEventListener('load', iniciarMinhaFilial);
 </script>
 </body>
 </html>
