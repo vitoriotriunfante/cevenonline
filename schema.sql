@@ -364,6 +364,56 @@ CREATE TABLE IF NOT EXISTS consolidado_executivo_live (
   UNIQUE(filial_id, data_ref)
 );
 
+-- 21. MAPA EXECUTIVO AO VIVO (TV Executiva) — pontos de cliente com lat/lon, atualizados por
+-- cron próprio do projeto TV (não é o pipeline do WhatsApp), direto da API do CEVEN. Substitui a
+-- dependência do SQLite local + Google Drive por dado 100% online (ver PREMISSA_ONLINE.md).
+CREATE TABLE IF NOT EXISTS mapa_executivo_live (
+  id_cliente      TEXT NOT NULL,
+  cnpj            TEXT,
+  nome_cliente    TEXT,
+  cidade          TEXT,
+  filial_sigla    TEXT NOT NULL,
+  rca_codigo      TEXT NOT NULL,
+  latitude        REAL NOT NULL,
+  longitude       REAL NOT NULL,
+  status          TEXT NOT NULL,   -- 'POSITIVADO', 'EFETIVADO', 'AGENDADO', 'VISITADO', etc (cru da API)
+  valor_pedido    REAL DEFAULT 0,
+  eh_resgate_ouro INTEGER DEFAULT 0, -- 1 = estava na lista "Ouro na Mesa" (sem venda no mês) e positivou hoje
+  eh_ouro         INTEGER DEFAULT 0, -- 1 = está na lista "Ouro na Mesa" do mês (independente de ter vendido hoje)
+  data_ref        DATE NOT NULL,
+  updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id_cliente, data_ref)
+);
+
+-- 22. RESUMO EXECUTIVO AO VIVO (TV Executiva) — agregados de hoje (visitas, pedidos, digitado)
+-- por filial + 1 linha 'TODAS' nacional, calculados na MESMA varredura do mapa_executivo_live
+-- (cron-mapa-executivo.js). Sem isso a TV Executiva ficava com "Visitas em Campo Hoje: 0" e
+-- "Pedidos Colocados: 0" hardcoded pra sempre (achado em 28/09/2026).
+CREATE TABLE IF NOT EXISTS resumo_executivo_live (
+  filial_sigla    TEXT NOT NULL,   -- sigla ou 'TODAS' (agregado nacional)
+  data_ref        DATE NOT NULL,
+  visitas_feitas  INTEGER DEFAULT 0,
+  visitas_rota    INTEGER DEFAULT 0,
+  com_venda       INTEGER DEFAULT 0,
+  sem_venda       INTEGER DEFAULT 0,
+  pedidos_hoje    INTEGER DEFAULT 0,
+  digitado_hoje   REAL DEFAULT 0,
+  vendedores_com_venda INTEGER DEFAULT 0,
+  resgatados_hoje INTEGER DEFAULT 0, -- clientes da lista "Ouro na Mesa" (visitados sem venda no mês) que positivaram hoje
+  valor_resgatado_hoje REAL DEFAULT 0,
+  soma_skus       INTEGER DEFAULT 0, -- soma de SKUs de todos os pedidos com historico-cliente lido (pra Média de SKUs = soma_skus / n_pedidos_com_sku)
+  soma_valor_pedidos REAL DEFAULT 0, -- soma do valor real dos pedidos (pra Ticket Médio = soma_valor_pedidos / n_pedidos_com_sku)
+  n_pedidos_com_sku INTEGER DEFAULT 0,
+  -- Faturado/Meta do MÊS ao vivo (migration 0005, 29/09/2026): substitui public/executiva_resumo_mes.json,
+  -- que era estático e nunca se atualizava sozinho (TV Executiva mostrava faturamento de 2 dias atrás).
+  mes_faturado    REAL DEFAULT 0,
+  mes_meta_faturado REAL DEFAULT 0,
+  mes_positivados REAL DEFAULT 0,
+  mes_meta_positivados REAL DEFAULT 0,
+  updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (filial_sigla, data_ref)
+);
+
 -- =========================================================================
 -- ÍNDICES DE ALTA PERFORMANCE
 -- =========================================================================
@@ -376,3 +426,7 @@ CREATE INDEX IF NOT EXISTS idx_mix_target ON oportunidades_mix_gap(target_cnpj, 
 CREATE INDEX IF NOT EXISTS idx_roteiros_data_rca ON roteiros_visitas(data_visita, rca_codigo);
 CREATE INDEX IF NOT EXISTS idx_exec_live_data ON consolidado_executivo_live(data_ref);
 CREATE INDEX IF NOT EXISTS idx_exec_live_filial ON consolidado_executivo_live(filial_id, data_ref);
+CREATE INDEX IF NOT EXISTS idx_mapa_live_data ON mapa_executivo_live(data_ref);
+CREATE INDEX IF NOT EXISTS idx_mapa_live_filial ON mapa_executivo_live(filial_sigla, data_ref);
+CREATE INDEX IF NOT EXISTS idx_mapa_live_status ON mapa_executivo_live(status, data_ref);
+CREATE INDEX IF NOT EXISTS idx_resumo_live_data ON resumo_executivo_live(data_ref);
