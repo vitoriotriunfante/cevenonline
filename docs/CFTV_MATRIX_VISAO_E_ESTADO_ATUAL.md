@@ -250,3 +250,33 @@ nada no PC.
    esclarecida; não é código deste diretório.
 4. Commit feito na branch `cftv-triunfante` em 27/09 (13 arquivos, sem tocar `tv_executiva.html`)
    — sem push ainda.
+
+### 8.7 Faturado/Meta do mês da TV Executiva — corrigido, cuidado com carga no CEVEN (29/09/2026)
+**Causa raiz do "faturamento errado":** `public/executiva_resumo_mes.json` era um arquivo
+estático (nem versionado no git), gerado manualmente uma vez em 27/09 22:54h e nunca mais
+atualizado — violava a premissa online. A TV Executiva mostrava R$47,6M parado enquanto a matriz
+(dado ao vivo) já mostrava R$50,5M.
+
+**Fix:** faturado/meta/positivados do mês agora vêm de `/api/rca/dashboard` (único endpoint do
+CEVEN com `financeiro.faturado/meta` e `positivacao.realizado/meta` — não existe endpoint
+agregado por filial, só por RCA), gravados em `resumo_executivo_live` (migration 0005) e lidos
+por `tv_executiva.html` via `/api/mapa-executivo-live`.
+
+**Incidente evitado por pouco:** a 1ª versão somou essa chamada de `dashboard` DENTRO do cron de
+5min (`cron-mapa-executivo.js`, que já varre roteiro-hoje + produtividade para ~560 RCAs em
+lotes de 40) — 560 chamadas extras por ciclo, 33% a mais de carga. O CEVEN caiu por completo
+minutos depois (confirmado por `curl` direto na raiz do domínio: timeout total). Não dá pra
+provar causalidade com certeza, mas o timing foi imediato o suficiente pra não arriscar de novo.
+
+**Decisão do Vitório:** "cuidado para não sermos nós a derrubar ele com muitas requisições... tem
+que sempre ir buscando aos poucos e em lote." — vale como regra permanente pra qualquer cron
+novo neste projeto, não só este caso.
+
+**Solução final:** cron **separado** (`cron-faturado-mes.js` + `tv-faturado-mes-cron.yml`), a
+cada 15min (offset dos minutos do cron de 5min, nunca corre junto), lotes de 10 RCAs (não 40) com
+pausa de 400ms entre lotes. Grava via `INSERT ... ON CONFLICT DO UPDATE` só nas colunas do mês,
+sem mexer nas colunas de visita/pedido que o outro cron já grava.
+
+**Regra geral daqui pra frente:** nenhuma chamada nova ao CEVEN entra no cron de 5min existente.
+Qualquer indicador novo que exija 1 chamada por RCA ganha cron próprio, mais espaçado, lotes
+pequenos.

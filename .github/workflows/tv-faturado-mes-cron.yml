@@ -1,0 +1,25 @@
+# FICHA DO ARQUIVO
+# O QUE É: dispara a varredura do faturado/meta do MÊS (functions/api/cron-faturado-mes.js) a
+#          cada 15 minutos, em lotes pequenos (10 RCAs por vez) e devagar. SEPARADO do cron do
+#          mapa executivo (tv-executiva-mapa-live.yml, a cada 5min) de propósito — decisão do
+#          Vitório, 29/09/2026, depois que somar mais uma chamada por RCA no cron de 5min
+#          contribuiu pra sobrecarregar o CEVEN, que caiu por completo. "cuidado pra não sermos
+#          nós a derrubar ele com muitas requisições... tem que ir buscando aos poucos e em lotes."
+# PROJETO: CFTV/TV. Só faz um GET no endpoint público.
+name: TV Executiva — Faturado/Meta do Mês
+
+on:
+  schedule:
+    - cron: '2-59/15 * * * *' # minutos 2,17,32,47 — nunca no mesmo minuto do cron de 5min (*/5)
+  workflow_dispatch: {}
+
+jobs:
+  atualizar_faturado_mes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Disparar varredura do faturado/meta do mês (cron-faturado-mes)
+        run: |
+          curl -sS -m 240 "https://ceven-cftv-matrix.pages.dev/api/cron-faturado-mes" \
+            -o resultado.json -w "\nHTTP %{http_code}\n"
+          cat resultado.json

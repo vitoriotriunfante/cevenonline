@@ -28,12 +28,12 @@
 //          (gestão) NUNCA contam aqui. Canal vem da planilha MOSTRA_DISPAROS (/api/tv-mostra),
 //          mesma fonte que matrizapp.html/tvapp.html já usam — o D1 (representantes.setor) está
 //          vazio, então usamos essa lista em vez dele.
-// FATURADO/META DO MÊS (migration 0005, 29/09/2026): antes a TV Executiva lia
-//          public/executiva_resumo_mes.json, um arquivo estático nunca atualizado sozinho (achado
-//          29/09/2026: mostrava faturamento de 2 dias atrás pro diretor). Agora, na MESMA
-//          varredura, cada RCA também chama /api/rca/dashboard (igual tv-vendedor.js já faz) e
-//          soma financeiro.faturado/meta + positivacao.realizado/meta por filial + 'TODAS'. TODO
-//          RCA conta aqui (não só canal de campo) — faturado é da filial inteira, não só rota.
+// FATURADO/META DO MÊS: NÃO é calculado aqui. Fica em cron-faturado-mes.js, um cron SEPARADO e
+//          mais espaçado (15min, lotes de 10) — tentamos somar /api/rca/dashboard nesta mesma
+//          varredura (achado 29/09/2026) e isso quase certamente contribuiu pra sobrecarregar o
+//          CEVEN, que caiu por completo minutos depois. Decisão do Vitório: nunca somar chamada
+//          nova a este cron de 5min: "cuidado pra não sermos nós a derrubar ele com muitas
+//          requisições... tem que ir buscando aos poucos e em lotes".
 // =========================================================================
 
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
@@ -146,30 +146,16 @@ export async function onRequestGet({ env, request }) {
         // total — c.valor_ultima_compra é o histórico do cliente, não o pedido de hoje; usar ele
         // aqui sempre dava 0, achado em 28/09/2026). Mesma fonte que tv-vendedor.js já usa e que
         // o CFTV mostra correto.
-        const [roteiro, prod, dash] = await Promise.all([
+        const [roteiro, prod] = await Promise.all([
           getJson(`${CEVEN}/api/rca/roteiro-hoje?filial=${filialKey}&id=${rca.codigo}`),
-          getJson(`${CEVEN}/api/rca/produtividade?filial=${filialKey}&id=${rca.codigo}`),
-          getJson(`${CEVEN}/api/rca/dashboard?filial=${filialKey}&id=${rca.codigo}`)
+          getJson(`${CEVEN}/api/rca/produtividade?filial=${filialKey}&id=${rca.codigo}`)
         ]);
-        return { rca, roteiro, prod, dash };
+        return { rca, roteiro, prod };
       })
     );
-    for (const { rca, roteiro, prod, dash } of resultados) {
+    for (const { rca, roteiro, prod } of resultados) {
       if (!Array.isArray(roteiro)) { falhas++; continue; }
       const sig = String(rca.filial || '').toUpperCase();
-      // Faturado/meta do MÊS: todo RCA soma aqui, é a filial inteira, não só canal de campo
-      // (diferente dos agregados de visita/rota, que são só VJ/PET VJ/FARMA/ESP).
-      {
-        const aFilMes = pega(sig), aNacMes = pega('TODAS');
-        const fat = Number(dash?.financeiro?.faturado) || 0;
-        const metaFat = Number(dash?.financeiro?.meta) || 0;
-        const pos = Number(dash?.positivacao?.realizado) || 0;
-        const metaPos = Number(dash?.positivacao?.meta) || 0;
-        aFilMes.mesFaturado += fat; aNacMes.mesFaturado += fat;
-        aFilMes.mesMetaFaturado += metaFat; aNacMes.mesMetaFaturado += metaFat;
-        aFilMes.mesPositivados += pos; aNacMes.mesPositivados += pos;
-        aFilMes.mesMetaPositivados += metaPos; aNacMes.mesMetaPositivados += metaPos;
-      }
       // Só entra nos agregados de visita/positivação se for canal de campo (VJ/PET VJ/FARMA/ESP)
       // — AS/PET AS/GER/SUP não têm cobrança de rota (ver ficha do arquivo, decisão 28/09/2026).
       const canalRca = canalPorRca.get(String(rca.codigo)) || '';
