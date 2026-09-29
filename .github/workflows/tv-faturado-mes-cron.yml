@@ -16,10 +16,14 @@ on:
 jobs:
   atualizar_faturado_mes:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 12
     steps:
+      # -m 600 (10min): 560 RCAs / lotes de 10 = 56 lotes sequenciais, cada um com sua própria
+      # chamada real ao CEVEN + pausa de 400ms — 240s (achado 29/09/2026) estourava antes de
+      # terminar. Cloudflare Function não tem limite de wall-clock aqui (só CPU ativo, e fetch/
+      # await não conta), o gargalo era só o timeout do curl.
       - name: Disparar varredura do faturado/meta do mês (cron-faturado-mes)
         run: |
-          curl -sS -m 240 "https://ceven-cftv-matrix.pages.dev/api/cron-faturado-mes" \
+          curl -sS -m 600 "https://ceven-cftv-matrix.pages.dev/api/cron-faturado-mes" \
             -o resultado.json -w "\nHTTP %{http_code}\n"
           cat resultado.json
