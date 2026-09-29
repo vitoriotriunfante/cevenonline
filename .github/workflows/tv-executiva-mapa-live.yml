@@ -1,26 +1,25 @@
 # FICHA DO ARQUIVO
-# O QUE É: dispara a varredura ao vivo do mapa da TV Executiva (functions/api/cron-mapa-executivo.js)
-#          a cada 5 minutos. A varredura em si (560 RCAs na API do CEVEN) leva ~90s — tempo demais
-#          para acoplar ao carregamento da própria TV (o fetch sem await era cortado antes de
-#          terminar, achado em 28/09/2026: TV Executiva ficava com "Visitas em Campo Hoje: 0" para
-#          sempre). Aqui é um disparo independente, fora do navegador de ninguém — 100% online
-#          (ver PREMISSA_ONLINE.md).
-# PROJETO: CFTV/TV. Só faz um GET no endpoint público — não usa secrets, não toca no SQLite nem
-#          no Google Drive, não interfere no pipeline do WhatsApp.
+# O QUE É: dispara a agregação do mapa/resumo da TV Executiva (functions/api/cron-mapa-executivo.js)
+#          a cada 5 minutos, com offset de 2min sobre a varredura central (tv-varredura-central-cron.yml,
+#          também a cada 5min) — dá tempo da central gravar antes deste ler.
+# ETAPA 2 DA UNIFICAÇÃO (29/09/2026): cron-mapa-executivo.js não fala mais direto com o CEVEN pra
+#          roteiro-hoje/produtividade — lê de varredura_central_rca. Timeout bem menor agora (era
+#          240s quando fazia sua própria varredura de ~560 RCAs).
+# PROJETO: CFTV/TV. Só faz um GET no endpoint público.
 name: TV Executiva — Atualizar Mapa ao Vivo
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '2-59/5 * * * *' # minutos 2,7,12,17... — 2min depois da varredura central (*/5)
   workflow_dispatch: {}
 
 jobs:
   atualizar_mapa_live:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
     steps:
-      - name: Disparar varredura do mapa executivo (cron-mapa-executivo)
+      - name: Disparar agregação do mapa executivo (cron-mapa-executivo)
         run: |
-          curl -sS -m 240 "https://ceven-cftv-matrix.pages.dev/api/cron-mapa-executivo" \
+          curl -sS -m 60 "https://ceven-cftv-matrix.pages.dev/api/cron-mapa-executivo" \
             -o resultado.json -w "\nHTTP %{http_code}\n"
           cat resultado.json

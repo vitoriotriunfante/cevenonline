@@ -1,40 +1,20 @@
 // =========================================================================
 // FICHA DO ARQUIVO
-// O QUE É: varre TODOS os RCAs ativos chamando /api/rca/dashboard (único endpoint que traz
-//          financeiro.faturado/meta e positivacao.realizado/meta do MÊS — não vem em
-//          roteiro-hoje nem em produtividade, ver MAPA_DEFINITIVO_ENDPOINTS_CEVEN.md). Grava o
-//          agregado por filial + 'TODAS' em resumo_executivo_live (migration 0005), as mesmas
-//          colunas mes_faturado/mes_meta_faturado/mes_positivados/mes_meta_positivados que a
-//          TV Executiva lê via /api/mapa-executivo-live.
+// O QUE É: agrega financeiro.faturado/meta e positivacao.realizado/meta do MÊS por filial +
+//          'TODAS', a partir do dashboard já gravado em varredura_central_rca (migration 0006).
+//          Grava em resumo_executivo_live (migration 0005), as mesmas colunas
+//          mes_faturado/mes_meta_faturado/mes_positivados/mes_meta_positivados que a TV Executiva
+//          lê via /api/mapa-executivo-live.
 // PROJETO: CFTV/TV. Isolado do pipeline do WhatsApp.
-// POR QUE É UM CRON SEPARADO (decisão do Vitório, 29/09/2026): cron-mapa-executivo.js já chama
-//          roteiro-hoje + produtividade pra TODOS os RCAs a cada 5min (lotes de 40). Tentamos
-//          somar uma 3ª chamada (dashboard) nesse mesmo cron e isso quase certamente contribuiu
-//          pra sobrecarregar o CEVEN — o sistema caiu por completo minutos depois (achado
-//          29/09/2026, ver auditorias_historico/). Vitório: "cuidado pra não sermos nós a
-//          derrubar ele com muitas requisições... tem que ir buscando aos poucos e em lotes".
-//          Por isso: cron PRÓPRIO, mais espaçado (15min, nunca ao mesmo tempo que o de 5min),
-//          lotes bem menores (10, não 40) e uma pausa entre lotes — nunca dispara os ~560 RCAs
-//          de uma vez.
-// REGRA: nunca inventa dado. RCA sem resposta do CEVEN simplesmente não soma nada (fica de fora
-//          do agregado daquele ciclo) — nunca usa valor de outro RCA ou de outro dia no lugar.
+// ETAPA 2 DA UNIFICAÇÃO (29/09/2026, decisão do Vitório: "não é tudo a mesma base? se deixar
+//          tudo na mesma consulta facilita"): antes este cron chamava /api/rca/dashboard direto
+//          pra cada RCA (própria varredura, lotes de 10, pausa entre lotes). Agora só lê o
+//          dashboard_json que cron-varredura-central.js já gravou — sem chamada nova ao CEVEN,
+//          sem lotes, sem pausa (é leitura de D1, rápida). Continua sem ler diretamente de
+//          cron-mapa-executivo.js — os dois consomem a mesma central, cada um seu jeito.
+// REGRA: nunca inventa dado. RCA sem dashboard gravado na central simplesmente não soma nada
+//          (fica de fora do agregado daquele ciclo) — nunca usa valor de outro RCA/dia no lugar.
 // =========================================================================
-
-const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
-const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' };
-const LOTE = 10; // bem menor que o cron de 5min (40) — decisão do Vitório, 29/09/2026
-const PAUSA_ENTRE_LOTES_MS = 400; // dá um respiro ao CEVEN entre lotes, não dispara tudo de uma vez
-
-async function getJson(url) {
-  try {
-    const r = await fetch(url, { headers: HDR, signal: AbortSignal.timeout(15000) });
-    if (!r.ok) return null;
-    const t = await r.text();
-    return t ? JSON.parse(t) : null;
-  } catch {
-    return null;
-  }
-}
 
 function dataHojeBrasilia() {
   const p = {};
@@ -109,45 +89,36 @@ export async function onRequestGet({ env, request }) {
 }
 
 async function executarVarredura(env, dataRef, t0, cors) {
-  const { results: rcas } = await env.DB.prepare(
-    'SELECT r.codigo, UPPER(COALESCE(f.codigo, r.filial_id)) as filial FROM representantes r LEFT JOIN filiais f ON r.filial_id = f.id WHERE r.ativo = 1'
-  ).all();
+  const { results: linhasCentral } = await env.DB.prepare(
+    'SELECT rca_codigo, filial_sigla, dashboard_json FROM varredura_central_rca WHERE data_ref = ?'
+  ).bind(dataRef).all();
 
-  if (!rcas || !rcas.length) {
-    return new Response(JSON.stringify({ erro: 'nenhum representante ativo encontrado no D1' }), { status: 502, headers: cors });
+  if (!linhasCentral || !linhasCentral.length) {
+    return new Response(JSON.stringify({ erro: 'varredura_central_rca ainda sem dado hoje — aguardando primeiro ciclo', dica: 'GET /api/cron-varredura-central' }), { status: 202, headers: cors });
   }
 
   const agg = {}; // filial -> {faturado, metaFaturado, positivados, metaPositivados}
   const pega = (sig) => (agg[sig] = agg[sig] || { faturado: 0, metaFaturado: 0, positivados: 0, metaPositivados: 0 });
   let falhas = 0;
 
-  for (let i = 0; i < rcas.length; i += LOTE) {
-    const lote = rcas.slice(i, i + LOTE);
-    const resultados = await Promise.all(
-      lote.map(async (rca) => {
-        const filialKey = String(rca.filial || '').toLowerCase() + '1';
-        const dash = await getJson(`${CEVEN}/api/rca/dashboard?filial=${filialKey}&id=${rca.codigo}`);
-        return { rca, dash };
-      })
-    );
-    for (const { rca, dash } of resultados) {
-      if (!dash) { falhas++; continue; }
-      const sig = String(rca.filial || '').toUpperCase();
-      const aFil = pega(sig), aNac = pega('TODAS');
-      const fat = Number(dash?.financeiro?.faturado) || 0;
-      const metaFat = Number(dash?.financeiro?.meta) || 0;
-      const pos = Number(dash?.positivacao?.realizado) || 0;
-      const metaPos = Number(dash?.positivacao?.meta) || 0;
-      aFil.faturado += fat; aNac.faturado += fat;
-      aFil.metaFaturado += metaFat; aNac.metaFaturado += metaFat;
-      aFil.positivados += pos; aNac.positivados += pos;
-      aFil.metaPositivados += metaPos; aNac.metaPositivados += metaPos;
-    }
-    if (i + LOTE < rcas.length) await espera(PAUSA_ENTRE_LOTES_MS);
+  for (const l of linhasCentral) {
+    let dash = null;
+    try { dash = JSON.parse(l.dashboard_json); } catch {}
+    if (!dash) { falhas++; continue; }
+    const sig = String(l.filial_sigla || '').toUpperCase();
+    const aFil = pega(sig), aNac = pega('TODAS');
+    const fat = Number(dash?.financeiro?.faturado) || 0;
+    const metaFat = Number(dash?.financeiro?.meta) || 0;
+    const pos = Number(dash?.positivacao?.realizado) || 0;
+    const metaPos = Number(dash?.positivacao?.meta) || 0;
+    aFil.faturado += fat; aNac.faturado += fat;
+    aFil.metaFaturado += metaFat; aNac.metaFaturado += metaFat;
+    aFil.positivados += pos; aNac.positivados += pos;
+    aFil.metaPositivados += metaPos; aNac.metaPositivados += metaPos;
   }
 
   if (!Object.keys(agg).length) {
-    return new Response(JSON.stringify({ erro: 'CEVEN não respondeu nenhum RCA', falhas, rcas_total: rcas.length }), { status: 502, headers: cors });
+    return new Response(JSON.stringify({ erro: 'nenhum RCA com dashboard gravado na central', falhas, rcas_total: linhasCentral.length }), { status: 502, headers: cors });
   }
 
   // INSERT ... ON CONFLICT DO UPDATE, não UPDATE puro — a linha (filial, data_ref) pode ainda não
@@ -171,7 +142,7 @@ async function executarVarredura(env, dataRef, t0, cors) {
   return new Response(JSON.stringify({
     status: 'ATUALIZADO',
     data_ref: dataRef,
-    rcas_processados: rcas.length,
+    rcas_processados: linhasCentral.length,
     rcas_sem_resposta: falhas,
     filiais_gravadas: Object.keys(agg).length,
     duracao_ms: Date.now() - t0

@@ -1,0 +1,31 @@
+# FICHA DO ARQUIVO
+# O QUE É: dispara a varredura central (functions/api/cron-varredura-central.js) a cada 5
+#          minutos — UMA ÚNICA varredura dos 4 endpoints fixos por RCA (roteiro-hoje,
+#          produtividade, dashboard, devolucoes) que cron-mapa-executivo.js e
+#          cron-faturado-mes.js agora leem em vez de cada um bater no CEVEN separadamente.
+#          Decisão do Vitório, 29/09/2026: "não é tudo a mesma base? se deixar tudo na mesma
+#          consulta facilita".
+# SUBSTITUI a varredura própria que cron-mapa-executivo.js fazia — não SOMA carga, TROCA quem
+#          faz a chamada ao CEVEN (antes: mapa fazia sua varredura + faturado fazia a dele;
+#          agora: só esta varredura fala com o CEVEN, os outros dois leem o resultado do D1).
+# LOTE: 20 (meio-termo — 4 chamadas por RCA aqui, contra 2 do antigo cron-mapa-executivo em
+#          lotes de 40, ou 1 do cron-faturado-mes em lotes de 10).
+# PROJETO: CFTV/TV. Respeita o lock global do WhatsApp (cron-lock.js) — pula o ciclo se o
+#          WhatsApp estiver ativo.
+name: TV Executiva — Varredura Central (roteiro+produtividade+dashboard+devolucoes)
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  atualizar_varredura_central:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Disparar varredura central (cron-varredura-central)
+        run: |
+          curl -sS -m 300 "https://ceven-cftv-matrix.pages.dev/api/cron-varredura-central" \
+            -o resultado.json -w "\nHTTP %{http_code}\n"
+          cat resultado.json

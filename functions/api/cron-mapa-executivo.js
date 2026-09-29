@@ -1,7 +1,8 @@
 // =========================================================================
 // FICHA DO ARQUIVO
-// O QUE É: varre TODOS os RCAs ativos (D1: tabela representantes) chamando
-//          /api/rca/roteiro-hoje do CEVEN ao vivo. Grava dois resultados no D1:
+// O QUE É: lê roteiro-hoje/produtividade de TODOS os RCAs ativos a partir da varredura central
+//          (varredura_central_rca, ver ETAPA 2 abaixo — não chama mais o CEVEN direto aqui).
+//          Grava dois resultados no D1:
 //          1) mapa_executivo_live: clientes com lat/lon, para o mapa da TV Executiva.
 //          2) resumo_executivo_live: agregados do dia (visitas, pedidos, digitado) por
 //             filial + 'TODAS' nacional, para os cards "Visitas em Campo Hoje" e
@@ -28,12 +29,15 @@
 //          (gestão) NUNCA contam aqui. Canal vem da planilha MOSTRA_DISPAROS (/api/tv-mostra),
 //          mesma fonte que matrizapp.html/tvapp.html já usam — o D1 (representantes.setor) está
 //          vazio, então usamos essa lista em vez dele.
-// FATURADO/META DO MÊS: NÃO é calculado aqui. Fica em cron-faturado-mes.js, um cron SEPARADO e
-//          mais espaçado (15min, lotes de 10) — tentamos somar /api/rca/dashboard nesta mesma
-//          varredura (achado 29/09/2026) e isso quase certamente contribuiu pra sobrecarregar o
-//          CEVEN, que caiu por completo minutos depois. Decisão do Vitório: nunca somar chamada
-//          nova a este cron de 5min: "cuidado pra não sermos nós a derrubar ele com muitas
-//          requisições... tem que ir buscando aos poucos e em lotes".
+// FATURADO/META DO MÊS: NÃO é calculado aqui. Fica em cron-faturado-mes.js.
+// ETAPA 2 DA UNIFICAÇÃO (29/09/2026, decisão do Vitório: "não é tudo a mesma base? se deixar
+//          tudo na mesma consulta facilita"): roteiro-hoje e produtividade agora vêm de
+//          varredura_central_rca (migration 0006, gravada por cron-varredura-central.js) em vez
+//          de chamar o CEVEN direto pra cada RCA — a central já fez essa mesma chamada. Se a
+//          central estiver velha (>6min), este cron dispara ela primeiro (best-effort, sem
+//          esperar) e usa o dado que tiver disponível no momento — nunca trava esperando a
+//          central terminar. historico-cliente (resgate ouro, ticket médio) continua chamado
+//          direto: é seletivo, não está centralizado (ver ficha de cron-varredura-central.js).
 // =========================================================================
 
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
@@ -90,7 +94,7 @@ async function carregaCanalPorRca(env, request) {
   return mapa;
 }
 
-export async function onRequestGet({ env, request }) {
+export async function onRequestGet({ env, request, waitUntil }) {
   const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 (env.DB) não configurado' }), { status: 503, headers: cors });
 
@@ -127,13 +131,22 @@ export async function onRequestGet({ env, request }) {
     }
   }
 
-  const { results: rcas } = await env.DB.prepare(
-    'SELECT r.codigo, UPPER(COALESCE(f.codigo, r.filial_id)) as filial FROM representantes r LEFT JOIN filiais f ON r.filial_id = f.id WHERE r.ativo = 1'
-  ).all();
+  // Dispara a varredura central se estiver velha (best-effort, não espera) — mesma lógica que já
+  // existia aqui antes pra si mesmo, agora aponta pro endpoint central que outros consumidores
+  // também usam.
+  const url = new URL(request.url);
+  const disparoCentral = fetch(`${url.origin}/api/cron-varredura-central`, { signal: AbortSignal.timeout(25000) }).catch(() => {});
+  if (typeof waitUntil === 'function') waitUntil(disparoCentral);
 
-  if (!rcas || !rcas.length) {
-    return new Response(JSON.stringify({ erro: 'nenhum representante ativo encontrado no D1' }), { status: 502, headers: cors });
+  const { results: linhasCentral } = await env.DB.prepare(
+    'SELECT rca_codigo, filial_sigla, roteiro_json, produtividade_json FROM varredura_central_rca WHERE data_ref = ?'
+  ).bind(dataRef).all();
+
+  if (!linhasCentral || !linhasCentral.length) {
+    return new Response(JSON.stringify({ erro: 'varredura_central_rca ainda sem dado hoje — aguardando primeiro ciclo', dica: 'GET /api/cron-varredura-central' }), { status: 202, headers: cors });
   }
+
+  const rcas = linhasCentral.map((l) => ({ codigo: l.rca_codigo, filial: l.filial_sigla }));
 
   const pontos = [];
   let falhas = 0;
@@ -151,24 +164,15 @@ export async function onRequestGet({ env, request }) {
   // (antes sempre "0,0" / "R$ 0", nunca alimentados) com dado real em vez de "—" pra sempre.
   const candidatosPositivados = []; // {idCli, sig, filialKey, rcaCodigo}
 
-  for (let i = 0; i < rcas.length; i += LOTE) {
-    const lote = rcas.slice(i, i + LOTE);
-    const resultados = await Promise.all(
-      lote.map(async (rca) => {
-        const filialKey = String(rca.filial || '').toLowerCase() + '1';
-        // roteiro-hoje: lista de clientes (status, lat/lon) para o mapa e contagem de visitas.
-        // produtividade: dig_pedido = valor REAL digitado hoje pelo RCA (o roteiro NÃO traz esse
-        // total — c.valor_ultima_compra é o histórico do cliente, não o pedido de hoje; usar ele
-        // aqui sempre dava 0, achado em 28/09/2026). Mesma fonte que tv-vendedor.js já usa e que
-        // o CFTV mostra correto.
-        const [roteiro, prod] = await Promise.all([
-          getJson(`${CEVEN}/api/rca/roteiro-hoje?filial=${filialKey}&id=${rca.codigo}`),
-          getJson(`${CEVEN}/api/rca/produtividade?filial=${filialKey}&id=${rca.codigo}`)
-        ]);
-        return { rca, roteiro, prod };
-      })
-    );
-    for (const { rca, roteiro, prod } of resultados) {
+  // roteiro-hoje/produtividade já vêm prontos da varredura central (linhasCentral) — sem chamada
+  // nova ao CEVEN aqui. LOTE não controla mais concorrência de rede (é tudo leitura de memória),
+  // só divide o trabalho de agregação em pedaços, mantido pra não mudar o formato do código à toa.
+  for (const l of linhasCentral) {
+    const rca = { codigo: l.rca_codigo, filial: l.filial_sigla };
+    let roteiro = null, prod = null;
+    try { roteiro = JSON.parse(l.roteiro_json); } catch {}
+    try { prod = JSON.parse(l.produtividade_json); } catch {}
+    {
       if (!Array.isArray(roteiro)) { falhas++; continue; }
       const sig = String(rca.filial || '').toUpperCase();
       // Só entra nos agregados de visita/positivação se for canal de campo (VJ/PET VJ/FARMA/ESP)
