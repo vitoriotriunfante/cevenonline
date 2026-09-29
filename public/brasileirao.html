@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brasileirão Triunfante — Liga da Constância</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700;800&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #070b14;
+  --surface: #0e172a;
+  --surface-hover: #1e293b;
+  --surface-card: rgba(15, 23, 42, 0.75);
+  --border: rgba(56, 189, 248, 0.15);
+  --border-focus: rgba(56, 189, 248, 0.4);
+  --tx: #f8fafc;
+  --tx-mut: #94a3b8;
+  --acc: #38bdf8;
+  --acc-glow: rgba(56, 189, 248, 0.35);
+  --ok: #22c55e;
+  --ok-glow: rgba(34, 197, 94, 0.3);
+  --warn: #eab308;
+  --bad: #ef4444;
+  --bad-glow: rgba(239, 68, 68, 0.3);
+  --g4: #10b981;
+  --z4: #f43f5e;
+  --gold: #f59e0b;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--tx);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.12) 0%, transparent 60%),
+    radial-gradient(circle at 10% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 40%, rgba(244, 63, 94, 0.08) 0%, transparent 40%);
+}
+
+/* HEADER */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(7, 11, 20, 0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 28px;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1500px;
+  margin: 0 auto;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.brand-trophy {
+  font-size: 32px;
+  filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.6));
+  animation: pulse 2.5s infinite;
+}
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+.brand-text h1 {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, #fff 40%, var(--acc) 80%, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.brand-text p {
+  font-size: 12px;
+  color: var(--tx-mut);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #86efac;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.live-pill .dot {
+  width: 6px;
+  height: 6px;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: blink 1.2s infinite;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn-nav {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.btn-nav:hover {
+  background: rgba(56, 189, 248, 0.15);
+  color: #fff;
+  border-color: var(--acc);
+}
+
+/* NAV TABS */
+.nav-tabs {
+  max-width: 1500px;
+  margin: 14px auto 0 auto;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--tx-mut);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.tab-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+.tab-btn.active {
+  color: #fff;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid var(--acc);
+  box-shadow: 0 0 14px var(--acc-glow);
+}
+
+/* MAIN CONTENT */
+main {
+  max-width: 1500px;
+  width: 100%;
+  margin: 24px auto;
+  padding: 0 24px;
+  flex: 1;
+}
+
+/* HERO STATS */
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+.stat-icon.green { background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); }
+.stat-icon.blue { background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); }
+.stat-icon.gold { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); }
+.stat-icon.red { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); }
+.stat-info h3 { font-size: 11px; text-transform: uppercase; color: var(--tx-mut); letter-spacing: 0.05em; }
+.stat-info .num { font-family: 'Chakra Petch', sans-serif; font-size: 24px; font-weight: 800; color: #fff; margin-top: 2px; }
+
+/* TABELA */
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.table-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+}
+.table-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.table-title h2 {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.table-subtitle {
+  font-size: 12px;
+  color: var(--tx-mut);
+  margin-top: 4px;
+}
+
+/* LEAGUE TABLE */
+.tb-league {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.tb-league th {
+  background: rgba(15, 23, 42, 0.95);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tx-mut);
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.tb-league td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 13px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.tb-league tbody tr { transition: background 0.15s; }
+.tb-league tbody tr:hover { background: var(--surface-hover); }
+
+/* BADGES & POSIÇÕES */
+.pos-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+}
+.pos-g4 { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+.pos-mid { background: rgba(255, 255, 255, 0.05); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.1); }
+.pos-z4 { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.4); }
+
+.team-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.team-shield {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--acc);
+}
+.team-name { font-weight: 700; color: #fff; font-size: 14px; }
+.team-sub { font-size: 11px; color: var(--tx-mut); }
+
+.pts-cell {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+}
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.tag-v { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+.tag-e { background: rgba(234, 179, 8, 0.2); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.4); }
+.tag-d { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+
+/* FORMA (BOLINHAS) */
+.forma-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.dot-forma {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dot-forma.V { background: #16a34a; color: #fff; }
+.dot-forma.E { background: #ca8a04; color: #fff; }
+.dot-forma.D { background: #dc2626; color: #fff; }
+
+/* CONTROLS */
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.input-search {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--border);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  min-width: 260px;
+}
+.input-search:focus { outline: none; border-color: var(--acc); box-shadow: 0 0 10px var(--acc-glow); }
+.select-ctl {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--border);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* REGULAMENTO & TROFEUS */
+.rule-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.rule-card h3 { font-size: 16px; font-weight: 800; color: var(--acc); margin-bottom: 10px; }
+.rule-card p { font-size: 13px; line-height: 1.6; color: #cbd5e1; }
+
+
+footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--tx-mut);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="brand">
+      <div class="brand-trophy">🏆</div>
+      <div class="brand-text">
+        <h1>BRASILEIRÃO TRIUNFANTE — LIGA DA CONSTÂNCIA</h1>
+        <p>
+          <span class="live-pill"><span class="dot"></span> CADA DIA É UM JOGO</span>
+          <span>• A pontuação é contra o seu próprio dia • 11 Filiais • 405 Vendedores em Campo</span>
+        </p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="/gestao-equipe" class="btn-nav">👥 Gestão de Equipe</a>
+      <a href="/apresentacao-diretoria" class="btn-nav">📊 Apresentação</a>
+      <a href="/matriz" class="btn-nav">📺 TV Matriz</a>
+      <button class="btn-nav" onclick="carregarDados()">🔄 Atualizar</button>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('filiais')">🏆 Série A (11 Filiais)</button>
+    <button class="tab-btn" onclick="switchTab('gerencias')">👔 Campeonato de Gerências</button>
+    <button class="tab-btn" onclick="switchTab('supervisores')">⭐ Liga dos Supervisores</button>
+    <button class="tab-btn" onclick="switchTab('vendedores')">⚽ Artilharia de Vendedores</button>
+    <button class="tab-btn" onclick="switchTab('regulamento')">📖 Regulamento da Liga</button>
+  </div>
+</header>
+
+<main>
+  <!-- STATS BANNER -->
+  <div class="hero-stats">
+    <div class="stat-card">
+      <div class="stat-icon green">⚽</div>
+      <div class="stat-info">
+        <h3>Vitórias Registradas (3 pts)</h3>
+        <div class="num" id="stat-vitorias">0</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon gold">🟡</div>
+      <div class="stat-info">
+        <h3>Empates / Meiuca (1 pt)</h3>
+        <div class="num" id="stat-empates">0</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red">🔴</div>
+      <div class="stat-info">
+        <h3>Derrotas / B.O. (0 pts)</h3>
+        <div class="num" id="stat-derrotas">0</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue">🔥</div>
+      <div class="stat-info">
+        <h3>Lances Auditados no D1</h3>
+        <div class="num" id="stat-lances">2.855</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA 1: SÉRIE A (FILIAIS) -->
+  <section id="tab-filiais" class="tab-content active">
+    <div class="table-card">
+      <div class="table-header">
+        <div>
+          <h2>Tabela Série A — Filiais Triunfante</h2>
+          <div class="table-subtitle">Classificação por Pontos Corridos • Vitória = 3 pts • Empate = 1 pt • Bônus de Constância</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tb-league">
+          <thead>
+            <tr>
+              <th style="width:60px">Pos</th>
+              <th>Filial</th>
+              <th style="text-align:right">PG (Pontos)</th>
+              <th style="text-align:center">J (Rodadas)</th>
+              <th style="text-align:center">V</th>
+              <th style="text-align:center">E</th>
+              <th style="text-align:center">D</th>
+              <th style="text-align:center">GP</th>
+              <th style="text-align:center">GC</th>
+              <th style="text-align:center">SG</th>
+              <th style="text-align:center">% Aprov</th>
+              <th style="text-align:center">Super Ped.</th>
+              <th style="text-align:center">Inativos</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-filiais">
+            <tr><td colspan="14" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando Série A...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABA 2: GERÊNCIAS -->
+  <section id="tab-gerencias" class="tab-content">
+    <div class="table-card">
+      <div class="table-header">
+        <div>
+          <h2>Campeonato de Gerências Regionais</h2>
+          <div class="table-subtitle">Disputa entre os Gerentes Comerciais • Média de pontos e regularidade das filiais lideradas</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tb-league">
+          <thead>
+            <tr>
+              <th style="width:60px">Pos</th>
+              <th>Gerente Regional</th>
+              <th>Filiais Sob Gestão</th>
+              <th style="text-align:right">PG (Pontos)</th>
+              <th style="text-align:center">Equipe (RCAs)</th>
+              <th style="text-align:center">V</th>
+              <th style="text-align:center">E</th>
+              <th style="text-align:center">D</th>
+              <th style="text-align:center">GP</th>
+              <th style="text-align:center">GC</th>
+              <th style="text-align:center">SG</th>
+              <th style="text-align:center">% Aprov</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-gerencias">
+            <tr><td colspan="12" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando Gerências...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABA 3: SUPERVISORES -->
+  <section id="tab-supervisores" class="tab-content">
+    <div class="table-card">
+      <div class="table-header">
+        <div>
+          <h2>Liga dos Supervisores Comerciais</h2>
+          <div class="table-subtitle">Pontuação da Equipe + Plus de Liderança Diária (Compromisso Matinal, RET em Campo, Fair Play)</div>
+        </div>
+        <div class="filter-row">
+          <input type="text" id="busca-sup" class="input-search" placeholder="🔍 Filtrar Supervisor ou Filial..." oninput="filtrarSupervisores()">
+          <select id="filtro-sup-filial" class="select-ctl" onchange="filtrarSupervisores()">
+            <option value="">Todas as Filiais</option>
+            <option value="ABC">ABC</option><option value="API">API</option><option value="MCD">MCD</option>
+            <option value="TBE">TBE</option><option value="TBL">TBL</option><option value="TCA">TCA</option>
+            <option value="TCG">TCG</option><option value="TCV">TCV</option><option value="TPA">TPA</option>
+            <option value="TPH">TPH</option><option value="TSJ">TSJ</option>
+          </select>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tb-league">
+          <thead>
+            <tr>
+              <th style="width:60px">Pos</th>
+              <th>Supervisor</th>
+              <th>Filial</th>
+              <th>Gerente</th>
+              <th style="text-align:right">PG Total</th>
+              <th style="text-align:center">Plus Liderança</th>
+              <th style="text-align:center">V</th>
+              <th style="text-align:center">E</th>
+              <th style="text-align:center">D</th>
+              <th style="text-align:center">SG</th>
+              <th style="text-align:center">% Aprov Equipe</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-supervisores">
+            <tr><td colspan="11" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando Supervisores...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABA 4: VENDEDORES -->
+  <section id="tab-vendedores" class="tab-content">
+    <div class="table-card">
+      <div class="table-header">
+        <div>
+          <h2>Artilharia & Desempenho dos Vendedores</h2>
+          <div class="table-subtitle">Você contra o seu próprio dia • Vitória no Dia (3 pts) • Bônus de Constância</div>
+        </div>
+        <div class="filter-row">
+          <input type="text" id="busca-vend" class="input-search" placeholder="🔍 Buscar Vendedor, RCA ou Supervisor..." oninput="filtrarVendedores()">
+          <select id="seletor-filial-vend" class="select-ctl" onchange="filtrarVendedores()">
+            <option value="BRASIL">BRASIL</option>
+            <option value="ABC">ABC</option>
+            <option value="API">API</option>
+            <option value="MCD">MCD</option>
+            <option value="TBE">TBE</option>
+            <option value="TBL">TBL</option>
+            <option value="TCA">TCA</option>
+            <option value="TCG">TCG</option>
+            <option value="TCV">TCV</option>
+            <option value="TPA">TPA</option>
+            <option value="TPH">TPH</option>
+            <option value="TSJ">TSJ</option>
+          </select>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tb-league">
+          <thead>
+            <tr>
+              <th style="width:70px">Posição</th>
+              <th>Vendedor (RCA)</th>
+              <th>Filial</th>
+              <th>Supervisor</th>
+              <th style="text-align:right">PG (Pontos)</th>
+              <th style="text-align:center">V</th>
+              <th style="text-align:center">E</th>
+              <th style="text-align:center">D</th>
+              <th style="text-align:center">% Aprov</th>
+              <th style="text-align:center">Forma Recente</th>
+              <th style="text-align:center">Bônus Streak</th>
+              <th style="text-align:center">Super Ped.</th>
+              <th style="text-align:center">Inativos</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-vendedores">
+            <tr><td colspan="13" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando Vendedores...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABA 5: REGULAMENTO & TROFEUS -->
+  <section id="tab-regulamento" class="tab-content">
+    <div class="table-card" style="padding:28px">
+      <div class="table-title">
+        <h2>Regulamento Oficial da Liga Triunfante 2026</h2>
+      </div>
+      <p class="table-subtitle" style="margin-bottom:24px">
+        Metodologia auditada pela diretoria comercial • Foco em Processo, Atitude e Constância Diária.
+      </p>
+
+      <div class="rule-card">
+        <h3>1. A Regra do Jogo: Cada Dia é uma Rodada (Você Contra o Seu Dia)</h3>
+        <p>
+          O vendedor não disputa contra o tamanho da rota do colega. Ele disputa contra o seu próprio desafio diário.
+          <br><br>
+          🟢 <strong>Vitória no Dia (3 Pontos de Tabela):</strong> Vendedor fez a maioria das coisas boas — cumpriu $\ge 80\%$ da agenda de visitas do CEVEN, positivou clientes batendo a cota proporcional do dia e teve <strong>zero cartões vermelhos</strong>.
+          <br>
+          🟡 <strong>Empate no Dia (1 Ponto de Tabela):</strong> Ficou na meiuca — trabalhou em campo ($50\%$ a $79\%$ de visitas), teve venda parcial, mas faltou pontaria para bater o dia cheio.
+          <br>
+          🔴 <strong>Derrota no Dia (0 Pontos de Tabela):</strong> Só deu B.O. — menos de $50\%$ de visitas, zerado em vendas sem motivo de campo, OU cometeu infração grave (cartão vermelho/check-in 00:00).
+        </p>
+      </div>
+
+      <div class="rule-card">
+        <h3>2. Bônus de Constância (Streak / Regularidade)</h3>
+        <p>
+          Não adianta arrebentar na terça e sumir no resto da semana. A constância gera bônus na tabela:
+          <br><br>
+          🔥 <strong>Hat-Trick (3 Vitórias Seguidas):</strong> +3 Pontos extras na tabela de classificação.
+          <br>
+          👑 <strong>Semana Invicta (5 Vitórias de Segunda a Sexta):</strong> +6 Pontos extras na tabela (equivalente a 2 vitórias de bônus!).
+        </p>
+      </div>
+
+      <div class="rule-card">
+        <h3>3. Critérios de Desempate (Saldo de Lances & Artilharia)</h3>
+        <p>
+          Se houver empate em pontos de tabela, os critérios oficiais de desempate são:
+          <br>
+          1º) Maior Número de Vitórias (V) • 2º) Maior Saldo de Gols (SG = Gols Pró - Faltas Contra) • 3º) Mais Inativos Resgatados • 4º) Maior Positivação Total.
+        </p>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>
+    <strong>CEVEN — Brasileirão Triunfante 2026</strong> • Grupo Triunfante Distribuidora<br>
+    Sistema Soberano 100% Online • Sincronização em Tempo Real via Cloudflare Edge
+  </p>
+</footer>
+
+<script>
+let DADOS = null;
+
+async function carregarDados() {
+  try {
+    const res = await fetch('/dados_brasileirao.json?t=' + Date.now(), { cache: 'no-store' });
+    if (res.ok) {
+      DADOS = await res.json();
+      renderizarTudo();
+    }
+  } catch (e) {
+    console.error('Erro ao carregar dados:', e);
+  }
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  
+  event.currentTarget.classList.add('active');
+  const target = document.getElementById('tab-' + tabId);
+  if (target) target.classList.add('active');
+}
+
+function renderizarTudo() {
+  if (!DADOS) return;
+
+  // 1. Filiais (Série A)
+  const tbF = document.getElementById('tbody-filiais');
+  if (tbF && DADOS.filiais) {
+    let totV = 0, totE = 0, totD = 0;
+    tbF.innerHTML = DADOS.filiais.map(f => {
+      totV += f.vitorias; totE += f.empates; totD += f.derrotas;
+      const posClass = f.pos <= 4 ? 'pos-g4' : (f.pos >= 8 ? 'pos-z4' : 'pos-mid');
+      const statusPill = f.pos <= 4 
+        ? `<span class="tag-badge tag-v">🏆 G4</span>` 
+        : (f.pos >= 8 ? `<span class="tag-badge tag-d">⚠️ Z4</span>` : `<span class="tag-badge tag-e">Meio de Tabela</span>`);
+
+      return `
+        <tr>
+          <td><span class="pos-box ${posClass}">${f.pos}º</span></td>
+          <td>
+            <div class="team-cell">
+              <div class="team-shield">${f.sigla}</div>
+              <div>
+                <div class="team-name">${f.sigla}</div>
+                <div class="team-sub">${f.total_vendedores} Vendedores</div>
+              </div>
+            </div>
+          </td>
+          <td style="text-align:right" class="pts-cell">${f.pts_tabela}</td>
+          <td style="text-align:center;font-weight:700">${f.jogos}</td>
+          <td style="text-align:center"><span class="tag-badge tag-v">${f.vitorias}</span></td>
+          <td style="text-align:center"><span class="tag-badge tag-e">${f.empates}</span></td>
+          <td style="text-align:center"><span class="tag-badge tag-d">${f.derrotas}</span></td>
+          <td style="text-align:center;color:#4ade80;font-weight:700">${f.gp}</td>
+          <td style="text-align:center;color:#f87171;font-weight:700">${f.gc}</td>
+          <td style="text-align:center;font-weight:700">${f.sg >= 0 ? '+' + f.sg : f.sg}</td>
+          <td style="text-align:center;font-weight:700;color:var(--acc)">${f.aprov}%</td>
+          <td style="text-align:center">${f.super_pedidos}</td>
+          <td style="text-align:center">${f.inativos_resgatados}</td>
+          <td>${statusPill}</td>
+        </tr>
+      `;
+    }).join('');
+
+    document.getElementById('stat-vitorias').textContent = totV;
+    document.getElementById('stat-empates').textContent = totE;
+    document.getElementById('stat-derrotas').textContent = totD;
+    document.getElementById('stat-lances').textContent = DADOS.total_lances_auditados || '2.855';
+  }
+
+  // 2. Gerentes
+  const tbG = document.getElementById('tbody-gerencias');
+  if (tbG && DADOS.gerentes) {
+    tbG.innerHTML = DADOS.gerentes.map(g => {
+      const posClass = g.pos <= 3 ? 'pos-g4' : 'pos-mid';
+      return `
+        <tr>
+          <td><span class="pos-box ${posClass}">${g.pos}º</span></td>
+          <td><strong style="color:#fff;font-size:14px">${g.nome}</strong></td>
+          <td><span class="tag-badge" style="background:rgba(56,189,248,0.15);color:var(--acc);">${g.filiais.join(', ')}</span></td>
+          <td style="text-align:right" class="pts-cell">${g.pts_tabela}</td>
+          <td style="text-align:center">${g.total_vendedores}</td>
+          <td style="text-align:center"><span class="tag-badge tag-v">${g.vitorias}</span></td>
+          <td style="text-align:center"><span class="tag-badge tag-e">${g.empates}</span></td>
+          <td style="text-align:center"><span class="tag-badge tag-d">${g.derrotas}</span></td>
+          <td style="text-align:center;color:#4ade80;font-weight:700">${g.gp}</td>
+          <td style="text-align:center;color:#f87171;font-weight:700">${g.gc}</td>
+          <td style="text-align:center;font-weight:700">${g.sg >= 0 ? '+' + g.sg : g.sg}</td>
+          <td style="text-align:center;font-weight:700;color:var(--acc)">${g.aprov}%</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // 3. Supervisores
+  filtrarSupervisores();
+
+  // 4. Vendedores
+  filtrarVendedores();
+}
+
+function filtrarSupervisores() {
+  if (!DADOS || !DADOS.supervisores) return;
+  const q = (document.getElementById('busca-sup').value || '').toLowerCase();
+  const f = document.getElementById('filtro-sup-filial').value;
+
+  const filtrados = DADOS.supervisores.filter(s => {
+    const matchQ = s.supervisor.toLowerCase().includes(q) || s.filial.toLowerCase().includes(q);
+    const matchF = !f || s.filial === f;
+    return matchQ && matchF;
+  });
+
+  const tbS = document.getElementById('tbody-supervisores');
+  tbS.innerHTML = filtrados.map(s => {
+    const posClass = s.pos <= 5 ? 'pos-g4' : 'pos-mid';
+    return `
+      <tr>
+        <td><span class="pos-box ${posClass}">${s.pos}º</span></td>
+        <td><strong style="color:#fff">${s.supervisor}</strong></td>
+        <td><span class="tag-badge" style="background:rgba(56,189,248,0.15);color:var(--acc);">${s.filial}</span></td>
+        <td style="color:var(--tx-mut);font-size:12px;">${s.gerente || '—'}</td>
+        <td style="text-align:right" class="pts-cell">${s.pts_tabela}</td>
+        <td style="text-align:center"><span class="tag-badge tag-v">+${s.plus_lideranca} pts</span></td>
+        <td style="text-align:center"><span class="tag-badge tag-v">${s.vitorias}</span></td>
+        <td style="text-align:center"><span class="tag-badge tag-e">${s.empates}</span></td>
+        <td style="text-align:center"><span class="tag-badge tag-d">${s.derrotas}</span></td>
+        <td style="text-align:center;font-weight:700">${s.sg >= 0 ? '+' + s.sg : s.sg}</td>
+        <td style="text-align:center;font-weight:700;color:var(--acc)">${s.aprov}%</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filtrarVendedores() {
+  if (!DADOS || !DADOS.vendedores) return;
+  const q = (document.getElementById('busca-vend').value || '').toLowerCase();
+  const f = document.getElementById('seletor-filial-vend').value;
+
+  let lista = DADOS.vendedores;
+  const isBrasil = (f === 'BRASIL');
+  if (!isBrasil) {
+    lista = lista.filter(v => v.filial === f);
+  }
+
+  if (q) {
+    lista = lista.filter(v => 
+      v.nome.toLowerCase().includes(q) || 
+      v.rca.toLowerCase().includes(q) || 
+      (v.supervisor && v.supervisor.toLowerCase().includes(q))
+    );
+  }
+
+  const tbV = document.getElementById('tbody-vendedores');
+  tbV.innerHTML = lista.slice(0, 100).map(v => {
+    const posNum = isBrasil ? v.pos_brasil : v.pos_filial;
+    const posClass = posNum <= 3 ? 'pos-g4' : 'pos-mid';
+    const subPos = !isBrasil ? `<span style="font-size:10px;color:var(--tx-mut);display:block">(${v.pos_brasil}º no Brasil)</span>` : '';
+
+    const formaHtml = v.forma.map(r => `<span class="dot-forma ${r}">${r}</span>`).join('');
+    const streakHtml = v.bonus_constancia > 0 
+      ? `<span class="tag-badge tag-v">🔥 +${v.bonus_constancia} pts (${v.streak}x)</span>` 
+      : `<span style="color:var(--tx-mut);font-size:11px">—</span>`;
+
+    return `
+      <tr>
+        <td><span class="pos-box ${posClass}">${posNum}º</span>${subPos}</td>
+        <td>
+          <div style="font-weight:700;color:#fff">${v.nome}</div>
+          <div style="font-size:11px;color:var(--tx-mut)">RCA ${v.rca}</div>
+        </td>
+        <td><span class="tag-badge" style="background:rgba(56,189,248,0.15);color:var(--acc);">${v.filial}</span></td>
+        <td style="color:var(--tx-mut);font-size:12px;">${v.supervisor || '—'}</td>
+        <td style="text-align:right" class="pts-cell">${v.pts_tabela}</td>
+        <td style="text-align:center"><span class="tag-badge tag-v">${v.vitorias}</span></td>
+        <td style="text-align:center"><span class="tag-badge tag-e">${v.empates}</span></td>
+        <td style="text-align:center"><span class="tag-badge tag-d">${v.derrotas}</span></td>
+        <td style="text-align:center;font-weight:700;color:var(--acc)">${v.aprov}%</td>
+        <td style="text-align:center"><div class="forma-container">${formaHtml}</div></td>
+        <td style="text-align:center">${streakHtml}</td>
+        <td style="text-align:center;font-weight:700">${v.super_pedidos}</td>
+        <td style="text-align:center;font-weight:700">${v.inativos_resgatados}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+window.addEventListener('load', carregarDados);
+</script>
+</body>
+</html>

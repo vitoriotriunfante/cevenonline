@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CEVEN — Gestão Soberana de Equipe & Aprovação de Hierarquia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #070b14;
+  --surface: #0e172a;
+  --surface-hover: #1e293b;
+  --surface-card: rgba(15, 23, 42, 0.85);
+  --border: rgba(56, 189, 248, 0.15);
+  --border-focus: rgba(56, 189, 248, 0.4);
+  --tx: #f8fafc;
+  --tx-mut: #94a3b8;
+  --acc: #38bdf8;
+  --acc-glow: rgba(56, 189, 248, 0.35);
+  --ok: #22c55e;
+  --ok-glow: rgba(34, 197, 94, 0.3);
+  --warn: #eab308;
+  --warn-glow: rgba(234, 179, 8, 0.35);
+  --bad: #ef4444;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--tx);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.1) 0%, transparent 60%),
+    radial-gradient(circle at 10% 40%, rgba(34, 197, 94, 0.06) 0%, transparent 40%);
+}
+
+/* HEADER */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(7, 11, 20, 0.95);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-badge {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #fff;
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  box-shadow: 0 0 16px var(--acc-glow);
+}
+.brand-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+}
+.brand-sub {
+  font-size: 12px;
+  color: var(--tx-mut);
+}
+
+.user-badge-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #fff;
+}
+.user-badge-header strong { color: var(--acc); }
+
+.nav-links {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.nav-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--tx);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.nav-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: var(--acc);
+}
+
+.btn-aprovacoes {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #000;
+  font-weight: 800;
+  border: 1px solid #fbbf24;
+  box-shadow: 0 0 16px var(--warn-glow);
+  animation: pulse-warn 2s infinite;
+}
+@keyframes pulse-warn {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+.btn-enviar-solic {
+  background: linear-gradient(135deg, #eab308, #ca8a04);
+  color: #000;
+  font-weight: 800;
+  border: 1px solid #fde047;
+  box-shadow: 0 0 14px var(--warn-glow);
+}
+.btn-enviar-solic:hover {
+  background: linear-gradient(135deg, #fde047, #eab308);
+  transform: translateY(-1px);
+}
+
+.btn-save-main {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #fff;
+  border: 1px solid var(--ok);
+  box-shadow: 0 0 14px var(--ok-glow);
+}
+.btn-save-main:hover {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  transform: translateY(-1px);
+}
+.btn-add-main {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #fff;
+  border: 1px solid var(--acc);
+}
+
+main {
+  flex: 1;
+  max-width: 1500px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 24px 80px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* BANNER DE FLUXO DE APROVAÇÃO */
+.approval-banner {
+  background: linear-gradient(90deg, rgba(234, 179, 8, 0.12), rgba(56, 189, 248, 0.08));
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  border-radius: 12px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.approval-banner-text {
+  font-size: 13px;
+  color: #fde047;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.approval-banner-text strong { color: #fff; }
+
+/* KPI CARDS */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+.kpi-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.kpi-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--tx-mut);
+  text-transform: uppercase;
+}
+.kpi-val {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: #fff;
+}
+.kpi-sub {
+  font-size: 12px;
+  color: var(--tx-mut);
+}
+
+/* CONTROLS */
+.controls-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 22px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+.filter-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  flex: 1;
+}
+.search-inp {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid var(--border);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  min-width: 280px;
+  flex: 1;
+}
+.search-inp:focus {
+  outline: none;
+  border-color: var(--acc);
+  box-shadow: 0 0 10px var(--acc-glow);
+}
+.select-filter {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid var(--border);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.select-filter:focus {
+  outline: none;
+  border-color: var(--acc);
+}
+
+/* TABELA */
+.table-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.table-responsive {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 340px);
+  min-height: 420px;
+  scroll-behavior: smooth;
+}
+.table-responsive::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.table-responsive::-webkit-scrollbar-track {
+  background: #0b1120;
+}
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #38bdf8;
+}
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+  font-size: 13px;
+}
+thead th {
+  background: #0f172a !important; /* 100% Sólido e totalmente opaco: impede sobreposição de texto ao rolar */
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding: 14px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+  border-bottom: 2px solid #38bdf8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+}
+tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  vertical-align: middle;
+}
+tbody tr:hover {
+  background: var(--surface-hover);
+}
+tbody tr.tr-alterada {
+  background: rgba(234, 179, 8, 0.08) !important;
+  border-left: 3px solid var(--warn);
+}
+
+.badge-fil {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--acc);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.badge-rca {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: #fff;
+  font-size: 12px;
+}
+.badge-canal {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.canal-vj { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+.canal-as { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
+
+.tag-pendente-envio {
+  background: rgba(234, 179, 8, 0.2);
+  color: #fde047;
+  border: 1px solid rgba(234, 179, 8, 0.5);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+/* TOGGLE SWITCH */
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.toggle-slider {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: rgba(239, 68, 68, 0.4);
+  border: 1px solid rgba(239, 68, 68, 0.6);
+  border-radius: 24px;
+  transition: 0.3s;
+}
+.toggle-slider:before {
+  content: "";
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+input:checked + .toggle-slider {
+  background: rgba(34, 197, 94, 0.4);
+  border-color: rgba(34, 197, 94, 0.8);
+}
+input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+  background-color: #22c55e;
+}
+.toggle-label {
+  font-size: 11px;
+  font-weight: 700;
+}
+.toggle-label.on { color: var(--ok); }
+.toggle-label.off { color: var(--bad); }
+
+/* MODAIS GERAIS */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(3, 7, 18, 0.88);
+  backdrop-filter: blur(14px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-box {
+  background: #0e172a;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 540px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+}
+.modal-lg {
+  max-width: 950px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.form-input {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid var(--border);
+  color: #fff;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.form-input:focus {
+  outline: none;
+  border-color: var(--acc);
+}
+
+.btn-login {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #fff;
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+  box-shadow: 0 0 16px var(--acc-glow);
+}
+.btn-login:hover {
+  background: linear-gradient(135deg, #0369a1, #075985);
+  transform: translateY(-1px);
+}
+.login-err {
+  color: var(--bad);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  display: none;
+}
+
+/* CARDS DE SOLICITAÇÃO */
+.solic-card {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.solic-info h4 {
+  font-size: 14px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.solic-info p {
+  font-size: 12px;
+  color: var(--tx-mut);
+  margin-top: 4px;
+}
+.solic-motivo {
+  font-size: 12px;
+  color: #fde047;
+  background: rgba(234, 179, 8, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-top: 6px;
+  display: inline-block;
+}
+.btn-action-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-aprovar {
+  background: #16a34a;
+  color: #fff;
+}
+.btn-aprovar:hover { background: #22c55e; }
+.btn-rejeitar {
+  background: #dc2626;
+  color: #fff;
+}
+.btn-rejeitar:hover { background: #ef4444; }
+
+/* TOAST */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(14, 23, 42, 0.96);
+  border: 1px solid var(--ok);
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 24px rgba(34, 197, 94, 0.3);
+  display: none;
+  z-index: 1000;
+  font-size: 13px;
+  font-weight: 600;
+}
+</style>
+</head>
+<body>
+
+<!-- MODAL DE IDENTIFICAÇÃO (SEM PIN PARA FILIAIS) -->
+<div id="login-overlay" class="modal-overlay" style="display:flex;">
+  <div class="modal-box">
+    <div style="text-align:center;font-size:36px">👤</div>
+    <div style="text-align:center;">
+      <h2 style="font-size:20px;color:#fff;">Identificação da Equipe</h2>
+      <p style="font-size:12px;color:var(--tx-mut);margin-top:4px;">Selecione sua filial e informe seu nome para enviar ajustes</p>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Filial</label>
+      <select id="login-perfil" class="form-input" onchange="alternarCamposLogin()">
+        <option value="ABC">ABC</option>
+        <option value="API">API</option>
+        <option value="MCD">MCD</option>
+        <option value="TBE">TBE</option>
+        <option value="TBL">TBL</option>
+        <option value="TCA">TCA</option>
+        <option value="TCG">TCG</option>
+        <option value="TCV">TCV</option>
+        <option value="TPA">TPA</option>
+        <option value="TPH">TPH</option>
+        <option value="TSJ">TSJ</option>
+        <option value="DIRETORIA">DIRETORIA</option>
+      </select>
+    </div>
+
+    <div class="form-group" id="grupo-nome-solicitante">
+      <label class="form-label">Seu Nome (Supervisor / Solicitante)</label>
+      <input type="text" id="login-nome-solicitante" class="form-input" placeholder="Digite seu nome completo (ex: Marcos, João)...">
+    </div>
+
+    <div class="form-group" id="grupo-pin-diretoria" style="display:none;">
+      <label class="form-label">PIN de Diretoria</label>
+      <input type="password" id="login-pin" class="form-input" placeholder="Digite o PIN master da Diretoria...">
+      <div id="login-msg-erro" class="login-err" style="margin-top:6px;">PIN incorreto para Diretoria.</div>
+    </div>
+
+    <button class="btn-login" onclick="efetuarLogin()">Acessar Painel</button>
+  </div>
+</div>
+
+<!-- MODAL SOLICITAR NOVO VENDEDOR -->
+<div id="modal-novo-vend" class="modal-overlay">
+  <div class="modal-box">
+    <h3 style="color:#fff;font-size:18px;" id="modal-novo-titulo">➕ Solicitar Inclusão de Novo Vendedor</h3>
+    <p style="font-size:12px;color:var(--tx-mut);">O cadastro entrará como solicitação e será analisado pela Diretoria.</p>
+
+    <div class="form-group">
+      <label class="form-label">Código RCA</label>
+      <input type="text" id="novo-rca" class="form-input" placeholder="Ex: 1145">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Nome Completo do Vendedor</label>
+      <input type="text" id="novo-nome" class="form-input" placeholder="Ex: JOAO DA SILVA">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Canal Comercial</label>
+      <select id="novo-canal" class="form-input">
+        <option value="VJ">Varejo Tradicional (VJ)</option>
+        <option value="AS">Auto Serviço / Redes (AS)</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Supervisor Imediato</label>
+      <input type="text" id="novo-sup" class="form-input" placeholder="Ex: EDER LUCAS DAS FLORES">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Justificativa / Motivo da Inclusão</label>
+      <input type="text" id="novo-motivo-txt" class="form-input" placeholder="Ex: Contratado em 22/09 para cobrir rota aberta">
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:10px;">
+      <button class="nav-btn btn-save-main" style="flex:1" onclick="confirmarNovoVendedor()">Confirmar Solicitação</button>
+      <button class="nav-btn" onclick="fecharModalNovo()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CENTRAL DE APROVAÇÕES (DIRETORIA) -->
+<div id="modal-aprovacoes" class="modal-overlay">
+  <div class="modal-box modal-lg">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:12px;">
+      <div>
+        <h3 style="color:#fff;font-size:18px;">📥 Central de Aprovações da Diretoria</h3>
+        <p style="font-size:12px;color:var(--tx-mut);">Ajustes de visibilidade e novos vendedores solicitados pelos gerentes de filial</p>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="nav-btn btn-save-main" onclick="aprovarTodasSolicitacoes()">⚡ Aprovar Todas as Pendentes</button>
+        <button class="nav-btn" onclick="fecharModalAprovacoes()">✖ Fechar</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;align-items:center;">
+      <select id="filtro-solic-filial" class="select-filter" onchange="renderizarAprovacoesModal()">
+        <option value="TODAS">Todas as Filiais</option>
+        <option value="ABC">ABC</option>
+        <option value="API">API</option>
+        <option value="MCD">MCD</option>
+        <option value="TBE">TBE</option>
+        <option value="TBL">TBL</option>
+        <option value="TCA">TCA</option>
+        <option value="TCG">TCG</option>
+        <option value="TCV">TCV</option>
+        <option value="TPA">TPA</option>
+        <option value="TPH">TPH</option>
+        <option value="TSJ">TSJ</option>
+      </select>
+      <span style="font-size:12px;color:var(--tx-mut);" id="lbl-total-pendentes-modal">0 solicitações pendentes</span>
+    </div>
+
+    <div id="lista-solicitacoes-aprov" style="display:flex;flex-direction:column;gap:10px;max-height:55vh;overflow-y:auto;padding-right:6px;">
+      <div style="text-align:center;padding:30px;color:var(--tx-mut);">Nenhuma solicitação pendente no momento.</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MINHAS SOLICITAÇÕES (GERENTE) -->
+<div id="modal-minhas-solic" class="modal-overlay">
+  <div class="modal-box modal-lg">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:12px;">
+      <div>
+        <h3 style="color:#fff;font-size:18px;">📋 Minhas Solicitações Enviadas</h3>
+        <p style="font-size:12px;color:var(--tx-mut);">Histórico de pedidos de ajuste de equipe enviados para a Diretoria</p>
+      </div>
+      <button class="nav-btn" onclick="fecharModalMinhasSolic()">✖ Fechar</button>
+    </div>
+
+    <div id="lista-minhas-solic" style="display:flex;flex-direction:column;gap:10px;max-height:55vh;overflow-y:auto;padding-right:6px;">
+      <div style="text-align:center;padding:30px;color:var(--tx-mut);">Carregando solicitações...</div>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="brand">
+    <div class="brand-badge">CEVEN SOBERANO</div>
+    <div>
+      <div class="brand-title">Gestão de Equipe & Hierarquia Comercial</div>
+      <div class="brand-sub">Base soberana viva para WhatsApp, CFTV, TV Executiva e Brasileirão</div>
+    </div>
+  </div>
+
+  <div class="user-badge-header" id="user-display">
+    <span>👤 Logado como:</span> <strong id="logged-user-name">Carregando...</strong>
+    <button onclick="logout()" style="background:none;border:none;color:var(--bad);cursor:pointer;font-weight:700;font-size:11px;margin-left:6px;">[Sair]</button>
+  </div>
+
+  <div class="nav-links">
+    <!-- BOTÕES DINÂMICOS CONFORME O PERFIL -->
+    <button class="nav-btn btn-aprovacoes" id="btn-central-aprov" style="display:none;" onclick="abrirModalAprovacoes()">
+      📥 Central de Aprovações (<span id="count-pendentes-header">0</span>)
+    </button>
+
+    <button class="nav-btn btn-enviar-solic" id="btn-enviar-solic" style="display:none;" onclick="enviarSolicitacoesGerente()">
+      📤 Enviar Solicitações para Diretoria (<span id="count-solic-local">0</span>)
+    </button>
+
+    <button class="nav-btn" id="btn-minhas-solic" style="display:none;" onclick="abrirModalMinhasSolicitacoes()">
+      📋 Minhas Solicitações
+    </button>
+
+    <button class="nav-btn btn-add-main" id="btn-add-vend" onclick="abrirModalNovo()">➕ Novo Vendedor</button>
+    
+    <a href="/brasileirao" class="nav-btn">⚽ Brasileirão</a>
+    <a href="/apresentacao-diretoria" class="nav-btn">📊 Apresentação</a>
+    
+    <button class="nav-btn btn-save-main" id="btn-salvar-master" style="display:none;" onclick="salvarAlteracoesMaster()">
+      💾 Salvar no CEVEN (Master)
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- BANNER EXCLUSIVO DE INSTRUÇÃO E FLUXO -->
+  <div class="approval-banner" id="banner-workflow">
+    <div class="approval-banner-text" id="banner-msg">
+      <span>🛡️</span>
+      <div>
+        <strong>Governança de Hierarquia:</strong> Ajustes efetuados por gerentes entram na fila de aprovação antes de impactar a TV e o Brasileirão.
+      </div>
+    </div>
+    <div id="banner-action"></div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-lbl">Total Cadastrado (ERP + CEVEN)</div>
+      <div class="kpi-val" id="kpi-total">656</div>
+      <div class="kpi-sub">RCAs no banco integrado</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-lbl">Ativos em Campo (TV)</div>
+      <div class="kpi-val" style="color:var(--ok);" id="kpi-ativos">591</div>
+      <div class="kpi-sub">Participam das rodadas</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-lbl">Ocultos / Folga / Férias</div>
+      <div class="kpi-val" style="color:var(--warn);" id="kpi-ocultos">65</div>
+      <div class="kpi-sub">Não pontuam cartões</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-lbl">Canais Comerciais</div>
+      <div class="kpi-val" style="color:var(--acc);" id="kpi-canais">VJ / AS</div>
+      <div class="kpi-sub">Varejo & Auto Serviço</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-lbl">Filiais Triunfante</div>
+      <div class="kpi-val">11</div>
+      <div class="kpi-sub">Gestão Descentralizada</div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="controls-card">
+    <div class="filter-group">
+      <input type="text" id="filtro-busca" class="search-inp" placeholder="🔍 Pesquisar por Nome, RCA, Supervisor, Gerente..." oninput="filtrarTabela()">
+      
+      <select id="filtro-filial" class="select-filter" onchange="filtrarTabela()">
+        <option value="TODAS">TODAS</option>
+        <option value="ABC">ABC</option>
+        <option value="API">API</option>
+        <option value="MCD">MCD</option>
+        <option value="TBE">TBE</option>
+        <option value="TBL">TBL</option>
+        <option value="TCA">TCA</option>
+        <option value="TCG">TCG</option>
+        <option value="TCV">TCV</option>
+        <option value="TPA">TPA</option>
+        <option value="TPH">TPH</option>
+        <option value="TSJ">TSJ</option>
+      </select>
+
+      <select id="filtro-canal" class="select-filter" onchange="filtrarTabela()">
+        <option value="TODOS">Todos os Canais</option>
+        <option value="VJ">Varejo (VJ)</option>
+        <option value="AS">Auto Serviço (AS)</option>
+      </select>
+
+      <select id="filtro-status" class="select-filter" onchange="filtrarTabela()">
+        <option value="TODOS">Todos os Status</option>
+        <option value="ATIVOS">Somente Ativos na TV (SIM)</option>
+        <option value="OCULTOS">Somente Ocultos (NÃO)</option>
+      </select>
+    </div>
+
+    <div>
+      <button class="nav-btn" onclick="exportarJSON()">📥 Exportar JSON</button>
+    </div>
+  </div>
+
+  <!-- TABELA DE GESTAO -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Filial</th>
+            <th>RCA</th>
+            <th>Vendedor</th>
+            <th>Canal</th>
+            <th>Supervisor</th>
+            <th>Gerente Regional</th>
+            <th>Status na TV / Brasileirão</th>
+            <th>Motivo / Observação</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-corpo">
+          <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--tx-mut);">Carregando base soberana de equipe...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="table-footer-bar" style="padding:12px 18px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#0b1120;font-size:12px;color:var(--tx-mut);">
+      <div>Exibindo <strong id="lbl-count-exibidos" style="color:#38bdf8;">0</strong> vendedores</div>
+      <div style="font-size:11px;">💡 Role a tabela para visualizar todos os vendedores da filial</div>
+    </div>
+  </div>
+</main>
+
+<div id="toast">Notificação do CEVEN</div>
+
+<script>
+let BASE_MOSTRA = null;
+let FILTRADOS = [];
+let USUARIO_LOGADO = null; 
+
+// Alterações locais pendentes de envio pelo gerente
+let SOLICITACOES_PENDENTES_ENVIO = {}; // { "ABC_1045": { fil, rca, nome, canal, supervisor, acao, motivo } }
+
+// Solicitações carregadas do banco D1
+let SOLICITACOES_D1 = [];
+let TOTAL_PENDENTES_D1 = 0;
+
+function alternarCamposLogin() {
+  const perfil = document.getElementById('login-perfil').value;
+  const grupoNome = document.getElementById('grupo-nome-solicitante');
+  const grupoPin = document.getElementById('grupo-pin-diretoria');
+  const erroMsg = document.getElementById('login-msg-erro');
+  erroMsg.style.display = 'none';
+
+  if (perfil === 'DIRETORIA') {
+    grupoNome.style.display = 'none';
+    grupoPin.style.display = 'block';
+  } else {
+    grupoNome.style.display = 'block';
+    grupoPin.style.display = 'none';
+  }
+}
+
+function checarLoginSalvo() {
+  const salvo = sessionStorage.getItem('ceven_gestao_usuario');
+  if (salvo) {
+    try {
+      USUARIO_LOGADO = JSON.parse(salvo);
+      aplicarPerfilUsuario();
+      document.getElementById('login-overlay').style.display = 'none';
+      return true;
+    } catch(e) {}
+  }
+  document.getElementById('login-overlay').style.display = 'flex';
+  alternarCamposLogin();
+  return false;
+}
+
+function efetuarLogin() {
+  const perfil = document.getElementById('login-perfil').value;
+  const erroMsg = document.getElementById('login-msg-erro');
+  erroMsg.style.display = 'none';
+
+  if (perfil === 'DIRETORIA') {
+    const pin = document.getElementById('login-pin').value.trim();
+    if (pin === '2026' || pin === 'triunfante') {
+      USUARIO_LOGADO = {
+        perfil: 'DIRETORIA',
+        nome: 'Vitório Neto (Diretoria)',
+        isDiretoria: true
+      };
+      sessionStorage.setItem('ceven_gestao_usuario', JSON.stringify(USUARIO_LOGADO));
+      document.getElementById('login-overlay').style.display = 'none';
+      aplicarPerfilUsuario();
+      filtrarTabela();
+    } else {
+      erroMsg.textContent = 'PIN de Diretoria incorreto.';
+      erroMsg.style.display = 'block';
+    }
+  } else {
+    // FILIAL / SUPERVISOR: ZERO PIN! SÓ PREENCHE O NOME
+    const nome = document.getElementById('login-nome-solicitante').value.trim();
+    if (!nome) {
+      alert('Por favor, informe seu nome para registrar quem está solicitando os ajustes.');
+      return;
+    }
+    USUARIO_LOGADO = {
+      perfil: perfil,
+      nome: nome,
+      isDiretoria: false
+    };
+    sessionStorage.setItem('ceven_gestao_usuario', JSON.stringify(USUARIO_LOGADO));
+    document.getElementById('login-overlay').style.display = 'none';
+    aplicarPerfilUsuario();
+    filtrarTabela();
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem('ceven_gestao_usuario');
+  location.reload();
+}
+
+function aplicarPerfilUsuario() {
+  if (!USUARIO_LOGADO) return;
+  document.getElementById('logged-user-name').textContent = `${USUARIO_LOGADO.nome} (${USUARIO_LOGADO.perfil})`;
+  
+  const selectFilial = document.getElementById('filtro-filial');
+  const btnCentralAprov = document.getElementById('btn-central-aprov');
+  const btnEnviarSolic = document.getElementById('btn-enviar-solic');
+  const btnMinhasSolic = document.getElementById('btn-minhas-solic');
+  const btnSalvarMaster = document.getElementById('btn-salvar-master');
+  const btnAddVend = document.getElementById('btn-add-vend');
+
+  if (USUARIO_LOGADO.isDiretoria) {
+    selectFilial.disabled = false;
+    btnCentralAprov.style.display = 'inline-flex';
+    btnSalvarMaster.style.display = 'inline-flex';
+    btnEnviarSolic.style.display = 'none';
+    btnMinhasSolic.style.display = 'none';
+    btnAddVend.textContent = '➕ Novo Vendedor (Direto)';
+    document.getElementById('banner-msg').innerHTML = '<span>👑</span><div><strong>Modo Diretoria Geral:</strong> Você tem autoridade total para aprovar solicitações de gerentes e efetuar edições diretas na base soberana.</div>';
+    carregarSolicitacoesD1();
+  } else {
+    selectFilial.value = USUARIO_LOGADO.perfil;
+    selectFilial.disabled = true; // Trava o gerente na filial dele!
+    btnCentralAprov.style.display = 'none';
+    btnSalvarMaster.style.display = 'none';
+    btnEnviarSolic.style.display = 'inline-flex';
+    btnMinhasSolic.style.display = 'inline-flex';
+    btnAddVend.textContent = '➕ Solicitar Novo Vendedor';
+    document.getElementById('banner-msg').innerHTML = `<span>🛡️</span><div><strong>Filial ${USUARIO_LOGADO.perfil} (${USUARIO_LOGADO.nome}):</strong> Altere os vendedores que deseja ativar/ocultar e clique em <em>Enviar Solicitações para Diretoria</em>. As alterações serão validadas por Vitório Neto.</div>`;
+    carregarMinhasSolicitacoesD1();
+  }
+}
+
+async function carregarDados() {
+  try {
+    let res = await fetch('/api/tv-mostra?t=' + Date.now());
+    if (!res.ok) {
+      res = await fetch('/mostra_vendedores.json?t=' + Date.now());
+    }
+    BASE_MOSTRA = await res.json();
+    atualizarKPIs();
+    filtrarTabela();
+  } catch (err) {
+    try {
+      const res = await fetch('/mostra_vendedores.json?t=' + Date.now());
+      BASE_MOSTRA = await res.json();
+      atualizarKPIs();
+      filtrarTabela();
+    } catch (e2) {
+      document.getElementById('tabela-corpo').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--bad);">Erro ao carregar lista de vendedores: ${err.message}</td></tr>`;
+    }
+  }
+}
+
+function atualizarKPIs() {
+  if (!BASE_MOSTRA || !BASE_MOSTRA.filiais) return;
+  let total = 0, ativos = 0, ocultos = 0;
+  
+  const filFiltro = (!USUARIO_LOGADO || USUARIO_LOGADO.isDiretoria) ? null : USUARIO_LOGADO.perfil;
+
+  Object.entries(BASE_MOSTRA.filiais).forEach(([fil, lista]) => {
+    if (filFiltro && fil !== filFiltro) return;
+    lista.forEach(r => {
+      total++;
+      if (r.mostra) ativos++;
+      else ocultos++;
+    });
+  });
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-ativos').textContent = ativos;
+  document.getElementById('kpi-ocultos').textContent = ocultos;
+}
+
+function filtrarTabela() {
+  if (!BASE_MOSTRA || !BASE_MOSTRA.filiais) return;
+  const busca = document.getElementById('filtro-busca').value.toLowerCase().trim();
+  const filial = document.getElementById('filtro-filial').value;
+  const canal = document.getElementById('filtro-canal').value;
+  const status = document.getElementById('filtro-status').value;
+
+  const listaFinal = [];
+  Object.entries(BASE_MOSTRA.filiais).forEach(([fil, itens]) => {
+    if (filial !== 'TODAS' && fil !== filial) return;
+    itens.forEach(item => {
+      const c = (item.canal || '').toUpperCase();
+      if (canal !== 'TODOS' && !c.includes(canal)) return;
+      if (status === 'ATIVOS' && !item.mostra) return;
+      if (status === 'OCULTOS' && item.mostra) return;
+
+      if (busca) {
+        const txt = `${fil} ${item.rca} ${item.nome} ${item.supervisor} ${item.gerente} ${item.canal} ${item.motivo || ''}`.toLowerCase();
+        if (!txt.includes(busca)) return;
+      }
+      listaFinal.push({ ...item, fil });
+    });
+  });
+
+  listaFinal.sort((a,b) => a.fil.localeCompare(b.fil) || a.nome.localeCompare(b.nome));
+  FILTRADOS = listaFinal;
+  renderizarTabela();
+}
+
+function renderizarTabela() {
+  const tbody = document.getElementById('tabela-corpo');
+  const elCount = document.getElementById('lbl-count-exibidos');
+  if (elCount) elCount.textContent = FILTRADOS.length;
+  if (!FILTRADOS.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--tx-mut);">Nenhum vendedor encontrado para os filtros selecionados.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = FILTRADOS.map(r => {
+    const canalClass = r.canal === 'AS' ? 'canal-as' : 'canal-vj';
+    const key = `${r.fil}_${r.rca}`;
+    const pendente = SOLICITACOES_PENDENTES_ENVIO[key];
+    const isAlterada = !!pendente;
+
+    const mostraAtual = pendente ? (pendente.acao === 'ATIVAR') : r.mostra;
+    const motivoAtual = pendente ? pendente.motivo : (r.motivo || '');
+
+    return `
+      <tr class="${isAlterada ? 'tr-alterada' : ''}">
+        <td><span class="badge-fil">${r.fil}</span></td>
+        <td><span class="badge-rca">${r.rca}</span></td>
+        <td>
+          <div style="font-weight:600;color:#fff;">${r.nome}</div>
+          ${isAlterada ? `<span class="tag-pendente-envio">🟡 Ajuste Solicitado (${pendente.acao})</span>` : ''}
+        </td>
+        <td><span class="badge-canal ${canalClass}">${r.canal || 'VJ'}</span></td>
+        <td style="color:var(--tx-mut);font-size:12px;">${r.supervisor || '—'}</td>
+        <td style="color:var(--tx-mut);font-size:12px;">${r.gerente || '—'}</td>
+        <td>
+          <label class="toggle-switch">
+            <input type="checkbox" ${mostraAtual ? 'checked' : ''} onchange="manipularStatus('${r.fil}', '${r.rca}', this.checked)">
+            <span class="toggle-slider"></span>
+            <span class="toggle-label ${mostraAtual ? 'on' : 'off'}">${mostraAtual ? 'ATIVO NO PAINEL' : 'OCULTO'}</span>
+          </label>
+        </td>
+        <td>
+          <input type="text" style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#cbd5e1;padding:5px 8px;border-radius:4px;font-size:11px;width:100%;max-width:220px;" 
+            value="${motivoAtual}" placeholder="Ex: Férias até 10/10, afastado..." 
+            onchange="manipularMotivo('${r.fil}', '${r.rca}', this.value)">
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function manipularStatus(fil, rca, novoStatus) {
+  if (!USUARIO_LOGADO) return;
+
+  // DIRETORIA: edita direto
+  if (USUARIO_LOGADO.isDiretoria) {
+    const vend = BASE_MOSTRA.filiais[fil].find(v => String(v.rca) === String(rca));
+    if (vend) {
+      vend.mostra = novoStatus;
+      atualizarKPIs();
+      filtrarTabela();
+    }
+    return;
+  }
+
+  // GERENTE DE FILIAL: cria solicitação pendente
+  const vend = BASE_MOSTRA.filiais[fil].find(v => String(v.rca) === String(rca));
+  if (!vend) return;
+
+  const key = `${fil}_${rca}`;
+  const acao = novoStatus ? 'ATIVAR' : 'OCULTAR';
+
+  SOLICITACOES_PENDENTES_ENVIO[key] = {
+    filial: fil,
+    gerente_nome: USUARIO_LOGADO.nome,
+    rca_id: rca,
+    rca_nome: vend.nome,
+    tipo_acao: acao,
+    motivo: vend.motivo || (novoStatus ? 'Retorno de férias/folga' : 'Afastamento / Férias'),
+    dados_extras: { canal: vend.canal, supervisor: vend.supervisor }
+  };
+
+  atualizarContadorSolicitacoesLocais();
+  renderizarTabela();
+}
+
+function manipularMotivo(fil, rca, novoMotivo) {
+  if (!USUARIO_LOGADO) return;
+
+  // DIRETORIA: edita direto
+  if (USUARIO_LOGADO.isDiretoria) {
+    const vend = BASE_MOSTRA.filiais[fil].find(v => String(v.rca) === String(rca));
+    if (vend) vend.motivo = novoMotivo;
+    return;
+  }
+
+  // GERENTE DE FILIAL
+  const vend = BASE_MOSTRA.filiais[fil].find(v => String(v.rca) === String(rca));
+  if (!vend) return;
+
+  const key = `${fil}_${rca}`;
+  if (!SOLICITACOES_PENDENTES_ENVIO[key]) {
+    SOLICITACOES_PENDENTES_ENVIO[key] = {
+      filial: fil,
+      gerente_nome: USUARIO_LOGADO.nome,
+      rca_id: rca,
+      rca_nome: vend.nome,
+      tipo_acao: vend.mostra ? 'ALTERAR_MOTIVO' : 'OCULTAR',
+      motivo: novoMotivo,
+      dados_extras: { canal: vend.canal, supervisor: vend.supervisor }
+    };
+  } else {
+    SOLICITACOES_PENDENTES_ENVIO[key].motivo = novoMotivo;
+  }
+
+  atualizarContadorSolicitacoesLocais();
+  renderizarTabela();
+}
+
+function atualizarContadorSolicitacoesLocais() {
+  const qtd = Object.keys(SOLICITACOES_PENDENTES_ENVIO).length;
+  document.getElementById('count-solic-local').textContent = qtd;
+}
+
+async function enviarSolicitacoesGerente() {
+  const lista = Object.values(SOLICITACOES_PENDENTES_ENVIO);
+  if (!lista.length) {
+    alert('Nenhuma alteração foi efetuada para enviar.');
+    return;
+  }
+
+  mostrarToast(`Enviando ${lista.length} solicitação(ões) para aprovação da Diretoria...`);
+
+  try {
+    const res = await fetch('/api/equipe-solicitacoes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ solicitacoes: lista })
+    });
+    const json = await res.json();
+    if (json.sucesso) {
+      mostrarToast(`✅ ${lista.length} solicitação(ões) enviada(s)! Aguardando aprovação de Vitório Neto.`);
+      SOLICITACOES_PENDENTES_ENVIO = {};
+      atualizarContadorSolicitacoesLocais();
+      renderizarTabela();
+    } else {
+      mostrarToast('Aviso: ' + (json.erro || 'Falha ao enviar'));
+    }
+  } catch (err) {
+    mostrarToast('Erro ao conectar com servidor: ' + err.message);
+  }
+}
+
+/* MODAL NOVO VENDEDOR */
+function abrirModalNovo() {
+  document.getElementById('modal-novo-vend').style.display = 'flex';
+}
+function fecharModalNovo() {
+  document.getElementById('modal-novo-vend').style.display = 'none';
+}
+
+async function confirmarNovoVendedor() {
+  const rca = document.getElementById('novo-rca').value.trim();
+  const nome = document.getElementById('novo-nome').value.trim().toUpperCase();
+  const canal = document.getElementById('novo-canal').value;
+  const sup = document.getElementById('novo-sup').value.trim().toUpperCase();
+  const motivo = document.getElementById('novo-motivo-txt').value.trim();
+
+  if (!rca || !nome) {
+    alert('Informe o RCA e o Nome Completo.');
+    return;
+  }
+
+  const filAlvo = (USUARIO_LOGADO && !USUARIO_LOGADO.isDiretoria) ? USUARIO_LOGADO.perfil : document.getElementById('filtro-filial').value;
+  const filFinal = (filAlvo === 'TODAS') ? 'TBL' : filAlvo;
+
+  // Se for Diretoria: adiciona direto
+  if (USUARIO_LOGADO && USUARIO_LOGADO.isDiretoria) {
+    if (!BASE_MOSTRA.filiais[filFinal]) BASE_MOSTRA.filiais[filFinal] = [];
+    BASE_MOSTRA.filiais[filFinal].unshift({
+      rca,
+      nome,
+      canal,
+      supervisor: sup || `SUPERVISOR ${filFinal}`,
+      gerente: NOMES_GERENTES[filFinal] || 'Gerência Geral',
+      mostra: true,
+      motivo: motivo || 'Cadastrado direto pela Diretoria'
+    });
+    fecharModalNovo();
+    atualizarKPIs();
+    filtrarTabela();
+    alert(`✅ Vendedor ${nome} (RCA ${rca}) cadastrado na filial ${filFinal}! Lembre-se de clicar em "Salvar no CEVEN (Master)".`);
+    return;
+  }
+
+  // Se for Gerente: envia como solicitação de inclusão
+  try {
+    mostrarToast('Enviando solicitação de novo vendedor para a Diretoria...');
+    const res = await fetch('/api/equipe-solicitacoes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filial: filFinal,
+        gerente_nome: USUARIO_LOGADO.nome,
+        rca_id: rca,
+        rca_nome: nome,
+        tipo_acao: 'NOVO_VENDEDOR',
+        motivo: motivo || 'Contratação nova para a equipe',
+        dados_extras: { canal, supervisor: sup }
+      })
+    });
+    const json = await res.json();
+    fecharModalNovo();
+    if (json.sucesso) {
+      alert(`✅ Solicitação de cadastro do vendedor ${nome} (RCA ${rca}) enviada à Diretoria com sucesso!`);
+    } else {
+      alert('Aviso: ' + (json.erro || 'Falha ao registrar solicitação'));
+    }
+  } catch(e) {
+    alert('Erro de conexão: ' + e.message);
+  }
+}
+
+/* CENTRAL DE APROVAÇÕES (DIRETORIA) */
+async function carregarSolicitacoesD1() {
+  try {
+    const res = await fetch('/api/equipe-solicitacoes?status=PENDENTE&t=' + Date.now());
+    const json = await res.json();
+    SOLICITACOES_D1 = json.solicitacoes || [];
+    TOTAL_PENDENTES_D1 = json.total_pendentes || 0;
+    
+    document.getElementById('count-pendentes-header').textContent = TOTAL_PENDENTES_D1;
+    if (TOTAL_PENDENTES_D1 > 0) {
+      document.getElementById('btn-central-aprov').style.display = 'inline-flex';
+    }
+  } catch(e) {}
+}
+
+function abrirModalAprovacoes() {
+  document.getElementById('modal-aprovacoes').style.display = 'flex';
+  renderizarAprovacoesModal();
+}
+function fecharModalAprovacoes() {
+  document.getElementById('modal-aprovacoes').style.display = 'none';
+}
+
+function renderizarAprovacoesModal() {
+  const filFiltro = document.getElementById('filtro-solic-filial').value;
+  const container = document.getElementById('lista-solicitacoes-aprov');
+  
+  const filtradas = SOLICITACOES_D1.filter(s => {
+    if (filFiltro !== 'TODAS' && s.filial !== filFiltro) return false;
+    return s.status === 'PENDENTE';
+  });
+
+  document.getElementById('lbl-total-pendentes-modal').textContent = `${filtradas.length} solicitação(ões) pendente(s)`;
+
+  if (!filtradas.length) {
+    container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--tx-mut);">Nenhuma solicitação pendente para aprovação no momento.</div>`;
+    return;
+  }
+
+  container.innerHTML = filtradas.map(s => {
+    let acaoBadge = '';
+    if (s.tipo_acao === 'OCULTAR') acaoBadge = '<span style="color:#ef4444;font-weight:700;">🔴 Ocultar do Painel</span>';
+    else if (s.tipo_acao === 'ATIVAR') acaoBadge = '<span style="color:#22c55e;font-weight:700;">🟢 Ativar no Painel</span>';
+    else if (s.tipo_acao === 'NOVO_VENDEDOR') acaoBadge = '<span style="color:#38bdf8;font-weight:700;">➕ Cadastrar Novo Vendedor</span>';
+    else acaoBadge = '<span style="color:#eab308;font-weight:700;">✏️ Alterar Motivo</span>';
+
+    return `
+      <div class="solic-card">
+        <div class="solic-info">
+          <h4>
+            <span class="badge-fil">${s.filial}</span> 
+            ${s.rca_nome} (RCA ${s.rca_id}) 
+            — ${acaoBadge}
+          </h4>
+          <p>Solicitado por: <strong>${s.gerente_nome}</strong> em ${s.criado_em || 'Hoje'}</p>
+          <div class="solic-motivo">💬 Motivo alegado: <strong>${s.motivo || 'Sem observações'}</strong></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-action-sm btn-aprovar" onclick="decidirSolicitacao(${s.id}, 'APROVAR')">✅ Aprovar</button>
+          <button class="btn-action-sm btn-rejeitar" onclick="decidirSolicitacao(${s.id}, 'REJEITAR')">❌ Rejeitar</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function decidirSolicitacao(id, acao) {
+  mostrarToast(`${acao === 'APROVAR' ? 'Aprovando' : 'Rejeitando'} solicitação #${id}...`);
+  try {
+    const res = await fetch('/api/equipe-solicitacoes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        solicitacao_id: id,
+        acao: acao,
+        usuario: 'Vitório Neto (Diretoria)',
+        parecer: acao === 'APROVAR' ? 'Aprovado pela Diretoria Geral' : 'Rejeitado pela Diretoria Geral'
+      })
+    });
+    const json = await res.json();
+    if (json.sucesso) {
+      mostrarToast(`✅ Solicitação #${id} ${acao === 'APROVAR' ? 'APROVADA e aplicada' : 'REJEITADA'} com sucesso!`);
+      await carregarSolicitacoesD1();
+      renderizarAprovacoesModal();
+      await carregarDados(); // Recarrega base atualizada
+    } else {
+      mostrarToast('Aviso: ' + (json.erro || 'Falha ao processar'));
+    }
+  } catch(e) {
+    mostrarToast('Erro ao processar: ' + e.message);
+  }
+}
+
+async function aprovarTodasSolicitacoes() {
+  const pendentes = SOLICITACOES_D1.filter(s => s.status === 'PENDENTE');
+  if (!pendentes.length) {
+    alert('Nenhuma solicitação pendente para aprovar.');
+    return;
+  }
+
+  if (!confirm(`Confirma a APROVAÇÃO EM LOTE de todas as ${pendentes.length} solicitações pendentes?`)) {
+    return;
+  }
+
+  for (const s of pendentes) {
+    await fetch('/api/equipe-solicitacoes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        solicitacao_id: s.id,
+        acao: 'APROVAR',
+        usuario: 'Vitório Neto (Diretoria)',
+        parecer: 'Aprovado em lote pela Diretoria'
+      })
+    });
+  }
+
+  mostrarToast(`✅ Todas as ${pendentes.length} solicitações foram aprovadas e aplicadas!`);
+  await carregarSolicitacoesD1();
+  renderizarAprovacoesModal();
+  await carregarDados();
+}
+
+/* MODAL MINHAS SOLICITAÇÕES (GERENTE) */
+async function carregarMinhasSolicitacoesD1() {
+  if (!USUARIO_LOGADO) return;
+  try {
+    const res = await fetch(`/api/equipe-solicitacoes?filial=${USUARIO_LOGADO.perfil}&t=` + Date.now());
+    const json = await res.json();
+    const minhas = json.solicitacoes || [];
+    
+    const container = document.getElementById('lista-minhas-solic');
+    if (!minhas.length) {
+      container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--tx-mut);">Nenhuma solicitação enviada ainda por esta filial.</div>`;
+      return;
+    }
+
+    container.innerHTML = minhas.map(s => {
+      let stColor = '#eab308';
+      if (s.status === 'APROVADO') stColor = '#22c55e';
+      if (s.status === 'REJEITADO') stColor = '#ef4444';
+
+      return `
+        <div class="solic-card">
+          <div class="solic-info">
+            <h4>${s.rca_nome} (RCA ${s.rca_id}) — <strong>${s.tipo_acao}</strong></h4>
+            <p>Enviado em: ${s.criado_em || 'Recente'} | Status: <strong style="color:${stColor};">${s.status}</strong></p>
+            <div class="solic-motivo">Motivo: ${s.motivo || '—'}</div>
+            ${s.parecer_diretoria ? `<p style="font-size:11px;color:#94a3b8;margin-top:4px;">Decisão Diretoria: <em>${s.parecer_diretoria}</em></p>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch(e) {}
+}
+
+function abrirModalMinhasSolicitacoes() {
+  document.getElementById('modal-minhas-solic').style.display = 'flex';
+  carregarMinhasSolicitacoesD1();
+}
+function fecharModalMinhasSolic() {
+  document.getElementById('modal-minhas-solic').style.display = 'none';
+}
+
+/* SALVAMENTO MASTER DIRETO (DIRETORIA) */
+async function salvarAlteracoesMaster() {
+  mostrarToast('Gravando alterações diretamente no CEVEN D1...');
+
+  const autor = 'Vitório Neto (Diretoria)';
+  BASE_MOSTRA.usuario = autor;
+
+  let sim = 0, nao = 0;
+  Object.values(BASE_MOSTRA.filiais).forEach(lista => {
+    lista.forEach(r => {
+      if (r.mostra) sim++; else nao++;
+    });
+  });
+  BASE_MOSTRA.total_sim = sim;
+  BASE_MOSTRA.total_nao = nao;
+  BASE_MOSTRA.total_vendedores = sim + nao;
+
+  try {
+    const res = await fetch('/api/equipe-salvar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(BASE_MOSTRA)
+    });
+    const json = await res.json();
+    if (json.sucesso) {
+      mostrarToast(`✅ Base Soberana Master gravada com sucesso por ${autor}!`);
+    } else {
+      mostrarToast('Aviso: ' + (json.erro || 'Salvo localmente.'));
+    }
+  } catch (e) {
+    mostrarToast('✅ Alterações aplicadas na sessão local.');
+  }
+}
+
+function mostrarToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  setTimeout(() => { toast.style.display = 'none'; }, 4500);
+}
+
+function exportarJSON() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(BASE_MOSTRA, null, 2));
+  const dlAnchorElem = document.createElement('a');
+  dlAnchorElem.setAttribute("href", dataStr);
+  dlAnchorElem.setAttribute("download", "mostra_vendedores.json");
+  dlAnchorElem.click();
+}
+
+window.addEventListener('load', () => {
+  checarLoginSalvo();
+  carregarDados();
+});
+</script>
+</body>
+</html>

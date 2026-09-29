@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CEVEN CFTV — Estúdio de Animações Broadcast</title>
+  <style>
+    :root {
+      --bg: #070b14;
+      --card: #0f1626;
+      --line: #1e2a44;
+      --tx: #e8eefc;
+      --mut: #8b9bbd;
+      --acc: #38bdf8;
+      --bad: #ef4444;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--tx);
+      font-family: Segoe UI, Inter, system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: .04em;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+    p {
+      color: var(--mut);
+      font-size: 15px;
+      max-width: 650px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 900px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-top: 20px;
+    }
+    button.card-btn {
+      background: #141f38;
+      border: 1px solid var(--line);
+      color: #fff;
+      padding: 16px 18px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all .15s ease-in-out;
+    }
+    button.card-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+    button.card-btn span {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--mut);
+    }
+    button.b-hat { border-left: 4px solid #ea580c; }
+    button.b-hat:hover { background: #7c2d12; border-color: #ea580c; }
+    button.b-inv { border-left: 4px solid #d97706; }
+    button.b-inv:hover { background: #78350f; border-color: #d97706; }
+    button.b-gol { border-left: 4px solid var(--ok); }
+    button.b-gol:hover { background: #064e3b; border-color: var(--ok); }
+    button.b-pen { border-left: 4px solid var(--acc); }
+    button.b-pen:hover { background: #1e3a8a; border-color: var(--acc); }
+    button.b-ver { border-left: 4px solid var(--bad); }
+    button.b-ver:hover { background: #7f1d1d; border-color: var(--bad); }
+    button.b-ama { border-left: 4px solid var(--warn); }
+    button.b-ama:hover { background: #78350f; border-color: var(--warn); }
+    button.b-imp { border-left: 4px solid #d97706; }
+    button.b-imp:hover { background: #713f12; border-color: #d97706; }
+    button.b-def { border-left: 4px solid #0284c7; }
+    button.b-def:hover { background: #075985; border-color: #0284c7; }
+
+    .file-box {
+      margin-top: 24px;
+      background: #0a1020;
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .file-box code {
+      color: var(--acc);
+      font-family: monospace;
+      font-size: 13px;
+      background: #111a30;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Overlay padrão onde as animações são renderizadas */
+    #ov {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+    }
+    #ov.show {
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎬 Estúdio Isolado de Animações TV CEVEN</h1>
+    <p>Teste, ajuste e refine as animações de TV sem interferir na operação ou no backend. Altere o arquivo e dê F5 nesta página.</p>
+  </header>
+
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:12px">
+      <h2 style="font-size:16px;color:var(--tx)">Gatilhos de Teste das Animações</h2>
+      <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mut);cursor:pointer">
+        <input type="checkbox" id="chk-som" checked style="cursor:pointer"> 🔊 Áudio ativado
+      </label>
+    </div>
+
+    <div class="grid">
+      <button class="card-btn b-hat" onclick="testar('hattrick', '3 VITÓRIAS SEGUIDAS DE RODADA · +15 PTS BÔNUS')">
+        🔥 HAT-TRICK DE CONSTÂNCIA
+        <span>3 vitórias consecutivas de rodada ou 3 super pedidos (+15 pts na tabela)</span>
+      </button>
+
+      <button class="card-btn b-inv" onclick="testar('semanainvicta', '5 VITÓRIAS DE SEGUNDA A SEXTA · +30 PTS EXTRAS')">
+        👑 SEMANA INVICTA (100%)
+        <span>Invicto de segunda a sexta com rota e metas cumpridas (+30 pts na tabela)</span>
+      </button>
+
+      <button class="card-btn b-gol" onclick="testar('gol', 'SUPER PEDIDO DE R$ 38.500!')">
+        ⚽ GOL DE PLACA
+        <span>Super Pedido vendido ou cliente inativo recuperado</span>
+      </button>
+
+      <button class="card-btn b-pen" onclick="testar('penalti')">
+        🚨 PÊNALTI VAR (Mini-game)
+        <span>Carrinho no cliente, apito, câmera lenta e veredito do VAR</span>
+      </button>
+
+      <button class="card-btn b-ver" onclick="testar('vermelho', 'Devolução: CLIENTE NÃO PEDIU (R$ 8.900)')">
+        🟥 CARTÃO VERMELHO
+        <span>Devolução grave flagrada ou abandono total de rota às 10h</span>
+      </button>
+
+      <button class="card-btn b-ama" onclick="testar('amarelo', 'Rota ativa sem nenhuma venda até as 10h')">
+        🟨 CARTÃO AMARELO
+        <span>Advertência para acelerar rota e vendas do dia</span>
+      </button>
+
+      <button class="card-btn b-imp" onclick="testar('impedimento', 'Visita relâmpago de 00:00 no cliente Supermercado Alvorada')">
+        🚩 IMPEDIMENTO VAR
+        <span>Visita de 0 minuto (check-in e check-out instantâneo)</span>
+      </button>
+
+      <button class="card-btn b-def" onclick="testar('defesa', 'Defesa milagrosa: salvou a meta no cliente!')">
+        🧤 DEFESA MILAGROSA
+        <span>Venda crucial que bateu a meta ou salvou o dia</span>
+      </button>
+    </div>
+
+    <div class="file-box">
+      <strong>📁 Onde editar o código das animações:</strong><br>
+      Arquivo: <code>public/animacoes/tv-animacoes.js</code><br>
+      Tanto a TV da Matriz (<code>matrizapp.html</code>) quanto as TVs das Filiais (<code>tvapp.html</code>) apenas chamam as funções deste arquivo.
+    </div>
+  </div>
+
+  <div id="ov"></div>
+
+  <!-- Motor central de animações isolado -->
+  <script src="/animacoes/tv-animacoes.js"></script>
+  <script>
+    'use strict';
+    const $ = id => document.getElementById(id);
+    window.somOn = true;
+    $('chk-som').onchange = e => { window.somOn = e.target.checked; };
+
+    function testar(tipo, sub) {
+      if (typeof animTeste === 'function') {
+        animTeste(tipo, sub);
+      } else {
+        alert('tv-animacoes.js não carregou corretamente.');
+      }
+    }
+  </script>
+</body>
+</html>
