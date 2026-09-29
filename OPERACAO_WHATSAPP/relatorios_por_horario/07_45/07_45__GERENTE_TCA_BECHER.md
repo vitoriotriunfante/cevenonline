@@ -1,46 +1,7 @@
 🌅 *ABERTURA MATINAL — TCA (07:45)*
-📅 segunda-feira, 28/09/2026
+📅 terça-feira, 29/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 31 • Visitas: 289 (média 9,3/vendedor)
-Sem compra +30d: 161 (55,7%) • Recorrência: 50 (17,3%)
-Oportunidades CNAE 4789: +338 PDVs
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🚨 *PDVs EM RISCO — 07:45*
-📍 *TCA — BECHER* • 28/09/2026
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 158  •  🟡 Preventivo: 0
-
-👤 *FRANCISCO FRANCO FILHO* (45 em risco)
-  🔴 DROGARIA ULTRA VIDA (1051) — 05/12
-  🔴 AMPM (1051) — 05/12
-  🔴 CHICO SUPERMERCADO (1051) — 05/12
-  🔴 PRIMAVERA SUPERMERCADO (390) — 30/07
-  🔴 MERCADO RR (390) — 28/08
-  _+40 outros_
-
-👤 *IVAIR PRINCIPE FREITAS DE MIRANDA* (40 em risco)
-  🔴 SUPERMERCADO J L (379) — 05/12
-  🔴 MERCADO PIONEIRO (379) — 05/08
-  🔴 FARMACIA POPULAR EM CASA (379) — 05/12
-  🔴 DROGARIA MAIS AMERICA (379) — 05/12
-  🔴 SUPERMERCADO SEMPRE BOM (379) — 01/01
-  _+35 outros_
-
-👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR* (46 em risco)
-  🔴 SUPERMERCADO BENDITO (380) — 12/08
-  🔴 LANCHONETE E SORVETERIA D ITALIA (381) — 05/12
-  🔴 CONVENIENCIA CIAVERDE (381) — 18/08
-  🔴 SUPERMERCADO GOIANAO (387) — 18/08
-  🔴 COMERCIAL DE BEBIDAS CALIFORNIA (387) — 30/07
-  _+41 outros_
-
-👤 *MAICON DION NOVAIS SILVA* (27 em risco)
-  🔴 CONVENIENCIA UNIAO (372) — 19/08
-  🔴 MERCEARIA SANTOS (372) — 22/07
-  🔴 BRASFEST (372) — 16/07
-  🔴 SUPERMERCADO MORANDINI (372) — 20/08
-  🔴 HAPPY 77 (372) — 16/07
-  _+22 outros_
+👥 Vendedores: 31 • Visitas: 307 (média 9,9/vendedor)
+Sem compra +30d: 131 (42,7%) • Recorrência: 0 (0,0%)
+Oportunidades CNAE 4721: +405 PDVs

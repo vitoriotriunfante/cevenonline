@@ -1,46 +1,7 @@
 🌅 *ABERTURA MATINAL — TCG (07:45)*
-📅 segunda-feira, 28/09/2026
+📅 terça-feira, 29/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 20 • Visitas: 199 (média 9,9/vendedor)
-Sem compra +30d: 73 (36,7%) • Recorrência: 29 (14,6%)
-Oportunidades CNAE 4789: +199 PDVs
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🚨 *PDVs EM RISCO — 07:45*
-📍 *TCG — DANILO* • 28/09/2026
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 72  •  🟡 Preventivo: 0
-
-👤 *DELINLSON ANTONIO LIMA SILVA* (31 em risco)
-  🔴 MERCADO E ACOUGUE OLIDIA ROCHA (468) — 05/12
-  🔴 CONVENIENCIA IDEAL (468) — 05/12
-  🔴 MERCADORIA DO ZEZINHO (468) — 05/12
-  🔴 TABERNA CONVENIENCIA E CASA DE CARNES (468) — 27/05
-  🔴 MERCADO PARATI (468) — 28/08
-  _+26 outros_
-
-👤 *EDSON RODRIGO LINIA* (25 em risco)
-  🔴 DROGARIA DROGAMED 3 (474) — 05/12
-  🔴 ESSENCIAL COMERCIO HERMES (458) — 05/12
-  🔴 MERCEARIA MERY (458) — 28/08
-  🔴 MERCADORIA ESCOBAR (458) — 05/12
-  🔴 MERCADO ERNESTINA (458) — 28/08
-  _+20 outros_
-
-👤 *GERENTE TCG* (8 em risco)
-  🔴 EMPORIO NAURA (489) — 05/12
-  🔴 MARRUA GOURMET (489) — 05/12
-  🔴 SADAN FESTAS (489) — 05/12
-  🔴 MIMO COSMETISCOS (489) — 05/12
-  🔴 LOCSPACE COMERCIO E SERVICO (489) — 05/12
-  _+3 outros_
-
-👤 *TIAGO SANTOS CORREA* (8 em risco)
-  🔴 STOCK MINIMERCADO E CONVENIENCIA (488) — 05/12
-  🔴 SUPERMERCADO GUAICURUS (488) — 05/12
-  🔴 SUPERMERCADO GUAICURUS (488) — 05/12
-  🔴 CASA DE CARNE CHARAO (488) — 05/12
-  🔴 MERCEARIA SAO MARCOS (488) — 05/12
-  _+3 outros_
+👥 Vendedores: 20 • Visitas: 235 (média 11,8/vendedor)
+Sem compra +30d: 90 (38,3%) • Recorrência: 0 (0,0%)
+Oportunidades CNAE 4721: +235 PDVs
