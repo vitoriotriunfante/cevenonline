@@ -57,7 +57,7 @@ export async function onRequestPost({ request, env }) {
     ).bind(dia, filial, hora, iso).run();
     const baseline = (m.meta && m.meta.changes) === 1;
 
-    const validos = lances.filter((l) => l && typeof l.chave === 'string' && l.chave.length <= 120 && ['penalti', 'venda10', 'visita10', 'supervisor'].includes(l.nivel));
+    const validos = lances.filter((l) => l && typeof l.chave === 'string' && l.chave.length <= 120 && ['penalti', 'venda10', 'visita10', 'supervisor', 'gol', 'vermelho', 'impedimento', 'amarelo', 'defesa'].includes(l.nivel));
     let novos = [];
     if (validos.length) {
       const stmts = validos.map((l) =>

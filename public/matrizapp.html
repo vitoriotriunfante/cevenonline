@@ -83,7 +83,8 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #ov small{margin-top:2vh;color:var(--mut);font-size:16px}
 
 @media(max-width:900px){main{grid-template-columns:1fr;overflow:auto}body{overflow:auto}.tot{grid-template-columns:repeat(2,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}}
-</style></head><body>
+</style><script src="/animacoes/tv-animacoes.js"></script>
+</head><body>
 <header>
   <div class="rec"><i></i>CFTV AO VIVO</div>
   <div class="fil">MATRIZ<small>11 filiais · <span id="nv">0</span> vendedores</small></div>
@@ -101,16 +102,28 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </main>
 <footer>
   <span class="tag">ALERTAS</span><span class="msg" id="alert">—</span>
-  <div id="ctl"><button id="bprev">◀</button><button id="bauto" class="on">Auto</button><button id="bnext">▶</button><button id="bfs">⛶ Tela cheia</button><button id="bsom">🔇 Som</button><button id="bexp">Exportar diário</button></div>
+  <div id="ctl">
+    <button id="bt-gol" style="background:#166534;color:#86efac;font-weight:700" title="Testar animação de Gol">⚽ Teste Gol</button>
+    <button id="bt-def" style="background:#0284c7;color:#bae6fd;font-weight:700" title="Testar animação de Defesa Milagrosa">🧤 Defesa</button>
+    <button id="bt-imp" style="background:#d97706;color:#fef3c7;font-weight:700" title="Testar animação de Impedimento VAR">🚩 Impedimento</button>
+    <button id="bt-ver" style="background:#991b1b;color:#fca5a5;font-weight:700" title="Testar animação de Cartão Vermelho">🟥 Vermelho</button>
+    <button id="bt-ama" style="background:#854d0e;color:#fef08a;font-weight:700" title="Testar animação de Cartão Amarelo">🟨 Amarelo</button>
+    <button id="bt-pen" style="background:#1e3a8a;color:#93c5fd;font-weight:700" title="Testar animação de Pênalti VAR">🚨 Pênalti</button>
+    <button id="bt-hat" style="background:#ea580c;color:#ffedd5;font-weight:700" title="Testar animação de Hat-Trick">🔥 Hat-Trick</button>
+    <button id="bt-inv" style="background:#b45309;color:#fef3c7;font-weight:700" title="Testar animação de Semana Invicta">👑 Invicta</button>
+    <button id="bprev">◀</button><button id="bauto" class="on">Auto</button><button id="bnext">▶</button><button id="bfs">⛶ Tela cheia</button><button id="bsom">🔇 Som</button><button id="bexp">Exportar diário</button>
+  </div>
 </footer>
 <div id="ov"></div>
+<div id="video-lance-fixo" style="position:fixed;inset:0;z-index:9998;display:none"></div>
+<button id="btn-fechar-global" style="display:none;position:fixed;top:20px;right:20px;z-index:2147483647;background:rgba(15,23,42,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 18px;font-size:15px;font-weight:700;cursor:pointer">✕ FECHAR</button>
 <script>
 'use strict';
 // ============================== CONFIG ==============================
 const P = new URLSearchParams(location.search);
 const MIN_FIL = +P.get('min') || 4;                        // minutos por filial na tela
 const ORDEM = ['TBL','TCV','TPH','ABC','API','TSJ','TBE','TPA','MCD','TCA','TCG']; // TCA/TCG/MCD por último (regra do fuso)
-const CAMPO = ['VJ','PET VJ'], EXCLUI = ['GER','SUP'], DIAS_PENALTI = 30, LIMITE_H = 10, FIM_H = 19;
+const CAMPO = ['VJ','PET VJ'], EXCLUI = ['GER','SUP'], DIAS_PENALTI_ESTOQUE = 30, DIAS_PENALTI_FECHADO = 45, LIMITE_H = 10, FIM_H = 19;
 const VAR_GAP_S = +P.get('vargap') || 180, VAR_MAX_H = +P.get('varmax') || 6;
 const SUP_INI = 11 * 60 + 30, SUP_FIM = 12 * 60;
 // ============================== UTIL ==============================
@@ -125,6 +138,44 @@ const fmtSP = new Intl.DateTimeFormat('en-GB', {timeZone:'America/Sao_Paulo',yea
 function sp(d) { const o = {}; fmtSP.formatToParts(d || new Date()).forEach(p => o[p.type] = p.value); const h = (+o.hour) % 24;
   return {date: `${o.year}-${o.month}-${o.day}`, h, m: +o.minute, hms: `${String(h).padStart(2,'0')}:${o.minute}:${o.second}`, hm: `${String(h).padStart(2,'0')}:${o.minute}`}; }
 function diasDesde(iso) { if (!iso || +iso.slice(0, 4) < 2000) return null; const a = Date.UTC(...sp().date.split('-').map((x,i)=>i===1?+x-1:+x)), b = Date.UTC(...iso.split('-').map((x,i)=>i===1?+x-1:+x)); return Math.round((a - b) / 86400000); }
+// Dias úteis (seg-sex) do mês corrente até hoje e no mês inteiro — para meta diária pro-rata (G11).
+function diasUteisMes() {
+  const [ano, mes] = sp().date.split('-').map(Number);
+  const ultimoDia = new Date(Date.UTC(ano, mes, 0)).getUTCDate();
+  let totalUteis = 0, uteisAteHoje = 0;
+  const hoje = +sp().date.split('-')[2];
+  for (let dia = 1; dia <= ultimoDia; dia++) {
+    const diaSemana = new Date(Date.UTC(ano, mes - 1, dia)).getUTCDay();
+    if (diaSemana !== 0 && diaSemana !== 6) {
+      totalUteis++;
+      if (dia <= hoje) uteisAteHoje++;
+    }
+  }
+  return { totalUteis, uteisAteHoje };
+}
+// Texto do "porquê" do gol, por subtipo — ver mesma função em tvapp.html.
+function textoGol(subtipo, valor, c, horaAprox) {
+  if (subtipo === 'super_pedido') return `Super Pedido: ${brl(valor)}!`;
+  if (subtipo === 'inativo_recuperado') return `${c && c.nome} · cliente inativo resgatado!`;
+  if (subtipo === 'relampago_aprox') return `Gol Relâmpago (detectado ~${String(horaAprox).padStart(2,'0')}h) · aprox.`;
+  if (subtipo === 'acrescimos_aprox') return `Gol nos Acréscimos (detectado ~${String(horaAprox).padStart(2,'0')}h) · aprox.`;
+  if (subtipo === 'conversao') return `Máquina de Conversão: ${valor.toFixed(0)}% de aproveitamento!`;
+  if (subtipo === 'goleada') return `Goleada! ${valor} clientes positivados hoje!`;
+  if (subtipo === 'campeao') return `Campeão da Rodada: 100% da meta do mês batida!`;
+  if (subtipo === 'dobrou_mix') return `${c && c.nome} · dobrou o mix do cliente!`;
+  if (subtipo === 'hattrick_aprox') return `Hat-Trick (3 pedidos seguidos, ~${String(horaAprox).padStart(2,'0')}h) · aprox.`;
+  if (subtipo === 'meta1tempo_aprox') return `Meta do 1º Tempo batida (~${String(horaAprox).padStart(2,'0')}h) · aprox.`;
+  if (subtipo === 'dobradinha_quinzenas') return `${c && c.nome} · dobradinha das quinzenas!`;
+  return 'GOL DE PLACA';
+}
+// I02: distância Haversine entre check-out do vendedor e o cadastro do cliente (metros)
+function distanciaM(lat1, lon1, lat2, lon2) {
+  if ([lat1, lon1, lat2, lon2].some(v => v == null || isNaN(v))) return null;
+  const R = 6371000, rad = x => x * Math.PI / 180;
+  const dLat = rad(lat2 - lat1), dLon = rad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 const ddmm = iso => iso ? iso.slice(8,10) + '/' + iso.slice(5,7) : '—';
 const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
 const secDe = hms => { const [h, m, x] = String(hms || '0:0:0').split(':').map(Number); return h * 3600 + m * 60 + (x || 0); };
@@ -135,22 +186,46 @@ async function j(url, ms = 25000) { const c = new AbortController(), t = setTime
 // ============================== ESTADO ==============================
 let MOSTRA = null, METAS = null, ALERTAS = [], idxFil = 0, tFil = Date.now(), auto = true, somOn = store.get('ceven_tv_som', false), listaAviso = '';
 const DATA = {}, TS = {}, SUPS = {};                       // DATA[sig][rca] = leitura; TS[sig] = quando atualizou
+// `${sig}|${id}` -> {valor: dig_hoje na última mudança percebida, em: timestamp em que percebemos}.
+// Mesma aproximação de tvapp.html — ver comentário lá e REGRAS_CFTV/PLANO_AMANHA_27_09_2026.md.
+const DIG_DETECTADO_EM = {};
+// `${sig}|${id}` -> [{valor, em}, ...] TODAS as detecções do dia — usado só pelo Hat-Trick (G06).
+// Ver aviso completo em tvapp.html (mesma lógica, mesma aproximação).
+const DIG_HISTORICO = {};
 let seen = new Set(store.get(K.seen + HOJE0, [])), LOG = store.get(K.log + HOJE0, []);
 // ============================== BASE (Drive, metas) ==============================
+// ============================== BASE (CEVEN Soberano, metas) ==============================
+const MOSTRA_TUDO = P.get('mostrartudo') === '1'; // flag explícita: ignora a coluna MOSTRA NOS DISPAROS (uso excepcional, por link)
 async function carregaBase() {
-  let m = await j('/api/tv-mostra', 25000), origem = 'drive';
-  if (!(m && m.filiais && !m.erro)) { m = await j('/mostra_vendedores.json?t=' + Date.now(), 15000); origem = 'copia'; }
-  if (m && m.filiais) { MOSTRA = m.filiais; listaAviso = origem === 'copia' ? 'LISTA: CÓPIA · DRIVE INDISPONÍVEL' : ''; }
+  // Lista MOSTRA_DISPAROS é regra de negócio (quem os gerentes aprovaram ver), não detalhe técnico:
+  // sem ela (Drive e cópia local indisponíveis), MOSTRA fica null e nenhuma filial mostra vendedor.
+  let m = await j('/api/tv-mostra', 10000);
+  if (!(m && m.filiais && !m.erro)) { m = await j('/mostra_vendedores.json?t=' + Date.now(), 10000); }
+  const av = $('aviso');
+  if (m && m.filiais) {
+    MOSTRA = m.filiais; listaAviso = '';
+    if (av) { av.textContent = ''; av.style.display = 'none'; }
+  } else {
+    MOSTRA = null; listaAviso = 'LISTA MOSTRA_DISPAROS INDISPONÍVEL — sem vendedores até ela voltar';
+    if (av) { av.textContent = listaAviso; av.style.display = 'inline-block'; }
+  }
   const mt = await j('/metas_mes.json?t=' + Date.now(), 15000);
   if (mt && mt.filiais && mt.mes === sp().date.slice(0, 7)) METAS = mt;
-  const av = $('aviso'); av.textContent = listaAviso; av.style.display = listaAviso ? 'inline-block' : 'none';
 }
 const listaFil = sig => MOSTRA ? Object.keys(MOSTRA).filter(k => k === sig || k.startsWith(sig + '_')).flatMap(k => MOSTRA[k].map(r => ({...r, grupo: r.grupo || (k.includes('_') ? k.split('_').slice(1).join('_') : '')}))) : []; // filial canônica; tolera JSON antigo
-const reps = sig => listaFil(sig).filter(r => r.mostra && !EXCLUI.includes((r.canal || '').toUpperCase())).map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor), grupo: r.grupo || ''}));
+const reps = sig => listaFil(sig).filter(r => (MOSTRA_TUDO || r.mostra) && !EXCLUI.includes((r.canal || '').toUpperCase())).map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor), grupo: r.grupo || ''}));
 async function atualizaFilial(sig) {
   DATA[sig] = DATA[sig] || {}; const fila = [...reps(sig)];
   await Promise.all(Array.from({length: 6}, async () => { while (fila.length) { const r = fila.shift(); const d = await j(`/api/tv-vendedor?filial=${sig}&id=${r.id}`);
-    if (d && !d.erro && !(d.falhas && d.falhas.length === 3)) { if (!d.falhas || !d.falhas.length || !DATA[sig][r.id]) DATA[sig][r.id] = d; } } }));
+    if (d && !d.erro && !(d.falhas && d.falhas.length === 3)) {
+      const chave = sig + '|' + r.id, digNovo = num(d.dig_hoje), digAntes = DATA[sig][r.id] ? num(DATA[sig][r.id].dig_hoje) : null;
+      if (digNovo != null && (digAntes == null || digNovo > digAntes)) {
+        const agora = Date.now();
+        DIG_DETECTADO_EM[chave] = { valor: digNovo, em: agora };
+        (DIG_HISTORICO[chave] = DIG_HISTORICO[chave] || []).push({ valor: digNovo, em: agora });
+      }
+      if (!d.falhas || !d.falhas.length || !DATA[sig][r.id]) DATA[sig][r.id] = d;
+    } } }));
   TS[sig] = Date.now();
 }
 async function atualizaSups() {
@@ -170,16 +245,121 @@ function vend(sig, r) {
 const vendedores = sig => reps(sig).map(r => vend(sig, r)).filter(v => v.tem && ((v.meta || 0) > 0 || (v.metaCli || 0) > 0)); // mesma regra da TV da filial
 const zerado = v => v.campo && v.temRota && !(v.dig > 0) && !(v.pos > 0);
 function calcAlertas() {
-  const t = sp(), depois10 = t.h >= LIMITE_H && t.h < FIM_H, out = [];
+  const t = sp(), out = [];
   for (const sig of ORDEM) for (const v of vendedores(sig)) {
     if (!v.cl) continue;
+    // --- LANCE G02 / G01: GOL DE PLACA (Super Pedido ou Venda Alta) ---
+    if ((v.dig || 0) >= 15000) {
+      out.push({key: `${sig}|gol_super|${v.id}`, sig, nivel: 'gol', subtipo: 'super_pedido', v, valor: v.dig});
+    }
+    // --- LANCE G01/G10: horário APROXIMADO (ver DIG_DETECTADO_EM) ---
+    const det = DIG_DETECTADO_EM[sig + '|' + v.id];
+    if (det && det.valor > 0) {
+      const hDet = sp(new Date(det.em)).h;
+      const fuso1hMtz = ['TCG','MCD','TCA'].includes(sig);
+      const limiteRelampago = fuso1hMtz ? 10 : 9;
+      if (hDet < limiteRelampago && !out.some(o => o.key === `${sig}|gol_relampago|${v.id}`)) {
+        out.push({key: `${sig}|gol_relampago|${v.id}`, sig, nivel: 'gol', subtipo: 'relampago_aprox', v, valor: det.valor, horaAprox: hDet});
+      }
+      const limiteAcrescimos = fuso1hMtz ? 18 : 17;
+      if (hDet >= limiteAcrescimos && !out.some(o => o.key === `${sig}|gol_acrescimos|${v.id}`)) {
+        out.push({key: `${sig}|gol_acrescimos|${v.id}`, sig, nivel: 'gol', subtipo: 'acrescimos_aprox', v, valor: det.valor, horaAprox: hDet});
+      }
+    }
+    // --- LANCE G06: HAT-TRICK APROXIMADO (3+ detecções de aumento em até 120min) ---
+    const chaveHist = sig + '|' + v.id, hist = DIG_HISTORICO[chaveHist];
+    if (hist && hist.length >= 3) {
+      for (let i = 0; i <= hist.length - 3; i++) {
+        const janela = hist[i + 2].em - hist[i].em;
+        if (janela <= 120 * 60000) {
+          const chave = `${sig}|gol_hattrick|${v.id}|${hist[i + 2].em}`;
+          if (!out.some(o => o.key === chave)) {
+            const inc1 = hist[i].valor - (i > 0 ? hist[i - 1].valor : 0);
+            const inc2 = hist[i + 1].valor - hist[i].valor;
+            const inc3 = hist[i + 2].valor - hist[i + 1].valor;
+            out.push({key: chave, sig, nivel: 'hattrick', subtipo: 'hattrick_aprox', v, horaAprox: sp(new Date(hist[i + 2].em)).h, valores: [inc1, inc2, inc3]});
+          }
+          break;
+        }
+      }
+    }
+    // --- LANCE G11: META 1º TEMPO APROXIMADO ---
+    if ((v.meta || 0) > 0 && det && det.valor > 0) {
+      const { totalUteis, uteisAteHoje } = diasUteisMes();
+      const metaDiaria = totalUteis > 0 ? (v.meta / totalUteis) * uteisAteHoje : 0;
+      const hDetMeta = sp(new Date(det.em)).h;
+      if (metaDiaria > 0 && det.valor >= metaDiaria && hDetMeta < 14 && !out.some(o => o.key === `${sig}|gol_meta1t|${v.id}`)) {
+        out.push({key: `${sig}|gol_meta1t|${v.id}`, sig, nivel: 'gol', subtipo: 'meta1tempo_aprox', v, valor: det.valor, horaAprox: hDetMeta});
+      }
+    }
+    // --- LANCE G05: MÁQUINA DE CONVERSÃO (≥8 visitas, taxa de conversão ≥50%) ---
+    if ((v.feitas || 0) >= 8 && v.comVenda != null) {
+      const txConv = v.feitas > 0 ? (v.comVenda / v.feitas) * 100 : 0;
+      if (txConv >= 50) out.push({key: `${sig}|gol_conversao|${v.id}`, sig, nivel: 'gol', subtipo: 'conversao', v, valor: txConv});
+    }
+    // --- LANCE G09: GOLEADA (+10 clientes positivados no dia) ---
+    if ((v.pos || 0) >= 10) {
+      out.push({key: `${sig}|gol_goleada|${v.id}`, sig, nivel: 'gol', subtipo: 'goleada', v, valor: v.pos});
+    }
+    // --- LANCE G12: CAMPEÃO DA RODADA (100% da meta mensal batida) ---
+    if ((v.meta || 0) > 0 && (v.fat || 0) >= v.meta) {
+      out.push({key: `${sig}|gol_campeao|${v.id}`, sig, nivel: 'gol', subtipo: 'campeao', v, valor: v.fat});
+    }
+    // --- LANCE V01: DEVOLUÇÃO "CLIENTE NÃO PEDIU" / DEVOLUÇÃO DO DIA ---
+    if ((v.dev || 0) > 0) {
+      out.push({key: `${sig}|ver_dev|${v.id}`, sig, nivel: 'vermelho', subtipo: 'devolucao_nao_pediu', v, valor: v.dev});
+    }
     v.cl.forEach(c => {
+      // --- LANCE G07: GOL DRIBLE DA VACA (Cliente Inativo > 90 dias recuperado com venda) ---
+      const diasC = diasDesde(c.ultima_compra);
+      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && diasC != null && diasC > 90) {
+        out.push({key: `${sig}|gol_inativo|${v.id}|${c.id}`, sig, nivel: 'gol', subtipo: 'inativo_recuperado', v, c, dias: diasC});
+      }
+      // --- LANCE G03: DOBROU O MIX (calculado em tv-vendedor.js contra o histórico do cliente) ---
+      if (c.dobrouMix) {
+        out.push({key: `${sig}|gol_mix|${v.id}|${c.id}`, sig, nivel: 'gol', subtipo: 'dobrou_mix', v, c});
+      }
+      // --- LANCE G04: DOBRADINHA DAS QUINZENAS (comprou na 1ª E na 2ª quinzena do mês) ---
+      if (c.dobradinhaQuinzenas) {
+        out.push({key: `${sig}|gol_quinzenas|${v.id}|${c.id}`, sig, nivel: 'gol', subtipo: 'dobradinha_quinzenas', v, c});
+      }
+      // --- LANCE V03: BONIFICAÇÃO SEM VENDA (pedido com 2+ itens e soma de valor = R$0) ---
+      if (c.bonificacao) {
+        out.push({key: `${sig}|ver_bonif|${v.id}|${c.id}`, sig, nivel: 'vermelho', subtipo: 'bonificacao', v, c});
+      }
+      // --- LANCE G08: DEFESA MILAGROSA (cliente marcado RECORRENCIA, salvo no dia da rota) ---
+      if (c.recorrencia && ['POSITIVADO', 'EFETIVADO'].includes(c.status)) {
+        out.push({key: `${sig}|def|${v.id}|${c.id}`, sig, nivel: 'defesa', v, c});
+      }
+      // --- IMPEDIMENTO I02: check-out a mais de 500m do cadastro do cliente ---
+      const distM = distanciaM(c.lat, c.lon, c.checkout_lat, c.checkout_lon);
+      if (distM != null && distM > 500) {
+        out.push({key: `${sig}|imp|gps|${v.id}|${c.id}`, sig, nivel: 'impedimento', subtipo: 'gps_fora', v, c, distM: Math.round(distM)});
+      }
       if (['POSITIVADO', 'EFETIVADO'].includes(c.status) || !c.motivo) return;
-      const m = c.motivo.toUpperCase(), dias = diasDesde(c.ultima_compra); if (!(dias == null || dias > DIAS_PENALTI)) return;
-      const tipo = m.includes('ESTOQUE SUFICIENTE') ? 'estoque' : (m.includes('FECHADO') || m.includes('ENCERROU')) ? 'fechado' : null; if (!tipo) return;
-      const key = `${sig}|pen|${tipo}|${v.id}|${c.id}`; if (!out.some(o => o.key === key)) out.push({key, sig, nivel: 'penalti', tipo, v, c, dias});
+      const m = c.motivo.toUpperCase(), dias = diasDesde(c.ultima_compra);
+      // PÊNALTI P01: Estoque suficiente com > 30 dias sem compra
+      if (m.includes('ESTOQUE SUFICIENTE') && (dias == null || dias > DIAS_PENALTI_ESTOQUE)) {
+        const key = `${sig}|pen|estoque|${v.id}|${c.id}`;
+        if (!out.some(o => o.key === key)) out.push({key, sig, nivel: 'penalti', tipo: 'estoque', v, c, dias});
+      }
+      // PÊNALTI P02: Encerrou atividades com > 45 dias sem compra
+      else if ((m.includes('FECHADO') || m.includes('ENCERROU')) && (dias == null || dias > DIAS_PENALTI_FECHADO)) {
+        const key = `${sig}|pen|fechado|${v.id}|${c.id}`;
+        if (!out.some(o => o.key === key)) out.push({key, sig, nivel: 'penalti', tipo: 'fechado', v, c, dias});
+      }
+      // IMPEDIMENTO I01: Visita relâmpago de 00:00
+      else if (c.tempo_visita === '00:00') {
+        const key = `${sig}|imp|visita0|${v.id}|${c.id}`;
+        if (!out.some(o => o.key === key)) out.push({key, sig, nivel: 'impedimento', v, c});
+      }
     });
-    if (v.campo && v.temRota && depois10) { if (v.feitas === 0) out.push({key: `${sig}|vis10|${v.id}`, sig, nivel: 'visita10', v}); else if (!(v.dig > 0) && !(v.pos > 0)) out.push({key: `${sig}|ven10|${v.id}`, sig, nivel: 'venda10', v}); }
+    // CARTÃO VERMELHO V02: Zero visitas às 10h (ou 11h BSB para TCG, MCD, TCA)
+    const limiteHora = ['TCG','MCD','TCA'].includes(sig) ? 11 : 10;
+    if (v.campo && v.temRota && t.h >= limiteHora && t.h < FIM_H) {
+      if (v.feitas === 0) out.push({key: `${sig}|vis10|${v.id}`, sig, nivel: 'vermelho', subtipo: 'abandono_campo', v});
+      else if (!(v.dig > 0) && !(v.pos > 0)) out.push({key: `${sig}|ven10|${v.id}`, sig, nivel: 'amarelo', subtipo: 'sem_venda', v});
+    }
   }
   return out;
 }
@@ -227,8 +407,34 @@ async function processa() {
 const FILA = [], ESPERA = [], VARS = []; let emVAR = false;
 function enfileira(novos) {
   const porV = new Map();
+  // GOLS
+  novos.filter(a => a.nivel === 'gol').forEach(a => {
+    ESPERA.push({tipo: 'gol', sig: a.sig, v: a.v, c: a.c, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaAprox), score: 25});
+  });
+  // HAT-TRICK
+  novos.filter(a => a.nivel === 'hattrick').forEach(a => {
+    ESPERA.push({tipo: 'hattrick', sig: a.sig, v: a.v, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaAprox), score: 25});
+  });
+  // PÊNALTIS
   novos.filter(a => a.nivel === 'penalti').forEach(a => { const k = a.sig + '|' + a.v.id; if (!porV.has(k)) porV.set(k, {tipo: 'penalti', sig: a.sig, v: a.v, itens: []}); porV.get(k).itens.push(a); });
-  porV.forEach(g => { g.score = 10 + g.itens.length * 3 + statFilial(g.sig).nota / 10 + penaltisDe(g.v.id, g.sig); ESPERA.push(g); });
+  porV.forEach(g => { g.score = 20 + g.itens.length * 3 + statFilial(g.sig).nota / 10 + penaltisDe(g.v.id, g.sig); ESPERA.push(g); });
+  // IMPEDIMENTOS
+  novos.filter(a => a.nivel === 'impedimento').forEach(a => {
+    const sub = a.subtipo === 'gps_fora' ? `Check-out a ${a.distM}m do cliente ${a.c && a.c.nome}` : `Visita 00:00 no cliente ${a.c && a.c.nome}`;
+    ESPERA.push({tipo: 'impedimento', sig: a.sig, v: a.v, c: a.c, a, sub, score: 18});
+  });
+  // CARTÃO VERMELHO
+  novos.filter(a => a.nivel === 'vermelho').forEach(a => {
+    ESPERA.push({tipo: 'vermelho', sig: a.sig, v: a.v, c: a.c, a, sub: a.subtipo === 'devolucao_nao_pediu' ? `Devolução: CLIENTE NÃO PEDIU (${brl(a.valor)})` : a.subtipo === 'bonificacao' ? `${a.c && a.c.nome} · pedido com itens e valor R$0 (bonificação disfarçada)` : 'Abandono de campo: 0 visitas às 10h', score: 22});
+  });
+  // CARTÃO AMARELO
+  novos.filter(a => a.nivel === 'amarelo').forEach(a => {
+    ESPERA.push({tipo: 'amarelo', sig: a.sig, v: a.v, a, sub: 'Rota ativa sem vendas às 10h', score: 12});
+  });
+  // DEFESA MILAGROSA
+  novos.filter(a => a.nivel === 'defesa').forEach(a => {
+    ESPERA.push({tipo: 'defesa', sig: a.sig, v: a.v, c: a.c, a, sub: `Cliente recorrente ${a.c && a.c.nome} · positivado hoje!`, score: 15});
+  });
   ['visita10', 'venda10'].forEach(n => { const por = {}; novos.filter(a => a.nivel === n).forEach(a => (por[a.sig] = por[a.sig] || []).push(a)); Object.entries(por).forEach(([sig, l]) => ESPERA.push({tipo: n, sig, l, score: 8 + l.length + statFilial(sig).nota / 10})); });
   ESPERA.sort((a, b) => b.score - a.score); liberaEspera();
 }
@@ -242,36 +448,184 @@ function beep(seq) { if (!somOn) return; try { const C = new (window.AudioContex
 function linhas(o) { return Object.entries(o).filter(([, v]) => v != null && v !== '').map(([k, v]) => `<div class="ln${String(v).startsWith('!') ? ' hot' : ''}"><b>${esc(k)}</b><span>${esc(String(v).replace(/^!/, ''))}</span></div>`).join(''); }
 function telaVAR(item) {
   let titulo, sub, dec, veredito, cls = 'f1';
-  if (item.tipo === 'sup') {
+  if (item.tipo === 'gol') {
+    titulo = '⚽ GOL DE PLACA!'; sub = item.sub || 'Destaque nacional de vendas e positivação!'; cls = 'f1';
+    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'GOL DE PLACA')}</span></div>`;
+    veredito = '⚽ GOLAÇO NA REDE! Parabéns à equipe!';
+  } else if (item.tipo === 'hattrick') {
+    titulo = '🔥 HAT-TRICK!'; sub = item.sub || '3 pedidos digitados em sequência!'; cls = 'f1';
+    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'HAT-TRICK')}</span></div>`;
+    veredito = '🔥 HAT-TRICK DE OURO! Constância que decide o mês!';
+  } else if (item.tipo === 'vermelho') {
+    titulo = '🟥 CARTÃO VERMELHO'; sub = item.sub || 'Infração disciplinar grave detectada!'; cls = 'f1';
+    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>MOTIVO</b><span>${esc(item.sub || 'EXPULSÃO DIRETA')}</span></div>`;
+    veredito = '🟥 EXPULSÃO! Rever rota e devolução imediatamente!';
+  } else if (item.tipo === 'amarelo') {
+    titulo = '🟨 CARTÃO AMARELO'; sub = item.sub || 'Advertência de rota'; cls = 'f1';
+    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>ALERTA</b><span>${esc(item.sub || 'Sem venda até as 10h')}</span></div>`;
+    veredito = '🟨 ATENÇÃO! Acelerar positivação do dia!';
+  } else if (item.tipo === 'impedimento') {
+    titulo = '🚩 IMPEDIMENTO VAR'; sub = item.sub || 'Visita instantânea não computada'; cls = 'f1';
+    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>ANULADO</b><span>${esc(item.sub || 'Visita de 00:00 sem contato real')}</span></div>`;
+    veredito = '🚩 LANCE ANULADO! Check-in sem permanência mínima!';
+  } else if (item.tipo === 'defesa') {
+    titulo = '🧤 DEFESA MILAGROSA'; sub = item.sub || 'Carteira recorrente protegida!'; cls = 'f1';
+    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>DEFESA</b><span>${esc(item.sub || 'Recorrente salvo')}</span></div>`;
+    veredito = '🧤 MILAGRE NO GOL! Cliente blindado!';
+  } else if (item.tipo === 'sup') {
     titulo = '📋 SUPERVISORES'; sub = `11:30: ${item.total} supervisor(es) sem matinal e/ou rota (RET) em ${item.lista.length} filial(is)`;
     dec = item.lista.slice(0, 8).map(([sig, l]) => `<div class="ln hot"><b>${sig}</b><span>${l.length} pendente(s): ${esc(l.slice(0, 3).map(x => x.nome.split(' ')[0]).join(', '))}${l.length > 3 ? '…' : ''}</span></div>`).join(''); veredito = 'Lista completa em destaque até as 12:00.';
   } else if (item.tipo === 'resumo') {
-    titulo = '🚨 VÁRIOS LANCES'; sub = `${item.grupos.length} ocorrências críticas chegaram juntas`;
-    dec = item.grupos.slice(0, 8).map(g => g.tipo === 'penalti' ? `<div class="ln hot"><b>${g.sig} · PÊNALTI</b><span>${esc(g.v.nome)} — ${g.itens.length} justificativa(s)</span></div>` : `<div class="ln hot"><b>${g.sig} · ${g.tipo === 'venda10' ? 'CARTÃO' : 'EXPULSÃO'}</b><span>${g.l.length} vendedor(es)</span></div>`).join(''); veredito = 'Detalhes na filial correspondente e no diário.';
+    const grupos = Array.isArray(item.grupos) ? item.grupos : [];
+    titulo = '🚨 VÁRIOS LANCES'; sub = `${grupos.length} ocorrências críticas chegaram juntas`;
+    dec = grupos.slice(0, 8).map(g => {
+      if (!g || !g.tipo) return '';
+      if (g.tipo === 'penalti') {
+        const nm = (g.v && g.v.nome) ? g.v.nome : '?'; const ni = Array.isArray(g.itens) ? g.itens.length : 1;
+        return `<div class="ln hot"><b>${g.sig||''} · PÊNALTI</b><span>${esc(nm)} — ${ni} justificativa(s)</span></div>`;
+      }
+      return `<div class="ln hot"><b>${g.sig||''} · ${g.tipo === 'venda10' ? 'CARTÃO' : 'EXPULSÃO'}</b><span>${(g.l||[]).length} vendedor(es)</span></div>`;
+    }).join(''); veredito = 'Detalhes na filial correspondente e no diário.';
   } else if (item.tipo === 'penalti') {
-    const v = item.v, it = item.itens, n = it.length; titulo = '🚨 PÊNALTI';
-    sub = `${item.sig} · ${v.nome} · ${n === 1 ? (it[0].tipo === 'estoque' ? 'justificou "ESTOQUE SUFICIENTE"' : 'justificou cliente fechado') + ' em cliente parado' : n + ' justificativas suspeitas de uma vez'}`;
-    const cab = {'Filial': item.sig, 'Vendedor': `${v.nome} (RCA ${v.id})`, 'Supervisor': v.sup, 'Nota da filial': statFilial(item.sig).nota + ' / 100'};
-    if (n === 1) { const {c, dias} = it[0], tv = c.tempo_visita; dec = linhas({...cab, 'Cliente': c.nome, 'Justificativa': '!' + c.motivo, 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c.ultima_compra)})` : 'sem compra registrada'), 'Tempo na visita': tv ? (tv === '00:00' ? '!' + tv + ' (visita de 0 minuto)' : tv) : null}); }
-    else dec = linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot"><b>${esc(a.c.nome)}</b><span>${esc(a.c.motivo)} · ${a.dias != null ? a.dias + 'd s/ compra' : 'sem compra'}</span></div>`).join('');
-    veredito = `📞 LIGAR AGORA: ${v.sup || 'supervisor'} · ${item.sig} (supervisor de ${v.nome.split(' ')[0]})`;
+    const v = item.v, it = item.itens || [], n = it.length; titulo = '🚨 PÊNALTI';
+    sub = `${item.sig} · ${v ? v.nome : ''} · ${n === 1 ? (it[0].tipo === 'estoque' ? 'justificou "ESTOQUE SUFICIENTE"' : 'justificou cliente fechado') + ' em cliente parado' : n + ' justificativas suspeitas de uma vez'}`;
+    const cab = {'Filial': item.sig, 'Vendedor': v ? `${v.nome} (RCA ${v.id})` : '—', 'Supervisor': v ? v.sup : '—', 'Nota da filial': statFilial(item.sig).nota + ' / 100'};
+    if (n === 1) { const {c, dias} = it[0], tv = c ? c.tempo_visita : null; dec = linhas({...cab, 'Cliente': c ? c.nome : '—', 'Justificativa': '!' + (c ? c.motivo : ''), 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c ? c.ultima_compra : '')})` : 'sem compra registrada'), 'Tempo na visita': tv ? (tv === '00:00' ? '!' + tv + ' (visita de 0 minuto)' : tv) : null}); }
+    else dec = linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot"><b>${esc(a.c ? a.c.nome : '')}</b><span>${esc(a.c ? a.c.motivo : '')} · ${a.dias != null ? a.dias + 'd s/ compra' : 'sem compra'}</span></div>`).join('');
+    veredito = `📞 LIGAR AGORA: ${v ? v.sup : 'supervisor'} · ${item.sig} (supervisor de ${v ? v.nome.split(' ')[0] : 'vendedor'})`;
   } else {
-    titulo = item.tipo === 'venda10' ? '🟥 CARTÃO VERMELHO' : '⛔ EXPULSÃO'; sub = `${item.sig} · ${LIMITE_H}h e ${item.l.length} vendedor(es) COM ROTA e SEM ${item.tipo === 'venda10' ? 'NENHUMA VENDA' : 'NENHUMA VISITA'}`;
-    dec = item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${esc(a.v.nome)}</b><span>${a.v.feitas}/${a.v.rota} visitas · digitado ${brl(a.v.dig)}</span></div>`).join(''); veredito = item.tipo === 'venda10' ? 'Nenhuma venda registrada até agora.' : 'Nenhuma visita registrada — verificar se está em campo.';
+    titulo = item.tipo === 'venda10' ? '🟥 CARTÃO VERMELHO' : '⛔ EXPULSÃO'; sub = `${item.sig} · ${LIMITE_H}h e ${(item.l||[]).length} vendedor(es) COM ROTA e SEM ${item.tipo === 'venda10' ? 'NENHUMA VENDA' : 'NENHUMA VISITA'}`;
+    dec = (item.l||[]).slice(0, 8).map(a => `<div class="ln hot"><b>${esc(a.v ? a.v.nome : '')}</b><span>${a.v ? a.v.feitas : 0}/${a.v ? a.v.rota : 0} visitas · digitado ${brl(a.v ? a.v.dig : 0)}</span></div>`).join(''); veredito = item.tipo === 'venda10' ? 'Nenhuma venda registrada até agora.' : 'Nenhuma visita registrada — verificar se está em campo.';
   }
   return {titulo, sub, dec, veredito, cls};
 }
 function proximoVAR() {
-  if (emVAR || !FILA.length) return; emVAR = true; const item = FILA.shift(), T = telaVAR(item), ov = $('ov'), T_TOTAL = 60, t0 = Date.now(); let animStop = null;
-  const fecha = () => { clearInterval(ov._i); if (animStop) { animStop(); animStop = null; } ov.className = ''; ov.innerHTML = ''; emVAR = false; setTimeout(() => { proximoVAR(); liberaEspera(); }, 400); };
-  ov.onclick = () => { clearTimeout(ov._t1); clearTimeout(ov._t2); clearTimeout(ov._t3); fecha(); };
-  const decisao = () => { if (animStop) { animStop(); animStop = null; } ov.className = 'show'; ov.innerHTML = `<div class="dec"><h1>${esc(T.titulo)} · DECISÃO DO VAR</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
-    ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha sozinho em ${Math.max(0, T_TOTAL - Math.round((Date.now() - t0) / 1000))}s`; }, 500); };
-  const anim = item.tipo === 'penalti' && typeof iniciaAnimPenalti === 'function', A = anim ? 7000 : 3000;
-  if (anim) { ov.className = 'show'; ov.innerHTML = '<canvas id="cvp"></canvas>'; animStop = iniciaAnimPenalti($('cvp'), {vendedor: item.v.nome, cliente: item.itens.length === 1 ? item.itens[0].c.nome : `${item.itens.length} CLIENTES`}); }
-  else { ov.className = 'show ' + T.cls; ov.innerHTML = `<div class="big" style="font-size:min(9vw,150px);color:#fff;text-align:center">${esc(T.titulo)}</div><div class="sub">${esc(T.sub)}</div>`; beep([[880, .25], [660, .25], [880, .5]]); }
-  ov._t1 = setTimeout(() => { if (animStop) { animStop(); animStop = null; } ov.className = 'show'; ov.innerHTML = `<div class="var">VAR</div><div class="sub">REVISANDO O LANCE…</div><div class="scan"><i></i></div>`; }, A);
-  ov._t2 = setTimeout(decisao, A + 2800); ov._t3 = setTimeout(fecha, T_TOTAL * 1000);
+  if (emVAR || !FILA.length) return;
+  // Se o botão de teste manual deixou um vídeo/canvas aberto, fecha ele DIREITO antes de começar
+  // um lance real — nunca sobrescrever via innerHTML por cima de um <video> vivo (tela preta).
+  if (window.__fechaAnimAtual) { window.__fechaAnimAtual(); window.__fechaAnimAtual = null; }
+  emVAR = true; const item = FILA.shift(), T = telaVAR(item), ov = $('ov'), t0 = Date.now(); let animStop = null;
+  const btnFechar = $('btn-fechar-global');
+  const fecha = () => {
+    clearInterval(ov._i);
+    clearTimeout(ov._t1); clearTimeout(ov._t2); clearTimeout(ov._t3);
+    if (animStop) { animStop(); animStop = null; }
+    ov.className = ''; ov.innerHTML = ''; emVAR = false;
+    window.__fechaAnimAtual = null;
+    if (btnFechar) btnFechar.style.display = 'none';
+    setTimeout(() => { proximoVAR(); liberaEspera(); }, 400);
+  };
+  window.__fechaAnimAtual = fecha;
+  ov.onclick = () => { fecha(); };
+  if (btnFechar) { btnFechar.style.display = ''; btnFechar.onclick = e => { e.stopPropagation(); fecha(); }; }
+
+  if (item.tipo === 'hattrick' && typeof iniciaAnimHatTrick === 'function') {
+    // Sem vídeo real para Hat-Trick — vai direto para a animação vetorial dedicada.
+    ov.className = 'show';
+    ov.innerHTML = '<canvas id="cvp"></canvas>';
+    const valores = (item.a && item.a.valores) || [];
+    animStop = iniciaAnimHatTrick($('cvp'), {
+      vendedor: item.v ? item.v.nome : 'VENDEDOR',
+      sub: item.sub || 'HAT-TRICK',
+      clientes: valores.map((val, i) => ({ nome: `PEDIDO ${i + 1}`, valor: val > 0 ? brl(val) : '—' }))
+    });
+    const mostraDecisaoHat = () => {
+      if (animStop) { animStop(); animStop = null; }
+      ov.className = 'show';
+      ov.innerHTML = `<div class="dec"><h1>${esc(T.titulo)} · DECISÃO DO VAR</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
+      ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha em ${Math.max(0, 45 - Math.round((Date.now() - t0) / 1000))}s`; }, 500);
+      ov._t3 = setTimeout(fecha, 45000);
+    };
+    ov._t2 = setTimeout(mostraDecisaoHat, 9500);
+    return;
+  }
+
+  // Suporte a TODAS as animações da TV (Gol, Pênalti, Vermelho, Amarelo, Impedimento, Defesa)
+  const animGol = item.tipo === 'gol' && typeof iniciaAnimGol === 'function';
+  const animVermelho = item.tipo === 'vermelho' && typeof iniciaAnimCartao === 'function';
+  const animAmarelo = item.tipo === 'amarelo' && typeof iniciaAnimCartao === 'function';
+  const animImpedimento = item.tipo === 'impedimento' && typeof iniciaAnimImpedimento === 'function';
+  const animDefesa = item.tipo === 'defesa' && typeof iniciaAnimDefesa === 'function';
+  const animPenalti = item.tipo === 'penalti' && typeof iniciaAnimPenalti === 'function';
+  const anim = animGol || animVermelho || animAmarelo || animImpedimento || animDefesa || animPenalti;
+
+  if (anim) {
+    ov.className = 'show';
+    ov.innerHTML = '<canvas id="cvp"></canvas>';
+    const cv = $('cvp');
+
+    const mostraDecisaoLance = () => {
+      if (animStop) { animStop(); animStop = null; }
+      ov.className = 'show';
+      ov.innerHTML = `<div class="dec"><h1>${esc(T.titulo)} · DECISÃO DO VAR</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
+      ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha em ${Math.max(0, 45 - Math.round((Date.now() - t0) / 1000))}s`; }, 500);
+      ov._t3 = setTimeout(fecha, 45000);
+    };
+
+    // Duração base por tipo + variação aleatória de ±3s (ritmo mais orgânico, inspirado no VAR
+    // real: checagem silenciosa 15-25s, offside ~20s — nossa faixa é uma versão condensada disso).
+    const variaMs = () => Math.round((Math.random() * 6 - 3) * 1000);
+    let duracaoAnim = 14000, videoNome = null;
+    if (animGol) { duracaoAnim = 13000 + variaMs(); videoNome = 'gol'; }
+    else if (animVermelho) { duracaoAnim = 12000 + variaMs(); videoNome = 'vermelho'; }
+    else if (animAmarelo) { duracaoAnim = 10000 + variaMs(); videoNome = 'amarelo'; }
+    else if (animImpedimento) { duracaoAnim = 12000 + variaMs(); videoNome = 'impedimento'; }
+    else if (animDefesa) { duracaoAnim = 12000 + variaMs(); videoNome = 'defesa'; }
+    else { duracaoAnim = 14000 + variaMs(); videoNome = 'penalti'; }
+    duracaoAnim = Math.max(8000, duracaoAnim);
+
+    // DINÂMICA VAR COMPLETA (igual tvapp.html): LANCE (vídeo) → "VAR REVISANDO" (pausa
+    // dramática) → REPLAY (o mesmo vídeo, mais curto) → DECISÃO (texto, 45s).
+    const subtipoLance = item.subtipo || (item.a && item.a.subtipo);
+    let arquivoLance = null;
+    const mostraVarRevisando = () => {
+      if (animStop) { arquivoLance = animStop.arquivo || null; animStop(); animStop = null; }
+      ov.className = 'show';
+      ov.innerHTML = `<div class="var">VAR</div><div class="sub">REVISANDO O LANCE…</div><div class="scan"><i></i></div>`;
+      beep([[440, .15], [440, .15]]);
+      ov._t2 = setTimeout(iniciaReplay, 2500);
+    };
+    const iniciaReplay = () => {
+      ov.className = 'show';
+      ov.innerHTML = '<canvas id="cvp"></canvas>';
+      const cv2 = $('cvp');
+      animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance(cv2, videoNome, subtipoLance, 6000, mostraDecisaoLance, arquivoLance) : null;
+      if (!animStop) mostraDecisaoLance();
+    };
+    animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance(cv, videoNome, subtipoLance, duracaoAnim, mostraVarRevisando) : null;
+    if (animStop) return;
+
+    // Sem vídeo pronto: cai na animação vetorial de sempre (mesmo comportamento de hoje).
+    if (animGol) {
+      animStop = iniciaAnimGol(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || (item.a ? textoGol(item.a.subtipo, item.a.valor, item.a.c, item.a.horaAprox) : 'GOL DE PLACA')});
+    } else if (animVermelho) {
+      animStop = iniciaAnimCartao(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || (item.a && item.a.subtipo === 'devolucao_nao_pediu' ? `Devolução: CLIENTE NÃO PEDIU (${brl(item.a.valor)})` : item.a && item.a.subtipo === 'bonificacao' ? `${item.a.c && item.a.c.nome} · bonificação disfarçada` : 'Abandono de campo: 0 visitas às 10h')}, true);
+    } else if (animAmarelo) {
+      animStop = iniciaAnimCartao(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || 'Rota ativa sem nenhuma venda faturada'}, false);
+    } else if (animImpedimento) {
+      animStop = iniciaAnimImpedimento(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || `Visita 00:00 no cliente ${esc((item.a && item.a.c && item.a.c.nome) || '')}`});
+    } else if (animDefesa) {
+      animStop = iniciaAnimDefesa(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || 'Fechamento de venda em cliente recorrente!'});
+    } else {
+      animStop = iniciaAnimPenalti(cv, {vendedor: item.v ? item.v.nome : 'VENDEDOR', cliente: item.itens && item.itens.length === 1 ? item.itens[0].c.nome : `${item.itens ? item.itens.length : 1} CLIENTES`});
+    }
+    ov._t2 = setTimeout(mostraDecisaoLance, duracaoAnim);
+    return;
+  }
+
+  ov.className = 'show ' + T.cls;
+  ov.innerHTML = `<div class="big" style="font-size:min(9vw,150px);color:#fff;text-align:center">${esc(T.titulo)}</div><div class="sub">${esc(T.sub)}</div>`;
+  beep([[880, .25], [660, .25], [880, .5]]);
+  ov._t1 = setTimeout(() => {
+    ov.className = 'show';
+    ov.innerHTML = `<div class="var">VAR</div><div class="sub">REVISANDO O LANCE…</div><div class="scan"><i></i></div>`;
+  }, 3500);
+  ov._t2 = setTimeout(() => {
+    ov.className = 'show';
+    ov.innerHTML = `<div class="dec"><h1>${esc(T.titulo)} · DECISÃO DO VAR</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
+    ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha em ${Math.max(0, 45 - Math.round((Date.now() - t0) / 1000))}s`; }, 500);
+  }, 6500);
+  ov._t3 = setTimeout(fecha, 45000);
 }
 async function gatilhoSup() {
   const t = sp(), m = t.h * 60 + t.m, k = 'MTZ|sup|' + t.date; if (m < SUP_INI || m >= SUP_FIM || seen.has(k)) return;
@@ -280,104 +634,6 @@ async function gatilhoSup() {
   const d = await registraLances([{key: k, nivel: 'supervisor', v: {id: 'sup', nome: total + ' supervisor(es) pendente(s)', sup: ''}, sig: 'MTZ'}]); if (d && !d.novos.includes(k)) return;
   LOG.push({key: k, t: t.hms, nivel: 'supervisor', vendedor: total + ' supervisor(es) pendente(s)', sig: 'MTZ'}); store.set(K.log + HOJE0, LOG); FILA.push({tipo: 'sup', lista, total}); proximoVAR();
 }
-// ============================== ANIMAÇÃO DO PÊNALTI (mini jogo em canvas) ==============================
-// Cena de ~7 s: o CLIENTE (camisa azul, com o nome dele) dribla com a bola, o VENDEDOR (camisa vermelha) dá o carrinho,
-// o cliente cai, o juiz apita e aponta a marca do pênalti. Depois entra o "VAR revisando".
-const TORCIDA = (() => { const a = []; let x = 12345; const r = () => (x = (x * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
-  for (let i = 0; i < 900; i++) a.push({x: r(), y: 250 + r() * 260, c: ['#38bdf8', '#f59e0b', '#ef4444', '#e8eefc', '#22c55e', '#a78bfa'][Math.floor(r() * 6)], ph: r() * 6.28}); return a; })();
-const rr = (c, x, y, w, h, r) => { c.beginPath(); if (c.roundRect) c.roundRect(x, y, w, h, r); else c.rect(x, y, w, h); };
-function membro(c, x, y, ang, len, w, col) { c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'round'; c.beginPath(); c.moveTo(x, y); const ex = x + Math.sin(ang) * len, ey = y + Math.cos(ang) * len; c.lineTo(ex, ey); c.stroke(); return [ex, ey]; }
-function pessoa(c, o) {
-  c.save(); c.translate(o.x, o.y); if (o.rot) c.rotate(o.rot); c.scale(o.k, o.k);
-  const sw = Math.sin(o.fase || 0), pele = o.pele || '#f1c9a5'; let aL1 = .1, aL2 = -.1, aA1 = .2, aA2 = -.2;
-  if (o.pose === 'run') { aL1 = sw * .9; aL2 = -sw * .9; aA1 = -sw * .9; aA2 = sw * .9; }
-  else if (o.pose === 'slide') { aL1 = 1.35; aL2 = 1.1; aA1 = -1.3; aA2 = -.9; }
-  else if (o.pose === 'fall') { aL1 = .35; aL2 = -.3; aA1 = 2.5; aA2 = -2.4; }
-  else if (o.pose === 'protesto') { aL1 = .1; aL2 = -.1; aA1 = 2.7; aA2 = -2.7; }
-  else if (o.pose === 'aponta') { aA1 = o.alvo != null ? o.alvo : 1.35; }
-  const quadril = [0, -75], ombro = [0, -140];
-  const perna = (a, cor) => { const [ex, ey] = membro(c, quadril[0], quadril[1], a, 76, 17, cor); c.fillStyle = '#111'; c.beginPath(); c.ellipse(ex + 8, ey, 15, 8, 0, 0, 7); c.fill(); };
-  perna(aL2, pele); membro(c, ombro[0], ombro[1], aA2, 58, 13, pele);
-  c.fillStyle = o.camisa; rr(c, -26, -152, 52, 82, 10); c.fill();
-  if (o.num) { c.fillStyle = '#fff'; c.font = '900 34px Segoe UI'; c.textAlign = 'center'; c.fillText(o.num, 0, -100); }
-  c.fillStyle = o.calcao; c.fillRect(-26, -78, 52, 30);
-  perna(aL1, pele);
-  c.fillStyle = pele; c.beginPath(); c.arc(0, -176, 25, 0, 7); c.fill();
-  c.fillStyle = o.cabelo || '#2b1b10'; c.beginPath(); c.arc(0, -180, 25, Math.PI, 0); c.fill();
-  c.fillStyle = '#111'; c.beginPath(); c.arc(9, -174, 3, 0, 7); c.fill();
-  if (o.grito) { c.fillStyle = '#7a1f1f'; c.beginPath(); c.ellipse(12, -162, 6, 9, 0, 0, 7); c.fill(); }
-  if (o.pose === 'apito') { // mão na boca com o apito
-    c.strokeStyle = pele; c.lineWidth = 13; c.lineCap = 'round'; c.beginPath(); c.moveTo(0, -140); c.lineTo(24, -122); c.lineTo(20, -164); c.stroke();
-    c.fillStyle = '#e5e7eb'; c.beginPath(); c.arc(28, -164, 9, 0, 7); c.fill();
-  } else membro(c, ombro[0], ombro[1], aA1, o.pose === 'aponta' ? 74 : 58, 13, pele);
-  c.restore();
-}
-function bola(c, x, y, r, rot) { c.save(); c.translate(x, y); c.rotate(rot); c.fillStyle = '#fff'; c.beginPath(); c.arc(0, 0, r, 0, 7); c.fill(); c.strokeStyle = '#111'; c.lineWidth = 2; c.stroke(); c.fillStyle = '#111';
-  for (let i = 0; i < 5; i++) { c.beginPath(); c.arc(Math.cos(i * 1.2566) * r * .55, Math.sin(i * 1.2566) * r * .55, r * .2, 0, 7); c.fill(); } c.restore(); }
-function etiqueta(c, txt, x, y, cor) { c.font = '800 26px Segoe UI'; c.textAlign = 'center'; const w = c.measureText(txt).width + 26; c.fillStyle = 'rgba(0,0,0,.65)'; rr(c, x - w / 2, y - 26, w, 38, 12); c.fill(); c.strokeStyle = cor; c.lineWidth = 3; c.stroke(); c.fillStyle = '#fff'; c.fillText(txt, x, y + 2); }
-function desenhaCena(c, W, H, t, P) {
-  const S = H / 1080, ox = (W / S - 1920) / 2, LX = -ox, LW = 1920 + 2 * ox, CH = 940, K = 1.5;
-  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, W, H); c.save(); c.scale(S, S); c.translate(ox, 0);
-  if (t > 4400 && t < 4900) c.translate((Math.random() - .5) * 10, (Math.random() - .5) * 10);
-  const g = c.createLinearGradient(0, 0, 0, 540); g.addColorStop(0, '#050a1a'); g.addColorStop(1, '#16264d'); c.fillStyle = g; c.fillRect(LX, 0, LW, 540);
-  for (const fx of [200, 700, 1200, 1700]) { c.fillStyle = 'rgba(255,255,220,.07)'; c.beginPath(); c.moveTo(fx - 30, 0); c.lineTo(fx + 30, 0); c.lineTo(fx + 230, 540); c.lineTo(fx - 230, 540); c.fill(); c.fillStyle = '#fffbe0'; c.fillRect(fx - 40, 18, 80, 14); }
-  c.fillStyle = '#0d1530'; c.fillRect(LX, 240, LW, 300);
-  for (const d of TORCIDA) { const px = LX + d.x * LW, pulo = t > 5000 ? Math.abs(Math.sin(t * .01 + d.ph)) * 9 : 0; c.globalAlpha = .4 + .35 * (.5 + .5 * Math.sin(t * .004 + d.ph)); c.fillStyle = d.c; c.fillRect(px, d.y - pulo, 9, 12);
-    if (Math.sin(t * .02 + d.ph * 9) > .987) { c.globalAlpha = .9; c.fillStyle = '#fff'; c.beginPath(); c.arc(px, d.y, 13, 0, 7); c.fill(); } }
-  c.globalAlpha = 1;
-  c.fillStyle = '#0f5a2b'; c.fillRect(LX, 540, LW, 540);
-  for (let i = -3; i < 16; i++) { c.fillStyle = i % 2 ? 'rgba(255,255,255,.045)' : 'rgba(0,0,0,.07)'; c.fillRect(i * 160, 540, 160, 540); }
-  c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 5; c.beginPath(); c.moveTo(LX, 575); c.lineTo(1920 + ox, 575); c.stroke();
-  c.beginPath(); c.moveTo(880, 575); c.lineTo(800, 1080); c.stroke();
-  c.lineWidth = 8; c.strokeRect(1560, 405, 300, 170); c.lineWidth = 1; c.strokeStyle = 'rgba(255,255,255,.3)';
-  for (let x = 1580; x < 1860; x += 20) { c.beginPath(); c.moveTo(x, 405); c.lineTo(x, 575); c.stroke(); } for (let y = 425; y < 575; y += 20) { c.beginPath(); c.moveTo(1560, y); c.lineTo(1860, y); c.stroke(); }
-  c.fillStyle = '#fff'; c.beginPath(); c.ellipse(1400, 880, 16, 6, 0, 0, 7); c.fill();
-  if (t > 5000) { const q = ((t - 5000) % 900) / 900; c.strokeStyle = `rgba(250,204,21,${1 - q})`; c.lineWidth = 6; c.beginPath(); c.ellipse(1400, 880, 16 + q * 70, 6 + q * 26, 0, 0, 7); c.stroke(); }
-  c.fillStyle = 'rgba(0,0,0,.3)'; // sombras
-  // ---- jogadores ----
-  const ax0 = -150 + Math.min(t, 2800) * .42, pf = t < 2800 ? 0 : Math.min(1, (t - 2800) / 600);
-  const ax = ax0 + 70 * pf, ay = CH - Math.sin(pf * Math.PI) * 70;
-  const dx = t < 2500 ? -900 + t * .712 : (t < 3300 ? 880 + (t - 2500) * .34 : 1152 - Math.min(1, (t - 3300) / 400) * 190);
-  const drot = t < 2500 ? 0 : (t < 3300 ? -1.3 * Math.min(1, (t - 2500) / 250) : -1.3 * (1 - Math.min(1, (t - 3300) / 400)));
-  const dpose = t < 2500 ? 'run' : (t < 3300 ? 'slide' : 'protesto');
-  const rx = t < 3300 ? -300 : (t < 4400 ? -200 + (t - 3300) * .82 : 702), rpose = t < 4400 ? 'run' : (t < 5000 ? 'apito' : 'aponta');
-  for (const [sx, sy] of [[ax, CH], [dx, CH], [rx, CH]]) { c.fillStyle = 'rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(sx, sy + 4, 80, 14, 0, 0, 7); c.fill(); }
-  const bx = t < 2800 ? ax0 + 78 : 1101 + 430 * (1 - Math.exp(-(t - 2800) / 520)), by = t < 2800 ? CH - 16 - Math.abs(Math.sin(t * .018)) * 14 : CH - 16 - Math.abs(Math.sin((t - 2800) / 170)) * 55 * Math.exp(-(t - 2800) / 500);
-  pessoa(c, {x: rx, y: CH, k: K, camisa: '#facc15', calcao: '#111', cabelo: '#111', pose: rpose, fase: t * .018, alvo: 1.37});
-  pessoa(c, {x: dx, y: CH, k: K, camisa: '#ef4444', calcao: '#450a0a', num: '4', pose: dpose, rot: drot, fase: t * .02, grito: t > 3300});
-  pessoa(c, {x: ax, y: ay, k: K, camisa: '#38bdf8', calcao: '#0b3b5c', num: '10', pele: '#c98f5f', pose: t < 2800 ? 'run' : 'fall', rot: 1.45 * pf, fase: t * .018, grito: t > 2900});
-  bola(c, bx, by, 16, t * .01);
-  const nomeC = String(P.cliente || 'CLIENTE').slice(0, 26), nomeV = String(P.vendedor || '').split(' ')[0];
-  if (t < 2800) etiqueta(c, nomeC, ax, CH - 335, '#38bdf8'); else etiqueta(c, nomeC, ax + 190, CH + 70, '#38bdf8');
-  if (t > 300) etiqueta(c, nomeV, dx - (t > 2500 && t < 3300 ? 60 : 0), CH - (t > 2500 && t < 3300 ? 250 : 335), '#ef4444');
-  if (t > 3000) { c.font = '900 40px Segoe UI'; c.fillStyle = '#facc15'; for (let i = 0; i < 3; i++) { const a = t * .006 + i * 2.1; c.fillText('★', ax + 300 + Math.cos(a) * 45, CH - 60 + Math.sin(a) * 14); } }
-  if (t > 4400 && t < 5300) { const q = (t - 4400) / 900; c.save(); c.translate(rx + 60, CH - 395); c.scale(1 + .12 * Math.sin(t * .05), 1 + .12 * Math.sin(t * .05));
-    c.font = 'italic 900 84px Segoe UI'; c.textAlign = 'left'; c.lineWidth = 12; c.strokeStyle = '#111'; c.strokeText('PIIIIII!', 0, 0); c.fillStyle = '#facc15'; c.fillText('PIIIIII!', 0, 0);
-    c.strokeStyle = `rgba(250,204,21,${1 - q})`; c.lineWidth = 5; for (let i = 1; i <= 3; i++) { c.beginPath(); c.arc(-30, 30, 30 * i + q * 60, -.9, .9); c.stroke(); } c.restore(); }
-  if (t > 5000) { const p = Math.min(1, (t - 5000) / 300), e = 1 - Math.pow(1 - p, 3), sc = (.3 + .7 * e) * (1 + .03 * Math.sin(t * .02));
-    c.save(); c.translate(960, 235); c.scale(sc, sc); c.shadowColor = '#ef4444'; c.shadowBlur = 60; c.textAlign = 'center'; c.font = '900 250px Segoe UI'; c.lineWidth = 24; c.strokeStyle = '#7f1d1d'; c.strokeText('PÊNALTI!', 0, 0); c.fillStyle = '#fff'; c.fillText('PÊNALTI!', 0, 0); c.restore();
-    c.textAlign = 'center'; c.font = '800 46px Segoe UI'; c.fillStyle = '#fecaca'; c.globalAlpha = e; c.fillText('⚠ ' + (P.vendedor || ''), 960, 330); c.globalAlpha = 1; }
-  if (t > 6200) { c.textAlign = 'center'; c.font = '700 34px Segoe UI'; c.fillStyle = 'rgba(255,255,255,' + Math.min(1, (t - 6200) / 400) + ')'; c.fillText('o VAR vai revisar o lance…', 960, 1030); }
-  if (t > 4400 && t < 4560) { c.fillStyle = `rgba(255,255,255,${(1 - (t - 4400) / 160) * .7})`; c.fillRect(LX, 0, LW, 1080); }
-  if (t > 5000 && t < 5180) { c.fillStyle = `rgba(239,68,68,${(1 - (t - 5000) / 180) * .5})`; c.fillRect(LX, 0, LW, 1080); }
-  const v = c.createRadialGradient(960, 540, 400, 960, 540, 1150); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.55)'); c.fillStyle = v; c.fillRect(LX, 0, LW, 1080);
-  c.restore();
-}
-function apito() {
-  if (!somOn) return;
-  try { const C = new (window.AudioContext || window.webkitAudioContext)(), o = C.createOscillator(), l = C.createOscillator(), g = C.createGain(), lg = C.createGain(), n = C.currentTime;
-    o.type = 'sine'; o.frequency.value = 2900; l.frequency.value = 38; lg.gain.value = 180; l.connect(lg); lg.connect(o.frequency);
-    g.gain.setValueAtTime(.0001, n); g.gain.exponentialRampToValueAtTime(.25, n + .03); g.gain.exponentialRampToValueAtTime(.0001, n + 1.1); o.connect(g); g.connect(C.destination); o.start(); l.start(); o.stop(n + 1.2); l.stop(n + 1.2); } catch {}
-}
-function iniciaAnimPenalti(cv, P) {
-  cv.width = innerWidth; cv.height = innerHeight; cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
-  const c = cv.getContext('2d'); const t0 = performance.now(); let raf = 0, parou = false, apitou = false;
-  const quadro = () => { if (parou) return; const t = performance.now() - t0; desenhaCena(c, cv.width, cv.height, t, P); if (t > 4380 && !apitou) { apitou = true; apito(); } raf = requestAnimationFrame(quadro); };
-  quadro(); return () => { parou = true; cancelAnimationFrame(raf); };
-}
-function animTeste(t) { const ov = $('ov'); ov.className = 'show'; ov.innerHTML = '<canvas id="cvp"></canvas>'; const cv = $('cvp'); cv.width = innerWidth; cv.height = innerHeight; cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%'; desenhaCena(cv.getContext('2d'), cv.width, cv.height, t, {vendedor: 'ANDREA DO ROCIO', cliente: 'SUPERMERCADO RAVI'}); }
-
-
 // ============================== RENDER ==============================
 function modoSup() { const t = sp(), m = t.h * 60 + t.m; return m >= SUP_INI && m < SUP_FIM && ORDEM.some(s => (SUPS[s] || []).some(x => !/GERENTE/i.test(x.nome) && (!x.fez_compromisso || !x.iniciou_ret))); }
 function renderTotais(stats) {
@@ -405,7 +661,15 @@ function renderFilial(x) {
   const porGrupo = {}; x.vs.forEach(v => { if (!v.grupo) return; const o = porGrupo[v.grupo] = porGrupo[v.grupo] || {g: v.grupo, n: 0, dig: 0, zer: 0, pen: 0}; o.n++; o.dig += v.dig || 0; if (zerado(v)) o.zer++; });
   ALERTAS.filter(a => a.sig === x.sig && a.nivel === 'penalti').forEach(a => { if (a.v.grupo && porGrupo[a.v.grupo]) porGrupo[a.v.grupo].pen++; });
   const gruposHtml = Object.keys(porGrupo).length > 1 ? `<div style="display:flex;gap:10px;flex-wrap:wrap">${Object.values(porGrupo).map(o => `<span class="tg" style="background:#1a2440;font-size:14px;padding:5px 12px">${esc(o.g)}: ${o.n} vend. · ${brl(o.dig)} hoje · ${o.zer} zerado(s) · ${o.pen} pênalti(s)</span>`).join('')}</div>` : '';
-  const tag = a => a.nivel === 'penalti' ? '<span class="tg t-pen">PÊNALTI</span>' : a.nivel === 'venda10' ? '<span class="tg t-ven">SEM VENDA</span>' : '<span class="tg t-vis">SEM VISITA</span>';
+  const tag = a => {
+    if (a.nivel === 'gol') return '<span class="tg" style="background:#16a34a;color:#fff;border:1px solid #22c55e">⚽ GOL DE PLACA</span>';
+    if (a.nivel === 'vermelho') return '<span class="tg" style="background:#dc2626;color:#fff;border:1px solid #ef4444">🟥 VERMELHO</span>';
+    if (a.nivel === 'impedimento') return '<span class="tg" style="background:#d97706;color:#fff;border:1px solid #f59e0b">🚩 IMPEDIMENTO</span>';
+    if (a.nivel === 'amarelo') return '<span class="tg" style="background:#ca8a04;color:#111;border:1px solid #facc15;font-weight:900">🟨 AMARELO</span>';
+    if (a.nivel === 'penalti') return '<span class="tg t-pen">🚨 PÊNALTI</span>';
+    if (a.nivel === 'venda10') return '<span class="tg t-ven">SEM VENDA</span>';
+    return '<span class="tg t-vis">SEM VISITA</span>';
+  };
   el.innerHTML = `<h2><span>Filial em foco</span><b>${(idxFil + 1)} de ${ORDEM.length} · troca em ${Math.max(0, Math.round(MIN_FIL * 60 - (Date.now() - tFil) / 1000))}s</b></h2>
    <div style="display:flex;align-items:baseline;gap:16px"><span class="big">${x.sig}</span><span class="nota ${corNota(x.nota)}" style="font-size:38px">nota ${x.nota}</span><span style="color:var(--mut)">${x.n} vendedores · ${x.campo.length} de campo com rota</span></div>${gruposHtml}
    <div class="grid4">
@@ -421,7 +685,42 @@ function renderFilial(x) {
        <div class="kpi"><span>Supervisores</span><b class="mono">${nv(sups.length)}</b></div>
        <div class="kpi"><span>Sem nenhuma visita hoje</span><b class="mono" style="color:${x.nSemVis>0?'var(--bad)':'inherit'}">${nv(x.nSemVis)}</b></div>
       </div>` :
-      sub === 1 ? `<h2 style="margin:6px 0 2px"><span>Supervisores</span><b>2/3</b></h2><table class="tb"><tr><th>Supervisor</th><th>Vend.</th><th>Digitado hoje</th><th>Zerados</th><th>Pênaltis</th></tr>${sups.slice(0, 10).map(s => `<tr><td>${esc(s.nome)}</td><td>${s.n}</td><td>${brl(s.dig)}</td><td class="${s.zer ? 'bad' : ''}">${s.zer}</td><td class="${s.pen ? 'bad' : ''}">${s.pen}</td></tr>`).join('')}</table>` :
+      sub === 1 ? (() => {
+        const rankSups = sups.map(s => {
+          const als = ALERTAS.filter(a => a.sig === x.sig && (a.v.sup || 'sem supervisor') === s.nome);
+          const gols = als.filter(a => a.nivel === 'gol').length;
+          const pens = s.pen;
+          const verms = als.filter(a => a.nivel === 'vermelho').length;
+          const amars = als.filter(a => a.nivel === 'amarelo').length;
+          const score = (gols * 10) - (pens * 5) - (verms * 8) - (amars * 2);
+          return {...s, gols, pens, verms, amars, score};
+        }).sort((a, b) => b.score - a.score || b.dig - a.dig);
+
+        return `<h2 style="margin:6px 0 2px"><span>Supervisores · Score & Fair Play</span><b>2/3</b></h2>
+          <table class="tb">
+            <tr>
+              <th>Supervisor</th>
+              <th>Vend.</th>
+              <th>Digitado</th>
+              <th style="color:#22c55e">⚽ Gols</th>
+              <th style="color:#f87171">🚨 Pên.</th>
+              <th style="color:#ef4444">🟥 Verm.</th>
+              <th>Zerados</th>
+              <th style="color:#38bdf8">🏆 Score</th>
+            </tr>
+            ${rankSups.map(s => `<tr>
+              <td><b>${esc(s.nome)}</b></td>
+              <td>${s.n}</td>
+              <td class="mono">${brl(s.dig)}</td>
+              <td style="color:#22c55e;font-weight:800">${s.gols || 0}</td>
+              <td class="${s.pens ? 'bad' : ''}">${s.pens}</td>
+              <td class="${s.verms ? 'bad' : ''}">${s.verms || 0}</td>
+              <td class="${s.zer ? 'bad' : ''}">${s.zer}</td>
+              <td class="mono" style="font-weight:900;color:${s.score >= 0 ? '#38bdf8' : '#f87171'}">${s.score > 0 ? '+' : ''}${s.score}</td>
+            </tr>`).join('')}
+          </table>
+          <small style="color:var(--mut);display:block;margin-top:6px;font-size:12px">Score: (+10 × Gols) - (5 × Pênaltis) - (8 × Vermelhos) - (2 × Amarelos)</small>`;
+      })() :
       `<h2 style="margin:6px 0 2px"><span>Casos críticos (B.O.s) da filial</span><b>3/3</b></h2>${crit.length ? crit.map(o => `<div class="crit">${o.al.length ? tag(o.al[0]) : '<span class="tg t-ven">ZERADO</span>'}<div>${esc(o.v.nome)}<small>${o.al.length ? o.al.length + ' lance(s) · ' + esc(o.v.sup) : 'sem venda hoje · ' + esc(o.v.sup)}</small></div></div>`).join('') : '<div style="color:var(--mut);padding:8px 0">Nenhum caso crítico agora.</div>'}`}
    </div>
    <div class="subprog"><i style="width:${((Date.now() - tFil) / 1000 % SUB_S) / SUB_S * 100}%"></i></div>
@@ -439,8 +738,53 @@ function render() {
   $('alert').textContent = `${ALERTAS.length} alerta(s) ativo(s) (${pen} pênaltis) · mais críticas: ${crit.map(s => s.sig + ' ' + s.nota).join(' · ')} · lances do dia: ${LOG.filter(e => e.nivel !== 'supervisor').length}`;
   if (!sup) { const p = $('prog'); if (p) { const f = Math.min(1, (Date.now() - tFil) / (MIN_FIL * 60000)); p.style.width = (f * 100) + '%'; } }
 }
+let ultLanceAuto = Date.now(), idxDestaque = 0;
+function confereLanceAuto() {
+  if (emVAR || FILA.length || !ALERTAS.length) return;
+  const t = sp();
+  if (t.h < 8) return;
+  // A cada 2.5 min mostra automaticamente um lance na TV
+  if (Date.now() - ultLanceAuto >= 150000) {
+    ultLanceAuto = Date.now();
+    const categorias = [
+      { tipo: 'gol', lista: ALERTAS.filter(a => a.nivel === 'gol') },
+      { tipo: 'hattrick', lista: ALERTAS.filter(a => a.nivel === 'hattrick') },
+      { tipo: 'penalti', lista: ALERTAS.filter(a => a.nivel === 'penalti') },
+      { tipo: 'impedimento', lista: ALERTAS.filter(a => a.nivel === 'impedimento') },
+      { tipo: 'vermelho', lista: ALERTAS.filter(a => a.nivel === 'vermelho') },
+      { tipo: 'amarelo', lista: ALERTAS.filter(a => a.nivel === 'amarelo') },
+      { tipo: 'defesa', lista: ALERTAS.filter(a => a.nivel === 'defesa') }
+    ].filter(c => c.lista && c.lista.length > 0);
+
+    if (!categorias.length) return;
+    const cat = categorias[idxDestaque % categorias.length];
+    idxDestaque++;
+    // Pega o item mais relevante da categoria (ex: maior valor no gol, maior tempo/risco nas infrações)
+    const lance = cat.lista.slice().sort((a,b) => (b.valor || b.dias || 0) - (a.valor || a.dias || 0))[0] || cat.lista[0];
+    if (lance.nivel === 'gol') {
+      FILA.push({tipo: 'gol', sig: lance.sig, v: lance.v, c: lance.c, a: lance, sub: textoGol(lance.subtipo, lance.valor, lance.c, lance.horaAprox)});
+    } else if (lance.nivel === 'hattrick') {
+      FILA.push({tipo: 'hattrick', sig: lance.sig, v: lance.v, a: lance, sub: textoGol(lance.subtipo, lance.valor, lance.c, lance.horaAprox)});
+    } else if (lance.nivel === 'penalti') {
+      FILA.push({tipo: 'penalti', sig: lance.sig, v: lance.v, itens: [lance], a: lance});
+    } else if (lance.nivel === 'vermelho') {
+      FILA.push({tipo: 'vermelho', sig: lance.sig, v: lance.v, c: lance.c, a: lance, sub: lance.subtipo === 'devolucao_nao_pediu' ? `Devolução: CLIENTE NÃO PEDIU (${brl(lance.valor)})` : lance.subtipo === 'bonificacao' ? `${lance.c && lance.c.nome} · bonificação disfarçada` : 'Abandono de campo: 0 visitas às 10h'});
+    } else if (lance.nivel === 'amarelo') {
+      FILA.push({tipo: 'amarelo', sig: lance.sig, v: lance.v, a: lance, sub: 'Rota ativa sem vendas às 10h'});
+    } else if (lance.nivel === 'impedimento') {
+      const sub = lance.subtipo === 'gps_fora' ? `Check-out a ${lance.distM}m do cliente ${lance.c && lance.c.nome}` : `Visita 00:00 no cliente ${lance.c && lance.c.nome}`;
+      FILA.push({tipo: 'impedimento', sig: lance.sig, v: lance.v, c: lance.c, a: lance, sub});
+    } else if (lance.nivel === 'defesa') {
+      FILA.push({tipo: 'defesa', sig: lance.sig, v: lance.v, c: lance.c, a: lance, sub: `Cliente recorrente ${lance.c && lance.c.nome} · positivado hoje!`});
+    } else {
+      FILA.push({tipo: lance.nivel, a: lance, sig: lance.sig, v: lance.v, l: [lance]});
+    }
+    VARS.push(Date.now());
+    proximoVAR();
+  }
+}
 function relogio() {
-  $('clock').textContent = sp().hms; liberaEspera();
+  $('clock').textContent = sp().hms; liberaEspera(); confereLanceAuto();
   if (auto && Date.now() - tFil >= MIN_FIL * 60000) { idxFil = (idxFil + 1) % ORDEM.length; tFil = Date.now(); }
   const vistas = ORDEM.map(s => TS[s]).filter(Boolean); if (vistas.length) { const min = Math.round((Date.now() - Math.max(...vistas)) / 60000); const u = $('upd'); u.textContent = min >= 5 ? `SEM ATUALIZAR HÁ ${min} MIN` : `${vistas.length}/${ORDEM.length} filiais lidas`; u.className = 'upd' + (min >= 5 ? ' old' : ''); }
   render();
@@ -459,6 +803,16 @@ function ctl() {
   const fs = () => { const d = raiz(); try { d.fullscreenElement ? d.exitFullscreen() : d.documentElement.requestFullscreen(); } catch {} };
   $('bfs').onclick = fs; document.addEventListener('keydown', e => { if (e.key === 'f' || e.key === 'F') fs(); });
   raiz().addEventListener('fullscreenchange', () => { $('bfs').textContent = raiz().fullscreenElement ? '⛶ Sair da tela cheia' : '⛶ Tela cheia'; });
+
+  // Botões de Teste Manual dos Lances do Livro de Regras
+  if ($('bt-gol')) $('bt-gol').onclick = () => (typeof animTeste === 'function' ? animTeste('gol', 'SUPER PEDIDO DE R$ 25.000!') : null);
+  if ($('bt-def')) $('bt-def').onclick = () => (typeof animTeste === 'function' ? animTeste('defesa', 'Defesa milagrosa: salvou a meta no cliente') : null);
+  if ($('bt-imp')) $('bt-imp').onclick = () => (typeof animTeste === 'function' ? animTeste('impedimento', 'Visita relâmpago de 00:00') : null);
+  if ($('bt-ver')) $('bt-ver').onclick = () => (typeof animTeste === 'function' ? animTeste('vermelho', 'Devolução: CLIENTE NÃO PEDIU') : null);
+  if ($('bt-ama')) $('bt-ama').onclick = () => (typeof animTeste === 'function' ? animTeste('amarelo', 'Rota ativa sem vendas às 10h') : null);
+  if ($('bt-pen')) $('bt-pen').onclick = () => (typeof animTeste === 'function' ? animTeste('penalti', 'Simulação de falta / estoque suficiente') : null);
+  if ($('bt-hat')) $('bt-hat').onclick = () => (typeof animTeste === 'function' ? animTeste('hattrick') : null);
+  if ($('bt-inv')) $('bt-inv').onclick = () => (typeof animTeste === 'function' ? animTeste('semanainvicta') : null);
 }
 // ============================== LAÇO PRINCIPAL ==============================
 async function laco() {
