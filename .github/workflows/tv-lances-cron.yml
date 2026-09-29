@@ -1,26 +1,34 @@
 # FICHA DO ARQUIVO
-# DESATIVADO em 29/09/2026: este workflow chama functions/api/cron-lances.js, que nunca chegou a
-# ser escrito — foi criado o .yml descrevendo a funcionalidade sem implementar o endpoint (erro
-# achado nesta mesma sessão: o workflow ficou ativo em produção apontando pra uma rota 404,
-# gastando um slot de execução do GitHub Actions a cada 10min à toa). A detecção de lances hoje
-# só roda dentro do JavaScript da TV, no navegador de quem abrir a tela — 8 das 11 filiais ficam
-# sem detecção se ninguém abrir aquela tela, problema real, mas resolver direito (replicar o
-# algoritmo de detecção do client-side pro servidor sem duplicar/inventar lance) é tarefa própria,
-# não algo pra fazer às pressas em cima de um incidente de carga no CEVEN. schedule DESLIGADO até
-# cron-lances.js existir de verdade; workflow_dispatch (manual) continua disponível pra quando for
-# implementado.
-name: TV — Detectar Lances de Todas as Filiais (DESATIVADO — endpoint nao existe)
+# O QUE É: dispara a detecção de lances (gol, cartão, pênalti, impedimento, defesa, hat-trick,
+#          gol contra) de TODAS as 11 filiais (functions/api/cron-lances.js), a cada 5 minutos,
+#          sem depender de nenhuma TV estar aberta num navegador.
+# POR QUE EXISTE (achado 29/09/2026): a detecção só rodava dentro do JavaScript da TV, a cada 90s
+#          — se a aba do navegador ficasse em background (Chrome suspende `setInterval` de abas
+#          inativas) ou nenhuma TV estivesse aberta numa filial, os lances paravam de ser
+#          detectados. Vitório: "to aqui assistindo a TV de API e não tá tendo gol nenhum" — o
+#          último lance registrado tinha quase 3h de idade. cron-lances.js agora replica a mesma
+#          lógica de calcAlertas() do lado do servidor.
+# PRIORIDADE (decisão do Vitório, 29/09/2026): "quero de 5 em 5 minutos" — separado do WhatsApp e
+#          dos outros crons da TV, minuto 4 de cada 5 (nunca coincide com varredura central em
+#          */5, mapa-executivo em 2-59/5, ou faturado-mes em 2-59/15).
+# PROJETO: CFTV/TV. Só faz um GET no endpoint público — não usa secrets, não toca no pipeline do
+#          WhatsApp nem em nada fora de functions/api/cron-lances.js e tv-vendedor.js/tv-lances.js
+#          (que a própria TV já usa em produção). Respeita o lock global (cron-lock.js) — pula o
+#          ciclo se o WhatsApp estiver ativo.
+name: TV — Detectar Lances de Todas as Filiais
 
 on:
+  schedule:
+    - cron: '4-59/5 * * * *' # minutos 4,9,14,19... — nunca coincide com os outros crons da TV
   workflow_dispatch: {}
 
 jobs:
   detectar_lances:
     runs-on: ubuntu-latest
-    timeout-minutes: 9
+    timeout-minutes: 4
     steps:
       - name: Disparar detecção de lances (cron-lances)
         run: |
-          curl -sS -m 480 "https://ceven-cftv-matrix.pages.dev/api/cron-lances" \
+          curl -sS -m 180 "https://ceven-cftv-matrix.pages.dev/api/cron-lances" \
             -o resultado.json -w "\nHTTP %{http_code}\n"
           cat resultado.json
