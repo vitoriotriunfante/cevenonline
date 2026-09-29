@@ -1,780 +1,2253 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>CEVEN // POSITIVAÇÃO AO VIVO</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg:           #030712;
-  --panel:        #080e1d;
-  --panel2:       #0c1428;
-  --line:         #14213a;
-  --txt:          #f1f5f9;
-  --muted:        #475569;
-  --dim:          #94a3b8;
-  --green:        #00f59b;
-  --green-dim:    rgba(0,245,155,.15);
-  --amber:        #ffb703;
-  --amber-dim:    rgba(255,183,3,.15);
-  --red:          #ff2a5f;
-  --red-dim:      rgba(255,42,95,.15);
-  --cyan:         #00d2ff;
-  --cyan-dim:     rgba(0,210,255,.12);
-  --purple:       #a855f7;
-  --dF: 'Chakra Petch', sans-serif;
-  --dM: 'JetBrains Mono', monospace;
-  --dS: 'Plus Jakarta Sans', sans-serif;
-}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CLUBE DA VENDA // SALA DE GUERRA EXECUTIVA - TV NAVEGÁVEL</title>
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  <!-- Google Fonts: Outfit & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800;900&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 
-body {
-  background: var(--bg);
-  color: var(--txt);
-  font-family: var(--dS);
-  height: 100vh; width: 100vw;
-  overflow: hidden;
-  display: grid;
-  grid-template-rows: 104px 1fr 148px;
-  grid-template-areas: "header" "middle" "footer";
-  gap: 10px;
-  padding: 10px 16px;
-  background-image: radial-gradient(ellipse 120% 50% at 50% 0%, #0a1e42 0%, transparent 70%);
-}
+  <!-- Leaflet (mapa real com tiles) + MarkerCluster (agrupamento de milhares de pontos) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
 
-/* ══════════════════════════════════════
-   HEADER — PLACAR GIGANTE
-══════════════════════════════════════ */
-.header {
-  grid-area: header;
-  display: grid;
-  grid-template-columns: 2.2fr 1fr 1fr 1fr 1fr;
-  gap: 10px;
-  align-items: stretch;
-}
+  <style>
+    :root {
+      --bg: #040711;
+      --bg-card: #0c1426;
+      --bg-card-sub: #101c36;
+      --bg-focus: #18284d;
+      --line: #18284d;
+      --line-bright: #2d4580;
 
-.score-main {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-top: 3px solid var(--green);
-  border-radius: 10px;
-  padding: 10px 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 4px;
-}
-.score-main .lbl {
-  font-size: 10px; font-weight: 800;
-  letter-spacing: .14em; color: var(--muted);
-  text-transform: uppercase;
-}
-.score-main .val {
-  font-family: var(--dF);
-  font-size: 52px; font-weight: 800;
-  color: var(--green);
-  text-shadow: 0 0 28px rgba(0,245,155,.45);
-  line-height: 1; letter-spacing: -.02em;
-}
-.score-main .sub {
-  font-size: 12px; color: var(--dim);
-}
-.score-main .sub b { color: #fff; }
+      --txt: #ffffff;
+      --dim: #cbd5e1;
+      --muted: #64748b;
 
-.kpi-card {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 10px 14px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 3px;
-}
-.kpi-card .k-lbl {
-  font-size: 9px; font-weight: 800;
-  letter-spacing: .12em; color: var(--muted);
-  text-transform: uppercase;
-}
-.kpi-card .k-val {
-  font-family: var(--dM);
-  font-size: 30px; font-weight: 800;
-  line-height: 1;
-}
-.kpi-card .k-sub {
-  font-size: 10px; font-weight: 600;
-}
+      /* Cores Executivas de Alto Contraste para TV (1080p / 4K) */
+      --green: #00f59b;
+      --green-glow: rgba(0, 245, 155, 0.4);
+      --gold: #ffc837;
+      --gold-glow: rgba(255, 200, 55, 0.35);
+      --cyan: #00d2ff;
+      --cyan-glow: rgba(0, 210, 255, 0.4);
+      --red: #f43f5e;
+      --amber: #fbbf24;
 
-/* ══════════════════════════════════════
-   MIDDLE — GRÁFICO + RANKING
-══════════════════════════════════════ */
-.middle {
-  grid-area: middle;
-  display: grid;
-  grid-template-columns: 1.55fr 1fr;
-  gap: 10px;
-  min-height: 0;
-}
+      --dF: 'Outfit', sans-serif;
+      --dM: 'JetBrains Mono', monospace;
+    }
 
-.chart-panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 12px 16px;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-.panel-head {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 6px; flex-shrink: 0;
-}
-.panel-title {
-  font-family: var(--dF); font-size: 12px; font-weight: 700;
-  letter-spacing: .08em; color: var(--cyan);
-  display: flex; align-items: center; gap: 6px;
-}
-#live-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 8px var(--green);
-  animation: pulse 1.4s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%,100% { opacity: 1; transform: scale(1); }
-  50% { opacity: .4; transform: scale(.7); }
-}
-.panel-ts {
-  font-size: 10px; font-family: var(--dM); color: var(--muted);
-}
-#pulseCanvas { flex: 1; width: 100%; min-height: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
 
-/* Ranking */
-.ranking-panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-height: 0;
-  overflow: hidden;
-}
-.rk-title {
-  font-family: var(--dF); font-size: 12px; font-weight: 700;
-  letter-spacing: .08em; color: var(--amber);
-  flex-shrink: 0; margin-bottom: 2px;
-}
-.rk-list {
-  flex: 1; display: flex; flex-direction: column;
-  gap: 3px; overflow-y: auto;
-}
-.rk-row {
-  display: grid;
-  grid-template-columns: 38px 1fr 52px 60px;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 6px;
-  border-radius: 6px;
-  background: var(--panel2);
-  border: 1px solid var(--line);
-  transition: background .3s;
-}
-.rk-row:hover { background: #0f1e3a; }
-.rk-pos {
-  font-family: var(--dM); font-size: 11px;
-  color: var(--muted); text-align: center;
-}
-.rk-bar-wrap {
-  display: flex; flex-direction: column; gap: 2px;
-}
-.rk-sigla {
-  font-family: var(--dF); font-size: 12px; font-weight: 800; color: #fff;
-}
-.rk-bar-bg {
-  height: 5px; background: var(--line); border-radius: 3px; overflow: hidden;
-}
-.rk-bar-fill {
-  height: 100%; border-radius: 3px;
-  transition: width .8s ease;
-}
-.rk-pos-num {
-  font-family: var(--dM); font-size: 16px; font-weight: 800;
-  text-align: right;
-}
-.rk-pct {
-  font-family: var(--dM); font-size: 11px; font-weight: 700;
-  text-align: right;
-}
+    body {
+      background: var(--bg);
+      color: var(--txt);
+      font-family: var(--dF);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
 
-/* ══════════════════════════════════════
-   FOOTER — GABARITO 11 FILIAIS
-══════════════════════════════════════ */
-.footer {
-  grid-area: footer;
-  display: grid;
-  grid-template-columns: repeat(11, 1fr);
-  gap: 6px;
-}
+    .mono { font-family: var(--dM); }
 
-.fil-card {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 8px 8px 6px;
-  display: flex; flex-direction: column;
-  justify-content: space-between;
-  position: relative; overflow: hidden;
-}
-.fil-card::after {
-  content: '';
-  position: absolute; bottom: 0; left: 0; right: 0;
-  height: 3px;
-  border-radius: 0 0 8px 8px;
-  transition: background .4s, width .8s;
-}
-.fil-card.fc-ok::after    { background: var(--green); }
-.fil-card.fc-warn::after  { background: var(--amber); }
-.fil-card.fc-bad::after   { background: var(--red); }
-.fil-card.fc-crit::after  { background: var(--red); animation: blink 1s steps(1) infinite; }
-.fil-card.fc-zero::after  { background: var(--muted); }
-@keyframes blink { 50% { opacity: 0; } }
+    /* ══════════════════════════════════════════
+       CABEÇALHO DA SALA DE GUERRA
+    ══════════════════════════════════════════ */
+    header {
+      height: 56px;
+      background: #080e1d;
+      border-bottom: 1.5px solid var(--line);
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      z-index: 100;
+    }
 
-.fc-sigla {
-  font-family: var(--dF); font-size: 14px; font-weight: 800;
-  color: #fff; line-height: 1;
-}
-.fc-pos {
-  font-family: var(--dM); font-size: 22px; font-weight: 800;
-  line-height: 1; margin: 2px 0;
-}
-.fc-bar-wrap {
-  height: 4px; background: var(--line); border-radius: 2px;
-  overflow: hidden; margin: 3px 0;
-}
-.fc-bar-fill {
-  height: 100%; border-radius: 2px;
-  transition: width .8s ease;
-}
-.fc-pct {
-  font-family: var(--dM); font-size: 10px; font-weight: 700;
-}
-.fc-sub {
-  font-size: 9px; color: var(--muted); line-height: 1.2;
-}
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .badge-live {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 245, 155, 0.12);
+      border: 1.5px solid var(--green);
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      color: var(--green);
+    }
+    .badge-live .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+    }
+    .war-title {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: .04em;
+      color: #fff;
+    }
+    .war-title span {
+      color: var(--cyan);
+      font-weight: 700;
+      font-size: 15px;
+      margin-left: 8px;
+      padding-left: 8px;
+      border-left: 1.5px solid var(--line);
+    }
 
-/* Utilitários de cor */
-.c-green  { color: var(--green)  !important; }
-.c-amber  { color: var(--amber)  !important; }
-.c-red    { color: var(--red)    !important; }
-.c-cyan   { color: var(--cyan)   !important; }
-.c-purple { color: var(--purple) !important; }
-.c-muted  { color: var(--muted)  !important; }
+    .header-center {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-chip {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .header-chip span { color: var(--muted); text-transform: uppercase; font-size: 10px; font-weight: 800; }
+    .header-chip b { color: #fff; font-size: 14px; margin-left: 4px; }
 
-.bg-green { background: var(--green)  !important; }
-.bg-amber { background: var(--amber)  !important; }
-.bg-red   { background: var(--red)    !important; }
-.bg-cyan  { background: var(--cyan)   !important; }
-.bg-muted { background: var(--muted)  !important; }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .clock-display {
+      font-family: var(--dM);
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--cyan);
+      background: var(--bg-card);
+      border: 1.5px solid var(--line);
+      padding: 4px 14px;
+      border-radius: 6px;
+      letter-spacing: .05em;
+    }
+    .remote-hint {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 210, 255, 0.08);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--cyan);
+    }
 
-/* Spinner de loading */
-.loading-overlay {
-  position: fixed; inset: 0;
-  background: rgba(3,7,18,.85);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 999; flex-direction: column; gap: 16px;
-  font-family: var(--dM); font-size: 14px; color: var(--dim);
-  transition: opacity .5s;
-}
-.spinner {
-  width: 40px; height: 40px;
-  border: 3px solid var(--line);
-  border-top-color: var(--cyan);
-  border-radius: 50%;
-  animation: spin .8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-</style>
+    /* ══════════════════════════════════════════
+       BARRA DE FILTROS NAVEGÁVEL POR CONTROLE REMOTO
+    ══════════════════════════════════════════ */
+    .filter-bar {
+      background: #091122;
+      border-bottom: 1.5px solid var(--line);
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+      overflow-x: auto;
+    }
+    .filter-pills-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: nowrap;
+    }
+    .nav-btn {
+      background: var(--bg-card);
+      border: 1.5px solid var(--line);
+      color: var(--dim);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .15s ease;
+      outline: none;
+    }
+    .nav-btn:hover {
+      border-color: var(--cyan);
+      color: #fff;
+    }
+    .nav-btn.active {
+      background: var(--cyan);
+      border-color: var(--cyan);
+      color: #000;
+      font-weight: 900;
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+    /* FOCO NAVEGAÇÃO CONTROLE REMOTO (DPAD / TECLAS) */
+    .nav-btn:focus, .nav-btn.tv-focused {
+      border-color: #fff !important;
+      outline: 3px solid var(--cyan) !important;
+      box-shadow: 0 0 16px var(--cyan) !important;
+      transform: scale(1.08);
+      z-index: 50;
+    }
+
+    .filter-sub-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--dim);
+    }
+    .select-tv {
+      background: var(--bg-card);
+      border: 1.5px solid var(--line);
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      font-family: var(--dF);
+      outline: none;
+    }
+    .select-tv:focus {
+      outline: 3px solid var(--cyan);
+      box-shadow: 0 0 14px var(--cyan);
+    }
+
+    /* ══════════════════════════════════════════
+       SPLIT 50% / 50%
+    ══════════════════════════════════════════ */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 50% 50%;
+      gap: 12px;
+      padding: 10px 18px;
+      min-height: 0;
+      background: #040711;
+    }
+
+    /* ══════════════════════════════════════════
+       METADE ESQUERDA: MAPA TÁTICO VETORIAL (ZERO BLOCOS)
+    ══════════════════════════════════════════ */
+    .map-box {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    }
+
+    .map-top-bar {
+      padding: 10px 16px;
+      background: #091224;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+    .map-top-bar h3 {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .map-top-bar h3 b {
+      color: #fff;
+      display: block;
+      font-size: 16px;
+      margin-top: 1px;
+      letter-spacing: 0;
+    }
+    .map-top-bar h3 span#foco-filial-txt {
+      color: var(--cyan);
+    }
+    .map-badges {
+      display: flex;
+      gap: 8px;
+    }
+    .map-badge-pill {
+      background: var(--bg-card-sub);
+      border: 1px solid var(--line);
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 11px;
+    }
+    .map-badge-pill span { color: var(--muted); font-size: 9px; font-weight: 800; text-transform: uppercase; display: block; }
+    .map-badge-pill b { font-size: 12px; color: #fff; }
+
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      background: #030611;
+      min-height: 0;
+      overflow: hidden;
+    }
+    #mapaExecutivo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #030611;
+    }
+    /* Tema escuro para os controles nativos do Leaflet (mantém sobriedade executiva) */
+    .leaflet-container { background: #030611; font-family: var(--dF); }
+    .leaflet-control-attribution {
+      background: rgba(4,7,17,.75) !important;
+      color: var(--dim) !important;
+      font-size: 9px !important;
+    }
+    .leaflet-control-attribution a { color: var(--cyan) !important; }
+    .leaflet-popup-content-wrapper {
+      background: #0a1224;
+      color: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.6);
+    }
+    .leaflet-popup-tip { background: #0a1224; border: 1px solid var(--line); }
+    .leaflet-popup-content { margin: 10px 12px; font-size: 12px; line-height: 1.6; }
+    .leaflet-popup-content b { color: var(--cyan); }
+    /* Clusters: glow suave em vez de bolha sólida chapada — número pequeno e discreto,
+       o brilho é quem carrega a informação visual, não o círculo colorido gigante. */
+    .marker-cluster-ouro, .marker-cluster-azul, .marker-cluster-verde {
+      background: transparent !important;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .marker-cluster-ouro div, .marker-cluster-azul div, .marker-cluster-verde div {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font: 700 11px 'JetBrains Mono'; letter-spacing: -.02em;
+      backdrop-filter: blur(2px);
+    }
+    .marker-cluster-ouro div {
+      background: radial-gradient(circle, rgba(255,200,55,.22) 0%, rgba(255,200,55,.06) 70%, transparent 100%);
+      color: #ffe9a8; box-shadow: 0 0 14px rgba(255,200,55,.35);
+    }
+    .marker-cluster-azul div {
+      background: radial-gradient(circle, rgba(0,210,255,.20) 0%, rgba(0,210,255,.05) 70%, transparent 100%);
+      color: #b6f0ff; box-shadow: 0 0 12px rgba(0,210,255,.3);
+    }
+    .marker-cluster-verde div {
+      background: radial-gradient(circle, rgba(0,245,155,.22) 0%, rgba(0,245,155,.06) 70%, transparent 100%);
+      color: #b8ffe4; box-shadow: 0 0 14px rgba(0,245,155,.4);
+    }
+    .pdv-dot-ouro { background: #ffc837; border-radius: 50%; box-shadow: 0 0 8px 2px rgba(255,200,55,.7); }
+    .pdv-dot-azul { background: #00d2ff; border-radius: 50%; box-shadow: 0 0 7px 2px rgba(0,210,255,.6); }
+    .pdv-dot-verde { background: #00f59b; border-radius: 50%; box-shadow: 0 0 10px 3px rgba(0,245,155,.75); animation: pulseDotVerde 1.6s ease-in-out infinite; }
+    @keyframes pulseDotVerde { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: .6; } }
+
+    /* Card "Venda Expressiva" — aparece sobre o mapa quando um pedido novo entra, some sozinho. */
+    #cardVendaExpressiva {
+      position: absolute; top: 14px; right: 14px; z-index: 30;
+      background: rgba(6,12,26,.95); backdrop-filter: blur(10px);
+      border: 1px solid rgba(0,245,155,.4);
+      border-radius: 10px; padding: 12px 16px; min-width: 240px;
+      box-shadow: 0 0 24px rgba(0,245,155,.18), 0 8px 24px rgba(0,0,0,.5);
+      opacity: 0; transform: translateY(-8px) scale(.97); pointer-events: none;
+      transition: opacity .4s ease, transform .4s ease;
+    }
+    #cardVendaExpressiva.show { opacity: 1; transform: translateY(0) scale(1); }
+    #cardVendaExpressiva .venda-tag {
+      display: flex; align-items: center; gap: 6px;
+      font: 900 10px 'JetBrains Mono'; letter-spacing: .08em; color: #00f59b;
+      margin-bottom: 6px;
+    }
+    #cardVendaExpressiva .venda-tag .dot { width: 6px; height: 6px; border-radius: 50%; background: #00f59b; box-shadow: 0 0 8px #00f59b; animation: pulseDotVerde 1.2s ease-in-out infinite; }
+    #cardVendaExpressiva .venda-cliente { font: 800 14px 'Outfit'; color: #fff; margin-bottom: 2px; }
+    #cardVendaExpressiva .venda-local { font: 600 11px 'Outfit'; color: var(--dim); margin-bottom: 8px; }
+    #cardVendaExpressiva .venda-valor { font: 900 22px 'JetBrains Mono'; color: #00f59b; text-shadow: 0 0 12px rgba(0,245,155,.5); }
+    .filial-marker-label {
+      background: rgba(8,14,29,.96);
+      border: 1.1px solid var(--cyan);
+      color: #fff;
+      font: 800 10px 'JetBrains Mono';
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .filial-marker-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #00d2ff; box-shadow: 0 0 8px rgba(0,210,255,.75), 0 0 0 4px rgba(0,210,255,.15);
+    }
+    /* Barra de busca/filtro de cidade sobre o mapa */
+    .map-search-box {
+      position: absolute; top: 14px; left: 14px; z-index: 25;
+      display: flex; flex-direction: column; gap: 6px; width: 220px;
+    }
+    .map-search-input {
+      background: rgba(9,18,36,.92); backdrop-filter: blur(8px);
+      border: 1px solid var(--line); color: #fff; border-radius: 6px;
+      padding: 7px 10px; font-size: 12px; font-family: var(--dF); outline: none;
+    }
+    .map-search-input:focus { border-color: var(--cyan); }
+    .map-search-results {
+      background: rgba(9,18,36,.97); border: 1px solid var(--line); border-radius: 6px;
+      max-height: 220px; overflow-y: auto; display: none;
+    }
+    .map-search-results.show { display: block; }
+    .map-search-result-item {
+      padding: 7px 10px; font-size: 11px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+    .map-search-result-item:hover { background: rgba(0,210,255,.12); }
+    .map-export-btn {
+      background: rgba(9,18,36,.92); border: 1px solid var(--line); color: #fff;
+      border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: var(--dF);
+    }
+    .map-export-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    /* Controles de Zoom Flutuantes */
+    .map-zoom-controls {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 25;
+    }
+    .map-zoom-btn {
+      width: 32px;
+      height: 32px;
+      background: rgba(9, 18, 36, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--line);
+      color: #fff;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all .15s ease;
+      outline: none;
+    }
+    .map-zoom-btn:hover {
+      background: var(--cyan);
+      color: #000;
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+    .map-zoom-level {
+      background: rgba(9, 18, 36, 0.9);
+      border: 1px solid var(--line);
+      color: var(--cyan);
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 4px;
+      border-radius: 4px;
+      text-align: center;
+      font-family: var(--dF);
+    }
+
+    /* Ticker de Entrada de Pedidos ao Vivo */
+    .ticker-bar {
+      background: #070c18;
+      border-top: 1px solid var(--line);
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .ticker-pill-tag {
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--cyan);
+      background: rgba(0, 210, 255, 0.12);
+      border: 1px solid rgba(0, 210, 255, 0.4);
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: .06em;
+      flex-shrink: 0;
+    }
+    .ticker-stream {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      animation: tickerRun 45s linear infinite;
+    }
+    .ticker-entry {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ticker-entry b { color: #fff; }
+    .gold-badge {
+      background: var(--gold);
+      color: #000;
+      font-weight: 900;
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    @keyframes tickerRun {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* Legenda Limpa do Mapa */
+    .map-footer-legend {
+      background: #091020;
+      border-top: 1px solid var(--line);
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .leg-item { display: flex; align-items: center; gap: 6px; }
+    .leg-circle { width: 9px; height: 9px; border-radius: 50%; }
+    .leg-toggle-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+      color: var(--dim);
+      padding: 3px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all .15s ease;
+      outline: none;
+    }
+    .leg-toggle-btn:hover {
+      border-color: var(--cyan);
+      color: #fff;
+    }
+    .leg-toggle-btn.active {
+      background: rgba(0, 210, 255, 0.12);
+      border-color: var(--cyan);
+      color: #fff;
+    }
+
+    /* ══════════════════════════════════════════
+       METADE DIREITA: SALA DE GUERRA & COBRANÇA
+    ══════════════════════════════════════════ */
+    .war-room-box {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+      overflow-y: auto;
+    }
+
+    /* 1. PLACAR PRINCIPAL (DIGITADO HOJE & META 3.000) */
+    .kpi-hero-card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-top: 3px solid var(--green);
+      border-radius: 12px;
+      padding: 14px 18px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    }
+    .hero-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .hero-header-row h2 {
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+    .hero-meta-badge {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--green);
+      background: rgba(0,245,155,0.12);
+      border: 1.5px solid var(--green);
+      padding: 2px 10px;
+      border-radius: 5px;
+    }
+
+    .hero-two-columns {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 16px;
+      align-items: center;
+      background: #091224;
+      border: 1px solid var(--line);
+      padding: 12px 18px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    .hero-col-item span {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .hero-digitado-txt {
+      font-family: var(--dM);
+      font-size: 46px;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--green);
+      text-shadow: 0 0 20px var(--green-glow);
+    }
+    .hero-meta-txt {
+      font-family: var(--dM);
+      font-size: 46px;
+      font-weight: 900;
+      line-height: 1;
+      color: #fff;
+    }
+    .hero-meta-txt small {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .progress-bar-wrap {
+      height: 9px;
+      background: #060a16;
+      border-radius: 99px;
+      overflow: hidden;
+      border: 1px solid #18284d;
+      margin-bottom: 10px;
+    }
+    .progress-bar-core {
+      height: 100%;
+      width: 7.3%;
+      background: linear-gradient(90deg, #00d2ff, #00f59b);
+      border-radius: 99px;
+      box-shadow: 0 0 14px var(--green);
+      transition: width 0.8s ease;
+    }
+
+    .hero-metrics-quad {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .quad-item {
+      background: var(--bg-card-sub);
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      border-radius: 6px;
+    }
+    .quad-item span {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      display: block;
+    }
+    .quad-item b {
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+      display: block;
+      margin-top: 1px;
+    }
+
+    /* 2. CARD TRIPLO DE ACOMPANHAMENTO COM REALCE EM OURO */
+    .tracking-trio-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.9fr 1.35fr;
+      gap: 10px;
+    }
+    .trio-card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .trio-header {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 4px;
+    }
+    .trio-val {
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .trio-breakdown {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 6px;
+      font-size: 12px;
+    }
+    .trio-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .trio-line span { color: var(--dim); }
+    .trio-line b { font-weight: 800; }
+
+    /* REALCE SEPARADO DOS RECUPERADOS (LISTA 21 A 24/09) */
+    .trio-card.gold-focus {
+      background: linear-gradient(145deg, #19243f, #121929);
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 20px rgba(255, 200, 55, 0.12);
+      position: relative;
+    }
+    .trio-card.gold-focus .trio-header {
+      color: var(--gold);
+      font-weight: 900;
+    }
+    .trio-card.gold-focus .trio-val {
+      color: var(--gold);
+      text-shadow: 0 0 18px var(--gold-glow);
+    }
+    .trio-card:hover {
+      border-color: var(--cyan);
+    }
+
+    /* MODAL DE DETALHE (clique nos cards Visitas/Pedidos/Ouro na Mesa) */
+    #modalDetalheOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 6, 12, 0.85);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+    }
+    #modalDetalheOverlay.show { display: flex; }
+    #modalDetalheBox {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      width: min(720px, 92vw);
+      max-height: 82vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    }
+    #modalDetalheHeader {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #modalDetalheTitulo { font-size: 17px; font-weight: 800; }
+    #modalDetalheSub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    #modalDetalheFechar {
+      background: var(--surface-hover, rgba(255,255,255,.08));
+      border: none;
+      color: var(--tx, #fff);
+      border-radius: 8px;
+      width: 32px; height: 32px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    #modalDetalheLista {
+      overflow-y: auto;
+      padding: 8px 12px;
+    }
+    .modal-detalhe-linha {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      font-size: 13px;
+    }
+    .modal-detalhe-linha b { font-weight: 700; }
+    .modal-detalhe-nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .modal-detalhe-filial {
+      background: rgba(56,189,248,.15);
+      color: var(--cyan);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .modal-detalhe-vazio { text-align: center; padding: 30px; color: var(--muted); font-size: 13px; }
+
+    /* 3. GRÁFICO HORÁRIO (07H ÀS 19H) CONJUNTO */
+    .chart-box-card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 16px;
+      flex: 1;
+      min-height: 175px;
+      display: flex;
+      flex-direction: column;
+    }
+    .chart-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .chart-title-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+    .chart-legend-box {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .leg-chip { display: flex; align-items: center; gap: 5px; }
+    .leg-color-box { width: 9px; height: 9px; border-radius: 2px; }
+
+    .chart-canvas-wrap {
+      flex: 1;
+      position: relative;
+      min-height: 0;
+    }
+    #hourlyCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* 4. TABELA DE COBRANÇA IMPLACÁVEL (PADRÃO CARLOS BRITO / FALCONI) */
+    .falconi-table-card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 12px;
+    }
+    .falconi-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+    .falconi-header span { color: var(--gold); }
+    
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+    table.cobranca-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+    }
+    table.cobranca-table th {
+      text-align: left;
+      padding: 4px 6px;
+      color: var(--muted);
+      font-size: 9.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      border-bottom: 1.5px solid var(--line);
+    }
+    table.cobranca-table td {
+      padding: 4px 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      white-space: nowrap;
+    }
+    table.cobranca-table tr:hover td {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .badge-status {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 9.5px;
+      font-weight: 900;
+    }
+    .badge-status.ok { background: rgba(0,245,155,0.15); color: var(--green); border: 1px solid var(--green); }
+    .badge-status.warn { background: rgba(251,191,36,0.15); color: var(--amber); border: 1px solid var(--amber); }
+    .badge-status.crit { background: rgba(244,63,94,0.15); color: var(--red); border: 1px solid var(--red); }
+  </style>
 </head>
 <body>
 
-<!-- LOADING OVERLAY -->
-<div class="loading-overlay" id="overlay">
-  <div class="spinner"></div>
-  <span id="overlay-msg">Conectando ao CEVEN...</span>
-</div>
-
-<!-- ══ HEADER ══ -->
-<div class="header">
-  <!-- KPI PRINCIPAL: POSITIVAÇÃO -->
-  <div class="score-main">
-    <span class="lbl">▲ POSITIVADOS HOJE — CLIENTES COM PEDIDO NO DIA</span>
-    <div class="val" id="totPos">—</div>
-    <div class="sub">META: <b id="metaPos">1.400</b> clientes &nbsp;|&nbsp; FALTA: <b class="c-amber" id="faltaPos">—</b> &nbsp;|&nbsp; <b id="pctPos">—</b> atingido</div>
-  </div>
-
-  <!-- DIGITADO R$ -->
-  <div class="kpi-card" style="border-top: 3px solid var(--cyan)">
-    <span class="k-lbl">Digitado Hoje (R$)</span>
-    <div class="k-val c-cyan" id="totFat">—</div>
-    <div class="k-sub c-muted" id="ticketMedio">aguardando...</div>
-  </div>
-
-  <!-- VISITAS -->
-  <div class="kpi-card" style="border-top: 3px solid var(--amber)">
-    <span class="k-lbl">Visitas Realizadas</span>
-    <div class="k-val" id="totVis">—</div>
-    <div class="k-sub" id="eficienciaVis">vs programadas</div>
-  </div>
-
-  <!-- EFICÁCIA -->
-  <div class="kpi-card" style="border-top: 3px solid var(--purple)">
-    <span class="k-lbl">Eficácia (Visita → Venda)</span>
-    <div class="k-val c-purple" id="eficacia">—</div>
-    <div class="k-sub c-muted">meta: acima de 40%</div>
-  </div>
-
-  <!-- RELÓGIO / ATUALIZAÇÃO -->
-  <div class="kpi-card" style="border-top: 3px solid var(--muted)">
-    <span class="k-lbl">Horário BRT</span>
-    <div class="k-val c-dim" id="relogio">--:--</div>
-    <div class="k-sub c-muted">atualiza em <span id="countdown">60</span>s</div>
-  </div>
-</div>
-
-<!-- ══ MIDDLE ══ -->
-<div class="middle">
-
-  <!-- GRÁFICO DE ENTRADA DE PEDIDOS -->
-  <div class="chart-panel">
-    <div class="panel-head">
-      <div class="panel-title">
-        <div id="live-dot"></div>
-        ENTRADA DE PEDIDOS — POSITIVAÇÃO POR HORA (BRT)
+  <!-- MODAL DE DETALHE: clique em Visitas/Pedidos/Ouro na Mesa abre a lista real por trás do número -->
+  <div id="modalDetalheOverlay" onclick="if (event.target === this) fecharModalDetalhe()">
+    <div id="modalDetalheBox">
+      <div id="modalDetalheHeader">
+        <div>
+          <div id="modalDetalheTitulo">—</div>
+          <div id="modalDetalheSub">—</div>
+        </div>
+        <button id="modalDetalheFechar" onclick="fecharModalDetalhe()">✕</button>
       </div>
-      <div class="panel-ts" id="chart-ts">última atualização: —</div>
-    </div>
-    <canvas id="pulseCanvas"></canvas>
-  </div>
-
-  <!-- RANKING DINÂMICO DAS FILIAIS -->
-  <div class="ranking-panel">
-    <div class="rk-title">📊 RANKING DE POSITIVAÇÃO — FILIAIS</div>
-    <div class="rk-list" id="rkList">
-      <!-- preenchido dinamicamente -->
+      <div id="modalDetalheLista"></div>
     </div>
   </div>
-</div>
 
-<!-- ══ FOOTER — GABARITO ══ -->
-<footer class="footer" id="gabarito">
-  <!-- preenchido dinamicamente -->
-</footer>
+  <!-- ═════════════════════════════════════════════════════════
+       TOPO: IDENTIFICAÇÃO E HORÁRIO OFICIAL DE BRASÍLIA
+  ═════════════════════════════════════════════════════════ -->
+  <header>
+    <div class="header-left">
+      <div class="badge-live">
+        <div class="dot"></div>
+        <span>AO VIVO · CEVEN INTEGRADO</span>
+      </div>
+      <div class="war-title">
+        CLUBE DA VENDA <span>SALA DE GUERRA EXECUTIVA</span>
+      </div>
+    </div>
 
-<script>
-'use strict';
+    <div class="header-center">
+      <div class="header-chip">
+        <span>Canal:</span>
+        <b>11 Filiais Operacionais</b>
+      </div>
+      <div class="header-chip">
+        <span>Vendedores em Campo:</span>
+        <b id="active-sellers-chip">—</b>
+      </div>
+      <div class="header-chip">
+        <span>Média de SKUs:</span>
+        <b id="skus-chip" style="color:var(--cyan)">—</b>
+      </div>
+      <div class="header-chip">
+        <span>Ouro na Mesa (Setembro):</span>
+        <b id="header-ouro-chip" style="color:var(--gold)">13.634 Alvos Auditados</b>
+      </div>
+    </div>
 
-/* ──────────────────────────────────────────────
-   CONFIGURAÇÃO
-────────────────────────────────────────────── */
-const API   = 'https://ceven-cftv-matrix.pages.dev/api';
-const META_POS = 1400;   // meta do dia de positivação
-const META_FAT = 2500000; // meta do dia R$
-const FILIAIS = ['TCG','TPH','TBE','TBL','MCD','ABC','API','TPA','TSJ','TCA','TCV'];
-const POLL_MS = 60_000;  // atualiza a cada 60 segundos
+    <div class="header-right">
+      <div class="remote-hint">🎮 Controle: [←][→] Filiais · [OK] Filtra</div>
+      <div class="clock-display" id="clockBRT">00:00:00</div>
+      <button class="nav-btn" onclick="toggleFullScreen()">⛶ Tela Cheia</button>
+    </div>
+  </header>
 
-/* ──────────────────────────────────────────────
-   ESTADO GLOBAL
-────────────────────────────────────────────── */
-let estado = {
-  pos:      {},   // { TCG: 65, TPH: 264, ... }
-  fat:      {},   // { TCG: 753838, ... }
-  visReal:  {},
-  visProg:  {},
-  vjCom:    {},
-  vjTot:    {},
-  ultimaAtual: null,
-  pulsoHoras: []  // [{hora: '08:00', pos: 120}, ...]
-};
+  <!-- ═════════════════════════════════════════════════════════
+       BARRA DE FILTROS NAVEGÁVEL POR CONTROLE REMOTO DE TV
+  ═════════════════════════════════════════════════════════ -->
+  <div class="filter-bar">
+    <div class="filter-pills-row" id="pillsContainer">
+      <button class="nav-btn active" data-filial="TODAS" id="btn-fil-todas" tabindex="1">🌐 TODAS AS FILIAIS (11)</button>
+      <button class="nav-btn" data-filial="TBL" id="btn-fil-TBL" tabindex="2">TBL</button>
+      <button class="nav-btn" data-filial="API" id="btn-fil-API" tabindex="3">API</button>
+      <button class="nav-btn" data-filial="TSJ" id="btn-fil-TSJ" tabindex="4">TSJ</button>
+      <button class="nav-btn" data-filial="TPH" id="btn-fil-TPH" tabindex="5">TPH</button>
+      <button class="nav-btn" data-filial="ABC" id="btn-fil-ABC" tabindex="6">ABC</button>
+      <button class="nav-btn" data-filial="TCV" id="btn-fil-TCV" tabindex="7">TCV</button>
+      <button class="nav-btn" data-filial="TBE" id="btn-fil-TBE" tabindex="8">TBE</button>
+      <button class="nav-btn" data-filial="TPA" id="btn-fil-TPA" tabindex="9">TPA</button>
+      <button class="nav-btn" data-filial="MCD" id="btn-fil-MCD" tabindex="10">MCD</button>
+      <button class="nav-btn" data-filial="TCA" id="btn-fil-TCA" tabindex="11">TCA</button>
+      <button class="nav-btn" data-filial="TCG" id="btn-fil-TCG" tabindex="12">TCG</button>
+    </div>
 
-/* ──────────────────────────────────────────────
-   BUSCA DE DADOS — APIS EM PARALELO
-────────────────────────────────────────────── */
-async function fetchTudo() {
-  const overlay = document.getElementById('overlay');
-  const overlayMsg = document.getElementById('overlay-msg');
+    <div class="filter-sub-group">
+      <span>Supervisor:</span>
+      <select class="select-tv" id="selectSupervisor" tabindex="13" onchange="aoSelecionarSupervisor()">
+        <option value="TODOS">Todos os Supervisores</option>
+      </select>
+      <button class="nav-btn" id="btn-auto-rotate" tabindex="14" onclick="toggleAutoRotate()">🔄 Carrossel Auto: OFF</button>
+    </div>
+  </div>
 
-  // Busca cada filial em paralelo via /api/tv-supervisores
-  // E também busca lances de cada filial via /api/tv-lances para positivação horária
-  const promises = FILIAIS.map(f =>
-    fetch(`${API}/tv-supervisores?filial=${f}`, { signal: AbortSignal.timeout(15000) })
-      .then(r => r.ok ? r.json() : null)
-      .catch(() => null)
-  );
+  <!-- ═════════════════════════════════════════════════════════
+       CORPO PRINCIPAL (50% MAPA / 50% SALA DE GUERRA)
+  ═════════════════════════════════════════════════════════ -->
+  <main>
+    
+    <!-- ═══════════════════════════════════════════════════════
+         METADE ESQUERDA: MAPA TÁTICO VETORIAL (ZERO BLOCOS)
+    ═══════════════════════════════════════════════════════ -->
+    <section class="map-box">
+      <div class="map-top-bar">
+        <div>
+          <h3>Monitoramento Geográfico Operacional</h3>
+          <b>MAPA TÁTICO DE VISITAS & VENDAS <span id="foco-filial-txt">· NACIONAL</span></b>
+        </div>
+        <div class="map-badges">
+          <div class="map-badge-pill">
+            <span>Cidades</span>
+            <b id="badge-cidades-count">—</b>
+          </div>
+          <div class="map-badge-pill">
+            <span>Sedes</span>
+            <b>11 Filiais</b>
+          </div>
+          <div class="map-badge-pill">
+            <span>Render</span>
+            <b style="color:var(--cyan)">Leaflet · Esri Dark</b>
+          </div>
+        </div>
+      </div>
 
-  const lancesPromises = FILIAIS.map(f =>
-    fetch(`${API}/tv-lances?filial=${f}`, { signal: AbortSignal.timeout(15000) })
-      .then(r => r.ok ? r.json() : null)
-      .catch(() => null)
-  );
+      <!-- Mapa Real (Leaflet, tiles escuros, clusters e busca de cidade) -->
+      <div class="canvas-container" id="mapCanvasContainer">
+        <div id="mapaExecutivo"></div>
+        <div id="cardVendaExpressiva">
+          <div class="venda-tag"><div class="dot"></div>VENDA EXPRESSIVA</div>
+          <div class="venda-cliente" id="cardVendaCliente">—</div>
+          <div class="venda-local" id="cardVendaLocal">—</div>
+          <div class="venda-valor" id="cardVendaValor">—</div>
+        </div>
+        <div class="map-search-box">
+          <input type="text" id="mapSearchInput" class="map-search-input" placeholder="🔎 Buscar cidade ou filial…" oninput="buscarNoMapa(this.value)" onfocus="buscarNoMapa(this.value)">
+          <div id="mapSearchResults" class="map-search-results"></div>
+          <button class="map-export-btn" onclick="exportarMapaDados()" title="Baixar CSV dos pontos visíveis">⤓ Exportar dados (CSV)</button>
+        </div>
+        <div class="map-zoom-controls">
+          <button class="map-zoom-btn" onclick="mapaLeaflet && mapaLeaflet.zoomIn()" title="Zoom In (+)">+</button>
+          <div class="map-zoom-level" id="mapZoomLevelTxt">6.0x</div>
+          <button class="map-zoom-btn" onclick="mapaLeaflet && mapaLeaflet.zoomOut()" title="Zoom Out (-)">−</button>
+          <button class="map-zoom-btn" onclick="resetarZoomManual()" style="font-size:11px" title="Centralizar">↺</button>
+        </div>
+      </div>
 
-  const [supResults, lancesResults] = await Promise.all([
-    Promise.all(promises),
-    Promise.all(lancesPromises)
-  ]);
+      <!-- Ticker de Entrada de Pedidos ao Vivo -->
+      <div class="ticker-bar">
+        <div class="ticker-pill-tag">LANCES AO VIVO</div>
+        <div class="ticker-stream" id="tickerStream">
+          <div class="ticker-entry"><span style="color:var(--muted)">Aguardando transmissões de pedidos em tempo real...</span></div>
+        </div>
+      </div>
 
-  // Processa supervisores (visitas, eficiência)
-  const posNovo = {}, visRealNovo = {}, visProgNovo = {}, vjComNovo = {}, vjTotNovo = {};
+      <!-- Legenda Oficial do Mapa com Alternador de Camadas Interativo -->
+      <div class="map-footer-legend">
+        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+          <button class="leg-item leg-toggle-btn active" id="btn-toggle-todos" onclick="alternarCamadaMapa('TODAS')">
+            <span style="font-size:11px">Todas Camadas</span>
+          </button>
+          <button class="leg-item leg-toggle-btn active" id="btn-toggle-azul" onclick="alternarCamadaMapa('AZUL')">
+            <div class="leg-circle" style="background:#00d2ff;box-shadow:0 0 6px #00d2ff"></div>
+            <span>Positivados Mês (<b id="lbl-count-azul" style="color:#00d2ff">—</b>)</span>
+          </button>
+          <button class="leg-item leg-toggle-btn active" id="btn-toggle-ouro" onclick="alternarCamadaMapa('OURO')">
+            <div class="leg-circle" style="background:var(--gold);box-shadow:0 0 8px var(--gold)"></div>
+            <span style="color:var(--gold);font-weight:800">⭐ Ouro na Mesa (<b id="lbl-count-ouro">—</b>)</span>
+          </button>
+          <button class="leg-item leg-toggle-btn active" id="btn-toggle-verde" onclick="alternarCamadaMapa('VERDE')">
+            <div class="leg-circle" style="background:#00f59b;box-shadow:0 0 8px #00f59b"></div>
+            <span style="color:#00f59b;font-weight:800">● Hoje Ao Vivo (<b id="lbl-count-verde" style="color:#00f59b">—</b>)</span>
+          </button>
+        </div>
+        <div style="color:var(--muted);font-size:11px">Dica: Arraste o mouse para mover · Use scroll para Zoom</div>
+      </div>
+    </section>
 
-  FILIAIS.forEach((f, i) => {
-    const d = supResults[i];
-    // Supervisores retornam dados agregados da filial
-    if (d && d.supervisores && d.supervisores.length > 0) {
-      let retPdvs = 0;
-      d.supervisores.forEach(s => {
-        if (s.retDetalhe && s.retDetalhe.pdvs) retPdvs += s.retDetalhe.pdvs;
-      });
-      visRealNovo[f] = retPdvs;
-    } else {
-      visRealNovo[f] = estado.visReal[f] || 0;
+    <!-- ═══════════════════════════════════════════════════════
+         METADE DIREITA: SALA DE GUERRA & COBRANÇA (CARLOS BRITO)
+    ═══════════════════════════════════════════════════════ -->
+    <section class="war-room-box">
+      
+      <!-- 1. PLACAR PRINCIPAL: TOTAL DIGITADO & META 3.000 PDVS -->
+      <div class="kpi-hero-card">
+        <div class="hero-header-row">
+          <h2 id="hero-title-txt">🎯 DESAFIO NACIONAL DO GRUPO TRIUNFANTE · META 30.000 PDVs</h2>
+          <div class="hero-meta-badge" id="hero-pct-val">0,0% DA META</div>
+        </div>
+
+        <div class="hero-two-columns">
+          <div class="hero-col-item">
+            <span>Positivação Realizada (Setembro)</span>
+            <div class="hero-meta-txt mono">
+              <span id="hero-pos-val" style="color:var(--green)">21.339</span> <small id="hero-meta-sub">/ 30.000 PDVs</small>
+            </div>
+          </div>
+          <div class="hero-col-item" style="border-left:1.5px solid var(--line);padding-left:18px">
+            <span>Faturado Acumulado (Mês)</span>
+            <div class="hero-digitado-txt mono" id="hero-digitado-val" style="font-size:36px;color:#fff">R$ 47.599.795</div>
+          </div>
+        </div>
+
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-core" id="hero-progress-bar" style="width:71.1%"></div>
+        </div>
+
+        <div class="hero-metrics-quad">
+          <div class="quad-item">
+            <span>Ticket Médio</span>
+            <b class="mono" id="kpi-ticket-val">R$ 0</b>
+          </div>
+          <div class="quad-item">
+            <span>Média de SKUs</span>
+            <b class="mono" id="kpi-skus-val" style="color:var(--cyan)">—</b>
+          </div>
+          <div class="quad-item">
+            <span>Ritmo Atual</span>
+            <b class="mono" id="kpi-ritmo-val" style="color:var(--green)">+0 / h</b>
+          </div>
+          <div class="quad-item">
+            <span>Projeção 19h</span>
+            <b class="mono" id="kpi-proj-val">0 PDVs</b>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. CARD TRIPLO: VISITAS VS. VENDIDOS & RECUPERADOS COM REALCE SEPARADO -->
+      <div class="tracking-trio-grid">
+        
+        <!-- Visitas Hoje -->
+        <div class="trio-card" style="cursor:pointer" onclick="abrirModalDetalhe('visitas')" title="Clique para ver a lista">
+          <div class="trio-header">📍 VISITAS EM CAMPO HOJE</div>
+          <div class="trio-val mono" id="visitas-feitas-card" style="color:var(--cyan)">
+            0 <small style="font-size:15px;color:var(--muted);font-weight:700">/ 0</small>
+          </div>
+          <div class="trio-breakdown">
+            <div class="trio-line">
+              <span style="color:var(--green)">• Com Venda (Positivou):</span>
+              <b class="mono" id="com-venda-card" style="color:var(--green)">0 (0,0%)</b>
+            </div>
+            <div class="trio-line">
+              <span style="color:var(--red)">• Sem Venda (Justificou):</span>
+              <b class="mono" id="sem-venda-card" style="color:var(--red)">0 (0,0%)</b>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pedidos Digitados -->
+        <div class="trio-card" style="cursor:pointer" onclick="abrirModalDetalhe('pedidos')" title="Clique para ver a lista">
+          <div class="trio-header">📦 PEDIDOS COLOCADOS</div>
+          <div class="trio-val mono" id="pedidos-card">
+            0 <small style="font-size:14px;color:var(--muted);font-weight:700">pedidos</small>
+          </div>
+          <div class="trio-breakdown">
+            <div class="trio-line">
+              <span>Média Pedidos/Visita:</span>
+              <b class="mono" id="tx-ped-vis-card">—</b>
+            </div>
+            <div class="trio-line">
+              <span>Vendedores c/ Venda:</span>
+              <b class="mono" id="vendedores-com-venda-card">0 de 464</b>
+            </div>
+          </div>
+        </div>
+
+        <!-- REALCE SEPARADO EM OURO DOS RECUPERADOS (SETEMBRO) -->
+        <div class="trio-card gold-focus" style="cursor:pointer" onclick="abrirModalDetalhe('ouro')" title="Clique para ver a lista">
+          <div class="trio-header">⭐ OURO NA MESA (SETEMBRO)</div>
+          <div class="trio-val mono" id="recuperados-clientes-card">
+            0 <small style="font-size:14px;color:#fff;font-weight:700">resgatados hoje</small>
+          </div>
+          <div class="trio-breakdown">
+            <div class="trio-line">
+              <span style="color:#fff">Valor Resgatado Hoje:</span>
+              <b class="mono" id="recuperados-valor-card" style="color:var(--gold);font-size:14px">R$ 0</b>
+            </div>
+            <div class="trio-line">
+              <span style="color:var(--dim)">Alvos do Mês:</span>
+              <b class="mono" id="alvos-ouro-auditados-txt">13.634 auditados</b>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 3. GRÁFICO HORÁRIO (07H ÀS 19H) CONJUNTO -->
+      <div class="chart-box-card">
+        <div class="chart-top-row">
+          <div class="chart-title-label">
+            📈 ENTRADA DE PEDIDOS VS. VISITAS & RECUPERADOS (07H ÀS 19H)
+          </div>
+          <div class="chart-legend-box">
+            <div class="leg-chip">
+              <div class="leg-color-box" style="background:#1e3a8a"></div>
+              <span>Visitas Feitas</span>
+            </div>
+            <div class="leg-chip">
+              <div class="leg-color-box" style="background:#00f59b"></div>
+              <span>Vendas Normais</span>
+            </div>
+            <div class="leg-chip">
+              <div class="leg-color-box" style="background:#ffc837;box-shadow:0 0 6px var(--gold)"></div>
+              <span style="color:var(--gold);font-weight:900">⭐ Resgate 21-24/09</span>
+            </div>
+          </div>
+        </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="hourlyCanvas"></canvas>
+        </div>
+      </div>
+
+      <!-- 4. TABELA DE COBRANÇA IMPLACÁVEL (PADRÃO CARLOS BRITO / FALCONI) -->
+      <div class="falconi-table-card">
+        <div class="falconi-header">
+          <div id="cobranca-title">QUADRO DE COBRANÇA DAS 11 FILIAIS — <span>AO VIVO</span></div>
+          <div style="font-size:11px;color:var(--muted)" id="cobranca-subtitle">Aguardando início das rotas</div>
+        </div>
+        <div class="table-container">
+          <table class="cobranca-table">
+            <thead>
+              <tr id="tableHeaders">
+                <th>Filial</th>
+                <th>Gerente</th>
+                <th>Digitado Hoje</th>
+                <th>Positivados</th>
+                <th>Visitas (Feitas / Rota)</th>
+                <th>Média SKUs</th>
+                <th>⭐ Resgate 21-24</th>
+                <th>Status Cobrança</th>
+              </tr>
+            </thead>
+            <tbody id="cobrancaTableBody">
+              <!-- Linhas preenchidas via script -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script>
+    'use strict';
+
+    /* ═════════════════════════════════════════════════════════
+       ESTADO MESTRE CONSOLIDADO (SALA DE GUERRA)
+       (Iniciado com os valores reais enviados pelo Vitório às 09:50:
+        R$ 247.380 digitado, 218 pedidos, 7,6 média de SKUs, 210 visitas)
+    ═════════════════════════════════════════════════════════ */
+    const META_DESAFIO_PDVS = 30000;
+
+    const FILIAIS_METADATA = {
+      TBL: { gerente: 'Fábio',      uf: 'PR', lat: -23.3197, lon: -51.1588, meta: 3500 },
+      API: { gerente: 'Marcelo',    uf: 'PR', lat: -25.4284, lon: -49.2733, meta: 4000 },
+      TSJ: { gerente: 'Wagner',     uf: 'SP', lat: -23.1896, lon: -45.8841, meta: 3200 },
+      TPH: { gerente: 'Vagner/Fab', uf: 'PR', lat: -25.0945, lon: -50.1370, meta: 4200 },
+      ABC: { gerente: 'Marcos',     uf: 'PR', lat: -23.4155, lon: -51.9351, meta: 3100 },
+      TCV: { gerente: 'Marcos',     uf: 'PR', lat: -24.9591, lon: -53.4555, meta: 2800 },
+      TBE: { gerente: 'Diego',      uf: 'RS', lat: -30.0346, lon: -51.2177, meta: 2600 },
+      TPA: { gerente: 'Diego',      uf: 'RS', lat: -29.9850, lon: -51.1900, meta: 2400 },
+      MCD: { gerente: 'Cleverson',  uf: 'MS', lat: -22.2211, lon: -54.8056, meta: 1600 },
+      TCA: { gerente: 'Becher',     uf: 'MT', lat: -15.6014, lon: -56.0979, meta: 1400 },
+      TCG: { gerente: 'Danilo',     uf: 'MS', lat: -20.4697, lon: -54.6201, meta: 1200 }
+    };
+
+    const ORDEM_FILIAIS = ['TBL','API','TSJ','TPH','ABC','TCV','TBE','TPA','MCD','TCA','TCG'];
+
+    let FILIAL_SELECIONADA = 'TODAS';
+    let SUPERVISOR_SELECIONADO = 'TODOS';
+    let AUTO_ROTATE = false;
+    let autoRotateTimer = null;
+
+    // Faturado/Positivados do MÊS ao vivo — preenchido só por /api/mapa-executivo-live (migration
+    // 0005, 29/09/2026). Antes havia números fixos aqui de 27/09/2026 como "fallback": nunca
+    // eram substituídos se o fetch falhasse silenciosamente, e a TV mostrava dado de dias atrás
+    // pro diretor sem avisar. Zerado até o primeiro fetch real chegar (regra: nunca inventar dado).
+    let RESUMO_MES_OFICIAL = {
+      totalPosMes: 0,
+      totalFatMes: 0,
+      metaPosMes: 30000,
+      filiais: {}
+    };
+
+    let DADOS_ATUAIS = {
+      // DADOS DO DIA (Hoje - Domingo: 0)
+      digitadoHoje: 0,
+      positivadosHoje: 0,
+      mediaSkus: 0,
+      visitasFeitas: 0,
+      visitasRota: 0,
+      visitasComVenda: 0,
+      visitasSemVenda: 0,
+      recuperadosClientes: 0,
+      recuperadosValor: 0,
+      // posMes/fatMes de cada filial: zerados até /api/mapa-executivo-live responder (dado real do
+      // mês, migration 0005) — nunca número fixo travado num dia passado.
+      filiais: {
+        TBL: { dig: 0, pos: 0, feitas: 0, rota: 0, comVenda: 0, semVenda: 0, skus: 0, recup: 0, recupVal: 0, posMes: 0, fatMes: 0 },
+        API: { dig: 0, pos: 0, feitas: 0, rota: 0, comVenda: 0, semVenda: 0, skus: 0, recup: 0, recupVal: 0, posMes: 0, fatMes: 0 },
+        TSJ: { dig: 0, pos: 0, feitas: 0, rota: 0, comVenda: 0, semVenda: 0, skus: 0, recup: 0, recupVal: 0, posMes: 0, fatMes: 0 },
+        TPH: { dig: 0, pos: 0, feitas: 0, rota: 0, comVenda: 0, semVenda: 0, skus: 0, recup: 0, recupVal: 0, posMes: 0, fatMes: 0 },
+        ABC: { dig: 0, pos: 0, feitas: 0, rota: 0, comVenda: 0, semVenda: 0, skus: 0, recup: 0, recupVal: 0, posMes: 0, fatMes: 0 },
+        TCV: { dig: 0, pos: 0, feitas: 0, rota: 0, comVenda: 0, semVenda: 0, skus: 0, recup: 0, recupVal: 0, posMes: 0, fatMes: 0 },
+        TBE: { dig: 0, pos: 0, feitas: 0, rota: 0, comVenda: 0, semVenda: 0, skus: 0, recup: 0, recupVal: 0, posMes: 0, fatMes: 0 },
+        TPA: { dig: 0, pos: 0, feitas: 0, rota: 0, comVenda: 0, semVenda: 0, skus: 0, recup: 0, recupVal: 0, posMes: 0, fatMes: 0 },
+        MCD: { dig: 0, pos: 0, feitas: 0, rota: 0, comVenda: 0, semVenda: 0, skus: 0, recup: 0, recupVal: 0, posMes: 0, fatMes: 0 },
+        TCA: { dig: 0, pos: 0, feitas: 0, rota: 0, comVenda: 0, semVenda: 0, skus: 0, recup: 0, recupVal: 0, posMes: 0, fatMes: 0 },
+        TCG: { dig: 0, pos: 0, feitas: 0, rota: 0, comVenda: 0, semVenda: 0, skus: 0, recup: 0, recupVal: 0, posMes: 0, fatMes: 0 }
+      },
+      supervisores: {}
+    };
+
+    let MAPA_PDVS = { ouros: [], azul: [], verde: [] };
+    let CIDADES_LISTA = [];
+
+    // Estado do mapa Leaflet (substitui o antigo motor de desenho vetorial em canvas)
+    let CAMADA_ATIVA_MAPA = 'TODAS'; // 'TODAS', 'AZUL', 'OURO', 'VERDE'
+    let mapaLeaflet = null;
+    let clusterOuro = null, clusterAzul = null, clusterVerde = null;
+    let marcadoresFiliais = [];
+    const CENTRO_MAPA_PADRAO = [-24.5, -52.5]; // meio da região atendida (PR/SC/RS/SP/MS/MT)
+    const ZOOM_PADRAO = 6;
+
+    function criarIconePonto(cor) {
+      return L.divIcon({ className: '', html: `<div class="${cor}" style="width:9px;height:9px"></div>`, iconSize: [9, 9] });
     }
-  });
+    const ICONE_OURO = criarIconePonto('pdv-dot-ouro');
+    const ICONE_AZUL = criarIconePonto('pdv-dot-azul');
+    const ICONE_VERDE = criarIconePonto('pdv-dot-verde');
 
-  // Processa lances para positivação
-  const pulsoMap = {}; // hora -> count
-  FILIAIS.forEach((f, i) => {
-    const d = lancesResults[i];
-    let posCount = 0;
-    if (d && d.lances) {
-      // Conta lances de venda (gol = venda convertida)
-      const vendas = d.lances.filter(l =>
-        ['gol','venda10','penalti'].includes(l.nivel) && !l.baseline
-      );
-      posCount = vendas.length;
+    function criarClusterCamada(classeCss) {
+      return L.markerClusterGroup({
+        iconCreateFunction: cluster => {
+          const count = cluster.getChildCount();
+          return L.divIcon({
+            html: `<div><span>${count}</span></div>`,
+            className: 'marker-cluster ' + classeCss,
+            iconSize: L.point(38, 38)
+          });
+        },
+        maxClusterRadius: 55,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false
+      });
+    }
 
-      // Acumula por hora para o gráfico
-      vendas.forEach(l => {
-        if (l.hora_sp) {
-          const h = l.hora_sp.slice(0,5); // HH:MM
-          const hk = h.slice(0,2) + ':00';
-          pulsoMap[hk] = (pulsoMap[hk] || 0) + 1;
+    function inicializarMapaLeaflet() {
+      if (mapaLeaflet) return;
+      mapaLeaflet = L.map('mapaExecutivo', {
+        center: CENTRO_MAPA_PADRAO,
+        zoom: ZOOM_PADRAO,
+        zoomControl: false,
+        attributionControl: true,
+        preferCanvas: true
+      });
+
+      // Tiles escuros (Esri World Dark Gray Canvas) — serviço público estabelecido, gratuito,
+      // sem API key. Trocado do CARTO em 28/09/2026: o endpoint CARTO passou a exigir chave
+      // (confirmado com print real do tile: "API KEY REQUIRED, carto.com/basemaps/apikey" —
+      // não era cache do navegador, era resposta real do servidor).
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Esri, HERE, Garmin, FAO, NOAA, USGS',
+        maxZoom: 16
+      }).addTo(mapaLeaflet);
+
+      carregarContornosEstados();
+
+      clusterOuro = criarClusterCamada('marker-cluster-ouro');
+      clusterAzul = criarClusterCamada('marker-cluster-azul');
+      clusterVerde = criarClusterCamada('marker-cluster-verde');
+      mapaLeaflet.addLayer(clusterAzul);
+      mapaLeaflet.addLayer(clusterOuro);
+      mapaLeaflet.addLayer(clusterVerde);
+
+      mapaLeaflet.on('zoomend', atualizarIndicadorZoom);
+
+      // Sedes das 11 filiais — sempre visíveis, marcador fixo (fora dos clusters).
+      ORDEM_FILIAIS.forEach(sig => {
+        const f = FILIAIS_METADATA[sig];
+        const marker = L.marker([f.lat, f.lon], {
+          icon: L.divIcon({
+            className: '',
+            html: `<div style="display:flex;align-items:center;gap:5px"><div class="filial-marker-dot"></div><div class="filial-marker-label">${sig}</div></div>`,
+            iconSize: [70, 16],
+            iconAnchor: [4, 8]
+          })
+        }).addTo(mapaLeaflet);
+        marker.bindPopup(`<b>${sig}</b><br>Gerente: ${f.gerente}<br>Meta do mês: ${f.meta.toLocaleString('pt-BR')} PDVs`);
+        marker._filialSigla = sig;
+        marcadoresFiliais.push(marker);
+      });
+
+      atualizarIndicadorZoom();
+    }
+
+    // Contorno sutil dos 6 estados atendidos (MT, MS, SP, PR, SC, RS) — linha fina ciano,
+    // sem preenchimento, por cima do tile Esri. Substitui o antigo desenho manual em canvas.
+    const ESTADOS_ATENDIDOS_GEOJSON = {
+      MT: '/geojson/br_mt.json', MS: '/geojson/br_ms.json', SP: '/geojson/br_sp.json',
+      PR: '/geojson/br_pr.json', SC: '/geojson/br_sc.json', RS: '/geojson/br_rs.json'
+    };
+    function carregarContornosEstados() {
+      Object.values(ESTADOS_ATENDIDOS_GEOJSON).forEach(url => {
+        fetch(url).then(r => r.ok ? r.json() : null).then(geo => {
+          if (!geo || !mapaLeaflet) return;
+          L.geoJSON(geo, {
+            style: { color: 'rgba(0,210,255,.32)', weight: 1, fillOpacity: 0, interactive: false }
+          }).addTo(mapaLeaflet);
+        }).catch(() => {});
+      });
+    }
+
+    // ═════════════════════════════════════════════════════════
+    // CARD "VENDA EXPRESSIVA" — detecta CNPJ novo em MAPA_PDVS.verde entre uma atualização e
+    // outra (polling a cada 20s), mostra o de maior valor, some sozinho depois de alguns
+    // segundos. Nunca mostra sem nome/valor reais (dado vem do banco, ver
+    // scripts/gerar_mapa_pdvs_executiva.js) — sem esses campos, o card simplesmente não aparece.
+    // ═════════════════════════════════════════════════════════
+    let CNPJS_VERDE_VISTOS = new Set();
+    let cardVendaTimer = null;
+    const LIMIAR_VENDA_EXPRESSIVA = 2000; // só destaca pedidos >= R$2.000 (evita poluir com tudo)
+
+    function detectarNovaVendaExpressiva(novoMapa) {
+      const listaVerde = novoMapa.verde || [];
+      if (CNPJS_VERDE_VISTOS.size === 0) {
+        // primeira carga: só registra o que já existe, não dispara card (evita "avalanche" no load)
+        listaVerde.forEach(pt => CNPJS_VERDE_VISTOS.add(pt.c));
+        return;
+      }
+      const novos = listaVerde.filter(pt => !CNPJS_VERDE_VISTOS.has(pt.c));
+      listaVerde.forEach(pt => CNPJS_VERDE_VISTOS.add(pt.c));
+      if (!novos.length) return;
+
+      const maiorNovo = novos
+        .filter(pt => pt.valor && pt.valor >= LIMIAR_VENDA_EXPRESSIVA && pt.nome)
+        .sort((a, b) => b.valor - a.valor)[0];
+      if (!maiorNovo) return;
+
+      mostrarCardVendaExpressiva(maiorNovo);
+    }
+
+    function mostrarCardVendaExpressiva(pt) {
+      const card = document.getElementById('cardVendaExpressiva');
+      if (!card) return;
+      document.getElementById('cardVendaCliente').textContent = pt.nome;
+      document.getElementById('cardVendaLocal').textContent = `${pt.cidade || '—'} · ${pt.f || '—'}`;
+      document.getElementById('cardVendaValor').textContent = 'R$ ' + Math.round(pt.valor).toLocaleString('pt-BR');
+      clearTimeout(cardVendaTimer);
+      card.classList.add('show');
+      cardVendaTimer = setTimeout(() => card.classList.remove('show'), 7000);
+    }
+
+    function popupPonto(pt, tipo) {
+      const fMeta = FILIAIS_METADATA[pt.f];
+      const nomeFilial = fMeta ? pt.f : (pt.f || '—');
+      return `<b>${tipo}</b><br>Filial: ${nomeFilial}<br>CNPJ: ${pt.c || '—'}`;
+    }
+
+    function renderVectorMap() {
+      if (!mapaLeaflet) { inicializarMapaLeaflet(); }
+      if (!mapaLeaflet) return;
+
+      clusterAzul.clearLayers();
+      clusterOuro.clearLayers();
+      clusterVerde.clearLayers();
+
+      const filtroFilial = pt => FILIAL_SELECIONADA === 'TODAS' || pt.f === FILIAL_SELECIONADA;
+
+      if (CAMADA_ATIVA_MAPA === 'TODAS' || CAMADA_ATIVA_MAPA === 'AZUL') {
+        (MAPA_PDVS.azul || []).filter(filtroFilial).forEach(pt => {
+          clusterAzul.addLayer(L.marker([pt.lt, pt.ln], { icon: ICONE_AZUL }).bindPopup(popupPonto(pt, 'Positivado no mês')));
+        });
+      }
+      if (CAMADA_ATIVA_MAPA === 'TODAS' || CAMADA_ATIVA_MAPA === 'OURO') {
+        (MAPA_PDVS.ouros || []).filter(filtroFilial).forEach(pt => {
+          clusterOuro.addLayer(L.marker([pt.lt, pt.ln], { icon: ICONE_OURO }).bindPopup(popupPonto(pt, '⭐ Ouro na Mesa')));
+        });
+      }
+      if (CAMADA_ATIVA_MAPA === 'TODAS' || CAMADA_ATIVA_MAPA === 'VERDE') {
+        (MAPA_PDVS.verde || []).filter(filtroFilial).forEach(pt => {
+          clusterVerde.addLayer(L.marker([pt.lt, pt.ln], { icon: ICONE_VERDE }).bindPopup(popupPonto(pt, '● Positivado hoje')));
+        });
+      }
+
+      // Mostra/esconde marcadores de sede conforme filial selecionada.
+      marcadoresFiliais.forEach(m => {
+        const visivel = FILIAL_SELECIONADA === 'TODAS' || m._filialSigla === FILIAL_SELECIONADA;
+        if (visivel && !mapaLeaflet.hasLayer(m)) m.addTo(mapaLeaflet);
+        else if (!visivel && mapaLeaflet.hasLayer(m)) mapaLeaflet.removeLayer(m);
+      });
+
+      // Enquadramento: filial selecionada = voa até a sede com zoom regional; "TODAS" = volta ao centro padrão.
+      if (FILIAL_SELECIONADA !== 'TODAS' && FILIAIS_METADATA[FILIAL_SELECIONADA]) {
+        const f = FILIAIS_METADATA[FILIAL_SELECIONADA];
+        mapaLeaflet.flyTo([f.lat, f.lon], 11, { duration: 0.6 });
+      } else {
+        mapaLeaflet.flyTo(CENTRO_MAPA_PADRAO, ZOOM_PADRAO, { duration: 0.6 });
+      }
+
+      setTimeout(() => mapaLeaflet.invalidateSize(), 50);
+    }
+
+    function ajustarZoomManual(fator) {
+      if (!mapaLeaflet) return;
+      const atual = mapaLeaflet.getZoom();
+      mapaLeaflet.setZoom(atual + (fator > 1 ? 1 : -1));
+    }
+
+    function resetarZoomManual() {
+      FILIAL_SELECIONADA = 'TODAS';
+      if (mapaLeaflet) mapaLeaflet.flyTo(CENTRO_MAPA_PADRAO, ZOOM_PADRAO, { duration: 0.6 });
+      atualizarIndicadorZoom();
+    }
+
+    function atualizarIndicadorZoom() {
+      const lbl = document.getElementById('mapZoomLevelTxt');
+      if (lbl && mapaLeaflet) lbl.textContent = mapaLeaflet.getZoom().toFixed(1) + 'x';
+    }
+
+    function alternarCamadaMapa(camada) {
+      CAMADA_ATIVA_MAPA = camada;
+      ['todos','azul','ouro','verde'].forEach(c => {
+        const btn = document.getElementById('btn-toggle-' + c);
+        if (btn) {
+          if (camada === 'TODAS' || camada === c.toUpperCase()) btn.classList.add('active');
+          else btn.classList.remove('active');
+        }
+      });
+      renderVectorMap();
+    }
+
+    /* ═════════════════════════════════════════════════════════
+       SISTEMA DE NAVEGAÇÃO POR CONTROLE REMOTO DE TV (DPAD)
+    ═════════════════════════════════════════════════════════ */
+    let currentNavIndex = 0;
+    const navButtons = [];
+
+    function setupRemoteNavigation() {
+      const container = document.getElementById('pillsContainer');
+      const btns = Array.from(container.querySelectorAll('.nav-btn'));
+      navButtons.length = 0;
+      btns.forEach((b, idx) => {
+        navButtons.push(b);
+        b.onclick = () => {
+          selecionarFilial(b.dataset.filial);
+        };
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          currentNavIndex = (currentNavIndex + 1) % navButtons.length;
+          focusCurrentBtn();
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          currentNavIndex = (currentNavIndex - 1 + navButtons.length) % navButtons.length;
+          focusCurrentBtn();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          if (document.activeElement && document.activeElement.classList.contains('nav-btn')) {
+            document.activeElement.click();
+          } else {
+            navButtons[currentNavIndex].click();
+          }
+        } else if (e.key === 'Escape' || e.key === 'Back') {
+          selecionarFilial('TODAS');
+        } else if (e.key === 'f' || e.key === 'F') {
+          toggleFullScreen();
+        } else if (e.key === 'a' || e.key === 'A') {
+          toggleAutoRotate();
         }
       });
     }
-    posNovo[f] = posCount;
-  });
 
-  // Atualiza estado
-  if (Object.values(posNovo).some(v => v > 0)) {
-    estado.pos = posNovo;
-  }
-  estado.visReal = { ...estado.visReal, ...visRealNovo };
-  estado.pulsoHoras = Object.entries(pulsoMap)
-    .sort((a,b) => a[0].localeCompare(b[0]))
-    .map(([hora, pos]) => ({ hora, pos }));
-  estado.ultimaAtual = new Date();
-
-  // Esconde overlay após primeira carga
-  overlay.style.opacity = '0';
-  setTimeout(() => overlay.style.display = 'none', 500);
-
-  renderTudo();
-}
-
-/* ──────────────────────────────────────────────
-   RENDER PRINCIPAL
-────────────────────────────────────────────── */
-function renderTudo() {
-  const totPos = Object.values(estado.pos).reduce((a, b) => a + b, 0);
-  const totFat = Object.values(estado.fat).reduce((a, b) => a + b, 0);
-  const totVisReal = Object.values(estado.visReal).reduce((a, b) => a + b, 0);
-  const totVisProg = Object.values(estado.visProg).reduce((a, b) => a + b, 0);
-  const totVjCom = Object.values(estado.vjCom).reduce((a, b) => a + b, 0);
-  const totVjTot = Object.values(estado.vjTot).reduce((a, b) => a + b, 0);
-
-  const pctPos = totPos > 0 ? Math.round((totPos / META_POS) * 100) : 0;
-  const faltaPos = Math.max(0, META_POS - totPos);
-  const eficacia = totVjTot > 0 ? Math.round((totVjCom / totVjTot) * 100) : 0;
-
-  // Header
-  setText('totPos', totPos > 0 ? totPos.toLocaleString('pt-BR') : '—');
-  setColor('totPos', pctPos >= 90 ? 'green' : pctPos >= 70 ? 'amber' : 'red');
-  setText('pctPos', totPos > 0 ? pctPos + '%' : '—');
-  setText('faltaPos', faltaPos > 0 ? faltaPos.toLocaleString('pt-BR') + ' clientes' : '✓ META BATIDA!');
-  setText('totFat', totFat > 0 ? 'R$ ' + fmt(totFat) : '—');
-  setText('ticketMedio', totPos > 0 && totFat > 0 ? 'Ticket médio: R$ ' + fmt(totFat/totPos) : 'aguardando...');
-  setText('totVis', totVisReal > 0 ? totVisReal.toLocaleString('pt-BR') : '—');
-  setText('eficienciaVis', totVisProg > 0 ? Math.round((totVisReal/totVisProg)*100) + '% da rota cumprida' : 'dados em carregamento');
-  setText('eficacia', totVjTot > 0 ? eficacia + '%' : '—');
-  setColor('eficacia', eficacia >= 40 ? 'green' : eficacia >= 25 ? 'amber' : 'red');
-
-  // Timestamp
-  if (estado.ultimaAtual) {
-    const ts = estado.ultimaAtual.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'America/Sao_Paulo' });
-    setText('chart-ts', 'última atualização: ' + ts + ' BRT');
-  }
-
-  renderRanking();
-  renderGabarito();
-  drawChart();
-}
-
-/* ──────────────────────────────────────────────
-   RANKING LATERAL
-────────────────────────────────────────────── */
-function renderRanking() {
-  const sorted = FILIAIS
-    .map(f => ({ f, pos: estado.pos[f] || 0 }))
-    .sort((a, b) => b.pos - a.pos);
-
-  const maxPos = sorted[0]?.pos || 1;
-  const list = document.getElementById('rkList');
-  list.innerHTML = '';
-
-  sorted.forEach(({ f, pos }, idx) => {
-    const pct = Math.round((pos / META_POS) * 100);
-    const barPct = Math.round((pos / Math.max(maxPos, 1)) * 100);
-    const cls = pct >= 90 ? 'green' : pct >= 70 ? 'amber' : pct > 0 ? 'red' : 'muted';
-    const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx+1}`;
-
-    const row = document.createElement('div');
-    row.className = 'rk-row';
-    row.innerHTML = `
-      <span class="rk-pos">${medal}</span>
-      <div class="rk-bar-wrap">
-        <span class="rk-sigla">${f}</span>
-        <div class="rk-bar-bg">
-          <div class="rk-bar-fill bg-${cls}" style="width:${barPct}%"></div>
-        </div>
-      </div>
-      <span class="rk-pos-num c-${cls}">${pos > 0 ? pos : '—'}</span>
-      <span class="rk-pct c-${cls}">${pos > 0 ? pct+'%' : '—'}</span>
-    `;
-    list.appendChild(row);
-  });
-}
-
-/* ──────────────────────────────────────────────
-   GABARITO — 11 CARDS NO RODAPÉ
-────────────────────────────────────────────── */
-function renderGabarito() {
-  const gab = document.getElementById('gabarito');
-  const metaPorFilial = Math.round(META_POS / FILIAIS.length); // meta simplificada
-
-  gab.innerHTML = FILIAIS.map(f => {
-    const pos = estado.pos[f] || 0;
-    const fat = estado.fat[f] || 0;
-    const pct = Math.round((pos / metaPorFilial) * 100);
-    const barW = Math.min(pct, 100);
-    const cls = pos === 0 ? 'fc-zero' : pct >= 90 ? 'fc-ok' : pct >= 65 ? 'fc-warn' : pct >= 40 ? 'fc-bad' : 'fc-crit';
-    const txtCls = pos === 0 ? 'c-muted' : pct >= 90 ? 'c-green' : pct >= 65 ? 'c-amber' : 'c-red';
-    const barCls = pos === 0 ? 'bg-muted' : pct >= 90 ? 'bg-green' : pct >= 65 ? 'bg-amber' : 'bg-red';
-    const fatFmt = fat > 0 ? 'R$ ' + fmt(fat) : pos > 0 ? 'carregando...' : '—';
-
-    return `
-      <div class="fil-card ${cls}">
-        <span class="fc-sigla">${f}</span>
-        <div class="fc-pos ${txtCls}">${pos > 0 ? pos : '—'}</div>
-        <div class="fc-bar-wrap">
-          <div class="fc-bar-fill ${barCls}" style="width:${barW}%"></div>
-        </div>
-        <div class="fc-pct ${txtCls}">${pos > 0 ? pct+'% meta' : 'sem pedidos'}</div>
-        <div class="fc-sub">${fatFmt}</div>
-      </div>
-    `;
-  }).join('');
-}
-
-/* ──────────────────────────────────────────────
-   GRÁFICO DE PULSO
-────────────────────────────────────────────── */
-const canvas = document.getElementById('pulseCanvas');
-const ctx = canvas.getContext('2d');
-
-function drawChart() {
-  const parent = canvas.parentElement;
-  canvas.width  = parent.clientWidth  - 32;
-  canvas.height = parent.clientHeight - 48;
-
-  const w = canvas.width, h = canvas.height;
-  if (w < 10 || h < 10) return;
-  ctx.clearRect(0, 0, w, h);
-
-  // Slots: 07:00 às 19:00 (12h) em blocos de 1h = 12 slots
-  const slots = [];
-  for (let hh = 7; hh <= 18; hh++) {
-    const key = String(hh).padStart(2,'0') + ':00';
-    const found = estado.pulsoHoras.find(p => p.hora === key);
-    slots.push({ hora: hh + 'h', pos: found ? found.pos : 0 });
-  }
-
-  // Hora atual BRT
-  const nowBRT = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-  const horaAtual = nowBRT.getHours();
-
-  const nSlots  = slots.length;
-  const padX    = 28, padY = 16;
-  const slotW   = (w - padX * 2) / nSlots;
-  const maxPos  = Math.max(...slots.map(s => s.pos), 5);
-  const maxY    = maxPos * 1.3;
-  const drawH   = h - padY - 24;
-
-  // Linhas de grade
-  ctx.strokeStyle = 'rgba(20,33,58,.8)';
-  ctx.lineWidth = 1;
-  for (let i = 0; i <= 4; i++) {
-    const y = padY + (drawH / 4) * i;
-    ctx.beginPath();
-    ctx.moveTo(padX, y);
-    ctx.lineTo(w - padX, y);
-    ctx.stroke();
-  }
-
-  // Faixas de hora passada vs futura
-  slots.forEach((s, i) => {
-    const x = padX + i * slotW;
-    const isPast = (s.hora.replace('h','') | 0) < horaAtual;
-    const isCurrent = (s.hora.replace('h','') | 0) === horaAtual;
-
-    if (isCurrent) {
-      ctx.fillStyle = 'rgba(0,210,255,.05)';
-      ctx.fillRect(x, padY, slotW, drawH);
+    function focusCurrentBtn() {
+      navButtons.forEach((b, i) => {
+        if (i === currentNavIndex) {
+          b.classList.add('tv-focused');
+          b.focus();
+        } else {
+          b.classList.remove('tv-focused');
+        }
+      });
     }
 
-    const barH = s.pos > 0 ? (s.pos / maxY) * drawH : 0;
-    const barY = padY + drawH - barH;
+    function selecionarFilial(sigla) {
+      FILIAL_SELECIONADA = sigla;
+      SUPERVISOR_SELECIONADO = 'TODOS';
+      atualizarIndicadorZoom();
 
-    if (s.pos > 0) {
-      // Gradiente vertical na barra
-      const grad = ctx.createLinearGradient(0, barY, 0, padY + drawH);
-      grad.addColorStop(0, isPast || isCurrent ? 'rgba(0,245,155,.9)' : 'rgba(0,210,255,.4)');
-      grad.addColorStop(1, isPast || isCurrent ? 'rgba(0,245,155,.2)' : 'rgba(0,210,255,.05)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(x + 2, barY, slotW - 4, barH);
+      // Atualiza botões ativos
+      navButtons.forEach(b => {
+        if (b.dataset.filial === sigla) b.classList.add('active');
+        else b.classList.remove('active');
+      });
+
+      // Atualiza dropdown de supervisores daquela filial
+      atualizarOpcoesSupervisores();
+
+      renderizarInterfaceCompleta();
     }
 
-    // Rótulo hora
-    ctx.fillStyle = isCurrent ? '#00d2ff' : 'rgba(71,85,105,.8)';
-    ctx.font = `${isCurrent ? '700' : '500'} 10px 'JetBrains Mono'`;
-    ctx.textAlign = 'center';
-    ctx.fillText(s.hora, x + slotW / 2, h - 4);
-  });
+    function atualizarOpcoesSupervisores() {
+      const select = document.getElementById('selectSupervisor');
+      select.innerHTML = '<option value="TODOS">Todos os Supervisores</option>';
 
-  // Linha acumulada
-  let acum = 0;
-  const pts = [];
-  slots.forEach((s, i) => {
-    const hrSlot = s.hora.replace('h','') | 0;
-    if (hrSlot <= horaAtual) {
-      acum += s.pos;
-      pts.push({ x: padX + i * slotW + slotW / 2, y: padY + drawH - (acum / Math.max(acum * 1.2, 1)) * drawH });
+      if (FILIAL_SELECIONADA !== 'TODAS' && DADOS_ATUAIS.supervisores[FILIAL_SELECIONADA]) {
+        DADOS_ATUAIS.supervisores[FILIAL_SELECIONADA].forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.nome;
+          opt.textContent = s.nome;
+          select.appendChild(opt);
+        });
+      }
     }
-  });
 
-  if (pts.length > 1) {
-    ctx.beginPath();
-    ctx.moveTo(pts[0].x, pts[0].y);
-    for (let i = 1; i < pts.length; i++) {
-      const mx = (pts[i-1].x + pts[i].x) / 2;
-      ctx.bezierCurveTo(mx, pts[i-1].y, mx, pts[i].y, pts[i].x, pts[i].y);
+    function aoSelecionarSupervisor() {
+      SUPERVISOR_SELECIONADO = document.getElementById('selectSupervisor').value;
+      renderizarInterfaceCompleta();
     }
-    ctx.strokeStyle = '#00d2ff';
-    ctx.lineWidth = 2.5;
-    ctx.shadowColor = 'rgba(0,210,255,.5)';
-    ctx.shadowBlur = 10;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-  }
 
-  // Ponto laser no último
-  if (pts.length > 0) {
-    const lp = pts[pts.length - 1];
-    ctx.beginPath();
-    ctx.arc(lp.x, lp.y, 5, 0, Math.PI * 2);
-    ctx.fillStyle = '#00d2ff';
-    ctx.shadowColor = '#00d2ff';
-    ctx.shadowBlur = 18;
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    function toggleAutoRotate() {
+      AUTO_ROTATE = !AUTO_ROTATE;
+      const btn = document.getElementById('btn-auto-rotate');
+      if (AUTO_ROTATE) {
+        btn.textContent = '🔄 Carrossel Auto: ON (15s)';
+        btn.style.borderColor = 'var(--cyan)';
+        btn.style.color = 'var(--cyan)';
+        autoRotateTimer = setInterval(() => {
+          const lista = ['TODAS', ...ORDEM_FILIAIS];
+          const currIdx = lista.indexOf(FILIAL_SELECIONADA);
+          const prox = lista[(currIdx + 1) % lista.length];
+          selecionarFilial(prox);
+        }, 15000);
+      } else {
+        btn.textContent = '🔄 Carrossel Auto: OFF';
+        btn.style.borderColor = 'var(--line)';
+        btn.style.color = 'var(--dim)';
+        if (autoRotateTimer) clearInterval(autoRotateTimer);
+      }
+    }
 
-    // Label "AGORA"
-    ctx.font = '700 10px JetBrains Mono';
-    ctx.fillStyle = '#00d2ff';
-    ctx.textAlign = 'center';
-    ctx.fillText('AGORA', lp.x, lp.y - 12);
-  }
+    // ═════════════════════════════════════════════════════════
+    // BUSCA DE CIDADE/FILIAL NO MAPA
+    // ═════════════════════════════════════════════════════════
+    function buscarNoMapa(termo) {
+      const box = document.getElementById('mapSearchResults');
+      if (!termo || termo.trim().length < 2) { box.classList.remove('show'); box.innerHTML = ''; return; }
+      const t = termo.trim().toUpperCase();
 
-  // Label Y (quantidade)
-  if (maxPos > 0) {
-    ctx.fillStyle = 'rgba(71,85,105,.7)';
-    ctx.font = '500 9px JetBrains Mono';
-    ctx.textAlign = 'right';
-    [0, Math.round(maxPos/2), maxPos].forEach(v => {
-      const y = padY + drawH - (v / maxY) * drawH;
-      ctx.fillText(v, padX - 4, y + 4);
+      const resultados = [];
+      ORDEM_FILIAIS.forEach(sig => {
+        const f = FILIAIS_METADATA[sig];
+        if (sig.includes(t) || (f.gerente || '').toUpperCase().includes(t)) {
+          resultados.push({ label: `🏢 ${sig} — Gerente ${f.gerente}`, lat: f.lat, lon: f.lon, zoom: 11 });
+        }
+      });
+      // Busca por cidade nos pontos carregados (usa o primeiro ponto de cada cidade encontrada via CIDADES_LISTA, se existir)
+      if (Array.isArray(CIDADES_LISTA) && CIDADES_LISTA.length) {
+        CIDADES_LISTA.filter(c => (c.nome || '').toUpperCase().includes(t)).slice(0, 8).forEach(c => {
+          resultados.push({ label: `📍 ${c.nome} (${c.filial || '—'})`, lat: c.lat, lon: c.lon, zoom: 13 });
+        });
+      }
+
+      if (!resultados.length) { box.innerHTML = '<div class="map-search-result-item" style="color:var(--dim)">Nada encontrado</div>'; box.classList.add('show'); return; }
+
+      box.innerHTML = resultados.slice(0, 12).map((r, i) =>
+        `<div class="map-search-result-item" onclick="irParaResultadoBusca(${i})">${r.label}</div>`
+      ).join('');
+      window._ULTIMA_BUSCA_MAPA = resultados;
+      box.classList.add('show');
+    }
+
+    function irParaResultadoBusca(idx) {
+      const r = (window._ULTIMA_BUSCA_MAPA || [])[idx];
+      if (!r || !mapaLeaflet) return;
+      mapaLeaflet.flyTo([r.lat, r.lon], r.zoom, { duration: 0.8 });
+      document.getElementById('mapSearchResults').classList.remove('show');
+    }
+
+    // ═════════════════════════════════════════════════════════
+    // MODAL DE DETALHE (clique nos cards Visitas/Pedidos/Ouro na Mesa) — mostra a lista real de
+    // clientes por trás do número, em vez de só um total sem nenhuma forma de auditar (achado em
+    // 28/09/2026: cards não eram clicáveis, "Ouro na Mesa: 0 resgatados" sem como conferir).
+    // ═════════════════════════════════════════════════════════
+    function abrirModalDetalhe(tipo) {
+      const filtroFilial = pt => FILIAL_SELECIONADA === 'TODAS' || pt.f === FILIAL_SELECIONADA;
+      const overlay = document.getElementById('modalDetalheOverlay');
+      const titulo = document.getElementById('modalDetalheTitulo');
+      const sub = document.getElementById('modalDetalheSub');
+      const lista = document.getElementById('modalDetalheLista');
+
+      let itens = [], tituloTxt = '', corTag = '';
+      if (tipo === 'visitas' || tipo === 'pedidos') {
+        // Base: MAPA_PDVS.verde = todo POSITIVADO/EFETIVADO de hoje (nome, cidade, filial já vêm prontos).
+        itens = (MAPA_PDVS.verde || []).filter(filtroFilial);
+        tituloTxt = tipo === 'visitas' ? '📍 Clientes Positivados Hoje (Visitas com Venda)' : '📦 Pedidos Colocados Hoje';
+        corTag = 'var(--cyan)';
+      } else if (tipo === 'ouro') {
+        itens = (MAPA_PDVS.resgates || []).filter(filtroFilial);
+        tituloTxt = '⭐ Ouro na Mesa — Resgatados Hoje';
+        corTag = 'var(--gold)';
+      }
+
+      titulo.textContent = tituloTxt;
+      sub.textContent = `${itens.length} cliente(s)${FILIAL_SELECIONADA !== 'TODAS' ? ' · filial ' + FILIAL_SELECIONADA : ' · todas as filiais'}`;
+
+      if (!itens.length) {
+        lista.innerHTML = '<div class="modal-detalhe-vazio">Nenhum cliente registrado ainda para este filtro.</div>';
+      } else {
+        lista.innerHTML = itens.slice(0, 300).map(it => `
+          <div class="modal-detalhe-linha">
+            <span class="modal-detalhe-filial" style="background:rgba(255,255,255,.08);color:${corTag}">${esc(it.f || '—')}</span>
+            <span class="modal-detalhe-nome">${esc(it.nome || 'Cliente #' + (it.c || '—'))}</span>
+            <span style="color:var(--muted);flex-shrink:0">${esc(it.cidade || '—')}</span>
+          </div>
+        `).join('');
+      }
+      overlay.classList.add('show');
+    }
+    function fecharModalDetalhe() {
+      document.getElementById('modalDetalheOverlay').classList.remove('show');
+    }
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+    }
+
+    // ═════════════════════════════════════════════════════════
+    // EXPORTAÇÃO DOS DADOS VISÍVEIS NO MAPA (CSV)
+    // ═════════════════════════════════════════════════════════
+    function exportarMapaDados() {
+      const linhas = [['tipo', 'filial', 'cnpj', 'latitude', 'longitude']];
+      const filtroFilial = pt => FILIAL_SELECIONADA === 'TODAS' || pt.f === FILIAL_SELECIONADA;
+      if (CAMADA_ATIVA_MAPA === 'TODAS' || CAMADA_ATIVA_MAPA === 'OURO') {
+        (MAPA_PDVS.ouros || []).filter(filtroFilial).forEach(pt => linhas.push(['Ouro na Mesa', pt.f, pt.c, pt.lt, pt.ln]));
+      }
+      if (CAMADA_ATIVA_MAPA === 'TODAS' || CAMADA_ATIVA_MAPA === 'AZUL') {
+        (MAPA_PDVS.azul || []).filter(filtroFilial).forEach(pt => linhas.push(['Positivado no Mês', pt.f, pt.c, pt.lt, pt.ln]));
+      }
+      if (CAMADA_ATIVA_MAPA === 'TODAS' || CAMADA_ATIVA_MAPA === 'VERDE') {
+        (MAPA_PDVS.verde || []).filter(filtroFilial).forEach(pt => linhas.push(['Positivado Hoje', pt.f, pt.c, pt.lt, pt.ln]));
+      }
+      const csv = linhas.map(l => l.map(v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const sufixoFilial = FILIAL_SELECIONADA === 'TODAS' ? 'TODAS' : FILIAL_SELECIONADA;
+      a.href = url;
+      a.download = `mapa_executivo_${sufixoFilial}_${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    /* ═════════════════════════════════════════════════════════
+       RENDERIZAÇÃO COMPLETA DA INTERFACE COM FILTRO
+    ═════════════════════════════════════════════════════════ */
+    function renderizarInterfaceCompleta() {
+      let dig, pos, skus, feitas, rota, comVenda, semVenda, recupCli, recupVal, metaPDVs;
+      let posMesVal, fatMesVal, ticketReal;
+
+      if (FILIAL_SELECIONADA === 'TODAS') {
+        dig = DADOS_ATUAIS.digitadoHoje;
+        pos = DADOS_ATUAIS.positivadosHoje;
+        skus = DADOS_ATUAIS.mediaSkus;
+        ticketReal = DADOS_ATUAIS.ticketMedioReal;
+        feitas = DADOS_ATUAIS.visitasFeitas;
+        rota = DADOS_ATUAIS.visitasRota;
+        comVenda = DADOS_ATUAIS.visitasComVenda;
+        semVenda = DADOS_ATUAIS.visitasSemVenda;
+        recupCli = DADOS_ATUAIS.recuperadosClientes;
+        recupVal = DADOS_ATUAIS.recuperadosValor;
+        posMesVal = RESUMO_MES_OFICIAL.totalPosMes;
+        fatMesVal = RESUMO_MES_OFICIAL.totalFatMes;
+        metaPDVs = META_DESAFIO_PDVS;
+
+        document.getElementById('foco-filial-txt').textContent = '· NACIONAL';
+        document.getElementById('hero-title-txt').textContent = '🎯 DESAFIO NACIONAL DO GRUPO TRIUNFANTE · META 30.000 PDVs';
+        document.getElementById('hero-meta-sub').textContent = '/ 30.000 PDVs';
+      } else {
+        const f = DADOS_ATUAIS.filiais[FILIAL_SELECIONADA] || {};
+        const metaInfo = FILIAIS_METADATA[FILIAL_SELECIONADA] || {};
+
+        dig = f.dig || 0;
+        pos = f.pos || 0;
+        skus = f.skus || 0;
+        ticketReal = f.ticketMedioReal || 0;
+        feitas = f.feitas || 0;
+        rota = f.rota || 0;
+        comVenda = f.comVenda || 0;
+        semVenda = f.semVenda || 0;
+        recupCli = f.recup || 0;
+        recupVal = f.recupVal || 0;
+        posMesVal = f.posMes || 0;
+        fatMesVal = f.fatMes || 0;
+        metaPDVs = metaInfo.meta || 2500;
+
+        document.getElementById('foco-filial-txt').textContent = `· FILIAL ${FILIAL_SELECIONADA}`;
+        document.getElementById('hero-title-txt').textContent = `🎯 DESAFIO FILIAL ${FILIAL_SELECIONADA} · META ${metaPDVs.toLocaleString('pt-BR')} PDVs (GERENTE: ${metaInfo.gerente})`;
+        document.getElementById('hero-meta-sub').textContent = `/ ${metaPDVs.toLocaleString('pt-BR')} PDVs`;
+      }
+
+      const pctMeta = Math.min(100, (posMesVal / metaPDVs) * 100);
+      // Ticket Médio REAL (via historico-cliente, calculado em cron-mapa-executivo.js) quando
+      // disponível; fallback pra aproximação (dig/pos) só se ainda não tiver dado real carregado.
+      const ticketMedio = ticketReal > 0 ? Math.round(ticketReal) : (pos > 0 ? Math.round(dig / pos) : 0);
+      const ritmoH = Math.round(pos / Math.max(1, (new Date().getHours() + new Date().getMinutes()/60) - 7));
+      const projecao = Math.round(pos + (ritmoH * Math.max(0, 19 - (new Date().getHours() + new Date().getMinutes()/60))));
+
+      // 1. Hero Placar
+      document.getElementById('hero-digitado-val').textContent = 'R$ ' + Math.round(fatMesVal).toLocaleString('pt-BR');
+      document.getElementById('hero-pos-val').textContent = posMesVal.toLocaleString('pt-BR');
+      document.getElementById('hero-pct-val').textContent = pctMeta.toFixed(1).replace('.',',') + '% DA META';
+      document.getElementById('hero-progress-bar').style.width = pctMeta + '%';
+
+      document.getElementById('kpi-ticket-val').textContent = 'R$ ' + ticketMedio.toLocaleString('pt-BR');
+      document.getElementById('kpi-skus-val').textContent = skus.toFixed(1).replace('.',',') + ' SKUs';
+      document.getElementById('kpi-ritmo-val').textContent = `+${ritmoH} / h`;
+      document.getElementById('kpi-proj-val').textContent = `${projecao} PDVs`;
+
+      // 2. Visitas vs. Vendidos vs. Recuperados
+      document.getElementById('visitas-feitas-card').innerHTML = `${feitas} <small style="font-size:15px;color:var(--muted);font-weight:700">/ ${rota.toLocaleString('pt-BR')}</small>`;
+      const pctComVenda = feitas > 0 ? ((comVenda / feitas) * 100).toFixed(1).replace('.',',') : '0,0';
+      const pctSemVenda = feitas > 0 ? ((semVenda / feitas) * 100).toFixed(1).replace('.',',') : '0,0';
+      document.getElementById('com-venda-card').textContent = `${comVenda} (${pctComVenda}%)`;
+      document.getElementById('sem-venda-card').textContent = `${semVenda} (${pctSemVenda}%)`;
+
+      document.getElementById('pedidos-card').innerHTML = `${pos} <small style="font-size:14px;color:var(--muted);font-weight:700">pedidos</small>`;
+      const txPed = comVenda > 0 ? (pos / comVenda).toFixed(2).replace('.',',') : '1,00';
+      document.getElementById('tx-ped-vis-card').textContent = txPed;
+
+      document.getElementById('recuperados-clientes-card').innerHTML = `${recupCli} <small style="font-size:14px;color:#fff;font-weight:700">clientes resgatados</small>`;
+      document.getElementById('recuperados-valor-card').textContent = 'R$ ' + Math.round(recupVal).toLocaleString('pt-BR');
+
+      // 3. Gráfico Horário Conjunto
+      desenharGraficoHorario(feitas, comVenda, recupCli, pos);
+
+      // 4. Tabela de Cobrança Falconi / Ambev
+      renderizarTabelaCobranca();
+
+      // Atualiza badge de contagem de PDVs no topo do mapa
+      const countEl = document.getElementById('badge-cidades-count');
+      if (countEl && MAPA_PDVS) {
+        if (FILIAL_SELECIONADA === 'TODAS') {
+          const tot = (MAPA_PDVS.ouros ? MAPA_PDVS.ouros.length : 0) + (MAPA_PDVS.azul ? MAPA_PDVS.azul.length : 0);
+          countEl.textContent = tot.toLocaleString('pt-BR');
+        } else {
+          const ouroF = (MAPA_PDVS.ouros || []).filter(p => p.f === FILIAL_SELECIONADA).length;
+          const azulF = (MAPA_PDVS.azul || []).filter(p => p.f === FILIAL_SELECIONADA).length;
+          countEl.textContent = (ouroF + azulF).toLocaleString('pt-BR');
+        }
+      }
+
+      // 5. Redesenha mapa vetorial
+      renderVectorMap();
+    }
+
+    /* ═════════════════════════════════════════════════════════
+       GRÁFICO HORÁRIO (07H ÀS 19H) CONJUNTO COM REALCE SEPARADO
+    ═════════════════════════════════════════════════════════ */
+    function desenharGraficoHorario(totalVis, totalVendas, totalRecup, totalPos) {
+      const canvas = document.getElementById('hourlyCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      const w = rect.width;
+      const h = rect.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const agora = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+      const hrAtual = agora.getHours();
+      const diaSemana = agora.getDay(); // 0 = Domingo
+
+      // Se for domingo ou não houver pedidos no dia, inicia os slots vazios (sem barras inventadas)
+      const isSemanaOperacional = (diaSemana >= 1 && diaSemana <= 6) && (totalPos > 0);
+
+      const slots = [
+        { hr: 7,  vis: 0, ven: 0, rec: 0, posAcum: 0 },
+        { hr: 8,  vis: 0, ven: 0, rec: 0, posAcum: 0 },
+        { hr: 9,  vis: 0, ven: 0, rec: 0, posAcum: 0 },
+        { hr: 10, vis: 0, ven: 0, rec: 0, posAcum: 0 },
+        { hr: 11, vis: 0, ven: 0, rec: 0, posAcum: 0 },
+        { hr: 12, vis: 0, ven: 0, rec: 0, posAcum: 0 },
+        { hr: 13, vis: 0, ven: 0, rec: 0, posAcum: 0 },
+        { hr: 14, vis: 0, ven: 0, rec: 0, posAcum: 0 },
+        { hr: 15, vis: 0, ven: 0, rec: 0, posAcum: 0 },
+        { hr: 16, vis: 0, ven: 0, rec: 0, posAcum: 0 },
+        { hr: 17, vis: 0, ven: 0, rec: 0, posAcum: 0 },
+        { hr: 18, vis: 0, ven: 0, rec: 0, posAcum: 0 }
+      ];
+
+      if (isSemanaOperacional) {
+        // Distribui proporcionalmente nas horas já transcorridas do dia operacional
+        const horasTrabalhadas = Math.max(1, Math.min(12, hrAtual - 7 + 1));
+        const porHoraVis = Math.round(totalVis / horasTrabalhadas);
+        const porHoraVen = Math.round(totalVendas / horasTrabalhadas);
+        const porHoraRec = Math.round(totalRecup / horasTrabalhadas);
+        let acumulado = 0;
+
+        for (let idx = 0; idx < slots.length; idx++) {
+          if (slots[idx].hr <= hrAtual) {
+            slots[idx].vis = porHoraVis;
+            slots[idx].ven = porHoraVen;
+            slots[idx].rec = porHoraRec;
+            acumulado += porHoraVen;
+            slots[idx].posAcum = Math.min(totalPos, acumulado);
+          }
+        }
+        if (hrAtual >= 7 && hrAtual <= 18) {
+          const idxAtual = hrAtual - 7;
+          slots[idxAtual].posAcum = totalPos;
+        }
+      }
+
+      const padX = 26, padY = 12, padB = 20;
+      const slotW = (w - padX * 2) / slots.length;
+      const drawH = h - padY - padB;
+      const maxVal = Math.max(...slots.map(s => s.vis), 120);
+
+      // Linhas de grade
+      ctx.strokeStyle = 'rgba(24, 40, 77, 0.7)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 3; i++) {
+        const y = padY + (drawH / 3) * i;
+        ctx.beginPath(); ctx.moveTo(padX, y); ctx.lineTo(w - padX, y); ctx.stroke();
+      }
+
+      // 3 Barras em cada slot de hora
+      slots.forEach((s, i) => {
+        const x = padX + i * slotW;
+        const isPast = s.hr <= hrAtual;
+        const bW = slotW * 0.27;
+
+        if (isPast && s.vis > 0) {
+          // 1. Visitas (Azul Marinho)
+          const visH = (s.vis / maxVal) * drawH;
+          ctx.fillStyle = '#1e3a8a';
+          ctx.fillRect(x + 2, padY + drawH - visH, bW, visH);
+
+          // 2. Vendas Normais (Verde Esmeralda)
+          const venH = (s.ven / maxVal) * drawH;
+          ctx.fillStyle = '#00f59b';
+          ctx.fillRect(x + bW + 4, padY + drawH - venH, bW, venH);
+
+          // 3. Recuperados da Lista (⭐ Ouro Imperial)
+          const recH = (s.rec / maxVal) * drawH;
+          ctx.fillStyle = '#ffc837';
+          ctx.shadowColor = 'rgba(255,200,55,0.7)';
+          ctx.shadowBlur = 8;
+          ctx.fillRect(x + bW * 2 + 6, padY + drawH - recH, bW, recH);
+          ctx.shadowBlur = 0;
+        } else {
+          ctx.fillStyle = 'rgba(16, 28, 54, 0.4)';
+          ctx.fillRect(x + 2, padY + drawH - 3, slotW - 4, 3);
+        }
+
+        ctx.fillStyle = isPast ? '#94a3b8' : '#475569';
+        ctx.font = '10.5px "JetBrains Mono"';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${s.hr}h`, x + slotW / 2, h - 4);
+      });
+
+      // Linha de Positivação Acumulada
+      const pts = [];
+      slots.forEach((s, i) => {
+        if (s.hr <= hrAtual && s.posAcum > 0) {
+          const x = padX + i * slotW + slotW / 2;
+          const y = padY + drawH - (s.posAcum / Math.max(totalPos * 1.3, 100)) * drawH;
+          pts.push({ x, y });
+        }
+      });
+
+      if (pts.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) {
+          const mx = (pts[i-1].x + pts[i].x) / 2;
+          ctx.bezierCurveTo(mx, pts[i-1].y, mx, pts[i].y, pts[i].x, pts[i].y);
+        }
+        ctx.strokeStyle = '#00d2ff';
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = 'rgba(0, 210, 255, 0.6)';
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        const lp = pts[pts.length - 1];
+        ctx.beginPath();
+        ctx.arc(lp.x, lp.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#00d2ff';
+        ctx.fill();
+
+        ctx.font = '700 10.5px "JetBrains Mono"';
+        ctx.fillStyle = '#00d2ff';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${totalPos} PDVs`, lp.x, lp.y - 7);
+      }
+    }
+
+    /* ═════════════════════════════════════════════════════════
+       TABELA DE COBRANÇA IMPLACÁVEL (PADRÃO FALCONI / CARLOS BRITO)
+    ═════════════════════════════════════════════════════════ */
+    function renderizarTabelaCobranca() {
+      const tbody = document.getElementById('cobrancaTableBody');
+      const theadTr = document.getElementById('tableHeaders');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (FILIAL_SELECIONADA === 'TODAS') {
+        theadTr.innerHTML = `
+          <th>Filial</th>
+          <th>Gerente</th>
+          <th>Faturado Mês</th>
+          <th>Positivação (Mês / Meta)</th>
+          <th>Digitado Hoje</th>
+          <th>Positivados Hoje</th>
+          <th>⭐ Ouro na Mesa</th>
+          <th>Status Cobrança</th>
+        `;
+
+        ORDEM_FILIAIS.forEach(sig => {
+          const meta = FILIAIS_METADATA[sig] || {};
+          const f = DADOS_ATUAIS.filiais[sig] || {};
+
+          const posMes = f.posMes || 0;
+          const metaPos = meta.meta || 2500;
+          const pct = metaPos ? Math.round((posMes / metaPos) * 100) : 0;
+
+          let statusBadge = '<span class="badge-status ok">🟢 RITMO FORTE</span>';
+          if (pct < 70) {
+            statusBadge = '<span class="badge-status warn">🟡 ACELERAR META</span>';
+          }
+
+          const ourosFilial = (MAPA_PDVS.ouros || []).filter(p => p.f === sig).length;
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><b class="mono" style="color:#fff;font-size:12.5px">${sig}</b></td>
+            <td style="color:var(--dim)">${meta.gerente || '—'}</td>
+            <td><b class="mono" style="color:#fff">R$ ${Math.round(f.fatMes || 0).toLocaleString('pt-BR')}</b></td>
+            <td><b class="mono" style="color:var(--green)">${posMes.toLocaleString('pt-BR')}</b> <small style="color:var(--muted)">/ ${metaPos.toLocaleString('pt-BR')}</small> <span style="color:var(--cyan);font-size:10.5px">(${pct}%)</span></td>
+            <td><b class="mono" style="color:var(--dim)">R$ ${Math.round(f.dig || 0).toLocaleString('pt-BR')}</b></td>
+            <td><b class="mono" style="color:var(--dim)">${f.pos || 0}</b></td>
+            <td><b class="mono" style="color:var(--gold)">⭐ ${ourosFilial.toLocaleString('pt-BR')}</b></td>
+            <td>${statusBadge}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } else {
+        // VISÃO DA FILIAL: SUPERVISORES
+        theadTr.innerHTML = `
+          <th>Supervisor</th>
+          <th>Vendedores</th>
+          <th>Digitado Hoje</th>
+          <th>Positivados</th>
+          <th>Visitas (Feitas / Rota)</th>
+          <th>Média SKUs</th>
+          <th>⭐ Resgate 21-24</th>
+          <th>Status Cobrança</th>
+        `;
+
+        const sups = DADOS_ATUAIS.supervisores[FILIAL_SELECIONADA] || [];
+        if (sups.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:12px;color:var(--muted)">Carregando supervisores de ${FILIAL_SELECIONADA}...</td></tr>`;
+        } else {
+          sups.forEach(s => {
+            if (SUPERVISOR_SELECIONADO !== 'TODOS' && s.nome !== SUPERVISOR_SELECIONADO) return;
+
+            let statusBadge = '<span class="badge-status ok">🟢 BATEU MATINAL</span>';
+            if (s.pos < 8) statusBadge = '<span class="badge-status warn">🟡 COBRAR ROTA</span>';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><b style="color:#fff;font-size:12px">${s.nome}</b></td>
+              <td class="mono">${s.vend} RCAs</td>
+              <td><b class="mono" style="color:var(--green)">R$ ${Math.round(s.dig).toLocaleString('pt-BR')}</b></td>
+              <td><b class="mono" style="color:#fff">${s.pos}</b></td>
+              <td class="mono">${s.feitas} / ${s.rota}</td>
+              <td><b class="mono" style="color:var(--cyan)">${s.skus}</b></td>
+              <td><b class="mono" style="color:var(--gold)">⭐ ${s.recup}</b></td>
+              <td>${statusBadge}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      }
+    }
+
+    /* ═════════════════════════════════════════════════════════
+       RELÓGIO & FULLSCREEN
+    ═════════════════════════════════════════════════════════ */
+    function iniciarRelogio() {
+      function tick() {
+        const agora = new Date();
+        const brt = agora.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour12: false });
+        document.getElementById('clockBRT').textContent = brt;
+      }
+      setInterval(tick, 1000);
+      tick();
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    let animacaoRadarTimer = null;
+    function iniciarAnimacaoRadar() {
+      // O pulso do ponto verde agora é 100% CSS (@keyframes pulseDotVerde, ver .pdv-dot-verde) —
+      // não precisa mais re-renderizar o mapa inteiro a cada 1.5s (o Leaflet recriaria todos os
+      // clusters à toa). Função mantida vazia só para não quebrar a chamada em window.load.
+    }
+
+    /* ═════════════════════════════════════════════════════════
+       INICIALIZAÇÃO DA PÁGINA
+    ═════════════════════════════════════════════════════════ */
+    window.addEventListener('load', async () => {
+      iniciarRelogio();
+      setupRemoteNavigation();
+
+      try {
+        const rPdvs = await fetch('/api/mapa-executivo-live');
+        if (rPdvs.ok) MAPA_PDVS = await rPdvs.json();
+      } catch(e){}
+
+      try {
+        const rCidades = await fetch('/cidades_mapa_executivo.json');
+        if (rCidades.ok) {
+          CIDADES_LISTA = await rCidades.json();
+          document.getElementById('badge-cidades-count').textContent = CIDADES_LISTA.length.toLocaleString('pt-BR');
+        }
+      } catch(e){}
+
+      renderizarInterfaceCompleta();
+
+      // Inicia radar animado contínuo e leve para os clientes verdes de hoje
+      iniciarAnimacaoRadar();
+
+      // Pan (arrastar) e zoom (scroll) agora são nativos do Leaflet — não precisa mais de
+      // handlers manuais de mousedown/mousemove/wheel (o antigo motor em canvas precisava).
+
+      // Carrega vendedores auditados e inicia sincronização real com a API
+      async function sincronizarDadosReais() {
+        try {
+          const resMostra = await fetch('/mostra_vendedores.json?t=' + Date.now());
+          if (resMostra.ok) {
+            const dataMostra = await resMostra.json();
+            let totalVendAtivos = 0;
+            const filiaisData = dataMostra.filiais || {};
+            
+            // Popula lista de vendedores ativos
+            Object.entries(filiaisData).forEach(([sigla, vends]) => {
+              const sig = sigla.toUpperCase();
+              if (DADOS_ATUAIS.filiais[sig]) {
+                const ativos = vends.filter(v => v.mostra);
+                totalVendAtivos += ativos.length;
+              }
+            });
+
+            const chipVends = document.getElementById('active-sellers-chip');
+            if (chipVends && totalVendAtivos > 0) {
+              chipVends.textContent = totalVendAtivos + ' Ativos';
+            }
+          }
+        } catch (e) {}
+
+        // Atualiza pontos do mapa + agregados do dia (visitas/pedidos/digitado), tudo num só
+        // endpoint ao vivo (D1, sem SQLite local nem Google Drive — ver PREMISSA_ONLINE.md).
+        try {
+          const rPdvs = await fetch('/api/mapa-executivo-live?t=' + Date.now());
+          if (rPdvs.ok) {
+            const novoMapa = await rPdvs.json();
+            detectarNovaVendaExpressiva(novoMapa);
+            MAPA_PDVS = novoMapa;
+            if (document.getElementById('lbl-count-azul')) {
+              document.getElementById('lbl-count-azul').textContent = (MAPA_PDVS.azul ? MAPA_PDVS.azul.length : 0).toLocaleString('pt-BR');
+            }
+            if (document.getElementById('lbl-count-ouro')) {
+              document.getElementById('lbl-count-ouro').textContent = (MAPA_PDVS.ouros ? MAPA_PDVS.ouros.length : 0).toLocaleString('pt-BR');
+            }
+            if (document.getElementById('lbl-count-verde')) {
+              document.getElementById('lbl-count-verde').textContent = (MAPA_PDVS.verde ? MAPA_PDVS.verde.length : 0).toLocaleString('pt-BR');
+            }
+
+            const resumo = novoMapa.resumo || {};
+            const nac = resumo.TODAS;
+            if (nac) {
+              DADOS_ATUAIS.visitasFeitas = nac.feitas || 0;
+              DADOS_ATUAIS.visitasRota = nac.rota || 0;
+              DADOS_ATUAIS.visitasComVenda = nac.comVenda || 0;
+              DADOS_ATUAIS.visitasSemVenda = nac.semVenda || 0;
+              DADOS_ATUAIS.positivadosHoje = nac.comVenda || 0;
+              DADOS_ATUAIS.digitadoHoje = nac.digitado || 0;
+              DADOS_ATUAIS.recuperadosClientes = nac.resgatadosHoje || 0;
+              DADOS_ATUAIS.recuperadosValor = nac.valorResgatadoHoje || 0;
+              DADOS_ATUAIS.mediaSkus = nac.mediaSkus || 0;
+              DADOS_ATUAIS.ticketMedioReal = nac.ticketMedio || 0;
+              // Faturado/Positivados do MÊS ao vivo (migration 0005, 29/09/2026) — substitui
+              // public/executiva_resumo_mes.json, estático e nunca atualizado sozinho.
+              RESUMO_MES_OFICIAL.totalPosMes = nac.mesPositivados || 0;
+              RESUMO_MES_OFICIAL.totalFatMes = nac.mesFaturado || 0;
+            }
+            Object.entries(resumo).forEach(([sig, r]) => {
+              if (sig === 'TODAS' || !DADOS_ATUAIS.filiais[sig]) return;
+              DADOS_ATUAIS.filiais[sig].feitas = r.feitas || 0;
+              DADOS_ATUAIS.filiais[sig].rota = r.rota || 0;
+              DADOS_ATUAIS.filiais[sig].comVenda = r.comVenda || 0;
+              DADOS_ATUAIS.filiais[sig].semVenda = r.semVenda || 0;
+              DADOS_ATUAIS.filiais[sig].pos = r.comVenda || 0;
+              DADOS_ATUAIS.filiais[sig].recup = r.resgatadosHoje || 0;
+              DADOS_ATUAIS.filiais[sig].recupVal = r.valorResgatadoHoje || 0;
+              DADOS_ATUAIS.filiais[sig].skus = r.mediaSkus || 0;
+              DADOS_ATUAIS.filiais[sig].ticketMedioReal = r.ticketMedio || 0;
+              DADOS_ATUAIS.filiais[sig].dig = r.digitado || 0;
+              DADOS_ATUAIS.filiais[sig].posMes = r.mesPositivados || 0;
+              DADOS_ATUAIS.filiais[sig].fatMes = r.mesFaturado || 0;
+            });
+          }
+        } catch(e){}
+
+        renderizarInterfaceCompleta();
+      }
+
+      await sincronizarDadosReais();
+
+      // Polling a cada 20 segundos
+      setInterval(sincronizarDadosReais, 20000);
     });
-  }
-}
 
-/* ──────────────────────────────────────────────
-   UTILITÁRIOS
-────────────────────────────────────────────── */
-function setText(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = val;
-}
-function setColor(id, cor) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.className = el.className.replace(/\bc-(green|amber|red|cyan|purple|muted)\b/g, '');
-  el.classList.add('c-' + cor);
-}
-function fmt(n) {
-  if (n >= 1_000_000) return (n/1_000_000).toFixed(1).replace('.',',') + 'M';
-  if (n >= 1_000)     return (n/1_000).toFixed(0) + 'k';
-  return n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
-}
-
-/* ──────────────────────────────────────────────
-   RELÓGIO + COUNTDOWN
-────────────────────────────────────────────── */
-let countdown = 60;
-function tickRelogio() {
-  const agora = new Date();
-  const brt = agora.toLocaleTimeString('pt-BR', {
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-    timeZone: 'America/Sao_Paulo'
-  });
-  setText('relogio', brt);
-
-  countdown--;
-  if (countdown <= 0) {
-    countdown = 60;
-    fetchTudo();
-  }
-  setText('countdown', countdown);
-}
-
-/* ──────────────────────────────────────────────
-   RESIZE
-────────────────────────────────────────────── */
-window.addEventListener('resize', () => drawChart());
-
-/* ──────────────────────────────────────────────
-   INICIALIZAÇÃO
-────────────────────────────────────────────── */
-window.addEventListener('load', () => {
-  setInterval(tickRelogio, 1000);
-  fetchTudo();
-  // Renderiza gabarito vazio imediatamente
-  renderGabarito();
-  renderRanking();
-});
-</script>
+    window.addEventListener('resize', () => {
+      renderizarInterfaceCompleta();
+    });
+  </script>
 </body>
 </html>

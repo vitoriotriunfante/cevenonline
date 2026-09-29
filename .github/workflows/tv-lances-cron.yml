@@ -1,0 +1,31 @@
+# FICHA DO ARQUIVO
+# O QUE É: dispara a detecção de lances (gol, cartão, pênalti, impedimento, defesa, hat-trick,
+#          gol contra) de TODAS as 11 filiais (functions/api/cron-lances.js), a cada 10 minutos,
+#          sem depender de nenhuma TV estar aberta num navegador.
+# POR QUE EXISTE: achado em 28-29/09/2026 — 8 das 11 filiais (ABC, MCD, TBE, TCA, TCG, TPA, TPH,
+#          TSJ) ficaram dias sem nenhum lance registrado porque a detecção só rodava dentro do
+#          JavaScript da TV, no navegador de quem abrisse a tela. Decisão do Vitório, 29/09/2026:
+#          "mesmo que eles não abram... precisamos rodar" de todas, todo santo dia.
+# PROJETO: CFTV/TV. Só faz um GET no endpoint público — não usa secrets, não toca no pipeline do
+#          WhatsApp nem em nada fora de functions/api/cron-lances.js e tv-vendedor.js/tv-lances.js
+#          (que a própria TV já usa em produção).
+# TEMPO: varre ~800 vendedores de 11 filiais, cada um com várias chamadas internas ao CEVEN — mais
+#          pesado que o cron do mapa executivo (que já leva ~90s pra 560 RCAs). Timeout generoso;
+#          o próprio endpoint já se protege contra rodar de novo se rodou há menos de 5 minutos.
+name: TV — Detectar Lances de Todas as Filiais
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  detectar_lances:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - name: Disparar detecção de lances (cron-lances)
+        run: |
+          curl -sS -m 480 "https://ceven-cftv-matrix.pages.dev/api/cron-lances" \
+            -o resultado.json -w "\nHTTP %{http_code}\n"
+          cat resultado.json
