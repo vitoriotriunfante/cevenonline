@@ -67,6 +67,48 @@ export async function onRequestGet({ env, request }) {
     }
   }
 
+  // WhatsApp tem prioridade (decisão do Vitório, 29/09/2026): pula este ciclo se o WhatsApp
+  // estiver varrendo RCAs agora — nunca duas varreduras completas batendo no CEVEN ao mesmo
+  // tempo. Ver functions/api/cron-lock.js.
+  if (!forcar) {
+    const lockGlobal = await env.DB.prepare(
+      "SELECT dono, criado_em FROM cron_lock_global WHERE id = 1"
+    ).first().catch(() => null);
+    if (lockGlobal) {
+      const idadeLockGlobalMs = Date.now() - new Date(lockGlobal.criado_em + 'Z').getTime();
+      if (idadeLockGlobalMs < 20 * 60 * 1000) {
+        return new Response(JSON.stringify({ status: 'PULADO_WHATSAPP_ATIVO', dono: lockGlobal.dono, idade_lock_s: Math.round(idadeLockGlobalMs / 1000) }), { headers: cors });
+      }
+    }
+  }
+
+  // LOCK contra execução concorrente (achado 29/09/2026: um disparo manual de teste rodou em
+  // paralelo com o schedule automático — duas varreduras de 560 RCAs batendo no CEVEN ao mesmo
+  // tempo, o oposto do que devia). Linha sentinela filial_sigla='_LOCK_' em resumo_executivo_live
+  // (mesma tabela, sem precisar de migration nova). Se o lock tiver mais de 12min, considera
+  // travado (worker morreu no meio) e libera sozinho — nunca fica preso pra sempre.
+  const lockAtual = await env.DB.prepare(
+    "SELECT updated_at FROM resumo_executivo_live WHERE filial_sigla = '_LOCK_' AND data_ref = ?"
+  ).bind(dataRef).first();
+  if (lockAtual && !forcar) {
+    const idadeLockMs = Date.now() - new Date(lockAtual.updated_at + 'Z').getTime();
+    if (idadeLockMs < 12 * 60 * 1000) {
+      return new Response(JSON.stringify({ status: 'JA_EM_EXECUCAO', idade_lock_s: Math.round(idadeLockMs / 1000) }), { headers: cors });
+    }
+  }
+  await env.DB.prepare(
+    `INSERT INTO resumo_executivo_live (filial_sigla, data_ref, updated_at) VALUES ('_LOCK_', ?, CURRENT_TIMESTAMP)
+     ON CONFLICT (filial_sigla, data_ref) DO UPDATE SET updated_at = CURRENT_TIMESTAMP`
+  ).bind(dataRef).run();
+
+  try {
+    return await executarVarredura(env, dataRef, t0, cors);
+  } finally {
+    await env.DB.prepare("DELETE FROM resumo_executivo_live WHERE filial_sigla = '_LOCK_' AND data_ref = ?").bind(dataRef).run();
+  }
+}
+
+async function executarVarredura(env, dataRef, t0, cors) {
   const { results: rcas } = await env.DB.prepare(
     'SELECT r.codigo, UPPER(COALESCE(f.codigo, r.filial_id)) as filial FROM representantes r LEFT JOIN filiais f ON r.filial_id = f.id WHERE r.ativo = 1'
   ).all();

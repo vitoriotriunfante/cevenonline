@@ -188,6 +188,15 @@ jobs:
           echo "destino=$DESTINO" >> $GITHUB_OUTPUT
           echo "🚀 Executando Ciclo: $CICLO | Ação: $ACAO | Destino: $DESTINO (Hora UTC: $HORA_UTC)"
 
+      # LOCK GLOBAL (achado 29/09/2026): WhatsApp tem prioridade sobre TV Executiva/CFTV — os
+      # crons da TV checam esse lock (functions/api/cron-lock.js) e pulam o ciclo se estiver
+      # ativo. Trava aqui, ANTES do motor rodar (que é quem de fato varre os RCAs no CEVEN);
+      # libera sempre no fim, com if: always(), mesmo se o motor falhar — nunca deixa os
+      # outros crons travados por um disparo que deu erro.
+      - name: 🔒 Travar lock global (prioridade sobre TV/CFTV)
+        if: steps.calendario.outputs.bloqueado != 'true'
+        run: curl -sS -m 15 -X POST "https://ceven-cftv-matrix.pages.dev/api/cron-lock?dono=whatsapp" || true
+
       - name: ⚡ Executar Motor Unificado CEVEN (WhatsApp)
         if: steps.calendario.outputs.bloqueado != 'true'
         run: |
@@ -205,6 +214,10 @@ jobs:
             --hora="$CICLO" \
             --acao="$ACAO" \
             --destino="$DESTINO"
+
+      - name: 🔓 Liberar lock global
+        if: always()
+        run: curl -sS -m 15 -X DELETE "https://ceven-cftv-matrix.pages.dev/api/cron-lock" || true
 
       - name: 💾 Salvar Cache Matinal no Repositório (se ciclo 04:00)
         if: steps.calendario.outputs.bloqueado != 'true' && steps.config.outputs.ciclo == '04:00'

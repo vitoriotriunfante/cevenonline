@@ -122,6 +122,12 @@ jobs:
             cp "$f" "$DEST/$(basename "$f" .txt).md"
           done
 
+      # LOCK GLOBAL (achado 29/09/2026, mesma lógica de ceven-cron-whatsapp.yml): WhatsApp tem
+      # prioridade sobre TV Executiva/CFTV.
+      - name: 🔒 Travar lock global (prioridade sobre TV/CFTV)
+        if: steps.calendario.outputs.bloqueado != 'true'
+        run: curl -sS -m 15 -X POST "https://ceven-cftv-matrix.pages.dev/api/cron-lock?dono=marca-propria" || true
+
       - name: ⚡ Enviar via WhatsApp (ciclo 10:00 — todos)
         if: steps.calendario.outputs.bloqueado != 'true'
         run: |
@@ -129,6 +135,10 @@ jobs:
             --hora="10:00" \
             --acao="marca_propria" \
             --destino="todos"
+
+      - name: 🔓 Liberar lock global
+        if: always()
+        run: curl -sS -m 15 -X DELETE "https://ceven-cftv-matrix.pages.dev/api/cron-lock" || true
 
       - name: Commitar relatórios + marca de disparo
         if: always() && steps.calendario.outputs.bloqueado != 'true'

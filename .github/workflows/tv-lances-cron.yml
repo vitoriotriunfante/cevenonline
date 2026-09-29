@@ -1,22 +1,17 @@
 # FICHA DO ARQUIVO
-# O QUE É: dispara a detecção de lances (gol, cartão, pênalti, impedimento, defesa, hat-trick,
-#          gol contra) de TODAS as 11 filiais (functions/api/cron-lances.js), a cada 10 minutos,
-#          sem depender de nenhuma TV estar aberta num navegador.
-# POR QUE EXISTE: achado em 28-29/09/2026 — 8 das 11 filiais (ABC, MCD, TBE, TCA, TCG, TPA, TPH,
-#          TSJ) ficaram dias sem nenhum lance registrado porque a detecção só rodava dentro do
-#          JavaScript da TV, no navegador de quem abrisse a tela. Decisão do Vitório, 29/09/2026:
-#          "mesmo que eles não abram... precisamos rodar" de todas, todo santo dia.
-# PROJETO: CFTV/TV. Só faz um GET no endpoint público — não usa secrets, não toca no pipeline do
-#          WhatsApp nem em nada fora de functions/api/cron-lances.js e tv-vendedor.js/tv-lances.js
-#          (que a própria TV já usa em produção).
-# TEMPO: varre ~800 vendedores de 11 filiais, cada um com várias chamadas internas ao CEVEN — mais
-#          pesado que o cron do mapa executivo (que já leva ~90s pra 560 RCAs). Timeout generoso;
-#          o próprio endpoint já se protege contra rodar de novo se rodou há menos de 5 minutos.
-name: TV — Detectar Lances de Todas as Filiais
+# DESATIVADO em 29/09/2026: este workflow chama functions/api/cron-lances.js, que nunca chegou a
+# ser escrito — foi criado o .yml descrevendo a funcionalidade sem implementar o endpoint (erro
+# achado nesta mesma sessão: o workflow ficou ativo em produção apontando pra uma rota 404,
+# gastando um slot de execução do GitHub Actions a cada 10min à toa). A detecção de lances hoje
+# só roda dentro do JavaScript da TV, no navegador de quem abrir a tela — 8 das 11 filiais ficam
+# sem detecção se ninguém abrir aquela tela, problema real, mas resolver direito (replicar o
+# algoritmo de detecção do client-side pro servidor sem duplicar/inventar lance) é tarefa própria,
+# não algo pra fazer às pressas em cima de um incidente de carga no CEVEN. schedule DESLIGADO até
+# cron-lances.js existir de verdade; workflow_dispatch (manual) continua disponível pra quando for
+# implementado.
+name: TV — Detectar Lances de Todas as Filiais (DESATIVADO — endpoint nao existe)
 
 on:
-  schedule:
-    - cron: '*/10 * * * *'
   workflow_dispatch: {}
 
 jobs:

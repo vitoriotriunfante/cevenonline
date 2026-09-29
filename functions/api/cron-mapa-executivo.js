@@ -112,6 +112,21 @@ export async function onRequestGet({ env, request }) {
     }
   }
 
+  // WhatsApp tem prioridade (decisão do Vitório, 29/09/2026): pula este ciclo se o WhatsApp
+  // estiver varrendo RCAs agora — nunca duas varreduras completas batendo no CEVEN ao mesmo
+  // tempo. Ver functions/api/cron-lock.js.
+  if (!forcar) {
+    const lock = await env.DB.prepare(
+      "SELECT dono, criado_em FROM cron_lock_global WHERE id = 1"
+    ).first().catch(() => null);
+    if (lock) {
+      const idadeLockMs = Date.now() - new Date(lock.criado_em + 'Z').getTime();
+      if (idadeLockMs < 20 * 60 * 1000) {
+        return new Response(JSON.stringify({ status: 'PULADO_WHATSAPP_ATIVO', dono: lock.dono, idade_lock_s: Math.round(idadeLockMs / 1000) }), { headers: cors });
+      }
+    }
+  }
+
   const { results: rcas } = await env.DB.prepare(
     'SELECT r.codigo, UPPER(COALESCE(f.codigo, r.filial_id)) as filial FROM representantes r LEFT JOIN filiais f ON r.filial_id = f.id WHERE r.ativo = 1'
   ).all();
