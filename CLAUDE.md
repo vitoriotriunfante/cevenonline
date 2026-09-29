@@ -2,6 +2,17 @@
 
 Este repositório tem **dois projetos independentes** que compartilham os mesmos dados. **Nunca misturar.** Antes de editar, descubra a qual projeto o pedido pertence. Se não estiver claro, pergunte.
 
+## 🔒 REGRA DE OURO — UMA BRANCH SÓ, COMMIT SEMPRE (Vitório, 29/09/2026)
+
+**Incidente grave em 29/09/2026:** existiam 9+ branches locais divergentes (`main-real`, `cftv-triunfante`, `cftv`, `clean-v3`, etc., além de uma `main` órfã de outro projeto). Trabalho de uma sessão inteira (regras da liga do Brasileirão, pontuação por lance, aba de auditoria, endpoints de gestão de equipe) ficou preso em branches/stashes nunca mesclados e **sumiu do site publicado** quando outra sessão trouxe só parte de uma branch pra outra (cherry-pick seletivo). Recuperado na sessão seguinte, mas só porque o commit não tinha sido apagado — poderia ter se perdido de vez.
+
+**Regras permanentes a partir de agora:**
+1. **Existe UMA branch só: `main`.** Nunca criar `git checkout -b` pra "trabalhar em algo novo" — se precisar isolar um experimento, avisar o Vitório antes. Nunca deixar trabalho terminado só numa branch de feature.
+2. **Todo arquivo criado/editado na sessão é commitado em `main` antes de a sessão terminar** — mesmo que incompleto, mesmo que ainda vá mudar. Um commit "wip: em andamento" é infinitamente melhor que um arquivo untracked que uma sessão futura pode apagar sem saber que existia.
+3. **Antes de qualquer `git checkout`, `git merge`, `git reset` ou troca de branch:** rodar `git status` e, se houver algo untracked ou modificado que pareça trabalho recente do Vitório (não gerado automaticamente), **parar e perguntar antes de prosseguir** — nunca assumir que "deve ser lixo".
+4. **Arquivos de configuração que o código lê de `public/` ou `config/` (ex.: `pontuacao_brasileirao.json`) são tão importantes quanto código — commitar sempre**, nunca deixar como untracked "por enquanto".
+5. Se em algum momento voltar a existir mais de uma branch local com commits não mesclados, isso é uma emergência a resolver **antes** de qualquer outro pedido — não deixar acumular.
+
 ## 🌐 PREMISSA INEGOCIÁVEL — TUDO RODA ONLINE (Vitório, 23/09/2026)
 
 **O projeto CEVEN várias telas roda ONLINE. Nada — nenhum dado, arquivo, cálculo, publicação ou execução — pode depender do computador do Vitório (nem de qualquer computador pessoal).**
@@ -14,7 +25,7 @@ Este repositório tem **dois projetos independentes** que compartilham os mesmos
 ## Projeto A — CFTV Matrix (TV + celular)
 Central visual ao vivo das 11 filiais: link por filial/gerente, link central (matriz), ronda entre vendedores mostrando **as informações mais importantes** (não a tela do CEVEN), alertas por gatilho, e versão para celular.
 - **Pertence a este projeto:** `public/` (index.html, mobile.html), `server.js`, `INICIAR_CFTV.bat`, `functions/api/` **exceto** `whatsapp/` e `cron-*`, `docs/CFTV_*`.
-- **Branch de trabalho:** `cftv`.
+- **Branch de trabalho:** `main` (única branch do repositório desde 29/09/2026 — ver Regra de Ouro acima).
 - **Como publica (confirmado 23/09/2026):** o Cloudflare Pages `ceven-cftv-matrix` **NÃO está ligado ao Git** (Git Provider = No). A publicação é **manual**, pelo terminal, na pasta do projeto: `npx wrangler pages deploy public --project-name ceven-cftv-matrix --branch main --commit-dirty=true`. A produção do Pages é a branch **`main`** (parâmetro `--branch`). Dar push no GitHub **não** atualiza o site. Publicar só quando o Vitório mandar.
 - **REGRA — TVs se atualizam sozinhas (Vitório, 23/09/2026):** toda mudança publicada tem que chegar sozinha nas TVs já conectadas. Por isso **publicar SEMPRE com `node publicar_tv.js "mensagem"`** (ou `PUBLICAR_TV.bat`), que troca a versão em `functions/api/version.js` automaticamente e faz o deploy. A `tv.html` consulta `/api/version` a cada 30 s e recarrega quando muda. **Nunca** publicar direto com `wrangler` sem trocar a versão. O diário/lances do dia ficam no navegador (localStorage) e sobrevivem ao recarregamento.
 - **Estrutura da TV (23/09/2026):** `public/tv.html` = **casca** (iframe 100%; cuida de tela cheia, link lembrado e atualização automática) e `public/tvapp.html` = a **tela real**. A casca nunca navega, por isso a tela cheia do navegador não sai quando publicamos. Alterar a casca (`tv.html`) é raro e derruba a tela cheia uma vez; o dia a dia é só `tvapp.html`.
@@ -26,7 +37,7 @@ Central visual ao vivo das 11 filiais: link por filial/gerente, link central (ma
 - Documento de referência: `docs/CFTV_MATRIX_VISAO_E_ESTADO_ATUAL.md` (atualizar a cada decisão).
 
 ## Projeto B — WhatsApp (disparos automáticos)
-Ciclos 04:00 / 07:45 / 10:00 / 11:30 / 14:30 / 17:00 / 18:30 para Vitório e 14 gerentes. **Roda em produção a partir da `clean-v3` via GitHub Actions — qualquer commit lá pode afetar envios reais.**
+Ciclos 04:00 / 07:45 / 10:00 / 11:30 / 14:30 / 17:00 / 18:30 para Vitório e 14 gerentes. **Roda em produção a partir da `main` via GitHub Actions (worker-cron dispara sempre `ref: main`) — qualquer commit lá pode afetar envios reais.**
 - **Pertence a este projeto:** `pipeline/ceven_unified_engine.js` e demais `pipeline/`, `.github/workflows/`, `worker-cron/`, `OPERACAO_WHATSAPP/`, `functions/api/whatsapp/`, `functions/api/cron-*`, `scripts/` versionados, `docs/*WHATSAPP*`, `docs/JUSTIFICATIVAS_*`.
 - **Não mexer nele durante trabalho de TV/celular.**
 

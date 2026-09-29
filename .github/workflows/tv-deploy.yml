@@ -1,8 +1,10 @@
 # FICHA DO ARQUIVO
-# O QUE É: publica a TV/CFTV no Cloudflare Pages (ceven-cftv-matrix) AUTOMATICAMENTE a cada push na branch
-#          clean-v3 que mexa em public/, functions/ ou wrangler.toml. Assim NADA depende do PC do Vitório
-#          (premissa online — ver PREMISSA_ONLINE.md). Também troca a versão sozinha: as TVs abertas se
-#          atualizam em até 30 s sem ninguém mexer.
+# O QUE É: publicaria a TV/CFTV no Cloudflare Pages (ceven-cftv-matrix) AUTOMATICAMENTE a cada push na
+#          branch main que mexa em public/, functions/ ou wrangler.toml — SE o secret CLOUDFLARE_API_TOKEN
+#          estivesse configurado (não está, de propósito). Hoje a publicação real é sempre MANUAL, via
+#          `node publicar_tv.js "mensagem"` (ver CLAUDE.md — troca de versão + deploy num passo só, TVs
+#          abertas recarregam sozinhas). Corrigido em 29/09/2026: apontava pra `clean-v3`, branch obsoleta
+#          que não existe mais como fluxo de trabalho.
 # PROJETO: CFTV/TV (não é WhatsApp). Não roda nos commits automáticos dos disparos de WhatsApp (filtro paths).
 # SECRETS NECESSÁRIOS (GitHub -> Settings -> Secrets and variables -> Actions):
 #   CLOUDFLARE_API_TOKEN  = token do Cloudflare com permissão "Account > Cloudflare Pages > Edit"
@@ -12,7 +14,7 @@ name: TV CFTV — Publicar no Cloudflare
 
 on:
   push:
-    branches: [clean-v3]
+    branches: [main]
     paths:
       - 'public/**'
       - 'functions/**'
