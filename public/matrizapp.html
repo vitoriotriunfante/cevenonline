@@ -30,7 +30,8 @@ header{display:flex;align-items:center;gap:20px;padding:10px 22px;background:#0a
 .tot div{background:var(--card);padding:10px 18px}.tot b{display:block;font-size:24px;margin-top:2px}
 .tot span{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.06em}.tot small{font-size:14px;color:var(--mut)}
 main{flex:1;min-height:0;padding:14px 22px;display:grid;grid-template-columns:.9fr 2.1fr;gap:14px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 20px;display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden;position:relative}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 20px;display:flex;flex-direction:column;gap:8px;min-height:0;overflow-y:auto;scrollbar-width:none;position:relative}
+.panel::-webkit-scrollbar{display:none}
 .panel h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);display:flex;justify-content:space-between;gap:8px}
 .panel h2 b{color:var(--tx)}
 .rk{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;padding:7px 10px;border-radius:12px;background:var(--card2);cursor:pointer;border:1px solid transparent}
@@ -1058,6 +1059,21 @@ async function laco() {
     if (Date.now() % 600000 < 60000) carregaBase();
   }
 }
+// ROLAGEM AUTOMÁTICA (pedido do Vitório, 29/09/2026): mesma lógica de tvapp.html — qualquer
+// .panel com lista maior que o espaço visível desce sozinho e volta ao topo, em loop lento.
+function autoScrollPaineis() {
+  document.querySelectorAll('.panel').forEach((p) => {
+    if (p.offsetParent === null) return;
+    const excesso = p.scrollHeight - p.clientHeight;
+    if (excesso < 20) { p.scrollTop = 0; return; }
+    const ciclo = 14000;
+    const t = (Date.now() % ciclo) / ciclo;
+    const fase = t < 0.5 ? t * 2 : (1 - t) * 2;
+    p.scrollTop = excesso * fase;
+  });
+}
+setInterval(autoScrollPaineis, 80);
+
 ctl(); setInterval(relogio, 1000); relogio(); laco();
 window.__mtz = {DATA, TS, get ALERTAS() { return ALERTAS; }, get LOG() { return LOG; }, statFilial, ORDEM, ocupado: () => emVAR || FILA.length > 0, animTeste: typeof animTeste === 'function' ? animTeste : null};
 window.__tv = window.__mtz; // a casca /tv usa __tv.ocupado para não recarregar durante um lance

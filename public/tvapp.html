@@ -35,7 +35,8 @@ header{display:flex;align-items:center;gap:20px;padding:10px 22px;background:#0a
 main{flex:1;min-height:0;padding:14px 22px;display:flex}
 #ronda{flex:1;display:grid;grid-template-columns:1.55fr 1fr;gap:14px;min-height:0}
 #painel{flex:1;display:none;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:14px;min-height:0}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 20px;display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 20px;display:flex;flex-direction:column;gap:8px;min-height:0;overflow-y:auto;scrollbar-width:none}
+.panel::-webkit-scrollbar{display:none}
 .panel h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);display:flex;justify-content:space-between}
 .panel h2 b{color:var(--tx)}
 .row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-size:16px;padding:4px 0;border-bottom:1px solid #16203a}
@@ -1246,6 +1247,22 @@ function ctl() {
   if (window.top === window && store.get('ceven_tv_fs', false) && !document.fullscreenElement) { const h = $('fshint'); h.style.display = 'block'; const volta = () => { try { document.documentElement.requestFullscreen(); } catch {} h.style.display = 'none'; removeEventListener('pointerdown', volta); removeEventListener('keydown', volta); }; addEventListener('pointerdown', volta); addEventListener('keydown', volta); }
   raiz().addEventListener('fullscreenchange', () => { $('bfs').textContent = raiz().fullscreenElement ? '⛶ Sair da tela cheia' : '⛶ Tela cheia'; }); $('bexp').onclick = exportar; marca();
 }
+// ROLAGEM AUTOMÁTICA (pedido do Vitório, 29/09/2026): qualquer .panel com lista maior que o
+// espaço visível desce sozinho até o fim e volta ao topo, em loop lento — TV ninguém toca.
+// Detecta scrollHeight > clientHeight (conteúdo não cabe); painel que cabe fica parado.
+function autoScrollPaineis() {
+  document.querySelectorAll('.panel').forEach((p) => {
+    if (p.offsetParent === null) return; // painel escondido (display:none) não rola
+    const excesso = p.scrollHeight - p.clientHeight;
+    if (excesso < 20) { p.scrollTop = 0; return; } // conteúdo cabe, nunca rola
+    const ciclo = 14000; // desce em 7s, pausa, sobe em 7s — devagar, dá tempo de ler
+    const t = (Date.now() % ciclo) / ciclo;
+    const fase = t < 0.5 ? t * 2 : (1 - t) * 2; // 0→1→0 (desce e volta)
+    p.scrollTop = excesso * fase;
+  });
+}
+setInterval(autoScrollPaineis, 80);
+
 let versao = null;
 async function checaVersao() { const d = await j('/api/version', 8000); if (d && d.version) { if (versao && versao !== d.version && window.top === window) precisaRecarregar = true; else if (!versao) versao = d.version; } }
 let precisaRecarregar = false;
