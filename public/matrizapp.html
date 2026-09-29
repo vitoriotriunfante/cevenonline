@@ -83,8 +83,44 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #ov small{margin-top:2vh;color:var(--mut);font-size:16px}
 
 @media(max-width:900px){main{grid-template-columns:1fr;overflow:auto}body{overflow:auto}.tot{grid-template-columns:repeat(2,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}}
+.grid4painel{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px}
+.pnl{background:var(--card2);border-radius:10px;padding:10px;max-height:280px;overflow-y:auto}
+.pnl h3{font-size:14px;display:flex;justify-content:space-between;margin-bottom:6px;color:var(--mut)}
+.pnl h3 b{color:#fff}
+.pnl .row{display:grid;gap:8px;align-items:center;padding:6px 4px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.05)}
+.pnl .row .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pnl .hb{height:4px;background:#1a2440;border-radius:3px;overflow:hidden;margin:2px 0 6px}
+.pnl .hb i{display:block;height:100%;background:var(--acc)}
+.pnl .hb.red i{background:var(--bad)}
+.row-clic{cursor:pointer}.row-clic:hover{background:rgba(255,255,255,.04);border-radius:6px}
+.vazio{text-align:center;padding:14px;color:var(--mut);font-size:12px}
+#modalDetalheOverlay{display:none;position:fixed;inset:0;background:rgba(3,6,12,.85);z-index:900;align-items:center;justify-content:center}
+#modalDetalheOverlay.show{display:flex}
+#modalDetalheBox{background:var(--card);border:1px solid var(--line);border-radius:14px;width:min(820px,92vw);max-height:82vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+#modalDetalheHeader{padding:16px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+#modalDetalheTitulo{font-size:19px;font-weight:800}
+#modalDetalheSub{font-size:13px;color:var(--mut);margin-top:2px}
+#modalDetalheFechar,#modalDetalheExportar{background:var(--card2);border:none;color:#fff;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:14px;font-weight:700}
+#modalDetalheLista{overflow-y:auto;padding:8px 12px}
+.modal-det-linha{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px;border-bottom:1px solid rgba(255,255,255,.05);font-size:14px}
+.modal-det-nome{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modal-det-vazio{text-align:center;padding:30px;color:var(--mut);font-size:14px}
 </style><script src="/animacoes/tv-animacoes.js"></script>
 </head><body>
+<!-- MODAL DE DETALHE: clique nos cards do Painel Nacional abre a lista real por trás do número
+     (decisão do Vitório, 28/09/2026) -->
+<div id="modalDetalheOverlay" onclick="if (event.target === this) fecharModalDetalhe()">
+  <div id="modalDetalheBox">
+    <div id="modalDetalheHeader">
+      <div><div id="modalDetalheTitulo">—</div><div id="modalDetalheSub">—</div></div>
+      <div style="display:flex;gap:8px">
+        <button id="modalDetalheExportar" onclick="exportarModalDetalhe()">⤓ Exportar</button>
+        <button id="modalDetalheFechar" onclick="fecharModalDetalhe()">✕</button>
+      </div>
+    </div>
+    <div id="modalDetalheLista"></div>
+  </div>
+</div>
 <header>
   <div class="rec"><i></i>CFTV AO VIVO</div>
   <div class="fil">MATRIZ<small>11 filiais · <span id="nv">0</span> vendedores</small></div>
@@ -123,12 +159,25 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 const P = new URLSearchParams(location.search);
 const MIN_FIL = +P.get('min') || 4;                        // minutos por filial na tela
 const ORDEM = ['TBL','TCV','TPH','ABC','API','TSJ','TBE','TPA','MCD','TCA','TCG']; // TCA/TCG/MCD por último (regra do fuso)
-const CAMPO = ['VJ','PET VJ'], EXCLUI = ['GER','SUP'], DIAS_PENALTI_ESTOQUE = 30, DIAS_PENALTI_FECHADO = 45, LIMITE_H = 10, FIM_H = 19;
+// Canais com cobrança de rota/visita (REGRAS_DE_NEGOCIO_CEVEN.md §"Canais corporativos"): AS e PET AS
+// NÃO entram aqui — não podem sofrer penalização de roteiro diário nem cálculo de visita em aberto.
+const CAMPO = ['VJ','PET VJ','FARMA','ESP'], EXCLUI = ['GER','SUP'], DIAS_PENALTI_ESTOQUE = 30, DIAS_PENALTI_FECHADO = 45, LIMITE_H = 10, FIM_H = 19;
 const VAR_GAP_S = +P.get('vargap') || 180, VAR_MAX_H = +P.get('varmax') || 6;
 const SUP_INI = 11 * 60 + 30, SUP_FIM = 12 * 60;
+// RET/Compromissos em destaque periódico (decisão do Vitório, 28/09/2026): a partir das 11:00
+// Brasília, a tela de supervisores aparece de 30 em 30 minutos, por 3 minutos cada vez — antes só
+// aparecia 1x, numa janela fixa 11:30–12:00.
+const SUP_PERIODICO_INI = 11 * 60, SUP_PERIODICO_JANELA_MIN = 3, SUP_PERIODICO_CICLO_MIN = 30;
+function emJanelaSupPeriodica(mm) {
+  if (mm < SUP_PERIODICO_INI || mm >= FIM_H * 60) return false;
+  return (mm - SUP_PERIODICO_INI) % SUP_PERIODICO_CICLO_MIN < SUP_PERIODICO_JANELA_MIN;
+}
 // ============================== UTIL ==============================
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Nome do vendedor + código do RCA — usado em TODOS os lances/acompanhamentos da TV/CFTV
+// (decisão do Vitório, 28/09/2026: facilita conferência cruzada com o CEVEN).
+const nomeComRca = v => v ? `${esc(v.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(v.id)})</span>` : '—';
 const num = v => (typeof v === 'number' && isFinite(v)) ? v : null;
 const brl = v => num(v) == null ? '—' : 'R$ ' + Math.round(v).toLocaleString('pt-BR');
 const nv = v => num(v) == null ? '—' : v.toLocaleString('pt-BR');
@@ -154,17 +203,19 @@ function diasUteisMes() {
   return { totalUteis, uteisAteHoje };
 }
 // Texto do "porquê" do gol, por subtipo — ver mesma função em tvapp.html.
-function textoGol(subtipo, valor, c, horaAprox) {
+// relampago/acrescimos/hattrick/meta1tempo usam o horário REAL de checkin da visita
+// (checkin_horario da API, confirmado em 28/09/2026), não mais aproximação por detecção.
+function textoGol(subtipo, valor, c, horaReal) {
   if (subtipo === 'super_pedido') return `Super Pedido: ${brl(valor)}!`;
   if (subtipo === 'inativo_recuperado') return `${c && c.nome} · cliente inativo resgatado!`;
-  if (subtipo === 'relampago_aprox') return `Gol Relâmpago (detectado ~${String(horaAprox).padStart(2,'0')}h) · aprox.`;
-  if (subtipo === 'acrescimos_aprox') return `Gol nos Acréscimos (detectado ~${String(horaAprox).padStart(2,'0')}h) · aprox.`;
+  if (subtipo === 'relampago') return `Gol Relâmpago (checkin ${horaReal})`;
+  if (subtipo === 'acrescimos') return `Gol nos Acréscimos (checkin ${horaReal})`;
   if (subtipo === 'conversao') return `Máquina de Conversão: ${valor.toFixed(0)}% de aproveitamento!`;
   if (subtipo === 'goleada') return `Goleada! ${valor} clientes positivados hoje!`;
   if (subtipo === 'campeao') return `Campeão da Rodada: 100% da meta do mês batida!`;
   if (subtipo === 'dobrou_mix') return `${c && c.nome} · dobrou o mix do cliente!`;
-  if (subtipo === 'hattrick_aprox') return `Hat-Trick (3 pedidos seguidos, ~${String(horaAprox).padStart(2,'0')}h) · aprox.`;
-  if (subtipo === 'meta1tempo_aprox') return `Meta do 1º Tempo batida (~${String(horaAprox).padStart(2,'0')}h) · aprox.`;
+  if (subtipo === 'hattrick') return `Hat-Trick (3 visitas com venda em até 2h, última checkin ${horaReal})`;
+  if (subtipo === 'meta1tempo') return `Meta do 1º Tempo batida (checkin ${horaReal})`;
   if (subtipo === 'dobradinha_quinzenas') return `${c && c.nome} · dobradinha das quinzenas!`;
   return 'GOL DE PLACA';
 }
@@ -180,18 +231,34 @@ const ddmm = iso => iso ? iso.slice(8,10) + '/' + iso.slice(5,7) : '—';
 const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
 const secDe = hms => { const [h, m, x] = String(hms || '0:0:0').split(':').map(Number); return h * 3600 + m * 60 + (x || 0); };
 const limpaNome = n => String(n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
-const HOJE0 = sp().date, K = {seen: 'ceven_mtz_seen_', log: 'ceven_mtz_log_'};
-(function limpa() { try { Object.keys(localStorage).forEach(k => { if (/^ceven_mtz_(seen|log)_/.test(k) && !k.endsWith(HOJE0)) localStorage.removeItem(k); }); } catch {} })();
+const HOJE0 = sp().date, K = {seen: 'ceven_mtz_seen_', log: 'ceven_mtz_log_', devMax: 'ceven_mtz_devmax_'};
+(function limpa() { try { Object.keys(localStorage).forEach(k => { if (/^ceven_mtz_(seen|log|devmax)_/.test(k) && !k.endsWith(HOJE0)) localStorage.removeItem(k); }); } catch {} })();
+// Maior devolução acumulada do mês já vista HOJE por vendedor (chave sig|id -> valor). O CEVEN só
+// devolve o saldo TOTAL do mês (fin.devolucao), não "devolução de hoje" — sem isso, todo vendedor
+// com QUALQUER devolução antiga no mês dispararia cartão vermelho de novo na 1ª leitura de cada dia
+// (achado em 28/09/2026: devolução do Claudimir de 14-25/09 apitando como se fosse de agora).
+// Só conta como lance NOVO quando o valor sobe em relação ao maior já visto hoje (persistido em
+// localStorage, não em memória, para sobreviver a reload de página).
+let DEV_MAX_HOJE = store.get(K.devMax + HOJE0, {});
 async function j(url, ms = 25000) { const c = new AbortController(), t = setTimeout(() => c.abort(), ms); try { const r = await fetch(url, {signal: c.signal, cache: 'no-store'}); if (!r.ok) return null; return await r.json(); } catch { return null; } finally { clearTimeout(t); } }
 // ============================== ESTADO ==============================
 let MOSTRA = null, METAS = null, ALERTAS = [], idxFil = 0, tFil = Date.now(), auto = true, somOn = store.get('ceven_tv_som', false), listaAviso = '';
 const DATA = {}, TS = {}, SUPS = {};                       // DATA[sig][rca] = leitura; TS[sig] = quando atualizou
-// `${sig}|${id}` -> {valor: dig_hoje na última mudança percebida, em: timestamp em que percebemos}.
-// Mesma aproximação de tvapp.html — ver comentário lá e REGRAS_CFTV/PLANO_AMANHA_27_09_2026.md.
-const DIG_DETECTADO_EM = {};
-// `${sig}|${id}` -> [{valor, em}, ...] TODAS as detecções do dia — usado só pelo Hat-Trick (G06).
-// Ver aviso completo em tvapp.html (mesma lógica, mesma aproximação).
-const DIG_HISTORICO = {};
+// HORÁRIO REAL: mesma função de tvapp.html — ver comentário lá. Extrai checkin_horario dos
+// clientes POSITIVADO/EFETIVADO do RCA (confirmado em 28/09/2026 — antes achávamos que o CEVEN
+// não expunha isso).
+function horariosCheckinDoDia(cl) {
+  if (!Array.isArray(cl)) return [];
+  return cl
+    .filter(c => ['POSITIVADO', 'EFETIVADO'].includes(c.status) && c.checkin_horario)
+    .map(c => {
+      const [h, m] = String(c.checkin_horario).split(':').map(Number);
+      if (Number.isNaN(h) || Number.isNaN(m)) return null;
+      return { horaMin: h * 60 + m, hora: h, hms: c.checkin_horario, nome: c.nome, valor: c.valor_ultima || null };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.horaMin - b.horaMin);
+}
 let seen = new Set(store.get(K.seen + HOJE0, [])), LOG = store.get(K.log + HOJE0, []);
 // ============================== BASE (Drive, metas) ==============================
 // ============================== BASE (CEVEN Soberano, metas) ==============================
@@ -218,18 +285,14 @@ async function atualizaFilial(sig) {
   DATA[sig] = DATA[sig] || {}; const fila = [...reps(sig)];
   await Promise.all(Array.from({length: 6}, async () => { while (fila.length) { const r = fila.shift(); const d = await j(`/api/tv-vendedor?filial=${sig}&id=${r.id}`);
     if (d && !d.erro && !(d.falhas && d.falhas.length === 3)) {
-      const chave = sig + '|' + r.id, digNovo = num(d.dig_hoje), digAntes = DATA[sig][r.id] ? num(DATA[sig][r.id].dig_hoje) : null;
-      if (digNovo != null && (digAntes == null || digNovo > digAntes)) {
-        const agora = Date.now();
-        DIG_DETECTADO_EM[chave] = { valor: digNovo, em: agora };
-        (DIG_HISTORICO[chave] = DIG_HISTORICO[chave] || []).push({ valor: digNovo, em: agora });
-      }
       if (!d.falhas || !d.falhas.length || !DATA[sig][r.id]) DATA[sig][r.id] = d;
     } } }));
   TS[sig] = Date.now();
 }
 async function atualizaSups() {
-  const t = sp(), m = t.h * 60 + t.m; if (m < 11 * 60 || m > 12 * 60 + 30) return;
+  // Busca das 11:00 até o fim do dia — a tela de RET/Compromissos aparece de 30 em 30min o dia
+  // inteiro (ver emJanelaSupPeriodica), não só numa janela fixa 11:00-12:30.
+  const t = sp(), m = t.h * 60 + t.m; if (m < 11 * 60 || m >= FIM_H * 60) return;
   for (const sig of ORDEM) { const d = await j(`/api/tv-supervisores?filial=${sig}`, 20000); if (d && !d.erro && Array.isArray(d.supervisores)) SUPS[sig] = d.supervisores; }
   gatilhoSup();
 }
@@ -239,6 +302,7 @@ function vend(sig, r) {
   const st = s => cl ? cl.filter(c => s.includes(c.status)).length : null;
   const feitas = cl ? cl.filter(c => !['AGENDADO', 'ABERTO'].includes(c.status)).length : null;
   return {sig, id: r.id, nome: r.nome, canal: r.canal, sup: r.sup, grupo: r.grupo || '', campo: CAMPO.includes(r.canal), d, cl, meta: num(d.meta_fat), fat: num(d.faturado), dev: num(d.devolucao),
+    devHoje: num(d.devolucao_hoje) || 0, devolucoesHoje: Array.isArray(d.devolucoes_hoje) ? d.devolucoes_hoje : [],
     metaCli: num(d.meta_cli), realCli: num(d.real_cli), dig: num(d.dig_hoje), pos: num(d.pos_hoje), rota: cl ? cl.length : null, feitas, comVenda: st(['POSITIVADO', 'EFETIVADO']),
     temRota: !!(cl && cl.length), tem: !!(DATA[sig] || {})[r.id]};
 }
@@ -252,44 +316,45 @@ function calcAlertas() {
     if ((v.dig || 0) >= 15000) {
       out.push({key: `${sig}|gol_super|${v.id}`, sig, nivel: 'gol', subtipo: 'super_pedido', v, valor: v.dig});
     }
-    // --- LANCE G01/G10: horário APROXIMADO (ver DIG_DETECTADO_EM) ---
-    const det = DIG_DETECTADO_EM[sig + '|' + v.id];
-    if (det && det.valor > 0) {
-      const hDet = sp(new Date(det.em)).h;
+    // --- LANCE G01/G10: horário REAL de visita (checkin_horario da API — ver horariosCheckinDoDia)
+    // JANELA DE FRESCOR: só considera "lance novo" se o checkin foi nos últimos 30min — sem isso,
+    // um checkin de manhã cedo que não foi escolhido a tempo por confereLanceAuto() ficava
+    // acumulado em ALERTAS e podia ser exibido horas depois (achado em 28/09/2026: "Gol Relâmpago"
+    // aparecendo às 18h — a hora mostrada no card estava certa, só a EXIBIÇÃO atrasou). ---
+    const checkins = horariosCheckinDoDia(v.cl);
+    const ultimoCheckin = checkins.length ? checkins[checkins.length - 1] : null;
+    const agoraMin = t.h * 60 + t.m;
+    const FRESCOR_MAX_MIN = 30;
+    if (ultimoCheckin && (agoraMin - ultimoCheckin.horaMin) <= FRESCOR_MAX_MIN) {
       const fuso1hMtz = ['TCG','MCD','TCA'].includes(sig);
       const limiteRelampago = fuso1hMtz ? 10 : 9;
-      if (hDet < limiteRelampago && !out.some(o => o.key === `${sig}|gol_relampago|${v.id}`)) {
-        out.push({key: `${sig}|gol_relampago|${v.id}`, sig, nivel: 'gol', subtipo: 'relampago_aprox', v, valor: det.valor, horaAprox: hDet});
+      if (ultimoCheckin.hora < limiteRelampago && !out.some(o => o.key === `${sig}|gol_relampago|${v.id}`)) {
+        out.push({key: `${sig}|gol_relampago|${v.id}`, sig, nivel: 'gol', subtipo: 'relampago', v, valor: v.dig, horaReal: ultimoCheckin.hms});
       }
       const limiteAcrescimos = fuso1hMtz ? 18 : 17;
-      if (hDet >= limiteAcrescimos && !out.some(o => o.key === `${sig}|gol_acrescimos|${v.id}`)) {
-        out.push({key: `${sig}|gol_acrescimos|${v.id}`, sig, nivel: 'gol', subtipo: 'acrescimos_aprox', v, valor: det.valor, horaAprox: hDet});
+      if (ultimoCheckin.hora >= limiteAcrescimos && !out.some(o => o.key === `${sig}|gol_acrescimos|${v.id}`)) {
+        out.push({key: `${sig}|gol_acrescimos|${v.id}`, sig, nivel: 'gol', subtipo: 'acrescimos', v, valor: v.dig, horaReal: ultimoCheckin.hms});
       }
     }
-    // --- LANCE G06: HAT-TRICK APROXIMADO (3+ detecções de aumento em até 120min) ---
-    const chaveHist = sig + '|' + v.id, hist = DIG_HISTORICO[chaveHist];
-    if (hist && hist.length >= 3) {
-      for (let i = 0; i <= hist.length - 3; i++) {
-        const janela = hist[i + 2].em - hist[i].em;
-        if (janela <= 120 * 60000) {
-          const chave = `${sig}|gol_hattrick|${v.id}|${hist[i + 2].em}`;
+    // --- LANCE G06: HAT-TRICK (3 visitas com venda em até 120min, horário REAL de checkin) ---
+    if (checkins.length >= 3) {
+      for (let i = 0; i <= checkins.length - 3; i++) {
+        const janelaMin = checkins[i + 2].horaMin - checkins[i].horaMin;
+        if (janelaMin <= 120 && janelaMin >= 0 && (agoraMin - checkins[i + 2].horaMin) <= FRESCOR_MAX_MIN) {
+          const chave = `${sig}|gol_hattrick|${v.id}|${checkins[i + 2].hms}`;
           if (!out.some(o => o.key === chave)) {
-            const inc1 = hist[i].valor - (i > 0 ? hist[i - 1].valor : 0);
-            const inc2 = hist[i + 1].valor - hist[i].valor;
-            const inc3 = hist[i + 2].valor - hist[i + 1].valor;
-            out.push({key: chave, sig, nivel: 'hattrick', subtipo: 'hattrick_aprox', v, horaAprox: sp(new Date(hist[i + 2].em)).h, valores: [inc1, inc2, inc3]});
+            out.push({key: chave, sig, nivel: 'hattrick', subtipo: 'hattrick', v, horaReal: checkins[i + 2].hms, valores: [checkins[i].valor, checkins[i + 1].valor, checkins[i + 2].valor]});
           }
           break;
         }
       }
     }
-    // --- LANCE G11: META 1º TEMPO APROXIMADO ---
-    if ((v.meta || 0) > 0 && det && det.valor > 0) {
+    // --- LANCE G11: META 1º TEMPO (última visita com venda antes das 14h) ---
+    if ((v.meta || 0) > 0 && ultimoCheckin && (agoraMin - ultimoCheckin.horaMin) <= FRESCOR_MAX_MIN) {
       const { totalUteis, uteisAteHoje } = diasUteisMes();
       const metaDiaria = totalUteis > 0 ? (v.meta / totalUteis) * uteisAteHoje : 0;
-      const hDetMeta = sp(new Date(det.em)).h;
-      if (metaDiaria > 0 && det.valor >= metaDiaria && hDetMeta < 14 && !out.some(o => o.key === `${sig}|gol_meta1t|${v.id}`)) {
-        out.push({key: `${sig}|gol_meta1t|${v.id}`, sig, nivel: 'gol', subtipo: 'meta1tempo_aprox', v, valor: det.valor, horaAprox: hDetMeta});
+      if (metaDiaria > 0 && (v.dig || 0) >= metaDiaria && ultimoCheckin.hora < 14 && !out.some(o => o.key === `${sig}|gol_meta1t|${v.id}`)) {
+        out.push({key: `${sig}|gol_meta1t|${v.id}`, sig, nivel: 'gol', subtipo: 'meta1tempo', v, valor: v.dig, horaReal: ultimoCheckin.hms});
       }
     }
     // --- LANCE G05: MÁQUINA DE CONVERSÃO (≥8 visitas, taxa de conversão ≥50%) ---
@@ -302,13 +367,29 @@ function calcAlertas() {
       out.push({key: `${sig}|gol_goleada|${v.id}`, sig, nivel: 'gol', subtipo: 'goleada', v, valor: v.pos});
     }
     // --- LANCE G12: CAMPEÃO DA RODADA (100% da meta mensal batida) ---
+    // v.fat/v.meta são acumulados do MÊS: uma vez batida a meta, fica batida o resto do mês. A
+    // chave inclui o mês (YYYY-MM) pra apitar 1x por mês por vendedor, nunca de novo todo dia
+    // (achado em 28/09/2026: mesmo vendedor apitando "Campeão" repetidas vezes no mesmo dia/dias).
     if ((v.meta || 0) > 0 && (v.fat || 0) >= v.meta) {
-      out.push({key: `${sig}|gol_campeao|${v.id}`, sig, nivel: 'gol', subtipo: 'campeao', v, valor: v.fat});
+      out.push({key: `${sig}|gol_campeao|${v.id}|${HOJE0.slice(0, 7)}`, sig, nivel: 'gol', subtipo: 'campeao', v, valor: v.fat});
     }
-    // --- LANCE V01: DEVOLUÇÃO "CLIENTE NÃO PEDIU" / DEVOLUÇÃO DO DIA ---
-    if ((v.dev || 0) > 0) {
-      out.push({key: `${sig}|ver_dev|${v.id}`, sig, nivel: 'vermelho', subtipo: 'devolucao_nao_pediu', v, valor: v.dev});
-    }
+    // --- LANCE V01: DEVOLUÇÃO — CARTÃO VERMELHO ("CLIENTE NÃO PEDIU") ou GOL CONTRA (outro motivo) ---
+    // Devolução REAL de hoje (via /api/rca/devolucoes, cada nota com sua própria data — igual
+    // pipeline/ceven_unified_engine.js do WhatsApp já usa), não mais aproximação por delta do
+    // acumulado do mês (achado em 28/09/2026: o relatório do WhatsApp mostrava devolução real de
+    // hoje que a TV nunca detectava). Motivo real por SKU (via /api/rca/devolucoes/{nota}, achado
+    // em 28/09/2026, ver MAPA_DEFINITIVO_ENDPOINTS_CEVEN.md): "CLIENTE NAO PEDIU" é Cartão
+    // Vermelho (grave); qualquer outro motivo vira Gol Contra — decisão do Vitório, 28/09/2026.
+    // dv.naoPediu === null (detalhe não veio): nunca assume, cai no Cartão Vermelho por segurança.
+    // Uma chave por nota (numnota) — dispara 1 vez, nunca de novo.
+    (v.devolucoesHoje || []).forEach(dv => {
+      if (!dv.nota) return;
+      if (dv.naoPediu === false) {
+        out.push({key: `${sig}|golcontra_dev|${v.id}|${dv.nota}`, sig, nivel: 'golcontra', subtipo: 'devolucao', v, valor: dv.valor, clienteDev: dv.cliente});
+      } else {
+        out.push({key: `${sig}|ver_dev|${v.id}|${dv.nota}`, sig, nivel: 'vermelho', subtipo: 'devolucao_nao_pediu', v, valor: dv.valor, clienteDev: dv.cliente});
+      }
+    });
     v.cl.forEach(c => {
       // --- LANCE G07: GOL DRIBLE DA VACA (Cliente Inativo > 90 dias recuperado com venda) ---
       const diasC = diasDesde(c.ultima_compra);
@@ -332,12 +413,25 @@ function calcAlertas() {
         out.push({key: `${sig}|def|${v.id}|${c.id}`, sig, nivel: 'defesa', v, c});
       }
       // --- IMPEDIMENTO I02: check-out a mais de 500m do cadastro do cliente ---
-      const distM = distanciaM(c.lat, c.lon, c.checkout_lat, c.checkout_lon);
-      if (distM != null && distM > 500) {
-        out.push({key: `${sig}|imp|gps|${v.id}|${c.id}`, sig, nivel: 'impedimento', subtipo: 'gps_fora', v, c, distM: Math.round(distM)});
+      // Teto de 20km: acima disso não é "check-out fora do raio" (desvio real e plausível de um
+      // atendimento), é coordenada de cadastro ou de GPS claramente errada/nula (achado em
+      // 28/09/2026: lance mostrando "395057m" = 395km, fisicamente impossível ser o mesmo
+      // atendimento). Nunca vira lance — mostrar isso como "check-out fora do raio" seria inventar
+      // significado pra um dado ruim.
+      // Só canais de campo (v.campo): AS/PET AS não têm cobrança de roteiro/visita
+      // (REGRAS_DE_NEGOCIO_CEVEN.md §"Canais corporativos") — achado em 28/09/2026, Jair Antonio
+      // Tosto (canal AS) aparecendo em "SEM VISITA" repetidas vezes.
+      if (v.campo) {
+        const distM = distanciaM(c.lat, c.lon, c.checkout_lat, c.checkout_lon);
+        if (distM != null && distM > 500 && distM <= 20000) {
+          out.push({key: `${sig}|imp|gps|${v.id}|${c.id}`, sig, nivel: 'impedimento', subtipo: 'gps_fora', v, c, distM: Math.round(distM)});
+        }
       }
       if (['POSITIVADO', 'EFETIVADO'].includes(c.status) || !c.motivo) return;
       const m = c.motivo.toUpperCase(), dias = diasDesde(c.ultima_compra);
+      // Pênaltis (estoque/fechado) e impedimento de visita relâmpago são sobre EXECUÇÃO de rota —
+      // só se aplicam a canais de campo (v.campo).
+      if (!v.campo) return;
       // PÊNALTI P01: Estoque suficiente com > 30 dias sem compra
       if (m.includes('ESTOQUE SUFICIENTE') && (dias == null || dias > DIAS_PENALTI_ESTOQUE)) {
         const key = `${sig}|pen|estoque|${v.id}|${c.id}`;
@@ -377,8 +471,19 @@ function statFilial(sig) {
 const corNota = n => n >= 60 ? 'n-b' : n >= 30 ? 'n-w' : 'n-ok';
 // ============================== REGISTRO (D1) + LIMITADOR + VAR ==============================
 async function registraLances(cands) {
-  const corpo = {filial: 'MTZ', lances: cands.map(a => ({chave: a.key, nivel: a.nivel, rca: a.v ? a.v.id : null, vendedor: a.v ? a.v.nome : null, supervisor: a.v ? (a.v.sup || '') : '', cliente_id: a.c ? String(a.c.id) : null, cliente: a.c ? a.c.nome : null, motivo: a.c ? a.c.motivo : null,
-    dias_sem_compra: a.dias != null ? a.dias : null, ultima_compra: a.c ? a.c.ultima_compra : null, tempo_visita: a.c ? a.c.tempo_visita : null, obs: a.sig}))};
+  // c.motivo = motivo_nao_visita (ex: "ESTOQUE SUFICIENTE", "PEDIDO A DIGITAR") só faz sentido
+  // pra Pênalti/Impedimento (motivo de NÃO ter visitado). Achado em 28/09/2026: estava vazando
+  // pra Gol (inativo recuperado, dobrou mix) como se fosse o motivo da venda — nunca é.
+  const MOTIVO_NAO_VISITA_VALE_PARA = ['penalti', 'impedimento'];
+  const corpo = {filial: 'MTZ', lances: cands.map(a => {
+    const ehDevolucao = a.subtipo === 'devolucao' || a.subtipo === 'devolucao_nao_pediu';
+    const motivoNaoVisitaValido = a.c && MOTIVO_NAO_VISITA_VALE_PARA.includes(a.nivel) ? a.c.motivo : null;
+    return {chave: a.key, nivel: a.nivel, rca: a.v ? a.v.id : null, vendedor: a.v ? a.v.nome : null, supervisor: a.v ? (a.v.sup || '') : '',
+      cliente_id: a.c ? String(a.c.id) : null,
+      cliente: a.c ? a.c.nome : (ehDevolucao ? (a.clienteDev || null) : null),
+      motivo: motivoNaoVisitaValido || (ehDevolucao ? (a.subtipo === 'devolucao_nao_pediu' ? `Devolução: cliente não pediu — ${brl(a.valor)}` : `Devolução: outro motivo (não "cliente não pediu") — ${brl(a.valor)}`) : null),
+      dias_sem_compra: a.dias != null ? a.dias : null, ultima_compra: a.c ? a.c.ultima_compra : null, tempo_visita: a.c ? a.c.tempo_visita : null, obs: a.sig};
+  })};
   try { const r = await fetch('/api/tv-lances', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(corpo)}); const d = await r.json(); return r.ok && !d.erro ? d : null; } catch { return null; }
 }
 async function carregaLances() {
@@ -409,11 +514,11 @@ function enfileira(novos) {
   const porV = new Map();
   // GOLS
   novos.filter(a => a.nivel === 'gol').forEach(a => {
-    ESPERA.push({tipo: 'gol', sig: a.sig, v: a.v, c: a.c, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaAprox), score: 25});
+    ESPERA.push({tipo: 'gol', sig: a.sig, v: a.v, c: a.c, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaReal), score: 25});
   });
   // HAT-TRICK
   novos.filter(a => a.nivel === 'hattrick').forEach(a => {
-    ESPERA.push({tipo: 'hattrick', sig: a.sig, v: a.v, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaAprox), score: 25});
+    ESPERA.push({tipo: 'hattrick', sig: a.sig, v: a.v, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaReal), score: 25});
   });
   // PÊNALTIS
   novos.filter(a => a.nivel === 'penalti').forEach(a => { const k = a.sig + '|' + a.v.id; if (!porV.has(k)) porV.set(k, {tipo: 'penalti', sig: a.sig, v: a.v, itens: []}); porV.get(k).itens.push(a); });
@@ -425,7 +530,11 @@ function enfileira(novos) {
   });
   // CARTÃO VERMELHO
   novos.filter(a => a.nivel === 'vermelho').forEach(a => {
-    ESPERA.push({tipo: 'vermelho', sig: a.sig, v: a.v, c: a.c, a, sub: a.subtipo === 'devolucao_nao_pediu' ? `Devolução: CLIENTE NÃO PEDIU (${brl(a.valor)})` : a.subtipo === 'bonificacao' ? `${a.c && a.c.nome} · pedido com itens e valor R$0 (bonificação disfarçada)` : 'Abandono de campo: 0 visitas às 10h', score: 22});
+    ESPERA.push({tipo: 'vermelho', sig: a.sig, v: a.v, c: a.c, a, sub: a.subtipo === 'devolucao_nao_pediu' ? `Devolução: ${a.clienteDev || 'cliente'} (${brl(a.valor)})` : a.subtipo === 'bonificacao' ? `${a.c && a.c.nome} · pedido com itens e valor R$0 (bonificação disfarçada)` : 'Abandono de campo: 0 visitas às 10h', score: 22});
+  });
+  // GOL CONTRA (devolução com motivo != "CLIENTE NAO PEDIU")
+  novos.filter(a => a.nivel === 'golcontra').forEach(a => {
+    ESPERA.push({tipo: 'golcontra', sig: a.sig, v: a.v, a, sub: `Devolução: ${a.clienteDev || 'cliente'} (${brl(a.valor)})`, score: 20});
   });
   // CARTÃO AMARELO
   novos.filter(a => a.nivel === 'amarelo').forEach(a => {
@@ -450,27 +559,31 @@ function telaVAR(item) {
   let titulo, sub, dec, veredito, cls = 'f1';
   if (item.tipo === 'gol') {
     titulo = '⚽ GOL DE PLACA!'; sub = item.sub || 'Destaque nacional de vendas e positivação!'; cls = 'f1';
-    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'GOL DE PLACA')}</span></div>`;
+    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'GOL DE PLACA')}</span></div>`;
     veredito = '⚽ GOLAÇO NA REDE! Parabéns à equipe!';
   } else if (item.tipo === 'hattrick') {
     titulo = '🔥 HAT-TRICK!'; sub = item.sub || '3 pedidos digitados em sequência!'; cls = 'f1';
-    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'HAT-TRICK')}</span></div>`;
+    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'HAT-TRICK')}</span></div>`;
     veredito = '🔥 HAT-TRICK DE OURO! Constância que decide o mês!';
   } else if (item.tipo === 'vermelho') {
     titulo = '🟥 CARTÃO VERMELHO'; sub = item.sub || 'Infração disciplinar grave detectada!'; cls = 'f1';
-    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>MOTIVO</b><span>${esc(item.sub || 'EXPULSÃO DIRETA')}</span></div>`;
+    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>MOTIVO</b><span>${esc(item.sub || 'EXPULSÃO DIRETA')}</span></div>`;
     veredito = '🟥 EXPULSÃO! Rever rota e devolução imediatamente!';
+  } else if (item.tipo === 'golcontra') {
+    titulo = '⚽ GOL CONTRA'; sub = item.sub || 'Devolução de mercadoria registrada'; cls = 'f1';
+    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>DEVOLUÇÃO</b><span>${esc(item.sub || 'Devolução registrada hoje')}</span></div>`;
+    veredito = '⚽ GOL CONTRA! Devolução impacta o resultado do dia.';
   } else if (item.tipo === 'amarelo') {
     titulo = '🟨 CARTÃO AMARELO'; sub = item.sub || 'Advertência de rota'; cls = 'f1';
-    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>ALERTA</b><span>${esc(item.sub || 'Sem venda até as 10h')}</span></div>`;
+    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>ALERTA</b><span>${esc(item.sub || 'Sem venda até as 10h')}</span></div>`;
     veredito = '🟨 ATENÇÃO! Acelerar positivação do dia!';
   } else if (item.tipo === 'impedimento') {
     titulo = '🚩 IMPEDIMENTO VAR'; sub = item.sub || 'Visita instantânea não computada'; cls = 'f1';
-    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>ANULADO</b><span>${esc(item.sub || 'Visita de 00:00 sem contato real')}</span></div>`;
+    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>ANULADO</b><span>${esc(item.sub || 'Visita de 00:00 sem contato real')}</span></div>`;
     veredito = '🚩 LANCE ANULADO! Check-in sem permanência mínima!';
   } else if (item.tipo === 'defesa') {
     titulo = '🧤 DEFESA MILAGROSA'; sub = item.sub || 'Carteira recorrente protegida!'; cls = 'f1';
-    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${esc(item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : '—'))}</span></div><div class="ln"><b>DEFESA</b><span>${esc(item.sub || 'Recorrente salvo')}</span></div>`;
+    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>DEFESA</b><span>${esc(item.sub || 'Recorrente salvo')}</span></div>`;
     veredito = '🧤 MILAGRE NO GOL! Cliente blindado!';
   } else if (item.tipo === 'sup') {
     titulo = '📋 SUPERVISORES'; sub = `11:30: ${item.total} supervisor(es) sem matinal e/ou rota (RET) em ${item.lista.length} filial(is)`;
@@ -478,13 +591,23 @@ function telaVAR(item) {
   } else if (item.tipo === 'resumo') {
     const grupos = Array.isArray(item.grupos) ? item.grupos : [];
     titulo = '🚨 VÁRIOS LANCES'; sub = `${grupos.length} ocorrências críticas chegaram juntas`;
+    // Cada g.tipo tem uma FORMA diferente de guardar quem está envolvido: penalti tem .itens,
+    // venda10/visita10 têm .l (lista de vendedores), e vermelho/amarelo/impedimento/defesa/gol/
+    // hattrick têm .v (um vendedor só). Sem tratar cada forma, o resumo caía no fallback
+    // "(g.l||[]).length" pra tudo, sempre 0 (achado em 28/09/2026: "8x TBL EXPULSÃO 0 vendedor(es)").
+    const ROTULO = {venda10: 'CARTÃO', vermelho: 'EXPULSÃO', golcontra: 'GOL CONTRA', amarelo: 'CARTÃO AMARELO', impedimento: 'IMPEDIMENTO', defesa: 'DEFESA', gol: 'GOL', hattrick: 'HAT-TRICK'};
     dec = grupos.slice(0, 8).map(g => {
       if (!g || !g.tipo) return '';
       if (g.tipo === 'penalti') {
         const nm = (g.v && g.v.nome) ? g.v.nome : '?'; const ni = Array.isArray(g.itens) ? g.itens.length : 1;
         return `<div class="ln hot"><b>${g.sig||''} · PÊNALTI</b><span>${esc(nm)} — ${ni} justificativa(s)</span></div>`;
       }
-      return `<div class="ln hot"><b>${g.sig||''} · ${g.tipo === 'venda10' ? 'CARTÃO' : 'EXPULSÃO'}</b><span>${(g.l||[]).length} vendedor(es)</span></div>`;
+      if (Array.isArray(g.l)) {
+        return `<div class="ln hot"><b>${g.sig||''} · ${ROTULO[g.tipo] || g.tipo.toUpperCase()}</b><span>${g.l.length} vendedor(es)</span></div>`;
+      }
+      const nm = (g.v && g.v.nome) ? g.v.nome : '?';
+      const det = g.sub || (g.c && g.c.nome) || '';
+      return `<div class="ln hot"><b>${g.sig||''} · ${ROTULO[g.tipo] || g.tipo.toUpperCase()}</b><span>${esc(nm)}${det ? ' — ' + esc(det) : ''}</span></div>`;
     }).join(''); veredito = 'Detalhes na filial correspondente e no diário.';
   } else if (item.tipo === 'penalti') {
     const v = item.v, it = item.itens || [], n = it.length; titulo = '🚨 PÊNALTI';
@@ -495,16 +618,20 @@ function telaVAR(item) {
     veredito = `📞 LIGAR AGORA: ${v ? v.sup : 'supervisor'} · ${item.sig} (supervisor de ${v ? v.nome.split(' ')[0] : 'vendedor'})`;
   } else {
     titulo = item.tipo === 'venda10' ? '🟥 CARTÃO VERMELHO' : '⛔ EXPULSÃO'; sub = `${item.sig} · ${LIMITE_H}h e ${(item.l||[]).length} vendedor(es) COM ROTA e SEM ${item.tipo === 'venda10' ? 'NENHUMA VENDA' : 'NENHUMA VISITA'}`;
-    dec = (item.l||[]).slice(0, 8).map(a => `<div class="ln hot"><b>${esc(a.v ? a.v.nome : '')}</b><span>${a.v ? a.v.feitas : 0}/${a.v ? a.v.rota : 0} visitas · digitado ${brl(a.v ? a.v.dig : 0)}</span></div>`).join(''); veredito = item.tipo === 'venda10' ? 'Nenhuma venda registrada até agora.' : 'Nenhuma visita registrada — verificar se está em campo.';
+    dec = (item.l||[]).slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.v ? a.v.feitas : 0}/${a.v ? a.v.rota : 0} visitas · digitado ${brl(a.v ? a.v.dig : 0)}</span></div>`).join(''); veredito = item.tipo === 'venda10' ? 'Nenhuma venda registrada até agora.' : 'Nenhuma visita registrada — verificar se está em campo.';
   }
   return {titulo, sub, dec, veredito, cls};
 }
-function proximoVAR() {
+async function proximoVAR() {
   if (emVAR || !FILA.length) return;
+  emVAR = true; // trava já aqui: impede que outro proximoVAR() concorrente rode durante o await
+  // Espera a checagem dos vídeos terminar (evita cair no vetorial no primeiro lance real da
+  // sessão só por corrida — o teste de <video> é assíncrono e pode não ter terminado ainda).
+  if (typeof videosProntos === 'function') await videosProntos();
   // Se o botão de teste manual deixou um vídeo/canvas aberto, fecha ele DIREITO antes de começar
   // um lance real — nunca sobrescrever via innerHTML por cima de um <video> vivo (tela preta).
   if (window.__fechaAnimAtual) { window.__fechaAnimAtual(); window.__fechaAnimAtual = null; }
-  emVAR = true; const item = FILA.shift(), T = telaVAR(item), ov = $('ov'), t0 = Date.now(); let animStop = null;
+  const item = FILA.shift(), T = telaVAR(item), ov = $('ov'), t0 = Date.now(); let animStop = null;
   const btnFechar = $('btn-fechar-global');
   const fecha = () => {
     clearInterval(ov._i);
@@ -540,14 +667,17 @@ function proximoVAR() {
     return;
   }
 
-  // Suporte a TODAS as animações da TV (Gol, Pênalti, Vermelho, Amarelo, Impedimento, Defesa)
+  // Suporte a TODAS as animações da TV (Gol, Pênalti, Vermelho, Gol Contra, Amarelo, Impedimento, Defesa)
   const animGol = item.tipo === 'gol' && typeof iniciaAnimGol === 'function';
   const animVermelho = item.tipo === 'vermelho' && typeof iniciaAnimCartao === 'function';
+  // Gol Contra ainda não tem vídeo/cena própria — usa a cena de cartão em amarelo (isVermelho=
+  // false) até termos um vídeo dedicado (ver pendências de vídeo). Achado em 28/09/2026.
+  const animGolContra = item.tipo === 'golcontra' && typeof iniciaAnimCartao === 'function';
   const animAmarelo = item.tipo === 'amarelo' && typeof iniciaAnimCartao === 'function';
   const animImpedimento = item.tipo === 'impedimento' && typeof iniciaAnimImpedimento === 'function';
   const animDefesa = item.tipo === 'defesa' && typeof iniciaAnimDefesa === 'function';
   const animPenalti = item.tipo === 'penalti' && typeof iniciaAnimPenalti === 'function';
-  const anim = animGol || animVermelho || animAmarelo || animImpedimento || animDefesa || animPenalti;
+  const anim = animGol || animVermelho || animGolContra || animAmarelo || animImpedimento || animDefesa || animPenalti;
 
   if (anim) {
     ov.className = 'show';
@@ -568,6 +698,7 @@ function proximoVAR() {
     let duracaoAnim = 14000, videoNome = null;
     if (animGol) { duracaoAnim = 13000 + variaMs(); videoNome = 'gol'; }
     else if (animVermelho) { duracaoAnim = 12000 + variaMs(); videoNome = 'vermelho'; }
+    else if (animGolContra) { duracaoAnim = 12000 + variaMs(); videoNome = 'amarelo'; }
     else if (animAmarelo) { duracaoAnim = 10000 + variaMs(); videoNome = 'amarelo'; }
     else if (animImpedimento) { duracaoAnim = 12000 + variaMs(); videoNome = 'impedimento'; }
     else if (animDefesa) { duracaoAnim = 12000 + variaMs(); videoNome = 'defesa'; }
@@ -597,9 +728,11 @@ function proximoVAR() {
 
     // Sem vídeo pronto: cai na animação vetorial de sempre (mesmo comportamento de hoje).
     if (animGol) {
-      animStop = iniciaAnimGol(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || (item.a ? textoGol(item.a.subtipo, item.a.valor, item.a.c, item.a.horaAprox) : 'GOL DE PLACA')});
+      animStop = iniciaAnimGol(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || (item.a ? textoGol(item.a.subtipo, item.a.valor, item.a.c, item.a.horaReal) : 'GOL DE PLACA')});
     } else if (animVermelho) {
-      animStop = iniciaAnimCartao(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || (item.a && item.a.subtipo === 'devolucao_nao_pediu' ? `Devolução: CLIENTE NÃO PEDIU (${brl(item.a.valor)})` : item.a && item.a.subtipo === 'bonificacao' ? `${item.a.c && item.a.c.nome} · bonificação disfarçada` : 'Abandono de campo: 0 visitas às 10h')}, true);
+      animStop = iniciaAnimCartao(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || (item.a && item.a.subtipo === 'devolucao_nao_pediu' ? `Devolução: ${item.a.clienteDev || 'cliente'} (${brl(item.a.valor)})` : item.a && item.a.subtipo === 'bonificacao' ? `${item.a.c && item.a.c.nome} · bonificação disfarçada` : 'Abandono de campo: 0 visitas às 10h')}, true);
+    } else if (animGolContra) {
+      animStop = iniciaAnimCartao(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || `Devolução: ${(item.a && item.a.clienteDev) || 'cliente'} (${brl((item.a && item.a.valor) || 0)})`}, false);
     } else if (animAmarelo) {
       animStop = iniciaAnimCartao(cv, {vendedor: item.v ? item.v.nome : (item.a && item.a.v ? item.a.v.nome : 'VENDEDOR'), sub: item.sub || 'Rota ativa sem nenhuma venda faturada'}, false);
     } else if (animImpedimento) {
@@ -635,7 +768,7 @@ async function gatilhoSup() {
   LOG.push({key: k, t: t.hms, nivel: 'supervisor', vendedor: total + ' supervisor(es) pendente(s)', sig: 'MTZ'}); store.set(K.log + HOJE0, LOG); FILA.push({tipo: 'sup', lista, total}); proximoVAR();
 }
 // ============================== RENDER ==============================
-function modoSup() { const t = sp(), m = t.h * 60 + t.m; return m >= SUP_INI && m < SUP_FIM && ORDEM.some(s => (SUPS[s] || []).some(x => !/GERENTE/i.test(x.nome) && (!x.fez_compromisso || !x.iniciou_ret))); }
+function modoSup() { const t = sp(), m = t.h * 60 + t.m; return emJanelaSupPeriodica(m) && ORDEM.some(s => (SUPS[s] || []).some(x => !/GERENTE/i.test(x.nome) && (!x.fez_compromisso || !x.iniciou_ret))); }
 function renderTotais(stats) {
   const s = f => stats.reduce((x, y) => x + (f(y) || 0), 0), fat = s(x => x.fat), mF = METAS ? METAS.total.meta_fat : s(x => x.metaFat), pos = s(x => x.realCli), mP = METAS ? METAS.total.meta_pos : s(x => x.metaPos);
   $('tot').innerHTML = [['Faturado no mês', `${brl(fat)} <small>${mF ? pc(fat / mF * 100) : ''}</small>`], [METAS ? 'Meta do mês (PNA)' : 'Meta (soma)', brl(mF)], ['Positivados no mês', `${nv(pos)} <small>de ${nv(mP)} · ${mP ? pc(pos / mP * 100) : ''}</small>`],
@@ -664,6 +797,7 @@ function renderFilial(x) {
   const tag = a => {
     if (a.nivel === 'gol') return '<span class="tg" style="background:#16a34a;color:#fff;border:1px solid #22c55e">⚽ GOL DE PLACA</span>';
     if (a.nivel === 'vermelho') return '<span class="tg" style="background:#dc2626;color:#fff;border:1px solid #ef4444">🟥 VERMELHO</span>';
+    if (a.nivel === 'golcontra') return '<span class="tg" style="background:#ea580c;color:#fff;border:1px solid #f97316">⚽ GOL CONTRA</span>';
     if (a.nivel === 'impedimento') return '<span class="tg" style="background:#d97706;color:#fff;border:1px solid #f59e0b">🚩 IMPEDIMENTO</span>';
     if (a.nivel === 'amarelo') return '<span class="tg" style="background:#ca8a04;color:#111;border:1px solid #facc15;font-weight:900">🟨 AMARELO</span>';
     if (a.nivel === 'penalti') return '<span class="tg t-pen">🚨 PÊNALTI</span>';
@@ -730,13 +864,102 @@ function renderSupView() {
   const el = $('det'); el.innerHTML = `<h2><span>Supervisores · matinal (compromisso) e rota (RET)</span><b>em destaque até 12:00</b></h2>` + ORDEM.map(sig => { const l = (SUPS[sig] || []).filter(x => !/GERENTE/i.test(x.nome) && (!x.fez_compromisso || !x.iniciou_ret)); if (!l.length) return ''; const dois = l.filter(x => !x.fez_compromisso && !x.iniciou_ret).length;
     return `<div class="supr${dois ? ' bad' : ''}"><b>${sig}</b><span>${l.map(x => esc(x.nome.split(' ').slice(0, 2).join(' ')) + (x.fez_compromisso ? '' : ' ❌comp.') + (x.iniciou_ret ? '' : ' ❌RET')).join(' · ')}</span></div>`; }).join('');
 }
+let PAINEL_DADOS = { alertas: [], justificativas: [], digitado: [], penaltis: [] };
+let MODAL_DETALHE_ATUAL = null;
+function fecharModalDetalhe() { document.getElementById('modalDetalheOverlay').classList.remove('show'); }
+function abrirModalPainelMtz(tipo, motivo) {
+  const overlay = document.getElementById('modalDetalheOverlay');
+  const titulo = document.getElementById('modalDetalheTitulo');
+  const sub = document.getElementById('modalDetalheSub');
+  const lista = document.getElementById('modalDetalheLista');
+  let tituloTxt = '', linhas = [];
+
+  if (tipo === 'alertas') {
+    tituloTxt = '🚨 Alertas Ativos — Nacional (Detalhe Completo)';
+    linhas = PAINEL_DADOS.alertas.map(a => ({ nome: a.v ? a.v.nome : '—', rca: a.v ? a.v.id : '—', sig: a.sig || '—', valor: a.subtipo || a.nivel }));
+  } else if (tipo === 'justificativa') {
+    tituloTxt = `📋 Justificativa: ${motivo} — Nacional`;
+    linhas = (PAINEL_DADOS.justificativas[motivo] || []).map(x => ({ nome: x.v.nome, rca: x.v.id, sig: x.v.sig || '—', valor: (x.c && x.c.nome) || '—' }));
+  } else if (tipo === 'digitado') {
+    tituloTxt = '💰 Digitado Hoje — Ranking Nacional Completo';
+    linhas = PAINEL_DADOS.digitado.map(v => ({ nome: v.nome, rca: v.id, sig: v.sig || '—', valor: brl(v.dig) }));
+  } else if (tipo === 'penalti') {
+    tituloTxt = '🚨 Ranking de Pênaltis — Nacional Completo';
+    linhas = PAINEL_DADOS.penaltis.map(x => ({ nome: x.nome, rca: x.rca, sig: x.sig || '—', valor: x.n + ' pênalti(s)' }));
+  }
+
+  titulo.textContent = tituloTxt;
+  sub.textContent = `${linhas.length} registro(s) · Matriz (11 filiais) · ${sp().hms}`;
+  lista.innerHTML = linhas.length
+    ? linhas.map(l => `<div class="modal-det-linha"><span class="modal-det-nome">${esc(l.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(l.rca)}) · ${esc(l.sig)}</span></span><span>${esc(l.valor)}</span></div>`).join('')
+    : '<div class="modal-det-vazio">Nenhum registro.</div>';
+  MODAL_DETALHE_ATUAL = { titulo: tituloTxt, linhas };
+  overlay.classList.add('show');
+}
+function exportarModalDetalhe() {
+  if (!MODAL_DETALHE_ATUAL) return;
+  const { titulo, linhas } = MODAL_DETALHE_ATUAL;
+  const cabecalho = [['Vendedor', 'RCA', 'Filial', 'Detalhe']];
+  const csv = cabecalho.concat(linhas.map(l => [l.nome, l.rca, l.sig, l.valor]))
+    .map(row => row.map(v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${titulo.replace(/[^a-zA-Z0-9 ]/g, '').trim().replace(/\s+/g, '_')}_${sp().date}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+// PAINEL NACIONAL: mesmos 4 cards do CFTV de filial (Alertas/Justificativas/Digitado/Pênaltis),
+// agregados de TODAS as 11 filiais — decisão do Vitório, 28/09/2026 ("coloca essa tela para a
+// matriz"). Reaproveita ALERTAS (já é global) e o mesmo PAINEL_DADOS/modal do CFTV de filial.
+function renderPainelNacional() {
+  const el = $('det'), vs = ORDEM.flatMap(vendedores);
+  PAINEL_DADOS.alertas = ALERTAS;
+  const topA = ALERTAS.slice(0, 8);
+  const contJ = {}, contJDet = {};
+  vs.forEach(v => (v.cl || []).forEach(c => { if (c.motivo) { contJ[c.motivo] = (contJ[c.motivo] || 0) + 1; (contJDet[c.motivo] = contJDet[c.motivo] || []).push({ v, c }); } }));
+  const msJ = Object.entries(contJ).sort((a, b) => b[1] - a[1]).slice(0, 8), mxJ = msJ.length ? msJ[0][1] : 1, totJ = Object.values(contJ).reduce((a, b) => a + b, 0);
+  PAINEL_DADOS.justificativas = contJDet;
+  const rkD = [...vs].filter(v => v.dig > 0).sort((a, b) => b.dig - a.dig), totD = rkD.reduce((x, v) => x + (v.dig || 0), 0), mrD = rkD.length ? rkD[0].dig : 1;
+  PAINEL_DADOS.digitado = rkD;
+  const rkP = rankingPenaltisNacional(), topP = rkP.slice(0, 8), mxP = topP.length ? topP[0].n : 1, totP = rkP.reduce((x, y) => x + y.n, 0);
+  PAINEL_DADOS.penaltis = rkP;
+
+  el.innerHTML = `<h2><span>Painel Nacional · 11 filiais</span><b>${sp().hms}</b></h2>
+   <div class="grid4painel">
+    <div class="pnl">
+      <h3 onclick="abrirModalPainelMtz('alertas')" style="cursor:pointer">Alertas ativos <b>${ALERTAS.length}</b></h3>
+      ${topA.length ? topA.map(a => `<div class="row"><span class="tg" style="background:var(--card2)">${a.sig || ''}</span><div class="n">${nomeComRca(a.v)}<small>${esc(a.subtipo || a.nivel)}</small></div></div>`).join('') : '<div class="vazio">Nenhum alerta ativo.</div>'}
+    </div>
+    <div class="pnl">
+      <h3>Justificativas de hoje <b>${totJ}</b></h3>
+      ${msJ.length ? msJ.map(([m, n]) => { const pct = totJ ? (n / totJ * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainelMtz('justificativa','${esc(m).replace(/'/g, "\\'")}')"><div class="row" style="grid-template-columns:1fr auto"><div class="n">${esc(m)}</div><b class="mono">${n} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb"><i style="width:${n / mxJ * 100}%"></i></div></div>`; }).join('') : '<div class="vazio">Nenhuma justificativa hoje.</div>'}
+    </div>
+    <div class="pnl">
+      <h3>Digitado hoje · ranking <b>${brl(totD)}</b></h3>
+      ${rkD.length ? rkD.slice(0, 8).map((v, i) => { const pct = totD ? (v.dig / totD * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainelMtz('digitado')"><div class="row" style="grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${nomeComRca(v)} <small style="color:var(--mut)">${v.sig}</small></div><b class="mono">${brl(v.dig)} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb"><i style="width:${v.dig / mrD * 100}%"></i></div></div>`; }).join('') : '<div class="vazio">Ninguém digitou ainda.</div>'}
+    </div>
+    <div class="pnl">
+      <h3>Ranking de pênaltis · hoje <b>${totP}</b></h3>
+      ${topP.length ? topP.map((x, i) => { const pct = totP ? (x.n / totP * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainelMtz('penalti')"><div class="row" style="grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${esc(x.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(x.rca)}) · ${esc(x.sig || '')}</span></div><b class="mono" style="color:var(--bad)">${x.n} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb red"><i style="width:${x.n / mxP * 100}%"></i></div></div>`; }).join('') : '<div class="vazio">Nenhum pênalti hoje.</div>'}
+    </div>
+   </div>`;
+}
+const penaltisDeNacional = (rca, sig) => LOG.filter(e => e.nivel === 'penalti' && e.rca === rca && e.sig === sig).length;
+function rankingPenaltisNacional() {
+  const m = new Map();
+  LOG.filter(e => e.nivel === 'penalti').forEach(e => { const k = e.sig + '|' + e.rca; const x = m.get(k) || {rca: e.rca, sig: e.sig, nome: e.vendedor, sup: e.supervisor || '', n: 0}; x.n++; m.set(k, x); });
+  return [...m.values()].sort((a, b) => b.n - a.n || a.nome.localeCompare(b.nome));
+}
 function render() {
   const stats = ORDEM.map(statFilial); renderTotais(stats); renderRank(stats);
-  const sup = modoSup(); $('modo').textContent = sup ? 'SUPERVISORES' : (auto ? 'FILIAL · AUTO' : 'FILIAL · MANUAL');
-  if (sup) renderSupView(); else renderFilial(stats[idxFil]);
+  const sup = modoSup(), nacional = !sup && idxFil === ORDEM.length;
+  $('modo').textContent = sup ? 'SUPERVISORES' : nacional ? 'PAINEL NACIONAL' : (auto ? 'FILIAL · AUTO' : 'FILIAL · MANUAL');
+  if (sup) renderSupView(); else if (nacional) renderPainelNacional(); else renderFilial(stats[idxFil]);
   const pen = ALERTAS.filter(a => a.nivel === 'penalti').length, crit = [...stats].filter(s => s.tem).sort((a, b) => b.nota - a.nota).slice(0, 3);
   $('alert').textContent = `${ALERTAS.length} alerta(s) ativo(s) (${pen} pênaltis) · mais críticas: ${crit.map(s => s.sig + ' ' + s.nota).join(' · ')} · lances do dia: ${LOG.filter(e => e.nivel !== 'supervisor').length}`;
-  if (!sup) { const p = $('prog'); if (p) { const f = Math.min(1, (Date.now() - tFil) / (MIN_FIL * 60000)); p.style.width = (f * 100) + '%'; } }
+  if (!sup && !nacional) { const p = $('prog'); if (p) { const f = Math.min(1, (Date.now() - tFil) / (MIN_FIL * 60000)); p.style.width = (f * 100) + '%'; } }
 }
 let ultLanceAuto = Date.now(), idxDestaque = 0;
 function confereLanceAuto() {
@@ -746,14 +969,20 @@ function confereLanceAuto() {
   // A cada 2.5 min mostra automaticamente um lance na TV
   if (Date.now() - ultLanceAuto >= 150000) {
     ultLanceAuto = Date.now();
+    // Só reexibe lances que a TV ainda NÃO mostrou (fora de `seen`) — sem isso, o mesmo pênalti/
+    // impedimento de um cliente inativo há meses fica em ALERTAS o dia inteiro (a condição segue
+    // batendo a cada recálculo) e era reapitado automaticamente a cada 2.5min pra sempre (achado
+    // em 28/09/2026: pênalti da Clarice/TCV/Primato repetindo várias vezes na mesma tela).
+    const ALERTAS_NAO_VISTOS = ALERTAS.filter(a => !seen.has(a.key));
     const categorias = [
-      { tipo: 'gol', lista: ALERTAS.filter(a => a.nivel === 'gol') },
-      { tipo: 'hattrick', lista: ALERTAS.filter(a => a.nivel === 'hattrick') },
-      { tipo: 'penalti', lista: ALERTAS.filter(a => a.nivel === 'penalti') },
-      { tipo: 'impedimento', lista: ALERTAS.filter(a => a.nivel === 'impedimento') },
-      { tipo: 'vermelho', lista: ALERTAS.filter(a => a.nivel === 'vermelho') },
-      { tipo: 'amarelo', lista: ALERTAS.filter(a => a.nivel === 'amarelo') },
-      { tipo: 'defesa', lista: ALERTAS.filter(a => a.nivel === 'defesa') }
+      { tipo: 'gol', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'gol') },
+      { tipo: 'hattrick', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'hattrick') },
+      { tipo: 'penalti', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'penalti') },
+      { tipo: 'impedimento', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'impedimento') },
+      { tipo: 'vermelho', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'vermelho') },
+      { tipo: 'golcontra', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'golcontra') },
+      { tipo: 'amarelo', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'amarelo') },
+      { tipo: 'defesa', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'defesa') }
     ].filter(c => c.lista && c.lista.length > 0);
 
     if (!categorias.length) return;
@@ -762,13 +991,15 @@ function confereLanceAuto() {
     // Pega o item mais relevante da categoria (ex: maior valor no gol, maior tempo/risco nas infrações)
     const lance = cat.lista.slice().sort((a,b) => (b.valor || b.dias || 0) - (a.valor || a.dias || 0))[0] || cat.lista[0];
     if (lance.nivel === 'gol') {
-      FILA.push({tipo: 'gol', sig: lance.sig, v: lance.v, c: lance.c, a: lance, sub: textoGol(lance.subtipo, lance.valor, lance.c, lance.horaAprox)});
+      FILA.push({tipo: 'gol', sig: lance.sig, v: lance.v, c: lance.c, a: lance, sub: textoGol(lance.subtipo, lance.valor, lance.c, lance.horaReal)});
     } else if (lance.nivel === 'hattrick') {
-      FILA.push({tipo: 'hattrick', sig: lance.sig, v: lance.v, a: lance, sub: textoGol(lance.subtipo, lance.valor, lance.c, lance.horaAprox)});
+      FILA.push({tipo: 'hattrick', sig: lance.sig, v: lance.v, a: lance, sub: textoGol(lance.subtipo, lance.valor, lance.c, lance.horaReal)});
     } else if (lance.nivel === 'penalti') {
       FILA.push({tipo: 'penalti', sig: lance.sig, v: lance.v, itens: [lance], a: lance});
     } else if (lance.nivel === 'vermelho') {
-      FILA.push({tipo: 'vermelho', sig: lance.sig, v: lance.v, c: lance.c, a: lance, sub: lance.subtipo === 'devolucao_nao_pediu' ? `Devolução: CLIENTE NÃO PEDIU (${brl(lance.valor)})` : lance.subtipo === 'bonificacao' ? `${lance.c && lance.c.nome} · bonificação disfarçada` : 'Abandono de campo: 0 visitas às 10h'});
+      FILA.push({tipo: 'vermelho', sig: lance.sig, v: lance.v, c: lance.c, a: lance, sub: lance.subtipo === 'devolucao_nao_pediu' ? `Devolução: ${lance.clienteDev || 'cliente'} (${brl(lance.valor)})` : lance.subtipo === 'bonificacao' ? `${lance.c && lance.c.nome} · bonificação disfarçada` : 'Abandono de campo: 0 visitas às 10h'});
+    } else if (lance.nivel === 'golcontra') {
+      FILA.push({tipo: 'golcontra', sig: lance.sig, v: lance.v, a: lance, sub: `Devolução: ${lance.clienteDev || 'cliente'} (${brl(lance.valor)})`});
     } else if (lance.nivel === 'amarelo') {
       FILA.push({tipo: 'amarelo', sig: lance.sig, v: lance.v, a: lance, sub: 'Rota ativa sem vendas às 10h'});
     } else if (lance.nivel === 'impedimento') {
@@ -785,7 +1016,10 @@ function confereLanceAuto() {
 }
 function relogio() {
   $('clock').textContent = sp().hms; liberaEspera(); confereLanceAuto();
-  if (auto && Date.now() - tFil >= MIN_FIL * 60000) { idxFil = (idxFil + 1) % ORDEM.length; tFil = Date.now(); }
+  // Ciclo tem ORDEM.length filiais + 1 slot extra (idxFil === ORDEM.length) pro Painel Nacional
+  // (Alertas/Justificativas/Digitado/Pênaltis agregados — decisão do Vitório, 28/09/2026: "coloca
+  // essa tela para a matriz" também).
+  if (auto && Date.now() - tFil >= MIN_FIL * 60000) { idxFil = (idxFil + 1) % (ORDEM.length + 1); tFil = Date.now(); }
   const vistas = ORDEM.map(s => TS[s]).filter(Boolean); if (vistas.length) { const min = Math.round((Date.now() - Math.max(...vistas)) / 60000); const u = $('upd'); u.textContent = min >= 5 ? `SEM ATUALIZAR HÁ ${min} MIN` : `${vistas.length}/${ORDEM.length} filiais lidas`; u.className = 'upd' + (min >= 5 ? ' old' : ''); }
   render();
 }
@@ -794,7 +1028,7 @@ function exportar() {
   const txt = JSON.stringify(doc, null, 2); try { const b = new Blob([txt], {type: 'application/json'}), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `diario_matriz_${HOJE0}.json`; document.body.appendChild(a); a.click(); a.remove(); } catch {}
 }
 function ctl() {
-  const ir = d => { idxFil = (idxFil + d + ORDEM.length) % ORDEM.length; tFil = Date.now(); render(); };
+  const ir = d => { idxFil = (idxFil + d + ORDEM.length + 1) % (ORDEM.length + 1); tFil = Date.now(); render(); };
   $('bprev').onclick = () => ir(-1); $('bnext').onclick = () => ir(1);
   $('bauto').onclick = () => { auto = !auto; $('bauto').classList.toggle('on', auto); tFil = Date.now(); render(); };
   $('bsom').textContent = somOn ? '🔊 Som' : '🔇 Som'; $('bsom').onclick = () => { somOn = !somOn; store.set('ceven_tv_som', somOn); $('bsom').textContent = somOn ? '🔊 Som' : '🔇 Som'; beep([[660, .15]]); };
