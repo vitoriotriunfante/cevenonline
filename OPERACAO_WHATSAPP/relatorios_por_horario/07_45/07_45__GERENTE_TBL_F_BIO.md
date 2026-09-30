@@ -1,7 +1,54 @@
 🌅 *ABERTURA MATINAL — TBL (07:45)*
-📅 terça-feira, 29/09/2026
+📅 quarta-feira, 30/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 30 • Visitas: 417 (média 13,9/vendedor)
-Sem compra +30d: 167 (40,0%) • Recorrência: 0 (0,0%)
-Oportunidades CNAE 4721: +1.193 PDVs
+👥 Vendedores: 30 • Visitas: 343 (média 11,4/vendedor)
+Sem compra +30d: 123 (35,9%) • Recorrência: 29 (8,5%)
+Oportunidades CNAE 4639: +401 PDVs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 *PDVs EM RISCO — 07:45*
+📍 *TBL — FÁBIO* • 30/09/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 Última Chance: 108  •  🟡 Preventivo: 0
+
+👤 *CRISTIANE DE FREITAS DUARTE* (24 em risco)
+  🔴 MERCADO DO SAUVA LTDA (1087) — 27/08
+  🔴 PANIFICADORA E CONFEITARIA GIOVANELLA (1087) — 30/06
+  🔴 MERCADO CENTRO NOVO (1087) — 05/12
+  🔴 CASA DE CARNES JUNINHO (1087) — 28/07
+  🔴 VANDERLEIA APARECIDA FERRAZ DA LUZ (1087) — 30/06
+  _+19 outros_
+
+👤 *IGOR RODRIGUES DUARTE* (9 em risco)
+  🔴 MERCADO PARANA (177) — 30/06
+  🔴 ROLEX BIEER (179) — 08/08
+  🔴 POSTO FLEX MOURAO (179) — 10/07
+  🔴 DENISE ALVES VIEIRA FERREIRA SANTOS 0532 (179) — 25/08
+  🔴 FRUTARIA AMERICA (189) — 08/08
+  _+4 outros_
+
+👤 *LEONARDO MANOSSO DE GODOI* (47 em risco)
+  🔴 ANGELA VICENTINI CONVENIENCIA (1054) — 05/12
+  🔴 PANIF CERRO AZUL (1054) — 23/07
+  🔴 CRIATIVA FESTAS (1054) — 05/12
+  🔴 DOMP E COMMERCE LTDA (1054) — 30/06
+  🔴 JOSE ROBERTO DO CARMO TRANSPORTES (1117) — 27/05
+  _+42 outros_
+
+👤 *SERGIO LOPES DE OLIVEIRA* (14 em risco)
+  🔴 EMBALAGENS CAMBE LTDA (181) — 11/07
+  🔴 MERCADO BALESTRA (181) — 28/07
+  🔴 LOJA DE CONVENIENCIA INGLATERRA (181) — 26/08
+  🔴 PATRICIA PEREIRA DA CUNHA 06586083982 (550) — 05/12
+  🔴 J V COMERCIO DE PRODUTOS ALIMENTICIOS LT (550) — 28/08
+  _+9 outros_
+
+👤 *KLEBERSON BATISTA LIDUARIO* (14 em risco)
+  🔴 PADARIA E CONFEITARIA DO BIG LTDA (187) — 08/08
+  🔴 CASSIA FERNANDA CABRAL (187) — 08/08
+  🔴 MARCO ANTONIO (187) — 27/08
+  🔴 E M A SUPERMERCADO LTDA (172) — 08/08
+  🔴 KI DOUCURA PANIFICADORA (172) — 08/08
+  _+9 outros_

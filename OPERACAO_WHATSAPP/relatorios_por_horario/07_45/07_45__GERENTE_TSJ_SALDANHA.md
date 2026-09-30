@@ -1,7 +1,46 @@
 🌅 *ABERTURA MATINAL — TSJ (07:45)*
-📅 terça-feira, 29/09/2026
+📅 quarta-feira, 30/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 24 • Visitas: 380 (média 15,8/vendedor)
-Sem compra +30d: 167 (43,9%) • Recorrência: 0 (0,0%)
-Oportunidades CNAE 4721: +1.056 PDVs
+👥 Vendedores: 24 • Visitas: 186 (média 7,8/vendedor)
+Sem compra +30d: 63 (33,9%) • Recorrência: 21 (11,3%)
+Oportunidades CNAE 4639: +201 PDVs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 *PDVs EM RISCO — 07:45*
+📍 *TSJ — SALDANHA* • 30/09/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 Última Chance: 172  •  🟡 Preventivo: 0
+
+👤 *ANA CRISTINA DOS SANTOS YAMATO* (28 em risco)
+  🔴 ENCANTO FLORES E PRESENTES (33) — 31/07
+  🔴 LANCHONETE BROTHERS (33) — 20/08
+  🔴 42.069.517 LARA NOVIKOV DEL CISTIA (8) — 06/08
+  🔴 MERCADINHO MARTINS EXPRESS (8) — 07/08
+  🔴 MERCADINHO PORTUGAL (8) — 06/08
+  _+23 outros_
+
+👤 *JULIO CESAR SOARES DE PAULO* (32 em risco)
+  🔴 MERCADINHO TARUMAS (25) — 05/12
+  🔴 PET SHOP SAMPAIO (25) — 27/08
+  🔴 VICTOR ALEXANDRE FERREIRA DOS SANTOS 476 (25) — 14/05
+  🔴 MERCADINHO DA PRAIA (25) — 05/12
+  🔴 ROBERTINHO PECAS (25) — 23/07
+  _+27 outros_
+
+👤 *VICTOR HUGO FONSECA CARVALHO* (58 em risco)
+  🔴 LOJINHA DA MARIA (16) — 27/08
+  🔴 HORT SOPHIA (16) — 07/08
+  🔴 VILLA BOVINA (16) — 28/05
+  🔴 CASA DE RACAO 2 IRMAOS (16) — 05/12
+  🔴 RACOES CEZAR DE SOUZA (16) — 05/12
+  _+53 outros_
+
+👤 *VENDA EMPRESA (INTERNO)* (54 em risco)
+  🔴 GUNTHER PRODUTOS INDUSTRIAIS (2) — 05/12
+  🔴 MERCADO OLIVEIRA (2) — 05/12
+  🔴 VERTENTES BANHO E TOSA (2) — 05/12
+  🔴 SP. SUMARE PRODUTOS DE HIGIENE LTDA (2) — 05/12
+  🔴 MERCADO MEIA LUA (2) — 05/12
+  _+49 outros_

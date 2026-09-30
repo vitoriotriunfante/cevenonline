@@ -1,8 +1,55 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 terça-feira, 29/09/2026
+📅 quarta-feira, 30/09/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 36 • Visitas: 481 (média 13,4/vendedor)
-Sem compra +30d: 171 (35,6%) • Recorrência: 0 (0,0%)
-🔥 Volta Comigo: 118 PDVs
-Oportunidades CNAE 4721: +1.924 PDVs
+👥 Vendedores: 36 • Visitas: 418 (média 11,6/vendedor)
+Sem compra +30d: 168 (40,2%) • Recorrência: 38 (9,1%)
+🔥 Volta Comigo: 87 PDVs
+Oportunidades CNAE 4639: +732 PDVs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 *PDVs EM RISCO — 07:45*
+📍 *TPH — VAGNER* • 30/09/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 Última Chance: 183  •  🟡 Preventivo: 0
+
+👤 *ANDREY CAMILLO PIRAGINE* (31 em risco)
+  🔴 IDEAL SUPERMERCADO (73) — 27/05
+  🔴 IDEAL SUPERMERCADO (73) — 18/08
+  🔴 PANIFICADORA BENINI (70) — 31/07
+  🔴 PANIFICADORA FERNANDES (70) — 27/08
+  🔴 PANIFICADORA E CONFEITARIA PAO NOSSO (70) — 28/08
+  _+26 outros_
+
+👤 *CLAUDETE DE SOUZA SCHULTZ* (45 em risco)
+  🔴 PADOVAN COMERCIO DE RACOES (124) — 08/08
+  🔴 CASA DAS RACOES (124) — 22/08
+  🔴 CICERO LEANDRO PEREIRA DA FONSECA (124) — 22/08
+  🔴 AVIARIO CARVALHO (124) — 20/08
+  🔴 ANIMARKET PET CENTER (124) — 30/06
+  _+40 outros_
+
+👤 *LUIZ AUGUSTO RAMOS* (69 em risco)
+  🔴 ANTONIO JOSE DA SILVA REVISTARIA (75) — 08/08
+  🔴 CELEIRO DA GULA (75) — 08/08
+  🔴 GHMG (1090) — 05/12
+  🔴 LIMG COMERCIO DE CARNES LTDA (1090) — 30/07
+  🔴 BULL DOGS DOGUERIA (1090) — 05/12
+  _+64 outros_
+
+👤 *JEFFERSON POLETTO* (22 em risco)
+  🔴 DENGOS (125) — 31/07
+  🔴 PET SHOP BEETHOVEN (125) — 24/08
+  🔴 PET SHOP COISA DE BICHO (125) — 24/08
+  🔴 A TOCA DOS PELO PETSHOP (125) — 10/07
+  🔴 BICHO LOCKO (125) — 05/12
+  _+17 outros_
+
+👤 *RODRIGO DE ARRUDA DARROS* (16 em risco)
+  🔴 MAQUINA E BENEFICIAMENTO ARAPOTI (86) — 10/07
+  🔴 MERCEARIA (1044) — 05/12
+  🔴 JESSICA CAMARGO (1044) — 31/07
+  🔴 POSTO SHELL (1044) — 05/12
+  🔴 MERC FURLANETO (1044) — 05/12
+  _+11 outros_
