@@ -1,55 +1,55 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 quarta-feira, 30/09/2026
+📅 quinta-feira, 01/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 36 • Visitas: 418 (média 11,6/vendedor)
-Sem compra +30d: 168 (40,2%) • Recorrência: 38 (9,1%)
-🔥 Volta Comigo: 87 PDVs
-Oportunidades CNAE 4639: +732 PDVs
+👥 Vendedores: 36 • Visitas: 481 (média 13,4/vendedor)
+Sem compra +30d: 161 (33,5%) • Recorrência: 53 (11,0%)
+🔥 Volta Comigo: 120 PDVs
+Oportunidades CNAE 4712: +1.313 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPH — VAGNER* • 30/09/2026
+📍 *TPH — VAGNER* • 01/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 183  •  🟡 Preventivo: 0
+🔴 Última Chance: 0  •  🟡 Preventivo: 160
 
-👤 *ANDREY CAMILLO PIRAGINE* (31 em risco)
-  🔴 IDEAL SUPERMERCADO (73) — 27/05
-  🔴 IDEAL SUPERMERCADO (73) — 18/08
-  🔴 PANIFICADORA BENINI (70) — 31/07
-  🔴 PANIFICADORA FERNANDES (70) — 27/08
-  🔴 PANIFICADORA E CONFEITARIA PAO NOSSO (70) — 28/08
-  _+26 outros_
+👤 *ANDREY CAMILLO PIRAGINE* (29 em risco)
+  🟡 PLENA AVENIDA UTILIDADES (67) — 05/12
+  🟡 MERCEARIA SAO PEDRO (67) — 05/12
+  🟡 MERCEARIA SAO PEDRO (67) — 31/07
+  🟡 REDE LAR (67) — 05/12
+  🟡 N/D (67) — 01/01
+  _+24 outros_
 
-👤 *CLAUDETE DE SOUZA SCHULTZ* (45 em risco)
-  🔴 PADOVAN COMERCIO DE RACOES (124) — 08/08
-  🔴 CASA DAS RACOES (124) — 22/08
-  🔴 CICERO LEANDRO PEREIRA DA FONSECA (124) — 22/08
-  🔴 AVIARIO CARVALHO (124) — 20/08
-  🔴 ANIMARKET PET CENTER (124) — 30/06
-  _+40 outros_
+👤 *CLAUDETE DE SOUZA SCHULTZ* (36 em risco)
+  🟡 BE PET SHOP (1040) — 05/12
+  🟡 ARCA DE NOE (1040) — 05/12
+  🟡 MUNDO DAS PATAS (1040) — 01/07
+  🟡 MAJO PET SHOP (1040) — 01/07
+  🟡 CLUBE DOS CAES PET SHOP (1040) — 10/07
+  _+31 outros_
 
-👤 *LUIZ AUGUSTO RAMOS* (69 em risco)
-  🔴 ANTONIO JOSE DA SILVA REVISTARIA (75) — 08/08
-  🔴 CELEIRO DA GULA (75) — 08/08
-  🔴 GHMG (1090) — 05/12
-  🔴 LIMG COMERCIO DE CARNES LTDA (1090) — 30/07
-  🔴 BULL DOGS DOGUERIA (1090) — 05/12
-  _+64 outros_
+👤 *JEFFERSON POLETTO* (27 em risco)
+  🟡 AVIARIO BENTIVI (128) — 05/12
+  🟡 BRASILIA PET SHOP (128) — 05/12
+  🟡 PET SHOP BICHO AMIGO LTDA (128) — 05/12
+  🟡 AVIARIO BICHO DO MATTO (128) — 05/12
+  🟡 AVIARIO FLAMINGOS (128) — 26/08
+  _+22 outros_
 
-👤 *JEFFERSON POLETTO* (22 em risco)
-  🔴 DENGOS (125) — 31/07
-  🔴 PET SHOP BEETHOVEN (125) — 24/08
-  🔴 PET SHOP COISA DE BICHO (125) — 24/08
-  🔴 A TOCA DOS PELO PETSHOP (125) — 10/07
-  🔴 BICHO LOCKO (125) — 05/12
+👤 *LUIZ AUGUSTO RAMOS* (46 em risco)
+  🟡 FARMACIA BIG FARMA (74) — 08/08
+  🟡 W A BEBIDAS E CONVENIENCIA (74) — 03/07
+  🟡 OFERTAO SUPERMERCADOS (74) — 08/08
+  🟡 MINIMERCADO OLIVEIRA (74) — 31/08
+  🟡 FARMAIS (78) — 19/08
+  _+41 outros_
+
+👤 *RODRIGO DE ARRUDA DARROS* (22 em risco)
+  🟡 LANCHONETE DO MEL (1044) — 31/07
+  🟡 POSTO DO MEL IMBAU (1044) — 26/08
+  🟡 POSTO FLORENSE (1044) — 05/12
+  🟡 DOWN TOWN (1044) — 05/12
+  🟡 EL TOMATO (1044) — 05/12
   _+17 outros_
-
-👤 *RODRIGO DE ARRUDA DARROS* (16 em risco)
-  🔴 MAQUINA E BENEFICIAMENTO ARAPOTI (86) — 10/07
-  🔴 MERCEARIA (1044) — 05/12
-  🔴 JESSICA CAMARGO (1044) — 31/07
-  🔴 POSTO SHELL (1044) — 05/12
-  🔴 MERC FURLANETO (1044) — 05/12
-  _+11 outros_

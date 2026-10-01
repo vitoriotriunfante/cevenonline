@@ -1,46 +1,46 @@
 🌅 *ABERTURA MATINAL — TCA (07:45)*
-📅 quarta-feira, 30/09/2026
+📅 quinta-feira, 01/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 31 • Visitas: 335 (média 10,8/vendedor)
-Sem compra +30d: 199 (59,4%) • Recorrência: 55 (16,4%)
-Oportunidades CNAE 4639: +362 PDVs
+👥 Vendedores: 31 • Visitas: 261 (média 8,4/vendedor)
+Sem compra +30d: 141 (54,0%) • Recorrência: 48 (18,4%)
+Oportunidades CNAE 4712: +877 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCA — BECHER* • 30/09/2026
+📍 *TCA — BECHER* • 01/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 183  •  🟡 Preventivo: 0
+🔴 Última Chance: 0  •  🟡 Preventivo: 135
 
-👤 *FRANCISCO FRANCO FILHO* (57 em risco)
-  🔴 CONVENIENCIA SELECT (1028) — 15/07
-  🔴 MERCADO BAROZE (1028) — 05/12
-  🔴 RECANTO AGRO PET (1028) — 01/01
-  🔴 LIMONADA CONVENIENCIA (1028) — 05/12
-  🔴 GATTI (1028) — 01/01
-  _+52 outros_
+👤 *FRANCISCO FRANCO FILHO* (15 em risco)
+  🟡 PANIFICADORA N. S. APARECIDA (1051) — 21/08
+  🟡 MERCADO REALEZA (1051) — 05/12
+  🟡 POSTO NOSSA FAMILIA (1051) — 21/08
+  🟡 GELADAO MERCADO E ACOUGUE (1051) — 05/12
+  🟡 MERCADO AMORIM (390) — 31/07
+  _+10 outros_
 
-👤 *IVAIR PRINCIPE FREITAS DE MIRANDA* (35 em risco)
-  🔴 HOT DOG DANADAO (382) — 20/08
-  🔴 MERCADO PERPA TUO COMPRE BEM (382) — 21/08
-  🔴 PANIFICADORA 3 IRMAOS (382) — 21/08
-  🔴 HOTEL CAPELARI (409) — 05/12
-  🔴 MERCADO MARTINS (378) — 05/12
-  _+30 outros_
+👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR* (61 em risco)
+  🟡 IMPERIAL RACOES E VARIEDADES (381) — 29/07
+  🟡 MERCADO BIG BOM (381) — 29/07
+  🟡 MERCADO ALEIXO II GREEN VILLE (381) — 05/12
+  🟡 MERCADO OLIVEIRA (381) — 31/08
+  🟡 DROGARIAS FARMARELA (385) — 05/12
+  _+56 outros_
 
-👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR* (74 em risco)
-  🔴 AUTO POSTO N 01 (384) — 05/12
-  🔴 POSTO DA DIVISA (384) — 31/07
-  🔴 MERCADO REZENDE (384) — 05/12
-  🔴 MERCADO ALIANCE (384) — 05/12
-  🔴 DIAS SUPERMERCADO (384) — 21/08
-  _+69 outros_
+👤 *IVAIR PRINCIPE FREITAS DE MIRANDA* (43 em risco)
+  🟡 ALEXANDRE WERBETH DA COSTA SILVA (383) — 31/08
+  🟡 FARMAZAN LTDA ME (383) — 29/08
+  🟡 MERCEARIA MARILAR (383) — 05/12
+  🟡 SUPERMERCADO MORAES (383) — 30/07
+  🟡 ALFA MIX (383) — 05/12
+  _+38 outros_
 
-👤 *MAICON DION NOVAIS SILVA* (17 em risco)
-  🔴 MERCADO VITORIA (404) — 31/07
-  🔴 SUPERMERCADO MINATO (404) — 20/08
-  🔴 POSTO 3 (404) — 05/12
-  🔴 S L CESTA BASICA (404) — 05/12
-  🔴 SR PRIME (404) — 31/07
-  _+12 outros_
+👤 *MAICON DION NOVAIS SILVA* (16 em risco)
+  🟡 COMERCIAL SANTOS (373) — 05/12
+  🟡 SUPERMERCADO SANTA LUZIA (373) — 22/07
+  🟡 ASA BRANCA (373) — 05/12
+  🟡 COMERCIAL SILVA (372) — 05/12
+  🟡 VALE PORTO SEGURO LTDA (372) — 31/08
+  _+11 outros_

@@ -1,44 +1,45 @@
 🌅 *ABERTURA MATINAL — TCG (07:45)*
-📅 quarta-feira, 30/09/2026
+📅 quinta-feira, 01/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 👥 Vendedores: 20 • Visitas: 179 (média 8,9/vendedor)
-Sem compra +30d: 59 (33,0%) • Recorrência: 29 (16,2%)
-Oportunidades CNAE 4639: +179 PDVs
+Sem compra +30d: 37 (20,7%) • Recorrência: 27 (15,1%)
+Oportunidades CNAE 4712: +260 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCG — DANILO* • 30/09/2026
+📍 *TCG — DANILO* • 01/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 53  •  🟡 Preventivo: 0
+🔴 Última Chance: 0  •  🟡 Preventivo: 33
 
-👤 *DELINLSON ANTONIO LIMA SILVA* (24 em risco)
-  🔴 DHIONE BEER CONVENIENCIA (484) — 05/12
-  🔴 ALFA DISTRIBUIDORA DE BEBIDAS (484) — 05/12
-  🔴 CONVENIENCIA POSTO GAUCHO 03 (484) — 21/08
-  🔴 HIPER POPULAR (484) — 17/08
-  🔴 MERCEARIA NOSSA CASA (456) — 05/12
-  _+19 outros_
+👤 *EDSON RODRIGO LINIA* (7 em risco)
+  🟡 HOTEL OT (474) — 31/08
+  🟡 SAO BENTO FL 86 (475) — 05/12
+  🟡 MG ORTOPEDIA (475) — 05/12
+  🟡 COMERCIAL ABENCOADO (458) — 05/12
+  🟡 MERCEARIA LLUSCO (458) — 21/08
+  _+2 outros_
 
-👤 *EDSON RODRIGO LINIA* (12 em risco)
-  🔴 MERCEARIA LEON (458) — 24/08
-  🔴 MARRUA CARNES E CERVEJAS (458) — 21/08
-  🔴 MERCADO UNIAO NOVA OPCAO (458) — 01/01
-  🔴 EONIO MARCONDES GRIZE (458) — 01/01
-  🔴 MERC SANCHES (458) — 05/12
-  _+7 outros_
+👤 *DELINLSON ANTONIO LIMA SILVA* (15 em risco)
+  🟡 MERCADO E CONVENIENCIA MIRASOL (461) — 05/12
+  🟡 MERCADO E ACOUGUE WILSON (461) — 29/08
+  🟡 MERCADO BONANZA (480) — 05/12
+  🟡 CASA DE CARNES NISSEI (481) — 05/12
+  🟡 MINIMERCADO J.K. (481) — 05/12
+  _+10 outros_
 
-👤 *GERENTE TCG* (4 em risco)
-  🔴 TRIANGULO CONVENIENCIA (489) — 03/05
-  🔴 RESTAURANTTE BOM APETITE (489) — 05/12
-  🔴 CONVENIENCIA POINT BEER (489) — 05/12
-  🔴 RK CONVENIENCIA (489) — 05/12
+👤 *TIAGO SANTOS CORREA* (6 em risco)
+  🟡 IMPORTS 67 (472) — 25/08
+  🟡 PLANALTO CONVENIENCIA (488) — 20/08
+  🟡 MERCADO MAJU (488) — 03/05
+  🟡 CACIQUE I (486) — 05/12
+  🟡 FRIGOCARNES (1072) — 24/08
+  _+1 outros_
 
-👤 *TIAGO SANTOS CORREA* (13 em risco)
-  🔴 TAMANDARE BEER (487) — 05/12
-  🔴 POSTO KATIA LOCATELLI (487) — 27/05
-  🔴 CONVENIENCIA PUZZLE (486) — 05/12
-  🔴 REZENDE MERCADO E ACOUGUE (486) — 05/12
-  🔴 TOP MIX (486) — 24/08
-  _+8 outros_
+👤 *GERENTE TCG* (5 em risco)
+  🟡 DROGARIA MEGA POPULAR (489) — 18/02
+  🟡 PANIFICADORA COOPHAVILA (489) — 05/12
+  🟡 MERCADO SOARES (489) — 05/12
+  🟡 CAFE FIRENZE (489) — 24/08
+  🟡 SACOLAO CENTRAL (489) — 05/12

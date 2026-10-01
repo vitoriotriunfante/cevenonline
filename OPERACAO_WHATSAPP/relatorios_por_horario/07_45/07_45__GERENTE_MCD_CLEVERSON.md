@@ -1,42 +1,43 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 quarta-feira, 30/09/2026
+📅 quinta-feira, 01/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 25 • Visitas: 276 (média 11,0/vendedor)
-Sem compra +30d: 119 (43,1%) • Recorrência: 46 (16,7%)
-Oportunidades CNAE 4639: +287 PDVs
+👥 Vendedores: 25 • Visitas: 266 (média 10,6/vendedor)
+Sem compra +30d: 105 (39,5%) • Recorrência: 17 (6,4%)
+Oportunidades CNAE 4712: +726 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — CLEVERSON* • 30/09/2026
+📍 *MCD — CLEVERSON* • 01/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 108  •  🟡 Preventivo: 0
+🔴 Última Chance: 0  •  🟡 Preventivo: 102
 
-👤 *FLAVIO RUFINO* (34 em risco)
-  🔴 DINEI CONVENIENCIA (412) — 05/12
-  🔴 POSTO ITAMBE (1089) — 29/08
-  🔴 KEITH DAIANA HURTADO ROCA (1061) — 03/05
-  🔴 MARRUA CARNES E CERVEJAS (1061) — 21/08
-  🔴 BAR LANCHES TEM (451) — 05/12
-  _+29 outros_
+👤 *JONATAS DA SILVA DE OLIVEIRA* (4 em risco)
+  🟡 PLANALTO CONVENIENCIA (1063) — 20/08
+  🟡 MERCEARIA SAO BENTO (1060) — 18/02
+  🟡 CASA DE CARNE CLARO (445) — 05/12
+  🟡 DROGARIA REAL 2 (442) — 05/12
 
-👤 *THIAGO DA SILVA CONEGUNDES* (2 em risco)
-  🔴 SEU MARTINS (433) — 05/12
-  🔴 MERCADO INDEPENDENCIA (1068) — 05/12
+👤 *FLAVIO RUFINO* (15 em risco)
+  🟡 DISTRIBUIDORA 67 (1076) — 05/12
+  🟡 HOOKAH STAR (1076) — 05/12
+  🟡 OUTBACK (1076) — 05/12
+  🟡 CASA DOS DOCES (1076) — 05/12
+  🟡 PORKS - CAMPO GRANDE (1076) — 05/12
+  _+10 outros_
 
-👤 *JONATAS DA SILVA DE OLIVEIRA* (8 em risco)
-  🔴 MERCEARIA JL (437) — 05/12
-  🔴 SUPER LIDER (437) — 05/12
-  🔴 COMERCIAL MARTINS (453) — 05/12
-  🔴 MERCADO POPULAR (429) — 05/12
-  🔴 mercado nossa senhora aparecia (1063) — 28/08
-  _+3 outros_
+👤 *THIAGO DA SILVA CONEGUNDES* (5 em risco)
+  🟡 NO GOLE (433) — 20/08
+  🟡 CLICKBEER EMPORIO E BEBIDAS LTDA (433) — 31/08
+  🟡 CLICKBEER CONVENIENCIA (433) — 05/12
+  🟡 CHURRASCARIA NATIVAS GRILL CAMPO GRANDE (433) — 31/08
+  🟡 HOOKAH STAR LOUNGE BAR (433) — 05/12
 
-👤 *GERENTE MCD* (64 em risco)
-  🔴 MINI MERCADO JR (1070) — 05/12
-  🔴 CASA DE CARNE BOM PRECO (1070) — 05/12
-  🔴 CASA DE CARNE MODELO (1070) — 05/12
-  🔴 S R CONVENIENCIA (1070) — 05/12
-  🔴 CONVENIENCIA SEM LIMITES (1070) — 05/12
-  _+59 outros_
+👤 *GERENTE MCD* (78 em risco)
+  🟡 LOOK MERCADO (1070) — 05/12
+  🟡 RACA AGRO VET (1070) — 05/12
+  🟡 PLATINAO (1070) — 05/12
+  🟡 KARANDA CONVENIENCIA (1070) — 25/08
+  🟡 PANIF CONQUISTA (1070) — 18/02
+  _+73 outros_
