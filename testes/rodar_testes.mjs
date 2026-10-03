@@ -73,7 +73,6 @@ secao('2. Teto de 6 chamadas simultaneas ao CEVEN');
   ok(maximo <= 6, `pool nunca passa de 6 simultaneas (maximo observado: ${maximo})`);
   ok(out.every((v, i) => v === i), 'resultados voltam na ordem certa');
   const lote = (arq, re) => { const m = re.exec(ler(arq)); return m ? +m[1] : null; };
-  ok(lote('functions/api/cron-lances.js', /const LOTE = (\d+)/) * 3 <= 6, 'coleta de lances: lote x 3 chamadas <= 6');
   ok(lote('functions/api/cron-mapa-executivo.js', /const LOTE = (\d+)/) <= 6, 'mapa executivo: lote <= 6');
   const dl = [
     ['analises/coletar_todos_os_pdvs_e_prospects_100pct.py', /max_workers=(\d+)/g],
@@ -172,6 +171,39 @@ secao('5b. Relogios da TV no Worker (varredura, lances, mapa, faturado)');
   chamadas.length = 0; globalThis.fetch = async (u) => { chamadas.push(String(u)); return { status: 200 }; };
   await w.scheduled({ cron: '1 2 3 4 5' }, {}, {});
   ok(chamadas.length === 0, 'gatilho desconhecido nao chama nada');
+  globalThis.fetch = original;
+}
+
+// ---------------------------------------------------------------- 5c. coleta de lances reaproveita a coleta central
+secao('5c. Coleta de lances usa os dados da varredura central (menos chamadas ao CEVEN)');
+{
+  const cl = ler('functions/api/cron-lances.js');
+  ok(cl.includes('&central=1'), 'cron-lances pede ao tv-vendedor os dados da varredura central (central=1)');
+  const lote = +(/const LOTE = (\d+)/.exec(cl) || [])[1];
+  ok(lote * 2 <= 6, `lote de ${lote} vendedores x 2 historicos simultaneos <= 6 chamadas ao CEVEN`);
+  const { onRequestGet } = await imp('functions/api/tv-vendedor.js');
+  const agoraUtc = (menosMin) => new Date(Date.now() - menosMin * 60000).toISOString().replace('T', ' ').slice(0, 19);
+  const hoje = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+  const dash = { nome: 'TESTE', financeiro: { meta: 1000, faturado: 500, pendente: 10, devolucao: 0 }, positivacao: { meta: 10, realizado: 4 } };
+  const prod = { dia: { dig_pedido: 300, positivacao: 1, total_programado: 3, visitas_com_venda: 1 } };
+  const rot = [{ id_cliente: '11', id: '11', nome_cliente: 'A', status: 'EFETIVADO', checkin_horario: '09:00:00' }, { id_cliente: '12', id: '12', nome_cliente: 'B', status: 'ABERTO' }];
+  const linha = (minAtras, extra = {}) => ({ roteiro_json: JSON.stringify(rot), produtividade_json: JSON.stringify(prod), dashboard_json: JSON.stringify(dash), updated_at: agoraUtc(minAtras), ...extra });
+  const envCom = (row) => ({ DB: { prepare: () => ({ bind: () => ({ first: async () => row }) }) } });
+  const original = globalThis.fetch;
+  const chamar = async (query, row) => {
+    const urls = [];
+    globalThis.fetch = async (u) => { urls.push(String(u)); return { ok: true, text: async () => JSON.stringify(String(u).includes('historico-cliente') ? { ultimas_visitas: [] } : (String(u).includes('dashboard') ? dash : String(u).includes('produtividade') ? prod : rot)) }; };
+    const r = await onRequestGet({ request: { url: `https://x.pages.dev/api/tv-vendedor?filial=tbl&id=5${query}` }, env: envCom(row) });
+    const corpo = await r.json();
+    const base = urls.filter(u => /\/api\/rca\/(dashboard|produtividade|roteiro-hoje)/.test(u)).length;
+    const hist = urls.filter(u => u.includes('historico-cliente')).length;
+    return { corpo, base, hist };
+  };
+  { const r = await chamar('&central=1', linha(3)); ok(r.base === 0 && r.hist === 1, `com dado central recente: 0 chamadas base ao CEVEN e ${r.hist} de historico (so do positivado)`); ok(r.corpo.meta_fat === 1000 && r.corpo.clientes.length === 2, 'e o resultado traz os mesmos campos (meta, clientes)'); }
+  { const r = await chamar('&central=1', linha(20)); ok(r.base === 3, 'com dado central velho (20 min): volta a consultar o CEVEN (3 chamadas base)'); }
+  { const r = await chamar('&central=1', linha(3, { dashboard_json: null })); ok(r.base === 3, 'com dado central incompleto: volta a consultar o CEVEN'); }
+  { const r = await chamar('&central=1', null); ok(r.base === 3, 'sem dado central do vendedor: consulta o CEVEN'); }
+  { const r = await chamar('', linha(3)); ok(r.base === 3, 'a tela da TV (sem central=1) segue consultando o CEVEN ao vivo'); }
   globalThis.fetch = original;
 }
 

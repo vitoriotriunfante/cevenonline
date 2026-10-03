@@ -22,7 +22,7 @@
 // REGRA: nunca inventa dado. RCA sem resposta simplesmente não gera lance nesse ciclo.
 // =========================================================================
 
-const LOTE = 2; // 2 RCAs x 3 chamadas = 6 simultaneas ao CEVEN (limite pratico de 6, decisao de 03/10/2026)
+const LOTE = 3; // 3 vendedores em paralelo; com central=1 so o historico dos positivados vai ao CEVEN (no maximo 2 simultaneas por vendedor = 6)
 const CAMPO = ['VJ', 'PET VJ', 'FARMA', 'ESP'];
 const DIAS_PENALTI_ESTOQUE = 30, DIAS_PENALTI_FECHADO = 45;
 const FRESCOR_MAX_MIN = 30; // só considera lance de horário "novo" se detectado nos últimos 30min
@@ -249,7 +249,7 @@ export async function onRequestGet({ env, request }) {
       const lote = codigos.slice(i, i + LOTE);
       const resultados = await Promise.all(
         lote.map(async (codigo) => {
-          const d = await getJson(`${origin}/api/tv-vendedor?filial=${filial}&id=${codigo}`);
+          const d = await getJson(`${origin}/api/tv-vendedor?filial=${filial}&id=${codigo}&central=1`);
           return { codigo, d };
         })
       );

@@ -46,7 +46,7 @@ const GATILHOS = {
 const BASE_TV = 'https://ceven-cftv-matrix.pages.dev';
 const TAREFAS_TV = {
   '*/5 * * * *':     { passos: [{ rota: '/api/cron-varredura-central', ms: 540000 }, { rota: '/api/cron-piloto-pedidos', ms: 60000 }] },
-  '4-59/5 * * * *':  { passos: [{ rota: '/api/cron-lances', ms: 180000 }] },
+  '4-59/5 * * * *':  { passos: [{ rota: '/api/cron-lances', ms: 280000 }] },
   '2-59/5 * * * *':  { passos: [{ rota: '/api/cron-mapa-executivo', ms: 60000 }] },
   '2-59/15 * * * *': { passos: [{ rota: '/api/cron-faturado-mes', ms: 60000 }] }
 };

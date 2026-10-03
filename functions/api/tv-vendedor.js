@@ -118,7 +118,46 @@ function montarTv(id, dash, prod, rot, analisePorCliente) {
   };
 }
 
-export async function onRequestGet({ request }) {
+// USO DA COLETA UNICA (03/10/2026): com ?central=1 (usado pela coleta de lances em cron-lances.js) os dados base
+// (dashboard, produtividade e roteiro) vem do que a varredura central ja guardou no D1, se tiver menos de 15
+// minutos; so o historico dos clientes positivados continua indo ao CEVEN, em no maximo 2 chamadas simultaneas.
+// Se nao houver dado recente e completo, cai para a consulta direta ao CEVEN, como sempre foi.
+function dataHojeBrasilia() {
+  const p = {};
+  new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' })
+    .formatToParts(new Date()).forEach((x) => (p[x.type] = x.value));
+  return `${p.year}-${p.month}-${p.day}`;
+}
+
+async function lerCentral(env, id) {
+  if (!env || !env.DB) return null;
+  try {
+    const row = await env.DB.prepare(
+      'SELECT roteiro_json, produtividade_json, dashboard_json, updated_at FROM varredura_central_rca WHERE rca_codigo = ? AND data_ref = ?'
+    ).bind(String(id), dataHojeBrasilia()).first();
+    if (!row || !row.updated_at) return null;
+    const idade = Date.now() - Date.parse(String(row.updated_at).replace(' ', 'T') + 'Z');
+    if (!(idade >= 0 && idade < 15 * 60 * 1000)) return null;
+    const lê = (s) => { try { return s ? JSON.parse(s) : null; } catch { return null; } };
+    const rot = lê(row.roteiro_json), prod = lê(row.produtividade_json), dash = lê(row.dashboard_json);
+    return Array.isArray(rot) && prod && dash ? { rot, prod, dash } : null;
+  } catch { return null; }
+}
+
+async function poolLimitado(tarefas, n) {
+  const saida = new Array(tarefas.length);
+  let proximo = 0;
+  await Promise.all(Array.from({ length: Math.min(n, tarefas.length) }, async () => {
+    while (true) {
+      const k = proximo++;
+      if (k >= tarefas.length) return;
+      saida[k] = await tarefas[k]();
+    }
+  }));
+  return saida;
+}
+
+export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
   const filial = (url.searchParams.get('filial') || '').toLowerCase().replace(/1$/, '');
   const id = url.searchParams.get('id');
@@ -129,20 +168,24 @@ export async function onRequestGet({ request }) {
   }
   const key = filial + '1';
   const q = `filial=${key}&id=${id}`;
-  const [dash, prod, rot] = await Promise.all([
-    getJson(`${CEVEN}/api/rca/dashboard?${q}`),
-    getJson(`${CEVEN}/api/rca/produtividade?${q}`),
-    getJson(`${CEVEN}/api/rca/roteiro-hoje?${q}`)
-  ]);
+  const usarCentral = url.searchParams.get('central') === '1';
+  const central = usarCentral ? await lerCentral(env, id) : null;
+  const [dash, prod, rot] = central
+    ? [central.dash, central.prod, central.rot]
+    : await Promise.all([
+        getJson(`${CEVEN}/api/rca/dashboard?${q}`),
+        getJson(`${CEVEN}/api/rca/produtividade?${q}`),
+        getJson(`${CEVEN}/api/rca/roteiro-hoje?${q}`)
+      ]);
   // G03 (Dobrou o Mix) e V03 (Bonificação): só para clientes positivados HOJE (evita 1 chamada
   // extra por cliente da rota inteira — geralmente são poucos positivados por dia, não os 10-20+
   // da rota completa).
   const positivadosHoje = Array.isArray(rot) ? rot.filter((c) => ['POSITIVADO', 'EFETIVADO'].includes(c.status)) : [];
   const analisePorCliente = {};
   if (positivadosHoje.length) {
-    const resultados = await Promise.all(
-      positivadosHoje.map((c) => getJson(`${CEVEN}/api/rca/historico-cliente/${c.id_cliente}?${q}`))
-    );
+    const buscas = positivadosHoje.map((c) => () => getJson(`${CEVEN}/api/rca/historico-cliente/${c.id_cliente}?${q}`));
+    // pela coleta de lances (central=1): no maximo 2 simultaneas; na tela da TV segue como antes
+    const resultados = usarCentral ? await poolLimitado(buscas, 2) : await Promise.all(buscas.map((f) => f()));
     positivadosHoje.forEach((c, i) => {
       const analise = analisaPedido(resultados[i]);
       if (analise) analisePorCliente[c.id_cliente] = analise;
