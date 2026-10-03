@@ -95,9 +95,9 @@ jobs:
           mkdir -p analises
           rclone copy gdrive:pedidos_historico_ceven.db analises/
 
-      - name: Baixar VENDEDORES AUDITADOS.xlsx do Google Drive (fonte de verdade manual)
+      - name: Baixar a equipe (Gestão de Equipe, via /api/tv-mostra) - fonte única
         if: steps.calendario.outputs.bloqueado != 'true'
-        run: rclone copy "gdrive:VENDEDORES AUDITADOS.xlsx" . || echo "Planilha não encontrada no Drive — usando filtro só por canal."
+        run: curl -fsS -m 60 "https://ceven-cftv-matrix.pages.dev/api/tv-mostra?t=1" -o mostra_equipe.json || echo "Equipe não baixada — equipe não aplicada neste ciclo."
         continue-on-error: true
 
       - name: Baixar lista de SKUs de Marca Própria do Google Drive

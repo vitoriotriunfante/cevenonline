@@ -114,9 +114,9 @@ jobs:
           root_folder_id = $GDRIVE_FOLDER_ID
           EOF
 
-      - name: Baixar VENDEDORES AUDITADOS.xlsx do Google Drive (fonte de verdade manual)
+      - name: Baixar a equipe (Gestão de Equipe, via /api/tv-mostra) - fonte única
         if: steps.calendario.outputs.bloqueado != 'true'
-        run: rclone copy "gdrive:VENDEDORES AUDITADOS.xlsx" . || echo "Planilha não encontrada no Drive ainda — disparo segue só com filtro de canal."
+        run: curl -fsS -m 60 "https://ceven-cftv-matrix.pages.dev/api/tv-mostra?t=1" -o mostra_equipe.json || echo "Equipe não baixada — equipe não aplicada neste ciclo."
         continue-on-error: true
 
       - name: Definir CNAE do dia (rotação automática seg-sex)

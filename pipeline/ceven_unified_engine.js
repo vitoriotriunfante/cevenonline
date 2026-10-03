@@ -224,45 +224,39 @@ function carregarValidacaoVendedores() {
 // de time mas ainda não foi ajustado no CEVEN. Deve ser chamado sempre depois de
 // carregarValidacaoVendedores(), em todo script de disparo — não só marca própria.
 function aplicarMostraDisparos(repsMap) {
-  const filePath = path.join(__dirname, '..', 'VENDEDORES AUDITADOS.xlsx');
+  // FONTE UNICA DA EQUIPE (decisao do Vitorio, 03/10/2026): a Gestao de Equipe, servida por
+  // /api/tv-mostra. O workflow baixa essa resposta em mostra_equipe.json antes do envio; a planilha
+  // do Drive nao e mais lida. Sem o arquivo, nada e aplicado (igual a quando a planilha faltava).
+  const filePath = path.join(__dirname, '..', 'mostra_equipe.json');
   if (!fs.existsSync(filePath)) {
-    console.warn('⚠️  VENDEDORES AUDITADOS.xlsx não encontrado — MOSTRA_DISPAROS não aplicado.');
+    console.warn('⚠️  mostra_equipe.json (equipe de /api/tv-mostra) não encontrado — equipe NÃO aplicada.');
     return { excluidos: 0, corrigidos: 0 };
   }
-  const wb = XLSX.readFile(filePath);
-  const ws = wb.Sheets['MOSTRA_DISPAROS'];
-  if (!ws) {
-    console.warn('⚠️  Aba MOSTRA_DISPAROS não encontrada — nada aplicado.');
+  let dados;
+  try { dados = JSON.parse(fs.readFileSync(filePath, 'utf8')); } catch (e) { dados = null; }
+  if (!dados || !dados.filiais) {
+    console.warn('⚠️  mostra_equipe.json inválido — equipe NÃO aplicada.');
     return { excluidos: 0, corrigidos: 0 };
   }
-  const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-  const header = data[0];
-  const idxFilial = header.indexOf('Filial');
-  const idxRca = header.indexOf('Cód. Vendedor (RCA)');
-  const idxMostra = header.indexOf('MOSTRA NOS DISPAROS');
-  const idxCodSup = header.indexOf('Cód. Supervisor');
-  const idxNomeSup = header.indexOf('Nome Supervisor');
-
   let excluidos = 0, corrigidos = 0;
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-    const key = `${row[idxFilial]}_${row[idxRca]}`;
-    const val = repsMap[key];
-    if (!val) continue;
-
-    if (String(row[idxMostra]).trim().toUpperCase() === 'NÃO') {
-      delete repsMap[key];
-      excluidos++;
-      continue;
-    }
-    const supNovo = String(row[idxNomeSup] || '').toUpperCase().trim();
-    if (supNovo && supNovo !== val.supNome) {
-      val.supNome = supNovo;
-      val.supCod = String(row[idxCodSup] || val.supCod);
-      corrigidos++;
+  for (const sigla of Object.keys(dados.filiais)) {
+    for (const r of dados.filiais[sigla]) {
+      const key = `${sigla}_${r.rca}`;
+      const val = repsMap[key];
+      if (!val) continue;
+      if (r.mostra === false) {
+        delete repsMap[key];
+        excluidos++;
+        continue;
+      }
+      const supNovo = String(r.supervisor || '').toUpperCase().trim();
+      if (supNovo && supNovo !== val.supNome) {
+        val.supNome = supNovo;
+        corrigidos++;
+      }
     }
   }
-  console.log(`📋 MOSTRA_DISPAROS aplicado: ${excluidos} vendedores excluídos, ${corrigidos} com supervisor corrigido manualmente.`);
+  console.log(`📋 Equipe (origem: ${dados.origem || '?'}) aplicada: ${excluidos} vendedores excluídos, ${corrigidos} com supervisor ajustado.`);
   return { excluidos, corrigidos };
 }
 
@@ -1462,6 +1456,9 @@ async function main() {
 
     const outDirRevisao = path.join(__dirname, '../OPERACAO_WHATSAPP/relatorios_por_horario/07_45');
     fs.mkdirSync(outDirRevisao, { recursive: true });
+    if (abertura?.textoAbertura) {
+      fs.writeFileSync(path.join(outDirRevisao, '07_45__VITORIO.md'), abertura.textoAbertura, 'utf8');
+    }
     if (geralRisco) {
       fs.writeFileSync(path.join(outDirRevisao, '07_45__ALERTA_RISCO_GERAL.md'), geralRisco, 'utf8');
     }

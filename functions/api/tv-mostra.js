@@ -7,6 +7,7 @@
 //          (a mesma que o GitHub Actions usa para baixar a planilha). Pasta: GDRIVE_FOLDER_ID (opcional;
 //          padrão abaixo). A service account precisa ter acesso de leitura à pasta.
 // CACHE: 3 minutos (a planilha é lida do Drive no máximo 1 vez a cada 3 min).
+// ORDEM DAS FONTES: 1) D1 config_equipe_soberana (salvo pela Gestao de Equipe); 2) planilha do Drive; 3) cópia estática.
 // SE FALHAR: cai para public/mostra_vendedores.json (cópia publicada pelo último deploy) e a TV avisa
 //            na tela que está usando cópia, não a fonte viva.
 // =========================================================================
@@ -40,6 +41,22 @@ export async function onRequestGet({ env, request }) {
   const url = new URL(request.url);
   const bypassCache = url.searchParams.has('nocache') || url.searchParams.has('t');
   if (!bypassCache && cache.corpo && Date.now() < cache.exp) return resp(cache.corpo);
+
+  // FONTE DA EQUIPE (decisao do Vitorio, 03/10/2026): a tela Gestao de Equipe e a fonte. O que ela
+  // salva (equipe-salvar / aprovacao em equipe-solicitacoes) vale primeiro; so se nao houver nada
+  // salvo cai para a planilha do Drive e depois para a copia estatica.
+  if (env.DB) {
+    try {
+      const row = await env.DB.prepare('SELECT conteudo_json, atualizado_por, atualizado_em FROM config_equipe_soberana WHERE id = 1').first();
+      if (row && row.conteudo_json) {
+        const corpo = { ...JSON.parse(row.conteudo_json), origem: 'd1', atualizado_por: row.atualizado_por, atualizado_em: row.atualizado_em, gerado_em: new Date().toISOString() };
+        cache = { exp: Date.now() + 60 * 1000, corpo };
+        return resp(corpo);
+      }
+    } catch (e) {
+      // tabela ainda nao existe ou D1 indisponivel: segue para o Drive
+    }
+  }
 
   if (env.GDRIVE_SA_JSON) {
     try {

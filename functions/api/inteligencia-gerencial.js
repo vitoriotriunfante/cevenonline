@@ -26,7 +26,7 @@ export async function onRequestGet(context) {
 
     // 3. Busca clientes e roteiros
     const { results: roteiros } = await env.DB.prepare(`
-      SELECT rv.*, r.nome as rca_nome, c.dias_sem_compra, c.tags_oportunidade_json, c.potencial_mensal
+      SELECT rv.*, r.nome as rca_nome, c.dias_sem_compra, c.tags_oportunidade_json 
       FROM roteiros_visitas rv
       LEFT JOIN representantes r ON rv.rca_codigo = r.codigo
       LEFT JOIN clientes_historico_compras c ON rv.id_cliente = c.id_cliente
