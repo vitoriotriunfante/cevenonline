@@ -145,6 +145,36 @@ secao('5. Agenda do Worker (wrangler.toml x index.js)');
   ok(cronsToml.filter(c => /\* \* 2-6$/.test(c)).length === 6, 'os 6 gatilhos comerciais usam 2-6 (segunda a sexta)');
 }
 
+// ---------------------------------------------------------------- 5b. relogios da TV no Worker
+secao('5b. Relogios da TV no Worker (varredura, lances, mapa, faturado)');
+{
+  const w = (await imp('worker-cron/src/index.js')).default;
+  const original = globalThis.fetch;
+  const chamadas = [];
+  globalThis.fetch = async (url) => { chamadas.push(String(url)); return { status: 200 }; };
+  const esperado = {
+    '*/5 * * * *': ['/api/cron-varredura-central', '/api/cron-piloto-pedidos'],
+    '4-59/5 * * * *': ['/api/cron-lances'],
+    '2-59/5 * * * *': ['/api/cron-mapa-executivo'],
+    '2-59/15 * * * *': ['/api/cron-faturado-mes']
+  };
+  for (const [cron, rotas] of Object.entries(esperado)) {
+    chamadas.length = 0;
+    await w.scheduled({ cron }, {}, {});
+    ok(JSON.stringify(chamadas) === JSON.stringify(rotas.map(x => 'https://ceven-cftv-matrix.pages.dev' + x)), `gatilho "${cron}" chama ${rotas.join(' e ')}, nessa ordem`);
+  }
+  // uma chamada que falha nao derruba o gatilho
+  globalThis.fetch = async () => { throw new Error('site fora do ar'); };
+  let derrubou = false;
+  try { await w.scheduled({ cron: '*/5 * * * *' }, {}, {}); } catch (e) { derrubou = true; }
+  ok(!derrubou, 'erro em uma chamada nao derruba o gatilho da TV');
+  // gatilho desconhecido e ignorado sem chamar nada
+  chamadas.length = 0; globalThis.fetch = async (u) => { chamadas.push(String(u)); return { status: 200 }; };
+  await w.scheduled({ cron: '1 2 3 4 5' }, {}, {});
+  ok(chamadas.length === 0, 'gatilho desconhecido nao chama nada');
+  globalThis.fetch = original;
+}
+
 // ---------------------------------------------------------------- 6. senha da equipe
 secao('6. Senha da Diretoria (entrar, salvar e aprovar)');
 const { exigeSenhaEquipe } = await imp('functions/_lib/senha_equipe.js');

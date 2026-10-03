@@ -40,6 +40,29 @@ const GATILHOS = {
   '30 21 * * 2-6': { workflow: 'ceven-cron-whatsapp.yml',      inputs: { ciclo: '18:30', destino: 'todos' } }  // 18:30 BRT — Fechamento oficial (WhatsApp)
 };
 
+// RELOGIOS DA TV (03/10/2026): antes, o agendador do GitHub chamava estas funcoes e perdia cerca de 2/3 das
+// chamadas (95 de 288 por dia). Agora o Cloudflare chama direto, na hora certa. Cada item e uma chamada
+// HTTP as funcoes do site; os passos de um mesmo gatilho rodam em sequencia.
+const BASE_TV = 'https://ceven-cftv-matrix.pages.dev';
+const TAREFAS_TV = {
+  '*/5 * * * *':     { passos: [{ rota: '/api/cron-varredura-central', ms: 540000 }, { rota: '/api/cron-piloto-pedidos', ms: 60000 }] },
+  '4-59/5 * * * *':  { passos: [{ rota: '/api/cron-lances', ms: 180000 }] },
+  '2-59/5 * * * *':  { passos: [{ rota: '/api/cron-mapa-executivo', ms: 60000 }] },
+  '2-59/15 * * * *': { passos: [{ rota: '/api/cron-faturado-mes', ms: 60000 }] }
+};
+
+async function rodarTarefaTv(cron, tarefa) {
+  for (const passo of tarefa.passos) {
+    const inicio = Date.now();
+    try {
+      const r = await fetch(BASE_TV + passo.rota, { headers: { 'User-Agent': 'ceven-cron-trigger' }, signal: AbortSignal.timeout(passo.ms) });
+      console.log(`[TV] cron "${cron}" ${passo.rota} status=${r.status} em ${Date.now() - inicio} ms`);
+    } catch (e) {
+      console.log(`[TV][ERRO] cron "${cron}" ${passo.rota}: ${e && e.message ? e.message : e}`);
+    }
+  }
+}
+
 async function dispararWorkflow(env, workflow, inputs) {
   const url = `https://api.github.com/repos/${REPO}/actions/workflows/${workflow}/dispatches`;
   const res = await fetch(url, {
@@ -57,6 +80,11 @@ async function dispararWorkflow(env, workflow, inputs) {
 
 export default {
   async scheduled(event, env, ctx) {
+    const tarefaTv = TAREFAS_TV[event.cron];
+    if (tarefaTv) {
+      await rodarTarefaTv(event.cron, tarefaTv);
+      return;
+    }
     const gatilho = GATILHOS[event.cron];
     if (!gatilho) {
       console.log(`[IGNORADO] Cron "${event.cron}" não está no mapa de gatilhos.`);
@@ -105,7 +133,8 @@ export default {
     }
     return new Response(JSON.stringify({
       status: 'CEVEN Cron Trigger (gatilho externo pro GitHub Actions) — Ativo',
-      gatilhos: GATILHOS
+      gatilhos: GATILHOS,
+      relogios_tv: TAREFAS_TV
     }, null, 2), { headers: { 'Content-Type': 'application/json' } });
   }
 };
