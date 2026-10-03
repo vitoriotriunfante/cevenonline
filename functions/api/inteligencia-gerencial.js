@@ -5,7 +5,7 @@ export async function onRequestGet(context) {
   const { request, env } = context;
   const url = new URL(request.url);
   const filialFiltro = (url.searchParams.get('filial') || 'TBL').toUpperCase();
-  const dataHoje = url.searchParams.get('data') || '2026-08-31';
+  const dataHoje = url.searchParams.get('data') || new Date(Date.now()-3*3600*1000).toISOString().slice(0,10);
 
   try {
     // 1. Busca todos os KPIs de vendedores da filial no D1
@@ -38,19 +38,7 @@ export async function onRequestGet(context) {
     // =========================================================================
 
     // 1. ✂️ CORTES DE SKUS (O que está cortando? Quais pedidos? De quais vendedores?)
-    const listaCortes = [
-      {
-        rca_codigo: '193',
-        rca_nome: 'MARIELI BRUM GREGHI',
-        num_pedido: '193000448',
-        id_cliente: '202884',
-        nome_cliente: 'ESPERANDIO E ESPERANDIO LTDA',
-        sku_cortado: 'WAFER CHOCOLATE MARILAN 115G (-8 un)',
-        vl_corte: 12.40,
-        motivo: 'Falta de Estoque no CD (Corte Físico)',
-        sugestao_troca: 'Wafer Morango ou Tortinha Chocolate Marilan'
-      }
-    ];
+    const listaCortes = []; // sem fonte de cortes nesta rota: vazio, nunca exemplo
 
     // 2. 🔒 PEDIDOS BLOQUEADOS (Trava de Crédito / Financeiro)
     const listaBloqueados = (pedidosItens || []).filter(p => p.status_pedido === 'Bloqueado' || p.categoria_corte?.includes('BLOQUEIO')).map(p => ({
@@ -73,8 +61,8 @@ export async function onRequestGet(context) {
       .map(k => ({
         rca_codigo: k.rca_codigo,
         rca_nome: k.rca_nome || `RCA ${k.rca_codigo}`,
-        meta_mes: k.meta_fat || 120000,
-        pdvs_rota: k.visitas_programadas_dia || 15,
+        meta_mes: k.meta_fat ?? null,
+        pdvs_rota: k.visitas_programadas_dia ?? null,
         status: 'Nenhum pedido digitado até o momento'
       }));
 
@@ -112,119 +100,32 @@ export async function onRequestGet(context) {
         rca_nome: r.rca_nome || `RCA ${r.rca_codigo}`,
         id_cliente: r.id_cliente,
         nome_cliente: r.nome_fantasia || r.razao_social,
-        dias_sem_compra: r.dias_sem_compra || 42,
-        potencial: r.potencial_mensal || 2500,
+        dias_sem_compra: r.dias_sem_compra,
+        potencial: r.potencial_mensal ?? null,
         risco: 'Risco de Churn Definitivo (Mais de 30 dias sem compras)'
       }));
 
-    // Se a lista estiver vazia para o filtro, inclui o caso crítico do Serve Bem (42 dias)
-    if (listaInativosRotaAberta.length === 0 && filialFiltro === 'TBL') {
-      listaInativosRotaAberta.push({
-        rca_codigo: '174',
-        rca_nome: 'BRUNO GUSTAVO NATAL',
-        id_cliente: '211328',
-        nome_cliente: 'SUPERMERCADO SERVE BEM (SERVE BEM ALIMENTOS)',
-        dias_sem_compra: 42,
-        potencial: 4800,
-        risco: 'Risco Crítico: 42 dias sem comprar na rota de hoje (Aberto)'
-      });
-    }
-
     // 7. 🏆 CLIENTES > 30 DIAS REATIVADOS HOJE (VENDAS RECUPERADAS)
-    const listaReativadosHoje = [
-      {
-        rca_codigo: '174',
-        rca_nome: 'BRUNO GUSTAVO NATAL',
-        id_cliente: '194684',
-        nome_cliente: 'PADARIA FRIPAN (FERNANDO F SILVA)',
-        dias_anteriores_sem_compra: 38,
-        valor_pedido_hoje: 1806.19,
-        num_pedido: '174000622',
-        status: '🏆 Reativado com Sucesso Hoje!'
-      },
-      {
-        rca_codigo: '178',
-        rca_nome: 'EWERSON CANDIDO DE OLIVEIRA',
-        id_cliente: '17800086',
-        nome_cliente: 'CASA DO PAO BELA MANHA',
-        dias_anteriores_sem_compra: 32,
-        valor_pedido_hoje: 2903.88,
-        num_pedido: '178000858 e #178000862',
-        status: '🏆 Reativado com Sucesso Hoje!'
-      }
-    ];
+    const listaReativadosHoje = []; // sem fonte
 
     // 8. 💡 RECADOS COMERCIAIS & OPORTUNIDADES DE MIX (PEX, POSIT & RECORRÊNCIA)
-    const listaRecadosMix = [
-      {
-        categoria: 'OPORTUNIDADE PEX',
-        marca_foco: 'SNICKERS CORE & DUO',
-        descricao: 'Clientes da rota da tarde com potencial de bomboniere que não compraram Snickers nos últimos 60 dias.',
-        acao: 'Ofertar combo promocional Snickers Duo 79g no check-out'
-      },
-      {
-        categoria: 'RECORRÊNCIA DE BISCOITOS',
-        marca_foco: 'MARILAN TORTINHAS & CRACKER',
-        descricao: 'PDVs que compraram biscoitos há mais de 14 dias com giro alto no ponto de venda.',
-        acao: 'Garantir abastecimento da ponta de gôndola'
-      },
-      {
-        categoria: 'POSITIVAÇÃO DE LIMPEZA',
-        marca_foco: 'LAVA ROUPAS TIXAN YPÊ 1.6KG',
-        descricao: 'Mercearias e mercados de bairro com baixo mix de higiene/limpeza.',
-        acao: 'Introduzir caixa de Tixan com condição especial de pagamento'
-      }
-    ];
+    const listaRecadosMix = []; // sem fonte
 
     // 9. 🚀 PRODUTOS NOVOS E LANÇAMENTOS VENDIDOS HOJE (MIX DE INOVAÇÃO)
-    const listaProdutosNovos = [
-      {
-        rca_codigo: '174',
-        rca_nome: 'BRUNO GUSTAVO NATAL',
-        id_cliente: '206339',
-        nome_cliente: 'F2 SUPERMERCADO',
-        sku_novo: 'SNICKERS ORIGINAL DUO 79G',
-        cod_sku: '7896423401',
-        qtd_vendida: '3 displays (72 un)',
-        valor_venda: 430.56,
-        destaque: 'Primeira compra do SKU no cliente'
-      },
-      {
-        rca_codigo: '181',
-        rca_nome: 'GIOVANA BATISTA DA SILVA',
-        id_cliente: '18100065',
-        nome_cliente: 'MERCADO MILIOZZI EIRELI',
-        sku_novo: 'MEM CHOCOLATE AO LEITE DISPLAY 45G',
-        cod_sku: '7896423450',
-        qtd_vendida: '8 displays (192 un)',
-        valor_venda: 806.40,
-        destaque: 'Positivação de Novo Lançamento de Bomboniere'
-      },
-      {
-        rca_codigo: '178',
-        rca_nome: 'EWERSON CANDIDO DE OLIVEIRA',
-        id_cliente: '17800092',
-        nome_cliente: 'RODRIGO SABIONE MARTINS LTDA',
-        sku_novo: 'LAVA ROUPAS PO TIXAN YPE 1.6KG',
-        cod_sku: '7891234567',
-        qtd_vendida: '12 fardos (48 un)',
-        valor_venda: 763.20,
-        destaque: 'Abertura de nova linha de limpeza no PDV'
-      }
-    ];
+    const listaProdutosNovos = []; // sem fonte
 
     // Monta o Relatório Master em Texto formatado para o Gerente no WhatsApp
     const horaAgora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
     let relatorioMasterWhatsApp = `📊 *CENTRO DE COMANDO CEVEN NOC - FILIAL ${filialFiltro}*\n`;
     relatorioMasterWhatsApp += `🕒 *Horário:* ${horaAgora} | 📅 *Data:* ${dataHoje}\n\n`;
-    relatorioMasterWhatsApp += `1️⃣ *CORTES:* ${listaCortes.length} pedido(s) afetado(s) (-R$ 12,40)\n`;
+    relatorioMasterWhatsApp += `1️⃣ *CORTES:* ${listaCortes.length} pedido(s) afetado(s) \n`;
     relatorioMasterWhatsApp += `2️⃣ *BLOQUEIOS:* ${listaBloqueados.length} pedido(s) retido(s)\n`;
     relatorioMasterWhatsApp += `3️⃣ *ZERADOS:* ${listaZerados.length} vendedores de campo sem pedido\n`;
     relatorioMasterWhatsApp += `4️⃣ *DEVOLUÇÕES:* ${listaDevolucoes.length} ocorrência(s) crítica(s)\n`;
     relatorioMasterWhatsApp += `5️⃣ *RITMO < 20 VISITAS:* ${listaBaixasVisitas.length} vendedores lentos\n`;
     relatorioMasterWhatsApp += `6️⃣ *INATIVOS > 30D EM ROTA:* ${listaInativosRotaAberta.length} cliente(s) em risco\n`;
     relatorioMasterWhatsApp += `7️⃣ *REATIVAÇÕES > 30D HOJE:* 🏆 ${listaReativadosHoje.length} clientes recuperados!\n`;
-    relatorioMasterWhatsApp += `8️⃣ *OPORTUNIDADES DE MIX:* 3 recados estratégicos ativos\n`;
+    relatorioMasterWhatsApp += `8️⃣ *OPORTUNIDADES DE MIX:* ${listaRecadosMix.length} recado(s)\n`;
     relatorioMasterWhatsApp += `9️⃣ *PRODUTOS NOVOS/LANÇAMENTOS:* ${listaProdutosNovos.length} positivações de inovação hoje!`;
 
     return new Response(JSON.stringify({

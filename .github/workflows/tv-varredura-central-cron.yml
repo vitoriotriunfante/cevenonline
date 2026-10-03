@@ -29,3 +29,7 @@ jobs:
           curl -sS -m 300 "https://ceven-cftv-matrix.pages.dev/api/cron-varredura-central" \
             -o resultado.json -w "\nHTTP %{http_code}\n"
           cat resultado.json
+
+      - name: Coletar retrato do piloto de pedidos (cron-piloto-pedidos)
+        continue-on-error: true
+        run: curl -sS -m 60 "https://ceven-cftv-matrix.pages.dev/api/cron-piloto-pedidos" -w " HTTP %{http_code}"

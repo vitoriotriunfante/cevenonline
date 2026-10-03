@@ -279,33 +279,6 @@ export async function onRequest({ request, env }) {
         });
       }
 
-      // REGRA 3: Cortes de SKUs Analisados de Hora em Hora
-      const cortesExemplo = [
-        {
-          rca_codigo: '193',
-          rca_nome: 'MARIELI BRUM GREGHI',
-          num_pedido: '193000448',
-          id_cliente: '202884',
-          nome_cliente: 'ESPERANDIO E ESPERANDIO LTDA',
-          sku_cortado: 'WAFER CHOCOLATE MARILAN 115G (-8un)',
-          vl_corte: 12.40,
-          motivo: 'Falta de Estoque CD'
-        }
-      ];
-
-      alertsGerados.push({
-        filial_id: fSigla,
-        tipo: 'corte_coletivo',
-        titulo: `✂️ CORTES DE SKUS DE HORA EM HORA (${fSigla})`,
-        mensagem: `Auditoria de cortes comerciais para a filial ${fSigla}. 1 pedido ativo com corte físico no CD requer troca de SKU para recuperação da venda.`,
-        detalhes_json: JSON.stringify({
-          filial: fSigla,
-          regra: 'REGRA_3_CORTES_HORA',
-          total_cortes: cortesExemplo.length,
-          perda_total: 12.40,
-          lista_cortes: cortesExemplo
-        })
-      });
     }
 
     // 4. Grava os novos alertas no D1 (tabela flash_alerts)

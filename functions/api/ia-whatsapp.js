@@ -25,7 +25,7 @@ export async function onRequestPost({ request, env }) {
       prospects = pRes.results || [];
     }
 
-    const totalRota = roteiro.length || 16;
+    const totalRota = roteiro.length;
     const gap20 = Math.max(0, 20 - totalRota);
 
     // 2. Classificador Semântico com Suporte a Variações de Linguagem / Erros de Digitação

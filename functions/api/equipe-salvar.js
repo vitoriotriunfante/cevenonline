@@ -64,6 +64,7 @@ export async function onRequestPost({ request, env }) {
         `).bind(usuario, totalSim + totalNao, `Ativos: ${totalSim} | Ocultos: ${totalNao}`).run();
       } catch (d1Err) {
         console.warn('Erro ao gravar no D1:', d1Err.message);
+        return new Response(JSON.stringify({ erro: 'Falha ao gravar no D1: ' + d1Err.message }), { status: 500, headers: CORS });
       }
     }
 
