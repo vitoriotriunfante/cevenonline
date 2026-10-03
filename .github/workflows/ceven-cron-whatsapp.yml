@@ -102,7 +102,7 @@ jobs:
         if: steps.calendario.outputs.bloqueado != 'true'
         env:
           GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
-          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID || '1sqzFpWEKb1WKhT9MksQcQl8RuY94DQum' }}
         run: |
           mkdir -p ~/.config/rclone
           echo "$GDRIVE_SA_JSON" > /tmp/gdrive-sa.json

@@ -23,14 +23,16 @@ compatibility_date = "2024-08-01"
 # 18:30 BRT (21:30 UTC) -> Fechamento Oficial WhatsApp
 
 [triggers]
+# ATENCAO: no Cloudflare o dia da semana conta 1=DOMINGO ... 7=SABADO. Segunda a sexta = 2-6 (1-5 disparava de domingo a quinta e pulava a sexta).
+# Feriado nacional: a trava esta no workflow ceven-cron-whatsapp.yml (lista FERIADOS), nao aqui.
 crons = [
   "0 6 * * *",     # 03:00 BRT -> ceven-cron-datalake.yml (Atualiza TUDO no Drive, todo dia)
   "0 7 * * *",     # 04:00 BRT -> ceven-cron-whatsapp.yml (Aquecimento matinal / dry_run, todo dia -- pode haver faturamento em fim de semana)
-  "45 10 * * 1-5", # 07:45 BRT -> ceven-cron-whatsapp.yml (Abertura oficial)
-  "0 13 * * 1-5",  # 10:00 BRT -> ceven-cron-marca-propria.yml (Marcas proprias)
-  "30 14 * * 1-5", # 11:30 BRT -> ceven-cron-whatsapp.yml (Gestao de campo)
-  "30 17 * * 1-5", # 14:30 BRT -> ceven-cron-whatsapp.yml (Parcial da tarde)
-  "0 20 * * 1-5",  # 17:00 BRT -> ceven-cron-whatsapp.yml (Reta final)
-  "30 21 * * 1-5"  # 18:30 BRT -> ceven-cron-whatsapp.yml (Fechamento oficial)
+  "45 10 * * 2-6", # 07:45 BRT -> ceven-cron-whatsapp.yml (Abertura oficial)
+  "0 13 * * 2-6",  # 10:00 BRT -> ceven-cron-marca-propria.yml (Marcas proprias)
+  "30 14 * * 2-6", # 11:30 BRT -> ceven-cron-whatsapp.yml (Gestao de campo)
+  "30 17 * * 2-6", # 14:30 BRT -> ceven-cron-whatsapp.yml (Parcial da tarde)
+  "0 20 * * 2-6",  # 17:00 BRT -> ceven-cron-whatsapp.yml (Reta final)
+  "30 21 * * 2-6"  # 18:30 BRT -> ceven-cron-whatsapp.yml (Fechamento oficial)
 ]
 
