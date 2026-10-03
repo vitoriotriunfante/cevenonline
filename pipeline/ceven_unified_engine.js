@@ -1270,6 +1270,9 @@ function verificarPermissaoCalendario(dataIso, diretrizes = null, args = {}) {
 }
 
 // 6. Envio Resiliente via WhatsApp (com retry automático e trava final de calendário)
+// Conta envios que falharam de verdade (servico fora do ar, numero invalido...). Bloqueio de calendario nao conta.
+let FALHAS_ENVIO = 0;
+
 async function enviarWhatsapp(numero, texto, tentativas = 3) {
   // Trava de Segurança Final no Envio (Double-check)
   const perm = verificarPermissaoCalendario();
@@ -1290,7 +1293,7 @@ async function enviarWhatsapp(numero, texto, tentativas = 3) {
       return { sucesso: true, id: res.data?.key?.id || 'OK' };
     } catch (err) {
       console.warn(`  ⚠️ Tentativa ${i} falhou para ${numero}: ${err.message}`);
-      if (i === tentativas) return { sucesso: false, erro: err.message };
+      if (i === tentativas) { FALHAS_ENVIO++; return { sucesso: false, erro: err.message }; }
       await new Promise(r => setTimeout(r, 2000));
     }
   }
@@ -1672,6 +1675,12 @@ async function main() {
       console.log(`\n--- PREVIEW CONSOLIDADO GERAL (${hora}) ---`);
       console.log(relatorios.msgConsolidado);
     }
+  }
+
+  // Se algum envio falhou, o ciclo NAO termina como sucesso e NAO e marcado como disparado (pode ser repetido).
+  if (FALHAS_ENVIO > 0 && destino !== 'dry_run') {
+    console.error(`\n❌ ${FALHAS_ENVIO} envio(s) de WhatsApp FALHARAM: o ciclo ${hora} NAO foi marcado como disparado.\n`);
+    process.exit(1);
   }
 
   marcarCicloDisparado();
