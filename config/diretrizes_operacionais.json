@@ -45,7 +45,7 @@
     "destino_padrao_abertura": "vitorio",
     "ultimo_disparo_por_ciclo": {
       "10:00": "2026-09-23",
-      "11:30": "2026-10-01",
+      "11:30": "2026-10-03",
       "14:30": "2026-10-01",
       "17:00": "2026-10-01",
       "18:30": "2026-10-01",
@@ -74,7 +74,9 @@
   "esporadicos": {
     "permitir_fim_de_semana": false,
     "permitir_feriados": false,
-    "datas_autorizadas": ["2026-10-03"],
+    "datas_autorizadas": [
+      "2026-10-03"
+    ],
     "observacao": "Para autorizar disparo extraordinário em sábado, domingo ou feriado, adicione a data 'YYYY-MM-DD' em datas_autorizadas ou altere permitir_fim_de_semana/permitir_feriados para true."
   }
 }
