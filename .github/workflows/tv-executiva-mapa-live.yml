@@ -9,8 +9,8 @@
 name: TV Executiva — Atualizar Mapa ao Vivo
 
 on:
-  schedule:
-    - cron: '2-59/5 * * * *' # minutos 2,7,12,17... — 2min depois da varredura central (*/5)
+  # Agendamento removido em 03/10/2026: quem dispara agora e o Worker do Cloudflare (worker-cron), que e pontual;
+  # o agendador do GitHub executava so ~1/3 das chamadas. Aqui ficou so a execucao manual.
   workflow_dispatch: {}
 
 jobs:

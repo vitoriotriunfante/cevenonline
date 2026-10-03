@@ -12,9 +12,8 @@
 name: CEVEN Data Lake — Atualização Diária (Pedidos, Devoluções, PDVs, Live)
 
 on:
-  schedule:
-    # 03:00 BRT = 06:00 UTC, todos os dias
-    - cron: '0 6 * * *'
+  # Agendamento do GitHub removido em 03/10/2026: quem dispara e o Worker do Cloudflare, todo dia as 03:00 BRT
+  # (06:00 UTC, '0 6 * * *' em worker-cron). Os dois juntos faziam a rotina inteira rodar duas vezes.
   workflow_dispatch: {}
 
 concurrency:

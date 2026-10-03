@@ -162,6 +162,10 @@ secao('5b. Relogios da TV no Worker (varredura, lances, mapa, faturado)');
     await w.scheduled({ cron }, {}, {});
     ok(JSON.stringify(chamadas) === JSON.stringify(rotas.map(x => 'https://ceven-cftv-matrix.pages.dev' + x)), `gatilho "${cron}" chama ${rotas.join(' e ')}, nessa ordem`);
   }
+  for (const wf of ['tv-varredura-central-cron', 'tv-lances-cron', 'tv-executiva-mapa-live', 'tv-faturado-mes-cron', 'ceven-cron-datalake']) {
+    const y = ler(`.github/workflows/${wf}.yml`);
+    ok(!/^\s*schedule:/m.test(y) && /workflow_dispatch/.test(y), `${wf}.yml sem agendamento proprio no GitHub (quem dispara e o Worker) e com execucao manual`);
+  }
   // uma chamada que falha nao derruba o gatilho
   globalThis.fetch = async () => { throw new Error('site fora do ar'); };
   let derrubou = false;
