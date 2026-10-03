@@ -75,7 +75,7 @@ def fetch_vendedor_data(v):
 t0 = time.time()
 print("\nIniciando requisições paralelas (25 workers)...")
 
-with ThreadPoolExecutor(max_workers=25) as executor:
+with ThreadPoolExecutor(max_workers=6) as executor:
     futures = [executor.submit(fetch_vendedor_data, v) for v in vendedores]
     for fut in as_completed(futures):
         v, res = fut.result()

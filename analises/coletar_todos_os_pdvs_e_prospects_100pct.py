@@ -84,7 +84,7 @@ def fetch_roteiro(v):
 
 print("\n--- COLETANDO ROTEIROS DE TODOS OS VENDEDORES (11 FILIAIS) ---")
 t0 = time.time()
-with ThreadPoolExecutor(max_workers=25) as executor:
+with ThreadPoolExecutor(max_workers=6) as executor:
     futures = [executor.submit(fetch_roteiro, v) for v in vendedores]
     for fut in as_completed(futures):
         v, rows = fut.result()
@@ -111,16 +111,42 @@ def fetch_prospects(v):
             res_data = r.json()
             st = res_data.get('status')
             if st == 'pronto':
-                return (v, res_data.get('prospects', []))
+                return (v, res_data.get('prospects', []), True)
     except Exception:
         pass
-    return (v, [])
+    return (v, [], False)
+
+PROSPECTS_SEM_RETORNO = []  # vendedores cujo calculo nao ficou pronto em nenhuma rodada: SEM DADO (nunca zero)
+
+def buscar_prospects_com_espera(vendedores, rodadas=3, espera_s=60):
+    """O CEVEN calcula os prospects de forma assincrona: a 1a chamada ACIONA o calculo e so depois de
+    ~1 minuto a resposta vem com status 'pronto'. Por isso: aciona todos, espera, busca de novo.
+    Quem nao ficar pronto em nenhuma rodada vai para PROSPECTS_SEM_RETORNO."""
+    pendentes = list(vendedores)
+    for rodada in range(1, rodadas + 1):
+        if not pendentes:
+            break
+        if rodada > 1:
+            print(f" - Aguardando {espera_s}s para o CEVEN terminar de calcular {len(pendentes)} vendedores...")
+            time.sleep(espera_s)
+        ainda = []
+        prontos = 0
+        with ThreadPoolExecutor(max_workers=6) as executor:
+            futs = [executor.submit(fetch_prospects, v) for v in pendentes]
+            for fut in as_completed(futs):
+                v, pro_list, pronto = fut.result()
+                if pronto:
+                    prontos += 1
+                    yield (v, pro_list)
+                else:
+                    ainda.append(v)
+        print(f" - Rodada {rodada}: {prontos} prontos, {len(ainda)} ainda pendentes")
+        pendentes = ainda
+    PROSPECTS_SEM_RETORNO.extend(pendentes)
 
 t1 = time.time()
-with ThreadPoolExecutor(max_workers=20) as executor:
-    futures = [executor.submit(fetch_prospects, v) for v in rcas_com_rota]
-    for fut in as_completed(futures):
-        v, pro_list = fut.result()
+if True:
+    for v, pro_list in buscar_prospects_com_espera(rcas_com_rota):
         fil_sigla, rca_id, rca_nome, sup_nome, ger_nome, seg_nome = v
         for p in pro_list:
             cnpj_num = str(p.get('cnpj', '')).replace('.', '').replace('/', '').replace('-', '').strip()
@@ -161,6 +187,7 @@ with ThreadPoolExecutor(max_workers=20) as executor:
 t_prospects = time.time() - t1
 print(f"Prospects consultados em {t_prospects:.2f}s:")
 print(f" - Total de prospects únicos capturados: {len(prospects_coletados)}")
+print(f" - Vendedores SEM retorno de prospects após 3 rodadas (sem dado, não zero): {len(PROSPECTS_SEM_RETORNO)}")
 
 # 4. Atualizar o Excel EXPANSAO_CADASTROS_E_PROSPECTS.xlsx (espelho legivel dos mesmos
 # dados que vao pro SQLite abaixo -- nao pode ser bloqueante: se o arquivo nao existir

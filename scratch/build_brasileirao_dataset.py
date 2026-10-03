@@ -57,6 +57,25 @@ try:
     res = subprocess.check_output(cmd, shell=True, text=True, stderr=subprocess.STDOUT)
     d1_data = json.loads(res)[0]['results']
     print(f"Total lances no D1: {len(d1_data)}")
+    # Um mesmo lance pode estar gravado duas vezes: pela TV da matriz (filial MTZ, chave com prefixo
+    # "SIG|") e pela TV de filial/cron (filial real, chave sem prefixo). Conta cada lance UMA vez.
+    # Identidade = dia + filial real + chave sem prefixo (a filial entra para nao juntar lances de
+    # supervisor de filiais diferentes). Mesma regra de functions/api/brasileirao-lances.js.
+    import re
+    _vistos = {}
+    for _l in d1_data:
+        _ch = str(_l.get('chave') or '')
+        _m = re.match(r'^([A-Z]{3})\|', _ch)
+        _pre = _m.group(1) if _m else None
+        _fil = _l.get('filial') or ''
+        _fil_real = _pre if (_fil == 'MTZ' and _pre) else (_fil or _pre or '')
+        _canon = re.sub(r'^[A-Z]{3}\|', '', _ch)
+        _id = (_l.get('dia'), _fil_real, _canon)
+        if _id not in _vistos or (_fil != 'MTZ' and _vistos[_id].get('filial') == 'MTZ'):
+            _vistos[_id] = _l
+    duplicados_removidos = len(d1_data) - len(_vistos)
+    d1_data = list(_vistos.values())
+    print(f"Duplicados removidos: {duplicados_removidos} | lances únicos: {len(d1_data)}")
 except Exception as e:
     # NUNCA sobrescrever o dataset publicado com dado vazio/zerado por falha de consulta
     # (ex.: secret do Cloudflare ausente, D1 fora do ar) — regra "nunca inventar dado"

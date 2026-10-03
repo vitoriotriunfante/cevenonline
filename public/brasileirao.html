@@ -258,18 +258,23 @@ main {
 /* LEAGUE TABLE */
 .tb-league {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   text-align: left;
 }
-.tb-league th {
-  background: rgba(15, 23, 42, 0.95);
+.tb-league thead th {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #0e172a;
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--tx-mut);
   padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid var(--acc);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   white-space: nowrap;
 }
 .tb-league td {
@@ -397,6 +402,17 @@ main {
 .rule-card h3 { font-size: 16px; font-weight: 800; color: var(--acc); margin-bottom: 10px; }
 .rule-card p { font-size: 13px; line-height: 1.6; color: #cbd5e1; }
 
+/* ESTILOS ESPECÍFICOS PARA MODO TV DAS FILIAIS (VISUALIZAÇÃO EM SMART TV) */
+body.modo-tv header .header-actions { display: none !important; }
+body.modo-tv .brand-text p { font-size: 14px; }
+body.modo-tv .tab-btn { font-size: 17px; padding: 12px 26px; font-weight: 800; border-radius: 10px; }
+body.modo-tv .rule-card { padding: 28px; margin-bottom: 24px; background: rgba(15, 23, 42, 0.85); border: 2px solid rgba(56, 189, 248, 0.25); border-radius: 16px; }
+body.modo-tv .rule-card h3 { font-size: 22px; margin-bottom: 14px; }
+body.modo-tv .rule-card p { font-size: 16px; line-height: 1.8; color: #e2e8f0; }
+body.modo-tv .tb-league th { font-size: 16px; padding: 16px; }
+body.modo-tv .tb-league td { font-size: 15px; padding: 16px; }
+body.modo-tv .table-title h2 { font-size: 28px; }
+body.modo-tv .table-subtitle { font-size: 15px; }
 
 footer {
   margin-top: auto;
@@ -689,6 +705,7 @@ footer {
             <option value="TODOS">TODOS OS TIPOS</option>
             <option value="gol">⚽ Gol</option>
             <option value="hattrick">🔥 Hat-Trick</option>
+            <option value="pedido_rota">📝 Pedido na Rota</option>
             <option value="golcontra">⚽ Gol Contra</option>
             <option value="penalti">🚨 Pênalti</option>
             <option value="vermelho">🟥 Cartão Vermelho</option>
@@ -734,70 +751,77 @@ footer {
       </p>
 
       <div class="rule-card">
-        <h3>1. A Regra do Jogo: Cada Dia é uma Rodada (Você Contra o Seu Dia)</h3>
+        <h3>1. A Regra do Jogo: Cada Dia é uma Rodada ("Você Contra o Seu Dia")</h3>
         <p>
           O vendedor não disputa contra o tamanho da rota do colega. Ele disputa contra o seu próprio desafio diário —
-          todo lance real que o CEVEN registra (gol, cartão, pênalti, impedimento) vale pontos, positivos ou negativos
-          (ver tabela completa no item 2). A soma de pontos do dia decide o resultado:
+          todo lance real que o CEVEN registra (gols, cartões, pênaltis, impedimentos e defesas) soma ou subtrai pontos na rodada do dia:
           <br><br>
-          🟢 <strong>Vitória no Dia (3 Pontos de Tabela):</strong> Somou <strong>mais de 10 pontos</strong> no dia.
+          🟢 <strong>Vitória no Dia (3 Pontos de Tabela na Liga):</strong> Somou <strong>mais de 10 pontos</strong> no dia de trabalho.
           <br>
-          🟡 <strong>Empate no Dia (1 Ponto de Tabela):</strong> Somou <strong>entre 1 e 10 pontos</strong> no dia.
+          🟡 <strong>Empate no Dia (1 Ponto de Tabela na Liga):</strong> Somou <strong>entre 1 e 10 pontos</strong> no dia de trabalho.
           <br>
-          🔴 <strong>Derrota no Dia (0 Pontos de Tabela):</strong> Somou <strong>0 pontos ou negativo</strong> no dia.
+          🔴 <strong>Derrota no Dia (0 Pontos de Tabela na Liga):</strong> Somou <strong>0 pontos ou pontuação negativa</strong> no dia de trabalho.
         </p>
       </div>
 
       <div class="rule-card">
         <h3>2. Tabela Oficial de Pontos por Lance</h3>
         <p style="margin-bottom:14px">
-          Cada lance tem um valor fixo, pensado para valorizar mais o <strong>processo</strong> (trabalho consistente,
-          recuperação de clientes, conversão) do que a sorte isolada, e para punir mais a <strong>quebra de confiança</strong>
-          (fraude, abandono) do que uma venda perdida.
+          Cada lance tem valor fixo, calibrado para <strong>premiar o esforço de processo e recuperação</strong> e <strong>punir quebra de disciplina e confiança</strong>:
         </p>
         <table class="tb-league" style="margin-bottom:6px">
           <thead>
-            <tr><th>Lance</th><th style="text-align:center">Pontos</th><th>Por quê</th></tr>
+            <tr><th>Lance Oficial</th><th style="text-align:center">Pontos</th><th>Critério & Por quê</th></tr>
           </thead>
           <tbody id="tbody-regulamento-pontos"><!-- preenchido via JS a partir de config/pontuacao_brasileirao.json --></tbody>
         </table>
-        <small style="color:var(--tx-mut)">Valores oficiais em <code>config/pontuacao_brasileirao.json</code> — sujeitos a ajuste pela diretoria comercial.</small>
+        <small style="color:var(--tx-mut)">Valores oficiais em <code>config/pontuacao_brasileirao.json</code> — metodologia auditada pela diretoria comercial.</small>
       </div>
 
       <div class="rule-card">
-        <h3>3. Bônus de Constância (Streak / Regularidade)</h3>
+        <h3>3. Bônus de Constância (Streak & Regularidade Semanal)</h3>
         <p>
-          Não adianta arrebentar na terça e sumir no resto da semana. A constância gera bônus na tabela:
+          Vender bem um único dia e sumir no resto da semana não sustenta a operação. A regularidade gera bônus diretos na tabela de classificação:
           <br><br>
-          🔥 <strong>Trinca de Ouro (3 Vitórias Seguidas):</strong> +3 Pontos extras na tabela de classificação.
+          🔥 <strong>Trinca de Ouro (3 Vitórias Seguidas):</strong> O vendedor que conquista Vitória por 3 dias consecutivos ganha <strong>+3 Pontos extras</strong> na tabela da Liga.
           <br>
-          👑 <strong>Semana Invicta (Vitória em TODOS os dias úteis da semana, seg-sex, excluindo feriados nacionais):</strong> +3 Pontos extras na tabela.
+          👑 <strong>Semana Invicta (5 Vitórias na Semana):</strong> O vendedor que conquista Vitória em TODOS os dias úteis da semana (segunda a sexta) ganha <strong>+3 Pontos extras adicionais</strong> na tabela.
         </p>
       </div>
 
       <div class="rule-card">
         <h3>4. Supervisores, Filiais e Gerentes: A Liga dos Times</h3>
         <p>
-          Cada nível de liderança também joga <strong>contra o seu próprio dia</strong> — não é a soma dos pontos dos
-          vendedores, é o resultado da equipe:
+          Líder não soma os pontos individuais dos vendedores; o resultado do líder é o desempenho da sua equipe frente ao dia:
           <br><br>
-          🟢 <strong>Vitória:</strong> a <strong>maioria (mais da metade)</strong> dos vendedores da equipe bateu Vitória no dia.
+          🟢 <strong>Vitória da Equipe (3 Pontos de Tabela):</strong> A maioria absoluta (mais de 50%) dos vendedores da equipe conquistou Vitória na rodada.
           <br>
-          🟡 <strong>Empate:</strong> pelo menos 1 vendedor bateu Vitória, mas não é maioria.
+          🟡 <strong>Empate da Equipe (1 Ponto de Tabela):</strong> Pelo menos 1 vendedor conquistou Vitória, mas não atingiu a maioria.
           <br>
-          🔴 <strong>Derrota:</strong> nenhum vendedor da equipe bateu Vitória no dia.
+          🔴 <strong>Derrota da Equipe (0 Pontos de Tabela):</strong> Nenhum vendedor da equipe bateu Vitória no dia.
           <br><br>
-          Essa regra vale igual para Supervisor (equipe = vendedores dele), Filial (equipe = todos os vendedores da
-          filial) e Gerente (equipe = vendedores de todas as filiais/equipes sob ele).
+          Essa mesma métrica se aplica em cascata:
+          <br>
+          • <strong>Supervisor:</strong> Base = Vendedores diretos da equipe dele.
+          <br>
+          • <strong>Filial:</strong> Base = Todos os vendedores da filial.
+          <br>
+          • <strong>Gerente Regional:</strong> Base = Todos os vendedores das filiais sob sua gestão.
         </p>
       </div>
 
       <div class="rule-card">
-        <h3>5. Critérios de Desempate (Saldo de Lances & Artilharia)</h3>
+        <h3>5. Critérios Oficiais de Desempate</h3>
         <p>
-          Se houver empate em pontos de tabela, os critérios oficiais de desempate são:
+          Havendo empate em Pontos Ganhos (PG) na tabela, a ordem oficial de desempate é:
+          <br><br>
+          🥇 <strong>1º) Maior Número de Vitórias (V)</strong>
           <br>
-          1º) Maior Número de Vitórias (V) • 2º) Maior Saldo de Gols (SG = Pontos Positivos - Pontos Negativos) • 3º) Mais Inativos Resgatados • 4º) Maior Positivação Total.
+          ⚽ <strong>2º) Maior Saldo de Gols / Lances (SG = Pontos Positivos − Pontos Negativos)</strong>
+          <br>
+          🦅 <strong>3º) Mais Clientes Inativos Resgatados</strong>
+          <br>
+          🎯 <strong>4º) Maior Positivação Total de Clientes Únicos</strong>
         </p>
       </div>
 
@@ -874,22 +898,57 @@ async function carregarTabelaPontos() {
     tbody.innerHTML = itens.map(it => {
       const cor = it.pontos > 0 ? '#22c55e' : '#ef4444';
       const sinal = it.pontos > 0 ? '+' : '';
-      return `<tr><td>${esc(it.nome)}</td><td style="text-align:center"><b style="color:${cor}">${sinal}${it.pontos}</b></td><td style="color:var(--tx-mut);font-size:13px">${esc(it.motivo)}</td></tr>`;
+      return `<tr>
+        <td style="font-weight:700;color:#fff">${esc(it.nome)}</td>
+        <td style="text-align:center"><b style="color:${cor};font-size:15px;font-family:'JetBrains Mono',monospace">${sinal}${it.pontos}</b></td>
+        <td style="color:#cbd5e1;font-size:13.5px;line-height:1.4">${esc(it.motivo)}</td>
+      </tr>`;
     }).join('');
   } catch (e) {
     tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--tx-mut);padding:20px">Não foi possível carregar a tabela de pontos.</td></tr>';
   }
 }
 
-function switchTab(tabId) {
+function switchTab(tabId, btnElement = null) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
-  event.currentTarget.classList.add('active');
+  if (btnElement) {
+    btnElement.classList.add('active');
+  } else {
+    const btn = document.querySelector(`button[onclick*="'${tabId}'"]`);
+    if (btn) btn.classList.add('active');
+  }
   const target = document.getElementById('tab-' + tabId);
   if (target) target.classList.add('active');
 
   if (tabId === 'lances' && !LANCES_CARREGADOS_HOJE) carregarLances();
+}
+
+function iniciarAbaUrl() {
+  const url = new URL(window.location.href);
+  const tab = url.searchParams.get('tab');
+  const modoTv = url.searchParams.get('tv') === '1' || url.searchParams.get('modo') === 'tv';
+
+  if (modoTv) {
+    document.body.classList.add('modo-tv');
+    // Em modo TV das filiais, foca exclusivamente em Regulamento Oficial e Auditoria de Lances
+    const navTabs = document.querySelector('.nav-tabs');
+    if (navTabs) {
+      navTabs.innerHTML = `
+        <button class="tab-btn active" onclick="switchTab('regulamento')">📖 REGULAMENTO DA LIGA 2026</button>
+        <button class="tab-btn" onclick="switchTab('lances')">📋 AUDITORIA DOS LANCES DO DIA</button>
+      `;
+    }
+    const heroStats = document.querySelector('.hero-stats');
+    if (heroStats) heroStats.style.display = 'none';
+    switchTab('regulamento');
+    return;
+  }
+
+  if (tab && ['filiais','gerencias','supervisores','vendedores','lances','regulamento'].includes(tab)) {
+    switchTab(tab);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -904,8 +963,49 @@ let LANCES_CARREGADOS_HOJE = false;
 const ROTULO_LANCE = {
   gol: '⚽ Gol', hattrick: '🔥 Hat-Trick', golcontra: '⚽ Gol Contra', penalti: '🚨 Pênalti',
   vermelho: '🟥 Cartão Vermelho', amarelo: '🟨 Cartão Amarelo',
-  impedimento: '🚩 Impedimento', defesa: '🧤 Defesa'
+  impedimento: '🚩 Impedimento', defesa: '🧤 Defesa',
+  pedido_rota: '📝 Pedido na Rota'
 };
+
+const MAPA_REGRAS_PONTOS = {
+  gol_campeao: { nome: 'Campeão da Rodada', pontos: 8, motivo: 'Bateu 100% da meta do mês' },
+  gol_goleada: { nome: 'Goleada', pontos: 7, motivo: 'Volume excepcional de clientes positivados no dia' },
+  gol_meta1t: { nome: 'Meta do 1º Tempo', pontos: 6, motivo: 'Bateu a meta do dia antes das 14h' },
+  gol_inativo: { nome: 'Resgate de Inativo / Drible da Vaca', pontos: 6, motivo: 'Recuperou cliente parado >30d (ou >90d) ou com TAG RECORRÊNCIA' },
+  gol_hattrick: { nome: 'Hat-Trick', pontos: 6, motivo: '3 pedidos seguidos em curto intervalo' },
+  hattrick: { nome: 'Hat-Trick', pontos: 6, motivo: '3 pedidos seguidos em curto intervalo' },
+  gol_super: { nome: 'Super Pedido', pontos: 5, motivo: 'Pedido de valor muito acima do padrão do vendedor' },
+  gol_conversao: { nome: 'Máquina de Conversão', pontos: 5, motivo: 'Alto aproveitamento de visitas em vendas (>=50%)' },
+  gol_relampago: { nome: 'Gol Relâmpago', pontos: 4, motivo: 'Pedido fechado logo no início do dia' },
+  gol_acrescimos: { nome: 'Gol nos Acréscimos', pontos: 4, motivo: 'Pedido fechado no fim do expediente, sem desistir' },
+  gol_mix: { nome: 'Dobrou o Mix', pontos: 4, motivo: 'Vendeu o dobro de SKUs do que costuma no cliente' },
+  gol_quinzenas: { nome: 'Dobradinha das Quinzenas', pontos: 3, motivo: 'Comprou na 1ª e na 2ª quinzena do mês' },
+  defesa: { nome: 'Defesa (Recorrência)', pontos: 3, motivo: 'Cliente recorrente positivado, mantendo a base ativa' },
+  pedido_rota: { nome: 'Pedido Feito na Rota', pontos: 1, motivo: 'Pedido faturado/positivado em cliente da rota do dia com visita/check-in' },
+  amarelo: { nome: 'Cartão Amarelo', pontos: -3, motivo: 'Rota ativa sem nenhuma venda até 10h' },
+  ven10: { nome: 'Cartão Amarelo', pontos: -3, motivo: 'Rota ativa sem nenhuma venda até 10h' },
+  golcontra: { nome: 'Gol Contra', pontos: -4, motivo: 'Devolução de mercadoria registrada hoje' },
+  golcontra_dev: { nome: 'Gol Contra', pontos: -4, motivo: 'Devolução de mercadoria registrada hoje' },
+  impedimento: { nome: 'Impedimento', pontos: -5, motivo: 'Check-in fora do local (GPS) ou às 00:00' },
+  penalti_estoque: { nome: 'Pênalti (Estoque)', pontos: -6, motivo: 'Cliente sem visita há dias por falta de estoque' },
+  penalti_fechado: { nome: 'Pênalti (Cliente Fechado)', pontos: -6, motivo: 'Cliente sem visita há dias por estar fechado' },
+  penalti: { nome: 'Pênalti', pontos: -6, motivo: 'Justificativa de não-visita em cliente parado' },
+  ver_dev: { nome: 'Cartão Vermelho (Devolução "Não Pediu")', pontos: -10, motivo: 'Devolução grave: cliente não pediu o pedido' },
+  ver_bonif: { nome: 'Cartão Vermelho (Bonificação Disfarçada)', pontos: -10, motivo: 'Pedido com 2+ itens e soma de valor R$0' },
+  vis10: { nome: 'Cartão Vermelho (Abandono de Campo)', pontos: -10, motivo: 'Nenhuma visita feita até às 10h com rota ativa' },
+  venda10: { nome: 'Cartão Vermelho (Sem Venda)', pontos: -10, motivo: 'Rota completa sem nenhuma venda até o fim do dia' },
+  visita10: { nome: 'Expulsão (Sem Visita)', pontos: -10, motivo: 'Nenhuma visita registrada no dia inteiro' },
+  vermelho: { nome: 'Cartão Vermelho', pontos: -10, motivo: 'Infração grave disciplinar de rota' }
+};
+
+function acharPontuacaoRegra(chave, nivel) {
+  const partes = String(chave || '').split('|');
+  for (const p of partes) {
+    if (MAPA_REGRAS_PONTOS[p]) return MAPA_REGRAS_PONTOS[p];
+  }
+  if (MAPA_REGRAS_PONTOS[nivel]) return MAPA_REGRAS_PONTOS[nivel];
+  return { nome: nivel ? nivel.toUpperCase() : 'LANCE', pontos: 0, motivo: 'Lance auditado' };
+}
 
 function hojeISOBrasilia() {
   const p = {};
@@ -925,15 +1025,66 @@ async function carregarLances() {
   try {
     const qs = new URLSearchParams({ dia });
     if (filial && filial !== 'TODAS') qs.set('filial', filial);
-    const res = await fetch('/api/brasileirao-lances?' + qs.toString(), { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const d = await res.json();
-    LANCES_ATUAIS = Array.isArray(d.lances) ? d.lances : [];
+    let lances = [];
+    let porNivel = {};
+    let total = 0;
+
+    let res = await fetch('/api/brasileirao-lances?' + qs.toString(), { cache: 'no-store' });
+    if (res.ok) {
+      const d = await res.json();
+      if (Array.isArray(d.lances)) {
+        lances = d.lances;
+        porNivel = d.porNivel || {};
+        total = d.total || lances.length;
+      }
+    }
+
+    // Fallback de resiliência: se o endpoint dedicado de lances do brasileirão não retornou dados,
+    // consulta as filiais ativas via /api/tv-lances
+    if (!lances.length) {
+      const filiaisConsulta = (filial && filial !== 'TODAS') ? [filial] : ['MTZ','TBL','TCV','TPH','ABC','API','TSJ','TBE','TPA','MCD','TCA','TCG'];
+      const requests = filiaisConsulta.map(f => fetch(`/api/tv-lances?filial=${f}&dia=${dia}`, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null));
+      const respostas = await Promise.all(requests);
+      respostas.forEach((r, idx) => {
+        if (r && Array.isArray(r.lances)) {
+          const sigla = r.filial || filiaisConsulta[idx];
+          r.lances.forEach(item => {
+            porNivel[item.nivel] = (porNivel[item.nivel] || 0) + 1;
+            total++;
+            lances.push({
+              hora: item.hora_sp,
+              filial: sigla,
+              nivel: item.nivel,
+              rca: item.rca,
+              vendedor: item.vendedor,
+              supervisor: item.supervisor,
+              cliente: item.cliente,
+              motivo: item.motivo,
+              dias_sem_compra: item.dias_sem_compra,
+              obs: item.obs,
+              chave: item.chave
+            });
+          });
+        }
+      });
+      // Mapeia pontuação das regras nos lances recuperados pelo fallback
+      lances.forEach(l => {
+        if (typeof acharPontuacaoRegra === 'function') {
+          const pt = acharPontuacaoRegra(l.chave, l.nivel);
+          l.pontos = pt.pontos;
+          l.pontos_nome = pt.nome;
+          l.pontos_motivo = pt.motivo;
+        }
+      });
+    }
+
+    LANCES_ATUAIS = lances;
     LANCES_CARREGADOS_HOJE = true;
-    renderizarChipsResumo(d.porNivel || {}, d.total || 0);
+    renderizarChipsResumo(porNivel, total);
     filtrarLancesRenderizados();
   } catch (e) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--bad)">Falha ao carregar lances — tente de novo em instantes.</td></tr>';
+    console.error('Erro ao carregar lances:', e);
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--bad)">Falha ao carregar lances — tente de novo em instantes.</td></tr>';
   }
 }
 
@@ -1181,6 +1332,7 @@ function filtrarVendedores() {
 window.addEventListener('load', carregarDados);
 window.addEventListener('load', carregarTabelaPontos);
 window.addEventListener('load', iniciarMinhaFilial);
+window.addEventListener('load', iniciarAbaUrl);
 </script>
 </body>
 </html>

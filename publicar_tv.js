@@ -15,6 +15,18 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const msg = process.argv.slice(2).join(' ') || 'publicacao TV';
+
+// TRAVA DE SEGURANCA (03/10/2026): antes de publicar, roda os testes (sintaxe de tudo, teto de 6 chamadas ao
+// CEVEN, equipe no WhatsApp, agenda do Worker, senha, aprovacao, contagem de lances). Se algum falhar, CANCELA.
+// Assim, ajustar o CFTV nao quebra o WhatsApp sem avisar. Ver testes/rodar_testes.mjs.
+{
+  const { spawnSync } = require('child_process');
+  const teste = spawnSync(process.execPath, [path.join(__dirname, 'testes', 'rodar_testes.mjs')], { stdio: 'inherit' });
+  if (teste.status !== 0) {
+    console.error('\nTESTES FALHARAM: publicacao CANCELADA. Corrija o que falhou acima e rode de novo.');
+    process.exit(1);
+  }
+}
 const agora = new Date();
 const p2 = n => String(n).padStart(2, '0');
 const stamp = `${agora.getFullYear()}${p2(agora.getMonth() + 1)}${p2(agora.getDate())}-${p2(agora.getHours())}${p2(agora.getMinutes())}${p2(agora.getSeconds())}`;

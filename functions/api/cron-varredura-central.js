@@ -22,7 +22,22 @@
 
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' };
-const LOTE = 20; // meio-termo entre o cron de 5min (40) e o de faturado (10) — 4 chamadas por RCA aqui, não 1-2
+// LIMITE PRATICO DE CHAMADAS SIMULTANEAS AO CEVEN = 6 (decisao do Vitorio, 03/10/2026; medido: ate 6 nao muda
+// a resposta, com 9 a latencia dobra). Antes: lotes de 20 RCAs x 4 chamadas = 80 simultaneas.
+const CONC = 6;
+
+async function poolLimitado(tarefas, n) {
+  const saida = new Array(tarefas.length);
+  let proximo = 0;
+  await Promise.all(Array.from({ length: n }, async () => {
+    while (true) {
+      const k = proximo++;
+      if (k >= tarefas.length) return;
+      saida[k] = await tarefas[k]();
+    }
+  }));
+  return saida;
+}
 
 async function getJson(url) {
   try {
@@ -83,21 +98,21 @@ export async function onRequestGet({ env, request }) {
   let ok = 0, comFalha = 0;
   const linhas = [];
 
-  for (let i = 0; i < rcas.length; i += LOTE) {
-    const lote = rcas.slice(i, i + LOTE);
-    const resultados = await Promise.all(
-      lote.map(async (rca) => {
-        const filialKey = String(rca.filial || '').toLowerCase() + '1';
-        const q = `filial=${filialKey}&id=${rca.codigo}`;
-        const [roteiro, produtividade, dashboard, devolucoes] = await Promise.all([
-          getJson(`${CEVEN}/api/rca/roteiro-hoje?${q}`),
-          getJson(`${CEVEN}/api/rca/produtividade?${q}`),
-          getJson(`${CEVEN}/api/rca/dashboard?${q}`),
-          getJson(`${CEVEN}/api/rca/devolucoes?${q}`)
-        ]);
-        return { rca, roteiro, produtividade, dashboard, devolucoes };
-      })
-    );
+  const ENDPOINTS = ['roteiro-hoje', 'produtividade', 'dashboard', 'devolucoes'];
+  const tarefas = [];
+  for (const rca of rcas) {
+    const q = `filial=${String(rca.filial || '').toLowerCase() + '1'}&id=${rca.codigo}`;
+    for (const ep of ENDPOINTS) tarefas.push(() => getJson(`${CEVEN}/api/rca/${ep}?${q}`));
+  }
+  const respostas = await poolLimitado(tarefas, CONC);
+  const resultados = rcas.map((rca, idx) => ({
+    rca,
+    roteiro: respostas[idx * 4],
+    produtividade: respostas[idx * 4 + 1],
+    dashboard: respostas[idx * 4 + 2],
+    devolucoes: respostas[idx * 4 + 3]
+  }));
+  {
     for (const { rca, roteiro, produtividade, dashboard, devolucoes } of resultados) {
       const falhas = [];
       if (!Array.isArray(roteiro)) falhas.push('roteiro');
@@ -116,7 +131,6 @@ export async function onRequestGet({ env, request }) {
         falhas: falhas.join(',')
       });
     }
-    if (i + LOTE < rcas.length) await espera(300);
   }
 
   if (!linhas.length) {

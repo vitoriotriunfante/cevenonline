@@ -19,7 +19,7 @@ DIÁRIO: guarda no navegador os lances e snapshots do dia (botão Exportar).
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--tx);font-family:Segoe UI,Inter,system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 .mono{font-variant-numeric:tabular-nums}
-header{display:flex;align-items:center;gap:20px;padding:10px 22px;background:#0a1020;border-bottom:1px solid var(--line)}
+header{display:flex;align-items:center;gap:20px;padding:10px 22px;background:#0a1020;border-bottom:1px solid var(--line);flex-shrink:0;z-index:10}
 .rec{color:var(--bad);font-weight:800;font-size:13px;letter-spacing:.08em;display:flex;align-items:center;gap:8px}
 .rec i{width:10px;height:10px;border-radius:50%;background:var(--bad);animation:p 1.2s infinite}
 @keyframes p{50%{opacity:.25}}
@@ -28,16 +28,16 @@ header{display:flex;align-items:center;gap:20px;padding:10px 22px;background:#0a
 .upd{color:var(--mut);font-size:13px}.upd.old{color:var(--bad);font-weight:800}
 .modo{font-size:12px;font-weight:800;letter-spacing:.08em;padding:3px 10px;border-radius:6px;background:#1a2440;color:var(--acc)}
 .clock{font-size:26px;font-weight:700}
-.tot{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.tot{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line);flex-shrink:0;z-index:9}
 .tot div{background:var(--card);padding:10px 18px}
 .tot b{display:block;font-size:24px;margin-top:2px}
 .tot span{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
 main{flex:1;min-height:0;padding:14px 22px;display:flex}
 #ronda{flex:1;display:grid;grid-template-columns:1.55fr 1fr;gap:14px;min-height:0}
 #painel{flex:1;display:none;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:14px;min-height:0}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 20px;display:flex;flex-direction:column;gap:8px;min-height:0;overflow-y:auto;scrollbar-width:none}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 20px;display:flex;flex-direction:column;gap:8px;min-height:0;overflow-y:auto;scrollbar-width:none;position:relative}
 .panel::-webkit-scrollbar{display:none}
-.panel h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);display:flex;justify-content:space-between}
+.panel h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);display:flex;justify-content:space-between;position:sticky;top:-16px;background:var(--card);padding:6px 0;margin-top:-6px;z-index:5;border-bottom:1px solid rgba(255,255,255,.05)}
 .panel h2 b{color:var(--tx)}
 .row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-size:16px;padding:4px 0;border-bottom:1px solid #16203a}
 .row:last-child{border:0}
@@ -97,7 +97,7 @@ main{flex:1;min-height:0;padding:14px 22px;display:flex}
 .chip{font-size:min(1.4vw,20px);font-weight:800;padding:6px 14px;border-radius:99px;white-space:nowrap}
 .c-ok{background:#22c55e26;color:#86efac}.c-no{background:var(--bad);color:#fff}
 .prog{position:absolute;left:0;bottom:0;height:4px;background:var(--acc);width:0}
-footer{padding:8px 22px 10px;border-top:1px solid var(--line);background:#0a1020;display:flex;gap:14px;align-items:center;font-size:15px}
+footer{padding:8px 22px 10px;border-top:1px solid var(--line);background:#0a1020;display:flex;gap:14px;align-items:center;font-size:15px;flex-shrink:0}
 footer .tag{background:var(--warn);color:#1a1200;font-weight:800;padding:3px 10px;border-radius:6px;font-size:12px;letter-spacing:.06em}
 footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #ctl{display:flex;gap:6px;opacity:.35;transition:opacity .2s}
@@ -123,7 +123,73 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #ov .dec.rev .ln{font-size:min(1.55vw,23px);padding:.5vh 0}#ov .dec.rev h1{font-size:min(3vw,44px);margin-bottom:1vh}#ov .dec.rev .vd{font-size:min(2vw,28px);margin-top:1vh}
 #ov .dec .vd{margin-top:2vh;font-size:min(2.4vw,34px);font-weight:800;color:#fca5a5}
 #ov small{margin-top:2vh;color:var(--mut);font-size:16px}
-@media(max-width:900px){#ronda,#painel{grid-template-columns:1fr;grid-template-rows:auto}.tot{grid-template-columns:repeat(2,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}.side{display:none}body{overflow:auto}}
+/* CONTROLES DE FILTRO E CONGELAMENTO */
+.filtros-header{display:flex;align-items:center;gap:8px;background:#0d1527;padding:3px 8px;border-radius:10px;border:1px solid var(--line)}
+.filtros-header select{background:#15223c;color:#fff;border:1px solid #253658;border-radius:6px;padding:4px 8px;font-size:12px;font-weight:600;outline:none;cursor:pointer;max-width:180px}
+.filtros-header select:hover{border-color:var(--acc)}
+.filtros-header button{background:#1e293b;border:1px solid #334155;color:#e2e8f0;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .2s}
+.filtros-header button:hover{background:#334155;color:#fff}
+.filtros-header button.congelado{background:#b91c1c;border-color:#ef4444;color:#fff;animation:pulseCongela 1.5s infinite}
+@keyframes pulseCongela{0%,100%{opacity:1}50%{opacity:.75}}
+
+/* HIERARQUIA MODAL: SUPERVISOR -> VENDEDOR -> OCORRENCIAS/CLIENTES */
+.det-tree-sup{background:#101a2f;border:1px solid #1e2c4a;border-radius:10px;margin-bottom:8px;overflow:hidden}
+.det-tree-sup-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#15223c;cursor:pointer;user-select:none;font-size:14px;font-weight:800;color:var(--tx)}
+.det-tree-sup-head:hover{background:#1c2d50}
+.det-tree-sup-body{display:none;padding:6px 10px 10px;border-top:1px solid #1e2c4a}
+.det-tree-sup-body.open{display:block}
+.det-tree-vend{background:#0a0f1d;border:1px solid rgba(255,255,255,.05);border-radius:8px;margin:6px 0;overflow:hidden}
+.det-tree-vend-head{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#0d1424;cursor:pointer;user-select:none;font-size:13px;font-weight:700}
+.det-tree-vend-head:hover{background:#131c33}
+.det-tree-vend-body{display:none;padding:6px 10px 8px;border-top:1px solid rgba(255,255,255,.03);background:#070b14}
+.det-tree-vend-body.open{display:block}
+.det-tree-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 10px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.03)}
+.det-tree-item:last-child{border-bottom:none}
+.det-badge{padding:3px 9px;border-radius:6px;font-size:12px;font-weight:800;background:rgba(56,189,248,.15);color:var(--acc)}
+.det-badge.red{background:rgba(239,68,68,.18);color:#fca5a5}
+.det-badge.grn{background:rgba(34,197,94,.18);color:#86efac}
+.det-toggle-all{background:var(--card2);border:1px solid var(--line);color:var(--mut);border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-weight:700}
+.det-toggle-all:hover{color:#fff;border-color:var(--acc)}
+
+/* BADGES ELEGANTES DE CANAL/SEGMENTO (AS, VAREJO, FARMA) */
+.tag-canal{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;background:rgba(148,163,184,.12);color:#94a3b8;border:1px solid rgba(148,163,184,.25);vertical-align:middle;margin-left:4px}
+.tag-canal.as{background:rgba(168,85,247,.12);color:#c084fc;border-color:rgba(168,85,247,.3)}
+.tag-canal.vj{background:rgba(56,189,248,.1);color:#7dd3fc;border-color:rgba(56,189,248,.25)}
+.tag-canal.farma{background:rgba(20,184,166,.12);color:#5eead4;border-color:rgba(20,184,166,.3)}
+.tag-canal.esp{background:rgba(245,158,11,.12);color:#fcd34d;border-color:rgba(245,158,11,.25)}
+
+/* VERSÃO MOBILE REFINADA */
+@media(max-width:900px){
+  body{height:auto;min-height:100vh;overflow-y:auto;overflow-x:hidden}
+  header{flex-wrap:wrap;gap:10px;padding:10px 14px}
+  .rec{font-size:11px}
+  .fil{font-size:18px}
+  .clock{font-size:18px}
+  .filtros-header{width:100%;justify-content:space-between;order:10;margin-top:4px}
+  .filtros-header select{flex:1;max-width:none}
+  .tot{display:grid;grid-template-columns:repeat(2,1fr);gap:1px}
+  .tot div{padding:8px 12px}
+  .tot b{font-size:18px}
+  .tot span{font-size:10px}
+  main{padding:10px;flex-direction:column;height:auto;overflow:visible}
+  #ronda{display:flex;flex-direction:column;gap:12px}
+  #painel{display:none;grid-template-columns:1fr;grid-template-rows:auto;gap:12px}
+  .side{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));grid-template-rows:none;gap:10px}
+  .grid4{grid-template-columns:repeat(2,1fr);gap:8px}
+  .master{padding:14px}
+  .master h1{font-size:22px}
+  .lab b{font-size:20px}
+  .kpi b{font-size:20px}
+  .kpi span{font-size:10px}
+  .kpi small{font-size:11px}
+  .rt{font-size:13px;grid-template-columns:70px 1fr auto;gap:8px;padding:6px 8px}
+  footer{flex-wrap:wrap;padding:8px 12px;gap:8px}
+  footer .msg{width:100%;font-size:12px}
+  #ctl{width:100%;overflow-x:auto;padding-bottom:4px}
+  #modalDetalheBox{width:96vw;max-height:90vh}
+  #modalDetalheHeader{padding:12px 14px}
+  #modalDetalheTitulo{font-size:16px}
+}
 .row-clic{cursor:pointer}.row-clic:hover{background:rgba(255,255,255,.04);border-radius:8px}
 #modalDetalheOverlay{display:none;position:fixed;inset:0;background:rgba(3,6,12,.85);z-index:900;align-items:center;justify-content:center}
 #modalDetalheOverlay.show{display:flex}
@@ -145,6 +211,7 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     <div id="modalDetalheHeader">
       <div><div id="modalDetalheTitulo">—</div><div id="modalDetalheSub">—</div></div>
       <div style="display:flex;gap:8px">
+        <button id="modalDetalheToggleAll" class="det-toggle-all" onclick="alternarTodosGruposModal()">▾ Expandir Tudo</button>
         <button id="modalDetalheExportar" onclick="exportarModalDetalhe()">⤓ Exportar</button>
         <button id="modalDetalheFechar" onclick="fecharModalDetalhe()">✕</button>
       </div>
@@ -156,6 +223,12 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   <div class="rec"><i></i>CFTV AO VIVO</div>
   <div class="fil"><span id="fil">—</span><small><span id="nv">0</span> vendedores com meta</small></div>
   <span class="modo" id="modo">RONDA</span><span id="aviso" class="modo" style="display:none;background:#7f1d1d;color:#fecaca">LISTA MOSTRA INDISPONÍVEL</span>
+  <div class="filtros-header" id="boxFiltros">
+    <select id="selSup" onchange="aoMudarFiltroSup()" title="Filtrar por Supervisor"><option value="">👔 Todos os Supervisores</option></select>
+    <select id="selVend" onchange="aoMudarFiltroVend()" title="Fixar Vendedor na tela"><option value="">👤 Todos os Vendedores</option></select>
+    <button id="btnCongela" onclick="alternarCongelamento()" title="Pausar ou Retomar a rotação automática da tela">⏸ Congelar</button>
+    <a href="#" id="btnLinkRegulamento" target="_blank" rel="noopener" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f172a;font-weight:900;text-decoration:none;padding:4px 10px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;font-size:12px;white-space:nowrap" title="Abrir Regulamento Oficial da Liga 2026">🏆 Regulamento</a>
+  </div>
   <div class="sp"></div>
   <div class="upd" id="upd">carregando…</div>
   <div class="clock mono" id="clock"></div>
@@ -181,7 +254,7 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     <button id="bt-pen" style="background:#1e3a8a;color:#93c5fd;font-weight:700" title="Testar animação de Pênalti VAR">🚨 Pênalti</button>
     <button id="bt-hat" style="background:#ea580c;color:#ffedd5;font-weight:700" title="Testar animação de Hat-Trick">🔥 Hat-Trick</button>
     <button id="bt-inv" style="background:#b45309;color:#fef3c7;font-weight:700" title="Testar animação de Semana Invicta">👑 Invicta</button>
-    <button data-m="auto" class="on">Auto</button><button data-m="ronda">Ronda</button><button data-m="painel">Painel</button><button data-m="sup">Supervisores</button>
+    <button data-m="auto" class="on">Auto</button><button data-m="ronda">Ronda</button><button data-m="painel">Painel</button><button data-m="sup">Supervisores</button><a href="/brasileirao" target="_blank" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f172a;font-weight:900;text-decoration:none;padding:5px 12px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;font-size:12px" title="Abrir Tabela da Liga e Regulamento Oficial">🏆 Liga Triunfante</a>
     <button id="bfs">⛶ Tela cheia</button><button id="bsom">🔇 Som</button><button id="brev">Revisar 30 min</button><button id="bexp">Exportar diário</button>
   </div>
 </footer>
@@ -209,9 +282,18 @@ const EXCLUI = ['GER','SUP'];
 // ============================== UTIL ==============================
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-// Nome do vendedor + código do RCA — usado em TODOS os lances/acompanhamentos da TV/CFTV
-// (decisão do Vitório, 28/09/2026: facilita conferência cruzada com o CEVEN).
-const nomeComRca = v => v ? `${esc(v.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(v.id)})</span>` : '—';
+// Badge discreto para distinguir AS (Auto Serviço) de Varejo / outros canais
+function tagCanalHtml(canal) {
+  const c = String(canal || '').toUpperCase().trim();
+  if (!c) return '';
+  if (c === 'AS' || c.startsWith('AS ') || c.endsWith(' AS')) return '<span class="tag-canal as">AS</span>';
+  if (c === 'FARMA') return '<span class="tag-canal farma">FARMA</span>';
+  if (c === 'ESP') return '<span class="tag-canal esp">ESP</span>';
+  if (c === 'VJ' || c.includes('VAREJO')) return '<span class="tag-canal vj">VAREJO</span>';
+  return `<span class="tag-canal">${esc(c)}</span>`;
+}
+// Nome do vendedor + código do RCA + canal — usado em TODOS os lances/acompanhamentos da TV/CFTV
+const nomeComRca = (v, comCanal = false) => v ? `${esc(v.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(v.id)})</span>${comCanal && v.canal ? ' ' + tagCanalHtml(v.canal) : ''}` : '—';
 const num = v => (typeof v === 'number' && isFinite(v)) ? v : null;
 const brl = v => num(v) == null ? '—' : 'R$ ' + Math.round(v).toLocaleString('pt-BR');
 const pc = v => num(v) == null ? '—' : (Math.round(v * 10) / 10).toLocaleString('pt-BR') + '%';
@@ -248,7 +330,9 @@ function diasUteisMes() {
 // aproximação por detecção de mudança.
 function textoGol(subtipo, valor, c, horaReal) {
   if (subtipo === 'super_pedido') return `Super Pedido: ${brl(valor)}!`;
-  if (subtipo === 'inativo_recuperado') return `${c && c.nome} · cliente inativo resgatado!`;
+  if (subtipo === 'drible_vaca') return `${c && c.nome} · Drible da Vaca! Inativo há mais de 90 dias recuperado!`;
+  if (subtipo === 'recorrencia_salva') return `${c && c.nome} · TAG Recorrência protegida com venda!`;
+  if (subtipo === 'inativo_recuperado') return `${c && c.nome} · Resgate de Inativo (>30 dias) recuperado!`;
   if (subtipo === 'relampago') return `Gol Relâmpago (checkin ${horaReal})`;
   if (subtipo === 'acrescimos') return `Gol nos Acréscimos (checkin ${horaReal})`;
   if (subtipo === 'conversao') return `Máquina de Conversão: ${valor.toFixed(0)}% de aproveitamento!`;
@@ -395,7 +479,10 @@ async function atualiza() {
         }
       }
     }));
-    if (ok > 0) { lastOk = Date.now(); processa(); }
+    if (ok > 0) {
+      lastOk = Date.now();
+      processa();
+    }
     await carregaSup();
   } finally { refreshing = false; render(); }
 }
@@ -510,10 +597,13 @@ function calcAlertas(vs) {
       }
     });
     v.cl.forEach(c => {
-      // --- LANCE G07: GOL DRIBLE DA VACA (Cliente Inativo > 90 dias recuperado com venda) ---
+      // --- LANCE G07: GOL RESGATE DE INATIVO / DRIBLE DA VACA (>30d, >90d ou TAG RECORRÊNCIA) ---
       const diasC = diasDesde(c.ultima_compra);
-      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && diasC != null && diasC > 90) {
-        out.push({key: `gol_inativo|${v.id}|${c.id}`, nivel: 'gol', subtipo: 'inativo_recuperado', v, c, dias: diasC});
+      const ehInativo = diasC != null && diasC > 30;
+      const ehRecorrencia = !!c.recorrencia;
+      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && (ehInativo || ehRecorrencia)) {
+        const subTipoInativo = (diasC != null && diasC > 90) ? 'drible_vaca' : (ehRecorrencia ? 'recorrencia_salva' : 'inativo_recuperado');
+        out.push({key: `gol_inativo|${v.id}|${c.id}`, nivel: 'gol', subtipo: subTipoInativo, v, c, dias: diasC});
       }
       // --- LANCE G03: DOBROU O MIX (calculado em tv-vendedor.js contra o histórico do cliente) ---
       if (c.dobrouMix) {
@@ -571,8 +661,13 @@ function calcAlertas(vs) {
         }
       }
     });
-    // CARTÃO VERMELHO V02 / AMARELO: Zero visitas às 10h (ou 11h fuso)
-    if (v.campo && v.temRota && depois10) {
+    // CARTÃO VERMELHO V02 / AMARELO: Zero visitas ou sem venda às 10h (ou 11h fuso)
+    // JANELA TEMPORAL RESTRITA (pedido do Vitório): Só é pertinente entre 10:00 e 11:30 (ou 11:00 e 12:30 no fuso).
+    // Jamais apita ou fica no pool de VAR no meio da tarde (ex: às 15:00)!
+    const limiteHoraFim = fuso1h ? 12.5 : 11.5;
+    const horaAtualDecimal = t.h + (t.m / 60);
+    const naJanelaMatinal = horaAtualDecimal >= limiteHora && horaAtualDecimal < limiteHoraFim;
+    if (v.campo && v.temRota && naJanelaMatinal) {
       if (v.feitas === 0) out.push({key: `vis10|${v.id}`, nivel: 'vermelho', subtipo: 'abandono_campo', v});
       else if (!(v.dig > 0) && !(v.pos > 0)) out.push({key: `ven10|${v.id}`, nivel: 'amarelo', subtipo: 'sem_venda', v});
     }
@@ -652,7 +747,7 @@ function snapshot(vs) {
 // ============================== VAR (overlay) ==============================
 const FILA = []; let emVAR = false;
 const ESPERA = [], VARS = [];                                   // ESPERA = lances aguardando vez; VARS = horários dos últimos VAR
-const VAR_GAP_S = +P.get('vargap') || 180, VAR_MAX_H = +P.get('varmax') || 6; // LIMITADOR: 1 VAR a cada 3 min e no máx. 6 por hora
+const VAR_GAP_S = +P.get('vargap') || 180, VAR_MAX_H = +P.get('varmax') || 20; // LIMITADOR: 1 VAR a cada 3 min e no máx. 20 por hora
 function rankingPenaltis() {
   const m = new Map();
   LOG.filter(e => e.nivel === 'penalti').forEach(e => { const x = m.get(e.rca) || {rca: e.rca, nome: e.vendedor, sup: e.supervisor || '', n: 0}; x.n++; m.set(e.rca, x); });
@@ -701,35 +796,59 @@ function beep(seq) {
   } catch {}
 }
 function linhas(o) { return Object.entries(o).filter(([, v]) => v != null && v !== '').map(([k, v]) => `<div class="ln${String(v).startsWith('!') ? ' hot' : ''}"><b>${esc(k)}</b><span>${esc(String(v).replace(/^!/, ''))}</span></div>`).join(''); }
+function pontosLanceOficial(tipo, subtipo) {
+  if (subtipo === 'campeao') return { nome: 'Campeão da Rodada', pts: '+8 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'goleada') return { nome: 'Goleada', pts: '+7 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'meta1tempo') return { nome: 'Meta do 1º Tempo', pts: '+6 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'inativo_recuperado' || subtipo === 'drible_vaca' || subtipo === 'recorrencia_salva') return { nome: 'Resgate de Inativo', pts: '+6 PONTOS NA LIGA', cor: '#22c55e' };
+  if (tipo === 'hattrick' || subtipo === 'hattrick') return { nome: 'Hat-Trick', pts: '+6 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'super_pedido') return { nome: 'Super Pedido', pts: '+5 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'conversao') return { nome: 'Máquina de Conversão', pts: '+5 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'relampago') return { nome: 'Gol Relâmpago', pts: '+4 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'acrescimos') return { nome: 'Gol nos Acréscimos', pts: '+4 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'dobrou_mix') return { nome: 'Dobrou o Mix', pts: '+4 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'dobradinha_quinzenas') return { nome: 'Dobradinha das Quinzenas', pts: '+3 PONTOS NA LIGA', cor: '#22c55e' };
+  if (tipo === 'defesa') return { nome: 'Defesa (Recorrência Salva)', pts: '+3 PONTOS NA LIGA', cor: '#22c55e' };
+  if (tipo === 'amarelo') return { nome: 'Cartão Amarelo', pts: '-3 PONTOS NA LIGA', cor: '#eab308' };
+  if (tipo === 'golcontra') return { nome: 'Gol Contra (Devolução)', pts: '-4 PONTOS NA LIGA', cor: '#ef4444' };
+  if (tipo === 'impedimento') return { nome: 'Impedimento VAR', pts: '-5 PONTOS NA LIGA', cor: '#f97316' };
+  if (tipo === 'penalti') return { nome: 'Pênalti', pts: '-6 PONTOS NA LIGA', cor: '#ef4444' };
+  if (tipo === 'vermelho' || tipo === 'venda10' || tipo === 'visita10') return { nome: 'Cartão Vermelho', pts: '-10 PONTOS NA LIGA', cor: '#ef4444' };
+  return { nome: 'LANCE DA LIGA', pts: '', cor: '#38bdf8' };
+}
 function telaVAR(item) {
   let titulo, sub, dec, veredito, cls = 'f1';
+  const subtipo = (item.a && item.a.subtipo) || item.subtipo;
+  const infoLiga = pontosLanceOficial(item.tipo, subtipo);
+  const seloLiga = infoLiga.pts ? `<div style="background:rgba(15,23,42,.9);border:1px solid ${infoLiga.cor};color:${infoLiga.cor};font-weight:900;padding:6px 12px;border-radius:8px;font-size:14px;margin-bottom:8px;display:inline-flex;align-items:center;gap:6px">🏆 ${infoLiga.nome} · <b>${infoLiga.pts}</b></div>` : '';
+
   if (item.tipo === 'gol') {
     titulo = '⚽ GOL DE PLACA!'; sub = item.sub || 'Destaque de vendas e positivação!'; cls = 'f1';
-    dec = `<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v)}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'GOL DE PLACA')}</span></div>`;
+    dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v)}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'GOL DE PLACA')}</span></div>`;
     veredito = '⚽ GOLAÇO NA REDE! Parabéns à equipe!';
   } else if (item.tipo === 'hattrick') {
     titulo = '🔥 HAT-TRICK!'; sub = item.sub || '3 pedidos digitados em sequência!'; cls = 'f1';
-    dec = `<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v)}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'HAT-TRICK')}</span></div>`;
+    dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v)}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'HAT-TRICK')}</span></div>`;
     veredito = '🔥 HAT-TRICK DE OURO! Constância que decide o mês!';
   } else if (item.tipo === 'vermelho') {
     titulo = '🟥 CARTÃO VERMELHO'; sub = item.sub || 'Infração disciplinar grave detectada!'; cls = 'f1';
-    dec = `<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>MOTIVO</b><span>${esc(item.sub || 'EXPULSÃO DIRETA')}</span></div>`;
+    dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>MOTIVO</b><span>${esc(item.sub || 'EXPULSÃO DIRETA')}</span></div>`;
     veredito = '🟥 EXPULSÃO! Rever rota e devolução imediatamente!';
   } else if (item.tipo === 'golcontra') {
     titulo = '⚽ GOL CONTRA'; sub = item.sub || 'Devolução de mercadoria registrada'; cls = 'f1';
-    dec = `<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>DEVOLUÇÃO</b><span>${esc(item.sub || 'Devolução registrada hoje')}</span></div>`;
+    dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>DEVOLUÇÃO</b><span>${esc(item.sub || 'Devolução registrada hoje')}</span></div>`;
     veredito = '⚽ GOL CONTRA! Devolução impacta o resultado do dia.';
   } else if (item.tipo === 'amarelo') {
     titulo = '🟨 CARTÃO AMARELO'; sub = item.sub || 'Advertência de rota'; cls = 'f1';
-    dec = `<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>ALERTA</b><span>${esc(item.sub || 'Sem venda até as 10h')}</span></div>`;
+    dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>ALERTA</b><span>${esc(item.sub || 'Sem venda até as 10h')}</span></div>`;
     veredito = '🟨 ATENÇÃO! Acelerar positivação do dia!';
   } else if (item.tipo === 'impedimento') {
     titulo = '🚩 IMPEDIMENTO VAR'; sub = item.sub || 'Visita instantânea não computada'; cls = 'f1';
-    dec = `<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>ANULADO</b><span>${esc(item.sub || 'Visita de 00:00 sem contato real')}</span></div>`;
+    dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>ANULADO</b><span>${esc(item.sub || 'Visita de 00:00 sem contato real')}</span></div>`;
     veredito = '🚩 LANCE ANULADO! Check-in sem permanência mínima!';
   } else if (item.tipo === 'defesa') {
     titulo = '🧤 DEFESA MILAGROSA'; sub = item.sub || 'Carteira recorrente protegida!'; cls = 'f1';
-    dec = `<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>DEFESA</b><span>${esc(item.sub || 'Recorrente salvo')}</span></div>`;
+    dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>DEFESA</b><span>${esc(item.sub || 'Recorrente salvo')}</span></div>`;
     veredito = '🧤 MILAGRE NO GOL! Cliente blindado!';
   } else if (item.tipo === 'sup') {
     titulo = '📋 SUPERVISORES'; sub = `${LIMITE_SUP_TXT}: ${item.lista.length} sem matinal e/ou rota (RET)`;
@@ -765,10 +884,10 @@ function telaVAR(item) {
     const cab = {'Vendedor': `${v.nome} (RCA ${v.id})`, 'Supervisor': v.sup, 'Ranking de pênaltis': `${pos}º lugar · ${totalDia} pênalti(s) hoje${totalDia >= 3 ? ' — REINCIDENTE' : ''}`};
     if (n === 1) {
       const {c, dias} = it[0], tv = c.tempo_visita;
-      dec = linhas({...cab, 'Cliente': c.nome, 'Justificativa': '!' + c.motivo, 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c.ultima_compra)}${c.valor_ultima > 0 ? ', ' + brl(c.valor_ultima) : ''})` : 'sem compra registrada'),
+      dec = seloLiga + linhas({...cab, 'Cliente': c.nome, 'Justificativa': '!' + c.motivo, 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c.ultima_compra)}${c.valor_ultima > 0 ? ', ' + brl(c.valor_ultima) : ''})` : 'sem compra registrada'),
         'Tempo na visita': tv ? (tv === '00:00' ? '!' + tv + ' (visita de 0 minuto)' : tv) : null, 'Observação': c.obs});
     } else {
-      dec = linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot"><b>${esc(a.c.nome)}</b><span>${esc(a.c.motivo)} · ${a.dias != null ? a.dias + 'd s/ compra' : 'sem compra'}${a.c.tempo_visita === '00:00' ? ' · visita de 0 min' : ''}</span></div>`).join('') + (n > 5 ? `<div class="ln"><b>+${n - 5}</b><span>outros clientes</span></div>` : '');
+      dec = seloLiga + linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot"><b>${esc(a.c.nome)}</b><span>${esc(a.c.motivo)} · ${a.dias != null ? a.dias + 'd s/ compra' : 'sem compra'}${a.c.tempo_visita === '00:00' ? ' · visita de 0 min' : ''}</span></div>`).join('') + (n > 5 ? `<div class="ln"><b>+${n - 5}</b><span>outros clientes</span></div>` : '');
     }
     veredito = `📞 LIGAR AGORA: ${v.sup || 'supervisor'} (supervisor de ${v.nome.split(' ')[0]})${totalDia >= 3 ? ' — REINCIDENTE, ' + totalDia + 'º pênalti hoje' : ''}`;
   } else if (item.tipo === 'venda10') {
@@ -977,11 +1096,12 @@ function textoAlerta(a) {
 }
 function renderTotais(vs) {
   const campo = vs.filter(v => v.campo && v.temRota); const s = (a, f) => a.reduce((x, v) => x + (f(v) || 0), 0);
-  const fat = s(vs, v => v.fat), metaSoma = s(vs, v => v.meta), realCli = s(vs, v => v.realCli), metaCliSoma = s(vs, v => v.metaCli);
+  const fat = s(vs, v => v.fat), pend = s(vs, v => v.pend), metaSoma = s(vs, v => v.meta), realCli = s(vs, v => v.realCli), metaCliSoma = s(vs, v => v.metaCli);
   const metaFat = METAS ? METAS.meta_fat : metaSoma, metaPos = METAS ? METAS.meta_pos : metaCliSoma, oficial = !!METAS;
   const pctF = metaFat ? fat / metaFat * 100 : null, pctP = metaPos ? realCli / metaPos * 100 : null;
+  const pendHtml = pend > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--mut);margin-top:2px;letter-spacing:-0.2px">+ ${brl(pend)} pendente</div>` : '';
   $('tot').innerHTML = [
-    ['Faturado no mês', `${brl(fat)} <small style="font-size:14px;color:var(--mut)">${pctF != null ? pc(pctF) : ''}</small>`],
+    ['Faturado no mês', `${brl(fat)} <small style="font-size:14px;color:var(--mut)">${pctF != null ? pc(pctF) : ''}</small>${pendHtml}`],
     [oficial ? 'Meta do mês (PNA)' : 'Meta (soma dos vendedores)', brl(metaFat)],
     ['Positivados no mês', `${nv(realCli)} <small style="font-size:14px;color:var(--mut)">de ${nv(metaPos)} · ${pctP != null ? pc(pctP) : ''}</small>`],
     ['Digitado hoje', brl(s(vs, v => v.dig))], ['Positivações hoje', nv(s(vs, v => v.pos))],
@@ -1009,7 +1129,7 @@ function renderMaster(v) {
   const badge = zer ? '<span class="badge b-bad">ZERADO HOJE</span>' : (!v.temRota ? '<span class="badge b-mut">SEM ROTA HOJE</span>' : (v.pos > 0 ? '<span class="badge b-ok">VENDENDO</span>' : ''));
   const cliPct = v.metaCli ? Math.min((v.realCli || 0) / v.metaCli * 100, 100) : 0;
   const lances = al.length ? `<div class="lances">${al.slice(0, 3).map(a => `<div>${tagAlerta(a)} ${esc(textoAlerta(a))}</div>`).join('')}${al.length > 3 ? `<div style="color:var(--mut)">+${al.length - 3} lances</div>` : ''}</div>` : '';
-  el.innerHTML = `<div class="mh"><h1>${esc(v.nome)}</h1><span class="cod mono">RCA ${esc(v.id)} · ${esc(v.canal || '—')}${v.sup ? ' · Sup. ' + esc(v.sup) : ''}</span>${badge}</div>${lances}
+  el.innerHTML = `<div class="mh"><h1>${esc(v.nome)}</h1><span class="cod mono">RCA ${esc(v.id)} · ${tagCanalHtml(v.canal)}${v.sup ? ' · Sup. ' + esc(v.sup) : ''}</span>${badge}</div>${lances}
   <div class="sec"><div class="lab"><span>Faturamento do mês</span><b class="mono">${brl(v.fat)} <span style="font-size:17px;color:var(--mut)">de ${brl(v.meta)}</span></b></div><div class="bar">${seg(v)}</div>
    <div class="leg"><span style="--c:var(--ok)">Faturado ${v.meta ? pc((v.fat || 0) / v.meta * 100) : '—'}</span><span style="--c:var(--pend)">Pendente ${brl(v.pend)}</span></div></div>
   <div class="sec"><div class="lab"><span>Positivação do mês</span><b class="mono">${nv(v.realCli)} <span style="font-size:17px;color:var(--mut)">de ${nv(v.metaCli)} clientes · faltam ${v.metaCli == null ? '—' : Math.max(v.metaCli - (v.realCli || 0), 0)}</span></b></div><div class="bar"><i style="width:${cliPct}%;background:var(--acc)"></i></div></div>
@@ -1024,7 +1144,7 @@ function renderMaster(v) {
 }
 function renderSide(vs, cur) {
   const nx = []; for (let i = 1; i <= 5 && i < ordem.length; i++) { const v = vs.find(x => x.id === ordem[(cur + i) % ordem.length]); if (v) nx.push(v); }
-  $('side').innerHTML = nx.map(v => `<div class="mini${zerado(v) || alertasDe(v.id).length ? ' zer' : ''}"><h3>${esc(v.nome)}</h3><div class="v mono">${brl(v.dig)}</div>
+  $('side').innerHTML = nx.map(v => `<div class="mini${zerado(v) || alertasDe(v.id).length ? ' zer' : ''}"><h3>${esc(v.nome)} ${tagCanalHtml(v.canal)}</h3><div class="v mono">${brl(v.dig)}</div>
    <small>${alertasDe(v.id).length ? '<b style="color:#fca5a5">' + alertasDe(v.id).length + ' LANCE(S)</b> · ' : (zerado(v) ? '<b style="color:#fca5a5">ZERADO</b> · ' : '')}${v.temRota ? nv(v.feitas) + '/' + nv(v.rota) + ' visitas' : 'sem rota'} · ${nv(v.pos)} pos.</small>
    <small class="r mono">mês ${brl(v.fat)} / ${brl(v.meta)}</small><div class="bar">${seg(v)}</div></div>`).join('');
 }
@@ -1033,33 +1153,202 @@ function renderSide(vs, cur) {
 let PAINEL_DADOS = { alertas: [], justificativas: [], digitado: [], penaltis: [] };
 let MODAL_DETALHE_ATUAL = null; // { titulo, linhas: [{nome, rca, valor}] } — usado pela exportação
 function fecharModalDetalhe() { document.getElementById('modalDetalheOverlay').classList.remove('show'); }
+function alternarTodosGruposModal() {
+  const bodies = document.querySelectorAll('.det-tree-sup-body, .det-tree-vend-body');
+  const btn = document.getElementById('modalDetalheToggleAll');
+  if (!bodies.length) return;
+  const algumFechado = Array.from(bodies).some(b => !b.classList.contains('open'));
+  bodies.forEach(b => {
+    if (algumFechado) b.classList.add('open');
+    else b.classList.remove('open');
+  });
+  if (btn) btn.textContent = algumFechado ? '▴ Recolher Tudo' : '▾ Expandir Tudo';
+}
+
+function toggleTreeSecao(idSecao) {
+  const el = document.getElementById(idSecao);
+  if (el) el.classList.toggle('open');
+}
+
 function abrirModalPainel(tipo, motivo) {
   const overlay = document.getElementById('modalDetalheOverlay');
   const titulo = document.getElementById('modalDetalheTitulo');
   const sub = document.getElementById('modalDetalheSub');
   const lista = document.getElementById('modalDetalheLista');
-  let tituloTxt = '', linhas = [];
+  const btnToggle = document.getElementById('modalDetalheToggleAll');
+  if (btnToggle) btnToggle.textContent = '▾ Expandir Tudo';
+
+  let tituloTxt = '', itens = [];
 
   if (tipo === 'alertas') {
-    tituloTxt = '🚨 Alertas Ativos — Detalhe Completo';
-    linhas = PAINEL_DADOS.alertas.map(a => ({ nome: a.v ? a.v.nome : '—', rca: a.v ? a.v.id : '—', valor: textoAlerta(a) }));
+    tituloTxt = '🚨 Alertas Ativos — Detalhe por Supervisor';
+    itens = (PAINEL_DADOS.alertas || []).map(a => {
+      const v = a.v || {};
+      const c = a.c || {};
+      return {
+        sup: v.sup || 'Sem supervisor',
+        vendedor: v.nome || '—',
+        rca: v.id || '—',
+        canal: v.canal || '',
+        cliente: c.nome || a.clienteDev || 'Cliente',
+        motivo: textoAlerta(a),
+        detalhe: (c.nome ? c.nome + ' · ' : '') + textoAlerta(a),
+        valorNum: 1
+      };
+    });
   } else if (tipo === 'justificativa') {
-    tituloTxt = `📋 Justificativa: ${motivo}`;
-    linhas = (PAINEL_DADOS.justificativas[motivo] || []).map(x => ({ nome: x.v.nome, rca: x.v.id, valor: (x.c && x.c.nome) || '—' }));
+    tituloTxt = `📋 Justificativa: ${motivo} — Detalhe`;
+    itens = (PAINEL_DADOS.justificativas[motivo] || []).map(x => {
+      const v = x.v || {};
+      const c = x.c || {};
+      return {
+        sup: v.sup || 'Sem supervisor',
+        vendedor: v.nome || '—',
+        rca: v.id || '—',
+        canal: v.canal || '',
+        cliente: c.nome || 'Cliente',
+        motivo: motivo,
+        dias: diasDesde(c.ultima_compra),
+        detalhe: `${c.nome || 'Cliente'}${c.tempo_visita ? ' (' + c.tempo_visita + ')' : ''}`,
+        valorNum: 1
+      };
+    });
   } else if (tipo === 'digitado') {
-    tituloTxt = '💰 Digitado Hoje — Ranking Completo';
-    linhas = PAINEL_DADOS.digitado.map(v => ({ nome: v.nome, rca: v.id, valor: brl(v.dig) }));
+    tituloTxt = '💰 Digitado Hoje — Ranking por Supervisor';
+    itens = (PAINEL_DADOS.digitado || []).map(v => ({
+      sup: v.sup || 'Sem supervisor',
+      vendedor: v.nome || '—',
+      rca: v.id || '—',
+      canal: v.canal || '',
+      detalhe: brl(v.dig),
+      valorNum: v.dig || 0
+    }));
   } else if (tipo === 'penalti') {
-    tituloTxt = '🚨 Ranking de Pênaltis — Completo';
-    linhas = PAINEL_DADOS.penaltis.map(x => ({ nome: x.nome, rca: x.rca, valor: x.n + ' pênalti(s)' }));
+    tituloTxt = '🚨 Ranking de Pênaltis — Detalhe por Supervisor';
+    const pensIndividuais = [];
+    ALERTAS.filter(a => a.nivel === 'penalti').forEach(a => {
+      const v = a.v || {};
+      const c = a.c || {};
+      pensIndividuais.push({
+        sup: v.sup || 'Sem supervisor',
+        vendedor: v.nome || '—',
+        rca: v.id || '—',
+        canal: v.canal || '',
+        cliente: c.nome || 'Cliente',
+        motivo: c.motivo || (a.tipo === 'estoque' ? 'ESTOQUE SUFICIENTE' : 'CLIENTE FECHADO'),
+        dias: a.dias,
+        detalhe: `${c.nome ? c.nome + ' · ' : ''}${c.motivo || a.tipo || 'Pênalti'}${a.dias != null ? ' (' + a.dias + 'd s/ compra)' : ''}`,
+        valorNum: 1
+      });
+    });
+    if (!pensIndividuais.length) {
+      LOG.filter(e => e.nivel === 'penalti').forEach(e => {
+        pensIndividuais.push({
+          sup: e.supervisor || 'Sem supervisor',
+          vendedor: e.vendedor || '—',
+          rca: e.rca || '—',
+          canal: e.canal || '',
+          cliente: e.cliente || 'Cliente',
+          motivo: e.motivo || 'Pênalti apitado',
+          dias: e.dias_sem_compra,
+          detalhe: `${e.cliente ? e.cliente + ' · ' : ''}${e.motivo || 'Pênalti'}${e.dias_sem_compra != null ? ' (' + e.dias_sem_compra + 'd s/ compra)' : ''}`,
+          valorNum: 1
+        });
+      });
+    }
+    itens = pensIndividuais;
   }
 
   titulo.textContent = tituloTxt;
-  sub.textContent = `${linhas.length} registro(s) · ${$('fil') ? $('fil').textContent : ''} · ${sp().hms}`;
-  lista.innerHTML = linhas.length
-    ? linhas.map(l => `<div class="modal-det-linha"><span class="modal-det-nome">${esc(l.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(l.rca)})</span></span><span>${esc(l.valor)}</span></div>`).join('')
-    : '<div class="modal-det-vazio">Nenhum registro.</div>';
-  MODAL_DETALHE_ATUAL = { titulo: tituloTxt, linhas };
+  sub.textContent = `${itens.length} registro(s) · ${$('fil') ? $('fil').textContent : ''} · clique para explodir supervisor ➔ vendedor ➔ ocorrências`;
+
+  if (!itens.length) {
+    lista.innerHTML = '<div class="modal-det-vazio">Nenhum registro para exibir.</div>';
+    MODAL_DETALHE_ATUAL = { titulo: tituloTxt, linhas: [] };
+    overlay.classList.add('show');
+    return;
+  }
+
+  // Agrupamento hierárquico: Supervisor -> Vendedor -> Ocorrências
+  const arvore = {};
+  itens.forEach(it => {
+    const sup = it.sup || 'Sem supervisor';
+    const v = it.vendedor || '—';
+    arvore[sup] = arvore[sup] || { total: 0, somaVal: 0, vends: {} };
+    arvore[sup].total++;
+    arvore[sup].somaVal += (it.valorNum || 0);
+
+    arvore[sup].vends[v] = arvore[sup].vends[v] || { rca: it.rca, canal: it.canal || '', itens: [] };
+    if (it.canal && !arvore[sup].vends[v].canal) arvore[sup].vends[v].canal = it.canal;
+    arvore[sup].vends[v].itens.push(it);
+  });
+
+  const supsOrdenados = Object.keys(arvore).sort((a, b) => {
+    if (tipo === 'digitado') return arvore[b].somaVal - arvore[a].somaVal;
+    return arvore[b].total - arvore[a].total || a.localeCompare(b);
+  });
+
+  let html = '';
+  supsOrdenados.forEach((supNome, sIdx) => {
+    const supObj = arvore[supNome];
+    const supId = `sec-tv-sup-${sIdx}`;
+    const badgeSup = tipo === 'digitado' ? brl(supObj.somaVal) : `${supObj.total} registro(s)`;
+    const corBadge = tipo === 'penalti' ? 'red' : tipo === 'digitado' ? 'grn' : '';
+
+    html += `<div class="det-tree-sup">
+      <div class="det-tree-sup-head" onclick="toggleTreeSecao('${supId}')">
+        <span>👔 Supervisor ${esc(supNome)}</span>
+        <span class="det-badge ${corBadge}">${badgeSup} ▾</span>
+      </div>
+      <div id="${supId}" class="det-tree-sup-body">
+    `;
+
+    const vendsOrdenados = Object.keys(supObj.vends).sort((a, b) => {
+      if (tipo === 'digitado') {
+        const somaA = supObj.vends[a].itens.reduce((x, y) => x + (y.valorNum || 0), 0);
+        const somaB = supObj.vends[b].itens.reduce((x, y) => x + (y.valorNum || 0), 0);
+        return somaB - somaA;
+      }
+      return supObj.vends[b].itens.length - supObj.vends[a].itens.length || a.localeCompare(b);
+    });
+
+    vendsOrdenados.forEach((vNome, vIdx) => {
+      const vObj = supObj.vends[vNome];
+      const vId = `sec-tv-vend-${sIdx}-${vIdx}`;
+
+      if (tipo === 'penalti' || tipo === 'justificativa' || tipo === 'alertas') {
+        html += `<div class="det-tree-vend">
+          <div class="det-tree-vend-head" onclick="toggleTreeSecao('${vId}')">
+            <span>👤 <b>${esc(vNome)}</b> <small style="opacity:.7">(RCA ${esc(vObj.rca)})</small>${vObj.canal ? ' ' + tagCanalHtml(vObj.canal) : ''}</span>
+            <span class="det-badge ${corBadge}">${vObj.itens.length} ocorrência(s) ▾</span>
+          </div>
+          <div id="${vId}" class="det-tree-vend-body">
+            ${vObj.itens.map(it => `
+              <div class="det-tree-item">
+                <span class="modal-det-nome" style="color:#e2e8f0">🏢 <b>${esc(it.cliente || it.detalhe)}</b></span>
+                <span style="font-weight:700;color:${tipo === 'penalti' ? '#fca5a5' : 'var(--acc)'}">${esc(it.motivo || it.detalhe)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>`;
+      } else {
+        vObj.itens.forEach(it => {
+          html += `<div class="det-tree-item">
+            <span class="modal-det-nome">👤 <b>${esc(vNome)}</b> <small style="opacity:.7">(RCA ${esc(vObj.rca)})</small>${vObj.canal ? ' ' + tagCanalHtml(vObj.canal) : ''}</span>
+            <span style="font-weight:700;color:var(--ok)">${esc(it.detalhe)}</span>
+          </div>`;
+        });
+      }
+    });
+
+    html += `</div></div>`;
+  });
+
+  lista.innerHTML = html;
+  MODAL_DETALHE_ATUAL = {
+    titulo: tituloTxt,
+    linhas: itens.map(l => ({ nome: l.vendedor, rca: l.rca, sup: l.sup, valor: l.detalhe }))
+  };
   overlay.classList.add('show');
 }
 function exportarModalDetalhe() {
@@ -1151,12 +1440,100 @@ function render() {
     : (camp.length ? `Nenhum alerta ativo · ${camp.filter(zerado).length} zerado(s) · lances do dia: ${LOG.length}` : `Sem rota de campo hoje · lances do dia: ${LOG.length}`);
 }
 let rondaTimer = null;
-function mostraRonda(vs) {
-  if (!ordem.length) { renderMaster(null); $('side').innerHTML = ''; return; }
-  const v = vs.find(x => x.id === ordem[idxRonda % ordem.length]); renderMaster(v); renderSide(vs, idxRonda % ordem.length);
-}
-function avancaRonda() { if (modoAtual() !== 'ronda' || !ordem.length) return; idxRonda = (idxRonda + 1) % ordem.length; if (idxRonda === 0) ordem = montaOrdem(VS()); mostraRonda(VS()); }
+let CONGELADO = false;
+let FILTRO_SUP = '';
+let FILTRO_VEND = '';
 
+function vsFiltrados(vs) {
+  return vs.filter(v => {
+    if (FILTRO_SUP && norm(v.sup) !== norm(FILTRO_SUP)) return false;
+    if (FILTRO_VEND && String(v.id) !== String(FILTRO_VEND)) return false;
+    return true;
+  });
+}
+
+function popularFiltros(vs) {
+  const selS = document.getElementById('selSup');
+  const selV = document.getElementById('selVend');
+  if (!selS || !selV) return;
+
+  const curS = selS.value;
+  const curV = selV.value;
+
+  const sups = Array.from(new Set(vs.map(v => v.sup).filter(Boolean))).sort();
+  selS.innerHTML = '<option value="">👔 Todos os Supervisores</option>' + sups.map(s => `<option value="${esc(s)}"${s === curS ? ' selected' : ''}>${esc(s)}</option>`).join('');
+
+  const vendsVisiveis = vs.filter(v => !curS || norm(v.sup) === norm(curS)).sort((a,b) => a.nome.localeCompare(b.nome));
+  selV.innerHTML = '<option value="">👤 Todos os Vendedores</option>' + vendsVisiveis.map(v => `<option value="${esc(v.id)}"${String(v.id) === String(curV) ? ' selected' : ''}>${esc(v.nome)} (RCA ${v.id})</option>`).join('');
+}
+
+function aoMudarFiltroSup() {
+  const selS = document.getElementById('selSup');
+  FILTRO_SUP = selS ? selS.value : '';
+  popularFiltros(VS());
+  ordem = montaOrdem(VS());
+  idxRonda = 0;
+  mostraRonda(VS());
+}
+
+function aoMudarFiltroVend() {
+  const selV = document.getElementById('selVend');
+  FILTRO_VEND = selV ? selV.value : '';
+  if (FILTRO_VEND) {
+    CONGELADO = true;
+    atualizarBotaoCongela();
+  }
+  ordem = montaOrdem(VS());
+  idxRonda = 0;
+  mostraRonda(VS());
+}
+
+function alternarCongelamento() {
+  CONGELADO = !CONGELADO;
+  if (!CONGELADO && FILTRO_VEND) {
+    FILTRO_VEND = '';
+    const selV = document.getElementById('selVend');
+    if (selV) selV.value = '';
+  }
+  atualizarBotaoCongela();
+  mostraRonda(VS());
+}
+
+function atualizarBotaoCongela() {
+  const btn = document.getElementById('btnCongela');
+  if (!btn) return;
+  if (CONGELADO) {
+    btn.classList.add('congelado');
+    btn.innerHTML = '▶ Retomar';
+    btn.title = 'A rotação está CONGELADA no vendedor atual. Clique para retomar a ronda automática.';
+  } else {
+    btn.classList.remove('congelado');
+    btn.innerHTML = '⏸ Congelar';
+    btn.title = 'Pausar no vendedor atual para conferir rota e histórico.';
+  }
+}
+
+function mostraRonda(vs) {
+  const filtrados = vsFiltrados(vs);
+  popularFiltros(vs);
+
+  if (!filtrados.length) {
+    renderMaster(null);
+    $('side').innerHTML = '<div style="color:var(--mut);padding:20px;grid-column:1/-1">Nenhum vendedor encontrado para o filtro selecionado.</div>';
+    return;
+  }
+  const v = filtrados[idxRonda % filtrados.length];
+  renderMaster(v);
+  renderSide(filtrados, idxRonda % filtrados.length);
+}
+
+function avancaRonda() {
+  if (modoAtual() !== 'ronda' || CONGELADO) return;
+  const filtrados = vsFiltrados(VS());
+  if (!filtrados.length) return;
+  idxRonda = (idxRonda + 1) % filtrados.length;
+  mostraRonda(VS());
+}
 // ============================== DIÁRIO ==============================
 function exportar() {
   const vs = VS();
@@ -1170,33 +1547,51 @@ function exportar() {
 
 // ============================== INÍCIO ==============================
 let ultLanceAuto = Date.now(), idxDestaque = 0;
+const historicoLancesExibidosFilial = [];
 function confereLanceAuto() {
   if (emVAR || FILA.length || !ALERTAS.length) return;
   const t = sp();
   if (t.h < 8) return;
   if (Date.now() - ultLanceAuto >= 150000) {
     ultLanceAuto = Date.now();
-    // Só reexibe lances que a TV ainda NÃO mostrou (fora de `seen`) — sem isso, o mesmo pênalti/
-    // impedimento de um cliente inativo há meses fica em ALERTAS o dia inteiro (a condição segue
-    // batendo a cada recálculo) e era reapitado automaticamente a cada 2.5min pra sempre (achado
-    // em 28/09/2026: pênalti repetindo várias vezes na mesma tela).
-    const ALERTAS_NAO_VISTOS = ALERTAS.filter(a => !seen.has(a.key));
+    let poolAlertas = ALERTAS.filter(a => !seen.has(a.key));
+    // Se todos já foram vistos, recicla os destaques do dia excluindo os exibidos recentemente
+    // para GARANTIR lances SEMPRE DIFERENTES passando na TV
+    if (!poolAlertas.length) {
+      const recentesSet = new Set(historicoLancesExibidosFilial.slice(-20));
+      poolAlertas = ALERTAS.filter(a => !recentesSet.has(a.key));
+      if (!poolAlertas.length) {
+        historicoLancesExibidosFilial.splice(0, Math.max(0, historicoLancesExibidosFilial.length - 4));
+        poolAlertas = ALERTAS.slice();
+      }
+    }
+    // Lances com restrição de horário (ex: vis10, ven10) NUNCA podem ser reciclados à tarde
+    const horaAgoraDec = t.h + (t.m / 60);
+    const limiteMatinal = (['TCG','MCD','TCA'].includes(FIL)) ? 12.5 : 11.5;
+    if (horaAgoraDec >= limiteMatinal) {
+      poolAlertas = poolAlertas.filter(a => !String(a.key).includes('vis10') && !String(a.key).includes('ven10'));
+    }
     const categorias = [
-      { tipo: 'gol', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'gol') },
-      { tipo: 'hattrick', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'hattrick') },
-      { tipo: 'penalti', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'penalti') },
-      { tipo: 'impedimento', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'impedimento') },
-      { tipo: 'vermelho', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'vermelho') },
-      { tipo: 'golcontra', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'golcontra') },
-      { tipo: 'amarelo', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'amarelo') },
-      { tipo: 'defesa', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'defesa') }
+      { tipo: 'gol', lista: poolAlertas.filter(a => a.nivel === 'gol') },
+      { tipo: 'hattrick', lista: poolAlertas.filter(a => a.nivel === 'hattrick') },
+      { tipo: 'penalti', lista: poolAlertas.filter(a => a.nivel === 'penalti') },
+      { tipo: 'impedimento', lista: poolAlertas.filter(a => a.nivel === 'impedimento') },
+      { tipo: 'vermelho', lista: poolAlertas.filter(a => a.nivel === 'vermelho') },
+      { tipo: 'golcontra', lista: poolAlertas.filter(a => a.nivel === 'golcontra') },
+      { tipo: 'amarelo', lista: poolAlertas.filter(a => a.nivel === 'amarelo') },
+      { tipo: 'defesa', lista: poolAlertas.filter(a => a.nivel === 'defesa') }
     ].filter(c => c.lista && c.lista.length > 0);
 
     if (!categorias.length) return;
     const cat = categorias[idxDestaque % categorias.length];
-    idxDestaque++;
-    // Pega o item mais relevante da categoria (ex: maior valor no gol, maior tempo/risco nas infrações)
-    const lance = cat.lista.slice().sort((a,b) => (b.valor || b.dias || 0) - (a.valor || a.dias || 0))[0] || cat.lista[0];
+    const ultimosLancesKeys = new Set(historicoLancesExibidosFilial.slice(-15));
+    const candidatosCat = cat.lista.filter(c => !ultimosLancesKeys.has(c.key)).sort((a,b) => (b.valor || b.dias || 0) - (a.valor || a.dias || 0));
+    const poolFinalCat = candidatosCat.length ? candidatosCat : cat.lista;
+    const ultimoRca = historicoLancesExibidosFilial.length ? String(historicoLancesExibidosFilial[historicoLancesExibidosFilial.length - 1]).split('|').find(p => /^\d{2,5}$/.test(p)) : null;
+    const lance = poolFinalCat.find(c => c.v && String(c.v.id) !== ultimoRca && !ultimosLancesKeys.has(c.key)) || poolFinalCat.find(c => c.v && String(c.v.id) !== ultimoRca) || poolFinalCat[0];
+    if (!lance) return;
+    historicoLancesExibidosFilial.push(lance.key);
+    if (historicoLancesExibidosFilial.length > 80) historicoLancesExibidosFilial.shift();
     if (lance.nivel === 'gol') {
       FILA.push({tipo: 'gol', v: lance.v, c: lance.c, a: lance, sub: textoGol(lance.subtipo, lance.valor, lance.c, lance.horaReal)});
     } else if (lance.nivel === 'hattrick') {
@@ -1250,26 +1645,49 @@ function ctl() {
 // ROLAGEM AUTOMÁTICA (pedido do Vitório, 29/09/2026): qualquer .panel com lista maior que o
 // espaço visível desce sozinho até o fim e volta ao topo, em loop lento — TV ninguém toca.
 // Detecta scrollHeight > clientHeight (conteúdo não cabe); painel que cabe fica parado.
+// ROLAGEM AUTOMÁTICA OTIMIZADA: ciclo de 26s mais lento + pausa imediata ao passar o mouse
+let MOUSE_SOBRE_PAINEL = false;
+
+function setupPaineisHover() {
+  document.querySelectorAll('.panel, .rota, #ronda, .side').forEach(p => {
+    if (p._hasHoverListener) return;
+    p._hasHoverListener = true;
+    p.addEventListener('mouseenter', () => { MOUSE_SOBRE_PAINEL = true; });
+    p.addEventListener('mouseleave', () => { MOUSE_SOBRE_PAINEL = false; });
+    p.addEventListener('touchstart', () => { MOUSE_SOBRE_PAINEL = true; }, { passive: true });
+    p.addEventListener('touchend', () => { setTimeout(() => { MOUSE_SOBRE_PAINEL = false; }, 2000); }, { passive: true });
+  });
+}
+
 function autoScrollPaineis() {
-  document.querySelectorAll('.panel').forEach((p) => {
-    if (p.offsetParent === null) return; // painel escondido (display:none) não rola
+  if (MOUSE_SOBRE_PAINEL) return; // pausa imediata enquanto o usuário estiver com o mouse ou dedo sobre o painel
+  setupPaineisHover();
+
+  document.querySelectorAll('.panel, .rota').forEach((p) => {
+    if (p.offsetParent === null) return;
     const excesso = p.scrollHeight - p.clientHeight;
-    if (excesso < 20) { p.scrollTop = 0; return; } // conteúdo cabe, nunca rola
-    const ciclo = 14000; // desce em 7s, pausa, sobe em 7s — devagar, dá tempo de ler
+    if (excesso < 15) return;
+    const ciclo = 26000; // ciclo bem mais lento (26s) para facilitar a leitura confortável
     const t = (Date.now() % ciclo) / ciclo;
-    const fase = t < 0.5 ? t * 2 : (1 - t) * 2; // 0→1→0 (desce e volta)
+    const fase = t < 0.5 ? t * 2 : (1 - t) * 2;
     p.scrollTop = excesso * fase;
   });
 }
 setInterval(autoScrollPaineis, 80);
-
-let versao = null;
-async function checaVersao() { const d = await j('/api/version', 8000); if (d && d.version) { if (versao && versao !== d.version && window.top === window) precisaRecarregar = true; else if (!versao) versao = d.version; } }
-let precisaRecarregar = false;
+let versao = null, precisaRecarregar = false;
+async function checaVersao() {
+  const d = await j('/api/version', 8000);
+  if (d && d.version) {
+    if (versao && versao !== d.version && window.top === window) precisaRecarregar = true;
+    else if (!versao) versao = d.version;
+  }
+}
 if (!VALID.includes(FIL)) {
   document.body.innerHTML = '<div style="padding:60px;font-size:28px">Link inválido. Use <b>?filial=</b> com uma das siglas: ' + VALID.join(', ') + '</div>';
 } else {
   document.title = `CEVEN CFTV — ${FIL}`; $('fil').textContent = 'FILIAL ' + FIL; ctl(); relogio();
+  const btnReg = $('btnLinkRegulamento');
+  if (btnReg) btnReg.href = `/brasileirao?modo=tv&filial=${encodeURIComponent(FIL)}&tab=regulamento`;
   setInterval(relogio, 1000); setInterval(avancaRonda, ROTA_S * 1000);
   carregaMetas(); setInterval(carregaMetas, 30 * 60 * 1000);
   setInterval(async () => { if (await carregaReps()) render(); }, 10 * 60 * 1000);

@@ -413,16 +413,125 @@ app.get('/api/rca/vendedor-detalhe', async (req, res) => {
 });
 
 app.get('/api/flash-alerts', (req, res) => {
-  res.json([
-    {
-      id: 1,
-      tipo: 'corte_massa',
-      titulo: '🚨 ALERTA DE CORTE COLETIVO: SNICKERS MARACUJÁ',
-      mensagem: 'Dos últimos 10 pedidos digitados na filial, 9 sofreram Corte Comercial no SKU SNICKERS MARACUJÁ (Risco de Ruptura).',
-      impacto: 'R$ 1.368,00',
-      duracao_min: 5
+  res.json({ alerts: [], aviso: 'servidor local: sem fonte de alertas reais' });
+});
+
+app.get('/api/campanhas/mars-live', async (req, res) => {
+  try {
+    const filialFiltro = (req.query.filial || 'TODAS').toUpperCase();
+    const industriaFiltro = (req.query.industria || 'TODAS').toUpperCase();
+    const rcaFiltro = req.query.rca;
+
+    const rcasResumo = JSON.parse(fs.readFileSync(path.join(__dirname, 'public', 'resumo_rcas_mars.json'), 'utf8'));
+
+    let listaRcas = [];
+    const filiaisKeys = filialFiltro === 'TODAS' ? Object.keys(rcasResumo) : [filialFiltro.toLowerCase()];
+
+    for (const fKey of filiaisKeys) {
+      if (rcasResumo[fKey]) listaRcas.push(...rcasResumo[fKey]);
     }
-  ]);
+
+    if (rcaFiltro) {
+      listaRcas = listaRcas.filter(r => String(r.rca) === String(rcaFiltro));
+    }
+
+    const MAX_RCAS = rcaFiltro ? 1 : (filialFiltro === 'TODAS' ? 35 : 45);
+    const rcasConsultar = listaRcas.slice(0, MAX_RCAS);
+
+    const BATCH_SIZE = 8;
+    const detalhesVendedores = [];
+    const feedLances = [];
+    let totalClientesRotaHoje = 0;
+    let totalPositivadosHoje = 0;
+    let totalFaturadoHoje = 0;
+
+    for (let i = 0; i < rcasConsultar.length; i += BATCH_SIZE) {
+      const lote = rcasConsultar.slice(i, i + BATCH_SIZE);
+      await Promise.all(lote.map(async (item) => {
+        const fKey = item.filial.toLowerCase();
+        const rcaId = item.rca;
+        try {
+          const [rotRes, prodRes] = await Promise.all([
+            apiClient.get(`/api/rca/roteiro-hoje?filial=${fKey}&id=${rcaId}`),
+            apiClient.get(`/api/rca/produtividade?filial=${fKey}&id=${rcaId}`)
+          ]);
+
+          const rotas = Array.isArray(rotRes.data) ? rotRes.data : [];
+          const dia = prodRes.data?.dia || {};
+
+          const clientesFocoRota = rotas.filter(c => {
+            if (!c.focos || !Array.isArray(c.focos) || c.focos.length === 0) return false;
+            return c.focos.some(f => {
+              const ind = (f.industria_foco || '').toUpperCase();
+              if (industriaFiltro === 'CHOCO') return ind.includes('CHOCO');
+              if (industriaFiltro === 'PET') return ind.includes('PET');
+              return ind.includes('MARS');
+            });
+          });
+
+          const positivados = clientesFocoRota.filter(c => c.status === 'POSITIVADO' || c.status === 'EFETIVADO');
+
+          for (const p of positivados) {
+            feedLances.push({
+              horario: p.checkin_horario || 'Hoje',
+              rca: rcaId,
+              filial: item.filial,
+              cliente: p.nome_cliente || p.razao_social || 'Cliente Mars',
+              cnpj: p.cnpj,
+              focos: p.focos ? p.focos.map(f => f.industria_foco) : ['MARS'],
+              status: p.status
+            });
+          }
+
+          const fatHoje = parseFloat(dia.dig_pedido || dia.faturamento || 0);
+
+          detalhesVendedores.push({
+            rca: rcaId,
+            filial: item.filial,
+            totalAlvoCarteira: item.totalAlvo,
+            totalChocoCarteira: item.totalChoco,
+            totalPetCarteira: item.totalPet,
+            rotasHoje: rotas.length,
+            focoHoje: clientesFocoRota.length,
+            positivadosHoje: positivados.length,
+            fatHoje: fatHoje,
+            clientes: clientesFocoRota.map(c => ({
+              id: c.id_cliente,
+              nome: c.nome_cliente || c.razao_social,
+              cnpj: c.cnpj,
+              status: c.status,
+              horario: c.checkin_horario,
+              focos: c.focos
+            }))
+          });
+
+          totalClientesRotaHoje += clientesFocoRota.length;
+          totalPositivadosHoje += positivados.length;
+          totalFaturadoHoje += fatHoje;
+        } catch (e) {}
+      }));
+    }
+
+    detalhesVendedores.sort((a, b) => b.positivadosHoje - a.positivadosHoje || b.focoHoje - a.focoHoje);
+    feedLances.sort((a, b) => (b.horario || '').localeCompare(a.horario || ''));
+
+    res.json({
+      sucesso: true,
+      timestamp: new Date().toISOString(),
+      filtro: { filial: filialFiltro, industria: industriaFiltro },
+      resumo: {
+        totalRcasAvaliados: detalhesVendedores.length,
+        totalClientesFocoRotaHoje: totalClientesRotaHoje,
+        totalPositivadosFocoHoje: totalPositivadosHoje,
+        aproveitamentoPct: totalClientesRotaHoje > 0 ? Number(((totalPositivadosHoje / totalClientesRotaHoje) * 100).toFixed(1)) : 0,
+        totalFaturadoHoje: totalFaturadoHoje
+      },
+      rankingRcas: detalhesVendedores,
+      feedLances: feedLances.slice(0, 50)
+    });
+  } catch(e) {
+    res.status(500).json({ erro: e.message });
+  }
 });
 
 app.listen(PORT, () => {

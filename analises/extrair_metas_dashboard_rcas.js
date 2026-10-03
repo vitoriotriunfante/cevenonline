@@ -127,7 +127,7 @@ async function coletarMetas() {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  const CONCURRENCY = 10;
+  const CONCURRENCY = 6; // limite pratico de 6 chamadas simultaneas ao CEVEN (03/10/2026)
   let idx = 0;
   let totalComMeta = 0;
 

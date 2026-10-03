@@ -97,7 +97,7 @@ async function main() {
   let processados = 0, comSucesso = 0, semUniverso = 0;
   const inicio = Date.now();
 
-  const BATCH = 15;
+  const BATCH = 6; // limite pratico de 6 chamadas simultaneas ao CEVEN (03/10/2026)
   for (let i = 0; i < pdvs.length; i += BATCH) {
     const lote = pdvs.slice(i, i + BATCH);
     await Promise.all(lote.map(async (pdv) => {

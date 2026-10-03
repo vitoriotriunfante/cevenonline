@@ -1,24 +1,62 @@
 {
-  "_comentario": "Reconstruido em 29/09/2026 apos perda do arquivo original (nunca foi commitado). Valores sao uma PROPOSTA coerente com o regulamento ja documentado em public/brasileirao.html (vitoria >10pts, empate 1-10pts, derrota <=0pts) -- pendente de revisao/ajuste do Vitorio, os numeros exatos definidos na sessao anterior nao puderam ser recuperados.",
+  "_comentario": "Regulamento Oficial da Liga Triunfante 2026 - Metodologia auditada pela diretoria comercial",
+  "regras_equipes": {
+    "vendedor": {
+      "descricao": "Cada Dia é uma Rodada (\"Você Contra o Seu Dia\"). O vendedor não disputa contra o tamanho da rota do colega. Ele disputa contra o seu próprio desafio diário — todo lance real que o CEVEN registra (gols, cartões, pênaltis, impedimentos e defesas) soma ou subtrai pontos na rodada do dia.",
+      "vitoria": { "criterio": "Somou mais de 10 pontos no dia de trabalho", "pontos_tabela": 3 },
+      "empate": { "criterio": "Somou entre 1 e 10 pontos no dia de trabalho", "pontos_tabela": 1 },
+      "derrota": { "criterio": "Somou 0 pontos ou pontuação negativa no dia de trabalho", "pontos_tabela": 0 }
+    },
+    "supervisor": {
+      "descricao": "A Liga dos Times (Supervisor): Líder não soma os pontos individuais dos vendedores; o resultado do líder é o desempenho da sua equipe frente ao dia.",
+      "vitoria": { "criterio": "A maioria absoluta (mais de 50%) dos vendedores da equipe do supervisor conquistou Vitória na rodada", "pontos_tabela": 3 },
+      "empate": { "criterio": "Pelo menos 1 vendedor da equipe conquistou Vitória, mas não atingiu a maioria", "pontos_tabela": 1 },
+      "derrota": { "criterio": "Nenhum vendedor da equipe bateu Vitória no dia", "pontos_tabela": 0 }
+    },
+    "filial": {
+      "descricao": "A Liga dos Times (Filial): Resultado consolidado de todos os vendedores da filial.",
+      "vitoria": { "criterio": "A maioria absoluta (mais de 50%) de todos os vendedores da filial conquistou Vitória na rodada", "pontos_tabela": 3 },
+      "empate": { "criterio": "Pelo menos 1 vendedor da filial conquistou Vitória, mas não atingiu a maioria", "pontos_tabela": 1 },
+      "derrota": { "criterio": "Nenhum vendedor da filial conquistou Vitória no dia", "pontos_tabela": 0 }
+    },
+    "gerente": {
+      "descricao": "A Liga dos Times (Gerente Regional): Resultado de todos os vendedores das filiais sob sua gestão.",
+      "vitoria": { "criterio": "A maioria absoluta (mais de 50%) de todos os vendedores sob gestão do gerente conquistou Vitória na rodada", "pontos_tabela": 3 },
+      "empate": { "criterio": "Pelo menos 1 vendedor sob gestão conquistou Vitória, mas não atingiu a maioria", "pontos_tabela": 1 },
+      "derrota": { "criterio": "Nenhum vendedor sob gestão conquistou Vitória no dia", "pontos_tabela": 0 }
+    },
+    "bonus_constancia": {
+      "trinca_ouro": { "criterio": "3 Vitórias Seguidas: +3 Pontos extras na tabela da Liga", "pontos_extras_tabela": 3 },
+      "semana_invicta": { "criterio": "Semana Invicta (5 Vitórias na Semana): +3 Pontos extras adicionais na tabela", "pontos_extras_tabela": 3 }
+    },
+    "criterios_desempate": [
+      "1º) 🥇 Maior Número de Vitórias (V)",
+      "2º) ⚽ Maior Saldo de Gols / Lances (SG = Pontos Positivos − Pontos Negativos)",
+      "3º) 🦅 Mais Clientes Inativos Resgatados",
+      "4º) 🎯 Maior Positivação Total de Clientes Únicos"
+    ]
+  },
   "pontos_por_lance": {
-    "gol_super": { "nome": "Super Pedido", "pontos": 5, "motivo": "Pedido de valor muito acima do padrao do vendedor" },
-    "gol_relampago": { "nome": "Gol Relâmpago", "pontos": 4, "motivo": "Pedido fechado logo no inicio do dia" },
-    "gol_acrescimos": { "nome": "Gol nos Acréscimos", "pontos": 4, "motivo": "Pedido fechado no fim do expediente, sem desistir" },
-    "gol_meta1t": { "nome": "Meta do 1º Tempo", "pontos": 6, "motivo": "Bateu a meta do dia antes das 14h" },
-    "gol_conversao": { "nome": "Máquina de Conversão", "pontos": 5, "motivo": "Alto aproveitamento de visitas em vendas (>=50%)" },
-    "gol_goleada": { "nome": "Goleada", "pontos": 7, "motivo": "Volume excepcional de clientes positivados no dia" },
-    "gol_campeao": { "nome": "Campeão da Rodada", "pontos": 8, "motivo": "Bateu 100% da meta do mês" },
-    "gol_inativo": { "nome": "Resgate de Inativo", "pontos": 6, "motivo": "Recuperou cliente parado há mais de 30 dias" },
-    "gol_mix": { "nome": "Dobrou o Mix", "pontos": 4, "motivo": "Vendeu o dobro de SKUs do que costuma no cliente" },
-    "gol_hattrick": { "nome": "Hat-Trick", "pontos": 6, "motivo": "3 pedidos seguidos em curto intervalo" },
-    "gol_quinzenas": { "nome": "Dobradinha das Quinzenas", "pontos": 3, "motivo": "Comprou na 1ª e na 2ª quinzena do mês" },
-    "defesa": { "nome": "Defesa (Recorrência)", "pontos": 3, "motivo": "Cliente recorrente positivado, mantendo a base ativa" },
-    "amarelo": { "nome": "Cartão Amarelo", "pontos": -3, "motivo": "Rota ativa sem nenhuma venda até 10h" },
-    "impedimento": { "nome": "Impedimento", "pontos": -5, "motivo": "Check-in fora do local (GPS) ou às 00:00" },
-    "penalti_estoque": { "nome": "Pênalti (Estoque)", "pontos": -6, "motivo": "Cliente sem visita há dias por falta de estoque" },
-    "penalti_fechado": { "nome": "Pênalti (Cliente Fechado)", "pontos": -6, "motivo": "Cliente sem visita há dias por estar fechado" },
-    "venda10": { "nome": "Cartão Vermelho (Sem Venda)", "pontos": -10, "motivo": "Rota completa sem nenhuma venda até o fim do dia" },
-    "visita10": { "nome": "Expulsão (Sem Visita)", "pontos": -10, "motivo": "Nenhuma visita registrada no dia inteiro" }
+    "gol_campeao": { "nome": "🏆 Campeão da Rodada", "pontos": 8, "motivo": "Bateu 100% da meta mensal de faturamento no CEVEN." },
+    "gol_goleada": { "nome": "⚽ Goleada", "pontos": 7, "motivo": "Volume excepcional de positivação: ≥ 10 clientes positivados no mesmo dia." },
+    "gol_meta1t": { "nome": "⏱️ Meta do 1º Tempo", "pontos": 6, "motivo": "Bateu a meta proporcional diária antes das 14h00." },
+    "gol_inativo": { "nome": "🦅 Resgate de Inativo / Drible da Vaca", "pontos": 6, "motivo": "Recuperou cliente parado há mais de 30 dias (ou > 90 dias no Drible da Vaca) OU cliente com TAG RECORRÊNCIA positivado." },
+    "gol_hattrick": { "nome": "🔥 Hat-Trick (Diário)", "pontos": 6, "motivo": "3 pedidos digitados em sequência em um curto intervalo (até 120 minutos)." },
+    "gol_super": { "nome": "💎 Super Pedido", "pontos": 5, "motivo": "Pedido de valor muito expressivo (venda alta no dia, padrão ≥ R$ 15.000 ou muito acima da média do RCA)." },
+    "gol_conversao": { "nome": "⚙️ Máquina de Conversão", "pontos": 5, "motivo": "Alto aproveitamento comercial da rota: ≥ 8 visitas feitas e taxa de conversão ≥ 50%." },
+    "gol_relampago": { "nome": "⚡ Gol Relâmpago", "pontos": 4, "motivo": "Pedido fechado logo no início do dia (antes das 09h00 / 10h00 nas praças com fuso: TCG, MCD, TCA)." },
+    "gol_acrescimos": { "nome": "⌛ Gol nos Acréscimos", "pontos": 4, "motivo": "Pedido fechado no fim do expediente (após as 17h00 / 18h00 no fuso), sem desistir da rota." },
+    "gol_mix": { "nome": "📦 Dobrou o Mix", "pontos": 4, "motivo": "Vendeu o dobro de SKUs em relação à média histórica do cliente (≥ 2× a média anterior)." },
+    "gol_quinzenas": { "nome": "📅 Dobradinha das Quinzenas", "pontos": 3, "motivo": "Cliente comprou na 1ª Quinzena (dias 1 a 15) E na 2ª Quinzena (dia 16 ao fim) do mesmo mês." },
+    "defesa": { "nome": "🧤 Defesa (Recorrência Salva)", "pontos": 3, "motivo": "Cliente com TAG RECORRÊNCIA na rota positivado no dia, blindando a carteira ativa contra perda." },
+    "pedido_rota": { "nome": "📝 Pedido Feito na Rota", "pontos": 1, "motivo": "Pedido faturado/positivado em cliente da rota do dia com visita/check-in realizado." },
+    "amarelo": { "nome": "🟨 Cartão Amarelo", "pontos": -3, "motivo": "Advertência: vendedor com rota ativa sem nenhuma venda até as 10h00 (11h00 no fuso)." },
+    "impedimento": { "nome": "🚩 Impedimento VAR", "pontos": -5, "motivo": "Check-in irregular: check-out a mais de 500m do cliente (GPS fora) ou visita relâmpago de 00:00." },
+    "penalti_estoque": { "nome": "🚨 Pênalti (Estoque Suficiente)", "pontos": -6, "motivo": "Justificativa de não venda \"ESTOQUE SUFICIENTE\" em cliente parado há mais de 30 dias sem compra." },
+    "penalti_fechado": { "nome": "🚨 Pênalti (Cliente Fechado)", "pontos": -6, "motivo": "Justificativa \"ESTABELECIMENTO FECHADO / ENCERROU\" em cliente parado há mais de 45 dias sem compra." },
+    "golcontra": { "nome": "⚽ Gol Contra (Devolução Comercial)", "pontos": -4, "motivo": "Devolução de mercadoria registrada no dia por motivos comerciais normais (renegociação, recusa, desacordo)." },
+    "ver_dev": { "nome": "🟥 Cartão Vermelho (Devolução 'Não Pediu')", "pontos": -10, "motivo": "Devolução grave onde o cliente declarou \"CLIENTE NÃO PEDIU\" (quebra de confiança)." },
+    "visita10": { "nome": "🟥 Cartão Vermelho / Abandono", "pontos": -10, "motivo": "Vendedor com rota ativa que chegou às 10h00 sem nenhuma visita feita (abandono de campo) OU rota finalizada sem nenhuma venda." }
   },
   "faixas_pontos_liga": {
     "vitoria": { "min_pontos": 11, "pontos_tabela": 3 },

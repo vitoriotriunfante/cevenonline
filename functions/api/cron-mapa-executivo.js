@@ -42,7 +42,7 @@
 
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' };
-const LOTE = 40; // RCAs em paralelo por vez — equilíbrio entre velocidade e não sobrecarregar o CEVEN
+const LOTE = 6; // chamadas simultaneas ao CEVEN (limite pratico de 6, decisao de 03/10/2026; antes 40)
 
 async function getJson(url) {
   try {

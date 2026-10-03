@@ -612,7 +612,7 @@ input:checked + .toggle-slider:before {
 
     <div class="form-group" id="grupo-pin-diretoria" style="display:none;">
       <label class="form-label">PIN de Diretoria</label>
-      <input type="password" id="login-pin" class="form-input" placeholder="Digite o PIN master da Diretoria...">
+      <input type="password" id="login-pin" class="form-input" placeholder="Senha da Diretoria">
       <div id="login-msg-erro" class="login-err" style="margin-top:6px;">PIN incorreto para Diretoria.</div>
     </div>
 
@@ -907,14 +907,22 @@ function checarLoginSalvo() {
   return false;
 }
 
-function efetuarLogin() {
+async function senhaDiretoriaConfere(pin) {
+  try {
+    const r = await fetch('/api/equipe-login', { method: 'POST', headers: { 'X-Equipe-Senha': pin } });
+    if (r.ok) { SENHA_APROVACAO = pin; SENHA_TS = Date.now(); return true; }
+  } catch (e) {}
+  return false;
+}
+
+async function efetuarLogin() {
   const perfil = document.getElementById('login-perfil').value;
   const erroMsg = document.getElementById('login-msg-erro');
   erroMsg.style.display = 'none';
 
   if (perfil === 'DIRETORIA') {
     const pin = document.getElementById('login-pin').value.trim();
-    if (pin === '2026' || pin === 'triunfante') {
+    if (await senhaDiretoriaConfere(pin)) {
       USUARIO_LOGADO = {
         perfil: 'DIRETORIA',
         nome: 'Vitório Neto (Diretoria)',
@@ -925,7 +933,7 @@ function efetuarLogin() {
       aplicarPerfilUsuario();
       filtrarTabela();
     } else {
-      erroMsg.textContent = 'PIN de Diretoria incorreto.';
+      erroMsg.textContent = 'Senha incorreta (ou muitas tentativas: aguarde 10 minutos).';
       erroMsg.style.display = 'block';
     }
   } else {
@@ -1338,12 +1346,27 @@ function renderizarAprovacoesModal() {
   }).join('');
 }
 
+/* SENHA DE APROVACAO DA DIRETORIA (guardada so em memoria por 2 minutos; limpa se o servidor recusar) */
+let SENHA_APROVACAO = '', SENHA_TS = 0;
+function hdrsAprovacao() {
+  if (!SENHA_APROVACAO || Date.now() - SENHA_TS > 120000) {
+    const s = prompt('Senha de aprovação da Diretoria:');
+    if (!s) throw new Error('Senha não informada');
+    SENHA_APROVACAO = s; SENHA_TS = Date.now();
+  }
+  return { 'Content-Type': 'application/json', 'X-Equipe-Senha': SENHA_APROVACAO };
+}
+(function () {
+  const orig = window.fetch;
+  window.fetch = async function (...a) { const r = await orig.apply(this, a); if (r.status === 401) SENHA_APROVACAO = ''; return r; };
+})();
+
 async function decidirSolicitacao(id, acao) {
   mostrarToast(`${acao === 'APROVAR' ? 'Aprovando' : 'Rejeitando'} solicitação #${id}...`);
   try {
     const res = await fetch('/api/equipe-solicitacoes', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: hdrsAprovacao(),
       body: JSON.stringify({
         solicitacao_id: id,
         acao: acao,
@@ -1379,7 +1402,7 @@ async function aprovarTodasSolicitacoes() {
   for (const s of pendentes) {
     await fetch('/api/equipe-solicitacoes', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: hdrsAprovacao(),
       body: JSON.stringify({
         solicitacao_id: s.id,
         acao: 'APROVAR',
@@ -1456,7 +1479,7 @@ async function salvarAlteracoesMaster() {
   try {
     const res = await fetch('/api/equipe-salvar', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: hdrsAprovacao(),
       body: JSON.stringify(BASE_MOSTRA)
     });
     const json = await res.json();

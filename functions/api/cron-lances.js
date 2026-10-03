@@ -22,7 +22,7 @@
 // REGRA: nunca inventa dado. RCA sem resposta simplesmente não gera lance nesse ciclo.
 // =========================================================================
 
-const LOTE = 15;
+const LOTE = 2; // 2 RCAs x 3 chamadas = 6 simultaneas ao CEVEN (limite pratico de 6, decisao de 03/10/2026)
 const CAMPO = ['VJ', 'PET VJ', 'FARMA', 'ESP'];
 const DIAS_PENALTI_ESTOQUE = 30, DIAS_PENALTI_FECHADO = 45;
 const FRESCOR_MAX_MIN = 30; // só considera lance de horário "novo" se detectado nos últimos 30min
@@ -141,7 +141,14 @@ function calcAlertas(vs, t) {
 
     v.cl.forEach((c) => {
       const diasC = diasDesde(c.ultima_compra, t.dia);
-      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && diasC != null && diasC > 90) out.push({ chave: `gol_inativo|${v.id}|${c.id}`, nivel: 'gol', v, c });
+      const ehInativo = diasC != null && diasC > 30;
+      const ehRecorrencia = !!c.recorrencia;
+      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && (ehInativo || ehRecorrencia)) {
+        out.push({ chave: `gol_inativo|${v.id}|${c.id}`, nivel: 'gol', v, c });
+      }
+      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && c.checkin_horario) {
+        out.push({ chave: `pedido_rota|${v.id}|${c.id}`, nivel: 'pedido_rota', v, c });
+      }
       if (c.dobrouMix) out.push({ chave: `gol_mix|${v.id}|${c.id}`, nivel: 'gol', v, c });
       if (c.dobradinhaQuinzenas) out.push({ chave: `gol_quinzenas|${v.id}|${c.id}`, nivel: 'gol', v, c });
       if (c.bonificacao) out.push({ chave: `ver_bonif|${v.id}|${c.id}`, nivel: 'vermelho', v, c });

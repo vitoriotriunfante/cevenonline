@@ -1,3 +1,4 @@
+import { exigeSenhaEquipe } from '../_lib/senha_equipe.js';
 // =========================================================================
 // FICHA DO ARQUIVO: equipe-salvar.js
 // Endpoint para salvar alterações na hierarquia e status dos vendedores/supervisores.
@@ -8,7 +9,7 @@ const CORS = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type'
+  'Access-Control-Allow-Headers': 'Content-Type, X-Equipe-Senha'
 };
 
 export async function onRequestOptions() {
@@ -16,6 +17,8 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestPost({ request, env }) {
+  const negado = await exigeSenhaEquipe(request, env, CORS);
+  if (negado) return negado;
   try {
     const payload = await request.json();
     if (!payload || !payload.filiais) {

@@ -371,7 +371,7 @@ async function extrairDevolucoes() {
   const itensParaGravar = [];
 
   // Processar em lotes de 15 RCAs simultâneos
-  const BATCH_SIZE = 15;
+  const BATCH_SIZE = 6; // limite pratico de 6 chamadas simultaneas ao CEVEN (03/10/2026)
   for (let i = 0; i < todosRcas.length; i += BATCH_SIZE) {
     const batch = todosRcas.slice(i, i + BATCH_SIZE);
     process.stdout.write(`\rProcessando RCAs ${i + 1} a ${Math.min(i + BATCH_SIZE, todosRcas.length)} de ${todosRcas.length}...`);

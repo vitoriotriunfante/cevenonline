@@ -1,3 +1,4 @@
+import { exigeSenhaEquipe } from '../_lib/senha_equipe.js';
 // =========================================================================
 // FICHA DO ARQUIVO: equipe-solicitacoes.js
 // Workflow Soberano de Solicitação de Ajustes pelos Gerentes de Filial
@@ -9,7 +10,7 @@ const CORS = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type'
+  'Access-Control-Allow-Headers': 'Content-Type, X-Equipe-Senha'
 };
 
 export async function onRequestOptions() {
@@ -34,6 +35,8 @@ async function garantirTabela(db) {
       parecer_diretoria TEXT
     )
   `).run();
+  await db.prepare(`CREATE TABLE IF NOT EXISTS config_equipe_soberana (id INTEGER PRIMARY KEY CHECK (id = 1), conteudo_json TEXT NOT NULL, atualizado_por TEXT, atualizado_em TEXT)`).run();
+  await db.prepare(`CREATE TABLE IF NOT EXISTS audit_alteracoes_equipe (id INTEGER PRIMARY KEY AUTOINCREMENT, alterado_em TEXT, usuario TEXT, total_rcas INTEGER, resumo TEXT)`).run();
 }
 
 export async function onRequestGet({ request, env }) {
@@ -88,6 +91,8 @@ export async function onRequestPost({ request, env }) {
 
     // 1. DECISÃO DA DIRETORIA (APROVAÇÃO OU REJEIÇÃO)
     if (body.acao === 'APROVAR' || body.acao === 'REJEITAR') {
+      const negado = await exigeSenhaEquipe(request, env, CORS);
+      if (negado) return negado;
       const id = body.solicitacao_id;
       const decisao = body.acao === 'APROVAR' ? 'APROVADO' : 'REJEITADO';
       const usuario = body.usuario || 'Vitório Neto (Diretoria)';
@@ -98,12 +103,6 @@ export async function onRequestPost({ request, env }) {
         return new Response(JSON.stringify({ erro: 'Solicitação não encontrada' }), { status: 404, headers: CORS });
       }
 
-      await env.DB.prepare(`
-        UPDATE solicitacoes_ajuste_equipe
-        SET status = ?, respondido_por = ?, respondido_em = datetime('now'), parecer_diretoria = ?
-        WHERE id = ?
-      `).bind(decisao, usuario, parecer, id).run();
-
       // SE APROVADO, APLICA IMEDIATAMENTE NA BASE SOBERANA D1
       if (decisao === 'APROVADO') {
         let baseData = null;
@@ -111,13 +110,22 @@ export async function onRequestPost({ request, env }) {
         if (configRow && configRow.conteudo_json) {
           baseData = JSON.parse(configRow.conteudo_json);
         } else {
-          // Busca asset local
-          const assetUrl = new URL('/mostra_vendedores.json', request.url);
-          const r = await env.ASSETS.fetch(new Request(assetUrl));
-          if (r.ok) baseData = await r.json();
+          // Parte da lista VIVA servida por /api/tv-mostra; se falhar, da copia estatica publicada
+          try {
+            const rv = await fetch(new URL('/api/tv-mostra?t=' + Date.now(), request.url));
+            if (rv.ok) { const j = await rv.json(); if (j && j.filiais) baseData = j; }
+          } catch (e) { /* cai para a copia estatica */ }
+          if (!baseData) {
+            const assetUrl = new URL('/mostra_vendedores.json', request.url);
+            const r = await env.ASSETS.fetch(new Request(assetUrl));
+            if (r.ok) baseData = await r.json();
+          }
         }
 
-        if (baseData && baseData.filiais) {
+        if (!baseData || !baseData.filiais) {
+          return new Response(JSON.stringify({ sucesso: false, erro: 'Base da equipe indisponivel; aprovacao NAO aplicada.' }), { status: 502, headers: CORS });
+        }
+        {
           const fil = item.filial;
           if (!baseData.filiais[fil]) baseData.filiais[fil] = [];
 
@@ -174,6 +182,12 @@ export async function onRequestPost({ request, env }) {
           `).bind(usuario, sim + nao, `Aprovado ajuste ID #${id}: ${item.tipo_acao} RCA ${item.rca_id} (${item.filial})`).run();
         }
       }
+
+      await env.DB.prepare(`
+        UPDATE solicitacoes_ajuste_equipe
+        SET status = ?, respondido_por = ?, respondido_em = datetime('now'), parecer_diretoria = ?
+        WHERE id = ?
+      `).bind(decisao, usuario, parecer, id).run();
 
       return new Response(JSON.stringify({
         sucesso: true,

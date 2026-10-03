@@ -22,11 +22,11 @@ on:
 jobs:
   atualizar_varredura_central:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 10
     steps:
       - name: Disparar varredura central (cron-varredura-central)
         run: |
-          curl -sS -m 300 "https://ceven-cftv-matrix.pages.dev/api/cron-varredura-central" \
+          curl -sS -m 540 "https://ceven-cftv-matrix.pages.dev/api/cron-varredura-central" \
             -o resultado.json -w "\nHTTP %{http_code}\n"
           cat resultado.json
 

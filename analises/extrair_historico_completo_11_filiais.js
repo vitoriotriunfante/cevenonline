@@ -344,7 +344,7 @@ async function extrairHistoricoPedidos() {
   let totalPedidos = 0, totalItens = 0, totalCortes = 0, totalValor = 0;
   let erros = 0;
 
-  const CONCURRENCY = 16;
+  const CONCURRENCY = 6; // limite pratico de 6 chamadas simultaneas ao CEVEN (03/10/2026)
   let idx = 0;
 
   function parseDateBR(str) {

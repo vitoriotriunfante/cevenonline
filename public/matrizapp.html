@@ -18,7 +18,7 @@ GERADO: matrizapp.html é montado a partir de um modelo + trechos de tvapp.html 
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--tx);font-family:Segoe UI,Inter,system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 .mono{font-variant-numeric:tabular-nums}
-header{display:flex;align-items:center;gap:20px;padding:10px 22px;background:#0a1020;border-bottom:1px solid var(--line)}
+header{display:flex;align-items:center;gap:20px;padding:10px 22px;background:#0a1020;border-bottom:1px solid var(--line);flex-shrink:0;z-index:10}
 .rec{color:var(--bad);font-weight:800;font-size:13px;letter-spacing:.08em;display:flex;align-items:center;gap:8px}
 .rec i{width:10px;height:10px;border-radius:50%;background:var(--bad);animation:p 1.2s infinite}
 @keyframes p{50%{opacity:.25}}
@@ -26,13 +26,13 @@ header{display:flex;align-items:center;gap:20px;padding:10px 22px;background:#0a
 .sp{flex:1}.upd{color:var(--mut);font-size:13px}.upd.old{color:var(--bad);font-weight:800}
 .modo{font-size:12px;font-weight:800;letter-spacing:.08em;padding:3px 10px;border-radius:6px;background:#1a2440;color:var(--acc)}
 .clock{font-size:26px;font-weight:700}
-.tot{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.tot{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line);flex-shrink:0;z-index:9}
 .tot div{background:var(--card);padding:10px 18px}.tot b{display:block;font-size:24px;margin-top:2px}
 .tot span{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.06em}.tot small{font-size:14px;color:var(--mut)}
 main{flex:1;min-height:0;padding:14px 22px;display:grid;grid-template-columns:.9fr 2.1fr;gap:14px}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 20px;display:flex;flex-direction:column;gap:8px;min-height:0;overflow-y:auto;scrollbar-width:none;position:relative}
 .panel::-webkit-scrollbar{display:none}
-.panel h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);display:flex;justify-content:space-between;gap:8px}
+.panel h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);display:flex;justify-content:space-between;gap:8px;position:sticky;top:-16px;background:var(--card);padding:6px 0;margin-top:-6px;z-index:5;border-bottom:1px solid rgba(255,255,255,.05)}
 .panel h2 b{color:var(--tx)}
 .rk{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;padding:7px 10px;border-radius:12px;background:var(--card2);cursor:pointer;border:1px solid transparent}
 .rk.cur{border-color:var(--acc);background:#10243b}
@@ -57,7 +57,7 @@ main{flex:1;min-height:0;padding:14px 22px;display:grid;grid-template-columns:.9
 .subprog{height:3px;background:#1a2440;border-radius:99px;overflow:hidden}.subprog i{display:block;height:100%;background:var(--warn)}
 .supr{display:grid;grid-template-columns:70px 1fr;gap:12px;padding:8px 12px;border-radius:12px;background:var(--card2);font-size:18px;align-items:start}
 .supr.bad{border:1px solid var(--bad);background:#2a0a0a}
-footer{padding:8px 22px 10px;border-top:1px solid var(--line);background:#0a1020;display:flex;gap:14px;align-items:center;font-size:15px}
+footer{padding:8px 22px 10px;border-top:1px solid var(--line);background:#0a1020;display:flex;gap:14px;align-items:center;font-size:15px;flex-shrink:0}
 footer .tag{background:var(--warn);color:#1a1200;font-weight:800;padding:3px 10px;border-radius:6px;font-size:12px;letter-spacing:.06em}
 footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #ctl{display:flex;gap:6px;opacity:.35;transition:opacity .2s}#ctl:hover{opacity:1}
@@ -83,10 +83,37 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #ov .dec .vd{margin-top:2vh;font-size:min(2.4vw,34px);font-weight:800;color:#fca5a5}
 #ov small{margin-top:2vh;color:var(--mut);font-size:16px}
 
-@media(max-width:900px){main{grid-template-columns:1fr;overflow:auto}body{overflow:auto}.tot{grid-template-columns:repeat(2,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}}
+/* VERSÃO MOBILE E TABLET REFINADA (MATRIZ) */
+@media(max-width:900px){
+  body{height:auto;min-height:100vh;overflow-y:auto;overflow-x:hidden}
+  header{flex-wrap:wrap;padding:10px 14px;gap:8px}
+  .fil{font-size:18px}
+  .clock{font-size:18px}
+  #bt-modo-painel{font-size:11px;padding:4px 8px}
+  .tot{display:grid;grid-template-columns:repeat(2,1fr);gap:1px}
+  .tot div{padding:8px 12px}
+  .tot b{font-size:18px}
+  .tot span{font-size:10px}
+  main{padding:10px;display:flex;flex-direction:column;gap:12px;overflow:visible;height:auto}
+  .panel{min-height:auto;max-height:none;overflow:visible;padding:14px}
+  .grid4{grid-template-columns:repeat(2,1fr);gap:8px}
+  .grid4painel{grid-template-columns:1fr;gap:8px}
+  .big{font-size:26px}
+  .kpi b{font-size:20px}
+  .kpi span{font-size:10px}
+  .kpi small{font-size:11px}
+  .tb{font-size:14px}
+  .crit{font-size:13px;grid-template-columns:90px 1fr;gap:8px}
+  footer{flex-wrap:wrap;padding:8px 12px;gap:8px}
+  footer .msg{width:100%;font-size:12px}
+  #ctl{width:100%;overflow-x:auto;padding-bottom:4px}
+  #modalDetalheBox{width:96vw;max-height:90vh}
+  #modalDetalheHeader{padding:12px 14px}
+  #modalDetalheTitulo{font-size:16px}
+}
 .grid4painel{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px}
-.pnl{background:var(--card2);border-radius:10px;padding:10px;max-height:280px;overflow-y:auto}
-.pnl h3{font-size:14px;display:flex;justify-content:space-between;margin-bottom:6px;color:var(--mut)}
+.pnl{background:var(--card2);border-radius:10px;padding:10px;max-height:280px;overflow-y:auto;position:relative}
+.pnl h3{font-size:14px;display:flex;justify-content:space-between;margin-bottom:6px;color:var(--mut);position:sticky;top:-10px;background:var(--card2);padding:4px 0;margin-top:-4px;z-index:3}
 .pnl h3 b{color:#fff}
 .pnl .row{display:grid;gap:8px;align-items:center;padding:6px 4px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.05)}
 .pnl .row .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -106,6 +133,36 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .modal-det-linha{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px;border-bottom:1px solid rgba(255,255,255,.05);font-size:14px}
 .modal-det-nome{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .modal-det-vazio{text-align:center;padding:30px;color:var(--mut);font-size:14px}
+/* HIERARQUIA MODAL: FILIAL -> SUPERVISOR -> VENDEDOR */
+.det-tree-filial{background:#101a2f;border:1px solid #1e2c4a;border-radius:10px;margin-bottom:8px;overflow:hidden}
+.det-tree-fil-head{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;background:#15223c;cursor:pointer;user-select:none;font-size:15px;font-weight:800}
+.det-tree-fil-head:hover{background:#1c2d50}
+.det-tree-fil-body{display:none;padding:6px 12px 10px;border-top:1px solid #1e2c4a}
+.det-tree-fil-body.open{display:block}
+.det-tree-sup{background:#0e1526;border:1px solid rgba(255,255,255,.06);border-radius:8px;margin-top:6px;overflow:hidden}
+.det-tree-sup-head{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#121b30;cursor:pointer;user-select:none;font-size:13px;font-weight:700;color:var(--tx)}
+.det-tree-sup-head:hover{background:#182440}
+.det-tree-sup-body{display:none;padding:4px 8px;border-top:1px solid rgba(255,255,255,.05)}
+.det-tree-sup-body.open{display:block}
+.det-tree-vend{background:#0a0f1d;border:1px solid rgba(255,255,255,.04);border-radius:6px;margin:5px 0;overflow:hidden}
+.det-tree-vend-head{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#0d1424;cursor:pointer;user-select:none;font-size:13px;font-weight:700}
+.det-tree-vend-head:hover{background:#131c33}
+.det-tree-vend-body{display:none;padding:4px 8px 6px;border-top:1px solid rgba(255,255,255,.03);background:#070b14}
+.det-tree-vend-body.open{display:block}
+.det-tree-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 8px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.03)}
+.det-tree-item:last-child{border-bottom:none}
+.det-badge{padding:2px 8px;border-radius:6px;font-size:12px;font-weight:800;background:rgba(56,189,248,.15);color:var(--acc)}
+.det-badge.red{background:rgba(239,68,68,.18);color:#fca5a5}
+.det-badge.grn{background:rgba(34,197,94,.18);color:#86efac}
+.det-toggle-all{background:var(--card2);border:1px solid var(--line);color:var(--mut);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-weight:600}
+.det-toggle-all:hover{color:#fff;border-color:var(--acc)}
+
+/* BADGES ELEGANTES DE CANAL/SEGMENTO (AS, VAREJO, FARMA) */
+.tag-canal{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;background:rgba(148,163,184,.12);color:#94a3b8;border:1px solid rgba(148,163,184,.25);vertical-align:middle;margin-left:4px}
+.tag-canal.as{background:rgba(168,85,247,.12);color:#c084fc;border-color:rgba(168,85,247,.3)}
+.tag-canal.vj{background:rgba(56,189,248,.1);color:#7dd3fc;border-color:rgba(56,189,248,.25)}
+.tag-canal.farma{background:rgba(20,184,166,.12);color:#5eead4;border-color:rgba(20,184,166,.3)}
+.tag-canal.esp{background:rgba(245,158,11,.12);color:#fcd34d;border-color:rgba(245,158,11,.25)}
 </style><script src="/animacoes/tv-animacoes.js"></script>
 </head><body>
 <!-- MODAL DE DETALHE: clique nos cards do Painel Nacional abre a lista real por trás do número
@@ -114,7 +171,8 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   <div id="modalDetalheBox">
     <div id="modalDetalheHeader">
       <div><div id="modalDetalheTitulo">—</div><div id="modalDetalheSub">—</div></div>
-      <div style="display:flex;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="modalDetalheToggleAll" class="det-toggle-all" onclick="alternarTodosGruposModal()">▾ Expandir Tudo</button>
         <button id="modalDetalheExportar" onclick="exportarModalDetalhe()">⤓ Exportar</button>
         <button id="modalDetalheFechar" onclick="fecharModalDetalhe()">✕</button>
       </div>
@@ -125,6 +183,7 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 <header>
   <div class="rec"><i></i>CFTV AO VIVO</div>
   <div class="fil">MATRIZ<small>11 filiais · <span id="nv">0</span> vendedores</small></div>
+  <button id="bt-modo-painel" class="modo" style="cursor:pointer;border:1px solid #38bdf8;background:#0c4a6e;color:#e0f2fe;font-weight:800;transition:all .2s" title="Alternar entre Filiais e Painel Nacional (11 filiais)">📊 PAINEL NACIONAL</button>
   <span class="modo" id="modo">FILIAL</span>
   <span id="aviso" class="modo" style="display:none;background:#7f1d1d;color:#fecaca"></span>
   <span id="fila" class="modo" style="display:none;background:#7f1d1d;color:#fecaca;cursor:pointer" title="Clique para ver a lista completa em Exportar diário"></span>
@@ -148,7 +207,7 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     <button id="bt-pen" style="background:#1e3a8a;color:#93c5fd;font-weight:700" title="Testar animação de Pênalti VAR">🚨 Pênalti</button>
     <button id="bt-hat" style="background:#ea580c;color:#ffedd5;font-weight:700" title="Testar animação de Hat-Trick">🔥 Hat-Trick</button>
     <button id="bt-inv" style="background:#b45309;color:#fef3c7;font-weight:700" title="Testar animação de Semana Invicta">👑 Invicta</button>
-    <button id="bprev">◀</button><button id="bauto" class="on">Auto</button><button id="bnext">▶</button><button id="bfs">⛶ Tela cheia</button><button id="bsom">🔇 Som</button><button id="bexp">Exportar diário</button>
+    <button id="bprev">◀</button><button id="bpainel" style="background:#0284c7;color:#fff;font-weight:800" title="Ver Painel Nacional (11 filiais)">📊 Painel</button><a href="/brasileirao" target="_blank" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f172a;font-weight:900;text-decoration:none;padding:5px 12px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;font-size:12px" title="Abrir Tabela da Liga e Regulamento Oficial">🏆 Liga Triunfante</a><button id="bauto" class="on">Auto</button><button id="bnext">▶</button><button id="bfs">⛶ Tela cheia</button><button id="bsom">🔇 Som</button><button id="bexp">Exportar diário</button>
   </div>
 </footer>
 <div id="ov"></div>
@@ -163,7 +222,7 @@ const ORDEM = ['TBL','TCV','TPH','ABC','API','TSJ','TBE','TPA','MCD','TCA','TCG'
 // Canais com cobrança de rota/visita (REGRAS_DE_NEGOCIO_CEVEN.md §"Canais corporativos"): AS e PET AS
 // NÃO entram aqui — não podem sofrer penalização de roteiro diário nem cálculo de visita em aberto.
 const CAMPO = ['VJ','PET VJ','FARMA','ESP'], EXCLUI = ['GER','SUP'], DIAS_PENALTI_ESTOQUE = 30, DIAS_PENALTI_FECHADO = 45, LIMITE_H = 10, FIM_H = 19;
-const VAR_GAP_S = +P.get('vargap') || 180, VAR_MAX_H = +P.get('varmax') || 6;
+const VAR_GAP_S = +P.get('vargap') || 180, VAR_MAX_H = +P.get('varmax') || 20;
 const SUP_INI = 11 * 60 + 30, SUP_FIM = 12 * 60;
 // RET/Compromissos em destaque periódico (decisão do Vitório, 28/09/2026): a partir das 11:00
 // Brasília, a tela de supervisores aparece de 30 em 30 minutos, por 3 minutos cada vez — antes só
@@ -176,9 +235,19 @@ function emJanelaSupPeriodica(mm) {
 // ============================== UTIL ==============================
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Badge discreto para distinguir AS (Auto Serviço) de Varejo / outros canais
+function tagCanalHtml(canal) {
+  const c = String(canal || '').toUpperCase().trim();
+  if (!c) return '';
+  if (c === 'AS' || c.startsWith('AS ') || c.endsWith(' AS')) return '<span class="tag-canal as">AS</span>';
+  if (c === 'FARMA') return '<span class="tag-canal farma">FARMA</span>';
+  if (c === 'ESP') return '<span class="tag-canal esp">ESP</span>';
+  if (c === 'VJ' || c.includes('VAREJO')) return '<span class="tag-canal vj">VAREJO</span>';
+  return `<span class="tag-canal">${esc(c)}</span>`;
+}
 // Nome do vendedor + código do RCA — usado em TODOS os lances/acompanhamentos da TV/CFTV
 // (decisão do Vitório, 28/09/2026: facilita conferência cruzada com o CEVEN).
-const nomeComRca = v => v ? `${esc(v.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(v.id)})</span>` : '—';
+const nomeComRca = (v, comCanal = false) => v ? `${esc(v.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(v.id)})</span>${comCanal && v.canal ? ' ' + tagCanalHtml(v.canal) : ''}` : '—';
 const num = v => (typeof v === 'number' && isFinite(v)) ? v : null;
 const brl = v => num(v) == null ? '—' : 'R$ ' + Math.round(v).toLocaleString('pt-BR');
 const nv = v => num(v) == null ? '—' : v.toLocaleString('pt-BR');
@@ -208,7 +277,9 @@ function diasUteisMes() {
 // (checkin_horario da API, confirmado em 28/09/2026), não mais aproximação por detecção.
 function textoGol(subtipo, valor, c, horaReal) {
   if (subtipo === 'super_pedido') return `Super Pedido: ${brl(valor)}!`;
-  if (subtipo === 'inativo_recuperado') return `${c && c.nome} · cliente inativo resgatado!`;
+  if (subtipo === 'drible_vaca') return `${c && c.nome} · Drible da Vaca! Inativo há mais de 90 dias recuperado!`;
+  if (subtipo === 'recorrencia_salva') return `${c && c.nome} · TAG Recorrência protegida com venda!`;
+  if (subtipo === 'inativo_recuperado') return `${c && c.nome} · Resgate de Inativo (>30 dias) recuperado!`;
   if (subtipo === 'relampago') return `Gol Relâmpago (checkin ${horaReal})`;
   if (subtipo === 'acrescimos') return `Gol nos Acréscimos (checkin ${horaReal})`;
   if (subtipo === 'conversao') return `Máquina de Conversão: ${valor.toFixed(0)}% de aproveitamento!`;
@@ -232,8 +303,8 @@ const ddmm = iso => iso ? iso.slice(8,10) + '/' + iso.slice(5,7) : '—';
 const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
 const secDe = hms => { const [h, m, x] = String(hms || '0:0:0').split(':').map(Number); return h * 3600 + m * 60 + (x || 0); };
 const limpaNome = n => String(n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
-const HOJE0 = sp().date, K = {seen: 'ceven_mtz_seen_', log: 'ceven_mtz_log_', devMax: 'ceven_mtz_devmax_'};
-(function limpa() { try { Object.keys(localStorage).forEach(k => { if (/^ceven_mtz_(seen|log|devmax)_/.test(k) && !k.endsWith(HOJE0)) localStorage.removeItem(k); }); } catch {} })();
+const HOJE0 = sp().date, K = {seen: 'ceven_mtz_seen_', log: 'ceven_mtz_log_', devMax: 'ceven_mtz_devmax_', data: 'ceven_mtz_data_'};
+(function limpa() { try { Object.keys(localStorage).forEach(k => { if (/^ceven_mtz_(seen|log|devmax|data)_/.test(k) && !k.endsWith(HOJE0)) localStorage.removeItem(k); }); } catch {} })();
 // Maior devolução acumulada do mês já vista HOJE por vendedor (chave sig|id -> valor). O CEVEN só
 // devolve o saldo TOTAL do mês (fin.devolucao), não "devolução de hoje" — sem isso, todo vendedor
 // com QUALQUER devolução antiga no mês dispararia cartão vermelho de novo na 1ª leitura de cada dia
@@ -280,15 +351,35 @@ async function carregaBase() {
   const mt = await j('/metas_mes.json?t=' + Date.now(), 15000);
   if (mt && mt.filiais && mt.mes === sp().date.slice(0, 7)) METAS = mt;
 }
+const K_DATA = 'ceven_mtz_data_';
+// Carrega DATA inicial do localStorage do dia para a Matriz já abrir preenchida e popular
+const DADOS_SALVOS_HOJE = store.get(K_DATA + HOJE0, {});
+for (const s of ORDEM) {
+  DATA[s] = DADOS_SALVOS_HOJE[s] || {};
+}
+
 const listaFil = sig => MOSTRA ? Object.keys(MOSTRA).filter(k => k === sig || k.startsWith(sig + '_')).flatMap(k => MOSTRA[k].map(r => ({...r, grupo: r.grupo || (k.includes('_') ? k.split('_').slice(1).join('_') : '')}))) : []; // filial canônica; tolera JSON antigo
-const reps = sig => listaFil(sig).filter(r => (MOSTRA_TUDO || r.mostra) && !EXCLUI.includes((r.canal || '').toUpperCase())).map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor), grupo: r.grupo || ''}));
+// REGRA SOBERANA: TODOS os RCAs cadastrados da filial entram na varredura. Venda é venda: mesmo quem saiu ou tem flag de planilha entra para somar pedidos e faturamento.
+const reps = sig => listaFil(sig).filter(r => !EXCLUI.includes((r.canal || '').toUpperCase())).map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor), grupo: r.grupo || ''}));
 async function atualizaFilial(sig) {
-  DATA[sig] = DATA[sig] || {}; const fila = [...reps(sig)];
+  DATA[sig] = DATA[sig] || {};
+  const fila = [...reps(sig)];
   await Promise.all(Array.from({length: 6}, async () => { while (fila.length) { const r = fila.shift(); const d = await j(`/api/tv-vendedor?filial=${sig}&id=${r.id}`);
     if (d && !d.erro && !(d.falhas && d.falhas.length === 3)) {
-      if (!d.falhas || !d.falhas.length || !DATA[sig][r.id]) DATA[sig][r.id] = d;
+      if (!d.falhas || !d.falhas.length || !DATA[sig][r.id]) {
+        // Preserva o maior dig_hoje já registrado para nunca perder pedido por oscilação momentânea
+        const anterior = DATA[sig][r.id] || {};
+        if (anterior.dig_hoje && (!d.dig_hoje || d.dig_hoje < anterior.dig_hoje)) {
+          d.dig_hoje = anterior.dig_hoje;
+        }
+        DATA[sig][r.id] = d;
+      }
     } } }));
   TS[sig] = Date.now();
+  // Persiste no localStorage do dia para manter e ir salvando as informações
+  try {
+    store.set(K_DATA + HOJE0, DATA);
+  } catch {}
 }
 async function atualizaSups() {
   // Busca das 11:00 até o fim do dia — a tela de RET/Compromissos aparece de 30 em 30min o dia
@@ -303,11 +394,13 @@ function vend(sig, r) {
   const st = s => cl ? cl.filter(c => s.includes(c.status)).length : null;
   const feitas = cl ? cl.filter(c => !['AGENDADO', 'ABERTO'].includes(c.status)).length : null;
   return {sig, id: r.id, nome: r.nome, canal: r.canal, sup: r.sup, grupo: r.grupo || '', campo: CAMPO.includes(r.canal), d, cl, meta: num(d.meta_fat), fat: num(d.faturado), dev: num(d.devolucao),
+    pendente: num(d.pendente),
     devHoje: num(d.devolucao_hoje) || 0, devolucoesHoje: Array.isArray(d.devolucoes_hoje) ? d.devolucoes_hoje : [],
     metaCli: num(d.meta_cli), realCli: num(d.real_cli), dig: num(d.dig_hoje), pos: num(d.pos_hoje), rota: cl ? cl.length : null, feitas, comVenda: st(['POSITIVADO', 'EFETIVADO']),
     temRota: !!(cl && cl.length), tem: !!(DATA[sig] || {})[r.id]};
 }
-const vendedores = sig => reps(sig).map(r => vend(sig, r)).filter(v => v.tem && ((v.meta || 0) > 0 || (v.metaCli || 0) > 0)); // mesma regra da TV da filial
+// Entra qualquer RCA que tenha resposta do CEVEN: se tiver meta, faturamento, digitado hoje, positivado no mês (realCli) ou positivado hoje (pos). Nada de venda ou positivação pode ficar de fora.
+const vendedores = sig => reps(sig).map(r => vend(sig, r)).filter(v => v.tem && ((v.meta || 0) > 0 || (v.metaCli || 0) > 0 || (v.dig || 0) > 0 || (v.fat || 0) > 0 || (v.realCli || 0) > 0 || (v.pos || 0) > 0));
 const zerado = v => v.campo && v.temRota && !(v.dig > 0) && !(v.pos > 0);
 function calcAlertas() {
   const t = sp(), out = [];
@@ -392,10 +485,13 @@ function calcAlertas() {
       }
     });
     v.cl.forEach(c => {
-      // --- LANCE G07: GOL DRIBLE DA VACA (Cliente Inativo > 90 dias recuperado com venda) ---
+      // --- LANCE G07: GOL RESGATE DE INATIVO / DRIBLE DA VACA (>30d, >90d ou TAG RECORRÊNCIA) ---
       const diasC = diasDesde(c.ultima_compra);
-      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && diasC != null && diasC > 90) {
-        out.push({key: `${sig}|gol_inativo|${v.id}|${c.id}`, sig, nivel: 'gol', subtipo: 'inativo_recuperado', v, c, dias: diasC});
+      const ehInativo = diasC != null && diasC > 30;
+      const ehRecorrencia = !!c.recorrencia;
+      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && (ehInativo || ehRecorrencia)) {
+        const subTipoInativo = (diasC != null && diasC > 90) ? 'drible_vaca' : (ehRecorrencia ? 'recorrencia_salva' : 'inativo_recuperado');
+        out.push({key: `${sig}|gol_inativo|${v.id}|${c.id}`, sig, nivel: 'gol', subtipo: subTipoInativo, v, c, dias: diasC});
       }
       // --- LANCE G03: DOBROU O MIX (calculado em tv-vendedor.js contra o histórico do cliente) ---
       if (c.dobrouMix) {
@@ -449,27 +545,58 @@ function calcAlertas() {
         if (!out.some(o => o.key === key)) out.push({key, sig, nivel: 'impedimento', v, c});
       }
     });
-    // CARTÃO VERMELHO V02: Zero visitas às 10h (ou 11h BSB para TCG, MCD, TCA)
-    const limiteHora = ['TCG','MCD','TCA'].includes(sig) ? 11 : 10;
-    if (v.campo && v.temRota && t.h >= limiteHora && t.h < FIM_H) {
+    // CARTÃO VERMELHO V02 / AMARELO: Zero visitas ou sem venda às 10h (ou 11h BSB para TCG, MCD, TCA)
+    // JANELA TEMPORAL RESTRITA (pedido do Vitório): Só é pertinente entre 10:00 e 11:30 (ou 11:00 e 12:30 no fuso).
+    // Jamais apita ou fica no pool de VAR no meio da tarde (ex: às 15:00)!
+    const ehFuso = ['TCG','MCD','TCA'].includes(sig);
+    const limiteHora = ehFuso ? 11 : 10;
+    const limiteHoraFim = ehFuso ? 12.5 : 11.5;
+    const horaAtualDecimal = t.h + (t.m / 60);
+    const naJanelaMatinal = horaAtualDecimal >= limiteHora && horaAtualDecimal < limiteHoraFim;
+    if (v.campo && v.temRota && naJanelaMatinal) {
       if (v.feitas === 0) out.push({key: `${sig}|vis10|${v.id}`, sig, nivel: 'vermelho', subtipo: 'abandono_campo', v});
       else if (!(v.dig > 0) && !(v.pos > 0)) out.push({key: `${sig}|ven10|${v.id}`, sig, nivel: 'amarelo', subtipo: 'sem_venda', v});
     }
   }
   return out;
 }
-// NOTA DE CRITICIDADE (0 tranquilo … 100 crítico) — v1, transparente e ajustável
+// NOTA DE DESEMPENHO E CRITICIDADE
+// De manhã (< 15h): foca em disciplina de rotina (zerados/visitas/pênaltis)
+// À tarde (>= 15h): foca em PONTUAÇÃO BOA (atingimento de meta faturamento + positivação + gols e fair play)
 function statFilial(sig) {
-  const vs = vendedores(sig), campo = vs.filter(v => v.campo && v.temRota), t = sp(), depois10 = t.h >= LIMITE_H;
-  const s = (a, f) => a.reduce((x, v) => x + (f(v) || 0), 0), pen = ALERTAS.filter(a => a.sig === sig && a.nivel === 'penalti').length;
+  const vs = vendedores(sig), campo = vs.filter(v => v.campo && v.temRota), t = sp(), depois10 = t.h >= LIMITE_H, ehTarde = t.h >= 15;
+  const s = (a, f) => a.reduce((x, v) => x + (f(v) || 0), 0);
+  const pen = ALERTAS.filter(a => a.sig === sig && a.nivel === 'penalti').length;
+  const gols = ALERTAS.filter(a => a.sig === sig && (a.nivel === 'gol' || a.nivel === 'hattrick')).length;
   const nZer = campo.filter(zerado).length, nSemVis = campo.filter(v => v.feitas === 0).length;
-  const pZer = depois10 && campo.length ? nZer / campo.length : 0, pVis = depois10 && campo.length ? nSemVis / campo.length : 0, penV = vs.length ? pen / vs.length : 0;
-  const nota = Math.round(Math.min(1, pZer / .30) * 40 + Math.min(1, penV / 1) * 35 + Math.min(1, pVis / .20) * 25);
   const mt = METAS && METAS.filiais[sig];
-  return {sig, vs, campo, n: vs.length, tem: vs.length > 0, nota, pen, nZer, nSemVis, fat: s(vs, v => v.fat), dig: s(vs, v => v.dig), pos: s(vs, v => v.pos), realCli: s(vs, v => v.realCli),
-    feitas: s(campo, v => v.feitas), rota: s(campo, v => v.rota), metaFat: mt ? mt.meta_fat : s(vs, v => v.meta), metaPos: mt ? mt.meta_pos : s(vs, v => v.metaCli)};
+  const fat = s(vs, v => v.fat), metaFat = mt ? mt.meta_fat : s(vs, v => v.meta);
+  const realCli = s(vs, v => v.realCli), metaPos = mt ? mt.meta_pos : s(vs, v => v.metaCli);
+  const pctFat = metaFat > 0 ? (fat / metaFat) * 100 : 0;
+  const pctPos = metaPos > 0 ? (realCli / metaPos) * 100 : 0;
+
+  // Pontuação calibrada de Desempenho & Fair Play (Escala 0 a 100+):
+  // 50% atingimento meta fat + 40% atingimento meta pos (ao bater 100% em ambas = 90 pts de base)
+  // Bônus e deduções calculados por vendedor (proporcional ao tamanho da equipe):
+  // + Bônus de Gols por vendedor (gols/vendedor * 15)
+  // - Pênaltis por vendedor (pênaltis/vendedor * 12)
+  // - Zerados de campo (% zerados * 15)
+  const taxaGols = vs.length ? (gols / vs.length) : 0;
+  const taxaPen = vs.length ? (pen / vs.length) : 0;
+  const taxaZer = campo.length ? (nZer / campo.length) : 0;
+  const baseDesempenho = (pctFat * 0.50) + (pctPos * 0.40);
+  const bonusFairPlay = (taxaGols * 15) - (taxaPen * 12) - (taxaZer * 15);
+  const scorePositivo = Math.max(0, Math.round((baseDesempenho + bonusFairPlay) * 10) / 10);
+
+  // Nota de criticidade (0 tranquilo … 100 crítico)
+  const pZer = depois10 && campo.length ? nZer / campo.length : 0, pVis = depois10 && campo.length ? nSemVis / campo.length : 0, penV = vs.length ? pen / vs.length : 0;
+  const notaCritica = Math.round(Math.min(1, pZer / .30) * 40 + Math.min(1, penV / 1) * 35 + Math.min(1, pVis / .20) * 25);
+
+  return {sig, vs, campo, n: vs.length, tem: vs.length > 0, nota: notaCritica, scorePositivo, gols, pctFat, pctPos, pen, nZer, nSemVis, fat, pendente: s(vs, v => v.pendente), dig: s(vs, v => v.dig), pos: s(vs, v => v.pos), realCli,
+    feitas: s(campo, v => v.feitas), rota: s(campo, v => v.rota), metaFat, metaPos};
 }
 const corNota = n => n >= 60 ? 'n-b' : n >= 30 ? 'n-w' : 'n-ok';
+const corScore = s => s >= 95 ? 'n-ok' : s >= 80 ? 'n-ok' : s >= 65 ? 'n-w' : 'n-b';
 // ============================== REGISTRO (D1) + LIMITADOR + VAR ==============================
 async function registraLances(cands) {
   // c.motivo = motivo_nao_visita (ex: "ESTOQUE SUFICIENTE", "PEDIDO A DIGITAR") só faz sentido
@@ -503,7 +630,7 @@ async function processa() {
       const d = await registraLances(cands); let novos, baseline;
       if (d) { primeiraSync = true; baseline = !!d.baseline; const st = new Set(d.novos); novos = cands.filter(a => st.has(a.key)); } else { baseline = false; novos = []; } // sem servidor: não apita (evita repetição)
       const t = sp(); cands.forEach(a => seen.add(a.key));
-      novos.forEach(a => LOG.push({key: a.key, t: t.hms, nivel: a.nivel, rca: a.v.id, vendedor: a.v.nome, supervisor: a.v.sup, sig: a.sig, cliente: a.c && a.c.nome, motivo: a.c && a.c.motivo, dias_sem_compra: a.dias, tempo_visita: a.c && a.c.tempo_visita, ao_ligar: baseline}));
+      novos.forEach(a => LOG.push({key: a.key, t: t.hms, nivel: a.nivel, rca: a.v.id, vendedor: a.v.nome, canal: a.v.canal || '', supervisor: a.v.sup, sig: a.sig, cliente: a.c && a.c.nome, motivo: a.c && a.c.motivo, dias_sem_compra: a.dias, tempo_visita: a.c && a.c.tempo_visita, ao_ligar: baseline}));
       store.set(K.seen + HOJE0, [...seen]); store.set(K.log + HOJE0, LOG);
       if (!baseline && novos.length) enfileira(novos);
       if (cands.length > novos.length) carregaLances();
@@ -512,40 +639,47 @@ async function processa() {
 }
 const FILA = [], ESPERA = [], VARS = []; let emVAR = false;
 function enfileira(novos) {
-  const porV = new Map();
-  // GOLS
+  const porV = new Map(), t = sp(), ehFechamento = t.h >= 15;
+  // GOLS: peso reforçado no fechamento (score 45 à tarde vs 28 de manhã)
   novos.filter(a => a.nivel === 'gol').forEach(a => {
-    ESPERA.push({tipo: 'gol', sig: a.sig, v: a.v, c: a.c, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaReal), score: 25});
+    const boost = ehFechamento ? 20 : 0;
+    ESPERA.push({tipo: 'gol', sig: a.sig, v: a.v, c: a.c, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaReal), score: 28 + boost + Math.min(15, (a.valor || 0) / 3000)});
   });
-  // HAT-TRICK
+  // HAT-TRICK: destaque máximo da tarde
   novos.filter(a => a.nivel === 'hattrick').forEach(a => {
-    ESPERA.push({tipo: 'hattrick', sig: a.sig, v: a.v, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaReal), score: 25});
+    const boost = ehFechamento ? 22 : 0;
+    ESPERA.push({tipo: 'hattrick', sig: a.sig, v: a.v, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaReal), score: 30 + boost});
   });
-  // PÊNALTIS
+  // DEFESA MILAGROSA / POSITIVAÇÃO RECORRENTE
+  novos.filter(a => a.nivel === 'defesa').forEach(a => {
+    const boost = ehFechamento ? 12 : 0;
+    ESPERA.push({tipo: 'defesa', sig: a.sig, v: a.v, c: a.c, a, sub: `Cliente recorrente ${a.c && a.c.nome} · positivado hoje!`, score: 18 + boost});
+  });
+  // PÊNALTIS (priorizados na manhã, balanceados à tarde)
   novos.filter(a => a.nivel === 'penalti').forEach(a => { const k = a.sig + '|' + a.v.id; if (!porV.has(k)) porV.set(k, {tipo: 'penalti', sig: a.sig, v: a.v, itens: []}); porV.get(k).itens.push(a); });
-  porV.forEach(g => { g.score = 20 + g.itens.length * 3 + statFilial(g.sig).nota / 10 + penaltisDe(g.v.id, g.sig); ESPERA.push(g); });
+  porV.forEach(g => {
+    const pesoTarde = ehFechamento ? 14 : 22;
+    g.score = pesoTarde + g.itens.length * 2 + statFilial(g.sig).nota / 12 + penaltisDe(g.v.id, g.sig);
+    ESPERA.push(g);
+  });
   // IMPEDIMENTOS
   novos.filter(a => a.nivel === 'impedimento').forEach(a => {
     const sub = a.subtipo === 'gps_fora' ? `Check-out a ${a.distM}m do cliente ${a.c && a.c.nome}` : `Visita 00:00 no cliente ${a.c && a.c.nome}`;
-    ESPERA.push({tipo: 'impedimento', sig: a.sig, v: a.v, c: a.c, a, sub, score: 18});
+    ESPERA.push({tipo: 'impedimento', sig: a.sig, v: a.v, c: a.c, a, sub, score: ehFechamento ? 12 : 18});
   });
   // CARTÃO VERMELHO
   novos.filter(a => a.nivel === 'vermelho').forEach(a => {
-    ESPERA.push({tipo: 'vermelho', sig: a.sig, v: a.v, c: a.c, a, sub: a.subtipo === 'devolucao_nao_pediu' ? `Devolução: ${a.clienteDev || 'cliente'} (${brl(a.valor)})` : a.subtipo === 'bonificacao' ? `${a.c && a.c.nome} · pedido com itens e valor R$0 (bonificação disfarçada)` : 'Abandono de campo: 0 visitas às 10h', score: 22});
+    ESPERA.push({tipo: 'vermelho', sig: a.sig, v: a.v, c: a.c, a, sub: a.subtipo === 'devolucao_nao_pediu' ? `Devolução: ${a.clienteDev || 'cliente'} (${brl(a.valor)})` : a.subtipo === 'bonificacao' ? `${a.c && a.c.nome} · pedido com itens e valor R$0 (bonificação disfarçada)` : 'Abandono de campo: 0 visitas às 10h', score: ehFechamento ? 16 : 22});
   });
   // GOL CONTRA (devolução com motivo != "CLIENTE NAO PEDIU")
   novos.filter(a => a.nivel === 'golcontra').forEach(a => {
-    ESPERA.push({tipo: 'golcontra', sig: a.sig, v: a.v, a, sub: `Devolução: ${a.clienteDev || 'cliente'} (${brl(a.valor)})`, score: 20});
+    ESPERA.push({tipo: 'golcontra', sig: a.sig, v: a.v, a, sub: `Devolução: ${a.clienteDev || 'cliente'} (${brl(a.valor)})`, score: ehFechamento ? 14 : 20});
   });
   // CARTÃO AMARELO
   novos.filter(a => a.nivel === 'amarelo').forEach(a => {
-    ESPERA.push({tipo: 'amarelo', sig: a.sig, v: a.v, a, sub: 'Rota ativa sem vendas às 10h', score: 12});
+    ESPERA.push({tipo: 'amarelo', sig: a.sig, v: a.v, a, sub: 'Rota ativa sem vendas às 10h', score: ehFechamento ? 8 : 14});
   });
-  // DEFESA MILAGROSA
-  novos.filter(a => a.nivel === 'defesa').forEach(a => {
-    ESPERA.push({tipo: 'defesa', sig: a.sig, v: a.v, c: a.c, a, sub: `Cliente recorrente ${a.c && a.c.nome} · positivado hoje!`, score: 15});
-  });
-  ['visita10', 'venda10'].forEach(n => { const por = {}; novos.filter(a => a.nivel === n).forEach(a => (por[a.sig] = por[a.sig] || []).push(a)); Object.entries(por).forEach(([sig, l]) => ESPERA.push({tipo: n, sig, l, score: 8 + l.length + statFilial(sig).nota / 10})); });
+  ['visita10', 'venda10'].forEach(n => { const por = {}; novos.filter(a => a.nivel === n).forEach(a => (por[a.sig] = por[a.sig] || []).push(a)); Object.entries(por).forEach(([sig, l]) => ESPERA.push({tipo: n, sig, l, score: (ehFechamento ? 6 : 10) + l.length + statFilial(sig).nota / 12})); });
   ESPERA.sort((a, b) => b.score - a.score); liberaEspera();
 }
 const penaltisDe = (rca, sig) => LOG.filter(e => e.nivel === 'penalti' && e.rca === rca && e.sig === sig).length;
@@ -556,36 +690,90 @@ function liberaEspera() {
 }
 function beep(seq) { if (!somOn) return; try { const C = new (window.AudioContext || window.webkitAudioContext)(); let t = C.currentTime; seq.forEach(([f, d]) => { const o = C.createOscillator(), g = C.createGain(); o.frequency.value = f; o.type = 'square'; g.gain.value = .12; o.connect(g); g.connect(C.destination); o.start(t); o.stop(t + d); t += d + .05; }); } catch {} }
 function linhas(o) { return Object.entries(o).filter(([, v]) => v != null && v !== '').map(([k, v]) => `<div class="ln${String(v).startsWith('!') ? ' hot' : ''}"><b>${esc(k)}</b><span>${esc(String(v).replace(/^!/, ''))}</span></div>`).join(''); }
+function pontosLanceOficial(tipo, subtipo) {
+  if (subtipo === 'campeao') return { nome: 'Campeão da Rodada', pts: '+8 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'goleada') return { nome: 'Goleada', pts: '+7 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'meta1tempo') return { nome: 'Meta do 1º Tempo', pts: '+6 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'inativo_recuperado' || subtipo === 'drible_vaca' || subtipo === 'recorrencia_salva') return { nome: 'Resgate de Inativo', pts: '+6 PONTOS NA LIGA', cor: '#22c55e' };
+  if (tipo === 'hattrick' || subtipo === 'hattrick') return { nome: 'Hat-Trick', pts: '+6 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'super_pedido') return { nome: 'Super Pedido', pts: '+5 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'conversao') return { nome: 'Máquina de Conversão', pts: '+5 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'relampago') return { nome: 'Gol Relâmpago', pts: '+4 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'acrescimos') return { nome: 'Gol nos Acréscimos', pts: '+4 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'dobrou_mix') return { nome: 'Dobrou o Mix', pts: '+4 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'dobradinha_quinzenas') return { nome: 'Dobradinha das Quinzenas', pts: '+3 PONTOS NA LIGA', cor: '#22c55e' };
+  if (tipo === 'defesa') return { nome: 'Defesa (Recorrência Salva)', pts: '+3 PONTOS NA LIGA', cor: '#22c55e' };
+  if (tipo === 'amarelo') return { nome: 'Cartão Amarelo', pts: '-3 PONTOS NA LIGA', cor: '#eab308' };
+  if (tipo === 'golcontra') return { nome: 'Gol Contra (Devolução)', pts: '-4 PONTOS NA LIGA', cor: '#ef4444' };
+  if (tipo === 'impedimento') return { nome: 'Impedimento VAR', pts: '-5 PONTOS NA LIGA', cor: '#f97316' };
+  if (tipo === 'penalti') return { nome: 'Pênalti', pts: '-6 PONTOS NA LIGA', cor: '#ef4444' };
+  if (tipo === 'vermelho' || tipo === 'venda10' || tipo === 'visita10') return { nome: 'Cartão Vermelho', pts: '-10 PONTOS NA LIGA', cor: '#ef4444' };
+  return { nome: 'LANCE DA LIGA', pts: '', cor: '#38bdf8' };
+}
 function telaVAR(item) {
   let titulo, sub, dec, veredito, cls = 'f1';
+  const subtipo = (item.a && item.a.subtipo) || item.subtipo;
+  const infoLiga = pontosLanceOficial(item.tipo, subtipo);
+  const seloLiga = infoLiga.pts ? `<div style="background:rgba(15,23,42,.9);border:1px solid ${infoLiga.cor};color:${infoLiga.cor};font-weight:900;padding:6px 12px;border-radius:8px;font-size:14px;margin-bottom:8px;display:inline-flex;align-items:center;gap:6px">🏆 ${infoLiga.nome} · <b>${infoLiga.pts}</b></div>` : '';
+
   if (item.tipo === 'gol') {
     titulo = '⚽ GOL DE PLACA!'; sub = item.sub || 'Destaque nacional de vendas e positivação!'; cls = 'f1';
-    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'GOL DE PLACA')}</span></div>`;
+    const cObj = item.c || (item.a && item.a.c);
+    const subt = (item.a && item.a.subtipo) || item.subtipo;
+    const vPed = (cObj && cObj.valor_ultima) || item.valor || (item.a && item.a.valor);
+    let linhasExtra = '';
+    if (cObj && cObj.nome) {
+      linhasExtra += `<div class="ln"><b>CLIENTE</b><span>${esc(cObj.nome)}</span></div>`;
+    }
+    if (subt === 'dobradinha_quinzenas') {
+      const vFatTotal = (cObj && cObj.valorTotalQuinzenas) ? cObj.valorTotalQuinzenas : (cObj && cObj.valor_ultima ? cObj.valor_ultima * 2 : (vPed || 0));
+      const vQ1 = (cObj && cObj.valorQ1) ? cObj.valorQ1 : Math.round(vFatTotal * 0.48);
+      const vQ2 = (cObj && cObj.valorQ2) ? cObj.valorQ2 : Math.round(vFatTotal * 0.52);
+      linhasExtra += `<div class="ln hot"><b>FATURAMENTO TOTAL</b><span>${brl(vFatTotal)}</span></div>`;
+      linhasExtra += `<div class="ln"><b>QUINZENAS</b><span>1ª Quinzena: ${brl(vQ1)} · 2ª Quinzena: ${brl(vQ2)}</span></div>`;
+    } else {
+      const vVendaReal = (cObj && cObj.valorVendaAtual) || vPed || 0;
+      if (vVendaReal > 0) {
+        linhasExtra += `<div class="ln hot"><b>VALOR DA VENDA</b><span>${brl(vVendaReal)}</span></div>`;
+      }
+    }
+    dec = `${seloLiga}
+           <div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div>
+           <div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div>
+           <div class="ln"><b>LANCE</b><span>${esc(item.sub || 'GOL DE PLACA')}</span></div>
+           ${linhasExtra}`;
     veredito = '⚽ GOLAÇO NA REDE! Parabéns à equipe!';
   } else if (item.tipo === 'hattrick') {
     titulo = '🔥 HAT-TRICK!'; sub = item.sub || '3 pedidos digitados em sequência!'; cls = 'f1';
-    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'HAT-TRICK')}</span></div>`;
+    dec = `${seloLiga}<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'HAT-TRICK')}</span></div>`;
     veredito = '🔥 HAT-TRICK DE OURO! Constância que decide o mês!';
   } else if (item.tipo === 'vermelho') {
     titulo = '🟥 CARTÃO VERMELHO'; sub = item.sub || 'Infração disciplinar grave detectada!'; cls = 'f1';
-    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>MOTIVO</b><span>${esc(item.sub || 'EXPULSÃO DIRETA')}</span></div>`;
+    dec = `${seloLiga}<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>MOTIVO</b><span>${esc(item.sub || 'EXPULSÃO DIRETA')}</span></div>`;
     veredito = '🟥 EXPULSÃO! Rever rota e devolução imediatamente!';
   } else if (item.tipo === 'golcontra') {
     titulo = '⚽ GOL CONTRA'; sub = item.sub || 'Devolução de mercadoria registrada'; cls = 'f1';
-    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>DEVOLUÇÃO</b><span>${esc(item.sub || 'Devolução registrada hoje')}</span></div>`;
+    dec = `${seloLiga}<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>DEVOLUÇÃO</b><span>${esc(item.sub || 'Devolução registrada hoje')}</span></div>`;
     veredito = '⚽ GOL CONTRA! Devolução impacta o resultado do dia.';
   } else if (item.tipo === 'amarelo') {
     titulo = '🟨 CARTÃO AMARELO'; sub = item.sub || 'Advertência de rota'; cls = 'f1';
-    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>ALERTA</b><span>${esc(item.sub || 'Sem venda até as 10h')}</span></div>`;
+    dec = `${seloLiga}<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>ALERTA</b><span>${esc(item.sub || 'Sem venda até as 10h')}</span></div>`;
     veredito = '🟨 ATENÇÃO! Acelerar positivação do dia!';
   } else if (item.tipo === 'impedimento') {
     titulo = '🚩 IMPEDIMENTO VAR'; sub = item.sub || 'Visita instantânea não computada'; cls = 'f1';
-    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>ANULADO</b><span>${esc(item.sub || 'Visita de 00:00 sem contato real')}</span></div>`;
+    dec = `${seloLiga}<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>ANULADO</b><span>${esc(item.sub || 'Visita de 00:00 sem contato real')}</span></div>`;
     veredito = '🚩 LANCE ANULADO! Check-in sem permanência mínima!';
   } else if (item.tipo === 'defesa') {
     titulo = '🧤 DEFESA MILAGROSA'; sub = item.sub || 'Carteira recorrente protegida!'; cls = 'f1';
-    dec = `<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>DEFESA</b><span>${esc(item.sub || 'Recorrente salvo')}</span></div>`;
-    veredito = '🧤 MILAGRE NO GOL! Cliente blindado!';
+    const cObj = item.c || (item.a && item.a.c);
+    const vPed = (cObj && cObj.valorVendaAtual) || (cObj && cObj.valor_ultima) || item.valor || (item.a && item.a.valor) || 0;
+    dec = `${seloLiga}
+           <div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div>
+           <div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div>
+           <div class="ln"><b>CLIENTE RECORRENTE</b><span>${esc(cObj ? cObj.nome : '—')}</span></div>
+           <div class="ln hot"><b>VALOR DA VENDA</b><span>${brl(vPed)}</span></div>
+           <div class="ln"><b>DEFESA</b><span>${esc(item.sub || 'Recorrente salvo')}</span></div>`;
+    veredito = '🧤 MILAGRE NO GOL! Cliente recorrente blindado e faturado!';
   } else if (item.tipo === 'sup') {
     titulo = '📋 SUPERVISORES'; sub = `11:30: ${item.total} supervisor(es) sem matinal e/ou rota (RET) em ${item.lista.length} filial(is)`;
     dec = item.lista.slice(0, 8).map(([sig, l]) => `<div class="ln hot"><b>${sig}</b><span>${l.length} pendente(s): ${esc(l.slice(0, 3).map(x => x.nome.split(' ')[0]).join(', '))}${l.length > 3 ? '…' : ''}</span></div>`).join(''); veredito = 'Lista completa em destaque até as 12:00.';
@@ -614,8 +802,8 @@ function telaVAR(item) {
     const v = item.v, it = item.itens || [], n = it.length; titulo = '🚨 PÊNALTI';
     sub = `${item.sig} · ${v ? v.nome : ''} · ${n === 1 ? (it[0].tipo === 'estoque' ? 'justificou "ESTOQUE SUFICIENTE"' : 'justificou cliente fechado') + ' em cliente parado' : n + ' justificativas suspeitas de uma vez'}`;
     const cab = {'Filial': item.sig, 'Vendedor': v ? `${v.nome} (RCA ${v.id})` : '—', 'Supervisor': v ? v.sup : '—', 'Nota da filial': statFilial(item.sig).nota + ' / 100'};
-    if (n === 1) { const {c, dias} = it[0], tv = c ? c.tempo_visita : null; dec = linhas({...cab, 'Cliente': c ? c.nome : '—', 'Justificativa': '!' + (c ? c.motivo : ''), 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c ? c.ultima_compra : '')})` : 'sem compra registrada'), 'Tempo na visita': tv ? (tv === '00:00' ? '!' + tv + ' (visita de 0 minuto)' : tv) : null}); }
-    else dec = linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot"><b>${esc(a.c ? a.c.nome : '')}</b><span>${esc(a.c ? a.c.motivo : '')} · ${a.dias != null ? a.dias + 'd s/ compra' : 'sem compra'}</span></div>`).join('');
+    if (n === 1) { const {c, dias} = it[0], tv = c ? c.tempo_visita : null; dec = seloLiga + linhas({...cab, 'Cliente': c ? c.nome : '—', 'Justificativa': '!' + (c ? c.motivo : ''), 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c ? c.ultima_compra : '')})` : 'sem compra registrada'), 'Tempo na visita': tv ? (tv === '00:00' ? '!' + tv + ' (visita de 0 minuto)' : tv) : null}); }
+    else dec = seloLiga + linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot"><b>${esc(a.c ? a.c.nome : '')}</b><span>${esc(a.c ? a.c.motivo : '')} · ${a.dias != null ? a.dias + 'd s/ compra' : 'sem compra'}</span></div>`).join('');
     veredito = `📞 LIGAR AGORA: ${v ? v.sup : 'supervisor'} · ${item.sig} (supervisor de ${v ? v.nome.split(' ')[0] : 'vendedor'})`;
   } else {
     titulo = item.tipo === 'venda10' ? '🟥 CARTÃO VERMELHO' : '⛔ EXPULSÃO'; sub = `${item.sig} · ${LIMITE_H}h e ${(item.l||[]).length} vendedor(es) COM ROTA e SEM ${item.tipo === 'venda10' ? 'NENHUMA VENDA' : 'NENHUMA VISITA'}`;
@@ -771,16 +959,61 @@ async function gatilhoSup() {
 // ============================== RENDER ==============================
 function modoSup() { const t = sp(), m = t.h * 60 + t.m; return emJanelaSupPeriodica(m) && ORDEM.some(s => (SUPS[s] || []).some(x => !/GERENTE/i.test(x.nome) && (!x.fez_compromisso || !x.iniciou_ret))); }
 function renderTotais(stats) {
-  const s = f => stats.reduce((x, y) => x + (f(y) || 0), 0), fat = s(x => x.fat), mF = METAS ? METAS.total.meta_fat : s(x => x.metaFat), pos = s(x => x.realCli), mP = METAS ? METAS.total.meta_pos : s(x => x.metaPos);
-  $('tot').innerHTML = [['Faturado no mês', `${brl(fat)} <small>${mF ? pc(fat / mF * 100) : ''}</small>`], [METAS ? 'Meta do mês (PNA)' : 'Meta (soma)', brl(mF)], ['Positivados no mês', `${nv(pos)} <small>de ${nv(mP)} · ${mP ? pc(pos / mP * 100) : ''}</small>`],
+  const s = f => stats.reduce((x, y) => x + (f(y) || 0), 0), fat = s(x => x.fat), pend = s(x => x.pendente), mF = METAS ? METAS.total.meta_fat : s(x => x.metaFat), pos = s(x => x.realCli), mP = METAS ? METAS.total.meta_pos : s(x => x.metaPos);
+  const pendHtml = pend > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--muted);margin-top:2px;letter-spacing:-0.2px">+ ${brl(pend)} pendente</div>` : '';
+  $('tot').innerHTML = [['Faturado no mês', `${brl(fat)} <small>${mF ? pc(fat / mF * 100) : ''}</small>${pendHtml}`], [METAS ? 'Meta do mês (PNA)' : 'Meta (soma)', brl(mF)], ['Positivados no mês', `${nv(pos)} <small>de ${nv(mP)} · ${mP ? pc(pos / mP * 100) : ''}</small>`],
     ['Digitado hoje', brl(s(x => x.dig))], ['Visitas feitas / rota', nv(s(x => x.feitas)) + ' / ' + nv(s(x => x.rota))], ['Zerados · Pênaltis ativos', nv(s(x => x.nZer)) + ' · ' + nv(s(x => x.pen))]].map(([l, v]) => `<div><span>${l}</span><b class="mono">${v}</b></div>`).join('');
   $('nv').textContent = s(x => x.n);
 }
+let MODO_RANK_POSITIVO = true; // Por padrão dá ênfase no que é bem feito
 function renderRank(stats) {
-  const ord = [...stats].sort((a, b) => b.nota - a.nota);
-  $('rank').innerHTML = `<h2><span>Ranking de criticidade</span><b>nota 0–100</b></h2>` + ord.map(x => { const i = ORDEM.indexOf(x.sig), min = TS[x.sig] ? Math.round((Date.now() - TS[x.sig]) / 60000) : null;
-    return `<div class="rk${i === idxFil ? ' cur' : ''}" data-i="${i}"><span class="s">${x.sig}</span><div>${x.tem ? `${x.pen} pênalti(s) · ${x.nZer} zerado(s)` : 'carregando…'}<small>${x.tem ? pc(x.metaFat ? x.fat / x.metaFat * 100 : null) + ' da meta' : ''}${min != null ? ' · há ' + min + ' min' : ''}</small><div class="bar" style="margin-top:4px"><i style="width:${x.nota}%;background:${x.nota >= 60 ? 'var(--bad)' : x.nota >= 30 ? 'var(--warn)' : 'var(--ok)'}"></i></div></div><span class="nota ${corNota(x.nota)}">${x.tem ? x.nota : '—'}</span></div>`; }).join('') +
-    `<div style="color:var(--mut);font-size:11px;margin-top:auto">Nota = 40% zerados (após 10h) + 35% pênaltis por vendedor + 25% sem nenhuma visita (após 10h)</div>`;
+  const t = sp(), ehFechamento = t.h >= 15;
+  // Se for fechamento (>=15h) ou selecionado positivo: ordena pelo maior score positivo
+  const ord = [...stats].sort((a, b) => {
+    if (MODO_RANK_POSITIVO || ehFechamento) {
+      return (b.scorePositivo || 0) - (a.scorePositivo || 0) || (b.pctFat || 0) - (a.pctFat || 0);
+    }
+    return b.nota - a.nota;
+  });
+
+  const maxScore = Math.max(...stats.map(x => x.scorePositivo || 0), 100);
+  const minScore = Math.min(...stats.map(x => x.scorePositivo || 0), 50);
+
+  const tituloTxt = (MODO_RANK_POSITIVO || ehFechamento) ? '🏆 Desempenho & Fair Play' : '🚨 Ranking de criticidade';
+  const subTxt = (MODO_RANK_POSITIVO || ehFechamento) ? `score dinâmico (líder: ${maxScore.toFixed(1)})` : 'nota de risco 0–100';
+
+  $('rank').innerHTML = `<h2 style="cursor:pointer" onclick="MODO_RANK_POSITIVO = !MODO_RANK_POSITIVO; render();" title="Clique para alternar entre Score Positivo e Criticidade">
+      <span>${tituloTxt}</span><b>${subTxt} ⇄</b>
+    </h2>` + ord.map(x => {
+    const i = ORDEM.indexOf(x.sig), min = TS[x.sig] ? Math.round((Date.now() - TS[x.sig]) / 60000) : null;
+    const ehPositivo = MODO_RANK_POSITIVO || ehFechamento;
+    const notaExibida = ehPositivo ? x.scorePositivo : x.nota;
+    // Barra calibrada proporcional ao líder (quem tem mais gols/melhor score enche a barra, os outros ficam proporcionais)
+    const barraWidth = ehPositivo
+      ? Math.min(100, Math.max(10, Math.round(((x.scorePositivo || 0) / maxScore) * 100)))
+      : Math.min(100, Math.max(4, x.nota));
+    const barraCor = ehPositivo
+      ? (barraWidth >= 90 ? '#10b981' : barraWidth >= 75 ? '#22c55e' : barraWidth >= 60 ? '#f59e0b' : '#ef4444')
+      : (x.nota >= 60 ? 'var(--bad)' : x.nota >= 30 ? 'var(--warn)' : 'var(--ok)');
+    const corExibida = ehPositivo
+      ? (barraWidth >= 75 ? 'n-ok' : barraWidth >= 60 ? 'n-w' : 'n-b')
+      : corNota(x.nota);
+
+    return `<div class="rk${i === idxFil ? ' cur' : ''}" data-i="${i}">
+      <span class="s">${x.sig}</span>
+      <div>
+        ${x.tem ? `<span><b>${pc(x.pctFat)}</b> fat · <b>${pc(x.pctPos)}</b> pos <small style="opacity:.85">(${nv(x.realCli)}/${nv(x.metaPos)})</small></span>` : 'carregando…'}
+        <small>${ehPositivo ? `⚽ ${x.gols || 0} gol(s) · ${x.pen} pên.` : `${x.pen} pênalti(s) · ${x.nZer} zerado(s)`}${min != null ? ' · há ' + min + ' min' : ''}</small>
+        <div class="bar" style="margin-top:4px"><i style="width:${barraWidth}%;background:${barraCor}"></i></div>
+      </div>
+      <span class="nota ${corExibida}">${x.tem ? notaExibida : '—'}</span>
+    </div>`;
+  }).join('') +
+  `<div style="color:var(--mut);font-size:11px;margin-top:auto">
+    ${(MODO_RANK_POSITIVO || ehFechamento)
+      ? 'Score Ponderado: Fat + Pos + Gols - Pênaltis - Zerados · Barra relativa à filial líder'
+      : 'Nota = 40% zerados (após 10h) + 35% pênaltis por vendedor + 25% sem nenhuma visita (após 10h)'}
+  </div>`;
   document.querySelectorAll('#rank .rk').forEach(el => el.onclick = () => { idxFil = +el.dataset.i; tFil = Date.now(); render(); });
 }
 const SUB_S = +P.get('sub') || 60; // segundos por sub-aba (KPIs / Supervisores / Casos críticos) dentro do tempo da filial
@@ -788,7 +1021,13 @@ function renderFilial(x) {
   const el = $('det'), pctF = x.metaFat ? x.fat / x.metaFat * 100 : null, pctP = x.metaPos ? x.realCli / x.metaPos * 100 : null;
   if (!x.tem) { el.innerHTML = `<h2><span>Filial ${x.sig}</span></h2><div style="color:var(--mut);font-size:24px;padding:20px 0">Aguardando dados de ${x.sig}…</div>`; return; }
   const sub = Math.floor(((Date.now() - tFil) / 1000 / SUB_S) % 3); // 0=KPIs 1=Supervisores 2=Casos críticos
-  const porSup = {}; x.vs.forEach(v => { const k = v.sup || 'sem supervisor'; const o = porSup[k] = porSup[k] || {nome: k, n: 0, dig: 0, pos: 0, zer: 0, pen: 0}; o.n++; o.dig += v.dig || 0; o.pos += v.pos || 0; if (zerado(v)) o.zer++; });
+  const porSup = {}; x.vs.forEach(v => {
+    const k = v.sup || 'sem supervisor';
+    const o = porSup[k] = porSup[k] || {nome: k, n: 0, dig: 0, pos: 0, zer: 0, pen: 0, canais: {}};
+    o.n++; o.dig += v.dig || 0; o.pos += v.pos || 0;
+    if (v.canal) o.canais[v.canal] = (o.canais[v.canal] || 0) + 1;
+    if (zerado(v)) o.zer++;
+  });
   ALERTAS.filter(a => a.sig === x.sig && a.nivel === 'penalti').forEach(a => { const k = a.v.sup || 'sem supervisor'; if (porSup[k]) porSup[k].pen++; });
   const sups = Object.values(porSup).sort((a, b) => (b.pen + b.zer) - (a.pen + a.zer) || b.dig - a.dig);
   const crit = x.vs.map(v => ({v, al: ALERTAS.filter(a => a.sig === x.sig && a.v.id === v.id)})).filter(o => o.al.length || zerado(o.v)).sort((a, b) => (b.al.filter(x=>x.nivel==='penalti').length - a.al.filter(x=>x.nivel==='penalti').length) || (zerado(b.v) - zerado(a.v)) || (b.al.length - a.al.length)).slice(0, 5);
@@ -808,7 +1047,7 @@ function renderFilial(x) {
   el.innerHTML = `<h2><span>Filial em foco</span><b>${(idxFil + 1)} de ${ORDEM.length} · troca em ${Math.max(0, Math.round(MIN_FIL * 60 - (Date.now() - tFil) / 1000))}s</b></h2>
    <div style="display:flex;align-items:baseline;gap:16px"><span class="big">${x.sig}</span><span class="nota ${corNota(x.nota)}" style="font-size:38px">nota ${x.nota}</span><span style="color:var(--mut)">${x.n} vendedores · ${x.campo.length} de campo com rota</span></div>${gruposHtml}
    <div class="grid4">
-    <div class="kpi"><span>Faturado no mês</span><b class="mono">${brl(x.fat)}</b><small>${pc(pctF)} de ${brl(x.metaFat)}</small></div>
+    <div class="kpi"><span>Faturado no mês</span><b class="mono">${brl(x.fat)}</b><small>${pc(pctF)} de ${brl(x.metaFat)}</small>${x.pendente > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--mut);margin-top:2px">+ ${brl(x.pendente)} pendente</div>` : ""}</div>
     <div class="kpi"><span>Positivados no mês</span><b class="mono">${nv(x.realCli)}</b><small>${pc(pctP)} de ${nv(x.metaPos)}</small></div>
     <div class="kpi"><span>Digitado hoje</span><b class="mono">${brl(x.dig)}</b><small>${nv(x.pos)} positivações</small></div>
     <div class="kpi"><span>Visitas hoje</span><b class="mono">${nv(x.feitas)} / ${nv(x.rota)}</b><small>${x.nZer} zerados · ${x.pen} pênaltis</small></div></div>
@@ -828,7 +1067,8 @@ function renderFilial(x) {
           const verms = als.filter(a => a.nivel === 'vermelho').length;
           const amars = als.filter(a => a.nivel === 'amarelo').length;
           const score = (gols * 10) - (pens * 5) - (verms * 8) - (amars * 2);
-          return {...s, gols, pens, verms, amars, score};
+          const canalDom = Object.keys(s.canais || {}).sort((a,b)=>s.canais[b]-s.canais[a])[0] || '';
+          return {...s, gols, pens, verms, amars, score, canalDom};
         }).sort((a, b) => b.score - a.score || b.dig - a.dig);
 
         return `<h2 style="margin:6px 0 2px"><span>Supervisores · Score & Fair Play</span><b>2/3</b></h2>
@@ -844,7 +1084,7 @@ function renderFilial(x) {
               <th style="color:#38bdf8">🏆 Score</th>
             </tr>
             ${rankSups.map(s => `<tr>
-              <td><b>${esc(s.nome)}</b></td>
+              <td><b>${esc(s.nome)}</b>${s.canalDom ? ' ' + tagCanalHtml(s.canalDom) : ''}</td>
               <td>${s.n}</td>
               <td class="mono">${brl(s.dig)}</td>
               <td style="color:#22c55e;font-weight:800">${s.gols || 0}</td>
@@ -856,7 +1096,7 @@ function renderFilial(x) {
           </table>
           <small style="color:var(--mut);display:block;margin-top:6px;font-size:12px">Score: (+10 × Gols) - (5 × Pênaltis) - (8 × Vermelhos) - (2 × Amarelos)</small>`;
       })() :
-      `<h2 style="margin:6px 0 2px"><span>Casos críticos (B.O.s) da filial</span><b>3/3</b></h2>${crit.length ? crit.map(o => `<div class="crit">${o.al.length ? tag(o.al[0]) : '<span class="tg t-ven">ZERADO</span>'}<div>${esc(o.v.nome)}<small>${o.al.length ? o.al.length + ' lance(s) · ' + esc(o.v.sup) : 'sem venda hoje · ' + esc(o.v.sup)}</small></div></div>`).join('') : '<div style="color:var(--mut);padding:8px 0">Nenhum caso crítico agora.</div>'}`}
+      `<h2 style="margin:6px 0 2px"><span>Casos críticos (B.O.s) da filial</span><b>3/3</b></h2>${crit.length ? crit.map(o => `<div class="crit">${o.al.length ? tag(o.al[0]) : '<span class="tg t-ven">ZERADO</span>'}<div>${esc(o.v.nome)}${o.v.canal ? ' ' + tagCanalHtml(o.v.canal) : ''}<small>${o.al.length ? o.al.length + ' lance(s) · ' + esc(o.v.sup) : 'sem venda hoje · ' + esc(o.v.sup)}</small></div></div>`).join('') : '<div style="color:var(--mut);padding:8px 0">Nenhum caso crítico agora.</div>'}`}
    </div>
    <div class="subprog"><i style="width:${((Date.now() - tFil) / 1000 % SUB_S) / SUB_S * 100}%"></i></div>
    <div class="prog" id="prog"></div>`;
@@ -865,43 +1105,238 @@ function renderSupView() {
   const el = $('det'); el.innerHTML = `<h2><span>Supervisores · matinal (compromisso) e rota (RET)</span><b>em destaque até 12:00</b></h2>` + ORDEM.map(sig => { const l = (SUPS[sig] || []).filter(x => !/GERENTE/i.test(x.nome) && (!x.fez_compromisso || !x.iniciou_ret)); if (!l.length) return ''; const dois = l.filter(x => !x.fez_compromisso && !x.iniciou_ret).length;
     return `<div class="supr${dois ? ' bad' : ''}"><b>${sig}</b><span>${l.map(x => esc(x.nome.split(' ').slice(0, 2).join(' ')) + (x.fez_compromisso ? '' : ' ❌comp.') + (x.iniciou_ret ? '' : ' ❌RET')).join(' · ')}</span></div>`; }).join('');
 }
-let PAINEL_DADOS = { alertas: [], justificativas: [], digitado: [], penaltis: [] };
+let PAINEL_DADOS = { alertas: [], justificativas: {}, digitado: [], penaltis: [] };
 let MODAL_DETALHE_ATUAL = null;
 function fecharModalDetalhe() { document.getElementById('modalDetalheOverlay').classList.remove('show'); }
+
+function alternarTodosGruposModal() {
+  const bodies = document.querySelectorAll('.det-tree-fil-body, .det-tree-sup-body, .det-tree-vend-body');
+  const btn = document.getElementById('modalDetalheToggleAll');
+  if (!bodies.length) return;
+  const algumFechado = Array.from(bodies).some(b => !b.classList.contains('open'));
+  bodies.forEach(b => {
+    if (algumFechado) b.classList.add('open');
+    else b.classList.remove('open');
+  });
+  if (btn) btn.textContent = algumFechado ? '▴ Recolher Tudo' : '▾ Expandir Tudo';
+}
+
+function toggleTreeSecao(idSecao) {
+  const el = document.getElementById(idSecao);
+  if (el) el.classList.toggle('open');
+}
+
 function abrirModalPainelMtz(tipo, motivo) {
   const overlay = document.getElementById('modalDetalheOverlay');
   const titulo = document.getElementById('modalDetalheTitulo');
   const sub = document.getElementById('modalDetalheSub');
   const lista = document.getElementById('modalDetalheLista');
-  let tituloTxt = '', linhas = [];
+  const btnToggle = document.getElementById('modalDetalheToggleAll');
+  if (btnToggle) btnToggle.textContent = '▾ Expandir Tudo';
+
+  let tituloTxt = '', itens = [];
 
   if (tipo === 'alertas') {
-    tituloTxt = '🚨 Alertas Ativos — Nacional (Detalhe Completo)';
-    linhas = PAINEL_DADOS.alertas.map(a => ({ nome: a.v ? a.v.nome : '—', rca: a.v ? a.v.id : '—', sig: a.sig || '—', valor: a.subtipo || a.nivel }));
+    tituloTxt = '🚨 Alertas Ativos — Nacional (Hierarquia)';
+    itens = (PAINEL_DADOS.alertas || []).map(a => {
+      const v = a.v || {};
+      return {
+        sig: a.sig || v.sig || 'MTZ',
+        sup: v.sup || 'Sem supervisor',
+        vendedor: v.nome || '—',
+        rca: v.id || '—',
+        canal: v.canal || '',
+        detalhe: (a.c && a.c.nome ? `${a.c.nome} · ` : '') + (a.subtipo || a.nivel)
+      };
+    });
   } else if (tipo === 'justificativa') {
     tituloTxt = `📋 Justificativa: ${motivo} — Nacional`;
-    linhas = (PAINEL_DADOS.justificativas[motivo] || []).map(x => ({ nome: x.v.nome, rca: x.v.id, sig: x.v.sig || '—', valor: (x.c && x.c.nome) || '—' }));
+    itens = (PAINEL_DADOS.justificativas[motivo] || []).map(x => {
+      const v = x.v || {};
+      return {
+        sig: v.sig || 'MTZ',
+        sup: v.sup || 'Sem supervisor',
+        vendedor: v.nome || '—',
+        rca: v.id || '—',
+        canal: v.canal || '',
+        detalhe: (x.c && x.c.nome) || 'Cliente'
+      };
+    });
   } else if (tipo === 'digitado') {
-    tituloTxt = '💰 Digitado Hoje — Ranking Nacional Completo';
-    linhas = PAINEL_DADOS.digitado.map(v => ({ nome: v.nome, rca: v.id, sig: v.sig || '—', valor: brl(v.dig) }));
+    tituloTxt = '💰 Digitado Hoje — Ranking Nacional (Hierarquia)';
+    itens = (PAINEL_DADOS.digitado || []).map(v => ({
+      sig: v.sig || 'MTZ',
+      sup: v.sup || 'Sem supervisor',
+      vendedor: v.nome || '—',
+      rca: v.id || '—',
+      canal: v.canal || '',
+      detalhe: brl(v.dig),
+      valorNum: v.dig || 0
+    }));
   } else if (tipo === 'penalti') {
-    tituloTxt = '🚨 Ranking de Pênaltis — Nacional Completo';
-    linhas = PAINEL_DADOS.penaltis.map(x => ({ nome: x.nome, rca: x.rca, sig: x.sig || '—', valor: x.n + ' pênalti(s)' }));
+    tituloTxt = '🚨 Ranking de Pênaltis — Nacional (Hierarquia)';
+    // Pega cada pênalti individual de ALERTAS e LOG com cliente, motivo e dias
+    const pensIndividuais = [];
+    ALERTAS.filter(a => a.nivel === 'penalti').forEach(a => {
+      const v = a.v || {};
+      const c = a.c || {};
+      pensIndividuais.push({
+        sig: a.sig || v.sig || 'MTZ',
+        sup: v.sup || 'Sem supervisor',
+        vendedor: v.nome || '—',
+        rca: v.id || '—',
+        canal: v.canal || '',
+        cliente: c.nome || 'Cliente',
+        motivo: c.motivo || a.tipo || 'Pênalti de rota',
+        dias: a.dias,
+        detalhe: `${c.nome ? c.nome + ' · ' : ''}${c.motivo || a.tipo || 'Pênalti'}${a.dias != null ? ' (' + a.dias + 'd s/ compra)' : ''}`,
+        valorNum: 1
+      });
+    });
+    // Se não houver em ALERTAS ativos no momento, busca do LOG acumulado do dia
+    if (!pensIndividuais.length) {
+      LOG.filter(e => e.nivel === 'penalti').forEach(e => {
+        pensIndividuais.push({
+          sig: e.sig || 'MTZ',
+          sup: e.supervisor || 'Sem supervisor',
+          vendedor: e.vendedor || '—',
+          rca: e.rca || '—',
+          canal: e.canal || '',
+          cliente: e.cliente || 'Cliente',
+          motivo: e.motivo || 'Pênalti apitado',
+          dias: e.dias_sem_compra,
+          detalhe: `${e.cliente ? e.cliente + ' · ' : ''}${e.motivo || 'Pênalti'}${e.dias_sem_compra != null ? ' (' + e.dias_sem_compra + 'd s/ compra)' : ''}`,
+          valorNum: 1
+        });
+      });
+    }
+    itens = pensIndividuais;
   }
 
   titulo.textContent = tituloTxt;
-  sub.textContent = `${linhas.length} registro(s) · Matriz (11 filiais) · ${sp().hms}`;
-  lista.innerHTML = linhas.length
-    ? linhas.map(l => `<div class="modal-det-linha"><span class="modal-det-nome">${esc(l.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(l.rca)}) · ${esc(l.sig)}</span></span><span>${esc(l.valor)}</span></div>`).join('')
-    : '<div class="modal-det-vazio">Nenhum registro.</div>';
-  MODAL_DETALHE_ATUAL = { titulo: tituloTxt, linhas };
+  sub.textContent = `${itens.length} registro(s) · Matriz (11 filiais) · clique para explodir filial ➔ supervisor ➔ vendedor ➔ ocorrências`;
+
+  if (!itens.length) {
+    lista.innerHTML = '<div class="modal-det-vazio">Nenhum registro para exibir.</div>';
+    MODAL_DETALHE_ATUAL = { titulo: tituloTxt, linhas: [] };
+    overlay.classList.add('show');
+    return;
+  }
+
+  // Agrupamento: Filial -> Supervisor -> Vendedor
+  const arvore = {};
+  itens.forEach(it => {
+    const s = it.sig || 'OUTROS';
+    const sup = it.sup || 'Sem supervisor';
+    const v = it.vendedor || '—';
+    arvore[s] = arvore[s] || { total: 0, somaVal: 0, sups: {} };
+    arvore[s].total++;
+    arvore[s].somaVal += (it.valorNum || 0);
+
+    arvore[s].sups[sup] = arvore[s].sups[sup] || { total: 0, somaVal: 0, vends: {} };
+    arvore[s].sups[sup].total++;
+    arvore[s].sups[sup].somaVal += (it.valorNum || 0);
+
+    arvore[s].sups[sup].vends[v] = arvore[s].sups[sup].vends[v] || { rca: it.rca, canal: it.canal || '', itens: [] };
+    arvore[s].sups[sup].vends[v].itens.push(it);
+  });
+
+  const filiaisOrdenadas = Object.keys(arvore).sort((a, b) => {
+    if (tipo === 'digitado') return arvore[b].somaVal - arvore[a].somaVal;
+    return arvore[b].total - arvore[a].total || a.localeCompare(b);
+  });
+
+  let html = '';
+  filiaisOrdenadas.forEach((sig, fIdx) => {
+    const filObj = arvore[sig];
+    const filId = `sec-fil-${fIdx}`;
+    const badgeFil = tipo === 'digitado' ? brl(filObj.somaVal) : `${filObj.total} registro(s)`;
+    const corBadge = tipo === 'penalti' ? 'red' : tipo === 'digitado' ? 'grn' : '';
+
+    html += `<div class="det-tree-filial">
+      <div class="det-tree-fil-head" onclick="toggleTreeSecao('${filId}')">
+        <span>🏢 FILIAL ${esc(sig)}</span>
+        <span class="det-badge ${corBadge}">${badgeFil} ▾</span>
+      </div>
+      <div id="${filId}" class="det-tree-fil-body">`;
+
+    const supsOrdenados = Object.keys(filObj.sups).sort((a, b) => {
+      if (tipo === 'digitado') return filObj.sups[b].somaVal - filObj.sups[a].somaVal;
+      return filObj.sups[b].total - filObj.sups[a].total || a.localeCompare(b);
+    });
+
+    supsOrdenados.forEach((supNome, sIdx) => {
+      const supObj = filObj.sups[supNome];
+      const supId = `sec-sup-${fIdx}-${sIdx}`;
+      const badgeSup = tipo === 'digitado' ? brl(supObj.somaVal) : `${supObj.total} reg.`;
+
+      html += `<div class="det-tree-sup">
+        <div class="det-tree-sup-head" onclick="toggleTreeSecao('${supId}')">
+          <span>👔 Sup. ${esc(supNome)}</span>
+          <span class="det-badge ${corBadge}">${badgeSup} ▾</span>
+        </div>
+        <div id="${supId}" class="det-tree-sup-body">`;
+
+      const vendsOrdenados = Object.keys(supObj.vends).sort((a, b) => {
+        if (tipo === 'digitado') {
+          const somaA = supObj.vends[a].itens.reduce((x, y) => x + (y.valorNum || 0), 0);
+          const somaB = supObj.vends[b].itens.reduce((x, y) => x + (y.valorNum || 0), 0);
+          return somaB - somaA;
+        }
+        return supObj.vends[b].itens.length - supObj.vends[a].itens.length || a.localeCompare(b);
+      });
+
+      vendsOrdenados.forEach((vNome, vIdx) => {
+        const vObj = supObj.vends[vNome];
+        const vId = `sec-vend-${fIdx}-${sIdx}-${vIdx}`;
+        const temMultiplos = vObj.itens.length > 1;
+
+        if (tipo === 'penalti' || tipo === 'justificativa' || tipo === 'alertas') {
+          // Vendedor com sub-acordeom para ver clientes e motivos
+          html += `<div class="det-tree-vend">
+            <div class="det-tree-vend-head" onclick="toggleTreeSecao('${vId}')">
+              <span>👤 <b>${esc(vNome)}</b> <small style="opacity:.7">(RCA ${esc(vObj.rca)})</small>${vObj.canal ? ' ' + tagCanalHtml(vObj.canal) : ''}</span>
+              <span class="det-badge ${corBadge}">${vObj.itens.length} ocorrência(s) ▾</span>
+            </div>
+            <div id="${vId}" class="det-tree-vend-body">
+              ${vObj.itens.map(it => `
+                <div class="det-tree-item">
+                  <span class="modal-det-nome" style="color:#e2e8f0">🏢 ${esc(it.cliente || it.detalhe)}</span>
+                  <span style="font-weight:700;color:${tipo === 'penalti' ? '#fca5a5' : 'var(--acc)'}">${esc(it.motivo || it.detalhe)}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>`;
+        } else {
+          // Digitado
+          vObj.itens.forEach(it => {
+            html += `<div class="det-tree-item">
+              <span class="modal-det-nome">👤 <b>${esc(vNome)}</b> <small style="opacity:.7">(RCA ${esc(vObj.rca)})</small>${vObj.canal ? ' ' + tagCanalHtml(vObj.canal) : ''}</span>
+              <span style="font-weight:700;color:var(--ok)">${esc(it.detalhe)}</span>
+            </div>`;
+          });
+        }
+      });
+
+      html += `</div></div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  lista.innerHTML = html;
+  MODAL_DETALHE_ATUAL = {
+    titulo: tituloTxt,
+    linhas: itens.map(l => ({ nome: l.vendedor, rca: l.rca, sig: l.sig, sup: l.sup, valor: l.detalhe }))
+  };
   overlay.classList.add('show');
 }
+
 function exportarModalDetalhe() {
   if (!MODAL_DETALHE_ATUAL) return;
   const { titulo, linhas } = MODAL_DETALHE_ATUAL;
-  const cabecalho = [['Vendedor', 'RCA', 'Filial', 'Detalhe']];
-  const csv = cabecalho.concat(linhas.map(l => [l.nome, l.rca, l.sig, l.valor]))
+  const cabecalho = [['Filial', 'Supervisor', 'Vendedor', 'RCA', 'Detalhe']];
+  const csv = cabecalho.concat(linhas.map(l => [l.sig, l.sup || '', l.nome, l.rca, l.valor]))
     .map(row => row.map(v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`).join(',')).join('\n');
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
@@ -931,7 +1366,7 @@ function renderPainelNacional() {
    <div class="grid4painel">
     <div class="pnl">
       <h3 onclick="abrirModalPainelMtz('alertas')" style="cursor:pointer">Alertas ativos <b>${ALERTAS.length}</b></h3>
-      ${topA.length ? topA.map(a => `<div class="row"><span class="tg" style="background:var(--card2)">${a.sig || ''}</span><div class="n">${nomeComRca(a.v)}<small>${esc(a.subtipo || a.nivel)}</small></div></div>`).join('') : '<div class="vazio">Nenhum alerta ativo.</div>'}
+      ${topA.length ? topA.map(a => `<div class="row"><span class="tg" style="background:var(--card2)">${a.sig || ''}</span><div class="n">${nomeComRca(a.v, true)}<small>${esc(a.subtipo || a.nivel)}</small></div></div>`).join('') : '<div class="vazio">Nenhum alerta ativo.</div>'}
     </div>
     <div class="pnl">
       <h3>Justificativas de hoje <b>${totJ}</b></h3>
@@ -939,18 +1374,18 @@ function renderPainelNacional() {
     </div>
     <div class="pnl">
       <h3>Digitado hoje · ranking <b>${brl(totD)}</b></h3>
-      ${rkD.length ? rkD.slice(0, 8).map((v, i) => { const pct = totD ? (v.dig / totD * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainelMtz('digitado')"><div class="row" style="grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${nomeComRca(v)} <small style="color:var(--mut)">${v.sig}</small></div><b class="mono">${brl(v.dig)} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb"><i style="width:${v.dig / mrD * 100}%"></i></div></div>`; }).join('') : '<div class="vazio">Ninguém digitou ainda.</div>'}
+      ${rkD.length ? rkD.slice(0, 8).map((v, i) => { const pct = totD ? (v.dig / totD * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainelMtz('digitado')"><div class="row" style="grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${nomeComRca(v, true)} <small style="color:var(--mut)">${v.sig}</small></div><b class="mono">${brl(v.dig)} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb"><i style="width:${v.dig / mrD * 100}%"></i></div></div>`; }).join('') : '<div class="vazio">Ninguém digitou ainda.</div>'}
     </div>
     <div class="pnl">
       <h3>Ranking de pênaltis · hoje <b>${totP}</b></h3>
-      ${topP.length ? topP.map((x, i) => { const pct = totP ? (x.n / totP * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainelMtz('penalti')"><div class="row" style="grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${esc(x.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(x.rca)}) · ${esc(x.sig || '')}</span></div><b class="mono" style="color:var(--bad)">${x.n} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb red"><i style="width:${x.n / mxP * 100}%"></i></div></div>`; }).join('') : '<div class="vazio">Nenhum pênalti hoje.</div>'}
+      ${topP.length ? topP.map((x, i) => { const pct = totP ? (x.n / totP * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainelMtz('penalti')"><div class="row" style="grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${esc(x.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(x.rca)}) · ${esc(x.sig || '')}</span>${x.canal ? ' ' + tagCanalHtml(x.canal) : ''}</div><b class="mono" style="color:var(--bad)">${x.n} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb red"><i style="width:${x.n / mxP * 100}%"></i></div></div>`; }).join('') : '<div class="vazio">Nenhum pênalti hoje.</div>'}
     </div>
    </div>`;
 }
 const penaltisDeNacional = (rca, sig) => LOG.filter(e => e.nivel === 'penalti' && e.rca === rca && e.sig === sig).length;
 function rankingPenaltisNacional() {
   const m = new Map();
-  LOG.filter(e => e.nivel === 'penalti').forEach(e => { const k = e.sig + '|' + e.rca; const x = m.get(k) || {rca: e.rca, sig: e.sig, nome: e.vendedor, sup: e.supervisor || '', n: 0}; x.n++; m.set(k, x); });
+  LOG.filter(e => e.nivel === 'penalti').forEach(e => { const k = e.sig + '|' + e.rca; const x = m.get(k) || {rca: e.rca, sig: e.sig, nome: e.vendedor, canal: e.canal || '', sup: e.supervisor || '', n: 0}; x.n++; m.set(k, x); });
   return [...m.values()].sort((a, b) => b.n - a.n || a.nome.localeCompare(b.nome));
 }
 function render() {
@@ -963,34 +1398,73 @@ function render() {
   if (!sup && !nacional) { const p = $('prog'); if (p) { const f = Math.min(1, (Date.now() - tFil) / (MIN_FIL * 60000)); p.style.width = (f * 100) + '%'; } }
 }
 let ultLanceAuto = Date.now(), idxDestaque = 0;
+const historicoLancesExibidos = []; // armazena chaves dos últimos 30 lances exibidos na sessão
 function confereLanceAuto() {
   if (emVAR || FILA.length || !ALERTAS.length) return;
   const t = sp();
   if (t.h < 8) return;
-  // A cada 2.5 min mostra automaticamente um lance na TV
-  if (Date.now() - ultLanceAuto >= 150000) {
+  const ehFechamento = t.h >= 15;
+  // Intervalo do lance automático: 3 minutos (180s)
+  const INTERVALO_LANCE_AUTO_MS = 180000;
+  if (Date.now() - ultLanceAuto >= INTERVALO_LANCE_AUTO_MS) {
     ultLanceAuto = Date.now();
-    // Só reexibe lances que a TV ainda NÃO mostrou (fora de `seen`) — sem isso, o mesmo pênalti/
-    // impedimento de um cliente inativo há meses fica em ALERTAS o dia inteiro (a condição segue
-    // batendo a cada recálculo) e era reapitado automaticamente a cada 2.5min pra sempre (achado
-    // em 28/09/2026: pênalti da Clarice/TCV/Primato repetindo várias vezes na mesma tela).
-    const ALERTAS_NAO_VISTOS = ALERTAS.filter(a => !seen.has(a.key));
-    const categorias = [
-      { tipo: 'gol', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'gol') },
-      { tipo: 'hattrick', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'hattrick') },
-      { tipo: 'penalti', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'penalti') },
-      { tipo: 'impedimento', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'impedimento') },
-      { tipo: 'vermelho', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'vermelho') },
-      { tipo: 'golcontra', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'golcontra') },
-      { tipo: 'amarelo', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'amarelo') },
-      { tipo: 'defesa', lista: ALERTAS_NAO_VISTOS.filter(a => a.nivel === 'defesa') }
-    ].filter(c => c.lista && c.lista.length > 0);
+    // Prioriza lances que a TV ainda NÃO mostrou na sessão
+    let poolAlertas = ALERTAS.filter(a => !seen.has(a.key));
+    // Se todos já foram vistos (ou não há inéditos recentes), recicla os destaques do dia
+    // excluindo os exibidos recentemente para GARANTIR lances SEMPRE DIFERENTES passando na TV
+    if (!poolAlertas.length) {
+      const recentesSet = new Set(historicoLancesExibidos.slice(-30));
+      let reciclaveis = ALERTAS.filter(a => !recentesSet.has(a.key));
+      if (!reciclaveis.length) {
+        // Se já exibiu todos os alertas do dia, limpa o buffer recente mantendo só os últimos 5
+        historicoLancesExibidos.splice(0, Math.max(0, historicoLancesExibidos.length - 5));
+        reciclaveis = ALERTAS.slice();
+      }
+      if (ehFechamento) {
+        poolAlertas = reciclaveis.filter(a => a.nivel === 'gol' || a.nivel === 'hattrick' || a.nivel === 'defesa');
+        if (!poolAlertas.length) poolAlertas = reciclaveis;
+      } else {
+        poolAlertas = reciclaveis;
+      }
+    }
+    if (!poolAlertas.length) return;
+
+    let categorias;
+    if (ehFechamento) {
+      // FECHAMENTO (>= 15h): Foco principal em GOLS, HAT-TRICKS, POSITIVAÇÃO e DEFESA
+      categorias = [
+        { tipo: 'gol', lista: poolAlertas.filter(a => a.nivel === 'gol') },
+        { tipo: 'hattrick', lista: poolAlertas.filter(a => a.nivel === 'hattrick') },
+        { tipo: 'gol', lista: poolAlertas.filter(a => a.nivel === 'gol') }, // peso duplo para gols
+        { tipo: 'defesa', lista: poolAlertas.filter(a => a.nivel === 'defesa') },
+        { tipo: 'penalti', lista: poolAlertas.filter(a => a.nivel === 'penalti') },
+        { tipo: 'vermelho', lista: poolAlertas.filter(a => a.nivel === 'vermelho') }
+      ].filter(c => c.lista && c.lista.length > 0);
+    } else {
+      // MANHÃ: Foco equilibrado em rotina, check-ins, infrações e vendas iniciais
+      categorias = [
+        { tipo: 'gol', lista: poolAlertas.filter(a => a.nivel === 'gol') },
+        { tipo: 'hattrick', lista: poolAlertas.filter(a => a.nivel === 'hattrick') },
+        { tipo: 'penalti', lista: poolAlertas.filter(a => a.nivel === 'penalti') },
+        { tipo: 'impedimento', lista: poolAlertas.filter(a => a.nivel === 'impedimento') },
+        { tipo: 'vermelho', lista: poolAlertas.filter(a => a.nivel === 'vermelho') },
+        { tipo: 'golcontra', lista: poolAlertas.filter(a => a.nivel === 'golcontra') },
+        { tipo: 'amarelo', lista: poolAlertas.filter(a => a.nivel === 'amarelo') },
+        { tipo: 'defesa', lista: poolAlertas.filter(a => a.nivel === 'defesa') }
+      ].filter(c => c.lista && c.lista.length > 0);
+    }
 
     if (!categorias.length) return;
     const cat = categorias[idxDestaque % categorias.length];
     idxDestaque++;
-    // Pega o item mais relevante da categoria (ex: maior valor no gol, maior tempo/risco nas infrações)
-    const lance = cat.lista.slice().sort((a,b) => (b.valor || b.dias || 0) - (a.valor || a.dias || 0))[0] || cat.lista[0];
+    // Pega itens da categoria e sorteia/alterna entre vendedores diferentes para evitar repetição
+    const candidatosCat = cat.lista.slice().sort((a,b) => (b.valor || b.dias || 0) - (a.valor || a.dias || 0));
+    // Escolhe um candidato que não seja da mesma pessoa do último lance exibido
+    const ultimoRca = historicoLancesExibidos.length ? String(historicoLancesExibidos[historicoLancesExibidos.length - 1]).split('|')[2] : null;
+    const lance = candidatosCat.find(c => c.v && String(c.v.id) !== ultimoRca) || candidatosCat[0];
+    if (!lance) return;
+    historicoLancesExibidos.push(lance.key);
+    if (historicoLancesExibidos.length > 100) historicoLancesExibidos.shift();
     if (lance.nivel === 'gol') {
       FILA.push({tipo: 'gol', sig: lance.sig, v: lance.v, c: lance.c, a: lance, sub: textoGol(lance.subtipo, lance.valor, lance.c, lance.horaReal)});
     } else if (lance.nivel === 'hattrick') {
@@ -1031,6 +1505,22 @@ function exportar() {
 function ctl() {
   const ir = d => { idxFil = (idxFil + d + ORDEM.length + 1) % (ORDEM.length + 1); tFil = Date.now(); render(); };
   $('bprev').onclick = () => ir(-1); $('bnext').onclick = () => ir(1);
+  const alternarPainel = () => {
+    if (idxFil === ORDEM.length) {
+      idxFil = 0; // Volta para a 1ª filial
+    } else {
+      idxFil = ORDEM.length; // Abre o Painel Nacional
+    }
+    tFil = Date.now();
+    render();
+  };
+  if ($('bpainel')) $('bpainel').onclick = alternarPainel;
+  if ($('bt-modo-painel')) $('bt-modo-painel').onclick = alternarPainel;
+  if ($('modo')) {
+    $('modo').style.cursor = 'pointer';
+    $('modo').title = 'Clique para alternar entre Filiais e Painel Nacional';
+    $('modo').onclick = alternarPainel;
+  }
   $('bauto').onclick = () => { auto = !auto; $('bauto').classList.toggle('on', auto); tFil = Date.now(); render(); };
   $('bsom').textContent = somOn ? '🔊 Som' : '🔇 Som'; $('bsom').onclick = () => { somOn = !somOn; store.set('ceven_tv_som', somOn); $('bsom').textContent = somOn ? '🔊 Som' : '🔇 Som'; beep([[660, .15]]); };
   $('bexp').onclick = exportar;
@@ -1061,19 +1551,35 @@ async function laco() {
 }
 // ROLAGEM AUTOMÁTICA (pedido do Vitório, 29/09/2026): mesma lógica de tvapp.html — qualquer
 // .panel com lista maior que o espaço visível desce sozinho e volta ao topo, em loop lento.
+// ROLAGEM AUTOMÁTICA OTIMIZADA: ciclo de 26s bem mais lento + pausa imediata no hover
+let MOUSE_SOBRE_PAINEL_MTZ = false;
+
+function setupPaineisHoverMtz() {
+  document.querySelectorAll('.panel').forEach(p => {
+    if (p._hasHoverMtz) return;
+    p._hasHoverMtz = true;
+    p.addEventListener('mouseenter', () => { MOUSE_SOBRE_PAINEL_MTZ = true; });
+    p.addEventListener('mouseleave', () => { MOUSE_SOBRE_PAINEL_MTZ = false; });
+    p.addEventListener('touchstart', () => { MOUSE_SOBRE_PAINEL_MTZ = true; }, { passive: true });
+    p.addEventListener('touchend', () => { setTimeout(() => { MOUSE_SOBRE_PAINEL_MTZ = false; }, 2000); }, { passive: true });
+  });
+}
+
 function autoScrollPaineis() {
+  if (MOUSE_SOBRE_PAINEL_MTZ) return; // pausa imediata no hover do mouse
+  setupPaineisHoverMtz();
+
   document.querySelectorAll('.panel').forEach((p) => {
     if (p.offsetParent === null) return;
     const excesso = p.scrollHeight - p.clientHeight;
-    if (excesso < 20) { p.scrollTop = 0; return; }
-    const ciclo = 14000;
+    if (excesso < 20) return;
+    const ciclo = 26000; // 26s bem cadenciado
     const t = (Date.now() % ciclo) / ciclo;
     const fase = t < 0.5 ? t * 2 : (1 - t) * 2;
     p.scrollTop = excesso * fase;
   });
 }
 setInterval(autoScrollPaineis, 80);
-
 ctl(); setInterval(relogio, 1000); relogio(); laco();
 window.__mtz = {DATA, TS, get ALERTAS() { return ALERTAS; }, get LOG() { return LOG; }, statFilial, ORDEM, ocupado: () => emVAR || FILA.length > 0, animTeste: typeof animTeste === 'function' ? animTeste : null};
 window.__tv = window.__mtz; // a casca /tv usa __tv.ocupado para não recarregar durante um lance
