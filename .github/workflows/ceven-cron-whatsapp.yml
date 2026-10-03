@@ -199,6 +199,9 @@ jobs:
 
       - name: ⚡ Executar Motor Unificado CEVEN (WhatsApp)
         if: steps.calendario.outputs.bloqueado != 'true'
+        env:
+          CEVEN_ADMIN_USER: ${{ secrets.CEVEN_ADMIN_USER }}
+          CEVEN_ADMIN_PASS: ${{ secrets.CEVEN_ADMIN_PASS }}
         run: |
           CICLO="${{ steps.config.outputs.ciclo }}"
           ACAO="${{ steps.config.outputs.acao }}"

@@ -30,8 +30,9 @@ const XLSX = require('xlsx');
 
 // Configurações de API
 const CEVEN_BASE = 'https://ceven.drivetriunfante-locomotiva.com.br';
-const CEVEN_USER = 'Vitorio';
-const CEVEN_PASS = 'Triunfante@2026';
+// Login do administrador do CEVEN: vem dos segredos do GitHub (CEVEN_ADMIN_USER / CEVEN_ADMIN_PASS), nunca do codigo.
+const CEVEN_USER = process.env.CEVEN_ADMIN_USER;
+const CEVEN_PASS = process.env.CEVEN_ADMIN_PASS;
 
 const EVO_URL = 'https://evolution-api-production-8999.up.railway.app';
 const EVO_KEY = '143c2820271dfa4c2f6c920aff3205f0c5dec92d7c3f3dfaf90a9d8bb023eaaa';
@@ -107,6 +108,7 @@ async function safeGet(url, maxRetries = 3, timeout = 10000) {
 
 // 1. Autenticação no CEVEN Admin
 async function getAdminToken() {
+  if (!CEVEN_USER || !CEVEN_PASS) throw new Error('segredos CEVEN_ADMIN_USER / CEVEN_ADMIN_PASS nao configurados');
   const res = await axios.post(`${CEVEN_BASE}/api/admin/login`, {
     username: CEVEN_USER,
     password: CEVEN_PASS
@@ -1397,6 +1399,11 @@ async function main() {
     console.log(`🔑 Sessão CEVEN Admin autenticada com sucesso.`);
   } catch (e) {
     console.warn(`⚠️ Erro ao autenticar no CEVEN Admin: ${e.message}`);
+    if (destino !== 'dry_run') {
+      // antes o ciclo terminava com 'sucesso' sem enviar nada e ninguem percebia
+      console.error('❌ Sem login de administrador no CEVEN: ciclo ABORTADO, nenhuma mensagem enviada.');
+      process.exit(1);
+    }
   }
 
   // 0) Abertura Matinal (07:00)

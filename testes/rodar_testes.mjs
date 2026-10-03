@@ -116,6 +116,14 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     ok(y.includes('/api/tv-mostra') && y.includes('-o mostra_equipe.json'), `${wf.split('/').pop()} baixa a equipe em mostra_equipe.json`);
   }
   ok(eng.includes("'mostra_equipe.json'"), 'motor le o mesmo arquivo mostra_equipe.json');
+  // Login do administrador do CEVEN: nunca escrito no codigo (repositorio publico) e falha de login nao pode ser silenciosa
+  ok(!/const CEVEN_USER = '/.test(eng) && !/const CEVEN_PASS = '/.test(eng), 'motor nao tem o login do administrador escrito no codigo');
+  ok(eng.includes('process.env.CEVEN_ADMIN_USER') && eng.includes('process.env.CEVEN_ADMIN_PASS'), 'motor le o login dos segredos CEVEN_ADMIN_USER / CEVEN_ADMIN_PASS');
+  ok(/Erro ao autenticar no CEVEN Admin[\s\S]{0,300}process\.exit\(1\)/.test(eng), 'falha de login do administrador derruba o ciclo (nao termina como sucesso sem enviar)');
+  for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
+    const y = ler(wf);
+    ok(y.includes('CEVEN_ADMIN_USER: ${{ secrets.CEVEN_ADMIN_USER }}') && y.includes('CEVEN_ADMIN_PASS: ${{ secrets.CEVEN_ADMIN_PASS }}'), `${wf.split('/').pop()} entrega o login do administrador ao motor`);
+  }
 }
 
 // ---------------------------------------------------------------- 4. contrato da lista de equipe

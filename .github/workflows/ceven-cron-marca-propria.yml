@@ -130,6 +130,9 @@ jobs:
 
       - name: ⚡ Enviar via WhatsApp (ciclo 10:00 — todos)
         if: steps.calendario.outputs.bloqueado != 'true'
+        env:
+          CEVEN_ADMIN_USER: ${{ secrets.CEVEN_ADMIN_USER }}
+          CEVEN_ADMIN_PASS: ${{ secrets.CEVEN_ADMIN_PASS }}
         run: |
           node pipeline/ceven_unified_engine.js \
             --hora="10:00" \
