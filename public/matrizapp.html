@@ -804,7 +804,7 @@ function telaVAR(item) {
     const cab = {'Filial': item.sig, 'Vendedor': v ? `${v.nome} (RCA ${v.id})` : '—', 'Supervisor': v ? v.sup : '—', 'Nota da filial': statFilial(item.sig).nota + ' / 100'};
     if (n === 1) { const {c, dias} = it[0], tv = c ? c.tempo_visita : null; dec = seloLiga + linhas({...cab, 'Cliente': c ? c.nome : '—', 'Justificativa': '!' + (c ? c.motivo : ''), 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c ? c.ultima_compra : '')})` : 'sem compra registrada'), 'Tempo na visita': tv ? (tv === '00:00' ? '!' + tv + ' (visita de 0 minuto)' : tv) : null}); }
     else dec = seloLiga + linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot"><b>${esc(a.c ? a.c.nome : '')}</b><span>${esc(a.c ? a.c.motivo : '')} · ${a.dias != null ? a.dias + 'd s/ compra' : 'sem compra'}</span></div>`).join('');
-    veredito = `📞 LIGAR AGORA: ${v ? v.sup : 'supervisor'} · ${item.sig} (supervisor de ${v ? v.nome.split(' ')[0] : 'vendedor'})`;
+    veredito = (v && ehSupFalso(v.sup)) ? `📞 LIGAR AGORA: o gerente de ${item.sig} (vendedor ${v.nome.split(' ')[0]} é ligado direto ao gerente)` : `📞 LIGAR AGORA: ${v ? v.sup : 'supervisor'} · ${item.sig} (supervisor de ${v ? v.nome.split(' ')[0] : 'vendedor'})`;
   } else {
     titulo = item.tipo === 'venda10' ? '🟥 CARTÃO VERMELHO' : '⛔ EXPULSÃO'; sub = `${item.sig} · ${LIMITE_H}h e ${(item.l||[]).length} vendedor(es) COM ROTA e SEM ${item.tipo === 'venda10' ? 'NENHUMA VENDA' : 'NENHUMA VISITA'}`;
     dec = (item.l||[]).slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.v ? a.v.feitas : 0}/${a.v ? a.v.rota : 0} visitas · digitado ${brl(a.v ? a.v.dig : 0)}</span></div>`).join(''); veredito = item.tipo === 'venda10' ? 'Nenhuma venda registrada até agora.' : 'Nenhuma visita registrada — verificar se está em campo.';
@@ -957,6 +957,8 @@ async function gatilhoSup() {
   LOG.push({key: k, t: t.hms, nivel: 'supervisor', vendedor: total + ' supervisor(es) pendente(s)', sig: 'MTZ'}); store.set(K.log + HOJE0, LOG); FILA.push({tipo: 'sup', lista, total}); proximoVAR();
 }
 // ============================== RENDER ==============================
+// "GERENTE MCD", "GERENTE TPH"... = vendedores ligados direto ao gerente, NAO sao supervisores (decisao do Vitorio, 04/10/2026).
+const ehSupFalso = (n) => /^GERENTE\b/i.test(String(n || '').trim());
 function modoSup() { const t = sp(), m = t.h * 60 + t.m; return emJanelaSupPeriodica(m) && ORDEM.some(s => (SUPS[s] || []).some(x => !/GERENTE/i.test(x.nome) && (!x.fez_compromisso || !x.iniciou_ret))); }
 function renderTotais(stats) {
   const s = f => stats.reduce((x, y) => x + (f(y) || 0), 0), fat = s(x => x.fat), pend = s(x => x.pendente), mF = METAS ? METAS.total.meta_fat : s(x => x.metaFat), pos = s(x => x.realCli), mP = METAS ? METAS.total.meta_pos : s(x => x.metaPos);
@@ -1029,7 +1031,8 @@ function renderFilial(x) {
     if (zerado(v)) o.zer++;
   });
   ALERTAS.filter(a => a.sig === x.sig && a.nivel === 'penalti').forEach(a => { const k = a.v.sup || 'sem supervisor'; if (porSup[k]) porSup[k].pen++; });
-  const sups = Object.values(porSup).sort((a, b) => (b.pen + b.zer) - (a.pen + a.zer) || b.dig - a.dig);
+  const supsAll = Object.values(porSup).sort((a, b) => (b.pen + b.zer) - (a.pen + a.zer) || b.dig - a.dig);
+  const sups = supsAll.filter(s => !ehSupFalso(s.nome)); // so supervisores de verdade na lista e na contagem
   const crit = x.vs.map(v => ({v, al: ALERTAS.filter(a => a.sig === x.sig && a.v.id === v.id)})).filter(o => o.al.length || zerado(o.v)).sort((a, b) => (b.al.filter(x=>x.nivel==='penalti').length - a.al.filter(x=>x.nivel==='penalti').length) || (zerado(b.v) - zerado(a.v)) || (b.al.length - a.al.length)).slice(0, 5);
   const porGrupo = {}; x.vs.forEach(v => { if (!v.grupo) return; const o = porGrupo[v.grupo] = porGrupo[v.grupo] || {g: v.grupo, n: 0, dig: 0, zer: 0, pen: 0}; o.n++; o.dig += v.dig || 0; if (zerado(v)) o.zer++; });
   ALERTAS.filter(a => a.sig === x.sig && a.nivel === 'penalti').forEach(a => { if (a.v.grupo && porGrupo[a.v.grupo]) porGrupo[a.v.grupo].pen++; });
@@ -1054,7 +1057,7 @@ function renderFilial(x) {
    <div class="subtab">
     ${sub === 0 ? `<h2 style="margin:6px 0 2px"><span>Resumo da filial</span><b>1/3</b></h2>${gruposHtml ? `<div style="margin-bottom:6px">${gruposHtml}</div>` : ''}
       <div class="grid4">
-       <div class="kpi"><span>Meta batida no mês</span><b class="mono">${nv(sups.filter(s => s.dig > 0).length)} <small style="font-size:15px;color:var(--mut)">de ${nv(x.n)} digitaram hoje</small></b></div>
+       <div class="kpi"><span>Meta batida no mês</span><b class="mono">${nv(supsAll.filter(s => s.dig > 0).length)} <small style="font-size:15px;color:var(--mut)">de ${nv(x.n)} digitaram hoje</small></b></div>
        <div class="kpi"><span>Devoluções no mês</span><b class="mono" style="color:${x.vs.reduce((a,v)=>a+(v.dev||0),0)>0?'var(--warn)':'inherit'}">${brl(x.vs.reduce((a,v)=>a+(v.dev||0),0))}</b></div>
        <div class="kpi"><span>Supervisores</span><b class="mono">${nv(sups.length)}</b></div>
        <div class="kpi"><span>Sem nenhuma visita hoje</span><b class="mono" style="color:${x.nSemVis>0?'var(--bad)':'inherit'}">${nv(x.nSemVis)}</b></div>

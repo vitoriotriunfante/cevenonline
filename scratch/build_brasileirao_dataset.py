@@ -311,7 +311,12 @@ for idx, g in enumerate(gerentes_tabela):
 
 # 5. Tabela Supervisores — mesma lógica de maioria, agregada pela equipe dele.
 sups_tabela = []
-sups_set = set((v['filial'], v['supervisor']) for v in vendedores_lista if v['supervisor'])
+# "GERENTE MCD" / "GERENTE TPH" etc. NAO sao supervisores: sao vendedores ligados direto ao gerente (sem supervisor).
+# Decisao do Vitorio, 03/10/2026: ficam FORA da Liga dos Supervisores; os vendedores continuam no ranking de vendedores
+# e contam na equipe do gerente.
+def eh_supervisor_de_verdade(nome):
+    return not str(nome).strip().upper().startswith('GERENTE ')
+sups_set = set((v['filial'], v['supervisor']) for v in vendedores_lista if v['supervisor'] and eh_supervisor_de_verdade(v['supervisor']))
 for fil, s in sups_set:
     vends = [v for v in vendedores_lista if v['filial'] == fil and v['supervisor'] == s]
     if not vends:

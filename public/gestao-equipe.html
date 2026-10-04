@@ -1089,7 +1089,7 @@ function renderizarTabela() {
           ${isAlterada ? `<span class="tag-pendente-envio">🟡 Ajuste Solicitado (${pendente.acao})</span>` : ''}
         </td>
         <td><span class="badge-canal ${canalClass}">${r.canal || 'VJ'}</span></td>
-        <td style="color:var(--tx-mut);font-size:12px;">${r.supervisor || '—'}</td>
+        <td style="color:var(--tx-mut);font-size:12px;">${(!r.supervisor || /^GERENTE\b/i.test(String(r.supervisor).trim())) ? '— (direto ao gerente)' : r.supervisor}</td>
         <td style="color:var(--tx-mut);font-size:12px;">${r.gerente || '—'}</td>
         <td>
           <label class="toggle-switch">

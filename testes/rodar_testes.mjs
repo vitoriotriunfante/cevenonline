@@ -146,6 +146,11 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
   { const bd = JSON.parse(ler('public/dados_brasileirao.json')); const nomes = bd.gerentes.map(g => g.nome);
     ok(new Set(nomes).size === nomes.length && nomes.includes('Fábio Machado') && nomes.includes('Fábio Colares') && !nomes.includes('Fábio'), 'Brasileirao: gerentes homonimos de filiais diferentes ficam separados (Fábio Machado TBL e Fábio Colares TPH)');
     ok(bd.gerentes.every(g => g.filiais.length === 1 || g.nome.includes('/')), 'Brasileirao: cada gerente pertence a uma filial'); }
+  { const bd = JSON.parse(ler('public/dados_brasileirao.json'));
+    ok(!bd.supervisores.some(s => /^GERENTE /i.test(s.supervisor)), 'Liga dos Supervisores nao tem supervisor falso ("GERENTE MCD", "GERENTE TPH"...): sao vendedores ligados direto ao gerente');
+    ok(bd.vendedores.some(v => /^GERENTE /i.test(v.supervisor)), 'os vendedores ligados direto ao gerente continuam no ranking de vendedores'); }
+  { const mz = ler('public/matrizapp.html'), tv = ler('public/tvapp.html'), ge = ler('public/gestao-equipe.html');
+    ok(mz.includes('const ehSupFalso') && mz.includes('sups = supsAll.filter(s => !ehSupFalso(s.nome))') && tv.includes('const ehSupFalso') && tv.includes('if (ehSupFalso(x.sup)) return;') && ge.includes('direto ao gerente'), 'supervisor falso fora das telas: "GERENTE <FILIAL>" nao aparece como supervisor na Matriz, na TV da filial e na Gestao de Equipe'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);

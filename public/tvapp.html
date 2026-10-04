@@ -389,6 +389,8 @@ function horariosCheckinDoDia(cl) {
     .sort((a, b) => a.horaMin - b.horaMin);
 }
 let lastOk = null, refreshing = false, ordem = [], idxRonda = 0, modoManual = ['auto','ronda','painel','sup'].includes(P.get('modo')) ? P.get('modo') : store.get('ceven_tv_modo', 'auto');
+// "GERENTE MCD", "GERENTE TPH"... = vendedores ligados direto ao gerente, NAO sao supervisores (decisao do Vitorio, 04/10/2026).
+const ehSupFalso = (n) => /^GERENTE\b/i.test(String(n || '').trim());
 const SUP_INI = 11 * 60 + 30, SUP_FIM = 12 * 60; // janela do alerta de supervisores (Brasília)
 let SUP = null;   // situação dos supervisores no dia (tv-supervisores)
 let ALERTAS = [];         // ativos agora
@@ -889,7 +891,7 @@ function telaVAR(item) {
     } else {
       dec = seloLiga + linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot"><b>${esc(a.c.nome)}</b><span>${esc(a.c.motivo)} · ${a.dias != null ? a.dias + 'd s/ compra' : 'sem compra'}${a.c.tempo_visita === '00:00' ? ' · visita de 0 min' : ''}</span></div>`).join('') + (n > 5 ? `<div class="ln"><b>+${n - 5}</b><span>outros clientes</span></div>` : '');
     }
-    veredito = `📞 LIGAR AGORA: ${v.sup || 'supervisor'} (supervisor de ${v.nome.split(' ')[0]})${totalDia >= 3 ? ' — REINCIDENTE, ' + totalDia + 'º pênalti hoje' : ''}`;
+    veredito = `📞 LIGAR AGORA: ${ehSupFalso(v.sup) ? 'o gerente da filial' : (v.sup || 'supervisor')} (${ehSupFalso(v.sup) ? 'vendedor ligado direto ao gerente' : 'supervisor'} de ${v.nome.split(' ')[0]})${totalDia >= 3 ? ' — REINCIDENTE, ' + totalDia + 'º pênalti hoje' : ''}`;
   } else if (item.tipo === 'venda10') {
     titulo = '🟥 CARTÃO VERMELHO'; sub = `${LIMITE_H}h e ${item.l.length} vendedor(es) COM ROTA e SEM NENHUMA VENDA`; cls = 'f1';
     dec = item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.v.feitas}/${a.v.rota} visitas · digitado ${brl(a.v.dig)}</span></div>`).join('') + (item.l.length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
@@ -1382,7 +1384,7 @@ function renderPainel(vs) {
 
   const rk2 = rankingPenaltis(), top2 = rk2.slice(0, 8), mx2 = top2.length ? top2[0].n : 1, totPen = rk2.reduce((x, y) => x + y.n, 0);
   PAINEL_DADOS.penaltis = rk2;
-  const porSup = {}; rk2.forEach(x => { const k = x.sup || 'sem supervisor'; porSup[k] = (porSup[k] || 0) + x.n; });
+  const porSup = {}; rk2.forEach(x => { if (ehSupFalso(x.sup)) return; const k = x.sup || 'sem supervisor'; porSup[k] = (porSup[k] || 0) + x.n; });
   const supTxt = Object.entries(porSup).sort((x, y) => y[1] - x[1]).slice(0, 3).map(([k, n]) => `${k.split(' ')[0]} ${n}`).join(' · ');
   $('p4').innerHTML = `<h2><span>Ranking de pênaltis · hoje</span><b>${totPen}</b></h2>` + (top2.length ? top2.map((x, i) => { const pct = totPen ? (x.n / totPen * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainel('penalti')"><div class="row" style="border:0;grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${esc(x.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(x.rca)})</span></div><b class="mono" style="color:var(--bad)">${x.n} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb red"><i style="width:${x.n / mx2 * 100}%"></i></div></div></div>`; }).join('') + (supTxt ? `<div style="color:var(--mut);font-size:14px;margin-top:4px">Supervisores: ${esc(supTxt)}</div>` : '') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Nenhum pênalti hoje.</div>');
 
