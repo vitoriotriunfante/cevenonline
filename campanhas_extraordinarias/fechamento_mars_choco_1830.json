@@ -1,0 +1,4653 @@
+{
+  "totalPedidosMarsChoco": 150,
+  "totalClientesMarsChoco": 150,
+  "totalValorMarsChoco": 72401.10000000005,
+  "comTag": {
+    "totalClientes": 18,
+    "totalValor": 3897.7400000000002
+  },
+  "semTag": {
+    "totalClientes": 132,
+    "totalValor": 68503.36000000004
+  },
+  "porFilial": {
+    "ABC": {
+      "pedidos": 37,
+      "clientes": 37,
+      "valorTotal": 9521.42,
+      "comTagClientes": 6,
+      "comTagValor": 1418.2199999999998,
+      "semTagClientes": 31,
+      "semTagValor": 8103.2,
+      "itensVendidos": {
+        "SNICKERS MORANGO": {
+          "qt": 300,
+          "vl": 1058.6
+        },
+        "SNICKERS ORIGINAL": {
+          "qt": 782,
+          "vl": 2885
+        },
+        "TWIX BANOFFE": {
+          "qt": 54,
+          "vl": 193.86
+        },
+        "SNICKERS DARK": {
+          "qt": 300,
+          "vl": 1056.9399999999998
+        },
+        "SNICKERS MARACUJA": {
+          "qt": 80,
+          "vl": 276.8
+        },
+        "TWIX ORIGINAL CARAMELO": {
+          "qt": 198,
+          "vl": 499.68
+        },
+        "SNICKERS BRANCO": {
+          "qt": 522,
+          "vl": 1976.3999999999996
+        },
+        "SNICKERS PE DE MOLEQUE": {
+          "qt": 80,
+          "vl": 283.2
+        },
+        "SNICKERS MACCHIATO": {
+          "qt": 246,
+          "vl": 1264.7399999999998
+        },
+        "SNICKERS MINI VARIEDADES": {
+          "qt": 2,
+          "vl": 26.2
+        }
+      },
+      "lista": [
+        {
+          "rca": "1056",
+          "vendedor": "ELTON PEREIRA ALVES",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "AUTO POSTO MONTFORT",
+          "cnpj": "43579641000155",
+          "temTag": false,
+          "numPedido": "1056000525",
+          "valorMarsChoco": 200.22,
+          "itens": [
+            {
+              "codigo": "9920",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "12202",
+              "desc": "TWIX BANOFFE",
+              "qt": 18,
+              "vl": 64.62
+            }
+          ]
+        },
+        {
+          "rca": "1116",
+          "vendedor": "KELLY CRISTINA GONCALVES",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "GRAMADO BEBIDAS",
+          "cnpj": "31510822000146",
+          "temTag": false,
+          "numPedido": "1116000137",
+          "valorMarsChoco": 287.2,
+          "itens": [
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9920",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 40,
+              "vl": 143.6
+            }
+          ]
+        },
+        {
+          "rca": "227",
+          "vendedor": "CARLOS AUGUSTO CUETO",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "RUZICKI BEER DISTRIBUIDORA DE BEBIDAS",
+          "cnpj": "30096508000104",
+          "temTag": true,
+          "numPedido": "227000966",
+          "valorMarsChoco": 138,
+          "itens": [
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 69
+            },
+            {
+              "codigo": "9920",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 69
+            }
+          ]
+        },
+        {
+          "rca": "222",
+          "vendedor": "LUIZ FELIPE LUCIANO DOS SANTOS",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "POSTO BOTANICO",
+          "cnpj": "01526978000154",
+          "temTag": false,
+          "numPedido": "222000642",
+          "valorMarsChoco": 639.0199999999999,
+          "itens": [
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 64.62
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 40,
+              "vl": 143.6
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9920",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 40,
+              "vl": 143.6
+            },
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "227",
+          "vendedor": "CARLOS AUGUSTO CUETO",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "VITORIA LAGO LTDA",
+          "cnpj": "46688681000123",
+          "temTag": false,
+          "numPedido": "227000963",
+          "valorMarsChoco": 215.39999999999998,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "1116",
+          "vendedor": "KELLY CRISTINA GONCALVES",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "REPUBLICA BEBIDAS",
+          "cnpj": "26149624000240",
+          "temTag": false,
+          "numPedido": "1116000136",
+          "valorMarsChoco": 430.8,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9920",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 40,
+              "vl": 143.6
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "227",
+          "vendedor": "CARLOS AUGUSTO CUETO",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "EMPORIO 45",
+          "cnpj": "42234368000164",
+          "temTag": false,
+          "numPedido": "227000962",
+          "valorMarsChoco": 143.6,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "1116",
+          "vendedor": "KELLY CRISTINA GONCALVES",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "POSTO DAMO",
+          "cnpj": "19926162000183",
+          "temTag": true,
+          "numPedido": "1116000134",
+          "valorMarsChoco": 319.02,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "7369",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 30,
+              "vl": 39
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "12202",
+              "desc": "TWIX BANOFFE",
+              "qt": 18,
+              "vl": 64.62
+            }
+          ]
+        },
+        {
+          "rca": "1056",
+          "vendedor": "ELTON PEREIRA ALVES",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "MERCADO J C",
+          "cnpj": "10323307000187",
+          "temTag": false,
+          "numPedido": "1056000532",
+          "valorMarsChoco": 67.8,
+          "itens": [
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "222",
+          "vendedor": "LUIZ FELIPE LUCIANO DOS SANTOS",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "POSTO CASCAVEL",
+          "cnpj": "84817022000139",
+          "temTag": false,
+          "numPedido": "222000645",
+          "valorMarsChoco": 143.6,
+          "itens": [
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9920",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "1056",
+          "vendedor": "ELTON PEREIRA ALVES",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "MERCADO LK",
+          "cnpj": "27723003000100",
+          "temTag": false,
+          "numPedido": "1056000531",
+          "valorMarsChoco": 678,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 60,
+              "vl": 203.4
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 60,
+              "vl": 203.4
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 60,
+              "vl": 203.4
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "234",
+          "vendedor": "DILNEI MARCOLIN",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "CHAPAS GRILL",
+          "cnpj": "45129795000170",
+          "temTag": false,
+          "numPedido": "234001507",
+          "valorMarsChoco": 718,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 2,
+              "vl": 143.6
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 6,
+              "vl": 430.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 2,
+              "vl": 143.6
+            }
+          ]
+        },
+        {
+          "rca": "1116",
+          "vendedor": "KELLY CRISTINA GONCALVES",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "BEVERLLY HILL",
+          "cnpj": "20958232000164",
+          "temTag": false,
+          "numPedido": "1116000131",
+          "valorMarsChoco": 143.6,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "1056",
+          "vendedor": "ELTON PEREIRA ALVES",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "IMPERIAL BEBIDAS",
+          "cnpj": "57004168000192",
+          "temTag": false,
+          "numPedido": "1056000528",
+          "valorMarsChoco": 406.8,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 40,
+              "vl": 135.6
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 40,
+              "vl": 135.6
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "1116",
+          "vendedor": "KELLY CRISTINA GONCALVES",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "SUPERMERCADO VANGUARDA",
+          "cnpj": "42679168000115",
+          "temTag": true,
+          "numPedido": "1116000130",
+          "valorMarsChoco": 280.02000000000004,
+          "itens": [
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 64.62
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9920",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "1056",
+          "vendedor": "ELTON PEREIRA ALVES",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "MERCADO ARAPONGAS",
+          "cnpj": "68835248000106",
+          "temTag": false,
+          "numPedido": "1056000519",
+          "valorMarsChoco": 143.6,
+          "itens": [
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "1116",
+          "vendedor": "KELLY CRISTINA GONCALVES",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "PARADAO AUTO POSTO",
+          "cnpj": "07388800000170",
+          "temTag": false,
+          "numPedido": "1116000128",
+          "valorMarsChoco": 64.62,
+          "itens": [
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 64.62
+            }
+          ]
+        },
+        {
+          "rca": "206",
+          "vendedor": "MARCOS VINICIUS CZEKAY PIRES",
+          "supervisor": "IVONEI PEDRO DE MOURA",
+          "cliente": "MAX COMFORT HOTEL",
+          "cnpj": "52789338000178",
+          "temTag": false,
+          "numPedido": "206000875",
+          "valorMarsChoco": 172.8,
+          "itens": [
+            {
+              "codigo": "7369",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 30,
+              "vl": 37.2
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "233",
+          "vendedor": "DOUGLAS CERRI",
+          "supervisor": "IVONEI PEDRO DE MOURA",
+          "cliente": "MERCADO MS",
+          "cnpj": "58256748000130",
+          "temTag": true,
+          "numPedido": "233000790",
+          "valorMarsChoco": 334.18,
+          "itens": [
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 61.38
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 68.2
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 60,
+              "vl": 204.6
+            }
+          ]
+        },
+        {
+          "rca": "229",
+          "vendedor": "GABRIEL JUNIO DE MORAES",
+          "supervisor": "IVONEI PEDRO DE MOURA",
+          "cliente": "MONSTER LAN HOUSE",
+          "cnpj": "08736884000159",
+          "temTag": false,
+          "numPedido": "229001215",
+          "valorMarsChoco": 215.39999999999998,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 40,
+              "vl": 143.6
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "233",
+          "vendedor": "DOUGLAS CERRI",
+          "supervisor": "IVONEI PEDRO DE MOURA",
+          "cliente": "POSTO ROTA 21",
+          "cnpj": "09455172000124",
+          "temTag": false,
+          "numPedido": "233000788",
+          "valorMarsChoco": 136.4,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 68.2
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 68.2
+            }
+          ]
+        },
+        {
+          "rca": "229",
+          "vendedor": "GABRIEL JUNIO DE MORAES",
+          "supervisor": "IVONEI PEDRO DE MOURA",
+          "cliente": "XODO MERCADO E PANIFICADORA",
+          "cnpj": "37021335000104",
+          "temTag": false,
+          "numPedido": "229001199",
+          "valorMarsChoco": 71.8,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "229",
+          "vendedor": "GABRIEL JUNIO DE MORAES",
+          "supervisor": "IVONEI PEDRO DE MOURA",
+          "cliente": "MERCADO GLOBAL",
+          "cnpj": "00067014000122",
+          "temTag": false,
+          "numPedido": "229001210",
+          "valorMarsChoco": 143.6,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "229",
+          "vendedor": "GABRIEL JUNIO DE MORAES",
+          "supervisor": "IVONEI PEDRO DE MOURA",
+          "cliente": "MERCADO IDEAL",
+          "cnpj": "26134777000132",
+          "temTag": false,
+          "numPedido": "229001209",
+          "valorMarsChoco": 287.2,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9920",
+              "desc": "SNICKERS MORANGO",
+              "qt": 40,
+              "vl": 143.6
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "224",
+          "vendedor": "ALEKSANDRO RODRIGO DE FARIA",
+          "supervisor": "IVONEI PEDRO DE MOURA",
+          "cliente": "PARADA BRASILIA",
+          "cnpj": "37348419000149",
+          "temTag": false,
+          "numPedido": "224001122",
+          "valorMarsChoco": 639.02,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 40,
+              "vl": 143.6
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 40,
+              "vl": 143.6
+            },
+            {
+              "codigo": "9920",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 40,
+              "vl": 143.6
+            },
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "12202",
+              "desc": "TWIX BANOFFE",
+              "qt": 18,
+              "vl": 64.62
+            }
+          ]
+        },
+        {
+          "rca": "229",
+          "vendedor": "GABRIEL JUNIO DE MORAES",
+          "supervisor": "IVONEI PEDRO DE MOURA",
+          "cliente": "A LOJINHA MULTI CONVENIENCIA",
+          "cnpj": "53890049000123",
+          "temTag": false,
+          "numPedido": "229001216",
+          "valorMarsChoco": 136.42000000000002,
+          "itens": [
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 64.62
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "214",
+          "vendedor": "GILSON DE ALMEIDA ALVES",
+          "supervisor": "IVONEI PEDRO DE MOURA",
+          "cliente": "POSTO STOP",
+          "cnpj": "09160226003220",
+          "temTag": false,
+          "numPedido": "214000928",
+          "valorMarsChoco": 204.60000000000002,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 68.2
+            },
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 68.2
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 68.2
+            }
+          ]
+        },
+        {
+          "rca": "229",
+          "vendedor": "GABRIEL JUNIO DE MORAES",
+          "supervisor": "IVONEI PEDRO DE MOURA",
+          "cliente": "RESTAURANTE CANAA",
+          "cnpj": "64683789000105",
+          "temTag": false,
+          "numPedido": "229001205",
+          "valorMarsChoco": 143.6,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 40,
+              "vl": 143.6
+            }
+          ]
+        },
+        {
+          "rca": "224",
+          "vendedor": "ALEKSANDRO RODRIGO DE FARIA",
+          "supervisor": "IVONEI PEDRO DE MOURA",
+          "cliente": "ANGELICA DE SOUZA MELO CENA",
+          "cnpj": "53432650000172",
+          "temTag": false,
+          "numPedido": "224001128",
+          "valorMarsChoco": 326.2,
+          "itens": [
+            {
+              "codigo": "7369",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 30,
+              "vl": 39
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9920",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "229",
+          "vendedor": "GABRIEL JUNIO DE MORAES",
+          "supervisor": "IVONEI PEDRO DE MOURA",
+          "cliente": "BARBEARIA SEU ALONSO",
+          "cnpj": "41791274000123",
+          "temTag": false,
+          "numPedido": "229001214",
+          "valorMarsChoco": 276,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 69
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 60,
+              "vl": 207
+            }
+          ]
+        },
+        {
+          "rca": "217",
+          "vendedor": "CAMILA TURCZINSKI",
+          "supervisor": "RODRIGO STELLEO COSTA LEITE",
+          "cliente": "POSTO WEILER",
+          "cnpj": "34891527000175",
+          "temTag": false,
+          "numPedido": "217000784",
+          "valorMarsChoco": 502.6,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9920",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "236",
+          "vendedor": "DIEGO FERNANDES",
+          "supervisor": "RODRIGO STELLEO COSTA LEITE",
+          "cliente": "CHURRASCARIA MORETTI LTDA ME",
+          "cnpj": "07521116000115",
+          "temTag": false,
+          "numPedido": "236000711",
+          "valorMarsChoco": 203.39999999999998,
+          "itens": [
+            {
+              "codigo": "9920",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "236",
+          "vendedor": "DIEGO FERNANDES",
+          "supervisor": "RODRIGO STELLEO COSTA LEITE",
+          "cliente": "POSTO CRESPO",
+          "cnpj": "15503236000118",
+          "temTag": false,
+          "numPedido": "236000713",
+          "valorMarsChoco": 200.22000000000003,
+          "itens": [
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 64.62
+            },
+            {
+              "codigo": "9920",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "534",
+          "vendedor": "KAUE DOS SANTOS",
+          "supervisor": "RODRIGO STELLEO COSTA LEITE",
+          "cliente": "MERCADO FERNANDES",
+          "cnpj": "28688528000114",
+          "temTag": false,
+          "numPedido": "534000549",
+          "valorMarsChoco": 26.2,
+          "itens": [
+            {
+              "codigo": "9721",
+              "desc": "SNICKERS MINI VARIEDADES",
+              "qt": 2,
+              "vl": 26.2
+            }
+          ]
+        },
+        {
+          "rca": "1118",
+          "vendedor": "VIVIANE RIBEIRO BRANCO",
+          "supervisor": "RODRIGO STELLEO COSTA LEITE",
+          "cliente": "DOM CHICO",
+          "cnpj": "26040971000159",
+          "temTag": true,
+          "numPedido": "1118000102",
+          "valorMarsChoco": 203.39999999999998,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "534",
+          "vendedor": "KAUE DOS SANTOS",
+          "supervisor": "RODRIGO STELLEO COSTA LEITE",
+          "cliente": "DOCES CASTANHA",
+          "cnpj": "57845421000130",
+          "temTag": false,
+          "numPedido": "534000548",
+          "valorMarsChoco": 135.48,
+          "itens": [
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 67.74
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 67.74
+            }
+          ]
+        },
+        {
+          "rca": "534",
+          "vendedor": "KAUE DOS SANTOS",
+          "supervisor": "RODRIGO STELLEO COSTA LEITE",
+          "cliente": "AGROLEITE",
+          "cnpj": "21792804000140",
+          "temTag": true,
+          "numPedido": "534000550",
+          "valorMarsChoco": 143.6,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        }
+      ]
+    },
+    "TPH": {
+      "pedidos": 48,
+      "clientes": 48,
+      "valorTotal": 45071.88000000001,
+      "comTagClientes": 12,
+      "comTagValor": 2479.5200000000004,
+      "semTagClientes": 36,
+      "semTagValor": 42592.36000000001,
+      "itensVendidos": {
+        "TWIX ORIGINAL CARAMELO": {
+          "qt": 2370,
+          "vl": 4128.420000000002
+        },
+        "SNICKERS DARK": {
+          "qt": 1800,
+          "vl": 5936.600000000001
+        },
+        "SNICKERS MACCHIATO": {
+          "qt": 1740,
+          "vl": 5708.600000000002
+        },
+        "TWIX BANOFFE": {
+          "qt": 54,
+          "vl": 185.22
+        },
+        "SNICKERS BRANCO": {
+          "qt": 3040,
+          "vl": 9765
+        },
+        "SNICKERS ORIGINAL": {
+          "qt": 3440,
+          "vl": 11090.799999999988
+        },
+        "SNICKERS MORANGO": {
+          "qt": 1340,
+          "vl": 4405.6
+        },
+        "SNICKERS PE DE MOLEQUE": {
+          "qt": 600,
+          "vl": 1955.9999999999995
+        },
+        "SNICKERS MARACUJA": {
+          "qt": 480,
+          "vl": 1564.1999999999998
+        },
+        "SKITTLES ORIGINAL": {
+          "qt": 42,
+          "vl": 119.69999999999999
+        },
+        "TWIX TRIPLO CHOCOLATE": {
+          "qt": 54,
+          "vl": 200.34
+        },
+        "TWIX MINI VARIEDADES": {
+          "qt": 1,
+          "vl": 11.4
+        }
+      },
+      "lista": [
+        {
+          "rca": "61",
+          "vendedor": "RODRIGO MORAIS DE LIMA",
+          "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+          "cliente": "MERCADO BELLA VILLA LTDA",
+          "cnpj": "30294732000364",
+          "temTag": false,
+          "numPedido": "93000307",
+          "valorMarsChoco": 194.42000000000002,
+          "itens": [
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 62.82
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 65.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 65.8
+            }
+          ]
+        },
+        {
+          "rca": "62",
+          "vendedor": "IRACEMA RAFAGNIN",
+          "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+          "cliente": "SM GABAO",
+          "cnpj": "78138740000186",
+          "temTag": false,
+          "numPedido": "102000477",
+          "valorMarsChoco": 200.58,
+          "itens": [
+            {
+              "codigo": "7411",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 24,
+              "vl": 141.36
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 59.22
+            }
+          ]
+        },
+        {
+          "rca": "62",
+          "vendedor": "IRACEMA RAFAGNIN",
+          "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+          "cliente": "MERCADO BRIMEL",
+          "cnpj": "07847225000127",
+          "temTag": false,
+          "numPedido": "102000476",
+          "valorMarsChoco": 991.26,
+          "itens": [
+            {
+              "codigo": "7369",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 720,
+              "vl": 813.6
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 36,
+              "vl": 118.44
+            },
+            {
+              "codigo": "12202",
+              "desc": "TWIX BANOFFE",
+              "qt": 18,
+              "vl": 59.22
+            }
+          ]
+        },
+        {
+          "rca": "70",
+          "vendedor": "CRISTIANE DOS SANTOS CANFILD WOISNER",
+          "supervisor": "ANDREY CAMILLO PIRAGINE",
+          "cliente": "MESTRE KUKA",
+          "cnpj": "41448230000103",
+          "temTag": false,
+          "numPedido": "69000523",
+          "valorMarsChoco": 192.5,
+          "itens": [
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 60.3
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 65.2
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67
+            }
+          ]
+        },
+        {
+          "rca": "70",
+          "vendedor": "CRISTIANE DOS SANTOS CANFILD WOISNER",
+          "supervisor": "ANDREY CAMILLO PIRAGINE",
+          "cliente": "MERCEARIA UNIAO",
+          "cnpj": "72056419000176",
+          "temTag": false,
+          "numPedido": "69000525",
+          "valorMarsChoco": 62.82,
+          "itens": [
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 62.82
+            }
+          ]
+        },
+        {
+          "rca": "131",
+          "vendedor": "NATIELY KAUANA TEODORO DONATO",
+          "supervisor": "CLAUDETE DE SOUZA SCHULTZ",
+          "cliente": "AGROPET MENDES",
+          "cnpj": "50078547000188",
+          "temTag": false,
+          "numPedido": "131000488",
+          "valorMarsChoco": 137.8,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 69.8
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 68
+            }
+          ]
+        },
+        {
+          "rca": "102",
+          "vendedor": "HEMERSON LUIS COSTA CHUSTAKE",
+          "supervisor": "CRISTIAN EDUARDO RAFFAELLI",
+          "cliente": "MERCADO BRIMEL",
+          "cnpj": "07847225000127",
+          "temTag": false,
+          "numPedido": "102000476",
+          "valorMarsChoco": 991.26,
+          "itens": [
+            {
+              "codigo": "7369",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 720,
+              "vl": 813.6
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 36,
+              "vl": 118.44
+            },
+            {
+              "codigo": "12202",
+              "desc": "TWIX BANOFFE",
+              "qt": 18,
+              "vl": 59.22
+            }
+          ]
+        },
+        {
+          "rca": "114",
+          "vendedor": "JANAINA FARIA",
+          "supervisor": "EDI CARLOS MEIRA",
+          "cliente": "FILIAL 10 DEPOSITO",
+          "cnpj": "79444717001154",
+          "temTag": false,
+          "numPedido": "114000428",
+          "valorMarsChoco": 32720.48,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 2420,
+              "vl": 7965.8
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 68
+            },
+            {
+              "codigo": "7369",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 210,
+              "vl": 252
+            },
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 1200,
+              "vl": 3948
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 144,
+              "vl": 478.08
+            },
+            {
+              "codigo": "7449",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 440,
+              "vl": 1447.6
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 2400,
+              "vl": 7704
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 1500,
+              "vl": 4935
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 300,
+              "vl": 987
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 1500,
+              "vl": 4935
+            }
+          ]
+        },
+        {
+          "rca": "102",
+          "vendedor": "HEMERSON LUIS COSTA CHUSTAKE",
+          "supervisor": "CRISTIAN EDUARDO RAFFAELLI",
+          "cliente": "SM GABAO",
+          "cnpj": "78138740000186",
+          "temTag": false,
+          "numPedido": "102000477",
+          "valorMarsChoco": 200.58,
+          "itens": [
+            {
+              "codigo": "7411",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 24,
+              "vl": 141.36
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 59.22
+            }
+          ]
+        },
+        {
+          "rca": "114",
+          "vendedor": "JANAINA FARIA",
+          "supervisor": "EDI CARLOS MEIRA",
+          "cliente": "POSTO PIANOWSKI",
+          "cnpj": "06987774000215",
+          "temTag": false,
+          "numPedido": "114000429",
+          "valorMarsChoco": 242.60000000000002,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 35
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 68
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 69.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 69.8
+            }
+          ]
+        },
+        {
+          "rca": "118",
+          "vendedor": "EMILLEI CARNEIRO",
+          "supervisor": "EDI CARLOS MEIRA",
+          "cliente": "MARTINS",
+          "cnpj": "33856318000128",
+          "temTag": false,
+          "numPedido": "118000625",
+          "valorMarsChoco": 139.6,
+          "itens": [
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 69.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 69.8
+            }
+          ]
+        },
+        {
+          "rca": "117",
+          "vendedor": "MEIRY ALESSANDRA KAVALKIEVIZ",
+          "supervisor": "EDI CARLOS MEIRA",
+          "cliente": "GARBIN DISTRIBUIDORA DE BEBIDAS",
+          "cnpj": "12481269000116",
+          "temTag": false,
+          "numPedido": "117000464",
+          "valorMarsChoco": 403.04,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 69.8
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 36,
+              "vl": 125.64
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 68
+            },
+            {
+              "codigo": "7449",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 69.8
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 69.8
+            }
+          ]
+        },
+        {
+          "rca": "115",
+          "vendedor": "MAICO ADILTON PRESTES",
+          "supervisor": "EDI CARLOS MEIRA",
+          "cliente": "MERCEARIA GOMES",
+          "cnpj": "13704353000114",
+          "temTag": false,
+          "numPedido": "115000327",
+          "valorMarsChoco": 35,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 35
+            }
+          ]
+        },
+        {
+          "rca": "120",
+          "vendedor": "CHARLENE ANCINEIDE DA ROSA",
+          "supervisor": "EDI CARLOS MEIRA",
+          "cliente": "DETIO SUPERMERCADO",
+          "cnpj": "26850007000196",
+          "temTag": true,
+          "numPedido": "120000222",
+          "valorMarsChoco": 452.00000000000006,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 35
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 58.2
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9920",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "118",
+          "vendedor": "EMILLEI CARNEIRO",
+          "supervisor": "EDI CARLOS MEIRA",
+          "cliente": "AUTO POSTO LAGOA AMPM",
+          "cnpj": "02498066000340",
+          "temTag": false,
+          "numPedido": "118000623",
+          "valorMarsChoco": 417.00000000000006,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 58.2
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9920",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "117",
+          "vendedor": "MEIRY ALESSANDRA KAVALKIEVIZ",
+          "supervisor": "EDI CARLOS MEIRA",
+          "cliente": "MERCADO DO JORGINHO",
+          "cnpj": "02917286000108",
+          "temTag": false,
+          "numPedido": "117000471",
+          "valorMarsChoco": 109.69999999999999,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 69.8
+            },
+            {
+              "codigo": "7431",
+              "desc": "SKITTLES ORIGINAL",
+              "qt": 14,
+              "vl": 39.9
+            }
+          ]
+        },
+        {
+          "rca": "117",
+          "vendedor": "MEIRY ALESSANDRA KAVALKIEVIZ",
+          "supervisor": "EDI CARLOS MEIRA",
+          "cliente": "LAURINHO DISTRIBUIDORA",
+          "cnpj": "24624734000100",
+          "temTag": false,
+          "numPedido": "117000468",
+          "valorMarsChoco": 200.62,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 69.8
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 62.82
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 68
+            }
+          ]
+        },
+        {
+          "rca": "116",
+          "vendedor": "MIRIANE SALETE BIGAS",
+          "supervisor": "EDI CARLOS MEIRA",
+          "cliente": "PADARIA PRUDENTE",
+          "cnpj": "17900848000170",
+          "temTag": false,
+          "numPedido": "116000587",
+          "valorMarsChoco": 35,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 35
+            }
+          ]
+        },
+        {
+          "rca": "117",
+          "vendedor": "MEIRY ALESSANDRA KAVALKIEVIZ",
+          "supervisor": "EDI CARLOS MEIRA",
+          "cliente": "POSTO DUDZIAK",
+          "cnpj": "75578914000214",
+          "temTag": false,
+          "numPedido": "117000470",
+          "valorMarsChoco": 900.4200000000001,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 40,
+              "vl": 139.6
+            },
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 40,
+              "vl": 139.6
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 62.82
+            },
+            {
+              "codigo": "7449",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 40,
+              "vl": 139.6
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 40,
+              "vl": 139.6
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 40,
+              "vl": 139.6
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 40,
+              "vl": 139.6
+            }
+          ]
+        },
+        {
+          "rca": "120",
+          "vendedor": "CHARLENE ANCINEIDE DA ROSA",
+          "supervisor": "EDI CARLOS MEIRA",
+          "cliente": "IZABEL KALINOSKI DE ANDRADE EIRELI",
+          "cnpj": "34831642000154",
+          "temTag": false,
+          "numPedido": "120000224",
+          "valorMarsChoco": 104.8,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 35
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 69.8
+            }
+          ]
+        },
+        {
+          "rca": "119",
+          "vendedor": "BRUNO AMARAL",
+          "supervisor": "EDI CARLOS MEIRA",
+          "cliente": "POSTO AQUARIOS",
+          "cnpj": "79443248000187",
+          "temTag": true,
+          "numPedido": "119000440",
+          "valorMarsChoco": 209.39999999999998,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 69.8
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 69.8
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 69.8
+            }
+          ]
+        },
+        {
+          "rca": "120",
+          "vendedor": "CHARLENE ANCINEIDE DA ROSA",
+          "supervisor": "EDI CARLOS MEIRA",
+          "cliente": "BANCA PORUNGO",
+          "cnpj": "40241877000199",
+          "temTag": false,
+          "numPedido": "120000223",
+          "valorMarsChoco": 72.8,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 35
+            },
+            {
+              "codigo": "7369",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 30,
+              "vl": 37.8
+            }
+          ]
+        },
+        {
+          "rca": "119",
+          "vendedor": "BRUNO AMARAL",
+          "supervisor": "EDI CARLOS MEIRA",
+          "cliente": "PANIFICADORA E CONF GISA",
+          "cnpj": "32526278000193",
+          "temTag": true,
+          "numPedido": "119000441",
+          "valorMarsChoco": 69.8,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 69.8
+            }
+          ]
+        },
+        {
+          "rca": "119",
+          "vendedor": "BRUNO AMARAL",
+          "supervisor": "EDI CARLOS MEIRA",
+          "cliente": "CORDEIRO E KOVALSKI LTDA",
+          "cnpj": "40328991000150",
+          "temTag": true,
+          "numPedido": "119000438",
+          "valorMarsChoco": 69.8,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 69.8
+            }
+          ]
+        },
+        {
+          "rca": "128",
+          "vendedor": "RENAN LECHUK",
+          "supervisor": "JEFFERSON POLETTO",
+          "cliente": "MIX NACOES",
+          "cnpj": "21673832000149",
+          "temTag": false,
+          "numPedido": "128000565",
+          "valorMarsChoco": 75.6,
+          "itens": [
+            {
+              "codigo": "7369",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 60,
+              "vl": 75.6
+            }
+          ]
+        },
+        {
+          "rca": "76",
+          "vendedor": "ARTHUR MAIKI LEAL GERMANO",
+          "supervisor": "LUIZ AUGUSTO RAMOS",
+          "cliente": "AUTO POSTO OSTERNACK",
+          "cnpj": "18351808000189",
+          "temTag": false,
+          "numPedido": "1071000112",
+          "valorMarsChoco": 132.8,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 66.4
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 66.4
+            }
+          ]
+        },
+        {
+          "rca": "76",
+          "vendedor": "ARTHUR MAIKI LEAL GERMANO",
+          "supervisor": "LUIZ AUGUSTO RAMOS",
+          "cliente": "MERCADO FIGUEIRA",
+          "cnpj": "31188756000130",
+          "temTag": false,
+          "numPedido": "1071000111",
+          "valorMarsChoco": 131,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 66.4
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 64.6
+            }
+          ]
+        },
+        {
+          "rca": "79",
+          "vendedor": "JULIANO VIEIRA DA SILVA",
+          "supervisor": "LUIZ AUGUSTO RAMOS",
+          "cliente": "PETRO DEROSSO",
+          "cnpj": "07861541000153",
+          "temTag": false,
+          "numPedido": "1045000297",
+          "valorMarsChoco": 197.4,
+          "itens": [
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 66.4
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 64.6
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 66.4
+            }
+          ]
+        },
+        {
+          "rca": "78",
+          "vendedor": "DEISIELE VIEIRA DA SILVA",
+          "supervisor": "LUIZ AUGUSTO RAMOS",
+          "cliente": "POSTO AUSTRIA",
+          "cnpj": "43537363000173",
+          "temTag": false,
+          "numPedido": "1046000405",
+          "valorMarsChoco": 137.8,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 69.8
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 68
+            }
+          ]
+        },
+        {
+          "rca": "78",
+          "vendedor": "DEISIELE VIEIRA DA SILVA",
+          "supervisor": "LUIZ AUGUSTO RAMOS",
+          "cliente": "ASL SUPERMERCADO LTDA",
+          "cnpj": "53604169000117",
+          "temTag": false,
+          "numPedido": "1046000407",
+          "valorMarsChoco": 55.26,
+          "itens": [
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 55.26
+            }
+          ]
+        },
+        {
+          "rca": "105",
+          "vendedor": "GIULIA TEIXEIRA DUARTE",
+          "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+          "cliente": "POSTO TEXAS FUEL",
+          "cnpj": "33012254000189",
+          "temTag": true,
+          "numPedido": "105000624",
+          "valorMarsChoco": 457.82000000000005,
+          "itens": [
+            {
+              "codigo": "7369",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 30,
+              "vl": 37.8
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 62.82
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 58.2
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "100",
+          "vendedor": "FLORENTINO PIANA NETO",
+          "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+          "cliente": "MERCEARIA E QUITANDA SCHNEIDER",
+          "cnpj": "79747150000113",
+          "temTag": false,
+          "numPedido": "100000458",
+          "valorMarsChoco": 196.82,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 62.82
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 67
+            }
+          ]
+        },
+        {
+          "rca": "65",
+          "vendedor": "SIRLENE DE FATIMA BORGES",
+          "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+          "cliente": "AUTO POSTO O CUPIM",
+          "cnpj": "33269489000150",
+          "temTag": false,
+          "numPedido": "65000630",
+          "valorMarsChoco": 777.9399999999999,
+          "itens": [
+            {
+              "codigo": "7344",
+              "desc": "TWIX TRIPLO CHOCOLATE",
+              "qt": 18,
+              "vl": 66.78
+            },
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 40,
+              "vl": 144.4
+            },
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 72.2
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 66.78
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 40,
+              "vl": 144.4
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 40,
+              "vl": 144.4
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 72.2
+            },
+            {
+              "codigo": "12202",
+              "desc": "TWIX BANOFFE",
+              "qt": 18,
+              "vl": 66.78
+            }
+          ]
+        },
+        {
+          "rca": "65",
+          "vendedor": "SIRLENE DE FATIMA BORGES",
+          "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+          "cliente": "POSTO BOQUEIRAO",
+          "cnpj": "37576841000151",
+          "temTag": false,
+          "numPedido": "65000627",
+          "valorMarsChoco": 133.56,
+          "itens": [
+            {
+              "codigo": "7344",
+              "desc": "TWIX TRIPLO CHOCOLATE",
+              "qt": 18,
+              "vl": 66.78
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 66.78
+            }
+          ]
+        },
+        {
+          "rca": "65",
+          "vendedor": "SIRLENE DE FATIMA BORGES",
+          "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+          "cliente": "AUTO POSTO DALA RIVA",
+          "cnpj": "04067019000106",
+          "temTag": false,
+          "numPedido": "65000629",
+          "valorMarsChoco": 133.56,
+          "itens": [
+            {
+              "codigo": "7344",
+              "desc": "TWIX TRIPLO CHOCOLATE",
+              "qt": 18,
+              "vl": 66.78
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 66.78
+            }
+          ]
+        },
+        {
+          "rca": "103",
+          "vendedor": "JEFERSON JUSTINO",
+          "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+          "cliente": "MERCEARIA SAKURA",
+          "cnpj": "03037485000186",
+          "temTag": false,
+          "numPedido": "103000211",
+          "valorMarsChoco": 247.5,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 69.8
+            },
+            {
+              "codigo": "7431",
+              "desc": "SKITTLES ORIGINAL",
+              "qt": 14,
+              "vl": 39.9
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 68
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 69.8
+            }
+          ]
+        },
+        {
+          "rca": "100",
+          "vendedor": "FLORENTINO PIANA NETO",
+          "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+          "cliente": "VERANGEL",
+          "cnpj": "28748494000106",
+          "temTag": false,
+          "numPedido": "100000456",
+          "valorMarsChoco": 906.4200000000001,
+          "itens": [
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 62.82
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 40,
+              "vl": 119.6
+            },
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 40,
+              "vl": 119.6
+            },
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 80,
+              "vl": 245.6
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 80,
+              "vl": 239.2
+            }
+          ]
+        },
+        {
+          "rca": "105",
+          "vendedor": "GIULIA TEIXEIRA DUARTE",
+          "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+          "cliente": "PARTITO",
+          "cnpj": "44124376000183",
+          "temTag": true,
+          "numPedido": "105000623",
+          "valorMarsChoco": 109.69999999999999,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 69.8
+            },
+            {
+              "codigo": "7431",
+              "desc": "SKITTLES ORIGINAL",
+              "qt": 14,
+              "vl": 39.9
+            }
+          ]
+        },
+        {
+          "rca": "100",
+          "vendedor": "FLORENTINO PIANA NETO",
+          "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+          "cliente": "BANCA TAUA",
+          "cnpj": "16716577000134",
+          "temTag": false,
+          "numPedido": "100000455",
+          "valorMarsChoco": 357.2,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 58.2
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 100,
+              "vl": 299
+            }
+          ]
+        },
+        {
+          "rca": "105",
+          "vendedor": "GIULIA TEIXEIRA DUARTE",
+          "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+          "cliente": "MERCADO SYNDEL",
+          "cnpj": "35118879000155",
+          "temTag": true,
+          "numPedido": "105000626",
+          "valorMarsChoco": 139.6,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 69.8
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 69.8
+            }
+          ]
+        },
+        {
+          "rca": "105",
+          "vendedor": "GIULIA TEIXEIRA DUARTE",
+          "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+          "cliente": ".",
+          "cnpj": "34289605000166",
+          "temTag": true,
+          "numPedido": "105000625",
+          "valorMarsChoco": 137.8,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 69.8
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 68
+            }
+          ]
+        },
+        {
+          "rca": "1031",
+          "vendedor": "WILLIAM LISBOA NUNES",
+          "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+          "cliente": "MERCADO DA FAMILIA 2",
+          "cnpj": "18544140000196",
+          "temTag": true,
+          "numPedido": "103100085",
+          "valorMarsChoco": 11.4,
+          "itens": [
+            {
+              "codigo": "9722",
+              "desc": "TWIX MINI VARIEDADES",
+              "qt": 1,
+              "vl": 11.4
+            }
+          ]
+        },
+        {
+          "rca": "105",
+          "vendedor": "GIULIA TEIXEIRA DUARTE",
+          "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+          "cliente": "JOCASTRA PANIFICADORA",
+          "cnpj": "84929660000141",
+          "temTag": true,
+          "numPedido": "105000621",
+          "valorMarsChoco": 315.2,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 40,
+              "vl": 139.6
+            },
+            {
+              "codigo": "7369",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 30,
+              "vl": 37.8
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 68
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 69.8
+            }
+          ]
+        },
+        {
+          "rca": "1031",
+          "vendedor": "WILLIAM LISBOA NUNES",
+          "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+          "cliente": "SUPERMERCADO SUPERBOM",
+          "cnpj": "52441519000109",
+          "temTag": true,
+          "numPedido": "103100084",
+          "valorMarsChoco": 35,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 35
+            }
+          ]
+        },
+        {
+          "rca": "105",
+          "vendedor": "GIULIA TEIXEIRA DUARTE",
+          "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+          "cliente": "PRIMAVERA BAR E RESTAURANTE",
+          "cnpj": "06314502000173",
+          "temTag": false,
+          "numPedido": "105000622",
+          "valorMarsChoco": 200.62,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 69.8
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 62.82
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 68
+            }
+          ]
+        },
+        {
+          "rca": "105",
+          "vendedor": "GIULIA TEIXEIRA DUARTE",
+          "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+          "cliente": "REFUGIO CAFE LTDA",
+          "cnpj": "45301036000143",
+          "temTag": true,
+          "numPedido": "105000627",
+          "valorMarsChoco": 472,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 80,
+              "vl": 232.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 80,
+              "vl": 239.2
+            }
+          ]
+        },
+        {
+          "rca": "86",
+          "vendedor": "LEILA CRISTINA OLIVEIRA GARDINAL",
+          "supervisor": "RODRIGO DE ARRUDA DARROS",
+          "cliente": "MARTINS",
+          "cnpj": "33856318000128",
+          "temTag": false,
+          "numPedido": "118000625",
+          "valorMarsChoco": 139.6,
+          "itens": [
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 69.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 69.8
+            }
+          ]
+        },
+        {
+          "rca": "86",
+          "vendedor": "LEILA CRISTINA OLIVEIRA GARDINAL",
+          "supervisor": "RODRIGO DE ARRUDA DARROS",
+          "cliente": "AUTO POSTO LAGOA AMPM",
+          "cnpj": "02498066000340",
+          "temTag": false,
+          "numPedido": "118000623",
+          "valorMarsChoco": 417.00000000000006,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 58.2
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9920",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        }
+      ]
+    },
+    "TBL": {
+      "pedidos": 65,
+      "clientes": 65,
+      "valorTotal": 17807.8,
+      "comTagClientes": 0,
+      "comTagValor": 0,
+      "semTagClientes": 65,
+      "semTagValor": 17807.8,
+      "itensVendidos": {
+        "TWIX BANOFFE": {
+          "qt": 36,
+          "vl": 122.04
+        },
+        "TWIX ORIGINAL CARAMELO": {
+          "qt": 109,
+          "vl": 427.14
+        },
+        "SNICKERS BRANCO": {
+          "qt": 944,
+          "vl": 3247.8300000000004
+        },
+        "SNICKERS ORIGINAL": {
+          "qt": 1524,
+          "vl": 5086.070000000002
+        },
+        "SNICKERS DARK": {
+          "qt": 521,
+          "vl": 1684.6099999999994
+        },
+        "SNICKERS MACCHIATO": {
+          "qt": 441,
+          "vl": 1451.4099999999996
+        },
+        "SNICKERS PE DE MOLEQUE": {
+          "qt": 843,
+          "vl": 2793.04
+        },
+        "SNICKERS MORANGO": {
+          "qt": 222,
+          "vl": 821.3999999999999
+        },
+        "SNICKERS MARACUJA": {
+          "qt": 622,
+          "vl": 2013.4399999999996
+        },
+        "TWIX COCADA": {
+          "qt": 18,
+          "vl": 61.02
+        },
+        "TWIX TRIPLO CHOCOLATE": {
+          "qt": 18,
+          "vl": 61.02
+        },
+        "SKITTLES ORIGINAL": {
+          "qt": 14,
+          "vl": 38.78
+        }
+      },
+      "lista": [
+        {
+          "rca": "194",
+          "vendedor": "RAFAEL DOS SANTOS CABRAL",
+          "supervisor": "CRISTIANE DE FREITAS DUARTE",
+          "cliente": "POSTO VERSAILLES IV",
+          "cnpj": "08919257000153",
+          "temTag": false,
+          "numPedido": "194000977",
+          "valorMarsChoco": 122.04,
+          "itens": [
+            {
+              "codigo": "12202",
+              "desc": "TWIX BANOFFE",
+              "qt": 18,
+              "vl": 61.02
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 61.02
+            }
+          ]
+        },
+        {
+          "rca": "194",
+          "vendedor": "RAFAEL DOS SANTOS CABRAL",
+          "supervisor": "CRISTIANE DE FREITAS DUARTE",
+          "cliente": "MAISA COMBUSTIVEIS LTDA",
+          "cnpj": "14649679000159",
+          "temTag": false,
+          "numPedido": "194000978",
+          "valorMarsChoco": 67.8,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "1087",
+          "vendedor": "POLIANA JESSICA DE ALMEIDA",
+          "supervisor": "CRISTIANE DE FREITAS DUARTE",
+          "cliente": "MERCADO IVAI",
+          "cnpj": "10962656000220",
+          "temTag": false,
+          "numPedido": "1087000286",
+          "valorMarsChoco": 67.8,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "194",
+          "vendedor": "RAFAEL DOS SANTOS CABRAL",
+          "supervisor": "CRISTIANE DE FREITAS DUARTE",
+          "cliente": "MPM COMERCIO DE MEDICAMENTOS LTDA",
+          "cnpj": "07084497000112",
+          "temTag": false,
+          "numPedido": "194000975",
+          "valorMarsChoco": 135.6,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "1115",
+          "vendedor": "ERIC FELIPE CARDOSO DE OLIVEIRA",
+          "supervisor": "CRISTIANE DE FREITAS DUARTE",
+          "cliente": "MERCADO BOM",
+          "cnpj": "34860516000128",
+          "temTag": false,
+          "numPedido": "1115000090",
+          "valorMarsChoco": 59.8,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "551",
+          "vendedor": "ELIAS GARCIA SOBRINHO",
+          "supervisor": "CRISTIANE DE FREITAS DUARTE",
+          "cliente": "ACOUGUE SAN RAFAEL",
+          "cnpj": "38148393000158",
+          "temTag": false,
+          "numPedido": "5510000538",
+          "valorMarsChoco": 135.6,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "194",
+          "vendedor": "RAFAEL DOS SANTOS CABRAL",
+          "supervisor": "CRISTIANE DE FREITAS DUARTE",
+          "cliente": "SAN MIGUEL BEBIDAS E CONVENIENCIA LTDA",
+          "cnpj": "35975995000190",
+          "temTag": false,
+          "numPedido": "194000976",
+          "valorMarsChoco": 135.6,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "1115",
+          "vendedor": "ERIC FELIPE CARDOSO DE OLIVEIRA",
+          "supervisor": "CRISTIANE DE FREITAS DUARTE",
+          "cliente": "MAIOR MINI MERCADO",
+          "cnpj": "77712156000120",
+          "temTag": false,
+          "numPedido": "1115000096",
+          "valorMarsChoco": 59.8,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "179",
+          "vendedor": "FERNANDO LOPES BRUM",
+          "supervisor": "IGOR RODRIGUES DUARTE",
+          "cliente": "MERCADO MODELO",
+          "cnpj": "80861933000102",
+          "temTag": false,
+          "numPedido": "179000728",
+          "valorMarsChoco": 119.6,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "177",
+          "vendedor": "ESROM LIMA SAMPAIO",
+          "supervisor": "IGOR RODRIGUES DUARTE",
+          "cliente": "SUPERMERCADO AVENIDA",
+          "cnpj": "84860733000196",
+          "temTag": false,
+          "numPedido": "177000857",
+          "valorMarsChoco": 179.39999999999998,
+          "itens": [
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 40,
+              "vl": 119.6
+            }
+          ]
+        },
+        {
+          "rca": "185",
+          "vendedor": "ISIDIO VALDEVINO DA SILVA NETO",
+          "supervisor": "IGOR RODRIGUES DUARTE",
+          "cliente": "SUPERMERCADO NIPPON",
+          "cnpj": "11156928000186",
+          "temTag": false,
+          "numPedido": "185000514",
+          "valorMarsChoco": 197.39999999999998,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 40,
+              "vl": 131.6
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 65.8
+            }
+          ]
+        },
+        {
+          "rca": "177",
+          "vendedor": "ESROM LIMA SAMPAIO",
+          "supervisor": "IGOR RODRIGUES DUARTE",
+          "cliente": "AUTO POSTO ARARA AZUL",
+          "cnpj": "10211981000170",
+          "temTag": false,
+          "numPedido": "177000859",
+          "valorMarsChoco": 251.2,
+          "itens": [
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 1,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "179",
+          "vendedor": "FERNANDO LOPES BRUM",
+          "supervisor": "IGOR RODRIGUES DUARTE",
+          "cliente": "HELIA PADILHA DE BARROS",
+          "cnpj": "48376110000189",
+          "temTag": false,
+          "numPedido": "179000729",
+          "valorMarsChoco": 240.42000000000002,
+          "itens": [
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 61.02
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "177",
+          "vendedor": "ESROM LIMA SAMPAIO",
+          "supervisor": "IGOR RODRIGUES DUARTE",
+          "cliente": "AUTO POSTO MENEGUETTI LTDA",
+          "cnpj": "41463789000102",
+          "temTag": false,
+          "numPedido": "177000851",
+          "valorMarsChoco": 143.6,
+          "itens": [
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 1,
+              "vl": 71.8
+            },
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 1,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "177",
+          "vendedor": "ESROM LIMA SAMPAIO",
+          "supervisor": "IGOR RODRIGUES DUARTE",
+          "cliente": "AUTO POSTO TUBARAO",
+          "cnpj": "44286699000173",
+          "temTag": false,
+          "numPedido": "177000854",
+          "valorMarsChoco": 215.39999999999998,
+          "itens": [
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 1,
+              "vl": 71.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 1,
+              "vl": 71.8
+            },
+            {
+              "codigo": "7414",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 1,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "177",
+          "vendedor": "ESROM LIMA SAMPAIO",
+          "supervisor": "IGOR RODRIGUES DUARTE",
+          "cliente": "MINIMERCADO BERNABE",
+          "cnpj": "18219180000162",
+          "temTag": false,
+          "numPedido": "177000865",
+          "valorMarsChoco": 143.6,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 1,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 1,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "177",
+          "vendedor": "ESROM LIMA SAMPAIO",
+          "supervisor": "IGOR RODRIGUES DUARTE",
+          "cliente": "PANIFICADORA CASA DO PAO",
+          "cnpj": "27587134000107",
+          "temTag": false,
+          "numPedido": "177000856",
+          "valorMarsChoco": 71.8,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 1,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "196",
+          "vendedor": "REGINALDO ROSA DA SILVA",
+          "supervisor": "IGOR RODRIGUES DUARTE",
+          "cliente": "MERCADO CHIARELI",
+          "cnpj": "84866409000185",
+          "temTag": false,
+          "numPedido": "196000423",
+          "valorMarsChoco": 249.2,
+          "itens": [
+            {
+              "codigo": "7449",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 1,
+              "vl": 61.8
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 1,
+              "vl": 63.8
+            },
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 1,
+              "vl": 61.8
+            },
+            {
+              "codigo": "7440",
+              "desc": "SNICKERS DARK",
+              "qt": 1,
+              "vl": 61.8
+            }
+          ]
+        },
+        {
+          "rca": "172",
+          "vendedor": "ANDREA DO ROCIO FERREIRA DE MELO",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "FOX MILENIUM",
+          "cnpj": "19722298000171",
+          "temTag": false,
+          "numPedido": "172000756",
+          "valorMarsChoco": 203.39999999999998,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "196",
+          "vendedor": "REGINALDO ROSA DA SILVA",
+          "supervisor": "IGOR RODRIGUES DUARTE",
+          "cliente": "FARMACIA GUSFARMA",
+          "cnpj": "01588453000143",
+          "temTag": false,
+          "numPedido": "196000425",
+          "valorMarsChoco": 67.8,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "196",
+          "vendedor": "REGINALDO ROSA DA SILVA",
+          "supervisor": "IGOR RODRIGUES DUARTE",
+          "cliente": "SUPERMERCADO ROMIEDO",
+          "cnpj": "12934302000116",
+          "temTag": false,
+          "numPedido": "196000424",
+          "valorMarsChoco": 185.01999999999998,
+          "itens": [
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 1,
+              "vl": 63.8
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 1,
+              "vl": 57.42
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 1,
+              "vl": 63.8
+            }
+          ]
+        },
+        {
+          "rca": "192",
+          "vendedor": "MARCOS MILITAO DA SILVA",
+          "supervisor": "IGOR RODRIGUES DUARTE",
+          "cliente": "CAIUA PAES",
+          "cnpj": "16594494000110",
+          "temTag": false,
+          "numPedido": "192000725",
+          "valorMarsChoco": 271.2,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "184",
+          "vendedor": "INOCENCIO DA SILVA",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "MERCADO DOM BOSCO",
+          "cnpj": "05584353000108",
+          "temTag": false,
+          "numPedido": "184000796",
+          "valorMarsChoco": 119.6,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "187",
+          "vendedor": "JOSE GERALDO CARNEIRO",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "JOSE BAPTISTA PASCHOAL",
+          "cnpj": "53202493000109",
+          "temTag": false,
+          "numPedido": "187001550",
+          "valorMarsChoco": 119.6,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "192",
+          "vendedor": "MARCOS MILITAO DA SILVA",
+          "supervisor": "IGOR RODRIGUES DUARTE",
+          "cliente": "SUPERMERCADO ROHLING",
+          "cnpj": "75478354000145",
+          "temTag": false,
+          "numPedido": "192000723",
+          "valorMarsChoco": 406.8,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 60,
+              "vl": 203.4
+            },
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 60,
+              "vl": 203.4
+            }
+          ]
+        },
+        {
+          "rca": "172",
+          "vendedor": "ANDREA DO ROCIO FERREIRA DE MELO",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "POSTO DO PAPEL",
+          "cnpj": "78581709000115",
+          "temTag": false,
+          "numPedido": "172000758",
+          "valorMarsChoco": 271.2,
+          "itens": [
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "187",
+          "vendedor": "JOSE GERALDO CARNEIRO",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "LINE",
+          "cnpj": "47970155000114",
+          "temTag": false,
+          "numPedido": "187001545",
+          "valorMarsChoco": 119.6,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 40,
+              "vl": 119.6
+            }
+          ]
+        },
+        {
+          "rca": "172",
+          "vendedor": "ANDREA DO ROCIO FERREIRA DE MELO",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "POSTO JERUSALEM",
+          "cnpj": "24187953000179",
+          "temTag": false,
+          "numPedido": "172000761",
+          "valorMarsChoco": 839.65,
+          "itens": [
+            {
+              "codigo": "12202",
+              "desc": "TWIX BANOFFE",
+              "qt": 18,
+              "vl": 61.02
+            },
+            {
+              "codigo": "12203",
+              "desc": "TWIX COCADA",
+              "qt": 18,
+              "vl": 61.02
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 60,
+              "vl": 179.41
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 40,
+              "vl": 119.6
+            },
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 40,
+              "vl": 119.6
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 40,
+              "vl": 119.6
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 40,
+              "vl": 119.6
+            }
+          ]
+        },
+        {
+          "rca": "192",
+          "vendedor": "MARCOS MILITAO DA SILVA",
+          "supervisor": "IGOR RODRIGUES DUARTE",
+          "cliente": "POSTO SAO JOSE",
+          "cnpj": "07191552000173",
+          "temTag": false,
+          "numPedido": "192000728",
+          "valorMarsChoco": 71.8,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "192",
+          "vendedor": "MARCOS MILITAO DA SILVA",
+          "supervisor": "IGOR RODRIGUES DUARTE",
+          "cliente": "POSTO GRACIOSA",
+          "cnpj": "33316992000110",
+          "temTag": false,
+          "numPedido": "192000727",
+          "valorMarsChoco": 143.6,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "187",
+          "vendedor": "JOSE GERALDO CARNEIRO",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "MERCADO BIG PRECO LTDA",
+          "cnpj": "14275437000142",
+          "temTag": false,
+          "numPedido": "187001534",
+          "valorMarsChoco": 358.8,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 40,
+              "vl": 119.6
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "187",
+          "vendedor": "JOSE GERALDO CARNEIRO",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "PANIFICADORA E CONFEITARIA PAO DE MEL",
+          "cnpj": "13278195000188",
+          "temTag": false,
+          "numPedido": "187001532",
+          "valorMarsChoco": 67.8,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "178",
+          "vendedor": "EWERSON CANDIDO DE OLIVEIRA",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "SHOPPING DO 9",
+          "cnpj": "17379357000125",
+          "temTag": false,
+          "numPedido": "178001195",
+          "valorMarsChoco": 135.6,
+          "itens": [
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "172",
+          "vendedor": "ANDREA DO ROCIO FERREIRA DE MELO",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "PANIFICADORA KIPAO",
+          "cnpj": "10497802000102",
+          "temTag": false,
+          "numPedido": "172000759",
+          "valorMarsChoco": 406.8,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "187",
+          "vendedor": "JOSE GERALDO CARNEIRO",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "E F RIBEIRO MERCEARIA",
+          "cnpj": "11796587000103",
+          "temTag": false,
+          "numPedido": "187001530",
+          "valorMarsChoco": 67.8,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "172",
+          "vendedor": "ANDREA DO ROCIO FERREIRA DE MELO",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "LOJA DO REAL",
+          "cnpj": "26117710000190",
+          "temTag": false,
+          "numPedido": "172000760",
+          "valorMarsChoco": 2870.5,
+          "itens": [
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 120,
+              "vl": 358.81
+            },
+            {
+              "codigo": "7449",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 120,
+              "vl": 358.81
+            },
+            {
+              "codigo": "7440",
+              "desc": "SNICKERS DARK",
+              "qt": 120,
+              "vl": 358.81
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 240,
+              "vl": 717.63
+            },
+            {
+              "codigo": "7414",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 120,
+              "vl": 358.81
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 240,
+              "vl": 717.63
+            }
+          ]
+        },
+        {
+          "rca": "187",
+          "vendedor": "JOSE GERALDO CARNEIRO",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "MERCADO SUPERBOM",
+          "cnpj": "10641432000135",
+          "temTag": false,
+          "numPedido": "187001543",
+          "valorMarsChoco": 135.6,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "195",
+          "vendedor": "REGINALDO FERNANDES DOS SANTOS",
+          "supervisor": "LEONARDO MANOSSO DE GODOI",
+          "cliente": "SUPERMERCADO BOVO",
+          "cnpj": "82498239000106",
+          "temTag": false,
+          "numPedido": "195000896",
+          "valorMarsChoco": 358.8,
+          "itens": [
+            {
+              "codigo": "7414",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "7449",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "7440",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "171",
+          "vendedor": "ALMIR ROGERIO DE OLIVEIRA",
+          "supervisor": "LEONARDO MANOSSO DE GODOI",
+          "cliente": "POSTO BCA NOVA ESPERANCA",
+          "cnpj": "02779501000143",
+          "temTag": false,
+          "numPedido": "171000911",
+          "valorMarsChoco": 287.2,
+          "itens": [
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "197",
+          "vendedor": "RICARDO MORENO SATURNINO",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "SUPERMERCADO MARIANO",
+          "cnpj": "11582239000214",
+          "temTag": false,
+          "numPedido": "197000814",
+          "valorMarsChoco": 717.6,
+          "itens": [
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 40,
+              "vl": 119.6
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 40,
+              "vl": 119.6
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 80,
+              "vl": 239.2
+            },
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 40,
+              "vl": 119.6
+            }
+          ]
+        },
+        {
+          "rca": "171",
+          "vendedor": "ALMIR ROGERIO DE OLIVEIRA",
+          "supervisor": "LEONARDO MANOSSO DE GODOI",
+          "cliente": "SIMONE FERNANDES",
+          "cnpj": "55683902000161",
+          "temTag": false,
+          "numPedido": "171000909",
+          "valorMarsChoco": 75.8,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 75.8
+            }
+          ]
+        },
+        {
+          "rca": "197",
+          "vendedor": "RICARDO MORENO SATURNINO",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "CONVENIENCIA BR 369",
+          "cnpj": "19792927000130",
+          "temTag": false,
+          "numPedido": "197000806",
+          "valorMarsChoco": 717.6099999999999,
+          "itens": [
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 40,
+              "vl": 119.6
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 80,
+              "vl": 239.21
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 40,
+              "vl": 119.6
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "1018",
+          "vendedor": "LINCON LUIZ ROMAO",
+          "supervisor": "LEONARDO MANOSSO DE GODOI",
+          "cliente": "FILEZAO CARNES",
+          "cnpj": "29639426000171",
+          "temTag": false,
+          "numPedido": "1018000323",
+          "valorMarsChoco": 271.2,
+          "itens": [
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 40,
+              "vl": 135.6
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 40,
+              "vl": 135.6
+            }
+          ]
+        },
+        {
+          "rca": "197",
+          "vendedor": "RICARDO MORENO SATURNINO",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "AUTO POSTO JB 2",
+          "cnpj": "19892882000175",
+          "temTag": false,
+          "numPedido": "197000812",
+          "valorMarsChoco": 717.6099999999999,
+          "itens": [
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 40,
+              "vl": 119.6
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 60,
+              "vl": 179.41
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 40,
+              "vl": 119.6
+            },
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 40,
+              "vl": 119.6
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "171",
+          "vendedor": "ALMIR ROGERIO DE OLIVEIRA",
+          "supervisor": "LEONARDO MANOSSO DE GODOI",
+          "cliente": "JOAO PEDRO GOMES DO COUTO",
+          "cnpj": "54208838000102",
+          "temTag": false,
+          "numPedido": "171000908",
+          "valorMarsChoco": 71.8,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "197",
+          "vendedor": "RICARDO MORENO SATURNINO",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "JOSIMAR DOCES",
+          "cnpj": "75901603000163",
+          "temTag": false,
+          "numPedido": "197000805",
+          "valorMarsChoco": 717.6099999999999,
+          "itens": [
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 40,
+              "vl": 119.6
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 40,
+              "vl": 119.6
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 60,
+              "vl": 179.41
+            },
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 40,
+              "vl": 119.6
+            }
+          ]
+        },
+        {
+          "rca": "195",
+          "vendedor": "REGINALDO FERNANDES DOS SANTOS",
+          "supervisor": "LEONARDO MANOSSO DE GODOI",
+          "cliente": "SUPERMERCADO BOM PRECO",
+          "cnpj": "78083235000181",
+          "temTag": false,
+          "numPedido": "195000893",
+          "valorMarsChoco": 239.2,
+          "itens": [
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "171",
+          "vendedor": "ALMIR ROGERIO DE OLIVEIRA",
+          "supervisor": "LEONARDO MANOSSO DE GODOI",
+          "cliente": "PADARIA COOK",
+          "cnpj": "20650234000191",
+          "temTag": false,
+          "numPedido": "171000905",
+          "valorMarsChoco": 136.42000000000002,
+          "itens": [
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 64.62
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "171",
+          "vendedor": "ALMIR ROGERIO DE OLIVEIRA",
+          "supervisor": "LEONARDO MANOSSO DE GODOI",
+          "cliente": "ZAFALON POSTO NOVA ESPERANCA LTDA",
+          "cnpj": "53444962000104",
+          "temTag": false,
+          "numPedido": "171000907",
+          "valorMarsChoco": 143.6,
+          "itens": [
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 40,
+              "vl": 143.6
+            }
+          ]
+        },
+        {
+          "rca": "197",
+          "vendedor": "RICARDO MORENO SATURNINO",
+          "supervisor": "KLEBERSON BATISTA LIDUARIO",
+          "cliente": "MAGDA LENA MARIUCCI TOCUNDUVA PIAI LTDA",
+          "cnpj": "04377021000181",
+          "temTag": false,
+          "numPedido": "197000811",
+          "valorMarsChoco": 1507.06,
+          "itens": [
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "9919",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 240,
+              "vl": 717.63
+            },
+            {
+              "codigo": "7449",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 240,
+              "vl": 717.63
+            }
+          ]
+        },
+        {
+          "rca": "190",
+          "vendedor": "LUCAS FREITAS SEPULVIDA",
+          "supervisor": "LEONARDO MANOSSO DE GODOI",
+          "cliente": "POSTO BSU",
+          "cnpj": "18272034000109",
+          "temTag": false,
+          "numPedido": "190000684",
+          "valorMarsChoco": 135.6,
+          "itens": [
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9918",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "1018",
+          "vendedor": "LINCON LUIZ ROMAO",
+          "supervisor": "LEONARDO MANOSSO DE GODOI",
+          "cliente": "63881253 LEONARDO SOUZA JARDIM ROCHA",
+          "cnpj": "63881253000131",
+          "temTag": false,
+          "numPedido": "1018000324",
+          "valorMarsChoco": 120.82,
+          "itens": [
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 61.02
+            }
+          ]
+        },
+        {
+          "rca": "181",
+          "vendedor": "GIOVANA BATISTA DA SILVA",
+          "supervisor": "SERGIO LOPES DE OLIVEIRA",
+          "cliente": "M MARINHO DA LUZ PANIF E RESTAURANTE",
+          "cnpj": "32234537000102",
+          "temTag": false,
+          "numPedido": "181000842",
+          "valorMarsChoco": 128.82,
+          "itens": [
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 61.02
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "183",
+          "vendedor": "HILD VINICIUS MATVEICHUKE RODRIGUES",
+          "supervisor": "SERGIO LOPES DE OLIVEIRA",
+          "cliente": "MERCADO PAGUE MENOS",
+          "cnpj": "05930303000127",
+          "temTag": false,
+          "numPedido": "183000855",
+          "valorMarsChoco": 256.42,
+          "itens": [
+            {
+              "codigo": "7344",
+              "desc": "TWIX TRIPLO CHOCOLATE",
+              "qt": 18,
+              "vl": 61.02
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "1117",
+          "vendedor": "ALEXSANDRO AUGUSTO TAVARES",
+          "supervisor": "LEONARDO MANOSSO DE GODOI",
+          "cliente": "MERCEARIA SAO JOSE",
+          "cnpj": "26596631000109",
+          "temTag": false,
+          "numPedido": "1117000061",
+          "valorMarsChoco": 59.8,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "550",
+          "vendedor": "FABIO SEREIA",
+          "supervisor": "SERGIO LOPES DE OLIVEIRA",
+          "cliente": "PANIFICADORA N S DE FATIMA",
+          "cnpj": "12507540000145",
+          "temTag": false,
+          "numPedido": "5500000814",
+          "valorMarsChoco": 203.39999999999998,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9922",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "193",
+          "vendedor": "MARIELI BRUM GREGHI",
+          "supervisor": "SERGIO LOPES DE OLIVEIRA",
+          "cliente": "CONVENIENCIA MOREIRAO",
+          "cnpj": "19047178000116",
+          "temTag": false,
+          "numPedido": "193000539",
+          "valorMarsChoco": 135.6,
+          "itens": [
+            {
+              "codigo": "7440",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "7449",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "181",
+          "vendedor": "GIOVANA BATISTA DA SILVA",
+          "supervisor": "SERGIO LOPES DE OLIVEIRA",
+          "cliente": "SUPERMERCADO SPINASSI LOJA 02",
+          "cnpj": "55746982000238",
+          "temTag": false,
+          "numPedido": "181000845",
+          "valorMarsChoco": 196.62,
+          "itens": [
+            {
+              "codigo": "7423",
+              "desc": "TWIX ORIGINAL CARAMELO",
+              "qt": 18,
+              "vl": 61.02
+            },
+            {
+              "codigo": "9917",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "550",
+          "vendedor": "FABIO SEREIA",
+          "supervisor": "SERGIO LOPES DE OLIVEIRA",
+          "cliente": "MERCADO NOSSA S APARECIDA",
+          "cnpj": "16775085000110",
+          "temTag": false,
+          "numPedido": "5500000809",
+          "valorMarsChoco": 67.8,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "550",
+          "vendedor": "FABIO SEREIA",
+          "supervisor": "SERGIO LOPES DE OLIVEIRA",
+          "cliente": "PANIFICADORA E CONFEITARIA NOSSO PAO",
+          "cnpj": "23922192000199",
+          "temTag": false,
+          "numPedido": "5500000806",
+          "valorMarsChoco": 67.8,
+          "itens": [
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "193",
+          "vendedor": "MARIELI BRUM GREGHI",
+          "supervisor": "SERGIO LOPES DE OLIVEIRA",
+          "cliente": "SUPER LOJAO DO REAL",
+          "cnpj": "29476026000192",
+          "temTag": false,
+          "numPedido": "193000545",
+          "valorMarsChoco": 418.6,
+          "itens": [
+            {
+              "codigo": "7407",
+              "desc": "SNICKERS MORANGO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "7414",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "7440",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "7449",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "9921",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 59.8
+            },
+            {
+              "codigo": "12201",
+              "desc": "SNICKERS MACCHIATO",
+              "qt": 20,
+              "vl": 59.8
+            }
+          ]
+        },
+        {
+          "rca": "193",
+          "vendedor": "MARIELI BRUM GREGHI",
+          "supervisor": "SERGIO LOPES DE OLIVEIRA",
+          "cliente": "CONVENIENCIA VIEIRA",
+          "cnpj": "39910249000170",
+          "temTag": false,
+          "numPedido": "193000541",
+          "valorMarsChoco": 67.8,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        },
+        {
+          "rca": "1134",
+          "vendedor": "LIDIANE APARECIDA BARBOSA",
+          "supervisor": "SERGIO LOPES DE OLIVEIRA",
+          "cliente": "MERCADO NOVO ITACOLOMI",
+          "cnpj": "05983411000168",
+          "temTag": false,
+          "numPedido": "1134000015",
+          "valorMarsChoco": 143.6,
+          "itens": [
+            {
+              "codigo": "7361",
+              "desc": "SNICKERS ORIGINAL",
+              "qt": 20,
+              "vl": 71.8
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "1134",
+          "vendedor": "LIDIANE APARECIDA BARBOSA",
+          "supervisor": "SERGIO LOPES DE OLIVEIRA",
+          "cliente": "AUTO POSTO RENIMAR",
+          "cnpj": "21484509000127",
+          "temTag": false,
+          "numPedido": "1134000012",
+          "valorMarsChoco": 182.38,
+          "itens": [
+            {
+              "codigo": "7449",
+              "desc": "SNICKERS PE DE MOLEQUE",
+              "qt": 1,
+              "vl": 71.8
+            },
+            {
+              "codigo": "7431",
+              "desc": "SKITTLES ORIGINAL",
+              "qt": 14,
+              "vl": 38.78
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 1,
+              "vl": 71.8
+            }
+          ]
+        },
+        {
+          "rca": "1134",
+          "vendedor": "LIDIANE APARECIDA BARBOSA",
+          "supervisor": "SERGIO LOPES DE OLIVEIRA",
+          "cliente": "MERCADO NOSSA SENHORA APARECIDA",
+          "cnpj": "10638107000113",
+          "temTag": false,
+          "numPedido": "1134000018",
+          "valorMarsChoco": 203.39999999999998,
+          "itens": [
+            {
+              "codigo": "7414",
+              "desc": "SNICKERS MARACUJA",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "7440",
+              "desc": "SNICKERS DARK",
+              "qt": 20,
+              "vl": 67.8
+            },
+            {
+              "codigo": "7446",
+              "desc": "SNICKERS BRANCO",
+              "qt": 20,
+              "vl": 67.8
+            }
+          ]
+        }
+      ]
+    },
+    "MCD": {
+      "pedidos": 0,
+      "clientes": 0,
+      "valorTotal": 0,
+      "comTagClientes": 0,
+      "comTagValor": 0,
+      "semTagClientes": 0,
+      "semTagValor": 0,
+      "itensVendidos": {},
+      "lista": []
+    }
+  }
+}

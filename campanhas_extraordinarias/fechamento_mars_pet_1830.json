@@ -1,0 +1,940 @@
+{
+  "totalPedidosMarsPet": 34,
+  "totalClientesMarsPet": 34,
+  "totalValorMarsPet": 15249.119999999995,
+  "comTag": {
+    "totalClientes": 12,
+    "totalValor": 6093.449999999999
+  },
+  "semTag": {
+    "totalClientes": 22,
+    "totalValor": 9155.669999999996
+  },
+  "porFilial": {
+    "ABC": {
+      "pedidos": 4,
+      "clientes": 4,
+      "valorTotal": 75.32,
+      "comTagClientes": 3,
+      "comTagValor": 67.50999999999999,
+      "semTagClientes": 1,
+      "semTagValor": 7.81,
+      "itensVendidos": {
+        "DREAMIES CARNE": {
+          "qt": 2,
+          "vl": 11.22
+        },
+        "KITEKAT DRY AD MIX DE CARNES": {
+          "qt": 2,
+          "vl": 15.62
+        },
+        "KITEKAT SH AD CARNE": {
+          "qt": 24,
+          "vl": 48.48
+        }
+      },
+      "lista": [
+        {
+          "rca": "227",
+          "vendedor": "CARLOS AUGUSTO CUETO",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "ROTA 10 BEBIDAS E CONVENIENCIAS",
+          "cnpj": "62242179000140",
+          "temTag": true,
+          "numPedido": "227000960",
+          "valorMarsPet": 11.22,
+          "itens": [
+            {
+              "codigo": "5864",
+              "desc": "DREAMIES CARNE",
+              "qt": 2,
+              "vl": 11.22
+            }
+          ]
+        },
+        {
+          "rca": "227",
+          "vendedor": "CARLOS AUGUSTO CUETO",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "EMPORIO 45",
+          "cnpj": "42234368000164",
+          "temTag": true,
+          "numPedido": "227000962",
+          "valorMarsPet": 7.81,
+          "itens": [
+            {
+              "codigo": "6122",
+              "desc": "KITEKAT DRY AD MIX DE CARNES",
+              "qt": 1,
+              "vl": 7.81
+            }
+          ]
+        },
+        {
+          "rca": "1056",
+          "vendedor": "ELTON PEREIRA ALVES",
+          "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+          "cliente": "MERCADO ARAPONGAS",
+          "cnpj": "68835248000106",
+          "temTag": false,
+          "numPedido": "1056000519",
+          "valorMarsPet": 7.81,
+          "itens": [
+            {
+              "codigo": "6122",
+              "desc": "KITEKAT DRY AD MIX DE CARNES",
+              "qt": 1,
+              "vl": 7.81
+            }
+          ]
+        },
+        {
+          "rca": "233",
+          "vendedor": "DOUGLAS CERRI",
+          "supervisor": "IVONEI PEDRO DE MOURA",
+          "cliente": "MERCADO MS",
+          "cnpj": "58256748000130",
+          "temTag": true,
+          "numPedido": "233000790",
+          "valorMarsPet": 48.48,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 24,
+              "vl": 48.48
+            }
+          ]
+        }
+      ]
+    },
+    "TPH": {
+      "pedidos": 27,
+      "clientes": 27,
+      "valorTotal": 14902.719999999998,
+      "comTagClientes": 8,
+      "comTagValor": 5987.0599999999995,
+      "semTagClientes": 19,
+      "semTagValor": 8915.659999999998,
+      "itensVendidos": {
+        "KITEKAT DRY AD MIX DE CARNES": {
+          "qt": 70,
+          "vl": 4051.2
+        },
+        "KITEKAT SH AD CARNE": {
+          "qt": 3114,
+          "vl": 4669.019999999999
+        },
+        "KITEKAT SH AD PEIXE": {
+          "qt": 2088,
+          "vl": 3067.38
+        },
+        "DREAMIES CARNE": {
+          "qt": 111,
+          "vl": 892.96
+        },
+        "DREAMIES FRANGO": {
+          "qt": 34,
+          "vl": 191.48000000000002
+        },
+        "KITEKAT SH AD CORDEIRO": {
+          "qt": 1176,
+          "vl": 1719.06
+        },
+        "DREAMIES SALMAO": {
+          "qt": 29,
+          "vl": 228.1
+        },
+        "KITEKAT SH AD FRANGO": {
+          "qt": 48,
+          "vl": 83.52
+        }
+      },
+      "lista": [
+        {
+          "rca": "66",
+          "vendedor": "PRISCILA DE BONFIM CORDEIRO",
+          "supervisor": "ANDREY CAMILLO PIRAGINE",
+          "cliente": "MERCEARIA JOSE E MARIA",
+          "cnpj": "09206356000150",
+          "temTag": false,
+          "numPedido": "66000319",
+          "valorMarsPet": 156.2,
+          "itens": [
+            {
+              "codigo": "6122",
+              "desc": "KITEKAT DRY AD MIX DE CARNES",
+              "qt": 20,
+              "vl": 156.2
+            }
+          ]
+        },
+        {
+          "rca": "56",
+          "vendedor": "MARCO AURELIO ZIRHUT",
+          "supervisor": "AILTON LUIZ ARENDT JUNIOR",
+          "cliente": "REDE AGRICER",
+          "cnpj": "24107160000445",
+          "temTag": false,
+          "numPedido": "50000631",
+          "valorMarsPet": 618.4,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 240,
+              "vl": 348
+            },
+            {
+              "codigo": "5806",
+              "desc": "KITEKAT SH AD PEIXE",
+              "qt": 144,
+              "vl": 208.8
+            },
+            {
+              "codigo": "5864",
+              "desc": "DREAMIES CARNE",
+              "qt": 11,
+              "vl": 61.6
+            }
+          ]
+        },
+        {
+          "rca": "56",
+          "vendedor": "MARCO AURELIO ZIRHUT",
+          "supervisor": "AILTON LUIZ ARENDT JUNIOR",
+          "cliente": "REDE AGRICER",
+          "cnpj": "08008661000841",
+          "temTag": false,
+          "numPedido": "50000648",
+          "valorMarsPet": 278.4,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 96,
+              "vl": 139.2
+            },
+            {
+              "codigo": "5806",
+              "desc": "KITEKAT SH AD PEIXE",
+              "qt": 96,
+              "vl": 139.2
+            }
+          ]
+        },
+        {
+          "rca": "56",
+          "vendedor": "MARCO AURELIO ZIRHUT",
+          "supervisor": "AILTON LUIZ ARENDT JUNIOR",
+          "cliente": "REDE AGRICER",
+          "cnpj": "08008661000507",
+          "temTag": false,
+          "numPedido": "50000647",
+          "valorMarsPet": 61.6,
+          "itens": [
+            {
+              "codigo": "5864",
+              "desc": "DREAMIES CARNE",
+              "qt": 11,
+              "vl": 61.6
+            }
+          ]
+        },
+        {
+          "rca": "56",
+          "vendedor": "MARCO AURELIO ZIRHUT",
+          "supervisor": "AILTON LUIZ ARENDT JUNIOR",
+          "cliente": "REDE AGRICER",
+          "cnpj": "08008661000680",
+          "temTag": false,
+          "numPedido": "50000649",
+          "valorMarsPet": 401.6,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 96,
+              "vl": 139.2
+            },
+            {
+              "codigo": "5806",
+              "desc": "KITEKAT SH AD PEIXE",
+              "qt": 96,
+              "vl": 139.2
+            },
+            {
+              "codigo": "5864",
+              "desc": "DREAMIES CARNE",
+              "qt": 11,
+              "vl": 61.6
+            },
+            {
+              "codigo": "5867",
+              "desc": "DREAMIES FRANGO",
+              "qt": 11,
+              "vl": 61.6
+            }
+          ]
+        },
+        {
+          "rca": "56",
+          "vendedor": "MARCO AURELIO ZIRHUT",
+          "supervisor": "AILTON LUIZ ARENDT JUNIOR",
+          "cliente": "REDE AGRICER",
+          "cnpj": "40258228000109",
+          "temTag": true,
+          "numPedido": "50000637",
+          "valorMarsPet": 556.8,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 240,
+              "vl": 348
+            },
+            {
+              "codigo": "5806",
+              "desc": "KITEKAT SH AD PEIXE",
+              "qt": 144,
+              "vl": 208.8
+            }
+          ]
+        },
+        {
+          "rca": "60",
+          "vendedor": "DIEGO FERNANDO RIBEIRO",
+          "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+          "cliente": "ASSIS SUPERMERCADOS",
+          "cnpj": "82382458000621",
+          "temTag": true,
+          "numPedido": "60000449",
+          "valorMarsPet": 3895,
+          "itens": [
+            {
+              "codigo": "6122",
+              "desc": "KITEKAT DRY AD MIX DE CARNES",
+              "qt": 50,
+              "vl": 3895
+            }
+          ]
+        },
+        {
+          "rca": "68",
+          "vendedor": "ALDER ALVES BELINI",
+          "supervisor": "ANDREY CAMILLO PIRAGINE",
+          "cliente": "ECG SERVICOS LTDA",
+          "cnpj": "59429715000107",
+          "temTag": true,
+          "numPedido": "68000727",
+          "valorMarsPet": 417.59999999999997,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 96,
+              "vl": 139.2
+            },
+            {
+              "codigo": "5806",
+              "desc": "KITEKAT SH AD PEIXE",
+              "qt": 96,
+              "vl": 139.2
+            },
+            {
+              "codigo": "6003",
+              "desc": "KITEKAT SH AD CORDEIRO",
+              "qt": 96,
+              "vl": 139.2
+            }
+          ]
+        },
+        {
+          "rca": "124",
+          "vendedor": "THACIANE REGINA CORDEIRO DE CASTRO",
+          "supervisor": "CLAUDETE DE SOUZA SCHULTZ",
+          "cliente": "AVIARIO LIGEIRINHO",
+          "cnpj": "00379451000181",
+          "temTag": false,
+          "numPedido": "124000633",
+          "valorMarsPet": 46.25,
+          "itens": [
+            {
+              "codigo": "5832",
+              "desc": "DREAMIES CARNE",
+              "qt": 5,
+              "vl": 46.25
+            }
+          ]
+        },
+        {
+          "rca": "123",
+          "vendedor": "JULIA DE OLIVEIRA BATISTA",
+          "supervisor": "CLAUDETE DE SOUZA SCHULTZ",
+          "cliente": "AGRO VETERINARIA RIO BONITO",
+          "cnpj": "02978235000188",
+          "temTag": false,
+          "numPedido": "123000401",
+          "valorMarsPet": 556.8,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 240,
+              "vl": 348
+            },
+            {
+              "codigo": "6003",
+              "desc": "KITEKAT SH AD CORDEIRO",
+              "qt": 144,
+              "vl": 208.8
+            }
+          ]
+        },
+        {
+          "rca": "123",
+          "vendedor": "JULIA DE OLIVEIRA BATISTA",
+          "supervisor": "CLAUDETE DE SOUZA SCHULTZ",
+          "cliente": "N/D",
+          "cnpj": "27999321000106",
+          "temTag": true,
+          "numPedido": "123000396",
+          "valorMarsPet": 104.39999999999999,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 24,
+              "vl": 34.8
+            },
+            {
+              "codigo": "5806",
+              "desc": "KITEKAT SH AD PEIXE",
+              "qt": 24,
+              "vl": 34.8
+            },
+            {
+              "codigo": "6003",
+              "desc": "KITEKAT SH AD CORDEIRO",
+              "qt": 24,
+              "vl": 34.8
+            }
+          ]
+        },
+        {
+          "rca": "126",
+          "vendedor": "PAOLA CRISTINA LEAL COLLI",
+          "supervisor": "CLAUDETE DE SOUZA SCHULTZ",
+          "cliente": "AVIARIO J F",
+          "cnpj": "02850700000109",
+          "temTag": false,
+          "numPedido": "126000507",
+          "valorMarsPet": 208.62,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 48,
+              "vl": 69.54
+            },
+            {
+              "codigo": "5806",
+              "desc": "KITEKAT SH AD PEIXE",
+              "qt": 48,
+              "vl": 69.54
+            },
+            {
+              "codigo": "6003",
+              "desc": "KITEKAT SH AD CORDEIRO",
+              "qt": 48,
+              "vl": 69.54
+            }
+          ]
+        },
+        {
+          "rca": "126",
+          "vendedor": "PAOLA CRISTINA LEAL COLLI",
+          "supervisor": "CLAUDETE DE SOUZA SCHULTZ",
+          "cliente": "BICHOLANDIA",
+          "cnpj": "27792722000182",
+          "temTag": false,
+          "numPedido": "126000504",
+          "valorMarsPet": 485.4,
+          "itens": [
+            {
+              "codigo": "5835",
+              "desc": "DREAMIES SALMAO",
+              "qt": 12,
+              "vl": 111
+            },
+            {
+              "codigo": "5838",
+              "desc": "DREAMIES CARNE",
+              "qt": 24,
+              "vl": 374.4
+            }
+          ]
+        },
+        {
+          "rca": "1039",
+          "vendedor": "MARCELO LUIZ DE ALMEIDA GARRETT",
+          "supervisor": "CLAUDETE DE SOUZA SCHULTZ",
+          "cliente": "T S TREVISAN COM DE RACOES ME",
+          "cnpj": "19589180000117",
+          "temTag": false,
+          "numPedido": "1039000393",
+          "valorMarsPet": 123.2,
+          "itens": [
+            {
+              "codigo": "5829",
+              "desc": "DREAMIES SALMAO",
+              "qt": 11,
+              "vl": 61.6
+            },
+            {
+              "codigo": "5864",
+              "desc": "DREAMIES CARNE",
+              "qt": 11,
+              "vl": 61.6
+            }
+          ]
+        },
+        {
+          "rca": "72",
+          "vendedor": "ANA PAULA FERREIRA DA CRUZ",
+          "supervisor": "ANDREY CAMILLO PIRAGINE",
+          "cliente": "CLUBE DA BERA",
+          "cnpj": "26672690000119",
+          "temTag": true,
+          "numPedido": "72000313",
+          "valorMarsPet": 12.12,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 6,
+              "vl": 12.12
+            }
+          ]
+        },
+        {
+          "rca": "1040",
+          "vendedor": "RUI MATEUS ANSAK",
+          "supervisor": "CLAUDETE DE SOUZA SCHULTZ",
+          "cliente": "AVIARIO INDEPENDENCIA",
+          "cnpj": "06308888000100",
+          "temTag": false,
+          "numPedido": "1040000215",
+          "valorMarsPet": 1378.08,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 288,
+              "vl": 431.52
+            },
+            {
+              "codigo": "5806",
+              "desc": "KITEKAT SH AD PEIXE",
+              "qt": 288,
+              "vl": 431.52
+            },
+            {
+              "codigo": "6003",
+              "desc": "KITEKAT SH AD CORDEIRO",
+              "qt": 288,
+              "vl": 431.52
+            },
+            {
+              "codigo": "5803",
+              "desc": "KITEKAT SH AD FRANGO",
+              "qt": 48,
+              "vl": 83.52
+            }
+          ]
+        },
+        {
+          "rca": "1039",
+          "vendedor": "MARCELO LUIZ DE ALMEIDA GARRETT",
+          "supervisor": "CLAUDETE DE SOUZA SCHULTZ",
+          "cliente": "UTI BICHO",
+          "cnpj": "24265435000126",
+          "temTag": false,
+          "numPedido": "1039000394",
+          "valorMarsPet": 27.75,
+          "itens": [
+            {
+              "codigo": "5835",
+              "desc": "DREAMIES SALMAO",
+              "qt": 3,
+              "vl": 27.75
+            }
+          ]
+        },
+        {
+          "rca": "50",
+          "vendedor": "PAULO SERGIO DEDINO",
+          "supervisor": "LUCAS RAMOS MONTAGNHANI",
+          "cliente": "GEPAO ATACAREJO",
+          "cnpj": "40258228000281",
+          "temTag": true,
+          "numPedido": "50000635",
+          "valorMarsPet": 921.4,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 288,
+              "vl": 443.52
+            },
+            {
+              "codigo": "5806",
+              "desc": "KITEKAT SH AD PEIXE",
+              "qt": 240,
+              "vl": 348
+            },
+            {
+              "codigo": "5867",
+              "desc": "DREAMIES FRANGO",
+              "qt": 11,
+              "vl": 61.6
+            },
+            {
+              "codigo": "5864",
+              "desc": "DREAMIES CARNE",
+              "qt": 12,
+              "vl": 68.28
+            }
+          ]
+        },
+        {
+          "rca": "50",
+          "vendedor": "PAULO SERGIO DEDINO",
+          "supervisor": "LUCAS RAMOS MONTAGNHANI",
+          "cliente": "REDE AGRICER",
+          "cnpj": "24107160000607",
+          "temTag": false,
+          "numPedido": "50000633",
+          "valorMarsPet": 633.24,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 192,
+              "vl": 330.24
+            },
+            {
+              "codigo": "5806",
+              "desc": "KITEKAT SH AD PEIXE",
+              "qt": 144,
+              "vl": 234.71999999999997
+            },
+            {
+              "codigo": "5864",
+              "desc": "DREAMIES CARNE",
+              "qt": 12,
+              "vl": 68.28
+            }
+          ]
+        },
+        {
+          "rca": "50",
+          "vendedor": "PAULO SERGIO DEDINO",
+          "supervisor": "LUCAS RAMOS MONTAGNHANI",
+          "cliente": "REDE AGRICER",
+          "cnpj": "24107160000526",
+          "temTag": false,
+          "numPedido": "50000632",
+          "valorMarsPet": 599.3199999999999,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 192,
+              "vl": 330.24
+            },
+            {
+              "codigo": "5806",
+              "desc": "KITEKAT SH AD PEIXE",
+              "qt": 96,
+              "vl": 139.2
+            },
+            {
+              "codigo": "5864",
+              "desc": "DREAMIES CARNE",
+              "qt": 11,
+              "vl": 61.6
+            },
+            {
+              "codigo": "5867",
+              "desc": "DREAMIES FRANGO",
+              "qt": 12,
+              "vl": 68.28
+            }
+          ]
+        },
+        {
+          "rca": "50",
+          "vendedor": "PAULO SERGIO DEDINO",
+          "supervisor": "LUCAS RAMOS MONTAGNHANI",
+          "cliente": "REDE AGRICER",
+          "cnpj": "24107160000364",
+          "temTag": false,
+          "numPedido": "50000629",
+          "valorMarsPet": 208.79999999999998,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 48,
+              "vl": 69.6
+            },
+            {
+              "codigo": "5806",
+              "desc": "KITEKAT SH AD PEIXE",
+              "qt": 96,
+              "vl": 139.2
+            }
+          ]
+        },
+        {
+          "rca": "49",
+          "vendedor": "LUIS FERNANDO ANTUNES",
+          "supervisor": "LUCAS RAMOS MONTAGNHANI",
+          "cliente": "MARIANO ATACADISTA",
+          "cnpj": "14374549000312",
+          "temTag": false,
+          "numPedido": "49000654",
+          "valorMarsPet": 765.5999999999999,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 240,
+              "vl": 348
+            },
+            {
+              "codigo": "5806",
+              "desc": "KITEKAT SH AD PEIXE",
+              "qt": 144,
+              "vl": 208.8
+            },
+            {
+              "codigo": "6003",
+              "desc": "KITEKAT SH AD CORDEIRO",
+              "qt": 144,
+              "vl": 208.8
+            }
+          ]
+        },
+        {
+          "rca": "49",
+          "vendedor": "LUIS FERNANDO ANTUNES",
+          "supervisor": "LUCAS RAMOS MONTAGNHANI",
+          "cliente": "SUPERMERCADO NEW",
+          "cnpj": "19672805000100",
+          "temTag": false,
+          "numPedido": "49000649",
+          "valorMarsPet": 1392,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 480,
+              "vl": 696
+            },
+            {
+              "codigo": "5806",
+              "desc": "KITEKAT SH AD PEIXE",
+              "qt": 240,
+              "vl": 348
+            },
+            {
+              "codigo": "6003",
+              "desc": "KITEKAT SH AD CORDEIRO",
+              "qt": 240,
+              "vl": 348
+            }
+          ]
+        },
+        {
+          "rca": "49",
+          "vendedor": "LUIS FERNANDO ANTUNES",
+          "supervisor": "LUCAS RAMOS MONTAGNHANI",
+          "cliente": "MARIANO ATACAREJO",
+          "cnpj": "14374549000231",
+          "temTag": false,
+          "numPedido": "49000653",
+          "valorMarsPet": 765.5999999999999,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 240,
+              "vl": 348
+            },
+            {
+              "codigo": "5806",
+              "desc": "KITEKAT SH AD PEIXE",
+              "qt": 144,
+              "vl": 208.8
+            },
+            {
+              "codigo": "6003",
+              "desc": "KITEKAT SH AD CORDEIRO",
+              "qt": 144,
+              "vl": 208.8
+            }
+          ]
+        },
+        {
+          "rca": "125",
+          "vendedor": "CLAUDIO EIZO BRANCO",
+          "supervisor": "JEFFERSON POLETTO",
+          "cliente": "PRIME PET",
+          "cnpj": "63292103000192",
+          "temTag": true,
+          "numPedido": "125000540",
+          "valorMarsPet": 55.5,
+          "itens": [
+            {
+              "codigo": "5832",
+              "desc": "DREAMIES CARNE",
+              "qt": 3,
+              "vl": 27.75
+            },
+            {
+              "codigo": "5835",
+              "desc": "DREAMIES SALMAO",
+              "qt": 3,
+              "vl": 27.75
+            }
+          ]
+        },
+        {
+          "rca": "133",
+          "vendedor": "CLAUDEMIR LINO DE ALMEIDA",
+          "supervisor": "JEFFERSON POLETTO",
+          "cliente": "AVIARIO TUBARAO",
+          "cnpj": "05120389000122",
+          "temTag": false,
+          "numPedido": "133000622",
+          "valorMarsPet": 208.79999999999998,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 48,
+              "vl": 69.6
+            },
+            {
+              "codigo": "5806",
+              "desc": "KITEKAT SH AD PEIXE",
+              "qt": 48,
+              "vl": 69.6
+            },
+            {
+              "codigo": "6003",
+              "desc": "KITEKAT SH AD CORDEIRO",
+              "qt": 48,
+              "vl": 69.6
+            }
+          ]
+        },
+        {
+          "rca": "1090",
+          "vendedor": "DEISI DE SOUZA DA SILVA",
+          "supervisor": "LUIZ AUGUSTO RAMOS",
+          "cliente": "MERCADO MAZINHO",
+          "cnpj": "79163556000159",
+          "temTag": true,
+          "numPedido": "1089000129",
+          "valorMarsPet": 24.24,
+          "itens": [
+            {
+              "codigo": "5800",
+              "desc": "KITEKAT SH AD CARNE",
+              "qt": 12,
+              "vl": 24.24
+            }
+          ]
+        }
+      ]
+    },
+    "MCD": {
+      "pedidos": 3,
+      "clientes": 3,
+      "valorTotal": 271.08000000000004,
+      "comTagClientes": 1,
+      "comTagValor": 38.88,
+      "semTagClientes": 2,
+      "semTagValor": 232.20000000000002,
+      "itensVendidos": {
+        "DREAMIES CARNE": {
+          "qt": 6,
+          "vl": 38.88
+        },
+        "KITEKAT DRY AD MIX DE CARNES": {
+          "qt": 21,
+          "vl": 232.20000000000002
+        }
+      },
+      "lista": [
+        {
+          "rca": "454",
+          "vendedor": "TIEGO RISALDI RAMOS",
+          "supervisor": "CARLOS ALAGUEZ DA SILVA",
+          "cliente": "MONICA SERPA GONCALVES",
+          "cnpj": "15116855000150",
+          "temTag": true,
+          "numPedido": "454000205",
+          "valorMarsPet": 38.88,
+          "itens": [
+            {
+              "codigo": "5832",
+              "desc": "DREAMIES CARNE",
+              "qt": 6,
+              "vl": 38.88
+            }
+          ]
+        },
+        {
+          "rca": "464",
+          "vendedor": "CINTIA RENATA DA CRUZ",
+          "supervisor": "ALYFER PEREIRA MENDES",
+          "cliente": "RD VARIEDADES",
+          "cnpj": "50441008000161",
+          "temTag": false,
+          "numPedido": "464000276",
+          "valorMarsPet": 154.8,
+          "itens": [
+            {
+              "codigo": "6122",
+              "desc": "KITEKAT DRY AD MIX DE CARNES",
+              "qt": 20,
+              "vl": 154.8
+            }
+          ]
+        },
+        {
+          "rca": "426",
+          "vendedor": "FRANCIELE BRUNETTO FRANCA",
+          "supervisor": "CLEOMAR DINIZ BARBOSA",
+          "cliente": "CASA DE CARNE KI BEEF",
+          "cnpj": "13211006000150",
+          "temTag": false,
+          "numPedido": "426000202",
+          "valorMarsPet": 77.4,
+          "itens": [
+            {
+              "codigo": "6122",
+              "desc": "KITEKAT DRY AD MIX DE CARNES",
+              "qt": 1,
+              "vl": 77.4
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
