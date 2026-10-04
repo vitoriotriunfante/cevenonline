@@ -34,9 +34,10 @@ const CEVEN_BASE = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const CEVEN_USER = process.env.CEVEN_ADMIN_USER;
 const CEVEN_PASS = process.env.CEVEN_ADMIN_PASS;
 
-const EVO_URL = 'https://evolution-api-production-8999.up.railway.app';
-const EVO_KEY = '143c2820271dfa4c2f6c920aff3205f0c5dec92d7c3f3dfaf90a9d8bb023eaaa';
-const EVO_INSTANCE = 'ceven-noc';
+// Servidor de WhatsApp (Evolution API): vem dos segredos do GitHub (EVO_URL / EVO_KEY / EVO_INSTANCE), nunca do codigo.
+const EVO_URL = (process.env.EVO_URL || '').replace(/\/$/, '');
+const EVO_KEY = process.env.EVO_KEY;
+const EVO_INSTANCE = process.env.EVO_INSTANCE || 'ceven-noc';
 const WHATSAPP_VITORIO = ['5541987525605'];
 
 // Mapeamento Oficial das 11 Filiais

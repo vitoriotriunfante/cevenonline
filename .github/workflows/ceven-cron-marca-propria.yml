@@ -133,6 +133,9 @@ jobs:
         env:
           CEVEN_ADMIN_USER: ${{ secrets.CEVEN_ADMIN_USER }}
           CEVEN_ADMIN_PASS: ${{ secrets.CEVEN_ADMIN_PASS }}
+          EVO_URL: ${{ secrets.EVO_URL }}
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+          EVO_INSTANCE: ${{ secrets.EVO_INSTANCE }}
         run: |
           node pipeline/ceven_unified_engine.js \
             --hora="10:00" \
