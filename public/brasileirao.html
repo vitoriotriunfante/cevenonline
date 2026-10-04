@@ -1265,7 +1265,7 @@ function filtrarSupervisores() {
         <td><span class="tag-badge" style="background:rgba(56,189,248,0.15);color:var(--acc);">${s.filial}</span></td>
         <td style="color:var(--tx-mut);font-size:12px;">${s.gerente || '—'}</td>
         <td style="text-align:right" class="pts-cell">${s.pts_tabela}</td>
-        <td style="text-align:center"><span class="tag-badge tag-v">+${s.plus_lideranca} pts</span></td>
+        <td style="text-align:center">${s.plus_lideranca == null ? '<span style="color:var(--dim,#7d8590)" title="Plus de liderança ainda não é calculado (Compromisso Matinal, RET em Campo, Fair Play)">—</span>' : `<span class="tag-badge tag-v">+${s.plus_lideranca} pts</span>`}</td>
         <td style="text-align:center"><span class="tag-badge tag-v">${s.vitorias}</span></td>
         <td style="text-align:center"><span class="tag-badge tag-e">${s.empates}</span></td>
         <td style="text-align:center"><span class="tag-badge tag-d">${s.derrotas}</span></td>

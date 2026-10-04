@@ -108,9 +108,11 @@ except Exception as e:
     sys.exit(1)
 print(f"Vendedores carregados de /api/tv-mostra: {len(rca_map)}")
 
-# Dias de rodada registrados no D1
-DIAS_RODADA = sorted(list(set(l['dia'] for l in d1_data if l.get('dia'))))
-print("Dias de rodada:", DIAS_RODADA)
+# Dias de rodada: so DIAS UTEIS (segunda a sexta) e SEM feriados nacionais — cada dia util e um jogo
+# (decisao do Vitorio, 03/10/2026: sabado, domingo e feriado nao contam como jogo, mesmo que haja lance no D1).
+DIAS_COM_LANCE = set(l['dia'] for l in d1_data if l.get('dia'))
+DIAS_RODADA = sorted(d for d in DIAS_COM_LANCE if date.fromisoformat(d).weekday() < 5 and d not in FERIADOS_2026)
+print("Dias de rodada:", DIAS_RODADA, "| ignorados (fim de semana/feriado):", sorted(DIAS_COM_LANCE - set(DIAS_RODADA)))
 
 # Agrupar lances por RCA e por Dia
 rca_dia_lances = {}

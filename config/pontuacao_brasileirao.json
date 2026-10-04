@@ -62,5 +62,12 @@
     "vitoria": { "min_pontos": 11, "pontos_tabela": 3 },
     "empate": { "min_pontos": 1, "pontos_tabela": 1 },
     "derrota": { "min_pontos": -999, "pontos_tabela": 0 }
+  },
+  "plus_lideranca_supervisor": {
+    "decisao": "Vitorio, 03/10/2026. So bonus: nao atingir NAO pune (nao ganha e fica 0). Destravamento de bloqueados foi RETIRADO.",
+    "compromisso_matinal_ate_11h30": { "pontos": 15, "fonte": "CEVEN /api/admin/supervisores/matriz-compromissos (dataInicio/dataFim)" },
+    "ret_inicio_e_execucao": { "pontos": 25, "fonte": "CEVEN /api/admin/supervisores/matriz-ret (dataInicio/dataFim)" },
+    "zero_devolucoes_equipe_no_dia": { "pontos": 30, "nome": "Fair Play", "fonte": "devolucoes dos vendedores da equipe no dia" },
+    "dias": "segunda a sexta, sem feriados (mesma regra dos jogos)"
   }
 }

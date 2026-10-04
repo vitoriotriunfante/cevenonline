@@ -136,6 +136,13 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     ok(wf.includes('github.event.inputs.destino') && wf.includes("default: 'todos'"), 'workflow de marca propria tem a opcao destino (padrao todos para o Worker, vitorio para teste)'); }
   { const w = ler('.github/workflows/ceven-cron-marca-propria.yml'); const i = w.indexOf('Gerar relatórios de Marca Própria'); const trecho = w.slice(i, i + 700);
     ok(trecho.includes('EVO_URL: ${{ secrets.EVO_URL }}') && trecho.includes('EVO_KEY: ${{ secrets.EVO_KEY }}') && trecho.includes('CEVEN_ADMIN_PASS'), 'passo que gera a marca propria recebe os segredos do WhatsApp (EVO_*) e do CEVEN'); }
+  ok(!ler('public/brasileirao.html').includes('+${s.plus_lideranca} pts</span></td>') && ler('public/brasileirao.html').includes('s.plus_lideranca == null'), 'Brasileirao: coluna Plus Lideranca nao mostra "+undefined pts" quando o campo nao existe');
+  { const bd = JSON.parse(ler('public/dados_brasileirao.json')); const fer = ['2026-09-07','2026-10-12','2026-11-02','2026-11-15','2026-11-20','2026-12-25'];
+    ok(bd.dias_rodada.length > 0 && bd.dias_rodada.every(d => { const w = new Date(d + 'T12:00:00Z').getUTCDay(); return w >= 1 && w <= 5 && !fer.includes(d); }), 'jogos do Brasileirao so em dias uteis (segunda a sexta) e sem feriados: ' + bd.dias_rodada.join(', '));
+    ok(bd.vendedores.every(v => v.jogos <= bd.dias_rodada.length), 'nenhum vendedor tem mais jogos do que os dias de rodada'); }
+  { const c = JSON.parse(ler('config/pontuacao_brasileirao.json')).plus_lideranca_supervisor; const ap = ler('public/apresentacao-diretoria.html');
+    ok(c && c.compromisso_matinal_ate_11h30.pontos === 15 && c.ret_inicio_e_execucao.pontos === 25 && c.zero_devolucoes_equipe_no_dia.pontos === 30 && !JSON.stringify(c).includes('destravamento_de_bloqueados'), 'plus de lideranca so bonus: +15 compromisso, +25 RET, +30 zero devolucoes, sem destravamento');
+    ok(!/Destravamento de Bloqueados no Dia/.test(ap) && !/se atrasar: -15|se faltar: -35/.test(ap), 'apresentacao da diretoria sem destravamento e sem punicao no Plus'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);
