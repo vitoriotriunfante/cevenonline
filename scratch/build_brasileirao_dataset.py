@@ -52,10 +52,37 @@ def julgar_pelo_score(score):
 # Temporada oficial do Brasileirão Triunfante começa em 28/09/2026 (data de início fixa,
 # confirmada pelo Vitório) — lances antes disso não contam pra liga.
 INICIO_TEMPORADA = '2026-09-28'
-cmd = f'npx wrangler d1 execute ceven_noc_d1 --remote --json --command "SELECT dia, filial, chave, nivel, rca, vendedor, supervisor, cliente, motivo, dias_sem_compra FROM tv_lances WHERE dia >= \'{INICIO_TEMPORADA}\' AND nivel != \'marker\'"'
+# FONTE DOS LANCES (decisao 04/10/2026 — rodar online, sem credencial): a API publica /api/brasileirao-lances
+# (um dia por vez, ja sem duplicados). Antes dependia do `wrangler` com login do Cloudflare no PC.
+# BRASILEIRAO_FONTE=wrangler volta ao jeito antigo (so para comparar).
+import os
+def _dias_desde(inicio):
+    d = date.fromisoformat(inicio); hoje = (datetime.now(timezone.utc) - timedelta(hours=3)).date(); out = []
+    while d <= hoje:
+        out.append(d.isoformat()); d += timedelta(days=1)
+    return out
+def carregar_lances_api():
+    lances = []
+    for dia in _dias_desde(INICIO_TEMPORADA):
+        if date.fromisoformat(dia).weekday() >= 5 or dia in FERIADOS_2026:
+            continue  # so dia util conta como jogo
+        req = urllib.request.Request(f'https://ceven-cftv-matrix.pages.dev/api/brasileirao-lances?dia={dia}', headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            j = json.loads(resp.read().decode('utf-8'))
+        if 'lances' not in j:
+            raise RuntimeError(f'resposta sem lances para {dia}: {str(j)[:120]}')
+        for l in j['lances']:
+            l['dia'] = dia
+            lances.append(l)
+        print(f"  {dia}: {len(j['lances'])} lances (duplicados ja removidos pela API: {j.get('duplicados_removidos', 0)})")
+    return lances
 try:
-    res = subprocess.check_output(cmd, shell=True, text=True, stderr=subprocess.STDOUT)
-    d1_data = json.loads(res)[0]['results']
+    if os.environ.get('BRASILEIRAO_FONTE') == 'wrangler':
+        cmd = f'npx wrangler d1 execute ceven_noc_d1 --remote --json --command "SELECT dia, filial, chave, nivel, rca, vendedor, supervisor, cliente, motivo, dias_sem_compra FROM tv_lances WHERE dia >= \'{INICIO_TEMPORADA}\' AND nivel != \'marker\'"'
+        res = subprocess.check_output(cmd, shell=True, text=True, stderr=subprocess.STDOUT)
+        d1_data = json.loads(res)[0]['results']
+    else:
+        d1_data = carregar_lances_api()
     print(f"Total lances no D1: {len(d1_data)}")
     # Um mesmo lance pode estar gravado duas vezes: pela TV da matriz (filial MTZ, chave com prefixo
     # "SIG|") e pela TV de filial/cron (filial real, chave sem prefixo). Conta cada lance UMA vez.
@@ -80,7 +107,7 @@ except Exception as e:
     # NUNCA sobrescrever o dataset publicado com dado vazio/zerado por falha de consulta
     # (ex.: secret do Cloudflare ausente, D1 fora do ar) — regra "nunca inventar dado"
     # também vale para "nunca apagar dado real por engano". Aborta sem tocar no JSON.
-    print(f"❌ Erro ao consultar o D1: {e}")
+    print(f"❌ Erro ao buscar os lances: {e}")
     print("Abortando SEM gravar public/dados_brasileirao.json — mantendo o dataset publicado anterior.")
     sys.exit(1)
 
