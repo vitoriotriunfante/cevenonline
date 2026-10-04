@@ -134,6 +134,8 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
   { const mp = ler('scripts/gerar_marca_propria.js'); const wf = ler('.github/workflows/ceven-cron-marca-propria.yml');
     ok(mp.includes("const enviaVitorio = destino === 'todos' || destino === 'vitorio'") && (mp.match(/destino === 'todos'/g) || []).length >= 4, 'marca propria: destino=vitorio nunca envia a gerentes nem marca o ciclo (so o destino todos faz isso)');
     ok(wf.includes('github.event.inputs.destino') && wf.includes("default: 'todos'"), 'workflow de marca propria tem a opcao destino (padrao todos para o Worker, vitorio para teste)'); }
+  { const w = ler('.github/workflows/ceven-cron-marca-propria.yml'); const i = w.indexOf('Gerar relatórios de Marca Própria'); const trecho = w.slice(i, i + 700);
+    ok(trecho.includes('EVO_URL: ${{ secrets.EVO_URL }}') && trecho.includes('EVO_KEY: ${{ secrets.EVO_KEY }}') && trecho.includes('CEVEN_ADMIN_PASS'), 'passo que gera a marca propria recebe os segredos do WhatsApp (EVO_*) e do CEVEN'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);

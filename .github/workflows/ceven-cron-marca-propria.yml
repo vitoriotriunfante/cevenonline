@@ -115,6 +115,12 @@ jobs:
 
       - name: Gerar relatórios de Marca Própria (hoje + acumulado do mês)
         if: steps.calendario.outputs.bloqueado != 'true'
+        env:
+          CEVEN_ADMIN_USER: ${{ secrets.CEVEN_ADMIN_USER }}
+          CEVEN_ADMIN_PASS: ${{ secrets.CEVEN_ADMIN_PASS }}
+          EVO_URL: ${{ secrets.EVO_URL }}
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+          EVO_INSTANCE: ${{ secrets.EVO_INSTANCE }}
         run: node scripts/gerar_marca_propria.js "$(date -u -d '-3 hours' +%Y-%m-%d)" "${{ github.event.inputs.destino || 'todos' }}"
 
       - name: Copiar para a pasta oficial de entrega
