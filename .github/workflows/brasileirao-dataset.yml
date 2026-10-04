@@ -1,0 +1,96 @@
+# FICHA DO ARQUIVO
+# O QUE É: gera o dataset do Brasileirão Triunfante TODO DIA, online (acaba a dependência do PC do Vitório, que
+#          era a dívida "Brasileirão gerado por script no PC"). Passos: (1) baixa o banco do Data Lake do Drive;
+#          (2) coleta o Plus de Liderança (compromisso e RET do CEVEN + devoluções do banco);
+#          (3) roda scratch/build_brasileirao_dataset.py (lances pela API pública, sem credencial);
+#          (4) grava public/dados_brasileirao.json na main ([skip ci]). A página lê esse arquivo direto do GitHub
+#          (raw.githubusercontent.com) e usa o mais recente entre ele e o do site; NÃO precisa publicar o Pages.
+# DISPARO: o fim do ceven-cron-datalake.yml (03:00 BRT, todo dia) dispara este workflow; também manual (workflow_dispatch).
+#          SEM `schedule` próprio (o schedule do GitHub é pouco confiável; ver decisão de 03/10/2026).
+# SEGREDOS: CEVEN_ADMIN_USER / CEVEN_ADMIN_PASS (Plus) e GDRIVE_SA_JSON (banco). Sem eles o Plus fica "—", o resto roda.
+# REGRA: nunca inventa dado. Se a coleta do Plus falha, o dataset sai SEM Plus (coluna "—"), nunca com Plus falso.
+name: Brasileirão — gerar dataset (online)
+
+on:
+  workflow_dispatch: {}
+
+concurrency:
+  group: brasileirao-dataset
+  cancel-in-progress: false
+
+jobs:
+  gerar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Instalar dependências (npm ci)
+        run: npm ci
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar rclone
+        run: curl https://rclone.org/install.sh | sudo bash
+
+      - name: Configurar rclone (Google Drive)
+        env:
+          GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID || '1sqzFpWEKb1WKhT9MksQcQl8RuY94DQum' }}
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "$GDRIVE_SA_JSON" > /tmp/gdrive-sa.json
+          cat > ~/.config/rclone/rclone.conf << EOF
+          [gdrive]
+          type = drive
+          scope = drive
+          service_account_file = /tmp/gdrive-sa.json
+          root_folder_id = $GDRIVE_FOLDER_ID
+          EOF
+
+      - name: Baixar o banco do Data Lake (devoluções do Fair Play)
+        continue-on-error: true
+        run: |
+          mkdir -p analises
+          rclone copy gdrive:pedidos_historico_ceven.db analises/ || echo "Banco não baixou: Fair Play fica pendente."
+
+      - name: Coletar o Plus de Liderança (CEVEN + devoluções)
+        continue-on-error: true
+        env:
+          CEVEN_ADMIN_USER: ${{ secrets.CEVEN_ADMIN_USER }}
+          CEVEN_ADMIN_PASS: ${{ secrets.CEVEN_ADMIN_PASS }}
+        run: node scripts/coletar_plus_lideranca.js
+
+      - name: Gerar o dataset do Brasileirão
+        run: python scratch/build_brasileirao_dataset.py
+
+      - name: Gravar o dataset na main
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/dados_brasileirao.json
+          if git diff --cached --quiet; then
+            echo "Dataset sem mudança."
+            exit 0
+          fi
+          git commit -m "chore: dataset do Brasileirão (gerado online) [skip ci]"
+          for i in 1 2 3 4 5 6; do
+            if git push; then exit 0; fi
+            echo "Push falhou (tentativa $i) — atualizando a base e tentando de novo."
+            git fetch origin ${{ github.ref_name }}
+            git rebase -X theirs origin/${{ github.ref_name }} || git rebase --abort
+            sleep $((i * 5))
+          done
+          echo "::error::não consegui gravar o dataset na main"
+          exit 1

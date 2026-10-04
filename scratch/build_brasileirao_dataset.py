@@ -337,6 +337,65 @@ for idx, g in enumerate(gerentes_tabela):
     g['pos'] = idx + 1
 
 # 5. Tabela Supervisores — mesma lógica de maioria, agregada pela equipe dele.
+# ---------------------------------------------------------------------------
+# PLUS DE LIDERANCA do supervisor (regras do Vitorio, 03-04/10/2026, em config/pontuacao_brasileirao.json):
+#   Compromisso Matinal ate 10:00 (o CEVEN trava as 10:00: "feito" = feito ate as 10:00) .... +15
+#   Inicio e execucao do RET de campo (RECOMENDADO, nao obrigatorio) ...................... +25
+#   Zero devolucoes na equipe no dia (Fair Play) ........................................... +30
+#   So BONUS: nao atingiu = 0, sem punicao. So dias de rodada (segunda a sexta, sem feriado).
+# Entradas vem de scripts/coletar_plus_lideranca.js (scratch/plus_inputs.json). Sem o arquivo, ou supervisor que o
+# CEVEN nao devolveu => plus_lideranca = None (a tela mostra "—"). NUNCA inventa: Fair Play so conta se o banco de
+# devolucoes cobre o dia; senao fica pendente (None) e o total marca plus_pendente.
+# ---------------------------------------------------------------------------
+import re as _re, unicodedata as _ud
+def _norm_nome(n):
+    n = _re.sub(r'^CLT\s*-\s*', '', str(n or ''), flags=_re.I)
+    n = _re.sub(r'^CLT\s+', '', n, flags=_re.I)
+    n = _ud.normalize('NFD', n)
+    n = ''.join(c for c in n if _ud.category(c) != 'Mn').upper()
+    return _re.sub(r'\s+', ' ', _re.sub(r'[^A-Z ]', '', n)).strip()
+
+PLUS_PONTOS = {'compromisso': 15, 'ret': 25, 'fair_play': 30}
+try:
+    _cfg_plus = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'config', 'pontuacao_brasileirao.json'), encoding='utf-8'))['plus_lideranca_supervisor']
+    PLUS_PONTOS = {'compromisso': _cfg_plus['compromisso_matinal_ate_10h00']['pontos'], 'ret': _cfg_plus['ret_inicio_e_execucao']['pontos'], 'fair_play': _cfg_plus['zero_devolucoes_equipe_no_dia']['pontos']}
+except Exception as _e:
+    print('Aviso: pontos do Plus lidos do padrao (config ausente):', _e)
+
+PLUS_INPUTS = None
+_plus_path = os.environ.get('BRASILEIRAO_PLUS_INPUTS') or os.path.join(os.path.dirname(os.path.abspath(__file__)), 'plus_inputs.json')
+if os.path.exists(_plus_path):
+    try:
+        PLUS_INPUTS = json.load(open(_plus_path, encoding='utf-8'))
+        print('Plus: entradas carregadas de', _plus_path, '|', len(PLUS_INPUTS.get('supervisores', {})), 'supervisores')
+    except Exception as _e:
+        print('Aviso: plus_inputs.json ilegivel, Plus fica "—":', _e)
+else:
+    print('Plus: sem plus_inputs.json — coluna Plus fica "—" (rode scripts/coletar_plus_lideranca.js)')
+
+def calcula_plus(fil, nome):
+    """Devolve (total, detalhe, pendente) ou (None, None, None) se nao houver dado real."""
+    if not PLUS_INPUTS:
+        return None, None, None
+    info = PLUS_INPUTS.get('supervisores', {}).get(f"{fil}|{_norm_nome(nome)}")
+    if not info:
+        return None, None, None
+    dev = PLUS_INPUTS.get('devolucoes') or {}
+    dev_ate = dev.get('ate') if dev.get('disponivel') else None
+    total, pendente, detalhe = 0, False, {}
+    for d in DIAS_RODADA:
+        comp = PLUS_PONTOS['compromisso'] if info.get('compromisso', {}).get(d) else 0
+        ret = PLUS_PONTOS['ret'] if info.get('ret', {}).get(d) else 0
+        if dev_ate and dev_ate >= d:
+            fair = 0 if dev.get('porSupDia', {}).get(f"{fil}|{_norm_nome(nome)}|{d}") else PLUS_PONTOS['fair_play']
+        else:
+            fair = None  # banco de devolucoes ainda nao cobre o dia: nao da nem tira
+            pendente = True
+        detalhe[d] = {'compromisso': comp, 'ret': ret, 'fair_play': fair}
+        total += comp + ret + (fair or 0)
+    return total, detalhe, pendente
+
+
 sups_tabela = []
 # "GERENTE MCD" / "GERENTE TPH" etc. NAO sao supervisores: sao vendedores ligados direto ao gerente (sem supervisor).
 # Decisao do Vitorio, 03/10/2026: ficam FORA da Liga dos Supervisores; os vendedores continuam no ranking de vendedores
@@ -351,12 +410,14 @@ for fil, s in sups_set:
     rcas_sup = [v['rca'] for v in vends]
     vitorias, empates, derrotas, pts_tabela, forma = agrega_por_maioria(rcas_sup, s)
     tot_gp = sum(v['gp'] for v in vends)
+    plus_total, plus_detalhe, plus_pendente = calcula_plus(fil, s)
     tot_gc = sum(v['gc'] for v in vends)
     sups_tabela.append({
         'supervisor': s, 'filial': fil, 'gerente': vends[0]['gerente'], 'total_vendedores': len(vends),
         'jogos': len(DIAS_RODADA), 'pts_tabela': pts_tabela, 'vitorias': vitorias, 'empates': empates,
         'derrotas': derrotas, 'gp': tot_gp, 'gc': tot_gc, 'sg': tot_gp - tot_gc,
-        'aprov': round((pts_tabela / (len(DIAS_RODADA) * 3)) * 100, 1) if DIAS_RODADA else 0, 'forma': forma
+        'aprov': round((pts_tabela / (len(DIAS_RODADA) * 3)) * 100, 1) if DIAS_RODADA else 0, 'forma': forma,
+        'plus_lideranca': plus_total, 'plus_detalhe': plus_detalhe, 'plus_pendente': plus_pendente
     })
 sups_tabela.sort(key=lambda x: (x['pts_tabela'], x['vitorias'], x['sg']), reverse=True)
 for idx, s in enumerate(sups_tabela):
@@ -375,7 +436,7 @@ resultado_final = {
     'vendedores': vendedores_lista
 }
 
-with open('public/dados_brasileirao.json', 'w', encoding='utf-8') as f:
+with open(os.environ.get('BRASILEIRAO_SAIDA') or 'public/dados_brasileirao.json', 'w', encoding='utf-8') as f:  # BRASILEIRAO_SAIDA so para teste
     json.dump(resultado_final, f, ensure_ascii=False, indent=2)
 
 print("✅ Novo dataset do Brasileirão gerado com sucesso (100% online, pontuação real)!")

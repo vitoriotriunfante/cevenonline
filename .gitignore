@@ -14,6 +14,7 @@ scripts/*
 !scripts/gerar_alerta_risco.js
 !scripts/amostrar_cnae_nacional.js
 !scripts/gerar_marca_propria.js
+!scripts/coletar_plus_lideranca.js
 !scripts/gerar_marca_propria_acumulado.js
 !scripts/coletar_justificativas_visitas.js
 
@@ -75,3 +76,6 @@ seed_*.sql
 .DS_Store
 *.log
 Projeto.txt
+
+# Arquivo de passagem do Plus de Lideranca (gerado no workflow, nao versionar)
+scratch/plus_inputs.json

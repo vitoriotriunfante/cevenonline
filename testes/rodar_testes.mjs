@@ -154,6 +154,10 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
   { const tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), api = ler('functions/api/metas-mes.js');
     ok(tv.includes("j('/api/metas-mes'") && mz.includes("j('/api/metas-mes'") && !tv.includes("/metas_mes.json") && !mz.includes("'/metas_mes.json") && api.includes('mes_meta_faturado') && api.includes('mes_meta_positivados'), 'metas do mes vem do CEVEN ao vivo (/api/metas-mes), nao do metas_mes.json estatico');
     ok(!/Meta do mês (PNA)/.test(tv + mz), 'rotulo da meta nao diz mais PNA (e do CEVEN)'); }
+  { const wf = ler('.github/workflows/brasileirao-dataset.yml'), dl = ler('.github/workflows/ceven-cron-datalake.yml'), pg = ler('public/brasileirao.html');
+    ok(wf.includes('scripts/coletar_plus_lideranca.js') && wf.includes('scratch/build_brasileirao_dataset.py') && wf.includes('git push') && !/\n\s*schedule:/.test(wf) && wf.includes('CEVEN_ADMIN_PASS'), 'Brasileirao gerado online: workflow coleta o Plus, gera o dataset e grava na main (sem schedule proprio)');
+    ok(dl.includes('gh workflow run brasileirao-dataset.yml') && dl.includes('actions: write'), 'o Data Lake dispara o gerador do Brasileirao no fim');
+    ok(pg.includes('raw.githubusercontent.com/vitoriotriunfante/cevenonline/main/public/dados_brasileirao.json') && pg.includes('gerado_em'), 'pagina do Brasileirao usa o dataset mais recente entre o do GitHub e o do site'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);
@@ -340,6 +344,18 @@ secao('8. Lances do Brasileirao contados uma vez so');
   const gol = (j.lances || []).find(l => l.nivel === 'gol');
   ok(gol && gol.filial === 'TBL' && gol.hora === '10:00:00', 'o gol fica na filial real e com a menor hora');
   ok((j.lances || []).filter(l => l.nivel === 'supervisor').length === 3, 'lances de supervisor de filiais diferentes continuam separados');
+}
+
+// ---------------------------------------------------------------- 8b. conta do Plus de Lideranca (sem rede)
+secao('8b. Plus de Lideranca do supervisor: +15 compromisso (ate 10:00), +25 RET, +30 Fair Play, sem punicao');
+{
+  const r = spawnSync('python', [join(RAIZ, 'testes', 't_plus.py')], { encoding: 'utf8', env: { ...process.env, PYTHONIOENCODING: 'utf-8' } });
+  if (r.error && r.error.code === 'ENOENT') {
+    console.log('  pulado - Python nao encontrado neste computador');
+  } else {
+    (r.stdout || '').split('\n').filter(l => /^\s+(ok|FALHOU)/.test(l)).forEach(l => ok(/ok\s+-/.test(l), l.replace(/^\s+(ok|FALHOU)\s+-\s+/, '')));
+    ok(r.status === 0, 'teste da conta do Plus terminou sem erro');
+  }
 }
 
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)

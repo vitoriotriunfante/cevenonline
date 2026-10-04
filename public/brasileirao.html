@@ -874,9 +874,17 @@ function iniciarMinhaFilial() {
 
 async function carregarDados() {
   try {
-    const res = await fetch('/dados_brasileirao.json?t=' + Date.now(), { cache: 'no-store' });
-    if (res.ok) {
-      DADOS = await res.json();
+    // O dataset e gerado ONLINE todo dia pelo workflow brasileirao-dataset.yml e gravado na main; o site tambem
+    // leva uma copia. Usa o MAIS RECENTE (campo gerado_em) entre os dois.
+    const lerJson = async (url) => { try { const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' }); return r.ok ? await r.json() : null; } catch (e) { return null; } };
+    const [gh, local] = await Promise.all([
+      lerJson('https://raw.githubusercontent.com/vitoriotriunfante/cevenonline/main/public/dados_brasileirao.json'),
+      lerJson('/dados_brasileirao.json')
+    ]);
+    const valido = (d) => d && Array.isArray(d.vendedores) && Array.isArray(d.dias_rodada) && d.gerado_em;
+    const escolhido = [gh, local].filter(valido).sort((a, b) => String(b.gerado_em).localeCompare(String(a.gerado_em)))[0];
+    if (escolhido) {
+      DADOS = escolhido;
       renderizarTudo();
     }
   } catch (e) {
@@ -1265,7 +1273,7 @@ function filtrarSupervisores() {
         <td><span class="tag-badge" style="background:rgba(56,189,248,0.15);color:var(--acc);">${s.filial}</span></td>
         <td style="color:var(--tx-mut);font-size:12px;">${s.gerente || '—'}</td>
         <td style="text-align:right" class="pts-cell">${s.pts_tabela}</td>
-        <td style="text-align:center">${s.plus_lideranca == null ? '<span style="color:var(--dim,#7d8590)" title="Plus de liderança ainda não é calculado (Compromisso Matinal, RET em Campo, Fair Play)">—</span>' : `<span class="tag-badge tag-v">+${s.plus_lideranca} pts</span>`}</td>
+        <td style="text-align:center">${s.plus_lideranca == null ? '<span style="color:var(--dim,#7d8590)" title="Plus de liderança ainda não é calculado (Compromisso Matinal, RET em Campo, Fair Play)">—</span>' : `<span class="tag-badge tag-v">+${s.plus_lideranca} pts${s.plus_pendente ? '<span title="Fair Play (zero devoluções) do dia mais recente ainda pendente: o banco de devoluções ainda não cobre o dia. O total só sobe, nunca desce.">*</span>' : ''}</span>`}</td>
         <td style="text-align:center"><span class="tag-badge tag-v">${s.vitorias}</span></td>
         <td style="text-align:center"><span class="tag-badge tag-e">${s.empates}</span></td>
         <td style="text-align:center"><span class="tag-badge tag-d">${s.derrotas}</span></td>
