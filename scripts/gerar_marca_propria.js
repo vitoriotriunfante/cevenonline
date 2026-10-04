@@ -9,8 +9,8 @@
  *     baixado do Google Drive pelo workflow) + scripts/supervisores_11_filiais_completo.json
  *     (árvore viva, regerada antes por atualizar_arvore_viva_11_filiais.js) +
  *     "VENDEDORES AUDITADOS.xlsx" (aba MOSTRA_DISPAROS — fonte de verdade manual,
- *     baixada do Drive) + "Produtos - Marcas Exclusivas.xls" (lista de SKUs de MP,
- *     baixada do Drive).
+ *     baixada do Drive) + config/catalogo_produtos_por_filial.json (lista de SKUs de MP =
+ *     produtos do fornecedor 24318 TRIUNFANTE BRASIL, desde 03/10/2026).
  * ESCREVE: auditoria_mensagens/<data>/10_00__*.txt, copiados como .md pro próprio
  *          workflow em OPERACAO_WHATSAPP/relatorios_por_horario/10_00/ e commitados.
  *          Se chamado com destino=todos, TAMBÉM envia de verdade (Vitório +
@@ -33,15 +33,20 @@ const fs = require('fs');
 const path = require('path');
 const engine = require('../pipeline/ceven_unified_engine');
 
+// Marca propria = todo produto do fornecedor 24318 (TRIUNFANTE BRASIL DISTRIBUIDORA DE ALIMENTOS S.A.) no catalogo de produtos.
+// Decisao do Vitorio, 03/10/2026: a lista vem do catalogo (config/catalogo_produtos_por_filial.json, gerado da planilha "Relacao de itens por filial"),
+// nao mais do arquivo "Produtos - Marcas Exclusivas.xls" do Drive. SKU 12229 e sempre ignorado (coluna "ignorar" do catalogo).
+const FORNECEDOR_MARCA_PROPRIA = 24318;
 function carregarMarcaPropria() {
-  const wb = XLSX.readFile(path.join(__dirname, '..', 'Produtos - Marcas Exclusivas.xls'));
-  const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
-  const codigos = [];
-  data.forEach(r => {
-    if ((r.FILIAIS_VENDA || '').includes('IGNORAR')) return;
-    codigos.push(String(r.CODPROD));
+  const cat = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config', 'catalogo_produtos_por_filial.json'), 'utf8'));
+  const iCod = cat.campos.indexOf('codprod'), iForn = cat.campos.indexOf('cod_fornecedor'), iIgn = cat.campos.indexOf('ignorar');
+  const codigos = new Set();
+  cat.linhas.forEach(l => {
+    if (Number(l[iForn]) !== FORNECEDOR_MARCA_PROPRIA || l[iIgn] === 'SIM') return;
+    codigos.add(String(l[iCod]));
   });
-  return codigos;
+  if (!codigos.size) throw new Error('catalogo sem produtos do fornecedor ' + FORNECEDOR_MARCA_PROPRIA + ' — lista de marca propria vazia, ciclo abortado');
+  return [...codigos];
 }
 
 function fmtMoeda(v) { return (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }

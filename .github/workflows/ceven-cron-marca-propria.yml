@@ -5,7 +5,7 @@
 #     NÃO tem mais schedule próprio aqui — o Cloudflare é o gatilho único (evita
 #     duplicação: GH schedule + CF workflow_dispatch no mesmo horário = 2 runs).
 # LÊ do Google Drive: pedidos_historico_ceven.db, VENDEDORES AUDITADOS.xlsx,
-#     Produtos - Marcas Exclusivas.xls. Gera a árvore viva de vendedores ao vivo.
+#     Lista de SKUs vem de config/catalogo_produtos_por_filial.json (fornecedor 24318). Gera a árvore viva de vendedores ao vivo.
 # ESCREVE: OPERACAO_WHATSAPP/relatorios_por_horario/10_00/*.md + envia WhatsApp.
 # DEPENDE DE: secrets GDRIVE_SA_JSON e GDRIVE_FOLDER_ID + o banco ter sido atualizado
 #     às 03:00 pelo ceven-cron-datalake.yml no mesmo dia.
@@ -99,10 +99,6 @@ jobs:
         if: steps.calendario.outputs.bloqueado != 'true'
         run: curl -fsS -m 60 "https://ceven-cftv-matrix.pages.dev/api/tv-mostra?t=1" -o mostra_equipe.json || echo "Equipe não baixada — equipe não aplicada neste ciclo."
         continue-on-error: true
-
-      - name: Baixar lista de SKUs de Marca Própria do Google Drive
-        if: steps.calendario.outputs.bloqueado != 'true'
-        run: rclone copy "gdrive:Produtos - Marcas Exclusivas.xls" .
 
       - name: Gerar árvore viva de vendedores (ao vivo do CEVEN)
         if: steps.calendario.outputs.bloqueado != 'true'

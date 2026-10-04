@@ -30,3 +30,6 @@ API do CEVEN · Google Drive · Cloudflare (Pages, Functions, D1) · GitHub (có
 2. Permissão: **Account** -> **Cloudflare Pages** -> **Edit**. Account Resources: a conta do projeto. Criar e **copiar o token**.
 3. Gravar no GitHub (escolha um): no PowerShell `"COLE_O_TOKEN" | gh secret set CLOUDFLARE_API_TOKEN --repo vitoriobergamobrazil/cevenonline`, ou no site: repositório -> Settings -> Secrets and variables -> Actions -> New repository secret (nome `CLOUDFLARE_API_TOKEN`).
 4. GitHub -> Actions -> **TV CFTV — Publicar no Cloudflare** -> Run workflow -> marcar **sincronizar_chave_drive** (copia a chave do Google que já está no GitHub para o Cloudflare; dispensa achar o arquivo .json).
+
+## Dívida: catálogo de produtos depende de planilha baixada (03/10/2026)
+`config/catalogo_produtos_por_filial.json` é gerado por `analises/gerar_catalogo_produtos.py` a partir da planilha "Relação de itens por filial", baixada do CEVEN e rodada no PC. Plano: achar o endpoint do CEVEN que lista os itens por filial (sem estoque) e gerar o catálogo na nuvem (GitHub Actions/Worker), ou colocar a planilha no Google Drive "CEVEN Datalake" e gerar no workflow do Data Lake.

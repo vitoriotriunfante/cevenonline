@@ -125,6 +125,12 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
   { const mapa = ler('functions/api/cron-mapa-executivo.js'); const tvx = ler('public/tv_executiva.html');
     ok(mapa.includes('ehRecorrencia') && !mapa.includes('cnpjsOuro') && mapa.includes("includes('RECORRENCIA')"), 'TV executiva usa a tag RECORRENCIA do roteiro (nao mais a lista estatica de ouro)');
     ok(!/Ouro na Mesa|OURO NA MESA|13\.634/.test(tvx), 'tela da TV executiva nao mostra mais Ouro na Mesa nem numero fixo de alvos'); }
+  { const mp = ler('scripts/gerar_marca_propria.js'); const wfmp = ler('.github/workflows/ceven-cron-marca-propria.yml');
+    ok(mp.includes('FORNECEDOR_MARCA_PROPRIA = 24318') && mp.includes('catalogo_produtos_por_filial.json') && !mp.includes("readFile(path.join(__dirname, '..', 'Produtos"), 'lista de marca propria vem do catalogo (fornecedor 24318), nao do xls do Drive');
+    const cat = JSON.parse(ler('config/catalogo_produtos_por_filial.json')); const iF = cat.campos.indexOf('cod_fornecedor'); const iC = cat.campos.indexOf('codprod');
+    const skus = new Set(cat.linhas.filter(l => Number(l[iF]) === 24318).map(l => l[iC]));
+    ok(skus.size === 36 && !skus.has(12229), `catalogo tem 36 produtos da marca propria (24318) e nao inclui o SKU 12229 (achou ${skus.size})`);
+    ok(!wfmp.includes('Marcas Exclusivas.xls" .'), 'workflow de marca propria nao baixa mais o xls do Drive'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);
