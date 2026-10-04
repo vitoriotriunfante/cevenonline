@@ -958,7 +958,7 @@ async function gatilhoSup() {
 }
 // ============================== RENDER ==============================
 // "GERENTE MCD", "GERENTE TPH"... = vendedores ligados direto ao gerente, NAO sao supervisores (decisao do Vitorio, 04/10/2026).
-const ehSupFalso = (n) => /^GERENTE\b/i.test(String(n || '').trim());
+const ehSupFalso = (n) => /^(GERENTE\b|RCAS INATIVOS|VENDA EMPRESA)/i.test(String(n || '').trim());
 function modoSup() { const t = sp(), m = t.h * 60 + t.m; return emJanelaSupPeriodica(m) && ORDEM.some(s => (SUPS[s] || []).some(x => !/GERENTE/i.test(x.nome) && (!x.fez_compromisso || !x.iniciou_ret))); }
 function renderTotais(stats) {
   const s = f => stats.reduce((x, y) => x + (f(y) || 0), 0), fat = s(x => x.fat), pend = s(x => x.pendente), mF = METAS ? METAS.total.meta_fat : s(x => x.metaFat), pos = s(x => x.realCli), mP = METAS ? METAS.total.meta_pos : s(x => x.metaPos);

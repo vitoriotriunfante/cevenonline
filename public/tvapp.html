@@ -390,7 +390,7 @@ function horariosCheckinDoDia(cl) {
 }
 let lastOk = null, refreshing = false, ordem = [], idxRonda = 0, modoManual = ['auto','ronda','painel','sup'].includes(P.get('modo')) ? P.get('modo') : store.get('ceven_tv_modo', 'auto');
 // "GERENTE MCD", "GERENTE TPH"... = vendedores ligados direto ao gerente, NAO sao supervisores (decisao do Vitorio, 04/10/2026).
-const ehSupFalso = (n) => /^GERENTE\b/i.test(String(n || '').trim());
+const ehSupFalso = (n) => /^(GERENTE\b|RCAS INATIVOS|VENDA EMPRESA)/i.test(String(n || '').trim());
 const SUP_INI = 11 * 60 + 30, SUP_FIM = 12 * 60; // janela do alerta de supervisores (Brasília)
 let SUP = null;   // situação dos supervisores no dia (tv-supervisores)
 let ALERTAS = [];         // ativos agora

@@ -158,6 +158,8 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     ok(wf.includes('scripts/coletar_plus_lideranca.js') && wf.includes('scratch/build_brasileirao_dataset.py') && wf.includes('git push') && !/\n\s*schedule:/.test(wf) && wf.includes('CEVEN_ADMIN_PASS'), 'Brasileirao gerado online: workflow coleta o Plus, gera o dataset e grava na main (sem schedule proprio)');
     ok(dl.includes('gh workflow run brasileirao-dataset.yml') && dl.includes('actions: write'), 'o Data Lake dispara o gerador do Brasileirao no fim');
     ok(pg.includes('raw.githubusercontent.com/vitoriotriunfante/cevenonline/main/public/dados_brasileirao.json') && pg.includes('gerado_em'), 'pagina do Brasileirao usa o dataset mais recente entre o do GitHub e o do site'); }
+  { const bd = JSON.parse(ler('public/dados_brasileirao.json'));
+    ok(!bd.supervisores.some(s => /^(GERENTE |RCAS INATIVOS|VENDA EMPRESA)/i.test(s.supervisor)), 'pseudo-supervisores (GERENTE X, RCAS INATIVOS, VENDA EMPRESA) fora da Liga dos Supervisores'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);

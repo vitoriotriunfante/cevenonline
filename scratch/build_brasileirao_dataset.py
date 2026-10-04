@@ -401,7 +401,9 @@ sups_tabela = []
 # Decisao do Vitorio, 03/10/2026: ficam FORA da Liga dos Supervisores; os vendedores continuam no ranking de vendedores
 # e contam na equipe do gerente.
 def eh_supervisor_de_verdade(nome):
-    return not str(nome).strip().upper().startswith('GERENTE ')
+    n = str(nome).strip().upper()
+    # "GERENTE <FILIAL>", "RCAS INATIVOS" e "VENDA EMPRESA (INTERNO)" nao sao pessoas/supervisores (decisao do Vitorio, 04/10/2026)
+    return not (n.startswith('GERENTE ') or n.startswith('RCAS INATIVOS') or n.startswith('VENDA EMPRESA'))
 sups_set = set((v['filial'], v['supervisor']) for v in vendedores_lista if v['supervisor'] and eh_supervisor_de_verdade(v['supervisor']))
 for fil, s in sups_set:
     vends = [v for v in vendedores_lista if v['filial'] == fil and v['supervisor'] == s]
