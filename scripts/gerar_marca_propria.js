@@ -58,6 +58,8 @@ async function main() {
   // outro valor (ou omitido) só gera os arquivos, sem enviar nada -- seguro pra
   // rodar local sem risco de disparo acidental.
   const destino = process.argv[3] || 'arquivo';
+  // destino=vitorio (teste): envia SO para o Vitorio, nunca para gerentes, e NAO marca o ciclo como disparado.
+  const enviaVitorio = destino === 'todos' || destino === 'vitorio';
 
   // Validação Rigorosa de Calendário (Fins de semana, feriados e esporádicos)
   const permissao = engine.verificarPermissaoCalendario(dataRef);
@@ -319,7 +321,7 @@ async function main() {
     });
   });
   fs.writeFileSync(path.join(outDir, '10_00__VITORIO.txt'), msgVitorio.trim(), 'utf8');
-  if (destino === 'todos') {
+  if (enviaVitorio) {
     for (const tel of engine.WHATSAPP_VITORIO) {
       const r = await engine.enviarWhatsapp(tel, msgVitorio.trim());
       console.log(`  Marca Própria Vitório (${tel}) — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);

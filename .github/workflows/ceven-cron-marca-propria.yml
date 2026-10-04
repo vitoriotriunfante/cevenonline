@@ -15,7 +15,16 @@ name: CEVEN — Marca Própria 10:00
 on:
   # SEM schedule aqui — o Cloudflare (ceven-cron-sync) dispara workflow_dispatch
   # exatamente às 10:00 BRT. Ter schedule E CF = duplicação garantida.
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      destino:
+        description: 'Destinatário (todos = envio oficial; vitorio = teste só para o Vitório, não marca o ciclo)'
+        required: true
+        default: 'todos'
+        type: choice
+        options:
+          - 'todos'
+          - 'vitorio'
 
 concurrency:
   group: ceven-marca-propria
@@ -106,7 +115,7 @@ jobs:
 
       - name: Gerar relatórios de Marca Própria (hoje + acumulado do mês)
         if: steps.calendario.outputs.bloqueado != 'true'
-        run: node scripts/gerar_marca_propria.js "$(date -u -d '-3 hours' +%Y-%m-%d)" todos
+        run: node scripts/gerar_marca_propria.js "$(date -u -d '-3 hours' +%Y-%m-%d)" "${{ github.event.inputs.destino || 'todos' }}"
 
       - name: Copiar para a pasta oficial de entrega
         if: steps.calendario.outputs.bloqueado != 'true'
@@ -125,7 +134,7 @@ jobs:
         run: curl -sS -m 15 -X POST "https://ceven-cftv-matrix.pages.dev/api/cron-lock?dono=marca-propria" || true
 
       - name: ⚡ Enviar via WhatsApp (ciclo 10:00 — todos)
-        if: steps.calendario.outputs.bloqueado != 'true'
+        if: steps.calendario.outputs.bloqueado != 'true' && (github.event.inputs.destino || 'todos') == 'todos'
         env:
           CEVEN_ADMIN_USER: ${{ secrets.CEVEN_ADMIN_USER }}
           CEVEN_ADMIN_PASS: ${{ secrets.CEVEN_ADMIN_PASS }}
@@ -143,7 +152,7 @@ jobs:
         run: curl -sS -m 15 -X DELETE "https://ceven-cftv-matrix.pages.dev/api/cron-lock" || true
 
       - name: Commitar relatórios + marca de disparo
-        if: always() && steps.calendario.outputs.bloqueado != 'true'
+        if: always() && steps.calendario.outputs.bloqueado != 'true' && (github.event.inputs.destino || 'todos') == 'todos'
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
