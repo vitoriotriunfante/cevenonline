@@ -5,8 +5,8 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📌 *RESULTADO GERAL DA COMPANHIA:*
-💰 *Total Digitado:* R$ 373.886,77
-📦 *Total de Pedidos:* 94 pedidos
+💰 *Total Digitado:* R$ 383.892,44
+📦 *Total de Pedidos:* 95 pedidos
 📍 *Visitas Realizadas:* 0 de 0 (0,00%)
 
 🎯 *FORÇA DE VENDAS VAREJO:*
@@ -23,7 +23,7 @@
 📊 *DESEMPENHO POR FILIAL (RANKING DE VENDAS)*
 
 🥇 *1. FILIAL TPH — VAGNER / FÁBIO*
-💰 Total Digitado: R$ 182.240,97 • 📦 Pedidos: 31
+💰 Total Digitado: R$ 192.246,64 • 📦 Pedidos: 32
 📍 Visitas Varejo: 0 de 0 (0,0%) • Eficácia: 0,0%
 👥 Varejo com Pedido: 7 de 66 (11%) | 🚨 Varejo SEM PEDIDO: *59 (89%)*
 ✂️ Cortes: R$ 0,00 (0 ped) • 🔒 Bloqueados: R$ 0,00 (0 ped)
