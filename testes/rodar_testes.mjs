@@ -143,6 +143,9 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
   { const c = JSON.parse(ler('config/pontuacao_brasileirao.json')).plus_lideranca_supervisor; const ap = ler('public/apresentacao-diretoria.html');
     ok(c && c.compromisso_matinal_ate_11h30.pontos === 15 && c.ret_inicio_e_execucao.pontos === 25 && c.zero_devolucoes_equipe_no_dia.pontos === 30 && !JSON.stringify(c).includes('destravamento_de_bloqueados'), 'plus de lideranca so bonus: +15 compromisso, +25 RET, +30 zero devolucoes, sem destravamento');
     ok(!/Destravamento de Bloqueados no Dia/.test(ap) && !/se atrasar: -15|se faltar: -35/.test(ap), 'apresentacao da diretoria sem destravamento e sem punicao no Plus'); }
+  { const bd = JSON.parse(ler('public/dados_brasileirao.json')); const nomes = bd.gerentes.map(g => g.nome);
+    ok(new Set(nomes).size === nomes.length && nomes.includes('Fábio Machado') && nomes.includes('Fábio Colares') && !nomes.includes('Fábio'), 'Brasileirao: gerentes homonimos de filiais diferentes ficam separados (Fábio Machado TBL e Fábio Colares TPH)');
+    ok(bd.gerentes.every(g => g.filiais.length === 1 || g.nome.includes('/')), 'Brasileirao: cada gerente pertence a uma filial'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);

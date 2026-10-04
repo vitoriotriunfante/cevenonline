@@ -289,15 +289,18 @@ for idx, f in enumerate(filiais_tabela):
 
 # 4. Tabela Gerentes — mesma lógica de maioria, agregada pelas equipes do gerente.
 gerentes_tabela = []
-gerentes_set = set(v['gerente'] for v in vendedores_lista if v['gerente'])
-for g in gerentes_set:
-    vends = [v for v in vendedores_lista if v['gerente'] == g]
+# Gerente = FILIAL + nome (decisao do Vitorio, 03/10/2026): o mesmo primeiro nome existe em filiais diferentes
+# (Fabio Machado em TBL e Fabio Colares em TPH) e NAO podem virar um gerente so.
+NOME_COMPLETO_GERENTE = {('TBL', 'Fábio'): 'Fábio Machado', ('TPH', 'Fábio'): 'Fábio Colares'}
+gerentes_set = sorted(set((v['filial'], v['gerente']) for v in vendedores_lista if v['gerente']))
+for fil_g, g in gerentes_set:
+    vends = [v for v in vendedores_lista if v['gerente'] == g and v['filial'] == fil_g]
     rcas_ger = [v['rca'] for v in vends]
     vitorias, empates, derrotas, pts_tabela, forma = agrega_por_maioria(rcas_ger, g)
     tot_gp = sum(v['gp'] for v in vends)
     tot_gc = sum(v['gc'] for v in vends)
     gerentes_tabela.append({
-        'nome': g, 'filiais': sorted(set(v['filial'] for v in vends)), 'total_vendedores': len(vends),
+        'nome': NOME_COMPLETO_GERENTE.get((fil_g, g), g), 'filiais': sorted(set(v['filial'] for v in vends)), 'total_vendedores': len(vends),
         'jogos': len(DIAS_RODADA), 'pts_tabela': pts_tabela, 'vitorias': vitorias, 'empates': empates,
         'derrotas': derrotas, 'gp': tot_gp, 'gc': tot_gc, 'sg': tot_gp - tot_gc,
         'aprov': round((pts_tabela / (len(DIAS_RODADA) * 3)) * 100, 1) if DIAS_RODADA else 0, 'forma': forma

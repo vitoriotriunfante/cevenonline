@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-04T01:32:40.219193Z",
+  "gerado_em": "2026-10-04T01:38:50.819491Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -315,6 +315,30 @@
       "pos": 2
     },
     {
+      "nome": "Fábio Colares",
+      "filiais": [
+        "TPH"
+      ],
+      "total_vendedores": 34,
+      "jogos": 5,
+      "pts_tabela": 5,
+      "vitorias": 0,
+      "empates": 5,
+      "derrotas": 0,
+      "gp": 1201,
+      "gc": 2103,
+      "sg": -902,
+      "aprov": 33.3,
+      "forma": [
+        "E",
+        "E",
+        "E",
+        "E",
+        "E"
+      ],
+      "pos": 3
+    },
+    {
       "nome": "Diego",
       "filiais": [
         "TBE"
@@ -336,7 +360,7 @@
         "E",
         "E"
       ],
-      "pos": 3
+      "pos": 4
     },
     {
       "nome": "Marcelo",
@@ -360,7 +384,7 @@
         "E",
         "E"
       ],
-      "pos": 4
+      "pos": 5
     },
     {
       "nome": "Marcos",
@@ -384,7 +408,7 @@
         "E",
         "E"
       ],
-      "pos": 5
+      "pos": 6
     },
     {
       "nome": "Vagner",
@@ -400,31 +424,6 @@
       "gp": 2313,
       "gc": 4325,
       "sg": -2012,
-      "aprov": 33.3,
-      "forma": [
-        "E",
-        "E",
-        "E",
-        "E",
-        "E"
-      ],
-      "pos": 6
-    },
-    {
-      "nome": "Fábio",
-      "filiais": [
-        "TBL",
-        "TPH"
-      ],
-      "total_vendedores": 74,
-      "jogos": 5,
-      "pts_tabela": 5,
-      "vitorias": 0,
-      "empates": 5,
-      "derrotas": 0,
-      "gp": 3319,
-      "gc": 7927,
-      "sg": -4608,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -484,6 +483,30 @@
       "pos": 9
     },
     {
+      "nome": "Fábio Machado",
+      "filiais": [
+        "TBL"
+      ],
+      "total_vendedores": 40,
+      "jogos": 5,
+      "pts_tabela": 4,
+      "vitorias": 0,
+      "empates": 4,
+      "derrotas": 1,
+      "gp": 2118,
+      "gc": 5824,
+      "sg": -3706,
+      "aprov": 26.7,
+      "forma": [
+        "D",
+        "E",
+        "E",
+        "E",
+        "E"
+      ],
+      "pos": 10
+    },
+    {
       "nome": "Radke / Leandro",
       "filiais": [
         "TPA"
@@ -505,7 +528,7 @@
         "E",
         "D"
       ],
-      "pos": 10
+      "pos": 11
     },
     {
       "nome": "Adriano",
@@ -529,7 +552,7 @@
         "E",
         "E"
       ],
-      "pos": 11
+      "pos": 12
     },
     {
       "nome": "Saldanha",
@@ -553,7 +576,7 @@
         "E",
         "D"
       ],
-      "pos": 12
+      "pos": 13
     }
   ],
   "supervisores": [
@@ -2214,75 +2237,6 @@
       "pos": 72
     },
     {
-      "supervisor": "GERENTE TBL",
-      "filial": "TBL",
-      "gerente": "Fábio",
-      "total_vendedores": 1,
-      "jogos": 5,
-      "pts_tabela": 0,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 5,
-      "gp": 0,
-      "gc": 0,
-      "sg": 0,
-      "aprov": 0.0,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D"
-      ],
-      "pos": 73
-    },
-    {
-      "supervisor": "GERENTE TCV",
-      "filial": "TCV",
-      "gerente": "Leonardo",
-      "total_vendedores": 9,
-      "jogos": 5,
-      "pts_tabela": 0,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 5,
-      "gp": 0,
-      "gc": 0,
-      "sg": 0,
-      "aprov": 0.0,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D"
-      ],
-      "pos": 74
-    },
-    {
-      "supervisor": "GERENTE API",
-      "filial": "API",
-      "gerente": "Marcelo",
-      "total_vendedores": 1,
-      "jogos": 5,
-      "pts_tabela": 0,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 5,
-      "gp": 0,
-      "gc": 0,
-      "sg": 0,
-      "aprov": 0.0,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D"
-      ],
-      "pos": 75
-    },
-    {
       "supervisor": "GERENTE TSJ",
       "filial": "TSJ",
       "gerente": "Saldanha",
@@ -2303,11 +2257,11 @@
         "D",
         "D"
       ],
-      "pos": 76
+      "pos": 73
     },
     {
-      "supervisor": "GERENTE TPH",
-      "filial": "TPH",
+      "supervisor": "GERENTE TBL",
+      "filial": "TBL",
       "gerente": "Fábio",
       "total_vendedores": 1,
       "jogos": 5,
@@ -2326,99 +2280,7 @@
         "D",
         "D"
       ],
-      "pos": 77
-    },
-    {
-      "supervisor": "GERENTE TBE",
-      "filial": "TBE",
-      "gerente": "Diego",
-      "total_vendedores": 1,
-      "jogos": 5,
-      "pts_tabela": 0,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 5,
-      "gp": 0,
-      "gc": 0,
-      "sg": 0,
-      "aprov": 0.0,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D"
-      ],
-      "pos": 78
-    },
-    {
-      "supervisor": "GERENTE MCD",
-      "filial": "MCD",
-      "gerente": "Cleverson",
-      "total_vendedores": 3,
-      "jogos": 5,
-      "pts_tabela": 0,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 5,
-      "gp": 0,
-      "gc": 0,
-      "sg": 0,
-      "aprov": 0.0,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D"
-      ],
-      "pos": 79
-    },
-    {
-      "supervisor": "VENDA EMPRESA (INTERNO)",
-      "filial": "TSJ",
-      "gerente": "Saldanha",
-      "total_vendedores": 3,
-      "jogos": 5,
-      "pts_tabela": 0,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 5,
-      "gp": 0,
-      "gc": 0,
-      "sg": 0,
-      "aprov": 0.0,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D"
-      ],
-      "pos": 80
-    },
-    {
-      "supervisor": "GERENTE TCA",
-      "filial": "TCA",
-      "gerente": "Becher",
-      "total_vendedores": 1,
-      "jogos": 5,
-      "pts_tabela": 0,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 5,
-      "gp": 0,
-      "gc": 0,
-      "sg": 0,
-      "aprov": 0.0,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D"
-      ],
-      "pos": 81
+      "pos": 74
     },
     {
       "supervisor": "RCAS INATIVOS",
@@ -2441,7 +2303,76 @@
         "D",
         "D"
       ],
-      "pos": 82
+      "pos": 75
+    },
+    {
+      "supervisor": "VENDA EMPRESA (INTERNO)",
+      "filial": "TSJ",
+      "gerente": "Saldanha",
+      "total_vendedores": 3,
+      "jogos": 5,
+      "pts_tabela": 0,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 5,
+      "gp": 0,
+      "gc": 0,
+      "sg": 0,
+      "aprov": 0.0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D"
+      ],
+      "pos": 76
+    },
+    {
+      "supervisor": "ALESSANDRO DE OLIVEIRA ALMEIDA",
+      "filial": "TBE",
+      "gerente": "Diego",
+      "total_vendedores": 2,
+      "jogos": 5,
+      "pts_tabela": 0,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 5,
+      "gp": 0,
+      "gc": 0,
+      "sg": 0,
+      "aprov": 0.0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D"
+      ],
+      "pos": 77
+    },
+    {
+      "supervisor": "GERENTE TCA",
+      "filial": "TCA",
+      "gerente": "Becher",
+      "total_vendedores": 1,
+      "jogos": 5,
+      "pts_tabela": 0,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 5,
+      "gp": 0,
+      "gc": 0,
+      "sg": 0,
+      "aprov": 0.0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D"
+      ],
+      "pos": 78
     },
     {
       "supervisor": "EVERTON APARECIDO DA SILVA",
@@ -2464,13 +2395,105 @@
         "D",
         "D"
       ],
+      "pos": 79
+    },
+    {
+      "supervisor": "GERENTE MCD",
+      "filial": "MCD",
+      "gerente": "Cleverson",
+      "total_vendedores": 3,
+      "jogos": 5,
+      "pts_tabela": 0,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 5,
+      "gp": 0,
+      "gc": 0,
+      "sg": 0,
+      "aprov": 0.0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D"
+      ],
+      "pos": 80
+    },
+    {
+      "supervisor": "GERENTE TPH",
+      "filial": "TPH",
+      "gerente": "Fábio",
+      "total_vendedores": 1,
+      "jogos": 5,
+      "pts_tabela": 0,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 5,
+      "gp": 0,
+      "gc": 0,
+      "sg": 0,
+      "aprov": 0.0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D"
+      ],
+      "pos": 81
+    },
+    {
+      "supervisor": "GERENTE TBE",
+      "filial": "TBE",
+      "gerente": "Diego",
+      "total_vendedores": 1,
+      "jogos": 5,
+      "pts_tabela": 0,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 5,
+      "gp": 0,
+      "gc": 0,
+      "sg": 0,
+      "aprov": 0.0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D"
+      ],
+      "pos": 82
+    },
+    {
+      "supervisor": "GERENTE API",
+      "filial": "API",
+      "gerente": "Marcelo",
+      "total_vendedores": 1,
+      "jogos": 5,
+      "pts_tabela": 0,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 5,
+      "gp": 0,
+      "gc": 0,
+      "sg": 0,
+      "aprov": 0.0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D"
+      ],
       "pos": 83
     },
     {
-      "supervisor": "ALESSANDRO DE OLIVEIRA ALMEIDA",
-      "filial": "TBE",
-      "gerente": "Diego",
-      "total_vendedores": 2,
+      "supervisor": "GERENTE TCV",
+      "filial": "TCV",
+      "gerente": "Leonardo",
+      "total_vendedores": 9,
       "jogos": 5,
       "pts_tabela": 0,
       "vitorias": 0,
