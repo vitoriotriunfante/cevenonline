@@ -164,6 +164,19 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     for (let i = 1; i < s.length; i++) { if (s[i - 1].pts_tabela === s[i].pts_tabela && (s[i - 1].plus_lideranca || 0) < (s[i].plus_lideranca || 0)) certo = false; }
     ok(certo, 'Liga dos Supervisores: o Plus desempata (com pontos iguais, quem tem mais Plus fica na frente) e nao soma pontos');
     ok(ler('scratch/build_brasileirao_dataset.py').includes("x['pts_tabela'], x['plus_lideranca'] or 0"), 'gerador ordena por pontos, depois Plus, vitorias e saldo'); }
+  { const { aplicaNaoSupervisores } = await import(pathToFileURL(join(RAIZ, 'functions', '_lib', 'nao_supervisores.js')).href);
+    const corpo = { filiais: {
+      TBL: [{ rca: '198', supervisor: 'FABIO FURLAN MACHADO', gerente: 'Fábio' }, { rca: '1', supervisor: 'CIRLENE DE FATIMA GOMES VITORINO', gerente: 'Fábio' }],
+      TPH_FABIO: [{ rca: '47', supervisor: 'CLT - Rodrigo Bertoni', gerente: 'Fábio' }],
+      TBE: [{ rca: '284', supervisor: 'Alessandro de Oliveira Almeida', gerente: 'Diego' }],
+      API: [{ rca: '9', supervisor: 'FABIO FURLAN MACHADO', gerente: 'Marcelo' }] } };
+    aplicaNaoSupervisores(corpo); aplicaNaoSupervisores(corpo); // idempotente
+    ok(corpo.filiais.TBL[0].supervisor === '' && corpo.filiais.TBL[0].supervisor_original === 'FABIO FURLAN MACHADO' && corpo.filiais.TBL[0].gerente === 'Fábio', 'nao sao supervisores: Fabio Furlan Machado (TBL) fica sem supervisor, guarda o original e continua com o gerente');
+    ok(corpo.filiais.TPH_FABIO[0].supervisor === '' && corpo.filiais.TBE[0].supervisor === '', 'nao sao supervisores: Rodrigo Bertoni (TPH, com grupo e CLT) e Alessandro de Oliveira Almeida (TBE) tambem');
+    ok(corpo.filiais.TBL[1].supervisor === 'CIRLENE DE FATIMA GOMES VITORINO', 'supervisor de verdade nao e tocado');
+    ok(corpo.filiais.API[0].supervisor === 'FABIO FURLAN MACHADO', 'a regra e por filial: mesmo nome em outra filial nao e tocado');
+    ok(corpo.nao_supervisores && corpo.nao_supervisores.lista.length === 3 && corpo.nao_supervisores.por.includes('Vitório'), 'a resposta da equipe registra a lista e quem decidiu (auditoria)');
+    ok(ler('functions/api/tv-mostra.js').includes('aplicaNaoSupervisores(o)'), 'tv-mostra aplica a regra em todas as fontes (D1, Drive e copia)'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);

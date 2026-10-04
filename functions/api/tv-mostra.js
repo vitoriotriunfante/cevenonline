@@ -12,6 +12,7 @@
 //            na tela que está usando cópia, não a fonte viva.
 // =========================================================================
 import { lerAbaXlsx, montaMostra } from '../_lib/xlsx_mostra.js';
+import { aplicaNaoSupervisores } from '../_lib/nao_supervisores.js'; // nomes que NAO sao supervisores (decisao 04/10/2026)
 
 const PASTA_PADRAO = '1sqzFpWEKb1WKhT9MksQcQl8RuY94DQum';
 const NOME_ARQUIVO = 'VENDEDORES AUDITADOS.xlsx';
@@ -37,7 +38,7 @@ async function tokenDrive(sa) {
 }
 
 export async function onRequestGet({ env, request }) {
-  const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: CORS });
+  const resp = (o, s = 200) => new Response(JSON.stringify(s === 200 ? aplicaNaoSupervisores(o) : o), { status: s, headers: CORS });
   const url = new URL(request.url);
   const bypassCache = url.searchParams.has('nocache') || url.searchParams.has('t');
   if (!bypassCache && cache.corpo && Date.now() < cache.exp) return resp(cache.corpo);
