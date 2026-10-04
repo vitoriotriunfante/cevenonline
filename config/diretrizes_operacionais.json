@@ -74,9 +74,7 @@
   "esporadicos": {
     "permitir_fim_de_semana": false,
     "permitir_feriados": false,
-    "datas_autorizadas": [
-      "2026-10-03"
-    ],
+    "datas_autorizadas": [],
     "observacao": "Para autorizar disparo extraordinário em sábado, domingo ou feriado, adicione a data 'YYYY-MM-DD' em datas_autorizadas ou altere permitir_fim_de_semana/permitir_feriados para true."
   }
 }
