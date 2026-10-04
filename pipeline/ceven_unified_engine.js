@@ -1212,7 +1212,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
 
 // Validador Oficial de Calendário Operacional (Fins de Semana, Feriados e Exceções Esporádicas)
 function verificarPermissaoCalendario(dataIso, diretrizes = null, args = {}) {
-  const dataHoje = dataIso || new Date().toISOString().split('T')[0];
+  const dataHoje = dataIso || new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
   const dtBrt = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
   const diaSemana = dtBrt.getDay(); // 0 = Domingo, 6 = Sábado
   const isFimDeSemana = (diaSemana === 0 || diaSemana === 6);
@@ -1313,7 +1313,7 @@ async function main() {
   const acao = args.acao || 'completo';
   const destino = args.destino || 'dry_run';
   const hora = args.hora || '11:00';
-  const dataHoje = args.data || new Date().toISOString().split('T')[0];
+  const dataHoje = args.data || new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
 
   const diretrizes = carregarDiretrizesOperacionais(args);
 
