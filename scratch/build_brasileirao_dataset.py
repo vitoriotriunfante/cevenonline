@@ -117,6 +117,7 @@ FILIAIS_VALIDAS = ['TBL', 'TPH', 'TCV', 'ABC', 'API', 'TSJ', 'TBE', 'TPA', 'MCD'
 # fonte que a TV/CFTV usa). NUNCA mais dependente de analises/pedidos_historico_ceven.db (SQLite
 # local) — violava a premissa online (ver PREMISSA_ONLINE.md), achado em 28/09/2026.
 rca_map = {}
+ocultos_fora = 0
 try:
     req = urllib.request.Request('https://ceven-cftv-matrix.pages.dev/api/tv-mostra', headers={'User-Agent': 'Mozilla/5.0'})
     with urllib.request.urlopen(req, timeout=20) as resp:
@@ -125,6 +126,11 @@ try:
         fil_canonica = fil.split('_')[0]  # SIGLA_GRUPO -> SIGLA (ver functions/_lib/xlsx_mostra.js)
         for item in itens:
             rca_id = str(item['rca'])
+            # Quem a equipe OCULTA (mostra: false — cadastro de teste, inativo, "GERENTE X"...) NAO disputa o Brasileirao:
+            # mesma regra das TVs e do WhatsApp ("quem aparece = equipe"). Decisao do Vitorio, 04/10/2026.
+            if item.get('mostra') is False:
+                ocultos_fora += 1
+                continue
             rca_map[rca_id] = {
                 'nome': item['nome'], 'filial': fil_canonica, 'sup': item.get('supervisor', ''),
                 'gerente': item.get('gerente', '')
@@ -133,7 +139,7 @@ except Exception as e:
     print(f"❌ Erro ao carregar /api/tv-mostra: {e}")
     print("Abortando SEM gravar public/dados_brasileirao.json — sem a lista de vendedores não dá pra montar o dataset.")
     sys.exit(1)
-print(f"Vendedores carregados de /api/tv-mostra: {len(rca_map)}")
+print(f"Vendedores carregados de /api/tv-mostra: {len(rca_map)} (ocultos pela equipe, fora da liga: {ocultos_fora})")
 
 # Dias de rodada: so DIAS UTEIS (segunda a sexta) e SEM feriados nacionais — cada dia util e um jogo
 # (decisao do Vitorio, 03/10/2026: sabado, domingo e feriado nao contam como jogo, mesmo que haja lance no D1).
