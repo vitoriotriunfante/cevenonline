@@ -348,7 +348,7 @@ async function carregaBase() {
     MOSTRA = null; listaAviso = 'LISTA MOSTRA_DISPAROS INDISPONÍVEL — sem vendedores até ela voltar';
     if (av) { av.textContent = listaAviso; av.style.display = 'inline-block'; }
   }
-  const mt = await j('/metas_mes.json?t=' + Date.now(), 15000);
+  const mt = await j('/api/metas-mes', 15000); // metas ao vivo do CEVEN (04/10/2026)
   if (mt && mt.filiais && mt.mes === sp().date.slice(0, 7)) METAS = mt;
 }
 const K_DATA = 'ceven_mtz_data_';
@@ -963,7 +963,7 @@ function modoSup() { const t = sp(), m = t.h * 60 + t.m; return emJanelaSupPerio
 function renderTotais(stats) {
   const s = f => stats.reduce((x, y) => x + (f(y) || 0), 0), fat = s(x => x.fat), pend = s(x => x.pendente), mF = METAS ? METAS.total.meta_fat : s(x => x.metaFat), pos = s(x => x.realCli), mP = METAS ? METAS.total.meta_pos : s(x => x.metaPos);
   const pendHtml = pend > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--muted);margin-top:2px;letter-spacing:-0.2px">+ ${brl(pend)} pendente</div>` : '';
-  $('tot').innerHTML = [['Faturado no mês', `${brl(fat)} <small>${mF ? pc(fat / mF * 100) : ''}</small>${pendHtml}`], [METAS ? 'Meta do mês (PNA)' : 'Meta (soma)', brl(mF)], ['Positivados no mês', `${nv(pos)} <small>de ${nv(mP)} · ${mP ? pc(pos / mP * 100) : ''}</small>`],
+  $('tot').innerHTML = [['Faturado no mês', `${brl(fat)} <small>${mF ? pc(fat / mF * 100) : ''}</small>${pendHtml}`], [METAS ? 'Meta do mês (CEVEN)' : 'Meta (soma)', brl(mF)], ['Positivados no mês', `${nv(pos)} <small>de ${nv(mP)} · ${mP ? pc(pos / mP * 100) : ''}</small>`],
     ['Digitado hoje', brl(s(x => x.dig))], ['Visitas feitas / rota', nv(s(x => x.feitas)) + ' / ' + nv(s(x => x.rota))], ['Zerados · Pênaltis ativos', nv(s(x => x.nZer)) + ' · ' + nv(s(x => x.pen))]].map(([l, v]) => `<div><span>${l}</span><b class="mono">${v}</b></div>`).join('');
   $('nv').textContent = s(x => x.n);
 }

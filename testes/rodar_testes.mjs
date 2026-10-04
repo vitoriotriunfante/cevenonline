@@ -151,6 +151,9 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     ok(bd.vendedores.some(v => /^GERENTE /i.test(v.supervisor)), 'os vendedores ligados direto ao gerente continuam no ranking de vendedores'); }
   { const mz = ler('public/matrizapp.html'), tv = ler('public/tvapp.html'), ge = ler('public/gestao-equipe.html');
     ok(mz.includes('const ehSupFalso') && mz.includes('sups = supsAll.filter(s => !ehSupFalso(s.nome))') && tv.includes('const ehSupFalso') && tv.includes('if (ehSupFalso(x.sup)) return;') && ge.includes('direto ao gerente'), 'supervisor falso fora das telas: "GERENTE <FILIAL>" nao aparece como supervisor na Matriz, na TV da filial e na Gestao de Equipe'); }
+  { const tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), api = ler('functions/api/metas-mes.js');
+    ok(tv.includes("j('/api/metas-mes'") && mz.includes("j('/api/metas-mes'") && !tv.includes("/metas_mes.json") && !mz.includes("'/metas_mes.json") && api.includes('mes_meta_faturado') && api.includes('mes_meta_positivados'), 'metas do mes vem do CEVEN ao vivo (/api/metas-mes), nao do metas_mes.json estatico');
+    ok(!/Meta do mês (PNA)/.test(tv + mz), 'rotulo da meta nao diz mais PNA (e do CEVEN)'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);

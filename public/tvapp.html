@@ -409,9 +409,9 @@ async function j(url, ms = 25000) {
 const limpaNome = n => String(n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
 const norm = n => String(n || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z ]/g, '').replace(/\s+/g, ' ').trim();
 let listaMostra = false;
-let METAS = null; // metas oficiais do mês (PNA) — public/metas_mes.json
+let METAS = null; // metas do mês AO VIVO do CEVEN — /api/metas-mes (decisão do Vitório, 04/10/2026; antes era um arquivo estático de setembro)
 async function carregaMetas() {
-  const d = await j('/metas_mes.json?t=' + Date.now(), 15000);
+  const d = await j('/api/metas-mes', 15000);
   if (d && d.filiais && d.filiais[FIL] && d.mes === sp().date.slice(0, 7)) METAS = d.filiais[FIL]; else METAS = null; // mês diferente = não usa (evita meta velha)
 }
 const MOSTRA_TUDO = P.get('mostrartudo') === '1'; // flag explícita: ignora a coluna MOSTRA NOS DISPAROS (uso excepcional, por link)
@@ -1104,7 +1104,7 @@ function renderTotais(vs) {
   const pendHtml = pend > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--mut);margin-top:2px;letter-spacing:-0.2px">+ ${brl(pend)} pendente</div>` : '';
   $('tot').innerHTML = [
     ['Faturado no mês', `${brl(fat)} <small style="font-size:14px;color:var(--mut)">${pctF != null ? pc(pctF) : ''}</small>${pendHtml}`],
-    [oficial ? 'Meta do mês (PNA)' : 'Meta (soma dos vendedores)', brl(metaFat)],
+    [oficial ? 'Meta do mês (CEVEN)' : 'Meta (soma dos vendedores)', brl(metaFat)],
     ['Positivados no mês', `${nv(realCli)} <small style="font-size:14px;color:var(--mut)">de ${nv(metaPos)} · ${pctP != null ? pc(pctP) : ''}</small>`],
     ['Digitado hoje', brl(s(vs, v => v.dig))], ['Positivações hoje', nv(s(vs, v => v.pos))],
     ['Visitas feitas / rota', s(campo, v => v.feitas) + ' / ' + s(campo, v => v.rota)], ['Zerados hoje', campo.filter(zerado).length + ' de ' + campo.length]]
