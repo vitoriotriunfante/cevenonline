@@ -18,10 +18,9 @@
 // REGRA: nunca inventa dado. Cliente sem latitude/longitude na resposta do CEVEN é
 //          simplesmente ignorado no mapa (não entra) — nunca usamos coordenada aproximada.
 //          Contadores de visita/pedido contam TODO cliente do roteiro, com ou sem lat/lon.
-// OURO NA MESA — RESGATADOS HOJE: cruza public/ouro_na_mesa_setembro.json (dataset mensal de
-//          clientes visitados sem venda no mês) com os POSITIVADOS de hoje. Para cada resgate,
-//          busca o valor real do pedido em /api/rca/historico-cliente/{id} (soma de skus[].total
-//          da visita mais recente — roteiro-hoje NÃO traz esse valor, só o histórico do cliente).
+// CLIENTES RECORRENCIA (03/10/2026, decisao do Vitorio; substitui o antigo "Ouro na Mesa"): cliente do roteiro-hoje com a TAG
+//          RECORRENCIA em focos[].industria_foco. Os "resgatados" sao os que tem a tag e POSITIVARAM hoje; para cada um busca o
+//          valor real do pedido em /api/rca/historico-cliente/{id} (soma de skus[].total da visita mais recente).
 // CANAL/COBRANÇA DE ROTA (decisão do Vitório, 28/09/2026 — vale para os 3 projetos: TV/CFTV,
 //          WhatsApp (já implementado em pipeline/ceven_unified_engine.js CANAIS_VAREJO) e TV
 //          Executiva): só entram nos agregados de VISITA/POSITIVAÇÃO os canais de campo — VJ,
@@ -60,18 +59,6 @@ function dataHojeBrasilia() {
   new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' })
     .formatToParts(new Date()).forEach((x) => (p[x.type] = x.value));
   return `${p.year}-${p.month}-${p.day}`;
-}
-
-async function carregaCnpjsOuro(env, request) {
-  try {
-    const assetUrl = new URL('/ouro_na_mesa_setembro.json', request.url);
-    const r = env.ASSETS ? await env.ASSETS.fetch(new Request(assetUrl)) : await fetch(assetUrl, { cache: 'no-store' });
-    if (!r.ok) return new Set();
-    const d = await r.json();
-    return new Set(Array.isArray(d.cnpjsOuro) ? d.cnpjsOuro : []);
-  } catch {
-    return new Set();
-  }
 }
 
 const CANAIS_CAMPO = ['VJ', 'PET VJ', 'FARMA', 'ESP']; // cobrança de rota/visita — ver ficha do arquivo
@@ -155,7 +142,10 @@ export async function onRequestGet({ env, request, waitUntil }) {
   // Agregados por filial + 'TODAS' (nacional) — mesma varredura, zero custo extra de rede.
   const agg = {}; // filial -> {feitas, rota, comVenda, semVenda, pedidos, digitado, rcasComVenda, resgatados, valorResgatado, somaSkus, somaValorPedidos, nPedidosComSku, mesFaturado, mesMetaFaturado, mesPositivados, mesMetaPositivados}
   const pega = (sig) => (agg[sig] = agg[sig] || { feitas: 0, rota: 0, comVenda: 0, semVenda: 0, pedidos: 0, digitado: 0, rcasComVenda: 0, resgatados: 0, valorResgatado: 0, somaSkus: 0, somaValorPedidos: 0, nPedidosComSku: 0, mesFaturado: 0, mesMetaFaturado: 0, mesPositivados: 0, mesMetaPositivados: 0 });
-  const cnpjsOuro = await carregaCnpjsOuro(env, request);
+  // RECORRENCIA (decisao do Vitorio, 03/10/2026): substitui o antigo "Ouro na Mesa" (lista estatica de setembro).
+  // Cliente de recorrencia = o roteiro-hoje do CEVEN traz a TAG RECORRENCIA em focos[].industria_foco (mesma regra da TV da filial).
+  // As colunas eh_ouro / eh_resgate_ouro do D1 mantem o nome (schema compartilhado), mas passam a significar: eh_ouro = tem a tag; eh_resgate_ouro = tem a tag e positivou hoje.
+  const ehRecorrencia = (c) => Array.isArray(c.focos) && c.focos.some((f) => String(f?.industria_foco || '').toUpperCase().includes('RECORRENCIA'));
   const canalPorRca = await carregaCanalPorRca(env, request);
   const candidatosResgate = []; // {cnpj, sig, rca, filialKey} — subconjunto de POSITIVADOS que também é resgate de ouro
   // Todo cliente POSITIVADO hoje de canal de campo entra aqui — usado pra calcular Ticket Médio e
@@ -201,8 +191,7 @@ export async function onRequestGet({ env, request, waitUntil }) {
           const idCli = String(c.id_cliente || c.id || c.codcli || '');
           // Resgate de "Ouro na Mesa" conta pra QUALQUER canal que tenha vendido (não só campo) —
           // é sobre recuperar um cliente parado, não sobre cobrança de rota.
-          const cnpjLimpo = String(c.cnpj || '').replace(/\D/g, '');
-          if (idCli && cnpjLimpo && cnpjsOuro.has(cnpjLimpo)) {
+          if (idCli && ehRecorrencia(c)) {
             candidatosResgate.push({ idCli, sig, filialKey: `${sig.toLowerCase()}1`, rcaCodigo: String(rca.codigo) });
           }
           // Ticket Médio / Média de SKUs: só canal de campo, mesma regra dos agregados de rota.
@@ -215,8 +204,7 @@ export async function onRequestGet({ env, request, waitUntil }) {
         if (!lat || !lon || Number.isNaN(lat) || Number.isNaN(lon)) continue; // sem coordenada real: fica de fora do mapa
         const idCliente = String(c.id_cliente || c.id || c.codcli || '');
         if (!idCliente) continue;
-        const cnpjLimpoPonto = String(c.cnpj || '').replace(/\D/g, '');
-        const ehOuro = !!(cnpjLimpoPonto && cnpjsOuro.has(cnpjLimpoPonto));
+        const ehOuro = ehRecorrencia(c);
         pontos.push({
           idCliente,
           cnpj: c.cnpj || null,

@@ -53,8 +53,8 @@ export async function onRequestGet({ env, request, waitUntil }) {
 
   const verde = [];
   const azul = [];
-  const ouros = []; // "Ouro na Mesa" ao vivo (via cnpjsOuro cruzado no roteiro-hoje, não mais dataset estático)
-  const resgates = []; // lista detalhada de "Ouro na Mesa" resgatado hoje, pro card clicável
+  const ouros = []; // clientes com a TAG RECORRENCIA no roteiro-hoje (03/10/2026: substitui o "Ouro na Mesa"; o nome do campo "ouros" foi mantido por compatibilidade)
+  const resgates = []; // lista detalhada de clientes RECORRENCIA positivados hoje, pro card clicável
   for (const r of linhas || []) {
     const ponto = {
       lt: Math.round(r.latitude * 10000) / 10000,

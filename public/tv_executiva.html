@@ -746,7 +746,7 @@
       border-color: var(--cyan);
     }
 
-    /* MODAL DE DETALHE (clique nos cards Visitas/Pedidos/Ouro na Mesa) */
+    /* MODAL DE DETALHE (clique nos cards Visitas/Pedidos/Recorrência) */
     #modalDetalheOverlay {
       display: none;
       position: fixed;
@@ -918,7 +918,7 @@
 </head>
 <body>
 
-  <!-- MODAL DE DETALHE: clique em Visitas/Pedidos/Ouro na Mesa abre a lista real por trás do número -->
+  <!-- MODAL DE DETALHE: clique em Visitas/Pedidos/Recorrência abre a lista real por trás do número -->
   <div id="modalDetalheOverlay" onclick="if (event.target === this) fecharModalDetalhe()">
     <div id="modalDetalheBox">
       <div id="modalDetalheHeader">
@@ -960,8 +960,8 @@
         <b id="skus-chip" style="color:var(--cyan)">—</b>
       </div>
       <div class="header-chip">
-        <span>Ouro na Mesa (Setembro):</span>
-        <b id="header-ouro-chip" style="color:var(--gold)">13.634 Alvos Auditados</b>
+        <span>Clientes RECORRÊNCIA na rota:</span>
+        <b id="header-ouro-chip" style="color:var(--gold)">—</b>
       </div>
     </div>
 
@@ -1072,7 +1072,7 @@
           </button>
           <button class="leg-item leg-toggle-btn active" id="btn-toggle-ouro" onclick="alternarCamadaMapa('OURO')">
             <div class="leg-circle" style="background:var(--gold);box-shadow:0 0 8px var(--gold)"></div>
-            <span style="color:var(--gold);font-weight:800">⭐ Ouro na Mesa (<b id="lbl-count-ouro">—</b>)</span>
+            <span style="color:var(--gold);font-weight:800">⭐ Recorrência (<b id="lbl-count-ouro">—</b>)</span>
           </button>
           <button class="leg-item leg-toggle-btn active" id="btn-toggle-verde" onclick="alternarCamadaMapa('VERDE')">
             <div class="leg-circle" style="background:#00f59b;box-shadow:0 0 8px #00f59b"></div>
@@ -1173,18 +1173,18 @@
 
         <!-- REALCE SEPARADO EM OURO DOS RECUPERADOS (SETEMBRO) -->
         <div class="trio-card gold-focus" style="cursor:pointer" onclick="abrirModalDetalhe('ouro')" title="Clique para ver a lista">
-          <div class="trio-header">⭐ OURO NA MESA (SETEMBRO)</div>
+          <div class="trio-header">⭐ CLIENTES RECORRÊNCIA</div>
           <div class="trio-val mono" id="recuperados-clientes-card">
-            0 <small style="font-size:14px;color:#fff;font-weight:700">resgatados hoje</small>
+            0 <small style="font-size:14px;color:#fff;font-weight:700">positivados hoje</small>
           </div>
           <div class="trio-breakdown">
             <div class="trio-line">
-              <span style="color:#fff">Valor Resgatado Hoje:</span>
+              <span style="color:#fff">Valor Positivado Hoje:</span>
               <b class="mono" id="recuperados-valor-card" style="color:var(--gold);font-size:14px">R$ 0</b>
             </div>
             <div class="trio-line">
-              <span style="color:var(--dim)">Alvos do Mês:</span>
-              <b class="mono" id="alvos-ouro-auditados-txt">13.634 auditados</b>
+              <span style="color:var(--dim)">Na rota hoje:</span>
+              <b class="mono" id="alvos-ouro-auditados-txt">—</b>
             </div>
           </div>
         </div>
@@ -1482,7 +1482,7 @@
       }
       if (CAMADA_ATIVA_MAPA === 'TODAS' || CAMADA_ATIVA_MAPA === 'OURO') {
         (MAPA_PDVS.ouros || []).filter(filtroFilial).forEach(pt => {
-          clusterOuro.addLayer(L.marker([pt.lt, pt.ln], { icon: ICONE_OURO }).bindPopup(popupPonto(pt, '⭐ Ouro na Mesa')));
+          clusterOuro.addLayer(L.marker([pt.lt, pt.ln], { icon: ICONE_OURO }).bindPopup(popupPonto(pt, '⭐ Recorrência')));
         });
       }
       if (CAMADA_ATIVA_MAPA === 'TODAS' || CAMADA_ATIVA_MAPA === 'VERDE') {
@@ -1687,9 +1687,9 @@
     }
 
     // ═════════════════════════════════════════════════════════
-    // MODAL DE DETALHE (clique nos cards Visitas/Pedidos/Ouro na Mesa) — mostra a lista real de
+    // MODAL DE DETALHE (clique nos cards Visitas/Pedidos/Recorrência) — mostra a lista real de
     // clientes por trás do número, em vez de só um total sem nenhuma forma de auditar (achado em
-    // 28/09/2026: cards não eram clicáveis, "Ouro na Mesa: 0 resgatados" sem como conferir).
+    // 28/09/2026: cards não eram clicáveis, "Recorrência: 0 resgatados" sem como conferir).
     // ═════════════════════════════════════════════════════════
     function abrirModalDetalhe(tipo) {
       const filtroFilial = pt => FILIAL_SELECIONADA === 'TODAS' || pt.f === FILIAL_SELECIONADA;
@@ -1706,7 +1706,7 @@
         corTag = 'var(--cyan)';
       } else if (tipo === 'ouro') {
         itens = (MAPA_PDVS.resgates || []).filter(filtroFilial);
-        tituloTxt = '⭐ Ouro na Mesa — Resgatados Hoje';
+        tituloTxt = '⭐ Recorrência — Positivados Hoje';
         corTag = 'var(--gold)';
       }
 
@@ -1740,7 +1740,7 @@
       const linhas = [['tipo', 'filial', 'cnpj', 'latitude', 'longitude']];
       const filtroFilial = pt => FILIAL_SELECIONADA === 'TODAS' || pt.f === FILIAL_SELECIONADA;
       if (CAMADA_ATIVA_MAPA === 'TODAS' || CAMADA_ATIVA_MAPA === 'OURO') {
-        (MAPA_PDVS.ouros || []).filter(filtroFilial).forEach(pt => linhas.push(['Ouro na Mesa', pt.f, pt.c, pt.lt, pt.ln]));
+        (MAPA_PDVS.ouros || []).filter(filtroFilial).forEach(pt => linhas.push(['Recorrência', pt.f, pt.c, pt.lt, pt.ln]));
       }
       if (CAMADA_ATIVA_MAPA === 'TODAS' || CAMADA_ATIVA_MAPA === 'AZUL') {
         (MAPA_PDVS.azul || []).filter(filtroFilial).forEach(pt => linhas.push(['Positivado no Mês', pt.f, pt.c, pt.lt, pt.ln]));
@@ -1838,7 +1838,7 @@
       const txPed = comVenda > 0 ? (pos / comVenda).toFixed(2).replace('.',',') : '1,00';
       document.getElementById('tx-ped-vis-card').textContent = txPed;
 
-      document.getElementById('recuperados-clientes-card').innerHTML = `${recupCli} <small style="font-size:14px;color:#fff;font-weight:700">clientes resgatados</small>`;
+      document.getElementById('recuperados-clientes-card').innerHTML = `${recupCli} <small style="font-size:14px;color:#fff;font-weight:700">clientes positivados</small>`;
       document.getElementById('recuperados-valor-card').textContent = 'R$ ' + Math.round(recupVal).toLocaleString('pt-BR');
 
       // 3. Gráfico Horário Conjunto
@@ -2029,7 +2029,7 @@
           <th>Positivação (Mês / Meta)</th>
           <th>Digitado Hoje</th>
           <th>Positivados Hoje</th>
-          <th>⭐ Ouro na Mesa</th>
+          <th>⭐ Recorrência</th>
           <th>Status Cobrança</th>
         `;
 
@@ -2196,6 +2196,11 @@
             if (document.getElementById('lbl-count-ouro')) {
               document.getElementById('lbl-count-ouro').textContent = (MAPA_PDVS.ouros ? MAPA_PDVS.ouros.length : 0).toLocaleString('pt-BR');
             }
+            // clientes com a tag RECORRENCIA na rota de hoje (dado real do roteiro, nao lista estatica)
+            ['header-ouro-chip', 'alvos-ouro-auditados-txt'].forEach((idEl) => {
+              const el = document.getElementById(idEl);
+              if (el) el.textContent = (MAPA_PDVS.ouros ? MAPA_PDVS.ouros.length : 0).toLocaleString('pt-BR') + ' clientes';
+            });
             if (document.getElementById('lbl-count-verde')) {
               document.getElementById('lbl-count-verde').textContent = (MAPA_PDVS.verde ? MAPA_PDVS.verde.length : 0).toLocaleString('pt-BR');
             }
