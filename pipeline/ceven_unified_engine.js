@@ -26,6 +26,21 @@
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
+
+// Limite global: no maximo 6 chamadas em andamento ao mesmo tempo (CEVEN e WhatsApp), qualquer que seja o lote.
+// Antes os lotes somavam ate 24+ chamadas simultaneas e sobrecarregavam o servidor do CEVEN.
+const LIMITE_CHAMADAS = 6;
+let chamadasAtivas = 0;
+const filaChamadas = [];
+axios.interceptors.request.use((config) => new Promise((resolve) => {
+  const entrar = () => { chamadasAtivas++; resolve(config); };
+  if (chamadasAtivas < LIMITE_CHAMADAS) entrar(); else filaChamadas.push(entrar);
+}));
+const liberarChamada = () => { chamadasAtivas--; const proxima = filaChamadas.shift(); if (proxima) proxima(); };
+axios.interceptors.response.use(
+  (res) => { liberarChamada(); return res; },
+  (err) => { liberarChamada(); return Promise.reject(err); }
+);
 const XLSX = require('xlsx');
 
 // Configurações de API

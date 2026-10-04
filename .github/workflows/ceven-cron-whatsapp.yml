@@ -66,7 +66,7 @@ jobs:
             exit 0
           fi
           if [ "$DIA" -ge 6 ]; then
-            if grep -q "\"$DATA_HOJE\"" config/diretrizes_operacionais.json; then
+            if jq -e --arg d "$DATA_HOJE" '.esporadicos.datas_autorizadas | index($d)' config/diretrizes_operacionais.json >/dev/null; then
               echo "⚠️ Fim de semana com autorização esporádica ativa em diretrizes_operacionais.json. Prosseguindo..."
             else
               echo "🛑 [ABORTADO] Hoje é fim de semana em Brasília ($DATA_HOJE). Disparos comerciais suspensos."
@@ -75,7 +75,7 @@ jobs:
           fi
           FERIADOS="2026-01-01 2026-02-16 2026-02-17 2026-04-03 2026-04-21 2026-05-01 2026-06-04 2026-09-07 2026-10-12 2026-11-02 2026-11-15 2026-11-20 2026-12-25"
           if [ "$BLOQUEADO" = "false" ] && echo "$FERIADOS" | grep -qw "$DATA_HOJE"; then
-            if grep -q "\"$DATA_HOJE\"" config/diretrizes_operacionais.json; then
+            if jq -e --arg d "$DATA_HOJE" '.esporadicos.datas_autorizadas | index($d)' config/diretrizes_operacionais.json >/dev/null; then
               echo "⚠️ Feriado com autorização esporádica ativa em diretrizes_operacionais.json. Prosseguindo..."
             else
               echo "🛑 [ABORTADO] Hoje é feriado nacional ($DATA_HOJE). Disparos comerciais suspensos."
