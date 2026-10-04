@@ -160,6 +160,10 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     ok(pg.includes('raw.githubusercontent.com/vitoriotriunfante/cevenonline/main/public/dados_brasileirao.json') && pg.includes('gerado_em'), 'pagina do Brasileirao usa o dataset mais recente entre o do GitHub e o do site'); }
   { const bd = JSON.parse(ler('public/dados_brasileirao.json'));
     ok(!bd.supervisores.some(s => /^(GERENTE |RCAS INATIVOS|VENDA EMPRESA)/i.test(s.supervisor)), 'pseudo-supervisores (GERENTE X, RCAS INATIVOS, VENDA EMPRESA) fora da Liga dos Supervisores'); }
+  { const bd = JSON.parse(ler('public/dados_brasileirao.json')); const s = bd.supervisores; let certo = true;
+    for (let i = 1; i < s.length; i++) { if (s[i - 1].pts_tabela === s[i].pts_tabela && (s[i - 1].plus_lideranca || 0) < (s[i].plus_lideranca || 0)) certo = false; }
+    ok(certo, 'Liga dos Supervisores: o Plus desempata (com pontos iguais, quem tem mais Plus fica na frente) e nao soma pontos');
+    ok(ler('scratch/build_brasileirao_dataset.py').includes("x['pts_tabela'], x['plus_lideranca'] or 0"), 'gerador ordena por pontos, depois Plus, vitorias e saldo'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);

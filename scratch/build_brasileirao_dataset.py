@@ -421,7 +421,9 @@ for fil, s in sups_set:
         'aprov': round((pts_tabela / (len(DIAS_RODADA) * 3)) * 100, 1) if DIAS_RODADA else 0, 'forma': forma,
         'plus_lideranca': plus_total, 'plus_detalhe': plus_detalhe, 'plus_pendente': plus_pendente
     })
-sups_tabela.sort(key=lambda x: (x['pts_tabela'], x['vitorias'], x['sg']), reverse=True)
+# O PLUS NAO SOMA PONTOS: e criterio de DESEMPATE (decisao do Vitorio, 04/10/2026). Ordem: pontos do time (V/E/D),
+# depois Plus de Lideranca acumulado, depois vitorias, depois saldo de gols. Supervisor sem Plus (sem dado) conta 0.
+sups_tabela.sort(key=lambda x: (x['pts_tabela'], x['plus_lideranca'] or 0, x['vitorias'], x['sg']), reverse=True)
 for idx, s in enumerate(sups_tabela):
     s['pos'] = idx + 1
 

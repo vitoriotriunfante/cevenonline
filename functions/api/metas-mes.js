@@ -30,7 +30,7 @@ export async function onRequestGet({ env }) {
     const filiais = {};
     let total = null, atualizado = null;
     for (const r of results || []) {
-      const mf = Number(r.mes_meta_faturado) || 0, mp = Number(r.mes_meta_positivados) || 0;
+      const mf = Number(r.mes_meta_faturado) || 0, mp = Math.round(Number(r.mes_meta_positivados) || 0); // meta de clientes e inteira (a soma dos dashboards pode vir fracionada)
       if (!atualizado || String(r.updated_at) > atualizado) atualizado = String(r.updated_at);
       if (r.filial_sigla === 'TODAS') { if (mf > 0) total = { meta_fat: mf, meta_pos: mp }; continue; }
       if (mf > 0) filiais[r.filial_sigla] = { meta_fat: mf, meta_pos: mp };
