@@ -104,11 +104,11 @@ try:
     d1_data = list(_vistos.values())
     # SIMULACAO (nao e o padrao): BRASILEIRAO_SEM_IMP_GPS=1 tira os impedimentos de GPS da liga, so para comparar o efeito.
     # Motivo (auditoria 05/10/2026): o check-out do palm vem com ponto-padrao/GPS parado em ~metade das visitas.
-    # PADRAO (decisao do Vitorio, 05/10/2026): impedimento de GPS anterior a 05/10 nao conta na liga (sem comprovacao).
+    # PADRAO (decisao do Vitorio, 05/10/2026): impedimento de GPS anterior a 06/10 nao conta na liga (sem comprovacao).
     # BRASILEIRAO_COM_IMP_GPS_ANTIGO=1 traz de volta, so para comparar.
     if os.environ.get('BRASILEIRAO_COM_IMP_GPS_ANTIGO') != '1':
         _antes = len(d1_data)
-        d1_data = [l for l in d1_data if not (str(l.get('dia') or '') < '2026-10-05' and re.search(r'(^|\|)imp\|gps\|', str(l.get('chave') or '')))]
+        d1_data = [l for l in d1_data if not (str(l.get('dia') or '') < '2026-10-06' and re.search(r'(^|\|)imp\|gps\|', str(l.get('chave') or '')))]
         print(f'Impedimentos de GPS antigos (sem comprovacao) fora da liga: {_antes - len(d1_data)} de {_antes}')
     print(f"Duplicados removidos: {duplicados_removidos} | lances únicos: {len(d1_data)}")
 except Exception as e:
