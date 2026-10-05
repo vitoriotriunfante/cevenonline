@@ -25,6 +25,8 @@ def requests_get(url, headers=None, verify=None, timeout=None):
         return Resp({'status': 'pronto', 'prospects': [{'cnpj': '1'}]})
     if rca == 'B':   # so fica pronto na 2a chamada (depois de acionado)
         return Resp({'status': 'processando'}) if n == 1 else Resp({'status': 'pronto', 'prospects': [{'cnpj': '2'}, {'cnpj': '3'}]})
+    if rca.startswith('Q'):   # fila do CEVEN: so fica pronto a partir da 2a chamada
+        return Resp({'status': 'processando'}) if n == 1 else Resp({'status': 'pronto', 'prospects': [{'cnpj': rca}]})
     return Resp({'status': 'processando'})   # C: nunca fica pronto
 
 esperas = []
@@ -32,14 +34,14 @@ ns = {
     'requests': types.SimpleNamespace(get=requests_get),
     'time': types.SimpleNamespace(sleep=lambda s: esperas.append(s), time=time.time),
     'ThreadPoolExecutor': ThreadPoolExecutor, 'as_completed': as_completed,
-    'BASE_URL': 'http://teste', 'TOKEN': 'x', 'HEADERS': {},
+    'BASE_URL': 'http://teste', 'TOKEN': 'x', 'HEADERS': {}, 'os': os,
 }
 # a lista PROSPECTS_SEM_RETORNO e definida no trecho anterior ao fetch no arquivo real
 ns['PROSPECTS_SEM_RETORNO'] = []
 exec(trecho.replace('PROSPECTS_SEM_RETORNO = []', 'pass'), ns)
 
 vendedores = [('ABC', rca, 'Nome ' + rca, 'Sup', 'Ger', 'VJ') for rca in ('A', 'B', 'C')]
-resultado = {v[1]: pl for v, pl in ns['buscar_prospects_com_espera'](vendedores)}
+resultado = {v[1]: pl for v, pl in ns['buscar_prospects_com_espera'](vendedores, rodadas=3)}
 
 falhou = 0
 def ok(c, m):
@@ -51,6 +53,13 @@ ok(set(resultado) == {'A', 'B'}, 'entram so os vendedores que ficaram prontos (A
 ok(len(resultado.get('B', [])) == 2, 'o resultado do B vem da 2a rodada (2 prospects)')
 ok(ns['PROSPECTS_SEM_RETORNO'] and [v[1] for v in ns['PROSPECTS_SEM_RETORNO']] == ['C'], 'quem nunca ficou pronto (C) vai para "sem retorno", nao vira zero')
 ok(chamadas.get('A') == 1, 'quem ja estava pronto nao e consultado de novo')
-ok(chamadas.get('C') == 3, 'o pendente e consultado em 3 rodadas')
+ok(chamadas.get('C') == 4, 'o pendente e consultado nas 3 rodadas e mais uma passada final')
 ok(esperas == [60, 60], f'espera de 60 s antes da 2a e da 3a rodada (esperas: {esperas})')
+# --- fila grande: depois de acionar todos, so os PRIMEIROS da fila sao consultados a cada rodada (poucas chamadas) ---
+chamadas.clear(); esperas.clear(); ns['PROSPECTS_SEM_RETORNO'].clear()
+fila = [('ABC', 'Q%d' % i, 'Nome', 'Sup', 'Ger', 'VJ') for i in range(10)]
+res2 = {v[1]: pl for v, pl in ns['buscar_prospects_com_espera'](fila, rodadas=2, lote_sonda=3)}
+ok(all(chamadas['Q%d' % i] == 2 for i in range(3)) and set(['Q0', 'Q1', 'Q2']) <= set(res2), 'fila grande: a 2a rodada consulta so os 3 primeiros da fila (ficam prontos)')
+ok(chamadas['Q9'] == 2 and 'Q9' in res2, 'quem estava no fim da fila so e consultado de novo na passada final (e entra se ficou pronto)')
+ok(len(res2) == 10 and not ns['PROSPECTS_SEM_RETORNO'], 'na fila grande todos acabam entrando e ninguem vira zero')
 sys.exit(1 if falhou else 0)

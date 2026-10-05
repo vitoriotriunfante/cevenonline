@@ -182,6 +182,14 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     ok(cr.includes('prod?.dia?.positivacao') && !/comVenda\+\+; aNac\.comVenda\+\+; aFil\.pedidos\+\+/.test(cr) && cr.includes('aF.pedidos += pedDigRca') && cr.includes('pegaRec(sig).pedidosCampo'), 'pedidos colocados da TV executiva = pedidos digitados hoje de TODOS os vendedores (rota e fora da rota); so a media pedidos/visita usa o varejo');
     ok(cr.includes('recorrencia_resumo_live') && cr.includes('ocultos.add') && lv.includes('recorrencia'), 'recorrencia na rota conta TODOS os clientes com a tag (com ou sem coordenada), sem vendedor oculto');
     ok(tx.includes('MAPA_PDVS.recorrencia'), 'TV executiva mostra o total real de recorrencia (chip, card e tabela por filial)'); }
+  { const an = ler('public/animacoes/tv-animacoes.js'); const dir = join(RAIZ, 'public', 'animacoes', 'videos');
+    ok(an.includes('function proximoDoBaralho') && an.includes('proximoDoBaralho(nivel, prontos)') && !/prontos\[Math\.floor\(Math\.random\(\) \* prontos\.length\)\]/.test(an), 'baralho dos videos: sorteio sem repetir e sem o mesmo duas vezes seguidas (nao e mais Math.random puro)');
+    const listados = [...an.matchAll(/'\/animacoes\/videos\/([a-z_0-9]+\.mp4)'/g)].map(m => m[1]);
+    const faltam = [...new Set(listados)].filter(f => !existsSync(join(dir, f)));
+    ok(listados.filter(f => f.startsWith('gol_')).length >= 20, 'a TV lista os 20 videos de gol (gol_1 a gol_20)');
+    ok(faltam.every(f => f === 'gol_20.mp4' || ['defesa_1.mp4','defesa_2.mp4','defesa_3.mp4','hattrick_1.mp4','semanainvicta_1.mp4','golcontra_1.mp4','golcontra_2.mp4','campeao_1.mp4','goleada_1.mp4'].includes(f)), 'todo video de gol/lance listado existe na pasta (faltando: ' + (faltam.join(', ') || 'nenhum') + ')'); }
+  { const vs = ler('functions/api/varredura-status.js').split('\n').filter(l => !l.trim().startsWith('//')).join('\n');
+    ok(vs.includes('SELECT rca_codigo, updated_at FROM varredura_central_rca') && !/\b(INSERT|UPDATE|DELETE)\b/.test(vs) && !vs.includes('fetch('), 'varredura-status e so leitura do D1 (nao grava e nao chama o CEVEN)'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);

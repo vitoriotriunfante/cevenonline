@@ -118,29 +118,55 @@ def fetch_prospects(v):
 
 PROSPECTS_SEM_RETORNO = []  # vendedores cujo calculo nao ficou pronto em nenhuma rodada: SEM DADO (nunca zero)
 
-def buscar_prospects_com_espera(vendedores, rodadas=3, espera_s=60):
-    """O CEVEN calcula os prospects de forma assincrona: a 1a chamada ACIONA o calculo e so depois de
-    ~1 minuto a resposta vem com status 'pronto'. Por isso: aciona todos, espera, busca de novo.
-    Quem nao ficar pronto em nenhuma rodada vai para PROSPECTS_SEM_RETORNO."""
+def buscar_prospects_com_espera(vendedores, rodadas=None, espera_s=60, lote_sonda=30):
+    """O CEVEN calcula os prospects de forma assincrona e em FILA: a 1a chamada ACIONA o calculo e o 'pronto'
+    chega um vendedor por vez (medido em 05/10/2026: ~11 segundos por vendedor; 24 vendedores levaram 4,5 min,
+    457 levam ~85 min). A versao antiga esperava so ~2 min e saia com "0 prontos".
+    Agora: (1) aciona TODOS (1 chamada cada, ate 6 simultaneas); (2) a cada `espera_s` consulta so os primeiros
+    `lote_sonda` pendentes (a fila anda na ordem do acionamento, entao poucas chamadas bastam); (3) ao fim das rodadas,
+    uma passada final em todos os que sobraram. Quem nao ficar pronto vai para PROSPECTS_SEM_RETORNO (sem dado,
+    nunca zero). `rodadas` padrao = tempo maximo de espera (PROSPECTS_MAX_ESPERA_MIN, 110 min) / espera_s."""
+    if rodadas is None:
+        max_min = int(os.environ.get('PROSPECTS_MAX_ESPERA_MIN', '110'))
+        rodadas = max(1, int(max_min * 60 / espera_s) + 1)
+
+    def passada(lista, rotulo):
+        ainda, prontos_lista = [], []
+        with ThreadPoolExecutor(max_workers=6) as executor:
+            futs = {executor.submit(fetch_prospects, v): v for v in lista}
+            resultados = {}
+            for fut in as_completed(futs):
+                v, pro_list, pronto = fut.result()
+                resultados[futs[fut]] = (pro_list, pronto)
+        for v in lista:  # preserva a ordem da fila
+            pro_list, pronto = resultados[v]
+            (prontos_lista if pronto else ainda).append((v, pro_list) if pronto else v)
+        return prontos_lista, ainda
+
     pendentes = list(vendedores)
+    total = len(pendentes)
+    prontos_total = 0
     for rodada in range(1, rodadas + 1):
         if not pendentes:
             break
-        if rodada > 1:
-            print(f" - Aguardando {espera_s}s para o CEVEN terminar de calcular {len(pendentes)} vendedores...")
+        if rodada == 1:
+            lista = pendentes                   # aciona todos
+        else:
             time.sleep(espera_s)
-        ainda = []
-        prontos = 0
-        with ThreadPoolExecutor(max_workers=6) as executor:
-            futs = [executor.submit(fetch_prospects, v) for v in pendentes]
-            for fut in as_completed(futs):
-                v, pro_list, pronto = fut.result()
-                if pronto:
-                    prontos += 1
-                    yield (v, pro_list)
-                else:
-                    ainda.append(v)
-        print(f" - Rodada {rodada}: {prontos} prontos, {len(ainda)} ainda pendentes")
+            lista = pendentes[:lote_sonda]      # a fila anda na ordem: sonda so os primeiros
+        prontos, ainda_lote = passada(lista, rodada)
+        for v, pro_list in prontos:
+            prontos_total += 1
+            yield (v, pro_list)
+        pendentes = ainda_lote + pendentes[len(lista):] if rodada > 1 else ainda_lote
+        if rodada == 1 or rodada % 10 == 0 or not pendentes:
+            print(f" - Rodada {rodada}: {len(prontos)} prontos agora, {prontos_total}/{total} no total, {len(pendentes)} pendentes")
+    if pendentes:  # passada final em todos os que sobraram (a fila pode ter andado fora de ordem)
+        prontos, ainda = passada(pendentes, 'final')
+        for v, pro_list in prontos:
+            prontos_total += 1
+            yield (v, pro_list)
+        print(f" - Passada final: {len(prontos)} prontos, {prontos_total}/{total} no total, {len(ainda)} sem retorno")
         pendentes = ainda
     PROSPECTS_SEM_RETORNO.extend(pendentes)
 

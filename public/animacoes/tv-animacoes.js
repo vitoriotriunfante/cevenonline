@@ -81,8 +81,9 @@ function fundoDeCampo(c, LX, LW, W1080, desenhaVetorial) {
 // gerado (listas vazias = cai no vetorial) — gerar seguindo
 // REGRAS_CFTV/PROMPTS_VIDEOS_ANIMACOES_TV.md e preencher aqui quando prontos.
 const VIDEO_ARQUIVOS = {
-  gol: ['/animacoes/videos/gol_1.mp4', '/animacoes/videos/gol_2.mp4', '/animacoes/videos/gol_3.mp4', '/animacoes/videos/gol_4.mp4'],
-  vermelho: ['/animacoes/videos/vermelho_1.mp4', '/animacoes/videos/vermelho_2.mp4', '/animacoes/videos/vermelho_3.mp4'],
+  gol: ['/animacoes/videos/gol_1.mp4', '/animacoes/videos/gol_2.mp4', '/animacoes/videos/gol_3.mp4', '/animacoes/videos/gol_4.mp4', '/animacoes/videos/gol_5.mp4', '/animacoes/videos/gol_6.mp4', '/animacoes/videos/gol_7.mp4', '/animacoes/videos/gol_8.mp4', '/animacoes/videos/gol_9.mp4', '/animacoes/videos/gol_10.mp4', '/animacoes/videos/gol_11.mp4', '/animacoes/videos/gol_12.mp4', '/animacoes/videos/gol_13.mp4', '/animacoes/videos/gol_14.mp4', '/animacoes/videos/gol_15.mp4', '/animacoes/videos/gol_16.mp4', '/animacoes/videos/gol_17.mp4', '/animacoes/videos/gol_18.mp4', '/animacoes/videos/gol_19.mp4', '/animacoes/videos/gol_20.mp4'],
+  // vermelho_2.mp4 e identico ao vermelho_1.mp4 (verificado por conteudo em 05/10/2026): fora da lista ate gerarem outro video
+  vermelho: ['/animacoes/videos/vermelho_1.mp4', '/animacoes/videos/vermelho_3.mp4'],
   amarelo: ['/animacoes/videos/amarelo_1.mp4', '/animacoes/videos/amarelo_2.mp4', '/animacoes/videos/amarelo_3.mp4'],
   impedimento: ['/animacoes/videos/impedimento_1.mp4', '/animacoes/videos/impedimento_2.mp4', '/animacoes/videos/impedimento_3.mp4'],
   penalti: ['/animacoes/videos/penalti_1.mp4', '/animacoes/videos/penalti_2.mp4', '/animacoes/videos/penalti_3.mp4'],
@@ -131,13 +132,38 @@ function videosProntos() { return videosProntosPromise; }
 
 // Escolhe qual arquivo tocar para um lance: usa o dedicado ao subtipo (se existir e estiver
 // pronto), senão sorteia entre os disponíveis do nível. Devolve null se nenhum estiver pronto.
+// BARALHO (05/10/2026, pedido do Vitorio: "garantir que variamos os gols e lances"): em vez de sortear com Math.random()
+// (que repete o mesmo video seguido e deixa uns aparecerem mais que outros), cada tipo de lance tem um baralho embaralhado:
+// toca todos os videos prontos, um por vez, SEM repetir, e so reembaralha quando acaba; o primeiro do novo baralho nunca e o
+// ultimo que tocou. O baralho fica guardado no navegador (localStorage), entao sobrevive a recarga automatica da TV.
+const BARALHOS = {};
+function lerBaralho(nivel) { try { const j = JSON.parse(localStorage.getItem('ceven_tv_baralho_' + nivel) || 'null'); if (j && Array.isArray(j.fila)) return j; } catch (e) {} return { fila: [], ultimo: null }; }
+function salvaBaralho(nivel, b) { try { localStorage.setItem('ceven_tv_baralho_' + nivel, JSON.stringify(b)); } catch (e) {} }
+function embaralha(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function proximoDoBaralho(nivel, pool) {
+  const b = BARALHOS[nivel] || (BARALHOS[nivel] = lerBaralho(nivel));
+  b.fila = b.fila.filter((a) => pool.includes(a)); // tira o que nao esta mais pronto
+  if (!b.fila.length) {
+    b.fila = embaralha(pool.slice());
+    if (pool.length > 1 && b.fila[0] === b.ultimo) b.fila.push(b.fila.shift()); // nunca repete o ultimo que tocou
+  }
+  const a = b.fila.shift();
+  b.ultimo = a;
+  salvaBaralho(nivel, b);
+  return a;
+}
 function escolheVideo(nivel, subtipo) {
   if (nivel === 'gol' && subtipo && GOL_POR_SUBTIPO[subtipo] && VIDEO_OK[GOL_POR_SUBTIPO[subtipo]] === true) {
     return GOL_POR_SUBTIPO[subtipo];
   }
-  const prontos = (VIDEO_ARQUIVOS[nivel] || []).filter((a) => VIDEO_OK[a] === true);
+  let prontos = (VIDEO_ARQUIVOS[nivel] || []).filter((a) => VIDEO_OK[a] === true);
+  if (nivel === 'gol') { // gol_1 e gol_2 sao reservados aos gols especiais (Super Pedido, Resgate); gol comum usa os demais
+    const reservados = Object.values(GOL_POR_SUBTIPO);
+    const comuns = prontos.filter((a) => !reservados.includes(a));
+    if (comuns.length) prontos = comuns;
+  }
   if (!prontos.length) return null;
-  return prontos[Math.floor(Math.random() * prontos.length)];
+  return proximoDoBaralho(nivel, prontos);
 }
 
 // Toca o vídeo do lance por cima do canvas (que fica como fundo/decisão). Chama aoTerminar()
