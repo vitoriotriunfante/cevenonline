@@ -1595,6 +1595,8 @@ function confereLanceAuto() {
     let poolAlertas = ALERTAS.filter(a => !seen.has(a.key));
     // Se todos já foram vistos, recicla os destaques do dia excluindo os exibidos recentemente
     // para GARANTIR lances SEMPRE DIFERENTES passando na TV
+    // REPLAY DESLIGADO por padrao (Vitorio, 05/10/2026): sem lance novo nao recicla lance antigo do dia. Ligar so com ?replay=1.
+    if (!poolAlertas.length && P.get('replay') !== '1') return;
     if (!poolAlertas.length) {
       const recentesSet = new Set(historicoLancesExibidosFilial.slice(-20));
       poolAlertas = ALERTAS.filter(a => !recentesSet.has(a.key));

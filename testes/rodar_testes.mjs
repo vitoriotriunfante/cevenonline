@@ -223,6 +223,8 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     ok(semProva.length === 0 && cl.includes('obs: l.prova'), 'todo lance do vendedor grava a PROVA (numero que o gerou) em obs, para auditoria' + (semProva.length ? ' — faltam: ' + semProva.join(', ') : '')); }
   { const vc = ler('functions/api/cron-varredura-central.js');
     ok(/getJson\(urlRca\('produtividade', rca\)\)\), CONC, t0 \+ PRAZO_PRODUTIVIDADE_MS\)/.test(vc) && vc.includes('updated_at AS ua') && vc.includes('const prazoFria'), 'varredura: etapa quente tem PRAZO, vai do mais antigo ao mais novo e a etapa fria tem fatia propria (sem prazo a funcao era cortada antes de gravar e a varredura parava)'); }
+  { const a = ler('public/matrizapp.html'), b = ler('public/tvapp.html');
+    ok([a, b].every(t => t.includes("if (!poolAlertas.length && P.get('replay') !== '1') return;")), 'lance automatico NAO recicla lance antigo (so com ?replay=1): acabou o mesmo gol/penalti reaparecendo centenas de vezes'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);
