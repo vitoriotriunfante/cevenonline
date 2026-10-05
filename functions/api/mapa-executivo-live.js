@@ -70,6 +70,13 @@ export async function onRequestGet({ env, request, waitUntil }) {
     }
   }
 
+  // Recorrencia na rota (todos os clientes da rota com a tag, com ou sem coordenada), gravada pelo cron do mapa
+  const recorrencia = {};
+  try {
+    const { results: recRows } = await env.DB.prepare('SELECT filial_sigla, na_rota, positivados, pedidos_campo FROM recorrencia_resumo_live WHERE data_ref = ?').bind(dataRef).all();
+    for (const r of recRows || []) recorrencia[r.filial_sigla] = { naRota: r.na_rota || 0, positivados: r.positivados || 0, pedidosCampo: r.pedidos_campo || 0 };
+  } catch (e) { /* tabela ainda nao existe: a tela usa a contagem do mapa */ }
+
   const resumo = {};
   let atualizadoEmDados = null;
   for (const r of resumoRows || []) {
@@ -102,6 +109,7 @@ export async function onRequestGet({ env, request, waitUntil }) {
     azul,
     verde,
     resgates,
+    recorrencia,
     resumo
   }), { headers: cors });
 }

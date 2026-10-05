@@ -65,6 +65,7 @@ const CANAIS_CAMPO = ['VJ', 'PET VJ', 'FARMA', 'ESP']; // cobrança de rota/visi
 // rca (codigo) -> canal, direto da planilha MOSTRA_DISPAROS (mesma fonte que matrizapp.html/tvapp.html).
 async function carregaCanalPorRca(env, request) {
   const mapa = new Map();
+  const ocultos = new Set();
   try {
     const url = new URL(request.url);
     const r = await fetch(`${url.origin}/api/tv-mostra`, { signal: AbortSignal.timeout(20000) });
@@ -74,10 +75,14 @@ async function carregaCanalPorRca(env, request) {
     for (const lista of Object.values(filiais)) {
       if (!Array.isArray(lista)) continue;
       for (const v of lista) {
-        if (v && v.rca != null) mapa.set(String(v.rca), String(v.canal || '').toUpperCase());
+        if (v && v.rca != null) {
+          mapa.set(String(v.rca), String(v.canal || '').toUpperCase());
+          if (v.mostra === false) ocultos.add(String(v.rca));
+        }
       }
     }
   } catch {}
+  mapa.ocultos = ocultos; // RCAs que a equipe oculta (mostra:false): fora da contagem de recorrencia
   return mapa;
 }
 
@@ -147,6 +152,10 @@ export async function onRequestGet({ env, request, waitUntil }) {
   // As colunas eh_ouro / eh_resgate_ouro do D1 mantem o nome (schema compartilhado), mas passam a significar: eh_ouro = tem a tag; eh_resgate_ouro = tem a tag e positivou hoje.
   const ehRecorrencia = (c) => Array.isArray(c.focos) && c.focos.some((f) => String(f?.industria_foco || '').toUpperCase().includes('RECORRENCIA'));
   const canalPorRca = await carregaCanalPorRca(env, request);
+  // RECORRENCIA na rota (04-05/10/2026): conta TODO cliente da rota de hoje com a tag, COM OU SEM coordenada
+  // (antes so entrava quem tinha latitude/longitude: 818 no mapa contra 865 reais). Vendedor oculto pela equipe fica fora.
+  const rec = {};
+  const pegaRec = (s) => (rec[s] = rec[s] || { naRota: 0, positivados: 0, pedidosCampo: 0 });
   const candidatosResgate = []; // {cnpj, sig, rca, filialKey} — subconjunto de POSITIVADOS que também é resgate de ouro
   // Todo cliente POSITIVADO hoje de canal de campo entra aqui — usado pra calcular Ticket Médio e
   // Média de SKUs REAIS (via historico-cliente, roteiro-hoje não traz esses valores). Decisão do
@@ -170,18 +179,29 @@ export async function onRequestGet({ env, request, waitUntil }) {
       const canalRca = canalPorRca.get(String(rca.codigo)) || '';
       const ehCampo = CANAIS_CAMPO.includes(canalRca);
       const aFil = ehCampo ? pega(sig) : null, aNac = ehCampo ? pega('TODAS') : null;
-      if (ehCampo) {
-        const digPedidoRca = Number(prod?.dia?.dig_pedido) || 0;
-        aFil.digitado += digPedidoRca; aNac.digitado += digPedidoRca;
-      }
+      // PEDIDOS COLOCADOS e VALOR DIGITADO entram de TODOS os vendedores, de qualquer canal (decisao do Vitorio,
+      // 05/10/2026: "pedidos entra de tudo, a empresa quer saber de tudo"). Pedido digitado hoje = produtividade.dia.positivacao
+      // (rota + FORA da rota). Ja VISITA, rota, positivacao de visita e eficacia continuam so do varejo (campo), porque o AS
+      // pode visitar hoje e tirar o pedido so na semana seguinte: KPI de visita nao serve para ele.
+      const digPedidoRca = Number(prod?.dia?.dig_pedido) || 0;
+      const pedDigRca = Number(prod?.dia?.positivacao) || 0;
+      { const aF = pega(sig), aN = pega('TODAS');
+        aF.digitado += digPedidoRca; aN.digitado += digPedidoRca;
+        aF.pedidos += pedDigRca; aN.pedidos += pedDigRca; }
+      if (ehCampo) { pegaRec(sig).pedidosCampo += pedDigRca; pegaRec('TODAS').pedidosCampo += pedDigRca; } // so para a media pedidos/visita
       let rcaTeveVenda = false;
+      const ocultoRca = !!(canalPorRca.ocultos && canalPorRca.ocultos.has(String(rca.codigo)));
       for (const c of roteiro) {
         const status = String(c.status || '').toUpperCase();
+        if (!ocultoRca && ehRecorrencia(c)) {
+          pegaRec(sig).naRota++; pegaRec('TODAS').naRota++;
+          if (STATUS_POSITIVADO.includes(status)) { pegaRec(sig).positivados++; pegaRec('TODAS').positivados++; }
+        }
         if (ehCampo) {
           aFil.rota++; aNac.rota++;
           if (STATUS_VISITADO.includes(status)) { aFil.feitas++; aNac.feitas++; }
           if (STATUS_POSITIVADO.includes(status)) {
-            aFil.comVenda++; aNac.comVenda++; aFil.pedidos++; aNac.pedidos++;
+            aFil.comVenda++; aNac.comVenda++;
             rcaTeveVenda = true;
           } else if (status === 'JUSTIFICADO' || (STATUS_VISITADO.includes(status) && c.motivo_nao_visita)) {
             aFil.semVenda++; aNac.semVenda++;
@@ -283,6 +303,16 @@ export async function onRequestGet({ env, request, waitUntil }) {
     ).bind(sig, dataRef, a.feitas, a.rota, a.comVenda, a.semVenda, a.pedidos, a.digitado, a.rcasComVenda, a.resgatados, a.valorResgatado, a.somaSkus, a.somaValorPedidos, a.nPedidosComSku, a.mesFaturado, a.mesMetaFaturado, a.mesPositivados, a.mesMetaPositivados)
   );
   if (stmtsResumo.length) await env.DB.batch(stmtsResumo);
+
+  // Recorrencia na rota por filial (tabela propria, criada aqui se nao existir)
+  try {
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS recorrencia_resumo_live (filial_sigla TEXT NOT NULL, data_ref TEXT NOT NULL, na_rota INTEGER NOT NULL DEFAULT 0, positivados INTEGER NOT NULL DEFAULT 0, pedidos_campo INTEGER NOT NULL DEFAULT 0, updated_at TEXT, PRIMARY KEY (filial_sigla, data_ref))').run();
+    try { await env.DB.prepare('ALTER TABLE recorrencia_resumo_live ADD COLUMN pedidos_campo INTEGER NOT NULL DEFAULT 0').run(); } catch (e) { /* coluna ja existe */ }
+    await env.DB.prepare('DELETE FROM recorrencia_resumo_live WHERE data_ref = ?').bind(dataRef).run();
+    const stmtsRec = Object.entries(rec).map(([sig, a]) =>
+      env.DB.prepare('INSERT OR REPLACE INTO recorrencia_resumo_live (filial_sigla, data_ref, na_rota, positivados, pedidos_campo, updated_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)').bind(sig, dataRef, a.naRota, a.positivados, a.pedidosCampo));
+    if (stmtsRec.length) await env.DB.batch(stmtsRec);
+  } catch (e) { /* sem tabela de recorrencia a TV cai para a contagem do mapa */ }
 
   return new Response(JSON.stringify({
     status: 'ATUALIZADO',

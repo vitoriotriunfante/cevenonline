@@ -1835,7 +1835,10 @@
       document.getElementById('sem-venda-card').textContent = `${semVenda} (${pctSemVenda}%)`;
 
       document.getElementById('pedidos-card').innerHTML = `${pos} <small style="font-size:14px;color:var(--muted);font-weight:700">pedidos</small>`;
-      const txPed = comVenda > 0 ? (pos / comVenda).toFixed(2).replace('.',',') : '1,00';
+      // Pedidos colocados soma TODOS os vendedores; a media pedidos/visita usa so os pedidos do VAREJO (mesma base das visitas)
+      const exSel = MAPA_PDVS.recorrencia && MAPA_PDVS.recorrencia[FILIAL_SELECIONADA === 'TODAS' ? 'TODAS' : FILIAL_SELECIONADA];
+      const pedCampo = exSel && exSel.pedidosCampo != null ? exSel.pedidosCampo : pos;
+      const txPed = comVenda > 0 ? (pedCampo / comVenda).toFixed(2).replace('.',',') : '1,00';
       document.getElementById('tx-ped-vis-card').textContent = txPed;
 
       document.getElementById('recuperados-clientes-card').innerHTML = `${recupCli} <small style="font-size:14px;color:#fff;font-weight:700">clientes positivados</small>`;
@@ -2046,7 +2049,7 @@
             statusBadge = '<span class="badge-status warn">🟡 ACELERAR META</span>';
           }
 
-          const ourosFilial = (MAPA_PDVS.ouros || []).filter(p => p.f === sig).length;
+          const ourosFilial = (MAPA_PDVS.recorrencia && MAPA_PDVS.recorrencia[sig]) ? MAPA_PDVS.recorrencia[sig].naRota : (MAPA_PDVS.ouros || []).filter(p => p.f === sig).length;
 
           const tr = document.createElement('tr');
           tr.innerHTML = `
@@ -2197,9 +2200,11 @@
               document.getElementById('lbl-count-ouro').textContent = (MAPA_PDVS.ouros ? MAPA_PDVS.ouros.length : 0).toLocaleString('pt-BR');
             }
             // clientes com a tag RECORRENCIA na rota de hoje (dado real do roteiro, nao lista estatica)
+            const recTodas = MAPA_PDVS.recorrencia && MAPA_PDVS.recorrencia.TODAS;
+            const recTotalRota = recTodas ? recTodas.naRota : (MAPA_PDVS.ouros ? MAPA_PDVS.ouros.length : 0); // total real (com ou sem coordenada)
             ['header-ouro-chip', 'alvos-ouro-auditados-txt'].forEach((idEl) => {
               const el = document.getElementById(idEl);
-              if (el) el.textContent = (MAPA_PDVS.ouros ? MAPA_PDVS.ouros.length : 0).toLocaleString('pt-BR') + ' clientes';
+              if (el) el.textContent = recTotalRota.toLocaleString('pt-BR') + ' clientes';
             });
             if (document.getElementById('lbl-count-verde')) {
               document.getElementById('lbl-count-verde').textContent = (MAPA_PDVS.verde ? MAPA_PDVS.verde.length : 0).toLocaleString('pt-BR');

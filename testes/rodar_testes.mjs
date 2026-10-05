@@ -178,6 +178,10 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     ok(corpo.nao_supervisores && corpo.nao_supervisores.lista.length === 3 && corpo.nao_supervisores.por.includes('Vitório'), 'a resposta da equipe registra a lista e quem decidiu (auditoria)');
     ok(ler('functions/api/tv-mostra.js').includes('aplicaNaoSupervisores(o)'), 'tv-mostra aplica a regra em todas as fontes (D1, Drive e copia)'); }
   ok(ler('scratch/build_brasileirao_dataset.py').includes("if item.get('mostra') is False:"), 'Brasileirao: vendedores ocultos pela equipe (mostra:false) nao disputam a liga (ocultos pela equipe nao disputam)');
+  { const cr = ler('functions/api/cron-mapa-executivo.js'), lv = ler('functions/api/mapa-executivo-live.js'), tx = ler('public/tv_executiva.html');
+    ok(cr.includes('prod?.dia?.positivacao') && !/comVenda\+\+; aNac\.comVenda\+\+; aFil\.pedidos\+\+/.test(cr) && cr.includes('aF.pedidos += pedDigRca') && cr.includes('pegaRec(sig).pedidosCampo'), 'pedidos colocados da TV executiva = pedidos digitados hoje de TODOS os vendedores (rota e fora da rota); so a media pedidos/visita usa o varejo');
+    ok(cr.includes('recorrencia_resumo_live') && cr.includes('ocultos.add') && lv.includes('recorrencia'), 'recorrencia na rota conta TODOS os clientes com a tag (com ou sem coordenada), sem vendedor oculto');
+    ok(tx.includes('MAPA_PDVS.recorrencia'), 'TV executiva mostra o total real de recorrencia (chip, card e tabela por filial)'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);
