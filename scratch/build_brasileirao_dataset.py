@@ -108,7 +108,7 @@ try:
     # BRASILEIRAO_COM_IMP_GPS_ANTIGO=1 traz de volta, so para comparar.
     if os.environ.get('BRASILEIRAO_COM_IMP_GPS_ANTIGO') != '1':
         _antes = len(d1_data)
-        d1_data = [l for l in d1_data if not (str(l.get('dia') or '') < '2026-10-06' and re.search(r'(^|\|)imp\|gps\|', str(l.get('chave') or '')))]
+        d1_data = [l for l in d1_data if not (str(l.get('dia') or '') < '2026-10-06' and re.search(r'(^|\|)(imp\|gps|ver_dev|golcontra_dev)\|', str(l.get('chave') or '')))]
         print(f'Impedimentos de GPS antigos (sem comprovacao) fora da liga: {_antes - len(d1_data)} de {_antes}')
     print(f"Duplicados removidos: {duplicados_removidos} | lances únicos: {len(d1_data)}")
 except Exception as e:

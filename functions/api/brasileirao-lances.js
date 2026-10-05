@@ -77,7 +77,9 @@ export async function onRequestGet({ request, env }) {
     // check-outs vinha com ponto-padrao/endereco da empresa e o lance antigo nao guarda distancia, entao nao da
     // para separar o legitimo). Fica no banco, mas nao conta na liga. Decisao do Vitorio: "quero tudo corrigido".
     const GPS_CONFIAVEL_DESDE = '2026-10-06';
-    const lancesBrutos = (results || []).filter(l => !(dia < GPS_CONFIAVEL_DESDE && /(^|\|)imp\|gps\|/.test(String(l.chave || ''))));
+    // Devolucao (cartao vermelho / gol contra) anterior a 06/10 tambem sai: sem cliente nem prova gravada, e a rotina que gerava parou em 29/09.
+    const SEM_PROVA = /(^|\|)(imp\|gps|ver_dev|golcontra_dev)\|/;
+    const lancesBrutos = (results || []).filter(l => !(dia < GPS_CONFIAVEL_DESDE && SEM_PROVA.test(String(l.chave || ''))));
 
     // Um mesmo lance pode estar gravado duas vezes: pela TV da matriz (filial MTZ, chave com prefixo
     // "SIG|") e pela TV de filial ou pelo cron (filial real, chave sem prefixo). Conta cada lance UMA
