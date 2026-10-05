@@ -478,10 +478,12 @@ secao('8f. Gol Qualificado: nivel pelas industrias do pedido, carteira so Mondel
   {
     const eng = ler('pipeline/ceven_unified_engine.js');
     const ini = eng.indexOf('function ehPedidoDoRca'), fim = eng.indexOf('}\n', ini) + 1;
-    const ehDono = new Function(eng.slice(ini, fim) + '; return ehPedidoDoRca;')();
+    const ehDono = new Function(eng.slice(ini, eng.indexOf('function donoDoPedido')) + '; return ehPedidoDoRca;')();
+    const dono = new Function(eng.slice(ini, eng.indexOf("n.slice(0, -6) : '';")) + "n.slice(0, -6) : ''; }; return donoDoPedido;")();
+    ok(dono('108600094', ['1086', '60']) === '1086' && dono('5500000561', ['550', '55']) === '550' && dono('10000123', ['10', '100']) === '10' && dono('100000123', ['10', '100']) === '100' && dono('1045000160', ['79', '1045']) === '1045', 'dono do pedido: formatos com 5 ou 7 digitos e codigos parecidos (10 x 100) resolvidos pelo codigo conhecido mais longo');
     ok(ehDono('60000403', 60) && ehDono('177000874', '177') && ehDono('1043000083', 1043), 'pedido do proprio RCA (RCA + 6 digitos) e reconhecido');
     ok(!ehDono('1043000083', 60) && !ehDono('60000403', 6) && !ehDono('60000403', 600) && !ehDono('', 60) && !ehDono(null, 60) && !ehDono('60000403', ''), 'pedido de outro vendedor (caso Twix do TPH 60) e prefixo parecido NAO sao reconhecidos');
-    ok(eng.includes('PEDIDOS_APURADOS.has(numPed)') && eng.includes('donosPorCodigo.get(codDono)') && eng.includes('find(v => ehPedidoDoRca(v.num_pedido, rca.codigo))'), 'cortes/bloqueados: cada pedido contado UMA vez (por numero), no vendedor dono; recuperados usa so o pedido do dono');
+    ok(eng.includes('PEDIDOS_APURADOS.has(numPed)') && eng.includes('donosPorCodigo.get(codDono)') && eng.includes('find(v => ehPedidoDoRca(v.num_pedido, rca.codigo) || ehPedidoTolerante(v.num_pedido, rca.codigo))'), 'cortes/bloqueados: cada pedido contado UMA vez (por numero), no vendedor dono; recuperados usa so o pedido do dono');
   }
 }
 

@@ -52,6 +52,23 @@ function ehPedidoDoRca(numPedido, rca) {
   const n = String(numPedido || ''), c = String(rca || '');
   return !!c && n.length === c.length + 6 && n.startsWith(c) && /^[0-9]+$/.test(n.slice(c.length));
 }
+// Tolerante: no Data Lake (set/out) 1,5% dos pedidos tem 5 ou 7 digitos depois do codigo (108600094 = RCA 1086; 5500000561 = RCA 550).
+function ehPedidoTolerante(numPedido, rca) {
+  const n = String(numPedido || ''), c = String(rca || '');
+  const resto = n.length - c.length;
+  return !!c && n.startsWith(c) && resto >= 5 && resto <= 7 && /^[0-9]+$/.test(n.slice(c.length));
+}
+// Dono do pedido entre os codigos conhecidos: primeiro o formato padrao (6 digitos), depois o tolerante; vence o codigo mais longo (RCA 10 x RCA 100).
+function donoDoPedido(numPedido, codigos) {
+  const n = String(numPedido || '');
+  if (!/^[0-9]+$/.test(n)) return '';
+  for (const teste of [ehPedidoDoRca, ehPedidoTolerante]) {
+    let melhor = '';
+    for (const c of codigos) if (c.length > melhor.length && teste(n, c)) melhor = c;
+    if (melhor) return melhor;
+  }
+  return n.length > 6 ? n.slice(0, -6) : '';
+}
 // Login do administrador do CEVEN: vem dos segredos do GitHub (CEVEN_ADMIN_USER / CEVEN_ADMIN_PASS), nunca do codigo.
 const CEVEN_USER = process.env.CEVEN_ADMIN_USER;
 const CEVEN_PASS = process.env.CEVEN_ADMIN_PASS;
@@ -581,7 +598,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
                   let comprou = false;
                   try {
                     const hist = await safeGet(`${CEVEN_BASE}/api/rca/historico-cliente/${c.id_cliente}?filial=${fKey}&id=${rca.codigo}`);
-                    const ultimaVisita = (hist?.ultimas_visitas || []).find(v => ehPedidoDoRca(v.num_pedido, rca.codigo));
+                    const ultimaVisita = (hist?.ultimas_visitas || []).find(v => ehPedidoDoRca(v.num_pedido, rca.codigo) || ehPedidoTolerante(v.num_pedido, rca.codigo));
                     comprou = !!(ultimaVisita && ultimaVisita.data_visita === dataRef && ultimaVisita.status === 'EFETIVADO');
                   } catch (e) {}
 
@@ -614,6 +631,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
   // Cada PEDIDO entra UMA vez (pelo numero), mesmo que varios vendedores visitem o cliente; o dono e o RCA do prefixo do numero (RCA + 6 digitos).
   const PEDIDOS_APURADOS = new Set();
   const donosPorCodigo = new Map(rcasComPedido.map(x => [String(x.codigo), x]));
+  const codigosConhecidos = [...donosPorCodigo.keys()];
   for (let i = 0; i < rcasComPedido.length; i += BATCH_ROT) {
     const lote = rcasComPedido.slice(i, i + BATCH_ROT);
     await Promise.all(lote.map(async r => {
@@ -628,7 +646,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
               const numPed = String(v.num_pedido);
               if (PEDIDOS_APURADOS.has(numPed)) continue; // ja contado (o mesmo pedido aparece no historico de todo vendedor que visitou o cliente)
               PEDIDOS_APURADOS.add(numPed);
-              const codDono = ehPedidoDoRca(numPed, r.codigo) || numPed.length <= 6 ? String(r.codigo) : numPed.slice(0, -6);
+              const codDono = donoDoPedido(numPed, codigosConhecidos) || String(r.codigo);
               const dono = donosPorCodigo.get(codDono);
               const alvo = dono || r; // dono fora da lista de hoje: conta na filial de quem achou, com o codigo do dono
               const nomeDono = dono ? dono.nome : (codDono === String(r.codigo) ? r.nome : 'RCA ' + codDono);

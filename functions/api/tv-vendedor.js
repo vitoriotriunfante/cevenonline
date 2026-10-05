@@ -77,9 +77,12 @@ function industriasDoPedido(skus, cat) {
 // RCA + 6 digitos (177000874 = RCA 177). Pedido de outro vendedor nunca entra na analise (05/10/2026: corte de Twix da pasta Mars
 // apareceu no boletim do vendedor 60, que nao vende Twix).
 const ehPedidoDoRca = (numPedido, rca) => !!rca && new RegExp('^' + String(rca) + '[0-9]{6}$').test(String(numPedido || ''));
+// tolerante: 1,5% dos pedidos tem 5 ou 7 digitos depois do codigo (108600094 = RCA 1086)
+const ehPedidoTolerante = (numPedido, rca) => !!rca && new RegExp('^' + String(rca) + '[0-9]{5,7}$').test(String(numPedido || ''));
 function analisaPedido(historico, cat, rca) {
   const todas = Array.isArray(historico?.ultimas_visitas) ? historico.ultimas_visitas : [];
-  const iAtual = rca ? todas.findIndex((v) => ehPedidoDoRca(v.num_pedido, rca)) : (todas.length ? 0 : -1);
+  let iAtual = rca ? todas.findIndex((v) => ehPedidoDoRca(v.num_pedido, rca)) : (todas.length ? 0 : -1);
+  if (iAtual < 0 && rca) iAtual = todas.findIndex((v) => ehPedidoTolerante(v.num_pedido, rca));
   if (iAtual < 0) return null; // sem pedido proprio do vendedor neste cliente: nao analisa (nunca usa pedido de outro vendedor)
   const atual = todas[iAtual];
   const dataAtual = String(atual.data_visita || '').slice(0, 10);
