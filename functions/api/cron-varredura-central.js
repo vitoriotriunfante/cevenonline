@@ -221,7 +221,10 @@ export async function onRequestGet({ env, request }) {
 
     // 4. FRIA: dashboard e devolucoes, 1/10 por tick
     const fatiaFria = rcas.filter((rca, i) => i % FATIAS_FRIA === ciclo % FATIAS_FRIA);
-    const frias = await poolLimitado(fatiaFria.flatMap((rca) => [() => getJson(urlRca('dashboard', rca)), () => getJson(urlRca('devolucoes', rca))]), CONC, prazo);
+    // A etapa FRIA tem FATIA PROPRIA de tempo (05/10/2026): com o prazo geral, as etapas 1 a 3 consumiam os 100 s e a fria nunca rodava, entao painel (faturado do mes)
+    // e devolucoes ficavam congelados no dado da varredura completa (ex.: TPA R$ 42 mil na Executiva contra R$ 133 mil no CEVEN).
+    const prazoFria = Date.now() + 25000;
+    const frias = await poolLimitado(fatiaFria.flatMap((rca) => [() => getJson(urlRca('dashboard', rca)), () => getJson(urlRca('devolucoes', rca))]), CONC, prazoFria);
     fatiaFria.forEach((rca, i) => {
       const dash = frias[i * 2], dev = frias[i * 2 + 1];
       const campos = {};
