@@ -102,6 +102,12 @@ try:
             _vistos[_id] = _l
     duplicados_removidos = len(d1_data) - len(_vistos)
     d1_data = list(_vistos.values())
+    # SIMULACAO (nao e o padrao): BRASILEIRAO_SEM_IMP_GPS=1 tira os impedimentos de GPS da liga, so para comparar o efeito.
+    # Motivo (auditoria 05/10/2026): o check-out do palm vem com ponto-padrao/GPS parado em ~metade das visitas.
+    if os.environ.get('BRASILEIRAO_SEM_IMP_GPS') == '1':
+        _antes = len(d1_data)
+        d1_data = [l for l in d1_data if not re.search(r'(^|\|)imp\|gps\|', str(l.get('chave') or ''))]
+        print(f'SIMULACAO sem impedimento de GPS: {_antes - len(d1_data)} lances removidos de {_antes}')
     print(f"Duplicados removidos: {duplicados_removidos} | lances únicos: {len(d1_data)}")
 except Exception as e:
     # NUNCA sobrescrever o dataset publicado com dado vazio/zerado por falha de consulta

@@ -292,6 +292,29 @@ function textoGol(subtipo, valor, c, horaReal) {
   return 'GOL DE PLACA';
 }
 // I02: distância Haversine entre check-out do vendedor e o cadastro do cliente (metros)
+// IMPEDIMENTO POR GPS (auditoria de 05/10/2026, pedido do Vitorio): o check-out so vira Impedimento quando o dado e CONFIAVEL.
+// Medido em 219 visitas de hoje: 49% dos check-outs vinham com ponto-padrao (o mesmo ponto em 55 visitas de 8 filiais, a centenas de km),
+// e os que sobravam entre 5 e 20 km eram posicao parada/aproximada do palm (ex.: dois clientes diferentes com o MESMO check-out) ou
+// coordenada de cadastro errada (check-out igual ao de outro vendedor, a 600 m). Valia -5 pontos na liga. Regra nova:
+//   1) distancia entre 500 m e 5 km (acima disso e GPS aproximado/ponto-padrao, nao e o vendedor longe do cliente);
+//   2) o ponto de check-out NAO pode se repetir (+-100 m) em outra visita do mesmo vendedor (repetido = GPS parado na ultima posicao).
+const IMP_GPS_MIN_M = 500, IMP_GPS_MAX_M = 5000, IMP_GPS_REPETIDO_M = 100;
+// PONTOS DA EMPRESA (confirmado pelo Vitorio em 05/10/2026 abrindo o pino do check-out no CEVEN: "deu na Triunfante"): quando o app nao
+// capta o GPS do vendedor, o CEVEN grava o ENDERECO DA EMPRESA como posicao do check-out. 55 check-outs de 24 vendedores de 8 filiais
+// em (-23,2493 / -45,9245) = Rua Miracema, Sao Jose dos Campos; outros 4 pontos repetidos: Cascavel PR, Campinas, Cruzeiro e Lins SP.
+// Check-out nesses pontos = GPS NAO CAPTURADO: nunca e Impedimento nem punicao (o vendedor nao tem culpa do aparelho/app).
+const PONTOS_EMPRESA_GPS = [[-23.2493, -45.9245], [-24.97, -53.47], [-22.89, -47.05], [-22.56, -44.94], [-21.68, -49.77]];
+const PONTO_EMPRESA_RAIO_M = 1000;
+function checkoutNoPontoDaEmpresa(c) {
+  return PONTOS_EMPRESA_GPS.some((p) => distanciaM(c.checkout_lat, c.checkout_lon, p[0], p[1]) <= PONTO_EMPRESA_RAIO_M);
+}
+function impedimentoGpsConfiavel(v, c, distM) {
+  if (distM == null || !(distM > IMP_GPS_MIN_M && distM <= IMP_GPS_MAX_M)) return false;
+  if (checkoutNoPontoDaEmpresa(c)) return false; // o CEVEN gravou o endereco da empresa no lugar do GPS
+  const repetidos = (v.cl || []).filter((x) => x.checkout_lat && x.checkout_lon && x.checkout_lat !== 0 &&
+    distanciaM(x.checkout_lat, x.checkout_lon, c.checkout_lat, c.checkout_lon) <= IMP_GPS_REPETIDO_M).length;
+  return repetidos < 2; // 1 = so a propria visita; 2 ou mais = o mesmo ponto em varias visitas
+}
 function distanciaM(lat1, lon1, lat2, lon2) {
   if ([lat1, lon1, lat2, lon2].some(v => v == null || isNaN(v))) return null;
   const R = 6371000, rad = x => x * Math.PI / 180;
@@ -520,7 +543,7 @@ function calcAlertas() {
       // Tosto (canal AS) aparecendo em "SEM VISITA" repetidas vezes.
       if (v.campo) {
         const distM = distanciaM(c.lat, c.lon, c.checkout_lat, c.checkout_lon);
-        if (distM != null && distM > 500 && distM <= 20000) {
+        if (impedimentoGpsConfiavel(v, c, distM)) {
           out.push({key: `${sig}|imp|gps|${v.id}|${c.id}`, sig, nivel: 'impedimento', subtipo: 'gps_fora', v, c, distM: Math.round(distM)});
         }
       }

@@ -200,6 +200,23 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     ok(semDuplo(cl) && semDuplo(tv) && semDuplo(mz), 'recorrencia vira so defesa: cliente com a tag RECORRENCIA nao gera mais gol de resgate junto com a defesa (coletor, TV e Matriz)');
     ok(/defesa: \['\/animacoes\/videos\/defesa_1\.mp4'/.test(an) && an.includes('defesa_6.mp4'), 'a TV lista os videos de defesa (defesa_1 a defesa_6)');
     ok(mz.includes('${vPed > 0 ?'), 'popup da Defesa na Matriz nao mostra "VALOR DA VENDA R$ 0" quando nao ha valor'); }
+  { const fontes = ['functions/api/cron-lances.js', 'public/tvapp.html', 'public/matrizapp.html'].map(f => ler(f));
+    ok(fontes.every(s => s.includes('function impedimentoGpsConfiavel') && s.includes('IMP_GPS_MAX_M = 5000') && !/distM > 500 && distM <= 20000/.test(s)), 'impedimento de GPS so com dado confiavel: entre 500 m e 5 km e sem ponto de check-out repetido (coletor, TV e Matriz iguais)');
+    const corpo = fontes[0].slice(fontes[0].indexOf('const IMP_GPS_MIN_M'), fontes[0].indexOf('function horariosCheckinDoDia'));
+    const dist = (a, b, c2, d) => { const R = 6371000, rad = x => x * Math.PI / 180, dLa = rad(c2 - a), dLo = rad(d - b); const h = Math.sin(dLa / 2) ** 2 + Math.cos(rad(a)) * Math.cos(rad(c2)) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h)); };
+    const f = new Function('distanciaM', corpo + '; return impedimentoGpsConfiavel;')(dist);
+    const mk = (clat, clon) => ({ checkout_lat: clat, checkout_lon: clon });
+    const v1 = { cl: [mk(-23.2496, -45.8313), mk(-23.2496, -45.8313), mk(-22.9, -45.6)] };   // Fernanda: o MESMO ponto em 2 visitas
+    ok(f(v1, v1.cl[0], 8394) === false, 'GPS parado (mesmo check-out em 2 visitas) nao vira impedimento, mesmo a 8 km');
+    const v2 = { cl: [mk(-23.6433, -45.4404)] };
+    ok(f(v2, v2.cl[0], 19752) === false && f(v2, v2.cl[0], 537000) === false, 'check-out acima de 5 km (posicao aproximada ou ponto-padrao) nao vira impedimento');
+    const v3 = { cl: [mk(-23.50, -46.10), mk(-23.60, -46.20)] };
+    ok(f(v3, v3.cl[0], 1200) === true, 'check-out entre 500 m e 5 km, em ponto que nao se repete, continua sendo impedimento');
+    ok(f(v3, v3.cl[0], 480) === false && f(v3, v3.cl[0], null) === false, 'ate 500 m ou sem coordenada nao e impedimento');
+    const vE = { cl: [mk(-23.2493, -45.9245)] };      // check-out na sede (Rua Miracema, SJC), cliente a 3 km: antes virava impedimento
+    ok(f(vE, vE.cl[0], 3000) === false, 'ponto da empresa nunca vira impedimento: check-out na sede (Rua Miracema, SJC) nao pune o vendedor, mesmo com o cliente a 3 km');
+    const vE2 = { cl: [mk(-22.8903, -47.0498)] };      // Campinas (outro ponto da empresa), a ~50 m do ponto
+    ok(f(vE2, vE2.cl[0], 2500) === false, 'os outros 4 pontos da empresa (Cascavel, Campinas, Cruzeiro, Lins) tambem nao punem'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);
