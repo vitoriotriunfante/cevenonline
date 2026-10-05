@@ -837,7 +837,9 @@ function telaVAR(item) {
   } else if (item.tipo === 'penalti') {
     const v = item.v, it = item.itens || [], n = it.length; titulo = '🚨 PÊNALTI';
     sub = `${item.sig} · ${v ? v.nome : ''} · ${n === 1 ? (it[0].tipo === 'estoque' ? 'justificou "ESTOQUE SUFICIENTE"' : 'justificou cliente fechado') + ' em cliente parado' : n + ' justificativas suspeitas de uma vez'}`;
-    const cab = {'Filial': item.sig, 'Vendedor': v ? `${v.nome} (RCA ${v.id})` : '—', 'Supervisor': v ? v.sup : '—', 'Nota da filial': statFilial(item.sig).nota + ' / 100'};
+    const cab = {'Filial': item.sig, 'Vendedor': v ? `${v.nome} (RCA ${v.id})` : '—', 'Supervisor': v ? v.sup : '—', 'Nota da filial': statFilial(item.sig).nota + ' / 100',
+      // Hora em que o lance FOI REGISTRADO x hora em que o popup aparece: a fila do VAR (1 a cada 3 min, ate 20/h) pode atrasar o popup por horas; assim da para ver que NAO e repeticao.
+      'Lance registrado às': (() => { const k = (item.itens && item.itens[0] && item.itens[0].key) || (item.a && item.a.key); const r = LOG.find(e => e.key === k); return r && r.t ? r.t.slice(0, 5) + ' (exibido às ' + sp().hm + ')' : null; })()};
     if (n === 1) { const {c, dias} = it[0], tv = c ? c.tempo_visita : null; dec = seloLiga + linhas({...cab, 'Cliente': c ? c.nome : '—', 'Justificativa': '!' + (c ? c.motivo : ''), 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c ? c.ultima_compra : '')})` : 'sem compra registrada'), 'Tempo na visita': tv ? (tv === '00:00' ? '!' + tv + ' (visita de 0 minuto)' : tv) : null}); }
     else dec = seloLiga + linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot"><b>${esc(a.c ? a.c.nome : '')}</b><span>${esc(a.c ? a.c.motivo : '')} · ${a.dias != null ? a.dias + 'd s/ compra' : 'sem compra'}</span></div>`).join('');
     veredito = (v && ehSupFalso(v.sup)) ? `📞 LIGAR AGORA: o gerente de ${item.sig} (vendedor ${v.nome.split(' ')[0]} é ligado direto ao gerente)` : `📞 LIGAR AGORA: ${v ? v.sup : 'supervisor'} · ${item.sig} (supervisor de ${v ? v.nome.split(' ')[0] : 'vendedor'})`;
@@ -1622,4 +1624,17 @@ setInterval(autoScrollPaineis, 80);
 ctl(); setInterval(relogio, 1000); relogio(); laco();
 window.__mtz = {DATA, TS, get ALERTAS() { return ALERTAS; }, get LOG() { return LOG; }, statFilial, ORDEM, ocupado: () => emVAR || FILA.length > 0, animTeste: typeof animTeste === 'function' ? animTeste : null};
 window.__tv = window.__mtz; // a casca /tv usa __tv.ocupado para não recarregar durante um lance
+
+// ATUALIZACAO AUTOMATICA DA MATRIZ (05/10/2026): a Matriz aberta direto (sem a casca /tv) nao recarregava quando publicavamos e ficava horas rodando codigo velho
+// (ex.: popup de impedimento sem prova, regras antigas). Mesma regra da TV da filial: confere /api/version a cada 30 s e recarrega SEM interromper um lance.
+let versaoMatriz = null, recarregarMatriz = false;
+async function checaVersaoMatriz() {
+  const d = await j('/api/version', 8000);
+  if (d && d.version) {
+    if (versaoMatriz && versaoMatriz !== d.version && window.top === window) recarregarMatriz = true;
+    else if (!versaoMatriz) versaoMatriz = d.version;
+  }
+}
+setInterval(checaVersaoMatriz, 30000); checaVersaoMatriz();
+setInterval(() => { if (recarregarMatriz && !emVAR && !FILA.length) location.reload(); }, 2000);
 </script></body></html>
