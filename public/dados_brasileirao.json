@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-05T14:40:51.296637Z",
+  "gerado_em": "2026-10-05T14:43:53.300932Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -10,7 +10,7 @@
     "2026-10-02",
     "2026-10-05"
   ],
-  "total_lances_auditados": 8750,
+  "total_lances_auditados": 8761,
   "filiais": [
     {
       "sigla": "API",
@@ -68,9 +68,9 @@
       "vitorias": 1,
       "empates": 4,
       "derrotas": 1,
-      "gp": 2071,
-      "gc": 1916,
-      "sg": 155,
+      "gp": 2078,
+      "gc": 1946,
+      "sg": 132,
       "aprov": 38.9,
       "super_pedidos": 13,
       "inativos_resgatados": 59,
@@ -339,9 +339,9 @@
       "vitorias": 1,
       "empates": 4,
       "derrotas": 1,
-      "gp": 2071,
-      "gc": 1916,
-      "sg": 155,
+      "gp": 2078,
+      "gc": 1946,
+      "sg": 132,
       "aprov": 38.9,
       "forma": [
         "E",
@@ -1312,8 +1312,8 @@
       "empates": 4,
       "derrotas": 1,
       "gp": 505,
-      "gc": 629,
-      "sg": -124,
+      "gc": 644,
+      "sg": -139,
       "aprov": 38.9,
       "forma": [
         "E",
@@ -1602,8 +1602,8 @@
       "empates": 4,
       "derrotas": 1,
       "gp": 478,
-      "gc": 313,
-      "sg": 165,
+      "gc": 323,
+      "sg": 155,
       "aprov": 38.9,
       "forma": [
         "E",
@@ -2819,9 +2819,9 @@
       "vitorias": 0,
       "empates": 5,
       "derrotas": 1,
-      "gp": 303,
+      "gp": 307,
       "gc": 173,
-      "sg": 130,
+      "sg": 134,
       "aprov": 27.8,
       "forma": [
         "E",
@@ -3979,9 +3979,9 @@
       "vitorias": 0,
       "empates": 3,
       "derrotas": 3,
-      "gp": 239,
-      "gc": 361,
-      "sg": -122,
+      "gp": 242,
+      "gc": 366,
+      "sg": -124,
       "aprov": 16.7,
       "forma": [
         "D",
@@ -8366,6 +8366,38 @@
       "pos_filial": 5
     },
     {
+      "rca": "550",
+      "nome": "FABIO SEREIA",
+      "filial": "TBL",
+      "supervisor": "SERGIO LOPES DE OLIVEIRA",
+      "gerente": "Fábio",
+      "jogos": 6,
+      "vitorias": 2,
+      "empates": 2,
+      "derrotas": 2,
+      "pts_tabela": 9,
+      "aprov": 50.0,
+      "gp": 94,
+      "gc": 86,
+      "sg": 8,
+      "super_pedidos": 1,
+      "inativos_resgatados": 2,
+      "forma": [
+        "E",
+        "V",
+        "V",
+        "D",
+        "D",
+        "E"
+      ],
+      "streak": 2,
+      "bonus_constancia": 1,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 122,
+      "pos_filial": 9
+    },
+    {
       "rca": "59",
       "nome": "ALEXSSANDRO HENRIQUE TAVARES HEY",
       "filial": "TPH",
@@ -8394,7 +8426,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 122,
+      "pos_brasil": 123,
       "pos_filial": 23
     },
     {
@@ -8426,7 +8458,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 123,
+      "pos_brasil": 124,
       "pos_filial": 24
     },
     {
@@ -8458,7 +8490,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 124,
+      "pos_brasil": 125,
       "pos_filial": 19
     },
     {
@@ -8490,7 +8522,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 125,
+      "pos_brasil": 126,
       "pos_filial": 7
     },
     {
@@ -8522,7 +8554,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 126,
+      "pos_brasil": 127,
       "pos_filial": 13
     },
     {
@@ -8554,7 +8586,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 127,
+      "pos_brasil": 128,
       "pos_filial": 5
     },
     {
@@ -8586,7 +8618,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 128,
+      "pos_brasil": 129,
       "pos_filial": 6
     },
     {
@@ -8618,7 +8650,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 129,
+      "pos_brasil": 130,
       "pos_filial": 11
     },
     {
@@ -8650,7 +8682,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 130,
+      "pos_brasil": 131,
       "pos_filial": 12
     },
     {
@@ -8682,7 +8714,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 131,
+      "pos_brasil": 132,
       "pos_filial": 20
     },
     {
@@ -8714,7 +8746,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 132,
+      "pos_brasil": 133,
       "pos_filial": 8
     },
     {
@@ -8746,7 +8778,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 133,
+      "pos_brasil": 134,
       "pos_filial": 14
     },
     {
@@ -8778,7 +8810,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 134,
+      "pos_brasil": 135,
       "pos_filial": 13
     },
     {
@@ -8810,7 +8842,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 135,
+      "pos_brasil": 136,
       "pos_filial": 11
     },
     {
@@ -8842,7 +8874,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 136,
+      "pos_brasil": 137,
       "pos_filial": 7
     },
     {
@@ -8874,7 +8906,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 137,
+      "pos_brasil": 138,
       "pos_filial": 25
     },
     {
@@ -8906,7 +8938,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 138,
+      "pos_brasil": 139,
       "pos_filial": 26
     },
     {
@@ -8938,7 +8970,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 139,
+      "pos_brasil": 140,
       "pos_filial": 7
     },
     {
@@ -8970,7 +9002,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 140,
+      "pos_brasil": 141,
       "pos_filial": 6
     },
     {
@@ -9002,8 +9034,8 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 141,
-      "pos_filial": 9
+      "pos_brasil": 142,
+      "pos_filial": 10
     },
     {
       "rca": "118",
@@ -9034,7 +9066,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 142,
+      "pos_brasil": 143,
       "pos_filial": 27
     },
     {
@@ -9066,7 +9098,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 143,
+      "pos_brasil": 144,
       "pos_filial": 9
     },
     {
@@ -9098,7 +9130,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 144,
+      "pos_brasil": 145,
       "pos_filial": 12
     },
     {
@@ -9130,7 +9162,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 145,
+      "pos_brasil": 146,
       "pos_filial": 8
     },
     {
@@ -9162,7 +9194,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 146,
+      "pos_brasil": 147,
       "pos_filial": 10
     },
     {
@@ -9194,7 +9226,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 147,
+      "pos_brasil": 148,
       "pos_filial": 9
     },
     {
@@ -9226,7 +9258,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 148,
+      "pos_brasil": 149,
       "pos_filial": 21
     },
     {
@@ -9258,7 +9290,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 149,
+      "pos_brasil": 150,
       "pos_filial": 22
     },
     {
@@ -9290,7 +9322,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 150,
+      "pos_brasil": 151,
       "pos_filial": 10
     },
     {
@@ -9322,7 +9354,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 151,
+      "pos_brasil": 152,
       "pos_filial": 21
     },
     {
@@ -9354,7 +9386,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 152,
+      "pos_brasil": 153,
       "pos_filial": 28
     },
     {
@@ -9386,7 +9418,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 153,
+      "pos_brasil": 154,
       "pos_filial": 15
     },
     {
@@ -9418,7 +9450,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 154,
+      "pos_brasil": 155,
       "pos_filial": 11
     },
     {
@@ -9450,40 +9482,8 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 155,
-      "pos_filial": 22
-    },
-    {
-      "rca": "550",
-      "nome": "FABIO SEREIA",
-      "filial": "TBL",
-      "supervisor": "SERGIO LOPES DE OLIVEIRA",
-      "gerente": "Fábio",
-      "jogos": 6,
-      "vitorias": 2,
-      "empates": 1,
-      "derrotas": 3,
-      "pts_tabela": 8,
-      "aprov": 44.4,
-      "gp": 90,
-      "gc": 86,
-      "sg": 4,
-      "super_pedidos": 1,
-      "inativos_resgatados": 2,
-      "forma": [
-        "E",
-        "V",
-        "V",
-        "D",
-        "D",
-        "D"
-      ],
-      "streak": 2,
-      "bonus_constancia": 1,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
       "pos_brasil": 156,
-      "pos_filial": 10
+      "pos_filial": 22
     },
     {
       "rca": "157",
@@ -10106,8 +10106,8 @@
       "pts_tabela": 7,
       "aprov": 38.9,
       "gp": 108,
-      "gc": 136,
-      "sg": -28,
+      "gc": 141,
+      "sg": -33,
       "super_pedidos": 0,
       "inativos_resgatados": 2,
       "forma": [
@@ -13166,38 +13166,6 @@
       "pos_filial": 47
     },
     {
-      "rca": "192",
-      "nome": "MARCOS MILITAO DA SILVA",
-      "filial": "TBL",
-      "supervisor": "IGOR RODRIGUES DUARTE",
-      "gerente": "Fábio",
-      "jogos": 6,
-      "vitorias": 1,
-      "empates": 1,
-      "derrotas": 4,
-      "pts_tabela": 4,
-      "aprov": 22.2,
-      "gp": 105,
-      "gc": 105,
-      "sg": 0,
-      "super_pedidos": 0,
-      "inativos_resgatados": 0,
-      "forma": [
-        "D",
-        "V",
-        "D",
-        "E",
-        "D",
-        "D"
-      ],
-      "streak": 1,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 272,
-      "pos_filial": 20
-    },
-    {
       "rca": "132",
       "nome": "MATHEUS W KOKOTY ALVES DE OLIVEIRA",
       "filial": "TPH",
@@ -13226,7 +13194,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 273,
+      "pos_brasil": 272,
       "pos_filial": 48
     },
     {
@@ -13258,7 +13226,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 274,
+      "pos_brasil": 273,
       "pos_filial": 21
     },
     {
@@ -13290,8 +13258,40 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 275,
+      "pos_brasil": 274,
       "pos_filial": 17
+    },
+    {
+      "rca": "192",
+      "nome": "MARCOS MILITAO DA SILVA",
+      "filial": "TBL",
+      "supervisor": "IGOR RODRIGUES DUARTE",
+      "gerente": "Fábio",
+      "jogos": 6,
+      "vitorias": 1,
+      "empates": 1,
+      "derrotas": 4,
+      "pts_tabela": 4,
+      "aprov": 22.2,
+      "gp": 105,
+      "gc": 115,
+      "sg": -10,
+      "super_pedidos": 0,
+      "inativos_resgatados": 0,
+      "forma": [
+        "D",
+        "V",
+        "D",
+        "E",
+        "D",
+        "D"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 275,
+      "pos_filial": 20
     },
     {
       "rca": "1072",
@@ -14041,9 +14041,9 @@
       "derrotas": 5,
       "pts_tabela": 3,
       "aprov": 16.7,
-      "gp": 44,
+      "gp": 47,
       "gc": 51,
-      "sg": -7,
+      "sg": -4,
       "super_pedidos": 0,
       "inativos_resgatados": 2,
       "forma": [
@@ -19194,8 +19194,8 @@
       "pts_tabela": 0,
       "aprov": 0.0,
       "gp": 65,
-      "gc": 217,
-      "sg": -152,
+      "gc": 222,
+      "sg": -157,
       "super_pedidos": 0,
       "inativos_resgatados": 0,
       "forma": [
@@ -19258,8 +19258,8 @@
       "pts_tabela": 0,
       "aprov": 0.0,
       "gp": 68,
-      "gc": 256,
-      "sg": -188,
+      "gc": 266,
+      "sg": -198,
       "super_pedidos": 1,
       "inativos_resgatados": 3,
       "forma": [
