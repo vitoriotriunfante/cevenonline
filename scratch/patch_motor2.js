@@ -1,0 +1,10 @@
+const fs = require('fs');
+const p = 'c:/Users/vitorio.neto/Documents/Projetos IA/CEVEN várias telas/pipeline/ceven_unified_engine.js';
+let s = fs.readFileSync(p, 'utf8'); const crlf = s.includes('\r\n'); s = s.replace(/\r\n/g, '\n');
+const tr = (de, para, r) => { if (s.split(de).length !== 2) throw new Error('ancora: ' + r + ' (' + (s.split(de).length - 1) + ')'); s = s.replace(de, () => para); };
+tr("  const BATCH_ROT = 10;\n", "  const BATCH_ROT = 10;\n  // Cada PEDIDO entra UMA vez (pelo numero), mesmo que varios vendedores visitem o cliente; o dono e o RCA do prefixo do numero (RCA + 6 digitos).\n  const PEDIDOS_APURADOS = new Set();\n  const donosPorCodigo = new Map(rcasComPedido.map(x => [String(x.codigo), x]));\n", 'decl');
+tr("v.data_visita === dataRef && v.num_pedido && ehPedidoDoRca(v.num_pedido, r.codigo));", "v.data_visita === dataRef && v.num_pedido);", 'filtro');
+tr("              const resFil = filialResult[r.chave || r.filial];\n              if (!resFil) return;\n",
+"              const numPed = String(v.num_pedido);\n              if (PEDIDOS_APURADOS.has(numPed)) continue; // ja contado (o mesmo pedido aparece no historico de todo vendedor que visitou o cliente)\n              PEDIDOS_APURADOS.add(numPed);\n              const codDono = ehPedidoDoRca(numPed, r.codigo) || numPed.length <= 6 ? String(r.codigo) : numPed.slice(0, -6);\n              const dono = donosPorCodigo.get(codDono);\n              const alvo = dono || r; // dono fora da lista de hoje: conta na filial de quem achou, com o codigo do dono\n              const nomeDono = dono ? dono.nome : (codDono === String(r.codigo) ? r.nome : 'RCA ' + codDono);\n              const resFil = filialResult[alvo.chave || alvo.filial];\n              if (!resFil) continue;\n", 'dono');
+tr("                    rca: r.codigo,\n                    vendedor: r.nome,\n                    cliente: p.nome_cliente,", "                    rca: codDono,\n                    vendedor: nomeDono,\n                    cliente: p.nome_cliente,", 'push');
+fs.writeFileSync(p, crlf ? s.replace(/\n/g, '\r\n') : s); console.log('ok');

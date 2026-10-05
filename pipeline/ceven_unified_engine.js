@@ -611,6 +611,9 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
   // 2. Varredura rápida de Cortes Comerciais/Logísticos e Pedidos Bloqueados de Hoje
   console.log(`🔍 Apurando Cortes e Bloqueados em tempo real nos ${rcasComPedido.length} vendedores com pedido hoje...`);
   const BATCH_ROT = 10;
+  // Cada PEDIDO entra UMA vez (pelo numero), mesmo que varios vendedores visitem o cliente; o dono e o RCA do prefixo do numero (RCA + 6 digitos).
+  const PEDIDOS_APURADOS = new Set();
+  const donosPorCodigo = new Map(rcasComPedido.map(x => [String(x.codigo), x]));
   for (let i = 0; i < rcasComPedido.length; i += BATCH_ROT) {
     const lote = rcasComPedido.slice(i, i + BATCH_ROT);
     await Promise.all(lote.map(async r => {
@@ -620,10 +623,17 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
         await Promise.all(pdvs.map(async p => {
           try {
             const histData = await safeGet(`${CEVEN_BASE}/api/rca/historico-cliente/${p.id_cliente}?filial=${r.fKey}&id=${r.codigo}`);
-            const visitasHoje = (histData?.ultimas_visitas || []).filter(v => v.data_visita === dataRef && v.num_pedido && ehPedidoDoRca(v.num_pedido, r.codigo));
+            const visitasHoje = (histData?.ultimas_visitas || []).filter(v => v.data_visita === dataRef && v.num_pedido);
             for (const v of visitasHoje) {
-              const resFil = filialResult[r.chave || r.filial];
-              if (!resFil) return;
+              const numPed = String(v.num_pedido);
+              if (PEDIDOS_APURADOS.has(numPed)) continue; // ja contado (o mesmo pedido aparece no historico de todo vendedor que visitou o cliente)
+              PEDIDOS_APURADOS.add(numPed);
+              const codDono = ehPedidoDoRca(numPed, r.codigo) || numPed.length <= 6 ? String(r.codigo) : numPed.slice(0, -6);
+              const dono = donosPorCodigo.get(codDono);
+              const alvo = dono || r; // dono fora da lista de hoje: conta na filial de quem achou, com o codigo do dono
+              const nomeDono = dono ? dono.nome : (codDono === String(r.codigo) ? r.nome : 'RCA ' + codDono);
+              const resFil = filialResult[alvo.chave || alvo.filial];
+              if (!resFil) continue;
 
               const cat = (v.categoria_corte || '').toUpperCase();
               const itensCort = v.itens_cortados || [];
@@ -651,8 +661,8 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
                   resFil.cortesQtd++;
                   resFil.cortesValor += valorCorte;
                   resFil.itensCortados.push({
-                    rca: r.codigo,
-                    vendedor: r.nome,
+                    rca: codDono,
+                    vendedor: nomeDono,
                     cliente: p.nome_cliente,
                     pedido: v.num_pedido,
                     tipo: cat || 'CORTE IDENTIFICADO',

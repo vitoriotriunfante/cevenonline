@@ -481,7 +481,7 @@ secao('8f. Gol Qualificado: nivel pelas industrias do pedido, carteira so Mondel
     const ehDono = new Function(eng.slice(ini, fim) + '; return ehPedidoDoRca;')();
     ok(ehDono('60000403', 60) && ehDono('177000874', '177') && ehDono('1043000083', 1043), 'pedido do proprio RCA (RCA + 6 digitos) e reconhecido');
     ok(!ehDono('1043000083', 60) && !ehDono('60000403', 6) && !ehDono('60000403', 600) && !ehDono('', 60) && !ehDono(null, 60) && !ehDono('60000403', ''), 'pedido de outro vendedor (caso Twix do TPH 60) e prefixo parecido NAO sao reconhecidos');
-    ok(eng.includes('v.num_pedido && ehPedidoDoRca(v.num_pedido, r.codigo)') && eng.includes('find(v => ehPedidoDoRca(v.num_pedido, rca.codigo))'), 'apuracao de cortes/bloqueados e de recuperados usa so o pedido do dono');
+    ok(eng.includes('PEDIDOS_APURADOS.has(numPed)') && eng.includes('donosPorCodigo.get(codDono)') && eng.includes('find(v => ehPedidoDoRca(v.num_pedido, rca.codigo))'), 'cortes/bloqueados: cada pedido contado UMA vez (por numero), no vendedor dono; recuperados usa so o pedido do dono');
   }
 }
 
