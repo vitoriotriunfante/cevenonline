@@ -107,9 +107,12 @@ async function main() {
   const repsMap = engine.carregarValidacaoVendedores();
   await engine.enriquecerCanalReal(repsMap);
   engine.aplicarMostraDisparos(repsMap);
+  // Ocultos e vendedores so da planilha (fora de repsMap) mantem o gerente que a planilha informa (campo grupo): sem isso caiam num 'terceiro gerente' (padrao da filial, ex.: Vagner / Fábio).
+  const gerenteExtra = new Map((repsMap.__extrasMacro || []).filter(e => e.gerente).map(e => [`${e.filial}_${e.rca}`, e.gerente]));
   function resolverGerente(sigla, rcaId) {
     const val = repsMap[`${sigla}_${rcaId}`];
     if (val) return val.gerente;
+    if (gerenteExtra.has(`${sigla}_${rcaId}`)) return gerenteExtra.get(`${sigla}_${rcaId}`);
     return (Object.values(engine.FILIAIS_MAP).find(f => f.sigla === sigla)?.gerente) || sigla;
   }
   function resolverSupervisor(sigla, rcaId) {
