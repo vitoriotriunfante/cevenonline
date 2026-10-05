@@ -252,6 +252,7 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     <button id="bt-ver" style="background:#991b1b;color:#fca5a5;font-weight:700" title="Testar animação de Cartão Vermelho">🟥 Vermelho</button>
     <button id="bt-ama" style="background:#854d0e;color:#fef08a;font-weight:700" title="Testar animação de Cartão Amarelo">🟨 Amarelo</button>
     <button id="bt-pen" style="background:#1e3a8a;color:#93c5fd;font-weight:700" title="Testar animação de Pênalti VAR">🚨 Pênalti</button>
+    <button id="bt-gc" style="background:#7f1d1d;color:#fecaca;font-weight:700" title="Testar animação de Gol Contra (devolução)">⚽ Gol Contra</button>
     <button id="bt-hat" style="background:#ea580c;color:#ffedd5;font-weight:700" title="Testar animação de Hat-Trick">🔥 Hat-Trick</button>
     <button id="bt-inv" style="background:#b45309;color:#fef3c7;font-weight:700" title="Testar animação de Semana Invicta">👑 Invicta</button>
     <button data-m="auto" class="on">Auto</button><button data-m="ronda">Ronda</button><button data-m="painel">Painel</button><button data-m="sup">Supervisores</button><a href="/brasileirao" target="_blank" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f172a;font-weight:900;text-decoration:none;padding:5px 12px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;font-size:12px" title="Abrir Tabela da Liga e Regulamento Oficial">🏆 Liga Triunfante</a>
@@ -639,7 +640,8 @@ function calcAlertas(vs) {
       const diasC = diasDesde(c.ultima_compra);
       const ehInativo = diasC != null && diasC > 30;
       const ehRecorrencia = !!c.recorrencia;
-      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && ehInativo && !ehRecorrencia) {
+      const tagsConhecidas = c.recorrencia !== null; // false = informou e nao tem; null = nao informou (nao cria gol de resgate)
+      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && ehInativo && !ehRecorrencia && tagsConhecidas) {
         const subTipoInativo = (diasC != null && diasC > 90) ? 'drible_vaca' : (ehRecorrencia ? 'recorrencia_salva' : 'inativo_recuperado');
         out.push({key: `gol_inativo|${v.id}|${c.id}`, nivel: 'gol', subtipo: subTipoInativo, v, c, dias: diasC});
       }
@@ -955,10 +957,19 @@ function telaVAR(item) {
   // TODO LANCE IDENTIFICA O SUPERVISOR (Vitorio, 05/10/2026: "todo lance tem que identificar o supervisor"): linha SUPERVISOR logo apos o VENDEDOR.
   {
     const vv = item.v || (item.a && item.a.v);
-    const rotSup = (n) => { const u = String(n || '').trim().toUpperCase(); if (!u) return 'sem supervisor informado'; if (/^GERENTE( |$)/.test(u)) return 'Vendedor ligado direto ao gerente'; if (/^VENDA EMPRESA/.test(u)) return 'Venda empresa (interno)'; return n; };
+    const rotSup = (n) => { const u = String(n || '').trim().toUpperCase(); if (!u) return 'Vendedor ligado direto ao gerente'; if (/^GERENTE( |$)/.test(u)) return 'Vendedor ligado direto ao gerente'; if (/^VENDA EMPRESA/.test(u)) return 'Venda empresa (interno)'; return n; };
     if (vv && typeof dec === 'string' && !/<b>SUPERVISOR<\/b>/i.test(dec)) {
       const m = dec.match(/<div class="ln hot"><b>VENDEDOR<\/b>[\s\S]*?<\/span><\/div>/);
       if (m) dec = dec.replace(m[0], () => m[0] + '<div class="ln"><b>SUPERVISOR</b><span>' + esc(rotSup(vv.sup)) + '</span></div>');
+    }
+  }
+  // TEMPO NO CLIENTE em todo lance de cliente (Vitorio, 05/10/2026: "tem que colocar quanto tempo ele ficou no cliente"): check-in, check-out e tempo.
+  {
+    const cc = item.c || (item.a && item.a.c) || (item.itens && item.itens.length === 1 && item.itens[0].c);
+    if (cc && typeof dec === 'string' && !/TEMPO NO CLIENTE|Tempo na visita/i.test(dec)) {
+      const ln = (k, v) => '<div class="ln"><b>' + k + '</b><span>' + esc(v) + '</span></div>';
+      const tv = cc.tempo_visita ? (cc.tempo_visita === '00:00' ? cc.tempo_visita + ' (visita de 0 minuto)' : cc.tempo_visita) : 'sem dado no CEVEN';
+      dec += ln('CHECK-IN', cc.checkin_horario || 'sem hora no CEVEN') + ln('CHECK-OUT', cc.checkout_horario || 'sem hora no CEVEN') + ln('TEMPO NO CLIENTE', tv);
     }
   }
   return {titulo, sub, dec, veredito, cls};
@@ -1706,6 +1717,7 @@ function ctl() {
   if ($('bt-ver')) $('bt-ver').onclick = () => (typeof animTeste === 'function' ? animTeste('vermelho', 'Devolução: CLIENTE NÃO PEDIU') : null);
   if ($('bt-ama')) $('bt-ama').onclick = () => (typeof animTeste === 'function' ? animTeste('amarelo', 'Rota ativa sem vendas às 10h') : null);
   if ($('bt-pen')) $('bt-pen').onclick = () => (typeof animTeste === 'function' ? animTeste('penalti') : null);
+  if ($('bt-gc')) $('bt-gc').onclick = () => (typeof animTeste === 'function' ? animTeste('golcontra') : null);
   if ($('bt-hat')) $('bt-hat').onclick = () => (typeof animTeste === 'function' ? animTeste('hattrick') : null);
   if ($('bt-inv')) $('bt-inv').onclick = () => (typeof animTeste === 'function' ? animTeste('semanainvicta') : null);
   const fs = () => { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch {} };

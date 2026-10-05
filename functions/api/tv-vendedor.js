@@ -112,7 +112,9 @@ function montarTv(id, dash, prod, rot, analisePorCliente) {
           lon: num(c.longitude),
           checkout_lat: num(c.checkout_latitude),
           checkout_lon: num(c.checkout_longitude),
-          recorrencia: Array.isArray(c.focos) ? c.focos.some((f) => String(f?.industria_foco || '').toUpperCase().includes('RECORRENCIA')) : false,
+          // null = o CEVEN NAO informou as tags nesta leitura (diferente de false = informou e nao tem RECORRENCIA). Gol de resgate nao nasce sem a tag informada
+          // (achado 05/10/2026: 3 gols de resgate em clientes COM a tag nasceram as 15:43, numa leitura sem o campo).
+          recorrencia: Array.isArray(c.focos) ? c.focos.some((f) => String(f?.industria_foco || '').toUpperCase().includes('RECORRENCIA')) : null,
           valorVendaAtual: analisePorCliente?.[c.id_cliente]?.valorAtual || 0,
           dobrouMix: analisePorCliente?.[c.id_cliente]?.dobrouMix || false,
           bonificacao: analisePorCliente?.[c.id_cliente]?.bonificacao || false,

@@ -74,6 +74,12 @@ export async function onRequestGet({ request, env }) {
 
     const { results } = await env.DB.prepare(query).bind(...params).all();
     // Campeao da Rodada (gol_campeao) vale UMA vez por vendedor no mes: some do dia se a mesma chave ja apareceu em dia anterior.
+    // LANCES RETIRADOS DA LIGA COM TRILHA (tabela lances_excluidos_liga: dia, chave, motivo, em): continuam no registro, nao pontuam. Auditavel.
+    const excluidos = new Set();
+    try {
+      const { results: ex } = await env.DB.prepare('SELECT chave, motivo FROM lances_excluidos_liga WHERE dia = ?').bind(dia).all();
+      for (const e of ex || []) if (e && e.motivo) excluidos.add(e.chave); // exclusao sempre tem motivo (trilha)
+    } catch (e) { /* tabela ainda nao existe: nada excluido */ }
     const campeaoAntes = new Set();
     try {
       const { results: ant } = await env.DB.prepare("SELECT DISTINCT filial, chave FROM tv_lances WHERE chave LIKE '%gol_campeao|%' AND dia < ? AND dia >= ?").bind(dia, dia.slice(0, 7) + '-01').all();
@@ -89,6 +95,7 @@ export async function onRequestGet({ request, env }) {
     const lancesBrutos = (results || []).filter(l => {
       const ch = String(l.chave || '');
       if (dia < GPS_CONFIAVEL_DESDE && GPS_ANTIGO.test(ch)) return false;
+      if (excluidos.size && excluidos.has(ch.replace(/^[A-Z]{3}[|]/, ''))) return false;
       if (l.nivel === 'semanainvicta') return false; // aviso da Semana Invicta e so para a TV; o +3 do ranking vem da conta semanal do gerador, nunca desta linha
       if (/gol_campeao[|]/.test(ch) && campeaoAntes.has((l.filial || '') + '#' + ch)) return false;
       if (DEVOLUCAO.test(ch)) {
@@ -130,7 +137,7 @@ export async function onRequestGet({ request, env }) {
         nivel: l.nivel,
         rca: l.rca,
         vendedor: l.vendedor,
-        supervisor: l.supervisor,
+        supervisor: l.supervisor || 'Direto ao gerente',
         cliente: l.cliente,
         cliente_id: l.cliente_id,
         ultima_compra: l.ultima_compra,

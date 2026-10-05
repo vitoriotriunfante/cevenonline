@@ -236,6 +236,11 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
   { const an2 = ler('public/animacoes/tv-animacoes.js'), tv2 = ler('public/tvapp.html'), mz2 = ler('public/matrizapp.html');
     ok(['hattrick_1', 'hattrick_2', 'semanainvicta_1', 'semanainvicta_2', 'golcontra_1', 'golcontra_2', 'golcontra_3', 'vermelho_4'].every(n => an2.includes('/animacoes/videos/' + n + '.mp4')), 'a TV lista os videos novos (hat-trick, semana invicta, gol contra, vermelho_4)');
     ok(tv2.includes("videoNome = 'golcontra'") && mz2.includes("videoNome = 'golcontra'") && !mz2.includes("animGolContra) { duracaoAnim = 12000 + variaMs(); videoNome = 'amarelo'"), 'gol contra toca video de gol contra (antes tocava penalti na TV da filial e amarelo na Matriz)'); }
+  { const wa = ler('.github/workflows/ceven-cron-whatsapp.yml'), mp = ler('.github/workflows/ceven-cron-marca-propria.yml'), mzz = ler('public/matrizapp.html'), tvv = ler('public/tvapp.html'), ep = ler('functions/api/brasileirao-lances.js'), cl2 = ler('functions/api/cron-lances.js');
+    ok(!wa.includes('reset --soft') && !mp.includes('reset --soft') && wa.includes('reset --mixed') && mp.includes('reset --mixed'), 'commit automatico dos workflows do WhatsApp usa reset --mixed (o --soft desfazia o trabalho de outras sessoes)');
+    ok([mzz, tvv].every(h => h.includes('TEMPO NO CLIENTE') && h.includes('bt-gc') && h.includes('Vendedor ligado direto ao gerente')), 'popup de todo lance de cliente mostra check-in, check-out e TEMPO NO CLIENTE; supervisor vazio vira "ligado direto ao gerente"; botao Gol Contra na barra de testes');
+    ok(mzz.includes('METRICA_FILIAL') && mzz.includes('Score da filial'), 'Matriz: score/criticidade da filial iguais no foco, na lista e nos popups');
+    ok(ep.includes('lances_excluidos_liga') && cl2.includes('tagsConhecidas'), 'lances retirados da liga ficam numa tabela com motivo; gol de resgate nao nasce sem a tag de recorrencia informada'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);

@@ -205,6 +205,7 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     <button id="bt-ver" style="background:#991b1b;color:#fca5a5;font-weight:700" title="Testar animação de Cartão Vermelho">🟥 Vermelho</button>
     <button id="bt-ama" style="background:#854d0e;color:#fef08a;font-weight:700" title="Testar animação de Cartão Amarelo">🟨 Amarelo</button>
     <button id="bt-pen" style="background:#1e3a8a;color:#93c5fd;font-weight:700" title="Testar animação de Pênalti VAR">🚨 Pênalti</button>
+    <button id="bt-gc" style="background:#7f1d1d;color:#fecaca;font-weight:700" title="Testar animação de Gol Contra (devolução)">⚽ Gol Contra</button>
     <button id="bt-hat" style="background:#ea580c;color:#ffedd5;font-weight:700" title="Testar animação de Hat-Trick">🔥 Hat-Trick</button>
     <button id="bt-inv" style="background:#b45309;color:#fef3c7;font-weight:700" title="Testar animação de Semana Invicta">👑 Invicta</button>
     <button id="bprev">◀</button><button id="bpainel" style="background:#0284c7;color:#fff;font-weight:800" title="Ver Painel Nacional (11 filiais)">📊 Painel</button><a href="/brasileirao" target="_blank" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f172a;font-weight:900;text-decoration:none;padding:5px 12px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;font-size:12px" title="Abrir Tabela da Liga e Regulamento Oficial">🏆 Liga Triunfante</a><button id="bauto" class="on">Auto</button><button id="bnext">▶</button><button id="bfs">⛶ Tela cheia</button><button id="bsom">🔇 Som</button><button id="bexp">Exportar diário</button>
@@ -525,7 +526,8 @@ function calcAlertas() {
       const diasC = diasDesde(c.ultima_compra);
       const ehInativo = diasC != null && diasC > 30;
       const ehRecorrencia = !!c.recorrencia;
-      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && ehInativo && !ehRecorrencia) {
+      const tagsConhecidas = c.recorrencia !== null; // false = informou e nao tem; null = nao informou (nao cria gol de resgate)
+      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && ehInativo && !ehRecorrencia && tagsConhecidas) {
         const subTipoInativo = (diasC != null && diasC > 90) ? 'drible_vaca' : (ehRecorrencia ? 'recorrencia_salva' : 'inativo_recuperado');
         out.push({key: `${sig}|gol_inativo|${v.id}|${c.id}`, sig, nivel: 'gol', subtipo: subTipoInativo, v, c, dias: diasC});
       }
@@ -859,7 +861,7 @@ function telaVAR(item) {
   } else if (item.tipo === 'penalti') {
     const v = item.v, it = item.itens || [], n = it.length; titulo = '🚨 PÊNALTI';
     sub = `${item.sig} · ${v ? v.nome : ''} · ${n === 1 ? (it[0].tipo === 'estoque' ? 'justificou "ESTOQUE SUFICIENTE"' : 'justificou cliente fechado') + ' em cliente parado' : n + ' justificativas suspeitas de uma vez'}`;
-    const cab = {'Filial': item.sig, 'Vendedor': v ? `${v.nome} (RCA ${v.id})` : '—', 'Supervisor': v ? v.sup : '—', 'Nota da filial': statFilial(item.sig).nota + ' / 100',
+    const cab = {'Filial': item.sig, 'Vendedor': v ? `${v.nome} (RCA ${v.id})` : '—', 'Supervisor': v ? v.sup : '—', [(METRICA_FILIAL[item.sig] && METRICA_FILIAL[item.sig].rot === 'score') ? 'Score da filial' : 'Criticidade da filial']: METRICA_FILIAL[item.sig] ? (METRICA_FILIAL[item.sig].rot === 'score' ? String(METRICA_FILIAL[item.sig].val) : METRICA_FILIAL[item.sig].val + ' / 100') : statFilial(item.sig).nota + ' / 100',
       // Hora em que o lance FOI REGISTRADO x hora em que o popup aparece: a fila do VAR (1 a cada 3 min, ate 20/h) pode atrasar o popup por horas; assim da para ver que NAO e repeticao.
       'Lance registrado às': (() => { const k = (item.itens && item.itens[0] && item.itens[0].key) || (item.a && item.a.key); const r = LOG.find(e => e.key === k); return r && r.t ? r.t.slice(0, 5) + ' (exibido às ' + sp().hm + ')' : null; })()};
     if (n === 1) { const {c, dias} = it[0], tv = c ? c.tempo_visita : null; dec = seloLiga + linhas({...cab, 'Cliente': c ? c.nome : '—', 'Justificativa': '!' + (c ? c.motivo : ''), 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c ? c.ultima_compra : '')})` : 'sem compra registrada'), 'Tempo na visita': tv ? (tv === '00:00' ? '!' + tv + ' (visita de 0 minuto)' : tv) : null}); }
@@ -872,10 +874,19 @@ function telaVAR(item) {
   // TODO LANCE IDENTIFICA O SUPERVISOR (Vitorio, 05/10/2026: "todo lance tem que identificar o supervisor"): linha SUPERVISOR logo apos o VENDEDOR.
   {
     const vv = item.v || (item.a && item.a.v);
-    const rotSup = (n) => { const u = String(n || '').trim().toUpperCase(); if (!u) return 'sem supervisor informado'; if (/^GERENTE( |$)/.test(u)) return 'Vendedor ligado direto ao gerente'; if (/^VENDA EMPRESA/.test(u)) return 'Venda empresa (interno)'; return n; };
+    const rotSup = (n) => { const u = String(n || '').trim().toUpperCase(); if (!u) return 'Vendedor ligado direto ao gerente'; if (/^GERENTE( |$)/.test(u)) return 'Vendedor ligado direto ao gerente'; if (/^VENDA EMPRESA/.test(u)) return 'Venda empresa (interno)'; return n; };
     if (vv && typeof dec === 'string' && !/<b>SUPERVISOR<\/b>/i.test(dec)) {
       const m = dec.match(/<div class="ln hot"><b>VENDEDOR<\/b>[\s\S]*?<\/span><\/div>/);
       if (m) dec = dec.replace(m[0], () => m[0] + '<div class="ln"><b>SUPERVISOR</b><span>' + esc(rotSup(vv.sup)) + '</span></div>');
+    }
+  }
+  // TEMPO NO CLIENTE em todo lance de cliente (Vitorio, 05/10/2026: "tem que colocar quanto tempo ele ficou no cliente"): check-in, check-out e tempo.
+  {
+    const cc = item.c || (item.a && item.a.c) || (item.itens && item.itens.length === 1 && item.itens[0].c);
+    if (cc && typeof dec === 'string' && !/TEMPO NO CLIENTE|Tempo na visita/i.test(dec)) {
+      const ln = (k, v) => '<div class="ln"><b>' + k + '</b><span>' + esc(v) + '</span></div>';
+      const tv = cc.tempo_visita ? (cc.tempo_visita === '00:00' ? cc.tempo_visita + ' (visita de 0 minuto)' : cc.tempo_visita) : 'sem dado no CEVEN';
+      dec += ln('CHECK-IN', cc.checkin_horario || 'sem hora no CEVEN') + ln('CHECK-OUT', cc.checkout_horario || 'sem hora no CEVEN') + ln('TEMPO NO CLIENTE', tv);
     }
   }
   return {titulo, sub, dec, veredito, cls};
@@ -1059,6 +1070,7 @@ function renderTotais(stats) {
     ['Digitado hoje', brl(RESUMO_OF && RESUMO_OF.TODAS ? RESUMO_OF.TODAS.digitado : s(x => x.dig))], ['Visitas feitas / programadas (CEVEN)', nv(s(x => x.feitasCeven)) + ' / ' + nv(s(x => x.rotaCeven))], ['Zerados · Pênaltis ativos', nv(s(x => x.nZer)) + ' · ' + nv(s(x => x.pen))]].map(([l, v]) => `<div><span>${l}</span><b class="mono">${v}</b></div>`).join('');
   $('nv').textContent = s(x => x.n);
 }
+const METRICA_FILIAL = {}; // sig -> {rot, val, cls}: o MESMO numero que a lista mostra (score ou criticidade), reaproveitado no foco e nos popups
 let MODO_RANK_POSITIVO = true; // Por padrão dá ênfase no que é bem feito
 function renderRank(stats) {
   const t = sp(), ehFechamento = t.h >= 15;
@@ -1092,6 +1104,7 @@ function renderRank(stats) {
     const corExibida = ehPositivo
       ? (barraWidth >= 75 ? 'n-ok' : barraWidth >= 60 ? 'n-w' : 'n-b')
       : corNota(x.nota);
+    METRICA_FILIAL[x.sig] = {rot: ehPositivo ? 'score' : 'criticidade', val: notaExibida, cls: corExibida};
 
     return `<div class="rk${i === idxFil ? ' cur' : ''}" data-i="${i}">
       <span class="s">${x.sig}</span>
@@ -1140,7 +1153,7 @@ function renderFilial(x) {
     return '<span class="tg t-vis">SEM VISITA</span>';
   };
   el.innerHTML = `<h2><span>Filial em foco</span><b>${(idxFil + 1)} de ${ORDEM.length} · troca em ${Math.max(0, Math.round(MIN_FIL * 60 - (Date.now() - tFil) / 1000))}s</b></h2>
-   <div style="display:flex;align-items:baseline;gap:16px"><span class="big">${x.sig}</span><span class="nota ${corNota(x.nota)}" style="font-size:38px">nota ${x.nota}</span><span style="color:var(--mut)">${x.n} vendedores · ${x.campo.length} de campo com rota</span></div>${gruposHtml}
+   <div style="display:flex;align-items:baseline;gap:16px"><span class="big">${x.sig}</span><span class="nota ${(METRICA_FILIAL[x.sig] || {cls: corNota(x.nota)}).cls}" style="font-size:38px">${(METRICA_FILIAL[x.sig] || {rot: 'criticidade'}).rot} ${(METRICA_FILIAL[x.sig] || {val: x.nota}).val}</span><span style="color:var(--mut)">${x.n} vendedores · ${x.campo.length} de campo com rota</span></div>${gruposHtml}
    <div class="grid4">
     <div class="kpi"><span>Faturado no mês</span><b class="mono">${brl(x.fat)}</b><small>${pc(pctF)} de ${brl(x.metaFat)}</small>${x.pendente > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--mut);margin-top:2px">+ ${brl(x.pendente)} pendente</div>` : ""}</div>
     <div class="kpi"><span>Positivados no mês</span><b class="mono">${nv(x.realCli)}</b><small>${pc(pctP)} de ${nv(x.metaPos)}</small></div>
@@ -1489,7 +1502,7 @@ function render() {
   $('modo').textContent = sup ? 'SUPERVISORES' : nacional ? 'PAINEL NACIONAL' : (auto ? 'FILIAL · AUTO' : 'FILIAL · MANUAL');
   if (sup) renderSupView(); else if (nacional) renderPainelNacional(); else renderFilial(stats[idxFil]);
   const pen = ALERTAS.filter(a => a.nivel === 'penalti').length, crit = [...stats].filter(s => s.tem).sort((a, b) => b.nota - a.nota).slice(0, 3);
-  $('alert').textContent = `${ALERTAS.length} alerta(s) ativo(s) (${pen} pênaltis) · mais críticas: ${crit.map(s => s.sig + ' ' + s.nota).join(' · ')} · lances do dia: ${LOG.filter(e => e.nivel !== 'supervisor').length}`;
+  $('alert').textContent = `${ALERTAS.length} alerta(s) ativo(s) (${pen} pênaltis) · criticidade mais alta: ${crit.map(s => s.sig + ' ' + s.nota).join(' · ')} · lances do dia: ${LOG.filter(e => e.nivel !== 'supervisor').length}`;
   if (!sup && !nacional) { const p = $('prog'); if (p) { const f = Math.min(1, (Date.now() - tFil) / (MIN_FIL * 60000)); p.style.width = (f * 100) + '%'; } }
 }
 let ultLanceAuto = Date.now(), idxDestaque = 0;
@@ -1633,6 +1646,7 @@ function ctl() {
   if ($('bt-ver')) $('bt-ver').onclick = () => (typeof animTeste === 'function' ? animTeste('vermelho', 'Devolução: CLIENTE NÃO PEDIU') : null);
   if ($('bt-ama')) $('bt-ama').onclick = () => (typeof animTeste === 'function' ? animTeste('amarelo', 'Rota ativa sem vendas às 10h') : null);
   if ($('bt-pen')) $('bt-pen').onclick = () => (typeof animTeste === 'function' ? animTeste('penalti', 'Simulação de falta / estoque suficiente') : null);
+  if ($('bt-gc')) $('bt-gc').onclick = () => (typeof animTeste === 'function' ? animTeste('golcontra') : null);
   if ($('bt-hat')) $('bt-hat').onclick = () => (typeof animTeste === 'function' ? animTeste('hattrick') : null);
   if ($('bt-inv')) $('bt-inv').onclick = () => (typeof animTeste === 'function' ? animTeste('semanainvicta') : null);
 }

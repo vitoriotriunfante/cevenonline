@@ -1493,6 +1493,7 @@ function animTeste(tipo, sub) {
       ]
     });
     else if (tipo === 'semanainvicta') stopAnim = iniciaAnimSemanaInvicta(cv, {vendedor: 'EQUIPE TBL (LONDRINA)', sub: sub || '5 VITÓRIAS DE SEGUNDA A SEXTA · +30 PTS EXTRAS'});
+    else if (tipo === 'golcontra') stopAnim = iniciaAnimCartao(cv, {vendedor: 'MARCOS MILITAO (TBL)', cliente: 'COMERCIAL SILVA', sub: sub || 'Devolução comercial: CLIENTE SEM DINHEIRO (R$ 1.250)'}, false);
     else if (tipo === 'gol') stopAnim = iniciaAnimGol(cv, {vendedor: 'GABRIEL MEDINA (TBL)', cliente: 'SUPERMERCADO ALVORADA', valor: 'R$ 28.500', sub: sub || 'SUPER PEDIDO DE R$ 28.500 FATURADO HOJE!'});
     else if (tipo === 'vermelho') stopAnim = iniciaAnimCartao(cv, {vendedor: 'ELIAS GARCIA (TBL)', cliente: 'COMERCIAL SILVA', sub: sub || 'Devolução registrada: CLIENTE NÃO PEDIU (R$ 8.900)'}, true);
     else if (tipo === 'amarelo') stopAnim = iniciaAnimCartao(cv, {vendedor: 'MARCOS MILITAO (TBL)', sub: sub || '1º Check-in atrasado: rota ativa sem nenhuma venda até às 10h'}, false);
