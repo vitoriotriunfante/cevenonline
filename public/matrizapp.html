@@ -301,9 +301,11 @@ function textoGol(subtipo, valor, c, horaReal) {
 const IMP_GPS_MIN_M = 500, IMP_GPS_MAX_M = 5000, IMP_GPS_REPETIDO_M = 100;
 // PONTOS DA EMPRESA (confirmado pelo Vitorio em 05/10/2026 abrindo o pino do check-out no CEVEN: "deu na Triunfante"): quando o app nao
 // capta o GPS do vendedor, o CEVEN grava o ENDERECO DA EMPRESA como posicao do check-out. 55 check-outs de 24 vendedores de 8 filiais
-// em (-23,2493 / -45,9245) = Rua Miracema, Sao Jose dos Campos; outros 4 pontos repetidos: Cascavel PR, Campinas, Cruzeiro e Lins SP.
+// em (-23,2493 / -45,9245) = Rua Miracema, Sao Jose dos Campos; outro ponto da empresa: Campinas.
 // Check-out nesses pontos = GPS NAO CAPTURADO: nunca e Impedimento nem punicao (o vendedor nao tem culpa do aparelho/app).
-const PONTOS_EMPRESA_GPS = [[-23.2493, -45.9245], [-24.97, -53.47], [-22.89, -47.05], [-22.56, -44.94], [-21.68, -49.77]];
+// Confirmados pelo Vitorio (05/10/2026, vendo no mapa): A = Rua Miracema/SJC e C = Campinas sao Triunfante. Cascavel, Cruzeiro e Lins
+// (pontos repetidos) NAO sao da empresa ('alguma casa', 'estranho'): ficam fora; sao tratados so pela regra de ponto repetido.
+const PONTOS_EMPRESA_GPS = [[-23.2493, -45.9245], [-22.8952, -47.0475]];
 const PONTO_EMPRESA_RAIO_M = 1000;
 function checkoutNoPontoDaEmpresa(c) {
   return PONTOS_EMPRESA_GPS.some((p) => distanciaM(c.checkout_lat, c.checkout_lon, p[0], p[1]) <= PONTO_EMPRESA_RAIO_M);
