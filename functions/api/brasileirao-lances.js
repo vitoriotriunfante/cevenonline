@@ -87,7 +87,7 @@ export async function onRequestGet({ request, env }) {
         const o = String(l.obs || '');
         if (!/motivo oficial/.test(o)) return false;
         if (/ [|] R[$] 0 [|] /.test(o)) return false; // bonificacao voltando (nota de R$ 0)
-        if (/golcontra_dev/.test(ch) && !/SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD/.test(o)) return false; // so motivo comercial
+        if (/golcontra_dev/.test(ch) && !/SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD|PEDIDO DUPLICADO|RECUSOU MERC|PRECO DIFERENTE/.test(o)) return false; // so motivo comercial
       }
       return true;
     });

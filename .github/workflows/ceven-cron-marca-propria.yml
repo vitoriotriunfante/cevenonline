@@ -177,7 +177,8 @@ jobs:
               git fetch origin ${{ github.ref_name }}
               git show origin/${{ github.ref_name }}:config/diretrizes_operacionais.json > /tmp/diretrizes_origin.json
               jq --arg d "$DATA_REF" '.controles_dia.ultimo_disparo_por_ciclo["10:00"] = $d' /tmp/diretrizes_origin.json > config/diretrizes_operacionais.json
-              git reset --soft origin/${{ github.ref_name }}
+              # --mixed (nao --soft): --soft mantinha o indice do checkout velho e o commit DESFAZIA arquivos de outras sessoes (ex.: dataset do Brasileirao, 05/10/2026)
+              git reset --mixed origin/${{ github.ref_name }}
               git add $FILES
               git diff --cached --quiet || git commit -m "chore: relatorios de marca propria 10:00 + marca de disparo [skip ci]"
               sleep $((i * 5))

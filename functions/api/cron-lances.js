@@ -231,7 +231,7 @@ async function getJson(url) {
 const CEVEN_API = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const DEV_MAX_MOTIVOS_POR_RODADA = 90; // a janela e o MES CORRENTE (Vitorio, 05/10/2026: "desde 01/10"); o que nao couber numa rodada entra na proxima
 // Gol Contra so para motivo COMERCIAL (Vitorio, 05/10/2026: "so registre os motivos comerciais"). Estoque/logistica/ambiguo nao pune.
-const DEV_MOTIVO_COMERCIAL = /SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD/;
+const DEV_MOTIVO_COMERCIAL = /SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD|PEDIDO DUPLICADO|RECUSOU MERC|PRECO DIFERENTE/;
 async function carregaDevolucoes(env, t, filialDoRca) {
   const out = new Map();
   try {
