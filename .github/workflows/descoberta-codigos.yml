@@ -1,0 +1,23 @@
+# Varredura de DESCOBERTA de códigos (lista viva de divergências) — 05/10/2026.
+# Percorre, de madrugada, todos os códigos de todas as filiais no CEVEN procurando devolução/movimento fora de qualquer lista.
+# Resultado: tabela codigos_descobertos (D1) lida por /api/divergencias e pela página /divergencias.
+# Projeto A (TV/CFTV). Não mexe em nada do WhatsApp. Só chama o endpoint público; quem escreve no banco é a Function.
+name: Descoberta de códigos (divergências)
+on:
+  schedule:
+    - cron: '0 1 * * *'   # 22:00 em Brasília: depois do expediente, antes do Data Lake das 03:00
+  workflow_dispatch:
+jobs:
+  descobrir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - name: Percorrer os códigos até fechar o ciclo
+        run: |
+          for i in $(seq 1 120); do
+            R=$(curl -sS -m 175 "https://ceven-cftv-matrix.pages.dev/api/cron-descobre-codigos" || echo '{"status":"FALHA_CURL"}')
+            echo "$i $R"
+            case "$R" in *'"ciclo_concluido":true'*) echo "Ciclo fechado."; exit 0;; esac
+            case "$R" in *OCUPADO*|*FALHA_CURL*) sleep 30;; esac
+          done
+          echo "Limite de chamadas atingido; o cursor continua de onde parou na próxima execução."
