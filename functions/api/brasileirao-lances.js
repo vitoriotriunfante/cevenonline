@@ -73,7 +73,11 @@ export async function onRequestGet({ request, env }) {
     query += ` ORDER BY hora_sp DESC LIMIT 8000`;
 
     const { results } = await env.DB.prepare(query).bind(...params).all();
-    const lancesBrutos = results || [];
+    // Impedimento de GPS anterior a 05/10/2026 nao tem comprovacao (auditoria do GPS de check-out: ~metade dos
+    // check-outs vinha com ponto-padrao/endereco da empresa e o lance antigo nao guarda distancia, entao nao da
+    // para separar o legitimo). Fica no banco, mas nao conta na liga. Decisao do Vitorio: "quero tudo corrigido".
+    const GPS_CONFIAVEL_DESDE = '2026-10-05';
+    const lancesBrutos = (results || []).filter(l => !(dia < GPS_CONFIAVEL_DESDE && /(^|\|)imp\|gps\|/.test(String(l.chave || ''))));
 
     // Um mesmo lance pode estar gravado duas vezes: pela TV da matriz (filial MTZ, chave com prefixo
     // "SIG|") e pela TV de filial ou pelo cron (filial real, chave sem prefixo). Conta cada lance UMA
