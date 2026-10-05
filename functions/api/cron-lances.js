@@ -227,9 +227,9 @@ async function getJson(url) {
 // DEVOLUCOES (Vitorio, 05/10/2026: "devolucao nao fez pedido e PENALTI gravissimo, o endpoint esta na cara do gol"):
 // fonte = lista oficial do CEVEN (/api/rca/devolucoes, ja guardada pela varredura) + motivo oficial por nota
 // (/api/rca/devolucoes/{nota}). motivo CLIENTE NAO PEDIU = Cartao Vermelho (-10); qualquer outro motivo = Gol Contra (-4).
-// Nota sem motivo confirmado NAO gera lance (nunca assume). Janela: nota dos ultimos 3 dias; uma nota gera UM lance (tv-lances nao repete).
+// Nota sem motivo confirmado NAO gera lance (nunca assume). Janela: notas do mes corrente; uma nota gera UM lance (tv-lances nao repete).
 const CEVEN_API = 'https://ceven.drivetriunfante-locomotiva.com.br';
-const DEV_JANELA_DIAS = 3, DEV_MAX_MOTIVOS_POR_RODADA = 40;
+const DEV_MAX_MOTIVOS_POR_RODADA = 90; // a janela e o MES CORRENTE (Vitorio, 05/10/2026: "desde 01/10"); o que nao couber numa rodada entra na proxima
 // Gol Contra so para motivo COMERCIAL (Vitorio, 05/10/2026: "so registre os motivos comerciais"). Estoque/logistica/ambiguo nao pune.
 const DEV_MOTIVO_COMERCIAL = /SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD/;
 async function carregaDevolucoes(env, t, filialDoRca) {
@@ -243,7 +243,7 @@ async function carregaDevolucoes(env, t, filialDoRca) {
       if (!Array.isArray(lista)) continue;
       for (const n of lista) {
         const idade = diasDesde(String(n.data || '').slice(0, 10), t.dia);
-        if (!n.numnota || idade == null || idade < 0 || idade > DEV_JANELA_DIAS) continue;
+        if (!n.numnota || idade == null || idade < 0 || idade > +t.dia.slice(8, 10) - 1) continue; // so notas do mes corrente
         if (!(Number(n.vl_devolvido) > 0)) continue; // nota de R$ 0 = bonificacao voltando (Vitorio, 05/10/2026): nao e devolucao de venda, nao registra
         notas.push({ rca: String(r.rca_codigo), nota: String(n.numnota), valor: Number(n.vl_devolvido) || 0, cliente: n.nomecli || null, cid: n.codcli ? String(n.codcli) : null, data: String(n.data).slice(0, 10) });
       }
@@ -251,8 +251,8 @@ async function carregaDevolucoes(env, t, filialDoRca) {
     const { results: ja } = await env.DB.prepare('SELECT rca, nota, nao_pediu FROM devolucao_nota_motivo').all();
     const cache = new Map((ja || []).map((x) => [x.rca + '|' + x.nota, x.nao_pediu]));
     const faltam = notas.filter((n) => !cache.has(n.rca + '|' + n.nota)).slice(0, DEV_MAX_MOTIVOS_POR_RODADA);
-    for (let i = 0; i < faltam.length; i += 3) {
-      await Promise.all(faltam.slice(i, i + 3).map(async (n) => {
+    for (let i = 0; i < faltam.length; i += 6) {
+      await Promise.all(faltam.slice(i, i + 6).map(async (n) => {
         const fil = filialDoRca.get(n.rca); if (!fil) return;
         const det = await getJson(`${CEVEN_API}/api/rca/devolucoes/${encodeURIComponent(n.nota)}?filial=${fil.toLowerCase()}1&id=${n.rca}`);
         if (!Array.isArray(det) || !det.length) return; // sem detalhe: nao assume nada
