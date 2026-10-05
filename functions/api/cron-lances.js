@@ -165,8 +165,9 @@ function calcAlertas(vs, t) {
 
     (v.devolucoesHoje || []).forEach((dv) => {
       if (!dv.nota) return;
-      if (dv.naoPediu === false) out.push({ chave: `golcontra_dev|${v.id}|${dv.nota}`, nivel: 'golcontra', v, valor: dv.valor, cliente: dv.cliente, prova: `devolucao nota ${dv.nota} ${brl(dv.valor)}${dv.cliente ? ' - ' + dv.cliente : ''} (cliente nao pediu: gol contra evitado)` });
-      else out.push({ chave: `ver_dev|${v.id}|${dv.nota}`, nivel: 'vermelho', v, valor: dv.valor, cliente: dv.cliente, prova: `devolucao nota ${dv.nota} ${brl(dv.valor)}${dv.cliente ? ' - ' + dv.cliente : ''}` });
+      const base = `nota ${dv.nota} de ${dv.data || '?'} | ${brl(dv.valor)} | ${dv.cliente || 'cliente sem nome'} | motivo oficial: ${dv.motivos || 'sem motivo'}`;
+      if (dv.naoPediu === true) out.push({ chave: `ver_dev|${v.id}|${dv.nota}`, nivel: 'vermelho', v, valor: dv.valor, cliente: dv.cliente, cid: dv.cid, prova: base });
+      else if (dv.naoPediu === false) out.push({ chave: `golcontra_dev|${v.id}|${dv.nota}`, nivel: 'golcontra', v, valor: dv.valor, cliente: dv.cliente, cid: dv.cid, prova: base });
     });
 
     v.cl.forEach((c) => {
@@ -223,6 +224,53 @@ async function getJson(url) {
   }
 }
 
+// DEVOLUCOES (Vitorio, 05/10/2026: "devolucao nao fez pedido e PENALTI gravissimo, o endpoint esta na cara do gol"):
+// fonte = lista oficial do CEVEN (/api/rca/devolucoes, ja guardada pela varredura) + motivo oficial por nota
+// (/api/rca/devolucoes/{nota}). motivo CLIENTE NAO PEDIU = Cartao Vermelho (-10); qualquer outro motivo = Gol Contra (-4).
+// Nota sem motivo confirmado NAO gera lance (nunca assume). Janela: nota dos ultimos 3 dias; uma nota gera UM lance (tv-lances nao repete).
+const CEVEN_API = 'https://ceven.drivetriunfante-locomotiva.com.br';
+const DEV_JANELA_DIAS = 3, DEV_MAX_MOTIVOS_POR_RODADA = 40;
+async function carregaDevolucoes(env, t, filialDoRca) {
+  const out = new Map();
+  try {
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS devolucao_nota_motivo (rca TEXT NOT NULL, nota TEXT NOT NULL, nao_pediu INTEGER, motivos TEXT, resolvido_em TEXT, PRIMARY KEY (rca, nota))').run();
+    const { results } = await env.DB.prepare('SELECT rca_codigo, devolucoes_json FROM varredura_central_rca WHERE data_ref = ? AND devolucoes_json IS NOT NULL').bind(t.dia).all();
+    const notas = [];
+    for (const r of results || []) {
+      let lista = null; try { lista = JSON.parse(r.devolucoes_json); } catch { continue; }
+      if (!Array.isArray(lista)) continue;
+      for (const n of lista) {
+        const idade = diasDesde(String(n.data || '').slice(0, 10), t.dia);
+        if (!n.numnota || idade == null || idade < 0 || idade > DEV_JANELA_DIAS) continue;
+        notas.push({ rca: String(r.rca_codigo), nota: String(n.numnota), valor: Number(n.vl_devolvido) || 0, cliente: n.nomecli || null, cid: n.codcli ? String(n.codcli) : null, data: String(n.data).slice(0, 10) });
+      }
+    }
+    const { results: ja } = await env.DB.prepare('SELECT rca, nota, nao_pediu FROM devolucao_nota_motivo').all();
+    const cache = new Map((ja || []).map((x) => [x.rca + '|' + x.nota, x.nao_pediu]));
+    const faltam = notas.filter((n) => !cache.has(n.rca + '|' + n.nota)).slice(0, DEV_MAX_MOTIVOS_POR_RODADA);
+    for (let i = 0; i < faltam.length; i += 3) {
+      await Promise.all(faltam.slice(i, i + 3).map(async (n) => {
+        const fil = filialDoRca.get(n.rca); if (!fil) return;
+        const det = await getJson(`${CEVEN_API}/api/rca/devolucoes/${encodeURIComponent(n.nota)}?filial=${fil.toLowerCase()}1&id=${n.rca}`);
+        if (!Array.isArray(det) || !det.length) return; // sem detalhe: nao assume nada
+        const motivos = [...new Set(det.map((x) => String(x.motivo || '').trim().toUpperCase()).filter(Boolean))];
+        if (!motivos.length) return;
+        const naoPediu = motivos.some((m) => m.includes('NAO PEDIU') || m.includes('NÃO PEDIU')) ? 1 : 0;
+        await env.DB.prepare("INSERT OR REPLACE INTO devolucao_nota_motivo (rca, nota, nao_pediu, motivos, resolvido_em) VALUES (?, ?, ?, ?, datetime('now'))").bind(n.rca, n.nota, naoPediu, motivos.join(' / ').slice(0, 200)).run();
+        cache.set(n.rca + '|' + n.nota, naoPediu);
+      }));
+    }
+    const { results: mot } = await env.DB.prepare('SELECT rca, nota, motivos FROM devolucao_nota_motivo').all();
+    const motivoDe = new Map((mot || []).map((x) => [x.rca + '|' + x.nota, x.motivos]));
+    for (const n of notas) {
+      const np = cache.get(n.rca + '|' + n.nota);
+      if (np == null) continue;
+      (out.get(n.rca) || out.set(n.rca, []).get(n.rca)).push({ nota: n.nota, valor: n.valor, cliente: n.cliente, cid: n.cid, data: n.data, naoPediu: np === 1, motivos: motivoDe.get(n.rca + '|' + n.nota) || '' });
+    }
+  } catch (e) { /* sem devolucao nesta rodada: nunca inventa */ }
+  return out;
+}
+
 export async function onRequestGet({ env, request }) {
   const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 (env.DB) não configurado' }), { status: 503, headers: cors });
@@ -270,6 +318,7 @@ export async function onRequestGet({ env, request }) {
 
   const rcasPorFilial = {};
   for (const r of canalRows) (rcasPorFilial[r.filial] = rcasPorFilial[r.filial] || []).push(r.codigo);
+  const devPorRca = await carregaDevolucoes(env, t, new Map(canalRows.map((r) => [String(r.codigo), r.filial])));
 
   const FUSO1H = ['TCG', 'MCD', 'TCA'];
   let totalNovos = 0, totalFalhas = 0;
@@ -290,6 +339,7 @@ export async function onRequestGet({ env, request }) {
         const info = canalMapa.get(String(codigo)) || {};
         const v = vend(codigo, info.canal, info.sup, d);
         v.fuso1h = FUSO1H.includes(filial);
+        v.devolucoesHoje = devPorRca.get(String(codigo)) || [];
         vs.push(v);
       }
     }
@@ -301,7 +351,7 @@ export async function onRequestGet({ env, request }) {
       filial,
       lances: lances.slice(0, 200).map((l) => ({
         chave: l.chave, nivel: l.nivel, rca: l.v?.id, vendedor: l.v?.nome, supervisor: l.v?.sup,
-        cliente_id: l.c?.id, cliente: l.c?.nome || l.cliente, motivo: l.c?.motivo, dias_sem_compra: l.dias, ultima_compra: l.c?.ultima_compra, tempo_visita: l.c?.tempo_visita, obs: l.prova || null
+        cliente_id: l.c?.id || l.cid, cliente: l.c?.nome || l.cliente, motivo: l.c?.motivo, dias_sem_compra: l.dias, ultima_compra: l.c?.ultima_compra, tempo_visita: l.c?.tempo_visita, obs: l.prova || null
       }))
     };
     const resReal = await fetch(`${origin}/api/tv-lances`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(20000) }).catch(() => null);

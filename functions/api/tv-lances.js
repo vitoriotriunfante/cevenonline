@@ -59,6 +59,13 @@ export async function onRequestPost({ request, env }) {
 
     const validos = lances.filter((l) => l && typeof l.chave === 'string' && l.chave.length <= 120 && ['penalti', 'venda10', 'visita10', 'supervisor', 'gol', 'vermelho', 'impedimento', 'amarelo', 'defesa', 'golcontra', 'hattrick', 'pedido_rota'].includes(l.nivel));
     let novos = [];
+    // Devolucao: uma NOTA gera UM lance na vida toda (a nota continua na janela de 3 dias e voltaria a cada dia).
+    for (let i = validos.length - 1; i >= 0; i--) {
+      if (/^(ver_dev|golcontra_dev)\|/.test(validos[i].chave)) {
+        const ex = await env.DB.prepare('SELECT 1 AS x FROM tv_lances WHERE filial = ? AND chave = ? AND dia != ? LIMIT 1').bind(filial, validos[i].chave, dia).first();
+        if (ex) validos.splice(i, 1);
+      }
+    }
     if (validos.length) {
       const stmts = validos.map((l) =>
         env.DB.prepare(
