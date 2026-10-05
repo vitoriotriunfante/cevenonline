@@ -320,6 +320,15 @@ export async function onRequestGet({ env, request }) {
   } catch {}
 
   const rcasPorFilial = {};
+  // LISTA = banco (representantes) + PLANILHA (tv-mostra): vendedor novo entra na planilha antes de entrar no banco (05/10/2026: RCAs 1121-1128 e 1097 ficavam fora da varredura,
+  // da Executiva e do painel do mes; ex.: Jeferson/TPA R$ 93,7 mil faturados nao apareciam). Nunca inventa: so soma quem a planilha lista.
+  try {
+    const jaTem = new Set(canalRows.map((r) => String(r.codigo)));
+    const mp = await (await fetch(new URL('/api/tv-mostra', request.url), { signal: AbortSignal.timeout(8000) })).json();
+    for (const [sg, lista] of Object.entries((mp && mp.filiais) || {})) for (const x of Array.isArray(lista) ? lista : []) {
+      if (x && x.rca != null && !jaTem.has(String(x.rca))) { canalRows.push({ codigo: String(x.rca), filial: String(sg).toUpperCase() }); jaTem.add(String(x.rca)); }
+    }
+  } catch { /* sem planilha: segue so com o banco */ }
   for (const r of canalRows) (rcasPorFilial[r.filial] = rcasPorFilial[r.filial] || []).push(r.codigo);
   const devPorRca = await carregaDevolucoes(env, t, new Map(canalRows.map((r) => [String(r.codigo), r.filial])));
 

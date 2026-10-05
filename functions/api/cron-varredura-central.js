@@ -120,6 +120,15 @@ export async function onRequestGet({ env, request }) {
     'SELECT r.codigo, UPPER(COALESCE(f.codigo, r.filial_id)) as filial FROM representantes r LEFT JOIN filiais f ON r.filial_id = f.id WHERE r.ativo = 1'
   ).all();
   if (!rcas || !rcas.length) return resp({ erro: 'nenhum representante ativo encontrado no D1' }, 502);
+  // LISTA = banco (representantes) + PLANILHA (tv-mostra): vendedor novo entra na planilha antes de entrar no banco (05/10/2026: RCAs 1121-1128 e 1097 ficavam fora da varredura,
+  // da Executiva e do painel do mes; ex.: Jeferson/TPA R$ 93,7 mil faturados nao apareciam). Nunca inventa: so soma quem a planilha lista.
+  try {
+    const jaTem = new Set(rcas.map((r) => String(r.codigo)));
+    const mp = await (await fetch(new URL('/api/tv-mostra', request.url), { signal: AbortSignal.timeout(8000) })).json();
+    for (const [sg, lista] of Object.entries((mp && mp.filiais) || {})) for (const x of Array.isArray(lista) ? lista : []) {
+      if (x && x.rca != null && !jaTem.has(String(x.rca))) { rcas.push({ codigo: String(x.rca), filial: String(sg).toUpperCase() }); jaTem.add(String(x.rca)); }
+    }
+  } catch { /* sem planilha: segue so com o banco */ }
 
   // estado de hoje: quem ja esta gravado, tem rota ou ja vendeu, e os valores anteriores (para detectar mudanca de pedido)
   const { results: estado } = await env.DB.prepare(

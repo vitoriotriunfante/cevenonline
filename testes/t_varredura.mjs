@@ -35,6 +35,10 @@ function criaDB() {
 function ativaCevenFalso(estado, opcoes = {}) {
   const reg = { chamadas: [], aberta: 0, pico: 0 };
   globalThis.fetch = async (url) => {
+    // consultas internas nossas (planilha e mapa da Executiva) NAO sao chamadas ao CEVEN: nao entram na contagem nem no pico
+    const caminho = new URL(url).pathname;
+    if (caminho === '/api/tv-mostra') return { ok: true, json: async () => ({ filiais: {} }), text: async () => JSON.stringify({ filiais: {} }) };
+    if (caminho === '/api/cron-mapa-executivo') return { ok: true, status: 200, json: async () => ({ status: 'ATUALIZADO' }), text: async () => '{"status":"ATUALIZADO"}' };
     reg.aberta++; reg.pico = Math.max(reg.pico, reg.aberta);
     await new Promise((r) => setTimeout(r, 4));
     reg.aberta--;
