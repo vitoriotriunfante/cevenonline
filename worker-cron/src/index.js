@@ -24,6 +24,7 @@
  *          workflow do GitHub.
  */
 
+import { vigiarDisparos } from './vigia.js';
 const REPO = 'vitoriotriunfante/cevenonline';
 const REF = 'main';
 
@@ -82,6 +83,10 @@ export default {
   async scheduled(event, env, ctx) {
     const tarefaTv = TAREFAS_TV[event.cron];
     if (tarefaTv) {
+      // VIGIA dos disparos de WhatsApp (05/10/2026): a cada 2 min confere se o disparo oficial do horario comecou; se nao, refaz 1 vez (ver vigia.js)
+      if (event.cron === '*/2 * * * *') {
+        try { for (const l of await vigiarDisparos(env)) console.log('[VIGIA] ' + l); } catch (e) { console.log('[VIGIA][ERRO] ' + (e && e.message ? e.message : e)); }
+      }
       await rodarTarefaTv(event.cron, tarefaTv);
       return;
     }

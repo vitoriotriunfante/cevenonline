@@ -476,6 +476,14 @@ secao('8f. Gol Qualificado: nivel pelas industrias do pedido, carteira so Mondel
   ok([tv, mz].every(h => h.includes('qualificaGolUI') && h.includes('QUALIFICAÇÃO')) && cl.includes('qualificaGol(v.carteira, c)') && tvv.includes('industriasDoPedido'), 'TV, Matriz, cron de lances e tv-vendedor usam o Gol Qualificado');
 }
 
+// ---------------------------------------------------------------- 8g. Vigia dos disparos de WhatsApp
+secao('8g. Vigia dos disparos: refaz so o que nao comecou (caso das 17h de 05/10/2026), nunca duplica');
+{
+  const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_vigia_disparos.mjs')).href)).default;
+  await t(ok, RAIZ);
+  ok(ler('worker-cron/src/index.js').includes('vigiarDisparos(env)') && ler('public/matrizapp.html').includes('faixa-disparo') && existsSync(join(RAIZ, 'functions', 'api', 'disparo-status.js')), 'worker chama o vigia a cada 2 min e a Matriz tem a faixa vermelha de aviso');
+}
+
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)
 secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
 {

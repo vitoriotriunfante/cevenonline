@@ -232,3 +232,9 @@ Planilha na raiz do projeto (fora do git, tem dado de pessoa real — mesmo trat
 - **Vitório vai editar a aba `MOSTRA_DISPAROS` direto no Excel periodicamente (esperado: pelo menos 1x/semana — vendedor entra/sai com frequência)**. Isso não precisa de nenhum script/deploy — é só editar a célula SIM/NÃO ou o nome do supervisor e salvar; o próximo disparo já usa a versão nova.
 - Script `scripts/aplicar_mostra_dispatch.js` é a ferramenta que **gera do zero** a aba `MOSTRA_DISPAROS` a partir das 13 abas por filial (útil só se o Vitório reconstruir a auditoria de campo inteira de novo — não roda automático, não faz parte do pipeline diário).
 - Números de referência em 22/09/2026: 529 vendedores auditados, 65 marcados NÃO (72 antes de resolver 4 pontos em aberto com o Vitório — Fabiana/TCV fora, MCD-1070/interno dentro, TCG-489/ESP dentro, Paulo Caja/TPA fora), 464 SIM (335 VJ + 127 AS + 2 FARMA).
+
+## Vigia dos disparos (Vitório, 05/10/2026)
+- Causa do WhatsApp das 17:00 de 05/10 não ter saído: o worker disparou no horário, mas a GitHub ficou 15 min sem máquina ("job was not acquired by Runner") e cancelou o job sem executar nada. Ninguém foi avisado.
+- `worker-cron/src/vigia.js` (chamado a cada 2 min pelo cron `*/2`): 8 min após cada horário oficial, se o disparo não começou (sem run, run parada na fila, ou run cancelada/falha sem nenhum passo executado), cancela a parada e dispara UMA vez de novo (máx. 2 tentativas, até 45 min depois do horário). Run que já executou passos nunca é refeita (duplicaria mensagem).
+- Aviso: faixa vermelha na Matriz (`/api/disparo-status`, lê a API pública da GitHub).
+- Decisão: o das 17h de 05/10 NÃO foi reenviado (o fechamento das 18:30 cobre).

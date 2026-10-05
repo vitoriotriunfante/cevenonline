@@ -185,6 +185,7 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   <div class="fil">MATRIZ<small>11 filiais · <span id="nv">0</span> vendedores</small></div>
   <button id="bt-modo-painel" class="modo" style="cursor:pointer;border:1px solid #38bdf8;background:#0c4a6e;color:#e0f2fe;font-weight:800;transition:all .2s" title="Alternar entre Filiais e Painel Nacional (11 filiais)">📊 PAINEL NACIONAL</button>
   <span class="modo" id="modo">FILIAL</span>
+  <span id="faixa-disparo" class="modo" style="display:none;background:#b91c1c;color:#fff;font-weight:800"></span>
   <span id="aviso" class="modo" style="display:none;background:#7f1d1d;color:#fecaca"></span>
   <span id="fila" class="modo" style="display:none;background:#7f1d1d;color:#fecaca;cursor:pointer" title="Clique para ver a lista completa em Exportar diário"></span>
   <div class="sp"></div>
@@ -1697,6 +1698,17 @@ function autoScrollPaineis() {
     p.scrollTop = excesso * fase;
   });
 }
+// Faixa vermelha: disparo oficial de WhatsApp que nao saiu (05/10/2026: o das 17h nao saiu e ninguem foi avisado)
+async function checaDisparos() {
+  const el = $('faixa-disparo'); if (!el) return;
+  try {
+    const j = await (await fetch('/api/disparo-status?t=' + Date.now(), {cache: 'no-store'})).json();
+    const p = (j && j.problemas) || [];
+    el.style.display = p.length ? '' : 'none';
+    el.textContent = p.length ? '⚠ ' + p.map(x => x.texto).join(' · ') : '';
+  } catch { el.style.display = 'none'; }
+}
+checaDisparos(); setInterval(checaDisparos, 5 * 60 * 1000);
 setInterval(autoScrollPaineis, 80);
 ctl(); setInterval(relogio, 1000); relogio(); laco();
 window.__mtz = {DATA, TS, get ALERTAS() { return ALERTAS; }, get LOG() { return LOG; }, statFilial, ORDEM, ocupado: () => emVAR || FILA.length > 0, animTeste: typeof animTeste === 'function' ? animTeste : null};
