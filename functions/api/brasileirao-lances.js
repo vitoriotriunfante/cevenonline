@@ -78,8 +78,14 @@ export async function onRequestGet({ request, env }) {
     // para separar o legitimo). Fica no banco, mas nao conta na liga. Decisao do Vitorio: "quero tudo corrigido".
     const GPS_CONFIAVEL_DESDE = '2026-10-06';
     // Devolucao (cartao vermelho / gol contra) anterior a 06/10 tambem sai: sem cliente nem prova gravada, e a rotina que gerava parou em 29/09.
-    const SEM_PROVA = /(^|\|)(imp\|gps|ver_dev|golcontra_dev)\|/;
-    const lancesBrutos = (results || []).filter(l => !(dia < GPS_CONFIAVEL_DESDE && SEM_PROVA.test(String(l.chave || ''))));
+    // Devolucao: vale quando tem a PROVA gravada (nota, cliente, valor e motivo oficial em obs); sem prova nao conta, em qualquer dia.
+    const GPS_ANTIGO = /(^|\|)imp\|gps\|/, DEVOLUCAO = /(^|\|)(ver_dev|golcontra_dev)\|/;
+    const lancesBrutos = (results || []).filter(l => {
+      const ch = String(l.chave || '');
+      if (dia < GPS_CONFIAVEL_DESDE && GPS_ANTIGO.test(ch)) return false;
+      if (DEVOLUCAO.test(ch) && !(l.obs && /motivo oficial/.test(l.obs))) return false;
+      return true;
+    });
 
     // Um mesmo lance pode estar gravado duas vezes: pela TV da matriz (filial MTZ, chave com prefixo
     // "SIG|") e pela TV de filial ou pelo cron (filial real, chave sem prefixo). Conta cada lance UMA
