@@ -218,7 +218,10 @@ for rca, meta in rca_map.items():
                 super_pedidos += 1
             if 'gol_inativo' in ch:
                 inativos_resgatados += 1
-            v = valor_lance(ch, l.get('nivel'))
+            # PONTOS = os do endpoint (os MESMOS que o popup da TV mostra). Antes o gerador recalculava pela config e nao achava as chaves reais
+            # (pen|..., vis10, ven10): 1.157 penaltis (-6), 400 vermelhos de rota (-10) e 87 amarelos (-3) valiam 0 no ranking (achado 05/10/2026).
+            _pts_api = l.get('pontos')
+            v = _pts_api if isinstance(_pts_api, (int, float)) else valor_lance(ch, l.get('nivel'))
             score_dia += v
             if v > 0:
                 gp_total += v

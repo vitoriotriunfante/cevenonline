@@ -653,10 +653,19 @@ async function registraLances(cands) {
   })};
   try { const r = await fetch('/api/tv-lances', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(corpo)}); const d = await r.json(); return r.ok && !d.erro ? d : null; } catch { return null; }
 }
+const INVICTA_AVISADA = new Set();
 async function carregaLances() {
   const d = await j('/api/tv-lances?filial=MTZ', 15000); if (!d || !Array.isArray(d.lances)) return;
   const tem = new Set(LOG.map(e => e.key).filter(Boolean));
-  d.lances.forEach(r => { seen.add(r.chave); if (!tem.has(r.chave)) LOG.push({key: r.chave, t: r.hora_sp, nivel: r.nivel, rca: r.rca, vendedor: r.vendedor, supervisor: r.supervisor || '', sig: r.obs || String(r.chave).split('|')[0], cliente: r.cliente, motivo: r.motivo, dias_sem_compra: r.dias_sem_compra, tempo_visita: r.tempo_visita, ao_ligar: !!r.baseline}); });
+  d.lances.forEach(r => { seen.add(r.chave); if (!tem.has(r.chave)) LOG.push({key: r.chave, t: r.hora_sp, nivel: r.nivel, rca: r.rca, vendedor: r.vendedor, supervisor: r.supervisor || '', sig: (r.nivel === 'semanainvicta' ? String(r.chave).split('|')[0] : (r.obs || String(r.chave).split('|')[0])), cliente: r.cliente, motivo: r.motivo, dias_sem_compra: r.dias_sem_compra, tempo_visita: r.tempo_visita, ao_ligar: !!r.baseline}); });
+  // SEMANA INVICTA (lance gravado pelo servidor na sexta apos as 19h): avisa na tela UMA vez, so se for recente (ate 3 h) e esta tela ainda nao o conhecia.
+  d.lances.forEach(r => {
+    if (r.nivel !== 'semanainvicta' || tem.has(r.chave) || INVICTA_AVISADA.has(r.chave)) return;
+    const idade = secDe(sp().hms) - secDe(r.hora_sp);
+    if (!(idade >= 0 && idade <= 3 * 3600)) return;
+    INVICTA_AVISADA.add(r.chave);
+    ESPERA.push({tipo: 'semanainvicta', sig: String(r.chave).includes('|semanainvicta|') ? String(r.chave).split('|')[0] : (typeof FIL !== 'undefined' ? FIL : 'MTZ'), v: {id: r.rca, nome: r.vendedor, sup: r.supervisor || '', canal: ''}, sub: 'Semana Invicta: vitória em todos os dias úteis da semana', prova: r.obs || '', score: 45});
+  });
   LOG.sort((x, y) => secDe(x.t) - secDe(y.t)); store.set(K.seen + HOJE0, [...seen]); store.set(K.log + HOJE0, LOG);
 }
 let primeiraSync = false, processando = false;
@@ -724,7 +733,8 @@ function enfileira(novos) {
 const penaltisDe = (rca, sig) => LOG.filter(e => e.nivel === 'penalti' && e.rca === rca && e.sig === sig).length;
 function podeVAR() { const agora = Date.now(); while (VARS.length && agora - VARS[0] > 3600e3) VARS.shift(); return !emVAR && !FILA.length && VARS.length < VAR_MAX_H && (!VARS.length || agora - VARS[VARS.length - 1] >= VAR_GAP_S * 1000); }
 function liberaEspera() {
-  if (ESPERA.length && podeVAR()) { const item = ESPERA.length >= 4 ? {tipo: 'resumo', grupos: ESPERA.splice(0)} : ESPERA.shift(); VARS.push(Date.now()); FILA.push(item); proximoVAR(); }
+  if (ESPERA.length && podeVAR()) { const iInv = ESPERA.findIndex(x => x.tipo === 'semanainvicta'); /* Semana Invicta sai SEMPRE sozinha, nunca dentro de um resumo */
+    const item = iInv >= 0 ? ESPERA.splice(iInv, 1)[0] : (ESPERA.length >= 4 ? {tipo: 'resumo', grupos: ESPERA.splice(0)} : ESPERA.shift()); VARS.push(Date.now()); FILA.push(item); proximoVAR(); }
   const t = $('fila'); if (t) { t.style.display = ESPERA.length ? 'inline-block' : 'none'; t.textContent = `⏳ ${ESPERA.length} na fila do VAR`; }
 }
 function beep(seq) { if (!somOn) return; try { const C = new (window.AudioContext || window.webkitAudioContext)(); let t = C.currentTime; seq.forEach(([f, d]) => { const o = C.createOscillator(), g = C.createGain(); o.frequency.value = f; o.type = 'square'; g.gain.value = .12; o.connect(g); g.connect(C.destination); o.start(t); o.stop(t + d); t += d + .05; }); } catch {} }
@@ -744,6 +754,7 @@ function pontosLanceOficial(tipo, subtipo) {
   if (tipo === 'defesa') return { nome: 'Defesa (Recorrência Salva)', pts: '+3 PONTOS NA LIGA', cor: '#22c55e' };
   if (tipo === 'amarelo') return { nome: 'Cartão Amarelo', pts: '-3 PONTOS NA LIGA', cor: '#eab308' };
   if (tipo === 'golcontra') return { nome: 'Gol Contra (Devolução)', pts: '-4 PONTOS NA LIGA', cor: '#ef4444' };
+  if (tipo === 'semanainvicta') return { nome: 'Semana Invicta', pts: '+3 PONTOS NA LIGA', cor: '#facc15' };
   if (tipo === 'impedimento') return { nome: 'Impedimento VAR', pts: '-5 PONTOS NA LIGA', cor: '#f97316' };
   if (tipo === 'penalti') return { nome: 'Pênalti', pts: '-6 PONTOS NA LIGA', cor: '#ef4444' };
   if (tipo === 'vermelho' || tipo === 'venda10' || tipo === 'visita10') return { nome: 'Cartão Vermelho', pts: '-10 PONTOS NA LIGA', cor: '#ef4444' };
@@ -806,6 +817,10 @@ function telaVAR(item) {
     titulo = '🚩 IMPEDIMENTO VAR'; sub = item.sub || 'Visita instantânea não computada'; cls = 'f1';
     dec = `${seloLiga}<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>ANULADO</b><span>${esc(item.sub || 'Visita de 00:00 sem contato real')}</span></div>${provaImpedimentoHtml(item.a)}`;
     veredito = vereditoImpedimento(item.a);
+  } else if (item.tipo === 'semanainvicta') {
+    titulo = '👑 SEMANA INVICTA'; sub = item.sub || 'Vitória em todos os dias úteis da semana'; cls = 'f1';
+    dec = `${seloLiga}<div class="ln hot"><b>FILIAL</b><span>${item.sig || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v)}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'Semana Invicta')}</span></div>${item.prova ? `<div class="ln"><b>SEMANA</b><span>${esc(item.prova)}</span></div>` : ''}`;
+    veredito = '👑 SEMANA INVICTA! Vitória em todos os dias úteis da semana (+3 pontos na liga).';
   } else if (item.tipo === 'defesa') {
     titulo = '🧤 DEFESA MILAGROSA'; sub = item.sub || 'Carteira recorrente protegida!'; cls = 'f1';
     const cObj = item.c || (item.a && item.a.c);
@@ -889,11 +904,34 @@ async function proximoVAR() {
   ov.onclick = () => { fecha(); };
   if (btnFechar) { btnFechar.style.display = ''; btnFechar.onclick = e => { e.stopPropagation(); fecha(); }; }
 
+  if (item.tipo === 'semanainvicta') {
+    const mostraDecisaoInv = () => {
+      if (animStop) { animStop(); animStop = null; }
+      ov.className = 'show';
+      ov.innerHTML = `<div class="dec"><h1>${esc(T.titulo)} · DECISÃO DO VAR</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
+      ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha em ${Math.max(0, 45 - Math.round((Date.now() - t0) / 1000))}s`; }, 500);
+      ov._t3 = setTimeout(fecha, 45000);
+    };
+    ov.className = 'show'; ov.innerHTML = '<canvas id="cvp"></canvas>';
+    animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance($('cvp'), 'semanainvicta', null, 12000, mostraDecisaoInv) : null;
+    if (!animStop && typeof iniciaAnimSemanaInvicta === 'function') { animStop = iniciaAnimSemanaInvicta($('cvp'), {vendedor: item.v ? item.v.nome : 'VENDEDOR', sub: item.sub || 'SEMANA INVICTA'}); ov._t2 = setTimeout(mostraDecisaoInv, 9500); }
+    if (!animStop) mostraDecisaoInv();
+    return;
+  }
   if (item.tipo === 'hattrick' && typeof iniciaAnimHatTrick === 'function') {
     // Sem vídeo real para Hat-Trick — vai direto para a animação vetorial dedicada.
     ov.className = 'show';
     ov.innerHTML = '<canvas id="cvp"></canvas>';
     const valores = (item.a && item.a.valores) || [];
+    const decHatVideo = () => {
+      if (animStop) { animStop(); animStop = null; }
+      ov.className = 'show';
+      ov.innerHTML = `<div class="dec"><h1>${esc(T.titulo)} · DECISÃO DO VAR</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;
+      ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha em ${Math.max(0, 45 - Math.round((Date.now() - t0) / 1000))}s`; }, 500);
+      ov._t3 = setTimeout(fecha, 45000);
+    };
+    animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance($('cvp'), 'hattrick', null, 9500, decHatVideo) : null;
+    if (animStop) return;
     animStop = iniciaAnimHatTrick($('cvp'), {
       vendedor: item.v ? item.v.nome : 'VENDEDOR',
       sub: item.sub || 'HAT-TRICK',

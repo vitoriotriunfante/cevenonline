@@ -452,6 +452,16 @@ secao('8d. WhatsApp: TPH e MCD saem divididos por gerente em 11:30, 14:30, 17:00
   await t(ok, RAIZ);
 }
 
+// ---------------------------------------------------------------- 8e. Semana Invicta: gatilho do lance (TV e Matriz)
+secao('8e. Semana Invicta: o servidor confere a semana fechada e grava o lance; TV e Matriz mostram o popup com video');
+{
+  const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_semana_invicta.mjs')).href)).default;
+  await t(ok, RAIZ);
+  const tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), pr = ler('scratch/build_brasileirao_dataset.py'), tl = ler('functions/api/tv-lances.js');
+  ok([tv, mz].every(h => h.includes("item.tipo === 'semanainvicta'") && h.includes('INVICTA_AVISADA') && h.includes('SEMANA INVICTA')), 'TV da filial e Matriz tem o popup da Semana Invicta e avisam uma vez');
+  ok(tl.includes("'semanainvicta'") && pr.includes('_pts_api'), 'tv-lances aceita o lance semanainvicta e o ranking usa os pontos do endpoint (os do popup)');
+}
+
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)
 secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
 {
