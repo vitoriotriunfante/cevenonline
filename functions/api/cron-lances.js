@@ -308,7 +308,7 @@ export async function onRequestGet({ env, request }) {
     return new Response(JSON.stringify({ erro: 'nenhum representante ativo no D1' }), { status: 502, headers: cors });
   }
 
-  // canal/supervisor por RCA: mesma fonte que a TV usa (planilha MOSTRA_DISPAROS via /api/tv-mostra)
+  // canal/supervisor por RCA: mesma fonte que a TV usa (Gestao de Equipe via /api/tv-mostra)
   const canalMapa = new Map();
   try {
     const m = await getJson(`${origin}/api/tv-mostra`);

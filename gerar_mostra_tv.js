@@ -1,41 +1,25 @@
 /**
  * FICHA DO ARQUIVO
- * O QUE É: gera public/mostra_vendedores.json a partir da planilha "VENDEDORES AUDITADOS.xlsx"
- *          (aba MOSTRA_DISPAROS, a MESMA fonte de verdade dos disparos de WhatsApp).
- * PROJETO: CFTV/TV. A TV só mostra vendedor com "MOSTRA NOS DISPAROS" = SIM.
- * RODA: automaticamente dentro do publicar_tv.js. Manual: node gerar_mostra_tv.js [caminho.xlsx]
- * ATENÇÃO: lê a cópia LOCAL da planilha. A original está no Drive: mantenha a cópia local
- *          atualizada antes de publicar (o script mostra a data do arquivo).
- * ESCREVE: public/mostra_vendedores.json (nomes de vendedor/supervisor/RCA/canal — sem dados de venda).
+ * O QUE É: tira a cópia de RESERVA da equipe (public/mostra_vendedores.json) a partir da GESTÃO DE EQUIPE ao vivo (/api/tv-mostra, D1).
+ *          A fonte da equipe é a tela Gestão de Equipe (/gestao-equipe). A planilha do Drive NÃO é mais lida (decisão do Vitório, 05/10/2026).
+ * PROJETO: CFTV/TV. A TV só mostra vendedor com mostra = SIM.
+ * RODA: automaticamente dentro do publicar_tv.js. Manual: node gerar_mostra_tv.js
+ * ESCREVE: public/mostra_vendedores.json (nomes de vendedor/supervisor/RCA/canal — sem dados de venda). Só serve se o D1 ficar indisponível.
+ * REGRA: se a resposta ao vivo não vier do D1 (origem != 'd1') ou vier vazia, NÃO sobrescreve a cópia anterior.
  */
-const X = require('xlsx');
 const fs = require('fs');
 const path = require('path');
 
-const origem = process.argv[2] || path.join(__dirname, 'VENDEDORES AUDITADOS.xlsx');
-if (!fs.existsSync(origem)) { console.error('Planilha nao encontrada:', origem); process.exit(1); }
-const wb = X.readFile(origem);
-const ws = wb.Sheets['MOSTRA_DISPAROS'];
-if (!ws) { console.error('Aba MOSTRA_DISPAROS nao encontrada'); process.exit(1); }
-
-const clean = s => String(s == null ? '' : s).replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
-const filiais = {}, grupos = {};
-let sim = 0, nao = 0;
-for (const r of X.utils.sheet_to_json(ws, { defval: '' })) {
-  // normalização única: TPH_VAGNER -> filial TPH + grupo VAGNER (divisão nova = só escrever SIGLA_NOME na planilha)
-  const bruto = String(r['Filial'] || '').toUpperCase().trim(), f = bruto.split('_')[0], grupo = bruto.split('_').slice(1).join('_');
-  if (grupo) (grupos[f] = grupos[f] || new Set()).add(grupo);
-  const rca = String(r['Cód. Vendedor (RCA)'] || '').trim();
-  if (!f || !rca) continue;
-  const mostra = String(r['MOSTRA NOS DISPAROS']).toUpperCase().trim() === 'SIM';
-  mostra ? sim++ : nao++;
-  (filiais[f] = filiais[f] || []).push({
-    rca, grupo, nome: clean(r['Nome do Vendedor']), supervisor: clean(r['Nome Supervisor']), gerente: String(r['Gerente Geral'] || '').trim(),
-    canal: String(r['Canal Oficial'] || '').trim(), mostra, motivo: mostra ? '' : String(r['MOTIVO (se NÃO)'] || '')
-  });
-}
-const mtime = fs.statSync(origem).mtime;
-const g = {}; Object.keys(grupos).forEach((k) => (g[k] = [...grupos[k]]));
-const out = { gerado_em: new Date().toISOString(), planilha_em: mtime.toISOString(), total_sim: sim, total_nao: nao, grupos: g, filiais };
-fs.writeFileSync(path.join(__dirname, 'public', 'mostra_vendedores.json'), JSON.stringify(out));
-console.log(`mostra_vendedores.json: ${sim} SIM / ${nao} NAO em ${Object.keys(filiais).length} filiais (planilha de ${mtime.toLocaleString('pt-BR')})`);
+(async () => {
+  const r = await fetch('https://ceven-cftv-matrix.pages.dev/api/tv-mostra?nocache=1&t=' + Date.now(), { headers: { 'User-Agent': 'Mozilla/5.0' } });
+  const d = await r.json();
+  if (!d || d.origem !== 'd1' || !d.filiais || !Object.keys(d.filiais).length) {
+    console.error('Gestao de Equipe (D1) nao respondeu como esperado (origem=' + (d && d.origem) + '): mantendo a copia anterior.');
+    process.exit(1);
+  }
+  let sim = 0, nao = 0;
+  for (const lista of Object.values(d.filiais)) for (const v of lista) (v.mostra ? sim++ : nao++);
+  const out = { gerado_em: new Date().toISOString(), copia_de: 'gestao-de-equipe (D1)', atualizado_em: d.atualizado_em || null, atualizado_por: d.atualizado_por || null, total_sim: sim, total_nao: nao, grupos: d.grupos || {}, filiais: d.filiais };
+  fs.writeFileSync(path.join(__dirname, 'public', 'mostra_vendedores.json'), JSON.stringify(out));
+  console.log(`mostra_vendedores.json (copia da Gestao de Equipe): ${sim} SIM / ${nao} NAO em ${Object.keys(d.filiais).length} filiais (salva por ${d.atualizado_por || '?'} em ${d.atualizado_em || '?'})`);
+})().catch((e) => { console.error('Nao consegui ler a Gestao de Equipe:', e.message); process.exit(1); });

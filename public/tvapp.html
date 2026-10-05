@@ -452,7 +452,7 @@ async function carregaMetas() {
 }
 const MOSTRA_TUDO = P.get('mostrartudo') === '1'; // flag explícita: ignora a coluna MOSTRA NOS DISPAROS (uso excepcional, por link)
 async function carregaReps() {
-  // Fonte de verdade: planilha VENDEDORES AUDITADOS (aba MOSTRA_DISPAROS) -> só vendedor com MOSTRA = SIM
+  // Fonte de verdade: Gestão de Equipe (/api/tv-mostra) -> só vendedor com mostra = SIM
   // Essa lista é uma regra do negócio (quem os gerentes aprovaram ver), não um detalhe técnico:
   // sem ela, a tela NUNCA mostra vendedor por conta própria (nem cadastro geral do CEVEN).
   let m = await j('/api/tv-mostra', 25000);
@@ -474,7 +474,7 @@ async function carregaReps() {
   listaMostra = false;
   REPS = [];
   const av = $('aviso');
-  if (av) { av.textContent = 'LISTA MOSTRA_DISPAROS INDISPONÍVEL — TV sem vendedores até ela voltar'; av.style.display = 'inline-block'; }
+  if (av) { av.textContent = 'LISTA DA GESTÃO DE EQUIPE INDISPONÍVEL — TV sem vendedores até ela voltar'; av.style.display = 'inline-block'; }
   return false;
 }
 const supLista = () => {

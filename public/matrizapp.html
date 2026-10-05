@@ -372,7 +372,7 @@ let seen = new Set(store.get(K.seen + HOJE0, [])), LOG = store.get(K.log + HOJE0
 // ============================== BASE (CEVEN Soberano, metas) ==============================
 const MOSTRA_TUDO = P.get('mostrartudo') === '1'; // flag explícita: ignora a coluna MOSTRA NOS DISPAROS (uso excepcional, por link)
 async function carregaBase() {
-  // Lista MOSTRA_DISPAROS é regra de negócio (quem os gerentes aprovaram ver), não detalhe técnico:
+  // A lista da Gestão de Equipe é regra de negócio (quem os gerentes aprovaram ver), não detalhe técnico:
   // sem ela (Drive e cópia local indisponíveis), MOSTRA fica null e nenhuma filial mostra vendedor.
   let m = await j('/api/tv-mostra', 10000);
   if (!(m && m.filiais && !m.erro)) { m = await j('/mostra_vendedores.json?t=' + Date.now(), 10000); }
@@ -381,7 +381,7 @@ async function carregaBase() {
     MOSTRA = m.filiais; listaAviso = '';
     if (av) { av.textContent = ''; av.style.display = 'none'; }
   } else {
-    MOSTRA = null; listaAviso = 'LISTA MOSTRA_DISPAROS INDISPONÍVEL — sem vendedores até ela voltar';
+    MOSTRA = null; listaAviso = 'LISTA DA GESTÃO DE EQUIPE INDISPONÍVEL — sem vendedores até ela voltar';
     if (av) { av.textContent = listaAviso; av.style.display = 'inline-block'; }
   }
   const mt = await j('/api/metas-mes', 15000); // metas ao vivo do CEVEN (04/10/2026)

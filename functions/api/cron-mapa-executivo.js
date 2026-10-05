@@ -25,7 +25,7 @@
 //          WhatsApp (já implementado em pipeline/ceven_unified_engine.js CANAIS_VAREJO) e TV
 //          Executiva): só entram nos agregados de VISITA/POSITIVAÇÃO os canais de campo — VJ,
 //          PET VJ, FARMA, ESP. AS/PET AS (grandes contas, sem cobrança de roteiro) e GER/SUP
-//          (gestão) NUNCA contam aqui. Canal vem da planilha MOSTRA_DISPAROS (/api/tv-mostra),
+//          (gestão) NUNCA contam aqui. Canal vem da Gestao de Equipe (/api/tv-mostra),
 //          mesma fonte que matrizapp.html/tvapp.html já usam — o D1 (representantes.setor) está
 //          vazio, então usamos essa lista em vez dele.
 // FATURADO/META DO MÊS: NÃO é calculado aqui. Fica em cron-faturado-mes.js.
@@ -62,7 +62,7 @@ function dataHojeBrasilia() {
 }
 
 const CANAIS_CAMPO = ['VJ', 'PET VJ', 'FARMA', 'ESP']; // cobrança de rota/visita — ver ficha do arquivo
-// rca (codigo) -> canal, direto da planilha MOSTRA_DISPAROS (mesma fonte que matrizapp.html/tvapp.html).
+// rca (codigo) -> canal, direto da Gestao de Equipe (mesma fonte que matrizapp.html/tvapp.html).
 async function carregaCanalPorRca(env, request) {
   const mapa = new Map();
   const ocultos = new Set();

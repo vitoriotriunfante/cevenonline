@@ -181,7 +181,7 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     ok(corpo.filiais.TBL[1].supervisor === 'CIRLENE DE FATIMA GOMES VITORINO', 'supervisor de verdade nao e tocado');
     ok(corpo.filiais.API[0].supervisor === 'FABIO FURLAN MACHADO', 'a regra e por filial: mesmo nome em outra filial nao e tocado');
     ok(corpo.nao_supervisores && corpo.nao_supervisores.lista.length === 3 && corpo.nao_supervisores.por.includes('Vitório'), 'a resposta da equipe registra a lista e quem decidiu (auditoria)');
-    ok(ler('functions/api/tv-mostra.js').includes('aplicaNaoSupervisores(o)'), 'tv-mostra aplica a regra em todas as fontes (D1, Drive e copia)'); }
+    ok(ler('functions/api/tv-mostra.js').includes('aplicaNaoSupervisores(o)'), 'tv-mostra aplica a regra em todas as fontes (D1 e copia)'); }
   ok(ler('scratch/build_brasileirao_dataset.py').includes("if item.get('mostra') is False:"), 'Brasileirao: vendedores ocultos pela equipe (mostra:false) nao disputam a liga (ocultos pela equipe nao disputam)');
   { const cr = ler('functions/api/cron-mapa-executivo.js'), lv = ler('functions/api/mapa-executivo-live.js'), tx = ler('public/tv_executiva.html');
     ok(cr.includes('prod?.dia?.positivacao') && !/comVenda\+\+; aNac\.comVenda\+\+; aFil\.pedidos\+\+/.test(cr) && cr.includes('aF.pedidos += pedDigRca') && cr.includes('pegaRec(sig).pedidosCampo'), 'pedidos colocados da TV executiva = pedidos digitados hoje de TODOS os vendedores (rota e fora da rota); so a media pedidos/visita usa o varejo');
