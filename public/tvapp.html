@@ -510,7 +510,7 @@ async function atualiza() {
     await Promise.all(Array.from({length: 6}, async () => {
       while (fila.length) {
         const r = fila.shift();
-        const d = await j(`/api/tv-vendedor?filial=${FIL}&id=${r.id}`);
+        const d = await j(`/api/tv-vendedor?filial=${FIL}&id=${r.id}&central=1`);
         if (d && !d.erro && !(d.falhas && d.falhas.length === 3)) {
           if (!d.falhas || !d.falhas.length || !DATA[r.id]) DATA[r.id] = d; // leitura parcial só entra se não houver anterior
           ok++;
