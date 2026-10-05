@@ -3,19 +3,19 @@
 📍 *FILIAL TPH — FÁBIO*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 38.529,31
-📦 *Pedidos Colocados:* 69 pedidos
-📍 *Visitas Realizadas:* 202 de 409 (49,4%)
+💰 *Total Digitado Hoje:* R$ 39.542,50
+📦 *Pedidos Colocados:* 71 pedidos
+📍 *Visitas Realizadas:* 204 de 409 (49,9%)
 👥 *Vendedores Varejo com Pedido:* 18 de 27 (67%)
 ✂️ *Cortes nos Pedidos de Hoje:* R$ 880,62 (4 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 11.113,46 (24 pedidos retidos)
+🔒 *Pedidos Bloqueados Hoje:* R$ 12.008,59 (25 pedidos retidos)
 🚛 *Devoluções Entradas Hoje:* R$ 16.028,03
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
   ▫️ Cód. 118 • EMILLEI CARNEIRO: -R$ 138,59 em SUPERMERCADO FELICIO (LAMP RAY LED 11W BIVOLT BRANCA)
-  ▫️ Cód. 105 • GIULIA TEIXEIRA DUARTE: -R$ 19,62 em PANIFICADORA VILA PAO (MAGUARY TP REFRESCO MACA)
-  ▫️ Cód. 97 • EDERSON LUIZ RIBEIRO: -R$ 131,66 em MATRIZ (KETCHUP ZERO BG HEMMER)
   ▫️ Cód. 103 • JEFERSON JUSTINO: -R$ 590,75 em FAMILIA FARINHA (KETCHUP ZERO BG HEMMER)
+  ▫️ Cód. 97 • EDERSON LUIZ RIBEIRO: -R$ 131,66 em MATRIZ (KETCHUP ZERO BG HEMMER)
+  ▫️ Cód. 105 • GIULIA TEIXEIRA DUARTE: -R$ 19,62 em PANIFICADORA VILA PAO (MAGUARY TP REFRESCO MACA)
 
 🚨 *Varejo Zerados (14:30):* 9 (33%)
 
