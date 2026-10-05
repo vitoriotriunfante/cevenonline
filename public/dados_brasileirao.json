@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-05T14:16:35.842045Z",
+  "gerado_em": "2026-10-05T14:19:51.341266Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -10,7 +10,7 @@
     "2026-10-02",
     "2026-10-05"
   ],
-  "total_lances_auditados": 8598,
+  "total_lances_auditados": 8581,
   "filiais": [
     {
       "sigla": "API",
@@ -165,8 +165,8 @@
       "empates": 6,
       "derrotas": 0,
       "gp": 1222,
-      "gc": 802,
-      "sg": 420,
+      "gc": 782,
+      "sg": 440,
       "aprov": 33.3,
       "super_pedidos": 21,
       "inativos_resgatados": 6,
@@ -237,8 +237,8 @@
       "empates": 5,
       "derrotas": 1,
       "gp": 1243,
-      "gc": 877,
-      "sg": 366,
+      "gc": 817,
+      "sg": 426,
       "aprov": 27.8,
       "super_pedidos": 33,
       "inativos_resgatados": 14,
@@ -440,8 +440,8 @@
       "empates": 6,
       "derrotas": 0,
       "gp": 1222,
-      "gc": 802,
-      "sg": 420,
+      "gc": 782,
+      "sg": 440,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -540,8 +540,8 @@
       "empates": 5,
       "derrotas": 1,
       "gp": 722,
-      "gc": 601,
-      "sg": 121,
+      "gc": 567,
+      "sg": 155,
       "aprov": 27.8,
       "forma": [
         "E",
@@ -590,8 +590,8 @@
       "empates": 4,
       "derrotas": 2,
       "gp": 521,
-      "gc": 276,
-      "sg": 245,
+      "gc": 250,
+      "sg": 271,
       "aprov": 22.2,
       "forma": [
         "E",
@@ -1370,8 +1370,8 @@
       "empates": 4,
       "derrotas": 1,
       "gp": 308,
-      "gc": 95,
-      "sg": 213,
+      "gc": 91,
+      "sg": 217,
       "aprov": 38.9,
       "forma": [
         "E",
@@ -2704,8 +2704,8 @@
       "empates": 5,
       "derrotas": 1,
       "gp": 260,
-      "gc": 55,
-      "sg": 205,
+      "gc": 51,
+      "sg": 209,
       "aprov": 27.8,
       "forma": [
         "E",
@@ -2994,8 +2994,8 @@
       "empates": 4,
       "derrotas": 2,
       "gp": 222,
-      "gc": 433,
-      "sg": -211,
+      "gc": 417,
+      "sg": -195,
       "aprov": 22.2,
       "forma": [
         "E",
@@ -3632,8 +3632,8 @@
       "empates": 3,
       "derrotas": 3,
       "gp": 297,
-      "gc": 413,
-      "sg": -116,
+      "gc": 387,
+      "sg": -90,
       "aprov": 16.7,
       "forma": [
         "E",
@@ -3806,8 +3806,8 @@
       "empates": 3,
       "derrotas": 3,
       "gp": 165,
-      "gc": 133,
-      "sg": 32,
+      "gc": 129,
+      "sg": 36,
       "aprov": 16.7,
       "forma": [
         "E",
@@ -4096,8 +4096,8 @@
       "empates": 3,
       "derrotas": 3,
       "gp": 248,
-      "gc": 140,
-      "sg": 108,
+      "gc": 132,
+      "sg": 116,
       "aprov": 16.7,
       "forma": [
         "E",
@@ -4328,8 +4328,8 @@
       "empates": 2,
       "derrotas": 4,
       "gp": 96,
-      "gc": 76,
-      "sg": 20,
+      "gc": 58,
+      "sg": 38,
       "aprov": 11.1,
       "forma": [
         "E",
@@ -6874,8 +6874,8 @@
       "pts_tabela": 12,
       "aprov": 66.7,
       "gp": 61,
-      "gc": 25,
-      "sg": 36,
+      "gc": 21,
+      "sg": 40,
       "super_pedidos": 0,
       "inativos_resgatados": 1,
       "forma": [
@@ -7354,8 +7354,8 @@
       "pts_tabela": 10,
       "aprov": 55.6,
       "gp": 66,
-      "gc": 4,
-      "sg": 62,
+      "gc": 0,
+      "sg": 66,
       "super_pedidos": 3,
       "inativos_resgatados": 0,
       "forma": [
@@ -9070,6 +9070,38 @@
       "pos_filial": 27
     },
     {
+      "rca": "427",
+      "nome": "FRANCISCO ROGERIO SOUZA DINIZ",
+      "filial": "MCD",
+      "supervisor": "CLEOMAR DINIZ BARBOSA",
+      "gerente": "Adriano",
+      "jogos": 6,
+      "vitorias": 2,
+      "empates": 2,
+      "derrotas": 2,
+      "pts_tabela": 8,
+      "aprov": 44.4,
+      "gp": 51,
+      "gc": 13,
+      "sg": 38,
+      "super_pedidos": 2,
+      "inativos_resgatados": 0,
+      "forma": [
+        "V",
+        "D",
+        "V",
+        "E",
+        "E",
+        "D"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 144,
+      "pos_filial": 6
+    },
+    {
       "rca": "118",
       "nome": "EMILLEI CARNEIRO",
       "filial": "TPH",
@@ -9098,7 +9130,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 144,
+      "pos_brasil": 145,
       "pos_filial": 28
     },
     {
@@ -9130,7 +9162,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 145,
+      "pos_brasil": 146,
       "pos_filial": 21
     },
     {
@@ -9162,7 +9194,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 146,
+      "pos_brasil": 147,
       "pos_filial": 12
     },
     {
@@ -9194,7 +9226,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 147,
+      "pos_brasil": 148,
       "pos_filial": 9
     },
     {
@@ -9226,7 +9258,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 148,
+      "pos_brasil": 149,
       "pos_filial": 10
     },
     {
@@ -9258,7 +9290,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 149,
+      "pos_brasil": 150,
       "pos_filial": 21
     },
     {
@@ -9290,7 +9322,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 150,
+      "pos_brasil": 151,
       "pos_filial": 22
     },
     {
@@ -9322,7 +9354,7 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 151,
+      "pos_brasil": 152,
       "pos_filial": 22
     },
     {
@@ -9354,40 +9386,8 @@
       "bonus_constancia": 1,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 152,
-      "pos_filial": 11
-    },
-    {
-      "rca": "427",
-      "nome": "FRANCISCO ROGERIO SOUZA DINIZ",
-      "filial": "MCD",
-      "supervisor": "CLEOMAR DINIZ BARBOSA",
-      "gerente": "Adriano",
-      "jogos": 6,
-      "vitorias": 2,
-      "empates": 2,
-      "derrotas": 2,
-      "pts_tabela": 8,
-      "aprov": 44.4,
-      "gp": 51,
-      "gc": 25,
-      "sg": 26,
-      "super_pedidos": 2,
-      "inativos_resgatados": 0,
-      "forma": [
-        "V",
-        "D",
-        "V",
-        "E",
-        "E",
-        "D"
-      ],
-      "streak": 1,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
       "pos_brasil": 153,
-      "pos_filial": 6
+      "pos_filial": 11
     },
     {
       "rca": "138",
@@ -12046,6 +12046,38 @@
       "pos_filial": 39
     },
     {
+      "rca": "424",
+      "nome": "EVERTON GONCALVES",
+      "filial": "MCD",
+      "supervisor": "CLEOMAR DINIZ BARBOSA",
+      "gerente": "Adriano",
+      "jogos": 6,
+      "vitorias": 1,
+      "empates": 2,
+      "derrotas": 3,
+      "pts_tabela": 5,
+      "aprov": 27.8,
+      "gp": 52,
+      "gc": 58,
+      "sg": -6,
+      "super_pedidos": 1,
+      "inativos_resgatados": 0,
+      "forma": [
+        "V",
+        "E",
+        "E",
+        "D",
+        "D",
+        "D"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 237,
+      "pos_filial": 15
+    },
+    {
       "rca": "214",
       "nome": "GILSON DE ALMEIDA ALVES",
       "filial": "ABC",
@@ -12074,40 +12106,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 237,
-      "pos_filial": 19
-    },
-    {
-      "rca": "424",
-      "nome": "EVERTON GONCALVES",
-      "filial": "MCD",
-      "supervisor": "CLEOMAR DINIZ BARBOSA",
-      "gerente": "Adriano",
-      "jogos": 6,
-      "vitorias": 1,
-      "empates": 2,
-      "derrotas": 3,
-      "pts_tabela": 5,
-      "aprov": 27.8,
-      "gp": 52,
-      "gc": 68,
-      "sg": -16,
-      "super_pedidos": 1,
-      "inativos_resgatados": 0,
-      "forma": [
-        "V",
-        "E",
-        "E",
-        "D",
-        "D",
-        "D"
-      ],
-      "streak": 1,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
       "pos_brasil": 238,
-      "pos_filial": 15
+      "pos_filial": 19
     },
     {
       "rca": "534",
@@ -13402,8 +13402,8 @@
       "pts_tabela": 4,
       "aprov": 22.2,
       "gp": 37,
-      "gc": 68,
-      "sg": -31,
+      "gc": 64,
+      "sg": -27,
       "super_pedidos": 0,
       "inativos_resgatados": 0,
       "forma": [
@@ -13658,8 +13658,8 @@
       "pts_tabela": 4,
       "aprov": 22.2,
       "gp": 44,
-      "gc": 47,
-      "sg": -3,
+      "gc": 43,
+      "sg": 1,
       "super_pedidos": 0,
       "inativos_resgatados": 0,
       "forma": [
@@ -14542,6 +14542,38 @@
       "pos_filial": 21
     },
     {
+      "rca": "447",
+      "nome": "ROBERTO DE SENNA PEREIRA",
+      "filial": "MCD",
+      "supervisor": "CLEOMAR DINIZ BARBOSA",
+      "gerente": "Adriano",
+      "jogos": 6,
+      "vitorias": 0,
+      "empates": 3,
+      "derrotas": 3,
+      "pts_tabela": 3,
+      "aprov": 16.7,
+      "gp": 19,
+      "gc": 9,
+      "sg": 10,
+      "super_pedidos": 0,
+      "inativos_resgatados": 0,
+      "forma": [
+        "E",
+        "E",
+        "E",
+        "D",
+        "D",
+        "D"
+      ],
+      "streak": 0,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 315,
+      "pos_filial": 26
+    },
+    {
       "rca": "383",
       "nome": "ROBSON JANIO GOMES ROSA",
       "filial": "TCA",
@@ -14570,7 +14602,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 315,
+      "pos_brasil": 316,
       "pos_filial": 25
     },
     {
@@ -14602,8 +14634,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 316,
-      "pos_filial": 26
+      "pos_brasil": 317,
+      "pos_filial": 27
     },
     {
       "rca": "453",
@@ -14634,8 +14666,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 317,
-      "pos_filial": 27
+      "pos_brasil": 318,
+      "pos_filial": 28
     },
     {
       "rca": "290",
@@ -14666,7 +14698,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 318,
+      "pos_brasil": 319,
       "pos_filial": 21
     },
     {
@@ -14684,38 +14716,6 @@
       "gp": 22,
       "gc": 15,
       "sg": 7,
-      "super_pedidos": 0,
-      "inativos_resgatados": 0,
-      "forma": [
-        "E",
-        "E",
-        "E",
-        "D",
-        "D",
-        "D"
-      ],
-      "streak": 0,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 319,
-      "pos_filial": 28
-    },
-    {
-      "rca": "447",
-      "nome": "ROBERTO DE SENNA PEREIRA",
-      "filial": "MCD",
-      "supervisor": "CLEOMAR DINIZ BARBOSA",
-      "gerente": "Adriano",
-      "jogos": 6,
-      "vitorias": 0,
-      "empates": 3,
-      "derrotas": 3,
-      "pts_tabela": 3,
-      "aprov": 16.7,
-      "gp": 19,
-      "gc": 13,
-      "sg": 6,
       "super_pedidos": 0,
       "inativos_resgatados": 0,
       "forma": [
@@ -15246,6 +15246,38 @@
       "pos_filial": 29
     },
     {
+      "rca": "441",
+      "nome": "MAICON DOUGLAS DA SILVA MARTINS",
+      "filial": "MCD",
+      "supervisor": "JONATAS DA SILVA DE OLIVEIRA",
+      "gerente": "Cleverson",
+      "jogos": 6,
+      "vitorias": 0,
+      "empates": 2,
+      "derrotas": 4,
+      "pts_tabela": 2,
+      "aprov": 11.1,
+      "gp": 11,
+      "gc": 13,
+      "sg": -2,
+      "super_pedidos": 1,
+      "inativos_resgatados": 0,
+      "forma": [
+        "D",
+        "D",
+        "E",
+        "E",
+        "D",
+        "D"
+      ],
+      "streak": 0,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 337,
+      "pos_filial": 30
+    },
+    {
       "rca": "462",
       "nome": "LUIZ ANTONIO DE AFENSOR",
       "filial": "MCD",
@@ -15274,8 +15306,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 337,
-      "pos_filial": 30
+      "pos_brasil": 338,
+      "pos_filial": 31
     },
     {
       "rca": "530",
@@ -15306,7 +15338,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 338,
+      "pos_brasil": 339,
       "pos_filial": 39
     },
     {
@@ -15331,38 +15363,6 @@
         "D",
         "E",
         "D",
-        "D",
-        "D"
-      ],
-      "streak": 0,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 339,
-      "pos_filial": 31
-    },
-    {
-      "rca": "441",
-      "nome": "MAICON DOUGLAS DA SILVA MARTINS",
-      "filial": "MCD",
-      "supervisor": "JONATAS DA SILVA DE OLIVEIRA",
-      "gerente": "Cleverson",
-      "jogos": 6,
-      "vitorias": 0,
-      "empates": 2,
-      "derrotas": 4,
-      "pts_tabela": 2,
-      "aprov": 11.1,
-      "gp": 11,
-      "gc": 31,
-      "sg": -20,
-      "super_pedidos": 1,
-      "inativos_resgatados": 0,
-      "forma": [
-        "D",
-        "D",
-        "E",
-        "E",
         "D",
         "D"
       ],
@@ -18734,6 +18734,38 @@
       "pos_filial": 31
     },
     {
+      "rca": "1061",
+      "nome": "THIAGO DOS SANTOS PANDOLFO",
+      "filial": "MCD",
+      "supervisor": "FLAVIO RUFINO",
+      "gerente": "Cleverson",
+      "jogos": 6,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 6,
+      "pts_tabela": 0,
+      "aprov": 0.0,
+      "gp": 0,
+      "gc": 12,
+      "sg": -12,
+      "super_pedidos": 0,
+      "inativos_resgatados": 0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D"
+      ],
+      "streak": 0,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 446,
+      "pos_filial": 51
+    },
+    {
       "rca": "396",
       "nome": "VAGO",
       "filial": "TCA",
@@ -18762,7 +18794,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 446,
+      "pos_brasil": 447,
       "pos_filial": 40
     },
     {
@@ -18794,7 +18826,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 447,
+      "pos_brasil": 448,
       "pos_filial": 41
     },
     {
@@ -18826,40 +18858,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 448,
-      "pos_filial": 30
-    },
-    {
-      "rca": "1061",
-      "nome": "THIAGO DOS SANTOS PANDOLFO",
-      "filial": "MCD",
-      "supervisor": "FLAVIO RUFINO",
-      "gerente": "Cleverson",
-      "jogos": 6,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 6,
-      "pts_tabela": 0,
-      "aprov": 0.0,
-      "gp": 0,
-      "gc": 16,
-      "sg": -16,
-      "super_pedidos": 0,
-      "inativos_resgatados": 0,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D"
-      ],
-      "streak": 0,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
       "pos_brasil": 449,
-      "pos_filial": 51
+      "pos_filial": 30
     },
     {
       "rca": "548",
@@ -19022,6 +19022,38 @@
       "pos_filial": 35
     },
     {
+      "rca": "293",
+      "nome": "EDUARDO GERMANO RODRIGUES",
+      "filial": "TBE",
+      "supervisor": "NEIVA CLEONICE SERRA ISOPPO",
+      "gerente": "Diego",
+      "jogos": 6,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 6,
+      "pts_tabela": 0,
+      "aprov": 0.0,
+      "gp": 7,
+      "gc": 87,
+      "sg": -80,
+      "super_pedidos": 0,
+      "inativos_resgatados": 0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D"
+      ],
+      "streak": 0,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 455,
+      "pos_filial": 33
+    },
+    {
       "rca": "115",
       "nome": "MAICO ADILTON PRESTES",
       "filial": "TPH",
@@ -19050,40 +19082,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 455,
-      "pos_filial": 79
-    },
-    {
-      "rca": "293",
-      "nome": "EDUARDO GERMANO RODRIGUES",
-      "filial": "TBE",
-      "supervisor": "NEIVA CLEONICE SERRA ISOPPO",
-      "gerente": "Diego",
-      "jogos": 6,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 6,
-      "pts_tabela": 0,
-      "aprov": 0.0,
-      "gp": 7,
-      "gc": 103,
-      "sg": -96,
-      "super_pedidos": 0,
-      "inativos_resgatados": 0,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D"
-      ],
-      "streak": 0,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
       "pos_brasil": 456,
-      "pos_filial": 33
+      "pos_filial": 79
     },
     {
       "rca": "336",
