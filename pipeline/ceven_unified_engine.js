@@ -152,6 +152,16 @@ const GERENTES_MAP = [
   { filial: 'MCD', gerente: 'ADRIANO', whatsapp: '556799877927' }
 ];
 
+// Nome que NAO e de supervisor de verdade: vendedores ligados direto ao gerente, venda empresa, RCAs inativos, sem supervisor (mesma regra da Matriz da TV).
+// Devolve o rotulo certo para o relatorio, ou null quando e um supervisor de verdade.
+function rotuloSupervisaoFalsa(nome) {
+  const n = String(nome || '').trim().toUpperCase();
+  if (!n || /^SEM SUPERVISOR/.test(n)) return 'Sem supervisor';
+  if (/^GERENTE( |$)/.test(n)) return 'Vendedores ligados direto ao gerente';
+  if (/^VENDA EMPRESA/.test(n)) return 'Venda empresa (interno)';
+  if (/^RCAS INATIVOS/.test(n)) return 'RCAs inativos';
+  return null;
+}
 // Gerente de um supervisor nas filiais divididas (fallback quando a planilha nao informa o grupo). Mesma regra de sempre, agora em um lugar so.
 function gerenteDaSupervisao(filial, supNome, gerenteBase) {
   const s = (supNome || '').toUpperCase();
@@ -268,12 +278,18 @@ function aplicarMostraDisparos(repsMap) {
     return { excluidos: 0, corrigidos: 0 };
   }
   let excluidos = 0, corrigidos = 0;
+  // MACRO SOMA TUDO (Vitorio, 05/10/2026): "mostra / nao mostra" vale so para as LISTAS de varejo. Quem a planilha oculta, e quem esta so na planilha (fora da arvore do CEVEN),
+  // sai do repsMap mas fica guardado em repsMap.__extrasMacro para entrar nos TOTAIS (digitado, pedidos, devolucoes, cortes, bloqueados).
+  const extrasMacro = [];
+  const NOMES_GRUPO = { FABIO: 'Fábio', VAGNER: 'Vagner', CLEVERSON: 'Cleverson', ADRIANO: 'Adriano', LEANDRO: 'Leandro', RADKE: 'Radke' };
+  const nomeDoGrupo = (g) => { const k = String(g || '').toUpperCase().trim(); return k ? (NOMES_GRUPO[k] || (k.charAt(0) + k.slice(1).toLowerCase())) : ''; };
   for (const sigla of Object.keys(dados.filiais)) {
     for (const r of dados.filiais[sigla]) {
       const key = `${sigla}_${r.rca}`;
       const val = repsMap[key];
-      if (!val) continue;
+      if (!val) { extrasMacro.push({ filial: sigla, rca: String(r.rca), nome: r.nome || ('RCA ' + r.rca), gerente: nomeDoGrupo(r.grupo) }); continue; }
       if (r.mostra === false) {
+        extrasMacro.push({ filial: sigla, rca: String(r.rca), nome: val.nome || r.nome || ('RCA ' + r.rca), gerente: nomeDoGrupo(r.grupo) || val.gerente || '' });
         delete repsMap[key];
         excluidos++;
         continue;
@@ -293,7 +309,8 @@ function aplicarMostraDisparos(repsMap) {
       }
     }
   }
-  console.log(`📋 Equipe (origem: ${dados.origem || '?'}) aplicada: ${excluidos} vendedores excluídos, ${corrigidos} com supervisor ajustado.`);
+  Object.defineProperty(repsMap, '__extrasMacro', { value: extrasMacro, enumerable: false, configurable: true, writable: true });
+  console.log(`📋 Equipe (origem: ${dados.origem || '?'}) aplicada: ${excluidos} vendedores excluídos das listas (somam nos totais), ${extrasMacro.length - excluidos} só na planilha (somam nos totais), ${corrigidos} com supervisor ajustado.`);
   return { excluidos, corrigidos };
 }
 
@@ -343,7 +360,7 @@ async function coletarAuditoriaCampo(token, dataRef, repsMap) {
   const subdivididasCampo = gerentesPorFilialDividida(repsMap);
 
   for (const [fKey, meta] of Object.entries(FILIAIS_MAP)) {
-    const sups = allComp.filter(s => s.filial === fKey);
+    const sups = allComp.filter(s => s.filial === fKey && !rotuloSupervisaoFalsa(cleanName(s.nome)));
     let countComp = 0;
     let countRet = 0;
     const supervisores = [];
@@ -434,7 +451,9 @@ async function coletarAuditoriaCampo(token, dataRef, repsMap) {
 async function coletarVendasEZerados(repsValidationMap, dataRef) {
   console.log(`📡 Coletando produtividade e vendedores de varejo para ${dataRef}...`);
   // Antes lia public/reps_data.json (estático, 13 dias desatualizado). Deriva do repsValidationMap.
-  const reps = Object.values(repsValidationMap).map(v => ({ codigo: v.rca, nome: v.nome, filial: v.filial }));
+  const reps = Object.values(repsValidationMap).map(v => ({ codigo: v.rca, nome: v.nome, filial: v.filial }))
+    // ocultos e vendedores so da planilha: somam nos TOTAIS, nunca nas listas/contagens de varejo (macroOnly)
+    .concat((repsValidationMap.__extrasMacro || []).map(e => ({ codigo: e.rca, nome: e.nome, filial: e.filial, gerente: e.gerente, macroOnly: true })));
 
   // Resultado vazio de uma filial (ou de UM gerente de uma filial dividida).
   const novoResultado = (sigla, gerente, chave) => ({
@@ -468,7 +487,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
       if (!filEntry) return;
 
       const fKey = filEntry[0];
-      const resFil = obtemRes(fSigla, (repsValidationMap[fSigla + '_' + rca.codigo] || {}).gerente);
+      const resFil = obtemRes(fSigla, (repsValidationMap[fSigla + '_' + rca.codigo] || {}).gerente || rca.gerente);
 
       try {
         const [diaData, finData, devData] = await Promise.all([
@@ -512,7 +531,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
         // Considera TODO vendedor classificado como varejo (VJ/FARMA/PET VJ/ESP),
         // independente de meta cadastrada ou tamanho da rota hoje (pedido do Vitório
         // em 23/09/2026: "dados completos... tudo que eu classifiquei como varejo").
-        if (isCanalVarejo(canal)) {
+        if (!rca.macroOnly && isCanalVarejo(canal)) {
           resFil.visitasReal += visReal;
           resFil.visitasProg += prog;
 
@@ -1038,7 +1057,7 @@ function formatarAlertaRiscoGerente(gerente, sigla, supervisoresMap, horaLabel) 
   const MAX_POR_SUPERVISOR = 5;
   Object.entries(supervisoresMap).forEach(([supNome, itens]) => {
     const ordenados = itens.sort((a, b) => b.valorUltimaCompra - a.valorUltimaCompra);
-    m += `👤 *${supNome}* (${itens.length} em risco)\n`;
+    m += `👤 *${rotuloSupervisaoFalsa(supNome) || supNome}* (${itens.length} em risco)\n`;
     ordenados.slice(0, MAX_POR_SUPERVISOR).forEach(it => {
       const emoji = it.risco === 'vermelho' ? '🔴' : '🟡';
       const dataFmt = it.dataUltimaCompra
@@ -1256,7 +1275,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
         m += `🚨 *VENDEDORES DE VAREJO ZERADOS NO HORÁRIO (${horaLabel}):*\n`;
         m += `_(Visitas realizadas sem conversão de pedido)_\n\n`;
         supsComZerados.forEach(([supNome, s]) => {
-          m += `👤 *Supervisor: ${supNome}* (${s.vjSem} zerados)\n`;
+          m += `👤 *${rotuloSupervisaoFalsa(supNome) || ('Supervisor: ' + supNome)}* (${s.vjSem} zerados)\n`;
           s.zeradosVj.forEach(z => {
             m += `  ▫️ Cód. ${z.rca} • ${z.nome}: *${z.visReal} visitas feitas* (de ${z.prog} na rota) • R$ 0\n`;
           });
@@ -1778,6 +1797,7 @@ module.exports = {
   carregarGerentesComCorrecoes,
   gerenteDaSupervisao,
   gerentesPorFilialDividida,
+  rotuloSupervisaoFalsa,
   FILIAIS_MAP,
   WHATSAPP_VITORIO
 };
