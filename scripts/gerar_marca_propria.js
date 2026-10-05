@@ -306,9 +306,8 @@ async function main() {
       msgVitorio += `📍 ${sigla} — ${g.gerente.toUpperCase()}: R$ ${fmtMoeda(g.fat)} • ${g.positivados.size} PDVs • ✂️ R$ ${fmtMoeda(g.cortesValor)} • 🚛 R$ ${fmtMoeda(dev?.valor || 0)}${nota}\n`;
     });
   });
-  if (devMaxData < dataRef) {
-    msgVitorio += `\n_(Nota: devoluções só têm dado até ${devMaxData} — rodar analises/extrair_tudo_devolucoes_cadastros.js)_`;
-  }
+  // Sem nota na mensagem (Vitorio, 05/10/2026): a defasagem de devolucoes vai so para o log do robo, nunca para o texto enviado.
+  if (devMaxData < dataRef) console.log(`ℹ️ Devoluções no banco só até ${devMaxData} (dataRef ${dataRef}) — conferir a coleta do Data Lake.`);
 
   msgVitorio += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n*COMO FECHOU ONTEM (${diaAnteriorFmt})*\n`;
   msgVitorio += `💰 Faturado: R$ ${fmtMoeda(totFatHoje)} • 📦 ${Math.round(totItensHoje)} itens • ✅ ${totPositivadosHoje.size} PDVs\n\n`;

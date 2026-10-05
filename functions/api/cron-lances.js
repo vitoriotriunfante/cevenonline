@@ -123,26 +123,29 @@ function vend(id, canal, sup, d) {
 const num = (v) => (typeof v === 'number' && isFinite(v) ? v : null);
 
 // Mesma lógica de calcAlertas() em tvapp.html/matrizapp.html — ver ficha do arquivo.
+// PROVA DO LANCE (decisao do Vitorio, 05/10/2026): lance sem prova nao pode ser auditado. O lance do vendedor nasce de um numero do dia
+// (visitas, digitado, devolucao...) e esse numero vai gravado em obs, para a auditoria conferir depois com o CEVEN.
+const brl = (x) => 'R$ ' + Math.round(x || 0).toLocaleString('pt-BR');
 function calcAlertas(vs, t) {
   const fuso1h = false; // aqui roda por filial; fuso1h é decidido por chamada (ver loop principal)
   const out = [];
   vs.forEach((v) => {
     if (!v.cl) return;
-    if ((v.dig || 0) >= 15000) out.push({ chave: `gol_super|${v.id}`, nivel: 'gol', v });
+    if ((v.dig || 0) >= 15000) out.push({ chave: `gol_super|${v.id}`, nivel: 'gol', v, prova: `digitado do dia ${brl(v.dig)} (minimo R$ 15.000)` });
 
     const checkins = horariosCheckinDoDia(v.cl);
     const ultimoCheckin = checkins.length ? checkins[checkins.length - 1] : null;
     if (ultimoCheckin && t.agoraMin - ultimoCheckin.horaMin <= FRESCOR_MAX_MIN) {
       const limiteRelampago = v.fuso1h ? 10 : 9;
-      if (ultimoCheckin.hora < limiteRelampago) out.push({ chave: `gol_relampago|${v.id}`, nivel: 'gol', v });
+      if (ultimoCheckin.hora < limiteRelampago) out.push({ chave: `gol_relampago|${v.id}`, nivel: 'gol', v, prova: `check-in as ${ultimoCheckin.hms} (antes das ${limiteRelampago}h)` });
       const limiteAcrescimos = v.fuso1h ? 18 : 17;
-      if (ultimoCheckin.hora >= limiteAcrescimos) out.push({ chave: `gol_acrescimos|${v.id}`, nivel: 'gol', v });
+      if (ultimoCheckin.hora >= limiteAcrescimos) out.push({ chave: `gol_acrescimos|${v.id}`, nivel: 'gol', v, prova: `check-in as ${ultimoCheckin.hms} (a partir das ${limiteAcrescimos}h)` });
     }
     if (checkins.length >= 3) {
       for (let i = 0; i <= checkins.length - 3; i++) {
         const janelaMin = checkins[i + 2].horaMin - checkins[i].horaMin;
         if (janelaMin <= 120 && janelaMin >= 0 && t.agoraMin - checkins[i + 2].horaMin <= FRESCOR_MAX_MIN) {
-          out.push({ chave: `gol_hattrick|${v.id}|${checkins[i + 2].hms}`, nivel: 'hattrick', v });
+          out.push({ chave: `gol_hattrick|${v.id}|${checkins[i + 2].hms}`, nivel: 'hattrick', v, prova: `3 check-ins em ${janelaMin} min: ${checkins[i].hms}, ${checkins[i + 1].hms}, ${checkins[i + 2].hms}` });
           break;
         }
       }
@@ -150,19 +153,19 @@ function calcAlertas(vs, t) {
     if ((v.meta || 0) > 0 && ultimoCheckin && t.agoraMin - ultimoCheckin.horaMin <= FRESCOR_MAX_MIN) {
       const { totalUteis, uteisAteHoje } = diasUteisMes(t.dia);
       const metaDiaria = totalUteis > 0 ? (v.meta / totalUteis) * uteisAteHoje : 0;
-      if (metaDiaria > 0 && (v.dig || 0) >= metaDiaria && ultimoCheckin.hora < 14) out.push({ chave: `gol_meta1t|${v.id}`, nivel: 'gol', v });
+      if (metaDiaria > 0 && (v.dig || 0) >= metaDiaria && ultimoCheckin.hora < 14) out.push({ chave: `gol_meta1t|${v.id}`, nivel: 'gol', v, prova: `digitado ${brl(v.dig)} >= meta proporcional do dia ${brl(metaDiaria)}; check-in as ${ultimoCheckin.hms}` });
     }
     if ((v.feitas || 0) >= 8 && v.comVenda != null) {
       const txConv = v.feitas > 0 ? (v.comVenda / v.feitas) * 100 : 0;
-      if (txConv >= 50) out.push({ chave: `gol_conversao|${v.id}`, nivel: 'gol', v });
+      if (txConv >= 50) out.push({ chave: `gol_conversao|${v.id}`, nivel: 'gol', v, prova: `${v.comVenda} com venda em ${v.feitas} visitas = ${Math.round(txConv)}%` });
     }
-    if ((v.pos || 0) >= 10) out.push({ chave: `gol_goleada|${v.id}`, nivel: 'gol', v });
-    if ((v.meta || 0) > 0 && (v.fat || 0) >= v.meta) out.push({ chave: `gol_campeao|${v.id}|${t.dia.slice(0, 7)}`, nivel: 'gol', v });
+    if ((v.pos || 0) >= 10) out.push({ chave: `gol_goleada|${v.id}`, nivel: 'gol', v, prova: `${v.pos} pedidos no dia (minimo 10)` });
+    if ((v.meta || 0) > 0 && (v.fat || 0) >= v.meta) out.push({ chave: `gol_campeao|${v.id}|${t.dia.slice(0, 7)}`, nivel: 'gol', v, prova: `faturado do mes ${brl(v.fat)} >= meta ${brl(v.meta)}` });
 
     (v.devolucoesHoje || []).forEach((dv) => {
       if (!dv.nota) return;
-      if (dv.naoPediu === false) out.push({ chave: `golcontra_dev|${v.id}|${dv.nota}`, nivel: 'golcontra', v, valor: dv.valor, cliente: dv.cliente });
-      else out.push({ chave: `ver_dev|${v.id}|${dv.nota}`, nivel: 'vermelho', v, valor: dv.valor, cliente: dv.cliente });
+      if (dv.naoPediu === false) out.push({ chave: `golcontra_dev|${v.id}|${dv.nota}`, nivel: 'golcontra', v, valor: dv.valor, cliente: dv.cliente, prova: `devolucao nota ${dv.nota} ${brl(dv.valor)}${dv.cliente ? ' - ' + dv.cliente : ''} (cliente nao pediu: gol contra evitado)` });
+      else out.push({ chave: `ver_dev|${v.id}|${dv.nota}`, nivel: 'vermelho', v, valor: dv.valor, cliente: dv.cliente, prova: `devolucao nota ${dv.nota} ${brl(dv.valor)}${dv.cliente ? ' - ' + dv.cliente : ''}` });
     });
 
     v.cl.forEach((c) => {
@@ -201,8 +204,8 @@ function calcAlertas(vs, t) {
     const limiteHora = v.fuso1h ? 11 : 10;
     const depois10 = t.h >= limiteHora && t.h < 19;
     if (v.campo && v.temRota && depois10) {
-      if (v.feitas === 0) out.push({ chave: `vis10|${v.id}`, nivel: 'vermelho', v });
-      else if (!(v.dig > 0) && !(v.pos > 0)) out.push({ chave: `ven10|${v.id}`, nivel: 'amarelo', v });
+      if (v.feitas === 0) out.push({ chave: `vis10|${v.id}`, nivel: 'vermelho', v, prova: `${v.cl.length} clientes na rota, 0 visitas feitas as ${String(t.h).padStart(2, '0')}h (limite ${limiteHora}h)` });
+      else if (!(v.dig > 0) && !(v.pos > 0)) out.push({ chave: `ven10|${v.id}`, nivel: 'amarelo', v, prova: `${v.feitas} visitas feitas, 0 pedidos e digitado R$ 0 as ${String(t.h).padStart(2, '0')}h (limite ${limiteHora}h)` });
     }
   });
   return out;
@@ -297,7 +300,7 @@ export async function onRequestGet({ env, request }) {
       filial,
       lances: lances.slice(0, 200).map((l) => ({
         chave: l.chave, nivel: l.nivel, rca: l.v?.id, vendedor: l.v?.nome, supervisor: l.v?.sup,
-        cliente_id: l.c?.id, cliente: l.c?.nome || l.cliente, motivo: l.c?.motivo, dias_sem_compra: l.dias, ultima_compra: l.c?.ultima_compra, tempo_visita: l.c?.tempo_visita
+        cliente_id: l.c?.id, cliente: l.c?.nome || l.cliente, motivo: l.c?.motivo, dias_sem_compra: l.dias, ultima_compra: l.c?.ultima_compra, tempo_visita: l.c?.tempo_visita, obs: l.prova || null
       }))
     };
     const resReal = await fetch(`${origin}/api/tv-lances`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(20000) }).catch(() => null);

@@ -68,6 +68,13 @@ export async function onRequestPost({ request, env }) {
       );
       const rs = await env.DB.batch(stmts);
       novos = validos.filter((_, i) => rs[i].meta && rs[i].meta.changes === 1).map((l) => l.chave);
+      // Prova do lance: se o lance ja existia sem prova (gravado antes por outra TV), completa o obs. Nunca sobrescreve prova existente.
+      const completa = validos.filter((l, i) => !(rs[i].meta && rs[i].meta.changes === 1) && txt(l.obs, 300));
+      if (completa.length) {
+        await env.DB.batch(completa.map((l) => env.DB.prepare(
+          `UPDATE tv_lances SET obs = ? WHERE dia = ? AND filial = ? AND chave = ? AND (obs IS NULL OR obs = '')`
+        ).bind(txt(l.obs, 300), dia, filial, l.chave)));
+      }
     }
     return resp({ dia, filial, baseline, novos, total: validos.length });
   } catch (e) {

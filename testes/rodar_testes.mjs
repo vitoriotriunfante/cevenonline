@@ -217,6 +217,10 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     ok(f(vE, vE.cl[0], 3000) === false, 'ponto da empresa nunca vira impedimento: check-out na sede (Rua Miracema, SJC) nao pune o vendedor, mesmo com o cliente a 3 km');
     const vE2 = { cl: [mk(-22.8903, -47.0498)] };      // Campinas (outro ponto da empresa), a ~50 m do ponto
     ok(f(vE2, vE2.cl[0], 2500) === false, 'o ponto de Campinas (Triunfante) tambem nao pune'); }
+  { const cl = ler('functions/api/cron-lances.js');
+    const semProva = ['gol_super|', 'gol_relampago|', 'gol_acrescimos|', 'gol_hattrick|', 'gol_meta1t|', 'gol_conversao|', 'gol_goleada|', 'gol_campeao|', 'golcontra_dev|', 'ver_dev|', 'vis10|', 'ven10|']
+      .filter(k => !new RegExp('chave: `' + k.replace('|', '\\|') + '[^\\n]*prova:').test(cl));
+    ok(semProva.length === 0 && cl.includes('obs: l.prova'), 'todo lance do vendedor grava a PROVA (numero que o gerou) em obs, para auditoria' + (semProva.length ? ' — faltam: ' + semProva.join(', ') : '')); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);
