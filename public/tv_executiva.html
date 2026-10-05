@@ -1295,6 +1295,7 @@
       digitadoHoje: 0,
       positivadosHoje: 0,
       pedidosHoje: 0,
+      vendedoresComVenda: 0,
       mediaSkus: 0,
       visitasFeitas: 0,
       visitasRota: 0,
@@ -1836,6 +1837,8 @@
       document.getElementById('sem-venda-card').textContent = `${semVenda} (${pctSemVenda}%)`;
 
       const pedTotal = FILIAL_SELECIONADA === 'TODAS' ? DADOS_ATUAIS.pedidosHoje : ((DADOS_ATUAIS.filiais[FILIAL_SELECIONADA] || {}).ped || 0);
+      const vcvTotal = FILIAL_SELECIONADA === 'TODAS' ? DADOS_ATUAIS.vendedoresComVenda : ((DADOS_ATUAIS.filiais[FILIAL_SELECIONADA] || {}).vcv || 0);
+      const vcvEl = document.getElementById('vendedores-com-venda-card'); if (vcvEl) vcvEl.textContent = vcvTotal + ' vendedores';   // antes ficava fixo em "0 de 464"
       document.getElementById('pedidos-card').innerHTML = `${pedTotal} <small style="font-size:14px;color:var(--muted);font-weight:700">pedidos</small>`;
       // Pedidos colocados soma TODOS os vendedores; a media pedidos/visita usa so os pedidos do VAREJO (mesma base das visitas)
       const exSel = MAPA_PDVS.recorrencia && MAPA_PDVS.recorrencia[FILIAL_SELECIONADA === 'TODAS' ? 'TODAS' : FILIAL_SELECIONADA];
@@ -2220,6 +2223,7 @@
               DADOS_ATUAIS.visitasComVenda = nac.comVenda || 0;
               DADOS_ATUAIS.visitasSemVenda = nac.semVenda || 0;
               DADOS_ATUAIS.positivadosHoje = nac.comVenda || 0;
+              DADOS_ATUAIS.vendedoresComVenda = nac.vendedoresComVenda || 0;
               DADOS_ATUAIS.pedidosHoje = nac.pedidos || 0;   // PEDIDOS de todos os vendedores (o cartao antes mostrava comVenda = clientes visitados com venda)
               DADOS_ATUAIS.digitadoHoje = nac.digitado || 0;
               DADOS_ATUAIS.recuperadosClientes = nac.resgatadosHoje || 0;
@@ -2239,6 +2243,7 @@
               DADOS_ATUAIS.filiais[sig].semVenda = r.semVenda || 0;
               DADOS_ATUAIS.filiais[sig].pos = r.comVenda || 0;
               DADOS_ATUAIS.filiais[sig].ped = r.pedidos || 0;
+              DADOS_ATUAIS.filiais[sig].vcv = r.vendedoresComVenda || 0;
               DADOS_ATUAIS.filiais[sig].recup = r.resgatadosHoje || 0;
               DADOS_ATUAIS.filiais[sig].recupVal = r.valorResgatadoHoje || 0;
               DADOS_ATUAIS.filiais[sig].skus = r.mediaSkus || 0;

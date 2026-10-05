@@ -606,8 +606,11 @@ function statFilial(sig) {
   const gols = ALERTAS.filter(a => a.sig === sig && (a.nivel === 'gol' || a.nivel === 'hattrick')).length;
   const nZer = campo.filter(zerado).length, nSemVis = campo.filter(v => v.feitas === 0).length;
   const mt = METAS && METAS.filiais[sig];
-  const fat = s(vs, v => v.fat), metaFat = mt ? mt.meta_fat : s(vs, v => v.meta);
-  const realCli = s(vs, v => v.realCli), metaPos = mt ? mt.meta_pos : s(vs, v => v.metaCli);
+  // MACRO SOMA TUDO (Vitorio, 05/10/2026): faturado, positivados e digitado da filial vem do resumo oficial (TODOS os vendedores, ocultos e fora da planilha).
+  // "Mostra / nao mostra" vale so para os lances de varejo (vendedores listados, zerados, penaltis...).
+  const ofic = RESUMO_OF ? RESUMO_OF[sig] : null;
+  const fat = ofic && ofic.mesFaturado > 0 ? ofic.mesFaturado : s(vs, v => v.fat), metaFat = mt ? mt.meta_fat : s(vs, v => v.meta);
+  const realCli = ofic && ofic.mesPositivados > 0 ? ofic.mesPositivados : s(vs, v => v.realCli), metaPos = mt ? mt.meta_pos : s(vs, v => v.metaCli);
   const pctFat = metaFat > 0 ? (fat / metaFat) * 100 : 0;
   const pctPos = metaPos > 0 ? (realCli / metaPos) * 100 : 0;
 
@@ -628,7 +631,7 @@ function statFilial(sig) {
   const pZer = depois10 && campo.length ? nZer / campo.length : 0, pVis = depois10 && campo.length ? nSemVis / campo.length : 0, penV = vs.length ? pen / vs.length : 0;
   const notaCritica = Math.round(Math.min(1, pZer / .30) * 40 + Math.min(1, penV / 1) * 35 + Math.min(1, pVis / .20) * 25);
 
-  return {sig, vs, campo, n: vs.length, tem: vs.length > 0, nota: notaCritica, scorePositivo, gols, pctFat, pctPos, pen, nZer, nSemVis, fat, pendente: s(vs, v => v.pendente), dig: s(vs, v => v.dig), pos: s(vs, v => v.pos), realCli,
+  return {sig, vs, campo, n: vs.length, tem: vs.length > 0, nota: notaCritica, scorePositivo, gols, pctFat, pctPos, pen, nZer, nSemVis, fat, pendente: s(vs, v => v.pendente), dig: ofic && ofic.digitado != null ? ofic.digitado : s(vs, v => v.dig), pos: s(vs, v => v.pos), realCli,
     feitas: s(campo, v => v.feitas), rota: s(campo, v => v.rota), feitasCeven: s(campo, v => v.visFeitas), rotaCeven: s(campo, v => v.visRota), metaFat, metaPos};
 }
 const corNota = n => n >= 60 ? 'n-b' : n >= 30 ? 'n-w' : 'n-ok';
