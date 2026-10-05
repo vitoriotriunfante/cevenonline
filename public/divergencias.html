@@ -57,21 +57,28 @@ async function carrega() {
   if (d.erro) { $('corpo').textContent = 'Erro: ' + d.erro; return; }
   const r = d.resumo;
   $('chips').innerHTML = [
-    ['No banco e fora da planilha', r.banco_fora_da_planilha, `${r.banco_fora_da_planilha_com_movimento} com movimento`],
+    ['No banco e fora da planilha', r.banco_fora_da_planilha, `${r.banco_fora_produzindo} produzindo · ${r.banco_fora_sem_atividade} sem atividade`],
+    ['Faturado no mês fora da planilha', brl(r.faturado_mes_fora_da_planilha), 'soma dos vendedores do item 1'],
     ['Na planilha e fora do banco', r.planilha_fora_do_banco, 'precisam ser cadastrados'],
     ['Códigos descobertos (devolução)', r.codigos_descobertos, `${r.codigos_descobertos_novos} novos nos últimos 3 dias`],
     ['Devolução nesses códigos (mês)', brl(r.devolucao_descoberta_mes), 'fora de qualquer lista']
   ].map(([t, v, s]) => `<div class="chip"><span>${t}</span><b>${v}</b><span>${s}</span></div>`).join('');
+  const pct = (x, m) => m > 0 ? ' (' + Math.round(x / m * 100) + '%)' : '';
+  const metaCols = [
+    {t: 'Meta faturamento', n: 1, f: l => l.meta_fat ? brl(l.meta_fat) : '—'}, {t: 'Faturado no mês', n: 1, f: l => brl(l.fat_mes) + pct(l.fat_mes, l.meta_fat)},
+    {t: 'Meta positiv.', n: 1, f: l => l.meta_pos ? nv(l.meta_pos) : '—'}, {t: 'Positivados no mês', n: 1, f: l => nv(l.pos_mes) + pct(l.pos_mes, l.meta_pos)},
+    {t: 'Visitas / rota hoje', n: 1, f: l => nv(l.visitas_hoje) + ' / ' + nv(l.rota_hoje)}, {t: 'Pedidos hoje', n: 1, f: l => nv(l.pedidos_hoje)}, {t: 'Digitado hoje', n: 1, f: l => brl(l.digitado_hoje)},
+    {t: 'Devolução (mês)', n: 1, f: l => brl(l.devolucao_mes) + (l.notas_devolucao_mes ? ' · ' + l.notas_devolucao_mes + ' nota(s)' : '')}
+  ];
+  const leituraCol = {t: 'O que os números dizem', f: l => { const t = l.leitura || {}; const cls = t.tipo === 'produzindo' ? 'mov' : t.tipo === 'sem_atividade' ? 'ok' : 'nova'; return `<span class="tag ${cls}">${esc(t.texto || '')}</span>` + ((t.sinais || []).length ? '<br><small style="color:var(--aviso)">⚠ ' + esc(t.sinais.join(' · ')) + '</small>' : ''); }};
   const A = tabela([
-    {t: 'Filial', f: l => esc(l.filial)}, {t: 'Código', f: l => esc(l.codigo)}, {t: 'Nome', f: l => esc(l.nome)},
-    {t: 'Rota hoje', n: 1, f: l => nv(l.rota_hoje)}, {t: 'Pedidos hoje', n: 1, f: l => nv(l.pedidos_hoje)}, {t: 'Digitado hoje', n: 1, f: l => brl(l.digitado_hoje)},
-    {t: 'Notas devolução (mês)', n: 1, f: l => nv(l.notas_devolucao_mes)}, {t: 'Devolução (mês)', n: 1, f: l => brl(l.devolucao_mes)},
-    {t: '', f: l => l.com_movimento ? '<span class="tag mov">com movimento</span>' : '<span class="tag ok">sem movimento</span>'}
+    {t: 'Filial', f: l => esc(l.filial)}, {t: 'Código', f: l => esc(l.codigo)}, {t: 'Nome', f: l => esc(l.nome)}, {t: 'Sem abrir o app', n: 1, f: l => l.dias_sem_acesso == null ? '—' : l.dias_sem_acesso + ' d'},
+    ...metaCols, leituraCol
   ], d.banco_fora_da_planilha, 'Nenhuma divergência: todo vendedor ativo do banco está na planilha.');
   const B = tabela([
     {t: 'Filial', f: l => esc(l.filial)}, {t: 'Código', f: l => esc(l.codigo)}, {t: 'Nome', f: l => esc(l.nome)}, {t: 'Canal', f: l => esc(l.canal)},
     {t: 'Supervisor', f: l => esc(l.supervisor)}, {t: 'Mostra', f: l => l.mostra ? 'SIM' : 'NÃO'},
-    {t: 'Rota hoje', n: 1, f: l => nv(l.rota_hoje)}, {t: 'Pedidos hoje', n: 1, f: l => nv(l.pedidos_hoje)}
+    ...metaCols, leituraCol
   ], d.planilha_fora_do_banco, 'Nenhuma divergência: todo vendedor da planilha está no banco.');
   const C = tabela([
     {t: 'Filial', f: l => esc(l.filial)}, {t: 'Código', f: l => esc(l.codigo)},

@@ -12,6 +12,25 @@ const cors = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Contro
 const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: cors });
 const arred = (x) => Math.round((Number(x) || 0) * 100) / 100;
 
+// LEITURA: o que os numeros dizem sobre a divergencia (para o Vitorio decidir se e valida). Nunca decide por ele: so sugere e mostra os sinais.
+function leitura(x) {
+  const sinais = [];
+  const vende = x.fat_mes > 0 || x.pedidos_hoje > 0;
+  const temMeta = x.meta_fat > 0 || x.meta_pos > 0;
+  if (x.fat_mes > 0 && !(x.meta_fat > 0)) sinais.push('vendeu no mes mas SEM meta cadastrada');
+  if (temMeta && !(x.rota_hoje > 0) && !vende) sinais.push('tem meta mas nao tem rota nem venda');
+  if (x.dias_sem_acesso != null && x.dias_sem_acesso >= 7 && (vende || x.rota_hoje > 0)) sinais.push('sem abrir o app ha ' + x.dias_sem_acesso + ' dias, mas tem movimento');
+  if (x.pedidos_hoje > 0 && !(x.rota_hoje > 0)) sinais.push('vende sem rota (televenda/loja?)');
+  let tipo, texto;
+  if (vende && x.rota_hoje > 0) { tipo = 'produzindo'; texto = 'Vendedor ativo e produzindo: provavelmente deve entrar na planilha.'; }
+  else if (vende) { tipo = 'vende_sem_rota'; texto = 'Vende mas nao tem rota (televenda, loja ou conta de apoio): confirmar se e vendedor.'; }
+  else if (x.rota_hoje > 0) { tipo = 'rota_sem_venda'; texto = 'Tem rota hoje e nenhuma venda: vendedor ativo parado ou novo.'; }
+  else if (x.devolucao_mes > 0 || x.notas_devolucao_mes > 0) { tipo = 'so_devolucao'; texto = 'So devolucao no mes: provavel ex-vendedor ou conta de apoio.'; }
+  else if (temMeta) { tipo = 'meta_sem_atividade'; texto = 'Tem meta mas nenhuma atividade: conferir se esta ativo.'; }
+  else { tipo = 'sem_atividade'; texto = 'Sem rota, venda, meta ou devolucao: provavel conta inativa ou vaga (sem decisao necessaria).'; }
+  return { tipo, texto, sinais };
+}
+
 export async function onRequestGet({ env, request }) {
   if (!env.DB) return resp({ erro: 'D1 não configurado' }, 503);
   const origin = new URL(request.url).origin;
@@ -32,7 +51,7 @@ export async function onRequestGet({ env, request }) {
 
     // BANCO
     const { results: reps } = await env.DB.prepare(
-      'SELECT r.codigo, r.nome, r.ativo, UPPER(COALESCE(f.codigo, r.filial_id)) AS filial FROM representantes r LEFT JOIN filiais f ON r.filial_id = f.id'
+      'SELECT r.codigo, r.nome, r.ativo, r.setor, r.versao_app, r.ultimo_acesso, r.dias_sem_acesso, UPPER(COALESCE(f.codigo, r.filial_id)) AS filial FROM representantes r LEFT JOIN filiais f ON r.filial_id = f.id'
     ).all();
 
     // MOVIMENTO DE HOJE (varredura central)
@@ -41,6 +60,12 @@ export async function onRequestGet({ env, request }) {
               CAST(COALESCE(json_extract(produtividade_json, '$.dia.positivacao'), 0) AS REAL) AS ped,
               CAST(COALESCE(json_extract(produtividade_json, '$.dia.dig_pedido'), 0) AS REAL) AS dig,
               CAST(COALESCE(json_extract(produtividade_json, '$.dia.total_programado'), 0) AS REAL) AS rota,
+              CAST(COALESCE(json_extract(produtividade_json, '$.dia.visitas_na_rota'), 0) AS REAL) AS vis,
+              CAST(COALESCE(json_extract(dashboard_json, '$.financeiro.meta'), 0) AS REAL) AS meta_fat,
+              CAST(COALESCE(json_extract(dashboard_json, '$.financeiro.faturado'), 0) AS REAL) AS fat_mes,
+              CAST(COALESCE(json_extract(dashboard_json, '$.financeiro.pendente'), 0) AS REAL) AS pendente,
+              CAST(COALESCE(json_extract(dashboard_json, '$.positivacao.meta'), 0) AS REAL) AS meta_pos,
+              CAST(COALESCE(json_extract(dashboard_json, '$.positivacao.realizado'), 0) AS REAL) AS pos_mes,
               CASE WHEN json_valid(devolucoes_json) AND json_type(devolucoes_json) = 'array' THEN json_array_length(devolucoes_json) ELSE 0 END AS notas,
               CASE WHEN json_valid(devolucoes_json) AND json_type(devolucoes_json) = 'array'
                    THEN COALESCE((SELECT SUM(json_extract(j.value, '$.vl_devolvido')) FROM json_each(devolucoes_json) j), 0) ELSE 0 END AS dev
@@ -57,11 +82,14 @@ export async function onRequestGet({ env, request }) {
       const m = movDe.get(String(r.codigo)) || {};
       bancoForaDaPlanilha.push({
         filial: r.filial, codigo: String(r.codigo), nome: r.nome || null,
-        rota_hoje: Number(m.rota) || 0, pedidos_hoje: Number(m.ped) || 0, digitado_hoje: arred(m.dig),
+        rota_hoje: Number(m.rota) || 0, visitas_hoje: Number(m.vis) || 0, pedidos_hoje: Number(m.ped) || 0, digitado_hoje: arred(m.dig),
+        meta_fat: arred(m.meta_fat), fat_mes: arred(m.fat_mes), pendente: arred(m.pendente), meta_pos: Number(m.meta_pos) || 0, pos_mes: Number(m.pos_mes) || 0,
         notas_devolucao_mes: Number(m.notas) || 0, devolucao_mes: arred(m.dev),
+        setor: r.setor || null, versao_app: r.versao_app || null, ultimo_acesso: r.ultimo_acesso || null, dias_sem_acesso: r.dias_sem_acesso == null ? null : Number(r.dias_sem_acesso),
         com_movimento: !!((Number(m.rota) || 0) > 0 || (Number(m.ped) || 0) > 0 || (Number(m.notas) || 0) > 0)
       });
     }
+    for (const x of bancoForaDaPlanilha) x.leitura = leitura(x);
     bancoForaDaPlanilha.sort((a, b) => Number(b.com_movimento) - Number(a.com_movimento) || b.digitado_hoje - a.digitado_hoje || b.devolucao_mes - a.devolucao_mes);
 
     const planilhaForaDoBanco = [];
@@ -69,7 +97,9 @@ export async function onRequestGet({ env, request }) {
       if (bancoSet.has(chave)) continue;
       const [filial, codigo] = chave.split('|');
       const m = movDe.get(codigo) || {};
-      planilhaForaDoBanco.push({ filial, codigo, nome: p.nome, canal: p.canal, mostra: p.mostra, supervisor: p.supervisor, rota_hoje: Number(m.rota) || 0, pedidos_hoje: Number(m.ped) || 0, digitado_hoje: arred(m.dig) });
+      const it = { filial, codigo, nome: p.nome, canal: p.canal, mostra: p.mostra, supervisor: p.supervisor, rota_hoje: Number(m.rota) || 0, visitas_hoje: Number(m.vis) || 0, pedidos_hoje: Number(m.ped) || 0, digitado_hoje: arred(m.dig), meta_fat: arred(m.meta_fat), fat_mes: arred(m.fat_mes), meta_pos: Number(m.meta_pos) || 0, pos_mes: Number(m.pos_mes) || 0, notas_devolucao_mes: Number(m.notas) || 0, devolucao_mes: arred(m.dev), dias_sem_acesso: null };
+      it.leitura = leitura(it);
+      planilhaForaDoBanco.push(it);
     }
 
     // DESCOBERTOS
@@ -87,6 +117,9 @@ export async function onRequestGet({ env, request }) {
       resumo: {
         banco_fora_da_planilha: bancoForaDaPlanilha.length,
         banco_fora_da_planilha_com_movimento: bancoForaDaPlanilha.filter((x) => x.com_movimento).length,
+        banco_fora_produzindo: bancoForaDaPlanilha.filter((x) => x.leitura.tipo === 'produzindo').length,
+        banco_fora_sem_atividade: bancoForaDaPlanilha.filter((x) => x.leitura.tipo === 'sem_atividade').length,
+        faturado_mes_fora_da_planilha: arred(bancoForaDaPlanilha.reduce((s2, x) => s2 + x.fat_mes, 0)),
         planilha_fora_do_banco: planilhaForaDoBanco.length,
         codigos_descobertos: descobertos.length,
         codigos_descobertos_novos: descobertos.filter((d) => d.nova).length,
