@@ -474,6 +474,15 @@ secao('8f. Gol Qualificado: nivel pelas industrias do pedido, carteira so Mondel
   await t(ok, RAIZ);
   const tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), cl = ler('functions/api/cron-lances.js'), tvv = ler('functions/api/tv-vendedor.js');
   ok([tv, mz].every(h => h.includes('qualificaGolUI') && h.includes('QUALIFICAÇÃO')) && cl.includes('qualificaGol(v.carteira, c)') && tvv.includes('industriasDoPedido'), 'TV, Matriz, cron de lances e tv-vendedor usam o Gol Qualificado');
+  // motor do WhatsApp: corte/bloqueio/comprou so do pedido do proprio RCA (numero = RCA + 6 digitos)
+  {
+    const eng = ler('pipeline/ceven_unified_engine.js');
+    const ini = eng.indexOf('function ehPedidoDoRca'), fim = eng.indexOf('}\n', ini) + 1;
+    const ehDono = new Function(eng.slice(ini, fim) + '; return ehPedidoDoRca;')();
+    ok(ehDono('60000403', 60) && ehDono('177000874', '177') && ehDono('1043000083', 1043), 'pedido do proprio RCA (RCA + 6 digitos) e reconhecido');
+    ok(!ehDono('1043000083', 60) && !ehDono('60000403', 6) && !ehDono('60000403', 600) && !ehDono('', 60) && !ehDono(null, 60) && !ehDono('60000403', ''), 'pedido de outro vendedor (caso Twix do TPH 60) e prefixo parecido NAO sao reconhecidos');
+    ok(eng.includes('v.num_pedido && ehPedidoDoRca(v.num_pedido, r.codigo)') && eng.includes('find(v => ehPedidoDoRca(v.num_pedido, rca.codigo))'), 'apuracao de cortes/bloqueados e de recuperados usa so o pedido do dono');
+  }
 }
 
 // ---------------------------------------------------------------- 8g. Vigia dos disparos de WhatsApp

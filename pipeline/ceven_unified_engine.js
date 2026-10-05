@@ -45,6 +45,13 @@ const XLSX = require('xlsx');
 
 // Configurações de API
 const CEVEN_BASE = 'https://ceven.drivetriunfante-locomotiva.com.br';
+// O historico do CLIENTE traz pedidos de TODOS os vendedores que o atendem (ex.: pasta Mars de outro RCA). O numero do pedido e o codigo do RCA
+// + 6 digitos (177000874 = RCA 177). Corte, bloqueio e 'comprou' so valem para o pedido do PROPRIO vendedor (Vitorio, 05/10/2026: corte de Twix da
+// pasta Mars apareceu no boletim do vendedor 60 e o mesmo pedido era contado para cada vendedor que visitou o cliente).
+function ehPedidoDoRca(numPedido, rca) {
+  const n = String(numPedido || ''), c = String(rca || '');
+  return !!c && n.length === c.length + 6 && n.startsWith(c) && /^[0-9]+$/.test(n.slice(c.length));
+}
 // Login do administrador do CEVEN: vem dos segredos do GitHub (CEVEN_ADMIN_USER / CEVEN_ADMIN_PASS), nunca do codigo.
 const CEVEN_USER = process.env.CEVEN_ADMIN_USER;
 const CEVEN_PASS = process.env.CEVEN_ADMIN_PASS;
@@ -574,7 +581,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
                   let comprou = false;
                   try {
                     const hist = await safeGet(`${CEVEN_BASE}/api/rca/historico-cliente/${c.id_cliente}?filial=${fKey}&id=${rca.codigo}`);
-                    const ultimaVisita = hist?.ultimas_visitas?.[0];
+                    const ultimaVisita = (hist?.ultimas_visitas || []).find(v => ehPedidoDoRca(v.num_pedido, rca.codigo));
                     comprou = !!(ultimaVisita && ultimaVisita.data_visita === dataRef && ultimaVisita.status === 'EFETIVADO');
                   } catch (e) {}
 
@@ -613,7 +620,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
         await Promise.all(pdvs.map(async p => {
           try {
             const histData = await safeGet(`${CEVEN_BASE}/api/rca/historico-cliente/${p.id_cliente}?filial=${r.fKey}&id=${r.codigo}`);
-            const visitasHoje = (histData?.ultimas_visitas || []).filter(v => v.data_visita === dataRef && v.num_pedido);
+            const visitasHoje = (histData?.ultimas_visitas || []).filter(v => v.data_visita === dataRef && v.num_pedido && ehPedidoDoRca(v.num_pedido, r.codigo));
             for (const v of visitasHoje) {
               const resFil = filialResult[r.chave || r.filial];
               if (!resFil) return;
