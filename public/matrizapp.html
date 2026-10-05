@@ -1002,7 +1002,7 @@ function renderTotais(stats) {
   const s = f => stats.reduce((x, y) => x + (f(y) || 0), 0), fat = s(x => x.fat), pend = s(x => x.pendente), mF = METAS ? METAS.total.meta_fat : s(x => x.metaFat), pos = s(x => x.realCli), mP = METAS ? METAS.total.meta_pos : s(x => x.metaPos);
   const pendHtml = pend > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--muted);margin-top:2px;letter-spacing:-0.2px">+ ${brl(pend)} pendente</div>` : '';
   $('tot').innerHTML = [['Faturado no mês', `${brl(fat)} <small>${mF ? pc(fat / mF * 100) : ''}</small>${pendHtml}`], [METAS ? 'Meta do mês (CEVEN)' : 'Meta (soma)', brl(mF)], ['Positivados no mês', `${nv(pos)} <small>de ${nv(mP)} · ${mP ? pc(pos / mP * 100) : ''}</small>`],
-    ['Digitado hoje', brl(s(x => x.dig))], ['Visitas feitas / programadas (CEVEN)', nv(s(x => x.feitasCeven)) + ' / ' + nv(s(x => x.rotaCeven))], ['Zerados · Pênaltis ativos', nv(s(x => x.nZer)) + ' · ' + nv(s(x => x.pen))]].map(([l, v]) => `<div><span>${l}</span><b class="mono">${v}</b></div>`).join('');
+    ['Digitado hoje', brl(RESUMO_OF && RESUMO_OF.TODAS ? RESUMO_OF.TODAS.digitado : s(x => x.dig))], ['Visitas feitas / programadas (CEVEN)', nv(s(x => x.feitasCeven)) + ' / ' + nv(s(x => x.rotaCeven))], ['Zerados · Pênaltis ativos', nv(s(x => x.nZer)) + ' · ' + nv(s(x => x.pen))]].map(([l, v]) => `<div><span>${l}</span><b class="mono">${v}</b></div>`).join('');
   $('nv').textContent = s(x => x.n);
 }
 let MODO_RANK_POSITIVO = true; // Por padrão dá ênfase no que é bem feito
@@ -1090,7 +1090,7 @@ function renderFilial(x) {
    <div class="grid4">
     <div class="kpi"><span>Faturado no mês</span><b class="mono">${brl(x.fat)}</b><small>${pc(pctF)} de ${brl(x.metaFat)}</small>${x.pendente > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--mut);margin-top:2px">+ ${brl(x.pendente)} pendente</div>` : ""}</div>
     <div class="kpi"><span>Positivados no mês</span><b class="mono">${nv(x.realCli)}</b><small>${pc(pctP)} de ${nv(x.metaPos)}</small></div>
-    <div class="kpi"><span>Digitado hoje</span><b class="mono">${brl(x.dig)}</b><small>${nv(x.pos)} positivações</small></div>
+    <div class="kpi"><span>Digitado hoje</span><b class="mono">${brl(RESUMO_OF && RESUMO_OF[x.sig] ? RESUMO_OF[x.sig].digitado : x.dig)}</b><small>${nv(x.pos)} positivações</small></div>
     <div class="kpi"><span>Visitas hoje (CEVEN)</span><b class="mono">${nv(x.feitasCeven)} / ${nv(x.rotaCeven)}</b><small>${x.nZer} zerados · ${x.pen} pênaltis</small></div></div>
    <div class="subtab">
     ${sub === 0 ? `<h2 style="margin:6px 0 2px"><span>Resumo da filial</span><b>1/3</b></h2>${gruposHtml ? `<div style="margin-bottom:6px">${gruposHtml}</div>` : ''}
@@ -1624,6 +1624,12 @@ setInterval(autoScrollPaineis, 80);
 ctl(); setInterval(relogio, 1000); relogio(); laco();
 window.__mtz = {DATA, TS, get ALERTAS() { return ALERTAS; }, get LOG() { return LOG; }, statFilial, ORDEM, ocupado: () => emVAR || FILA.length > 0, animTeste: typeof animTeste === 'function' ? animTeste : null};
 window.__tv = window.__mtz; // a casca /tv usa __tv.ocupado para não recarregar durante um lance
+
+// DIGITADO HOJE OFICIAL (Vitorio, 05/10/2026: "pedidos entra de TUDO"): total e por filial vem do resumo da varredura central (TODOS os vendedores, ocultos e contas fora da planilha),
+// a mesma fonte da TV Executiva e que fecha com o Tradepro. Se a leitura falhar, cai para a soma dos vendedores mostrados.
+var RESUMO_OF = null; // var (nao let): evita erro se um render rodar antes desta linha
+async function carregaResumoOficial() { const d = await j('/api/mapa-executivo-live', 15000); if (d && d.resumo) RESUMO_OF = d.resumo; }
+setInterval(carregaResumoOficial, 60000); carregaResumoOficial();
 
 // ATUALIZACAO AUTOMATICA DA MATRIZ (05/10/2026): a Matriz aberta direto (sem a casca /tv) nao recarregava quando publicavamos e ficava horas rodando codigo velho
 // (ex.: popup de impedimento sem prova, regras antigas). Mesma regra da TV da filial: confere /api/version a cada 30 s e recarrega SEM interromper um lance.
