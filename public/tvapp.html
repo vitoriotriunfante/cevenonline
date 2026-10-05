@@ -937,6 +937,15 @@ function telaVAR(item) {
     dec = item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>0/${a.v.rota} visitas — nenhum cliente da rota visitado</span></div>`).join('') + (item.l.length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
     veredito = 'Nenhuma visita registrada. Verificar se o vendedor está em campo.';
   }
+  // TODO LANCE IDENTIFICA O SUPERVISOR (Vitorio, 05/10/2026: "todo lance tem que identificar o supervisor"): linha SUPERVISOR logo apos o VENDEDOR.
+  {
+    const vv = item.v || (item.a && item.a.v);
+    const rotSup = (n) => { const u = String(n || '').trim().toUpperCase(); if (!u) return 'sem supervisor informado'; if (/^GERENTE( |$)/.test(u)) return 'Vendedor ligado direto ao gerente'; if (/^VENDA EMPRESA/.test(u)) return 'Venda empresa (interno)'; return n; };
+    if (vv && typeof dec === 'string' && !/<b>SUPERVISOR<\/b>/i.test(dec)) {
+      const m = dec.match(/<div class="ln hot"><b>VENDEDOR<\/b>[\s\S]*?<\/span><\/div>/);
+      if (m) dec = dec.replace(m[0], () => m[0] + '<div class="ln"><b>SUPERVISOR</b><span>' + esc(rotSup(vv.sup)) + '</span></div>');
+    }
+  }
   return {titulo, sub, dec, veredito, cls};
 }
 async function proximoVAR() {

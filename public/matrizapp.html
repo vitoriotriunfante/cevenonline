@@ -759,7 +759,11 @@ function telaVAR(item) {
     titulo = '⚽ GOL DE PLACA!'; sub = item.sub || 'Destaque nacional de vendas e positivação!'; cls = 'f1';
     const cObj = item.c || (item.a && item.a.c);
     const subt = (item.a && item.a.subtipo) || item.subtipo;
-    const vPed = (cObj && cObj.valor_ultima) || item.valor || (item.a && item.a.valor);
+    const vvG = item.v || (item.a && item.a.v);
+    // goleada/conversao: `valor` e QUANTIDADE ou PERCENTUAL, nao dinheiro (antes saia "VALOR DA VENDA R$ 11" para 11 pedidos). Mostra o digitado do dia.
+    const ehContagem = subt === 'goleada' || subt === 'conversao';
+    const vPed = ehContagem ? (vvG ? vvG.dig : 0) : ((cObj && cObj.valor_ultima) || item.valor || (item.a && item.a.valor));
+    const rotuloValor = ehContagem ? 'DIGITADO HOJE' : (subt === 'campeao' ? 'FATURADO NO MÊS' : 'VALOR DA VENDA');
     let linhasExtra = '';
     if (cObj && cObj.nome) {
       linhasExtra += `<div class="ln"><b>CLIENTE</b><span>${esc(cObj.nome)}</span></div>`;
@@ -773,7 +777,7 @@ function telaVAR(item) {
     } else {
       const vVendaReal = (cObj && cObj.valorVendaAtual) || vPed || 0;
       if (vVendaReal > 0) {
-        linhasExtra += `<div class="ln hot"><b>VALOR DA VENDA</b><span>${brl(vVendaReal)}</span></div>`;
+        linhasExtra += `<div class="ln hot"><b>${rotuloValor}</b><span>${brl(vVendaReal)}</span></div>`;
       }
     }
     dec = `${seloLiga}
@@ -849,6 +853,15 @@ function telaVAR(item) {
   } else {
     titulo = item.tipo === 'venda10' ? '🟥 CARTÃO VERMELHO' : '⛔ EXPULSÃO'; sub = `${item.sig} · ${LIMITE_H}h e ${(item.l||[]).length} vendedor(es) COM ROTA e SEM ${item.tipo === 'venda10' ? 'NENHUMA VENDA' : 'NENHUMA VISITA'}`;
     dec = (item.l||[]).slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.v ? a.v.feitas : 0}/${a.v ? a.v.rota : 0} visitas · digitado ${brl(a.v ? a.v.dig : 0)}</span></div>`).join(''); veredito = item.tipo === 'venda10' ? 'Nenhuma venda registrada até agora.' : 'Nenhuma visita registrada — verificar se está em campo.';
+  }
+  // TODO LANCE IDENTIFICA O SUPERVISOR (Vitorio, 05/10/2026: "todo lance tem que identificar o supervisor"): linha SUPERVISOR logo apos o VENDEDOR.
+  {
+    const vv = item.v || (item.a && item.a.v);
+    const rotSup = (n) => { const u = String(n || '').trim().toUpperCase(); if (!u) return 'sem supervisor informado'; if (/^GERENTE( |$)/.test(u)) return 'Vendedor ligado direto ao gerente'; if (/^VENDA EMPRESA/.test(u)) return 'Venda empresa (interno)'; return n; };
+    if (vv && typeof dec === 'string' && !/<b>SUPERVISOR<\/b>/i.test(dec)) {
+      const m = dec.match(/<div class="ln hot"><b>VENDEDOR<\/b>[\s\S]*?<\/span><\/div>/);
+      if (m) dec = dec.replace(m[0], () => m[0] + '<div class="ln"><b>SUPERVISOR</b><span>' + esc(rotSup(vv.sup)) + '</span></div>');
+    }
   }
   return {titulo, sub, dec, veredito, cls};
 }
