@@ -19,6 +19,10 @@ export default async function (ok, RAIZ) {
   const inds = new Set(Object.values(cat.i));
   ok(Object.keys(cat.i).length > 5000 && inds.has('MONDELEZ BRASIL') && !inds.has('MONDELEZ BRASIL LT') && Object.keys(cat.c).length > 200 && Object.values(cat.c).every((x) => x !== 'OUTROS MONDELEZ'), 'catalogo publicado: 5 mil+ produtos, Mondelez unificada e toda categorizada');
 
+  // pedido de OUTRO vendedor no mesmo cliente (caso TPH 60 x pasta Mars, 05/10/2026): nunca entra na analise do vendedor
+  const src = readFileSync(join(RAIZ, 'functions', 'api', 'tv-vendedor.js'), 'utf8');
+  ok(src.includes('ehPedidoDoRca') && src.includes('analisaPedido(resultados[i], catalogo, id)') && /iAtual < 0) return null/.test(src), 'tv-vendedor so analisa pedido cujo numero comeca pelo codigo do proprio RCA (RCA + 6 digitos)');
+
   // endpoint: soma o extra aos pontos so quando ha carimbo
   const mod = await import(pathToFileURL(join(RAIZ, 'functions', 'api', 'brasileirao-lances.js')).href);
   const linhas = [

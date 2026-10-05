@@ -73,10 +73,20 @@ function industriasDoPedido(skus, cat) {
   const lista = (m) => [...m.entries()].sort((a, b) => b[1] - a[1]).map(([n, v]) => ({ n, v: Math.round(v * 100) / 100 }));
   return { industrias: lista(ind), categorias: lista(ca) };
 }
-function analisaPedido(historico, cat) {
-  const visitas = Array.isArray(historico?.ultimas_visitas) ? historico.ultimas_visitas : [];
+// O historico do CLIENTE traz pedidos de TODOS os vendedores que o atendem (ex.: pasta Mars de outro RCA). O numero do pedido e o codigo do
+// RCA + 6 digitos (177000874 = RCA 177). Pedido de outro vendedor nunca entra na analise (05/10/2026: corte de Twix da pasta Mars
+// apareceu no boletim do vendedor 60, que nao vende Twix).
+const ehPedidoDoRca = (numPedido, rca) => !!rca && new RegExp('^' + String(rca) + '[0-9]{6}$').test(String(numPedido || ''));
+function analisaPedido(historico, cat, rca) {
+  const todas = Array.isArray(historico?.ultimas_visitas) ? historico.ultimas_visitas : [];
+  const iAtual = rca ? todas.findIndex((v) => ehPedidoDoRca(v.num_pedido, rca)) : (todas.length ? 0 : -1);
+  if (iAtual < 0) return null; // sem pedido proprio do vendedor neste cliente: nao analisa (nunca usa pedido de outro vendedor)
+  const atual = todas[iAtual];
+  const dataAtual = String(atual.data_visita || '').slice(0, 10);
+  // anteriores: historico do cliente, sem os pedidos de OUTROS vendedores do mesmo dia do pedido atual
+  const anteriores = todas.filter((v, k) => k > iAtual && !(String(v.data_visita || '').slice(0, 10) === dataAtual && rca && !ehPedidoDoRca(v.num_pedido, rca)));
+  const visitas = [atual, ...anteriores];
   if (!visitas.length) return null;
-  const [atual, ...anteriores] = visitas;
   const skusAtual = Array.isArray(atual?.skus) ? atual.skus.length : null;
   const bonificacao = ehBonificacao(atual?.skus);
   if (skusAtual == null && !bonificacao) return null;
@@ -223,7 +233,7 @@ export async function onRequestGet({ request, env }) {
     // pela coleta de lances (central=1): no maximo 2 simultaneas; na tela da TV segue como antes
     const resultados = usarCentral ? await poolLimitado(buscas, 2) : await Promise.all(buscas.map((f) => f()));
     positivadosHoje.forEach((c, i) => {
-      const analise = analisaPedido(resultados[i], catalogo);
+      const analise = analisaPedido(resultados[i], catalogo, id);
       if (analise) analisePorCliente[c.id_cliente] = analise;
     });
   }
