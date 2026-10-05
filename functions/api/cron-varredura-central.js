@@ -27,6 +27,7 @@ const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' };
 const CONC = 6;
 const ORCAMENTO_TICK_MS = 100000;   // para de buscar fatias depois disso
 const SLOT_TICK_S = 150, SLOT_COMPLETA_S = 420;
+const PRAZO_PRODUTIVIDADE_MS = 70000;   // a etapa quente para de buscar aos 70 s e grava o que ja veio
 const FATIAS_ROTA = 3;              // cada RCA tem a rota atualizada a cada 3 ticks (se nao mudou o pedido)
 const FATIAS_FRIA = 10;             // dashboard/devolucoes a cada 10 ticks
 
@@ -125,7 +126,8 @@ export async function onRequestGet({ env, request }) {
     `SELECT rca_codigo,
             COALESCE(json_array_length(roteiro_json), 0) AS n_rota,
             CAST(COALESCE(json_extract(produtividade_json, '$.dia.positivacao'), 0) AS REAL) AS pos,
-            CAST(COALESCE(json_extract(produtividade_json, '$.dia.dig_pedido'), 0) AS REAL) AS dig
+            CAST(COALESCE(json_extract(produtividade_json, '$.dia.dig_pedido'), 0) AS REAL) AS dig,
+            updated_at AS ua
        FROM varredura_central_rca WHERE data_ref = ?`
   ).bind(dataRef).all();
   const ant = new Map((estado || []).map((e) => [String(e.rca_codigo), e]));
@@ -176,9 +178,12 @@ export async function onRequestGet({ env, request }) {
     const jaBuscouRota = new Set();
 
     // 1. QUENTE: produtividade de quem tem rota / ja vendeu (+ 1/3 de quem nao tem rota, para nao perder televenda/loja)
-    const alvoProd = quente.concat(semRota.filter((_, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA));
+    // Do MAIS ANTIGO para o mais novo (quem nunca foi gravado primeiro): se o CEVEN estiver lento e o prazo cortar a etapa, quem ficou de fora vai primeiro no proximo tick.
+    const alvoProd = quente.concat(semRota.filter((_, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA))
+      .sort((x, y) => String((ant.get(String(x.codigo)) || {}).ua || '').localeCompare(String((ant.get(String(y.codigo)) || {}).ua || '')));
     contagem.semRota = alvoProd.length - quente.length;
-    const prods = await poolLimitado(alvoProd.map((rca) => () => getJson(urlRca('produtividade', rca))), CONC);
+    // PRAZO na etapa 1 (05/10/2026): antes nao tinha; com o CEVEN mais lento a etapa passava de 150 s, a funcao era cortada ANTES de gravar e a varredura parava por 30+ min.
+    const prods = await poolLimitado(alvoProd.map((rca) => () => getJson(urlRca('produtividade', rca))), CONC, t0 + PRAZO_PRODUTIVIDADE_MS);
     const mudou = [];
     alvoProd.forEach((rca, i) => {
       const p = prods[i];

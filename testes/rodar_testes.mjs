@@ -221,6 +221,8 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     const semProva = ['gol_super|', 'gol_relampago|', 'gol_acrescimos|', 'gol_hattrick|', 'gol_meta1t|', 'gol_conversao|', 'gol_goleada|', 'gol_campeao|', 'golcontra_dev|', 'ver_dev|', 'vis10|', 'ven10|']
       .filter(k => !new RegExp('chave: `' + k.replace('|', '\\|') + '[^\\n]*prova:').test(cl));
     ok(semProva.length === 0 && cl.includes('obs: l.prova'), 'todo lance do vendedor grava a PROVA (numero que o gerou) em obs, para auditoria' + (semProva.length ? ' — faltam: ' + semProva.join(', ') : '')); }
+  { const vc = ler('functions/api/cron-varredura-central.js');
+    ok(/getJson\(urlRca\('produtividade', rca\)\)\), CONC, t0 \+ PRAZO_PRODUTIVIDADE_MS\)/.test(vc) && vc.includes('updated_at AS ua'), 'varredura: etapa quente tem PRAZO e vai do mais antigo ao mais novo (sem prazo a funcao era cortada antes de gravar e a varredura parava)'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);
