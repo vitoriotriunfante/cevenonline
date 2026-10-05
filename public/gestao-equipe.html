@@ -796,6 +796,15 @@ input:checked + .toggle-slider:before {
     </div>
   </div>
 
+  <!-- DIVERGENCIAS COM O CEVEN (so Diretoria): lista viva do que o CEVEN/banco tem e esta Gestao de Equipe nao tem -->
+  <div id="painel-divergencias" class="controls-card" style="display:none; flex-direction:column; align-items:stretch; gap:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+      <div><strong style="color:#fff;font-size:16px;">🔎 Divergências com o CEVEN (decida aqui)</strong><div id="div-resumo" style="color:var(--muted);font-size:12.5px;margin-top:2px;">Carregando…</div></div>
+      <button class="nav-btn" onclick="carregarDivergencias()">↻ Atualizar</button>
+    </div>
+    <div id="div-lista"></div>
+  </div>
+
   <!-- FILTROS -->
   <div class="controls-card">
     <div class="filter-group">
@@ -980,6 +989,7 @@ function aplicarPerfilUsuario() {
     btnAddVend.textContent = '➕ Novo Vendedor (Direto)';
     document.getElementById('banner-msg').innerHTML = '<span>👑</span><div><strong>Modo Diretoria Geral:</strong> Você tem autoridade total para aprovar solicitações de gerentes e efetuar edições diretas na base soberana.</div>';
     carregarSolicitacoesD1();
+    carregarDivergencias();
   } else {
     selectFilial.value = USUARIO_LOGADO.perfil;
     selectFilial.disabled = true; // Trava o gerente na filial dele!
@@ -1012,6 +1022,64 @@ async function carregarDados() {
       document.getElementById('tabela-corpo').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--bad);">Erro ao carregar lista de vendedores: ${err.message}</td></tr>`;
     }
   }
+}
+
+/* ===== DIVERGENCIAS COM O CEVEN (Vitorio, 05/10/2026: "esse e o lugar que vou auditar") =====
+   Lista o que o banco/CEVEN tem e esta Gestao de Equipe NAO tem, com metas, vendas e a leitura dos numeros.
+   Decisao: Incluir como MOSTRA (entra nos lances) ou OCULTO (so soma nos totais). Depois, "Salvar no CEVEN (Master)". */
+let DIV_ITENS = [];
+const brlD = (x) => 'R$ ' + (Number(x) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const escD = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+async function carregarDivergencias() {
+  const box = document.getElementById('painel-divergencias');
+  if (!box || !USUARIO_LOGADO || !USUARIO_LOGADO.isDiretoria) return;
+  box.style.display = 'flex';
+  let d;
+  try { d = await (await fetch('/api/divergencias?t=' + Date.now())).json(); } catch (e) { document.getElementById('div-resumo').textContent = 'Não consegui ler as divergências agora.'; return; }
+  if (d.erro) { document.getElementById('div-resumo').textContent = 'Erro: ' + d.erro; return; }
+  const jaTem = new Set();
+  Object.entries((BASE_MOSTRA && BASE_MOSTRA.filiais) || {}).forEach(([f, l]) => l.forEach((r) => jaTem.add(f + '|' + r.rca)));
+  DIV_ITENS = (d.banco_fora_da_planilha || []).filter((x) => !jaTem.has(x.filial + '|' + x.codigo));
+  const sem = DIV_ITENS.filter((x) => x.leitura && x.leitura.tipo === 'sem_atividade');
+  const com = DIV_ITENS.filter((x) => !(x.leitura && x.leitura.tipo === 'sem_atividade'));
+  const fora = (d.planilha_fora_do_banco || []);
+  document.getElementById('div-resumo').innerHTML = `<b>${com.length}</b> para decidir · ${sem.length} sem nenhuma atividade (provável conta inativa/vaga) · ${fora.length} aqui e ainda sem cadastro no banco · devolução em códigos fora de qualquer lista: <b>${brlD(d.resumo.devolucao_descoberta_mes)}</b> (<a href="/divergencias" style="color:var(--acc)">ver detalhes</a>)`;
+  const linha = (x, i) => {
+    const pct = (v, m) => m > 0 ? ' (' + Math.round(v / m * 100) + '%)' : '';
+    const dividida = x.filial === 'TPH' || x.filial === 'MCD';
+    const grupos = x.filial === 'TPH' ? ['VAGNER', 'FABIO'] : ['CLEVERSON', 'ADRIANO'];
+    return `<tr>
+      <td><b>${escD(x.filial)}</b></td><td>${escD(x.codigo)}</td><td>${escD(x.nome)}</td>
+      <td style="text-align:right">${x.meta_fat ? brlD(x.meta_fat) : '—'}</td><td style="text-align:right">${brlD(x.fat_mes)}${pct(x.fat_mes, x.meta_fat)}</td>
+      <td style="text-align:right">${x.pos_mes}${x.meta_pos ? ' / ' + x.meta_pos : ''}</td><td style="text-align:right">${x.visitas_hoje} / ${x.rota_hoje}</td><td style="text-align:right">${x.pedidos_hoje}</td>
+      <td style="text-align:right">${brlD(x.digitado_hoje)}</td><td style="text-align:right">${brlD(x.devolucao_mes)}</td>
+      <td style="min-width:220px"><div>${escD(x.leitura.texto)}</div>${(x.leitura.sinais || []).length ? '<div style="color:var(--warn);font-size:12px">⚠ ' + escD(x.leitura.sinais.join(' · ')) + '</div>' : ''}</td>
+      <td><input id="div-sup-${i}" class="form-input" style="min-width:150px" placeholder="Supervisor">
+        ${dividida ? `<select id="div-grp-${i}" class="form-input" style="margin-top:4px"><option value="">Gerente…</option>${grupos.map((g) => '<option value="' + g + '">' + g + '</option>').join('')}</select>` : ''}
+        <select id="div-can-${i}" class="form-input" style="margin-top:4px"><option value="VJ">VJ</option><option value="AS">AS</option></select></td>
+      <td style="white-space:nowrap"><button class="nav-btn" style="background:var(--ok);color:#04111d" onclick="incluirDivergencia(${i}, true)">Incluir (MOSTRA)</button>
+        <button class="nav-btn" style="margin-top:4px" onclick="incluirDivergencia(${i}, false)">Incluir oculto</button></td></tr>`;
+  };
+  const cab = '<thead><tr><th>Filial</th><th>RCA</th><th>Nome</th><th>Meta fat.</th><th>Faturado mês</th><th>Positiv. mês</th><th>Visitas/rota hoje</th><th>Pedidos hoje</th><th>Digitado hoje</th><th>Devolução mês</th><th>O que os números dizem</th><th>Decidir</th><th></th></tr></thead>';
+  const tabela = (lista) => lista.length ? '<div style="overflow-x:auto"><table style="width:100%;font-size:12.5px">' + cab + '<tbody>' + lista.map((x) => linha(x, DIV_ITENS.indexOf(x))).join('') + '</tbody></table></div>' : '<div style="color:var(--muted)">Nada para decidir aqui.</div>';
+  document.getElementById('div-lista').innerHTML = tabela(com) + (sem.length ? '<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--muted)">' + sem.length + ' sem nenhuma atividade (rota, venda, meta ou devolução): provável conta inativa ou vaga</summary>' + tabela(sem) + '</details>' : '');
+}
+function incluirDivergencia(i, mostra) {
+  const x = DIV_ITENS[i]; if (!x) return;
+  const fil = x.filial;
+  const grupo = (document.getElementById('div-grp-' + i) || {}).value || '';
+  if ((fil === 'TPH' || fil === 'MCD') && !grupo) { alert('Em ' + fil + ' escolha o gerente (a filial é dividida).'); return; }
+  const sup = ((document.getElementById('div-sup-' + i) || {}).value || '').trim().toUpperCase();
+  const canal = (document.getElementById('div-can-' + i) || {}).value || 'VJ';
+  if (!BASE_MOSTRA.filiais[fil]) BASE_MOSTRA.filiais[fil] = [];
+  BASE_MOSTRA.filiais[fil].unshift({
+    rca: String(x.codigo), nome: String(x.nome || ('RCA ' + x.codigo)).toUpperCase(), canal,
+    supervisor: sup || ('SUPERVISOR ' + fil), gerente: (typeof NOMES_GERENTES !== 'undefined' && NOMES_GERENTES[fil]) || 'Gerência Geral',
+    grupo, mostra: !!mostra,
+    motivo: 'Divergência com o CEVEN decidida pela Diretoria em ' + new Date().toLocaleDateString('pt-BR') + (mostra ? ' (MOSTRA)' : ' (oculto: soma nos totais, fora dos lances)')
+  });
+  atualizarKPIs(); filtrarTabela(); carregarDivergencias();
+  mostrarToast('✅ ' + x.nome + ' (RCA ' + x.codigo + ') incluído em ' + fil + (mostra ? ' como MOSTRA' : ' como oculto') + '. Clique em "Salvar no CEVEN (Master)" para gravar.');
 }
 
 function atualizarKPIs() {

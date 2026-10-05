@@ -35,7 +35,7 @@
 </head>
 <body>
 <h1>Divergências de cadastro</h1>
-<div class="sub">Lista viva: tudo que o CEVEN e o banco têm e a planilha (MOSTRA_DISPAROS) não tem, e o contrário. Você olha cada linha e decide se a divergência é válida. Quando decidir, ajuste a planilha; a lista se atualiza sozinha.</div>
+<div class="sub">Lista viva: tudo que o CEVEN e o banco têm e a <b>Gestão de Equipe</b> não tem, e o contrário. A decisão de cada linha é feita na própria <a href="/gestao-equipe" style="color:var(--acc)">Gestão de Equipe</a> (modo Diretoria, painel "Divergências com o CEVEN"); a lista aqui se atualiza sozinha.</div>
 <div class="chips" id="chips"></div>
 <div id="corpo">Carregando…</div>
 <div class="rodape" id="rodape"></div>
@@ -57,9 +57,9 @@ async function carrega() {
   if (d.erro) { $('corpo').textContent = 'Erro: ' + d.erro; return; }
   const r = d.resumo;
   $('chips').innerHTML = [
-    ['No banco e fora da planilha', r.banco_fora_da_planilha, `${r.banco_fora_produzindo} produzindo · ${r.banco_fora_sem_atividade} sem atividade`],
-    ['Faturado no mês fora da planilha', brl(r.faturado_mes_fora_da_planilha), 'soma dos vendedores do item 1'],
-    ['Na planilha e fora do banco', r.planilha_fora_do_banco, 'precisam ser cadastrados'],
+    ['No banco e fora da Gestão de Equipe', r.banco_fora_da_planilha, `${r.banco_fora_produzindo} produzindo · ${r.banco_fora_sem_atividade} sem atividade`],
+    ['Faturado no mês fora da Gestão de Equipe', brl(r.faturado_mes_fora_da_planilha), 'soma dos vendedores do item 1'],
+    ['Na Gestão de Equipe e fora do banco', r.planilha_fora_do_banco, 'precisam ser cadastrados'],
     ['Códigos descobertos (devolução)', r.codigos_descobertos, `${r.codigos_descobertos_novos} novos nos últimos 3 dias`],
     ['Devolução nesses códigos (mês)', brl(r.devolucao_descoberta_mes), 'fora de qualquer lista']
   ].map(([t, v, s]) => `<div class="chip"><span>${t}</span><b>${v}</b><span>${s}</span></div>`).join('');
@@ -74,12 +74,12 @@ async function carrega() {
   const A = tabela([
     {t: 'Filial', f: l => esc(l.filial)}, {t: 'Código', f: l => esc(l.codigo)}, {t: 'Nome', f: l => esc(l.nome)}, {t: 'Sem abrir o app', n: 1, f: l => l.dias_sem_acesso == null ? '—' : l.dias_sem_acesso + ' d'},
     ...metaCols, leituraCol
-  ], d.banco_fora_da_planilha, 'Nenhuma divergência: todo vendedor ativo do banco está na planilha.');
+  ], d.banco_fora_da_planilha, 'Nenhuma divergência: todo vendedor ativo do banco está na Gestão de Equipe.');
   const B = tabela([
     {t: 'Filial', f: l => esc(l.filial)}, {t: 'Código', f: l => esc(l.codigo)}, {t: 'Nome', f: l => esc(l.nome)}, {t: 'Canal', f: l => esc(l.canal)},
     {t: 'Supervisor', f: l => esc(l.supervisor)}, {t: 'Mostra', f: l => l.mostra ? 'SIM' : 'NÃO'},
     ...metaCols, leituraCol
-  ], d.planilha_fora_do_banco, 'Nenhuma divergência: todo vendedor da planilha está no banco.');
+  ], d.planilha_fora_do_banco, 'Nenhuma divergência: todo vendedor da Gestão de Equipe está no banco.');
   const C = tabela([
     {t: 'Filial', f: l => esc(l.filial)}, {t: 'Código', f: l => esc(l.codigo)},
     {t: 'Notas (mês)', n: 1, f: l => nv(l.notas_mes)}, {t: 'Devolução (mês)', n: 1, f: l => brl(l.devolucao_mes)},
@@ -87,8 +87,8 @@ async function carrega() {
     {t: '', f: l => l.nova ? '<span class="tag nova">NOVO</span>' : ''}
   ], d.descobertos, 'A varredura de descoberta ainda não achou nenhum código com devolução fora das listas.');
   $('corpo').innerHTML =
-    secao('1. No banco e fora da planilha', 'Vendedor ativo no cadastro do banco que a planilha não lista. Com movimento: vende, tem rota ou tem devolução. Decida se entra na planilha (MOSTRA = SIM ou NÃO).', A) +
-    secao('2. Na planilha e fora do banco', 'Vendedor que a planilha lista e o banco não tem. Ele já entra na varredura pela planilha; o cadastro no banco precisa ser feito.', B) +
+    secao('1. No banco e fora da Gestão de Equipe', 'Vendedor ativo no cadastro do banco que a Gestão de Equipe não lista. Com movimento: vende, tem rota ou tem devolução. Decida na Gestão de Equipe se entra como MOSTRA = SIM ou NÃO.', A) +
+    secao('2. Na Gestão de Equipe e fora do banco', 'Vendedor que a Gestão de Equipe lista e o banco não tem. Ele já entra na varredura pela Gestão de Equipe; o cadastro no banco precisa ser feito.', B) +
     secao('3. Códigos descobertos pelo CEVEN', 'Códigos que não estão em lista nenhuma e têm devolução neste mês (contas internas como "VENDA EMPRESA", ex-vendedores). A busca percorre todos os códigos de todas as filiais de madrugada.', C);
   const v = d.varredura_descoberta || {};
   $('rodape').textContent = `Gerado em ${new Date(d.gerado_em).toLocaleString('pt-BR')} · varredura de descoberta: ciclo ${v.ciclo ?? 0}, posição ${v.pos ?? 0}${v.ciclo_fim ? ', último ciclo fechado em ' + v.ciclo_fim : ''}`;
