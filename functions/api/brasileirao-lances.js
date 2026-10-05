@@ -89,6 +89,7 @@ export async function onRequestGet({ request, env }) {
     const lancesBrutos = (results || []).filter(l => {
       const ch = String(l.chave || '');
       if (dia < GPS_CONFIAVEL_DESDE && GPS_ANTIGO.test(ch)) return false;
+      if (l.nivel === 'semanainvicta') return false; // aviso da Semana Invicta e so para a TV; o +3 do ranking vem da conta semanal do gerador, nunca desta linha
       if (/gol_campeao[|]/.test(ch) && campeaoAntes.has((l.filial || '') + '#' + ch)) return false;
       if (DEVOLUCAO.test(ch)) {
         const o = String(l.obs || '');

@@ -373,8 +373,12 @@ export async function onRequestGet({ env, request }) {
     porFilial[filial] = novos;
   }
 
+  // Semana Invicta: confere a semana fechada (sexta apos as 19h) e grava o lance. Idempotente; so custa uma leitura rapida quando nao ha nada a fazer.
+  let invicta = 'pulado';
+  try { const ri = await fetch(`${origin}/api/cron-semana-invicta`, { signal: AbortSignal.timeout(40000) }); const ji = await ri.json().catch(() => ({})); invicta = ji.status || String(ri.status); } catch { invicta = 'falhou'; }
+
   return new Response(JSON.stringify({
-    status: 'ATUALIZADO', dia: t.dia, hora: t.hms, filiais_processadas: Object.keys(porFilial).length,
+    status: 'ATUALIZADO', dia: t.dia, hora: t.hms, semana_invicta: invicta, filiais_processadas: Object.keys(porFilial).length,
     novos_lances: totalNovos, falhas_rca: totalFalhas, por_filial: porFilial, duracao_ms: Date.now() - t0
   }), { headers: cors });
 }
