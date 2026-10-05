@@ -233,6 +233,9 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
   { const g = ler('public/gestao-equipe.html'), dv = ler('public/divergencias.html');
     ok(g.includes('id="painel-divergencias"') && g.includes('function incluirDivergencia') && g.includes("/api/divergencias") && /grupo, mostra: !!mostra/.test(g), 'Gestao de Equipe tem o painel de divergencias com o CEVEN (Diretoria decide aqui; o grupo TPH/MCD vai junto)');
     ok(!/planilha/i.test(dv.replace(/[a-z_]*planilha[a-z_]*/g, '')) && dv.includes('/gestao-equipe'), 'pagina de divergencias fala em Gestao de Equipe (a planilha do Drive nao e fonte) e leva para ela'); }
+  { const an2 = ler('public/animacoes/tv-animacoes.js'), tv2 = ler('public/tvapp.html'), mz2 = ler('public/matrizapp.html');
+    ok(['hattrick_1', 'hattrick_2', 'semanainvicta_1', 'semanainvicta_2', 'golcontra_1', 'golcontra_2', 'golcontra_3', 'vermelho_4'].every(n => an2.includes('/animacoes/videos/' + n + '.mp4')), 'a TV lista os videos novos (hat-trick, semana invicta, gol contra, vermelho_4)');
+    ok(tv2.includes("videoNome = 'golcontra'") && mz2.includes("videoNome = 'golcontra'") && !/animGolContra) {[^}]*videoNome = 'amarelo'/.test(mz2), 'gol contra toca video de gol contra (antes tocava penalti na TV da filial e amarelo na Matriz)'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);

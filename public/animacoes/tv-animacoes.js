@@ -82,16 +82,18 @@ function fundoDeCampo(c, LX, LW, W1080, desenhaVetorial) {
 // REGRAS_CFTV/PROMPTS_VIDEOS_ANIMACOES_TV.md e preencher aqui quando prontos.
 const VIDEO_ARQUIVOS = {
   gol: ['/animacoes/videos/gol_1.mp4', '/animacoes/videos/gol_2.mp4', '/animacoes/videos/gol_3.mp4', '/animacoes/videos/gol_4.mp4', '/animacoes/videos/gol_5.mp4', '/animacoes/videos/gol_6.mp4', '/animacoes/videos/gol_7.mp4', '/animacoes/videos/gol_8.mp4', '/animacoes/videos/gol_9.mp4', '/animacoes/videos/gol_10.mp4', '/animacoes/videos/gol_11.mp4', '/animacoes/videos/gol_12.mp4', '/animacoes/videos/gol_13.mp4', '/animacoes/videos/gol_14.mp4', '/animacoes/videos/gol_15.mp4', '/animacoes/videos/gol_16.mp4', '/animacoes/videos/gol_17.mp4', '/animacoes/videos/gol_18.mp4', '/animacoes/videos/gol_19.mp4', '/animacoes/videos/gol_20.mp4'],
-  // vermelho_2.mp4 e identico ao vermelho_1.mp4 (verificado por conteudo em 05/10/2026): fora da lista ate gerarem outro video
-  vermelho: ['/animacoes/videos/vermelho_1.mp4', '/animacoes/videos/vermelho_3.mp4'],
+  // vermelho_2.mp4 e identico ao vermelho_1.mp4 (verificado por conteudo em 05/10/2026): fora da lista. vermelho_4 e o novo (05/10/2026).
+  vermelho: ['/animacoes/videos/vermelho_1.mp4', '/animacoes/videos/vermelho_3.mp4', '/animacoes/videos/vermelho_4.mp4'],
+  // Gol Contra (devolucao comercial): 3 videos proprios (antes tocava pênalti na TV da filial e amarelo na Matriz).
+  golcontra: ['/animacoes/videos/golcontra_1.mp4', '/animacoes/videos/golcontra_2.mp4', '/animacoes/videos/golcontra_3.mp4'],
   amarelo: ['/animacoes/videos/amarelo_1.mp4', '/animacoes/videos/amarelo_2.mp4', '/animacoes/videos/amarelo_3.mp4'],
   impedimento: ['/animacoes/videos/impedimento_1.mp4', '/animacoes/videos/impedimento_2.mp4', '/animacoes/videos/impedimento_3.mp4'],
   penalti: ['/animacoes/videos/penalti_1.mp4', '/animacoes/videos/penalti_2.mp4', '/animacoes/videos/penalti_3.mp4'],
   defesa: ['/animacoes/videos/defesa_1.mp4', '/animacoes/videos/defesa_2.mp4', '/animacoes/videos/defesa_3.mp4', '/animacoes/videos/defesa_4.mp4', '/animacoes/videos/defesa_5.mp4', '/animacoes/videos/defesa_6.mp4'], // defesa_1 a defesa_6: gerar com os prompts de defesa (ate existirem, a TV usa a animacao desenhada)
   // Hat-Trick e Semana Invicta: vídeo de FUNDO genérico (sem valores/números — esses continuam
   // aparecendo só na tela de decisão, como hoje). 1 arquivo cada, sem variações.
-  hattrick: [],
-  semanainvicta: []
+  hattrick: ['/animacoes/videos/hattrick_1.mp4', '/animacoes/videos/hattrick_2.mp4'],
+  semanainvicta: ['/animacoes/videos/semanainvicta_1.mp4', '/animacoes/videos/semanainvicta_2.mp4']
 };
 // Gol com subtipo conhecido usa um vídeo dedicado (ex.: super pedido é mais "explosivo", cliente
 // recuperado é mais "resgate emocionado"). Sem entrada aqui = sorteia entre todos os de VIDEO_ARQUIVOS.gol.
@@ -1478,7 +1480,7 @@ function animTeste(tipo, sub) {
 
   // Testa vídeo real quando o lance tem um pronto (hoje só "gol"); os demais ainda não têm vídeo
   // gerado, então caem direto na animação vetorial (ver VIDEO_ARQUIVOS acima).
-  const nivelVideo = ['gol', 'vermelho', 'amarelo', 'impedimento', 'penalti', 'defesa'].includes(tipo) ? tipo : null;
+  const nivelVideo = ['gol', 'vermelho', 'amarelo', 'impedimento', 'penalti', 'defesa', 'hattrick', 'semanainvicta', 'golcontra'].includes(tipo) ? tipo : null;
   stopAnim = nivelVideo && typeof tocaVideoLance === 'function' ? tocaVideoLance(cv, nivelVideo, null, 30000, fecha) : null;
   if (!stopAnim) {
     if (tipo === 'hattrick') stopAnim = iniciaAnimHatTrick(cv, {
