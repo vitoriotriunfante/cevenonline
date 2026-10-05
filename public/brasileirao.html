@@ -776,6 +776,9 @@ footer {
           </thead>
           <tbody id="tbody-regulamento-pontos"><!-- preenchido via JS a partir de config/pontuacao_brasileirao.json --></tbody>
         </table>
+        <h3 style="margin:22px 0 6px">💎 Gol Qualificado (a partir de 05/10/2026)</h3>
+        <p id="txt-gol-qualificado" style="color:#cbd5e1;font-size:13.5px;line-height:1.5"></p>
+        <table class="tb-league" style="margin-bottom:6px"><thead><tr><th>Nível</th><th>Indústrias no pedido do cliente</th><th style="text-align:center">Extra no gol</th></tr></thead><tbody id="tbody-gol-qualificado"></tbody></table>
         <small style="color:var(--tx-mut)">Valores oficiais em <code>config/pontuacao_brasileirao.json</code> — metodologia auditada pela diretoria comercial.</small>
       </div>
 
@@ -904,6 +907,13 @@ async function carregarTabelaPontos() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const cfg = await res.json();
     const itens = Object.values(cfg.pontos_por_lance || {}).sort((a, b) => b.pontos - a.pontos);
+    const gq = cfg.gol_qualificado;
+    if (gq) {
+      const tq = document.getElementById('tbody-gol-qualificado');
+      if (tq) tq.innerHTML = (gq.escada || []).map(e => `<tr><td style="font-weight:700;color:#fff">${esc(e.nivel)}</td><td>${esc(e.industrias)}</td><td style="text-align:center"><b style="color:#22c55e;font-family:'JetBrains Mono',monospace">+${e.extra}</b></td></tr>`).join('');
+      const pq = document.getElementById('txt-gol-qualificado');
+      if (pq) pq.textContent = 'Vale para o Resgate de Inativo, Dobrou o Mix e Dobradinha das Quinzenas. ' + gq.regra + ' ' + gq.carteira_so_mondelez;
+    }
     tbody.innerHTML = itens.map(it => {
       const cor = it.pontos > 0 ? '#22c55e' : '#ef4444';
       const sinal = it.pontos > 0 ? '+' : '';

@@ -464,7 +464,7 @@ async function carregaReps() {
   const lista = m && m.filiais ? Object.keys(m.filiais).filter(k => k === FIL || k.startsWith(FIL + '_')).flatMap(k => m.filiais[k].map(r => ({...r, grupo: r.grupo || (k.includes('_') ? k.split('_').slice(1).join('_') : '')}))).filter(r => !GRUPO || r.grupo === GRUPO) : null;
   if (Array.isArray(lista) && lista.length) {
     REPS = lista.filter(r => (MOSTRA_TUDO || r.mostra) && !EXCLUI.includes((r.canal || '').toUpperCase()))
-      .map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor), grupo: r.grupo || ''}));
+      .map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor), grupo: r.grupo || '', carteira: String(r.carteira || '').toUpperCase()}));
     listaMostra = true;
     const av = $('aviso');
     if (av) av.style.display = 'none';
@@ -534,7 +534,7 @@ function vend(r) {
   const comVenda = st(['POSITIVADO', 'EFETIVADO']);
   const campo = CAMPO.includes(r.canal);
   return {
-    id: r.id, nome: r.nome, canal: r.canal, sup: r.sup || '', campo, d, cl,
+    id: r.id, nome: r.nome, canal: r.canal, carteira: r.carteira || '', sup: r.sup || '', campo, d, cl,
     meta: num(d.meta_fat), fat: num(d.faturado), pend: num(d.pendente), dev: num(d.devolucao),
     devHoje: num(d.devolucao_hoje) || 0, devolucoesHoje: Array.isArray(d.devolucoes_hoje) ? d.devolucoes_hoje : [],
     metaCli: num(d.meta_cli), realCli: num(d.real_cli), dig: num(d.dig_hoje), pos: num(d.pos_hoje),
@@ -870,7 +870,11 @@ function pontosLanceOficial(tipo, subtipo) {
 function telaVAR(item) {
   let titulo, sub, dec, veredito, cls = 'f1';
   const subtipo = (item.a && item.a.subtipo) || item.subtipo;
-  const infoLiga = pontosLanceOficial(item.tipo, subtipo);
+  const infoLiga0 = pontosLanceOficial(item.tipo, subtipo);
+  // Gol qualificado: resgate/mix/quinzenas ganham nivel (bronze..platina) e extra de pontos pelas industrias do pedido
+  const qGol = (item.tipo === 'gol' && ['inativo_recuperado', 'drible_vaca', 'recorrencia_salva', 'dobrou_mix', 'dobradinha_quinzenas'].includes(subtipo) && typeof qualificaGolUI === 'function')
+    ? qualificaGolUI((item.v || (item.a && item.a.v) || {}).carteira, item.c || (item.a && item.a.c)) : null;
+  const infoLiga = qGol ? {...infoLiga0, nome: infoLiga0.nome + ' ' + qGol.nivel, pts: '+' + ((parseInt(infoLiga0.pts, 10) || 0) + qGol.extra) + ' PONTOS NA LIGA'} : infoLiga0;
   const seloLiga = infoLiga.pts ? `<div style="background:rgba(15,23,42,.9);border:1px solid ${infoLiga.cor};color:${infoLiga.cor};font-weight:900;padding:6px 12px;border-radius:8px;font-size:14px;margin-bottom:8px;display:inline-flex;align-items:center;gap:6px">🏆 ${infoLiga.nome} · <b>${infoLiga.pts}</b></div>` : '';
 
   if (item.tipo === 'gol') {
@@ -962,6 +966,9 @@ function telaVAR(item) {
       const m = dec.match(/<div class="ln hot"><b>VENDEDOR<\/b>[\s\S]*?<\/span><\/div>/);
       if (m) dec = dec.replace(m[0], () => m[0] + '<div class="ln"><b>SUPERVISOR</b><span>' + esc(rotSup(vv.sup)) + '</span></div>');
     }
+  }
+  if (qGol && typeof dec === 'string') {
+    dec += '<div class="ln hot"><b>QUALIFICAÇÃO</b><span>' + esc(qGol.nivel + ' (+' + qGol.extra + ' pts) — ' + qGol.n + ' ' + qGol.unidade + (qGol.n > 1 ? 's' : '') + ' no pedido: ' + qGol.detalhe) + '</span></div>';
   }
   // TEMPO NO CLIENTE em todo lance de cliente (Vitorio, 05/10/2026: "tem que colocar quanto tempo ele ficou no cliente"): check-in, check-out e tempo.
   {

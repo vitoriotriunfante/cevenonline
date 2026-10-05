@@ -45,6 +45,7 @@ const REGRAS_PONTOS = {
   vermelho: { nome: 'Cartão Vermelho', pontos: -10, motivo: 'Infração grave disciplinar de rota' }
 };
 
+import { lerQualif } from '../_lib/qualificacao_gol.js';
 function achaPontuacao(chave, nivel) {
   const partes = String(chave || '').split('|');
   for (const p of partes) {
@@ -130,7 +131,9 @@ export async function onRequestGet({ request, env }) {
     const porNivel = {};
     const lances = lancesRaw.map(l => {
       porNivel[l.nivel] = (porNivel[l.nivel] || 0) + 1;
-      const pont = achaPontuacao(l.chave, l.nivel);
+      const pont0 = achaPontuacao(l.chave, l.nivel);
+      const q = lerQualif(l.obs); // gol qualificado: so existe em lance gravado de 05/10/2026 em diante
+      const pont = q ? { ...pont0, pontos: pont0.pontos + q.extra, nome: pont0.nome + ' ' + q.nivel } : pont0;
       return {
         hora: l.hora_sp,
         filial: l.filial || (l.chave ? l.chave.split('|')[0] : '—'),
@@ -148,7 +151,9 @@ export async function onRequestGet({ request, env }) {
         chave: l.chave,
         pontos: pont.pontos,
         pontos_nome: pont.nome,
-        pontos_motivo: pont.motivo
+        pontos_motivo: pont.motivo,
+        qualificacao: q ? q.nivel : null,
+        extra_qualificacao: q ? q.extra : 0
       };
     });
 

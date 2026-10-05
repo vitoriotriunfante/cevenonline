@@ -106,13 +106,14 @@ function horariosCheckinDoDia(cl) {
 
 // Mesma lógica de vend() em tvapp.html: transforma resposta de /api/tv-vendedor no objeto usado
 // por calcAlertas.
-function vend(id, canal, sup, d) {
+import { qualificaGol } from '../_lib/qualificacao_gol.js';
+function vend(id, canal, sup, d, carteira) {
   const cl = Array.isArray(d.clientes) ? d.clientes : null;
   const st = (s) => (cl ? cl.filter((c) => s.includes(c.status)).length : null);
   const feitas = cl ? cl.filter((c) => !['AGENDADO', 'ABERTO'].includes(c.status)).length : null;
   const campo = CAMPO.includes(canal);
   return {
-    id, nome: d.nome, canal, sup: sup || '', campo, cl,
+    id, nome: d.nome, canal, sup: sup || '', carteira: carteira || '', campo, cl,
     meta: num(d.meta_fat), fat: num(d.faturado),
     devolucoesHoje: Array.isArray(d.devolucoes_hoje) ? d.devolucoes_hoje : [],
     dig: num(d.dig_hoje), pos: num(d.pos_hoje),
@@ -178,13 +179,13 @@ function calcAlertas(vs, t) {
       // RECORRENCIA = DEFESA (+3), nunca gol (decisao do Vitorio, 05/10/2026): antes o mesmo cliente com a tag gerava gol de
       // resgate (+6) E defesa (+3). O gol de resgate fica so para cliente parado ha mais de 30 dias SEM a tag.
       if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && ehInativo && !ehRecorrencia && tagsConhecidas) {
-        out.push({ chave: `gol_inativo|${v.id}|${c.id}`, nivel: 'gol', v, c });
+        out.push({ chave: `gol_inativo|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: (qualificaGol(v.carteira, c) || {}).texto });
       }
       if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && c.checkin_horario) {
         out.push({ chave: `pedido_rota|${v.id}|${c.id}`, nivel: 'pedido_rota', v, c });
       }
-      if (c.dobrouMix) out.push({ chave: `gol_mix|${v.id}|${c.id}`, nivel: 'gol', v, c });
-      if (c.dobradinhaQuinzenas) out.push({ chave: `gol_quinzenas|${v.id}|${c.id}`, nivel: 'gol', v, c });
+      if (c.dobrouMix) out.push({ chave: `gol_mix|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: (qualificaGol(v.carteira, c) || {}).texto });
+      if (c.dobradinhaQuinzenas) out.push({ chave: `gol_quinzenas|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: (qualificaGol(v.carteira, c) || {}).texto });
       if (c.bonificacao) out.push({ chave: `ver_bonif|${v.id}|${c.id}`, nivel: 'vermelho', v, c });
       if (c.recorrencia && ['POSITIVADO', 'EFETIVADO'].includes(c.status)) out.push({ chave: `def|${v.id}|${c.id}`, nivel: 'defesa', v, c });
       if (v.campo) {
@@ -316,7 +317,7 @@ export async function onRequestGet({ env, request }) {
     const filiais = m?.filiais || {};
     for (const lista of Object.values(filiais)) {
       if (!Array.isArray(lista)) continue;
-      for (const v2 of lista) if (v2 && v2.rca != null) canalMapa.set(String(v2.rca), { canal: String(v2.canal || '').toUpperCase(), sup: v2.supervisor || '' });
+      for (const v2 of lista) if (v2 && v2.rca != null) canalMapa.set(String(v2.rca), { canal: String(v2.canal || '').toUpperCase(), sup: v2.supervisor || '', carteira: String(v2.carteira || '').toUpperCase() });
     }
   } catch {}
 
@@ -350,7 +351,7 @@ export async function onRequestGet({ env, request }) {
       for (const { codigo, d } of resultados) {
         if (!d || d.erro || (d.falhas && d.falhas.length === 3)) { totalFalhas++; continue; }
         const info = canalMapa.get(String(codigo)) || {};
-        const v = vend(codigo, info.canal, info.sup, d);
+        const v = vend(codigo, info.canal, info.sup, d, info.carteira);
         v.fuso1h = FUSO1H.includes(filial);
         v.devolucoesHoje = devPorRca.get(String(codigo)) || [];
         vs.push(v);

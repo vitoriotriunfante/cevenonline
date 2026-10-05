@@ -36,18 +36,33 @@
       "4º) 🎯 Maior Positivação Total de Clientes Únicos"
     ]
   },
+  "gol_qualificado": {
+    "decisao": "Vitorio, 05/10/2026. Vale para lances gravados de 05/10/2026 em diante (o passado nao e refeito).",
+    "gols_que_qualificam": ["gol_inativo (Resgate)", "gol_mix (Dobrou o Mix)", "gol_quinzenas (Dobradinha das Quinzenas)"],
+    "gols_que_nao_qualificam": "Gols do dia inteiro (Super Pedido, Goleada, Meta do 1o Tempo, etc.) continuam como estao.",
+    "regra": "Conta as INDUSTRIAS diferentes no pedido do cliente no dia. 1 produto da industria ja conta (sem valor minimo); linha com valor R$ 0 (bonificacao) nao conta.",
+    "carteira_so_mondelez": "Vendedor de carteira so Mondelez (TBE e parte de TCG/TSJ, campo na Gestao de Equipe) conta CATEGORIAS da Mondelez (chocolate, biscoito, goma e bala, refresco, sobremesa e fermento, pao e snack), com a mesma escada.",
+    "escada": [
+      { "nivel": "BRONZE", "industrias": "1", "extra": 0 },
+      { "nivel": "PRATA", "industrias": "2", "extra": 1 },
+      { "nivel": "OURO", "industrias": "3", "extra": 2 },
+      { "nivel": "DIAMANTE", "industrias": "4", "extra": 3 },
+      { "nivel": "PLATINA", "industrias": "5 ou mais", "extra": 4 }
+    ],
+    "fonte_industrias": "public/catalogo_industrias.json (gerado de config/catalogo_produtos_por_filial.csv por gerar_catalogo_industrias.js)"
+  },
   "pontos_por_lance": {
     "gol_campeao": { "nome": "🏆 Campeão da Rodada", "pontos": 8, "motivo": "Bateu 100% da meta mensal de faturamento no CEVEN." },
     "gol_goleada": { "nome": "⚽ Goleada", "pontos": 7, "motivo": "Volume excepcional de positivação: ≥ 10 clientes positivados no mesmo dia." },
     "gol_meta1t": { "nome": "⏱️ Meta do 1º Tempo", "pontos": 6, "motivo": "Bateu a meta proporcional diária antes das 14h00." },
-    "gol_inativo": { "nome": "🦅 Resgate de Inativo / Drible da Vaca", "pontos": 6, "motivo": "Recuperou cliente parado há mais de 30 dias (ou > 90 dias no Drible da Vaca), sem a tag RECORRÊNCIA. Cliente com a tag RECORRÊNCIA positivado vale a Defesa (+3), não este gol (decisão 05/10/2026)." },
+    "gol_inativo": { "nome": "🦅 Resgate de Inativo / Drible da Vaca", "pontos": 6, "motivo": "Recuperou cliente parado há mais de 30 dias (ou > 90 dias no Drible da Vaca), sem a tag RECORRÊNCIA. Cliente com a tag RECORRÊNCIA positivado vale a Defesa (+3), não este gol (decisão 05/10/2026). QUALIFICADO (ver Gol Qualificado)." },
     "gol_hattrick": { "nome": "🔥 Hat-Trick (Diário)", "pontos": 6, "motivo": "3 pedidos digitados em sequência em um curto intervalo (até 120 minutos)." },
     "gol_super": { "nome": "💎 Super Pedido", "pontos": 5, "motivo": "Pedido de valor muito expressivo (venda alta no dia, padrão ≥ R$ 15.000 ou muito acima da média do RCA)." },
     "gol_conversao": { "nome": "⚙️ Máquina de Conversão", "pontos": 5, "motivo": "Alto aproveitamento comercial da rota: ≥ 8 visitas feitas e taxa de conversão ≥ 50%." },
     "gol_relampago": { "nome": "⚡ Gol Relâmpago", "pontos": 4, "motivo": "Pedido fechado logo no início do dia (antes das 09h00 / 10h00 nas praças com fuso: TCG, MCD, TCA)." },
     "gol_acrescimos": { "nome": "⌛ Gol nos Acréscimos", "pontos": 4, "motivo": "Pedido fechado no fim do expediente (após as 17h00 / 18h00 no fuso), sem desistir da rota." },
-    "gol_mix": { "nome": "📦 Dobrou o Mix", "pontos": 4, "motivo": "Vendeu o dobro de SKUs em relação à média histórica do cliente (≥ 2× a média anterior)." },
-    "gol_quinzenas": { "nome": "📅 Dobradinha das Quinzenas", "pontos": 3, "motivo": "Cliente comprou na 1ª Quinzena (dias 1 a 15) E na 2ª Quinzena (dia 16 ao fim) do mesmo mês." },
+    "gol_mix": { "nome": "📦 Dobrou o Mix", "pontos": 4, "motivo": "Vendeu o dobro de SKUs em relação à média histórica do cliente (≥ 2× a média anterior). QUALIFICADO: ganha nivel (bronze a platina) e extra de pontos pelas industrias do pedido (ver Gol Qualificado)." },
+    "gol_quinzenas": { "nome": "📅 Dobradinha das Quinzenas", "pontos": 3, "motivo": "Cliente comprou na 1ª Quinzena (dias 1 a 15) E na 2ª Quinzena (dia 16 ao fim) do mesmo mês. QUALIFICADO (ver Gol Qualificado)." },
     "defesa": { "nome": "🧤 Defesa (Recorrência Salva)", "pontos": 3, "motivo": "Cliente com TAG RECORRÊNCIA na rota positivado no dia, blindando a carteira ativa contra perda." },
     "pedido_rota": { "nome": "📝 Pedido Feito na Rota", "pontos": 1, "motivo": "Pedido faturado/positivado em cliente da rota do dia com visita/check-in realizado." },
     "amarelo": { "nome": "🟨 Cartão Amarelo", "pontos": -3, "motivo": "Advertência: vendedor com rota ativa sem nenhuma venda até as 10h00 (11h00 no fuso)." },

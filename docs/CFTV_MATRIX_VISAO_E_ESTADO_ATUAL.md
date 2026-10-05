@@ -280,3 +280,8 @@ sem mexer nas colunas de visita/pedido que o outro cron já grava.
 **Regra geral daqui pra frente:** nenhuma chamada nova ao CEVEN entra no cron de 5min existente.
 Qualquer indicador novo que exija 1 chamada por RCA ganha cron próprio, mais espaçado, lotes
 pequenos.
+
+## Gol Qualificado — bronze a platina (Vitório, 05/10/2026)
+- Resgate de Inativo, Dobrou o Mix e Dobradinha das Quinzenas ganham nível pelas **indústrias diferentes no pedido do cliente no dia**: 1 bronze (+0), 2 prata (+1), 3 ouro (+2), 4 diamante (+3), 5 ou mais platina (+4). Sem valor mínimo (1 produto já conta; linha de R$ 0 não conta). Gols do dia inteiro não qualificam.
+- Carteira **só Mondelez** (campo `carteira: MONDELEZ` do vendedor na Gestão de Equipe; hoje os 35 de TBE): conta **categorias** da Mondelez, mesma escada. TCG e TSJ: falta o Vitório dizer quais vendedores.
+- Fonte: `public/catalogo_industrias.json`, gerado de `config/catalogo_produtos_por_filial.csv` por `node gerar_catalogo_industrias.js`. O nível vai no carimbo `[QUALIF:NIVEL:+N]` da prova do lance; `/api/brasileirao-lances` soma o extra. Vale só para lances gravados de 05/10/2026 em diante. Regulamento (aba da liga) atualizado.

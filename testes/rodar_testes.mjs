@@ -467,6 +467,15 @@ secao('8e. Semana Invicta: o servidor confere a semana fechada e grava o lance; 
   ok(tl.includes("'semanainvicta'") && pr.includes('_pts_api'), 'tv-lances aceita o lance semanainvicta e o ranking usa os pontos do endpoint (os do popup)');
 }
 
+// ---------------------------------------------------------------- 8f. Gol Qualificado (bronze a platina)
+secao('8f. Gol Qualificado: nivel pelas industrias do pedido, carteira so Mondelez, extra nos pontos');
+{
+  const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_qualificacao_gol.mjs')).href)).default;
+  await t(ok, RAIZ);
+  const tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), cl = ler('functions/api/cron-lances.js'), tvv = ler('functions/api/tv-vendedor.js');
+  ok([tv, mz].every(h => h.includes('qualificaGolUI') && h.includes('QUALIFICAÇÃO')) && cl.includes('qualificaGol(v.carteira, c)') && tvv.includes('industriasDoPedido'), 'TV, Matriz, cron de lances e tv-vendedor usam o Gol Qualificado');
+}
+
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)
 secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
 {

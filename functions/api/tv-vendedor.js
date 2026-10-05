@@ -49,7 +49,31 @@ function ehBonificacao(skus) {
 // /api/rca/historico-cliente/{id}: usa a visita mais recente como "pedido atual" e a média das
 // visitas ANTERIORES como histórico do mix (nunca inclui o próprio pedido atual na média, senão
 // o cálculo fica enviesado).
-function analisaPedido(historico) {
+// Catalogo codigo -> industria (e categoria da Mondelez), gerado por gerar_catalogo_industrias.js e publicado em /catalogo_industrias.json
+let CATALOGO = null;
+async function carregaCatalogo(request) {
+  if (CATALOGO) return CATALOGO;
+  try {
+    const r = await fetch(new URL('/catalogo_industrias.json', request.url));
+    if (r.ok) CATALOGO = await r.json();
+  } catch { /* sem catalogo: os gols ficam sem nivel (nunca inventa) */ }
+  return CATALOGO;
+}
+// Industrias (e categorias Mondelez) do pedido de HOJE: so linha com valor > 0 (bonificacao R$ 0 nao conta); codigo fora do catalogo e ignorado.
+function industriasDoPedido(skus, cat) {
+  if (!cat || !Array.isArray(skus)) return { industrias: null, categorias: null };
+  const ind = new Map(), ca = new Map();
+  for (const it of skus) {
+    const v = Number(it.total) || 0;
+    if (v <= 0) continue;
+    const cod = String(it.codigo);
+    if (cat.i[cod]) ind.set(cat.i[cod], (ind.get(cat.i[cod]) || 0) + v);
+    if (cat.c[cod]) ca.set(cat.c[cod], (ca.get(cat.c[cod]) || 0) + v);
+  }
+  const lista = (m) => [...m.entries()].sort((a, b) => b[1] - a[1]).map(([n, v]) => ({ n, v: Math.round(v * 100) / 100 }));
+  return { industrias: lista(ind), categorias: lista(ca) };
+}
+function analisaPedido(historico, cat) {
   const visitas = Array.isArray(historico?.ultimas_visitas) ? historico.ultimas_visitas : [];
   if (!visitas.length) return null;
   const [atual, ...anteriores] = visitas;
@@ -75,7 +99,8 @@ function analisaPedido(historico) {
   }
   // valor do pedido de HOJE (visita mais recente do cliente) — alimenta "VALOR DA VENDA" dos lances (antes vinha vazio: R$ 0)
   const valorAtual = Array.isArray(atual?.skus) ? atual.skus.reduce((s, item) => s + (Number(item.total) || 0), 0) : 0;
-  return { skusAtual, mediaHistorica, dobrouMix: mediaHistorica != null ? mixDobrado(skusAtual, mediaHistorica) : false, bonificacao, dobradinhaQuinzenas, valorAtual };
+  const { industrias, categorias } = industriasDoPedido(atual?.skus, cat);
+  return { skusAtual, mediaHistorica, dobrouMix: mediaHistorica != null ? mixDobrado(skusAtual, mediaHistorica) : false, bonificacao, dobradinhaQuinzenas, valorAtual, industrias, categorias };
 }
 
 function montarTv(id, dash, prod, rot, analisePorCliente) {
@@ -118,7 +143,9 @@ function montarTv(id, dash, prod, rot, analisePorCliente) {
           valorVendaAtual: analisePorCliente?.[c.id_cliente]?.valorAtual || 0,
           dobrouMix: analisePorCliente?.[c.id_cliente]?.dobrouMix || false,
           bonificacao: analisePorCliente?.[c.id_cliente]?.bonificacao || false,
-          dobradinhaQuinzenas: analisePorCliente?.[c.id_cliente]?.dobradinhaQuinzenas || false
+          dobradinhaQuinzenas: analisePorCliente?.[c.id_cliente]?.dobradinhaQuinzenas || false,
+          industrias: analisePorCliente?.[c.id_cliente]?.industrias || null,
+          categorias: analisePorCliente?.[c.id_cliente]?.categorias || null
         }))
       : null,
     falhas: [!dash && 'dashboard', !prod && 'produtividade', !Array.isArray(rot) && 'roteiro'].filter(Boolean),
@@ -191,11 +218,12 @@ export async function onRequestGet({ request, env }) {
   const positivadosHoje = Array.isArray(rot) ? rot.filter((c) => ['POSITIVADO', 'EFETIVADO'].includes(c.status)) : [];
   const analisePorCliente = {};
   if (positivadosHoje.length) {
+    const catalogo = await carregaCatalogo(request);
     const buscas = positivadosHoje.map((c) => () => getJson(`${CEVEN}/api/rca/historico-cliente/${c.id_cliente}?${q}`));
     // pela coleta de lances (central=1): no maximo 2 simultaneas; na tela da TV segue como antes
     const resultados = usarCentral ? await poolLimitado(buscas, 2) : await Promise.all(buscas.map((f) => f()));
     positivadosHoje.forEach((c, i) => {
-      const analise = analisaPedido(resultados[i]);
+      const analise = analisaPedido(resultados[i], catalogo);
       if (analise) analisePorCliente[c.id_cliente] = analise;
     });
   }

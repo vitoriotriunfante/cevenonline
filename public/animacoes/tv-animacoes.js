@@ -1520,3 +1520,15 @@ window.animTeste = animTeste;
 window.videosProntos = videosProntos;
 window.tocaVideoLance = tocaVideoLance;
 })(window);
+
+// Gol qualificado (Vitório, 05/10/2026): nível pela quantidade de INDÚSTRIAS no pedido do cliente (carteira MONDELEZ: categorias).
+// Mesma escada de functions/_lib/qualificacao_gol.js: 1 bronze +0 · 2 prata +1 · 3 ouro +2 · 4 diamante +3 · 5+ platina +4.
+window.qualificaGolUI = function (carteira, c) {
+  const so = String(carteira || '').toUpperCase() === 'MONDELEZ';
+  const lista = c && (so ? c.categorias : c.industrias);
+  if (!Array.isArray(lista) || !lista.length) return null;
+  const E = [[5, 'PLATINA', 4], [4, 'DIAMANTE', 3], [3, 'OURO', 2], [2, 'PRATA', 1], [1, 'BRONZE', 0]];
+  const d = E.find((e) => lista.length >= e[0]);
+  const brl = (n) => 'R$ ' + (Number(n) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return { nivel: d[1], extra: d[2], n: lista.length, unidade: so ? 'categoria' : 'indústria', detalhe: lista.map((x) => x.n + ' ' + brl(x.v)).join('; ') };
+};
