@@ -114,7 +114,7 @@ try:
             or (re.search(r'(^|\|)(ver_dev|golcontra_dev)\|', str(l.get('chave') or '')) and (
                 'motivo oficial' not in str(l.get('obs') or '')
                 or ' | R$ 0 | ' in str(l.get('obs') or '')
-                or ('golcontra_dev' in str(l.get('chave') or '') and not re.search(r'SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD|PEDIDO DUPLICADO|RECUSOU MERC|PRECO DIFERENTE', str(l.get('obs') or ''))))))]
+                or ('golcontra_dev' in str(l.get('chave') or '') and not re.search(r'SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD', str(l.get('obs') or ''))))))]
         print(f'Impedimentos de GPS antigos (sem comprovacao) fora da liga: {_antes - len(d1_data)} de {_antes}')
     print(f"Duplicados removidos: {duplicados_removidos} | lances únicos: {len(d1_data)}")
 except Exception as e:

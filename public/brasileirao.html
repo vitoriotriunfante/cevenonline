@@ -363,7 +363,6 @@ main {
 .dot-forma.V { background: #16a34a; color: #fff; }
 .dot-forma.E { background: #ca8a04; color: #fff; }
 .dot-forma.D { background: #dc2626; color: #fff; }
-.forma-mais { font-size: 10px; font-weight: 700; color: var(--tx-mut); margin-left: 2px; white-space: nowrap; }
 
 /* CONTROLS */
 .filter-row {
@@ -1310,11 +1309,7 @@ function filtrarVendedores() {
     const posClass = posNum <= 3 ? 'pos-g4' : 'pos-mid';
     const subPos = !isBrasil ? `<span style="font-size:10px;color:var(--tx-mut);display:block">(${v.pos_brasil}º no Brasil)</span>` : '';
 
-    // FORMA = ultimos 5 jogos (como no Brasileirao real); o historico completo fica guardado no dado e aparece ao passar o mouse.
-    const formaTodos = v.forma || [];
-    const formaHtml = formaTodos.slice(-5).map(r => `<span class="dot-forma ${r}">${r}</span>`).join('') +
-      (formaTodos.length > 5 ? `<span class="forma-mais">+${formaTodos.length - 5}</span>` : '');
-    const formaTitulo = `${formaTodos.length} jogos (do mais antigo ao mais recente): ${formaTodos.join(' ')}`;
+    const formaHtml = v.forma.map(r => `<span class="dot-forma ${r}">${r}</span>`).join('');
     const streakHtml = v.bonus_constancia > 0 
       ? `<span class="tag-badge tag-v">🔥 +${v.bonus_constancia} pts (${v.streak}x)</span>` 
       : `<span style="color:var(--tx-mut);font-size:11px">—</span>`;
@@ -1333,7 +1328,7 @@ function filtrarVendedores() {
         <td style="text-align:center"><span class="tag-badge tag-e">${v.empates}</span></td>
         <td style="text-align:center"><span class="tag-badge tag-d">${v.derrotas}</span></td>
         <td style="text-align:center;font-weight:700;color:var(--acc)">${v.aprov}%</td>
-        <td style="text-align:center"><div class="forma-container" title="${formaTitulo}">${formaHtml}</div></td>
+        <td style="text-align:center"><div class="forma-container">${formaHtml}</div></td>
         <td style="text-align:center">${streakHtml}</td>
         <td style="text-align:center;font-weight:700">${v.super_pedidos}</td>
         <td style="text-align:center;font-weight:700">${v.inativos_resgatados}</td>
