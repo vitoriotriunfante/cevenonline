@@ -106,9 +106,16 @@ export async function onRequestGet({ env, request }) {
     let descobertos = [], cursor = null;
     try {
       const { results } = await env.DB.prepare(
-        "SELECT filial, codigo, notas_mes, devolucao_mes, rota_hoje, pedidos_hoje, dig_hoje, primeira_vez, atualizado_em, CASE WHEN primeira_vez >= datetime('now', '-3 days') THEN 1 ELSE 0 END AS nova FROM codigos_descobertos ORDER BY devolucao_mes DESC"
+        "SELECT filial, codigo, nome, meta_fat, fat_mes, meta_pos, notas_mes, devolucao_mes, rota_hoje, pedidos_hoje, dig_hoje, primeira_vez, atualizado_em, CASE WHEN primeira_vez >= datetime('now', '-3 days') THEN 1 ELSE 0 END AS nova FROM codigos_descobertos ORDER BY devolucao_mes DESC"
       ).all();
-      descobertos = (results || []).map((d) => ({ ...d, devolucao_mes: arred(d.devolucao_mes), dig_hoje: arred(d.dig_hoje), nova: !!d.nova }));
+      descobertos = (results || []).map((d) => {
+        const it = { ...d, devolucao_mes: arred(d.devolucao_mes), dig_hoje: arred(d.dig_hoje), meta_fat: arred(d.meta_fat), fat_mes: arred(d.fat_mes), meta_pos: Number(d.meta_pos) || 0, nova: !!d.nova, notas_devolucao_mes: d.notas_mes, digitado_hoje: arred(d.dig_hoje) };
+        const nm = String(d.nome || '').toUpperCase();
+        if (String(d.codigo) === '2' || /VENDAS? EMPRESA/.test(nm)) it.leitura = { tipo: 'conta_interna', texto: 'Conta interna da empresa (venda empresa): não é vendedor, sem decisão necessária.', sinais: [] };
+        else if (/^VAGO/.test(nm)) it.leitura = { tipo: 'vaga', texto: 'Vaga em aberto: rota sem vendedor.', sinais: [] };
+        else it.leitura = leitura(it);
+        return it;
+      });
       cursor = await env.DB.prepare('SELECT pos, ciclo, ciclo_inicio, ciclo_fim FROM descoberta_cursor WHERE id = 1').first();
     } catch { /* tabela ainda não existe: a varredura de descoberta ainda não rodou */ }
 

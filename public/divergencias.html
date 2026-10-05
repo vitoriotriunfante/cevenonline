@@ -81,15 +81,16 @@ async function carrega() {
     ...metaCols, leituraCol
   ], d.planilha_fora_do_banco, 'Nenhuma divergência: todo vendedor da Gestão de Equipe está no banco.');
   const C = tabela([
-    {t: 'Filial', f: l => esc(l.filial)}, {t: 'Código', f: l => esc(l.codigo)},
-    {t: 'Notas (mês)', n: 1, f: l => nv(l.notas_mes)}, {t: 'Devolução (mês)', n: 1, f: l => brl(l.devolucao_mes)},
-    {t: 'Rota hoje', n: 1, f: l => nv(l.rota_hoje)}, {t: 'Pedidos hoje', n: 1, f: l => nv(l.pedidos_hoje)}, {t: 'Primeira vez', f: l => esc((l.primeira_vez || '').slice(0, 16))},
-    {t: '', f: l => l.nova ? '<span class="tag nova">NOVO</span>' : ''}
+    {t: 'Filial', f: l => esc(l.filial)}, {t: 'Código', f: l => esc(l.codigo)}, {t: 'Nome no CEVEN', f: l => esc(l.nome || '(sem nome)')},
+    {t: 'Meta faturamento', n: 1, f: l => l.meta_fat ? brl(l.meta_fat) : '—'}, {t: 'Faturado no mês', n: 1, f: l => brl(l.fat_mes)},
+    {t: 'Rota hoje', n: 1, f: l => nv(l.rota_hoje)}, {t: 'Pedidos hoje', n: 1, f: l => nv(l.pedidos_hoje)},
+    {t: 'Devolução (mês)', n: 1, f: l => brl(l.devolucao_mes) + ' · ' + nv(l.notas_mes) + ' nota(s)'},
+    {t: 'O que é', f: l => { const t = l.leitura || {}; const cls = (t.tipo === 'conta_interna' || t.tipo === 'vaga' || t.tipo === 'so_devolucao') ? 'ok' : 'nova'; return `<span class="tag ${cls}">${esc(t.texto || '')}</span>` + (l.nova ? ' <span class="tag nova">NOVO</span>' : ''); }}
   ], d.descobertos, 'A varredura de descoberta ainda não achou nenhum código com devolução fora das listas.');
   $('corpo').innerHTML =
     secao('1. No banco e fora da Gestão de Equipe', 'Vendedor ativo no cadastro do banco que a Gestão de Equipe não lista. Com movimento: vende, tem rota ou tem devolução. Decida na Gestão de Equipe se entra como MOSTRA = SIM ou NÃO.', A) +
-    secao('2. Na Gestão de Equipe e fora do banco', 'Vendedor que a Gestão de Equipe lista e o banco não tem. Ele já entra na varredura pela Gestão de Equipe; o cadastro no banco precisa ser feito.', B) +
-    secao('3. Códigos descobertos pelo CEVEN', 'Códigos que não estão em lista nenhuma e têm devolução neste mês (contas internas como "VENDA EMPRESA", ex-vendedores). A busca percorre todos os códigos de todas as filiais de madrugada.', C);
+    secao('2. Só informativo: na Gestão de Equipe e ainda sem cadastro no banco', 'Estes vendedores JÁ estão certos na Gestão de Equipe (com supervisor e gerente) e já aparecem em tudo: TV, Matriz, WhatsApp e Executiva. O banco de cadastros ainda não os recebeu porque o cadastro é sincronizado do CEVEN de madrugada. Você não precisa fazer nada aqui.', B) +
+    secao('3. Códigos que o CEVEN tem e que não estão em lugar nenhum nosso', 'Não são vendedores da Gestão de Equipe nem do banco, mas têm devolução neste mês. Costumam ser: conta interna da empresa ("venda empresa", código 2 de cada filial), vaga em aberto, ou ex-vendedor que ainda tem nota. Só vale olhar o que tiver meta e rota: aí pode ser um vendedor que faltou cadastrar (use o painel da Gestão de Equipe).', C);
   const v = d.varredura_descoberta || {};
   $('rodape').textContent = `Gerado em ${new Date(d.gerado_em).toLocaleString('pt-BR')} · varredura de descoberta: ciclo ${v.ciclo ?? 0}, posição ${v.pos ?? 0}${v.ciclo_fim ? ', último ciclo fechado em ' + v.ciclo_fim : ''}`;
 }

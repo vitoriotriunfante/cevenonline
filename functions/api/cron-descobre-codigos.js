@@ -36,6 +36,8 @@ export async function onRequestGet({ env, request }) {
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS descoberta_cursor (id INTEGER PRIMARY KEY CHECK (id = 1), pos INTEGER NOT NULL DEFAULT 0, ciclo INTEGER NOT NULL DEFAULT 0, ciclo_inicio TEXT, ciclo_fim TEXT, dono TEXT, criado_em TEXT)').run();
   await env.DB.prepare('INSERT OR IGNORE INTO descoberta_cursor (id, pos, ciclo, ciclo_inicio) VALUES (1, 0, 0, CURRENT_TIMESTAMP)').run();
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS codigos_descobertos (filial TEXT NOT NULL, codigo TEXT NOT NULL, notas_mes INTEGER NOT NULL DEFAULT 0, devolucao_mes REAL NOT NULL DEFAULT 0, rota_hoje INTEGER NOT NULL DEFAULT 0, pedidos_hoje INTEGER NOT NULL DEFAULT 0, dig_hoje REAL NOT NULL DEFAULT 0, primeira_vez TEXT, atualizado_em TEXT, PRIMARY KEY (filial, codigo))').run();
+  // colunas novas (05/10/2026): nome e metas do codigo, para a lista viva mostrar quem e. O ALTER falha (e e ignorado) se a coluna ja existe.
+  for (const col of ['nome TEXT', 'meta_fat REAL', 'fat_mes REAL', 'meta_pos INTEGER']) { try { await env.DB.prepare('ALTER TABLE codigos_descobertos ADD COLUMN ' + col).run(); } catch { /* ja existe */ } }
 
   const tomou = await env.DB.prepare("UPDATE descoberta_cursor SET dono = ?, criado_em = CURRENT_TIMESTAMP WHERE id = 1 AND (dono IS NULL OR criado_em IS NULL OR criado_em < datetime('now', ?))").bind('d:' + t0, `-${SLOT_S} seconds`).run();
   if (!((tomou.meta && tomou.meta.changes) || tomou.changes)) return resp({ status: 'OCUPADO' });
@@ -65,21 +67,23 @@ export async function onRequestGet({ env, request }) {
         const base = `${CEVEN}/api/rca/%EP%?filial=${f.toLowerCase()}1&id=${id}`;
         const dv = await getJson(base.replace('%EP%', 'devolucoes'));
         const notas = Array.isArray(dv) ? dv.filter((n) => String(n.data || '').startsWith(mes)) : [];
-        let rota = 0, ped = 0, dig = 0;
+        let rota = 0, ped = 0, dig = 0, nome = null, metaFat = 0, fatMes = 0, metaPos = 0;
         if (notas.length) {
           const p = await getJson(base.replace('%EP%', 'produtividade'));
           const d = (p && p.dia) || {};
           rota = Number(d.total_programado) || 0; ped = Number(d.positivacao) || 0; dig = Number(d.dig_pedido) || 0;
+          const dash = await getJson(base.replace('%EP%', 'dashboard'));
+          if (dash) { nome = dash.nome ? String(dash.nome).slice(0, 80) : null; metaFat = Number(dash.financeiro && dash.financeiro.meta) || 0; fatMes = Number(dash.financeiro && dash.financeiro.faturado) || 0; metaPos = Number(dash.positivacao && dash.positivacao.meta) || 0; }
         }
         if (!notas.length) continue;
         achados++;
         const val = notas.reduce((s, n) => s + (Number(n.vl_devolvido) || 0), 0);
         gravar.push(env.DB.prepare(
-          `INSERT INTO codigos_descobertos (filial, codigo, notas_mes, devolucao_mes, rota_hoje, pedidos_hoje, dig_hoje, primeira_vez, atualizado_em)
-           VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          `INSERT INTO codigos_descobertos (filial, codigo, notas_mes, devolucao_mes, rota_hoje, pedidos_hoje, dig_hoje, nome, meta_fat, fat_mes, meta_pos, primeira_vez, atualizado_em)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
            ON CONFLICT (filial, codigo) DO UPDATE SET notas_mes = excluded.notas_mes, devolucao_mes = excluded.devolucao_mes, rota_hoje = excluded.rota_hoje,
-             pedidos_hoje = excluded.pedidos_hoje, dig_hoje = excluded.dig_hoje, atualizado_em = CURRENT_TIMESTAMP`
-        ).bind(f, String(id), notas.length, val, rota, ped, dig));
+             pedidos_hoje = excluded.pedidos_hoje, dig_hoje = excluded.dig_hoje, nome = excluded.nome, meta_fat = excluded.meta_fat, fat_mes = excluded.fat_mes, meta_pos = excluded.meta_pos, atualizado_em = CURRENT_TIMESTAMP`
+        ).bind(f, String(id), notas.length, val, rota, ped, dig, nome, metaFat, fatMes, metaPos));
       }
     }
     await Promise.all(Array.from({ length: CONC }, w));
