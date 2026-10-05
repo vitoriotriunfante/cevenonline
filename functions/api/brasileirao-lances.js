@@ -83,7 +83,12 @@ export async function onRequestGet({ request, env }) {
     const lancesBrutos = (results || []).filter(l => {
       const ch = String(l.chave || '');
       if (dia < GPS_CONFIAVEL_DESDE && GPS_ANTIGO.test(ch)) return false;
-      if (DEVOLUCAO.test(ch) && !(l.obs && /motivo oficial/.test(l.obs))) return false;
+      if (DEVOLUCAO.test(ch)) {
+        const o = String(l.obs || '');
+        if (!/motivo oficial/.test(o)) return false;
+        if (/ [|] R[$] 0 [|] /.test(o)) return false; // bonificacao voltando (nota de R$ 0)
+        if (/golcontra_dev/.test(ch) && !/SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD/.test(o)) return false; // so motivo comercial
+      }
       return true;
     });
 

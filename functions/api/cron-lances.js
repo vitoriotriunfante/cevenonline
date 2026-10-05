@@ -167,7 +167,7 @@ function calcAlertas(vs, t) {
       if (!dv.nota) return;
       const base = `nota ${dv.nota} de ${dv.data || '?'} | ${brl(dv.valor)} | ${dv.cliente || 'cliente sem nome'} | motivo oficial: ${dv.motivos || 'sem motivo'}`;
       if (dv.naoPediu === true) out.push({ chave: `ver_dev|${v.id}|${dv.nota}`, nivel: 'vermelho', v, valor: dv.valor, cliente: dv.cliente, cid: dv.cid, prova: base });
-      else if (dv.naoPediu === false) out.push({ chave: `golcontra_dev|${v.id}|${dv.nota}`, nivel: 'golcontra', v, valor: dv.valor, cliente: dv.cliente, cid: dv.cid, prova: base });
+      else if (dv.naoPediu === false && DEV_MOTIVO_COMERCIAL.test(dv.motivos || '')) out.push({ chave: `golcontra_dev|${v.id}|${dv.nota}`, nivel: 'golcontra', v, valor: dv.valor, cliente: dv.cliente, cid: dv.cid, prova: base });
     });
 
     v.cl.forEach((c) => {
@@ -230,6 +230,8 @@ async function getJson(url) {
 // Nota sem motivo confirmado NAO gera lance (nunca assume). Janela: nota dos ultimos 3 dias; uma nota gera UM lance (tv-lances nao repete).
 const CEVEN_API = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const DEV_JANELA_DIAS = 3, DEV_MAX_MOTIVOS_POR_RODADA = 40;
+// Gol Contra so para motivo COMERCIAL (Vitorio, 05/10/2026: "so registre os motivos comerciais"). Estoque/logistica/ambiguo nao pune.
+const DEV_MOTIVO_COMERCIAL = /SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD/;
 async function carregaDevolucoes(env, t, filialDoRca) {
   const out = new Map();
   try {
@@ -242,6 +244,7 @@ async function carregaDevolucoes(env, t, filialDoRca) {
       for (const n of lista) {
         const idade = diasDesde(String(n.data || '').slice(0, 10), t.dia);
         if (!n.numnota || idade == null || idade < 0 || idade > DEV_JANELA_DIAS) continue;
+        if (!(Number(n.vl_devolvido) > 0)) continue; // nota de R$ 0 = bonificacao voltando (Vitorio, 05/10/2026): nao e devolucao de venda, nao registra
         notas.push({ rca: String(r.rca_codigo), nota: String(n.numnota), valor: Number(n.vl_devolvido) || 0, cliente: n.nomecli || null, cid: n.codcli ? String(n.codcli) : null, data: String(n.data).slice(0, 10) });
       }
     }

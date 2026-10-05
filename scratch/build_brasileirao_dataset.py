@@ -111,7 +111,10 @@ try:
         # GPS: so a partir de 06/10. Devolucao: so conta com a prova gravada (motivo oficial em obs), em qualquer dia.
         d1_data = [l for l in d1_data if not (
             (str(l.get('dia') or '') < '2026-10-06' and re.search(r'(^|\|)imp\|gps\|', str(l.get('chave') or '')))
-            or (re.search(r'(^|\|)(ver_dev|golcontra_dev)\|', str(l.get('chave') or '')) and 'motivo oficial' not in str(l.get('obs') or '')))]
+            or (re.search(r'(^|\|)(ver_dev|golcontra_dev)\|', str(l.get('chave') or '')) and (
+                'motivo oficial' not in str(l.get('obs') or '')
+                or ' | R$ 0 | ' in str(l.get('obs') or '')
+                or ('golcontra_dev' in str(l.get('chave') or '') and not re.search(r'SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD', str(l.get('obs') or ''))))))]
         print(f'Impedimentos de GPS antigos (sem comprovacao) fora da liga: {_antes - len(d1_data)} de {_antes}')
     print(f"Duplicados removidos: {duplicados_removidos} | lances únicos: {len(d1_data)}")
 except Exception as e:
