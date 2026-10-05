@@ -1,45 +1,12 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 TCV — LEONARDO • 23/09/2026
+📍 TCV — LEONARDO • 05/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/09/2026 a 23/09/2026)*
-💰 R$ 10.643,32 • 161 PDVs • ✂️ R$ 443,79 (133 un) • 🚛 R$ 9.816,98 _(filial toda)_
-👤 ROSIVAL JESUINO DA SILVA — R$ 4.079,33 (62 PDVs)
-👤 GESSANDRO SPEROTTO — R$ 3.788,64 (53 PDVs)
-👤 GIANI GREGOLIN — R$ 2.775,35 (46 PDVs)
+*ACUMULADO DO MÊS (01/10/2026 a 05/10/2026)*
+💰 R$ 671,92 • 10 PDVs • ✂️ R$ 24,07 (9 un)
+👤 GIANI GREGOLIN — R$ 416,34 (4 PDVs)
+👤 GESSANDRO SPEROTTO — R$ 255,58 (6 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (22/09/2026)*
-💰 R$ 909,70 • 9 PDVs positivados
-👤 GESSANDRO SPEROTTO — R$ 535,70 (5 PDVs)
-👤 ROSIVAL JESUINO DA SILVA — R$ 303,80 (3 PDVs)
-👤 GIANI GREGOLIN — R$ 70,20 (1 PDVs)
-
-🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (20)*
-_(fez pedido ontem, mas nenhum item era marca própria)_
-
-👤 *GESSANDRO SPEROTTO*
-  • CARLOS ROBERTO HANNA — 34d sem vender MP
-  • GRACIELA BONAMIGO — 6d sem vender MP
-  • EDUARDO ALVES ALBERGHINI — 5d sem vender MP
-  • KAUANA DANIELI SPRENGOSKI — 2d sem vender MP
-  • MARCOS ANTONIO DE BRITO — 2d sem vender MP
-  • VANDERLEI MARTINS DA SILVA — 2d sem vender MP
-
-👤 *GIANI GREGOLIN*
-  • NILTON MARTINELLI JUNIOR — 36d sem vender MP
-  • LUCIVANIA PAULA DE OLIVEIRA — 34d sem vender MP
-  • GILSON PEDRO GRANDO — 2d sem vender MP
-  • JIZANDRA KLEINERT DE SOUZA — 2d sem vender MP
-  • LUCIANA BINOTTO — 2d sem vender MP
-  • MONICA KUNZEL TOLFO — 2d sem vender MP
-  • ALESSANDRA CARLA DETOFOL — 2d sem vender MP
-
-👤 *ROSIVAL JESUINO DA SILVA*
-  • TANA DE ALMEIDA MORAIS — 13d sem vender MP
-  • SANDRAMARA APARECIDA SCHUCK — 9d sem vender MP
-  • PAULO ROBSON OLIVEIRA — 7d sem vender MP
-  • CRISTIANE CHAVES — 7d sem vender MP
-  • CLEITON DUARTE DE CARVALHO — 5d sem vender MP
-  • EDUARDO RODRIGUES SILVA — 2d sem vender MP
-  • WESLEI DE SOUZA ZANATTA — 2d sem vender MP
+*COMO FECHOU ONTEM (04/10/2026)*
+💰 R$ 0,00 • 0 PDVs positivados
