@@ -135,7 +135,10 @@ export async function onRequestGet({ env, request }) {
   const completa = forcar || ant.size < Math.ceil(rcas.length * 0.5);   // partida a frio ou recuperacao
   const dono = (completa ? 'completa:' : 'tick:') + t0;
   const slot = await tomaSlot(env, dono, completa ? SLOT_COMPLETA_S : SLOT_TICK_S);
-  if (!slot) return resp({ status: 'OCUPADO', motivo: 'outra rodada da varredura esta em andamento' });
+  if (!slot) {
+    const l = await env.DB.prepare("SELECT dono, criado_em, ciclo, CAST((julianday('now') - julianday(criado_em)) * 86400 AS INTEGER) AS idade_s FROM varredura_slot WHERE id = 1").first().catch(() => null);
+    return resp({ status: 'OCUPADO', motivo: 'outra rodada da varredura esta em andamento', slot: l || null });
+  }
 
   try {
     // ---------- VARREDURA COMPLETA (partida a frio): os 4 endpoints de todos, como era ----------
