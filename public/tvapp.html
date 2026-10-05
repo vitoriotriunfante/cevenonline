@@ -750,7 +750,7 @@ async function processa() {
       const d = await registraLances(cands);
       let novos, baseline;
       if (d) { primeiraSync = true; baseline = !!d.baseline; const set = new Set(d.novos); novos = cands.filter(a => set.has(a.key)); }
-      else { baseline = primeiraCarga && !primeiraLeituraFeita; novos = cands; } // servidor fora do ar: controle local
+      else { return; } // servidor sem resposta: NAO apita e NAO marca como visto; tenta de novo no proximo ciclo (antes caia no controle local e reapitava lance antigo ao recarregar; mesma regra da Matriz)
       const t = sp();
       cands.forEach(a => seen.add(a.key));
       novos.forEach(a => LOG.push(evento(a, t, baseline)));
