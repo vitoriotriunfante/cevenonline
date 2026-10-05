@@ -1,38 +1,38 @@
 🌅 *ABERTURA MATINAL — TPA (07:45)*
-📅 quinta-feira, 01/10/2026
+📅 segunda-feira, 05/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 17 • Visitas: 535 (média 31,5/vendedor)
-Sem compra +30d: 187 (35,0%) • Recorrência: 52 (9,7%)
-Oportunidades CNAE 4712: +728 PDVs
+👥 Vendedores: 17 • Visitas: 257 (média 15,1/vendedor)
+Sem compra +30d: 91 (35,4%) • Recorrência: 48 (18,7%)
+Oportunidades CNAE 4789: +257 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPA — RADKE / LEANDRO* • 01/10/2026
+📍 *TPA — RADKE / LEANDRO* • 05/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 186
+🔴 Última Chance: 0  •  🟡 Preventivo: 91
 
-👤 *ROGERIO DORNELLES PASSOS* (27 em risco)
-  🟡 CINARA MENEZES DOS SANTOS (144) — 14/08
-  🟡 INOV FARMA COMERCIO DE MEDICAMENTOS LTDA (144) — 20/07
-  🟡 ARMAZEM DA LIMPEZA AZENHA (165) — 05/12
-  🟡 PADARIA BAZANELLA (165) — 05/12
-  🟡 MINIMERCADO E ACOUGUE SB (165) — 31/08
-  _+22 outros_
+👤 *DOUGLAS CRISTIANO DOS SANTOS* (52 em risco)
+  🟡 T S D PROD COLONIAIS (150) — 31/08
+  🟡 MERCADO JARDIMS (150) — 20/02
+  🟡 MERCADO PADARIA E CONFEITARIA CONCORDIA (150) — 01/01
+  🟡 SACOLAO ECONOMICO (150) — 25/08
+  🟡 MERCADO MALFATTI (150) — 05/12
+  _+47 outros_
 
-👤 *ANDERSON GIOVANI FERREIRA BOLTER* (111 em risco)
-  🟡 FERRAGEM E BAZAR AVENIDA (1120) — 05/12
-  🟡 MERCADO RIGO (1120) — 05/12
-  🟡 BEBIS E COMIS (1120) — 05/12
-  🟡 FARMA POVO (1120) — 05/12
-  🟡 ANUEL SUPERMERCADOS LTDA (1120) — 03/05
-  _+106 outros_
+👤 *SAMUEL PALHANO DE OLIVEIRA* (24 em risco)
+  🟡 SOUZAMIX (140) — 31/08
+  🟡 COMERCIAL R B (140) — 19/02
+  🟡 MERCADO BONIATTI (140) — 20/02
+  🟡 TENDA COLONIAL (140) — 01/01
+  🟡 MAURO MARCONE BONETTO (140) — 31/07
+  _+19 outros_
 
-👤 *RAFAEL DA SILVA CARPENA* (48 em risco)
-  🟡 MERCADO CARDOSO (145) — 25/08
-  🟡 COYOTE BEBIDAS (145) — 05/12
-  🟡 MERCADO E CONFECCAO VITORIA (145) — 28/07
-  🟡 S M PORTAL SILVEIRA (145) — 05/12
-  🟡 MINIMERCADO SOARES (145) — 05/12
-  _+43 outros_
+👤 *ROGERIO DORNELLES PASSOS* (15 em risco)
+  🟡 TEKA (154) — 31/08
+  🟡 SUPERMERCADO TEKKA (154) — 31/08
+  🟡 SUPERMERCADO VIA II (154) — 05/12
+  🟡 CROSTOLLI MERCADO E PADARIA (154) — 19/08
+  🟡 SUPER POSTAL (161) — 05/12
+  _+10 outros_

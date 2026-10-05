@@ -1,38 +1,38 @@
 🌅 *ABERTURA MATINAL — TCV (07:45)*
-📅 quinta-feira, 01/10/2026
+📅 segunda-feira, 05/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 28 • Visitas: 288 (média 10,3/vendedor)
-Sem compra +30d: 43 (14,9%) • Recorrência: 15 (5,2%)
-Oportunidades CNAE 4712: +446 PDVs
+👥 Vendedores: 27 • Visitas: 286 (média 10,6/vendedor)
+Sem compra +30d: 45 (15,7%) • Recorrência: 51 (17,8%)
+Oportunidades CNAE 4789: +297 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCV — LEONARDO* • 01/10/2026
+📍 *TCV — LEONARDO* • 05/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 43
+🔴 Última Chance: 0  •  🟡 Preventivo: 36
 
-👤 *GESSANDRO SPEROTTO* (12 em risco)
-  🟡 LANCHONETE AVENIDA (357) — 18/02
-  🟡 VIEIRA EMBALAGENS (324) — 31/07
-  🟡 MERCADO LOVAT (328) — 27/08
-  🟡 MERCEARIA MELO (346) — 05/12
-  🟡 PANIFICADORA E CONF SAO JOSE (346) — 05/12
-  _+7 outros_
+👤 *GESSANDRO SPEROTTO* (10 em risco)
+  🟡 PARADA SOLIGO RESTAURANTE E LANCHONETE (336) — 31/08
+  🟡 PONTOCERTO MARECHAL COMERCIO DE BEBIDAS (324) — 31/08
+  🟡 LOJA 199 (324) — 31/08
+  🟡 PANIFICADORA ROMANA (346) — 31/07
+  🟡 SUPERMERCADO NEGRELLE (359) — 30/06
+  _+5 outros_
 
-👤 *ROSIVAL JESUINO DA SILVA* (13 em risco)
-  🟡 MERCEARIA D LUCIA (337) — 20/08
-  🟡 MERCADO E CONVENIENCIA CARVALHO (337) — 05/12
-  🟡 MINI MERCADO NOSSA SENHORA APARECIDA (337) — 31/08
-  🟡 SUPERMERCADO WEBBER (337) — 25/07
-  🟡 MARINES FICANHA 71077200900 (325) — 31/07
-  _+8 outros_
+👤 *GIANI GREGOLIN* (17 em risco)
+  🟡 MERCADO PONTO CERTO (333) — 28/08
+  🟡 MERCADO VALIM (333) — 08/07
+  🟡 IDEAL SUPERMERCADO (333) — 24/08
+  🟡 CHURRASCARIA DO MARCAO (333) — 08/07
+  🟡 DAMIAN (333) — 31/08
+  _+12 outros_
 
-👤 *GIANI GREGOLIN* (18 em risco)
-  🟡 MERCEARIA D LICA (333) — 08/08
-  🟡 PANIFICADORA E RESTAURANTE FABRICA FORNE (333) — 24/08
-  🟡 SK SUPERMERCADOS (333) — 05/12
-  🟡 SM SABOR DO PAO (333) — 28/08
-  🟡 JOAOZINHO BRINQUEDOS E UTILIDADES (339) — 03/05
-  _+13 outros_
+👤 *ROSIVAL JESUINO DA SILVA* (9 em risco)
+  🟡 MERCADO ELITE (330) — 18/08
+  🟡 MARQUES GASTRONOMIA (337) — 05/12
+  🟡 PIZZARIA JACAREZINHO (337) — 27/08
+  🟡 REINO DAS PIZZA E GRILL (347) — 26/06
+  🟡 26870468 LUCAS VINICIUS BRAUIN MIRANDA (347) — 28/08
+  _+4 outros_

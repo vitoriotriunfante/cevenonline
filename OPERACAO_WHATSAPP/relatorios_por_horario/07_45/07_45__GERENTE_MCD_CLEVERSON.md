@@ -1,43 +1,44 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 quinta-feira, 01/10/2026
+📅 segunda-feira, 05/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 25 • Visitas: 266 (média 10,6/vendedor)
-Sem compra +30d: 105 (39,5%) • Recorrência: 17 (6,4%)
-Oportunidades CNAE 4712: +726 PDVs
+👥 Vendedores: 20 • Visitas: 271 (média 13,6/vendedor)
+Sem compra +30d: 152 (56,1%) • Recorrência: 40 (14,8%)
+Oportunidades CNAE 4789: +407 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — CLEVERSON* • 01/10/2026
+📍 *MCD — CLEVERSON* • 05/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 102
+🔴 Última Chance: 0  •  🟡 Preventivo: 146
 
-👤 *JONATAS DA SILVA DE OLIVEIRA* (4 em risco)
-  🟡 PLANALTO CONVENIENCIA (1063) — 20/08
-  🟡 MERCEARIA SAO BENTO (1060) — 18/02
-  🟡 CASA DE CARNE CLARO (445) — 05/12
-  🟡 DROGARIA REAL 2 (442) — 05/12
+👤 *FLAVIO RUFINO* (23 em risco)
+  🟡 PANIF CONQUISTA (413) — 18/02
+  🟡 MERCADO DO NEGO (413) — 05/12
+  🟡 MERCEARIA E CONV TODA HORA (413) — 05/12
+  🟡 MERCADO POPULAR (420) — 31/08
+  🟡 SUPERMERCADO POPULAR (420) — 31/08
+  _+18 outros_
 
-👤 *FLAVIO RUFINO* (15 em risco)
-  🟡 DISTRIBUIDORA 67 (1076) — 05/12
-  🟡 HOOKAH STAR (1076) — 05/12
-  🟡 OUTBACK (1076) — 05/12
-  🟡 CASA DOS DOCES (1076) — 05/12
-  🟡 PORKS - CAMPO GRANDE (1076) — 05/12
-  _+10 outros_
+👤 *JONATAS DA SILVA DE OLIVEIRA* (8 em risco)
+  🟡 TIGRE EXPRESS (429) — 05/12
+  🟡 BR MANIA (445) — 05/12
+  🟡 CONVENIENCIA E MERCEARIA MTJ (453) — 18/08
+  🟡 MERCADO AMIGAO (453) — 18/08
+  🟡 MERCEARIA VITORIA (453) — 05/12
+  _+3 outros_
 
-👤 *THIAGO DA SILVA CONEGUNDES* (5 em risco)
-  🟡 NO GOLE (433) — 20/08
+👤 *GERENTE MCD* (111 em risco)
+  🟡 MERCEARIA ZIRONDI (1070) — 05/12
+  🟡 MB SUPERMERCADO (1070) — 05/12
+  🟡 SHALOM TRANSPORTES (1070) — 05/12
+  🟡 SUPERMERCADO TIEPPO (1070) — 05/12
+  🟡 MERCEARIA TROPICAL (1070) — 05/12
+  _+106 outros_
+
+👤 *THIAGO DA SILVA CONEGUNDES* (4 em risco)
   🟡 CLICKBEER EMPORIO E BEBIDAS LTDA (433) — 31/08
-  🟡 CLICKBEER CONVENIENCIA (433) — 05/12
-  🟡 CHURRASCARIA NATIVAS GRILL CAMPO GRANDE (433) — 31/08
-  🟡 HOOKAH STAR LOUNGE BAR (433) — 05/12
-
-👤 *GERENTE MCD* (78 em risco)
-  🟡 LOOK MERCADO (1070) — 05/12
-  🟡 RACA AGRO VET (1070) — 05/12
-  🟡 PLATINAO (1070) — 05/12
-  🟡 KARANDA CONVENIENCIA (1070) — 25/08
-  🟡 PANIF CONQUISTA (1070) — 18/02
-  _+73 outros_
+  🟡 CLICKBEER (433) — 05/12
+  🟡 GOMMA E GOUMERT (433) — 24/08
+  🟡 REDE IPE (433) — 05/12
