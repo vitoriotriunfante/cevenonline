@@ -125,6 +125,7 @@ const num = (v) => (typeof v === 'number' && isFinite(v) ? v : null);
 // Mesma lógica de calcAlertas() em tvapp.html/matrizapp.html — ver ficha do arquivo.
 // PROVA DO LANCE (decisao do Vitorio, 05/10/2026): lance sem prova nao pode ser auditado. O lance do vendedor nasce de um numero do dia
 // (visitas, digitado, devolucao...) e esse numero vai gravado em obs, para a auditoria conferir depois com o CEVEN.
+const provaVisita = (c, txt) => [`check-in ${c.checkin_horario || 'sem hora'}`, `check-out ${c.checkout_horario || 'sem hora'}`, `tempo ${c.tempo_visita || 'sem dado'}`, txt].join(' | ').slice(0, 300);
 const brl = (x) => 'R$ ' + Math.round(x || 0).toLocaleString('pt-BR');
 function calcAlertas(vs, t) {
   const fuso1h = false; // aqui roda por filial; fuso1h é decidido por chamada (ver loop principal)
@@ -186,7 +187,7 @@ function calcAlertas(vs, t) {
       if (c.recorrencia && ['POSITIVADO', 'EFETIVADO'].includes(c.status)) out.push({ chave: `def|${v.id}|${c.id}`, nivel: 'defesa', v, c });
       if (v.campo) {
         const distM = distanciaM(c.lat, c.lon, c.checkout_lat, c.checkout_lon);
-        if (impedimentoGpsConfiavel(v, c, distM)) out.push({ chave: `imp|gps|${v.id}|${c.id}`, nivel: 'impedimento', v, c });
+        if (impedimentoGpsConfiavel(v, c, distM)) out.push({ chave: `imp|gps|${v.id}|${c.id}`, nivel: 'impedimento', v, c, prova: provaVisita(c, `check-out a ${Math.round(distM)} m do cadastro do cliente; cadastro ${c.lat},${c.lon}; check-out ${c.checkout_lat},${c.checkout_lon}`) });
       }
       if (['POSITIVADO', 'EFETIVADO'].includes(c.status) || !c.motivo) return;
       const m = c.motivo.toUpperCase();
@@ -197,7 +198,7 @@ function calcAlertas(vs, t) {
       } else if ((m.includes('FECHADO') || m.includes('ENCERROU')) && (dias == null || dias > DIAS_PENALTI_FECHADO)) {
         out.push({ chave: `pen|fechado|${v.id}|${c.id}`, nivel: 'penalti', v, c, dias });
       } else if (c.tempo_visita === '00:00') {
-        out.push({ chave: `imp|visita0|${v.id}|${c.id}`, nivel: 'impedimento', v, c });
+        out.push({ chave: `imp|visita0|${v.id}|${c.id}`, nivel: 'impedimento', v, c, prova: provaVisita(c, 'visita de 00:00 (sem permanencia)') });
       }
     });
 

@@ -106,6 +106,8 @@ function montarTv(id, dash, prod, rot, analisePorCliente) {
           ultima_compra: c.data_ultima_compra ? String(c.data_ultima_compra).slice(0, 10) : null,
           valor_ultima: num(c.valor_ultima_compra),
           tempo_visita: c.tempo_visita || null,
+          checkin_horario: c.checkin_horario || null,
+          checkout_horario: c.checkout_horario || null,
           lat: num(c.latitude),
           lon: num(c.longitude),
           checkout_lat: num(c.checkout_latitude),

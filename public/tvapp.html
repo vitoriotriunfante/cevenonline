@@ -370,6 +370,17 @@ function impedimentoGpsConfiavel(v, c, distM) {
     distanciaM(x.checkout_lat, x.checkout_lon, c.checkout_lat, c.checkout_lon) <= IMP_GPS_REPETIDO_M).length;
   return repetidos < 2; // 1 = so a propria visita; 2 ou mais = o mesmo ponto em varias visitas
 }
+// PROVA DO IMPEDIMENTO NO POPUP (Vitorio, 05/10/2026: "kd o tempo de check-in e check-out? kd qual cliente e? supervisor?"): todo dado que gerou o lance.
+function provaImpedimentoHtml(a) {
+  if (!a || !a.c) return '';
+  const c = a.c;
+  const ln = (k, v) => (v ? `<div class="ln"><b>${k}</b><span>${esc(String(v))}</span></div>` : '');
+  let h = ln('SUPERVISOR', a.v && a.v.sup) + ln('CLIENTE', (c.nome || '') + (c.id ? ' (cód. ' + c.id + ')' : '')) +
+    ln('CHECK-IN', c.checkin_horario || 'sem hora no CEVEN') + ln('CHECK-OUT', c.checkout_horario || 'sem hora no CEVEN') + ln('TEMPO NO CLIENTE', c.tempo_visita || 'sem dado');
+  if (a.subtipo === 'gps_fora') h += ln('DISTÂNCIA', a.distM + ' m entre o cadastro do cliente e o check-out') + ln('POSIÇÕES', `cliente ${c.lat}, ${c.lon} · check-out ${c.checkout_lat}, ${c.checkout_lon}`);
+  return h;
+}
+const vereditoImpedimento = (a) => (a && a.subtipo === 'gps_fora' ? '🚩 LANCE ANULADO! Check-out longe do cliente (GPS)!' : '🚩 LANCE ANULADO! Check-in sem permanência mínima!');
 function distanciaM(lat1, lon1, lat2, lon2) {
   if ([lat1, lon1, lat2, lon2].some(v => v == null || isNaN(v))) return null;
   const R = 6371000, rad = x => x * Math.PI / 180;
@@ -871,8 +882,8 @@ function telaVAR(item) {
     veredito = '🟨 ATENÇÃO! Acelerar positivação do dia!';
   } else if (item.tipo === 'impedimento') {
     titulo = '🚩 IMPEDIMENTO VAR'; sub = item.sub || 'Visita instantânea não computada'; cls = 'f1';
-    dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>ANULADO</b><span>${esc(item.sub || 'Visita de 00:00 sem contato real')}</span></div>`;
-    veredito = '🚩 LANCE ANULADO! Check-in sem permanência mínima!';
+    dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>ANULADO</b><span>${esc(item.sub || 'Visita de 00:00 sem contato real')}</span></div>${provaImpedimentoHtml(item.a)}`;
+    veredito = vereditoImpedimento(item.a);
   } else if (item.tipo === 'defesa') {
     titulo = '🧤 DEFESA MILAGROSA'; sub = item.sub || 'Carteira recorrente protegida!'; cls = 'f1';
     dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>DEFESA</b><span>${esc(item.sub || 'Recorrente salvo')}</span></div>`;
