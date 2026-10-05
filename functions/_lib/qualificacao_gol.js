@@ -31,3 +31,12 @@ export function lerQualif(obs) {
   const m = /\[QUALIF:([A-Z]+):\+(\d+)\]/.exec(String(obs || ''));
   return m ? { nivel: m[1], extra: Number(m[2]) } : null;
 }
+
+// Carteira AUTO (TSJ): vendedor com MAIS de 90% do valor dos pedidos de hoje em Mondelez conta como carteira so Mondelez (Vitorio, 05/10/2026).
+export function carteiraEfetiva(carteira, clientes) {
+  const c0 = String(carteira || '').toUpperCase();
+  if (c0 !== 'AUTO') return c0;
+  let mond = 0, total = 0;
+  for (const c of Array.isArray(clientes) ? clientes : []) for (const x of (c && c.industrias) || []) { total += Number(x.v) || 0; if (x.n === 'MONDELEZ BRASIL') mond += Number(x.v) || 0; }
+  return total > 0 && mond / total > 0.9 ? 'MONDELEZ' : '';
+}

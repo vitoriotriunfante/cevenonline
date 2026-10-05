@@ -106,14 +106,14 @@ function horariosCheckinDoDia(cl) {
 
 // Mesma lógica de vend() em tvapp.html: transforma resposta de /api/tv-vendedor no objeto usado
 // por calcAlertas.
-import { qualificaGol } from '../_lib/qualificacao_gol.js';
+import { qualificaGol, carteiraEfetiva } from '../_lib/qualificacao_gol.js';
 function vend(id, canal, sup, d, carteira) {
   const cl = Array.isArray(d.clientes) ? d.clientes : null;
   const st = (s) => (cl ? cl.filter((c) => s.includes(c.status)).length : null);
   const feitas = cl ? cl.filter((c) => !['AGENDADO', 'ABERTO'].includes(c.status)).length : null;
   const campo = CAMPO.includes(canal);
   return {
-    id, nome: d.nome, canal, sup: sup || '', carteira: carteira || '', campo, cl,
+    id, nome: d.nome, canal, sup: sup || '', carteira: carteiraEfetiva(carteira, cl), campo, cl,
     meta: num(d.meta_fat), fat: num(d.faturado),
     devolucoesHoje: Array.isArray(d.devolucoes_hoje) ? d.devolucoes_hoje : [],
     dig: num(d.dig_hoje), pos: num(d.pos_hoje),

@@ -768,7 +768,7 @@ function telaVAR(item) {
   const infoLiga0 = pontosLanceOficial(item.tipo, subtipo);
   // Gol qualificado: resgate/mix/quinzenas ganham nivel (bronze..platina) e extra de pontos pelas industrias do pedido
   const qGol = (item.tipo === 'gol' && ['inativo_recuperado', 'drible_vaca', 'recorrencia_salva', 'dobrou_mix', 'dobradinha_quinzenas'].includes(subtipo) && typeof qualificaGolUI === 'function')
-    ? qualificaGolUI((item.v || (item.a && item.a.v) || {}).carteira, item.c || (item.a && item.a.c)) : null;
+    ? qualificaGolUI(carteiraEfetivaUI(item.v || (item.a && item.a.v) || {}), item.c || (item.a && item.a.c)) : null;
   const infoLiga = qGol ? {...infoLiga0, nome: infoLiga0.nome + ' ' + qGol.nivel, pts: '+' + ((parseInt(infoLiga0.pts, 10) || 0) + qGol.extra) + ' PONTOS NA LIGA'} : infoLiga0;
   const seloLiga = infoLiga.pts ? `<div style="background:rgba(15,23,42,.9);border:1px solid ${infoLiga.cor};color:${infoLiga.cor};font-weight:900;padding:6px 12px;border-radius:8px;font-size:14px;margin-bottom:8px;display:inline-flex;align-items:center;gap:6px">🏆 ${infoLiga.nome} · <b>${infoLiga.pts}</b></div>` : '';
 

@@ -1523,6 +1523,14 @@ window.tocaVideoLance = tocaVideoLance;
 
 // Gol qualificado (Vitório, 05/10/2026): nível pela quantidade de INDÚSTRIAS no pedido do cliente (carteira MONDELEZ: categorias).
 // Mesma escada de functions/_lib/qualificacao_gol.js: 1 bronze +0 · 2 prata +1 · 3 ouro +2 · 4 diamante +3 · 5+ platina +4.
+// carteira AUTO (TSJ): mais de 90% do valor dos pedidos de hoje em Mondelez = carteira so Mondelez
+window.carteiraEfetivaUI = function (v) {
+  const c0 = String((v && v.carteira) || '').toUpperCase();
+  if (c0 !== 'AUTO') return c0;
+  let mond = 0, total = 0;
+  ((v && v.cl) || []).forEach((c) => (c.industrias || []).forEach((x) => { total += Number(x.v) || 0; if (x.n === 'MONDELEZ BRASIL') mond += Number(x.v) || 0; }));
+  return total > 0 && mond / total > 0.9 ? 'MONDELEZ' : '';
+};
 window.qualificaGolUI = function (carteira, c) {
   const so = String(carteira || '').toUpperCase() === 'MONDELEZ';
   const lista = c && (so ? c.categorias : c.industrias);
