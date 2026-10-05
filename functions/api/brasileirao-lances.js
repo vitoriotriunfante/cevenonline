@@ -73,6 +73,12 @@ export async function onRequestGet({ request, env }) {
     query += ` ORDER BY hora_sp DESC LIMIT 8000`;
 
     const { results } = await env.DB.prepare(query).bind(...params).all();
+    // Campeao da Rodada (gol_campeao) vale UMA vez por vendedor no mes: some do dia se a mesma chave ja apareceu em dia anterior.
+    const campeaoAntes = new Set();
+    try {
+      const { results: ant } = await env.DB.prepare("SELECT DISTINCT filial, chave FROM tv_lances WHERE chave LIKE '%gol_campeao|%' AND dia < ? AND dia >= ?").bind(dia, dia.slice(0, 7) + '-01').all();
+      for (const a of ant || []) campeaoAntes.add(a.filial + '#' + a.chave);
+    } catch (e) { /* sem historico: nao filtra */ }
     // Impedimento de GPS anterior a 05/10/2026 nao tem comprovacao (auditoria do GPS de check-out: ~metade dos
     // check-outs vinha com ponto-padrao/endereco da empresa e o lance antigo nao guarda distancia, entao nao da
     // para separar o legitimo). Fica no banco, mas nao conta na liga. Decisao do Vitorio: "quero tudo corrigido".
@@ -83,6 +89,7 @@ export async function onRequestGet({ request, env }) {
     const lancesBrutos = (results || []).filter(l => {
       const ch = String(l.chave || '');
       if (dia < GPS_CONFIAVEL_DESDE && GPS_ANTIGO.test(ch)) return false;
+      if (/gol_campeao[|]/.test(ch) && campeaoAntes.has((l.filial || '') + '#' + ch)) return false;
       if (DEVOLUCAO.test(ch)) {
         const o = String(l.obs || '');
         if (!/motivo oficial/.test(o)) return false;

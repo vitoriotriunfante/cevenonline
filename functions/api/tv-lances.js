@@ -61,7 +61,9 @@ export async function onRequestPost({ request, env }) {
     let novos = [];
     // Devolucao: uma NOTA gera UM lance na vida toda (a nota continua na janela de 3 dias e voltaria a cada dia).
     for (let i = validos.length - 1; i >= 0; i--) {
-      if (/^(ver_dev|golcontra_dev)\|/.test(validos[i].chave)) {
+      // gol_campeao (meta do mes batida) tambem e UMA VEZ por vendedor no mes: a chave leva o mes e a condicao continua verdadeira nos dias seguintes
+      // (achado 05/10/2026: ~92 "Campeao da Rodada" por dia, +8 pontos cada, repetidos todo dia e em todas as telas).
+      if (/^([A-Z]{3}[|])?(ver_dev|golcontra_dev|gol_campeao)[|]/.test(validos[i].chave)) {
         const ex = await env.DB.prepare('SELECT 1 AS x FROM tv_lances WHERE filial = ? AND chave = ? AND dia != ? LIMIT 1').bind(filial, validos[i].chave, dia).first();
         if (ex) validos.splice(i, 1);
       }
