@@ -187,9 +187,19 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     const listados = [...an.matchAll(/'\/animacoes\/videos\/([a-z_0-9]+\.mp4)'/g)].map(m => m[1]);
     const faltam = [...new Set(listados)].filter(f => !existsSync(join(dir, f)));
     ok(listados.filter(f => f.startsWith('gol_')).length >= 20, 'a TV lista os 20 videos de gol (gol_1 a gol_20)');
-    ok(faltam.every(f => f === 'gol_20.mp4' || ['defesa_1.mp4','defesa_2.mp4','defesa_3.mp4','hattrick_1.mp4','semanainvicta_1.mp4','golcontra_1.mp4','golcontra_2.mp4','campeao_1.mp4','goleada_1.mp4'].includes(f)), 'todo video de gol/lance listado existe na pasta (faltando: ' + (faltam.join(', ') || 'nenhum') + ')'); }
+    ok(faltam.every(f => f === 'gol_20.mp4' || ['defesa_1.mp4','defesa_2.mp4','defesa_3.mp4','defesa_4.mp4','defesa_5.mp4','defesa_6.mp4','hattrick_1.mp4','semanainvicta_1.mp4','golcontra_1.mp4','golcontra_2.mp4','campeao_1.mp4','goleada_1.mp4'].includes(f)), 'todo video de gol/lance listado existe na pasta (faltando: ' + (faltam.join(', ') || 'nenhum') + ')'); }
   { const vs = ler('functions/api/varredura-status.js').split('\n').filter(l => !l.trim().startsWith('//')).join('\n');
     ok(vs.includes('SELECT rca_codigo, updated_at FROM varredura_central_rca') && !/\b(INSERT|UPDATE|DELETE)\b/.test(vs) && !vs.includes('fetch('), 'varredura-status e so leitura do D1 (nao grava e nao chama o CEVEN)'); }
+  { const cr = ler('functions/api/cron-mapa-executivo.js'), tv = ler('functions/api/tv-vendedor.js'), mz = ler('public/matrizapp.html');
+    ok(!cr.includes('DELETE FROM resumo_executivo_live') && cr.includes('ON CONFLICT (filial_sigla, data_ref) DO UPDATE SET') && !/INSERT OR REPLACE INTO resumo_executivo_live/.test(cr) && !cr.includes('mes_faturado = excluded'), 'totais do mes da TV executiva nao sao zerados: o mapa grava so as colunas do dia (o mes e do cron-faturado-mes)');
+    ok(cr.includes('dia.total_programado') && cr.includes('dia.visitas_na_rota') && cr.includes('dia.visitas_com_venda') && cr.includes('&& !ocultoRca'), 'visitas da TV executiva = contadores oficiais do CEVEN (programadas, na rota, com venda) e sem vendedores ocultos');
+    ok(tv.includes('visitas_na_rota') && tv.includes('valorVendaAtual') && tv.includes('valorAtual'), 'tv-vendedor expoe as visitas oficiais e o valor do pedido de hoje por cliente');
+    ok(mz.includes('feitasCeven') && mz.includes('rotaCeven') && mz.includes('(CEVEN)'), 'Matriz mostra as mesmas visitas oficiais do CEVEN que a TV executiva'); }
+  { const cl = ler('functions/api/cron-lances.js'), tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), an = ler('public/animacoes/tv-animacoes.js');
+    const semDuplo = (src) => src.includes('ehInativo && !ehRecorrencia') && !/\(ehInativo \|\| ehRecorrencia\)/.test(src);
+    ok(semDuplo(cl) && semDuplo(tv) && semDuplo(mz), 'recorrencia vira so defesa: cliente com a tag RECORRENCIA nao gera mais gol de resgate junto com a defesa (coletor, TV e Matriz)');
+    ok(/defesa: \['\/animacoes\/videos\/defesa_1\.mp4'/.test(an) && an.includes('defesa_6.mp4'), 'a TV lista os videos de defesa (defesa_1 a defesa_6)');
+    ok(mz.includes('${vPed > 0 ?'), 'popup da Defesa na Matriz nao mostra "VALOR DA VENDA R$ 0" quando nao ha valor'); }
   ok(!/const EVO_KEY = '/.test(eng) && !/const EVO_URL = '/.test(eng) && eng.includes('process.env.EVO_URL') && eng.includes('process.env.EVO_KEY'), 'servidor de WhatsApp vem dos segredos EVO_URL / EVO_KEY (nada no codigo)');
   for (const wf of ['.github/workflows/ceven-cron-whatsapp.yml', '.github/workflows/ceven-cron-marca-propria.yml']) {
     const y = ler(wf);
@@ -239,7 +249,7 @@ secao('5b. Relogios da TV no Worker (varredura, lances, mapa, faturado)');
   const chamadas = [];
   globalThis.fetch = async (url) => { chamadas.push(String(url)); return { status: 200 }; };
   const esperado = {
-    '*/5 * * * *': ['/api/cron-varredura-central', '/api/cron-piloto-pedidos'],
+    '*/2 * * * *': ['/api/cron-varredura-central', '/api/cron-piloto-pedidos'],
     '4-59/5 * * * *': ['/api/cron-lances'],
     '2-59/5 * * * *': ['/api/cron-mapa-executivo'],
     '2-59/15 * * * *': ['/api/cron-faturado-mes']
@@ -256,7 +266,7 @@ secao('5b. Relogios da TV no Worker (varredura, lances, mapa, faturado)');
   // uma chamada que falha nao derruba o gatilho
   globalThis.fetch = async () => { throw new Error('site fora do ar'); };
   let derrubou = false;
-  try { await w.scheduled({ cron: '*/5 * * * *' }, {}, {}); } catch (e) { derrubou = true; }
+  try { await w.scheduled({ cron: '*/2 * * * *' }, {}, {}); } catch (e) { derrubou = true; }
   ok(!derrubou, 'erro em uma chamada nao derruba o gatilho da TV');
   // gatilho desconhecido e ignorado sem chamar nada
   chamadas.length = 0; globalThis.fetch = async (u) => { chamadas.push(String(u)); return { status: 200 }; };
@@ -388,6 +398,15 @@ secao('8b. Plus de Lideranca do supervisor: +15 compromisso (ate 10:00), +25 RET
     (r.stdout || '').split('\n').filter(l => /^\s+(ok|FALHOU)/.test(l)).forEach(l => ok(/ok\s+-/.test(l), l.replace(/^\s+(ok|FALHOU)\s+-\s+/, '')));
     ok(r.status === 0, 'teste da conta do Plus terminou sem erro');
   }
+}
+
+// ---------------------------------------------------------------- 8c. varredura central em camadas (pedidos quase em tempo real)
+secao('8c. Varredura central em camadas: pedido a cada 2 min, resto em fatias, trava unica e teto de 6 chamadas');
+{
+  const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_varredura.mjs')).href)).default;
+  await t(ok);
+  const toml = ler('worker-cron/wrangler.toml'), idx = ler('worker-cron/src/index.js');
+  ok(toml.includes('"*/2 * * * *"') && idx.includes("'*/2 * * * *'") && idx.includes('/api/cron-varredura-central'), 'o relogio do Worker chama a varredura central a cada 2 minutos (wrangler.toml e index.js iguais)');
 }
 
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)

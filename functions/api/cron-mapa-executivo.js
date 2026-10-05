@@ -177,7 +177,9 @@ export async function onRequestGet({ env, request, waitUntil }) {
       // Só entra nos agregados de visita/positivação se for canal de campo (VJ/PET VJ/FARMA/ESP)
       // — AS/PET AS/GER/SUP não têm cobrança de rota (ver ficha do arquivo, decisão 28/09/2026).
       const canalRca = canalPorRca.get(String(rca.codigo)) || '';
-      const ehCampo = CANAIS_CAMPO.includes(canalRca);
+      // Vendedor OCULTO pela equipe (mostra:false) nao entra nos KPIs de campo (mesma regra das outras telas)
+      const ocultoRca = !!(canalPorRca.ocultos && canalPorRca.ocultos.has(String(rca.codigo)));
+      const ehCampo = CANAIS_CAMPO.includes(canalRca) && !ocultoRca;
       const aFil = ehCampo ? pega(sig) : null, aNac = ehCampo ? pega('TODAS') : null;
       // PEDIDOS COLOCADOS e VALOR DIGITADO entram de TODOS os vendedores, de qualquer canal (decisao do Vitorio,
       // 05/10/2026: "pedidos entra de tudo, a empresa quer saber de tudo"). Pedido digitado hoje = produtividade.dia.positivacao
@@ -189,8 +191,14 @@ export async function onRequestGet({ env, request, waitUntil }) {
         aF.digitado += digPedidoRca; aN.digitado += digPedidoRca;
         aF.pedidos += pedDigRca; aN.pedidos += pedDigRca; }
       if (ehCampo) { pegaRec(sig).pedidosCampo += pedDigRca; pegaRec('TODAS').pedidosCampo += pedDigRca; } // so para a media pedidos/visita
+      // VISITAS = contadores oficiais do CEVEN (produtividade.dia), os mesmos do app do vendedor: total_programado, visitas_na_rota,
+      // visitas_com_venda. Antes a Executiva contava por status do roteiro e a Matriz contava outro jeito (incluia FORA_ROTA).
+      if (ehCampo) {
+        const dia = prod?.dia || {};
+        const prog = Number(dia.total_programado) || 0, naRota = Number(dia.visitas_na_rota) || 0, comV = Number(dia.visitas_com_venda) || 0;
+        aFil.rota += prog; aNac.rota += prog; aFil.feitas += naRota; aNac.feitas += naRota; aFil.comVenda += comV; aNac.comVenda += comV;
+      }
       let rcaTeveVenda = false;
-      const ocultoRca = !!(canalPorRca.ocultos && canalPorRca.ocultos.has(String(rca.codigo)));
       for (const c of roteiro) {
         const status = String(c.status || '').toUpperCase();
         if (!ocultoRca && ehRecorrencia(c)) {
@@ -198,10 +206,7 @@ export async function onRequestGet({ env, request, waitUntil }) {
           if (STATUS_POSITIVADO.includes(status)) { pegaRec(sig).positivados++; pegaRec('TODAS').positivados++; }
         }
         if (ehCampo) {
-          aFil.rota++; aNac.rota++;
-          if (STATUS_VISITADO.includes(status)) { aFil.feitas++; aNac.feitas++; }
           if (STATUS_POSITIVADO.includes(status)) {
-            aFil.comVenda++; aNac.comVenda++;
             rcaTeveVenda = true;
           } else if (status === 'JUSTIFICADO' || (STATUS_VISITADO.includes(status) && c.motivo_nao_visita)) {
             aFil.semVenda++; aNac.semVenda++;
@@ -294,13 +299,19 @@ export async function onRequestGet({ env, request, waitUntil }) {
     await env.DB.batch(stmts);
   }
 
-  await env.DB.prepare('DELETE FROM resumo_executivo_live WHERE data_ref = ?').bind(dataRef).run();
+  // NAO apaga a linha do dia: as colunas mes_* (faturado/meta/positivados do MES) sao gravadas por cron-faturado-mes e eram ZERADAS
+  // aqui a cada rodada (a TV Executiva mostrava R$ 0 e 0% da meta; 05/10/2026). UPSERT so das colunas do dia.
   const stmtsResumo = Object.entries(agg).map(([sig, a]) =>
     env.DB.prepare(
-      `INSERT OR REPLACE INTO resumo_executivo_live
-       (filial_sigla, data_ref, visitas_feitas, visitas_rota, com_venda, sem_venda, pedidos_hoje, digitado_hoje, vendedores_com_venda, resgatados_hoje, valor_resgatado_hoje, soma_skus, soma_valor_pedidos, n_pedidos_com_sku, mes_faturado, mes_meta_faturado, mes_positivados, mes_meta_positivados, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`
-    ).bind(sig, dataRef, a.feitas, a.rota, a.comVenda, a.semVenda, a.pedidos, a.digitado, a.rcasComVenda, a.resgatados, a.valorResgatado, a.somaSkus, a.somaValorPedidos, a.nPedidosComSku, a.mesFaturado, a.mesMetaFaturado, a.mesPositivados, a.mesMetaPositivados)
+      `INSERT INTO resumo_executivo_live
+       (filial_sigla, data_ref, visitas_feitas, visitas_rota, com_venda, sem_venda, pedidos_hoje, digitado_hoje, vendedores_com_venda, resgatados_hoje, valor_resgatado_hoje, soma_skus, soma_valor_pedidos, n_pedidos_com_sku, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+       ON CONFLICT (filial_sigla, data_ref) DO UPDATE SET
+         visitas_feitas = excluded.visitas_feitas, visitas_rota = excluded.visitas_rota, com_venda = excluded.com_venda, sem_venda = excluded.sem_venda,
+         pedidos_hoje = excluded.pedidos_hoje, digitado_hoje = excluded.digitado_hoje, vendedores_com_venda = excluded.vendedores_com_venda,
+         resgatados_hoje = excluded.resgatados_hoje, valor_resgatado_hoje = excluded.valor_resgatado_hoje, soma_skus = excluded.soma_skus,
+         soma_valor_pedidos = excluded.soma_valor_pedidos, n_pedidos_com_sku = excluded.n_pedidos_com_sku, updated_at = CURRENT_TIMESTAMP`
+    ).bind(sig, dataRef, a.feitas, a.rota, a.comVenda, a.semVenda, a.pedidos, a.digitado, a.rcasComVenda, a.resgatados, a.valorResgatado, a.somaSkus, a.somaValorPedidos, a.nPedidosComSku)
   );
   if (stmtsResumo.length) await env.DB.batch(stmtsResumo);
 

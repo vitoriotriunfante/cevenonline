@@ -87,7 +87,7 @@ const VIDEO_ARQUIVOS = {
   amarelo: ['/animacoes/videos/amarelo_1.mp4', '/animacoes/videos/amarelo_2.mp4', '/animacoes/videos/amarelo_3.mp4'],
   impedimento: ['/animacoes/videos/impedimento_1.mp4', '/animacoes/videos/impedimento_2.mp4', '/animacoes/videos/impedimento_3.mp4'],
   penalti: ['/animacoes/videos/penalti_1.mp4', '/animacoes/videos/penalti_2.mp4', '/animacoes/videos/penalti_3.mp4'],
-  defesa: [],
+  defesa: ['/animacoes/videos/defesa_1.mp4', '/animacoes/videos/defesa_2.mp4', '/animacoes/videos/defesa_3.mp4', '/animacoes/videos/defesa_4.mp4', '/animacoes/videos/defesa_5.mp4', '/animacoes/videos/defesa_6.mp4'], // defesa_1 a defesa_6: gerar com os prompts de defesa (ate existirem, a TV usa a animacao desenhada)
   // Hat-Trick e Semana Invicta: vídeo de FUNDO genérico (sem valores/números — esses continuam
   // aparecendo só na tela de decisão, como hoje). 1 arquivo cada, sem variações.
   hattrick: [],

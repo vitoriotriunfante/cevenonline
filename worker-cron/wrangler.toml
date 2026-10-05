@@ -34,7 +34,7 @@ crons = [
   "30 17 * * 2-6", # 14:30 BRT -> ceven-cron-whatsapp.yml (Parcial da tarde)
   "0 20 * * 2-6",  # 17:00 BRT -> ceven-cron-whatsapp.yml (Reta final)
   "30 21 * * 2-6", # 18:30 BRT -> ceven-cron-whatsapp.yml (Fechamento oficial)
-  "*/5 * * * *",      # TV: varredura central (+ coletor do piloto) -> chamada direta as funcoes do site
+  "*/2 * * * *",      # TV: varredura central EM CAMADAS (pedidos a cada 2 min; resto em fatias) + coletor do piloto
   "4-59/5 * * * *",   # TV: coleta de lances (minutos 4,9,14...)
   "2-59/5 * * * *",   # TV: mapa executivo (minutos 2,7,12...)
   "2-59/15 * * * *"   # TV: faturado do mes (minutos 2,17,32,47)

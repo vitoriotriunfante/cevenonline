@@ -143,7 +143,9 @@ function calcAlertas(vs, t) {
       const diasC = diasDesde(c.ultima_compra, t.dia);
       const ehInativo = diasC != null && diasC > 30;
       const ehRecorrencia = !!c.recorrencia;
-      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && (ehInativo || ehRecorrencia)) {
+      // RECORRENCIA = DEFESA (+3), nunca gol (decisao do Vitorio, 05/10/2026): antes o mesmo cliente com a tag gerava gol de
+      // resgate (+6) E defesa (+3). O gol de resgate fica so para cliente parado ha mais de 30 dias SEM a tag.
+      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && ehInativo && !ehRecorrencia) {
         out.push({ chave: `gol_inativo|${v.id}|${c.id}`, nivel: 'gol', v, c });
       }
       if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && c.checkin_horario) {

@@ -73,7 +73,9 @@ function analisaPedido(historico) {
     });
     dobradinhaQuinzenas = comprouOutraQuinzena;
   }
-  return { skusAtual, mediaHistorica, dobrouMix: mediaHistorica != null ? mixDobrado(skusAtual, mediaHistorica) : false, bonificacao, dobradinhaQuinzenas };
+  // valor do pedido de HOJE (visita mais recente do cliente) — alimenta "VALOR DA VENDA" dos lances (antes vinha vazio: R$ 0)
+  const valorAtual = Array.isArray(atual?.skus) ? atual.skus.reduce((s, item) => s + (Number(item.total) || 0), 0) : 0;
+  return { skusAtual, mediaHistorica, dobrouMix: mediaHistorica != null ? mixDobrado(skusAtual, mediaHistorica) : false, bonificacao, dobradinhaQuinzenas, valorAtual };
 }
 
 function montarTv(id, dash, prod, rot, analisePorCliente) {
@@ -92,6 +94,7 @@ function montarTv(id, dash, prod, rot, analisePorCliente) {
     dig_hoje: num(dia.dig_pedido),
     pos_hoje: num(dia.positivacao),
     visitas_prog: num(dia.total_programado),
+    visitas_na_rota: num(dia.visitas_na_rota), // oficial do CEVEN: visitas realizadas na rota hoje
     visitas_com_venda: num(dia.visitas_com_venda),
     clientes: Array.isArray(rot)
       ? rot.map((c) => ({
@@ -108,6 +111,7 @@ function montarTv(id, dash, prod, rot, analisePorCliente) {
           checkout_lat: num(c.checkout_latitude),
           checkout_lon: num(c.checkout_longitude),
           recorrencia: Array.isArray(c.focos) ? c.focos.some((f) => String(f?.industria_foco || '').toUpperCase().includes('RECORRENCIA')) : false,
+          valorVendaAtual: analisePorCliente?.[c.id_cliente]?.valorAtual || 0,
           dobrouMix: analisePorCliente?.[c.id_cliente]?.dobrouMix || false,
           bonificacao: analisePorCliente?.[c.id_cliente]?.bonificacao || false,
           dobradinhaQuinzenas: analisePorCliente?.[c.id_cliente]?.dobradinhaQuinzenas || false

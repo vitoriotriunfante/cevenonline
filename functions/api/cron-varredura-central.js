@@ -1,23 +1,23 @@
 // =========================================================================
 // FICHA DO ARQUIVO
-// O QUE É: ETAPA 1 da unificação (decisão do Vitório, 29/09/2026: "não é tudo a mesma base? se
-//          deixar tudo na mesma consulta facilita"). Varre TODOS os RCAs ativos chamando os 4
-//          endpoints fixos por RCA — roteiro-hoje, produtividade, dashboard, devolucoes — UMA
-//          ÚNICA VEZ, e grava o payload cru em varredura_central_rca (migration 0006). Objetivo
-//          final: WhatsApp, TV Executiva (mapa + faturado) e futuramente CFTV/Brasileirão leem
-//          TODOS dessa tabela em vez de cada um bater no CEVEN separadamente pelos mesmos RCAs.
-// STATUS (29/09/2026): só GRAVA por enquanto. NENHUM consumidor lê daqui ainda — WhatsApp,
-//          cron-mapa-executivo.js e cron-faturado-mes.js continuam com suas próprias varreduras,
-//          intocados. Migrar cada consumidor pra ler daqui é o próximo passo, um de cada vez,
-//          validando que o dado bate antes de trocar de vez (WhatsApp manda mensagem real pros
-//          gerentes — errar isso tem custo alto, não dá pra trocar sem validar).
-// NÃO CENTRALIZADO: /api/rca/historico-cliente/{id}, que cada consumidor chama seletivamente
-//          (regras de negócio diferentes: cliente inativo 30d, foco de campanha, resgate de
-//          "ouro na mesa", G03/V03 da TV) — fica de fora por ora, é a parte mais variável.
-// LOCK: respeita o lock global do WhatsApp (cron-lock.js) — pula o ciclo se o WhatsApp estiver
-//          ativo, igual aos outros crons da TV.
-// REGRA: nunca inventa dado. Endpoint que falhar fica de fora do JSON gravado (campo null),
-//          nunca usa valor de outro RCA ou de outro dia no lugar.
+// O QUE É: varredura CENTRAL dos RCAs no CEVEN, gravada em varredura_central_rca (migration 0006). Todas as telas e o
+//          WhatsApp leem DESSA tabela em vez de cada um bater no CEVEN pelos mesmos RCAs (decisão do Vitório,
+//          29/09/2026: "não é tudo a mesma base?").
+// REORGANIZADA EM CAMADAS (05/10/2026, pedido do Vitório: "varrer os pedidos, que é o mais importante, e os outros aos
+//          poucos; deixar o mais próximo possível do TEMPO REAL"). Antes: tudo de todos a cada ~16 min (4,7 min de
+//          varredura + guarda de 10 min), então o pedido chegava na TV com 5 a 20 minutos de atraso. Agora, a cada tick:
+//   1. QUENTE  — produtividade (pedidos, valor digitado, positivação) de quem tem rota hoje ou já vendeu: TODO tick.
+//   2. EVENTO  — rota (roteiro-hoje) só de quem acabou de mudar o pedido/valor: atualiza status, recorrência e mapa na hora.
+//   3. MORNA   — rota de todos, em fatias (1/3 por tick) + produtividade de quem não tem rota (1/3 por tick).
+//   4. FRIA    — dashboard (meta/faturado do mês) e devoluções, em fatias (1/10 por tick).
+//   Partida a frio (menos de metade dos RCAs gravados hoje) ou ?forcar=1: varredura COMPLETA, como era antes.
+// TRAVA ÚNICA: tabela varredura_slot (1 linha). Só uma rodada por vez => nunca passa de CONC (6) chamadas simultâneas ao
+//          CEVEN por causa desta função. Trava expira sozinha (tick 150 s, completa 420 s) se a função cair no meio.
+// ORÇAMENTO DE TEMPO: o tick para de buscar fatias quando passa de 100 s (a camada quente sempre vai primeiro).
+// CONSUMIDORES: não mudam. Linhas continuam na mesma tabela; updated_at = última atualização de QUALQUER parte da linha.
+// LOCK: respeita o lock global do WhatsApp (cron-lock.js) — pula o ciclo se o WhatsApp estiver ativo.
+// REGRA: nunca inventa dado. Endpoint que falhar não altera o que já estava gravado (nunca zera por falha).
+// NÃO CENTRALIZADO: /api/rca/historico-cliente/{id} (cada consumidor chama seletivamente).
 // =========================================================================
 
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
@@ -25,14 +25,19 @@ const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' };
 // LIMITE PRATICO DE CHAMADAS SIMULTANEAS AO CEVEN = 6 (decisao do Vitorio, 03/10/2026; medido: ate 6 nao muda
 // a resposta, com 9 a latencia dobra). Antes: lotes de 20 RCAs x 4 chamadas = 80 simultaneas.
 const CONC = 6;
+const ORCAMENTO_TICK_MS = 100000;   // para de buscar fatias depois disso
+const SLOT_TICK_S = 150, SLOT_COMPLETA_S = 420;
+const FATIAS_ROTA = 3;              // cada RCA tem a rota atualizada a cada 3 ticks (se nao mudou o pedido)
+const FATIAS_FRIA = 10;             // dashboard/devolucoes a cada 10 ticks
 
-async function poolLimitado(tarefas, n) {
+async function poolLimitado(tarefas, n, prazo) {
   const saida = new Array(tarefas.length);
   let proximo = 0;
-  await Promise.all(Array.from({ length: n }, async () => {
+  await Promise.all(Array.from({ length: Math.min(n, tarefas.length) }, async () => {
     while (true) {
       const k = proximo++;
       if (k >= tarefas.length) return;
+      if (prazo && Date.now() > prazo) { saida[k] = undefined; continue; } // estourou o orcamento: pula (fica para o proximo tick)
       saida[k] = await tarefas[k]();
     }
   }));
@@ -57,108 +62,171 @@ function dataHojeBrasilia() {
   return `${p.year}-${p.month}-${p.day}`;
 }
 
-const espera = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const urlRca = (ep, rca) => `${CEVEN}/api/rca/${ep}?filial=${String(rca.filial || '').toLowerCase() + '1'}&id=${rca.codigo}`;
+const num = (x) => { const n = Number(x); return Number.isFinite(n) ? n : 0; };
+
+async function tomaSlot(env, dono, expiraS) {
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS varredura_slot (id INTEGER PRIMARY KEY CHECK (id = 1), dono TEXT, criado_em TEXT, ciclo INTEGER NOT NULL DEFAULT 0)').run();
+  await env.DB.prepare('INSERT OR IGNORE INTO varredura_slot (id, dono, criado_em, ciclo) VALUES (1, NULL, NULL, 0)').run();
+  const r = await env.DB.prepare(
+    "UPDATE varredura_slot SET dono = ?, criado_em = CURRENT_TIMESTAMP, ciclo = ciclo + 1 WHERE id = 1 AND (dono IS NULL OR criado_em IS NULL OR criado_em < datetime('now', ?))"
+  ).bind(dono, `-${expiraS} seconds`).run();
+  const mudou = r && r.meta ? r.meta.changes : r && r.changes;
+  if (!mudou) return null;
+  const linha = await env.DB.prepare('SELECT ciclo FROM varredura_slot WHERE id = 1').first();
+  return { ciclo: linha ? linha.ciclo : 1 };
+}
+async function soltaSlot(env, dono) {
+  try { await env.DB.prepare('UPDATE varredura_slot SET dono = NULL WHERE id = 1 AND dono = ?').bind(dono).run(); } catch {}
+}
+
+async function gravaLote(env, stmts) {
+  const TAM = 40;
+  for (let i = 0; i < stmts.length; i += TAM) await env.DB.batch(stmts.slice(i, i + TAM));
+}
+
+// UPSERT parcial: so as colunas informadas mudam; as demais ficam como estavam. Linha nova entra com o que veio.
+function upsertParcial(env, dataRef, rca, campos) {
+  const cols = Object.keys(campos);
+  const insCols = ['rca_codigo', 'filial_sigla', 'data_ref', ...cols, 'updated_at'];
+  const marcas = ['?', '?', '?', ...cols.map(() => '?'), 'CURRENT_TIMESTAMP'].join(', ');
+  const sets = [...cols.map((c) => `${c} = excluded.${c}`), 'updated_at = CURRENT_TIMESTAMP'].join(', ');
+  return env.DB.prepare(
+    `INSERT INTO varredura_central_rca (${insCols.join(', ')}) VALUES (${marcas})
+     ON CONFLICT (rca_codigo, data_ref) DO UPDATE SET ${sets}`
+  ).bind(String(rca.codigo), String(rca.filial || '').toUpperCase(), dataRef, ...cols.map((c) => campos[c]));
+}
 
 export async function onRequestGet({ env, request }) {
   const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 (env.DB) não configurado' }), { status: 503, headers: cors });
+  const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: cors });
 
   const t0 = Date.now();
   const dataRef = dataHojeBrasilia();
   const forcar = new URL(request.url).searchParams.has('forcar');
 
+  // lock global do WhatsApp (prioridade sobre TV/CFTV)
   if (!forcar) {
-    const ultima = await env.DB.prepare(
-      'SELECT MAX(updated_at) as u FROM varredura_central_rca WHERE data_ref = ?'
-    ).bind(dataRef).first();
-    if (ultima && ultima.u) {
-      const idadeMs = Date.now() - new Date(ultima.u + 'Z').getTime();
-      if (idadeMs < 10 * 60 * 1000) {
-        return new Response(JSON.stringify({ status: 'CACHE_FRESCO', idade_s: Math.round(idadeMs / 1000) }), { headers: cors });
-      }
-    }
-
-    const lock = await env.DB.prepare("SELECT dono, criado_em FROM cron_lock_global WHERE id = 1").first().catch(() => null);
+    const lock = await env.DB.prepare('SELECT dono, criado_em FROM cron_lock_global WHERE id = 1').first().catch(() => null);
     if (lock) {
       const idadeLockMs = Date.now() - new Date(lock.criado_em + 'Z').getTime();
-      if (idadeLockMs < 20 * 60 * 1000) {
-        return new Response(JSON.stringify({ status: 'PULADO_WHATSAPP_ATIVO', dono: lock.dono, idade_lock_s: Math.round(idadeLockMs / 1000) }), { headers: cors });
-      }
+      if (idadeLockMs < 20 * 60 * 1000) return resp({ status: 'PULADO_WHATSAPP_ATIVO', dono: lock.dono, idade_lock_s: Math.round(idadeLockMs / 1000) });
     }
   }
 
   const { results: rcas } = await env.DB.prepare(
     'SELECT r.codigo, UPPER(COALESCE(f.codigo, r.filial_id)) as filial FROM representantes r LEFT JOIN filiais f ON r.filial_id = f.id WHERE r.ativo = 1'
   ).all();
+  if (!rcas || !rcas.length) return resp({ erro: 'nenhum representante ativo encontrado no D1' }, 502);
 
-  if (!rcas || !rcas.length) {
-    return new Response(JSON.stringify({ erro: 'nenhum representante ativo encontrado no D1' }), { status: 502, headers: cors });
-  }
+  // estado de hoje: quem ja esta gravado, tem rota ou ja vendeu, e os valores anteriores (para detectar mudanca de pedido)
+  const { results: estado } = await env.DB.prepare(
+    `SELECT rca_codigo,
+            COALESCE(json_array_length(roteiro_json), 0) AS n_rota,
+            CAST(COALESCE(json_extract(produtividade_json, '$.dia.positivacao'), 0) AS REAL) AS pos,
+            CAST(COALESCE(json_extract(produtividade_json, '$.dia.dig_pedido'), 0) AS REAL) AS dig
+       FROM varredura_central_rca WHERE data_ref = ?`
+  ).bind(dataRef).all();
+  const ant = new Map((estado || []).map((e) => [String(e.rca_codigo), e]));
 
-  let ok = 0, comFalha = 0;
-  const linhas = [];
+  const completa = forcar || ant.size < Math.ceil(rcas.length * 0.5);   // partida a frio ou recuperacao
+  const dono = (completa ? 'completa:' : 'tick:') + t0;
+  const slot = await tomaSlot(env, dono, completa ? SLOT_COMPLETA_S : SLOT_TICK_S);
+  if (!slot) return resp({ status: 'OCUPADO', motivo: 'outra rodada da varredura esta em andamento' });
 
-  const ENDPOINTS = ['roteiro-hoje', 'produtividade', 'dashboard', 'devolucoes'];
-  const tarefas = [];
-  for (const rca of rcas) {
-    const q = `filial=${String(rca.filial || '').toLowerCase() + '1'}&id=${rca.codigo}`;
-    for (const ep of ENDPOINTS) tarefas.push(() => getJson(`${CEVEN}/api/rca/${ep}?${q}`));
-  }
-  const respostas = await poolLimitado(tarefas, CONC);
-  const resultados = rcas.map((rca, idx) => ({
-    rca,
-    roteiro: respostas[idx * 4],
-    produtividade: respostas[idx * 4 + 1],
-    dashboard: respostas[idx * 4 + 2],
-    devolucoes: respostas[idx * 4 + 3]
-  }));
-  {
-    for (const { rca, roteiro, produtividade, dashboard, devolucoes } of resultados) {
-      const falhas = [];
-      if (!Array.isArray(roteiro)) falhas.push('roteiro');
-      if (!produtividade) falhas.push('produtividade');
-      if (!dashboard) falhas.push('dashboard');
-      if (!Array.isArray(devolucoes)) falhas.push('devolucoes');
-      if (falhas.length === 4) { comFalha++; continue; } // nenhum endpoint respondeu, nada pra gravar
-      ok++;
-      linhas.push({
-        rca: String(rca.codigo),
-        filial: String(rca.filial || '').toUpperCase(),
-        roteiro: JSON.stringify(roteiro || null),
-        produtividade: JSON.stringify(produtividade || null),
-        dashboard: JSON.stringify(dashboard || null),
-        devolucoes: JSON.stringify(devolucoes || null),
-        falhas: falhas.join(',')
+  try {
+    // ---------- VARREDURA COMPLETA (partida a frio): os 4 endpoints de todos, como era ----------
+    if (completa) {
+      const ENDPOINTS = ['roteiro-hoje', 'produtividade', 'dashboard', 'devolucoes'];
+      const tarefas = [];
+      for (const rca of rcas) for (const ep of ENDPOINTS) tarefas.push(() => getJson(urlRca(ep, rca)));
+      const respostas = await poolLimitado(tarefas, CONC);
+      const stmts = [];
+      let ok = 0, comFalha = 0;
+      rcas.forEach((rca, idx) => {
+        const roteiro = respostas[idx * 4], produtividade = respostas[idx * 4 + 1], dashboard = respostas[idx * 4 + 2], devolucoes = respostas[idx * 4 + 3];
+        const falhas = [];
+        if (!Array.isArray(roteiro)) falhas.push('roteiro');
+        if (!produtividade) falhas.push('produtividade');
+        if (!dashboard) falhas.push('dashboard');
+        if (!Array.isArray(devolucoes)) falhas.push('devolucoes');
+        if (falhas.length === 4) { comFalha++; return; }
+        ok++;
+        stmts.push(upsertParcial(env, dataRef, rca, {
+          roteiro_json: JSON.stringify(roteiro || null), produtividade_json: JSON.stringify(produtividade || null),
+          dashboard_json: JSON.stringify(dashboard || null), devolucoes_json: JSON.stringify(devolucoes || null), falhas: falhas.join(',')
+        }));
       });
+      if (!stmts.length) return resp({ erro: 'CEVEN não respondeu nenhum RCA', rcas_total: rcas.length }, 502);
+      await gravaLote(env, stmts);
+      return resp({ status: 'ATUALIZADO', modo: 'completa', data_ref: dataRef, rcas_total: rcas.length, rcas_gravados: ok, rcas_sem_nenhuma_resposta: comFalha, duracao_ms: Date.now() - t0 });
     }
-  }
 
-  if (!linhas.length) {
-    return new Response(JSON.stringify({ erro: 'CEVEN não respondeu nenhum RCA', rcas_total: rcas.length }), { status: 502, headers: cors });
-  }
+    // ---------- TICK EM CAMADAS ----------
+    const ciclo = slot.ciclo;
+    const prazo = t0 + ORCAMENTO_TICK_MS;
+    const quente = [], semRota = [];
+    for (const rca of rcas) {
+      const a = ant.get(String(rca.codigo));
+      if (!a || a.n_rota > 0 || a.pos > 0 || a.dig > 0) quente.push(rca); else semRota.push(rca);
+    }
+    const stmts = [];
+    const contagem = { quente: 0, evento: 0, rota: 0, semRota: 0, fria: 0, falhas: 0 };
+    const jaBuscouRota = new Set();
 
-  const TAM_BATCH = 40;
-  for (let i = 0; i < linhas.length; i += TAM_BATCH) {
-    const fatia = linhas.slice(i, i + TAM_BATCH);
-    const stmts = fatia.map((l) =>
-      env.DB.prepare(
-        `INSERT INTO varredura_central_rca (rca_codigo, filial_sigla, data_ref, roteiro_json, produtividade_json, dashboard_json, devolucoes_json, falhas, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-         ON CONFLICT (rca_codigo, data_ref) DO UPDATE SET
-           filial_sigla = excluded.filial_sigla, roteiro_json = excluded.roteiro_json,
-           produtividade_json = excluded.produtividade_json, dashboard_json = excluded.dashboard_json,
-           devolucoes_json = excluded.devolucoes_json, falhas = excluded.falhas, updated_at = CURRENT_TIMESTAMP`
-      ).bind(l.rca, l.filial, dataRef, l.roteiro, l.produtividade, l.dashboard, l.devolucoes, l.falhas)
-    );
-    await env.DB.batch(stmts);
-  }
+    // 1. QUENTE: produtividade de quem tem rota / ja vendeu (+ 1/3 de quem nao tem rota, para nao perder televenda/loja)
+    const alvoProd = quente.concat(semRota.filter((_, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA));
+    contagem.semRota = alvoProd.length - quente.length;
+    const prods = await poolLimitado(alvoProd.map((rca) => () => getJson(urlRca('produtividade', rca))), CONC);
+    const mudou = [];
+    alvoProd.forEach((rca, i) => {
+      const p = prods[i];
+      if (!p) { contagem.falhas++; return; }
+      contagem.quente++;
+      stmts.push(upsertParcial(env, dataRef, rca, { produtividade_json: JSON.stringify(p) }));
+      const a = ant.get(String(rca.codigo));
+      const pos = num(p?.dia?.positivacao), dig = num(p?.dia?.dig_pedido);
+      if (!a || pos !== num(a.pos) || dig !== num(a.dig)) mudou.push(rca);   // pedido novo (ou RCA novo): busca a rota agora
+    });
+    await gravaLote(env, stmts.splice(0));
 
-  return new Response(JSON.stringify({
-    status: 'ATUALIZADO',
-    data_ref: dataRef,
-    rcas_total: rcas.length,
-    rcas_gravados: ok,
-    rcas_sem_nenhuma_resposta: comFalha,
-    duracao_ms: Date.now() - t0
-  }), { headers: cors });
+    // 2. EVENTO: rota de quem mudou o pedido
+    const rotasEvento = await poolLimitado(mudou.map((rca) => () => getJson(urlRca('roteiro-hoje', rca))), CONC, prazo + 20000);
+    mudou.forEach((rca, i) => {
+      const r = rotasEvento[i];
+      if (!Array.isArray(r)) return;
+      contagem.evento++;
+      jaBuscouRota.add(String(rca.codigo));
+      stmts.push(upsertParcial(env, dataRef, rca, { roteiro_json: JSON.stringify(r) }));
+    });
+
+    // 3. MORNA: rota de todos, em fatias (so quem ainda nao foi buscado por evento)
+    const fatiaRota = rcas.filter((rca, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA && !jaBuscouRota.has(String(rca.codigo)));
+    const rotas = await poolLimitado(fatiaRota.map((rca) => () => getJson(urlRca('roteiro-hoje', rca))), CONC, prazo);
+    fatiaRota.forEach((rca, i) => {
+      if (!Array.isArray(rotas[i])) return;
+      contagem.rota++;
+      stmts.push(upsertParcial(env, dataRef, rca, { roteiro_json: JSON.stringify(rotas[i]) }));
+    });
+    await gravaLote(env, stmts.splice(0));
+
+    // 4. FRIA: dashboard e devolucoes, 1/10 por tick
+    const fatiaFria = rcas.filter((rca, i) => i % FATIAS_FRIA === ciclo % FATIAS_FRIA);
+    const frias = await poolLimitado(fatiaFria.flatMap((rca) => [() => getJson(urlRca('dashboard', rca)), () => getJson(urlRca('devolucoes', rca))]), CONC, prazo);
+    fatiaFria.forEach((rca, i) => {
+      const dash = frias[i * 2], dev = frias[i * 2 + 1];
+      const campos = {};
+      if (dash) campos.dashboard_json = JSON.stringify(dash);
+      if (Array.isArray(dev)) campos.devolucoes_json = JSON.stringify(dev);
+      if (!Object.keys(campos).length) return;
+      contagem.fria++;
+      stmts.push(upsertParcial(env, dataRef, rca, campos));
+    });
+    await gravaLote(env, stmts.splice(0));
+
+    return resp({ status: 'ATUALIZADO', modo: 'tick', ciclo, data_ref: dataRef, rcas_total: rcas.length, ...contagem, mudaram: mudou.length, duracao_ms: Date.now() - t0 });
+  } finally {
+    await soltaSlot(env, dono);
+  }
 }

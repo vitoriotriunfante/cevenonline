@@ -396,7 +396,7 @@ function vend(sig, r) {
   return {sig, id: r.id, nome: r.nome, canal: r.canal, sup: r.sup, grupo: r.grupo || '', campo: CAMPO.includes(r.canal), d, cl, meta: num(d.meta_fat), fat: num(d.faturado), dev: num(d.devolucao),
     pendente: num(d.pendente),
     devHoje: num(d.devolucao_hoje) || 0, devolucoesHoje: Array.isArray(d.devolucoes_hoje) ? d.devolucoes_hoje : [],
-    metaCli: num(d.meta_cli), realCli: num(d.real_cli), dig: num(d.dig_hoje), pos: num(d.pos_hoje), rota: cl ? cl.length : null, feitas, comVenda: st(['POSITIVADO', 'EFETIVADO']),
+    metaCli: num(d.meta_cli), realCli: num(d.real_cli), dig: num(d.dig_hoje), pos: num(d.pos_hoje), rota: cl ? cl.length : null, feitas, visFeitas: num(d.visitas_na_rota), visRota: num(d.visitas_prog), comVenda: st(['POSITIVADO', 'EFETIVADO']),
     temRota: !!(cl && cl.length), tem: !!(DATA[sig] || {})[r.id]};
 }
 // Entra qualquer RCA que tenha resposta do CEVEN: se tiver meta, faturamento, digitado hoje, positivado no mês (realCli) ou positivado hoje (pos). Nada de venda ou positivação pode ficar de fora.
@@ -485,11 +485,11 @@ function calcAlertas() {
       }
     });
     v.cl.forEach(c => {
-      // --- LANCE G07: GOL RESGATE DE INATIVO / DRIBLE DA VACA (>30d, >90d ou TAG RECORRÊNCIA) ---
+      // --- LANCE G07: GOL RESGATE DE INATIVO / DRIBLE DA VACA (>30d ou >90d, SEM a tag RECORRÊNCIA; com a tag o lance é a DEFESA, +3) ---
       const diasC = diasDesde(c.ultima_compra);
       const ehInativo = diasC != null && diasC > 30;
       const ehRecorrencia = !!c.recorrencia;
-      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && (ehInativo || ehRecorrencia)) {
+      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && ehInativo && !ehRecorrencia) {
         const subTipoInativo = (diasC != null && diasC > 90) ? 'drible_vaca' : (ehRecorrencia ? 'recorrencia_salva' : 'inativo_recuperado');
         out.push({key: `${sig}|gol_inativo|${v.id}|${c.id}`, sig, nivel: 'gol', subtipo: subTipoInativo, v, c, dias: diasC});
       }
@@ -593,7 +593,7 @@ function statFilial(sig) {
   const notaCritica = Math.round(Math.min(1, pZer / .30) * 40 + Math.min(1, penV / 1) * 35 + Math.min(1, pVis / .20) * 25);
 
   return {sig, vs, campo, n: vs.length, tem: vs.length > 0, nota: notaCritica, scorePositivo, gols, pctFat, pctPos, pen, nZer, nSemVis, fat, pendente: s(vs, v => v.pendente), dig: s(vs, v => v.dig), pos: s(vs, v => v.pos), realCli,
-    feitas: s(campo, v => v.feitas), rota: s(campo, v => v.rota), metaFat, metaPos};
+    feitas: s(campo, v => v.feitas), rota: s(campo, v => v.rota), feitasCeven: s(campo, v => v.visFeitas), rotaCeven: s(campo, v => v.visRota), metaFat, metaPos};
 }
 const corNota = n => n >= 60 ? 'n-b' : n >= 30 ? 'n-w' : 'n-ok';
 const corScore = s => s >= 95 ? 'n-ok' : s >= 80 ? 'n-ok' : s >= 65 ? 'n-w' : 'n-b';
@@ -771,7 +771,7 @@ function telaVAR(item) {
            <div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div>
            <div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div>
            <div class="ln"><b>CLIENTE RECORRENTE</b><span>${esc(cObj ? cObj.nome : '—')}</span></div>
-           <div class="ln hot"><b>VALOR DA VENDA</b><span>${brl(vPed)}</span></div>
+           ${vPed > 0 ? `<div class="ln hot"><b>VALOR DA VENDA</b><span>${brl(vPed)}</span></div>` : ''}
            <div class="ln"><b>DEFESA</b><span>${esc(item.sub || 'Recorrente salvo')}</span></div>`;
     veredito = '🧤 MILAGRE NO GOL! Cliente recorrente blindado e faturado!';
   } else if (item.tipo === 'sup') {
@@ -964,7 +964,7 @@ function renderTotais(stats) {
   const s = f => stats.reduce((x, y) => x + (f(y) || 0), 0), fat = s(x => x.fat), pend = s(x => x.pendente), mF = METAS ? METAS.total.meta_fat : s(x => x.metaFat), pos = s(x => x.realCli), mP = METAS ? METAS.total.meta_pos : s(x => x.metaPos);
   const pendHtml = pend > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--muted);margin-top:2px;letter-spacing:-0.2px">+ ${brl(pend)} pendente</div>` : '';
   $('tot').innerHTML = [['Faturado no mês', `${brl(fat)} <small>${mF ? pc(fat / mF * 100) : ''}</small>${pendHtml}`], [METAS ? 'Meta do mês (CEVEN)' : 'Meta (soma)', brl(mF)], ['Positivados no mês', `${nv(pos)} <small>de ${nv(mP)} · ${mP ? pc(pos / mP * 100) : ''}</small>`],
-    ['Digitado hoje', brl(s(x => x.dig))], ['Visitas feitas / rota', nv(s(x => x.feitas)) + ' / ' + nv(s(x => x.rota))], ['Zerados · Pênaltis ativos', nv(s(x => x.nZer)) + ' · ' + nv(s(x => x.pen))]].map(([l, v]) => `<div><span>${l}</span><b class="mono">${v}</b></div>`).join('');
+    ['Digitado hoje', brl(s(x => x.dig))], ['Visitas feitas / programadas (CEVEN)', nv(s(x => x.feitasCeven)) + ' / ' + nv(s(x => x.rotaCeven))], ['Zerados · Pênaltis ativos', nv(s(x => x.nZer)) + ' · ' + nv(s(x => x.pen))]].map(([l, v]) => `<div><span>${l}</span><b class="mono">${v}</b></div>`).join('');
   $('nv').textContent = s(x => x.n);
 }
 let MODO_RANK_POSITIVO = true; // Por padrão dá ênfase no que é bem feito
@@ -1053,7 +1053,7 @@ function renderFilial(x) {
     <div class="kpi"><span>Faturado no mês</span><b class="mono">${brl(x.fat)}</b><small>${pc(pctF)} de ${brl(x.metaFat)}</small>${x.pendente > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--mut);margin-top:2px">+ ${brl(x.pendente)} pendente</div>` : ""}</div>
     <div class="kpi"><span>Positivados no mês</span><b class="mono">${nv(x.realCli)}</b><small>${pc(pctP)} de ${nv(x.metaPos)}</small></div>
     <div class="kpi"><span>Digitado hoje</span><b class="mono">${brl(x.dig)}</b><small>${nv(x.pos)} positivações</small></div>
-    <div class="kpi"><span>Visitas hoje</span><b class="mono">${nv(x.feitas)} / ${nv(x.rota)}</b><small>${x.nZer} zerados · ${x.pen} pênaltis</small></div></div>
+    <div class="kpi"><span>Visitas hoje (CEVEN)</span><b class="mono">${nv(x.feitasCeven)} / ${nv(x.rotaCeven)}</b><small>${x.nZer} zerados · ${x.pen} pênaltis</small></div></div>
    <div class="subtab">
     ${sub === 0 ? `<h2 style="margin:6px 0 2px"><span>Resumo da filial</span><b>1/3</b></h2>${gruposHtml ? `<div style="margin-bottom:6px">${gruposHtml}</div>` : ''}
       <div class="grid4">

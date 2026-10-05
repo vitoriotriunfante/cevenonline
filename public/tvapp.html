@@ -599,11 +599,11 @@ function calcAlertas(vs) {
       }
     });
     v.cl.forEach(c => {
-      // --- LANCE G07: GOL RESGATE DE INATIVO / DRIBLE DA VACA (>30d, >90d ou TAG RECORRÊNCIA) ---
+      // --- LANCE G07: GOL RESGATE DE INATIVO / DRIBLE DA VACA (>30d ou >90d, SEM a tag RECORRÊNCIA; com a tag o lance é a DEFESA, +3) ---
       const diasC = diasDesde(c.ultima_compra);
       const ehInativo = diasC != null && diasC > 30;
       const ehRecorrencia = !!c.recorrencia;
-      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && (ehInativo || ehRecorrencia)) {
+      if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && ehInativo && !ehRecorrencia) {
         const subTipoInativo = (diasC != null && diasC > 90) ? 'drible_vaca' : (ehRecorrencia ? 'recorrencia_salva' : 'inativo_recuperado');
         out.push({key: `gol_inativo|${v.id}|${c.id}`, nivel: 'gol', subtipo: subTipoInativo, v, c, dias: diasC});
       }
