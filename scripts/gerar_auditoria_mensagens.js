@@ -52,13 +52,18 @@ async function gerarCiclo(hora, dataHoje, outDir, repsMap) {
 
   if (acao === 'gestao_campo') {
     const token = await engine.getAdminToken();
-    const auditoria = await engine.coletarAuditoriaCampo(token, dataHoje);
+    const auditoria = await engine.coletarAuditoriaCampo(token, dataHoje, repsMap);
     let n = 0;
     for (const [sigla, rel] of Object.entries(auditoria)) {
       fs.writeFileSync(path.join(outDir, `${slug(hora)}__${sigla}.txt`), rel.texto, 'utf8');
       n++;
     }
-    console.log(`  -> ${n} arquivos (um por filial)`);
+    // filiais divididas (TPH, MCD): um arquivo por gerente, so com a hierarquia dele
+    for (const [chave, rel] of Object.entries(auditoria.__porGerente || {})) {
+      fs.writeFileSync(path.join(outDir, `${slug(hora)}__${chave.replace('::', '_')}.txt`), rel.texto, 'utf8');
+      n++;
+    }
+    console.log(`  -> ${n} arquivos (um por filial + um por gerente nas filiais divididas)`);
     return;
   }
 
@@ -68,7 +73,7 @@ async function gerarCiclo(hora, dataHoje, outDir, repsMap) {
     fs.writeFileSync(path.join(outDir, `${slug(hora)}__CONSOLIDADO_DIRETORIA.txt`), rel.msgConsolidado, 'utf8');
     let n = 1;
     for (const [sigla, texto] of Object.entries(rel.mensagensGerentes)) {
-      fs.writeFileSync(path.join(outDir, `${slug(hora)}__${sigla}.txt`), texto, 'utf8');
+      fs.writeFileSync(path.join(outDir, `${slug(hora)}__${String(sigla).replace('::', '_')}.txt`), texto, 'utf8');
       n++;
     }
     console.log(`  -> ${n} arquivos (1 consolidado + ${n - 1} por filial/gerente)`);

@@ -152,6 +152,30 @@ const GERENTES_MAP = [
   { filial: 'MCD', gerente: 'ADRIANO', whatsapp: '556799877927' }
 ];
 
+// Gerente de um supervisor nas filiais divididas (fallback quando a planilha nao informa o grupo). Mesma regra de sempre, agora em um lugar so.
+function gerenteDaSupervisao(filial, supNome, gerenteBase) {
+  const s = (supNome || '').toUpperCase();
+  if (filial === 'MCD') {
+    if (s.includes('THIAGO') || s.includes('FLAVIO') || s.includes('JONATAS')) return 'Cleverson';
+    if (s.includes('ALYFER') || s.includes('CARLOS ALAGUEZ') || s.includes('CLEOMAR')) return 'Adriano';
+    return 'Cleverson';
+  }
+  if (filial === 'TPH') {
+    if (s.includes('AILTON') || s.includes('CRISTIAN') || s.includes('PRISCILA') || s.includes('EDI CARLOS') || s.includes('BERTONI') || s.includes('VITOR MANUEL')) return 'Fábio';
+    if (s.includes('LUCAS') || s.includes('ALLISON') || s.includes('DARROS') || s.includes('ANDREY') || s.includes('LUIZ') || s.includes('JEFFERSON') || s.includes('CLAUDETE')) return 'Vagner';
+    return 'Fábio';
+  }
+  return gerenteBase;
+}
+// Filiais onde os vendedores pertencem a mais de um gerente (hoje TPH e MCD; a planilha pode dividir outras: basta escrever SIGLA_NOME na coluna Filial).
+function gerentesPorFilialDividida(repsMap) {
+  const por = {};
+  for (const v of Object.values(repsMap || {})) {
+    if (!v || !v.filial || !v.gerente) continue;
+    (por[v.filial] = por[v.filial] || new Set()).add(String(v.gerente).toUpperCase());
+  }
+  return new Set(Object.keys(por).filter(f => por[f].size > 1));
+}
 // Sempre usar esta função pra pegar a lista de gerentes (nunca GERENTES_MAP direto) --
 // scripts/gerentes_contatos.json é a correção manual real de telefone (achado bug
 // real em 23/09/2026: um script novo usou GERENTES_MAP direto e mandou mensagem pro
@@ -179,20 +203,7 @@ function carregarValidacaoVendedores() {
     const data = JSON.parse(fs.readFileSync(onlineTreePath, 'utf8'));
 
     // Mapeamento Oficial das Sub-Gerências de MCD e TPH
-    const extrairGerente = (filial, supNome, gerenteBase) => {
-      const s = (supNome || '').toUpperCase();
-      if (filial === 'MCD') {
-        if (s.includes('THIAGO') || s.includes('FLAVIO') || s.includes('JONATAS')) return 'Cleverson';
-        if (s.includes('ALYFER') || s.includes('CARLOS ALAGUEZ') || s.includes('CLEOMAR')) return 'Adriano';
-        return 'Cleverson';
-      }
-      if (filial === 'TPH') {
-        if (s.includes('AILTON') || s.includes('CRISTIAN') || s.includes('PRISCILA') || s.includes('EDI CARLOS') || s.includes('BERTONI') || s.includes('VITOR MANUEL')) return 'Fábio';
-        if (s.includes('LUCAS') || s.includes('ALLISON') || s.includes('DARROS') || s.includes('ANDREY') || s.includes('LUIZ') || s.includes('JEFFERSON') || s.includes('CLAUDETE')) return 'Vagner';
-        return 'Fábio';
-      }
-      return gerenteBase;
-    };
+    const extrairGerente = (filial, supNome, gerenteBase) => gerenteDaSupervisao(filial, supNome, gerenteBase);
 
     for (const [sigla, f] of Object.entries(data)) {
       const gerentePadrao = f.gerente || `Gerente ${sigla}`;
@@ -272,6 +283,14 @@ function aplicarMostraDisparos(repsMap) {
         val.supNome = supNovo;
         corrigidos++;
       }
+      // GERENTE = coluna Filial da planilha (SIGLA_NOME vira campo `grupo` em /api/tv-mostra). Decisao do Vitorio (05/10/2026): TPH e MCD sao divididos por gerente
+      // em TODOS os envios. A planilha e a fonte; a lista de nomes de supervisor no codigo so vale quando a planilha nao informa o grupo.
+      const grupoPlan = String(r.grupo || '').toUpperCase().trim();
+      if (grupoPlan) {
+        const NOMES_GERENTE = { FABIO: 'Fábio', VAGNER: 'Vagner', CLEVERSON: 'Cleverson', ADRIANO: 'Adriano', LEANDRO: 'Leandro', RADKE: 'Radke' };
+        const nomeGer = NOMES_GERENTE[grupoPlan] || (grupoPlan.charAt(0) + grupoPlan.slice(1).toLowerCase());
+        if (val.gerente !== nomeGer) { val.gerente = nomeGer; }
+      }
     }
   }
   console.log(`📋 Equipe (origem: ${dados.origem || '?'}) aplicada: ${excluidos} vendedores excluídos, ${corrigidos} com supervisor ajustado.`);
@@ -279,7 +298,35 @@ function aplicarMostraDisparos(repsMap) {
 }
 
 // 3. Auditoria de Campo (Compromissos & RETs)
-async function coletarAuditoriaCampo(token, dataRef) {
+// Texto da Gestao de Campo (11:30) de UMA filial ou de UM gerente de filial dividida. Mesmo texto de sempre; so recebe a lista de supervisores.
+function textoGestaoCampo(sigla, gerente, dataRef, supervisores) {
+  const countComp = supervisores.filter(x => x.fezComp).length;
+  const countRet = supervisores.filter(x => x.fezRet).length;
+  let msg = `🏢 *FILIAL ${sigla} — GESTÃO DE CAMPO*\n`;
+  msg += `📅 ${dataRef.split('-').reverse().join('/')} • Gerente: ${gerente}\n`;
+  msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  msg += `📊 *PAINEL DE ATIVIDADES (${supervisores.length} SUPERVISORES):*\n`;
+  msg += `📝 Compromissos: *${countComp} de ${supervisores.length}* lançados\n`;
+  msg += `🚗 Em Rota (RET): *${countRet} de ${supervisores.length}* em campo\n\n`;
+  msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+  supervisores.forEach(sup => {
+    msg += `👤 *${sup.nome}*\n`;
+    msg += `📝 Compromisso: ${sup.fezComp ? '✅ Lançado' : '❌ Não lançado'}\n`;
+    if (sup.fezRet && sup.retDetalhe) {
+      msg += `🚗 Rota (RET): ✅ Em campo (início às ${sup.retDetalhe.primeiroCheckin})\n`;
+      msg += `└ 👥 RCA: ${sup.retDetalhe.rca}\n`;
+      msg += `└ 📍 ${sup.retDetalhe.pdvs} PDV${sup.retDetalhe.pdvs > 1 ? 's' : ''} visitado${sup.retDetalhe.pdvs > 1 ? 's' : ''} • 📸 ${sup.retDetalhe.fotos} foto${sup.retDetalhe.fotos !== 1 ? 's' : ''} • Score: ${sup.retDetalhe.scoreMedio}%\n\n`;
+    } else if (sup.fezRet) {
+      msg += `🚗 Rota (RET): ✅ Em campo (dados sincronizando)\n\n`;
+    } else {
+      msg += `🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)\n\n`;
+    }
+  });
+  return msg.trim();
+}
+
+async function coletarAuditoriaCampo(token, dataRef, repsMap) {
   console.log(`📡 Coletando auditoria de campo para ${dataRef}...`);
   const headers = { Authorization: 'Bearer ' + token };
 
@@ -292,6 +339,8 @@ async function coletarAuditoriaCampo(token, dataRef) {
   const allRet = retRes.data.supervisores || [];
 
   const resultadoPorFilial = {};
+  const porGerente = {};
+  const subdivididasCampo = gerentesPorFilialDividida(repsMap);
 
   for (const [fKey, meta] of Object.entries(FILIAIS_MAP)) {
     const sups = allComp.filter(s => s.filial === fKey);
@@ -340,28 +389,7 @@ async function coletarAuditoriaCampo(token, dataRef) {
       });
     }
 
-    // Montar texto de mensagem formatado (com linha em branco entre supervisores)
-    let msg = `🏢 *FILIAL ${meta.sigla} — GESTÃO DE CAMPO*\n`;
-    msg += `📅 ${dataRef.split('-').reverse().join('/')} • Gerente: ${meta.gerente}\n`;
-    msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-    msg += `📊 *PAINEL DE ATIVIDADES (${sups.length} SUPERVISORES):*\n`;
-    msg += `📝 Compromissos: *${countComp} de ${sups.length}* lançados\n`;
-    msg += `🚗 Em Rota (RET): *${countRet} de ${sups.length}* em campo\n\n`;
-    msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-
-    supervisores.forEach(sup => {
-      msg += `👤 *${sup.nome}*\n`;
-      msg += `📝 Compromisso: ${sup.fezComp ? '✅ Lançado' : '❌ Não lançado'}\n`;
-      if (sup.fezRet && sup.retDetalhe) {
-        msg += `🚗 Rota (RET): ✅ Em campo (início às ${sup.retDetalhe.primeiroCheckin})\n`;
-        msg += `└ 👥 RCA: ${sup.retDetalhe.rca}\n`;
-        msg += `└ 📍 ${sup.retDetalhe.pdvs} PDV${sup.retDetalhe.pdvs > 1 ? 's' : ''} visitado${sup.retDetalhe.pdvs > 1 ? 's' : ''} • 📸 ${sup.retDetalhe.fotos} foto${sup.retDetalhe.fotos !== 1 ? 's' : ''} • Score: ${sup.retDetalhe.scoreMedio}%\n\n`;
-      } else if (sup.fezRet) {
-        msg += `🚗 Rota (RET): ✅ Em campo (dados sincronizando)\n\n`;
-      } else {
-        msg += `🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)\n\n`;
-      }
-    });
+    const texto = textoGestaoCampo(meta.sigla, meta.gerente, dataRef, supervisores);
 
     resultadoPorFilial[meta.sigla] = {
       fKey,
@@ -371,10 +399,34 @@ async function coletarAuditoriaCampo(token, dataRef) {
       countComp,
       countRet,
       supervisores,
-      texto: msg.trim()
+      texto
     };
+
+    // FILIAL DIVIDIDA (TPH, MCD): cada gerente recebe so os supervisores DELE. Gerente do supervisor = o do vendedor dele na planilha (repsMap); sem isso, a regra por nome.
+    if (repsMap && subdivididasCampo.has(meta.sigla)) {
+      const gerDoSup = {};
+      for (const v of Object.values(repsMap)) {
+        if (v && v.filial === meta.sigla && v.supNome && v.gerente) (gerDoSup[String(v.supNome).toUpperCase()] = gerDoSup[String(v.supNome).toUpperCase()] || {})[v.gerente] = ((gerDoSup[String(v.supNome).toUpperCase()] || {})[v.gerente] || 0) + 1;
+      }
+      const gerenteDe = (nomeSup) => {
+        const cont = gerDoSup[String(nomeSup).toUpperCase()];
+        if (cont) return Object.entries(cont).sort((a, b) => b[1] - a[1])[0][0];
+        return gerenteDaSupervisao(meta.sigla, nomeSup, meta.gerente);
+      };
+      const grupos = {};
+      for (const sup of supervisores) (grupos[gerenteDe(sup.nome)] = grupos[gerenteDe(sup.nome)] || []).push(sup);
+      for (const [ger, lista] of Object.entries(grupos)) {
+        porGerente[meta.sigla + '::' + ger.toUpperCase()] = {
+          fKey, sigla: meta.sigla, gerente: ger, totalSups: lista.length,
+          countComp: lista.filter(x => x.fezComp).length, countRet: lista.filter(x => x.fezRet).length,
+          supervisores: lista, texto: textoGestaoCampo(meta.sigla, ger, dataRef, lista)
+        };
+      }
+    }
   }
 
+  // por gerente: propriedade nao enumeravel, para o consolidado (Object.values) continuar somando so as filiais
+  Object.defineProperty(resultadoPorFilial, '__porGerente', { value: porGerente, enumerable: false });
   return resultadoPorFilial;
 }
 
@@ -384,34 +436,27 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
   // Antes lia public/reps_data.json (estático, 13 dias desatualizado). Deriva do repsValidationMap.
   const reps = Object.values(repsValidationMap).map(v => ({ codigo: v.rca, nome: v.nome, filial: v.filial }));
 
+  // Resultado vazio de uma filial (ou de UM gerente de uma filial dividida).
+  const novoResultado = (sigla, gerente, chave) => ({
+    sigla, gerente, chave: chave || sigla,
+    fatTotalDigitado: 0, pedidosTotal: 0, visitasReal: 0, visitasProg: 0,
+    vjTotal: 0, vjCom: 0, vjSem: 0, asTotal: 0, asCom: 0, asSem: 0,
+    inativosRota: 0, inativosRecuperados: 0, recorrenciaPositivados: 0, voltaPositivados: 0,
+    cortesValor: 0, cortesQtd: 0, bloqueadosValor: 0, bloqueadosQtd: 0, itensCortados: [],
+    devolucoesValor: 0, supervisores: {}
+  });
   const filialResult = {};
-  for (const [fKey, meta] of Object.entries(FILIAIS_MAP)) {
-    filialResult[meta.sigla] = {
-      sigla: meta.sigla,
-      gerente: meta.gerente,
-      fatTotalDigitado: 0,
-      pedidosTotal: 0,
-      visitasReal: 0,
-      visitasProg: 0,
-      vjTotal: 0,
-      vjCom: 0,
-      vjSem: 0,
-      asTotal: 0,
-      asCom: 0,
-      asSem: 0,
-      inativosRota: 0,
-      inativosRecuperados: 0,
-      recorrenciaPositivados: 0,
-      voltaPositivados: 0,
-      cortesValor: 0,
-      cortesQtd: 0,
-      bloqueadosValor: 0,
-      bloqueadosQtd: 0,
-      itensCortados: [],
-      devolucoesValor: 0,
-      supervisores: {}
-    };
-  }
+  for (const [fKey, meta] of Object.entries(FILIAIS_MAP)) filialResult[meta.sigla] = novoResultado(meta.sigla, meta.gerente);
+  // FILIAIS DIVIDIDAS (decisao do Vitorio, 05/10/2026: "precisa respeitar as hierarquias em todos"): onde ha mais de um gerente entre os vendedores
+  // (hoje TPH e MCD), cada gerente tem o SEU resultado, so com a hierarquia dele. Chave = SIGLA::GERENTE (maiusculo).
+  const subdivididas = gerentesPorFilialDividida(repsValidationMap);
+  const obtemRes = (sigla, gerente) => {
+    if (!subdivididas.has(sigla)) return filialResult[sigla];
+    const nomeG = String(gerente || '').trim() || (FILIAIS_MAP[Object.keys(FILIAIS_MAP).find(k => FILIAIS_MAP[k].sigla === sigla)] || {}).gerente || sigla;
+    const chave = sigla + '::' + nomeG.toUpperCase();
+    if (!filialResult[chave]) filialResult[chave] = novoResultado(sigla, nomeG, chave);
+    return filialResult[chave];
+  };
 
   const rcasComPedido = [];
   const BATCH = 8;
@@ -423,7 +468,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
       if (!filEntry) return;
 
       const fKey = filEntry[0];
-      const resFil = filialResult[fSigla];
+      const resFil = obtemRes(fSigla, (repsValidationMap[fSigla + '_' + rca.codigo] || {}).gerente);
 
       try {
         const [diaData, finData, devData] = await Promise.all([
@@ -450,7 +495,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
         resFil.fatTotalDigitado += dig;
         resFil.pedidosTotal += pedTot;
         if (dig > 0 || pedTot > 0) {
-          rcasComPedido.push({ filial: fSigla, fKey, codigo: rca.codigo, nome: cleanName(rca.nome) });
+          rcasComPedido.push({ filial: fSigla, fKey, chave: resFil.chave, codigo: rca.codigo, nome: cleanName(rca.nome) });
         }
         
         // Devoluções reais que entraram no dia de hoje (dataRef)
@@ -551,7 +596,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
             const histData = await safeGet(`${CEVEN_BASE}/api/rca/historico-cliente/${p.id_cliente}?filial=${r.fKey}&id=${r.codigo}`);
             const visitasHoje = (histData?.ultimas_visitas || []).filter(v => v.data_visita === dataRef && v.num_pedido);
             for (const v of visitasHoje) {
-              const resFil = filialResult[r.filial];
+              const resFil = filialResult[r.chave || r.filial];
               if (!resFil) return;
 
               const cat = (v.categoria_corte || '').toUpperCase();
@@ -597,6 +642,8 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
     }));
   }
 
+  // filial dividida: some a linha 'da filial inteira' (vazia); ficam so as linhas por gerente
+  for (const sg of subdivididas) delete filialResult[sg];
   return filialResult;
 }
 
@@ -1023,6 +1070,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
 
     return {
       sigla: f.sigla,
+      chave: f.chave || f.sigla,
       gerente: f.gerente,
       fat,
       ped,
@@ -1219,7 +1267,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       }
     }
 
-    mensagensGerentes[r.sigla] = m.trim();
+    mensagensGerentes[r.chave] = m.trim();
   });
 
   return { msgConsolidado, mensagensGerentes };
@@ -1547,7 +1595,7 @@ async function main() {
   // A) Gestão de Campo (Compromissos & RETs)
   if (acao === 'gestao_campo' || acao === 'completo') {
     if (token) {
-      const auditoria = await coletarAuditoriaCampo(token, dataHoje);
+      const auditoria = await coletarAuditoriaCampo(token, dataHoje, repsMap);
       console.log(`✅ Auditoria de campo processada para 11 filiais.`);
 
       {
@@ -1617,6 +1665,9 @@ async function main() {
         Object.entries(auditoria).forEach(([sigla, rel]) => {
           if (rel?.texto) fs.writeFileSync(path.join(outDir1130, `11_30__${sigla}.md`), rel.texto, 'utf8');
         });
+        Object.entries(auditoria.__porGerente || {}).forEach(([chave, rel]) => {
+          if (rel?.texto) fs.writeFileSync(path.join(outDir1130, `11_30__${chave.replace('::', '_')}.md`), rel.texto, 'utf8');
+        });
 
         if (destino === 'vitorio' || destino === 'todos') {
           console.log(`🚀 Enviando Gestão de Campo Consolidada para Vitório Neto (${WHATSAPP_VITORIO})...`);
@@ -1633,7 +1684,8 @@ async function main() {
         if (destino === 'gerentes' || destino === 'todos') {
           console.log(`🚀 Disparando Gestão de Campo para os ${gerentes.length} gerentes...`);
           for (const g of gerentes) {
-            const rel = auditoria[g.filial];
+            // filial dividida: cada gerente recebe so a hierarquia dele
+            const rel = (auditoria.__porGerente || {})[g.filial + '::' + String(g.gerente).toUpperCase()] || auditoria[g.filial];
             if (rel && rel.texto) {
               const r = await enviarWhatsapp(g.whatsapp, rel.texto);
               console.log(`  [${g.filial}] Enviado para ${g.gerente} — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
@@ -1662,7 +1714,7 @@ async function main() {
     fs.mkdirSync(outDirVendas, { recursive: true });
     fs.writeFileSync(path.join(outDirVendas, `${horaPasta}__VITORIO.md`), relatorios.msgConsolidado, 'utf8');
     Object.entries(relatorios.mensagensGerentes || {}).forEach(([sigla, txt]) => {
-      if (txt) fs.writeFileSync(path.join(outDirVendas, `${horaPasta}__${sigla}.md`), txt, 'utf8');
+      if (txt) fs.writeFileSync(path.join(outDirVendas, `${horaPasta}__${String(sigla).replace('::', '_')}.md`), txt, 'utf8');
     });
 
     if (destino === 'vitorio' || destino === 'todos') {
@@ -1680,7 +1732,9 @@ async function main() {
     if (destino === 'gerentes' || destino === 'todos') {
       console.log(`🚀 Disparando Parciais de Varejo para os ${gerentes.length} gerentes...`);
       for (const g of gerentes) {
-        const txt = relatorios.mensagensGerentes[g.filial];
+        // filial dividida: cada gerente recebe SO o relatorio da sua hierarquia (chave SIGLA::GERENTE); filial inteira so quando nao ha divisao
+        const txt = relatorios.mensagensGerentes[g.filial + '::' + String(g.gerente).toUpperCase()] || relatorios.mensagensGerentes[g.filial];
+        if (!txt) console.log(`  ⚠️ Sem relatorio de vendas para ${g.filial} — ${g.gerente}: nao enviado.`);
         if (txt) {
           const r = await enviarWhatsapp(g.whatsapp, txt);
           console.log(`  [${g.filial}] Enviado para ${g.gerente} — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
@@ -1722,6 +1776,8 @@ module.exports = {
   verificarPermissaoCalendario,
   GERENTES_MAP,
   carregarGerentesComCorrecoes,
+  gerenteDaSupervisao,
+  gerentesPorFilialDividida,
   FILIAIS_MAP,
   WHATSAPP_VITORIO
 };

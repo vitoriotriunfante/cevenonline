@@ -107,6 +107,11 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
   ok(r.excluidos === 1 && !mapa.ABC_2, 'vendedor marcado como fora sai do mapa');
   ok(r.corrigidos === 1 && mapa.ABC_1.supNome === 'SUP NOVO', 'supervisor e ajustado pela equipe');
   ok(mapa.ABC_3 && mapa.ABC_3.supNome === 'MESMO', 'quem nao mudou fica como estava');
+  writeFileSync(arquivoEquipe, JSON.stringify({ origem: 'teste', filiais: { TPH: [{ rca: '10', supervisor: 'X', grupo: 'VAGNER', mostra: true }, { rca: '11', supervisor: 'Y', grupo: 'FABIO', mostra: true }] } }));
+  const mapaG = { TPH_10: { supNome: 'X', gerente: 'Fábio' }, TPH_11: { supNome: 'Y', gerente: 'Vagner' } };
+  aplicar(mapaG);
+  ok(mapaG.TPH_10.gerente === 'Vagner' && mapaG.TPH_11.gerente === 'Fábio', 'a planilha (campo grupo) manda no gerente: VAGNER e FABIO viram Vagner e Fábio, acima da lista de nomes do codigo');
+  writeFileSync(arquivoEquipe, JSON.stringify(lista));
   writeFileSync(arquivoEquipe, '{nao e json');
   const r2 = aplicar({ ABC_1: { supNome: 'A' } });
   ok(r2.excluidos === 0 && r2.corrigidos === 0, 'arquivo invalido nao quebra o envio');
@@ -432,6 +437,13 @@ secao('8c. Varredura central em camadas: pedido a cada 2 min, resto em fatias, t
   await t(ok);
   const toml = ler('worker-cron/wrangler.toml'), idx = ler('worker-cron/src/index.js');
   ok(toml.includes('"*/2 * * * *"') && idx.includes("'*/2 * * * *'") && idx.includes('/api/cron-varredura-central'), 'o relogio do Worker chama a varredura central a cada 2 minutos (wrangler.toml e index.js iguais)');
+}
+
+// ---------------------------------------------------------------- 8d. WhatsApp: TPH e MCD divididos por gerente em todos os ciclos
+secao('8d. WhatsApp: TPH e MCD saem divididos por gerente em 11:30, 14:30, 17:00 e 18:30');
+{
+  const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_whatsapp_gerentes.mjs')).href)).default;
+  await t(ok, RAIZ);
 }
 
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)
