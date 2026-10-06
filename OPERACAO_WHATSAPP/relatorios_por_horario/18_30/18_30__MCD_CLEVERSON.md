@@ -1,23 +1,22 @@
 🏢 *BOLETIM DE FECHAMENTO OFICIAL — 18:30*
-📅 05/10/2026
+📅 06/10/2026
 📍 *FILIAL MCD — CLEVERSON*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 101.259,65
-📦 *Pedidos Colocados:* 44 pedidos
-📍 *Visitas Realizadas:* 70 de 271 (25,8%)
-👥 *Vendedores Varejo com Pedido:* 12 de 20 (60%)
-✂️ *Cortes nos Pedidos de Hoje:* R$ 10.220,46 (6 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 36.876,66 (1 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 1.099,16
+💰 *Total Digitado Hoje:* R$ 86.356,45
+📦 *Pedidos Colocados:* 57 pedidos
+📍 *Visitas Realizadas:* 70 de 197 (35,5%)
+👥 *Vendedores Varejo com Pedido:* 10 de 20 (50%)
+✂️ *Cortes nos Pedidos de Hoje:* R$ 1.305,83 (4 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 0,00 (0 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 4.812,89
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
-  ▫️ Cód. 412 • ALCINDO DA SILVA GOMES: -R$ 5.365,55 em CENTRAL ATACADISTA (RB ENERGY DRINK SUGAR FREE MASTER)
-  ▫️ Cód. 441 • MAICON DOUGLAS DA SILVA MARTINS: -R$ 113,21 em MERCADO MS (SAB PALM NUTRE E HIDR LANOLINA)
-  ▫️ Cód. 442 • MARCELO ALVES MALESKI: -R$ 62,63 em MERCADO REZENDE (CD SORR LIMP COMP 70G L12.P10)
-  ▫️ Cód. 444 • MAX DOS SANTOS: -R$ 187,85 em FORT ATACADISTA-LJ076 (TW CHA LIMAO C GENGIBRE)
-  ▫️ _... e mais 2 pedidos com corte._
-🟢 *Recuperação de Inativos (+30d):* 3 de 34 PDVs reativados hoje
+  ▫️ Cód. 1063 • WALTER PEREIRA CORDEIRO: -R$ 57,45 em MERCADO E ACOUGUE AQUARIOS (CD COLG L12 TRI 90G GT3 LUM 60G)
+  ▫️ Cód. 441 • MAICON DOUGLAS DA SILVA MARTINS: -R$ 838,46 em SM JONAS (PINHO SOL CITRUS FLORAL)
+  ▫️ Cód. 431 • JACKSON MARQUES DA SILVA: -R$ 28,32 em LEGAL SUPERMERCADOS (MIST BOLO LIMAO FLEISC)
+  ▫️ Cód. 433 • JOSE LUCAS SALLES DE OLIVEIRA: -R$ 381,60 em PIT STOP V8 CONVENIENCIA (RB TROPICAL EDITION PACK)
+🟢 *Recuperação de Inativos (+30d):* 5 de 15 PDVs reativados hoje
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*
