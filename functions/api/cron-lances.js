@@ -173,7 +173,9 @@ function calcAlertas(vs, t) {
       const txConv = v.feitas > 0 ? (v.comVenda / v.feitas) * 100 : 0;
       if (txConv >= 50) out.push({ chave: `gol_conversao|${v.id}`, nivel: 'gol', v, prova: `${v.comVenda} com venda em ${v.feitas} visitas = ${Math.round(txConv)}%` });
     }
-    if ((v.pos || 0) >= 10) out.push({ chave: `gol_goleada|${v.id}`, nivel: 'gol', v, prova: `${v.pos} pedidos no dia (minimo 10)` });
+    // Goleada = 10 ou mais CLIENTES positivados, comprovados na rota (status POSITIVADO/EFETIVADO). A contagem de pedidos do CEVEN (positivacao) NAO prova clientes:
+    // 06/10/2026, MCD 420: 12 pedidos de R$ 164 em media, 0 visitas, 0 clientes positivados na rota.
+    if ((v.comVenda || 0) >= 10) out.push({ chave: `gol_goleada|${v.id}`, nivel: 'gol', v, prova: `${v.comVenda} clientes positivados na rota (${v.pos || 0} pedidos, digitado ${brl(v.dig)})` });
     if ((v.meta || 0) > 0 && (v.fat || 0) >= v.meta) out.push({ chave: `gol_campeao|${v.id}|${t.dia.slice(0, 7)}`, nivel: 'gol', v, prova: `faturado do mes ${brl(v.fat)} >= meta ${brl(v.meta)}` });
 
     (v.devolucoesHoje || []).forEach((dv) => {

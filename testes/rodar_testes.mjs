@@ -590,6 +590,15 @@ secao('8q. Responsividade: abas e rodapes quebram linha, tabelas encolhem, sem c
   ok(ex.includes('header { height: auto !important') && dv.includes('clamp(5px,.6vw,8px)') && ge.includes('white-space: normal !important'), 'Executiva, Divergencias e Gestao de Equipe: cabecalho/tabelas fluidos');
 }
 
+// ---------------------------------------------------------------- 8r. Goleada comprovada, aviso dos cartoes por horario, texto do regulamento
+secao('8r. Goleada so com clientes comprovados na rota; aviso unico dos cartoes de 10h/11h vindos do servidor; regulamento sem justificativa literal');
+{
+  const cl = ler('functions/api/cron-lances.js'), tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), an = ler('public/animacoes/tv-animacoes.js'), cj = JSON.parse(ler('config/pontuacao_brasileirao.json'));
+  ok(cl.includes('(v.comVenda || 0) >= 10') && !cl.includes('(v.pos || 0) >= 10') && tv.includes('(v.comVenda || 0) >= 10') && mz.includes('(v.comVenda || 0) >= 10'), 'Goleada: 10 clientes positivados COMPROVADOS na rota (pedidos nao provam clientes: MCD 420 tinha 12 pedidos e 0 clientes na rota)');
+  ok(an.includes('window.cartoesDoServidor') && tv.includes('cartoesDoServidor(d.lances') && mz.includes('cartoesDoServidor(d.lances'), 'cartoes de 10h (amarelo) e 11h (vermelho) avisam a partir do que o servidor registrou, 1 vez por dia em cada navegador');
+  ok(!/ninguém trabalha/.test(cj.pontos_por_lance.gol_acrescimos.motivo) && /18h00/.test(cj.pontos_por_lance.gol_acrescimos.motivo), 'regulamento do Gol nos Acrescimos sem a justificativa interna');
+}
+
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)
 secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
 {

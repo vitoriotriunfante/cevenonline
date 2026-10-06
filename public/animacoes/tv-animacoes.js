@@ -1657,3 +1657,19 @@ window.painelComSeletor = function (i, escolhido, bloco) {
   const sel = window.painelSeletorHtml(i, escolhido).replace(' style="', ' style="margin:0 8px;flex:0 1 auto;');
   return String(bloco).replace('<b>', sel + '<b>');
 };
+
+// Cartoes por horario (amarelo 10h, vermelho de abandono 11h): o coletor do servidor registra no minuto exato; a tela nao os via como "novos".
+// Aqui eles viram UM aviso por filial, uma vez por dia em cada navegador, ate 3 h depois do horario do lance.
+window.cartoesDoServidor = function (rows, jaAvisou, marca, agoraSeg, secDe, sigDe) {
+  const grupos = {};
+  (rows || []).forEach(function (r) {
+    const k = /(^|[|])ven10[|]/.test(r.chave) ? 'amarelos' : /(^|[|])vis11[|]/.test(r.chave) ? 'visita10' : null;
+    if (!k) return;
+    const idade = agoraSeg - secDe(r.hora_sp);
+    if (!(idade >= 0 && idade <= 3 * 3600)) return;
+    const sig = sigDe(r), gk = k + '|' + sig;
+    if (jaAvisou(gk)) return;
+    (grupos[gk] = grupos[gk] || { tipo: k, sig: sig, l: [], gk: gk }).l.push({ v: { id: r.rca, nome: r.vendedor, sup: r.supervisor || '' }, txt: r.obs || '', subtipo: /nenhuma visita/.test(r.obs || '') ? 'sem_checkin' : 'sem_venda' });
+  });
+  return Object.keys(grupos).map(function (g) { marca(g); return grupos[g]; });
+};

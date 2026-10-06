@@ -625,8 +625,8 @@ function calcAlertas(vs) {
       if (txConv >= 50) out.push({key: `gol_conversao|${v.id}`, nivel: 'gol', subtipo: 'conversao', v, valor: txConv});
     }
     // --- LANCE G09: GOLEADA (+10 clientes positivados no dia) ---
-    if ((v.pos || 0) >= 10) {
-      out.push({key: `gol_goleada|${v.id}`, nivel: 'gol', subtipo: 'goleada', v, valor: v.pos});
+    if ((v.comVenda || 0) >= 10) { // clientes positivados COMPROVADOS na rota (pedidos nao provam clientes)
+      out.push({key: `gol_goleada|${v.id}`, nivel: 'gol', subtipo: 'goleada', v, valor: v.comVenda});
     }
     // --- LANCE G12: CAMPEÃO DA RODADA (100% da meta mensal batida) ---
     // v.fat/v.meta são acumulados do MÊS: uma vez batida a meta, fica batida o resto do mês. A
@@ -767,6 +767,10 @@ async function carregaLancesServidor() {
     INVICTA_AVISADA.add(r.chave);
     ESPERA.push({tipo: 'semanainvicta', sig: String(r.chave).includes('|semanainvicta|') ? String(r.chave).split('|')[0] : (typeof FIL !== 'undefined' ? FIL : 'MTZ'), v: {id: r.rca, nome: r.vendedor, sup: r.supervisor || '', canal: ''}, sub: 'Semana Invicta: vitória em todos os dias úteis da semana', prova: r.obs || '', score: 45});
   });
+  // cartoes das 10h (amarelo) e 11h (vermelho de abandono): um aviso, uma vez por dia neste navegador
+  { const av = new Set(store.get('ceven_brief_' + FIL + '_' + HOJE0, []));
+    cartoesDoServidor(d.lances, g => av.has(g), g => av.add(g), secDe(sp().hms), secDe, () => FIL).forEach(g => ESPERA.push({tipo: g.tipo, l: g.l, score: 32}));
+    store.set('ceven_brief_' + FIL + '_' + HOJE0, [...av]); }
   LOG.sort((x, y) => secDe(x.t) - secDe(y.t)); store.set(K.seen + HOJE0, [...seen]); store.set(K.log + HOJE0, LOG);
 }
 async function processa() {
@@ -972,7 +976,7 @@ function telaVAR(item) {
     veredito = `📞 LIGAR AGORA: ${ehSupFalso(v.sup) ? 'o gerente da filial' : (v.sup || 'supervisor')} (${ehSupFalso(v.sup) ? 'vendedor ligado direto ao gerente' : 'supervisor'} de ${v.nome.split(' ')[0]})${totalDia >= 3 ? ' — REINCIDENTE, ' + totalDia + 'º pênalti hoje' : ''}`;
   } else if (item.tipo === 'amarelos') {
     titulo = '🟨 CARTÕES AMARELOS'; sub = `${item.l.length} vendedor(es) COM ROTA sem pedido e/ou sem visita às ${LIMITE_H}h`; cls = 'f1';
-    dec = item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.subtipo === 'sem_checkin' ? 'nenhuma visita / check-in de varejo' : a.v.feitas + '/' + a.v.rota + ' visitas · 0 pedidos'}${a.v.sup && !ehSupFalso(a.v.sup) ? ' · sup. ' + esc(a.v.sup) : ''}</span></div>`).join('') + (item.l.length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
+    dec = item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.txt ? esc(a.txt) : (a.subtipo === 'sem_checkin' ? 'nenhuma visita / check-in de varejo' : a.v.feitas + '/' + a.v.rota + ' visitas · 0 pedidos')}${a.v.sup && !ehSupFalso(a.v.sup) ? ' · sup. ' + esc(a.v.sup) : ''}</span></div>`).join('') + (item.l.length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
     veredito = '🟨 Cobrar o compromisso da manhã: pedido e visita até as 10h. Quem continuar sem visita às 11h leva o vermelho.';
   } else if (item.tipo === 'venda10') {
     titulo = '🟥 CARTÃO VERMELHO'; sub = `${LIMITE_H}h e ${item.l.length} vendedor(es) COM ROTA e SEM NENHUMA VENDA`; cls = 'f1';
@@ -980,7 +984,7 @@ function telaVAR(item) {
     veredito = 'Nenhuma venda registrada até agora.';
   } else {
     titulo = '⛔ EXPULSÃO'; sub = `${LIMITE_H}h e ${item.l.length} vendedor(es) COM ROTA e SEM NENHUMA VISITA`;
-    dec = item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>0/${a.v.rota} visitas — nenhum cliente da rota visitado</span></div>`).join('') + (item.l.length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
+    dec = item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.txt ? esc(a.txt) : '0/' + a.v.rota + ' visitas — nenhum cliente da rota visitado'}</span></div>`).join('') + (item.l.length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
     veredito = 'Nenhuma visita registrada. Verificar se o vendedor está em campo.';
   }
   // TODO LANCE IDENTIFICA O SUPERVISOR (Vitorio, 05/10/2026: "todo lance tem que identificar o supervisor"): linha SUPERVISOR logo apos o VENDEDOR.
