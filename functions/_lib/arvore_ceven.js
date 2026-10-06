@@ -121,12 +121,13 @@ export async function aplicaArvore(env, corpo) {
     // Nao entram: vaga (VAGO), conta do proprio supervisor/gerente, canal GER/SUP.
     const ja = new Set();
     for (const chave of Object.keys(corpo.filiais)) for (const v of corpo.filiais[chave] || []) ja.add(chave.split('_')[0].toUpperCase() + '|' + v.rca);
+    const nomesSup = new Set(results.map((x) => x.sup_nome)); // conta de quem e supervisor em alguma filial nao e vendedor
     let novos = 0;
     for (const r of results) {
       const sig = r.filial, k = sig + '|' + r.rca;
       if (ja.has(k)) continue;
       const nome = limpaSup(r.nome);
-      if (!nome || /^VAG[OA]\b/.test(nome) || /^GERENTE\b/.test(nome) || nome === r.sup_nome || /^(GER|SUP)$/.test(String(r.canal || '').toUpperCase())) continue;
+      if (!nome || /^VAG[OA]\b/.test(nome) || /^GERENTE\b/.test(nome) || nomesSup.has(nome) || /^(GER|SUP)$/.test(String(r.canal || '').toUpperCase())) continue;
       // gerente/grupo: o mais comum entre os vendedores da Gestao que tem o mesmo supervisor (senao, o mais comum da filial)
       const todos = [];
       for (const chave of Object.keys(corpo.filiais)) if (chave.split('_')[0].toUpperCase() === sig) for (const v of corpo.filiais[chave] || []) todos.push(v);
