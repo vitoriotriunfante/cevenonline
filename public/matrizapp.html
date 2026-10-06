@@ -291,6 +291,16 @@ footer .msg { flex: 1 1 220px; min-width: 160px; }
 <script>
 'use strict';
 (function () { const b = document.getElementById('bmenu'), m = document.getElementById('mtest'); if (!b || !m) return; b.addEventListener('click', (e) => { e.stopPropagation(); m.classList.toggle('on'); }); document.addEventListener('click', (e) => { if (!m.contains(e.target)) m.classList.remove('on'); }); })();
+(function () { const ov = document.getElementById('ov'); if (!ov) return;
+  // POPUP DO VAR QUE NAO CABE (Vitório, 06/10/2026: "tá explodindo um pouco pra fora ai embaixo"): se o conteudo passa da altura da tela, reduz o cartao ate caber
+  const cabe = () => { const d = ov.querySelector('.dec'); if (!d) return;
+    d.style.transform = ''; d.style.margin = ''; d.style.maxHeight = ''; d.style.overflow = '';
+    if (d.scrollHeight <= d.clientHeight + 1) return;
+    d.style.maxHeight = 'none'; d.style.overflow = 'visible';
+    const nat = d.offsetHeight, disp = window.innerHeight * 0.9, s = Math.min(1, disp / nat);
+    if (s < 1) { d.style.transform = 'scale(' + s.toFixed(3) + ')'; d.style.transformOrigin = 'center center'; d.style.margin = (-(1 - s) * nat / 2) + 'px 0'; } };
+  new MutationObserver(() => requestAnimationFrame(cabe)).observe(ov, { childList: true });
+  window.addEventListener('resize', cabe); })();
 // ============================== CONFIG ==============================
 const P = new URLSearchParams(location.search);
 const MIN_FIL = +P.get('min') || 4;                        // minutos por filial na tela
@@ -1181,18 +1191,18 @@ function renderRank(stats) {
     return b.nota - a.nota;
   });
 
-  const maxScore = Math.max(...stats.map(x => x.scorePositivo || 0), 100);
+  const maxScore = Math.max(...stats.map(x => x.scorePositivo || 0), 0.0001); // o LIDER vira 100 e as demais filiais ficam proporcionais (Vitório, 06/10/2026)
   const minScore = Math.min(...stats.map(x => x.scorePositivo || 0), 50);
 
   const tituloTxt = (MODO_RANK_POSITIVO || ehFechamento) ? '🏆 Desempenho' : '🚨 Ranking de criticidade';
-  const subTxt = (MODO_RANK_POSITIVO || ehFechamento) ? `score dinâmico (líder: ${maxScore.toFixed(1)})` : 'nota de risco 0–100';
+  const subTxt = (MODO_RANK_POSITIVO || ehFechamento) ? 'score dinâmico (líder = 100)' : 'nota de risco 0–100';
 
   $('rank').innerHTML = `<h2 style="cursor:pointer" onclick="MODO_RANK_POSITIVO = !MODO_RANK_POSITIVO; render();" title="Clique para alternar entre Score Positivo e Criticidade">
       <span>${tituloTxt}</span><b>${subTxt} ⇄</b>
     </h2>` + ord.map(x => {
     const i = ORDEM.indexOf(x.sig), min = TS[x.sig] ? Math.round((Date.now() - TS[x.sig]) / 60000) : null;
     const ehPositivo = MODO_RANK_POSITIVO || ehFechamento;
-    const notaExibida = ehPositivo ? x.scorePositivo : x.nota;
+    const notaExibida = ehPositivo ? Math.round(((x.scorePositivo || 0) / maxScore) * 1000) / 10 : x.nota;
     // Barra calibrada proporcional ao líder (quem tem mais gols/melhor score enche a barra, os outros ficam proporcionais)
     const barraWidth = ehPositivo
       ? Math.min(100, Math.max(10, Math.round(((x.scorePositivo || 0) / maxScore) * 100)))

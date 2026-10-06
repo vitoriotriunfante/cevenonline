@@ -338,6 +338,16 @@ footer .msg { flex: 1 1 220px; min-width: 160px; }
 <script>
 'use strict';
 (function () { const b = document.getElementById('bmenu'), m = document.getElementById('mtest'); if (!b || !m) return; b.addEventListener('click', (e) => { e.stopPropagation(); m.classList.toggle('on'); }); document.addEventListener('click', (e) => { if (!m.contains(e.target)) m.classList.remove('on'); }); })();
+(function () { const ov = document.getElementById('ov'); if (!ov) return;
+  // POPUP DO VAR QUE NAO CABE (Vitório, 06/10/2026: "tá explodindo um pouco pra fora ai embaixo"): se o conteudo passa da altura da tela, reduz o cartao ate caber
+  const cabe = () => { const d = ov.querySelector('.dec'); if (!d) return;
+    d.style.transform = ''; d.style.margin = ''; d.style.maxHeight = ''; d.style.overflow = '';
+    if (d.scrollHeight <= d.clientHeight + 1) return;
+    d.style.maxHeight = 'none'; d.style.overflow = 'visible';
+    const nat = d.offsetHeight, disp = window.innerHeight * 0.9, s = Math.min(1, disp / nat);
+    if (s < 1) { d.style.transform = 'scale(' + s.toFixed(3) + ')'; d.style.transformOrigin = 'center center'; d.style.margin = (-(1 - s) * nat / 2) + 'px 0'; } };
+  new MutationObserver(() => requestAnimationFrame(cabe)).observe(ov, { childList: true });
+  window.addEventListener('resize', cabe); })();
 // ============================== CONFIG ==============================
 const P = new URLSearchParams(location.search);
 const FIL = (P.get('filial') || '').toUpperCase();
