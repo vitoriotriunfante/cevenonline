@@ -650,5 +650,12 @@ secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
   }
 }
 
+secao('8d. Lances na tela: o que o coletor registrou nos ultimos 12 min tambem apita; depois das 16h o VAR acelera');
+for (const arq of ['public/tvapp.html', 'public/matrizapp.html']) {
+  const t = ler(arq);
+  ok(t.includes('const RECENTES = new Set()') && t.includes('ehRecente') && t.includes('RECENTES.has(a.key)') && t.includes('EXIB.add(a.key)'), arq + ': lance registrado pelo coletor nos ultimos 12 min entra na fila do VAR (a tela nao fica muda)');
+  ok(t.includes('(sp().h >= 16 ? 90 : 180)') && t.includes('(sp().h >= 16 ? 40 : 20)') && t.includes('varGapS() * 1000') && t.includes('varMaxH()'), arq + ': depois das 16h o VAR roda a cada 90 s e ate 40 por hora');
+}
+
 console.log(`\nRESULTADO: ${total - falhas} de ${total} verificacoes OK` + (falhas ? ` | ${falhas} FALHARAM` : ''));
 process.exit(falhas ? 1 : 0);

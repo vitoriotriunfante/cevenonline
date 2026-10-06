@@ -808,11 +808,19 @@ async function registraLances(cands) {
   catch { return null; }
 }
 const INVICTA_AVISADA = new Set();
+// LANCES QUE O SERVIDOR (coletor, de 5 em 5 min) REGISTROU ANTES DESTA TELA (Vitório, 06/10/2026: "não to vendo um lance já tem mais de 20 minutos"): como o coletor grava primeiro,
+// a tela nunca era a 'descobridora' e nao apitava. Agora o lance registrado nos ultimos 12 min (e que esta tela ainda nao mostrou) tambem entra na fila do VAR.
+const RECENTES = new Set(); let EXIB = new Set(store.get('ceven_exib_' + FIL + '_' + HOJE0, []));
+const NIVEIS_APITAM = ['gol', 'hattrick', 'defesa', 'penalti', 'impedimento', 'vermelho', 'golcontra'];
+const varGapS = () => (+P.get('vargap') || (sp().h >= 16 ? 90 : 180)); // depois das 16h o VAR roda mais rapido (intensifica o fechamento)
+const varMaxH = () => (+P.get('varmax') || (sp().h >= 16 ? 40 : 20));
 async function carregaLancesServidor() {
   const d = await j(`/api/tv-lances?filial=${FIL}`, 15000);
   if (!d || !Array.isArray(d.lances)) return;
   const tem = new Set(LOG.map(e => e.key).filter(Boolean));
-  d.lances.forEach(r => { seen.add(r.chave); if (!tem.has(r.chave)) LOG.push({key: r.chave, t: r.hora_sp, nivel: r.nivel, rca: r.rca, vendedor: r.vendedor, supervisor: r.supervisor || '', cliente: r.cliente, id_cliente: r.cliente_id, motivo: r.motivo, dias_sem_compra: r.dias_sem_compra, ultima_compra: r.ultima_compra, tempo_visita: r.tempo_visita, obs: r.obs, filial: FIL, ao_ligar: !!r.baseline}); });
+  const agoraS = secDe(sp().hms);
+  const ehRecente = (r) => !Number(r.baseline) && NIVEIS_APITAM.includes(r.nivel) && !EXIB.has(r.chave) && (agoraS - secDe(r.hora_sp)) >= 0 && (agoraS - secDe(r.hora_sp)) <= 12 * 60;
+  d.lances.forEach(r => { if (ehRecente(r)) RECENTES.add(r.chave); else seen.add(r.chave); if (!tem.has(r.chave)) LOG.push({key: r.chave, t: r.hora_sp, nivel: r.nivel, rca: r.rca, vendedor: r.vendedor, supervisor: r.supervisor || '', cliente: r.cliente, id_cliente: r.cliente_id, motivo: r.motivo, dias_sem_compra: r.dias_sem_compra, ultima_compra: r.ultima_compra, tempo_visita: r.tempo_visita, obs: r.obs, filial: FIL, ao_ligar: !!r.baseline}); });
   // SEMANA INVICTA (lance gravado pelo servidor na sexta apos as 19h): avisa na tela UMA vez, so se for recente (ate 3 h) e esta tela ainda nao o conhecia.
   d.lances.forEach(r => {
     if (r.nivel !== 'semanainvicta' || tem.has(r.chave) || INVICTA_AVISADA.has(r.chave)) return;
@@ -837,11 +845,11 @@ async function processa() {
       // O servidor (D1) é a fonte da verdade: só é "novo" o que nenhuma TV registrou antes.
       const d = await registraLances(cands);
       let novos, baseline;
-      if (d) { primeiraSync = true; baseline = !!d.baseline; const set = new Set(d.novos); novos = cands.filter(a => set.has(a.key)); }
+      if (d) { primeiraSync = true; baseline = !!d.baseline; const set = new Set(d.novos); novos = cands.filter(a => set.has(a.key) || RECENTES.has(a.key)); novos.forEach(a => { RECENTES.delete(a.key); EXIB.add(a.key); }); store.set('ceven_exib_' + FIL + '_' + HOJE0, [...EXIB]); }
       else { return; } // servidor sem resposta: NAO apita e NAO marca como visto; tenta de novo no proximo ciclo (antes caia no controle local e reapitava lance antigo ao recarregar; mesma regra da Matriz)
       const t = sp();
       cands.forEach(a => seen.add(a.key));
-      novos.forEach(a => LOG.push(evento(a, t, baseline)));
+      novos.filter(a => !LOG.some(e => e.key === a.key)).forEach(a => LOG.push(evento(a, t, baseline)));
       store.set(K.seen + HOJE0, [...seen]); store.set(K.log + HOJE0, LOG);
       if (!baseline && novos.length) enfileira(novos);
       if (cands.length > novos.length || (d && !LOG.length)) carregaLancesServidor();
@@ -873,7 +881,7 @@ function snapshot(vs) {
 // ============================== VAR (overlay) ==============================
 const FILA = []; let emVAR = false;
 const ESPERA = [], VARS = [];                                   // ESPERA = lances aguardando vez; VARS = horários dos últimos VAR
-const VAR_GAP_S = +P.get('vargap') || 180, VAR_MAX_H = +P.get('varmax') || 20; // LIMITADOR: 1 VAR a cada 3 min e no máx. 20 por hora
+const VAR_GAP_S = +P.get('vargap') || 180, VAR_MAX_H = +P.get('varmax') || 20; // base; o que vale e varGapS()/varMaxH() (mais rapido depois das 16h) // LIMITADOR: 1 VAR a cada 3 min e no máx. 20 por hora
 function rankingPenaltis() {
   const m = new Map();
   LOG.filter(e => e.nivel === 'penalti').forEach(e => { const x = m.get(e.rca) || {rca: e.rca, nome: e.vendedor, sup: e.supervisor || '', n: 0}; x.n++; m.set(e.rca, x); });
@@ -906,7 +914,7 @@ function enfileira(novos) {
 }
 function podeVAR() {
   const agora = Date.now(); while (VARS.length && agora - VARS[0] > 3600e3) VARS.shift();
-  return !emVAR && !FILA.length && VARS.length < VAR_MAX_H && (!VARS.length || agora - VARS[VARS.length - 1] >= VAR_GAP_S * 1000);
+  return !emVAR && !FILA.length && VARS.length < varMaxH() && (!VARS.length || agora - VARS[VARS.length - 1] >= varGapS() * 1000);
 }
 function liberaEspera() {
   if (ESPERA.length && podeVAR()) {

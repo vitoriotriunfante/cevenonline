@@ -730,10 +730,18 @@ async function registraLances(cands) {
   try { const r = await fetch('/api/tv-lances', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(corpo)}); const d = await r.json(); return r.ok && !d.erro ? d : null; } catch { return null; }
 }
 const INVICTA_AVISADA = new Set();
+// LANCES QUE O SERVIDOR (coletor, de 5 em 5 min) REGISTROU ANTES DESTA TELA (Vitório, 06/10/2026: "não to vendo um lance já tem mais de 20 minutos"): como o coletor grava primeiro,
+// a tela nunca era a 'descobridora' e nao apitava. Agora o lance registrado nos ultimos 12 min (e que esta tela ainda nao mostrou) tambem entra na fila do VAR.
+const RECENTES = new Set(); let EXIB = new Set(store.get('ceven_exib_MTZ_' + HOJE0, []));
+const NIVEIS_APITAM = ['gol', 'hattrick', 'defesa', 'penalti', 'impedimento', 'vermelho', 'golcontra'];
+const varGapS = () => (+P.get('vargap') || (sp().h >= 16 ? 90 : 180)); // depois das 16h o VAR roda mais rapido (intensifica o fechamento)
+const varMaxH = () => (+P.get('varmax') || (sp().h >= 16 ? 40 : 20));
 async function carregaLances() {
   const d = await j('/api/tv-lances?filial=MTZ', 15000); if (!d || !Array.isArray(d.lances)) return;
   const tem = new Set(LOG.map(e => e.key).filter(Boolean));
-  d.lances.forEach(r => { seen.add(r.chave); if (!tem.has(r.chave)) LOG.push({key: r.chave, t: r.hora_sp, nivel: r.nivel, rca: r.rca, vendedor: r.vendedor, supervisor: r.supervisor || '', sig: (r.nivel === 'semanainvicta' ? String(r.chave).split('|')[0] : (r.obs || String(r.chave).split('|')[0])), cliente: r.cliente, motivo: r.motivo, dias_sem_compra: r.dias_sem_compra, tempo_visita: r.tempo_visita, ao_ligar: !!r.baseline}); });
+  const agoraS = secDe(sp().hms);
+  const ehRecente = (r) => !Number(r.baseline) && NIVEIS_APITAM.includes(r.nivel) && !EXIB.has(r.chave) && (agoraS - secDe(r.hora_sp)) >= 0 && (agoraS - secDe(r.hora_sp)) <= 12 * 60;
+  d.lances.forEach(r => { if (ehRecente(r)) RECENTES.add(r.chave); else seen.add(r.chave); if (!tem.has(r.chave)) LOG.push({key: r.chave, t: r.hora_sp, nivel: r.nivel, rca: r.rca, vendedor: r.vendedor, supervisor: r.supervisor || '', sig: (r.nivel === 'semanainvicta' ? String(r.chave).split('|')[0] : (r.obs || String(r.chave).split('|')[0])), cliente: r.cliente, motivo: r.motivo, dias_sem_compra: r.dias_sem_compra, tempo_visita: r.tempo_visita, ao_ligar: !!r.baseline}); });
   // SEMANA INVICTA (lance gravado pelo servidor na sexta apos as 19h): avisa na tela UMA vez, so se for recente (ate 3 h) e esta tela ainda nao o conhecia.
   d.lances.forEach(r => {
     if (r.nivel !== 'semanainvicta' || tem.has(r.chave) || INVICTA_AVISADA.has(r.chave)) return;
@@ -756,9 +764,9 @@ async function processa() {
     const cands = ALERTAS.filter(a => !seen.has(a.key));
     if (cands.length || !primeiraSync) {
       const d = await registraLances(cands); let novos, baseline;
-      if (d) { primeiraSync = true; baseline = !!d.baseline; const st = new Set(d.novos); novos = cands.filter(a => st.has(a.key)); } else { baseline = false; novos = []; } // sem servidor: não apita (evita repetição)
+      if (d) { primeiraSync = true; baseline = !!d.baseline; const st = new Set(d.novos); novos = cands.filter(a => st.has(a.key) || RECENTES.has(a.key)); novos.forEach(a => { RECENTES.delete(a.key); EXIB.add(a.key); }); store.set('ceven_exib_MTZ_' + HOJE0, [...EXIB]); } else { baseline = false; novos = []; } // sem servidor: não apita (evita repetição)
       const t = sp(); cands.forEach(a => seen.add(a.key));
-      novos.forEach(a => LOG.push({key: a.key, t: t.hms, nivel: a.nivel, rca: a.v.id, vendedor: a.v.nome, canal: a.v.canal || '', supervisor: a.v.sup, sig: a.sig, cliente: a.c && a.c.nome, motivo: a.c && a.c.motivo, dias_sem_compra: a.dias, tempo_visita: a.c && a.c.tempo_visita, ao_ligar: baseline}));
+      novos.filter(a => !LOG.some(e => e.key === a.key)).forEach(a => LOG.push({key: a.key, t: t.hms, nivel: a.nivel, rca: a.v.id, vendedor: a.v.nome, canal: a.v.canal || '', supervisor: a.v.sup, sig: a.sig, cliente: a.c && a.c.nome, motivo: a.c && a.c.motivo, dias_sem_compra: a.dias, tempo_visita: a.c && a.c.tempo_visita, ao_ligar: baseline}));
       store.set(K.seen + HOJE0, [...seen]); store.set(K.log + HOJE0, LOG);
       if (!baseline && novos.length) enfileira(novos);
       if (cands.length > novos.length) carregaLances();
@@ -809,7 +817,7 @@ function enfileira(novos) {
   ESPERA.sort((a, b) => b.score - a.score); liberaEspera();
 }
 const penaltisDe = (rca, sig) => LOG.filter(e => e.nivel === 'penalti' && e.rca === rca && e.sig === sig).length;
-function podeVAR() { const agora = Date.now(); while (VARS.length && agora - VARS[0] > 3600e3) VARS.shift(); return !emVAR && !FILA.length && VARS.length < VAR_MAX_H && (!VARS.length || agora - VARS[VARS.length - 1] >= VAR_GAP_S * 1000); }
+function podeVAR() { const agora = Date.now(); while (VARS.length && agora - VARS[0] > 3600e3) VARS.shift(); return !emVAR && !FILA.length && VARS.length < varMaxH() && (!VARS.length || agora - VARS[VARS.length - 1] >= varGapS() * 1000); }
 function liberaEspera() {
   if (ESPERA.length && podeVAR()) { const iInv = ESPERA.findIndex(x => x.tipo === 'semanainvicta'); /* Semana Invicta sai SEMPRE sozinha, nunca dentro de um resumo */
     const item = iInv >= 0 ? ESPERA.splice(iInv, 1)[0] : (ESPERA.length >= 4 ? {tipo: 'resumo', grupos: ESPERA.splice(0)} : ESPERA.shift()); VARS.push(Date.now()); FILA.push(item); proximoVAR(); }
