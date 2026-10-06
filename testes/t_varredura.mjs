@@ -77,7 +77,7 @@ export default async function (ok) {
   const cont = (ep) => reg.chamadas.filter((c) => c.startsWith(ep + ':')).length;
   ok(r.modo === 'tick', 'com os RCAs ja gravados hoje, a rodada vira tick em camadas');
   ok(cont('produtividade') >= 8 && cont('produtividade') < N, `tick busca produtividade de quem tem rota e so uma fatia de quem nao tem (${cont('produtividade')} de ${N})`);
-  ok(cont('roteiro-hoje') <= Math.ceil(N / 3) + 1 && cont('dashboard') <= 2 && cont('devolucoes') <= 2, `rota, dashboard e devolucoes vao em fatias (rota ${cont('roteiro-hoje')}, dashboard ${cont('dashboard')}, devolucoes ${cont('devolucoes')})`);
+  ok(cont('roteiro-hoje') <= Math.ceil(N / 3) + 1 && cont('dashboard') <= 2 && cont('devolucoes') <= Math.ceil(N / 3) + 1, `rota, dashboard e devolucoes vao em fatias (rota ${cont('roteiro-hoje')}, dashboard ${cont('dashboard')}, devolucoes ${cont('devolucoes')})`);
   ok(reg.chamadas.length < N * 4 / 1.4, `o tick faz bem menos chamadas que a varredura completa (${reg.chamadas.length} contra ${N * 4})`);
   ok(reg.pico <= 6, `tick nunca passa de 6 chamadas ao mesmo tempo (pico ${reg.pico})`);
 
@@ -113,13 +113,15 @@ export default async function (ok) {
   ok(antes === depois, 'se o CEVEN falha para um RCA, o dado dele que ja estava gravado continua (nunca zera nem inventa)');
 
   // 7) rodizio: em 3 ticks todos os RCAs tem a rota atualizada pelo menos uma vez; dashboard/devolucoes giram em fatias
-  const vistos = new Set(), vistosFria = new Set();
+  const vistos = new Set(), vistosFria = new Set(), vistosDev3 = new Set();
   for (let t = 0; t < 10; t++) {
     reg = ativaCevenFalso(estado);
     await rodar(db);
     reg.chamadas.filter((c) => c.startsWith('roteiro-hoje:')).forEach((c) => vistos.add(c.split(':')[1]));
     reg.chamadas.filter((c) => c.startsWith('dashboard:')).forEach((c) => vistosFria.add(c.split(':')[1]));
+    if (t < 3) reg.chamadas.filter((c) => c.startsWith('devolucoes:')).forEach((c) => vistosDev3.add(c.split(':')[1]));
   }
+  ok(vistosDev3.size === N, `em 3 ticks todos os ${N} RCAs tiveram as DEVOLUCOES atualizadas, para a TV bater com o WhatsApp (${vistosDev3.size})`);
   ok(vistos.size === N, `em 10 ticks todos os ${N} RCAs tiveram a rota atualizada (${vistos.size})`);
   ok(vistosFria.size === N, `em 10 ticks todos os ${N} RCAs tiveram dashboard/devolucoes atualizados (${vistosFria.size})`);
 }

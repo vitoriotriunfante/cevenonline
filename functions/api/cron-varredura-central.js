@@ -29,7 +29,8 @@ const ORCAMENTO_TICK_MS = 100000;   // para de buscar fatias depois disso
 const SLOT_TICK_S = 150, SLOT_COMPLETA_S = 420;
 const PRAZO_PRODUTIVIDADE_MS = 70000;   // a etapa quente para de buscar aos 70 s e grava o que ja veio
 const FATIAS_ROTA = 3;              // cada RCA tem a rota atualizada a cada 3 ticks (se nao mudou o pedido)
-const FATIAS_FRIA = 10;             // dashboard/devolucoes a cada 10 ticks
+const FATIAS_FRIA = 10;             // dashboard a cada 10 ticks
+const FATIAS_DEV = 3;               // devolucoes a cada 3 ticks (~7 min): para a TV bater com o WhatsApp
 
 async function poolLimitado(tarefas, n, prazo) {
   const saida = new Array(tarefas.length);
@@ -228,21 +229,20 @@ export async function onRequestGet({ env, request }) {
     });
     await gravaLote(env, stmts.splice(0));
 
-    // 4. FRIA: dashboard e devolucoes, 1/10 por tick
-    const fatiaFria = rcas.filter((rca, i) => i % FATIAS_FRIA === ciclo % FATIAS_FRIA);
+    // 4. FRIA: dashboard 1/10 por tick; DEVOLUCOES 1/3 por tick (Vitorio, 06/10/2026: "precisamos ser coesos no numero": com 1/10 a devolucao da TV/Lances ficava ~25 min
+    // atrasada em relacao ao WhatsApp, que le o CEVEN ao vivo. Com 1/3 fica em ~7 min).
+    const fatiaDash = rcas.filter((rca, i) => i % FATIAS_FRIA === ciclo % FATIAS_FRIA);
+    const fatiaDev = rcas.filter((rca, i) => i % FATIAS_DEV === ciclo % FATIAS_DEV);
     // A etapa FRIA tem FATIA PROPRIA de tempo (05/10/2026): com o prazo geral, as etapas 1 a 3 consumiam os 100 s e a fria nunca rodava, entao painel (faturado do mes)
     // e devolucoes ficavam congelados no dado da varredura completa (ex.: TPA R$ 42 mil na Executiva contra R$ 133 mil no CEVEN).
-    const prazoFria = Date.now() + 25000;
-    const frias = await poolLimitado(fatiaFria.flatMap((rca) => [() => getJson(urlRca('dashboard', rca)), () => getJson(urlRca('devolucoes', rca))]), CONC, prazoFria);
-    fatiaFria.forEach((rca, i) => {
-      const dash = frias[i * 2], dev = frias[i * 2 + 1];
-      const campos = {};
-      if (dash) campos.dashboard_json = JSON.stringify(dash);
-      if (Array.isArray(dev)) campos.devolucoes_json = JSON.stringify(dev);
-      if (!Object.keys(campos).length) return;
-      contagem.fria++;
-      stmts.push(upsertParcial(env, dataRef, rca, campos));
-    });
+    const prazoFria = Date.now() + 30000;
+    const tarefasFria = [...fatiaDash.map((rca) => () => getJson(urlRca('dashboard', rca))), ...fatiaDev.map((rca) => () => getJson(urlRca('devolucoes', rca)))];
+    const frias = await poolLimitado(tarefasFria, CONC, prazoFria);
+    const camposPorRca = new Map();
+    const campo = (rca) => { const k = String(rca.codigo); if (!camposPorRca.has(k)) camposPorRca.set(k, { rca, campos: {} }); return camposPorRca.get(k).campos; };
+    fatiaDash.forEach((rca, i) => { const dash = frias[i]; if (dash) campo(rca).dashboard_json = JSON.stringify(dash); });
+    fatiaDev.forEach((rca, i) => { const dev = frias[fatiaDash.length + i]; if (Array.isArray(dev)) campo(rca).devolucoes_json = JSON.stringify(dev); });
+    for (const { rca, campos } of camposPorRca.values()) { contagem.fria++; stmts.push(upsertParcial(env, dataRef, rca, campos)); }
     await gravaLote(env, stmts.splice(0));
 
     // Encadeia o MAPA DA EXECUTIVA logo apos a rodada (05/10/2026): antes ele rodava em cron proprio de 5 em 5 min e o atraso se somava ao da varredura
