@@ -1647,7 +1647,7 @@ window.painelLancesBlocoHtml = function (id, log, esc, tag) {
 window.compactaDecHtml = function (dec) {
   return String(dec).replace(/<div class="ln([^"]*)"><b>([^<]*)<\/b><span>([\s\S]*?)<\/span><\/div>/g, function (m, cls, lab, val) {
     const txt = val.replace(/<[^>]*>/g, '');
-    const larga = /LANCE|CLIENTE|QUALIFIC|PEDIDO|QUINZENA|FATURAMENTO|MOTIVO|DEVOLU|PROVA|ANULADO|ALERTA|SEMANA|ITENS|DETALHE/i.test(lab) || txt.length > 34;
+    const larga = /^(LANCE|CLIENTE)|QUALIFIC|PEDIDO|QUINZENA|FATURAMENTO|MOTIVO|DEVOLU|PROVA|ANULADO|ALERTA|SEMANA|ITENS|DETALHE/i.test(lab) || txt.length > 34;
     return larga ? m.replace('class="ln' + cls + '"', 'class="ln' + cls + ' w"') : m;
   });
 };
