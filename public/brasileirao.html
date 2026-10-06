@@ -432,6 +432,36 @@ footer {
   font-size: 12px;
   color: var(--tx-mut);
 }
+
+/* ===== RESPONSIVO (Vitório, 06/10/2026: "a responsividade está muito ruim em todas as telas") ===== */
+.header-top { gap: 10px; }
+.nav-tabs { flex-wrap: wrap; overflow-x: visible; gap: 6px; row-gap: 6px; }
+.tab-btn { padding: clamp(6px, .6vw, 10px) clamp(8px, .9vw, 16px); font-size: clamp(11px, .95vw, 13px); gap: 6px; }
+main { padding: 0 clamp(8px, 1.6vw, 24px); }
+.tb-league thead th { padding: clamp(7px, .8vw, 14px) clamp(5px, .75vw, 14px); font-size: clamp(9px, .72vw, 11px); letter-spacing: .04em; white-space: normal; line-height: 1.2; }
+.tb-league td { padding: clamp(6px, .8vw, 14px) clamp(5px, .75vw, 14px); font-size: clamp(11px, .95vw, 13px); }
+.tb-league thead th[style*="width:60px"], .tb-league thead th[style*="width:70px"] { width: auto !important; }
+.hero-stats { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: clamp(8px, 1vw, 16px); }
+.stat-card { padding: clamp(10px, 1vw, 16px) clamp(12px, 1.2vw, 20px); }
+@media (max-width: 1250px) {
+  #tab-filiais .tb-league th:nth-child(4), #tab-filiais .tb-league td:nth-child(4) { display: none; }
+  #tab-gerencias .tb-league th:nth-child(9), #tab-gerencias .tb-league td:nth-child(9), #tab-gerencias .tb-league th:nth-child(10), #tab-gerencias .tb-league td:nth-child(10) { display: none; }
+  #tab-supervisores .tb-league th:nth-child(4), #tab-supervisores .tb-league td:nth-child(4) { display: none; }
+  #tab-vendedores .tb-league th:nth-child(11), #tab-vendedores .tb-league td:nth-child(11) { display: none; }
+  #tab-lances .tb-league th:nth-child(7), #tab-lances .tb-league td:nth-child(7) { display: none; }
+}
+@media (max-width: 1000px) {
+  #tab-filiais .tb-league th:nth-child(8), #tab-filiais .tb-league td:nth-child(8), #tab-filiais .tb-league th:nth-child(9), #tab-filiais .tb-league td:nth-child(9) { display: none; }
+  #tab-gerencias .tb-league th:nth-child(5), #tab-gerencias .tb-league td:nth-child(5) { display: none; }
+  #tab-vendedores .tb-league th:nth-child(4), #tab-vendedores .tb-league td:nth-child(4), #tab-vendedores .tb-league th:nth-child(10), #tab-vendedores .tb-league td:nth-child(10) { display: none; }
+  #tab-lances .tb-league th:nth-child(2), #tab-lances .tb-league td:nth-child(2) { display: none; }
+  .header-top { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 700px) {
+  main { padding: 0 8px; }
+  .tb-league td, .tb-league thead th { padding: 6px 4px; }
+  #tab-supervisores .tb-league th:nth-child(6), #tab-supervisores .tb-league td:nth-child(6), #tab-gerencias .tb-league th:nth-child(3), #tab-gerencias .tb-league td:nth-child(3) { display: none; }
+}
 </style>
 </head>
 <body>
@@ -541,8 +571,6 @@ footer {
               <th style="text-align:center">GC</th>
               <th style="text-align:center">SG</th>
               <th style="text-align:center">% Aprov</th>
-              <th style="text-align:center;line-height:1.25">Super Pedido<br><small style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--tx-mut)">dias com R$ 15 mil+</small></th>
-              <th style="text-align:center;line-height:1.25">Inativos<br><small style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--tx-mut)">clientes recuperados</small></th>
               <th>Status</th>
             </tr>
           </thead>
@@ -640,7 +668,6 @@ footer {
         <div>
           <h2>Artilharia & Desempenho dos Vendedores</h2>
           <div class="table-subtitle">Você contra o seu próprio dia • Vitória no Dia (3 pts) • Bônus de Constância</div>
-          <div style="margin:8px 0 0;padding:10px 14px;border-radius:10px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);font-size:13px;line-height:1.55;color:#cbd5e1"><b style="color:#fff">Super Pedido</b> = quantos <b>dias</b> o vendedor digitou <b>R$ 15 mil ou mais</b> no dia (cada dia conta 1; vale +5 pontos na liga).<br><b style="color:#fff">Inativos</b> = quantos <b>clientes parados há mais de 30 dias</b> voltaram a comprar com ele (cada cliente recuperado conta 1; vale +6 pontos, ou mais com o Gol Qualificado).<br><span style="color:var(--tx-mut)">As duas colunas contam desde o início da temporada (28/09/2026) e são usadas como critério de desempate quando dois vendedores empatam em pontos.</span></div>
         </div>
         <div class="filter-row">
           <input type="text" id="busca-vend" class="input-search" placeholder="🔍 Buscar Vendedor, RCA ou Supervisor..." oninput="filtrarVendedores()">
@@ -675,8 +702,6 @@ footer {
               <th style="text-align:center">% Aprov</th>
               <th style="text-align:center">Forma Recente</th>
               <th style="text-align:center">Bônus Streak</th>
-              <th style="text-align:center;line-height:1.25">Super Pedido<br><small style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--tx-mut)">dias com R$ 15 mil+</small></th>
-              <th style="text-align:center;line-height:1.25">Inativos<br><small style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--tx-mut)">clientes recuperados</small></th>
             </tr>
           </thead>
           <tbody id="tbody-vendedores">
@@ -1280,8 +1305,6 @@ function renderizarTudo() {
           <td style="text-align:center;color:#f87171;font-weight:700">${f.gc}</td>
           <td style="text-align:center;font-weight:700">${f.sg >= 0 ? '+' + f.sg : f.sg}</td>
           <td style="text-align:center;font-weight:700;color:var(--acc)">${f.aprov}%</td>
-          <td style="text-align:center">${f.super_pedidos}</td>
-          <td style="text-align:center">${f.inativos_resgatados}</td>
           <td>${statusPill}</td>
         </tr>
       `;
@@ -1406,8 +1429,6 @@ function filtrarVendedores() {
         <td style="text-align:center;font-weight:700;color:var(--acc)">${v.aprov}%</td>
         <td style="text-align:center"><div class="forma-container" title="${formaTitulo}">${formaHtml}</div></td>
         <td style="text-align:center">${streakHtml}</td>
-        <td style="text-align:center;font-weight:700">${v.super_pedidos}</td>
-        <td style="text-align:center;font-weight:700">${v.inativos_resgatados}</td>
       </tr>
     `;
   }).join('');

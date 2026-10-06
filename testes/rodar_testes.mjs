@@ -567,7 +567,7 @@ secao('8o. Regras novas: amarelo as 10h (sem pedido e/ou sem visita), vermelho d
   ok([tv, mz].every(h => h.includes("subtipo: v.feitas === 0 ? 'sem_checkin' : 'sem_venda'") && h.includes('limVerm = limiteHora + 1') && h.includes('-4 PONTOS NA LIGA')), 'TV e Matriz: mesma regra nos popups e penalti -4 no selo');
   ok(cj.pontos_por_lance.penalti_estoque.pontos === -4 && cj.pontos_por_lance.penalti_fechado.pontos === -4 && pj.pontos_por_lance.penalti_estoque.pontos === -4 && /11h00/.test(cj.pontos_por_lance.visita10.motivo) && /nenhuma visita/.test(cj.pontos_por_lance.amarelo.motivo), 'regulamento (config e copia publica): penalti -4, abandono 11h, amarelo com sem-visita/check-in');
   ok(bl.includes("dia >= '2026-10-06'") && bl.includes('pontos: -4'), 'endpoint: penalti vale -4 so a partir de 06/10/2026 (dias anteriores continuam -6)');
-  ok(br.includes('table-layout: fixed') && br.includes('clientes recuperados') && br.includes('/api/version'), 'Brasileirao: tabelas cabem na tela (sem rolagem lateral), cabecalhos Super Pedidos/Inativos explicados, recarrega com versao nova');
+  ok(br.includes('table-layout: fixed') && !br.includes('clientes recuperados') && br.includes('@media (max-width: 1250px)') && br.includes('/api/version'), 'Brasileirao: tabelas cabem na tela (sem rolagem lateral), cabecalhos Super Pedidos/Inativos explicados, recarrega com versao nova');
 }
 
 // ---------------------------------------------------------------- 8p. Lances com horario, painel travado no topo, lance de hoje de verdade
