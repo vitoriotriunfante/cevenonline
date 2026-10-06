@@ -80,10 +80,9 @@
   },
   "plus_lideranca_supervisor": {
     "uso": "DESEMPATE: o Plus nao soma pontos na tabela; desempata (ordem: pontos do time, Plus acumulado, vitorias, saldo de gols)",
-    "decisao": "Vitorio, 03-04/10/2026. So bonus: nao atingir NAO pune (nao ganha e fica 0). Destravamento de bloqueados foi RETIRADO.",
+    "decisao": "Vitorio, 03-04/10/2026 (Fair Play retirado em 06/10/2026). So bonus: nao atingir NAO pune (nao ganha e fica 0). Destravamento de bloqueados foi RETIRADO.",
     "compromisso_matinal_ate_10h00": { "pontos": 5, "prazo": "10:00 (horario de Brasilia)", "observacao": "O CEVEN TRAVA o preenchimento as 10:00: compromisso marcado como feito no dia = feito ate 10:00 (nao precisa registrar horario; historico reconstruivel pelo booleano porDia)", "fonte": "CEVEN /api/admin/supervisores/matriz-compromissos (dataInicio/dataFim)" },
     "ret_inicio_e_execucao": { "pontos": 5, "obrigatorio": false, "observacao": "RET e RECOMENDADO (nao obrigatorio): quem faz ganha, quem nao faz fica 0", "fonte": "CEVEN /api/admin/supervisores/matriz-ret (dataInicio/dataFim)" },
-    "zero_devolucoes_equipe_no_dia": { "pontos": 5, "nome": "Fair Play", "fonte": "devolucoes dos vendedores da equipe no dia" },
     "dias": "segunda a sexta, sem feriados (mesma regra dos jogos)"
   }
 }

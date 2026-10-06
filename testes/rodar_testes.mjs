@@ -146,7 +146,7 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     ok(bd.dias_rodada.length > 0 && bd.dias_rodada.every(d => { const w = new Date(d + 'T12:00:00Z').getUTCDay(); return w >= 1 && w <= 5 && !fer.includes(d); }), 'jogos do Brasileirao so em dias uteis (segunda a sexta) e sem feriados: ' + bd.dias_rodada.join(', '));
     ok(bd.vendedores.every(v => v.jogos <= bd.dias_rodada.length), 'nenhum vendedor tem mais jogos do que os dias de rodada'); }
   { const c = JSON.parse(ler('config/pontuacao_brasileirao.json')).plus_lideranca_supervisor; const ap = ler('public/apresentacao-diretoria.html');
-    ok(c && c.compromisso_matinal_ate_10h00.pontos === 5 && c.ret_inicio_e_execucao.obrigatorio === false && c.ret_inicio_e_execucao.pontos === 5 && c.zero_devolucoes_equipe_no_dia.pontos === 5 && !JSON.stringify(c).includes('destravamento_de_bloqueados'), 'plus de lideranca so bonus: +5 compromisso (ate 10:00), +5 RET (recomendado), +5 zero devolucoes, sem destravamento');
+    ok(c && c.compromisso_matinal_ate_10h00.pontos === 5 && c.ret_inicio_e_execucao.obrigatorio === false && c.ret_inicio_e_execucao.pontos === 5 && !c.zero_devolucoes_equipe_no_dia && !JSON.stringify(c).includes('destravamento_de_bloqueados'), 'plus de lideranca so bonus: +5 compromisso (ate 10:00), +5 RET (recomendado), sem Fair Play, sem destravamento');
     ok(!/Destravamento de Bloqueados no Dia/.test(ap) && !/se atrasar: -15|se faltar: -35/.test(ap), 'apresentacao da diretoria sem destravamento e sem punicao no Plus'); }
   { const bd = JSON.parse(ler('public/dados_brasileirao.json')); const nomes = bd.gerentes.map(g => g.nome);
     ok(new Set(nomes).size === nomes.length && nomes.includes('Fábio Machado') && nomes.includes('Fábio Colares') && !nomes.includes('Fábio'), 'Brasileirao: gerentes homonimos de filiais diferentes ficam separados (Fábio Machado TBL e Fábio Colares TPH)');
@@ -430,7 +430,7 @@ secao('8. Lances do Brasileirao contados uma vez so');
 }
 
 // ---------------------------------------------------------------- 8b. conta do Plus de Lideranca (sem rede)
-secao('8b. Plus de Lideranca do supervisor: +15 compromisso (ate 10:00), +25 RET, +30 Fair Play, sem punicao');
+secao('8b. Plus de Lideranca do supervisor: +5 compromisso (ate 10:00), +5 RET, sem punicao');
 {
   const r = spawnSync('python', [join(RAIZ, 'testes', 't_plus.py')], { encoding: 'utf8', env: { ...process.env, PYTHONIOENCODING: 'utf-8' } });
   if (r.error && r.error.code === 'ENOENT') {

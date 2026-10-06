@@ -364,7 +364,6 @@ for idx, g in enumerate(gerentes_tabela):
 # PLUS DE LIDERANCA do supervisor (regras do Vitorio, 03-04/10/2026, em config/pontuacao_brasileirao.json):
 #   Compromisso Matinal ate 10:00 (o CEVEN trava as 10:00: "feito" = feito ate as 10:00) ..... +5
 #   Inicio e execucao do RET de campo (RECOMENDADO, nao obrigatorio) ...................... +5
-#   Zero devolucoes na equipe no dia (Fair Play) ........................................... +5
 #   So BONUS: nao atingiu = 0, sem punicao. So dias de rodada (segunda a sexta, sem feriado).
 # Entradas vem de scripts/coletar_plus_lideranca.js (scratch/plus_inputs.json). Sem o arquivo, ou supervisor que o
 # CEVEN nao devolveu => plus_lideranca = None (a tela mostra "—"). NUNCA inventa: Fair Play so conta se o banco de
@@ -378,10 +377,10 @@ def _norm_nome(n):
     n = ''.join(c for c in n if _ud.category(c) != 'Mn').upper()
     return _re.sub(r'\s+', ' ', _re.sub(r'[^A-Z ]', '', n)).strip()
 
-PLUS_PONTOS = {'compromisso': 5, 'ret': 5, 'fair_play': 5}
+PLUS_PONTOS = {'compromisso': 5, 'ret': 5}
 try:
     _cfg_plus = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'config', 'pontuacao_brasileirao.json'), encoding='utf-8'))['plus_lideranca_supervisor']
-    PLUS_PONTOS = {'compromisso': _cfg_plus['compromisso_matinal_ate_10h00']['pontos'], 'ret': _cfg_plus['ret_inicio_e_execucao']['pontos'], 'fair_play': _cfg_plus['zero_devolucoes_equipe_no_dia']['pontos']}
+    PLUS_PONTOS = {'compromisso': _cfg_plus['compromisso_matinal_ate_10h00']['pontos'], 'ret': _cfg_plus['ret_inicio_e_execucao']['pontos']}
 except Exception as _e:
     print('Aviso: pontos do Plus lidos do padrao (config ausente):', _e)
 
@@ -403,19 +402,12 @@ def calcula_plus(fil, nome):
     info = PLUS_INPUTS.get('supervisores', {}).get(f"{fil}|{_norm_nome(nome)}")
     if not info:
         return None, None, None
-    dev = PLUS_INPUTS.get('devolucoes') or {}
-    dev_ate = dev.get('ate') if dev.get('disponivel') else None
     total, pendente, detalhe = 0, False, {}
     for d in DIAS_RODADA:
         comp = PLUS_PONTOS['compromisso'] if info.get('compromisso', {}).get(d) else 0
         ret = PLUS_PONTOS['ret'] if info.get('ret', {}).get(d) else 0
-        if dev_ate and dev_ate >= d:
-            fair = 0 if dev.get('porSupDia', {}).get(f"{fil}|{_norm_nome(nome)}|{d}") else PLUS_PONTOS['fair_play']
-        else:
-            fair = None  # banco de devolucoes ainda nao cobre o dia: nao da nem tira
-            pendente = True
-        detalhe[d] = {'compromisso': comp, 'ret': ret, 'fair_play': fair}
-        total += comp + ret + (fair or 0)
+        detalhe[d] = {'compromisso': comp, 'ret': ret}
+        total += comp + ret
     return total, detalhe, pendente
 
 

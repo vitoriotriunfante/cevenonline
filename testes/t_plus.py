@@ -38,12 +38,12 @@ ENTRADA = {
 }
 
 ns = roda(ENTRADA, DIAS)
-ok(ns['PLUS_PONTOS'] == {'compromisso': 5, 'ret': 5, 'fair_play': 5}, 'pontos do Plus vem da config: +5 compromisso, +5 RET, +5 Fair Play')
+ok(ns['PLUS_PONTOS'] == {'compromisso': 5, 'ret': 5}, 'pontos do Plus vem da config: +5 compromisso, +5 RET (sem Fair Play)')
 total, det, pend = ns['calcula_plus']('TBL', 'CLT - Cirlene de Fátima Gomes Vitorino')
-ok(total == 45, f'soma do Plus em 5 dias = 45 (15+5+5+15+5), achou {total}')
-ok(det['2026-09-29'] == {'compromisso': 5, 'ret': 0, 'fair_play': 0}, 'dia com devolucao: Fair Play = 0 (sem punicao)')
+ok(total == 30, f'soma do Plus em 5 dias = 30 (10+5+0+10+5), achou {total}')
+ok(det['2026-09-29'] == {'compromisso': 5, 'ret': 0}, 'devolucao nao interfere no Plus (Fair Play retirado)')
 ok(det['2026-09-30']['compromisso'] == 0 and det['2026-09-30']['ret'] == 0, 'compromisso nao feito e RET nao feito = 0, sem punicao')
-ok(det['2026-10-02']['fair_play'] is None and pend is True, 'dia que o banco de devolucoes ainda nao cobre fica PENDENTE (nao da nem tira)')
+ok(pend is False, 'sem Fair Play nao ha mais dia pendente')
 ok(all(v >= 0 for d in det.values() for v in d.values() if v is not None), 'nunca ha ponto negativo no Plus')
 ok(ns['calcula_plus']('TBL', 'SUPERVISOR QUE O CEVEN NAO DEVOLVEU') == (None, None, None), 'supervisor sem dado do CEVEN fica sem Plus (nao inventa)')
 ok(ns['_norm_nome']('CLT - José  Ávila') == 'JOSE AVILA', 'nomes sao normalizados (CLT, acento, espaco)')
