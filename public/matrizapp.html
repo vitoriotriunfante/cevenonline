@@ -209,7 +209,7 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     <button id="bt-gc" style="background:#7f1d1d;color:#fecaca;font-weight:700" title="Testar animação de Gol Contra (devolução)">⚽ Gol Contra</button>
     <button id="bt-hat" style="background:#ea580c;color:#ffedd5;font-weight:700" title="Testar animação de Hat-Trick">🔥 Hat-Trick</button>
     <button id="bt-inv" style="background:#b45309;color:#fef3c7;font-weight:700" title="Testar animação de Semana Invicta">👑 Invicta</button>
-    <button id="bprev">◀</button><button id="bpainel" style="background:#0284c7;color:#fff;font-weight:800" title="Ver Painel Nacional (11 filiais)">📊 Painel</button><a href="/brasileirao" target="_blank" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f172a;font-weight:900;text-decoration:none;padding:5px 12px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;font-size:12px" title="Abrir Tabela da Liga e Regulamento Oficial">🏆 Liga Triunfante</a><button id="bauto" class="on">Auto</button><button id="bnext">▶</button><button id="bfs">⛶ Tela cheia</button><button id="bsom">🔇 Som</button><button id="bexp">Exportar diário</button>
+    <button id="bprev">◀</button><button id="bsup" style="background:#4338ca;color:#fff;font-weight:800" title="Supervisores: compromisso, rota (RET), fotos e semana">👔 Supervisores</button><button id="bpainel" style="background:#0284c7;color:#fff;font-weight:800" title="Ver Painel Nacional (11 filiais)">📊 Painel</button><a href="/brasileirao" target="_blank" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f172a;font-weight:900;text-decoration:none;padding:5px 12px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;font-size:12px" title="Abrir Tabela da Liga e Regulamento Oficial">🏆 Liga Triunfante</a><button id="bauto" class="on">Auto</button><button id="bnext">▶</button><button id="bfs">⛶ Tela cheia</button><button id="bsom">🔇 Som</button><button id="bexp">Exportar diário</button>
   </div>
 </footer>
 <div id="ov"></div>
@@ -1070,7 +1070,7 @@ async function gatilhoSup() {
 // ============================== RENDER ==============================
 // "GERENTE MCD", "GERENTE TPH"... = vendedores ligados direto ao gerente, NAO sao supervisores (decisao do Vitorio, 04/10/2026).
 const ehSupFalso = (n) => !String(n || '').trim() || /^(GERENTE\b|RCAS INATIVOS|VENDA EMPRESA|SEM SUPERVISOR)/i.test(String(n).trim());
-function modoSup() { const t = sp(), m = t.h * 60 + t.m; return emJanelaSupPeriodica(m) && ORDEM.some(s => (SUPS[s] || []).some(x => !/GERENTE/i.test(x.nome) && (!x.fez_compromisso || !x.iniciou_ret))); }
+function modoSup() { if (SUP_MANUAL) return true; const t = sp(), m = t.h * 60 + t.m; return emJanelaSupPeriodica(m) && ORDEM.some(s => (SUPS[s] || []).some(x => !/GERENTE/i.test(x.nome) && (!x.fez_compromisso || !x.iniciou_ret))); }
 function renderTotais(stats) {
   const s = f => stats.reduce((x, y) => x + (f(y) || 0), 0), fat = s(x => x.fat), pend = s(x => x.pendente), mF = METAS ? METAS.total.meta_fat : s(x => x.metaFat), pos = s(x => x.realCli), mP = METAS ? METAS.total.meta_pos : s(x => x.metaPos);
   const pendHtml = pend > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--muted);margin-top:2px;letter-spacing:-0.2px">+ ${brl(pend)} pendente</div>` : '';
@@ -1078,6 +1078,7 @@ function renderTotais(stats) {
     ['Digitado hoje', brl(RESUMO_OF && RESUMO_OF.TODAS ? RESUMO_OF.TODAS.digitado : s(x => x.dig))], ['Visitas feitas / programadas (CEVEN)', nv(s(x => x.feitasCeven)) + ' / ' + nv(s(x => x.rotaCeven))], ['Zerados · Pênaltis ativos', nv(s(x => x.nZer)) + ' · ' + nv(s(x => x.pen))]].map(([l, v]) => `<div><span>${l}</span><b class="mono">${v}</b></div>`).join('');
   $('nv').textContent = s(x => x.n);
 }
+let SUP_MANUAL = false, SEMANA = null;
 const METRICA_FILIAL = {}; // sig -> {rot, val, cls}: o MESMO numero que a lista mostra (score ou criticidade), reaproveitado no foco e nos popups
 let MODO_RANK_POSITIVO = true; // Por padrão dá ênfase no que é bem feito
 function renderRank(stats) {
@@ -1217,7 +1218,22 @@ function renderFilial(x) {
    <div class="subprog"><i style="width:${((Date.now() - tFil) / 1000 % SUB_S) / SUB_S * 100}%"></i></div>
    <div class="prog" id="prog"></div>`;
 }
+// Supervisores no MESMO formato da filial (cards com compromisso, RET e fotos) + painel gerencial da semana; gira entre as 11 filiais
+async function carregaSupsAgora() {
+  await Promise.all(ORDEM.map(async (sig) => { const d = await j('/api/tv-supervisores?filial=' + sig, 30000); if (d && !d.erro && Array.isArray(d.supervisores)) SUPS[sig] = d.supervisores; }));
+  const sm = await j('/api/tv-supervisores-semana', 30000); if (sm && !sm.erro) SEMANA = sm;
+  render();
+}
+function renderSupFormatoFilial() {
+  const sig = ORDEM[idxFil % ORDEM.length], el = $('det');
+  const lista = (SUPS[sig] || []).filter(x => !ehSupFalso(x.nome));
+  const pend = lista.filter(x => !x.fez_compromisso || !x.iniciou_ret).length;
+  el.innerHTML = `<h2><span>Supervisores · ${sig} · matinal (compromisso) e rota (RET)</span><b>${SUPS[sig] ? pend + ' pendente(s) de ' + lista.length : 'carregando…'} · ${(idxFil % ORDEM.length) + 1} de ${ORDEM.length}</b></h2>` +
+    (SUPS[sig] ? supCardsHtml(lista) : '<div style="color:var(--mut);padding:12px 0">Aguardando dados dos supervisores…</div>') +
+    `<h2 style="margin-top:10px"><span>Painel gerencial da semana · ${sig}</span><b>fez = matinal + rota</b></h2>` + supSemanaHtml(SEMANA && SEMANA.filiais && SEMANA.filiais[sig], SEMANA);
+}
 function renderSupView() {
+  if (SUP_MANUAL) return renderSupFormatoFilial();
   const el = $('det'); el.innerHTML = `<h2><span>Supervisores · matinal (compromisso) e rota (RET)</span><b>em destaque até 12:00</b></h2>` + ORDEM.map(sig => { const l = (SUPS[sig] || []).filter(x => !/GERENTE/i.test(x.nome) && (!x.fez_compromisso || !x.iniciou_ret)); if (!l.length) return ''; const dois = l.filter(x => !x.fez_compromisso && !x.iniciou_ret).length;
     return `<div class="supr${dois ? ' bad' : ''}"><b>${sig}</b><span>${l.map(x => esc(x.nome.split(' ').slice(0, 2).join(' ')) + (x.fez_compromisso ? '' : ' ❌comp.') + (x.iniciou_ret ? '' : ' ❌RET')).join(' · ')}</span></div>`; }).join('');
 }
@@ -1621,6 +1637,8 @@ function exportar() {
   const txt = JSON.stringify(doc, null, 2); try { const b = new Blob([txt], {type: 'application/json'}), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `diario_matriz_${HOJE0}.json`; document.body.appendChild(a); a.click(); a.remove(); } catch {}
 }
 function ctl() {
+  $('bsup').onclick = () => { SUP_MANUAL = !SUP_MANUAL; $('bsup').style.outline = SUP_MANUAL ? '3px solid #a5b4fc' : 'none'; if (SUP_MANUAL) { if (idxFil >= ORDEM.length) idxFil = 0; tFil = Date.now(); carregaSupsAgora(); } render(); };
+  setInterval(() => { if (SUP_MANUAL) carregaSupsAgora(); }, 5 * 60 * 1000);
   const ir = d => { idxFil = (idxFil + d + ORDEM.length + 1) % (ORDEM.length + 1); tFil = Date.now(); render(); };
   $('bprev').onclick = () => ir(-1); $('bnext').onclick = () => ir(1);
   const alternarPainel = () => {

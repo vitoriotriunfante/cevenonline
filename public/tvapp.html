@@ -429,7 +429,9 @@ let lastOk = null, refreshing = false, ordem = [], idxRonda = 0, modoManual = ['
 // "GERENTE MCD", "GERENTE TPH"... = vendedores ligados direto ao gerente, NAO sao supervisores (decisao do Vitorio, 04/10/2026).
 const ehSupFalso = (n) => !String(n || '').trim() || /^(GERENTE\b|RCAS INATIVOS|VENDA EMPRESA|SEM SUPERVISOR)/i.test(String(n).trim());
 const SUP_INI = 11 * 60 + 30, SUP_FIM = 12 * 60; // janela do alerta de supervisores (Brasília)
-let SUP = null;   // situação dos supervisores no dia (tv-supervisores)
+let SUP = null, SEM = null, semCarregando = false;
+async function carregaSemana() { if (semCarregando) return; semCarregando = true; const d = await j('/api/tv-supervisores-semana?filial=' + FIL, 30000); if (d && !d.erro) SEM = d; semCarregando = false; renderSup(); }
+setInterval(() => { if (typeof modoAtual === 'function' && modoAtual() === 'sup') carregaSemana(); }, 5 * 60 * 1000);   // situação dos supervisores no dia (tv-supervisores)
 let ALERTAS = [];         // ativos agora
 let seen = new Set(store.get(K.seen + HOJE0, []));
 let LOG = store.get(K.log + HOJE0, []);
@@ -1479,6 +1481,7 @@ function renderPainel(vs) {
   const p1h2 = document.querySelector('#p1 h2'); if (p1h2) { p1h2.style.cursor = 'pointer'; p1h2.onclick = () => abrirModalPainel('alertas'); }
 }
 function renderSup() {
+  if (!SEM && !semCarregando) carregaSemana();
   const el = $('sup'), lista = supLista();
   if (!SUP) { el.innerHTML = '<h2><span>Supervisores · matinal e rota (RET)</span></h2><div style="color:var(--mut);font-size:24px;padding:20px 0">Aguardando dados dos supervisores…</div>'; return; }
   const peso = x => (!x.fez_compromisso && !x.iniciou_ret) ? 0 : (!x.fez_compromisso || !x.iniciou_ret) ? 1 : 2;
@@ -1495,7 +1498,7 @@ function renderSup() {
           ${d.rca ? `<span>RCA em rota: ${esc(d.rca)}</span>` : ''}
         </div>${Array.isArray(d.fotos) && d.fotos.length ? `<div class="supr-fotos">${d.fotos.slice(0, 6).map(f => `<img src="${esc(f.url)}" title="${esc(f.cliente || '')}${f.score != null ? ' · nota ' + f.score : ''}" loading="lazy">`).join('')}</div>` : ''}` : '';
       return `<div class="supr ${peso(x) === 0 ? 'bad' : peso(x) === 1 ? 'warn' : ''}"><div class="supr-cab"><span>${esc(x.nome)}</span><span class="chip ${x.fez_compromisso ? 'c-ok' : 'c-no'}">${x.fez_compromisso ? '✅ Compromisso' : '❌ Sem compromisso'}</span><span class="chip ${x.iniciou_ret ? 'c-ok' : 'c-no'}">${x.iniciou_ret ? '✅ Em rota (RET)' : '❌ RET não iniciou'}</span></div>${ret}</div>`;
-    }).join('');
+    }).join('') + `<h2 style="margin-top:10px"><span>Painel gerencial da semana</span><b>fez = matinal + rota</b></h2>` + supSemanaHtml(SEM && SEM.filiais && SEM.filiais[FIL], SEM);
 }
 // RET/Compromissos em destaque periódico (decisão do Vitório, 28/09/2026): a partir das 11:00
 // Brasília, a tela de supervisores aparece de 30 em 30 minutos, por 3 minutos cada vez — antes só

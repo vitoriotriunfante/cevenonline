@@ -495,6 +495,16 @@ secao('8g. Vigia dos disparos: refaz so o que nao comecou (caso das 17h de 05/10
   ok(ler('worker-cron/src/index.js').includes('vigiarDisparos(env)') && ler('public/matrizapp.html').includes('faixa-disparo') && existsSync(join(RAIZ, 'functions', 'api', 'disparo-status.js')), 'worker chama o vigia a cada 2 min e a Matriz tem a faixa vermelha de aviso');
 }
 
+// ---------------------------------------------------------------- 8h. Supervisores: botao na Matriz, formato da filial com fotos, painel da semana
+secao('8h. Supervisores: botao na Matriz, cards com fotos e painel gerencial da semana (fez / nao fez)');
+{
+  const mz = ler('public/matrizapp.html'), tv = ler('public/tvapp.html'), an = ler('public/animacoes/tv-animacoes.js'), se = ler('functions/api/tv-supervisores-semana.js'), su = ler('functions/api/tv-supervisores.js');
+  ok(mz.includes('id="bsup"') && mz.includes('SUP_MANUAL') && mz.includes('renderSupFormatoFilial') && mz.includes('supSemanaHtml'), 'Matriz tem o botao Supervisores, que mostra o formato da filial (cards com fotos) e a semana');
+  ok(tv.includes('supSemanaHtml') && tv.includes('/api/tv-supervisores-semana'), 'TV da filial mostra o painel gerencial da semana abaixo dos supervisores');
+  ok(an.includes('window.supCardsHtml') && an.includes('window.supSemanaHtml') && an.includes('NÃO FEZ') && an.includes('PENDENTE'), 'modulo unico: cards com fotos + tabela FEZ / PARCIAL / NAO FEZ; o dia de hoje sem nada e PENDENTE (nao punido)');
+  ok(se.includes('NAO_SUPERVISORES') && su.includes('NAO_SUPERVISORES') && se.includes('porDia') && se.includes('feriado'), 'endpoints tiram os nao-supervisores (decisao 04/10), usam o porDia do CEVEN e marcam feriado');
+}
+
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)
 secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
 {
