@@ -301,6 +301,10 @@ footer .msg { flex: 1 1 220px; min-width: 160px; }
     if (s < 1) { d.style.transform = 'scale(' + s.toFixed(3) + ')'; d.style.transformOrigin = 'center center'; d.style.margin = (-(1 - s) * nat / 2) + 'px 0'; } };
   new MutationObserver(() => requestAnimationFrame(cabe)).observe(ov, { childList: true });
   window.addEventListener('resize', cabe); })();
+// DIAGNOSTICO (?diag=1): mostra no canto da tela o estado da fila de lances, para tirar print se a TV ficar sem popup
+(function () { if (new URLSearchParams(location.search).get('diag') !== '1') return;
+  const d = document.createElement('div'); d.style.cssText = 'position:fixed;left:6px;bottom:44px;z-index:99999;background:rgba(0,0,0,.8);color:#9ef;font:12px monospace;padding:4px 8px;border-radius:6px;pointer-events:none'; document.body.appendChild(d);
+  setInterval(() => { try { d.textContent = 'diag · lances novos aguardando ' + RECENTES.size + ' · na espera do VAR ' + ESPERA.length + ' · na tela ' + FILA.length + ' · VARs na ultima hora ' + VARS.length + ' · alertas ' + ALERTAS.length + ' · ' + sp().hms; } catch (e) { d.textContent = 'diag · carregando…'; } }, 1000); })();
 // ============================== CONFIG ==============================
 const P = new URLSearchParams(location.search);
 const MIN_FIL = +P.get('min') || 4;                        // minutos por filial na tela

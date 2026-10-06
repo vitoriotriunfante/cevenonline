@@ -159,6 +159,14 @@ print(f"Vendedores carregados de /api/tv-mostra: {len(rca_map)} (ocultos pela eq
 # (decisao do Vitorio, 03/10/2026: sabado, domingo e feriado nao contam como jogo, mesmo que haja lance no D1).
 DIAS_COM_LANCE = set(l['dia'] for l in d1_data if l.get('dia'))
 DIAS_RODADA = sorted(d for d in DIAS_COM_LANCE if date.fromisoformat(d).weekday() < 5 and d not in FERIADOS_2026)
+# LIGA OFICIAL (decisao do Vitorio, 06/10/2026): a liga que vale (remuneracao) comeca em 'vigente_desde' do regulamento (07/10/2026), ja com regras congeladas e dias fechados.
+# O que veio antes e PRE-TEMPORADA: aparece no ranking, mas marcado como 'nao vale remuneracao'. Assim que existir o primeiro dia oficial com lance, a tabela passa a contar so os dias oficiais.
+INICIO_OFICIAL = str(CONFIG_PONTOS.get('vigente_desde') or '2026-10-07')
+_oficiais = [d for d in DIAS_RODADA if d >= INICIO_OFICIAL]
+PRE_TEMPORADA = not _oficiais
+if _oficiais:
+    DIAS_RODADA = _oficiais
+print('Liga oficial desde', INICIO_OFICIAL, '| pre-temporada:', PRE_TEMPORADA)
 print("Dias de rodada:", DIAS_RODADA, "| ignorados (fim de semana/feriado):", sorted(DIAS_COM_LANCE - set(DIAS_RODADA)))
 
 # Agrupar lances por RCA e por Dia
@@ -448,6 +456,8 @@ resultado_final = {
     'conceito': 'Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)',
     'config_pontuacao_versao': CONFIG_PONTOS.get('atualizado_em'),
     'dias_rodada': DIAS_RODADA,
+    'inicio_oficial': INICIO_OFICIAL,
+    'pre_temporada': PRE_TEMPORADA,
     'total_lances_auditados': len(d1_data),
     'filiais': filiais_tabela,
     'gerentes': gerentes_tabela,

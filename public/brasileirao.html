@@ -473,7 +473,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
       <div class="brand-text">
         <h1>BRASILEIRÃO TRIUNFANTE — LIGA DA CONSTÂNCIA</h1>
         <p>
-          <span class="live-pill"><span class="dot"></span> CADA DIA É UM JOGO</span>
+          <span class="live-pill"><span class="dot"></span> CADA DIA É UM JOGO</span><span id="pillPre" style="display:none;margin-left:8px;padding:3px 10px;border-radius:999px;background:#7c2d12;color:#fed7aa;font-weight:800;font-size:12px" title="A liga oficial, com regras congeladas e dias fechados, começa em 07/10/2026. Até lá este ranking é só acompanhamento.">PRÉ-TEMPORADA · não vale remuneração · liga oficial começa em 07/10/2026</span>
           <span>• A pontuação é contra o seu próprio dia • 11 Filiais • 405 Vendedores em Campo</span>
         </p>
       </div>
@@ -943,6 +943,7 @@ async function carregarDados() {
     const escolhido = [gh, local].filter(valido).sort((a, b) => String(b.gerado_em).localeCompare(String(a.gerado_em)))[0];
     if (escolhido) {
       DADOS = escolhido;
+      { const pp = document.getElementById('pillPre'); if (pp) pp.style.display = escolhido.pre_temporada ? 'inline-block' : 'none'; }
       renderizarTudo();
     }
   } catch (e) {
