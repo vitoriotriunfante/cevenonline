@@ -266,6 +266,10 @@ footer .msg { flex: 1 1 220px; min-width: 160px; }
 .master { overflow-y: auto; scrollbar-width: none; }
 .master::-webkit-scrollbar { display: none; }
 @media (max-height: 880px) { .master { padding: 14px 18px; gap: 10px; } }
+
+/* Testes de animação dentro de um menu (Vitório, 06/10/2026: a fileira de botões embaixo ficou horrível) */
+#mtest{display:none;position:fixed;right:12px;bottom:calc(var(--rodape-h,64px) + 8px);z-index:60;background:#0f1a33;border:1px solid #2b3a63;border-radius:12px;padding:10px;gap:6px;flex-wrap:wrap;max-width:min(520px,92vw);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+#mtest.on{display:flex}#mtest button{flex:1 1 140px}
 </style><script src="/animacoes/tv-animacoes.js"></script>
 </head><body>
 <!-- MODAL DE DETALHE: clique nos cards do Painel abre a lista real por trás do número
@@ -310,6 +314,8 @@ footer .msg { flex: 1 1 220px; min-width: 160px; }
   <span class="tag">ALERTAS</span>
   <span class="msg" id="alert">—</span>
   <div id="ctl">
+    <button id="bmenu" style="background:#1e293b;color:#e2e8f0;font-weight:700" title="Testar as animações dos lances">🎬 Lances ▾</button>
+    <div id="mtest">
     <button id="bt-gol" style="background:#166534;color:#86efac;font-weight:700" title="Testar animação de Gol">⚽ Teste Gol</button>
     <button id="bt-def" style="background:#0284c7;color:#bae6fd;font-weight:700" title="Testar animação de Defesa Milagrosa">🧤 Defesa</button>
     <button id="bt-imp" style="background:#d97706;color:#fef3c7;font-weight:700" title="Testar animação de Impedimento VAR">🚩 Impedimento</button>
@@ -319,6 +325,7 @@ footer .msg { flex: 1 1 220px; min-width: 160px; }
     <button id="bt-gc" style="background:#7f1d1d;color:#fecaca;font-weight:700" title="Testar animação de Gol Contra (devolução)">⚽ Gol Contra</button>
     <button id="bt-hat" style="background:#ea580c;color:#ffedd5;font-weight:700" title="Testar animação de Hat-Trick">🔥 Hat-Trick</button>
     <button id="bt-inv" style="background:#b45309;color:#fef3c7;font-weight:700" title="Testar animação de Semana Invicta">👑 Invicta</button>
+    </div>
     <button data-m="auto" class="on">Auto</button><button data-m="ronda">Ronda</button><button data-m="painel">Painel</button><button data-m="sup">Supervisores</button><a href="/brasileirao" target="_blank" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f172a;font-weight:900;text-decoration:none;padding:5px 12px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;font-size:12px" title="Abrir Tabela da Liga e Regulamento Oficial">🏆 Liga Triunfante</a>
     <button id="bfs">⛶ Tela cheia</button><button id="bsom">🔇 Som</button><button id="brev">Revisar 30 min</button><button id="bexp">Exportar diário</button>
   </div>
@@ -330,6 +337,7 @@ footer .msg { flex: 1 1 220px; min-width: 160px; }
 <button id="btn-fechar-global" style="display:none;position:fixed;top:20px;right:20px;z-index:2147483647;background:rgba(15,23,42,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 18px;font-size:15px;font-weight:700;cursor:pointer">✕ FECHAR</button>
 <script>
 'use strict';
+(function () { const b = document.getElementById('bmenu'), m = document.getElementById('mtest'); if (!b || !m) return; b.addEventListener('click', (e) => { e.stopPropagation(); m.classList.toggle('on'); }); document.addEventListener('click', (e) => { if (!m.contains(e.target)) m.classList.remove('on'); }); })();
 // ============================== CONFIG ==============================
 const P = new URLSearchParams(location.search);
 const FIL = (P.get('filial') || '').toUpperCase();

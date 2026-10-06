@@ -38,7 +38,7 @@
   },
   "gol_qualificado": {
     "decisao": "Vitorio, 05/10/2026. Vale para lances gravados de 05/10/2026 em diante (o passado nao e refeito).",
-    "gols_que_qualificam": "TODOS os gols, menos o Campeão da Rodada (que é do mês). Gol de cliente (Resgate, Dobrou o Mix, Quinzenas): indústrias do pedido do cliente. Gol do dia (Super Pedido, Goleada, Relâmpago, Acréscimos, Meta do 1º Tempo, Máquina de Conversão, Hat-Trick): indústrias de todos os pedidos do vendedor no dia.",
+    "gols_que_qualificam": "TODOS os gols e o Pedido Feito na Rota, menos o Campeão da Rodada (que é do mês). Gol de cliente (Resgate, Dobrou o Mix, Quinzenas): indústrias do pedido do cliente. Gol do dia (Super Pedido, Goleada, Relâmpago, Acréscimos, Meta do 1º Tempo, Máquina de Conversão, Hat-Trick): indústrias de todos os pedidos do vendedor no dia.",
     "gols_que_nao_qualificam": "Campeão da Rodada (meta do mês).",
     "regra": "Conta as INDUSTRIAS diferentes no pedido do cliente no dia. 1 produto da industria ja conta (sem valor minimo); linha com valor R$ 0 (bonificacao) nao conta.",
     "carteira_so_mondelez": "Vendedor de carteira so Mondelez (TBE e parte de TCG/TSJ, campo na Gestao de Equipe) conta CATEGORIAS da Mondelez (chocolate, biscoito, goma e bala, refresco, sobremesa e fermento, pao e snack), com a mesma escada.",
@@ -64,7 +64,7 @@
     "gol_mix": { "nome": "📦 Dobrou o Mix", "pontos": 4, "motivo": "Vendeu o dobro de SKUs em relação à média histórica do cliente (≥ 2× a média anterior). QUALIFICADO: ganha nivel (bronze a platina) e extra de pontos pelas industrias do pedido (ver Gol Qualificado)." },
     "gol_quinzenas": { "nome": "📅 Dobradinha das Quinzenas", "pontos": 3, "motivo": "Cliente comprou na 1ª Quinzena (dias 1 a 15) E na 2ª Quinzena (dia 16 ao fim) do mesmo mês. QUALIFICADO (ver Gol Qualificado)." },
     "defesa": { "nome": "🧤 Defesa (Recorrência Salva)", "pontos": 3, "motivo": "Cliente com TAG RECORRÊNCIA na rota positivado no dia, blindando a carteira ativa contra perda." },
-    "pedido_rota": { "nome": "📝 Pedido Feito na Rota", "pontos": 1, "motivo": "Pedido faturado/positivado em cliente da rota do dia com visita/check-in realizado." },
+    "pedido_rota": { "nome": "📝 Pedido Feito na Rota", "pontos": 1, "motivo": "Pedido faturado/positivado em cliente da rota do dia com visita/check-in realizado. QUALIFICADO: ganha nivel (bronze a platina) e extra de pontos pelas industrias do pedido do cliente." },
     "amarelo": { "nome": "🟨 Cartão Amarelo", "pontos": -3, "motivo": "Advertência às 10h00 (11h00 no fuso): vendedor com rota ativa sem nenhum pedido e/ou sem nenhuma visita (inclui quem não fez nenhum check-in de varejo)." },
     "impedimento": { "nome": "🚩 Impedimento VAR", "pontos": -5, "motivo": "Check-in irregular: check-out a mais de 500m do cliente (GPS fora) ou visita relâmpago de 00:00." },
     "penalti_estoque": { "nome": "🚨 Pênalti (Estoque Suficiente)", "pontos": -4, "motivo": "Justificativa de não venda \"ESTOQUE SUFICIENTE\" em cliente parado há mais de 30 dias sem compra. Vale -4 a partir de 06/10/2026 (antes -6)." },

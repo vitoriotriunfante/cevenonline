@@ -201,7 +201,7 @@ function calcAlertas(vs, t) {
         out.push({ chave: `gol_inativo|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: [provaPedidoHoje(c), (qualificaGol(v.carteira, c) || {}).texto].filter(Boolean).join(' | ') });
       }
       if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && c.checkin_horario) {
-        out.push({ chave: `pedido_rota|${v.id}|${c.id}`, nivel: 'pedido_rota', v, c });
+        out.push({ chave: `pedido_rota|${v.id}|${c.id}`, nivel: 'pedido_rota', v, c, prova: [provaPedidoHoje(c), (qualificaGol(v.carteira, c) || {}).texto].filter(Boolean).join(' | ') });
       }
       if (c.dobrouMix) out.push({ chave: `gol_mix|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: [provaPedidoHoje(c), (qualificaGol(v.carteira, c) || {}).texto].filter(Boolean).join(' | ') });
       if (c.dobradinhaQuinzenas) out.push({ chave: `gol_quinzenas|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: [provaPedidoHoje(c), provaQuinzenas(c), (qualificaGol(v.carteira, c) || {}).texto].filter(Boolean).join(' | ') });

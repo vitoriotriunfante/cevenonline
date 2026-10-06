@@ -966,7 +966,7 @@ async function carregarTabelaPontos() {
       const tq = document.getElementById('tbody-gol-qualificado');
       if (tq) tq.innerHTML = (gq.escada || []).map(e => `<tr><td style="font-weight:700;color:#fff">${esc(e.nivel)}</td><td>${esc(e.industrias)}</td><td style="text-align:center"><b style="color:#22c55e;font-family:'JetBrains Mono',monospace">+${e.extra}</b></td></tr>`).join('');
       const pq = document.getElementById('txt-gol-qualificado');
-      if (pq) pq.textContent = 'Vale para TODOS os gols, menos o Campeão da Rodada (que é do mês). ' + gq.regra + ' ' + gq.carteira_so_mondelez + ' Gol de cliente (Resgate, Dobrou o Mix, Quinzenas): indústrias do pedido do cliente. Gol do dia (Super Pedido, Goleada, Relâmpago, Acréscimos, Meta do 1º Tempo, Conversão, Hat-Trick): indústrias de todos os pedidos do vendedor no dia.';
+      if (pq) pq.textContent = 'Vale para TODOS os gols e para o Pedido Feito na Rota, menos o Campeão da Rodada (que é do mês). ' + gq.regra + ' ' + gq.carteira_so_mondelez + ' Gol de cliente (Resgate, Dobrou o Mix, Quinzenas): indústrias do pedido do cliente. Gol do dia (Super Pedido, Goleada, Relâmpago, Acréscimos, Meta do 1º Tempo, Conversão, Hat-Trick): indústrias de todos os pedidos do vendedor no dia.';
     }
     tbody.innerHTML = itens.map(it => {
       const cor = it.pontos > 0 ? '#22c55e' : '#ef4444';

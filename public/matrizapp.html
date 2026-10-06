@@ -224,6 +224,10 @@ footer .msg { flex: 1 1 220px; min-width: 160px; }
 #ctl { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; flex: 0 1 auto; max-width: 100%; }
 #ctl button, #ctl a { padding: 5px clamp(6px, .7vw, 12px); font-size: clamp(10px, .85vw, 13px); line-height: 1.1; white-space: nowrap; }
 @media (max-height: 880px) { main { padding-top: 8px; padding-bottom: 8px; } }
+
+/* Testes de animação dentro de um menu (Vitório, 06/10/2026: a fileira de botões embaixo ficou horrível) */
+#mtest{display:none;position:fixed;right:12px;bottom:calc(var(--rodape-h,64px) + 8px);z-index:60;background:#0f1a33;border:1px solid #2b3a63;border-radius:12px;padding:10px;gap:6px;flex-wrap:wrap;max-width:min(520px,92vw);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+#mtest.on{display:flex}#mtest button{flex:1 1 140px}
 </style><script src="/animacoes/tv-animacoes.js"></script>
 </head><body>
 <!-- MODAL DE DETALHE: clique nos cards do Painel Nacional abre a lista real por trás do número
@@ -261,6 +265,8 @@ footer .msg { flex: 1 1 220px; min-width: 160px; }
 <footer>
   <span class="tag">ALERTAS</span><span class="msg" id="alert">—</span>
   <div id="ctl">
+    <button id="bmenu" style="background:#1e293b;color:#e2e8f0;font-weight:700" title="Testar as animações dos lances">🎬 Lances ▾</button>
+    <div id="mtest">
     <button id="bt-gol" style="background:#166534;color:#86efac;font-weight:700" title="Testar animação de Gol">⚽ Teste Gol</button>
     <button id="bt-def" style="background:#0284c7;color:#bae6fd;font-weight:700" title="Testar animação de Defesa Milagrosa">🧤 Defesa</button>
     <button id="bt-imp" style="background:#d97706;color:#fef3c7;font-weight:700" title="Testar animação de Impedimento VAR">🚩 Impedimento</button>
@@ -270,6 +276,7 @@ footer .msg { flex: 1 1 220px; min-width: 160px; }
     <button id="bt-gc" style="background:#7f1d1d;color:#fecaca;font-weight:700" title="Testar animação de Gol Contra (devolução)">⚽ Gol Contra</button>
     <button id="bt-hat" style="background:#ea580c;color:#ffedd5;font-weight:700" title="Testar animação de Hat-Trick">🔥 Hat-Trick</button>
     <button id="bt-inv" style="background:#b45309;color:#fef3c7;font-weight:700" title="Testar animação de Semana Invicta">👑 Invicta</button>
+    </div>
     <button id="bprev">◀</button><button id="bsup" style="background:#4338ca;color:#fff;font-weight:800" title="Supervisores: compromisso, rota (RET), fotos e semana">👔 Supervisores</button><button id="bpainel" style="background:#0284c7;color:#fff;font-weight:800" title="Ver Painel Nacional (11 filiais)">📊 Painel</button><a href="/brasileirao" target="_blank" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f172a;font-weight:900;text-decoration:none;padding:5px 12px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;font-size:12px" title="Abrir Tabela da Liga e Regulamento Oficial">🏆 Liga Triunfante</a><button id="bauto" class="on">Auto</button><button id="bnext">▶</button><button id="bfs">⛶ Tela cheia</button><button id="bsom">🔇 Som</button><button id="bexp">Exportar diário</button>
   </div>
 </footer>
@@ -278,6 +285,7 @@ footer .msg { flex: 1 1 220px; min-width: 160px; }
 <button id="btn-fechar-global" style="display:none;position:fixed;top:20px;right:20px;z-index:2147483647;background:rgba(15,23,42,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 18px;font-size:15px;font-weight:700;cursor:pointer">✕ FECHAR</button>
 <script>
 'use strict';
+(function () { const b = document.getElementById('bmenu'), m = document.getElementById('mtest'); if (!b || !m) return; b.addEventListener('click', (e) => { e.stopPropagation(); m.classList.toggle('on'); }); document.addEventListener('click', (e) => { if (!m.contains(e.target)) m.classList.remove('on'); }); })();
 // ============================== CONFIG ==============================
 const P = new URLSearchParams(location.search);
 const MIN_FIL = +P.get('min') || 4;                        // minutos por filial na tela
@@ -677,7 +685,7 @@ function statFilial(sig) {
   const pctFat = metaFat > 0 ? (fat / metaFat) * 100 : 0;
   const pctPos = metaPos > 0 ? (realCli / metaPos) * 100 : 0;
 
-  // Pontuação calibrada de Desempenho & Fair Play (Escala 0 a 100+):
+  // Pontuação calibrada de Desempenho (Escala 0 a 100+):
   // 50% atingimento meta fat + 40% atingimento meta pos (ao bater 100% em ambas = 90 pts de base)
   // Bônus e deduções calculados por vendedor (proporcional ao tamanho da equipe):
   // + Bônus de Gols por vendedor (gols/vendedor * 15)
@@ -1163,7 +1171,7 @@ function renderRank(stats) {
   const maxScore = Math.max(...stats.map(x => x.scorePositivo || 0), 100);
   const minScore = Math.min(...stats.map(x => x.scorePositivo || 0), 50);
 
-  const tituloTxt = (MODO_RANK_POSITIVO || ehFechamento) ? '🏆 Desempenho & Fair Play' : '🚨 Ranking de criticidade';
+  const tituloTxt = (MODO_RANK_POSITIVO || ehFechamento) ? '🏆 Desempenho' : '🚨 Ranking de criticidade';
   const subTxt = (MODO_RANK_POSITIVO || ehFechamento) ? `score dinâmico (líder: ${maxScore.toFixed(1)})` : 'nota de risco 0–100';
 
   $('rank').innerHTML = `<h2 style="cursor:pointer" onclick="MODO_RANK_POSITIVO = !MODO_RANK_POSITIVO; render();" title="Clique para alternar entre Score Positivo e Criticidade">
@@ -1257,7 +1265,7 @@ function renderFilial(x) {
           return {...s, gols, pens, verms, amars, score, canalDom};
         }).sort((a, b) => b.score - a.score || b.dig - a.dig);
 
-        return `<h2 style="margin:6px 0 2px"><span>Supervisores · Score & Fair Play</span><b>2/3</b></h2>
+        return `<h2 style="margin:6px 0 2px"><span>Supervisores · Score</span><b>2/3</b></h2>
           <table class="tb">
             <tr>
               <th>Supervisor</th>
