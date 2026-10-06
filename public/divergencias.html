@@ -112,7 +112,7 @@ async function carrega() {
     {t: 'O que é', f: l => { const t = l.leitura || {}; const cls = (t.tipo === 'conta_interna' || t.tipo === 'vaga' || t.tipo === 'so_devolucao') ? 'ok' : 'nova'; return `<span class="tag ${cls}">${esc(t.texto || '')}</span>` + (l.nova ? ' <span class="tag nova">NOVO</span>' : ''); }}
   ], d.descobertos, 'A varredura de descoberta ainda não achou nenhum código com devolução fora das listas.');
   const dc = d.decisao || {nao_mostra: [], fora_da_gestao: []};
-  const tg = (l) => { const t = l.leitura || {}; const cls = t.tipo === 'produzindo' ? 'mov' : (t.tipo === 'sem_atividade' ? 'ok' : 'nova'); return `<span class="tag ${cls}">${esc(t.texto || '')}</span>`; };
+  const tg = (l) => { const t = {...(l.leitura || {})}; t.texto = String(t.texto || '').replace('provavelmente deve entrar na planilha', 'vale conferir se deveria aparecer'); const cls = t.tipo === 'produzindo' ? 'mov' : (t.tipo === 'sem_atividade' ? 'ok' : 'nova'); return `<span class="tag ${cls}">${esc(t.texto || '')}</span>`; };
   const colsDec = [
     {t: 'Filial', f: l => '<b>' + esc(l.filial) + '</b>'}, {t: 'Vendedor', f: l => esc(l.nome) + ' <span style="color:var(--mut)">(' + esc(l.codigo) + ')</span>'}, {t: 'Supervisor', f: l => esc(l.supervisor || '—')}, {t: 'Canal', f: l => esc(l.canal || '—')},
     {t: 'Meta do mês', n: 1, f: l => l.meta_fat ? brl(l.meta_fat) : '<span style="color:var(--mut)">sem meta</span>'}, {t: 'Faturado no mês', n: 1, f: l => brl(l.fat_mes) + pct(l.fat_mes, l.meta_fat)},
