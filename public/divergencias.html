@@ -31,13 +31,17 @@
   .tag.ok { background:color-mix(in srgb, var(--ok) 20%, transparent); color:var(--ok); }
   .vazio { padding:18px 16px; color:var(--mut); }
   .rodape { color:var(--mut); font-size:12px; margin-top:6px; }
+  .dec { display:flex; gap:6px; flex-wrap:wrap; } .dec button { padding:5px 10px; font-size:12px; white-space:nowrap; } .b-sim { background:var(--ok) !important; color:#04251a !important; } .b-nao { background:var(--ruim) !important; }
+  #senhaBox { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:0 0 16px; } #senhaBox input { padding:7px 10px; border-radius:8px; border:1px solid var(--linha); background:var(--card); color:var(--tx); } #aviso { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:var(--card); border:1px solid var(--linha); padding:10px 16px; border-radius:10px; display:none; z-index:9; }
   button { background:var(--acc); color:#fff; border:0; border-radius:8px; padding:8px 14px; cursor:pointer; font-weight:600; }
 </style>
 </head>
 <body>
 <h1>Divergências de cadastro</h1>
 <div class="sub">Lista viva: tudo que o CEVEN e o banco têm e a <b>Gestão de Equipe</b> não tem, e o contrário. A decisão de cada linha é feita na própria <a href="/gestao-equipe" style="color:var(--acc)">Gestão de Equipe</a> (modo Diretoria, painel "Divergências com o CEVEN"); a lista aqui se atualiza sozinha.</div>
+<div id="senhaBox"><b>Senha da Diretoria</b> <input type="password" id="senha" placeholder="para gravar as decisões" autocomplete="off"> <span style="color:var(--mut)">Cada clique em MOSTRAR / NÃO MOSTRAR grava na Gestão de Equipe na hora.</span></div>
 <div class="chips" id="chips"></div>
+<div id="aviso"></div>
 <div id="corpo">Carregando…</div>
 <div class="rodape" id="rodape"></div>
 <p><button id="btn">Atualizar agora</button></p>
@@ -118,8 +122,9 @@ async function carrega() {
     {t: 'Meta do mês', n: 1, f: l => l.meta_fat ? brl(l.meta_fat) : '<span style="color:var(--mut)">sem meta</span>'}, {t: 'Faturado + pendente (como no CEVEN)', n: 1, f: l => brl(l.fat_mes) + ' + ' + brl(l.pendente) + ' pend.' + pct(l.fat_mes + (l.pendente || 0), l.meta_fat)}, {t: 'Positivados / meta', n: 1, f: l => nv(l.pos_mes) + ' / ' + (l.meta_pos ? nv(l.meta_pos) : '—')},
     {t: 'Rota hoje', n: 1, f: l => nv(l.rota_hoje)}, {t: 'Pedidos hoje', n: 1, f: l => nv(l.pedidos_hoje)}, {t: 'O que os números dizem', f: tg}
   ];
-  const D1 = tabela([...colsDec, {t: 'Motivo na Gestão', f: l => esc(l.motivo || '—')}, {t: 'No CEVEN hoje?', f: l => l.no_ceven ? 'sim' : '<b style="color:var(--aviso)">não</b>'}], dc.nao_mostra, 'Ninguém está como NÃO MOSTRA na Gestão de Equipe.');
-  const D2 = tabela([...colsDec, {t: 'Hoje nas telas', f: l => '<span class="tag ok">MOSTRA</span>'}], dc.fora_da_gestao, 'Nenhum: todo vendedor do CEVEN já está na Gestão de Equipe.');
+  const botoes = (l, novo) => `<div class="dec"><button class="b-sim" data-f="${esc(l.filial)}" data-r="${esc(l.codigo)}" data-m="1" ${novo ? `data-n='${esc(JSON.stringify({nome: l.nome, supervisor: l.supervisor, canal: l.canal, gerente: l.gerente, grupo: l.grupo}))}'` : ''}>MOSTRAR</button><button class="b-nao" data-f="${esc(l.filial)}" data-r="${esc(l.codigo)}" data-m="0" ${novo ? `data-n='${esc(JSON.stringify({nome: l.nome, supervisor: l.supervisor, canal: l.canal, gerente: l.gerente, grupo: l.grupo}))}'` : ''}>NÃO MOSTRAR</button></div>`;
+  const D1 = tabela([...colsDec, {t: 'Motivo na Gestão', f: l => esc(l.motivo || '—')}, {t: 'No CEVEN hoje?', f: l => l.no_ceven ? 'sim' : '<b style="color:var(--aviso)">não</b>'}, {t: 'Decisão', f: l => botoes(l, false)}], dc.nao_mostra, 'Ninguém está como NÃO MOSTRA na Gestão de Equipe.');
+  const D2 = tabela([...colsDec, {t: 'Hoje nas telas', f: l => '<span class="tag ok">MOSTRA</span>'}, {t: 'Decisão', f: l => botoes(l, true)}], dc.fora_da_gestao, 'Nenhum: todo vendedor do CEVEN já está na Gestão de Equipe.');
   const dMeta = (L) => L.filter(x => x.meta_fat > 0).length, dVende = (L) => L.filter(x => x.fat_mes > 0 || x.pedidos_hoje > 0).length;
   const decisaoHtml =
     secao('A. Estão como NÃO MOSTRA na Gestão de Equipe — continua assim?', `${dc.nao_mostra.length} vendedores · ${dMeta(dc.nao_mostra)} com meta · ${dVende(dc.nao_mostra)} vendendo. Os que têm meta ou venda aparecem primeiro: são os que merecem sua atenção. Para mudar, use a Gestão de Equipe (MOSTRA = SIM).`, D1) +
@@ -136,6 +141,19 @@ async function carrega() {
   const v = d.varredura_descoberta || {};
   $('rodape').textContent = `Árvore do CEVEN atualizada em ${ar.atualizado_em ? new Date(ar.atualizado_em).toLocaleString('pt-BR') : '—'} · Gerado em ${new Date(d.gerado_em).toLocaleString('pt-BR')} · varredura de descoberta: ciclo ${v.ciclo ?? 0}, posição ${v.pos ?? 0}${v.ciclo_fim ? ', último ciclo fechado em ' + v.ciclo_fim : ''}`;
 }
+const avisa = (t) => { const a = $('aviso'); a.textContent = t; a.style.display = 'block'; setTimeout(() => { a.style.display = 'none'; }, 5000); };
+try { $('senha').value = sessionStorage.getItem('ceven_senha_dir') || ''; } catch (e) {}
+document.addEventListener('click', async (ev) => {
+  const b = ev.target.closest('button[data-r]'); if (!b) return;
+  const senha = $('senha').value.trim(); if (!senha) { avisa('Digite a senha da Diretoria no topo da página.'); $('senha').focus(); return; }
+  b.disabled = true;
+  try {
+    const r = await fetch('/api/equipe-decidir', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Equipe-Senha': senha}, body: JSON.stringify({filial: b.dataset.f, rca: b.dataset.r, mostra: b.dataset.m === '1', novo: b.dataset.n ? JSON.parse(b.dataset.n) : undefined})});
+    const j = await r.json();
+    if (j.sucesso) { try { sessionStorage.setItem('ceven_senha_dir', senha); } catch (e) {} avisa('Gravado: ' + b.dataset.f + ' ' + b.dataset.r + ' → ' + (j.mostra ? 'MOSTRA' : 'NÃO MOSTRA')); await carrega(); }
+    else { avisa('Não gravou: ' + (j.erro || 'erro')); b.disabled = false; }
+  } catch (e) { avisa('Não consegui gravar agora.'); b.disabled = false; }
+});
 $('btn').onclick = carrega; carrega(); setInterval(carrega, 120000);
 </script>
 </body>
