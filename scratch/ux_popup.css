@@ -1,0 +1,52 @@
+/* ===== POPUP "DECISAO DO VAR" v2 (substitui TODAS as regras "#ov .dec ..." antigas, linhas 118-132 do tvapp.html) =====
+   Hierarquia: [faixa colorida do lance] > PONTOS (heroi) + NOME DO LANCE > vendedor > cartoes de evidencia > veredito.
+   Cor por lance via data-tom no selo (g verde, y amarelo, o laranja, r vermelho, b azul). Sem selo = vermelho. */
+#ov .dec{--tom:#ef4444;--tomf:rgba(239,68,68,.14);--tx:#f4f7ff;--mut2:#aab8d6;
+  display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-flow:dense;gap:1.1vh 1.2vw;align-content:start;text-align:left;
+  width:min(1640px,94vw);max-height:94vh;overflow:hidden;box-sizing:border-box;
+  padding:calc(1.6vh + 1.1vh) 2vw 2vh;background:linear-gradient(180deg,var(--tomf),transparent 22%),var(--card,#0f1626);
+  border:2px solid var(--tom);border-top:1.1vh solid var(--tom);border-radius:22px;box-shadow:0 0 60px var(--tomf),0 20px 60px rgba(0,0,0,.6)}
+#ov .dec:has(.selo[data-tom=g]){--tom:#22c55e;--tomf:rgba(34,197,94,.16)}
+#ov .dec:has(.selo[data-tom=y]){--tom:#facc15;--tomf:rgba(250,204,21,.15)}
+#ov .dec:has(.selo[data-tom=o]){--tom:#f97316;--tomf:rgba(249,115,22,.16)}
+#ov .dec:has(.selo[data-tom=r]){--tom:#ef4444;--tomf:rgba(239,68,68,.16)}
+#ov .dec:has(.selo[data-tom=b]){--tom:#38bdf8;--tomf:rgba(56,189,248,.14)}
+#ov .dec>h1,#ov .dec>.selo,#ov .dec>.vd,#ov .dec>div:not(.ln){grid-column:1/-1}
+/* titulo: com selo vira "etiqueta" (o heroi e o selo); sem selo (listas) continua grande */
+#ov .dec>h1{margin:0;font-size:clamp(20px,2.7vw,50px);line-height:1.1;color:#fff;font-weight:800}
+#ov .dec:has(.selo)>h1{font-size:clamp(18px,1.5vw,30px);letter-spacing:.14em;text-transform:uppercase;color:var(--mut2);font-weight:700}
+/* SELO heroi: pontos enormes + nome do lance */
+#ov .dec .selo{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:2.2vw;align-items:center;
+  background:none;border:0;padding:0;margin:0 0 .6vh;color:var(--tom)}
+#ov .dec .selo .sp{grid-row:1/3;font-size:clamp(70px,9.5vw,190px);line-height:.9;font-weight:900;letter-spacing:-.02em;color:var(--tom);font-variant-numeric:tabular-nums;
+  padding-right:2vw;border-right:3px solid var(--tom);text-shadow:0 0 40px var(--tomf)}
+#ov .dec .selo .sn{align-self:end;font-size:clamp(32px,3.9vw,76px);line-height:1.05;font-weight:900;color:#fff;display:flex;flex-wrap:wrap;align-items:center;gap:.5em}
+#ov .dec .selo .sl{align-self:start;font-style:normal;font-size:clamp(20px,1.7vw,34px);font-weight:800;letter-spacing:.12em;color:var(--tom);margin-top:.4vh}
+/* selo de nivel da qualificacao */
+#ov .dec .nv{font-style:normal;font-size:.5em;letter-spacing:.1em;text-transform:uppercase;font-weight:900;padding:.18em .7em;border-radius:999px;color:#0b1020;background:#cbd5e1}
+#ov .dec .nv-bronze{background:#d08a4b}#ov .dec .nv-prata{background:#d5dbe6}#ov .dec .nv-ouro{background:#facc15}
+#ov .dec .nv-diamante{background:linear-gradient(90deg,#67e8f9,#a5b4fc)}#ov .dec .nv-platina{background:linear-gradient(90deg,#e5e7eb,#94a3b8)}
+/* SELO LEGADO (inline-style, sem mudar o HTML): vira etiqueta maior */
+#ov .dec>div:not(.ln):not(.vd):not(.selo){font-size:clamp(24px,2.4vw,46px)!important;padding:.4vh 1vw!important;border-radius:12px!important;margin:0!important;display:flex!important;width:fit-content}
+/* CARTOES de evidencia: rotulo pequeno, valor grande */
+#ov .dec .ln{grid-column:span 2;display:block;min-width:0;margin:0;padding:1.1vh 1.1vw 1.2vh;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.09);border-left:5px solid rgba(255,255,255,.22);border-radius:12px;overflow-wrap:anywhere;line-height:1.12}
+#ov .dec .ln.w{grid-column:span 3}
+#ov .dec .ln b{display:block;min-width:0;margin:0 0 .35vh;font-size:clamp(14px,1.05vw,21px);letter-spacing:.12em;text-transform:uppercase;color:var(--mut2);font-weight:700}
+#ov .dec .ln span{display:block;font-size:clamp(22px,1.95vw,40px);font-weight:700;color:var(--tx)}
+#ov .dec .ln.hot{border-left-color:var(--tom);background:var(--tomf)}
+#ov .dec .ln.hot span{color:#fff;font-weight:900}
+/* vendedor (primeiro destaque depois do selo) ocupa a linha toda, em 2o nivel de heroi */
+#ov .dec>.selo+.ln.hot,#ov .dec>h1+.ln.hot{grid-column:1/-1;background:none;border:0;border-left:6px solid var(--tom);border-radius:0;padding:.2vh 1.2vw}
+#ov .dec>.selo+.ln.hot span,#ov .dec>h1+.ln.hot span{font-size:clamp(30px,3vw,60px);font-weight:900;color:#fff}
+#ov .dec>.selo+.ln.hot span small,#ov .dec .ln.hot span small{font-size:.55em;color:var(--mut2);font-weight:600}
+/* texto longo (cliente, anulado, motivo, prova...) usa linha inteira */
+/* VEREDITO: faixa no rodape */
+#ov .dec>.vd{margin:.4vh 0 0;padding:1.2vh 1.4vw;border-radius:12px;background:var(--tomf);border:1px solid var(--tom);
+  font-size:clamp(24px,2.5vw,48px);line-height:1.12;font-weight:900;color:#fff}
+/* revisao (mais denso) */
+#ov .dec.rev .ln span{font-size:clamp(20px,1.6vw,32px)}
+#ov .dec.rev>.vd{font-size:clamp(22px,2vw,38px)}
+/* telas baixas (1280x720): enxuga */
+@media (max-height:760px){#ov .dec{gap:.8vh 1vw;padding:2.4vh 1.8vw 1.4vh}#ov .dec .ln{padding:.8vh .9vw}
+  #ov .dec .selo .sp{font-size:clamp(60px,8vw,150px)}#ov .dec .selo .sn{font-size:clamp(28px,3.4vw,60px)}}
