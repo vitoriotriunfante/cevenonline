@@ -124,7 +124,7 @@ export async function onRequestGet({ env, request }) {
     // vendedores que só a Gestão tem (fora da cascata do CEVEN). Somente leitura; quem decide mostra / não mostra é a Gestão de Equipe.
     const arvore = { disponivel: false, atualizado_em: null, novos: [], supervisor_mudou: [], so_gestao: [] };
     const decisao = { nao_mostra: [], fora_da_gestao: [] };
-    const comNumeros = (it, codigo) => { const m = movDe.get(String(codigo)) || {}; return { ...it, rota_hoje: Number(m.rota) || 0, visitas_hoje: Number(m.vis) || 0, pedidos_hoje: Number(m.ped) || 0, digitado_hoje: arred(m.dig), meta_fat: arred(m.meta_fat), fat_mes: arred(m.fat_mes), meta_pos: Number(m.meta_pos) || 0, pos_mes: Number(m.pos_mes) || 0, notas_devolucao_mes: Number(m.notas) || 0, devolucao_mes: arred(m.dev) }; };
+    const comNumeros = (it, codigo) => { const m = movDe.get(String(codigo)) || {}; return { ...it, rota_hoje: Number(m.rota) || 0, visitas_hoje: Number(m.vis) || 0, pedidos_hoje: Number(m.ped) || 0, digitado_hoje: arred(m.dig), meta_fat: arred(m.meta_fat), fat_mes: arred(m.fat_mes), pendente: arred(m.pendente), meta_pos: Number(m.meta_pos) || 0, pos_mes: Number(m.pos_mes) || 0, notas_devolucao_mes: Number(m.notas) || 0, devolucao_mes: arred(m.dev) }; };
     try {
       const row = await env.DB.prepare('SELECT conteudo_json FROM config_equipe_soberana WHERE id = 1').first();
       const base = JSON.parse(row.conteudo_json);
