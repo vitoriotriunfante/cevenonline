@@ -411,6 +411,12 @@ export async function onRequestGet({ env, request }) {
   let arvore = 'pulado';
   try { if (t.h >= 5) { const a = await garanteArvore(env, 45); arvore = a.status + (a.filiais_falharam && a.filiais_falharam.length ? ' (falharam: ' + a.filiais_falharam.join(',') + ')' : ''); } } catch { arvore = 'falhou'; }
 
+  // NOTIFICACOES DE LANCES PARA OS SUPERVISORES (Vitório, 06/10/2026): a cada hora cheia (09h a 20h) uma notificacao por supervisor no sino do CEVEN. Desligado por padrao (config_flags).
+  let notifSup = 'pulado';
+  if (t.h >= 9 && t.h <= 20 && t.m < 5) {
+    try { const rn = await fetch(`${origin}/api/cron-notificacoes-supervisores?rodar=1`, { signal: AbortSignal.timeout(60000) }); const jn = await rn.json().catch(() => ({})); notifSup = jn.status ? jn.status + (jn.notificacoes != null ? ` (${jn.ok}/${jn.notificacoes})` : '') : String(rn.status); } catch { notifSup = 'falhou'; }
+  }
+
   // AUDITORIA LANCE POR LANCE (Vitório, 06/10/2026): a cada ~30 min (e depois do fechamento) confere a prova de cada lance que conta pontos
   let auditoria = 'pulado';
   if (t.h >= 8 && (t.m % 30) < 5) {
@@ -425,7 +431,7 @@ export async function onRequestGet({ env, request }) {
   }
 
   return new Response(JSON.stringify({
-    status: 'ATUALIZADO', dia: t.dia, hora: t.hms, semana_invicta: invicta, arvore, auditoria, fechamento, conferencia, filiais_processadas: Object.keys(porFilial).length,
+    status: 'ATUALIZADO', dia: t.dia, hora: t.hms, semana_invicta: invicta, arvore, notifSup, auditoria, fechamento, conferencia, filiais_processadas: Object.keys(porFilial).length,
     novos_lances: totalNovos, falhas_rca: totalFalhas, por_filial: porFilial, duracao_ms: Date.now() - t0
   }), { headers: cors });
 }
