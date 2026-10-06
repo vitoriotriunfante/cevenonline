@@ -7,7 +7,8 @@
 //          e a TV avisa na tela que está usando cópia, não a fonte viva.
 // CACHE: 1 minuto.
 // =========================================================================
-import { aplicaNaoSupervisores } from '../_lib/nao_supervisores.js'; // nomes que NAO sao supervisores (decisao 04/10/2026)
+import { aplicaNaoSupervisores } from '../_lib/nao_supervisores.js';
+import { aplicaArvore } from '../_lib/arvore_ceven.js'; // supervisor = arvore viva do CEVEN (muda todo dia) // nomes que NAO sao supervisores (decisao 04/10/2026)
 
 const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 let cache = { exp: 0, corpo: null };
@@ -25,6 +26,7 @@ export async function onRequestGet({ env, request }) {
       const row = await env.DB.prepare('SELECT conteudo_json, atualizado_por, atualizado_em FROM config_equipe_soberana WHERE id = 1').first();
       if (row && row.conteudo_json) {
         const corpo = { ...JSON.parse(row.conteudo_json), origem: 'd1', atualizado_por: row.atualizado_por, atualizado_em: row.atualizado_em, gerado_em: new Date().toISOString() };
+        await aplicaArvore(env, corpo); // 06/10/2026: o supervisor guardado na Gestao estava velho (equipes de TPA trocadas); vale o do CEVEN de hoje
         cache = { exp: Date.now() + 60 * 1000, corpo };
         return resp(corpo);
       }

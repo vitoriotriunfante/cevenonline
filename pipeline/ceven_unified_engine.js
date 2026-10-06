@@ -318,11 +318,8 @@ function aplicarMostraDisparos(repsMap) {
         excluidos++;
         continue;
       }
-      const supNovo = String(r.supervisor || '').toUpperCase().trim();
-      if (supNovo && supNovo !== val.supNome) {
-        val.supNome = supNovo;
-        corrigidos++;
-      }
+      // SUPERVISOR = ARVORE VIVA DO CEVEN (Vitorio, 06/10/2026: "temos que reorganizar as arvores do CEVEN diariamente, pois mudam"). A Gestao de Equipe NAO sobrescreve mais o supervisor:
+      // o nome guardado nela estava velho (11 de 14 vendedores de TPA com supervisor errado) e bagunçava os envios. Mostra, grupo/gerente e canal continuam vindo da Gestao.
       // GERENTE = coluna Filial da planilha (SIGLA_NOME vira campo `grupo` em /api/tv-mostra). Decisao do Vitorio (05/10/2026): TPH e MCD sao divididos por gerente
       // em TODOS os envios. A planilha e a fonte; a lista de nomes de supervisor no codigo so vale quando a planilha nao informa o grupo.
       const grupoPlan = String(r.grupo || '').toUpperCase().trim();

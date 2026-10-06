@@ -105,7 +105,7 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
   const mapa = { ABC_1: { supNome: 'SUP ANTIGO' }, ABC_2: { supNome: 'X' }, ABC_3: { supNome: 'MESMO' } };
   const r = aplicar(mapa);
   ok(r.excluidos === 1 && !mapa.ABC_2, 'vendedor marcado como fora sai do mapa');
-  ok(r.corrigidos === 1 && mapa.ABC_1.supNome === 'SUP NOVO', 'supervisor e ajustado pela equipe');
+  ok(r.corrigidos === 0 && mapa.ABC_1.supNome === 'SUP ANTIGO', 'supervisor do CEVEN (arvore viva) NAO e trocado pelo nome da Gestao de Equipe (06/10/2026: a Gestao estava velha e bagunçou o WhatsApp)');
   ok(mapa.ABC_3 && mapa.ABC_3.supNome === 'MESMO', 'quem nao mudou fica como estava');
   writeFileSync(arquivoEquipe, JSON.stringify({ origem: 'teste', filiais: { TPH: [{ rca: '10', supervisor: 'X', grupo: 'VAGNER', mostra: true }, { rca: '11', supervisor: 'Y', grupo: 'FABIO', mostra: true }] } }));
   const mapaG = { TPH_10: { supNome: 'X', gerente: 'Fábio' }, TPH_11: { supNome: 'Y', gerente: 'Vagner' } };
@@ -597,6 +597,16 @@ secao('8r. Goleada so com clientes comprovados na rota; aviso unico dos cartoes 
   ok(cl.includes('(v.comVenda || 0) >= 10') && !cl.includes('(v.pos || 0) >= 10') && tv.includes('(v.comVenda || 0) >= 10') && mz.includes('(v.comVenda || 0) >= 10'), 'Goleada: 10 clientes positivados COMPROVADOS na rota (pedidos nao provam clientes: MCD 420 tinha 12 pedidos e 0 clientes na rota)');
   ok(an.includes('window.cartoesDoServidor') && tv.includes('cartoesDoServidor(d.lances') && mz.includes('cartoesDoServidor(d.lances'), 'cartoes de 10h (amarelo) e 11h (vermelho) avisam a partir do que o servidor registrou, 1 vez por dia em cada navegador');
   ok(!/ninguém trabalha/.test(cj.pontos_por_lance.gol_acrescimos.motivo) && /18h00/.test(cj.pontos_por_lance.gol_acrescimos.motivo), 'regulamento do Gol nos Acrescimos sem a justificativa interna');
+}
+
+// ---------------------------------------------------------------- 8s. Arvore viva do CEVEN (supervisor muda todo dia)
+secao('8s. Arvore viva do CEVEN: supervisor vem do CEVEN de hoje (Gestao nao sobrescreve), TV e WhatsApp');
+{
+  const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_arvore.mjs')).href)).default;
+  await t(ok, RAIZ);
+  const eng = ler('pipeline/ceven_unified_engine.js'), tm = ler('functions/api/tv-mostra.js'), cl = ler('functions/api/cron-lances.js');
+  ok(!eng.includes('val.supNome = supNovo') && eng.includes('SUPERVISOR = ARVORE VIVA DO CEVEN'), 'motor do WhatsApp nao troca mais o supervisor do CEVEN pelo nome da Gestao de Equipe');
+  ok(tm.includes('aplicaArvore(env, corpo)') && cl.includes('garanteArvore(env, 45)'), 'tv-mostra aplica a arvore viva e o coletor a renova sozinho (45 min)');
 }
 
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)

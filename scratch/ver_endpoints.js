@@ -1,0 +1,3 @@
+const D = require('better-sqlite3');
+const db = new D('c:/Users/vitorio.neto/Documents/Projetos IA/CEVEN várias telas/analises/pedidos_historico_ceven.db', { readonly: true });
+for (const r of db.prepare("select metodo, endpoint_path, autenticacao, descricao from catalogo_endpoints_ceven where endpoint_path like '%supervis%' or endpoint_path like '%cascata%' or endpoint_path like '%arvore%' or endpoint_path like '%hierarq%' or endpoint_path like '%coorden%' or endpoint_path like '%rcas%' or endpoint_path like '%representantes%'").all()) console.log(r.metodo, r.endpoint_path, '|', r.autenticacao, '|', String(r.descricao).slice(0, 90));

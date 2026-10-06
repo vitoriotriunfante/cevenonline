@@ -107,6 +107,7 @@ function horariosCheckinDoDia(cl) {
 // Mesma lógica de vend() em tvapp.html: transforma resposta de /api/tv-vendedor no objeto usado
 // por calcAlertas.
 import { qualificaGol, carteiraEfetiva } from '../_lib/qualificacao_gol.js';
+import { garanteArvore } from '../_lib/arvore_ceven.js';
 // Prova do gol de cliente: pedido de hoje (numero, status, valor) e, na dobradinha, os pedidos reais de cada quinzena do mes
 function provaPedidoHoje(c) {
   const p = c && c.pedidoHoje;
@@ -402,8 +403,12 @@ export async function onRequestGet({ env, request }) {
   let invicta = 'pulado';
   try { const ri = await fetch(`${origin}/api/cron-semana-invicta`, { signal: AbortSignal.timeout(40000) }); const ji = await ri.json().catch(() => ({})); invicta = ji.status || String(ri.status); } catch { invicta = 'falhou'; }
 
+  // Arvore viva do CEVEN (supervisor de cada vendedor muda todo dia): renova se passou de 45 min
+  let arvore = 'pulado';
+  try { if (t.h >= 5) { const a = await garanteArvore(env, 45); arvore = a.status + (a.filiais_falharam && a.filiais_falharam.length ? ' (falharam: ' + a.filiais_falharam.join(',') + ')' : ''); } } catch { arvore = 'falhou'; }
+
   return new Response(JSON.stringify({
-    status: 'ATUALIZADO', dia: t.dia, hora: t.hms, semana_invicta: invicta, filiais_processadas: Object.keys(porFilial).length,
+    status: 'ATUALIZADO', dia: t.dia, hora: t.hms, semana_invicta: invicta, arvore, filiais_processadas: Object.keys(porFilial).length,
     novos_lances: totalNovos, falhas_rca: totalFalhas, por_filial: porFilial, duracao_ms: Date.now() - t0
   }), { headers: cors });
 }
