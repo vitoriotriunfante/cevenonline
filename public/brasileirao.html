@@ -1440,6 +1440,8 @@ window.addEventListener('load', iniciarMinhaFilial);
 window.addEventListener('load', iniciarAbaUrl);
 </script>
 <script>
+// Abre direto numa aba pelo endereco: /brasileirao#vendedores, #lances, #gabarito, #supervisores, #gerencias, #regulamento
+window.addEventListener('load', function () { var h = location.hash.replace('#', ''); if (['filiais', 'gerencias', 'supervisores', 'vendedores', 'lances', 'gabarito', 'regulamento'].indexOf(h) >= 0 && typeof switchTab === 'function') setTimeout(function () { switchTab(h); }, 600); });
 // Atualiza sozinha quando sai uma versao nova do site (mesma regra das TVs)
 (function () { let v0 = null; async function chk() { try { const r = await fetch('/api/version', { cache: 'no-store' }); const j = await r.json(); if (v0 && j.version && j.version !== v0 && !document.activeElement.matches('input,select,textarea')) location.reload(); v0 = v0 || j.version; } catch (e) {} } chk(); setInterval(chk, 60000); })();
 </script>
