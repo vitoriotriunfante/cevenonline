@@ -609,6 +609,14 @@ secao('8s. Arvore viva do CEVEN: supervisor vem do CEVEN de hoje (Gestao nao sob
   ok(tm.includes('aplicaArvore(env, corpo)') && cl.includes('garanteArvore(env, 45)'), 'tv-mostra aplica a arvore viva e o coletor a renova sozinho (45 min)');
 }
 
+// ---------------------------------------------------------------- 8t. Divergencias da arvore viva
+secao('8t. /divergencias lista: vendedores novos da arvore, supervisor trocado pelo CEVEN e so na Gestao');
+{
+  const api = ler('functions/api/divergencias.js'), pg = ler('public/divergencias.html');
+  ok(api.includes('aplicaArvore(env, cop)') && api.includes('supervisor_mudou') && api.includes('so_gestao') && api.includes('arvore,'), 'endpoint de divergencias devolve a arvore: novos, supervisor trocado e so na Gestao');
+  ok(pg.includes('0. Árvore do CEVEN: vendedores NOVOS') && pg.includes('0.1 Árvore do CEVEN: supervisor trocado') && pg.includes('0.2 Só na Gestão de Equipe'), 'pagina /divergencias mostra as 3 secoes novas no topo');
+}
+
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)
 secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
 {

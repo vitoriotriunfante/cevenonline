@@ -60,10 +60,31 @@ async function carrega() {
   $('chips').innerHTML = [
     ['No banco e fora da Gestão de Equipe', r.banco_fora_da_planilha, `${r.banco_fora_produzindo} produzindo · ${r.banco_fora_sem_atividade} sem atividade`],
     ['Faturado no mês fora da Gestão de Equipe', brl(r.faturado_mes_fora_da_planilha), 'soma dos vendedores do item 1'],
+    ['Vendedores novos da árvore do CEVEN', (ar.novos || []).length, 'já entraram nas telas'],
+    ['Supervisor trocado pelo CEVEN', (ar.supervisor_mudou || []).length, 'vale o do CEVEN'],
+    ['Só na Gestão (fora da árvore)', (ar.so_gestao || []).length, 'conferir se ainda existem'],
     ['Na Gestão de Equipe e fora do banco', r.planilha_fora_do_banco, 'precisam ser cadastrados'],
     ['Códigos descobertos (devolução)', r.codigos_descobertos, `${r.codigos_descobertos_novos} novos nos últimos 3 dias`],
     ['Devolução nesses códigos (mês)', brl(r.devolucao_descoberta_mes), 'fora de qualquer lista']
   ].map(([t, v, s]) => `<div class="chip"><span>${t}</span><b>${v}</b><span>${s}</span></div>`).join('');
+  // --- ÁRVORE VIVA DO CEVEN x GESTÃO ---
+  const ar = d.arvore || {};
+  const aviso = ar.disponivel ? '' : '<div class="vazio">A árvore do CEVEN ainda não foi baixada hoje. Ela se atualiza sozinha a cada 45 minutos.</div>';
+  const A0 = tabela([
+    {t: 'Filial', f: l => esc(l.filial)}, {t: 'Código', f: l => esc(l.codigo)}, {t: 'Nome', f: l => esc(l.nome)},
+    {t: 'Supervisor (CEVEN)', f: l => esc(l.supervisor)}, {t: 'Canal', f: l => esc(l.canal || '—')},
+    {t: 'Gerente', f: l => esc(l.gerente || '—') + (l.grupo ? ' / ' + esc(l.grupo) : '')},
+    {t: 'Na tela', f: l => '<span class="tag ok">MOSTRA</span>'}
+  ], ar.novos || [], 'Nenhum vendedor novo: todo vendedor da árvore do CEVEN já está na Gestão de Equipe.');
+  const A1 = tabela([
+    {t: 'Filial', f: l => esc(l.filial)}, {t: 'Código', f: l => esc(l.codigo)}, {t: 'Nome', f: l => esc(l.nome)},
+    {t: 'Supervisor na Gestão (antigo)', f: l => esc(l.supervisor_gestao || '—')}, {t: 'Supervisor no CEVEN (vale)', f: l => '<b>' + esc(l.supervisor_ceven || '—') + '</b>'},
+    {t: 'Mostra', f: l => l.mostra ? 'SIM' : 'NÃO'}
+  ], ar.supervisor_mudou || [], 'Nenhuma troca: o supervisor da Gestão de Equipe é o mesmo do CEVEN em todos os vendedores.');
+  const A2 = tabela([
+    {t: 'Filial', f: l => esc(l.filial)}, {t: 'Código', f: l => esc(l.codigo)}, {t: 'Nome', f: l => esc(l.nome)}, {t: 'Canal', f: l => esc(l.canal || '—')},
+    {t: 'Supervisor (Gestão)', f: l => esc(l.supervisor || '—')}, {t: 'Mostra', f: l => l.mostra ? 'SIM' : 'NÃO'}, {t: 'Motivo', f: l => esc(l.motivo || '')}
+  ], ar.so_gestao || [], 'Nenhum: todo vendedor da Gestão de Equipe está na árvore do CEVEN.');
   const pct = (x, m) => m > 0 ? ' (' + Math.round(x / m * 100) + '%)' : '';
   const metaCols = [
     {t: 'Meta faturamento', n: 1, f: l => l.meta_fat ? brl(l.meta_fat) : '—'}, {t: 'Faturado no mês', n: 1, f: l => brl(l.fat_mes) + pct(l.fat_mes, l.meta_fat)},
@@ -88,12 +109,15 @@ async function carrega() {
     {t: 'Devolução (mês)', n: 1, f: l => brl(l.devolucao_mes) + ' · ' + nv(l.notas_mes) + ' nota(s)'},
     {t: 'O que é', f: l => { const t = l.leitura || {}; const cls = (t.tipo === 'conta_interna' || t.tipo === 'vaga' || t.tipo === 'so_devolucao') ? 'ok' : 'nova'; return `<span class="tag ${cls}">${esc(t.texto || '')}</span>` + (l.nova ? ' <span class="tag nova">NOVO</span>' : ''); }}
   ], d.descobertos, 'A varredura de descoberta ainda não achou nenhum código com devolução fora das listas.');
-  $('corpo').innerHTML =
+  $('corpo').innerHTML = aviso +
+    secao('0. Árvore do CEVEN: vendedores NOVOS (já entraram nas telas)', 'Estão na árvore viva do CEVEN e ainda não estavam na Gestão de Equipe: entram sozinhos, com MOSTRA = SIM e o supervisor do CEVEN. Se algum não deve aparecer, é só ocultar na Gestão de Equipe.', A0) +
+    secao('0.1 Árvore do CEVEN: supervisor trocado (vale o do CEVEN)', 'O CEVEN reorganiza a árvore todo dia. Aqui estão os vendedores cujo supervisor na Gestão de Equipe estava diferente do CEVEN: todas as telas, os lances e o WhatsApp já usam o do CEVEN.', A1) +
+    secao('0.2 Só na Gestão de Equipe (fora da árvore do CEVEN)', 'Vendedores que a Gestão tem e a árvore do CEVEN não traz (a cascata do CEVEN não é completa: nenhum foi removido). Confira se ainda existem; os que não existem mais podem ser ocultados.', A2) +
     secao('1. No banco e fora da Gestão de Equipe', 'Vendedor ativo no cadastro do banco que a Gestão de Equipe não lista. Com movimento: vende, tem rota ou tem devolução. Decida na Gestão de Equipe se entra como MOSTRA = SIM ou NÃO.', A) +
     secao('2. Só informativo: na Gestão de Equipe e ainda sem cadastro no banco', 'Estes vendedores JÁ estão certos na Gestão de Equipe (com supervisor e gerente) e já aparecem em tudo: TV, Matriz, WhatsApp e Executiva. O banco de cadastros ainda não os recebeu porque o cadastro é sincronizado do CEVEN de madrugada. Você não precisa fazer nada aqui.', B) +
     secao('3. Códigos que o CEVEN tem e que não estão em lugar nenhum nosso', 'Não são vendedores da Gestão de Equipe nem do banco, mas têm devolução neste mês. Costumam ser: conta interna da empresa ("venda empresa", código 2 de cada filial), vaga em aberto, ou ex-vendedor que ainda tem nota. Só vale olhar o que tiver meta e rota: aí pode ser um vendedor que faltou cadastrar (use o painel da Gestão de Equipe).', C);
   const v = d.varredura_descoberta || {};
-  $('rodape').textContent = `Gerado em ${new Date(d.gerado_em).toLocaleString('pt-BR')} · varredura de descoberta: ciclo ${v.ciclo ?? 0}, posição ${v.pos ?? 0}${v.ciclo_fim ? ', último ciclo fechado em ' + v.ciclo_fim : ''}`;
+  $('rodape').textContent = `Árvore do CEVEN atualizada em ${ar.atualizado_em ? new Date(ar.atualizado_em).toLocaleString('pt-BR') : '—'} · Gerado em ${new Date(d.gerado_em).toLocaleString('pt-BR')} · varredura de descoberta: ciclo ${v.ciclo ?? 0}, posição ${v.pos ?? 0}${v.ciclo_fim ? ', último ciclo fechado em ' + v.ciclo_fim : ''}`;
 }
 $('btn').onclick = carrega; carrega(); setInterval(carrega, 120000);
 </script>

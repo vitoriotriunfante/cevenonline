@@ -8,6 +8,7 @@
 //          C) descobertos             — códigos achados pela varredura de descoberta (cron-descobre-codigos.js) com devolução no mês e fora de qualquer lista.
 // NUNCA inventa: tudo vem do banco, da planilha e do que o CEVEN devolveu.
 // =========================================================================
+import { aplicaArvore } from '../_lib/arvore_ceven.js';
 const cors = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: cors });
 const arred = (x) => Math.round((Number(x) || 0) * 100) / 100;
@@ -119,8 +120,35 @@ export async function onRequestGet({ env, request }) {
       cursor = await env.DB.prepare('SELECT pos, ciclo, ciclo_inicio, ciclo_fim FROM descoberta_cursor WHERE id = 1').first();
     } catch { /* tabela ainda não existe: a varredura de descoberta ainda não rodou */ }
 
+    // ÁRVORE VIVA DO CEVEN x GESTÃO (Vitório, 06/10/2026: "coloca aqui as divergências"): vendedores novos que entraram sozinhos, supervisor que o CEVEN trocou e
+    // vendedores que só a Gestão tem (fora da cascata do CEVEN). Somente leitura; quem decide mostra / não mostra é a Gestão de Equipe.
+    const arvore = { disponivel: false, atualizado_em: null, novos: [], supervisor_mudou: [], so_gestao: [] };
+    try {
+      const row = await env.DB.prepare('SELECT conteudo_json FROM config_equipe_soberana WHERE id = 1').first();
+      const base = JSON.parse(row.conteudo_json);
+      const cop = JSON.parse(JSON.stringify(base));
+      await aplicaArvore(env, cop);
+      const { results: ar } = await env.DB.prepare('SELECT filial, rca FROM arvore_supervisores').all();
+      if (ar && ar.length) {
+        arvore.disponivel = true;
+        arvore.atualizado_em = cop.arvore_viva && cop.arvore_viva.atualizado_em;
+        const naArv = new Set(ar.map((r) => r.filial + '|' + r.rca));
+        for (const k of Object.keys(cop.filiais)) {
+          const sig = k.split('_')[0].toUpperCase();
+          for (const v of cop.filiais[k] || []) {
+            if (v.auto_arvore) arvore.novos.push({ filial: sig, codigo: v.rca, nome: v.nome, supervisor: v.supervisor, canal: v.canal || '', gerente: v.gerente || '', grupo: v.grupo || '', mostra: v.mostra !== false });
+            else if (v.supervisor_gestao != null) arvore.supervisor_mudou.push({ filial: sig, codigo: v.rca, nome: v.nome, supervisor_gestao: v.supervisor_gestao, supervisor_ceven: v.supervisor, mostra: v.mostra !== false });
+          }
+        }
+        for (const k of Object.keys(base.filiais || {})) {
+          const sig = k.split('_')[0].toUpperCase();
+          for (const v of base.filiais[k] || []) if (!naArv.has(sig + '|' + v.rca)) arvore.so_gestao.push({ filial: sig, codigo: v.rca, nome: v.nome, supervisor: v.supervisor || '', canal: v.canal || '', mostra: v.mostra !== false, motivo: v.motivo || '' });
+        }
+      }
+    } catch { /* sem arvore: a secao some */ }
+
     return resp({
-      gerado_em: new Date().toISOString(), dia, planilha_lida: planilhaOk,
+      gerado_em: new Date().toISOString(), dia, planilha_lida: planilhaOk, arvore,
       resumo: {
         banco_fora_da_planilha: bancoForaDaPlanilha.length,
         banco_fora_da_planilha_com_movimento: bancoForaDaPlanilha.filter((x) => x.com_movimento).length,
