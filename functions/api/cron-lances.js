@@ -293,6 +293,11 @@ export async function onRequestGet({ env, request }) {
 
   const t0 = Date.now();
   const t = agoraSP();
+  // TRAVA DA MADRUGADA (06/10/2026): a meia-noite o CEVEN ainda serve o roteiro de ONTEM com o dia novo; o coletor registrava os lances de ontem como se
+  // fossem de hoje (845 lances em 06/10, 793 repetidos de 05/10; 1.813 em 01/10). Antes das 06h nao ha venda do dia: nao coleta nada.
+  if (t.h < 6 && !new URL(request.url).searchParams.has('madrugada')) {
+    return new Response(JSON.stringify({ status: 'MADRUGADA_SEM_COLETA', dia: t.dia, hora: t.hms }), { headers: cors });
+  }
   const forcar = new URL(request.url).searchParams.has('forcar');
 
   if (!forcar) {

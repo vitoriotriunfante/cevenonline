@@ -515,6 +515,14 @@ secao('8i. Gol de cliente: so com pedido de hoje do vendedor; quinzenas e pedido
   ok(mz.includes("const sairSup") && mz.includes('sairSup();'), 'botao Painel sai do modo Supervisores');
 }
 
+// ---------------------------------------------------------------- 8j. Madrugada: nenhum lance de ontem registrado como de hoje
+secao('8j. Trava da madrugada: antes das 06h nao coleta nem grava lance (a meia-noite o CEVEN ainda serve o roteiro de ontem)');
+{
+  const cl = ler('functions/api/cron-lances.js'), tl = ler('functions/api/tv-lances.js');
+  ok(cl.includes('MADRUGADA_SEM_COLETA') && cl.includes('t.h < 6'), 'coletor de lances nao roda antes das 06h');
+  ok(tl.includes("String(hora) < '06:00:00'") && tl.includes("ignorado: 'madrugada'"), 'gravacao de lances (TV/Matriz) tambem ignora a madrugada');
+}
+
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)
 secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
 {

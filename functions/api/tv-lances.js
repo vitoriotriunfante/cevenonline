@@ -49,6 +49,8 @@ export async function onRequestPost({ request, env }) {
   if (!/^[A-Z]{3}$/.test(filial)) return resp({ erro: 'filial invalida' }, 400);
   const lances = Array.isArray(b.lances) ? b.lances.slice(0, 200) : [];
   const { dia, hora } = agoraSP();
+  // Madrugada (antes das 06h) o CEVEN ainda serve o roteiro de ontem com o dia novo: nada e gravado (06/10/2026: 845 lances repetidos de ontem)
+  if (String(hora) < '06:00:00') return resp({ novos: [], ignorado: 'madrugada' });
   const iso = new Date().toISOString();
   try {
     // marcador do dia: se acabou de ser criado, esta é a 1ª sincronização do dia (baseline)
