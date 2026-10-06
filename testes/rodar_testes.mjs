@@ -654,8 +654,8 @@ secao('8d. Lances na tela: o que o coletor registrou nos ultimos 12 min tambem a
 for (const arq of ['public/tvapp.html', 'public/matrizapp.html']) {
   const t = ler(arq);
   ok(t.includes('const RECENTES = new Set()') && t.includes('ehRecente') && t.includes('RECENTES.has(a.key)') && t.includes('EXIB.add(a.key)') && t.includes('ANTES de dar o lance como visto'), arq + ': lance registrado pelo coletor nos ultimos 12 min entra na fila do VAR (a tela nao fica muda)');
-  ok(t.includes('(sp().h >= 16 ? 90 : 180)') && t.includes('(sp().h >= 16 ? 40 : 20)') && t.includes('varGapS()') && t.includes('varMaxH()'), arq + ': depois das 16h o VAR roda a cada 90 s e ate 40 por hora');
-  ok(t.includes('const ehBomLance') && t.includes('podeVAR(ESPERA.some(ehBomLance))') && t.includes('ESPERA.splice(iBom, 1)[0]') && t.includes('Math.min(varGapS(), 40)'), arq + ': gol, hat-trick e defesa saem sozinhos (nunca dentro de resumo), passam na frente e com intervalo de 40 s');
+  ok(t.includes('(sp().h >= 15 ? 90 : 180)') && t.includes('(sp().h >= 15 ? 40 : 20)') && t.includes('varGapS()') && t.includes('varMaxH()'), arq + ': depois das 15h o VAR roda a cada 90 s e ate 40 por hora');
+  ok(t.includes('const ehBomLance') && t.includes('podeVAR(ESPERA.some(ehBomLance))') && t.includes('ESPERA.splice(iBom, 1)[0]') && t.includes('Math.min(varGapS(), sp().h >= 15 ? 30 : 40)') && t.includes('ruimLiberado()') && t.includes('10 * 60e3'), arq + ': gol, hat-trick e defesa saem sozinhos (nunca dentro de resumo), passam na frente e com intervalo de 30 s depois das 15h; lance ruim so em resumo e no maximo 1 a cada 10 min');
 }
 
 secao('8e. Liga cravada: regras congeladas por versao, fechamento do dia (19h30) e conferencia diaria contra o CEVEN');
@@ -678,6 +678,7 @@ secao('8e. Liga cravada: regras congeladas por versao, fechamento do dia (19h30)
   { const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_auditoria.mjs')).href)).default; await t(ok); }
   { const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_notificacao.mjs')).href)).default; await t(ok); }
   { const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_notif_supervisores.mjs')).href)).default; await t(ok); }
+  { const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_fila_var.mjs')).href)).default; await t(ok); }
   ok(ler('functions/api/tv-lances.js').includes('length(obs) <= 3'), 'lance gravado pela TV com obs so de sigla (sem prova) recebe a prova do coletor depois');
   const fe = ler('functions/api/cron-fechamento-dia.js');
   ok(fe.includes("DIA_INICIAL = '2026-10-06'") && fe.includes('manual'), 'fechamento automatico so de 06/10/2026 em diante; dias anteriores so de proposito (manual=1)');
