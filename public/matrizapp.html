@@ -228,6 +228,11 @@ footer .msg { flex: 1 1 220px; min-width: 160px; }
 /* Testes de animação dentro de um menu (Vitório, 06/10/2026: a fileira de botões embaixo ficou horrível) */
 #mtest{display:none;position:fixed;right:12px;bottom:calc(var(--rodape-h,64px) + 8px);z-index:60;background:#0f1a33;border:1px solid #2b3a63;border-radius:12px;padding:10px;gap:6px;flex-wrap:wrap;max-width:min(520px,92vw);box-shadow:0 10px 30px rgba(0,0,0,.5)}
 #mtest.on{display:flex}#mtest button{flex:1 1 140px}
+/* Supervisores: tela DIVIDIDA (Vitório, 06/10/2026: o painel "fez = matinal + rota" sumia). Esquerda = painel da semana; direita = cards. Cada lado rola sozinho. */
+.supsplit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;flex:1 1 auto;min-height:0;align-items:stretch}
+.sup-col{min-height:0;min-width:0;overflow-y:auto;scrollbar-width:thin;padding-right:4px}
+.sup-sem{border-right:1px solid var(--line);padding-right:12px}
+@media (max-width:1100px){.supsplit{display:flex;flex-direction:column}.sup-col{overflow:visible}.sup-sem{border-right:0;border-bottom:1px solid var(--line);padding-bottom:8px}}
 </style><script src="/animacoes/tv-animacoes.js"></script>
 </head><body>
 <!-- MODAL DE DETALHE: clique nos cards do Painel Nacional abre a lista real por trás do número
@@ -1322,7 +1327,7 @@ function renderSupFormatoFilial() {
     '<button onclick="supSoPend()" style="background:' + (SUP_SO_PEND ? '#b91c1c' : '#334155') + ';color:#fff;border:0;border-radius:8px;padding:7px 12px;font-weight:800;cursor:pointer">' + (SUP_SO_PEND ? '⚠ Só pendentes (ligado)' : 'Só pendentes') + '</button></div>';
   const titulo = (girando ? siglas[0] + ' · ' + ((idxFil % ORDEM.length) + 1) + ' de ' + ORDEM.length : SUP_FILTRO === 'TODAS' ? 'todas as filiais' : SUP_FILTRO);
   // painel gerencial no TOPO, fixo (sticky) enquanto os cards rolam por baixo
-  const topo = '<div style="position:sticky;top:26px;z-index:6;background:var(--card);padding-bottom:6px;border-bottom:1px solid var(--line);max-height:44vh;overflow:auto">' +
+  const topo = '<div class="sup-col sup-sem">' +
     '<h2 style="margin:4px 0 2px"><span>Painel gerencial da semana · ' + titulo + '</span><b>fez = matinal + rota</b></h2>' + supSemanaHtml(semana, SEMANA) + '</div>';
   let cards = '';
   for (const sig of siglas) {
@@ -1331,7 +1336,7 @@ function renderSupFormatoFilial() {
     if (siglas.length > 1) cards += '<h2 style="margin:10px 0 4px"><span>' + sig + '</span><b>' + sups(sig).filter(pendente).length + ' pendente(s) de ' + sups(sig).length + '</b></h2>';
     cards += l.length ? supCardsHtml(l) : '<div style="color:var(--mut);padding:6px 0">' + (SUP_SO_PEND ? 'Nenhum pendente.' : 'Sem supervisores.') + '</div>';
   }
-  const html = '<h2><span>Supervisores · matinal (compromisso) e rota (RET)</span><b>' + (carregado ? totPend + ' pendente(s) de ' + totSup : 'carregando…') + '</b></h2>' + controles + topo + cards;
+  const html = '<h2><span>Supervisores · matinal (compromisso) e rota (RET)</span><b>' + (carregado ? totPend + ' pendente(s) de ' + totSup : 'carregando…') + '</b></h2>' + controles + '<div class="supsplit">' + topo + '<div class="sup-col sup-cards">' + cards + '</div></div>';
   if (html !== SUP_HTML) { SUP_HTML = html; el.innerHTML = html; } // so redesenha quando muda: o menu aberto e a rolagem nao se perdem a cada segundo
 }
 function renderSupView() {
