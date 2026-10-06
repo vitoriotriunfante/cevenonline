@@ -1122,12 +1122,12 @@
             <b class="mono" id="kpi-skus-val" style="color:var(--cyan)">—</b>
           </div>
           <div class="quad-item">
-            <span>Ritmo Atual</span>
-            <b class="mono" id="kpi-ritmo-val" style="color:var(--green)">+0 / h</b>
+            <span>Positivados Hoje</span>
+            <b class="mono" id="kpi-ritmo-val" style="color:var(--green)">—</b>
           </div>
           <div class="quad-item">
-            <span>Projeção 19h</span>
-            <b class="mono" id="kpi-proj-val">0 PDVs</b>
+            <span>Ainda a Visitar</span>
+            <b class="mono" id="kpi-proj-val">—</b>
           </div>
         </div>
       </div>
@@ -1815,8 +1815,8 @@
       // Ticket Médio REAL (via historico-cliente, calculado em cron-mapa-executivo.js) quando
       // disponível; fallback pra aproximação (dig/pos) só se ainda não tiver dado real carregado.
       const ticketMedio = ticketReal > 0 ? Math.round(ticketReal) : (pos > 0 ? Math.round(dig / pos) : 0);
-      const ritmoH = Math.round(pos / Math.max(1, (new Date().getHours() + new Date().getMinutes()/60) - 7));
-      const projecao = Math.round(pos + (ritmoH * Math.max(0, 19 - (new Date().getHours() + new Date().getMinutes()/60))));
+      // TEMPO REAL, sem estimativa (Vitório, 06/10/2026): so o que o CEVEN informa agora; a projecao/ritmo com horario presumido foi removida
+      const aVisitar = Math.max((rota || 0) - (feitas || 0), 0);
 
       // 1. Hero Placar
       document.getElementById('hero-digitado-val').textContent = 'R$ ' + Math.round(fatMesVal).toLocaleString('pt-BR');
@@ -1826,8 +1826,8 @@
 
       document.getElementById('kpi-ticket-val').textContent = 'R$ ' + ticketMedio.toLocaleString('pt-BR');
       document.getElementById('kpi-skus-val').textContent = skus.toFixed(1).replace('.',',') + ' SKUs';
-      document.getElementById('kpi-ritmo-val').textContent = `+${ritmoH} / h`;
-      document.getElementById('kpi-proj-val').textContent = `${projecao} PDVs`;
+      document.getElementById('kpi-ritmo-val').textContent = `${(pos || 0).toLocaleString('pt-BR')} PDVs`;
+      document.getElementById('kpi-proj-val').textContent = `${aVisitar.toLocaleString('pt-BR')} PDVs`;
 
       // 2. Visitas vs. Vendidos vs. Recuperados
       document.getElementById('visitas-feitas-card').innerHTML = `${feitas} <small style="font-size:15px;color:var(--muted);font-weight:700">/ ${rota.toLocaleString('pt-BR')}</small>`;

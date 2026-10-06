@@ -1,0 +1,10 @@
+const fs = require('fs');
+const p = 'c:/Users/vitorio.neto/Documents/Projetos IA/CEVEN várias telas/public/tv_executiva.html';
+let s = fs.readFileSync(p, 'utf8'); const crlf = s.includes('\r\n'); s = s.replace(/\r\n/g, '\n');
+const tr = (de, para, r) => { if (s.split(de).length !== 2) throw new Error('ancora: ' + r + ' (' + (s.split(de).length - 1) + ')'); s = s.replace(de, () => para); };
+tr('<span>Ritmo Atual</span>\n            <b class="mono" id="kpi-ritmo-val" style="color:var(--green)">+0 / h</b>', '<span>Positivados Hoje</span>\n            <b class="mono" id="kpi-ritmo-val" style="color:var(--green)">—</b>', 'rotulo1');
+tr('<span>Projeção 19h</span>\n            <b class="mono" id="kpi-proj-val">0 PDVs</b>', '<span>Ainda a Visitar</span>\n            <b class="mono" id="kpi-proj-val">—</b>', 'rotulo2');
+tr("      const ritmoH = Math.round(pos / Math.max(1, (new Date().getHours() + new Date().getMinutes()/60) - 7));\n      const projecao = Math.round(pos + (ritmoH * Math.max(0, 19 - (new Date().getHours() + new Date().getMinutes()/60))));\n", "      // TEMPO REAL, sem estimativa (Vitório, 06/10/2026): so o que o CEVEN informa agora; a projecao/ritmo com horario presumido foi removida\n      const aVisitar = Math.max((rota || 0) - (feitas || 0), 0);\n", 'conta');
+tr("document.getElementById('kpi-ritmo-val').textContent = `+${ritmoH} / h`;", "document.getElementById('kpi-ritmo-val').textContent = `${(pos || 0).toLocaleString('pt-BR')} PDVs`;", 'v1');
+tr("document.getElementById('kpi-proj-val').textContent = `${projecao} PDVs`;", "document.getElementById('kpi-proj-val').textContent = `${aVisitar.toLocaleString('pt-BR')} PDVs`;", 'v2');
+fs.writeFileSync(p, crlf ? s.replace(/\n/g, '\r\n') : s); console.log('ok');
