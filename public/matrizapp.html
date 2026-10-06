@@ -1179,10 +1179,32 @@ function renderTotais(stats) {
   $('nv').textContent = s(x => x.n);
 }
 let SUP_MANUAL = false, SEMANA = null;
+// SCORE DE DESEMPENHO 0 A 100 (Vitório, 06/10/2026: "não dá para ter score negativo, precisamos ponderar os contextos"). Nunca negativo e sem número inventado:
+// cada item e medido CONTRA AS OUTRAS FILIAIS (a melhor do item vale 100) e depois combinado com pesos. Contextos: tamanho da equipe (tudo por vendedor) e a meta de cada filial.
+//   Faturamento (% da meta) 30% · Positivacao (% da meta) 30% · Gols por vendedor 15% · Disciplina 25% (quanto MENOS penaltis por vendedor e zerados de campo, melhor).
+// O lider final vira 100 e as demais ficam proporcionais.
+const SCORE_PESOS = {fat: 30, pos: 30, gols: 15, disc: 25};
+function scoresRelativos(stats) {
+  const L = stats.filter(x => x.tem);
+  const maxDe = (f) => Math.max(...L.map(f), 0);
+  const tg = (x) => x.n ? (x.gols || 0) / x.n : 0, perda = (x) => (x.n ? (x.pen || 0) / x.n : 0) * 12 + (x.campo && x.campo.length ? (x.nZer || 0) / x.campo.length : 0) * 15;
+  const mFat = maxDe(x => x.pctFat || 0), mPos = maxDe(x => x.pctPos || 0), mGol = maxDe(tg), mPerda = maxDe(perda);
+  const bruto = {};
+  L.forEach(x => {
+    const a = mFat > 0 ? (x.pctFat || 0) / mFat * 100 : 0, b = mPos > 0 ? (x.pctPos || 0) / mPos * 100 : 0, c = mGol > 0 ? tg(x) / mGol * 100 : 0, d = mPerda > 0 ? (1 - perda(x) / mPerda) * 100 : 100;
+    bruto[x.sig] = (a * SCORE_PESOS.fat + b * SCORE_PESOS.pos + c * SCORE_PESOS.gols + d * SCORE_PESOS.disc) / 100;
+  });
+  const lider = Math.max(...Object.values(bruto), 0);
+  const saida = {};
+  Object.keys(bruto).forEach(k => { saida[k] = lider > 0 ? Math.round(bruto[k] / lider * 1000) / 10 : 0; });
+  return saida;
+}
 const METRICA_FILIAL = {}; // sig -> {rot, val, cls}: o MESMO numero que a lista mostra (score ou criticidade), reaproveitado no foco e nos popups
 let MODO_RANK_POSITIVO = true; // Por padrão dá ênfase no que é bem feito
 function renderRank(stats) {
   const t = sp(), ehFechamento = t.h >= 15;
+  const SCORE = scoresRelativos(stats);
+  stats.forEach(x => { x.scorePositivo = SCORE[x.sig] != null ? SCORE[x.sig] : 0; });
   // Se for fechamento (>=15h) ou selecionado positivo: ordena pelo maior score positivo
   const ord = [...stats].sort((a, b) => {
     if (MODO_RANK_POSITIVO || ehFechamento) {
@@ -1191,7 +1213,7 @@ function renderRank(stats) {
     return b.nota - a.nota;
   });
 
-  const maxScore = Math.max(...stats.map(x => x.scorePositivo || 0), 0.0001); // o LIDER vira 100 e as demais filiais ficam proporcionais (Vitório, 06/10/2026)
+  const maxScore = 100; // o score ja vem de 0 a 100, com o LIDER em 100 (ver scoresRelativos)
   const minScore = Math.min(...stats.map(x => x.scorePositivo || 0), 50);
 
   const tituloTxt = (MODO_RANK_POSITIVO || ehFechamento) ? '🏆 Desempenho' : '🚨 Ranking de criticidade';
@@ -1202,7 +1224,7 @@ function renderRank(stats) {
     </h2>` + ord.map(x => {
     const i = ORDEM.indexOf(x.sig), min = TS[x.sig] ? Math.round((Date.now() - TS[x.sig]) / 60000) : null;
     const ehPositivo = MODO_RANK_POSITIVO || ehFechamento;
-    const notaExibida = ehPositivo ? Math.round(((x.scorePositivo || 0) / maxScore) * 1000) / 10 : x.nota;
+    const notaExibida = ehPositivo ? (x.scorePositivo || 0) : x.nota;
     // Barra calibrada proporcional ao líder (quem tem mais gols/melhor score enche a barra, os outros ficam proporcionais)
     const barraWidth = ehPositivo
       ? Math.min(100, Math.max(10, Math.round(((x.scorePositivo || 0) / maxScore) * 100)))
@@ -1227,7 +1249,7 @@ function renderRank(stats) {
   }).join('') +
   `<div style="color:var(--mut);font-size:11px;margin-top:auto">
     ${(MODO_RANK_POSITIVO || ehFechamento)
-      ? 'Score Ponderado: Fat + Pos + Gols - Pênaltis - Zerados · Barra relativa à filial líder'
+      ? 'Score 0–100 · Faturamento 30% · Positivação 30% · Gols/vendedor 15% · Disciplina 25% (pênaltis e zerados) · cada item contra as demais filiais · líder = 100'
       : 'Nota = 40% zerados (após 10h) + 35% pênaltis por vendedor + 25% sem nenhuma visita (após 10h)'}
   </div>`;
   document.querySelectorAll('#rank .rk').forEach(el => el.onclick = () => { idxFil = +el.dataset.i; tFil = Date.now(); render(); });
