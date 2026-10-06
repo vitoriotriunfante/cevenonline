@@ -170,9 +170,8 @@ export async function onRequestGet({ env, request }) {
         await Promise.all(velhas.slice(i, i + 12).map(async (l) => {
           try {
             const x = await fetch(CEVEN_BASE + '/api/filiais/' + l.filial.toLowerCase() + '1/representante/' + l.codigo, { signal: AbortSignal.timeout(6000) });
-            if (!x.ok) return;
-            const j = await x.json();
-            const canal = String(j.area_atuacao || '').toUpperCase();
+            let canal = '';
+            try { const j = await x.json(); canal = String(j.area_atuacao || '').toUpperCase(); } catch { /* corpo vazio: o CEVEN nao tem cadastro desse codigo */ }
             mapa.set(l.filial + '|' + l.codigo, { canal, em: Date.now() });
             await env.DB.prepare('INSERT OR REPLACE INTO canal_ceven (filial, rca, canal, em) VALUES (?,?,?,?)').bind(l.filial, String(l.codigo), canal, Date.now()).run();
           } catch { /* sem resposta: fica sem canal do CEVEN */ }
