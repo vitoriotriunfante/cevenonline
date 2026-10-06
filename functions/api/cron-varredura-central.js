@@ -236,12 +236,13 @@ export async function onRequestGet({ env, request }) {
     // A etapa FRIA tem FATIA PROPRIA de tempo (05/10/2026): com o prazo geral, as etapas 1 a 3 consumiam os 100 s e a fria nunca rodava, entao painel (faturado do mes)
     // e devolucoes ficavam congelados no dado da varredura completa (ex.: TPA R$ 42 mil na Executiva contra R$ 133 mil no CEVEN).
     const prazoFria = Date.now() + 30000;
-    const tarefasFria = [...fatiaDash.map((rca) => () => getJson(urlRca('dashboard', rca))), ...fatiaDev.map((rca) => () => getJson(urlRca('devolucoes', rca)))];
-    const frias = await poolLimitado(tarefasFria, CONC, prazoFria);
+    // DEVOLUCOES primeiro (prioridade) e ponto de partida GIRANDO a cada tick: se o prazo estourar, nao e sempre o mesmo vendedor do fim da lista que fica sem atualizar
+    const rodar = (L) => { if (!L.length) return L; const k = (ciclo * 7) % L.length; return L.slice(k).concat(L.slice(0, k)); };
+    const itensFria = [...rodar(fatiaDev).map((rca) => ({ rca, tipo: 'devolucoes' })), ...rodar(fatiaDash).map((rca) => ({ rca, tipo: 'dashboard' }))];
+    const frias = await poolLimitado(itensFria.map((it) => () => getJson(urlRca(it.tipo, it.rca))), CONC, prazoFria);
     const camposPorRca = new Map();
     const campo = (rca) => { const k = String(rca.codigo); if (!camposPorRca.has(k)) camposPorRca.set(k, { rca, campos: {} }); return camposPorRca.get(k).campos; };
-    fatiaDash.forEach((rca, i) => { const dash = frias[i]; if (dash) campo(rca).dashboard_json = JSON.stringify(dash); });
-    fatiaDev.forEach((rca, i) => { const dev = frias[fatiaDash.length + i]; if (Array.isArray(dev)) campo(rca).devolucoes_json = JSON.stringify(dev); });
+    itensFria.forEach((it, i) => { const r = frias[i]; if (it.tipo === 'dashboard' && r) campo(it.rca).dashboard_json = JSON.stringify(r); if (it.tipo === 'devolucoes' && Array.isArray(r)) campo(it.rca).devolucoes_json = JSON.stringify(r); });
     for (const { rca, campos } of camposPorRca.values()) { contagem.fria++; stmts.push(upsertParcial(env, dataRef, rca, campos)); }
     await gravaLote(env, stmts.splice(0));
 
