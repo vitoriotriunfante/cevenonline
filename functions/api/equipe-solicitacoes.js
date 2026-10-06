@@ -144,6 +144,10 @@ export async function onRequestPost({ request, env }) {
             if (v) {
               v.mostra = true;
               v.motivo = '';
+            } else {
+              // vendedor da arvore viva do CEVEN ainda nao guardado na Gestao: grava o registro ja mostrando
+              let ex = {}; try { ex = JSON.parse(item.dados_extras || '{}'); } catch (e) {}
+              baseData.filiais[fil].unshift({ rca: /^[0-9]+$/.test(String(item.rca_id)) ? Number(item.rca_id) : item.rca_id, nome: item.rca_nome, canal: ex.canal || '', supervisor: ex.supervisor || '', gerente: ex.gerente || item.gerente_nome || '', grupo: ex.grupo || '', mostra: true, motivo: '' });
             }
           } else if (item.tipo_acao === 'NOVO_VENDEDOR') {
             let extras = {};
