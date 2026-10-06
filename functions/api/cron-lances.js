@@ -107,6 +107,17 @@ function horariosCheckinDoDia(cl) {
 // Mesma lógica de vend() em tvapp.html: transforma resposta de /api/tv-vendedor no objeto usado
 // por calcAlertas.
 import { qualificaGol, carteiraEfetiva } from '../_lib/qualificacao_gol.js';
+// Prova do gol de cliente: pedido de hoje (numero, status, valor) e, na dobradinha, os pedidos reais de cada quinzena do mes
+function provaPedidoHoje(c) {
+  const p = c && c.pedidoHoje;
+  return p && p.num ? `PEDIDO DE HOJE: ${p.num} · ${p.status_pedido || 'sem status'} · ${brl(p.valor)}` : '';
+}
+function provaQuinzenas(c) {
+  const q = c && c.quinzenas;
+  if (!q) return '';
+  const fmt = (g) => `${brl(g.valor)} (${g.pedidos.map((p) => p.data.slice(8, 10) + '/' + p.data.slice(5, 7) + ' ped ' + p.num + ' ' + brl(p.valor)).join('; ') || 'sem pedido'})`;
+  return `QUINZENAS: total ${brl(q.q1.valor + q.q2.valor)} · 1a ${fmt(q.q1)} · 2a ${fmt(q.q2)}`;
+}
 function vend(id, canal, sup, d, carteira) {
   const cl = Array.isArray(d.clientes) ? d.clientes : null;
   const st = (s) => (cl ? cl.filter((c) => s.includes(c.status)).length : null);
@@ -179,13 +190,13 @@ function calcAlertas(vs, t) {
       // RECORRENCIA = DEFESA (+3), nunca gol (decisao do Vitorio, 05/10/2026): antes o mesmo cliente com a tag gerava gol de
       // resgate (+6) E defesa (+3). O gol de resgate fica so para cliente parado ha mais de 30 dias SEM a tag.
       if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && ehInativo && !ehRecorrencia && tagsConhecidas) {
-        out.push({ chave: `gol_inativo|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: (qualificaGol(v.carteira, c) || {}).texto });
+        out.push({ chave: `gol_inativo|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: [provaPedidoHoje(c), (qualificaGol(v.carteira, c) || {}).texto].filter(Boolean).join(' | ') });
       }
       if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && c.checkin_horario) {
         out.push({ chave: `pedido_rota|${v.id}|${c.id}`, nivel: 'pedido_rota', v, c });
       }
-      if (c.dobrouMix) out.push({ chave: `gol_mix|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: (qualificaGol(v.carteira, c) || {}).texto });
-      if (c.dobradinhaQuinzenas) out.push({ chave: `gol_quinzenas|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: (qualificaGol(v.carteira, c) || {}).texto });
+      if (c.dobrouMix) out.push({ chave: `gol_mix|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: [provaPedidoHoje(c), (qualificaGol(v.carteira, c) || {}).texto].filter(Boolean).join(' | ') });
+      if (c.dobradinhaQuinzenas) out.push({ chave: `gol_quinzenas|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: [provaPedidoHoje(c), provaQuinzenas(c), (qualificaGol(v.carteira, c) || {}).texto].filter(Boolean).join(' | ') });
       if (c.bonificacao) out.push({ chave: `ver_bonif|${v.id}|${c.id}`, nivel: 'vermelho', v, c });
       if (c.recorrencia && ['POSITIVADO', 'EFETIVADO'].includes(c.status)) out.push({ chave: `def|${v.id}|${c.id}`, nivel: 'defesa', v, c });
       if (v.campo) {

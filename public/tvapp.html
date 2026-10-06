@@ -881,7 +881,8 @@ function telaVAR(item) {
 
   if (item.tipo === 'gol') {
     titulo = '⚽ GOL DE PLACA!'; sub = item.sub || 'Destaque de vendas e positivação!'; cls = 'f1';
-    dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v)}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'GOL DE PLACA')}</span></div>`;
+    const cGol = item.c || (item.a && item.a.c), subGol = (item.a && item.a.subtipo) || item.subtipo;
+    dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v)}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'GOL DE PLACA')}</span></div>${typeof golClienteLinhasHtml === 'function' ? golClienteLinhasHtml(cGol, subGol, brl, esc) : ''}`;
     veredito = '⚽ GOLAÇO NA REDE! Parabéns à equipe!';
   } else if (item.tipo === 'hattrick') {
     titulo = '🔥 HAT-TRICK!'; sub = item.sub || '3 pedidos digitados em sequência!'; cls = 'f1';

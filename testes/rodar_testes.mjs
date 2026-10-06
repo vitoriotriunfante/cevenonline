@@ -505,6 +505,16 @@ secao('8h. Supervisores: botao na Matriz, cards com fotos e painel gerencial da 
   ok(se.includes('NAO_SUPERVISORES') && su.includes('NAO_SUPERVISORES') && se.includes('porDia') && se.includes('feriado'), 'endpoints tiram os nao-supervisores (decisao 04/10), usam o porDia do CEVEN e marcam feriado');
 }
 
+// ---------------------------------------------------------------- 8i. Gol de cliente: so pedido de HOJE e dados reais (nada estimado)
+secao('8i. Gol de cliente: so com pedido de hoje do vendedor; quinzenas e pedido com dados reais, sem estimativa');
+{
+  const tvv = ler('functions/api/tv-vendedor.js'), mz = ler('public/matrizapp.html'), tv = ler('public/tvapp.html'), cl = ler('functions/api/cron-lances.js');
+  ok(tvv.includes('if (hoje && dataAtual !== hoje) return null') && tvv.includes('analisaPedido(resultados[i], catalogo, id, dataHojeBrasilia())'), 'gol de cliente so nasce de pedido DE HOJE (pedido antigo do cliente nao vira gol)');
+  ok(!mz.includes('vFatTotal * 0.48') && !mz.includes('valor_ultima * 2') && mz.includes('golClienteLinhasHtml') && tv.includes('golClienteLinhasHtml'), 'popup nao estima mais as quinzenas (48%/52% e dobro da ultima compra foram removidos); usa os pedidos reais');
+  ok(cl.includes('provaPedidoHoje(c)') && cl.includes('provaQuinzenas(c)') && tvv.includes('pedidoHoje') && tvv.includes('quinzenas'), 'prova do lance leva o numero, status e valor do pedido de hoje e os pedidos de cada quinzena');
+  ok(mz.includes("const sairSup") && mz.includes('sairSup();'), 'botao Painel sai do modo Supervisores');
+}
+
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)
 secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
 {

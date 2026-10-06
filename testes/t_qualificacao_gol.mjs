@@ -21,7 +21,7 @@ export default async function (ok, RAIZ) {
 
   // pedido de OUTRO vendedor no mesmo cliente (caso TPH 60 x pasta Mars, 05/10/2026): nunca entra na analise do vendedor
   const src = readFileSync(join(RAIZ, 'functions', 'api', 'tv-vendedor.js'), 'utf8');
-  ok(src.includes('ehPedidoDoRca') && src.includes('analisaPedido(resultados[i], catalogo, id)') && src.includes('iAtual < 0'), 'tv-vendedor so analisa pedido cujo numero comeca pelo codigo do proprio RCA (RCA + 6 digitos)');
+  ok(src.includes('ehPedidoDoRca') && src.includes('analisaPedido(resultados[i], catalogo, id, dataHojeBrasilia())') && src.includes('iAtual < 0'), 'tv-vendedor so analisa pedido cujo numero comeca pelo codigo do proprio RCA (RCA + 6 digitos)');
 
   // endpoint: soma o extra aos pontos so quando ha carimbo
   const mod = await import(pathToFileURL(join(RAIZ, 'functions', 'api', 'brasileirao-lances.js')).href);

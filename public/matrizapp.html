@@ -786,12 +786,8 @@ function telaVAR(item) {
     if (cObj && cObj.nome) {
       linhasExtra += `<div class="ln"><b>CLIENTE</b><span>${esc(cObj.nome)}</span></div>`;
     }
+    linhasExtra += golClienteLinhasHtml(cObj, subt, brl, esc);
     if (subt === 'dobradinha_quinzenas') {
-      const vFatTotal = (cObj && cObj.valorTotalQuinzenas) ? cObj.valorTotalQuinzenas : (cObj && cObj.valor_ultima ? cObj.valor_ultima * 2 : (vPed || 0));
-      const vQ1 = (cObj && cObj.valorQ1) ? cObj.valorQ1 : Math.round(vFatTotal * 0.48);
-      const vQ2 = (cObj && cObj.valorQ2) ? cObj.valorQ2 : Math.round(vFatTotal * 0.52);
-      linhasExtra += `<div class="ln hot"><b>FATURAMENTO TOTAL</b><span>${brl(vFatTotal)}</span></div>`;
-      linhasExtra += `<div class="ln"><b>QUINZENAS</b><span>1ª Quinzena: ${brl(vQ1)} · 2ª Quinzena: ${brl(vQ2)}</span></div>`;
     } else {
       const vVendaReal = (cObj && cObj.valorVendaAtual) || vPed || 0;
       if (vVendaReal > 0) {
@@ -1641,7 +1637,9 @@ function ctl() {
   setInterval(() => { if (SUP_MANUAL) carregaSupsAgora(); }, 5 * 60 * 1000);
   const ir = d => { idxFil = (idxFil + d + ORDEM.length + 1) % (ORDEM.length + 1); tFil = Date.now(); render(); };
   $('bprev').onclick = () => ir(-1); $('bnext').onclick = () => ir(1);
+  const sairSup = () => { if (SUP_MANUAL) { SUP_MANUAL = false; $('bsup').style.outline = 'none'; } };
   const alternarPainel = () => {
+    sairSup();
     if (idxFil === ORDEM.length) {
       idxFil = 0; // Volta para a 1ª filial
     } else {

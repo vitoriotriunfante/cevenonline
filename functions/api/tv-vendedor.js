@@ -79,13 +79,16 @@ function industriasDoPedido(skus, cat) {
 const ehPedidoDoRca = (numPedido, rca) => !!rca && new RegExp('^' + String(rca) + '[0-9]{6}$').test(String(numPedido || ''));
 // tolerante: 1,5% dos pedidos tem 5 ou 7 digitos depois do codigo (108600094 = RCA 1086)
 const ehPedidoTolerante = (numPedido, rca) => !!rca && new RegExp('^' + String(rca) + '[0-9]{5,7}$').test(String(numPedido || ''));
-function analisaPedido(historico, cat, rca) {
+function analisaPedido(historico, cat, rca, hoje) {
   const todas = Array.isArray(historico?.ultimas_visitas) ? historico.ultimas_visitas : [];
   let iAtual = rca ? todas.findIndex((v) => ehPedidoDoRca(v.num_pedido, rca)) : (todas.length ? 0 : -1);
   if (iAtual < 0 && rca) iAtual = todas.findIndex((v) => ehPedidoTolerante(v.num_pedido, rca));
   if (iAtual < 0) return null; // sem pedido proprio do vendedor neste cliente: nao analisa (nunca usa pedido de outro vendedor)
   const atual = todas[iAtual];
   const dataAtual = String(atual.data_visita || '').slice(0, 10);
+  // O gol e do pedido de HOJE. Se o pedido de hoje ainda nao apareceu no historico, o 'atual' seria uma compra ANTIGA do cliente e geraria gol falso
+  // (06/10/2026: dobradinha das quinzenas e industrias de um pedido de 22/09 saindo como gol de hoje). Sem pedido de hoje = sem analise.
+  if (hoje && dataAtual !== hoje) return null;
   // anteriores: historico do cliente, sem os pedidos de OUTROS vendedores do mesmo dia do pedido atual
   const anteriores = todas.filter((v, k) => k > iAtual && !(String(v.data_visita || '').slice(0, 10) === dataAtual && rca && !ehPedidoDoRca(v.num_pedido, rca)));
   const visitas = [atual, ...anteriores];
@@ -113,7 +116,15 @@ function analisaPedido(historico, cat, rca) {
   // valor do pedido de HOJE (visita mais recente do cliente) — alimenta "VALOR DA VENDA" dos lances (antes vinha vazio: R$ 0)
   const valorAtual = Array.isArray(atual?.skus) ? atual.skus.reduce((s, item) => s + (Number(item.total) || 0), 0) : 0;
   const { industrias, categorias } = industriasDoPedido(atual?.skus, cat);
-  return { skusAtual, mediaHistorica, dobrouMix: mediaHistorica != null ? mixDobrado(skusAtual, mediaHistorica) : false, bonificacao, dobradinhaQuinzenas, valorAtual, industrias, categorias };
+  // pedido de hoje e (se houver dobradinha) os pedidos REAIS de cada quinzena do mes, com numero, data e valor (nunca estimativa)
+  const pedidoHoje = { num: atual.num_pedido || null, status_pedido: atual.status_pedido || null, valor: Number(atual.total_clube) || valorAtual };
+  let quinzenas = null;
+  if (dobradinhaQuinzenas) {
+    const doMes = todas.filter((v) => String(v.data_visita || '').slice(0, 7) === mesAtual && v.num_pedido && Number(v.total_clube) > 0);
+    const grupo = (f) => { const pedidos = doMes.filter((v) => f(Number(String(v.data_visita).slice(8, 10)))).map((v) => ({ data: String(v.data_visita).slice(0, 10), num: v.num_pedido, valor: Number(v.total_clube) || 0, status: v.status_pedido || null })); return { valor: Math.round(pedidos.reduce((a, p) => a + p.valor, 0) * 100) / 100, pedidos }; };
+    quinzenas = { q1: grupo((d) => d <= 15), q2: grupo((d) => d > 15) };
+  }
+  return { skusAtual, mediaHistorica, dobrouMix: mediaHistorica != null ? mixDobrado(skusAtual, mediaHistorica) : false, bonificacao, dobradinhaQuinzenas, valorAtual, industrias, categorias, pedidoHoje, quinzenas };
 }
 
 function montarTv(id, dash, prod, rot, analisePorCliente) {
@@ -157,6 +168,8 @@ function montarTv(id, dash, prod, rot, analisePorCliente) {
           dobrouMix: analisePorCliente?.[c.id_cliente]?.dobrouMix || false,
           bonificacao: analisePorCliente?.[c.id_cliente]?.bonificacao || false,
           dobradinhaQuinzenas: analisePorCliente?.[c.id_cliente]?.dobradinhaQuinzenas || false,
+          pedidoHoje: analisePorCliente?.[c.id_cliente]?.pedidoHoje || null,
+          quinzenas: analisePorCliente?.[c.id_cliente]?.quinzenas || null,
           industrias: analisePorCliente?.[c.id_cliente]?.industrias || null,
           categorias: analisePorCliente?.[c.id_cliente]?.categorias || null
         }))
@@ -236,7 +249,7 @@ export async function onRequestGet({ request, env }) {
     // pela coleta de lances (central=1): no maximo 2 simultaneas; na tela da TV segue como antes
     const resultados = usarCentral ? await poolLimitado(buscas, 2) : await Promise.all(buscas.map((f) => f()));
     positivadosHoje.forEach((c, i) => {
-      const analise = analisaPedido(resultados[i], catalogo, id);
+      const analise = analisaPedido(resultados[i], catalogo, id, dataHojeBrasilia());
       if (analise) analisePorCliente[c.id_cliente] = analise;
     });
   }

@@ -1601,3 +1601,20 @@ window.qualificaGolUI = function (carteira, c) {
     return '<table class="sxt">' + cab + linhas + '</table>';
   };
 })();
+
+// Linhas do popup de gol de cliente com os dados REAIS do CEVEN: pedido de hoje e, na dobradinha, pedidos de cada quinzena (Vitório, 06/10/2026: sem estimativa)
+window.golClienteLinhasHtml = function (c, subt, brl, esc) {
+  if (!c) return '';
+  let h = '';
+  const p = c.pedidoHoje;
+  if (p && p.num) h += '<div class="ln"><b>PEDIDO DE HOJE</b><span>' + esc(p.num) + ' · ' + esc(p.status_pedido || 'sem status') + ' · ' + brl(p.valor) + '</span></div>';
+  if (subt === 'dobradinha_quinzenas') {
+    const q = c.quinzenas;
+    if (!q) return h + '<div class="ln"><b>QUINZENAS</b><span>sem dado no CEVEN</span></div>';
+    const lista = (g) => g.pedidos.length ? g.pedidos.map((x) => x.data.slice(8, 10) + '/' + x.data.slice(5, 7) + ' ped ' + esc(x.num) + ' ' + brl(x.valor)).join(' · ') : 'sem pedido';
+    h += '<div class="ln hot"><b>FATURAMENTO TOTAL</b><span>' + brl(q.q1.valor + q.q2.valor) + '</span></div>';
+    h += '<div class="ln"><b>1ª QUINZENA</b><span>' + brl(q.q1.valor) + ' · ' + lista(q.q1) + '</span></div>';
+    h += '<div class="ln"><b>2ª QUINZENA</b><span>' + brl(q.q2.valor) + ' · ' + lista(q.q2) + '</span></div>';
+  }
+  return h;
+};
