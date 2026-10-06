@@ -542,6 +542,15 @@ secao('8l. Paineis escolhidos pelo gestor (cartoes vermelhos/amarelos), aba Gaba
   ok(!br.includes('max-width: 1500px;') && br.includes('tab-gabarito') && br.includes('carregarGabarito') && br.includes("switchTab('gabarito')"), 'Brasileirao: largura responsiva e aba Gabarito do Dia ao lado de Lances do Dia');
 }
 
+// ---------------------------------------------------------------- 8m. Tela exclusiva dos supervisores + tabelas que nao cortam
+secao('8m. Tela exclusiva /supervisores (compromisso, RET, semana) e tabelas do Brasileirao sem corte lateral');
+{
+  const su = ler('public/supervisores.html'), br = ler('public/brasileirao.html');
+  ok(su.includes('/api/tv-supervisores-semana') && su.includes('/api/tv-supervisores?filial=') && su.includes('supCardsHtml') && su.includes('supSemanaHtml') && su.includes('position:sticky'), 'pagina /supervisores: cards do dia com fotos + painel da semana fixo no topo, tudo do CEVEN');
+  ok(su.includes('fFilial') && su.includes('fBusca') && su.includes('bPend') && su.includes('bPrev'), 'pagina /supervisores: filtro por filial, busca por nome, so pendentes e navegacao de semana');
+  ok(br.includes('#tab-gabarito .tb-league td { white-space: normal') && br.includes('href="/supervisores"'), 'Brasileirao: gabarito e lances quebram linha (nao cortam os pontos) e tem atalho para /supervisores');
+}
+
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)
 secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
 {

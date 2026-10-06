@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Supervisores — Compromisso e RET</title>
+<!--
+FICHA DO ARQUIVO
+O QUE É: tela EXCLUSIVA dos supervisores (Vitório, 06/10/2026): compromisso matinal e rota (RET) de hoje, com fotos, e o painel gerencial da semana (fez / não fez).
+LÊ: /api/tv-supervisores?filial=XXX (dia, 11 chamadas) e /api/tv-supervisores-semana?semana=AAAA-MM-DD (segunda a sexta, todas as filiais).
+VISUAL: compartilhado com a Matriz e a TV da filial em animacoes/tv-animacoes.js (supCardsHtml, supSemanaHtml). Nunca mostra dado inventado: sem resposta do CEVEN = "sem dado".
+-->
+<style>
+:root{--bg:#070b14;--card:#0f1626;--card2:#131c30;--line:#1e2a44;--tx:#e8eefc;--mut:#8b9bbd;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--acc:#38bdf8}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding:0 16px 24px}
+header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 0 8px}
+h1{font-size:clamp(20px,2.2vw,30px);margin:0;letter-spacing:.01em}h1 small{color:var(--mut);font-size:.55em;font-weight:500;margin-left:10px}
+.sp{flex:1}.clock{font-variant-numeric:tabular-nums;font-size:clamp(20px,2.2vw,30px);font-weight:800}
+.ctl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:6px 0 10px}
+.ctl select,.ctl input,.ctl button{background:var(--card);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:14px;font-weight:600}
+.ctl button{cursor:pointer}.ctl button.on{background:#b91c1c;border-color:#b91c1c}.ctl button:hover{border-color:var(--acc)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.kpi span{display:block;color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.06em}.kpi b{font-size:clamp(22px,2.4vw,34px);font-variant-numeric:tabular-nums}
+.kpi.bad b{color:var(--bad)}.kpi.ok b{color:var(--ok)}
+.topo{position:sticky;top:0;z-index:20;background:var(--bg);padding:4px 0 8px;border-bottom:1px solid var(--line)}
+.topo .box{max-height:42vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 12px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin:12px 0 6px;display:flex;justify-content:space-between;gap:8px}
+h2 b{color:var(--tx)}
+.grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));gap:10px}
+.grade .sxc{margin:0}
+.fil{grid-column:1/-1}
+.vazio,.erro{color:var(--mut);padding:14px 0}.erro{color:var(--bad)}
+@media (max-width:700px){.sxcab{grid-template-columns:1fr!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1>👔 Supervisores <small>compromisso matinal · rota (RET) · semana</small></h1>
+  <span class="sp"></span>
+  <span class="clock" id="clock">--:--:--</span>
+</header>
+<div class="ctl">
+  <select id="fFilial" title="Filial"></select>
+  <input id="fBusca" type="search" placeholder="Buscar supervisor…" style="min-width:200px">
+  <button id="bPend" title="Mostrar só quem ainda tem pendência hoje">⚠ Só pendentes</button>
+  <button id="bPrev" title="Semana anterior">◀ Semana</button>
+  <span id="lblSemana" style="color:var(--mut);font-weight:700"></span>
+  <button id="bNext" title="Semana seguinte">Semana ▶</button>
+  <button id="bAtualiza">🔄 Atualizar</button>
+  <button id="bFull">⛶ Tela cheia</button>
+  <span id="status" style="color:var(--mut);font-size:13px"></span>
+</div>
+<div class="kpis" id="kpis"></div>
+<div class="topo"><h2 style="margin-top:4px"><span>Painel gerencial da semana</span><b>fez = matinal + rota</b></h2><div class="box" id="semana">Carregando…</div></div>
+<h2><span>Hoje · compromisso matinal e rota (RET)</span><b id="hojeTot"></b></h2>
+<div id="cards" class="grade"></div>
+<script src="/animacoes/tv-animacoes.js"></script>
+<script>
+const FILIAIS = ['TBL','TCV','TPH','ABC','API','TSJ','TBE','TPA','MCD','TCA','TCG'];
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const falso = (n) => !String(n || '').trim() || /^(GERENTE\b|RCAS INATIVOS|VENDA EMPRESA|SEM SUPERVISOR)/i.test(String(n).trim());
+const pend = (x) => !x.fez_compromisso || !x.iniciou_ret;
+let DIA = {}, SEMANA = null, soPend = false, ref = null, ultHtml = '';
+async function j(u, ms = 40000) { const c = new AbortController(), t = setTimeout(() => c.abort(), ms); try { const r = await fetch(u, {signal: c.signal, cache: 'no-store'}); return r.ok ? await r.json() : null; } catch { return null; } finally { clearTimeout(t); } }
+const sp = () => new Date().toLocaleTimeString('pt-BR', {timeZone: 'America/Sao_Paulo'});
+const hojeISO = () => new Date().toLocaleDateString('en-CA', {timeZone: 'America/Sao_Paulo'});
+
+$('fFilial').innerHTML = '<option value="TODAS">📋 Todas as filiais</option>' + FILIAIS.map((s) => '<option>' + s + '</option>').join('');
+try { const f = localStorage.getItem('sup_filial'); if (f) $('fFilial').value = f; } catch {}
+
+async function carregarDia() {
+  await Promise.all(FILIAIS.map(async (sig) => { const d = await j('/api/tv-supervisores?filial=' + sig); if (d && !d.erro && Array.isArray(d.supervisores)) DIA[sig] = d.supervisores; }));
+}
+async function carregarSemana() {
+  const s = await j('/api/tv-supervisores-semana' + (ref ? '?semana=' + ref : '')); if (s && !s.erro) SEMANA = s;
+}
+function desenhar() {
+  const fil = $('fFilial').value, busca = $('fBusca').value.trim().toLowerCase();
+  const siglas = fil === 'TODAS' ? FILIAIS : [fil];
+  const dentro = (n) => !busca || String(n).toLowerCase().includes(busca);
+  let tot = 0, pnd = 0, comp = 0, ret = 0, cards = '';
+  for (const sig of siglas) {
+    const todos = (DIA[sig] || []).filter((x) => !falso(x.nome) && dentro(x.nome));
+    tot += todos.length; pnd += todos.filter(pend).length; comp += todos.filter((x) => x.fez_compromisso).length; ret += todos.filter((x) => x.iniciou_ret).length;
+    let l = soPend ? todos.filter(pend) : todos;
+    if (!DIA[sig]) { cards += '<div class="vazio fil">' + sig + ': aguardando dados…</div>'; continue; }
+    if (!l.length) continue;
+    cards += '<h2 class="fil"><span>' + sig + '</span><b>' + todos.filter(pend).length + ' pendente(s) de ' + todos.length + '</b></h2>' + supCardsHtml(l);
+  }
+  $('kpis').innerHTML = '<div class="kpi"><span>Supervisores</span><b>' + tot + '</b></div><div class="kpi ' + (pnd ? 'bad' : 'ok') + '"><span>Pendentes hoje</span><b>' + pnd + '</b></div><div class="kpi ok"><span>Fizeram o compromisso</span><b>' + comp + '</b></div><div class="kpi ok"><span>Iniciaram a rota (RET)</span><b>' + ret + '</b></div>';
+  $('hojeTot').textContent = pnd + ' pendente(s) de ' + tot;
+  $('cards').innerHTML = cards || '<div class="vazio fil">Nenhum supervisor para este filtro.</div>';
+  if (SEMANA) {
+    const lista = siglas.flatMap((sig) => ((SEMANA.filiais && SEMANA.filiais[sig]) || []).filter((x) => dentro(x.nome)).map((x) => ({...x, filial: siglas.length > 1 ? sig : ''})));
+    $('semana').innerHTML = lista.length ? supSemanaHtml(lista, SEMANA) : '<div class="vazio">Sem supervisores para este filtro.</div>';
+    const d = SEMANA.dias; $('lblSemana').textContent = d[0].slice(8, 10) + '/' + d[0].slice(5, 7) + ' a ' + d[4].slice(8, 10) + '/' + d[4].slice(5, 7);
+  }
+  $('bPend').classList.toggle('on', soPend);
+}
+async function tudo() {
+  $('status').textContent = 'atualizando…';
+  await Promise.all([carregarDia(), carregarSemana()]);
+  desenhar(); $('status').textContent = 'atualizado às ' + sp();
+}
+$('fFilial').onchange = () => { try { localStorage.setItem('sup_filial', $('fFilial').value); } catch {} desenhar(); };
+$('fBusca').oninput = desenhar;
+$('bPend').onclick = () => { soPend = !soPend; desenhar(); };
+$('bAtualiza').onclick = tudo;
+const deslocar = (dias) => { const base = new Date((SEMANA ? SEMANA.dias[0] : hojeISO()) + 'T12:00:00Z'); base.setUTCDate(base.getUTCDate() + dias); const novo = base.toISOString().slice(0, 10); ref = novo > hojeISO() ? null : novo; carregarSemana().then(desenhar); };
+$('bPrev').onclick = () => deslocar(-7);
+$('bNext').onclick = () => deslocar(7);
+$('bFull').onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}); };
+setInterval(() => { $('clock').textContent = sp(); }, 1000);
+setInterval(tudo, 3 * 60 * 1000);
+tudo();
+</script>
+</body>
+</html>
