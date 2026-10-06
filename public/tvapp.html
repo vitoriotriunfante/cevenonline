@@ -845,7 +845,7 @@ async function processa() {
       // O servidor (D1) é a fonte da verdade: só é "novo" o que nenhuma TV registrou antes.
       const d = await registraLances(cands);
       let novos, baseline;
-      if (d) { primeiraSync = true; baseline = !!d.baseline; const set = new Set(d.novos); novos = cands.filter(a => set.has(a.key) || RECENTES.has(a.key)); novos.forEach(a => { RECENTES.delete(a.key); EXIB.add(a.key); }); store.set('ceven_exib_' + FIL + '_' + HOJE0, [...EXIB]); }
+      if (d) { primeiraSync = true; baseline = !!d.baseline; const set = new Set(d.novos); novos = cands.filter(a => set.has(a.key)); if (!baseline && cands.length > novos.length) await carregaLancesServidor(); /* tela ligada ha horas: o coletor ja gravou o lance, entao busca a lista do servidor ANTES de dar o lance como visto */ novos = cands.filter(a => set.has(a.key) || RECENTES.has(a.key)); novos.forEach(a => { RECENTES.delete(a.key); EXIB.add(a.key); }); store.set('ceven_exib_' + FIL + '_' + HOJE0, [...EXIB]); }
       else { return; } // servidor sem resposta: NAO apita e NAO marca como visto; tenta de novo no proximo ciclo (antes caia no controle local e reapitava lance antigo ao recarregar; mesma regra da Matriz)
       const t = sp();
       cands.forEach(a => seen.add(a.key));

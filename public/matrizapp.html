@@ -764,7 +764,7 @@ async function processa() {
     const cands = ALERTAS.filter(a => !seen.has(a.key));
     if (cands.length || !primeiraSync) {
       const d = await registraLances(cands); let novos, baseline;
-      if (d) { primeiraSync = true; baseline = !!d.baseline; const st = new Set(d.novos); novos = cands.filter(a => st.has(a.key) || RECENTES.has(a.key)); novos.forEach(a => { RECENTES.delete(a.key); EXIB.add(a.key); }); store.set('ceven_exib_MTZ_' + HOJE0, [...EXIB]); } else { baseline = false; novos = []; } // sem servidor: não apita (evita repetição)
+      if (d) { primeiraSync = true; baseline = !!d.baseline; const st = new Set(d.novos); novos = cands.filter(a => st.has(a.key)); if (!baseline && cands.length > novos.length) await carregaLances(); /* tela ligada ha horas: o coletor ja gravou o lance, entao busca a lista do servidor ANTES de dar o lance como visto */ novos = cands.filter(a => st.has(a.key) || RECENTES.has(a.key)); novos.forEach(a => { RECENTES.delete(a.key); EXIB.add(a.key); }); store.set('ceven_exib_MTZ_' + HOJE0, [...EXIB]); } else { baseline = false; novos = []; } // sem servidor: não apita (evita repetição)
       const t = sp(); cands.forEach(a => seen.add(a.key));
       novos.filter(a => !LOG.some(e => e.key === a.key)).forEach(a => LOG.push({key: a.key, t: t.hms, nivel: a.nivel, rca: a.v.id, vendedor: a.v.nome, canal: a.v.canal || '', supervisor: a.v.sup, sig: a.sig, cliente: a.c && a.c.nome, motivo: a.c && a.c.motivo, dias_sem_compra: a.dias, tempo_visita: a.c && a.c.tempo_visita, ao_ligar: baseline}));
       store.set(K.seen + HOJE0, [...seen]); store.set(K.log + HOJE0, LOG);
