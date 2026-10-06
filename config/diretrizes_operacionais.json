@@ -1,23 +1,23 @@
 {
   "versao": "1.0",
   "descricao": "Diretrizes Operacionais Diárias do CEVEN NOC — Parametrização Dinâmica de Campo",
-  "data_vigencia": "2026-10-05",
+  "data_vigencia": "2026-10-06",
   "cnae_foco": {
-    "codigo": "4789",
-    "descricao": "Comércio varejista de suvenires, bijuterias e artesanatos",
-    "justificativa": "Rotação automática seg-sex — CNAE nacional #1 entre os 5 candidatos com amostra >= 20 (280 clientes na amostra nacional).",
+    "codigo": "4721",
+    "descricao": "Padaria e confeitaria com predominância de produção própria",
+    "justificativa": "Rotação automática seg-sex — CNAE nacional #2 entre os 5 candidatos com amostra >= 20 (162 clientes na amostra nacional).",
     "ratios_por_filial": {
-      "TBE": 1,
-      "TSJ": 1.04,
-      "MCD": 1.5,
+      "TBE": 1.89,
+      "TSJ": 2.78,
+      "MCD": 1.49,
       "TPH": 4,
       "TCG": 1,
-      "TPA": 1,
-      "API": 1.12,
-      "TCV": 1.04,
-      "ABC": 2.52,
-      "TCA": 1.17,
-      "TBL": 1
+      "TPA": 1.49,
+      "API": 3.11,
+      "TCV": 2.3,
+      "ABC": 1.89,
+      "TCA": 1.32,
+      "TBL": 2.86
     }
   },
   "produtos_foco": [
