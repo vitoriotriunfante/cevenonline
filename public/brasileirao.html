@@ -541,8 +541,8 @@ footer {
               <th style="text-align:center">GC</th>
               <th style="text-align:center">SG</th>
               <th style="text-align:center">% Aprov</th>
-              <th style="text-align:center" title="Quantidade de gols de Super Pedido (pedido de valor muito alto no dia, 15 mil ou mais). Critério de desempate da tabela.">Super Pedidos</th>
-              <th style="text-align:center" title="Quantidade de clientes inativos (parados há mais de 30 dias) que o vendedor reativou: gols de Resgate de Inativo. Critério de desempate da tabela.">Inativos resgatados</th>
+              <th style="text-align:center;line-height:1.25">Super Pedido<br><small style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--tx-mut)">dias com R$ 15 mil+</small></th>
+              <th style="text-align:center;line-height:1.25">Inativos<br><small style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--tx-mut)">clientes recuperados</small></th>
               <th>Status</th>
             </tr>
           </thead>
@@ -640,6 +640,7 @@ footer {
         <div>
           <h2>Artilharia & Desempenho dos Vendedores</h2>
           <div class="table-subtitle">Você contra o seu próprio dia • Vitória no Dia (3 pts) • Bônus de Constância</div>
+          <div style="margin:8px 0 0;padding:10px 14px;border-radius:10px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);font-size:13px;line-height:1.55;color:#cbd5e1"><b style="color:#fff">Super Pedido</b> = quantos <b>dias</b> o vendedor digitou <b>R$ 15 mil ou mais</b> no dia (cada dia conta 1; vale +5 pontos na liga).<br><b style="color:#fff">Inativos</b> = quantos <b>clientes parados há mais de 30 dias</b> voltaram a comprar com ele (cada cliente recuperado conta 1; vale +6 pontos, ou mais com o Gol Qualificado).<br><span style="color:var(--tx-mut)">As duas colunas contam desde o início da temporada (28/09/2026) e são usadas como critério de desempate quando dois vendedores empatam em pontos.</span></div>
         </div>
         <div class="filter-row">
           <input type="text" id="busca-vend" class="input-search" placeholder="🔍 Buscar Vendedor, RCA ou Supervisor..." oninput="filtrarVendedores()">
@@ -674,8 +675,8 @@ footer {
               <th style="text-align:center">% Aprov</th>
               <th style="text-align:center">Forma Recente</th>
               <th style="text-align:center">Bônus Streak</th>
-              <th style="text-align:center" title="Quantidade de gols de Super Pedido (pedido de valor muito alto no dia, 15 mil ou mais). Critério de desempate da tabela.">Super Pedidos</th>
-              <th style="text-align:center" title="Quantidade de clientes inativos (parados há mais de 30 dias) que o vendedor reativou: gols de Resgate de Inativo. Critério de desempate da tabela.">Inativos resgatados</th>
+              <th style="text-align:center;line-height:1.25">Super Pedido<br><small style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--tx-mut)">dias com R$ 15 mil+</small></th>
+              <th style="text-align:center;line-height:1.25">Inativos<br><small style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--tx-mut)">clientes recuperados</small></th>
             </tr>
           </thead>
           <tbody id="tbody-vendedores">
