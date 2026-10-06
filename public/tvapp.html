@@ -1487,7 +1487,9 @@ function renderSup() {
   if (!SUP) { el.innerHTML = '<h2><span>Supervisores · matinal e rota (RET)</span></h2><div style="color:var(--mut);font-size:24px;padding:20px 0">Aguardando dados dos supervisores…</div>'; return; }
   const peso = x => (!x.fez_compromisso && !x.iniciou_ret) ? 0 : (!x.fez_compromisso || !x.iniciou_ret) ? 1 : 2;
   const ord = [...lista].sort((a, b) => peso(a) - peso(b) || a.nome.localeCompare(b.nome));
-  el.innerHTML = `<h2><span>Supervisores · matinal (compromisso) e rota (RET)</span><b>${supPend().length} pendente(s) de ${lista.length}</b></h2>` +
+  // painel gerencial da semana no TOPO, fixo (sticky) enquanto os cards rolam por baixo (Vitório, 06/10/2026)
+  const topoSem = `<div style="position:sticky;top:26px;z-index:6;background:var(--card);padding-bottom:6px;border-bottom:1px solid var(--line);max-height:44vh;overflow:auto"><h2 style="margin:4px 0 2px"><span>Painel gerencial da semana</span><b>fez = matinal + rota</b></h2>${supSemanaHtml(SEM && SEM.filiais && SEM.filiais[FIL], SEM)}</div>`;
+  el.innerHTML = `<h2><span>Supervisores · matinal (compromisso) e rota (RET)</span><b>${supPend().length} pendente(s) de ${lista.length}</b></h2>` + topoSem +
     ord.map(x => {
       // RET em andamento: mostra PDVs visitados, nota média (IA score) e fotos, direto do CEVEN
       // (functions/api/tv-supervisores.js já trazia isso — só nunca tinha sido exibido na tela,
@@ -1499,7 +1501,7 @@ function renderSup() {
           ${d.rca ? `<span>RCA em rota: ${esc(d.rca)}</span>` : ''}
         </div>${Array.isArray(d.fotos) && d.fotos.length ? `<div class="supr-fotos">${d.fotos.slice(0, 6).map(f => `<img src="${esc(f.url)}" title="${esc(f.cliente || '')}${f.score != null ? ' · nota ' + f.score : ''}" loading="lazy">`).join('')}</div>` : ''}` : '';
       return `<div class="supr ${peso(x) === 0 ? 'bad' : peso(x) === 1 ? 'warn' : ''}"><div class="supr-cab"><span>${esc(x.nome)}</span><span class="chip ${x.fez_compromisso ? 'c-ok' : 'c-no'}">${x.fez_compromisso ? '✅ Compromisso' : '❌ Sem compromisso'}</span><span class="chip ${x.iniciou_ret ? 'c-ok' : 'c-no'}">${x.iniciou_ret ? '✅ Em rota (RET)' : '❌ RET não iniciou'}</span></div>${ret}</div>`;
-    }).join('') + `<h2 style="margin-top:10px"><span>Painel gerencial da semana</span><b>fez = matinal + rota</b></h2>` + supSemanaHtml(SEM && SEM.filiais && SEM.filiais[FIL], SEM);
+    }).join('');
 }
 // RET/Compromissos em destaque periódico (decisão do Vitório, 28/09/2026): a partir das 11:00
 // Brasília, a tela de supervisores aparece de 30 em 30 minutos, por 3 minutos cada vez — antes só

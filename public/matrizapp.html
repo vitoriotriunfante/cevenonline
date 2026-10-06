@@ -1220,13 +1220,38 @@ async function carregaSupsAgora() {
   const sm = await j('/api/tv-supervisores-semana', 30000); if (sm && !sm.erro) SEMANA = sm;
   render();
 }
+// Estado da tela de Supervisores: filtro (GIRAR = troca sozinha entre as filiais; TODAS; ou uma filial travada) e "so pendentes"
+let SUP_FILTRO = 'GIRAR', SUP_SO_PEND = false, SUP_HTML = '';
+window.supFiltro = (v) => { SUP_FILTRO = v; SUP_HTML = ''; render(); };
+window.supSoPend = () => { SUP_SO_PEND = !SUP_SO_PEND; SUP_HTML = ''; render(); };
+window.supTravar = () => { SUP_FILTRO = SUP_FILTRO === 'GIRAR' ? ORDEM[idxFil % ORDEM.length] : 'GIRAR'; SUP_HTML = ''; render(); };
 function renderSupFormatoFilial() {
-  const sig = ORDEM[idxFil % ORDEM.length], el = $('det');
-  const lista = (SUPS[sig] || []).filter(x => !ehSupFalso(x.nome));
-  const pend = lista.filter(x => !x.fez_compromisso || !x.iniciou_ret).length;
-  el.innerHTML = `<h2><span>Supervisores · ${sig} · matinal (compromisso) e rota (RET)</span><b>${SUPS[sig] ? pend + ' pendente(s) de ' + lista.length : 'carregando…'} · ${(idxFil % ORDEM.length) + 1} de ${ORDEM.length}</b></h2>` +
-    (SUPS[sig] ? supCardsHtml(lista) : '<div style="color:var(--mut);padding:12px 0">Aguardando dados dos supervisores…</div>') +
-    `<h2 style="margin-top:10px"><span>Painel gerencial da semana · ${sig}</span><b>fez = matinal + rota</b></h2>` + supSemanaHtml(SEMANA && SEMANA.filiais && SEMANA.filiais[sig], SEMANA);
+  const el = $('det');
+  const girando = SUP_FILTRO === 'GIRAR';
+  const siglas = girando ? [ORDEM[idxFil % ORDEM.length]] : SUP_FILTRO === 'TODAS' ? ORDEM : [SUP_FILTRO];
+  const sups = (sig) => (SUPS[sig] || []).filter(x => !ehSupFalso(x.nome));
+  const pendente = (x) => !x.fez_compromisso || !x.iniciou_ret;
+  const totSup = siglas.reduce((a, sig) => a + sups(sig).length, 0), totPend = siglas.reduce((a, sig) => a + sups(sig).filter(pendente).length, 0);
+  const carregado = siglas.some(sig => SUPS[sig]);
+  const semana = siglas.flatMap(sig => ((SEMANA && SEMANA.filiais && SEMANA.filiais[sig]) || []).map(x => ({...x, filial: siglas.length > 1 ? sig : ''})));
+  const opc = (v, t) => '<option value="' + v + '"' + (SUP_FILTRO === v ? ' selected' : '') + '>' + t + '</option>';
+  const controles = '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:2px 0 8px">' +
+    '<select onchange="supFiltro(this.value)" style="background:#0f1626;color:#e8eefc;border:1px solid #38bdf8;border-radius:8px;padding:6px 10px;font-weight:700">' + opc('GIRAR', '🔄 Girar entre as filiais') + opc('TODAS', '📋 Todas as filiais') + ORDEM.map(sg => opc(sg, sg)).join('') + '</select>' +
+    '<button onclick="supTravar()" style="background:' + (girando ? '#334155' : '#b45309') + ';color:#fff;border:0;border-radius:8px;padding:7px 12px;font-weight:800;cursor:pointer" title="Trava a tela na filial que está aparecendo (ou volta a girar)">' + (girando ? '🔓 Girando · clique para travar nesta filial' : '🔒 Travado · clique para voltar a girar') + '</button>' +
+    '<button onclick="supSoPend()" style="background:' + (SUP_SO_PEND ? '#b91c1c' : '#334155') + ';color:#fff;border:0;border-radius:8px;padding:7px 12px;font-weight:800;cursor:pointer">' + (SUP_SO_PEND ? '⚠ Só pendentes (ligado)' : 'Só pendentes') + '</button></div>';
+  const titulo = (girando ? siglas[0] + ' · ' + ((idxFil % ORDEM.length) + 1) + ' de ' + ORDEM.length : SUP_FILTRO === 'TODAS' ? 'todas as filiais' : SUP_FILTRO);
+  // painel gerencial no TOPO, fixo (sticky) enquanto os cards rolam por baixo
+  const topo = '<div style="position:sticky;top:26px;z-index:6;background:var(--card);padding-bottom:6px;border-bottom:1px solid var(--line);max-height:44vh;overflow:auto">' +
+    '<h2 style="margin:4px 0 2px"><span>Painel gerencial da semana · ' + titulo + '</span><b>fez = matinal + rota</b></h2>' + supSemanaHtml(semana, SEMANA) + '</div>';
+  let cards = '';
+  for (const sig of siglas) {
+    let l = sups(sig); if (SUP_SO_PEND) l = l.filter(pendente);
+    if (!SUPS[sig]) { cards += '<div style="color:var(--mut);padding:8px 0">' + sig + ': aguardando dados dos supervisores…</div>'; continue; }
+    if (siglas.length > 1) cards += '<h2 style="margin:10px 0 4px"><span>' + sig + '</span><b>' + sups(sig).filter(pendente).length + ' pendente(s) de ' + sups(sig).length + '</b></h2>';
+    cards += l.length ? supCardsHtml(l) : '<div style="color:var(--mut);padding:6px 0">' + (SUP_SO_PEND ? 'Nenhum pendente.' : 'Sem supervisores.') + '</div>';
+  }
+  const html = '<h2><span>Supervisores · matinal (compromisso) e rota (RET)</span><b>' + (carregado ? totPend + ' pendente(s) de ' + totSup : 'carregando…') + '</b></h2>' + controles + topo + cards;
+  if (html !== SUP_HTML) { SUP_HTML = html; el.innerHTML = html; } // so redesenha quando muda: o menu aberto e a rolagem nao se perdem a cada segundo
 }
 function renderSupView() {
   if (SUP_MANUAL) return renderSupFormatoFilial();
@@ -1519,6 +1544,7 @@ function rankingPenaltisNacional() {
 function render() {
   const stats = ORDEM.map(statFilial); renderTotais(stats); renderRank(stats);
   const sup = modoSup(), nacional = !sup && idxFil === ORDEM.length;
+  if (!sup || !SUP_MANUAL) SUP_HTML = ''; // a tela de supervisores so e redesenhada quando muda; ao sair dela, forca o redesenho na volta
   $('modo').textContent = sup ? 'SUPERVISORES' : nacional ? 'PAINEL NACIONAL' : (auto ? 'FILIAL · AUTO' : 'FILIAL · MANUAL');
   if (sup) renderSupView(); else if (nacional) renderPainelNacional(); else renderFilial(stats[idxFil]);
   const pen = ALERTAS.filter(a => a.nivel === 'penalti').length, crit = [...stats].filter(s => s.tem).sort((a, b) => b.nota - a.nota).slice(0, 3);

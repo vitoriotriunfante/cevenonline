@@ -1596,7 +1596,7 @@ window.qualificaGolUI = function (carteira, c) {
         total++;
         return algum ? '<td class="par">PARCIAL' + det + '</td>' : '<td class="nao">NÃO FEZ' + det + '</td>';
       }).join('');
-      return '<tr><td class="n">' + e(s.nome) + '</td>' + tds + '<td class="tot">' + fez + '/' + total + '</td></tr>';
+      return '<tr><td class="n">' + (s.filial ? '<b style="color:var(--acc,#38bdf8);margin-right:8px">' + e(s.filial) + '</b>' : '') + e(s.nome) + '</td>' + tds + '<td class="tot">' + fez + '/' + total + '</td></tr>';
     }).join('');
     return '<table class="sxt">' + cab + linhas + '</table>';
   };

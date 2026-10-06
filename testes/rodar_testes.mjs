@@ -523,6 +523,15 @@ secao('8j. Trava da madrugada: antes das 06h nao coleta nem grava lance (a meia-
   ok(tl.includes("String(hora) < '06:00:00'") && tl.includes("ignorado: 'madrugada'"), 'gravacao de lances (TV/Matriz) tambem ignora a madrugada');
 }
 
+// ---------------------------------------------------------------- 8k. Supervisores: filtro, trava e painel fixo no topo; nada inventado
+secao('8k. Supervisores com filtro/trava e painel gerencial fixo no topo; sem preco inventado nos cortes');
+{
+  const mz = ler('public/matrizapp.html'), tv = ler('public/tvapp.html'), eng = ler('pipeline/ceven_unified_engine.js');
+  ok(mz.includes('supFiltro') && mz.includes('supTravar') && mz.includes('supSoPend') && mz.includes("'TODAS'") && mz.includes('position:sticky'), 'Matriz: filtro por filial/todas, trava do giro, so pendentes e painel gerencial fixo no topo');
+  ok(tv.includes('topoSem') && tv.includes('position:sticky'), 'TV da filial: painel gerencial fixo no topo');
+  ok(!eng.includes('it.preco || 15') && eng.includes('vl_perdido_logistica'), 'cortes: sem preco padrao de R$ 15 inventado; usa o valor perdido real do CEVEN');
+}
+
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)
 secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
 {

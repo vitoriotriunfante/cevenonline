@@ -672,8 +672,11 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
                   valorCorte = vlOrig - vlFat;
                 } else if (itensCort.length > 0) {
                   itensCort.forEach(it => {
-                    valorCorte += (it.qt_cortada || 0) * (it.preco || 15);
+                    // so preco REAL do item (06/10/2026: antes entrava R$ 15 inventado quando o CEVEN nao trazia o preco)
+                    if (Number(it.preco) > 0) valorCorte += (it.qt_cortada || 0) * Number(it.preco);
                   });
+                  // valor perdido REAL informado pelo CEVEN no pedido (vl_perdido_logistica), quando os itens nao trazem preco
+                  if (!(valorCorte > 0) && Number(v.vl_perdido_logistica) > 0) valorCorte = Number(v.vl_perdido_logistica);
                 }
                 if (valorCorte > 0) {
                   resFil.cortesQtd++;
