@@ -81,6 +81,14 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #ov .dec .ln.hot span{color:#fca5a5;font-weight:800}
 #ov .dec.rev .ln{font-size:min(1.55vw,23px);padding:.5vh 0}#ov .dec.rev h1{font-size:min(3vw,44px);margin-bottom:1vh}#ov .dec.rev .vd{font-size:min(2vw,28px);margin-top:1vh}
 #ov .dec .vd{margin-top:2vh;font-size:min(2.4vw,34px);font-weight:800;color:#fca5a5}
+/* POPUP COMPACTO (Vitório, 06/10/2026: "muita informação, reorganiza"): campos curtos lado a lado em 3 colunas, rótulo pequeno em cima; texto longo em linha inteira; nunca passa da tela */
+#ov .dec{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));column-gap:2vw;row-gap:0;align-content:start;width:min(1750px,96vw);max-height:94vh;overflow:auto;padding:2vh 2.2vw}
+#ov .dec>h1,#ov .dec>.vd,#ov .dec>div:not(.ln){grid-column:1/-1}
+#ov .dec>h1{font-size:min(2.6vw,42px);margin-bottom:1vh}
+#ov .dec .ln{grid-column:span 2;display:block;font-size:min(1.9vw,30px);padding:.8vh 0;line-height:1.15;min-width:0;overflow-wrap:anywhere}
+#ov .dec .ln.w{grid-column:1/-1}
+#ov .dec .ln b{display:block;min-width:0;font-size:.52em;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.15em}
+#ov .dec>.vd{font-size:min(2.1vw,32px);margin-top:1.2vh}
 #ov small{margin-top:2vh;color:var(--mut);font-size:16px}
 
 /* VERSÃO MOBILE E TABLET REFINADA (MATRIZ) */
@@ -783,14 +791,12 @@ function telaVAR(item) {
     const vPed = ehContagem ? (vvG ? vvG.dig : 0) : ((cObj && cObj.valor_ultima) || item.valor || (item.a && item.a.valor));
     const rotuloValor = ehContagem ? 'DIGITADO HOJE' : (subt === 'campeao' ? 'FATURADO NO MÊS' : 'VALOR DA VENDA');
     let linhasExtra = '';
-    if (cObj && cObj.nome) {
-      linhasExtra += `<div class="ln"><b>CLIENTE</b><span>${esc(cObj.nome)}</span></div>`;
-    }
+    // CLIENTE nao repete: o nome ja vai no LANCE
     linhasExtra += golClienteLinhasHtml(cObj, subt, brl, esc);
     if (subt === 'dobradinha_quinzenas') {
     } else {
       const vVendaReal = (cObj && cObj.valorVendaAtual) || vPed || 0;
-      if (vVendaReal > 0) {
+      if (vVendaReal > 0 && !(cObj && cObj.pedidoHoje && cObj.pedidoHoje.num)) { // com pedido de hoje o valor ja esta na linha PEDIDO DE HOJE
         linhasExtra += `<div class="ln hot"><b>${rotuloValor}</b><span>${brl(vVendaReal)}</span></div>`;
       }
     }
@@ -893,6 +899,7 @@ function telaVAR(item) {
       dec += ln('CHECK-IN', cc.checkin_horario || 'sem hora no CEVEN') + ln('CHECK-OUT', cc.checkout_horario || 'sem hora no CEVEN') + ln('TEMPO NO CLIENTE', tv);
     }
   }
+  if (typeof compactaDecHtml === 'function' && typeof dec === 'string') dec = compactaDecHtml(dec);
   return {titulo, sub, dec, veredito, cls};
 }
 async function proximoVAR() {

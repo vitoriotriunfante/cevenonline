@@ -551,6 +551,14 @@ secao('8m. Tela exclusiva /supervisores (compromisso, RET, semana) e tabelas do 
   ok(br.includes('#tab-gabarito .tb-league td { white-space: normal') && br.includes('href="/supervisores"'), 'Brasileirao: gabarito e lances quebram linha (nao cortam os pontos) e tem atalho para /supervisores');
 }
 
+// ---------------------------------------------------------------- 8n. Popup compacto
+secao('8n. Popup de decisao compacto: campos curtos lado a lado, texto longo em linha inteira, nunca maior que a tela');
+{
+  const tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), an = ler('public/animacoes/tv-animacoes.js');
+  ok([tv, mz].every(h => h.includes('POPUP COMPACTO') && h.includes('max-height:94vh') && h.includes('compactaDecHtml(dec)')), 'TV da filial e Matriz: popup em 3 colunas, limitado a 94% da altura da tela');
+  ok(an.includes('window.compactaDecHtml') && !mz.includes('<b>CLIENTE</b><span>${esc(cObj.nome)}'), 'campos de texto longo ocupam a linha inteira; o gol nao repete cliente nem valor');
+}
+
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)
 secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
 {

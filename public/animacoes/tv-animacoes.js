@@ -1642,3 +1642,12 @@ window.painelLancesBlocoHtml = function (id, log, esc, tag) {
     return '<div class="row" style="grid-template-columns:auto 1fr"><span class="tg" style="background:var(--card2,#131c30)">' + esc(String(e.t || '').slice(0, 5)) + '</span><div class="n">' + quem + '<small>' + onde + '</small></div></div>';
   }).join('');
 };
+
+// Marca como linha inteira (.w) os campos de texto longo do popup de decisão; os curtos ficam lado a lado (ver CSS "POPUP COMPACTO")
+window.compactaDecHtml = function (dec) {
+  return String(dec).replace(/<div class="ln([^"]*)"><b>([^<]*)<\/b><span>([\s\S]*?)<\/span><\/div>/g, function (m, cls, lab, val) {
+    const txt = val.replace(/<[^>]*>/g, '');
+    const larga = /LANCE|CLIENTE|QUALIFIC|PEDIDO|QUINZENA|FATURAMENTO|MOTIVO|DEVOLU|PROVA|ANULADO|ALERTA|SEMANA|ITENS|DETALHE/i.test(lab) || txt.length > 34;
+    return larga ? m.replace('class="ln' + cls + '"', 'class="ln' + cls + ' w"') : m;
+  });
+};
