@@ -79,16 +79,16 @@ export async function onRequestPost({ request, env }) {
         env.DB.prepare(
           `INSERT OR IGNORE INTO tv_lances (dia, filial, chave, nivel, rca, vendedor, supervisor, cliente_id, cliente, motivo, dias_sem_compra, ultima_compra, tempo_visita, obs, hora_sp, visto_em, baseline)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-        ).bind(dia, filial, l.chave, l.nivel, txt(l.rca, 20), txt(l.vendedor), txt(l.supervisor), txt(l.cliente_id, 30), txt(l.cliente), txt(l.motivo), int(l.dias_sem_compra), txt(l.ultima_compra, 10), txt(l.tempo_visita, 8), txt(l.obs, 300), hora, iso, baseline ? 1 : 0)
+        ).bind(dia, filial, l.chave, l.nivel, txt(l.rca, 20), txt(l.vendedor), txt(l.supervisor), txt(l.cliente_id, 30), txt(l.cliente), txt(l.motivo), int(l.dias_sem_compra), txt(l.ultima_compra, 10), txt(l.tempo_visita, 8), txt(l.obs, 700), hora, iso, baseline ? 1 : 0)
       );
       const rs = await env.DB.batch(stmts);
       novos = validos.filter((_, i) => rs[i].meta && rs[i].meta.changes === 1).map((l) => l.chave);
       // Prova do lance: se o lance ja existia sem prova (gravado antes por outra TV), completa o obs. Nunca sobrescreve prova existente.
-      const completa = validos.filter((l, i) => !(rs[i].meta && rs[i].meta.changes === 1) && txt(l.obs, 300));
+      const completa = validos.filter((l, i) => !(rs[i].meta && rs[i].meta.changes === 1) && txt(l.obs, 700));
       if (completa.length) {
         await env.DB.batch(completa.map((l) => env.DB.prepare(
-          `UPDATE tv_lances SET obs = ? WHERE dia = ? AND filial = ? AND chave = ? AND (obs IS NULL OR obs = '')`
-        ).bind(txt(l.obs, 300), dia, filial, l.chave)));
+          `UPDATE tv_lances SET obs = ? WHERE dia = ? AND filial = ? AND chave = ? AND (obs IS NULL OR obs = '' OR (obs NOT LIKE '%[QUALIF:%' AND ? LIKE '%[QUALIF:%'))`
+        ).bind(txt(l.obs, 700), dia, filial, l.chave, txt(l.obs, 700))));
       }
     }
     return resp({ dia, filial, baseline, novos, total: validos.length });

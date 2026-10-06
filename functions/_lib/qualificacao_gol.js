@@ -19,7 +19,7 @@ export function qualificaGol(carteira, c) {
   if (!Array.isArray(lista) || !lista.length) return null;
   const degrau = ESCADA.find((e) => lista.length >= e.min);
   const unidade = soMondelez ? 'categoria' : 'indústria';
-  const detalhe = lista.map((x) => `${x.n} ${brl(x.v)}`).join('; ');
+  const detalhe = lista.slice(0, 6).map((x) => `${x.n} ${brl(x.v)}`).join('; ') + (lista.length > 6 ? ` (+${lista.length - 6})` : '');
   return {
     nivel: degrau.nivel, extra: degrau.extra, n: lista.length,
     texto: `QUALIFICAÇÃO: ${degrau.nivel} (+${degrau.extra} pts) — ${lista.length} ${unidade}${lista.length > 1 ? 's' : ''}${soMondelez ? ' Mondelez' : ''} no pedido: ${detalhe} [QUALIF:${degrau.nivel}:+${degrau.extra}]`

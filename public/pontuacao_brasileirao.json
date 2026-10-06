@@ -20,7 +20,7 @@
       "derrota": { "criterio": "Nenhum vendedor da filial conquistou Vitória no dia", "pontos_tabela": 0 }
     },
     "gerente": {
-      "descricao": "A Liga dos Times (Gerente Regional): Resultado de todos os vendedores das filiais sob sua gestão.",
+      "descricao": "A Liga dos Times (Gerente): Resultado de todos os vendedores das filiais sob sua gestão.",
       "vitoria": { "criterio": "A maioria absoluta (mais de 50%) de todos os vendedores sob gestão do gerente conquistou Vitória na rodada", "pontos_tabela": 3 },
       "empate": { "criterio": "Pelo menos 1 vendedor sob gestão conquistou Vitória, mas não atingiu a maioria", "pontos_tabela": 1 },
       "derrota": { "criterio": "Nenhum vendedor sob gestão conquistou Vitória no dia", "pontos_tabela": 0 }
@@ -38,8 +38,8 @@
   },
   "gol_qualificado": {
     "decisao": "Vitorio, 05/10/2026. Vale para lances gravados de 05/10/2026 em diante (o passado nao e refeito).",
-    "gols_que_qualificam": ["gol_inativo (Resgate)", "gol_mix (Dobrou o Mix)", "gol_quinzenas (Dobradinha das Quinzenas)"],
-    "gols_que_nao_qualificam": "Gols do dia inteiro (Super Pedido, Goleada, Meta do 1o Tempo, etc.) continuam como estao.",
+    "gols_que_qualificam": "TODOS os gols, menos o Campeão da Rodada (que é do mês). Gol de cliente (Resgate, Dobrou o Mix, Quinzenas): indústrias do pedido do cliente. Gol do dia (Super Pedido, Goleada, Relâmpago, Acréscimos, Meta do 1º Tempo, Máquina de Conversão, Hat-Trick): indústrias de todos os pedidos do vendedor no dia.",
+    "gols_que_nao_qualificam": "Campeão da Rodada (meta do mês).",
     "regra": "Conta as INDUSTRIAS diferentes no pedido do cliente no dia. 1 produto da industria ja conta (sem valor minimo); linha com valor R$ 0 (bonificacao) nao conta.",
     "carteira_so_mondelez": "Vendedor de carteira so Mondelez (TBE e parte de TCG/TSJ, campo na Gestao de Equipe) conta CATEGORIAS da Mondelez (chocolate, biscoito, goma e bala, refresco, sobremesa e fermento, pao e snack), com a mesma escada.",
     "escada": [

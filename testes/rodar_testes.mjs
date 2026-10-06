@@ -625,6 +625,19 @@ secao('8u. Popup: vendedor e estabelecimento com nome grande');
   ok([tv, mz].every(h => h.includes('.ln.vend>span{font-size:clamp(26px') && h.includes('.ln.est>span') && h.includes('ln hot w est')) && an.includes("' vend'"), 'vendedor sobe logo abaixo dos pontos em nome grande; no penalti o estabelecimento e o destaque (motivo e dias sem compra no rotulo)');
 }
 
+// ---------------------------------------------------------------- 8v. Nivel (bronze a platina) em TODOS os gols
+secao('8v. Nivel do gol vale para TODOS os gols (menos Campeao da Rodada); sem "Regional"');
+{
+  const cl = ler('functions/api/cron-lances.js'), tvv = ler('functions/api/tv-vendedor.js'), tl = ler('functions/api/tv-lances.js'), tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), br = ler('public/brasileirao.html'), cj = ler('config/pontuacao_brasileirao.json');
+  const gols = ['gol_super', 'gol_relampago', 'gol_acrescimos', 'gol_hattrick', 'gol_meta1t', 'gol_conversao', 'gol_goleada'];
+  const linhasCl = cl.split(String.fromCharCode(10));
+  const semNivel = gols.filter(g => !linhasCl.some(l => l.includes('chave: `' + g + '|') && l.includes('comQ(v,')));
+  ok(semNivel.length === 0 && !linhasCl.some(l => l.includes('gol_campeao') && l.includes('comQ(v,')), 'coletor: todos os gols do dia levam o nivel pelas industrias de todos os pedidos do vendedor (Campeao da Rodada fica de fora)' + (semNivel.length ? ' - faltam: ' + semNivel.join(',') : ''));
+  ok(tvv.includes('industrias_dia') && cl.includes('industriasDia') && tl.includes("NOT LIKE '%[QUALIF:%'") && tl.includes('txt(l.obs, 700)'), 'industrias do dia chegam do tv-vendedor; o gol de hoje ja gravado recebe o nivel; obs cabe o texto completo');
+  ok([tv, mz].every(h => h.includes('subDia = [') && h.includes('industrias_dia')), 'popup da TV e da Matriz mostra o nivel em todos os gols');
+  ok(!br.includes('Gerências Regionais') && !cj.includes('Gerente Regional'), 'sem "Regional" no Brasileirao e no regulamento (gerencia e gerencia)');
+}
+
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)
 secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
 {

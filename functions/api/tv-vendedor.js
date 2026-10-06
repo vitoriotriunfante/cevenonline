@@ -253,5 +253,9 @@ export async function onRequestGet({ request, env }) {
       if (analise) analisePorCliente[c.id_cliente] = analise;
     });
   }
-  return new Response(JSON.stringify(montarTv(id, dash, prod, rot, analisePorCliente)), { headers: cors });
+  const saida = montarTv(id, dash, prod, rot, analisePorCliente);
+  // Industrias do DIA do vendedor (uniao dos pedidos de hoje): base do nivel dos gols que nao sao de um cliente so (Super Pedido, Goleada, Relampago, Hat-Trick...)
+  const somaDia = (campo) => { const m = new Map(); Object.values(analisePorCliente).forEach((a) => (a[campo] || []).forEach((x) => m.set(x.n, (m.get(x.n) || 0) + x.v))); return [...m.entries()].sort((a, b) => b[1] - a[1]).map(([n, v]) => ({ n, v: Math.round(v * 100) / 100 })); };
+  saida.industrias_dia = somaDia('industrias'); saida.categorias_dia = somaDia('categorias');
+  return new Response(JSON.stringify(saida), { headers: cors });
 }

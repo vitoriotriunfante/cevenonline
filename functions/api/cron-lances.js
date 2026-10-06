@@ -119,13 +119,17 @@ function provaQuinzenas(c) {
   const fmt = (g) => `${brl(g.valor)} (${g.pedidos.map((p) => p.data.slice(8, 10) + '/' + p.data.slice(5, 7) + ' ped ' + p.num + ' ' + brl(p.valor)).join('; ') || 'sem pedido'})`;
   return `QUINZENAS: total ${brl(q.q1.valor + q.q2.valor)} · 1a ${fmt(q.q1)} · 2a ${fmt(q.q2)}`;
 }
+// Nivel (bronze a platina) do gol que nao e de um cliente so: usa as industrias de TODOS os pedidos do vendedor no dia
+const provaQ = (v) => (qualificaGol(v.carteira, { industrias: v.industriasDia, categorias: v.categoriasDia }) || {}).texto;
+const comQ = (v, p) => [p, provaQ(v)].filter(Boolean).join(' | ');
 function vend(id, canal, sup, d, carteira) {
   const cl = Array.isArray(d.clientes) ? d.clientes : null;
   const st = (s) => (cl ? cl.filter((c) => s.includes(c.status)).length : null);
   const feitas = cl ? cl.filter((c) => !['AGENDADO', 'ABERTO'].includes(c.status)).length : null;
   const campo = CAMPO.includes(canal);
   return {
-    id, nome: d.nome, canal, sup: sup || '', carteira: carteiraEfetiva(carteira, cl), campo, cl,
+    id, nome: d.nome, canal, sup: sup || '',     carteira: carteiraEfetiva(carteira, cl), campo, cl,
+    industriasDia: Array.isArray(d.industrias_dia) ? d.industrias_dia : null, categoriasDia: Array.isArray(d.categorias_dia) ? d.categorias_dia : null,
     meta: num(d.meta_fat), fat: num(d.faturado),
     devolucoesHoje: Array.isArray(d.devolucoes_hoje) ? d.devolucoes_hoje : [],
     dig: num(d.dig_hoje), pos: num(d.pos_hoje),
@@ -145,22 +149,22 @@ function calcAlertas(vs, t) {
   const out = [];
   vs.forEach((v) => {
     if (!v.cl) return;
-    if ((v.dig || 0) >= 15000) out.push({ chave: `gol_super|${v.id}`, nivel: 'gol', v, prova: `digitado do dia ${brl(v.dig)} (minimo R$ 15.000)` });
+    if ((v.dig || 0) >= 15000) out.push({ chave: `gol_super|${v.id}`, nivel: 'gol', v, prova: comQ(v, `digitado do dia ${brl(v.dig)} (minimo R$ 15.000)`) });
 
     const checkins = horariosCheckinDoDia(v.cl);
     const ultimoCheckin = checkins.length ? checkins[checkins.length - 1] : null;
     if (ultimoCheckin && t.agoraMin - ultimoCheckin.horaMin <= FRESCOR_MAX_MIN) {
       const limiteRelampago = v.fuso1h ? 10 : 9;
-      if (ultimoCheckin.hora < limiteRelampago) out.push({ chave: `gol_relampago|${v.id}`, nivel: 'gol', v, prova: `check-in as ${ultimoCheckin.hms} (antes das ${limiteRelampago}h)` });
+      if (ultimoCheckin.hora < limiteRelampago) out.push({ chave: `gol_relampago|${v.id}`, nivel: 'gol', v, prova: comQ(v, `check-in as ${ultimoCheckin.hms} (antes das ${limiteRelampago}h)`) });
       // Acrescimos: check-in entre 16h30 e 18h00 (17h30 e 19h00 no fuso: TCG, MCD, TCA). Depois do limite NAO e aceito: ninguem trabalha fora do horario (Vitorio, 06/10/2026)
       const acrIni = (v.fuso1h ? 17 : 16) * 60 + 30, acrFim = (v.fuso1h ? 19 : 18) * 60;
-      if (ultimoCheckin.horaMin >= acrIni && ultimoCheckin.horaMin <= acrFim) out.push({ chave: `gol_acrescimos|${v.id}`, nivel: 'gol', v, prova: `check-in as ${ultimoCheckin.hms} (janela ${Math.floor(acrIni / 60)}h${String(acrIni % 60).padStart(2, '0')} ate ${acrFim / 60}h00)` });
+      if (ultimoCheckin.horaMin >= acrIni && ultimoCheckin.horaMin <= acrFim) out.push({ chave: `gol_acrescimos|${v.id}`, nivel: 'gol', v, prova: comQ(v, `check-in as ${ultimoCheckin.hms} (janela ${Math.floor(acrIni / 60)}h${String(acrIni % 60).padStart(2, '0')} ate ${acrFim / 60}h00)`) });
     }
     if (checkins.length >= 3) {
       for (let i = 0; i <= checkins.length - 3; i++) {
         const janelaMin = checkins[i + 2].horaMin - checkins[i].horaMin;
         if (janelaMin <= 120 && janelaMin >= 0 && t.agoraMin - checkins[i + 2].horaMin <= FRESCOR_MAX_MIN) {
-          out.push({ chave: `gol_hattrick|${v.id}|${checkins[i + 2].hms}`, nivel: 'hattrick', v, prova: `3 check-ins em ${janelaMin} min: ${checkins[i].hms}, ${checkins[i + 1].hms}, ${checkins[i + 2].hms}` });
+          out.push({ chave: `gol_hattrick|${v.id}|${checkins[i + 2].hms}`, nivel: 'hattrick', v, prova: comQ(v, `3 check-ins em ${janelaMin} min: ${checkins[i].hms}, ${checkins[i + 1].hms}, ${checkins[i + 2].hms}`) });
           break;
         }
       }
@@ -168,15 +172,15 @@ function calcAlertas(vs, t) {
     if ((v.meta || 0) > 0 && ultimoCheckin && t.agoraMin - ultimoCheckin.horaMin <= FRESCOR_MAX_MIN) {
       const { totalUteis, uteisAteHoje } = diasUteisMes(t.dia);
       const metaDiaria = totalUteis > 0 ? (v.meta / totalUteis) * uteisAteHoje : 0;
-      if (metaDiaria > 0 && (v.dig || 0) >= metaDiaria && ultimoCheckin.hora < 14) out.push({ chave: `gol_meta1t|${v.id}`, nivel: 'gol', v, prova: `digitado ${brl(v.dig)} >= meta proporcional do dia ${brl(metaDiaria)}; check-in as ${ultimoCheckin.hms}` });
+      if (metaDiaria > 0 && (v.dig || 0) >= metaDiaria && ultimoCheckin.hora < 14) out.push({ chave: `gol_meta1t|${v.id}`, nivel: 'gol', v, prova: comQ(v, `digitado ${brl(v.dig)} >= meta proporcional do dia ${brl(metaDiaria)}; check-in as ${ultimoCheckin.hms}`) });
     }
     if ((v.feitas || 0) >= 8 && v.comVenda != null) {
       const txConv = v.feitas > 0 ? (v.comVenda / v.feitas) * 100 : 0;
-      if (txConv >= 50) out.push({ chave: `gol_conversao|${v.id}`, nivel: 'gol', v, prova: `${v.comVenda} com venda em ${v.feitas} visitas = ${Math.round(txConv)}%` });
+      if (txConv >= 50) out.push({ chave: `gol_conversao|${v.id}`, nivel: 'gol', v, prova: comQ(v, `${v.comVenda} com venda em ${v.feitas} visitas = ${Math.round(txConv)}%`) });
     }
     // Goleada = 10 ou mais CLIENTES positivados, comprovados na rota (status POSITIVADO/EFETIVADO). A contagem de pedidos do CEVEN (positivacao) NAO prova clientes:
     // 06/10/2026, MCD 420: 12 pedidos de R$ 164 em media, 0 visitas, 0 clientes positivados na rota.
-    if ((v.comVenda || 0) >= 10) out.push({ chave: `gol_goleada|${v.id}`, nivel: 'gol', v, prova: `${v.comVenda} clientes positivados na rota (${v.pos || 0} pedidos, digitado ${brl(v.dig)})` });
+    if ((v.comVenda || 0) >= 10) out.push({ chave: `gol_goleada|${v.id}`, nivel: 'gol', v, prova: comQ(v, `${v.comVenda} clientes positivados na rota (${v.pos || 0} pedidos, digitado ${brl(v.dig)})`) });
     if ((v.meta || 0) > 0 && (v.fat || 0) >= v.meta) out.push({ chave: `gol_campeao|${v.id}|${t.dia.slice(0, 7)}`, nivel: 'gol', v, prova: `faturado do mes ${brl(v.fat)} >= meta ${brl(v.meta)}` });
 
     (v.devolucoesHoje || []).forEach((dv) => {
