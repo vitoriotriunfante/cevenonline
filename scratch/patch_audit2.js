@@ -1,0 +1,25 @@
+const fs = require('fs');
+function ed(rel, fn) { let s = fs.readFileSync(rel, 'utf8'); const crlf = s.includes('\r\n'); s = s.replace(/\r\n/g, '\n'); s = fn(s); fs.writeFileSync(rel, crlf ? s.replace(/\n/g, '\r\n') : s); console.log('ok', rel); }
+const tr = (s, de, para, r) => { if (s.split(de).length !== 2) throw new Error('ancora ' + r + ' ' + (s.split(de).length - 1)); return s.replace(de, () => para); };
+
+ed('functions/_lib/auditoria_lance.js', (s) => {
+  s = tr(s, "// Devolve { regra, falhas: [texto...] } (falhas vazio = lance auditado e correto)\nexport function auditaLance(l) {",
+"// Dias sem compra: usa o campo gravado; se faltar, calcula pela ultima compra gravada (dado real do CEVEN). Ultima compra 1900-01-01 = o CEVEN nao tem compra registrada.\nfunction diasSemCompra(l, dia) {\n  if (l.dias_sem_compra != null && l.dias_sem_compra !== '' && Number.isFinite(Number(l.dias_sem_compra))) return Number(l.dias_sem_compra);\n  const u = String(l.ultima_compra || '').slice(0, 10);\n  if (/^\\d{4}-\\d\\d-\\d\\d$/.test(u)) {\n    if (+u.slice(0, 4) < 2000) return Infinity; // sem compra registrada\n    if (dia) return Math.round((Date.parse(dia + 'T12:00:00Z') - Date.parse(u + 'T12:00:00Z')) / 86400000);\n  }\n  return null;\n}\n\n// Devolve { regra, falhas: [texto...] } (falhas vazio = lance auditado e correto). ctx.dia = dia do lance (AAAA-MM-DD)\nexport function auditaLance(l, ctx = {}) {", 'sig');
+  s = tr(s, "  const falha = (t) => falhas.push(t);\n", "  const falha = (t) => falhas.push(t);\n  if (tipo === 'sup' || l.nivel === 'supervisor' || l.nivel === 'marker') return { regra: tipo, falhas: [] }; // aviso de supervisor nao pontua: fora da auditoria de pontos\n  const dias = diasSemCompra(l, ctx.dia);\n", 'skip');
+  s = tr(s, "    if (tipo === 'gol_inativo' && !(Number(l.dias_sem_compra) > 30)) falha('resgate sem cliente parado há mais de 30 dias');", "    if (tipo === 'gol_inativo' && !(dias > 30)) falha(dias == null ? 'resgate sem como provar os dias sem compra' : 'resgate sem cliente parado há mais de 30 dias');", 'inat');
+  s = tr(s, "    const dias = Number(l.dias_sem_compra), mot = String(l.motivo || '').toUpperCase();\n    if (/fechado/.test(chave)) { if (!(dias > 45)) falha(`pênalti de cliente fechado com ${l.dias_sem_compra == null ? '?' : dias} dias sem compra (mínimo 46)`); }\n    else if (!(dias > 30)) falha(`pênalti de estoque com ${l.dias_sem_compra == null ? '?' : dias} dias sem compra (mínimo 31)`);",
+"    const mot = String(l.motivo || '').toUpperCase(), dtxt = dias == null ? '?' : dias;\n    if (/fechado/.test(chave)) { if (!(dias > 45)) falha(`pênalti de cliente fechado com ${dtxt} dias sem compra (mínimo 46)`); }\n    else if (!(dias > 30)) falha(`pênalti de estoque com ${dtxt} dias sem compra (mínimo 31)`);", 'pen');
+  s = tr(s, "    m = /(\\d+) visitas feitas, (\\d+) pedidos e digitado R\\$ ([\\d.,]+) as (\\d+)h/.exec(obs);\n    if (!m) falha('amarelo sem a prova de visitas e pedidos'); else if (+m[2] > 0 && +m[1] > 0) falha(`amarelo de vendedor com ${m[1]} visitas e ${m[2]} pedidos`);",
+"    m = /(\\d+) visitas feitas, (\\d+) pedidos e digitado R\\$ ([\\d.,]+) as (\\d+)h/.exec(obs);\n    if (m) { if (+m[2] > 0 && +m[1] > 0) falha(`amarelo de vendedor com ${m[1]} visitas e ${m[2]} pedidos`); }\n    else if (!/nenhuma visita nem check-in de varejo \\(\\d+ clientes na rota\\)/.test(obs)) falha('amarelo sem a prova de visitas e pedidos');", 'ama');
+  s = tr(s, "export function auditaLista(lances) {", "export function auditaLista(lances, dia) {", 'lista');
+  s = tr(s, "    const r = auditaLance(l);", "    const r = auditaLance(l, { dia });", 'chama');
+  return s;
+});
+ed('functions/api/cron-auditoria-lances.js', (s) => tr(s, "const a = auditaLista(j.lances);", "const a = auditaLista(j.lances, dia);", 'dia'));
+ed('testes/t_auditoria.mjs', (s) => tr(s, "  // comuns\n",
+"  ok(passa({ chave: 'ven10|10', pontos: -3, obs: 'nenhuma visita nem check-in de varejo (3 clientes na rota) as 10h (limite 10h)' }), 'amarelo de quem nao fez nenhuma visita nem check-in passa');\n" +
+"  ok(auditaLance({ ...base, chave: 'gol_inativo|1|2', obs: 'PEDIDO DE HOJE: 5 | QUALIF', dias_sem_compra: null, ultima_compra: '2026-08-31' }, { dia: '2026-10-06' }).falhas.length === 0, 'resgate: dias sem compra calculados pela ultima compra gravada (36 dias)');\n" +
+"  ok(auditaLance({ ...base, chave: 'gol_inativo|1|2', obs: 'PEDIDO DE HOJE: 5', dias_sem_compra: null, ultima_compra: '2026-09-20' }, { dia: '2026-10-06' }).falhas.some((f) => f.includes('mais de 30')), 'resgate com ultima compra ha 16 dias falha');\n" +
+"  ok(auditaLance({ ...base, chave: 'pen|estoque|1|2', pontos: -4, motivo: 'ESTOQUE SUFICIENTE', dias_sem_compra: null, ultima_compra: '1900-01-01' }, { dia: '2026-10-06' }).falhas.length === 0, 'pênalti de cliente sem nenhuma compra registrada (1900-01-01) passa');\n" +
+"  ok(auditaLance({ ...base, chave: 'sup|1', nivel: 'supervisor', pontos: 0 }).falhas.length === 0, 'aviso de supervisor nao pontua e fica fora da auditoria');\n" +
+"  // comuns\n", 'testes'));

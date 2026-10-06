@@ -27,6 +27,11 @@ export default async function (ok) {
   ok(falhaCom({ chave: 'gol_mix|10|5', obs: 'QUALIFICAÇÃO: BRONZE (+0 pts) [QUALIF:BRONZE:+2]' }, 'deveria ser +0'), 'nível do gol com extra que não bate com o nível falha');
   ok(passa({ chave: 'gol_mix|10|5', obs: 'PEDIDO DE HOJE: 100000469 · BLOQUEADO · R$ 1.201 | QUALIFICAÇÃO: PRATA (+1 pts) [QUALIF:PRATA:+1]' }), 'gol de cliente com pedido de hoje e nível coerente passa');
   ok(falhaCom({ chave: 'gol_inativo|10|5', obs: 'PEDIDO DE HOJE: 1', dias_sem_compra: 12 }, 'mais de 30 dias'), 'resgate de cliente que não está parado há 30 dias falha');
+  ok(passa({ chave: 'ven10|10', pontos: -3, obs: 'nenhuma visita nem check-in de varejo (3 clientes na rota) as 10h (limite 10h)' }), 'amarelo de quem nao fez nenhuma visita nem check-in passa');
+  ok(auditaLance({ ...base, chave: 'gol_inativo|1|2', obs: 'PEDIDO DE HOJE: 5 | QUALIF', dias_sem_compra: null, ultima_compra: '2026-08-31' }, { dia: '2026-10-06' }).falhas.length === 0, 'resgate: dias sem compra calculados pela ultima compra gravada (36 dias)');
+  ok(auditaLance({ ...base, chave: 'gol_inativo|1|2', obs: 'PEDIDO DE HOJE: 5', dias_sem_compra: null, ultima_compra: '2026-09-20' }, { dia: '2026-10-06' }).falhas.some((f) => f.includes('mais de 30')), 'resgate com ultima compra ha 16 dias falha');
+  ok(auditaLance({ ...base, chave: 'pen|estoque|1|2', pontos: -4, motivo: 'ESTOQUE SUFICIENTE', dias_sem_compra: null, ultima_compra: '1900-01-01' }, { dia: '2026-10-06' }).falhas.length === 0, 'pênalti de cliente sem nenhuma compra registrada (1900-01-01) passa');
+  ok(auditaLance({ ...base, chave: 'sup|1', nivel: 'supervisor', pontos: 0 }).falhas.length === 0, 'aviso de supervisor nao pontua e fica fora da auditoria');
   // comuns
   ok(falhaCom({ chave: 'gol_super|10', vendedor: '', obs: 'digitado do dia R$ 15.003' }, 'sem vendedor') && falhaCom({ chave: 'gol_super|10', hora: '03:10:00', obs: 'digitado do dia R$ 15.003' }, 'madrugada') && falhaCom({ chave: 'gol_super|10', supervisor: '', obs: 'digitado do dia R$ 15.003' }, 'sem supervisor'), 'regras comuns: vendedor, supervisor e horário (não madrugada)');
   const r = auditaLista([{ ...base, chave: 'gol_goleada|1', obs: null }, { ...base, chave: 'gol_super|2', obs: 'digitado do dia R$ 20.000' }]);

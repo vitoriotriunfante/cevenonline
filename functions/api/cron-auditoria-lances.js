@@ -20,7 +20,7 @@ export async function onRequestGet({ env, request }) {
       const r = await fetch(`${u.origin}/api/brasileirao-lances?dia=${dia}`, { signal: AbortSignal.timeout(40000) });
       const j = await r.json().catch(() => null);
       if (!j || !Array.isArray(j.lances)) return new Response(JSON.stringify({ dia, status: 'FALHOU', motivo: 'nao consegui ler os lances do dia' }), { headers: cors });
-      const a = auditaLista(j.lances);
+      const a = auditaLista(j.lances, dia);
       await env.DB.prepare('DELETE FROM auditoria_lance_falha WHERE dia = ?').bind(dia).run();
       const stmts = a.falhos.map((f) => env.DB.prepare("INSERT OR REPLACE INTO auditoria_lance_falha (dia, chave, filial, regra, falhas_json, hora, vendedor, rca, pontos, em) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))")
         .bind(dia, String(f.chave || ''), String(f.filial || ''), f.regra, JSON.stringify(f.falhas), f.hora || null, f.vendedor || null, String(f.rca == null ? '' : f.rca), Number(f.pontos) || 0));

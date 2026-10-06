@@ -17,13 +17,26 @@ export function tipoDoLance(chave) {
   return c.split('|')[0];
 }
 
-// Devolve { regra, falhas: [texto...] } (falhas vazio = lance auditado e correto)
-export function auditaLance(l) {
+// Dias sem compra: usa o campo gravado; se faltar, calcula pela ultima compra gravada (dado real do CEVEN). Ultima compra 1900-01-01 = o CEVEN nao tem compra registrada.
+function diasSemCompra(l, dia) {
+  if (l.dias_sem_compra != null && l.dias_sem_compra !== '' && Number.isFinite(Number(l.dias_sem_compra))) return Number(l.dias_sem_compra);
+  const u = String(l.ultima_compra || '').slice(0, 10);
+  if (/^\d{4}-\d\d-\d\d$/.test(u)) {
+    if (+u.slice(0, 4) < 2000) return Infinity; // sem compra registrada
+    if (dia) return Math.round((Date.parse(dia + 'T12:00:00Z') - Date.parse(u + 'T12:00:00Z')) / 86400000);
+  }
+  return null;
+}
+
+// Devolve { regra, falhas: [texto...] } (falhas vazio = lance auditado e correto). ctx.dia = dia do lance (AAAA-MM-DD)
+export function auditaLance(l, ctx = {}) {
   const falhas = [];
   const chave = String(l.chave || '').replace(/^[A-Z]{3}[|]/, '');
   const tipo = tipoDoLance(chave);
   const obs = String(l.obs || '');
   const falha = (t) => falhas.push(t);
+  if (tipo === 'sup' || l.nivel === 'supervisor' || l.nivel === 'marker') return { regra: tipo, falhas: [] }; // aviso de supervisor nao pontua: fora da auditoria de pontos
+  const dias = diasSemCompra(l, ctx.dia);
 
   // --- regras comuns a qualquer lance que pontua
   if (!String(l.vendedor || '').trim()) falha('lance sem vendedor identificado');
@@ -60,7 +73,7 @@ export function auditaLance(l) {
     if (!m) falha('meta do 1º tempo sem a prova digitado x meta'); else if (num(m[1]) < num(m[2])) falha('meta do 1º tempo com digitado abaixo da meta do dia');
   } else if (tipo === 'gol_mix' || tipo === 'gol_inativo' || tipo === 'gol_quinzenas') {
     if (!/PEDIDO DE HOJE: \d+|QUINZENA|quinzena/.test(obs) && !/QUALIF/.test(obs)) falha('gol de cliente sem o pedido de hoje comprovado');
-    if (tipo === 'gol_inativo' && !(Number(l.dias_sem_compra) > 30)) falha('resgate sem cliente parado há mais de 30 dias');
+    if (tipo === 'gol_inativo' && !(dias > 30)) falha(dias == null ? 'resgate sem como provar os dias sem compra' : 'resgate sem cliente parado há mais de 30 dias');
   } else if (tipo === 'ver_dev' || tipo === 'golcontra_dev') {
     m = /nota (\d+) de (\d{4}-\d\d-\d\d) [|] R\$ ([\d.,]+) [|].*motivo oficial: (.+)$/.exec(obs);
     if (!m) falha('devolução sem nota, valor e motivo oficial');
@@ -76,13 +89,14 @@ export function auditaLance(l) {
       if (!m) falha('impedimento de GPS sem a distância gravada'); else if (+m[1] <= 500) falha(`impedimento com check-out a ${m[1]} m (mínimo 501 m)`);
     } else if (!/00:00/.test(obs) && !/tempo 00:00/.test(obs) && String(l.tempo_visita || '') !== '00:00') falha('impedimento sem a prova (GPS fora ou visita de 00:00)');
   } else if (tipo === 'pen') {
-    const dias = Number(l.dias_sem_compra), mot = String(l.motivo || '').toUpperCase();
-    if (/fechado/.test(chave)) { if (!(dias > 45)) falha(`pênalti de cliente fechado com ${l.dias_sem_compra == null ? '?' : dias} dias sem compra (mínimo 46)`); }
-    else if (!(dias > 30)) falha(`pênalti de estoque com ${l.dias_sem_compra == null ? '?' : dias} dias sem compra (mínimo 31)`);
+    const mot = String(l.motivo || '').toUpperCase(), dtxt = dias == null ? '?' : dias;
+    if (/fechado/.test(chave)) { if (!(dias > 45)) falha(`pênalti de cliente fechado com ${dtxt} dias sem compra (mínimo 46)`); }
+    else if (!(dias > 30)) falha(`pênalti de estoque com ${dtxt} dias sem compra (mínimo 31)`);
     if (!mot) falha('pênalti sem a justificativa do vendedor');
   } else if (tipo === 'ven10') {
     m = /(\d+) visitas feitas, (\d+) pedidos e digitado R\$ ([\d.,]+) as (\d+)h/.exec(obs);
-    if (!m) falha('amarelo sem a prova de visitas e pedidos'); else if (+m[2] > 0 && +m[1] > 0) falha(`amarelo de vendedor com ${m[1]} visitas e ${m[2]} pedidos`);
+    if (m) { if (+m[2] > 0 && +m[1] > 0) falha(`amarelo de vendedor com ${m[1]} visitas e ${m[2]} pedidos`); }
+    else if (!/nenhuma visita nem check-in de varejo \(\d+ clientes na rota\)/.test(obs)) falha('amarelo sem a prova de visitas e pedidos');
   } else if (tipo === 'vis11' || tipo === 'vis10') {
     m = /(\d+) clientes na rota, (\d+) visitas feitas/.exec(obs);
     if (!m) falha('vermelho de abandono sem a prova de clientes e visitas'); else { if (+m[1] <= 0) falha('abandono de vendedor sem clientes na rota'); if (+m[2] > 0) falha(`abandono de vendedor com ${m[2]} visitas feitas`); }
@@ -100,11 +114,11 @@ export function auditaLance(l) {
   return { regra: tipo, falhas };
 }
 
-export function auditaLista(lances) {
+export function auditaLista(lances, dia) {
   const falhos = [], porRegra = {};
   let ok = 0;
   for (const l of lances) {
-    const r = auditaLance(l);
+    const r = auditaLance(l, { dia });
     const p = (porRegra[r.regra] = porRegra[r.regra] || { auditados: 0, falhas: 0 });
     p.auditados++;
     if (r.falhas.length) { p.falhas++; falhos.push({ chave: l.chave, filial: l.filial, rca: l.rca, vendedor: l.vendedor, hora: l.hora, regra: r.regra, pontos: l.pontos, falhas: r.falhas }); } else ok++;
