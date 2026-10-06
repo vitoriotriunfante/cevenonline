@@ -411,6 +411,12 @@ export async function onRequestGet({ env, request }) {
   let arvore = 'pulado';
   try { if (t.h >= 5) { const a = await garanteArvore(env, 45); arvore = a.status + (a.filiais_falharam && a.filiais_falharam.length ? ' (falharam: ' + a.filiais_falharam.join(',') + ')' : ''); } } catch { arvore = 'falhou'; }
 
+  // AUDITORIA LANCE POR LANCE (Vitório, 06/10/2026): a cada ~30 min (e depois do fechamento) confere a prova de cada lance que conta pontos
+  let auditoria = 'pulado';
+  if (t.h >= 8 && (t.m % 30) < 5) {
+    try { const ra = await fetch(`${origin}/api/cron-auditoria-lances?rodar=1`, { signal: AbortSignal.timeout(60000) }); const ja = await ra.json().catch(() => ({})); auditoria = ja.auditado ? `${ja.com_falha} falha(s) em ${ja.auditados}` : (ja.status || String(ra.status)); } catch { auditoria = 'falhou'; }
+  }
+
   // FECHAMENTO E CONFERENCIA DO DIA (Vitório, 06/10/2026: "tem que estar tudo cravado"): depois das 19h30 congela o dia da liga e confere o D1 contra o CEVEN (fatias de 60 vendedores)
   let fechamento = 'pulado', conferencia = 'pulado';
   if (t.agoraMin >= 19 * 60 + 30) {
@@ -419,7 +425,7 @@ export async function onRequestGet({ env, request }) {
   }
 
   return new Response(JSON.stringify({
-    status: 'ATUALIZADO', dia: t.dia, hora: t.hms, semana_invicta: invicta, arvore, fechamento, conferencia, filiais_processadas: Object.keys(porFilial).length,
+    status: 'ATUALIZADO', dia: t.dia, hora: t.hms, semana_invicta: invicta, arvore, auditoria, fechamento, conferencia, filiais_processadas: Object.keys(porFilial).length,
     novos_lances: totalNovos, falhas_rca: totalFalhas, por_filial: porFilial, duracao_ms: Date.now() - t0
   }), { headers: cors });
 }

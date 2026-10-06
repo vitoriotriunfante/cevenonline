@@ -674,6 +674,7 @@ secao('8e. Liga cravada: regras congeladas por versao, fechamento do dia (19h30)
   const cf = ler('functions/api/cron-conferencia-dia.js');
   ok(cf.includes('const FATIA = 60, CONC = 6') && cf.includes('/api/rca/produtividade') && cf.includes('/api/rca/devolucoes') && !/method:\s*['"]POST/.test(cf), 'conferencia: so leitura do CEVEN, 6 chamadas simultaneas no maximo, fatias de 60 vendedores');
   { const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_fechamento.mjs')).href)).default; await t(ok); }
+  { const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_auditoria.mjs')).href)).default; await t(ok); }
   const fe = ler('functions/api/cron-fechamento-dia.js');
   ok(fe.includes("DIA_INICIAL = '2026-10-06'") && fe.includes('manual'), 'fechamento automatico so de 06/10/2026 em diante; dias anteriores so de proposito (manual=1)');
 }
