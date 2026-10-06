@@ -614,6 +614,7 @@ secao('8t. /divergencias lista: vendedores novos da arvore, supervisor trocado p
 {
   const api = ler('functions/api/divergencias.js'), pg = ler('public/divergencias.html');
   ok(api.includes('aplicaArvore(env, cop)') && api.includes('supervisor_mudou') && api.includes('so_gestao') && api.includes('arvore,'), 'endpoint de divergencias devolve a arvore: novos, supervisor trocado e so na Gestao');
+  ok(pg.indexOf('const ar = d.arvore') > 0 && pg.indexOf('const ar = d.arvore') < pg.indexOf('(ar.novos'), 'divergencias: a variavel da arvore e criada antes de ser usada (erro "Cannot access ar before initialization" de 06/10)');
   ok(pg.includes('0. Árvore do CEVEN: vendedores NOVOS') && pg.includes('0.1 Árvore do CEVEN: supervisor trocado') && pg.includes('0.2 Só na Gestão de Equipe'), 'pagina /divergencias mostra as 3 secoes novas no topo');
 }
 

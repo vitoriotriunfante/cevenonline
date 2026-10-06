@@ -57,6 +57,7 @@ async function carrega() {
   try { d = await (await fetch('/api/divergencias', {cache: 'no-store'})).json(); } catch { $('corpo').textContent = 'Não consegui ler os dados agora.'; return; }
   if (d.erro) { $('corpo').textContent = 'Erro: ' + d.erro; return; }
   const r = d.resumo;
+  const ar = d.arvore || {}; // antes dos quadradinhos: eles tambem usam
   $('chips').innerHTML = [
     ['No banco e fora da Gestão de Equipe', r.banco_fora_da_planilha, `${r.banco_fora_produzindo} produzindo · ${r.banco_fora_sem_atividade} sem atividade`],
     ['Faturado no mês fora da Gestão de Equipe', brl(r.faturado_mes_fora_da_planilha), 'soma dos vendedores do item 1'],
@@ -68,7 +69,6 @@ async function carrega() {
     ['Devolução nesses códigos (mês)', brl(r.devolucao_descoberta_mes), 'fora de qualquer lista']
   ].map(([t, v, s]) => `<div class="chip"><span>${t}</span><b>${v}</b><span>${s}</span></div>`).join('');
   // --- ÁRVORE VIVA DO CEVEN x GESTÃO ---
-  const ar = d.arvore || {};
   const aviso = ar.disponivel ? '' : '<div class="vazio">A árvore do CEVEN ainda não foi baixada hoje. Ela se atualiza sozinha a cada 45 minutos.</div>';
   const A0 = tabela([
     {t: 'Filial', f: l => esc(l.filial)}, {t: 'Código', f: l => esc(l.codigo)}, {t: 'Nome', f: l => esc(l.nome)},
