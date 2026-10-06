@@ -362,9 +362,9 @@ for idx, g in enumerate(gerentes_tabela):
 # 5. Tabela Supervisores — mesma lógica de maioria, agregada pela equipe dele.
 # ---------------------------------------------------------------------------
 # PLUS DE LIDERANCA do supervisor (regras do Vitorio, 03-04/10/2026, em config/pontuacao_brasileirao.json):
-#   Compromisso Matinal ate 10:00 (o CEVEN trava as 10:00: "feito" = feito ate as 10:00) .... +15
-#   Inicio e execucao do RET de campo (RECOMENDADO, nao obrigatorio) ...................... +25
-#   Zero devolucoes na equipe no dia (Fair Play) ........................................... +30
+#   Compromisso Matinal ate 10:00 (o CEVEN trava as 10:00: "feito" = feito ate as 10:00) ..... +5
+#   Inicio e execucao do RET de campo (RECOMENDADO, nao obrigatorio) ...................... +5
+#   Zero devolucoes na equipe no dia (Fair Play) ........................................... +5
 #   So BONUS: nao atingiu = 0, sem punicao. So dias de rodada (segunda a sexta, sem feriado).
 # Entradas vem de scripts/coletar_plus_lideranca.js (scratch/plus_inputs.json). Sem o arquivo, ou supervisor que o
 # CEVEN nao devolveu => plus_lideranca = None (a tela mostra "—"). NUNCA inventa: Fair Play so conta se o banco de
@@ -378,7 +378,7 @@ def _norm_nome(n):
     n = ''.join(c for c in n if _ud.category(c) != 'Mn').upper()
     return _re.sub(r'\s+', ' ', _re.sub(r'[^A-Z ]', '', n)).strip()
 
-PLUS_PONTOS = {'compromisso': 15, 'ret': 25, 'fair_play': 30}
+PLUS_PONTOS = {'compromisso': 5, 'ret': 5, 'fair_play': 5}
 try:
     _cfg_plus = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'config', 'pontuacao_brasileirao.json'), encoding='utf-8'))['plus_lideranca_supervisor']
     PLUS_PONTOS = {'compromisso': _cfg_plus['compromisso_matinal_ate_10h00']['pontos'], 'ret': _cfg_plus['ret_inicio_e_execucao']['pontos'], 'fair_play': _cfg_plus['zero_devolucoes_equipe_no_dia']['pontos']}
