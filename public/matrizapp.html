@@ -129,6 +129,11 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #ov .dec .selo .sp{font-size:clamp(60px,8vw,150px)}#ov .dec .selo .sn{font-size:clamp(28px,3.4vw,60px)}}
 /* listas (varios destaques seguidos: amarelos, venda10, visita10): uma linha inteira por item */
 #ov .dec .ln.hot+.ln.hot,#ov .dec .ln.hot:has(+.ln.hot){grid-column:1/-1}
+/* VENDEDOR em destaque (Vitório, 06/10/2026: "tem que aumentar o tamanho do nome"): sobe logo abaixo dos pontos, em linha inteira e com nome grande */
+#ov .dec>h1{order:-4}#ov .dec>.selo{order:-3}#ov .dec>.vd{order:99}
+#ov .dec>.ln.vend{order:-2;grid-column:1/-1;background:none;border:0;border-left:6px solid var(--tom);border-radius:0;padding:.2vh 1.2vw}
+#ov .dec>.ln.est>span{font-size:clamp(24px,min(2.5vw,4.6vh),50px);font-weight:900;color:#fff;line-height:1.08}
+#ov .dec>.ln.vend>span{font-size:clamp(26px,min(2.8vw,5.2vh),58px);font-weight:900;color:#fff;line-height:1.05}
 #ov small{margin-top:2vh;color:var(--mut);font-size:16px}
 #ov small{margin-top:2vh;color:var(--mut);font-size:16px}
 
@@ -924,7 +929,7 @@ function telaVAR(item) {
       // Hora em que o lance FOI REGISTRADO x hora em que o popup aparece: a fila do VAR (1 a cada 3 min, ate 20/h) pode atrasar o popup por horas; assim da para ver que NAO e repeticao.
       'Lance registrado às': (() => { const k = (item.itens && item.itens[0] && item.itens[0].key) || (item.a && item.a.key); const r = LOG.find(e => e.key === k); return r && r.t ? r.t.slice(0, 5) + ' (exibido às ' + sp().hm + ')' : null; })()};
     if (n === 1) { const {c, dias} = it[0], tv = c ? c.tempo_visita : null; dec = seloLiga + linhas({...cab, 'Cliente': c ? c.nome : '—', 'Justificativa': '!' + (c ? c.motivo : ''), 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c ? c.ultima_compra : '')})` : 'sem compra registrada'), 'Tempo na visita': tv ? (tv === '00:00' ? '!' + tv + ' (visita de 0 minuto)' : tv) : null}); }
-    else dec = seloLiga + linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot"><b>${esc(a.c ? a.c.nome : '')}</b><span>${esc(a.c ? a.c.motivo : '')} · ${a.dias != null ? a.dias + 'd s/ compra' : 'sem compra'}</span></div>`).join('');
+    else dec = seloLiga + linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot w est"><b>${esc(a.c ? a.c.motivo : '')} · ${a.dias != null ? a.dias + ' dias sem compra' : 'sem compra'}</b><span>${esc(a.c ? a.c.nome : '')}</span></div>`).join('');
     veredito = (v && ehSupFalso(v.sup)) ? `📞 LIGAR AGORA: o gerente de ${item.sig} (vendedor ${v.nome.split(' ')[0]} é ligado direto ao gerente)` : `📞 LIGAR AGORA: ${v ? v.sup : 'supervisor'} · ${item.sig} (supervisor de ${v ? v.nome.split(' ')[0] : 'vendedor'})`;
   } else if (item.tipo === 'amarelos') {
     titulo = '🟨 CARTÕES AMARELOS'; sub = `${item.sig} · ${(item.l || []).length} vendedor(es) COM ROTA sem pedido e/ou sem visita às ${LIMITE_H}h`; cls = 'f1';

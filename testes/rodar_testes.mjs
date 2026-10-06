@@ -617,6 +617,13 @@ secao('8t. /divergencias lista: vendedores novos da arvore, supervisor trocado p
   ok(pg.includes('0. Árvore do CEVEN: vendedores NOVOS') && pg.includes('0.1 Árvore do CEVEN: supervisor trocado') && pg.includes('0.2 Só na Gestão de Equipe'), 'pagina /divergencias mostra as 3 secoes novas no topo');
 }
 
+// ---------------------------------------------------------------- 8u. Nome do vendedor e do estabelecimento em destaque no popup
+secao('8u. Popup: vendedor e estabelecimento com nome grande');
+{
+  const tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), an = ler('public/animacoes/tv-animacoes.js');
+  ok([tv, mz].every(h => h.includes('.ln.vend>span{font-size:clamp(26px') && h.includes('.ln.est>span') && h.includes('ln hot w est')) && an.includes("' vend'"), 'vendedor sobe logo abaixo dos pontos em nome grande; no penalti o estabelecimento e o destaque (motivo e dias sem compra no rotulo)');
+}
+
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)
 secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
 {

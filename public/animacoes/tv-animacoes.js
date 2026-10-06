@@ -1648,7 +1648,8 @@ window.compactaDecHtml = function (dec) {
   return String(dec).replace(/<div class="ln([^"]*)"><b>([^<]*)<\/b><span>([\s\S]*?)<\/span><\/div>/g, function (m, cls, lab, val) {
     const txt = val.replace(/<[^>]*>/g, '');
     const larga = /^(LANCE|CLIENTE)|QUALIFIC|PEDIDO|QUINZENA|FATURAMENTO|MOTIVO|DEVOLU|PROVA|ANULADO|ALERTA|SEMANA|ITENS|DETALHE/i.test(lab) || txt.length > 34;
-    return larga ? m.replace('class="ln' + cls + '"', 'class="ln' + cls + ' w"') : m;
+    const extra = (/^VENDEDOR$/i.test(lab) ? ' vend' : '') + (larga ? ' w' : ''); // VENDEDOR vira o 2o destaque (nome grande logo abaixo dos pontos)
+    return extra ? m.replace('class="ln' + cls + '"', 'class="ln' + cls + extra + '"') : m;
   });
 };
 
