@@ -171,6 +171,13 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tag-canal.vj{background:rgba(56,189,248,.1);color:#7dd3fc;border-color:rgba(56,189,248,.25)}
 .tag-canal.farma{background:rgba(20,184,166,.12);color:#5eead4;border-color:rgba(20,184,166,.3)}
 .tag-canal.esp{background:rgba(245,158,11,.12);color:#fcd34d;border-color:rgba(245,158,11,.25)}
+
+/* ===== RESPONSIVO (Vitório, 06/10/2026) ===== */
+footer { flex-wrap: wrap; row-gap: 6px; }
+footer .msg { flex: 1 1 220px; min-width: 160px; }
+#ctl { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; flex: 0 1 auto; max-width: 100%; }
+#ctl button, #ctl a { padding: 5px clamp(6px, .7vw, 12px); font-size: clamp(10px, .85vw, 13px); line-height: 1.1; white-space: nowrap; }
+@media (max-height: 880px) { main { padding-top: 8px; padding-bottom: 8px; } }
 </style><script src="/animacoes/tv-animacoes.js"></script>
 </head><body>
 <!-- MODAL DE DETALHE: clique nos cards do Painel Nacional abre a lista real por trás do número

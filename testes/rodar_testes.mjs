@@ -581,6 +581,15 @@ secao('8p. Horarios dos lances (acrescimos 16h30-18h00), amarelos agrupados, pai
   ok(!br.includes('Gerente Regional') && [tv, mz].every(h => h.includes('dias sem compra</span>')), 'sem "Gerente Regional"; detalhe do penalti mostra a hora e os dias sem compra');
 }
 
+// ---------------------------------------------------------------- 8q. Responsividade
+secao('8q. Responsividade: abas e rodapes quebram linha, tabelas encolhem, sem colunas cortadas');
+{
+  const br = ler('public/brasileirao.html'), tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), ex = ler('public/tv_executiva.html'), dv = ler('public/divergencias.html'), ge = ler('public/gestao-equipe.html');
+  ok(br.includes('.nav-tabs { flex-wrap: wrap; overflow-x: visible') && br.includes('@media (max-width: 1000px)') && br.includes('@media (max-width: 700px)') && !br.includes('${f.super_pedidos}') && !br.includes('${v.inativos_resgatados}'), 'Brasileirao: abas quebram linha, tabelas encolhem e escondem colunas secundarias em tela estreita; Super Pedido/Inativos removidos');
+  ok([tv, mz].every(h => h.includes('#ctl { display: flex; flex-wrap: wrap') && h.includes('footer { flex-wrap: wrap')), 'TV da filial e Matriz: rodape com botoes que quebram linha (nada cortado)');
+  ok(ex.includes('header { height: auto !important') && dv.includes('clamp(5px,.6vw,8px)') && ge.includes('white-space: normal !important'), 'Executiva, Divergencias e Gestao de Equipe: cabecalho/tabelas fluidos');
+}
+
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)
 secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
 {

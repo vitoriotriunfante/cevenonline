@@ -20,8 +20,9 @@
   section h2 { margin:0; font-size:16px; }
   section p { margin:4px 0 0; color:var(--mut); font-size:13px; }
   .tabela { overflow-x:auto; }
-  table { border-collapse:collapse; width:100%; min-width:720px; }
-  th, td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--linha); white-space:nowrap; }
+  table { border-collapse:collapse; width:100%; min-width:0; }
+  th, td { text-align:left; padding:clamp(5px,.6vw,8px) clamp(5px,.7vw,12px); font-size:clamp(11px,.95vw,14px); border-bottom:1px solid var(--linha); }
+  td.n, th.n { white-space:nowrap; }
   th { color:var(--mut); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
   td.n, th.n { text-align:right; font-variant-numeric:tabular-nums; }
   .tag { display:inline-block; padding:1px 8px; border-radius:99px; font-size:11px; font-weight:700; }

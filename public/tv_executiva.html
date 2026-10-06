@@ -914,7 +914,13 @@
     .badge-status.ok { background: rgba(0,245,155,0.15); color: var(--green); border: 1px solid var(--green); }
     .badge-status.warn { background: rgba(251,191,36,0.15); color: var(--amber); border: 1px solid var(--amber); }
     .badge-status.crit { background: rgba(244,63,94,0.15); color: var(--red); border: 1px solid var(--red); }
-  </style>
+  
+/* ===== RESPONSIVO (Vitório, 06/10/2026) ===== */
+header { height: auto !important; min-height: 56px; flex-wrap: wrap; gap: 6px 14px; padding: 6px 16px !important; }
+.header-left, .header-center, .header-right { flex-wrap: wrap; row-gap: 4px; }
+.war-title { font-size: clamp(14px, 1.5vw, 20px) !important; }
+.war-title span { font-size: clamp(11px, 1.1vw, 15px) !important; }
+</style>
 </head>
 <body>
 
