@@ -65,13 +65,13 @@
     "gol_quinzenas": { "nome": "📅 Dobradinha das Quinzenas", "pontos": 3, "motivo": "Cliente comprou na 1ª Quinzena (dias 1 a 15) E na 2ª Quinzena (dia 16 ao fim) do mesmo mês. QUALIFICADO (ver Gol Qualificado)." },
     "defesa": { "nome": "🧤 Defesa (Recorrência Salva)", "pontos": 3, "motivo": "Cliente com TAG RECORRÊNCIA na rota positivado no dia, blindando a carteira ativa contra perda." },
     "pedido_rota": { "nome": "📝 Pedido Feito na Rota", "pontos": 1, "motivo": "Pedido faturado/positivado em cliente da rota do dia com visita/check-in realizado." },
-    "amarelo": { "nome": "🟨 Cartão Amarelo", "pontos": -3, "motivo": "Advertência: vendedor com rota ativa sem nenhuma venda até as 10h00 (11h00 no fuso)." },
+    "amarelo": { "nome": "🟨 Cartão Amarelo", "pontos": -3, "motivo": "Advertência às 10h00 (11h00 no fuso): vendedor com rota ativa sem nenhum pedido e/ou sem nenhuma visita (inclui quem não fez nenhum check-in de varejo)." },
     "impedimento": { "nome": "🚩 Impedimento VAR", "pontos": -5, "motivo": "Check-in irregular: check-out a mais de 500m do cliente (GPS fora) ou visita relâmpago de 00:00." },
-    "penalti_estoque": { "nome": "🚨 Pênalti (Estoque Suficiente)", "pontos": -6, "motivo": "Justificativa de não venda \"ESTOQUE SUFICIENTE\" em cliente parado há mais de 30 dias sem compra." },
-    "penalti_fechado": { "nome": "🚨 Pênalti (Cliente Fechado)", "pontos": -6, "motivo": "Justificativa \"ESTABELECIMENTO FECHADO / ENCERROU\" em cliente parado há mais de 45 dias sem compra." },
+    "penalti_estoque": { "nome": "🚨 Pênalti (Estoque Suficiente)", "pontos": -4, "motivo": "Justificativa de não venda \"ESTOQUE SUFICIENTE\" em cliente parado há mais de 30 dias sem compra. Vale -4 a partir de 06/10/2026 (antes -6)." },
+    "penalti_fechado": { "nome": "🚨 Pênalti (Cliente Fechado)", "pontos": -4, "motivo": "Justificativa \"ESTABELECIMENTO FECHADO / ENCERROU\" em cliente parado há mais de 45 dias sem compra. Vale -4 a partir de 06/10/2026 (antes -6)." },
     "golcontra": { "nome": "⚽ Gol Contra (Devolução Comercial)", "pontos": -4, "motivo": "Devolução de mercadoria registrada no dia por motivos comerciais normais (renegociação, recusa, desacordo)." },
     "ver_dev": { "nome": "🟥 Cartão Vermelho (Devolução 'Não Pediu')", "pontos": -10, "motivo": "Devolução grave onde o cliente declarou \"CLIENTE NÃO PEDIU\" (quebra de confiança)." },
-    "visita10": { "nome": "🟥 Cartão Vermelho / Abandono", "pontos": -10, "motivo": "Vendedor com rota ativa que chegou às 10h00 sem nenhuma visita feita (abandono de campo) OU rota finalizada sem nenhuma venda." }
+    "visita10": { "nome": "🟥 Cartão Vermelho / Abandono", "pontos": -10, "motivo": "Vendedor com rota ativa que chegou às 11h00 (12h00 no fuso) sem nenhuma visita feita (abandono de campo) OU rota finalizada sem nenhuma venda. Vale a partir de 06/10/2026 (antes 10h00)." }
   },
   "faixas_pontos_liga": {
     "vitoria": { "min_pontos": 11, "pontos_tabela": 3 },

@@ -716,11 +716,10 @@ function calcAlertas(vs) {
     // Jamais apita ou fica no pool de VAR no meio da tarde (ex: às 15:00)!
     const limiteHoraFim = fuso1h ? 12.5 : 11.5;
     const horaAtualDecimal = t.h + (t.m / 60);
-    const naJanelaMatinal = horaAtualDecimal >= limiteHora && horaAtualDecimal < limiteHoraFim;
-    if (v.campo && v.temRota && naJanelaMatinal) {
-      if (v.feitas === 0) out.push({key: `vis10|${v.id}`, nivel: 'vermelho', subtipo: 'abandono_campo', v});
-      else if (!(v.dig > 0) && !(v.pos > 0)) out.push({key: `ven10|${v.id}`, nivel: 'amarelo', subtipo: 'sem_venda', v});
-    }
+    // Amarelo (10h; 11h no fuso): sem pedido e/ou sem visita (inclui sem check-in de varejo). Vermelho de abandono (11h; 12h no fuso): sem nenhuma visita. Regra de 06/10/2026.
+    const limVerm = limiteHora + 1, limVermFim = limiteHoraFim + 1;
+    if (v.campo && v.temRota && horaAtualDecimal >= limiteHora && horaAtualDecimal < limiteHoraFim && (v.feitas === 0 || (!(v.dig > 0) && !(v.pos > 0)))) out.push({key: `ven10|${v.id}`, nivel: 'amarelo', subtipo: v.feitas === 0 ? 'sem_checkin' : 'sem_venda', v});
+    if (v.campo && v.temRota && horaAtualDecimal >= limVerm && horaAtualDecimal < limVermFim && v.feitas === 0) out.push({key: `vis11|${v.id}`, nivel: 'vermelho', subtipo: 'abandono_campo', v});
   });
   return out;
 }
@@ -873,7 +872,7 @@ function pontosLanceOficial(tipo, subtipo) {
   if (tipo === 'golcontra') return { nome: 'Gol Contra (Devolução)', pts: '-4 PONTOS NA LIGA', cor: '#ef4444' };
   if (tipo === 'semanainvicta') return { nome: 'Semana Invicta', pts: '+3 PONTOS NA LIGA', cor: '#facc15' };
   if (tipo === 'impedimento') return { nome: 'Impedimento VAR', pts: '-5 PONTOS NA LIGA', cor: '#f97316' };
-  if (tipo === 'penalti') return { nome: 'Pênalti', pts: '-6 PONTOS NA LIGA', cor: '#ef4444' };
+  if (tipo === 'penalti') return { nome: 'Pênalti', pts: '-4 PONTOS NA LIGA', cor: '#ef4444' };
   if (tipo === 'vermelho' || tipo === 'venda10' || tipo === 'visita10') return { nome: 'Cartão Vermelho', pts: '-10 PONTOS NA LIGA', cor: '#ef4444' };
   return { nome: 'LANCE DA LIGA', pts: '', cor: '#38bdf8' };
 }
@@ -1189,8 +1188,8 @@ function textoAlerta(a) {
   if (a.nivel === 'venda10') return `${a.v.feitas}/${a.v.rota} visitas · nenhuma venda às ${LIMITE_H}h`;
   if (a.nivel === 'vermelho' && a.subtipo === 'devolucao_nao_pediu') return `Devolução: ${a.clienteDev || 'cliente'} (${brl(a.valor)})`;
   if (a.nivel === 'vermelho' && a.subtipo === 'bonificacao') return `${(a.c && a.c.nome) || 'cliente'} · pedido com itens e valor R$0`;
-  if (a.nivel === 'vermelho') return `0/${a.v.rota} visitas · nenhum cliente visitado às ${LIMITE_H}h`;
-  if (a.nivel === 'amarelo') return `Rota ativa sem vendas às ${LIMITE_H}h`;
+  if (a.nivel === 'vermelho') return `0/${a.v.rota} visitas · nenhum cliente visitado às ${LIMITE_H + 1}h`;
+  if (a.nivel === 'amarelo') return a.subtipo === 'sem_checkin' ? `Nenhuma visita/check-in de varejo às ${LIMITE_H}h` : `Rota ativa sem pedidos às ${LIMITE_H}h`;
   if (a.nivel === 'impedimento') return a.subtipo === 'gps_fora' ? `Check-out a ${a.distM}m do cliente ${(a.c && a.c.nome) || ''}` : `Visita 00:00 no cliente ${(a.c && a.c.nome) || ''}`;
   if (a.nivel === 'defesa') return `Cliente recorrente ${(a.c && a.c.nome) || ''} · positivado hoje`;
   return a.nivel || '—';
@@ -1681,7 +1680,7 @@ function confereLanceAuto() {
     const horaAgoraDec = t.h + (t.m / 60);
     const limiteMatinal = (['TCG','MCD','TCA'].includes(FIL)) ? 12.5 : 11.5;
     if (horaAgoraDec >= limiteMatinal) {
-      poolAlertas = poolAlertas.filter(a => !String(a.key).includes('vis10') && !String(a.key).includes('ven10'));
+      poolAlertas = poolAlertas.filter(a => !String(a.key).includes('vis10') && !String(a.key).includes('vis11') && !String(a.key).includes('ven10'));
     }
     const categorias = [
       { tipo: 'gol', lista: poolAlertas.filter(a => a.nivel === 'gol') },

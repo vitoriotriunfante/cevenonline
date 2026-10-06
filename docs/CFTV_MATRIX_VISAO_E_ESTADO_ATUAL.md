@@ -300,3 +300,10 @@ pequenos.
 - **Tela exclusiva `/supervisores` (Vitório, 06/10/2026):** compromisso matinal e RET de hoje (cards com fotos, todas as filiais em grade), KPIs, e o painel gerencial da semana fixo no topo (fez / parcial / não fez), com filtro por filial, busca por nome, "só pendentes", navegação de semana e tela cheia. Atalho no cabeçalho do Brasileirão.
 - Brasileirão: tabelas Gabarito e Lances do Dia quebram linha (não cortam mais Pontos / "Por quê" na lateral).
 - **Popup de decisão compacto (Vitório, 06/10/2026, foto da TV):** os campos curtos (filial, vendedor, supervisor, check-in/out, tempo) ficam lado a lado em 3 colunas com rótulo pequeno em cima; texto longo (lance, pedido, qualificação, quinzenas) ocupa a linha inteira; o popup nunca passa de 94% da altura da tela (rola se precisar). O gol de cliente não repete o cliente (já está no LANCE) nem o valor (já está no PEDIDO DE HOJE). Vale para todos os lances.
+
+## Regras novas dos cartões e pênalti (Vitório, 06/10/2026)
+- 🟨 **Amarelo (-3) às 10h** (11h no fuso: TCG/MCD/TCA): rota ativa **sem nenhum pedido e/ou sem nenhuma visita** — inclui quem não fez nenhum check-in de varejo (a prova do lance diz qual dos dois casos). Chave `ven10`.
+- 🟥 **Vermelho / Abandono (-10) às 11h** (12h no fuso), antes às 10h: rota ativa que chegou ao horário sem nenhuma visita feita (ou rota finalizada sem nenhuma venda). **Chave nova `vis11`** (a `vis10` ficou para os dias anteriores). Amarelo e vermelho somam se o vendedor continuar sem visita.
+- 🚨 **Pênalti vale -4** a partir de 06/10/2026 (antes -6); os dias anteriores ficam em -6 (o passado não se refaz). Regra no endpoint `/api/brasileirao-lances` (por data).
+- Hoje (06/10): os vermelhos de 10h gerados pela regra antiga foram tirados da liga (`lances_excluidos_liga`); os vendedores sem visita recebem o amarelo.
+- Brasileirão: tabelas Lances do Dia e Gabarito sem rolagem lateral; colunas "Super Pedidos" (gols de Super Pedido, ≥ R$ 15 mil no dia) e "Inativos resgatados" (gols de Resgate de Inativo) explicadas; a página recarrega sozinha quando sai versão nova.

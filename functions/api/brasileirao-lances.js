@@ -39,6 +39,7 @@ const REGRAS_PONTOS = {
   penalti: { nome: 'Pênalti', pontos: -6, motivo: 'Justificativa de não-visita em cliente parado' },
   ver_dev: { nome: 'Cartão Vermelho (Devolução "Não Pediu")', pontos: -10, motivo: 'Devolução grave: cliente não pediu o pedido' },
   ver_bonif: { nome: 'Cartão Vermelho (Bonificação Disfarçada)', pontos: -10, motivo: 'Pedido com 2+ itens e soma de valor R$0' },
+  vis11: { nome: 'Cartão Vermelho (Abandono de Campo)', pontos: -10, motivo: 'Nenhuma visita feita até às 11h com rota ativa (regra de 06/10/2026)' },
   vis10: { nome: 'Cartão Vermelho (Abandono de Campo)', pontos: -10, motivo: 'Nenhuma visita feita até às 10h com rota ativa' },
   venda10: { nome: 'Cartão Vermelho (Sem Venda)', pontos: -10, motivo: 'Rota completa sem nenhuma venda até o fim do dia' },
   visita10: { nome: 'Expulsão (Sem Visita)', pontos: -10, motivo: 'Nenhuma visita registrada no dia inteiro' },
@@ -133,7 +134,9 @@ export async function onRequestGet({ request, env }) {
       porNivel[l.nivel] = (porNivel[l.nivel] || 0) + 1;
       const pont0 = achaPontuacao(l.chave, l.nivel);
       const q = lerQualif(l.obs); // gol qualificado: so existe em lance gravado de 05/10/2026 em diante
-      const pont = q ? { ...pont0, pontos: pont0.pontos + q.extra, nome: pont0.nome + ' ' + q.nivel } : pont0;
+      let pont = q ? { ...pont0, pontos: pont0.pontos + q.extra, nome: pont0.nome + ' ' + q.nivel } : pont0;
+      // Penalti vale -4 a partir de 06/10/2026 (Vitorio); os dias anteriores continuam -6 (nao se refaz o passado)
+      if (dia >= '2026-10-06' && (l.nivel === 'penalti' || /^pen[|]/.test(String(l.chave || '').replace(/^[A-Z]{3}[|]/, '')))) pont = { ...pont, pontos: -4 };
       return {
         hora: l.hora_sp,
         filial: l.filial || (l.chave ? l.chave.split('|')[0] : '—'),

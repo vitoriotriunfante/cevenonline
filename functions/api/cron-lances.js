@@ -216,11 +216,15 @@ function calcAlertas(vs, t) {
       }
     });
 
-    const limiteHora = v.fuso1h ? 11 : 10;
-    const depois10 = t.h >= limiteHora && t.h < 19;
-    if (v.campo && v.temRota && depois10) {
-      if (v.feitas === 0) out.push({ chave: `vis10|${v.id}`, nivel: 'vermelho', v, prova: `${v.cl.length} clientes na rota, 0 visitas feitas as ${String(t.h).padStart(2, '0')}h (limite ${limiteHora}h)` });
-      else if (!(v.dig > 0) && !(v.pos > 0)) out.push({ chave: `ven10|${v.id}`, nivel: 'amarelo', v, prova: `${v.feitas} visitas feitas, 0 pedidos e digitado R$ 0 as ${String(t.h).padStart(2, '0')}h (limite ${limiteHora}h)` });
+    // Amarelo as 10h (11h no fuso): rota ativa sem nenhum pedido e/ou sem nenhuma visita (inclui quem nao fez nenhum check-in de varejo).
+    // Vermelho de abandono as 11h (12h no fuso): rota ativa ainda sem nenhuma visita feita. Regra de 06/10/2026 (antes o vermelho era as 10h).
+    const limAmarelo = v.fuso1h ? 11 : 10, limVermelho = v.fuso1h ? 12 : 11;
+    const hh = String(t.h).padStart(2, '0');
+    if (v.campo && v.temRota && t.h >= limAmarelo && t.h < 19 && (v.feitas === 0 || (!(v.dig > 0) && !(v.pos > 0)))) {
+      out.push({ chave: `ven10|${v.id}`, nivel: 'amarelo', v, prova: v.feitas === 0 ? `nenhuma visita nem check-in de varejo (${v.cl.length} clientes na rota) as ${hh}h (limite ${limAmarelo}h)` : `${v.feitas} visitas feitas, 0 pedidos e digitado R$ 0 as ${hh}h (limite ${limAmarelo}h)` });
+    }
+    if (v.campo && v.temRota && t.h >= limVermelho && t.h < 19 && v.feitas === 0) {
+      out.push({ chave: `vis11|${v.id}`, nivel: 'vermelho', v, prova: `${v.cl.length} clientes na rota, 0 visitas feitas as ${hh}h (limite ${limVermelho}h)` });
     }
   });
   return out;

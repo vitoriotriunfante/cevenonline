@@ -223,7 +223,7 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     const vE2 = { cl: [mk(-22.8903, -47.0498)] };      // Campinas (outro ponto da empresa), a ~50 m do ponto
     ok(f(vE2, vE2.cl[0], 2500) === false, 'o ponto de Campinas (Triunfante) tambem nao pune'); }
   { const cl = ler('functions/api/cron-lances.js');
-    const semProva = ['gol_super|', 'gol_relampago|', 'gol_acrescimos|', 'gol_hattrick|', 'gol_meta1t|', 'gol_conversao|', 'gol_goleada|', 'gol_campeao|', 'golcontra_dev|', 'ver_dev|', 'vis10|', 'ven10|']
+    const semProva = ['gol_super|', 'gol_relampago|', 'gol_acrescimos|', 'gol_hattrick|', 'gol_meta1t|', 'gol_conversao|', 'gol_goleada|', 'gol_campeao|', 'golcontra_dev|', 'ver_dev|', 'vis11|', 'ven10|']
       .filter(k => !new RegExp('chave: `' + k.replace('|', '\\|') + '[^\\n]*prova:').test(cl));
     ok(semProva.length === 0 && cl.includes('obs: l.prova'), 'todo lance do vendedor grava a PROVA (numero que o gerou) em obs, para auditoria' + (semProva.length ? ' — faltam: ' + semProva.join(', ') : '')); }
   { const vc = ler('functions/api/cron-varredura-central.js');
@@ -557,6 +557,17 @@ secao('8n. Popup de decisao compacto: campos curtos lado a lado, texto longo em 
   const tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), an = ler('public/animacoes/tv-animacoes.js');
   ok([tv, mz].every(h => h.includes('POPUP COMPACTO') && h.includes('max-height:94vh') && h.includes('compactaDecHtml(dec)')), 'TV da filial e Matriz: popup em 3 colunas, limitado a 94% da altura da tela');
   ok(an.includes('window.compactaDecHtml') && !mz.includes('<b>CLIENTE</b><span>${esc(cObj.nome)}'), 'campos de texto longo ocupam a linha inteira; o gol nao repete cliente nem valor');
+}
+
+// ---------------------------------------------------------------- 8o. Regras de 06/10/2026: amarelo 10h, vermelho 11h, penalti -4
+secao('8o. Regras novas: amarelo as 10h (sem pedido e/ou sem visita), vermelho de abandono as 11h, penalti -4 a partir de 06/10');
+{
+  const cl = ler('functions/api/cron-lances.js'), bl = ler('functions/api/brasileirao-lances.js'), tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), cj = JSON.parse(ler('config/pontuacao_brasileirao.json')), pj = JSON.parse(ler('public/pontuacao_brasileirao.json')), br = ler('public/brasileirao.html');
+  ok(cl.includes('limAmarelo = v.fuso1h ? 11 : 10, limVermelho = v.fuso1h ? 12 : 11') && cl.includes('v.feitas === 0 || (!(v.dig > 0)') && cl.includes('t.h >= limVermelho') && cl.includes('chave: `vis11|${v.id}`') && cl.includes('v.feitas === 0) {'), 'coletor: amarelo as 10h (sem pedido e/ou sem visita), vermelho de abandono as 11h (12h no fuso)');
+  ok([tv, mz].every(h => h.includes("subtipo: v.feitas === 0 ? 'sem_checkin' : 'sem_venda'") && h.includes('limVerm = limiteHora + 1') && h.includes('-4 PONTOS NA LIGA')), 'TV e Matriz: mesma regra nos popups e penalti -4 no selo');
+  ok(cj.pontos_por_lance.penalti_estoque.pontos === -4 && cj.pontos_por_lance.penalti_fechado.pontos === -4 && pj.pontos_por_lance.penalti_estoque.pontos === -4 && /11h00/.test(cj.pontos_por_lance.visita10.motivo) && /nenhuma visita/.test(cj.pontos_por_lance.amarelo.motivo), 'regulamento (config e copia publica): penalti -4, abandono 11h, amarelo com sem-visita/check-in');
+  ok(bl.includes("dia >= '2026-10-06'") && bl.includes('pontos: -4'), 'endpoint: penalti vale -4 so a partir de 06/10/2026 (dias anteriores continuam -6)');
+  ok(br.includes('table-layout: fixed') && br.includes('Inativos resgatados') && br.includes('/api/version'), 'Brasileirao: tabelas cabem na tela (sem rolagem lateral), cabecalhos Super Pedidos/Inativos explicados, recarrega com versao nova');
 }
 
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)

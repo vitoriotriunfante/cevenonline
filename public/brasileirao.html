@@ -287,8 +287,12 @@ main {
 /* Gabarito e Lances do Dia: texto longo quebra linha em vez de ser cortado na lateral (Vitório, 06/10/2026) */
 #tab-gabarito .tb-league { table-layout: fixed; }
 #tab-gabarito .tb-league td { white-space: normal; word-break: break-word; padding: 9px 14px; }
-#tab-lances .tb-league td:nth-child(n+4) { white-space: normal; word-break: break-word; }
-#tab-lances .tb-league td { padding: 10px 12px; }
+#tab-lances .tb-league, #tab-gabarito .tb-league { table-layout: fixed; width: 100%; }
+#tab-lances .tb-league td, #tab-lances .tb-league th, #tab-gabarito .tb-league td, #tab-gabarito .tb-league th { white-space: normal; word-break: break-word; padding: 9px 10px; }
+#tab-lances .tb-league th:nth-child(1) { width: 62px; } #tab-lances .tb-league th:nth-child(2) { width: 58px; } #tab-lances .tb-league th:nth-child(3) { width: 118px; }
+#tab-lances .tb-league th:nth-child(4) { width: 16%; } #tab-lances .tb-league th:nth-child(5) { width: 13%; } #tab-lances .tb-league th:nth-child(6) { width: 19%; }
+#tab-lances .tb-league th:nth-child(7) { width: 72px; } #tab-lances .tb-league th:nth-child(8) { width: 70px; }
+#tab-lances .tb-league td:nth-child(9) { font-size: 12px; color: #cbd5e1; }
 .tb-league tbody tr { transition: background 0.15s; }
 .tb-league tbody tr:hover { background: var(--surface-hover); }
 
@@ -537,8 +541,8 @@ footer {
               <th style="text-align:center">GC</th>
               <th style="text-align:center">SG</th>
               <th style="text-align:center">% Aprov</th>
-              <th style="text-align:center">Super Ped.</th>
-              <th style="text-align:center">Inativos</th>
+              <th style="text-align:center" title="Quantidade de gols de Super Pedido (pedido de valor muito alto no dia, 15 mil ou mais). Critério de desempate da tabela.">Super Pedidos</th>
+              <th style="text-align:center" title="Quantidade de clientes inativos (parados há mais de 30 dias) que o vendedor reativou: gols de Resgate de Inativo. Critério de desempate da tabela.">Inativos resgatados</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -670,8 +674,8 @@ footer {
               <th style="text-align:center">% Aprov</th>
               <th style="text-align:center">Forma Recente</th>
               <th style="text-align:center">Bônus Streak</th>
-              <th style="text-align:center">Super Ped.</th>
-              <th style="text-align:center">Inativos</th>
+              <th style="text-align:center" title="Quantidade de gols de Super Pedido (pedido de valor muito alto no dia, 15 mil ou mais). Critério de desempate da tabela.">Super Pedidos</th>
+              <th style="text-align:center" title="Quantidade de clientes inativos (parados há mais de 30 dias) que o vendedor reativou: gols de Resgate de Inativo. Critério de desempate da tabela.">Inativos resgatados</th>
             </tr>
           </thead>
           <tbody id="tbody-vendedores">
@@ -729,14 +733,14 @@ footer {
         <table class="tb-league">
           <thead>
             <tr>
-              <th style="width:80px">Hora</th>
-              <th style="width:70px">Filial</th>
-              <th style="width:130px">Tipo</th>
+              <th>Hora</th>
+              <th>Filial</th>
+              <th>Tipo</th>
               <th>Vendedor</th>
               <th>Supervisor</th>
               <th>Cliente / Detalhe</th>
               <th style="text-align:center">Sem Comprar</th>
-              <th style="text-align:center;width:90px">Pontos</th>
+              <th style="text-align:center">Pontos</th>
               <th>Por quê (memória de cálculo)</th>
             </tr>
           </thead>
@@ -761,7 +765,7 @@ footer {
           <span id="gab-resumo" style="font-weight:700"></span>
         </div>
       </div>
-      <div style="overflow-x:auto"><table class="tb-league"><thead><tr><th style="width:25%">Lance (regra oficial)</th><th style="text-align:center;width:90px">Pontos</th><th>Critério</th><th style="text-align:center;width:90px">Lances hoje</th><th style="text-align:center;width:120px">Pontos no dia</th></tr></thead><tbody id="tbody-gabarito"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando…</td></tr></tbody></table></div>
+      <div style="overflow-x:auto"><table class="tb-league"><thead><tr><th style="width:25%">Lance (regra oficial)</th><th style="text-align:center">Pontos</th><th>Critério</th><th style="text-align:center;width:90px">Lances hoje</th><th style="text-align:center;width:110px">Pontos no dia</th></tr></thead><tbody id="tbody-gabarito"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando…</td></tr></tbody></table></div>
     </div>
   </section>
 
@@ -1036,6 +1040,7 @@ const MAPA_REGRAS_PONTOS = {
   penalti: { nome: 'Pênalti', pontos: -6, motivo: 'Justificativa de não-visita em cliente parado' },
   ver_dev: { nome: 'Cartão Vermelho (Devolução "Não Pediu")', pontos: -10, motivo: 'Devolução grave: cliente não pediu o pedido' },
   ver_bonif: { nome: 'Cartão Vermelho (Bonificação Disfarçada)', pontos: -10, motivo: 'Pedido com 2+ itens e soma de valor R$0' },
+  vis11: { nome: 'Cartão Vermelho (Abandono de Campo)', pontos: -10, motivo: 'Nenhuma visita feita até às 11h com rota ativa (regra de 06/10/2026)' },
   vis10: { nome: 'Cartão Vermelho (Abandono de Campo)', pontos: -10, motivo: 'Nenhuma visita feita até às 10h com rota ativa' },
   venda10: { nome: 'Cartão Vermelho (Sem Venda)', pontos: -10, motivo: 'Rota completa sem nenhuma venda até o fim do dia' },
   visita10: { nome: 'Expulsão (Sem Visita)', pontos: -10, motivo: 'Nenhuma visita registrada no dia inteiro' },
@@ -1411,6 +1416,10 @@ window.addEventListener('load', carregarDados);
 window.addEventListener('load', carregarTabelaPontos);
 window.addEventListener('load', iniciarMinhaFilial);
 window.addEventListener('load', iniciarAbaUrl);
+</script>
+<script>
+// Atualiza sozinha quando sai uma versao nova do site (mesma regra das TVs)
+(function () { let v0 = null; async function chk() { try { const r = await fetch('/api/version', { cache: 'no-store' }); const j = await r.json(); if (v0 && j.version && j.version !== v0 && !document.activeElement.matches('input,select,textarea')) location.reload(); v0 = v0 || j.version; } catch (e) {} } chk(); setInterval(chk, 60000); })();
 </script>
 </body>
 </html>

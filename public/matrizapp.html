@@ -599,11 +599,10 @@ function calcAlertas() {
     const limiteHora = ehFuso ? 11 : 10;
     const limiteHoraFim = ehFuso ? 12.5 : 11.5;
     const horaAtualDecimal = t.h + (t.m / 60);
-    const naJanelaMatinal = horaAtualDecimal >= limiteHora && horaAtualDecimal < limiteHoraFim;
-    if (v.campo && v.temRota && naJanelaMatinal) {
-      if (v.feitas === 0) out.push({key: `${sig}|vis10|${v.id}`, sig, nivel: 'vermelho', subtipo: 'abandono_campo', v});
-      else if (!(v.dig > 0) && !(v.pos > 0)) out.push({key: `${sig}|ven10|${v.id}`, sig, nivel: 'amarelo', subtipo: 'sem_venda', v});
-    }
+    // Amarelo (10h; 11h no fuso): sem pedido e/ou sem visita (inclui sem check-in de varejo). Vermelho de abandono (11h; 12h no fuso): sem nenhuma visita. Regra de 06/10/2026.
+    const limVerm = limiteHora + 1, limVermFim = limiteHoraFim + 1;
+    if (v.campo && v.temRota && horaAtualDecimal >= limiteHora && horaAtualDecimal < limiteHoraFim && (v.feitas === 0 || (!(v.dig > 0) && !(v.pos > 0)))) out.push({key: `${sig}|ven10|${v.id}`, sig, nivel: 'amarelo', subtipo: v.feitas === 0 ? 'sem_checkin' : 'sem_venda', v});
+    if (v.campo && v.temRota && horaAtualDecimal >= limVerm && horaAtualDecimal < limVermFim && v.feitas === 0) out.push({key: `${sig}|vis11|${v.id}`, sig, nivel: 'vermelho', subtipo: 'abandono_campo', v});
   }
   return out;
 }
@@ -767,7 +766,7 @@ function pontosLanceOficial(tipo, subtipo) {
   if (tipo === 'golcontra') return { nome: 'Gol Contra (Devolução)', pts: '-4 PONTOS NA LIGA', cor: '#ef4444' };
   if (tipo === 'semanainvicta') return { nome: 'Semana Invicta', pts: '+3 PONTOS NA LIGA', cor: '#facc15' };
   if (tipo === 'impedimento') return { nome: 'Impedimento VAR', pts: '-5 PONTOS NA LIGA', cor: '#f97316' };
-  if (tipo === 'penalti') return { nome: 'Pênalti', pts: '-6 PONTOS NA LIGA', cor: '#ef4444' };
+  if (tipo === 'penalti') return { nome: 'Pênalti', pts: '-4 PONTOS NA LIGA', cor: '#ef4444' };
   if (tipo === 'vermelho' || tipo === 'venda10' || tipo === 'visita10') return { nome: 'Cartão Vermelho', pts: '-10 PONTOS NA LIGA', cor: '#ef4444' };
   return { nome: 'LANCE DA LIGA', pts: '', cor: '#38bdf8' };
 }
