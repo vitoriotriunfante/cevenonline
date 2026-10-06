@@ -532,6 +532,16 @@ secao('8k. Supervisores com filtro/trava e painel gerencial fixo no topo; sem pr
   ok(!eng.includes('it.preco || 15') && eng.includes('vl_perdido_logistica'), 'cortes: sem preco padrao de R$ 15 inventado; usa o valor perdido real do CEVEN');
 }
 
+// ---------------------------------------------------------------- 8l. Paineis escolhiveis (vermelhos/amarelos...), gabarito e tela responsiva
+secao('8l. Paineis escolhidos pelo gestor (cartoes vermelhos/amarelos), aba Gabarito e Brasileirao responsivo');
+{
+  const mz = ler('public/matrizapp.html'), tv = ler('public/tvapp.html'), an = ler('public/animacoes/tv-animacoes.js'), br = ler('public/brasileirao.html');
+  ok(an.includes('PAINEIS_OPCOES') && an.includes('Cartões vermelhos de hoje') && an.includes('Cartões amarelos de hoje') && an.includes('painelLancesBlocoHtml'), 'opcoes de painel incluem cartoes vermelhos e amarelos, gols, defesas, impedimentos e gol contra');
+  ok(mz.includes('painelSlotSet') && mz.includes('PNL_HTML') && mz.includes('painelSeletorHtml(i, id)'), 'Matriz: cada quadro do Painel Nacional tem seletor e so redesenha quando muda');
+  ok(tv.includes('painelSlotSet') && tv.includes('PNL_CACHE') && tv.includes('BUFP'), 'TV da filial: cada quadro do Painel tem seletor');
+  ok(!br.includes('max-width: 1500px;') && br.includes('tab-gabarito') && br.includes('carregarGabarito') && br.includes("switchTab('gabarito')"), 'Brasileirao: largura responsiva e aba Gabarito do Dia ao lado de Lances do Dia');
+}
+
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)
 secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
 {

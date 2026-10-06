@@ -1618,3 +1618,27 @@ window.golClienteLinhasHtml = function (c, subt, brl, esc) {
   }
   return h;
 };
+
+// ====================== PAINEIS ESCOLHIDOS PELO GESTOR (Vitório, 06/10/2026) ======================
+// Cada quadro do Painel pode mostrar: alertas, justificativas, digitado, pênaltis ou a lista de cartões vermelhos/amarelos, gols, defesas, impedimentos, gol contra do dia.
+window.PAINEIS_OPCOES = [['alertas', '🚨 Alertas ativos'], ['justificativas', '📝 Justificativas de hoje'], ['digitado', '💰 Digitado hoje · ranking'], ['penaltis', '🚨 Ranking de pênaltis'],
+  ['vermelhos', '🟥 Cartões vermelhos de hoje'], ['amarelos', '🟨 Cartões amarelos de hoje'], ['gols', '⚽ Gols de hoje'], ['defesas', '🧤 Defesas de hoje'], ['impedimentos', '🚩 Impedimentos de hoje'], ['golcontra', '⚽ Gol contra (devoluções)']];
+window.PAINEIS_PADRAO = ['alertas', 'justificativas', 'digitado', 'penaltis'];
+window.painelSeletorHtml = function (i, escolhido) {
+  return '<select class="psel" onchange="painelSlotSet(' + i + ', this.value)" style="background:#0f1626;color:#cbd5e1;border:1px solid #1e2a44;border-radius:6px;padding:2px 6px;font-size:12px;margin-bottom:4px;max-width:100%">' +
+    window.PAINEIS_OPCOES.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === escolhido ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>';
+};
+window.painelLancesBlocoHtml = function (id, log, esc, tag) {
+  const NIV = { vermelhos: ['vermelho', 'venda10', 'visita10'], amarelos: ['amarelo'], gols: ['gol', 'hattrick'], defesas: ['defesa'], impedimentos: ['impedimento'], golcontra: ['golcontra'] };
+  const op = window.PAINEIS_OPCOES.find(function (o) { return o[0] === id; });
+  const niv = NIV[id];
+  if (!op || !niv) return '';
+  const l = (log || []).filter(function (e) { return niv.indexOf(e.nivel) >= 0; }).sort(function (a, b) { return String(b.t || '').localeCompare(String(a.t || '')); });
+  const cab = '<' + tag + '><span>' + op[1] + '</span><b>' + l.length + '</b></' + tag + '>';
+  if (!l.length) return cab + '<div style="color:var(--mut,#8b9bbd);padding:10px 0">Nenhum lance deste tipo hoje.</div>';
+  return cab + l.slice(0, 80).map(function (e) {
+    const quem = esc(e.vendedor || '') + (e.rca && e.rca !== 'sup' ? ' <span style="color:var(--mut,#8b9bbd)">(RCA ' + esc(e.rca) + ')</span>' : '');
+    const onde = [e.sig || e.filial || '', e.cliente || '', e.motivo || '', e.supervisor ? 'sup. ' + e.supervisor : ''].filter(Boolean).map(esc).join(' · ');
+    return '<div class="row" style="grid-template-columns:auto 1fr"><span class="tg" style="background:var(--card2,#131c30)">' + esc(String(e.t || '').slice(0, 5)) + '</span><div class="n">' + quem + '<small>' + onde + '</small></div></div>';
+  }).join('');
+};

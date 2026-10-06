@@ -1457,29 +1457,35 @@ function exportarModalDetalhe() {
   document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
 }
+const BUFP = {}, PNL_CACHE = [];
+function painelSlots() { const v = store.get('ceven_painel_slots_v1', PAINEIS_PADRAO); return Array.isArray(v) && v.length === 4 ? v : PAINEIS_PADRAO; }
+window.painelSlotSet = (i, v) => { const sl = painelSlots().slice(); sl[i] = v; store.set('ceven_painel_slots_v1', sl); PNL_CACHE[i] = null; render(); };
 function renderPainel(vs) {
   const top = ALERTAS.slice(0, 8);
   PAINEL_DADOS.alertas = ALERTAS;
-  $('p1').innerHTML = `<h2><span>Alertas ativos</span><b>${ALERTAS.length}</b></h2>` + (top.length ? top.map(a => `<div class="row">${tagAlerta(a)}<div class="n">${nomeComRca(a.v)}<small>${esc(textoAlerta(a))}</small></div><span></span></div>`).join('') + (ALERTAS.length > 8 ? `<div class="row"><span></span><div class="n" style="color:var(--mut)">+${ALERTAS.length - 8} alertas</div><span></span></div>` : '') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Nenhum alerta ativo.</div>');
+  BUFP.p1 = `<h2><span>Alertas ativos</span><b>${ALERTAS.length}</b></h2>` + (top.length ? top.map(a => `<div class="row">${tagAlerta(a)}<div class="n">${nomeComRca(a.v)}<small>${esc(textoAlerta(a))}</small></div><span></span></div>`).join('') + (ALERTAS.length > 8 ? `<div class="row"><span></span><div class="n" style="color:var(--mut)">+${ALERTAS.length - 8} alertas</div><span></span></div>` : '') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Nenhum alerta ativo.</div>');
 
   const cont = {}, contDet = {};
   vs.forEach(v => (v.cl || []).forEach(c => { if (c.motivo) { cont[c.motivo] = (cont[c.motivo] || 0) + 1; (contDet[c.motivo] = contDet[c.motivo] || []).push({ v, c }); } }));
   const ms = Object.entries(cont).sort((a, b) => b[1] - a[1]).slice(0, 8), mx = ms.length ? ms[0][1] : 1, tot = Object.values(cont).reduce((a, b) => a + b, 0);
   PAINEL_DADOS.justificativas = contDet;
-  $('p2').innerHTML = `<h2><span>Justificativas de hoje</span><b>${tot}</b></h2>` + (ms.length ? ms.map(([m, n]) => { const red = /ESTOQUE SUFICIENTE|FECHADO|ENCERROU/.test(m); const pct = tot ? (n / tot * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainel('justificativa','${esc(m).replace(/'/g, "\\'")}')"><div class="row" style="border:0;grid-template-columns:1fr auto"><div class="n">${esc(m)}</div><b class="mono">${n} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb${red ? ' red' : ''}"><i style="width:${n / mx * 100}%"></i></div></div>`; }).join('') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Nenhuma justificativa registrada hoje.</div>');
+  BUFP.p2 = `<h2><span>Justificativas de hoje</span><b>${tot}</b></h2>` + (ms.length ? ms.map(([m, n]) => { const red = /ESTOQUE SUFICIENTE|FECHADO|ENCERROU/.test(m); const pct = tot ? (n / tot * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainel('justificativa','${esc(m).replace(/'/g, "\\'")}')"><div class="row" style="border:0;grid-template-columns:1fr auto"><div class="n">${esc(m)}</div><b class="mono">${n} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb${red ? ' red' : ''}"><i style="width:${n / mx * 100}%"></i></div></div>`; }).join('') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Nenhuma justificativa registrada hoje.</div>');
 
   const rk = [...vs].filter(v => v.dig > 0).sort((a, b) => b.dig - a.dig), totDig = rk.reduce((x, v) => x + (v.dig || 0), 0), mr = rk.length ? rk[0].dig : 1;
   PAINEL_DADOS.digitado = rk;
-  $('p3').innerHTML = `<h2><span>Digitado hoje · ranking</span><b>${brl(totDig)}</b></h2>` + (rk.length ? rk.slice(0, 8).map((v, i) => { const pct = totDig ? (v.dig / totDig * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainel('digitado')"><div class="row" style="border:0;grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${nomeComRca(v)}</div><b class="mono">${brl(v.dig)} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb"><i style="width:${v.dig / mr * 100}%"></i></div></div></div>`; }).join('') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Ninguém digitou ainda hoje.</div>');
+  BUFP.p3 = `<h2><span>Digitado hoje · ranking</span><b>${brl(totDig)}</b></h2>` + (rk.length ? rk.slice(0, 8).map((v, i) => { const pct = totDig ? (v.dig / totDig * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainel('digitado')"><div class="row" style="border:0;grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${nomeComRca(v)}</div><b class="mono">${brl(v.dig)} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb"><i style="width:${v.dig / mr * 100}%"></i></div></div></div>`; }).join('') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Ninguém digitou ainda hoje.</div>');
 
   const rk2 = rankingPenaltis(), top2 = rk2.slice(0, 8), mx2 = top2.length ? top2[0].n : 1, totPen = rk2.reduce((x, y) => x + y.n, 0);
   PAINEL_DADOS.penaltis = rk2;
   const porSup = {}; rk2.forEach(x => { if (ehSupFalso(x.sup)) return; const k = x.sup || 'sem supervisor'; porSup[k] = (porSup[k] || 0) + x.n; });
   const supTxt = Object.entries(porSup).sort((x, y) => y[1] - x[1]).slice(0, 3).map(([k, n]) => `${k.split(' ')[0]} ${n}`).join(' · ');
-  $('p4').innerHTML = `<h2><span>Ranking de pênaltis · hoje</span><b>${totPen}</b></h2>` + (top2.length ? top2.map((x, i) => { const pct = totPen ? (x.n / totPen * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainel('penalti')"><div class="row" style="border:0;grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${esc(x.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(x.rca)})</span></div><b class="mono" style="color:var(--bad)">${x.n} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb red"><i style="width:${x.n / mx2 * 100}%"></i></div></div></div>`; }).join('') + (supTxt ? `<div style="color:var(--mut);font-size:14px;margin-top:4px">Supervisores: ${esc(supTxt)}</div>` : '') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Nenhum pênalti hoje.</div>');
+  BUFP.p4 = `<h2><span>Ranking de pênaltis · hoje</span><b>${totPen}</b></h2>` + (top2.length ? top2.map((x, i) => { const pct = totPen ? (x.n / totPen * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainel('penalti')"><div class="row" style="border:0;grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${esc(x.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(x.rca)})</span></div><b class="mono" style="color:var(--bad)">${x.n} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb red"><i style="width:${x.n / mx2 * 100}%"></i></div></div></div>`; }).join('') + (supTxt ? `<div style="color:var(--mut);font-size:14px;margin-top:4px">Supervisores: ${esc(supTxt)}</div>` : '') : '<div style="color:var(--mut);font-size:18px;padding:12px 0">Nenhum pênalti hoje.</div>');
 
   // Card "Alertas ativos" clicável no título (não item a item — já é uma lista misturada de tipos)
-  const p1h2 = document.querySelector('#p1 h2'); if (p1h2) { p1h2.style.cursor = 'pointer'; p1h2.onclick = () => abrirModalPainel('alertas'); }
+  const DEF = {alertas: BUFP.p1, justificativas: BUFP.p2, digitado: BUFP.p3, penaltis: BUFP.p4};
+  const SL = painelSlots();
+  [1, 2, 3, 4].forEach((n, i) => { const html = painelSeletorHtml(i, SL[i]) + (DEF[SL[i]] || painelLancesBlocoHtml(SL[i], LOG, esc, 'h2')); if (PNL_CACHE[i] !== html) { PNL_CACHE[i] = html; $('p' + n).innerHTML = html; } });
+  const idxAl = SL.indexOf('alertas'); const p1h2 = idxAl >= 0 ? document.querySelector('#p' + (idxAl + 1) + ' h2') : null; if (p1h2) { p1h2.style.cursor = 'pointer'; p1h2.onclick = () => abrirModalPainel('alertas'); }
 }
 function renderSup() {
   if (!SEM && !semCarregando) carregaSemana();

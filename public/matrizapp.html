@@ -111,8 +111,8 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #modalDetalheHeader{padding:12px 14px}
   #modalDetalheTitulo{font-size:16px}
 }
-.grid4painel{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px}
-.pnl{background:var(--card2);border-radius:10px;padding:10px;max-height:280px;overflow-y:auto;position:relative}
+.grid4painel{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:10px;margin-top:8px;flex:1;min-height:0}
+.pnl{background:var(--card2);border-radius:10px;padding:10px;min-height:0;overflow-y:auto;position:relative}
 .pnl h3{font-size:14px;display:flex;justify-content:space-between;margin-bottom:6px;color:var(--mut);position:sticky;top:-10px;background:var(--card2);padding:4px 0;margin-top:-4px;z-index:3}
 .pnl h3 b{color:#fff}
 .pnl .row{display:grid;gap:8px;align-items:center;padding:6px 4px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.05)}
@@ -1502,6 +1502,9 @@ function exportarModalDetalhe() {
 // PAINEL NACIONAL: mesmos 4 cards do CFTV de filial (Alertas/Justificativas/Digitado/Pênaltis),
 // agregados de TODAS as 11 filiais — decisão do Vitório, 28/09/2026 ("coloca essa tela para a
 // matriz"). Reaproveita ALERTAS (já é global) e o mesmo PAINEL_DADOS/modal do CFTV de filial.
+let PNL_HTML = '';
+function painelSlots() { const v = store.get('ceven_painel_slots_v1', PAINEIS_PADRAO); return Array.isArray(v) && v.length === 4 ? v : PAINEIS_PADRAO; }
+window.painelSlotSet = (i, v) => { const sl = painelSlots().slice(); sl[i] = v; store.set('ceven_painel_slots_v1', sl); PNL_HTML = ''; render(); };
 function renderPainelNacional() {
   const el = $('det'), vs = ORDEM.flatMap(vendedores);
   PAINEL_DADOS.alertas = ALERTAS;
@@ -1515,25 +1518,20 @@ function renderPainelNacional() {
   const rkP = rankingPenaltisNacional(), topP = rkP.slice(0, 8), mxP = topP.length ? topP[0].n : 1, totP = rkP.reduce((x, y) => x + y.n, 0);
   PAINEL_DADOS.penaltis = rkP;
 
-  el.innerHTML = `<h2><span>Painel Nacional · 11 filiais</span><b>${sp().hms}</b></h2>
-   <div class="grid4painel">
-    <div class="pnl">
-      <h3 onclick="abrirModalPainelMtz('alertas')" style="cursor:pointer">Alertas ativos <b>${ALERTAS.length}</b></h3>
-      ${topA.length ? topA.map(a => `<div class="row"><span class="tg" style="background:var(--card2)">${a.sig || ''}</span><div class="n">${nomeComRca(a.v, true)}<small>${esc(a.subtipo || a.nivel)}</small></div></div>`).join('') : '<div class="vazio">Nenhum alerta ativo.</div>'}
-    </div>
-    <div class="pnl">
-      <h3>Justificativas de hoje <b>${totJ}</b></h3>
-      ${msJ.length ? msJ.map(([m, n]) => { const pct = totJ ? (n / totJ * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainelMtz('justificativa','${esc(m).replace(/'/g, "\\'")}')"><div class="row" style="grid-template-columns:1fr auto"><div class="n">${esc(m)}</div><b class="mono">${n} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb"><i style="width:${n / mxJ * 100}%"></i></div></div>`; }).join('') : '<div class="vazio">Nenhuma justificativa hoje.</div>'}
-    </div>
-    <div class="pnl">
-      <h3>Digitado hoje · ranking <b>${brl(totD)}</b></h3>
-      ${rkD.length ? rkD.slice(0, 8).map((v, i) => { const pct = totD ? (v.dig / totD * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainelMtz('digitado')"><div class="row" style="grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${nomeComRca(v, true)} <small style="color:var(--mut)">${v.sig}</small></div><b class="mono">${brl(v.dig)} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb"><i style="width:${v.dig / mrD * 100}%"></i></div></div>`; }).join('') : '<div class="vazio">Ninguém digitou ainda.</div>'}
-    </div>
-    <div class="pnl">
-      <h3>Ranking de pênaltis · hoje <b>${totP}</b></h3>
-      ${topP.length ? topP.map((x, i) => { const pct = totP ? (x.n / totP * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainelMtz('penalti')"><div class="row" style="grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${esc(x.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(x.rca)}) · ${esc(x.sig || '')}</span>${x.canal ? ' ' + tagCanalHtml(x.canal) : ''}</div><b class="mono" style="color:var(--bad)">${x.n} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb red"><i style="width:${x.n / mxP * 100}%"></i></div></div>`; }).join('') : '<div class="vazio">Nenhum pênalti hoje.</div>'}
-    </div>
-   </div>`;
+  const BLOCOS = {
+    alertas: `<h3 onclick="abrirModalPainelMtz('alertas')" style="cursor:pointer">Alertas ativos <b>${ALERTAS.length}</b></h3>
+      ${topA.length ? topA.map(a => `<div class="row"><span class="tg" style="background:var(--card2)">${a.sig || ''}</span><div class="n">${nomeComRca(a.v, true)}<small>${esc(a.subtipo || a.nivel)}</small></div></div>`).join('') : '<div class="vazio">Nenhum alerta ativo.</div>'}`,
+    justificativas: `<h3>Justificativas de hoje <b>${totJ}</b></h3>
+      ${msJ.length ? msJ.map(([m, n]) => { const pct = totJ ? (n / totJ * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainelMtz('justificativa','${esc(m).replace(/'/g, "\\'")}')"><div class="row" style="grid-template-columns:1fr auto"><div class="n">${esc(m)}</div><b class="mono">${n} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb"><i style="width:${n / mxJ * 100}%"></i></div></div>`; }).join('') : '<div class="vazio">Nenhuma justificativa hoje.</div>'}`,
+    digitado: `<h3>Digitado hoje · ranking <b>${brl(totD)}</b></h3>
+      ${rkD.length ? rkD.slice(0, 8).map((v, i) => { const pct = totD ? (v.dig / totD * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainelMtz('digitado')"><div class="row" style="grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${nomeComRca(v, true)} <small style="color:var(--mut)">${v.sig}</small></div><b class="mono">${brl(v.dig)} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb"><i style="width:${v.dig / mrD * 100}%"></i></div></div>`; }).join('') : '<div class="vazio">Ninguém digitou ainda.</div>'}`,
+    penaltis: `<h3>Ranking de pênaltis · hoje <b>${totP}</b></h3>
+      ${topP.length ? topP.map((x, i) => { const pct = totP ? (x.n / totP * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainelMtz('penalti')"><div class="row" style="grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${esc(x.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(x.rca)}) · ${esc(x.sig || '')}</span>${x.canal ? ' ' + tagCanalHtml(x.canal) : ''}</div><b class="mono" style="color:var(--bad)">${x.n} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb red"><i style="width:${x.n / mxP * 100}%"></i></div></div>`; }).join('') : '<div class="vazio">Nenhum pênalti hoje.</div>'}`
+  };
+  const SLOTS = painelSlots();
+  const html = `<h2><span>Painel Nacional · 11 filiais</span><b id="pnHms"></b></h2><div class="grid4painel">${SLOTS.map((id, i) => `<div class="pnl">${painelSeletorHtml(i, id)}${BLOCOS[id] || painelLancesBlocoHtml(id, LOG, esc, 'h3')}</div>`).join('')}</div>`;
+  if (html !== PNL_HTML) { PNL_HTML = html; el.innerHTML = html; } // so redesenha quando muda: o menu aberto e a rolagem dos quadros nao se perdem a cada segundo
+  const hh = $('pnHms'); if (hh) hh.textContent = sp().hms;
 }
 const penaltisDeNacional = (rca, sig) => LOG.filter(e => e.nivel === 'penalti' && e.rca === rca && e.sig === sig).length;
 function rankingPenaltisNacional() {
@@ -1544,6 +1542,7 @@ function rankingPenaltisNacional() {
 function render() {
   const stats = ORDEM.map(statFilial); renderTotais(stats); renderRank(stats);
   const sup = modoSup(), nacional = !sup && idxFil === ORDEM.length;
+  if (!nacional) PNL_HTML = '';
   if (!sup || !SUP_MANUAL) SUP_HTML = ''; // a tela de supervisores so e redesenhada quando muda; ao sair dela, forca o redesenho na volta
   $('modo').textContent = sup ? 'SUPERVISORES' : nacional ? 'PAINEL NACIONAL' : (auto ? 'FILIAL · AUTO' : 'FILIAL · MANUAL');
   if (sup) renderSupView(); else if (nacional) renderPainelNacional(); else renderFilial(stats[idxFil]);

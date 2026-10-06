@@ -58,7 +58,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: 1500px;
+  max-width: min(1900px, 98vw);
   margin: 0 auto;
   gap: 16px;
   flex-wrap: wrap;
@@ -143,7 +143,7 @@ header {
 
 /* NAV TABS */
 .nav-tabs {
-  max-width: 1500px;
+  max-width: min(1900px, 98vw);
   margin: 14px auto 0 auto;
   display: flex;
   gap: 8px;
@@ -178,7 +178,7 @@ header {
 
 /* MAIN CONTENT */
 main {
-  max-width: 1500px;
+  max-width: min(1900px, 98vw);
   width: 100%;
   margin: 24px auto;
   padding: 0 24px;
@@ -469,6 +469,7 @@ footer {
     <button class="tab-btn" onclick="switchTab('supervisores')">⭐ Liga dos Supervisores</button>
     <button class="tab-btn" onclick="switchTab('vendedores')">⚽ Artilharia de Vendedores</button>
     <button class="tab-btn" onclick="switchTab('lances')">📋 Lances do Dia</button>
+    <button class="tab-btn" onclick="switchTab('gabarito')">🎯 Gabarito do Dia</button>
     <button class="tab-btn" onclick="switchTab('regulamento')">📖 Regulamento da Liga</button>
   </div>
 </header>
@@ -741,6 +742,23 @@ footer {
     </div>
   </section>
 
+  <!-- ABA: GABARITO DO DIA (regras x lances reais do dia, para acompanhar) -->
+  <section id="tab-gabarito" class="tab-content">
+    <div class="panel-card" style="padding:0">
+      <div style="padding:20px">
+        <h2 style="font-size:22px;margin-bottom:4px">Gabarito do Dia — regras x lances reais</h2>
+        <p style="color:var(--tx-mut);font-size:13px;margin-bottom:14px">Cada regra da liga com os pontos oficiais e quantos lances reais do dia caíram nela. Nenhum número é estimado.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <input type="date" id="gab-data" class="input-search" style="max-width:180px" onchange="carregarGabarito()">
+          <select id="gab-filial" class="input-search" style="max-width:160px" onchange="carregarGabarito()"><option value="TODAS">Todas as filiais</option><option>TBL</option><option>TCV</option><option>TPH</option><option>ABC</option><option>API</option><option>TSJ</option><option>TBE</option><option>TPA</option><option>MCD</option><option>TCA</option><option>TCG</option></select>
+          <button class="tab-btn" onclick="carregarGabarito()">🔄 Atualizar</button>
+          <span id="gab-resumo" style="font-weight:700"></span>
+        </div>
+      </div>
+      <div style="overflow-x:auto"><table class="tb-league"><thead><tr><th>Lance (regra oficial)</th><th style="text-align:center;width:90px">Pontos</th><th>Critério</th><th style="text-align:center;width:90px">Lances hoje</th><th style="text-align:center;width:120px">Pontos no dia</th></tr></thead><tbody id="tbody-gabarito"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando…</td></tr></tbody></table></div>
+    </div>
+  </section>
+
   <!-- ABA 5: REGULAMENTO & TROFEUS -->
   <section id="tab-regulamento" class="tab-content">
     <div class="table-card" style="padding:28px">
@@ -942,6 +960,7 @@ function switchTab(tabId, btnElement = null) {
   if (target) target.classList.add('active');
 
   if (tabId === 'lances' && !LANCES_CARREGADOS_HOJE) carregarLances();
+  if (tabId === 'gabarito') carregarGabarito();
 }
 
 function iniciarAbaUrl() {
@@ -1104,6 +1123,36 @@ async function carregarLances() {
   } catch (e) {
     console.error('Erro ao carregar lances:', e);
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--bad)">Falha ao carregar lances — tente de novo em instantes.</td></tr>';
+  }
+}
+
+// Gabarito do dia: junta as regras do config (pontuacao_brasileirao.json) com os lances reais do dia (endpoint de lances, ja sem duplicados e com extra do gol qualificado)
+async function carregarGabarito() {
+  const tb = document.getElementById('tbody-gabarito'), inp = document.getElementById('gab-data');
+  if (!tb) return;
+  if (inp && !inp.value) inp.value = hojeISOBrasilia();
+  const dia = inp ? inp.value : hojeISOBrasilia(), fil = document.getElementById('gab-filial').value;
+  tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando…</td></tr>';
+  try {
+    const qs = new URLSearchParams({ dia }); if (fil && fil !== 'TODAS') qs.set('filial', fil);
+    const [cfg, d] = await Promise.all([fetch('/pontuacao_brasileirao.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()), fetch('/api/brasileirao-lances?' + qs.toString(), { cache: 'no-store' }).then(r => r.json())]);
+    const norm = (x) => [...String(x || '').toLowerCase().normalize('NFD')].filter(ch => /[a-z0-9 ]/.test(ch)).join('').replace(/ +/g, ' ').trim();
+    const regras = Object.values(cfg.pontos_por_lance || {}).map(r => ({ ...r, n: norm(r.nome), qtd: 0, soma: 0 })).sort((a, b) => b.pontos - a.pontos);
+    const outros = { nome: 'Outros (sem regra no gabarito)', pontos: null, motivo: 'Lance real do dia que não casou com nenhuma regra: conferir', qtd: 0, soma: 0 };
+    (d.lances || []).forEach(l => {
+      const ln = norm(l.pontos_nome);
+      const cand = regras.filter(r => r.n && (ln === r.n || ln.startsWith(r.n + ' '))).sort((a, b) => b.n.length - a.n.length)[0];
+      const alvo = cand || outros; alvo.qtd++; alvo.soma += Number(l.pontos) || 0;
+    });
+    const linhas = [...regras, ...(outros.qtd ? [outros] : [])];
+    const totQ = linhas.reduce((a, r) => a + r.qtd, 0), totP = linhas.reduce((a, r) => a + r.soma, 0);
+    document.getElementById('gab-resumo').textContent = totQ + ' lances · ' + (totP > 0 ? '+' : '') + totP + ' pontos no dia';
+    tb.innerHTML = linhas.map(r => {
+      const cor = r.pontos == null ? '#f59e0b' : r.pontos > 0 ? '#22c55e' : '#ef4444';
+      return '<tr' + (r.qtd ? '' : ' style="opacity:.55"') + '><td style="font-weight:700;color:#fff">' + esc(r.nome) + '</td><td style="text-align:center"><b style="color:' + cor + '">' + (r.pontos == null ? '—' : (r.pontos > 0 ? '+' : '') + r.pontos) + '</b></td><td style="color:#cbd5e1;font-size:13px">' + esc(r.motivo || '') + '</td><td style="text-align:center;font-weight:800">' + r.qtd + '</td><td style="text-align:center;font-weight:800;color:' + (r.soma >= 0 ? '#22c55e' : '#ef4444') + '">' + (r.qtd ? (r.soma > 0 ? '+' : '') + r.soma : '—') + '</td></tr>';
+    }).join('');
+  } catch (e) {
+    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--bad)">Falha ao carregar o gabarito — tente de novo.</td></tr>';
   }
 }
 
