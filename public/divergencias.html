@@ -59,6 +59,8 @@ async function carrega() {
   const r = d.resumo;
   const ar = d.arvore || {}; // antes dos quadradinhos: eles tambem usam
   $('chips').innerHTML = [
+    ['NÃO MOSTRA na Gestão', ((d.decisao || {}).nao_mostra || []).length, 'confirme se continua assim'],
+    ['CEVEN que a Gestão nunca viu', ((d.decisao || {}).fora_da_gestao || []).length, 'decida mostra / não mostra'],
     ['No banco e fora da Gestão de Equipe', r.banco_fora_da_planilha, `${r.banco_fora_produzindo} produzindo · ${r.banco_fora_sem_atividade} sem atividade`],
     ['Faturado no mês fora da Gestão de Equipe', brl(r.faturado_mes_fora_da_planilha), 'soma dos vendedores do item 1'],
     ['Vendedores novos da árvore do CEVEN', (ar.novos || []).length, 'já entraram nas telas'],
@@ -109,13 +111,28 @@ async function carrega() {
     {t: 'Devolução (mês)', n: 1, f: l => brl(l.devolucao_mes) + ' · ' + nv(l.notas_mes) + ' nota(s)'},
     {t: 'O que é', f: l => { const t = l.leitura || {}; const cls = (t.tipo === 'conta_interna' || t.tipo === 'vaga' || t.tipo === 'so_devolucao') ? 'ok' : 'nova'; return `<span class="tag ${cls}">${esc(t.texto || '')}</span>` + (l.nova ? ' <span class="tag nova">NOVO</span>' : ''); }}
   ], d.descobertos, 'A varredura de descoberta ainda não achou nenhum código com devolução fora das listas.');
-  $('corpo').innerHTML = aviso +
+  const dc = d.decisao || {nao_mostra: [], fora_da_gestao: []};
+  const tg = (l) => { const t = l.leitura || {}; const cls = t.tipo === 'produzindo' ? 'mov' : (t.tipo === 'sem_atividade' ? 'ok' : 'nova'); return `<span class="tag ${cls}">${esc(t.texto || '')}</span>`; };
+  const colsDec = [
+    {t: 'Filial', f: l => '<b>' + esc(l.filial) + '</b>'}, {t: 'Vendedor', f: l => esc(l.nome) + ' <span style="color:var(--mut)">(' + esc(l.codigo) + ')</span>'}, {t: 'Supervisor', f: l => esc(l.supervisor || '—')}, {t: 'Canal', f: l => esc(l.canal || '—')},
+    {t: 'Meta do mês', n: 1, f: l => l.meta_fat ? brl(l.meta_fat) : '<span style="color:var(--mut)">sem meta</span>'}, {t: 'Faturado no mês', n: 1, f: l => brl(l.fat_mes) + pct(l.fat_mes, l.meta_fat)},
+    {t: 'Rota hoje', n: 1, f: l => nv(l.rota_hoje)}, {t: 'Pedidos hoje', n: 1, f: l => nv(l.pedidos_hoje)}, {t: 'O que os números dizem', f: tg}
+  ];
+  const D1 = tabela([...colsDec, {t: 'Motivo na Gestão', f: l => esc(l.motivo || '—')}, {t: 'No CEVEN hoje?', f: l => l.no_ceven ? 'sim' : '<b style="color:var(--aviso)">não</b>'}], dc.nao_mostra, 'Ninguém está como NÃO MOSTRA na Gestão de Equipe.');
+  const D2 = tabela([...colsDec, {t: 'Hoje nas telas', f: l => '<span class="tag ok">MOSTRA</span>'}], dc.fora_da_gestao, 'Nenhum: todo vendedor do CEVEN já está na Gestão de Equipe.');
+  const dMeta = (L) => L.filter(x => x.meta_fat > 0).length, dVende = (L) => L.filter(x => x.fat_mes > 0 || x.pedidos_hoje > 0).length;
+  const decisaoHtml =
+    secao('A. Estão como NÃO MOSTRA na Gestão de Equipe — continua assim?', `${dc.nao_mostra.length} vendedores · ${dMeta(dc.nao_mostra)} com meta · ${dVende(dc.nao_mostra)} vendendo. Os que têm meta ou venda aparecem primeiro: são os que merecem sua atenção. Para mudar, use a Gestão de Equipe (MOSTRA = SIM).`, D1) +
+    secao('B. Estão no CEVEN agora e a Gestão de Equipe nunca viu — decida', `${dc.fora_da_gestao.length} vendedores · ${dMeta(dc.fora_da_gestao)} com meta · ${dVende(dc.fora_da_gestao)} vendendo. Enquanto você não decide, eles APARECEM nas telas (MOSTRA). Para tirar algum, marque NÃO MOSTRA na Gestão de Equipe.`, D2);
+  const tecnico = '<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--mut);padding:8px 0">Outras conferências (técnicas): supervisor trocado, só na Gestão, banco, descobertos</summary>';
+  $('corpo').innerHTML = aviso + decisaoHtml + tecnico +
     secao('0. Árvore do CEVEN: vendedores NOVOS (já entraram nas telas)', 'Estão na árvore viva do CEVEN e ainda não estavam na Gestão de Equipe: entram sozinhos, com MOSTRA = SIM e o supervisor do CEVEN. Se algum não deve aparecer, é só ocultar na Gestão de Equipe.', A0) +
     secao('0.1 Árvore do CEVEN: supervisor trocado (vale o do CEVEN)', 'O CEVEN reorganiza a árvore todo dia. Aqui estão os vendedores cujo supervisor na Gestão de Equipe estava diferente do CEVEN: todas as telas, os lances e o WhatsApp já usam o do CEVEN.', A1) +
     secao('0.2 Só na Gestão de Equipe (fora da árvore do CEVEN)', 'Vendedores que a Gestão tem e a árvore do CEVEN não traz (a cascata do CEVEN não é completa: nenhum foi removido). Confira se ainda existem; os que não existem mais podem ser ocultados.', A2) +
     secao('1. No banco e fora da Gestão de Equipe', 'Vendedor ativo no cadastro do banco que a Gestão de Equipe não lista. Com movimento: vende, tem rota ou tem devolução. Decida na Gestão de Equipe se entra como MOSTRA = SIM ou NÃO.', A) +
     secao('2. Só informativo: na Gestão de Equipe e ainda sem cadastro no banco', 'Estes vendedores JÁ estão certos na Gestão de Equipe (com supervisor e gerente) e já aparecem em tudo: TV, Matriz, WhatsApp e Executiva. O banco de cadastros ainda não os recebeu porque o cadastro é sincronizado do CEVEN de madrugada. Você não precisa fazer nada aqui.', B) +
     secao('3. Códigos que o CEVEN tem e que não estão em lugar nenhum nosso', 'Não são vendedores da Gestão de Equipe nem do banco, mas têm devolução neste mês. Costumam ser: conta interna da empresa ("venda empresa", código 2 de cada filial), vaga em aberto, ou ex-vendedor que ainda tem nota. Só vale olhar o que tiver meta e rota: aí pode ser um vendedor que faltou cadastrar (use o painel da Gestão de Equipe).', C);
+  $('corpo').innerHTML += '</details>';
   const v = d.varredura_descoberta || {};
   $('rodape').textContent = `Árvore do CEVEN atualizada em ${ar.atualizado_em ? new Date(ar.atualizado_em).toLocaleString('pt-BR') : '—'} · Gerado em ${new Date(d.gerado_em).toLocaleString('pt-BR')} · varredura de descoberta: ciclo ${v.ciclo ?? 0}, posição ${v.pos ?? 0}${v.ciclo_fim ? ', último ciclo fechado em ' + v.ciclo_fim : ''}`;
 }
