@@ -87,7 +87,7 @@ export async function onRequestPost({ request, env }) {
       const completa = validos.filter((l, i) => !(rs[i].meta && rs[i].meta.changes === 1) && txt(l.obs, 700));
       if (completa.length) {
         await env.DB.batch(completa.map((l) => env.DB.prepare(
-          `UPDATE tv_lances SET obs = ? WHERE dia = ? AND filial = ? AND chave = ? AND (obs IS NULL OR obs = '' OR (obs NOT LIKE '%[QUALIF:%' AND ? LIKE '%[QUALIF:%'))`
+          `UPDATE tv_lances SET obs = ? WHERE dia = ? AND filial = ? AND chave = ? AND (obs IS NULL OR obs = '' OR length(obs) <= 3 OR (obs NOT LIKE '%[QUALIF:%' AND ? LIKE '%[QUALIF:%'))`
         ).bind(txt(l.obs, 700), dia, filial, l.chave, txt(l.obs, 700))));
       }
     }
