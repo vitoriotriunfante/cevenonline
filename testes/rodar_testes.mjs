@@ -567,7 +567,7 @@ secao('8o. Regras novas: amarelo as 10h (sem pedido e/ou sem visita), vermelho d
   ok([tv, mz].every(h => h.includes("subtipo: v.feitas === 0 ? 'sem_checkin' : 'sem_venda'") && h.includes('limVerm = limiteHora + 1') && h.includes('-4 PONTOS NA LIGA')), 'TV e Matriz: mesma regra nos popups e penalti -4 no selo');
   ok(cj.pontos_por_lance.penalti_estoque.pontos === -4 && cj.pontos_por_lance.penalti_fechado.pontos === -4 && pj.pontos_por_lance.penalti_estoque.pontos === -4 && /11h00/.test(cj.pontos_por_lance.visita10.motivo) && /nenhuma visita/.test(cj.pontos_por_lance.amarelo.motivo), 'regulamento (config e copia publica): penalti -4, abandono 11h, amarelo com sem-visita/check-in');
   ok(bl.includes("dia >= '2026-10-06'") && bl.includes('pontos: -4'), 'endpoint: penalti vale -4 so a partir de 06/10/2026 (dias anteriores continuam -6)');
-  ok(br.includes('table-layout: fixed') && !br.includes('clientes recuperados') && br.includes('@media (max-width: 1250px)') && br.includes('/api/version'), 'Brasileirao: tabelas cabem na tela (sem rolagem lateral), cabecalhos Super Pedidos/Inativos explicados, recarrega com versao nova');
+  ok(br.includes('table-layout: fixed') && !br.includes('clientes recuperados') && br.includes('@media (max-width: 1560px)') && br.includes('/api/version'), 'Brasileirao: tabelas cabem na tela (sem rolagem lateral), cabecalhos Super Pedidos/Inativos explicados, recarrega com versao nova');
 }
 
 // ---------------------------------------------------------------- 8p. Lances com horario, painel travado no topo, lance de hoje de verdade
@@ -585,7 +585,7 @@ secao('8p. Horarios dos lances (acrescimos 16h30-18h00), amarelos agrupados, pai
 secao('8q. Responsividade: abas e rodapes quebram linha, tabelas encolhem, sem colunas cortadas');
 {
   const br = ler('public/brasileirao.html'), tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), ex = ler('public/tv_executiva.html'), dv = ler('public/divergencias.html'), ge = ler('public/gestao-equipe.html');
-  ok(br.includes('.nav-tabs { flex-wrap: wrap; overflow-x: visible') && br.includes('@media (max-width: 1000px)') && br.includes('@media (max-width: 700px)') && !br.includes('${f.super_pedidos}') && !br.includes('${v.inativos_resgatados}'), 'Brasileirao: abas quebram linha, tabelas encolhem e escondem colunas secundarias em tela estreita; Super Pedido/Inativos removidos');
+  ok(br.includes('.nav-tabs { flex-wrap: wrap; overflow-x: visible') && br.includes('@media (max-width: 1360px)') && br.includes('@media (max-width: 700px)') && !br.includes('${f.super_pedidos}') && !br.includes('${v.inativos_resgatados}'), 'Brasileirao: abas quebram linha, tabelas encolhem e escondem colunas secundarias em tela estreita; Super Pedido/Inativos removidos');
   ok([tv, mz].every(h => h.includes('#ctl { display: flex; flex-wrap: wrap') && h.includes('footer { flex-wrap: wrap')), 'TV da filial e Matriz: rodape com botoes que quebram linha (nada cortado)');
   ok(ex.includes('header { height: auto !important') && dv.includes('clamp(5px,.6vw,8px)') && ge.includes('white-space: normal !important'), 'Executiva, Divergencias e Gestao de Equipe: cabecalho/tabelas fluidos');
 }
