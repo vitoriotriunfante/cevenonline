@@ -1,12 +1,50 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 TPH — VAGNER • 05/10/2026
+📍 TPH — VAGNER • 06/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/10/2026 a 05/10/2026)*
-💰 R$ 336,59 • 2 PDVs • ✂️ R$ 2,94 (1 un)
-👤 ANDREY CAMILLO PIRAGINE — R$ 314,96 (1 PDVs)
+*ACUMULADO DO MÊS (01/10/2026 a 06/10/2026)*
+💰 R$ 620,25 • 5 PDVs • ✂️ R$ 2,81 (1 un)
+👤 ANDREY CAMILLO PIRAGINE — R$ 568,24 (3 PDVs)
+👤 CLAUDETE DE SOUZA SCHULTZ — R$ 30,38 (1 PDVs)
 👤 JEFFERSON POLETTO — R$ 21,63 (1 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (04/10/2026)*
-💰 R$ 0,00 • 0 PDVs positivados
+*COMO FECHOU ONTEM (05/10/2026)*
+💰 R$ 253,28 • 2 PDVs positivados
+👤 ANDREY CAMILLO PIRAGINE — R$ 253,28 (2 PDVs)
+
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (23)*
+_(fez pedido ontem, mas nenhum item era marca própria)_
+
+👤 *CLAUDETE DE SOUZA SCHULTZ*
+  • JULIA DE OLIVEIRA BATISTA — nunca vendeu MP
+  • PAOLA CRISTINA LEAL COLLI — nunca vendeu MP
+  • MATHEUS W KOKOTY ALVES DE OLIVEIRA — nunca vendeu MP
+  • ALTEMIO HENRIQUE DIVINO — nunca vendeu MP
+  • MARCELO LUIZ DE ALMEIDA GARRETT — nunca vendeu MP
+  • RUI MATEUS ANSAK — nunca vendeu MP
+  • THACIANE REGINA CORDEIRO DE CASTRO — 13d sem vender MP
+  • NATIELY KAUANA TEODORO DONATO — 4d sem vender MP
+
+👤 *ANDREY CAMILLO PIRAGINE*
+  • ANA PAULA FERREIRA DA CRUZ — 78d sem vender MP
+  • MARCIA SILVA DO NASCIMENTO — 20d sem vender MP
+  • FABIANA MARIA DE SOUSA SANTOS — 14d sem vender MP
+  • ALEXANDRE FERREIRA WERNICKE — 8d sem vender MP
+  • PRISCILA DE BONFIM CORDEIRO — 7d sem vender MP
+  • ALDER ALVES BELINI — 6d sem vender MP
+  • ALEXSANDRO LIMA CARDOZO — 4d sem vender MP
+
+👤 *LUIZ AUGUSTO RAMOS*
+  • ARTHUR MAIKI LEAL GERMANO — nunca vendeu MP
+  • LUCAS GABRIEL PEDROSO — nunca vendeu MP
+  • DEISIELE VIEIRA DA SILVA — 50d sem vender MP
+  • DEISI DE SOUZA DA SILVA — 36d sem vender MP
+  • GERMANO LEMOS CAVALHEIRO JUNIOR — 11d sem vender MP
+
+👤 *JEFFERSON POLETTO*
+  • CLAUDIO EIZO BRANCO — nunca vendeu MP
+  • RENAN LECHUK — 4d sem vender MP
+
+👤 *RODRIGO DE ARRUDA DARROS*
+  • IGOR TABORDA — nunca vendeu MP

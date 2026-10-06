@@ -1,14 +1,39 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 TPH — FÁBIO • 05/10/2026
+📍 TPH — FÁBIO • 06/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/10/2026 a 05/10/2026)*
-💰 R$ 14.536,96 • 6 PDVs • ✂️ R$ 5,88 (2 un)
+*ACUMULADO DO MÊS (01/10/2026 a 06/10/2026)*
+💰 R$ 14.550,05 • 7 PDVs • ✂️ R$ 5,62 (2 un)
 👤 RODRIGO BERTONI — R$ 10.152,80 (1 PDVs)
-👤 EDI CARLOS MEIRA — R$ 4.194,26 (2 PDVs)
-👤 EDERSON SUONSKI — R$ 159,52 (2 PDVs)
-👤 CLAUDETE DE SOUZA SCHULTZ — R$ 30,38 (1 PDVs)
+👤 EDI CARLOS MEIRA — R$ 4.216,52 (3 PDVs)
+👤 EDERSON SUONSKI — R$ 180,73 (3 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (04/10/2026)*
-💰 R$ 0,00 • 0 PDVs positivados
+*COMO FECHOU ONTEM (05/10/2026)*
+💰 R$ 43,47 • 2 PDVs positivados
+👤 EDI CARLOS MEIRA — R$ 22,26 (1 PDVs)
+👤 EDERSON SUONSKI — R$ 21,21 (1 PDVs)
+
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (15)*
+_(fez pedido ontem, mas nenhum item era marca própria)_
+
+👤 *PRISCILA A D NASCIMENTO STRAPASSON*
+  • SIRLENE DE FATIMA BORGES — 113d sem vender MP
+  • EDERSON LUIZ RIBEIRO — 13d sem vender MP
+  • FLORENTINO PIANA NETO — 11d sem vender MP
+  • GIULIA TEIXEIRA DUARTE — 6d sem vender MP
+
+👤 *EDERSON SUONSKI*
+  • KAUALBERT DE FARIAS MARTINS BARBOSA — 20d sem vender MP
+  • PAULO HENRIQUE NUNES CARDOSO — 18d sem vender MP
+  • DAVID WILLIAN NUNES AMARAL — 12d sem vender MP
+  • ROSIMEIRE FERNANDES GONCALVES — 7d sem vender MP
+  • CESAR SANTOS LIMA — 5d sem vender MP
+
+👤 *EDI CARLOS MEIRA*
+  • MEIRY ALESSANDRA KAVALKIEVIZ — 18d sem vender MP
+  • JANAINA FARIA — 15d sem vender MP
+  • BRUNO AMARAL — 15d sem vender MP
+  • MAICO ADILTON PRESTES — 12d sem vender MP
+  • EMILLEI CARNEIRO — 6d sem vender MP
+  • CHARLENE ANCINEIDE DA ROSA — 6d sem vender MP
