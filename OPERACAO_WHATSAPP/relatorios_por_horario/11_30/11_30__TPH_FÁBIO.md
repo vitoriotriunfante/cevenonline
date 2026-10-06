@@ -1,33 +1,35 @@
-🏢 *FILIAL TCA — GESTÃO DE CAMPO*
-📅 06/10/2026 • Gerente: Becher
+🏢 *FILIAL TPH — GESTÃO DE CAMPO*
+📅 06/10/2026 • Gerente: Fábio
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 *PAINEL DE ATIVIDADES (6 SUPERVISORES):*
-📝 Compromissos: *3 de 6* lançados
-🚗 Em Rota (RET): *0 de 6* em campo
+📝 Compromissos: *2 de 6* lançados
+🚗 Em Rota (RET): *1 de 6* em campo
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👤 *FRANCISCO FRANCO FILHO*
+👤 *AILTON LUIZ ARENDT JUNIOR*
 📝 Compromisso: ❌ Não lançado
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
-👤 *IVAIR PRINCIPE FREITAS DE MIRANDA*
-📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
-
-👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR*
+👤 *CRISTIAN EDUARDO RAFFAELLI*
 📝 Compromisso: ❌ Não lançado
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
-👤 *MAICON DION NOVAIS SILVA*
+👤 *EDI CARLOS MEIRA*
+📝 Compromisso: ✅ Lançado
+🚗 Rota (RET): ✅ Em campo (início às 09:01)
+└ 👥 RCA: MAICO ADILTON PRESTES
+└ 📍 5 PDVs visitados • 📸 7 fotos • Score: 57%
+
+👤 *PRISCILA A D NASCIMENTO STRAPASSON*
 📝 Compromisso: ✅ Lançado
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
-👤 *VALDCLEY DE CAMPOS SILVA*
+👤 *VITOR MANUEL PAULOS CORREIA*
 📝 Compromisso: ❌ Não lançado
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
-👤 *YASMIM PRISCILA DA SILVA*
-📝 Compromisso: ✅ Lançado
+👤 *EDERSON SUONSKI*
+📝 Compromisso: ❌ Não lançado
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)

@@ -1,16 +1,12 @@
 🏢 *FILIAL TPH — GESTÃO DE CAMPO*
-📅 06/10/2026 • Gerente: Vagner / Fábio
+📅 06/10/2026 • Gerente: Vagner
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📊 *PAINEL DE ATIVIDADES (14 SUPERVISORES):*
-📝 Compromissos: *8 de 14* lançados
-🚗 Em Rota (RET): *6 de 14* em campo
+📊 *PAINEL DE ATIVIDADES (8 SUPERVISORES):*
+📝 Compromissos: *6 de 8* lançados
+🚗 Em Rota (RET): *5 de 8* em campo
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-👤 *AILTON LUIZ ARENDT JUNIOR*
-📝 Compromisso: ❌ Não lançado
-🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
 👤 *ALLISON ANTONIO FAGUNDES M PINHEIRO*
 📝 Compromisso: ✅ Lançado
@@ -25,16 +21,6 @@
 👤 *CLAUDETE DE SOUZA SCHULTZ*
 📝 Compromisso: ❌ Não lançado
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
-
-👤 *CRISTIAN EDUARDO RAFFAELLI*
-📝 Compromisso: ❌ Não lançado
-🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
-
-👤 *EDI CARLOS MEIRA*
-📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 09:01)
-└ 👥 RCA: MAICO ADILTON PRESTES
-└ 📍 5 PDVs visitados • 📸 7 fotos • Score: 57%
 
 👤 *JEFFERSON POLETTO*
 📝 Compromisso: ✅ Lançado
@@ -52,23 +38,11 @@
 └ 👥 RCA: GERMANO LEMOS CAVALHEIRO JUNIOR
 └ 📍 1 PDV visitado • 📸 1 foto • Score: 100%
 
-👤 *PRISCILA A D NASCIMENTO STRAPASSON*
-📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
-
 👤 *RODRIGO DE ARRUDA DARROS*
 📝 Compromisso: ✅ Lançado
 🚗 Rota (RET): ✅ Em campo (início às 09:03)
 └ 👥 RCA: RAFAEL CELIO GOMES
 └ 📍 3 PDVs visitados • 📸 16 fotos • Score: 91%
-
-👤 *VITOR MANUEL PAULOS CORREIA*
-📝 Compromisso: ❌ Não lançado
-🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
-
-👤 *EDERSON SUONSKI*
-📝 Compromisso: ❌ Não lançado
-🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
 👤 *JONATHAN FERNANDES*
 📝 Compromisso: ✅ Lançado

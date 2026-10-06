@@ -1,30 +1,16 @@
 🏢 *FILIAL MCD — GESTÃO DE CAMPO*
-📅 06/10/2026 • Gerente: Cleverson / Adriano
+📅 06/10/2026 • Gerente: Cleverson
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📊 *PAINEL DE ATIVIDADES (7 SUPERVISORES):*
-📝 Compromissos: *4 de 7* lançados
-🚗 Em Rota (RET): *1 de 7* em campo
+📊 *PAINEL DE ATIVIDADES (4 SUPERVISORES):*
+📝 Compromissos: *2 de 4* lançados
+🚗 Em Rota (RET): *0 de 4* em campo
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 👤 *ADRIANO MARQUES SOLER*
 📝 Compromisso: ❌ Não lançado
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
-
-👤 *ALYFER PEREIRA MENDES*
-📝 Compromisso: ❌ Não lançado
-🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
-
-👤 *CARLOS ALAGUEZ DA SILVA*
-📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
-
-👤 *CLEOMAR DINIZ BARBOSA*
-📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 09:36)
-└ 👥 RCA: LUIZ ANTONIO DE AFENSOR
-└ 📍 2 PDVs visitados • 📸 3 fotos • Score: 100%
 
 👤 *FLAVIO RUFINO*
 📝 Compromisso: ❌ Não lançado
