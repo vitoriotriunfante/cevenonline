@@ -1,7 +1,7 @@
 // =========================================================================
 // FICHA DO ARQUIVO: functions/api/cron-notificacoes-supervisores.js
 // O QUE É: envia, a cada UMA hora, para o sino do CEVEN, UMA notificação por supervisor com TODOS os lances da equipe dele ainda não avisados
-//          (Vitório, 06/10/2026). Origem na notificação: "Liga Triunfante". A notificação chega a todos de Master/Gerente/Supervisor da filial; o texto cita o supervisor.
+//          (Vitório, 06/10/2026). Origem na notificação: "Brasileirão Triunfante". A notificação chega a todos de Master/Gerente/Supervisor da filial; o texto cita o supervisor.
 // COMO LIGA:  precisa estar LIGADO em config_flags ('notif_supervisores' = '1'); desligado por padrão. O coletor de lances chama este endpoint no começo de cada hora (09h a 20h).
 // USO:    GET ?simular=1[&filial=TBL][&supervisor=KLEBERSON]  -> mostra as mensagens que sairiam, SEM enviar nada e SEM gravar nada
 //         GET ?rodar=1                                          -> envia (se ligado); cada lance é avisado UMA vez só (notif_lance_enviado)
@@ -51,7 +51,7 @@ export async function onRequestGet({ env, request }) {
     const saida = [];
     const marca = (filial, chaves) => chaves.map((c) => env.DB.prepare("INSERT OR IGNORE INTO notif_lance_enviado (dia, filial, chave, enviado_em) VALUES (?, ?, ?, datetime('now'))").bind(t.dia, filial, String(c)));
     for (const m of msgs) {
-      const e = await enviaNotificacao(env, m.filial, 'Liga Triunfante', m.texto);
+      const e = await enviaNotificacao(env, m.filial, 'Brasileirão Triunfante', m.texto);
       saida.push({ filial: m.filial, supervisor: m.supervisor, lances: m.qtd, ok: e.ok, status: e.status || e.erro });
       if (e.ok) { const st = marca(m.filial, m.chaves); for (let i = 0; i < st.length; i += 80) await env.DB.batch(st.slice(i, i + 80)); }
     }

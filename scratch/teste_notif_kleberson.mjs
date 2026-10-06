@@ -9,6 +9,6 @@ const m = montaMensagens(L, new Set(), { de: '06:00:00', ate: '17:15:00' })[0];
 const texto = '[TESTE — pode ignorar] ' + m.texto;
 console.log(texto.length, 'caracteres\n' + texto);
 if (process.argv[2] === 'enviar') {
-  const e = await enviaNotificacao({ CEVEN_WEBHOOK_SECRET: process.env.SEGREDO }, 'TBL', 'Liga Triunfante', texto);
+  const e = await enviaNotificacao({ CEVEN_WEBHOOK_SECRET: process.env.SEGREDO }, 'TBL', 'Brasileirão Triunfante', texto);
   console.log('ENVIO:', JSON.stringify(e));
 }
