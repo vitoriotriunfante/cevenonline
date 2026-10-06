@@ -5,7 +5,7 @@
 **Período de estabilidade:** só correção de erro, com teste. Regra, pontuação ou score novos NÃO entram no meio do período: ficam na lista abaixo para a próxima versão, e os gerentes são avisados antes de valer.
 
 ## Versão vigente
-- **2026-10-07.1** (vigente desde 07/10/2026). Hash do regulamento guardado em `testes/rodar_testes.mjs` (LOCK_HASH).
+- **2026-10-07.2** (vigente desde 07/10/2026). Mudança da .1 para a .2: só o NOME da liga (agora "Brasileirão Triunfante — Liga da Virada"); nenhuma regra nem ponto mudou. Hash do regulamento guardado em `testes/rodar_testes.mjs` (LOCK_HASH).
 
 ## Pedidos para a próxima versão (não entram agora)
 - (vazio)

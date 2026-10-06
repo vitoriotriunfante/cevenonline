@@ -660,7 +660,7 @@ for (const arq of ['public/tvapp.html', 'public/matrizapp.html']) {
 secao('8e. Liga cravada: regras congeladas por versao, fechamento do dia (19h30) e conferencia diaria contra o CEVEN');
 {
   const cfgTxt = ler('config/pontuacao_brasileirao.json'); const cfg = JSON.parse(cfgTxt);
-  const LOCK_HASH = '6862036f2f9453ae1aa1623e7514c32b6dda3a693a4220603b487dfff7cb98ff'; // sha256 do regulamento na versao 2026-10-07.1
+  const LOCK_HASH = '2b490336096105ed16c7c11e42530bb7a44d0648c6fd38c47a19d421094833a3'; // sha256 do regulamento na versao 2026-10-07.2 (so o nome da liga mudou)
   const { createHash } = await import('node:crypto');
   const hash = createHash('sha256').update(JSON.stringify(cfg)).digest('hex');
   const lib = ler('functions/_lib/liga_fechamento.js');
