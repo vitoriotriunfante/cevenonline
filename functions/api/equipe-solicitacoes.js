@@ -134,6 +134,10 @@ export async function onRequestPost({ request, env }) {
             if (v) {
               v.mostra = false;
               v.motivo = item.motivo || 'Oculto aprovado pela Diretoria';
+            } else {
+              // vendedor que veio da arvore viva do CEVEN (ainda nao guardado na Gestao): grava o registro ja oculto
+              let ex = {}; try { ex = JSON.parse(item.dados_extras || '{}'); } catch (e) {}
+              baseData.filiais[fil].unshift({ rca: item.rca_id, nome: item.rca_nome, canal: ex.canal || '', supervisor: ex.supervisor || '', gerente: item.gerente_nome || '', grupo: ex.grupo || '', mostra: false, motivo: item.motivo || 'Oculto aprovado pela Diretoria' });
             }
           } else if (item.tipo_acao === 'ATIVAR') {
             const v = baseData.filiais[fil].find(x => String(x.rca) === String(item.rca_id));
