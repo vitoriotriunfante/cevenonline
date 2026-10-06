@@ -164,7 +164,7 @@ export async function onRequestGet({ env, request }) {
       const linhas = [...decisao.nao_mostra, ...decisao.fora_da_gestao];
       const { results: cache } = await env.DB.prepare('SELECT filial, rca, canal, em FROM canal_ceven').all();
       const mapa = new Map((cache || []).map((c) => [c.filial + '|' + c.rca, c]));
-      const velhas = linhas.filter((l) => { const c = mapa.get(l.filial + '|' + l.codigo); return !c || Date.now() - c.em > 6 * 3600e3; });
+      const velhas = linhas.filter((l) => { const c = mapa.get(l.filial + '|' + l.codigo); return !c || Date.now() - c.em > 6 * 3600e3; }).slice(0, 20); // limite de chamadas por requisicao: completa nas proximas atualizacoes da tela
       const CEVEN_BASE = 'https://ceven.drivetriunfante-locomotiva.com.br';
       for (let i = 0; i < velhas.length; i += 12) {
         await Promise.all(velhas.slice(i, i + 12).map(async (l) => {

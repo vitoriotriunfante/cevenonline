@@ -39,6 +39,7 @@
 <body>
 <h1>Divergências de cadastro</h1>
 <div class="sub">Lista viva: tudo que o CEVEN e o banco têm e a <b>Gestão de Equipe</b> não tem, e o contrário. A decisão de cada linha é feita na própria <a href="/gestao-equipe" style="color:var(--acc)">Gestão de Equipe</a> (modo Diretoria, painel "Divergências com o CEVEN"); a lista aqui se atualiza sozinha.</div>
+<div id="filtroBox" style="margin-bottom:6px;display:flex;gap:8px;align-items:center"><b>Filial</b> <select id="filtroFilial" style="padding:7px 10px;border-radius:8px;border:1px solid var(--linha);background:var(--card);color:var(--tx)"><option value="">Todas</option></select></div>
 <div id="senhaBox"><b>Senha da Diretoria</b> <input type="password" id="senha" placeholder="para gravar as decisões" autocomplete="off"> <span style="color:var(--mut)">Cada clique em MOSTRAR / NÃO MOSTRAR grava na Gestão de Equipe na hora.</span></div>
 <div class="chips" id="chips"></div>
 <div id="aviso"></div>
@@ -115,7 +116,12 @@ async function carrega() {
     {t: 'Devolução (mês)', n: 1, f: l => brl(l.devolucao_mes) + ' · ' + nv(l.notas_mes) + ' nota(s)'},
     {t: 'O que é', f: l => { const t = l.leitura || {}; const cls = (t.tipo === 'conta_interna' || t.tipo === 'vaga' || t.tipo === 'so_devolucao') ? 'ok' : 'nova'; return `<span class="tag ${cls}">${esc(t.texto || '')}</span>` + (l.nova ? ' <span class="tag nova">NOVO</span>' : ''); }}
   ], d.descobertos, 'A varredura de descoberta ainda não achou nenhum código com devolução fora das listas.');
-  const dc = d.decisao || {nao_mostra: [], fora_da_gestao: []};
+  const dc0 = d.decisao || {nao_mostra: [], fora_da_gestao: []};
+  const selF = $('filtroFilial'); const filiaisL = [...new Set([...dc0.nao_mostra, ...dc0.fora_da_gestao].map(x => x.filial))].sort();
+  let fAtual = selF.value; if (!fAtual) { try { fAtual = localStorage.getItem('ceven_div_filial') || ''; } catch (e) {} }
+  selF.innerHTML = '<option value="">Todas</option>' + filiaisL.map(f => `<option value="${f}"${f === fAtual ? ' selected' : ''}>${f}</option>`).join('');
+  const fil = (L) => fAtual ? L.filter(x => x.filial === fAtual) : L;
+  const dc = {nao_mostra: fil(dc0.nao_mostra), fora_da_gestao: fil(dc0.fora_da_gestao)};
   const tg = (l) => { const t = {...(l.leitura || {})}; t.texto = String(t.texto || '').replace('Vendedor ativo e produzindo: provavelmente deve entrar na planilha.', 'Tem venda no mês e rota hoje: vale conferir se deveria aparecer.'); const cls = t.tipo === 'nao_vendedor' ? 'ok' : (t.tipo === 'produzindo' ? 'mov' : (t.tipo === 'sem_atividade' ? 'ok' : 'nova')); return `<span class="tag ${cls}">${esc(t.texto || '')}</span>`; };
   const colsDec = [
     {t: 'Filial', f: l => '<b>' + esc(l.filial) + '</b>'}, {t: 'Vendedor', f: l => esc(l.nome) + ' <span style="color:var(--mut)">(' + esc(l.codigo) + ')</span>'}, {t: 'Supervisor', f: l => esc(l.supervisor || '—')}, {t: 'Canal na Gestão', f: l => esc(l.canal || '—')}, {t: 'Canal no CEVEN', f: l => l.canal_ceven ? (l.canal_ceven !== (l.canal || '').toUpperCase() ? '<b style="color:var(--ruim)">' + esc(l.canal_ceven) + ' ≠ ' + esc(l.canal || '—') + '</b>' : esc(l.canal_ceven)) : '—'},
@@ -154,6 +160,7 @@ document.addEventListener('click', async (ev) => {
     else { avisa('Não gravou: ' + (j.erro || 'erro')); b.disabled = false; }
   } catch (e) { avisa('Não consegui gravar agora.'); b.disabled = false; }
 });
+$('filtroFilial').onchange = () => { try { localStorage.setItem('ceven_div_filial', $('filtroFilial').value); } catch (e) {} carrega(); };
 $('btn').onclick = carrega; carrega(); setInterval(carrega, 120000);
 </script>
 </body>
