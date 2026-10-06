@@ -1,44 +1,46 @@
 🌅 *ABERTURA MATINAL — TSJ (07:45)*
-📅 segunda-feira, 05/10/2026
+📅 terça-feira, 06/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 23 • Visitas: 339 (média 14,7/vendedor)
-Sem compra +30d: 98 (28,9%) • Recorrência: 54 (15,9%)
-Oportunidades CNAE 4789: +353 PDVs
+👥 Vendedores: 23 • Visitas: 361 (média 15,7/vendedor)
+Sem compra +30d: 109 (30,2%) • Recorrência: 15 (4,2%)
+Oportunidades CNAE 4721: +1.004 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TSJ — SALDANHA* • 05/10/2026
+📍 *TSJ — SALDANHA* • 06/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 98
+🔴 Última Chance: 0  •  🟡 Preventivo: 109
 
-👤 *ANA CRISTINA DOS SANTOS YAMATO* (36 em risco)
-  🟡 MERCADO SANTA FE LTDA (10) — 29/07
-  🟡 CESTAVAP CESTAS BASICAS (10) — 28/08
-  🟡 MERCADINHO N S DE FATIMA (8) — 11/08
-  🟡 REGINA MARIA G DOS SANTOS 03347462807 (8) — 25/08
-  🟡 41.396.678 CECILIO CABALLERO BARBA JUNIO (33) — 30/07
-  _+31 outros_
+👤 *ANA CRISTINA DOS SANTOS YAMATO* (20 em risco)
+  🟡 MONTEIRO MARKET (5) — 31/07
+  🟡 POTIGUAR ALIMENTOS E BEBIDAS (5) — 05/12
+  🟡 SUPERMERCADO PEDROZO (5) — 05/12
+  🟡 60.588.921 ANDREA LIMA DE SOUZA (10) — 27/08
+  🟡 MERCADO ARVIC (10) — 05/12
+  _+15 outros_
 
-👤 *JULIO CESAR SOARES DE PAULO* (19 em risco)
-  🟡 MERCEARIA PAULISTA (7) — 29/07
-  🟡 ESTEFANI ROSA PEREIRA 38424329848 (7) — 19/02
-  🟡 MERCADO VITORIA (25) — 03/09
-  🟡 BEBIDAS DA PRAIA (25) — 22/07
-  🟡 IDEAL SUPERMERCADO (25) — 05/12
-  _+14 outros_
+👤 *JULIO CESAR SOARES DE PAULO* (23 em risco)
+  🟡 ACOGUE DO IRINEU (7) — 15/07
+  🟡 MERCEARIA MONTE CARLO (7) — 22/06
+  🟡 BOM D+ MINIMERCADO (7) — 18/08
+  🟡 41.263.128 NADYA THATIANE SILVA DE MACED (7) — 14/08
+  🟡 MERCEARIA DA ROCA (7) — 30/07
+  _+18 outros_
 
-👤 *VENDA EMPRESA (INTERNO)* (4 em risco)
-  🟡 MERCADO MARIA E MARIA (2) — 05/12
-  🟡 PARMISSIMO ALIMENTOS LTDA - EM RECUPERAC (2) — 05/12
-  🟡 MERCADO SOUSA (2) — 05/12
-  🟡 CAFE CORUJA BRASIL LTDA (2) — 05/12
+👤 *Venda empresa (interno)* (8 em risco)
+  🟡 ALDIRENE BARBOSA DE MORAES (2) — 10/03
+  🟡 BARRACA DO BATATINHA (2) — 05/12
+  🟡 CARLOS YOITI KAWAI - ME (2) — 05/12
+  🟡 N M MERCADORIA E BAZAR (2) — 05/12
+  🟡 COMERCIAL MM SANTA INES LTDA (2) — 05/12
+  _+3 outros_
 
-👤 *VICTOR HUGO FONSECA CARVALHO* (39 em risco)
-  🟡 MERCADINHO DA SERRA (23) — 11/08
-  🟡 DPM FERRAGENS (23) — 25/08
-  🟡 PEREIRA EMBALAGENS (23) — 25/08
-  🟡 QUITANDA DO JULIANO (42) — 18/02
-  🟡 BARRACA VERDE (42) — 25/08
-  _+34 outros_
+👤 *VICTOR HUGO FONSECA CARVALHO* (58 em risco)
+  🟡 SACOLAO PAG MENOS (27) — 27/08
+  🟡 SUPERMERCADO JK (27) — 05/12
+  🟡 PADARIA PAO DA VIDA (27) — 27/08
+  🟡 MERCEARIA EMILIA (40) — 10/07
+  🟡 QUITANDA JJ (40) — 12/06
+  _+53 outros_

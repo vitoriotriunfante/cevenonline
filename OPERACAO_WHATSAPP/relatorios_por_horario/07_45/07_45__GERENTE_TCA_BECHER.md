@@ -1,41 +1,46 @@
 🌅 *ABERTURA MATINAL — TCA (07:45)*
-📅 segunda-feira, 05/10/2026
+📅 terça-feira, 06/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 28 • Visitas: 265 (média 9,5/vendedor)
-Sem compra +30d: 124 (46,8%) • Recorrência: 59 (22,3%)
-Oportunidades CNAE 4789: +310 PDVs
+👥 Vendedores: 28 • Visitas: 276 (média 9,9/vendedor)
+Sem compra +30d: 131 (47,5%) • Recorrência: 60 (21,7%)
+Oportunidades CNAE 4721: +364 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCA — BECHER* • 05/10/2026
+📍 *TCA — BECHER* • 06/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 124
+🔴 Última Chance: 0  •  🟡 Preventivo: 131
 
-👤 *FRANCISCO FRANCO FILHO* (1 em risco)
-  🟡 SALGADOS E SORVETES QUERO MAIS (375) — 05/12
+👤 *FRANCISCO FRANCO FILHO* (11 em risco)
+  🟡 DROGARIA IPIRANGA (390) — 31/08
+  🟡 IPIRANGA FARMA (390) — 05/12
+  🟡 FARMA POPULAR (390) — 26/08
+  🟡 MERCADO ELDORADO (390) — 27/08
+  🟡 D & A SUPERMERCADO (390) — 19/08
+  _+6 outros_
 
-👤 *IVAIR PRINCIPE FREITAS DE MIRANDA* (35 em risco)
-  🟡 DROGARIA MEGA POPULAR (378) — 31/08
-  🟡 DROGARIA SUPER POPULAR PEDRA 90 (378) — 28/07
-  🟡 JAPA MERCEARIA LTDA (378) — 26/08
-  🟡 MERCADO VALENCIA (378) — 27/08
-  🟡 MERCEARIA PININGA LTDA (378) — 26/08
-  _+30 outros_
+👤 *IVAIR PRINCIPE FREITAS DE MIRANDA* (32 em risco)
+  🟡 DROGARIA OPCAO POPULAR (379) — 25/08
+  🟡 MERCEARIA JD (379) — 05/12
+  🟡 VITRINE IMPORTS (379) — 27/08
+  🟡 MERCADO AZULAO (379) — 30/07
+  🟡 MERCADO EUROPA (379) — 05/12
+  _+27 outros_
 
-👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR* (68 em risco)
-  🟡 DROGARIA VERDES MARES (380) — 05/12
-  🟡 BIG PAO (380) — 05/12
-  🟡 NETAO SUPERMERCADOS (381) — 26/08
-  🟡 PADARIA DONA HORTENCIA (381) — 05/12
-  🟡 MARMITA E MARMITEX ARAGUAIA (384) — 05/12
-  _+63 outros_
+👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR* (64 em risco)
+  🟡 CAMPOFARMA (381) — 26/08
+  🟡 MERCEARIA OLIVEIRA (384) — 27/08
+  🟡 REAL MINI MERCADO (380) — 31/07
+  🟡 MERCADO BOM PRECO (380) — 27/08
+  🟡 MERCADO DO PANAMA (380) — 26/08
+  _+59 outros_
 
-👤 *MAICON DION NOVAIS SILVA* (20 em risco)
-  🟡 MERCADO BELA VISTA (372) — 31/08
-  🟡 SUPERMERCADO MEZZALIRA (372) — 22/07
-  🟡 PADARIA KI-PAO (372) — 05/12
-  🟡 MERCADO CATARINENSE (372) — 17/02
-  🟡 SUPERMERCADO BOM PRECO (372) — 17/02
-  _+15 outros_
+👤 *MAICON DION NOVAIS SILVA* (24 em risco)
+  🟡 COMERCIAL 2 IRMAOS (372) — 31/08
+  🟡 MERCADO SAO PEDRO (372) — 17/02
+  🟡 DIA A DIA SUPERMERCADO (372) — 17/08
+  🟡 IDEAL SUPERMERCADO (372) — 25/08
+  🟡 SUPERMERCADO LIDER (372) — 05/12
+  _+19 outros_

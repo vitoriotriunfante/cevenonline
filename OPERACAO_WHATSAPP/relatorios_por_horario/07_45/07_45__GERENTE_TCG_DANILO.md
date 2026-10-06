@@ -1,46 +1,41 @@
 🌅 *ABERTURA MATINAL — TCG (07:45)*
-📅 segunda-feira, 05/10/2026
+📅 terça-feira, 06/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 20 • Visitas: 179 (média 8,9/vendedor)
-Sem compra +30d: 38 (21,2%) • Recorrência: 26 (14,5%)
-Oportunidades CNAE 4789: +179 PDVs
+👥 Vendedores: 20 • Visitas: 187 (média 9,3/vendedor)
+Sem compra +30d: 34 (18,2%) • Recorrência: 12 (6,4%)
+Oportunidades CNAE 4721: +187 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCG — DANILO* • 05/10/2026
+📍 *TCG — DANILO* • 06/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 36
+🔴 Última Chance: 0  •  🟡 Preventivo: 34
 
-👤 *DELINLSON ANTONIO LIMA SILVA* (8 em risco)
-  🟡 MERCADO ECONOMIA (461) — 31/08
-  🟡 WJ SALGADARIA (468) — 27/08
-  🟡 HIPER POPULAR (468) — 05/12
-  🟡 MERCADO RODA VIVA (469) — 31/08
-  🟡 DEPOSITO DE GAS PP (469) — 27/05
-  _+3 outros_
+👤 *DELINLSON ANTONIO LIMA SILVA* (14 em risco)
+  🟡 MERCADO REAL (461) — 05/09
+  🟡 COMERCIAL K (461) — 01/01
+  🟡 SORVETERIA TROPICAL (468) — 18/08
+  🟡 MERCEARIA JARDIM BOA VISTA (479) — 05/12
+  🟡 MERCADO SOUZA (469) — 19/08
+  _+9 outros_
 
-👤 *EDSON RODRIGO LINIA* (7 em risco)
-  🟡 MAX CONVENIENCIA (458) — 27/08
-  🟡 NELLY (458) — 31/08
-  🟡 MERCEARIA SAO JOSE (474) — 27/08
-  🟡 CONVENIENCIA DO ADILSON (474) — 21/08
-  🟡 MERCADO TRES PODERES (475) — 17/08
-  _+2 outros_
+👤 *EDSON RODRIGO LINIA* (3 em risco)
+  🟡 COMERCIAL VIP II (458) — 31/08
+  🟡 MERCADO D CASA (474) — 29/08
+  🟡 TRANSMAGRAO (475) — 05/12
 
-👤 *GERENTE TCG* (12 em risco)
-  🟡 MERCADO SAO JOAO (489) — 05/12
-  🟡 MERCADO KAPITAL (489) — 05/12
-  🟡 DROGARIA NIPON (489) — 05/12
-  🟡 FARMACIA POPULAR MAIS SAUDE (489) — 05/12
-  🟡 POINT BEER CONVENIENCIA (489) — 05/12
-  _+7 outros_
+👤 *Vendedores ligados direto ao gerente* (13 em risco)
+  🟡 TCG - TRIUNFANTE BRASIL DISTRIBUIDORA (489) — 19/06
+  🟡 TARSILA LOPES SILVA (489) — 03/05
+  🟡 PONTO DA CARNE (489) — 05/12
+  🟡 DROGARIA SAO LEOPOLDO (489) — 05/12
+  🟡 FARMACIAS MAIS POPULAR (489) — 05/12
+  _+8 outros_
 
-👤 *TIAGO SANTOS CORREA* (9 em risco)
-  🟡 FRIOS CATARINENSE (486) — 05/12
-  🟡 LACERDA (486) — 05/12
-  🟡 AUTO POSTO NICARETTA (487) — 05/12
-  🟡 MERCEARIA E CONV TODA HORA (487) — 05/12
-  🟡 MERCADO ECONOMICO (488) — 05/12
-  _+4 outros_
+👤 *TIAGO SANTOS CORREA* (4 em risco)
+  🟡 BIBIANA PERES BENITES (486) — 03/05
+  🟡 LC CONVENIENCIA (488) — 19/08
+  🟡 GUAICURUS EXPRESS (488) — 05/12
+  🟡 DISTRIBUIDORA EMBALA MS (1072) — 01/01

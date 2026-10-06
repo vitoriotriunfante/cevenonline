@@ -1,38 +1,38 @@
 🌅 *ABERTURA MATINAL — TPA (07:45)*
-📅 segunda-feira, 05/10/2026
+📅 terça-feira, 06/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 17 • Visitas: 257 (média 15,1/vendedor)
-Sem compra +30d: 91 (35,4%) • Recorrência: 48 (18,7%)
-Oportunidades CNAE 4789: +257 PDVs
+👥 Vendedores: 16 • Visitas: 253 (média 15,8/vendedor)
+Sem compra +30d: 83 (32,8%) • Recorrência: 22 (8,7%)
+Oportunidades CNAE 4721: +377 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPA — RADKE / LEANDRO* • 05/10/2026
+📍 *TPA — RADKE / LEANDRO* • 06/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 91
+🔴 Última Chance: 0  •  🟡 Preventivo: 83
 
-👤 *DOUGLAS CRISTIANO DOS SANTOS* (52 em risco)
-  🟡 T S D PROD COLONIAIS (150) — 31/08
-  🟡 MERCADO JARDIMS (150) — 20/02
-  🟡 MERCADO PADARIA E CONFEITARIA CONCORDIA (150) — 01/01
-  🟡 SACOLAO ECONOMICO (150) — 25/08
-  🟡 MERCADO MALFATTI (150) — 05/12
-  _+47 outros_
+👤 *DOUGLAS CRISTIANO DOS SANTOS* (51 em risco)
+  🟡 FRUTEIRA (1120) — 20/07
+  🟡 MERCADO SILVA (1120) — 27/05
+  🟡 MINIMERCADO E PADARIA PORTO (1120) — 24/07
+  🟡 SCHERER E SCHERER PADARIA (1120) — 05/12
+  🟡 SUPERMERCADO D CASA LTDA (150) — 01/01
+  _+46 outros_
 
 👤 *SAMUEL PALHANO DE OLIVEIRA* (24 em risco)
-  🟡 SOUZAMIX (140) — 31/08
-  🟡 COMERCIAL R B (140) — 19/02
-  🟡 MERCADO BONIATTI (140) — 20/02
-  🟡 TENDA COLONIAL (140) — 01/01
-  🟡 MAURO MARCONE BONETTO (140) — 31/07
+  🟡 ANDREIA SILVA DOS SANTOS (145) — 01/01
+  🟡 MINI MERCADO MORO (145) — 01/01
+  🟡 MERCADO SILVEIRA (145) — 27/08
+  🟡 SAO CRISTOVAO SUPERMERCADO (145) — 05/12
+  🟡 SERRA (140) — 05/12
   _+19 outros_
 
-👤 *ROGERIO DORNELLES PASSOS* (15 em risco)
-  🟡 TEKA (154) — 31/08
-  🟡 SUPERMERCADO TEKKA (154) — 31/08
-  🟡 SUPERMERCADO VIA II (154) — 05/12
-  🟡 CROSTOLLI MERCADO E PADARIA (154) — 19/08
-  🟡 SUPER POSTAL (161) — 05/12
-  _+10 outros_
+👤 *ROGERIO DORNELLES PASSOS* (8 em risco)
+  🟡 TOSSELI COM DE ALIMENTOS (154) — 05/12
+  🟡 VILMAR FERREIRA (154) — 03/09
+  🟡 SEMPRE UTIL (161) — 05/12
+  🟡 MINI MERCADO OASIS (161) — 29/07
+  🟡 MERCADO GAROTO (161) — 15/07
+  _+3 outros_
