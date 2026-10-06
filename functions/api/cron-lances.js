@@ -411,8 +411,15 @@ export async function onRequestGet({ env, request }) {
   let arvore = 'pulado';
   try { if (t.h >= 5) { const a = await garanteArvore(env, 45); arvore = a.status + (a.filiais_falharam && a.filiais_falharam.length ? ' (falharam: ' + a.filiais_falharam.join(',') + ')' : ''); } } catch { arvore = 'falhou'; }
 
+  // FECHAMENTO E CONFERENCIA DO DIA (Vitório, 06/10/2026: "tem que estar tudo cravado"): depois das 19h30 congela o dia da liga e confere o D1 contra o CEVEN (fatias de 60 vendedores)
+  let fechamento = 'pulado', conferencia = 'pulado';
+  if (t.agoraMin >= 19 * 60 + 30) {
+    try { const rf = await fetch(`${origin}/api/cron-fechamento-dia`, { signal: AbortSignal.timeout(50000) }); const jf = await rf.json().catch(() => ({})); fechamento = jf.status || String(rf.status); } catch { fechamento = 'falhou'; }
+    try { const rc = await fetch(`${origin}/api/cron-conferencia-dia?rodar=1`, { signal: AbortSignal.timeout(60000) }); const jc = await rc.json().catch(() => ({})); conferencia = jc.conferidos != null ? `${jc.conferidos}/${jc.total} (${(jc.divergentes || []).length} divergencia(s))` : String(rc.status); } catch { conferencia = 'falhou'; }
+  }
+
   return new Response(JSON.stringify({
-    status: 'ATUALIZADO', dia: t.dia, hora: t.hms, semana_invicta: invicta, arvore, filiais_processadas: Object.keys(porFilial).length,
+    status: 'ATUALIZADO', dia: t.dia, hora: t.hms, semana_invicta: invicta, arvore, fechamento, conferencia, filiais_processadas: Object.keys(porFilial).length,
     novos_lances: totalNovos, falhas_rca: totalFalhas, por_filial: porFilial, duracao_ms: Date.now() - t0
   }), { headers: cors });
 }

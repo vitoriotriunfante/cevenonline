@@ -47,6 +47,7 @@ const REGRAS_PONTOS = {
 };
 
 import { lerQualif } from '../_lib/qualificacao_gol.js';
+import { lerDiaFechado } from '../_lib/liga_fechamento.js';
 function achaPontuacao(chave, nivel) {
   const partes = String(chave || '').split('|');
   for (const p of partes) {
@@ -61,6 +62,12 @@ export async function onRequestGet({ request, env }) {
   const u = new URL(request.url);
   const dia = /^\d{4}-\d{2}-\d{2}$/.test(u.searchParams.get('dia') || '') ? u.searchParams.get('dia') : agoraSP();
   const filial = (u.searchParams.get('filial') || '').toUpperCase();
+
+  // DIA FECHADO (congelado as 19h30, ver _lib/liga_fechamento.js): devolve o que foi gravado no fechamento, sem recalcular. ?ao_vivo=1 ignora o congelamento (so o proprio fechamento usa).
+  if (u.searchParams.get('ao_vivo') !== '1') {
+    const f = await lerDiaFechado(env, dia, filial);
+    if (f) { const porNivel = {}; for (const l of f.lances) porNivel[l.nivel] = (porNivel[l.nivel] || 0) + 1; return resp({ dia, filial: filial || 'TODAS', total: f.lances.length, duplicados_removidos: 0, porNivel, lances: f.lances, fechado: true, fechado_em: f.cab.fechado_em, regras_versao: f.cab.regras_versao }); }
+  }
 
   try {
     let query = `SELECT chave, filial, nivel, rca, vendedor, supervisor, cliente_id, cliente, motivo, dias_sem_compra, ultima_compra, tempo_visita, obs, hora_sp, baseline

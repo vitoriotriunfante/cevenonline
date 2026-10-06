@@ -1,0 +1,7 @@
+const fs = require('fs');
+const rel = 'functions/api/cron-lances.js';
+let s = fs.readFileSync(rel, 'utf8'); const crlf = s.includes('\r\n'); s = s.replace(/\r\n/g, '\n');
+const tr = (de, para, r) => { if (s.split(de).length !== 2) throw new Error('ancora ' + r + ' ' + (s.split(de).length - 1)); s = s.replace(de, () => para); };
+tr("  return new Response(JSON.stringify({\n    status: 'ATUALIZADO', dia: t.dia, hora: t.hms, semana_invicta: invicta, arvore,",
+"  // FECHAMENTO E CONFERENCIA DO DIA (Vitório, 06/10/2026: \"tem que estar tudo cravado\"): depois das 19h30 congela o dia da liga e confere o D1 contra o CEVEN (fatias de 60 vendedores)\n  let fechamento = 'pulado', conferencia = 'pulado';\n  if (t.agoraMin >= 19 * 60 + 30) {\n    try { const rf = await fetch(`${origin}/api/cron-fechamento-dia`, { signal: AbortSignal.timeout(50000) }); const jf = await rf.json().catch(() => ({})); fechamento = jf.status || String(rf.status); } catch { fechamento = 'falhou'; }\n    try { const rc = await fetch(`${origin}/api/cron-conferencia-dia?rodar=1`, { signal: AbortSignal.timeout(60000) }); const jc = await rc.json().catch(() => ({})); conferencia = jc.conferidos != null ? `${jc.conferidos}/${jc.total} (${(jc.divergentes || []).length} divergencia(s))` : String(rc.status); } catch { conferencia = 'falhou'; }\n  }\n\n  return new Response(JSON.stringify({\n    status: 'ATUALIZADO', dia: t.dia, hora: t.hms, semana_invicta: invicta, arvore, fechamento, conferencia,", 'hook');
+fs.writeFileSync(rel, crlf ? s.replace(/\n/g, '\r\n') : s); console.log('ok');

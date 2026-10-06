@@ -711,7 +711,7 @@ function statFilial(sig) {
   const taxaZer = campo.length ? (nZer / campo.length) : 0;
   const baseDesempenho = (pctFat * 0.50) + (pctPos * 0.40);
   const bonusFairPlay = (taxaGols * 15) - (taxaPen * 12) - (taxaZer * 15);
-  const scorePositivo = Math.max(0, Math.round((baseDesempenho + bonusFairPlay) * 10) / 10);
+  const scorePositivo = Math.round((baseDesempenho + bonusFairPlay) * 10) / 10; // sem trava em 0: o negativo aparece (Vitório, 06/10/2026)
 
   // Nota de criticidade (0 tranquilo … 100 crítico)
   const pZer = depois10 && campo.length ? nZer / campo.length : 0, pVis = depois10 && campo.length ? nSemVis / campo.length : 0, penV = vs.length ? pen / vs.length : 0;
