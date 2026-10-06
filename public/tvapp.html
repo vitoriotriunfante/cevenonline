@@ -926,14 +926,16 @@ function enfileira(novos) {
   { const l = novos.filter(a => a.nivel === 'amarelo'); if (l.length) ESPERA.push({tipo: 'amarelos', l, score: 20}); } // amarelos das 10h: um popup com a lista
   liberaEspera();
 }
-function podeVAR() {
+const ehBomLance = (x) => x.tipo === 'gol' || x.tipo === 'hattrick' || x.tipo === 'defesa'; // lance bom: sai sozinho, na frente e com intervalo curto (40 s)
+function podeVAR(bom) {
   const agora = Date.now(); while (VARS.length && agora - VARS[0] > 3600e3) VARS.shift();
-  return !emVAR && !FILA.length && VARS.length < varMaxH() && (!VARS.length || agora - VARS[VARS.length - 1] >= varGapS() * 1000);
+  return !emVAR && !FILA.length && VARS.length < varMaxH() * (bom ? 3 : 1) && (!VARS.length || agora - VARS[VARS.length - 1] >= (bom ? Math.min(varGapS(), 40) : varGapS()) * 1000);
 }
 function liberaEspera() {
-  if (ESPERA.length && podeVAR()) {
+  if (ESPERA.length && podeVAR(ESPERA.some(ehBomLance))) {
     const iInv = ESPERA.findIndex(x => x.tipo === 'semanainvicta'); /* Semana Invicta sai SEMPRE sozinha, nunca dentro de um resumo */
-    const item = iInv >= 0 ? ESPERA.splice(iInv, 1)[0] : (ESPERA.length >= 4 ? {tipo: 'resumo', grupos: ESPERA.splice(0)} : ESPERA.shift()); // muita coisa junta = 1 resumo só
+    const iBom = ESPERA.findIndex(ehBomLance); /* gol, hat-trick e defesa saem sozinhos e na frente: o resumo fica so para o que e ruim */
+    const item = iInv >= 0 ? ESPERA.splice(iInv, 1)[0] : (iBom >= 0 ? ESPERA.splice(iBom, 1)[0] : (ESPERA.length >= 4 ? {tipo: 'resumo', grupos: ESPERA.splice(0)} : ESPERA.shift())); // muita coisa ruim junta = 1 resumo só
     VARS.push(Date.now()); FILA.push(item); proximoVAR();
   }
   const t = $('toast'); if (t) { t.style.display = ESPERA.length ? 'block' : 'none'; t.textContent = `🚨 ${ESPERA.length} lance(s) aguardando a vez do VAR · veja o Painel`; }

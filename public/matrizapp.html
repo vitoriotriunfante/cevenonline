@@ -831,10 +831,12 @@ function enfileira(novos) {
   ESPERA.sort((a, b) => b.score - a.score); liberaEspera();
 }
 const penaltisDe = (rca, sig) => LOG.filter(e => e.nivel === 'penalti' && e.rca === rca && e.sig === sig).length;
-function podeVAR() { const agora = Date.now(); while (VARS.length && agora - VARS[0] > 3600e3) VARS.shift(); return !emVAR && !FILA.length && VARS.length < varMaxH() && (!VARS.length || agora - VARS[VARS.length - 1] >= varGapS() * 1000); }
+const ehBomLance = (x) => x.tipo === 'gol' || x.tipo === 'hattrick' || x.tipo === 'defesa'; // lance bom: sai sozinho, na frente e com intervalo curto (40 s)
+function podeVAR(bom) { const agora = Date.now(); while (VARS.length && agora - VARS[0] > 3600e3) VARS.shift(); return !emVAR && !FILA.length && VARS.length < varMaxH() * (bom ? 3 : 1) && (!VARS.length || agora - VARS[VARS.length - 1] >= (bom ? Math.min(varGapS(), 40) : varGapS()) * 1000); }
 function liberaEspera() {
-  if (ESPERA.length && podeVAR()) { const iInv = ESPERA.findIndex(x => x.tipo === 'semanainvicta'); /* Semana Invicta sai SEMPRE sozinha, nunca dentro de um resumo */
-    const item = iInv >= 0 ? ESPERA.splice(iInv, 1)[0] : (ESPERA.length >= 4 ? {tipo: 'resumo', grupos: ESPERA.splice(0)} : ESPERA.shift()); VARS.push(Date.now()); FILA.push(item); proximoVAR(); }
+  if (ESPERA.length && podeVAR(ESPERA.some(ehBomLance))) { const iInv = ESPERA.findIndex(x => x.tipo === 'semanainvicta'); /* Semana Invicta sai SEMPRE sozinha, nunca dentro de um resumo */
+    const iBom = ESPERA.findIndex(ehBomLance); /* gol, hat-trick e defesa saem sozinhos e na frente: o resumo fica so para o que e ruim */
+    const item = iInv >= 0 ? ESPERA.splice(iInv, 1)[0] : (iBom >= 0 ? ESPERA.splice(iBom, 1)[0] : (ESPERA.length >= 4 ? {tipo: 'resumo', grupos: ESPERA.splice(0)} : ESPERA.shift())); VARS.push(Date.now()); FILA.push(item); proximoVAR(); }
   const t = $('fila'); if (t) { t.style.display = ESPERA.length ? 'inline-block' : 'none'; t.textContent = `⏳ ${ESPERA.length} na fila do VAR`; }
 }
 function beep(seq) { if (!somOn) return; try { const C = new (window.AudioContext || window.webkitAudioContext)(); let t = C.currentTime; seq.forEach(([f, d]) => { const o = C.createOscillator(), g = C.createGain(); o.frequency.value = f; o.type = 'square'; g.gain.value = .12; o.connect(g); g.connect(C.destination); o.start(t); o.stop(t + d); t += d + .05; }); } catch {} }
