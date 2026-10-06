@@ -349,7 +349,7 @@ const ddmm = iso => iso ? iso.slice(8,10) + '/' + iso.slice(5,7) : '—';
 const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
 const secDe = hms => { const [h, m, x] = String(hms || '0:0:0').split(':').map(Number); return h * 3600 + m * 60 + (x || 0); };
 const limpaNome = n => String(n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
-const HOJE0 = sp().date, K = {seen: 'ceven_mtz_seen_', log: 'ceven_mtz_log_', devMax: 'ceven_mtz_devmax_', data: 'ceven_mtz_data_'};
+const HOJE0 = sp().date, K = {seen: 'ceven_mtz_seen_', log: 'ceven_mtz_log2_', devMax: 'ceven_mtz_devmax_', data: 'ceven_mtz_data_'};
 (function limpa() { try { Object.keys(localStorage).forEach(k => { if (/^ceven_mtz_(seen|log|devmax|data)_/.test(k) && !k.endsWith(HOJE0)) localStorage.removeItem(k); }); } catch {} })();
 // Maior devolução acumulada do mês já vista HOJE por vendedor (chave sig|id -> valor). O CEVEN só
 // devolve o saldo TOTAL do mês (fin.devolucao), não "devolução de hoje" — sem isso, todo vendedor
@@ -471,8 +471,8 @@ function calcAlertas() {
       if (ultimoCheckin.hora < limiteRelampago && !out.some(o => o.key === `${sig}|gol_relampago|${v.id}`)) {
         out.push({key: `${sig}|gol_relampago|${v.id}`, sig, nivel: 'gol', subtipo: 'relampago', v, valor: v.dig, horaReal: ultimoCheckin.hms});
       }
-      const limiteAcrescimos = fuso1hMtz ? 18 : 17;
-      if (ultimoCheckin.hora >= limiteAcrescimos && !out.some(o => o.key === `${sig}|gol_acrescimos|${v.id}`)) {
+      const acrIni = (fuso1hMtz ? 17 : 16) * 60 + 30, acrFim = (fuso1hMtz ? 19 : 18) * 60; // 16h30-18h00 (17h30-19h00 no fuso); depois do limite nao e aceito
+      if (ultimoCheckin.horaMin >= acrIni && ultimoCheckin.horaMin <= acrFim && !out.some(o => o.key === `${sig}|gol_acrescimos|${v.id}`)) {
         out.push({key: `${sig}|gol_acrescimos|${v.id}`, sig, nivel: 'gol', subtipo: 'acrescimos', v, valor: v.dig, horaReal: ultimoCheckin.hms});
       }
     }
@@ -734,9 +734,7 @@ function enfileira(novos) {
     ESPERA.push({tipo: 'golcontra', sig: a.sig, v: a.v, a, sub: `Devolução: ${a.clienteDev || 'cliente'} (${brl(a.valor)})`, score: ehFechamento ? 14 : 20});
   });
   // CARTÃO AMARELO
-  novos.filter(a => a.nivel === 'amarelo').forEach(a => {
-    ESPERA.push({tipo: 'amarelo', sig: a.sig, v: a.v, a, sub: 'Rota ativa sem vendas às 10h', score: ehFechamento ? 8 : 14});
-  });
+  { const por = {}; novos.filter(a => a.nivel === 'amarelo').forEach(a => (por[a.sig] = por[a.sig] || []).push(a)); Object.entries(por).forEach(([sig, l]) => ESPERA.push({tipo: 'amarelos', sig, l, score: (ehFechamento ? 8 : 14) + l.length / 4})); } // um popup por filial com a lista
   ['visita10', 'venda10'].forEach(n => { const por = {}; novos.filter(a => a.nivel === n).forEach(a => (por[a.sig] = por[a.sig] || []).push(a)); Object.entries(por).forEach(([sig, l]) => ESPERA.push({tipo: n, sig, l, score: (ehFechamento ? 6 : 10) + l.length + statFilial(sig).nota / 12})); });
   ESPERA.sort((a, b) => b.score - a.score); liberaEspera();
 }
@@ -762,7 +760,7 @@ function pontosLanceOficial(tipo, subtipo) {
   if (subtipo === 'dobrou_mix') return { nome: 'Dobrou o Mix', pts: '+4 PONTOS NA LIGA', cor: '#22c55e' };
   if (subtipo === 'dobradinha_quinzenas') return { nome: 'Dobradinha das Quinzenas', pts: '+3 PONTOS NA LIGA', cor: '#22c55e' };
   if (tipo === 'defesa') return { nome: 'Defesa (Recorrência Salva)', pts: '+3 PONTOS NA LIGA', cor: '#22c55e' };
-  if (tipo === 'amarelo') return { nome: 'Cartão Amarelo', pts: '-3 PONTOS NA LIGA', cor: '#eab308' };
+  if (tipo === 'amarelo' || tipo === 'amarelos') return { nome: 'Cartão Amarelo', pts: tipo === 'amarelos' ? '-3 PONTOS NA LIGA CADA' : '-3 PONTOS NA LIGA', cor: '#eab308' };
   if (tipo === 'golcontra') return { nome: 'Gol Contra (Devolução)', pts: '-4 PONTOS NA LIGA', cor: '#ef4444' };
   if (tipo === 'semanainvicta') return { nome: 'Semana Invicta', pts: '+3 PONTOS NA LIGA', cor: '#facc15' };
   if (tipo === 'impedimento') return { nome: 'Impedimento VAR', pts: '-5 PONTOS NA LIGA', cor: '#f97316' };
@@ -873,6 +871,10 @@ function telaVAR(item) {
     if (n === 1) { const {c, dias} = it[0], tv = c ? c.tempo_visita : null; dec = seloLiga + linhas({...cab, 'Cliente': c ? c.nome : '—', 'Justificativa': '!' + (c ? c.motivo : ''), 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c ? c.ultima_compra : '')})` : 'sem compra registrada'), 'Tempo na visita': tv ? (tv === '00:00' ? '!' + tv + ' (visita de 0 minuto)' : tv) : null}); }
     else dec = seloLiga + linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot"><b>${esc(a.c ? a.c.nome : '')}</b><span>${esc(a.c ? a.c.motivo : '')} · ${a.dias != null ? a.dias + 'd s/ compra' : 'sem compra'}</span></div>`).join('');
     veredito = (v && ehSupFalso(v.sup)) ? `📞 LIGAR AGORA: o gerente de ${item.sig} (vendedor ${v.nome.split(' ')[0]} é ligado direto ao gerente)` : `📞 LIGAR AGORA: ${v ? v.sup : 'supervisor'} · ${item.sig} (supervisor de ${v ? v.nome.split(' ')[0] : 'vendedor'})`;
+  } else if (item.tipo === 'amarelos') {
+    titulo = '🟨 CARTÕES AMARELOS'; sub = `${item.sig} · ${(item.l || []).length} vendedor(es) COM ROTA sem pedido e/ou sem visita às ${LIMITE_H}h`; cls = 'f1';
+    dec = (item.l || []).slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.subtipo === 'sem_checkin' ? 'nenhuma visita / check-in de varejo' : (a.v ? a.v.feitas : 0) + '/' + (a.v ? a.v.rota : 0) + ' visitas · 0 pedidos'}${a.v && a.v.sup && !ehSupFalso(a.v.sup) ? ' · sup. ' + esc(a.v.sup) : ''}</span></div>`).join('') + ((item.l || []).length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
+    veredito = '🟨 Cobrar o compromisso da manhã: pedido e visita até as 10h. Quem continuar sem visita às 11h leva o vermelho.';
   } else {
     titulo = item.tipo === 'venda10' ? '🟥 CARTÃO VERMELHO' : '⛔ EXPULSÃO'; sub = `${item.sig} · ${LIMITE_H}h e ${(item.l||[]).length} vendedor(es) COM ROTA e SEM ${item.tipo === 'venda10' ? 'NENHUMA VENDA' : 'NENHUMA VISITA'}`;
     dec = (item.l||[]).slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.v ? a.v.feitas : 0}/${a.v ? a.v.rota : 0} visitas · digitado ${brl(a.v ? a.v.dig : 0)}</span></div>`).join(''); veredito = item.tipo === 'venda10' ? 'Nenhuma venda registrada até agora.' : 'Nenhuma visita registrada — verificar se está em campo.';
@@ -1461,7 +1463,7 @@ function abrirModalPainelMtz(tipo, motivo) {
               ${vObj.itens.map(it => `
                 <div class="det-tree-item">
                   <span class="modal-det-nome" style="color:#e2e8f0">🏢 ${esc(it.cliente || it.detalhe)}</span>
-                  <span style="font-weight:700;color:${tipo === 'penalti' ? '#fca5a5' : 'var(--acc)'}">${esc(it.motivo || it.detalhe)}</span>
+                  <span style="font-weight:700;color:${tipo === 'penalti' ? '#fca5a5' : 'var(--acc)'}">${it.hora ? '<small style="opacity:.7;font-weight:600">' + esc(String(it.hora).slice(0, 5)) + '</small> · ' : ''}${esc(it.motivo || it.detalhe)}${it.dias != null ? ' · <span style="color:#fcd34d">' + it.dias + ' dias sem compra</span>' : ''}</span>
                 </div>
               `).join('')}
             </div>
@@ -1535,7 +1537,7 @@ function renderPainelNacional() {
       ${topP.length ? topP.map((x, i) => { const pct = totP ? (x.n / totP * 100).toFixed(0) : 0; return `<div class="row-clic" onclick="abrirModalPainelMtz('penalti')"><div class="row" style="grid-template-columns:auto 1fr auto"><span style="color:var(--mut)">${i + 1}º</span><div class="n">${esc(x.nome)} <span style="opacity:.65;font-weight:600">(RCA ${esc(x.rca)}) · ${esc(x.sig || '')}</span>${x.canal ? ' ' + tagCanalHtml(x.canal) : ''}</div><b class="mono" style="color:var(--bad)">${x.n} <small style="color:var(--mut)">(${pct}%)</small></b></div><div class="hb red"><i style="width:${x.n / mxP * 100}%"></i></div></div>`; }).join('') : '<div class="vazio">Nenhum pênalti hoje.</div>'}`
   };
   const SLOTS = painelSlots();
-  const html = `<h2><span>Painel Nacional · 11 filiais</span><b id="pnHms"></b></h2><div class="grid4painel">${SLOTS.map((id, i) => `<div class="pnl">${painelSeletorHtml(i, id)}${BLOCOS[id] || painelLancesBlocoHtml(id, LOG, esc, 'h3')}</div>`).join('')}</div>`;
+  const html = `<h2><span>Painel Nacional · 11 filiais</span><b id="pnHms"></b></h2><div class="grid4painel">${SLOTS.map((id, i) => `<div class="pnl">${painelComSeletor(i, id, BLOCOS[id] || painelLancesBlocoHtml(id, LOG, esc, 'h3'))}</div>`).join('')}</div>`;
   if (html !== PNL_HTML) { PNL_HTML = html; el.innerHTML = html; } // so redesenha quando muda: o menu aberto e a rolagem dos quadros nao se perdem a cada segundo
   const hh = $('pnHms'); if (hh) hh.textContent = sp().hms;
 }

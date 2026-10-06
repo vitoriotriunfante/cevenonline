@@ -537,7 +537,7 @@ secao('8l. Paineis escolhidos pelo gestor (cartoes vermelhos/amarelos), aba Gaba
 {
   const mz = ler('public/matrizapp.html'), tv = ler('public/tvapp.html'), an = ler('public/animacoes/tv-animacoes.js'), br = ler('public/brasileirao.html');
   ok(an.includes('PAINEIS_OPCOES') && an.includes('Cartões vermelhos de hoje') && an.includes('Cartões amarelos de hoje') && an.includes('painelLancesBlocoHtml'), 'opcoes de painel incluem cartoes vermelhos e amarelos, gols, defesas, impedimentos e gol contra');
-  ok(mz.includes('painelSlotSet') && mz.includes('PNL_HTML') && mz.includes('painelSeletorHtml(i, id)'), 'Matriz: cada quadro do Painel Nacional tem seletor e so redesenha quando muda');
+  ok(mz.includes('painelSlotSet') && mz.includes('PNL_HTML') && mz.includes('painelComSeletor(i, id,'), 'Matriz: cada quadro do Painel Nacional tem seletor e so redesenha quando muda');
   ok(tv.includes('painelSlotSet') && tv.includes('PNL_CACHE') && tv.includes('BUFP'), 'TV da filial: cada quadro do Painel tem seletor');
   ok(!br.includes('max-width: 1500px;') && br.includes('tab-gabarito') && br.includes('carregarGabarito') && br.includes("switchTab('gabarito')"), 'Brasileirao: largura responsiva e aba Gabarito do Dia ao lado de Lances do Dia');
 }
@@ -568,6 +568,17 @@ secao('8o. Regras novas: amarelo as 10h (sem pedido e/ou sem visita), vermelho d
   ok(cj.pontos_por_lance.penalti_estoque.pontos === -4 && cj.pontos_por_lance.penalti_fechado.pontos === -4 && pj.pontos_por_lance.penalti_estoque.pontos === -4 && /11h00/.test(cj.pontos_por_lance.visita10.motivo) && /nenhuma visita/.test(cj.pontos_por_lance.amarelo.motivo), 'regulamento (config e copia publica): penalti -4, abandono 11h, amarelo com sem-visita/check-in');
   ok(bl.includes("dia >= '2026-10-06'") && bl.includes('pontos: -4'), 'endpoint: penalti vale -4 so a partir de 06/10/2026 (dias anteriores continuam -6)');
   ok(br.includes('table-layout: fixed') && br.includes('Inativos resgatados') && br.includes('/api/version'), 'Brasileirao: tabelas cabem na tela (sem rolagem lateral), cabecalhos Super Pedidos/Inativos explicados, recarrega com versao nova');
+}
+
+// ---------------------------------------------------------------- 8p. Lances com horario, painel travado no topo, lance de hoje de verdade
+secao('8p. Horarios dos lances (acrescimos 16h30-18h00), amarelos agrupados, painel com menu no cabecalho, TV sem lance de madrugada');
+{
+  const cl = ler('functions/api/cron-lances.js'), tl = ler('functions/api/tv-lances.js'), tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), an = ler('public/animacoes/tv-animacoes.js'), br = ler('public/brasileirao.html');
+  ok(cl.includes('acrIni = (v.fuso1h ? 17 : 16) * 60 + 30, acrFim = (v.fuso1h ? 19 : 18) * 60') && [tv, mz].every(h => h.includes('ultimoCheckin.horaMin >= acrIni && ultimoCheckin.horaMin <= acrFim')), 'Gol nos Acrescimos: check-in so entre 16h30 e 18h00 (17h30 e 19h00 no fuso); depois nao e aceito (coletor, TV e Matriz)');
+  ok(tl.includes("String(r.hora_sp || '') >= '06:00:00'") && tl.includes('lances_excluidos_liga') && tv.includes('ceven_tv_log2_') && mz.includes('ceven_mtz_log2_'), 'TV e Matriz so mostram lance de hoje de verdade: sem madrugada repetida e sem lance tirado da liga; log local do navegador renovado');
+  ok([tv, mz].every(h => h.includes("tipo: 'amarelos'") && h.includes('CARTÕES AMARELOS')), 'cartoes amarelos aparecem em UM popup com a lista (nao 1 popup por vendedor)');
+  ok(an.includes('painelComSeletor') && an.includes("replace('<b>', sel + '<b>')"), 'menu do painel fica no cabecalho do quadro (fixo no topo), ao lado do titulo');
+  ok(!br.includes('Gerente Regional') && [tv, mz].every(h => h.includes('dias sem compra</span>')), 'sem "Gerente Regional"; detalhe do penalti mostra a hora e os dias sem compra');
 }
 
 // ---------------------------------------------------------------- 9. prospects do Data Lake (aciona, espera, busca de novo)

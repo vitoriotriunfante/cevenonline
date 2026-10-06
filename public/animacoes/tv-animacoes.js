@@ -1651,3 +1651,9 @@ window.compactaDecHtml = function (dec) {
     return larga ? m.replace('class="ln' + cls + '"', 'class="ln' + cls + ' w"') : m;
   });
 };
+
+// Coloca o seletor de painel NO CABECALHO do quadro (titulo fixo no topo): so se troca o menu, o resto rola por baixo
+window.painelComSeletor = function (i, escolhido, bloco) {
+  const sel = window.painelSeletorHtml(i, escolhido).replace(' style="', ' style="margin:0 8px;flex:0 1 auto;');
+  return String(bloco).replace('<b>', sel + '<b>');
+};

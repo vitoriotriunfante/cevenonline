@@ -151,8 +151,9 @@ function calcAlertas(vs, t) {
     if (ultimoCheckin && t.agoraMin - ultimoCheckin.horaMin <= FRESCOR_MAX_MIN) {
       const limiteRelampago = v.fuso1h ? 10 : 9;
       if (ultimoCheckin.hora < limiteRelampago) out.push({ chave: `gol_relampago|${v.id}`, nivel: 'gol', v, prova: `check-in as ${ultimoCheckin.hms} (antes das ${limiteRelampago}h)` });
-      const limiteAcrescimos = v.fuso1h ? 18 : 17;
-      if (ultimoCheckin.hora >= limiteAcrescimos) out.push({ chave: `gol_acrescimos|${v.id}`, nivel: 'gol', v, prova: `check-in as ${ultimoCheckin.hms} (a partir das ${limiteAcrescimos}h)` });
+      // Acrescimos: check-in entre 16h30 e 18h00 (17h30 e 19h00 no fuso: TCG, MCD, TCA). Depois do limite NAO e aceito: ninguem trabalha fora do horario (Vitorio, 06/10/2026)
+      const acrIni = (v.fuso1h ? 17 : 16) * 60 + 30, acrFim = (v.fuso1h ? 19 : 18) * 60;
+      if (ultimoCheckin.horaMin >= acrIni && ultimoCheckin.horaMin <= acrFim) out.push({ chave: `gol_acrescimos|${v.id}`, nivel: 'gol', v, prova: `check-in as ${ultimoCheckin.hms} (janela ${Math.floor(acrIni / 60)}h${String(acrIni % 60).padStart(2, '0')} ate ${acrFim / 60}h00)` });
     }
     if (checkins.length >= 3) {
       for (let i = 0; i <= checkins.length - 3; i++) {

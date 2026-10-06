@@ -307,3 +307,7 @@ pequenos.
 - 🚨 **Pênalti vale -4** a partir de 06/10/2026 (antes -6); os dias anteriores ficam em -6 (o passado não se refaz). Regra no endpoint `/api/brasileirao-lances` (por data).
 - Hoje (06/10): os vermelhos de 10h gerados pela regra antiga foram tirados da liga (`lances_excluidos_liga`); os vendedores sem visita recebem o amarelo.
 - Brasileirão: tabelas Lances do Dia e Gabarito sem rolagem lateral; colunas "Super Pedidos" (gols de Super Pedido, ≥ R$ 15 mil no dia) e "Inativos resgatados" (gols de Resgate de Inativo) explicadas; a página recarrega sozinha quando sai versão nova.
+- **Horários dos lances (Vitório, 06/10/2026):** Gol Relâmpago só com check-in antes das 09h00 (10h00 no fuso TCG/MCD/TCA); **Gol nos Acréscimos só com check-in de 16h30 a 18h00 (17h30 a 19h00 no fuso)** — depois do limite não é aceito, ninguém trabalha fora do horário; Amarelo a partir das 10h (11h fuso); Vermelho de abandono a partir das 11h (12h fuso). Cada lance só nasce na sua janela.
+- **Cartões amarelos:** um popup por vez com a lista (TV: da filial; Matriz: um por filial), não um popup por vendedor.
+- **Painéis:** o menu de escolha fica no cabeçalho do quadro (fixo no topo, ao lado do título); só se troca o menu. Texto do regulamento e colunas: não existe "Gerente Regional" (é "Gerente").
+- **TV/Matriz só mostram lance de hoje de verdade:** `/api/tv-lances` não devolve madrugada (antes das 06h) nem lance tirado da liga (`lances_excluidos_liga`); o log local do navegador foi renovado (`*_log2_`). Detalhe de pênalti mostra a hora e os dias sem compra.

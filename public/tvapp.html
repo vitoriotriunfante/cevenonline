@@ -403,7 +403,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
 const HOJE0 = sp().date;
-const K = {seen:`ceven_tv_seen_${FIL}_`, log:`ceven_tv_log_${FIL}_`, snap:`ceven_tv_snap_${FIL}_`, devMax:`ceven_tv_devmax_${FIL}_`};
+const K = {seen:`ceven_tv_seen_${FIL}_`, log:`ceven_tv_log2_${FIL}_`, snap:`ceven_tv_snap_${FIL}_`, devMax:`ceven_tv_devmax_${FIL}_`};
 (function limpaAntigos() { try { Object.keys(localStorage).forEach(k => { if (/^ceven_tv_(seen|log|snap|devmax)_/.test(k) && !k.endsWith(HOJE0)) localStorage.removeItem(k); }); } catch {} })();
 // Maior devolução acumulada do mês já vista HOJE por vendedor (id -> valor). O CEVEN só devolve o
 // saldo TOTAL do mês (fin.devolucao), não "devolução de hoje" — sem isso, todo vendedor com
@@ -581,8 +581,8 @@ function calcAlertas(vs) {
       if (ultimoCheckin.hora < limiteRelampago && !out.some(o => o.key === `gol_relampago|${v.id}`)) {
         out.push({key: `gol_relampago|${v.id}`, nivel: 'gol', subtipo: 'relampago', v, valor: v.dig, horaReal: ultimoCheckin.hms});
       }
-      const limiteAcrescimos = fuso1h ? 18 : 17;
-      if (ultimoCheckin.hora >= limiteAcrescimos && !out.some(o => o.key === `gol_acrescimos|${v.id}`)) {
+      const acrIni = (fuso1h ? 17 : 16) * 60 + 30, acrFim = (fuso1h ? 19 : 18) * 60; // 16h30-18h00 (17h30-19h00 no fuso); depois do limite nao e aceito
+      if (ultimoCheckin.horaMin >= acrIni && ultimoCheckin.horaMin <= acrFim && !out.some(o => o.key === `gol_acrescimos|${v.id}`)) {
         out.push({key: `gol_acrescimos|${v.id}`, nivel: 'gol', subtipo: 'acrescimos', v, valor: v.dig, horaReal: ultimoCheckin.hms});
       }
     }
@@ -821,7 +821,7 @@ function enfileira(novos) {
     ESPERA.unshift({tipo: 'hattrick', v: a.v, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaReal), score: 99});
   });
   // Vermelhos, Gol Contra, impedimentos entram na fila
-  novos.filter(a => ['vermelho', 'golcontra', 'impedimento', 'amarelo', 'defesa'].includes(a.nivel)).forEach(a => {
+  novos.filter(a => ['vermelho', 'golcontra', 'impedimento', 'defesa'].includes(a.nivel)).forEach(a => {
     let sub;
     if (a.nivel === 'impedimento' && a.subtipo === 'gps_fora') sub = `Check-out a ${a.distM}m do cliente ${a.c && a.c.nome}`;
     else if (a.nivel === 'vermelho' && a.subtipo === 'bonificacao') sub = `${a.c && a.c.nome} · pedido com itens e valor R$0 (bonificação disfarçada)`;
@@ -833,6 +833,7 @@ function enfileira(novos) {
   novos.filter(a => a.nivel === 'penalti').forEach(a => { if (!porV.has(a.v.id)) porV.set(a.v.id, {tipo: 'penalti', v: a.v, itens: []}); porV.get(a.v.id).itens.push(a); });
   ESPERA.push(...[...porV.values()].sort((x, y) => y.itens.length - x.itens.length));
   ['visita10', 'venda10'].forEach(n => { const l = novos.filter(a => a.nivel === n); if (l.length) ESPERA.push({tipo: n, l}); });
+  { const l = novos.filter(a => a.nivel === 'amarelo'); if (l.length) ESPERA.push({tipo: 'amarelos', l, score: 20}); } // amarelos das 10h: um popup com a lista
   liberaEspera();
 }
 function podeVAR() {
@@ -868,7 +869,7 @@ function pontosLanceOficial(tipo, subtipo) {
   if (subtipo === 'dobrou_mix') return { nome: 'Dobrou o Mix', pts: '+4 PONTOS NA LIGA', cor: '#22c55e' };
   if (subtipo === 'dobradinha_quinzenas') return { nome: 'Dobradinha das Quinzenas', pts: '+3 PONTOS NA LIGA', cor: '#22c55e' };
   if (tipo === 'defesa') return { nome: 'Defesa (Recorrência Salva)', pts: '+3 PONTOS NA LIGA', cor: '#22c55e' };
-  if (tipo === 'amarelo') return { nome: 'Cartão Amarelo', pts: '-3 PONTOS NA LIGA', cor: '#eab308' };
+  if (tipo === 'amarelo' || tipo === 'amarelos') return { nome: 'Cartão Amarelo', pts: tipo === 'amarelos' ? '-3 PONTOS NA LIGA CADA' : '-3 PONTOS NA LIGA', cor: '#eab308' };
   if (tipo === 'golcontra') return { nome: 'Gol Contra (Devolução)', pts: '-4 PONTOS NA LIGA', cor: '#ef4444' };
   if (tipo === 'semanainvicta') return { nome: 'Semana Invicta', pts: '+3 PONTOS NA LIGA', cor: '#facc15' };
   if (tipo === 'impedimento') return { nome: 'Impedimento VAR', pts: '-5 PONTOS NA LIGA', cor: '#f97316' };
@@ -959,6 +960,10 @@ function telaVAR(item) {
       dec = seloLiga + linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot"><b>${esc(a.c.nome)}</b><span>${esc(a.c.motivo)} · ${a.dias != null ? a.dias + 'd s/ compra' : 'sem compra'}${a.c.tempo_visita === '00:00' ? ' · visita de 0 min' : ''}</span></div>`).join('') + (n > 5 ? `<div class="ln"><b>+${n - 5}</b><span>outros clientes</span></div>` : '');
     }
     veredito = `📞 LIGAR AGORA: ${ehSupFalso(v.sup) ? 'o gerente da filial' : (v.sup || 'supervisor')} (${ehSupFalso(v.sup) ? 'vendedor ligado direto ao gerente' : 'supervisor'} de ${v.nome.split(' ')[0]})${totalDia >= 3 ? ' — REINCIDENTE, ' + totalDia + 'º pênalti hoje' : ''}`;
+  } else if (item.tipo === 'amarelos') {
+    titulo = '🟨 CARTÕES AMARELOS'; sub = `${item.l.length} vendedor(es) COM ROTA sem pedido e/ou sem visita às ${LIMITE_H}h`; cls = 'f1';
+    dec = item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.subtipo === 'sem_checkin' ? 'nenhuma visita / check-in de varejo' : a.v.feitas + '/' + a.v.rota + ' visitas · 0 pedidos'}${a.v.sup && !ehSupFalso(a.v.sup) ? ' · sup. ' + esc(a.v.sup) : ''}</span></div>`).join('') + (item.l.length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
+    veredito = '🟨 Cobrar o compromisso da manhã: pedido e visita até as 10h. Quem continuar sem visita às 11h leva o vermelho.';
   } else if (item.tipo === 'venda10') {
     titulo = '🟥 CARTÃO VERMELHO'; sub = `${LIMITE_H}h e ${item.l.length} vendedor(es) COM ROTA e SEM NENHUMA VENDA`; cls = 'f1';
     dec = item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.v.feitas}/${a.v.rota} visitas · digitado ${brl(a.v.dig)}</span></div>`).join('') + (item.l.length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
@@ -1351,6 +1356,7 @@ function abrirModalPainel(tipo, motivo) {
           cliente: e.cliente || 'Cliente',
           motivo: e.motivo || 'Pênalti apitado',
           dias: e.dias_sem_compra,
+          hora: e.t,
           detalhe: `${e.cliente ? e.cliente + ' · ' : ''}${e.motivo || 'Pênalti'}${e.dias_sem_compra != null ? ' (' + e.dias_sem_compra + 'd s/ compra)' : ''}`,
           valorNum: 1
         });
@@ -1426,7 +1432,7 @@ function abrirModalPainel(tipo, motivo) {
             ${vObj.itens.map(it => `
               <div class="det-tree-item">
                 <span class="modal-det-nome" style="color:#e2e8f0">🏢 <b>${esc(it.cliente || it.detalhe)}</b></span>
-                <span style="font-weight:700;color:${tipo === 'penalti' ? '#fca5a5' : 'var(--acc)'}">${esc(it.motivo || it.detalhe)}</span>
+                <span style="font-weight:700;color:${tipo === 'penalti' ? '#fca5a5' : 'var(--acc)'}">${it.hora ? '<small style="opacity:.7;font-weight:600">' + esc(String(it.hora).slice(0, 5)) + '</small> · ' : ''}${esc(it.motivo || it.detalhe)}${it.dias != null ? ' · <span style="color:#fcd34d">' + it.dias + ' dias sem compra</span>' : ''}</span>
               </div>
             `).join('')}
           </div>
@@ -1492,7 +1498,7 @@ function renderPainel(vs) {
   // Card "Alertas ativos" clicável no título (não item a item — já é uma lista misturada de tipos)
   const DEF = {alertas: BUFP.p1, justificativas: BUFP.p2, digitado: BUFP.p3, penaltis: BUFP.p4};
   const SL = painelSlots();
-  [1, 2, 3, 4].forEach((n, i) => { const html = painelSeletorHtml(i, SL[i]) + (DEF[SL[i]] || painelLancesBlocoHtml(SL[i], LOG, esc, 'h2')); if (PNL_CACHE[i] !== html) { PNL_CACHE[i] = html; $('p' + n).innerHTML = html; } });
+  [1, 2, 3, 4].forEach((n, i) => { const html = painelComSeletor(i, SL[i], DEF[SL[i]] || painelLancesBlocoHtml(SL[i], LOG, esc, 'h2')); if (PNL_CACHE[i] !== html) { PNL_CACHE[i] = html; $('p' + n).innerHTML = html; } });
   const idxAl = SL.indexOf('alertas'); const p1h2 = idxAl >= 0 ? document.querySelector('#p' + (idxAl + 1) + ' h2') : null; if (p1h2) { p1h2.style.cursor = 'pointer'; p1h2.onclick = () => abrirModalPainel('alertas'); }
 }
 function renderSup() {

@@ -35,7 +35,11 @@ export async function onRequestGet({ request, env }) {
       `SELECT chave, nivel, rca, vendedor, supervisor, cliente_id, cliente, motivo, dias_sem_compra, ultima_compra, tempo_visita, obs, hora_sp, baseline
        FROM tv_lances WHERE dia = ? AND filial = ? AND nivel != 'marker' ORDER BY hora_sp`
     ).bind(dia, filial).all();
-    return resp({ dia, filial, lances: results || [] });
+    // Mesma regra da liga: nada de madrugada (lance de ontem repetido a meia-noite) e nada que foi tirado da liga com trilha (lances_excluidos_liga)
+    const ex = new Set();
+    try { const r2 = await env.DB.prepare('SELECT chave, motivo FROM lances_excluidos_liga WHERE dia = ?').bind(dia).all(); for (const e of r2.results || []) if (e && e.motivo) ex.add(e.chave); } catch { /* tabela ausente: segue sem exclusoes */ }
+    const limpos = (results || []).filter((r) => String(r.hora_sp || '') >= '06:00:00' && !ex.has(String(r.chave || '').replace(/^[A-Z]{3}[|]/, '')) && !ex.has(r.chave));
+    return resp({ dia, filial, lances: limpos });
   } catch (e) {
     return resp({ erro: 'falha ao ler: ' + e.message }, 500);
   }
