@@ -24,3 +24,9 @@
 - Marca própria: valor mínimo no pedido, pontos da estrela, regras de exibição.
 - Punitivo: os descontos se somam (−35) ou vale só o maior?
 - Regras do supervisor AS (proposta: faseamento da equipe somado + check-in da carteira da equipe).
+
+## Atualização 07/10/2026 (respostas do Vitório) e primeira entrega
+- Calendário confirmado: semana 1 = dias 1–7, 2 = 8–14, 3 = 15–**20**, 4 = 21–fim do mês.
+- **Pontos do faseamento:** 10 / 20 / 30 / 40 (semanas 1 a 4). **Bônus de primeira quinzena (100% até o dia 15): +50.** Bônus "bateu a meta até o dia 25": +25.
+- **Entregue em modo sombra:** `functions/_lib/liga_as.js` (regras), `/api/liga-as` (vendedores e supervisores, separados) e a página `/liga-as`. % da meta = (faturado + pendente) / meta do mês, igual ao app do CEVEN. Semana só pontua depois que o dia de fechamento termina. Supervisor = equipe somada. Os bônus de 15 e de 25 SOMAM (suposição, confirmar).
+- Ainda em aberto: check-in da carteira, amarelo de venda sem check-in, gol de SKUs, marca própria, punitivo por falta de pedido (itens da lista acima).
