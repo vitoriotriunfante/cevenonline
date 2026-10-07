@@ -48,6 +48,7 @@ const REGRAS_PONTOS = {
 
 import { lerQualif } from '../_lib/qualificacao_gol.js';
 import { lerDiaFechado } from '../_lib/liga_fechamento.js';
+import { ocultosDaEquipe, lanceDeOculto } from '../_lib/equipe_ocultos.js';
 function achaPontuacao(chave, nivel) {
   const partes = String(chave || '').split('|');
   for (const p of partes) {
@@ -66,7 +67,7 @@ export async function onRequestGet({ request, env }) {
   // DIA FECHADO (congelado as 19h30, ver _lib/liga_fechamento.js): devolve o que foi gravado no fechamento, sem recalcular. ?ao_vivo=1 ignora o congelamento (so o proprio fechamento usa).
   if (u.searchParams.get('ao_vivo') !== '1') {
     const f = await lerDiaFechado(env, dia, filial);
-    if (f) { const porNivel = {}; for (const l of f.lances) porNivel[l.nivel] = (porNivel[l.nivel] || 0) + 1; return resp({ dia, filial: filial || 'TODAS', total: f.lances.length, duplicados_removidos: 0, porNivel, lances: f.lances, fechado: true, fechado_em: f.cab.fechado_em, regras_versao: f.cab.regras_versao }); }
+    if (f) { const oc = await ocultosDaEquipe(u.origin); const fl = f.lances.filter((l) => !lanceDeOculto(l, oc)); const porNivel = {}; for (const l of fl) porNivel[l.nivel] = (porNivel[l.nivel] || 0) + 1; return resp({ dia, filial: filial || 'TODAS', total: fl.length, ocultos_fora: f.lances.length - fl.length, duplicados_removidos: 0, porNivel, lances: fl, fechado: true, fechado_em: f.cab.fechado_em, regras_versao: f.cab.regras_versao }); }
   }
 
   try {
@@ -101,8 +102,10 @@ export async function onRequestGet({ request, env }) {
     // Devolucao (cartao vermelho / gol contra) anterior a 06/10 tambem sai: sem cliente nem prova gravada, e a rotina que gerava parou em 29/09.
     // Devolucao: vale quando tem a PROVA gravada (nota, cliente, valor e motivo oficial em obs); sem prova nao conta, em qualquer dia.
     const GPS_ANTIGO = /(^|\|)imp\|gps\|/, DEVOLUCAO = /(^|\|)(ver_dev|golcontra_dev)\|/;
+    const ocultos = await ocultosDaEquipe(u.origin);
     const lancesBrutos = (results || []).filter(l => {
       const ch = String(l.chave || '');
+      if (lanceDeOculto(l, ocultos)) return false; // vendedor oculto na Gestao de Equipe (afastado, ferias, conta de teste) nao gera lance
       if (dia < GPS_CONFIAVEL_DESDE && GPS_ANTIGO.test(ch)) return false;
       if (excluidos.size && excluidos.has(ch.replace(/^[A-Z]{3}[|]/, ''))) return false;
       if (l.nivel === 'semanainvicta') return false; // aviso da Semana Invicta e so para a TV; o +3 do ranking vem da conta semanal do gerador, nunca desta linha

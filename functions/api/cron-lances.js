@@ -149,7 +149,8 @@ function calcAlertas(vs, t) {
   const out = [];
   vs.forEach((v) => {
     if (!v.cl) return;
-    if ((v.dig || 0) >= 15000) out.push({ chave: `gol_super|${v.id}`, nivel: 'gol', v, prova: comQ(v, `digitado do dia ${brl(v.dig)} (minimo R$ 15.000)`) });
+    const minSuper = v.canal === 'AS' ? 75000 : 15000; // AS tem pedido muito maior: R$ 75.000 no dia (Varejo R$ 15.000)
+    if ((v.dig || 0) >= minSuper) out.push({ chave: `gol_super|${v.id}`, nivel: 'gol', v, prova: comQ(v, `digitado do dia ${brl(v.dig)} (minimo R$ ${minSuper.toLocaleString('pt-BR')})`) });
 
     const checkins = horariosCheckinDoDia(v.cl);
     const ultimoCheckin = checkins.length ? checkins[checkins.length - 1] : null;

@@ -52,7 +52,8 @@ export function auditaLance(l, ctx = {}) {
     if (!m) falha('goleada sem a prova de clientes positivados na rota'); else if (+m[1] < 10) falha(`goleada com ${m[1]} clientes (mínimo 10)`);
   } else if (tipo === 'gol_super') {
     m = /digitado do dia R\$ ([\d.,]+)/.exec(obs);
-    if (!m) falha('super pedido sem o valor digitado do dia'); else if (num(m[1]) < 15000) falha(`super pedido com digitado R$ ${m[1]} (mínimo R$ 15.000)`);
+    const mm = /minimo R\$ ([\d.,]+)/.exec(obs), minimo = mm ? num(mm[1]) : 15000; // Varejo R$ 15.000; AS R$ 75.000 (o minimo vem escrito na prova)
+    if (!m) falha('super pedido sem o valor digitado do dia'); else if (![15000, 75000].includes(minimo)) falha(`super pedido com minimo estranho (R$ ${mm && mm[1]})`); else if (num(m[1]) < minimo) falha(`super pedido com digitado R$ ${m[1]} (mínimo R$ ${minimo.toLocaleString('pt-BR')})`);
   } else if (tipo === 'gol_conversao') {
     m = /(\d+) com venda em (\d+) visitas = (\d+)%/.exec(obs);
     if (!m) falha('conversão sem a prova de visitas e vendas'); else { if (+m[2] < 8) falha(`conversão com ${m[2]} visitas (mínimo 8)`); if (+m[3] < 50) falha(`conversão de ${m[3]}% (mínimo 50%)`); }

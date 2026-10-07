@@ -1,3 +1,4 @@
+import { ocultosDaEquipe, lanceDeOculto } from '../_lib/equipe_ocultos.js';
 // =========================================================================
 // FICHA DO ARQUIVO
 // O QUE É: registro dos LANCES da TV (pênaltis, cartões, supervisores) no D1 (tabela tv_lances,
@@ -38,7 +39,8 @@ export async function onRequestGet({ request, env }) {
     // Mesma regra da liga: nada de madrugada (lance de ontem repetido a meia-noite) e nada que foi tirado da liga com trilha (lances_excluidos_liga)
     const ex = new Set();
     try { const r2 = await env.DB.prepare('SELECT chave, motivo FROM lances_excluidos_liga WHERE dia = ?').bind(dia).all(); for (const e of r2.results || []) if (e && e.motivo) ex.add(e.chave); } catch { /* tabela ausente: segue sem exclusoes */ }
-    const limpos = (results || []).filter((r) => String(r.hora_sp || '') >= '06:00:00' && !ex.has(String(r.chave || '').replace(/^[A-Z]{3}[|]/, '')) && !ex.has(r.chave));
+    const oc = await ocultosDaEquipe(new URL(request.url).origin);
+    const limpos = (results || []).filter((r) => !lanceDeOculto({ ...r, filial }, oc) && String(r.hora_sp || '') >= '06:00:00' && !ex.has(String(r.chave || '').replace(/^[A-Z]{3}[|]/, '')) && !ex.has(r.chave));
     return resp({ dia, filial, lances: limpos });
   } catch (e) {
     return resp({ erro: 'falha ao ler: ' + e.message }, 500);
@@ -63,7 +65,8 @@ export async function onRequestPost({ request, env }) {
     ).bind(dia, filial, hora, iso).run();
     const baseline = (m.meta && m.meta.changes) === 1;
 
-    const validos = lances.filter((l) => l && typeof l.chave === 'string' && l.chave.length <= 120 && ['penalti', 'venda10', 'visita10', 'supervisor', 'gol', 'vermelho', 'impedimento', 'amarelo', 'defesa', 'golcontra', 'hattrick', 'pedido_rota', 'semanainvicta'].includes(l.nivel));
+    const ocP = await ocultosDaEquipe(new URL(request.url).origin); // vendedor OCULTO na Gestao de Equipe nao gera lance
+    const validos = lances.filter((l) => l && !lanceDeOculto({ ...l, filial }, ocP) && typeof l.chave === 'string' && l.chave.length <= 120 && ['penalti', 'venda10', 'visita10', 'supervisor', 'gol', 'vermelho', 'impedimento', 'amarelo', 'defesa', 'golcontra', 'hattrick', 'pedido_rota', 'semanainvicta'].includes(l.nivel));
     let novos = [];
     // Devolucao: uma NOTA gera UM lance na vida toda (a nota continua na janela de 3 dias e voltaria a cada dia).
     for (let i = validos.length - 1; i >= 0; i--) {

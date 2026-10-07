@@ -534,10 +534,12 @@ const vendedores = sig => reps(sig).map(r => vend(sig, r)).filter(v => v.tem && 
 const zerado = v => v.campo && v.temRota && !(v.dig > 0) && !(v.pos > 0);
 function calcAlertas() {
   const t = sp(), out = [];
+  const ocultosMz = new Set(); Object.keys(MOSTRA || {}).forEach(k => (MOSTRA[k] || []).forEach(r => { if (r.mostra === false) ocultosMz.add(k.split('_')[0] + '|' + r.rca); }));
   for (const sig of ORDEM) for (const v of vendedores(sig)) {
     if (!v.cl) continue;
+    if (ocultosMz.has(sig + '|' + v.id)) continue; // oculto na Gestao de Equipe (afastado, ferias, teste): nao gera lance (Vitório, 07/10/2026)
     // --- LANCE G02 / G01: GOL DE PLACA (Super Pedido ou Venda Alta) ---
-    if ((v.dig || 0) >= 15000) {
+    if ((v.dig || 0) >= (v.canal === 'AS' ? 75000 : 15000)) { // AS: R$ 75.000 no dia
       out.push({key: `${sig}|gol_super|${v.id}`, sig, nivel: 'gol', subtipo: 'super_pedido', v, valor: v.dig});
     }
     // --- LANCE G01/G10: horário REAL de visita (checkin_horario da API — ver horariosCheckinDoDia)

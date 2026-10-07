@@ -644,7 +644,7 @@ function calcAlertas(vs) {
   vs.forEach(v => {
     if (!v.cl) return;
     // --- LANCE G02 / G01: GOL DE PLACA (Super Pedido ou Venda Alta) ---
-    if ((v.dig || 0) >= 15000) {
+    if ((v.dig || 0) >= (v.canal === 'AS' ? 75000 : 15000)) { // AS: R$ 75.000 no dia
       out.push({key: `gol_super|${v.id}`, nivel: 'gol', subtipo: 'super_pedido', v, valor: v.dig});
     }
     // --- LANCE G01/G10: horário REAL de visita (checkin_horario da API, confirmado em 28/09/2026

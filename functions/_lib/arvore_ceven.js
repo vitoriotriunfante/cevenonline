@@ -49,6 +49,27 @@ async function arvoreDaFilial(g, senha) {
   } catch { return null; }
 }
 
+// CANAL DE CADA VENDEDOR = o do CEVEN (area_atuacao). Vitório, 07/10/2026: "tem cara de AS como o proprio CEVEN do Luciano e o cara tá como varejo": o canal da Gestão estava errado em
+// dezenas de vendedores (33 de 54 conferidos). Guarda em canal_ceven (cache de 24 h, até 150 vendedores por chamada) e aplicaArvore passa a usar esse canal.
+export async function atualizaCanais(env, limite = 150) {
+  try {
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS canal_ceven (filial TEXT NOT NULL, rca TEXT NOT NULL, canal TEXT, em INTEGER, PRIMARY KEY (filial, rca))').run();
+    const { results } = await env.DB.prepare("SELECT a.filial AS filial, a.rca AS rca FROM arvore_supervisores a LEFT JOIN canal_ceven c ON c.filial = a.filial AND c.rca = a.rca WHERE c.em IS NULL OR c.em < ? ORDER BY COALESCE(c.em, 0) LIMIT ?").bind(Date.now() - 24 * 3600e3, limite).all();
+    const lista = results || [];
+    for (let i = 0; i < lista.length; i += 10) {
+      await Promise.all(lista.slice(i, i + 10).map(async (v) => {
+        try {
+          const x = await fetch(`${CEVEN}/api/filiais/${String(v.filial).toLowerCase()}1/representante/${v.rca}`, { signal: AbortSignal.timeout(6000) });
+          if (!x.ok) return;
+          let canal = ''; try { const j = await x.json(); canal = String(j.area_atuacao || '').toUpperCase(); } catch { /* corpo vazio: o CEVEN nao tem canal desse codigo */ }
+          await env.DB.prepare('INSERT OR REPLACE INTO canal_ceven (filial, rca, canal, em) VALUES (?, ?, ?, ?)').bind(v.filial, String(v.rca), canal, Date.now()).run();
+        } catch { /* tenta de novo na proxima rodada */ }
+      }));
+    }
+    return lista.length;
+  } catch { return 0; }
+}
+
 // Baixa as 11 filiais e grava no D1. Filial que falhar mantém a árvore anterior dela.
 export async function atualizaArvore(env) {
   if (!env.DB) return { status: 'SEM_BANCO' };
@@ -82,7 +103,8 @@ export async function atualizaArvore(env) {
     await env.DB.batch(stmts);
     ok.push(g.sigla); gravados += rows.length;
   }
-  return { status: falhas.length ? 'PARCIAL' : 'ATUALIZADA', filiais_ok: ok, filiais_falharam: falhas, vendedores: gravados, atualizado_em: agora };
+  const canaisAtualizados = await atualizaCanais(env, 150);
+  return { status: falhas.length ? 'PARCIAL' : 'ATUALIZADA', filiais_ok: ok, filiais_falharam: falhas, vendedores: gravados, canais_atualizados: canaisAtualizados, atualizado_em: agora };
 }
 
 // Renova só se a árvore está velha (padrão 45 min). Devolve o status.
@@ -99,6 +121,22 @@ export async function garanteArvore(env, maxIdadeMin = 45) {
 // Aplica a árvore viva sobre a resposta da equipe (corpo = { filiais: { SIG: [ {rca, supervisor, ...} ] } }). Muta e devolve o corpo.
 export async function aplicaArvore(env, corpo) {
   if (!env.DB || !corpo || !corpo.filiais) return corpo;
+  // canal do CEVEN por cima do canal da Gestao (a Gestao so manda em mostra/nao mostra, gerente e grupo; o canal real e o do CEVEN)
+  try {
+    const { results: cc } = await env.DB.prepare("SELECT filial, rca, canal FROM canal_ceven WHERE canal IS NOT NULL AND canal != ''").all();
+    if (cc && cc.length) {
+      const mc = new Map(cc.map((x) => [x.filial + '|' + x.rca, String(x.canal).toUpperCase()]));
+      let trocados = 0;
+      for (const chave of Object.keys(corpo.filiais)) {
+        const sig = chave.split('_')[0].toUpperCase();
+        for (const v of corpo.filiais[chave] || []) {
+          const c = v && mc.get(sig + '|' + v.rca);
+          if (c && c !== String(v.canal || '').toUpperCase()) { v.canal_gestao = v.canal || ''; v.canal = c; trocados++; }
+        }
+      }
+      corpo.canais_do_ceven = { vendedores_com_canal_corrigido: trocados };
+    }
+  } catch { /* tabela ainda nao existe: segue com o canal da Gestao */ }
   try {
     const { results } = await env.DB.prepare('SELECT filial, rca, sup_nome, atualizado_em, nome, canal FROM arvore_supervisores').all();
     if (!results || !results.length) { corpo.arvore_viva = null; return corpo; }
