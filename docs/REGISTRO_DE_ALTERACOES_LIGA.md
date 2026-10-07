@@ -20,3 +20,12 @@
 - **Animação própria:** chuva de estrelas douradas (⭐ no Gol de Marca Própria, 🌟 na Tripla) por cima da animação/decisão, na TV da filial e na Matriz. Sem vídeo novo.
 - Chave do lance: `gol_mp_tripla|<rca>`; auditoria exige prova "N clientes com R$ 50+ de MARCA PROPRIA no dia (minimo 3)" e recusa dia anterior a 09/10.
 - Regulamento congelado: `versao_regras` e `REGRAS_VERSAO` = 2026-10-09.1; LOCK_HASH atualizado. **Avisar os gerentes** da nova versão.
+
+## 07/10/2026 (tarde) — nome, supervisores, vermelho, incentivo
+- Nome da liga nas telas: **Champions Triunfante** (o comentário interno do JSON de regras não foi mexido: quebraria a trava de regras congeladas).
+- Cards do topo da tela da liga dizem "das FILIAIS"; coluna "Forma recente" virou "Últimos jogos".
+- Supervisores (TV/Matriz//supervisores): só aparecem os que têm vendedor na árvore viva do CEVEN (`functions/_lib/sup_ativos.js`). Somem Cleber e Everton de TBL; Priscila, Fábio Furlan e "Gerente TBL" não aparecem.
+- Vídeos próprios: `gol1_mp.mp4` (Gol de Marca Própria) e `gol2_mp.mp4` (Tripla), reservados fora do sorteio dos gols comuns.
+- Cartão vermelho e gol contra por devolução saem sempre sozinhos (nunca dentro de resumo). Coletor: devolução só vale na filial a que o RCA pertence (código 1035 repete em TPA e TBE).
+- **Incentivo de Varejo Outubro/2026**: `/incentivo` + `/api/incentivo-outubro` + `public/incentivo_outubro_2026.json`. Vale a positivação FECHADA do dashboard do CEVEN. Pendências do Vitório: universo (330 RCAs/53 sup. no cálculo x 306/48 do regulamento), metas (CEVEN 28.637 x Coluna N 27.000), fórmula "faturados+pendentes" do texto x positivação fechada.
+- Descoberto: TV/Matriz não recebem `devolucoes_hoje` do tv-vendedor; vermelho/gol contra de devolução só chegam pelo coletor (ledger).
