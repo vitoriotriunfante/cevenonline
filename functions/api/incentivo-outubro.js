@@ -14,8 +14,8 @@ const pct = (r, m) => (m > 0 ? Math.round((r / m) * 1000) / 10 : null); // sem m
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
   try {
-    const cfg = await (await fetch(new URL('/incentivo_outubro_2026.json', url.origin), { cache: 'no-store' })).json();
-    const eq = await (await fetch(new URL('/api/tv-mostra', url.origin), { cache: 'no-store' })).json();
+    const cfg = await (await fetch(new URL('/incentivo_outubro_2026.json', url.origin))).json();
+    const eq = await (await fetch(new URL('/api/tv-mostra', url.origin))).json();
     const ref = await env.DB.prepare('SELECT MAX(data_ref) d FROM varredura_central_rca').first();
     const dia = ref && ref.d; if (!dia) return new Response(JSON.stringify({ erro: 'sem varredura do CEVEN no banco' }), { status: 503, headers: CORS });
     const { results } = await env.DB.prepare("SELECT rca_codigo r, filial_sigla f, json_extract(dashboard_json,'$.positivacao.meta') m, json_extract(dashboard_json,'$.positivacao.realizado') p, updated_at u FROM varredura_central_rca WHERE data_ref = ? AND dashboard_json IS NOT NULL").bind(dia).all();
