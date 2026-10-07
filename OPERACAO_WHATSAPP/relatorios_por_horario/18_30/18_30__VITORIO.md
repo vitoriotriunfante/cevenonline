@@ -1,96 +1,96 @@
 🏆 *BOLETIM DE FECHAMENTO OFICIAL DO DIA — 18:30*
-📅 06/10/2026 • Grupo Triunfante (11 Filiais)
+📅 07/10/2026 • Grupo Triunfante (11 Filiais)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 📌 *RESULTADO FINANCEIRO DO DIA:*
-💰 *Total Digitado Hoje:* R$ 1.794.877,03
-📦 *Total de Pedidos Colocados:* 1.717 pedidos
+💰 *Total Digitado Hoje:* R$ 2.250.994,05
+📦 *Total de Pedidos Colocados:* 1.846 pedidos
 
 🟢 *CONQUISTAS E RECUPERAÇÃO DE BASE HOJE:*
-🟢 *Inativos Reativados (+30d):* 146 PDVs recuperados
-🔄 *Positivados com TAG Recorrência:* 123 PDVs
+🟢 *Inativos Reativados (+30d):* 181 PDVs recuperados
+🔄 *Positivados com TAG Recorrência:* 134 PDVs
 🔁 *Positivados com TAG Volta Comigo (TPH):* 0 PDVs
 
 🚨 *PERDAS E ATENÇÃO OPERACIONAL HOJE:*
-✂️ *Cortes nos Pedidos de Hoje:* R$ 37.450,67 (60 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 293.071,56 (245 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 128.474,53
+✂️ *Cortes nos Pedidos de Hoje:* R$ 34.975,56 (89 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 407.958,98 (235 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 181.329,84
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏆 *RANKING FINAL DE FECHAMENTO (11 FILIAIS):*
 
-🥇 *1. FILIAL API — MARCELO*
-💰 Digitado Hoje: R$ 221.945,30 • 📦 216 pedidos
-🟢 Inativos Reativados: 18 PDVs • 🔄 Recorrência: 26 PDVs
-✂️ Cortes: R$ 26.808,36 (6 ped) • 🔒 Bloqueados: R$ 46.692,70 (26 ped)
-🚛 Devoluções Entradas Hoje: R$ 2.915,36
+🥇 *1. FILIAL TPA — RADKE / LEANDRO*
+💰 Digitado Hoje: R$ 252.592,91 • 📦 102 pedidos
+🟢 Inativos Reativados: 0 PDVs • 🔄 Recorrência: 2 PDVs
+✂️ Cortes: R$ 1.928,73 (1 ped) • 🔒 Bloqueados: R$ 0,00 (0 ped)
+🚛 Devoluções Entradas Hoje: R$ 107.633,76
 
-🥈 *2. FILIAL ABC — MARCOS*
-💰 Digitado Hoje: R$ 219.181,00 • 📦 184 pedidos
-🟢 Inativos Reativados: 14 PDVs • 🔄 Recorrência: 22 PDVs
-✂️ Cortes: R$ 2.870,94 (16 ped) • 🔒 Bloqueados: R$ 30.621,63 (11 ped)
-🚛 Devoluções Entradas Hoje: R$ 46.774,78
+🥈 *2. FILIAL TCV — LEONARDO*
+💰 Digitado Hoje: R$ 244.193,80 • 📦 177 pedidos
+🟢 Inativos Reativados: 12 PDVs • 🔄 Recorrência: 3 PDVs
+✂️ Cortes: R$ 3.841,30 (20 ped) • 🔒 Bloqueados: R$ 46.503,33 (28 ped)
+🚛 Devoluções Entradas Hoje: R$ 9.278,06
 
-🥉 *3. FILIAL TPH — VAGNER*
-💰 Digitado Hoje: R$ 181.654,23 • 📦 169 pedidos
-🟢 Inativos Reativados: 12 PDVs • 🔄 Recorrência: 8 PDVs
-✂️ Cortes: R$ 694,15 (2 ped) • 🔒 Bloqueados: R$ 34.304,81 (27 ped)
-🚛 Devoluções Entradas Hoje: R$ 14.235,46
+🥉 *3. FILIAL API — MARCELO*
+💰 Digitado Hoje: R$ 229.083,02 • 📦 229 pedidos
+🟢 Inativos Reativados: 19 PDVs • 🔄 Recorrência: 25 PDVs
+✂️ Cortes: R$ 1.871,79 (6 ped) • 🔒 Bloqueados: R$ 29.398,23 (25 ped)
+🚛 Devoluções Entradas Hoje: R$ 4.460,31
 
-🏢 *4. FILIAL TCV — LEONARDO*
-💰 Digitado Hoje: R$ 179.266,59 • 📦 167 pedidos
-🟢 Inativos Reativados: 10 PDVs • 🔄 Recorrência: 9 PDVs
-✂️ Cortes: R$ 2.262,68 (16 ped) • 🔒 Bloqueados: R$ 44.908,27 (20 ped)
+🏢 *4. FILIAL TPH — VAGNER*
+💰 Digitado Hoje: R$ 222.940,23 • 📦 187 pedidos
+🟢 Inativos Reativados: 23 PDVs • 🔄 Recorrência: 8 PDVs
+✂️ Cortes: R$ 12.969,33 (7 ped) • 🔒 Bloqueados: R$ 62.165,56 (19 ped)
+🚛 Devoluções Entradas Hoje: R$ 12.002,29
+
+🏢 *5. FILIAL TSJ — SALDANHA*
+💰 Digitado Hoje: R$ 207.737,52 • 📦 163 pedidos
+🟢 Inativos Reativados: 22 PDVs • 🔄 Recorrência: 4 PDVs
+✂️ Cortes: R$ 0,00 (0 ped) • 🔒 Bloqueados: R$ 116.352,59 (80 ped)
 🚛 Devoluções Entradas Hoje: R$ 0,00
 
-🏢 *5. FILIAL TCG — DANILO*
-💰 Digitado Hoje: R$ 135.523,66 • 📦 78 pedidos
-🟢 Inativos Reativados: 6 PDVs • 🔄 Recorrência: 3 PDVs
-✂️ Cortes: R$ 0,00 (0 ped) • 🔒 Bloqueados: R$ 0,00 (0 ped)
-🚛 Devoluções Entradas Hoje: R$ 4.202,12
+🏢 *6. FILIAL ABC — MARCOS*
+💰 Digitado Hoje: R$ 185.850,45 • 📦 181 pedidos
+🟢 Inativos Reativados: 13 PDVs • 🔄 Recorrência: 27 PDVs
+✂️ Cortes: R$ 1.630,69 (12 ped) • 🔒 Bloqueados: R$ 88.715,61 (39 ped)
+🚛 Devoluções Entradas Hoje: R$ 5.053,70
 
-🏢 *6. FILIAL TCA — BECHER*
-💰 Digitado Hoje: R$ 130.683,66 • 📦 115 pedidos
-🟢 Inativos Reativados: 17 PDVs • 🔄 Recorrência: 17 PDVs
-✂️ Cortes: R$ 544,02 (6 ped) • 🔒 Bloqueados: R$ 5.991,16 (7 ped)
-🚛 Devoluções Entradas Hoje: R$ 3.547,41
+🏢 *7. FILIAL MCD — CLEVERSON*
+💰 Digitado Hoje: R$ 170.056,53 • 📦 52 pedidos
+🟢 Inativos Reativados: 14 PDVs • 🔄 Recorrência: 14 PDVs
+✂️ Cortes: R$ 6.228,91 (4 ped) • 🔒 Bloqueados: R$ 884,36 (1 ped)
+🚛 Devoluções Entradas Hoje: R$ 101,79
 
-🏢 *7. FILIAL TSJ — SALDANHA*
-💰 Digitado Hoje: R$ 129.873,24 • 📦 163 pedidos
-🟢 Inativos Reativados: 17 PDVs • 🔄 Recorrência: 3 PDVs
-✂️ Cortes: R$ 1.019,30 (3 ped) • 🔒 Bloqueados: R$ 54.152,98 (61 ped)
-🚛 Devoluções Entradas Hoje: R$ 7.097,76
+🏢 *8. FILIAL TPH — FÁBIO*
+💰 Digitado Hoje: R$ 161.147,65 • 📦 161 pedidos
+🟢 Inativos Reativados: 12 PDVs • 🔄 Recorrência: 7 PDVs
+✂️ Cortes: R$ 1.125,00 (8 ped) • 🔒 Bloqueados: R$ 3.830,12 (11 ped)
+🚛 Devoluções Entradas Hoje: R$ 21.829,32
 
-🏢 *8. FILIAL TBL — FÁBIO*
-💰 Digitado Hoje: R$ 126.097,20 • 📦 165 pedidos
-🟢 Inativos Reativados: 23 PDVs • 🔄 Recorrência: 10 PDVs
-✂️ Cortes: R$ 299,98 (3 ped) • 🔒 Bloqueados: R$ 47.870,13 (50 ped)
-🚛 Devoluções Entradas Hoje: R$ 10.842,15
+🏢 *9. FILIAL TCA — BECHER*
+💰 Digitado Hoje: R$ 159.359,63 • 📦 135 pedidos
+🟢 Inativos Reativados: 22 PDVs • 🔄 Recorrência: 14 PDVs
+✂️ Cortes: R$ 1.152,51 (3 ped) • 🔒 Bloqueados: R$ 38.979,32 (8 ped)
+🚛 Devoluções Entradas Hoje: R$ 9.057,98
 
-🏢 *9. FILIAL TPH — FÁBIO*
-💰 Digitado Hoje: R$ 125.530,66 • 📦 125 pedidos
-🟢 Inativos Reativados: 7 PDVs • 🔄 Recorrência: 9 PDVs
-✂️ Cortes: R$ 203,39 (1 ped) • 🔒 Bloqueados: R$ 27.026,03 (42 ped)
-🚛 Devoluções Entradas Hoje: R$ 17.655,74
+🏢 *10. FILIAL TBL — FÁBIO*
+💰 Digitado Hoje: R$ 145.585,28 • 📦 182 pedidos
+🟢 Inativos Reativados: 26 PDVs • 🔄 Recorrência: 19 PDVs
+✂️ Cortes: R$ 3.221,00 (23 ped) • 🔒 Bloqueados: R$ 13.491,79 (6 ped)
+🚛 Devoluções Entradas Hoje: R$ 71,74
 
-🏢 *10. FILIAL TPA — RADKE / LEANDRO*
-💰 Digitado Hoje: R$ 103.317,23 • 📦 84 pedidos
-🟢 Inativos Reativados: 2 PDVs
-✂️ Cortes: R$ 0,00 (0 ped) • 🔒 Bloqueados: R$ 1.503,85 (1 ped)
-🚛 Devoluções Entradas Hoje: R$ 14.059,72
+🏢 *11. FILIAL TCG — DANILO*
+💰 Digitado Hoje: R$ 99.843,83 • 📦 73 pedidos
+🟢 Inativos Reativados: 3 PDVs • 🔄 Recorrência: 4 PDVs
+✂️ Cortes: R$ 35,86 (1 ped) • 🔒 Bloqueados: R$ 3.658,08 (3 ped)
+🚛 Devoluções Entradas Hoje: R$ 7.979,59
 
-🏢 *11. FILIAL TBE — DIEGO*
-💰 Digitado Hoje: R$ 95.940,02 • 📦 138 pedidos
-🟢 Inativos Reativados: 8 PDVs • 🔄 Recorrência: 2 PDVs
-✂️ Cortes: R$ 1.385,28 (1 ped) • 🔒 Bloqueados: R$ 0,00 (0 ped)
-🚛 Devoluções Entradas Hoje: R$ 1.167,14
-
-🏢 *12. FILIAL MCD — CLEVERSON*
-💰 Digitado Hoje: R$ 86.356,45 • 📦 57 pedidos
-🟢 Inativos Reativados: 5 PDVs • 🔄 Recorrência: 5 PDVs
-✂️ Cortes: R$ 1.305,83 (4 ped) • 🔒 Bloqueados: R$ 0,00 (0 ped)
-🚛 Devoluções Entradas Hoje: R$ 4.812,89
+🏢 *12. FILIAL TBE — DIEGO*
+💰 Digitado Hoje: R$ 99.217,90 • 📦 152 pedidos
+🟢 Inativos Reativados: 8 PDVs • 🔄 Recorrência: 4 PDVs
+✂️ Cortes: R$ 811,78 (2 ped) • 🔒 Bloqueados: R$ 2.464,64 (11 ped)
+🚛 Devoluções Entradas Hoje: R$ 735,68
 
 🏢 *13. FILIAL MCD — ADRIANO*
-💰 Digitado Hoje: R$ 59.507,79 • 📦 56 pedidos
-🟢 Inativos Reativados: 7 PDVs • 🔄 Recorrência: 9 PDVs
-✂️ Cortes: R$ 56,74 (2 ped) • 🔒 Bloqueados: R$ 0,00 (0 ped)
-🚛 Devoluções Entradas Hoje: R$ 1.164,00
+💰 Digitado Hoje: R$ 73.385,30 • 📦 52 pedidos
+🟢 Inativos Reativados: 7 PDVs • 🔄 Recorrência: 3 PDVs
+✂️ Cortes: R$ 158,66 (2 ped) • 🔒 Bloqueados: R$ 1.515,35 (4 ped)
+🚛 Devoluções Entradas Hoje: R$ 3.125,62

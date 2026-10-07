@@ -1,20 +1,20 @@
 🏢 *BOLETIM DE FECHAMENTO OFICIAL — 18:30*
-📅 06/10/2026
+📅 07/10/2026
 📍 *FILIAL MCD — ADRIANO*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 59.507,79
-📦 *Pedidos Colocados:* 56 pedidos
-📍 *Visitas Realizadas:* 125 de 167 (74,9%)
-👥 *Vendedores Varejo com Pedido:* 16 de 20 (80%)
-✂️ *Cortes nos Pedidos de Hoje:* R$ 56,74 (2 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 0,00 (0 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 1.164,00
+💰 *Total Digitado Hoje:* R$ 73.385,30
+📦 *Pedidos Colocados:* 52 pedidos
+📍 *Visitas Realizadas:* 119 de 143 (83,2%)
+👥 *Vendedores Varejo com Pedido:* 15 de 20 (75%)
+✂️ *Cortes nos Pedidos de Hoje:* R$ 158,66 (2 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 1.515,35 (4 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 3.125,62
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
-  ▫️ Cód. 440 • LUAN FELIPE DE SOUZA MEDEIROS: -R$ 38,82 em MERCADO OASIS MARACAJU (WHISK SH CARNE L20.P16)
-  ▫️ Cód. 464 • CINTIA RENATA DA CRUZ: -R$ 17,92 em MUNIZ CONVENIENCIA (BATATA PALHA TRADICIONAL)
-🟢 *Recuperação de Inativos (+30d):* 7 de 31 PDVs reativados hoje
+  ▫️ Cód. 454 • TIEGO RISALDI RAMOS: -R$ 119,92 em SUPERMERCADO KAIO (PEDIG SH AD RP FRANGO MOLHO)
+  ▫️ Cód. 440 • LUAN FELIPE DE SOUZA MEDEIROS: -R$ 38,74 em MERCADO JULIFRAM (WHISK SH CARNE L20.P16)
+🟢 *Recuperação de Inativos (+30d):* 7 de 28 PDVs reativados hoje
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*

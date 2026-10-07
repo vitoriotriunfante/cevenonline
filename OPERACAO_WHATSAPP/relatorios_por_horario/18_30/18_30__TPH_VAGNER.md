@@ -1,20 +1,23 @@
 🏢 *BOLETIM DE FECHAMENTO OFICIAL — 18:30*
-📅 06/10/2026
+📅 07/10/2026
 📍 *FILIAL TPH — VAGNER*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 181.654,23
-📦 *Pedidos Colocados:* 169 pedidos
-📍 *Visitas Realizadas:* 405 de 468 (86,5%)
-👥 *Vendedores Varejo com Pedido:* 30 de 34 (88%)
-✂️ *Cortes nos Pedidos de Hoje:* R$ 694,15 (2 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 34.304,81 (27 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 14.235,46
+💰 *Total Digitado Hoje:* R$ 222.940,23
+📦 *Pedidos Colocados:* 187 pedidos
+📍 *Visitas Realizadas:* 393 de 458 (85,8%)
+👥 *Vendedores Varejo com Pedido:* 29 de 35 (83%)
+✂️ *Cortes nos Pedidos de Hoje:* R$ 12.969,33 (7 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 62.165,56 (19 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 12.002,29
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
-  ▫️ Cód. 62 • IRACEMA RAFAGNIN: -R$ 617,59 em . (LAVA ROUP LIQ TIX PRIMAV)
-  ▫️ Cód. 87 • RAFAEL CELIO GOMES: -R$ 76,56 em MERCEARIA JARDIM BRASIL (AMAC YPE ACONCHEGO)
-🟢 *Recuperação de Inativos (+30d):* 12 de 117 PDVs reativados hoje
+  ▫️ Cód. 68 • ALDER ALVES BELINI: -R$ 31,23 em TALHERES GASTRONOMIA (CHA LEAO RECARREGA)
+  ▫️ Cód. 68 • ALDER ALVES BELINI: -R$ 239,53 em SUPERMERCADO VOBISPO (WHISK DRY GATO CAST PEIXE)
+  ▫️ Cód. 66 • PRISCILA DE BONFIM CORDEIRO: -R$ 73,17 em MERCEARIA LANOVATO (BISC COOKIES CHOCOLATE TODDY)
+  ▫️ Cód. 66 • PRISCILA DE BONFIM CORDEIRO: -R$ 183,85 em MERCADO FAMILIA (SAPONACEO CREMOSO YPE ORIGINAL)
+  ▫️ _... e mais 3 pedidos com corte._
+🟢 *Recuperação de Inativos (+30d):* 23 de 128 PDVs reativados hoje
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*

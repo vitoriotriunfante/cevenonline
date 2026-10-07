@@ -1,22 +1,22 @@
 🏢 *BOLETIM DE FECHAMENTO OFICIAL — 18:30*
-📅 06/10/2026
+📅 07/10/2026
 📍 *FILIAL MCD — CLEVERSON*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 86.356,45
-📦 *Pedidos Colocados:* 57 pedidos
-📍 *Visitas Realizadas:* 70 de 197 (35,5%)
-👥 *Vendedores Varejo com Pedido:* 10 de 20 (50%)
-✂️ *Cortes nos Pedidos de Hoje:* R$ 1.305,83 (4 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 0,00 (0 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 4.812,89
+💰 *Total Digitado Hoje:* R$ 170.056,53
+📦 *Pedidos Colocados:* 52 pedidos
+📍 *Visitas Realizadas:* 85 de 228 (37,3%)
+👥 *Vendedores Varejo com Pedido:* 11 de 20 (55%)
+✂️ *Cortes nos Pedidos de Hoje:* R$ 6.228,91 (4 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 884,36 (1 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 101,79
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
-  ▫️ Cód. 1063 • WALTER PEREIRA CORDEIRO: -R$ 57,45 em MERCADO E ACOUGUE AQUARIOS (CD COLG L12 TRI 90G GT3 LUM 60G)
-  ▫️ Cód. 441 • MAICON DOUGLAS DA SILVA MARTINS: -R$ 838,46 em SM JONAS (PINHO SOL CITRUS FLORAL)
-  ▫️ Cód. 431 • JACKSON MARQUES DA SILVA: -R$ 28,32 em LEGAL SUPERMERCADOS (MIST BOLO LIMAO FLEISC)
-  ▫️ Cód. 433 • JOSE LUCAS SALLES DE OLIVEIRA: -R$ 381,60 em PIT STOP V8 CONVENIENCIA (RB TROPICAL EDITION PACK)
-🟢 *Recuperação de Inativos (+30d):* 5 de 15 PDVs reativados hoje
+  ▫️ Cód. 445 • PEDRO JOELSON FERNANDES: -R$ 994,96 em SUPERMERCADO KAIO (CD COLG MPA 90G LMPM)
+  ▫️ Cód. 453 • TATIANA MONTANHINI: -R$ 129,80 em MERCADO BOM PRECO (SAB PALM ESF DELICADA JASMIN)
+  ▫️ Cód. 1068 • FERNANDO ANJOS MACEDO: -R$ 2.438,40 em PORTAL ATACADO (CD COLG MPA 90G LMPM)
+  ▫️ Cód. 1068 • FERNANDO ANJOS MACEDO: -R$ 2.665,75 em PORTAL ATACADO (CD COLG MPA 90G LMPM)
+🟢 *Recuperação de Inativos (+30d):* 14 de 31 PDVs reativados hoje
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*
