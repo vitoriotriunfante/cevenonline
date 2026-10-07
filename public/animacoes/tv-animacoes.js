@@ -81,7 +81,7 @@ function fundoDeCampo(c, LX, LW, W1080, desenhaVetorial) {
 // gerado (listas vazias = cai no vetorial) — gerar seguindo
 // REGRAS_CFTV/PROMPTS_VIDEOS_ANIMACOES_TV.md e preencher aqui quando prontos.
 const VIDEO_ARQUIVOS = {
-  gol: ['/animacoes/videos/gol_1.mp4', '/animacoes/videos/gol_2.mp4', '/animacoes/videos/gol_3.mp4', '/animacoes/videos/gol_4.mp4', '/animacoes/videos/gol_5.mp4', '/animacoes/videos/gol_6.mp4', '/animacoes/videos/gol_7.mp4', '/animacoes/videos/gol_8.mp4', '/animacoes/videos/gol_9.mp4', '/animacoes/videos/gol_10.mp4', '/animacoes/videos/gol_11.mp4', '/animacoes/videos/gol_12.mp4', '/animacoes/videos/gol_13.mp4', '/animacoes/videos/gol_14.mp4', '/animacoes/videos/gol_15.mp4', '/animacoes/videos/gol_16.mp4', '/animacoes/videos/gol_17.mp4', '/animacoes/videos/gol_18.mp4', '/animacoes/videos/gol_19.mp4', '/animacoes/videos/gol_20.mp4'],
+  gol: ['/animacoes/videos/gol1_mp.mp4', '/animacoes/videos/gol2_mp.mp4', '/animacoes/videos/gol_1.mp4', '/animacoes/videos/gol_2.mp4', '/animacoes/videos/gol_3.mp4', '/animacoes/videos/gol_4.mp4', '/animacoes/videos/gol_5.mp4', '/animacoes/videos/gol_6.mp4', '/animacoes/videos/gol_7.mp4', '/animacoes/videos/gol_8.mp4', '/animacoes/videos/gol_9.mp4', '/animacoes/videos/gol_10.mp4', '/animacoes/videos/gol_11.mp4', '/animacoes/videos/gol_12.mp4', '/animacoes/videos/gol_13.mp4', '/animacoes/videos/gol_14.mp4', '/animacoes/videos/gol_15.mp4', '/animacoes/videos/gol_16.mp4', '/animacoes/videos/gol_17.mp4', '/animacoes/videos/gol_18.mp4', '/animacoes/videos/gol_19.mp4', '/animacoes/videos/gol_20.mp4'],
   // vermelho_2.mp4 e identico ao vermelho_1.mp4 (verificado por conteudo em 05/10/2026): fora da lista. vermelho_4 e o novo (05/10/2026).
   vermelho: ['/animacoes/videos/vermelho_1.mp4', '/animacoes/videos/vermelho_3.mp4', '/animacoes/videos/vermelho_4.mp4'],
   // Gol Contra (devolucao comercial): 3 videos proprios (antes tocava pênalti na TV da filial e amarelo na Matriz).
@@ -99,7 +99,9 @@ const VIDEO_ARQUIVOS = {
 // recuperado é mais "resgate emocionado"). Sem entrada aqui = sorteia entre todos os de VIDEO_ARQUIVOS.gol.
 const GOL_POR_SUBTIPO = {
   super_pedido: '/animacoes/videos/gol_1.mp4',
-  inativo_recuperado: '/animacoes/videos/gol_2.mp4'
+  inativo_recuperado: '/animacoes/videos/gol_2.mp4',
+  marca_propria: '/animacoes/videos/gol1_mp.mp4', // video proprio do Gol de Marca Propria (07/10/2026)
+  mp_tripla: '/animacoes/videos/gol2_mp.mp4' // video proprio da Tripla de Marca Propria
 };
 const VIDEO_OK = {}; // arquivo -> true (existe e já testado) | false (não existe)
 function testaVideo(arquivo) {
