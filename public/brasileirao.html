@@ -1488,12 +1488,14 @@ function filtrarVendedores() {
 // Varejo joga por DIA; AS joga por SEMANA (semana 1 = dias 1-7, 2 = 8-14, 3 = 15-20, 4 = 21-fim). Artilharia, Supervisores, Lances, Gabarito e Regulamento têm a visão de cada canal;
 // Série A (filiais) e Campeonato de Gerências somam todos os vendedores.
 // =====================================================================================================================
+// Modo TV das filiais (?modo=tv): sem seletor Varejo/AS, entao o regulamento mostra OS DOIS (Varejo e AS) na mesma tela (Vitorio, 07/10/2026)
+const MODO_TV = (() => { try { const p = new URLSearchParams(location.search); return p.get('tv') === '1' || p.get('modo') === 'tv'; } catch (e) { return false; } })();
 let CANAL = 'VAREJO';
 const THR_ORIG = {};
 ['thr-vend', 'thr-sup'].forEach(id => { const e = document.getElementById(id); if (e) THR_ORIG[id] = e.innerHTML; });
 function restauraThead(id) { const e = document.getElementById(id); if (e && THR_ORIG[id] != null) e.innerHTML = THR_ORIG[id]; }
 let PERIODO_LANCES = null;
-try { const c = localStorage.getItem('brasileirao_canal'); if (c === 'AS' || c === 'VAREJO') CANAL = c; } catch (e) {}
+try { const c = localStorage.getItem('brasileirao_canal'); if ((c === 'AS' || c === 'VAREJO') && !MODO_TV) CANAL = c; } catch (e) {}
 const AS_SEMANAS = [{ n: 1, de: 1, ate: 7 }, { n: 2, de: 8, ate: 14 }, { n: 3, de: 15, ate: 20 }, { n: 4, de: 21, ate: 31 }];
 function semanaAS(diaISO) {
   const d = parseInt(String(diaISO).slice(8, 10), 10);
@@ -1549,8 +1551,8 @@ function aplicaCanalNaTela() {
   set('s-sup', as ? 'Supervisor joga pela MAIORIA da equipe em Vitória na semana (igual ao Varejo); o faseamento e o bônus da equipe desempatam' : 'Pontos do time; o Plus de Liderança (Compromisso até 10h +5, RET +5) é o critério de desempate');
   set('h-lances', as ? 'Lances da Semana — Auditoria Completa (AS)' : 'Lances do Dia — Auditoria Completa (Varejo)');
   set('h-gab', as ? 'Gabarito da Semana — regras x lances reais (AS)' : 'Gabarito do Dia — regras x lances reais (Varejo)');
-  const ra = document.getElementById('reg-as'); if (ra) ra.style.display = as ? '' : 'none';
-  document.querySelectorAll('.so-varejo').forEach(e => { e.style.display = as ? 'none' : ''; });
+  const ra = document.getElementById('reg-as'); if (ra) ra.style.display = (as || MODO_TV) ? '' : 'none';
+  document.querySelectorAll('.so-varejo').forEach(e => { e.style.display = (as && !MODO_TV) ? 'none' : ''; });
   LANCES_CARREGADOS_HOJE = false;
   filtrarSupervisores(); filtrarVendedores(); montaRegulamentoAS(); filtraRegrasAS(); montaTextoGolQualificado();
   const ativa = (document.querySelector('.tab-content.active') || {}).id;
