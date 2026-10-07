@@ -37,3 +37,8 @@
 - **Artilharia AS:** PG = lances da semana + faseamento (10/20/30/40) + bônus (+50 até o dia 15, +25 até o dia 25). **Supervisores AS:** faseamento + bônus da equipe somada; lances da equipe como informação.
 - **Lances que NÃO valem no AS (até a regra própria):** amarelo das 10h e vermelho de abandono 10h/11h (rotina diária). Devolução vale igual. Gerador: `scratch/build_brasileirao_dataset.py` (campo `canal` em vendedores e supervisores, bloco `as`).
 - **Ainda sem decisão:** como o AS entra nos pontos de Série A e Gerências (hoje as duas tabelas seguem somando os resultados diários de todos os vendedores, como antes).
+
+## 07/10/2026 (tarde, 2) — AS joga por SEMANA com o MESMO racional do Varejo
+- **A semana é o jogo.** Placar da semana = lances da semana + faseamento da semana (10/20/30/40) + bônus que caiu nela (+50 até dia 15; +25 até dia 25). Faixas iguais às do Varejo: mais de 10 = Vitória (3 pts de tabela) · 1 a 10 = Empate (1) · 0 ou menos = Derrota (0). **Supervisor AS** = maioria da equipe em Vitória na semana; faseamento/bônus da equipe desempatam.
+- **NÃO valem no AS** (dependem de horário ou das visitas do dia): amarelo 10h, vermelho de abandono, Gol Relâmpago, Gol nos Acréscimos, Meta do 1º Tempo, Hat-Trick, Máquina de Conversão, Goleada. Saem do placar, dos Lances/Gabarito da Semana e da tabela do regulamento do AS.
+- **Valem iguais ao Varejo:** Resgate de Inativo, Dobrou o Mix (até a regra de +2 SKUs), Dobradinha das Quinzenas, Defesa, Super Pedido (limite ainda a definir para o AS), Pedido Feito na Rota, devoluções, pênaltis, impedimento de GPS, Campeão da Rodada.
