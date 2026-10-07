@@ -1,32 +1,33 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 TCV — LEONARDO • 06/10/2026
+📍 TCV — LEONARDO • 07/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/10/2026 a 06/10/2026)*
-💰 R$ 972,47 • 19 PDVs • ✂️ R$ 24,55 (9 un)
-👤 GIANI GREGOLIN — R$ 520,77 (9 PDVs)
-👤 GESSANDRO SPEROTTO — R$ 451,70 (10 PDVs)
+*ACUMULADO DO MÊS (01/10/2026 a 07/10/2026)*
+💰 R$ 1.293,66 • 25 PDVs • ✂️ R$ 32,41 (12 un)
+👤 GIANI GREGOLIN — R$ 754,91 (14 PDVs)
+👤 GESSANDRO SPEROTTO — R$ 538,75 (11 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (05/10/2026)*
-💰 R$ 300,55 • 9 PDVs positivados
-👤 GESSANDRO SPEROTTO — R$ 196,12 (4 PDVs)
-👤 GIANI GREGOLIN — R$ 104,43 (5 PDVs)
+*COMO FECHOU ONTEM (06/10/2026)*
+💰 R$ 354,53 • 8 PDVs positivados
+👤 GESSANDRO SPEROTTO — R$ 110,05 (2 PDVs)
+👤 GIANI GREGOLIN — R$ 244,48 (6 PDVs)
 
-🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (11)*
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (12)*
 _(fez pedido ontem, mas nenhum item era marca própria)_
 
 👤 *GESSANDRO SPEROTTO*
-  • CARLOS ROBERTO HANNA — 47d sem vender MP
-  • EDUARDO ALVES ALBERGHINI — 25d sem vender MP
-  • GRACIELA BONAMIGO — 19d sem vender MP
-  • LINCON FELIX PORTA — 11d sem vender MP
-  • DANILO HENRIQUE DOS SANTOS BRAGA — 4d sem vender MP
+  • CARLOS ROBERTO HANNA — 48d sem vender MP
+  • EDUARDO ALVES ALBERGHINI — 26d sem vender MP
+  • GRACIELA BONAMIGO — 20d sem vender MP
+  • MARCOS ANTONIO DE BRITO — 16d sem vender MP
+  • LINCON FELIX PORTA — 12d sem vender MP
+  • KAUANA DANIELI SPRENGOSKI — 2d sem vender MP
+  • GILMAR POTERIKO — 2d sem vender MP
 
 👤 *GIANI GREGOLIN*
-  • NILTON MARTINELLI JUNIOR — 49d sem vender MP
-  • LUCIVANIA PAULA DE OLIVEIRA — 47d sem vender MP
-  • GILSON PEDRO GRANDO — 11d sem vender MP
-  • JIZANDRA KLEINERT DE SOUZA — 4d sem vender MP
-  • LUIS FELIPE PEREIRA — 4d sem vender MP
-  • ALESSANDRA CARLA DETOFOL — 4d sem vender MP
+  • NILTON MARTINELLI JUNIOR — 50d sem vender MP
+  • LUCIVANIA PAULA DE OLIVEIRA — 48d sem vender MP
+  • GILSON PEDRO GRANDO — 12d sem vender MP
+  • LUCIANA BINOTTO — 2d sem vender MP
+  • MONICA KUNZEL TOLFO — 2d sem vender MP
