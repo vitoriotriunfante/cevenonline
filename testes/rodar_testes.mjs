@@ -674,11 +674,11 @@ for (const arq of ['public/tvapp.html', 'public/matrizapp.html']) {
 secao('8e. Liga cravada: regras congeladas por versao, fechamento do dia (19h30) e conferencia diaria contra o CEVEN');
 {
   const cfgTxt = ler('config/pontuacao_brasileirao.json'); const cfg = JSON.parse(cfgTxt);
-  const LOCK_HASH = '499804f1eb0cffdaf56112747f10318b84810371dd9ef6b41f653b0b32bfd15d'; // sha256 do regulamento na versao 2026-10-08.1 (Gol de Marca Propria +8, vale a partir de 08/10)
+  const LOCK_HASH = '0216311ac7a788c8bfca3e79cc100ac012407ec8d4a065314f7fbbfa10cc6e67'; // sha256 do regulamento na versao 2026-10-08.1 (Gol de Marca Propria +8, vale a partir de 08/10)
   const { createHash } = await import('node:crypto');
   const hash = createHash('sha256').update(JSON.stringify(cfg)).digest('hex');
   const lib = ler('functions/_lib/liga_fechamento.js');
-  ok(lib.includes("REGRAS_VERSAO = '" + cfg.versao_regras + "'"), 'versao das regras: config (' + cfg.versao_regras + ') e liga_fechamento.js dizem a mesma versao');
+  ok(lib.includes("REGRAS_VERSAO = '" + cfg.versao_regras + "'") && JSON.parse(ler('public/pontuacao_brasileirao.json')).versao_regras === cfg.versao_regras, 'versao das regras: config (' + cfg.versao_regras + '), copia publica (a que aparece no regulamento) e liga_fechamento.js dizem a mesma versao');
   ok(hash === LOCK_HASH, 'REGRAS CONGELADAS: o regulamento (config/pontuacao_brasileirao.json) nao mudou desde a versao ' + cfg.versao_regras + '. Se mudou de proposito: suba versao_regras e REGRAS_VERSAO, atualize LOCK_HASH aqui e avise os gerentes (hash atual ' + hash + ')');
   ok(lib.includes('t.min >= 22 * 60') && lib.includes('INSERT OR IGNORE INTO liga_fechamento') && lib.indexOf('INSERT OR IGNORE INTO liga_dia_fechado') < lib.indexOf('INSERT OR IGNORE INTO liga_fechamento'), 'fechamento: so depois das 22h, grava as linhas ANTES do cabecalho e nunca sobrescreve dia ja fechado');
   const bl = ler('functions/api/brasileirao-lances.js');

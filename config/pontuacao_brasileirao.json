@@ -40,7 +40,7 @@
   },
   "gol_qualificado": {
     "decisao": "Vitorio, 05/10/2026. Vale para lances gravados de 05/10/2026 em diante (o passado nao e refeito).",
-    "gols_que_qualificam": "TODOS os gols e o Pedido Feito na Rota, menos o Campeão da Rodada (que é do mês). Gol de cliente (Resgate, Dobrou o Mix, Quinzenas): indústrias do pedido do cliente. Gol do dia (Super Pedido, Goleada, Relâmpago, Acréscimos, Meta do 1º Tempo, Máquina de Conversão, Hat-Trick): indústrias de todos os pedidos do vendedor no dia.",
+    "gols_que_qualificam": "TODOS os gols e o Pedido Feito na Rota, menos o Campeão da Rodada (que é do mês). Gol de cliente (Resgate de Inativo, Dobrou o Mix, Dobradinha das Quinzenas, Gol de Marca Própria): indústrias do pedido do cliente. Gol do dia (Super Pedido, Goleada, Relâmpago, Acréscimos, Meta do 1º Tempo, Máquina de Conversão, Hat-Trick): indústrias de todos os pedidos do vendedor no dia. No AS (Autosserviço) valem só o Super Pedido (R$ 75.000 no dia), o Gol de Mix (+2 SKUs), o Resgate, a Dobradinha das Quinzenas e o Gol de Marca Própria.",
     "gols_que_nao_qualificam": "Campeão da Rodada (meta do mês).",
     "regra": "Conta as INDUSTRIAS diferentes no pedido do cliente no dia. 1 produto da industria ja conta (sem valor minimo); linha com valor R$ 0 (bonificacao) nao conta.",
     "carteira_so_mondelez": "Vendedor de carteira so Mondelez (TBE e parte de TCG/TSJ, campo na Gestao de Equipe) conta CATEGORIAS da Mondelez (chocolate, biscoito, goma e bala, refresco, sobremesa e fermento, pao e snack), com a mesma escada.",

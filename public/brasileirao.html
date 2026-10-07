@@ -810,6 +810,30 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
         Metodologia auditada pela diretoria comercial • Foco em Processo, Atitude e Constância Diária.
       </p>
 
+      <div class="rule-card">
+        <h3>📌 Informações oficiais desta versão</h3>
+        <p>
+          <strong>Versão do regulamento:</strong> <span id="reg-versao">—</span> · <strong>Liga oficial desde:</strong> <span id="reg-desde">07/10/2026</span>. O que veio antes foi <strong>pré-temporada</strong> e não vale remuneração. Regra, pontuação ou score novos só entram com <strong>nova versão</strong> e aviso aos gerentes; no período de estabilidade só se corrige erro.
+          <br><br>
+          🔒 <strong>Dia fechado:</strong> às <strong>22h</strong> o dia é congelado (lances que contam, pontos e versão das regras). Depois disso nada muda naquele dia: nem lance que chegue atrasado, nem troca de supervisor, nem regra nova.
+          <br>
+          🧾 <strong>Sem comprovação não tem lance:</strong> todo lance guarda a prova (pedido, nota, horário, valor, motivo oficial) e é conferido automaticamente lance a lance, mais de uma vez por dia. Lance sem prova é apontado e pode ser retirado da liga.
+          <br>
+          🆚 <strong>Dados:</strong> tudo vem do CEVEN, sem estimativa. Há conferência diária contra o CEVEN (digitado e devoluções do dia).
+          <br>
+          🛒 <strong>Canais:</strong> o canal de cada vendedor é o do CEVEN. <strong>Varejo</strong> = VJ, FARMA, PET VJ e ESP · <strong>AS</strong> = AS e PET AS · fora da liga: contas de supervisor (SUP), de gerente (GER) e quem o CEVEN não classifica. <strong>Série A (filiais) e Campeonato de Gerências somam todos</strong> os vendedores.
+          <br>
+          🙈 <strong>Quem está oculto na Gestão de Equipe</strong> (afastado, férias, conta de teste) não disputa a liga e não gera lance.
+        </p>
+      </div>
+
+      <div class="rule-card">
+        <h3>⭐ Gol de Marca Própria (a partir de 08/10/2026 · Varejo e AS)</h3>
+        <p>
+          Marca Própria é foco da empresa. Pedido do cliente no dia com <strong>R$ 50 ou mais de Marca Própria Triunfante</strong> vale um gol próprio: <strong>+8 pontos</strong>, o mais valioso dos gols, mais o extra do <strong>nível (bronze a platina)</strong> pelas indústrias do pedido. Ele ganha a <strong>⭐ estrela</strong> e é <strong>sempre exibido na TV</strong>: na frente de qualquer outro lance, um a um, sem esperar intervalo e nunca dentro de resumo.
+        </p>
+      </div>
+
       <div class="rule-card" id="reg-as" style="display:none">
         <h3>🏬 Liga AS (Autosserviço) — o jogo é SEMANAL</h3>
         <div id="reg-as-corpo"></div>
@@ -875,6 +899,8 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
           • <strong>Filial:</strong> Base = Todos os vendedores da filial.
           <br>
           • <strong>Gerente:</strong> Base = Todos os vendedores da sua filial (em TPH e MCD, que têm 2 gerentes, os vendedores de cada gerente).
+          <br><br>
+          🏅 <strong>Plus de Liderança do supervisor (critério de desempate, não soma pontos na tabela):</strong> Compromisso Matinal até as 10h = <strong>+5</strong> e início/execução do RET de campo = <strong>+5</strong> por dia útil. É só bônus: quem não faz fica com 0, sem punição.
         </p>
       </div>
 
@@ -977,7 +1003,7 @@ async function carregarTabelaPontos() {
       const tq = document.getElementById('tbody-gol-qualificado');
       if (tq) tq.innerHTML = (gq.escada || []).map(e => `<tr><td style="font-weight:700;color:#fff">${esc(e.nivel)}</td><td>${esc(e.industrias)}</td><td style="text-align:center"><b style="color:#22c55e;font-family:'JetBrains Mono',monospace">+${e.extra}</b></td></tr>`).join('');
       const pq = document.getElementById('txt-gol-qualificado');
-      if (pq) pq.textContent = 'Vale para TODOS os gols e para o Pedido Feito na Rota, menos o Campeão da Rodada (que é do mês). ' + gq.regra + ' ' + gq.carteira_so_mondelez + ' Gol de cliente (Resgate, Dobrou o Mix, Quinzenas): indústrias do pedido do cliente. Gol do dia (Super Pedido, Goleada, Relâmpago, Acréscimos, Meta do 1º Tempo, Conversão, Hat-Trick): indústrias de todos os pedidos do vendedor no dia.';
+      CFG_PONTOS = cfg; montaTextoGolQualificado();
     }
     tbody.innerHTML = itens.map(it => {
       const cor = it.pontos > 0 ? '#22c55e' : '#ef4444';
@@ -1517,7 +1543,7 @@ function aplicaCanalNaTela() {
   const ra = document.getElementById('reg-as'); if (ra) ra.style.display = as ? '' : 'none';
   document.querySelectorAll('.so-varejo').forEach(e => { e.style.display = as ? 'none' : ''; });
   LANCES_CARREGADOS_HOJE = false;
-  filtrarSupervisores(); filtrarVendedores(); montaRegulamentoAS(); filtraRegrasAS();
+  filtrarSupervisores(); filtrarVendedores(); montaRegulamentoAS(); filtraRegrasAS(); montaTextoGolQualificado();
   const ativa = (document.querySelector('.tab-content.active') || {}).id;
   if (ativa === 'tab-lances') carregarLances();
   if (ativa === 'tab-gabarito') carregarGabarito();
@@ -1589,6 +1615,17 @@ function filtraRegrasAS() {
     else if (CANAL === 'AS' && mix) { c.innerHTML = '📦 ' + NOME_MIX_AS; if (tds[2]) tds[2].textContent = 'AS: pedido com 2 ou mais SKUs a mais que a média histórica do cliente (cliente do AS tem 100+ SKUs, dobrar não existe). QUALIFICADO: nível e extra de pontos pelas indústrias do pedido.'; } else { c.innerHTML = c.dataset.orig; if (tds[2] && tds[2].dataset.orig) tds[2].innerHTML = tds[2].dataset.orig; }
     tr.style.display = (CANAL === 'AS' && regraForaDoAS(c.dataset.orig ? semAcento(c.dataset.orig.replace(/<[^>]*>/g, '')) : c.textContent)) ? 'none' : '';
   });
+}
+
+let CFG_PONTOS = null;
+function montaTextoGolQualificado() {
+  const pq = document.getElementById('txt-gol-qualificado'), gq = CFG_PONTOS && CFG_PONTOS.gol_qualificado; if (!pq || !gq) return;
+  const base = gq.regra + ' ' + gq.carteira_so_mondelez;
+  pq.textContent = CANAL === 'AS'
+    ? 'No AS vale para os gols do AS (Super Pedido, Gol de Mix +2 SKUs, Resgate de Inativo, Dobradinha das Quinzenas e Gol de Marca Própria) e para o Pedido Feito na Rota. ' + base + ' Gol de cliente (Resgate, Gol de Mix, Quinzenas, Marca Própria): indústrias do pedido do cliente. Super Pedido (gol do dia): indústrias de todos os pedidos do vendedor no dia.'
+    : 'Vale para TODOS os gols e para o Pedido Feito na Rota, menos o Campeão da Rodada (que é do mês). ' + base + ' Gol de cliente (Resgate de Inativo, Dobrou o Mix, Dobradinha das Quinzenas, Gol de Marca Própria): indústrias do pedido do cliente. Gol do dia (Super Pedido, Goleada, Relâmpago, Acréscimos, Meta do 1º Tempo, Conversão, Hat-Trick): indústrias de todos os pedidos do vendedor no dia.';
+  const v = document.getElementById('reg-versao'); if (v) v.textContent = CFG_PONTOS.versao_regras || '—';
+  const d = document.getElementById('reg-desde'); if (d && CFG_PONTOS.vigente_desde) d.textContent = String(CFG_PONTOS.vigente_desde).split('-').reverse().join('/');
 }
 
 function montaRegulamentoAS() {
