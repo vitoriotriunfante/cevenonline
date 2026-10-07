@@ -151,7 +151,7 @@ export async function onRequestGet({ request, env }) {
       if (dia >= '2026-10-06' && (l.nivel === 'penalti' || /^pen[|]/.test(String(l.chave || '').replace(/^[A-Z]{3}[|]/, '')))) pont = { ...pont, pontos: -4 };
       return {
         hora: l.hora_sp,
-        filial: l.filial || (l.chave ? l.chave.split('|')[0] : '—'),
+        filial: (l.filial === 'MTZ' && prefixo(l.chave)) ? prefixo(l.chave) : (l.filial || (l.chave ? l.chave.split('|')[0] : '—')), // lance gravado pela tela da Matriz mostra a filial REAL do vendedor (chave TCA|...), nao 'MTZ'
         nivel: l.nivel,
         rca: l.rca,
         vendedor: l.vendedor,
