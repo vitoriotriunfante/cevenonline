@@ -413,20 +413,23 @@ export async function onRequestGet({ env, request }) {
 
   // NOTIFICACOES DE LANCES PARA OS SUPERVISORES (Vitório, 06/10/2026): a cada hora cheia (09h a 20h) uma notificacao por supervisor no sino do CEVEN. Desligado por padrao (config_flags).
   let notifSup = 'pulado';
-  if (t.h >= 9 && t.h <= 20 && t.m < 5) {
+  if (t.h >= 9 && t.h <= 20) { // o endpoint decide: 1 envio por hora cheia (nao depende do minuto exato do coletor)
     try { const rn = await fetch(`${origin}/api/cron-notificacoes-supervisores?rodar=1`, { signal: AbortSignal.timeout(60000) }); const jn = await rn.json().catch(() => ({})); notifSup = jn.status ? jn.status + (jn.notificacoes != null ? ` (${jn.ok}/${jn.notificacoes})` : '') : String(rn.status); } catch { notifSup = 'falhou'; }
   }
 
   // AUDITORIA LANCE POR LANCE (Vitório, 06/10/2026): a cada ~30 min (e depois do fechamento) confere a prova de cada lance que conta pontos
   let auditoria = 'pulado';
-  if (t.h >= 8 && (t.m % 30) < 5) {
-    try { const ra = await fetch(`${origin}/api/cron-auditoria-lances?rodar=1`, { signal: AbortSignal.timeout(60000) }); const ja = await ra.json().catch(() => ({})); auditoria = ja.auditado ? `${ja.com_falha} falha(s) em ${ja.auditados}` : (ja.status || String(ra.status)); } catch { auditoria = 'falhou'; }
+  if (t.h >= 8) { // o endpoint pula se a ultima auditoria tem menos de 25 min
+    try { const ra = await fetch(`${origin}/api/cron-auditoria-lances?rodar=1&se_velho=1`, { signal: AbortSignal.timeout(60000) }); const ja = await ra.json().catch(() => ({})); auditoria = ja.auditado ? `${ja.com_falha} falha(s) em ${ja.auditados}` : (ja.status || String(ra.status)); } catch { auditoria = 'falhou'; }
   }
 
   // FECHAMENTO E CONFERENCIA DO DIA (Vitório, 06/10/2026: "tem que estar tudo cravado"): depois das 19h30 congela o dia da liga e confere o D1 contra o CEVEN (fatias de 60 vendedores)
   let fechamento = 'pulado', conferencia = 'pulado';
-  if (t.agoraMin >= 19 * 60 + 30) {
+  // o dia fecha as 23h30; se esse horario passar em claro, o fechamento pega de manha (06h as 09h) o dia anterior ainda aberto
+  if (t.agoraMin >= 23 * 60 + 30 || (t.h >= 6 && t.h < 9)) {
     try { const rf = await fetch(`${origin}/api/cron-fechamento-dia`, { signal: AbortSignal.timeout(50000) }); const jf = await rf.json().catch(() => ({})); fechamento = jf.status || String(rf.status); } catch { fechamento = 'falhou'; }
+  }
+  if (t.agoraMin >= 19 * 60 + 30) {
     try { const rc = await fetch(`${origin}/api/cron-conferencia-dia?rodar=1`, { signal: AbortSignal.timeout(60000) }); const jc = await rc.json().catch(() => ({})); conferencia = jc.conferidos != null ? `${jc.conferidos}/${jc.total} (${(jc.divergentes || []).length} divergencia(s))` : String(rc.status); } catch { conferencia = 'falhou'; }
   }
 

@@ -50,7 +50,7 @@ export default async function (ok) {
   // hoje antes das 19h30 nao fecha
   const hoje = lib.agoraSP().dia, min = lib.agoraSP().min;
   const r3 = await lib.fechaDia(env, 'https://x.test', hoje);
-  ok(min >= 19 * 60 + 30 ? ['FECHADO', 'JA_FECHADO'].includes(r3.status) : r3.status === 'AINDA_ABERTO', 'hoje antes das 19h30 o dia nao fecha');
+  ok(min >= 23 * 60 + 30 ? ['FECHADO', 'JA_FECHADO'].includes(r3.status) : r3.status === 'AINDA_ABERTO', 'hoje antes das 23h30 o dia nao fecha');
   // dia sem lance (fim de semana) nao cria fechamento vazio
   lances.length = 0;
   const r4 = await lib.fechaDia(env, 'https://x.test', '2026-09-20');

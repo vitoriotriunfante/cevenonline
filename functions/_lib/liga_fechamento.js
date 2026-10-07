@@ -1,7 +1,7 @@
 // =========================================================================
 // FICHA DO ARQUIVO: functions/_lib/liga_fechamento.js
 // O QUE É: FECHAMENTO DO DIA da Liga Triunfante (Vitório, 06/10/2026: "a partir do momento que divulgarmos tem que estar tudo cravado").
-//          Depois das 19h30 (ou em qualquer dia anterior) o dia é CONGELADO: os lances que contam, com os pontos que valiam naquele dia e a versão das regras,
+//          Depois das 23h30 (ou em qualquer dia anterior) o dia é CONGELADO: os lances que contam, com os pontos que valiam naquele dia e a versão das regras,
 //          são gravados em liga_dia_fechado. O endpoint /api/brasileirao-lances passa a devolver o dia fechado, sem recalcular: mudança futura de regra,
 //          de supervisor ou lance que chegue atrasado NÃO mexe mais num dia já fechado. Só se reabre por decisão explícita (apagar a linha de liga_fechamento).
 // NUNCA inventa: o que é gravado é exatamente o que o endpoint calculou com os dados reais daquele dia.
@@ -38,13 +38,13 @@ export async function lerDiaFechado(env, dia, filial) {
   } catch { return null; /* tabela ainda nao existe: dia aberto */ }
 }
 
-// Fecha o dia. Idempotente: se já está fechado não mexe. Só fecha se o dia já passou ou se já são 19h30 de hoje.
+// Fecha o dia. Idempotente: se já está fechado não mexe. Só fecha se o dia já passou ou se já são 23h30 de hoje.
 export async function fechaDia(env, origin, dia, { forcar = false } = {}) {
   await garanteTabelasFechamento(env);
   const ja = await env.DB.prepare('SELECT fechado_em FROM liga_fechamento WHERE dia = ?').bind(dia).first();
   if (ja) return { dia, status: 'JA_FECHADO', fechado_em: ja.fechado_em };
   const t = agoraSP();
-  if (!forcar && !(dia < t.dia || (dia === t.dia && t.min >= 19 * 60 + 30))) return { dia, status: 'AINDA_ABERTO', motivo: 'o dia só fecha depois das 19h30' };
+  if (!forcar && !(dia < t.dia || (dia === t.dia && t.min >= 23 * 60 + 30))) return { dia, status: 'AINDA_ABERTO', motivo: 'o dia só fecha depois das 23h30 (vendedor que sincroniza o aparelho tarde ainda conta)' };
   const r = await fetch(`${origin}/api/brasileirao-lances?dia=${dia}&ao_vivo=1`, { signal: AbortSignal.timeout(40000) });
   const j = await r.json().catch(() => null);
   if (!j || !Array.isArray(j.lances)) return { dia, status: 'FALHOU', motivo: 'nao consegui ler os lances do dia' };

@@ -1,7 +1,7 @@
 // =========================================================================
 // FICHA DO ARQUIVO: functions/api/cron-fechamento-dia.js
-// O QUE É: fecha (congela) o dia da Liga Triunfante depois das 19h30. Chamado pelo coletor de lances (cron-lances, a cada 5 min); idempotente.
-//          Fecha o dia de hoje (se ja passou das 19h30) e qualquer dia util anterior ainda aberto, a partir de 06/10/2026.
+// O QUE É: fecha (congela) o dia da Liga Triunfante depois das 23h30. Chamado pelo coletor de lances (cron-lances, a cada 5 min); idempotente.
+//          Fecha o dia de hoje (se ja passou das 23h30) e qualquer dia util anterior ainda aberto, a partir de 06/10/2026.
 //          Dias anteriores a 06/10/2026 só fecham de propósito: /api/cron-fechamento-dia?dia=AAAA-MM-DD&manual=1
 // Ver functions/_lib/liga_fechamento.js.
 // =========================================================================

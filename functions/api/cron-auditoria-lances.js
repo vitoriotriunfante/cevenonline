@@ -16,7 +16,12 @@ export async function onRequestGet({ env, request }) {
   try {
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS auditoria_lance_resumo (dia TEXT PRIMARY KEY, auditados INTEGER, ok INTEGER, com_falha INTEGER, por_regra_json TEXT, em TEXT)').run();
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS auditoria_lance_falha (dia TEXT NOT NULL, chave TEXT NOT NULL, filial TEXT NOT NULL, regra TEXT, falhas_json TEXT, hora TEXT, vendedor TEXT, rca TEXT, pontos REAL, em TEXT, PRIMARY KEY (dia, chave, filial))').run();
-    if (u.searchParams.get('rodar') === '1') {
+    let pular = false;
+    if (u.searchParams.get('rodar') === '1' && u.searchParams.get('se_velho') === '1') {
+      const rec = await env.DB.prepare("SELECT dia FROM auditoria_lance_resumo WHERE dia = ? AND em > datetime('now', '-25 minutes')").bind(dia).first();
+      pular = !!rec;
+    }
+    if (u.searchParams.get('rodar') === '1' && !pular) {
       const r = await fetch(`${u.origin}/api/brasileirao-lances?dia=${dia}`, { signal: AbortSignal.timeout(40000) });
       const j = await r.json().catch(() => null);
       if (!j || !Array.isArray(j.lances)) return new Response(JSON.stringify({ dia, status: 'FALHOU', motivo: 'nao consegui ler os lances do dia' }), { headers: cors });

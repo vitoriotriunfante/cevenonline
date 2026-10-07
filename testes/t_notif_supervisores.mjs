@@ -33,8 +33,8 @@ export default async function (ok) {
   ok(g.texto.length <= lib.LIMITE_TEXTO && /\(\+\d+ vendedor\(es\): veja na Liga\)/.test(g.texto) && g.qtd === 120 && g.chaves.length === 120, 'mensagem enorme e cortada no limite com "(+N lances...)" e TODAS as chaves ficam marcadas como avisadas');
   // codigo: endpoint
   const ep = readFileSync(join(RAIZ, 'functions', 'api', 'cron-notificacoes-supervisores.js'), 'utf8');
-  ok(ep.includes("'notif_supervisores')) !== '1'") && ep.includes('55 * 60') && ep.includes("'Brasileirão Triunfante'") && ep.includes('notif_lance_enviado'), 'endpoint: desligado por padrao, no maximo 1 envio por hora, origem "Brasileirão Triunfante" e cada lance avisado uma vez');
+  ok(ep.includes("'notif_supervisores')) !== '1'") && ep.includes('ult.slice(11, 13)') && ep.includes("'Brasileirão Triunfante'") && ep.includes('notif_lance_enviado'), 'endpoint: desligado por padrao, um envio por hora cheia (nao depende do minuto exato do coletor), origem "Brasileirão Triunfante" e cada lance avisado uma vez');
   ok(ep.includes('if (primeira)') && ep.includes('silenciosos'), 'primeira rodada do dia nao despeja o dia inteiro: avisa so a ultima hora');
   const cl = readFileSync(join(RAIZ, 'functions', 'api', 'cron-lances.js'), 'utf8');
-  ok(cl.includes('cron-notificacoes-supervisores?rodar=1') && cl.includes('t.h >= 9 && t.h <= 20 && t.m < 5'), 'o coletor chama as notificacoes no comeco de cada hora cheia, das 09h as 20h');
+  ok(cl.includes('cron-notificacoes-supervisores?rodar=1') && cl.includes('t.h >= 9 && t.h <= 20)') && cl.includes('se_velho=1'), 'o coletor chama as notificacoes no comeco de cada hora cheia, das 09h as 20h');
 }

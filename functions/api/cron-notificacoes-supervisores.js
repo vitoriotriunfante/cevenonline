@@ -27,9 +27,10 @@ export async function onRequestGet({ env, request }) {
     const flag = async (k) => { const r = await env.DB.prepare('SELECT valor FROM config_flags WHERE chave = ?').bind(k).first(); return r ? r.valor : null; };
     if (rodar) {
       if ((await flag('notif_supervisores')) !== '1') return resp({ status: 'DESLIGADO', motivo: "config_flags 'notif_supervisores' nao esta ligado" });
-      if (t.h < 9 || t.min > 20 * 60) return resp({ status: 'FORA_DO_HORARIO', motivo: 'so de 09h as 20h' });
+      if (t.h < 9 || t.min > 20 * 60 + 59) return resp({ status: 'FORA_DO_HORARIO', motivo: 'so de 09h as 20h59' });
       const ult = await flag('notif_supervisores_ultimo');
-      if (ult && ult.startsWith(t.dia) && secDe(hms()) - secDe(ult.slice(11, 19)) < 55 * 60) return resp({ status: 'AGUARDANDO', motivo: 'ultimo envio ha menos de 55 min', ultimo: ult });
+      // UM envio por hora cheia: se o ultimo foi nesta mesma hora do relogio, espera a proxima hora
+      if (ult && ult.startsWith(t.dia) && ult.slice(11, 13) === String(t.h).padStart(2, '0')) return resp({ status: 'AGUARDANDO', motivo: 'ja enviou nesta hora; o proximo envio e na proxima hora cheia', ultimo: ult });
     }
     const r = await fetch(`${u.origin}/api/brasileirao-lances?dia=${t.dia}`, { signal: AbortSignal.timeout(40000) });
     const j = await r.json().catch(() => null);
