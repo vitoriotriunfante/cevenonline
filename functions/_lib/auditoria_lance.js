@@ -106,6 +106,10 @@ export function auditaLance(l, ctx = {}) {
     if (!String(l.cliente_id || l.cliente || '').trim()) falha('pedido na rota sem cliente');
   }
 
+  // --- lance de ONTEM disfarçado de hoje: o check-in citado na prova nao pode ser DEPOIS da hora em que o lance foi registrado
+  m = /check-in (?:as )?(\d\d):(\d\d)/.exec(obs);
+  if (m && String(l.hora || '') && hm(+m[1], +m[2]) > hm(+String(l.hora).slice(0, 2), +String(l.hora).slice(3, 5))) falha(`check-in às ${m[1]}:${m[2]} é depois da hora do registro (${String(l.hora).slice(0, 5)}): dado de ontem`);
+
   // --- nível do gol qualificado: o extra gravado tem que bater com o nível
   m = /\[QUALIF:([A-Z]+):\+(\d)\]/.exec(obs);
   if (m && EXTRA_NIVEL[m[1]] !== +m[2]) falha(`nível ${m[1]} com extra +${m[2]} (deveria ser +${EXTRA_NIVEL[m[1]]})`);

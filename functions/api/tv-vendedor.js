@@ -231,13 +231,21 @@ export async function onRequestGet({ request, env }) {
   const q = `filial=${key}&id=${id}`;
   const usarCentral = url.searchParams.get('central') === '1';
   const central = usarCentral ? await lerCentral(env, id) : null;
-  const [dash, prod, rot] = central
+  let [dash, prod, rot] = central
     ? [central.dash, central.prod, central.rot]
     : await Promise.all([
         getJson(`${CEVEN}/api/rca/dashboard?${q}`),
         getJson(`${CEVEN}/api/rca/produtividade?${q}`),
         getJson(`${CEVEN}/api/rca/roteiro-hoje?${q}`)
       ]);
+  // DADO DE ONTEM NA MANHA DE HOJE (Vitório, 07/10/2026: "tô recebendo lance de ontem agora"): na virada do dia o CEVEN ainda serve o roteiro e a produtividade de ONTEM.
+  // 1) roteiro com cliente de OUTRA data (data_visita) ou com check-in DEPOIS da hora de agora = roteiro de ontem: descarta (nenhum lance nasce dele).
+  // 2) ate as 10h: produtividade do dia com visitas/pedidos mas roteiro (com clientes) SEM nenhum check-in = produtividade de ontem: zera o 'dia'. Nunca inventa: so deixa de usar dado velho.
+  let rotaAntiga = false;
+  { const hojeSP = dataHojeBrasilia(), hm = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
+    if (Array.isArray(rot) && rot.some((c) => (c.data_visita && String(c.data_visita).slice(0, 10) !== hojeSP) || (c.checkin_horario && String(c.checkin_horario).slice(0, 5) > hm))) { rot = []; rotaAntiga = true; }
+    if (!rotaAntiga && hm < '10:00' && prod && prod.dia && Array.isArray(rot) && rot.length > 0 && !rot.some((c) => c.checkin_horario) && (Number(prod.dia.visitas_na_rota) > 0 || Number(prod.dia.dig_pedido) > 0 || Number(prod.dia.positivacao) > 0)) {
+      prod = { ...prod, dia: { ...prod.dia, faturamento: 0, positivacao: 0, dig_pedido: 0, visitas_na_rota: 0, visitas_com_venda: 0, eficacia_pct: 0 } }; rotaAntiga = true; } }
   // G03 (Dobrou o Mix) e V03 (Bonificação): só para clientes positivados HOJE (evita 1 chamada
   // extra por cliente da rota inteira — geralmente são poucos positivados por dia, não os 10-20+
   // da rota completa).
@@ -254,6 +262,7 @@ export async function onRequestGet({ request, env }) {
     });
   }
   const saida = montarTv(id, dash, prod, rot, analisePorCliente);
+  saida.rota_antiga = rotaAntiga; // true = o CEVEN ainda servia dado de ontem: esta leitura nao gera lance
   // Industrias do DIA do vendedor (uniao dos pedidos de hoje): base do nivel dos gols que nao sao de um cliente so (Super Pedido, Goleada, Relampago, Hat-Trick...)
   const somaDia = (campo) => { const m = new Map(); Object.values(analisePorCliente).forEach((a) => (a[campo] || []).forEach((x) => m.set(x.n, (m.get(x.n) || 0) + x.v))); return [...m.entries()].sort((a, b) => b[1] - a[1]).map(([n, v]) => ({ n, v: Math.round(v * 100) / 100 })); };
   saida.industrias_dia = somaDia('industrias'); saida.categorias_dia = somaDia('categorias');

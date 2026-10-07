@@ -328,7 +328,7 @@ secao('5c. Coleta de lances usa os dados da varredura central (menos chamadas ao
   const hoje = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
   const dash = { nome: 'TESTE', financeiro: { meta: 1000, faturado: 500, pendente: 10, devolucao: 0 }, positivacao: { meta: 10, realizado: 4 } };
   const prod = { dia: { dig_pedido: 300, positivacao: 1, total_programado: 3, visitas_com_venda: 1 } };
-  const rot = [{ id_cliente: '11', id: '11', nome_cliente: 'A', status: 'EFETIVADO', checkin_horario: '09:00:00' }, { id_cliente: '12', id: '12', nome_cliente: 'B', status: 'ABERTO' }];
+  const rot = [{ id_cliente: '11', id: '11', nome_cliente: 'A', status: 'EFETIVADO', checkin_horario: '00:01:00' }, { id_cliente: '12', id: '12', nome_cliente: 'B', status: 'ABERTO' }];
   const linha = (minAtras, extra = {}) => ({ roteiro_json: JSON.stringify(rot), produtividade_json: JSON.stringify(prod), dashboard_json: JSON.stringify(dash), updated_at: agoraUtc(minAtras), ...extra });
   const envCom = (row) => ({ DB: { prepare: () => ({ bind: () => ({ first: async () => row }) }) } });
   const original = globalThis.fetch;
@@ -342,6 +342,19 @@ secao('5c. Coleta de lances usa os dados da varredura central (menos chamadas ao
     return { corpo, base, hist };
   };
   { const r = await chamar('&central=1', linha(3)); ok(r.base === 0 && r.hist === 1, `com dado central recente: 0 chamadas base ao CEVEN e ${r.hist} de historico (so do positivado)`); ok(r.corpo.meta_fat === 1000 && r.corpo.clientes.length === 2, 'e o resultado traz os mesmos campos (meta, clientes)'); }
+  { // DADO DE ONTEM: roteiro com cliente de outra data, ou com check-in depois da hora de agora, nao pode gerar lance
+    const copia = rot.map((c) => ({ ...c }));
+    rot.splice(0, rot.length, { ...copia[0], data_visita: '2026-01-01' }, copia[1]);
+    let r = await chamar('&central=1', linha(3));
+    ok(r.corpo.rota_antiga === true && r.corpo.clientes.length === 0, 'roteiro com cliente de OUTRA data (ontem) e descartado: rota_antiga e nenhum cliente');
+    rot.splice(0, rot.length, { ...copia[0], data_visita: hoje, checkin_horario: '23:59:00' }, copia[1]);
+    r = await chamar('&central=1', linha(3));
+    ok(r.corpo.rota_antiga === true && r.corpo.clientes.length === 0, 'roteiro com check-in as 23:59 (depois da hora de agora) e descartado como dado de ontem');
+    rot.splice(0, rot.length, { ...copia[0], data_visita: hoje }, copia[1]);
+    r = await chamar('&central=1', linha(3));
+    ok(r.corpo.rota_antiga === false && r.corpo.clientes.length === 2, 'roteiro de hoje com check-in ja ocorrido continua valendo');
+    rot.splice(0, rot.length, ...copia);
+  }
   { const r = await chamar('&central=1', linha(20)); ok(r.base === 3, 'com dado central velho (20 min): volta a consultar o CEVEN (3 chamadas base)'); }
   { const r = await chamar('&central=1', linha(3, { dashboard_json: null })); ok(r.base === 3, 'com dado central incompleto: volta a consultar o CEVEN'); }
   { const r = await chamar('&central=1', null); ok(r.base === 3, 'sem dado central do vendedor: consulta o CEVEN'); }
@@ -679,6 +692,7 @@ secao('8e. Liga cravada: regras congeladas por versao, fechamento do dia (19h30)
   { const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_notificacao.mjs')).href)).default; await t(ok); }
   { const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_notif_supervisores.mjs')).href)).default; await t(ok); }
   { const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_fila_var.mjs')).href)).default; await t(ok); }
+  { const tv = ler('functions/api/tv-vendedor.js'); ok(tv.includes('data_visita') && tv.includes('rotaAntiga') && tv.includes("hm < '10:00'") && tv.includes('saida.rota_antiga'), 'tv-vendedor: roteiro de OUTRO dia ou com check-in no futuro e descartado (nenhum lance de ontem nasce hoje de manha)'); }
   ok(ler('functions/api/tv-lances.js').includes('length(obs) <= 3'), 'lance gravado pela TV com obs so de sigla (sem prova) recebe a prova do coletor depois');
   const fe = ler('functions/api/cron-fechamento-dia.js');
   ok(fe.includes("DIA_INICIAL = '2026-10-06'") && fe.includes('manual'), 'fechamento automatico so de 06/10/2026 em diante; dias anteriores so de proposito (manual=1)');
