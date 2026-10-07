@@ -668,13 +668,13 @@ for (const arq of ['public/tvapp.html', 'public/matrizapp.html']) {
   const t = ler(arq);
   ok(t.includes('const RECENTES = new Set()') && t.includes('ehRecente') && t.includes('RECENTES.has(a.key)') && t.includes('EXIB.add(a.key)') && t.includes('ANTES de dar o lance como visto'), arq + ': lance registrado pelo coletor nos ultimos 12 min entra na fila do VAR (a tela nao fica muda)');
   ok(t.includes('(sp().h >= 15 ? 90 : 180)') && t.includes('(sp().h >= 15 ? 40 : 20)') && t.includes('varGapS()') && t.includes('varMaxH()'), arq + ': depois das 15h o VAR roda a cada 90 s e ate 40 por hora');
-  ok(t.includes('const ehBomLance') && t.includes('podeVAR(ESPERA.some(ehBomLance))') && t.includes('ESPERA.splice(iBom, 1)[0]') && t.includes('Math.min(varGapS(), sp().h >= 15 ? 30 : 40)') && t.includes('ruimLiberado()') && t.includes('10 * 60e3'), arq + ': gol, hat-trick e defesa saem sozinhos (nunca dentro de resumo), passam na frente e com intervalo de 30 s depois das 15h; lance ruim so em resumo e no maximo 1 a cada 10 min');
+  ok(t.includes('const ehBomLance') && t.includes('podeVAR(ESPERA.some(ehBomLance), ESPERA.some(ehMarcaPropria))') && t.includes('ESPERA.splice(iBom, 1)[0]') && t.includes('Math.min(varGapS(), sp().h >= 15 ? 30 : 40)') && t.includes('ruimLiberado()') && t.includes('10 * 60e3'), arq + ': gol, hat-trick e defesa saem sozinhos (nunca dentro de resumo), passam na frente e com intervalo de 30 s depois das 15h; lance ruim so em resumo e no maximo 1 a cada 10 min');
 }
 
 secao('8e. Liga cravada: regras congeladas por versao, fechamento do dia (19h30) e conferencia diaria contra o CEVEN');
 {
   const cfgTxt = ler('config/pontuacao_brasileirao.json'); const cfg = JSON.parse(cfgTxt);
-  const LOCK_HASH = '2b490336096105ed16c7c11e42530bb7a44d0648c6fd38c47a19d421094833a3'; // sha256 do regulamento na versao 2026-10-07.2 (so o nome da liga mudou)
+  const LOCK_HASH = '499804f1eb0cffdaf56112747f10318b84810371dd9ef6b41f653b0b32bfd15d'; // sha256 do regulamento na versao 2026-10-08.1 (Gol de Marca Propria +8, vale a partir de 08/10)
   const { createHash } = await import('node:crypto');
   const hash = createHash('sha256').update(JSON.stringify(cfg)).digest('hex');
   const lib = ler('functions/_lib/liga_fechamento.js');

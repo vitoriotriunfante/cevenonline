@@ -8,7 +8,7 @@
 // =========================================================================
 
 // Versão das regras da liga (config/pontuacao_brasileirao.json -> "versao_regras"). Um teste automático confere que as duas batem e que as regras não mudaram sem subir a versão.
-export const REGRAS_VERSAO = '2026-10-07.2';
+export const REGRAS_VERSAO = '2026-10-08.1';
 
 export function agoraSP() {
   const p = {};

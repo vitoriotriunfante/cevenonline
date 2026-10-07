@@ -8,7 +8,7 @@ export default async function (ok) {
   for (const arq of ['public/tvapp.html', 'public/matrizapp.html']) {
     const t = readFileSync(join(RAIZ, arq), 'utf8').replace(/\r\n/g, '\n');
     const a = t.indexOf("const varGapS = "), b = t.indexOf('\n', t.indexOf('const varMaxH = '));
-    const c = t.indexOf('const ehBomLance'), d0 = t.indexOf('function liberaEspera'), d = t.indexOf('\n}\n', d0) + 3;
+    const c = t.indexOf('const ehMarcaPropria'), d0 = t.indexOf('function liberaEspera'), d = t.indexOf('\n}\n', d0) + 3;
     // matriz: liberaEspera fecha com "\n}\n" tambem; o corpo usa $('fila') / $('toast') (stubs abaixo)
     const codigo = t.slice(a, b) + '\n' + t.slice(c, d);
     const roda = (h, itens, relogioMs) => {
@@ -40,6 +40,17 @@ export default async function (ok) {
     r.estado.ESPERA.push({ ...pen }, { ...gol });
     r.avanca(31e3); r.api.liberaEspera();
     ok(r.estado.chamadas === 5 && r.estado.ESPERA.some((x) => x.tipo === 'penalti'), arq + ' FILA: gol novo sai na hora, o ruim continua esperando');
+    // GOL DE MARCA PROPRIA: sai na frente de tudo, sem esperar intervalo nem limite por hora, e sozinho
+    { const mp = { tipo: 'gol', score: 500, a: { subtipo: 'marca_propria' } };
+      const rr = roda(16, [{ ...gol }, { ...mp }, { ...pen }], 1e12);
+      rr.api.liberaEspera();
+      ok(rr.estado.chamadas === 1 && rr.estado.ESPERA.length === 2 && rr.estado.ESPERA.some((x) => x.tipo === 'gol' && !x.a) && !rr.estado.ESPERA.some(x => x.a && x.a.subtipo === 'marca_propria'), arq + ' FILA: Gol de Marca Propria sai ANTES de um gol comum, sozinho');
+      rr.api.liberaEspera();
+      ok(rr.estado.chamadas === 1, arq + ' FILA: o gol comum espera o intervalo, mas...');
+      rr.estado.ESPERA.push({ ...mp });
+      rr.api.liberaEspera();
+      ok(rr.estado.chamadas === 2 && !rr.estado.ESPERA.some(x => x.a && x.a.subtipo === 'marca_propria'), arq + ' FILA: ...um novo Gol de Marca Propria sai na hora, sem esperar o intervalo');
+    }
     // antes das 15h: comportamento antigo (ruim sai normal)
     r = roda(10, [pen], 1e12);
     r.api.liberaEspera();

@@ -1,5 +1,5 @@
 {
-  "versao_regras": "2026-10-07.2",
+  "versao_regras": "2026-10-08.1",
   "vigente_desde": "2026-10-07",
   "_comentario": "Regulamento Oficial da Liga da Virada 2026 - Metodologia auditada pela diretoria comercial",
   "regras_equipes": {
@@ -59,6 +59,7 @@
     "gol_meta1t": { "nome": "⏱️ Meta do 1º Tempo", "pontos": 6, "motivo": "Bateu a meta proporcional diária antes das 14h00." },
     "gol_inativo": { "nome": "🦅 Resgate de Inativo / Drible da Vaca", "pontos": 6, "motivo": "Recuperou cliente parado há mais de 30 dias (ou > 90 dias no Drible da Vaca), sem a tag RECORRÊNCIA. Cliente com a tag RECORRÊNCIA positivado vale a Defesa (+3), não este gol (decisão 05/10/2026). QUALIFICADO (ver Gol Qualificado)." },
     "gol_hattrick": { "nome": "🔥 Hat-Trick (Diário)", "pontos": 6, "motivo": "3 pedidos digitados em sequência em um curto intervalo (até 120 minutos)." },
+    "gol_marca_propria": { "nome": "⭐ Gol de Marca Própria", "pontos": 8, "motivo": "Pedido do cliente no dia com R$ 50 ou mais de MARCA PRÓPRIA (indústria Marca Própria Triunfante). É foco da empresa: lance próprio, o mais valioso dos gols, ganha a ESTRELA, nível (bronze a platina) pelas indústrias do pedido e é SEMPRE exibido na TV, um a um. Vale a partir de 08/10/2026, no Varejo e no AS." },
     "gol_super": { "nome": "💎 Super Pedido", "pontos": 5, "motivo": "Pedido de valor muito expressivo (venda alta no dia, padrão ≥ R$ 15.000 ou muito acima da média do RCA)." },
     "gol_conversao": { "nome": "⚙️ Máquina de Conversão", "pontos": 5, "motivo": "Alto aproveitamento comercial da rota: ≥ 8 visitas feitas e taxa de conversão ≥ 50%." },
     "gol_relampago": { "nome": "⚡ Gol Relâmpago", "pontos": 4, "motivo": "Pedido fechado logo no início do dia: check-in antes das 09h00 (10h00 no fuso: TCG, MCD, TCA). Depois do limite o lance não vale." },

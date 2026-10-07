@@ -66,6 +66,10 @@ export function auditaLance(l, ctx = {}) {
   } else if (tipo === 'gol_hattrick' || tipo === 'hattrick') {
     m = /(\d+) check-ins em (\d+) min/.exec(obs);
     if (!m) falha('hat-trick sem a prova dos check-ins'); else { if (+m[1] < 3) falha(`hat-trick com ${m[1]} check-ins`); if (+m[2] > 120) falha(`hat-trick em ${m[2]} min (máximo 120)`); }
+  } else if (tipo === 'gol_marca_propria') {
+    m = /MARCA PROPRIA R\$ ([\d.,]+) \(minimo R\$ (\d+)\)/.exec(obs);
+    if (!m) falha('gol de marca propria sem o valor de marca propria na prova'); else if (num(m[1]) < +m[2] || +m[2] < 50) falha(`gol de marca propria com R$ ${m[1]} (minimo R$ 50)`);
+    if (!/PEDIDO DE HOJE: \d+/.test(obs)) falha('gol de marca propria sem o pedido de hoje comprovado');
   } else if (tipo === 'gol_campeao') {
     m = /faturado do mes R\$ ([\d.,]+) >= meta R\$ ([\d.,]+)/.exec(obs);
     if (!m) falha('campeão sem a prova faturado x meta'); else if (num(m[1]) < num(m[2])) falha('campeão com faturado abaixo da meta');

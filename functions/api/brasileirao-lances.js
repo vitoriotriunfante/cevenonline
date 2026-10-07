@@ -16,6 +16,7 @@ function agoraSP() {
 
 const REGRAS_PONTOS = {
   gol_campeao: { nome: 'Campeão da Rodada', pontos: 8, motivo: 'Bateu 100% da meta do mês' },
+  gol_marca_propria: { nome: '⭐ Gol de Marca Própria', pontos: 8, motivo: 'Pedido com R$ 50 ou mais de Marca Própria (foco da empresa)' },
   gol_goleada: { nome: 'Goleada', pontos: 7, motivo: 'Volume excepcional de clientes positivados no dia' },
   gol_meta1t: { nome: 'Meta do 1º Tempo', pontos: 6, motivo: 'Bateu a meta do dia antes das 14h' },
   gol_inativo: { nome: 'Resgate de Inativo / Drible da Vaca', pontos: 6, motivo: 'Recuperou cliente parado >30d (ou >90d), sem a tag RECORRÊNCIA (com a tag o lance é a Defesa)' },

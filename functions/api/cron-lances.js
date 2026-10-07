@@ -204,6 +204,9 @@ function calcAlertas(vs, t) {
       if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && c.checkin_horario) {
         out.push({ chave: `pedido_rota|${v.id}|${c.id}`, nivel: 'pedido_rota', v, c, prova: [provaPedidoHoje(c), (qualificaGol(v.carteira, c) || {}).texto].filter(Boolean).join(' | ') });
       }
+      // GOL DE MARCA PROPRIA (a partir de 08/10/2026): pedido do cliente com R$ 50+ de Marca Propria Triunfante
+      { const mp = (c.industrias || []).filter((x) => /MARCA PROPRIA/.test(String(x.n || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''))).reduce((a, x) => a + (Number(x.v) || 0), 0);
+        if (t.dia >= '2026-10-08' && mp >= 50 && ['POSITIVADO', 'EFETIVADO'].includes(c.status)) out.push({ chave: `gol_marca_propria|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: [`MARCA PROPRIA R$ ${mp.toFixed(2).replace('.', ',')} (minimo R$ 50)`, provaPedidoHoje(c), (qualificaGol(v.carteira, c) || {}).texto].filter(Boolean).join(' | ') }); }
       if (c.dobrouMix) out.push({ chave: `gol_mix|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: [provaPedidoHoje(c), (qualificaGol(v.carteira, c) || {}).texto].filter(Boolean).join(' | ') });
       if (c.dobradinhaQuinzenas) out.push({ chave: `gol_quinzenas|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: [provaPedidoHoje(c), provaQuinzenas(c), (qualificaGol(v.carteira, c) || {}).texto].filter(Boolean).join(' | ') });
       if (c.bonificacao) out.push({ chave: `ver_bonif|${v.id}|${c.id}`, nivel: 'vermelho', v, c });

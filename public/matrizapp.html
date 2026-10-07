@@ -379,6 +379,7 @@ function textoGol(subtipo, valor, c, horaReal) {
   if (subtipo === 'conversao') return `Máquina de Conversão: ${valor.toFixed(0)}% de aproveitamento!`;
   if (subtipo === 'goleada') return `Goleada! ${valor} clientes positivados hoje!`;
   if (subtipo === 'campeao') return `Campeão da Rodada: 100% da meta do mês batida!`;
+  if (subtipo === 'marca_propria') return `${c && c.nome} · ⭐ GOL DE MARCA PRÓPRIA! R$ ${(Number(valor) || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} de Marca Própria no pedido!`;
   if (subtipo === 'dobrou_mix') return `${c && c.nome} · dobrou o mix do cliente!`;
   if (subtipo === 'hattrick') return `Hat-Trick (3 visitas com venda em até 2h, última checkin ${horaReal})`;
   if (subtipo === 'meta1tempo') return `Meta do 1º Tempo batida (checkin ${horaReal})`;
@@ -626,6 +627,9 @@ function calcAlertas() {
         const subTipoInativo = (diasC != null && diasC > 90) ? 'drible_vaca' : (ehRecorrencia ? 'recorrencia_salva' : 'inativo_recuperado');
         out.push({key: `${sig}|gol_inativo|${v.id}|${c.id}`, sig, nivel: 'gol', subtipo: subTipoInativo, v, c, dias: diasC});
       }
+      // --- LANCE: GOL DE MARCA PROPRIA (a partir de 08/10/2026): pedido do cliente com R$ 50+ de Marca Propria Triunfante ---
+      { const mp = (c.industrias || []).filter(x => /marca propria/.test(String(x.n || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''))).reduce((a, x) => a + (Number(x.v) || 0), 0);
+        if (HOJE0 >= '2026-10-08' && mp >= 50 && ['POSITIVADO', 'EFETIVADO'].includes(c.status)) out.push({key: `${sig}|gol_marca_propria|${v.id}|${c.id}`, sig, nivel: 'gol', subtipo: 'marca_propria', v, c, valor: mp}); }
       // --- LANCE G03: DOBROU O MIX (calculado em tv-vendedor.js contra o histórico do cliente) ---
       if (c.dobrouMix) {
         out.push({key: `${sig}|gol_mix|${v.id}|${c.id}`, sig, nivel: 'gol', subtipo: 'dobrou_mix', v, c});
@@ -801,7 +805,7 @@ function enfileira(novos) {
   // GOLS: peso reforçado no fechamento (score 45 à tarde vs 28 de manhã)
   novos.filter(a => a.nivel === 'gol').forEach(a => {
     const boost = ehFechamento ? 20 : 0;
-    ESPERA.push({tipo: 'gol', sig: a.sig, v: a.v, c: a.c, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaReal), score: 28 + boost + Math.min(15, (a.valor || 0) / 3000)});
+    ESPERA.push({tipo: 'gol', sig: a.sig, v: a.v, c: a.c, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaReal), score: a.subtipo === 'marca_propria' ? 500 : 28 + boost + Math.min(15, (a.valor || 0) / 3000)});
   });
   // HAT-TRICK: destaque máximo da tarde
   novos.filter(a => a.nivel === 'hattrick').forEach(a => {
@@ -839,15 +843,17 @@ function enfileira(novos) {
   ESPERA.sort((a, b) => b.score - a.score); liberaEspera();
 }
 const penaltisDe = (rca, sig) => LOG.filter(e => e.nivel === 'penalti' && e.rca === rca && e.sig === sig).length;
+const ehMarcaPropria = (x) => x.tipo === 'gol' && ((x.a && x.a.subtipo) || x.subtipo) === 'marca_propria'; // foco da empresa: sai SEMPRE, sozinho, na frente e sem esperar intervalo
 const ehBomLance = (x) => x.tipo === 'gol' || x.tipo === 'hattrick' || x.tipo === 'defesa'; // lance bom: sai sozinho, na frente e com intervalo curto (30 s depois das 15h, 40 s antes)
 // FOCO EM GOL DEPOIS DAS 15H (Vitório, 06/10/2026: "depois das 15 quero foco em gol e mais gols"): lance ruim (pênalti, cartão, impedimento, gol contra) so aparece em resumo, no maximo 1 a cada 10 min
 let ULT_RUIM = 0;
 const ruimLiberado = () => sp().h < 15 || ESPERA.some((x) => ehBomLance(x) || x.tipo === 'semanainvicta') || Date.now() - ULT_RUIM >= 10 * 60e3;
-function podeVAR(bom) { const agora = Date.now(); while (VARS.length && agora - VARS[0] > 3600e3) VARS.shift(); return !emVAR && !FILA.length && VARS.length < varMaxH() * (bom ? 3 : 1) && (!VARS.length || agora - VARS[VARS.length - 1] >= (bom ? Math.min(varGapS(), sp().h >= 15 ? 30 : 40) : varGapS()) * 1000); }
+function podeVAR(bom, proprio) { const agora = Date.now(); while (VARS.length && agora - VARS[0] > 3600e3) VARS.shift(); if (proprio) return !emVAR && !FILA.length; /* Gol de Marca Propria: sem intervalo e sem limite por hora */ return !emVAR && !FILA.length && VARS.length < varMaxH() * (bom ? 3 : 1) && (!VARS.length || agora - VARS[VARS.length - 1] >= (bom ? Math.min(varGapS(), sp().h >= 15 ? 30 : 40) : varGapS()) * 1000); }
 function liberaEspera() {
-  if (ESPERA.length && podeVAR(ESPERA.some(ehBomLance)) && ruimLiberado()) { const iInv = ESPERA.findIndex(x => x.tipo === 'semanainvicta'); /* Semana Invicta sai SEMPRE sozinha, nunca dentro de um resumo */
+  if (ESPERA.length && podeVAR(ESPERA.some(ehBomLance), ESPERA.some(ehMarcaPropria)) && (ESPERA.some(ehMarcaPropria) || ruimLiberado())) { const iInv = ESPERA.findIndex(x => x.tipo === 'semanainvicta'); /* Semana Invicta sai SEMPRE sozinha, nunca dentro de um resumo */
+    const iProp = ESPERA.findIndex(ehMarcaPropria); /* Gol de Marca Propria: o primeiro da fila, sempre sozinho */
     const iBom = ESPERA.findIndex(ehBomLance); /* gol, hat-trick e defesa saem sozinhos e na frente: o resumo fica so para o que e ruim */
-    const item = iInv >= 0 ? ESPERA.splice(iInv, 1)[0] : (iBom >= 0 ? ESPERA.splice(iBom, 1)[0] : (ESPERA.length >= (sp().h >= 15 ? 2 : 4) ? {tipo: 'resumo', grupos: ESPERA.splice(0)} : ESPERA.shift())); if (iInv < 0 && iBom < 0) ULT_RUIM = Date.now(); VARS.push(Date.now()); FILA.push(item); proximoVAR(); }
+    const item = iInv >= 0 ? ESPERA.splice(iInv, 1)[0] : (iProp >= 0 ? ESPERA.splice(iProp, 1)[0] : iBom >= 0 ? ESPERA.splice(iBom, 1)[0] : (ESPERA.length >= (sp().h >= 15 ? 2 : 4) ? {tipo: 'resumo', grupos: ESPERA.splice(0)} : ESPERA.shift())); if (iInv < 0 && iBom < 0 && iProp < 0) ULT_RUIM = Date.now(); VARS.push(Date.now()); FILA.push(item); proximoVAR(); }
   const t = $('fila'); if (t) { t.style.display = ESPERA.length ? 'inline-block' : 'none'; t.textContent = `⏳ ${ESPERA.length} na fila do VAR`; }
 }
 function beep(seq) { if (!somOn) return; try { const C = new (window.AudioContext || window.webkitAudioContext)(); let t = C.currentTime; seq.forEach(([f, d]) => { const o = C.createOscillator(), g = C.createGain(); o.frequency.value = f; o.type = 'square'; g.gain.value = .12; o.connect(g); g.connect(C.destination); o.start(t); o.stop(t + d); t += d + .05; }); } catch {} }
@@ -862,6 +868,7 @@ function pontosLanceOficial(tipo, subtipo) {
   if (subtipo === 'conversao') return { nome: 'Máquina de Conversão', pts: '+5 PONTOS NA LIGA', cor: '#22c55e' };
   if (subtipo === 'relampago') return { nome: 'Gol Relâmpago', pts: '+4 PONTOS NA LIGA', cor: '#22c55e' };
   if (subtipo === 'acrescimos') return { nome: 'Gol nos Acréscimos', pts: '+4 PONTOS NA LIGA', cor: '#22c55e' };
+  if (subtipo === 'marca_propria') return { nome: '⭐ Gol de Marca Própria', pts: '+8 PONTOS NA LIGA', cor: '#facc15' };
   if (subtipo === 'dobrou_mix') return { nome: 'Dobrou o Mix', pts: '+4 PONTOS NA LIGA', cor: '#22c55e' };
   if (subtipo === 'dobradinha_quinzenas') return { nome: 'Dobradinha das Quinzenas', pts: '+3 PONTOS NA LIGA', cor: '#22c55e' };
   if (tipo === 'defesa') return { nome: 'Defesa (Recorrência Salva)', pts: '+3 PONTOS NA LIGA', cor: '#22c55e' };
@@ -878,7 +885,7 @@ function telaVAR(item) {
   const subtipo = (item.a && item.a.subtipo) || item.subtipo;
   const infoLiga0 = pontosLanceOficial(item.tipo, subtipo);
   // Gol qualificado: resgate/mix/quinzenas ganham nivel (bronze..platina) e extra de pontos pelas industrias do pedido
-  const subCliente = ['inativo_recuperado', 'drible_vaca', 'recorrencia_salva', 'dobrou_mix', 'dobradinha_quinzenas'], subDia = ['super_pedido', 'conversao', 'relampago', 'acrescimos', 'meta1tempo', 'goleada', 'hattrick'];
+  const subCliente = ['inativo_recuperado', 'drible_vaca', 'recorrencia_salva', 'dobrou_mix', 'dobradinha_quinzenas', 'marca_propria'], subDia = ['super_pedido', 'conversao', 'relampago', 'acrescimos', 'meta1tempo', 'goleada', 'hattrick'];
   const vQ = item.v || (item.a && item.a.v) || {};
   // nivel (bronze a platina) em TODOS os gols (menos Campeao da Rodada): de cliente = pedido do cliente; do dia = industrias de todos os pedidos do vendedor hoje
   const qGol = (typeof qualificaGolUI === 'function' && (item.tipo === 'gol' || item.tipo === 'hattrick'))

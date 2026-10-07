@@ -123,7 +123,7 @@ export async function onRequestGet({ env, request }) {
     // ÁRVORE VIVA DO CEVEN x GESTÃO (Vitório, 06/10/2026: "coloca aqui as divergências"): vendedores novos que entraram sozinhos, supervisor que o CEVEN trocou e
     // vendedores que só a Gestão tem (fora da cascata do CEVEN). Somente leitura; quem decide mostra / não mostra é a Gestão de Equipe.
     const arvore = { disponivel: false, atualizado_em: null, novos: [], supervisor_mudou: [], so_gestao: [] };
-    const decisao = { nao_mostra: [], fora_da_gestao: [] };
+    const decisao = { nao_mostra: [], fora_da_gestao: [], sem_canal: [], canal_divergente: [] };
     const comNumeros = (it, codigo) => { const m = movDe.get(String(codigo)) || {}; return { ...it, rota_hoje: Number(m.rota) || 0, visitas_hoje: Number(m.vis) || 0, pedidos_hoje: Number(m.ped) || 0, digitado_hoje: arred(m.dig), meta_fat: arred(m.meta_fat), fat_mes: arred(m.fat_mes), pendente: arred(m.pendente), meta_pos: Number(m.meta_pos) || 0, pos_mes: Number(m.pos_mes) || 0, notas_devolucao_mes: Number(m.notas) || 0, devolucao_mes: arred(m.dev) }; };
     try {
       const row = await env.DB.prepare('SELECT conteudo_json FROM config_equipe_soberana WHERE id = 1').first();
@@ -146,6 +146,16 @@ export async function onRequestGet({ env, request }) {
           const sig = k.split('_')[0].toUpperCase();
           for (const v of base.filiais[k] || []) if (v.mostra === false) decisao.nao_mostra.push(Object.assign(comNumeros({ filial: sig, codigo: String(v.rca), nome: v.nome, supervisor: v.supervisor || '', canal: v.canal || '', motivo: v.motivo || '', no_ceven: naArv.has(sig + '|' + v.rca) }, v.rca), {}));
         }
+        // CANAL: o do CEVEN vale (area_atuacao). Vendedor que o CEVEN nao classifica (sem canal) e quem teve o canal trocado em relacao a Gestao aparecem aqui para o Vitório (22/09/2026: sem classificacao fica fora de Varejo e AS)
+        for (const k of Object.keys(cop.filiais)) {
+          const sig2 = k.split('_')[0].toUpperCase();
+          for (const v of cop.filiais[k] || []) {
+            if (!v || v.rca == null) continue;
+            if (v.canal_gestao !== undefined) decisao.canal_divergente.push(comNumeros({ filial: sig2, codigo: String(v.rca), nome: v.nome, supervisor: v.supervisor || '', canal_gestao: v.canal_gestao || '(vazio)', canal_ceven: v.canal, mostra: v.mostra !== false }, v.rca));
+            if (v.mostra !== false && !String(v.canal || '').trim()) { const it = comNumeros({ filial: sig2, codigo: String(v.rca), nome: v.nome, supervisor: v.supervisor || '', canal: '', motivo: 'CEVEN sem canal (sem classificação)' }, v.rca); it.leitura = leitura(it); decisao.sem_canal.push(it); }
+          }
+        }
+        decisao.canal_divergente.sort((a, b) => Number(b.mostra) - Number(a.mostra) || a.filial.localeCompare(b.filial));
         for (const x of decisao.nao_mostra) x.leitura = leitura(x);
         for (const x of arvore.novos) decisao.fora_da_gestao.push(comNumeros({ ...x }, x.codigo));
         for (const x of decisao.fora_da_gestao) x.leitura = leitura(x);
