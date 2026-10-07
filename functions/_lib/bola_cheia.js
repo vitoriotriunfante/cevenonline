@@ -3,12 +3,14 @@
 // O QUE É: BOLA CHEIA (Vitório, 07/10/2026): às 18h (Brasília) o MELHOR vendedor de cada filial no dia (Varejo) ganha o título "Bola Cheia".
 //   - Não vale pontos nem dinheiro: é honra (vídeo na TV da filial e na Matriz, para mandar no grupo).
 //   - O vencedor é CONGELADO às 18h e gravado (tabelas bola_cheia / bola_cheia_dia): não muda mais, mesmo que o dia mude depois.
+//   - TEM QUE TER VENDIDO: so concorre quem tem ao menos MIN_POSITIVADOS cliente positivado (CEVEN) e digitado > 0.
 //   - Critério: mais PONTOS DO DIA na liga (os mesmos lances auditados, ao vivo, de /api/brasileirao-lances); só concorre quem fez
 //     ao menos MIN_VISITAS visitas no dia. Desempate: mais clientes positivados, mais digitado, nome. Sem pontos positivos = sem Bola Cheia (nunca inventa).
 //   - Só Varejo (canais VJ, FARMA, PET VJ, ESP do CEVEN); ocultos já vêm fora dos lances. AS = por semana (sexta), vem em outra etapa.
 // =========================================================================
 import { agoraSP } from './liga_fechamento.js';
 export const MIN_VISITAS = 5;
+export const MIN_POSITIVADOS = 1; // TEM QUE TER VENDIDO (Vitorio, 07/10/2026): pelo menos 1 cliente positivado (numero oficial do CEVEN) e digitado > 0; subir este numero endurece a regra
 export const HORA_CONGELA_MIN = 18 * 60;
 export const CANAIS_VAREJO = ['VJ', 'FARMA', 'PET VJ', 'ESP'];
 const NIVEIS_FORA = ['marker', 'supervisor'];
@@ -18,6 +20,7 @@ export function escolheVencedores(candidatos, minVisitas = MIN_VISITAS) {
   const porFilial = new Map();
   for (const c of candidatos) {
     if (!c || !c.filial || !(Number(c.visitas) >= minVisitas) || !(Number(c.pontos) > 0)) continue;
+    if (!(Number(c.positivados) >= MIN_POSITIVADOS) || !(Number(c.digitado) > 0)) continue; // sem venda nao ganha, mesmo cumprindo o processo
     const a = porFilial.get(c.filial);
     let melhor = !a;
     if (a) {
@@ -84,7 +87,7 @@ export async function congelaBolaCheia(env, origin, dia, regrasVersao) {
   const hora = `${String(t.h).padStart(2, '0')}:${String(t.m).padStart(2, '0')}`;
   const stmts = venc.map((v) => env.DB.prepare('INSERT OR IGNORE INTO bola_cheia (dia, filial, rca, vendedor, supervisor, pontos, visitas, positivados, digitado, resumo_json) VALUES (?,?,?,?,?,?,?,?,?,?)')
     .bind(dia, v.filial, v.rca, v.vendedor, v.supervisor, v.pontos, v.visitas, v.positivados, v.digitado,
-      JSON.stringify({ gols: v.gols, defesas: v.defesas, negativos: v.negativos, lances: v.lances, concorrentes: cands.filter((c) => c.filial === v.filial && c.visitas >= MIN_VISITAS).length, min_visitas: MIN_VISITAS })));
+      JSON.stringify({ gols: v.gols, defesas: v.defesas, negativos: v.negativos, lances: v.lances, concorrentes: cands.filter((c) => c.filial === v.filial && c.visitas >= MIN_VISITAS && c.positivados >= MIN_POSITIVADOS && c.digitado > 0).length, min_visitas: MIN_VISITAS })));
   for (let i = 0; i < stmts.length; i += 40) await env.DB.batch(stmts.slice(i, i + 40));
   await env.DB.prepare('INSERT OR IGNORE INTO bola_cheia_dia (dia, congelado_em, hora_sp, regras_versao, vencedores) VALUES (?,?,?,?,?)').bind(dia, new Date().toISOString(), hora, regrasVersao || '', venc.length).run(); // cabecalho POR ULTIMO
   return { dia, status: 'CONGELADA', vencedores: venc.length, hora };

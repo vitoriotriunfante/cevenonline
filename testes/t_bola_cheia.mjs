@@ -5,7 +5,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 export default async function t(ok) {
   const bc = await import(pathToFileURL(join(RAIZ, 'functions/_lib/bola_cheia.js')).href);
-  const c = (filial, rca, vendedor, pontos, visitas, positivados = 0, digitado = 0) => ({ filial, rca, vendedor, pontos, visitas, positivados, digitado });
+  const c = (filial, rca, vendedor, pontos, visitas, positivados = 1, digitado = 100) => ({ filial, rca, vendedor, pontos, visitas, positivados, digitado });
   // 1 vencedor por filial: o de mais pontos
   let v = bc.escolheVencedores([c('TBL', '1', 'ANA', 12, 8), c('TBL', '2', 'BIA', 20, 9), c('TPH', '3', 'CAIO', 5, 6)]);
   ok(v.length === 2 && v.find((x) => x.filial === 'TBL').vendedor === 'BIA' && v.find((x) => x.filial === 'TPH').vendedor === 'CAIO', 'Bola Cheia: um vencedor por filial, o de mais pontos no dia');
@@ -22,6 +22,11 @@ export default async function t(ok) {
   ok(v[0].vendedor === 'BIA', 'Bola Cheia: depois, por mais digitado');
   v = bc.escolheVencedores([c('TBL', '2', 'BIA', 10, 8, 5, 1000), c('TBL', '1', 'ANA', 10, 8, 5, 1000)]);
   ok(v[0].vendedor === 'ANA', 'Bola Cheia: por fim, ordem alfabetica fixa (o resultado nao depende da ordem de entrada)');
+  // TEM QUE TER VENDIDO: pontos de processo sem venda nao ganham
+  v = bc.escolheVencedores([c('TBL', '1', 'ANA', 40, 12, 0, 0), c('TBL', '2', 'BIA', 10, 8, 2, 900)]);
+  ok(v.length === 1 && v[0].vendedor === 'BIA', 'Bola Cheia: tem que ter vendido (0 positivados e R$ 0 digitado fica fora, mesmo com mais pontos)');
+  v = bc.escolheVencedores([c('TBL', '1', 'ANA', 40, 12, 3, 0)]);
+  ok(v.length === 0, 'Bola Cheia: positivado mas com digitado R$ 0 tambem nao conta como venda');
   ok(bc.MIN_VISITAS === 5 && bc.HORA_CONGELA_MIN === 18 * 60 && JSON.stringify(bc.CANAIS_VAREJO) === JSON.stringify(['VJ', 'FARMA', 'PET VJ', 'ESP']), 'Bola Cheia: 18h, minimo 5 visitas, so canais do Varejo');
   // ligacao: coletor congela, endpoint existe, TV e Matriz avisam, video prevê arquivo
   const lib = readFileSync(join(RAIZ, 'functions/_lib/bola_cheia.js'), 'utf8'), cl = readFileSync(join(RAIZ, 'functions/api/cron-lances.js'), 'utf8');
