@@ -271,11 +271,13 @@ async function carregaDevolucoes(env, t, filialDoRca) {
   const out = new Map();
   try {
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS devolucao_nota_motivo (rca TEXT NOT NULL, nota TEXT NOT NULL, nao_pediu INTEGER, motivos TEXT, resolvido_em TEXT, PRIMARY KEY (rca, nota))').run();
-    const { results } = await env.DB.prepare('SELECT rca_codigo, devolucoes_json FROM varredura_central_rca WHERE data_ref = ? AND devolucoes_json IS NOT NULL').bind(t.dia).all();
+    const { results } = await env.DB.prepare('SELECT rca_codigo, filial_sigla, devolucoes_json FROM varredura_central_rca WHERE data_ref = ? AND devolucoes_json IS NOT NULL').bind(t.dia).all();
     const notas = [];
     for (const r of results || []) {
       let lista = null; try { lista = JSON.parse(r.devolucoes_json); } catch { continue; }
       if (!Array.isArray(lista)) continue;
+      // codigo de RCA se repete entre filiais (ex.: 1035 existe em TPA e em TBE): so vale a devolucao da filial a que o vendedor pertence hoje (07/10/2026)
+      { const fr = filialDoRca.get(String(r.rca_codigo)); if (fr && r.filial_sigla && String(fr).toUpperCase().slice(0, 3) !== String(r.filial_sigla).toUpperCase().slice(0, 3)) continue; }
       for (const n of lista) {
         const idade = diasDesde(String(n.data || '').slice(0, 10), t.dia);
         if (!n.numnota || idade == null || idade < 0 || idade > +t.dia.slice(8, 10) - 1) continue; // so notas do mes corrente
