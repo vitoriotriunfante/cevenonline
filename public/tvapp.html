@@ -946,7 +946,8 @@ const ehMarcaPropria = (x) => x.tipo === 'gol' && ['marca_propria', 'mp_tripla']
 const ehBomLance = (x) => x.tipo === 'gol' || x.tipo === 'hattrick' || x.tipo === 'defesa'; // lance bom: sai sozinho, na frente e com intervalo curto (30 s depois das 15h, 40 s antes)
 // FOCO EM GOL DEPOIS DAS 15H (Vitório, 06/10/2026: "depois das 15 quero foco em gol e mais gols"): lance ruim (pênalti, cartão, impedimento, gol contra) so aparece em resumo, no maximo 1 a cada 10 min
 let ULT_RUIM = 0;
-const ruimLiberado = () => sp().h < 15 || ESPERA.some((x) => ehBomLance(x) || x.tipo === 'semanainvicta') || Date.now() - ULT_RUIM >= 10 * 60e3;
+const ehGrave = (x) => x.tipo === 'vermelho' || x.tipo === 'golcontra'; // cartao vermelho e gol contra (devolucao): sempre sai sozinho, nunca escondido dentro de resumo (Vitorio, 07/10/2026: 'nao vi nada de gol contra nem vermelho por devolucao')
+const ruimLiberado = () => sp().h < 15 || ESPERA.some((x) => ehBomLance(x) || ehGrave(x) || x.tipo === 'semanainvicta') || Date.now() - ULT_RUIM >= 10 * 60e3;
 function podeVAR(bom, proprio) {
   const agora = Date.now(); while (VARS.length && agora - VARS[0] > 3600e3) VARS.shift();
   if (proprio) return !emVAR && !FILA.length; // Gol de Marca Propria: sem intervalo e sem limite por hora
@@ -957,7 +958,7 @@ function liberaEspera() {
     const iInv = ESPERA.findIndex(x => x.tipo === 'semanainvicta'); /* Semana Invicta sai SEMPRE sozinha, nunca dentro de um resumo */
     const iProp = ESPERA.findIndex(ehMarcaPropria); /* Gol de Marca Propria: o primeiro da fila, sempre sozinho */
     const iBom = ESPERA.findIndex(ehBomLance); /* gol, hat-trick e defesa saem sozinhos e na frente: o resumo fica so para o que e ruim */
-    const item = iInv >= 0 ? ESPERA.splice(iInv, 1)[0] : (iProp >= 0 ? ESPERA.splice(iProp, 1)[0] : iBom >= 0 ? ESPERA.splice(iBom, 1)[0] : (ESPERA.length >= (sp().h >= 15 ? 2 : 4) ? {tipo: 'resumo', grupos: ESPERA.splice(0)} : ESPERA.shift())); // muita coisa ruim junta = 1 resumo só
+    const item = iInv >= 0 ? ESPERA.splice(iInv, 1)[0] : (iProp >= 0 ? ESPERA.splice(iProp, 1)[0] : iBom >= 0 ? ESPERA.splice(iBom, 1)[0] : ESPERA.some(ehGrave) ? ESPERA.splice(ESPERA.findIndex(ehGrave), 1)[0] : (ESPERA.length >= (sp().h >= 15 ? 2 : 4) ? {tipo: 'resumo', grupos: ESPERA.splice(0)} : ESPERA.shift())); // muita coisa ruim junta = 1 resumo só
     if (iInv < 0 && iBom < 0 && iProp < 0) ULT_RUIM = Date.now();
     VARS.push(Date.now()); FILA.push(item); proximoVAR();
   }
