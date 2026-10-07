@@ -674,7 +674,7 @@ for (const arq of ['public/tvapp.html', 'public/matrizapp.html']) {
 secao('8e. Liga cravada: regras congeladas por versao, fechamento do dia (19h30) e conferencia diaria contra o CEVEN');
 {
   const cfgTxt = ler('config/pontuacao_brasileirao.json'); const cfg = JSON.parse(cfgTxt);
-  const LOCK_HASH = 'edd2939f2d5cf31321c68bd1ab3e0f3d567f2d50d10ba895822c92fde3b14cd9'; // sha256 do regulamento na versao 2026-10-09.1 (Tripla de Marca Propria +10, vale a partir de 09/10; Gol de Marca Propria +8 desde 08/10)
+  const LOCK_HASH = 'f0190dde4552f8c2c9ac1b2eb8839ff9eb09ffd0daeeee63ec14a44cc24b689c'; // sha256 do regulamento na versao 2026-10-13.1: liga oficial desde 13/10, pre-temporada 05 a 12/10 (Tripla de Marca Propria +10, vale a partir de 09/10; Gol de Marca Propria +8 desde 08/10)
   const { createHash } = await import('node:crypto');
   const hash = createHash('sha256').update(JSON.stringify(cfg)).digest('hex');
   const lib = ler('functions/_lib/liga_fechamento.js');

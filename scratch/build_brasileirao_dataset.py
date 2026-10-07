@@ -167,11 +167,14 @@ DIAS_COM_LANCE = set(l['dia'] for l in d1_data if l.get('dia'))
 DIAS_RODADA = sorted(d for d in DIAS_COM_LANCE if date.fromisoformat(d).weekday() < 5 and d not in FERIADOS_2026)
 # LIGA OFICIAL (decisao do Vitorio, 06/10/2026): a liga que vale (remuneracao) comeca em 'vigente_desde' do regulamento (07/10/2026), ja com regras congeladas e dias fechados.
 # O que veio antes e PRE-TEMPORADA: aparece no ranking, mas marcado como 'nao vale remuneracao'. Assim que existir o primeiro dia oficial com lance, a tabela passa a contar so os dias oficiais.
-INICIO_OFICIAL = str(CONFIG_PONTOS.get('vigente_desde') or '2026-10-07')
+INICIO_OFICIAL = str(CONFIG_PONTOS.get('vigente_desde') or '2026-10-13')
+PRE_DESDE = str(CONFIG_PONTOS.get('pre_temporada_desde') or '2026-10-05') # Vitorio, 07/10/2026: a pre-temporada conta de 05/10 ate o dia anterior ao inicio oficial (13/10/2026)
 _oficiais = [d for d in DIAS_RODADA if d >= INICIO_OFICIAL]
 PRE_TEMPORADA = not _oficiais
 if _oficiais:
     DIAS_RODADA = _oficiais
+else:
+    DIAS_RODADA = [d for d in DIAS_RODADA if d >= PRE_DESDE]
 print('Liga oficial desde', INICIO_OFICIAL, '| pre-temporada:', PRE_TEMPORADA)
 print("Dias de rodada:", DIAS_RODADA, "| ignorados (fim de semana/feriado):", sorted(DIAS_COM_LANCE - set(DIAS_RODADA)))
 

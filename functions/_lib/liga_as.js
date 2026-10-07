@@ -18,7 +18,7 @@ export const AS_BONUS = [
   { id: 'dia25', ate: 25, meta: 100, pontos: 25, nome: 'Meta batida até o dia 25' }
 ];
 export const AS_MODO = 'oficial';
-export const AS_VALE_DESDE = '2026-10-07';
+export const AS_VALE_DESDE = '2026-10-13';
 
 const pad = (n) => String(n).padStart(2, '0');
 export const ultimoDiaDoMes = (mes) => { const [a, m] = mes.split('-').map(Number); return new Date(Date.UTC(a, m, 0)).getUTCDate(); };

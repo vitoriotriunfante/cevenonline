@@ -29,3 +29,8 @@
 - Cartão vermelho e gol contra por devolução saem sempre sozinhos (nunca dentro de resumo). Coletor: devolução só vale na filial a que o RCA pertence (código 1035 repete em TPA e TBE).
 - **Incentivo de Varejo Outubro/2026**: `/incentivo` + `/api/incentivo-outubro` + `public/incentivo_outubro_2026.json`. Vale a positivação FECHADA do dashboard do CEVEN. Pendências do Vitório: universo (330 RCAs/53 sup. no cálculo x 306/48 do regulamento), metas (CEVEN 28.637 x Coluna N 27.000), fórmula "faturados+pendentes" do texto x positivação fechada.
 - Descoberto: TV/Matriz não recebem `devolucoes_hoje` do tv-vendedor; vermelho/gol contra de devolução só chegam pelo coletor (ledger).
+
+## 07/10/2026 (noite) — liga oficial começa em 13/10/2026 (versão 2026-10-13.1)
+- Decisão do Vitório: **pré-temporada de 05/10 a 12/10** (não vale remuneração); **liga oficial desde 13/10/2026**. O ranking da pré-temporada conta os dias a partir de 05/10 (`pre_temporada_desde`).
+- `vigente_desde` = 2026-10-13; `REGRAS_VERSAO` = `versao_regras` = 2026-10-13.1; LOCK_HASH atualizado; Liga AS: `AS_VALE_DESDE` = 2026-10-13. Gol de Marca Própria (08/10) e Tripla (09/10) entram em teste dentro da pré-temporada.
+- **Avisar os gerentes** da data oficial.

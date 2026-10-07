@@ -1,6 +1,6 @@
 // =========================================================================
 // FICHA DO ARQUIVO: functions/api/liga-as.js
-// O QUE É: Liga AS (Autosserviço), FASEAMENTO da meta do mês, OFICIAL desde 07/10/2026. Vendedor e supervisor SEPARADOS.
+// O QUE É: Liga AS (Autosserviço), FASEAMENTO da meta do mês, OFICIAL desde 13/10/2026 (pré-temporada de 05 a 12/10). Vendedor e supervisor SEPARADOS.
 //          GET /api/liga-as?mes=AAAA-MM[&filial=TBL]
 // FONTE:   vendedores AS = canal "AS" e mostra ≠ NÃO na Gestão de Equipe (/api/tv-mostra, já com o supervisor da árvore viva do CEVEN);
 //          meta e faturado do mês de cada dia = foto do fim do dia guardada pela varredura central (varredura_central_rca.dashboard_json). Só leitura. Nunca inventa.
