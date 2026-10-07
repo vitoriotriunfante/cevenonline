@@ -26,6 +26,8 @@
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
+// BASE UNICA (Vitorio, 07/10/2026: "um motor so alimentando varias fontes"): antes de perguntar ao CEVEN, le o que a varredura central ja gravou (ver pipeline/fonte_base.js)
+const fonteBase = require('./fonte_base');
 
 // Limite global: no maximo 6 chamadas em andamento ao mesmo tempo (CEVEN e WhatsApp), qualquer que seja o lote.
 // Antes os lotes somavam ate 24+ chamadas simultaneas e sobrecarregavam o servidor do CEVEN.
@@ -132,6 +134,8 @@ function fmtMoeda(val) {
 }
 
 async function safeGet(url, maxRetries = 3, timeout = 10000) {
+  const daBase = fonteBase.lerBase(url); // produtividade, dashboard, devolucoes e roteiro-hoje: da base unica quando fresca
+  if (daBase !== undefined) return daBase;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const res = await axios.get(url, { timeout });
@@ -471,6 +475,7 @@ async function coletarAuditoriaCampo(token, dataRef, repsMap) {
 // 4. Coleta de Produtividade e Varejo Zerados
 async function coletarVendasEZerados(repsValidationMap, dataRef) {
   console.log(`📡 Coletando produtividade e vendedores de varejo para ${dataRef}...`);
+  { const rb = await fonteBase.carregarBase(Object.keys(FILIAIS_MAP), dataRef); console.log(`🗄️ Base única: ${rb.ligada ? rb.rcas + ' RCAs de ' + rb.filiais + ' filiais carregados (idade máx. ' + rb.max_idade_s + 's)' : 'DESLIGADA (CEVEN_FONTE_BASE=0)'}`); }
   // Antes lia public/reps_data.json (estático, 13 dias desatualizado). Deriva do repsValidationMap.
   const reps = Object.values(repsValidationMap).map(v => ({ codigo: v.rca, nome: v.nome, filial: v.filial }))
     // ocultos e vendedores so da planilha: somam nos TOTAIS, nunca nas listas/contagens de varejo (macroOnly)
@@ -1759,6 +1764,7 @@ async function main() {
     const filialVendas = await coletarVendasEZerados(repsMap, dataHoje);
     const relatorios = formatarRelatoriosVendas(filialVendas, hora);
     console.log(`✅ Vendas e Varejo Zerados apurados com sucesso.`);
+    { const rb = fonteBase.resumo(); console.log(`🗄️ Base única: ${rb.base} consultas atendidas pela base · ${rb.ceven} foram ao CEVEN (${rb.velho} por dado velho).`); }
 
     // Salva sempre em OPERACAO_WHATSAPP/relatorios_por_horario/<hora>/ (revisão manual,
     // mesmo padrão de 07:45/10:00/11:30), independente do destino. Serve os 3 ciclos
