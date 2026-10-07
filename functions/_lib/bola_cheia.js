@@ -58,13 +58,14 @@ export async function congelaBolaCheia(env, origin, dia, regrasVersao) {
   // canal do CEVEN (so Varejo) e dados reais do dia (roteiro/produtividade da varredura central)
   const { results: cs } = await env.DB.prepare('SELECT filial, rca, canal FROM canal_ceven').all();
   const canal = new Map((cs || []).map((x) => [String(x.filial).toUpperCase().slice(0, 3) + '|' + x.rca, String(x.canal || '').toUpperCase()]));
-  const { results: vs } = await env.DB.prepare("SELECT rca_codigo r, filial_sigla f, roteiro_json ro, json_extract(produtividade_json,'$.dia.dig_pedido') dig FROM varredura_central_rca WHERE data_ref = ?").bind(dia).all();
+  const { results: vs } = await env.DB.prepare("SELECT rca_codigo r, filial_sigla f, roteiro_json ro, json_extract(produtividade_json,'$.dia.dig_pedido') dig, json_extract(produtividade_json,'$.dia.positivacao') pos FROM varredura_central_rca WHERE data_ref = ?").bind(dia).all();
   const dadosDia = new Map();
   for (const x of vs || []) {
     let cl = []; try { cl = JSON.parse(x.ro) || []; } catch (e) { cl = []; }
     const feitas = cl.filter((c) => !['AGENDADO', 'ABERTO'].includes(c.status)).length;
-    const positivados = cl.filter((c) => ['POSITIVADO', 'EFETIVADO'].includes(c.status)).length;
-    dadosDia.set(String(x.f).toUpperCase() + '|' + x.r, { visitas: feitas, positivados, digitado: Number(x.dig) || 0 });
+    // clientes positivados = o numero OFICIAL do CEVEN (produtividade.dia.positivacao), nao a contagem de status do roteiro (que nao enxerga quem comprou fora da rota): 07/10/2026 o TCG apareceu com 0 positivados tendo 6
+    const positivados = x.pos != null ? Number(x.pos) || 0 : null;
+    dadosDia.set(String(x.f).toUpperCase() + '|' + x.r, { visitas: feitas, positivados: positivados == null ? 0 : positivados, digitado: Number(x.dig) || 0 });
   }
   const por = new Map();
   for (const l of j.lances) {
