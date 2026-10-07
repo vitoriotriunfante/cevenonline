@@ -93,7 +93,9 @@ const VIDEO_ARQUIVOS = {
   // Hat-Trick e Semana Invicta: vídeo de FUNDO genérico (sem valores/números — esses continuam
   // aparecendo só na tela de decisão, como hoje). 1 arquivo cada, sem variações.
   hattrick: ['/animacoes/videos/hattrick_1.mp4', '/animacoes/videos/hattrick_2.mp4'],
-  semanainvicta: ['/animacoes/videos/semanainvicta_1.mp4', '/animacoes/videos/semanainvicta_2.mp4']
+  semanainvicta: ['/animacoes/videos/semanainvicta_1.mp4', '/animacoes/videos/semanainvicta_2.mp4'],
+  // Bola Cheia (18h): video gerado pelo Gemini (ver docs/PROMPT_VIDEO_BOLA_CHEIA.md). Sem o arquivo, a tela usa a animacao em CSS.
+  bolacheia: [] // quando o arquivo bolacheia_1 existir na pasta de videos, listar aqui (o teste exige que todo video listado exista)
 };
 // Gol com subtipo conhecido usa um vídeo dedicado (ex.: super pedido é mais "explosivo", cliente
 // recuperado é mais "resgate emocionado"). Sem entrada aqui = sorteia entre todos os de VIDEO_ARQUIVOS.gol.
@@ -1482,7 +1484,7 @@ function animTeste(tipo, sub) {
 
   // Testa vídeo real quando o lance tem um pronto (hoje só "gol"); os demais ainda não têm vídeo
   // gerado, então caem direto na animação vetorial (ver VIDEO_ARQUIVOS acima).
-  const nivelVideo = ['gol', 'vermelho', 'amarelo', 'impedimento', 'penalti', 'defesa', 'hattrick', 'semanainvicta', 'golcontra'].includes(tipo) ? tipo : null;
+  const nivelVideo = ['gol', 'vermelho', 'amarelo', 'impedimento', 'penalti', 'defesa', 'hattrick', 'semanainvicta', 'golcontra', 'bolacheia'].includes(tipo) ? tipo : null;
   stopAnim = nivelVideo && typeof tocaVideoLance === 'function' ? tocaVideoLance(cv, nivelVideo, null, 30000, fecha) : null;
   if (!stopAnim) {
     if (tipo === 'hattrick') stopAnim = iniciaAnimHatTrick(cv, {

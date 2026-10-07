@@ -918,6 +918,19 @@ function rankingPenaltis() {
   return [...m.values()].sort((a, b) => b.n - a.n || a.nome.localeCompare(b.nome));
 }
 const penaltisDe = rca => LOG.filter(e => e.nivel === 'penalti' && e.rca === rca).length;
+// BOLA CHEIA: depois das 18h busca o vencedor congelado do dia e avisa UMA vez neste navegador (a TV da filial so o da propria filial)
+const BOLA_AVISADA = new Set();
+async function checaBolaCheia() {
+  try {
+    if (sp().h < 18) return;
+    const d = await j('/api/bola-cheia?dia=' + HOJE0, 15000); if (!d || d.erro || d.pendente) return;
+    const v = (d.vencedores || []).find((x) => x.filial === FIL); if (!v) return;
+    const k = 'bolacheia_' + HOJE0 + '_' + FIL; if (BOLA_AVISADA.has(k) || store.get(k, false)) return; BOLA_AVISADA.add(k); store.set(k, true);
+    ESPERA.push({tipo: 'bolacheia', sig: FIL, bc: v, v: {id: v.rca, nome: v.vendedor, sup: v.supervisor || '', canal: ''}, sub: 'Bola Cheia ' + FIL + ': melhor do dia (congelada às 18h)', score: 60});
+    liberaEspera();
+  } catch (e) {}
+}
+setInterval(checaBolaCheia, 60 * 1000); setTimeout(checaBolaCheia, 8000);
 function enfileira(novos) {
   // Gols têm prioridade máxima de comemoração
   novos.filter(a => a.nivel === 'gol').forEach(a => {
@@ -947,7 +960,7 @@ const ehBomLance = (x) => x.tipo === 'gol' || x.tipo === 'hattrick' || x.tipo ==
 // FOCO EM GOL DEPOIS DAS 15H (Vitório, 06/10/2026: "depois das 15 quero foco em gol e mais gols"): lance ruim (pênalti, cartão, impedimento, gol contra) so aparece em resumo, no maximo 1 a cada 10 min
 let ULT_RUIM = 0;
 const ehGrave = (x) => x.tipo === 'vermelho' || x.tipo === 'golcontra'; // cartao vermelho e gol contra (devolucao): sempre sai sozinho, nunca escondido dentro de resumo (Vitorio, 07/10/2026: 'nao vi nada de gol contra nem vermelho por devolucao')
-const ruimLiberado = () => sp().h < 15 || ESPERA.some((x) => ehBomLance(x) || ehGrave(x) || x.tipo === 'semanainvicta') || Date.now() - ULT_RUIM >= 10 * 60e3;
+const ruimLiberado = () => sp().h < 15 || ESPERA.some((x) => ehBomLance(x) || ehGrave(x) || x.tipo === 'semanainvicta' || x.tipo === 'bolacheia') || Date.now() - ULT_RUIM >= 10 * 60e3;
 function podeVAR(bom, proprio) {
   const agora = Date.now(); while (VARS.length && agora - VARS[0] > 3600e3) VARS.shift();
   if (proprio) return !emVAR && !FILA.length; // Gol de Marca Propria: sem intervalo e sem limite por hora
@@ -955,7 +968,7 @@ function podeVAR(bom, proprio) {
 }
 function liberaEspera() {
   if (ESPERA.length && podeVAR(ESPERA.some(ehBomLance), ESPERA.some(ehMarcaPropria)) && (ESPERA.some(ehMarcaPropria) || ruimLiberado())) {
-    const iInv = ESPERA.findIndex(x => x.tipo === 'semanainvicta'); /* Semana Invicta sai SEMPRE sozinha, nunca dentro de um resumo */
+    const iInv = ESPERA.findIndex(x => x.tipo === 'semanainvicta' || x.tipo === 'bolacheia'); /* Semana Invicta sai SEMPRE sozinha, nunca dentro de um resumo */
     const iProp = ESPERA.findIndex(ehMarcaPropria); /* Gol de Marca Propria: o primeiro da fila, sempre sozinho */
     const iBom = ESPERA.findIndex(ehBomLance); /* gol, hat-trick e defesa saem sozinhos e na frente: o resumo fica so para o que e ruim */
     const item = iInv >= 0 ? ESPERA.splice(iInv, 1)[0] : (iProp >= 0 ? ESPERA.splice(iProp, 1)[0] : iBom >= 0 ? ESPERA.splice(iBom, 1)[0] : ESPERA.some(ehGrave) ? ESPERA.splice(ESPERA.findIndex(ehGrave), 1)[0] : (ESPERA.length >= (sp().h >= 15 ? 2 : 4) ? {tipo: 'resumo', grupos: ESPERA.splice(0)} : ESPERA.shift())); // muita coisa ruim junta = 1 resumo só
@@ -982,6 +995,15 @@ function estrelasMP(item) {
     for (let k = 0; k < n; k++) { const e = document.createElement('i'); e.textContent = ic; e.style.left = (Math.random() * 98) + 'vw'; e.style.fontSize = (20 + Math.random() * 34) + 'px'; e.style.animationDuration = (3.5 + Math.random() * 4.5) + 's'; e.style.animationDelay = (Math.random() * 6) + 's'; d.appendChild(e); }
     document.body.appendChild(d); setTimeout(() => { try { d.remove(); } catch {} }, 14000);
   } catch {}
+}
+// BOLA CHEIA (18h): animacao em tela (CSS) usada quando nao ha video; bola quicando, confete e o nome do vencedor.
+function animBolaCheia(ov, item) {
+  try {
+    if (!document.getElementById('bolacheia-css')) { const st = document.createElement('style'); st.id = 'bolacheia-css'; st.textContent = '@keyframes bcQuica{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-70px) rotate(180deg)}}@keyframes bcCai{from{transform:translateY(-10vh) rotate(0)}to{transform:translateY(110vh) rotate(540deg)}}@keyframes bcEntra{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}.bc{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:radial-gradient(circle at 50% 40%,#14532d,#052e16 70%);color:#fef9c3;text-align:center;overflow:hidden}.bc .bola{font-size:150px;animation:bcQuica 1.1s ease-in-out infinite;filter:drop-shadow(0 20px 18px #0008)}.bc h1{margin:0;font-size:64px;letter-spacing:6px;color:#facc15;animation:bcEntra .8s both}.bc h2{margin:0;font-size:40px;animation:bcEntra 1s .3s both}.bc h3{margin:0;font-size:24px;color:#bbf7d0;animation:bcEntra 1s .6s both}.bc i{position:absolute;top:0;font-style:normal;animation:bcCai linear infinite}'; document.head.appendChild(st); }
+    const b = item.bc || {}, nome = item.lista ? 'Os melhores de cada filial' : esc(b.vendedor || (item.v && item.v.nome) || ''), fil = item.lista ? (item.lista.length + ' filiais') : esc(b.filial || item.sig || '');
+    let conf = ''; for (let k = 0; k < 40; k++) conf += '<i style="left:' + (Math.random() * 98).toFixed(1) + 'vw;font-size:' + (18 + Math.random() * 26).toFixed(0) + 'px;animation-duration:' + (3 + Math.random() * 4).toFixed(1) + 's;animation-delay:' + (Math.random() * 5).toFixed(1) + 's">' + ['⭐', '🎉', '✨', '⚽'][k % 4] + '</i>';
+    ov.className = 'show'; ov.innerHTML = '<div class="bc">' + conf + '<div class="bola">⚽</div><h1>BOLA CHEIA</h1><h2>' + nome + '</h2><h3>' + fil + ' · melhor do dia</h3></div>';
+  } catch (e) {}
 }
 function pontosLanceOficial(tipo, subtipo) {
   if (subtipo === 'campeao') return { nome: 'Campeão da Rodada', pts: '+8 PONTOS NA LIGA', cor: '#22c55e' };
@@ -1049,6 +1071,13 @@ function telaVAR(item) {
     titulo = '🚩 IMPEDIMENTO VAR'; sub = item.sub || 'Visita instantânea não computada'; cls = 'f1';
     dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>ANULADO</b><span>${esc(item.sub || 'Visita de 00:00 sem contato real')}</span></div>${provaImpedimentoHtml(item.a)}`;
     veredito = vereditoImpedimento(item.a);
+  } else if (item.tipo === 'bolacheia') {
+    const bc = item.bc || {}, rs = bc.resumo || {};
+    if (item.lista) { titulo = '🏆 BOLA CHEIA · TODAS AS FILIAIS'; sub = 'Melhor do dia de cada filial (congelada às 18h)'; cls = 'f1'; dec = item.lista.map(function (x) { return '<div class="ln hot"><b>' + esc(x.filial) + '</b><span>' + esc(x.vendedor) + ' · ' + (Number(x.pontos) || 0) + ' pts · ' + (x.positivados || 0) + ' positivados</span></div>'; }).join(''); veredito = '🏆 BOLA CHEIA congelada às 18h: resultado final, não muda mais. Parabéns a todos!'; } else {
+    titulo = '🏆 BOLA CHEIA'; sub = item.sub || 'Melhor do dia da filial (congelada às 18h)'; cls = 'f1';
+    dec = '<div class="ln hot"><b>FILIAL</b><span>' + esc(bc.filial || FIL) + '</span></div><div class="ln hot"><b>VENDEDOR</b><span>' + esc(bc.vendedor || '') + ' <small>(RCA ' + esc(bc.rca || '') + ')</small></span></div>' + (bc.supervisor ? '<div class="ln"><b>SUPERVISOR</b><span>' + esc(bc.supervisor) + '</span></div>' : '') + '<div class="ln"><b>PONTOS NO DIA</b><span>' + (Number(bc.pontos) || 0) + ' (gols ' + (rs.gols || 0) + ' · defesas ' + (rs.defesas || 0) + (rs.negativos ? ' · lances negativos ' + rs.negativos : '') + ')</span></div><div class="ln"><b>RESUMO</b><span>' + (bc.visitas || 0) + ' visitas · ' + (bc.positivados || 0) + ' clientes positivados · digitado ' + brl(bc.digitado || 0) + '</span></div>';
+    veredito = '🏆 BOLA CHEIA congelada às 18h: resultado final, não muda mais. Parabéns!';
+    }
   } else if (item.tipo === 'semanainvicta') {
     titulo = '👑 SEMANA INVICTA'; sub = item.sub || 'Vitória em todos os dias úteis da semana'; cls = 'f1';
     dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v)}</span></div><div class="ln"><b>LANCE</b><span>${esc(item.sub || 'Semana Invicta')}</span></div>${item.prova ? `<div class="ln"><b>SEMANA</b><span>${esc(item.prova)}</span></div>` : ''}`;
@@ -1155,11 +1184,12 @@ async function proximoVAR() {
     ov._i = setInterval(() => { const e = $('vcd'); if (e) e.textContent = `clique para fechar · fecha sozinho em ${Math.max(0, T_TOTAL - Math.round((Date.now() - t0) / 1000))}s`; }, 500); };
   if (item.tipo === 'revisao') { mostraDecisao(); ov._t3 = setTimeout(fecha, T_TOTAL * 1000); return; }
 
-  if (item.tipo === 'semanainvicta') {
+  if (item.tipo === 'semanainvicta' || item.tipo === 'bolacheia') {
     const fimInv = () => { mostraDecisao(); ov._t3 = setTimeout(fecha, T_TOTAL * 1000); };
     ov.className = 'show'; ov.innerHTML = '<canvas id="cvp"></canvas>';
-    animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance($('cvp'), 'semanainvicta', null, 12000, fimInv) : null;
-    if (!animStop && typeof iniciaAnimSemanaInvicta === 'function') { animStop = iniciaAnimSemanaInvicta($('cvp'), {vendedor: item.v ? item.v.nome : 'VENDEDOR', sub: item.sub || 'SEMANA INVICTA'}); ov._t2 = setTimeout(fimInv, 9500); }
+    animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance($('cvp'), item.tipo === 'bolacheia' ? 'bolacheia' : 'semanainvicta', null, item.tipo === 'bolacheia' ? 20000 : 12000, fimInv) : null;
+    if (!animStop && item.tipo === 'bolacheia') { animBolaCheia(ov, item); ov._t2 = setTimeout(fimInv, 9000); animStop = () => {}; }
+    else if (!animStop && typeof iniciaAnimSemanaInvicta === 'function') { animStop = iniciaAnimSemanaInvicta($('cvp'), {vendedor: item.v ? item.v.nome : 'VENDEDOR', sub: item.sub || 'SEMANA INVICTA'}); ov._t2 = setTimeout(fimInv, 9500); }
     if (!animStop) fimInv();
     return;
   }

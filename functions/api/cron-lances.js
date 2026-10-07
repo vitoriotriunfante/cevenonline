@@ -441,12 +441,17 @@ export async function onRequestGet({ env, request }) {
   if (t.agoraMin >= 22 * 60 || (t.h >= 6 && t.h < 9)) {
     try { const rf = await fetch(`${origin}/api/cron-fechamento-dia`, { signal: AbortSignal.timeout(50000) }); const jf = await rf.json().catch(() => ({})); fechamento = jf.status || String(rf.status); } catch { fechamento = 'falhou'; }
   }
+  // BOLA CHEIA (Vitorio, 07/10/2026): as 18h congela o melhor vendedor de cada filial no dia (idempotente; so grava uma vez)
+  let bolaCheia = 'pulado';
+  if (t.agoraMin >= 18 * 60 && t.agoraMin < 22 * 60) {
+    try { const rb = await fetch(`${origin}/api/bola-cheia?rodar=1`, { signal: AbortSignal.timeout(50000) }); const jb = await rb.json().catch(() => ({})); bolaCheia = jb.status || String(rb.status); } catch { bolaCheia = 'falhou'; }
+  }
   if (t.agoraMin >= 22 * 60 + 5) { // a conferencia roda depois do fechamento, antes do CEVEN virar o dia
     try { const rc = await fetch(`${origin}/api/cron-conferencia-dia?rodar=1`, { signal: AbortSignal.timeout(60000) }); const jc = await rc.json().catch(() => ({})); conferencia = jc.conferidos != null ? `${jc.conferidos}/${jc.total} (${(jc.divergentes || []).length} divergencia(s))` : String(rc.status); } catch { conferencia = 'falhou'; }
   }
 
   return new Response(JSON.stringify({
-    status: 'ATUALIZADO', dia: t.dia, hora: t.hms, semana_invicta: invicta, arvore, notifSup, auditoria, fechamento, conferencia, filiais_processadas: Object.keys(porFilial).length,
+    status: 'ATUALIZADO', dia: t.dia, hora: t.hms, semana_invicta: invicta, arvore, notifSup, auditoria, fechamento, conferencia, bolaCheia, filiais_processadas: Object.keys(porFilial).length,
     novos_lances: totalNovos, falhas_rca: totalFalhas, por_filial: porFilial, duracao_ms: Date.now() - t0
   }), { headers: cors });
 }

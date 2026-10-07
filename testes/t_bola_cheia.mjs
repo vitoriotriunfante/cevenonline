@@ -1,0 +1,31 @@
+// Bola Cheia (18h): regra do vencedor por filial, congelamento e ligacao nas telas/coletor.
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
+const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
+export default async function t(ok) {
+  const bc = await import(pathToFileURL(join(RAIZ, 'functions/_lib/bola_cheia.js')).href);
+  const c = (filial, rca, vendedor, pontos, visitas, positivados = 0, digitado = 0) => ({ filial, rca, vendedor, pontos, visitas, positivados, digitado });
+  // 1 vencedor por filial: o de mais pontos
+  let v = bc.escolheVencedores([c('TBL', '1', 'ANA', 12, 8), c('TBL', '2', 'BIA', 20, 9), c('TPH', '3', 'CAIO', 5, 6)]);
+  ok(v.length === 2 && v.find((x) => x.filial === 'TBL').vendedor === 'BIA' && v.find((x) => x.filial === 'TPH').vendedor === 'CAIO', 'Bola Cheia: um vencedor por filial, o de mais pontos no dia');
+  // minimo de 5 visitas (sem trabalhar nao ganha), mesmo com mais pontos
+  v = bc.escolheVencedores([c('TBL', '1', 'ANA', 50, 4), c('TBL', '2', 'BIA', 10, 5)]);
+  ok(v.length === 1 && v[0].vendedor === 'BIA', 'Bola Cheia: so concorre quem fez ao menos 5 visitas (4 visitas fica fora, mesmo com mais pontos)');
+  // pontos zero ou negativos: sem Bola Cheia (nunca inventa vencedor)
+  v = bc.escolheVencedores([c('TBL', '1', 'ANA', 0, 9), c('TBL', '2', 'BIA', -4, 9)]);
+  ok(v.length === 0, 'Bola Cheia: nenhum vendedor com pontos positivos = filial fica sem Bola Cheia');
+  // desempate: positivados, depois digitado, depois nome
+  v = bc.escolheVencedores([c('TBL', '1', 'ANA', 10, 8, 5, 1000), c('TBL', '2', 'BIA', 10, 8, 6, 500)]);
+  ok(v[0].vendedor === 'BIA', 'Bola Cheia: empate em pontos decide por mais clientes positivados');
+  v = bc.escolheVencedores([c('TBL', '1', 'ANA', 10, 8, 5, 1000), c('TBL', '2', 'BIA', 10, 8, 5, 2000)]);
+  ok(v[0].vendedor === 'BIA', 'Bola Cheia: depois, por mais digitado');
+  v = bc.escolheVencedores([c('TBL', '2', 'BIA', 10, 8, 5, 1000), c('TBL', '1', 'ANA', 10, 8, 5, 1000)]);
+  ok(v[0].vendedor === 'ANA', 'Bola Cheia: por fim, ordem alfabetica fixa (o resultado nao depende da ordem de entrada)');
+  ok(bc.MIN_VISITAS === 5 && bc.HORA_CONGELA_MIN === 18 * 60 && JSON.stringify(bc.CANAIS_VAREJO) === JSON.stringify(['VJ', 'FARMA', 'PET VJ', 'ESP']), 'Bola Cheia: 18h, minimo 5 visitas, so canais do Varejo');
+  // ligacao: coletor congela, endpoint existe, TV e Matriz avisam, video prevê arquivo
+  const lib = readFileSync(join(RAIZ, 'functions/_lib/bola_cheia.js'), 'utf8'), cl = readFileSync(join(RAIZ, 'functions/api/cron-lances.js'), 'utf8');
+  ok(cl.includes('/api/bola-cheia?rodar=1') && cl.includes('t.agoraMin >= 18 * 60') && lib.includes('INSERT OR IGNORE INTO bola_cheia ') && lib.includes('bola_cheia_dia') && lib.indexOf('INSERT OR IGNORE INTO bola_cheia (') < lib.indexOf('INSERT OR IGNORE INTO bola_cheia_dia'), 'Bola Cheia: o coletor congela a partir das 18h; grava uma vez (INSERT OR IGNORE) e o cabecalho por ultimo');
+  const tv = readFileSync(join(RAIZ, 'public/tvapp.html'), 'utf8'), mz = readFileSync(join(RAIZ, 'public/matrizapp.html'), 'utf8'), an = readFileSync(join(RAIZ, 'public/animacoes/tv-animacoes.js'), 'utf8');
+  ok(tv.includes("tipo: 'bolacheia'") && mz.includes("tipo: 'bolacheia'") && tv.includes('animBolaCheia') && mz.includes('animBolaCheia') && an.includes('bolacheia: [') && tv.includes("x.tipo === 'bolacheia'") && mz.includes("x.tipo === 'bolacheia'"), 'Bola Cheia: TV da filial e Matriz avisam depois das 18h, saem sozinhas na frente; video bolacheia previsto (sem arquivo usa a animacao em tela)');
+}
