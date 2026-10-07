@@ -1,0 +1,14 @@
+{
+  "_comentario": "Incentivo Extraordinário de Varejo — OUTUBRO/2026 (Vitório Neto). Fonte: REGULAMENTO_INCENTIVO_OUTUBRO_2026.md + ESPECIFICACAO_DASHBOARD_AO_VIVO_PREMIACAO.md. Meta Positivação (Coluna N) por filial: Metas_Outubro_2026_ VF.xlsx. A positivação que vale é a FECHADA do dashboard do CEVEN (positivacao.realizado); pedidos digitados/pendentes entram como 'vendido' e NÃO contam (decisão do Vitório, 07/10/2026).",
+  "versao": "2026-10-07.1",
+  "superacao_pct": 110,
+  "gatilho1": { "ate": "2026-10-17", "pct": 60, "premio": 150 },
+  "gatilho2": { "em": "2026-10-31", "pct": 110, "premio": 350 },
+  "premio_supervisor": 300,
+  "premio_gerente": 500,
+  "meta_nacional_regulamento": 27000,
+  "meta_nacional_superacao": 29700,
+  "coluna_n": { "TPH": 4107, "ABC": 3434, "API": 3223, "TBL": 2842, "TCV": 2439, "TSJ": 2175, "TCA": 2159, "TBE": 2148, "TPA": 1861, "MCD": 1376, "TCG": 1235 },
+  "canais_varejo": ["VJ", "FARMA", "PET VJ", "ESP"],
+  "universo_regulamento": { "rcas": 306, "supervisores": 48 }
+}

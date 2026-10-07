@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Incentivo Varejo — Outubro/2026</title>
+<!--
+FICHA DO ARQUIVO
+O QUE É: dashboard ao vivo do Incentivo Extraordinário de Varejo (Outubro/2026), do Vitório Neto.
+LÊ: /api/incentivo-outubro (positivação FECHADA do dashboard do CEVEN, por RCA). Pedido pendente = "vendido" e não conta.
+NÃO INVENTA: sem meta = sem percentual; sem dashboard do RCA = ele aparece em "fora do cálculo".
+-->
+<style>
+:root{--bg:#0b1220;--card:#121c30;--card2:#16233b;--bd:#22314d;--tx:#e6edf7;--mut:#8ea0bb;--ok:#22c55e;--warn:#eab308;--bad:#ef4444;--acc:#38bdf8;--gold:#facc15}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,Segoe UI,Roboto,sans-serif;padding:16px}
+.wrap{max-width:1280px;margin:0 auto}
+h1{margin:0;font-size:22px;letter-spacing:.3px}
+h2{font-size:15px;margin:22px 0 8px;text-transform:uppercase;letter-spacing:1px;color:var(--mut)}
+.top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.sub{color:var(--mut);font-size:12px}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;background:var(--card2);border:1px solid var(--bd);font-size:12px;color:var(--mut)}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;min-width:0}
+.card b.n{display:block;font-size:26px;font-variant-numeric:tabular-nums}
+.card small{color:var(--mut)}
+.hero{background:linear-gradient(135deg,#13243f,#0f1a2e);border:1px solid var(--bd);border-radius:14px;padding:16px;margin:14px 0}
+.big{font-size:38px;font-weight:800;font-variant-numeric:tabular-nums}
+.barra{position:relative;height:26px;background:#0a1424;border:1px solid var(--bd);border-radius:99px;overflow:hidden;margin:10px 0 4px}
+.barra i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#0ea5e9,#22c55e);border-radius:99px}
+.barra s{position:absolute;top:0;bottom:0;width:2px;background:var(--gold)}
+.marcas{position:relative;height:16px;font-size:11px;color:var(--mut)}
+.marcas span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 8px}
+.tabs button,.tools select,.tools input{background:var(--card2);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:7px 12px;font:inherit}
+.tabs button.on{background:var(--acc);color:#04131f;font-weight:700;border-color:var(--acc)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+.tw{overflow-x:auto;border:1px solid var(--bd);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap}
+th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.8px;position:sticky;top:0;background:var(--card)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.mini{display:inline-block;width:90px;height:8px;background:#0a1424;border-radius:99px;vertical-align:middle;overflow:hidden;border:1px solid var(--bd)}
+.mini i{display:block;height:100%;background:var(--acc)}
+.mini.ok i{background:var(--ok)}
+.tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700}
+.t-ok{background:#12351f;color:var(--ok)}.t-no{background:#2a1c1c;color:#f87171}.t-wait{background:#2b2a14;color:var(--warn)}
+.aviso{background:#2b2a14;border:1px solid #5b5516;color:#f5e27a;border-radius:10px;padding:10px 12px;margin:10px 0;font-size:13px}
+.erro{background:#2a1c1c;border:1px solid #6b2a2a;color:#fca5a5;border-radius:10px;padding:12px;margin:12px 0}
+details{margin-top:14px;color:var(--mut)}
+@media(max-width:640px){body{padding:12px}.big{font-size:30px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>🎯 Incentivo de Varejo — Outubro/2026</h1>
+      <div class="sub">Vale a <b>positivação fechada</b> do dashboard do CEVEN. Pedido digitado/pendente entra como <i>vendido</i> e <b>não conta</b>. Meta de superação: <b>110%</b>.</div>
+    </div>
+    <div><span class="pill" id="atu">carregando…</span> <button id="rec" class="pill" style="cursor:pointer">↻ Atualizar</button></div>
+  </div>
+
+  <div id="erro" class="erro" style="display:none"></div>
+  <div id="app"></div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const nf = (n) => Number(n || 0).toLocaleString('pt-BR');
+const brl = (n) => 'R$ ' + Number(n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const pc = (p) => (p == null ? '—' : p.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%');
+let D = null, ABA = 'filiais', FIL = '', BUSCA = '';
+
+function diasPara(iso) { const f = new Date(iso + 'T23:59:59-03:00').getTime(); return Math.ceil((f - Date.now()) / 86400000); }
+function mini(p, ok) { const w = Math.max(0, Math.min(100, ((p || 0) / 110) * 100)); return `<span class="mini ${ok ? 'ok' : ''}"><i style="width:${w}%"></i></span>`; }
+function tagG(ok, prazoFim) { return ok ? '<span class="tag t-ok">ATINGIDO</span>' : (prazoFim ? '<span class="tag t-no">NÃO ATINGIU</span>' : '<span class="tag t-wait">EM ANDAMENTO</span>'); }
+
+function render() {
+  if (!D) return;
+  const n = D.nacional, c = D.cfg, p = D.premio_se_fechasse_hoje;
+  const g1fim = Date.now() > new Date(c.gatilho1.ate + 'T23:59:59-03:00').getTime();
+  const d1 = diasPara(c.gatilho1.ate), dm = diasPara(c.gatilho2.em);
+  const v = D.vendedores, g1 = v.filter((x) => x.g1).length, g2 = v.filter((x) => x.g2).length, sok = D.supervisores.filter((s) => s.ok).length;
+  const escala = Math.max(n.meta_superacao * 1.05, n.real * 1.02);
+  const pos = (x) => (x / escala * 100).toFixed(2) + '%';
+  let h = '';
+  if (D.fora_do_calculo.sem_dashboard_n) h += `<div class="aviso">⚠️ ${D.fora_do_calculo.sem_dashboard_n} vendedor(es) do Varejo sem dashboard do CEVEN na varredura de hoje: ficam <b>fora do cálculo</b> até o CEVEN responder (nenhum número é inventado).</div>`;
+  h += `<div class="hero">
+    <div class="sub">POSITIVAÇÃO FECHADA — MACRO VAREJO (dados de ${esc(D.dia_dados)})</div>
+    <div class="big">${nf(n.real)} <span class="sub" style="font-size:16px">de ${nf(n.meta_regulamento)} (meta do regulamento) · ${pc(n.pct_regulamento)}</span></div>
+    <div class="barra"><i style="width:${pos(n.real)}"></i><s style="left:${pos(n.meta_regulamento)}"></s><s style="left:${pos(n.meta_superacao)}"></s></div>
+    <div class="marcas"><span style="left:${pos(n.meta_regulamento)}">100% · ${nf(n.meta_regulamento)}</span><span style="left:${pos(n.meta_superacao)}">110% · ${nf(n.meta_superacao)}</span></div>
+    <div class="sub" style="margin-top:8px">Faltam <b>${nf(Math.max(0, n.meta_superacao - n.real))}</b> positivações para os 110% (${nf(n.meta_superacao)}). Soma das metas dos ${nf(n.rcas)} RCAs no CEVEN: ${nf(Math.round(n.meta))}.</div>
+  </div>`;
+  h += `<div class="grid">
+    <div class="card"><small>Gatilho 1 · ≥${c.gatilho1.pct}% até 17/10 · ${brl(c.gatilho1.premio)}</small><b class="n">${nf(g1)}</b><small>RCAs com o gatilho hoje · ${g1fim ? 'prazo encerrado' : (d1 <= 0 ? 'último dia' : 'faltam ' + d1 + ' dia(s)')}</small></div>
+    <div class="card"><small>Gatilho 2 · ≥${c.gatilho2.pct}% no fechamento · ${brl(c.gatilho2.premio)}</small><b class="n">${nf(g2)}</b><small>RCAs com o gatilho hoje · fecha em ${dm} dia(s)</small></div>
+    <div class="card"><small>Supervisores ≥110% · ${brl(c.premio_supervisor)}</small><b class="n">${nf(sok)} <span class="sub">/ ${nf(D.supervisores.length)}</span></b><small>no fechamento</small></div>
+    <div class="card"><small>Gerência ≥110% da Coluna N · ${brl(c.premio_gerente)}</small><b class="n">${nf(D.filiais.filter((f) => (f.gerentes.length ? f.gerentes.some((g) => g.ok) : f.ok)).length)} <span class="sub">/ ${nf(D.filiais.length)} filiais</span></b><small>no fechamento</small></div>
+    <div class="card"><small>💰 Se o mês fechasse HOJE</small><b class="n" style="color:var(--gold)">${brl(p.total)}</b><small>vendedores ${brl(p.g1 + p.g2)} · sup. ${brl(p.sup)} · ger. ${brl(p.ger)}</small></div>
+  </div>`;
+  h += `<div class="tabs">${[['filiais', '🏢 Filiais'], ['sups', '👔 Supervisores'], ['vend', '🧑‍💼 Vendedores']].map(([k, t]) => `<button data-a="${k}" class="${ABA === k ? 'on' : ''}">${t}</button>`).join('')}</div>`;
+  h += `<div class="tools"><select id="fsel"><option value="">Todas as filiais</option>${D.filiais.map((f) => `<option ${FIL === f.filial ? 'selected' : ''}>${f.filial}</option>`).join('')}</select>${ABA !== 'filiais' ? `<input id="busca" placeholder="Buscar nome ou RCA…" value="${esc(BUSCA)}">` : ''}</div>`;
+  const q = BUSCA.trim().toLowerCase();
+  if (ABA === 'filiais') {
+    const rows = D.filiais.filter((f) => !FIL || f.filial === FIL).map((f) => `<tr><td><b>${f.filial}</b></td><td class="n">${nf(f.rcas)}</td><td class="n">${nf(f.coluna_n)}</td><td class="n">${nf(f.real)}</td><td class="n">${pc(f.pct_coluna_n)}</td><td>${mini(f.pct_coluna_n, f.ok)}</td><td class="n">${nf(f.alvo110_coluna_n)}</td><td class="n">${f.ok ? '—' : nf(f.falta)}</td><td>${f.gerentes.length ? '' : tagG(f.ok, false)}</td></tr>` + f.gerentes.map((g) => `<tr><td style="padding-left:24px">↳ ${esc(g.gerente)}</td><td class="n">${nf(g.rcas)}</td><td class="n">${nf(Math.round(g.meta))}<small class="sub"> (pasta)</small></td><td class="n">${nf(g.real)}</td><td class="n">${pc(g.pct)}</td><td>${mini(g.pct, g.ok)}</td><td class="n">${nf(Math.ceil(g.meta * 1.1))}</td><td class="n">${g.ok ? '—' : nf(Math.ceil(g.meta * 1.1) - g.real)}</td><td>${tagG(g.ok, false)}</td></tr>`).join('')).join('');
+    h += `<div class="tw"><table><thead><tr><th>Filial / gerência</th><th class="n">RCAs</th><th class="n">Meta (Col. N)</th><th class="n">Positivação fechada</th><th class="n">% da meta</th><th>até 110%</th><th class="n">Alvo 110%</th><th class="n">Falta</th><th>Gerência</th></tr></thead><tbody>${rows}</tbody></table></div><div class="sub" style="margin-top:6px">Em TPH e MCD (duas gerências) cada gerente é medido pela sua pasta: soma das metas dos seus RCAs no CEVEN.</div>`;
+  } else if (ABA === 'sups') {
+    const rows = D.supervisores.filter((s) => (!FIL || s.filial === FIL) && (!q || s.nome.toLowerCase().includes(q))).map((s) => `<tr><td>${s.filial}</td><td>${esc(s.nome)}</td><td class="n">${nf(s.rcas)}</td><td class="n">${nf(s.meta)}</td><td class="n">${nf(s.real)}</td><td class="n">${pc(s.pct)}</td><td>${mini(s.pct, s.ok)}</td><td class="n">${s.ok ? '—' : nf(s.falta)}</td><td>${tagG(s.ok, false)}</td></tr>`).join('');
+    h += `<div class="tw"><table><thead><tr><th>Filial</th><th>Supervisor</th><th class="n">RCAs</th><th class="n">Meta</th><th class="n">Positivação fechada</th><th class="n">%</th><th>até 110%</th><th class="n">Falta p/ 110%</th><th>Prêmio ${brl(c.premio_supervisor)}</th></tr></thead><tbody>${rows || '<tr><td colspan="9">Nenhum supervisor.</td></tr>'}</tbody></table></div>`;
+  } else {
+    const l = v.filter((x) => (!FIL || x.filial === FIL) && (!q || x.nome.toLowerCase().includes(q) || x.rca.includes(q)));
+    const rows = l.slice(0, 400).map((x) => `<tr><td>${x.filial}</td><td>${esc(x.nome)} <small class="sub">${esc(x.rca)}</small></td><td>${esc(x.supervisor || '—')}</td><td class="n">${nf(x.meta)}</td><td class="n">${nf(x.real)}</td><td class="n">${pc(x.pct)}</td><td>${mini(x.pct, x.g2)}</td><td>${x.meta ? tagG(x.g1, g1fim) : '<span class="sub">sem meta</span>'}</td><td class="n">${x.meta && !x.g1 && !g1fim ? nf(x.falta_g1) : '—'}</td><td>${x.meta ? tagG(x.g2, false) : '—'}</td><td class="n">${x.meta && !x.g2 ? nf(x.falta_g2) : '—'}</td></tr>`).join('');
+    h += `<div class="tw"><table><thead><tr><th>Filial</th><th>Vendedor</th><th>Supervisor</th><th class="n">Meta</th><th class="n">Posit. fechada</th><th class="n">%</th><th>até 110%</th><th>G1 · ${brl(c.gatilho1.premio)}</th><th class="n">Falta G1</th><th>G2 · ${brl(c.gatilho2.premio)}</th><th class="n">Falta G2</th></tr></thead><tbody>${rows || '<tr><td colspan="11">Nenhum vendedor.</td></tr>'}</tbody></table></div>${l.length > 400 ? `<div class="sub">Mostrando 400 de ${l.length}; use o filtro.</div>` : ''}`;
+  }
+  const f = D.fora_do_calculo;
+  h += `<details><summary>Como este painel conta (e o que ficou de fora)</summary>
+    <p>Universo: Macro Varejo (canais ${esc(c.canais_varejo.join(', '))} no CEVEN) visível na Gestão de Equipe → <b>${nf(n.rcas)} RCAs</b> e <b>${nf(D.supervisores.length)} supervisores</b>. O regulamento cita ${c.universo_regulamento.rcas} RCAs e ${c.universo_regulamento.supervisores} supervisores; a diferença é de cadastro e precisa ser conferida.</p>
+    <p>Fora do cálculo: ${nf(f.ocultos)} ocultos na Gestão · ${nf(f.as)} do AS · ${nf(f.sem_canal)} sem canal no CEVEN · ${nf(f.outros)} de outros canais (SUP/GER) · ${nf(f.sem_dashboard_n)} sem dashboard hoje.</p>
+    <p>Meta de cada RCA = <code>positivacao.meta</code> do dashboard do CEVEN. A meta do regulamento por filial (Coluna N) vale para a gerência. Gatilho 1: ≥${c.gatilho1.pct}% até 17/10/2026 23h59 · Gatilho 2 e Supervisor: ≥${c.gatilho2.pct}% em 31/10/2026. Os gatilhos são independentes (R$150 + R$350 = R$500).</p></details>`;
+  $('app').innerHTML = h;
+  $('atu').textContent = 'dados CEVEN de ' + (D.atualizado_em ? new Date(D.atualizado_em.replace(' ', 'T') + (D.atualizado_em.includes('Z') ? '' : 'Z')).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—');
+  document.querySelectorAll('.tabs button').forEach((b) => (b.onclick = () => { ABA = b.dataset.a; render(); }));
+  $('fsel').onchange = (e) => { FIL = e.target.value; render(); };
+  const bs = $('busca'); if (bs) bs.oninput = (e) => { BUSCA = e.target.value; const pos = e.target.selectionStart; render(); const b2 = $('busca'); b2.focus(); b2.setSelectionRange(pos, pos); };
+}
+async function carrega() {
+  try {
+    const r = await fetch('/api/incentivo-outubro?t=' + Date.now(), { cache: 'no-store' }); const j = await r.json();
+    if (j.erro) throw new Error(j.erro);
+    D = j; $('erro').style.display = 'none'; render();
+  } catch (e) { $('erro').style.display = 'block'; $('erro').textContent = 'Sem dado do CEVEN agora: ' + e.message + ' (nada é estimado).'; }
+}
+$('rec').onclick = carrega; carrega(); setInterval(carrega, 120000);
+</script>
+</body>
+</html>
