@@ -324,6 +324,21 @@ export async function onRequestGet({ env, request }) {
   }
   const forcar = new URL(request.url).searchParams.has('forcar');
 
+  // GANCHOS INTERNOS (so D1, idempotentes): rodam ANTES das travas de lock/cache. Antes ficavam no fim do coletor e nao rodavam quando a coleta
+  // pulava (cache fresco porque as TVs gravam o tempo todo, ou WhatsApp ativo): a Bola Cheia das 18h de 07/10/2026 nao congelou por isso.
+  let auditoria = 'pulado', fechamento = 'pulado', bolaCheia = 'pulado';
+  {
+    const chama = async (rota, ms) => { try { const r = await fetch(`${new URL(request.url).origin}${rota}`, { signal: AbortSignal.timeout(ms) }); return await r.json().catch(() => ({})); } catch (e) { return { status: 'falhou' }; } };
+    const [ja, jf, jb] = await Promise.all([
+      t.h >= 8 ? chama('/api/cron-auditoria-lances?rodar=1&se_velho=1', 60000) : null, // AUDITORIA LANCE POR LANCE (a cada ~25 min)
+      (t.agoraMin >= 22 * 60 || (t.h >= 6 && t.h < 9)) ? chama('/api/cron-fechamento-dia', 50000) : null, // o dia fecha as 22h; de manha pega o dia anterior ainda aberto
+      (t.agoraMin >= 18 * 60 && t.agoraMin < 22 * 60) ? chama('/api/bola-cheia?rodar=1', 50000) : null // BOLA CHEIA: congela o vencedor de cada filial as 18h
+    ]);
+    if (ja) auditoria = ja.auditados != null ? String(ja.auditados) : (ja.status || 'ok');
+    if (jf) fechamento = jf.status || 'ok';
+    if (jb) bolaCheia = jb.status || 'ok';
+  }
+
   if (!forcar) {
     const lock = await env.DB.prepare("SELECT dono, criado_em FROM cron_lock_global WHERE id = 1").first().catch(() => null);
     if (lock) {
@@ -429,23 +444,8 @@ export async function onRequestGet({ env, request }) {
     try { const rn = await fetch(`${origin}/api/cron-notificacoes-supervisores?rodar=1`, { signal: AbortSignal.timeout(60000) }); const jn = await rn.json().catch(() => ({})); notifSup = jn.status ? jn.status + (jn.notificacoes != null ? ` (${jn.ok}/${jn.notificacoes})` : '') : String(rn.status); } catch { notifSup = 'falhou'; }
   }
 
-  // AUDITORIA LANCE POR LANCE (Vitório, 06/10/2026): a cada ~30 min (e depois do fechamento) confere a prova de cada lance que conta pontos
-  let auditoria = 'pulado';
-  if (t.h >= 8) { // o endpoint pula se a ultima auditoria tem menos de 25 min
-    try { const ra = await fetch(`${origin}/api/cron-auditoria-lances?rodar=1&se_velho=1`, { signal: AbortSignal.timeout(60000) }); const ja = await ra.json().catch(() => ({})); auditoria = ja.auditado ? `${ja.com_falha} falha(s) em ${ja.auditados}` : (ja.status || String(ra.status)); } catch { auditoria = 'falhou'; }
-  }
-
   // FECHAMENTO E CONFERENCIA DO DIA (Vitório, 06/10/2026: "tem que estar tudo cravado"): depois das 19h30 congela o dia da liga e confere o D1 contra o CEVEN (fatias de 60 vendedores)
-  let fechamento = 'pulado', conferencia = 'pulado';
-  // o dia fecha as 22h (depois das 23h o CEVEN ja virou o dia); se esse horario passar em claro, o fechamento pega de manha (06h as 09h) o dia anterior ainda aberto
-  if (t.agoraMin >= 22 * 60 || (t.h >= 6 && t.h < 9)) {
-    try { const rf = await fetch(`${origin}/api/cron-fechamento-dia`, { signal: AbortSignal.timeout(50000) }); const jf = await rf.json().catch(() => ({})); fechamento = jf.status || String(rf.status); } catch { fechamento = 'falhou'; }
-  }
-  // BOLA CHEIA (Vitorio, 07/10/2026): as 18h congela o melhor vendedor de cada filial no dia (idempotente; so grava uma vez)
-  let bolaCheia = 'pulado';
-  if (t.agoraMin >= 18 * 60 && t.agoraMin < 22 * 60) {
-    try { const rb = await fetch(`${origin}/api/bola-cheia?rodar=1`, { signal: AbortSignal.timeout(50000) }); const jb = await rb.json().catch(() => ({})); bolaCheia = jb.status || String(rb.status); } catch { bolaCheia = 'falhou'; }
-  }
+  let conferencia = 'pulado';
   if (t.agoraMin >= 22 * 60 + 5) { // a conferencia roda depois do fechamento, antes do CEVEN virar o dia
     try { const rc = await fetch(`${origin}/api/cron-conferencia-dia?rodar=1`, { signal: AbortSignal.timeout(60000) }); const jc = await rc.json().catch(() => ({})); conferencia = jc.conferidos != null ? `${jc.conferidos}/${jc.total} (${(jc.divergentes || []).length} divergencia(s))` : String(rc.status); } catch { conferencia = 'falhou'; }
   }
