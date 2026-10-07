@@ -58,7 +58,7 @@
     "gol_campeao": { "nome": "🏆 Campeão da Rodada", "pontos": 8, "motivo": "Bateu 100% da meta mensal de faturamento no CEVEN." },
     "gol_goleada": { "nome": "⚽ Goleada", "pontos": 7, "motivo": "Volume excepcional de positivação: ≥ 10 clientes positivados no mesmo dia." },
     "gol_meta1t": { "nome": "⏱️ Meta do 1º Tempo", "pontos": 6, "motivo": "Bateu a meta proporcional diária antes das 14h00." },
-    "gol_inativo": { "nome": "🦅 Resgate de Inativo / Drible da Vaca", "pontos": 6, "motivo": "Recuperou cliente parado há mais de 30 dias (ou > 90 dias no Drible da Vaca) OU cliente com TAG RECORRÊNCIA positivado. QUALIFICADO (ver Gol Qualificado)." },
+    "gol_inativo": { "nome": "🦅 Resgate de Inativo / Drible da Vaca", "pontos": 6, "motivo": "Recuperou cliente parado há mais de 30 dias (ou > 90 dias no Drible da Vaca), sem a tag RECORRÊNCIA. Cliente com a tag RECORRÊNCIA positivado vale a Defesa (+3), não este gol (decisão 05/10/2026). QUALIFICADO (ver Gol Qualificado)." },
     "gol_hattrick": { "nome": "🔥 Hat-Trick (Diário)", "pontos": 6, "motivo": "3 pedidos digitados em sequência em um curto intervalo (até 120 minutos)." },
     "gol_marca_propria": { "nome": "⭐ Gol de Marca Própria", "pontos": 8, "motivo": "Pedido do cliente no dia com R$ 50 ou mais de MARCA PRÓPRIA (indústria Marca Própria Triunfante). É foco da empresa: lance próprio, o mais valioso dos gols, ganha a ESTRELA, nível (bronze a platina) pelas indústrias do pedido e é SEMPRE exibido na TV, um a um. Vale a partir de 08/10/2026, no Varejo e no AS." },
     "gol_mp_tripla": { "nome": "🌟 Tripla de Marca Própria", "pontos": 10, "motivo": "3 ou mais clientes diferentes no mesmo dia, cada um com pedido de R$ 50 ou mais de MARCA PRÓPRIA (cada um já vale o Gol de Marca Própria). Bônus fixo de +10, um por vendedor por dia, no Varejo e no AS, sem nível. Vale a partir de 09/10/2026 (versão 2026-10-09.1)." },
@@ -82,5 +82,12 @@
     "vitoria": { "min_pontos": 11, "pontos_tabela": 3 },
     "empate": { "min_pontos": 1, "pontos_tabela": 1 },
     "derrota": { "min_pontos": -999, "pontos_tabela": 0 }
+  },
+  "plus_lideranca_supervisor": {
+    "uso": "DESEMPATE: o Plus nao soma pontos na tabela; desempata (ordem: pontos do time, Plus acumulado, vitorias, saldo de gols)",
+    "decisao": "Vitorio, 03-04/10/2026 (Fair Play retirado em 06/10/2026). So bonus: nao atingir NAO pune (nao ganha e fica 0). Destravamento de bloqueados foi RETIRADO.",
+    "compromisso_matinal_ate_10h00": { "pontos": 5, "prazo": "10:00 (horario de Brasilia)", "observacao": "O CEVEN TRAVA o preenchimento as 10:00: compromisso marcado como feito no dia = feito ate 10:00 (nao precisa registrar horario; historico reconstruivel pelo booleano porDia)", "fonte": "CEVEN /api/admin/supervisores/matriz-compromissos (dataInicio/dataFim)" },
+    "ret_inicio_e_execucao": { "pontos": 5, "obrigatorio": false, "observacao": "RET e RECOMENDADO (nao obrigatorio): quem faz ganha, quem nao faz fica 0", "fonte": "CEVEN /api/admin/supervisores/matriz-ret (dataInicio/dataFim)" },
+    "dias": "segunda a sexta, sem feriados (mesma regra dos jogos)"
   }
 }
