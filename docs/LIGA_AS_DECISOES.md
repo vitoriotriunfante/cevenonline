@@ -30,3 +30,10 @@
 - **Pontos do faseamento:** 10 / 20 / 30 / 40 (semanas 1 a 4). **Bônus de primeira quinzena (100% até o dia 15): +50.** Bônus "bateu a meta até o dia 25": +25.
 - **Entregue em modo sombra:** `functions/_lib/liga_as.js` (regras), `/api/liga-as` (vendedores e supervisores, separados) e a página `/liga-as`. % da meta = (faturado + pendente) / meta do mês, igual ao app do CEVEN. Semana só pontua depois que o dia de fechamento termina. Supervisor = equipe somada. Os bônus de 15 e de 25 SOMAM (suposição, confirmar).
 - Ainda em aberto: check-in da carteira, amarelo de venda sem check-in, gol de SKUs, marca própria, punitivo por falta de pedido (itens da lista acima).
+
+## 07/10/2026 (tarde) — Liga AS integrada ao Brasileirão (Vitório: "não tem nada de modo sombra")
+- **Sem modo sombra e sem página separada:** a Liga AS é oficial desde 07/10/2026 e faz parte do Brasileirão. No topo há o seletor **🛒 Varejo | 🏬 AS**. Artilharia, Liga dos Supervisores, Lances, Gabarito e Regulamento mostram o canal escolhido; **Série A (filiais) e Campeonato de Gerências somam todos os vendedores**. `/liga-as` agora só redireciona.
+- **Varejo** continua por DIA. **AS** é por SEMANA: Lances da Semana e Gabarito da Semana (semanas 1–7, 8–14, 15–20, 21–fim; só dias oficiais), Regulamento do AS.
+- **Artilharia AS:** PG = lances da semana + faseamento (10/20/30/40) + bônus (+50 até o dia 15, +25 até o dia 25). **Supervisores AS:** faseamento + bônus da equipe somada; lances da equipe como informação.
+- **Lances que NÃO valem no AS (até a regra própria):** amarelo das 10h e vermelho de abandono 10h/11h (rotina diária). Devolução vale igual. Gerador: `scratch/build_brasileirao_dataset.py` (campo `canal` em vendedores e supervisores, bloco `as`).
+- **Ainda sem decisão:** como o AS entra nos pontos de Série A e Gerências (hoje as duas tabelas seguem somando os resultados diários de todos os vendedores, como antes).

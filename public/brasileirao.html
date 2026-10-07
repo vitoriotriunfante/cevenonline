@@ -462,6 +462,9 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
   .tb-league td, .tb-league thead th { padding: 6px 4px; }
   #tab-supervisores .tb-league th:nth-child(6), #tab-supervisores .tb-league td:nth-child(6), #tab-gerencias .tb-league th:nth-child(3), #tab-gerencias .tb-league td:nth-child(3) { display: none; }
 }
+.canal-sw{display:inline-flex;border:1px solid var(--border,#22304d);border-radius:10px;overflow:hidden}
+.canal-sw button{background:transparent;color:var(--tx,#e8eefc);border:0;padding:8px 14px;font:inherit;font-weight:800;cursor:pointer}
+.canal-sw button.on{background:var(--acc,#38bdf8);color:#04202e}
 </style>
 </head>
 <body>
@@ -474,11 +477,12 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
         <h1>BRASILEIRÃO TRIUNFANTE — LIGA DA VIRADA</h1>
         <p>
           <span class="live-pill"><span class="dot"></span> CADA DIA É UM JOGO</span><span id="pillPre" style="display:none;margin-left:8px;padding:3px 10px;border-radius:999px;background:#7c2d12;color:#fed7aa;font-weight:800;font-size:12px" title="A liga oficial, com regras congeladas e dias fechados, começa em 07/10/2026. Até lá este ranking é só acompanhamento.">PRÉ-TEMPORADA · não vale remuneração · liga oficial começa em 07/10/2026</span>
-          <span>• A pontuação é contra o seu próprio dia • 11 Filiais • 405 Vendedores em Campo</span>
+          <span id="hdr-info">• A pontuação é contra o seu próprio dia • 11 Filiais</span>
         </p>
       </div>
     </div>
     <div class="header-actions">
+      <div class="canal-sw" id="canal-sw" title="Escolha o canal: Varejo (joga por dia) ou AS - Autosserviço (joga por semana). Série A e Gerências somam todos."><button id="canal-v" class="on" onclick="setCanal('VAREJO')">🛒 Varejo</button><button id="canal-a" onclick="setCanal('AS')">🏬 AS</button></div>
       <select id="minha-filial" class="select-ctl" style="font-weight:800" onchange="mudarMinhaFilial(this.value)" title="Filtra Vendedores, Supervisores e Lances pra essa filial">
         <option value="">🏳️ Minha Filial (todas)</option>
         <option value="MTZ">MATRIZ</option>
@@ -622,8 +626,8 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
     <div class="table-card">
       <div class="table-header">
         <div>
-          <h2>Liga dos Supervisores Comerciais</h2>
-          <div class="table-subtitle">Pontos do time; o Plus de Liderança (Compromisso até 10h +5, RET +5) é o critério de desempate</div>
+          <h2 id="h-sup">Liga dos Supervisores Comerciais</h2>
+          <div class="table-subtitle" id="s-sup">Pontos do time; o Plus de Liderança (Compromisso até 10h +5, RET +5) é o critério de desempate</div>
         </div>
         <div class="filter-row">
           <input type="text" id="busca-sup" class="input-search" placeholder="🔍 Filtrar Supervisor ou Filial..." oninput="filtrarSupervisores()">
@@ -639,7 +643,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
       <div style="overflow-x:auto">
         <table class="tb-league">
           <thead>
-            <tr>
+            <tr id="thr-sup">
               <th style="width:60px">Pos</th>
               <th>Supervisor</th>
               <th>Filial</th>
@@ -666,8 +670,8 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
     <div class="table-card">
       <div class="table-header">
         <div>
-          <h2>Artilharia & Desempenho dos Vendedores</h2>
-          <div class="table-subtitle">Você contra o seu próprio dia • Vitória no Dia (3 pts) • Bônus de Constância</div>
+          <h2 id="h-vend">Artilharia & Desempenho dos Vendedores</h2>
+          <div class="table-subtitle" id="s-vend">Você contra o seu próprio dia • Vitória no Dia (3 pts) • Bônus de Constância</div>
         </div>
         <div class="filter-row">
           <input type="text" id="busca-vend" class="input-search" placeholder="🔍 Buscar Vendedor, RCA ou Supervisor..." oninput="filtrarVendedores()">
@@ -690,7 +694,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
       <div style="overflow-x:auto">
         <table class="tb-league">
           <thead>
-            <tr>
+            <tr id="thr-vend">
               <th style="width:70px">Posição</th>
               <th>Vendedor (RCA)</th>
               <th>Filial</th>
@@ -717,7 +721,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
     <div class="table-card">
       <div class="table-header">
         <div>
-          <h2>Lances do Dia — Auditoria Completa</h2>
+          <h2 id="h-lances">Lances do Dia — Auditoria Completa</h2>
           <div class="table-subtitle">Gols, pênaltis, cartões, impedimentos e defesas — cada linha é um lance real registrado no D1, nunca dado inventado</div>
         </div>
         <div class="filter-row">
@@ -782,7 +786,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
   <section id="tab-gabarito" class="tab-content">
     <div class="panel-card" style="padding:0">
       <div style="padding:20px">
-        <h2 style="font-size:22px;margin-bottom:4px">Gabarito do Dia — regras x lances reais</h2>
+        <h2 id="h-gab" style="font-size:22px;margin-bottom:4px">Gabarito do Dia — regras x lances reais</h2>
         <p style="color:var(--tx-mut);font-size:13px;margin-bottom:14px">Cada regra da liga com os pontos oficiais e quantos lances reais do dia caíram nela. Nenhum número é estimado.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
           <input type="date" id="gab-data" class="input-search" style="max-width:180px" onchange="carregarGabarito()">
@@ -791,6 +795,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
           <span id="gab-resumo" style="font-weight:700"></span>
         </div>
       </div>
+      <div id="gab-as-fase" style="padding:0 20px 14px;display:none"></div>
       <div style="overflow-x:auto"><table class="tb-league"><thead><tr><th style="width:25%">Lance (regra oficial)</th><th style="text-align:center">Pontos</th><th>Critério</th><th style="text-align:center;width:90px">Lances hoje</th><th style="text-align:center;width:110px">Pontos no dia</th></tr></thead><tbody id="tbody-gabarito"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando…</td></tr></tbody></table></div>
     </div>
   </section>
@@ -805,7 +810,12 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
         Metodologia auditada pela diretoria comercial • Foco em Processo, Atitude e Constância Diária.
       </p>
 
-      <div class="rule-card">
+      <div class="rule-card" id="reg-as" style="display:none">
+        <h3>🏬 Liga AS (Autosserviço) — o jogo é SEMANAL</h3>
+        <div id="reg-as-corpo"></div>
+      </div>
+
+      <div class="rule-card so-varejo">
         <h3>1. A Regra do Jogo: Cada Dia é uma Rodada ("Você Contra o Seu Dia")</h3>
         <p>
           O vendedor não disputa contra o tamanho da rota do colega. Ele disputa contra o seu próprio desafio diário —
@@ -836,7 +846,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
         <small style="color:var(--tx-mut)">Valores oficiais em <code>config/pontuacao_brasileirao.json</code> — metodologia auditada pela diretoria comercial.</small>
       </div>
 
-      <div class="rule-card">
+      <div class="rule-card so-varejo">
         <h3>3. Bônus de Constância (Streak & Regularidade Semanal)</h3>
         <p>
           Vender bem um único dia e sumir no resto da semana não sustenta a operação. A regularidade gera bônus diretos na tabela de classificação:
@@ -1105,15 +1115,8 @@ async function carregarLances() {
     let porNivel = {};
     let total = 0;
 
-    let res = await fetch('/api/brasileirao-lances?' + qs.toString(), { cache: 'no-store' });
-    if (res.ok) {
-      const d = await res.json();
-      if (Array.isArray(d.lances)) {
-        lances = d.lances;
-        porNivel = d.porNivel || {};
-        total = d.total || lances.length;
-      }
-    }
+    const per = await buscarLancesPeriodo(dia, filial);
+    lances = per.lances; porNivel = per.porNivel; total = per.total; PERIODO_LANCES = per.periodo;
 
     // Fallback de resiliência: se o endpoint dedicado de lances do brasileirão não retornou dados,
     // consulta as filiais ativas via /api/tv-lances
@@ -1154,6 +1157,7 @@ async function carregarLances() {
       });
     }
 
+    { const setAS = rcasDoAS(); lances = lances.filter(l => lanceDoCanal(l, setAS)); porNivel = {}; lances.forEach(l => { porNivel[l.nivel] = (porNivel[l.nivel] || 0) + 1; }); total = lances.length; }
     LANCES_ATUAIS = lances;
     LANCES_CARREGADOS_HOJE = true;
     renderizarChipsResumo(porNivel, total);
@@ -1168,12 +1172,13 @@ async function carregarLances() {
 async function carregarGabarito() {
   const tb = document.getElementById('tbody-gabarito'), inp = document.getElementById('gab-data');
   if (!tb) return;
+  montaGabaritoFase();
   if (inp && !inp.value) inp.value = hojeISOBrasilia();
   const dia = inp ? inp.value : hojeISOBrasilia(), fil = document.getElementById('gab-filial').value;
   tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando…</td></tr>';
   try {
     const qs = new URLSearchParams({ dia }); if (fil && fil !== 'TODAS') qs.set('filial', fil);
-    const [cfg, d] = await Promise.all([fetch('/pontuacao_brasileirao.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()), fetch('/api/brasileirao-lances?' + qs.toString(), { cache: 'no-store' }).then(r => r.json())]);
+    const [cfg, d] = await Promise.all([fetch('/pontuacao_brasileirao.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()), buscarLancesPeriodo(dia, fil).then(p => ({ lances: p.lances }))]);
     const norm = (x) => [...String(x || '').toLowerCase().normalize('NFD')].filter(ch => /[a-z0-9 ]/.test(ch)).join('').replace(/ +/g, ' ').trim();
     const regras = Object.values(cfg.pontos_por_lance || {}).map(r => ({ ...r, n: norm(r.nome), qtd: 0, soma: 0 })).sort((a, b) => b.pontos - a.pontos);
     const outros = { nome: 'Outros (sem regra no gabarito)', pontos: null, motivo: 'Lance real do dia que não casou com nenhuma regra: conferir', qtd: 0, soma: 0 };
@@ -1184,7 +1189,7 @@ async function carregarGabarito() {
     });
     const linhas = [...regras, ...(outros.qtd ? [outros] : [])];
     const totQ = linhas.reduce((a, r) => a + r.qtd, 0), totP = linhas.reduce((a, r) => a + r.soma, 0);
-    document.getElementById('gab-resumo').textContent = totQ + ' lances · ' + (totP > 0 ? '+' : '') + totP + ' pontos no dia';
+    document.getElementById('gab-resumo').textContent = totQ + ' lances · ' + (totP > 0 ? '+' : '') + totP + (CANAL === 'AS' ? ' pontos na semana' : ' pontos no dia');
     tb.innerHTML = linhas.map(r => {
       const cor = r.pontos == null ? '#f59e0b' : r.pontos > 0 ? '#22c55e' : '#ef4444';
       return '<tr' + (r.qtd ? '' : ' style="opacity:.55"') + '><td style="font-weight:700;color:#fff">' + esc(r.nome) + '</td><td style="text-align:center"><b style="color:' + cor + '">' + (r.pontos == null ? '—' : (r.pontos > 0 ? '+' : '') + r.pontos) + '</b></td><td style="color:#cbd5e1;font-size:13px">' + esc(r.motivo || '') + '</td><td style="text-align:center;font-weight:800">' + r.qtd + '</td><td style="text-align:center;font-weight:800;color:' + (r.soma >= 0 ? '#22c55e' : '#ef4444') + '">' + (r.qtd ? (r.soma > 0 ? '+' : '') + r.soma : '—') + '</td></tr>';
@@ -1198,6 +1203,7 @@ function renderizarChipsResumo(porNivel, total) {
   const box = document.getElementById('lances-resumo-chips');
   if (!box) return;
   const chips = [`<span style="background:var(--surface-hover);padding:6px 14px;border-radius:8px;font-weight:700;font-size:13px">TOTAL: ${total}</span>`];
+  if (CANAL === 'AS' && PERIODO_LANCES) chips.unshift(`<span style="background:var(--acc,#38bdf8);color:#04202e;padding:6px 14px;border-radius:8px;font-weight:800;font-size:13px">AS · Semana ${PERIODO_LANCES.n} (${ddmm(PERIODO_LANCES.de)} a ${ddmm(PERIODO_LANCES.ate)})</span>`);
   Object.entries(ROTULO_LANCE).forEach(([nivel, rotulo]) => {
     const n = porNivel[nivel] || 0;
     if (n > 0) chips.push(`<span style="background:var(--surface-hover);padding:6px 14px;border-radius:8px;font-weight:700;font-size:13px">${rotulo}: ${n}</span>`);
@@ -1226,7 +1232,7 @@ function filtrarLancesRenderizados() {
     const pontosTxt = temPontos ? `<b style="color:${corPts}">${sinalPts}${l.pontos}</b>` : '<span style="color:var(--tx-mut)">—</span>';
     const memoria = temPontos ? `<b>${esc(l.pontos_nome)}</b>: ${esc(l.pontos_motivo || '')}` : '<span style="color:var(--tx-mut)">sem regra mapeada</span>';
     return `<tr>
-      <td class="mono">${esc(l.hora ? l.hora.slice(0,5) : '—')}</td>
+      <td class="mono">${CANAL === 'AS' && l.dia ? esc(ddmm(l.dia)) + ' ' : ''}${esc(l.hora ? l.hora.slice(0,5) : '—')}</td>
       <td><b>${esc(l.filial || '—')}</b></td>
       <td>${ROTULO_LANCE[l.nivel] || esc(l.nivel)}</td>
       <td>${esc(l.vendedor || '—')}${l.rca ? ' <span class="mono" style="color:var(--tx-mut)">(RCA ' + esc(l.rca) + ')</span>' : ''}</td>
@@ -1273,6 +1279,7 @@ function esc(s) {
 
 function renderizarTudo() {
   if (!DADOS) return;
+  { const hi = document.getElementById('hdr-info'); if (hi && DADOS.vendedores) { const as = DADOS.vendedores.filter(v => v.canal === 'AS').length; hi.textContent = '• A pontuação é contra o seu próprio dia (Varejo) e contra a sua semana (AS) • 11 Filiais • ' + (DADOS.vendedores.length - as) + ' Vendedores Varejo + ' + as + ' AS'; } }
 
   // 1. Filiais (Série A)
   const tbF = document.getElementById('tbody-filiais');
@@ -1350,10 +1357,12 @@ function renderizarTudo() {
 
 function filtrarSupervisores() {
   if (!DADOS || !DADOS.supervisores) return;
+  if (CANAL === 'AS') { renderSupervisoresAS(); return; }
+  restauraThead('thr-sup');
   const q = (document.getElementById('busca-sup').value || '').toLowerCase();
   const f = document.getElementById('filtro-sup-filial').value;
 
-  const filtrados = DADOS.supervisores.filter(s => {
+  const filtrados = DADOS.supervisores.filter(s => (s.canal || 'VAREJO') !== 'AS').filter(s => {
     const matchQ = s.supervisor.toLowerCase().includes(q) || s.filial.toLowerCase().includes(q);
     const matchF = !f || s.filial === f;
     return matchQ && matchF;
@@ -1382,10 +1391,12 @@ function filtrarSupervisores() {
 
 function filtrarVendedores() {
   if (!DADOS || !DADOS.vendedores) return;
+  if (CANAL === 'AS') { renderVendedoresAS(); return; }
+  restauraThead('thr-vend');
   const q = (document.getElementById('busca-vend').value || '').toLowerCase();
   const f = document.getElementById('seletor-filial-vend').value;
 
-  let lista = DADOS.vendedores;
+  let lista = DADOS.vendedores.filter(v => (v.canal || 'VAREJO') !== 'AS');
   const isBrasil = (f === 'BRASIL');
   if (!isBrasil) {
     lista = lista.filter(v => v.filial === f);
@@ -1435,6 +1446,140 @@ function filtrarVendedores() {
   }).join('');
 }
 
+
+// =====================================================================================================================
+// CANAL: VAREJO | AS (Autosserviço) — Vitório, 07/10/2026: "separar por AS e VAREJO... simples assim... apenas gerente e filial somam tudo".
+// Varejo joga por DIA; AS joga por SEMANA (semana 1 = dias 1-7, 2 = 8-14, 3 = 15-20, 4 = 21-fim). Artilharia, Supervisores, Lances, Gabarito e Regulamento têm a visão de cada canal;
+// Série A (filiais) e Campeonato de Gerências somam todos os vendedores.
+// =====================================================================================================================
+let CANAL = 'VAREJO';
+const THR_ORIG = {};
+['thr-vend', 'thr-sup'].forEach(id => { const e = document.getElementById(id); if (e) THR_ORIG[id] = e.innerHTML; });
+function restauraThead(id) { const e = document.getElementById(id); if (e && THR_ORIG[id] != null) e.innerHTML = THR_ORIG[id]; }
+let PERIODO_LANCES = null;
+try { const c = localStorage.getItem('brasileirao_canal'); if (c === 'AS' || c === 'VAREJO') CANAL = c; } catch (e) {}
+const AS_SEMANAS = [{ n: 1, de: 1, ate: 7 }, { n: 2, de: 8, ate: 14 }, { n: 3, de: 15, ate: 20 }, { n: 4, de: 21, ate: 31 }];
+function semanaAS(diaISO) {
+  const d = parseInt(String(diaISO).slice(8, 10), 10);
+  const s = AS_SEMANAS.find(x => d <= x.ate) || AS_SEMANAS[3];
+  const mes = String(diaISO).slice(0, 7), ult = new Date(Date.UTC(+mes.slice(0, 4), +mes.slice(5, 7), 0)).getUTCDate();
+  const ate = Math.min(s.ate, ult), p = (n) => String(n).padStart(2, '0');
+  const dias = [];
+  for (let k = s.de; k <= ate; k++) { const iso = mes + '-' + p(k), dt = new Date(iso + 'T12:00:00Z'), w = dt.getUTCDay(); if (w !== 0 && w !== 6) dias.push(iso); }
+  return { n: s.n, de: mes + '-' + p(s.de), ate: mes + '-' + p(ate), dias };
+}
+function rcasDoAS() { return new Set(((DADOS && DADOS.vendedores) || []).filter(v => v.canal === 'AS').map(v => String(v.rca))); }
+function lanceDoCanal(l, setAS) { const eAS = setAS.has(String(l.rca)); return CANAL === 'AS' ? eAS : !eAS; }
+const ddmm = (iso) => String(iso).slice(8, 10) + '/' + String(iso).slice(5, 7);
+
+// Busca os lances do período do canal: VAREJO = o dia escolhido; AS = a SEMANA (dias úteis até hoje) que contém o dia escolhido. Só lances do canal.
+async function buscarLancesPeriodo(dia, filial) {
+  const hoje = hojeISOBrasilia();
+  const per = CANAL === 'AS' ? semanaAS(dia) : { n: null, de: dia, ate: dia, dias: [dia] };
+  const inicio = (CANAL === 'AS' && DADOS && !DADOS.pre_temporada && DADOS.inicio_oficial) || '0000-00-00';
+  const dias = per.dias.filter(d => d <= hoje && d >= inicio);
+  const setAS = rcasDoAS();
+  let lances = [];
+  const resp = await Promise.all(dias.map(d => { const qs = new URLSearchParams({ dia: d }); if (filial && filial !== 'TODAS') qs.set('filial', filial); return fetch('/api/brasileirao-lances?' + qs.toString(), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null); }));
+  resp.forEach((r, i) => { if (r && Array.isArray(r.lances)) r.lances.forEach(l => { l.dia = dias[i]; lances.push(l); }); });
+  lances = lances.filter(l => lanceDoCanal(l, setAS));
+  if (CANAL === 'AS') lances.sort((a, b) => String(b.dia + ' ' + (b.hora || '')).localeCompare(String(a.dia + ' ' + (a.hora || ''))));
+  const porNivel = {}; lances.forEach(l => { porNivel[l.nivel] = (porNivel[l.nivel] || 0) + 1; });
+  return { lances, porNivel, total: lances.length, periodo: per, dias };
+}
+
+function setCanal(c) {
+  CANAL = c === 'AS' ? 'AS' : 'VAREJO';
+  try { localStorage.setItem('brasileirao_canal', CANAL); } catch (e) {}
+  aplicaCanalNaTela();
+}
+function aplicaCanalNaTela() {
+  const as = CANAL === 'AS';
+  const cv = document.getElementById('canal-v'), ca = document.getElementById('canal-a');
+  if (cv && ca) { cv.classList.toggle('on', !as); ca.classList.toggle('on', as); }
+  const nomes = { lances: as ? '📋 Lances da Semana' : '📋 Lances do Dia', gabarito: as ? '🎯 Gabarito da Semana' : '🎯 Gabarito do Dia' };
+  document.querySelectorAll('.nav-tabs .tab-btn').forEach(b => { const m = (b.getAttribute('onclick') || '').match(/switchTab\('(\w+)'\)/); if (m && nomes[m[1]]) b.textContent = nomes[m[1]]; });
+  const set = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
+  set('h-vend', as ? 'Artilharia dos Vendedores AS — Autosserviço' : 'Artilharia & Desempenho dos Vendedores — Varejo');
+  set('s-vend', as ? 'Jogo SEMANAL • Pontos = lances da semana + faseamento da meta (20/40/60/110% = 10/20/30/40 pts) + bônus (100% até o dia 15 = +50; até o dia 25 = +25)' : 'Você contra o seu próprio dia • Vitória no Dia (3 pts) • Bônus de Constância');
+  set('h-sup', as ? 'Liga dos Supervisores AS' : 'Liga dos Supervisores Comerciais — Varejo');
+  set('s-sup', as ? 'Pontos da EQUIPE no faseamento da meta do mês + bônus; lances da equipe aparecem como informação' : 'Pontos do time; o Plus de Liderança (Compromisso até 10h +5, RET +5) é o critério de desempate');
+  set('h-lances', as ? 'Lances da Semana — Auditoria Completa (AS)' : 'Lances do Dia — Auditoria Completa (Varejo)');
+  set('h-gab', as ? 'Gabarito da Semana — regras x lances reais (AS)' : 'Gabarito do Dia — regras x lances reais (Varejo)');
+  const ra = document.getElementById('reg-as'); if (ra) ra.style.display = as ? '' : 'none';
+  document.querySelectorAll('.so-varejo').forEach(e => { e.style.display = as ? 'none' : ''; });
+  LANCES_CARREGADOS_HOJE = false;
+  filtrarSupervisores(); filtrarVendedores(); montaRegulamentoAS();
+  const ativa = (document.querySelector('.tab-content.active') || {}).id;
+  if (ativa === 'tab-lances') carregarLances();
+  if (ativa === 'tab-gabarito') carregarGabarito();
+}
+
+// ---- visões AS (semanais) ----
+const faseDot = (f) => { const cls = f.status === 'batida' ? 'V' : f.status === 'nao_batida' ? 'D' : f.status === 'em_andamento' ? 'E' : 'E'; const op = f.status === 'futuro' ? ' style="opacity:.35"' : ''; const tt = `Semana ${f.n} (até o dia ${f.ate}): meta ${f.meta}% = ${f.pontos} pts · ${f.status === 'futuro' ? 'ainda não chegou' : (f.pct != null ? f.pct + '% da meta' : 'sem meta')}${f.status === 'em_andamento' ? ' · hoje fecha a semana' : ''}`; return `<span class="dot-forma ${cls}"${op} title="${esc(tt)}">${f.n}</span>`; };
+const bonusTxt = (bs) => (bs || []).map(b => b.status === 'batido' ? `<span class="tag-badge tag-v" title="${esc(b.nome)} (batido em ${b.quando})">+${b.pontos}</span>` : b.status === 'perdido' ? `<span class="tag-badge tag-d" title="${esc(b.nome)} — perdido">dia ${b.ate} ✗</span>` : `<span class="tag-badge tag-e" title="${esc(b.nome)} — ainda em jogo">dia ${b.ate} ⏳</span>`).join(' ') || '—';
+const pctTxt = (p) => p == null ? '<span style="color:var(--tx-mut)">sem meta</span>' : `<b style="color:${p >= 100 ? '#4ade80' : p >= 50 ? 'var(--acc)' : '#e5e7eb'}">${p}%</b>`;
+
+function renderVendedoresAS() {
+  const thr = document.getElementById('thr-vend'); if (!thr) return;
+  thr.innerHTML = '<th style="width:70px">Posição</th><th>Vendedor (RCA)</th><th>Filial</th><th>Supervisor</th><th style="text-align:right">PG (Pontos)</th><th style="text-align:center">Lances da semana</th><th style="text-align:center">Faseamento (S1–S4)</th><th style="text-align:center">Bônus</th><th style="text-align:center">% da meta</th>';
+  const tb = document.getElementById('tbody-vendedores');
+  const A = DADOS && DADOS.as;
+  if (!A || !A.vendedores) { tb.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--tx-mut)">${A && A.erro ? 'A Liga AS ainda não carregou (' + esc(A.erro) + ')' : 'Sem dados da Liga AS ainda.'}</td></tr>`; return; }
+  const q = (document.getElementById('busca-vend').value || '').toLowerCase(), f = document.getElementById('seletor-filial-vend').value, isBrasil = f === 'BRASIL';
+  let lista = A.vendedores.filter(v => isBrasil || v.filial === f);
+  if (q) lista = lista.filter(v => v.nome.toLowerCase().includes(q) || String(v.rca).includes(q) || (v.supervisor || '').toLowerCase().includes(q));
+  tb.innerHTML = lista.slice(0, 150).map(v => {
+    const pos = isBrasil ? v.pos_brasil : v.pos_filial, cls = pos <= 3 ? 'pos-g4' : 'pos-mid', sub = !isBrasil ? `<span style="font-size:10px;color:var(--tx-mut);display:block">(${v.pos_brasil}º no Brasil)</span>` : '';
+    const sem = (v.semanas || []).map(s => `S${s.n}: ${s.pts_lances}`).join(' · ');
+    return `<tr><td><span class="pos-box ${cls}">${pos}º</span>${sub}</td><td><div style="font-weight:700;color:#fff">${esc(v.nome)}</div><div style="font-size:11px;color:var(--tx-mut)">RCA ${esc(v.rca)}</div></td>
+      <td><span class="tag-badge" style="background:rgba(56,189,248,0.15);color:var(--acc);">${esc(v.filial)}</span></td><td style="color:var(--tx-mut);font-size:12px;">${esc(v.supervisor || '—')}</td>
+      <td style="text-align:right" class="pts-cell">${v.pontos}</td><td style="text-align:center" title="${esc(sem)}">${v.pts_lances > 0 ? '+' : ''}${v.pts_lances}</td>
+      <td style="text-align:center"><div class="forma-container">${(v.fases || []).map(faseDot).join('')}</div></td><td style="text-align:center">${bonusTxt(v.bonus)}</td><td style="text-align:center">${pctTxt(v.pct_hoje)}</td></tr>`;
+  }).join('');
+}
+
+function renderSupervisoresAS() {
+  const thr = document.getElementById('thr-sup'); if (!thr) return;
+  thr.innerHTML = '<th style="width:60px">Pos</th><th>Supervisor</th><th>Filial</th><th>Gerente</th><th style="text-align:right">PG (faseamento + bônus)</th><th style="text-align:center">Equipe (com meta)</th><th style="text-align:center">Faseamento (S1–S4)</th><th style="text-align:center">Bônus</th><th style="text-align:center">% da meta da equipe</th><th style="text-align:center">Lances da equipe</th>';
+  const tb = document.getElementById('tbody-supervisores'), A = DADOS && DADOS.as;
+  if (!A || !A.supervisores) { tb.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--tx-mut)">${A && A.erro ? 'A Liga AS ainda não carregou (' + esc(A.erro) + ')' : 'Sem dados da Liga AS ainda.'}</td></tr>`; return; }
+  const q = (document.getElementById('busca-sup').value || '').toLowerCase(), f = document.getElementById('filtro-sup-filial').value;
+  const lista = A.supervisores.filter(s => (!f || s.filial === f) && (s.supervisor.toLowerCase().includes(q) || s.filial.toLowerCase().includes(q)));
+  tb.innerHTML = lista.map(s => `<tr><td><span class="pos-box ${s.pos <= 5 ? 'pos-g4' : 'pos-mid'}">${s.pos}º</span></td><td><strong style="color:#fff">${esc(s.supervisor)}</strong></td>
+    <td><span class="tag-badge" style="background:rgba(56,189,248,0.15);color:var(--acc);">${esc(s.filial)}</span></td><td style="color:var(--tx-mut);font-size:12px;">${esc(s.gerente || '—')}</td>
+    <td style="text-align:right" class="pts-cell">${s.pontos}</td><td style="text-align:center">${s.com_meta}/${s.total_vendedores}</td>
+    <td style="text-align:center"><div class="forma-container">${(s.fases || []).map(faseDot).join('')}</div></td><td style="text-align:center">${bonusTxt(s.bonus)}</td>
+    <td style="text-align:center">${pctTxt(s.pct_hoje)}</td><td style="text-align:center">${s.pts_lances_equipe > 0 ? '+' : ''}${s.pts_lances_equipe}</td></tr>`).join('') || '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--tx-mut)">Nenhum supervisor AS para este filtro.</td></tr>';
+}
+
+function montaGabaritoFase() {
+  const box = document.getElementById('gab-as-fase'); if (!box) return;
+  const A = DADOS && DADOS.as;
+  if (CANAL !== 'AS' || !A || !A.vendedores) { box.style.display = 'none'; return; }
+  const fil = document.getElementById('gab-filial').value, V = A.vendedores.filter(v => !fil || fil === 'TODAS' || v.filial === fil), S = (A.supervisores || []).filter(v => !fil || fil === 'TODAS' || v.filial === fil);
+  const conta = (L, n) => { const c = { batida: 0, nao_batida: 0, em_andamento: 0, futuro: 0, sem_meta: 0 }; L.forEach(x => { const f = (x.fases || []).find(y => y.n === n); if (f) c[f.status] = (c[f.status] || 0) + 1; }); return c; };
+  const linha = (n, nome, meta, pts) => { const a = conta(V, n), b = conta(S, n); const cel = (c) => '<span style="color:#4ade80;font-weight:800">' + c.batida + ' bateram</span> · <span style="color:#f87171">' + c.nao_batida + ' não</span>' + (c.em_andamento ? ' · <span style="color:#fbbf24">' + c.em_andamento + ' em andamento</span>' : '') + (c.futuro ? ' · <span style="color:var(--tx-mut)">' + c.futuro + ' a vir</span>' : ''); return '<tr><td style="font-weight:700;color:#fff">' + nome + '</td><td style="text-align:center">' + meta + '%</td><td style="text-align:center"><b>+' + pts + '</b></td><td>' + cel(a) + '</td><td>' + cel(b) + '</td></tr>'; };
+  const bonus = (id) => { const f = (L) => L.filter(x => (x.bonus || []).some(b => b.id === id && b.status === 'batido')).length; return f(V) + ' vendedores · ' + f(S) + ' supervisores'; };
+  box.style.display = '';
+  box.innerHTML = '<h3 style="margin:6px 0 8px;font-size:16px">🏬 Faseamento do AS — quem bateu cada semana (' + V.length + ' vendedores · ' + S.length + ' supervisores)</h3><div style="overflow-x:auto"><table class="tb-league"><thead><tr><th>Semana</th><th style="text-align:center">Meta do mês</th><th style="text-align:center">Pontos</th><th>Vendedores</th><th>Supervisores (equipe)</th></tr></thead><tbody>' +
+    linha(1, '1ª semana (até o dia 7)', 20, 10) + linha(2, '2ª semana (até o dia 14)', 40, 20) + linha(3, '3ª semana (até o dia 20)', 60, 30) + linha(4, '4ª semana (até o fim do mês)', 110, 40) +
+    '<tr><td style="font-weight:700;color:#fff">🥇 100% até o dia 15</td><td style="text-align:center">100%</td><td style="text-align:center"><b>+50</b></td><td colspan="2">' + bonus('quinzena') + '</td></tr><tr><td style="font-weight:700;color:#fff">🥈 100% até o dia 25</td><td style="text-align:center">100%</td><td style="text-align:center"><b>+25</b></td><td colspan="2">' + bonus('dia25') + '</td></tr></tbody></table></div>';
+}
+
+function montaRegulamentoAS() {
+  const box = document.getElementById('reg-as-corpo'); if (!box) return;
+  box.innerHTML = `
+    <p>O <strong>AS (Autosserviço)</strong> joga por <strong>SEMANA</strong>: o vendedor visita num dia e coloca o pedido em outro, então as jogadas são computadas semanalmente. Vendedor e supervisor têm acompanhamento separado. Semanas: <strong>1ª</strong> dias 1–7 · <strong>2ª</strong> dias 8–14 · <strong>3ª</strong> dias 15–20 · <strong>4ª</strong> dias 21 até o fim do mês.</p>
+    <table class="tb-league" style="margin:10px 0 14px"><thead><tr><th>Faseamento (% da meta do mês no fim da semana)</th><th style="text-align:center">Meta</th><th style="text-align:center">Pontos</th></tr></thead><tbody>
+      <tr><td>1ª semana (até o dia 7)</td><td style="text-align:center">20%</td><td style="text-align:center"><b>+10</b></td></tr><tr><td>2ª semana (até o dia 14)</td><td style="text-align:center">40%</td><td style="text-align:center"><b>+20</b></td></tr>
+      <tr><td>3ª semana (até o dia 20)</td><td style="text-align:center">60%</td><td style="text-align:center"><b>+30</b></td></tr><tr><td>4ª semana (até o fim do mês)</td><td style="text-align:center">110%</td><td style="text-align:center"><b>+40</b></td></tr>
+      <tr><td>🥇 Bônus de primeira quinzena: bateu <strong>100%</strong> da meta até o dia 15</td><td style="text-align:center">100%</td><td style="text-align:center"><b>+50</b></td></tr><tr><td>🥈 Bateu <strong>100%</strong> da meta até o dia 25</td><td style="text-align:center">100%</td><td style="text-align:center"><b>+25</b></td></tr></tbody></table>
+    <p style="font-size:13px;color:var(--tx-mut)">% da meta = (faturado + pendente) dividido pela meta do mês, o mesmo número do app do CEVEN. A semana só pontua depois que o dia de fechamento termina. <strong>Supervisor AS</strong> = faseamento da equipe somada. Sem meta cadastrada o vendedor não pontua no faseamento.</p>
+    <p><strong>Lances do AS:</strong> valem a mesma tabela de pontos do regulamento (abaixo) e são somados por semana. O amarelo das 10h e o vermelho de abandono das 10h/11h (rotina diária) <strong>não valem no AS</strong>. Devolução vale igual ao Varejo. <strong>Em definição:</strong> check-in por carteira (90% = +5 · 95% = +10 · 100% = +20), amarelo de venda sem check-in, gol de SKUs (2 a mais que a média), marca própria (estrela e gol especial) e punição por falta de pedido (dia 5 = −5 · dia 10 = −10 · dia 20 = −20).</p>`;
+}
+
+window.addEventListener('load', aplicaCanalNaTela);
 window.addEventListener('load', carregarDados);
 window.addEventListener('load', carregarTabelaPontos);
 window.addEventListener('load', iniciarMinhaFilial);

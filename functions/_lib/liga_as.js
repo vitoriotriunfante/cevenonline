@@ -1,7 +1,7 @@
 // =========================================================================
 // FICHA DO ARQUIVO: functions/_lib/liga_as.js
 // O QUE É: regras da LIGA AS (Autosserviço) — FASEAMENTO da meta do mês (Vitório e o Diretor, 07/10/2026). Função pura (sem rede nem banco): testável.
-//          Doc das decisões: docs/LIGA_AS_DECISOES.md. MODO SOMBRA: calcula e mostra, NÃO vale pontos até 01/11/2026.
+//          Doc das decisões: docs/LIGA_AS_DECISOES.md. OFICIAL desde 07/10/2026 (decisão do Vitório: não há modo sombra; a Liga AS faz parte do Brasileirão).
 // REGRAS:  Faseamento (% da meta do mês no fim de cada semana): 1ª (até dia 7) 20% = 10 pts · 2ª (até dia 14) 40% = 20 pts · 3ª (até dia 20) 60% = 30 pts · 4ª (até o fim do mês) 110% = 40 pts.
 //          Bônus: bater 100% da meta até o dia 15 = +50 · bater 100% até o dia 25 = +25.
 //          % da meta = (faturado + pendente) / meta, o MESMO número que o app do CEVEN mostra (ex.: 41,8% = faturado + pendente sobre a meta).
@@ -17,8 +17,8 @@ export const AS_BONUS = [
   { id: 'quinzena', ate: 15, meta: 100, pontos: 50, nome: 'Meta batida até o dia 15' },
   { id: 'dia25', ate: 25, meta: 100, pontos: 25, nome: 'Meta batida até o dia 25' }
 ];
-export const AS_MODO = 'sombra';
-export const AS_VALE_DESDE = '2026-11-01';
+export const AS_MODO = 'oficial';
+export const AS_VALE_DESDE = '2026-10-07';
 
 const pad = (n) => String(n).padStart(2, '0');
 export const ultimoDiaDoMes = (mes) => { const [a, m] = mes.split('-').map(Number); return new Date(Date.UTC(a, m, 0)).getUTCDate(); };
