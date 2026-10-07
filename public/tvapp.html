@@ -173,7 +173,11 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* VENDEDOR em destaque (Vitório, 06/10/2026: "tem que aumentar o tamanho do nome"): sobe logo abaixo dos pontos, em linha inteira e com nome grande */
 #ov .dec>h1{order:-4}#ov .dec>.selo{order:-3}#ov .dec>.vd{order:99}
 #ov .dec>.ln.vend{order:-2;grid-column:1/-1;background:none;border:0;border-left:6px solid var(--tom);border-radius:0;padding:.2vh 1.2vw}
-#ov .dec>.ln.est>span{font-size:clamp(24px,min(2.5vw,4.6vh),50px);font-weight:900;color:#fff;line-height:1.08}
+#ov .dec>.ln.est>span{font-size:clamp(20px,min(2vw,3.8vh),42px);font-weight:900;color:#fff;line-height:1.08}
+#ov .dec>.ln.why{order:-1;grid-column:1/-1;background:var(--tomf);border:0;border-left:8px solid var(--tom);border-radius:12px;padding:1.2vh 1.4vw}
+#ov .dec>.ln.why>b{font-size:clamp(14px,min(1.1vw,2.1vh),22px);letter-spacing:.16em;color:var(--tom)}
+#ov .dec>.ln.why>span{font-size:clamp(30px,min(3.4vw,6.4vh),70px);font-weight:900;color:#fff;line-height:1.05}
+#ov .dec>.ln.why>span small{font-size:.42em;font-weight:700;color:var(--mut2)}
 #ov .dec>.ln.vend>span{font-size:clamp(26px,min(2.8vw,5.2vh),58px);font-weight:900;color:#fff;line-height:1.05}
 #ov small{margin-top:2vh;color:var(--mut);font-size:16px}
 #ov small{margin-top:2vh;color:var(--mut);font-size:16px}
@@ -822,6 +826,8 @@ async function registraLances(cands) {
   catch { return null; }
 }
 const INVICTA_AVISADA = new Set();
+const porqueHtml = (itens) => { const g = new Map(); itens.forEach((a) => { const m = String((a.c && a.c.motivo) || '').toUpperCase() || 'SEM JUSTIFICATIVA'; if (!g.has(m)) g.set(m, []); g.get(m).push(a); });
+  return [...g.entries()].map(([m, l]) => { const ds = l.map((a) => a.dias).filter((d) => d != null); const lo = ds.length ? Math.min(...ds) : null, hi = ds.length ? Math.max(...ds) : null; const par = l.length === 1 ? (lo != null ? 'cliente parado há ' + lo + ' dias' : 'cliente sem compra registrada') : l.length + ' clientes parados' + (lo != null ? ' (' + (lo === hi ? lo : lo + ' a ' + hi) + ' dias)' : ''); return `<div class="ln hot why"><b>POR QUE É PÊNALTI</b><span>${esc(m)}<small> · ${esc(par)}</small></span></div>`; }).join(''); };
 // LANCES QUE O SERVIDOR (coletor, de 5 em 5 min) REGISTROU ANTES DESTA TELA (Vitório, 06/10/2026: "não to vendo um lance já tem mais de 20 minutos"): como o coletor grava primeiro,
 // a tela nunca era a 'descobridora' e nao apitava. Agora o lance registrado nos ultimos 12 min (e que esta tela ainda nao mostrou) tambem entra na fila do VAR.
 const RECENTES = new Set(); let EXIB = new Set(store.get('ceven_exib_' + FIL + '_' + HOJE0, []));
@@ -1058,10 +1064,10 @@ function telaVAR(item) {
     const cab = {'Vendedor': `${v.nome} (RCA ${v.id})`, 'Supervisor': v.sup, 'Ranking de pênaltis': `${pos}º lugar · ${totalDia} pênalti(s) hoje${totalDia >= 3 ? ' — REINCIDENTE' : ''}`};
     if (n === 1) {
       const {c, dias} = it[0], tv = c.tempo_visita;
-      dec = seloLiga + linhas({...cab, 'Cliente': c.nome, 'Justificativa': '!' + c.motivo, 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c.ultima_compra)}${c.valor_ultima > 0 ? ', ' + brl(c.valor_ultima) : ''})` : 'sem compra registrada'),
+      dec = seloLiga + porqueHtml(it) + linhas({...cab, 'Cliente': c.nome, 'Sem comprar': '!' + (dias != null ? `${dias} dias (última compra ${ddmm(c.ultima_compra)}${c.valor_ultima > 0 ? ', ' + brl(c.valor_ultima) : ''})` : 'sem compra registrada'),
         'Tempo na visita': tv ? (tv === '00:00' ? '!' + tv + ' (visita de 0 minuto)' : tv) : null, 'Observação': c.obs});
     } else {
-      dec = seloLiga + linhas(cab) + it.slice(0, 5).map(a => `<div class="ln hot w est"><b>${esc(a.c.motivo)} · ${a.dias != null ? a.dias + ' dias sem compra' : 'sem compra'}${a.c.tempo_visita === '00:00' ? ' · visita de 0 min' : ''}</b><span>${esc(a.c.nome)}</span></div>`).join('') + (n > 5 ? `<div class="ln"><b>+${n - 5}</b><span>outros clientes</span></div>` : '');
+      dec = seloLiga + porqueHtml(it) + linhas(cab) + it.slice(0, 5).map(a => `<div class="ln w est"><b>${a.dias != null ? a.dias + ' dias sem compra' : 'sem compra'}${a.c.tempo_visita === '00:00' ? ' · visita de 0 min' : ''}</b><span>${esc(a.c.nome)}</span></div>`).join('') + (n > 5 ? `<div class="ln"><b>+${n - 5}</b><span>outros clientes</span></div>` : '');
     }
     veredito = `📞 LIGAR AGORA: ${ehSupFalso(v.sup) ? 'o gerente da filial' : (v.sup || 'supervisor')} (${ehSupFalso(v.sup) ? 'vendedor ligado direto ao gerente' : 'supervisor'} de ${v.nome.split(' ')[0]})${totalDia >= 3 ? ' — REINCIDENTE, ' + totalDia + 'º pênalti hoje' : ''}`;
   } else if (item.tipo === 'amarelos') {

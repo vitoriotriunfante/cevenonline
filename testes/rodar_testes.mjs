@@ -635,7 +635,7 @@ secao('8t. /divergencias lista: vendedores novos da arvore, supervisor trocado p
 secao('8u. Popup: vendedor e estabelecimento com nome grande');
 {
   const tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), an = ler('public/animacoes/tv-animacoes.js');
-  ok([tv, mz].every(h => h.includes('.ln.vend>span{font-size:clamp(26px') && h.includes('.ln.est>span') && h.includes('ln hot w est')) && an.includes("' vend'"), 'vendedor sobe logo abaixo dos pontos em nome grande; no penalti o estabelecimento e o destaque (motivo e dias sem compra no rotulo)');
+  ok([tv, mz].every(h => h.includes('.ln.vend>span{font-size:clamp(26px') && h.includes('.ln.est>span') && h.includes('ln w est') && h.includes('ln hot why') && h.includes('POR QUE É PÊNALTI') && h.includes('porqueHtml(it)')) && an.includes("' vend'"), 'vendedor sobe logo abaixo dos pontos em nome grande; no penalti o MOTIVO (por que e penalti) e o destaque grande e os clientes vem abaixo com os dias sem compra');
 }
 
 // ---------------------------------------------------------------- 8v. Nivel (bronze a platina) em TODOS os gols
@@ -680,11 +680,11 @@ secao('8e. Liga cravada: regras congeladas por versao, fechamento do dia (19h30)
   const lib = ler('functions/_lib/liga_fechamento.js');
   ok(lib.includes("REGRAS_VERSAO = '" + cfg.versao_regras + "'"), 'versao das regras: config (' + cfg.versao_regras + ') e liga_fechamento.js dizem a mesma versao');
   ok(hash === LOCK_HASH, 'REGRAS CONGELADAS: o regulamento (config/pontuacao_brasileirao.json) nao mudou desde a versao ' + cfg.versao_regras + '. Se mudou de proposito: suba versao_regras e REGRAS_VERSAO, atualize LOCK_HASH aqui e avise os gerentes (hash atual ' + hash + ')');
-  ok(lib.includes('23 * 60 + 30') && lib.includes('INSERT OR IGNORE INTO liga_fechamento') && lib.indexOf('INSERT OR IGNORE INTO liga_dia_fechado') < lib.indexOf('INSERT OR IGNORE INTO liga_fechamento'), 'fechamento: so depois das 23h30, grava as linhas ANTES do cabecalho e nunca sobrescreve dia ja fechado');
+  ok(lib.includes('t.min >= 22 * 60') && lib.includes('INSERT OR IGNORE INTO liga_fechamento') && lib.indexOf('INSERT OR IGNORE INTO liga_dia_fechado') < lib.indexOf('INSERT OR IGNORE INTO liga_fechamento'), 'fechamento: so depois das 22h, grava as linhas ANTES do cabecalho e nunca sobrescreve dia ja fechado');
   const bl = ler('functions/api/brasileirao-lances.js');
   ok(bl.includes('lerDiaFechado(env, dia, filial)') && bl.includes("ao_vivo') !== '1'"), 'endpoint da liga devolve o dia FECHADO sem recalcular (so o fechamento usa ao_vivo=1)');
   const cr = ler('functions/api/cron-lances.js');
-  ok(cr.includes('cron-fechamento-dia') && cr.includes('cron-conferencia-dia?rodar=1') && cr.includes('t.agoraMin >= 23 * 60 + 30') && cr.includes('t.agoraMin >= 19 * 60 + 30'), 'coletor chama o fechamento depois das 23h30 (e pela manha, se perdeu) e a conferencia depois das 19h30');
+  ok(cr.includes('cron-fechamento-dia') && cr.includes('cron-conferencia-dia?rodar=1') && cr.includes('t.agoraMin >= 22 * 60 ||') && cr.includes('t.agoraMin >= 22 * 60 + 5'), 'coletor chama o fechamento depois das 22h (e pela manha, se perdeu) e a conferencia depois das 22h05');
   const cf = ler('functions/api/cron-conferencia-dia.js');
   ok(cf.includes('const FATIA = 60, CONC = 6') && cf.includes('/api/rca/produtividade') && cf.includes('/api/rca/devolucoes') && !/method:\s*['"]POST/.test(cf), 'conferencia: so leitura do CEVEN, 6 chamadas simultaneas no maximo, fatias de 60 vendedores');
   { const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_fechamento.mjs')).href)).default; await t(ok); }

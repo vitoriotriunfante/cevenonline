@@ -31,7 +31,7 @@ export async function onRequestGet({ env, request }) {
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS conferencia_rca (dia TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, dig_d1 REAL, dig_ceven REAL, dev_d1 REAL, dev_ceven REAL, em TEXT, PRIMARY KEY (dia, filial, rca))').run();
     let rodou = 0, aviso = null;
     if (u.searchParams.get('rodar') === '1') {
-      if (!(u.searchParams.get('forcar') === '1' || dia < t.dia || t.min >= 19 * 60 + 30)) aviso = 'a conferencia so roda depois das 19h30';
+      if (!(u.searchParams.get('forcar') === '1' || dia < t.dia || t.min >= 22 * 60 + 5)) aviso = 'a conferencia so roda depois das 22h05';
       else {
         const { results: faltam } = await env.DB.prepare(
           `SELECT v.filial_sigla AS filial, CAST(v.rca_codigo AS TEXT) AS rca, v.produtividade_json AS pj, v.devolucoes_json AS dj FROM varredura_central_rca v

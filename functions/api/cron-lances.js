@@ -425,11 +425,11 @@ export async function onRequestGet({ env, request }) {
 
   // FECHAMENTO E CONFERENCIA DO DIA (Vitório, 06/10/2026: "tem que estar tudo cravado"): depois das 19h30 congela o dia da liga e confere o D1 contra o CEVEN (fatias de 60 vendedores)
   let fechamento = 'pulado', conferencia = 'pulado';
-  // o dia fecha as 23h30; se esse horario passar em claro, o fechamento pega de manha (06h as 09h) o dia anterior ainda aberto
-  if (t.agoraMin >= 23 * 60 + 30 || (t.h >= 6 && t.h < 9)) {
+  // o dia fecha as 22h (depois das 23h o CEVEN ja virou o dia); se esse horario passar em claro, o fechamento pega de manha (06h as 09h) o dia anterior ainda aberto
+  if (t.agoraMin >= 22 * 60 || (t.h >= 6 && t.h < 9)) {
     try { const rf = await fetch(`${origin}/api/cron-fechamento-dia`, { signal: AbortSignal.timeout(50000) }); const jf = await rf.json().catch(() => ({})); fechamento = jf.status || String(rf.status); } catch { fechamento = 'falhou'; }
   }
-  if (t.agoraMin >= 19 * 60 + 30) {
+  if (t.agoraMin >= 22 * 60 + 5) { // a conferencia roda depois do fechamento, antes do CEVEN virar o dia
     try { const rc = await fetch(`${origin}/api/cron-conferencia-dia?rodar=1`, { signal: AbortSignal.timeout(60000) }); const jc = await rc.json().catch(() => ({})); conferencia = jc.conferidos != null ? `${jc.conferidos}/${jc.total} (${(jc.divergentes || []).length} divergencia(s))` : String(rc.status); } catch { conferencia = 'falhou'; }
   }
 
