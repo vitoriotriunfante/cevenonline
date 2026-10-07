@@ -119,6 +119,7 @@ header {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 .btn-nav {
   background: rgba(255, 255, 255, 0.06);
@@ -447,17 +448,40 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
   #tab-filiais .tb-league th:nth-child(4), #tab-filiais .tb-league td:nth-child(4) { display: none; }
   #tab-gerencias .tb-league th:nth-child(9), #tab-gerencias .tb-league td:nth-child(9), #tab-gerencias .tb-league th:nth-child(10), #tab-gerencias .tb-league td:nth-child(10) { display: none; }
   #tab-supervisores .tb-league th:nth-child(4), #tab-supervisores .tb-league td:nth-child(4) { display: none; }
-  #tab-vendedores .tb-league th:nth-child(11), #tab-vendedores .tb-league td:nth-child(11) { display: none; }
   #tab-lances .tb-league th:nth-child(7), #tab-lances .tb-league td:nth-child(7) { display: none; }
 }
 @media (max-width: 1360px) {
   #tab-filiais .tb-league th:nth-child(8), #tab-filiais .tb-league td:nth-child(8), #tab-filiais .tb-league th:nth-child(9), #tab-filiais .tb-league td:nth-child(9) { display: none; }
   #tab-gerencias .tb-league th:nth-child(5), #tab-gerencias .tb-league td:nth-child(5) { display: none; }
-  #tab-vendedores .tb-league th:nth-child(4), #tab-vendedores .tb-league td:nth-child(4), #tab-vendedores .tb-league th:nth-child(10), #tab-vendedores .tb-league td:nth-child(10) { display: none; }
+  .cv-sup, .cv-aprov { display: none; }
   #tab-lances .tb-league th:nth-child(2), #tab-lances .tb-league td:nth-child(2) { display: none; }
   .header-top { flex-direction: column; align-items: flex-start; }
 }
+@media (max-width: 1000px) {
+  .cv-forma { display: none; }
+}
 @media (max-width: 700px) {
+  html, body { overflow-x: hidden; }
+  header { padding: 10px 12px; }
+  .header-top { gap: 8px; }
+  .brand-text h1 { font-size: 20px; letter-spacing: .02em; }
+  .brand-text p { font-size: 11px; }
+  .header-actions { gap: 6px; width: 100%; }
+  .header-actions select, .header-actions .btn-nav, .header-actions .canal-sw button { font-size: 12px; padding: 7px 10px; }
+  .hero-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card { padding: 10px; gap: 8px; min-width: 0; }
+  .stat-icon { width: 34px; height: 34px; font-size: 16px; flex: none; }
+  .stat-info h3 { font-size: 9px; letter-spacing: .02em; }
+  .stat-info .num { font-size: 18px; }
+  .table-header, .table-title { flex-wrap: wrap; padding: 12px; gap: 8px; }
+  .table-title h2 { font-size: 18px; }
+  .table-card .input-search, .table-card select { max-width: 100%; }
+  .cv-ved { display: none; }
+  .cv-fil { display: none; }
+  #tab-supervisores .tb-league th:nth-child(7), #tab-supervisores .tb-league td:nth-child(7), #tab-supervisores .tb-league th:nth-child(8), #tab-supervisores .tb-league td:nth-child(8), #tab-supervisores .tb-league th:nth-child(9), #tab-supervisores .tb-league td:nth-child(9) { display: none; }
+  .cv-filin { display: inline !important; }
+  .tag-badge { padding: 2px 6px; font-size: 11px; }
+  .nav-tabs { flex-wrap: wrap; }
   main { padding: 0 8px; }
   .tb-league td, .tb-league thead th { padding: 6px 4px; }
   #tab-supervisores .tb-league th:nth-child(6), #tab-supervisores .tb-league td:nth-child(6), #tab-gerencias .tb-league th:nth-child(3), #tab-gerencias .tb-league td:nth-child(3) { display: none; }
@@ -698,19 +722,20 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
             <tr id="thr-vend">
               <th style="width:70px">Posição</th>
               <th>Vendedor (RCA)</th>
-              <th>Filial</th>
-              <th>Supervisor</th>
+              <th class="cv-fil">Filial</th>
+              <th class="cv-sup">Supervisor</th>
               <th style="text-align:right">PG (Pontos)</th>
-              <th style="text-align:center">V</th>
-              <th style="text-align:center">E</th>
-              <th style="text-align:center">D</th>
-              <th style="text-align:center">% Aprov</th>
-              <th style="text-align:center" title="Resultado dos últimos 5 dias (V = vitória, E = empate, D = derrota); o mais recente fica à direita">Últimos jogos</th>
-              <th style="text-align:center">Bônus Streak</th>
+              <th style="text-align:center" class="cv-ved">V</th>
+              <th style="text-align:center" class="cv-ved">E</th>
+              <th style="text-align:center" class="cv-ved">D</th>
+              <th style="text-align:center" title="Saldo de gols: pontos positivos menos pontos negativos de todos os lances">SG</th>
+              <th style="text-align:center" class="cv-aprov">% Aprov</th>
+              <th style="text-align:center" class="cv-forma" title="Resultado dos últimos 5 dias (V = vitória, E = empate, D = derrota); o mais recente fica à direita">Últimos jogos</th>
+              <th style="text-align:center" title="Bônus de constância: 3 vitórias seguidas +3 · semana invicta +3">Bônus</th>
             </tr>
           </thead>
           <tbody id="tbody-vendedores">
-            <tr><td colspan="13" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando Vendedores...</td></tr>
+            <tr><td colspan="14" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando Vendedores...</td></tr>
           </tbody>
         </table>
       </div>
@@ -1490,16 +1515,17 @@ function filtrarVendedores() {
         <td><span class="pos-box ${posClass}">${posNum}º</span>${subPos}</td>
         <td>
           <div style="font-weight:700;color:#fff">${v.nome}</div>
-          <div style="font-size:11px;color:var(--tx-mut)">RCA ${v.rca}</div>
+          <div style="font-size:11px;color:var(--tx-mut)">RCA ${v.rca}<span class="cv-filin" style="display:none"> · ${v.filial}</span></div>
         </td>
-        <td><span class="tag-badge" style="background:rgba(56,189,248,0.15);color:var(--acc);">${v.filial}</span></td>
-        <td style="color:var(--tx-mut);font-size:12px;">${v.supervisor || '—'}</td>
+        <td class="cv-fil"><span class="tag-badge" style="background:rgba(56,189,248,0.15);color:var(--acc);">${v.filial}</span></td>
+        <td class="cv-sup" style="color:var(--tx-mut);font-size:12px;">${v.supervisor || '—'}</td>
         <td style="text-align:right" class="pts-cell">${v.pts_tabela}</td>
-        <td style="text-align:center"><span class="tag-badge tag-v">${v.vitorias}</span></td>
-        <td style="text-align:center"><span class="tag-badge tag-e">${v.empates}</span></td>
-        <td style="text-align:center"><span class="tag-badge tag-d">${v.derrotas}</span></td>
-        <td style="text-align:center;font-weight:700;color:var(--acc)">${v.aprov}%</td>
-        <td style="text-align:center"><div class="forma-container" title="${formaTitulo}">${formaHtml}</div></td>
+        <td class="cv-ved" style="text-align:center"><span class="tag-badge tag-v">${v.vitorias}</span></td>
+        <td class="cv-ved" style="text-align:center"><span class="tag-badge tag-e">${v.empates}</span></td>
+        <td class="cv-ved" style="text-align:center"><span class="tag-badge tag-d">${v.derrotas}</span></td>
+        <td style="text-align:center;font-weight:700;color:${(v.sg || 0) >= 0 ? 'var(--ok,#22c55e)' : 'var(--bad,#ef4444)'}" title="Gols pró ${v.gp || 0} · gols contra ${v.gc || 0}">${(v.sg || 0) >= 0 ? '+' + (v.sg || 0) : v.sg}</td>
+        <td class="cv-aprov" style="text-align:center;font-weight:700;color:var(--acc)">${v.aprov}%</td>
+        <td class="cv-forma" style="text-align:center"><div class="forma-container" title="${formaTitulo}">${formaHtml}</div></td>
         <td style="text-align:center">${streakHtml}</td>
       </tr>
     `;
