@@ -25,7 +25,7 @@ export async function onRequestGet() {
         const e = estadoSlot(porWf[s.workflow], ini, agora.getTime(), () => false);
         const falhou = ['refazer', 'esgotado', 'falhou_apos_iniciar'].includes(e.estado) && (agora.getTime() - ini) / 60000 >= ESPERA_MIN;
         corpo.horarios.push({ hm: s.hm, estado: e.estado });
-        if (falhou) corpo.problemas.push({ hm: s.hm, estado: e.estado, texto: `Disparo das ${s.hm} NÃO saiu (${e.estado === 'refazer' ? 'não começou; o vigia tenta de novo' : 'sem sucesso após as tentativas'})` });
+        if (falhou) corpo.problemas.push({ hm: s.hm, estado: e.estado, texto: `Disparo das ${s.hm} NÃO saiu (${e.estado === 'refazer' ? 'não enviou nada; o vigia tenta de novo' : e.estado === 'falhou_apos_iniciar' ? 'começou e não terminou; o vigia confere o log: se nenhuma mensagem saiu, refaz sozinho' : 'sem sucesso após as tentativas'})` });
       }
     } catch (e) {
       corpo.erro = String(e.message || e);

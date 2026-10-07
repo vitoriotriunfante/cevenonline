@@ -45,7 +45,8 @@ jobs:
     # 15min estourava quando a API do CEVEN ficava lenta (achado em 28/09/2026: 8 de 30 runs
     # recentes cancelados por timeout, cortando o envio no meio -- 9 gerentes sem receber a
     # mensagem das 17:00 nesse dia). 25min da folga sem deixar o job preso indefinidamente.
-    timeout-minutes: 25
+    # 07/10/2026: o disparo das 18:30 estourou os 25 min porque o CEVEN ficou lento (coleta de 13,5 min contra 2,7 min no 17:00) e foi cancelado sem enviar. Folga de 40 min.
+    timeout-minutes: 40
     permissions:
       contents: write
 

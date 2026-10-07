@@ -16,6 +16,19 @@ export default async function (ok, RAIZ) {
   ok(e17.estado === 'refazer' && e17.paradas.length === 1, 'caso real das 17h: run parada na fila sem maquina ha 10 min -> cancela a parada e refaz');
   ok(v.estadoSlot([run(1, 'completed', 'cancelled', 0)], ini, ini + 16 * 60000, () => false).estado === 'refazer', 'run cancelada sem ter executado passo: refaz');
   ok(v.estadoSlot([run(1, 'completed', 'failure', 0)], ini, ini + 16 * 60000, () => true).estado === 'falhou_apos_iniciar', 'run que ja executou passos e falhou: NAO refaz (poderia duplicar mensagem)');
+  // 07/10/2026 (18:30): job executou passos mas foi cancelado por tempo ainda na coleta; o log prova que nada foi enviado -> refaz. Com envio (ou log nao lido) continua sem refazer.
+  ok(v.estadoSlot([run(1, 'completed', 'cancelled', 0)], ini, ini + 30 * 60000, () => true, () => true).estado === 'refazer', 'job iniciado, cancelado por tempo e SEM nenhum envio no log: refaz');
+  ok(v.estadoSlot([run(1, 'completed', 'cancelled', 0)], ini, ini + 30 * 60000, () => true, () => false).estado === 'falhou_apos_iniciar', 'job iniciado e sem prova de que nada foi enviado: NAO refaz');
+  ok(v.estadoSlot([run(1, 'completed', 'cancelled', 0), run(2, 'completed', 'cancelled', 9)], ini, ini + 30 * 60000, () => true, () => true).estado === 'esgotado', 'mesmo sem envio, no maximo 2 tentativas');
+  { const sv = await import('../worker-cron/src/vigia.js'); const orig = globalThis.fetch; try {
+    const log = (extra) => 'x'.repeat(2500) + ' Executando Ciclo: 18:30 ' + extra;
+    globalThis.fetch = async (u) => (String(u).includes('api.github.com') ? { headers: { get: () => 'https://blob.example/log' }, ok: false, status: 302 } : { ok: true, text: async () => log('coleta... Apurando Cortes') });
+    ok(await sv.jobSemEnvio({ GITHUB_TOKEN: 'x' }, 1) === true, 'jobSemEnvio: log completo sem a linha de envio = nada foi enviado');
+    globalThis.fetch = async (u) => (String(u).includes('api.github.com') ? { headers: { get: () => 'https://blob.example/log' }, ok: false, status: 302 } : { ok: true, text: async () => log('Enviando Consolidado para Vitorio') });
+    ok(await sv.jobSemEnvio({ GITHUB_TOKEN: 'x' }, 1) === false, 'jobSemEnvio: com a linha Enviando = ja enviou, nao refaz');
+    globalThis.fetch = async () => { throw new Error('rede'); };
+    ok(await sv.jobSemEnvio({ GITHUB_TOKEN: 'x' }, 1) === false, 'jobSemEnvio: log nao lido = na duvida, nao refaz');
+  } finally { globalThis.fetch = orig; } }
   ok(v.estadoSlot([run(1, 'completed', 'cancelled', 0), run(2, 'completed', 'cancelled', 9)], ini, ini + 30 * 60000).estado === 'esgotado', 'ja houve 2 tentativas: para (a Matriz avisa)');
   ok(v.estadoSlot([run(1, 'queued', null, 7)], ini, ini + 10 * 60000).estado === 'aguardando', 'run recente (3 min) ainda na fila: espera');
 

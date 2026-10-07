@@ -38,7 +38,8 @@ export function inicioSlotMs(hm, now = new Date()) {
 
 // Estado de um horario a partir das runs (funcao pura: usada pelo vigia e igual a do endpoint /api/disparo-status).
 // runs: [{id, status, conclusion, created_at}]; jobsIniciados(runId) -> true se algum passo do job executou
-export function estadoSlot(runs, ini, agora, jobsIniciados = () => false) {
+// semEnvio(id) = true quando o LOG da run prova que nenhuma mensagem chegou a ser enviada (ex.: job cancelado por tempo ainda na coleta do CEVEN, 07/10/2026): ai refazer e seguro.
+export function estadoSlot(runs, ini, agora, jobsIniciados = () => false, semEnvio = () => false) {
   const cand = (runs || []).filter((r) => { const t = Date.parse(r.created_at); return t >= ini - 3 * 60000 && t <= ini + JANELA_MIN * 60000; });
   const idade = (agora - ini) / 60000;
   if (cand.some((r) => r.conclusion === 'success')) return { estado: 'ok', cand };
@@ -46,10 +47,11 @@ export function estadoSlot(runs, ini, agora, jobsIniciados = () => false) {
   if (idade < ESPERA_MIN) return { estado: 'aguardando', cand };
   const paradas = cand.filter((r) => ['queued', 'waiting', 'pending', 'requested'].includes(r.status) && (agora - Date.parse(r.created_at)) / 60000 >= ESPERA_MIN);
   const semInicio = cand.filter((r) => r.status === 'completed' && !jobsIniciados(r.id));
-  const comInicio = cand.filter((r) => r.status === 'completed' && r.conclusion !== 'success' && jobsIniciados(r.id));
+  const iniciadasSemEnvio = cand.filter((r) => r.status === 'completed' && r.conclusion !== 'success' && jobsIniciados(r.id) && semEnvio(r.id));
+  const comInicio = cand.filter((r) => r.status === 'completed' && r.conclusion !== 'success' && jobsIniciados(r.id) && !semEnvio(r.id));
   if (comInicio.length) return { estado: 'falhou_apos_iniciar', cand, paradas, semInicio, comInicio }; // pode ter enviado parte: nao refaz
   if (cand.length >= 2) return { estado: 'esgotado', cand, paradas, semInicio };
-  if (!cand.length || paradas.length || semInicio.length) return { estado: 'refazer', cand, paradas, semInicio };
+  if (!cand.length || paradas.length || semInicio.length || iniciadasSemEnvio.length) return { estado: 'refazer', cand, paradas, semInicio, iniciadasSemEnvio };
   return { estado: 'aguardando', cand }; // run recente ainda na fila (menos de 8 min)
 }
 
@@ -59,6 +61,19 @@ async function gh(env, path, init = {}) {
     headers: { Authorization: `Bearer ${env.GITHUB_TOKEN}`, Accept: 'application/vnd.github+json', 'User-Agent': 'ceven-cron-trigger', 'Content-Type': 'application/json' },
     signal: AbortSignal.timeout(15000)
   });
+}
+
+// Lê o log do job e diz se NENHUMA mensagem foi enviada (true so com prova: log lido inteiro e sem a linha 'Enviando'). Qualquer dúvida = false (não refaz).
+export async function jobSemEnvio(env, jobId) {
+  try {
+    const r1 = await fetch(`https://api.github.com/repos/${REPO}/actions/jobs/${jobId}/logs`, { headers: { Authorization: `Bearer ${env.GITHUB_TOKEN}`, Accept: 'application/vnd.github+json', 'User-Agent': 'ceven-cron-trigger' }, redirect: 'manual', signal: AbortSignal.timeout(15000) });
+    const url = r1.headers && r1.headers.get ? r1.headers.get('location') : null;
+    const r2 = url ? await fetch(url, { signal: AbortSignal.timeout(20000) }) : r1;
+    if (!r2 || !r2.ok) return false;
+    const txt = await r2.text();
+    if (txt.length < 2000 || !/Sessão CEVEN Admin|Executando Ciclo/.test(txt)) return false; // log incompleto: nao prova nada
+    return !/Enviando|enviad[oa] com sucesso|Mensagem enviada/i.test(txt);
+  } catch (e) { return false; }
 }
 
 export async function vigiarDisparos(env, now = new Date()) {
@@ -73,15 +88,16 @@ export async function vigiarDisparos(env, now = new Date()) {
       const rl = await gh(env, `/actions/workflows/${slot.workflow}/runs?event=workflow_dispatch&per_page=15`);
       if (!rl.ok) { log.push(`${slot.hm}: nao consegui listar runs (${rl.status})`); continue; }
       const runs = (await rl.json()).workflow_runs || [];
-      const iniciou = new Map();
+      const iniciou = new Map(), semEnv = new Map();
       for (const r of runs) {
         const t = Date.parse(r.created_at);
         if (r.status !== 'completed' || r.conclusion === 'success' || t < ini - 3 * 60000 || t > ini + JANELA_MIN * 60000) continue;
         const rj = await gh(env, `/actions/runs/${r.id}/jobs`);
         const jobs = rj.ok ? (await rj.json()).jobs || [] : [];
         iniciou.set(r.id, jobs.some((j) => Array.isArray(j.steps) && j.steps.length > 0));
+        if (iniciou.get(r.id) && jobs.length) semEnv.set(r.id, await jobSemEnvio(env, jobs[0].id));
       }
-      const e = estadoSlot(runs, ini, agora, (id) => iniciou.get(id) === true);
+      const e = estadoSlot(runs, ini, agora, (id) => iniciou.get(id) === true, (id) => semEnv.get(id) === true);
       if (e.estado !== 'refazer') { if (['esgotado', 'falhou_apos_iniciar'].includes(e.estado)) log.push(`${slot.hm}: ${e.estado} (nao refaz; a Matriz avisa)`); continue; }
       for (const r of e.paradas || []) await gh(env, `/actions/runs/${r.id}/cancel`, { method: 'POST' }); // run parada sem maquina nao pode acordar depois e duplicar
       const rd = await gh(env, `/actions/workflows/${slot.workflow}/dispatches`, { method: 'POST', body: JSON.stringify({ ref: REF, inputs: slot.inputs }) });

@@ -12,13 +12,13 @@
 //          início da execução). DELETE /api/cron-lock  → libera (usado no fim, sempre, mesmo se
 //          o disparo falhar). GET /api/cron-lock  → { ativo: bool, dono, idade_s }, usado pelos
 //          outros crons antes de rodar.
-// AUTO-LIBERAÇÃO: lock com mais de 20min é considerado travado (workflow morreu no meio) e o GET
+// AUTO-LIBERAÇÃO: lock com mais de 45min é considerado travado (workflow morreu no meio) e o GET
 //          já reporta ativo=false — nunca trava os outros crons pra sempre por um job preso.
 // PROJETO: CFTV/TV + WhatsApp (único arquivo tocado por ambos de propósito, é um lock).
 // =========================================================================
 
 const TABELA = 'cron_lock_global';
-const LIMITE_IDADE_MS = 20 * 60 * 1000; // 20min — mais que o pior caso já visto (19min, 28/09/2026)
+const LIMITE_IDADE_MS = 45 * 60 * 1000; // 45min — acima do timeout do disparo (40 min, desde 07/10/2026; antes 25 min e lock de 20: o lock soltava os crons da TV no meio do disparo)
 
 async function garantirTabela(env) {
   await env.DB.prepare(

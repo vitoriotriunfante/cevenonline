@@ -238,3 +238,8 @@ Planilha na raiz do projeto (fora do git, tem dado de pessoa real — mesmo trat
 - `worker-cron/src/vigia.js` (chamado a cada 2 min pelo cron `*/2`): 8 min após cada horário oficial, se o disparo não começou (sem run, run parada na fila, ou run cancelada/falha sem nenhum passo executado), cancela a parada e dispara UMA vez de novo (máx. 2 tentativas, até 45 min depois do horário). Run que já executou passos nunca é refeita (duplicaria mensagem).
 - Aviso: faixa vermelha na Matriz (`/api/disparo-status`, lê a API pública da GitHub).
 - Decisão: o das 17h de 05/10 NÃO foi reenviado (o fechamento das 18:30 cobre).
+
+## 07/10/2026 — disparo das 18:30 cancelado por tempo (Vitório mandou corrigir "para as próximas")
+- **O que houve:** o job do 18:30 estourou os 25 min (coleta no CEVEN levou 13,5 min contra 2,7 min no 17:00; a apuração dos 330 vendedores não terminou) e foi cancelado ANTES de enviar qualquer mensagem. O vigia não refez porque o job "já tinha executado passos" (regra anti-duplicação), apesar de o alerta dizer "o vigia tenta de novo".
+- **Correções:** (1) `timeout-minutes` do workflow 25 → 40; (2) lock global dos crons da TV (`cron-lock.js`) 20 → 45 min (antes ele soltava os crons da TV no meio do disparo); (3) vigia: `jobSemEnvio` lê o LOG do job e, se for provado que NENHUMA mensagem foi enviada (sem a linha "Enviando"), refaz (máx. 2 tentativas, dentro da janela de 45 min); sem prova ou com envio, continua sem refazer; (4) a faixa da Matriz diz a verdade ("começou e não terminou; o vigia confere o log").
+- **Causa raiz externa:** lentidão do CEVEN no fim do dia; acompanhar a duração das coletas.
