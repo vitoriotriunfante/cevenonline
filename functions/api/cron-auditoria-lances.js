@@ -35,7 +35,10 @@ export async function onRequestGet({ env, request }) {
     const res = await env.DB.prepare('SELECT auditados, ok, com_falha, por_regra_json, em FROM auditoria_lance_resumo WHERE dia = ?').bind(dia).first();
     if (!res) return new Response(JSON.stringify({ dia, auditado: false }), { headers: cors });
     const { results } = await env.DB.prepare('SELECT chave, filial, regra, falhas_json, hora, vendedor, rca, pontos FROM auditoria_lance_falha WHERE dia = ? ORDER BY hora DESC LIMIT 300').bind(dia).all();
-    return new Response(JSON.stringify({ dia, auditado: true, auditados: res.auditados, ok: res.ok, com_falha: res.com_falha, em: res.em, por_regra: JSON.parse(res.por_regra_json || '{}'),
+    // lances RETIRADOS da pontuacao pela auditoria do fechamento (trilha em lances_excluidos_liga)
+    let retirados = [];
+    try { const rr = await env.DB.prepare("SELECT chave, motivo, em FROM lances_excluidos_liga WHERE dia = ? AND motivo LIKE 'AUDITORIA DO FECHAMENTO%' ORDER BY em DESC LIMIT 400").bind(dia).all(); retirados = rr.results || []; } catch (e) { retirados = []; }
+    return new Response(JSON.stringify({ dia, auditado: true, retirados, auditados: res.auditados, ok: res.ok, com_falha: res.com_falha, em: res.em, por_regra: JSON.parse(res.por_regra_json || '{}'),
       falhos: (results || []).map((x) => ({ ...x, falhas: JSON.parse(x.falhas_json || '[]'), falhas_json: undefined })) }), { headers: cors });
   } catch (e) {
     return new Response(JSON.stringify({ erro: String(e.message || e).slice(0, 300) }), { status: 500, headers: cors });

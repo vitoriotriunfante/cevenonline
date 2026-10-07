@@ -476,7 +476,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
       <div class="brand-text">
         <h1>CHAMPIONS TRIUNFANTE</h1>
         <p>
-          <span class="live-pill"><span class="dot"></span> CADA DIA É UM JOGO</span><span id="pillPre" style="display:none;margin-left:8px;padding:3px 10px;border-radius:999px;background:#7c2d12;color:#fed7aa;font-weight:800;font-size:12px" title="A liga oficial, com regras congeladas e dias fechados, começa em 13/10/2026. Até lá este ranking é só acompanhamento.">PRÉ-TEMPORADA (05 a 12/10) · não vale remuneração · liga oficial começa em 13/10/2026</span>
+          <span class="live-pill"><span class="dot"></span> CADA DIA É UM JOGO</span><span id="pillPre" style="display:none;margin-left:8px;padding:3px 10px;border-radius:999px;background:#7c2d12;color:#fed7aa;font-weight:800;font-size:12px" title="A liga oficial, com regras congeladas e dias fechados, começa em 13/10/2026. Até lá este ranking é só acompanhamento.">PRÉ-TEMPORADA (05 a 12/10) · liga oficial começa em 13/10/2026</span>
           <span id="hdr-info">• A pontuação é contra o seu próprio dia • 11 Filiais</span>
         </p>
       </div>
@@ -797,6 +797,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
         </div>
       </div>
       <div id="gab-as-fase" style="padding:0 20px 14px;display:none"></div>
+      <div id="gab-auditoria" style="padding:0 20px 14px;display:none"></div>
       <div style="overflow-x:auto"><table class="tb-league"><thead><tr><th style="width:25%">Lance (regra oficial)</th><th style="text-align:center">Pontos</th><th>Critério</th><th style="text-align:center;width:90px">Lances hoje</th><th style="text-align:center;width:110px">Pontos no dia</th></tr></thead><tbody id="tbody-gabarito"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando…</td></tr></tbody></table></div>
     </div>
   </section>
@@ -814,7 +815,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
       <div class="rule-card">
         <h3>📌 Informações oficiais desta versão</h3>
         <p>
-          <strong>Versão do regulamento:</strong> <span id="reg-versao">—</span> · <strong>Liga oficial desde:</strong> <span id="reg-desde">13/10/2026</span>. O que veio antes foi <strong>pré-temporada</strong> e não vale remuneração. Regra, pontuação ou score novos só entram com <strong>nova versão</strong> e aviso aos gerentes; no período de estabilidade só se corrige erro.
+          <strong>Versão do regulamento:</strong> <span id="reg-versao">—</span> · <strong>Liga oficial desde:</strong> <span id="reg-desde">13/10/2026</span>. O que veio antes foi <strong>pré-temporada</strong>. Regra, pontuação ou score novos só entram com <strong>nova versão</strong> e aviso aos gerentes; no período de estabilidade só se corrige erro.
           <br><br>
           🔒 <strong>Dia fechado:</strong> às <strong>22h</strong> o dia é congelado (lances que contam, pontos e versão das regras). Depois disso nada muda naquele dia: nem lance que chegue atrasado, nem troca de supervisor, nem regra nova.
           <br>
@@ -1206,12 +1207,34 @@ async function carregarLances() {
 }
 
 // Gabarito do dia: junta as regras do config (pontuacao_brasileirao.json) com os lances reais do dia (endpoint de lances, ja sem duplicados e com extra do gol qualificado)
+// AUTO-AUDITORIA no Gabarito (Vitorio, 07/10/2026: "vai se auto auditando... quero isso no gabarito no dia 13/10"): o sistema audita sozinho cada lance (prova, regra e limites)
+// e o resultado aparece aqui: quantos foram auditados, aprovados, reprovados e RETIRADOS da pontuacao pelo fechamento. Aparece para dias da liga oficial (a partir de 13/10) ou com ?auditoria=1.
+async function carregaAuditoriaGabarito(dia, fil) {
+  const box = document.getElementById('gab-auditoria'); if (!box) return;
+  let ver = false; try { ver = new URLSearchParams(location.search).has('auditoria'); } catch (e) {}
+  if (!(dia >= '2026-10-13' || ver)) { box.style.display = 'none'; return; }
+  try {
+    const a = await fetch('/api/cron-auditoria-lances?dia=' + dia, { cache: 'no-store' }).then(r => r.json());
+    box.style.display = '';
+    if (!a || !a.auditado) { box.innerHTML = '<div class="rule-card" style="margin:0"><h3 style="margin:0 0 6px">🔎 Auto-auditoria do dia</h3><p style="margin:0;color:var(--tx-mut)">Ainda sem auditoria gravada para ' + esc(dia) + ' (ela roda sozinha a cada ~30 min durante o dia).</p></div>'; return; }
+    const falhos = (a.falhos || []).filter(f => !fil || fil === 'TODAS' || f.filial === fil);
+    const ret = new Set((a.retirados || []).map(r => r.chave));
+    const linhas = falhos.slice(0, 120).map(f => '<tr><td>' + esc(String(f.hora || '').slice(0, 5)) + '</td><td>' + esc(f.filial) + '</td><td>' + esc(f.vendedor || '') + '</td><td>' + esc(f.regra || '') + '</td><td>' + esc((f.falhas || []).join('; ')) + '</td><td style="text-align:center">' + (ret.has(String(f.chave).replace(/^[A-Z]{3}[|]/, '')) ? '<b style="color:#ef4444">RETIRADO</b>' : '<span style="color:#f59e0b">apontado</span>') + '</td></tr>').join('');
+    box.innerHTML = '<div class="rule-card" style="margin:0"><h3 style="margin:0 0 6px">🔎 Auto-auditoria do dia — ' + esc(dia) + '</h3>'
+      + '<p style="margin:0 0 10px">O sistema confere sozinho cada lance (prova, regra e limites): <b>' + nfmt(a.auditados) + '</b> auditados · <b style="color:#22c55e">' + nfmt(a.ok) + ' aprovados</b> · <b style="color:' + (a.com_falha ? '#f59e0b' : '#22c55e') + '">' + nfmt(a.com_falha) + ' reprovados</b> · <b>' + nfmt((a.retirados || []).length) + ' retirados da pontuação no fechamento das 22h</b>. Sem comprovação não tem lance.</p>'
+      + (linhas ? '<div style="overflow-x:auto"><table class="tb-league"><thead><tr><th>Hora</th><th>Filial</th><th>Vendedor</th><th>Regra</th><th>Motivo da reprovação</th><th style="text-align:center">Situação</th></tr></thead><tbody>' + linhas + '</tbody></table></div>' + (falhos.length > 120 ? '<small style="color:var(--tx-mut)">Mostrando 120 de ' + falhos.length + '.</small>' : '') : '<p style="margin:0;color:#22c55e">Nenhum lance reprovado.</p>')
+      + '<small style="color:var(--tx-mut)">Atualizada às ' + esc(String(a.em || '')) + ' (UTC). Reprovado = apontado; o fechamento das 22h retira da pontuação o que continuar sem comprovação.</small></div>';
+  } catch (e) { box.style.display = 'none'; }
+}
+const nfmt = (n) => Number(n || 0).toLocaleString('pt-BR');
+
 async function carregarGabarito() {
   const tb = document.getElementById('tbody-gabarito'), inp = document.getElementById('gab-data');
   if (!tb) return;
   montaGabaritoFase();
   if (inp && !inp.value) inp.value = hojeISOBrasilia();
   const dia = inp ? inp.value : hojeISOBrasilia(), fil = document.getElementById('gab-filial').value;
+  carregaAuditoriaGabarito(dia, fil);
   tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando…</td></tr>';
   try {
     const qs = new URLSearchParams({ dia }); if (fil && fil !== 'TODAS') qs.set('filial', fil);
