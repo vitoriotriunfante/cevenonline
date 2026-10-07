@@ -834,6 +834,13 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
         </p>
       </div>
 
+      <div class="rule-card">
+        <h3>🌟 Tripla de Marca Própria (a partir de 09/10/2026 · Varejo e AS)</h3>
+        <p>
+          Quem fecha <strong>3 ou mais clientes diferentes no mesmo dia</strong>, cada um com pedido de <strong>R$ 50 ou mais de Marca Própria Triunfante</strong>, ganha um gol extra: <strong>+10 pontos</strong>, o maior bônus da liga, <strong>um por vendedor por dia</strong>. Cada um dos 3 clientes continua valendo o seu Gol de Marca Própria (+8): a Tripla é um bônus por cima. É um bônus fixo, <strong>sem nível</strong> (bronze a platina). Ganha a <strong>🌟 estrela</strong> e é <strong>sempre exibido na TV</strong>, na frente de qualquer outro lance. Regra da versão 2026-10-09.1: não vale para dias anteriores a 09/10.
+        </p>
+      </div>
+
       <div class="rule-card" id="reg-as" style="display:none">
         <h3>🏬 Liga AS (Autosserviço) — o jogo é SEMANAL</h3>
         <div id="reg-as-corpo"></div>
@@ -1086,6 +1093,7 @@ const MAPA_REGRAS_PONTOS = {
   gol_inativo: { nome: 'Resgate de Inativo / Drible da Vaca', pontos: 6, motivo: 'Recuperou cliente parado >30d (ou >90d), sem a tag RECORRÊNCIA (com a tag o lance é a Defesa)' },
   gol_hattrick: { nome: 'Hat-Trick', pontos: 6, motivo: '3 pedidos seguidos em curto intervalo' },
   hattrick: { nome: 'Hat-Trick', pontos: 6, motivo: '3 pedidos seguidos em curto intervalo' },
+  gol_mp_tripla: { nome: '🌟 Tripla de Marca Própria', pontos: 10, motivo: '3 clientes no dia com R$ 50+ de Marca Própria cada' },
   gol_super: { nome: 'Super Pedido', pontos: 5, motivo: 'Pedido de valor muito acima do padrão do vendedor' },
   gol_conversao: { nome: 'Máquina de Conversão', pontos: 5, motivo: 'Alto aproveitamento de visitas em vendas (>=50%)' },
   gol_relampago: { nome: 'Gol Relâmpago', pontos: 4, motivo: 'Pedido fechado logo no início do dia' },
@@ -1622,7 +1630,7 @@ function montaTextoGolQualificado() {
   const pq = document.getElementById('txt-gol-qualificado'), gq = CFG_PONTOS && CFG_PONTOS.gol_qualificado; if (!pq || !gq) return;
   const base = gq.regra + ' ' + gq.carteira_so_mondelez;
   pq.textContent = CANAL === 'AS'
-    ? 'No AS vale para os gols do AS (Super Pedido, Gol de Mix +2 SKUs, Resgate de Inativo, Dobradinha das Quinzenas e Gol de Marca Própria) e para o Pedido Feito na Rota. ' + base + ' Gol de cliente (Resgate, Gol de Mix, Quinzenas, Marca Própria): indústrias do pedido do cliente. Super Pedido (gol do dia): indústrias de todos os pedidos do vendedor no dia.'
+    ? 'No AS vale para os gols do AS (Super Pedido, Gol de Mix +2 SKUs, Resgate de Inativo, Dobradinha das Quinzenas, Gol de Marca Própria e Tripla de Marca Própria) e para o Pedido Feito na Rota. ' + base + ' Gol de cliente (Resgate, Gol de Mix, Quinzenas, Marca Própria): indústrias do pedido do cliente. Super Pedido (gol do dia): indústrias de todos os pedidos do vendedor no dia.'
     : 'Vale para TODOS os gols e para o Pedido Feito na Rota, menos o Campeão da Rodada (que é do mês). ' + base + ' Gol de cliente (Resgate de Inativo, Dobrou o Mix, Dobradinha das Quinzenas, Gol de Marca Própria): indústrias do pedido do cliente. Gol do dia (Super Pedido, Goleada, Relâmpago, Acréscimos, Meta do 1º Tempo, Conversão, Hat-Trick): indústrias de todos os pedidos do vendedor no dia.';
   const v = document.getElementById('reg-versao'); if (v) v.textContent = CFG_PONTOS.versao_regras || '—';
   const d = document.getElementById('reg-desde'); if (d && CFG_PONTOS.vigente_desde) d.textContent = String(CFG_PONTOS.vigente_desde).split('-').reverse().join('/');
@@ -1638,7 +1646,7 @@ function montaRegulamentoAS() {
       <tr><td>3ª semana (até o dia 20)</td><td style="text-align:center">60%</td><td style="text-align:center"><b>+30</b></td></tr><tr><td>4ª semana (até o fim do mês)</td><td style="text-align:center">110%</td><td style="text-align:center"><b>+40</b></td></tr>
       <tr><td>🥇 Bônus de primeira quinzena: bateu <strong>100%</strong> da meta até o dia 15</td><td style="text-align:center">100%</td><td style="text-align:center"><b>+50</b></td></tr><tr><td>🥈 Bateu <strong>100%</strong> da meta até o dia 25</td><td style="text-align:center">100%</td><td style="text-align:center"><b>+25</b></td></tr></tbody></table>
     <p style="font-size:13px;color:var(--tx-mut)">% da meta = (faturado + pendente) dividido pela meta do mês, o mesmo número do app do CEVEN. A semana de faseamento só pontua depois que o dia de fechamento termina. Sem meta cadastrada o vendedor não pontua no faseamento.</p>
-    <p><strong>O que NÃO vale no AS</strong> (depende do horário ou das visitas do dia; o AS visita um dia e vende em outro): Gol Relâmpago, Gol nos Acréscimos, Meta do 1º Tempo, Hat-Trick, Máquina de Conversão, Goleada, Cartão Amarelo das 10h e Cartão Vermelho de abandono — eles saem da tabela de pontos abaixo. <strong>Também fora no AS:</strong> Campeão da Rodada (o bônus de 100% da meta já cumpre esse papel). <strong>Gol de Mix (+2 SKUs):</strong> no AS o "Dobrou o Mix" é trocado por pedido com 2 ou mais SKUs a mais que a média do cliente (+4, qualificado por indústrias). <strong>⭐ Gol de Marca Própria (+8, a partir de 08/10/2026, no AS e no Varejo):</strong> pedido do cliente com R$ 50 ou mais de Marca Própria. É o gol mais valioso, ganha a estrela, é qualificado pelas indústrias do pedido e é SEMPRE exibido na TV, um a um, na frente de qualquer outro lance. <strong>Valem iguais ao Varejo:</strong> Resgate de Inativo, Dobradinha das Quinzenas, Defesa, Super Pedido (no AS a partir de R$ 75.000 no dia), Pedido Feito na Rota, devoluções, pênaltis e impedimento de GPS. <strong>Em definição:</strong> check-in por carteira (90% = +5 · 95% = +10 · 100% = +20), amarelo de venda sem check-in e punição por falta de pedido (dia 5 = −5 · dia 10 = −10 · dia 20 = −20).</p>`;
+    <p><strong>O que NÃO vale no AS</strong> (depende do horário ou das visitas do dia; o AS visita um dia e vende em outro): Gol Relâmpago, Gol nos Acréscimos, Meta do 1º Tempo, Hat-Trick, Máquina de Conversão, Goleada, Cartão Amarelo das 10h e Cartão Vermelho de abandono — eles saem da tabela de pontos abaixo. <strong>Também fora no AS:</strong> Campeão da Rodada (o bônus de 100% da meta já cumpre esse papel). <strong>Gol de Mix (+2 SKUs):</strong> no AS o "Dobrou o Mix" é trocado por pedido com 2 ou mais SKUs a mais que a média do cliente (+4, qualificado por indústrias). <strong>⭐ Gol de Marca Própria (+8, a partir de 08/10/2026, no AS e no Varejo):</strong> pedido do cliente com R$ 50 ou mais de Marca Própria. É o gol mais valioso, ganha a estrela, é qualificado pelas indústrias do pedido e é SEMPRE exibido na TV, um a um, na frente de qualquer outro lance. <strong>🌟 Tripla de Marca Própria (+10, a partir de 09/10/2026, no AS e no Varejo):</strong> 3 clientes diferentes no mesmo dia, cada um com R$ 50 ou mais de Marca Própria. <strong>Valem iguais ao Varejo:</strong> Resgate de Inativo, Dobradinha das Quinzenas, Defesa, Super Pedido (no AS a partir de R$ 75.000 no dia), Pedido Feito na Rota, devoluções, pênaltis e impedimento de GPS. <strong>Em definição:</strong> check-in por carteira (90% = +5 · 95% = +10 · 100% = +20), amarelo de venda sem check-in e punição por falta de pedido (dia 5 = −5 · dia 10 = −10 · dia 20 = −20).</p>`;
 }
 
 window.addEventListener('load', aplicaCanalNaTela);

@@ -16,6 +16,7 @@ function agoraSP() {
 
 const REGRAS_PONTOS = {
   gol_campeao: { nome: 'Campeão da Rodada', pontos: 8, motivo: 'Bateu 100% da meta do mês' },
+  gol_mp_tripla: { nome: '🌟 Tripla de Marca Própria', pontos: 10, motivo: '3 clientes no dia com R$ 50+ de Marca Própria cada' },
   gol_marca_propria: { nome: '⭐ Gol de Marca Própria', pontos: 8, motivo: 'Pedido com R$ 50 ou mais de Marca Própria (foco da empresa)' },
   gol_goleada: { nome: 'Goleada', pontos: 7, motivo: 'Volume excepcional de clientes positivados no dia' },
   gol_meta1t: { nome: 'Meta do 1º Tempo', pontos: 6, motivo: 'Bateu a meta do dia antes das 14h' },

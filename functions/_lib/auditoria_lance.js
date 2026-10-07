@@ -66,6 +66,10 @@ export function auditaLance(l, ctx = {}) {
   } else if (tipo === 'gol_hattrick' || tipo === 'hattrick') {
     m = /(\d+) check-ins em (\d+) min/.exec(obs);
     if (!m) falha('hat-trick sem a prova dos check-ins'); else { if (+m[1] < 3) falha(`hat-trick com ${m[1]} check-ins`); if (+m[2] > 120) falha(`hat-trick em ${m[2]} min (máximo 120)`); }
+  } else if (tipo === 'gol_mp_tripla') {
+    m = /(\d+) clientes com R\$ 50\+ de MARCA PROPRIA no dia \(minimo 3\)/.exec(obs);
+    if (!m) falha('tripla de marca propria sem a prova dos clientes'); else if (+m[1] < 3) falha(`tripla de marca propria com ${m[1]} clientes (minimo 3)`);
+    if (ctx.dia && ctx.dia < '2026-10-09') falha('tripla de marca propria antes de 09/10/2026 (ainda nao valia)');
   } else if (tipo === 'gol_marca_propria') {
     m = /MARCA PROPRIA R\$ ([\d.,]+) \(minimo R\$ (\d+)\)/.exec(obs);
     if (!m) falha('gol de marca propria sem o valor de marca propria na prova'); else if (num(m[1]) < +m[2] || +m[2] < 50) falha(`gol de marca propria com R$ ${m[1]} (minimo R$ 50)`);

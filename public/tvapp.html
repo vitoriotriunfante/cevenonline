@@ -430,6 +430,7 @@ function textoGol(subtipo, valor, c, horaReal) {
   if (subtipo === 'goleada') return `Goleada! ${valor} clientes positivados hoje!`;
   if (subtipo === 'campeao') return `Campeão da Rodada: 100% da meta do mês batida!`;
   if (subtipo === 'marca_propria') return `${c && c.nome} · ⭐ GOL DE MARCA PRÓPRIA! R$ ${(Number(valor) || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} de Marca Própria no pedido!`;
+  if (subtipo === 'mp_tripla') return `🌟 TRIPLA DE MARCA PRÓPRIA! ${valor} clientes com R$ 50+ de Marca Própria hoje!`;
   if (subtipo === 'dobrou_mix') return `${c && c.nome} · dobrou o mix do cliente!`;
   if (subtipo === 'hattrick') return `Hat-Trick (3 visitas com venda em até 2h, última checkin ${horaReal})`;
   if (subtipo === 'meta1tempo') return `Meta do 1º Tempo batida (checkin ${horaReal})`;
@@ -701,6 +702,11 @@ function calcAlertas(vs) {
     if ((v.comVenda || 0) >= 10) { // clientes positivados COMPROVADOS na rota (pedidos nao provam clientes)
       out.push({key: `gol_goleada|${v.id}`, nivel: 'gol', subtipo: 'goleada', v, valor: v.comVenda});
     }
+    // --- LANCE: TRIPLA DE MARCA PROPRIA (a partir de 09/10/2026): 3+ clientes no dia com R$ 50+ de Marca Propria cada (+10, um por vendedor por dia) ---
+    if (HOJE0 >= '2026-10-09') {
+      const mpCli = (v.cl || []).filter(c => ['POSITIVADO', 'EFETIVADO'].includes(c.status) && (c.industrias || []).filter(x => /marca propria/.test(String(x.n || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''))).reduce((a, x) => a + (Number(x.v) || 0), 0) >= 50);
+      if (mpCli.length >= 3) out.push({key: `gol_mp_tripla|${v.id}`, nivel: 'gol', subtipo: 'mp_tripla', v, valor: mpCli.length});
+    }
     // --- LANCE G12: CAMPEÃO DA RODADA (100% da meta mensal batida) ---
     // v.fat/v.meta são acumulados do MÊS: uma vez batida a meta, fica batida o resto do mês. A
     // chave inclui o mês (YYYY-MM) e o backend (tv-lances.js) impede repetir a mesma chave em
@@ -915,7 +921,7 @@ const penaltisDe = rca => LOG.filter(e => e.nivel === 'penalti' && e.rca === rca
 function enfileira(novos) {
   // Gols têm prioridade máxima de comemoração
   novos.filter(a => a.nivel === 'gol').forEach(a => {
-    ESPERA.unshift({tipo: 'gol', v: a.v, c: a.c, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaReal), score: a.subtipo === 'marca_propria' ? 500 : 99});
+    ESPERA.unshift({tipo: 'gol', v: a.v, c: a.c, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaReal), score: ['marca_propria', 'mp_tripla'].includes(a.subtipo) ? 500 : 99});
   });
   novos.filter(a => a.nivel === 'hattrick').forEach(a => {
     ESPERA.unshift({tipo: 'hattrick', v: a.v, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaReal), score: 99});
@@ -936,7 +942,7 @@ function enfileira(novos) {
   { const l = novos.filter(a => a.nivel === 'amarelo'); if (l.length) ESPERA.push({tipo: 'amarelos', l, score: 20}); } // amarelos das 10h: um popup com a lista
   liberaEspera();
 }
-const ehMarcaPropria = (x) => x.tipo === 'gol' && ((x.a && x.a.subtipo) || x.subtipo) === 'marca_propria'; // foco da empresa: sai SEMPRE, sozinho, na frente e sem esperar intervalo
+const ehMarcaPropria = (x) => x.tipo === 'gol' && ['marca_propria', 'mp_tripla'].includes((x.a && x.a.subtipo) || x.subtipo); // foco da empresa: sai SEMPRE, sozinho, na frente e sem esperar intervalo
 const ehBomLance = (x) => x.tipo === 'gol' || x.tipo === 'hattrick' || x.tipo === 'defesa'; // lance bom: sai sozinho, na frente e com intervalo curto (30 s depois das 15h, 40 s antes)
 // FOCO EM GOL DEPOIS DAS 15H (Vitório, 06/10/2026: "depois das 15 quero foco em gol e mais gols"): lance ruim (pênalti, cartão, impedimento, gol contra) so aparece em resumo, no maximo 1 a cada 10 min
 let ULT_RUIM = 0;
@@ -965,6 +971,17 @@ function beep(seq) {
   } catch {}
 }
 function linhas(o) { return Object.entries(o).filter(([, v]) => v != null && v !== '').map(([k, v]) => `<div class="ln${String(v).startsWith('!') ? ' hot' : ''}"><b>${esc(k)}</b><span>${esc(String(v).replace(/^!/, ''))}</span></div>`).join(''); }
+// Chuva de estrelas douradas por cima da animacao do Gol de Marca Propria e da Tripla (foco da empresa). Some sozinha.
+function estrelasMP(item) {
+  const sub = (item.a && item.a.subtipo) || item.subtipo; if (sub !== 'marca_propria' && sub !== 'mp_tripla') return;
+  try {
+    if (!document.getElementById('estrelasmp-css')) { const st = document.createElement('style'); st.id = 'estrelasmp-css'; st.textContent = '@keyframes estCai{from{transform:translateY(-12vh) rotate(0)}to{transform:translateY(112vh) rotate(360deg)}}#estrelasmp{position:fixed;inset:0;z-index:99999;pointer-events:none;overflow:hidden}#estrelasmp i{position:absolute;top:0;font-style:normal;animation:estCai linear forwards;filter:drop-shadow(0 0 8px #facc15)}'; document.head.appendChild(st); }
+    const old = document.getElementById('estrelasmp'); if (old) old.remove();
+    const d = document.createElement('div'); d.id = 'estrelasmp'; const n = sub === 'mp_tripla' ? 46 : 24, ic = sub === 'mp_tripla' ? '🌟' : '⭐';
+    for (let k = 0; k < n; k++) { const e = document.createElement('i'); e.textContent = ic; e.style.left = (Math.random() * 98) + 'vw'; e.style.fontSize = (20 + Math.random() * 34) + 'px'; e.style.animationDuration = (3.5 + Math.random() * 4.5) + 's'; e.style.animationDelay = (Math.random() * 6) + 's'; d.appendChild(e); }
+    document.body.appendChild(d); setTimeout(() => { try { d.remove(); } catch {} }, 14000);
+  } catch {}
+}
 function pontosLanceOficial(tipo, subtipo) {
   if (subtipo === 'campeao') return { nome: 'Campeão da Rodada', pts: '+8 PONTOS NA LIGA', cor: '#22c55e' };
   if (subtipo === 'goleada') return { nome: 'Goleada', pts: '+7 PONTOS NA LIGA', cor: '#22c55e' };
@@ -976,6 +993,7 @@ function pontosLanceOficial(tipo, subtipo) {
   if (subtipo === 'relampago') return { nome: 'Gol Relâmpago', pts: '+4 PONTOS NA LIGA', cor: '#22c55e' };
   if (subtipo === 'acrescimos') return { nome: 'Gol nos Acréscimos', pts: '+4 PONTOS NA LIGA', cor: '#22c55e' };
   if (subtipo === 'marca_propria') return { nome: '⭐ Gol de Marca Própria', pts: '+8 PONTOS NA LIGA', cor: '#facc15' };
+  if (subtipo === 'mp_tripla') return { nome: '🌟 Tripla de Marca Própria', pts: '+10 PONTOS NA LIGA', cor: '#facc15' };
   if (subtipo === 'dobrou_mix') return { nome: 'Dobrou o Mix', pts: '+4 PONTOS NA LIGA', cor: '#22c55e' };
   if (subtipo === 'dobradinha_quinzenas') return { nome: 'Dobradinha das Quinzenas', pts: '+3 PONTOS NA LIGA', cor: '#22c55e' };
   if (tipo === 'defesa') return { nome: 'Defesa (Recorrência Salva)', pts: '+3 PONTOS NA LIGA', cor: '#22c55e' };
@@ -1129,6 +1147,7 @@ async function proximoVAR() {
   const T_TOTAL = 60, t0 = Date.now(); let animStop = null;
   const fecha = () => { clearInterval(ov._i); clearTimeout(ov._t1); clearTimeout(ov._t2); clearTimeout(ov._t3); if (animStop) { animStop(); animStop = null; } ov.className = ''; ov.innerHTML = ''; emVAR = false; window.__fechaAnimAtual = null; if (btnFechar) btnFechar.style.display = 'none'; setTimeout(() => { proximoVAR(); liberaEspera(); }, 400); };
   window.__fechaAnimAtual = fecha;
+  estrelasMP(item);
   ov.onclick = () => { fecha(); };
   if (btnFechar) { btnFechar.style.display = ''; btnFechar.onclick = e => { e.stopPropagation(); fecha(); }; }
   const mostraDecisao = () => { if (animStop) { animStop(); animStop = null; } ov.className = 'show'; ov.innerHTML = `<div class="dec${item.tipo === 'revisao' ? ' rev' : ''}"><h1>${esc(T.titulo)}${item.tipo === 'revisao' ? '' : ' · DECISÃO DO VAR'}</h1>${T.dec}<div class="vd">${esc(T.veredito)}</div></div><small id="vcd"></small>`;

@@ -228,6 +228,12 @@ function calcAlertas(vs, t) {
       }
     });
 
+    // TRIPLA DE MARCA PROPRIA (a partir de 09/10/2026, Varejo e AS): 3+ clientes diferentes no dia com R$ 50+ de Marca Propria cada. Um lance por vendedor por dia (+10).
+    if (t.dia >= '2026-10-09') {
+      const mpDe = (c) => (c.industrias || []).filter((x) => /MARCA PROPRIA/.test(String(x.n || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''))).reduce((a, x) => a + (Number(x.v) || 0), 0);
+      const mpCli = (v.cl || []).filter((c) => ['POSITIVADO', 'EFETIVADO'].includes(c.status) && mpDe(c) >= 50);
+      if (mpCli.length >= 3) out.push({ chave: `gol_mp_tripla|${v.id}`, nivel: 'gol', v, prova: `${mpCli.length} clientes com R$ 50+ de MARCA PROPRIA no dia (minimo 3): ` + mpCli.map((c) => `${c.nome} R$ ${mpDe(c).toFixed(2).replace('.', ',')}`).join('; ') });
+    }
     // Amarelo as 10h (11h no fuso): rota ativa sem nenhum pedido e/ou sem nenhuma visita (inclui quem nao fez nenhum check-in de varejo).
     // Vermelho de abandono as 11h (12h no fuso): rota ativa ainda sem nenhuma visita feita. Regra de 06/10/2026 (antes o vermelho era as 10h).
     const limAmarelo = v.fuso1h ? 11 : 10, limVermelho = v.fuso1h ? 12 : 11;
