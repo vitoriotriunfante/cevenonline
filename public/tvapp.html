@@ -603,7 +603,7 @@ async function atualiza() {
     await Promise.all(Array.from({length: 6}, async () => {
       while (fila.length) {
         const r = fila.shift();
-        const d = await j(`/api/tv-vendedor?filial=${FIL}&id=${r.id}&central=1${(r.canal || '').toUpperCase() === 'AS' ? '&canal=AS' : ''}`);
+        const d = await j(`/api/tv-vendedor?filial=${FIL}&id=${r.id}&central=1${['AS', 'PET AS'].includes((r.canal || '').toUpperCase()) ? '&canal=AS' : ''}`);
         if (d && !d.erro && !(d.falhas && d.falhas.length === 3)) {
           if (!d.falhas || !d.falhas.length || !DATA[r.id]) DATA[r.id] = d; // leitura parcial só entra se não houver anterior
           ok++;
@@ -644,7 +644,7 @@ function calcAlertas(vs) {
   vs.forEach(v => {
     if (!v.cl) return;
     // --- LANCE G02 / G01: GOL DE PLACA (Super Pedido ou Venda Alta) ---
-    if ((v.dig || 0) >= (v.canal === 'AS' ? 75000 : 15000)) { // AS: R$ 75.000 no dia
+    if ((v.dig || 0) >= (['AS', 'PET AS'].includes(v.canal) ? 75000 : 15000)) { // AS: R$ 75.000 no dia
       out.push({key: `gol_super|${v.id}`, nivel: 'gol', subtipo: 'super_pedido', v, valor: v.dig});
     }
     // --- LANCE G01/G10: horário REAL de visita (checkin_horario da API, confirmado em 28/09/2026

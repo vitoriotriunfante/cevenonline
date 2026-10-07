@@ -149,7 +149,7 @@ function calcAlertas(vs, t) {
   const out = [];
   vs.forEach((v) => {
     if (!v.cl) return;
-    const minSuper = v.canal === 'AS' ? 75000 : 15000; // AS tem pedido muito maior: R$ 75.000 no dia (Varejo R$ 15.000)
+    const minSuper = ['AS', 'PET AS'].includes(v.canal) ? 75000 : 15000; // AS tem pedido muito maior: R$ 75.000 no dia (Varejo R$ 15.000)
     if ((v.dig || 0) >= minSuper) out.push({ chave: `gol_super|${v.id}`, nivel: 'gol', v, prova: comQ(v, `digitado do dia ${brl(v.dig)} (minimo R$ ${minSuper.toLocaleString('pt-BR')})`) });
 
     const checkins = horariosCheckinDoDia(v.cl);
@@ -373,7 +373,7 @@ export async function onRequestGet({ env, request }) {
       const lote = codigos.slice(i, i + LOTE);
       const resultados = await Promise.all(
         lote.map(async (codigo) => {
-          const d = await getJson(`${origin}/api/tv-vendedor?filial=${filial}&id=${codigo}&central=1${(canalMapa.get(String(codigo)) || {}).canal === 'AS' ? '&canal=AS' : ''}`);
+          const d = await getJson(`${origin}/api/tv-vendedor?filial=${filial}&id=${codigo}&central=1${['AS', 'PET AS'].includes((canalMapa.get(String(codigo)) || {}).canal) ? '&canal=AS' : ''}`);
           return { codigo, d };
         })
       );

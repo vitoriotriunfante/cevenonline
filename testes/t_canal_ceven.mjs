@@ -31,7 +31,7 @@ export default async function (ok) {
   }
   ok(readFileSync(join(RAIZ, 'functions/api/tv-lances.js'), 'utf8').includes('!lanceDeOculto({ ...l, filial }, ocP)'), 'tv-lances: o registro de lance novo tambem recusa vendedor oculto');
   const cl = readFileSync(join(RAIZ, 'functions/api/cron-lances.js'), 'utf8');
-  ok(cl.includes("v.canal === 'AS' ? 75000 : 15000") && readFileSync(join(RAIZ, 'public/tvapp.html'), 'utf8').includes("v.canal === 'AS' ? 75000 : 15000") && readFileSync(join(RAIZ, 'public/matrizapp.html'), 'utf8').includes("v.canal === 'AS' ? 75000 : 15000"), 'Super Pedido: R$ 15.000 no Varejo e R$ 75.000 no AS (coletor, TV e Matriz)');
+  ok(cl.includes("['AS', 'PET AS'].includes(v.canal) ? 75000 : 15000") && readFileSync(join(RAIZ, 'public/tvapp.html'), 'utf8').includes("['AS', 'PET AS'].includes(v.canal) ? 75000 : 15000") && readFileSync(join(RAIZ, 'public/matrizapp.html'), 'utf8').includes("['AS', 'PET AS'].includes(v.canal) ? 75000 : 15000"), 'Super Pedido: R$ 15.000 no Varejo e R$ 75.000 no AS (coletor, TV e Matriz)');
   const au = await import(pathToFileURL(join(RAIZ, 'functions', '_lib', 'auditoria_lance.js')).href);
   const base = { vendedor: 'X', rca: '1', supervisor: 'S', hora: '12:00:00', pontos: 5, chave: 'gol_super|1' };
   ok(au.auditaLance({ ...base, obs: 'digitado do dia R$ 80.000 (minimo R$ 75.000)' }).falhas.length === 0 && au.auditaLance({ ...base, obs: 'digitado do dia R$ 16.000 (minimo R$ 15.000)' }).falhas.length === 0 && au.auditaLance({ ...base, obs: 'digitado do dia R$ 60.000 (minimo R$ 75.000)' }).falhas.length === 1, 'auditoria: o minimo do Super Pedido vem escrito na prova (15.000 Varejo ou 75.000 AS) e o valor tem que alcancar');

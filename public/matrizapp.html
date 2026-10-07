@@ -494,7 +494,7 @@ const reps = sig => listaFil(sig).filter(r => !EXCLUI.includes((r.canal || '').t
 async function atualizaFilial(sig) {
   DATA[sig] = DATA[sig] || {};
   const fila = [...reps(sig)];
-  await Promise.all(Array.from({length: 6}, async () => { while (fila.length) { const r = fila.shift(); const d = await j(`/api/tv-vendedor?filial=${sig}&id=${r.id}&central=1${(r.canal || '').toUpperCase() === 'AS' ? '&canal=AS' : ''}`);
+  await Promise.all(Array.from({length: 6}, async () => { while (fila.length) { const r = fila.shift(); const d = await j(`/api/tv-vendedor?filial=${sig}&id=${r.id}&central=1${['AS', 'PET AS'].includes((r.canal || '').toUpperCase()) ? '&canal=AS' : ''}`);
     if (d && !d.erro && !(d.falhas && d.falhas.length === 3)) {
       if (!d.falhas || !d.falhas.length || !DATA[sig][r.id]) {
         // Preserva o maior dig_hoje já registrado para nunca perder pedido por oscilação momentânea
@@ -539,7 +539,7 @@ function calcAlertas() {
     if (!v.cl) continue;
     if (ocultosMz.has(sig + '|' + v.id)) continue; // oculto na Gestao de Equipe (afastado, ferias, teste): nao gera lance (Vitório, 07/10/2026)
     // --- LANCE G02 / G01: GOL DE PLACA (Super Pedido ou Venda Alta) ---
-    if ((v.dig || 0) >= (v.canal === 'AS' ? 75000 : 15000)) { // AS: R$ 75.000 no dia
+    if ((v.dig || 0) >= (['AS', 'PET AS'].includes(v.canal) ? 75000 : 15000)) { // AS: R$ 75.000 no dia
       out.push({key: `${sig}|gol_super|${v.id}`, sig, nivel: 'gol', subtipo: 'super_pedido', v, valor: v.dig});
     }
     // --- LANCE G01/G10: horário REAL de visita (checkin_horario da API — ver horariosCheckinDoDia)

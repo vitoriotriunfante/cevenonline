@@ -22,7 +22,7 @@ export async function onRequestGet({ env, request }) {
     for (const [k, lista] of Object.entries((mp && mp.filiais) || {})) {
       const filial = k.split('_')[0].toUpperCase();
       if (fFil && filial !== fFil) continue;
-      for (const v of Array.isArray(lista) ? lista : []) if (v && v.rca != null && String(v.canal || '').toUpperCase() === 'AS' && v.mostra !== false) pessoas.push({ filial, rca: String(v.rca), nome: v.nome, supervisor: v.supervisor || '' });
+      for (const v of Array.isArray(lista) ? lista : []) if (v && v.rca != null && ['AS', 'PET AS'].includes(String(v.canal || '').toUpperCase()) && v.mostra !== false) pessoas.push({ filial, rca: String(v.rca), nome: v.nome, supervisor: v.supervisor || '' });
     }
     const { results } = await env.DB.prepare(
       `SELECT data_ref AS dia, filial_sigla AS filial, CAST(rca_codigo AS TEXT) AS rca,

@@ -145,11 +145,15 @@ try:
             if item.get('mostra') is False:
                 ocultos_fora += 1
                 continue
+            # contas de SUPERVISOR e de GERENTE (canal real do CEVEN = SUP/GER) nao sao vendedores: ficam fora da liga (grupos de negocio de 22/09/2026)
+            if str(item.get('canal', '')).upper() in ('SUP', 'GER'):
+                ocultos_fora += 1
+                continue
             rca_map[rca_id] = {
                 'nome': item['nome'], 'filial': fil_canonica, 'sup': item.get('supervisor', ''),
                 'gerente': item.get('gerente', ''),
                 # CANAL DA LIGA (Vitorio, 07/10/2026): AS (Autosservico) joga por SEMANA e tem tabelas proprias; todo o resto e VAREJO
-                'canal': 'AS' if str(item.get('canal', '')).upper() == 'AS' else 'VAREJO'
+                'canal': 'AS' if str(item.get('canal', '')).upper() in ('AS', 'PET AS') else 'VAREJO'
             }
 except Exception as e:
     print(f"❌ Erro ao carregar /api/tv-mostra: {e}")

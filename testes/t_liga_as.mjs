@@ -36,5 +36,5 @@ export default async function (ok) {
   const eq = lib.somaSnaps([{ '2026-10-07': S(100, 0, 500) }, { '2026-10-07': S(300, 0, 500) }, { '2026-10-07': { meta: 0, faturado: 999, pendente: 0 } }]);
   ok(eq['2026-10-07'].meta === 1000 && eq['2026-10-07'].faturado === 400, 'equipe: soma meta e faturado de quem tem meta (quem nao tem meta fica fora)');
   const ep = readFileSync(join(RAIZ, 'functions', 'api', 'liga-as.js'), 'utf8');
-  ok(ep.includes("=== 'AS'") && ep.includes("mostra !== false") && ep.includes('AS_MODO') && ep.includes('AS_VALE_DESDE') && lib.AS_MODO === 'oficial' && lib.AS_VALE_DESDE === '2026-10-07', 'Liga AS: so canal AS que aparece na equipe, OFICIAL desde 07/10/2026 (sem modo sombra)');
+  ok(ep.includes("['AS', 'PET AS'].includes(") && ep.includes("mostra !== false") && ep.includes('AS_MODO') && ep.includes('AS_VALE_DESDE') && lib.AS_MODO === 'oficial' && lib.AS_VALE_DESDE === '2026-10-07', 'Liga AS: so canal AS que aparece na equipe, OFICIAL desde 07/10/2026 (sem modo sombra)');
 }
