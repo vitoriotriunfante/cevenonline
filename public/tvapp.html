@@ -1080,11 +1080,11 @@ function telaVAR(item) {
     veredito = `📞 LIGAR AGORA: ${ehSupFalso(v.sup) ? 'o gerente da filial' : (v.sup || 'supervisor')} (${ehSupFalso(v.sup) ? 'vendedor ligado direto ao gerente' : 'supervisor'} de ${v.nome.split(' ')[0]})${totalDia >= 3 ? ' — REINCIDENTE, ' + totalDia + 'º pênalti hoje' : ''}`;
   } else if (item.tipo === 'amarelos') {
     titulo = '🟨 CARTÕES AMARELOS'; sub = `${item.l.length} vendedor(es) COM ROTA sem pedido e/ou sem visita às ${LIMITE_H}h`; cls = 'f1';
-    dec = seloLiga + item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.txt ? esc(a.txt) : (a.subtipo === 'sem_checkin' ? 'nenhuma visita / check-in de varejo' : a.v.feitas + '/' + a.v.rota + ' visitas · 0 pedidos')}${a.v.sup && !ehSupFalso(a.v.sup) ? ' · sup. ' + esc(a.v.sup) : ''}</span></div>`).join('') + (item.l.length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
+    dec = seloLiga + item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.txt ? esc(a.txt) : (a.subtipo === 'sem_checkin' ? 'nenhuma visita / check-in de varejo' : (a.v && a.v.feitas != null && a.v.rota != null ? a.v.feitas + '/' + a.v.rota + ' visitas · ' + (a.v.pos || 0) + ' pedidos' : 'detalhe do lance não gravado'))}${a.v.sup && !ehSupFalso(a.v.sup) ? ' · sup. ' + esc(a.v.sup) : ''}</span></div>`).join('') + (item.l.length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
     veredito = '🟨 Cobrar o compromisso da manhã: pedido e visita até as 10h. Quem continuar sem visita às 11h leva o vermelho.';
   } else if (item.tipo === 'venda10') {
     titulo = '🟥 CARTÃO VERMELHO'; sub = `${LIMITE_H}h e ${item.l.length} vendedor(es) COM ROTA e SEM NENHUMA VENDA`; cls = 'f1';
-    dec = item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.v.feitas}/${a.v.rota} visitas · digitado ${brl(a.v.dig)}</span></div>`).join('') + (item.l.length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
+    dec = item.l.slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.v && a.v.feitas != null && a.v.rota != null ? a.v.feitas + '/' + a.v.rota + ' visitas · digitado ' + brl(a.v.dig) : (a.txt ? esc(a.txt) : 'detalhe do lance não gravado')}</span></div>`).join('') + (item.l.length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
     veredito = 'Nenhuma venda registrada até agora.';
   } else {
     titulo = '⛔ EXPULSÃO'; sub = `${LIMITE_H}h e ${item.l.length} vendedor(es) COM ROTA e SEM NENHUMA VISITA`;

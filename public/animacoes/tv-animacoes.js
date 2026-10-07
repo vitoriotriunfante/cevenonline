@@ -1670,7 +1670,7 @@ window.cartoesDoServidor = function (rows, jaAvisou, marca, agoraSeg, secDe, sig
     if (!(idade >= 0 && idade <= 3 * 3600)) return;
     const sig = sigDe(r), gk = k + '|' + sig;
     if (jaAvisou(gk)) return;
-    (grupos[gk] = grupos[gk] || { tipo: k, sig: sig, l: [], gk: gk }).l.push({ v: { id: r.rca, nome: r.vendedor, sup: r.supervisor || '' }, txt: r.obs || '', subtipo: /nenhuma visita/.test(r.obs || '') ? 'sem_checkin' : 'sem_venda' });
+    (grupos[gk] = grupos[gk] || { tipo: k, sig: sig, l: [], gk: gk }).l.push({ v: { id: r.rca, nome: r.vendedor, sup: r.supervisor || '' }, txt: (r.obs && String(r.obs).length > 3) ? r.obs : '', subtipo: /nenhuma visita/.test(r.obs || '') ? 'sem_checkin' : 'sem_venda' });
   });
   return Object.keys(grupos).map(function (g) { marca(g); return grupos[g]; });
 };
