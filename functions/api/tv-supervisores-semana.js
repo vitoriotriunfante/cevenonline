@@ -7,6 +7,7 @@
 // REGRA: nunca inventa dado. Dia futuro = null (a tela mostra "—"); feriado nacional = 'feriado'; sem resposta do CEVEN = erro.
 // =========================================================================
 import { NAO_SUPERVISORES, normNome } from '../_lib/nao_supervisores.js';
+import { supervisoresAtivos, ehAtivo } from '../_lib/sup_ativos.js';
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const FERIADOS = ['2026-01-01', '2026-02-16', '2026-02-17', '2026-04-03', '2026-04-21', '2026-05-01', '2026-06-04', '2026-09-07', '2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25'];
 let cacheTk = { token: null, exp: 0 };
@@ -77,6 +78,7 @@ export async function onRequestGet({ request, env }) {
   }
 
   const estadoDia = (data) => (FERIADOS.includes(data) ? 'feriado' : data > hoje ? 'futuro' : 'passado');
+  const ativos = await supervisoresAtivos(env);
   const porFilial = {};
   for (const s of comp.supervisores || []) {
     const sig = String(s.filial || '').replace(/1$/, '').toUpperCase();
@@ -84,6 +86,7 @@ export async function onRequestGet({ request, env }) {
     const nome = limpa(s.nome);
     if (/^(GERENTE\b|RCAS INATIVOS|VENDA EMPRESA|SEM SUPERVISOR)/i.test(nome)) continue; // "GERENTE xxx" = vendedor ligado direto ao gerente, nao e supervisor
     if (NAO_SUPERVISORES.some((x) => x.nome === normNome(s.nome) && x.filial === sig)) continue; // decisao 04/10/2026: nao e supervisor
+    if (!ehAtivo(ativos, sig, s.nome)) continue; // conta que o CEVEN lista na matriz mas nao tem vendedor na arvore viva = nao e supervisor ativo (07/10/2026)
     const r = (ret.supervisores || []).find((x) => x.id === s.id || x.nome === s.nome);
     const lista = (porFilial[sig] = porFilial[sig] || []);
     lista.push({

@@ -13,6 +13,7 @@
 // =========================================================================
 
 import { NAO_SUPERVISORES, normNome } from '../_lib/nao_supervisores.js';
+import { supervisoresAtivos, ehAtivo } from '../_lib/sup_ativos.js';
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 let cache = { token: null, exp: 0 };
 
@@ -62,9 +63,10 @@ export async function onRequestGet({ request, env }) {
   ]);
   if (!comp || !ret) return new Response(JSON.stringify({ erro: 'CEVEN não respondeu (compromissos/RET)' }), { status: 502, headers: cors });
 
+  const ativos = await supervisoresAtivos(env);
   const key = filial + '1';
   const feito = (s) => !!(s && ((s.porDia && s.porDia[0]) || (s.dias && s.dias[0])));
-  const supsComp = (comp.supervisores || []).filter((s) => s.filial === key && !NAO_SUPERVISORES.some((x) => x.nome === normNome(s.nome) && x.filial === filial.toUpperCase())); // nao-supervisores (04/10/2026) ficam fora
+  const supsComp = (comp.supervisores || []).filter((s) => s.filial === key && !NAO_SUPERVISORES.some((x) => x.nome === normNome(s.nome) && x.filial === filial.toUpperCase()) && ehAtivo(ativos, filial, s.nome)); // nao-supervisores (04/10/2026) ficam fora
 
   // Busca detalhes de RET (visitas e fotos) para quem iniciou rota
   const supervisores = await Promise.all(
