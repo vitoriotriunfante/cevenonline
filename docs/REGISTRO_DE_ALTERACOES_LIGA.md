@@ -34,3 +34,7 @@
 - Decisão do Vitório: **pré-temporada de 05/10 a 12/10** (não vale remuneração); **liga oficial desde 13/10/2026**. O ranking da pré-temporada conta os dias a partir de 05/10 (`pre_temporada_desde`).
 - `vigente_desde` = 2026-10-13; `REGRAS_VERSAO` = `versao_regras` = 2026-10-13.1; LOCK_HASH atualizado; Liga AS: `AS_VALE_DESDE` = 2026-10-13. Gol de Marca Própria (08/10) e Tripla (09/10) entram em teste dentro da pré-temporada.
 - **Avisar os gerentes** da data oficial.
+
+## 07/10/2026 — Bola Cheia (18h)
+- Decisão do Vitório: título "Bola Cheia" para o melhor vendedor de cada filial no dia (Varejo), **congelado às 18h** (não muda mais), sem pontos nem dinheiro; vídeo na TV da filial (o da própria filial) e na Matriz (os 11); só o primeiro de cada filial. Mínimo de 5 visitas no dia. AS = por semana (sexta): **etapa seguinte, ainda não feita**.
+- Critério: mais pontos do dia na liga (lances auditados); desempate positivados, digitado, nome; pontos ≤ 0 = filial sem Bola Cheia. Tabelas `bola_cheia` e `bola_cheia_dia`; endpoint `/api/bola-cheia`; coletor congela a partir das 18h (horário de Brasília para todas as filiais). Prompt do vídeo: `docs/PROMPT_VIDEO_BOLA_CHEIA.md` (arquivo `bolacheia_1.mp4`; sem ele usa a animação em tela).
