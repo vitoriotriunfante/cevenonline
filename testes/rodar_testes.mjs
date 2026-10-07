@@ -692,6 +692,7 @@ secao('8e. Liga cravada: regras congeladas por versao, fechamento do dia (19h30)
   { const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_notificacao.mjs')).href)).default; await t(ok); }
   { const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_notif_supervisores.mjs')).href)).default; await t(ok); }
   { const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_fila_var.mjs')).href)).default; await t(ok); }
+  { const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_liga_as.mjs')).href)).default; await t(ok); }
   { const tv = ler('functions/api/tv-vendedor.js'); ok(tv.includes('data_visita') && tv.includes('rotaAntiga') && tv.includes("hm < '10:00'") && tv.includes('saida.rota_antiga'), 'tv-vendedor: roteiro de OUTRO dia ou com check-in no futuro e descartado (nenhum lance de ontem nasce hoje de manha)'); }
   ok(ler('functions/api/tv-lances.js').includes('length(obs) <= 3'), 'lance gravado pela TV com obs so de sigla (sem prova) recebe a prova do coletor depois');
   const fe = ler('functions/api/cron-fechamento-dia.js');
