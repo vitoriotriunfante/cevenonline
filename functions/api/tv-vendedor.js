@@ -32,8 +32,10 @@ const num = (v) => {
 };
 
 // G03 Dobrou o Mix: SKUs do último pedido >= 2x a média histórica (ou >=10 se histórico <=5).
-function mixDobrado(skusAtual, mediaHistorica) {
+// AS (Autosservico, Vitório 07/10/2026): cliente tem 100+ SKUs cadastrados, dobrar nao existe; 2 SKUs a MAIS que a media do cliente ja e gol.
+function mixDobrado(skusAtual, mediaHistorica, canal) {
   if (skusAtual == null || mediaHistorica == null) return false;
+  if (canal === 'AS') return skusAtual >= mediaHistorica + 2;
   if (mediaHistorica <= 5) return skusAtual >= 10;
   return skusAtual >= 2 * mediaHistorica;
 }
@@ -79,7 +81,7 @@ function industriasDoPedido(skus, cat) {
 const ehPedidoDoRca = (numPedido, rca) => !!rca && new RegExp('^' + String(rca) + '[0-9]{6}$').test(String(numPedido || ''));
 // tolerante: 1,5% dos pedidos tem 5 ou 7 digitos depois do codigo (108600094 = RCA 1086)
 const ehPedidoTolerante = (numPedido, rca) => !!rca && new RegExp('^' + String(rca) + '[0-9]{5,7}$').test(String(numPedido || ''));
-function analisaPedido(historico, cat, rca, hoje) {
+function analisaPedido(historico, cat, rca, hoje, canal) {
   const todas = Array.isArray(historico?.ultimas_visitas) ? historico.ultimas_visitas : [];
   let iAtual = rca ? todas.findIndex((v) => ehPedidoDoRca(v.num_pedido, rca)) : (todas.length ? 0 : -1);
   if (iAtual < 0 && rca) iAtual = todas.findIndex((v) => ehPedidoTolerante(v.num_pedido, rca));
@@ -124,7 +126,7 @@ function analisaPedido(historico, cat, rca, hoje) {
     const grupo = (f) => { const pedidos = doMes.filter((v) => f(Number(String(v.data_visita).slice(8, 10)))).map((v) => ({ data: String(v.data_visita).slice(0, 10), num: v.num_pedido, valor: Number(v.total_clube) || 0, status: v.status_pedido || null })); return { valor: Math.round(pedidos.reduce((a, p) => a + p.valor, 0) * 100) / 100, pedidos }; };
     quinzenas = { q1: grupo((d) => d <= 15), q2: grupo((d) => d > 15) };
   }
-  return { skusAtual, mediaHistorica, dobrouMix: mediaHistorica != null ? mixDobrado(skusAtual, mediaHistorica) : false, bonificacao, dobradinhaQuinzenas, valorAtual, industrias, categorias, pedidoHoje, quinzenas };
+  return { skusAtual, mediaHistorica, dobrouMix: mediaHistorica != null ? mixDobrado(skusAtual, mediaHistorica, canal) : false, bonificacao, dobradinhaQuinzenas, valorAtual, industrias, categorias, pedidoHoje, quinzenas };
 }
 
 function montarTv(id, dash, prod, rot, analisePorCliente) {
@@ -230,6 +232,7 @@ export async function onRequestGet({ request, env }) {
   const key = filial + '1';
   const q = `filial=${key}&id=${id}`;
   const usarCentral = url.searchParams.get('central') === '1';
+  const canalVend = String(url.searchParams.get('canal') || '').toUpperCase() === 'AS' ? 'AS' : '';
   const central = usarCentral ? await lerCentral(env, id) : null;
   let [dash, prod, rot] = central
     ? [central.dash, central.prod, central.rot]
@@ -257,7 +260,7 @@ export async function onRequestGet({ request, env }) {
     // pela coleta de lances (central=1): no maximo 2 simultaneas; na tela da TV segue como antes
     const resultados = usarCentral ? await poolLimitado(buscas, 2) : await Promise.all(buscas.map((f) => f()));
     positivadosHoje.forEach((c, i) => {
-      const analise = analisaPedido(resultados[i], catalogo, id, dataHojeBrasilia());
+      const analise = analisaPedido(resultados[i], catalogo, id, dataHojeBrasilia(), canalVend);
       if (analise) analisePorCliente[c.id_cliente] = analise;
     });
   }

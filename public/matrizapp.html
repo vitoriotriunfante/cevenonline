@@ -494,7 +494,7 @@ const reps = sig => listaFil(sig).filter(r => !EXCLUI.includes((r.canal || '').t
 async function atualizaFilial(sig) {
   DATA[sig] = DATA[sig] || {};
   const fila = [...reps(sig)];
-  await Promise.all(Array.from({length: 6}, async () => { while (fila.length) { const r = fila.shift(); const d = await j(`/api/tv-vendedor?filial=${sig}&id=${r.id}&central=1`);
+  await Promise.all(Array.from({length: 6}, async () => { while (fila.length) { const r = fila.shift(); const d = await j(`/api/tv-vendedor?filial=${sig}&id=${r.id}&central=1${(r.canal || '').toUpperCase() === 'AS' ? '&canal=AS' : ''}`);
     if (d && !d.erro && !(d.falhas && d.falhas.length === 3)) {
       if (!d.falhas || !d.falhas.length || !DATA[sig][r.id]) {
         // Preserva o maior dig_hoje já registrado para nunca perder pedido por oscilação momentânea

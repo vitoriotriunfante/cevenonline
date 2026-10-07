@@ -467,7 +467,7 @@ for s in sups_tabela:
 # =====================================================================================================================
 import calendar
 AS_SEMANAS = [(1, 1, 7), (2, 8, 14), (3, 15, 20), (4, 21, 31)]  # (n, dia inicial, dia final)
-AS_LANCES_FORA = ('ven10', 'vis10', 'vis11', 'gol_relampago', 'gol_acrescimos', 'gol_meta1t', 'gol_hattrick', 'hattrick', 'gol_conversao', 'gol_goleada')
+AS_LANCES_FORA = ('ven10', 'vis10', 'vis11', 'gol_relampago', 'gol_acrescimos', 'gol_meta1t', 'gol_hattrick', 'hattrick', 'gol_conversao', 'gol_goleada', 'gol_campeao')
 def semana_as(dia_iso):
     d = int(dia_iso[8:10])
     for n, di, df in AS_SEMANAS:

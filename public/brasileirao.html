@@ -1181,7 +1181,7 @@ async function carregarGabarito() {
     const qs = new URLSearchParams({ dia }); if (fil && fil !== 'TODAS') qs.set('filial', fil);
     const [cfg, d] = await Promise.all([fetch('/pontuacao_brasileirao.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()), buscarLancesPeriodo(dia, fil).then(p => ({ lances: p.lances }))]);
     const norm = (x) => [...String(x || '').toLowerCase().normalize('NFD')].filter(ch => /[a-z0-9 ]/.test(ch)).join('').replace(/ +/g, ' ').trim();
-    const regras = Object.values(cfg.pontos_por_lance || {}).filter(r => !(CANAL === 'AS' && regraForaDoAS(r.nome))).map(r => ({ ...r, n: norm(r.nome), qtd: 0, soma: 0 })).sort((a, b) => b.pontos - a.pontos);
+    const regras = Object.values(cfg.pontos_por_lance || {}).filter(r => !(CANAL === 'AS' && regraForaDoAS(r.nome))).map(r => (CANAL === 'AS' && /^dobrou o mix/i.test(semAcento(r.nome)) ? { ...r, nome: NOME_MIX_AS, motivo: 'AS: pedido com 2 ou mais SKUs a mais que a média histórica do cliente. QUALIFICADO (nível por indústrias).' } : r)).map(r => ({ ...r, n: norm(r.nome), qtd: 0, soma: 0 })).sort((a, b) => b.pontos - a.pontos);
     const outros = { nome: 'Outros (sem regra no gabarito)', pontos: null, motivo: 'Lance real do dia que não casou com nenhuma regra: conferir', qtd: 0, soma: 0 };
     (d.lances || []).forEach(l => {
       const ln = norm(l.pontos_nome);
@@ -1471,8 +1471,9 @@ function semanaAS(diaISO) {
 }
 function rcasDoAS() { return new Set(((DADOS && DADOS.vendedores) || []).filter(v => v.canal === 'AS').map(v => String(v.rca))); }
 // Lances que NAO valem no AS (dependem do horario ou das visitas do DIA; o AS visita um dia e vende em outro) — Vitório, 07/10/2026
-const AS_TIPOS_FORA = ['ven10', 'vis10', 'vis11', 'gol_relampago', 'gol_acrescimos', 'gol_meta1t', 'gol_hattrick', 'hattrick', 'gol_conversao', 'gol_goleada'];
-const AS_REGRAS_FORA = ['gol relampago', 'gol nos acrescimos', 'meta do 1', 'hat-trick', 'maquina de conversao', 'goleada', 'cartao amarelo', 'cartao vermelho / abandono', 'expulsao'];
+const AS_TIPOS_FORA = ['ven10', 'vis10', 'vis11', 'gol_relampago', 'gol_acrescimos', 'gol_meta1t', 'gol_hattrick', 'hattrick', 'gol_conversao', 'gol_goleada', 'gol_campeao'];
+const AS_REGRAS_FORA = ['gol relampago', 'gol nos acrescimos', 'meta do 1', 'hat-trick', 'maquina de conversao', 'goleada', 'cartao amarelo', 'cartao vermelho / abandono', 'expulsao', 'campeao da rodada'];
+const NOME_MIX_AS = 'Gol de Mix (+2 SKUs)';
 const semAcento = (x) => String(x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const regraForaDoAS = (nome) => { const n = semAcento(nome).replace(/^[^a-z0-9]+/, ''); return AS_REGRAS_FORA.some(r => n.startsWith(r)); };
 function lanceDoCanal(l, setAS) { const eAS = setAS.has(String(l.rca)); if (CANAL === 'AS') return eAS && !AS_TIPOS_FORA.includes(String(l.chave || '').replace(/^[A-Z]{3}[|]/, '').split('|')[0]); return !eAS; }
@@ -1489,6 +1490,7 @@ async function buscarLancesPeriodo(dia, filial) {
   const resp = await Promise.all(dias.map(d => { const qs = new URLSearchParams({ dia: d }); if (filial && filial !== 'TODAS') qs.set('filial', filial); return fetch('/api/brasileirao-lances?' + qs.toString(), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null); }));
   resp.forEach((r, i) => { if (r && Array.isArray(r.lances)) r.lances.forEach(l => { l.dia = dias[i]; lances.push(l); }); });
   lances = lances.filter(l => lanceDoCanal(l, setAS));
+  if (CANAL === 'AS') lances.forEach(l => { if (/^dobrou o mix/i.test(String(l.pontos_nome || ''))) { l.pontos_nome = String(l.pontos_nome).replace(/^Dobrou o Mix/i, NOME_MIX_AS); l.pontos_motivo = 'AS: pedido com 2 ou mais SKUs a mais que a média do cliente.'; } });
   if (CANAL === 'AS') lances.sort((a, b) => String(b.dia + ' ' + (b.hora || '')).localeCompare(String(a.dia + ' ' + (a.hora || ''))));
   const porNivel = {}; lances.forEach(l => { porNivel[l.nivel] = (porNivel[l.nivel] || 0) + 1; });
   return { lances, porNivel, total: lances.length, periodo: per, dias };
@@ -1578,7 +1580,13 @@ function montaGabaritoFase() {
 
 function filtraRegrasAS() {
   const tb = document.getElementById('tbody-regulamento-pontos'); if (!tb) return;
-  tb.querySelectorAll('tr').forEach(tr => { const c = tr.querySelector('td'); tr.style.display = (CANAL === 'AS' && c && regraForaDoAS(c.textContent)) ? 'none' : ''; });
+  tb.querySelectorAll('tr').forEach(tr => {
+    const tds = tr.querySelectorAll('td'), c = tds[0]; if (!c) return;
+    if (!c.dataset.orig) { c.dataset.orig = c.innerHTML; if (tds[2]) tds[2].dataset.orig = tds[2].innerHTML; }
+    const mix = /^dobrou o mix/i.test(semAcento(c.textContent).replace(/^[^a-z0-9]+/, ''));
+    if (CANAL === 'AS' && mix) { c.innerHTML = '📦 ' + NOME_MIX_AS; if (tds[2]) tds[2].textContent = 'AS: pedido com 2 ou mais SKUs a mais que a média histórica do cliente (cliente do AS tem 100+ SKUs, dobrar não existe). QUALIFICADO: nível e extra de pontos pelas indústrias do pedido.'; } else { c.innerHTML = c.dataset.orig; if (tds[2] && tds[2].dataset.orig) tds[2].innerHTML = tds[2].dataset.orig; }
+    tr.style.display = (CANAL === 'AS' && regraForaDoAS(c.dataset.orig ? semAcento(c.dataset.orig.replace(/<[^>]*>/g, '')) : c.textContent)) ? 'none' : '';
+  });
 }
 
 function montaRegulamentoAS() {
@@ -1591,7 +1599,7 @@ function montaRegulamentoAS() {
       <tr><td>3ª semana (até o dia 20)</td><td style="text-align:center">60%</td><td style="text-align:center"><b>+30</b></td></tr><tr><td>4ª semana (até o fim do mês)</td><td style="text-align:center">110%</td><td style="text-align:center"><b>+40</b></td></tr>
       <tr><td>🥇 Bônus de primeira quinzena: bateu <strong>100%</strong> da meta até o dia 15</td><td style="text-align:center">100%</td><td style="text-align:center"><b>+50</b></td></tr><tr><td>🥈 Bateu <strong>100%</strong> da meta até o dia 25</td><td style="text-align:center">100%</td><td style="text-align:center"><b>+25</b></td></tr></tbody></table>
     <p style="font-size:13px;color:var(--tx-mut)">% da meta = (faturado + pendente) dividido pela meta do mês, o mesmo número do app do CEVEN. A semana de faseamento só pontua depois que o dia de fechamento termina. Sem meta cadastrada o vendedor não pontua no faseamento.</p>
-    <p><strong>O que NÃO vale no AS</strong> (depende do horário ou das visitas do dia; o AS visita um dia e vende em outro): Gol Relâmpago, Gol nos Acréscimos, Meta do 1º Tempo, Hat-Trick, Máquina de Conversão, Goleada, Cartão Amarelo das 10h e Cartão Vermelho de abandono — eles saem da tabela de pontos abaixo. <strong>Valem iguais ao Varejo:</strong> Resgate de Inativo, Dobrou o Mix, Dobradinha das Quinzenas, Defesa, Super Pedido, Pedido Feito na Rota, devoluções, pênaltis e impedimento de GPS. <strong>Em definição:</strong> check-in por carteira (90% = +5 · 95% = +10 · 100% = +20), amarelo de venda sem check-in, gol de SKUs (2 a mais que a média, no lugar do "dobrou o mix"), marca própria (estrela e gol especial) e punição por falta de pedido (dia 5 = −5 · dia 10 = −10 · dia 20 = −20).</p>`;
+    <p><strong>O que NÃO vale no AS</strong> (depende do horário ou das visitas do dia; o AS visita um dia e vende em outro): Gol Relâmpago, Gol nos Acréscimos, Meta do 1º Tempo, Hat-Trick, Máquina de Conversão, Goleada, Cartão Amarelo das 10h e Cartão Vermelho de abandono — eles saem da tabela de pontos abaixo. <strong>Também fora no AS:</strong> Campeão da Rodada (o bônus de 100% da meta já cumpre esse papel). <strong>Gol de Mix (+2 SKUs):</strong> no AS o "Dobrou o Mix" é trocado por pedido com 2 ou mais SKUs a mais que a média do cliente (+4, qualificado por indústrias). <strong>Valem iguais ao Varejo:</strong> Resgate de Inativo, Dobradinha das Quinzenas, Defesa, Super Pedido (valor do AS em definição), Pedido Feito na Rota, devoluções, pênaltis e impedimento de GPS. <strong>Em definição:</strong> check-in por carteira (90% = +5 · 95% = +10 · 100% = +20), amarelo de venda sem check-in, marca própria (estrela e gol especial) e punição por falta de pedido (dia 5 = −5 · dia 10 = −10 · dia 20 = −20).</p>`;
 }
 
 window.addEventListener('load', aplicaCanalNaTela);

@@ -372,7 +372,7 @@ export async function onRequestGet({ env, request }) {
       const lote = codigos.slice(i, i + LOTE);
       const resultados = await Promise.all(
         lote.map(async (codigo) => {
-          const d = await getJson(`${origin}/api/tv-vendedor?filial=${filial}&id=${codigo}&central=1`);
+          const d = await getJson(`${origin}/api/tv-vendedor?filial=${filial}&id=${codigo}&central=1${(canalMapa.get(String(codigo)) || {}).canal === 'AS' ? '&canal=AS' : ''}`);
           return { codigo, d };
         })
       );

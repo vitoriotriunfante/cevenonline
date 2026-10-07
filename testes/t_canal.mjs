@@ -22,4 +22,9 @@ export default async function (ok) {
   ok(t.includes("(s.canal || 'VAREJO') !== 'AS'") && t.includes("(v.canal || 'VAREJO') !== 'AS'"), 'tabelas do Varejo nao misturam vendedores e supervisores do AS');
   const g = readFileSync(join(RAIZ, 'scratch', 'build_brasileirao_dataset.py'), 'utf8');
   ok(g.includes("'canal': 'AS' if str(item.get('canal', '')).upper() == 'AS' else 'VAREJO'") && g.includes("'as': bloco_as") && g.includes("AS_LANCES_FORA = ('ven10', 'vis10', 'vis11', 'gol_relampago'") && g.includes("AS_SEMANAS = [(1, 1, 7), (2, 8, 14), (3, 15, 20), (4, 21, 31)]"), 'gerador: canal de cada vendedor, bloco AS semanal e lances que dependem do horario ou das visitas do dia fora do AS, a semana como jogo (V/E/D)');
+  const tv = readFileSync(join(RAIZ, 'functions', 'api', 'tv-vendedor.js'), 'utf8');
+  ok(tv.includes("if (canal === 'AS') return skusAtual >= mediaHistorica + 2;") && tv.includes('canalVend'), 'AS: gol de mix = 2 SKUs a mais que a media do cliente (nao dobra); so para canal AS');
+  const cl = readFileSync(join(RAIZ, 'functions', 'api', 'cron-lances.js'), 'utf8');
+  ok(cl.includes("'&canal=AS'") && readFileSync(join(RAIZ, 'public', 'tvapp.html'), 'utf8').includes("'&canal=AS'") && readFileSync(join(RAIZ, 'public', 'matrizapp.html'), 'utf8').includes("'&canal=AS'"), 'coletor, TV e Matriz pedem o gol de mix do AS (&canal=AS) para vendedor AS');
+  ok(t.includes("'gol_campeao']") && g.includes("'gol_goleada', 'gol_campeao')") && t.includes("'campeao da rodada'"), 'AS: Campeao da Rodada fora (o bonus de 100% da meta ja cumpre esse papel)');
 }
