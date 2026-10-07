@@ -95,7 +95,7 @@ const VIDEO_ARQUIVOS = {
   hattrick: ['/animacoes/videos/hattrick_1.mp4', '/animacoes/videos/hattrick_2.mp4'],
   semanainvicta: ['/animacoes/videos/semanainvicta_1.mp4', '/animacoes/videos/semanainvicta_2.mp4'],
   // Bola Cheia (18h): video gerado pelo Gemini (ver docs/PROMPT_VIDEO_BOLA_CHEIA.md). Sem o arquivo, a tela usa a animacao em CSS.
-  bolacheia: [] // quando o arquivo bolacheia_1 existir na pasta de videos, listar aqui (o teste exige que todo video listado exista)
+  bolacheia: ['/animacoes/videos/bolacheia_1.mp4', '/animacoes/videos/bolacheia_2.mp4']
 };
 // Gol com subtipo conhecido usa um vídeo dedicado (ex.: super pedido é mais "explosivo", cliente
 // recuperado é mais "resgate emocionado"). Sem entrada aqui = sorteia entre todos os de VIDEO_ARQUIVOS.gol.
