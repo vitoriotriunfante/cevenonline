@@ -30,4 +30,10 @@ export default async function t(ok) {
   ok(tv.includes("tipo: 'bolacheia'") && mz.includes("tipo: 'bolacheia'") && tv.includes('animBolaCheia') && mz.includes('animBolaCheia') && an.includes('bolacheia_2.mp4') && tv.includes("x.tipo === 'bolacheia'") && mz.includes("x.tipo === 'bolacheia'"), 'Bola Cheia: TV da filial e Matriz avisam depois das 18h, saem sozinhas na frente; video bolacheia previsto (sem arquivo usa a animacao em tela)');
   // a copia publica do regulamento (a que a tela le) tem que ser IGUAL a config (a que vale): achado da mega auditoria de 07/10/2026
   ok(JSON.stringify(JSON.parse(readFileSync(join(RAIZ, 'config/pontuacao_brasileirao.json'), 'utf8'))) === JSON.stringify(JSON.parse(readFileSync(join(RAIZ, 'public/pontuacao_brasileirao.json'), 'utf8'))), 'regulamento: public/pontuacao_brasileirao.json e IDENTICO a config/pontuacao_brasileirao.json');
+  // SEM COMPROVACAO NAO TEM LANCE: o fechamento retira o lance reprovado pela auditoria (trilha em lances_excluidos_liga); falha de cadastro nao retira
+  const lf = await import(pathToFileURL(join(RAIZ, 'functions/_lib/liga_fechamento.js')).href);
+  const base = { vendedor: 'X', rca: '1', supervisor: 'S', hora: '12:00:00', pontos: 6, filial: 'TBL' };
+  const rep = lf.lancesReprovados([{ ...base, chave: 'gol_inativo|1|2', obs: 'TBL' }, { ...base, chave: 'gol_super|1', pontos: 5, obs: 'digitado do dia R$ 16.000 (minimo R$ 15.000)' }, { ...base, supervisor: '', chave: 'gol_super|2', pontos: 5, obs: 'digitado do dia R$ 16.000 (minimo R$ 15.000)' }], '2026-10-13');
+  ok(rep.length === 1 && rep[0].chave === 'gol_inativo|1|2', 'fechamento: lance sem prova (so a sigla no obs) e retirado; lance com prova e lance so sem supervisor ficam');
+  ok(readFileSync(join(RAIZ, 'functions/_lib/liga_fechamento.js'), 'utf8').includes('INSERT OR IGNORE INTO lances_excluidos_liga') && readFileSync(join(RAIZ, 'functions/_lib/liga_fechamento.js'), 'utf8').includes('AUDITORIA DO FECHAMENTO'), 'fechamento: a retirada fica gravada com o motivo (trilha auditavel)');
 }

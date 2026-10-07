@@ -8,6 +8,7 @@
 // =========================================================================
 
 // Versão das regras da liga (config/pontuacao_brasileirao.json -> "versao_regras"). Um teste automático confere que as duas batem e que as regras não mudaram sem subir a versão.
+import { auditaLista } from './auditoria_lance.js';
 export const REGRAS_VERSAO = '2026-10-13.1';
 
 export function agoraSP() {
@@ -39,21 +40,42 @@ export async function lerDiaFechado(env, dia, filial) {
 }
 
 // Fecha o dia. Idempotente: se já está fechado não mexe. Só fecha se o dia já passou ou se já são 22h de hoje.
+// SEM COMPROVACAO NAO TEM LANCE (Vitorio, 07/10/2026): no fechamento, lance que a auditoria reprovou (prova faltando ou regra nao cumprida) sai da pontuacao do dia, com trilha em lances_excluidos_liga.
+// Falhas de CADASTRO (sem supervisor, sem vendedor, sem codigo, sem pontos) nao tiram o lance: o fato aconteceu, so falta identificar.
+const FALHA_DE_CADASTRO = /sem supervisor|sem vendedor|sem código|sem pontos definidos/;
+export function lancesReprovados(lances, dia) {
+  return auditaLista(lances, dia).falhos.filter((f) => f.falhas.some((x) => !FALHA_DE_CADASTRO.test(x)));
+}
+
 export async function fechaDia(env, origin, dia, { forcar = false } = {}) {
   await garanteTabelasFechamento(env);
   const ja = await env.DB.prepare('SELECT fechado_em FROM liga_fechamento WHERE dia = ?').bind(dia).first();
   if (ja) return { dia, status: 'JA_FECHADO', fechado_em: ja.fechado_em };
   const t = agoraSP();
   if (!forcar && !(dia < t.dia || (dia === t.dia && t.min >= 22 * 60))) return { dia, status: 'AINDA_ABERTO', motivo: 'o dia só fecha depois das 22h (vendedor que sincroniza o aparelho tarde ainda conta; depois das 23h o CEVEN já virou o dia)' };
-  const r = await fetch(`${origin}/api/brasileirao-lances?dia=${dia}&ao_vivo=1`, { signal: AbortSignal.timeout(40000) });
-  const j = await r.json().catch(() => null);
+  const lerLances = async () => { const r = await fetch(`${origin}/api/brasileirao-lances?dia=${dia}&ao_vivo=1`, { signal: AbortSignal.timeout(40000) }); return r.json().catch(() => null); };
+  let j = await lerLances();
   if (!j || !Array.isArray(j.lances)) return { dia, status: 'FALHOU', motivo: 'nao consegui ler os lances do dia' };
-  if (!j.lances.length) return { dia, status: 'SEM_LANCES' }; // fim de semana/feriado: nada a fechar
+  if (!j.lances.length) return { dia, status: 'SEM_LANCES' };
+  // auditoria do fechamento: reprovado sai da pontuacao (continua no registro, com o motivo)
+  let retirados = 0;
+  if (dia >= '2026-10-07') { // vale ja na pre-temporada (para o Vitorio ver o efeito antes de 13/10, quando a liga passa a valer remuneracao)
+    const rep = lancesReprovados(j.lances, dia);
+    if (rep.length) {
+      await env.DB.prepare('CREATE TABLE IF NOT EXISTS lances_excluidos_liga (dia TEXT NOT NULL, chave TEXT NOT NULL, motivo TEXT, em TEXT, PRIMARY KEY (dia, chave))').run();
+      const em = new Date().toISOString();
+      const ins = rep.map((f) => env.DB.prepare('INSERT OR IGNORE INTO lances_excluidos_liga (dia, chave, motivo, em) VALUES (?, ?, ?, ?)').bind(dia, String(f.chave || '').replace(/^[A-Z]{3}[|]/, ''), ('AUDITORIA DO FECHAMENTO: ' + f.falhas.join('; ')).slice(0, 300), em));
+      for (let i = 0; i < ins.length; i += 80) await env.DB.batch(ins.slice(i, i + 80));
+      retirados = rep.length;
+      j = await lerLances();
+      if (!j || !Array.isArray(j.lances)) return { dia, status: 'FALHOU', motivo: 'nao consegui reler os lances depois da auditoria' };
+    }
+  } // fim de semana/feriado: nada a fechar
   const agora = new Date().toISOString();
   const stmts = j.lances.map((l) => env.DB.prepare('INSERT OR IGNORE INTO liga_dia_fechado (dia, chave, filial, lance_json) VALUES (?, ?, ?, ?)').bind(dia, String(l.chave || ''), String(l.filial || ''), JSON.stringify(l)));
   for (let i = 0; i < stmts.length; i += 80) await env.DB.batch(stmts.slice(i, i + 80));
   const pontos = j.lances.reduce((s, l) => s + (Number(l.pontos) || 0), 0);
   // o cabeçalho é gravado POR ÚLTIMO: só vale como "fechado" depois de todas as linhas gravadas
   await env.DB.prepare('INSERT OR IGNORE INTO liga_fechamento (dia, fechado_em, regras_versao, total_lances, total_pontos) VALUES (?, ?, ?, ?, ?)').bind(dia, agora, REGRAS_VERSAO, j.lances.length, pontos).run();
-  return { dia, status: 'FECHADO', lances: j.lances.length, pontos, regras_versao: REGRAS_VERSAO };
+  return { dia, status: 'FECHADO', lances: j.lances.length, pontos, regras_versao: REGRAS_VERSAO, retirados_pela_auditoria: retirados };
 }
