@@ -1,30 +1,30 @@
 🌅 *ABERTURA MATINAL — TCV (07:45)*
-📅 terça-feira, 06/10/2026
+📅 quarta-feira, 07/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 17 • Visitas: 194 (média 11,4/vendedor)
-Sem compra +30d: 38 (19,6%) • Recorrência: 26 (13,4%)
-Oportunidades CNAE 4721: +446 PDVs
+👥 Vendedores: 17 • Visitas: 171 (média 10,1/vendedor)
+Sem compra +30d: 36 (21,1%) • Recorrência: 23 (13,5%)
+Oportunidades CNAE 4639: +214 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCV — LEONARDO* • 06/10/2026
+📍 *TCV — LEONARDO* • 07/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 38
+🔴 Última Chance: 0  •  🟡 Preventivo: 36
 
-👤 *GESSANDRO SPEROTTO* (18 em risco)
-  🟡 MERCEARIA TRADICAO (324) — 05/09
-  🟡 POSTO MERCEDES (324) — 31/08
-  🟡 MINIMERCADO EVANGELISTA (328) — 13/08
-  🟡 DOURADAO EXPRESS (328) — 13/08
-  🟡 SOLANGE LAGNI CACHOEIRA 03270376952 (336) — 31/08
-  _+13 outros_
+👤 *GESSANDRO SPEROTTO* (21 em risco)
+  🟡 SUPERMERCADOS ISAELLE (322) — 31/08
+  🟡 EXPRESSO 223 (324) — 31/08
+  🟡 MERI MERCADO DE UTILIDADES (324) — 31/08
+  🟡 BAZAR TUDO A PARTIR DE 199 PREDIO ROXO (324) — 31/08
+  🟡 PANIFICADORA E ACAITERIA CRAVO E CANELA (328) — 31/08
+  _+16 outros_
 
-👤 *GIANI GREGOLIN* (20 em risco)
-  🟡 FLOR E ARTE (333) — 31/08
-  🟡 BRASIL SUPERMERCADO (333) — 26/08
-  🟡 MERCEARIA RODRIGUES (333) — 09/07
-  🟡 PANIFICADORA MARTINS (333) — 31/08
-  🟡 CAMILA DOS SANTOS SEMCHECHEN 09234385993 (333) — 09/07
-  _+15 outros_
+👤 *GIANI GREGOLIN* (15 em risco)
+  🟡 PACHECO CONFECCOES E MERCADO MINI PRECO (338) — 18/08
+  🟡 MERCADO DOS PIA (338) — 18/08
+  🟡 MERCADO ZANONI (333) — 31/08
+  🟡 MARIA ARMAZEM E DISTRIBUIDORA (333) — 28/08
+  🟡 CANTINA ARAEDES (335) — 05/09
+  _+10 outros_

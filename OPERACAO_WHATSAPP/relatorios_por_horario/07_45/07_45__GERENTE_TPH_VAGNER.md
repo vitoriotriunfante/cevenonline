@@ -1,55 +1,55 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 terça-feira, 06/10/2026
+📅 quarta-feira, 07/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 34 • Visitas: 468 (média 13,8/vendedor)
-Sem compra +30d: 138 (29,5%) • Recorrência: 62 (13,2%)
+👥 Vendedores: 34 • Visitas: 457 (média 13,4/vendedor)
+Sem compra +30d: 147 (32,2%) • Recorrência: 54 (11,8%)
 🔥 Volta Comigo: 0 PDVs
-Oportunidades CNAE 4721: +1.872 PDVs
+Oportunidades CNAE 4639: +800 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPH — VAGNER* • 06/10/2026
+📍 *TPH — VAGNER* • 07/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 138
+🔴 Última Chance: 0  •  🟡 Preventivo: 147
 
-👤 *ANDREY CAMILLO PIRAGINE* (22 em risco)
-  🟡 SAPECO (68) — 05/12
-  🟡 MARTINS FRIOS (72) — 28/08
-  🟡 MERCADO CABRAL (72) — 31/07
-  🟡 PANIFICADORA DA FAMILIA (72) — 05/12
-  🟡 BIG PRESENTES (66) — 31/08
-  _+17 outros_
+👤 *ANDREY CAMILLO PIRAGINE* (24 em risco)
+  🟡 EMPORIO TAVARES (66) — 05/12
+  🟡 MERCADO SOUZA ROSA (66) — 31/08
+  🟡 RESTALRANTE BLUE ANGEL (66) — 13/06
+  🟡 MERCADO SEMAR (66) — 05/09
+  🟡 MERCADO BITTENCOURT (66) — 05/12
+  _+19 outros_
 
-👤 *JEFFERSON POLETTO* (23 em risco)
-  🟡 VIDROLOPES (125) — 31/08
-  🟡 AVIARIO CARIJO (125) — 26/08
-  🟡 AGRO COSTA (125) — 31/08
-  🟡 KAUAN (125) — 26/08
-  🟡 BRUNA PET SHOP (125) — 10/07
-  _+18 outros_
+👤 *JEFFERSON POLETTO* (18 em risco)
+  🟡 PATRICIA GOMES (128) — 24/08
+  🟡 AVIARIO ANDRADE (128) — 02/07
+  🟡 AVIARIO FENIX (128) — 24/08
+  🟡 BOM TRATO PET SHOP (128) — 05/12
+  🟡 EMPORIO ZOO (128) — 10/07
+  _+13 outros_
 
-👤 *CLAUDETE DE SOUZA SCHULTZ* (44 em risco)
-  🟡 PET E CLIN (123) — 31/07
-  🟡 UNIPET (123) — 29/08
-  🟡 AGROPECUARIA OLIKAMPA (131) — 31/07
-  🟡 FAMILIA ANIMAL AGROPECUARIA (131) — 31/08
-  🟡 AGRO SAO GABRIEL (131) — 18/08
-  _+39 outros_
-
-👤 *LUIZ AUGUSTO RAMOS* (37 em risco)
-  🟡 REVISTARIA FLAILHA (74) — 31/08
-  🟡 SUPERMERCADO ASA BRANCA (74) — 31/08
-  🟡 RAFIME PANIFICADORA (74) — 31/08
-  🟡 AVIARIO PORTO SEGURO (74) — 03/07
-  🟡 MERCADO BOM SUCESSO (78) — 31/07
+👤 *JONATHAN FERNANDES* (37 em risco)
+  🟡 AVIARIO CAJURU (124) — 31/08
+  🟡 ESPACO PETSHOP (124) — 31/08
+  🟡 AVIARIO FERREIRA (124) — 06/07
+  🟡 PET SHOP DA HORA (124) — 26/08
+  🟡 AVIARIO QUATRO PATAS (132) — 30/07
   _+32 outros_
 
-👤 *RODRIGO DE ARRUDA DARROS* (12 em risco)
-  🟡 PANIFICADORA ZENI PAO (88) — 05/12
-  🟡 FARMACIA BOM JESUS (1098) — 30/07
-  🟡 PEDRO FIDELIS MACHADO 01585560979 (1098) — 28/08
-  🟡 IRMAOS DZULINSKI LTDA (1098) — 05/12
-  🟡 MERCADINHO MIKEI (86) — 30/06
-  _+7 outros_
+👤 *LUIZ AUGUSTO RAMOS* (55 em risco)
+  🟡 BUENO GAS (75) — 02/07
+  🟡 MERCADO SANTO EXPEDITO (75) — 10/07
+  🟡 MELHOR DE MINAS (75) — 05/09
+  🟡 SUPERMERCADO CAOPI (75) — 31/08
+  🟡 JAMES CHRISTIAN LIEBEL 07776696927 (75) — 05/12
+  _+50 outros_
+
+👤 *RODRIGO DE ARRUDA DARROS* (13 em risco)
+  🟡 POSTO GUARTELA (86) — 31/08
+  🟡 MERCEARIA MACHADO (86) — 31/08
+  🟡 MINIMERCADO BOM JESUS (84) — 05/12
+  🟡 REASTAURANTE PURUNA (85) — 05/12
+  🟡 CHURRASCARIA CARRETAO III (85) — 29/08
+  _+8 outros_

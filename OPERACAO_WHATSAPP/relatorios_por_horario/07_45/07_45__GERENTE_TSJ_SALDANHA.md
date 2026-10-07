@@ -1,46 +1,46 @@
 🌅 *ABERTURA MATINAL — TSJ (07:45)*
-📅 terça-feira, 06/10/2026
+📅 quarta-feira, 07/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 23 • Visitas: 361 (média 15,7/vendedor)
-Sem compra +30d: 109 (30,2%) • Recorrência: 15 (4,2%)
-Oportunidades CNAE 4721: +1.004 PDVs
+👥 Vendedores: 23 • Visitas: 355 (média 15,4/vendedor)
+Sem compra +30d: 111 (31,3%) • Recorrência: 14 (3,9%)
+Oportunidades CNAE 4639: +383 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TSJ — SALDANHA* • 06/10/2026
+📍 *TSJ — SALDANHA* • 07/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 109
+🔴 Última Chance: 0  •  🟡 Preventivo: 110
 
-👤 *ANA CRISTINA DOS SANTOS YAMATO* (20 em risco)
-  🟡 MONTEIRO MARKET (5) — 31/07
-  🟡 POTIGUAR ALIMENTOS E BEBIDAS (5) — 05/12
-  🟡 SUPERMERCADO PEDROZO (5) — 05/12
-  🟡 60.588.921 ANDREA LIMA DE SOUZA (10) — 27/08
-  🟡 MERCADO ARVIC (10) — 05/12
-  _+15 outros_
-
-👤 *JULIO CESAR SOARES DE PAULO* (23 em risco)
-  🟡 ACOGUE DO IRINEU (7) — 15/07
-  🟡 MERCEARIA MONTE CARLO (7) — 22/06
-  🟡 BOM D+ MINIMERCADO (7) — 18/08
-  🟡 41.263.128 NADYA THATIANE SILVA DE MACED (7) — 14/08
-  🟡 MERCEARIA DA ROCA (7) — 30/07
+👤 *ANA CRISTINA DOS SANTOS YAMATO* (23 em risco)
+  🟡 SUPERMERCADO JK (5) — 05/12
+  🟡 MERCADO BATTUDOO (5) — 28/08
+  🟡 MERCADINHO 7 ESTRELA (5) — 01/01
+  🟡 61.875.474 ANA CLAUDIA QUEIROZ LIMA (8) — 01/01
+  🟡 BEM-TE-VI DOCERIA E BOMBONIERE LTDA (33) — 27/08
   _+18 outros_
 
-👤 *Venda empresa (interno)* (8 em risco)
-  🟡 ALDIRENE BARBOSA DE MORAES (2) — 10/03
-  🟡 BARRACA DO BATATINHA (2) — 05/12
-  🟡 CARLOS YOITI KAWAI - ME (2) — 05/12
-  🟡 N M MERCADORIA E BAZAR (2) — 05/12
-  🟡 COMERCIAL MM SANTA INES LTDA (2) — 05/12
-  _+3 outros_
+👤 *JULIO CESAR SOARES DE PAULO* (23 em risco)
+  🟡 RODRIGUES E BETARELO LTDA (7) — 25/05
+  🟡 ANNECY POUSADA (7) — 31/08
+  🟡 LUCIA APARECIDA DA SILVA FERNANDES 29077 (7) — 13/08
+  🟡 60.888.797 MATEUS SANTIAGO DA SILVA BENT (7) — 13/08
+  🟡 QUITANDA (25) — 05/12
+  _+18 outros_
 
-👤 *VICTOR HUGO FONSECA CARVALHO* (58 em risco)
-  🟡 SACOLAO PAG MENOS (27) — 27/08
-  🟡 SUPERMERCADO JK (27) — 05/12
-  🟡 PADARIA PAO DA VIDA (27) — 27/08
-  🟡 MERCEARIA EMILIA (40) — 10/07
-  🟡 QUITANDA JJ (40) — 12/06
-  _+53 outros_
+👤 *Venda empresa (interno)* (25 em risco)
+  🟡 CONV E RESTAURANTE ESPACO ORIENTAL (2) — 05/12
+  🟡 SUPER OBA OBA (2) — 05/12
+  🟡 MACHADO E SILVA ATACADISTA DE ALIMENTOS (2) — 05/12
+  🟡 CANTINA COLEGIO IMPERATRICE (2) — 05/12
+  🟡 TACO MEX (2) — 05/12
+  _+20 outros_
+
+👤 *VICTOR HUGO FONSECA CARVALHO* (39 em risco)
+  🟡 ENCANTO FLORES E PRESENTES (16) — 31/07
+  🟡 JOSE BATISTA RODRIGUES ARAUJO84276762634 (16) — 29/07
+  🟡 AVICOLA E MERCEARIA DO MINEIRO (16) — 20/08
+  🟡 BAZAR E PAPELARIA DO RIZZO (27) — 28/08
+  🟡 PADARIA SAO GERALDO (27) — 16/07
+  _+34 outros_

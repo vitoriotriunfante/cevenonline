@@ -1,46 +1,46 @@
 🌅 *ABERTURA MATINAL — TCA (07:45)*
-📅 terça-feira, 06/10/2026
+📅 quarta-feira, 07/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 28 • Visitas: 276 (média 9,9/vendedor)
-Sem compra +30d: 131 (47,5%) • Recorrência: 60 (21,7%)
-Oportunidades CNAE 4721: +364 PDVs
+👥 Vendedores: 28 • Visitas: 299 (média 10,7/vendedor)
+Sem compra +30d: 154 (51,5%) • Recorrência: 58 (19,4%)
+Oportunidades CNAE 4639: +323 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCA — BECHER* • 06/10/2026
+📍 *TCA — BECHER* • 07/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 131
+🔴 Última Chance: 0  •  🟡 Preventivo: 154
 
-👤 *FRANCISCO FRANCO FILHO* (11 em risco)
-  🟡 DROGARIA IPIRANGA (390) — 31/08
-  🟡 IPIRANGA FARMA (390) — 05/12
-  🟡 FARMA POPULAR (390) — 26/08
-  🟡 MERCADO ELDORADO (390) — 27/08
-  🟡 D & A SUPERMERCADO (390) — 19/08
-  _+6 outros_
+👤 *FRANCISCO FRANCO FILHO* (19 em risco)
+  🟡 FLORICULTURA FLOR DE LIS (376) — 25/08
+  🟡 MARIAH FLORES (376) — 04/09
+  🟡 POSTO POINT JARDIM VITORIA (376) — 31/08
+  🟡 MASTER EMBALAGENS (376) — 21/08
+  🟡 DROGARIA GLOBO (376) — 28/08
+  _+14 outros_
 
-👤 *IVAIR PRINCIPE FREITAS DE MIRANDA* (32 em risco)
-  🟡 DROGARIA OPCAO POPULAR (379) — 25/08
-  🟡 MERCEARIA JD (379) — 05/12
-  🟡 VITRINE IMPORTS (379) — 27/08
-  🟡 MERCADO AZULAO (379) — 30/07
-  🟡 MERCADO EUROPA (379) — 05/12
-  _+27 outros_
+👤 *IVAIR PRINCIPE FREITAS DE MIRANDA* (44 em risco)
+  🟡 MERCEARIA SANTA MARIA (378) — 17/02
+  🟡 ROMEU MERCEARIA (378) — 14/08
+  🟡 COMERCIAL SENA II (378) — 29/08
+  🟡 MERCADO ALTAS HORAS (378) — 18/08
+  🟡 MERCEARIA RIO SAMBA (378) — 29/08
+  _+39 outros_
 
-👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR* (64 em risco)
-  🟡 CAMPOFARMA (381) — 26/08
-  🟡 MERCEARIA OLIVEIRA (384) — 27/08
-  🟡 REAL MINI MERCADO (380) — 31/07
-  🟡 MERCADO BOM PRECO (380) — 27/08
-  🟡 MERCADO DO PANAMA (380) — 26/08
-  _+59 outros_
+👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR* (58 em risco)
+  🟡 CONVENIENCIA XAXIM (380) — 29/08
+  🟡 PANIFICADORA CENTRAL MERCADO E CONV (380) — 05/12
+  🟡 DROGARIA VERDES MARES (380) — 05/12
+  🟡 ULTRA POPULAR (380) — 05/12
+  🟡 EMPORIO POPULAR (380) — 05/12
+  _+53 outros_
 
-👤 *MAICON DION NOVAIS SILVA* (24 em risco)
-  🟡 COMERCIAL 2 IRMAOS (372) — 31/08
-  🟡 MERCADO SAO PEDRO (372) — 17/02
-  🟡 DIA A DIA SUPERMERCADO (372) — 17/08
-  🟡 IDEAL SUPERMERCADO (372) — 25/08
-  🟡 SUPERMERCADO LIDER (372) — 05/12
-  _+19 outros_
+👤 *MAICON DION NOVAIS SILVA* (33 em risco)
+  🟡 COMERCIAL UNIAO (372) — 31/08
+  🟡 SHALLOM (372) — 31/08
+  🟡 COMERCIAL BOA ESPERANCA (373) — 31/08
+  🟡 MERCEARIA MARILIA (397) — 05/12
+  🟡 CAVOUR S HAMBURGUERIA EXPRESS (397) — 05/12
+  _+28 outros_
