@@ -37,6 +37,8 @@ export function calculaFaseamento(snaps, mes, hoje) {
     const dFim = f.fimDoMes ? dia(ult) : dia(f.ate);
     if (dFim > hoje) return { ...f, ate: f.fimDoMes ? ult : f.ate, data: dFim, status: 'futuro', pct: null, ganhou: 0 };
     const p = pct(fotoAte(dFim));
+    // o dia do fechamento da semana ainda esta rolando: mostra o % de agora, mas so pontua quando o dia terminar
+    if (dFim === hoje) return { ...f, ate: f.fimDoMes ? ult : f.ate, data: dFim, status: p == null ? 'sem_meta' : 'em_andamento', pct: p == null ? null : Math.round(p * 10) / 10, ganhou: 0 };
     const batida = p != null && p >= f.meta;
     return { ...f, ate: f.fimDoMes ? ult : f.ate, data: dFim, status: p == null ? 'sem_meta' : (batida ? 'batida' : 'nao_batida'), pct: p == null ? null : Math.round(p * 10) / 10, ganhou: batida ? f.pontos : 0 };
   });

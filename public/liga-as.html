@@ -42,7 +42,7 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const brl = (x) => 'R$ ' + (Number(x) || 0).toLocaleString('pt-BR', {maximumFractionDigits: 0});
 let D = null, VISAO = 'sup';
-const cel = (f) => f.status === 'batida' ? `<span class="ok" title="${f.pct}% no dia ${f.ate}">✅ ${f.pct}%</span>` : f.status === 'nao_batida' ? `<span class="no" title="meta ${f.meta}%">❌ ${f.pct}%</span>` : f.status === 'futuro' ? '<span class="fut">⏳</span>' : '—';
+const cel = (f) => f.status === 'batida' ? `<span class="ok" title="${f.pct}% no dia ${f.ate}">✅ ${f.pct}%</span>` : f.status === 'nao_batida' ? `<span class="no" title="meta ${f.meta}%">❌ ${f.pct}%</span>` : f.status === 'em_andamento' ? `<span class="and" title="hoje fecha a semana">⏳ ${f.pct}%</span>` : f.status === 'futuro' ? '<span class="fut">⏳</span>' : '—';
 const bon = (b) => b.status === 'batido' ? `<span class="ok" title="batida em ${b.quando}">✅ +${b.pontos}</span>` : b.status === 'perdido' ? '<span class="no">❌</span>' : '<span class="and">em jogo</span>';
 function desenha() {
   if (!D) return;

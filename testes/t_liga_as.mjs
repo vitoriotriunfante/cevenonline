@@ -22,8 +22,13 @@ export default async function (ok) {
   ok(rb.bonus[0].status === 'batido' && rb.bonus[0].quando === '2026-10-12' && rb.bonus[1].status === 'batido' && rb.bonus[0].ganhou === 50 && rb.bonus[1].ganhou === 25, 'meta batida no dia 12: bonus da quinzena +50 e do dia 25 +25');
   const rt = lib.calculaFaseamento({ '2026-10-20': S(1000) }, '2026-10', '2026-10-26');
   ok(rt.bonus[0].status === 'perdido' && rt.bonus[1].status === 'batido', 'meta batida so no dia 20: perde o bonus da quinzena, ganha o do dia 25');
-  const rf = lib.calculaFaseamento({ '2026-10-31': S(1100) }, '2026-10', '2026-10-31');
-  ok(rf.fases[3].status === 'batida' && rf.fases[3].ganhou === 40 && rf.fases[3].pct === 110, 'semana 4: 110% no ultimo dia do mes ganha 40');
+  const rf = lib.calculaFaseamento({ '2026-10-31': S(1100) }, '2026-10', '2026-11-01');
+  ok(rf.fases[3].status === 'batida' && rf.fases[3].ganhou === 40 && rf.fases[3].pct === 110, 'semana 4: 110% no ultimo dia do mes ganha 40 (depois que o dia terminar)');
+  // o dia que fecha a semana ainda esta rolando: mostra o %, mas so pontua quando o dia terminar
+  const rh = lib.calculaFaseamento({ '2026-10-07': S(250) }, '2026-10', '2026-10-07');
+  ok(rh.fases[0].status === 'em_andamento' && rh.fases[0].pct === 25 && rh.fases[0].ganhou === 0 && rh.pontos === 0, 'no proprio dia 7 a semana 1 aparece em andamento (25%) e so pontua depois que o dia terminar');
+  const rh2 = lib.calculaFaseamento({ '2026-10-07': S(250) }, '2026-10', '2026-10-08');
+  ok(rh2.fases[0].status === 'batida' && rh2.fases[0].ganhou === 10, 'no dia 8 a semana 1 fica batida e vale 10 pontos');
   // sem meta: nunca inventa
   const rs = lib.calculaFaseamento({ '2026-10-07': { meta: 0, faturado: 100, pendente: 0 } }, '2026-10', '2026-10-21');
   ok(rs.fases[0].status === 'sem_meta' && rs.pontos === 0 && rs.pct_hoje === null, 'sem meta cadastrada: nao pontua e nao mostra %');
