@@ -9,7 +9,7 @@
 
 // Versão das regras da liga (config/pontuacao_brasileirao.json -> "versao_regras"). Um teste automático confere que as duas batem e que as regras não mudaram sem subir a versão.
 import { auditaLista } from './auditoria_lance.js';
-export const REGRAS_VERSAO = '2026-10-13.1';
+export const REGRAS_VERSAO = '2026-10-13.2';
 
 export function agoraSP() {
   const p = {};

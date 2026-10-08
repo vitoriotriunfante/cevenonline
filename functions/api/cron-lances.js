@@ -161,11 +161,16 @@ function calcAlertas(vs, t) {
       const acrIni = (v.fuso1h ? 17 : 16) * 60 + 30, acrFim = (v.fuso1h ? 19 : 18) * 60;
       if (ultimoCheckin.horaMin >= acrIni && ultimoCheckin.horaMin <= acrFim) out.push({ chave: `gol_acrescimos|${v.id}`, nivel: 'gol', v, prova: comQ(v, `check-in as ${ultimoCheckin.hms} (janela ${Math.floor(acrIni / 60)}h${String(acrIni % 60).padStart(2, '0')} ate ${acrFim / 60}h00)`) });
     }
-    if (checkins.length >= 3) {
-      for (let i = 0; i <= checkins.length - 3; i++) {
-        const janelaMin = checkins[i + 2].horaMin - checkins[i].horaMin;
-        if (janelaMin <= 120 && janelaMin >= 0 && t.agoraMin >= checkins[i + 2].horaMin) { // vale o dia todo: a chave leva a hora do 3o check-in (nao duplica) e o popup so aparece para lance recente
-          out.push({ chave: `gol_hattrick|${v.id}|${checkins[i + 2].hms}`, nivel: 'hattrick', v, prova: comQ(v, `3 check-ins em ${janelaMin} min: ${checkins[i].hms}, ${checkins[i + 1].hms}, ${checkins[i + 2].hms}`) });
+    // HAT-TRICK = 3 VENDAS SEGUIDAS (Vitorio, 08/10/2026: "nao precisa ser em 2 horas, tem que ser 3 vendas seguidas"): 3 visitas CONSECUTIVAS do dia, todas com venda, sem visita sem venda no meio. Vale o dia todo.
+    {
+      const visitas = (v.cl || []).filter((c) => !['AGENDADO', 'ABERTO'].includes(c.status) && c.checkin_horario).map((c) => {
+        const [h, m] = String(c.checkin_horario).split(':').map(Number);
+        return Number.isNaN(h) || Number.isNaN(m) ? null : { horaMin: h * 60 + m, hms: c.checkin_horario, venda: ['POSITIVADO', 'EFETIVADO'].includes(c.status) };
+      }).filter(Boolean).sort((a, b) => a.horaMin - b.horaMin);
+      for (let i = 0; i + 2 < visitas.length; i++) {
+        if (visitas[i].venda && visitas[i + 1].venda && visitas[i + 2].venda && t.agoraMin >= visitas[i + 2].horaMin) {
+          const janelaMin = visitas[i + 2].horaMin - visitas[i].horaMin;
+          out.push({ chave: `gol_hattrick|${v.id}|${visitas[i + 2].hms}`, nivel: 'hattrick', v, prova: comQ(v, `3 vendas seguidas (3 check-ins em ${janelaMin} min): ${visitas[i].hms}, ${visitas[i + 1].hms}, ${visitas[i + 2].hms}`) });
           break;
         }
       }

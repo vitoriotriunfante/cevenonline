@@ -382,7 +382,7 @@ function textoGol(subtipo, valor, c, horaReal) {
   if (subtipo === 'marca_propria') return `${c && c.nome} · ⭐ GOL DE MARCA PRÓPRIA! R$ ${(Number(valor) || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} de Marca Própria no pedido!`;
   if (subtipo === 'mp_tripla') return `🌟 TRIPLA DE MARCA PRÓPRIA! ${valor} clientes com R$ 50+ de Marca Própria hoje!`;
   if (subtipo === 'dobrou_mix') return `${c && c.nome} · dobrou o mix do cliente!`;
-  if (subtipo === 'hattrick') return `Hat-Trick (3 visitas com venda em até 2h, última checkin ${horaReal})`;
+  if (subtipo === 'hattrick') return `Hat-Trick (3 vendas seguidas, última checkin ${horaReal})`;
   if (subtipo === 'meta1tempo') return `Meta do 1º Tempo batida (checkin ${horaReal})`;
   if (subtipo === 'dobradinha_quinzenas') return `${c && c.nome} · dobradinha das quinzenas!`;
   return 'GOL DE PLACA';
@@ -564,14 +564,17 @@ function calcAlertas() {
         out.push({key: `${sig}|gol_acrescimos|${v.id}`, sig, nivel: 'gol', subtipo: 'acrescimos', v, valor: v.dig, horaReal: ultimoCheckin.hms});
       }
     }
-    // --- LANCE G06: HAT-TRICK (3 visitas com venda em até 120min, horário REAL de checkin) ---
-    if (checkins.length >= 3) {
-      for (let i = 0; i <= checkins.length - 3; i++) {
-        const janelaMin = checkins[i + 2].horaMin - checkins[i].horaMin;
-        if (janelaMin <= 120 && janelaMin >= 0 && (agoraMin - checkins[i + 2].horaMin) <= FRESCOR_MAX_MIN) {
-          const chave = `${sig}|gol_hattrick|${v.id}|${checkins[i + 2].hms}`;
+    // --- LANCE G06: HAT-TRICK = 3 VENDAS SEGUIDAS (08/10/2026, Vitorio: "nao precisa ser em 2 horas"): 3 visitas consecutivas do dia, todas com venda, sem visita sem venda no meio ---
+    {
+      const visitas = (v.cl || []).filter(c => !['AGENDADO', 'ABERTO'].includes(c.status) && c.checkin_horario).map(c => {
+        const [h, m] = String(c.checkin_horario).split(':').map(Number);
+        return Number.isNaN(h) || Number.isNaN(m) ? null : {horaMin: h * 60 + m, hms: c.checkin_horario, valor: c.valor_ultima || null, venda: ['POSITIVADO', 'EFETIVADO'].includes(c.status)};
+      }).filter(Boolean).sort((a, b) => a.horaMin - b.horaMin);
+      for (let i = 0; i + 2 < visitas.length; i++) {
+        if (visitas[i].venda && visitas[i + 1].venda && visitas[i + 2].venda && agoraMin >= visitas[i + 2].horaMin) {
+          const chave = `${sig}|gol_hattrick|${v.id}|${visitas[i + 2].hms}`;
           if (!out.some(o => o.key === chave)) {
-            out.push({key: chave, sig, nivel: 'hattrick', subtipo: 'hattrick', v, horaReal: checkins[i + 2].hms, valores: [checkins[i].valor, checkins[i + 1].valor, checkins[i + 2].valor]});
+            out.push({key: chave, sig, nivel: 'hattrick', subtipo: 'hattrick', v, horaReal: visitas[i + 2].hms, valores: [visitas[i].valor, visitas[i + 1].valor, visitas[i + 2].valor]});
           }
           break;
         }

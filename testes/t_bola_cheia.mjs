@@ -41,4 +41,11 @@ export default async function t(ok) {
   const rep = lf.lancesReprovados([{ ...base, chave: 'gol_inativo|1|2', obs: 'TBL' }, { ...base, chave: 'gol_super|1', pontos: 5, obs: 'digitado do dia R$ 16.000 (minimo R$ 15.000)' }, { ...base, supervisor: '', chave: 'gol_super|2', pontos: 5, obs: 'digitado do dia R$ 16.000 (minimo R$ 15.000)' }], '2026-10-13');
   ok(rep.length === 1 && rep[0].chave === 'gol_inativo|1|2', 'fechamento: lance sem prova (so a sigla no obs) e retirado; lance com prova e lance so sem supervisor ficam');
   ok(readFileSync(join(RAIZ, 'functions/_lib/liga_fechamento.js'), 'utf8').includes('INSERT OR IGNORE INTO lances_excluidos_liga') && readFileSync(join(RAIZ, 'functions/_lib/liga_fechamento.js'), 'utf8').includes('AUDITORIA DO FECHAMENTO'), 'fechamento: a retirada fica gravada com o motivo (trilha auditavel)');
+  // HAT-TRICK = 3 VENDAS SEGUIDAS, sem teto de tempo; e a TV nao grava lance que pontua sem prova
+  const cl2 = readFileSync(join(RAIZ, 'functions/api/cron-lances.js'), 'utf8'), tl = readFileSync(join(RAIZ, 'functions/api/tv-lances.js'), 'utf8');
+  ok(cl2.includes('3 vendas seguidas') && !cl2.includes('janelaMin <= 120') && readFileSync(join(RAIZ, 'public/tvapp.html'), 'utf8').includes('visitas[i].venda && visitas[i + 1].venda && visitas[i + 2].venda') && readFileSync(join(RAIZ, 'public/matrizapp.html'), 'utf8').includes('visitas[i].venda && visitas[i + 1].venda && visitas[i + 2].venda'), 'Hat-Trick: 3 vendas seguidas (visitas consecutivas todas com venda), sem limite de 2 horas, no coletor, na TV e na Matriz');
+  const tlm = await import(pathToFileURL(join(RAIZ, 'functions/api/tv-lances.js')).href);
+  const P = tlm.PRECISA_PROVA;
+  ok(P.test('ven10|487') && P.test('TCG|ven10|487') && P.test('gol_mix|1|2') && P.test('imp|gps|1|2') && P.test('gol_hattrick|1|09:00') && !P.test('pen|estoque|1|2') && !P.test('def|1|2') && !P.test('ver_dev|1|2') && !P.test('pedido_rota|1|2'), 'tv-lances: tipos que precisam de prova (amarelo, gols, impedimento) x os que se provam pelos campos (penalti, defesa, devolucao, pedido na rota)');
+  ok(tl.includes('PRECISA_PROVA.test(validos[i].chave)') && tl.includes('sem_prova_ignorados'), 'tv-lances: lance que pontua so com a sigla no obs nao entra no registro (sem comprovacao nao tem lance)');
 }

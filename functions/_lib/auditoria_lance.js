@@ -65,7 +65,7 @@ export function auditaLance(l, ctx = {}) {
     if (!m) falha('acréscimos sem a prova do horário do check-in'); else { const t = hm(+m[1], +m[2]); if (t < hm(16, 30) || t >= hm(19, 0)) falha(`acréscimos com check-in às ${m[1]}:${m[2]} (janela 16h30 a 19h)`); }
   } else if (tipo === 'gol_hattrick' || tipo === 'hattrick') {
     m = /(\d+) check-ins em (\d+) min/.exec(obs);
-    if (!m) falha('hat-trick sem a prova dos check-ins'); else { if (+m[1] < 3) falha(`hat-trick com ${m[1]} check-ins`); if (+m[2] > 120) falha(`hat-trick em ${m[2]} min (máximo 120)`); }
+    if (!m) falha('hat-trick sem a prova dos check-ins'); else { if (+m[1] < 3) falha(`hat-trick com ${m[1]} check-ins`); } /* 08/10/2026: sem teto de tempo; o que vale e serem 3 vendas seguidas */
   } else if (tipo === 'gol_mp_tripla') {
     m = /(\d+) clientes com R\$ 50\+ de MARCA PROPRIA no dia \(minimo 3\)/.exec(obs);
     if (!m) falha('tripla de marca propria sem a prova dos clientes'); else if (+m[1] < 3) falha(`tripla de marca propria com ${m[1]} clientes (minimo 3)`);

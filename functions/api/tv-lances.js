@@ -47,6 +47,8 @@ export async function onRequestGet({ request, env }) {
   }
 }
 
+export const PRECISA_PROVA = /^(?:[A-Z]{3}[|])?(?:ven10|vis11|gol_inativo|gol_mix|gol_quinzenas|gol_marca_propria|gol_mp_tripla|gol_relampago|gol_acrescimos|gol_meta1t|gol_conversao|gol_goleada|gol_hattrick|hattrick|gol_super|gol_campeao|imp[|](?:gps|visita0))(?:[|]|$)/;
+
 export async function onRequestPost({ request, env }) {
   if (!env.DB) return resp({ erro: 'banco indisponivel' }, 503);
   let b;
@@ -67,6 +69,11 @@ export async function onRequestPost({ request, env }) {
 
     const ocP = await ocultosDaEquipe(new URL(request.url).origin); // vendedor OCULTO na Gestao de Equipe nao gera lance
     const validos = lances.filter((l) => l && !lanceDeOculto({ ...l, filial }, ocP) && typeof l.chave === 'string' && l.chave.length <= 120 && ['penalti', 'venda10', 'visita10', 'supervisor', 'gol', 'vermelho', 'impedimento', 'amarelo', 'defesa', 'golcontra', 'hattrick', 'pedido_rota', 'semanainvicta'].includes(l.nivel));
+    // SEM COMPROVACAO NAO TEM LANCE (Vitorio, 08/10/2026: "isso nao estava proibido?"): a TV/Matriz nao grava lance que pontua so com a sigla no obs. Quem grava com prova e o coletor (a cada 5 min); sem prova o lance
+    // nao entra no registro, nao pontua e nao vira popup. Pênalti, defesa, devolucao e pedido na rota se provam pelos proprios campos e seguem como antes.
+    const antes = validos.length;
+    for (let i = validos.length - 1; i >= 0; i--) if (PRECISA_PROVA.test(validos[i].chave) && String(validos[i].obs || '').length <= 3) validos.splice(i, 1);
+    const semProvaIgnorados = antes - validos.length;
     let novos = [];
     // Devolucao: uma NOTA gera UM lance na vida toda (a nota continua na janela de 3 dias e voltaria a cada dia).
     for (let i = validos.length - 1; i >= 0; i--) {
@@ -94,7 +101,7 @@ export async function onRequestPost({ request, env }) {
         ).bind(txt(l.obs, 700), dia, filial, l.chave, txt(l.obs, 700))));
       }
     }
-    return resp({ dia, filial, baseline, novos, total: validos.length });
+    return resp({ dia, filial, baseline, novos, total: validos.length, sem_prova_ignorados: semProvaIgnorados });
   } catch (e) {
     return resp({ erro: 'falha ao gravar: ' + e.message }, 500);
   }
