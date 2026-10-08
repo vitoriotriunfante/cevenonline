@@ -71,6 +71,12 @@ export async function onRequestPost({ request, env }) {
     const validos = lances.filter((l) => l && !lanceDeOculto({ ...l, filial }, ocP) && typeof l.chave === 'string' && l.chave.length <= 120 && ['penalti', 'venda10', 'visita10', 'supervisor', 'gol', 'vermelho', 'impedimento', 'amarelo', 'defesa', 'golcontra', 'hattrick', 'pedido_rota', 'semanainvicta'].includes(l.nivel));
     // SEM COMPROVACAO NAO TEM LANCE (Vitorio, 08/10/2026: "isso nao estava proibido?"): a TV/Matriz nao grava lance que pontua so com a sigla no obs. Quem grava com prova e o coletor (a cada 5 min); sem prova o lance
     // nao entra no registro, nao pontua e nao vira popup. Pênalti, defesa, devolucao e pedido na rota se provam pelos proprios campos e seguem como antes.
+    // Hat-trick: UM por vendedor por dia (a chave leva a hora do 3o check-in; check-in sincronizado tarde gerava outra trinca no mesmo dia)
+    for (let i = validos.length - 1; i >= 0; i--) {
+      const m = /^(?:[A-Z]{3}[|])?gol_hattrick[|]([^|]+)[|]/.exec(validos[i].chave); if (!m) continue;
+      const ja = await env.DB.prepare("SELECT 1 AS x FROM tv_lances WHERE dia = ? AND rca = ? AND chave LIKE '%gol_hattrick|%' AND chave NOT LIKE ? LIMIT 1").bind(dia, String(validos[i].rca == null ? m[1] : validos[i].rca), '%' + validos[i].chave.replace(/^[A-Z]{3}[|]/, '')).first();
+      if (ja) validos.splice(i, 1);
+    }
     const antes = validos.length;
     for (let i = validos.length - 1; i >= 0; i--) if (PRECISA_PROVA.test(validos[i].chave) && String(validos[i].obs || '').length <= 3) validos.splice(i, 1);
     const semProvaIgnorados = antes - validos.length;

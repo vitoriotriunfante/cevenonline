@@ -48,4 +48,5 @@ export default async function t(ok) {
   const P = tlm.PRECISA_PROVA;
   ok(P.test('ven10|487') && P.test('TCG|ven10|487') && P.test('gol_mix|1|2') && P.test('imp|gps|1|2') && P.test('gol_hattrick|1|09:00') && !P.test('pen|estoque|1|2') && !P.test('def|1|2') && !P.test('ver_dev|1|2') && !P.test('pedido_rota|1|2'), 'tv-lances: tipos que precisam de prova (amarelo, gols, impedimento) x os que se provam pelos campos (penalti, defesa, devolucao, pedido na rota)');
   ok(tl.includes('PRECISA_PROVA.test(validos[i].chave)') && tl.includes('sem_prova_ignorados'), 'tv-lances: lance que pontua so com a sigla no obs nao entra no registro (sem comprovacao nao tem lance)');
+  ok(readFileSync(join(RAIZ, 'functions/api/brasileirao-lances.js'), 'utf8').includes('HAT-TRICK = UM POR VENDEDOR POR DIA') && tl.includes('Hat-trick: UM por vendedor por dia'), 'Hat-Trick: um por vendedor por dia (lance repetido por check-in sincronizado tarde nao pontua de novo), na API da liga e no registro');
 }

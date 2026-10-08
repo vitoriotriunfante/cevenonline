@@ -138,6 +138,14 @@ export async function onRequestGet({ request, env }) {
       const base = (l.filial !== 'MTZ' && !g._real) ? { ...l, _real: true } : g;
       grupos.set(id, { ...base, hora_sp: menor });
     }
+    // HAT-TRICK = UM POR VENDEDOR POR DIA (08/10/2026): o check-in sincronizado tarde faz o coletor achar outra trinca no mesmo dia (3o check-in com outra hora) e gravar outro lance;
+    // vale so o PRIMEIRO registrado (Monica Saldanha/TSJ e Luciene/TSJ tinham 3 hat-tricks, +18 cada, no mesmo dia)
+    { const horaDe = (g) => String(g.hora_sp || ''); const vistos = new Set();
+      for (const [id, g] of [...grupos.entries()].sort((a, b) => horaDe(a[1]).localeCompare(horaDe(b[1])))) {
+        const m = /(?:^|[|])gol_hattrick[|]([^|]+)[|]/.exec(String(g.chave || '')); if (!m) continue;
+        const k = id.split('|')[0] + '|' + (g.rca != null ? g.rca : m[1]);
+        if (vistos.has(k)) grupos.delete(id); else vistos.add(k);
+      } }
     const lancesRaw = [...grupos.values()].sort((a, b) => String(b.hora_sp || '').localeCompare(String(a.hora_sp || '')));
     const duplicadosRemovidos = lancesBrutos.length - lancesRaw.length;
 
