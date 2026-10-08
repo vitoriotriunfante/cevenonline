@@ -46,12 +46,18 @@ async function poolLimitado(tarefas, n, prazo) {
   return saida;
 }
 
+// PRAZO DURO (08/10/2026): o AbortSignal nao cobre a leitura do CORPO da resposta; uma resposta do CEVEN que travava no meio prendia a rodada por ~9 min (a base de hoje ficou
+// vazia a manha toda). Agora a chamada inteira (cabecalho + corpo) tem teto de 20 s; passou disso = null (fica para a proxima rodada), nunca trava o pool.
 async function getJson(url) {
-  try {
+  const chamada = (async () => {
     const r = await fetch(url, { headers: HDR, signal: AbortSignal.timeout(15000) });
     if (!r.ok) return null;
     const t = await r.text();
     return t ? JSON.parse(t) : null;
+  })();
+  chamada.catch(() => {});
+  try {
+    return await Promise.race([chamada, new Promise((resolve) => setTimeout(() => resolve(null), 20000))]);
   } catch {
     return null;
   }
