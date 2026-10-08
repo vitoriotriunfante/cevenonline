@@ -1,37 +1,30 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 MCD — ADRIANO • 07/10/2026
+📍 MCD — ADRIANO • 08/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/10/2026 a 07/10/2026)*
-💰 R$ 1.465,71 • 11 PDVs • ✂️ R$ 0,00 (0 un) • 🚛 R$ 328,56 _(filial toda)_
-👤 CLEOMAR DINIZ BARBOSA — R$ 1.465,71 (11 PDVs)
+*ACUMULADO DO MÊS (01/10/2026 a 08/10/2026)*
+💰 R$ 2.523,36 • 21 PDVs • ✂️ R$ 0,00 (0 un) • 🚛 R$ 328,56 _(filial toda)_
+👤 CLEOMAR DINIZ BARBOSA — R$ 2.414,29 (19 PDVs)
+👤 CARLOS ALAGUEZ DA SILVA — R$ 109,07 (2 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (06/10/2026)*
-💰 R$ 606,89 • 3 PDVs positivados
-👤 CLEOMAR DINIZ BARBOSA — R$ 606,89 (3 PDVs)
+*COMO FECHOU ONTEM (07/10/2026)*
+💰 R$ 1.057,65 • 10 PDVs positivados
+👤 CLEOMAR DINIZ BARBOSA — R$ 948,58 (8 PDVs)
+👤 CARLOS ALAGUEZ DA SILVA — R$ 109,07 (2 PDVs)
 
-🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (16)*
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (9)*
 _(fez pedido ontem, mas nenhum item era marca própria)_
 
 👤 *CLEOMAR DINIZ BARBOSA*
-  • FRANCIELE BRUNETTO FRANCA — nunca vendeu MP
-  • EVERTON GONCALVES — 44d sem vender MP
-  • CIL FARNEY BARBOSA DE ALCANTARA — 42d sem vender MP
-  • LUIZ ANTONIO DE AFENSOR — 37d sem vender MP
-  • VALQUIRIA DE FATIMA LEITE GONCALVES — 6d sem vender MP
-  • TARCISIO GUILHERME BARBOSA — 2d sem vender MP
-  • ROBERTO DE SENNA PEREIRA — -15d sem vender MP
+  • CIL FARNEY BARBOSA DE ALCANTARA — 43d sem vender MP
+  • LUIZ ANTONIO DE AFENSOR — 38d sem vender MP
+  • KLEYTON CEZAR PINTO JULIATO — 2d sem vender MP
+  • ROBERTO DE SENNA PEREIRA — -14d sem vender MP
 
 👤 *CARLOS ALAGUEZ DA SILVA*
-  • EDMILSON RODRIGES FERREIRA — nunca vendeu MP
   • SAMIRA BARCELOS ALBRES — nunca vendeu MP
   • ADILSON DE SOUZA NUNES JUNIOR — nunca vendeu MP
-  • TIEGO RISALDI RAMOS — 43d sem vender MP
-  • IGOR ROBERTO JESUS DA SILVA — 21d sem vender MP
-  • LUAN FELIPE DE SOUZA MEDEIROS — 13d sem vender MP
-  • RODRIGO ALBUQUERQUE DE SOUZA — 7d sem vender MP
-  • LUIS FERNANDO CASTILHO ALVES — -2d sem vender MP
-
-👤 *ALYFER PEREIRA MENDES*
-  • LIDIA FRANCA BLANCO — nunca vendeu MP
+  • TIEGO RISALDI RAMOS — 44d sem vender MP
+  • IGOR ROBERTO JESUS DA SILVA — 22d sem vender MP
+  • LUIS FERNANDO CASTILHO ALVES — -1d sem vender MP
