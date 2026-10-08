@@ -1,41 +1,37 @@
 🏢 *RELATÓRIO OPERACIONAL — 14:30*
-📅 07/10/2026
+📅 08/10/2026
 📍 *FILIAL MCD — CLEVERSON*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 133.605,39
-📦 *Pedidos Colocados:* 35 pedidos
-📍 *Visitas Realizadas:* 51 de 228 (22,4%)
-👥 *Vendedores Varejo com Pedido:* 10 de 20 (50%)
-✂️ *Cortes nos Pedidos de Hoje:* R$ 33.598,84 (5 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 50.149,69 (8 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 101,79
+💰 *Total Digitado Hoje:* R$ 49.776,98
+📦 *Pedidos Colocados:* 27 pedidos
+📍 *Visitas Realizadas:* 44 de 185 (23,8%)
+👥 *Vendedores Varejo com Pedido:* 11 de 20 (55%)
+✂️ *Cortes nos Pedidos de Hoje:* R$ 2.068,80 (2 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 0,00 (0 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 9.764,07
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
-  ▫️ Cód. 1068 • FERNANDO ANJOS MACEDO: -R$ 66,35 em SM PRINCESA III (RB TROPICAL EDITION PACK)
-  ▫️ Cód. 1068 • FERNANDO ANJOS MACEDO: -R$ 436,88 em PORTAL ATACADO (CD COLG MPA 90G LMPM)
-  ▫️ Cód. 1068 • FERNANDO ANJOS MACEDO: -R$ 25.509,94 em PORTAL ATACADO (CD COLG TT12 CARVAO ATIV 90GR)
-  ▫️ Cód. 1068 • FERNANDO ANJOS MACEDO: -R$ 2.665,75 em PORTAL ATACADO (CD COLG MPA 90G LMPM)
-  ▫️ _... e mais 1 pedidos com corte._
+  ▫️ Cód. 453 • TATIANA MONTANHINI: -R$ 2.068,53 em MERCADO ALVORADA (KIT SH COND PALM DETOX 350ML)
+  ▫️ Cód. 1068 • FERNANDO ANJOS MACEDO: -R$ 0,27 em DOM SOARES SUPERMERCADO (CD SORR KOLYNOS ED LIMITADA)
 
-🚨 *Varejo Zerados (14:30):* 10 (50%)
+🚨 *Varejo Zerados (14:30):* 9 (45%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚨 *VENDEDORES DE VAREJO ZERADOS NO HORÁRIO (14:30):*
 _(Visitas realizadas sem conversão de pedido)_
 
-👤 *Supervisor: FLAVIO RUFINO* (5 zerados)
-  ▫️ Cód. 450 • TAINARA FERREIRA MUNIZ: *0 visitas feitas* (de 8 na rota) • R$ 0
-  ▫️ Cód. 451 • TALITA GOES GABAN: *0 visitas feitas* (de 13 na rota) • R$ 0
-  ▫️ Cód. 1061 • THIAGO DOS SANTOS PANDOLFO: *2 visitas feitas* (de 5 na rota) • R$ 0
-  ▫️ Cód. 1123 • FABIA ROSSANA SALLES MACIEL: *6 visitas feitas* (de 6 na rota) • R$ 0
-  ▫️ Cód. 1089 • JOEDER PEREIRA DE PAULA: *2 visitas feitas* (de 2 na rota) • R$ 0
-
-👤 *Supervisor: JONATAS DA SILVA DE OLIVEIRA* (4 zerados)
-  ▫️ Cód. 429 • GILBERTO LOPES PEREIRA: *0 visitas feitas* (de 8 na rota) • R$ 0
-  ▫️ Cód. 453 • TATIANA MONTANHINI: *6 visitas feitas* (de 7 na rota) • R$ 0
-  ▫️ Cód. 1063 • WALTER PEREIRA CORDEIRO: *5 visitas feitas* (de 5 na rota) • R$ 0
-  ▫️ Cód. 1060 • WILLIAN VINICIUS ROJA SERPA: *1 visitas feitas* (de 3 na rota) • R$ 0
+👤 *Supervisor: FLAVIO RUFINO* (6 zerados)
+  ▫️ Cód. 413 • BRUNO DE SOUZA NUNES: *0 visitas feitas* (de 11 na rota) • R$ 0
+  ▫️ Cód. 450 • TAINARA FERREIRA MUNIZ: *0 visitas feitas* (de 10 na rota) • R$ 0
+  ▫️ Cód. 451 • TALITA GOES GABAN: *0 visitas feitas* (de 7 na rota) • R$ 0
+  ▫️ Cód. 1064 • NILVANIA LEONEL DE SOUZA: *0 visitas feitas* (de 7 na rota) • R$ 0
+  ▫️ Cód. 1089 • JOEDER PEREIRA DE PAULA: *0 visitas feitas* (de 3 na rota) • R$ 0
+  ▫️ Cód. 1123 • FABIA ROSSANA SALLES MACIEL: *0 visitas feitas* (de 10 na rota) • R$ 0
 
 👤 *Vendedores ligados direto ao gerente* (1 zerados)
-  ▫️ Cód. 1070 • INTERNO: *0 visitas feitas* (de 63 na rota) • R$ 0
+  ▫️ Cód. 1070 • INTERNO: *0 visitas feitas* (de 31 na rota) • R$ 0
+
+👤 *Supervisor: JONATAS DA SILVA DE OLIVEIRA* (2 zerados)
+  ▫️ Cód. 442 • MARCELO ALVES MALESKI: *3 visitas feitas* (de 4 na rota) • R$ 0
+  ▫️ Cód. 1060 • WILLIAN VINICIUS ROJA SERPA: *0 visitas feitas* (de 4 na rota) • R$ 0
