@@ -1,38 +1,38 @@
 🌅 *ABERTURA MATINAL — TBE (07:45)*
-📅 quarta-feira, 07/10/2026
+📅 quinta-feira, 08/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 16 • Visitas: 338 (média 21,1/vendedor)
-Sem compra +30d: 138 (40,8%) • Recorrência: 21 (6,2%)
-Oportunidades CNAE 4639: +1.352 PDVs
+👥 Vendedores: 16 • Visitas: 347 (média 21,7/vendedor)
+Sem compra +30d: 133 (38,3%) • Recorrência: 25 (7,2%)
+Oportunidades CNAE 4712: +347 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TBE — DIEGO* • 07/10/2026
+📍 *TBE — DIEGO* • 08/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 138
+🔴 Última Chance: 0  •  🟡 Preventivo: 128
 
-👤 *HAMILTON RICARDO DOS SANTOS MENDES* (73 em risco)
-  🟡 ZAP COMERCIAL (301) — 31/07
-  🟡 ROTA 66 (301) — 05/12
-  🟡 FAMILIA D A DISTRIBUIDORA DE ALIMENTOS E (301) — 01/01
-  🟡 HEMERSON EICKHOFF (301) — 01/01
-  🟡 SUPER ORSO (301) — 06/08
-  _+68 outros_
+👤 *HAMILTON RICARDO DOS SANTOS MENDES* (63 em risco)
+  🟡 MINI MERCADO LIMA (307) — 09/07
+  🟡 FJ COMERCIOS (307) — 27/05
+  🟡 REDE ENERGIA (307) — 05/12
+  🟡 VANDIPAN PADARIA LTDA (307) — 27/05
+  🟡 KON MAC MINI MERCADO (307) — 05/12
+  _+58 outros_
 
 👤 *NEIVA CLEONICE SERRA ISOPPO* (6 em risco)
-  🟡 CONDO MERCADO INTELIGENTE (289) — 05/12
-  🟡 CONVENIENCIA E MERCADO ANDREAS (289) — 11/08
-  🟡 LEANDRO JOSE AIROLDI (293) — 18/08
-  🟡 VASCAS LOTERS (293) — 31/08
-  🟡 PATRICIA FAGUNDES DOS SANTOS (293) — 27/08
+  🟡 O POINT DO ACAI MELOS (289) — 05/12
+  🟡 SUPER EXXTRA (293) — 31/08
+  🟡 POSTO MARCA DO TEMPO (293) — 27/08
+  🟡 TOMAZI COMERCIO (293) — 01/01
+  🟡 SUPERMERCADO IMPERIO (293) — 01/01
   _+1 outros_
 
 👤 *PATRICIA CHAVES MACHADO* (59 em risco)
-  🟡 COMERCIAL CHAVES (285) — 23/07
-  🟡 POSTO MARKET 63 (285) — 05/12
-  🟡 SKINA DO CHEFF (285) — 05/12
-  🟡 L SALETE GUEDES LTDA (285) — 03/05
-  🟡 MINIMERCADO CARDOSO (285) — 01/01
+  🟡 TOCA DO TIO VEIO (288) — 04/09
+  🟡 TELE AGUA DOS GURI (288) — 04/09
+  🟡 JVL COMERCIO DE BEBIDAS (288) — 01/01
+  🟡 CINARA MENEZES DOS SANTOS (288) — 14/08
+  🟡 THAIS MOREIRA CASTILLO ESCHER (288) — 05/12
   _+54 outros_

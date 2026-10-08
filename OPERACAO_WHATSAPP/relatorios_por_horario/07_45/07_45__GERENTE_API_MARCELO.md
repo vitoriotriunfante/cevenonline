@@ -1,38 +1,41 @@
 🌅 *ABERTURA MATINAL — API (07:45)*
-📅 quarta-feira, 07/10/2026
+📅 quinta-feira, 08/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 29 • Visitas: 424 (média 14,6/vendedor)
-Sem compra +30d: 126 (29,7%) • Recorrência: 90 (21,2%)
-Oportunidades CNAE 4639: +865 PDVs
+👥 Vendedores: 30 • Visitas: 436 (média 14,5/vendedor)
+Sem compra +30d: 128 (29,4%) • Recorrência: 93 (21,3%)
+Oportunidades CNAE 4712: +950 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *API — MARCELO* • 07/10/2026
+📍 *API — MARCELO* • 08/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 126
+🔴 Última Chance: 0  •  🟡 Preventivo: 127
 
-👤 *WASHINGTON FLORES DA ROSA* (34 em risco)
-  🟡 62.873.270 GUILHERME DANIEL DOS SANTOS C (244) — 06/07
-  🟡 CANTINA BAND (244) — 05/12
-  🟡 FARMACIA KOBELING LTDA (244) — 05/09
-  🟡 MERCEARIA KAU (245) — 05/12
-  🟡 CASA TOP (250) — 31/07
-  _+29 outros_
+👤 *ALESSANDRO JUNIOR LOPES* (1 em risco)
+  🟡 REDE ASSIS (1186) — 11/07
 
-👤 *RODRIGO FARIAS* (78 em risco)
-  🟡 POSTO CAMPOS (241) — 31/08
-  🟡 COMERCIO E PRESTACAO DE SERVICOS ANDRADE (241) — 23/07
-  🟡 MERCADO LAR (241) — 31/08
-  🟡 SABORES DO CAMPO (241) — 31/07
-  🟡 CASA DE CARNES SAO JOAO (241) — 31/07
-  _+73 outros_
+👤 *WASHINGTON FLORES DA ROSA* (45 em risco)
+  🟡 POSTO DE SERVICOS LX LTDA (244) — 31/08
+  🟡 MANIA DA LIMPEZA (244) — 18/08
+  🟡 POSTO SHELL (244) — 29/07
+  🟡 MERCEARIA ZENZELUK (255) — 31/07
+  🟡 LUIZ HENRIQUE ALVES BANDEIRA 03853201911 (255) — 31/08
+  _+40 outros_
 
-👤 *SUELI APARECIDA TEIXEIRA POLLI* (14 em risco)
-  🟡 PARTEKA (249) — 31/08
-  🟡 REPUBLICA PLACAR (249) — 31/08
-  🟡 MERCEARIA RENASCER (261) — 27/07
-  🟡 MERCEARIA RONDA (529) — 31/07
-  🟡 PANIFICADORA WORUBY (529) — 19/08
-  _+9 outros_
+👤 *RODRIGO FARIAS* (70 em risco)
+  🟡 FRANCIELE DO CARMO - GOMES ATACADISTA (239) — 31/08
+  🟡 ARMAZEM DA GULA EXPRESS (239) — 31/08
+  🟡 LANCHONETE N.SRA DO PERPETUO SOCORRO (239) — 31/08
+  🟡 SABOR IDEAL (239) — 31/08
+  🟡 RESTAURANTE DA ROCA (239) — 29/07
+  _+65 outros_
+
+👤 *SUELI APARECIDA TEIXEIRA POLLI* (11 em risco)
+  🟡 GABRIELLY FERNANDES DA SILVA LTDA (261) — 10/07
+  🟡 BELINHA2 (529) — 05/12
+  🟡 PANIFICADORA DEGUSTE (529) — 05/12
+  🟡 BIBI FESTA (529) — 05/12
+  🟡 CASA CHINA (529) — 05/12
+  _+6 outros_

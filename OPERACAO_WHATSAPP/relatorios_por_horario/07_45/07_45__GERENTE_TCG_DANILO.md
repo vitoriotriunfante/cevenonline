@@ -1,46 +1,42 @@
 🌅 *ABERTURA MATINAL — TCG (07:45)*
-📅 quarta-feira, 07/10/2026
+📅 quinta-feira, 08/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 20 • Visitas: 201 (média 10,1/vendedor)
-Sem compra +30d: 46 (22,9%) • Recorrência: 17 (8,5%)
-Oportunidades CNAE 4639: +201 PDVs
+👥 Vendedores: 20 • Visitas: 148 (média 7,4/vendedor)
+Sem compra +30d: 33 (22,3%) • Recorrência: 12 (8,1%)
+Oportunidades CNAE 4712: +215 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCG — DANILO* • 07/10/2026
+📍 *TCG — DANILO* • 08/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 46
+🔴 Última Chance: 0  •  🟡 Preventivo: 33
 
-👤 *DELINLSON ANTONIO LIMA SILVA* (12 em risco)
-  🟡 MERCADO BRASIL (456) — 05/12
-  🟡 mercado nossa senhora aparecia (468) — 28/08
-  🟡 MERCEARIA DO BELO (468) — 05/12
-  🟡 PANIFICADORA PAO QUENTE (468) — 18/08
-  🟡 AUTO POSTO NOVA FLEX (469) — 31/08
-  _+7 outros_
+👤 *DELINLSON ANTONIO LIMA SILVA* (10 em risco)
+  🟡 MERC CONV COLIBRI (456) — 05/12
+  🟡 MERCADO COLIBRI (456) — 05/12
+  🟡 CONVENIENCIA NOVO SUL (468) — 27/05
+  🟡 MERCADO E ACOUQUE TROPICAL (461) — 05/12
+  🟡 PADARIA E CONV. SABOR DE MEL (469) — 29/08
+  _+5 outros_
 
-👤 *EDSON RODRIGO LINIA* (6 em risco)
-  🟡 CELEIRO (458) — 19/08
-  🟡 POSTO JM PAULISTA (458) — 05/12
-  🟡 NATURE BONITO HOTEL (475) — 21/08
-  🟡 CENTRAL CONVENIENCIA (475) — 05/12
-  🟡 MERCADO SAO PEDRO (475) — 05/12
-  _+1 outros_
+👤 *EDSON RODRIGO LINIA* (8 em risco)
+  🟡 DROGARIA AQUIDAUANA (476) — 31/08
+  🟡 POSTO PANTANAL (476) — 05/12
+  🟡 CENTR EMBALEGEM (458) — 05/12
+  🟡 SALOME (458) — 24/08
+  🟡 COMERCIAL BELEN (458) — 27/08
+  _+3 outros_
 
-👤 *Vendedores ligados direto ao gerente* (19 em risco)
-  🟡 MERCEARIA IPE E CIA (489) — 05/12
-  🟡 CONVENIENCIA PRIME (489) — 05/12
-  🟡 BROTHER S BAR (489) — 05/12
-  🟡 HORTIFRUTI GALEGO (489) — 05/12
-  🟡 MIX COSMETICOS (489) — 05/12
-  _+14 outros_
+👤 *Vendedores ligados direto ao gerente* (13 em risco)
+  🟡 MORENA COSMETICOS (489) — 05/12
+  🟡 FARMACIAS MAIS POPULAR (489) — 05/12
+  🟡 DISTRIBUIDORA 67 (489) — 05/12
+  🟡 MERCADO MADU (489) — 05/12
+  🟡 SUPERMERCADO TARUMA (489) — 05/12
+  _+8 outros_
 
-👤 *TIAGO SANTOS CORREA* (9 em risco)
-  🟡 CASA DOS DOCES (486) — 05/12
-  🟡 COPO DO PIAH (486) — 05/12
-  🟡 CASA DOS DOCES (486) — 05/12
-  🟡 CHEF CONFEITAR (486) — 27/05
-  🟡 ALEMAO CONVENIENCIA (486) — 05/12
-  _+4 outros_
+👤 *TIAGO SANTOS CORREA* (2 em risco)
+  🟡 MERCADINHO BOM JESUS (472) — 31/08
+  🟡 NORTAO CONVENIENCIA E MERCEARIA (1072) — 05/12

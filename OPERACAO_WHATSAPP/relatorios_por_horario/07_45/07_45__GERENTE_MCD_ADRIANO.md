@@ -1,38 +1,37 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 quarta-feira, 07/10/2026
+📅 quinta-feira, 08/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 20 • Visitas: 151 (média 7,5/vendedor)
-Sem compra +30d: 41 (27,2%) • Recorrência: 28 (18,5%)
-Oportunidades CNAE 4639: +157 PDVs
+👥 Vendedores: 20 • Visitas: 146 (média 7,3/vendedor)
+Sem compra +30d: 35 (24,0%) • Recorrência: 19 (13,0%)
+Oportunidades CNAE 4712: +399 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — ADRIANO* • 07/10/2026
+📍 *MCD — ADRIANO* • 08/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 41
+🔴 Última Chance: 0  •  🟡 Preventivo: 35
 
-👤 *ALYFER PEREIRA MENDES* (8 em risco)
-  🟡 GARCIA CASA DE RACAO (436) — 05/12
-  🟡 AGROPET COOPHAVILA II (436) — 05/12
-  🟡 CASA DA RACAO (436) — 17/08
-  🟡 KRIPTO PET SHOP (436) — 20/08
-  🟡 LOLO PET SHOP (436) — 01/01
-  _+3 outros_
+👤 *ALYFER PEREIRA MENDES* (5 em risco)
+  🟡 PETSHOP DIAS (436) — 27/05
+  🟡 PIT BULL RACOES (436) — 05/12
+  🟡 BEM PRA CACHORRO (436) — 05/12
+  🟡 MUNDO DO PET (436) — 05/09
+  🟡 WANDERSON ALVES DA SILVA (436) — 05/09
 
-👤 *CARLOS ALAGUEZ DA SILVA* (11 em risco)
-  🟡 MERCADO RODA VIVA (423) — 31/08
-  🟡 MERCADO RODA VIVA (423) — 05/12
-  🟡 GIRO RAPIDO CONVENIENCIA (430) — 05/12
-  🟡 PANIF PAO DOURADO (438) — 18/08
-  🟡 PET SHOP KAMIURA (440) — 31/08
-  _+6 outros_
+👤 *CARLOS ALAGUEZ DA SILVA* (9 em risco)
+  🟡 CD NAVIRAI (430) — 05/12
+  🟡 POSTO PETROCAMPO (430) — 25/08
+  🟡 SAUDE ANIMAL (449) — 05/12
+  🟡 CASA DAS RACOES E FARINHA (449) — 05/12
+  🟡 SHOPPING RURAL (449) — 05/12
+  _+4 outros_
 
-👤 *CLEOMAR DINIZ BARBOSA* (22 em risco)
-  🟡 MERCADO TREVO (415) — 05/12
-  🟡 SUPERMERCADO PINHEIRO (424) — 05/12
-  🟡 SOUZA ACOUGUE E MERCEARIA (426) — 25/08
-  🟡 LA TA GELADA CONVENIENCIA (426) — 05/12
-  🟡 COMILHO (427) — 05/12
-  _+17 outros_
+👤 *CLEOMAR DINIZ BARBOSA* (21 em risco)
+  🟡 LANCHAO E CONVENIENCIA (415) — 05/12
+  🟡 LOJA DE CONVENIENCIA E LANCHONETE CAMPO (424) — 20/08
+  🟡 MIYAZATO COMERCIO DE HORTIFRUT (424) — 05/12
+  🟡 MERCADO BRAVOS (424) — 27/05
+  🟡 REDE FAMILIA (426) — 28/08
+  _+16 outros_
