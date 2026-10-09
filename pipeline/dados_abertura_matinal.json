@@ -1,23 +1,23 @@
 {
-  "data": "2026-10-08",
-  "geradoEm": "2026-10-08T07:04:14.133Z",
+  "data": "2026-10-09",
+  "geradoEm": "2026-10-09T07:00:59.102Z",
   "diretrizesUsadas": {
     "cnae": {
-      "codigo": "4712",
-      "descricao": "Comércio varejista de mercadorias em geral, com predominância de produtos alimentícios - minimercados, mercearias e armazéns",
-      "justificativa": "Rotação automática seg-sex — CNAE nacional #4 entre os 5 candidatos com amostra >= 20 (126 clientes na amostra nacional).",
+      "codigo": "4771",
+      "descricao": "Comércio varejista de produtos farmacêuticos, sem manipulação de fórmulas",
+      "justificativa": "Rotação automática seg-sex — CNAE nacional #5 entre os 5 candidatos com amostra >= 20 (108 clientes na amostra nacional).",
       "ratios_por_filial": {
-        "TBE": 1,
-        "TSJ": 4,
-        "MCD": 2.73,
-        "TPH": 2.73,
-        "TCG": 1.45,
-        "TPA": 1.36,
-        "API": 2.18,
-        "TCV": 1.55,
-        "ABC": 1,
-        "TCA": 3.36,
-        "TBL": 1.09
+        "TBE": 1.07,
+        "TSJ": 1.07,
+        "MCD": 1.2,
+        "TPH": 4,
+        "TCG": 1.13,
+        "TPA": 1.07,
+        "API": 1.85,
+        "TCV": 1.13,
+        "ABC": 1.72,
+        "TCA": 2.57,
+        "TBL": 1.26
       }
     },
     "produtos": [
@@ -34,142 +34,11 @@
     ]
   },
   "abertura": {
-    "textoAbertura": "🌅 *ABERTURA MATINAL DE OPERAÇÃO (07:45)*\n📅 Quinta-feira, 08/10/2026 • Grupo Triunfante\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📌 *PANORAMA GERAL*\n👥 *Vendedores Varejo em Rota:* 304\n📍 *Visitas Planejadas:* 3.962 PDVs (Varejo) de 4.980 (Total)\n🟡 *Alerta Preventivo:* 1.317 PDVs (33,2% da rota)\n🔄 *Recorrência na rota:* 473 PDVs (11,9%)\n🏬 *Oportunidades CNAE 4712 (Comércio varejista de mercadorias em geral, com predominância de produtos alimentícios - minimercados, mercearias e armazéns):* +8.549 PDVs\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏢 *POR FILIAL (VAREJO)*\n\n📍 *TBL — FÁBIO*\n• Vendedores: 29 • Visitas: 477\n• Sem compra +30d: 174 (36,5%) • Recorrência: 62 (13,0%)\n• CNAE 4712: +520 PDVs\n\n📍 *TPH — FÁBIO*\n• Vendedores: 27 • Visitas: 452\n• Sem compra +30d: 194 (42,9%) • Recorrência: 46 (10,2%)\n• 🔥 *Volta Comigo: 0 PDVs*\n• CNAE 4712: +1.234 PDVs\n\n📍 *API — MARCELO*\n• Vendedores: 30 • Visitas: 436\n• Sem compra +30d: 128 (29,4%) • Recorrência: 93 (21,3%)\n• CNAE 4712: +950 PDVs\n\n📍 *TPH — VAGNER*\n• Vendedores: 35 • Visitas: 404\n• Sem compra +30d: 123 (30,4%) • Recorrência: 56 (13,9%)\n• 🔥 *Volta Comigo: 0 PDVs*\n• CNAE 4712: +1.103 PDVs\n\n📍 *TSJ — SALDANHA*\n• Vendedores: 24 • Visitas: 394\n• Sem compra +30d: 144 (36,5%) • Recorrência: 16 (4,1%)\n• CNAE 4712: +1.576 PDVs\n\n📍 *ABC — MARCOS*\n• Vendedores: 23 • Visitas: 349\n• Sem compra +30d: 99 (28,4%) • Recorrência: 53 (15,2%)\n• CNAE 4712: +349 PDVs\n\n📍 *TBE — DIEGO*\n• Vendedores: 16 • Visitas: 347\n• Sem compra +30d: 133 (38,3%) • Recorrência: 25 (7,2%)\n• CNAE 4712: +347 PDVs\n\n📍 *TCA — BECHER*\n• Vendedores: 28 • Visitas: 234\n• Sem compra +30d: 90 (38,5%) • Recorrência: 35 (15,0%)\n• CNAE 4712: +786 PDVs\n\n📍 *TPA — RADKE / LEANDRO*\n• Vendedores: 15 • Visitas: 210\n• Sem compra +30d: 74 (35,2%) • Recorrência: 21 (10,0%)\n• CNAE 4712: +286 PDVs\n\n📍 *MCD — CLEVERSON*\n• Vendedores: 20 • Visitas: 185\n• Sem compra +30d: 59 (31,9%) • Recorrência: 20 (10,8%)\n• CNAE 4712: +505 PDVs\n\n📍 *TCV — LEONARDO*\n• Vendedores: 17 • Visitas: 180\n• Sem compra +30d: 31 (17,2%) • Recorrência: 15 (8,3%)\n• CNAE 4712: +279 PDVs\n\n📍 *TCG — DANILO*\n• Vendedores: 20 • Visitas: 148\n• Sem compra +30d: 33 (22,3%) • Recorrência: 12 (8,1%)\n• CNAE 4712: +215 PDVs\n\n📍 *MCD — ADRIANO*\n• Vendedores: 20 • Visitas: 146\n• Sem compra +30d: 35 (24,0%) • Recorrência: 19 (13,0%)\n• CNAE 4712: +399 PDVs",
-    "dadosAbertura": {
-      "TBE::Diego": {
-        "sigla": "TBE",
-        "gerente": "Diego",
-        "vjs": 16,
-        "visitas": 347,
-        "inativos": 133,
-        "rec": 25,
-        "volta": 0,
-        "prospects": 347
-      },
-      "TSJ::Saldanha": {
-        "sigla": "TSJ",
-        "gerente": "Saldanha",
-        "vjs": 24,
-        "visitas": 394,
-        "inativos": 144,
-        "rec": 16,
-        "volta": 0,
-        "prospects": 1576
-      },
-      "MCD::Adriano": {
-        "sigla": "MCD",
-        "gerente": "Adriano",
-        "vjs": 20,
-        "visitas": 146,
-        "inativos": 35,
-        "rec": 19,
-        "volta": 0,
-        "prospects": 399
-      },
-      "MCD::Cleverson": {
-        "sigla": "MCD",
-        "gerente": "Cleverson",
-        "vjs": 20,
-        "visitas": 185,
-        "inativos": 59,
-        "rec": 20,
-        "volta": 0,
-        "prospects": 505
-      },
-      "TPH::Vagner": {
-        "sigla": "TPH",
-        "gerente": "Vagner",
-        "vjs": 35,
-        "visitas": 404,
-        "inativos": 123,
-        "rec": 56,
-        "volta": 0,
-        "prospects": 1103
-      },
-      "TPH::Fábio": {
-        "sigla": "TPH",
-        "gerente": "Fábio",
-        "vjs": 27,
-        "visitas": 452,
-        "inativos": 194,
-        "rec": 46,
-        "volta": 0,
-        "prospects": 1234
-      },
-      "TCG::Danilo": {
-        "sigla": "TCG",
-        "gerente": "Danilo",
-        "vjs": 20,
-        "visitas": 148,
-        "inativos": 33,
-        "rec": 12,
-        "volta": 0,
-        "prospects": 215
-      },
-      "TPA::Radke / Leandro": {
-        "sigla": "TPA",
-        "gerente": "Radke / Leandro",
-        "vjs": 15,
-        "visitas": 210,
-        "inativos": 74,
-        "rec": 21,
-        "volta": 0,
-        "prospects": 286
-      },
-      "API::Marcelo": {
-        "sigla": "API",
-        "gerente": "Marcelo",
-        "vjs": 30,
-        "visitas": 436,
-        "inativos": 128,
-        "rec": 93,
-        "volta": 0,
-        "prospects": 950
-      },
-      "TCV::Leonardo": {
-        "sigla": "TCV",
-        "gerente": "Leonardo",
-        "vjs": 17,
-        "visitas": 180,
-        "inativos": 31,
-        "rec": 15,
-        "volta": 0,
-        "prospects": 279
-      },
-      "ABC::Marcos": {
-        "sigla": "ABC",
-        "gerente": "Marcos",
-        "vjs": 23,
-        "visitas": 349,
-        "inativos": 99,
-        "rec": 53,
-        "volta": 0,
-        "prospects": 349
-      },
-      "TCA::Becher": {
-        "sigla": "TCA",
-        "gerente": "Becher",
-        "vjs": 28,
-        "visitas": 234,
-        "inativos": 90,
-        "rec": 35,
-        "volta": 0,
-        "prospects": 786
-      },
-      "TBL::Fábio": {
-        "sigla": "TBL",
-        "gerente": "Fábio",
-        "vjs": 29,
-        "visitas": 477,
-        "inativos": 174,
-        "rec": 62,
-        "volta": 0,
-        "prospects": 520
-      }
-    },
+    "textoAbertura": "🌅 *ABERTURA MATINAL DE OPERAÇÃO (07:45)*\n📅 Sexta-feira, 09/10/2026 • Grupo Triunfante\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📌 *PANORAMA GERAL*\n👥 *Vendedores Varejo em Rota:* 0\n📍 *Visitas Planejadas:* 0 PDVs (Varejo) de 0 (Total)\n🟡 *Alerta Preventivo:* 0 PDVs (0,0% da rota)\n🔄 *Recorrência na rota:* 0 PDVs (0,0%)\n🏬 *Oportunidades CNAE 4771 (Comércio varejista de produtos farmacêuticos, sem manipulação de fórmulas):* +0 PDVs\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏢 *POR FILIAL (VAREJO)*",
+    "dadosAbertura": {},
     "cnaeFoco": {
-      "codigo": "4712",
-      "descricao": "Comércio varejista de mercadorias em geral, com predominância de produtos alimentícios - minimercados, mercearias e armazéns"
+      "codigo": "4771",
+      "descricao": "Comércio varejista de produtos farmacêuticos, sem manipulação de fórmulas"
     }
   }
 }
