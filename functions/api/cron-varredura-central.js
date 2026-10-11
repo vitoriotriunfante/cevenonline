@@ -21,7 +21,8 @@
 // =========================================================================
 
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
-const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' };
+const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
+const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Secret': CEVEN_APP_SECRET };
 // LIMITE PRATICO DE CHAMADAS SIMULTANEAS AO CEVEN = 6 (decisao do Vitorio, 03/10/2026; medido: ate 6 nao muda
 // a resposta, com 9 a latencia dobra). Antes: lotes de 20 RCAs x 4 chamadas = 80 simultaneas.
 const CONC = 6;
@@ -48,19 +49,30 @@ async function poolLimitado(tarefas, n, prazo) {
 
 // PRAZO DURO (08/10/2026): o AbortSignal nao cobre a leitura do CORPO da resposta; uma resposta do CEVEN que travava no meio prendia a rodada por ~9 min (a base de hoje ficou
 // vazia a manha toda). Agora a chamada inteira (cabecalho + corpo) tem teto de 20 s; passou disso = null (fica para a proxima rodada), nunca trava o pool.
-async function getJson(url) {
-  const chamada = (async () => {
-    const r = await fetch(url, { headers: HDR, signal: AbortSignal.timeout(15000) });
-    if (!r.ok) return null;
-    const t = await r.text();
-    return t ? JSON.parse(t) : null;
-  })();
-  chamada.catch(() => {});
-  try {
-    return await Promise.race([chamada, new Promise((resolve) => setTimeout(() => resolve(null), 20000))]);
-  } catch {
-    return null;
+async function getJson(url, tentativas = 3) {
+  for (let t = 0; t < tentativas; t++) {
+    try {
+      const chamada = (async () => {
+        const r = await fetch(url, { headers: HDR, signal: AbortSignal.timeout(15000) });
+        if (r.status === 429) {
+          const waitS = Number(r.headers.get('retry-after')) || 3;
+          await new Promise((res) => setTimeout(res, Math.min(waitS * 1000, 5000)));
+          return 'RETRY';
+        }
+        if (!r.ok) return null;
+        const txt = await r.text();
+        return txt ? JSON.parse(txt) : null;
+      })();
+      chamada.catch(() => {});
+      const res = await Promise.race([chamada, new Promise((resolve) => setTimeout(() => resolve(null), 20000))]);
+      if (res === 'RETRY') continue;
+      return res;
+    } catch {
+      if (t === tentativas - 1) return null;
+      await new Promise((res) => setTimeout(res, 1000));
+    }
   }
+  return null;
 }
 
 function dataHojeBrasilia() {
@@ -112,10 +124,12 @@ export async function onRequestGet({ env, request }) {
 
   const t0 = Date.now();
   const dataRef = dataHojeBrasilia();
-  const forcar = new URL(request.url).searchParams.has('forcar');
+  const urlParams = new URL(request.url).searchParams;
+  const forcar = urlParams.has('forcar');
+  const filialParam = (urlParams.get('filial') || '').toUpperCase().trim();
 
   // lock global do WhatsApp (prioridade sobre TV/CFTV)
-  if (!forcar) {
+  if (!forcar && !filialParam) {
     const lock = await env.DB.prepare('SELECT dono, criado_em FROM cron_lock_global WHERE id = 1').first().catch(() => null);
     if (lock) {
       const idadeLockMs = Date.now() - new Date(lock.criado_em + 'Z').getTime();
@@ -123,12 +137,12 @@ export async function onRequestGet({ env, request }) {
     }
   }
 
-  const { results: rcas } = await env.DB.prepare(
+  const { results: rcasRaw } = await env.DB.prepare(
     'SELECT r.codigo, UPPER(COALESCE(f.codigo, r.filial_id)) as filial FROM representantes r LEFT JOIN filiais f ON r.filial_id = f.id WHERE r.ativo = 1'
   ).all();
-  if (!rcas || !rcas.length) return resp({ erro: 'nenhum representante ativo encontrado no D1' }, 502);
-  // LISTA = banco (representantes) + PLANILHA (tv-mostra): vendedor novo entra na planilha antes de entrar no banco (05/10/2026: RCAs 1121-1128 e 1097 ficavam fora da varredura,
-  // da Executiva e do painel do mes; ex.: Jeferson/TPA R$ 93,7 mil faturados nao apareciam). Nunca inventa: so soma quem a planilha lista.
+  if (!rcasRaw || !rcasRaw.length) return resp({ erro: 'nenhum representante ativo encontrado no D1' }, 502);
+  let rcas = [...rcasRaw];
+  // LISTA = banco (representantes) + PLANILHA (tv-mostra): vendedor novo entra na planilha antes de entrar no banco
   try {
     const jaTem = new Set(rcas.map((r) => String(r.codigo)));
     const mp = await (await fetch(new URL('/api/tv-mostra', request.url), { signal: AbortSignal.timeout(8000) })).json();
@@ -137,20 +151,26 @@ export async function onRequestGet({ env, request }) {
     }
   } catch { /* sem planilha: segue so com o banco */ }
 
+  if (filialParam) {
+    rcas = rcas.filter((r) => r.filial === filialParam);
+    if (!rcas.length) return resp({ erro: `nenhum representante encontrado para filial ${filialParam}` }, 404);
+  }
+
   // estado de hoje: quem ja esta gravado, tem rota ou ja vendeu, e os valores anteriores (para detectar mudanca de pedido)
   const { results: estado } = await env.DB.prepare(
     `SELECT rca_codigo,
             COALESCE(json_array_length(roteiro_json), 0) AS n_rota,
             CAST(COALESCE(json_extract(produtividade_json, '$.dia.positivacao'), 0) AS REAL) AS pos,
             CAST(COALESCE(json_extract(produtividade_json, '$.dia.dig_pedido'), 0) AS REAL) AS dig,
+            (dashboard_json IS NULL OR dashboard_json = 'null') AS sem_dash,
             updated_at AS ua
        FROM varredura_central_rca WHERE data_ref = ?`
   ).bind(dataRef).all();
   const ant = new Map((estado || []).map((e) => [String(e.rca_codigo), e]));
 
-  const completa = forcar || ant.size < Math.ceil(rcas.length * 0.5);   // partida a frio ou recuperacao
-  const dono = (completa ? 'completa:' : 'tick:') + t0;
-  const slot = await tomaSlot(env, dono, completa ? SLOT_COMPLETA_S : SLOT_TICK_S);
+  const completa = forcar || filialParam || ant.size < Math.ceil(rcas.length * 0.5);   // partida a frio ou recuperacao
+  const dono = (completa ? 'completa:' : 'tick:') + (filialParam ? filialParam + ':' : '') + t0;
+  const slot = filialParam ? { ciclo: 1 } : await tomaSlot(env, dono, completa ? SLOT_COMPLETA_S : SLOT_TICK_S);
   if (!slot) {
     const l = await env.DB.prepare("SELECT dono, criado_em, ciclo, CAST((julianday('now') - julianday(criado_em)) * 86400 AS INTEGER) AS idade_s FROM varredura_slot WHERE id = 1").first().catch(() => null);
     return resp({ status: 'OCUPADO', motivo: 'outra rodada da varredura esta em andamento', slot: l || null });
@@ -163,7 +183,10 @@ export async function onRequestGet({ env, request }) {
       // PARTIDA A FRIO EM FATIAS QUE JA GRAVAM (07/10-08/10/2026): antes a varredura completa buscava 4 endpoints x ~600 RCAs (2.400 chamadas, 4 a 7 min) e so GRAVAVA no
       // fim; o gatilho cortava em 170 s e nada era gravado, entao a base ficava VAZIA a manha toda (08/10: 0 linhas ate as 09h40; WhatsApp, TV e liga sem a base unica).
       // Agora: so quem ainda nao esta gravado hoje (ou todos, com ?forcar=1), em fatias de 20 RCAs, gravando cada fatia assim que volta, ate o orcamento de tempo; a proxima rodada continua de onde parou.
-      const faltam = forcar ? rcas : rcas.filter((r) => !ant.has(String(r.codigo)));
+      // forcar NAO recomeca do primeiro RCA (11/10/2026: so os ~20 primeiros eram atualizados a cada chamada): vai primeiro quem nunca foi gravado,
+      // depois quem esta sem dashboard, depois o mais antigo; assim cada chamada avanca e a proxima continua dali.
+      const ordem = (r) => { const a = ant.get(String(r.codigo)); return !a ? '0' : (a.sem_dash ? '1' : '2') + String(a.ua || ''); };
+      const faltam = (forcar ? [...rcas] : rcas.filter((r) => !ant.has(String(r.codigo)))).sort((x, y) => ordem(x).localeCompare(ordem(y)));
       let ok = 0, comFalha = 0, feitos = 0;
       for (let i = 0; i < faltam.length && Date.now() - t0 < ORCAMENTO_TICK_MS; i += 20) {
         const fatia = faltam.slice(i, i + 20);
@@ -180,10 +203,13 @@ export async function onRequestGet({ env, request }) {
           if (!Array.isArray(devolucoes)) falhas.push('devolucoes');
           if (falhas.length === 4) { comFalha++; return; }
           ok++;
-          stmts.push(upsertParcial(env, dataRef, rca, {
-            roteiro_json: JSON.stringify(roteiro || null), produtividade_json: JSON.stringify(produtividade || null),
-            dashboard_json: JSON.stringify(dashboard || null), devolucoes_json: JSON.stringify(devolucoes || null), falhas: falhas.join(',')
-          }));
+          // NUNCA grava null por cima de dado bom: so entra o que o CEVEN respondeu (antes uma falha apagava o que ja estava na base).
+          const campos = { falhas: falhas.join(',') };
+          if (Array.isArray(roteiro)) campos.roteiro_json = JSON.stringify(roteiro);
+          if (produtividade) campos.produtividade_json = JSON.stringify(produtividade);
+          if (dashboard) campos.dashboard_json = JSON.stringify(dashboard);
+          if (Array.isArray(devolucoes)) campos.devolucoes_json = JSON.stringify(devolucoes);
+          stmts.push(upsertParcial(env, dataRef, rca, campos));
         });
         if (stmts.length) await gravaLote(env, stmts);
         feitos += fatia.length;
@@ -245,15 +271,23 @@ export async function onRequestGet({ env, request }) {
 
     // 4. FRIA: dashboard 1/10 por tick; DEVOLUCOES 1/3 por tick (Vitorio, 06/10/2026: "precisamos ser coesos no numero": com 1/10 a devolucao da TV/Lances ficava ~25 min
     // atrasada em relacao ao WhatsApp, que le o CEVEN ao vivo. Com 1/3 fica em ~7 min).
-    const fatiaDash = rcas.filter((rca, i) => i % FATIAS_FRIA === ciclo % FATIAS_FRIA);
+    // DASHBOARD: quem esta SEM dashboard hoje vai primeiro (ate 30 por tick) + a fatia normal de 1/10. Antes so a fatia 1/10 entrava e ficava atras das ~200 devolucoes,
+    // que consumiam os 30 s: 195 de 596 RCAs ficaram sem meta/faturado do mes (11/10/2026).
+    const semDash = rcas.filter((rca) => { const a = ant.get(String(rca.codigo)); return a && a.sem_dash; }).slice(0, 30);
+    const idsDash = new Set(semDash.map((r) => String(r.codigo)));
+    const fatiaDash = semDash.concat(rcas.filter((rca, i) => i % FATIAS_FRIA === ciclo % FATIAS_FRIA && !idsDash.has(String(rca.codigo))));
     const fatiaDev = rcas.filter((rca, i) => i % FATIAS_DEV === ciclo % FATIAS_DEV);
     // A etapa FRIA tem FATIA PROPRIA de tempo (05/10/2026): com o prazo geral, as etapas 1 a 3 consumiam os 100 s e a fria nunca rodava, entao painel (faturado do mes)
     // e devolucoes ficavam congelados no dado da varredura completa (ex.: TPA R$ 42 mil na Executiva contra R$ 133 mil no CEVEN).
     const prazoFria = Date.now() + 30000;
     // DEVOLUCOES primeiro (prioridade) e ponto de partida GIRANDO a cada tick: se o prazo estourar, nao e sempre o mesmo vendedor do fim da lista que fica sem atualizar
     const rodar = (L) => { if (!L.length) return L; const k = (ciclo * 7) % L.length; return L.slice(k).concat(L.slice(0, k)); };
-    const itensFria = [...rodar(fatiaDev).map((rca) => ({ rca, tipo: 'devolucoes' })), ...rodar(fatiaDash).map((rca) => ({ rca, tipo: 'dashboard' }))];
-    const frias = await poolLimitado(itensFria.map((it) => () => getJson(urlRca(it.tipo, it.rca))), CONC, prazoFria);
+    // Dashboard e devolucoes com PRAZO PROPRIO cada (20 s + 20 s dentro do orcamento do tick): um nao come o tempo do outro.
+    const itensDev = rodar(fatiaDev).map((rca) => ({ rca, tipo: 'devolucoes' }));
+    const itensDash = fatiaDash.map((rca) => ({ rca, tipo: 'dashboard' }));
+    const itensFria = [...itensDev, ...itensDash];
+    const buscaFria = (L, ms) => poolLimitado(L.map((it) => () => getJson(urlRca(it.tipo, it.rca))), CONC, Date.now() + ms);
+    const frias = [...(await buscaFria(itensDev, 20000)), ...(await buscaFria(itensDash, 20000))];
     const camposPorRca = new Map();
     const campo = (rca) => { const k = String(rca.codigo); if (!camposPorRca.has(k)) camposPorRca.set(k, { rca, campos: {} }); return camposPorRca.get(k).campos; };
     itensFria.forEach((it, i) => { const r = frias[i]; if (it.tipo === 'dashboard' && r) campo(it.rca).dashboard_json = JSON.stringify(r); if (it.tipo === 'devolucoes' && Array.isArray(r)) campo(it.rca).devolucoes_json = JSON.stringify(r); });
@@ -268,6 +302,6 @@ export async function onRequestGet({ env, request }) {
     }
     return resp({ status: 'ATUALIZADO', modo: 'tick', ciclo, data_ref: dataRef, rcas_total: rcas.length, ...contagem, mudaram: mudou.length, mapa, duracao_ms: Date.now() - t0 });
   } finally {
-    await soltaSlot(env, dono);
+    if (!filialParam) await soltaSlot(env, dono);
   }
 }
