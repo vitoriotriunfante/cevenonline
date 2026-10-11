@@ -227,7 +227,7 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
       .filter(k => !new RegExp('chave: `' + k.replace('|', '\\|') + '[^\\n]*prova:').test(cl));
     ok(semProva.length === 0 && cl.includes('obs: l.prova'), 'todo lance do vendedor grava a PROVA (numero que o gerou) em obs, para auditoria' + (semProva.length ? ' — faltam: ' + semProva.join(', ') : '')); }
   { const vc = ler('functions/api/cron-varredura-central.js');
-    ok(/getJson\(urlRca\('produtividade', rca\)\)\), CONC, t0 \+ PRAZO_PRODUTIVIDADE_MS\)/.test(vc) && vc.includes('updated_at AS ua') && vc.includes('const prazoFria'), 'varredura: etapa quente tem PRAZO, vai do mais antigo ao mais novo e a etapa fria tem fatia propria (sem prazo a funcao era cortada antes de gravar e a varredura parava)'); }
+    ok(/getJson\(urlRca\('produtividade', rca\)(, \d)?\)\), CONC, t0 \+ PRAZO_PRODUTIVIDADE_MS\)/.test(vc) && vc.includes('inicioMaxLote') && vc.includes('updated_at AS ua') && vc.includes('const prazoFria'), 'varredura: etapa quente tem PRAZO, vai do mais antigo ao mais novo e a etapa fria tem fatia propria (sem prazo a funcao era cortada antes de gravar e a varredura parava)'); }
   { const a = ler('public/matrizapp.html'), b = ler('public/tvapp.html');
     ok([a, b].every(t => t.includes("if (!poolAlertas.length && P.get('replay') !== '1') return;")), 'lance automatico NAO recicla lance antigo (so com ?replay=1): acabou o mesmo gol/penalti reaparecendo centenas de vezes'); }
   { const g = ler('public/gestao-equipe.html'), dv = ler('public/divergencias.html');
@@ -516,6 +516,8 @@ secao('8h. Supervisores: botao na Matriz, cards com fotos e painel gerencial da 
   ok(tv.includes('supSemanaHtml') && tv.includes('/api/tv-supervisores-semana'), 'TV da filial mostra o painel gerencial da semana abaixo dos supervisores');
   ok(an.includes('window.supCardsHtml') && an.includes('window.supSemanaHtml') && an.includes('NÃO FEZ') && an.includes('PENDENTE'), 'modulo unico: cards com fotos + tabela FEZ / PARCIAL / NAO FEZ; o dia de hoje sem nada e PENDENTE (nao punido)');
   ok(se.includes('NAO_SUPERVISORES') && su.includes('NAO_SUPERVISORES') && se.includes('porDia') && se.includes('feriado'), 'endpoints tiram os nao-supervisores (decisao 04/10), usam o porDia do CEVEN e marcam feriado');
+  ok(se.includes('loginEmAndamento') && su.includes('loginEmAndamento'), 'endpoints de supervisores compartilham o login administrativo entre chamadas concorrentes');
+  ok(tv.includes('semProximaTentativa') && tv.includes('Nova tentativa em até 5 minutos'), 'TV da filial evita repetição imediata do endpoint semanal após falha e informa nova tentativa');
 }
 
 // ---------------------------------------------------------------- 8i. Gol de cliente: so pedido de HOJE e dados reais (nada estimado)
