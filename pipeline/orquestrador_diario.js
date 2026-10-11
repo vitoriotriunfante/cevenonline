@@ -39,7 +39,7 @@ function rodar(passo) {
   return new Promise((resolve) => {
     console.log(`\n${'='.repeat(70)}\n▶️  ${passo.nome}\n${'='.repeat(70)}`);
     const inicio = Date.now();
-    const proc = spawn(passo.cmd, passo.args, { cwd: ANALISES, stdio: 'inherit' });
+    const proc = spawn(passo.cmd, passo.args, { cwd: ANALISES, stdio: 'inherit', env: { ...process.env, NODE_OPTIONS: `--require ${require('path').join(__dirname, 'ceven_header.js')}` } });   // header X-App-Secret do CEVEN nos scripts filhos
     proc.on('close', (code) => {
       const min = ((Date.now() - inicio) / 60000).toFixed(1);
       const ok = code === 0;

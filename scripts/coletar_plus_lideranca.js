@@ -13,6 +13,7 @@
  * REGRA: nunca inventa dado. Se o CEVEN não responde, sai com erro e NÃO grava arquivo.
  * Uso: node scripts/coletar_plus_lideranca.js [dataInicio=2026-09-28] [dataFim=hoje em Brasília]
  */
+require('../pipeline/ceven_header.js'); // header X-App-Secret do CEVEN (exigido desde 09/10/2026; o GitHub nao aceita NODE_OPTIONS via GITHUB_ENV)
 const fs = require('fs');
 const path = require('path');
 

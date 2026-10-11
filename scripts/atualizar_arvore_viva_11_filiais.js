@@ -16,6 +16,7 @@
  * FRESCOR ESPERADO: sempre "agora" — regerado a cada execução, nunca reaproveitado
  *                   de uma execução anterior.
  */
+require('../pipeline/ceven_header.js'); // header X-App-Secret do CEVEN (exigido desde 09/10/2026; o GitHub nao aceita NODE_OPTIONS via GITHUB_ENV)
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
