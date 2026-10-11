@@ -236,18 +236,24 @@ export async function onRequestGet({ env, request }) {
       .sort((x, y) => String((ant.get(String(x.codigo)) || {}).ua || '').localeCompare(String((ant.get(String(y.codigo)) || {}).ua || '')));
     contagem.semRota = alvoProd.length - quente.length;
     // PRAZO na etapa 1 (05/10/2026): antes nao tinha; com o CEVEN mais lento a etapa passava de 150 s, a funcao era cortada ANTES de gravar e a varredura parava por 30+ min.
-    const prods = await poolLimitado(alvoProd.map((rca) => () => getJson(urlRca('produtividade', rca))), CONC, t0 + PRAZO_PRODUTIVIDADE_MS);
+    // GRAVA EM LOTES DE 18 (11/10/2026): com o CEVEN a ~3,5 s por chamada, a etapa buscava tudo e so gravava no fim; uma chamada pendurada estourava o tempo da funcao ANTES de gravar
+    // e a base ficou 40+ min sem nenhuma leitura nova. Agora cada lote e gravado assim que volta; o que o prazo cortar fica para o proximo tick.
     const mudou = [];
-    alvoProd.forEach((rca, i) => {
-      const p = prods[i];
-      if (!p) { contagem.falhas++; return; }
-      contagem.quente++;
-      stmts.push(upsertParcial(env, dataRef, rca, { produtividade_json: JSON.stringify(p) }));
-      const a = ant.get(String(rca.codigo));
-      const pos = num(p?.dia?.positivacao), dig = num(p?.dia?.dig_pedido);
-      if (!a || pos !== num(a.pos) || dig !== num(a.dig)) mudou.push(rca);   // pedido novo (ou RCA novo): busca a rota agora
-    });
-    await gravaLote(env, stmts.splice(0));
+    const inicioMaxLote = t0 + PRAZO_PRODUTIVIDADE_MS - 15000;
+    for (let i = 0; i < alvoProd.length && Date.now() < inicioMaxLote; i += 18) {
+      const lote = alvoProd.slice(i, i + 18);
+      const prods = await poolLimitado(lote.map((rca) => () => getJson(urlRca('produtividade', rca), 2)), CONC, t0 + PRAZO_PRODUTIVIDADE_MS);
+      lote.forEach((rca, k) => {
+        const p = prods[k];
+        if (!p) { contagem.falhas++; return; }
+        contagem.quente++;
+        stmts.push(upsertParcial(env, dataRef, rca, { produtividade_json: JSON.stringify(p) }));
+        const a = ant.get(String(rca.codigo));
+        const pos = num(p?.dia?.positivacao), dig = num(p?.dia?.dig_pedido);
+        if (!a || pos !== num(a.pos) || dig !== num(a.dig)) mudou.push(rca);   // pedido novo (ou RCA novo): busca a rota agora
+      });
+      await gravaLote(env, stmts.splice(0));
+    }
 
     // 2. EVENTO: rota de quem mudou o pedido
     const rotasEvento = await poolLimitado(mudou.map((rca) => () => getJson(urlRca('roteiro-hoje', rca))), CONC, prazo + 20000);
