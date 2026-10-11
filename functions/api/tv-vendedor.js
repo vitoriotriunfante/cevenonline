@@ -12,7 +12,8 @@
 // =========================================================================
 
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
-const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' };
+const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
+const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Secret': CEVEN_APP_SECRET };
 
 async function getJson(url) {
   try {
@@ -192,7 +193,10 @@ function dataHojeBrasilia() {
   return `${p.year}-${p.month}-${p.day}`;
 }
 
-async function lerCentral(env, id) {
+// DEVOLVE O QUE A BASE TEM, MESMO INCOMPLETO (11/10/2026): antes, linha sem dashboard ou com mais de 15 min = 3 chamadas ao vivo; com o coletor de lances passando
+// por todos os RCAs, isso estourava o limite do CEVEN (HTTP 429 para a chave inteira), a varredura central tambem era bloqueada e a base ficava cada vez mais velha.
+// Agora o chamador busca ao vivo SO o pedaco que faltar. maxIdadeMs: 15 min na tela; 30 min no coletor de lances (central=1).
+async function lerCentral(env, id, maxIdadeMs) {
   if (!env || !env.DB) return null;
   try {
     const row = await env.DB.prepare(
@@ -200,10 +204,10 @@ async function lerCentral(env, id) {
     ).bind(String(id), dataHojeBrasilia()).first();
     if (!row || !row.updated_at) return null;
     const idade = Date.now() - Date.parse(String(row.updated_at).replace(' ', 'T') + 'Z');
-    if (!(idade >= 0 && idade < 15 * 60 * 1000)) return null;
+    if (!(idade >= 0 && idade < maxIdadeMs)) return null;
     const lê = (s) => { try { return s ? JSON.parse(s) : null; } catch { return null; } };
     const rot = lê(row.roteiro_json), prod = lê(row.produtividade_json), dash = lê(row.dashboard_json);
-    return Array.isArray(rot) && prod && dash ? { rot, prod, dash } : null;
+    return { rot: Array.isArray(rot) ? rot : null, prod: prod || null, dash: dash || null };
   } catch { return null; }
 }
 
@@ -233,14 +237,13 @@ export async function onRequestGet({ request, env }) {
   const q = `filial=${key}&id=${id}`;
   const usarCentral = url.searchParams.get('central') === '1';
   const canalVend = String(url.searchParams.get('canal') || '').toUpperCase() === 'AS' ? 'AS' : '';
-  const central = usarCentral ? await lerCentral(env, id) : null;
-  let [dash, prod, rot] = central
-    ? [central.dash, central.prod, central.rot]
-    : await Promise.all([
-        getJson(`${CEVEN}/api/rca/dashboard?${q}`),
-        getJson(`${CEVEN}/api/rca/produtividade?${q}`),
-        getJson(`${CEVEN}/api/rca/roteiro-hoje?${q}`)
-      ]);
+  const central = usarCentral ? await lerCentral(env, id, 30 * 60 * 1000) : null;
+  const c = central || {};
+  let [dash, prod, rot] = await Promise.all([
+    c.dash || getJson(`${CEVEN}/api/rca/dashboard?${q}`),
+    c.prod || getJson(`${CEVEN}/api/rca/produtividade?${q}`),
+    c.rot || getJson(`${CEVEN}/api/rca/roteiro-hoje?${q}`)
+  ]);
   // DADO DE ONTEM NA MANHA DE HOJE (Vitório, 07/10/2026: "tô recebendo lance de ontem agora"): na virada do dia o CEVEN ainda serve o roteiro e a produtividade de ONTEM.
   // 1) roteiro com cliente de OUTRA data (data_visita) ou com check-in DEPOIS da hora de agora = roteiro de ontem: descarta (nenhum lance nasce dele).
   // 2) ate as 10h: produtividade do dia com visitas/pedidos mas roteiro (com clientes) SEM nenhum check-in = produtividade de ontem: zera o 'dia'. Nunca inventa: so deixa de usar dado velho.
