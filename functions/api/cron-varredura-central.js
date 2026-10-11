@@ -49,14 +49,20 @@ async function poolLimitado(tarefas, n, prazo) {
 
 // PRAZO DURO (08/10/2026): o AbortSignal nao cobre a leitura do CORPO da resposta; uma resposta do CEVEN que travava no meio prendia a rodada por ~9 min (a base de hoje ficou
 // vazia a manha toda). Agora a chamada inteira (cabecalho + corpo) tem teto de 20 s; passou disso = null (fica para a proxima rodada), nunca trava o pool.
+// PAUSA GLOBAL NO 429 (11/10/2026): o CEVEN limita pela CHAVE (X-App-Secret), entao TODAS as nossas chamadas dividem a mesma cota. Antes cada chamada esperava
+// so 5 s (o CEVEN pedia 19) e tentava de novo, 6 em paralelo: as novas tentativas renovavam o bloqueio e a base parou de encher. Agora, ao primeiro 429,
+// TODAS as chamadas desta rodada esperam o Retry-After inteiro antes de seguir.
+let pausaAte = 0;
 async function getJson(url, tentativas = 3) {
   for (let t = 0; t < tentativas; t++) {
     try {
+      const espera = pausaAte - Date.now();
+      if (espera > 0) await new Promise((res) => setTimeout(res, espera));
       const chamada = (async () => {
         const r = await fetch(url, { headers: HDR, signal: AbortSignal.timeout(15000) });
         if (r.status === 429) {
-          const waitS = Number(r.headers.get('retry-after')) || 3;
-          await new Promise((res) => setTimeout(res, Math.min(waitS * 1000, 5000)));
+          const waitS = Number(r.headers.get('retry-after')) || 10;
+          pausaAte = Math.max(pausaAte, Date.now() + Math.min(waitS, 30) * 1000);
           return 'RETRY';
         }
         if (!r.ok) return null;
