@@ -163,6 +163,8 @@ export async function onRequestGet({ env, request }) {
             CAST(COALESCE(json_extract(produtividade_json, '$.dia.positivacao'), 0) AS REAL) AS pos,
             CAST(COALESCE(json_extract(produtividade_json, '$.dia.dig_pedido'), 0) AS REAL) AS dig,
             (dashboard_json IS NULL OR dashboard_json = 'null') AS sem_dash,
+            (produtividade_json IS NULL OR produtividade_json = 'null') AS sem_prod,
+            (roteiro_json IS NULL OR roteiro_json = 'null') AS sem_rota,
             updated_at AS ua
        FROM varredura_central_rca WHERE data_ref = ?`
   ).bind(dataRef).all();
@@ -224,7 +226,8 @@ export async function onRequestGet({ env, request }) {
     const quente = [], semRota = [];
     for (const rca of rcas) {
       const a = ant.get(String(rca.codigo));
-      if (!a || a.n_rota > 0 || a.pos > 0 || a.dig > 0) quente.push(rca); else semRota.push(rca);
+      // linha SEM produtividade ou SEM rota (falha anterior) tambem e quente: antes parecia 'sem rota e sem venda' e ficava na fila de 1/3 (11/10/2026)
+      if (!a || a.sem_prod || a.sem_rota || a.n_rota > 0 || a.pos > 0 || a.dig > 0) quente.push(rca); else semRota.push(rca);
     }
     const stmts = [];
     const contagem = { quente: 0, evento: 0, rota: 0, semRota: 0, fria: 0, falhas: 0 };
@@ -233,7 +236,7 @@ export async function onRequestGet({ env, request }) {
     // 1. QUENTE: produtividade de quem tem rota / ja vendeu (+ 1/3 de quem nao tem rota, para nao perder televenda/loja)
     // Do MAIS ANTIGO para o mais novo (quem nunca foi gravado primeiro): se o CEVEN estiver lento e o prazo cortar a etapa, quem ficou de fora vai primeiro no proximo tick.
     const alvoProd = quente.concat(semRota.filter((_, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA))
-      .sort((x, y) => String((ant.get(String(x.codigo)) || {}).ua || '').localeCompare(String((ant.get(String(y.codigo)) || {}).ua || '')));
+      .sort((x, y) => { const k = (r) => { const a = ant.get(String(r.codigo)); return !a ? '0' : (a.sem_prod ? '1' : '2') + String(a.ua || ''); }; return k(x).localeCompare(k(y)); });   // sem linha, depois sem produtividade, depois o mais antigo
     contagem.semRota = alvoProd.length - quente.length;
     // PRAZO na etapa 1 (05/10/2026): antes nao tinha; com o CEVEN mais lento a etapa passava de 150 s, a funcao era cortada ANTES de gravar e a varredura parava por 30+ min.
     // GRAVA EM LOTES DE 18 (11/10/2026): com o CEVEN a ~3,5 s por chamada, a etapa buscava tudo e so gravava no fim; uma chamada pendurada estourava o tempo da funcao ANTES de gravar
@@ -250,7 +253,7 @@ export async function onRequestGet({ env, request }) {
         stmts.push(upsertParcial(env, dataRef, rca, { produtividade_json: JSON.stringify(p) }));
         const a = ant.get(String(rca.codigo));
         const pos = num(p?.dia?.positivacao), dig = num(p?.dia?.dig_pedido);
-        if (!a || pos !== num(a.pos) || dig !== num(a.dig)) mudou.push(rca);   // pedido novo (ou RCA novo): busca a rota agora
+        if (!a || a.sem_rota || pos !== num(a.pos) || dig !== num(a.dig)) mudou.push(rca);   // pedido novo (ou RCA novo): busca a rota agora
       });
       await gravaLote(env, stmts.splice(0));
     }
