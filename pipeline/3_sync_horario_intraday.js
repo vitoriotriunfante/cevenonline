@@ -27,7 +27,7 @@ const FILIAIS = [
 async function fetchJson(url) {
   try {
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (CEVEN-NOC-Pipeline/3.0)' },
+      headers: { 'User-Agent': 'Mozilla/5.0 (CEVEN-NOC-Pipeline/3.0)', 'X-App-Secret': process.env.CEVEN_APP_SECRET || '' },
       signal: AbortSignal.timeout(15000)
     });
     if (!res.ok) return null;

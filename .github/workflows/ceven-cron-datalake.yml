@@ -20,6 +20,9 @@ concurrency:
   group: ceven-datalake-update
   cancel-in-progress: false
 
+env:
+  CEVEN_APP_SECRET: ${{ secrets.CEVEN_APP_SECRET }}
+
 jobs:
   atualizar_datalake:
     runs-on: ubuntu-latest
@@ -30,6 +33,9 @@ jobs:
     steps:
       - name: Checkout do repositório
         uses: actions/checkout@v4
+
+      - name: Header X-App-Secret em toda chamada ao CEVEN (exigido desde 09/10/2026)
+        run: echo "NODE_OPTIONS=--require $GITHUB_WORKSPACE/pipeline/ceven_header.js" >> "$GITHUB_ENV"
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4

@@ -34,7 +34,14 @@ const fonteBase = require('./fonte_base');
 const LIMITE_CHAMADAS = 6;
 let chamadasAtivas = 0;
 const filaChamadas = [];
+// Desde 09/10/2026 o CEVEN exige o header X-App-Secret (sem ele: 401 e o ciclo e abortado). Vem do secret CEVEN_APP_SECRET do GitHub.
+const CEVEN_APP_SECRET = process.env.CEVEN_APP_SECRET || '';
+if (!CEVEN_APP_SECRET) console.log('⚠️ CEVEN_APP_SECRET ausente: o CEVEN vai recusar as chamadas (401).');
 axios.interceptors.request.use((config) => new Promise((resolve) => {
+  if (config.url && config.url.includes('ceven.drivetriunfante-locomotiva.com.br')) {
+    config.headers = config.headers || {};
+    config.headers['X-App-Secret'] = CEVEN_APP_SECRET;
+  }
   const entrar = () => { chamadasAtivas++; resolve(config); };
   if (chamadasAtivas < LIMITE_CHAMADAS) entrar(); else filaChamadas.push(entrar);
 }));
