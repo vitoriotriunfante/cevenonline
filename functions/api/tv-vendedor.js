@@ -258,12 +258,42 @@ export async function onRequestGet({ request, env }) {
   const positivadosHoje = Array.isArray(rot) ? rot.filter((c) => ['POSITIVADO', 'EFETIVADO'].includes(c.status)) : [];
   const analisePorCliente = {};
   if (positivadosHoje.length) {
-    const catalogo = await carregaCatalogo(request);
-    const buscas = positivadosHoje.map((c) => () => getJson(`${CEVEN}/api/rca/historico-cliente/${c.id_cliente}?${q}`));
+    // CACHE DE 20 MIN NO D1 (11/10/2026): sem cache, cada TV aberta e o coletor de lances (a cada 5 min) buscavam o historico de TODO cliente positivado do dia
+    // no CEVEN -- milhares de chamadas por rodada, o maior consumidor da cota da chave (o CEVEN passou a responder 429 para todo mundo). Agora o mesmo cliente
+    // so volta ao CEVEN depois de 20 min, venha o pedido da TV, da Matriz ou do coletor. Falha do CEVEN nunca entra no cache.
+    const dia = dataHojeBrasilia();
+    const chaveCache = (c) => `${key}|${id}|${c.id_cliente}|${dia}|${canalVend}`;
+    const emCache = new Map();
+    if (env && env.DB) {
+      try {
+        await env.DB.prepare('CREATE TABLE IF NOT EXISTS cache_analise_cliente (chave TEXT PRIMARY KEY, json TEXT, criado_em INTEGER NOT NULL)').run();
+        const chaves = positivadosHoje.map(chaveCache);
+        const { results } = await env.DB.prepare(`SELECT chave, json FROM cache_analise_cliente WHERE criado_em > ? AND chave IN (${chaves.map(() => '?').join(',')})`)
+          .bind(Date.now() - 20 * 60 * 1000, ...chaves).all();
+        for (const r of results || []) emCache.set(r.chave, r.json);
+      } catch { /* sem cache: segue ao vivo */ }
+    }
+    const faltam = positivadosHoje.filter((c) => !emCache.has(chaveCache(c)));
+    const catalogo = faltam.length ? await carregaCatalogo(request) : null;
+    const buscas = faltam.map((c) => () => getJson(`${CEVEN}/api/rca/historico-cliente/${c.id_cliente}?${q}`));
     // pela coleta de lances (central=1): no maximo 2 simultaneas; na tela da TV segue como antes
     const resultados = usarCentral ? await poolLimitado(buscas, 2) : await Promise.all(buscas.map((f) => f()));
-    positivadosHoje.forEach((c, i) => {
+    const novos = [];
+    faltam.forEach((c, i) => {
+      if (resultados[i] == null) return;   // CEVEN falhou: nao guarda
       const analise = analisaPedido(resultados[i], catalogo, id, dataHojeBrasilia(), canalVend);
+      emCache.set(chaveCache(c), JSON.stringify(analise || null));
+      novos.push([chaveCache(c), JSON.stringify(analise || null)]);
+    });
+    if (novos.length && env && env.DB) {
+      try {
+        await env.DB.batch(novos.map(([k, j]) => env.DB.prepare('INSERT INTO cache_analise_cliente (chave, json, criado_em) VALUES (?, ?, ?) ON CONFLICT (chave) DO UPDATE SET json = excluded.json, criado_em = excluded.criado_em').bind(k, j, Date.now())));
+        if (Math.random() < 0.02) await env.DB.prepare('DELETE FROM cache_analise_cliente WHERE criado_em < ?').bind(Date.now() - 2 * 86400000).run();
+      } catch { /* cache e so economia: falha aqui nao muda a resposta */ }
+    }
+    positivadosHoje.forEach((c) => {
+      let analise = null;
+      try { analise = JSON.parse(emCache.get(chaveCache(c)) || 'null'); } catch {}
       if (analise) analisePorCliente[c.id_cliente] = analise;
     });
   }
