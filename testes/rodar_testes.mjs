@@ -63,7 +63,7 @@ secao('1. Sintaxe de todos os arquivos (functions, pipeline, worker-cron)');
 secao('2. Teto de 6 chamadas simultaneas ao CEVEN');
 {
   const src = ler('functions/api/cron-varredura-central.js');
-  ok(/const CONC = 6;/.test(src), 'varredura central usa pool de 6');
+  ok((() => { const m = /const CONC = (\d+);/.exec(src); return !!m && Number(m[1]) >= 1 && Number(m[1]) <= 6; })(), 'varredura central usa pool de no maximo 6 (limite pratico do CEVEN, Vitorio 03/10; 12/10 rodando com 4 por causa de 429)');
   const ini = src.indexOf('async function poolLimitado');
   const fim = src.indexOf('\n}\n', ini) + 3;
   const pool = new Function(src.slice(ini, fim) + '\nreturn poolLimitado;')();
