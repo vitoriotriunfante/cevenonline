@@ -28,10 +28,10 @@ const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Se
 const CONC = 6;
 // PRAZO GLOBAL RIGIDO (12/10/2026): o agendador desiste da chamada aos ~170 s e o que estava depois da etapa em curso (fria, telemetria, mapa) era perdido. Com o CEVEN a ~3,5 s por chamada
 // os prazos somados passavam de 190 s: devolucoes e dashboard nunca rodavam e a base ficou com 235 RCAs sem devolucao. Agora tudo termina antes de PRAZO_GLOBAL_MS.
-const PRAZO_GLOBAL_MS = 135000;
-const ORCAMENTO_TICK_MS = 90000;    // para de buscar fatias (morna) depois disso
-const SLOT_TICK_S = 150, SLOT_COMPLETA_S = 420;
-const PRAZO_PRODUTIVIDADE_MS = 50000;   // a etapa quente para de buscar aos 50 s e grava o que ja veio
+const PRAZO_GLOBAL_MS = 115000;   // medido em 12/10: com folga de chamadas em voo o tick terminava ~15 s depois do prazo (150 s)
+const ORCAMENTO_TICK_MS = 70000;    // para de buscar fatias (morna) depois disso
+const SLOT_TICK_S = 170, SLOT_COMPLETA_S = 420;   // a trava dura mais que o tick (115 s + folga) e menos que o proximo ciclo do agendador
+const PRAZO_PRODUTIVIDADE_MS = 40000;   // a etapa quente para de buscar aos 50 s e grava o que ja veio
 const FATIAS_ROTA = 3;              // cada RCA tem a rota atualizada a cada 3 ticks (se nao mudou o pedido)
 const FATIAS_FRIA = 10;             // dashboard a cada 10 ticks
 const FATIAS_DEV = 3;               // devolucoes a cada 3 ticks (~7 min): para a TV bater com o WhatsApp
@@ -98,7 +98,7 @@ async function getJson(url, tentativas = 2) {
   for (let t = 0; t < tentativas; t++) {
     try {
       const espera = pausaAte - Date.now();
-      if (espera > 0) await new Promise((res) => setTimeout(res, espera));
+      if (espera > 0) await new Promise((res) => setTimeout(res, Math.min(espera, 8000)));   // no maximo 8 s de pausa por chamada: o prazo global manda
       const chamada = (async () => {
         T.chamadas++;
         const r = await fetch(url, { headers: HDR, signal: AbortSignal.timeout(12000) });
@@ -344,7 +344,7 @@ export async function onRequestGet({ env, request }) {
     }
 
     // 2. EVENTO: rota de quem mudou o pedido
-    const rotasEvento = await poolLimitado(mudou.map((rca) => () => getJson(urlRca('roteiro-hoje', rca))), CONC, t0 + 75000);
+    const rotasEvento = await poolLimitado(mudou.map((rca) => () => getJson(urlRca('roteiro-hoje', rca))), CONC, t0 + 60000);
     mudou.forEach((rca, i) => {
       const r = rotasEvento[i];
       if (!Array.isArray(r)) return;
@@ -392,7 +392,7 @@ export async function onRequestGet({ env, request }) {
     // Encadeia o MAPA DA EXECUTIVA logo apos a rodada (05/10/2026): antes ele rodava em cron proprio de 5 em 5 min e o atraso se somava ao da varredura
     // (pedido novo levava ate ~8 min para chegar na Executiva). So se sobrou tempo antes de a trava expirar (150 s).
     let mapa = 'pulado';
-    if (Date.now() - t0 < 100000) {
+    if (Date.now() - t0 < 85000) {
       try { const rm = await fetch(new URL('/api/cron-mapa-executivo', request.url), { signal: AbortSignal.timeout(30000) }); const jm = await rm.json().catch(() => ({})); mapa = jm.status || String(rm.status); } catch { mapa = 'falhou'; }
     }
     await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);
