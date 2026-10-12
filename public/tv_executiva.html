@@ -1103,7 +1103,7 @@ header { height: auto !important; min-height: 56px; flex-wrap: wrap; gap: 6px 14
 
         <div class="hero-two-columns">
           <div class="hero-col-item">
-            <span>Positivação Realizada (Setembro)</span>
+            <span>Positivação Realizada (<span id="hero-mes-nome">mês</span>)</span>
             <div class="hero-meta-txt mono">
               <span id="hero-pos-val" style="color:var(--green)">21.339</span> <small id="hero-meta-sub">/ 30.000 PDVs</small>
             </div>
@@ -1263,6 +1263,7 @@ header { height: auto !important; min-height: 56px; flex-wrap: wrap; gap: 6px 14
         R$ 247.380 digitado, 218 pedidos, 7,6 média de SKUs, 210 visitas)
     ═════════════════════════════════════════════════════════ */
     const META_DESAFIO_PDVS = 30000;
+    (function () { const el = document.getElementById('hero-mes-nome'); if (el) el.textContent = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', month: 'long' }).format(new Date()); })();   // mes do rotulo (era 'Setembro' fixo)
 
     const FILIAIS_METADATA = {
       TBL: { gerente: 'Fábio',      uf: 'PR', lat: -23.3197, lon: -51.1588, meta: 3500 },
@@ -1793,6 +1794,7 @@ header { height: auto !important; min-height: 56px; flex-wrap: wrap; gap: 6px 14
 
         document.getElementById('foco-filial-txt').textContent = '· NACIONAL';
         document.getElementById('hero-title-txt').textContent = '🎯 DESAFIO NACIONAL DO GRUPO TRIUNFANTE · META 30.000 PDVs';
+        { const el = document.getElementById('hero-mes-nome'); if (el) el.textContent = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', month: 'long' }).format(new Date()); }   // era fixo 'Setembro' (12/10/2026)
         document.getElementById('hero-meta-sub').textContent = '/ 30.000 PDVs';
       } else {
         const f = DADOS_ATUAIS.filiais[FILIAL_SELECIONADA] || {};
