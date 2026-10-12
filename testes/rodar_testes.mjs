@@ -722,5 +722,40 @@ secao('8f. Score de desempenho da Matriz: 0 a 100, nunca negativo, lider = 100')
   ok(JSON.stringify(fn([mk('A', 0, 0, 0, 0, 0, 10, 8), mk('B', 0, 0, 0, 0, 0, 10, 8)])) === '{"A":100,"B":100}', 'sem nenhum dado nao inventa diferenca: todas empatam em 100');
 }
 
+secao('9. Representante NAO e cobrado (Vitorio, 12/10/2026): aparece no painel e soma meta/vendas, mas fica fora de lance, Liga, incentivo, zerados e WhatsApp');
+{
+  const { participa, ehRepresentante, setSemParticipacao } = await import(pathToFileURL(join(RAIZ, 'functions', '_lib', 'participacao.js')).href);
+  const rep = { rca: 1, mostra: true, vinculo: 'REPRESENTANTE' }, clt = { rca: 2, mostra: true }, oculto = { rca: 3, mostra: false };
+  ok(ehRepresentante(rep) && !ehRepresentante(clt), 'vinculo REPRESENTANTE e reconhecido (e ausente = CLT)');
+  ok(['lances', 'cartoes_penaltis', 'zerados', 'liga', 'incentivo', 'whatsapp', 'ronda'].every((f) => !participa(rep, f)), 'representante NAO participa de nenhuma flag de cobranca');
+  ok(participa(rep, 'painel') && participa(rep, 'meta_e_vendas'), 'representante continua no painel e soma meta e vendas');
+  ok(['lances', 'liga', 'incentivo', 'whatsapp', 'zerados'].every((f) => participa(clt, f)), 'CLT participa de tudo');
+  ok(!participa(oculto, 'liga') && participa(oculto, 'meta_e_vendas'), 'oculto (mostra=false) segue so somando nos totais');
+  ok(participa({ ...rep, participa: { liga: true } }, 'liga') && !participa({ ...clt, participa: { liga: false } }, 'liga'), 'excecao individual da Gestao vence o padrao do vinculo');
+  const set = setSemParticipacao({ filiais: { TBL: [rep, clt, oculto] } }, 'liga');
+  ok(set.has('TBL|1') && !set.has('TBL|2') && set.has('TBL|3'), 'setSemParticipacao devolve representante e oculto, nunca o CLT');
+  ok(ler('functions/_lib/equipe_ocultos.js').includes("participa(v, 'lances')"), 'lances (tv-lances, brasileirao-lances): representante e filtrado por ocultosDaEquipe');
+  ok(ler('functions/api/cron-lances.js').includes('semLances.has') && ler('functions/api/cron-lances.js').includes('ehRepresentante(v2)'), 'coletor de lances nem busca o representante');
+  ok(ler('functions/api/liga-as.js').includes("participa(v, 'liga')"), 'Liga AS exclui representante');
+  ok(ler('functions/api/incentivo-outubro.js').includes("participa(x, 'incentivo')"), 'incentivo exclui representante');
+  ok(ler('functions/api/cron-semana-invicta.js').includes("participa(v, 'liga')"), 'Semana Invicta exclui representante');
+  ok(ler('functions/api/cron-mapa-executivo.js').includes("participa(v, 'zerados')"), 'KPIs de campo da Executiva excluem representante');
+  ok(ler('pipeline/ceven_unified_engine.js').includes('repSemCobranca'), 'WhatsApp: representante sai das listas de cobranca e soma nos totais');
+  ok(ler('public/matrizapp.html').includes('ehRep(r)') && ler('public/matrizapp.html').includes('&& !r.rep'), 'Matriz: representante nao e campo (sem zerado/penalti) e nao gera lance');
+  ok(ler('public/tvapp.html').includes("startsWith('REP')"), 'TV da filial: representante fora da ronda e dos alertas');
+  ok(ler('public/gestao-equipe.html').includes('definirVinculo') && ler('public/gestao-equipe.html').includes('filtro-vinculo'), 'Gestao de Equipe: coluna Vinculo/Participa, filtro e selo REP');
+}
+
+secao('10. Painel /saude (sala de controle) e telemetria da coleta');
+{
+  const sa = ler('functions/api/saude.js'), vc = ler('functions/api/cron-varredura-central.js'), h = ler('public/saude.html');
+  ok(sa.includes("'critico'") && sa.includes('sondaCeven') && sa.includes('r429_60min') && sa.includes('fora_da_gestao_com_meta'), '/api/saude calcula semaforo, sonda ao CEVEN, 429 e RCAs fora da Gestao');
+  ok(!/\.run\(\)/.test(sa) && !/\bINSERT\b|\bUPDATE\b|\bDELETE\b/.test(sa), '/api/saude e so leitura (nao grava nada)');
+  ok(vc.includes('saude_coleta') && vc.includes('registraTick'), 'cada rodada da varredura grava a telemetria (chamadas, 429, 401, falhas)');
+  ok(h.includes('/api/saude') && h.includes('setInterval(carregar, 15000)'), 'tela /saude le /api/saude a cada 15 s');
+  const fm = ler('functions/api/cron-faturado-mes.js');
+  ok(fm.includes('incompletas') && fm.includes('0.9'), 'resumo do mes nao sobrescreve a meta com leitura incompleta (filial com menos de 90% dos RCAs)');
+}
+
 console.log(`\nRESULTADO: ${total - falhas} de ${total} verificacoes OK` + (falhas ? ` | ${falhas} FALHARAM` : ''));
 process.exit(falhas ? 1 : 0);

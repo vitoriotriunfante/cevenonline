@@ -53,20 +53,34 @@ async function poolLimitado(tarefas, n, prazo) {
 // so 5 s (o CEVEN pedia 19) e tentava de novo, 6 em paralelo: as novas tentativas renovavam o bloqueio e a base parou de encher. Agora, ao primeiro 429,
 // TODAS as chamadas desta rodada esperam o Retry-After inteiro antes de seguir.
 let pausaAte = 0;
+// TELEMETRIA (12/10/2026): cada tick grava 1 linha em saude_coleta (chamadas, 429, 401, falhas) para o painel /saude e para os alertas. Zera a cada rodada.
+const T = { chamadas: 0, ok: 0, r429: 0, r401: 0, falhas: 0 };
+async function registraTick(env, modo, rcas, gravados, duracaoMs) {
+  try {
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS saude_coleta (id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT DEFAULT CURRENT_TIMESTAMP, modo TEXT, rcas INTEGER, gravados INTEGER, chamadas INTEGER, ok INTEGER, r429 INTEGER, r401 INTEGER, falhas INTEGER, duracao_ms INTEGER)').run();
+    await env.DB.prepare('INSERT INTO saude_coleta (modo, rcas, gravados, chamadas, ok, r429, r401, falhas, duracao_ms) VALUES (?,?,?,?,?,?,?,?,?)')
+      .bind(modo, rcas, gravados, T.chamadas, T.ok, T.r429, T.r401, T.falhas, duracaoMs).run();
+    if (Math.random() < 0.02) await env.DB.prepare("DELETE FROM saude_coleta WHERE ts < datetime('now', '-3 days')").run();
+  } catch { /* telemetria nunca derruba a coleta */ }
+}
 async function getJson(url, tentativas = 3) {
   for (let t = 0; t < tentativas; t++) {
     try {
       const espera = pausaAte - Date.now();
       if (espera > 0) await new Promise((res) => setTimeout(res, espera));
       const chamada = (async () => {
+        T.chamadas++;
         const r = await fetch(url, { headers: HDR, signal: AbortSignal.timeout(15000) });
+        if (r.status === 401 || r.status === 403) T.r401++;
         if (r.status === 429) {
+          T.r429++;
           const waitS = Number(r.headers.get('retry-after')) || 10;
           pausaAte = Math.max(pausaAte, Date.now() + Math.min(waitS, 30) * 1000);
           return 'RETRY';
         }
-        if (!r.ok) return null;
+        if (!r.ok) { T.falhas++; return null; }
         const txt = await r.text();
+        T.ok++;
         return txt ? JSON.parse(txt) : null;
       })();
       chamada.catch(() => {});
@@ -129,6 +143,7 @@ export async function onRequestGet({ env, request }) {
   const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: cors });
 
   const t0 = Date.now();
+  T.chamadas = T.ok = T.r429 = T.r401 = T.falhas = 0;
   const dataRef = dataHojeBrasilia();
   const urlParams = new URL(request.url).searchParams;
   const forcar = urlParams.has('forcar');
@@ -222,6 +237,7 @@ export async function onRequestGet({ env, request }) {
         if (stmts.length) await gravaLote(env, stmts);
         feitos += fatia.length;
       }
+      await registraTick(env, 'completa', rcas.length, ok, Date.now() - t0);
       if (!ok && feitos && comFalha === feitos) return resp({ erro: 'CEVEN não respondeu nenhum RCA', rcas_total: rcas.length }, 502);
       return resp({ status: 'ATUALIZADO', modo: 'completa', data_ref: dataRef, rcas_total: rcas.length, faltavam: faltam.length, processados: feitos, rcas_gravados: ok, rcas_sem_nenhuma_resposta: comFalha, restam: Math.max(0, faltam.length - feitos), duracao_ms: Date.now() - t0 });
     }
@@ -324,6 +340,7 @@ export async function onRequestGet({ env, request }) {
     if (Date.now() - t0 < 105000) {
       try { const rm = await fetch(new URL('/api/cron-mapa-executivo', request.url), { signal: AbortSignal.timeout(30000) }); const jm = await rm.json().catch(() => ({})); mapa = jm.status || String(rm.status); } catch { mapa = 'falhou'; }
     }
+    await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);
     return resp({ status: 'ATUALIZADO', modo: 'tick', ciclo, data_ref: dataRef, rcas_total: rcas.length, ...contagem, mudaram: mudou.length, mapa, duracao_ms: Date.now() - t0 });
   } finally {
     if (!filialParam) await soltaSlot(env, dono);

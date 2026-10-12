@@ -7,6 +7,7 @@
 // PÚBLICO: Macro Varejo (canais VJ, FARMA, PET VJ, ESP do CEVEN); AS, SUP, GER e quem o CEVEN não classifica ficam fora; ocultos na Gestão ficam fora.
 // PRÊMIOS: ver public/incentivo_outubro_2026.json (Gatilho 1 ≥60% até 17/10 = R$150 · Gatilho 2 ≥110% no fechamento = R$350 · Supervisor ≥110% = R$300 · Gerente: filial ≥110% da Coluna N = R$500).
 // =========================================================================
+import { participa } from '../_lib/participacao.js';
 const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const sigDe = (k) => String(k || '').split('_')[0].toUpperCase().replace(/1$/, '');
 const pct = (r, m) => (m > 0 ? Math.round((r / m) * 1000) / 10 : null); // sem meta = sem percentual (nunca inventa)
@@ -28,6 +29,7 @@ export async function onRequestGet({ request, env }) {
       for (const x of lista || []) {
         if (!x || x.rca == null) continue;
         if (x.mostra === false) { fora.ocultos++; continue; }
+        if (!participa(x, 'incentivo')) { fora.representantes = (fora.representantes || 0) + 1; continue; }   // representante NAO entra no incentivo (Vitorio, 12/10/2026)
         const canal = String(x.canal || '').trim();
         if (!canal) { fora.sem_canal++; continue; }
         if (!varejo.has(canal)) { if (canal === 'AS' || canal === 'PET AS') fora.as++; else fora.outros++; continue; }

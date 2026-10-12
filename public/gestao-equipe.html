@@ -790,6 +790,11 @@ table { font-size: clamp(11px, .95vw, 13px) !important; }
       <div class="kpi-sub">Não pontuam cartões</div>
     </div>
     <div class="kpi-card">
+      <div class="kpi-lbl">Representantes (não cobrados)</div>
+      <div class="kpi-val" style="color:#f59e0b;" id="kpi-rep">0</div>
+      <div class="kpi-sub">Aparecem no painel; sem cartão, Liga, incentivo</div>
+    </div>
+    <div class="kpi-card">
       <div class="kpi-lbl">Canais Comerciais</div>
       <div class="kpi-val" style="color:var(--acc);" id="kpi-canais">VJ / AS</div>
       <div class="kpi-sub">Varejo & Auto Serviço</div>
@@ -841,6 +846,12 @@ table { font-size: clamp(11px, .95vw, 13px) !important; }
         <option value="ATIVOS">Somente Ativos na TV (SIM)</option>
         <option value="OCULTOS">Somente Ocultos (NÃO)</option>
       </select>
+
+      <select id="filtro-vinculo" class="select-filter" onchange="filtrarTabela()" title="Representante aparece nos painéis (meta e vendas) mas NÃO é cobrado: sem lance, cartão, pênalti, Liga, incentivo, zerados ou WhatsApp">
+        <option value="TODOS">Todos os Vínculos</option>
+        <option value="REPRESENTANTE">Somente Representantes (não cobrados)</option>
+        <option value="CLT">Somente CLT (cobrados)</option>
+      </select>
     </div>
 
     <div>
@@ -860,6 +871,7 @@ table { font-size: clamp(11px, .95vw, 13px) !important; }
             <th>Canal</th>
             <th>Supervisor</th>
             <th>Gerente</th>
+            <th>Vínculo / Participa</th>
             <th>Status na TV / Brasileirão</th>
             <th>Motivo / Observação</th>
           </tr>
@@ -1097,13 +1109,15 @@ function atualizarKPIs() {
     if (filFiltro && fil !== filFiltro) return;
     lista.forEach(r => {
       total++;
-      if (r.mostra) ativos++;
-      else ocultos++;
+      if (r.mostra && vinculoDe(r) !== 'REPRESENTANTE') ativos++;
+      else if (!r.mostra) ocultos++;
     });
   });
   document.getElementById('kpi-total').textContent = total;
   document.getElementById('kpi-ativos').textContent = ativos;
   document.getElementById('kpi-ocultos').textContent = ocultos;
+  const nRep = Object.values(BASE_MOSTRA.filiais).reduce((a, l) => a + l.filter(r => vinculoDe(r) === 'REPRESENTANTE').length, 0);
+  const elRep = document.getElementById('kpi-rep'); if (elRep) elRep.textContent = nRep;
 }
 
 function filtrarTabela() {
@@ -1112,6 +1126,7 @@ function filtrarTabela() {
   const filial = document.getElementById('filtro-filial').value;
   const canal = document.getElementById('filtro-canal').value;
   const status = document.getElementById('filtro-status').value;
+  const vinc = (document.getElementById('filtro-vinculo') || { value: 'TODOS' }).value;
 
   const listaFinal = [];
   Object.entries(BASE_MOSTRA.filiais).forEach(([fil, itens]) => {
@@ -1121,9 +1136,10 @@ function filtrarTabela() {
       if (canal !== 'TODOS' && !c.includes(canal)) return;
       if (status === 'ATIVOS' && !item.mostra) return;
       if (status === 'OCULTOS' && item.mostra) return;
+      if (vinc !== 'TODOS' && vinculoDe(item) !== vinc) return;
 
       if (busca) {
-        const txt = `${fil} ${item.rca} ${item.nome} ${item.supervisor} ${item.gerente} ${item.canal} ${item.motivo || ''}`.toLowerCase();
+        const txt = `${fil} ${item.rca} ${item.nome} ${item.supervisor} ${item.gerente} ${item.canal} ${item.motivo || ''} ${vinculoDe(item) === 'REPRESENTANTE' ? 'representante' : ''}`.toLowerCase();
         if (!txt.includes(busca)) return;
       }
       listaFinal.push({ ...item, fil });
@@ -1135,12 +1151,56 @@ function filtrarTabela() {
   renderizarTabela();
 }
 
+// ---------------------------------------------------------------------------------------------------------------------------------
+// VINCULO + PARTICIPACAO (Vitorio, 12/10/2026). Regra gemea de functions/_lib/participacao.js (manter igual).
+// REPRESENTANTE = aparece nos paineis e soma meta/vendas, mas NAO e cobrado. Cada flag pode ser ligada/desligada individualmente.
+// ---------------------------------------------------------------------------------------------------------------------------------
+const FLAGS_PARTICIPA = [['lances', 'Lances (gols)'], ['cartoes_penaltis', 'Cartões e pênaltis'], ['zerados', 'Zerados / cobrança de campo'], ['liga', 'Liga (Brasileirão, AS, Semana Invicta)'], ['incentivo', 'Incentivo'], ['whatsapp', 'Cobrança no WhatsApp'], ['ronda', 'Ronda na TV da filial']];
+function vinculoDe(v) { const x = String((v && v.vinculo) || '').toUpperCase(); return (x === 'REPRESENTANTE' || x === 'REP' || x === 'R') ? 'REPRESENTANTE' : 'CLT'; }
+function participaDe(v, flag) {
+  const ov = v.participa && typeof v.participa === 'object' ? v.participa[flag] : undefined;
+  if (typeof ov === 'boolean') return ov;
+  if (vinculoDe(v) === 'REPRESENTANTE') return false;
+  if (v.mostra === false) return false;
+  return true;
+}
+function celulaVinculo(r) {
+  const rep = vinculoDe(r) === 'REPRESENTANTE';
+  const selo = rep ? '<span style="background:#b45309;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;">REP · não cobrado</span>' : '<span style="color:var(--tx-mut);font-size:11px;">CLT</span>';
+  if (!USUARIO_LOGADO || !USUARIO_LOGADO.isDiretoria) return selo;
+  const flags = FLAGS_PARTICIPA.map(([f, nome]) => `<label style="display:block;font-size:11px;color:#cbd5e1;margin:2px 0;"><input type="checkbox" ${participaDe(r, f) ? 'checked' : ''} onchange="definirParticipa('${r.fil}','${r.rca}','${f}',this.checked)"> ${nome}</label>`).join('');
+  return `${selo}
+    <select style="margin-top:4px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.15);color:#e2e8f0;border-radius:4px;font-size:11px;padding:3px;display:block;" onchange="definirVinculo('${r.fil}','${r.rca}',this.value)">
+      <option value="CLT" ${rep ? '' : 'selected'}>CLT (cobrado)</option><option value="REPRESENTANTE" ${rep ? 'selected' : ''}>Representante (não cobrado)</option>
+    </select>
+    <details style="margin-top:4px;"><summary style="cursor:pointer;font-size:11px;color:#93c5fd;">participação</summary>${flags}</details>`;
+}
+function definirVinculo(fil, rca, valor) {
+  if (!USUARIO_LOGADO || !USUARIO_LOGADO.isDiretoria) return;
+  const v = BASE_MOSTRA.filiais[fil].find(x => String(x.rca) === String(rca));
+  if (!v) return;
+  v.vinculo = valor === 'REPRESENTANTE' ? 'REPRESENTANTE' : 'CLT';
+  delete v.participa;   // mudou o vinculo: volta ao padrao do vinculo (o Vitorio refaz as excecoes, se quiser)
+  atualizarKPIs();
+  filtrarTabela();
+  if (typeof mostrarToast === 'function') mostrarToast(`${v.nome}: ${v.vinculo === 'REPRESENTANTE' ? 'REPRESENTANTE (não cobrado)' : 'CLT (cobrado)'} — clique em Salvar para publicar`);
+}
+function definirParticipa(fil, rca, flag, ligado) {
+  if (!USUARIO_LOGADO || !USUARIO_LOGADO.isDiretoria) return;
+  const v = BASE_MOSTRA.filiais[fil].find(x => String(x.rca) === String(rca));
+  if (!v) return;
+  const padrao = vinculoDe(v) === 'REPRESENTANTE' ? false : (v.mostra === false ? false : true);
+  v.participa = v.participa || {};
+  if (ligado === padrao) delete v.participa[flag]; else v.participa[flag] = ligado;
+  if (!Object.keys(v.participa).length) delete v.participa;
+}
+
 function renderizarTabela() {
   const tbody = document.getElementById('tabela-corpo');
   const elCount = document.getElementById('lbl-count-exibidos');
   if (elCount) elCount.textContent = FILTRADOS.length;
   if (!FILTRADOS.length) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--tx-mut);">Nenhum vendedor encontrado para os filtros selecionados.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--tx-mut);">Nenhum vendedor encontrado para os filtros selecionados.</td></tr>`;
     return;
   }
 
@@ -1164,6 +1224,7 @@ function renderizarTabela() {
         <td><span class="badge-canal ${canalClass}">${r.canal || 'VJ'}</span></td>
         <td style="color:var(--tx-mut);font-size:12px;">${(!r.supervisor || /^(GERENTE\b|RCAS INATIVOS|VENDA EMPRESA)/i.test(String(r.supervisor).trim())) ? '— (direto ao gerente)' : r.supervisor}</td>
         <td style="color:var(--tx-mut);font-size:12px;">${r.gerente || '—'}</td>
+        <td style="min-width:150px;">${celulaVinculo(r)}</td>
         <td>
           <label class="toggle-switch">
             <input type="checkbox" ${mostraAtual ? 'checked' : ''} onchange="manipularStatus('${r.fil}', '${r.rca}', this.checked)">

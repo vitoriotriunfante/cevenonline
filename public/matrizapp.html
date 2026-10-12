@@ -492,7 +492,9 @@ for (const s of ORDEM) {
 
 const listaFil = sig => MOSTRA ? Object.keys(MOSTRA).filter(k => k === sig || k.startsWith(sig + '_')).flatMap(k => MOSTRA[k].map(r => ({...r, grupo: r.grupo || (k.includes('_') ? k.split('_').slice(1).join('_') : '')}))) : []; // filial canônica; tolera JSON antigo
 // REGRA SOBERANA: TODOS os RCAs cadastrados da filial entram na varredura. Venda é venda: mesmo quem saiu ou tem flag de planilha entra para somar pedidos e faturamento.
-const reps = sig => listaFil(sig).filter(r => !EXCLUI.includes((r.canal || '').toUpperCase())).map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor), grupo: r.grupo || '', carteira: String(r.carteira || '').toUpperCase()}));
+// REPRESENTANTE (Vitorio, 12/10/2026): aparece no painel, soma meta e venda, mas NAO e monitorado: sem lance, cartao, penalti, zerado nem cobranca.
+const ehRep = r => String((r && r.vinculo) || '').toUpperCase().startsWith('REP') || !!(r && r.participa && r.participa.lances === false);
+const reps = sig => listaFil(sig).filter(r => !EXCLUI.includes((r.canal || '').toUpperCase())).map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor), grupo: r.grupo || '', carteira: String(r.carteira || '').toUpperCase(), rep: ehRep(r)}));
 async function atualizaFilial(sig) {
   DATA[sig] = DATA[sig] || {};
   const fila = [...reps(sig)];
@@ -525,7 +527,7 @@ function vend(sig, r) {
   const d = (DATA[sig] || {})[r.id] || {}, cl = Array.isArray(d.clientes) ? d.clientes : null;
   const st = s => cl ? cl.filter(c => s.includes(c.status)).length : null;
   const feitas = cl ? cl.filter(c => !['AGENDADO', 'ABERTO'].includes(c.status)).length : null;
-  return {sig, id: r.id, nome: r.nome, canal: r.canal, carteira: r.carteira || '', sup: r.sup, grupo: r.grupo || '', campo: CAMPO.includes(r.canal), d, cl, meta: num(d.meta_fat), fat: num(d.faturado), dev: num(d.devolucao),
+  return {sig, id: r.id, nome: r.nome, canal: r.canal, carteira: r.carteira || '', sup: r.sup, grupo: r.grupo || '', campo: CAMPO.includes(r.canal) && !r.rep, rep: !!r.rep, d, cl, meta: num(d.meta_fat), fat: num(d.faturado), dev: num(d.devolucao),
     pendente: num(d.pendente),
     devHoje: num(d.devolucao_hoje) || 0, devolucoesHoje: Array.isArray(d.devolucoes_hoje) ? d.devolucoes_hoje : [],
     metaCli: num(d.meta_cli), realCli: num(d.real_cli), dig: num(d.dig_hoje), pos: num(d.pos_hoje), rota: cl ? cl.length : null, feitas, visFeitas: num(d.visitas_na_rota), visRota: num(d.visitas_prog), comVenda: st(['POSITIVADO', 'EFETIVADO']),
@@ -536,7 +538,7 @@ const vendedores = sig => reps(sig).map(r => vend(sig, r)).filter(v => v.tem && 
 const zerado = v => v.campo && v.temRota && !(v.dig > 0) && !(v.pos > 0);
 function calcAlertas() {
   const t = sp(), out = [];
-  const ocultosMz = new Set(); Object.keys(MOSTRA || {}).forEach(k => (MOSTRA[k] || []).forEach(r => { if (r.mostra === false) ocultosMz.add(k.split('_')[0] + '|' + r.rca); }));
+  const ocultosMz = new Set(); Object.keys(MOSTRA || {}).forEach(k => (MOSTRA[k] || []).forEach(r => { if (r.mostra === false || ehRep(r)) ocultosMz.add(k.split('_')[0] + '|' + r.rca); }));
   for (const sig of ORDEM) for (const v of vendedores(sig)) {
     if (!v.cl) continue;
     if (ocultosMz.has(sig + '|' + v.id)) continue; // oculto na Gestao de Equipe (afastado, ferias, teste): nao gera lance (Vitório, 07/10/2026)

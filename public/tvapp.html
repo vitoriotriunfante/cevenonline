@@ -521,8 +521,16 @@ let lastOk = null, refreshing = false, ordem = [], idxRonda = 0, modoManual = ['
 // "GERENTE MCD", "GERENTE TPH"... = vendedores ligados direto ao gerente, NAO sao supervisores (decisao do Vitorio, 04/10/2026).
 const ehSupFalso = (n) => !String(n || '').trim() || /^(GERENTE\b|RCAS INATIVOS|VENDA EMPRESA|SEM SUPERVISOR)/i.test(String(n).trim());
 const SUP_INI = 11 * 60 + 30, SUP_FIM = 12 * 60; // janela do alerta de supervisores (Brasília)
-let SUP = null, SEM = null, semCarregando = false;
-async function carregaSemana() { if (semCarregando) return; semCarregando = true; const d = await j('/api/tv-supervisores-semana?filial=' + FIL, 30000); if (d && !d.erro) SEM = d; semCarregando = false; renderSup(); }
+let SUP = null, SEM = null, semCarregando = false, semErro = false, semProximaTentativa = 0;
+async function carregaSemana() {
+  if (semCarregando || Date.now() < semProximaTentativa) return;
+  semCarregando = true;
+  const d = await j('/api/tv-supervisores-semana?filial=' + FIL, 30000);
+  if (d && !d.erro) { SEM = d; semErro = false; semProximaTentativa = 0; }
+  else { semErro = true; semProximaTentativa = Date.now() + 5 * 60 * 1000; }
+  semCarregando = false;
+  renderSup();
+}
 setInterval(() => { if (typeof modoAtual === 'function' && modoAtual() === 'sup') carregaSemana(); }, 5 * 60 * 1000);   // situação dos supervisores no dia (tv-supervisores)
 let ALERTAS = [];         // ativos agora
 let seen = new Set(store.get(K.seen + HOJE0, []));
@@ -557,7 +565,8 @@ async function carregaReps() {
   const GRUPO = (P.get('grupo') || '').toUpperCase();
   const lista = m && m.filiais ? Object.keys(m.filiais).filter(k => k === FIL || k.startsWith(FIL + '_')).flatMap(k => m.filiais[k].map(r => ({...r, grupo: r.grupo || (k.includes('_') ? k.split('_').slice(1).join('_') : '')}))).filter(r => !GRUPO || r.grupo === GRUPO) : null;
   if (Array.isArray(lista) && lista.length) {
-    REPS = lista.filter(r => (MOSTRA_TUDO || r.mostra) && !EXCLUI.includes((r.canal || '').toUpperCase()))
+    // REPRESENTANTE nao entra na ronda/alertas da TV (Vitorio, 12/10/2026): ele aparece nos paineis da Matriz e na Gestao, mas nao e cobrado.
+    REPS = lista.filter(r => (MOSTRA_TUDO || r.mostra) && !EXCLUI.includes((r.canal || '').toUpperCase()) && !(String(r.vinculo || '').toUpperCase().startsWith('REP') || (r.participa && r.participa.lances === false)))
       .map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor), grupo: r.grupo || '', carteira: String(r.carteira || '').toUpperCase()}));
     listaMostra = true;
     const av = $('aviso');
@@ -1677,7 +1686,8 @@ function renderSup() {
   const peso = x => (!x.fez_compromisso && !x.iniciou_ret) ? 0 : (!x.fez_compromisso || !x.iniciou_ret) ? 1 : 2;
   const ord = [...lista].sort((a, b) => peso(a) - peso(b) || a.nome.localeCompare(b.nome));
   // painel gerencial da semana no TOPO, fixo (sticky) enquanto os cards rolam por baixo (Vitório, 06/10/2026)
-  const topoSem = `<div style="position:sticky;top:26px;z-index:6;background:var(--card);padding-bottom:6px;border-bottom:1px solid var(--line);max-height:44vh;overflow:auto"><h2 style="margin:4px 0 2px"><span>Painel gerencial da semana</span><b>fez = matinal + rota</b></h2>${supSemanaHtml(SEM && SEM.filiais && SEM.filiais[FIL], SEM)}</div>`;
+  const semHtml = semErro && !SEM ? '<div style="color:var(--mut,#8b9bbd);padding:8px 0">Falha ao carregar a semana dos supervisores. Nova tentativa em até 5 minutos.</div>' : supSemanaHtml(SEM && SEM.filiais && SEM.filiais[FIL], SEM);
+  const topoSem = `<div style="position:sticky;top:26px;z-index:6;background:var(--card);padding-bottom:6px;border-bottom:1px solid var(--line);max-height:44vh;overflow:auto"><h2 style="margin:4px 0 2px"><span>Painel gerencial da semana</span><b>fez = matinal + rota</b></h2>${semHtml}</div>`;
   el.innerHTML = `<h2><span>Supervisores · matinal (compromisso) e rota (RET)</span><b>${supPend().length} pendente(s) de ${lista.length}</b></h2>` + topoSem +
     ord.map(x => {
       // RET em andamento: mostra PDVs visitados, nota média (IA score) e fotos, direto do CEVEN

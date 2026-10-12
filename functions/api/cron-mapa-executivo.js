@@ -1,4 +1,5 @@
 // =========================================================================
+import { participa } from '../_lib/participacao.js';
 // FICHA DO ARQUIVO
 // O QUE É: lê roteiro-hoje/produtividade de TODOS os RCAs ativos a partir da varredura central
 //          (varredura_central_rca, ver ETAPA 2 abaixo — não chama mais o CEVEN direto aqui).
@@ -40,7 +41,8 @@
 // =========================================================================
 
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
-const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' };
+const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
+const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Secret': CEVEN_APP_SECRET };
 const LOTE = 6; // chamadas simultaneas ao CEVEN (limite pratico de 6, decisao de 03/10/2026; antes 40)
 
 async function getJson(url) {
@@ -77,7 +79,7 @@ async function carregaCanalPorRca(env, request) {
       for (const v of lista) {
         if (v && v.rca != null) {
           mapa.set(String(v.rca), String(v.canal || '').toUpperCase());
-          if (v.mostra === false) ocultos.add(String(v.rca));
+          if (v.mostra === false || !participa(v, 'zerados')) ocultos.add(String(v.rca));   // representante: fora dos KPIs de campo (12/10/2026)
         }
       }
     }

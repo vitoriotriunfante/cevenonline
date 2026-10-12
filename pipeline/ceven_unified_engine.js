@@ -323,7 +323,9 @@ function aplicarMostraDisparos(repsMap) {
       const key = `${sigla}_${r.rca}`;
       const val = repsMap[key];
       if (!val) { extrasMacro.push({ filial: sigla, rca: String(r.rca), nome: r.nome || ('RCA ' + r.rca), gerente: nomeDoGrupo(r.grupo) }); continue; }
-      if (r.mostra === false) {
+      // REPRESENTANTE (vinculo) ou flag whatsapp=false: some das listas de cobranca, mas SOMA nos totais (igual ao oculto) — Vitorio, 12/10/2026: representante nao pode ser cobrado
+      const repSemCobranca = String(r.vinculo || '').toUpperCase().startsWith('REP') || (r.participa && r.participa.whatsapp === false);
+      if (r.mostra === false || repSemCobranca) {
         extrasMacro.push({ filial: sigla, rca: String(r.rca), nome: val.nome || r.nome || ('RCA ' + r.rca), gerente: nomeDoGrupo(r.grupo) || val.gerente || '' });
         delete repsMap[key];
         excluidos++;

@@ -11,6 +11,7 @@
 // GRAVA: lance nivel 'semanainvicta' em /api/tv-lances (filial do vendedor + MTZ para a Matriz); 1 vez por vendedor e semana (tv-lances barra repetição entre dias).
 // NUNCA inventa: só vendedor com Vitória comprovada em todos os dias esperados.
 // =========================================================================
+import { participa } from '../_lib/participacao.js';   // representante fora da Liga (12/10/2026)
 const FERIADOS_2026 = new Set(['2026-01-01', '2026-02-16', '2026-02-17', '2026-04-03', '2026-04-21', '2026-05-01', '2026-06-04', '2026-09-07', '2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25']);
 const INICIO_TEMPORADA = '2026-09-28';
 const HORA_FECHAMENTO = 19;
@@ -82,7 +83,7 @@ export async function onRequestGet({ env, request }) {
     try { const c = await (await fetch(`${origin}/pontuacao_brasileirao.json`, { signal: AbortSignal.timeout(8000) })).json(); minVitoria = Number(c.faixas_pontos_liga.vitoria.min_pontos) || 11; } catch { /* mantem 11 */ }
     const mp = await (await fetch(`${origin}/api/tv-mostra`, { signal: AbortSignal.timeout(10000) })).json();
     const equipe = new Map();
-    for (const [sig, lista] of Object.entries((mp && mp.filiais) || {})) for (const v of Array.isArray(lista) ? lista : []) if (v && v.rca != null && v.mostra) equipe.set(String(v.rca), { filial: String(sig).toUpperCase(), nome: v.nome, supervisor: v.supervisor || '' });
+    for (const [sig, lista] of Object.entries((mp && mp.filiais) || {})) for (const v of Array.isArray(lista) ? lista : []) if (v && v.rca != null && v.mostra && participa(v, 'liga')) equipe.set(String(v.rca), { filial: String(sig).toUpperCase(), nome: v.nome, supervisor: v.supervisor || '' });
     if (!equipe.size) return resp({ erro: 'Gestão de Equipe sem vendedores: não confere' }, 502);
 
     // pontos por vendedor e dia (mesma fonte do ranking)

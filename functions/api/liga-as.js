@@ -6,6 +6,7 @@
 //          meta e faturado do mês de cada dia = foto do fim do dia guardada pela varredura central (varredura_central_rca.dashboard_json). Só leitura. Nunca inventa.
 // REGRAS:  functions/_lib/liga_as.js  ·  decisões: docs/LIGA_AS_DECISOES.md
 // =========================================================================
+import { participa } from '../_lib/participacao.js';   // representante fica fora da Liga AS (Vitorio, 12/10/2026)
 import { calculaFaseamento, somaSnaps, AS_FASES, AS_BONUS, AS_MODO, AS_VALE_DESDE } from '../_lib/liga_as.js';
 const cors = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: cors });
@@ -22,7 +23,7 @@ export async function onRequestGet({ env, request }) {
     for (const [k, lista] of Object.entries((mp && mp.filiais) || {})) {
       const filial = k.split('_')[0].toUpperCase();
       if (fFil && filial !== fFil) continue;
-      for (const v of Array.isArray(lista) ? lista : []) if (v && v.rca != null && ['AS', 'PET AS'].includes(String(v.canal || '').toUpperCase()) && v.mostra !== false) pessoas.push({ filial, rca: String(v.rca), nome: v.nome, supervisor: v.supervisor || '' });
+      for (const v of Array.isArray(lista) ? lista : []) if (v && v.rca != null && ['AS', 'PET AS'].includes(String(v.canal || '').toUpperCase()) && v.mostra !== false && participa(v, 'liga')) pessoas.push({ filial, rca: String(v.rca), nome: v.nome, supervisor: v.supervisor || '' });
     }
     const { results } = await env.DB.prepare(
       `SELECT data_ref AS dia, filial_sigla AS filial, CAST(rca_codigo AS TEXT) AS rca,

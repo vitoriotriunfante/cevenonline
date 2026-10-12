@@ -108,6 +108,7 @@ function horariosCheckinDoDia(cl) {
 // por calcAlertas.
 import { qualificaGol, carteiraEfetiva } from '../_lib/qualificacao_gol.js';
 import { garanteArvore } from '../_lib/arvore_ceven.js';
+import { ehRepresentante } from '../_lib/participacao.js';   // representante nao e monitorado (12/10/2026)
 // Prova do gol de cliente: pedido de hoje (numero, status, valor) e, na dobradinha, os pedidos reais de cada quinzena do mes
 function provaPedidoHoje(c) {
   const p = c && c.pedidoHoje;
@@ -376,12 +377,13 @@ export async function onRequestGet({ env, request }) {
 
   // canal/supervisor por RCA: mesma fonte que a TV usa (Gestao de Equipe via /api/tv-mostra)
   const canalMapa = new Map();
+  const semLances = new Set();   // representante (ou flag lances=false na Gestao): nao e monitorado nem cobrado (Vitorio, 12/10/2026)
   try {
     const m = await getJson(`${origin}/api/tv-mostra`);
     const filiais = m?.filiais || {};
     for (const lista of Object.values(filiais)) {
       if (!Array.isArray(lista)) continue;
-      for (const v2 of lista) if (v2 && v2.rca != null) canalMapa.set(String(v2.rca), { canal: String(v2.canal || '').toUpperCase(), sup: v2.supervisor || '', carteira: String(v2.carteira || '').toUpperCase() });
+      for (const v2 of lista) if (v2 && v2.rca != null) { if (ehRepresentante(v2) || (v2.participa && v2.participa.lances === false)) semLances.add(String(v2.rca)); canalMapa.set(String(v2.rca), { canal: String(v2.canal || '').toUpperCase(), sup: v2.supervisor || '', carteira: String(v2.carteira || '').toUpperCase() }); }
     }
   } catch {}
 
@@ -405,7 +407,7 @@ export async function onRequestGet({ env, request }) {
   for (const [filial, codigos] of Object.entries(rcasPorFilial)) {
     const vs = [];
     for (let i = 0; i < codigos.length; i += LOTE) {
-      const lote = codigos.slice(i, i + LOTE);
+      const lote = codigos.slice(i, i + LOTE).filter((c) => !semLances.has(String(c)));   // representante: nem busca (economiza chamada ao CEVEN)
       const resultados = await Promise.all(
         lote.map(async (codigo) => {
           const d = await getJson(`${origin}/api/tv-vendedor?filial=${filial}&id=${codigo}&central=1${['AS', 'PET AS'].includes((canalMapa.get(String(codigo)) || {}).canal) ? '&canal=AS' : ''}`);
