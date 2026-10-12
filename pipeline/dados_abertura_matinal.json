@@ -1,6 +1,6 @@
 {
-  "data": "2026-10-11",
-  "geradoEm": "2026-10-11T07:02:54.269Z",
+  "data": "2026-10-12",
+  "geradoEm": "2026-10-12T07:02:07.966Z",
   "diretrizesUsadas": {
     "cnae": {
       "codigo": "4789",
@@ -34,8 +34,39 @@
     ]
   },
   "abertura": {
-    "textoAbertura": "🌅 *ABERTURA MATINAL DE OPERAÇÃO (07:45)*\n📅 Domingo, 11/10/2026 • Grupo Triunfante\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📌 *PANORAMA GERAL*\n👥 *Vendedores Varejo em Rota:* 0\n📍 *Visitas Planejadas:* 0 PDVs (Varejo) de 0 (Total)\n🟡 *Alerta Preventivo:* 0 PDVs (0,0% da rota)\n🔄 *Recorrência na rota:* 0 PDVs (0,0%)\n🏬 *Oportunidades CNAE 4789 (Comércio varejista de suvenires, bijuterias e artesanatos):* +0 PDVs\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏢 *POR FILIAL (VAREJO)*",
-    "dadosAbertura": {},
+    "textoAbertura": "🌅 *ABERTURA MATINAL DE OPERAÇÃO (07:45)*\n📅 Segunda-feira, 12/10/2026 • Grupo Triunfante\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📌 *PANORAMA GERAL*\n👥 *Vendedores Varejo em Rota:* 57\n📍 *Visitas Planejadas:* 0 PDVs (Varejo) de 127 (Total)\n🟡 *Alerta Preventivo:* 0 PDVs (0,0% da rota)\n🔄 *Recorrência na rota:* 0 PDVs (0,0%)\n🏬 *Oportunidades CNAE 4789 (Comércio varejista de suvenires, bijuterias e artesanatos):* +0 PDVs\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏢 *POR FILIAL (VAREJO)*\n\n📍 *TBE — DIEGO*\n• Vendedores: 16 • Visitas: 0\n• Sem compra +30d: 0 (0,0%) • Recorrência: 0 (0,0%)\n• CNAE 4789: +0 PDVs\n\n📍 *TSJ — SALDANHA*\n• Vendedores: 24 • Visitas: 0\n• Sem compra +30d: 0 (0,0%) • Recorrência: 0 (0,0%)\n• CNAE 4789: +0 PDVs\n\n📍 *MCD — ADRIANO*\n• Vendedores: 17 • Visitas: 0\n• Sem compra +30d: 0 (0,0%) • Recorrência: 0 (0,0%)\n• CNAE 4789: +0 PDVs",
+    "dadosAbertura": {
+      "TBE::Diego": {
+        "sigla": "TBE",
+        "gerente": "Diego",
+        "vjs": 16,
+        "visitas": 0,
+        "inativos": 0,
+        "rec": 0,
+        "volta": 0,
+        "prospects": 0
+      },
+      "TSJ::Saldanha": {
+        "sigla": "TSJ",
+        "gerente": "Saldanha",
+        "vjs": 24,
+        "visitas": 0,
+        "inativos": 0,
+        "rec": 0,
+        "volta": 0,
+        "prospects": 0
+      },
+      "MCD::Adriano": {
+        "sigla": "MCD",
+        "gerente": "Adriano",
+        "vjs": 17,
+        "visitas": 0,
+        "inativos": 0,
+        "rec": 0,
+        "volta": 0,
+        "prospects": 0
+      }
+    },
     "cnaeFoco": {
       "codigo": "4789",
       "descricao": "Comércio varejista de suvenires, bijuterias e artesanatos"
