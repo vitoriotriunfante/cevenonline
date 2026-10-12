@@ -88,7 +88,7 @@ function render() {
   let h = '';
   if (D.fora_do_calculo.sem_dashboard_n) h += `<div class="aviso">⚠️ ${D.fora_do_calculo.sem_dashboard_n} vendedor(es) do Varejo sem dashboard do CEVEN na varredura de hoje: ficam <b>fora do cálculo</b> até o CEVEN responder (nenhum número é inventado).</div>`;
   h += `<div class="hero">
-    <div class="sub">POSITIVAÇÃO FECHADA — MACRO VAREJO (dados de ${esc(D.dia_dados)})</div>
+    <div class="sub">POSITIVAÇÃO FECHADA — TODOS OS RCAs (meta nacional; prêmio individual só do varejo) (dados de ${esc(D.dia_dados)})</div>
     <div class="big">${nf(n.real)} <span class="sub" style="font-size:16px">de ${nf(n.meta_regulamento)} (meta do regulamento) · ${pc(n.pct_regulamento)}</span></div>
     <div class="barra"><i style="width:${pos(n.real)}"></i><s style="left:${pos(n.meta_regulamento)}"></s><s style="left:${pos(n.meta_superacao)}"></s></div>
     <div class="marcas"><span style="left:${pos(n.meta_regulamento)}">100% · ${nf(n.meta_regulamento)}</span><span style="left:${pos(n.meta_superacao)}">110% · ${nf(n.meta_superacao)}</span></div>

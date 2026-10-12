@@ -4,7 +4,7 @@
 // REGRA (Vitório, 07/10/2026): vale a POSITIVAÇÃO FECHADA do dashboard do CEVEN (positivacao.realizado / positivacao.meta de cada RCA).
 //   Pedido digitado/pendente entra como "vendido" e NÃO conta. Nada de estimativa: só o que o CEVEN informou.
 // FONTE: D1 `varredura_central_rca.dashboard_json` (cópia crua de /api/rca/dashboard, varredura central do dia) + equipe da Gestão de Equipe (/api/tv-mostra).
-// PÚBLICO: Macro Varejo (canais VJ, FARMA, PET VJ, ESP do CEVEN); AS, SUP, GER e quem o CEVEN não classifica ficam fora; ocultos na Gestão ficam fora.
+// PÚBLICO: o PRÊMIO INDIVIDUAL é do Varejo (VJ, FARMA, PET VJ, ESP), ativo e não representante. O TOTAL NACIONAL, a FILIAL e o SUPERVISOR somam a positivação de TODOS os RCAs (Vitório, 12/10/2026: a meta 27.000 não é só de varejo).
 // PRÊMIOS: ver public/incentivo_outubro_2026.json (Gatilho 1 ≥60% até 17/10 = R$150 · Gatilho 2 ≥110% no fechamento = R$350 · Supervisor ≥110% = R$300 · Gerente: filial ≥110% da Coluna N = R$500).
 // =========================================================================
 import { participa } from '../_lib/participacao.js';
@@ -42,20 +42,36 @@ export async function onRequestGet({ request, env }) {
           falta_g2: meta > 0 ? Math.max(0, Math.ceil(meta * cfg.gatilho2.pct / 100 - 1e-9) - real) : null });
       }
     }
+    // META 27.000 E DE TODOS (Vitorio, 12/10/2026: "27 mil nao e so a meta de varejo"): o total nacional, a filial e o supervisor SOMAM a positivacao e a meta de TODOS os RCAs
+    // do CEVEN (AS, representantes, ocultos, fora da Gestao). So o PREMIO INDIVIDUAL (gatilho 1 e 2) fica restrito a `vend` (varejo, ativo, nao representante). Promotor nunca entra.
+    const porRca = new Map();
+    for (const [k, lista] of Object.entries(eq.filiais || {})) for (const x of lista || []) if (x && x.rca != null) porRca.set(String(x.rca), { x, sig: sigDe(k) });
+    const todos = []; const naSoma = { as: 0, representantes: 0, ocultos: 0, fora_da_gestao: 0, outros: 0 };
+    for (const [chave, d] of dash) {
+      const [fil, rca] = chave.split('|');
+      const it = porRca.get(String(rca)), x = it && it.x;
+      if (x && /^(PROMOTOR|PROMO|P)$/i.test(String(x.vinculo || ''))) continue;
+      if (d.m == null || d.p == null) continue;
+      todos.push({ filial: (it && it.sig) || fil, grupo: (x && x.grupo) || '', gerente: (x && x.gerente) || '', rca: String(rca), nome: (x && x.nome) || '', supervisor: (x && x.supervisor) || '', meta: Number(d.m) || 0, real: Number(d.p) || 0 });
+      if (!x) naSoma.fora_da_gestao++;
+      else if (x.mostra === false) naSoma.ocultos++;
+      else if (!participa(x, 'incentivo')) naSoma.representantes++;
+      else if (!varejo.has(String(x.canal || '').trim())) { if (/AS/.test(String(x.canal || ''))) naSoma.as++; else naSoma.outros++; }
+    }
     const soma = (l) => l.reduce((a, x) => ({ rcas: a.rcas + 1, meta: a.meta + x.meta, real: a.real + x.real }), { rcas: 0, meta: 0, real: 0 });
     // supervisores (vazio = ligado direto ao gerente: sem prêmio de supervisor)
     const ms = new Map();
-    for (const v of vend) { if (!v.supervisor) continue; const kk = v.filial + '|' + v.supervisor; (ms.get(kk) || ms.set(kk, []).get(kk)).push(v); }
+    for (const v of todos) { if (!v.supervisor) continue; const kk = v.filial + '|' + v.supervisor; (ms.get(kk) || ms.set(kk, []).get(kk)).push(v); }
     const sups = [...ms.entries()].map(([kk, l]) => { const s = soma(l), [filial, nome] = kk.split('|'); return { filial, nome, ...s, pct: pct(s.real, s.meta), ok: s.meta > 0 && s.real >= s.meta * cfg.superacao_pct / 100, falta: s.meta > 0 ? Math.max(0, Math.ceil(s.meta * cfg.superacao_pct / 100 - 1e-9) - s.real) : null }; })
       .sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1));
     // filiais / gerências (TPH e MCD: uma linha por gerente = por pasta; o alvo da pasta é a soma das metas dos seus RCAs)
     const filiais = Object.keys(cfg.coluna_n).map((sig) => {
-      const l = vend.filter((v) => v.filial === sig), s = soma(l), colN = cfg.coluna_n[sig];
+      const l = todos.filter((v) => v.filial === sig), s = soma(l), colN = cfg.coluna_n[sig];
       const grupos = [...new Set(l.map((v) => v.grupo).filter(Boolean))];
       const gerencias = grupos.length > 1 ? grupos.map((g) => { const lg = l.filter((v) => v.grupo === g), sg = soma(lg); return { grupo: g, gerente: (lg[0] || {}).gerente || g, ...sg, pct: pct(sg.real, sg.meta), ok: sg.meta > 0 && sg.real >= sg.meta * cfg.superacao_pct / 100 }; }) : [];
       return { filial: sig, coluna_n: colN, ...s, pct_coluna_n: pct(s.real, colN), pct_pastas: pct(s.real, s.meta), alvo110_coluna_n: Math.ceil(colN * cfg.superacao_pct / 100), ok: s.real >= colN * cfg.superacao_pct / 100, falta: Math.max(0, Math.ceil(colN * cfg.superacao_pct / 100) - s.real), gerentes: gerencias };
     });
-    const tot = soma(vend), colNTot = Object.values(cfg.coluna_n).reduce((a, b) => a + b, 0);
+    const tot = soma(todos), colNTot = Object.values(cfg.coluna_n).reduce((a, b) => a + b, 0);
     const premio = { g1: vend.filter((v) => v.g1).length * cfg.gatilho1.premio, g2: vend.filter((v) => v.g2).length * cfg.gatilho2.premio, sup: sups.filter((s) => s.ok).length * cfg.premio_supervisor, ger: filiais.filter((f) => (f.gerentes.length ? false : f.ok)).length * cfg.premio_gerente + filiais.reduce((a, f) => a + f.gerentes.filter((g) => g.ok).length, 0) * cfg.premio_gerente };
     const atualizado = (results || []).map((x) => x.u).sort().pop() || null;
     return new Response(JSON.stringify({
@@ -63,6 +79,7 @@ export async function onRequestGet({ request, env }) {
       nacional: { ...tot, coluna_n: colNTot, meta_regulamento: cfg.meta_nacional_regulamento, meta_superacao: cfg.meta_nacional_superacao, pct_regulamento: pct(tot.real, cfg.meta_nacional_regulamento), pct_superacao: pct(tot.real, cfg.meta_nacional_superacao), supervisores: sups.length },
       premio_se_fechasse_hoje: { ...premio, total: premio.g1 + premio.g2 + premio.sup + premio.ger },
       filiais, supervisores: sups, vendedores: vend.sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1)),
+      na_soma_da_meta: { rcas_total: todos.length, ...naSoma, nota: 'o total nacional, a filial e o supervisor somam TODOS os RCAs; so o premio individual exclui representante, AS, ocultos' },
       fora_do_calculo: { ...fora, sem_dashboard_n: fora.sem_dashboard.length }
     }), { headers: CORS });
   } catch (e) { return new Response(JSON.stringify({ erro: 'falha ao montar o incentivo: ' + (e && e.message) }), { status: 502, headers: CORS }); }

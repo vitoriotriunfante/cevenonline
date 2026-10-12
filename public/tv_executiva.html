@@ -1097,7 +1097,7 @@ header { height: auto !important; min-height: 56px; flex-wrap: wrap; gap: 6px 14
       <!-- 1. PLACAR PRINCIPAL: TOTAL DIGITADO & META 3.000 PDVS -->
       <div class="kpi-hero-card">
         <div class="hero-header-row">
-          <h2 id="hero-title-txt">🎯 DESAFIO NACIONAL DO GRUPO TRIUNFANTE · META 30.000 PDVs</h2>
+          <h2 id="hero-title-txt">🎯 DESAFIO NACIONAL DO GRUPO TRIUNFANTE · META 27.000 PDVs · COBRANDO 110% (29.700)</h2>
           <div class="hero-meta-badge" id="hero-pct-val">0,0% DA META</div>
         </div>
 
@@ -1105,7 +1105,7 @@ header { height: auto !important; min-height: 56px; flex-wrap: wrap; gap: 6px 14
           <div class="hero-col-item">
             <span>Positivação Realizada (<span id="hero-mes-nome">mês</span>)</span>
             <div class="hero-meta-txt mono">
-              <span id="hero-pos-val" style="color:var(--green)">21.339</span> <small id="hero-meta-sub">/ 30.000 PDVs</small>
+              <span id="hero-pos-val" style="color:var(--green)">21.339</span> <small id="hero-meta-sub">/ 27.000 PDVs</small>
             </div>
           </div>
           <div class="hero-col-item" style="border-left:1.5px solid var(--line);padding-left:18px">
@@ -1262,7 +1262,8 @@ header { height: auto !important; min-height: 56px; flex-wrap: wrap; gap: 6px 14
        (Iniciado com os valores reais enviados pelo Vitório às 09:50:
         R$ 247.380 digitado, 218 pedidos, 7,6 média de SKUs, 210 visitas)
     ═════════════════════════════════════════════════════════ */
-    const META_DESAFIO_PDVS = 30000;
+    const META_DESAFIO_PDVS = 27000;          // numero oficial de outubro (Vitorio, 12/10/2026)
+    const META_DESAFIO_110 = Math.ceil(META_DESAFIO_PDVS * 1.1);   // cobranca: chegar nos 110% = 29.700
     (function () { const el = document.getElementById('hero-mes-nome'); if (el) el.textContent = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', month: 'long' }).format(new Date()); })();   // mes do rotulo (era 'Setembro' fixo)
 
     const FILIAIS_METADATA = {
@@ -1293,7 +1294,7 @@ header { height: auto !important; min-height: 56px; flex-wrap: wrap; gap: 6px 14
     let RESUMO_MES_OFICIAL = {
       totalPosMes: 0,
       totalFatMes: 0,
-      metaPosMes: 30000,
+      metaPosMes: 27000,
       filiais: {}
     };
 
@@ -1793,9 +1794,9 @@ header { height: auto !important; min-height: 56px; flex-wrap: wrap; gap: 6px 14
         metaPDVs = META_DESAFIO_PDVS;
 
         document.getElementById('foco-filial-txt').textContent = '· NACIONAL';
-        document.getElementById('hero-title-txt').textContent = '🎯 DESAFIO NACIONAL DO GRUPO TRIUNFANTE · META 30.000 PDVs';
+        document.getElementById('hero-title-txt').textContent = '🎯 DESAFIO NACIONAL DO GRUPO TRIUNFANTE · META 27.000 PDVs · COBRANDO 110% (' + META_DESAFIO_110.toLocaleString('pt-BR') + ')';
         { const el = document.getElementById('hero-mes-nome'); if (el) el.textContent = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', month: 'long' }).format(new Date()); }   // era fixo 'Setembro' (12/10/2026)
-        document.getElementById('hero-meta-sub').textContent = '/ 30.000 PDVs';
+        document.getElementById('hero-meta-sub').textContent = '/ 27.000 PDVs (110% = ' + META_DESAFIO_110.toLocaleString('pt-BR') + ')';
       } else {
         const f = DADOS_ATUAIS.filiais[FILIAL_SELECIONADA] || {};
         const metaInfo = FILIAIS_METADATA[FILIAL_SELECIONADA] || {};
@@ -1829,7 +1830,7 @@ header { height: auto !important; min-height: 56px; flex-wrap: wrap; gap: 6px 14
       // 1. Hero Placar
       document.getElementById('hero-digitado-val').textContent = 'R$ ' + Math.round(fatMesVal).toLocaleString('pt-BR');
       document.getElementById('hero-pos-val').textContent = posMesVal.toLocaleString('pt-BR');
-      document.getElementById('hero-pct-val').textContent = pctMeta.toFixed(1).replace('.',',') + '% DA META';
+      document.getElementById('hero-pct-val').textContent = pctMeta.toFixed(1).replace('.',',') + '% DA META' + (metaPDVs === META_DESAFIO_PDVS ? ' · ' + Math.min(100, (posMesVal / META_DESAFIO_110) * 100).toFixed(1).replace('.',',') + '% DOS 110%' : '');
       document.getElementById('hero-progress-bar').style.width = pctMeta + '%';
 
       document.getElementById('kpi-ticket-val').textContent = 'R$ ' + ticketMedio.toLocaleString('pt-BR');
