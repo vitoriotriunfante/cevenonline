@@ -1,7 +1,7 @@
 // =========================================================================
 // FICHA DO ARQUIVO: scripts/aplicar_vinculo_representantes.js
-// O QUE É: aplica `vinculo: 'REPRESENTANTE'` na Gestão de Equipe (D1 config_equipe_soberana) para todo RCA que a planilha DEPARA marca com "R"
-//          na coluna P ("Tipo vendedor"). Decisão do Vitório (12/10/2026): representante aparece nos painéis (meta, vendas) mas NÃO é cobrado
+// O QUE É: aplica o VÍNCULO na Gestão de Equipe (D1 config_equipe_soberana) conforme a coluna P ("Tipo vendedor") da planilha DEPARA:
+//          R = REPRESENTANTE, P = PROMOTOR (nunca aparece, em painel nenhum; vira mostra=false), I = INTERNO (cobrado como CLT). E = CLT (nada a fazer). Decisão do Vitório (12/10/2026): representante aparece nos painéis (meta, vendas) mas NÃO é cobrado
 //          (sem lance, cartão, pênalti, Liga, incentivo, zerados nem cobrança no WhatsApp).
 // COMO RODAR (uma vez; é idempotente):  node scripts/aplicar_vinculo_representantes.js "<caminho do DEPARA .xlsx>" [--dry]
 //          --dry = só mostra o que mudaria, não grava.
@@ -29,9 +29,15 @@ const linhas = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1
 const cab = linhas[0].map((x) => String(x || '').trim());
 const iFil = cab.indexOf('Filial'), iNome = cab.indexOf('Vendedor'), iCod = cab.findIndex((x) => /^C[óo]d novo/i.test(x)), iTipo = cab.indexOf('Tipo vendedor');
 if ([iFil, iCod, iTipo].some((i) => i < 0)) { console.error('Colunas não encontradas no DEPARA:', cab.join(' | ')); process.exit(1); }
-const R = new Map();
-for (const l of linhas.slice(1)) if (l && l[iFil] && String(l[iTipo] || '').trim().toUpperCase() === 'R') R.set(String(l[iCod]).trim(), { filial: String(l[iFil]).trim().toUpperCase(), nome: String(l[iNome] || '').trim() });
-console.log(`DEPARA: ${R.size} representantes (tipo R).`);
+const POR_TIPO = { R: 'REPRESENTANTE', P: 'PROMOTOR', I: 'INTERNO' };
+const R = new Map();   // cod -> { filial, nome, vinculo }
+for (const l of linhas.slice(1)) {
+  if (!l || !l[iFil]) continue;
+  const vinc = POR_TIPO[String(l[iTipo] || '').trim().toUpperCase()];
+  if (vinc) R.set(String(l[iCod]).trim(), { filial: String(l[iFil]).trim().toUpperCase(), nome: String(l[iNome] || '').trim(), vinculo: vinc });
+}
+const cont = {}; for (const x of R.values()) cont[x.vinculo] = (cont[x.vinculo] || 0) + 1;
+console.log('DEPARA:', JSON.stringify(cont));
 
 // 2) Gestão atual
 const bruto = wrangler(['--json', '--command', 'SELECT conteudo_json FROM config_equipe_soberana WHERE id = 1']);
@@ -47,18 +53,22 @@ console.log('Cópia de segurança:', bkp);
 let marcados = 0, ja = 0; const achou = new Set();
 for (const lista of Object.values(dados.filiais)) for (const v of lista) {
   const c = String(v.rca);
-  if (!R.has(c)) continue;
+  const x = R.get(c);
+  if (!x) continue;
   achou.add(c);
-  if (v.vinculo === 'REPRESENTANTE') { ja++; continue; }
-  v.vinculo = 'REPRESENTANTE'; v.vinculo_fonte = 'DEPARA vendedores 2026-10-08 (coluna P = R)'; marcados++;
+  if (v.vinculo === x.vinculo) { ja++; continue; }
+  v.vinculo = x.vinculo; v.vinculo_fonte = 'DEPARA vendedores 2026-10-08 (coluna P)'; marcados++;
+  if (x.vinculo === 'PROMOTOR') { v.mostra = false; v.motivo = 'Promotor (DEPARA 08/10): nunca aparece em painel'; }
 }
 const novos = [];
 for (const [c, info] of R) {
   if (achou.has(c)) continue;
+  if (info.vinculo === 'INTERNO') continue;   // interno que nao esta na Gestao: nao cria (contas de gerente/vago); decide-se em Divergencias
   const chave = Object.keys(dados.filiais).find((k) => k === info.filial) || Object.keys(dados.filiais).find((k) => k.split('_')[0] === info.filial);
   if (!chave) { console.warn('Filial desconhecida, ignorado:', c, info.filial); continue; }
   dados.filiais[chave].push({ rca: /^\d+$/.test(c) ? Number(c) : c, grupo: '', nome: info.nome || ('RCA ' + c), supervisor: '', gerente: '', canal: '', mostra: false,
-    motivo: 'Representante (DEPARA 08/10, tipo R): acompanhado, não cobrado', vinculo: 'REPRESENTANTE', vinculo_fonte: 'DEPARA vendedores 2026-10-08 (coluna P = R)' });
+    motivo: info.vinculo === 'PROMOTOR' ? 'Promotor (DEPARA 08/10): nunca aparece em painel' : 'Representante (DEPARA 08/10, tipo R): acompanhado, não cobrado',
+    vinculo: info.vinculo, vinculo_fonte: 'DEPARA vendedores 2026-10-08 (coluna P)' });
   novos.push(c);
 }
 let sim = 0, nao = 0;
@@ -72,7 +82,7 @@ const sqlArq = path.join(__dirname, '..', 'scratch', 'seed_vinculo.sql');
 const esc = (s) => s.replace(/'/g, "''");
 fs.writeFileSync(sqlArq,
   `UPDATE config_equipe_soberana SET conteudo_json='${esc(JSON.stringify(dados))}', atualizado_por='Vinculo REPRESENTANTE (DEPARA 08/10)', atualizado_em=datetime('now') WHERE id=1;\n` +
-  `INSERT INTO audit_alteracoes_equipe (alterado_em, usuario, total_rcas, resumo) VALUES (datetime('now'),'Vinculo REPRESENTANTE',${sim + nao},'REPRESENTANTE em ${marcados + ja + novos.length} RCAs (DEPARA, coluna P=R); SIM ${sim} NAO ${nao}');\n`);
+  `INSERT INTO audit_alteracoes_equipe (alterado_em, usuario, total_rcas, resumo) VALUES (datetime('now'),'Vinculo REPRESENTANTE',${sim + nao},'vinculo (R/P/I) aplicado em ${marcados + ja + novos.length} RCAs (DEPARA, coluna P); SIM ${sim} NAO ${nao}');\n`);
 console.log(wrangler(['--file', sqlArq]).split('\n').slice(-6).join('\n'));
 fs.unlinkSync(sqlArq);
 console.log('OK: Gestão atualizada. As telas pegam em até 1 min.');

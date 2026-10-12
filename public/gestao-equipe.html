@@ -851,6 +851,8 @@ table { font-size: clamp(11px, .95vw, 13px) !important; }
         <option value="TODOS">Todos os Vínculos</option>
         <option value="REPRESENTANTE">Somente Representantes (não cobrados)</option>
         <option value="CLT">Somente CLT (cobrados)</option>
+        <option value="INTERNO">Somente Internos</option>
+        <option value="PROMOTOR">Promotores (fora de tudo)</option>
       </select>
     </div>
 
@@ -1108,6 +1110,7 @@ function atualizarKPIs() {
   Object.entries(BASE_MOSTRA.filiais).forEach(([fil, lista]) => {
     if (filFiltro && fil !== filFiltro) return;
     lista.forEach(r => {
+      if (vinculoDe(r) === 'PROMOTOR') return;
       total++;
       if (r.mostra && vinculoDe(r) !== 'REPRESENTANTE') ativos++;
       else if (!r.mostra) ocultos++;
@@ -1137,6 +1140,8 @@ function filtrarTabela() {
       if (status === 'ATIVOS' && !item.mostra) return;
       if (status === 'OCULTOS' && item.mostra) return;
       if (vinc !== 'TODOS' && vinculoDe(item) !== vinc) return;
+      if (vinc === 'TODOS' && vinculoDe(item) === 'PROMOTOR') return;   // promotor nao aparece em painel nenhum; so pelo filtro "Promotores"
+
 
       if (busca) {
         const txt = `${fil} ${item.rca} ${item.nome} ${item.supervisor} ${item.gerente} ${item.canal} ${item.motivo || ''} ${vinculoDe(item) === 'REPRESENTANTE' ? 'representante' : ''}`.toLowerCase();
@@ -1156,22 +1161,26 @@ function filtrarTabela() {
 // REPRESENTANTE = aparece nos paineis e soma meta/vendas, mas NAO e cobrado. Cada flag pode ser ligada/desligada individualmente.
 // ---------------------------------------------------------------------------------------------------------------------------------
 const FLAGS_PARTICIPA = [['lances', 'Lances (gols)'], ['cartoes_penaltis', 'Cartões e pênaltis'], ['zerados', 'Zerados / cobrança de campo'], ['liga', 'Liga (Brasileirão, AS, Semana Invicta)'], ['incentivo', 'Incentivo'], ['whatsapp', 'Cobrança no WhatsApp'], ['ronda', 'Ronda na TV da filial']];
-function vinculoDe(v) { const x = String((v && v.vinculo) || '').toUpperCase(); return (x === 'REPRESENTANTE' || x === 'REP' || x === 'R') ? 'REPRESENTANTE' : 'CLT'; }
+function vinculoDe(v) { const x = String((v && v.vinculo) || '').toUpperCase(); if (x === 'REPRESENTANTE' || x === 'REP' || x === 'R') return 'REPRESENTANTE'; if (x === 'PROMOTOR' || x === 'PROMO' || x === 'P') return 'PROMOTOR'; if (x === 'INTERNO' || x === 'I') return 'INTERNO'; return 'CLT'; }
 function participaDe(v, flag) {
   const ov = v.participa && typeof v.participa === 'object' ? v.participa[flag] : undefined;
+  if (vinculoDe(v) === 'PROMOTOR') return false;
   if (typeof ov === 'boolean') return ov;
   if (vinculoDe(v) === 'REPRESENTANTE') return false;
   if (v.mostra === false) return false;
   return true;
 }
 function celulaVinculo(r) {
-  const rep = vinculoDe(r) === 'REPRESENTANTE';
-  const selo = rep ? '<span style="background:#b45309;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;">REP · não cobrado</span>' : '<span style="color:var(--tx-mut);font-size:11px;">CLT</span>';
+  const vin = vinculoDe(r), rep = vin === 'REPRESENTANTE';
+  const selo = vin === 'REPRESENTANTE' ? '<span style="background:#b45309;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;">REP · não cobrado</span>'
+    : vin === 'PROMOTOR' ? '<span style="background:#475569;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;">PROMOTOR · fora de tudo</span>'
+    : vin === 'INTERNO' ? '<span style="background:#0e7490;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;">INTERNO</span>'
+    : '<span style="color:var(--tx-mut);font-size:11px;">CLT</span>';
   if (!USUARIO_LOGADO || !USUARIO_LOGADO.isDiretoria) return selo;
   const flags = FLAGS_PARTICIPA.map(([f, nome]) => `<label style="display:block;font-size:11px;color:#cbd5e1;margin:2px 0;"><input type="checkbox" ${participaDe(r, f) ? 'checked' : ''} onchange="definirParticipa('${r.fil}','${r.rca}','${f}',this.checked)"> ${nome}</label>`).join('');
   return `${selo}
     <select style="margin-top:4px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.15);color:#e2e8f0;border-radius:4px;font-size:11px;padding:3px;display:block;" onchange="definirVinculo('${r.fil}','${r.rca}',this.value)">
-      <option value="CLT" ${rep ? '' : 'selected'}>CLT (cobrado)</option><option value="REPRESENTANTE" ${rep ? 'selected' : ''}>Representante (não cobrado)</option>
+      <option value="CLT" ${vin === 'CLT' ? 'selected' : ''}>CLT (cobrado)</option><option value="INTERNO" ${vin === 'INTERNO' ? 'selected' : ''}>Interno (cobrado)</option><option value="REPRESENTANTE" ${rep ? 'selected' : ''}>Representante (não cobrado)</option><option value="PROMOTOR" ${vin === 'PROMOTOR' ? 'selected' : ''}>Promotor (fora de tudo)</option>
     </select>
     <details style="margin-top:4px;"><summary style="cursor:pointer;font-size:11px;color:#93c5fd;">participação</summary>${flags}</details>`;
 }
@@ -1179,11 +1188,12 @@ function definirVinculo(fil, rca, valor) {
   if (!USUARIO_LOGADO || !USUARIO_LOGADO.isDiretoria) return;
   const v = BASE_MOSTRA.filiais[fil].find(x => String(x.rca) === String(rca));
   if (!v) return;
-  v.vinculo = valor === 'REPRESENTANTE' ? 'REPRESENTANTE' : 'CLT';
+  v.vinculo = ['REPRESENTANTE', 'PROMOTOR', 'INTERNO'].includes(valor) ? valor : 'CLT';
+  if (v.vinculo === 'PROMOTOR') v.mostra = false;
   delete v.participa;   // mudou o vinculo: volta ao padrao do vinculo (o Vitorio refaz as excecoes, se quiser)
   atualizarKPIs();
   filtrarTabela();
-  if (typeof mostrarToast === 'function') mostrarToast(`${v.nome}: ${v.vinculo === 'REPRESENTANTE' ? 'REPRESENTANTE (não cobrado)' : 'CLT (cobrado)'} — clique em Salvar para publicar`);
+  if (typeof mostrarToast === 'function') mostrarToast(`${v.nome}: ${v.vinculo} — clique em Salvar para publicar`);
 }
 function definirParticipa(fil, rca, flag, ligado) {
   if (!USUARIO_LOGADO || !USUARIO_LOGADO.isDiretoria) return;

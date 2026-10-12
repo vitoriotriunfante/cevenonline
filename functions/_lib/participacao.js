@@ -8,21 +8,27 @@
 //   vinculo : 'CLT' (padrão, ausente = CLT) | 'REPRESENTANTE'
 //   participa : { flag: true|false } — sobrescreve o padrão do vínculo, uma flag por vez (opcional)
 // FLAGS: painel, meta_e_vendas, lances, cartoes_penaltis, zerados, liga, incentivo, whatsapp, ronda
-// PADRÕES: REPRESENTANTE = só painel + meta_e_vendas. CLT = tudo. mostra=false (oculto) = só meta_e_vendas (regra antiga: soma nos totais, fora das listas).
+// PADRÕES: PROMOTOR = nada (nunca aparece). REPRESENTANTE = só painel + meta_e_vendas. CLT e INTERNO = tudo. mostra=false (oculto) = só meta_e_vendas (regra antiga: soma nos totais, fora das listas).
 // =========================================================================
 export const FLAGS = ['painel', 'meta_e_vendas', 'lances', 'cartoes_penaltis', 'zerados', 'liga', 'incentivo', 'whatsapp', 'ronda'];
-export const VINCULOS = ['CLT', 'REPRESENTANTE'];
+export const VINCULOS = ['CLT', 'INTERNO', 'REPRESENTANTE', 'PROMOTOR'];
 const SO_ACOMPANHA = new Set(['painel', 'meta_e_vendas']);
 
+// Tipo vendedor da planilha DEPARA (coluna P): E = CLT, R = REPRESENTANTE, I = INTERNO (televendas/loja: cobrado como CLT), P = PROMOTOR (nunca aparece, em nenhum painel).
 export function vinculoDe(v) {
   const x = String((v && v.vinculo) || '').trim().toUpperCase();
-  return x === 'REPRESENTANTE' || x === 'REP' || x === 'R' ? 'REPRESENTANTE' : 'CLT';
+  if (x === 'REPRESENTANTE' || x === 'REP' || x === 'R') return 'REPRESENTANTE';
+  if (x === 'PROMOTOR' || x === 'PROMO' || x === 'P') return 'PROMOTOR';
+  if (x === 'INTERNO' || x === 'I') return 'INTERNO';
+  return 'CLT';
 }
 export const ehRepresentante = (v) => vinculoDe(v) === 'REPRESENTANTE';
+export const ehPromotor = (v) => vinculoDe(v) === 'PROMOTOR';
 
 // true se o vendedor participa da flag. v = item da lista da Gestão ({ rca, mostra, vinculo, participa }).
 export function participa(v, flag) {
   if (!v) return false;
+  if (ehPromotor(v)) return false;                              // promotor: fora de TUDO, ate dos paineis (Vitorio, 12/10/2026)
   const ov = v.participa && typeof v.participa === 'object' ? v.participa[flag] : undefined;
   if (typeof ov === 'boolean') return ov;                       // decisão individual do Vitório vence
   if (ehRepresentante(v)) return SO_ACOMPANHA.has(flag);        // representante: só acompanha

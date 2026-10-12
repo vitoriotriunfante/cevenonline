@@ -566,7 +566,7 @@ async function carregaReps() {
   const lista = m && m.filiais ? Object.keys(m.filiais).filter(k => k === FIL || k.startsWith(FIL + '_')).flatMap(k => m.filiais[k].map(r => ({...r, grupo: r.grupo || (k.includes('_') ? k.split('_').slice(1).join('_') : '')}))).filter(r => !GRUPO || r.grupo === GRUPO) : null;
   if (Array.isArray(lista) && lista.length) {
     // REPRESENTANTE nao entra na ronda/alertas da TV (Vitorio, 12/10/2026): ele aparece nos paineis da Matriz e na Gestao, mas nao e cobrado.
-    REPS = lista.filter(r => (MOSTRA_TUDO || r.mostra) && !EXCLUI.includes((r.canal || '').toUpperCase()) && !(String(r.vinculo || '').toUpperCase().startsWith('REP') || (r.participa && r.participa.lances === false)))
+    REPS = lista.filter(r => (MOSTRA_TUDO || r.mostra) && !EXCLUI.includes((r.canal || '').toUpperCase()) && !/^(PROMOTOR|PROMO|P)$/.test(String(r.vinculo || '').toUpperCase()) && !(String(r.vinculo || '').toUpperCase().startsWith('REP') || (r.participa && r.participa.lances === false)))
       .map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor), grupo: r.grupo || '', carteira: String(r.carteira || '').toUpperCase()}));
     listaMostra = true;
     const av = $('aviso');

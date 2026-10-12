@@ -494,7 +494,8 @@ const listaFil = sig => MOSTRA ? Object.keys(MOSTRA).filter(k => k === sig || k.
 // REGRA SOBERANA: TODOS os RCAs cadastrados da filial entram na varredura. Venda é venda: mesmo quem saiu ou tem flag de planilha entra para somar pedidos e faturamento.
 // REPRESENTANTE (Vitorio, 12/10/2026): aparece no painel, soma meta e venda, mas NAO e monitorado: sem lance, cartao, penalti, zerado nem cobranca.
 const ehRep = r => String((r && r.vinculo) || '').toUpperCase().startsWith('REP') || !!(r && r.participa && r.participa.lances === false);
-const reps = sig => listaFil(sig).filter(r => !EXCLUI.includes((r.canal || '').toUpperCase())).map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor), grupo: r.grupo || '', carteira: String(r.carteira || '').toUpperCase(), rep: ehRep(r)}));
+const ehPromotor = r => /^(PROMOTOR|PROMO|P)$/.test(String((r && r.vinculo) || '').toUpperCase());   // promotor: nunca aparece (Vitorio, 12/10/2026)
+const reps = sig => listaFil(sig).filter(r => !EXCLUI.includes((r.canal || '').toUpperCase()) && !ehPromotor(r)).map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor), grupo: r.grupo || '', carteira: String(r.carteira || '').toUpperCase(), rep: ehRep(r)}));
 async function atualizaFilial(sig) {
   DATA[sig] = DATA[sig] || {};
   const fila = [...reps(sig)];
