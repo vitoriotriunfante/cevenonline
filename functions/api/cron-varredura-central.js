@@ -53,6 +53,34 @@ async function poolLimitado(tarefas, n, prazo) {
 // so 5 s (o CEVEN pedia 19) e tentava de novo, 6 em paralelo: as novas tentativas renovavam o bloqueio e a base parou de encher. Agora, ao primeiro 429,
 // TODAS as chamadas desta rodada esperam o Retry-After inteiro antes de seguir.
 let pausaAte = 0;
+// HIERARQUIA DO PAINEL ADMIN (12/10/2026): 1 chamada devolve meta, faturado BRUTO, a faturar e positivacao de ~443 vendedores. NAO substitui o dashboard (o painel mostra o bruto,
+// antes das devolucoes; o dashboard do RCA mostra o liquido): serve para DESCOBRIR QUEM MUDOU e rebuscar so esses, e para pular o dashboard de quem esta identico.
+// Qualquer falha (login, rede, formato) devolve null e a varredura segue exatamente como antes.
+let tokenAdmin = { v: null, ate: 0 };
+const hierVisto = new Map();   // rca -> ultimo valor da hierarquia que ja motivou um rebuscar (o painel admin tem metas em cache e pode divergir sempre do dashboard: nao rebusca em loop)
+async function hierarquiaAdmin(env) {
+  if (!env.CEVEN_ADMIN_USER || !env.CEVEN_ADMIN_PASS) return null;
+  try {
+    if (!tokenAdmin.v || Date.now() > tokenAdmin.ate) {
+      const r = await fetch(`${CEVEN}/api/admin/login`, { method: 'POST', headers: { ...HDR, 'Content-Type': 'application/json' }, body: JSON.stringify({ username: env.CEVEN_ADMIN_USER, password: env.CEVEN_ADMIN_PASS }), signal: AbortSignal.timeout(10000) });
+      if (!r.ok) return null;
+      const j = await r.json();
+      if (!j.access_token) return null;
+      tokenAdmin = { v: j.access_token, ate: Date.now() + 25 * 60 * 1000 };
+    }
+    const r = await fetch(`${CEVEN}/api/admin/filiais/hierarquia?refreshMetas=false`, { headers: { ...HDR, Authorization: `Bearer ${tokenAdmin.v}` }, signal: AbortSignal.timeout(15000) });
+    if (r.status === 401 || r.status === 403) { tokenAdmin = { v: null, ate: 0 }; return null; }
+    if (!r.ok) return null;
+    const lista = await r.json();
+    if (!Array.isArray(lista)) return null;
+    const mapa = new Map();
+    for (const f of lista) for (const s of f.supervisores || []) for (const v of s.vendedores || []) {
+      mapa.set(String(v.id), { bruto: Number(v.faturado) || 0, pend: Number(v.a_faturar) || 0, meta: Number(v.meta_financeira) || 0, pmeta: Number(v.meta_positivacao) || 0, preal: Number(v.positivado) || 0 });
+    }
+    return mapa.size > 100 ? mapa : null;   // lista pequena demais = resposta suspeita: nao confia
+  } catch { return null; }
+}
+
 // TELEMETRIA (12/10/2026): cada tick grava 1 linha em saude_coleta (chamadas, 429, 401, falhas) para o painel /saude e para os alertas. Zera a cada rodada.
 const T = { chamadas: 0, ok: 0, r429: 0, r401: 0, falhas: 0 };
 async function registraTick(env, modo, rcas, gravados, duracaoMs) {
@@ -184,6 +212,11 @@ export async function onRequestGet({ env, request }) {
             CAST(COALESCE(json_extract(produtividade_json, '$.dia.positivacao'), 0) AS REAL) AS pos,
             CAST(COALESCE(json_extract(produtividade_json, '$.dia.dig_pedido'), 0) AS REAL) AS dig,
             (dashboard_json IS NULL OR dashboard_json = 'null') AS sem_dash,
+            CAST(json_extract(dashboard_json, '$.financeiro.faturado_bruto') AS REAL) AS d_bruto,
+            CAST(json_extract(dashboard_json, '$.financeiro.pendente') AS REAL) AS d_pend,
+            CAST(json_extract(dashboard_json, '$.financeiro.meta') AS REAL) AS d_meta,
+            CAST(json_extract(dashboard_json, '$.positivacao.meta') AS REAL) AS d_pmeta,
+            CAST(json_extract(dashboard_json, '$.positivacao.realizado') AS REAL) AS d_preal,
             (produtividade_json IS NULL OR produtividade_json = 'null') AS sem_prod,
             (roteiro_json IS NULL OR roteiro_json = 'null') AS sem_rota,
             updated_at AS ua
@@ -255,10 +288,28 @@ export async function onRequestGet({ env, request }) {
     const contagem = { quente: 0, evento: 0, rota: 0, semRota: 0, fria: 0, falhas: 0 };
     const jaBuscouRota = new Set();
 
+    // -1. QUEM MUDOU (hierarquia do painel admin): dashboard so de quem teve o bruto, o a faturar, a meta ou a positivacao alterados.
+    const hier = await hierarquiaAdmin(env);
+    const dashIgual = new Set(), dashMudou = [];
+    if (hier) {
+      const dif = (a, b) => Math.abs((Number(a) || 0) - (Number(b) || 0)) >= 0.5;
+      for (const rca of rcas) {
+        const h = hier.get(String(rca.codigo)), a = ant.get(String(rca.codigo));
+        if (!h || !a || a.sem_dash || a.d_bruto == null) continue;
+        const cod = String(rca.codigo), assinatura = JSON.stringify(h);
+        if (dif(h.bruto, a.d_bruto) || dif(h.pend, a.d_pend) || dif(h.meta, a.d_meta) || dif(h.pmeta, a.d_pmeta) || dif(h.preal, a.d_preal)) {
+          if (hierVisto.get(cod) === assinatura) dashIgual.add(cod);   // ja rebuscado para este mesmo valor: a diferenca restante e do cache do painel admin
+          else { dashMudou.push(rca); hierVisto.set(cod, assinatura); }
+        } else dashIgual.add(cod);
+      }
+    }
+    contagem.hier = hier ? { vendedores: hier.size, mudaram: dashMudou.length, iguais: dashIgual.size } : 'indisponivel';
+
     // 0. LACUNA DE DASHBOARD PRIMEIRO (11/10/2026): a etapa fria fica no fim e com o CEVEN limitando (429) nunca chegava a rodar; 217 RCAs ficaram o dia sem meta/faturado
     // (o /incentivo deixava esses vendedores de fora). Agora ate 15 por tick logo no inicio: ~15 chamadas, fecha a lacuna em ~30 min sem estourar a cota.
     {
-      const lacuna = rcas.filter((rca) => { const a = ant.get(String(rca.codigo)); return a && a.sem_dash; }).slice(0, 15);
+      const semDashPri = rcas.filter((rca) => { const a = ant.get(String(rca.codigo)); return a && a.sem_dash; });
+      const lacuna = semDashPri.concat(dashMudou).slice(0, 30);   // sem dashboard primeiro; depois quem a hierarquia diz que mudou
       const ds = await poolLimitado(lacuna.map((rca) => () => getJson(urlRca('dashboard', rca), 2)), CONC, t0 + 25000);
       lacuna.forEach((rca, i) => { if (ds[i]) { contagem.fria++; stmts.push(upsertParcial(env, dataRef, rca, { dashboard_json: JSON.stringify(ds[i]) })); } });
       await gravaLote(env, stmts.splice(0));
@@ -315,7 +366,7 @@ export async function onRequestGet({ env, request }) {
     // que consumiam os 30 s: 195 de 596 RCAs ficaram sem meta/faturado do mes (11/10/2026).
     const semDash = rcas.filter((rca) => { const a = ant.get(String(rca.codigo)); return a && a.sem_dash; }).slice(0, 30);
     const idsDash = new Set(semDash.map((r) => String(r.codigo)));
-    const fatiaDash = semDash.concat(rcas.filter((rca, i) => i % FATIAS_FRIA === ciclo % FATIAS_FRIA && !idsDash.has(String(rca.codigo))));
+    const fatiaDash = semDash.concat(rcas.filter((rca, i) => i % FATIAS_FRIA === ciclo % FATIAS_FRIA && !idsDash.has(String(rca.codigo)) && !dashIgual.has(String(rca.codigo))));   // identico na hierarquia = pula
     const fatiaDev = rcas.filter((rca, i) => i % FATIAS_DEV === ciclo % FATIAS_DEV);
     // A etapa FRIA tem FATIA PROPRIA de tempo (05/10/2026): com o prazo geral, as etapas 1 a 3 consumiam os 100 s e a fria nunca rodava, entao painel (faturado do mes)
     // e devolucoes ficavam congelados no dado da varredura completa (ex.: TPA R$ 42 mil na Executiva contra R$ 133 mil no CEVEN).
