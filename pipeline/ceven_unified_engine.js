@@ -495,7 +495,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
     sigla, gerente, chave: chave || sigla,
     fatTotalDigitado: 0, pedidosTotal: 0, visitasReal: 0, visitasProg: 0,
     vjTotal: 0, vjCom: 0, vjSem: 0, asTotal: 0, asCom: 0, asSem: 0,
-    inativosRota: 0, inativosRecuperados: 0, recorrenciaPositivados: 0, voltaPositivados: 0,
+    inativosRota: 0, inativosRecuperados: 0, recorrenciaPositivados: 0,
     cortesValor: 0, cortesQtd: 0, bloqueadosValor: 0, bloqueadosQtd: 0, itensCortados: [],
     devolucoesValor: 0, supervisores: {}
   });
@@ -595,16 +595,15 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
               // só sai em /api/rca/historico-cliente/{id}. Pra não estourar a API com 1
               // chamada por cliente da rota inteira, só busca o histórico dos clientes que
               // realmente importam pra estes 3 contadores: inativos (+30d) ou com foco de
-              // campanha (recorrência/volta comigo).
+              // campanha (recorrência).
               const CLIENTES_BATCH = 6;
               for (let ci = 0; ci < clients.length; ci += CLIENTES_BATCH) {
                 const loteClientes = clients.slice(ci, ci + CLIENTES_BATCH);
                 await Promise.all(loteClientes.map(async c => {
                   const isInativo = !c.data_ultima_compra || new Date(c.data_ultima_compra) < dataLimite;
                   const temFocoRecorrencia = (c.focos || []).some(f => (f.industria_foco || '').toUpperCase().includes('RECORRENCIA'));
-                  const temFocoVolta = fSigla === 'TPH' && (c.focos || []).some(f => (f.industria_foco || '').toUpperCase().includes('VOLTA'));
                   if (isInativo) resFil.inativosRota++;
-                  if (!isInativo && !temFocoRecorrencia && !temFocoVolta) return;
+                  if (!isInativo && !temFocoRecorrencia) return;
 
                   let comprou = false;
                   try {
@@ -615,7 +614,6 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
 
                   if (isInativo && comprou) resFil.inativosRecuperados++;
                   if (comprou && temFocoRecorrencia) resFil.recorrenciaPositivados++;
-                  if (comprou && temFocoVolta) resFil.voltaPositivados++;
                 }));
               }
             } catch (e) {}
@@ -782,9 +780,7 @@ function carregarDiretrizesOperacionais(cliOverrides = {}) {
       }
     },
     produtos_foco: [],
-    campanhas_ativas: [
-      { filial: 'TPH', tag: 'VOLTA', label: 'Campanha VOLTA COMIGO' }
-    ],
+    campanhas_ativas: [],   // Campanha VOLTA COMIGO retirada de todas as mensagens e totais do WhatsApp (Vitorio, 12/10/2026: tirar da conta de amanha e para sempre)
     controles_dia: {
       silenciar_ciclos: []
     }
@@ -865,7 +861,7 @@ async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
   const getOrCriarBloco = (fSigla, gerente) => {
     const chave = `${fSigla}::${gerente}`;
     if (!resultado[chave]) {
-      resultado[chave] = { sigla: fSigla, gerente, vjs: 0, visitas: 0, inativos: 0, rec: 0, volta: 0, prospects: 0 };
+      resultado[chave] = { sigla: fSigla, gerente, vjs: 0, visitas: 0, inativos: 0, rec: 0, prospects: 0 };
     }
     return resultado[chave];
   };
@@ -922,9 +918,6 @@ async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
             if ((c.focos || []).some(f => (f.industria_foco || '').toUpperCase().includes('RECORRENCIA'))) {
               rFil.rec++;
             }
-            if (fSigla === 'TPH' && (c.focos || []).some(f => (f.industria_foco || '').toUpperCase().includes('VOLTA'))) {
-              rFil.volta++;
-            }
           });
         }
       } catch (e) {
@@ -935,7 +928,7 @@ async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
     }));
   }
 
-  let totVj = 0, totVis = 0, totInat = 0, totRec = 0, totVolta = 0, totProsp = 0;
+  let totVj = 0, totVis = 0, totInat = 0, totRec = 0, totProsp = 0;
   Object.values(resultado).forEach(r => {
     const ratio = ratiosCnae[r.sigla] || 2.0;
     r.prospects = Math.round(r.visitas * ratio);
@@ -943,7 +936,6 @@ async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
     totVis += r.visitas;
     totInat += r.inativos;
     totRec += r.rec;
-    totVolta += r.volta;
     totProsp += r.prospects;
   });
 
@@ -977,9 +969,6 @@ async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
     msg += `📍 *${f.sigla} — ${f.gerente.toUpperCase()}*\n`;
     msg += `• Vendedores: ${f.vjs} • Visitas: ${f.visitas}\n`;
     msg += `• Sem compra +30d: ${f.inativos} (${pInat}%) • Recorrência: ${f.rec} (${pRec}%)\n`;
-    if (f.sigla === 'TPH') {
-      msg += `• 🔥 *Volta Comigo: ${f.volta} PDVs*\n`;
-    }
     msg += `• CNAE ${cnaeCodigo}: +${f.prospects.toLocaleString('pt-BR')} PDVs\n\n`;
   });
 
@@ -1152,7 +1141,6 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       inativosRota: f.inativosRota || 0,
       inativosRecuperados: f.inativosRecuperados || 0,
       recorrenciaPositivados: f.recorrenciaPositivados || 0,
-      voltaPositivados: f.voltaPositivados || 0,
       cortesValor: f.cortesValor || 0,
       cortesQtd: f.cortesQtd || 0,
       bloqueadosValor: f.bloqueadosValor || 0,
@@ -1170,7 +1158,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
   // Totais Gerais
   let totFat = 0, totPed = 0, totVis = 0, totRot = 0;
   let totVj = 0, totVjCom = 0, totVjSem = 0;
-  let totInatRota = 0, totInatRec = 0, totRec = 0, totVolta = 0;
+  let totInatRota = 0, totInatRec = 0, totRec = 0;
   let totCortes = 0, totCortesQtd = 0, totBloq = 0, totBloqQtd = 0, totDev = 0;
   ranking.forEach(r => {
     totFat += r.fat;
@@ -1183,7 +1171,6 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
     totInatRota += r.inativosRota;
     totInatRec += r.inativosRecuperados;
     totRec += r.recorrenciaPositivados;
-    totVolta += r.voltaPositivados;
     totCortes += r.cortesValor;
     totCortesQtd += r.cortesQtd;
     totBloq += r.bloqueadosValor;
@@ -1209,7 +1196,6 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       b += `💰 Digitado Hoje: R$ ${fmtMoeda(r.fat)} • 📦 ${r.ped} pedidos\n`;
       let conquistas = [`🟢 Inativos Reativados: ${r.inativosRecuperados} PDVs`];
       if (r.recorrenciaPositivados > 0) conquistas.push(`🔄 Recorrência: ${r.recorrenciaPositivados} PDVs`);
-      if (r.sigla === 'TPH' && r.voltaPositivados > 0) conquistas.push(`🔁 Volta Comigo: ${r.voltaPositivados} PDVs`);
       b += conquistas.join(' • ') + '\n';
       b += `✂️ Cortes: R$ ${fmtMoeda(r.cortesValor)} (${r.cortesQtd} ped) • 🔒 Bloqueados: R$ ${fmtMoeda(r.bloqueadosValor)} (${r.bloqueadosQtd} ped)\n`;
       b += `🚛 Devoluções Entradas Hoje: R$ ${fmtMoeda(r.devolucoesValor)}`;
@@ -1227,7 +1213,6 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       `🟢 *CONQUISTAS E RECUPERAÇÃO DE BASE HOJE:*`,
       `🟢 *Inativos Reativados (+30d):* ${totInatRec.toLocaleString('pt-BR')} PDVs recuperados`,
       `🔄 *Positivados com TAG Recorrência:* ${totRec.toLocaleString('pt-BR')} PDVs`,
-      `🔁 *Positivados com TAG Volta Comigo (TPH):* ${totVolta.toLocaleString('pt-BR')} PDVs`,
       ``,
       `🚨 *PERDAS E ATENÇÃO OPERACIONAL HOJE:*`,
       `✂️ *Cortes nos Pedidos de Hoje:* R$ ${fmtMoeda(totCortes)} (${totCortesQtd} pedidos afetados)`,
@@ -1633,7 +1618,6 @@ async function main() {
         msgGerente += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
         msgGerente += `👥 Vendedores: ${f.vjs} • Visitas: ${f.visitas} (média ${mediaVend}/vendedor)\n`;
         msgGerente += `Sem compra +30d: ${f.inativos} (${pInat}%) • Recorrência: ${f.rec} (${pRec}%)\n`;
-        if (f.sigla === 'TPH') msgGerente += `🔥 Volta Comigo: ${f.volta} PDVs\n`;
         msgGerente += `Oportunidades CNAE ${abertura.cnaeFoco?.codigo || ''}: +${f.prospects.toLocaleString('pt-BR')} PDVs\n`;
 
         // Junta o bloco de Alerta de Risco desse gerente, se houver (match exato,
