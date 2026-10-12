@@ -77,12 +77,22 @@ dados.total_sim = sim; dados.total_nao = nao;
 console.log(`Marcados agora: ${marcados} | já eram: ${ja} | entram como ocultos (não estavam na Gestão): ${novos.length} [${novos.join(', ')}] | SIM ${sim} / NÃO ${nao}`);
 if (dry) { console.log('--dry: nada gravado.'); process.exit(0); }
 
-// 4) grava (+ trilha de auditoria)
+// 4) grava (+ trilha de auditoria). O D1 recusa comando SQL acima de ~100 KB (SQLITE_TOOBIG) e a Gestão tem mais que isso:
+//    o JSON vai em partes para uma tabela de apoio e a troca da linha soberana acontece num UPDATE só (nunca fica JSON pela metade).
 const sqlArq = path.join(__dirname, '..', 'scratch', 'seed_vinculo.sql');
-const esc = (s) => s.replace(/'/g, "''");
-fs.writeFileSync(sqlArq,
-  `UPDATE config_equipe_soberana SET conteudo_json='${esc(JSON.stringify(dados))}', atualizado_por='Vinculo REPRESENTANTE (DEPARA 08/10)', atualizado_em=datetime('now') WHERE id=1;\n` +
-  `INSERT INTO audit_alteracoes_equipe (alterado_em, usuario, total_rcas, resumo) VALUES (datetime('now'),'Vinculo REPRESENTANTE',${sim + nao},'vinculo (R/P/I) aplicado em ${marcados + ja + novos.length} RCAs (DEPARA, coluna P); SIM ${sim} NAO ${nao}');\n`);
-console.log(wrangler(['--file', sqlArq]).split('\n').slice(-6).join('\n'));
+const esc = (t) => t.replace(/'/g, "''");
+const json = JSON.stringify(dados);
+const TAM = 40000, partes = [];
+for (let i = 0; i < json.length; i += TAM) partes.push(json.slice(i, i + TAM));
+const sql = [
+  'CREATE TABLE IF NOT EXISTS config_equipe_apoio (parte INTEGER PRIMARY KEY, txt TEXT NOT NULL);',
+  'DELETE FROM config_equipe_apoio;',
+  ...partes.map((t, i) => `INSERT INTO config_equipe_apoio (parte, txt) VALUES (${i}, '${esc(t)}');`),
+  `UPDATE config_equipe_soberana SET conteudo_json = (SELECT group_concat(txt, '') FROM (SELECT txt FROM config_equipe_apoio ORDER BY parte)), atualizado_por = 'Vinculo (DEPARA 08/10)', atualizado_em = datetime('now') WHERE id = 1;`,
+  'DELETE FROM config_equipe_apoio;',
+  `INSERT INTO audit_alteracoes_equipe (alterado_em, usuario, total_rcas, resumo) VALUES (datetime('now'),'Vinculo DEPARA',${sim + nao},'vinculo R/P/I aplicado: ${marcados + ja + novos.length} RCAs (DEPARA, coluna P); SIM ${sim} NAO ${nao}');`
+].join(String.fromCharCode(10)) + String.fromCharCode(10);
+fs.writeFileSync(sqlArq, sql);
+console.log(wrangler(['--file', sqlArq]).split(String.fromCharCode(10)).slice(-6).join(String.fromCharCode(10)));
 fs.unlinkSync(sqlArq);
 console.log('OK: Gestão atualizada. As telas pegam em até 1 min.');

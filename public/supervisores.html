@@ -63,8 +63,19 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const falso = (n) => !String(n || '').trim() || /^(GERENTE\b|RCAS INATIVOS|VENDA EMPRESA|SEM SUPERVISOR)/i.test(String(n).trim());
 const pend = (x) => !x.fez_compromisso || !x.iniciou_ret;
-let DIA = {}, SEMANA = null, soPend = false, ref = null, ultHtml = '';
-async function j(u, ms = 40000) { const c = new AbortController(), t = setTimeout(() => c.abort(), ms); try { const r = await fetch(u, {signal: c.signal, cache: 'no-store'}); return r.ok ? await r.json() : null; } catch { return null; } finally { clearTimeout(t); } }
+let DIA = {}, DIA_ERRO = {}, SEMANA = null, ERRO_SEMANA = null, soPend = false, ref = null, ultHtml = '';
+async function j(u, ms = 40000) {
+  const c = new AbortController(), t = setTimeout(() => c.abort(), ms);
+  try {
+    const r = await fetch(u, {signal: c.signal, cache: 'no-store'});
+    let data;
+    try { data = await r.json(); } catch { return {ok: false, erro: `Resposta inválida do servidor (HTTP ${r.status})`}; }
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return {ok: false, erro: `Resposta inválida do servidor (HTTP ${r.status})`};
+    return r.ok ? {ok: true, data} : {ok: false, erro: data.erro || `Falha HTTP ${r.status}`};
+  } catch (e) {
+    return {ok: false, erro: e.name === 'AbortError' ? 'Tempo esgotado ao consultar o servidor' : 'Falha de comunicação com o servidor'};
+  } finally { clearTimeout(t); }
+}
 const sp = () => new Date().toLocaleTimeString('pt-BR', {timeZone: 'America/Sao_Paulo'});
 const hojeISO = () => new Date().toLocaleDateString('en-CA', {timeZone: 'America/Sao_Paulo'});
 
@@ -72,10 +83,16 @@ $('fFilial').innerHTML = '<option value="TODAS">📋 Todas as filiais</option>' 
 try { const f = localStorage.getItem('sup_filial'); if (f) $('fFilial').value = f; } catch {}
 
 async function carregarDia() {
-  await Promise.all(FILIAIS.map(async (sig) => { const d = await j('/api/tv-supervisores?filial=' + sig); if (d && !d.erro && Array.isArray(d.supervisores)) DIA[sig] = d.supervisores; }));
+  await Promise.all(FILIAIS.map(async (sig) => {
+    const r = await j('/api/tv-supervisores?filial=' + sig);
+    if (r.ok && Array.isArray(r.data.supervisores)) { DIA[sig] = r.data.supervisores; delete DIA_ERRO[sig]; }
+    else { delete DIA[sig]; DIA_ERRO[sig] = r.erro || 'Resposta sem lista de supervisores'; }
+  }));
 }
 async function carregarSemana() {
-  const s = await j('/api/tv-supervisores-semana' + (ref ? '?semana=' + ref : '')); if (s && !s.erro) SEMANA = s;
+  const r = await j('/api/tv-supervisores-semana' + (ref ? '?semana=' + ref : ''));
+  if (r.ok) { SEMANA = r.data; ERRO_SEMANA = null; }
+  else { SEMANA = null; ERRO_SEMANA = r.erro; }
 }
 function desenhar() {
   const fil = $('fFilial').value, busca = $('fBusca').value.trim().toLowerCase();
@@ -86,7 +103,7 @@ function desenhar() {
     const todos = (DIA[sig] || []).filter((x) => !falso(x.nome) && dentro(x.nome));
     tot += todos.length; pnd += todos.filter(pend).length; comp += todos.filter((x) => x.fez_compromisso).length; ret += todos.filter((x) => x.iniciou_ret).length;
     let l = soPend ? todos.filter(pend) : todos;
-    if (!DIA[sig]) { cards += '<div class="vazio fil">' + sig + ': aguardando dados…</div>'; continue; }
+    if (!DIA[sig]) { cards += '<div class="erro fil">' + sig + ': ' + esc(DIA_ERRO[sig] || 'aguardando dados…') + '</div>'; continue; }
     if (!l.length) continue;
     cards += '<h2 class="fil"><span>' + sig + '</span><b>' + todos.filter(pend).length + ' pendente(s) de ' + todos.length + '</b></h2>' + supCardsHtml(l);
   }
@@ -97,13 +114,13 @@ function desenhar() {
     const lista = siglas.flatMap((sig) => ((SEMANA.filiais && SEMANA.filiais[sig]) || []).filter((x) => dentro(x.nome)).map((x) => ({...x, filial: siglas.length > 1 ? sig : ''})));
     $('semana').innerHTML = lista.length ? supSemanaHtml(lista, SEMANA) : '<div class="vazio">Sem supervisores para este filtro.</div>';
     const d = SEMANA.dias; $('lblSemana').textContent = d[0].slice(8, 10) + '/' + d[0].slice(5, 7) + ' a ' + d[4].slice(8, 10) + '/' + d[4].slice(5, 7);
-  }
+  } else $('semana').innerHTML = ERRO_SEMANA ? '<div class="erro">' + esc(ERRO_SEMANA) + '</div>' : '<div class="vazio">Consultando…</div>';
   $('bPend').classList.toggle('on', soPend);
 }
 async function tudo() {
-  $('status').textContent = 'atualizando…';
+  $('status').textContent = 'atualizando…'; $('semana').innerHTML = '<div class="vazio">Consultando…</div>';
   await Promise.all([carregarDia(), carregarSemana()]);
-  desenhar(); $('status').textContent = 'atualizado às ' + sp();
+  desenhar(); $('status').textContent = 'atualizado às ' + sp() + (Object.keys(DIA_ERRO).length || ERRO_SEMANA ? ' · falha ao consultar o CEVEN' : '');
 }
 $('fFilial').onchange = () => { try { localStorage.setItem('sup_filial', $('fFilial').value); } catch {} desenhar(); };
 $('fBusca').oninput = desenhar;

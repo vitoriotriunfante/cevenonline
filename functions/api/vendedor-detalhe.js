@@ -31,14 +31,15 @@ export async function onRequestGet({ request, env }) {
     }
 
     let dash = null, prod = null, dev = null, rot = null, rotMes = null, pros = null;
+    const CEVEN_HDR = { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d' };
     try {
       const [dashRes, prodRes, devRes, rotRes, rotMesRes, prosRes] = await Promise.all([
-        fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/dashboard?filial=${filialKey}&id=${id}`, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
-        fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/produtividade?filial=${filialKey}&id=${id}`, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
-        fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/devolucoes?filial=${filialKey}&id=${id}`, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
-        fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/roteiro-hoje?filial=${filialKey}&id=${id}`, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
-        fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/roteiro-mes?filial=${filialKey}&id=${id}`, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
-        fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/ceven/prospeccao-roteiro?cod_rca=${id}&hoje=1&max=120`, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+        fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/dashboard?filial=${filialKey}&id=${id}`, { headers: CEVEN_HDR }),
+        fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/produtividade?filial=${filialKey}&id=${id}`, { headers: CEVEN_HDR }),
+        fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/devolucoes?filial=${filialKey}&id=${id}`, { headers: CEVEN_HDR }),
+        fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/roteiro-hoje?filial=${filialKey}&id=${id}`, { headers: CEVEN_HDR }),
+        fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/roteiro-mes?filial=${filialKey}&id=${id}`, { headers: CEVEN_HDR }),
+        fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/ceven/prospeccao-roteiro?cod_rca=${id}&hoje=1&max=120`, { headers: CEVEN_HDR })
       ]);
 
       [dash, prod, dev, rot, rotMes, pros] = await Promise.all([

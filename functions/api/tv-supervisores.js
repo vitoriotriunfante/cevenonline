@@ -15,26 +15,39 @@
 import { NAO_SUPERVISORES, normNome } from '../_lib/nao_supervisores.js';
 import { supervisoresAtivos, ehAtivo } from '../_lib/sup_ativos.js';
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
+const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
 let cache = { token: null, exp: 0 };
+let loginEmAndamento = null;
 
 async function token(env) {
   if (cache.token && Date.now() < cache.exp) return cache.token;
-  const r = await fetch(`${CEVEN}/api/admin/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0' },
-    body: JSON.stringify({ username: env.CEVEN_ADMIN_USER, password: env.CEVEN_ADMIN_PASS }),
-    signal: AbortSignal.timeout(15000)
-  });
-  if (!r.ok) return null;
-  const j = await r.json();
-  if (!j.access_token) return null;
-  cache = { token: j.access_token, exp: Date.now() + 10 * 60 * 1000 };
-  return cache.token;
+  if (!loginEmAndamento) {
+    loginEmAndamento = (async () => {
+      try {
+        const r = await fetch(`${CEVEN}/api/admin/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET },
+          body: JSON.stringify({ username: env.CEVEN_ADMIN_USER, password: env.CEVEN_ADMIN_PASS }),
+          signal: AbortSignal.timeout(15000)
+        });
+        if (!r.ok) return null;
+        const j = await r.json();
+        if (!j.access_token) return null;
+        cache = { token: j.access_token, exp: Date.now() + 10 * 60 * 1000 };
+        return cache.token;
+      } catch {
+        return null;
+      } finally {
+        loginEmAndamento = null;
+      }
+    })();
+  }
+  return loginEmAndamento;
 }
 
 async function getJson(url, tk) {
   try {
-    const r = await fetch(url, { headers: { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(20000) });
+    const r = await fetch(url, { headers: { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(20000) });
     return r.ok ? await r.json() : null;
   } catch {
     return null;

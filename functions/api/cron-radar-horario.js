@@ -75,8 +75,8 @@ export async function onRequest({ request, env }) {
 
         try {
           const [dashRes, prodRes] = await Promise.all([
-            fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/dashboard?filial=${fKey}&id=${rep.codigo}`, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
-            fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/produtividade?filial=${fKey}&id=${rep.codigo}`, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+            fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/dashboard?filial=${fKey}&id=${rep.codigo}`, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d' } }),
+            fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/produtividade?filial=${fKey}&id=${rep.codigo}`, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d' } })
           ]);
 
           let dash = null, prod = null;

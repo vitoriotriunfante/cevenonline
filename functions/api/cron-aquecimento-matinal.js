@@ -28,10 +28,11 @@ export async function onRequestGet({ env }) {
       try {
         const fId = r.filial_id || 'tbl1';
         // Dispara em paralelo para esquentar os 3 endpoints mais pesados
+        const cevenHdr = { 'User-Agent': 'CEVEN-NOC-Cron/1.0', 'X-App-Secret': '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d' };
         await Promise.allSettled([
-          fetch(`${CEVEN_BASE}/api/rca/dashboard?filial=${fId}&id=${r.codigo}`, { headers: { 'User-Agent': 'CEVEN-NOC-Cron/1.0' } }),
-          fetch(`${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${fId}&id=${r.codigo}`, { headers: { 'User-Agent': 'CEVEN-NOC-Cron/1.0' } }),
-          fetch(`${CEVEN_BASE}/api/ceven/prospeccao-roteiro?cod_rca=${r.codigo}&hoje=1&max=120`, { headers: { 'User-Agent': 'CEVEN-NOC-Cron/1.0' } })
+          fetch(`${CEVEN_BASE}/api/rca/dashboard?filial=${fId}&id=${r.codigo}`, { headers: cevenHdr }),
+          fetch(`${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${fId}&id=${r.codigo}`, { headers: cevenHdr }),
+          fetch(`${CEVEN_BASE}/api/ceven/prospeccao-roteiro?cod_rca=${r.codigo}&hoje=1&max=120`, { headers: cevenHdr })
         ]);
         aquecidos++;
       } catch (e) {

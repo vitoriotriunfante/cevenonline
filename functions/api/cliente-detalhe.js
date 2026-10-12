@@ -47,7 +47,7 @@ export async function onRequestGet({ request, env }) {
     const fKey = filial.toLowerCase().endsWith('1') ? filial.toLowerCase() : (filial.toLowerCase() + '1');
     const cevenUrl = `https://ceven.drivetriunfante-locomotiva.com.br/api/rca/historico-cliente/${codcli}?filial=${fKey}`;
 
-    const cevenRes = await fetch(cevenUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const cevenRes = await fetch(cevenUrl, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d' } });
     if (cevenRes.ok) {
       const h = await cevenRes.json();
       if (h) {

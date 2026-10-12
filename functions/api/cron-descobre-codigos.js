@@ -23,7 +23,7 @@ const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, header
 
 async function getJson(url, ms = 20000) {
   try {
-    const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(ms) });
+    const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d' }, signal: AbortSignal.timeout(ms) });
     if (!r.ok) return null;
     return JSON.parse(await r.text());
   } catch { return null; }

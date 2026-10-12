@@ -179,7 +179,7 @@ export async function onRequestGet({ env, request }) {
       for (let i = 0; i < velhas.length; i += 12) {
         await Promise.all(velhas.slice(i, i + 12).map(async (l) => {
           try {
-            const x = await fetch(CEVEN_BASE + '/api/filiais/' + l.filial.toLowerCase() + '1/representante/' + l.codigo, { signal: AbortSignal.timeout(6000) });
+            const x = await fetch(CEVEN_BASE + '/api/filiais/' + l.filial.toLowerCase() + '1/representante/' + l.codigo, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d' }, signal: AbortSignal.timeout(6000) });
             let canal = '';
             try { const j = await x.json(); canal = String(j.area_atuacao || '').toUpperCase(); } catch { /* corpo vazio: o CEVEN nao tem cadastro desse codigo */ }
             mapa.set(l.filial + '|' + l.codigo, { canal, em: Date.now() });

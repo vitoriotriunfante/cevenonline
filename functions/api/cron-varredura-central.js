@@ -25,7 +25,7 @@ const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab646
 const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Secret': CEVEN_APP_SECRET };
 // LIMITE PRATICO DE CHAMADAS SIMULTANEAS AO CEVEN = 6 (decisao do Vitorio, 03/10/2026; medido: ate 6 nao muda
 // a resposta, com 9 a latencia dobra). Antes: lotes de 20 RCAs x 4 chamadas = 80 simultaneas.
-const CONC = 6;
+const CONC = 4;   // 12/10/2026: com 6 o CEVEN devolvia 429 em ~15% das chamadas (264/hora) e cada 429 pausa a rodada inteira; 4 e o teste (limite pratico continua sendo 6)
 // PRAZO GLOBAL RIGIDO (12/10/2026): o agendador desiste da chamada aos ~170 s e o que estava depois da etapa em curso (fria, telemetria, mapa) era perdido. Com o CEVEN a ~3,5 s por chamada
 // os prazos somados passavam de 190 s: devolucoes e dashboard nunca rodavam e a base ficou com 235 RCAs sem devolucao. Agora tudo termina antes de PRAZO_GLOBAL_MS.
 const PRAZO_GLOBAL_MS = 115000;   // medido em 12/10: com folga de chamadas em voo o tick terminava ~15 s depois do prazo (150 s)

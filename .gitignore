@@ -79,3 +79,7 @@ Projeto.txt
 
 # Arquivo de passagem do Plus de Lideranca (gerado no workflow, nao versionar)
 scratch/plus_inputs.json
+
+# copias de seguranca da Gestao de Equipe geradas por scripts/aplicar_vinculo_representantes.js
+scratch/backup_equipe_*.json
+scratch/seed_vinculo.sql

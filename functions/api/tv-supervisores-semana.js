@@ -9,25 +9,38 @@
 import { NAO_SUPERVISORES, normNome } from '../_lib/nao_supervisores.js';
 import { supervisoresAtivos, ehAtivo } from '../_lib/sup_ativos.js';
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
+const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
 const FERIADOS = ['2026-01-01', '2026-02-16', '2026-02-17', '2026-04-03', '2026-04-21', '2026-05-01', '2026-06-04', '2026-09-07', '2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25'];
 let cacheTk = { token: null, exp: 0 };
 let cacheDados = { chave: '', exp: 0, corpo: null };
+let loginEmAndamento = null;
 
 async function token(env) {
   if (cacheTk.token && Date.now() < cacheTk.exp) return cacheTk.token;
-  const r = await fetch(`${CEVEN}/api/admin/login`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0' },
-    body: JSON.stringify({ username: env.CEVEN_ADMIN_USER, password: env.CEVEN_ADMIN_PASS }), signal: AbortSignal.timeout(15000)
-  });
-  if (!r.ok) return null;
-  const j = await r.json();
-  if (!j.access_token) return null;
-  cacheTk = { token: j.access_token, exp: Date.now() + 10 * 60 * 1000 };
-  return cacheTk.token;
+  if (!loginEmAndamento) {
+    loginEmAndamento = (async () => {
+      try {
+        const r = await fetch(`${CEVEN}/api/admin/login`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET },
+          body: JSON.stringify({ username: env.CEVEN_ADMIN_USER, password: env.CEVEN_ADMIN_PASS }), signal: AbortSignal.timeout(15000)
+        });
+        if (!r.ok) return null;
+        const j = await r.json();
+        if (!j.access_token) return null;
+        cacheTk = { token: j.access_token, exp: Date.now() + 10 * 60 * 1000 };
+        return cacheTk.token;
+      } catch {
+        return null;
+      } finally {
+        loginEmAndamento = null;
+      }
+    })();
+  }
+  return loginEmAndamento;
 }
 async function getJson(url, tk) {
   try {
-    const r = await fetch(url, { headers: { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(25000) });
+    const r = await fetch(url, { headers: { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(25000) });
     return r.ok ? await r.json() : null;
   } catch { return null; }
 }

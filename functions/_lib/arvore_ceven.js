@@ -18,7 +18,8 @@ export const GERENTES = [
   { sigla: 'ABC', filialKey: 'abc1', loginNome: 'Marcos Colling' }, { sigla: 'TCA', filialKey: 'tca1', loginNome: 'Becher' },
   { sigla: 'TBL', filialKey: 'tbl1', loginNome: 'Fabio Machado' }
 ];
-const UA = { 'User-Agent': 'Mozilla/5.0', 'Content-Type': 'application/json' };
+const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
+const UA = { 'User-Agent': 'Mozilla/5.0', 'Content-Type': 'application/json', 'X-App-Secret': CEVEN_APP_SECRET };
 export const limpaSup = (n) => String(n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').toUpperCase().replace(/\s+/g, ' ').trim();
 
 async function tabela(env) {
@@ -34,7 +35,7 @@ async function arvoreDaFilial(g, senha) {
     const lj = await lr.json();
     const tk = lj.access_token || lj.token;
     if (!tk) return null;
-    const cr = await fetch(`${CEVEN}/api/gerente/tabelas-cascata?filial=${g.filialKey}`, { headers: { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(30000) });
+    const cr = await fetch(`${CEVEN}/api/gerente/tabelas-cascata?filial=${g.filialKey}`, { headers: { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(30000) });
     if (!cr.ok) return null;
     const cj = await cr.json();
     const out = new Map();
@@ -59,7 +60,7 @@ export async function atualizaCanais(env, limite = 150) {
     for (let i = 0; i < lista.length; i += 10) {
       await Promise.all(lista.slice(i, i + 10).map(async (v) => {
         try {
-          const x = await fetch(`${CEVEN}/api/filiais/${String(v.filial).toLowerCase()}1/representante/${v.rca}`, { signal: AbortSignal.timeout(6000) });
+          const x = await fetch(`${CEVEN}/api/filiais/${String(v.filial).toLowerCase()}1/representante/${v.rca}`, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(6000) });
           if (!x.ok) return;
           let canal = ''; try { const j = await x.json(); canal = String(j.area_atuacao || '').toUpperCase(); } catch { /* corpo vazio: o CEVEN nao tem canal desse codigo */ }
           await env.DB.prepare('INSERT OR REPLACE INTO canal_ceven (filial, rca, canal, em) VALUES (?, ?, ?, ?)').bind(v.filial, String(v.rca), canal, Date.now()).run();
@@ -88,7 +89,7 @@ export async function atualizaArvore(env) {
   for (const { g, rows } of resultados) for (const r of rows || []) { const k = `${g.sigla}|${r.rca}`; if (canalConhecido.has(k)) r.canal = canalConhecido.get(k); else if (!naGestao.has(k)) precisaCanal.push({ g, r }); }
   for (let i = 0; i < precisaCanal.length; i += 8) {
     await Promise.all(precisaCanal.slice(i, i + 8).map(async ({ g, r }) => {
-      try { const x = await fetch(`${CEVEN}/api/filiais/${g.filialKey}/representante/${r.rca}`, { signal: AbortSignal.timeout(10000) }); if (x.ok) { const j = await x.json(); r.canal = String(j.area_atuacao || '').toUpperCase(); } } catch { /* tenta de novo na proxima */ }
+      try { const x = await fetch(`${CEVEN}/api/filiais/${g.filialKey}/representante/${r.rca}`, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(10000) }); if (x.ok) { const j = await x.json(); r.canal = String(j.area_atuacao || '').toUpperCase(); } } catch { /* tenta de novo na proxima */ }
     }));
   }
   for (const { g, rows } of resultados) {
