@@ -63,7 +63,7 @@ secao('1. Sintaxe de todos os arquivos (functions, pipeline, worker-cron)');
 secao('2. Teto de 6 chamadas simultaneas ao CEVEN');
 {
   const src = ler('functions/api/cron-varredura-central.js');
-  ok((() => { const m = /const CONC = (\d+);/.exec(src); return !!m && Number(m[1]) >= 1 && Number(m[1]) <= 6; })(), 'varredura central usa pool de no maximo 6 (limite pratico do CEVEN, Vitorio 03/10; 12/10 rodando com 4 por causa de 429)');
+  ok(src.includes('concAtual') && /CONC_MAX\s*=\s*6/.test(ler('functions/_lib/concorrencia.js')) && !/CONC_MAX\s*=\s*([7-9]|\d\d)/.test(ler('functions/_lib/concorrencia.js')), 'varredura central usa pool adaptativo com teto de 6 (limite pratico do CEVEN, Vitorio 03/10)');
   const ini = src.indexOf('async function poolLimitado');
   const fim = src.indexOf('\n}\n', ini) + 3;
   const pool = new Function(src.slice(ini, fim) + '\nreturn poolLimitado;')();
@@ -227,7 +227,7 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
       .filter(k => !new RegExp('chave: `' + k.replace('|', '\\|') + '[^\\n]*prova:').test(cl));
     ok(semProva.length === 0 && cl.includes('obs: l.prova'), 'todo lance do vendedor grava a PROVA (numero que o gerou) em obs, para auditoria' + (semProva.length ? ' — faltam: ' + semProva.join(', ') : '')); }
   { const vc = ler('functions/api/cron-varredura-central.js');
-    ok(/getJson\(urlRca\('produtividade', rca\)(, \d)?\)\), CONC, t0 \+ PRAZO_PRODUTIVIDADE_MS\)/.test(vc) && vc.includes('inicioMaxLote') && vc.includes('updated_at AS ua') && vc.includes('const prazoFria'), 'varredura: etapa quente tem PRAZO, vai do mais antigo ao mais novo e a etapa fria tem fatia propria (sem prazo a funcao era cortada antes de gravar e a varredura parava)'); }
+    ok(/getJson\(urlRca\('produtividade', rca\)(, \d)?\)\), (CONC|concAtual), t0 \+ PRAZO_PRODUTIVIDADE_MS\)/.test(vc) && vc.includes('inicioMaxLote') && vc.includes('updated_at AS ua') && vc.includes('const prazoFria'), 'varredura: etapa quente tem PRAZO, vai do mais antigo ao mais novo e a etapa fria tem fatia propria (sem prazo a funcao era cortada antes de gravar e a varredura parava)'); }
   { const a = ler('public/matrizapp.html'), b = ler('public/tvapp.html');
     ok([a, b].every(t => t.includes("if (!poolAlertas.length && P.get('replay') !== '1') return;")), 'lance automatico NAO recicla lance antigo (so com ?replay=1): acabou o mesmo gol/penalti reaparecendo centenas de vezes'); }
   { const g = ler('public/gestao-equipe.html'), dv = ler('public/divergencias.html');
@@ -755,6 +755,23 @@ secao('10. Painel /saude (sala de controle) e telemetria da coleta');
   ok(h.includes('/api/saude') && h.includes('setInterval(carregar, 15000)'), 'tela /saude le /api/saude a cada 15 s');
   const fm = ler('functions/api/cron-faturado-mes.js');
   ok(fm.includes('incompletas') && fm.includes('0.9'), 'resumo do mes nao sobrescreve a meta com leitura incompleta (filial com menos de 90% dos RCAs)');
+}
+
+secao('11. Concorrencia adaptativa da coleta (Frente B): reduz com 429, sobe devagar, nunca passa de 6 nem abaixo de 2');
+{
+  const { proximaConc, CONC_MIN, CONC_MAX } = await import(pathToFileURL(join(RAIZ, 'functions', '_lib', 'concorrencia.js')).href);
+  ok(CONC_MAX === 6 && CONC_MIN === 2, 'limites 2 a 6');
+  ok(proximaConc({ conc: 4, chamadas: 20, r429: 10 }).conc === 4, 'pouca informacao (menos de 60 chamadas): nao muda');
+  ok(proximaConc({ conc: 4, chamadas: 200, r429: 30 }).conc === 3, '15% de 429: reduz 1');
+  ok(proximaConc({ conc: 2, chamadas: 200, r429: 60 }).conc === 2, 'nunca abaixo do minimo');
+  let e = { conc: 3, calmos: 0 };
+  for (let i = 0; i < 2; i++) e = proximaConc({ ...e, chamadas: 200, r429: 0 });
+  ok(e.conc === 3 && e.calmos === 2, 'duas rodadas calmas ainda nao sobem');
+  e = proximaConc({ ...e, chamadas: 200, r429: 0 });
+  ok(e.conc === 4 && e.calmos === 0, 'a terceira rodada calma sobe 1');
+  ok(proximaConc({ conc: 6, calmos: 5, chamadas: 200, r429: 0 }).conc === 6, 'nunca acima do teto de 6');
+  ok(proximaConc({ conc: 4, calmos: 2, chamadas: 200, r429: 4 }).conc === 4 && proximaConc({ conc: 4, calmos: 2, chamadas: 200, r429: 4 }).calmos === 0, 'poucos 429 (abaixo de 5%): mantem e zera a contagem de calmos');
+  ok(ler('functions/api/saude.js').includes('coleta_estado') && ler('public/saude.html').includes('Chamadas simultâneas'), '/saude mostra a concorrencia atual');
 }
 
 console.log(`\nRESULTADO: ${total - falhas} de ${total} verificacoes OK` + (falhas ? ` | ${falhas} FALHARAM` : ''));

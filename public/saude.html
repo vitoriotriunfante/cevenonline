@@ -107,6 +107,7 @@ function render(d) {
   h += card('Sonda ao vivo', s ? (s.http === 200 ? 'ONLINE' : s.http === 0 ? 'SEM RESPOSTA' : 'HTTP ' + s.http) : '—', s ? `${(s.ms / 1000).toFixed(2).replace('.', ',')} s por chamada${s.retry_after ? ' · libera em ' + s.retry_after + ' s' : ''}` : 'sem RCA para sondar', nivelCeven);
   h += card('Chamadas (60 min)', nf(c.chamadas_60min), `sucesso ${c.taxa_sucesso_pct == null ? '—' : c.taxa_sucesso_pct + '%'} · falhas ${nf(c.falhas_60min)}`, 'ok');
   h += card('Limite do CEVEN (429)', nf(c.r429_60min), 'bloqueios por excesso de chamadas na última hora', c.r429_60min > 20 ? 'atencao' : 'ok');
+  h += card('Chamadas simultâneas (auto)', c.concorrencia ? nf(c.concorrencia.atual) : '—', c.concorrencia ? `ajustada sozinha entre 2 e 6 · ${c.concorrencia.motivo || ''}` : 'ainda sem ajuste', 'ok');
   h += card('Chave recusada (401/403)', nf(c.r401_60min), 'se subir, o CEVEN trocou a chave', c.r401_60min ? 'critico' : 'ok');
   h += '</div>';
 

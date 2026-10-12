@@ -89,7 +89,9 @@ export async function onRequestGet({ env, request }) {
   ).all()).results, [])) || [];
   const ult60 = ticks.filter((t) => agora - utc(t.ts) <= 3600000);
   const soma = (a, k) => a.reduce((x, t) => x + (t[k] || 0), 0);
+  const estConc = await safe(async () => await env.DB.prepare("SELECT valor, motivo, atualizado_em FROM coleta_estado WHERE chave = 'conc'").first());
   const coleta = {
+    concorrencia: estConc ? { atual: Number(estConc.valor), motivo: estConc.motivo, em: estConc.atualizado_em } : null,
     ticks_3h: ticks.length, ticks_60min: ult60.length,
     ultimo_tick_em: ticks.length ? ticks[ticks.length - 1].ts : null,
     chamadas_60min: soma(ult60, 'chamadas'), ok_60min: soma(ult60, 'ok'), r429_60min: soma(ult60, 'r429'), r401_60min: soma(ult60, 'r401'), falhas_60min: soma(ult60, 'falhas'),

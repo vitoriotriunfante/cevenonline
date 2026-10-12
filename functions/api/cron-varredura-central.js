@@ -20,12 +20,13 @@
 // NÃO CENTRALIZADO: /api/rca/historico-cliente/{id} (cada consumidor chama seletivamente).
 // =========================================================================
 
+import { proximaConc, lerEstado, gravaEstado, CONC_PADRAO } from '../_lib/concorrencia.js';   // concorrencia adaptativa a cota do CEVEN (12/10/2026)
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
 const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Secret': CEVEN_APP_SECRET };
 // LIMITE PRATICO DE CHAMADAS SIMULTANEAS AO CEVEN = 6 (decisao do Vitorio, 03/10/2026; medido: ate 6 nao muda
 // a resposta, com 9 a latencia dobra). Antes: lotes de 20 RCAs x 4 chamadas = 80 simultaneas.
-const CONC = 4;   // 12/10/2026: com 6 o CEVEN devolvia 429 em ~15% das chamadas (264/hora) e cada 429 pausa a rodada inteira; 4 e o teste (limite pratico continua sendo 6)
+const CONC = CONC_PADRAO;   // 4; o valor efetivo (2 a 6) vem de concAtual, ajustado sozinho pelo 429 de cada rodada   // 12/10/2026: com 6 o CEVEN devolvia 429 em ~15% das chamadas (264/hora) e cada 429 pausa a rodada inteira; 4 e o teste (limite pratico continua sendo 6)
 // PRAZO GLOBAL RIGIDO (12/10/2026): o agendador desiste da chamada aos ~170 s e o que estava depois da etapa em curso (fria, telemetria, mapa) era perdido. Com o CEVEN a ~3,5 s por chamada
 // os prazos somados passavam de 190 s: devolucoes e dashboard nunca rodavam e a base ficou com 235 RCAs sem devolucao. Agora tudo termina antes de PRAZO_GLOBAL_MS.
 const PRAZO_GLOBAL_MS = 115000;   // medido em 12/10: com folga de chamadas em voo o tick terminava ~15 s depois do prazo (150 s)
@@ -56,6 +57,7 @@ async function poolLimitado(tarefas, n, prazo) {
 // so 5 s (o CEVEN pedia 19) e tentava de novo, 6 em paralelo: as novas tentativas renovavam o bloqueio e a base parou de encher. Agora, ao primeiro 429,
 // TODAS as chamadas desta rodada esperam o Retry-After inteiro antes de seguir.
 let pausaAte = 0;
+let concAtual = CONC_PADRAO;   // lido de coleta_estado no inicio de cada rodada
 // HIERARQUIA DO PAINEL ADMIN (12/10/2026): 1 chamada devolve meta, faturado BRUTO, a faturar e positivacao de ~443 vendedores. NAO substitui o dashboard (o painel mostra o bruto,
 // antes das devolucoes; o dashboard do RCA mostra o liquido): serve para DESCOBRIR QUEM MUDOU e rebuscar so esses, e para pular o dashboard de quem esta identico.
 // Qualquer falha (login, rede, formato) devolve null e a varredura segue exatamente como antes.
@@ -93,6 +95,12 @@ async function registraTick(env, modo, rcas, gravados, duracaoMs) {
       .bind(modo, rcas, gravados, T.chamadas, T.ok, T.r429, T.r401, T.falhas, duracaoMs).run();
     if (Math.random() < 0.02) await env.DB.prepare("DELETE FROM saude_coleta WHERE ts < datetime('now', '-3 days')").run();
   } catch { /* telemetria nunca derruba a coleta */ }
+  // CONCORRENCIA ADAPTATIVA: reduz ao ver 429, sobe devagar quando calmo (regras em _lib/concorrencia.js)
+  try {
+    const est = await lerEstado(env);
+    const prox = proximaConc({ conc: concAtual, calmos: est.calmos, chamadas: T.chamadas, r429: T.r429 });
+    await gravaEstado(env, prox);
+  } catch { /* nunca derruba a coleta */ }
 }
 async function getJson(url, tentativas = 2) {
   for (let t = 0; t < tentativas; t++) {
@@ -175,6 +183,8 @@ export async function onRequestGet({ env, request }) {
 
   const t0 = Date.now();
   T.chamadas = T.ok = T.r429 = T.r401 = T.falhas = 0;
+  const estadoConc = await lerEstado(env);
+  concAtual = estadoConc.conc;
   const dataRef = dataHojeBrasilia();
   const urlParams = new URL(request.url).searchParams;
   const forcar = urlParams.has('forcar');
@@ -251,7 +261,7 @@ export async function onRequestGet({ env, request }) {
         const fatia = faltam.slice(i, i + 20);
         const tarefas = [];
         for (const rca of fatia) for (const ep of ENDPOINTS) tarefas.push(() => getJson(urlRca(ep, rca)));
-        const respostas = await poolLimitado(tarefas, CONC);
+        const respostas = await poolLimitado(tarefas, concAtual);
         const stmts = [];
         fatia.forEach((rca, idx) => {
           const roteiro = respostas[idx * 4], produtividade = respostas[idx * 4 + 1], dashboard = respostas[idx * 4 + 2], devolucoes = respostas[idx * 4 + 3];
@@ -313,7 +323,7 @@ export async function onRequestGet({ env, request }) {
     {
       const semDashPri = rcas.filter((rca) => { const a = ant.get(String(rca.codigo)); return a && a.sem_dash; });
       const lacuna = semDashPri.concat(dashMudou).slice(0, 30);   // sem dashboard primeiro; depois quem a hierarquia diz que mudou
-      const ds = await poolLimitado(lacuna.map((rca) => () => getJson(urlRca('dashboard', rca), 1)), CONC, Date.now() + 10000);
+      const ds = await poolLimitado(lacuna.map((rca) => () => getJson(urlRca('dashboard', rca), 1)), concAtual, Date.now() + 10000);
       lacuna.forEach((rca, i) => { if (ds[i]) { contagem.fria++; stmts.push(upsertParcial(env, dataRef, rca, { dashboard_json: JSON.stringify(ds[i]) })); } });
       await gravaLote(env, stmts.splice(0));
     }
@@ -330,7 +340,7 @@ export async function onRequestGet({ env, request }) {
     const inicioMaxLote = t0 + PRAZO_PRODUTIVIDADE_MS - 15000;
     for (let i = 0; i < alvoProd.length && Date.now() < inicioMaxLote; i += 18) {
       const lote = alvoProd.slice(i, i + 18);
-      const prods = await poolLimitado(lote.map((rca) => () => getJson(urlRca('produtividade', rca), 2)), CONC, t0 + PRAZO_PRODUTIVIDADE_MS);
+      const prods = await poolLimitado(lote.map((rca) => () => getJson(urlRca('produtividade', rca), 2)), concAtual, t0 + PRAZO_PRODUTIVIDADE_MS);
       lote.forEach((rca, k) => {
         const p = prods[k];
         if (!p) { contagem.falhas++; return; }
@@ -344,7 +354,7 @@ export async function onRequestGet({ env, request }) {
     }
 
     // 2. EVENTO: rota de quem mudou o pedido
-    const rotasEvento = await poolLimitado(mudou.map((rca) => () => getJson(urlRca('roteiro-hoje', rca))), CONC, t0 + 60000);
+    const rotasEvento = await poolLimitado(mudou.map((rca) => () => getJson(urlRca('roteiro-hoje', rca))), concAtual, t0 + 60000);
     mudou.forEach((rca, i) => {
       const r = rotasEvento[i];
       if (!Array.isArray(r)) return;
@@ -355,7 +365,7 @@ export async function onRequestGet({ env, request }) {
 
     // 3. MORNA: rota de todos, em fatias (so quem ainda nao foi buscado por evento)
     const fatiaRota = rcas.filter((rca, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA && !jaBuscouRota.has(String(rca.codigo)));
-    const rotas = await poolLimitado(fatiaRota.map((rca) => () => getJson(urlRca('roteiro-hoje', rca))), CONC, prazo);
+    const rotas = await poolLimitado(fatiaRota.map((rca) => () => getJson(urlRca('roteiro-hoje', rca))), concAtual, prazo);
     fatiaRota.forEach((rca, i) => {
       if (!Array.isArray(rotas[i])) return;
       contagem.rota++;
@@ -380,7 +390,7 @@ export async function onRequestGet({ env, request }) {
     const itensDev = rodar(fatiaDev).map((rca) => ({ rca, tipo: 'devolucoes' }));
     const itensDash = fatiaDash.map((rca) => ({ rca, tipo: 'dashboard' }));
     const itensFria = [...itensDev, ...itensDash];
-    const buscaFria = (L, ms) => poolLimitado(L.map((it) => () => getJson(urlRca(it.tipo, it.rca))), CONC, Date.now() + ms);
+    const buscaFria = (L, ms) => poolLimitado(L.map((it) => () => getJson(urlRca(it.tipo, it.rca))), concAtual, Date.now() + ms);
     const folga = Math.max(0, t0 + PRAZO_GLOBAL_MS - 8000 - Date.now());   // 8 s para gravar, telemetria e responder
     const frias = [...(await buscaFria(itensDev, Math.min(20000, folga * 0.5))), ...(await buscaFria(itensDash, Math.min(20000, folga * 0.4)))];
     const camposPorRca = new Map();
