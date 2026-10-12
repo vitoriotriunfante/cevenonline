@@ -101,11 +101,22 @@ async function executarVarredura(env, dataRef, t0, cors) {
   const pega = (sig) => (agg[sig] = agg[sig] || { faturado: 0, metaFaturado: 0, positivados: 0, metaPositivados: 0 });
   let falhas = 0;
 
+  // PROTECAO CONTRA LEITURA INCOMPLETA (12/10/2026): as 21:26 a soma rodou com 4 filiais sem dashboard na central e gravou meta R$ 58 mi (TODAS) no lugar de R$ 85 mi;
+  // a Matriz mostrou o numero errado por 15 min. Agora, filial com menos de 90% dos RCAs com dashboard NAO sobrescreve o valor que ja estava gravado (e o total e a soma das filiais).
+  const nLinhas = {}, nComDash = {};
+  for (const l of linhasCentral) {
+    const sg = String(l.filial_sigla || '').toUpperCase();
+    nLinhas[sg] = (nLinhas[sg] || 0) + 1;
+    try { if (JSON.parse(l.dashboard_json)) nComDash[sg] = (nComDash[sg] || 0) + 1; } catch {}
+  }
+  const incompletas = new Set(Object.keys(nLinhas).filter((sg) => (nComDash[sg] || 0) < nLinhas[sg] * 0.9));
+
   for (const l of linhasCentral) {
     let dash = null;
     try { dash = JSON.parse(l.dashboard_json); } catch {}
     if (!dash) { falhas++; continue; }
     const sig = String(l.filial_sigla || '').toUpperCase();
+    if (incompletas.has(sig)) continue;
     const aFil = pega(sig), aNac = pega('TODAS');
     const fat = Number(dash?.financeiro?.faturado) || 0;
     const metaFat = Number(dash?.financeiro?.meta) || 0;
@@ -125,6 +136,20 @@ async function executarVarredura(env, dataRef, t0, cors) {
   // existir se este cron rodar antes do cron-mapa-executivo.js (ordem entre os dois crons não é
   // garantida). Só mexe nas colunas do mês, preserva visitas/pedidos/digitado se a linha já
   // existir (evita corrida entre os dois crons apagando dado um do outro).
+  // filiais incompletas mantem o que estava gravado; o total (TODAS) passa a ser a soma das 11 filiais finais
+  if (incompletas.size) {
+    const { results: antes } = await env.DB.prepare(
+      "SELECT filial_sigla, mes_faturado, mes_meta_faturado, mes_positivados, mes_meta_positivados FROM resumo_executivo_live WHERE data_ref = (SELECT MAX(data_ref) FROM resumo_executivo_live WHERE mes_meta_faturado > 0 AND data_ref < ?) AND filial_sigla NOT IN ('TODAS', '_LOCK_')"
+    ).bind(dataRef + '~').all().catch(() => ({ results: [] }));
+    const ultimo = new Map((antes || []).map((r) => [r.filial_sigla, r]));
+    const nac = { faturado: 0, metaFaturado: 0, positivados: 0, metaPositivados: 0 };
+    for (const sg of incompletas) {
+      const u = ultimo.get(sg);
+      if (u) agg[sg] = { faturado: Number(u.mes_faturado) || 0, metaFaturado: Number(u.mes_meta_faturado) || 0, positivados: Number(u.mes_positivados) || 0, metaPositivados: Number(u.mes_meta_positivados) || 0 };
+    }
+    for (const [sg, a] of Object.entries(agg)) { if (sg === 'TODAS') continue; nac.faturado += a.faturado; nac.metaFaturado += a.metaFaturado; nac.positivados += a.positivados; nac.metaPositivados += a.metaPositivados; }
+    agg.TODAS = nac;
+  }
   const stmts = Object.entries(agg).map(([sig, a]) =>
     env.DB.prepare(
       `INSERT INTO resumo_executivo_live (filial_sigla, data_ref, mes_faturado, mes_meta_faturado, mes_positivados, mes_meta_positivados, updated_at)
