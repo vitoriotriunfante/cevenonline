@@ -1,23 +1,23 @@
 {
-  "data": "2026-10-12",
-  "geradoEm": "2026-10-12T07:02:07.966Z",
+  "data": "2026-10-13",
+  "geradoEm": "2026-10-13T07:02:02.199Z",
   "diretrizesUsadas": {
     "cnae": {
-      "codigo": "4789",
-      "descricao": "Comércio varejista de suvenires, bijuterias e artesanatos",
-      "justificativa": "Rotação automática seg-sex — CNAE nacional #1 entre os 5 candidatos com amostra >= 20 (280 clientes na amostra nacional).",
+      "codigo": "4721",
+      "descricao": "Padaria e confeitaria com predominância de produção própria",
+      "justificativa": "Rotação automática seg-sex — CNAE nacional #2 entre os 5 candidatos com amostra >= 20 (162 clientes na amostra nacional).",
       "ratios_por_filial": {
-        "TBE": 1,
-        "TSJ": 1.04,
-        "MCD": 1.5,
+        "TBE": 1.89,
+        "TSJ": 2.78,
+        "MCD": 1.49,
         "TPH": 4,
         "TCG": 1,
-        "TPA": 1,
-        "API": 1.12,
-        "TCV": 1.04,
-        "ABC": 2.52,
-        "TCA": 1.17,
-        "TBL": 1
+        "TPA": 1.49,
+        "API": 3.11,
+        "TCV": 2.3,
+        "ABC": 1.89,
+        "TCA": 1.32,
+        "TBL": 2.86
       }
     },
     "produtos": [
@@ -34,42 +34,39 @@
     ]
   },
   "abertura": {
-    "textoAbertura": "🌅 *ABERTURA MATINAL DE OPERAÇÃO (07:45)*\n📅 Segunda-feira, 12/10/2026 • Grupo Triunfante\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📌 *PANORAMA GERAL*\n👥 *Vendedores Varejo em Rota:* 57\n📍 *Visitas Planejadas:* 0 PDVs (Varejo) de 127 (Total)\n🟡 *Alerta Preventivo:* 0 PDVs (0,0% da rota)\n🔄 *Recorrência na rota:* 0 PDVs (0,0%)\n🏬 *Oportunidades CNAE 4789 (Comércio varejista de suvenires, bijuterias e artesanatos):* +0 PDVs\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏢 *POR FILIAL (VAREJO)*\n\n📍 *TBE — DIEGO*\n• Vendedores: 16 • Visitas: 0\n• Sem compra +30d: 0 (0,0%) • Recorrência: 0 (0,0%)\n• CNAE 4789: +0 PDVs\n\n📍 *TSJ — SALDANHA*\n• Vendedores: 24 • Visitas: 0\n• Sem compra +30d: 0 (0,0%) • Recorrência: 0 (0,0%)\n• CNAE 4789: +0 PDVs\n\n📍 *MCD — ADRIANO*\n• Vendedores: 17 • Visitas: 0\n• Sem compra +30d: 0 (0,0%) • Recorrência: 0 (0,0%)\n• CNAE 4789: +0 PDVs",
+    "textoAbertura": "🌅 *ABERTURA MATINAL DE OPERAÇÃO (07:45)*\n📅 Terça-feira, 13/10/2026 • Grupo Triunfante\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📌 *PANORAMA GERAL*\n👥 *Vendedores Varejo em Rota:* 56\n📍 *Visitas Planejadas:* 788 PDVs (Varejo) de 5.363 (Total)\n🟡 *Alerta Preventivo:* 275 PDVs (34,9% da rota)\n🔄 *Recorrência na rota:* 47 PDVs (6,0%)\n🏬 *Oportunidades CNAE 4721 (Padaria e confeitaria com predominância de produção própria):* +1.734 PDVs\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏢 *POR FILIAL (VAREJO)*\n\n📍 *TSJ — SALDANHA*\n• Vendedores: 24 • Visitas: 334\n• Sem compra +30d: 115 (34,4%) • Recorrência: 14 (4,2%)\n• CNAE 4721: +929 PDVs\n\n📍 *TBE — DIEGO*\n• Vendedores: 15 • Visitas: 321\n• Sem compra +30d: 131 (40,8%) • Recorrência: 16 (5,0%)\n• CNAE 4721: +607 PDVs\n\n📍 *MCD — ADRIANO*\n• Vendedores: 17 • Visitas: 133\n• Sem compra +30d: 29 (21,8%) • Recorrência: 17 (12,8%)\n• CNAE 4721: +198 PDVs",
     "dadosAbertura": {
       "TBE::Diego": {
         "sigla": "TBE",
         "gerente": "Diego",
-        "vjs": 16,
-        "visitas": 0,
-        "inativos": 0,
-        "rec": 0,
-        "volta": 0,
-        "prospects": 0
+        "vjs": 15,
+        "visitas": 321,
+        "inativos": 131,
+        "rec": 16,
+        "prospects": 607
       },
       "TSJ::Saldanha": {
         "sigla": "TSJ",
         "gerente": "Saldanha",
         "vjs": 24,
-        "visitas": 0,
-        "inativos": 0,
-        "rec": 0,
-        "volta": 0,
-        "prospects": 0
+        "visitas": 334,
+        "inativos": 115,
+        "rec": 14,
+        "prospects": 929
       },
       "MCD::Adriano": {
         "sigla": "MCD",
         "gerente": "Adriano",
         "vjs": 17,
-        "visitas": 0,
-        "inativos": 0,
-        "rec": 0,
-        "volta": 0,
-        "prospects": 0
+        "visitas": 133,
+        "inativos": 29,
+        "rec": 17,
+        "prospects": 198
       }
     },
     "cnaeFoco": {
-      "codigo": "4789",
-      "descricao": "Comércio varejista de suvenires, bijuterias e artesanatos"
+      "codigo": "4721",
+      "descricao": "Padaria e confeitaria com predominância de produção própria"
     }
   }
 }
