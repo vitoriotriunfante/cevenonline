@@ -132,6 +132,8 @@ FILIAIS_VALIDAS = ['TBL', 'TPH', 'TCV', 'ABC', 'API', 'TSJ', 'TBE', 'TPA', 'MCD'
 # local) — violava a premissa online (ver PREMISSA_ONLINE.md), achado em 28/09/2026.
 rca_map = {}
 ocultos_fora = 0
+# canal do SUPERVISOR = maioria de TODOS os vendedores dele na equipe (inclusive representantes, que nao disputam a Liga mas definem de qual liga o supervisor e)
+CANAL_EQUIPE_TODOS = {}   # (filial, supervisor) -> {'AS': n, 'VAREJO': n}
 try:
     req = urllib.request.Request('https://ceven-cftv-matrix.pages.dev/api/tv-mostra', headers={'User-Agent': 'Mozilla/5.0'})
     with urllib.request.urlopen(req, timeout=20) as resp:
@@ -148,6 +150,9 @@ try:
             # REPRESENTANTE (tipo R do DEPARA) e PROMOTOR (tipo P) NAO participam do Brasileirao (Vitorio, 12/10/2026: "se tomar cartao por nao fazer rota pode ate me processar").
             # Tambem sai quem tem a flag participa.liga = false na Gestao. Eles aparecem nos paineis (meta/vendas), nunca na Liga.
             _vinc = str(item.get('vinculo') or '').upper()
+            if not _vinc.startswith('PROMO') and str(item.get('canal', '')).upper() not in ('SUP', 'GER', '') and item.get('supervisor'):
+                _cc = CANAL_EQUIPE_TODOS.setdefault((fil_canonica, item.get('supervisor', '')), {'AS': 0, 'VAREJO': 0})
+                _cc['AS' if str(item.get('canal', '')).upper() in ('AS', 'PET AS') else 'VAREJO'] += 1
             if _vinc.startswith('REP') or _vinc.startswith('PROMO') or (isinstance(item.get('participa'), dict) and item['participa'].get('liga') is False):
                 ocultos_fora += 1
                 continue
@@ -469,7 +474,7 @@ for v in vendedores_lista:
         _cont_canal.setdefault(_k, {}).setdefault(v['canal'], 0)
         _cont_canal[_k][v['canal']] += 1
 def _canal_do_supervisor(k):
-    c = _cont_canal[k]
+    c = CANAL_EQUIPE_TODOS.get(k) or _cont_canal[k]
     return max(c.items(), key=lambda kv: (kv[1], kv[0] == 'VAREJO'))[0]   # empate: Varejo
 sups_set = set((k[0], k[1], _canal_do_supervisor(k)) for k in _cont_canal)
 for fil, s, canal_s in sorted(sups_set):
