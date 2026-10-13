@@ -373,6 +373,7 @@ main {
 .dot-forma.V { background: #16a34a; color: #fff; }
 .dot-forma.E { background: #ca8a04; color: #fff; }
 .dot-forma.D { background: #dc2626; color: #fff; }
+.dot-forma.J { background: #475569; color: #e2e8f0; }   /* J = jogando: dia em andamento, ainda sem pontuacao */
 .forma-mais { font-size: 10px; font-weight: 700; color: var(--tx-mut); margin-left: 2px; white-space: nowrap; }
 
 /* CONTROLS */
@@ -500,7 +501,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
       <div class="brand-text">
         <h1>CHAMPIONS TRIUNFANTE</h1>
         <p>
-          <span class="live-pill"><span class="dot"></span> CADA DIA É UM JOGO</span><span id="pillPre" style="display:none;margin-left:8px;padding:3px 10px;border-radius:999px;background:#7c2d12;color:#fed7aa;font-weight:800;font-size:12px" title="A liga oficial, com regras congeladas e dias fechados, começa em 13/10/2026. Até lá este ranking é só acompanhamento.">PRÉ-TEMPORADA (05 a 12/10) · liga oficial começa em 13/10/2026</span>
+          <span class="live-pill"><span class="dot"></span> CADA DIA É UM JOGO</span><select id="selTemporada" onchange="trocarTemporada(this.value)" title="Veja a pré-temporada (05 a 09/10), que fica guardada como histórico" style="margin-left:10px;background:#0b1626;color:#e2e8f0;border:1px solid #1c2d49;border-radius:8px;padding:4px 8px;font-size:12px;font-weight:700;"><option value="oficial">🏆 Temporada oficial (desde 13/10)</option><option value="pre">📜 Pré-temporada (05 a 09/10) — histórico</option></select><span id="pillPre" style="display:none;margin-left:8px;padding:3px 10px;border-radius:999px;background:#7c2d12;color:#fed7aa;font-weight:800;font-size:12px" title="A liga oficial, com regras congeladas e dias fechados, começa em 13/10/2026. Até lá este ranking é só acompanhamento.">PRÉ-TEMPORADA (05 a 12/10) · liga oficial começa em 13/10/2026</span>
           <span id="hdr-info">• A pontuação é contra o seu próprio dia • 11 Filiais</span>
         </p>
       </div>
@@ -1000,6 +1001,17 @@ function iniciarMinhaFilial() {
   if (sel && sigla) { sel.value = sigla.toUpperCase(); mudarMinhaFilial(sigla.toUpperCase()); }
 }
 
+let DADOS_OFICIAL = null, DADOS_PRE = null;
+async function trocarTemporada(qual) {
+  try {
+    if (qual === 'pre') {
+      if (!DADOS_PRE) { const r = await fetch('/dados_brasileirao_pre_temporada.json?t=' + Date.now(), { cache: 'no-store' }); DADOS_PRE = r.ok ? await r.json() : null; }
+      if (DADOS_PRE) DADOS = DADOS_PRE;
+    } else if (DADOS_OFICIAL) { DADOS = DADOS_OFICIAL; }
+    const pp = document.getElementById('pillPre'); if (pp) pp.style.display = (DADOS && DADOS.pre_temporada) ? 'inline-block' : 'none';
+    renderizarTudo();
+  } catch (e) { console.error('Erro ao trocar de temporada:', e); }
+}
 async function carregarDados() {
   try {
     // O dataset e gerado ONLINE todo dia pelo workflow brasileirao-dataset.yml e gravado na main; o site tambem
@@ -1012,7 +1024,7 @@ async function carregarDados() {
     const valido = (d) => d && Array.isArray(d.vendedores) && Array.isArray(d.dias_rodada) && d.gerado_em;
     const escolhido = [gh, local].filter(valido).sort((a, b) => String(b.gerado_em).localeCompare(String(a.gerado_em)))[0];
     if (escolhido) {
-      DADOS = escolhido;
+      DADOS = escolhido; DADOS_OFICIAL = escolhido;
       { const pp = document.getElementById('pillPre'); if (pp) pp.style.display = escolhido.pre_temporada ? 'inline-block' : 'none'; }
       renderizarTudo();
     }
@@ -1505,7 +1517,7 @@ function filtrarVendedores() {
     const formaTodos = v.forma || [];
     // cada bolinha mostra a DATA do jogo ao passar o mouse (Vitorio, 13/10/2026): forma[i] corresponde a dias_rodada[i]
     const diasRodada = (DADOS && DADOS.dias_rodada) || [];
-    const NOME_RES = { V: 'Vitória', E: 'Empate', D: 'Derrota' };
+    const NOME_RES = { V: 'Vitória', E: 'Empate', D: 'Derrota', J: 'Jogando (dia em andamento, ainda sem pontuação)' };
     const SEM = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
     const dataDoJogo = (i) => { const iso = diasRodada[i]; if (!iso) return ''; const [a, m, dd] = iso.split('-'); return `${dd}/${m} (${SEM[new Date(iso + 'T12:00:00').getDay()]})`; };
     const iniUlt = Math.max(0, formaTodos.length - 5);

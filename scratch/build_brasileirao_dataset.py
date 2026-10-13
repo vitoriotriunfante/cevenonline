@@ -167,6 +167,13 @@ DIAS_COM_LANCE = set(l['dia'] for l in d1_data if l.get('dia'))
 DIAS_RODADA = sorted(d for d in DIAS_COM_LANCE if date.fromisoformat(d).weekday() < 5 and d not in FERIADOS_2026)
 # LIGA OFICIAL (decisao do Vitorio, 06/10/2026): a liga que vale (remuneracao) comeca em 'vigente_desde' do regulamento (07/10/2026), ja com regras congeladas e dias fechados.
 # O que veio antes e PRE-TEMPORADA: aparece no ranking, mas marcado como 'nao vale remuneracao'. Assim que existir o primeiro dia oficial com lance, a tabela passa a contar so os dias oficiais.
+# DIA EM ANDAMENTO = 'J' (jogando) (Vitorio, 13/10/2026: "nao deixe o D, fica feio; deixe um J e vai ajustando"): ate o fechamento do dia (22h BRT), quem ainda esta com placar <= 0 aparece como
+# J (nao conta jogo, nao conta derrota, nao conta ponto); assim que cai ponto vira E ou V; no fechamento o resultado e o de sempre (inclusive D).
+_AGORA_BR = datetime.now(timezone.utc) - timedelta(hours=3)
+HOJE_BR = _AGORA_BR.date().isoformat()
+DIA_ABERTO_AGORA = (_AGORA_BR.hour * 60 + _AGORA_BR.minute) < 22 * 60
+def dia_em_andamento(d):
+    return d == HOJE_BR and DIA_ABERTO_AGORA
 INICIO_OFICIAL = str(CONFIG_PONTOS.get('vigente_desde') or '2026-10-13')
 PRE_DESDE = str(CONFIG_PONTOS.get('pre_temporada_desde') or '2026-10-05') # Vitorio, 07/10/2026: a pre-temporada conta de 05/10 ate o dia anterior ao inicio oficial (13/10/2026)
 _oficiais = [d for d in DIAS_RODADA if d >= INICIO_OFICIAL]
@@ -246,6 +253,8 @@ for rca, meta in rca_map.items():
                 gc_total += -v
 
         resultado, pts = julgar_pelo_score(score_dia)
+        if resultado == 'D' and dia_em_andamento(d):
+            resultado, pts = 'J', 0   # jogando: ainda sem pontuacao no dia aberto
         resultado_dia_vendedor[(rca, d)] = resultado
         pts_tabela += pts
         forma.append(resultado)
@@ -254,6 +263,8 @@ for rca, meta in rca_map.items():
             vitorias += 1
             streak_atual += 1
             max_streak = max(max_streak, streak_atual)
+        elif resultado == 'J':
+            pass   # jogando: nao conta como jogo, derrota nem quebra sequencia
         else:
             streak_atual = 0
             if resultado == 'E':
@@ -280,7 +291,7 @@ for rca, meta in rca_map.items():
     bonus_semana_invicta = semanas_invictas * 3
     pts_tabela += bonus_semana_invicta
 
-    jogos = len(DIAS_RODADA)
+    jogos = len(DIAS_RODADA) - forma.count('J')
     pts_possiveis = jogos * 3
     aprov = round((pts_tabela / pts_possiveis) * 100, 1) if pts_possiveis > 0 else 0
 
@@ -316,9 +327,13 @@ def agrega_por_maioria(grupo_rcas, nome_chave):
         resultados_dia = [resultado_dia_vendedor.get((rca, d)) for rca in grupo_rcas]
         resultados_dia = [r for r in resultados_dia if r is not None]
         if not resultados_dia:
+            if dia_em_andamento(d):
+                forma.append('J'); continue
             forma.append('D')
             derrotas += 1
             continue
+        if dia_em_andamento(d) and not any(r in ('V', 'E') for r in resultados_dia):
+            forma.append('J'); continue   # equipe ainda sem pontuacao no dia aberto
         n_vitorias = sum(1 for r in resultados_dia if r == 'V')
         if n_vitorias == 0:
             resultado, pts = 'D', FAIXAS['derrota']['pontos_tabela']
@@ -346,10 +361,10 @@ for fil in FILIAIS_VALIDAS:
     tot_gp = sum(v['gp'] for v in vends)
     tot_gc = sum(v['gc'] for v in vends)
     filiais_tabela.append({
-        'sigla': fil, 'total_vendedores': len(vends), 'jogos': len(DIAS_RODADA), 'pts_tabela': pts_tabela,
+        'sigla': fil, 'total_vendedores': len(vends), 'jogos': len(DIAS_RODADA) - forma.count('J'), 'pts_tabela': pts_tabela,
         'vitorias': vitorias, 'empates': empates, 'derrotas': derrotas,
         'gp': tot_gp, 'gc': tot_gc, 'sg': tot_gp - tot_gc,
-        'aprov': round((pts_tabela / (len(DIAS_RODADA) * 3)) * 100, 1) if DIAS_RODADA else 0,
+        'aprov': round((pts_tabela / (max(1, len(DIAS_RODADA) - forma.count('J')) * 3)) * 100, 1) if DIAS_RODADA else 0,
         'super_pedidos': sum(v['super_pedidos'] for v in vends),
         'inativos_resgatados': sum(v['inativos_resgatados'] for v in vends), 'forma': forma
     })
@@ -371,9 +386,9 @@ for fil_g, g in gerentes_set:
     tot_gc = sum(v['gc'] for v in vends)
     gerentes_tabela.append({
         'nome': NOME_COMPLETO_GERENTE.get((fil_g, g), g), 'filiais': sorted(set(v['filial'] for v in vends)), 'total_vendedores': len(vends),
-        'jogos': len(DIAS_RODADA), 'pts_tabela': pts_tabela, 'vitorias': vitorias, 'empates': empates,
+        'jogos': len(DIAS_RODADA) - forma.count('J'), 'pts_tabela': pts_tabela, 'vitorias': vitorias, 'empates': empates,
         'derrotas': derrotas, 'gp': tot_gp, 'gc': tot_gc, 'sg': tot_gp - tot_gc,
-        'aprov': round((pts_tabela / (len(DIAS_RODADA) * 3)) * 100, 1) if DIAS_RODADA else 0, 'forma': forma
+        'aprov': round((pts_tabela / (max(1, len(DIAS_RODADA) - forma.count('J')) * 3)) * 100, 1) if DIAS_RODADA else 0, 'forma': forma
     })
 gerentes_tabela.sort(key=lambda x: (x['pts_tabela'], x['vitorias'], x['sg']), reverse=True)
 for idx, g in enumerate(gerentes_tabela):
@@ -451,9 +466,9 @@ for fil, s, canal_s in sorted(sups_set):
     tot_gc = sum(v['gc'] for v in vends)
     sups_tabela.append({
         'supervisor': s, 'filial': fil, 'canal': canal_s, 'gerente': vends[0]['gerente'], 'total_vendedores': len(vends),
-        'jogos': len(DIAS_RODADA), 'pts_tabela': pts_tabela, 'vitorias': vitorias, 'empates': empates,
+        'jogos': len(DIAS_RODADA) - forma.count('J'), 'pts_tabela': pts_tabela, 'vitorias': vitorias, 'empates': empates,
         'derrotas': derrotas, 'gp': tot_gp, 'gc': tot_gc, 'sg': tot_gp - tot_gc,
-        'aprov': round((pts_tabela / (len(DIAS_RODADA) * 3)) * 100, 1) if DIAS_RODADA else 0, 'forma': forma,
+        'aprov': round((pts_tabela / (max(1, len(DIAS_RODADA) - forma.count('J')) * 3)) * 100, 1) if DIAS_RODADA else 0, 'forma': forma,
         'plus_lideranca': plus_total, 'plus_detalhe': plus_detalhe, 'plus_pendente': plus_pendente
     })
 # O PLUS NAO SOMA PONTOS: e criterio de DESEMPATE (decisao do Vitorio, 04/10/2026). Ordem: pontos do time (V/E/D),

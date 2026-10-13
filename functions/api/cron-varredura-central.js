@@ -57,7 +57,19 @@ async function poolLimitado(tarefas, n, prazo) {
 // so 5 s (o CEVEN pedia 19) e tentava de novo, 6 em paralelo: as novas tentativas renovavam o bloqueio e a base parou de encher. Agora, ao primeiro 429,
 // TODAS as chamadas desta rodada esperam o Retry-After inteiro antes de seguir.
 let pausaAte = 0;
-let concAtual = CONC_PADRAO;   // lido de coleta_estado no inicio de cada rodada
+let concAtual = CONC_PADRAO;
+// ROTEIRO_EM (13/10/2026): quando a rota de cada RCA foi lida pela ultima vez. Sem isso nao havia como saber se o roteiro de quem esta VENDENDO estava velho
+// (13/10: TCG 476 tinha 8 clientes efetivados no CEVEN e a base mostrava 0, entao os gols de cliente nao saiam).
+let colRoteiroEm = null;
+async function garanteRoteiroEm(env) {
+  if (colRoteiroEm !== null) return colRoteiroEm;
+  try {
+    const { results } = await env.DB.prepare("SELECT name FROM pragma_table_info('varredura_central_rca') WHERE name = 'roteiro_em'").all();
+    if (!results || !results.length) await env.DB.prepare('ALTER TABLE varredura_central_rca ADD COLUMN roteiro_em TEXT').run();
+    colRoteiroEm = true;
+  } catch { colRoteiroEm = false; }
+  return colRoteiroEm;
+}   // lido de coleta_estado no inicio de cada rodada
 // HIERARQUIA DO PAINEL ADMIN (12/10/2026): 1 chamada devolve meta, faturado BRUTO, a faturar e positivacao de ~443 vendedores. NAO substitui o dashboard (o painel mostra o bruto,
 // antes das devolucoes; o dashboard do RCA mostra o liquido): serve para DESCOBRIR QUEM MUDOU e rebuscar so esses, e para pular o dashboard de quem esta identico.
 // Qualquer falha (login, rede, formato) devolve null e a varredura segue exatamente como antes.
@@ -167,9 +179,10 @@ async function gravaLote(env, stmts) {
 // UPSERT parcial: so as colunas informadas mudam; as demais ficam como estavam. Linha nova entra com o que veio.
 function upsertParcial(env, dataRef, rca, campos) {
   const cols = Object.keys(campos);
-  const insCols = ['rca_codigo', 'filial_sigla', 'data_ref', ...cols, 'updated_at'];
-  const marcas = ['?', '?', '?', ...cols.map(() => '?'), 'CURRENT_TIMESTAMP'].join(', ');
-  const sets = [...cols.map((c) => `${c} = excluded.${c}`), 'updated_at = CURRENT_TIMESTAMP'].join(', ');
+  const comRoteiro = colRoteiroEm === true && cols.includes('roteiro_json');
+  const insCols = ['rca_codigo', 'filial_sigla', 'data_ref', ...cols, 'updated_at', ...(comRoteiro ? ['roteiro_em'] : [])];
+  const marcas = ['?', '?', '?', ...cols.map(() => '?'), 'CURRENT_TIMESTAMP', ...(comRoteiro ? ['CURRENT_TIMESTAMP'] : [])].join(', ');
+  const sets = [...cols.map((c) => `${c} = excluded.${c}`), 'updated_at = CURRENT_TIMESTAMP', ...(comRoteiro ? ['roteiro_em = CURRENT_TIMESTAMP'] : [])].join(', ');
   return env.DB.prepare(
     `INSERT INTO varredura_central_rca (${insCols.join(', ')}) VALUES (${marcas})
      ON CONFLICT (rca_codigo, data_ref) DO UPDATE SET ${sets}`
@@ -216,6 +229,7 @@ export async function onRequestGet({ env, request }) {
   }
 
   // estado de hoje: quem ja esta gravado, tem rota ou ja vendeu, e os valores anteriores (para detectar mudanca de pedido)
+  const temRoteiroEm = await garanteRoteiroEm(env);
   const { results: estado } = await env.DB.prepare(
     `SELECT rca_codigo,
             COALESCE(json_array_length(roteiro_json), 0) AS n_rota,
@@ -228,6 +242,7 @@ export async function onRequestGet({ env, request }) {
             CAST(json_extract(dashboard_json, '$.positivacao.meta') AS REAL) AS d_pmeta,
             CAST(json_extract(dashboard_json, '$.positivacao.realizado') AS REAL) AS d_preal,
             (produtividade_json IS NULL OR produtividade_json = 'null') AS sem_prod,
+            ${temRoteiroEm ? 'roteiro_em AS roteiro_em,' : "NULL AS roteiro_em,"}
             (roteiro_json IS NULL OR roteiro_json = 'null') AS sem_rota,
             updated_at AS ua
        FROM varredura_central_rca WHERE data_ref = ?`
@@ -362,6 +377,20 @@ export async function onRequestGet({ env, request }) {
       jaBuscouRota.add(String(rca.codigo));
       stmts.push(upsertParcial(env, dataRef, rca, { roteiro_json: JSON.stringify(r) }));
     });
+
+    // 2b. QUEM ESTA VENDENDO (pos > 0 ou digitado > 0): roteiro renovado a cada rodada, os mais velhos primeiro (ate 40). E dele que saem os gols de CLIENTE
+    // (resgate, mix, quinzenas, pedido na rota); com a rota velha o gol so aparecia minutos depois, ou nunca (13/10/2026).
+    if (temRoteiroEm) {
+      const vendendo = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return a && (a.pos > 0 || a.dig > 0) && !jaBuscouRota.has(String(r.codigo)); })
+        .sort((x, y) => String((ant.get(String(x.codigo)) || {}).roteiro_em || '').localeCompare(String((ant.get(String(y.codigo)) || {}).roteiro_em || ''))).slice(0, 40);
+      const rv = await poolLimitado(vendendo.map((rca) => () => getJson(urlRca('roteiro-hoje', rca), 1)), concAtual, Date.now() + 14000);
+      vendendo.forEach((rca, i) => {
+        if (!Array.isArray(rv[i])) return;
+        contagem.vendendo = (contagem.vendendo || 0) + 1;
+        jaBuscouRota.add(String(rca.codigo));
+        stmts.push(upsertParcial(env, dataRef, rca, { roteiro_json: JSON.stringify(rv[i]) }));
+      });
+    }
 
     // 3. MORNA: rota de todos, em fatias (so quem ainda nao foi buscado por evento)
     const fatiaRota = rcas.filter((rca, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA && !jaBuscouRota.has(String(rca.codigo)));
