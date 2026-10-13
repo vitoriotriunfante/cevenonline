@@ -782,5 +782,13 @@ secao('11. Concorrencia adaptativa da coleta (Frente B): reduz so com 429 alto, 
   ok(vc.indexOf('T.chamadas = T.ok = T.r429') > vc.indexOf('if (!slot) {'), 'contadores da telemetria so sao zerados depois de ter a trava (requisicao OCUPADO nao corrompe a rodada)');
 }
 
+secao('12. Liga sem representante/promotor (13/10/2026: 3 dos 4 AS de um supervisor eram representantes e disputavam a Liga)');
+{
+  const b = ler('scratch/build_brasileirao_dataset.py');
+  ok(b.includes("_v.startswith('REP')") && b.includes('TRAVA:') && b.includes('sys.exit(1)') && b.includes("startswith('PROMO')"), 'gerador da Liga exclui representante/promotor e ABORTA se algum entrar');
+  const d = JSON.parse(ler('public/dados_brasileirao.json'));
+  ok(Array.isArray(d.vendedores) && d.vendedores.length > 0, 'dataset da Liga carregado');
+}
+
 console.log(`\nRESULTADO: ${total - falhas} de ${total} verificacoes OK` + (falhas ? ` | ${falhas} FALHARAM` : ''));
 process.exit(falhas ? 1 : 0);

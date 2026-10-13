@@ -315,6 +315,22 @@ for rca, meta in rca_map.items():
         'semanas_invictas': semanas_invictas, 'bonus_semana_invicta': bonus_semana_invicta
     })
 
+# TRAVA FINAL (13/10/2026): representante e promotor NUNCA podem estar na Liga. Se algum entrar (regra nova, campo novo, bug), o gerador ABORTA sem publicar,
+# em vez de publicar uma tabela com gente que nao pode ser cobrada (risco juridico apontado pelo Vitorio).
+_proibidos = set()
+try:
+    for _f, _it in mostra_json.get('filiais', {}).items():
+        for _x in _it:
+            _v = str(_x.get('vinculo') or '').upper()
+            if _v.startswith('REP') or _v.startswith('PROMO') or (isinstance(_x.get('participa'), dict) and _x['participa'].get('liga') is False):
+                _proibidos.add(str(_x['rca']))
+except Exception:
+    pass
+_vazou = [v['rca'] for v in vendedores_lista if str(v['rca']) in _proibidos]
+if _vazou:
+    print(f"❌ TRAVA: {len(_vazou)} representante(s)/promotor(es) entrariam na Liga: {_vazou[:10]}. Abortando SEM gravar o dataset.")
+    sys.exit(1)
+print(f"Trava: nenhum representante/promotor na Liga ({len(_proibidos)} fora por regra).")
 vendedores_lista.sort(key=lambda x: (x['pts_tabela'], x['vitorias'], x['sg'], x['gp'], x['inativos_resgatados']), reverse=True)
 # Posicao DENTRO do canal (Varejo e AS tem tabelas separadas). A tabela do AS e a semanal (bloco 'as' abaixo); aqui AS guarda so a posicao diaria de referencia.
 for _canal in ('VAREJO', 'AS'):
