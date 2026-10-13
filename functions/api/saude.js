@@ -12,7 +12,6 @@ import { calculaResumoMes } from '../_lib/resumo_base.js';
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const FILIAIS = ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
-let sondaCache = { exp: 0, v: null };
 
 const hojeSP = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
 const horaSP = () => new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
@@ -20,19 +19,12 @@ const q = (a, p) => (a.length ? a[Math.min(a.length - 1, Math.floor(p * a.length
 const utc = (s) => Date.parse(String(s).replace(' ', 'T') + 'Z');
 const safe = async (fn, padrao = null) => { try { return await fn(); } catch { return padrao; } };
 
-async function sondaCeven(codigo, filial) {
-  if (Date.now() < sondaCache.exp && sondaCache.v) return sondaCache.v;
-  const t0 = Date.now();
-  let v;
-  try {
-    const r = await fetch(`${CEVEN}/api/rca/dashboard?filial=${String(filial).toLowerCase()}1&id=${codigo}`, { headers: CEVEN_HDR, signal: AbortSignal.timeout(12000) });
-    await r.text();
-    v = { http: r.status, ms: Date.now() - t0, retry_after: r.headers.get('retry-after') ? Number(r.headers.get('retry-after')) : null, em: new Date().toISOString() };
-  } catch (e) {
-    v = { http: 0, ms: Date.now() - t0, erro: String(e.message || e).slice(0, 80), em: new Date().toISOString() };
-  }
-  sondaCache = { exp: Date.now() + 45000, v };
-  return v;
+// A SONDA NAO CHAMA MAIS O CEVEN (13/10/2026): cada atualizacao do painel gastava 1 das ~3 chamadas/min que o CEVEN deixa passar em /api/rca/* e ainda renovava o bloqueio.
+// O estado vem do que a propria coleta registrou (ceven_ban_ate em coleta_estado).
+async function sondaCeven(env) {
+  const b = await safe(() => env.DB.prepare("SELECT valor FROM coleta_estado WHERE chave = 'ceven_ban_ate'").first());
+  const ate = Number(b && b.valor) || 0, resta = Math.ceil((ate - Date.now()) / 1000);
+  return { http: resta > 0 ? 429 : 200, ms: 0, retry_after: resta > 0 ? resta : null, em: new Date().toISOString(), derivada: true };
 }
 
 export async function onRequestGet({ env, request }) {
@@ -109,7 +101,7 @@ export async function onRequestGet({ env, request }) {
 
   // ---------- 4. CEVEN (sonda ao vivo) ----------
   const amostra = linhas[0];
-  const sonda = amostra ? await sondaCeven(amostra.r, amostra.f) : null;
+  const sonda = await sondaCeven(env);
   if (sonda) {
     if (sonda.http === 401 || sonda.http === 403) add('critico', 'ceven', 'Sonda ao CEVEN recusada (401/403): chave inválida.');
     else if (sonda.http === 429) add('atencao', 'ceven', `Sonda ao CEVEN limitada (429), libera em ~${sonda.retry_after || '?'} s.`);
