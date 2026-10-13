@@ -103,17 +103,30 @@ async function executarVarredura(env, dataRef, t0, cors) {
 
   // PROTECAO CONTRA LEITURA INCOMPLETA (12/10/2026): as 21:26 a soma rodou com 4 filiais sem dashboard na central e gravou meta R$ 58 mi (TODAS) no lugar de R$ 85 mi;
   // a Matriz mostrou o numero errado por 15 min. Agora, filial com menos de 90% dos RCAs com dashboard NAO sobrescreve o valor que ja estava gravado (e o total e a soma das filiais).
+  // ULTIMO DASHBOARD CONHECIDO (13/10/2026, 07:18): na virada do dia a base nova se enche aos poucos e o resumo gravou R$ 83,7 mi (certo: R$ 85,1 mi; 7 filiais com 1 a 10% dos RCAs ainda
+  // sem leitura). RCA sem dashboard HOJE usa o ultimo dashboard REAL gravado em dia anterior (meta quase nunca muda; o faturado e o do ultimo dia lido, nunca estimado).
+  const ultimoConhecido = new Map();
+  try {
+    const { results: prev } = await env.DB.prepare(
+      'SELECT rca_codigo, dashboard_json FROM varredura_central_rca WHERE data_ref = (SELECT MAX(data_ref) FROM varredura_central_rca WHERE data_ref < ?) AND dashboard_json IS NOT NULL'
+    ).bind(dataRef).all();
+    for (const r of prev || []) { try { const d = JSON.parse(r.dashboard_json); if (d) ultimoConhecido.set(String(r.rca_codigo), d); } catch {} }
+  } catch { /* sem dia anterior: segue so com o de hoje */ }
+  let usouUltimo = 0;
   const nLinhas = {}, nComDash = {};
   for (const l of linhasCentral) {
     const sg = String(l.filial_sigla || '').toUpperCase();
     nLinhas[sg] = (nLinhas[sg] || 0) + 1;
-    try { if (JSON.parse(l.dashboard_json)) nComDash[sg] = (nComDash[sg] || 0) + 1; } catch {}
+    let ok = false;
+    try { ok = !!JSON.parse(l.dashboard_json); } catch {}
+    if (ok || ultimoConhecido.has(String(l.rca_codigo))) nComDash[sg] = (nComDash[sg] || 0) + 1;
   }
   const incompletas = new Set(Object.keys(nLinhas).filter((sg) => (nComDash[sg] || 0) < nLinhas[sg] * 0.9));
 
   for (const l of linhasCentral) {
     let dash = null;
     try { dash = JSON.parse(l.dashboard_json); } catch {}
+    if (!dash) { dash = ultimoConhecido.get(String(l.rca_codigo)) || null; if (dash) usouUltimo++; }
     if (!dash) { falhas++; continue; }
     const sig = String(l.filial_sigla || '').toUpperCase();
     if (incompletas.has(sig)) continue;
@@ -169,6 +182,7 @@ async function executarVarredura(env, dataRef, t0, cors) {
     data_ref: dataRef,
     rcas_processados: linhasCentral.length,
     rcas_sem_resposta: falhas,
+    usou_ultimo_conhecido: usouUltimo,
     filiais_gravadas: Object.keys(agg).length,
     duracao_ms: Date.now() - t0
   }), { headers: cors });
