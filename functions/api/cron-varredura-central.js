@@ -60,6 +60,18 @@ let pausaAte = 0;
 let concAtual = CONC_PADRAO;
 // ROTEIRO_EM (13/10/2026): quando a rota de cada RCA foi lida pela ultima vez. Sem isso nao havia como saber se o roteiro de quem esta VENDENDO estava velho
 // (13/10: TCG 476 tinha 8 clientes efetivados no CEVEN e a base mostrava 0, entao os gols de cliente nao saiam).
+// PROD_EM (13/10/2026): quando a PRODUTIVIDADE (pedidos digitados do dia) de cada RCA foi lida pela ultima vez. updated_at nao serve: o dashboard pelo admin tambem o renova
+// (conferencia TPH/TBE: Allison tinha 3 vendedores com digitado 0 e idade 5 min, mas a produtividade deles nao era lida). A fila de leitura ordena por prod_em.
+let colProdEm = null;
+async function garanteProdEm(env) {
+  if (colProdEm !== null) return colProdEm;
+  try {
+    const { results } = await env.DB.prepare("SELECT name FROM pragma_table_info('varredura_central_rca') WHERE name = 'prod_em'").all();
+    if (!results || !results.length) await env.DB.prepare('ALTER TABLE varredura_central_rca ADD COLUMN prod_em TEXT').run();
+    colProdEm = true;
+  } catch { colProdEm = false; }
+  return colProdEm;
+}
 let colRoteiroEm = null;
 async function garanteRoteiroEm(env) {
   if (colRoteiroEm !== null) return colRoteiroEm;
@@ -251,9 +263,10 @@ async function gravaLote(env, stmts) {
 function upsertParcial(env, dataRef, rca, campos) {
   const cols = Object.keys(campos);
   const comRoteiro = colRoteiroEm === true && cols.includes('roteiro_json');
-  const insCols = ['rca_codigo', 'filial_sigla', 'data_ref', ...cols, 'updated_at', ...(comRoteiro ? ['roteiro_em'] : [])];
-  const marcas = ['?', '?', '?', ...cols.map(() => '?'), 'CURRENT_TIMESTAMP', ...(comRoteiro ? ['CURRENT_TIMESTAMP'] : [])].join(', ');
-  const sets = [...cols.map((c) => `${c} = excluded.${c}`), 'updated_at = CURRENT_TIMESTAMP', ...(comRoteiro ? ['roteiro_em = CURRENT_TIMESTAMP'] : [])].join(', ');
+  const comProd = colProdEm === true && cols.includes('produtividade_json');
+  const insCols = ['rca_codigo', 'filial_sigla', 'data_ref', ...cols, 'updated_at', ...(comRoteiro ? ['roteiro_em'] : []), ...(comProd ? ['prod_em'] : [])];
+  const marcas = ['?', '?', '?', ...cols.map(() => '?'), 'CURRENT_TIMESTAMP', ...(comRoteiro ? ['CURRENT_TIMESTAMP'] : []), ...(comProd ? ['CURRENT_TIMESTAMP'] : [])].join(', ');
+  const sets = [...cols.map((c) => `${c} = excluded.${c}`), 'updated_at = CURRENT_TIMESTAMP', ...(comRoteiro ? ['roteiro_em = CURRENT_TIMESTAMP'] : []), ...(comProd ? ['prod_em = CURRENT_TIMESTAMP'] : [])].join(', ');
   return env.DB.prepare(
     `INSERT INTO varredura_central_rca (${insCols.join(', ')}) VALUES (${marcas})
      ON CONFLICT (rca_codigo, data_ref) DO UPDATE SET ${sets}`
@@ -318,6 +331,7 @@ export async function onRequestGet({ env, request }) {
 
   // estado de hoje: quem ja esta gravado, tem rota ou ja vendeu, e os valores anteriores (para detectar mudanca de pedido)
   const temRoteiroEm = await garanteRoteiroEm(env);
+  const temProdEm = await garanteProdEm(env);
   const { results: estado } = await env.DB.prepare(
     `SELECT rca_codigo,
             COALESCE(json_array_length(roteiro_json), 0) AS n_rota,
@@ -333,6 +347,7 @@ export async function onRequestGet({ env, request }) {
             (produtividade_json IS NULL OR produtividade_json = 'null') AS sem_prod,
             ${temRoteiroEm ? 'roteiro_em AS roteiro_em,' : "NULL AS roteiro_em,"}
             (roteiro_json IS NULL OR roteiro_json = 'null') AS sem_rota,
+            ${temProdEm ? 'prod_em' : 'NULL'} AS pe,
             updated_at AS ua
        FROM varredura_central_rca WHERE data_ref = ?`
   ).bind(dataRef).all();
@@ -463,11 +478,11 @@ export async function onRequestGet({ env, request }) {
     // GUIADO POR MUDANCA (13/10/2026 10:50): o CEVEN passou a limitar por IP (2 chamadas e 429 por ~60 s). ~300 chamadas por rodada nao fecham mais. Com a hierarquia do admin
     // (1 chamada, tempo real) sabemos QUEM mudou: produtividade so de quem mudou + quem nunca foi lido + um rodizio curto de seguranca. Sem hierarquia, volta ao comportamento antigo.
     const idsMudou = new Set(dashMudou.map((r) => String(r.codigo)));
-    const kBase = (r) => { const a = ant.get(String(r.codigo)); return !a ? '0' : (a.sem_prod ? '1' : '2') + String(a.ua || ''); };
+    const kBase = (r) => { const a = ant.get(String(r.codigo)); return !a ? '0' : (a.sem_prod ? '1' : '2') + String(a.pe || ''); };
     let candidatos;
     if (viaAdmin) {
       // cota de /api/rca/*: ~3 a 4 chamadas por minuto => ~8 por rodada. Primeiro PEDIDO NOVO, depois nunca lidos hoje, depois o mais antigo.
-      const ordem = (r) => { const cod = String(r.codigo), a = ant.get(cod); return admMudou.has(cod) ? '0' : (!a || a.sem_prod) ? '1' : '2' + String(a.ua || ''); };
+      const ordem = (r) => { const cod = String(r.codigo), a = ant.get(cod); return admMudou.has(cod) ? '0' : (!a || a.sem_prod) ? '1' : '2' + String(a.pe || ''); };
       candidatos = rcas.slice().sort((x, y) => ordem(x).localeCompare(ordem(y))).slice(0, 14);
     } else if (hier) {
       const prioritarios = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return idsMudou.has(String(r.codigo)) || !a || a.sem_prod; });
@@ -479,7 +494,7 @@ export async function onRequestGet({ env, request }) {
       candidatos = quente.concat(semRota.filter((_, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA));
     }
     const alvoProd = candidatos
-      .sort((x, y) => { const k = (r) => { const a = ant.get(String(r.codigo)); return !a ? '0' : (a.sem_prod ? '1' : '2') + String(a.ua || ''); }; return k(x).localeCompare(k(y)); });   // sem linha, depois sem produtividade, depois o mais antigo
+      .sort((x, y) => { const k = (r) => { const a = ant.get(String(r.codigo)); return !a ? '0' : (a.sem_prod ? '1' : '2') + String(a.pe || ''); }; return k(x).localeCompare(k(y)); });   // sem linha, depois sem produtividade, depois o mais antigo
     contagem.semRota = Math.max(0, alvoProd.length - quente.length);
     contagem.alvoProd = alvoProd.length;
     // PRAZO na etapa 1 (05/10/2026): antes nao tinha; com o CEVEN mais lento a etapa passava de 150 s, a funcao era cortada ANTES de gravar e a varredura parava por 30+ min.
