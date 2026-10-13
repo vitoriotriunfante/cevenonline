@@ -1,10 +1,10 @@
 🏢 *FILIAL MCD — GESTÃO DE CAMPO*
-📅 11/10/2026 • Gerente: Cleverson
+📅 13/10/2026 • Gerente: Cleverson
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📊 *PAINEL DE ATIVIDADES (4 SUPERVISORES):*
-📝 Compromissos: *0 de 4* lançados
-🚗 Em Rota (RET): *0 de 4* em campo
+📊 *PAINEL DE ATIVIDADES (5 SUPERVISORES):*
+📝 Compromissos: *2 de 5* lançados
+🚗 Em Rota (RET): *0 de 5* em campo
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -17,9 +17,13 @@
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
 👤 *JONATAS DA SILVA DE OLIVEIRA*
-📝 Compromisso: ❌ Não lançado
+📝 Compromisso: ✅ Lançado
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
 👤 *THIAGO DA SILVA CONEGUNDES*
+📝 Compromisso: ✅ Lançado
+🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
+
+👤 *TIAGO MARTINES OTAVIANO*
 📝 Compromisso: ❌ Não lançado
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
