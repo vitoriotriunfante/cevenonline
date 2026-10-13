@@ -57,3 +57,5 @@
 - (08/10) **TV/Matriz não gravam mais lance que pontua só com a sigla no obs** (`tv-lances.js`: ven10, vis11, gols, impedimentos de GPS/visita 0): sem prova não entra no registro, não pontua e não vira popup; o coletor (a cada 5 min) grava com prova. Pênalti, defesa, devolução e pedido na rota se provam pelos próprios campos.
 
 - 13/10/2026: representantes LIBERADOS pelo jurídico. Entram na Liga do próprio canal (AS ou Varejo). A trava do gerador agora só aborta por promotor (ou flag liga=false).
+
+- 13/10/2026 (Vitório: "feriado não pode contar para a liga!!! já falamos"): o coletor (cron-lances) e a gravação das TVs (tv-lances) não geram lance em feriado (lista única em functions/_lib/feriados.js). Os 12 cartões de 12/10 (−78) foram marcados em lances_excluidos_liga com motivo FERIADO. A classificação já ignorava feriado (DIAS_RODADA).

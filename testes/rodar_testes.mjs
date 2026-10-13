@@ -743,6 +743,13 @@ secao('9. Representante LIBERADO (juridico, Vitorio 13/10/2026: "tudo, inclusive
   ok(ler('public/gestao-equipe.html').includes('definirVinculo') && ler('public/gestao-equipe.html').includes('filtro-vinculo'), 'Gestao de Equipe: coluna Vinculo/Participa e filtro');
 }
 
+secao('9b. Feriado nao conta para a Liga (Vitorio, 13/10/2026): coletor e TVs nao gravam lance em feriado');
+{
+  const { ehFeriado } = await import(pathToFileURL(join(RAIZ, 'functions', '_lib', 'feriados.js')).href);
+  ok(ehFeriado('2026-10-12') && ehFeriado('2026-11-02') && !ehFeriado('2026-10-13'), 'lista de feriados: 12/10 e 02/11 sao feriado, 13/10 nao');
+  ok(ler('functions/api/cron-lances.js').includes("FERIADO_SEM_LANCE") && ler('functions/api/tv-lances.js').includes("ignorado: 'feriado'"), 'coletor e gravacao das TVs param em feriado');
+}
+
 secao('10. Painel /saude (sala de controle) e telemetria da coleta');
 {
   const sa = ler('functions/api/saude.js'), vc = ler('functions/api/cron-varredura-central.js'), h = ler('public/saude.html');

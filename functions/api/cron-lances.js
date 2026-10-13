@@ -110,6 +110,7 @@ import { CEVEN_APP_SECRET } from './cron-varredura-central.js';
 import { qualificaGol, carteiraEfetiva } from '../_lib/qualificacao_gol.js';
 import { garanteArvore } from '../_lib/arvore_ceven.js';
 import { ehRepresentante } from '../_lib/participacao.js';   // representante nao e monitorado (12/10/2026)
+import { ehFeriado } from '../_lib/feriados.js';
 // Prova do gol de cliente: pedido de hoje (numero, status, valor) e, na dobradinha, os pedidos reais de cada quinzena do mes
 function provaPedidoHoje(c) {
   const p = c && c.pedidoHoje;
@@ -338,6 +339,10 @@ export async function onRequestGet({ env, request }) {
   // fossem de hoje (845 lances em 06/10, 793 repetidos de 05/10; 1.813 em 01/10). Antes das 06h nao ha venda do dia: nao coleta nada.
   if (t.h < 6 && !new URL(request.url).searchParams.has('madrugada')) {
     return new Response(JSON.stringify({ status: 'MADRUGADA_SEM_COLETA', dia: t.dia, hora: t.hms }), { headers: cors });
+  }
+  // FERIADO NAO CONTA PARA A LIGA (Vitorio, 13/10/2026: "ja falamos"): em 12/10 o coletor deu 6 amarelos e 6 vermelhos (-78) em pleno feriado. Sem lance nenhum.
+  if (ehFeriado(t.dia)) {
+    return new Response(JSON.stringify({ status: 'FERIADO_SEM_LANCE', dia: t.dia, hora: t.hms }), { headers: cors });
   }
   const forcar = new URL(request.url).searchParams.has('forcar');
 

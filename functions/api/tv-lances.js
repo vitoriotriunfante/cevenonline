@@ -1,4 +1,5 @@
 import { ocultosDaEquipe, lanceDeOculto } from '../_lib/equipe_ocultos.js';
+import { ehFeriado } from '../_lib/feriados.js';
 // =========================================================================
 // FICHA DO ARQUIVO
 // O QUE É: registro dos LANCES da TV (pênaltis, cartões, supervisores) no D1 (tabela tv_lances,
@@ -66,6 +67,7 @@ export async function onRequestPost({ request, env }) {
   const { dia, hora } = agoraSP();
   // Madrugada (antes das 06h) o CEVEN ainda serve o roteiro de ontem com o dia novo: nada e gravado (06/10/2026: 845 lances repetidos de ontem)
   if (String(hora) < '06:00:00') return resp({ novos: [], ignorado: 'madrugada' });
+  if (ehFeriado(dia)) return resp({ novos: [], ignorado: 'feriado' });   // feriado nao conta para a Liga (Vitorio, 13/10/2026)
   const iso = new Date().toISOString();
   try {
     // marcador do dia: se acabou de ser criado, esta é a 1ª sincronização do dia (baseline)
