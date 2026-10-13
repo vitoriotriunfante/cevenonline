@@ -834,7 +834,7 @@ async function carregaGolsServidor() {
       const cLocal = vLocal && Array.isArray(vLocal.cl) ? vLocal.cl.find((c) => String(c.id) === String(r.cliente_id)) : null;
       const c = cLocal || (r.cliente ? { id: r.cliente_id, nome: r.cliente } : null);
       const mq = /\[QUALIF:([A-Z]+):\+(\d+)\]/.exec(String(r.obs || ''));
-      const mt = /QUALIFICA[ÇC][ÃA]O:s*(.*?)s*[QUALIF:/.exec(String(r.obs || ''));
+      const mt = /QUALIFICA[ÇC][ÃA]O:\s*(.*?)\s*\[QUALIF:/.exec(String(r.obs || ''));
       const qualif = mq ? { nivel: mq[1].charAt(0) + mq[1].slice(1).toLowerCase(), extra: Number(mq[2]), texto: mt ? mt[1] : '' } : null; // texto gravado pelo coletor (a prova so tem nivel/extra; sem ele a tela mostrava 'undefined')
       const mpv = /MARCA PROPRIA R\$ ([\d.,]+)/.exec(String(r.obs || ''));
       const valor = mpv ? Number(mpv[1].replace(/\./g, '').replace(',', '.')) : null;
