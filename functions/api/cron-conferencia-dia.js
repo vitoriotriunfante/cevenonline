@@ -9,13 +9,14 @@
 //       GET /api/cron-conferencia-dia          -> só o resumo do dia
 // =========================================================================
 import { agoraSP } from '../_lib/liga_fechamento.js';
+import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';   // 13/10/2026: sem o X-App-Secret o CEVEN responde 401 e a conferencia ficou parada desde 08/10
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const cors = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const FATIA = 60, CONC = 6, TOL = 1.0;
 const arred = (x) => Math.round((Number(x) || 0) * 100) / 100;
 
 async function getJson(url) {
-  try { const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' }, signal: AbortSignal.timeout(12000) }); if (!r.ok) return null; return await r.json(); } catch { return null; }
+  try { const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(12000) }); if (!r.ok) return null; return await r.json(); } catch { return null; }
 }
 async function pool(tarefas, n) {
   const saida = new Array(tarefas.length); let i = 0;
