@@ -199,7 +199,8 @@ function calcAlertas(vs, t) {
 
     v.cl.forEach((c) => {
       const diasC = diasDesde(c.ultima_compra, t.dia);
-      const ehInativo = diasC != null && diasC > 30;
+      // AS: so conta acima de 90 dias (Vitorio, 13/10/2026: "o AS ja atende 99% dos clientes no mes"); varejo continua acima de 30 dias
+      const ehInativo = diasC != null && diasC > (['AS', 'PET AS'].includes(String(v.canal || '').toUpperCase()) ? 90 : 30);
       const ehRecorrencia = !!c.recorrencia;
       const tagsConhecidas = c.recorrencia !== null; // false = informou e nao tem; null = nao informou (nao cria gol de resgate)
       // RECORRENCIA = DEFESA (+3), nunca gol (decisao do Vitorio, 05/10/2026): antes o mesmo cliente com a tag gerava gol de

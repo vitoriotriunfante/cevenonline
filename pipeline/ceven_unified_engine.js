@@ -967,7 +967,8 @@ async function coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes = null)
         // planejadas, escondendo gente real da conta (pedido do Vitório em 23/09/2026:
         // "dados completos... tudo que eu classifiquei como varejo").
         {
-          rFil.vjs++;
+          // "Vendedores Varejo em Rota" = so quem TEM rota hoje (13/10/2026: dizia 315 e eram 292 com rota; os outros 23 estavam sem roteiro hoje)
+          if (rotaOficial.length > 0) rFil.vjs++;
           rFil.visitas += rotaOficial.length;
           rotaOficial.forEach(c => {
             if (!c.data_ultima_compra || new Date(c.data_ultima_compra) < dataLimite) {
@@ -979,9 +980,8 @@ async function coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes = null)
           });
         }
       } catch (e) {
-        // Mesmo se a API falhar pra esse RCA, ele já foi classificado como varejo
-        // (isCanalVarejo) -- conta pra não perder gente por instabilidade de rede.
-        rFil.vjs++;
+        // API falhou para esse RCA: NAO conta como 'em rota' (nao ha como provar) -- a filial inteira sem leitura sai com a faixa DADOS INCOMPLETOS.
+        rFil.falhas = (rFil.falhas || 0) + 1;
       }
     }));
   }

@@ -643,7 +643,8 @@ function calcAlertas() {
     v.cl.forEach(c => {
       // --- LANCE G07: GOL RESGATE DE INATIVO / DRIBLE DA VACA (>30d ou >90d, SEM a tag RECORRÊNCIA; com a tag o lance é a DEFESA, +3) ---
       const diasC = diasDesde(c.ultima_compra);
-      const ehInativo = diasC != null && diasC > 30;
+      // AS: so conta acima de 90 dias (Vitorio, 13/10/2026: "o AS ja atende 99% dos clientes no mes"); varejo continua acima de 30 dias
+      const ehInativo = diasC != null && diasC > (['AS', 'PET AS'].includes(v.canal) ? 90 : 30);
       const ehRecorrencia = !!c.recorrencia;
       const tagsConhecidas = c.recorrencia !== null; // false = informou e nao tem; null = nao informou (nao cria gol de resgate)
       if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && ehInativo && !ehRecorrencia && tagsConhecidas) {
@@ -723,7 +724,9 @@ function calcAlertas() {
 // De manhã (< 15h): foca em disciplina de rotina (zerados/visitas/pênaltis)
 // À tarde (>= 15h): foca em PONTUAÇÃO BOA (atingimento de meta faturamento + positivação + gols e fair play)
 function statFilial(sig) {
-  const vs = vendedores(sig), campo = vs.filter(v => v.campo && v.temRota), t = sp(), depois10 = t.h >= LIMITE_H, ehTarde = t.h >= 15;
+  // VISITAS E ZERADOS DE TODO O VAREJO EM CAMPO COBRADO (13/10/2026): antes so contava quem tinha meta/venda (vendedores() filtra), e a Matriz mostrava 3.841 visitas
+  // enquanto a abertura do WhatsApp e a base davam 4.131 (292 vendedores com rota). Agora o universo e o mesmo: todo vendedor de campo com rota hoje.
+  const vs = vendedores(sig), vsTodos = reps(sig).map(r => vend(sig, r)).filter(v => v.tem), campo = vsTodos.filter(v => v.campo && v.temRota), t = sp(), depois10 = t.h >= LIMITE_H, ehTarde = t.h >= 15;
   const s = (a, f) => a.reduce((x, v) => x + (f(v) || 0), 0);
   const pen = ALERTAS.filter(a => a.sig === sig && a.nivel === 'penalti').length;
   const gols = ALERTAS.filter(a => a.sig === sig && (a.nivel === 'gol' || a.nivel === 'hattrick')).length;

@@ -747,7 +747,8 @@ function calcAlertas(vs) {
     v.cl.forEach(c => {
       // --- LANCE G07: GOL RESGATE DE INATIVO / DRIBLE DA VACA (>30d ou >90d, SEM a tag RECORRÊNCIA; com a tag o lance é a DEFESA, +3) ---
       const diasC = diasDesde(c.ultima_compra);
-      const ehInativo = diasC != null && diasC > 30;
+      // AS: so conta acima de 90 dias (Vitorio, 13/10/2026: "o AS ja atende 99% dos clientes no mes"); varejo continua acima de 30 dias
+      const ehInativo = diasC != null && diasC > (['AS', 'PET AS'].includes(v.canal) ? 90 : 30);
       const ehRecorrencia = !!c.recorrencia;
       const tagsConhecidas = c.recorrencia !== null; // false = informou e nao tem; null = nao informou (nao cria gol de resgate)
       if (['POSITIVADO', 'EFETIVADO'].includes(c.status) && ehInativo && !ehRecorrencia && tagsConhecidas) {
