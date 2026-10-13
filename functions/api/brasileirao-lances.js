@@ -167,8 +167,19 @@ export async function onRequestGet({ request, env }) {
     const lancesRaw = [...grupos.values()].sort((a, b) => String(b.hora_sp || '').localeCompare(String(a.hora_sp || '')));
     const duplicadosRemovidos = lancesBrutos.length - lancesRaw.length;
 
+    // NOME DO VENDEDOR (13/10/2026): 21 lances gravados entre 10h47 e 11h11 (coleta travada pelo CEVEN) ficaram sem o nome; a auditoria os reprovava e o fechamento
+    // os retiraria. O RCA esta gravado: o nome e o supervisor vem da arvore do CEVEN (dado real, nunca inventado). Sem RCA na arvore, continua sem nome (e reprovado).
+    const nomeArv = new Map();
+    if (lancesRaw.some((l) => !String(l.vendedor || '').trim() && l.rca != null)) {
+      try { const { results: av } = await env.DB.prepare('SELECT filial, rca, nome, sup_nome FROM arvore_supervisores').all(); for (const a of av || []) nomeArv.set(String(a.filial).toUpperCase() + '|' + a.rca, a); } catch (e) { /* sem arvore: fica sem nome */ }
+    }
     const porNivel = {};
     const lances = lancesRaw.map(l => {
+      if (!String(l.vendedor || '').trim() && l.rca != null) {
+        const fr = (l.filial === 'MTZ' && prefixo(l.chave)) ? prefixo(l.chave) : String(l.filial || '').toUpperCase();
+        const a = nomeArv.get(fr + '|' + l.rca);
+        if (a && a.nome) l = { ...l, vendedor: a.nome, supervisor: l.supervisor || a.sup_nome || null };
+      }
       porNivel[l.nivel] = (porNivel[l.nivel] || 0) + 1;
       const pont0 = achaPontuacao(l.chave, l.nivel);
       const q = lerQualif(l.obs); // gol qualificado: so existe em lance gravado de 05/10/2026 em diante

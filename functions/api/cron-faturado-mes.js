@@ -43,7 +43,9 @@ export async function onRequestGet({ env, request }) {
     ).bind(dataRef).first();
     if (ultima && ultima.u) {
       const idadeMs = Date.now() - new Date(ultima.u + 'Z').getTime();
-      if (idadeMs < 12 * 60 * 1000) {
+      // 13/10/2026: era 12 min, mas outro cron renova updated_at das linhas o tempo todo e este NUNCA recalculava (meta TODAS parada em R$ 79,26 mi o dia inteiro
+      // contra R$ 80,61 mi da base). A conta agora e so D1 (sem CEVEN): 2 min basta.
+      if (idadeMs < 2 * 60 * 1000) {
         return new Response(JSON.stringify({ status: 'CACHE_FRESCO', idade_s: Math.round(idadeMs / 1000) }), { headers: cors });
       }
     }
