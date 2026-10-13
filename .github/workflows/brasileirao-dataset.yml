@@ -13,6 +13,10 @@ name: Brasileirão — gerar dataset (online)
 
 on:
   workflow_dispatch: {}
+  # CLASSIFICACAO AO VIVO (Vitorio, 13/10/2026): de 15 em 15 min das 07h as 20h45 BRT, seg-sex. Tudo na conta do GitHub (nada em outra conta Cloudflare).
+  # O agendador do GitHub perde parte das execucoes; com 15 min a tabela atualiza na pratica a cada ~15-45 min. Nao manda mensagem.
+  schedule:
+    - cron: '*/15 10-23 * * 1-5'
 
 concurrency:
   group: brasileirao-dataset
