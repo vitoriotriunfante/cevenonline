@@ -145,6 +145,12 @@ try:
             if item.get('mostra') is False:
                 ocultos_fora += 1
                 continue
+            # REPRESENTANTE (tipo R do DEPARA) e PROMOTOR (tipo P) NAO participam do Brasileirao (Vitorio, 12/10/2026: "se tomar cartao por nao fazer rota pode ate me processar").
+            # Tambem sai quem tem a flag participa.liga = false na Gestao. Eles aparecem nos paineis (meta/vendas), nunca na Liga.
+            _vinc = str(item.get('vinculo') or '').upper()
+            if _vinc.startswith('REP') or _vinc.startswith('PROMO') or (isinstance(item.get('participa'), dict) and item['participa'].get('liga') is False):
+                ocultos_fora += 1
+                continue
             # contas de SUPERVISOR e de GERENTE (canal real do CEVEN = SUP/GER) nao sao vendedores: ficam fora da liga (grupos de negocio de 22/09/2026)
             if str(item.get('canal', '')).upper() in ('SUP', 'GER'):
                 ocultos_fora += 1

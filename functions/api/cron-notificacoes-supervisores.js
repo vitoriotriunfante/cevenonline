@@ -64,7 +64,13 @@ export async function onRequestGet({ env, request }) {
     const marca = (filial, chaves) => chaves.map((c) => env.DB.prepare("INSERT OR IGNORE INTO notif_lance_enviado (dia, filial, chave, enviado_em) VALUES (?, ?, ?, datetime('now'))").bind(t.dia, filial, String(c)));
     for (const m of msgs) {
       const e = await enviaNotificacao(env, m.filial, 'Brasileirão Triunfante', m.texto, m.supervisor_id);
-      saida.push({ filial: m.filial, supervisor: m.supervisor, lances: m.qtd, ok: e.ok, status: e.status || e.erro });
+      saida.push({ filial: m.filial, supervisor: m.supervisor, supervisorid: m.supervisor_id, lances: m.qtd, ok: e.ok, status: e.status || e.erro });
+      // LOG DO ENVIO (13/10/2026): prova do que foi mandado ao CEVEN (a notificacao do Igor apareceu no sino do Kleberson e nao havia como provar o payload)
+      try {
+        await env.DB.prepare('CREATE TABLE IF NOT EXISTS notif_envio_log (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, dia TEXT, filial TEXT, supervisor TEXT, supervisorid TEXT, lances INTEGER, ok INTEGER, status TEXT, payload TEXT)').run();
+        await env.DB.prepare('INSERT INTO notif_envio_log (dia, filial, supervisor, supervisorid, lances, ok, status, payload) VALUES (?,?,?,?,?,?,?,?)')
+          .bind(t.dia, m.filial, m.supervisor, String(m.supervisor_id), m.qtd, e.ok ? 1 : 0, String(e.status || e.erro || ''), JSON.stringify({ origem: 'Brasileirão Triunfante', supervisorid: Number(m.supervisor_id), mensagem: String(m.texto).slice(0, 120) + '…' })).run();
+      } catch { /* log nunca derruba o envio */ }
       if (e.ok) { const st = marca(m.filial, m.chaves); for (let i = 0; i < st.length; i += 80) await env.DB.batch(st.slice(i, i + 80)); }
     }
     if (silenciosos.length) { const por = {}; for (const l of silenciosos) if (/^[A-Z]{3}$/.test(String(l.filial || ''))) (por[l.filial] = por[l.filial] || []).push(l.chave); for (const [f, cs] of Object.entries(por)) { const st = marca(f, cs); for (let i = 0; i < st.length; i += 80) await env.DB.batch(st.slice(i, i + 80)); } }
