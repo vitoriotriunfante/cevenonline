@@ -6,7 +6,7 @@ export async function onRequestGet({ env, request }) {
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 nao configurado' }), { status: 503, headers: CORS });
   const filial = (new URL(request.url).searchParams.get('filial') || '').toUpperCase();
   const tem = await env.DB.prepare("SELECT name FROM pragma_table_info('varredura_central_rca') WHERE name = 'prod_em'").all();
-  const colProd = tem.results && tem.results.length ? 'CAST((julianday('now') - julianday(v.prod_em)) * 86400 AS INTEGER)' : 'NULL';
+  const colProd = tem.results && tem.results.length ? "CAST((julianday('now') - julianday(v.prod_em)) * 86400 AS INTEGER)" : 'NULL';
   const { results } = await env.DB.prepare(
     `SELECT v.filial_sigla AS filial, v.rca_codigo AS rca, a.sup_nome AS sup, a.nome AS nome,
             CAST(COALESCE(json_extract(v.produtividade_json, '$.dia.dig_pedido'), 0) AS REAL) AS dig,
