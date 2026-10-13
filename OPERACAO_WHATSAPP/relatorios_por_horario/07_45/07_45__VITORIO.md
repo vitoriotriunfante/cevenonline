@@ -1,13 +1,15 @@
+⚠️ *DADOS INCOMPLETOS — NÃO ENCAMINHAR.* Sem leitura de ABC, API, TBL, TCA, TCG, TCV, TPA, TPH (3 de 11 filiais). O CEVEN não respondeu a tempo; os totais abaixo estão PARCIAIS.
+
 🌅 *ABERTURA MATINAL DE OPERAÇÃO (07:45)*
 📅 Terça-feira, 13/10/2026 • Grupo Triunfante
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📌 *PANORAMA GERAL*
-👥 *Vendedores Varejo em Rota:* 56
-📍 *Visitas Planejadas:* 788 PDVs (Varejo) de 5.363 (Total)
-🟡 *Alerta Preventivo:* 275 PDVs (34,9% da rota)
-🔄 *Recorrência na rota:* 47 PDVs (6,0%)
-🏬 *Oportunidades CNAE 4721 (Padaria e confeitaria com predominância de produção própria):* +1.734 PDVs
+👥 *Vendedores Varejo em Rota:* 51
+📍 *Visitas Planejadas:* 747 PDVs (Varejo) de 5.363 (Total)
+🟡 *Alerta Preventivo:* 269 PDVs (36,0% da rota)
+🔄 *Recorrência na rota:* 43 PDVs (5,8%)
+🏬 *Oportunidades CNAE 4721 (Padaria e confeitaria com predominância de produção própria):* +1.673 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏢 *POR FILIAL (VAREJO)*
@@ -23,6 +25,6 @@
 • CNAE 4721: +607 PDVs
 
 📍 *MCD — ADRIANO*
-• Vendedores: 17 • Visitas: 133
-• Sem compra +30d: 29 (21,8%) • Recorrência: 17 (12,8%)
-• CNAE 4721: +198 PDVs
+• Vendedores: 12 • Visitas: 92
+• Sem compra +30d: 23 (25,0%) • Recorrência: 13 (14,1%)
+• CNAE 4721: +137 PDVs
