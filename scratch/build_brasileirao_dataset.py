@@ -261,9 +261,9 @@ for rca, meta in rca_map.items():
             else:
                 derrotas += 1
 
-    # Bônus de constância (regulamento): Trinca de Ouro (3 vitórias seguidas) = +3.
-    bonus_constancia = 3 if max_streak >= 3 else (1 if max_streak >= 2 else 0)
-    pts_tabela += bonus_constancia
+    # SEM bônus por sequência diária (Vitório, 13/10/2026: "pode tirar dia a dia; ele ganha +3 apenas se gabaritar a SEMANA, sempre semana fechada").
+    # O único bônus de constância é a Semana Invicta, logo abaixo. O campo continua no dado (zerado) para não quebrar telas antigas.
+    bonus_constancia = 0
 
     # Semana Invicta (regulamento, decisão do Vitório 28/09/2026): +3 pontos extras POR SEMANA em
     # que o vendedor bateu Vitória em TODOS os dias ÚTEIS ESPERADOS da semana (seg-sex, excluindo

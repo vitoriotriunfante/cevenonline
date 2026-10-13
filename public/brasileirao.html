@@ -731,7 +731,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
               <th style="text-align:center" title="Saldo de gols: pontos positivos menos pontos negativos de todos os lances">SG</th>
               <th style="text-align:center" class="cv-aprov">% Aprov</th>
               <th style="text-align:center" class="cv-forma" title="Resultado dos últimos 5 dias (V = vitória, E = empate, D = derrota); o mais recente fica à direita">Últimos jogos</th>
-              <th style="text-align:center" title="Pontos extras por constância: sequência de 3+ vitórias seguidas = +3 · sequência de 2 = +1 · semana com vitória todos os dias úteis (Semana Invicta) = +3. Passe o mouse no bônus de cada vendedor para ver o porquê.">Bônus ⓘ</th>
+              <th style="text-align:center" title="Único bônus: Semana Invicta = +3 pts por semana FECHADA com vitória em todos os dias úteis. Não há bônus por dias seguidos.">Bônus ⓘ</th>
             </tr>
           </thead>
           <tbody id="tbody-vendedores">
@@ -909,9 +909,9 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
         <p>
           Vender bem um único dia e sumir no resto da semana não sustenta a operação. A regularidade gera bônus diretos na tabela de classificação:
           <br><br>
-          🔥 <strong>Trinca de Ouro (3 Vitórias Seguidas):</strong> O vendedor que conquista Vitória por 3 dias consecutivos ganha <strong>+3 Pontos extras</strong> na tabela da Liga.
+          📌 <strong>Não há bônus por dias seguidos.</strong> O bônus de constância é só um, por semana fechada:
           <br>
-          👑 <strong>Semana Invicta (5 Vitórias na Semana):</strong> O vendedor que conquista Vitória em TODOS os dias úteis da semana (segunda a sexta) ganha <strong>+3 Pontos extras adicionais</strong> na tabela.
+          👑 <strong>Semana Invicta:</strong> o vendedor que conquista Vitória em TODOS os dias úteis da semana (segunda a sexta, descontados feriados; ex.: semana de 13 a 16/10) ganha <strong>+3 Pontos extras</strong>. O bônus só é dado com a semana FECHADA, nunca no meio dela.
         </p>
       </div>
 
@@ -1512,9 +1512,9 @@ function filtrarVendedores() {
     const formaHtml = formaTodos.slice(-5).map((r, k) => `<span class="dot-forma ${r}" title="${dataDoJogo(iniUlt + k) ? dataDoJogo(iniUlt + k) + ': ' : ''}${NOME_RES[r] || r}">${r}</span>`).join('') +
       (formaTodos.length > 5 ? `<span class="forma-mais">+${formaTodos.length - 5}</span>` : '');
     const formaTitulo = formaTodos.map((r, i) => `${dataDoJogo(i) || ('jogo ' + (i + 1))}: ${NOME_RES[r] || r}`).join(' | ');
-    const streakHtml = v.bonus_constancia > 0 
-      ? `<span class="tag-badge tag-v" title="Bônus de constância = pontos extras por vitórias SEGUIDAS. Regra aplicada: maior sequência de 3 ou mais vitórias = +3 pts; sequência de 2 = +1 pt; sequência de 1 = nenhum bônus. A maior sequência dele foi de ${v.streak} dia(s) seguido(s) de vitória, por isso +${v.bonus_constancia} pts. Semana Invicta (vitória em todos os dias úteis da semana) soma +3 por semana: ${v.semanas_invictas || 0} semana(s).">🔥 +${v.bonus_constancia} pts · ${v.streak} seguidas</span>` 
-      : `<span style="color:var(--tx-mut);font-size:11px">—</span>`;
+    const streakHtml = (v.bonus_semana_invicta || 0) > 0
+      ? `<span class="tag-badge tag-v" title="Semana Invicta: venceu TODOS os dias úteis de ${v.semanas_invictas} semana(s) fechada(s). +3 pts por semana. Não existe bônus por dias seguidos.">👑 +${v.bonus_semana_invicta} pts · ${v.semanas_invictas} sem. invicta</span>`
+      : `<span style="color:var(--tx-mut);font-size:11px" title="Bônus = +3 pts por semana fechada com vitória em todos os dias úteis (Semana Invicta). Ainda sem semana invicta.">—</span>`;
 
     return `
       <tr>
