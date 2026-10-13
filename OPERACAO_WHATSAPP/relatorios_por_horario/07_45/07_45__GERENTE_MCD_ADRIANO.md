@@ -1,37 +1,35 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 quinta-feira, 08/10/2026
+📅 terça-feira, 13/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 20 • Visitas: 146 (média 7,3/vendedor)
-Sem compra +30d: 35 (24,0%) • Recorrência: 19 (13,0%)
-Oportunidades CNAE 4712: +399 PDVs
+👥 Vendedores: 17 • Visitas: 133 (média 7,8/vendedor)
+Sem compra +30d: 29 (21,8%) • Recorrência: 17 (12,8%)
+Oportunidades CNAE 4721: +198 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — ADRIANO* • 08/10/2026
+📍 *MCD — ADRIANO* • 13/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 35
+🔴 Última Chance: 0  •  🟡 Preventivo: 24
 
-👤 *ALYFER PEREIRA MENDES* (5 em risco)
-  🟡 PETSHOP DIAS (436) — 27/05
-  🟡 PIT BULL RACOES (436) — 05/12
-  🟡 BEM PRA CACHORRO (436) — 05/12
-  🟡 MUNDO DO PET (436) — 05/09
-  🟡 WANDERSON ALVES DA SILVA (436) — 05/09
+👤 *ALYFER PEREIRA MENDES* (6 em risco)
+  🟡 PANTANAL PET (436) — 05/12
+  🟡 AGRONUTRI PETSHOP (436) — 08/08
+  🟡 PET CENTER CAFEZAIS (436) — 05/12
+  🟡 OX HEADE (436) — 05/09
+  🟡 CONCORDIA MATERIAIS PARA CONST (467) — 19/08
+  _+1 outros_
 
-👤 *CARLOS ALAGUEZ DA SILVA* (9 em risco)
-  🟡 CD NAVIRAI (430) — 05/12
-  🟡 POSTO PETROCAMPO (430) — 25/08
-  🟡 SAUDE ANIMAL (449) — 05/12
-  🟡 CASA DAS RACOES E FARINHA (449) — 05/12
-  🟡 SHOPPING RURAL (449) — 05/12
-  _+4 outros_
+👤 *CARLOS ALAGUEZ DA SILVA* (15 em risco)
+  🟡 SUPERMERCADOS CHAMA (430) — 05/12
+  🟡 MERCADO ESPERANCA (438) — 05/12
+  🟡 VIA SUL VEICULOS (438) — 03/05
+  🟡 DKASA EXPRESS (440) — 05/09
+  🟡 D KASA SUPERMERCADOS (440) — 05/09
+  _+10 outros_
 
-👤 *CLEOMAR DINIZ BARBOSA* (21 em risco)
-  🟡 LANCHAO E CONVENIENCIA (415) — 05/12
-  🟡 LOJA DE CONVENIENCIA E LANCHONETE CAMPO (424) — 20/08
-  🟡 MIYAZATO COMERCIO DE HORTIFRUT (424) — 05/12
-  🟡 MERCADO BRAVOS (424) — 27/05
-  🟡 REDE FAMILIA (426) — 28/08
-  _+16 outros_
+👤 *CLEOMAR DINIZ BARBOSA* (3 em risco)
+  🟡 PET HOMME (415) — 28/08
+  🟡 CENTRAL CONVENIENCIA (415) — 05/12
+  🟡 JF COVENIECIA (424) — 10/09

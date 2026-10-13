@@ -1,44 +1,35 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 quinta-feira, 08/10/2026
+📅 terça-feira, 13/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 20 • Visitas: 185 (média 9,3/vendedor)
-Sem compra +30d: 59 (31,9%) • Recorrência: 20 (10,8%)
-Oportunidades CNAE 4712: +505 PDVs
+👥 Vendedores: 17 • Visitas: 133 (média 7,8/vendedor)
+Sem compra +30d: 29 (21,8%) • Recorrência: 17 (12,8%)
+Oportunidades CNAE 4721: +198 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — CLEVERSON* • 08/10/2026
+📍 *MCD — ADRIANO* • 13/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 59
+🔴 Última Chance: 0  •  🟡 Preventivo: 24
 
-👤 *FLAVIO RUFINO* (18 em risco)
-  🟡 MERCADO MINES (451) — 05/12
-  🟡 MERCADO E CONVENIENCIA B G (413) — 19/08
-  🟡 CONVENIENCIA DOIS AMIGOS (413) — 05/12
-  🟡 SUPERMERCADO STA ANGELA (450) — 05/12
-  🟡 MERCADO BOM PRECO (420) — 18/08
-  _+13 outros_
+👤 *ALYFER PEREIRA MENDES* (6 em risco)
+  🟡 PANTANAL PET (436) — 05/12
+  🟡 AGRONUTRI PETSHOP (436) — 08/08
+  🟡 PET CENTER CAFEZAIS (436) — 05/12
+  🟡 OX HEADE (436) — 05/09
+  🟡 CONCORDIA MATERIAIS PARA CONST (467) — 19/08
+  _+1 outros_
 
-👤 *JONATAS DA SILVA DE OLIVEIRA* (18 em risco)
-  🟡 MERCEARIA MONTE ALEGRE (429) — 05/12
-  🟡 DOCE VILLA (441) — 18/02
-  🟡 MERCADO BANDEIRANTES (441) — 05/12
-  🟡 SUPERMERCADOS CHAMA (441) — 05/12
-  🟡 MANO AUTO POSTO (441) — 05/12
-  _+13 outros_
+👤 *CARLOS ALAGUEZ DA SILVA* (15 em risco)
+  🟡 SUPERMERCADOS CHAMA (430) — 05/12
+  🟡 MERCADO ESPERANCA (438) — 05/12
+  🟡 VIA SUL VEICULOS (438) — 03/05
+  🟡 DKASA EXPRESS (440) — 05/09
+  🟡 D KASA SUPERMERCADOS (440) — 05/09
+  _+10 outros_
 
-👤 *Vendedores ligados direto ao gerente* (19 em risco)
-  🟡 LOTUS TRANSPORTES LTDA (1070) — 05/12
-  🟡 ANDRE LIBERTY (1070) — 03/05
-  🟡 J M LUBRIFICANTES E PECAS (1070) — 27/05
-  🟡 INOVALOG (1070) — 03/05
-  🟡 BARBEARIA ROTA 67 LOJA 2 (1070) — 27/05
-  _+14 outros_
-
-👤 *THIAGO DA SILVA CONEGUNDES* (4 em risco)
-  🟡 CONVENIENCIA AM PM (433) — 05/12
-  🟡 CLICKBEER (433) — 31/08
-  🟡 CONVEX (433) — 18/02
-  🟡 CLICKBEER (433) — 31/08
+👤 *CLEOMAR DINIZ BARBOSA* (3 em risco)
+  🟡 PET HOMME (415) — 28/08
+  🟡 CENTRAL CONVENIENCIA (415) — 05/12
+  🟡 JF COVENIECIA (424) — 10/09
