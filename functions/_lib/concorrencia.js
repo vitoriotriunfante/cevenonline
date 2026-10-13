@@ -11,7 +11,7 @@
 //   - 401/403 NÃO é cota: não mexe (é a chave; o /saude avisa).
 // ESTADO: tabela coleta_estado (chave, valor). Nunca derruba a coleta: qualquer erro de banco devolve o padrão.
 // =========================================================================
-export const CONC_MIN = 4, CONC_MAX = 6, CONC_PADRAO = 4;   // piso 4: medido em 12/10, com 3 ou 2 a base fica atrasada (54 a 241 leituras velhas), com 4 fica completa
+export const CONC_MIN = 2, CONC_MAX = 6, CONC_PADRAO = 3;   // 13/10 10:50: o CEVEN limita por IP e o volume por rodada caiu (so quem mudou); sob 429 alto vale ir devagar   // piso 4: medido em 12/10, com 3 ou 2 a base fica atrasada (54 a 241 leituras velhas), com 4 fica completa
 export const MIN_CHAMADAS = 60, LIMIAR_REDUZ = 0.20, LIMIAR_CALMO = 0.05, CALMOS_PARA_SUBIR = 3;
 
 export function proximaConc({ conc, calmos = 0, chamadas = 0, r429 = 0 }) {

@@ -759,17 +759,17 @@ secao('10. Painel /saude (sala de controle) e telemetria da coleta');
     ok(rbm.includes('ULTIMA') || rbm.includes('anterior'), 'conta unica: RCA sem leitura de hoje entra com a ultima leitura real, nunca fica de fora nem e estimado');
     ok(mm.includes('calculaResumoMes') && !/FROM\s+resumo_executivo_live/.test(mm), 'metas-mes vem DIRETO da base (nao de copia recalculada)');
     ok(mx.includes('calculaResumoMes') && mx.includes('mesFaturado = a.faturado'), 'campos do mes da Executiva/Matriz vem DIRETO da base');
-    ok(!mzz.includes('foto \${hm}') && mzz.includes('ainda sem leitura de hoje'), 'Matriz nao fala em foto: so avisa quando algum RCA ainda nao foi lido hoje'); }
+    ok(!mzz.includes('foto ${hm}') && !mzz.includes('ainda sem leitura de hoje'), 'Matriz nao mostra aviso de leitura na tela (isso fica no /saude)'); }
 }
 
 secao('11. Concorrencia adaptativa da coleta (Frente B): reduz so com 429 alto, sobe devagar, nunca passa de 6 nem abaixo de 3');
 {
   const { proximaConc, CONC_MIN, CONC_MAX } = await import(pathToFileURL(join(RAIZ, 'functions', '_lib', 'concorrencia.js')).href);
-  ok(CONC_MAX === 6 && CONC_MIN === 4, 'limites 4 a 6');
+  ok(CONC_MAX === 6 && CONC_MIN === 2, 'limites 2 a 6');
   ok(proximaConc({ conc: 4, chamadas: 20, r429: 10 }).conc === 4, 'pouca informacao (menos de 60 chamadas): nao muda');
   ok(proximaConc({ conc: 5, chamadas: 200, r429: 60 }).conc === 4, '30% de 429: reduz 1');
   ok(proximaConc({ conc: 4, chamadas: 200, r429: 20 }).conc === 4, '10% de 429 (o que se mediu em 12/10): mantem, a base fica completa');
-  ok(proximaConc({ conc: 4, chamadas: 200, r429: 120 }).conc === 4, 'nunca abaixo do minimo (4)');
+  ok(proximaConc({ conc: 2, chamadas: 200, r429: 120 }).conc === 2, 'nunca abaixo do minimo (2)');
   let e = { conc: 4, calmos: 0 };
   for (let i = 0; i < 2; i++) e = proximaConc({ ...e, chamadas: 200, r429: 4 });
   ok(e.conc === 4 && e.calmos === 2, 'duas rodadas calmas ainda nao sobem');

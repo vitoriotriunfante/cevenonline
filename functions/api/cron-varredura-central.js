@@ -370,7 +370,7 @@ export async function onRequestGet({ env, request }) {
     // (o /incentivo deixava esses vendedores de fora). Agora ate 15 por tick logo no inicio: ~15 chamadas, fecha a lacuna em ~30 min sem estourar a cota.
     {
       const semDashPri = rcas.filter((rca) => { const a = ant.get(String(rca.codigo)); return a && a.sem_dash; });
-      const lacuna = semDashPri.concat(dashMudou).slice(0, 30);   // sem dashboard primeiro; depois quem a hierarquia diz que mudou
+      const lacuna = semDashPri.concat(dashMudou).slice(0, 60);   // sem dashboard primeiro; depois quem a hierarquia diz que mudou
       const ds = await poolLimitado(lacuna.map((rca) => () => getJson(urlRca('dashboard', rca), 1)), concAtual, Date.now() + 10000);
       lacuna.forEach((rca, i) => { if (ds[i]) { contagem.fria++; stmts.push(upsertParcial(env, dataRef, rca, { dashboard_json: JSON.stringify(ds[i]) })); } });
       await gravaLote(env, stmts.splice(0));
@@ -378,9 +378,24 @@ export async function onRequestGet({ env, request }) {
 
     // 1. QUENTE: produtividade de quem tem rota / ja vendeu (+ 1/3 de quem nao tem rota, para nao perder televenda/loja)
     // Do MAIS ANTIGO para o mais novo (quem nunca foi gravado primeiro): se o CEVEN estiver lento e o prazo cortar a etapa, quem ficou de fora vai primeiro no proximo tick.
-    const alvoProd = quente.concat(semRota.filter((_, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA))
+    // GUIADO POR MUDANCA (13/10/2026 10:50): o CEVEN passou a limitar por IP (2 chamadas e 429 por ~60 s). ~300 chamadas por rodada nao fecham mais. Com a hierarquia do admin
+    // (1 chamada, tempo real) sabemos QUEM mudou: produtividade so de quem mudou + quem nunca foi lido + um rodizio curto de seguranca. Sem hierarquia, volta ao comportamento antigo.
+    const idsMudou = new Set(dashMudou.map((r) => String(r.codigo)));
+    const kBase = (r) => { const a = ant.get(String(r.codigo)); return !a ? '0' : (a.sem_prod ? '1' : '2') + String(a.ua || ''); };
+    let candidatos;
+    if (hier) {
+      const prioritarios = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return idsMudou.has(String(r.codigo)) || !a || a.sem_prod; });
+      const idsPri = new Set(prioritarios.map((r) => String(r.codigo)));
+      const rodizio = quente.filter((r) => !idsPri.has(String(r.codigo))).sort((x, y) => kBase(x).localeCompare(kBase(y))).slice(0, 40);
+      const rodizioSemRota = semRota.filter((r) => !idsPri.has(String(r.codigo)) && ((Number(r.codigo) || 0) % 8) === (ciclo % 8));
+      candidatos = prioritarios.concat(rodizio, rodizioSemRota);
+    } else {
+      candidatos = quente.concat(semRota.filter((_, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA));
+    }
+    const alvoProd = candidatos
       .sort((x, y) => { const k = (r) => { const a = ant.get(String(r.codigo)); return !a ? '0' : (a.sem_prod ? '1' : '2') + String(a.ua || ''); }; return k(x).localeCompare(k(y)); });   // sem linha, depois sem produtividade, depois o mais antigo
-    contagem.semRota = alvoProd.length - quente.length;
+    contagem.semRota = Math.max(0, alvoProd.length - quente.length);
+    contagem.alvoProd = alvoProd.length;
     // PRAZO na etapa 1 (05/10/2026): antes nao tinha; com o CEVEN mais lento a etapa passava de 150 s, a funcao era cortada ANTES de gravar e a varredura parava por 30+ min.
     // GRAVA EM LOTES DE 18 (11/10/2026): com o CEVEN a ~3,5 s por chamada, a etapa buscava tudo e so gravava no fim; uma chamada pendurada estourava o tempo da funcao ANTES de gravar
     // e a base ficou 40+ min sem nenhuma leitura nova. Agora cada lote e gravado assim que volta; o que o prazo cortar fica para o proximo tick.
@@ -442,7 +457,9 @@ export async function onRequestGet({ env, request }) {
     const semDash = rcas.filter((rca) => { const a = ant.get(String(rca.codigo)); return a && a.sem_dash; }).slice(0, 30);
     const idsDash = new Set(semDash.map((r) => String(r.codigo)));
     const fatiaDash = semDash.concat(rcas.filter((rca, i) => i % FATIAS_FRIA === ciclo % FATIAS_FRIA && !idsDash.has(String(rca.codigo)) && !dashIgual.has(String(rca.codigo))));   // identico na hierarquia = pula
-    const fatiaDev = rcas.filter((rca, i) => i % FATIAS_DEV === ciclo % FATIAS_DEV);
+    const fatiaDev = hier
+      ? rcas.filter((rca, i) => idsMudou.has(String(rca.codigo)) || i % (FATIAS_DEV * 2) === ciclo % (FATIAS_DEV * 2))   // com a hierarquia: quem mudou + 1/6 por rodada
+      : rcas.filter((rca, i) => i % FATIAS_DEV === ciclo % FATIAS_DEV);
     // A etapa FRIA tem FATIA PROPRIA de tempo (05/10/2026): com o prazo geral, as etapas 1 a 3 consumiam os 100 s e a fria nunca rodava, entao painel (faturado do mes)
     // e devolucoes ficavam congelados no dado da varredura completa (ex.: TPA R$ 42 mil na Executiva contra R$ 133 mil no CEVEN).
     const prazoFria = Date.now() + 30000;
