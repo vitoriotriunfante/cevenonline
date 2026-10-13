@@ -38,7 +38,8 @@ const GATILHOS = {
   '30 14 * * 2-6': { workflow: 'ceven-cron-whatsapp.yml',      inputs: { ciclo: '11:30', destino: 'todos' } }, // 11:30 BRT — Gestão de campo (WhatsApp)
   '30 17 * * 2-6': { workflow: 'ceven-cron-whatsapp.yml',      inputs: { ciclo: '14:30', destino: 'todos' } }, // 14:30 BRT — Parcial da tarde (WhatsApp)
   '0 20 * * 2-6':  { workflow: 'ceven-cron-whatsapp.yml',      inputs: { ciclo: '17:00', destino: 'todos' } }, // 17:00 BRT — Reta final (WhatsApp)
-  '30 21 * * 2-6': { workflow: 'ceven-cron-whatsapp.yml',      inputs: { ciclo: '18:30', destino: 'todos' } }  // 18:30 BRT — Fechamento oficial (WhatsApp)
+  '30 21 * * 2-6': { workflow: 'ceven-cron-whatsapp.yml',      inputs: { ciclo: '18:30', destino: 'todos' } }, // 18:30 BRT — Fechamento oficial (WhatsApp)
+  '8-59/15 10-23 * * 2-6': { workflow: 'brasileirao-dataset.yml', inputs: {} }                                // 07h a 20h45 BRT, de 15 em 15 min — classificacao da Liga ao vivo (Vitorio, 13/10/2026). Nao manda mensagem.
 };
 
 // RELOGIOS DA TV (03/10/2026): antes, o agendador do GitHub chamava estas funcoes e perdia cerca de 2/3 das
