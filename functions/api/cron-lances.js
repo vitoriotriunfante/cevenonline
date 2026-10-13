@@ -193,6 +193,9 @@ function calcAlertas(vs, t) {
 
     (v.devolucoesHoje || []).forEach((dv) => {
       if (!dv.nota) return;
+      // so DEVOLUCAO REGISTRADA HOJE vira lance (regulamento: 'devolucao registrada hoje'). 13/10: com o motivo voltando a ser lido, as 190 notas de 09 a 12/10
+      // virariam lance HOJE, punindo o dia errado na estreia da Liga.
+      if (String(dv.data || '').slice(0, 10) !== t.dia) return;
       const base = `nota ${dv.nota} de ${dv.data || '?'} | ${brl(dv.valor)} | ${dv.cliente || 'cliente sem nome'} | motivo oficial: ${dv.motivos || 'sem motivo'}`;
       if (dv.naoPediu === true) out.push({ chave: `ver_dev|${v.id}|${dv.nota}`, nivel: 'vermelho', v, valor: dv.valor, cliente: dv.cliente, cid: dv.cid, prova: base });
       else if (dv.naoPediu === false && DEV_MOTIVO_COMERCIAL.test(dv.motivos || '')) out.push({ chave: `golcontra_dev|${v.id}|${dv.nota}`, nivel: 'golcontra', v, valor: dv.valor, cliente: dv.cliente, cid: dv.cid, prova: base });
