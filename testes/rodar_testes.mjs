@@ -677,7 +677,7 @@ for (const arq of ['public/tvapp.html', 'public/matrizapp.html']) {
 secao('8e. Liga cravada: regras congeladas por versao, fechamento do dia (19h30) e conferencia diaria contra o CEVEN');
 {
   const cfgTxt = ler('config/pontuacao_brasileirao.json'); const cfg = JSON.parse(cfgTxt);
-  const LOCK_HASH = '2b3faba9c271dbb76bfb385b64dd0cf6a46be0de2c513cab9e1bf96a43ae0cbc'; // sha256 do regulamento na versao 2026-10-13.2: Hat-Trick = 3 vendas seguidas, sem limite de 2 horas (08/10/2026)
+  const LOCK_HASH = 'd2b0a0ed29f71651e69b05d2de956465305583a82a438056a5c4ea68268b9a14'; // sha256 do regulamento na versao 2026-10-13.3: AS so conta resgate de inativo acima de 90 dias (13/10/2026); Hat-Trick = 3 vendas seguidas (08/10/2026)
   const { createHash } = await import('node:crypto');
   const hash = createHash('sha256').update(JSON.stringify(cfg)).digest('hex');
   const lib = ler('functions/_lib/liga_fechamento.js');
