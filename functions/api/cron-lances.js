@@ -106,6 +106,7 @@ function horariosCheckinDoDia(cl) {
 
 // Mesma lógica de vend() em tvapp.html: transforma resposta de /api/tv-vendedor no objeto usado
 // por calcAlertas.
+import { CEVEN_APP_SECRET } from './cron-varredura-central.js';
 import { qualificaGol, carteiraEfetiva } from '../_lib/qualificacao_gol.js';
 import { garanteArvore } from '../_lib/arvore_ceven.js';
 import { ehRepresentante } from '../_lib/participacao.js';   // representante nao e monitorado (12/10/2026)
@@ -255,9 +256,14 @@ function calcAlertas(vs, t) {
   return out;
 }
 
+// X-APP-SECRET (13/10/2026): desde 09/10 o CEVEN exige o header em /api/rca/*. Este getJson nao mandava: TODA consulta de motivo de devolucao voltava 401
+// e nenhuma nota foi resolvida desde 08/10 23:24 (196 notas de outubro sem motivo => nenhum Gol Contra nem Cartao Vermelho por devolucao desde 09/10).
+let cevenBloqueado = false;   // 429 nesta rodada: para de consultar (cada tentativa renova o bloqueio do CEVEN)
 async function getJson(url) {
   try {
-    const r = await fetch(url, { signal: AbortSignal.timeout(20000) });
+    if (cevenBloqueado) return null;
+    const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(20000) });
+    if (r.status === 429) { cevenBloqueado = true; return null; }
     if (!r.ok) return null;
     const t = await r.text();
     return t ? JSON.parse(t) : null;
@@ -271,7 +277,7 @@ async function getJson(url) {
 // (/api/rca/devolucoes/{nota}). motivo CLIENTE NAO PEDIU = Cartao Vermelho (-10); qualquer outro motivo = Gol Contra (-4).
 // Nota sem motivo confirmado NAO gera lance (nunca assume). Janela: notas do mes corrente; uma nota gera UM lance (tv-lances nao repete).
 const CEVEN_API = 'https://ceven.drivetriunfante-locomotiva.com.br';
-const DEV_MAX_MOTIVOS_POR_RODADA = 90; // a janela e o MES CORRENTE (Vitorio, 05/10/2026: "desde 01/10"); o que nao couber numa rodada entra na proxima
+const DEV_MAX_MOTIVOS_POR_RODADA = 6;   // 13/10: o CEVEN limita /api/rca/* a ~3 chamadas por minuto (por IP, dividido com a varredura); as notas MAIS NOVAS primeiro // a janela e o MES CORRENTE (Vitorio, 05/10/2026: "desde 01/10"); o que nao couber numa rodada entra na proxima
 // Gol Contra so para motivo COMERCIAL (Vitorio, 05/10/2026: "so registre os motivos comerciais"). Estoque/logistica/ambiguo nao pune.
 const DEV_MOTIVO_COMERCIAL = /SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD|PEDIDO DUPLICADO|RECUSOU MERC|PRECO DIFERENTE/;
 async function carregaDevolucoes(env, t, filialDoRca) {
@@ -294,9 +300,10 @@ async function carregaDevolucoes(env, t, filialDoRca) {
     }
     const { results: ja } = await env.DB.prepare('SELECT rca, nota, nao_pediu FROM devolucao_nota_motivo').all();
     const cache = new Map((ja || []).map((x) => [x.rca + '|' + x.nota, x.nao_pediu]));
-    const faltam = notas.filter((n) => !cache.has(n.rca + '|' + n.nota)).slice(0, DEV_MAX_MOTIVOS_POR_RODADA);
-    for (let i = 0; i < faltam.length; i += 6) {
-      await Promise.all(faltam.slice(i, i + 6).map(async (n) => {
+    const faltam = notas.filter((n) => !cache.has(n.rca + '|' + n.nota)).sort((a, b) => String(b.data).localeCompare(String(a.data))).slice(0, DEV_MAX_MOTIVOS_POR_RODADA);
+    cevenBloqueado = false;
+    for (let i = 0; i < faltam.length; i += 2) {
+      await Promise.all(faltam.slice(i, i + 2).map(async (n) => {
         const fil = filialDoRca.get(n.rca); if (!fil) return;
         const det = await getJson(`${CEVEN_API}/api/rca/devolucoes/${encodeURIComponent(n.nota)}?filial=${fil.toLowerCase()}1&id=${n.rca}`);
         if (!Array.isArray(det) || !det.length) return; // sem detalhe: nao assume nada

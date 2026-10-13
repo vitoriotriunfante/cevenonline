@@ -1301,17 +1301,19 @@ async function carregarGabarito() {
     const regras = Object.entries(cfg.pontos_por_lance || {}).map(([k, r]) => ({ ...r, chave: k })).filter(r => !(CANAL === 'AS' && regraForaDoAS(r.nome))).map(r => (CANAL === 'AS' && /^super pedido/i.test(semAcento(r.nome)) ? { ...r, motivo: 'AS: venda do dia (digitado) a partir de R$ 75.000.' } : r)).map(r => (CANAL === 'AS' && /^dobrou o mix/i.test(semAcento(r.nome)) ? { ...r, nome: NOME_MIX_AS, motivo: 'AS: pedido com 2 ou mais SKUs a mais que a média histórica do cliente. QUALIFICADO (nível por indústrias).' } : r)).map(r => ({ ...r, n: norm(r.nome), qtd: 0, soma: 0 })).sort((a, b) => b.pontos - a.pontos);
     const outros = { nome: 'Outros (sem regra no gabarito)', pontos: null, motivo: 'Lance real do dia que não casou com nenhuma regra: conferir', qtd: 0, soma: 0 };
     (d.lances || []).forEach(l => {
+      // pendencia de SUPERVISOR (compromisso/RET, 0 ponto) nao e lance de vendedor: fica fora do gabarito (13/10: caia em "Outros")
+      if (l.nivel === 'supervisor' || l.regra === 'sup') return;
       const ln = norm(l.pontos_nome);
       // 1) pela CHAVE da regra do regulamento (l.regra); 2) pelo nome (compatibilidade com dado antigo)
       const cand = (l.regra && regras.find(r => r.chave === l.regra)) || regras.filter(r => r.n && (ln === r.n || ln.startsWith(r.n + ' '))).sort((a, b) => b.n.length - a.n.length)[0];
-      const alvo = cand || outros; alvo.qtd++; alvo.soma += Number(l.pontos) || 0;
+      const alvo = cand || outros; alvo.qtd++; alvo.soma += Number(l.pontos) || 0; alvo.extra = (alvo.extra || 0) + (Number(l.extra_qualificacao) || 0);
     });
     const linhas = [...regras, ...(outros.qtd ? [outros] : [])];
     const totQ = linhas.reduce((a, r) => a + r.qtd, 0), totP = linhas.reduce((a, r) => a + r.soma, 0);
     document.getElementById('gab-resumo').textContent = totQ + ' lances · ' + (totP > 0 ? '+' : '') + totP + (CANAL === 'AS' ? ' pontos na semana' : ' pontos no dia');
     tb.innerHTML = linhas.map(r => {
       const cor = r.pontos == null ? '#f59e0b' : r.pontos > 0 ? '#22c55e' : '#ef4444';
-      return '<tr' + (r.qtd ? '' : ' style="opacity:.55"') + '><td style="font-weight:700;color:#fff">' + esc(r.nome) + '</td><td style="text-align:center"><b style="color:' + cor + '">' + (r.pontos == null ? '—' : (r.pontos > 0 ? '+' : '') + r.pontos) + '</b></td><td style="color:#cbd5e1;font-size:13px">' + esc(r.motivo || '') + '</td><td style="text-align:center;font-weight:800">' + r.qtd + '</td><td style="text-align:center;font-weight:800;color:' + (r.soma >= 0 ? '#22c55e' : '#ef4444') + '">' + (r.qtd ? (r.soma > 0 ? '+' : '') + r.soma : '—') + '</td></tr>';
+      return '<tr' + (r.qtd ? '' : ' style="opacity:.55"') + '><td style="font-weight:700;color:#fff">' + esc(r.nome) + '</td><td style="text-align:center"><b style="color:' + cor + '">' + (r.pontos == null ? '—' : (r.pontos > 0 ? '+' : '') + r.pontos) + '</b></td><td style="color:#cbd5e1;font-size:13px">' + esc(r.motivo || '') + (r.extra ? '<br><small style="color:#a5b4fc">inclui +' + r.extra + ' de qualificação do pedido (Prata/Ouro/Diamante/Platina, pelo nº de indústrias)</small>' : '') + '</td><td style="text-align:center;font-weight:800">' + r.qtd + '</td><td style="text-align:center;font-weight:800;color:' + (r.soma >= 0 ? '#22c55e' : '#ef4444') + '">' + (r.qtd ? (r.soma > 0 ? '+' : '') + r.soma : '—') + '</td></tr>';
     }).join('');
   } catch (e) {
     tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--bad)">Falha ao carregar o gabarito — tente de novo.</td></tr>';

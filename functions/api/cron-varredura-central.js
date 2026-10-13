@@ -22,7 +22,7 @@
 
 import { proximaConc, lerEstado, gravaEstado, CONC_PADRAO } from '../_lib/concorrencia.js';   // concorrencia adaptativa a cota do CEVEN (12/10/2026)
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
-const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
+export const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
 const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Secret': CEVEN_APP_SECRET };
 // LIMITE PRATICO DE CHAMADAS SIMULTANEAS AO CEVEN = 6 (decisao do Vitorio, 03/10/2026; medido: ate 6 nao muda
 // a resposta, com 9 a latencia dobra). Antes: lotes de 20 RCAs x 4 chamadas = 80 simultaneas.
