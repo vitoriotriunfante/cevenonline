@@ -1002,6 +1002,13 @@ function iniciarMinhaFilial() {
 }
 
 let DADOS_OFICIAL = null, DADOS_PRE = null;
+const PRE_FORMA = {};   // rca -> { forma: ['V','E',...], dias: ['2026-10-05',...] } da pre-temporada (historico)
+async function carregaPreTemporada() {
+  try {
+    if (!DADOS_PRE) { const r = await fetch('/dados_brasileirao_pre_temporada.json?t=' + Date.now(), { cache: 'no-store' }); DADOS_PRE = r.ok ? await r.json() : null; }
+    if (DADOS_PRE) { (DADOS_PRE.vendedores || []).forEach((x) => { PRE_FORMA[String(x.rca)] = { forma: x.forma || [], dias: DADOS_PRE.dias_rodada || [] }; }); renderizarTudo(); }
+  } catch (e) { /* sem historico: a tabela oficial aparece normal */ }
+}
 async function trocarTemporada(qual) {
   try {
     if (qual === 'pre') {
@@ -1025,6 +1032,7 @@ async function carregarDados() {
     const escolhido = [gh, local].filter(valido).sort((a, b) => String(b.gerado_em).localeCompare(String(a.gerado_em)))[0];
     if (escolhido) {
       DADOS = escolhido; DADOS_OFICIAL = escolhido;
+      carregaPreTemporada();
       { const pp = document.getElementById('pillPre'); if (pp) pp.style.display = escolhido.pre_temporada ? 'inline-block' : 'none'; }
       renderizarTudo();
     }
@@ -1277,11 +1285,12 @@ async function carregarGabarito() {
     const qs = new URLSearchParams({ dia }); if (fil && fil !== 'TODAS') qs.set('filial', fil);
     const [cfg, d] = await Promise.all([fetch('/pontuacao_brasileirao.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()), buscarLancesPeriodo(dia, fil).then(p => ({ lances: p.lances }))]);
     const norm = (x) => [...String(x || '').toLowerCase().normalize('NFD')].filter(ch => /[a-z0-9 ]/.test(ch)).join('').replace(/ +/g, ' ').trim();
-    const regras = Object.values(cfg.pontos_por_lance || {}).filter(r => !(CANAL === 'AS' && regraForaDoAS(r.nome))).map(r => (CANAL === 'AS' && /^super pedido/i.test(semAcento(r.nome)) ? { ...r, motivo: 'AS: venda do dia (digitado) a partir de R$ 75.000.' } : r)).map(r => (CANAL === 'AS' && /^dobrou o mix/i.test(semAcento(r.nome)) ? { ...r, nome: NOME_MIX_AS, motivo: 'AS: pedido com 2 ou mais SKUs a mais que a média histórica do cliente. QUALIFICADO (nível por indústrias).' } : r)).map(r => ({ ...r, n: norm(r.nome), qtd: 0, soma: 0 })).sort((a, b) => b.pontos - a.pontos);
+    const regras = Object.entries(cfg.pontos_por_lance || {}).map(([k, r]) => ({ ...r, chave: k })).filter(r => !(CANAL === 'AS' && regraForaDoAS(r.nome))).map(r => (CANAL === 'AS' && /^super pedido/i.test(semAcento(r.nome)) ? { ...r, motivo: 'AS: venda do dia (digitado) a partir de R$ 75.000.' } : r)).map(r => (CANAL === 'AS' && /^dobrou o mix/i.test(semAcento(r.nome)) ? { ...r, nome: NOME_MIX_AS, motivo: 'AS: pedido com 2 ou mais SKUs a mais que a média histórica do cliente. QUALIFICADO (nível por indústrias).' } : r)).map(r => ({ ...r, n: norm(r.nome), qtd: 0, soma: 0 })).sort((a, b) => b.pontos - a.pontos);
     const outros = { nome: 'Outros (sem regra no gabarito)', pontos: null, motivo: 'Lance real do dia que não casou com nenhuma regra: conferir', qtd: 0, soma: 0 };
     (d.lances || []).forEach(l => {
       const ln = norm(l.pontos_nome);
-      const cand = regras.filter(r => r.n && (ln === r.n || ln.startsWith(r.n + ' '))).sort((a, b) => b.n.length - a.n.length)[0];
+      // 1) pela CHAVE da regra do regulamento (l.regra); 2) pelo nome (compatibilidade com dado antigo)
+      const cand = (l.regra && regras.find(r => r.chave === l.regra)) || regras.filter(r => r.n && (ln === r.n || ln.startsWith(r.n + ' '))).sort((a, b) => b.n.length - a.n.length)[0];
       const alvo = cand || outros; alvo.qtd++; alvo.soma += Number(l.pontos) || 0;
     });
     const linhas = [...regras, ...(outros.qtd ? [outros] : [])];
@@ -1515,15 +1524,18 @@ function filtrarVendedores() {
 
     // FORMA = ultimos 5 jogos (como no Brasileirao real); o historico completo fica guardado no dado e aparece ao passar o mouse.
     const formaTodos = v.forma || [];
-    // cada bolinha mostra a DATA do jogo ao passar o mouse (Vitorio, 13/10/2026): forma[i] corresponde a dias_rodada[i]
-    const diasRodada = (DADOS && DADOS.dias_rodada) || [];
+    // cada bolinha mostra a DATA do jogo ao passar o mouse (Vitorio, 13/10/2026). Na temporada oficial, os jogos da PRE-TEMPORADA (05 a 09/10) aparecem antes,
+    // mais apagados e marcados, para o historico nao sumir da frente do pessoal ("kd os jogos?"); os pontos da tabela continuam so os da temporada oficial.
     const NOME_RES = { V: 'Vitória', E: 'Empate', D: 'Derrota', J: 'Jogando (dia em andamento, ainda sem pontuação)' };
     const SEM = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-    const dataDoJogo = (i) => { const iso = diasRodada[i]; if (!iso) return ''; const [a, m, dd] = iso.split('-'); return `${dd}/${m} (${SEM[new Date(iso + 'T12:00:00').getDay()]})`; };
-    const iniUlt = Math.max(0, formaTodos.length - 5);
-    const formaHtml = formaTodos.slice(-5).map((r, k) => `<span class="dot-forma ${r}" title="${dataDoJogo(iniUlt + k) ? dataDoJogo(iniUlt + k) + ': ' : ''}${NOME_RES[r] || r}">${r}</span>`).join('') +
-      (formaTodos.length > 5 ? `<span class="forma-mais">+${formaTodos.length - 5}</span>` : '');
-    const formaTitulo = formaTodos.map((r, i) => `${dataDoJogo(i) || ('jogo ' + (i + 1))}: ${NOME_RES[r] || r}`).join(' | ');
+    const fmtDia = (iso) => { if (!iso) return ''; const [a, m, dd] = iso.split('-'); return `${dd}/${m} (${SEM[new Date(iso + 'T12:00:00').getDay()]})`; };
+    const diasRodada = (DADOS && DADOS.dias_rodada) || [];
+    const pre = (DADOS && !DADOS.pre_temporada && PRE_FORMA[String(v.rca)]) ? PRE_FORMA[String(v.rca)] : null;
+    const jogosLista = (pre ? pre.forma.map((r, i) => ({ r, dia: pre.dias[i], pre: true })) : []).concat(formaTodos.map((r, i) => ({ r, dia: diasRodada[i], pre: false })));
+    const ultimos = jogosLista.slice(-5), resto = jogosLista.length - ultimos.length;
+    const formaHtml = ultimos.map((g) => `<span class="dot-forma ${g.r}" style="${g.pre ? 'opacity:.55;outline:1px dashed #94a3b8;' : ''}" title="${fmtDia(g.dia) ? fmtDia(g.dia) + ': ' : ''}${NOME_RES[g.r] || g.r}${g.pre ? ' — pré-temporada' : ''}">${g.r}</span>`).join('') +
+      (resto > 0 ? `<span class="forma-mais">+${resto}</span>` : '');
+    const formaTitulo = jogosLista.map((g) => `${fmtDia(g.dia) || 'jogo'}: ${NOME_RES[g.r] || g.r}${g.pre ? ' (pré-temporada)' : ''}`).join(' | ');
     const streakHtml = (v.bonus_semana_invicta || 0) > 0
       ? `<span class="tag-badge tag-v" title="Semana Invicta: venceu TODOS os dias úteis de ${v.semanas_invictas} semana(s) fechada(s). +3 pts por semana. Não existe bônus por dias seguidos.">👑 +${v.bonus_semana_invicta} pts · ${v.semanas_invictas} sem. invicta</span>`
       : `<span style="color:var(--tx-mut);font-size:11px" title="Bônus = +3 pts por semana fechada com vitória em todos os dias úteis (Semana Invicta). Ainda sem semana invicta.">—</span>`;

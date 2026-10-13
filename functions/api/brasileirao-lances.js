@@ -14,6 +14,24 @@ function agoraSP() {
   return `${p.year}-${p.month}-${p.day}`;
 }
 
+// CHAVE DA REGRA DO REGULAMENTO (config/pontuacao_brasileirao.json -> pontos_por_lance) de cada lance. O gabarito casa por ESTA chave, nao por nome: o nome da API
+// ('Pênalti', 'Impedimento', 'Defesa (Recorrência)') nao era igual ao do regulamento e 8 lances de 13/10/2026 (-21 pts) caiam em 'Outros (sem regra no gabarito)'.
+function regraDoRegulamento(chave, nivel) {
+  const c = String(chave || '').replace(/^[A-Z]{3}[|]/, '');
+  const [t, sub] = c.split('|');
+  if (t === 'pen') return sub === 'fechado' ? 'penalti_fechado' : 'penalti_estoque';
+  if (t === 'def' || t === 'defesa') return 'defesa';
+  if (t === 'imp' || t === 'impedimento') return 'impedimento';
+  if (t === 'ver_dev') return 'ver_dev';
+  if (t === 'golcontra_dev' || t === 'golcontra') return 'golcontra';
+  if (t === 'ven10' || t === 'amarelo') return 'amarelo';
+  if (t === 'vis10' || t === 'vis11' || t === 'visita10' || t === 'venda10') return 'visita10';
+  if (t === 'hattrick') return 'gol_hattrick';
+  if (t === 'pedido_rota') return 'pedido_rota';
+  if (/^gol_/.test(t)) return t;
+  if (nivel === 'penalti') return 'penalti_estoque';
+  return t || null;
+}
 const REGRAS_PONTOS = {
   gol_campeao: { nome: 'Campeão da Rodada', pontos: 8, motivo: 'Bateu 100% da meta do mês' },
   gol_mp_tripla: { nome: '🌟 Tripla de Marca Própria', pontos: 10, motivo: '3 clientes no dia com R$ 50+ de Marca Própria cada' },
@@ -174,6 +192,7 @@ export async function onRequestGet({ request, env }) {
         chave: l.chave,
         pontos: pont.pontos,
         pontos_nome: pont.nome,
+        regra: regraDoRegulamento(l.chave, l.nivel),
         pontos_motivo: pont.motivo,
         qualificacao: q ? q.nivel : null,
         extra_qualificacao: q ? q.extra : 0

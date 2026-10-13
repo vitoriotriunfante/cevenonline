@@ -454,7 +454,18 @@ def eh_supervisor_de_verdade(nome):
     n = str(nome).strip().upper()
     # "GERENTE <FILIAL>", "RCAS INATIVOS" e "VENDA EMPRESA (INTERNO)" nao sao pessoas/supervisores (decisao do Vitorio, 04/10/2026)
     return not (n.startswith('GERENTE ') or n.startswith('RCAS INATIVOS') or n.startswith('VENDA EMPRESA'))
-sups_set = set((v['filial'], v['supervisor'], v['canal']) for v in vendedores_lista if v['supervisor'] and eh_supervisor_de_verdade(v['supervisor']))
+# CANAL DO SUPERVISOR = o da MAIORIA dos vendedores dele (Vitorio, 13/10/2026: "Alessandro e supervisor de AS, de onde colocou ele no Varejo?"): ele tem 4 vendedores AS e 1 VJ
+# e aparecia nas duas ligas. Cada supervisor joga em UMA liga so; o vendedor minoritario continua na tabela de vendedores, mas nao entra no time do supervisor.
+_cont_canal = {}
+for v in vendedores_lista:
+    if v['supervisor'] and eh_supervisor_de_verdade(v['supervisor']):
+        _k = (v['filial'], v['supervisor'])
+        _cont_canal.setdefault(_k, {}).setdefault(v['canal'], 0)
+        _cont_canal[_k][v['canal']] += 1
+def _canal_do_supervisor(k):
+    c = _cont_canal[k]
+    return max(c.items(), key=lambda kv: (kv[1], kv[0] == 'VAREJO'))[0]   # empate: Varejo
+sups_set = set((k[0], k[1], _canal_do_supervisor(k)) for k in _cont_canal)
 for fil, s, canal_s in sorted(sups_set):
     vends = [v for v in vendedores_lista if v['filial'] == fil and v['supervisor'] == s and v['canal'] == canal_s]
     if not vends:

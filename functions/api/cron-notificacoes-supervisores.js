@@ -1,7 +1,8 @@
 // =========================================================================
 // FICHA DO ARQUIVO: functions/api/cron-notificacoes-supervisores.js
 // O QUE É: envia, a cada UMA hora, para o sino do CEVEN, UMA notificação por supervisor com TODOS os lances da equipe dele ainda não avisados
-//          (Vitório, 06/10/2026). Origem na notificação: "Brasileirão Triunfante". A notificação chega a todos de Master/Gerente/Supervisor da filial; o texto cita o supervisor.
+//          (Vitório, 06/10/2026). Origem: "Brasileirão Triunfante". DESDE 13/10/2026 o envio leva `supervisorid`: cada supervisor recebe SO a dele (o CEVEN passou a aceitar
+//          o campo; antes a notificação ia para todos os supervisores da filial). Supervisor sem id na árvore viva NÃO é enviado (nunca vira broadcast) e aparece em `sem_id`.
 // COMO LIGA:  precisa estar LIGADO em config_flags ('notif_supervisores' = '1'); desligado por padrão. O coletor de lances chama este endpoint no começo de cada hora (09h a 20h).
 // USO:    GET ?simular=1[&filial=TBL][&supervisor=KLEBERSON]  -> mostra as mensagens que sairiam, SEM enviar nada e SEM gravar nada
 //         GET ?rodar=1                                          -> envia (se ligado); cada lance é avisado UMA vez só (notif_lance_enviado)
@@ -47,18 +48,28 @@ export async function onRequestGet({ env, request }) {
     let msgs = montaMensagens(lances, enviados, { de: primeira ? '' : (await flag('notif_supervisores_ultimo') || '').slice(11, 19), ate: agora });
     if (fFil) msgs = msgs.filter((m) => m.filial === fFil);
     if (fSup) msgs = msgs.filter((m) => m.supervisor.toUpperCase().includes(fSup));
-    if (simular) return resp({ status: 'SIMULACAO', primeira_rodada_do_dia: primeira, mensagens: msgs.map((m) => ({ filial: m.filial, supervisor: m.supervisor, lances: m.qtd, pontos: m.pontos, texto: m.texto })) });
 
+    // id do supervisor no CEVEN: arvore viva gravada em arvore_supervisores (filial + nome -> sup_id)
+    const norm = (x) => String(x || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z ]/g, ' ').replace(/\s+/g, ' ').trim();
+    const idPorSup = new Map();
+    try {
+      const { results: arv } = await env.DB.prepare("SELECT DISTINCT filial, sup_id, sup_nome FROM arvore_supervisores WHERE sup_id IS NOT NULL AND sup_id != ''").all();
+      for (const a of arv || []) idPorSup.set(String(a.filial).toUpperCase() + '|' + norm(a.sup_nome), a.sup_id);
+    } catch { /* sem arvore: nenhum envio individual */ }
+    msgs.forEach((m) => { m.supervisor_id = idPorSup.get(String(m.filial).toUpperCase() + '|' + norm(m.supervisor)) || null; });
+    if (simular) return resp({ status: 'SIMULACAO', primeira_rodada_do_dia: primeira, mensagens: msgs.map((m) => ({ filial: m.filial, supervisor: m.supervisor, supervisorid: m.supervisor_id, lances: m.qtd, pontos: m.pontos, texto: m.texto })) });
+    const semId = msgs.filter((m) => !m.supervisor_id).map((m) => ({ filial: m.filial, supervisor: m.supervisor, lances: m.qtd }));
+    msgs = msgs.filter((m) => m.supervisor_id);   // nunca broadcast: sem id nao envia (e nao marca como avisado: tenta de novo na proxima hora)
     const saida = [];
     const marca = (filial, chaves) => chaves.map((c) => env.DB.prepare("INSERT OR IGNORE INTO notif_lance_enviado (dia, filial, chave, enviado_em) VALUES (?, ?, ?, datetime('now'))").bind(t.dia, filial, String(c)));
     for (const m of msgs) {
-      const e = await enviaNotificacao(env, m.filial, 'Brasileirão Triunfante', m.texto);
+      const e = await enviaNotificacao(env, m.filial, 'Brasileirão Triunfante', m.texto, m.supervisor_id);
       saida.push({ filial: m.filial, supervisor: m.supervisor, lances: m.qtd, ok: e.ok, status: e.status || e.erro });
       if (e.ok) { const st = marca(m.filial, m.chaves); for (let i = 0; i < st.length; i += 80) await env.DB.batch(st.slice(i, i + 80)); }
     }
     if (silenciosos.length) { const por = {}; for (const l of silenciosos) if (/^[A-Z]{3}$/.test(String(l.filial || ''))) (por[l.filial] = por[l.filial] || []).push(l.chave); for (const [f, cs] of Object.entries(por)) { const st = marca(f, cs); for (let i = 0; i < st.length; i += 80) await env.DB.batch(st.slice(i, i + 80)); } }
     await env.DB.prepare("INSERT OR REPLACE INTO config_flags (chave, valor) VALUES ('notif_supervisores_ultimo', ?)").bind(`${t.dia} ${agora}`).run();
-    return resp({ status: 'ENVIADO', primeira_rodada_do_dia: primeira, notificacoes: saida.length, ok: saida.filter((x) => x.ok).length, falhas: saida.filter((x) => !x.ok), silenciosos: silenciosos.length });
+    return resp({ status: 'ENVIADO', primeira_rodada_do_dia: primeira, notificacoes: saida.length, ok: saida.filter((x) => x.ok).length, falhas: saida.filter((x) => !x.ok), sem_id: semId, silenciosos: silenciosos.length });
   } catch (e) {
     return resp({ erro: String(e.message || e).slice(0, 300) }, 500);
   }
