@@ -74,6 +74,45 @@ async function garanteRoteiroEm(env) {
 // antes das devolucoes; o dashboard do RCA mostra o liquido): serve para DESCOBRIR QUEM MUDOU e rebuscar so esses, e para pular o dashboard de quem esta identico.
 // Qualquer falha (login, rede, formato) devolve null e a varredura segue exatamente como antes.
 let tokenAdmin = { v: null, ate: 0 };
+async function tokenDoAdmin(env) {
+  if (!env.CEVEN_ADMIN_USER || !env.CEVEN_ADMIN_PASS) return null;
+  try {
+    if (!tokenAdmin.v || Date.now() > tokenAdmin.ate) {
+      const r = await fetch(`${CEVEN}/api/admin/login`, { method: 'POST', headers: { ...HDR, 'Content-Type': 'application/json' }, body: JSON.stringify({ username: env.CEVEN_ADMIN_USER, password: env.CEVEN_ADMIN_PASS }), signal: AbortSignal.timeout(6000) });
+      if (!r.ok) return null;
+      const j = await r.json();
+      if (!j.access_token) return null;
+      tokenAdmin = { v: j.access_token, ate: Date.now() + 25 * 60 * 1000 };
+    }
+    return tokenAdmin.v;
+  } catch { return null; }
+}
+// DASHBOARD DE TODOS PELO CAMINHO DO ADMIN (13/10/2026): em ~09:50 o CEVEN passou a limitar /api/rca/* a ~3 chamadas por minuto (medido: 3 a 4 e depois 429 por ~60 s),
+// mas /api/admin/view-as/rca/dashboard NAO tem essa trava (15 chamadas em 1,5 s, todas 200). Mesmo formato do /api/rca/dashboard.
+async function dashboardsAdmin(env, lista, prazoMs) {
+  const tk = await tokenDoAdmin(env);
+  const mapa = new Map();
+  if (!tk || !lista.length) return mapa;
+  const prazo = Date.now() + prazoMs;
+  let proximo = 0;
+  await Promise.all(Array.from({ length: 10 }, async () => {
+    while (true) {
+      const k = proximo++;
+      if (k >= lista.length || Date.now() > prazo) return;
+      const rca = lista[k];
+      try {
+        const r = await fetch(`${CEVEN}/api/admin/view-as/rca/dashboard?filial=${String(rca.filial || '').toLowerCase()}1&id=${rca.codigo}`, { headers: { ...HDR, Authorization: `Bearer ${tk}` }, signal: AbortSignal.timeout(8000) });
+        if (r.status === 401 || r.status === 403) { tokenAdmin = { v: null, ate: 0 }; return; }
+        if (!r.ok) continue;
+        const j = await r.json();
+        if (j && j.financeiro) mapa.set(String(rca.codigo), j);
+      } catch { /* proximo */ }
+    }
+  }));
+  return mapa;
+}
+// TRAVA DE /api/rca/* (13/10/2026): ao primeiro 429 NAO se espera nem se insiste (cada tentativa renova o bloqueio): marca ate quando esta bloqueado e o resto da rodada nem chama.
+let banRcaAte = 0;
 const hierVisto = new Map();   // rca -> ultimo valor da hierarquia que ja motivou um rebuscar (o painel admin tem metas em cache e pode divergir sempre do dashboard: nao rebusca em loop)
 async function hierarquiaAdmin(env) {
   if (!env.CEVEN_ADMIN_USER || !env.CEVEN_ADMIN_PASS) return null;
@@ -109,7 +148,11 @@ async function abreTick(env, modo, rcas) {
     tickId = r && r.meta ? r.meta.last_row_id : null;
   } catch { tickId = null; }
 }
+async function salvaBan(env) {
+  try { await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('ceven_ban_ate', ?, 'bloqueio de /api/rca/* (429) ate este instante (ms)', CURRENT_TIMESTAMP) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = CURRENT_TIMESTAMP").bind(banRcaAte).run(); } catch { /* nunca derruba */ }
+}
 async function registraTick(env, modo, rcas, gravados, duracaoMs) {
+  await salvaBan(env);
   try {
     if (tickId) {
       await env.DB.prepare('UPDATE saude_coleta SET modo = ?, rcas = ?, gravados = ?, chamadas = ?, ok = ?, r429 = ?, r401 = ?, falhas = ?, duracao_ms = ? WHERE id = ?')
@@ -132,6 +175,7 @@ async function registraTick(env, modo, rcas, gravados, duracaoMs) {
 async function getJson(url, tentativas = 2) {
   for (let t = 0; t < tentativas; t++) {
     try {
+      if (/\/api\/rca\//.test(url) && Date.now() < banRcaAte) { T.bloqueadas = (T.bloqueadas || 0) + 1; return null; }
       const espera = pausaAte - Date.now();
       if (espera > 0) await new Promise((res) => setTimeout(res, Math.min(espera, 8000)));   // no maximo 8 s de pausa por chamada: o prazo global manda
       const chamada = (async () => {
@@ -140,7 +184,8 @@ async function getJson(url, tentativas = 2) {
         if (r.status === 401 || r.status === 403) T.r401++;
         if (r.status === 429) {
           T.r429++;
-          const waitS = Number(r.headers.get('retry-after')) || 10;
+          const waitS = Number(r.headers.get('retry-after')) || 60;
+          if (/\/api\/rca\//.test(url)) { banRcaAte = Math.max(banRcaAte, Date.now() + waitS * 1000); return null; }   // /api/rca: bloqueado ate o Retry-After; nao insiste
           pausaAte = Math.max(pausaAte, Date.now() + Math.min(waitS, 30) * 1000);
           return 'RETRY';
         }
@@ -270,6 +315,7 @@ export async function onRequestGet({ env, request }) {
             (dashboard_json IS NULL OR dashboard_json = 'null') AS sem_dash,
             CAST(json_extract(dashboard_json, '$.financeiro.faturado_bruto') AS REAL) AS d_bruto,
             CAST(json_extract(dashboard_json, '$.financeiro.pendente') AS REAL) AS d_pend,
+            CAST(json_extract(dashboard_json, '$.financeiro.devolucao') AS REAL) AS d_dev,
             CAST(json_extract(dashboard_json, '$.financeiro.meta') AS REAL) AS d_meta,
             CAST(json_extract(dashboard_json, '$.positivacao.meta') AS REAL) AS d_pmeta,
             CAST(json_extract(dashboard_json, '$.positivacao.realizado') AS REAL) AS d_preal,
@@ -292,6 +338,10 @@ export async function onRequestGet({ env, request }) {
   // CONTADORES SO DEPOIS DE TER A TRAVA (12/10/2026): antes eram zerados por qualquer requisicao, inclusive as que voltavam OCUPADO, e corrompiam a contagem da rodada em andamento.
   T.chamadas = T.ok = T.r429 = T.r401 = T.falhas = 0;
   concAtual = (await lerEstado(env)).conc;
+  try {
+    const b = await env.DB.prepare("SELECT valor FROM coleta_estado WHERE chave = 'ceven_ban_ate'").first();
+    banRcaAte = Math.max(0, Number(b && b.valor) || 0);
+  } catch { banRcaAte = 0; }
   await abreTick(env, completa ? 'completa' : 'tick', rcas.length);
   try {
     // ---------- VARREDURA COMPLETA (partida a frio): os 4 endpoints de todos, como era ----------
@@ -368,9 +418,28 @@ export async function onRequestGet({ env, request }) {
 
     // 0. LACUNA DE DASHBOARD PRIMEIRO (11/10/2026): a etapa fria fica no fim e com o CEVEN limitando (429) nunca chegava a rodar; 217 RCAs ficaram o dia sem meta/faturado
     // (o /incentivo deixava esses vendedores de fora). Agora ate 15 por tick logo no inicio: ~15 chamadas, fecha a lacuna em ~30 min sem estourar a cota.
+    // 0a. DASHBOARD DE TODOS PELO ADMIN (sem a trava): grava meta/faturado/devolucao/pendente/positivacao de TODOS e descobre quem teve PEDIDO NOVO ou DEVOLUCAO NOVA.
+    const dashAdm = await dashboardsAdmin(env, rcas, 35000);
+    const admMudou = new Set(), devMudou = new Set();
+    const viaAdmin = dashAdm.size >= rcas.length * 0.5;
+    if (viaAdmin) {
+      for (const rca of rcas) {
+        const cod = String(rca.codigo), d = dashAdm.get(cod), a = ant.get(cod);
+        if (!d) continue;
+        stmts.push(upsertParcial(env, dataRef, rca, { dashboard_json: JSON.stringify(d) }));
+        if (a) {
+          const pend = Number(d.financeiro && d.financeiro.pendente) || 0, preal = Number(d.positivacao && d.positivacao.realizado) || 0, dev = Number(d.financeiro && d.financeiro.devolucao) || 0;
+          if (a.d_pend != null && (Math.abs(pend - a.d_pend) >= 0.5 || preal !== (Number(a.d_preal) || 0))) admMudou.add(cod);
+          if (a.d_dev != null && Math.abs(dev - a.d_dev) >= 0.5) devMudou.add(cod);
+        }
+        contagem.fria++;
+      }
+      await gravaLote(env, stmts.splice(0));
+    }
+    contagem.admin = { lidos: dashAdm.size, pedido_novo: admMudou.size, devolucao_nova: devMudou.size };
     {
-      const semDashPri = rcas.filter((rca) => { const a = ant.get(String(rca.codigo)); return a && a.sem_dash; });
-      const lacuna = semDashPri.concat(dashMudou).slice(0, 60);   // sem dashboard primeiro; depois quem a hierarquia diz que mudou
+      const semDashPri = viaAdmin ? [] : rcas.filter((rca) => { const a = ant.get(String(rca.codigo)); return a && a.sem_dash; });
+      const lacuna = viaAdmin ? [] : semDashPri.concat(dashMudou).slice(0, 60);   // sem dashboard primeiro; depois quem a hierarquia diz que mudou
       const ds = await poolLimitado(lacuna.map((rca) => () => getJson(urlRca('dashboard', rca), 1)), concAtual, Date.now() + 10000);
       lacuna.forEach((rca, i) => { if (ds[i]) { contagem.fria++; stmts.push(upsertParcial(env, dataRef, rca, { dashboard_json: JSON.stringify(ds[i]) })); } });
       await gravaLote(env, stmts.splice(0));
@@ -383,7 +452,11 @@ export async function onRequestGet({ env, request }) {
     const idsMudou = new Set(dashMudou.map((r) => String(r.codigo)));
     const kBase = (r) => { const a = ant.get(String(r.codigo)); return !a ? '0' : (a.sem_prod ? '1' : '2') + String(a.ua || ''); };
     let candidatos;
-    if (hier) {
+    if (viaAdmin) {
+      // cota de /api/rca/*: ~3 a 4 chamadas por minuto => ~8 por rodada. Primeiro PEDIDO NOVO, depois nunca lidos hoje, depois o mais antigo.
+      const ordem = (r) => { const cod = String(r.codigo), a = ant.get(cod); return admMudou.has(cod) ? '0' : (!a || a.sem_prod) ? '1' : '2' + String(a.ua || ''); };
+      candidatos = rcas.slice().sort((x, y) => ordem(x).localeCompare(ordem(y))).slice(0, 8);
+    } else if (hier) {
       const prioritarios = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return idsMudou.has(String(r.codigo)) || !a || a.sem_prod; });
       const idsPri = new Set(prioritarios.map((r) => String(r.codigo)));
       const rodizio = quente.filter((r) => !idsPri.has(String(r.codigo))).sort((x, y) => kBase(x).localeCompare(kBase(y))).slice(0, 40);
@@ -417,7 +490,7 @@ export async function onRequestGet({ env, request }) {
     }
 
     // 2. EVENTO: rota de quem mudou o pedido
-    const rotasEvento = await poolLimitado(mudou.map((rca) => () => getJson(urlRca('roteiro-hoje', rca))), concAtual, t0 + 60000);
+    const rotasEvento = await poolLimitado((viaAdmin ? mudou.slice(0, 6) : mudou).map((rca) => () => getJson(urlRca('roteiro-hoje', rca))), concAtual, t0 + 60000);
     mudou.forEach((rca, i) => {
       const r = rotasEvento[i];
       if (!Array.isArray(r)) return;
@@ -428,7 +501,7 @@ export async function onRequestGet({ env, request }) {
 
     // 2b. QUEM ESTA VENDENDO (pos > 0 ou digitado > 0): roteiro renovado a cada rodada, os mais velhos primeiro (ate 40). E dele que saem os gols de CLIENTE
     // (resgate, mix, quinzenas, pedido na rota); com a rota velha o gol so aparecia minutos depois, ou nunca (13/10/2026).
-    if (temRoteiroEm && Date.now() - t0 < 55000) {   // so se a rodada ainda esta cedo: passar de 170 s faz o agendador cortar tudo
+    if (temRoteiroEm && !viaAdmin && Date.now() - t0 < 55000) {   // so se a rodada ainda esta cedo: passar de 170 s faz o agendador cortar tudo
       const vendendo = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return a && (a.pos > 0 || a.dig > 0) && !jaBuscouRota.has(String(r.codigo)); })
         .sort((x, y) => String((ant.get(String(x.codigo)) || {}).roteiro_em || '').localeCompare(String((ant.get(String(y.codigo)) || {}).roteiro_em || ''))).slice(0, 40);
       const rv = await poolLimitado(vendendo.map((rca) => () => getJson(urlRca('roteiro-hoje', rca), 1)), concAtual, Date.now() + 14000);
@@ -441,7 +514,7 @@ export async function onRequestGet({ env, request }) {
     }
 
     // 3. MORNA: rota de todos, em fatias (so quem ainda nao foi buscado por evento)
-    const fatiaRota = rcas.filter((rca, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA && !jaBuscouRota.has(String(rca.codigo)));
+    const fatiaRota = viaAdmin ? [] : rcas.filter((rca, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA && !jaBuscouRota.has(String(rca.codigo)));
     const rotas = await poolLimitado(fatiaRota.map((rca) => () => getJson(urlRca('roteiro-hoje', rca))), concAtual, prazo);
     fatiaRota.forEach((rca, i) => {
       if (!Array.isArray(rotas[i])) return;
@@ -456,8 +529,10 @@ export async function onRequestGet({ env, request }) {
     // que consumiam os 30 s: 195 de 596 RCAs ficaram sem meta/faturado do mes (11/10/2026).
     const semDash = rcas.filter((rca) => { const a = ant.get(String(rca.codigo)); return a && a.sem_dash; }).slice(0, 30);
     const idsDash = new Set(semDash.map((r) => String(r.codigo)));
-    const fatiaDash = semDash.concat(rcas.filter((rca, i) => i % FATIAS_FRIA === ciclo % FATIAS_FRIA && !idsDash.has(String(rca.codigo)) && !dashIgual.has(String(rca.codigo))));   // identico na hierarquia = pula
-    const fatiaDev = hier
+    const fatiaDash = viaAdmin ? [] : semDash.concat(rcas.filter((rca, i) => i % FATIAS_FRIA === ciclo % FATIAS_FRIA && !idsDash.has(String(rca.codigo)) && !dashIgual.has(String(rca.codigo))));   // identico na hierarquia = pula
+    const fatiaDev = viaAdmin
+      ? rcas.filter((rca) => devMudou.has(String(rca.codigo))).slice(0, 6)
+      : hier
       ? rcas.filter((rca, i) => idsMudou.has(String(rca.codigo)) || i % (FATIAS_DEV * 2) === ciclo % (FATIAS_DEV * 2))   // com a hierarquia: quem mudou + 1/6 por rodada
       : rcas.filter((rca, i) => i % FATIAS_DEV === ciclo % FATIAS_DEV);
     // A etapa FRIA tem FATIA PROPRIA de tempo (05/10/2026): com o prazo geral, as etapas 1 a 3 consumiam os 100 s e a fria nunca rodava, entao painel (faturado do mes)
