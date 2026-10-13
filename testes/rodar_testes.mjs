@@ -279,7 +279,7 @@ secao('5. Agenda do Worker (wrangler.toml x index.js)');
   ok(cronsToml.length >= 8, `wrangler.toml tem os gatilhos (${cronsToml.length})`);
   ok(JSON.stringify(cronsToml) === JSON.stringify(cronsJs), 'gatilhos do wrangler.toml e do index.js sao os mesmos (se mudar um, tem que mudar o outro)');
   ok(!cronsToml.some(c => /\* \* 1-5$/.test(c)), 'nenhum gatilho usa dia da semana 1-5 (no Cloudflare 1 = domingo)');
-  ok(cronsToml.filter(c => /\* \* 2-6$/.test(c)).length === 7, 'os 6 gatilhos comerciais + a classificacao da Liga (13/10/2026) usam 2-6 (segunda a sexta)');
+  ok(cronsToml.filter(c => /\* \* 2-6$/.test(c)).length === 6, 'os 6 gatilhos comerciais usam 2-6 (segunda a sexta)');
 }
 
 // ---------------------------------------------------------------- 5b. relogios da TV no Worker
@@ -298,7 +298,9 @@ secao('5b. Relogios da TV no Worker (varredura, lances, mapa, faturado)');
   for (const [cron, rotas] of Object.entries(esperado)) {
     chamadas.length = 0;
     await w.scheduled({ cron }, {}, {});
-    ok(JSON.stringify(chamadas) === JSON.stringify(rotas.map(x => 'https://ceven-cftv-matrix.pages.dev' + x)), `gatilho "${cron}" chama ${rotas.join(' e ')}, nessa ordem`);
+    ok(JSON.stringify(chamadas.filter((u) => !u.startsWith('https://api.github.com'))) === JSON.stringify(rotas.map(x => 'https://ceven-cftv-matrix.pages.dev' + x)), `gatilho "${cron}" chama ${rotas.join(' e ')}, nessa ordem`);
+  }
+  { const src = ler('worker-cron/src/index.js'); ok(src.includes("event.cron === '2-59/15 * * * *'") && src.includes("dispararWorkflow(env, 'brasileirao-dataset.yml'") && src.includes('h >= 7 && h <= 20'), 'Liga ao vivo: o relogio de 15 em 15 min dispara brasileirao-dataset.yml (seg-sex, 07h-20h45 BRT)');
   }
   for (const wf of ['tv-varredura-central-cron', 'tv-lances-cron', 'tv-executiva-mapa-live', 'tv-faturado-mes-cron', 'ceven-cron-datalake']) {
     const y = ler(`.github/workflows/${wf}.yml`);
