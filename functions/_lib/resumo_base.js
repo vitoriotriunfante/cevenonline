@@ -13,6 +13,7 @@ const CAMPOS = `CAST(json_extract(dashboard_json, '$.financeiro.faturado') AS RE
                 CAST(json_extract(dashboard_json, '$.financeiro.meta') AS REAL) AS meta,
                 CAST(json_extract(dashboard_json, '$.positivacao.realizado') AS REAL) AS pos,
                 CAST(json_extract(dashboard_json, '$.positivacao.meta') AS REAL) AS pmeta,
+                CAST(COALESCE(json_extract(produtividade_json, '$.dia.dig_pedido'), 0) AS REAL) AS dig,
                 (json_extract(dashboard_json, '$.financeiro') IS NOT NULL) AS tem`;
 
 // UNIVERSO = ARVORE VIVA DO CEVEN (Vitorio, 13/10/2026: "a fonte soberana e o CEVEN, a arvore e viva"; o RCA 218 existia na nossa base com meta de R$ 166 mil e o app do
@@ -44,9 +45,16 @@ export async function calculaResumoMes(env, dataRef) {
     for (const p of prev || []) if (p.tem) anterior.set(String(p.r), p);   // ordenado por dia: o mais recente vence
   }
   const porFilial = {};
-  const nova = () => ({ faturado: 0, pendente: 0, metaFaturado: 0, positivados: 0, metaPositivados: 0, rcas: 0 });
+  const nova = () => ({ faturado: 0, pendente: 0, metaFaturado: 0, positivados: 0, metaPositivados: 0, digitado: 0, rcas: 0 });
   const total = nova();
   let deHoje = 0, anteriores = 0, semLeitura = 0, maisAntiga = null;
+  // DIGITADO DE HOJE (13/10/2026): soma do dia de TODOS os RCAs da arvore, da mesma base. So conta a leitura de HOJE (nunca de dia anterior). Antes a Matriz lia o
+  // digitado de uma copia (mapa_executivo_live, atualizada de tempos em tempos) e ficava R$ 20 mil abaixo da Sala de controle no mesmo minuto.
+  for (const l of linhas) {
+    const sigd = String(l.f || '').toUpperCase();
+    const ad = porFilial[sigd] || (porFilial[sigd] = nova());
+    ad.digitado += Number(l.dig) || 0; total.digitado += Number(l.dig) || 0;
+  }
   for (const l of linhas) {
     let src = l;
     if (l.tem) deHoje++;
