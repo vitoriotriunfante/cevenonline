@@ -1,8 +1,8 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 TPH — FÁBIO • 08/10/2026
+📍 TPH — FÁBIO • 13/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/10/2026 a 08/10/2026)*
+*ACUMULADO DO MÊS (01/10/2026 a 13/10/2026)*
 💰 R$ 15.861,07 • 19 PDVs • ✂️ R$ 5,60 (2 un)
 👤 RODRIGO BERTONI — R$ 10.152,80 (1 PDVs)
 👤 EDI CARLOS MEIRA — R$ 5.256,54 (8 PDVs)
@@ -10,33 +10,5 @@
 👤 PRISCILA A D NASCIMENTO STRAPASSON — R$ 85,12 (1 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (07/10/2026)*
-💰 R$ 672,39 • 5 PDVs positivados
-👤 PRISCILA A D NASCIMENTO STRAPASSON — R$ 85,12 (1 PDVs)
-👤 EDERSON SUONSKI — R$ 113,31 (3 PDVs)
-👤 EDI CARLOS MEIRA — R$ 473,96 (1 PDVs)
-
-🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (14)*
-_(fez pedido ontem, mas nenhum item era marca própria)_
-
-👤 *CRISTIAN EDUARDO RAFFAELLI*
-  • MIQUEIAS LOPES DE MATOS RODRIGUES — nunca vendeu MP
-  • TATIANE BILL — nunca vendeu MP
-
-👤 *PRISCILA A D NASCIMENTO STRAPASSON*
-  • VICTORIA DE MENEZES RIBEIRO — nunca vendeu MP
-  • SIRLENE DE FATIMA BORGES — 115d sem vender MP
-  • EDERSON LUIZ RIBEIRO — 15d sem vender MP
-  • FLORENTINO PIANA NETO — 13d sem vender MP
-
-👤 *EDERSON SUONSKI*
-  • JOAO CLEMENTE DE LARA — 3d sem vender MP
-  • DAVID WILLIAN NUNES AMARAL — 2d sem vender MP
-
-👤 *EDI CARLOS MEIRA*
-  • MEIRY ALESSANDRA KAVALKIEVIZ — 20d sem vender MP
-  • JANAINA FARIA — 17d sem vender MP
-  • CHARLENE ANCINEIDE DA ROSA — 8d sem vender MP
-  • MAICO ADILTON PRESTES — 2d sem vender MP
-  • EMILLEI CARNEIRO — 2d sem vender MP
-  • BRUNO AMARAL — 2d sem vender MP
+*COMO FECHOU ONTEM (12/10/2026)*
+💰 R$ 0,00 • 0 PDVs positivados

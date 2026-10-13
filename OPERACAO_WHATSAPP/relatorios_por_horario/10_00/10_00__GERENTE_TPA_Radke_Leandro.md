@@ -1,32 +1,12 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 TPA — RADKE / LEANDRO • 08/10/2026
+📍 TPA — RADKE / LEANDRO • 13/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/10/2026 a 08/10/2026)*
+*ACUMULADO DO MÊS (01/10/2026 a 13/10/2026)*
 💰 R$ 1.401,05 • 12 PDVs • ✂️ R$ 64,38 (21 un)
 👤 ROGERIO DORNELLES PASSOS — R$ 1.144,85 (11 PDVs)
 👤 RAFAEL DA SILVA CARPENA — R$ 256,20 (1 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (07/10/2026)*
-💰 R$ 377,02 • 2 PDVs positivados
-👤 ROGERIO DORNELLES PASSOS — R$ 377,02 (2 PDVs)
-
-🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (10)*
-_(fez pedido ontem, mas nenhum item era marca própria)_
-
-👤 *RAFAEL DA SILVA CARPENA*
-  • BRUNO SPENGLER — 56d sem vender MP
-  • ROMULO MICHAEL SEEFELDT — 22d sem vender MP
-  • RINALDO DA SILVA — 16d sem vender MP
-  • TIAGO RANGEL — 6d sem vender MP
-
-👤 *ROGERIO DORNELLES PASSOS*
-  • EDUARDO BATISTA PINTO — 27d sem vender MP
-  • JOEL MENDES DOS SANTOS — 16d sem vender MP
-  • ORLI CLOVIS OLIVEIRA COSTA — 9d sem vender MP
-
-👤 *ANDERSON GIOVANI FERREIRA BOLTER*
-  • LEONARDO BITTENCOURT DOS SANTOS — 85d sem vender MP
-  • RENATA THEISEN LEMOS — 43d sem vender MP
-  • DAVID LUIZ ROMEIRA BOMBARDELLI — 13d sem vender MP
+*COMO FECHOU ONTEM (12/10/2026)*
+💰 R$ 0,00 • 0 PDVs positivados

@@ -1,51 +1,13 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 API — MARCELO • 08/10/2026
+📍 API — MARCELO • 13/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/10/2026 a 08/10/2026)*
+*ACUMULADO DO MÊS (01/10/2026 a 13/10/2026)*
 💰 R$ 1.578,45 • 26 PDVs • ✂️ R$ 37,51 (12 un)
 👤 WASHINGTON FLORES DA ROSA — R$ 646,30 (10 PDVs)
 👤 RODRIGO FARIAS — R$ 621,21 (8 PDVs)
 👤 SUELI APARECIDA TEIXEIRA POLLI — R$ 310,94 (8 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (07/10/2026)*
-💰 R$ 427,98 • 4 PDVs positivados
-👤 WASHINGTON FLORES DA ROSA — R$ 244,26 (2 PDVs)
-👤 RODRIGO FARIAS — R$ 176,52 (1 PDVs)
-👤 SUELI APARECIDA TEIXEIRA POLLI — R$ 7,20 (1 PDVs)
-
-🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (24)*
-_(fez pedido ontem, mas nenhum item era marca própria)_
-
-👤 *RODRIGO FARIAS*
-  • EDER DA SILVA VIANA — nunca vendeu MP
-  • ALINE MARIA RAMOS — nunca vendeu MP
-  • THAIS LIMA DE SOUZA VINTEM — 85d sem vender MP
-  • PLINIO BULDUINO VIANA — 50d sem vender MP
-  • FABIO LOPES FIDELIZ — 44d sem vender MP
-  • GLACILDA FARIA CRUZ — 23d sem vender MP
-  • MARIA CRISTINA — 22d sem vender MP
-  • BEATRIZ APARECIDA CRUZ VICENTE — 14d sem vender MP
-  • LIDIANE CRISTINA HENNING — 10d sem vender MP
-  • RAFAEL MACHADO DE SOUZA — 7d sem vender MP
-  • RODRIGO MARGULSKI — 2d sem vender MP
-
-👤 *WASHINGTON FLORES DA ROSA*
-  • LUCIANA AGATA PINTO — nunca vendeu MP
-  • JORGE DOS SANTOS — 57d sem vender MP
-  • FLAVIO ALVES DA SILVA — 10d sem vender MP
-  • MARCIA MARTINS GONCALVES — 8d sem vender MP
-  • ANA CAROLINA MACIEL BROTO — 7d sem vender MP
-  • WILLIANS DE ALCANTRA CORREA — 7d sem vender MP
-  • CLEVERSON RODRIGUES FERREIRA — 7d sem vender MP
-  • MARCOS AURELIO BATISTA NOGUEIRA — 6d sem vender MP
-  • MARIA MADALENA — 3d sem vender MP
-
-👤 *SUELI APARECIDA TEIXEIRA POLLI*
-  • PEDRO HENRIQUE DESCHK GOMES — 9d sem vender MP
-  • FELIPE CARDOSO — 3d sem vender MP
-  • EDINEI DIEGO SPECHT — 2d sem vender MP
-
-👤 *ALESSANDRO JUNIOR LOPES*
-  • FABIO HENRIQUE ANDRADE DA SILVA — 44d sem vender MP
+*COMO FECHOU ONTEM (12/10/2026)*
+💰 R$ 0,00 • 0 PDVs positivados

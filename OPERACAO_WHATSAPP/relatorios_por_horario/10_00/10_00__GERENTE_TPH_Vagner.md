@@ -1,46 +1,13 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 TPH — VAGNER • 08/10/2026
+📍 TPH — VAGNER • 13/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/10/2026 a 08/10/2026)*
+*ACUMULADO DO MÊS (01/10/2026 a 13/10/2026)*
 💰 R$ 384,60 • 5 PDVs • ✂️ R$ 5,60 (2 un)
 👤 ANDREY CAMILLO PIRAGINE — R$ 279,04 (2 PDVs)
 👤 JONATHAN FERNANDES — R$ 83,93 (2 PDVs)
 👤 JEFFERSON POLETTO — R$ 21,63 (1 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (07/10/2026)*
+*COMO FECHOU ONTEM (12/10/2026)*
 💰 R$ 0,00 • 0 PDVs positivados
-
-🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (20)*
-_(fez pedido ontem, mas nenhum item era marca própria)_
-
-👤 *ANDREY CAMILLO PIRAGINE*
-  • MARCIA SILVA DO NASCIMENTO — 22d sem vender MP
-  • FABIANA MARIA DE SOUSA SANTOS — 16d sem vender MP
-  • ALEXANDRE FERREIRA WERNICKE — 10d sem vender MP
-  • PRISCILA DE BONFIM CORDEIRO — 9d sem vender MP
-  • ALDER ALVES BELINI — 8d sem vender MP
-  • ALEXSANDRO LIMA CARDOZO — 6d sem vender MP
-
-👤 *LUIZ AUGUSTO RAMOS*
-  • LUCAS GABRIEL PEDROSO — 119d sem vender MP
-  • DEISI DE SOUZA DA SILVA — 38d sem vender MP
-  • GERMANO LEMOS CAVALHEIRO JUNIOR — 13d sem vender MP
-
-👤 *RODRIGO DE ARRUDA DARROS*
-  • MARCELO HOLOVATY — nunca vendeu MP
-
-👤 *JONATHAN FERNANDES*
-  • JULIA DE OLIVEIRA BATISTA — nunca vendeu MP
-  • PAOLA CRISTINA LEAL COLLI — nunca vendeu MP
-  • ALTEMIO HENRIQUE DIVINO — nunca vendeu MP
-  • MARCELO LUIZ DE ALMEIDA GARRETT — nunca vendeu MP
-  • RUI MATEUS ANSAK — nunca vendeu MP
-  • NATIELY KAUANA TEODORO DONATO — 6d sem vender MP
-  • THACIANE REGINA CORDEIRO DE CASTRO — 2d sem vender MP
-
-👤 *JEFFERSON POLETTO*
-  • CLAUDIO EIZO BRANCO — nunca vendeu MP
-  • CLAUDEMIR LINO DE ALMEIDA — 113d sem vender MP
-  • RENAN LECHUK — 6d sem vender MP
