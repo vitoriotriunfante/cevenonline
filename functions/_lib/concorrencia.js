@@ -4,24 +4,27 @@
 //          em vez de chutar um número, a varredura mede (429 por rodada) e ajusta sozinha — reduz rápido, sobe devagar (AIMD simplificado).
 // REGRAS:
 //   - menos de 60 chamadas na rodada = pouca informação: não muda nada;
-//   - mais de 5% das chamadas com 429 = reduz 1 (mínimo CONC_MIN);
-//   - nenhum 429 em 3 rodadas calmas seguidas (com 60+ chamadas) = sobe 1 (máximo CONC_MAX = limite prático medido, 6);
+//   - mais de 20% das chamadas com 429 = reduz 1 (mínimo CONC_MIN = 3);
+//   - até 5% de 429 em 3 rodadas seguidas (com 60+ chamadas) = sobe 1 (máximo CONC_MAX = limite prático medido, 6);
+//   - entre 5% e 20% = mantém. MEDIDO em 12/10/2026: com concorrência 4 e ~10% de 429 a base ficou completa (7 leituras com +15 min);
+//     com 2 ficou para trás (97). O objetivo é COBERTURA da base, não zero 429 — o 429 só custa uma pausa e a chamada é refeita.
 //   - 401/403 NÃO é cota: não mexe (é a chave; o /saude avisa).
 // ESTADO: tabela coleta_estado (chave, valor). Nunca derruba a coleta: qualquer erro de banco devolve o padrão.
 // =========================================================================
-export const CONC_MIN = 2, CONC_MAX = 6, CONC_PADRAO = 4;
-export const MIN_CHAMADAS = 60, LIMIAR_429 = 0.05, CALMOS_PARA_SUBIR = 3;
+export const CONC_MIN = 3, CONC_MAX = 6, CONC_PADRAO = 4;
+export const MIN_CHAMADAS = 60, LIMIAR_REDUZ = 0.20, LIMIAR_CALMO = 0.05, CALMOS_PARA_SUBIR = 3;
 
 export function proximaConc({ conc, calmos = 0, chamadas = 0, r429 = 0 }) {
   const c = Math.min(CONC_MAX, Math.max(CONC_MIN, Math.round(Number(conc) || CONC_PADRAO)));
   if (chamadas < MIN_CHAMADAS) return { conc: c, calmos, motivo: 'pouca informação' };
-  if (r429 / chamadas > LIMIAR_429) return { conc: Math.max(CONC_MIN, c - 1), calmos: 0, motivo: `429 em ${Math.round((r429 / chamadas) * 100)}% das chamadas: reduz` };
-  if (r429 === 0) {
+  const razao = r429 / chamadas;
+  if (razao > LIMIAR_REDUZ) return { conc: Math.max(CONC_MIN, c - 1), calmos: 0, motivo: `429 em ${Math.round((r429 / chamadas) * 100)}% das chamadas: reduz` };
+  if (razao <= LIMIAR_CALMO) {
     const n = calmos + 1;
-    if (n >= CALMOS_PARA_SUBIR && c < CONC_MAX) return { conc: c + 1, calmos: 0, motivo: `${n} rodadas sem 429: sobe` };
+    if (n >= CALMOS_PARA_SUBIR && c < CONC_MAX) return { conc: c + 1, calmos: 0, motivo: `${n} rodadas com 429 baixo: sobe` };
     return { conc: c, calmos: n, motivo: `calmo (${n}/${CALMOS_PARA_SUBIR})` };
   }
-  return { conc: c, calmos: 0, motivo: 'alguns 429, abaixo do limiar: mantém' };
+  return { conc: c, calmos: 0, motivo: `429 em ${Math.round(razao * 100)}%: mantém (cobertura vale mais que zero 429)` };
 }
 
 async function garante(env) {

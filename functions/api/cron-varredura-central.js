@@ -182,9 +182,6 @@ export async function onRequestGet({ env, request }) {
   const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: cors });
 
   const t0 = Date.now();
-  T.chamadas = T.ok = T.r429 = T.r401 = T.falhas = 0;
-  const estadoConc = await lerEstado(env);
-  concAtual = estadoConc.conc;
   const dataRef = dataHojeBrasilia();
   const urlParams = new URL(request.url).searchParams;
   const forcar = urlParams.has('forcar');
@@ -245,6 +242,9 @@ export async function onRequestGet({ env, request }) {
     return resp({ status: 'OCUPADO', motivo: 'outra rodada da varredura esta em andamento', slot: l || null });
   }
 
+  // CONTADORES SO DEPOIS DE TER A TRAVA (12/10/2026): antes eram zerados por qualquer requisicao, inclusive as que voltavam OCUPADO, e corrompiam a contagem da rodada em andamento.
+  T.chamadas = T.ok = T.r429 = T.r401 = T.falhas = 0;
+  concAtual = (await lerEstado(env)).conc;
   try {
     // ---------- VARREDURA COMPLETA (partida a frio): os 4 endpoints de todos, como era ----------
     if (completa) {
@@ -401,11 +401,12 @@ export async function onRequestGet({ env, request }) {
 
     // Encadeia o MAPA DA EXECUTIVA logo apos a rodada (05/10/2026): antes ele rodava em cron proprio de 5 em 5 min e o atraso se somava ao da varredura
     // (pedido novo levava ate ~8 min para chegar na Executiva). So se sobrou tempo antes de a trava expirar (150 s).
+    // telemetria ANTES da etapa do mapa (que pode demorar ate 30 s e estourar o prazo do agendador)
+    await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);
     let mapa = 'pulado';
     if (Date.now() - t0 < 85000) {
       try { const rm = await fetch(new URL('/api/cron-mapa-executivo', request.url), { signal: AbortSignal.timeout(30000) }); const jm = await rm.json().catch(() => ({})); mapa = jm.status || String(rm.status); } catch { mapa = 'falhou'; }
     }
-    await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);
     return resp({ status: 'ATUALIZADO', modo: 'tick', ciclo, data_ref: dataRef, rcas_total: rcas.length, ...contagem, mudaram: mudou.length, mapa, duracao_ms: Date.now() - t0 });
   } finally {
     if (!filialParam) await soltaSlot(env, dono);

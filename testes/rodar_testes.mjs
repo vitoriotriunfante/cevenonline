@@ -757,21 +757,24 @@ secao('10. Painel /saude (sala de controle) e telemetria da coleta');
   ok(fm.includes('incompletas') && fm.includes('0.9'), 'resumo do mes nao sobrescreve a meta com leitura incompleta (filial com menos de 90% dos RCAs)');
 }
 
-secao('11. Concorrencia adaptativa da coleta (Frente B): reduz com 429, sobe devagar, nunca passa de 6 nem abaixo de 2');
+secao('11. Concorrencia adaptativa da coleta (Frente B): reduz so com 429 alto, sobe devagar, nunca passa de 6 nem abaixo de 3');
 {
   const { proximaConc, CONC_MIN, CONC_MAX } = await import(pathToFileURL(join(RAIZ, 'functions', '_lib', 'concorrencia.js')).href);
-  ok(CONC_MAX === 6 && CONC_MIN === 2, 'limites 2 a 6');
+  ok(CONC_MAX === 6 && CONC_MIN === 3, 'limites 3 a 6');
   ok(proximaConc({ conc: 4, chamadas: 20, r429: 10 }).conc === 4, 'pouca informacao (menos de 60 chamadas): nao muda');
-  ok(proximaConc({ conc: 4, chamadas: 200, r429: 30 }).conc === 3, '15% de 429: reduz 1');
-  ok(proximaConc({ conc: 2, chamadas: 200, r429: 60 }).conc === 2, 'nunca abaixo do minimo');
-  let e = { conc: 3, calmos: 0 };
-  for (let i = 0; i < 2; i++) e = proximaConc({ ...e, chamadas: 200, r429: 0 });
-  ok(e.conc === 3 && e.calmos === 2, 'duas rodadas calmas ainda nao sobem');
-  e = proximaConc({ ...e, chamadas: 200, r429: 0 });
-  ok(e.conc === 4 && e.calmos === 0, 'a terceira rodada calma sobe 1');
+  ok(proximaConc({ conc: 4, chamadas: 200, r429: 60 }).conc === 3, '30% de 429: reduz 1');
+  ok(proximaConc({ conc: 4, chamadas: 200, r429: 20 }).conc === 4, '10% de 429 (o que se mediu em 12/10): mantem, a base fica completa');
+  ok(proximaConc({ conc: 3, chamadas: 200, r429: 120 }).conc === 3, 'nunca abaixo do minimo');
+  let e = { conc: 4, calmos: 0 };
+  for (let i = 0; i < 2; i++) e = proximaConc({ ...e, chamadas: 200, r429: 4 });
+  ok(e.conc === 4 && e.calmos === 2, 'duas rodadas calmas ainda nao sobem');
+  e = proximaConc({ ...e, chamadas: 200, r429: 4 });
+  ok(e.conc === 5 && e.calmos === 0, 'a terceira rodada calma sobe 1');
   ok(proximaConc({ conc: 6, calmos: 5, chamadas: 200, r429: 0 }).conc === 6, 'nunca acima do teto de 6');
-  ok(proximaConc({ conc: 4, calmos: 2, chamadas: 200, r429: 4 }).conc === 4 && proximaConc({ conc: 4, calmos: 2, chamadas: 200, r429: 4 }).calmos === 0, 'poucos 429 (abaixo de 5%): mantem e zera a contagem de calmos');
-  ok(ler('functions/api/saude.js').includes('coleta_estado') && ler('public/saude.html').includes('Chamadas simultâneas'), '/saude mostra a concorrencia atual');
+  ok(proximaConc({ conc: 4, calmos: 2, chamadas: 200, r429: 16 }).calmos === 0, '8% de 429: mantem e zera a contagem de calmos');
+  ok(ler('functions/api/saude.js').includes('coleta_estado') && ler('public/saude.html').includes('Chamadas simult'), '/saude mostra a concorrencia atual');
+  const vc = ler('functions/api/cron-varredura-central.js');
+  ok(vc.indexOf('T.chamadas = T.ok = T.r429') > vc.indexOf('if (!slot) {'), 'contadores da telemetria so sao zerados depois de ter a trava (requisicao OCUPADO nao corrompe a rodada)');
 }
 
 console.log(`\nRESULTADO: ${total - falhas} de ${total} verificacoes OK` + (falhas ? ` | ${falhas} FALHARAM` : ''));
