@@ -118,6 +118,7 @@ async function dashboardsAdmin(env, lista, prazoMs) {
 }
 // TRAVA DE /api/rca/* (13/10/2026): ao primeiro 429 NAO se espera nem se insiste (cada tentativa renova o bloqueio): marca ate quando esta bloqueado e o resto da rodada nem chama.
 let banRcaAte = 0;
+let tickFim = Infinity;   // instante limite desta rodada (para o pacing decidir se vale esperar a janela da cota)
 const hierVisto = new Map();   // rca -> ultimo valor da hierarquia que ja motivou um rebuscar (o painel admin tem metas em cache e pode divergir sempre do dashboard: nao rebusca em loop)
 async function hierarquiaAdmin(env) {
   if (!env.CEVEN_ADMIN_USER || !env.CEVEN_ADMIN_PASS) return null;
@@ -180,7 +181,12 @@ async function registraTick(env, modo, rcas, gravados, duracaoMs) {
 async function getJson(url, tentativas = 2) {
   for (let t = 0; t < tentativas; t++) {
     try {
-      if (/\/api\/rca\//.test(url) && Date.now() < banRcaAte) { T.bloqueadas = (T.bloqueadas || 0) + 1; return null; }
+      if (/\/api\/rca\//.test(url) && Date.now() < banRcaAte) {
+        // PACING: cota do CEVEN ~3 chamadas por janela de ~60 s. Se a janela abre ainda dentro desta rodada, espera e chama (rende ~6 por rodada em vez de 3); senao, pula.
+        const resta = banRcaAte - Date.now();
+        if (resta <= 35000 && Date.now() + resta + 1500 < tickFim) await new Promise((res) => setTimeout(res, resta + 1000));
+        else { T.bloqueadas = (T.bloqueadas || 0) + 1; return null; }
+      }
       const espera = pausaAte - Date.now();
       if (espera > 0) await new Promise((res) => setTimeout(res, Math.min(espera, 8000)));   // no maximo 8 s de pausa por chamada: o prazo global manda
       const chamada = (async () => {
@@ -342,6 +348,7 @@ export async function onRequestGet({ env, request }) {
 
   // CONTADORES SO DEPOIS DE TER A TRAVA (12/10/2026): antes eram zerados por qualquer requisicao, inclusive as que voltavam OCUPADO, e corrompiam a contagem da rodada em andamento.
   T.chamadas = T.ok = T.r429 = T.r401 = T.falhas = 0;
+  tickFim = Date.now() + PRAZO_GLOBAL_MS - 15000;
   concAtual = (await lerEstado(env)).conc;
   try {
     const b = await env.DB.prepare("SELECT valor FROM coleta_estado WHERE chave = 'ceven_ban_ate'").first();
@@ -461,7 +468,7 @@ export async function onRequestGet({ env, request }) {
     if (viaAdmin) {
       // cota de /api/rca/*: ~3 a 4 chamadas por minuto => ~8 por rodada. Primeiro PEDIDO NOVO, depois nunca lidos hoje, depois o mais antigo.
       const ordem = (r) => { const cod = String(r.codigo), a = ant.get(cod); return admMudou.has(cod) ? '0' : (!a || a.sem_prod) ? '1' : '2' + String(a.ua || ''); };
-      candidatos = rcas.slice().sort((x, y) => ordem(x).localeCompare(ordem(y))).slice(0, 8);
+      candidatos = rcas.slice().sort((x, y) => ordem(x).localeCompare(ordem(y))).slice(0, 14);
     } else if (hier) {
       const prioritarios = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return idsMudou.has(String(r.codigo)) || !a || a.sem_prod; });
       const idsPri = new Set(prioritarios.map((r) => String(r.codigo)));
