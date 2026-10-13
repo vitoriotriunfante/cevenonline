@@ -160,11 +160,23 @@ async function safeGet(url, maxRetries = 3, timeout = 10000) {
 // 1. Autenticação no CEVEN Admin
 async function getAdminToken() {
   if (!CEVEN_USER || !CEVEN_PASS) throw new Error('segredos CEVEN_ADMIN_USER / CEVEN_ADMIN_PASS nao configurados');
-  const res = await axios.post(`${CEVEN_BASE}/api/admin/login`, {
-    username: CEVEN_USER,
-    password: CEVEN_PASS
-  }, { timeout: 10000 });
-  return res.data.access_token;
+  // 13/10/2026 07:45: o login deu timeout de 10 s numa hora de pico do CEVEN e o ciclo inteiro foi ABORTADO sem tentar de novo. Agora: 5 tentativas,
+  // 30 s cada, com pausa crescente (e respeita Retry-After no 429).
+  let ultimoErro = null;
+  for (let t = 1; t <= 5; t++) {
+    try {
+      const res = await axios.post(`${CEVEN_BASE}/api/admin/login`, { username: CEVEN_USER, password: CEVEN_PASS }, { timeout: 30000 });
+      if (res.data && res.data.access_token) return res.data.access_token;
+      ultimoErro = new Error('login sem access_token');
+    } catch (e) {
+      ultimoErro = e;
+      const ra = Number(e && e.response && e.response.headers && e.response.headers['retry-after']) || 0;
+      console.log(`   login admin: tentativa ${t}/5 falhou (${e && e.message})`);
+      if (e && e.response && (e.response.status === 401 || e.response.status === 403)) break;   // credencial recusada: repetir nao adianta
+      if (t < 5) await new Promise((r) => setTimeout(r, Math.min(Math.max(ra * 1000, t * 5000), 30000)));
+    }
+  }
+  throw ultimoErro || new Error('login admin falhou');
 }
 
 // Lista Oficial dos 14 Gerentes de Filial
