@@ -20,7 +20,7 @@ const wrangler = (args) => execFileSync(process.platform === 'win32' ? 'npx.cmd'
   const novos = [];
   for (const [fil, lista] of Object.entries(tm.filiais || {})) for (const x of lista) {
     if (!x.novo_na_arvore) continue;
-    if (x.vinculo === 'REPRESENTANTE' || x.vinculo === 'PROMOTOR') continue;
+    if (x.vinculo === 'PROMOTOR') continue;   // representante liberado em 13/10/2026
     novos.push({ filial: fil, ...x });
   }
   console.log('Novos na árvore a incluir:', novos.length, novos.map((n) => `${n.filial} ${n.rca} ${n.nome}`).join(' | '));

@@ -850,7 +850,7 @@ table { font-size: clamp(11px, .95vw, 13px) !important; }
 
       <select id="filtro-vinculo" class="select-filter" onchange="filtrarTabela()" title="Representante aparece nos painéis (meta e vendas) mas NÃO é cobrado: sem lance, cartão, pênalti, Liga, incentivo, zerados ou WhatsApp">
         <option value="TODOS">Todos os Vínculos</option>
-        <option value="REPRESENTANTE">Somente Representantes (não cobrados)</option>
+        <option value="REPRESENTANTE">Somente Representantes</option>
         <option value="CLT">Somente CLT (cobrados)</option>
         <option value="INTERNO">Somente Internos</option>
         <option value="PROMOTOR">Promotores (fora de tudo)</option>
@@ -1168,13 +1168,13 @@ function participaDe(v, flag) {
   const ov = v.participa && typeof v.participa === 'object' ? v.participa[flag] : undefined;
   if (vinculoDe(v) === 'PROMOTOR') return false;
   if (typeof ov === 'boolean') return ov;
-  if (vinculoDe(v) === 'REPRESENTANTE') return false;
+  // representante liberado pelo juridico em 13/10/2026 (antes: return false)
   if (v.mostra === false) return false;
   return true;
 }
 function celulaVinculo(r) {
   const vin = vinculoDe(r), rep = vin === 'REPRESENTANTE';
-  const selo = vin === 'REPRESENTANTE' ? '<span style="background:#b45309;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;">REP · não cobrado</span>'
+  const selo = vin === 'REPRESENTANTE' ? '<span style="background:#b45309;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;">REPRESENTANTE</span>'
     : vin === 'PROMOTOR' ? '<span style="background:#475569;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;">PROMOTOR · fora de tudo</span>'
     : vin === 'INTERNO' ? '<span style="background:#0e7490;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;">INTERNO</span>'
     : '<span style="color:var(--tx-mut);font-size:11px;">CLT</span>';
@@ -1182,7 +1182,7 @@ function celulaVinculo(r) {
   const flags = FLAGS_PARTICIPA.map(([f, nome]) => `<label style="display:block;font-size:11px;color:#cbd5e1;margin:2px 0;"><input type="checkbox" ${participaDe(r, f) ? 'checked' : ''} onchange="definirParticipa('${r.fil}','${r.rca}','${f}',this.checked)"> ${nome}</label>`).join('');
   return `${selo}
     <select style="margin-top:4px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.15);color:#e2e8f0;border-radius:4px;font-size:11px;padding:3px;display:block;" onchange="definirVinculo('${r.fil}','${r.rca}',this.value)">
-      <option value="CLT" ${vin === 'CLT' ? 'selected' : ''}>CLT (cobrado)</option><option value="INTERNO" ${vin === 'INTERNO' ? 'selected' : ''}>Interno (cobrado)</option><option value="REPRESENTANTE" ${rep ? 'selected' : ''}>Representante (não cobrado)</option><option value="PROMOTOR" ${vin === 'PROMOTOR' ? 'selected' : ''}>Promotor (fora de tudo)</option>
+      <option value="CLT" ${vin === 'CLT' ? 'selected' : ''}>CLT (cobrado)</option><option value="INTERNO" ${vin === 'INTERNO' ? 'selected' : ''}>Interno (cobrado)</option><option value="REPRESENTANTE" ${rep ? 'selected' : ''}>Representante (cobrado)</option><option value="PROMOTOR" ${vin === 'PROMOTOR' ? 'selected' : ''}>Promotor (fora de tudo)</option>
     </select>
     <details style="margin-top:4px;"><summary style="cursor:pointer;font-size:11px;color:#93c5fd;">participação</summary>${flags}</details>`;
 }
@@ -1201,7 +1201,7 @@ function definirParticipa(fil, rca, flag, ligado) {
   if (!USUARIO_LOGADO || !USUARIO_LOGADO.isDiretoria) return;
   const v = BASE_MOSTRA.filiais[fil].find(x => String(x.rca) === String(rca));
   if (!v) return;
-  const padrao = vinculoDe(v) === 'REPRESENTANTE' ? false : (v.mostra === false ? false : true);
+  const padrao = v.mostra === false ? false : true;   // representante liberado em 13/10/2026
   v.participa = v.participa || {};
   if (ligado === padrao) delete v.participa[flag]; else v.participa[flag] = ligado;
   if (!Object.keys(v.participa).length) delete v.participa;

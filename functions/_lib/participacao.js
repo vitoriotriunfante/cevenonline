@@ -8,7 +8,7 @@
 //   vinculo : 'CLT' (padrão, ausente = CLT) | 'REPRESENTANTE'
 //   participa : { flag: true|false } — sobrescreve o padrão do vínculo, uma flag por vez (opcional)
 // FLAGS: painel, meta_e_vendas, lances, cartoes_penaltis, zerados, liga, incentivo, whatsapp, ronda
-// PADRÕES: PROMOTOR = nada (nunca aparece). REPRESENTANTE = só painel + meta_e_vendas. CLT e INTERNO = tudo. mostra=false (oculto) = só meta_e_vendas (regra antiga: soma nos totais, fora das listas).
+// PADRÕES: PROMOTOR = nada (nunca aparece). REPRESENTANTE = tudo, igual ao CLT (liberado pelo jurídico em 13/10/2026; antes: só painel + meta_e_vendas). CLT e INTERNO = tudo. mostra=false (oculto) = só meta_e_vendas (regra antiga: soma nos totais, fora das listas).
 // =========================================================================
 export const FLAGS = ['painel', 'meta_e_vendas', 'lances', 'cartoes_penaltis', 'zerados', 'liga', 'incentivo', 'whatsapp', 'ronda'];
 export const VINCULOS = ['CLT', 'INTERNO', 'REPRESENTANTE', 'PROMOTOR'];
@@ -31,7 +31,7 @@ export function participa(v, flag) {
   if (ehPromotor(v)) return false;                              // promotor: fora de TUDO, ate dos paineis (Vitorio, 12/10/2026)
   const ov = v.participa && typeof v.participa === 'object' ? v.participa[flag] : undefined;
   if (typeof ov === 'boolean') return ov;                       // decisão individual do Vitório vence
-  if (ehRepresentante(v)) return SO_ACOMPANHA.has(flag);        // representante: só acompanha
+  // representante: LIBERADO pelo jurídico em 13/10/2026 (Vitório: "tira a trava dos representantes") — participa de tudo, como o CLT
   if (v.mostra === false) return flag === 'meta_e_vendas';      // oculto: só soma nos totais
   return true;
 }

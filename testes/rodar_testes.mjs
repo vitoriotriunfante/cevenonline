@@ -722,28 +722,23 @@ secao('8f. Score de desempenho da Matriz: 0 a 100, nunca negativo, lider = 100')
   ok(JSON.stringify(fn([mk('A', 0, 0, 0, 0, 0, 10, 8), mk('B', 0, 0, 0, 0, 0, 10, 8)])) === '{"A":100,"B":100}', 'sem nenhum dado nao inventa diferenca: todas empatam em 100');
 }
 
-secao('9. Representante NAO e cobrado (Vitorio, 12/10/2026): aparece no painel e soma meta/vendas, mas fica fora de lance, Liga, incentivo, zerados e WhatsApp');
+secao('9. Representante LIBERADO (juridico, Vitorio 13/10/2026: "tudo, inclusive WhatsApp... respeitar varejo e AS"): cobrado igual ao CLT; promotor segue fora de tudo');
 {
   const { participa, ehRepresentante, setSemParticipacao } = await import(pathToFileURL(join(RAIZ, 'functions', '_lib', 'participacao.js')).href);
-  const rep = { rca: 1, mostra: true, vinculo: 'REPRESENTANTE' }, clt = { rca: 2, mostra: true }, oculto = { rca: 3, mostra: false };
+  const rep = { rca: 1, mostra: true, vinculo: 'REPRESENTANTE' }, clt = { rca: 2, mostra: true }, oculto = { rca: 3, mostra: false }, pro = { rca: 4, mostra: true, vinculo: 'PROMOTOR' };
   ok(ehRepresentante(rep) && !ehRepresentante(clt), 'vinculo REPRESENTANTE e reconhecido (e ausente = CLT)');
-  ok(['lances', 'cartoes_penaltis', 'zerados', 'liga', 'incentivo', 'whatsapp', 'ronda'].every((f) => !participa(rep, f)), 'representante NAO participa de nenhuma flag de cobranca');
-  ok(participa(rep, 'painel') && participa(rep, 'meta_e_vendas'), 'representante continua no painel e soma meta e vendas');
+  ok(['painel', 'meta_e_vendas', 'lances', 'cartoes_penaltis', 'zerados', 'liga', 'incentivo', 'whatsapp', 'ronda'].every((f) => participa(rep, f)), 'representante participa de TUDO (lances, cartoes, Liga, incentivo, zerados, WhatsApp, ronda)');
+  ok(['painel', 'lances', 'liga', 'whatsapp'].every((f) => !participa(pro, f)), 'promotor continua fora de tudo');
   ok(['lances', 'liga', 'incentivo', 'whatsapp', 'zerados'].every((f) => participa(clt, f)), 'CLT participa de tudo');
   ok(!participa(oculto, 'liga') && participa(oculto, 'meta_e_vendas'), 'oculto (mostra=false) segue so somando nos totais');
-  ok(participa({ ...rep, participa: { liga: true } }, 'liga') && !participa({ ...clt, participa: { liga: false } }, 'liga'), 'excecao individual da Gestao vence o padrao do vinculo');
+  ok(!participa({ ...rep, participa: { liga: false } }, 'liga') && !participa({ ...clt, participa: { liga: false } }, 'liga'), 'excecao individual da Gestao (flag desligada) continua valendo');
   const set = setSemParticipacao({ filiais: { TBL: [rep, clt, oculto] } }, 'liga');
-  ok(set.has('TBL|1') && !set.has('TBL|2') && set.has('TBL|3'), 'setSemParticipacao devolve representante e oculto, nunca o CLT');
-  ok(ler('functions/_lib/equipe_ocultos.js').includes("participa(v, 'lances')"), 'lances (tv-lances, brasileirao-lances): representante e filtrado por ocultosDaEquipe');
-  ok(ler('functions/api/cron-lances.js').includes('semLances.has') && ler('functions/api/cron-lances.js').includes('ehRepresentante(v2)'), 'coletor de lances nem busca o representante');
-  ok(ler('functions/api/liga-as.js').includes("participa(v, 'liga')"), 'Liga AS exclui representante');
-  ok(ler('functions/api/incentivo-outubro.js').includes("participa(x, 'incentivo')"), 'incentivo exclui representante');
-  ok(ler('functions/api/cron-semana-invicta.js').includes("participa(v, 'liga')"), 'Semana Invicta exclui representante');
-  ok(ler('functions/api/cron-mapa-executivo.js').includes("participa(v, 'zerados')"), 'KPIs de campo da Executiva excluem representante');
-  ok(ler('pipeline/ceven_unified_engine.js').includes('repSemCobranca'), 'WhatsApp: representante sai das listas de cobranca e soma nos totais');
-  ok(ler('public/matrizapp.html').includes('ehRep(r)') && ler('public/matrizapp.html').includes('&& !r.rep'), 'Matriz: representante nao e campo (sem zerado/penalti) e nao gera lance');
-  ok(ler('public/tvapp.html').includes("startsWith('REP')"), 'TV da filial: representante fora da ronda e dos alertas');
-  ok(ler('public/gestao-equipe.html').includes('definirVinculo') && ler('public/gestao-equipe.html').includes('filtro-vinculo'), 'Gestao de Equipe: coluna Vinculo/Participa, filtro e selo REP');
+  ok(!set.has('TBL|1') && !set.has('TBL|2') && set.has('TBL|3'), 'setSemParticipacao devolve so o oculto; representante e CLT entram');
+  ok(!ler('functions/api/cron-lances.js').includes('ehRepresentante(v2) ||'), 'coletor de lances busca o representante');
+  ok(!/_vinc\.startswith\('REP'\) or/.test(ler('scratch/build_brasileirao_dataset.py')) && !/_v\.startswith\('REP'\) or/.test(ler('scratch/build_brasileirao_dataset.py')), 'gerador da Liga nao exclui nem aborta por representante (canal AS/VAREJO de cada um decide a liga)');
+  ok(ler('pipeline/ceven_unified_engine.js').includes("const repSemCobranca = !!(r.participa && r.participa.whatsapp === false)"), 'WhatsApp: representante entra na cobranca; so a flag whatsapp=false tira');
+  ok(!ler('public/tvapp.html').includes("toUpperCase().startsWith('REP') || (r.participa"), 'TV da filial: representante entra na ronda e nos alertas');
+  ok(ler('public/gestao-equipe.html').includes('definirVinculo') && ler('public/gestao-equipe.html').includes('filtro-vinculo'), 'Gestao de Equipe: coluna Vinculo/Participa e filtro');
 }
 
 secao('10. Painel /saude (sala de controle) e telemetria da coleta');
@@ -785,7 +780,7 @@ secao('11. Concorrencia adaptativa da coleta (Frente B): reduz so com 429 alto, 
 secao('12. Liga sem representante/promotor (13/10/2026: 3 dos 4 AS de um supervisor eram representantes e disputavam a Liga)');
 {
   const b = ler('scratch/build_brasileirao_dataset.py');
-  ok(b.includes("_v.startswith('REP')") && b.includes('TRAVA:') && b.includes('sys.exit(1)') && b.includes("startswith('PROMO')"), 'gerador da Liga exclui representante/promotor e ABORTA se algum entrar');
+  ok(!b.includes("_v.startswith('REP') or") && b.includes('TRAVA:') && b.includes('sys.exit(1)') && b.includes("startswith('PROMO')"), 'gerador da Liga exclui promotor e ABORTA se algum entrar (representante liberado em 13/10/2026)');
   const d = JSON.parse(ler('public/dados_brasileirao.json'));
   ok(Array.isArray(d.vendedores) && d.vendedores.length > 0, 'dataset da Liga carregado');
 }

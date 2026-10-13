@@ -394,7 +394,7 @@ export async function onRequestGet({ env, request }) {
     const filiais = m?.filiais || {};
     for (const lista of Object.values(filiais)) {
       if (!Array.isArray(lista)) continue;
-      for (const v2 of lista) if (v2 && v2.rca != null) { if (ehRepresentante(v2) || (v2.participa && v2.participa.lances === false)) semLances.add(String(v2.rca)); canalMapa.set(String(v2.rca), { canal: String(v2.canal || '').toUpperCase(), sup: v2.supervisor || '', carteira: String(v2.carteira || '').toUpperCase() }); }
+      for (const v2 of lista) if (v2 && v2.rca != null) { if (v2.participa && v2.participa.lances === false) semLances.add(String(v2.rca)); canalMapa.set(String(v2.rca), { canal: String(v2.canal || '').toUpperCase(), sup: v2.supervisor || '', carteira: String(v2.carteira || '').toUpperCase() }); }
     }
   } catch {}
 

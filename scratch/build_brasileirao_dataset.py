@@ -153,7 +153,8 @@ try:
             if not _vinc.startswith('PROMO') and str(item.get('canal', '')).upper() not in ('SUP', 'GER', '') and item.get('supervisor'):
                 _cc = CANAL_EQUIPE_TODOS.setdefault((fil_canonica, item.get('supervisor', '')), {'AS': 0, 'VAREJO': 0})
                 _cc['AS' if str(item.get('canal', '')).upper() in ('AS', 'PET AS') else 'VAREJO'] += 1
-            if _vinc.startswith('REP') or _vinc.startswith('PROMO') or (isinstance(item.get('participa'), dict) and item['participa'].get('liga') is False):
+            # 13/10/2026: o juridico LIBEROU o representante (Vitorio: "tira a trava dos representantes... respeitar varejo e AS"): ele disputa a Liga do canal dele. Promotor continua fora.
+            if _vinc.startswith('PROMO') or (isinstance(item.get('participa'), dict) and item['participa'].get('liga') is False):
                 ocultos_fora += 1
                 continue
             # contas de SUPERVISOR e de GERENTE (canal real do CEVEN = SUP/GER) nao sao vendedores: ficam fora da liga (grupos de negocio de 22/09/2026)
@@ -322,15 +323,15 @@ try:
     for _f, _it in mostra_json.get('filiais', {}).items():
         for _x in _it:
             _v = str(_x.get('vinculo') or '').upper()
-            if _v.startswith('REP') or _v.startswith('PROMO') or (isinstance(_x.get('participa'), dict) and _x['participa'].get('liga') is False):
+            if _v.startswith('PROMO') or (isinstance(_x.get('participa'), dict) and _x['participa'].get('liga') is False):   # representante liberado em 13/10/2026
                 _proibidos.add(str(_x['rca']))
 except Exception:
     pass
 _vazou = [v['rca'] for v in vendedores_lista if str(v['rca']) in _proibidos]
 if _vazou:
-    print(f"❌ TRAVA: {len(_vazou)} representante(s)/promotor(es) entrariam na Liga: {_vazou[:10]}. Abortando SEM gravar o dataset.")
+    print(f"❌ TRAVA: {len(_vazou)} promotor(es)/fora-da-liga entrariam na Liga: {_vazou[:10]}. Abortando SEM gravar o dataset.")
     sys.exit(1)
-print(f"Trava: nenhum representante/promotor na Liga ({len(_proibidos)} fora por regra).")
+print(f"Trava: nenhum promotor/fora-da-liga na Liga ({len(_proibidos)} fora por regra).")
 vendedores_lista.sort(key=lambda x: (x['pts_tabela'], x['vitorias'], x['sg'], x['gp'], x['inativos_resgatados']), reverse=True)
 # Posicao DENTRO do canal (Varejo e AS tem tabelas separadas). A tabela do AS e a semanal (bloco 'as' abaixo); aqui AS guarda so a posicao diaria de referencia.
 for _canal in ('VAREJO', 'AS'):
