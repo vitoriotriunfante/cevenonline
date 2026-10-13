@@ -829,7 +829,36 @@ function carregarDiretrizesOperacionais(cliOverrides = {}) {
 }
 
 // 4B. Coleta Dinâmica de Abertura Matinal (Exclusivo Varejo Estrito)
+// ABERTURA COMPLETA OU AVISADA (13/10/2026): o ciclo das 07:45 foi enviado com 3 das 11 filiais, sem nenhum aviso, e o Vitorio quase encaminhou para a diretoria.
+// Agora: ate 3 coletas; se ainda faltar filial, o texto abre com a faixa "DADOS INCOMPLETOS - nao encaminhar" dizendo quais.
+const FILIAIS_ESPERADAS_ABERTURA = () => [...new Set(Object.values(FILIAIS_MAP).map((f) => f.sigla))];
+function filiaisSemDadosAbertura(ab) {
+  const com = new Set(Object.values((ab && ab.dadosAbertura) || {}).filter((b) => b && b.visitas > 0).map((b) => b.sigla));
+  return FILIAIS_ESPERADAS_ABERTURA().filter((sg) => !com.has(sg));
+}
 async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
+  try {
+    const rb = await fonteBase.carregarBase(Object.keys(FILIAIS_MAP), new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }));
+    console.log(`🗄️ Base única (abertura): ${rb.ligada ? rb.rcas + ' RCAs de ' + rb.filiais + ' filiais' : 'desligada'}`);
+  } catch (e) { /* sem base: coleta pelo CEVEN, com tentativas */ }
+  let melhor = null;
+  for (let t = 1; t <= 3; t++) {
+    const r = await coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes);
+    r.faltam = filiaisSemDadosAbertura(r);
+    if (!melhor || r.faltam.length < melhor.faltam.length) melhor = r;
+    if (!r.faltam.length) break;
+    console.log(`⚠️ Abertura incompleta (sem dados de: ${r.faltam.join(', ')}). Tentativa ${t}/3${t < 3 ? '; nova coleta em 25 s' : ''}.`);
+    if (t < 3) await new Promise((res) => setTimeout(res, 25000));
+  }
+  if (melhor.faltam.length) {
+    const total = FILIAIS_ESPERADAS_ABERTURA().length;
+    melhor.textoAbertura = `⚠️ *DADOS INCOMPLETOS — NÃO ENCAMINHAR.* Sem leitura de ${melhor.faltam.join(', ')} (${total - melhor.faltam.length} de ${total} filiais). O CEVEN não respondeu a tempo; os totais abaixo estão PARCIAIS.
+
+` + melhor.textoAbertura;
+  }
+  return melhor;
+}
+async function coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes = null) {
   const dir = diretrizes || carregarDiretrizesOperacionais();
   const cnaeCodigo = dir?.cnae_foco?.codigo || '5611';
   const cnaeDesc = dir?.cnae_foco?.descricao || 'Restaurantes e Similares';
@@ -898,8 +927,8 @@ async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
 
       try {
         const url = `${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${fKey}&id=${rca.codigo}`;
-        const res = await axios.get(url, { timeout: 6000 });
-        const clients = res.data || [];
+        // BASE UNICA PRIMEIRO, depois CEVEN com 3 tentativas (13/10/2026 07:45: axios cru de 6 s dava timeout no pico e 8 das 11 filiais saiam 'sem dados')
+        const clients = (await safeGet(url, 3, 20000)) || [];
 
         // Isolar a sincronização oficial mais recente (Clube da Venda)
         let rotaOficial = clients.filter(c => c.id >= 1083000 && c.id < 1085000);
@@ -1020,8 +1049,8 @@ async function coletarAlertaRisco(repsValidationMap, dataHoje) {
 
       try {
         const url = `${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${fKey}&id=${rca.codigo}`;
-        const res = await axios.get(url, { timeout: 6000 });
-        const clients = res.data || [];
+        // BASE UNICA PRIMEIRO, depois CEVEN com 3 tentativas (13/10/2026 07:45: axios cru de 6 s dava timeout no pico e 8 das 11 filiais saiam 'sem dados')
+        const clients = (await safeGet(url, 3, 20000)) || [];
 
         let rotaOficial = clients.filter(c => c.id >= 1083000 && c.id < 1085000);
         if (rotaOficial.length === 0) {
@@ -1546,7 +1575,7 @@ async function main() {
         const cache = JSON.parse(fs.readFileSync(CACHE_ABERTURA, 'utf8'));
         const cnaeCacheado = cache.diretrizesUsadas?.cnae?.codigo;
         const cnaeAtual = diretrizes?.cnae_foco?.codigo;
-        if (cache.data === dataHoje && cache.abertura?.textoAbertura && cnaeCacheado === cnaeAtual) {
+        if (cache.data === dataHoje && cache.abertura?.textoAbertura && cnaeCacheado === cnaeAtual && filiaisSemDadosAbertura(cache.abertura).length === 0) {
           console.log(`⚡ Usando dados pré-processados do Aquecimento Matinal (${cache.geradoEm}). Disparo instantâneo!`);
           abertura = cache.abertura;
         } else if (cache.data !== dataHoje) {
