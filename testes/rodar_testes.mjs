@@ -279,7 +279,7 @@ secao('5. Agenda do Worker (wrangler.toml x index.js)');
   ok(cronsToml.length >= 8, `wrangler.toml tem os gatilhos (${cronsToml.length})`);
   ok(JSON.stringify(cronsToml) === JSON.stringify(cronsJs), 'gatilhos do wrangler.toml e do index.js sao os mesmos (se mudar um, tem que mudar o outro)');
   ok(!cronsToml.some(c => /\* \* 1-5$/.test(c)), 'nenhum gatilho usa dia da semana 1-5 (no Cloudflare 1 = domingo)');
-  ok(cronsToml.filter(c => /\* \* 2-6$/.test(c)).length === 6, 'os 6 gatilhos comerciais usam 2-6 (segunda a sexta)');
+  ok(cronsToml.filter(c => /\* \* 2-6$/.test(c)).length === 7, 'os 6 gatilhos comerciais + a classificacao da Liga (13/10/2026) usam 2-6 (segunda a sexta)');
 }
 
 // ---------------------------------------------------------------- 5b. relogios da TV no Worker
