@@ -112,7 +112,7 @@ export async function onRequestPost({ request, env }) {
         } else {
           // Parte da lista VIVA servida por /api/tv-mostra; se falhar, da copia estatica publicada
           try {
-            const rv = await fetch(new URL('/api/tv-mostra?t=' + Date.now(), request.url));
+            const rv = await fetch(new URL('/api/tv-mostra?completo=1&t=' + Date.now(), request.url));
             if (rv.ok) { const j = await rv.json(); if (j && j.filiais) baseData = j; }
           } catch (e) { /* cai para a copia estatica */ }
           if (!baseData) {

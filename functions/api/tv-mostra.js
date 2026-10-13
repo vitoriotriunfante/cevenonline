@@ -13,11 +13,39 @@ import { aplicaArvore } from '../_lib/arvore_ceven.js'; // supervisor = arvore v
 const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 let cache = { exp: 0, corpo: null };
 
+// UNIVERSO = ARVORE VIVA DO CEVEN (Vitorio, 13/10/2026: "a Gestao com APENAS os vendedores que tem na arvore agora"). A Gestao guarda decisoes (mostra/canal/vinculo), mas
+// quem nao esta na arvore do CEVEN e fantasma do cadastro antigo: TV, Matriz, WhatsApp, Liga e incentivo nao o veem. A tela de Gestao pede ?completo=1 para ve-los
+// marcados (na_arvore:false) e decidir. Sem arvore carregada (menos de 300 RCAs) nao filtra nada.
+async function aplicaUniverso(env, corpo, completo) {
+  try {
+    if (!env.DB || !corpo || !corpo.filiais) return corpo;
+    const { results } = await env.DB.prepare('SELECT filial, rca FROM arvore_supervisores').all();
+    if (!results || results.length < 300) return corpo;
+    const ok = new Set(results.map((a) => String(a.filial).toUpperCase() + '|' + String(a.rca)));
+    const novo = { ...corpo, filiais: {} };
+    let fora = 0, sim = 0, nao = 0;
+    for (const [k, lista] of Object.entries(corpo.filiais)) {
+      const sig = k.split('_')[0].toUpperCase();
+      novo.filiais[k] = [];
+      for (const v of Array.isArray(lista) ? lista : []) {
+        const na = ok.has(sig + '|' + String(v.rca));
+        if (!na) fora++;
+        if (!na && !completo) continue;
+        novo.filiais[k].push({ ...v, na_arvore: na });
+        if (v.mostra === false) nao++; else sim++;
+      }
+    }
+    novo.total_sim = sim; novo.total_nao = nao; novo.fora_da_arvore = fora; novo.universo = completo ? 'gestao_completa' : 'arvore_viva';
+    return novo;
+  } catch { return corpo; }
+}
+
 export async function onRequestGet({ env, request }) {
+  const completoQ = new URL(request.url).searchParams.get('completo') === '1';
   const resp = (o, s = 200) => new Response(JSON.stringify(s === 200 ? aplicaNaoSupervisores(o) : o), { status: s, headers: CORS });
   const url = new URL(request.url);
   const bypassCache = url.searchParams.has('nocache') || url.searchParams.has('t');
-  if (!bypassCache && cache.corpo && Date.now() < cache.exp) return resp(cache.corpo);
+  if (!bypassCache && cache.corpo && Date.now() < cache.exp) return resp(await aplicaUniverso(env, cache.corpo, completoQ));
 
   // FONTE DA EQUIPE (decisao do Vitorio, 03/10/2026, reforcada em 05/10/2026): a tela Gestao de Equipe e a fonte unica.
   // So se o D1 estiver indisponivel cai para a copia estatica da propria Gestao de Equipe.
@@ -28,7 +56,7 @@ export async function onRequestGet({ env, request }) {
         const corpo = { ...JSON.parse(row.conteudo_json), origem: 'd1', atualizado_por: row.atualizado_por, atualizado_em: row.atualizado_em, gerado_em: new Date().toISOString() };
         await aplicaArvore(env, corpo); // 06/10/2026: o supervisor guardado na Gestao estava velho (equipes de TPA trocadas); vale o do CEVEN de hoje
         cache = { exp: Date.now() + 60 * 1000, corpo };
-        return resp(corpo);
+        return resp(await aplicaUniverso(env, corpo, completoQ));
       }
     } catch (e) {
       // tabela ainda nao existe ou D1 indisponivel: segue para a copia

@@ -845,6 +845,7 @@ table { font-size: clamp(11px, .95vw, 13px) !important; }
         <option value="TODOS">Todos os Status</option>
         <option value="ATIVOS">Somente Ativos na TV (SIM)</option>
         <option value="OCULTOS">Somente Ocultos (NÃO)</option>
+        <option value="FORA_ARVORE">Fora da árvore do CEVEN (fantasmas)</option>
       </select>
 
       <select id="filtro-vinculo" class="select-filter" onchange="filtrarTabela()" title="Representante aparece nos painéis (meta e vendas) mas NÃO é cobrado: sem lance, cartão, pênalti, Liga, incentivo, zerados ou WhatsApp">
@@ -1024,7 +1025,7 @@ function aplicarPerfilUsuario() {
 
 async function carregarDados() {
   try {
-    let res = await fetch('/api/tv-mostra?t=' + Date.now());
+    let res = await fetch('/api/tv-mostra?completo=1&t=' + Date.now());
     if (!res.ok) {
       res = await fetch('/mostra_vendedores.json?t=' + Date.now());
     }
@@ -1139,6 +1140,7 @@ function filtrarTabela() {
       if (canal !== 'TODOS' && !c.includes(canal)) return;
       if (status === 'ATIVOS' && !item.mostra) return;
       if (status === 'OCULTOS' && item.mostra) return;
+      if (status === 'FORA_ARVORE' && item.na_arvore !== false) return;
       if (vinc !== 'TODOS' && vinculoDe(item) !== vinc) return;
       if (vinc === 'TODOS' && vinculoDe(item) === 'PROMOTOR') return;   // promotor nao aparece em painel nenhum; so pelo filtro "Promotores"
 
@@ -1223,12 +1225,13 @@ function renderizarTabela() {
     const mostraAtual = pendente ? (pendente.acao === 'ATIVAR') : r.mostra;
     const motivoAtual = pendente ? pendente.motivo : (r.motivo || '');
 
+    const foraArvore = r.na_arvore === false;
     return `
-      <tr class="${isAlterada ? 'tr-alterada' : ''}">
+      <tr class="${isAlterada ? 'tr-alterada' : ''}"${foraArvore ? ' style="opacity:.78;background:rgba(239,68,68,0.06)"' : ''}>
         <td><span class="badge-fil">${r.fil}</span></td>
         <td><span class="badge-rca">${r.rca}</span></td>
         <td>
-          <div style="font-weight:600;color:#fff;">${r.nome}${String(r.carteira || '').toUpperCase() === 'MONDELEZ' ? ' <span style="font-size:10px;background:#7c3aed;color:#fff;padding:1px 6px;border-radius:8px" title="Carteira só Mondelez: o gol qualificado conta categorias, não indústrias">SÓ MONDELEZ</span>' : (String(r.carteira || '').toUpperCase() === 'AUTO' ? ' <span style="font-size:10px;background:#475569;color:#fff;padding:1px 6px;border-radius:8px" title="Automático: mais de 90% da venda do dia em Mondelez = conta categorias">AUTO (&gt;90% MONDELEZ)</span>' : '')}</div>
+          <div style="font-weight:600;color:#fff;">${foraArvore ? '<span title="Este RCA NÃO existe na árvore viva do CEVEN (o app responde: representante não encontrado). Fantasma do cadastro antigo: não aparece na TV, Matriz, WhatsApp, Liga nem incentivo, e não soma na meta." style="background:#b91c1c;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:7px;margin-right:6px;">FORA DA ÁRVORE</span>' : ''}${r.nome}${String(r.carteira || '').toUpperCase() === 'MONDELEZ' ? ' <span style="font-size:10px;background:#7c3aed;color:#fff;padding:1px 6px;border-radius:8px" title="Carteira só Mondelez: o gol qualificado conta categorias, não indústrias">SÓ MONDELEZ</span>' : (String(r.carteira || '').toUpperCase() === 'AUTO' ? ' <span style="font-size:10px;background:#475569;color:#fff;padding:1px 6px;border-radius:8px" title="Automático: mais de 90% da venda do dia em Mondelez = conta categorias">AUTO (&gt;90% MONDELEZ)</span>' : '')}</div>
           ${isAlterada ? `<span class="tag-pendente-envio">🟡 Ajuste Solicitado (${pendente.acao})</span>` : ''}
         </td>
         <td><span class="badge-canal ${canalClass}">${r.canal || 'VJ'}</span></td>

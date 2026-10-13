@@ -42,7 +42,7 @@ export async function onRequestGet({ env, request }) {
     const porCodigoPlanilha = new Set();
     let planilhaOk = true;
     try {
-      const mp = await (await fetch(`${origin}/api/tv-mostra`, { signal: AbortSignal.timeout(8000) })).json();
+      const mp = await (await fetch(`${origin}/api/tv-mostra?completo=1`, { signal: AbortSignal.timeout(8000) })).json();
       for (const [sg, lista] of Object.entries((mp && mp.filiais) || {})) for (const x of Array.isArray(lista) ? lista : []) {
         if (!x || x.rca == null) continue;
         planilha.set(String(sg).toUpperCase() + '|' + x.rca, { nome: x.nome, mostra: x.mostra, canal: x.canal, supervisor: x.supervisor });
