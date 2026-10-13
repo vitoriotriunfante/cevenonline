@@ -834,7 +834,8 @@ async function carregaGolsServidor() {
       const cLocal = vLocal && Array.isArray(vLocal.cl) ? vLocal.cl.find((c) => String(c.id) === String(r.cliente_id)) : null;
       const c = cLocal || (r.cliente ? { id: r.cliente_id, nome: r.cliente } : null);
       const mq = /\[QUALIF:([A-Z]+):\+(\d+)\]/.exec(String(r.obs || ''));
-      const qualif = mq ? { nivel: mq[1].charAt(0) + mq[1].slice(1).toLowerCase(), extra: Number(mq[2]) } : null;
+      const mt = /QUALIFICA[ÇC][ÃA]O:s*(.*?)s*[QUALIF:/.exec(String(r.obs || ''));
+      const qualif = mq ? { nivel: mq[1].charAt(0) + mq[1].slice(1).toLowerCase(), extra: Number(mq[2]), texto: mt ? mt[1] : '' } : null; // texto gravado pelo coletor (a prova so tem nivel/extra; sem ele a tela mostrava 'undefined')
       const mpv = /MARCA PROPRIA R\$ ([\d.,]+)/.exec(String(r.obs || ''));
       const valor = mpv ? Number(mpv[1].replace(/\./g, '').replace(',', '.')) : null;
       const textoSrv = (c && c.nome ? c.nome + ' · ' : '') + (grave ? 'Devolução: ' + (r.cliente || 'cliente') : (ROTULO_SRV[sub] || 'GOL DE PLACA')) + (valor && sub === 'marca_propria' ? ' R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' de Marca Própria no pedido!' : '');
@@ -1121,7 +1122,7 @@ function telaVAR(item) {
     }
   }
   if (qGol && typeof dec === 'string') {
-    dec += '<div class="ln hot"><b>QUALIFICAÇÃO</b><span>' + esc(qGol.nivel + ' (+' + qGol.extra + ' pts) — ' + qGol.n + ' ' + qGol.unidade + (qGol.n > 1 ? 's' : '') + ' no pedido: ' + qGol.detalhe) + '</span></div>';
+    dec += '<div class="ln hot"><b>QUALIFICAÇÃO</b><span>' + esc(qGol.n != null ? qGol.nivel + ' (+' + qGol.extra + ' pts) — ' + qGol.n + ' ' + qGol.unidade + (qGol.n > 1 ? 's' : '') + ' no pedido: ' + qGol.detalhe : (qGol.texto || qGol.nivel + ' (+' + qGol.extra + ' pts)')) + '</span></div>';
   }
   // TEMPO NO CLIENTE em todo lance de cliente (Vitorio, 05/10/2026: "tem que colocar quanto tempo ele ficou no cliente"): check-in, check-out e tempo.
   {

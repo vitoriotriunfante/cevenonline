@@ -1164,7 +1164,7 @@ function telaVAR(item) {
     }
   }
   if (qGol && typeof dec === 'string') {
-    dec += '<div class="ln hot"><b>QUALIFICAÇÃO</b><span>' + esc(qGol.nivel + ' (+' + qGol.extra + ' pts) — ' + qGol.n + ' ' + qGol.unidade + (qGol.n > 1 ? 's' : '') + ' no pedido: ' + qGol.detalhe) + '</span></div>';
+    dec += '<div class="ln hot"><b>QUALIFICAÇÃO</b><span>' + esc(qGol.n != null ? qGol.nivel + ' (+' + qGol.extra + ' pts) — ' + qGol.n + ' ' + qGol.unidade + (qGol.n > 1 ? 's' : '') + ' no pedido: ' + qGol.detalhe : (qGol.texto || qGol.nivel + ' (+' + qGol.extra + ' pts)')) + '</span></div>';
   }
   // TEMPO NO CLIENTE em todo lance de cliente (Vitorio, 05/10/2026: "tem que colocar quanto tempo ele ficou no cliente"): check-in, check-out e tempo.
   {
