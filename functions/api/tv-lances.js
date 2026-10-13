@@ -29,18 +29,25 @@ export async function onRequestGet({ request, env }) {
   if (!env.DB) return resp({ erro: 'banco indisponivel' }, 503);
   const u = new URL(request.url);
   const filial = (u.searchParams.get('filial') || '').toUpperCase();
-  if (!/^[A-Z]{3}$/.test(filial)) return resp({ erro: 'filial invalida' }, 400);
+  // filial=TODAS (13/10/2026): a TV da MATRIZ so via os lances que ELA mesma detectava (filial MTZ: 119 penaltis, 0 gol) e nunca os GOLS que o coletor grava
+  // com a filial real. Com TODAS ela recebe os lances de todas as filiais (so leitura, mesmos filtros). Opcional: desde=HH:MM:SS (so os mais novos).
+  const todas = filial === 'TODAS';
+  if (!todas && !/^[A-Z]{3}$/.test(filial)) return resp({ erro: 'filial invalida' }, 400);
+  const desde = /^\d{2}:\d{2}(:\d{2})?$/.test(u.searchParams.get('desde') || '') ? u.searchParams.get('desde') : '00:00:00';
   const dia = /^\d{4}-\d{2}-\d{2}$/.test(u.searchParams.get('dia') || '') ? u.searchParams.get('dia') : agoraSP().dia;
   try {
     const { results } = await env.DB.prepare(
-      `SELECT chave, nivel, rca, vendedor, supervisor, cliente_id, cliente, motivo, dias_sem_compra, ultima_compra, tempo_visita, obs, hora_sp, baseline
+      todas
+        ? `SELECT chave, nivel, rca, vendedor, supervisor, cliente_id, cliente, motivo, dias_sem_compra, ultima_compra, tempo_visita, obs, hora_sp, baseline, filial
+           FROM tv_lances WHERE dia = ? AND filial != 'MTZ' AND nivel != 'marker' AND hora_sp >= ? ORDER BY hora_sp`
+        : `SELECT chave, nivel, rca, vendedor, supervisor, cliente_id, cliente, motivo, dias_sem_compra, ultima_compra, tempo_visita, obs, hora_sp, baseline
        FROM tv_lances WHERE dia = ? AND filial = ? AND nivel != 'marker' ORDER BY hora_sp`
-    ).bind(dia, filial).all();
+    ).bind(...(todas ? [dia, desde] : [dia, filial])).all();
     // Mesma regra da liga: nada de madrugada (lance de ontem repetido a meia-noite) e nada que foi tirado da liga com trilha (lances_excluidos_liga)
     const ex = new Set();
     try { const r2 = await env.DB.prepare('SELECT chave, motivo FROM lances_excluidos_liga WHERE dia = ?').bind(dia).all(); for (const e of r2.results || []) if (e && e.motivo) ex.add(e.chave); } catch { /* tabela ausente: segue sem exclusoes */ }
     const oc = await ocultosDaEquipe(new URL(request.url).origin);
-    const limpos = (results || []).filter((r) => !lanceDeOculto({ ...r, filial }, oc) && String(r.hora_sp || '') >= '06:00:00' && !ex.has(String(r.chave || '').replace(/^[A-Z]{3}[|]/, '')) && !ex.has(r.chave));
+    const limpos = (results || []).filter((r) => !lanceDeOculto(todas ? r : { ...r, filial }, oc) && String(r.hora_sp || '') >= '06:00:00' && !ex.has(String(r.chave || '').replace(/^[A-Z]{3}[|]/, '')) && !ex.has(r.chave));
     return resp({ dia, filial, lances: limpos });
   } catch (e) {
     return resp({ erro: 'falha ao ler: ' + e.message }, 500);

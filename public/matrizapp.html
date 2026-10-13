@@ -805,6 +805,51 @@ async function carregaLances() {
     store.set('ceven_brief_mtz_' + HOJE0, [...av]); }
   LOG.sort((x, y) => secDe(x.t) - secDe(y.t)); store.set(K.seen + HOJE0, [...seen]); store.set(K.log + HOJE0, LOG);
 }
+// GOLS DO SERVIDOR NA MATRIZ (Vitório, 13/10/2026: "o foco sempre tem que ser GOLS, especialmente depois das 15"): a Matriz so detectava lances dos vendedores
+// que ela mesma tinha carregado com clientes (v.cl) e lia so os lances gravados como MTZ (119 penaltis, 0 gol). Os gols de cliente (Marca Propria, Resgate, Mix,
+// Hat-Trick...) que o coletor grava com a filial real nunca apareciam. Agora, a cada 60 s, os GOLS (e devolucoes graves) gravados pelo coletor nos ultimos 15 min
+// e ainda nao mostrados nesta tela entram na fila do VAR, com a mesma prioridade dos gols da propria tela (Marca Propria na frente de tudo).
+const SUB_DO_SRV = { gol_marca_propria: 'marca_propria', gol_mp_tripla: 'mp_tripla', gol_inativo: 'inativo_recuperado', gol_mix: 'dobrou_mix', gol_quinzenas: 'dobradinha_quinzenas',
+  gol_super: 'super_pedido', gol_conversao: 'conversao', gol_relampago: 'relampago', gol_acrescimos: 'acrescimos', gol_meta1t: 'meta1tempo', gol_goleada: 'goleada', gol_campeao: 'campeao', gol_hattrick: 'hattrick' };
+const ROTULO_SRV = { marca_propria: '⭐ GOL DE MARCA PRÓPRIA!', mp_tripla: '🌟 TRIPLA DE MARCA PRÓPRIA!', inativo_recuperado: 'Resgate de Inativo recuperado!', dobrou_mix: 'dobrou o mix do cliente!',
+  dobradinha_quinzenas: 'dobradinha das quinzenas!', super_pedido: 'Super Pedido!', conversao: 'Máquina de Conversão!', relampago: 'Gol Relâmpago!', acrescimos: 'Gol nos Acréscimos!',
+  meta1tempo: 'Meta do 1º Tempo batida!', goleada: 'Goleada!', campeao: 'Campeão da Rodada: 100% da meta do mês!', hattrick: 'Hat-Trick!' };
+let EXIB_SRV = new Set(store.get('ceven_exib_srv_MTZ_' + HOJE0, []));
+async function carregaGolsServidor() {
+  try {
+    const agoraS = secDe(sp().hms), desdeS = Math.max(0, agoraS - 15 * 60);
+    const hh = (x) => String(Math.floor(x / 3600)).padStart(2, '0') + ':' + String(Math.floor((x % 3600) / 60)).padStart(2, '0') + ':00';
+    const d = await j('/api/tv-lances?filial=TODAS&desde=' + hh(desdeS), 15000); if (!d || !Array.isArray(d.lances)) return;
+    let entrou = 0;
+    for (const r of d.lances) {
+      if (Number(r.baseline)) continue;
+      const ch = String(r.chave || ''), tipo0 = ch.split('|')[0], sig = String(r.filial || '').toUpperCase();
+      const grave = /^(ver_dev|golcontra_dev)$/.test(tipo0);
+      const sub = SUB_DO_SRV[tipo0];
+      if (!sub && !grave) continue;
+      if (EXIB_SRV.has(sig + '|' + ch) || EXIB.has(sig + '|' + ch) || EXIB.has(ch) || seen.has(sig + '|' + ch)) continue;
+      EXIB_SRV.add(sig + '|' + ch);
+      const vLocal = (typeof vendedores === 'function' ? (vendedores(sig) || []) : []).find((x) => String(x.id) === String(r.rca));
+      const v = vLocal || { id: r.rca, nome: r.vendedor || ('RCA ' + r.rca), sup: r.supervisor || '', canal: '' };
+      const cLocal = vLocal && Array.isArray(vLocal.cl) ? vLocal.cl.find((c) => String(c.id) === String(r.cliente_id)) : null;
+      const c = cLocal || (r.cliente ? { id: r.cliente_id, nome: r.cliente } : null);
+      const mq = /\[QUALIF:([A-Z]+):\+(\d+)\]/.exec(String(r.obs || ''));
+      const qualif = mq ? { nivel: mq[1].charAt(0) + mq[1].slice(1).toLowerCase(), extra: Number(mq[2]) } : null;
+      const mpv = /MARCA PROPRIA R\$ ([\d.,]+)/.exec(String(r.obs || ''));
+      const valor = mpv ? Number(mpv[1].replace(/\./g, '').replace(',', '.')) : null;
+      const textoSrv = (c && c.nome ? c.nome + ' · ' : '') + (grave ? 'Devolução: ' + (r.cliente || 'cliente') : (ROTULO_SRV[sub] || 'GOL DE PLACA')) + (valor && sub === 'marca_propria' ? ' R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' de Marca Própria no pedido!' : '');
+      const a = { key: sig + '|' + ch, sig, nivel: grave ? (tipo0 === 'ver_dev' ? 'vermelho' : 'golcontra') : (sub === 'hattrick' ? 'hattrick' : 'gol'), subtipo: grave ? (tipo0 === 'ver_dev' ? 'devolucao_nao_pediu' : 'devolucao') : sub, v, c, valor, clienteDev: r.cliente, srv: true };
+      const tarde = sp().h >= 15;
+      const score = sub === 'marca_propria' || sub === 'mp_tripla' ? 500 : grave ? (tarde ? 16 : 22) : (sub === 'hattrick' ? 30 + (tarde ? 22 : 0) : 28 + (tarde ? 20 : 0));
+      ESPERA.push({ tipo: a.nivel === 'hattrick' ? 'hattrick' : a.nivel, sig, v, c, a, sub: textoSrv, score, srv: true, qualif });
+      if (!LOG.some((e) => e.key === a.key)) LOG.push({ key: a.key, t: r.hora_sp, nivel: a.nivel, rca: r.rca, vendedor: v.nome, supervisor: v.sup || '', sig, cliente: c && c.nome, motivo: r.motivo, ao_ligar: false });
+      entrou++;
+    }
+    store.set('ceven_exib_srv_MTZ_' + HOJE0, [...EXIB_SRV]);
+    if (entrou) { ESPERA.sort((x, y) => y.score - x.score); store.set(K.log + HOJE0, LOG); liberaEspera(); }
+  } catch (e) { /* sem servidor: tenta de novo no proximo minuto */ }
+}
+setInterval(carregaGolsServidor, 60 * 1000); setTimeout(carregaGolsServidor, 20000);
 let primeiraSync = false, processando = false;
 async function processa() {
   if (processando) return; processando = true;
@@ -946,10 +991,12 @@ function telaVAR(item) {
   const subCliente = ['inativo_recuperado', 'drible_vaca', 'recorrencia_salva', 'dobrou_mix', 'dobradinha_quinzenas', 'marca_propria'], subDia = ['super_pedido', 'conversao', 'relampago', 'acrescimos', 'meta1tempo', 'goleada', 'hattrick'];
   const vQ = item.v || (item.a && item.a.v) || {};
   // nivel (bronze a platina) em TODOS os gols (menos Campeao da Rodada): de cliente = pedido do cliente; do dia = industrias de todos os pedidos do vendedor hoje
-  const qGol = (typeof qualificaGolUI === 'function' && (item.tipo === 'gol' || item.tipo === 'hattrick'))
+  let qGol = null;
+  if (item.srv) qGol = item.qualif || null; // gol vindo do coletor: o nivel ja vem gravado na prova ([QUALIF:OURO:+2])
+  else try { qGol = (typeof qualificaGolUI === 'function' && (item.tipo === 'gol' || item.tipo === 'hattrick'))
     ? (subCliente.includes(subtipo) ? qualificaGolUI(carteiraEfetivaUI(vQ), item.c || (item.a && item.a.c))
       : (subDia.includes(subtipo) || item.tipo === 'hattrick') ? qualificaGolUI(carteiraEfetivaUI(vQ), { industrias: vQ.d && vQ.d.industrias_dia, categorias: vQ.d && vQ.d.categorias_dia }) : null)
-    : null;
+    : null; } catch (e) { qGol = null; }
   const infoLiga = qGol ? {...infoLiga0, nome: infoLiga0.nome + ' ' + qGol.nivel, pts: '+' + ((parseInt(infoLiga0.pts, 10) || 0) + qGol.extra) + ' PONTOS NA LIGA'} : infoLiga0;
   const TOM = {'#22c55e': 'g', '#eab308': 'y', '#facc15': 'y', '#f97316': 'o', '#ef4444': 'r', '#38bdf8': 'b'};
   const ptsNum = String(infoLiga.pts).split(' ')[0]; // "+7"

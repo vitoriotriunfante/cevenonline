@@ -26,7 +26,7 @@ export default async function (ok) {
   const oc = await import(pathToFileURL(join(RAIZ, 'functions', '_lib', 'equipe_ocultos.js')).href);
   const set = new Set(['TBL|198']);
   ok(oc.lanceDeOculto({ filial: 'MTZ', chave: 'TBL|ven10|198', rca: '198' }, set) && oc.lanceDeOculto({ filial: 'TBL', chave: 'ven10|198', rca: 198 }, set) && !oc.lanceDeOculto({ filial: 'TBL', chave: 'ven10|199', rca: '199' }, set) && !oc.lanceDeOculto({ filial: 'TPH', chave: 'ven10|198', rca: '198' }, set), 'lance de vendedor OCULTO e reconhecido pela filial (tambem o gravado pela Matriz com prefixo) e pelo codigo; outra filial com o mesmo codigo nao');
-  for (const [arq, trecho] of [['functions/api/brasileirao-lances.js', 'lanceDeOculto(l, ocultos)'], ['functions/api/tv-lances.js', 'lanceDeOculto({ ...r, filial }, oc)'], ['public/matrizapp.html', 'ocultosMz.has(sig']]) {
+  for (const [arq, trecho] of [['functions/api/brasileirao-lances.js', 'lanceDeOculto(l, ocultos)'], ['functions/api/tv-lances.js', 'lanceDeOculto(todas ? r : { ...r, filial }, oc)'], ['public/matrizapp.html', 'ocultosMz.has(sig']]) {
     ok(readFileSync(join(RAIZ, arq), 'utf8').includes(trecho), arq + ': vendedor oculto na Gestao nao gera nem mostra lance');
   }
   ok(readFileSync(join(RAIZ, 'functions/api/tv-lances.js'), 'utf8').includes('!lanceDeOculto({ ...l, filial }, ocP)'), 'tv-lances: o registro de lance novo tambem recusa vendedor oculto');
