@@ -17,9 +17,13 @@ export default async function (ok) {
   const k = r.find((m) => m.supervisor.startsWith('KLEBERSON'));
   ok(r.length === 2 && k && k.qtd === 4, 'uma mensagem por supervisor (2 supervisores); GERENTE, MTZ, aviso de supervisor e lance sem ponto ficam fora');
   ok(k.texto.startsWith('📊 Kleberson Batista Liduario · sua equipe (09:05–10:05)\nSaldo: +3 pts') && k.texto.includes('⚽ 1 gol (+5)') && k.texto.includes('🚨 1 pênalti (−4)') && k.texto.includes('📝 2 pedidos na rota (+2)'), 'cabecalho com o NOME do supervisor, saldo e o resumo por tipo com emoji (5 - 4 + 1 + 1 = +3)');
-  ok(k.texto.includes('✅ O QUE DEU CERTO\n• Fulano Silva — Super Pedido (+5)') && k.texto.includes('⚠️ ATENÇÃO\n• Fulano Silva — pênalti (−4)') && !k.texto.includes('Pedido Feito na Rota'), 'blocos "o que deu certo" e "atencao", um vendedor por linha com nome em formato de leitura; pedido na rota so na contagem');
+  ok(k.texto.includes('✅ O QUE DEU CERTO\n• Fulano Silva — Super Pedido (+5)') && k.texto.includes('⚠️ ATENÇÃO\n• Fulano Silva\n   pênalti (−4)') && !k.texto.includes('Pedido Feito na Rota'), 'blocos "o que deu certo" e "atencao", um vendedor por linha com nome em formato de leitura; pedido na rota so na contagem');
   const rep = lib.montaMensagens([...Array(6)].map((_, i) => L({ chave: 'imp|gps|7|' + i, nivel: 'impedimento', pontos: -5, vendedor: 'BRUNO GUSTAVO NATAL', pontos_nome: 'Impedimento' })), new Set(), {})[0];
-  ok(rep.texto.includes('• Bruno Natal — 6 impedimentos (−30)') && rep.texto.includes('🚩 6 impedimentos (−30)'), 'o mesmo lance repetido vira "6 impedimentos (−30)" numa linha so');
+  ok(rep.texto.includes('• Bruno Natal\n   6 impedimentos (−30)') && rep.texto.includes('🚩 6 impedimentos (−30)'), 'o mesmo lance repetido vira "6 impedimentos (−30)" numa linha so');
+  // NEGATIVO VAI COM O PORQUE (Vitorio, 13/10/2026: "especialmente quando for cartao... tem que ir o porque")
+  const car = lib.montaMensagens([L({ chave: 'ven10|1115', nivel: 'amarelo', pontos: -3, pontos_nome: 'Cartão Amarelo', pontos_motivo: 'Rota ativa sem nenhuma venda até 10h', obs: '2 visitas feitas, 0 pedidos e digitado R$ 0 as 13h (limite 10h)' }),
+    L({ chave: 'pen|fechado|192|206150', nivel: 'penalti', pontos: -4, pontos_motivo: 'Justificativa de não-visita em cliente parado', cliente: 'LOJA CONVENIENCIA 3M', motivo: 'ENCERROU AS ATIVIDADES' })], new Set(), {})[0];
+  ok(car.texto.includes('cartão amarelo (−3): Rota ativa sem nenhuma venda até 10h — 2 visitas feitas, 0 pedidos e digitado R$ 0 as 13h') && car.texto.includes('pênalti (−4): Justificativa de não-visita em cliente parado — Loja Conveniencia 3m (encerrou as atividades)'), 'cartao e penalti saem com o MOTIVO da regra e o detalhe (observacao, ou cliente + justificativa)');
   const niv = lib.montaMensagens([L({ chave: 'gol_mix|1|1', pontos: 8, pontos_nome: 'Dobrou o Mix PLATINA' })], new Set(), {})[0];
   ok(niv.texto.includes('Dobrou o Mix Platina (+8)'), 'nivel do gol aparece em formato de leitura (Platina)');
   // ja avisado nao repete
@@ -29,8 +33,8 @@ export default async function (ok) {
   ok(lib.montaMensagens([], new Set(), {}).length === 0, 'sem lances nao gera mensagem vazia');
   // texto grande e cortado no limite
   const muitos = Array.from({ length: 120 }, (_, i) => L({ chave: 'gol_super|' + i, vendedor: 'VENDEDOR NUMERO ' + i + ' COM NOME LONGO', pontos: 5 + (i % 3), hora: '11:' + String(i % 60).padStart(2, '0') + ':00' }));
-  const g = lib.montaMensagens(muitos, new Set(), {})[0];
-  ok(g.texto.length <= lib.LIMITE_TEXTO && /\(\+\d+ vendedor\(es\): veja na Liga\)/.test(g.texto) && g.qtd === 120 && g.chaves.length === 120, 'mensagem enorme e cortada no limite com "(+N lances...)" e TODAS as chaves ficam marcadas como avisadas');
+  const gs = lib.montaMensagens(muitos, new Set(), {}), g = gs[gs.length - 1];
+  ok(gs.length === lib.MAX_PARTES && gs.every((m) => m.texto.length <= lib.LIMITE_TEXTO) && gs[1].texto.includes('· continuação 2/') && /\(\+\d+ vendedor\(es\): veja na Liga\)/.test(g.texto) && g.chaves.length === 120 && gs[0].chaves.length === 0, 'mensagem enorme continua em ate MAX_PARTES notificacoes, cada uma no limite; o resto vira "(+N ...)" e as chaves so sao marcadas na ultima parte');
   // codigo: endpoint
   const ep = readFileSync(join(RAIZ, 'functions', 'api', 'cron-notificacoes-supervisores.js'), 'utf8');
   ok(ep.includes("'notif_supervisores')) !== '1'") && ep.includes('ult.slice(11, 13)') && ep.includes("'Brasileirão Triunfante'") && ep.includes('notif_lance_enviado'), 'endpoint: desligado por padrao, um envio por hora cheia (nao depende do minuto exato do coletor), origem "Brasileirão Triunfante" e cada lance avisado uma vez');
