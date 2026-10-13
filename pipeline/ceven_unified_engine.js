@@ -738,6 +738,23 @@ async function enriquecerCanalReal(repsValidationMap) {
   // — já vimos travar/falhar em massa pra uma filial inteira sem aviso (ex: TBL 22/09).
   // Só cai pra API ao vivo quem não estiver na tabela local (contratado recente, etc).
   const resolvidos = new Set();
+  // 0ª FONTE (13/10/2026, 07:45): o CANAL vem da GESTAO DE EQUIPE (mostra_equipe.json, a fonte unica). Antes, com o CEVEN no pico, as 550 chamadas
+  // /representante/{rca} davam timeout, o canal virava 'NULO' e 8 das 11 filiais saiam da abertura "sem dados". So cai para o CEVEN quem a Gestao nao conhece.
+  try {
+    const fsG = require('fs'), pathG = require('path');
+    const arq = pathG.join(__dirname, '..', 'mostra_equipe.json');
+    if (fsG.existsSync(arq)) {
+      const g = JSON.parse(fsG.readFileSync(arq, 'utf8'));
+      let n = 0;
+      for (const [sig, lista] of Object.entries((g && g.filiais) || {})) for (const r of lista || []) {
+        const key = `${String(sig).split('_')[0].toUpperCase()}_${r.rca}`;
+        const val = repsValidationMap[key];
+        const canal = String(r.canal || '').trim().toUpperCase();
+        if (val && canal) { val.canal = canal; resolvidos.add(key); n++; }
+      }
+      console.log(`🏷️ Canal vindo da Gestão de Equipe: ${n} contas (sem ir ao CEVEN).`);
+    }
+  } catch (e) { console.warn('⚠️ Não consegui ler o canal da Gestão:', e.message); }
   try {
     const path = require('path');
     const Database = require('better-sqlite3');
@@ -750,7 +767,7 @@ async function enriquecerCanalReal(repsValidationMap) {
       rows.forEach(r => { canalLocal[`${r.filial_sigla}_${r.rca_id}`] = r.area_atuacao || 'NULO'; });
       Object.entries(repsValidationMap).forEach(([key, val]) => {
         const chave = `${val.filial}_${val.rca}`;
-        if (canalLocal[chave] !== undefined) {
+        if (!resolvidos.has(key) && canalLocal[chave] !== undefined) {
           val.canal = canalLocal[chave] || 'NULO';
           resolvidos.add(key);
         }
