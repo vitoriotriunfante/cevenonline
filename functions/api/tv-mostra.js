@@ -19,11 +19,15 @@ let cache = { exp: 0, corpo: null };
 async function aplicaUniverso(env, corpo, completo) {
   try {
     if (!env.DB || !corpo || !corpo.filiais) return corpo;
-    const { results } = await env.DB.prepare('SELECT filial, rca FROM arvore_supervisores').all();
+    const { results } = await env.DB.prepare('SELECT filial, rca, nome, sup_nome, canal FROM arvore_supervisores').all();
     if (!results || results.length < 300) return corpo;
     const ok = new Set(results.map((a) => String(a.filial).toUpperCase() + '|' + String(a.rca)));
     const novo = { ...corpo, filiais: {} };
-    let fora = 0, sim = 0, nao = 0;
+    let fora = 0, sim = 0, nao = 0, novos = 0;
+    // O NUMERO DO CEVEN E UM SO: toda pessoa da arvore entra no universo. Quem a Gestao ainda nao conhece entra como "novo na arvore" (conta nos totais; mostra=false ate
+    // o Vitorio decidir em Gestao -> Divergencias): "mostra / nao mostra" so decide em qual LISTA a pessoa aparece, nunca se ela existe.
+    const naGestao = new Set();
+    for (const [k, lista] of Object.entries(corpo.filiais)) for (const v of Array.isArray(lista) ? lista : []) naGestao.add(k.split('_')[0].toUpperCase() + '|' + String(v.rca));
     for (const [k, lista] of Object.entries(corpo.filiais)) {
       const sig = k.split('_')[0].toUpperCase();
       novo.filiais[k] = [];
@@ -35,7 +39,16 @@ async function aplicaUniverso(env, corpo, completo) {
         if (v.mostra === false) nao++; else sim++;
       }
     }
-    novo.total_sim = sim; novo.total_nao = nao; novo.fora_da_arvore = fora; novo.universo = completo ? 'gestao_completa' : 'arvore_viva';
+    for (const a of results) {
+      const sig = String(a.filial).toUpperCase();
+      if (naGestao.has(sig + '|' + String(a.rca))) continue;
+      (novo.filiais[sig] = novo.filiais[sig] || []).push({
+        rca: /^\d+$/.test(String(a.rca)) ? Number(a.rca) : a.rca, nome: a.nome || ('RCA ' + a.rca), supervisor: a.sup_nome || '', gerente: '', grupo: '',
+        canal: String(a.canal || '').toUpperCase(), mostra: false, motivo: 'Novo na arvore do CEVEN: decidir em Gestao de Equipe > Divergencias', auto_arvore: true, na_arvore: true, novo_na_arvore: true
+      });
+      nao++; novos++;
+    }
+    novo.total_sim = sim; novo.total_nao = nao; novo.fora_da_arvore = fora; novo.novos_na_arvore = novos; novo.universo = completo ? 'gestao_completa' : 'arvore_viva';
     return novo;
   } catch { return corpo; }
 }

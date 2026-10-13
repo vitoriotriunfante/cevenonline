@@ -247,6 +247,9 @@ export async function onRequestGet({ env, request }) {
       const antes = rcas.length;
       rcas = rcas.filter((r) => naArvore.has(String(r.filial).toUpperCase() + '|' + String(r.codigo)));
       foraDaArvore = antes - rcas.length;
+      // E quem esta na arvore e nao estava na lista (RCA novo, VAGO, conta nova)? Entra: o universo e a arvore do CEVEN inteira.
+      const jaTem = new Set(rcas.map((r) => String(r.filial).toUpperCase() + '|' + String(r.codigo)));
+      for (const a of arv) { const k = String(a.filial).toUpperCase() + '|' + a.rca; if (!jaTem.has(k)) { rcas.push({ codigo: String(a.rca), filial: String(a.filial).toUpperCase() }); jaTem.add(k); } }
       // limpa as linhas de HOJE dos fantasmas (derivadas; voltam sozinhas se o RCA entrar na arvore): assim nenhuma tela/consulta soma quem o CEVEN nao tem
       if (!filialParam) await env.DB.prepare("DELETE FROM varredura_central_rca WHERE data_ref = ? AND NOT EXISTS (SELECT 1 FROM arvore_supervisores a WHERE a.rca = varredura_central_rca.rca_codigo AND a.filial = varredura_central_rca.filial_sigla)").bind(dataRef).run().catch(() => {});
     }
