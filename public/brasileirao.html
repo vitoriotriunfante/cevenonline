@@ -731,7 +731,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
               <th style="text-align:center" title="Saldo de gols: pontos positivos menos pontos negativos de todos os lances">SG</th>
               <th style="text-align:center" class="cv-aprov">% Aprov</th>
               <th style="text-align:center" class="cv-forma" title="Resultado dos últimos 5 dias (V = vitória, E = empate, D = derrota); o mais recente fica à direita">Últimos jogos</th>
-              <th style="text-align:center" title="Bônus de constância: 3 vitórias seguidas +3 · semana invicta +3">Bônus</th>
+              <th style="text-align:center" title="Pontos extras por constância: sequência de 3+ vitórias seguidas = +3 · sequência de 2 = +1 · semana com vitória todos os dias úteis (Semana Invicta) = +3. Passe o mouse no bônus de cada vendedor para ver o porquê.">Bônus ⓘ</th>
             </tr>
           </thead>
           <tbody id="tbody-vendedores">
@@ -1503,11 +1503,17 @@ function filtrarVendedores() {
 
     // FORMA = ultimos 5 jogos (como no Brasileirao real); o historico completo fica guardado no dado e aparece ao passar o mouse.
     const formaTodos = v.forma || [];
-    const formaHtml = formaTodos.slice(-5).map(r => `<span class="dot-forma ${r}">${r}</span>`).join('') +
+    // cada bolinha mostra a DATA do jogo ao passar o mouse (Vitorio, 13/10/2026): forma[i] corresponde a dias_rodada[i]
+    const diasRodada = (DADOS && DADOS.dias_rodada) || [];
+    const NOME_RES = { V: 'Vitória', E: 'Empate', D: 'Derrota' };
+    const SEM = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+    const dataDoJogo = (i) => { const iso = diasRodada[i]; if (!iso) return ''; const [a, m, dd] = iso.split('-'); return `${dd}/${m} (${SEM[new Date(iso + 'T12:00:00').getDay()]})`; };
+    const iniUlt = Math.max(0, formaTodos.length - 5);
+    const formaHtml = formaTodos.slice(-5).map((r, k) => `<span class="dot-forma ${r}" title="${dataDoJogo(iniUlt + k) ? dataDoJogo(iniUlt + k) + ': ' : ''}${NOME_RES[r] || r}">${r}</span>`).join('') +
       (formaTodos.length > 5 ? `<span class="forma-mais">+${formaTodos.length - 5}</span>` : '');
-    const formaTitulo = `${formaTodos.length} jogos (do mais antigo ao mais recente): ${formaTodos.join(' ')}`;
+    const formaTitulo = formaTodos.map((r, i) => `${dataDoJogo(i) || ('jogo ' + (i + 1))}: ${NOME_RES[r] || r}`).join(' | ');
     const streakHtml = v.bonus_constancia > 0 
-      ? `<span class="tag-badge tag-v">🔥 +${v.bonus_constancia} pts (${v.streak}x)</span>` 
+      ? `<span class="tag-badge tag-v" title="Bônus de constância = pontos extras por vitórias SEGUIDAS. Regra aplicada: maior sequência de 3 ou mais vitórias = +3 pts; sequência de 2 = +1 pt; sequência de 1 = nenhum bônus. A maior sequência dele foi de ${v.streak} dia(s) seguido(s) de vitória, por isso +${v.bonus_constancia} pts. Semana Invicta (vitória em todos os dias úteis da semana) soma +3 por semana: ${v.semanas_invictas || 0} semana(s).">🔥 +${v.bonus_constancia} pts · ${v.streak} seguidas</span>` 
       : `<span style="color:var(--tx-mut);font-size:11px">—</span>`;
 
     return `

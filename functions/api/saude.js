@@ -7,6 +7,7 @@
 // SEMÁFORO: ok | atencao | critico, por bloco, e `problemas[]` com o texto do que está errado.
 // =========================================================================
 import { CEVEN_HDR } from '../_lib/ceven_auth.js';
+import { calculaResumoMes } from '../_lib/resumo_base.js';
 
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
@@ -148,21 +149,21 @@ export async function onRequestGet({ env, request }) {
     soma_dos_rcas: Math.round(somaMeta), resumo_todas: todas ? Math.round(todas.meta) : null, resumo_em: todas ? todas.ua : null,
     filiais_no_resumo: nFilResumo, bate: todas ? Math.abs(todas.meta - somaMeta) < 1000 : null
   };
-  // FOTO do resumo (integridade): quantos RCAs entram com leitura de hoje, de dia anterior ou sem leitura
-  const foto = await safe(async () => await env.DB.prepare('SELECT versao, gerado_em, rcas, de_hoje, anteriores, sem_leitura, mais_antiga, meta_fat, meta_pos FROM resumo_snapshot ORDER BY data_ref DESC LIMIT 1').first());
-  metas.foto = foto ? { versao: foto.versao, gerado_em: foto.gerado_em, rcas: foto.rcas, de_hoje: foto.de_hoje, leitura_anterior: foto.anteriores, sem_leitura: foto.sem_leitura, mais_antiga: foto.mais_antiga, meta_fat: Math.round(foto.meta_fat), meta_pos: Math.round(foto.meta_pos) } : null;
-  if (foto) {
-    const idadeFotoMin = Math.round((agora - utc(foto.gerado_em)) / 60000);
-    metas.foto.idade_min = idadeFotoMin;
-    if (foto.sem_leitura > 0) add('atencao', 'metas', `${foto.sem_leitura} RCAs sem NENHUMA leitura nos ultimos 7 dias (fora da soma).`);
-    if (foto.anteriores > 0) add(horarioComercial && idadeFotoMin > 20 ? 'critico' : 'atencao', 'metas', `${foto.anteriores} RCAs entram na soma com leitura de dia anterior (ainda sem leitura de hoje).`);
-    if (horarioComercial && diaUtil && idadeFotoMin > 30) add('atencao', 'metas', `Foto do resumo com ${idadeFotoMin} min (deveria renovar a cada ~15 min).`);
+  // INTEGRIDADE (mesma conta que a Matriz usa, direto da base): quantos RCAs entram com leitura de hoje, de dia anterior ou sem leitura
+  const rb = await safe(async () => await calculaResumoMes(env, dia));
+  if (rb) {
+    metas.soma_dos_rcas = Math.round(rb.total.metaFaturado);
+    metas.integridade = { rcas: rb.rcas, de_hoje: rb.deHoje, leitura_anterior: rb.anteriores, sem_leitura: rb.semLeitura, mais_antiga: rb.maisAntiga, meta_fat: Math.round(rb.total.metaFaturado), meta_pos: Math.round(rb.total.metaPositivados) };
+    if (rb.semLeitura > 0) add('atencao', 'metas', `${rb.semLeitura} RCAs sem NENHUMA leitura nos ultimos 7 dias (fora da soma).`);
+    if (rb.anteriores > 0) add(horarioComercial && hm > '09:00' ? 'critico' : 'atencao', 'metas', `${rb.anteriores} RCAs entram na soma com leitura de dia anterior (ainda sem leitura de hoje).`);
   }
-  // CONSISTENCIA ENTRE TELAS: o que a Matriz mostra (metas-mes) tem que ser a mesma foto
+  // CONSISTENCIA ENTRE TELAS: as duas fontes que a Matriz usa para o total tem que ser identicas
   const mm = await safe(async () => (await fetch(origin + '/api/metas-mes', { signal: AbortSignal.timeout(10000) })).json());
-  if (mm && mm.total && foto) {
+  const mx = await safe(async () => (await fetch(origin + '/api/mapa-executivo-live', { signal: AbortSignal.timeout(15000) })).json());
+  if (mm && mm.total && mx && mx.resumo && mx.resumo.TODAS) {
     metas.matriz_mostra = Math.round(mm.total.meta_fat);
-    if (Math.abs(mm.total.meta_fat - foto.meta_fat) > 1) add('critico', 'metas', `A Matriz mostra R$ ${Math.round(mm.total.meta_fat).toLocaleString('pt-BR')} e a foto do resumo tem R$ ${Math.round(foto.meta_fat).toLocaleString('pt-BR')}: telas com numeros diferentes.`);
+    metas.executiva_mostra = Math.round(mx.resumo.TODAS.mesMetaFaturado);
+    if (Math.abs(mm.total.meta_fat - mx.resumo.TODAS.mesMetaFaturado) > 1) add('critico', 'metas', `Matriz (R$ ${metas.matriz_mostra.toLocaleString('pt-BR')}) e Executiva (R$ ${metas.executiva_mostra.toLocaleString('pt-BR')}) mostram metas diferentes.`);
   }
   if (linhas.length && nFilResumo < 11) add('atencao', 'metas', `Resumo do mês com ${nFilResumo}/11 filiais (a Matriz pode estar mostrando meta parcial).`);
   else if (todas && Math.abs(todas.meta - somaMeta) > Math.max(1000, somaMeta * 0.01)) add('atencao', 'metas', `Meta da Matriz (R$ ${Math.round(todas.meta).toLocaleString('pt-BR')}) difere da soma dos RCAs (R$ ${Math.round(somaMeta).toLocaleString('pt-BR')}); recalcula em até 15 min.`);

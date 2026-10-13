@@ -25,6 +25,8 @@ function dataHojeBrasilia() {
 
 const espera = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+import { calculaResumoMes } from '../_lib/resumo_base.js';
+
 export async function onRequestGet({ env, request }) {
   const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 (env.DB) não configurado' }), { status: 503, headers: cors });
@@ -89,62 +91,16 @@ export async function onRequestGet({ env, request }) {
 }
 
 async function executarVarredura(env, dataRef, t0, cors) {
-  const { results: linhasCentral } = await env.DB.prepare(
-    'SELECT rca_codigo, filial_sigla, dashboard_json FROM varredura_central_rca WHERE data_ref = ?'
-  ).bind(dataRef).all();
-
-  if (!linhasCentral || !linhasCentral.length) {
+  // A conta fica em functions/_lib/resumo_base.js (a MESMA que a Matriz, a Executiva e o /saude usam, na hora, direto da base).
+  // Este cron so mantem a tabela resumo_executivo_live em dia para quem ainda a consulta; nenhuma tela depende mais dela para o total do mes.
+  const rb = await calculaResumoMes(env, dataRef);
+  if (!rb.rcas) {
     return new Response(JSON.stringify({ erro: 'varredura_central_rca ainda sem dado hoje — aguardando primeiro ciclo', dica: 'GET /api/cron-varredura-central' }), { status: 202, headers: cors });
   }
-
-  // =====================================================================================================================================
-  // REGRA DE INTEGRIDADE (Vitório, 13/10/2026: "soma parcial? JAMAIS"): o número publicado é SEMPRE a soma de TODOS os RCAs, cada um com a sua
-  // última leitura REAL do CEVEN (a de hoje; se ainda não leu hoje, a mais recente dos 7 dias anteriores). Nunca se soma só quem já foi lido.
-  // O snapshot (resumo_snapshot) diz quantos vieram de hoje, quantos de leitura anterior e quantos não têm leitura nenhuma. Tudo é gravado
-  // numa ÚNICA transação (filiais + total + snapshot): nenhuma tela vê metade de uma atualização. Se menos de 90% dos RCAs têm QUALQUER leitura
-  // (base nova/vazia), NÃO publica: mantém o último snapshot completo.
-  // =====================================================================================================================================
-  const ultimoConhecido = new Map();   // rca -> { dash, dia }
-  try {
-    const { results: prev } = await env.DB.prepare(
-      "SELECT rca_codigo, data_ref, dashboard_json FROM varredura_central_rca WHERE data_ref < ? AND data_ref >= date(?, '-7 days') AND dashboard_json IS NOT NULL AND dashboard_json != 'null' ORDER BY data_ref"
-    ).bind(dataRef, dataRef).all();
-    for (const r of prev || []) { try { const d = JSON.parse(r.dashboard_json); if (d && d.financeiro) ultimoConhecido.set(String(r.rca_codigo), { dash: d, dia: r.data_ref }); } catch {} }   // ordenado por dia: o mais recente vence
-  } catch { /* sem dias anteriores: so o de hoje */ }
-
-  const agg = {};   // filial -> {faturado, metaFaturado, positivados, metaPositivados}
-  const pega = (sig) => (agg[sig] = agg[sig] || { faturado: 0, metaFaturado: 0, positivados: 0, metaPositivados: 0 });
-  let deHoje = 0, anteriores = 0, semLeitura = 0, maisAntiga = null;
-  for (const l of linhasCentral) {
-    let dash = null, origem = dataRef;
-    try { const d = JSON.parse(l.dashboard_json); if (d && d.financeiro) dash = d; } catch {}
-    if (dash) deHoje++;
-    else {
-      const u = ultimoConhecido.get(String(l.rca_codigo));
-      if (u) { dash = u.dash; origem = u.dia; anteriores++; if (!maisAntiga || u.dia < maisAntiga) maisAntiga = u.dia; }
-      else { semLeitura++; continue; }
-    }
-    const sig = String(l.filial_sigla || '').toUpperCase();
-    const aFil = pega(sig), aNac = pega('TODAS');
-    const fat = Number(dash?.financeiro?.faturado) || 0;
-    const metaFat = Number(dash?.financeiro?.meta) || 0;
-    const pos = Number(dash?.positivacao?.realizado) || 0;
-    const metaPos = Number(dash?.positivacao?.meta) || 0;
-    aFil.faturado += fat; aNac.faturado += fat;
-    aFil.metaFaturado += metaFat; aNac.metaFaturado += metaFat;
-    aFil.positivados += pos; aNac.positivados += pos;
-    aFil.metaPositivados += metaPos; aNac.metaPositivados += metaPos;
+  if (rb.deHoje + rb.anteriores < rb.rcas * 0.9) {
+    return new Response(JSON.stringify({ status: 'AGUARDANDO_LEITURA', rcas: rb.rcas, de_hoje: rb.deHoje, leitura_anterior: rb.anteriores, sem_leitura: rb.semLeitura }), { headers: cors });
   }
-  const total = linhasCentral.length;
-  const comLeitura = deHoje + anteriores;
-  if (!Object.keys(agg).length || comLeitura < total * 0.9) {
-    return new Response(JSON.stringify({ status: 'AGUARDANDO_LEITURA', motivo: 'menos de 90% dos RCAs com qualquer leitura: mantem o ultimo snapshot completo', rcas: total, de_hoje: deHoje, anteriores, sem_leitura: semLeitura }), { status: 200, headers: cors });
-  }
-
-  await env.DB.prepare('CREATE TABLE IF NOT EXISTS resumo_snapshot (data_ref TEXT PRIMARY KEY, versao INTEGER NOT NULL DEFAULT 1, gerado_em TEXT, rcas INTEGER, de_hoje INTEGER, anteriores INTEGER, sem_leitura INTEGER, mais_antiga TEXT, meta_fat REAL, faturado REAL, meta_pos REAL, positivados REAL)').run();
-  const nac = agg.TODAS;
-  // UMA transacao: filiais + total + snapshot
-  const stmts = Object.entries(agg).map(([sig, a]) =>
+  const stmts = [...Object.entries(rb.porFilial), ['TODAS', rb.total]].map(([sig, a]) =>
     env.DB.prepare(
       `INSERT INTO resumo_executivo_live (filial_sigla, data_ref, mes_faturado, mes_meta_faturado, mes_positivados, mes_meta_positivados, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -156,24 +112,9 @@ async function executarVarredura(env, dataRef, t0, cors) {
          updated_at = CURRENT_TIMESTAMP`
     ).bind(sig, dataRef, a.faturado, a.metaFaturado, a.positivados, a.metaPositivados)
   );
-  stmts.push(env.DB.prepare(
-    `INSERT INTO resumo_snapshot (data_ref, versao, gerado_em, rcas, de_hoje, anteriores, sem_leitura, mais_antiga, meta_fat, faturado, meta_pos, positivados)
-     VALUES (?, 1, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-     ON CONFLICT (data_ref) DO UPDATE SET versao = versao + 1, gerado_em = CURRENT_TIMESTAMP, rcas = excluded.rcas, de_hoje = excluded.de_hoje, anteriores = excluded.anteriores,
-       sem_leitura = excluded.sem_leitura, mais_antiga = excluded.mais_antiga, meta_fat = excluded.meta_fat, faturado = excluded.faturado, meta_pos = excluded.meta_pos, positivados = excluded.positivados`
-  ).bind(dataRef, total, deHoje, anteriores, semLeitura, maisAntiga, nac.metaFaturado, nac.faturado, nac.metaPositivados, nac.positivados));
-  await env.DB.batch(stmts);
-
+  await env.DB.batch(stmts);   // uma transacao so
   return new Response(JSON.stringify({
-    status: 'ATUALIZADO',
-    data_ref: dataRef,
-    rcas: total,
-    de_hoje: deHoje,
-    leitura_anterior: anteriores,
-    sem_leitura: semLeitura,
-    mais_antiga: maisAntiga,
-    meta_fat: Math.round(nac.metaFaturado),
-    filiais_gravadas: Object.keys(agg).length,
-    duracao_ms: Date.now() - t0
+    status: 'ATUALIZADO', data_ref: dataRef, rcas: rb.rcas, de_hoje: rb.deHoje, leitura_anterior: rb.anteriores, sem_leitura: rb.semLeitura,
+    meta_fat: Math.round(rb.total.metaFaturado), filiais_gravadas: stmts.length, duracao_ms: Date.now() - t0
   }), { headers: cors });
 }

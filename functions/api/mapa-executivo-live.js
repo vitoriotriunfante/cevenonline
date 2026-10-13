@@ -18,6 +18,8 @@
 //          já vêm com coordenada real, sem precisar do SQLite/Drive (resolvido em 28/09/2026).
 // =========================================================================
 
+import { calculaResumoMes } from '../_lib/resumo_base.js';   // campos do MES saem direto da base (13/10/2026)
+
 function dataHojeBrasilia() {
   const p = {};
   new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' })
@@ -99,7 +101,22 @@ export async function onRequestGet({ env, request, waitUntil }) {
     if (!atualizadoEmDados || r.updated_at > atualizadoEmDados) atualizadoEmDados = r.updated_at;
   }
 
+  // FATURADO, META E POSITIVADOS DO MES: direto da base, no instante da consulta (nunca da copia recalculada de tempos em tempos).
+  // Sobrescreve so os campos mes* de cada filial e do total; visitas/pedidos/digitado do dia continuam como estavam.
+  let integridade = null;
+  try {
+    const rb = await calculaResumoMes(env, dataRef);
+    const aplica = (sig, a) => {
+      const alvo = resumo[sig] || (resumo[sig] = { feitas: 0, rota: 0, comVenda: 0, semVenda: 0, pedidos: 0, digitado: 0, vendedoresComVenda: 0, resgatadosHoje: 0, valorResgatadoHoje: 0, mediaSkus: 0, ticketMedio: 0 });
+      alvo.mesFaturado = a.faturado; alvo.mesPendente = a.pendente; alvo.mesMetaFaturado = a.metaFaturado; alvo.mesPositivados = a.positivados; alvo.mesMetaPositivados = a.metaPositivados;
+    };
+    for (const [sig, a] of Object.entries(rb.porFilial)) aplica(sig, a);
+    aplica('TODAS', rb.total);
+    integridade = { rcas: rb.rcas, de_hoje: rb.deHoje, leitura_anterior: rb.anteriores, sem_leitura: rb.semLeitura, mais_antiga: rb.maisAntiga };
+  } catch { /* sem a base: mantem o que veio do resumo */ }
+
   return new Response(JSON.stringify({
+    integridade,
     atualizadoEm: new Date().toISOString(),
     dadosAtualizadosEm: atualizadoEmDados,
     dataRef,

@@ -484,11 +484,11 @@ async function carregaBase() {
 }
 // METAS (foto do resumo do mes): todas as telas leem a MESMA foto e recarregam a cada 60 s, para duas abas abertas nunca ficarem com numeros diferentes por mais de 1 min (Vitorio, 13/10/2026)
 function fotoMeta() {
-  const f = METAS && METAS.snapshot;
-  if (!f || !f.gerado_em) return '';
-  const hm = new Date(String(f.gerado_em).replace(' ', 'T') + 'Z').toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
-  const aviso = (f.leitura_anterior || f.sem_leitura) ? ` · <b style="color:#f59e0b">${(f.leitura_anterior || 0) + (f.sem_leitura || 0)} RCAs sem leitura de hoje</b>` : '';
-  return `<br><small style="color:#64748b">foto ${hm} · ${f.de_hoje}/${f.rcas} RCAs lidos hoje${aviso}</small>`;
+  // nada de "foto": o numero e a base. So aparece aviso se algum RCA ainda nao foi lido HOJE (entra com a ultima leitura real dele).
+  const f = METAS && METAS.integridade;
+  if (!f) return '';
+  const n = (f.leitura_anterior || 0) + (f.sem_leitura || 0);
+  return n ? `<br><small style="color:#f59e0b">${n} RCA(s) ainda sem leitura de hoje (entram com a ultima leitura real)</small>` : '';
 }
 async function carregaMetas() {
   const mt = await j('/api/metas-mes', 15000); // metas ao vivo do CEVEN (04/10/2026)

@@ -3,7 +3,8 @@
 // O QUE É: metas do MÊS por filial, AO VIVO, direto do CEVEN (decisão do Vitório, 04/10/2026:
 //          "pegar de CEVEN por CEVEN" — acabou o public/metas_mes.json estático, que era um print
 //          do PNA de setembro e nunca se atualizava).
-// COMO: lê de resumo_executivo_live as colunas mes_meta_faturado / mes_meta_positivados, que o
+// COMO (desde 13/10/2026): calcula NA HORA, direto da base (varredura_central_rca), por functions/_lib/resumo_base.js — a mesma conta de todas as telas.
+//       (antes lia as colunas de resumo_executivo_live, que o
 //       cron-faturado-mes.js soma a cada ~15 min a partir do dashboard de cada RCA no CEVEN
 //       (varredura_central_rca). Nenhuma chamada nova ao CEVEN aqui: é só leitura do D1.
 // FORMATO: o mesmo do antigo metas_mes.json ({mes, filiais:{SIG:{meta_fat, meta_pos}}, total}),
@@ -18,36 +19,28 @@
 const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const resp = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: CORS });
 
+import { calculaResumoMes } from '../_lib/resumo_base.js';
+
+const hojeSP = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+
 export async function onRequestGet({ env }) {
   if (!env.DB) return resp({ erro: 'D1 (env.DB) não configurado' }, 503);
   try {
-    const ult = await env.DB.prepare('SELECT MAX(data_ref) AS d FROM resumo_executivo_live WHERE mes_meta_faturado > 0').first();
-    const dataRef = ult && ult.d;
-    if (!dataRef) return resp({ erro: 'sem metas no D1 ainda' }, 404);
-    const { results } = await env.DB.prepare(
-      'SELECT filial_sigla, mes_meta_faturado, mes_meta_positivados, updated_at FROM resumo_executivo_live WHERE data_ref = ?'
-    ).bind(dataRef).all();
+    // DIRETO DA BASE, NA HORA (Vitorio, 13/10/2026: "e tudo direto da base"): nao le mais copia recalculada de tempos em tempos.
+    // Soma SEMPRE todos os RCAs (leitura de hoje ou a ultima real; ver _lib/resumo_base.js) e diz quantos vieram de cada origem.
+    const dataRef = hojeSP();
+    const rb = await calculaResumoMes(env, dataRef);
+    if (!rb.rcas || !rb.total.metaFaturado) return resp({ erro: 'sem metas na base de hoje ainda' }, 404);
     const filiais = {};
-    let total = null, atualizado = null;
-    for (const r of results || []) {
-      const mf = Number(r.mes_meta_faturado) || 0, mp = Math.round(Number(r.mes_meta_positivados) || 0); // meta de clientes e inteira (a soma dos dashboards pode vir fracionada)
-      if (!atualizado || String(r.updated_at) > atualizado) atualizado = String(r.updated_at);
-      if (r.filial_sigla === 'TODAS') { if (mf > 0) total = { meta_fat: mf, meta_pos: mp }; continue; }
-      if (mf > 0) filiais[r.filial_sigla] = { meta_fat: mf, meta_pos: mp };
-    }
-    // FOTO (snapshot) do resumo: quantos RCAs vieram de leitura de hoje, quantos de leitura anterior e quantos sem leitura (13/10/2026: nunca soma parcial)
-    const foto = await env.DB.prepare('SELECT data_ref, versao, gerado_em, rcas, de_hoje, anteriores, sem_leitura, mais_antiga FROM resumo_snapshot WHERE data_ref = ?').bind(dataRef).first().catch(() => null);
+    for (const [sig, a] of Object.entries(rb.porFilial)) if (a.metaFaturado > 0) filiais[sig] = { meta_fat: a.metaFaturado, meta_pos: Math.round(a.metaPositivados) };
     return resp({
-      snapshot: foto ? { versao: foto.versao, gerado_em: foto.gerado_em, rcas: foto.rcas, de_hoje: foto.de_hoje, leitura_anterior: foto.anteriores, sem_leitura: foto.sem_leitura, mais_antiga: foto.mais_antiga } : null,
-      mes: String(dataRef).slice(0, 7),
-      fonte: 'CEVEN ao vivo (soma dos dashboards dos RCAs, via resumo_executivo_live)',
+      mes: dataRef.slice(0, 7),
+      fonte: 'base do CEVEN (varredura central), calculado na hora',
       data_ref: dataRef,
-      atualizado_em: atualizado,
+      atualizado_em: new Date().toISOString(),
+      integridade: { rcas: rb.rcas, de_hoje: rb.deHoje, leitura_anterior: rb.anteriores, sem_leitura: rb.semLeitura, mais_antiga: rb.maisAntiga },
       filiais,
-      total: total || {
-        meta_fat: Object.values(filiais).reduce((a, f) => a + f.meta_fat, 0),
-        meta_pos: Object.values(filiais).reduce((a, f) => a + f.meta_pos, 0)
-      }
+      total: { meta_fat: rb.total.metaFaturado, meta_pos: Math.round(rb.total.metaPositivados) }
     });
   } catch (e) {
     return resp({ erro: 'falha ao ler metas: ' + e.message }, 500);
