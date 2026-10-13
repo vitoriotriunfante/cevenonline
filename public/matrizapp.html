@@ -480,6 +480,17 @@ async function carregaBase() {
     MOSTRA = null; listaAviso = 'LISTA DA GESTÃO DE EQUIPE INDISPONÍVEL — sem vendedores até ela voltar';
     if (av) { av.textContent = listaAviso; av.style.display = 'inline-block'; }
   }
+  await carregaMetas();
+}
+// METAS (foto do resumo do mes): todas as telas leem a MESMA foto e recarregam a cada 60 s, para duas abas abertas nunca ficarem com numeros diferentes por mais de 1 min (Vitorio, 13/10/2026)
+function fotoMeta() {
+  const f = METAS && METAS.snapshot;
+  if (!f || !f.gerado_em) return '';
+  const hm = new Date(String(f.gerado_em).replace(' ', 'T') + 'Z').toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+  const aviso = (f.leitura_anterior || f.sem_leitura) ? ` · <b style="color:#f59e0b">${(f.leitura_anterior || 0) + (f.sem_leitura || 0)} RCAs sem leitura de hoje</b>` : '';
+  return `<br><small style="color:#64748b">foto ${hm} · ${f.de_hoje}/${f.rcas} RCAs lidos hoje${aviso}</small>`;
+}
+async function carregaMetas() {
   const mt = await j('/api/metas-mes', 15000); // metas ao vivo do CEVEN (04/10/2026)
   if (mt && mt.filiais && mt.mes === sp().date.slice(0, 7)) METAS = mt;
 }
@@ -1254,7 +1265,7 @@ function modoSup() { if (SUP_MANUAL) return true; const t = sp(), m = t.h * 60 +
 function renderTotais(stats) {
   const s = f => stats.reduce((x, y) => x + (f(y) || 0), 0), fat = s(x => x.fat), pend = s(x => x.pendente), mF = METAS ? METAS.total.meta_fat : s(x => x.metaFat), pos = s(x => x.realCli), mP = METAS ? METAS.total.meta_pos : s(x => x.metaPos);
   const pendHtml = pend > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--muted);margin-top:2px;letter-spacing:-0.2px">+ ${brl(pend)} pendente</div>` : '';
-  $('tot').innerHTML = [['Faturado no mês', `${brl(fat)} <small>${mF ? pc(fat / mF * 100) : ''}</small>${pendHtml}`], [METAS ? 'Meta do mês (CEVEN)' : 'Meta (soma)', brl(mF)], ['Positivados no mês', `${nv(pos)} <small>de ${nv(mP)} · ${mP ? pc(pos / mP * 100) : ''}</small>`],
+  $('tot').innerHTML = [['Faturado no mês', `${brl(fat)} <small>${mF ? pc(fat / mF * 100) : ''}</small>${pendHtml}`], [METAS ? 'Meta do mês (CEVEN)' : 'Meta (soma)', brl(mF) + fotoMeta()], ['Positivados no mês', `${nv(pos)} <small>de ${nv(mP)} · ${mP ? pc(pos / mP * 100) : ''}</small>`],
     ['Digitado hoje', brl(RESUMO_OF && RESUMO_OF.TODAS ? RESUMO_OF.TODAS.digitado : s(x => x.dig))], ['Visitas feitas / programadas (CEVEN)', nv(s(x => x.feitasCeven)) + ' / ' + nv(s(x => x.rotaCeven))], ['Zerados · Pênaltis ativos', nv(s(x => x.nZer)) + ' · ' + nv(s(x => x.pen))]].map(([l, v]) => `<div><span>${l}</span><b class="mono">${v}</b></div>`).join('');
   $('nv').textContent = s(x => x.n);
 }
@@ -1906,13 +1917,14 @@ function ctl() {
   if ($('bt-inv')) $('bt-inv').onclick = () => (typeof animTeste === 'function' ? animTeste('semanainvicta') : null);
 }
 // ============================== LAÇO PRINCIPAL ==============================
+let ultMetas = Date.now();
 async function laco() {
   await carregaBase(); if (!MOSTRA) { $('upd').textContent = 'sem lista de vendedores'; $('upd').className = 'upd old'; }
   await carregaLances();
   for (;;) {
     for (const sig of ORDEM) { if (MOSTRA) await atualizaFilial(sig); await processa(); render(); }
     await atualizaSups(); await sleep(3000);
-    if (Date.now() % 600000 < 60000) carregaBase();
+    if (Date.now() % 600000 < 60000) carregaBase(); else if (Date.now() - ultMetas > 60000) { ultMetas = Date.now(); carregaMetas(); }
   }
 }
 // ROLAGEM AUTOMÁTICA (pedido do Vitório, 29/09/2026): mesma lógica de tvapp.html — qualquer

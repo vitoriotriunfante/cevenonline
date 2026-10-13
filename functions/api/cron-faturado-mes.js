@@ -97,39 +97,34 @@ async function executarVarredura(env, dataRef, t0, cors) {
     return new Response(JSON.stringify({ erro: 'varredura_central_rca ainda sem dado hoje — aguardando primeiro ciclo', dica: 'GET /api/cron-varredura-central' }), { status: 202, headers: cors });
   }
 
-  const agg = {}; // filial -> {faturado, metaFaturado, positivados, metaPositivados}
-  const pega = (sig) => (agg[sig] = agg[sig] || { faturado: 0, metaFaturado: 0, positivados: 0, metaPositivados: 0 });
-  let falhas = 0;
-
-  // PROTECAO CONTRA LEITURA INCOMPLETA (12/10/2026): as 21:26 a soma rodou com 4 filiais sem dashboard na central e gravou meta R$ 58 mi (TODAS) no lugar de R$ 85 mi;
-  // a Matriz mostrou o numero errado por 15 min. Agora, filial com menos de 90% dos RCAs com dashboard NAO sobrescreve o valor que ja estava gravado (e o total e a soma das filiais).
-  // ULTIMO DASHBOARD CONHECIDO (13/10/2026, 07:18): na virada do dia a base nova se enche aos poucos e o resumo gravou R$ 83,7 mi (certo: R$ 85,1 mi; 7 filiais com 1 a 10% dos RCAs ainda
-  // sem leitura). RCA sem dashboard HOJE usa o ultimo dashboard REAL gravado em dia anterior (meta quase nunca muda; o faturado e o do ultimo dia lido, nunca estimado).
-  const ultimoConhecido = new Map();
+  // =====================================================================================================================================
+  // REGRA DE INTEGRIDADE (Vitório, 13/10/2026: "soma parcial? JAMAIS"): o número publicado é SEMPRE a soma de TODOS os RCAs, cada um com a sua
+  // última leitura REAL do CEVEN (a de hoje; se ainda não leu hoje, a mais recente dos 7 dias anteriores). Nunca se soma só quem já foi lido.
+  // O snapshot (resumo_snapshot) diz quantos vieram de hoje, quantos de leitura anterior e quantos não têm leitura nenhuma. Tudo é gravado
+  // numa ÚNICA transação (filiais + total + snapshot): nenhuma tela vê metade de uma atualização. Se menos de 90% dos RCAs têm QUALQUER leitura
+  // (base nova/vazia), NÃO publica: mantém o último snapshot completo.
+  // =====================================================================================================================================
+  const ultimoConhecido = new Map();   // rca -> { dash, dia }
   try {
     const { results: prev } = await env.DB.prepare(
-      'SELECT rca_codigo, dashboard_json FROM varredura_central_rca WHERE data_ref = (SELECT MAX(data_ref) FROM varredura_central_rca WHERE data_ref < ?) AND dashboard_json IS NOT NULL'
-    ).bind(dataRef).all();
-    for (const r of prev || []) { try { const d = JSON.parse(r.dashboard_json); if (d) ultimoConhecido.set(String(r.rca_codigo), d); } catch {} }
-  } catch { /* sem dia anterior: segue so com o de hoje */ }
-  let usouUltimo = 0;
-  const nLinhas = {}, nComDash = {};
-  for (const l of linhasCentral) {
-    const sg = String(l.filial_sigla || '').toUpperCase();
-    nLinhas[sg] = (nLinhas[sg] || 0) + 1;
-    let ok = false;
-    try { ok = !!JSON.parse(l.dashboard_json); } catch {}
-    if (ok || ultimoConhecido.has(String(l.rca_codigo))) nComDash[sg] = (nComDash[sg] || 0) + 1;
-  }
-  const incompletas = new Set(Object.keys(nLinhas).filter((sg) => (nComDash[sg] || 0) < nLinhas[sg] * 0.9));
+      "SELECT rca_codigo, data_ref, dashboard_json FROM varredura_central_rca WHERE data_ref < ? AND data_ref >= date(?, '-7 days') AND dashboard_json IS NOT NULL AND dashboard_json != 'null' ORDER BY data_ref"
+    ).bind(dataRef, dataRef).all();
+    for (const r of prev || []) { try { const d = JSON.parse(r.dashboard_json); if (d && d.financeiro) ultimoConhecido.set(String(r.rca_codigo), { dash: d, dia: r.data_ref }); } catch {} }   // ordenado por dia: o mais recente vence
+  } catch { /* sem dias anteriores: so o de hoje */ }
 
+  const agg = {};   // filial -> {faturado, metaFaturado, positivados, metaPositivados}
+  const pega = (sig) => (agg[sig] = agg[sig] || { faturado: 0, metaFaturado: 0, positivados: 0, metaPositivados: 0 });
+  let deHoje = 0, anteriores = 0, semLeitura = 0, maisAntiga = null;
   for (const l of linhasCentral) {
-    let dash = null;
-    try { dash = JSON.parse(l.dashboard_json); } catch {}
-    if (!dash) { dash = ultimoConhecido.get(String(l.rca_codigo)) || null; if (dash) usouUltimo++; }
-    if (!dash) { falhas++; continue; }
+    let dash = null, origem = dataRef;
+    try { const d = JSON.parse(l.dashboard_json); if (d && d.financeiro) dash = d; } catch {}
+    if (dash) deHoje++;
+    else {
+      const u = ultimoConhecido.get(String(l.rca_codigo));
+      if (u) { dash = u.dash; origem = u.dia; anteriores++; if (!maisAntiga || u.dia < maisAntiga) maisAntiga = u.dia; }
+      else { semLeitura++; continue; }
+    }
     const sig = String(l.filial_sigla || '').toUpperCase();
-    if (incompletas.has(sig)) continue;
     const aFil = pega(sig), aNac = pega('TODAS');
     const fat = Number(dash?.financeiro?.faturado) || 0;
     const metaFat = Number(dash?.financeiro?.meta) || 0;
@@ -140,29 +135,15 @@ async function executarVarredura(env, dataRef, t0, cors) {
     aFil.positivados += pos; aNac.positivados += pos;
     aFil.metaPositivados += metaPos; aNac.metaPositivados += metaPos;
   }
-
-  if (!Object.keys(agg).length) {
-    return new Response(JSON.stringify({ erro: 'nenhum RCA com dashboard gravado na central', falhas, rcas_total: linhasCentral.length }), { status: 502, headers: cors });
+  const total = linhasCentral.length;
+  const comLeitura = deHoje + anteriores;
+  if (!Object.keys(agg).length || comLeitura < total * 0.9) {
+    return new Response(JSON.stringify({ status: 'AGUARDANDO_LEITURA', motivo: 'menos de 90% dos RCAs com qualquer leitura: mantem o ultimo snapshot completo', rcas: total, de_hoje: deHoje, anteriores, sem_leitura: semLeitura }), { status: 200, headers: cors });
   }
 
-  // INSERT ... ON CONFLICT DO UPDATE, não UPDATE puro — a linha (filial, data_ref) pode ainda não
-  // existir se este cron rodar antes do cron-mapa-executivo.js (ordem entre os dois crons não é
-  // garantida). Só mexe nas colunas do mês, preserva visitas/pedidos/digitado se a linha já
-  // existir (evita corrida entre os dois crons apagando dado um do outro).
-  // filiais incompletas mantem o que estava gravado; o total (TODAS) passa a ser a soma das 11 filiais finais
-  if (incompletas.size) {
-    const { results: antes } = await env.DB.prepare(
-      "SELECT filial_sigla, mes_faturado, mes_meta_faturado, mes_positivados, mes_meta_positivados FROM resumo_executivo_live WHERE data_ref = (SELECT MAX(data_ref) FROM resumo_executivo_live WHERE mes_meta_faturado > 0 AND data_ref < ?) AND filial_sigla NOT IN ('TODAS', '_LOCK_')"
-    ).bind(dataRef + '~').all().catch(() => ({ results: [] }));
-    const ultimo = new Map((antes || []).map((r) => [r.filial_sigla, r]));
-    const nac = { faturado: 0, metaFaturado: 0, positivados: 0, metaPositivados: 0 };
-    for (const sg of incompletas) {
-      const u = ultimo.get(sg);
-      if (u) agg[sg] = { faturado: Number(u.mes_faturado) || 0, metaFaturado: Number(u.mes_meta_faturado) || 0, positivados: Number(u.mes_positivados) || 0, metaPositivados: Number(u.mes_meta_positivados) || 0 };
-    }
-    for (const [sg, a] of Object.entries(agg)) { if (sg === 'TODAS') continue; nac.faturado += a.faturado; nac.metaFaturado += a.metaFaturado; nac.positivados += a.positivados; nac.metaPositivados += a.metaPositivados; }
-    agg.TODAS = nac;
-  }
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS resumo_snapshot (data_ref TEXT PRIMARY KEY, versao INTEGER NOT NULL DEFAULT 1, gerado_em TEXT, rcas INTEGER, de_hoje INTEGER, anteriores INTEGER, sem_leitura INTEGER, mais_antiga TEXT, meta_fat REAL, faturado REAL, meta_pos REAL, positivados REAL)').run();
+  const nac = agg.TODAS;
+  // UMA transacao: filiais + total + snapshot
   const stmts = Object.entries(agg).map(([sig, a]) =>
     env.DB.prepare(
       `INSERT INTO resumo_executivo_live (filial_sigla, data_ref, mes_faturado, mes_meta_faturado, mes_positivados, mes_meta_positivados, updated_at)
@@ -175,14 +156,23 @@ async function executarVarredura(env, dataRef, t0, cors) {
          updated_at = CURRENT_TIMESTAMP`
     ).bind(sig, dataRef, a.faturado, a.metaFaturado, a.positivados, a.metaPositivados)
   );
+  stmts.push(env.DB.prepare(
+    `INSERT INTO resumo_snapshot (data_ref, versao, gerado_em, rcas, de_hoje, anteriores, sem_leitura, mais_antiga, meta_fat, faturado, meta_pos, positivados)
+     VALUES (?, 1, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT (data_ref) DO UPDATE SET versao = versao + 1, gerado_em = CURRENT_TIMESTAMP, rcas = excluded.rcas, de_hoje = excluded.de_hoje, anteriores = excluded.anteriores,
+       sem_leitura = excluded.sem_leitura, mais_antiga = excluded.mais_antiga, meta_fat = excluded.meta_fat, faturado = excluded.faturado, meta_pos = excluded.meta_pos, positivados = excluded.positivados`
+  ).bind(dataRef, total, deHoje, anteriores, semLeitura, maisAntiga, nac.metaFaturado, nac.faturado, nac.metaPositivados, nac.positivados));
   await env.DB.batch(stmts);
 
   return new Response(JSON.stringify({
     status: 'ATUALIZADO',
     data_ref: dataRef,
-    rcas_processados: linhasCentral.length,
-    rcas_sem_resposta: falhas,
-    usou_ultimo_conhecido: usouUltimo,
+    rcas: total,
+    de_hoje: deHoje,
+    leitura_anterior: anteriores,
+    sem_leitura: semLeitura,
+    mais_antiga: maisAntiga,
+    meta_fat: Math.round(nac.metaFaturado),
     filiais_gravadas: Object.keys(agg).length,
     duracao_ms: Date.now() - t0
   }), { headers: cors });

@@ -754,7 +754,7 @@ secao('10. Painel /saude (sala de controle) e telemetria da coleta');
   ok(vc.includes('saude_coleta') && vc.includes('registraTick'), 'cada rodada da varredura grava a telemetria (chamadas, 429, 401, falhas)');
   ok(h.includes('/api/saude') && h.includes('setInterval(carregar, 15000)'), 'tela /saude le /api/saude a cada 15 s');
   const fm = ler('functions/api/cron-faturado-mes.js');
-  ok(fm.includes('incompletas') && fm.includes('0.9'), 'resumo do mes nao sobrescreve a meta com leitura incompleta (filial com menos de 90% dos RCAs)');
+  ok(fm.includes('resumo_snapshot') && fm.includes('ultimoConhecido') && fm.includes('env.DB.batch(stmts)') && fm.includes('AGUARDANDO_LEITURA') && !fm.includes('if (incompletas.has'), 'resumo do mes: soma SEMPRE todos os RCAs (leitura de hoje ou a ultima real), grava tudo numa transacao com snapshot e nunca soma parcial');
 }
 
 secao('11. Concorrencia adaptativa da coleta (Frente B): reduz so com 429 alto, sobe devagar, nunca passa de 6 nem abaixo de 3');

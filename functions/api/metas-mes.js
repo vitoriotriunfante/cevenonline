@@ -35,7 +35,10 @@ export async function onRequestGet({ env }) {
       if (r.filial_sigla === 'TODAS') { if (mf > 0) total = { meta_fat: mf, meta_pos: mp }; continue; }
       if (mf > 0) filiais[r.filial_sigla] = { meta_fat: mf, meta_pos: mp };
     }
+    // FOTO (snapshot) do resumo: quantos RCAs vieram de leitura de hoje, quantos de leitura anterior e quantos sem leitura (13/10/2026: nunca soma parcial)
+    const foto = await env.DB.prepare('SELECT data_ref, versao, gerado_em, rcas, de_hoje, anteriores, sem_leitura, mais_antiga FROM resumo_snapshot WHERE data_ref = ?').bind(dataRef).first().catch(() => null);
     return resp({
+      snapshot: foto ? { versao: foto.versao, gerado_em: foto.gerado_em, rcas: foto.rcas, de_hoje: foto.de_hoje, leitura_anterior: foto.anteriores, sem_leitura: foto.sem_leitura, mais_antiga: foto.mais_antiga } : null,
       mes: String(dataRef).slice(0, 7),
       fonte: 'CEVEN ao vivo (soma dos dashboards dos RCAs, via resumo_executivo_live)',
       data_ref: dataRef,
