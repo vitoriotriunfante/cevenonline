@@ -790,5 +790,19 @@ secao('12. Liga sem representante/promotor (13/10/2026: 3 dos 4 AS de um supervi
   ok(Array.isArray(d.vendedores) && d.vendedores.length > 0, 'dataset da Liga carregado');
 }
 
+secao('13. Sintaxe do JavaScript das paginas principais (o /saude ficou quebrado por um parenteses sobrando e nenhum teste pegou)');
+{
+  const vm = await import('node:vm');
+  for (const pg of ['saude', 'brasileirao', 'matrizapp', 'tvapp', 'gestao-equipe', 'incentivo', 'tv_executiva']) {
+    let okSint = true, msg = '';
+    try {
+      const html = ler('public/' + pg + '.html');
+      const blocos = [...html.matchAll(/<script(?![^>]*src=)[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]).filter((c) => c.trim());
+      for (const b of blocos) { try { new vm.Script(b); } catch (e) { okSint = false; msg = e.message; break; } }
+    } catch (e) { okSint = false; msg = 'nao li o arquivo: ' + e.message; }
+    ok(okSint, 'public/' + pg + '.html: JavaScript sem erro de sintaxe' + (msg ? ' — ' + msg : ''));
+  }
+}
+
 console.log(`\nRESULTADO: ${total - falhas} de ${total} verificacoes OK` + (falhas ? ` | ${falhas} FALHARAM` : ''));
 process.exit(falhas ? 1 : 0);

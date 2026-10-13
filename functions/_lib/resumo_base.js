@@ -15,9 +15,22 @@ const CAMPOS = `CAST(json_extract(dashboard_json, '$.financeiro.faturado') AS RE
                 CAST(json_extract(dashboard_json, '$.positivacao.meta') AS REAL) AS pmeta,
                 (json_extract(dashboard_json, '$.financeiro') IS NOT NULL) AS tem`;
 
+// UNIVERSO = ARVORE VIVA DO CEVEN (Vitorio, 13/10/2026: "a fonte soberana e o CEVEN, a arvore e viva"; o RCA 218 existia na nossa base com meta de R$ 166 mil e o app do
+// CEVEN responde "representante nao encontrado"). RCA que NAO esta na arvore e fantasma do cadastro antigo: nao entra em meta, faturado nem lista. Sem arvore carregada
+// (menos de 300 RCAs), nao filtra (nunca zera a base por falha da arvore).
+export async function universoArvore(env) {
+  try {
+    const r = await env.DB.prepare('SELECT COUNT(*) AS n FROM arvore_supervisores').first();
+    return !!(r && r.n >= 300);
+  } catch { return false; }
+}
+const SO_ARVORE = ' AND EXISTS (SELECT 1 FROM arvore_supervisores a WHERE a.rca = varredura_central_rca.rca_codigo AND a.filial = varredura_central_rca.filial_sigla)';
+
 export async function calculaResumoMes(env, dataRef) {
+  const filtra = await universoArvore(env);
+  const F = filtra ? SO_ARVORE : '';
   const { results: hoje } = await env.DB.prepare(
-    `SELECT rca_codigo AS r, filial_sigla AS f, ${CAMPOS} FROM varredura_central_rca WHERE data_ref = ?`
+    `SELECT rca_codigo AS r, filial_sigla AS f, ${CAMPOS} FROM varredura_central_rca WHERE data_ref = ?${F}`
   ).bind(dataRef).all();
   const linhas = hoje || [];
   const faltam = linhas.filter((l) => !l.tem).map((l) => String(l.r));

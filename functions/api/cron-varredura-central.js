@@ -238,6 +238,20 @@ export async function onRequestGet({ env, request }) {
     }
   } catch { /* sem planilha: segue so com o banco */ }
 
+  // SO A ARVORE VIVA (13/10/2026): RCA fora da arvore do CEVEN e fantasma do cadastro antigo (o app diz 'nao encontrado'); nao gasta chamada nem entra nos totais.
+  let foraDaArvore = 0;
+  try {
+    const { results: arv } = await env.DB.prepare('SELECT filial, rca FROM arvore_supervisores').all();
+    if (arv && arv.length >= 300) {
+      const naArvore = new Set(arv.map((a) => String(a.filial).toUpperCase() + '|' + a.rca));
+      const antes = rcas.length;
+      rcas = rcas.filter((r) => naArvore.has(String(r.filial).toUpperCase() + '|' + String(r.codigo)));
+      foraDaArvore = antes - rcas.length;
+      // limpa as linhas de HOJE dos fantasmas (derivadas; voltam sozinhas se o RCA entrar na arvore): assim nenhuma tela/consulta soma quem o CEVEN nao tem
+      if (!filialParam) await env.DB.prepare("DELETE FROM varredura_central_rca WHERE data_ref = ? AND NOT EXISTS (SELECT 1 FROM arvore_supervisores a WHERE a.rca = varredura_central_rca.rca_codigo AND a.filial = varredura_central_rca.filial_sigla)").bind(dataRef).run().catch(() => {});
+    }
+  } catch { /* sem arvore: segue com a lista inteira */ }
+
   if (filialParam) {
     rcas = rcas.filter((r) => r.filial === filialParam);
     if (!rcas.length) return resp({ erro: `nenhum representante encontrado para filial ${filialParam}` }, 404);

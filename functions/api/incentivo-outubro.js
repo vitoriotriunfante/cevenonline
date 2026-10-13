@@ -20,7 +20,12 @@ export async function onRequestGet({ request, env }) {
     const ref = await env.DB.prepare('SELECT MAX(data_ref) d FROM varredura_central_rca').first();
     const dia = ref && ref.d; if (!dia) return new Response(JSON.stringify({ erro: 'sem varredura do CEVEN no banco' }), { status: 503, headers: CORS });
     const { results } = await env.DB.prepare("SELECT rca_codigo r, filial_sigla f, json_extract(dashboard_json,'$.positivacao.meta') m, json_extract(dashboard_json,'$.positivacao.realizado') p, updated_at u FROM varredura_central_rca WHERE data_ref = ? AND dashboard_json IS NOT NULL").bind(dia).all();
-    const dash = new Map((results || []).map((x) => [x.f + '|' + x.r, x]));
+    let dash = new Map((results || []).map((x) => [x.f + '|' + x.r, x]));
+    // so RCAs da ARVORE VIVA do CEVEN (13/10/2026): fantasma do cadastro antigo nao soma na meta nacional/filial/supervisor
+    try {
+      const { results: arv } = await env.DB.prepare('SELECT filial, rca FROM arvore_supervisores').all();
+      if (arv && arv.length >= 300) { const ok = new Set(arv.map((a) => String(a.filial).toUpperCase() + '|' + a.rca)); dash = new Map([...dash].filter(([k]) => ok.has(k))); }
+    } catch { /* sem arvore: nao filtra */ }
     const varejo = new Set(cfg.canais_varejo);
 
     const vend = []; const fora = { sem_dashboard: [], sem_canal: 0, as: 0, ocultos: 0, outros: 0 };

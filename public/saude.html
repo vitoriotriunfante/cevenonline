@@ -116,7 +116,7 @@ function render(d) {
        '<div class="card"><div class="t">Duração da rodada em ms (3 h)</div>' + spark(c.serie, ['ms'], ['#38bdf8']) + '</div></div>';
 
   h += '<div class="sec">Metas e Gestão de Equipe</div><div class="grid">';
-  h += card('Meta geral (soma dos RCAs)', mi(m.soma_dos_rcas), `Matriz mostra ${mi(m.matriz_mostra != null ? m.matriz_mostra : m.resumo_todas)} · ${m.filiais_no_resumo}/11 filiais` + (m.integridade ? ` · base: ${m.integridade.de_hoje}/${m.integridade.rcas} RCAs lidos hoje` + (m.integridade.leitura_anterior ? ` · ${m.integridade.leitura_anterior} com leitura anterior` : '') : '') : ''), nivelMetas);
+  h += card('Meta geral (soma dos RCAs)', mi(m.soma_dos_rcas), `Matriz mostra ${mi(m.matriz_mostra != null ? m.matriz_mostra : m.resumo_todas)} · ${m.filiais_no_resumo}/11 filiais` + (m.integridade ? ` · base: ${m.integridade.de_hoje}/${m.integridade.rcas} RCAs lidos hoje` + (m.integridade.leitura_anterior ? ` · ${m.integridade.leitura_anterior} com leitura anterior` : '') : ''), nivelMetas);
   if (e) {
     h += card('Gestão de Equipe', nf(e.total), `mostra SIM ${nf(e.mostra_sim)} · NÃO ${nf(e.mostra_nao)} · fonte ${e.origem}${e.atualizado_por ? ' · por ' + e.atualizado_por : ''}`, nivelEq);
     h += card('Representantes (não cobrados)', nf(e.representantes), `meta ${mi(e.representantes_meta)} · faturado ${mi(e.representantes_faturado)}`, e.representantes ? 'ok' : 'atencao');
