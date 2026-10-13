@@ -89,13 +89,17 @@ async function tokenDoAdmin(env) {
 }
 // DASHBOARD DE TODOS PELO CAMINHO DO ADMIN (13/10/2026): em ~09:50 o CEVEN passou a limitar /api/rca/* a ~3 chamadas por minuto (medido: 3 a 4 e depois 429 por ~60 s),
 // mas /api/admin/view-as/rca/dashboard NAO tem essa trava (15 chamadas em 1,5 s, todas 200). Mesmo formato do /api/rca/dashboard.
+// MEDIDO (13/10): view-as tambem tem cota (~100 chamadas/min por usuario admin; 429 com Retry-After ~30 s). Por isso: no maximo ~90 por rodada, os MAIS ANTIGOS primeiro
+// (ciclo completo de 550 em ~12 min), e ao primeiro 429 PARA e nao insiste.
+let banAdminAte = 0;
 async function dashboardsAdmin(env, lista, prazoMs) {
-  const tk = await tokenDoAdmin(env);
   const mapa = new Map();
+  if (Date.now() < banAdminAte) return mapa;
+  const tk = await tokenDoAdmin(env);
   if (!tk || !lista.length) return mapa;
   const prazo = Date.now() + prazoMs;
   let proximo = 0;
-  await Promise.all(Array.from({ length: 10 }, async () => {
+  await Promise.all(Array.from({ length: 4 }, async () => {
     while (true) {
       const k = proximo++;
       if (k >= lista.length || Date.now() > prazo) return;
@@ -103,6 +107,7 @@ async function dashboardsAdmin(env, lista, prazoMs) {
       try {
         const r = await fetch(`${CEVEN}/api/admin/view-as/rca/dashboard?filial=${String(rca.filial || '').toLowerCase()}1&id=${rca.codigo}`, { headers: { ...HDR, Authorization: `Bearer ${tk}` }, signal: AbortSignal.timeout(8000) });
         if (r.status === 401 || r.status === 403) { tokenAdmin = { v: null, ate: 0 }; return; }
+        if (r.status === 429) { banAdminAte = Date.now() + (Number(r.headers.get('retry-after')) || 40) * 1000; proximo = lista.length; return; }
         if (!r.ok) continue;
         const j = await r.json();
         if (j && j.financeiro) mapa.set(String(rca.codigo), j);
@@ -419,9 +424,10 @@ export async function onRequestGet({ env, request }) {
     // 0. LACUNA DE DASHBOARD PRIMEIRO (11/10/2026): a etapa fria fica no fim e com o CEVEN limitando (429) nunca chegava a rodar; 217 RCAs ficaram o dia sem meta/faturado
     // (o /incentivo deixava esses vendedores de fora). Agora ate 15 por tick logo no inicio: ~15 chamadas, fecha a lacuna em ~30 min sem estourar a cota.
     // 0a. DASHBOARD DE TODOS PELO ADMIN (sem a trava): grava meta/faturado/devolucao/pendente/positivacao de TODOS e descobre quem teve PEDIDO NOVO ou DEVOLUCAO NOVA.
-    const dashAdm = await dashboardsAdmin(env, rcas, 35000);
+    const maisAntigosPrimeiro = rcas.slice().sort((x, y) => { const k = (r) => { const a = ant.get(String(r.codigo)); return !a ? '' : String(a.ua || ''); }; return k(x).localeCompare(k(y)); }).slice(0, 90);
+    const dashAdm = await dashboardsAdmin(env, maisAntigosPrimeiro, 35000);
     const admMudou = new Set(), devMudou = new Set();
-    const viaAdmin = dashAdm.size >= rcas.length * 0.5;
+    const viaAdmin = dashAdm.size > 0 || Date.now() < banAdminAte || tokenAdmin.v != null;   // caminho do admin ativo (mesmo sem ler nada por estar em espera de cota)
     if (viaAdmin) {
       for (const rca of rcas) {
         const cod = String(rca.codigo), d = dashAdm.get(cod), a = ant.get(cod);
