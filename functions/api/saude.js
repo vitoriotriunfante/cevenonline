@@ -88,17 +88,20 @@ export async function onRequestGet({ env, request }) {
   const ticks = (await safe(async () => (await env.DB.prepare(
     "SELECT ts, modo, rcas, gravados, chamadas, ok, r429, r401, falhas, duracao_ms FROM saude_coleta WHERE ts > datetime('now', '-3 hours') ORDER BY ts"
   ).all()).results, [])) || [];
-  const ult60 = ticks.filter((t) => agora - utc(t.ts) <= 3600000);
+  // linha com modo terminado em '*' = rodada que COMECOU e ainda nao fechou (ou foi cortada pelo agendador): conta como sinal de vida, mas nao entra nas somas
+  const concluidos = ticks.filter((t) => !String(t.modo || '').endsWith('*'));
+  const cortadas60 = ticks.filter((t) => String(t.modo || '').endsWith('*') && agora - utc(t.ts) > 4 * 60000 && agora - utc(t.ts) <= 3600000).length;
+  const ult60 = concluidos.filter((t) => agora - utc(t.ts) <= 3600000);
   const soma = (a, k) => a.reduce((x, t) => x + (t[k] || 0), 0);
   const estConc = await safe(async () => await env.DB.prepare("SELECT valor, motivo, atualizado_em FROM coleta_estado WHERE chave = 'conc'").first());
   const coleta = {
     concorrencia: estConc ? { atual: Number(estConc.valor), motivo: estConc.motivo, em: estConc.atualizado_em } : null,
-    ticks_3h: ticks.length, ticks_60min: ult60.length,
+    ticks_3h: concluidos.length, ticks_60min: ult60.length, rodadas_cortadas_60min: cortadas60,
     ultimo_tick_em: ticks.length ? ticks[ticks.length - 1].ts : null,
     chamadas_60min: soma(ult60, 'chamadas'), ok_60min: soma(ult60, 'ok'), r429_60min: soma(ult60, 'r429'), r401_60min: soma(ult60, 'r401'), falhas_60min: soma(ult60, 'falhas'),
     duracao_media_ms: ult60.length ? Math.round(soma(ult60, 'duracao_ms') / ult60.length) : null,
     taxa_sucesso_pct: soma(ult60, 'chamadas') ? Math.round((soma(ult60, 'ok') / soma(ult60, 'chamadas')) * 1000) / 10 : null,
-    serie: ticks.map((t) => ({ ts: t.ts, chamadas: t.chamadas, ok: t.ok, r429: t.r429, r401: t.r401, falhas: t.falhas, ms: t.duracao_ms, gravados: t.gravados }))
+    serie: concluidos.map((t) => ({ ts: t.ts, chamadas: t.chamadas, ok: t.ok, r429: t.r429, r401: t.r401, falhas: t.falhas, ms: t.duracao_ms, gravados: t.gravados }))
   };
   if (coleta.r401_60min > 0) add('critico', 'ceven', `CEVEN devolveu 401/403 ${coleta.r401_60min}x na última hora: a chave pode ter mudado.`);
   if (coleta.r429_60min > 20) add('atencao', 'ceven', `CEVEN limitando (429) ${coleta.r429_60min}x na última hora: cota esgotada.`);

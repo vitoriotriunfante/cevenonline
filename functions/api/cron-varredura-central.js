@@ -100,11 +100,26 @@ async function hierarquiaAdmin(env) {
 
 // TELEMETRIA (12/10/2026): cada tick grava 1 linha em saude_coleta (chamadas, 429, 401, falhas) para o painel /saude e para os alertas. Zera a cada rodada.
 const T = { chamadas: 0, ok: 0, r429: 0, r401: 0, falhas: 0 };
+let tickId = null;
+async function abreTick(env, modo, rcas) {
+  tickId = null;
+  try {
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS saude_coleta (id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT DEFAULT CURRENT_TIMESTAMP, modo TEXT, rcas INTEGER, gravados INTEGER, chamadas INTEGER, ok INTEGER, r429 INTEGER, r401 INTEGER, falhas INTEGER, duracao_ms INTEGER)').run();
+    const r = await env.DB.prepare('INSERT INTO saude_coleta (modo, rcas, gravados, chamadas, ok, r429, r401, falhas, duracao_ms) VALUES (?,?,0,0,0,0,0,0,NULL)').bind(modo + '*', rcas).run();   // 'tick*' = em andamento (se o agendador cortar a rodada, a linha fica assim e o /saude sabe que ela COMECOU)
+    tickId = r && r.meta ? r.meta.last_row_id : null;
+  } catch { tickId = null; }
+}
 async function registraTick(env, modo, rcas, gravados, duracaoMs) {
   try {
+    if (tickId) {
+      await env.DB.prepare('UPDATE saude_coleta SET modo = ?, rcas = ?, gravados = ?, chamadas = ?, ok = ?, r429 = ?, r401 = ?, falhas = ?, duracao_ms = ? WHERE id = ?')
+        .bind(modo, rcas, gravados, T.chamadas, T.ok, T.r429, T.r401, T.falhas, duracaoMs, tickId).run();
+      tickId = null;
+    } else {
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS saude_coleta (id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT DEFAULT CURRENT_TIMESTAMP, modo TEXT, rcas INTEGER, gravados INTEGER, chamadas INTEGER, ok INTEGER, r429 INTEGER, r401 INTEGER, falhas INTEGER, duracao_ms INTEGER)').run();
     await env.DB.prepare('INSERT INTO saude_coleta (modo, rcas, gravados, chamadas, ok, r429, r401, falhas, duracao_ms) VALUES (?,?,?,?,?,?,?,?,?)')
       .bind(modo, rcas, gravados, T.chamadas, T.ok, T.r429, T.r401, T.falhas, duracaoMs).run();
+    }
     if (Math.random() < 0.02) await env.DB.prepare("DELETE FROM saude_coleta WHERE ts < datetime('now', '-3 days')").run();
   } catch { /* telemetria nunca derruba a coleta */ }
   // CONCORRENCIA ADAPTATIVA: reduz ao ver 429, sobe devagar quando calmo (regras em _lib/concorrencia.js)
@@ -260,6 +275,7 @@ export async function onRequestGet({ env, request }) {
   // CONTADORES SO DEPOIS DE TER A TRAVA (12/10/2026): antes eram zerados por qualquer requisicao, inclusive as que voltavam OCUPADO, e corrompiam a contagem da rodada em andamento.
   T.chamadas = T.ok = T.r429 = T.r401 = T.falhas = 0;
   concAtual = (await lerEstado(env)).conc;
+  await abreTick(env, completa ? 'completa' : 'tick', rcas.length);
   try {
     // ---------- VARREDURA COMPLETA (partida a frio): os 4 endpoints de todos, como era ----------
     if (completa) {
@@ -380,7 +396,7 @@ export async function onRequestGet({ env, request }) {
 
     // 2b. QUEM ESTA VENDENDO (pos > 0 ou digitado > 0): roteiro renovado a cada rodada, os mais velhos primeiro (ate 40). E dele que saem os gols de CLIENTE
     // (resgate, mix, quinzenas, pedido na rota); com a rota velha o gol so aparecia minutos depois, ou nunca (13/10/2026).
-    if (temRoteiroEm) {
+    if (temRoteiroEm && Date.now() - t0 < 55000) {   // so se a rodada ainda esta cedo: passar de 170 s faz o agendador cortar tudo
       const vendendo = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return a && (a.pos > 0 || a.dig > 0) && !jaBuscouRota.has(String(r.codigo)); })
         .sort((x, y) => String((ant.get(String(x.codigo)) || {}).roteiro_em || '').localeCompare(String((ant.get(String(y.codigo)) || {}).roteiro_em || ''))).slice(0, 40);
       const rv = await poolLimitado(vendendo.map((rca) => () => getJson(urlRca('roteiro-hoje', rca), 1)), concAtual, Date.now() + 14000);
