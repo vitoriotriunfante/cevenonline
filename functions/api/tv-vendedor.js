@@ -250,8 +250,23 @@ export async function onRequestGet({ request, env }) {
   let rotaAntiga = false;
   { const hojeSP = dataHojeBrasilia(), hm = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
     if (Array.isArray(rot) && rot.some((c) => (c.data_visita && String(c.data_visita).slice(0, 10) !== hojeSP) || (c.checkin_horario && String(c.checkin_horario).slice(0, 5) > hm))) { rot = []; rotaAntiga = true; }
+    // PRODUTIVIDADE DE ONTEM x VENDA DE HOJE (13/10/2026 08:30): esta regra zerava TODO vendedor com venda antes das 10h e roteiro ainda sem check-in. Em 13/10 isso descartou vendas
+    // reais (TBE 312 R$ 8,6 mil, TCG 476, TBL 186...) e nenhum gol saiu o dia todo. Agora so zera se o 'dia' for IGUAL ao de um dia anterior ja gravado na base (dado velho de verdade).
     if (!rotaAntiga && hm < '10:00' && prod && prod.dia && Array.isArray(rot) && rot.length > 0 && !rot.some((c) => c.checkin_horario) && (Number(prod.dia.visitas_na_rota) > 0 || Number(prod.dia.dig_pedido) > 0 || Number(prod.dia.positivacao) > 0)) {
-      prod = { ...prod, dia: { ...prod.dia, faturamento: 0, positivacao: 0, dig_pedido: 0, visitas_na_rota: 0, visitas_com_venda: 0, eficacia_pct: 0 } }; rotaAntiga = true; } }
+      let igualAnterior = true;   // sem como comparar (sem banco/sem historico): mantem o comportamento antigo
+      if (env && env.DB) {
+        try {
+          const { results: ant } = await env.DB.prepare(
+            "SELECT CAST(COALESCE(json_extract(produtividade_json,'$.dia.dig_pedido'),0) AS REAL) AS dig, CAST(COALESCE(json_extract(produtividade_json,'$.dia.positivacao'),0) AS REAL) AS pos, CAST(COALESCE(json_extract(produtividade_json,'$.dia.visitas_na_rota'),0) AS REAL) AS vis FROM varredura_central_rca WHERE rca_codigo = ? AND data_ref < ? AND data_ref >= date(?, '-7 days')"
+          ).bind(String(id), hojeSP, hojeSP).all();
+          if (ant && ant.length) {
+            const d = Math.round(Number(prod.dia.dig_pedido) || 0), p = Number(prod.dia.positivacao) || 0, v = Number(prod.dia.visitas_na_rota) || 0;
+            igualAnterior = ant.some((r) => Math.round(r.dig) === d && r.pos === p && r.vis === v);
+          }
+        } catch { igualAnterior = true; }
+      }
+      if (igualAnterior) { prod = { ...prod, dia: { ...prod.dia, faturamento: 0, positivacao: 0, dig_pedido: 0, visitas_na_rota: 0, visitas_com_venda: 0, eficacia_pct: 0 } }; rotaAntiga = true; }
+    } }
   // G03 (Dobrou o Mix) e V03 (Bonificação): só para clientes positivados HOJE (evita 1 chamada
   // extra por cliente da rota inteira — geralmente são poucos positivados por dia, não os 10-20+
   // da rota completa).
