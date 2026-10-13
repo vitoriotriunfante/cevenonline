@@ -363,6 +363,8 @@ def agrega_por_maioria(grupo_rcas, nome_chave):
             forma.append('J'); continue   # equipe ainda sem pontuacao no dia aberto
         n_vitorias = sum(1 for r in resultados_dia if r == 'V')
         if n_vitorias == 0:
+            if dia_em_andamento(d):
+                forma.append('J'); continue   # 13/10: equipe so com empate no dia aberto aparecia como D (TBL, TCV, TPH as 10h); D so no fechamento
             resultado, pts = 'D', FAIXAS['derrota']['pontos_tabela']
         elif n_vitorias > len(resultados_dia) / 2:
             resultado, pts = 'V', FAIXAS['vitoria']['pontos_tabela']

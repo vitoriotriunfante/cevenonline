@@ -225,6 +225,10 @@ footer .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .clock{font-size:18px}
   .filtros-header{width:100%;justify-content:space-between;order:10;margin-top:4px}
   .filtros-header select{flex:1;max-width:none}
+  /* celular (13/10/2026): os controles do topo estouravam a largura (878 px numa tela de 390) e a pagina rolava para o lado */
+  .filtros-header{flex-wrap:wrap;gap:6px}
+  .filtros-header>*{flex:1 1 140px;min-width:0;max-width:100%}
+  .tag-canal{white-space:normal}
   .tot{display:grid;grid-template-columns:repeat(2,1fr);gap:1px}
   .tot div{padding:8px 12px}
   .tot b{font-size:18px}
