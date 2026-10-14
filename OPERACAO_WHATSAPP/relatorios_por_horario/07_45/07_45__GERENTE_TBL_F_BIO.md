@@ -1,54 +1,7 @@
 🌅 *ABERTURA MATINAL — TBL (07:45)*
-📅 quinta-feira, 08/10/2026
+📅 quarta-feira, 14/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 29 • Visitas: 477 (média 16,4/vendedor)
-Sem compra +30d: 174 (36,5%) • Recorrência: 62 (13,0%)
-Oportunidades CNAE 4712: +520 PDVs
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🚨 *PDVs EM RISCO — 07:45*
-📍 *TBL — FÁBIO* • 08/10/2026
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 174
-
-👤 *CRISTIANE DE FREITAS DUARTE* (37 em risco)
-  🟡 N7 ESPUMA FLORAL (194) — 28/08
-  🟡 PAULOS SELF SERVICE (194) — 21/07
-  🟡 AUTO POSTO RIO DE JANEIRO LTDA (194) — 27/05
-  🟡 CLL COMERCIO DE FRUTAS E LEGUMES (551) — 28/08
-  🟡 MARCELE APARECIDA (551) — 31/07
-  _+32 outros_
-
-👤 *IGOR RODRIGUES DUARTE* (25 em risco)
-  🟡 MERCADO LIDER (179) — 31/08
-  🟡 MINI MERC GUARANY (179) — 27/05
-  🟡 MERCEARIA ALMEIDA (185) — 31/08
-  🟡 VARIEDADES COMERCIO DE PLASTICO LTDA (185) — 05/12
-  🟡 AUTO POSTO SARTORI (177) — 31/08
-  _+20 outros_
-
-👤 *KLEBERSON BATISTA LIDUARIO* (10 em risco)
-  🟡 MARIA ELIZABET TOSTA 91457335972 (172) — 26/08
-  🟡 CANTINA COLEGIO POSITIVO (172) — 31/08
-  🟡 SIQUEIRA SUPERMERCADO (172) — 31/08
-  🟡 EVELIN THAIS FERREIRA (172) — 31/07
-  🟡 MILENA BAENA DE OLIVEIRA (184) — 05/12
-  _+5 outros_
-
-👤 *LEONARDO MANOSSO DE GODOI* (75 em risco)
-  🟡 DONIZETE BUENO E CIA LTDA (171) — 29/07
-  🟡 LA LUZ CONFECCOES (171) — 27/05
-  🟡 TIAGO DA SILVA XAVIER (171) — 31/07
-  🟡 ROSIMAR DA CRUZ COMERCIAL LTDA (171) — 25/08
-  🟡 ACOUGUE DOIS IRMAOS (190) — 31/07
-  _+70 outros_
-
-👤 *SERGIO LOPES DE OLIVEIRA* (27 em risco)
-  🟡 PANIFICADORA HORA DO PAO (181) — 31/08
-  🟡 PLANOS SUPERMERCADOS (181) — 04/09
-  🟡 PLANOS SUPERMERCADOS LOJA 2 (181) — 05/09
-  🟡 PLANOS SILVINO (181) — 04/09
-  🟡 LONDRILIMP (181) — 27/05
-  _+22 outros_
+👥 Vendedores: 28 • Visitas: 382 (média 13,6/vendedor)
+Sem compra +30d: 138 (36,1%) • Recorrência: 36 (9,4%)
+Oportunidades CNAE 4639: +447 PDVs

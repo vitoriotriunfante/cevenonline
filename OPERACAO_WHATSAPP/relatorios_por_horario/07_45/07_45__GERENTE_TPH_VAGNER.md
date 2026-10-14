@@ -1,55 +1,22 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 quinta-feira, 08/10/2026
+📅 quarta-feira, 14/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 35 • Visitas: 404 (média 11,5/vendedor)
-Sem compra +30d: 123 (30,4%) • Recorrência: 56 (13,9%)
-🔥 Volta Comigo: 0 PDVs
-Oportunidades CNAE 4712: +1.103 PDVs
+👥 Vendedores: 34 • Visitas: 456 (média 13,4/vendedor)
+Sem compra +30d: 156 (34,2%) • Recorrência: 73 (16,0%)
+Oportunidades CNAE 4639: +798 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPH — VAGNER* • 08/10/2026
+📍 *TPH — VAGNER* • 14/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 123
+🔴 Última Chance: 0  •  🟡 Preventivo: 20
 
-👤 *ANDREY CAMILLO PIRAGINE* (30 em risco)
-  🟡 DU GOMES PANIFICADORA E CONFEITARIA (66) — 05/12
-  🟡 BONTORIN E FILHOS COMERCIO DE COMBUSTIVE (66) — 19/07
-  🟡 PANIFICADORA ARCANJOS (66) — 02/07
-  🟡 POSTO SHELL (66) — 05/12
-  🟡 MARINONI PANIFICADORA (66) — 05/09
-  _+25 outros_
-
-👤 *JEFFERSON POLETTO* (18 em risco)
-  🟡 AVIARIO BELPETS (125) — 21/08
-  🟡 FORTPET (125) — 30/06
-  🟡 MUNDO ANIMAL (125) — 05/12
-  🟡 SID AVIARIO (125) — 05/12
-  🟡 AVIARIO ANDORINHA (125) — 29/08
-  _+13 outros_
-
-👤 *JONATHAN FERNANDES* (28 em risco)
-  🟡 CASA RURAL (123) — 05/12
-  🟡 54823527 FABIANO GONCALVES (123) — 03/05
-  🟡 AGRO NEIVERTH (123) — 21/08
-  🟡 AGRO COMERCIAL PENTEADO (123) — 04/09
-  🟡 RHALF CASA DE RACAO (124) — 28/08
-  _+23 outros_
-
-👤 *LUIZ AUGUSTO RAMOS* (35 em risco)
-  🟡 CONVENIENCIA CORDEIRO SPOT (75) — 05/12
-  🟡 MERCADO ACOUGUE E PANIF MENIN (75) — 31/07
-  🟡 PANIFICADORA PAO TAL (75) — 31/08
-  🟡 MINI MERCADO ITATIAIA (75) — 10/07
-  🟡 SUPERMERCADO GRANDES RIOS (75) — 05/12
-  _+30 outros_
-
-👤 *RODRIGO DE ARRUDA DARROS* (12 em risco)
-  🟡 MERCADO LUZ (86) — 31/07
-  🟡 PIZZARIA E REST PRIMAVERA (86) — 30/07
-  🟡 MINI MERCADO SAO PEDRO (86) — 30/07
-  🟡 ACOUGUE OS COMPADRES (87) — 05/12
-  🟡 AUTO POSTO S V II LTDA (1098) — 31/08
-  _+7 outros_
+👤 *ANDREY CAMILLO PIRAGINE* (20 em risco)
+  🟡 THE BACON A VIDA LTDA (66) — 08/08
+  🟡 BAR E MERCEARIA MANFRON (66) — 26/08
+  🟡 LA CABANHA (67) — 05/12
+  🟡 PANIFICADORA PORTUGAL (67) — 08/08
+  🟡 KF PANIFICADORA LTDA (67) — 05/12
+  _+15 outros_

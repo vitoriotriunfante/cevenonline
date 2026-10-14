@@ -1,46 +1,7 @@
 🌅 *ABERTURA MATINAL — ABC (07:45)*
-📅 quinta-feira, 08/10/2026
+📅 quarta-feira, 14/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 23 • Visitas: 349 (média 15,2/vendedor)
-Sem compra +30d: 99 (28,4%) • Recorrência: 53 (15,2%)
-Oportunidades CNAE 4712: +349 PDVs
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🚨 *PDVs EM RISCO — 07:45*
-📍 *ABC — MARCOS* • 08/10/2026
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 99
-
-👤 *EDER LUCAS DAS FLORES DE OLIVEIRA* (28 em risco)
-  🟡 LEON BEBIDAS E TABACARIA (201) — 05/12
-  🟡 HOTEL IBIS (201) — 05/12
-  🟡 PEREIRA E FRIGOTTO LTDA (201) — 05/09
-  🟡 VALMIR JOSE DREHER 90335414915 (222) — 05/12
-  🟡 AGROPECUARIA PASTORIL (222) — 28/07
-  _+23 outros_
-
-👤 *IVONEI PEDRO DE MOURA* (23 em risco)
-  🟡 SUPERMERCADO MENEGAZZO (206) — 05/12
-  🟡 MERCADO FERREIRA (206) — 17/06
-  🟡 MB REDE DE POSTOS M R LTDA. (206) — 31/07
-  🟡 MERCADO KOLTUN (206) — 29/08
-  🟡 MERCADO TAVARES (206) — 01/01
-  _+18 outros_
-
-👤 *MARCIO ROSA SOBRAL BATISTA* (27 em risco)
-  🟡 PET TOPIA ESTETICA ANIMAL LTDA (215) — 25/07
-  🟡 FOCINHO FELIZ (215) — 21/08
-  🟡 VERDES CAMPOS (215) — 05/12
-  🟡 AGROPECUARIA GALINA (228) — 05/09
-  🟡 BEQUER AGRO PET (228) — 01/08
-  _+22 outros_
-
-👤 *RODRIGO STELLEO COSTA LEITE* (21 em risco)
-  🟡 PONTO BARATEIRO (1118) — 31/08
-  🟡 MERCEARIA MARIAH SOPHIA (1118) — 31/08
-  🟡 COSTELARIA GAUCHA (1118) — 17/08
-  🟡 JUNIOR AGROPECUARIA (1118) — 31/08
-  🟡 AGROVALE (1118) — 31/08
-  _+16 outros_
+👥 Vendedores: 22 • Visitas: 337 (média 15,3/vendedor)
+Sem compra +30d: 94 (27,9%) • Recorrência: 49 (14,5%)
+Oportunidades CNAE 4639: +337 PDVs

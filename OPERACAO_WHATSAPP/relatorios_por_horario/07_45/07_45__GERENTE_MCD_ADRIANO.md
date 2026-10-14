@@ -1,35 +1,38 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 terça-feira, 13/10/2026
+📅 quarta-feira, 14/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 17 • Visitas: 133 (média 7,8/vendedor)
-Sem compra +30d: 29 (21,8%) • Recorrência: 17 (12,8%)
-Oportunidades CNAE 4721: +198 PDVs
+👥 Vendedores: 21 • Visitas: 169 (média 8,0/vendedor)
+Sem compra +30d: 33 (19,5%) • Recorrência: 37 (21,9%)
+Oportunidades CNAE 4639: +176 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — ADRIANO* • 13/10/2026
+📍 *MCD — ADRIANO* • 14/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 24
+🔴 Última Chance: 0  •  🟡 Preventivo: 33
 
-👤 *ALYFER PEREIRA MENDES* (6 em risco)
-  🟡 PANTANAL PET (436) — 05/12
-  🟡 AGRONUTRI PETSHOP (436) — 08/08
-  🟡 PET CENTER CAFEZAIS (436) — 05/12
-  🟡 OX HEADE (436) — 05/09
-  🟡 CONCORDIA MATERIAIS PARA CONST (467) — 19/08
-  _+1 outros_
+👤 *ALYFER PEREIRA MENDES* (10 em risco)
+  🟡 AGROTOURO (432) — 14/08
+  🟡 CENTRAL PET SHOP (436) — 05/12
+  🟡 PET MS (436) — 27/08
+  🟡 MKE RACOES (436) — 03/05
+  🟡 ESTACAO DO PET (436) — 31/08
+  _+5 outros_
 
-👤 *CARLOS ALAGUEZ DA SILVA* (15 em risco)
-  🟡 SUPERMERCADOS CHAMA (430) — 05/12
-  🟡 MERCADO ESPERANCA (438) — 05/12
-  🟡 VIA SUL VEICULOS (438) — 03/05
-  🟡 DKASA EXPRESS (440) — 05/09
-  🟡 D KASA SUPERMERCADOS (440) — 05/09
-  _+10 outros_
+👤 *CARLOS ALAGUEZ DA SILVA* (11 em risco)
+  🟡 AGROPECUARIA VALE DO IVINHEMA (423) — 05/12
+  🟡 MERCEARIA VITORIA (423) — 05/12
+  🟡 POSTO SENA (430) — 05/12
+  🟡 CHAMA PORTAL (430) — 05/12
+  🟡 SUPERMERCADO HIPOLITO (439) — 29/08
+  _+6 outros_
 
-👤 *CLEOMAR DINIZ BARBOSA* (3 em risco)
-  🟡 PET HOMME (415) — 28/08
-  🟡 CENTRAL CONVENIENCIA (415) — 05/12
-  🟡 JF COVENIECIA (424) — 10/09
+👤 *CLEOMAR DINIZ BARBOSA* (12 em risco)
+  🟡 MERCADO ARIES (426) — 28/08
+  🟡 DISTRIBUIDORA EMBALA MS (426) — 01/01
+  🟡 LA TA GELADA CONVENIENCIA (426) — 05/12
+  🟡 ViniDog Pet Shop (427) — 29/08
+  🟡 SUPER VALLE SUPERMRCADOS (452) — 20/08
+  _+7 outros_

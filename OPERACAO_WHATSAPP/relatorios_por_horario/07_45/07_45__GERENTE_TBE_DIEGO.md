@@ -1,38 +1,38 @@
 🌅 *ABERTURA MATINAL — TBE (07:45)*
-📅 terça-feira, 13/10/2026
+📅 quarta-feira, 14/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 15 • Visitas: 321 (média 21,4/vendedor)
-Sem compra +30d: 131 (40,8%) • Recorrência: 16 (5,0%)
-Oportunidades CNAE 4721: +607 PDVs
+👥 Vendedores: 16 • Visitas: 370 (média 23,1/vendedor)
+Sem compra +30d: 153 (41,4%) • Recorrência: 32 (8,6%)
+Oportunidades CNAE 4639: +1.480 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TBE — DIEGO* • 13/10/2026
+📍 *TBE — DIEGO* • 14/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 131
+🔴 Última Chance: 0  •  🟡 Preventivo: 152
 
-👤 *HAMILTON RICARDO DOS SANTOS MENDES* (59 em risco)
-  🟡 MERCADO SANTO ONOFRE (307) — 11/09
-  🟡 ADRIANO LUIS LEMOS MACHADO (307) — 20/07
-  🟡 PADARIA CONFEITARIA PASQUALI (307) — 05/12
-  🟡 MINIMERCADO E ACOUGUE SEGHETTO (307) — 03/09
-  🟡 CALVI E SOARES LTDA (306) — 11/09
-  _+54 outros_
+👤 *HAMILTON RICARDO DOS SANTOS MENDES* (47 em risco)
+  🟡 FBVA POA (304) — 01/01
+  🟡 QING KE COMERCIO DE PRODUTOS ALIMENTICIO (304) — 01/01
+  🟡 JOSE DO PATROCINIO COM DE COMB (304) — 01/01
+  🟡 CASA MADRE BISTRO E CAFE (304) — 01/01
+  🟡 POSTO AQUI 03 (304) — 01/01
+  _+42 outros_
 
-👤 *NEIVA CLEONICE SERRA ISOPPO* (7 em risco)
-  🟡 TATIANE DA SILVA FAGUNDES (289) — 03/09
-  🟡 SILVANE MARIA SCHMIDT DE LIMA (289) — 05/12
-  🟡 MERCADO CURUMIM (293) — 31/08
-  🟡 ELITON KENNEDY GUIMARAES DOS SANTOS (293) — 03/05
-  🟡 MERCADO ACOUGUE E PADARIA DO GAGO (293) — 27/08
-  _+2 outros_
+👤 *NEIVA CLEONICE SERRA ISOPPO* (14 em risco)
+  🟡 PADARIA SONHO DOCE (289) — 09/09
+  🟡 S O S BEER (289) — 25/08
+  🟡 PASTEIS LANCH E PROD COL DO GUI (289) — 25/08
+  🟡 EVILYN C DE BRITO (293) — 01/01
+  🟡 ANGELITA FERREIRA DA SILVA (293) — 01/01
+  _+9 outros_
 
-👤 *PATRICIA CHAVES MACHADO* (65 em risco)
-  🟡 LENIO LUIZ WEBBER (285) — 01/01
-  🟡 PADOCA (285) — 31/08
-  🟡 MARILENE MOREIRA SCHREIBER (285) — 27/05
-  🟡 LUCIANA PEREIRA COSTA (285) — 01/01
-  🟡 LIZANE DE CAMPOS CHARAO E CIA (285) — 01/01
-  _+60 outros_
+👤 *PATRICIA CHAVES MACHADO* (91 em risco)
+  🟡 WILMA (285) — 09/07
+  🟡 PADARIA NADALON LTDA (285) — 03/05
+  🟡 APOLO FILIAL 13 (285) — 01/01
+  🟡 LA CASA DE BEBIDAS (285) — 17/07
+  🟡 ARMAZEM RAMOS (285) — 05/12
+  _+86 outros_

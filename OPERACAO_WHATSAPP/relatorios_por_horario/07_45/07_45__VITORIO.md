@@ -1,78 +1,78 @@
 🌅 *ABERTURA MATINAL DE OPERAÇÃO (07:45)*
-📅 Terça-feira, 13/10/2026 • Grupo Triunfante
+📅 Quarta-feira, 14/10/2026 • Grupo Triunfante
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📌 *PANORAMA GERAL*
-👥 *Vendedores Varejo em Rota:* 315
-📍 *Visitas Planejadas:* 4.131 PDVs (Varejo) de 5.363 (Total)
-🟡 *Alerta Preventivo:* 1.355 PDVs (32,8% da rota)
-🔄 *Recorrência na rota:* 472 PDVs (11,4%)
-🏬 *Oportunidades CNAE 4721 (Padaria e confeitaria com predominância de produção própria):* +10.650 PDVs
+👥 *Vendedores Varejo em Rota:* 307
+📍 *Visitas Planejadas:* 4.289 PDVs (Varejo) de 5.195 (Total)
+🟡 *Alerta Preventivo:* 1.545 PDVs (36,0% da rota)
+🔄 *Recorrência na rota:* 492 PDVs (11,5%)
+🏬 *Oportunidades CNAE 4639 (Comércio atacadista de produtos alimentícios em geral):* +6.820 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏢 *POR FILIAL (VAREJO)*
 
-📍 *TBL — FÁBIO*
-• Vendedores: 30 • Visitas: 468
-• Sem compra +30d: 187 (40,0%) • Recorrência: 39 (8,3%)
-• CNAE 4721: +1.338 PDVs
+📍 *TPH — FÁBIO*
+• Vendedores: 25 • Visitas: 525
+• Sem compra +30d: 244 (46,5%) • Recorrência: 49 (9,3%)
+• CNAE 4639: +919 PDVs
 
 📍 *TPH — VAGNER*
-• Vendedores: 35 • Visitas: 466
-• Sem compra +30d: 159 (34,1%) • Recorrência: 71 (15,2%)
-• CNAE 4721: +1.864 PDVs
-
-📍 *TPH — FÁBIO*
-• Vendedores: 27 • Visitas: 458
-• Sem compra +30d: 187 (40,8%) • Recorrência: 53 (11,6%)
-• CNAE 4721: +1.832 PDVs
+• Vendedores: 34 • Visitas: 456
+• Sem compra +30d: 156 (34,2%) • Recorrência: 73 (16,0%)
+• CNAE 4639: +798 PDVs
 
 📍 *API — MARCELO*
-• Vendedores: 30 • Visitas: 447
-• Sem compra +30d: 128 (28,6%) • Recorrência: 68 (15,2%)
-• CNAE 4721: +1.390 PDVs
+• Vendedores: 29 • Visitas: 444
+• Sem compra +30d: 140 (31,5%) • Recorrência: 50 (11,3%)
+• CNAE 4639: +906 PDVs
 
-📍 *ABC — MARCOS*
-• Vendedores: 23 • Visitas: 362
-• Sem compra +30d: 96 (26,5%) • Recorrência: 56 (15,5%)
-• CNAE 4721: +684 PDVs
-
-📍 *TSJ — SALDANHA*
-• Vendedores: 24 • Visitas: 334
-• Sem compra +30d: 115 (34,4%) • Recorrência: 14 (4,2%)
-• CNAE 4721: +929 PDVs
+📍 *TBL — FÁBIO*
+• Vendedores: 28 • Visitas: 382
+• Sem compra +30d: 138 (36,1%) • Recorrência: 36 (9,4%)
+• CNAE 4639: +447 PDVs
 
 📍 *TBE — DIEGO*
-• Vendedores: 19 • Visitas: 321
-• Sem compra +30d: 131 (40,8%) • Recorrência: 16 (5,0%)
-• CNAE 4721: +607 PDVs
+• Vendedores: 16 • Visitas: 370
+• Sem compra +30d: 153 (41,4%) • Recorrência: 32 (8,6%)
+• CNAE 4639: +1.480 PDVs
 
-📍 *TCV — LEONARDO*
-• Vendedores: 30 • Visitas: 299
-• Sem compra +30d: 49 (16,4%) • Recorrência: 36 (12,0%)
-• CNAE 4721: +688 PDVs
+📍 *TSJ — SALDANHA*
+• Vendedores: 23 • Visitas: 364
+• Sem compra +30d: 134 (36,8%) • Recorrência: 31 (8,5%)
+• CNAE 4639: +393 PDVs
 
-📍 *TPA — RADKE / LEANDRO*
-• Vendedores: 16 • Visitas: 237
-• Sem compra +30d: 71 (30,0%) • Recorrência: 20 (8,4%)
-• CNAE 4721: +353 PDVs
-
-📍 *TCG — DANILO*
-• Vendedores: 19 • Visitas: 215
-• Sem compra +30d: 51 (23,7%) • Recorrência: 25 (11,6%)
-• CNAE 4721: +215 PDVs
+📍 *ABC — MARCOS*
+• Vendedores: 22 • Visitas: 337
+• Sem compra +30d: 94 (27,9%) • Recorrência: 49 (14,5%)
+• CNAE 4639: +337 PDVs
 
 📍 *MCD — CLEVERSON*
-• Vendedores: 19 • Visitas: 184
-• Sem compra +30d: 49 (26,6%) • Recorrência: 25 (13,6%)
-• CNAE 4721: +274 PDVs
+• Vendedores: 20 • Visitas: 304
+• Sem compra +30d: 148 (48,7%) • Recorrência: 24 (7,9%)
+• CNAE 4639: +316 PDVs
+
+📍 *TCV — LEONARDO*
+• Vendedores: 27 • Visitas: 293
+• Sem compra +30d: 51 (17,4%) • Recorrência: 25 (8,5%)
+• CNAE 4639: +366 PDVs
 
 📍 *TCA — BECHER*
-• Vendedores: 22 • Visitas: 179
-• Sem compra +30d: 91 (50,8%) • Recorrência: 24 (13,4%)
-• CNAE 4721: +236 PDVs
+• Vendedores: 27 • Visitas: 256
+• Sem compra +30d: 154 (60,2%) • Recorrência: 54 (21,1%)
+• CNAE 4639: +276 PDVs
+
+📍 *TPA — RADKE / LEANDRO*
+• Vendedores: 15 • Visitas: 208
+• Sem compra +30d: 59 (28,4%) • Recorrência: 17 (8,2%)
+• CNAE 4639: +225 PDVs
+
+📍 *TCG — DANILO*
+• Vendedores: 20 • Visitas: 181
+• Sem compra +30d: 41 (22,7%) • Recorrência: 15 (8,3%)
+• CNAE 4639: +181 PDVs
 
 📍 *MCD — ADRIANO*
-• Vendedores: 21 • Visitas: 161
-• Sem compra +30d: 41 (25,5%) • Recorrência: 25 (15,5%)
-• CNAE 4721: +240 PDVs
+• Vendedores: 21 • Visitas: 169
+• Sem compra +30d: 33 (19,5%) • Recorrência: 37 (21,9%)
+• CNAE 4639: +176 PDVs

@@ -1,46 +1,7 @@
 🌅 *ABERTURA MATINAL — TCA (07:45)*
-📅 quinta-feira, 08/10/2026
+📅 quarta-feira, 14/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 28 • Visitas: 234 (média 8,4/vendedor)
-Sem compra +30d: 90 (38,5%) • Recorrência: 35 (15,0%)
-Oportunidades CNAE 4712: +786 PDVs
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🚨 *PDVs EM RISCO — 07:45*
-📍 *TCA — BECHER* • 08/10/2026
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 90
-
-👤 *FRANCISCO FRANCO FILHO* (8 em risco)
-  🟡 SUPERMERCADO CENTRAL (390) — 27/08
-  🟡 MERCADO BELA VISTA (390) — 29/08
-  🟡 CONVENIENCIA E MERCEARIA ASSUNCAO (390) — 28/08
-  🟡 DROGARIA POUPE MAIS (390) — 05/12
-  🟡 POSTO LOCATELLI (390) — 31/08
-  _+3 outros_
-
-👤 *IVAIR PRINCIPE FREITAS DE MIRANDA* (24 em risco)
-  🟡 MERCEARIA SANTOS (378) — 05/12
-  🟡 MERCEARIA JS (378) — 05/12
-  🟡 MERCADO SANTA ROSA (378) — 05/12
-  🟡 MERCEARIA SM (378) — 31/08
-  🟡 LUCIANO DE BRITO RODRIGUES NUNES (378) — 31/08
-  _+19 outros_
-
-👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR* (32 em risco)
-  🟡 MERCADO 04 IRMAS (380) — 31/08
-  🟡 MERCEARIA ACORICENTRO (380) — 21/07
-  🟡 MERCADO ESTACAO (380) — 27/05
-  🟡 PARADA 163 (380) — 31/07
-  🟡 SUPERMERCADO MENDES (380) — 31/08
-  _+27 outros_
-
-👤 *MAICON DION NOVAIS SILVA* (26 em risco)
-  🟡 MERCEARIA PARANA III (372) — 31/08
-  🟡 MERCADO BOM PRECO (372) — 24/08
-  🟡 MERCADO CARLI (1029) — 05/12
-  🟡 IVONE DE SOUZA BARBOSA SILVA (1029) — 25/07
-  🟡 CASA DAS EMBALAGENS (397) — 05/12
-  _+21 outros_
+👥 Vendedores: 27 • Visitas: 256 (média 9,5/vendedor)
+Sem compra +30d: 154 (60,2%) • Recorrência: 54 (21,1%)
+Oportunidades CNAE 4639: +276 PDVs
