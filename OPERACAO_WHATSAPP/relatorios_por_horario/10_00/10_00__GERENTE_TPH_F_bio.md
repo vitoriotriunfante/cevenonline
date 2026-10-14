@@ -1,8 +1,8 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 TPH — FÁBIO • 13/10/2026
+📍 TPH — FÁBIO • 14/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/10/2026 a 13/10/2026)*
+*ACUMULADO DO MÊS (01/10/2026 a 14/10/2026)*
 💰 R$ 15.861,07 • 19 PDVs • ✂️ R$ 5,60 (2 un)
 👤 RODRIGO BERTONI — R$ 10.152,80 (1 PDVs)
 👤 EDI CARLOS MEIRA — R$ 5.256,54 (8 PDVs)
@@ -10,5 +10,5 @@
 👤 PRISCILA A D NASCIMENTO STRAPASSON — R$ 85,12 (1 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (12/10/2026)*
+*COMO FECHOU ONTEM (13/10/2026)*
 💰 R$ 0,00 • 0 PDVs positivados
