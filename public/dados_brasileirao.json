@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-14T06:33:59.120357Z",
+  "gerado_em": "2026-10-14T10:03:09.668192Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -15636,7 +15636,7 @@
         "supervisor": "ANDERSON FERNANDES CORREIA",
         "gerente": "Marcelo",
         "meta_mes": 357839,
-        "pct_hoje": 27.2,
+        "pct_hoje": 28.8,
         "fases": [
           {
             "n": 1,
@@ -15655,7 +15655,7 @@
             "pontos": 20,
             "data": "2026-10-14",
             "status": "em_andamento",
-            "pct": 27.2,
+            "pct": 28.8,
             "ganhou": 0
           },
           {
@@ -18256,7 +18256,7 @@
         "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
         "gerente": "Radke / Leandro",
         "meta_mes": 278000,
-        "pct_hoje": 50.1,
+        "pct_hoje": 50,
         "fases": [
           {
             "n": 1,
@@ -18275,7 +18275,7 @@
             "pontos": 20,
             "data": "2026-10-14",
             "status": "em_andamento",
-            "pct": 50.1,
+            "pct": 50,
             "ganhou": 0
           },
           {
@@ -32797,7 +32797,7 @@
         "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
         "gerente": "Radke / Leandro",
         "meta_mes": 592000,
-        "pct_hoje": 29.9,
+        "pct_hoje": 32.8,
         "fases": [
           {
             "n": 1,
@@ -32816,7 +32816,7 @@
             "pontos": 20,
             "data": "2026-10-14",
             "status": "em_andamento",
-            "pct": 29.9,
+            "pct": 32.8,
             "ganhou": 0
           },
           {
@@ -33690,7 +33690,7 @@
         "total_vendedores": 5,
         "com_meta": 5,
         "meta_mes": 1300833,
-        "pct_hoje": 18,
+        "pct_hoje": 18.4,
         "fases": [
           {
             "n": 1,
@@ -33709,7 +33709,7 @@
             "pontos": 20,
             "data": "2026-10-14",
             "status": "em_andamento",
-            "pct": 18,
+            "pct": 18.4,
             "ganhou": 0
           },
           {
@@ -34634,6 +34634,101 @@
         "pos": 18
       },
       {
+        "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
+        "filial": "TPA",
+        "gerente": "Radke / Leandro",
+        "total_vendedores": 5,
+        "com_meta": 5,
+        "meta_mes": 1558000,
+        "pct_hoje": 30.8,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-10-07",
+            "status": "nao_batida",
+            "pct": 14.4,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-10-14",
+            "status": "em_andamento",
+            "pct": 30.8,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-10-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 31,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-10-31",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "pontos_faseamento": 0,
+        "jogos": 1,
+        "vitorias": 0,
+        "empates": 0,
+        "derrotas": 1,
+        "pts_tabela": 0,
+        "forma": [
+          "D"
+        ],
+        "semanas": [
+          {
+            "n": 2,
+            "resultado": "D",
+            "vitorias_equipe": 0,
+            "total": 5,
+            "pts_tabela": 0
+          }
+        ],
+        "aprov": 0.0,
+        "pts_lances_equipe": -93,
+        "pos": 19
+      },
+      {
         "supervisor": "JEFERSON ANTONIO HOESER",
         "filial": "TPA",
         "gerente": "Radke / Leandro",
@@ -34726,101 +34821,6 @@
         ],
         "aprov": 0.0,
         "pts_lances_equipe": -15,
-        "pos": 19
-      },
-      {
-        "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
-        "filial": "TPA",
-        "gerente": "Radke / Leandro",
-        "total_vendedores": 5,
-        "com_meta": 5,
-        "meta_mes": 1558000,
-        "pct_hoje": 29.7,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-10-07",
-            "status": "nao_batida",
-            "pct": 14.4,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-10-14",
-            "status": "em_andamento",
-            "pct": 29.7,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-10-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 31,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-10-31",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "pontos_faseamento": 0,
-        "jogos": 1,
-        "vitorias": 0,
-        "empates": 0,
-        "derrotas": 1,
-        "pts_tabela": 0,
-        "forma": [
-          "D"
-        ],
-        "semanas": [
-          {
-            "n": 2,
-            "resultado": "D",
-            "vitorias_equipe": 0,
-            "total": 5,
-            "pts_tabela": 0
-          }
-        ],
-        "aprov": 0.0,
-        "pts_lances_equipe": -93,
         "pos": 20
       },
       {
