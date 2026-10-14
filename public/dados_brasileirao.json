@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-14T10:33:09.288945Z",
+  "gerado_em": "2026-10-14T10:48:44.748808Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -673,6 +673,39 @@
       "pos": 5
     },
     {
+      "supervisor": "EDI CARLOS MEIRA",
+      "filial": "TPH",
+      "canal": "VAREJO",
+      "gerente": "Fábio",
+      "total_vendedores": 7,
+      "jogos": 1,
+      "pts_tabela": 1,
+      "vitorias": 0,
+      "empates": 1,
+      "derrotas": 0,
+      "gp": 72,
+      "gc": 86,
+      "sg": -14,
+      "aprov": 33.3,
+      "forma": [
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 15,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 6
+    },
+    {
       "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
       "filial": "TPH",
       "canal": "AS",
@@ -736,7 +769,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 6
+      "pos": 7
     },
     {
       "supervisor": "IGOR RODRIGUES DUARTE",
@@ -769,7 +802,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 7
+      "pos": 8
     },
     {
       "supervisor": "KLEBERSON BATISTA LIDUARIO",
@@ -802,7 +835,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 8
+      "pos": 9
     },
     {
       "supervisor": "RODRIGO STELLEO COSTA LEITE",
@@ -835,7 +868,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 9
+      "pos": 10
     },
     {
       "supervisor": "JULIO CESAR SOARES DE PAULO",
@@ -868,7 +901,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 10
+      "pos": 11
     },
     {
       "supervisor": "ANA CRISTINA DOS SANTOS YAMATO",
@@ -901,7 +934,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 11
+      "pos": 12
     },
     {
       "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
@@ -967,7 +1000,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 12
+      "pos": 13
     },
     {
       "supervisor": "PATRICIA CHAVES MACHADO",
@@ -983,39 +1016,6 @@
       "gp": 48,
       "gc": 58,
       "sg": -10,
-      "aprov": 33.3,
-      "forma": [
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 10,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 13
-    },
-    {
-      "supervisor": "EDI CARLOS MEIRA",
-      "filial": "TPH",
-      "canal": "VAREJO",
-      "gerente": "Fábio",
-      "total_vendedores": 7,
-      "jogos": 1,
-      "pts_tabela": 1,
-      "vitorias": 0,
-      "empates": 1,
-      "derrotas": 0,
-      "gp": 72,
-      "gc": 86,
-      "sg": -14,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -1762,6 +1762,39 @@
       "pos": 27
     },
     {
+      "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
+      "filial": "TPA",
+      "canal": "VAREJO",
+      "gerente": "Radke / Leandro",
+      "total_vendedores": 5,
+      "jogos": 1,
+      "pts_tabela": 0,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 1,
+      "gp": 6,
+      "gc": 74,
+      "sg": -68,
+      "aprov": 0.0,
+      "forma": [
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 15,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 28
+    },
+    {
       "supervisor": "LUIS THIAGO VIRTUOSO BOEIRA",
       "filial": "TBE",
       "canal": "AS",
@@ -1891,7 +1924,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 28
+      "pos": 29
     },
     {
       "supervisor": "ARILDO ZAGO",
@@ -1957,7 +1990,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 29
+      "pos": 30
     },
     {
       "supervisor": "JEFERSON ANTONIO HOESER",
@@ -2006,39 +2039,6 @@
       "gp": 76,
       "gc": 115,
       "sg": -39,
-      "aprov": 0.0,
-      "forma": [
-        "D",
-        "J"
-      ],
-      "plus_lideranca": 10,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 30
-    },
-    {
-      "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
-      "filial": "TPA",
-      "canal": "VAREJO",
-      "gerente": "Radke / Leandro",
-      "total_vendedores": 5,
-      "jogos": 1,
-      "pts_tabela": 0,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 1,
-      "gp": 6,
-      "gc": 74,
-      "sg": -68,
       "aprov": 0.0,
       "forma": [
         "D",
@@ -2290,6 +2290,39 @@
       "pos": 21
     },
     {
+      "supervisor": "JEFFERSON POLETTO",
+      "filial": "TPH",
+      "canal": "VAREJO",
+      "gerente": "Vagner",
+      "total_vendedores": 3,
+      "jogos": 1,
+      "pts_tabela": 0,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 1,
+      "gp": 18,
+      "gc": 74,
+      "sg": -56,
+      "aprov": 0.0,
+      "forma": [
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 5,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 34
+    },
+    {
       "supervisor": "CARLOS ALAGUEZ DA SILVA",
       "filial": "MCD",
       "canal": "VAREJO",
@@ -2320,7 +2353,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 34
+      "pos": 35
     },
     {
       "supervisor": "DELINLSON ANTONIO LIMA SILVA",
@@ -2353,7 +2386,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 35
+      "pos": 36
     },
     {
       "supervisor": "RODRIGO DE ARRUDA DARROS",
@@ -2386,7 +2419,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 36
+      "pos": 37
     },
     {
       "supervisor": "LEONARDO MANOSSO DE GODOI",
@@ -2419,7 +2452,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 37
+      "pos": 38
     },
     {
       "supervisor": "EDERSON SUONSKI",
@@ -2452,7 +2485,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 38
+      "pos": 39
     },
     {
       "supervisor": "PEDRO PAULO PERICLES SALAZAR",
@@ -2575,7 +2608,7 @@
       "plus_lideranca": null,
       "plus_detalhe": null,
       "plus_pendente": null,
-      "pos": 39
+      "pos": 40
     },
     {
       "supervisor": "LUCAS RAMOS MONTAGNHANI",
@@ -2641,7 +2674,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 40
+      "pos": 41
     },
     {
       "supervisor": "AILTON LUIZ ARENDT JUNIOR",
@@ -2690,39 +2723,6 @@
       "gp": 55,
       "gc": 110,
       "sg": -55,
-      "aprov": 0.0,
-      "forma": [
-        "D",
-        "J"
-      ],
-      "plus_lideranca": 0,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-14": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 41
-    },
-    {
-      "supervisor": "JEFFERSON POLETTO",
-      "filial": "TPH",
-      "canal": "VAREJO",
-      "gerente": "Vagner",
-      "total_vendedores": 3,
-      "jogos": 1,
-      "pts_tabela": 0,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 1,
-      "gp": 18,
-      "gc": 74,
-      "sg": -56,
       "aprov": 0.0,
       "forma": [
         "D",
@@ -24073,7 +24073,7 @@
         "supervisor": "ALESSANDRO JUNIOR LOPES",
         "gerente": "Marcelo",
         "meta_mes": 49256,
-        "pct_hoje": 30.7,
+        "pct_hoje": 30.9,
         "fases": [
           {
             "n": 1,
@@ -24092,7 +24092,7 @@
             "pontos": 20,
             "data": "2026-10-14",
             "status": "em_andamento",
-            "pct": 30.7,
+            "pct": 30.9,
             "ganhou": 0
           },
           {
