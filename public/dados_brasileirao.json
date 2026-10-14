@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-14T17:33:18.899665Z",
+  "gerado_em": "2026-10-14T17:48:04.028329Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -1498,6 +1498,39 @@
       "pos": 24
     },
     {
+      "supervisor": "LEANDRO MARINHO ABRANCHES",
+      "filial": "TCV",
+      "canal": "AS",
+      "gerente": "Leonardo",
+      "total_vendedores": 4,
+      "jogos": 1,
+      "pts_tabela": 1,
+      "vitorias": 0,
+      "empates": 1,
+      "derrotas": 0,
+      "gp": 20,
+      "gc": 4,
+      "sg": 16,
+      "aprov": 33.3,
+      "forma": [
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 15,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 7
+    },
+    {
       "supervisor": "SUELI APARECIDA TEIXEIRA POLLI",
       "filial": "API",
       "canal": "VAREJO",
@@ -1561,7 +1594,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 7
+      "pos": 8
     },
     {
       "supervisor": "YASMIM PRISCILA DA SILVA",
@@ -1577,39 +1610,6 @@
       "gp": 26,
       "gc": 0,
       "sg": 26,
-      "aprov": 33.3,
-      "forma": [
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 10,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 8
-    },
-    {
-      "supervisor": "LEANDRO MARINHO ABRANCHES",
-      "filial": "TCV",
-      "canal": "AS",
-      "gerente": "Leonardo",
-      "total_vendedores": 4,
-      "jogos": 1,
-      "pts_tabela": 1,
-      "vitorias": 0,
-      "empates": 1,
-      "derrotas": 0,
-      "gp": 20,
-      "gc": 4,
-      "sg": 16,
       "aprov": 33.3,
       "forma": [
         "E",
