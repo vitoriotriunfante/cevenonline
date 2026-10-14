@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-14T10:48:44.748808Z",
+  "gerado_em": "2026-10-14T11:03:09.386864Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -607,6 +607,39 @@
       "pos": 3
     },
     {
+      "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+      "filial": "TPH",
+      "canal": "AS",
+      "gerente": "Vagner",
+      "total_vendedores": 6,
+      "jogos": 1,
+      "pts_tabela": 1,
+      "vitorias": 0,
+      "empates": 1,
+      "derrotas": 0,
+      "gp": 66,
+      "gc": 0,
+      "sg": 66,
+      "aprov": 33.3,
+      "forma": [
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 15,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 1
+    },
+    {
       "supervisor": "WASHINGTON FLORES DA ROSA",
       "filial": "API",
       "canal": "VAREJO",
@@ -704,39 +737,6 @@
       },
       "plus_pendente": false,
       "pos": 6
-    },
-    {
-      "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
-      "filial": "TPH",
-      "canal": "AS",
-      "gerente": "Vagner",
-      "total_vendedores": 6,
-      "jogos": 1,
-      "pts_tabela": 1,
-      "vitorias": 0,
-      "empates": 1,
-      "derrotas": 0,
-      "gp": 66,
-      "gc": 0,
-      "sg": 66,
-      "aprov": 33.3,
-      "forma": [
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 10,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 1
     },
     {
       "supervisor": "RODRIGO FARIAS",
@@ -937,6 +937,39 @@
       "pos": 12
     },
     {
+      "supervisor": "GIANI GREGOLIN",
+      "filial": "TCV",
+      "canal": "VAREJO",
+      "gerente": "Leonardo",
+      "total_vendedores": 8,
+      "jogos": 1,
+      "pts_tabela": 1,
+      "vitorias": 0,
+      "empates": 1,
+      "derrotas": 0,
+      "gp": 88,
+      "gc": 62,
+      "sg": 26,
+      "aprov": 33.3,
+      "forma": [
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 10,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 13
+    },
+    {
       "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
       "filial": "TCV",
       "canal": "AS",
@@ -1000,7 +1033,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 13
+      "pos": 14
     },
     {
       "supervisor": "PATRICIA CHAVES MACHADO",
@@ -1033,7 +1066,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 14
+      "pos": 15
     },
     {
       "supervisor": "HAMILTON RICARDO DOS SANTOS MENDES",
@@ -1066,7 +1099,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 15
+      "pos": 16
     },
     {
       "supervisor": "CRISTIANO RODRIGUES MACHADO",
@@ -1198,7 +1231,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 16
+      "pos": 17
     },
     {
       "supervisor": "GILBERTO GOMES DOMINGOS",
@@ -1265,39 +1298,6 @@
       },
       "plus_pendente": false,
       "pos": 7
-    },
-    {
-      "supervisor": "GIANI GREGOLIN",
-      "filial": "TCV",
-      "canal": "VAREJO",
-      "gerente": "Leonardo",
-      "total_vendedores": 8,
-      "jogos": 1,
-      "pts_tabela": 1,
-      "vitorias": 0,
-      "empates": 1,
-      "derrotas": 0,
-      "gp": 88,
-      "gc": 62,
-      "sg": 26,
-      "aprov": 33.3,
-      "forma": [
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 5,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-14": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 17
     },
     {
       "supervisor": "ALESSANDRO JUNIOR LOPES",
@@ -1795,6 +1795,39 @@
       "pos": 28
     },
     {
+      "supervisor": "LUIZ AUGUSTO RAMOS",
+      "filial": "TPH",
+      "canal": "VAREJO",
+      "gerente": "Vagner",
+      "total_vendedores": 9,
+      "jogos": 1,
+      "pts_tabela": 0,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 1,
+      "gp": 6,
+      "gc": 106,
+      "sg": -100,
+      "aprov": 0.0,
+      "forma": [
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 15,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 29
+    },
+    {
       "supervisor": "LUIS THIAGO VIRTUOSO BOEIRA",
       "filial": "TBE",
       "canal": "AS",
@@ -1924,7 +1957,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 29
+      "pos": 30
     },
     {
       "supervisor": "ARILDO ZAGO",
@@ -1990,7 +2023,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 30
+      "pos": 31
     },
     {
       "supervisor": "JEFERSON ANTONIO HOESER",
@@ -2056,7 +2089,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 31
+      "pos": 32
     },
     {
       "supervisor": "JONATHAN FERNANDES",
@@ -2089,7 +2122,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 32
+      "pos": 33
     },
     {
       "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
@@ -2123,39 +2156,6 @@
       },
       "plus_pendente": false,
       "pos": 17
-    },
-    {
-      "supervisor": "LUIZ AUGUSTO RAMOS",
-      "filial": "TPH",
-      "canal": "VAREJO",
-      "gerente": "Vagner",
-      "total_vendedores": 9,
-      "jogos": 1,
-      "pts_tabela": 0,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 1,
-      "gp": 6,
-      "gc": 106,
-      "sg": -100,
-      "aprov": 0.0,
-      "forma": [
-        "D",
-        "J"
-      ],
-      "plus_lideranca": 10,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 33
     },
     {
       "supervisor": "ALYFER PEREIRA MENDES",
@@ -2288,6 +2288,39 @@
       },
       "plus_pendente": false,
       "pos": 21
+    },
+    {
+      "supervisor": "LUCAS RAMOS MONTAGNHANI",
+      "filial": "TPH",
+      "canal": "AS",
+      "gerente": "Vagner",
+      "total_vendedores": 6,
+      "jogos": 1,
+      "pts_tabela": 0,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 1,
+      "gp": 0,
+      "gc": 20,
+      "sg": -20,
+      "aprov": 0.0,
+      "forma": [
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 5,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 22
     },
     {
       "supervisor": "JEFFERSON POLETTO",
@@ -2518,7 +2551,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 22
+      "pos": 23
     },
     {
       "supervisor": "CIRLENE DE FATIMA GOMES VITORINO",
@@ -2551,7 +2584,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 23
+      "pos": 24
     },
     {
       "supervisor": "VALDCLEY DE CAMPOS SILVA",
@@ -2584,7 +2617,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 24
+      "pos": 25
     },
     {
       "supervisor": "VAGO - GABRIEL",
@@ -2609,39 +2642,6 @@
       "plus_detalhe": null,
       "plus_pendente": null,
       "pos": 40
-    },
-    {
-      "supervisor": "LUCAS RAMOS MONTAGNHANI",
-      "filial": "TPH",
-      "canal": "AS",
-      "gerente": "Vagner",
-      "total_vendedores": 6,
-      "jogos": 1,
-      "pts_tabela": 0,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 1,
-      "gp": 0,
-      "gc": 20,
-      "sg": -20,
-      "aprov": 0.0,
-      "forma": [
-        "D",
-        "J"
-      ],
-      "plus_lideranca": 0,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-14": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 25
     },
     {
       "supervisor": "MARCIO ROSA SOBRAL BATISTA",
@@ -29444,7 +29444,7 @@
         "supervisor": "JULIO CESAR SOARES DE PAULO",
         "gerente": "Saldanha",
         "meta_mes": 320000,
-        "pct_hoje": 3.1,
+        "pct_hoje": 3,
         "fases": [
           {
             "n": 1,
@@ -29463,7 +29463,7 @@
             "pontos": 20,
             "data": "2026-10-14",
             "status": "em_andamento",
-            "pct": 3.1,
+            "pct": 3,
             "ganhou": 0
           },
           {
@@ -36334,7 +36334,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 1530265.01,
-        "pct_hoje": 7.9,
+        "pct_hoje": 7.8,
         "fases": [
           {
             "n": 1,
@@ -36353,7 +36353,7 @@
             "pontos": 20,
             "data": "2026-10-14",
             "status": "em_andamento",
-            "pct": 7.9,
+            "pct": 7.8,
             "ganhou": 0
           },
           {
