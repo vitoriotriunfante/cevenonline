@@ -763,6 +763,15 @@ secao('9c. Semanas do AS por semana de trabalho (Vitorio, 15/10/2026; vale ja de
   ok(L.usaSemanasNovas('2026-10') && out.length === 4 && out[1].dias[0] === '2026-10-13' && out[1].fim_util === '2026-10-16' && out[1].vitoria_acima_de === 8, 'vale ja em outubro/2026 (Vitorio: coloca valendo essa semana): semana 2 = 13 a 16/10, a 1a da liga, vitoria acima de 8');
 }
 
+secao('9d. WhatsApp: TRAVA DE COMPLETUDE (Vitorio, 15/10/2026: "jamais mande sem todos os dados... rode ate finalizar")');
+{
+  const e = ler('pipeline/ceven_unified_engine.js'), fb = ler('pipeline/fonte_base.js');
+  ok(e.includes('async function coletarVendasCompleto') && e.includes('FALHAS_COLETA === 0') && e.includes('await coletarVendasCompleto(repsMap, dataHoje)'), 'vendas e zerados: a coleta inteira roda de novo ate sair com ZERO falhas');
+  ok(e.includes('Envio das ${hora} SEGURADO') && e.includes('process.exit(1)'), 'passou do prazo sem completar: NAO envia aos gerentes, avisa o Vitorio e o ciclo nao fica marcado como disparado');
+  ok(!/catch \(e\) \{\}/.test(e.slice(e.indexOf('async function coletarVendasEZerados('), e.indexOf('async function coletarVendasEZerados(') + 12000)), 'nenhuma falha da apuracao de vendas e engolida em silencio (inativos, recorrencia, cortes, bloqueados)');
+  ok(fb.includes('function lerBaseReserva') && e.includes('fonteBase.lerBaseReserva(url)') && e.includes("retry-after"), 'CEVEN recusou (429): usa o dado real da base do dia e respeita o Retry-After; nunca zero');
+}
+
 secao('10. Painel /saude (sala de controle) e telemetria da coleta');
 {
   const sa = ler('functions/api/saude.js'), vc = ler('functions/api/cron-varredura-central.js'), h = ler('public/saude.html');

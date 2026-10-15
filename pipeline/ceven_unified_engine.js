@@ -149,9 +149,14 @@ async function safeGet(url, maxRetries = 3, timeout = 10000) {
       return res.data;
     } catch (err) {
       if (attempt === maxRetries) {
+        // CEVEN recusou (429 etc.): usa o dado REAL da base do dia (lido pela varredura central), nunca zero (15/10/2026)
+        const reserva = fonteBase.lerBaseReserva(url);
+        if (reserva !== undefined) return reserva;
         throw err;
       }
-      await new Promise(r => setTimeout(r, 600 * attempt));
+      // 429: espera o que o CEVEN pede (Retry-After) antes de tentar de novo
+      const ra = err && err.response && err.response.status === 429 ? Number(err.response.headers && err.response.headers['retry-after']) : 0;
+      await new Promise(r => setTimeout(r, ra > 0 ? Math.min(ra, 20) * 1000 : 600 * attempt));
     }
   }
   return null;
@@ -495,6 +500,26 @@ async function coletarAuditoriaCampo(token, dataRef, repsMap) {
 }
 
 // 4. Coleta de Produtividade e Varejo Zerados
+// =========================================================================
+// TRAVA DE COMPLETUDE (Vitorio, 15/10/2026: boletim das 18:30 saiu com TBL e TCA zeradas e ABC com 1/10 do valor porque o CEVEN recusou 159 consultas (429)
+// e o motor contou ZERO. "Jamais mande sem todos os dados... quando faltar rode ate finalizar... coloque travas de seguranca. TUDO TUDO TUDO").
+// FALHAS_COLETA conta TODA falha da apuracao (vendedor, inativos/recorrencia, cortes/bloqueados). A coleta inteira roda de novo (rodada independente:
+// nada e somado em dobro) ate sair com ZERO falhas. Passou do prazo sem completar = NAO ENVIA e avisa o Vitorio.
+// =========================================================================
+let FALHAS_COLETA = 0;
+const PRAZO_COMPLETUDE_MS = Number(process.env.CEVEN_PRAZO_COMPLETUDE_MIN || 20) * 60 * 1000;
+async function coletarVendasCompleto(repsMap, dataRef) {
+  const inicio = Date.now();
+  for (let rodada = 1; ; rodada++) {
+    const res = await coletarVendasEZerados(repsMap, dataRef);
+    const semDado = res.__semDado || []; delete res.__semDado;
+    if (FALHAS_COLETA === 0) { console.log(`✅ Coleta COMPLETA na rodada ${rodada}: todos os vendedores e todos os pedidos apurados.`); return { completo: true, res }; }
+    console.log(`⚠️ Rodada ${rodada} INCOMPLETA: ${FALHAS_COLETA} falha(s) (${semDado.length} vendedor(es) sem dado: ${semDado.slice(0, 15).join(', ')}). Nada sera enviado assim.`);
+    if (Date.now() - inicio > PRAZO_COMPLETUDE_MS) return { completo: false, falhas: FALHAS_COLETA, semDado };
+    await new Promise((ok) => setTimeout(ok, 60000));   // da folga a cota do CEVEN e tenta a coleta inteira de novo
+  }
+}
+
 async function coletarVendasEZerados(repsValidationMap, dataRef) {
   console.log(`📡 Coletando produtividade e vendedores de varejo para ${dataRef}...`);
   { const rb = await fonteBase.carregarBase(Object.keys(FILIAIS_MAP), dataRef); console.log(`🗄️ Base única: ${rb.ligada ? rb.rcas + ' RCAs de ' + rb.filiais + ' filiais carregados (idade máx. ' + rb.max_idade_s + 's)' : 'DESLIGADA (CEVEN_FONTE_BASE=0)'}`); }
@@ -526,6 +551,8 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
   };
 
   const rcasComPedido = [];
+  const RCAS_SEM_DADO = [];   // TRAVA (Vitorio, 15/10/2026: "jamais mande sem todos os dados"): qualquer vendedor sem dado bloqueia o envio
+  FALHAS_COLETA = 0;
   const BATCH = 8;
   for (let i = 0; i < reps.length; i += BATCH) {
     const lote = reps.slice(i, i + BATCH);
@@ -623,13 +650,13 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
                     const hist = await safeGet(`${CEVEN_BASE}/api/rca/historico-cliente/${c.id_cliente}?filial=${fKey}&id=${rca.codigo}`);
                     const ultimaVisita = (hist?.ultimas_visitas || []).find(v => ehPedidoDoRca(v.num_pedido, rca.codigo) || ehPedidoTolerante(v.num_pedido, rca.codigo));
                     comprou = !!(ultimaVisita && ultimaVisita.data_visita === dataRef && ultimaVisita.status === 'EFETIVADO');
-                  } catch (e) {}
+                  } catch (e) { FALHAS_COLETA++; }
 
                   if (isInativo && comprou) resFil.inativosRecuperados++;
                   if (comprou && temFocoRecorrencia) resFil.recorrenciaPositivados++;
                 }));
               }
-            } catch (e) {}
+            } catch (e) { FALHAS_COLETA++; }
           } else {
             resFil.vjSem++;
             s.vjSem++;
@@ -643,6 +670,8 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
         }
       } catch (e) {
         console.error(`[ERRO RCA ${rca.codigo} - ${fSigla}]:`, e.message);
+        RCAS_SEM_DADO.push(`${fSigla} ${rca.codigo}`);
+        FALHAS_COLETA++;
       }
     }));
   }
@@ -715,14 +744,15 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
                 }
               }
             }
-          } catch (e) {}
+          } catch (e) { FALHAS_COLETA++; }
         }));
-      } catch (e) {}
+      } catch (e) { FALHAS_COLETA++; }
     }));
   }
 
   // filial dividida: some a linha 'da filial inteira' (vazia); ficam so as linhas por gerente
   for (const sg of subdivididas) delete filialResult[sg];
+  Object.defineProperty(filialResult, '__semDado', { value: RCAS_SEM_DADO, enumerable: false, configurable: true });   // nao vira 'filial' no relatorio
   return filialResult;
 }
 
@@ -1813,7 +1843,16 @@ async function main() {
 
   // B) Vendas & Zerados do Varejo
   if (acao === 'vendas_zerados' || acao === 'completo') {
-    const filialVendas = await coletarVendasEZerados(repsMap, dataHoje);
+    const coleta = await coletarVendasCompleto(repsMap, dataHoje);
+    if (!coleta.completo) {
+      const aviso = `⚠️ *Envio das ${hora} SEGURADO*
+A apuração não fechou completa (${coleta.falhas} falha(s) de consulta ao CEVEN; ${coleta.semDado.length} vendedor(es) sem dado: ${coleta.semDado.slice(0, 20).join(', ')}).
+Nada foi enviado aos gerentes: relatório incompleto não sai.`;
+      console.error(aviso);
+      if (destino !== 'dry_run') { const tels = Array.isArray(WHATSAPP_VITORIO) ? WHATSAPP_VITORIO : [WHATSAPP_VITORIO]; for (const tel of tels) await enviarWhatsapp(tel, aviso); }
+      process.exit(1);
+    }
+    const filialVendas = coleta.res;
     const relatorios = formatarRelatoriosVendas(filialVendas, hora);
     console.log(`✅ Vendas e Varejo Zerados apurados com sucesso.`);
     { const rb = fonteBase.resumo(); console.log(`🗄️ Base única: ${rb.base} consultas atendidas pela base · ${rb.ceven} foram ao CEVEN (${rb.velho} por dado velho).`); }

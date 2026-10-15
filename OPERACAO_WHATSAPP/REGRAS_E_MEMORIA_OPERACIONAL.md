@@ -245,3 +245,5 @@ Planilha na raiz do projeto (fora do git, tem dado de pessoa real — mesmo trat
 - **Causa raiz externa:** lentidão do CEVEN no fim do dia; acompanhar a duração das coletas.
 
 - 13/10/2026 (Vitório): representante LIBERADO pelo jurídico — volta às listas de cobrança do WhatsApp como o CLT. Só a flag participa.whatsapp=false na Gestão de Equipe tira alguém.
+
+- 15/10/2026 (Vitório, após o 18:30 sair com TBL e TCA zeradas e ABC com 1/10 do valor — 159 consultas recusadas pelo CEVEN (429) viraram ZERO): "JAMAIS mande sem todos os dados... quando faltar rode até finalizar... travas de segurança, TUDO". Motor: (1) CEVEN recusou -> usa o dado real da base do dia (fonte_base.lerBaseReserva) e respeita Retry-After; (2) TRAVA DE COMPLETUDE nos ciclos de vendas: toda falha conta (FALHAS_COLETA), a coleta inteira roda de novo até zero falhas (prazo 20 min); sem completar = NÃO envia aos gerentes, avisa o Vitório e o ciclo não é marcado.

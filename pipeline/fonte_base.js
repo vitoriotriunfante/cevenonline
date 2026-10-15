@@ -43,7 +43,20 @@ function lerBase(url) {
   return valor;
 }
 
+// RESERVA QUANDO O CEVEN RECUSA (Vitorio, 15/10/2026: boletim das 18:30 saiu com TBL e TCA zeradas por 429): o dado da base do proprio dia,
+// mesmo mais velho que MAX_IDADE_S, e REAL (lido do CEVEN pela varredura central minutos antes). Usado so depois que o CEVEN falhou.
+function lerBaseReserva(url) {
+  if (!LIGADA) return undefined;
+  const m = /\/api\/rca\/(produtividade|dashboard|devolucoes|roteiro-hoje)\?filial=([a-z]+1)&id=(\d+)$/i.exec(String(url));
+  if (!m) return undefined;
+  const linha = mapa.get(`${m[2].toLowerCase()}|${m[3]}`);
+  const valor = linha ? linha[PARTE[m[1].toLowerCase()]] : null;
+  if (valor == null) return undefined;
+  contagem.reserva = (contagem.reserva || 0) + 1;
+  return valor;
+}
+
 function resumo() { return { ligada: LIGADA, ...contagem, max_idade_s: MAX_IDADE_S }; }
 function limpar() { mapa.clear(); contagem.base = contagem.ceven = contagem.velho = contagem.filiais = contagem.rcas = 0; }
 
-module.exports = { carregarBase, lerBase, resumo, limpar, MAX_IDADE_S };
+module.exports = { carregarBase, lerBase, lerBaseReserva, resumo, limpar, MAX_IDADE_S };
