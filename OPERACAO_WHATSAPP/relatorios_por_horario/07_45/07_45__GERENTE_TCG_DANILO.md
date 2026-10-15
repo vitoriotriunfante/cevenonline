@@ -1,7 +1,7 @@
 🌅 *ABERTURA MATINAL — TCG (07:45)*
-📅 quarta-feira, 14/10/2026
+📅 quinta-feira, 15/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 20 • Visitas: 181 (média 9,1/vendedor)
-Sem compra +30d: 41 (22,7%) • Recorrência: 15 (8,3%)
-Oportunidades CNAE 4639: +181 PDVs
+👥 Vendedores: 20 • Visitas: 178 (média 8,9/vendedor)
+Sem compra +30d: 38 (21,3%) • Recorrência: 7 (3,9%)
+Oportunidades CNAE 4712: +258 PDVs

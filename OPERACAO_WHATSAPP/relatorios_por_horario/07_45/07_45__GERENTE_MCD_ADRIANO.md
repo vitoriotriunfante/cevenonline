@@ -1,38 +1,37 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 quarta-feira, 14/10/2026
+📅 quinta-feira, 15/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 21 • Visitas: 169 (média 8,0/vendedor)
-Sem compra +30d: 33 (19,5%) • Recorrência: 37 (21,9%)
-Oportunidades CNAE 4639: +176 PDVs
+👥 Vendedores: 21 • Visitas: 158 (média 7,5/vendedor)
+Sem compra +30d: 34 (21,5%) • Recorrência: 22 (13,9%)
+Oportunidades CNAE 4712: +431 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — ADRIANO* • 14/10/2026
+📍 *MCD — ADRIANO* • 15/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 33
+🔴 Última Chance: 0  •  🟡 Preventivo: 34
 
-👤 *ALYFER PEREIRA MENDES* (10 em risco)
-  🟡 AGROTOURO (432) — 14/08
-  🟡 CENTRAL PET SHOP (436) — 05/12
-  🟡 PET MS (436) — 27/08
-  🟡 MKE RACOES (436) — 03/05
-  🟡 ESTACAO DO PET (436) — 31/08
-  _+5 outros_
+👤 *ALYFER PEREIRA MENDES* (5 em risco)
+  🟡 AGROPECUARIA BOI GORDO (467) — 05/12
+  🟡 CASA DO PET 2 (467) — 05/12
+  🟡 AGRO STORE (467) — 05/12
+  🟡 CASA RURAL (467) — 05/12
+  🟡 X PETE (467) — 05/12
 
 👤 *CARLOS ALAGUEZ DA SILVA* (11 em risco)
-  🟡 AGROPECUARIA VALE DO IVINHEMA (423) — 05/12
-  🟡 MERCEARIA VITORIA (423) — 05/12
-  🟡 POSTO SENA (430) — 05/12
-  🟡 CHAMA PORTAL (430) — 05/12
-  🟡 SUPERMERCADO HIPOLITO (439) — 29/08
+  🟡 SUPERMERCADO KADEMA (438) — 27/08
+  🟡 MERCADO SEMPRE BOM (438) — 05/12
+  🟡 SUPER LIDER (438) — 05/12
+  🟡 MUNO ANIMAL (440) — 05/09
+  🟡 SAUDE ANIMAL (449) — 05/12
   _+6 outros_
 
-👤 *CLEOMAR DINIZ BARBOSA* (12 em risco)
-  🟡 MERCADO ARIES (426) — 28/08
-  🟡 DISTRIBUIDORA EMBALA MS (426) — 01/01
-  🟡 LA TA GELADA CONVENIENCIA (426) — 05/12
-  🟡 ViniDog Pet Shop (427) — 29/08
-  🟡 SUPER VALLE SUPERMRCADOS (452) — 20/08
-  _+7 outros_
+👤 *CLEOMAR DINIZ BARBOSA* (18 em risco)
+  🟡 ZENIR CARVALHO RODRIGUES (415) — 05/09
+  🟡 MERCADO ECONOMICO (424) — 20/08
+  🟡 COMERCIAL VIP II (455) — 31/08
+  🟡 NELLY (455) — 31/08
+  🟡 MR DOG PET SHOP (460) — 05/12
+  _+13 outros_

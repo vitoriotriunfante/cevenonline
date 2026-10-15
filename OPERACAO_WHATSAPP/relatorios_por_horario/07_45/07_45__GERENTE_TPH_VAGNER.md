@@ -1,22 +1,22 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 quarta-feira, 14/10/2026
+📅 quinta-feira, 15/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 34 • Visitas: 456 (média 13,4/vendedor)
-Sem compra +30d: 156 (34,2%) • Recorrência: 73 (16,0%)
-Oportunidades CNAE 4639: +798 PDVs
+👥 Vendedores: 34 • Visitas: 427 (média 12,6/vendedor)
+Sem compra +30d: 139 (32,6%) • Recorrência: 61 (14,3%)
+Oportunidades CNAE 4712: +1.166 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPH — VAGNER* • 14/10/2026
+📍 *TPH — VAGNER* • 15/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 20
+🔴 Última Chance: 0  •  🟡 Preventivo: 26
 
-👤 *ANDREY CAMILLO PIRAGINE* (20 em risco)
-  🟡 THE BACON A VIDA LTDA (66) — 08/08
-  🟡 BAR E MERCEARIA MANFRON (66) — 26/08
-  🟡 LA CABANHA (67) — 05/12
-  🟡 PANIFICADORA PORTUGAL (67) — 08/08
-  🟡 KF PANIFICADORA LTDA (67) — 05/12
-  _+15 outros_
+👤 *ANDREY CAMILLO PIRAGINE* (26 em risco)
+  🟡 EMBALA TUDO (66) — 11/09
+  🟡 POSTO PEDRA BRANCA (66) — 31/07
+  🟡 HOTEL DO LAGO (66) — 05/12
+  🟡 PLENA AVENIDA UTILIDADES (67) — 05/12
+  🟡 POSTO POTENCIAL (67) — 04/09
+  _+21 outros_
