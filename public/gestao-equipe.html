@@ -790,7 +790,7 @@ table { font-size: clamp(11px, .95vw, 13px) !important; }
       <div class="kpi-sub">Não pontuam cartões</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-lbl">Representantes (cobrados desde 13/10)</div>
+      <div class="kpi-lbl">Representantes</div>
       <div class="kpi-val" style="color:#f59e0b;" id="kpi-rep">0</div>
       <div class="kpi-sub">Aparecem no painel; sem cartão, Liga, incentivo</div>
     </div>
@@ -848,10 +848,10 @@ table { font-size: clamp(11px, .95vw, 13px) !important; }
         <option value="FORA_ARVORE">Fora da árvore do CEVEN (fantasmas)</option>
       </select>
 
-      <select id="filtro-vinculo" class="select-filter" onchange="filtrarTabela()" title="Representante aparece nos painéis (meta e vendas) mas NÃO é cobrado: sem lance, cartão, pênalti, Liga, incentivo, zerados ou WhatsApp">
+      <select id="filtro-vinculo" class="select-filter" onchange="filtrarTabela()" title="Filtrar por vínculo">
         <option value="TODOS">Todos os Vínculos</option>
         <option value="REPRESENTANTE">Somente Representantes</option>
-        <option value="CLT">Somente CLT (cobrados)</option>
+        <option value="CLT">Somente CLT</option>
         <option value="INTERNO">Somente Internos</option>
         <option value="PROMOTOR">Promotores (fora de tudo)</option>
       </select>
@@ -1160,7 +1160,7 @@ function filtrarTabela() {
 
 // ---------------------------------------------------------------------------------------------------------------------------------
 // VINCULO + PARTICIPACAO (Vitorio, 12/10/2026). Regra gemea de functions/_lib/participacao.js (manter igual).
-// REPRESENTANTE = aparece nos paineis e soma meta/vendas, mas NAO e cobrado. Cada flag pode ser ligada/desligada individualmente.
+// REPRESENTANTE = participa de tudo como o CLT desde 13/10/2026. Cada flag pode ser ligada/desligada individualmente.
 // ---------------------------------------------------------------------------------------------------------------------------------
 const FLAGS_PARTICIPA = [['lances', 'Lances (gols)'], ['cartoes_penaltis', 'Cartões e pênaltis'], ['zerados', 'Zerados / cobrança de campo'], ['liga', 'Liga (Brasileirão, AS, Semana Invicta)'], ['incentivo', 'Incentivo'], ['whatsapp', 'Cobrança no WhatsApp'], ['ronda', 'Ronda na TV da filial']];
 function vinculoDe(v) { const x = String((v && v.vinculo) || '').toUpperCase(); if (x === 'REPRESENTANTE' || x === 'REP' || x === 'R') return 'REPRESENTANTE'; if (x === 'PROMOTOR' || x === 'PROMO' || x === 'P') return 'PROMOTOR'; if (x === 'INTERNO' || x === 'I') return 'INTERNO'; return 'CLT'; }
@@ -1182,7 +1182,7 @@ function celulaVinculo(r) {
   const flags = FLAGS_PARTICIPA.map(([f, nome]) => `<label style="display:block;font-size:11px;color:#cbd5e1;margin:2px 0;"><input type="checkbox" ${participaDe(r, f) ? 'checked' : ''} onchange="definirParticipa('${r.fil}','${r.rca}','${f}',this.checked)"> ${nome}</label>`).join('');
   return `${selo}
     <select style="margin-top:4px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.15);color:#e2e8f0;border-radius:4px;font-size:11px;padding:3px;display:block;" onchange="definirVinculo('${r.fil}','${r.rca}',this.value)">
-      <option value="CLT" ${vin === 'CLT' ? 'selected' : ''}>CLT (cobrado)</option><option value="INTERNO" ${vin === 'INTERNO' ? 'selected' : ''}>Interno (cobrado)</option><option value="REPRESENTANTE" ${rep ? 'selected' : ''}>Representante (cobrado)</option><option value="PROMOTOR" ${vin === 'PROMOTOR' ? 'selected' : ''}>Promotor (fora de tudo)</option>
+      <option value="CLT" ${vin === 'CLT' ? 'selected' : ''}>CLT</option><option value="INTERNO" ${vin === 'INTERNO' ? 'selected' : ''}>Interno</option><option value="REPRESENTANTE" ${rep ? 'selected' : ''}>Representante</option><option value="PROMOTOR" ${vin === 'PROMOTOR' ? 'selected' : ''}>Promotor (fora de tudo)</option>
     </select>
     <details style="margin-top:4px;"><summary style="cursor:pointer;font-size:11px;color:#93c5fd;">participação</summary>${flags}</details>`;
 }

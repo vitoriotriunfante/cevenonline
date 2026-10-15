@@ -119,7 +119,7 @@ function render(d) {
   h += card('Meta geral (soma dos RCAs)', mi(m.soma_dos_rcas), `Matriz mostra ${mi(m.matriz_mostra != null ? m.matriz_mostra : m.resumo_todas)} · ${m.filiais_no_resumo}/11 filiais` + (m.integridade ? ` · base: ${m.integridade.de_hoje}/${m.integridade.rcas} RCAs lidos hoje` + (m.integridade.leitura_anterior ? ` · ${m.integridade.leitura_anterior} com leitura anterior` : '') : ''), nivelMetas);
   if (e) {
     h += card('Gestão de Equipe', nf(e.total), `mostra SIM ${nf(e.mostra_sim)} · NÃO ${nf(e.mostra_nao)} · fonte ${e.origem}${e.atualizado_por ? ' · por ' + e.atualizado_por : ''}`, nivelEq);
-    h += card('Representantes (cobrados desde 13/10)', nf(e.representantes), `meta ${mi(e.representantes_meta)} · faturado ${mi(e.representantes_faturado)}`, e.representantes ? 'ok' : 'atencao');
+    h += card('Representantes', nf(e.representantes), `meta ${mi(e.representantes_meta)} · faturado ${mi(e.representantes_faturado)}`, e.representantes ? 'ok' : 'atencao');
     h += card('Fora da Gestão (com meta)', nf(e.fora_da_gestao_com_meta), `${mi(e.fora_da_gestao_meta)} de meta sem decisão` + (e.fora_da_gestao_top && e.fora_da_gestao_top.length ? ' · maiores: ' + e.fora_da_gestao_top.slice(0, 3).map((x) => x.filial + ' ' + x.rca).join(', ') : ''), e.fora_da_gestao_com_meta ? 'atencao' : 'ok');
   }
   h += '</div>';
