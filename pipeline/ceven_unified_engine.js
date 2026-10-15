@@ -140,12 +140,17 @@ function fmtMoeda(val) {
   return (val || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// RESPOSTAS JA OBTIDAS NESTA EXECUCAO (15/10/2026): a trava de completude repete a coleta ate fechar; o que ja veio certo NAO e perguntado de novo
+// ao CEVEN (senao cada rodada gasta a mesma cota e leva as mesmas recusas). Cada rodada so busca o que faltou: sempre converge.
+const RESPOSTAS_OK = new Map();
 async function safeGet(url, maxRetries = 3, timeout = 10000) {
+  if (RESPOSTAS_OK.has(url)) return RESPOSTAS_OK.get(url);
   const daBase = fonteBase.lerBase(url); // produtividade, dashboard, devolucoes e roteiro-hoje: da base unica quando fresca
-  if (daBase !== undefined) return daBase;
+  if (daBase !== undefined) { RESPOSTAS_OK.set(url, daBase); return daBase; }
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const res = await axios.get(url, { timeout });
+      RESPOSTAS_OK.set(url, res.data);
       return res.data;
     } catch (err) {
       if (attempt === maxRetries) {
