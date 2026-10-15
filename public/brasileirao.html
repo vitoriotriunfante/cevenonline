@@ -797,6 +797,11 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
         </div>
         <div class="filter-row">
           <input type="date" id="lances-data" class="input-search" style="max-width:180px" onchange="carregarLances()">
+          <!-- CANAL (Vitorio, 15/10/2026): no modo TV nao ha a chave Varejo/AS do topo; a auditoria precisa do filtro proprio -->
+          <select id="lances-canal" class="select-ctl" onchange="setCanal(this.value); carregarLances()" title="Varejo (lances do dia) ou AS (lances da semana)">
+            <option value="VAREJO">🛒 VAREJO</option>
+            <option value="AS">🏬 AS</option>
+          </select>
           <select id="lances-filial" class="select-ctl" onchange="carregarLances()">
             <option value="TODAS">TODAS AS FILIAIS</option>
             <option value="MTZ">MATRIZ</option>
@@ -888,7 +893,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
         <p>
           <strong>Versão do regulamento:</strong> <span id="reg-versao">—</span> · <strong>Liga oficial desde:</strong> <span id="reg-desde">13/10/2026</span>. O que veio antes foi <strong>pré-temporada</strong>. Regra, pontuação ou score novos só entram com <strong>nova versão</strong> e aviso aos gerentes; no período de estabilidade só se corrige erro.
           <br><br>
-          🔒 <strong>Dia fechado:</strong> às <strong>22h</strong> o dia é congelado (lances que contam, pontos e versão das regras). Depois disso nada muda naquele dia: nem lance que chegue atrasado, nem troca de supervisor, nem regra nova.
+          🔒 <strong>Dia fechado:</strong> às <strong>22h</strong> o dia é congelado (no AS, a semana fecha às 22h do seu último dia útil; lances que contam, pontos e versão das regras). Depois disso nada muda naquele dia: nem lance que chegue atrasado, nem troca de supervisor, nem regra nova.
           <br>
           🧾 <strong>Sem comprovação não tem lance:</strong> todo lance guarda a prova (pedido, nota, horário, valor, motivo oficial) e é conferido automaticamente lance a lance, mais de uma vez por dia. Lance sem prova é apontado e pode ser retirado da liga.
           <br>
@@ -915,7 +920,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
       </div>
 
       <div class="rule-card" id="reg-as" style="display:none">
-        <h3>🏬 Liga AS (Autosserviço) — o jogo é SEMANAL</h3>
+        <h3>1. A Regra do Jogo no AS (Autosserviço): a Semana é o Jogo</h3>
         <div id="reg-as-corpo"></div>
       </div>
 
@@ -961,7 +966,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
         </p>
       </div>
 
-      <div class="rule-card">
+      <div class="rule-card so-varejo">
         <h3>4. Supervisores, Filiais e Gerentes: A Liga dos Times</h3>
         <p>
           Líder não soma os pontos individuais dos vendedores; o resultado do líder é o desempenho da sua equipe frente ao dia:
@@ -980,24 +985,56 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
           <br>
           • <strong>Gerente:</strong> Base = Todos os vendedores da sua filial (em TPH e MCD, que têm 2 gerentes, os vendedores de cada gerente).
           <br><br>
-          🏅 <strong>Plus de Liderança do supervisor (critério de desempate, não soma pontos na tabela):</strong> Compromisso Matinal até as 10h = <strong>+5</strong> e início/execução do RET de campo = <strong>+5</strong> por dia útil. É só bônus: quem não faz fica com 0, sem punição.
+          🏅 <strong>Plus de Liderança do supervisor (1º critério de desempate na Liga dos Supervisores, não soma pontos na tabela):</strong> Compromisso Matinal até as 10h = <strong>+5</strong> e início/execução do RET de campo = <strong>+5</strong> por dia útil. É só bônus: quem não faz fica com 0, sem punição.
         </p>
       </div>
 
-      <div class="rule-card">
+      <div class="rule-card so-varejo">
         <h3>5. Critérios Oficiais de Desempate</h3>
         <p>
           Havendo empate em Pontos Ganhos (PG) na tabela, a ordem oficial de desempate é:
           <br><br>
-          🥇 <strong>1º) Maior Número de Vitórias (V)</strong>
+          <strong>Vendedores:</strong> 🥇 1º) Mais Vitórias (V) · ⚽ 2º) Maior Saldo de Lances (SG = pontos positivos − pontos negativos) · 🎯 3º) Mais Gols Pró (GP = soma dos pontos positivos) · 🦅 4º) Mais Clientes Inativos Resgatados.
           <br>
-          ⚽ <strong>2º) Maior Saldo de Gols / Lances (SG = Pontos Positivos − Pontos Negativos)</strong>
+          <strong>Supervisores:</strong> 1º) Maior Plus de Liderança · 2º) Mais Vitórias (V) · 3º) Maior Saldo (SG).
           <br>
-          🦅 <strong>3º) Mais Clientes Inativos Resgatados</strong>
+          <strong>Filiais (Série A):</strong> 1º) Mais Vitórias (V) · 2º) Maior Saldo (SG) · 3º) Mais Gols Pró (GP).
           <br>
-          🎯 <strong>4º) Maior Positivação Total de Clientes Únicos</strong>
+          <strong>Gerentes:</strong> 1º) Mais Vitórias (V) · 2º) Maior Saldo (SG).
         </p>
       </div>
+
+      <div class="rule-card so-as" style="display:none">
+        <h3>3. Supervisores, Filiais e Gerentes no AS</h3>
+        <p>
+          <strong>Supervisor do AS:</strong> o jogo também é a <strong>semana</strong>, e o resultado é o da equipe dele (vendedores AS), não a soma dos pontos individuais:
+          <br>
+          🟢 <strong>Vitória (3 pontos de tabela):</strong> mais da metade dos vendedores da equipe venceu a semana.
+          <br>
+          🟡 <strong>Empate (1 ponto):</strong> pelo menos 1 vendedor venceu, mas não a maioria.
+          <br>
+          🔴 <strong>Derrota (0):</strong> nenhum vendedor da equipe venceu a semana.
+          <br>
+          ⏳ Semana em andamento aparece como <strong>J</strong> (jogando) até o fechamento do último dia útil dela.
+          <br>
+          📈 O <strong>faseamento da equipe</strong> (faturado + pendente da equipe sobre a meta da equipe, mesmas faixas do vendedor) aparece na tabela e é o 1º critério de desempate. Não soma pontos de tabela.
+          <br><br>
+          <strong>Filiais (Série A) e Gerentes (Campeonato de Gerências):</strong> são uma tabela única, com <strong>todos</strong> os vendedores da filial (Varejo e AS) e o jogo do <strong>dia</strong>, pela regra do Varejo (ver o regulamento do Varejo).
+          <br><br>
+          <strong>No AS não há Semana Invicta nem Plus de Liderança:</strong> a semana já é o jogo, e o Plus é critério só da Liga dos Supervisores do Varejo.
+        </p>
+      </div>
+
+      <div class="rule-card so-as" style="display:none">
+        <h3>4. Critérios Oficiais de Desempate no AS</h3>
+        <p>
+          Havendo empate em Pontos Ganhos (PG) na tabela, a ordem oficial de desempate é:
+          <br><br>
+          <strong>Vendedores AS:</strong> 🥇 1º) Mais Vitórias (V) · ⚽ 2º) Maior placar somado das semanas jogadas (lances + faseamento + bônus) · 📈 3º) Maior % da meta do mês hoje (faturado + pendente ÷ meta).
+          <br>
+          <strong>Supervisores AS:</strong> 1º) Mais pontos de faseamento da equipe · 2º) Mais Vitórias (V) · 3º) Maior % da meta da equipe hoje.
+        </p>
+</div>
 
     </div>
   </section>
@@ -1680,6 +1717,8 @@ function aplicaCanalNaTela() {
   set('h-gab', as ? 'Gabarito da Semana — regras x lances reais (AS)' : 'Gabarito do Dia — regras x lances reais (Varejo)');
   const ra = document.getElementById('reg-as'); if (ra) ra.style.display = as ? '' : 'none';
   document.querySelectorAll('.so-varejo').forEach(e => { e.style.display = as ? 'none' : ''; });
+  document.querySelectorAll('.so-as').forEach(e => { e.style.display = as ? '' : 'none'; });
+  const lc = document.getElementById('lances-canal'); if (lc) lc.value = as ? 'AS' : 'VAREJO';
   LANCES_CARREGADOS_HOJE = false;
   filtrarSupervisores(); filtrarVendedores(); montaRegulamentoAS(); filtraRegrasAS(); montaTextoGolQualificado();
   const ativa = (document.querySelector('.tab-content.active') || {}).id;
@@ -1787,7 +1826,7 @@ function montaRegulamentoAS() {
   const box = document.getElementById('reg-as-corpo'); if (!box) return;
   box.innerHTML = `
     <p>O <strong>AS (Autosserviço)</strong> joga por <strong>SEMANA</strong>, com o mesmo raciocínio do Varejo: a <strong>semana é o jogo</strong>. O vendedor visita num dia e coloca o pedido em outro, então as jogadas são computadas semanalmente. Vendedor e supervisor têm acompanhamento separado. Semanas: <strong>1ª</strong> dias 1–7 · <strong>2ª</strong> dias 8–14 · <strong>3ª</strong> dias 15–20 · <strong>4ª</strong> dias 21 até o fim do mês.</p>
-    <p>🟢 <strong>Vitória na semana (3 pts de tabela):</strong> placar acima de 10 · 🟡 <strong>Empate (1 pt):</strong> de 1 a 10 · 🔴 <strong>Derrota (0):</strong> 0 ou negativo. <strong>Placar da semana</strong> = lances da semana + faseamento da semana + bônus que caiu nela. <strong>Supervisor:</strong> vitória quando mais de 50% da equipe AS venceu a semana (igual ao Varejo); faseamento e bônus da equipe desempatam.</p>
+    <p>🟢 <strong>Vitória na semana (3 pts de tabela):</strong> placar acima de 10 · 🟡 <strong>Empate (1 pt):</strong> de 1 a 10 · 🔴 <strong>Derrota (0):</strong> 0 ou negativo. <em>(Até outubro/2026. A partir de novembro, o limite da vitória é proporcional aos dias úteis da semana: acima de 2 pontos por dia útil. Ver "Como a semana do AS é contada".)</em> <strong>Placar da semana</strong> = lances da semana + faseamento da semana + bônus que caiu nela. <strong>Supervisor:</strong> vitória quando mais de 50% da equipe AS venceu a semana (igual ao Varejo); faseamento e bônus da equipe desempatam.</p>
     <table class="tb-league" style="margin:10px 0 14px"><thead><tr><th>Faseamento até outubro/2026 (% da meta do mês no fim da semana)</th><th style="text-align:center">Meta</th><th style="text-align:center">Pontos no placar</th></tr></thead><tbody>
       <tr><td>1ª semana (até o dia 7)</td><td style="text-align:center">20%</td><td style="text-align:center"><b>+10</b></td></tr><tr><td>2ª semana (até o dia 14)</td><td style="text-align:center">40%</td><td style="text-align:center"><b>+20</b></td></tr>
       <tr><td>3ª semana (até o dia 20)</td><td style="text-align:center">60%</td><td style="text-align:center"><b>+30</b></td></tr><tr><td>4ª semana (até o fim do mês)</td><td style="text-align:center">110%</td><td style="text-align:center"><b>+40</b></td></tr>
