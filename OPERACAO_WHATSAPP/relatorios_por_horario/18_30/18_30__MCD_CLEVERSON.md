@@ -1,16 +1,16 @@
 🏢 *BOLETIM DE FECHAMENTO OFICIAL — 18:30*
-📅 14/10/2026
+📅 15/10/2026
 📍 *FILIAL MCD — CLEVERSON*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 302.569,75
-📦 *Pedidos Colocados:* 54 pedidos
-📍 *Visitas Realizadas:* 78 de 292 (26,7%)
-👥 *Vendedores Varejo com Pedido:* 11 de 19 (58%)
+💰 *Total Digitado Hoje:* R$ 237.884,85
+📦 *Pedidos Colocados:* 67 pedidos
+📍 *Visitas Realizadas:* 90 de 225 (40,0%)
+👥 *Vendedores Varejo com Pedido:* 15 de 19 (79%)
 ✂️ *Cortes nos Pedidos de Hoje:* R$ 0,00 (0 pedidos afetados)
 🔒 *Pedidos Bloqueados Hoje:* R$ 0,00 (0 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 4.427,22
-🟢 *Recuperação de Inativos (+30d):* 2 de 19 PDVs reativados hoje
+🚛 *Devoluções Entradas Hoje:* R$ 8.928,27
+🟢 *Recuperação de Inativos (+30d):* 2 de 23 PDVs reativados hoje
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*
