@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-15T12:18:26.879759Z",
+  "gerado_em": "2026-10-15T12:24:21.956490Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -9,7 +9,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 16984,
+  "total_lances_auditados": 16991,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -20,8 +20,8 @@
       "empates": 3,
       "derrotas": 0,
       "gp": 1231,
-      "gc": 491,
-      "sg": 740,
+      "gc": 495,
+      "sg": 736,
       "aprov": 33.3,
       "super_pedidos": 5,
       "inativos_resgatados": 30,
@@ -54,6 +54,27 @@
       "pos": 2
     },
     {
+      "sigla": "MCD",
+      "total_vendedores": 52,
+      "jogos": 3,
+      "pts_tabela": 3,
+      "vitorias": 0,
+      "empates": 3,
+      "derrotas": 0,
+      "gp": 489,
+      "gc": 634,
+      "sg": -145,
+      "aprov": 33.3,
+      "super_pedidos": 6,
+      "inativos_resgatados": 7,
+      "forma": [
+        "E",
+        "E",
+        "E"
+      ],
+      "pos": 3
+    },
+    {
       "sigla": "API",
       "total_vendedores": 42,
       "jogos": 2,
@@ -72,7 +93,7 @@
         "E",
         "J"
       ],
-      "pos": 3
+      "pos": 4
     },
     {
       "sigla": "TCA",
@@ -93,7 +114,7 @@
         "E",
         "J"
       ],
-      "pos": 4
+      "pos": 5
     },
     {
       "sigla": "TCV",
@@ -114,7 +135,7 @@
         "E",
         "J"
       ],
-      "pos": 5
+      "pos": 6
     },
     {
       "sigla": "TBL",
@@ -124,9 +145,9 @@
       "vitorias": 0,
       "empates": 2,
       "derrotas": 0,
-      "gp": 902,
+      "gp": 903,
       "gc": 638,
-      "sg": 264,
+      "sg": 265,
       "aprov": 33.3,
       "super_pedidos": 3,
       "inativos_resgatados": 30,
@@ -135,7 +156,7 @@
         "E",
         "J"
       ],
-      "pos": 6
+      "pos": 7
     },
     {
       "sigla": "TCG",
@@ -156,7 +177,7 @@
         "E",
         "J"
       ],
-      "pos": 7
+      "pos": 8
     },
     {
       "sigla": "TBE",
@@ -177,27 +198,6 @@
         "E",
         "J"
       ],
-      "pos": 8
-    },
-    {
-      "sigla": "MCD",
-      "total_vendedores": 52,
-      "jogos": 2,
-      "pts_tabela": 2,
-      "vitorias": 0,
-      "empates": 2,
-      "derrotas": 0,
-      "gp": 478,
-      "gc": 634,
-      "sg": -156,
-      "aprov": 33.3,
-      "super_pedidos": 6,
-      "inativos_resgatados": 6,
-      "forma": [
-        "E",
-        "E",
-        "J"
-      ],
       "pos": 9
     },
     {
@@ -208,9 +208,9 @@
       "vitorias": 0,
       "empates": 2,
       "derrotas": 0,
-      "gp": 1110,
+      "gp": 1111,
       "gc": 1767,
-      "sg": -657,
+      "sg": -656,
       "aprov": 33.3,
       "super_pedidos": 2,
       "inativos_resgatados": 32,
@@ -229,9 +229,9 @@
       "vitorias": 0,
       "empates": 0,
       "derrotas": 2,
-      "gp": 70,
+      "gp": 72,
       "gc": 508,
-      "sg": -438,
+      "sg": -436,
       "aprov": 0.0,
       "super_pedidos": 2,
       "inativos_resgatados": 1,
@@ -256,8 +256,8 @@
       "empates": 3,
       "derrotas": 0,
       "gp": 1231,
-      "gc": 491,
-      "sg": 740,
+      "gc": 495,
+      "sg": 736,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -289,6 +289,28 @@
       "pos": 2
     },
     {
+      "nome": "Adriano",
+      "filiais": [
+        "MCD"
+      ],
+      "total_vendedores": 27,
+      "jogos": 3,
+      "pts_tabela": 3,
+      "vitorias": 0,
+      "empates": 3,
+      "derrotas": 0,
+      "gp": 299,
+      "gc": 378,
+      "sg": -79,
+      "aprov": 33.3,
+      "forma": [
+        "E",
+        "E",
+        "E"
+      ],
+      "pos": 3
+    },
+    {
       "nome": "Marcelo",
       "filiais": [
         "API"
@@ -308,7 +330,7 @@
         "E",
         "J"
       ],
-      "pos": 3
+      "pos": 4
     },
     {
       "nome": "Becher",
@@ -330,7 +352,7 @@
         "E",
         "J"
       ],
-      "pos": 4
+      "pos": 5
     },
     {
       "nome": "Leonardo",
@@ -352,7 +374,7 @@
         "E",
         "J"
       ],
-      "pos": 5
+      "pos": 6
     },
     {
       "nome": "Fábio Machado",
@@ -365,16 +387,16 @@
       "vitorias": 0,
       "empates": 2,
       "derrotas": 0,
-      "gp": 902,
+      "gp": 903,
       "gc": 638,
-      "sg": 264,
+      "sg": 265,
       "aprov": 33.3,
       "forma": [
         "E",
         "E",
         "J"
       ],
-      "pos": 6
+      "pos": 7
     },
     {
       "nome": "Danilo",
@@ -396,7 +418,7 @@
         "E",
         "J"
       ],
-      "pos": 7
+      "pos": 8
     },
     {
       "nome": "Diego",
@@ -418,7 +440,7 @@
         "E",
         "J"
       ],
-      "pos": 8
+      "pos": 9
     },
     {
       "nome": "Cleverson",
@@ -434,28 +456,6 @@
       "gp": 190,
       "gc": 256,
       "sg": -66,
-      "aprov": 33.3,
-      "forma": [
-        "E",
-        "E",
-        "J"
-      ],
-      "pos": 9
-    },
-    {
-      "nome": "Adriano",
-      "filiais": [
-        "MCD"
-      ],
-      "total_vendedores": 27,
-      "jogos": 2,
-      "pts_tabela": 2,
-      "vitorias": 0,
-      "empates": 2,
-      "derrotas": 0,
-      "gp": 288,
-      "gc": 378,
-      "sg": -90,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -497,9 +497,9 @@
       "vitorias": 0,
       "empates": 2,
       "derrotas": 0,
-      "gp": 427,
+      "gp": 428,
       "gc": 839,
-      "sg": -412,
+      "sg": -411,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -519,9 +519,9 @@
       "vitorias": 0,
       "empates": 0,
       "derrotas": 2,
-      "gp": 70,
+      "gp": 72,
       "gc": 508,
-      "sg": -438,
+      "sg": -436,
       "aprov": 0.0,
       "forma": [
         "D",
@@ -696,8 +696,8 @@
       "empates": 1,
       "derrotas": 0,
       "gp": 390,
-      "gc": 226,
-      "sg": 164,
+      "gc": 230,
+      "sg": 160,
       "aprov": 66.7,
       "forma": [
         "E",
@@ -875,6 +875,44 @@
       "pos": 8
     },
     {
+      "supervisor": "CLEOMAR DINIZ BARBOSA",
+      "filial": "MCD",
+      "canal": "VAREJO",
+      "gerente": "Adriano",
+      "total_vendedores": 9,
+      "jogos": 3,
+      "pts_tabela": 3,
+      "vitorias": 0,
+      "empates": 3,
+      "derrotas": 0,
+      "gp": 140,
+      "gc": 162,
+      "sg": -22,
+      "aprov": 33.3,
+      "forma": [
+        "E",
+        "E",
+        "E"
+      ],
+      "plus_lideranca": 25,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 9
+    },
+    {
       "supervisor": "MISSAID MAINARDES RAMOS",
       "filial": "ABC",
       "canal": "AS",
@@ -935,7 +973,7 @@
       "plus_lideranca": null,
       "plus_detalhe": null,
       "plus_pendente": null,
-      "pos": 9
+      "pos": 10
     },
     {
       "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
@@ -1011,7 +1049,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 10
+      "pos": 11
     },
     {
       "supervisor": "TIAGO SANTOS CORREA",
@@ -1049,7 +1087,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 11
+      "pos": 12
     },
     {
       "supervisor": "IGOR RODRIGUES DUARTE",
@@ -1062,9 +1100,9 @@
       "vitorias": 0,
       "empates": 2,
       "derrotas": 0,
-      "gp": 208,
+      "gp": 209,
       "gc": 111,
-      "sg": 97,
+      "sg": 98,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -1087,7 +1125,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 12
+      "pos": 13
     },
     {
       "supervisor": "ANDREY CAMILLO PIRAGINE",
@@ -1125,7 +1163,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 13
+      "pos": 14
     },
     {
       "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
@@ -1198,44 +1236,6 @@
         "2026-10-15": {
           "compromisso": 5,
           "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 14
-    },
-    {
-      "supervisor": "CLEOMAR DINIZ BARBOSA",
-      "filial": "MCD",
-      "canal": "VAREJO",
-      "gerente": "Adriano",
-      "total_vendedores": 9,
-      "jogos": 2,
-      "pts_tabela": 2,
-      "vitorias": 0,
-      "empates": 2,
-      "derrotas": 0,
-      "gp": 129,
-      "gc": 162,
-      "sg": -33,
-      "aprov": 33.3,
-      "forma": [
-        "E",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 25,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -1404,9 +1404,9 @@
       "vitorias": 0,
       "empates": 2,
       "derrotas": 0,
-      "gp": 190,
+      "gp": 191,
       "gc": 140,
-      "sg": 50,
+      "sg": 51,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -1584,6 +1584,44 @@
       "pos": 7
     },
     {
+      "supervisor": "CRISTIANE DE FREITAS DUARTE",
+      "filial": "TBL",
+      "canal": "VAREJO",
+      "gerente": "Fábio",
+      "total_vendedores": 4,
+      "jogos": 2,
+      "pts_tabela": 2,
+      "vitorias": 0,
+      "empates": 2,
+      "derrotas": 0,
+      "gp": 101,
+      "gc": 47,
+      "sg": 54,
+      "aprov": 33.3,
+      "forma": [
+        "E",
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 15,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 22
+    },
+    {
       "supervisor": "CRISTIANO RODRIGUES MACHADO",
       "filial": "TSJ",
       "canal": "AS",
@@ -1620,44 +1658,6 @@
       },
       "plus_pendente": false,
       "pos": 8
-    },
-    {
-      "supervisor": "CRISTIANE DE FREITAS DUARTE",
-      "filial": "TBL",
-      "canal": "VAREJO",
-      "gerente": "Fábio",
-      "total_vendedores": 4,
-      "jogos": 2,
-      "pts_tabela": 2,
-      "vitorias": 0,
-      "empates": 2,
-      "derrotas": 0,
-      "gp": 101,
-      "gc": 47,
-      "sg": 54,
-      "aprov": 33.3,
-      "forma": [
-        "E",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 10,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-15": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 22
     },
     {
       "supervisor": "MAICON DION NOVAIS SILVA",
@@ -2506,9 +2506,9 @@
       "vitorias": 0,
       "empates": 0,
       "derrotas": 2,
-      "gp": 1,
+      "gp": 3,
       "gc": 71,
-      "sg": -70,
+      "sg": -68,
       "aprov": 0.0,
       "forma": [
         "D",
@@ -4562,6 +4562,36 @@
       "pos_filial": 8
     },
     {
+      "rca": "189",
+      "nome": "LUAN CARLOS DE SOUZA",
+      "filial": "TBL",
+      "supervisor": "IGOR RODRIGUES DUARTE",
+      "gerente": "Fábio",
+      "canal": "VAREJO",
+      "jogos": 3,
+      "vitorias": 1,
+      "empates": 2,
+      "derrotas": 0,
+      "pts_tabela": 5,
+      "aprov": 55.6,
+      "gp": 38,
+      "gc": 17,
+      "sg": 21,
+      "super_pedidos": 0,
+      "inativos_resgatados": 2,
+      "forma": [
+        "E",
+        "V",
+        "E"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 40,
+      "pos_filial": 6
+    },
+    {
       "rca": "236",
       "nome": "DIEGO FERNANDES",
       "filial": "ABC",
@@ -4588,7 +4618,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 40,
+      "pos_brasil": 41,
       "pos_filial": 3
     },
     {
@@ -4618,7 +4648,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 41,
+      "pos_brasil": 42,
       "pos_filial": 4
     },
     {
@@ -4648,7 +4678,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 42,
+      "pos_brasil": 43,
       "pos_filial": 6
     },
     {
@@ -4678,7 +4708,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 43,
+      "pos_brasil": 44,
       "pos_filial": 5
     },
     {
@@ -4738,7 +4768,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 44,
+      "pos_brasil": 45,
       "pos_filial": 9
     },
     {
@@ -4768,7 +4798,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 45,
+      "pos_brasil": 46,
       "pos_filial": 3
     },
     {
@@ -4798,7 +4828,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 46,
+      "pos_brasil": 47,
       "pos_filial": 10
     },
     {
@@ -4828,7 +4858,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 47,
+      "pos_brasil": 48,
       "pos_filial": 4
     },
     {
@@ -4858,8 +4888,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 48,
-      "pos_filial": 6
+      "pos_brasil": 49,
+      "pos_filial": 7
     },
     {
       "rca": "390",
@@ -4888,7 +4918,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 49,
+      "pos_brasil": 50,
       "pos_filial": 7
     },
     {
@@ -4918,7 +4948,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 50,
+      "pos_brasil": 51,
       "pos_filial": 1
     },
     {
@@ -5008,7 +5038,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 51,
+      "pos_brasil": 52,
       "pos_filial": 2
     },
     {
@@ -5158,7 +5188,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 52,
+      "pos_brasil": 53,
       "pos_filial": 7
     },
     {
@@ -5188,7 +5218,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 53,
+      "pos_brasil": 54,
       "pos_filial": 2
     },
     {
@@ -5218,7 +5248,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 54,
+      "pos_brasil": 55,
       "pos_filial": 8
     },
     {
@@ -5248,7 +5278,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 55,
+      "pos_brasil": 56,
       "pos_filial": 3
     },
     {
@@ -5278,7 +5308,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 56,
+      "pos_brasil": 57,
       "pos_filial": 2
     },
     {
@@ -5308,7 +5338,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 57,
+      "pos_brasil": 58,
       "pos_filial": 6
     },
     {
@@ -5338,7 +5368,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 58,
+      "pos_brasil": 59,
       "pos_filial": 10
     },
     {
@@ -5368,7 +5398,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 59,
+      "pos_brasil": 60,
       "pos_filial": 8
     },
     {
@@ -5428,7 +5458,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 60,
+      "pos_brasil": 61,
       "pos_filial": 7
     },
     {
@@ -5490,36 +5520,6 @@
       "bonus_semana_invicta": 0,
       "pos_brasil": 17,
       "pos_filial": 1
-    },
-    {
-      "rca": "189",
-      "nome": "LUAN CARLOS DE SOUZA",
-      "filial": "TBL",
-      "supervisor": "IGOR RODRIGUES DUARTE",
-      "gerente": "Fábio",
-      "canal": "VAREJO",
-      "jogos": 2,
-      "vitorias": 1,
-      "empates": 1,
-      "derrotas": 0,
-      "pts_tabela": 4,
-      "aprov": 66.7,
-      "gp": 37,
-      "gc": 17,
-      "sg": 20,
-      "super_pedidos": 0,
-      "inativos_resgatados": 2,
-      "forma": [
-        "E",
-        "V",
-        "J"
-      ],
-      "streak": 1,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 61,
-      "pos_filial": 7
     },
     {
       "rca": "204",
@@ -5702,6 +5702,36 @@
       "pos_filial": 5
     },
     {
+      "rca": "415",
+      "nome": "CIL FARNEY BARBOSA DE ALCANTARA",
+      "filial": "MCD",
+      "supervisor": "CLEOMAR DINIZ BARBOSA",
+      "gerente": "Adriano",
+      "canal": "VAREJO",
+      "jogos": 3,
+      "vitorias": 1,
+      "empates": 1,
+      "derrotas": 1,
+      "pts_tabela": 4,
+      "aprov": 44.4,
+      "gp": 27,
+      "gc": 10,
+      "sg": 17,
+      "super_pedidos": 0,
+      "inativos_resgatados": 1,
+      "forma": [
+        "E",
+        "D",
+        "V"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 67,
+      "pos_filial": 5
+    },
+    {
       "rca": "336",
       "nome": "KAUANA DANIELI SPRENGOSKI",
       "filial": "TCV",
@@ -5728,7 +5758,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 67,
+      "pos_brasil": 68,
       "pos_filial": 11
     },
     {
@@ -5758,7 +5788,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 68,
+      "pos_brasil": 69,
       "pos_filial": 10
     },
     {
@@ -5788,7 +5818,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 69,
+      "pos_brasil": 70,
       "pos_filial": 9
     },
     {
@@ -5818,7 +5848,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 70,
+      "pos_brasil": 71,
       "pos_filial": 11
     },
     {
@@ -5848,7 +5878,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 71,
+      "pos_brasil": 72,
       "pos_filial": 10
     },
     {
@@ -5878,7 +5908,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 72,
+      "pos_brasil": 73,
       "pos_filial": 3
     },
     {
@@ -5938,7 +5968,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 73,
+      "pos_brasil": 74,
       "pos_filial": 8
     },
     {
@@ -5968,7 +5998,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 74,
+      "pos_brasil": 75,
       "pos_filial": 10
     },
     {
@@ -5998,7 +6028,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 75,
+      "pos_brasil": 76,
       "pos_filial": 4
     },
     {
@@ -6028,7 +6058,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 76,
+      "pos_brasil": 77,
       "pos_filial": 5
     },
     {
@@ -6058,7 +6088,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 77,
+      "pos_brasil": 78,
       "pos_filial": 12
     },
     {
@@ -6118,7 +6148,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 78,
+      "pos_brasil": 79,
       "pos_filial": 12
     },
     {
@@ -6148,7 +6178,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 79,
+      "pos_brasil": 80,
       "pos_filial": 13
     },
     {
@@ -6208,7 +6238,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 80,
+      "pos_brasil": 81,
       "pos_filial": 6
     },
     {
@@ -6238,7 +6268,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 81,
+      "pos_brasil": 82,
       "pos_filial": 14
     },
     {
@@ -6268,7 +6298,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 82,
+      "pos_brasil": 83,
       "pos_filial": 3
     },
     {
@@ -6358,7 +6388,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 83,
+      "pos_brasil": 84,
       "pos_filial": 15
     },
     {
@@ -6388,7 +6418,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 84,
+      "pos_brasil": 85,
       "pos_filial": 11
     },
     {
@@ -6448,7 +6478,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 85,
+      "pos_brasil": 86,
       "pos_filial": 11
     },
     {
@@ -6508,7 +6538,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 86,
+      "pos_brasil": 87,
       "pos_filial": 11
     },
     {
@@ -6538,7 +6568,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 87,
+      "pos_brasil": 88,
       "pos_filial": 4
     },
     {
@@ -6598,7 +6628,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 88,
+      "pos_brasil": 89,
       "pos_filial": 13
     },
     {
@@ -6628,7 +6658,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 89,
+      "pos_brasil": 90,
       "pos_filial": 5
     },
     {
@@ -6658,7 +6688,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 90,
+      "pos_brasil": 91,
       "pos_filial": 6
     },
     {
@@ -6688,7 +6718,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 91,
+      "pos_brasil": 92,
       "pos_filial": 14
     },
     {
@@ -6748,7 +6778,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 92,
+      "pos_brasil": 93,
       "pos_filial": 16
     },
     {
@@ -6778,7 +6808,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 93,
+      "pos_brasil": 94,
       "pos_filial": 15
     },
     {
@@ -6808,8 +6838,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 94,
-      "pos_filial": 5
+      "pos_brasil": 95,
+      "pos_filial": 6
     },
     {
       "rca": "366",
@@ -6868,7 +6898,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 95,
+      "pos_brasil": 96,
       "pos_filial": 12
     },
     {
@@ -6928,7 +6958,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 96,
+      "pos_brasil": 97,
       "pos_filial": 12
     },
     {
@@ -6958,8 +6988,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 97,
-      "pos_filial": 6
+      "pos_brasil": 98,
+      "pos_filial": 7
     },
     {
       "rca": "250",
@@ -6988,7 +7018,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 98,
+      "pos_brasil": 99,
       "pos_filial": 12
     },
     {
@@ -7018,8 +7048,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 99,
-      "pos_filial": 7
+      "pos_brasil": 100,
+      "pos_filial": 8
     },
     {
       "rca": "227",
@@ -7048,7 +7078,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 100,
+      "pos_brasil": 101,
       "pos_filial": 9
     },
     {
@@ -7078,8 +7108,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 101,
-      "pos_filial": 8
+      "pos_brasil": 102,
+      "pos_filial": 9
     },
     {
       "rca": "72",
@@ -7108,7 +7138,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 102,
+      "pos_brasil": 103,
       "pos_filial": 7
     },
     {
@@ -7138,7 +7168,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 103,
+      "pos_brasil": 104,
       "pos_filial": 10
     },
     {
@@ -7168,8 +7198,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 104,
-      "pos_filial": 9
+      "pos_brasil": 105,
+      "pos_filial": 10
     },
     {
       "rca": "1140",
@@ -7198,7 +7228,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 105,
+      "pos_brasil": 106,
       "pos_filial": 13
     },
     {
@@ -7228,7 +7258,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 106,
+      "pos_brasil": 107,
       "pos_filial": 11
     },
     {
@@ -7258,7 +7288,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 107,
+      "pos_brasil": 108,
       "pos_filial": 14
     },
     {
@@ -7288,7 +7318,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 108,
+      "pos_brasil": 109,
       "pos_filial": 17
     },
     {
@@ -7318,7 +7348,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 109,
+      "pos_brasil": 110,
       "pos_filial": 8
     },
     {
@@ -7348,7 +7378,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 110,
+      "pos_brasil": 111,
       "pos_filial": 13
     },
     {
@@ -7378,7 +7408,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 111,
+      "pos_brasil": 112,
       "pos_filial": 12
     },
     {
@@ -7408,7 +7438,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 112,
+      "pos_brasil": 113,
       "pos_filial": 9
     },
     {
@@ -7438,8 +7468,38 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 113,
+      "pos_brasil": 114,
       "pos_filial": 18
+    },
+    {
+      "rca": "114",
+      "nome": "JANAINA FARIA",
+      "filial": "TPH",
+      "supervisor": "EDI CARLOS MEIRA",
+      "gerente": "Fábio",
+      "canal": "VAREJO",
+      "jogos": 3,
+      "vitorias": 0,
+      "empates": 3,
+      "derrotas": 0,
+      "pts_tabela": 3,
+      "aprov": 33.3,
+      "gp": 13,
+      "gc": 9,
+      "sg": 4,
+      "super_pedidos": 0,
+      "inativos_resgatados": 0,
+      "forma": [
+        "E",
+        "E",
+        "E"
+      ],
+      "streak": 0,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 115,
+      "pos_filial": 10
     },
     {
       "rca": "295",
@@ -7498,7 +7558,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 114,
+      "pos_brasil": 116,
       "pos_filial": 13
     },
     {
@@ -7528,7 +7588,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 115,
+      "pos_brasil": 117,
       "pos_filial": 14
     },
     {
@@ -7558,8 +7618,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 116,
-      "pos_filial": 10
+      "pos_brasil": 118,
+      "pos_filial": 11
     },
     {
       "rca": "403",
@@ -7588,7 +7648,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 117,
+      "pos_brasil": 119,
       "pos_filial": 16
     },
     {
@@ -7618,7 +7678,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 118,
+      "pos_brasil": 120,
       "pos_filial": 13
     },
     {
@@ -7648,7 +7708,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 119,
+      "pos_brasil": 121,
       "pos_filial": 14
     },
     {
@@ -7678,7 +7738,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 120,
+      "pos_brasil": 122,
       "pos_filial": 15
     },
     {
@@ -7708,7 +7768,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 121,
+      "pos_brasil": 123,
       "pos_filial": 15
     },
     {
@@ -7738,8 +7798,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 122,
-      "pos_filial": 11
+      "pos_brasil": 124,
+      "pos_filial": 12
     },
     {
       "rca": "439",
@@ -7768,8 +7828,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 123,
-      "pos_filial": 10
+      "pos_brasil": 125,
+      "pos_filial": 11
     },
     {
       "rca": "239",
@@ -7798,7 +7858,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 124,
+      "pos_brasil": 126,
       "pos_filial": 16
     },
     {
@@ -7858,8 +7918,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 125,
-      "pos_filial": 11
+      "pos_brasil": 127,
+      "pos_filial": 12
     },
     {
       "rca": "1056",
@@ -7888,7 +7948,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 126,
+      "pos_brasil": 128,
       "pos_filial": 14
     },
     {
@@ -7948,8 +8008,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 127,
-      "pos_filial": 12
+      "pos_brasil": 129,
+      "pos_filial": 13
     },
     {
       "rca": "454",
@@ -7978,8 +8038,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 128,
-      "pos_filial": 12
+      "pos_brasil": 130,
+      "pos_filial": 13
     },
     {
       "rca": "62",
@@ -8038,7 +8098,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 129,
+      "pos_brasil": 131,
       "pos_filial": 19
     },
     {
@@ -8068,7 +8128,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 130,
+      "pos_brasil": 132,
       "pos_filial": 6
     },
     {
@@ -8098,8 +8158,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 131,
-      "pos_filial": 13
+      "pos_brasil": 133,
+      "pos_filial": 14
     },
     {
       "rca": "321",
@@ -8158,7 +8218,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 132,
+      "pos_brasil": 134,
       "pos_filial": 15
     },
     {
@@ -8192,36 +8252,6 @@
       "pos_filial": 8
     },
     {
-      "rca": "114",
-      "nome": "JANAINA FARIA",
-      "filial": "TPH",
-      "supervisor": "EDI CARLOS MEIRA",
-      "gerente": "Fábio",
-      "canal": "VAREJO",
-      "jogos": 2,
-      "vitorias": 0,
-      "empates": 2,
-      "derrotas": 0,
-      "pts_tabela": 2,
-      "aprov": 33.3,
-      "gp": 12,
-      "gc": 9,
-      "sg": 3,
-      "super_pedidos": 0,
-      "inativos_resgatados": 0,
-      "forma": [
-        "E",
-        "E",
-        "J"
-      ],
-      "streak": 0,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 133,
-      "pos_filial": 13
-    },
-    {
       "rca": "447",
       "nome": "ROBERTO DE SENNA PEREIRA",
       "filial": "MCD",
@@ -8248,8 +8278,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 134,
-      "pos_filial": 14
+      "pos_brasil": 135,
+      "pos_filial": 15
     },
     {
       "rca": "86",
@@ -8278,7 +8308,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 135,
+      "pos_brasil": 136,
       "pos_filial": 14
     },
     {
@@ -8308,8 +8338,38 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 136,
+      "pos_brasil": 137,
       "pos_filial": 20
+    },
+    {
+      "rca": "140",
+      "nome": "ROMULO MICHAEL SEEFELDT",
+      "filial": "TPA",
+      "supervisor": "RAFAEL DA SILVA CARPENA",
+      "gerente": "Radke / Leandro",
+      "canal": "VAREJO",
+      "jogos": 3,
+      "vitorias": 0,
+      "empates": 2,
+      "derrotas": 1,
+      "pts_tabela": 2,
+      "aprov": 22.2,
+      "gp": 3,
+      "gc": 13,
+      "sg": -10,
+      "super_pedidos": 0,
+      "inativos_resgatados": 0,
+      "forma": [
+        "E",
+        "D",
+        "E"
+      ],
+      "streak": 0,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 138,
+      "pos_filial": 1
     },
     {
       "rca": "178",
@@ -8338,7 +8398,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 137,
+      "pos_brasil": 139,
       "pos_filial": 16
     },
     {
@@ -8488,7 +8548,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 138,
+      "pos_brasil": 140,
       "pos_filial": 17
     },
     {
@@ -8582,36 +8642,6 @@
       "pos_filial": 8
     },
     {
-      "rca": "415",
-      "nome": "CIL FARNEY BARBOSA DE ALCANTARA",
-      "filial": "MCD",
-      "supervisor": "CLEOMAR DINIZ BARBOSA",
-      "gerente": "Adriano",
-      "canal": "VAREJO",
-      "jogos": 2,
-      "vitorias": 0,
-      "empates": 1,
-      "derrotas": 1,
-      "pts_tabela": 1,
-      "aprov": 16.7,
-      "gp": 16,
-      "gc": 10,
-      "sg": 6,
-      "super_pedidos": 0,
-      "inativos_resgatados": 0,
-      "forma": [
-        "E",
-        "D",
-        "J"
-      ],
-      "streak": 0,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 139,
-      "pos_filial": 15
-    },
-    {
       "rca": "363",
       "nome": "VALDIR ALOISIO DIETRICH",
       "filial": "TCV",
@@ -8668,7 +8698,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 140,
+      "pos_brasil": 141,
       "pos_filial": 18
     },
     {
@@ -8698,7 +8728,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 141,
+      "pos_brasil": 142,
       "pos_filial": 7
     },
     {
@@ -8728,7 +8758,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 142,
+      "pos_brasil": 143,
       "pos_filial": 17
     },
     {
@@ -8938,7 +8968,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 143,
+      "pos_brasil": 144,
       "pos_filial": 15
     },
     {
@@ -9058,7 +9088,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 144,
+      "pos_brasil": 145,
       "pos_filial": 19
     },
     {
@@ -9088,7 +9118,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 145,
+      "pos_brasil": 146,
       "pos_filial": 17
     },
     {
@@ -9118,7 +9148,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 146,
+      "pos_brasil": 147,
       "pos_filial": 8
     },
     {
@@ -9148,7 +9178,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 147,
+      "pos_brasil": 148,
       "pos_filial": 16
     },
     {
@@ -9178,7 +9208,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 148,
+      "pos_brasil": 149,
       "pos_filial": 9
     },
     {
@@ -9208,8 +9238,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 149,
-      "pos_filial": 1
+      "pos_brasil": 150,
+      "pos_filial": 2
     },
     {
       "rca": "471",
@@ -9298,7 +9328,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 150,
+      "pos_brasil": 151,
       "pos_filial": 10
     },
     {
@@ -9328,7 +9358,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 151,
+      "pos_brasil": 152,
       "pos_filial": 7
     },
     {
@@ -9358,7 +9388,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 152,
+      "pos_brasil": 153,
       "pos_filial": 16
     },
     {
@@ -9508,8 +9538,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 153,
-      "pos_filial": 2
+      "pos_brasil": 154,
+      "pos_filial": 3
     },
     {
       "rca": "161",
@@ -9538,8 +9568,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 154,
-      "pos_filial": 3
+      "pos_brasil": 155,
+      "pos_filial": 4
     },
     {
       "rca": "67",
@@ -9568,7 +9598,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 155,
+      "pos_brasil": 156,
       "pos_filial": 17
     },
     {
@@ -9598,7 +9628,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 156,
+      "pos_brasil": 157,
       "pos_filial": 18
     },
     {
@@ -9628,7 +9658,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 157,
+      "pos_brasil": 158,
       "pos_filial": 17
     },
     {
@@ -9658,7 +9688,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 158,
+      "pos_brasil": 159,
       "pos_filial": 11
     },
     {
@@ -9688,7 +9718,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 159,
+      "pos_brasil": 160,
       "pos_filial": 16
     },
     {
@@ -9718,7 +9748,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 160,
+      "pos_brasil": 161,
       "pos_filial": 18
     },
     {
@@ -9778,7 +9808,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 161,
+      "pos_brasil": 162,
       "pos_filial": 20
     },
     {
@@ -9838,7 +9868,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 162,
+      "pos_brasil": 163,
       "pos_filial": 8
     },
     {
@@ -9868,7 +9898,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 163,
+      "pos_brasil": 164,
       "pos_filial": 18
     },
     {
@@ -9898,7 +9928,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 164,
+      "pos_brasil": 165,
       "pos_filial": 19
     },
     {
@@ -9928,7 +9958,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 165,
+      "pos_brasil": 166,
       "pos_filial": 12
     },
     {
@@ -9958,7 +9988,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 166,
+      "pos_brasil": 167,
       "pos_filial": 19
     },
     {
@@ -9988,7 +10018,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 167,
+      "pos_brasil": 168,
       "pos_filial": 20
     },
     {
@@ -10018,7 +10048,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 168,
+      "pos_brasil": 169,
       "pos_filial": 21
     },
     {
@@ -10048,7 +10078,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 169,
+      "pos_brasil": 170,
       "pos_filial": 22
     },
     {
@@ -10078,7 +10108,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 170,
+      "pos_brasil": 171,
       "pos_filial": 18
     },
     {
@@ -10108,7 +10138,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 171,
+      "pos_brasil": 172,
       "pos_filial": 20
     },
     {
@@ -10138,7 +10168,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 172,
+      "pos_brasil": 173,
       "pos_filial": 13
     },
     {
@@ -10168,7 +10198,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 173,
+      "pos_brasil": 174,
       "pos_filial": 17
     },
     {
@@ -10198,7 +10228,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 174,
+      "pos_brasil": 175,
       "pos_filial": 9
     },
     {
@@ -10228,7 +10258,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 175,
+      "pos_brasil": 176,
       "pos_filial": 21
     },
     {
@@ -10258,7 +10288,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 176,
+      "pos_brasil": 177,
       "pos_filial": 15
     },
     {
@@ -10288,38 +10318,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 177,
-      "pos_filial": 19
-    },
-    {
-      "rca": "140",
-      "nome": "ROMULO MICHAEL SEEFELDT",
-      "filial": "TPA",
-      "supervisor": "RAFAEL DA SILVA CARPENA",
-      "gerente": "Radke / Leandro",
-      "canal": "VAREJO",
-      "jogos": 2,
-      "vitorias": 0,
-      "empates": 1,
-      "derrotas": 1,
-      "pts_tabela": 1,
-      "aprov": 16.7,
-      "gp": 1,
-      "gc": 13,
-      "sg": -12,
-      "super_pedidos": 0,
-      "inativos_resgatados": 0,
-      "forma": [
-        "E",
-        "D",
-        "J"
-      ],
-      "streak": 0,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
       "pos_brasil": 178,
-      "pos_filial": 4
+      "pos_filial": 19
     },
     {
       "rca": "85",
@@ -14702,36 +14702,6 @@
       "pos_filial": 41
     },
     {
-      "rca": "1092",
-      "nome": "EWERTON ARAUJO DO NASCIMENTO",
-      "filial": "TSJ",
-      "supervisor": "ANA CRISTINA DOS SANTOS YAMATO",
-      "gerente": "Saldanha",
-      "canal": "VAREJO",
-      "jogos": 2,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 2,
-      "pts_tabela": 0,
-      "aprov": 0.0,
-      "gp": 10,
-      "gc": 26,
-      "sg": -16,
-      "super_pedidos": 0,
-      "inativos_resgatados": 0,
-      "forma": [
-        "D",
-        "D",
-        "J"
-      ],
-      "streak": 0,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 258,
-      "pos_filial": 21
-    },
-    {
       "rca": "261",
       "nome": "PEDRO HENRIQUE DESCHK GOMES",
       "filial": "API",
@@ -14758,7 +14728,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 259,
+      "pos_brasil": 258,
       "pos_filial": 28
     },
     {
@@ -14788,7 +14758,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 260,
+      "pos_brasil": 259,
       "pos_filial": 27
     },
     {
@@ -14818,7 +14788,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 261,
+      "pos_brasil": 260,
       "pos_filial": 28
     },
     {
@@ -14848,7 +14818,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 262,
+      "pos_brasil": 261,
       "pos_filial": 19
     },
     {
@@ -14878,7 +14848,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 263,
+      "pos_brasil": 262,
       "pos_filial": 25
     },
     {
@@ -14908,7 +14878,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 264,
+      "pos_brasil": 263,
       "pos_filial": 27
     },
     {
@@ -14938,7 +14908,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 265,
+      "pos_brasil": 264,
       "pos_filial": 27
     },
     {
@@ -14968,7 +14938,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 266,
+      "pos_brasil": 265,
       "pos_filial": 15
     },
     {
@@ -14998,7 +14968,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 267,
+      "pos_brasil": 266,
       "pos_filial": 42
     },
     {
@@ -15028,7 +14998,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 268,
+      "pos_brasil": 267,
       "pos_filial": 43
     },
     {
@@ -15058,7 +15028,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 269,
+      "pos_brasil": 268,
       "pos_filial": 29
     },
     {
@@ -15088,7 +15058,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 270,
+      "pos_brasil": 269,
       "pos_filial": 20
     },
     {
@@ -15118,7 +15088,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 271,
+      "pos_brasil": 270,
       "pos_filial": 16
     },
     {
@@ -15148,7 +15118,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 272,
+      "pos_brasil": 271,
       "pos_filial": 30
     },
     {
@@ -15178,7 +15148,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 273,
+      "pos_brasil": 272,
       "pos_filial": 26
     },
     {
@@ -15208,7 +15178,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 274,
+      "pos_brasil": 273,
       "pos_filial": 28
     },
     {
@@ -15238,8 +15208,38 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 275,
+      "pos_brasil": 274,
       "pos_filial": 44
+    },
+    {
+      "rca": "1092",
+      "nome": "EWERTON ARAUJO DO NASCIMENTO",
+      "filial": "TSJ",
+      "supervisor": "ANA CRISTINA DOS SANTOS YAMATO",
+      "gerente": "Saldanha",
+      "canal": "VAREJO",
+      "jogos": 2,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 2,
+      "pts_tabela": 0,
+      "aprov": 0.0,
+      "gp": 10,
+      "gc": 30,
+      "sg": -20,
+      "super_pedidos": 0,
+      "inativos_resgatados": 0,
+      "forma": [
+        "D",
+        "D",
+        "J"
+      ],
+      "streak": 0,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 275,
+      "pos_filial": 21
     },
     {
       "rca": "1119",
@@ -17510,7 +17510,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -17524,15 +17524,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 144,
         "pts_lances": 144,
@@ -17642,7 +17642,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -17656,15 +17656,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 98,
         "pts_lances": 78,
@@ -17774,7 +17774,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -17788,15 +17788,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 67,
         "pts_lances": 47,
@@ -17906,7 +17906,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -17920,15 +17920,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 63,
         "pts_lances": 43,
@@ -18038,7 +18038,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -18052,15 +18052,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 63,
         "pts_lances": 43,
@@ -18170,7 +18170,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -18184,15 +18184,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 63,
         "pts_lances": 63,
@@ -18302,7 +18302,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -18316,15 +18316,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 51,
         "pts_lances": 31,
@@ -18434,7 +18434,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -18448,15 +18448,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 50,
         "pts_lances": 30,
@@ -18566,7 +18566,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -18580,15 +18580,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 46,
         "pts_lances": 46,
@@ -18698,7 +18698,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -18712,15 +18712,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 44,
         "pts_lances": 44,
@@ -18830,7 +18830,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -18844,15 +18844,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 41,
         "pts_lances": 21,
@@ -18962,7 +18962,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -18976,15 +18976,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 37,
         "pts_lances": 17,
@@ -19094,7 +19094,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -19108,15 +19108,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 32,
         "pts_lances": 12,
@@ -19226,7 +19226,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -19240,15 +19240,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 31,
         "pts_lances": 11,
@@ -19358,7 +19358,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -19372,15 +19372,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 31,
         "pts_lances": 31,
@@ -19490,7 +19490,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -19504,15 +19504,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 30,
         "pts_lances": 30,
@@ -19622,7 +19622,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -19636,15 +19636,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 29,
         "pts_lances": 9,
@@ -19754,7 +19754,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -19768,15 +19768,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 29,
         "pts_lances": 9,
@@ -19886,7 +19886,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -19900,15 +19900,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 29,
         "pts_lances": 29,
@@ -20018,7 +20018,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -20032,15 +20032,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 28,
         "pts_lances": 28,
@@ -20150,7 +20150,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -20164,15 +20164,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 27,
         "pts_lances": 7,
@@ -20282,7 +20282,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -20296,15 +20296,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 27,
         "pts_lances": 7,
@@ -20414,7 +20414,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -20428,15 +20428,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 27,
         "pts_lances": 7,
@@ -20546,7 +20546,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -20560,15 +20560,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 27,
         "pts_lances": 27,
@@ -20678,7 +20678,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -20692,15 +20692,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 22,
         "pts_lances": 2,
@@ -20810,7 +20810,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -20824,15 +20824,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 22,
         "pts_lances": 22,
@@ -20942,7 +20942,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -20956,15 +20956,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 22,
         "pts_lances": 22,
@@ -21074,7 +21074,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -21088,15 +21088,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 21,
         "pts_lances": 21,
@@ -21206,7 +21206,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -21220,15 +21220,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 20,
         "pts_lances": 0,
@@ -21338,7 +21338,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -21352,15 +21352,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 20,
         "pts_lances": 0,
@@ -21470,7 +21470,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -21484,15 +21484,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 20,
         "pts_lances": 0,
@@ -21602,7 +21602,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -21616,15 +21616,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 20,
         "pts_lances": 0,
@@ -21734,7 +21734,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -21748,15 +21748,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 20,
         "pts_lances": 0,
@@ -21866,7 +21866,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -21880,15 +21880,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 20,
         "pts_lances": 0,
@@ -21998,7 +21998,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -22012,15 +22012,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 20,
         "pts_lances": 0,
@@ -22130,7 +22130,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -22144,15 +22144,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 20,
         "pts_lances": 0,
@@ -22262,7 +22262,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -22276,15 +22276,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 20,
         "pts_lances": 0,
@@ -22394,7 +22394,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -22408,15 +22408,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 17,
         "pts_lances": -3,
@@ -22526,7 +22526,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -22540,15 +22540,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 17,
         "pts_lances": 17,
@@ -22658,7 +22658,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -22672,15 +22672,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 15,
         "pts_lances": -5,
@@ -22790,7 +22790,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -22804,15 +22804,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 15,
         "pts_lances": 15,
@@ -22922,7 +22922,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -22936,15 +22936,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 15,
         "pts_lances": 15,
@@ -23054,7 +23054,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -23068,15 +23068,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 14,
         "pts_lances": 14,
@@ -23084,6 +23084,138 @@
         "pts_bonus": 0,
         "pos_brasil": 44,
         "pos_filial": 10
+      },
+      {
+        "rca": "274",
+        "nome": "SUELI WALTER MILESKI",
+        "filial": "API",
+        "supervisor": "ANDERSON FERNANDES CORREIA",
+        "gerente": "Marcelo",
+        "meta_mes": 166530,
+        "pct_hoje": 34.5,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-10-07",
+            "status": "batida",
+            "pct": 23.8,
+            "ganhou": 10
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-10-14",
+            "status": "nao_batida",
+            "pct": 34.9,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-10-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 31,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-10-31",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 10,
+            "pts_bonus": 0,
+            "score": 10,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 13,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 13,
+            "jogada": true,
+            "resultado": "V",
+            "pts_tabela": 3
+          },
+          {
+            "n": 3,
+            "pts_lances": -10,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": -10,
+            "jogada": true,
+            "resultado": "J",
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 1,
+        "vitorias": 1,
+        "empates": 0,
+        "derrotas": 0,
+        "pts_tabela": 3,
+        "aprov": 100.0,
+        "forma": [
+          "V",
+          "J"
+        ],
+        "pontos": 13,
+        "pts_lances": 3,
+        "pts_faseamento": 10,
+        "pts_bonus": 0,
+        "pos_brasil": 45,
+        "pos_filial": 6
       },
       {
         "rca": "26",
@@ -23186,7 +23318,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -23200,21 +23332,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 12,
         "pts_lances": 12,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 45,
+        "pos_brasil": 46,
         "pos_filial": 7
       },
       {
@@ -23318,7 +23450,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -23332,22 +23464,22 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 12,
         "pts_lances": 12,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 46,
-        "pos_filial": 6
+        "pos_brasil": 47,
+        "pos_filial": 7
       },
       {
         "rca": "1189",
@@ -23450,7 +23582,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -23464,21 +23596,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 12,
         "pts_lances": 12,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 47,
+        "pos_brasil": 48,
         "pos_filial": 4
       },
       {
@@ -23582,7 +23714,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -23596,154 +23728,22 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
-        "aprov": 50.0,
+        "aprov": 100.0,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "pontos": 11,
         "pts_lances": 11,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 48,
-        "pos_filial": 11
-      },
-      {
-        "rca": "274",
-        "nome": "SUELI WALTER MILESKI",
-        "filial": "API",
-        "supervisor": "ANDERSON FERNANDES CORREIA",
-        "gerente": "Marcelo",
-        "meta_mes": 166530,
-        "pct_hoje": 34.3,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-10-07",
-            "status": "batida",
-            "pct": 23.8,
-            "ganhou": 10
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-10-14",
-            "status": "nao_batida",
-            "pct": 34.9,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-10-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 31,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-10-31",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": 0,
-            "pts_faseamento": 10,
-            "pts_bonus": 0,
-            "score": 10,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 2,
-            "pts_lances": 13,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 13,
-            "jogada": true,
-            "resultado": "V",
-            "pts_tabela": 3
-          },
-          {
-            "n": 3,
-            "pts_lances": -10,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": -10,
-            "jogada": true,
-            "resultado": "D",
-            "pts_tabela": 0
-          },
-          {
-            "n": 4,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 2,
-        "vitorias": 1,
-        "empates": 0,
-        "derrotas": 1,
-        "pts_tabela": 3,
-        "aprov": 50.0,
-        "forma": [
-          "V",
-          "D"
-        ],
-        "pontos": 3,
-        "pts_lances": 3,
-        "pts_faseamento": 10,
-        "pts_bonus": 0,
         "pos_brasil": 49,
-        "pos_filial": 7
+        "pos_filial": 11
       },
       {
         "rca": "332",
@@ -23846,7 +23846,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -23860,15 +23860,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 10,
         "pts_lances": -10,
@@ -23978,7 +23978,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -23992,15 +23992,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 9,
         "pts_lances": 9,
@@ -24110,7 +24110,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -24124,15 +24124,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 7,
         "pts_lances": 7,
@@ -24242,7 +24242,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -24256,15 +24256,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 7,
         "pts_lances": 7,
@@ -24374,7 +24374,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -24388,15 +24388,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 6,
         "pts_lances": 6,
@@ -24506,7 +24506,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -24520,15 +24520,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 5,
         "pts_lances": 5,
@@ -24638,7 +24638,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -24652,15 +24652,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 5,
         "pts_lances": 5,
@@ -24770,7 +24770,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -24784,15 +24784,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 5,
         "pts_lances": 5,
@@ -24902,7 +24902,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -24916,15 +24916,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 5,
         "pts_lances": 5,
@@ -25034,7 +25034,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -25048,15 +25048,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 5,
         "pts_lances": 5,
@@ -25166,7 +25166,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -25180,15 +25180,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 5,
         "pts_lances": 5,
@@ -25298,7 +25298,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -25312,15 +25312,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 4,
         "pts_lances": 4,
@@ -25328,6 +25328,138 @@
         "pts_bonus": 0,
         "pos_brasil": 61,
         "pos_filial": 12
+      },
+      {
+        "rca": "209",
+        "nome": "NEIL ALEXANDER ZOZ",
+        "filial": "ABC",
+        "supervisor": "GILBERTO GOMES DOMINGOS",
+        "gerente": "Marcos",
+        "meta_mes": 248755,
+        "pct_hoje": 10.5,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-10-07",
+            "status": "nao_batida",
+            "pct": 4.4,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-10-14",
+            "status": "nao_batida",
+            "pct": 10.5,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-10-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 31,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-10-31",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 4,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 4,
+            "jogada": true,
+            "resultado": "E",
+            "pts_tabela": 1
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "J",
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 1,
+        "vitorias": 0,
+        "empates": 1,
+        "derrotas": 0,
+        "pts_tabela": 1,
+        "aprov": 33.3,
+        "forma": [
+          "E",
+          "J"
+        ],
+        "pontos": 4,
+        "pts_lances": 4,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 62,
+        "pos_filial": 7
       },
       {
         "rca": "1034",
@@ -25430,7 +25562,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -25444,21 +25576,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 4,
         "pts_lances": 4,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 62,
+        "pos_brasil": 63,
         "pos_filial": 5
       },
       {
@@ -25562,7 +25694,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -25576,21 +25708,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 3,
         "pts_lances": 3,
         "pts_faseamento": 10,
         "pts_bonus": 0,
-        "pos_brasil": 63,
+        "pos_brasil": 64,
         "pos_filial": 8
       },
       {
@@ -25694,7 +25826,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -25708,21 +25840,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 3,
         "pts_lances": 3,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 64,
+        "pos_brasil": 65,
         "pos_filial": 6
       },
       {
@@ -25826,7 +25958,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -25840,22 +25972,22 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 3,
         "pts_lances": 3,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 65,
-        "pos_filial": 7
+        "pos_brasil": 66,
+        "pos_filial": 8
       },
       {
         "rca": "471",
@@ -25958,7 +26090,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -25972,21 +26104,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 2,
         "pts_lances": 2,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 66,
+        "pos_brasil": 67,
         "pos_filial": 3
       },
       {
@@ -26090,7 +26222,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -26104,21 +26236,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 1,
         "pts_lances": 1,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 67,
+        "pos_brasil": 68,
         "pos_filial": 10
       },
       {
@@ -26222,7 +26354,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -26236,21 +26368,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 1,
         "pts_lances": 1,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 68,
+        "pos_brasil": 69,
         "pos_filial": 7
       },
       {
@@ -26354,7 +26486,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -26368,21 +26500,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
-        "aprov": 16.7,
+        "aprov": 33.3,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "pontos": 1,
         "pts_lances": 1,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 69,
+        "pos_brasil": 70,
         "pos_filial": 6
       },
       {
@@ -26486,7 +26618,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -26500,21 +26632,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 70,
+        "pos_brasil": 71,
         "pos_filial": 4
       },
       {
@@ -26618,7 +26750,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -26632,21 +26764,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 10,
         "pts_bonus": 0,
-        "pos_brasil": 71,
+        "pos_brasil": 72,
         "pos_filial": 13
       },
       {
@@ -26750,7 +26882,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -26764,21 +26896,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 10,
         "pts_bonus": 0,
-        "pos_brasil": 72,
+        "pos_brasil": 73,
         "pos_filial": 14
       },
       {
@@ -26882,7 +27014,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -26896,21 +27028,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 73,
+        "pos_brasil": 74,
         "pos_filial": 9
       },
       {
@@ -27014,7 +27146,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -27028,21 +27160,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 74,
+        "pos_brasil": 75,
         "pos_filial": 15
       },
       {
@@ -27146,7 +27278,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -27160,21 +27292,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 10,
         "pts_bonus": 0,
-        "pos_brasil": 75,
+        "pos_brasil": 76,
         "pos_filial": 4
       },
       {
@@ -27278,7 +27410,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -27292,21 +27424,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 76,
+        "pos_brasil": 77,
         "pos_filial": 11
       },
       {
@@ -27410,7 +27542,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -27424,21 +27556,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 77,
+        "pos_brasil": 78,
         "pos_filial": 5
       },
       {
@@ -27542,7 +27674,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -27556,22 +27688,22 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 10,
         "pts_bonus": 0,
-        "pos_brasil": 78,
-        "pos_filial": 8
+        "pos_brasil": 79,
+        "pos_filial": 9
       },
       {
         "rca": "51",
@@ -27674,7 +27806,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -27688,21 +27820,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 10,
         "pts_bonus": 0,
-        "pos_brasil": 79,
+        "pos_brasil": 80,
         "pos_filial": 16
       },
       {
@@ -27806,7 +27938,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -27820,21 +27952,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 80,
+        "pos_brasil": 81,
         "pos_filial": 17
       },
       {
@@ -27938,7 +28070,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -27952,21 +28084,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 81,
+        "pos_brasil": 82,
         "pos_filial": 6
       },
       {
@@ -28070,7 +28202,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -28084,21 +28216,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 82,
+        "pos_brasil": 83,
         "pos_filial": 18
       },
       {
@@ -28202,7 +28334,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -28216,21 +28348,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 83,
+        "pos_brasil": 84,
         "pos_filial": 12
       },
       {
@@ -28334,7 +28466,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -28348,21 +28480,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 84,
+        "pos_brasil": 85,
         "pos_filial": 6
       },
       {
@@ -28466,7 +28598,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -28480,21 +28612,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 85,
+        "pos_brasil": 86,
         "pos_filial": 7
       },
       {
@@ -28598,7 +28730,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -28612,21 +28744,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 86,
+        "pos_brasil": 87,
         "pos_filial": 8
       },
       {
@@ -28730,7 +28862,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -28744,21 +28876,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 87,
+        "pos_brasil": 88,
         "pos_filial": 7
       },
       {
@@ -28862,7 +28994,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -28876,21 +29008,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 88,
+        "pos_brasil": 89,
         "pos_filial": 8
       },
       {
@@ -28994,7 +29126,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -29008,21 +29140,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 89,
+        "pos_brasil": 90,
         "pos_filial": 10
       },
       {
@@ -29126,7 +29258,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -29140,21 +29272,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 90,
+        "pos_brasil": 91,
         "pos_filial": 11
       },
       {
@@ -29258,7 +29390,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -29272,21 +29404,21 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 91,
+        "pos_brasil": 92,
         "pos_filial": 9
       },
       {
@@ -29390,7 +29522,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -29404,147 +29536,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
-        ],
-        "pontos": 0,
-        "pts_lances": 0,
-        "pts_faseamento": 0,
-        "pts_bonus": 0,
-        "pos_brasil": 92,
-        "pos_filial": 9
-      },
-      {
-        "rca": "209",
-        "nome": "NEIL ALEXANDER ZOZ",
-        "filial": "ABC",
-        "supervisor": "GILBERTO GOMES DOMINGOS",
-        "gerente": "Marcos",
-        "meta_mes": 248755,
-        "pct_hoje": 10.5,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-10-07",
-            "status": "nao_batida",
-            "pct": 4.4,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-10-14",
-            "status": "nao_batida",
-            "pct": 10.5,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-10-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 31,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-10-31",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 2,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": true,
-            "resultado": "D",
-            "pts_tabela": 0
-          },
-          {
-            "n": 3,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": true,
-            "resultado": "D",
-            "pts_tabela": 0
-          },
-          {
-            "n": 4,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 2,
-        "vitorias": 0,
-        "empates": 0,
-        "derrotas": 2,
-        "pts_tabela": 0,
-        "aprov": 0.0,
-        "forma": [
-          "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -29654,7 +29654,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -29668,15 +29668,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -29786,7 +29786,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -29800,15 +29800,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -29918,7 +29918,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -29932,15 +29932,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -30050,7 +30050,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -30064,15 +30064,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -30182,7 +30182,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -30196,15 +30196,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -30314,7 +30314,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -30328,15 +30328,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -30446,7 +30446,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -30460,15 +30460,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -30578,7 +30578,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -30592,15 +30592,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -30710,7 +30710,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -30724,15 +30724,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -30842,7 +30842,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -30856,15 +30856,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -30974,7 +30974,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -30988,15 +30988,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -31106,7 +31106,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -31120,15 +31120,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -31238,7 +31238,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -31252,15 +31252,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -31370,7 +31370,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -31384,15 +31384,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -31502,7 +31502,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -31516,15 +31516,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -31634,7 +31634,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -31648,15 +31648,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -31766,7 +31766,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -31780,15 +31780,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -31898,7 +31898,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -31912,15 +31912,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -32030,7 +32030,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -32044,15 +32044,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -32162,7 +32162,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -32176,15 +32176,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -32294,7 +32294,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -32308,15 +32308,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -32426,7 +32426,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -32440,15 +32440,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -32558,7 +32558,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -32572,15 +32572,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -32690,7 +32690,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -32704,15 +32704,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -32822,7 +32822,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -32836,15 +32836,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -32954,7 +32954,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -32968,15 +32968,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -33086,7 +33086,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -33100,15 +33100,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -33218,7 +33218,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -33232,15 +33232,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -33350,7 +33350,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -33364,15 +33364,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -33482,7 +33482,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -33496,15 +33496,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": 0,
         "pts_lances": 0,
@@ -33614,7 +33614,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -33628,15 +33628,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": -2,
         "pts_lances": -2,
@@ -33746,7 +33746,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -33760,15 +33760,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": -3,
         "pts_lances": -3,
@@ -33878,7 +33878,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -33892,15 +33892,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": -4,
         "pts_lances": -4,
@@ -33908,6 +33908,138 @@
         "pts_bonus": 0,
         "pos_brasil": 126,
         "pos_filial": 16
+      },
+      {
+        "rca": "265",
+        "nome": "MARCOS JOSE WALESKO",
+        "filial": "API",
+        "supervisor": "ARILDO ZAGO",
+        "gerente": "Marcelo",
+        "meta_mes": 76456,
+        "pct_hoje": 32.2,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-10-07",
+            "status": "batida",
+            "pct": 21,
+            "ganhou": 10
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-10-14",
+            "status": "nao_batida",
+            "pct": 21.6,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-10-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 31,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-10-31",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 10,
+            "pts_bonus": 0,
+            "score": 10,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": -4,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": -4,
+            "jogada": true,
+            "resultado": "D",
+            "pts_tabela": 0
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "J",
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 1,
+        "vitorias": 0,
+        "empates": 0,
+        "derrotas": 1,
+        "pts_tabela": 0,
+        "aprov": 0.0,
+        "forma": [
+          "D",
+          "J"
+        ],
+        "pontos": -4,
+        "pts_lances": -4,
+        "pts_faseamento": 10,
+        "pts_bonus": 0,
+        "pos_brasil": 127,
+        "pos_filial": 12
       },
       {
         "rca": "428",
@@ -34010,7 +34142,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -34024,31 +34156,31 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": -7,
         "pts_lances": -7,
         "pts_faseamento": 10,
         "pts_bonus": 0,
-        "pos_brasil": 127,
+        "pos_brasil": 128,
         "pos_filial": 12
       },
       {
-        "rca": "265",
-        "nome": "MARCOS JOSE WALESKO",
-        "filial": "API",
-        "supervisor": "ARILDO ZAGO",
-        "gerente": "Marcelo",
-        "meta_mes": 76456,
-        "pct_hoje": 32.2,
+        "rca": "1124",
+        "nome": "JEFERSON ANTONIO HOERSER",
+        "filial": "TPA",
+        "supervisor": "JEFERSON ANTONIO HOESER",
+        "gerente": "Radke / Leandro",
+        "meta_mes": 750000,
+        "pct_hoje": 29.6,
         "fases": [
           {
             "n": 1,
@@ -34056,9 +34188,9 @@
             "meta": 20,
             "pontos": 10,
             "data": "2026-10-07",
-            "status": "batida",
-            "pct": 21,
-            "ganhou": 10
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
           },
           {
             "n": 2,
@@ -34067,7 +34199,7 @@
             "pontos": 20,
             "data": "2026-10-14",
             "status": "nao_batida",
-            "pct": 21.6,
+            "pct": 29.6,
             "ganhou": 0
           },
           {
@@ -34118,19 +34250,19 @@
           {
             "n": 1,
             "pts_lances": 0,
-            "pts_faseamento": 10,
+            "pts_faseamento": 0,
             "pts_bonus": 0,
-            "score": 10,
+            "score": 0,
             "jogada": false,
             "resultado": null,
             "pts_tabela": 0
           },
           {
             "n": 2,
-            "pts_lances": -8,
+            "pts_lances": -15,
             "pts_faseamento": 0,
             "pts_bonus": 0,
-            "score": -8,
+            "score": -15,
             "jogada": true,
             "resultado": "D",
             "pts_tabela": 0
@@ -34142,7 +34274,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -34156,22 +34288,22 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
-        "pontos": -8,
-        "pts_lances": -8,
-        "pts_faseamento": 10,
+        "pontos": -15,
+        "pts_lances": -15,
+        "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 128,
-        "pos_filial": 12
+        "pos_brasil": 129,
+        "pos_filial": 9
       },
       {
         "rca": "48",
@@ -34274,7 +34406,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -34288,154 +34420,22 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": -24,
         "pts_lances": -24,
         "pts_faseamento": 10,
         "pts_bonus": 0,
-        "pos_brasil": 129,
-        "pos_filial": 24
-      },
-      {
-        "rca": "1124",
-        "nome": "JEFERSON ANTONIO HOERSER",
-        "filial": "TPA",
-        "supervisor": "JEFERSON ANTONIO HOESER",
-        "gerente": "Radke / Leandro",
-        "meta_mes": 750000,
-        "pct_hoje": 29.6,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-10-07",
-            "status": "sem_meta",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-10-14",
-            "status": "nao_batida",
-            "pct": 29.6,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-10-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 31,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-10-31",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 2,
-            "pts_lances": -25,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": -25,
-            "jogada": true,
-            "resultado": "D",
-            "pts_tabela": 0
-          },
-          {
-            "n": 3,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": true,
-            "resultado": "D",
-            "pts_tabela": 0
-          },
-          {
-            "n": 4,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 2,
-        "vitorias": 0,
-        "empates": 0,
-        "derrotas": 2,
-        "pts_tabela": 0,
-        "aprov": 0.0,
-        "forma": [
-          "D",
-          "D"
-        ],
-        "pontos": -25,
-        "pts_lances": -25,
-        "pts_faseamento": 0,
-        "pts_bonus": 0,
         "pos_brasil": 130,
-        "pos_filial": 9
+        "pos_filial": 24
       },
       {
         "rca": "90",
@@ -34538,7 +34538,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -34552,15 +34552,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": -29,
         "pts_lances": -49,
@@ -34670,7 +34670,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -34684,15 +34684,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": -44,
         "pts_lances": -44,
@@ -34802,7 +34802,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -34816,15 +34816,15 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "pontos": -60,
         "pts_lances": -60,
@@ -34919,10 +34919,10 @@
           },
           {
             "n": 2,
-            "pts_lances": -114,
+            "pts_lances": -64,
             "pts_faseamento": 0,
             "pts_bonus": 0,
-            "score": -114,
+            "score": -64,
             "jogada": true,
             "resultado": "D",
             "pts_tabela": 0
@@ -34934,7 +34934,7 @@
             "pts_bonus": 0,
             "score": 0,
             "jogada": true,
-            "resultado": "D",
+            "resultado": "J",
             "pts_tabela": 0
           },
           {
@@ -34948,18 +34948,18 @@
             "pts_tabela": 0
           }
         ],
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "aprov": 0.0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
-        "pontos": -114,
-        "pts_lances": -114,
+        "pontos": -64,
+        "pts_lances": -64,
         "pts_faseamento": 10,
         "pts_bonus": 0,
         "pos_brasil": 134,
@@ -35144,14 +35144,14 @@
           }
         ],
         "pontos_faseamento": 30,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -35163,13 +35163,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 3,
             "pts_tabela": 0
           }
         ],
-        "aprov": 50.0,
+        "aprov": 100.0,
         "pts_lances_equipe": 54,
         "pos": 2
       },
@@ -35247,14 +35247,14 @@
           }
         ],
         "pontos_faseamento": 20,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -35266,13 +35266,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 6,
             "pts_tabela": 0
           }
         ],
-        "aprov": 50.0,
+        "aprov": 100.0,
         "pts_lances_equipe": 172,
         "pos": 3
       },
@@ -35350,14 +35350,14 @@
           }
         ],
         "pontos_faseamento": 10,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -35369,13 +35369,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 1,
             "pts_tabela": 0
           }
         ],
-        "aprov": 50.0,
+        "aprov": 100.0,
         "pts_lances_equipe": 21,
         "pos": 4
       },
@@ -35453,14 +35453,14 @@
           }
         ],
         "pontos_faseamento": 10,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -35472,13 +35472,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 1,
             "pts_tabela": 0
           }
         ],
-        "aprov": 50.0,
+        "aprov": 100.0,
         "pts_lances_equipe": 46,
         "pos": 5
       },
@@ -35556,14 +35556,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -35575,13 +35575,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 5,
             "pts_tabela": 0
           }
         ],
-        "aprov": 50.0,
+        "aprov": 100.0,
         "pts_lances_equipe": 174,
         "pos": 6
       },
@@ -35659,14 +35659,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 1,
         "empates": 0,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 3,
         "forma": [
           "V",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -35678,13 +35678,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 8,
             "pts_tabela": 0
           }
         ],
-        "aprov": 50.0,
+        "aprov": 100.0,
         "pts_lances_equipe": 173,
         "pos": 7
       },
@@ -35762,14 +35762,14 @@
           }
         ],
         "pontos_faseamento": 75,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -35781,13 +35781,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 7,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
+        "aprov": 33.3,
         "pts_lances_equipe": 14,
         "pos": 8
       },
@@ -35865,14 +35865,14 @@
           }
         ],
         "pontos_faseamento": 30,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -35884,13 +35884,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 4,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
+        "aprov": 33.3,
         "pts_lances_equipe": -12,
         "pos": 9
       },
@@ -35968,14 +35968,14 @@
           }
         ],
         "pontos_faseamento": 30,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -35987,13 +35987,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 2,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
+        "aprov": 33.3,
         "pts_lances_equipe": 9,
         "pos": 10
       },
@@ -36071,14 +36071,14 @@
           }
         ],
         "pontos_faseamento": 20,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -36090,13 +36090,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 7,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
+        "aprov": 33.3,
         "pts_lances_equipe": 26,
         "pos": 11
       },
@@ -36174,14 +36174,14 @@
           }
         ],
         "pontos_faseamento": 10,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -36193,13 +36193,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 4,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
+        "aprov": 33.3,
         "pts_lances_equipe": 2,
         "pos": 12
       },
@@ -36277,14 +36277,14 @@
           }
         ],
         "pontos_faseamento": 10,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -36296,13 +36296,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 6,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
+        "aprov": 33.3,
         "pts_lances_equipe": -24,
         "pos": 13
       },
@@ -36380,14 +36380,14 @@
           }
         ],
         "pontos_faseamento": 10,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -36399,13 +36399,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 5,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
+        "aprov": 33.3,
         "pts_lances_equipe": 35,
         "pos": 14
       },
@@ -36483,14 +36483,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -36502,14 +36502,14 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 5,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
-        "pts_lances_equipe": -107,
+        "aprov": 33.3,
+        "pts_lances_equipe": -57,
         "pos": 15
       },
       {
@@ -36586,14 +36586,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -36605,13 +36605,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 8,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
+        "aprov": 33.3,
         "pts_lances_equipe": -23,
         "pos": 16
       },
@@ -36689,14 +36689,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -36708,13 +36708,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 4,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
+        "aprov": 33.3,
         "pts_lances_equipe": 48,
         "pos": 17
       },
@@ -36792,14 +36792,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -36811,14 +36811,14 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 4,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
-        "pts_lances_equipe": -8,
+        "aprov": 33.3,
+        "pts_lances_equipe": -4,
         "pos": 18
       },
       {
@@ -36895,14 +36895,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -36914,13 +36914,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 4,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
+        "aprov": 33.3,
         "pts_lances_equipe": 40,
         "pos": 19
       },
@@ -36998,14 +36998,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -37017,13 +37017,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 4,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
+        "aprov": 33.3,
         "pts_lances_equipe": 19,
         "pos": 20
       },
@@ -37101,14 +37101,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -37120,13 +37120,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 2,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
+        "aprov": 33.3,
         "pts_lances_equipe": 0,
         "pos": 21
       },
@@ -37204,14 +37204,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -37223,13 +37223,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 4,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
+        "aprov": 33.3,
         "pts_lances_equipe": 39,
         "pos": 22
       },
@@ -37307,14 +37307,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -37326,14 +37326,14 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 6,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
-        "pts_lances_equipe": 55,
+        "aprov": 33.3,
+        "pts_lances_equipe": 59,
         "pos": 23
       },
       {
@@ -37410,14 +37410,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -37429,13 +37429,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 4,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
+        "aprov": 33.3,
         "pts_lances_equipe": 17,
         "pos": 24
       },
@@ -37513,14 +37513,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 1,
-        "derrotas": 1,
+        "derrotas": 0,
         "pts_tabela": 1,
         "forma": [
           "E",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -37532,13 +37532,13 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 4,
             "pts_tabela": 0
           }
         ],
-        "aprov": 16.7,
+        "aprov": 33.3,
         "pts_lances_equipe": 12,
         "pos": 25
       },
@@ -37616,14 +37616,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -37635,14 +37635,14 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 1,
             "pts_tabela": 0
           }
         ],
         "aprov": 0.0,
-        "pts_lances_equipe": -25,
+        "pts_lances_equipe": -15,
         "pos": 26
       },
       {
@@ -37719,14 +37719,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -37738,7 +37738,7 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 1,
             "pts_tabela": 0
@@ -37822,14 +37822,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -37841,7 +37841,7 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 4,
             "pts_tabela": 0
@@ -37925,14 +37925,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -37944,7 +37944,7 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 1,
             "pts_tabela": 0
@@ -38028,14 +38028,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -38047,7 +38047,7 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 3,
             "pts_tabela": 0
@@ -38131,14 +38131,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -38150,7 +38150,7 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 5,
             "pts_tabela": 0
@@ -38234,14 +38234,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -38253,7 +38253,7 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 3,
             "pts_tabela": 0
@@ -38337,14 +38337,14 @@
           }
         ],
         "pontos_faseamento": 0,
-        "jogos": 2,
+        "jogos": 1,
         "vitorias": 0,
         "empates": 0,
-        "derrotas": 2,
+        "derrotas": 1,
         "pts_tabela": 0,
         "forma": [
           "D",
-          "D"
+          "J"
         ],
         "semanas": [
           {
@@ -38356,7 +38356,7 @@
           },
           {
             "n": 3,
-            "resultado": "D",
+            "resultado": "J",
             "vitorias_equipe": 0,
             "total": 1,
             "pts_tabela": 0
