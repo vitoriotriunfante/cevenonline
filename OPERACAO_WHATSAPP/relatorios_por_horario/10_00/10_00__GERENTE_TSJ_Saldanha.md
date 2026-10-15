@@ -1,13 +1,19 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 TSJ — SALDANHA • 14/10/2026
+📍 TSJ — SALDANHA • 15/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/10/2026 a 14/10/2026)*
+*ACUMULADO DO MÊS (01/10/2026 a 15/10/2026)*
 💰 R$ 9.546,89 • 49 PDVs • ✂️ R$ 13,94 (5 un)
 👤 ANA CRISTINA DOS SANTOS YAMATO — R$ 7.124,80 (26 PDVs)
 👤 VICTOR HUGO FONSECA CARVALHO — R$ 1.892,63 (16 PDVs)
 👤 JULIO CESAR SOARES DE PAULO — R$ 529,46 (7 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (13/10/2026)*
+*COMO FECHOU ONTEM (14/10/2026)*
 💰 R$ 0,00 • 0 PDVs positivados
+
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (1)*
+_(fez pedido ontem, mas nenhum item era marca própria)_
+
+👤 *ANA CRISTINA DOS SANTOS YAMATO*
+  • EWERTON ARAUJO DO NASCIMENTO — 17d sem vender MP
