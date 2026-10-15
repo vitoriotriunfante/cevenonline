@@ -59,3 +59,5 @@
 - 13/10/2026: representantes LIBERADOS pelo jurídico. Entram na Liga do próprio canal (AS ou Varejo). A trava do gerador agora só aborta por promotor (ou flag liga=false).
 
 - 13/10/2026 (Vitório: "feriado não pode contar para a liga!!! já falamos"): o coletor (cron-lances) e a gravação das TVs (tv-lances) não geram lance em feriado (lista única em functions/_lib/feriados.js). Os 12 cartões de 12/10 (−78) foram marcados em lances_excluidos_liga com motivo FERIADO. A classificação já ignorava feriado (DIAS_RODADA).
+
+- 15/10/2026 (Vitório, auditoria do AS): (A) semana do AS em andamento aparece como J (jogando), sem contar jogo/derrota até o fechamento do último dia; (C) devolução no AS = um cartão por cliente (código) por dia, o de maior peso. Varejo: R1 a R4 da auditoria REJEITADOS; B, D, E e F do AS REJEITADOS. Gol é gol (pedido bloqueado conta). Botão Exportar PDF no regulamento (Varejo, AS e modo TV).

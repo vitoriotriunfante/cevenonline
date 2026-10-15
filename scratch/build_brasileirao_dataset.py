@@ -545,6 +545,12 @@ def semana_as_jogada(n):
     _, di, df = AS_SEMANAS[n - 1]
     ini = f"{MES_AS}-{di:02d}"; fim = f"{MES_AS}-{min(df, _ULT_MES_AS):02d}"
     return ini <= _HOJE_BR and fim >= INICIO_OFICIAL
+def semana_as_aberta(n):
+    """SEMANA EM ANDAMENTO = 'J' (Vitorio, 15/10/2026: a semana 3 comecou hoje e os 134 apareciam com Derrota). Igual ao dia aberto do Varejo:
+    ate o fechamento do ultimo dia da semana (22h BRT), quem esta com placar <= 0 fica J (nao conta jogo, derrota nem ponto)."""
+    _, di, df = AS_SEMANAS[n - 1]
+    fim = f"{MES_AS}-{min(df, _ULT_MES_AS):02d}"
+    return HOJE_BR < fim or (HOJE_BR == fim and DIA_ABERTO_AGORA)
 def tipo_do_lance(chave):
     return re.sub(r'^[A-Z]{3}\|', '', str(chave or '')).split('|')[0]
 bloco_as = {'mes': MES_AS, 'vale_desde': INICIO_OFICIAL, 'lances_fora': list(AS_LANCES_FORA), 'semanas': [
@@ -563,8 +569,19 @@ try:
             if _d not in DIAS_RODADA or not _d.startswith(MES_AS):
                 continue
             _n = semana_as(_d)
+            # DEVOLUCAO: UM cartao por CLIENTE por DIA no AS (Vitorio, 15/10/2026, item C da auditoria): 8 notas devolvidas do mesmo cliente
+            # viravam 8 cartoes (-80). Fica so o de maior peso daquele cliente no dia; os outros continuam no registro, mas nao somam.
+            _dev_cli = {}
+            for _l in _ls:
+                if _l.get('nivel') in ('golcontra', 'vermelho') and tipo_do_lance(_l.get('chave')) not in AS_LANCES_FORA and _l.get('cliente') and isinstance(_l.get('pontos'), (int, float)):
+                    _kc = str(_l.get('cliente_id') or _l.get('cliente'))
+                    if _kc not in _dev_cli or _l['pontos'] < _dev_cli[_kc]['pontos']:
+                        _dev_cli[_kc] = _l
+            _dev_vale = set(id(x) for x in _dev_cli.values())
             for _l in _ls:
                 if tipo_do_lance(_l.get('chave')) in AS_LANCES_FORA:
+                    continue
+                if _l.get('nivel') in ('golcontra', 'vermelho') and _l.get('cliente') and id(_l) not in _dev_vale:
                     continue
                 _p = _l.get('pontos')
                 if isinstance(_p, (int, float)):
@@ -583,15 +600,17 @@ try:
             score = pl + pf + pb
             jogada = semana_as_jogada(n)
             res, pt = (julgar_pelo_score(score) if jogada else (None, 0))
+            if jogada and res == 'D' and semana_as_aberta(n):
+                res, pt = 'J', 0   # semana em andamento: ainda sem resultado
             _sem.append({'n': n, 'pts_lances': pl, 'pts_faseamento': pf, 'pts_bonus': pb, 'score': score, 'jogada': jogada, 'resultado': res, 'pts_tabela': pt})
-        _jog = [s for s in _sem if s['jogada']]
+        _jog = [s for s in _sem if s['jogada'] and s['resultado'] != 'J']
         _pts_tab = sum(s['pts_tabela'] for s in _jog)
         _vend_as.append({
             'rca': str(v['rca']), 'nome': v['nome'], 'filial': v['filial'], 'supervisor': _m['sup'], 'gerente': _m['gerente'],
             'meta_mes': v.get('meta_mes'), 'pct_hoje': v.get('pct_hoje'), 'fases': _fases, 'bonus': _bonus,
             'semanas': _sem, 'jogos': len(_jog), 'vitorias': sum(1 for s in _jog if s['resultado'] == 'V'), 'empates': sum(1 for s in _jog if s['resultado'] == 'E'),
             'derrotas': sum(1 for s in _jog if s['resultado'] == 'D'), 'pts_tabela': _pts_tab,
-            'aprov': round(_pts_tab / (len(_jog) * 3) * 100, 1) if _jog else 0, 'forma': [s['resultado'] for s in _jog],
+            'aprov': round(_pts_tab / (len(_jog) * 3) * 100, 1) if _jog else 0, 'forma': [s['resultado'] for s in _sem if s['jogada']],   # inclui o J da semana em andamento (bolinha J, igual ao Varejo)
             'pontos': sum(s['score'] for s in _jog),
             'pts_lances': sum(s['pts_lances'] for s in _sem), 'pts_faseamento': sum(s['pts_faseamento'] for s in _sem), 'pts_bonus': sum(s['pts_bonus'] for s in _sem)
         })
@@ -610,19 +629,23 @@ try:
                 continue
             rs = [v['semanas'][n - 1]['resultado'] for v in _eq if v['semanas'][n - 1]['resultado'] is not None]
             nv = sum(1 for r in rs if r == 'V')
-            if not rs or nv == 0:
+            if (not rs or nv == 0) and semana_as_aberta(n):
+                res, pt = 'J', 0   # semana em andamento (15/10/2026)
+            elif not rs or nv == 0:
                 res, pt = 'D', FAIXAS['derrota']['pontos_tabela']
             elif nv > len(rs) / 2:
                 res, pt = 'V', FAIXAS['vitoria']['pontos_tabela']
             else:
                 res, pt = 'E', FAIXAS['empate']['pontos_tabela']
+            if res == 'J':
+                _sems.append({'n': n, 'resultado': 'J', 'vitorias_equipe': nv, 'total': len(rs), 'pts_tabela': 0}); _forma.append('J'); continue
             _forma.append(res); _pts += pt; _sems.append({'n': n, 'resultado': res, 'vitorias_equipe': nv, 'total': len(rs), 'pts_tabela': pt})
             _vit += res == 'V'; _emp += res == 'E'; _der += res == 'D'
         _sup_as.append({
             'supervisor': sp['supervisor'], 'filial': sp['filial'], 'gerente': (_eq[0]['gerente'] if _eq else ''), 'total_vendedores': sp['vendedores'], 'com_meta': sp['com_meta'],
             'meta_mes': sp.get('meta_mes'), 'pct_hoje': sp.get('pct_hoje'), 'fases': sp.get('fases'), 'bonus': sp.get('bonus'), 'pontos_faseamento': sp.get('pontos', 0),
-            'jogos': len(_forma), 'vitorias': _vit, 'empates': _emp, 'derrotas': _der, 'pts_tabela': _pts, 'forma': _forma, 'semanas': _sems,
-            'aprov': round(_pts / (len(_forma) * 3) * 100, 1) if _forma else 0, 'pts_lances_equipe': sum(v['pts_lances'] for v in _eq)
+            'jogos': len([x for x in _forma if x != 'J']), 'vitorias': _vit, 'empates': _emp, 'derrotas': _der, 'pts_tabela': _pts, 'forma': _forma, 'semanas': _sems,
+            'aprov': round(_pts / (len([x for x in _forma if x != 'J']) * 3) * 100, 1) if [x for x in _forma if x != 'J'] else 0, 'pts_lances_equipe': sum(v['pts_lances'] for v in _eq)
         })
     _sup_as.sort(key=lambda x: (x['pts_tabela'], x['pontos_faseamento'], x['vitorias'], x['pct_hoje'] if x['pct_hoje'] is not None else -999), reverse=True)
     for idx, x in enumerate(_sup_as):
