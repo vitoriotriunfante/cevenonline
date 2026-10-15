@@ -69,3 +69,5 @@
 - 15/10/2026: VERSÃO DAS REGRAS 2026-10-15.1 (config, cópia pública, REGRAS_VERSAO e LOCK_HASH). Regulamento mostra "O que mudou nesta versão".
 
 - 15/10/2026 (Vitório: "coloca valendo essa semana"; "a venda até dia 20 é inegociável... só pedi para ajustar as semanas"): semanas de trabalho do AS valem JÁ em outubro (semana 2 = 13 a 16/10, a 1ª da liga). FASEAMENTO NÃO MUDA (20% dia 7, 40% dia 14, 60% dia 20, 110% fim = 10/20/30/40); os pontos de cada corte entram na semana em que cai o dia. A ponderação fica na vitória: acima de 2 pts por dia útil da semana. Versão das regras 2026-10-15.1.
+
+- 15/10/2026 (Vitório: "tire isso de regra nova... deixe apenas como regra... ninguém precisa saber que mudamos"; "aviso aos gerentes, isso eu faço"): o regulamento exibido/exportado não mostra histórico: sem quadro "o que mudou", sem "aviso aos gerentes", sem datas de início, "antes era" ou decisões. As descrições da tabela de pontos são limpas na exibição (soRegra) e o arquivo de regras congelado fica intacto. O histórico continua aqui neste registro.

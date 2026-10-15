@@ -891,11 +891,9 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
       <div class="rule-card">
         <h3>📌 Informações oficiais desta versão</h3>
         <p>
-          <strong>Versão do regulamento:</strong> <span id="reg-versao">—</span> · <strong>Liga oficial desde:</strong> <span id="reg-desde">13/10/2026</span>. O que veio antes foi <strong>pré-temporada</strong>. Regra, pontuação ou score novos só entram com <strong>nova versão</strong> e aviso aos gerentes; no período de estabilidade só se corrige erro.
+          <strong>Versão do regulamento:</strong> <span id="reg-versao">—</span> · <strong>Liga oficial desde:</strong> <span id="reg-desde">13/10/2026</span>.
           <br><br>
-          🆕 <strong>O que mudou na versão 2026-10-15.1 (15/10/2026):</strong> <span class="so-as" style="display:none">no AS, a semana passa a ser a <strong>semana de trabalho</strong> já em outubro (a 1ª semana da liga é 13 a 16/10; ver seção 1); devolução vale <strong>um cartão por cliente por dia</strong>; a semana em andamento aparece como <strong>J</strong>. </span>No regulamento do Varejo, os critérios de desempate foram escritos exatamente como o sistema sempre calculou (nenhuma classificação mudou).
-          <br><br>
-          🔒 <strong>Dia fechado:</strong> às <strong>22h</strong> o dia é congelado (no AS, a semana fecha às 22h do seu último dia útil; lances que contam, pontos e versão das regras). Depois disso nada muda naquele dia: nem lance que chegue atrasado, nem troca de supervisor, nem regra nova.
+          🔒 <strong>Dia fechado:</strong> às <strong>22h</strong> o dia é congelado (no AS, a semana fecha às 22h do seu último dia útil; lances que contam, pontos e versão das regras). Depois disso nada muda naquele dia: nem lance que chegue atrasado, nem troca de supervisor.
           <br>
           🧾 <strong>Sem comprovação não tem lance:</strong> todo lance guarda a prova (pedido, nota, horário, valor, motivo oficial) e é conferido automaticamente lance a lance, mais de uma vez por dia. Lance sem prova é apontado e pode ser retirado da liga.
           <br>
@@ -908,16 +906,16 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
       </div>
 
       <div class="rule-card">
-        <h3>⭐ Gol de Marca Própria (a partir de 08/10/2026 · Varejo e AS)</h3>
+        <h3>⭐ Gol de Marca Própria (Varejo e AS)</h3>
         <p>
           Marca Própria é foco da empresa. Pedido do cliente no dia com <strong>R$ 50 ou mais de Marca Própria Triunfante</strong> vale um gol próprio: <strong>+8 pontos</strong>, o mais valioso dos gols, mais o extra do <strong>nível (bronze a platina)</strong> pelas indústrias do pedido. Ele ganha a <strong>⭐ estrela</strong> e é <strong>sempre exibido na TV</strong>: na frente de qualquer outro lance, um a um, sem esperar intervalo e nunca dentro de resumo.
         </p>
       </div>
 
       <div class="rule-card">
-        <h3>🌟 Tripla de Marca Própria (a partir de 09/10/2026 · Varejo e AS)</h3>
+        <h3>🌟 Tripla de Marca Própria (Varejo e AS)</h3>
         <p>
-          Quem fecha <strong>3 ou mais clientes diferentes no mesmo dia</strong>, cada um com pedido de <strong>R$ 50 ou mais de Marca Própria Triunfante</strong>, ganha um gol extra: <strong>+10 pontos</strong>, o maior bônus da liga, <strong>um por vendedor por dia</strong>. Cada um dos 3 clientes continua valendo o seu Gol de Marca Própria (+8): a Tripla é um bônus por cima. É um bônus fixo, <strong>sem nível</strong> (bronze a platina). Ganha a <strong>🌟 estrela</strong> e é <strong>sempre exibido na TV</strong>, na frente de qualquer outro lance. Não vale para dias anteriores a 09/10/2026.
+          Quem fecha <strong>3 ou mais clientes diferentes no mesmo dia</strong>, cada um com pedido de <strong>R$ 50 ou mais de Marca Própria Triunfante</strong>, ganha um gol extra: <strong>+10 pontos</strong>, o maior bônus da liga, <strong>um por vendedor por dia</strong>. Cada um dos 3 clientes continua valendo o seu Gol de Marca Própria (+8): a Tripla é um bônus por cima. É um bônus fixo, <strong>sem nível</strong> (bronze a platina). Ganha a <strong>🌟 estrela</strong> e é <strong>sempre exibido na TV</strong>, na frente de qualquer outro lance.
         </p>
       </div>
 
@@ -951,7 +949,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
           </thead>
           <tbody id="tbody-regulamento-pontos"><!-- preenchido via JS a partir de config/pontuacao_brasileirao.json --></tbody>
         </table>
-        <h3 style="margin:22px 0 6px">💎 Gol Qualificado (a partir de 05/10/2026)</h3>
+        <h3 style="margin:22px 0 6px">💎 Gol Qualificado</h3>
         <p id="txt-gol-qualificado" style="color:#cbd5e1;font-size:13.5px;line-height:1.5"></p>
         <table class="tb-league" style="margin-bottom:6px"><thead><tr><th>Nível</th><th>Indústrias no pedido do cliente</th><th style="text-align:center">Extra no gol</th></tr></thead><tbody id="tbody-gol-qualificado"></tbody></table>
         <small style="color:var(--tx-mut)">Valores oficiais em <code>config/pontuacao_brasileirao.json</code> — metodologia auditada pela diretoria comercial.</small>
@@ -1128,6 +1126,15 @@ async function carregarDados() {
 // Tabela de pontos do regulamento (aba "Regulamento da Liga") — direto de
 // config/pontuacao_brasileirao.json (copiado pra public/ pra poder ser servido), nunca hardcoded
 // na página, pra ficar fácil de ajustar sem mexer em HTML (decisão do Vitório, 28/09/2026).
+// REGULAMENTO = SO A REGRA (Vitorio, 15/10/2026: "ninguem precisa saber que mudamos"): tira da EXIBICAO datas de inicio, "antes era" e decisoes
+// que estao no texto do arquivo de regras (config/pontuacao_brasileirao.json fica intacto: e a versao congelada).
+function soRegra(t) {
+  return String(t || '')
+    .replace(/\s*\((?:decis[ãa]o|vers[ãa]o) [^)]*\)/gi, '')
+    .replace(/\s*Vale(?: -?\d+)? a partir de \d{2}\/\d{2}\/\d{4}(?: \(antes [^)]*\))?(?:, no Varejo e no AS)?\.?/gi, '')
+    .replace(/\s*\(antes [^)]*\)/gi, '')
+    .replace(/\s{2,}/g, ' ').trim();
+}
 async function carregarTabelaPontos() {
   const tbody = document.getElementById('tbody-regulamento-pontos');
   if (!tbody) return;
@@ -1149,7 +1156,7 @@ async function carregarTabelaPontos() {
       return `<tr>
         <td style="font-weight:700;color:#fff">${esc(it.nome)}</td>
         <td style="text-align:center"><b style="color:${cor};font-size:15px;font-family:'JetBrains Mono',monospace">${sinal}${it.pontos}</b></td>
-        <td style="color:#cbd5e1;font-size:13.5px;line-height:1.4">${esc(it.motivo)}</td>
+        <td style="color:#cbd5e1;font-size:13.5px;line-height:1.4">${esc(soRegra(it.motivo))}</td>
       </tr>`;
     }).join('');
     if (typeof filtraRegrasAS === 'function') filtraRegrasAS();
@@ -1838,7 +1845,7 @@ function montaRegulamentoAS() {
       <tr><td>🥇 Bônus de primeira quinzena: bateu <strong>100%</strong> da meta até o dia 15</td><td style="text-align:center">100%</td><td style="text-align:center"><b>+50</b></td></tr><tr><td>🥈 Bateu <strong>100%</strong> da meta até o dia 25</td><td style="text-align:center">100%</td><td style="text-align:center"><b>+25</b></td></tr></tbody></table>
     <p style="font-size:13px;color:var(--tx-mut)">% da meta = (faturado + pendente) dividido pela meta do mês, o mesmo número do app do CEVEN. A semana de faseamento só pontua depois que o dia de fechamento termina. Sem meta cadastrada o vendedor não pontua no faseamento.</p>
     <h4 style="margin:18px 0 8px">📅 Como a semana do AS é contada</h4>
-    <p><strong>Por que é assim:</strong> cortar a semana pelo dia do mês (1–7, 8–14, 15–20, 21–fim) não funciona no AS. Quando o mês fecha no meio da semana (ex.: numa terça-feira 31), o vendedor do AS concentra os pedidos no fechamento e, nos 2 ou 3 dias seguintes, quase não tira pedido. Esses poucos dias viravam uma "semana" sozinha e uma derrota sem culpa do vendedor. Por isso a semana acompanha o calendário de trabalho e todo jogo tem pelo menos 4 dias úteis.</p>
+    <p><strong>Por que é assim:</strong> quando o mês fecha no meio da semana (ex.: numa terça-feira 31), o vendedor do AS concentra os pedidos no fechamento e, nos 2 ou 3 dias seguintes, quase não tira pedido. Uma semana só com esses dias decidiria o jogo pelo calendário, não pelo desempenho. Por isso a semana acompanha o calendário de trabalho e todo jogo tem pelo menos 4 dias úteis.</p>
     <p><strong>Regra 1 — semana de trabalho:</strong> cada semana vai de <strong>segunda a sexta</strong>, contando só os <strong>dias úteis</strong> (sem sábado, domingo e feriado nacional).</p>
     <p><strong>Regra 2 — semana curta se junta:</strong> um pedaço de semana com <strong>3 dias úteis ou menos</strong> não é um jogo sozinho. No <strong>começo do mês</strong> ele se junta à semana <strong>seguinte</strong>; no <strong>fim do mês</strong>, à semana <strong>anterior</strong>. <em>Por quê:</em> evita o jogo de 2–3 dias logo depois do fechamento e o jogo de 1–2 dias no fim do mês, que decidiam vitória ou derrota por calendário, não por desempenho.</p>
     <p><strong>Regra 3 — vitória proporcional aos dias da semana:</strong> Vitória = placar <strong>acima de 2 pontos por dia útil</strong> da semana (semana de 5 dias = acima de 10, igual ao Varejo; de 4 dias = acima de 8; de 8 dias = acima de 16). Empate = de 1 ponto até esse limite. Derrota = 0 ou negativo. <em>Por quê:</em> uma semana juntada tem mais dias para fazer gol; sem ajustar o limite, ela ficaria mais fácil que a semana normal.</p>
@@ -1858,9 +1865,9 @@ function montaRegulamentoAS() {
       <tr><td>4ª — dias 23 a 30 (a segunda-feira 30 se junta)</td><td style="text-align:center">6</td><td>corte do fim do mês (110% = +40) · vitória acima de 12</td></tr>
     </tbody></table>
     <p style="font-size:13px;color:var(--tx-mut)">O placar da semana é: lances da semana + faseamento + bônus (100% até o dia 15 = +50; até o dia 25 = +25).</p>
-    <p>🟥 <strong>Devolução no AS: um cartão por cliente por dia</strong> (vale desde 15/10/2026). Se várias notas do mesmo cliente forem devolvidas no mesmo dia, conta só um cartão, o de maior peso. As outras notas continuam registradas, mas não somam no placar. Lojas diferentes (códigos de cliente diferentes) contam separado.</p>
+    <p>🟥 <strong>Devolução no AS: um cartão por cliente por dia</strong>. Se várias notas do mesmo cliente forem devolvidas no mesmo dia, conta só um cartão, o de maior peso. As outras notas continuam registradas, mas não somam no placar. Lojas diferentes (códigos de cliente diferentes) contam separado.</p>
     <p>⏳ <strong>Semana em andamento</strong> aparece como <strong>J</strong> (jogando) até o fechamento do último dia dela: ainda não é vitória, empate nem derrota.</p>
-    <p><strong>O que NÃO vale no AS</strong> (depende do horário ou das visitas do dia; o AS visita um dia e vende em outro): Gol Relâmpago, Gol nos Acréscimos, Meta do 1º Tempo, Hat-Trick, Máquina de Conversão, Goleada, Cartão Amarelo das 10h e Cartão Vermelho de abandono — eles saem da tabela de pontos abaixo. <strong>Também fora no AS:</strong> Campeão da Rodada (o bônus de 100% da meta já cumpre esse papel). <strong>Gol de Mix (+2 SKUs):</strong> no AS o "Dobrou o Mix" é trocado por pedido com 2 ou mais SKUs a mais que a média do cliente (+4, qualificado por indústrias). <strong>⭐ Gol de Marca Própria (+8, a partir de 08/10/2026, no AS e no Varejo):</strong> pedido do cliente com R$ 50 ou mais de Marca Própria. É o gol mais valioso, ganha a estrela, é qualificado pelas indústrias do pedido e é SEMPRE exibido na TV, um a um, na frente de qualquer outro lance. <strong>🌟 Tripla de Marca Própria (+10, a partir de 09/10/2026, no AS e no Varejo):</strong> 3 clientes diferentes no mesmo dia, cada um com R$ 50 ou mais de Marca Própria. <strong>Valem iguais ao Varejo:</strong> Resgate de Inativo, Dobradinha das Quinzenas, Defesa, Super Pedido (no AS a partir de R$ 75.000 no dia), Pedido Feito na Rota, devoluções, pênaltis e impedimento de GPS. <strong>Em definição:</strong> check-in por carteira (90% = +5 · 95% = +10 · 100% = +20), amarelo de venda sem check-in e punição por falta de pedido (dia 5 = −5 · dia 10 = −10 · dia 20 = −20).</p>`;
+    <p><strong>O que NÃO vale no AS</strong> (depende do horário ou das visitas do dia; o AS visita um dia e vende em outro): Gol Relâmpago, Gol nos Acréscimos, Meta do 1º Tempo, Hat-Trick, Máquina de Conversão, Goleada, Cartão Amarelo das 10h e Cartão Vermelho de abandono — eles saem da tabela de pontos abaixo. <strong>Também fora no AS:</strong> Campeão da Rodada (o bônus de 100% da meta já cumpre esse papel). <strong>Gol de Mix (+2 SKUs):</strong> no AS o "Dobrou o Mix" é trocado por pedido com 2 ou mais SKUs a mais que a média do cliente (+4, qualificado por indústrias). <strong>⭐ Gol de Marca Própria (+8, no AS e no Varejo):</strong> pedido do cliente com R$ 50 ou mais de Marca Própria. É o gol mais valioso, ganha a estrela, é qualificado pelas indústrias do pedido e é SEMPRE exibido na TV, um a um, na frente de qualquer outro lance. <strong>🌟 Tripla de Marca Própria (+10, no AS e no Varejo):</strong> 3 clientes diferentes no mesmo dia, cada um com R$ 50 ou mais de Marca Própria. <strong>Valem iguais ao Varejo:</strong> Resgate de Inativo, Dobradinha das Quinzenas, Defesa, Super Pedido (no AS a partir de R$ 75.000 no dia), Pedido Feito na Rota, devoluções, pênaltis e impedimento de GPS. <strong>Em definição:</strong> check-in por carteira (90% = +5 · 95% = +10 · 100% = +20), amarelo de venda sem check-in e punição por falta de pedido (dia 5 = −5 · dia 10 = −10 · dia 20 = −20).</p>`;
 }
 
 window.addEventListener('load', aplicaCanalNaTela);
