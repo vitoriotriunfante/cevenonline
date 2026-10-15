@@ -769,6 +769,7 @@ secao('9d. WhatsApp: TRAVA DE COMPLETUDE (Vitorio, 15/10/2026: "jamais mande sem
   ok(e.includes('async function coletarVendasCompleto') && e.includes('FALHAS_COLETA === 0') && e.includes('await coletarVendasCompleto(repsMap, dataHoje)'), 'vendas e zerados: a coleta inteira roda de novo ate sair com ZERO falhas');
   ok(e.includes('Envio das ${hora} SEGURADO') && e.includes('process.exit(1)'), 'passou do prazo sem completar: NAO envia aos gerentes, avisa o Vitorio e o ciclo nao fica marcado como disparado');
   ok(!/catch \(e\) \{\}/.test(e.slice(e.indexOf('async function coletarVendasEZerados('), e.indexOf('async function coletarVendasEZerados(') + 12000)), 'nenhuma falha da apuracao de vendas e engolida em silencio (inativos, recorrencia, cortes, bloqueados)');
+  ok(e.includes('async function ateCompletar') && e.includes("ateCompletar('Abertura'") && e.includes("ateCompletar('Alerta de Risco'") && e.includes("ateCompletar('Gestão de Campo'") && !e.includes('DADOS INCOMPLETOS — NÃO ENCAMINHAR'), 'TODOS os envios (abertura, alerta de risco, gestao de campo, vendas) repetem a coleta ate completar, sem prazo; nunca sai com faixa de dados incompletos');
   ok(fb.includes('function lerBaseReserva') && e.includes('fonteBase.lerBaseReserva(url)') && e.includes("retry-after"), 'CEVEN recusou (429): usa o dado real da base do dia e respeita o Retry-After; nunca zero');
 }
 

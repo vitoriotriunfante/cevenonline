@@ -49,7 +49,7 @@ jobs:
     # recentes cancelados por timeout, cortando o envio no meio -- 9 gerentes sem receber a
     # mensagem das 17:00 nesse dia). 25min da folga sem deixar o job preso indefinidamente.
     # 07/10/2026: o disparo das 18:30 estourou os 25 min porque o CEVEN ficou lento (coleta de 13,5 min contra 2,7 min no 17:00) e foi cancelado sem enviar. Folga de 40 min.
-    timeout-minutes: 40
+    timeout-minutes: 180   # 15/10/2026 (Vitorio: "rode ate finalizar"): o motor repete a coleta ate completar e so entao envia
     permissions:
       contents: write
 

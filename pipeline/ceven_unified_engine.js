@@ -447,7 +447,7 @@ async function coletarAuditoriaCampo(token, dataRef, repsMap) {
               scoreMedio
             };
           }
-        } catch (e) {}
+        } catch (e) { FALHAS_COLETA++; }
       }
 
       supervisores.push({
@@ -508,6 +508,17 @@ async function coletarAuditoriaCampo(token, dataRef, repsMap) {
 // =========================================================================
 let FALHAS_COLETA = 0;
 const PRAZO_COMPLETUDE_MS = Number(process.env.CEVEN_PRAZO_COMPLETUDE_MIN || 20) * 60 * 1000;
+// Repete uma coleta inteira ate sair com ZERO falhas (FALHAS_COLETA) e passar na verificacao extra. SEM PRAZO: nunca desiste e nunca envia incompleto.
+async function ateCompletar(nome, coleta, verifica = () => true) {
+  for (let rodada = 1; ; rodada++) {
+    FALHAS_COLETA = 0;
+    let res = null, erro = null;
+    try { res = await coleta(); } catch (e) { erro = e; FALHAS_COLETA++; }
+    if (!erro && FALHAS_COLETA === 0 && verifica(res)) { console.log('✅ ' + nome + ': coleta COMPLETA na rodada ' + rodada + '.'); return res; }
+    console.log('⚠️ ' + nome + ': rodada ' + rodada + ' INCOMPLETA (' + FALHAS_COLETA + ' falha(s)' + (erro ? '; ' + erro.message : '') + '). Nada sai assim: nova rodada em 60 s.');
+    await new Promise((ok) => setTimeout(ok, 60000));
+  }
+}
 async function coletarVendasCompleto(repsMap, dataRef) {
   const inicio = Date.now();
   for (let rodada = 1; ; rodada++) {
@@ -515,7 +526,6 @@ async function coletarVendasCompleto(repsMap, dataRef) {
     const semDado = res.__semDado || []; delete res.__semDado;
     if (FALHAS_COLETA === 0) { console.log(`✅ Coleta COMPLETA na rodada ${rodada}: todos os vendedores e todos os pedidos apurados.`); return { completo: true, res }; }
     console.log(`⚠️ Rodada ${rodada} INCOMPLETA: ${FALHAS_COLETA} falha(s) (${semDado.length} vendedor(es) sem dado: ${semDado.slice(0, 15).join(', ')}). Nada sera enviado assim.`);
-    if (Date.now() - inicio > PRAZO_COMPLETUDE_MS) return { completo: false, falhas: FALHAS_COLETA, semDado };
     await new Promise((ok) => setTimeout(ok, 60000));   // da folga a cota do CEVEN e tenta a coleta inteira de novo
   }
 }
@@ -887,24 +897,10 @@ function filiaisSemDadosAbertura(ab) {
 async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
   try {
     const rb = await fonteBase.carregarBase(Object.keys(FILIAIS_MAP), new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }));
-    console.log(`🗄️ Base única (abertura): ${rb.ligada ? rb.rcas + ' RCAs de ' + rb.filiais + ' filiais' : 'desligada'}`);
+    console.log('🗄️ Base única (abertura): ' + (rb.ligada ? rb.rcas + ' RCAs de ' + rb.filiais + ' filiais' : 'desligada'));
   } catch (e) { /* sem base: coleta pelo CEVEN, com tentativas */ }
-  let melhor = null;
-  for (let t = 1; t <= 3; t++) {
-    const r = await coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes);
-    r.faltam = filiaisSemDadosAbertura(r);
-    if (!melhor || r.faltam.length < melhor.faltam.length) melhor = r;
-    if (!r.faltam.length) break;
-    console.log(`⚠️ Abertura incompleta (sem dados de: ${r.faltam.join(', ')}). Tentativa ${t}/3${t < 3 ? '; nova coleta em 25 s' : ''}.`);
-    if (t < 3) await new Promise((res) => setTimeout(res, 25000));
-  }
-  if (melhor.faltam.length) {
-    const total = FILIAIS_ESPERADAS_ABERTURA().length;
-    melhor.textoAbertura = `⚠️ *DADOS INCOMPLETOS — NÃO ENCAMINHAR.* Sem leitura de ${melhor.faltam.join(', ')} (${total - melhor.faltam.length} de ${total} filiais). O CEVEN não respondeu a tempo; os totais abaixo estão PARCIAIS.
-
-` + melhor.textoAbertura;
-  }
-  return melhor;
+  // TRAVA DE COMPLETUDE (15/10/2026): repete ate TODAS as filiais e TODOS os vendedores lidos; nunca sai com "dados incompletos"
+  return ateCompletar('Abertura', () => coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes), (res) => { res.faltam = filiaisSemDadosAbertura(res); return res.faltam.length === 0; });
 }
 async function coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes = null) {
   const dir = diretrizes || carregarDiretrizesOperacionais();
@@ -942,7 +938,7 @@ async function coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes = null)
         });
       });
     }
-  } catch (e) {}
+  } catch (e) { FALHAS_COLETA++; }
 
   // resultado é indexado por chave composta "SIGLA::gerente" pra permitir separar
   // MCD e TPH em dois blocos (um por gerente) em vez de um bloco só com "/".
@@ -1013,6 +1009,7 @@ async function coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes = null)
       } catch (e) {
         // API falhou para esse RCA: NAO conta como 'em rota' (nao ha como provar) -- a filial inteira sem leitura sai com a faixa DADOS INCOMPLETOS.
         rFil.falhas = (rFil.falhas || 0) + 1;
+        FALHAS_COLETA++;
       }
     }));
   }
@@ -1130,7 +1127,7 @@ async function coletarAlertaRisco(repsValidationMap, dataHoje) {
             risco
           });
         });
-      } catch (e) {}
+      } catch (e) { FALHAS_COLETA++; }
     }));
   }
 
@@ -1661,13 +1658,9 @@ async function main() {
     let porGerenteRisco = {};
     let geralRisco = '';
     {
-      try {
-        console.log(`📋 Coletando Alerta de Risco (07:45)...`);
-        porGerenteRisco = await coletarAlertaRisco(repsMap, dataHoje);
-        geralRisco = formatarAlertaRiscoGeral(porGerenteRisco, '07:45');
-      } catch (e) {
-        console.warn(`⚠️ Falha ao coletar Alerta de Risco: ${e.message}`);
-      }
+      console.log(`📋 Coletando Alerta de Risco (07:45)...`);
+      porGerenteRisco = await ateCompletar('Alerta de Risco', () => coletarAlertaRisco(repsMap, dataHoje));
+      geralRisco = formatarAlertaRiscoGeral(porGerenteRisco, '07:45');
     }
 
     const outDirRevisao = path.join(__dirname, '../OPERACAO_WHATSAPP/relatorios_por_horario/07_45');
@@ -1736,7 +1729,7 @@ async function main() {
   // A) Gestão de Campo (Compromissos & RETs)
   if (acao === 'gestao_campo' || acao === 'completo') {
     if (token) {
-      const auditoria = await coletarAuditoriaCampo(token, dataHoje, repsMap);
+      const auditoria = await ateCompletar('Gestão de Campo', () => coletarAuditoriaCampo(token, dataHoje, repsMap));
       console.log(`✅ Auditoria de campo processada para 11 filiais.`);
 
       {
@@ -1844,7 +1837,7 @@ async function main() {
   // B) Vendas & Zerados do Varejo
   if (acao === 'vendas_zerados' || acao === 'completo') {
     const coleta = await coletarVendasCompleto(repsMap, dataHoje);
-    if (!coleta.completo) {
+    if (!coleta.completo) {   // inalcancavel: coletarVendasCompleto so devolve completo (mantido por seguranca)
       const aviso = `⚠️ *Envio das ${hora} SEGURADO*
 A apuração não fechou completa (${coleta.falhas} falha(s) de consulta ao CEVEN; ${coleta.semDado.length} vendedor(es) sem dado: ${coleta.semDado.slice(0, 20).join(', ')}).
 Nada foi enviado aos gerentes: relatório incompleto não sai.`;
