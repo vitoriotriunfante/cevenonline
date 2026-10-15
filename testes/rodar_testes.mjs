@@ -519,7 +519,7 @@ secao('8h. Supervisores: botao na Matriz, cards com fotos e painel gerencial da 
   ok(tv.includes('supSemanaHtml') && tv.includes('/api/tv-supervisores-semana'), 'TV da filial mostra o painel gerencial da semana abaixo dos supervisores');
   ok(an.includes('window.supCardsHtml') && an.includes('window.supSemanaHtml') && an.includes('NÃO FEZ') && an.includes('PENDENTE'), 'modulo unico: cards com fotos + tabela FEZ / PARCIAL / NAO FEZ; o dia de hoje sem nada e PENDENTE (nao punido)');
   ok(se.includes('NAO_SUPERVISORES') && su.includes('NAO_SUPERVISORES') && se.includes('porDia') && se.includes('feriado'), 'endpoints tiram os nao-supervisores (decisao 04/10), usam o porDia do CEVEN e marcam feriado');
-  ok(se.includes('loginEmAndamento') && su.includes('loginEmAndamento'), 'endpoints de supervisores compartilham o login administrativo entre chamadas concorrentes');
+  ok(se.includes('tokenAdmin(env)') && su.includes('tokenAdmin(env)') && ler('functions/_lib/ceven_admin_token.js').includes('ceven_admin_token') && ler('functions/_lib/ceven_admin_token.js').includes('emAndamento'), 'endpoints de supervisores usam o token de admin COMPARTILHADO (D1 + memoria, 1 login para todas as copias, nova tentativa)');
   ok(tv.includes('semProximaTentativa') && tv.includes('Nova tentativa em até 5 minutos'), 'TV da filial evita repetição imediata do endpoint semanal após falha e informa nova tentativa');
 }
 
