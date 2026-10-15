@@ -750,6 +750,17 @@ secao('9b. Feriado nao conta para a Liga (Vitorio, 13/10/2026): coletor e TVs na
   ok(ler('functions/api/cron-lances.js').includes("FERIADO_SEM_LANCE") && ler('functions/api/tv-lances.js').includes("ignorado: 'feriado'"), 'coletor e gravacao das TVs param em feriado');
 }
 
+secao('9c. Semanas do AS por semana de trabalho (Vitorio, 15/10/2026; vale a partir de nov/2026)');
+{
+  const L = await import(pathToFileURL(join(RAIZ, 'functions', '_lib', 'liga_as.js')).href);
+  const nov = L.semanasAS('2026-11'), mar = L.semanasAS('2027-03'), set = L.semanasAS('2027-09');
+  ok(nov.length === 4 && nov.map((w) => w.dias_uteis).join() === '4,5,4,6' && nov[3].meta === 110 && nov[3].pontos === 40, 'nov/2026: 4 semanas (4,5,4,6 dias uteis); a segunda 30 se junta a ultima; ultima = 110% e 40 pts');
+  ok(mar[mar.length - 1].de === 22 && mar[mar.length - 1].dias_uteis === 7 && mar[mar.length - 1].vitoria_acima_de === 14, 'mes que fecha numa quarta (mar/2027): seg-qua 29-31 se junta a semana anterior (22-31, 7 dias uteis com a Sexta Santa, vitoria acima de 14)');
+  ok(set[0].de === 1 && set[0].ate === 12 && set[0].dias_uteis === 7, 'mes que comeca numa quarta (set/2027): qua-sex 1-3 se junta a semana seguinte (1-12, 7 dias uteis com o 7 de setembro)');
+  ok([nov, mar, set, L.semanasAS('2026-12')].every((ws) => ws.every((w) => w.dias_uteis >= 4)), 'nenhuma semana do AS fica com 3 dias uteis ou menos');
+  ok(!L.usaSemanasNovas('2026-10') && L.usaSemanasNovas('2026-11'), 'outubro/2026 segue as semanas antigas; novembro usa as novas');
+}
+
 secao('10. Painel /saude (sala de controle) e telemetria da coleta');
 {
   const sa = ler('functions/api/saude.js'), vc = ler('functions/api/cron-varredura-central.js'), h = ler('public/saude.html');

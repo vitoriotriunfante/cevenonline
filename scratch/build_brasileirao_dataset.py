@@ -11,7 +11,8 @@ from datetime import datetime, timezone, date, timedelta
 # (trava de disparo de WhatsApp), pra manter os dois projetos consistentes sobre "dia útil".
 FERIADOS_2026 = {
     '2026-01-01', '2026-02-16', '2026-02-17', '2026-04-03', '2026-04-21', '2026-05-01',
-    '2026-06-04', '2026-09-07', '2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25'
+    '2026-06-04', '2026-09-07', '2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25',
+    '2027-01-01', '2027-02-08', '2027-02-09', '2027-03-26', '2027-04-21', '2027-05-01', '2027-05-27', '2027-09-07', '2027-10-12', '2027-11-02', '2027-11-15', '2027-11-20', '2027-12-25'
 }
 
 print("--- RECONSTRUINDO DATASET DO BRASILEIRÃO: CADA DIA É UM JOGO (v2 — pontuação real) ---")
@@ -529,17 +530,59 @@ for s in sups_tabela:
 # hat-trick diario, maquina de conversao e goleada. Ver docs/LIGA_AS_DECISOES.md.
 # =====================================================================================================================
 import calendar
-AS_SEMANAS = [(1, 1, 7), (2, 8, 14), (3, 15, 20), (4, 21, 31)]  # (n, dia inicial, dia final)
+AS_SEMANAS_FIXAS = [(1, 1, 7), (2, 8, 14), (3, 15, 20), (4, 21, 31)]  # (n, dia inicial, dia final) — ate outubro/2026
 AS_LANCES_FORA = ('ven10', 'vis10', 'vis11', 'gol_relampago', 'gol_acrescimos', 'gol_meta1t', 'gol_hattrick', 'hattrick', 'gol_conversao', 'gol_goleada', 'gol_campeao')
 def semana_as(dia_iso):
     d = int(dia_iso[8:10])
     for n, di, df in AS_SEMANAS:
         if d <= df:
             return n
-    return 4
+    return AS_SEMANAS[-1][0]
 MES_AS = (datetime.now(timezone.utc) - timedelta(hours=3)).strftime('%Y-%m')
 _HOJE_BR = (datetime.now(timezone.utc) - timedelta(hours=3)).date().isoformat()
 _ULT_MES_AS = calendar.monthrange(int(MES_AS[:4]), int(MES_AS[5:7]))[1]
+# SEMANAS DE TRABALHO DO AS (Vitorio, 15/10/2026 — a partir de NOVEMBRO/2026). Mesma conta de functions/_lib/liga_as.js (semanasAS):
+# semana = segunda a sexta sem feriado; pedaco com 3 dias uteis ou menos se junta a vizinha (o primeiro com o seguinte, os demais com o anterior);
+# vitoria da semana = placar acima de 2 pontos por dia util (5 dias = acima de 10). Faseamento proporcional vem pronto de /api/liga-as.
+AS_SEMANAS_NOVAS_DESDE = '2026-11'
+def semanas_as_do_mes(mes):
+    a, m = int(mes[:4]), int(mes[5:7]); ult = calendar.monthrange(a, m)[1]
+    blocos, atual = [], None
+    for d in range(1, ult + 1):
+        dt = date(a, m, d); iso = dt.isoformat()
+        if dt.weekday() == 0 or atual is None:
+            atual = {'dias': [], 'de': d, 'ate': d}; blocos.append(atual)
+        atual['ate'] = d
+        if dt.weekday() < 5 and iso not in FERIADOS_2026:
+            atual['dias'].append(iso)
+    L = [b for b in blocos if b['dias']]
+    i = 0
+    while i < len(L) and len(L) > 1:
+        if len(L[i]['dias']) >= 4:
+            i += 1; continue
+        j = 1 if i == 0 else i - 1
+        alvo, b = L[j], L[i]
+        alvo['dias'] = alvo['dias'] + b['dias'] if j < i else b['dias'] + alvo['dias']
+        alvo['de'] = min(alvo['de'], b['de']); alvo['ate'] = max(alvo['ate'], b['ate'])
+        L.pop(i); i = 0
+    return [(n + 1, b['de'], (ult if n == len(L) - 1 else b['ate']), len(b['dias'])) for n, b in enumerate(L)]
+if MES_AS >= AS_SEMANAS_NOVAS_DESDE:
+    _SEM = semanas_as_do_mes(MES_AS)
+    AS_SEMANAS = [(n, di, df) for n, di, df, _du in _SEM]
+    AS_VITORIA_ACIMA = {n: 2 * du for n, di, df, du in _SEM}
+else:
+    AS_SEMANAS = AS_SEMANAS_FIXAS
+    AS_VITORIA_ACIMA = {}
+def julgar_semana_as(score, n):
+    """A partir de nov/2026 a vitoria da semana do AS e proporcional aos dias uteis dela; antes, as faixas fixas do Varejo."""
+    lim = AS_VITORIA_ACIMA.get(n)
+    if lim is None:
+        return julgar_pelo_score(score)
+    if score > lim:
+        return 'V', FAIXAS['vitoria']['pontos_tabela']
+    if score >= FAIXAS['empate']['min_pontos']:
+        return 'E', FAIXAS['empate']['pontos_tabela']
+    return 'D', FAIXAS['derrota']['pontos_tabela']
 def semana_as_jogada(n):
     """A semana ja comecou e termina depois do inicio oficial da liga: e um jogo valendo."""
     _, di, df = AS_SEMANAS[n - 1]
@@ -554,7 +597,7 @@ def semana_as_aberta(n):
 def tipo_do_lance(chave):
     return re.sub(r'^[A-Z]{3}\|', '', str(chave or '')).split('|')[0]
 bloco_as = {'mes': MES_AS, 'vale_desde': INICIO_OFICIAL, 'lances_fora': list(AS_LANCES_FORA), 'semanas': [
-    {'n': n, 'de': di, 'ate': df} for n, di, df in AS_SEMANAS]}
+    {'n': n, 'de': di, 'ate': df, 'vitoria_acima_de': AS_VITORIA_ACIMA.get(n, 10)} for n, di, df in AS_SEMANAS]}
 try:
     req = urllib.request.Request(f'https://ceven-cftv-matrix.pages.dev/api/liga-as?mes={MES_AS}', headers={'User-Agent': 'Mozilla/5.0'})
     with urllib.request.urlopen(req, timeout=60) as resp:
@@ -593,13 +636,13 @@ try:
             continue
         _fases, _bonus = v.get('fases') or [], v.get('bonus') or []
         _sem = []
-        for n in (1, 2, 3, 4):
+        for n in range(1, len(AS_SEMANAS) + 1):
             pl = _lan_sem.get(str(v['rca']), {}).get(n, 0)
             pf = _fases[n - 1]['ganhou'] if len(_fases) >= n else 0
             pb = sum(b['ganhou'] for b in _bonus if b.get('quando') and semana_as(b['quando']) == n)
             score = pl + pf + pb
             jogada = semana_as_jogada(n)
-            res, pt = (julgar_pelo_score(score) if jogada else (None, 0))
+            res, pt = (julgar_semana_as(score, n) if jogada else (None, 0))
             if jogada and res == 'D' and semana_as_aberta(n):
                 res, pt = 'J', 0   # semana em andamento: ainda sem resultado
             _sem.append({'n': n, 'pts_lances': pl, 'pts_faseamento': pf, 'pts_bonus': pb, 'score': score, 'jogada': jogada, 'resultado': res, 'pts_tabela': pt})
@@ -624,7 +667,7 @@ try:
     for sp in _api_as.get('supervisores', []):
         _eq = [v for v in _vend_as if v['filial'] == sp['filial'] and v['supervisor'] == sp['supervisor']]
         _forma, _pts, _vit, _emp, _der, _sems = [], 0, 0, 0, 0, []
-        for n in (1, 2, 3, 4):
+        for n in range(1, len(AS_SEMANAS) + 1):
             if not semana_as_jogada(n):
                 continue
             rs = [v['semanas'][n - 1]['resultado'] for v in _eq if v['semanas'][n - 1]['resultado'] is not None]

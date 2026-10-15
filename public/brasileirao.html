@@ -290,9 +290,9 @@ main {
 #tab-regulamento .tb-league { table-layout: fixed; width: 100%; }
 #tab-regulamento .tb-league td, #tab-regulamento .tb-league th { white-space: normal; word-break: break-word; overflow-wrap: anywhere; }
 #tab-regulamento .tb-league td { padding: 11px 12px; line-height: 1.45; vertical-align: top; }
-#tab-regulamento .tb-league th { padding: 12px; }
+#tab-regulamento .tb-league th { padding: 12px; word-break: normal; overflow-wrap: normal; hyphens: none; }   /* 15/10/2026: 'PONT OS' / 'INDÚS TRIAS' quebravam letra a letra */
 #tab-regulamento .tb-league th:nth-child(1), #tab-regulamento .tb-league td:nth-child(1) { width: 28%; }
-#tab-regulamento .tb-league th:nth-child(2), #tab-regulamento .tb-league td:nth-child(2) { width: 84px; text-align: center; }
+#tab-regulamento .tb-league th:nth-child(2), #tab-regulamento .tb-league td:nth-child(2) { width: 110px; text-align: center; }
 #tab-regulamento .rule-card, #tab-regulamento .table-card { overflow-x: auto; max-width: 100%; }
 @media (max-width: 760px) {
   #tab-regulamento .tb-league th:nth-child(1), #tab-regulamento .tb-league td:nth-child(1) { width: 38%; }
@@ -421,16 +421,30 @@ main {
 .btn-pdf-reg:hover { filter: brightness(1.1); }
 .reg-pdf-cab { display: none; }
 @media print {
-  @page { size: A4; margin: 12mm; }
-  body.imprimindo-reg { background: #fff !important; color: #111 !important; }
-  body.imprimindo-reg * { box-shadow: none !important; text-shadow: none !important; }
-  body.imprimindo-reg * { visibility: hidden !important; }
-  body.imprimindo-reg #tab-regulamento, body.imprimindo-reg #tab-regulamento * { visibility: visible !important; }
-  body.imprimindo-reg #tab-regulamento { display: block !important; position: absolute !important; left: 0; top: 0; width: 100% !important; margin: 0 !important; padding: 0 !important; }
-  body.imprimindo-reg #tab-regulamento, body.imprimindo-reg #tab-regulamento * { color: #111 !important; background: transparent !important; border-color: #bbb !important; }
+  /* margem 0 tira data/endereco que o navegador imprime no topo e no rodape; a margem real vem do padding da secao */
+  @page { size: A4; margin: 0; }
+  html, body.imprimindo-reg { background: #fff !important; }
+  body.imprimindo-reg * { visibility: hidden !important; box-shadow: none !important; text-shadow: none !important; }
+  body.imprimindo-reg #tab-regulamento, body.imprimindo-reg #tab-regulamento * { visibility: visible !important; color: #111 !important; background: transparent !important; }
+  body.imprimindo-reg #tab-regulamento { display: block !important; position: absolute !important; left: 0; top: 0; width: 100% !important; margin: 0 !important; padding: 13mm 14mm !important;
+    font: 10.5pt/1.45 'Inter', 'Segoe UI', Arial, sans-serif !important; }
+  body.imprimindo-reg #tab-regulamento .table-card { border: 0 !important; padding: 0 !important; margin: 0 !important; border-radius: 0 !important; overflow: visible !important; }
+  body.imprimindo-reg #tab-regulamento h2 { font-size: 17pt !important; margin: 0 0 2mm !important; line-height: 1.2 !important; }
+  body.imprimindo-reg #tab-regulamento .table-subtitle { font-size: 9.5pt !important; margin: 0 0 5mm !important; color: #555 !important; }
+  body.imprimindo-reg #tab-regulamento .rule-card { border: 1px solid #c8ccd2 !important; border-radius: 6px !important; padding: 4mm 5mm !important; margin: 0 0 4mm !important; overflow: visible !important;
+    break-inside: avoid; page-break-inside: avoid; }
+  body.imprimindo-reg #tab-regulamento .rule-card:has(table) { break-inside: auto; page-break-inside: auto; }   /* cartao com tabela grande pode continuar na pagina seguinte, linha a linha */
+  body.imprimindo-reg #tab-regulamento .rule-card h3 { font-size: 12.5pt !important; margin: 0 0 2mm !important; line-height: 1.25 !important; break-after: avoid; }
+  body.imprimindo-reg #tab-regulamento p, body.imprimindo-reg #tab-regulamento div { line-height: 1.45 !important; }
+  body.imprimindo-reg #tab-regulamento p { margin: 0 0 2.2mm !important; }
+  body.imprimindo-reg #tab-regulamento h4 { font-size: 11.5pt !important; margin: 4mm 0 2mm !important; break-after: avoid; }
+  body.imprimindo-reg #tab-regulamento .tb-league { width: 100% !important; border-collapse: collapse !important; margin: 2mm 0 !important; }
+  body.imprimindo-reg #tab-regulamento .tb-league thead { display: table-header-group; }
+  body.imprimindo-reg #tab-regulamento .tb-league th { font-size: 8.5pt !important; padding: 2mm 2.5mm !important; border-bottom: 1.5px solid #888 !important; text-transform: uppercase; white-space: normal !important; word-break: normal !important; overflow-wrap: normal !important; }
+  body.imprimindo-reg #tab-regulamento .tb-league td { font-size: 9.5pt !important; padding: 2mm 2.5mm !important; border-bottom: 1px solid #ddd !important; line-height: 1.35 !important; word-break: normal !important; overflow-wrap: break-word !important; }
+  body.imprimindo-reg #tab-regulamento .tb-league tr { break-inside: avoid; page-break-inside: avoid; }
   body.imprimindo-reg .btn-pdf-reg { display: none !important; }
-  body.imprimindo-reg .reg-pdf-cab { display: block !important; font: 700 13px/1.4 sans-serif; margin-bottom: 8px; }
-  body.imprimindo-reg table { page-break-inside: auto; } body.imprimindo-reg tr { page-break-inside: avoid; }
+  body.imprimindo-reg .reg-pdf-cab { display: block !important; font: 600 8.5pt/1.3 Arial, sans-serif; color: #666 !important; border-bottom: 1px solid #ccc; padding-bottom: 2mm; margin-bottom: 5mm; }
 }
 /* REGULAMENTO & TROFEUS */
 .rule-card {
@@ -1774,11 +1788,25 @@ function montaRegulamentoAS() {
   box.innerHTML = `
     <p>O <strong>AS (Autosserviço)</strong> joga por <strong>SEMANA</strong>, com o mesmo raciocínio do Varejo: a <strong>semana é o jogo</strong>. O vendedor visita num dia e coloca o pedido em outro, então as jogadas são computadas semanalmente. Vendedor e supervisor têm acompanhamento separado. Semanas: <strong>1ª</strong> dias 1–7 · <strong>2ª</strong> dias 8–14 · <strong>3ª</strong> dias 15–20 · <strong>4ª</strong> dias 21 até o fim do mês.</p>
     <p>🟢 <strong>Vitória na semana (3 pts de tabela):</strong> placar acima de 10 · 🟡 <strong>Empate (1 pt):</strong> de 1 a 10 · 🔴 <strong>Derrota (0):</strong> 0 ou negativo. <strong>Placar da semana</strong> = lances da semana + faseamento da semana + bônus que caiu nela. <strong>Supervisor:</strong> vitória quando mais de 50% da equipe AS venceu a semana (igual ao Varejo); faseamento e bônus da equipe desempatam.</p>
-    <table class="tb-league" style="margin:10px 0 14px"><thead><tr><th>Faseamento (% da meta do mês no fim da semana)</th><th style="text-align:center">Meta</th><th style="text-align:center">Pontos no placar</th></tr></thead><tbody>
+    <table class="tb-league" style="margin:10px 0 14px"><thead><tr><th>Faseamento até outubro/2026 (% da meta do mês no fim da semana)</th><th style="text-align:center">Meta</th><th style="text-align:center">Pontos no placar</th></tr></thead><tbody>
       <tr><td>1ª semana (até o dia 7)</td><td style="text-align:center">20%</td><td style="text-align:center"><b>+10</b></td></tr><tr><td>2ª semana (até o dia 14)</td><td style="text-align:center">40%</td><td style="text-align:center"><b>+20</b></td></tr>
       <tr><td>3ª semana (até o dia 20)</td><td style="text-align:center">60%</td><td style="text-align:center"><b>+30</b></td></tr><tr><td>4ª semana (até o fim do mês)</td><td style="text-align:center">110%</td><td style="text-align:center"><b>+40</b></td></tr>
       <tr><td>🥇 Bônus de primeira quinzena: bateu <strong>100%</strong> da meta até o dia 15</td><td style="text-align:center">100%</td><td style="text-align:center"><b>+50</b></td></tr><tr><td>🥈 Bateu <strong>100%</strong> da meta até o dia 25</td><td style="text-align:center">100%</td><td style="text-align:center"><b>+25</b></td></tr></tbody></table>
     <p style="font-size:13px;color:var(--tx-mut)">% da meta = (faturado + pendente) dividido pela meta do mês, o mesmo número do app do CEVEN. A semana de faseamento só pontua depois que o dia de fechamento termina. Sem meta cadastrada o vendedor não pontua no faseamento.</p>
+    <h4 style="margin:18px 0 8px">📅 Como a semana do AS é contada (a partir de novembro/2026)</h4>
+    <p><strong>Por que mudou:</strong> até outubro a semana era cortada pelo dia do mês (1–7, 8–14, 15–20, 21–fim). Quando o mês fecha no meio da semana (ex.: numa terça-feira 31), o vendedor do AS concentra os pedidos no fechamento e, nos 2 ou 3 dias seguintes, quase não tira pedido. Esses poucos dias viravam uma "semana" sozinha e uma derrota sem culpa do vendedor. Agora a semana acompanha o calendário de trabalho e todo jogo tem pelo menos 4 dias úteis.</p>
+    <p><strong>Regra 1 — semana de trabalho:</strong> cada semana vai de <strong>segunda a sexta</strong>, contando só os <strong>dias úteis</strong> (sem sábado, domingo e feriado nacional).</p>
+    <p><strong>Regra 2 — semana curta se junta:</strong> um pedaço de semana com <strong>3 dias úteis ou menos</strong> não é um jogo sozinho. No <strong>começo do mês</strong> ele se junta à semana <strong>seguinte</strong>; no <strong>fim do mês</strong>, à semana <strong>anterior</strong>. <em>Por quê:</em> evita o jogo de 2–3 dias logo depois do fechamento e o jogo de 1–2 dias no fim do mês, que decidiam vitória ou derrota por calendário, não por desempenho.</p>
+    <p><strong>Regra 3 — vitória proporcional aos dias da semana:</strong> Vitória = placar <strong>acima de 2 pontos por dia útil</strong> da semana (semana de 5 dias = acima de 10, igual ao Varejo; de 4 dias = acima de 8; de 8 dias = acima de 16). Empate = de 1 ponto até esse limite. Derrota = 0 ou negativo. <em>Por quê:</em> uma semana juntada tem mais dias para fazer gol; sem ajustar o limite, ela ficaria mais fácil que a semana normal.</p>
+    <p><strong>Regra 4 — faseamento proporcional aos dias úteis:</strong> no último dia útil de cada semana, a meta do faseamento é a <strong>parte do mês já trabalhada</strong> (dias úteis passados ÷ dias úteis do mês). A última semana continua exigindo <strong>110%</strong>. Os pontos seguem a mesma lógica: <strong>40 × a parte do mês já trabalhada</strong> (a última = 40). <em>Por quê:</em> num mês de 4 semanas iguais isso dá exatamente a escada de antes (20/40/60/110% = 10/20/30/40); em meses com feriado ou semana juntada, a meta acompanha o tempo que o vendedor realmente teve.</p>
+    <p><strong>Exemplo — novembro/2026</strong> (feriados em 02, 15 e 20/11):</p>
+    <table class="tb-league" style="margin:6px 0 14px"><thead><tr><th>Semana</th><th style="text-align:center">Dias úteis</th><th>Meta do faseamento · pontos · vitória</th></tr></thead><tbody>
+      <tr><td>1ª — dias 2 a 8</td><td style="text-align:center">4</td><td>21% da meta · +8 · vitória acima de 8</td></tr>
+      <tr><td>2ª — dias 9 a 15</td><td style="text-align:center">5</td><td>47% da meta · +19 · vitória acima de 10</td></tr>
+      <tr><td>3ª — dias 16 a 22</td><td style="text-align:center">4</td><td>68% da meta · +27 · vitória acima de 8</td></tr>
+      <tr><td>4ª — dias 23 a 30 (a segunda-feira 30 se junta)</td><td style="text-align:center">6</td><td>110% da meta · +40 · vitória acima de 12</td></tr>
+    </tbody></table>
+    <p style="font-size:13px;color:var(--tx-mut)">O placar da semana continua sendo: lances da semana + faseamento + bônus (100% até o dia 15 = +50; até o dia 25 = +25). Outubro/2026 segue com as semanas de antes (1–7, 8–14, 15–20, 21–fim).</p>
     <p>🟥 <strong>Devolução no AS: um cartão por cliente por dia</strong> (vale desde 15/10/2026). Se várias notas do mesmo cliente forem devolvidas no mesmo dia, conta só um cartão, o de maior peso. As outras notas continuam registradas, mas não somam no placar. Lojas diferentes (códigos de cliente diferentes) contam separado.</p>
     <p>⏳ <strong>Semana em andamento</strong> aparece como <strong>J</strong> (jogando) até o fechamento do último dia dela: ainda não é vitória, empate nem derrota.</p>
     <p><strong>O que NÃO vale no AS</strong> (depende do horário ou das visitas do dia; o AS visita um dia e vende em outro): Gol Relâmpago, Gol nos Acréscimos, Meta do 1º Tempo, Hat-Trick, Máquina de Conversão, Goleada, Cartão Amarelo das 10h e Cartão Vermelho de abandono — eles saem da tabela de pontos abaixo. <strong>Também fora no AS:</strong> Campeão da Rodada (o bônus de 100% da meta já cumpre esse papel). <strong>Gol de Mix (+2 SKUs):</strong> no AS o "Dobrou o Mix" é trocado por pedido com 2 ou mais SKUs a mais que a média do cliente (+4, qualificado por indústrias). <strong>⭐ Gol de Marca Própria (+8, a partir de 08/10/2026, no AS e no Varejo):</strong> pedido do cliente com R$ 50 ou mais de Marca Própria. É o gol mais valioso, ganha a estrela, é qualificado pelas indústrias do pedido e é SEMPRE exibido na TV, um a um, na frente de qualquer outro lance. <strong>🌟 Tripla de Marca Própria (+10, a partir de 09/10/2026, no AS e no Varejo):</strong> 3 clientes diferentes no mesmo dia, cada um com R$ 50 ou mais de Marca Própria. <strong>Valem iguais ao Varejo:</strong> Resgate de Inativo, Dobradinha das Quinzenas, Defesa, Super Pedido (no AS a partir de R$ 75.000 no dia), Pedido Feito na Rota, devoluções, pênaltis e impedimento de GPS. <strong>Em definição:</strong> check-in por carteira (90% = +5 · 95% = +10 · 100% = +20), amarelo de venda sem check-in e punição por falta de pedido (dia 5 = −5 · dia 10 = −10 · dia 20 = −20).</p>`;
