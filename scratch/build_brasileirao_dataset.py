@@ -541,10 +541,10 @@ def semana_as(dia_iso):
 MES_AS = (datetime.now(timezone.utc) - timedelta(hours=3)).strftime('%Y-%m')
 _HOJE_BR = (datetime.now(timezone.utc) - timedelta(hours=3)).date().isoformat()
 _ULT_MES_AS = calendar.monthrange(int(MES_AS[:4]), int(MES_AS[5:7]))[1]
-# SEMANAS DE TRABALHO DO AS (Vitorio, 15/10/2026 — a partir de NOVEMBRO/2026). Mesma conta de functions/_lib/liga_as.js (semanasAS):
+# SEMANAS DE TRABALHO DO AS (Vitorio, 15/10/2026 — vale ja, desde o inicio da liga). Mesma conta de functions/_lib/liga_as.js (semanasAS):
 # semana = segunda a sexta sem feriado; pedaco com 3 dias uteis ou menos se junta a vizinha (o primeiro com o seguinte, os demais com o anterior);
 # vitoria da semana = placar acima de 2 pontos por dia util (5 dias = acima de 10). Faseamento proporcional vem pronto de /api/liga-as.
-AS_SEMANAS_NOVAS_DESDE = '2026-11'
+AS_SEMANAS_NOVAS_DESDE = '2026-10'   # Vitorio, 15/10/2026: vale ja nesta semana
 def semanas_as_do_mes(mes):
     a, m = int(mes[:4]), int(mes[5:7]); ult = calendar.monthrange(a, m)[1]
     blocos, atual = [], None
@@ -638,7 +638,8 @@ try:
         _sem = []
         for n in range(1, len(AS_SEMANAS) + 1):
             pl = _lan_sem.get(str(v['rca']), {}).get(n, 0)
-            pf = _fases[n - 1]['ganhou'] if len(_fases) >= n else 0
+            # faseamento (cortes fixos nos dias 7/14/20/fim, inegociaveis) entra na semana de trabalho em que cai o dia do corte
+            pf = sum(f['ganhou'] for f in _fases if f.get('data') and str(f['data']).startswith(MES_AS) and semana_as(f['data']) == n)
             pb = sum(b['ganhou'] for b in _bonus if b.get('quando') and semana_as(b['quando']) == n)
             score = pl + pf + pb
             jogada = semana_as_jogada(n)

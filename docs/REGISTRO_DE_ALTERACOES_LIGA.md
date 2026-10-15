@@ -67,3 +67,5 @@
 - 15/10/2026 (revisão do regulamento para exportação): AS ganhou seções próprias (3. Supervisores/Filiais/Gerentes no AS; 4. Desempate no AS) e deixou de mostrar jogo do dia, Semana Invicta e Plus. Varejo: desempate CORRIGIDO no texto para o que o sistema sempre fez (vendedor: V, SG, GP, inativos; supervisor: Plus, V, SG; filial: V, SG, GP; gerente: V, SG) — positivação nunca foi critério. Auditoria dos lances ganhou o filtro VAREJO/AS (modo TV).
 
 - 15/10/2026: VERSÃO DAS REGRAS 2026-10-15.1 (config, cópia pública, REGRAS_VERSAO e LOCK_HASH). Regulamento mostra "O que mudou nesta versão".
+
+- 15/10/2026 (Vitório: "coloca valendo essa semana"; "a venda até dia 20 é inegociável... só pedi para ajustar as semanas"): semanas de trabalho do AS valem JÁ em outubro (semana 2 = 13 a 16/10, a 1ª da liga). FASEAMENTO NÃO MUDA (20% dia 7, 40% dia 14, 60% dia 20, 110% fim = 10/20/30/40); os pontos de cada corte entram na semana em que cai o dia. A ponderação fica na vitória: acima de 2 pts por dia útil da semana. Versão das regras 2026-10-15.1.

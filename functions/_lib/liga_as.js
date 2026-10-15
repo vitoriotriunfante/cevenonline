@@ -25,16 +25,16 @@ const pad = (n) => String(n).padStart(2, '0');
 export const ultimoDiaDoMes = (mes) => { const [a, m] = mes.split('-').map(Number); return new Date(Date.UTC(a, m, 0)).getUTCDate(); };
 
 // =========================================================================
-// SEMANAS DO AS POR SEMANA DE TRABALHO (Vitório, 15/10/2026 — vale a partir de NOVEMBRO/2026; outubro segue 1-7 / 8-14 / 15-20 / 21-fim).
+// SEMANAS DO AS POR SEMANA DE TRABALHO (Vitório, 15/10/2026 — vale JÁ, desde o início da liga em 13/10/2026; antes era 1-7 / 8-14 / 15-20 / 21-fim).
 // POR QUE: cortar a semana pelo dia do mês fazia o fim de mês cair no meio da semana (ex.: fecha numa terça 31) e a 'semana' seguinte
 //          ficava com 2 ou 3 dias logo depois do fechamento, em que o AS quase não tira pedido: derrota certa sem culpa do vendedor.
 // COMO:  1) semana = segunda a sexta (dias úteis, sem feriado) dentro do mês;
 //        2) pedaço de semana com 3 DIAS ÚTEIS OU MENOS se junta à vizinha (no começo do mês com a seguinte; no fim, com a anterior);
-//        3) faseamento proporcional aos dias úteis: meta = % dos dias úteis do mês já passados no fim da semana (a última = 110%);
-//           pontos = 40 × essa fração (a última = 40) — mesma escada de antes (20/40/60/110% = 10/20/30/40) quando o mês tem 4 semanas iguais;
+//        3) o FASEAMENTO NÃO MUDA (inegociável): 20% até o dia 7, 40% até o 14, 60% até o 20, 110% no fim do mês = 10/20/30/40 pontos;
+//           os pontos de cada corte entram no placar da semana de trabalho em que cai o dia do corte;
 //        4) vitória = placar acima de 2 pontos por dia útil da semana (5 dias = acima de 10, igual ao Varejo; 8 dias = acima de 16).
 // =========================================================================
-export const AS_SEMANAS_NOVAS_DESDE = '2026-11';
+export const AS_SEMANAS_NOVAS_DESDE = '2026-10';   // Vitorio, 15/10/2026: "coloca valendo essa semana" (outubro: semana 2 = 13 a 16/10, a 1a da liga)
 export const MIN_DIAS_SEMANA_AS = 4;   // 3 dias ou menos se junta (ex.: mes que fecha numa terca deixa qua-qui-sex no comeco do mes seguinte)
 export function semanasAS(mes) {
   const ult = ultimoDiaDoMes(mes), [a, m] = mes.split('-').map(Number);
@@ -54,11 +54,10 @@ export function semanasAS(mes) {
     alvo.de = Math.min(alvo.de, b.de); alvo.ate = Math.max(alvo.ate, b.ate);
     L.splice(i, 1); i = 0;
   }
-  const total = L.reduce((x, b) => x + b.dias.length, 0); let acum = 0;
   return L.map((b, i) => {
-    acum += b.dias.length; const ultima = i === L.length - 1, frac = acum / total;
+    const ultima = i === L.length - 1;
     return { n: i + 1, de: b.de, ate: ultima ? ult : b.ate, dias_uteis: b.dias.length, dias: b.dias, fim_util: b.dias[b.dias.length - 1],
-      meta: ultima ? 110 : Math.round(frac * 100), pontos: ultima ? 40 : Math.round(frac * 40), vitoria_acima_de: 2 * b.dias.length, fimDoMes: ultima };
+      vitoria_acima_de: 2 * b.dias.length, fimDoMes: ultima };
   });
 }
 export const usaSemanasNovas = (mes) => String(mes) >= AS_SEMANAS_NOVAS_DESDE;
@@ -73,9 +72,10 @@ export function calculaFaseamento(snaps, mes, hoje) {
   const fotoAte = (d) => { const ks = Object.keys(snaps).filter((k) => k <= d && k <= hoje).sort(); return ks.length ? snaps[ks[ks.length - 1]] : null; };
   const atual = fotoAte(hoje);
   const metaMes = atual ? Number(atual.meta) || 0 : 0;
-  const FASES = usaSemanasNovas(mes) ? semanasAS(mes).map((w) => ({ n: w.n, ate: w.ate, meta: w.meta, pontos: w.pontos, fimDoMes: w.fimDoMes, dias_uteis: w.dias_uteis, de: w.de, _fim: w.fimDoMes ? dia(ult) : w.fim_util })) : AS_FASES;
-  const fases = FASES.map((f) => {
-    const dFim = f._fim || (f.fimDoMes ? dia(ult) : dia(f.ate));
+  // FASEAMENTO E INEGOCIAVEL (Vitorio, 15/10/2026: "a venda ate dia 20... o vendedor precisa se mexer; so pedi para ajustar as semanas"): 20% ate o dia 7, 40% ate o 14,
+  // 60% ate o 20 e 110% no fim do mes, sempre. A semana de trabalho so decide em qual JOGO os pontos de cada corte entram (o gerador soma pela data).
+  const fases = AS_FASES.map((f) => {
+    const dFim = f.fimDoMes ? dia(ult) : dia(f.ate);
     if (dFim > hoje) return { ...f, ate: f.fimDoMes ? ult : f.ate, data: dFim, status: 'futuro', pct: null, ganhou: 0 };
     const p = pct(fotoAte(dFim));
     // o dia do fechamento da semana ainda esta rolando: mostra o % de agora, mas so pontua quando o dia terminar
