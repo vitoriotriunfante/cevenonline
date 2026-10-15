@@ -8,7 +8,7 @@
 // =========================================================================
 const BASE_URL = process.env.CEVEN_FONTE_BASE_URL || 'https://ceven-cftv-matrix.pages.dev';
 const LIGADA = process.env.CEVEN_FONTE_BASE !== '0';
-const MAX_IDADE_S = Number(process.env.CEVEN_FONTE_MAX_IDADE_S || 480); // 8 min (validado 08/10: com 12,7 min de idade um vendedor ja tinha vendido de novo e a base divergia do CEVEN); mais velho que isso = pergunta ao CEVEN
+const MAX_IDADE_S = Number(process.env.CEVEN_FONTE_MAX_IDADE_S || 2700);   // 15/10/2026: 45 min (a varredura central passa por todos em ~12-30 min; com 8 min um terco ia ao CEVEN e levava 429 — envio zerado) // 8 min (validado 08/10: com 12,7 min de idade um vendedor ja tinha vendido de novo e a base divergia do CEVEN); mais velho que isso = pergunta ao CEVEN
 const PARTE = { produtividade: 'produtividade', dashboard: 'dashboard', devolucoes: 'devolucoes', 'roteiro-hoje': 'roteiro' };
 
 const mapa = new Map(); // 'tbl1|123' -> { idade_s, produtividade, dashboard, devolucoes, roteiro }

@@ -566,6 +566,21 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
   };
 
   const rcasComPedido = [];
+  // MOTOR LE A BASE (Vitorio, 15/10/2026: "resolve!!!"): o 17:00 e o 18:30 sairam zerados porque o motor perguntava ao CEVEN o historico de cada cliente
+  // na hora do envio (429). Inativos reativados e recorrencia vem dos LANCES do dia (Resgate de Inativo e Defesa da Recorrencia, conferidos e com prova);
+  // cortes e bloqueados vem de /api/pedidos-dia (a analise que o coletor de lances grava a cada 5 min). Falha em qualquer leitura = rodada incompleta.
+  const BASE_SITE = process.env.CEVEN_FONTE_BASE_URL || 'https://ceven-cftv-matrix.pages.dev';
+  const lerSite = async (rota) => { try { const r = await axios.get(BASE_SITE + rota, { timeout: 90000 }); return r.data; } catch (e) { return null; } };
+  const lancesDia = await lerSite('/api/brasileirao-lances?dia=' + dataRef);
+  const pedidosDia = await lerSite('/api/pedidos-dia?dia=' + dataRef);
+  if (!lancesDia || !Array.isArray(lancesDia.lances)) { console.log('⚠️ Base: lances do dia indisponiveis'); FALHAS_COLETA++; }
+  if (!pedidosDia || !Array.isArray(pedidosDia.pedidos)) { console.log('⚠️ Base: pedidos do dia indisponiveis'); FALHAS_COLETA++; }
+  const inatPorRca = {}, recPorRca = {};
+  for (const l of (lancesDia && lancesDia.lances) || []) {
+    const k = String(l.filial || '').toUpperCase() + '_' + l.rca, tipo = String(l.chave || '').replace(/^[A-Z]{3}\|/, '').split('|')[0];
+    if (tipo === 'gol_inativo') inatPorRca[k] = (inatPorRca[k] || 0) + 1;
+    if (l.nivel === 'defesa') recPorRca[k] = (recPorRca[k] || 0) + 1;
+  }
   const RCAS_SEM_DADO = [];   // TRAVA (Vitorio, 15/10/2026: "jamais mande sem todos os dados"): qualquer vendedor sem dado bloqueia o envio
   FALHAS_COLETA = 0;
   const BATCH = 8;
@@ -604,7 +619,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
         resFil.fatTotalDigitado += dig;
         resFil.pedidosTotal += pedTot;
         if (dig > 0 || pedTot > 0) {
-          rcasComPedido.push({ filial: fSigla, fKey, chave: resFil.chave, codigo: rca.codigo, nome: cleanName(rca.nome) });
+          rcasComPedido.push({ filial: fSigla, fKey, chave: resFil.chave, codigo: rca.codigo, nome: cleanName(rca.nome), macroOnly: !!rca.macroOnly });
         }
         
         // Devoluções reais que entraram no dia de hoje (dataRef)
@@ -640,38 +655,15 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
           if (hasVenda) {
             resFil.vjCom++;
             s.vjCom++;
+            // inativos da rota: do roteiro (base); reativados e recorrencia: dos lances do dia (base). Nada vai ao CEVEN por cliente.
             try {
               const clients = await safeGet(`${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${fKey}&id=${rca.codigo}`) || [];
               const dataLimite = new Date();
               dataLimite.setDate(dataLimite.getDate() - 30);
-              // roteiro-hoje só tem status de VISITA (VISITADO/FORA_ROTA), não de pedido --
-              // não existe c.status='CONCLUIDO' nem c.valor_pedido nessa resposta (confirmado
-              // em teste ao vivo em 23/09/2026). O status real do pedido do dia (EFETIVADO)
-              // só sai em /api/rca/historico-cliente/{id}. Pra não estourar a API com 1
-              // chamada por cliente da rota inteira, só busca o histórico dos clientes que
-              // realmente importam pra estes 3 contadores: inativos (+30d) ou com foco de
-              // campanha (recorrência).
-              const CLIENTES_BATCH = 6;
-              for (let ci = 0; ci < clients.length; ci += CLIENTES_BATCH) {
-                const loteClientes = clients.slice(ci, ci + CLIENTES_BATCH);
-                await Promise.all(loteClientes.map(async c => {
-                  const isInativo = !c.data_ultima_compra || new Date(c.data_ultima_compra) < dataLimite;
-                  const temFocoRecorrencia = (c.focos || []).some(f => (f.industria_foco || '').toUpperCase().includes('RECORRENCIA'));
-                  if (isInativo) resFil.inativosRota++;
-                  if (!isInativo && !temFocoRecorrencia) return;
-
-                  let comprou = false;
-                  try {
-                    const hist = await safeGet(`${CEVEN_BASE}/api/rca/historico-cliente/${c.id_cliente}?filial=${fKey}&id=${rca.codigo}`);
-                    const ultimaVisita = (hist?.ultimas_visitas || []).find(v => ehPedidoDoRca(v.num_pedido, rca.codigo) || ehPedidoTolerante(v.num_pedido, rca.codigo));
-                    comprou = !!(ultimaVisita && ultimaVisita.data_visita === dataRef && ultimaVisita.status === 'EFETIVADO');
-                  } catch (e) { FALHAS_COLETA++; }
-
-                  if (isInativo && comprou) resFil.inativosRecuperados++;
-                  if (comprou && temFocoRecorrencia) resFil.recorrenciaPositivados++;
-                }));
-              }
+              for (const c of clients) if (!c.data_ultima_compra || new Date(c.data_ultima_compra) < dataLimite) resFil.inativosRota++;
             } catch (e) { FALHAS_COLETA++; }
+            resFil.inativosRecuperados += inatPorRca[valKey] || 0;
+            resFil.recorrenciaPositivados += recPorRca[valKey] || 0;
           } else {
             resFil.vjSem++;
             s.vjSem++;
@@ -691,78 +683,55 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
     }));
   }
 
-  // 2. Varredura rápida de Cortes Comerciais/Logísticos e Pedidos Bloqueados de Hoje
-  console.log(`🔍 Apurando Cortes e Bloqueados em tempo real nos ${rcasComPedido.length} vendedores com pedido hoje...`);
-  const BATCH_ROT = 10;
-  // Cada PEDIDO entra UMA vez (pelo numero), mesmo que varios vendedores visitem o cliente; o dono e o RCA do prefixo do numero (RCA + 6 digitos).
+  // 2. Cortes e Pedidos Bloqueados de Hoje — DA BASE (/api/pedidos-dia). Cada PEDIDO entra UMA vez (pelo numero); o dono e o RCA do prefixo do numero.
+  console.log(`🔍 Cortes e Bloqueados da base: ${((pedidosDia && pedidosDia.pedidos) || []).length} pedidos de hoje analisados pelo coletor.`);
   const PEDIDOS_APURADOS = new Set();
   const donosPorCodigo = new Map(rcasComPedido.map(x => [String(x.codigo), x]));
   const codigosConhecidos = [...donosPorCodigo.keys()];
-  for (let i = 0; i < rcasComPedido.length; i += BATCH_ROT) {
-    const lote = rcasComPedido.slice(i, i + BATCH_ROT);
-    await Promise.all(lote.map(async r => {
-      try {
-        const roteiroData = await safeGet(`${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${r.fKey}&id=${r.codigo}`);
-        const pdvs = (roteiroData || []).filter(p => p.status === 'POSITIVADO' || p.status === 'EFETIVADO' || p.status === 'VISITADO');
-        await Promise.all(pdvs.map(async p => {
-          try {
-            const histData = await safeGet(`${CEVEN_BASE}/api/rca/historico-cliente/${p.id_cliente}?filial=${r.fKey}&id=${r.codigo}`);
-            const visitasHoje = (histData?.ultimas_visitas || []).filter(v => v.data_visita === dataRef && v.num_pedido);
-            for (const v of visitasHoje) {
-              const numPed = String(v.num_pedido);
-              if (PEDIDOS_APURADOS.has(numPed)) continue; // ja contado (o mesmo pedido aparece no historico de todo vendedor que visitou o cliente)
-              PEDIDOS_APURADOS.add(numPed);
-              const codDono = donoDoPedido(numPed, codigosConhecidos) || String(r.codigo);
-              const dono = donosPorCodigo.get(codDono);
-              const alvo = dono || r; // dono fora da lista de hoje: conta na filial de quem achou, com o codigo do dono
-              const nomeDono = dono ? dono.nome : (codDono === String(r.codigo) ? r.nome : 'RCA ' + codDono);
-              const resFil = filialResult[alvo.chave || alvo.filial];
-              if (!resFil) continue;
-
-              const cat = (v.categoria_corte || '').toUpperCase();
-              const itensCort = v.itens_cortados || [];
-              const vlOrig = parseFloat(v.total_clube || v.valor_original || 0);
-              const vlFat = parseFloat(v.vl_faturado_winthor || 0);
-
-              // 1. Pedidos Bloqueados Hoje
-              if (v.status_pedido === 'BLOQUEADO') {
-                resFil.bloqueadosQtd++;
-                resFil.bloqueadosValor += (vlFat > 0 ? vlFat : vlOrig);
-              }
-
-              // 2. Cortes Comerciais / Logística de Hoje
-              const temCorte = (cat !== '' && cat !== 'SEM CORTE') || itensCort.length > 0;
-              if (temCorte) {
-                let valorCorte = 0;
-                if (vlOrig > vlFat && vlFat > 0) {
-                  valorCorte = vlOrig - vlFat;
-                } else if (itensCort.length > 0) {
-                  itensCort.forEach(it => {
-                    // so preco REAL do item (06/10/2026: antes entrava R$ 15 inventado quando o CEVEN nao trazia o preco)
-                    if (Number(it.preco) > 0) valorCorte += (it.qt_cortada || 0) * Number(it.preco);
-                  });
-                  // valor perdido REAL informado pelo CEVEN no pedido (vl_perdido_logistica), quando os itens nao trazem preco
-                  if (!(valorCorte > 0) && Number(v.vl_perdido_logistica) > 0) valorCorte = Number(v.vl_perdido_logistica);
-                }
-                if (valorCorte > 0) {
-                  resFil.cortesQtd++;
-                  resFil.cortesValor += valorCorte;
-                  resFil.itensCortados.push({
-                    rca: codDono,
-                    vendedor: nomeDono,
-                    cliente: p.nome_cliente,
-                    pedido: v.num_pedido,
-                    tipo: cat || 'CORTE IDENTIFICADO',
-                    valorCorte: Math.round(valorCorte * 100) / 100,
-                    itens: itensCort
-                  });
-                }
-              }
-            }
-          } catch (e) { FALHAS_COLETA++; }
-        }));
-      } catch (e) { FALHAS_COLETA++; }
-    }));
+  // COBERTURA: todo vendedor com pedido hoje (que participa dos lances) precisa ter os clientes positivados analisados; senao a rodada e incompleta
+  const analisados = (pedidosDia && pedidosDia.analisados) || {};
+  let semCobertura = 0;
+  for (const x of rcasComPedido) {
+    if (x.macroOnly) continue;
+    const rot = fonteBase.lerBaseReserva(`${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${x.fKey}&id=${x.codigo}`) || [];
+    const positivados = (Array.isArray(rot) ? rot : []).filter(c => c.status === 'POSITIVADO' || c.status === 'EFETIVADO').length;
+    if ((analisados[x.filial + '|' + x.codigo] || 0) < positivados) semCobertura++;
+  }
+  if (semCobertura) { console.log(`⚠️ Cortes/bloqueados: ${semCobertura} vendedor(es) com clientes positivados ainda sem analise na base (o coletor analisa a cada 5 min).`); FALHAS_COLETA++; }
+  const semInfoCorte = ((pedidosDia && pedidosDia.pedidos) || []).filter(p => !p.tem_corte_info).length;
+  if (semInfoCorte) { console.log(`⚠️ Cortes: ${semInfoCorte} pedido(s) analisados antes da versao com corte; aguardando a nova analise do coletor.`); FALHAS_COLETA++; }
+  for (const v of ((pedidosDia && pedidosDia.pedidos) || [])) {
+    const numPed = String(v.num);
+    if (PEDIDOS_APURADOS.has(numPed)) continue;
+    PEDIDOS_APURADOS.add(numPed);
+    const codDono = donoDoPedido(numPed, codigosConhecidos) || String(v.rca);
+    const dono = donosPorCodigo.get(codDono);
+    let resFil = dono ? filialResult[dono.chave || dono.filial] : null;
+    if (!resFil) resFil = obtemRes(v.filial, (repsValidationMap[v.filial + '_' + v.rca] || {}).gerente);
+    if (!resFil) continue;
+    const nomeDono = dono ? dono.nome : 'RCA ' + codDono;
+    const cat = (v.categoria_corte || '').toUpperCase();
+    const itensCort = v.itens_cortados || [];
+    const vlOrig = parseFloat(v.total_clube || v.valor_original || 0);
+    const vlFat = parseFloat(v.vl_faturado_winthor || 0);
+    if (v.status_pedido === 'BLOQUEADO') {
+      resFil.bloqueadosQtd++;
+      resFil.bloqueadosValor += (vlFat > 0 ? vlFat : vlOrig);
+    }
+    const temCorte = (cat !== '' && cat !== 'SEM CORTE') || itensCort.length > 0;
+    if (temCorte) {
+      let valorCorte = 0;
+      if (vlOrig > vlFat && vlFat > 0) valorCorte = vlOrig - vlFat;
+      else if (itensCort.length > 0) {
+        itensCort.forEach(it => { if (Number(it.preco) > 0) valorCorte += (it.qt_cortada || 0) * Number(it.preco); });
+        if (!(valorCorte > 0) && Number(v.vl_perdido_logistica) > 0) valorCorte = Number(v.vl_perdido_logistica);
+      }
+      if (valorCorte > 0) {
+        resFil.cortesQtd++;
+        resFil.cortesValor += valorCorte;
+        resFil.itensCortados.push({ rca: codDono, vendedor: nomeDono, cliente: '', pedido: v.num, tipo: cat || 'CORTE IDENTIFICADO', valorCorte: Math.round(valorCorte * 100) / 100, itens: itensCort });
+      }
+    }
   }
 
   // filial dividida: some a linha 'da filial inteira' (vazia); ficam so as linhas por gerente

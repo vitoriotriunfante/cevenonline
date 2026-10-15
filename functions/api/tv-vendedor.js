@@ -120,7 +120,10 @@ function analisaPedido(historico, cat, rca, hoje, canal) {
   const valorAtual = Array.isArray(atual?.skus) ? atual.skus.reduce((s, item) => s + (Number(item.total) || 0), 0) : 0;
   const { industrias, categorias } = industriasDoPedido(atual?.skus, cat);
   // pedido de hoje e (se houver dobradinha) os pedidos REAIS de cada quinzena do mes, com numero, data e valor (nunca estimativa)
-  const pedidoHoje = { num: atual.num_pedido || null, status_pedido: atual.status_pedido || null, valor: Number(atual.total_clube) || valorAtual };
+  const pedidoHoje = { num: atual.num_pedido || null, status_pedido: atual.status_pedido || null, valor: Number(atual.total_clube) || valorAtual,
+    // CORTE do pedido (15/10/2026): o WhatsApp le cortes e bloqueados daqui (/api/pedidos-dia) em vez de perguntar ao CEVEN cliente por cliente na hora do envio
+    data: atual.data_visita ? String(atual.data_visita).slice(0, 10) : null, categoria_corte: atual.categoria_corte || null, itens_cortados: Array.isArray(atual.itens_cortados) ? atual.itens_cortados.map((it) => ({ qt_cortada: it.qt_cortada, preco: it.preco })) : [],
+    total_clube: Number(atual.total_clube) || null, valor_original: Number(atual.valor_original) || null, vl_faturado_winthor: Number(atual.vl_faturado_winthor) || null, vl_perdido_logistica: Number(atual.vl_perdido_logistica) || null };
   let quinzenas = null;
   if (dobradinhaQuinzenas) {
     const doMes = todas.filter((v) => String(v.data_visita || '').slice(0, 7) === mesAtual && v.num_pedido && Number(v.total_clube) > 0);
