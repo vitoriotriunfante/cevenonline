@@ -247,6 +247,12 @@ export async function onRequestGet({ request, env }) {
     c.prod || getJson(`${CEVEN}/api/rca/produtividade?${q}`),
     c.rot || getJson(`${CEVEN}/api/rca/roteiro-hoje?${q}`)
   ]);
+  // RESERVA DA BASE (15/10/2026: o coletor de lances falhou em 400 de 548 vendedores — a base com mais de 30 min ia ao CEVEN e levava 429): se o CEVEN
+  // recusar, usa o dado REAL do dia que a varredura central ja leu (mesmo mais velho). Nunca inventa: sem base do dia, segue como falha.
+  if (!dash || !prod || !rot) {
+    const reserva = await lerCentral(env, id, 24 * 60 * 60 * 1000);
+    if (reserva) { dash = dash || reserva.dash; prod = prod || reserva.prod; rot = rot || reserva.rot; }
+  }
   // DADO DE ONTEM NA MANHA DE HOJE (Vitório, 07/10/2026: "tô recebendo lance de ontem agora"): na virada do dia o CEVEN ainda serve o roteiro e a produtividade de ONTEM.
   // 1) roteiro com cliente de OUTRA data (data_visita) ou com check-in DEPOIS da hora de agora = roteiro de ontem: descarta (nenhum lance nasce dele).
   // 2) ate as 10h: produtividade do dia com visitas/pedidos mas roteiro (com clientes) SEM nenhum check-in = produtividade de ontem: zera o 'dia'. Nunca inventa: so deixa de usar dado velho.
