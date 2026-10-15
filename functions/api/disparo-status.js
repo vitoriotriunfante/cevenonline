@@ -6,7 +6,7 @@ const REPO = 'vitoriotriunfante/cevenonline';
 const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 let cache = { exp: 0, corpo: null };
 
-export async function onRequestGet() {
+export async function onRequestGet({ env }) {
   if (cache.corpo && Date.now() < cache.exp) return new Response(JSON.stringify(cache.corpo), { headers: CORS });
   const agora = new Date();
   const corpo = { gerado_em: agora.toISOString(), dia_util: diaUtilBrt(agora), problemas: [], horarios: [] };
@@ -31,6 +31,19 @@ export async function onRequestGet() {
       corpo.erro = String(e.message || e);
     }
   }
-  cache = { exp: Date.now() + 90 * 1000, corpo };
+  // GITHUB 403 (15/10/2026): a API publica do GitHub limita por IP e o IP do Cloudflare e compartilhado. Guarda a ultima leitura boa no D1
+  // e, se o GitHub recusar, devolve essa leitura com o horario dela (nunca inventa: avisa que e a ultima leitura).
+  try {
+    if (env && env.DB) {
+      await env.DB.prepare('CREATE TABLE IF NOT EXISTS config_flags (chave TEXT PRIMARY KEY, valor TEXT)').run();
+      if (!corpo.erro) await env.DB.prepare("INSERT OR REPLACE INTO config_flags (chave, valor) VALUES ('disparo_status_ultimo', ?)").bind(JSON.stringify(corpo)).run();
+      else {
+        const u = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'disparo_status_ultimo'").first();
+        const ant = u && JSON.parse(u.valor);
+        if (ant && String(ant.gerado_em).slice(0, 10) === corpo.gerado_em.slice(0, 10)) { ant.aviso = `GitHub recusou a consulta agora (${corpo.erro}); mostrando a leitura de ${new Date(ant.gerado_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`; cache = { exp: Date.now() + 5 * 60 * 1000, corpo: ant }; return new Response(JSON.stringify(ant), { headers: CORS }); }
+      }
+    }
+  } catch { /* sem D1: segue com o que tem */ }
+  cache = { exp: Date.now() + 5 * 60 * 1000, corpo };
   return new Response(JSON.stringify(corpo), { headers: CORS });
 }
