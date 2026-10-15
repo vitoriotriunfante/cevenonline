@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-15T17:33:44.161907Z",
+  "gerado_em": "2026-10-15T17:48:21.140786Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -9,7 +9,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 17758,
+  "total_lances_auditados": 17760,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -104,8 +104,8 @@
       "empates": 3,
       "derrotas": 0,
       "gp": 937,
-      "gc": 681,
-      "sg": 256,
+      "gc": 689,
+      "sg": 248,
       "aprov": 33.3,
       "super_pedidos": 3,
       "inativos_resgatados": 23,
@@ -344,8 +344,8 @@
       "empates": 3,
       "derrotas": 0,
       "gp": 937,
-      "gc": 681,
-      "sg": 256,
+      "gc": 689,
+      "sg": 248,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -1038,8 +1038,8 @@
       "empates": 3,
       "derrotas": 0,
       "gp": 279,
-      "gc": 97,
-      "sg": 182,
+      "gc": 105,
+      "sg": 174,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -13742,36 +13742,6 @@
       "pos_filial": 14
     },
     {
-      "rca": "1118",
-      "nome": "VIVIANE RIBEIRO BRANCO",
-      "filial": "ABC",
-      "supervisor": "RODRIGO STELLEO COSTA LEITE",
-      "gerente": "Marcos",
-      "canal": "VAREJO",
-      "jogos": 2,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 2,
-      "pts_tabela": 0,
-      "aprov": 0.0,
-      "gp": 17,
-      "gc": 22,
-      "sg": -5,
-      "super_pedidos": 0,
-      "inativos_resgatados": 0,
-      "forma": [
-        "D",
-        "D",
-        "J"
-      ],
-      "streak": 0,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 230,
-      "pos_filial": 17
-    },
-    {
       "rca": "405",
       "nome": "DIONE CAMILO BENTO OLIVEIRA",
       "filial": "TCA",
@@ -13798,7 +13768,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 231,
+      "pos_brasil": 230,
       "pos_filial": 24
     },
     {
@@ -13828,7 +13798,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 232,
+      "pos_brasil": 231,
       "pos_filial": 25
     },
     {
@@ -13888,8 +13858,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 233,
-      "pos_filial": 18
+      "pos_brasil": 232,
+      "pos_filial": 17
     },
     {
       "rca": "265",
@@ -13948,7 +13918,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 234,
+      "pos_brasil": 233,
       "pos_filial": 24
     },
     {
@@ -13978,7 +13948,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 235,
+      "pos_brasil": 234,
       "pos_filial": 18
     },
     {
@@ -14008,7 +13978,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 236,
+      "pos_brasil": 235,
       "pos_filial": 31
     },
     {
@@ -14038,7 +14008,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 237,
+      "pos_brasil": 236,
       "pos_filial": 19
     },
     {
@@ -14098,7 +14068,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 238,
+      "pos_brasil": 237,
       "pos_filial": 25
     },
     {
@@ -14128,7 +14098,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 239,
+      "pos_brasil": 238,
       "pos_filial": 32
     },
     {
@@ -14188,7 +14158,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 240,
+      "pos_brasil": 239,
       "pos_filial": 33
     },
     {
@@ -14218,7 +14188,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 241,
+      "pos_brasil": 240,
       "pos_filial": 34
     },
     {
@@ -14248,8 +14218,38 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 242,
+      "pos_brasil": 241,
       "pos_filial": 35
+    },
+    {
+      "rca": "1118",
+      "nome": "VIVIANE RIBEIRO BRANCO",
+      "filial": "ABC",
+      "supervisor": "RODRIGO STELLEO COSTA LEITE",
+      "gerente": "Marcos",
+      "canal": "VAREJO",
+      "jogos": 2,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 2,
+      "pts_tabela": 0,
+      "aprov": 0.0,
+      "gp": 17,
+      "gc": 30,
+      "sg": -13,
+      "super_pedidos": 0,
+      "inativos_resgatados": 0,
+      "forma": [
+        "D",
+        "D",
+        "J"
+      ],
+      "streak": 0,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 242,
+      "pos_filial": 18
     },
     {
       "rca": "80",
