@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-16T22:33:42.280932Z",
+  "gerado_em": "2026-10-16T22:48:28.569530Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -10,7 +10,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 19962,
+  "total_lances_auditados": 19968,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -218,12 +218,12 @@
       "vitorias": 0,
       "empates": 4,
       "derrotas": 0,
-      "gp": 2231,
-      "gc": 2989,
-      "sg": -758,
+      "gp": 2244,
+      "gc": 3008,
+      "sg": -764,
       "aprov": 33.3,
       "super_pedidos": 4,
-      "inativos_resgatados": 58,
+      "inativos_resgatados": 59,
       "forma": [
         "E",
         "E",
@@ -520,9 +520,9 @@
       "vitorias": 0,
       "empates": 4,
       "derrotas": 0,
-      "gp": 745,
-      "gc": 1368,
-      "sg": -623,
+      "gp": 758,
+      "gc": 1387,
+      "sg": -629,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -3157,9 +3157,9 @@
       "vitorias": 0,
       "empates": 0,
       "derrotas": 3,
-      "gp": 247,
-      "gc": 605,
-      "sg": -358,
+      "gp": 260,
+      "gc": 624,
+      "sg": -364,
       "aprov": 0.0,
       "forma": [
         "D",
@@ -17858,11 +17858,11 @@
       "derrotas": 3,
       "pts_tabela": 0,
       "aprov": 0.0,
-      "gp": 38,
-      "gc": 163,
-      "sg": -125,
+      "gp": 51,
+      "gc": 182,
+      "sg": -131,
       "super_pedidos": 0,
-      "inativos_resgatados": 0,
+      "inativos_resgatados": 1,
       "forma": [
         "D",
         "D",
@@ -19769,7 +19769,7 @@
         "supervisor": "ALYFER PEREIRA MENDES",
         "gerente": "Adriano",
         "meta_mes": 225215.87,
-        "pct_hoje": 78.4,
+        "pct_hoje": 86.3,
         "fases": [
           {
             "n": 1,
@@ -30505,6 +30505,137 @@
         "pos_filial": 5
       },
       {
+        "rca": "49",
+        "nome": "LUIS FERNANDO ANTUNES",
+        "filial": "TPH",
+        "supervisor": "LUCAS RAMOS MONTAGNHANI",
+        "gerente": "Vagner",
+        "meta_mes": 463547,
+        "pct_hoje": 30.1,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-10-07",
+            "status": "nao_batida",
+            "pct": 18.2,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-10-14",
+            "status": "nao_batida",
+            "pct": 30.9,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-10-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 31,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-10-31",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "perdido",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "J",
+            "pts_tabela": 0
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 0,
+        "vitorias": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "pts_tabela": 0,
+        "aprov": 0,
+        "forma": [
+          "J"
+        ],
+        "pontos": 0,
+        "pts_lances": 0,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 96,
+        "pos_filial": 19
+      },
+      {
         "rca": "360",
         "nome": "SONIA SIRLEI WELFER BASTOS",
         "filial": "TCV",
@@ -30632,139 +30763,8 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 96,
-        "pos_filial": 15
-      },
-      {
-        "rca": "49",
-        "nome": "LUIS FERNANDO ANTUNES",
-        "filial": "TPH",
-        "supervisor": "LUCAS RAMOS MONTAGNHANI",
-        "gerente": "Vagner",
-        "meta_mes": 463547,
-        "pct_hoje": 28.4,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-10-07",
-            "status": "nao_batida",
-            "pct": 18.2,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-10-14",
-            "status": "nao_batida",
-            "pct": 30.9,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-10-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 31,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-10-31",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "perdido",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 2,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": true,
-            "resultado": "J",
-            "pts_tabela": 0
-          },
-          {
-            "n": 3,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 4,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 0,
-        "vitorias": 0,
-        "empates": 0,
-        "derrotas": 0,
-        "pts_tabela": 0,
-        "aprov": 0,
-        "forma": [
-          "J"
-        ],
-        "pontos": 0,
-        "pts_lances": 0,
-        "pts_faseamento": 0,
-        "pts_bonus": 0,
         "pos_brasil": 97,
-        "pos_filial": 19
+        "pos_filial": 15
       },
       {
         "rca": "51",
@@ -37142,7 +37142,7 @@
         "total_vendedores": 5,
         "com_meta": 5,
         "meta_mes": 1315715.87,
-        "pct_hoje": 43,
+        "pct_hoje": 44.3,
         "fases": [
           {
             "n": 1,
@@ -37332,7 +37332,7 @@
         "total_vendedores": 6,
         "com_meta": 6,
         "meta_mes": 3180467,
-        "pct_hoje": 35,
+        "pct_hoje": 35.2,
         "fases": [
           {
             "n": 1,
