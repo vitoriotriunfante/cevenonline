@@ -699,7 +699,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
   }
   if (semCobertura) { console.log(`⚠️ Cortes/bloqueados: ${semCobertura} vendedor(es) com clientes positivados ainda sem analise na base (o coletor analisa a cada 5 min).`); FALHAS_COLETA++; }
   const semInfoCorte = ((pedidosDia && pedidosDia.pedidos) || []).filter(p => !p.tem_corte_info).length;
-  if (semInfoCorte) { console.log(`⚠️ Cortes: ${semInfoCorte} pedido(s) analisados antes da versao com corte; aguardando a nova analise do coletor.`); FALHAS_COLETA++; }
+  if (semInfoCorte) { console.log(`⚠️ Cortes: ${semInfoCorte} pedido(s) analisados antes da versao com corte; aguardando a nova analise do coletor.`); if (process.env.CEVEN_DESTINO_ATUAL !== 'dry_run') FALHAS_COLETA++; }   // ensaio (dry_run, nao envia nada) so avisa
   for (const v of ((pedidosDia && pedidosDia.pedidos) || [])) {
     const numPed = String(v.num);
     if (PEDIDOS_APURADOS.has(numPed)) continue;
@@ -1488,6 +1488,7 @@ async function main() {
 
   const acao = args.acao || 'completo';
   const destino = args.destino || 'dry_run';
+  process.env.CEVEN_DESTINO_ATUAL = destino;
   const hora = args.hora || '11:00';
   const dataHoje = args.data || new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
 
