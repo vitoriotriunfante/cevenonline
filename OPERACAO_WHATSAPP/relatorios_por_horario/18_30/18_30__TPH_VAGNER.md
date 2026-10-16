@@ -1,16 +1,19 @@
 🏢 *BOLETIM DE FECHAMENTO OFICIAL — 18:30*
-📅 15/10/2026
+📅 16/10/2026
 📍 *FILIAL TPH — VAGNER*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 222.135,16
-📦 *Pedidos Colocados:* 191 pedidos
-📍 *Visitas Realizadas:* 372 de 427 (87,1%)
+💰 *Total Digitado Hoje:* R$ 313.161,13
+📦 *Pedidos Colocados:* 210 pedidos
+📍 *Visitas Realizadas:* 379 de 427 (88,8%)
 👥 *Vendedores Varejo com Pedido:* 32 de 35 (91%)
-✂️ *Cortes nos Pedidos de Hoje:* R$ 0,00 (0 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 6.342,99 (3 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 2.590,59
-🟢 *Recuperação de Inativos (+30d):* 5 de 128 PDVs reativados hoje
+✂️ *Cortes nos Pedidos de Hoje:* R$ 19,64 (1 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 55.180,84 (14 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 26.353,59
+
+⚠️ *DETALHE DOS CORTES DE HOJE:*
+  ▫️ Cód. 124 • THACIANE REGINA CORDEIRO DE CASTRO: -R$ 19,64 em  (SKU em falta)
+🟢 *Recuperação de Inativos (+30d):* 7 de 132 PDVs reativados hoje
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*
