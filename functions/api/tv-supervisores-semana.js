@@ -9,7 +9,6 @@
 import { NAO_SUPERVISORES, normNome } from '../_lib/nao_supervisores.js';
 import { supervisoresAtivos, ehAtivo } from '../_lib/sup_ativos.js';
 import { tokenAdmin, ultimaFalhaLogin } from '../_lib/ceven_admin_token.js';
-import { guardaResposta, leResposta } from '../_lib/cache_resposta.js';
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
 const FERIADOS = ['2026-01-01', '2026-02-16', '2026-02-17', '2026-04-03', '2026-04-21', '2026-05-01', '2026-06-04', '2026-09-07', '2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25'];
@@ -53,22 +52,15 @@ export async function onRequestGet({ request, env }) {
   const dias = diasDaSemana(ref);
   const chave = dias[0] + '|' + (debug ? 'd' : '');
   let comp, ret;
-  // RESERVA (15/10/2026): CEVEN travado -> ultima leitura REAL desta semana, com a hora dela (dado_de)
-  const chaveReserva = `semana|${filial || 'todas'}|${dias[0]}|${hoje}`;
-  const falha = async (erro, extra = {}) => {
-    const r = debug ? null : await leResposta(env, chaveReserva);
-    if (r) return new Response(JSON.stringify({ ...r, aviso: erro }), { headers: cors });
-    return new Response(JSON.stringify({ erro, ...extra }), { status: 502, headers: cors });
-  };
   if (!debug && cacheDados.chave === chave && Date.now() < cacheDados.exp) ({ comp, ret } = cacheDados.corpo);
   else {
     const tk = await token(env);
-    if (!tk) return falha('login no CEVEN falhou', { motivo: ultimaFalhaLogin });
+    if (!tk) return new Response(JSON.stringify({ erro: 'login no CEVEN falhou', motivo: ultimaFalhaLogin }), { status: 502, headers: cors });
     [comp, ret] = await Promise.all([
       getJson(`${CEVEN}/api/admin/supervisores/matriz-compromissos?dataInicio=${dias[0]}&dataFim=${dias[4]}`, tk),
       getJson(`${CEVEN}/api/admin/supervisores/matriz-ret?dataInicio=${dias[0]}&dataFim=${dias[4]}`, tk)
     ]);
-    if (!comp || !ret) return falha('CEVEN não respondeu (compromissos/RET)');
+    if (!comp || !ret) return new Response(JSON.stringify({ erro: 'CEVEN não respondeu (compromissos/RET)' }), { status: 502, headers: cors });
     cacheDados = { chave, exp: Date.now() + 3 * 60 * 1000, corpo: { comp, ret } };
   }
   if (debug) {
@@ -98,7 +90,5 @@ export async function onRequestGet({ request, env }) {
     });
   }
   for (const l of Object.values(porFilial)) l.sort((a, b) => a.nome.localeCompare(b.nome));
-  const corpo = { hoje, dias, filiais: porFilial, consultado_em: new Date().toISOString() };
-  await guardaResposta(env, chaveReserva, corpo);
-  return new Response(JSON.stringify(corpo), { headers: cors });
+  return new Response(JSON.stringify({ hoje, dias, filiais: porFilial, consultado_em: new Date().toISOString() }), { headers: cors });
 }

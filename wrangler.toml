@@ -7,3 +7,8 @@ binding = "DB"
 database_name = "ceven_noc_d1"
 database_id = "6112e60c-3546-41dd-aae1-ef44958596b7"
 migrations_dir = "./migrations"
+
+# 16/10/2026: o CEVEN recusa chamadas de fora do Brasil. Sem isto, as Functions rodam no data center de quem acessa
+# (ex.: Vitorio na Argentina -> EZE/Buenos Aires) e o CEVEN trava. Fixa a execucao em Sao Paulo.
+[placement]
+region = "aws:sa-east-1"

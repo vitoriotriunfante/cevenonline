@@ -15,7 +15,6 @@
 import { NAO_SUPERVISORES, normNome } from '../_lib/nao_supervisores.js';
 import { supervisoresAtivos, ehAtivo } from '../_lib/sup_ativos.js';
 import { tokenAdmin, ultimaFalhaLogin } from '../_lib/ceven_admin_token.js';
-import { guardaResposta, leResposta } from '../_lib/cache_resposta.js';
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
 
@@ -39,26 +38,19 @@ export async function onRequestGet({ request, env }) {
   if (!/^[a-z]{3}$/.test(filial)) return new Response(JSON.stringify({ erro: 'filial (sigla) obrigatória' }), { status: 400, headers: cors });
   if (!env.CEVEN_ADMIN_USER || !env.CEVEN_ADMIN_PASS) return new Response(JSON.stringify({ erro: 'segredos não configurados' }), { status: 503, headers: cors });
 
+  const tk = await token(env);
+  if (!tk) return new Response(JSON.stringify({ erro: 'login no CEVEN falhou', motivo: ultimaFalhaLogin }), { status: 502, headers: cors });
+
   // data de hoje no horário de Brasília
   const p = {};
   new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()).forEach((x) => (p[x.type] = x.value));
   const dia = `${p.year}-${p.month}-${p.day}`;
-  // RESERVA (15/10/2026): CEVEN travado -> devolve a ultima leitura REAL de hoje, com a hora dela (dado_de). Sem leitura de hoje = erro, como antes.
-  const chaveReserva = `sup|${filial}|${dia}`;
-  const falha = async (erro, extra = {}) => {
-    const r = await leResposta(env, chaveReserva);
-    if (r) return new Response(JSON.stringify({ ...r, aviso: erro }), { headers: cors });
-    return new Response(JSON.stringify({ erro, ...extra }), { status: 502, headers: cors });
-  };
-
-  const tk = await token(env);
-  if (!tk) return falha('login no CEVEN falhou', { motivo: ultimaFalhaLogin });
 
   const [comp, ret] = await Promise.all([
     getJson(`${CEVEN}/api/admin/supervisores/matriz-compromissos?dataInicio=${dia}&dataFim=${dia}`, tk),
     getJson(`${CEVEN}/api/admin/supervisores/matriz-ret?dataInicio=${dia}&dataFim=${dia}`, tk)
   ]);
-  if (!comp || !ret) return falha('CEVEN não respondeu (compromissos/RET)');
+  if (!comp || !ret) return new Response(JSON.stringify({ erro: 'CEVEN não respondeu (compromissos/RET)' }), { status: 502, headers: cors });
 
   const ativos = await supervisoresAtivos(env);
   const key = filial + '1';
@@ -114,7 +106,5 @@ export async function onRequestGet({ request, env }) {
     })
   );
 
-  const corpo = { data: dia, filial: filial.toUpperCase(), supervisores, consultado_em: new Date().toISOString() };
-  await guardaResposta(env, chaveReserva, corpo);
-  return new Response(JSON.stringify(corpo), { headers: cors });
+  return new Response(JSON.stringify({ data: dia, filial: filial.toUpperCase(), supervisores, consultado_em: new Date().toISOString() }), { headers: cors });
 }
