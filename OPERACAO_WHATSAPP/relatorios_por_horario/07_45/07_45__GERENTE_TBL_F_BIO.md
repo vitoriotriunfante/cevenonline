@@ -1,54 +1,7 @@
 🌅 *ABERTURA MATINAL — TBL (07:45)*
-📅 sexta-feira, 16/10/2026
+📅 quinta-feira, 15/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 👥 Vendedores: 28 • Visitas: 388 (média 13,9/vendedor)
 Sem compra +30d: 144 (37,1%) • Recorrência: 30 (7,7%)
-Oportunidades CNAE 4771: +489 PDVs
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🚨 *PDVs EM RISCO — 07:45*
-📍 *TBL — FÁBIO* • 16/10/2026
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 144
-
-👤 *CRISTIANE DE FREITAS DUARTE* (31 em risco)
-  🟡 POSTO PETROARAS II (194) — 31/07
-  🟡 CANTINA LONDRINENSE (194) — 19/08
-  🟡 EMPORIO ART CAFE (194) — 04/09
-  🟡 P M BUENO COMERCIO DE ALIMENTOS LTDA (194) — 27/05
-  🟡 CASA DA LIMPEZA (194) — 27/05
-  _+26 outros_
-
-👤 *IGOR RODRIGUES DUARTE* (20 em risco)
-  🟡 PANIFICADORA ART PAO (177) — 05/09
-  🟡 MERCADO ECONOMIA (177) — 05/09
-  🟡 REI DA AVENIDA CONVENIENCIA LTDA (177) — 05/09
-  🟡 SUPERMERCADO SOBRAL (177) — 05/12
-  🟡 TORREZAN CONVENIENCIA (177) — 05/09
-  _+15 outros_
-
-👤 *KLEBERSON BATISTA LIDUARIO* (14 em risco)
-  🟡 LUIZ ADEMIR DOS SANTOS 20561695920 (172) — 29/07
-  🟡 LANCHONETE RIBEIRO (172) — 08/08
-  🟡 FLORICULTURA TULIPA (172) — 05/12
-  🟡 PANIFICADORA E CONFEITARIA AMERICA LTDA (172) — 05/12
-  🟡 M R MENDES MERCADO MENDES (172) — 31/08
-  _+9 outros_
-
-👤 *LEONARDO MANOSSO DE GODOI* (63 em risco)
-  🟡 PANIF E CONF A PREDILETA (171) — 31/08
-  🟡 CASA DE CARNES PAIXAO (190) — 27/05
-  🟡 MERCADO BRULIM (190) — 05/12
-  🟡 BAR DO BETO (190) — 31/08
-  🟡 MERCADO DO MENINO (190) — 05/12
-  _+58 outros_
-
-👤 *SERGIO LOPES DE OLIVEIRA* (16 em risco)
-  🟡 FAGOTTE E SANCHES LTDA (175) — 05/12
-  🟡 FAGOTTE (175) — 27/05
-  🟡 SUPERMERCADO VENEZA (175) — 27/05
-  🟡 MERCADO VENEZA (175) — 05/12
-  🟡 PANIF E CONF GABI (181) — 10/07
-  _+11 outros_
+Oportunidades CNAE 4712: +423 PDVs

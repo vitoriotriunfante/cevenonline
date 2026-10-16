@@ -13,11 +13,11 @@
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
   ▫️ Cód. 427 • FRANCISCO ROGERIO SOUZA DINIZ: -R$ 135,21 em  (SKU em falta)
-  ▫️ Cód. 440 • LUAN FELIPE DE SOUZA MEDEIROS: -R$ 372,58 em  (SKU em falta)
   ▫️ Cód. 463 • RODRIGO ALBUQUERQUE DE SOUZA: -R$ 335,07 em  (SKU em falta)
+  ▫️ Cód. 440 • LUAN FELIPE DE SOUZA MEDEIROS: -R$ 372,58 em  (SKU em falta)
   ▫️ Cód. 439 • LUIS FERNANDO CASTILHO ALVES: -R$ 29,67 em  (SKU em falta)
   ▫️ _... e mais 2 pedidos com corte._
-🟢 *Recuperação de Inativos (+30d):* 5 de 26 PDVs reativados hoje
+🟢 *Recuperação de Inativos (+30d):* 5 de 25 PDVs reativados hoje
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*

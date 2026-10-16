@@ -1,17 +1,17 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 sexta-feira, 16/10/2026
+📅 quinta-feira, 15/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 👥 Vendedores: 34 • Visitas: 427 (média 12,6/vendedor)
-Sem compra +30d: 141 (33,0%) • Recorrência: 61 (14,3%)
-Oportunidades CNAE 4771: +1.708 PDVs
+Sem compra +30d: 139 (32,6%) • Recorrência: 61 (14,3%)
+Oportunidades CNAE 4712: +1.166 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPH — VAGNER* • 16/10/2026
+📍 *TPH — VAGNER* • 15/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 136
+🔴 Última Chance: 0  •  🟡 Preventivo: 26
 
 👤 *ANDREY CAMILLO PIRAGINE* (26 em risco)
   🟡 EMBALA TUDO (66) — 11/09
@@ -20,35 +20,3 @@ Oportunidades CNAE 4771: +1.708 PDVs
   🟡 PLENA AVENIDA UTILIDADES (67) — 05/12
   🟡 POSTO POTENCIAL (67) — 04/09
   _+21 outros_
-
-👤 *JEFFERSON POLETTO* (25 em risco)
-  🟡 PET SHOP RISSI E SILVA TORRES (125) — 04/09
-  🟡 PET SHOP CAO SOCIAL (125) — 04/09
-  🟡 OUTPETS COLOMBO (125) — 05/12
-  🟡 DOG MARLEY (125) — 05/12
-  🟡 PONTO ANIMAL PET SHOP (125) — 05/12
-  _+20 outros_
-
-👤 *JONATHAN FERNANDES* (38 em risco)
-  🟡 RANCHO CENTRO SUL AGROPECUARIA LTDA (123) — 05/12
-  🟡 WELLINGTON HILGERBERG (123) — 10/07
-  🟡 IMPERIAL RACOES (123) — 10/07
-  🟡 AVIARIO GUAIPECA (124) — 05/09
-  🟡 PET POINT BANHO E TOSA E PET SHOP (124) — 25/08
-  _+33 outros_
-
-👤 *LUIZ AUGUSTO RAMOS* (27 em risco)
-  🟡 PANIFICADORA EMANUELLY (74) — 12/09
-  🟡 FARMACIA BIG FARMA (74) — 08/08
-  🟡 W A BEBIDAS E CONVENIENCIA (74) — 03/07
-  🟡 OFERTAO SUPERMERCADOS (74) — 08/08
-  🟡 MERCADO RIOMAR (75) — 13/06
-  _+22 outros_
-
-👤 *RODRIGO DE ARRUDA DARROS* (20 em risco)
-  🟡 COMERCIO DE COMBUSTIVEIS BORDIGNON LTDA (85) — 02/07
-  🟡 COMERCIAL DE ALIMENTOS RESENDE LTDA - ME (86) — 08/08
-  🟡 COMERCIAL CAPESO (86) — 08/08
-  🟡 MERCADO DA SERRA (87) — 10/07
-  🟡 ALUA DISTRINUIDORA (87) — 05/12
-  _+15 outros_
