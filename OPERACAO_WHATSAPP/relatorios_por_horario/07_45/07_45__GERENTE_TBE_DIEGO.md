@@ -1,24 +1,24 @@
 🌅 *ABERTURA MATINAL — TBE (07:45)*
-📅 quinta-feira, 15/10/2026
+📅 sexta-feira, 16/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 👥 Vendedores: 16 • Visitas: 293 (média 18,3/vendedor)
-Sem compra +30d: 105 (35,8%) • Recorrência: 18 (6,1%)
-Oportunidades CNAE 4712: +293 PDVs
+Sem compra +30d: 107 (36,5%) • Recorrência: 18 (6,1%)
+Oportunidades CNAE 4771: +314 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TBE — DIEGO* • 15/10/2026
+📍 *TBE — DIEGO* • 16/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🔴 Última Chance: 0  •  🟡 Preventivo: 102
 
 👤 *HAMILTON RICARDO DOS SANTOS MENDES* (27 em risco)
-  🟡 TABACARIA PE KENTE (306) — 31/08
-  🟡 MERCADO E ACOUGUE MARCHESI (306) — 05/12
   🟡 CIA DO PAO PADARIA (301) — 20/08
   🟡 VERA MARIA MACEDO KLEIN SUSSENBACH (301) — 27/08
   🟡 PUB DO GUGU (301) — 05/12
+  🟡 MERCADO BITA (301) — 25/08
+  🟡 MARCOS ROBERTO PIQUELETE BELMONTE (301) — 05/12
   _+22 outros_
 
 👤 *NEIVA CLEONICE SERRA ISOPPO* (7 em risco)
@@ -30,9 +30,9 @@ Oportunidades CNAE 4712: +293 PDVs
   _+2 outros_
 
 👤 *PATRICIA CHAVES MACHADO* (68 em risco)
-  🟡 VIA PAN (288) — 11/09
-  🟡 CONFEITARIA DOCE MOMENTO (288) — 11/09
-  🟡 PELVALE COMERCIO DE PAPEIS LTDA (288) — 20/07
-  🟡 PERTTO SUPERMERCADO (288) — 01/01
-  🟡 TIAGO BARBOSA DA SILVA (288) — 05/12
+  🟡 MERCADO ALMEIDA (285) — 01/01
+  🟡 FARMASAUDE (285) — 05/12
+  🟡 FRANCIELE DO NASCIMENTO FLORES (285) — 14/07
+  🟡 MEILIPAN (285) — 11/09
+  🟡 GL ALIMENTOS (285) — 01/01
   _+63 outros_

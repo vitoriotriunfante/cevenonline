@@ -1,15 +1,15 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 quinta-feira, 15/10/2026
+📅 sexta-feira, 16/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 👥 Vendedores: 21 • Visitas: 158 (média 7,5/vendedor)
-Sem compra +30d: 34 (21,5%) • Recorrência: 22 (13,9%)
-Oportunidades CNAE 4712: +431 PDVs
+Sem compra +30d: 35 (22,2%) • Recorrência: 22 (13,9%)
+Oportunidades CNAE 4771: +190 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — ADRIANO* • 15/10/2026
+📍 *MCD — ADRIANO* • 16/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🔴 Última Chance: 0  •  🟡 Preventivo: 34
 
@@ -31,7 +31,7 @@ Oportunidades CNAE 4712: +431 PDVs
 👤 *CLEOMAR DINIZ BARBOSA* (18 em risco)
   🟡 ZENIR CARVALHO RODRIGUES (415) — 05/09
   🟡 MERCADO ECONOMICO (424) — 20/08
-  🟡 COMERCIAL VIP II (455) — 31/08
-  🟡 NELLY (455) — 31/08
-  🟡 MR DOG PET SHOP (460) — 05/12
+  🟡 BICHARADA PET SHOP (447) — 05/12
+  🟡 CASA DE RACAO NOSSA SENHORA AP (447) — 25/08
+  🟡 MERCEARIA LISBOA (447) — 12/09
   _+13 outros_
