@@ -15,9 +15,9 @@ const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
 const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Secret': CEVEN_APP_SECRET };
 
-async function getJson(url) {
+async function getJson(url, ms = 20000) {
   try {
-    const r = await fetch(url, { headers: HDR, signal: AbortSignal.timeout(20000) });
+    const r = await fetch(url, { headers: HDR, signal: AbortSignal.timeout(ms) });
     if (!r.ok) return null;
     const t = await r.text();
     return t ? JSON.parse(t) : null;
@@ -242,11 +242,16 @@ export async function onRequestGet({ request, env }) {
   const canalVend = String(url.searchParams.get('canal') || '').toUpperCase() === 'AS' ? 'AS' : '';
   const central = usarCentral ? await lerCentral(env, id, 30 * 60 * 1000) : null;
   const c = central || {};
+  // CEVEN LENTO (15/10/2026 23h: chamadas travando 20 s; a Matriz levava ate 78 s por vendedor e ficava em "carregando"): na coleta central, se a base
+  // do dia ja tem o vendedor (mesmo com mais de 30 min), o CEVEN tem so 6 s para responder antes de usar a base.
+  const temReserva = usarCentral && !central ? !!(await lerCentral(env, id, 24 * 60 * 60 * 1000)) : false;
+  const msCeven = temReserva ? 6000 : 20000;
   let [dash, prod, rot] = await Promise.all([
-    c.dash || getJson(`${CEVEN}/api/rca/dashboard?${q}`),
-    c.prod || getJson(`${CEVEN}/api/rca/produtividade?${q}`),
-    c.rot || getJson(`${CEVEN}/api/rca/roteiro-hoje?${q}`)
+    c.dash || getJson(`${CEVEN}/api/rca/dashboard?${q}`, msCeven),
+    c.prod || getJson(`${CEVEN}/api/rca/produtividade?${q}`, msCeven),
+    c.rot || getJson(`${CEVEN}/api/rca/roteiro-hoje?${q}`, msCeven)
   ]);
+  const cevenFalhou = !dash || !prod || !rot;
   // RESERVA DA BASE (15/10/2026: o coletor de lances falhou em 400 de 548 vendedores — a base com mais de 30 min ia ao CEVEN e levava 429): se o CEVEN
   // recusar, usa o dado REAL do dia que a varredura central ja leu (mesmo mais velho). Nunca inventa: sem base do dia, segue como falha.
   if (!dash || !prod || !rot) {
@@ -297,9 +302,10 @@ export async function onRequestGet({ request, env }) {
         for (const r of results || []) emCache.set(r.chave, r.json);
       } catch { /* sem cache: segue ao vivo */ }
     }
-    const faltam = positivadosHoje.filter((c) => !emCache.has(chaveCache(c)));
+    // CEVEN acabou de falhar nesta leitura: nao abre mais chamadas de historico agora (so o cache); os gols desses clientes saem na proxima rodada
+    const faltam = usarCentral && cevenFalhou ? [] : positivadosHoje.filter((c) => !emCache.has(chaveCache(c)));
     const catalogo = faltam.length ? await carregaCatalogo(request) : null;
-    const buscas = faltam.map((c) => () => getJson(`${CEVEN}/api/rca/historico-cliente/${c.id_cliente}?${q}`));
+    const buscas = faltam.map((c) => () => getJson(`${CEVEN}/api/rca/historico-cliente/${c.id_cliente}?${q}`, usarCentral ? 8000 : 20000));
     // pela coleta de lances (central=1): no maximo 2 simultaneas; na tela da TV segue como antes
     const resultados = usarCentral ? await poolLimitado(buscas, 2) : await Promise.all(buscas.map((f) => f()));
     const novos = [];

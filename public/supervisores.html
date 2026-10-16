@@ -82,16 +82,19 @@ const hojeISO = () => new Date().toLocaleDateString('en-CA', {timeZone: 'America
 $('fFilial').innerHTML = '<option value="TODAS">📋 Todas as filiais</option>' + FILIAIS.map((s) => '<option>' + s + '</option>').join('');
 try { const f = localStorage.getItem('sup_filial'); if (f) $('fFilial').value = f; } catch {}
 
+// CEVEN travado (15/10/2026): o servidor devolve a ultima leitura real de hoje com a hora dela; a tela avisa de quando e o dado
+const RESERVA = {};
+const hm = (iso) => new Date(iso).toLocaleTimeString('pt-BR', {timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit'});
 async function carregarDia() {
   await Promise.all(FILIAIS.map(async (sig) => {
     const r = await j('/api/tv-supervisores?filial=' + sig);
-    if (r.ok && Array.isArray(r.data.supervisores)) { DIA[sig] = r.data.supervisores; delete DIA_ERRO[sig]; }
+    if (r.ok && Array.isArray(r.data.supervisores)) { DIA[sig] = r.data.supervisores; delete DIA_ERRO[sig]; if (r.data.reserva) RESERVA[sig] = r.data.dado_de; else delete RESERVA[sig]; }
     else { delete DIA[sig]; DIA_ERRO[sig] = r.erro || 'Resposta sem lista de supervisores'; }
   }));
 }
 async function carregarSemana() {
   const r = await j('/api/tv-supervisores-semana' + (ref ? '?semana=' + ref : ''));
-  if (r.ok) { SEMANA = r.data; ERRO_SEMANA = null; }
+  if (r.ok) { SEMANA = r.data; ERRO_SEMANA = null; if (r.data.reserva) RESERVA.semana = r.data.dado_de; else delete RESERVA.semana; }
   else { SEMANA = null; ERRO_SEMANA = r.erro; }
 }
 function desenhar() {
@@ -120,7 +123,7 @@ function desenhar() {
 async function tudo() {
   $('status').textContent = 'atualizando…'; $('semana').innerHTML = '<div class="vazio">Consultando…</div>';
   await Promise.all([carregarDia(), carregarSemana()]);
-  desenhar(); $('status').textContent = 'atualizado às ' + sp() + (Object.keys(DIA_ERRO).length || ERRO_SEMANA ? ' · falha ao consultar o CEVEN' : '');
+  desenhar(); const res = Object.values(RESERVA); $('status').textContent = 'atualizado às ' + sp() + (Object.keys(DIA_ERRO).length || ERRO_SEMANA ? ' · falha ao consultar o CEVEN' : '') + (res.length ? ' · CEVEN sem resposta: mostrando a última leitura de hoje (' + hm(res.sort()[0]) + ')' : '');
 }
 $('fFilial').onchange = () => { try { localStorage.setItem('sup_filial', $('fFilial').value); } catch {} desenhar(); };
 $('fBusca').oninput = desenhar;

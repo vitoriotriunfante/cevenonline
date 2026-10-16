@@ -13,6 +13,8 @@ let mem = { v: null, ate: 0 };
 let emAndamento = null;
 // motivo da ultima falha de login (codigo HTTP / erro de rede), sem segredo; mostrado na tela para diagnostico
 export let ultimaFalhaLogin = '';
+// 15/10/2026: com o CEVEN travado, cada tela esperava 32 s pelo login. Depois de uma falha, so tenta de novo apos 3 min (as telas usam a reserva).
+let falhouAte = 0;
 
 async function lerD1(env) {
   try {
@@ -32,11 +34,12 @@ async function login(env) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET },
         body: JSON.stringify({ username: env.CEVEN_ADMIN_USER, password: env.CEVEN_ADMIN_PASS }),
-        signal: AbortSignal.timeout(15000)
+        signal: AbortSignal.timeout(10000)
       });
       if (r.ok) { const j = await r.json().catch(() => null); if (j && j.access_token) return j.access_token; ultimaFalhaLogin = 'HTTP 200 sem access_token'; }
       else ultimaFalhaLogin = `HTTP ${r.status} ${(await r.text().catch(() => '')).slice(0, 120)}`;
     } catch (e) { ultimaFalhaLogin = `rede: ${e && e.message}`; }
+    if (/^rede/.test(ultimaFalhaLogin)) break; // travou (timeout): nao insiste
     if (t === 0) await new Promise((ok) => setTimeout(ok, 1500));
   }
   return null;
@@ -50,8 +53,9 @@ export async function tokenAdmin(env) {
       try {
         const d = env.DB ? await lerD1(env) : null;
         if (d) { mem = d; return d.v; }
+        if (Date.now() < falhouAte) return null;
         const v = await login(env);
-        if (!v) return null;
+        if (!v) { falhouAte = Date.now() + 3 * 60 * 1000; return null; }
         mem = { v, ate: Date.now() + VALIDADE_MS };
         if (env.DB) await gravarD1(env, mem);
         return v;
