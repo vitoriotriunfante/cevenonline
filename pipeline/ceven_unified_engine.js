@@ -340,9 +340,13 @@ function aplicarMostraDisparos(repsMap) {
   const extrasMacro = [];
   const NOMES_GRUPO = { FABIO: 'Fábio', VAGNER: 'Vagner', CLEVERSON: 'Cleverson', ADRIANO: 'Adriano', LEANDRO: 'Leandro', RADKE: 'Radke' };
   const nomeDoGrupo = (g) => { const k = String(g || '').toUpperCase().trim(); return k ? (NOMES_GRUPO[k] || (k.charAt(0) + k.slice(1).toLowerCase())) : ''; };
+  // quem o coletor de lances NAO analisa (oculto ou lances=false): a conferencia de cobertura de cortes/bloqueados ignora (senao o envio esperaria para sempre)
+  const semColetor = new Set();
+  Object.defineProperty(repsMap, '__semColetor', { value: semColetor, enumerable: false, configurable: true });
   for (const sigla of Object.keys(dados.filiais)) {
     for (const r of dados.filiais[sigla]) {
       const key = `${sigla}_${r.rca}`;
+      if (r.mostra === false || (r.participa && r.participa.lances === false)) semColetor.add(`${sigla}|${r.rca}`);
       const val = repsMap[key];
       if (!val) { extrasMacro.push({ filial: sigla, rca: String(r.rca), nome: r.nome || ('RCA ' + r.rca), gerente: nomeDoGrupo(r.grupo) }); continue; }
       // REPRESENTANTE (vinculo) ou flag whatsapp=false: some das listas de cobranca, mas SOMA nos totais (igual ao oculto) — Vitorio, 12/10/2026: representante nao pode ser cobrado
@@ -692,7 +696,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
   const analisados = (pedidosDia && pedidosDia.analisados) || {};
   let semCobertura = 0;
   for (const x of rcasComPedido) {
-    if (x.macroOnly) continue;
+    if (x.macroOnly || (repsValidationMap.__semColetor && repsValidationMap.__semColetor.has(x.filial + '|' + x.codigo))) continue;
     const rot = fonteBase.lerBaseReserva(`${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${x.fKey}&id=${x.codigo}`) || [];
     const positivados = (Array.isArray(rot) ? rot : []).filter(c => c.status === 'POSITIVADO' || c.status === 'EFETIVADO').length;
     if ((analisados[x.filial + '|' + x.codigo] || 0) < positivados) semCobertura++;
