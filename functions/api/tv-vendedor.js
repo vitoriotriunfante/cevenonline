@@ -305,7 +305,14 @@ export async function onRequestGet({ request, env }) {
     // CEVEN acabou de falhar nesta leitura: nao abre mais chamadas de historico agora (so o cache); os gols desses clientes saem na proxima rodada
     const faltam = usarCentral && cevenFalhou ? [] : positivadosHoje.filter((c) => !emCache.has(chaveCache(c)));
     const catalogo = faltam.length ? await carregaCatalogo(request) : null;
-    const buscas = faltam.map((c) => () => getJson(`${CEVEN}/api/rca/historico-cliente/${c.id_cliente}?${q}`, usarCentral ? 8000 : 20000));
+    // na coleta central, o primeiro historico que travar encerra os demais desta leitura (15/10/2026: 4 travamentos seguidos = 32 s num vendedor); ficam para a proxima rodada
+    let travou = false;
+    const buscas = faltam.map((c) => async () => {
+      if (travou) return null;
+      const r = await getJson(`${CEVEN}/api/rca/historico-cliente/${c.id_cliente}?${q}`, usarCentral ? 8000 : 20000);
+      if (r == null && usarCentral) travou = true;
+      return r;
+    });
     // pela coleta de lances (central=1): no maximo 2 simultaneas; na tela da TV segue como antes
     const resultados = usarCentral ? await poolLimitado(buscas, 2) : await Promise.all(buscas.map((f) => f()));
     const novos = [];
