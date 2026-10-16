@@ -1,8 +1,8 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📅 15/10/2026
+📅 16/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/10/2026 a 15/10/2026)*
+*ACUMULADO DO MÊS (01/10/2026 a 16/10/2026)*
 💰 Faturado: R$ 45.670,77 • 📦 27812 itens • ✅ 252 PDVs
 ✂️ Cortes: R$ 317,48 (108 un) • 🚛 Devoluções: R$ 3.191,94 (1090 un)
 
@@ -19,7 +19,7 @@
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (14/10/2026)*
+*COMO FECHOU ONTEM (15/10/2026)*
 💰 Faturado: R$ 0,00 • 📦 0 itens • ✅ 0 PDVs
 
 📍 TPH: R$ 0,00
