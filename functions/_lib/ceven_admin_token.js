@@ -11,6 +11,8 @@ const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const VALIDADE_MS = 20 * 60 * 1000;
 let mem = { v: null, ate: 0 };
 let emAndamento = null;
+// motivo da ultima falha de login (codigo HTTP / erro de rede), sem segredo; mostrado na tela para diagnostico
+export let ultimaFalhaLogin = '';
 
 async function lerD1(env) {
   try {
@@ -32,8 +34,9 @@ async function login(env) {
         body: JSON.stringify({ username: env.CEVEN_ADMIN_USER, password: env.CEVEN_ADMIN_PASS }),
         signal: AbortSignal.timeout(15000)
       });
-      if (r.ok) { const j = await r.json(); if (j && j.access_token) return j.access_token; }
-    } catch { /* tenta de novo */ }
+      if (r.ok) { const j = await r.json().catch(() => null); if (j && j.access_token) return j.access_token; ultimaFalhaLogin = 'HTTP 200 sem access_token'; }
+      else ultimaFalhaLogin = `HTTP ${r.status} ${(await r.text().catch(() => '')).slice(0, 120)}`;
+    } catch (e) { ultimaFalhaLogin = `rede: ${e && e.message}`; }
     if (t === 0) await new Promise((ok) => setTimeout(ok, 1500));
   }
   return null;

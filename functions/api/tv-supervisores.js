@@ -14,7 +14,7 @@
 
 import { NAO_SUPERVISORES, normNome } from '../_lib/nao_supervisores.js';
 import { supervisoresAtivos, ehAtivo } from '../_lib/sup_ativos.js';
-import { tokenAdmin } from '../_lib/ceven_admin_token.js';
+import { tokenAdmin, ultimaFalhaLogin } from '../_lib/ceven_admin_token.js';
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
 
@@ -39,7 +39,7 @@ export async function onRequestGet({ request, env }) {
   if (!env.CEVEN_ADMIN_USER || !env.CEVEN_ADMIN_PASS) return new Response(JSON.stringify({ erro: 'segredos não configurados' }), { status: 503, headers: cors });
 
   const tk = await token(env);
-  if (!tk) return new Response(JSON.stringify({ erro: 'login no CEVEN falhou' }), { status: 502, headers: cors });
+  if (!tk) return new Response(JSON.stringify({ erro: 'login no CEVEN falhou', motivo: ultimaFalhaLogin }), { status: 502, headers: cors });
 
   // data de hoje no horário de Brasília
   const p = {};
