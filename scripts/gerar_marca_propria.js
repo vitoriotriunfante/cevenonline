@@ -124,7 +124,23 @@ async function main() {
     return val && engine.isCanalVarejo(val.canal);
   }
 
-  const db = new Database(path.join(__dirname, '..', 'analises', 'pedidos_historico_ceven.db'), { readonly: true });
+  // TRAVA DE COMPLETUDE (Vitorio, 15/10/2026: "jamais mande sem todos os dados... rode ate finalizar"): o banco do Drive (Data Lake das 03:00) precisa ter
+  // os pedidos do ULTIMO DIA UTIL antes de hoje. Se ainda nao tiver, baixa de novo a cada 5 min ate chegar; so entao monta e envia. Nunca envia com o dia em branco.
+  const DB_PATH = path.join(__dirname, '..', 'analises', 'pedidos_historico_ceven.db');
+  const feriados = new Set(((JSON.parse(fs.readFileSync(DIRETRIZES_PATH, 'utf8')).calendario || {}).feriados_nacionais_2026) || []);
+  let ultimoUtil = new Date(dataRef + 'T12:00:00Z');
+  do { ultimoUtil = new Date(ultimoUtil.getTime() - 86400000); } while ([0, 6].includes(ultimoUtil.getUTCDay()) || feriados.has(ultimoUtil.toISOString().slice(0, 10)));
+  const precisaAte = ultimoUtil.toISOString().slice(0, 10);
+  for (let tentativa = 1; ; tentativa++) {
+    let maxData = null;
+    // conta pedidos DO DIA (o banco tem datas futuras: MAX nao serve)
+    try { const d0 = new Database(DB_PATH, { readonly: true }); maxData = d0.prepare('SELECT COUNT(*) AS n FROM pedidos_historico WHERE substr(data_pedido, 1, 10) = ?').get(precisaAte).n > 0 ? precisaAte : null; d0.close(); } catch (e) { maxData = null; }
+    if (maxData && String(maxData).slice(0, 10) >= precisaAte) { console.log(`✅ Banco de pedidos completo: tem os pedidos de ${precisaAte}.`); break; }
+    console.log(`⚠️ Banco de pedidos ainda sem ${precisaAte} (nenhum pedido desse dia no banco). Nada sai assim: baixo de novo em 5 min (tentativa ${tentativa}).`);
+    await new Promise((ok) => setTimeout(ok, 5 * 60 * 1000));
+    try { require('child_process').execSync('rclone copy gdrive:pedidos_historico_ceven.db analises/', { cwd: path.join(__dirname, '..'), stdio: 'inherit' }); } catch (e) { console.log('rclone falhou: ' + e.message); }
+  }
+  const db = new Database(DB_PATH, { readonly: true });
   const FILIAIS_EXCLUIDAS = new Set(['TBE', 'TCG']);
   const ORDEM_FILIAIS = ['TPH', 'API', 'TBL', 'TCA', 'TSJ', 'TPA', 'ABC', 'TCV', 'MCD'];
 
