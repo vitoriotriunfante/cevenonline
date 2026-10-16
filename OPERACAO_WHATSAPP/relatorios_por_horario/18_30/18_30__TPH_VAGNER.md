@@ -3,17 +3,21 @@
 📍 *FILIAL TPH — VAGNER*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 313.290,57
-📦 *Pedidos Colocados:* 211 pedidos
-📍 *Visitas Realizadas:* 379 de 427 (88,8%)
-👥 *Vendedores Varejo com Pedido:* 32 de 35 (91%)
-✂️ *Cortes nos Pedidos de Hoje:* R$ 19,64 (1 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 55.180,84 (14 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 26.353,59
+💰 *Total Digitado Hoje:* R$ 189.659,61
+📦 *Pedidos Colocados:* 147 pedidos
+📍 *Visitas Realizadas:* 318 de 408 (77,9%)
+👥 *Vendedores Varejo com Pedido:* 30 de 35 (86%)
+✂️ *Cortes nos Pedidos de Hoje:* R$ 1.767,44 (7 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 39.794,14 (26 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 29.808,61
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
-  ▫️ Cód. 124 • THACIANE REGINA CORDEIRO DE CASTRO: -R$ 19,64 em  (SKU em falta)
-🟢 *Recuperação de Inativos (+30d):* 7 de 132 PDVs reativados hoje
+  ▫️ Cód. 48 • PJ ALEX SANDRO REPRESENTACOES COM: -R$ 179,70 em  (SKU em falta)
+  ▫️ Cód. 63 • ANDERSON IACZINSKI DA SILVA: -R$ 882,51 em  (SKU em falta)
+  ▫️ Cód. 73 • MARCIA SILVA DO NASCIMENTO: -R$ 26,94 em  (SKU em falta)
+  ▫️ Cód. 78 • DEISIELE VIEIRA DA SILVA: -R$ 33,12 em  (SKU em falta)
+  ▫️ _... e mais 3 pedidos com corte._
+🟢 *Recuperação de Inativos (+30d):* 11 de 125 PDVs reativados hoje
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*

@@ -3,21 +3,19 @@
 📍 *FILIAL MCD — CLEVERSON*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 256.838,18
-📦 *Pedidos Colocados:* 74 pedidos
-📍 *Visitas Realizadas:* 91 de 225 (40,4%)
-👥 *Vendedores Varejo com Pedido:* 15 de 19 (79%)
-✂️ *Cortes nos Pedidos de Hoje:* R$ 1.631,40 (5 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 2.285,10 (7 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 12.211,71
+💰 *Total Digitado Hoje:* R$ 125.431,18
+📦 *Pedidos Colocados:* 50 pedidos
+📍 *Visitas Realizadas:* 73 de 114 (64,0%)
+👥 *Vendedores Varejo com Pedido:* 13 de 19 (68%)
+✂️ *Cortes nos Pedidos de Hoje:* R$ 13.262,59 (3 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 267,30 (1 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 13.794,51
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
-  ▫️ Cód. 453 • TATIANA MONTANHINI: -R$ 39,52 em  (SKU em falta)
-  ▫️ Cód. 453 • TATIANA MONTANHINI: -R$ 76,97 em  (SKU em falta)
-  ▫️ Cód. 441 • MAICON DOUGLAS DA SILVA MARTINS: -R$ 724,47 em  (SKU em falta)
-  ▫️ Cód. 1061 • THIAGO DOS SANTOS PANDOLFO: -R$ 633,50 em  (SKU em falta)
-  ▫️ _... e mais 1 pedidos com corte._
-🟢 *Recuperação de Inativos (+30d):* 1 de 23 PDVs reativados hoje
+  ▫️ Cód. 453 • TATIANA MONTANHINI: -R$ 398,16 em  (SKU em falta)
+  ▫️ Cód. 1068 • FERNANDO ANJOS MACEDO: -R$ 7.791,79 em  (SKU em falta)
+  ▫️ Cód. 412 • ALCINDO DA SILVA GOMES: -R$ 5.072,64 em  (SKU em falta)
+🟢 *Recuperação de Inativos (+30d):* 1 de 22 PDVs reativados hoje
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*
