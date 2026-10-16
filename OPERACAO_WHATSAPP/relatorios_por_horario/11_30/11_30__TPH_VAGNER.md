@@ -4,7 +4,7 @@
 
 📊 *PAINEL DE ATIVIDADES (8 SUPERVISORES):*
 📝 Compromissos: *6 de 8* lançados
-🚗 Em Rota (RET): *5 de 8* em campo
+🚗 Em Rota (RET): *6 de 8* em campo
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -18,7 +18,7 @@
 📝 Compromisso: ✅ Lançado
 🚗 Rota (RET): ✅ Em campo (início às 09:31)
 └ 👥 RCA: ANA PAULA FERREIRA DA CRUZ
-└ 📍 4 PDVs visitados • 📸 6 fotos • Score: 100%
+└ 📍 6 PDVs visitados • 📸 16 fotos • Score: 100%
 
 👤 *CLAUDETE DE SOUZA SCHULTZ*
 📝 Compromisso: ❌ Não lançado
@@ -32,13 +32,15 @@
 
 👤 *LUCAS RAMOS MONTAGNHANI*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
+🚗 Rota (RET): ✅ Em campo (início às 13:39)
+└ 👥 RCA: LUCAS RAMOS MONTAGNHANI
+└ 📍 3 PDVs visitados • 📸 33 fotos • Score: 91%
 
 👤 *LUIZ AUGUSTO RAMOS*
 📝 Compromisso: ✅ Lançado
 🚗 Rota (RET): ✅ Em campo (início às 10:00)
 └ 👥 RCA: ELYAN JANDES RODRIGUES DOS SANTOS
-└ 📍 4 PDVs visitados • 📸 7 fotos • Score: 95%
+└ 📍 11 PDVs visitados • 📸 21 fotos • Score: 92%
 
 👤 *RODRIGO DE ARRUDA DARROS*
 📝 Compromisso: ❌ Não lançado

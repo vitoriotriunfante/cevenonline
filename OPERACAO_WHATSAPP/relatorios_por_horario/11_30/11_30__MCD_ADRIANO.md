@@ -20,4 +20,4 @@
 📝 Compromisso: ✅ Lançado
 🚗 Rota (RET): ✅ Em campo (início às 09:09)
 └ 👥 RCA: CIL FARNEY BARBOSA DE ALCANTARA
-└ 📍 2 PDVs visitados • 📸 7 fotos • Score: 79%
+└ 📍 3 PDVs visitados • 📸 8 fotos • Score: 86%
