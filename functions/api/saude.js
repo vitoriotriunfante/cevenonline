@@ -54,7 +54,8 @@ export async function onRequestGet({ env, request }) {
     sem_dashboard: linhas.filter((l) => l.sd).length, sem_produtividade: linhas.filter((l) => l.sp).length,
     sem_rota: linhas.filter((l) => l.sr).length, sem_devolucoes: linhas.filter((l) => l.sv).length
   };
-  if (!linhas.length) { if (horarioComercial) add('critico', 'base', `Base de hoje VAZIA (${hm}). Nenhuma leitura gravada: coleta parada.`); }
+  // fora do horario comercial tambem avisa (16/10/2026 00h: base zerada e o painel dizia 'Todos os sistemas operando')
+  if (!linhas.length) add(horarioComercial ? 'critico' : 'atencao', 'base', horarioComercial ? `Base de hoje VAZIA (${hm}). Nenhuma leitura gravada: coleta parada.` : `Base de hoje ainda vazia (${hm}): virada do dia, a coleta está lendo todos de novo.`);
   else {
     if (diaUtil && horarioComercial && base.mais_novo_s > 600) add('critico', 'base', `Coleta parada: a última gravação tem ${Math.round(base.mais_novo_s / 60)} min.`);
     else if (base.mais_novo_s > 300 && horarioComercial) add('atencao', 'base', `Última gravação há ${Math.round(base.mais_novo_s / 60)} min.`);
