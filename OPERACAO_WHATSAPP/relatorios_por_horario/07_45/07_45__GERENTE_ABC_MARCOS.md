@@ -1,7 +1,46 @@
 🌅 *ABERTURA MATINAL — ABC (07:45)*
-📅 quinta-feira, 15/10/2026
+📅 sexta-feira, 16/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 23 • Visitas: 374 (média 16,3/vendedor)
-Sem compra +30d: 109 (29,1%) • Recorrência: 60 (16,0%)
-Oportunidades CNAE 4712: +374 PDVs
+👥 Vendedores: 23 • Visitas: 332 (média 14,4/vendedor)
+Sem compra +30d: 92 (27,7%) • Recorrência: 65 (19,6%)
+Oportunidades CNAE 4771: +571 PDVs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 *PDVs EM RISCO — 07:45*
+📍 *ABC — MARCOS* • 16/10/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 Última Chance: 89  •  🟡 Preventivo: 0
+
+👤 *EDER LUCAS DAS FLORES DE OLIVEIRA* (25 em risco)
+  🔴 MINI MERCADO SILVA (201) — 05/12
+  🔴 MAIS CONVENIENCIA (222) — 25/08
+  🔴 CASAGRANDE COMBUSTIVEIS (222) — 28/07
+  🔴 ELETRONICA TV BARAO (222) — 05/12
+  🔴 CASA DOS PLASTICOS SHOPING (222) — 05/12
+  _+20 outros_
+
+👤 *IVONEI PEDRO DE MOURA* (17 em risco)
+  🔴 MERCEARIA ALTO DA COLINA (206) — 28/08
+  🔴 BAR E MERCEARIA ARCO IRIS (214) — 05/12
+  🔴 BAR E MERCEARIA SAO LUIZ (214) — 17/02
+  🔴 PANIFICADORA ROMANA (214) — 31/07
+  🔴 POSTO RIBAS (224) — 08/08
+  _+12 outros_
+
+👤 *MARCIO ROSA SOBRAL BATISTA* (23 em risco)
+  🔴 VET CLIN (215) — 30/06
+  🔴 CLINICAO (215) — 08/08
+  🔴 CONSULTORIO E PET SHOP SALVARE (215) — 27/05
+  🔴 CASA DA LAVOURA (228) — 05/09
+  🔴 PENA BRANCA PASSAROS E CIA (228) — 31/08
+  _+18 outros_
+
+👤 *RODRIGO STELLEO COSTA LEITE* (24 em risco)
+  🔴 SUPERMERCADO CRISTO REI (212) — 27/05
+  🔴 PET SHOP DOG KING (212) — 27/05
+  🔴 TERRA EXOTICAPET SHOP (212) — 27/05
+  🔴 BICHO DE PATAS (212) — 27/05
+  🔴 ALFAPET PETSHOP E AGROPECUARIA (212) — 27/05
+  _+19 outros_

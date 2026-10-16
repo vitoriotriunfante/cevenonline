@@ -1,7 +1,46 @@
 🌅 *ABERTURA MATINAL — TCA (07:45)*
-📅 quinta-feira, 15/10/2026
+📅 sexta-feira, 16/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 24 • Visitas: 221 (média 9,2/vendedor)
-Sem compra +30d: 135 (61,1%) • Recorrência: 57 (25,8%)
-Oportunidades CNAE 4712: +743 PDVs
+👥 Vendedores: 17 • Visitas: 130 (média 7,6/vendedor)
+Sem compra +30d: 53 (40,8%) • Recorrência: 23 (17,7%)
+Oportunidades CNAE 4771: +334 PDVs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 *PDVs EM RISCO — 07:45*
+📍 *TCA — BECHER* • 16/10/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 Última Chance: 53  •  🟡 Preventivo: 0
+
+👤 *FRANCISCO FRANCO FILHO* (8 em risco)
+  🔴 DROGARIA HIPPER POPULAR (375) — 31/08
+  🔴 NAFTA CONVENIENCIA (375) — 08/09
+  🔴 @PEC AGROPECUARIA (375) — 04/09
+  🔴 FUNERARIA SANTA MARIA (376) — 20/08
+  🔴 REAL DISTRIBUIDORA E CONVENIENCIA (376) — 08/09
+  _+3 outros_
+
+👤 *IVAYR PRINCIPE FREITAS DE MIRANDA* (23 em risco)
+  🔴 DROGARIA MAIS SAUDE (378) — 31/08
+  🔴 SUPERMERCADO 3 IRMAOS (378) — 31/08
+  🔴 BACANA D TUDO (378) — 24/08
+  🔴 MERCEARIA PAULA (379) — 08/09
+  🔴 MERCADO BELA VISTA CPA (379) — 05/12
+  _+18 outros_
+
+👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR* (13 em risco)
+  🔴 MERCADO PANTANAL (380) — 11/08
+  🔴 CHURRASCARIA E LANCHONETE HOTEL PANTANAL (380) — 05/12
+  🔴 MERCADO S. CAMPOS (380) — 05/12
+  🔴 MERCEARIA IDEAL (380) — 05/12
+  🔴 MERCEARIA MORAIS (380) — 24/08
+  _+8 outros_
+
+👤 *MAICON DION NOVAIS SILVA* (9 em risco)
+  🔴 SUPERMERCADO VIEIRA (372) — 05/12
+  🔴 BUTIQUIM ESPETOS (373) — 27/05
+  🔴 DROGARIA ULTRAPOPULAR (373) — 08/09
+  🔴 DROGARIA DA ULTRA POPULAR (373) — 05/12
+  🔴 MERCADO NOROESTE (373) — 30/07
+  _+4 outros_

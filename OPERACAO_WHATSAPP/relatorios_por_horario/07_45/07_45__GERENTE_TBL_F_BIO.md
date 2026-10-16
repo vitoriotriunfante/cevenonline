@@ -1,7 +1,54 @@
 🌅 *ABERTURA MATINAL — TBL (07:45)*
-📅 quinta-feira, 15/10/2026
+📅 sexta-feira, 16/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 28 • Visitas: 388 (média 13,9/vendedor)
-Sem compra +30d: 144 (37,1%) • Recorrência: 30 (7,7%)
-Oportunidades CNAE 4712: +423 PDVs
+👥 Vendedores: 28 • Visitas: 362 (média 12,9/vendedor)
+Sem compra +30d: 128 (35,4%) • Recorrência: 47 (13,0%)
+Oportunidades CNAE 4771: +456 PDVs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 *PDVs EM RISCO — 07:45*
+📍 *TBL — FÁBIO* • 16/10/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 Última Chance: 128  •  🟡 Preventivo: 0
+
+👤 *CRISTIANE DE FREITAS DUARTE* (23 em risco)
+  🔴 VIACAO GARCIA (194) — 31/08
+  🔴 POSTO LONDRILA VI (194) — 05/12
+  🔴 BAR E MERCEARIA BRUNIERI (194) — 05/09
+  🔴 PADARIA TROPICAL (194) — 27/08
+  🔴 PADARIA E CONFEITARIA SABOR DO PAO (194) — 27/08
+  _+18 outros_
+
+👤 *IGOR RODRIGUES DUARTE* (24 em risco)
+  🔴 SUPERMERCADO BOM PRECO (177) — 05/09
+  🔴 PATRICIA PEREIRA DE LIMA (177) — 05/12
+  🔴 MERCEARIA PLANALTO (177) — 30/06
+  🔴 VIDEO LOCADORA STAR VIDEO (177) — 13/06
+  🔴 SUPERMERCADO E PANIFICADORA SLAVIERO (177) — 05/09
+  _+19 outros_
+
+👤 *KLEBERSON BATISTA LIDUARIO* (19 em risco)
+  🔴 BOM GOSTO RESTAURANTE LTDA (172) — 31/07
+  🔴 RITHIELY HENRIQUE (172) — 08/08
+  🔴 MERCEARIA DA NICE (172) — 31/07
+  🔴 CM SOVINSKI LTDA (172) — 27/05
+  🔴 JOYCE APARECIDA SOUZA LEITE 09216000970 (172) — 27/05
+  _+14 outros_
+
+👤 *LEONARDO MANOSSO DE GODOI* (36 em risco)
+  🔴 NIPPON MANIA (171) — 31/08
+  🔴 SUPERMERCADO KYOTO (171) — 27/05
+  🔴 PADARIA BRASIL (190) — 10/07
+  🔴 ILSON GREGORIO MEDICAMENTOS LTDA (190) — 05/12
+  🔴 MERCEARIA FIGUEIREDO (190) — 05/12
+  _+31 outros_
+
+👤 *SERGIO LOPES DE OLIVEIRA* (26 em risco)
+  🔴 MERCADO GEAPOL (181) — 05/09
+  🔴 ALINE ADRIANA VIEIRA 07378684902 (181) — 05/09
+  🔴 FABIO RODRIGUES DA SILVA (181) — 05/09
+  🔴 PASSAROS FARMA (181) — 05/12
+  🔴 MARCOS ROGERIO SPLENDOR (183) — 28/08
+  _+21 outros_
