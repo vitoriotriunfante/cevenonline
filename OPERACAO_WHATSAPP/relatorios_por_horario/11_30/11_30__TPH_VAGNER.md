@@ -1,24 +1,24 @@
 🏢 *FILIAL TPH — GESTÃO DE CAMPO*
-📅 15/10/2026 • Gerente: Vagner
+📅 16/10/2026 • Gerente: Vagner
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 *PAINEL DE ATIVIDADES (8 SUPERVISORES):*
 📝 Compromissos: *6 de 8* lançados
-🚗 Em Rota (RET): *6 de 8* em campo
+🚗 Em Rota (RET): *3 de 8* em campo
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 👤 *ALLISON ANTONIO FAGUNDES M PINHEIRO*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 08:02)
-└ 👥 RCA: ALEXSSANDRO HENRIQUE TAVARES HEY
+🚗 Rota (RET): ✅ Em campo (início às 08:08)
+└ 👥 RCA: RODRIGO MORAIS DE LIMA
 └ 📍 1 PDV visitado • 📸 0 fotos • Score: 100%
 
 👤 *ANDREY CAMILLO PIRAGINE*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 09:31)
-└ 👥 RCA: ANA PAULA FERREIRA DA CRUZ
-└ 📍 6 PDVs visitados • 📸 16 fotos • Score: 100%
+🚗 Rota (RET): ✅ Em campo (início às 09:50)
+└ 👥 RCA: ALEXANDRE FERREIRA WERNICKE
+└ 📍 5 PDVs visitados • 📸 10 fotos • Score: 100%
 
 👤 *CLAUDETE DE SOUZA SCHULTZ*
 📝 Compromisso: ❌ Não lançado
@@ -26,28 +26,22 @@
 
 👤 *JEFFERSON POLETTO*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 08:45)
-└ 👥 RCA: LEANDRO HORACIO NETO
-└ 📍 2 PDVs visitados • 📸 8 fotos • Score: 100%
+🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
 👤 *LUCAS RAMOS MONTAGNHANI*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 13:39)
-└ 👥 RCA: LUCAS RAMOS MONTAGNHANI
-└ 📍 3 PDVs visitados • 📸 33 fotos • Score: 91%
+🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
 👤 *LUIZ AUGUSTO RAMOS*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 10:00)
-└ 👥 RCA: ELYAN JANDES RODRIGUES DOS SANTOS
-└ 📍 11 PDVs visitados • 📸 21 fotos • Score: 92%
+🚗 Rota (RET): ✅ Em campo (início às 09:15)
+└ 👥 RCA: DEISI DE SOUZA DA SILVA
+└ 📍 8 PDVs visitados • 📸 25 fotos • Score: 72%
 
 👤 *RODRIGO DE ARRUDA DARROS*
-📝 Compromisso: ❌ Não lançado
+📝 Compromisso: ✅ Lançado
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
 👤 *JONATHAN FERNANDES*
-📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 09:53)
-└ 👥 RCA: PAOLA CRISTINA LEAL COLLI
-└ 📍 2 PDVs visitados • 📸 0 fotos • Score: 86%
+📝 Compromisso: ❌ Não lançado
+🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)

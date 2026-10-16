@@ -1,10 +1,10 @@
 🏢 *FILIAL TPH — GESTÃO DE CAMPO*
-📅 15/10/2026 • Gerente: Fábio
+📅 16/10/2026 • Gerente: Fábio
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 *PAINEL DE ATIVIDADES (6 SUPERVISORES):*
-📝 Compromissos: *2 de 6* lançados
-🚗 Em Rota (RET): *1 de 6* em campo
+📝 Compromissos: *3 de 6* lançados
+🚗 Em Rota (RET): *0 de 6* em campo
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -17,10 +17,8 @@
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
 👤 *EDI CARLOS MEIRA*
-📝 Compromisso: ❌ Não lançado
-🚗 Rota (RET): ✅ Em campo (início às 10:50)
-└ 👥 RCA: CHARLENE ANCINEIDE DA ROSA
-└ 📍 1 PDV visitado • 📸 3 fotos • Score: 21%
+📝 Compromisso: ✅ Lançado
+🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
 👤 *PRISCILA A D NASCIMENTO STRAPASSON*
 📝 Compromisso: ✅ Lançado

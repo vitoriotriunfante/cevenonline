@@ -1,10 +1,10 @@
 🏢 *FILIAL MCD — GESTÃO DE CAMPO*
-📅 15/10/2026 • Gerente: Adriano
+📅 16/10/2026 • Gerente: Adriano
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 *PAINEL DE ATIVIDADES (3 SUPERVISORES):*
 📝 Compromissos: *3 de 3* lançados
-🚗 Em Rota (RET): *1 de 3* em campo
+🚗 Em Rota (RET): *0 de 3* em campo
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -18,6 +18,4 @@
 
 👤 *CLEOMAR DINIZ BARBOSA*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 09:09)
-└ 👥 RCA: CIL FARNEY BARBOSA DE ALCANTARA
-└ 📍 3 PDVs visitados • 📸 8 fotos • Score: 86%
+🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
