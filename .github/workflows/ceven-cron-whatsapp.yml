@@ -10,7 +10,7 @@ name: CEVEN NOC — Disparos Oficiais WhatsApp
 
 concurrency:
   group: ceven-whatsapp-dispatch
-  cancel-in-progress: true
+  cancel-in-progress: false   # 15/10/2026 (Vitorio: "nem deixe de enviar"): o envio roda ate completar; o seguinte ESPERA na fila, nunca cancela o que esta em andamento
 
 on:
   # SEM schedule no GitHub — O Cloudflare Pago (ceven-cron-sync) e o Maestro Unico
@@ -202,7 +202,9 @@ jobs:
       # outros crons travados por um disparo que deu erro.
       - name: 🔒 Travar lock global (prioridade sobre TV/CFTV)
         if: steps.calendario.outputs.bloqueado != 'true'
-        run: curl -sS -m 15 -X POST "https://ceven-cftv-matrix.pages.dev/api/cron-lock?dono=whatsapp" || true
+        # 15/10/2026: NAO trava mais a coleta da TV. O envio agora LE a base e espera a coleta completar os dados; com a coleta parada pela trava, os dois
+        # ficavam esperando um pelo outro (o ensaio levou 20 min). O motor quase nao consulta mais o CEVEN, entao a prioridade nao e necessaria.
+        run: echo "lock global desligado (a coleta da TV continua rodando durante o envio)"
 
       - name: ⚡ Executar Motor Unificado CEVEN (WhatsApp)
         if: steps.calendario.outputs.bloqueado != 'true'
