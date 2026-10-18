@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-17T06:31:56.781181Z",
+  "gerado_em": "2026-10-18T06:29:48.247609Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -18983,7 +18983,7 @@
         "supervisor": "MISSAID MAINARDES RAMOS",
         "gerente": "Marcos",
         "meta_mes": 491737,
-        "pct_hoje": 105.2,
+        "pct_hoje": 105.1,
         "fases": [
           {
             "n": 1,
@@ -19114,7 +19114,7 @@
         "supervisor": "MISSAID MAINARDES RAMOS",
         "gerente": "Marcos",
         "meta_mes": 292551,
-        "pct_hoje": 106.4,
+        "pct_hoje": 106.3,
         "fases": [
           {
             "n": 1,
@@ -19376,7 +19376,7 @@
         "supervisor": "ALESSANDRO JUNIOR LOPES",
         "gerente": "Marcelo",
         "meta_mes": 454762,
-        "pct_hoje": 43.5,
+        "pct_hoje": 43.4,
         "fases": [
           {
             "n": 1,
@@ -19769,7 +19769,7 @@
         "supervisor": "ALYFER PEREIRA MENDES",
         "gerente": "Adriano",
         "meta_mes": 225215.87,
-        "pct_hoje": 86.3,
+        "pct_hoje": 85.9,
         "fases": [
           {
             "n": 1,
@@ -21865,7 +21865,7 @@
         "supervisor": "JORGE BONI",
         "gerente": "Leonardo",
         "meta_mes": 172000,
-        "pct_hoje": 60.7,
+        "pct_hoje": 60.6,
         "fases": [
           {
             "n": 1,
@@ -21996,7 +21996,7 @@
         "supervisor": "THIAGO DA SILVA CONEGUNDES",
         "gerente": "Cleverson",
         "meta_mes": 520330,
-        "pct_hoje": 52.5,
+        "pct_hoje": 50.4,
         "fases": [
           {
             "n": 1,
@@ -22389,7 +22389,7 @@
         "supervisor": "LUIS THIAGO VIRTUOSO BOEIRA",
         "gerente": "Diego",
         "meta_mes": 270000,
-        "pct_hoje": 84.9,
+        "pct_hoje": 84.1,
         "fases": [
           {
             "n": 1,
@@ -22782,7 +22782,7 @@
         "supervisor": "ELIENAY VIANA DA SILVA",
         "gerente": "Danilo",
         "meta_mes": 250000,
-        "pct_hoje": 30.9,
+        "pct_hoje": 29.9,
         "fases": [
           {
             "n": 1,
@@ -23044,7 +23044,7 @@
         "supervisor": "CRISTIANO RODRIGUES MACHADO",
         "gerente": "Saldanha",
         "meta_mes": 720000,
-        "pct_hoje": 31.7,
+        "pct_hoje": 35.7,
         "fases": [
           {
             "n": 1,
@@ -23300,6 +23300,137 @@
         "pos_filial": 8
       },
       {
+        "rca": "391",
+        "nome": "PJ APARECIDO DE FRANCA ALMEIDA",
+        "filial": "TCA",
+        "supervisor": "YASMIM PRISCILA DA SILVA",
+        "gerente": "Becher",
+        "meta_mes": 154000,
+        "pct_hoje": 89.6,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-10-07",
+            "status": "batida",
+            "pct": 20.7,
+            "ganhou": 10
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-10-14",
+            "status": "batida",
+            "pct": 49.3,
+            "ganhou": 20
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-10-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 31,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-10-31",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "perdido",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 10,
+            "pts_bonus": 0,
+            "score": 10,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 0,
+            "pts_faseamento": 20,
+            "pts_bonus": 0,
+            "score": 20,
+            "jogada": true,
+            "resultado": "V",
+            "pts_tabela": 3
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 1,
+        "vitorias": 1,
+        "empates": 0,
+        "derrotas": 0,
+        "pts_tabela": 3,
+        "aprov": 100.0,
+        "forma": [
+          "V"
+        ],
+        "pontos": 20,
+        "pts_lances": 0,
+        "pts_faseamento": 30,
+        "pts_bonus": 0,
+        "pos_brasil": 41,
+        "pos_filial": 4
+      },
+      {
         "rca": "50",
         "nome": "PAULO SERGIO DEDINO",
         "filial": "TPH",
@@ -23427,7 +23558,7 @@
         "pts_lances": 0,
         "pts_faseamento": 30,
         "pts_bonus": 0,
-        "pos_brasil": 41,
+        "pos_brasil": 42,
         "pos_filial": 8
       },
       {
@@ -23558,7 +23689,7 @@
         "pts_lances": 0,
         "pts_faseamento": 20,
         "pts_bonus": 0,
-        "pos_brasil": 42,
+        "pos_brasil": 43,
         "pos_filial": 2
       },
       {
@@ -23689,7 +23820,7 @@
         "pts_lances": 0,
         "pts_faseamento": 30,
         "pts_bonus": 0,
-        "pos_brasil": 43,
+        "pos_brasil": 44,
         "pos_filial": 6
       },
       {
@@ -23820,139 +23951,8 @@
         "pts_lances": 0,
         "pts_faseamento": 30,
         "pts_bonus": 0,
-        "pos_brasil": 44,
-        "pos_filial": 6
-      },
-      {
-        "rca": "391",
-        "nome": "PJ APARECIDO DE FRANCA ALMEIDA",
-        "filial": "TCA",
-        "supervisor": "YASMIM PRISCILA DA SILVA",
-        "gerente": "Becher",
-        "meta_mes": 154000,
-        "pct_hoje": 49.3,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-10-07",
-            "status": "batida",
-            "pct": 20.7,
-            "ganhou": 10
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-10-14",
-            "status": "batida",
-            "pct": 49.3,
-            "ganhou": 20
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-10-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 31,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-10-31",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "perdido",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": 0,
-            "pts_faseamento": 10,
-            "pts_bonus": 0,
-            "score": 10,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 2,
-            "pts_lances": 0,
-            "pts_faseamento": 20,
-            "pts_bonus": 0,
-            "score": 20,
-            "jogada": true,
-            "resultado": "V",
-            "pts_tabela": 3
-          },
-          {
-            "n": 3,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 4,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 1,
-        "vitorias": 1,
-        "empates": 0,
-        "derrotas": 0,
-        "pts_tabela": 3,
-        "aprov": 100.0,
-        "forma": [
-          "V"
-        ],
-        "pontos": 20,
-        "pts_lances": 0,
-        "pts_faseamento": 30,
-        "pts_bonus": 0,
         "pos_brasil": 45,
-        "pos_filial": 4
+        "pos_filial": 6
       },
       {
         "rca": "149",
@@ -24616,7 +24616,7 @@
         "supervisor": "JULIO CESAR SOARES DE PAULO",
         "gerente": "Saldanha",
         "meta_mes": 320000,
-        "pct_hoje": 18.4,
+        "pct_hoje": 21.3,
         "fases": [
           {
             "n": 1,
@@ -25271,7 +25271,7 @@
         "supervisor": "ARILDO ZAGO",
         "gerente": "Marcelo",
         "meta_mes": 557201,
-        "pct_hoje": 37.3,
+        "pct_hoje": 37.2,
         "fases": [
           {
             "n": 1,
@@ -25402,7 +25402,7 @@
         "supervisor": "ANDERSON FERNANDES CORREIA",
         "gerente": "Marcelo",
         "meta_mes": 267017,
-        "pct_hoje": 28.6,
+        "pct_hoje": 28.5,
         "fases": [
           {
             "n": 1,
@@ -27498,7 +27498,7 @@
         "supervisor": "ALESSANDRO JUNIOR LOPES",
         "gerente": "Marcelo",
         "meta_mes": 49256,
-        "pct_hoje": 32.5,
+        "pct_hoje": 32.4,
         "fases": [
           {
             "n": 1,
@@ -31297,7 +31297,7 @@
         "supervisor": "THIAGO DA SILVA CONEGUNDES",
         "gerente": "Cleverson",
         "meta_mes": 954848.69,
-        "pct_hoje": 22.7,
+        "pct_hoje": 22.6,
         "fases": [
           {
             "n": 1,
@@ -35622,7 +35622,7 @@
         "total_vendedores": 3,
         "com_meta": 3,
         "meta_mes": 997102,
-        "pct_hoje": 60.9,
+        "pct_hoje": 60.8,
         "fases": [
           {
             "n": 1,
@@ -36097,7 +36097,7 @@
         "total_vendedores": 6,
         "com_meta": 6,
         "meta_mes": 1840000,
-        "pct_hoje": 74.2,
+        "pct_hoje": 74.1,
         "fases": [
           {
             "n": 1,
@@ -36471,108 +36471,13 @@
         "pos": 9
       },
       {
-        "supervisor": "ALEX SANDRO SOARES ELIAS",
-        "filial": "TBE",
-        "gerente": "Diego",
-        "total_vendedores": 4,
-        "com_meta": 4,
-        "meta_mes": 2080000,
-        "pct_hoje": 29.7,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-10-07",
-            "status": "nao_batida",
-            "pct": 4.5,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-10-14",
-            "status": "nao_batida",
-            "pct": 21.1,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-10-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 31,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-10-31",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "perdido",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "pontos_faseamento": 0,
-        "jogos": 1,
-        "vitorias": 1,
-        "empates": 0,
-        "derrotas": 0,
-        "pts_tabela": 3,
-        "forma": [
-          "V"
-        ],
-        "semanas": [
-          {
-            "n": 2,
-            "resultado": "V",
-            "vitorias_equipe": 3,
-            "total": 4,
-            "pts_tabela": 3
-          }
-        ],
-        "aprov": 100.0,
-        "pts_lances_equipe": 61,
-        "pos": 10
-      },
-      {
         "supervisor": "CRISTIANO RODRIGUES MACHADO",
         "filial": "TSJ",
         "gerente": "Saldanha",
         "total_vendedores": 8,
         "com_meta": 8,
         "meta_mes": 4400000,
-        "pct_hoje": 29.6,
+        "pct_hoje": 30.3,
         "fases": [
           {
             "n": 1,
@@ -36658,6 +36563,101 @@
         ],
         "aprov": 100.0,
         "pts_lances_equipe": 360,
+        "pos": 10
+      },
+      {
+        "supervisor": "ALEX SANDRO SOARES ELIAS",
+        "filial": "TBE",
+        "gerente": "Diego",
+        "total_vendedores": 4,
+        "com_meta": 4,
+        "meta_mes": 2080000,
+        "pct_hoje": 29.6,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-10-07",
+            "status": "nao_batida",
+            "pct": 4.5,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-10-14",
+            "status": "nao_batida",
+            "pct": 21.1,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-10-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 31,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-10-31",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "perdido",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "pontos_faseamento": 0,
+        "jogos": 1,
+        "vitorias": 1,
+        "empates": 0,
+        "derrotas": 0,
+        "pts_tabela": 3,
+        "forma": [
+          "V"
+        ],
+        "semanas": [
+          {
+            "n": 2,
+            "resultado": "V",
+            "vitorias_equipe": 3,
+            "total": 4,
+            "pts_tabela": 3
+          }
+        ],
+        "aprov": 100.0,
+        "pts_lances_equipe": 61,
         "pos": 11
       },
       {
@@ -36667,7 +36667,7 @@
         "total_vendedores": 3,
         "com_meta": 3,
         "meta_mes": 660000,
-        "pct_hoje": 19.3,
+        "pct_hoje": 18.9,
         "fases": [
           {
             "n": 1,
@@ -36952,7 +36952,7 @@
         "total_vendedores": 7,
         "com_meta": 7,
         "meta_mes": 4789566.17,
-        "pct_hoje": 22.1,
+        "pct_hoje": 21.9,
         "fases": [
           {
             "n": 1,
@@ -37142,7 +37142,7 @@
         "total_vendedores": 7,
         "com_meta": 7,
         "meta_mes": 840000,
-        "pct_hoje": 51.6,
+        "pct_hoje": 59,
         "fases": [
           {
             "n": 1,
@@ -37712,7 +37712,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 1340676,
-        "pct_hoje": 36,
+        "pct_hoje": 35.9,
         "fases": [
           {
             "n": 1,
@@ -37997,7 +37997,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 2290000,
-        "pct_hoje": 24.5,
+        "pct_hoje": 24.4,
         "fases": [
           {
             "n": 1,
@@ -38187,7 +38187,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 1530265.01,
-        "pct_hoje": 11.4,
+        "pct_hoje": 12,
         "fases": [
           {
             "n": 1,
