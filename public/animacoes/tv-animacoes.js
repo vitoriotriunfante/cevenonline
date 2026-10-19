@@ -238,12 +238,13 @@ function tocaVideoLance(cv, nivel, subtipo, duracaoMaxMs, aoTerminar, arquivoFix
     escondeVideo();
     aoTerminar();
   };
+  let durReal = 0;
   const rearmaCronometro = (ms) => { clearTimeout(t); t = setTimeout(finaliza, ms); };
 
   const onDuracaoReal = (ev) => {
     if (parou || ev.source !== frame.contentWindow || !ev.data || ev.data.tipo !== 'duracao') return;
     const restanteMs = ev.data.segundos * 1000;
-    if (restanteMs > 0 && restanteMs < duracaoMaxMs) rearmaCronometro(restanteMs); // vídeo mais curto que o teto: usa a duração real
+    if (restanteMs > 0 && restanteMs < duracaoMaxMs) { durReal = restanteMs; rearmaCronometro(restanteMs + (tocou ? 0 : 10000)); } // vídeo mais curto que o teto: usa a duração real
   };
   // TELA PRETA (19/10/2026, TV da matriz): se o player não confirmar que o vídeo está TOCANDO em 4s,
   // ou avisar erro, encerra o vídeo na hora e segue para a próxima etapa (VAR / decisão).
@@ -251,6 +252,7 @@ function tocaVideoLance(cv, nivel, subtipo, duracaoMaxMs, aoTerminar, arquivoFix
   const onEstado = (ev) => {
     if (parou || ev.source !== frame.contentWindow || !ev.data) return;
     if (ev.data.tipo === 'tocando' || ev.data.tipo === 'progresso') {
+      if (!tocou) rearmaCronometro(durReal || duracaoMaxMs); // o teto conta a partir do início real (o download vem antes)
       tocou = true; clearTimeout(vigia);
       vigia = setTimeout(finaliza, 3000); // CONGELOU: 3s sem o vídeo andar = encerra e segue
     }
@@ -262,12 +264,12 @@ function tocaVideoLance(cv, nivel, subtipo, duracaoMaxMs, aoTerminar, arquivoFix
   const pedeParaTocar = () => {
     if (frame.contentWindow) frame.contentWindow.postMessage({ tipo: 'tocar', arquivo, mudo }, '*');
     mostraVideo();
-    clearTimeout(vigia); vigia = setTimeout(() => { if (!tocou) finaliza(); }, 4000);
+    clearTimeout(vigia); vigia = setTimeout(() => { if (!tocou) finaliza(); }, 10000); // 10s: inclui baixar o vídeo (~2 MB) antes de tocar
   };
   if (IFRAME_PLAYER_PRONTO) pedeParaTocar();
   else frame.onload = pedeParaTocar; // primeira vez: espera o player carregar antes de mandar tocar
 
-  rearmaCronometro(duracaoMaxMs); // teto de segurança, reajustado se a duração real chegar antes
+  rearmaCronometro(duracaoMaxMs + 10000); // teto (+10s para baixar o vídeo antes de tocar) de segurança, reajustado se a duração real chegar antes
 
   const stop = () => {
     window.removeEventListener('message', onDuracaoReal);

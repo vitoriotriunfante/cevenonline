@@ -15,6 +15,7 @@ NÃO ALTERAR o nome/caminho deste arquivo sem atualizar tv-animacoes.js (pegaIfr
 <video id="v" autoplay playsinline muted></video>
 <script>
 const v = document.getElementById('v');
+let seq = 0, urlBlob = null;
 v.addEventListener('loadedmetadata', () => {
   if (window.parent && isFinite(v.duration)) window.parent.postMessage({ tipo: 'duracao', segundos: v.duration }, '*');
 });
@@ -29,10 +30,20 @@ window.addEventListener('message', (ev) => {
   if (msg.tipo === 'tocar' && msg.arquivo) {
     try { v.pause(); } catch {}
     v.muted = !!msg.mudo;
-    v.src = msg.arquivo;
-    v.load();
-    v.play().catch(() => { if (!v.muted) { v.muted = true; v.play().catch(() => {}); } });
+    // BAIXA O VIDEO INTEIRO ANTES DE TOCAR (19/10/2026): tocar direto da rede congelava na TV
+    // quando o Wi-Fi nao acompanhava. Com o arquivo na memoria, tocar nao depende mais da rede.
+    const pedido = ++seq;
+    if (urlBlob) { try { URL.revokeObjectURL(urlBlob); } catch {} urlBlob = null; }
+    const toca = (src) => {
+      if (pedido !== seq) return;
+      v.src = src; v.load();
+      v.play().catch(() => { if (!v.muted) { v.muted = true; v.play().catch(() => {}); } });
+    };
+    fetch(msg.arquivo).then((r) => { if (!r.ok) throw 0; return r.blob(); })
+      .then((b) => { if (pedido !== seq) return; urlBlob = URL.createObjectURL(b); toca(urlBlob); })
+      .catch(() => toca(msg.arquivo)); // sem fetch/blob: toca direto como antes
   } else if (msg.tipo === 'parar') {
+    seq++;
     try { v.pause(); v.removeAttribute('src'); v.load(); } catch {}
   }
 });
