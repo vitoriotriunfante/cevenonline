@@ -1994,6 +1994,12 @@ function autoScrollPaineis() {
 }
 setInterval(autoScrollPaineis, 80);
 let versao = null, precisaRecarregar = false;
+// SINAL DE VIDA (19/10/2026): a cada 1 min a TV conta ao servidor qual versao esta rodando, se o VAR esta ocupado, a fila e quantos vendedores carregou.
+// Assim uma TV parada ou velha aparece em /api/tv-ping sem ninguem precisar ir ate ela.
+async function pingTV() {
+  try { await fetch('/api/tv-ping', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tela: window.top === window ? 'tvapp' : 'tv', filial: FIL, grupo: (P.get('grupo') || ''), versao: versao || '', ocupado: !!(emVAR || FILA.length), espera: ESPERA.length, vendedores: Object.keys(DATA).length, dados_de: lastOk ? sp(new Date(lastOk)).hms : '' }) }); } catch (e) {}
+}
+setInterval(pingTV, 60 * 1000); setTimeout(pingTV, 15000);
 async function checaVersao() {
   const d = await j('/api/version', 8000);
   if (d && d.version) {

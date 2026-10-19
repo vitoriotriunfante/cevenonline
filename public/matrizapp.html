@@ -2047,6 +2047,11 @@ setInterval(carregaResumoOficial, 60000); carregaResumoOficial();
 // ATUALIZACAO AUTOMATICA DA MATRIZ (05/10/2026): a Matriz aberta direto (sem a casca /tv) nao recarregava quando publicavamos e ficava horas rodando codigo velho
 // (ex.: popup de impedimento sem prova, regras antigas). Mesma regra da TV da filial: confere /api/version a cada 30 s e recarrega SEM interromper um lance.
 let versaoMatriz = null, recarregarMatriz = false;
+// SINAL DE VIDA (19/10/2026): igual a TV da filial; a Matriz aparece em /api/tv-ping como filial MTZ.
+async function pingMatriz() {
+  try { await fetch('/api/tv-ping', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tela: 'matriz', filial: 'MTZ', versao: versaoMatriz || '', ocupado: !!(emVAR || FILA.length), espera: ESPERA.length }) }); } catch (e) {}
+}
+setInterval(pingMatriz, 60 * 1000); setTimeout(pingMatriz, 15000);
 async function checaVersaoMatriz() {
   const d = await j('/api/version', 8000);
   if (d && d.version) {
