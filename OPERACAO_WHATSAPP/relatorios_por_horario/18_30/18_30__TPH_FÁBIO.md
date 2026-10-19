@@ -1,16 +1,19 @@
 🏢 *BOLETIM DE FECHAMENTO OFICIAL — 18:30*
-📅 16/10/2026
+📅 19/10/2026
 📍 *FILIAL TPH — FÁBIO*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 42.024,73
-📦 *Pedidos Colocados:* 66 pedidos
-📍 *Visitas Realizadas:* 206 de 363 (56,7%)
-👥 *Vendedores Varejo com Pedido:* 18 de 25 (72%)
-✂️ *Cortes nos Pedidos de Hoje:* R$ 0,00 (0 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 12.359,39 (17 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 5.173,69
-🟢 *Recuperação de Inativos (+30d):* 3 de 73 PDVs reativados hoje
+💰 *Total Digitado Hoje:* R$ 140.399,57
+📦 *Pedidos Colocados:* 96 pedidos
+📍 *Visitas Realizadas:* 261 de 455 (57,4%)
+👥 *Vendedores Varejo com Pedido:* 17 de 25 (68%)
+✂️ *Cortes nos Pedidos de Hoje:* R$ 9,69 (1 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 8.807,66 (18 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 5.876,00
+
+⚠️ *DETALHE DOS CORTES DE HOJE:*
+  ▫️ Cód. 105 • GIULIA TEIXEIRA DUARTE: -R$ 9,69 em  (SKU em falta)
+🟢 *Recuperação de Inativos (+30d):* 2 de 93 PDVs reativados hoje
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*
