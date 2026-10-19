@@ -30,6 +30,27 @@ if (SEGREDO) {
     const criar = axios.create.bind(axios);
     axios.create = (...a) => { const inst = criar(...a); instalar(inst); return inst; };
   } catch { /* script sem axios instalado: so o fetch */ }
+  // https.get / https.request (19/10/2026): o extrator de historico do Data Lake (analises/extrair_historico_completo_11_filiais.js) e outros
+  // usam o modulo https cru; sem isto iam SEM o header, levavam 401 e o banco gravou ZERO pedidos de 08/10 a 18/10 sem acusar erro.
+  try {
+    const https = require('https');
+    const embrulha = (orig) => function (...args) {
+      try {
+        let i = 0;
+        const alvo = args[0];
+        const host = typeof alvo === 'string' || alvo instanceof URL ? String(alvo) : (alvo && (alvo.hostname || alvo.host)) || '';
+        if (ehCeven(host)) {
+          if (typeof args[1] === 'object' && args[1] !== null && typeof args[1] !== 'function') i = 1;
+          else if (typeof alvo === 'object' && !(alvo instanceof URL)) i = 0;
+          else { args.splice(1, 0, {}); i = 1; }
+          args[i].headers = { ...(args[i].headers || {}), 'X-App-Secret': SEGREDO };
+        }
+      } catch { /* nunca quebra a chamada original */ }
+      return orig.apply(this, args);
+    };
+    https.request = embrulha(https.request);
+    https.get = embrulha(https.get);
+  } catch { /* sem modulo https: nada a fazer */ }
 } else {
   console.log('⚠️ CEVEN_APP_SECRET ausente: o CEVEN vai recusar as chamadas (401).');
 }

@@ -438,6 +438,8 @@ async function extrairHistoricoPedidos() {
 
   console.log(`\n\n✅ Histórico extraído:`);
   console.log(`   Pedidos:    ${totalPedidos.toLocaleString()}`);
+  // NUNCA MAIS SUCESSO COM ZERO (19/10/2026): de 08/10 a 18/10 este passo gravou 0 pedidos de 45 mil clientes e saiu 'OK' (ia sem o header X-App-Secret).
+  if (!totalPedidos) { console.error('❌ ZERO pedidos gravados: o CEVEN recusou (401/429) ou mudou o formato. NÃO é sucesso.'); process.exitCode = 1; }
   console.log(`   Itens:      ${totalItens.toLocaleString()}`);
   console.log(`   Cortes:     ${totalCortes.toLocaleString()}`);
   console.log(`   Faturado:   R$ ${totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
