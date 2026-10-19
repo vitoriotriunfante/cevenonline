@@ -110,7 +110,7 @@ import { CEVEN_APP_SECRET } from './cron-varredura-central.js';
 import { qualificaGol, carteiraEfetiva } from '../_lib/qualificacao_gol.js';
 import { garanteArvore } from '../_lib/arvore_ceven.js';
 import { ehRepresentante } from '../_lib/participacao.js';   // representante nao e monitorado (12/10/2026)
-import { ehFeriado } from '../_lib/feriados.js';
+import { ehFeriado, ehFimDeSemana } from '../_lib/feriados.js';
 // Prova do gol de cliente: pedido de hoje (numero, status, valor) e, na dobradinha, os pedidos reais de cada quinzena do mes
 function provaPedidoHoje(c) {
   const p = c && c.pedidoHoje;
@@ -343,6 +343,10 @@ export async function onRequestGet({ env, request }) {
   // FERIADO NAO CONTA PARA A LIGA (Vitorio, 13/10/2026: "ja falamos"): em 12/10 o coletor deu 6 amarelos e 6 vermelhos (-78) em pleno feriado. Sem lance nenhum.
   if (ehFeriado(t.dia)) {
     return new Response(JSON.stringify({ status: 'FERIADO_SEM_LANCE', dia: t.dia, hora: t.hms }), { headers: cors });
+  }
+  // FIM DE SEMANA SEM LANCE (Vitorio, 19/10/2026: "final de semana nao quero nenhum lance"): em 17/10 sairam 18 lances (-82) num sabado.
+  if (ehFimDeSemana(t.dia)) {
+    return new Response(JSON.stringify({ status: 'FIM_DE_SEMANA_SEM_LANCE', dia: t.dia, hora: t.hms }), { headers: cors });
   }
   const forcar = new URL(request.url).searchParams.has('forcar');
 

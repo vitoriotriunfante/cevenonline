@@ -390,3 +390,5 @@ pequenos.
 - **Virada do dia 15→16/10/2026:** a base de hoje ficou vazia de 00:00 a ~00:30 (548 às 00:54). O CEVEN devolvia 429 (cota da chave — os testes manuais da noite ajudaram a gastar) e as rodadas "completa" que esperavam a cota eram cortadas pelo agendador sem gravar. Recuperou sozinha. O /saude não alarmava fora do horário comercial e dizia "Todos os sistemas operando" com a base zerada; agora mostra "atenção" também fora do horário.
 
 - **19/10/2026 — Vídeo dos lances travando/tela preta na TV:** vídeos reconvertidos (H.264 Main, 720p, 1,5 Mbps; 288 MB → 96 MB), o player baixa o vídeo inteiro antes de tocar, e vídeo que não começa em 10 s ou congela por 3 s segue sozinho para o VAR. O player é recriado a cada vídeo.
+
+- **19/10/2026 — Fim de semana sem lance (Vitório: "final de semana não quero nenhum lance"):** sábado e domingo o coletor (`cron-lances`), o registro da TV (`tv-lances`) e o VAR da TV/Matriz não geram nada, igual ao feriado (`functions/_lib/feriados.js`, `ehFimDeSemana`).

@@ -960,6 +960,7 @@ async function checaBolaCheiaAS() {
 setInterval(checaBolaCheiaAS, 60 * 1000); setTimeout(checaBolaCheiaAS, 20000);
 
 function enfileira(novos) {
+  { const w = new Date(sp().date + 'T12:00:00Z').getUTCDay(); if (w === 0 || w === 6) return; } // FIM DE SEMANA SEM LANCE (Vitorio, 19/10/2026): nada de VAR/popup no sabado e domingo
   // Gols têm prioridade máxima de comemoração
   novos.filter(a => a.nivel === 'gol').forEach(a => {
     ESPERA.unshift({tipo: 'gol', v: a.v, c: a.c, a, sub: textoGol(a.subtipo, a.valor, a.c, a.horaReal), score: ['marca_propria', 'mp_tripla'].includes(a.subtipo) ? 500 : 99});

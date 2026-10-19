@@ -10,3 +10,7 @@ export const FERIADOS = new Set([
   '2027-01-01', '2027-02-08', '2027-02-09', '2027-03-26', '2027-04-21', '2027-05-01', '2027-05-27', '2027-09-07', '2027-10-12', '2027-11-02', '2027-11-15', '2027-11-20', '2027-12-25'   // 2027 (Carnaval 08-09/02, Sexta Santa 26/03, Corpus Christi 27/05)
 ]);
 export const ehFeriado = (diaISO) => FERIADOS.has(String(diaISO || '').slice(0, 10));
+
+// FIM DE SEMANA NAO TEM LANCE (Vitorio, 19/10/2026: "final de semana nao quero nenhum lance"): sabado e domingo o coletor e a TV nao geram nada.
+export const ehFimDeSemana = (diaISO) => { const [a, m, d] = String(diaISO || '').slice(0, 10).split('-').map(Number); if (!a) return false; const w = new Date(Date.UTC(a, m - 1, d)).getUTCDay(); return w === 0 || w === 6; };
+export const diaSemLance = (diaISO) => ehFeriado(diaISO) || ehFimDeSemana(diaISO);
