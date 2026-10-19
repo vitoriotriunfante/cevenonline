@@ -581,9 +581,9 @@ secao('8n. Popup de decisao compacto: campos curtos lado a lado, texto longo em 
 secao('8o. Regras novas: amarelo as 10h (sem pedido e/ou sem visita), vermelho de abandono as 11h, penalti -4 a partir de 06/10');
 {
   const cl = ler('functions/api/cron-lances.js'), bl = ler('functions/api/brasileirao-lances.js'), tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), cj = JSON.parse(ler('config/pontuacao_brasileirao.json')), pj = JSON.parse(ler('public/pontuacao_brasileirao.json')), br = ler('public/brasileirao.html');
-  ok(cl.includes('limAmarelo = v.fuso1h ? 11 : 10, limVermelho = v.fuso1h ? 12 : 11') && cl.includes('v.feitas === 0 || (!(v.dig > 0)') && cl.includes('t.h >= limVermelho') && cl.includes('chave: `vis11|${v.id}`') && cl.includes('v.feitas === 0) {'), 'coletor: amarelo as 10h (sem pedido e/ou sem visita), vermelho de abandono as 11h (12h no fuso)');
+  ok(cl.includes('limAmarelo = v.fuso1h ? 11 : 10, limVermelho = v.fuso1h ? 12 : 11') && cl.includes('t.h < 19 && v.feitas === 0 /* AMARELO SO POR FALTA DE CHECK-IN') && !cl.includes('v.feitas === 0 || (!(v.dig > 0)') && cl.includes('t.h >= limVermelho') && cl.includes('chave: `vis11|${v.id}`') && cl.includes('v.feitas === 0) {'), 'coletor: amarelo as 10h SO sem check-in (desde 19/10/2026), vermelho de abandono as 11h (12h no fuso)');
   ok([tv, mz].every(h => h.includes("subtipo: v.feitas === 0 ? 'sem_checkin' : 'sem_venda'") && h.includes('limVerm = limiteHora + 1') && h.includes('-4 PONTOS NA LIGA')), 'TV e Matriz: mesma regra nos popups e penalti -4 no selo');
-  ok(cj.pontos_por_lance.penalti_estoque.pontos === -4 && cj.pontos_por_lance.penalti_fechado.pontos === -4 && pj.pontos_por_lance.penalti_estoque.pontos === -4 && /11h00/.test(cj.pontos_por_lance.visita10.motivo) && /nenhuma visita/.test(cj.pontos_por_lance.amarelo.motivo), 'regulamento (config e copia publica): penalti -4, abandono 11h, amarelo com sem-visita/check-in');
+  ok(cj.pontos_por_lance.penalti_estoque.pontos === -4 && cj.pontos_por_lance.penalti_fechado.pontos === -4 && pj.pontos_por_lance.penalti_estoque.pontos === -4 && /11h00/.test(cj.pontos_por_lance.visita10.motivo) && /NENHUM check-in/.test(cj.pontos_por_lance.amarelo.motivo) && /NENHUM check-in/.test(pj.pontos_por_lance.amarelo.motivo), 'regulamento (config e copia publica): penalti -4, abandono 11h, amarelo com sem-visita/check-in');
   ok(bl.includes("dia >= '2026-10-06'") && bl.includes('pontos: -4'), 'endpoint: penalti vale -4 so a partir de 06/10/2026 (dias anteriores continuam -6)');
   ok(br.includes('table-layout: fixed') && !br.includes('clientes recuperados') && br.includes('@media (max-width: 1560px)') && br.includes('/api/version'), 'Brasileirao: tabelas cabem na tela (sem rolagem lateral), cabecalhos Super Pedidos/Inativos explicados, recarrega com versao nova');
 }
@@ -679,7 +679,7 @@ for (const arq of ['public/tvapp.html', 'public/matrizapp.html']) {
 secao('8e. Liga cravada: regras congeladas por versao, fechamento do dia (19h30) e conferencia diaria contra o CEVEN');
 {
   const cfgTxt = ler('config/pontuacao_brasileirao.json'); const cfg = JSON.parse(cfgTxt);
-  const LOCK_HASH = 'fc8e35dbb341af6e6440483364b643e5958ab4d0eec37f3d2818100f922971eb'; // sha256 do regulamento na versao 2026-10-15.1 (15/10/2026): AS com devolucao 1 por cliente por dia, semana em andamento = J e semanas de trabalho a partir de nov/2026; desempate do Varejo escrito como o sistema calcula
+  const LOCK_HASH = '5ed36c4aff19f02f069c24dfe2d6a8fd86a2ec651e956be483afeaaa3d0b6683'; // sha256 do regulamento na versao 2026-10-19.1 (19/10/2026): amarelo e vermelho de abandono so por falta de CHECK-IN (pedido de manha nao e mais cobrado). Antes, 2026-10-15.1: AS com devolucao 1 por cliente por dia, semana em andamento = J e semanas de trabalho a partir de nov/2026; desempate do Varejo escrito como o sistema calcula
   const { createHash } = await import('node:crypto');
   const hash = createHash('sha256').update(JSON.stringify(cfg)).digest('hex');
   const lib = ler('functions/_lib/liga_fechamento.js');

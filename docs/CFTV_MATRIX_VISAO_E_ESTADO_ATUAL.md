@@ -392,3 +392,5 @@ pequenos.
 - **19/10/2026 — Vídeo dos lances travando/tela preta na TV:** vídeos reconvertidos (H.264 Main, 720p, 1,5 Mbps; 288 MB → 96 MB), o player baixa o vídeo inteiro antes de tocar, e vídeo que não começa em 10 s ou congela por 3 s segue sozinho para o VAR. O player é recriado a cada vídeo.
 
 - **19/10/2026 — Fim de semana sem lance (Vitório: "final de semana não quero nenhum lance"):** sábado e domingo o coletor (`cron-lances`), o registro da TV (`tv-lances`) e o VAR da TV/Matriz não geram nada, igual ao feriado (`functions/_lib/feriados.js`, `ehFimDeSemana`).
+
+- **19/10/2026 — Regras v2026-10-19.1 (Vitório): cartões do Varejo só por falta de CHECK-IN.** Amarelo às 10h (11h no fuso) = rota ativa e nenhum check-in; vermelho às 11h (12h no fuso) = continua sem nenhum check-in. Pedido de manhã não é mais cobrado e não existe mais vermelho por falta de venda. Vale desde 19/10 (hoje): os amarelos de hoje dados pela regra antiga a quem tinha visita são reprovados pela auditoria e saem no fechamento das 22h. Textos de TV, Matriz, VAR, regulamento e notificação dos supervisores ajustados. AS não muda (cartões já não valiam).

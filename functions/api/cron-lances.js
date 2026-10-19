@@ -246,11 +246,11 @@ function calcAlertas(vs, t) {
       const mpCli = (v.cl || []).filter((c) => ['POSITIVADO', 'EFETIVADO'].includes(c.status) && mpDe(c) >= 50);
       if (mpCli.length >= 3) out.push({ chave: `gol_mp_tripla|${v.id}`, nivel: 'gol', v, prova: `${mpCli.length} clientes com R$ 50+ de MARCA PROPRIA no dia (minimo 3): ` + mpCli.map((c) => `${c.nome} R$ ${mpDe(c).toFixed(2).replace('.', ',')}`).join('; ') });
     }
-    // Amarelo as 10h (11h no fuso): rota ativa sem nenhum pedido e/ou sem nenhuma visita (inclui quem nao fez nenhum check-in de varejo).
+    // Amarelo as 10h (11h no fuso): rota ativa sem NENHUM check-in/visita (regra de 19/10/2026; antes tambem cobrava pedido).
     // Vermelho de abandono as 11h (12h no fuso): rota ativa ainda sem nenhuma visita feita. Regra de 06/10/2026 (antes o vermelho era as 10h).
     const limAmarelo = v.fuso1h ? 11 : 10, limVermelho = v.fuso1h ? 12 : 11;
     const hh = String(t.h).padStart(2, '0');
-    if (v.campo && v.temRota && t.h >= limAmarelo && t.h < 19 && (v.feitas === 0 || (!(v.dig > 0) && !(v.pos > 0)))) {
+    if (v.campo && v.temRota && t.h >= limAmarelo && t.h < 19 && v.feitas === 0 /* AMARELO SO POR FALTA DE CHECK-IN desde 19/10/2026 (Vitorio): pedido de manha nao e mais cobrado */) {
       out.push({ chave: `ven10|${v.id}`, nivel: 'amarelo', v, prova: v.feitas === 0 ? `nenhuma visita nem check-in de varejo (${v.cl.length} clientes na rota) as ${hh}h (limite ${limAmarelo}h)` : `${v.feitas} visitas feitas, 0 pedidos e digitado R$ 0 as ${hh}h (limite ${limAmarelo}h)` });
     }
     if (v.campo && v.temRota && t.h >= limVermelho && t.h < 19 && v.feitas === 0) {

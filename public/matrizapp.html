@@ -710,9 +710,9 @@ function calcAlertas() {
     const limiteHora = ehFuso ? 11 : 10;
     const limiteHoraFim = ehFuso ? 12.5 : 11.5;
     const horaAtualDecimal = t.h + (t.m / 60);
-    // Amarelo (10h; 11h no fuso): sem pedido e/ou sem visita (inclui sem check-in de varejo). Vermelho de abandono (11h; 12h no fuso): sem nenhuma visita. Regra de 06/10/2026.
+    // Amarelo (10h; 11h no fuso): sem NENHUM check-in (regra de 19/10/2026; antes cobrava pedido tambem). Vermelho de abandono (11h; 12h no fuso): sem nenhuma visita. Regra de 06/10/2026.
     const limVerm = limiteHora + 1, limVermFim = limiteHoraFim + 1;
-    if (v.campo && v.temRota && horaAtualDecimal >= limiteHora && horaAtualDecimal < limiteHoraFim && (v.feitas === 0 || (!(v.dig > 0) && !(v.pos > 0)))) out.push({key: `${sig}|ven10|${v.id}`, sig, nivel: 'amarelo', subtipo: v.feitas === 0 ? 'sem_checkin' : 'sem_venda', v});
+    if (v.campo && v.temRota && horaAtualDecimal >= limiteHora && horaAtualDecimal < limiteHoraFim && v.feitas === 0 /* AMARELO SO POR FALTA DE CHECK-IN desde 19/10/2026 (Vitorio): pedido de manha nao e mais cobrado */) out.push({key: `${sig}|ven10|${v.id}`, sig, nivel: 'amarelo', subtipo: v.feitas === 0 ? 'sem_checkin' : 'sem_venda', v});
     if (v.campo && v.temRota && horaAtualDecimal >= limVerm && horaAtualDecimal < limVermFim && v.feitas === 0) out.push({key: `${sig}|vis11|${v.id}`, sig, nivel: 'vermelho', subtipo: 'abandono_campo', v});
   }
   return out;
@@ -1119,9 +1119,9 @@ function telaVAR(item) {
     else dec = seloLiga + porqueHtml(it) + linhas(cab) + it.slice(0, 5).map(a => `<div class="ln w est"><b>${a.dias != null ? a.dias + ' dias sem compra' : 'sem compra'}</b><span>${esc(a.c ? a.c.nome : '')}</span></div>`).join('');
     veredito = (v && ehSupFalso(v.sup)) ? `📞 LIGAR AGORA: o gerente de ${item.sig} (vendedor ${v.nome.split(' ')[0]} é ligado direto ao gerente)` : `📞 LIGAR AGORA: ${v ? v.sup : 'supervisor'} · ${item.sig} (supervisor de ${v ? v.nome.split(' ')[0] : 'vendedor'})`;
   } else if (item.tipo === 'amarelos') {
-    titulo = '🟨 CARTÕES AMARELOS'; sub = `${item.sig} · ${(item.l || []).length} vendedor(es) COM ROTA sem pedido e/ou sem visita às ${LIMITE_H}h`; cls = 'f1';
+    titulo = '🟨 CARTÕES AMARELOS'; sub = `${item.sig} · ${(item.l || []).length} vendedor(es) COM ROTA e nenhum check-in às ${LIMITE_H}h`; cls = 'f1';
     dec = seloLiga + (item.l || []).slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.txt ? esc(a.txt) : (a.subtipo === 'sem_checkin' ? 'nenhuma visita / check-in de varejo' : (a.v && a.v.feitas != null && a.v.rota != null ? a.v.feitas + '/' + a.v.rota + ' visitas · ' + (a.v.pos || 0) + ' pedidos' : 'detalhe do lance não gravado'))}${a.v && a.v.sup && !ehSupFalso(a.v.sup) ? ' · sup. ' + esc(a.v.sup) : ''}</span></div>`).join('') + ((item.l || []).length > 8 ? `<div class="ln"><b>+${item.l.length - 8}</b><span>outros</span></div>` : '');
-    veredito = '🟨 Cobrar o compromisso da manhã: pedido e visita até as 10h. Quem continuar sem visita às 11h leva o vermelho.';
+    veredito = '🟨 Cobrar o compromisso da manhã: estar no cliente (check-in) até as 10h. Quem continuar sem check-in às 11h leva o vermelho.';
   } else {
     titulo = item.tipo === 'venda10' ? '🟥 CARTÃO VERMELHO' : '⛔ EXPULSÃO'; sub = `${item.sig} · ${LIMITE_H}h e ${(item.l||[]).length} vendedor(es) COM ROTA e SEM ${item.tipo === 'venda10' ? 'NENHUMA VENDA' : 'NENHUMA VISITA'}`;
     dec = (item.l||[]).slice(0, 8).map(a => `<div class="ln hot"><b>${nomeComRca(a.v)}</b><span>${a.txt ? esc(a.txt) : (a.v && a.v.feitas != null && a.v.rota != null ? a.v.feitas + '/' + a.v.rota + ' visitas · digitado ' + brl(a.v.dig) : 'detalhe do lance não gravado')}</span></div>`).join(''); veredito = item.tipo === 'venda10' ? 'Nenhuma venda registrada até agora.' : 'Nenhuma visita registrada — verificar se está em campo.';
@@ -1910,7 +1910,7 @@ function confereLanceAuto() {
     } else if (lance.nivel === 'golcontra') {
       FILA.push({tipo: 'golcontra', sig: lance.sig, v: lance.v, a: lance, sub: `Devolução: ${lance.clienteDev || 'cliente'} (${brl(lance.valor)})`});
     } else if (lance.nivel === 'amarelo') {
-      FILA.push({tipo: 'amarelo', sig: lance.sig, v: lance.v, a: lance, sub: 'Rota ativa sem vendas às 10h'});
+      FILA.push({tipo: 'amarelo', sig: lance.sig, v: lance.v, a: lance, sub: 'Rota ativa sem nenhum check-in às 10h'});
     } else if (lance.nivel === 'impedimento') {
       const sub = lance.subtipo === 'gps_fora' ? `Check-out a ${lance.distM}m do cliente ${lance.c && lance.c.nome}` : `Visita 00:00 no cliente ${lance.c && lance.c.nome}`;
       FILA.push({tipo: 'impedimento', sig: lance.sig, v: lance.v, c: lance.c, a: lance, sub});
@@ -1972,7 +1972,7 @@ function ctl() {
   if ($('bt-def')) $('bt-def').onclick = () => (typeof animTeste === 'function' ? animTeste('defesa', 'Defesa milagrosa: salvou a meta no cliente') : null);
   if ($('bt-imp')) $('bt-imp').onclick = () => (typeof animTeste === 'function' ? animTeste('impedimento', 'Visita relâmpago de 00:00') : null);
   if ($('bt-ver')) $('bt-ver').onclick = () => (typeof animTeste === 'function' ? animTeste('vermelho', 'Devolução: CLIENTE NÃO PEDIU') : null);
-  if ($('bt-ama')) $('bt-ama').onclick = () => (typeof animTeste === 'function' ? animTeste('amarelo', 'Rota ativa sem vendas às 10h') : null);
+  if ($('bt-ama')) $('bt-ama').onclick = () => (typeof animTeste === 'function' ? animTeste('amarelo', 'Rota ativa sem nenhum check-in às 10h') : null);
   if ($('bt-pen')) $('bt-pen').onclick = () => (typeof animTeste === 'function' ? animTeste('penalti', 'Simulação de falta / estoque suficiente') : null);
   if ($('bt-gc')) $('bt-gc').onclick = () => (typeof animTeste === 'function' ? animTeste('golcontra') : null);
   if ($('bt-hat')) $('bt-hat').onclick = () => (typeof animTeste === 'function' ? animTeste('hattrick') : null);

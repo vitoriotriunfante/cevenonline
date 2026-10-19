@@ -104,7 +104,10 @@ export function auditaLance(l, ctx = {}) {
     if (!mot) falha('pênalti sem a justificativa do vendedor');
   } else if (tipo === 'ven10') {
     m = /(\d+) visitas feitas, (\d+) pedidos e digitado R\$ ([\d.,]+) as (\d+)h/.exec(obs);
-    if (m) { if (+m[2] > 0 && +m[1] > 0) falha(`amarelo de vendedor com ${m[1]} visitas e ${m[2]} pedidos`); }
+    if (m) {
+      if (+m[2] > 0 && +m[1] > 0) falha(`amarelo de vendedor com ${m[1]} visitas e ${m[2]} pedidos`);
+      else if (String(ctx.dia || '') >= '2026-10-19' && +m[1] > 0) falha(`amarelo de vendedor com ${m[1]} visitas feitas (desde 19/10/2026 o amarelo e so para quem nao fez nenhum check-in)`);
+    }
     else if (!/nenhuma visita nem check-in de varejo \(\d+ clientes na rota\)/.test(obs)) falha('amarelo sem a prova de visitas e pedidos');
   } else if (tipo === 'vis11' || tipo === 'vis10') {
     m = /(\d+) clientes na rota, (\d+) visitas feitas/.exec(obs);
