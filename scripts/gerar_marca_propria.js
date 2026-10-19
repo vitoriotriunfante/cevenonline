@@ -22,7 +22,7 @@
  *                   pelo orquestrador (pipeline/orquestrador_diario.js) no mesmo dia.
  *
  * Regras de negócio (definidas com Vitório em 22/09/2026):
- * - Todas as 11 filiais entram (19/10/2026); quem não vendeu aparece zerado. Varejo e AS contam.
+ * - TBE e TCG não têm marca própria no catálogo — ficam de fora do envio. Varejo e AS contam (19/10/2026).
  * - ABC só tem 1 marca (Bellarone) — cobrar mais dele, não tratar com pena
  * - Sem ranking por ora — só visibilidade (consolidado + por filial + por supervisor)
  * - Zerados de hoje mostram há quantos dias o vendedor não vende MP (histórico), não só "zerou hoje"
@@ -142,9 +142,9 @@ async function main() {
     try { require('child_process').execSync('rclone copy gdrive:pedidos_historico_ceven.db analises/', { cwd: path.join(__dirname, '..'), stdio: 'inherit' }); } catch (e) { console.log('rclone falhou: ' + e.message); }
   }
   const db = new Database(DB_PATH, { readonly: true });
-  // TODAS AS 11 FILIAIS (Vitorio, 19/10/2026: "pedido e pedido... se nao tem marca propria, vai aparecer"): TBE e TCG entram e aparecem zeradas quando nao venderem.
-  const FILIAIS_EXCLUIDAS = new Set();
-  const ORDEM_FILIAIS = ['TPH', 'API', 'TBL', 'TCA', 'TSJ', 'TPA', 'ABC', 'TCV', 'MCD', 'TBE', 'TCG'];
+  // TBE e TCG nao tem nenhum produto de marca propria no catalogo (Vitorio, 19/10/2026: "se o pessoal nem vende, pq vai incluir?"): ficam de fora.
+  const FILIAIS_EXCLUIDAS = new Set(['TBE', 'TCG']);
+  const ORDEM_FILIAIS = ['TPH', 'API', 'TBL', 'TCA', 'TSJ', 'TPA', 'ABC', 'TCV', 'MCD'];
 
   // =====================================================================
   // DADOS DE HOJE
