@@ -1,38 +1,41 @@
 🌅 *ABERTURA MATINAL — TPA (07:45)*
-📅 sexta-feira, 16/10/2026
+📅 segunda-feira, 19/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 15 • Visitas: 239 (média 15,9/vendedor)
-Sem compra +30d: 102 (42,7%) • Recorrência: 22 (9,2%)
-Oportunidades CNAE 4771: +256 PDVs
+👥 Vendedores: 16 • Visitas: 236 (média 14,8/vendedor)
+Sem compra +30d: 87 (36,9%) • Recorrência: 34 (14,4%)
+Oportunidades CNAE 4789: +236 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPA — RADKE / LEANDRO* • 16/10/2026
+📍 *TPA — RADKE / LEANDRO* • 19/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 102  •  🟡 Preventivo: 0
+🔴 Última Chance: 87  •  🟡 Preventivo: 0
 
-👤 *ANDERSON GIOVANI FERREIRA BOLTER* (57 em risco)
-  🔴 MERCADO SM (150) — 09/09
-  🔴 SUPERMERCADO DO ANAO (150) — 07/08
-  🔴 MERCADO DU HELIO (150) — 05/08
-  🔴 GIANE TERESINHA PANDOLFO (150) — 08/09
-  🔴 MERCADO FRITSCH (150) — 10/09
-  _+52 outros_
+👤 *ANDERSON GIOVANI FERREIRA BOLTER* (42 em risco)
+  🔴 MERCADO SACOLAO SOUZA (150) — 31/07
+  🔴 MERCADO ROCHA (150) — 05/12
+  🔴 MERCADO GUARUJA (150) — 05/12
+  🔴 SUPERMERCADO GIRIS (150) — 05/12
+  🔴 MERCAFLEX (150) — 01/01
+  _+37 outros_
 
-👤 *RAFAEL DA SILVA CARPENA* (39 em risco)
-  🔴 COMERCIO VAREJISTA LINDOL (140) — 15/09
-  🔴 MINI MERCADO CONTESTADO (140) — 31/08
-  🔴 MERCADO MOURA (140) — 15/09
-  🔴 SIND TRAB AGRI FAM DE ROLANTE E RIOZINHO (140) — 15/09
-  🔴 SUPER MARTINS LTDA (140) — 01/01
-  _+34 outros_
+👤 *Vendedores ligados direto ao gerente* (1 em risco)
+  🔴 REDE GRANDESUL (1048) — 05/12
 
-👤 *ROGERIO DORNELLES PASSOS* (6 em risco)
-  🔴 MINI MERCADO DA FAMILIA (144) — 03/09
-  🔴 CINARA MENEZES DOS SANTOS (144) — 14/08
-  🔴 MERCADO 10 DE MAIO (144) — 14/09
-  🔴 POSTO RADAR (154) — 11/09
-  🔴 ADRIANO VAGNER ROTTH JUNIOR (154) — 27/07
-  _+1 outros_
+👤 *RAFAEL DA SILVA CARPENA* (30 em risco)
+  🔴 COMERCIAL R B (140) — 19/02
+  🔴 MERCADO MORADA DO SOL (140) — 15/09
+  🔴 MERCADO BONIATTI (140) — 20/02
+  🔴 TENDA COLONIAL (140) — 01/01
+  🔴 MAURO MARCONE BONETTO (140) — 31/07
+  _+25 outros_
+
+👤 *ROGERIO DORNELLES PASSOS* (14 em risco)
+  🔴 MERCADO MACIEL (144) — 20/08
+  🔴 MERCADO DU ALEMAO (144) — 17/07
+  🔴 MERCADO PORTIOLLI (144) — 17/09
+  🔴 SUPERMERCADO DULUKAS (154) — 16/09
+  🔴 CROSTOLLI MERCADO E PADARIA (154) — 19/08
+  _+9 outros_

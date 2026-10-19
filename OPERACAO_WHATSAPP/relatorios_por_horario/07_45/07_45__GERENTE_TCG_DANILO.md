@@ -1,43 +1,46 @@
 🌅 *ABERTURA MATINAL — TCG (07:45)*
-📅 sexta-feira, 16/10/2026
+📅 segunda-feira, 19/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 19 • Visitas: 155 (média 8,2/vendedor)
-Sem compra +30d: 39 (25,2%) • Recorrência: 8 (5,2%)
-Oportunidades CNAE 4771: +175 PDVs
+👥 Vendedores: 20 • Visitas: 176 (média 8,8/vendedor)
+Sem compra +30d: 47 (26,7%) • Recorrência: 9 (5,1%)
+Oportunidades CNAE 4789: +176 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCG — DANILO* • 16/10/2026
+📍 *TCG — DANILO* • 19/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 34  •  🟡 Preventivo: 0
+🔴 Última Chance: 45  •  🟡 Preventivo: 0
 
-👤 *DELINLSON ANTONIO LIMA SILVA* (14 em risco)
-  🔴 MERCADINHO JAIRO (456) — 05/12
-  🔴 MERC LUMER (456) — 15/09
-  🔴 COMERCIAL DUTRA (461) — 05/12
-  🔴 SUPERMERCADO MIYAKE (468) — 31/08
-  🔴 SM FAMILIAR (468) — 15/09
-  _+9 outros_
-
-👤 *EDSON RODRIGO LINIA* (3 em risco)
-  🔴 CASA DE CARNE CASTELO (458) — 05/12
-  🔴 NEVADAS BEER (474) — 10/09
-  🔴 MERCADO BOM PRECO (475) — 05/12
-
-👤 *Vendedores ligados direto ao gerente* (9 em risco)
-  🔴 NA BOA SUPERMERCADO (489) — 05/12
-  🔴 CASA DE CARNE EL SHADDAY (489) — 05/12
-  🔴 PONTO 10 (489) — 05/12
-  🔴 MERCADO SOARES (489) — 05/12
-  🔴 MERCEARIA VILA NOVA (489) — 24/08
+👤 *DELINLSON ANTONIO LIMA SILVA* (9 em risco)
+  🔴 MERCADO ECONOMIA (461) — 31/08
+  🔴 WJ SALGADARIA (468) — 27/08
+  🔴 HIPER POPULAR (468) — 05/12
+  🔴 JOAO VITOR M CAETANO (468) — 14/09
+  🔴 DEPOSITO DE GAS PP (469) — 27/05
   _+4 outros_
 
-👤 *TIAGO SANTOS CORREA* (8 em risco)
-  🔴 MINI MERCADO LEVE + (473) — 01/01
-  🔴 MERCADO JDF (486) — 05/12
-  🔴 MERCEARIA E CONVENIENCIA GARCI (487) — 12/09
-  🔴 CONVENIENCIA DOIS AMIGOS (487) — 05/12
-  🔴 M.A COMERCIO DE BEBIDAS E TABACOS (487) — 05/12
-  _+3 outros_
+👤 *EDSON RODRIGO LINIA* (9 em risco)
+  🔴 MAX CONVENIENCIA (458) — 27/08
+  🔴 NELLY (458) — 31/08
+  🔴 MERCEARIA SAO JOSE (474) — 27/08
+  🔴 MAX SUPERMERCADO (474) — 10/09
+  🔴 CONVENIENCIA DO ADILSON (474) — 21/08
+  _+4 outros_
+
+👤 *Vendedores ligados direto ao gerente* (13 em risco)
+  🔴 MERCADO SAO JOAO (489) — 05/12
+  🔴 MERCADO KAPITAL (489) — 05/12
+  🔴 DROGARIA NIPON (489) — 05/12
+  🔴 FARMACIA POPULAR MAIS SAUDE (489) — 05/12
+  🔴 POINT BEER CONVENIENCIA (489) — 05/12
+  _+8 outros_
+
+👤 *TIAGO SANTOS CORREA* (14 em risco)
+  🔴 SUPERMERCADO PAG POUCO (472) — 16/09
+  🔴 FRIOS CATARINENSE (486) — 05/12
+  🔴 LACERDA (486) — 05/12
+  🔴 AUTO POSTO NICARETTA (487) — 05/12
+  🔴 MERCEARIA E CONV TODA HORA (487) — 05/12
+  _+9 outros_

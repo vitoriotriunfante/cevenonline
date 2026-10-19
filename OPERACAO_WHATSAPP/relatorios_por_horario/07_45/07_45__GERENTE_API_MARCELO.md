@@ -1,38 +1,41 @@
 🌅 *ABERTURA MATINAL — API (07:45)*
-📅 sexta-feira, 16/10/2026
+📅 segunda-feira, 19/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 29 • Visitas: 398 (média 13,7/vendedor)
-Sem compra +30d: 122 (30,7%) • Recorrência: 80 (20,1%)
-Oportunidades CNAE 4771: +736 PDVs
+👥 Vendedores: 29 • Visitas: 410 (média 14,1/vendedor)
+Sem compra +30d: 112 (27,3%) • Recorrência: 87 (21,2%)
+Oportunidades CNAE 4789: +459 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *API — MARCELO* • 16/10/2026
+📍 *API — MARCELO* • 19/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 118  •  🟡 Preventivo: 0
+🔴 Última Chance: 112  •  🟡 Preventivo: 0
+
+👤 *ALESSANDRO JUNIOR LOPES* (1 em risco)
+  🔴 ASSIS SUPERMERCADOS (1186) — 11/07
 
 👤 *WASHINGTON FLORES DA ROSA* (39 em risco)
-  🔴 MAXIFARMA (244) — 05/12
-  🔴 PANIFICADORA DEGUSTI (244) — 31/07
-  🔴 POSTO CAYMAN (244) — 05/09
-  🔴 PANIFICADORA PADOKA (245) — 25/08
-  🔴 MERCADO (245) — 30/06
+  🔴 VINICIUS SAVIAN SEGANFREDO (244) — 10/09
+  🔴 SUPERMERCADO PALACIO DAS CARNES LTDA (244) — 25/08
+  🔴 SANDRO LUIZ BUENO (244) — 05/12
+  🔴 SUPER PAO (245) — 28/08
+  🔴 PANIFICADORA E CONFEITARIA DOIS IRMAOS (245) — 14/09
   _+34 outros_
 
 👤 *RODRIGO FARIAS* (65 em risco)
-  🔴 MERCADO RIBEIRO LTDA (241) — 12/08
-  🔴 PONTAROLO MERCADO E ACOUGUE LTDA (241) — 31/07
-  🔴 MERCADO DO MARCOS (241) — 05/12
-  🔴 SM SAO JOSE (241) — 12/09
-  🔴 LOJA CAMARGO (241) — 12/09
+  🔴 TOP BRIL (239) — 02/07
+  🔴 SOUZA SUPERMERCADOS (239) — 05/12
+  🔴 PLASTIMELOS (239) — 05/12
+  🔴 LOJA AKI TEM (239) — 05/12
+  🔴 CARAMELOS DISTRIBUIDORAS (239) — 05/12
   _+60 outros_
 
-👤 *SUELI APARECIDA TEIXEIRA POLLI* (14 em risco)
-  🔴 SM FIEBIG (261) — 05/12
-  🔴 MERRCADO LENIIAR (261) — 05/12
-  🔴 PANIFICADORA CALDAS (261) — 05/12
-  🔴 SUPERMERCADO CAMBARA (261) — 12/09
-  🔴 PARADA DO PASTEL - CAFE MORIAH (261) — 12/09
-  _+9 outros_
+👤 *SUELI APARECIDA TEIXEIRA POLLI* (7 em risco)
+  🔴 MERCARIA SANTANA (261) — 21/07
+  🔴 PEDRO FIDELIS MACHADO 01585560979 (261) — 28/08
+  🔴 PANIFICADORA XV DE NOVEMBRO (261) — 30/07
+  🔴 CASA DE CARNES NELORE (261) — 05/12
+  🔴 POSTO GUARTELA (529) — 31/08
+  _+2 outros_
