@@ -4,16 +4,22 @@ import sqlite3, statistics as st, math, collections, sys, datetime
 MES = sys.argv[1] if len(sys.argv) > 1 else datetime.date.today().strftime('%Y-%m')
 ATE = sys.argv[2] if len(sys.argv) > 2 else datetime.date.today().isoformat()
 c = sqlite3.connect('analises/pedidos_historico_ceven.db')
+# SO CLIENTES DE VENDEDORES DE VAREJO (Vitorio, 19/10/2026): canal da Gestao de Equipe (/api/tv-mostra): VJ, FARMA, PET VJ, ESP.
+import json, urllib.request
+_eq = json.load(urllib.request.urlopen(urllib.request.Request('https://ceven-cftv-matrix.pages.dev/api/tv-mostra', headers={'User-Agent': 'Mozilla/5.0'}), timeout=60))
+VAREJO = {(k.split('_')[0].upper(), str(v['rca'])) for k, lst in _eq['filiais'].items() for v in lst if str(v.get('canal') or '').upper() in ('VJ', 'FARMA', 'PET VJ', 'ESP')}
+print('vendedores de varejo na Gestao de Equipe:', len(VAREJO))
 rows = c.execute("""
-SELECT ph.filial_sigla, ph.id_cliente, substr(ph.data_pedido,1,7) mes, CAST(substr(ph.data_pedido,9,2) AS INT) dia, ph.num_pedido,
+SELECT ph.filial_sigla, ph.id_cliente, ph.rca_id, substr(ph.data_pedido,1,7) mes, CAST(substr(ph.data_pedido,9,2) AS INT) dia, ph.num_pedido,
        i.codprod, i.valor_total
 FROM pedidos_historico ph JOIN pedidos_historico_itens i ON i.chave_pedido = ph.chave
 WHERE substr(ph.data_pedido,1,7) = ? AND substr(ph.data_pedido,1,10) <= ? AND i.tipo_registro='VENDA' AND i.codprod <> 12229
 """, (MES, ATE)).fetchall()
 for d, n in sqlite3.connect('analises/pedidos_historico_ceven.db').execute("SELECT substr(data_pedido,1,10), COUNT(*) FROM pedidos_historico WHERE substr(data_pedido,1,7) = ? GROUP BY 1 ORDER BY 1", (MES,)).fetchall(): print('pedidos no dia', d, n)
-print("mes", MES, "ate", ATE, "| linhas de item", len(rows), "| ultimo dia com pedido", max((r[2] + "-" + str(r[3]).zfill(2)) for r in rows) if rows else None)
+print("mes", MES, "ate", ATE, "| linhas de item", len(rows), "| ultimo dia com pedido", max((r[3] + "-" + str(r[4]).zfill(2)) for r in rows) if rows else None)
 cli = collections.defaultdict(lambda: {'q1': False, 'q2': False, 'skus': set(), 'ped': set(), 'skus_ped': collections.defaultdict(set), 'valor': 0.0})
-for f, idc, mes, dia, num, cod, val in rows:
+for f, idc, rca, mes, dia, num, cod, val in rows:
+    if (str(f).upper(), str(rca)) not in VAREJO: continue
     k = (f, idc, mes)
     x = cli[k]
     if dia <= 15: x['q1'] = True
