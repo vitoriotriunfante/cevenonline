@@ -264,8 +264,11 @@ export async function onRequestGet({ request, env }) {
   let rotaAntiga = false;
   { const hojeSP = dataHojeBrasilia(), hm = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
     // 19/10/2026 (WhatsApp das 14:30 preso): check-in com hora A FRENTE do relogio (aparelho com hora errada, ex.: MCD 1063 'check-in 16:29' as 15h) com data_visita = HOJE
-    // descartava o roteiro inteiro; os pedidos desses vendedores nunca eram analisados e o motor esperava para sempre. Hora futura so condena o roteiro quando nao ha data_visita.
-    if (Array.isArray(rot) && rot.some((c) => (c.data_visita && String(c.data_visita).slice(0, 10) !== hojeSP) || (!c.data_visita && c.checkin_horario && String(c.checkin_horario).slice(0, 5) > hm))) { rot = []; rotaAntiga = true; }
+    // descartava o roteiro inteiro; os pedidos desses vendedores nunca eram analisados e o motor esperava para sempre. Agora a hora futura so condena o roteiro na virada
+    // do dia (antes das 10h, quando o CEVEN ainda serve o de ontem) ou quando esta mais de 3 h a frente; relogio de aparelho adiantado a tarde nao derruba mais a rota.
+    const minDe = (s) => { const [a, b] = String(s).slice(0, 5).split(':').map(Number); return a * 60 + (b || 0); };
+    const futuro = (ck) => ck && String(ck).slice(0, 5) > hm && (hm < '10:00' || minDe(ck) - minDe(hm) > 180);
+    if (Array.isArray(rot) && rot.some((c) => (c.data_visita && String(c.data_visita).slice(0, 10) !== hojeSP) || futuro(c.checkin_horario))) { rot = []; rotaAntiga = true; }
     // PRODUTIVIDADE DE ONTEM x VENDA DE HOJE (13/10/2026 08:30): esta regra zerava TODO vendedor com venda antes das 10h e roteiro ainda sem check-in. Em 13/10 isso descartou vendas
     // reais (TBE 312 R$ 8,6 mil, TCG 476, TBL 186...) e nenhum gol saiu o dia todo. Agora so zera se o 'dia' for IGUAL ao de um dia anterior ja gravado na base (dado velho de verdade).
     if (!rotaAntiga && hm < '10:00' && prod && prod.dia && Array.isArray(rot) && rot.length > 0 && !rot.some((c) => c.checkin_horario) && (Number(prod.dia.visitas_na_rota) > 0 || Number(prod.dia.dig_pedido) > 0 || Number(prod.dia.positivacao) > 0)) {
