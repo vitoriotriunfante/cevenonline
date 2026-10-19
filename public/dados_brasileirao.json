@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-19T10:33:24.358557Z",
+  "gerado_em": "2026-10-19T10:48:22.980757Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -1207,7 +1207,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 35,
+      "plus_lideranca": 40,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1226,7 +1226,7 @@
           "ret": 5
         },
         "2026-10-19": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -1858,7 +1858,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 30,
+      "plus_lideranca": 35,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1877,7 +1877,7 @@
           "ret": 0
         },
         "2026-10-19": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2749,6 +2749,54 @@
       "pos": 34
     },
     {
+      "supervisor": "LUIZ AUGUSTO RAMOS",
+      "filial": "TPH",
+      "canal": "VAREJO",
+      "gerente": "Vagner",
+      "total_vendedores": 9,
+      "jogos": 4,
+      "pts_tabela": 1,
+      "vitorias": 0,
+      "empates": 1,
+      "derrotas": 3,
+      "gp": 137,
+      "gc": 336,
+      "sg": -199,
+      "aprov": 8.3,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 45,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 35
+    },
+    {
       "supervisor": "JORGE BONI",
       "filial": "TCV",
       "canal": "AS",
@@ -2795,54 +2843,6 @@
       },
       "plus_pendente": false,
       "pos": 13
-    },
-    {
-      "supervisor": "LUIZ AUGUSTO RAMOS",
-      "filial": "TPH",
-      "canal": "VAREJO",
-      "gerente": "Vagner",
-      "total_vendedores": 9,
-      "jogos": 4,
-      "pts_tabela": 1,
-      "vitorias": 0,
-      "empates": 1,
-      "derrotas": 3,
-      "gp": 137,
-      "gc": 336,
-      "sg": -199,
-      "aprov": 8.3,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 40,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-19": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 35
     },
     {
       "supervisor": "LUIS THIAGO VIRTUOSO BOEIRA",
@@ -3442,7 +3442,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 25,
+      "plus_lideranca": 30,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 0,
@@ -3461,7 +3461,7 @@
           "ret": 0
         },
         "2026-10-19": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3586,7 +3586,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 15,
+      "plus_lideranca": 20,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 0,
@@ -3605,7 +3605,7 @@
           "ret": 0
         },
         "2026-10-19": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -20875,7 +20875,7 @@
         "supervisor": "CRISTIANO RODRIGUES MACHADO",
         "gerente": "Saldanha",
         "meta_mes": 350000,
-        "pct_hoje": 28.4,
+        "pct_hoje": 28.6,
         "fases": [
           {
             "n": 1,
@@ -23251,7 +23251,7 @@
         "supervisor": "LUIS THIAGO VIRTUOSO BOEIRA",
         "gerente": "Diego",
         "meta_mes": 270000,
-        "pct_hoje": 83,
+        "pct_hoje": 84.1,
         "fases": [
           {
             "n": 1,
@@ -39160,7 +39160,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 2290000,
-        "pct_hoje": 24.3,
+        "pct_hoje": 24.4,
         "fases": [
           {
             "n": 1,
