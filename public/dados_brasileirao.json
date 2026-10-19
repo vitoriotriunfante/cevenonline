@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-19T11:03:10.256570Z",
+  "gerado_em": "2026-10-19T11:18:33.831203Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -11,7 +11,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 20006,
+  "total_lances_auditados": 20007,
   "filiais": [
     {
       "sigla": "MCD",
@@ -91,8 +91,8 @@
       "empates": 4,
       "derrotas": 0,
       "gp": 2060,
-      "gc": 894,
-      "sg": 1166,
+      "gc": 898,
+      "sg": 1162,
       "aprov": 33.3,
       "super_pedidos": 6,
       "inativos_resgatados": 24,
@@ -352,8 +352,8 @@
       "empates": 4,
       "derrotas": 0,
       "gp": 2060,
-      "gc": 894,
-      "sg": 1166,
+      "gc": 898,
+      "sg": 1162,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -690,8 +690,8 @@
       "empates": 1,
       "derrotas": 0,
       "gp": 866,
-      "gc": 257,
-      "sg": 609,
+      "gc": 261,
+      "sg": 605,
       "aprov": 83.3,
       "forma": [
         "V",
@@ -940,7 +940,7 @@
         "V",
         "J"
       ],
-      "plus_lideranca": 40,
+      "plus_lideranca": 45,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -959,7 +959,7 @@
           "ret": 5
         },
         "2026-10-19": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -1255,7 +1255,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 45,
+      "plus_lideranca": 50,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1275,11 +1275,59 @@
         },
         "2026-10-19": {
           "compromisso": 5,
-          "ret": 0
+          "ret": 5
         }
       },
       "plus_pendente": false,
       "pos": 3
+    },
+    {
+      "supervisor": "RODRIGO FARIAS",
+      "filial": "API",
+      "canal": "VAREJO",
+      "gerente": "Marcelo",
+      "total_vendedores": 13,
+      "jogos": 4,
+      "pts_tabela": 4,
+      "vitorias": 0,
+      "empates": 4,
+      "derrotas": 0,
+      "gp": 647,
+      "gc": 362,
+      "sg": 285,
+      "aprov": 33.3,
+      "forma": [
+        "E",
+        "E",
+        "E",
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 40,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 13
     },
     {
       "supervisor": "TIAGO SANTOS CORREA",
@@ -1320,54 +1368,6 @@
         "2026-10-16": {
           "compromisso": 5,
           "ret": 5
-        },
-        "2026-10-19": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 13
-    },
-    {
-      "supervisor": "RODRIGO FARIAS",
-      "filial": "API",
-      "canal": "VAREJO",
-      "gerente": "Marcelo",
-      "total_vendedores": 13,
-      "jogos": 4,
-      "pts_tabela": 4,
-      "vitorias": 0,
-      "empates": 4,
-      "derrotas": 0,
-      "gp": 647,
-      "gc": 362,
-      "sg": 285,
-      "aprov": 33.3,
-      "forma": [
-        "E",
-        "E",
-        "E",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 35,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 0
         },
         "2026-10-19": {
           "compromisso": 0,
@@ -1591,7 +1591,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 15,
+      "plus_lideranca": 20,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1610,7 +1610,7 @@
           "ret": 0
         },
         "2026-10-19": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -1933,6 +1933,54 @@
       "pos": 23
     },
     {
+      "supervisor": "GILBERTO GOMES DOMINGOS",
+      "filial": "ABC",
+      "canal": "AS",
+      "gerente": "Marcos",
+      "total_vendedores": 6,
+      "jogos": 4,
+      "pts_tabela": 3,
+      "vitorias": 0,
+      "empates": 3,
+      "derrotas": 1,
+      "gp": 120,
+      "gc": 12,
+      "sg": 108,
+      "aprov": 25.0,
+      "forma": [
+        "E",
+        "E",
+        "D",
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 25,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 7
+    },
+    {
       "supervisor": "LEANDRO MARINHO ABRANCHES",
       "filial": "TCV",
       "canal": "AS",
@@ -1978,7 +2026,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 7
+      "pos": 8
     },
     {
       "supervisor": "KLEBERSON BATISTA LIDUARIO",
@@ -2027,54 +2075,6 @@
       },
       "plus_pendente": false,
       "pos": 24
-    },
-    {
-      "supervisor": "GILBERTO GOMES DOMINGOS",
-      "filial": "ABC",
-      "canal": "AS",
-      "gerente": "Marcos",
-      "total_vendedores": 6,
-      "jogos": 4,
-      "pts_tabela": 3,
-      "vitorias": 0,
-      "empates": 3,
-      "derrotas": 1,
-      "gp": 120,
-      "gc": 12,
-      "sg": 108,
-      "aprov": 25.0,
-      "forma": [
-        "E",
-        "E",
-        "D",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 20,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-19": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 8
     },
     {
       "supervisor": "MAICON DION NOVAIS SILVA",
@@ -2173,6 +2173,54 @@
       "pos": 26
     },
     {
+      "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+      "filial": "TPH",
+      "canal": "VAREJO",
+      "gerente": "Fábio",
+      "total_vendedores": 8,
+      "jogos": 4,
+      "pts_tabela": 3,
+      "vitorias": 0,
+      "empates": 3,
+      "derrotas": 1,
+      "gp": 172,
+      "gc": 320,
+      "sg": -148,
+      "aprov": 25.0,
+      "forma": [
+        "D",
+        "E",
+        "E",
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 20,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 27
+    },
+    {
       "supervisor": "CRISTIANE DE FREITAS DUARTE",
       "filial": "TBL",
       "canal": "VAREJO",
@@ -2218,7 +2266,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 27
+      "pos": 28
     },
     {
       "supervisor": "DELINLSON ANTONIO LIMA SILVA",
@@ -2259,54 +2307,6 @@
         "2026-10-16": {
           "compromisso": 0,
           "ret": 0
-        },
-        "2026-10-19": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 28
-    },
-    {
-      "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
-      "filial": "TPH",
-      "canal": "VAREJO",
-      "gerente": "Fábio",
-      "total_vendedores": 8,
-      "jogos": 4,
-      "pts_tabela": 3,
-      "vitorias": 0,
-      "empates": 3,
-      "derrotas": 1,
-      "gp": 172,
-      "gc": 320,
-      "sg": -148,
-      "aprov": 25.0,
-      "forma": [
-        "D",
-        "E",
-        "E",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 15,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-14": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 5
         },
         "2026-10-19": {
           "compromisso": 0,
@@ -2434,7 +2434,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 40,
+      "plus_lideranca": 45,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2453,7 +2453,7 @@
           "ret": 5
         },
         "2026-10-19": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2914,7 +2914,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 35,
+      "plus_lideranca": 40,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2934,7 +2934,7 @@
         },
         "2026-10-19": {
           "compromisso": 0,
-          "ret": 0
+          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -2962,7 +2962,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 35,
+      "plus_lideranca": 40,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2981,7 +2981,7 @@
           "ret": 0
         },
         "2026-10-19": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3538,7 +3538,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 25,
+      "plus_lideranca": 30,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -3557,7 +3557,7 @@
           "ret": 0
         },
         "2026-10-19": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -5340,8 +5340,8 @@
       "pts_tabela": 9,
       "aprov": 75.0,
       "gp": 67,
-      "gc": 26,
-      "sg": 41,
+      "gc": 30,
+      "sg": 37,
       "super_pedidos": 0,
       "inativos_resgatados": 0,
       "forma": [
@@ -19027,7 +19027,7 @@
         "supervisor": "ANDERSON FERNANDES CORREIA",
         "gerente": "Marcelo",
         "meta_mes": 357839,
-        "pct_hoje": 110.4,
+        "pct_hoje": 110.5,
         "fases": [
           {
             "n": 1,
@@ -22855,7 +22855,7 @@
         "supervisor": "JORGE BONI",
         "gerente": "Leonardo",
         "meta_mes": 172000,
-        "pct_hoje": 60.6,
+        "pct_hoje": 61.3,
         "fases": [
           {
             "n": 1,
@@ -23383,7 +23383,7 @@
         "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
         "gerente": "Leonardo",
         "meta_mes": 166000,
-        "pct_hoje": 40.9,
+        "pct_hoje": 43.7,
         "fases": [
           {
             "n": 1,
@@ -27607,7 +27607,7 @@
         "supervisor": "ANDERSON FERNANDES CORREIA",
         "gerente": "Marcelo",
         "meta_mes": 166530,
-        "pct_hoje": 49.1,
+        "pct_hoje": 49.8,
         "fases": [
           {
             "n": 1,
@@ -32881,6 +32881,138 @@
         "pos_filial": 10
       },
       {
+        "rca": "331",
+        "nome": "ESTEFANI CAROLINE KNAK",
+        "filial": "TCV",
+        "supervisor": "ROBERTO OTFINOSKI",
+        "gerente": "Leonardo",
+        "meta_mes": 240000,
+        "pct_hoje": 6.3,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-10-07",
+            "status": "nao_batida",
+            "pct": 1.3,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-10-14",
+            "status": "nao_batida",
+            "pct": 2.6,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-10-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 31,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-10-31",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "perdido",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "D",
+            "pts_tabela": 0
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "J",
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 1,
+        "vitorias": 0,
+        "empates": 0,
+        "derrotas": 1,
+        "pts_tabela": 0,
+        "aprov": 0.0,
+        "forma": [
+          "D",
+          "J"
+        ],
+        "pontos": 0,
+        "pts_lances": 0,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 107,
+        "pos_filial": 15
+      },
+      {
         "rca": "96",
         "nome": "DARIELE DOS SANTOS",
         "filial": "TPH",
@@ -33009,140 +33141,8 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 107,
-        "pos_filial": 21
-      },
-      {
-        "rca": "331",
-        "nome": "ESTEFANI CAROLINE KNAK",
-        "filial": "TCV",
-        "supervisor": "ROBERTO OTFINOSKI",
-        "gerente": "Leonardo",
-        "meta_mes": 240000,
-        "pct_hoje": 5.6,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-10-07",
-            "status": "nao_batida",
-            "pct": 1.3,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-10-14",
-            "status": "nao_batida",
-            "pct": 2.6,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-10-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 31,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-10-31",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "perdido",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 2,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": true,
-            "resultado": "D",
-            "pts_tabela": 0
-          },
-          {
-            "n": 3,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": true,
-            "resultado": "J",
-            "pts_tabela": 0
-          },
-          {
-            "n": 4,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 1,
-        "vitorias": 0,
-        "empates": 0,
-        "derrotas": 1,
-        "pts_tabela": 0,
-        "aprov": 0.0,
-        "forma": [
-          "D",
-          "J"
-        ],
-        "pontos": 0,
-        "pts_lances": 0,
-        "pts_faseamento": 0,
-        "pts_bonus": 0,
         "pos_brasil": 108,
-        "pos_filial": 15
+        "pos_filial": 21
       },
       {
         "rca": "32",
@@ -37306,7 +37306,7 @@
         "total_vendedores": 5,
         "com_meta": 5,
         "meta_mes": 1300833,
-        "pct_hoje": 59.7,
+        "pct_hoje": 59.8,
         "fases": [
           {
             "n": 1,
@@ -37409,7 +37409,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 700000,
-        "pct_hoje": 40.4,
+        "pct_hoje": 41.1,
         "fases": [
           {
             "n": 1,
@@ -38130,7 +38130,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 1270000,
-        "pct_hoje": 49.4,
+        "pct_hoje": 49.5,
         "fases": [
           {
             "n": 1,
@@ -39057,7 +39057,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 1100000,
-        "pct_hoje": 32,
+        "pct_hoje": 32.1,
         "fases": [
           {
             "n": 1,
