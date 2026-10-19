@@ -1,5 +1,5 @@
 🏢 *FILIAL MCD — GESTÃO DE CAMPO*
-📅 16/10/2026 • Gerente: Cleverson
+📅 19/10/2026 • Gerente: Cleverson
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 *PAINEL DE ATIVIDADES (5 SUPERVISORES):*

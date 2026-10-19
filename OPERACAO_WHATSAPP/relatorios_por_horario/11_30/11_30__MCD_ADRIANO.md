@@ -1,5 +1,5 @@
 🏢 *FILIAL MCD — GESTÃO DE CAMPO*
-📅 16/10/2026 • Gerente: Adriano
+📅 19/10/2026 • Gerente: Adriano
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 *PAINEL DE ATIVIDADES (3 SUPERVISORES):*
