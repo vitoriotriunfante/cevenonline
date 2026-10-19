@@ -29,6 +29,7 @@ PEDIDO: Vitório, 12/10/2026 ("se mandar alerta vai encher meu WhatsApp... monte
   .prob{margin:4px 0;font-size:13px}
   .prob .tag{display:inline-block;min-width:78px;text-align:center;font-size:10px;font-weight:700;padding:1px 7px;border-radius:9px;margin-right:8px;text-transform:uppercase}
   .prob .tag.critico{background:var(--bad);color:#fff}.prob .tag.atencao{background:var(--warn);color:#201400}
+  td .tag{display:inline-block;font-size:11px;font-weight:800;padding:2px 9px;border-radius:9px;white-space:nowrap}td .tag.ok{background:var(--ok,#22c55e);color:#04210f}td .tag.critico{background:var(--bad);color:#fff}td .tag.atencao{background:var(--warn);color:#201400}
   .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-bottom:14px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;position:relative}
   .card .t{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
@@ -131,6 +132,7 @@ function render(d) {
   h += card('Disparos de WhatsApp do dia', w && w.dia_util ? 'dia útil' : 'sem disparo', horarios + (w && w.erro ? ' · ' + w.erro : ''), d.problemas.some((p) => p.bloco === 'whatsapp') ? 'critico' : 'ok');
   h += '</div>';
 
+  h += quadroTVs();
   h += '<div class="sec">Filiais (cobertura da base e metas)</div><table><thead><tr><th>Filial</th><th>RCAs</th><th>Sem dash.</th><th>Sem prod.</th><th>Sem rota</th><th>Leitura mais antiga</th><th>Meta fat.</th><th>Faturado</th><th>% meta</th><th>Positivados / meta</th><th>Digitado hoje</th></tr></thead><tbody>';
   let T = { rcas: 0, sd: 0, sp: 0, sr: 0, meta: 0, fat: 0, pos: 0, pmeta: 0, dig: 0 };
   for (const f of d.filiais) {
@@ -144,7 +146,35 @@ function render(d) {
   $('raiz').innerHTML = h;
 }
 
+// TVS LIGADAS OU DESLIGADAS (Vitorio, 19/10/2026): cada TV manda um sinal de vida por minuto (/api/tv-ping) com a versao que esta rodando.
+// Ligada = sinal nos ultimos 3 min. Sem sinal = desligada OU presa numa versao antiga (anterior a 19/10 18:52, que ainda nao mandava sinal).
+let TVS = null;
+const TVS_ESPERADAS = ['MTZ', 'TBL', 'TPH', 'TCV', 'ABC', 'TCA', 'MCD', 'TCG', 'API', 'TBE', 'TPA', 'TSJ'];
+function quadroTVs() {
+  if (!TVS) return '<div class="sec">TVs das filiais</div><div class="leg">carregando o sinal das TVs…</div>';
+  const porFil = {};
+  for (const t of TVS.tvs || []) (porFil[t.filial] = porFil[t.filial] || []).push(t);
+  const linhas = [];
+  for (const f of TVS_ESPERADAS) {
+    const lst = (porFil[f] || []).sort((a, b) => a.minutos_sem_sinal - b.minutos_sem_sinal);
+    if (!lst.length) { linhas.push({ f, g: '', st: 'critico', txt: 'SEM SINAL', det: 'desligada ou presa numa versão antiga (nunca mandou sinal)' }); continue; }
+    for (const t of lst) {
+      const ligada = t.minutos_sem_sinal <= 3;
+      const st = !ligada ? 'critico' : t.versao_velha ? 'atencao' : 'ok';
+      const txt = !ligada ? 'DESLIGADA' : t.versao_velha ? 'LIGADA · versão velha' : 'LIGADA';
+      const det = (ligada ? '' : 'último sinal há ' + idade(t.minutos_sem_sinal * 60) + ' · ') + (t.ocupado ? 'VAR na tela · ' : '') + 'fila do VAR ' + nf(t.espera) + (t.filial !== 'MTZ' ? ' · ' + nf(t.vendedores) + ' vendedores carregados' : '') + (t.dados_de ? ' · dados de ' + t.dados_de : '') + ' · versão ' + (t.versao || '—');
+      linhas.push({ f, g: t.grupo || '', st, txt, det });
+    }
+  }
+  const lig = linhas.filter((l) => l.st !== 'critico').length;
+  return `<div class="sec">TVs das filiais · ${lig} ligada(s) de ${linhas.length}</div><table><thead><tr><th>TV</th><th>Situação</th><th>Detalhe</th></tr></thead><tbody>` +
+    linhas.map((l) => `<tr><td><b>${l.f}</b>${l.g ? ' · ' + l.g : ''}</td><td><span class="tag ${l.st}">${l.txt}</span></td><td>${l.det}</td></tr>`).join('') +
+    `</tbody></table><p class="leg">Ligada = mandou sinal nos últimos 3 min. A TV atualiza sozinha a cada publicação; "versão velha" por mais de alguns minutos = VAR travado ou TV sem internet. Versão atual do site: ${TVS.versao_atual}.</p>`;
+}
+async function carregaTVs() { try { TVS = await (await fetch('/api/tv-ping?t=' + Date.now(), { cache: 'no-store' })).json(); } catch (e) {} }
+
 async function carregar() {
+  await carregaTVs();
   try {
     const r = await fetch('/api/saude?t=' + Date.now(), { cache: 'no-store' });
     if (!r.ok) throw new Error('HTTP ' + r.status);
