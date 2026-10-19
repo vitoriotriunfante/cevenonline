@@ -35,7 +35,7 @@ LIGADA = sinal nos últimos 3 min. DESLIGADA = já mandou sinal e parou. SEM SIN
     <div class="placar" id="placar"></div>
   </header>
   <div class="grid" id="grid"></div>
-  <div class="leg">🟢 <b>LIGADA</b>: mandou sinal nos últimos 3 min · 🟡 <b>ATUALIZANDO</b>: ligada, ainda pegando a última versão · 🔴 <b>DESLIGADA</b>: parou de mandar sinal · 🔴 <b>SEM SINAL</b>: desligada ou precisa ser reiniciada uma vez (desligar e ligar).</div>
+  <div class="leg">🟢 <b>LIGADA</b>: mandou sinal nos últimos 3 min · 🟡 <b>ATUALIZANDO</b>: ligada, ainda pegando a última versão · 🔴 <b>DESLIGADA</b>: parou de mandar sinal · 🔴 <b>SEM SINAL</b>: desligada ou precisa ser reiniciada uma vez (desligar e ligar). Só conta o sinal da TV; computador ou celular com a mesma tela aberta aparece à parte.</div>
 </div>
 <script>
 const FILIAIS = [['MTZ','Matriz (central)'],['ABC','Marcos'],['API','Marcelo'],['MCD','Cleverson / Adriano'],['TBE','Diego'],['TBL','Fábio'],['TCA','Becher'],['TCG','Danilo'],['TCV','Leonardo'],['TPA','Radke / Leandro'],['TPH','Vagner / Fábio'],['TSJ','Saldanha']];
@@ -46,8 +46,14 @@ async function carrega() {
   try { d = await (await fetch('/api/tv-ping?t=' + Date.now(), { cache: 'no-store' })).json(); } catch (e) {}
   const agora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   if (!d || !Array.isArray(d.tvs)) { document.getElementById('sub').textContent = agora + ' · sem resposta do servidor, tentando de novo…'; return; }
-  const por = {};
-  for (const t of d.tvs) { const k = t.filial; if (!por[k] || t.minutos_sem_sinal < por[k].minutos_sem_sinal) por[k] = t; }
+  // POR APARELHO (19/10/2026): o sinal pode vir da TV ou de um computador/celular com a mesma tela aberta. O cartao so fica verde com a TV.
+  const por = {}, outros = {};
+  for (const t of d.tvs) {
+    const k = t.filial;
+    if (t.tipo !== 'tv' && t.tipo !== '?') { if (t.minutos_sem_sinal <= 3) outros[k] = (outros[k] || 0) + 1; continue; }
+    if (!por[k] || t.minutos_sem_sinal < por[k].minutos_sem_sinal) por[k] = t;
+  }
+  const notaOutros = (f) => outros[f] ? ' · + ' + outros[f] + ' computador/celular com a tela aberta (não conta)' : '';
   let lig = 0, atu = 0, des = 0;
   document.getElementById('grid').innerHTML = FILIAIS.map(([f, ger]) => {
     const t = por[f];
@@ -56,6 +62,7 @@ async function carrega() {
     else if (t.minutos_sem_sinal > 3) { cls = 'bad'; st = 'DESLIGADA'; det = 'último sinal há ' + tempo(t.minutos_sem_sinal); des++; }
     else if (t.versao_velha) { cls = 'warn'; st = 'ATUALIZANDO'; det = 'ligada · pegando a versão nova'; atu++; }
     else { cls = 'ok'; st = 'LIGADA'; det = f === 'MTZ' ? 'no ar, versão atual' : (t.vendedores ? t.vendedores + ' vendedores na tela' : 'no ar, versão atual') + (t.dados_de ? ' · dados de ' + esc(t.dados_de) : ''); lig++; }
+    det += notaOutros(f);
     return `<div class="tv ${cls}"><div class="top"><div><div class="fil">${f}</div><div class="ger">${esc(ger)}</div></div><div class="tela"></div></div><div class="st">${st}</div><div class="det">${det}</div></div>`;
   }).join('');
   document.getElementById('placar').innerHTML = `<div class="pl" style="border-color:var(--ok)"><b style="color:var(--ok)">${lig}</b><span>ligadas</span></div>` + (atu ? `<div class="pl" style="border-color:var(--warn)"><b style="color:var(--warn)">${atu}</b><span>atualizando</span></div>` : '') + `<div class="pl" style="border-color:var(--bad)"><b style="color:var(--bad)">${des}</b><span>desligadas</span></div>`;

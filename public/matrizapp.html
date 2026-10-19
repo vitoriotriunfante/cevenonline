@@ -2049,7 +2049,7 @@ setInterval(carregaResumoOficial, 60000); carregaResumoOficial();
 let versaoMatriz = null, recarregarMatriz = false;
 // SINAL DE VIDA (19/10/2026): igual a TV da filial; a Matriz aparece em /api/tv-ping como filial MTZ.
 async function pingMatriz() {
-  try { await fetch('/api/tv-ping', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tela: 'matriz', filial: 'MTZ', versao: versaoMatriz || '', ocupado: !!(emVAR || FILA.length), espera: ESPERA.length }) }); } catch (e) {}
+  try { await fetch('/api/tv-ping', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ aparelho: (() => { try { let k = localStorage.getItem('ceven_aparelho'); if (!k) { k = Math.random().toString(36).slice(2, 10); localStorage.setItem('ceven_aparelho', k); } return k; } catch (e) { return ''; } })(), tela: 'matriz', filial: 'MTZ', versao: versaoMatriz || '', ocupado: !!(emVAR || FILA.length), espera: ESPERA.length }) }); } catch (e) {}
 }
 setInterval(pingMatriz, 60 * 1000); setTimeout(pingMatriz, 15000);
 async function checaVersaoMatriz() {

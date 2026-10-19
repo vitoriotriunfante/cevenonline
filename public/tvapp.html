@@ -1997,7 +1997,7 @@ let versao = null, precisaRecarregar = false;
 // SINAL DE VIDA (19/10/2026): a cada 1 min a TV conta ao servidor qual versao esta rodando, se o VAR esta ocupado, a fila e quantos vendedores carregou.
 // Assim uma TV parada ou velha aparece em /api/tv-ping sem ninguem precisar ir ate ela.
 async function pingTV() {
-  try { await fetch('/api/tv-ping', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tela: window.top === window ? 'tvapp' : 'tv', filial: FIL, grupo: (P.get('grupo') || ''), versao: versao || '', ocupado: !!(emVAR || FILA.length), espera: ESPERA.length, vendedores: Object.keys(DATA).length, dados_de: lastOk ? sp(new Date(lastOk)).hms : '' }) }); } catch (e) {}
+  try { await fetch('/api/tv-ping', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ aparelho: (() => { try { let k = localStorage.getItem('ceven_aparelho'); if (!k) { k = Math.random().toString(36).slice(2, 10); localStorage.setItem('ceven_aparelho', k); } return k; } catch (e) { return ''; } })(), tela: window.top === window ? 'tvapp' : 'tv', filial: FIL, grupo: (P.get('grupo') || ''), versao: versao || '', ocupado: !!(emVAR || FILA.length), espera: ESPERA.length, vendedores: Object.keys(DATA).length, dados_de: lastOk ? sp(new Date(lastOk)).hms : '' }) }); } catch (e) {}
 }
 setInterval(pingTV, 60 * 1000); setTimeout(pingTV, 15000);
 async function checaVersao() {
