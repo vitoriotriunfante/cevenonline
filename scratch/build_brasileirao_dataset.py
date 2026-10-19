@@ -666,6 +666,11 @@ try:
             v['pos_filial'] = idx + 1
     _sup_as = []
     for sp in _api_as.get('supervisores', []):
+        # SUPERVISOR NA LIGA AS SO SE A MAIORIA DA EQUIPE FOR AS (Vitorio, 19/10/2026: gerente da TCA: "Jose Francisco nao e AS", 12 Varejo e 1 AS).
+        # Empate fica nas duas ligas. O vendedor AS de supervisor de Varejo continua na Artilharia AS normalmente.
+        _cc = CANAL_EQUIPE_TODOS.get((sp['filial'], sp['supervisor'])) or _cont_canal.get((sp['filial'], sp['supervisor'])) or {}
+        if _cc.get('VAREJO', 0) > _cc.get('AS', 0):
+            continue
         _eq = [v for v in _vend_as if v['filial'] == sp['filial'] and v['supervisor'] == sp['supervisor']]
         _forma, _pts, _vit, _emp, _der, _sems = [], 0, 0, 0, 0, []
         for n in range(1, len(AS_SEMANAS) + 1):
