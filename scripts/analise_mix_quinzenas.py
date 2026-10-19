@@ -10,6 +10,7 @@ SELECT ph.filial_sigla, ph.id_cliente, substr(ph.data_pedido,1,7) mes, CAST(subs
 FROM pedidos_historico ph JOIN pedidos_historico_itens i ON i.chave_pedido = ph.chave
 WHERE substr(ph.data_pedido,1,7) = ? AND substr(ph.data_pedido,1,10) <= ? AND i.tipo_registro='VENDA' AND i.codprod <> 12229
 """, (MES, ATE)).fetchall()
+for d, n in sqlite3.connect('analises/pedidos_historico_ceven.db').execute("SELECT substr(data_pedido,1,10), COUNT(*) FROM pedidos_historico WHERE substr(data_pedido,1,7) = ? GROUP BY 1 ORDER BY 1", (MES,)).fetchall(): print('pedidos no dia', d, n)
 print("mes", MES, "ate", ATE, "| linhas de item", len(rows), "| ultimo dia com pedido", max((r[2] + "-" + str(r[3]).zfill(2)) for r in rows) if rows else None)
 cli = collections.defaultdict(lambda: {'q1': False, 'q2': False, 'skus': set(), 'ped': set(), 'skus_ped': collections.defaultdict(set), 'valor': 0.0})
 for f, idc, mes, dia, num, cod, val in rows:
