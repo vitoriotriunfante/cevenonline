@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TVs das Filiais</title>
+<!--
+FICHA DO ARQUIVO: public/tvs.html  (link: /tvs)
+O QUE É: painel das 11 TVs das filiais + Matriz, pronto para PRINT e envio aos gerentes (Vitório, 19/10/2026).
+FONTE: /api/tv-ping (sinal de vida que cada TV manda a cada 1 min). Só lê. Atualiza sozinho a cada 30 s.
+LIGADA = sinal nos últimos 3 min. DESLIGADA = já mandou sinal e parou. SEM SINAL = nunca mandou (desligada ou presa em versão antiga).
+-->
+<style>
+  :root{--bg:#06101f;--card:#0d1b30;--line:#1d3152;--tx:#e6eefb;--mut:#8aa0c2;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444}
+  @media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#eef3fa;--card:#fff;--line:#d5e0ef;--tx:#0d1b30;--mut:#5b6f8f}}
+  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:Segoe UI,system-ui,sans-serif}
+  .wrap{max-width:1200px;margin:0 auto;padding:22px 16px 30px}
+  header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+  h1{margin:0;font-size:28px;letter-spacing:.5px}.sub{color:var(--mut);font-size:14px;margin-top:4px}
+  .placar{display:flex;gap:10px;flex-wrap:wrap}.pl{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 16px;text-align:center}
+  .pl b{display:block;font-size:26px}.pl span{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  @media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+  .tv{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;position:relative;overflow:hidden;min-height:150px}
+  .tv:before{content:"";position:absolute;inset:0 0 auto 0;height:6px;background:var(--c)}
+  .tv.ok{--c:var(--ok)}.tv.warn{--c:var(--warn)}.tv.bad{--c:var(--bad)}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+  .fil{font-size:30px;font-weight:900;letter-spacing:1px}.ger{color:var(--mut);font-size:13px;margin-top:2px}
+  .tela{width:46px;height:32px;border-radius:5px;border:3px solid var(--c);position:relative;background:color-mix(in srgb,var(--c) 18%,transparent)}
+  .tela:after{content:"";position:absolute;left:50%;bottom:-9px;width:16px;height:4px;margin-left:-8px;background:var(--c);border-radius:2px}
+  .st{margin-top:12px;font-weight:900;font-size:17px;color:var(--c)}
+  .det{color:var(--mut);font-size:12.5px;margin-top:4px;line-height:1.4}
+  .leg{color:var(--mut);font-size:12px;margin-top:16px;line-height:1.5}
+</style></head>
+<body><div class="wrap">
+  <header>
+    <div><h1>📺 TVs das Filiais</h1><div class="sub" id="sub">carregando…</div></div>
+    <div class="placar" id="placar"></div>
+  </header>
+  <div class="grid" id="grid"></div>
+  <div class="leg">🟢 <b>LIGADA</b>: mandou sinal nos últimos 3 min · 🟡 <b>ATUALIZANDO</b>: ligada, ainda pegando a última versão · 🔴 <b>DESLIGADA</b>: parou de mandar sinal · 🔴 <b>SEM SINAL</b>: desligada ou precisa ser reiniciada uma vez (desligar e ligar).</div>
+</div>
+<script>
+const FILIAIS = [['MTZ','Matriz (central)'],['ABC','Marcos'],['API','Marcelo'],['MCD','Cleverson / Adriano'],['TBE','Diego'],['TBL','Fábio'],['TCA','Becher'],['TCG','Danilo'],['TCV','Leonardo'],['TPA','Radke / Leandro'],['TPH','Vagner / Fábio'],['TSJ','Saldanha']];
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const tempo = (m) => m < 60 ? m + ' min' : m < 1440 ? Math.floor(m / 60) + ' h ' + (m % 60) + ' min' : Math.floor(m / 1440) + ' dia(s)';
+async function carrega() {
+  let d = null;
+  try { d = await (await fetch('/api/tv-ping?t=' + Date.now(), { cache: 'no-store' })).json(); } catch (e) {}
+  const agora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  if (!d || !Array.isArray(d.tvs)) { document.getElementById('sub').textContent = agora + ' · sem resposta do servidor, tentando de novo…'; return; }
+  const por = {};
+  for (const t of d.tvs) { const k = t.filial; if (!por[k] || t.minutos_sem_sinal < por[k].minutos_sem_sinal) por[k] = t; }
+  let lig = 0, atu = 0, des = 0;
+  document.getElementById('grid').innerHTML = FILIAIS.map(([f, ger]) => {
+    const t = por[f];
+    let cls, st, det;
+    if (!t) { cls = 'bad'; st = 'SEM SINAL'; det = 'desligada ou precisa ser reiniciada uma vez'; des++; }
+    else if (t.minutos_sem_sinal > 3) { cls = 'bad'; st = 'DESLIGADA'; det = 'último sinal há ' + tempo(t.minutos_sem_sinal); des++; }
+    else if (t.versao_velha) { cls = 'warn'; st = 'ATUALIZANDO'; det = 'ligada · pegando a versão nova'; atu++; }
+    else { cls = 'ok'; st = 'LIGADA'; det = f === 'MTZ' ? 'no ar, versão atual' : (t.vendedores ? t.vendedores + ' vendedores na tela' : 'no ar, versão atual') + (t.dados_de ? ' · dados de ' + esc(t.dados_de) : ''); lig++; }
+    return `<div class="tv ${cls}"><div class="top"><div><div class="fil">${f}</div><div class="ger">${esc(ger)}</div></div><div class="tela"></div></div><div class="st">${st}</div><div class="det">${det}</div></div>`;
+  }).join('');
+  document.getElementById('placar').innerHTML = `<div class="pl" style="border-color:var(--ok)"><b style="color:var(--ok)">${lig}</b><span>ligadas</span></div>` + (atu ? `<div class="pl" style="border-color:var(--warn)"><b style="color:var(--warn)">${atu}</b><span>atualizando</span></div>` : '') + `<div class="pl" style="border-color:var(--bad)"><b style="color:var(--bad)">${des}</b><span>desligadas</span></div>`;
+  document.getElementById('sub').textContent = agora + ' (Brasília) · ' + FILIAIS.length + ' TVs · atualiza sozinho';
+}
+carrega(); setInterval(carrega, 30000);
+</script></body></html>

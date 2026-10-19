@@ -167,7 +167,7 @@ function quadroTVs() {
     }
   }
   const lig = linhas.filter((l) => l.st !== 'critico').length;
-  return `<div class="sec">TVs das filiais · ${lig} ligada(s) de ${linhas.length}</div><table><thead><tr><th>TV</th><th>Situação</th><th>Detalhe</th></tr></thead><tbody>` +
+  return `<div class="sec">TVs das filiais · ${lig} ligada(s) de ${linhas.length} · <a href="/tvs" style="color:#38bdf8">painel para print (/tvs)</a></div><table><thead><tr><th>TV</th><th>Situação</th><th>Detalhe</th></tr></thead><tbody>` +
     linhas.map((l) => `<tr><td><b>${l.f}</b>${l.g ? ' · ' + l.g : ''}</td><td><span class="tag ${l.st}">${l.txt}</span></td><td>${l.det}</td></tr>`).join('') +
     `</tbody></table><p class="leg">Ligada = mandou sinal nos últimos 3 min. A TV atualiza sozinha a cada publicação; "versão velha" por mais de alguns minutos = VAR travado ou TV sem internet. Versão atual do site: ${TVS.versao_atual}.</p>`;
 }
