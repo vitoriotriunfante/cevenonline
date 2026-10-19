@@ -516,6 +516,11 @@ async function coletarAuditoriaCampo(token, dataRef, repsMap) {
 // nada e somado em dobro) ate sair com ZERO falhas. Passou do prazo sem completar = NAO ENVIA e avisa o Vitorio.
 // =========================================================================
 let FALHAS_COLETA = 0;
+// TOLERANCIA (Vitorio, 19/10/2026: "preciso sempre que seja enviado os acomps... nao sao 3 clientes que vai mudar... o que nao deve ser feito e enviar
+// sem fazer um check em todos os vendedores; um errinho ou outro nao tem problema"). Todo vendedor continua sendo conferido em toda rodada; o envio so
+// trava se a falha for GRANDE: base fora do ar, ou mais que TOLERANCIA_VENDEDORES vendedores sem dado / com cliente positivado sem analise.
+const TOLERANCIA_VENDEDORES = (total) => Math.max(5, Math.ceil((Number(total) || 0) * 0.02));
+let TOTAL_VENDEDORES_RODADA = 0;
 const PRAZO_COMPLETUDE_MS = Number(process.env.CEVEN_PRAZO_COMPLETUDE_MIN || 20) * 60 * 1000;
 // Repete uma coleta inteira ate sair com ZERO falhas (FALHAS_COLETA) e passar na verificacao extra. SEM PRAZO: nunca desiste e nunca envia incompleto.
 async function ateCompletar(nome, coleta, verifica = () => true) {
@@ -534,6 +539,9 @@ async function coletarVendasCompleto(repsMap, dataRef) {
     const res = await coletarVendasEZerados(repsMap, dataRef);
     const semDado = res.__semDado || []; delete res.__semDado;
     if (FALHAS_COLETA === 0) { console.log(`✅ Coleta COMPLETA na rodada ${rodada}: todos os vendedores e todos os pedidos apurados.`); return { completo: true, res }; }
+    // so falhas de vendedor isolado (sem dado), dentro da tolerancia: envia assim mesmo e registra quem ficou de fora
+    const tol = TOLERANCIA_VENDEDORES(TOTAL_VENDEDORES_RODADA);
+    if (FALHAS_COLETA === semDado.length && semDado.length <= tol) { console.log(`✅ Coleta conferiu todos os ${TOTAL_VENDEDORES_RODADA} vendedores na rodada ${rodada}; ${semDado.length} sem dado (tolerancia ${tol}): ${semDado.join(', ')}. ENVIA.`); return { completo: true, res }; }
     console.log(`⚠️ Rodada ${rodada} INCOMPLETA: ${FALHAS_COLETA} falha(s) (${semDado.length} vendedor(es) sem dado: ${semDado.slice(0, 15).join(', ')}). Nada sera enviado assim.`);
     await new Promise((ok) => setTimeout(ok, 60000));   // da folga a cota do CEVEN e tenta a coleta inteira de novo
   }
@@ -585,6 +593,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
     if (tipo === 'gol_inativo') inatPorRca[k] = (inatPorRca[k] || 0) + 1;
     if (l.nivel === 'defesa') recPorRca[k] = (recPorRca[k] || 0) + 1;
   }
+  TOTAL_VENDEDORES_RODADA = reps.filter((r) => !r.macroOnly).length;
   const RCAS_SEM_DADO = [];   // TRAVA (Vitorio, 15/10/2026: "jamais mande sem todos os dados"): qualquer vendedor sem dado bloqueia o envio
   FALHAS_COLETA = 0;
   const BATCH = 8;
@@ -701,7 +710,11 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
     const positivados = (Array.isArray(rot) ? rot : []).filter(c => c.status === 'POSITIVADO' || c.status === 'EFETIVADO').length;
     if ((analisados[x.filial + '|' + x.codigo] || 0) < positivados) semCobertura++;
   }
-  if (semCobertura) { console.log(`⚠️ Cortes/bloqueados: ${semCobertura} vendedor(es) com clientes positivados ainda sem analise na base (o coletor analisa a cada 5 min).`); FALHAS_COLETA++; }
+  if (semCobertura) {
+    const tolC = TOLERANCIA_VENDEDORES(rcasComPedido.length);
+    if (semCobertura > tolC) { console.log(`⚠️ Cortes/bloqueados: ${semCobertura} vendedor(es) com clientes positivados ainda sem analise na base (tolerancia ${tolC}; o coletor analisa a cada 5 min).`); FALHAS_COLETA++; }
+    else console.log(`ℹ️ Cortes/bloqueados: ${semCobertura} vendedor(es) com cliente positivado sem analise (dentro da tolerancia ${tolC}): segue o envio.`);
+  }
   const semInfoCorte = ((pedidosDia && pedidosDia.pedidos) || []).filter(p => !p.tem_corte_info).length;
   if (semInfoCorte) { console.log(`⚠️ Cortes: ${semInfoCorte} pedido(s) analisados antes da versao com corte; aguardando a nova analise do coletor.`); if (process.env.CEVEN_DESTINO_ATUAL !== 'dry_run') FALHAS_COLETA++; }   // ensaio (dry_run, nao envia nada) so avisa
   for (const v of ((pedidosDia && pedidosDia.pedidos) || [])) {
