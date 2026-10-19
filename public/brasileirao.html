@@ -819,7 +819,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
           </select>
           <input type="text" id="lances-supervisor" class="input-search" placeholder="Filtrar supervisor..." style="max-width:200px" oninput="filtrarLancesRenderizados()">
           <input type="text" id="lances-vendedor" class="input-search" placeholder="Filtrar vendedor..." style="max-width:200px" oninput="filtrarLancesRenderizados()">
-          <select id="lances-nivel" class="select-ctl" onchange="filtrarLancesRenderizados()">
+          <select id="lances-nivel" class="select-ctl" onchange="atualizaRegrasLances(true); filtrarLancesRenderizados()">
             <option value="TODOS">TODOS OS TIPOS</option>
             <option value="gol">⚽ Gol</option>
             <option value="hattrick">🔥 Hat-Trick</option>
@@ -831,6 +831,8 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
             <option value="impedimento">🚩 Impedimento</option>
             <option value="defesa">🧤 Defesa</option>
           </select>
+          <select id="lances-regra" class="select-ctl" onchange="filtrarLancesRenderizados()" title="Sub-filtro: a regra do lance (ex.: Dobrou o Mix), com a quantidade de cada uma"><option value="TODAS">TODAS AS REGRAS</option></select>
+          <span id="lances-contagem" style="align-self:center;font-weight:800;font-size:13px;white-space:nowrap"></span>
           <button class="tab-btn" style="white-space:nowrap" onclick="exportarLancesCsv()">⬇️ Exportar CSV</button>
         </div>
       </div>
@@ -1335,6 +1337,7 @@ async function carregarLances() {
     LANCES_ATUAIS = lances;
     LANCES_CARREGADOS_HOJE = true;
     renderizarChipsResumo(porNivel, total);
+    atualizaRegrasLances(false);
     filtrarLancesRenderizados();
   } catch (e) {
     console.error('Erro ao carregar lances:', e);
@@ -1410,13 +1413,32 @@ function renderizarChipsResumo(porNivel, total) {
   box.innerHTML = chips.join('');
 }
 
-function filtrarLancesRenderizados() {
+// SUB-FILTRO POR REGRA (Vitorio, 19/10/2026: "queria ver quantos gols de Dobrou o Mix e nao consegui"): a regra e o nome do lance sem o nivel
+// (Dobrou o Mix BRONZE/PRATA/OURO/PLATINA/DIAMANTE = "Dobrou o Mix"). A lista mostra so as regras do tipo escolhido, com a quantidade de cada.
+const regraDoLance = (l) => String(l.pontos_nome || '').replace(/\s+(BRONZE|PRATA|OURO|PLATINA|DIAMANTE)\s*$/i, '').trim() || 'sem regra mapeada';
+function atualizaRegrasLances(reset) {
+  const sel = document.getElementById('lances-regra'); if (!sel) return;
+  const nivel = document.getElementById('lances-nivel').value, atual = reset ? 'TODAS' : sel.value;
+  const cont = {};
+  (nivel === 'TODOS' ? LANCES_ATUAIS : LANCES_ATUAIS.filter(l => l.nivel === nivel)).forEach(l => { const r = regraDoLance(l); cont[r] = (cont[r] || 0) + 1; });
+  const ops = Object.entries(cont).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  sel.innerHTML = '<option value="TODAS">TODAS AS REGRAS</option>' + ops.map(([r, n]) => `<option value="${esc(r)}">${esc(r)} (${n})</option>`).join('');
+  sel.value = ops.some(([r]) => r === atual) ? atual : 'TODAS';
+}
+function lancesFiltradosTela() {
   const nivel = document.getElementById('lances-nivel').value;
+  const regra = (document.getElementById('lances-regra') || {}).value || 'TODAS';
   const supBusca = (document.getElementById('lances-supervisor').value || '').trim().toUpperCase();
   const vendBusca = (document.getElementById('lances-vendedor').value || '').trim().toUpperCase();
   let filtrados = nivel === 'TODOS' ? LANCES_ATUAIS : LANCES_ATUAIS.filter(l => l.nivel === nivel);
+  if (regra !== 'TODAS') filtrados = filtrados.filter(l => regraDoLance(l) === regra);
   if (supBusca) filtrados = filtrados.filter(l => (l.supervisor || '').toUpperCase().includes(supBusca));
   if (vendBusca) filtrados = filtrados.filter(l => (l.vendedor || '').toUpperCase().includes(vendBusca));
+  return filtrados;
+}
+function filtrarLancesRenderizados() {
+  const filtrados = lancesFiltradosTela();
+  { const c = document.getElementById('lances-contagem'); if (c) c.textContent = filtrados.length + (filtrados.length === 1 ? ' lance' : ' lances'); }
   const tbody = document.getElementById('tbody-lances');
   if (!filtrados.length) {
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--tx-mut)">Nenhum lance registrado para este filtro.</td></tr>';
@@ -1447,12 +1469,7 @@ function filtrarLancesRenderizados() {
 // Exporta exatamente o que está filtrado na tela (mesmos filtros de filial/supervisor/vendedor/tipo)
 // pronto pra mandar pra quem questionar uma pontuação — nunca inventa coluna nem valor.
 function exportarLancesCsv() {
-  const nivel = document.getElementById('lances-nivel').value;
-  const supBusca = (document.getElementById('lances-supervisor').value || '').trim().toUpperCase();
-  const vendBusca = (document.getElementById('lances-vendedor').value || '').trim().toUpperCase();
-  let filtrados = nivel === 'TODOS' ? LANCES_ATUAIS : LANCES_ATUAIS.filter(l => l.nivel === nivel);
-  if (supBusca) filtrados = filtrados.filter(l => (l.supervisor || '').toUpperCase().includes(supBusca));
-  if (vendBusca) filtrados = filtrados.filter(l => (l.vendedor || '').toUpperCase().includes(vendBusca));
+  const filtrados = lancesFiltradosTela();
   if (!filtrados.length) { alert('Nenhum lance para exportar com esse filtro.'); return; }
 
   const cabecalho = ['Data', 'Hora', 'Filial', 'Tipo', 'RCA', 'Vendedor', 'Supervisor', 'Cliente', 'Motivo', 'Dias Sem Comprar', 'Pontos', 'Nome da Regra', 'Explicação'];
