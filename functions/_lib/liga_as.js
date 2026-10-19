@@ -67,11 +67,14 @@ export const usaSemanasNovas = (mes) => String(mes) >= AS_SEMANAS_NOVAS_DESDE;
 export function calculaFaseamento(snaps, mes, hoje) {
   const ult = ultimoDiaDoMes(mes);
   const dia = (n) => `${mes}-${pad(Math.min(n, ult))}`;
-  const pct = (s) => (s && Number(s.meta) > 0 ? ((Number(s.faturado) || 0) + (Number(s.pendente) || 0)) / Number(s.meta) * 100 : null);
   // foto mais recente ate uma data (o dia pode nao ter linha)
   const fotoAte = (d) => { const ks = Object.keys(snaps).filter((k) => k <= d && k <= hoje).sort(); return ks.length ? snaps[ks[ks.length - 1]] : null; };
   const atual = fotoAte(hoje);
   const metaMes = atual ? Number(atual.meta) || 0 : 0;
+  // META ATUAL DO MES EM TODAS AS FASES E BONUS (Vitorio, 19/10/2026: "use a meta atual e refaca os calculos"): o CEVEN trocou a meta de
+  // centenas de vendedores no meio do mes (ex.: MCD 414 de R$ 279 mil para R$ 1,526 mi em 16/10); medir cada dia pela meta daquele dia dava
+  // fase/bonus batidos com meta incompleta. Agora o faturado+pendente de cada dia e dividido pela meta de HOJE.
+  const pct = (s) => (s && metaMes > 0 ? ((Number(s.faturado) || 0) + (Number(s.pendente) || 0)) / metaMes * 100 : null);
   // FASEAMENTO E INEGOCIAVEL (Vitorio, 15/10/2026: "a venda ate dia 20... o vendedor precisa se mexer; so pedi para ajustar as semanas"): 20% ate o dia 7, 40% ate o 14,
   // 60% ate o 20 e 110% no fim do mes, sempre. A semana de trabalho so decide em qual JOGO os pontos de cada corte entram (o gerador soma pela data).
   const fases = AS_FASES.map((f) => {

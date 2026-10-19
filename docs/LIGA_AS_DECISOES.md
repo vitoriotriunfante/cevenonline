@@ -58,3 +58,6 @@
 - **Base do valor mínimo:** nos pedidos qualificados de 05 a 07/10 com Marca Própria, a mediana foi R$ 61 (P75 R$ 138, máx. R$ 420); R$ 50 pega ~60% e corta valores simbólicos.
 - **O que foi esquecido:** o pedido estava na lista "em definição" desde 05/10 e eu não cobrei os padrões. Desde 07/10 está implementado.
 - **Divergências:** /divergencias ganhou "C. Sem canal no CEVEN" e "D. Canal: o CEVEN passou a valer".
+
+## 19/10/2026 — Meta ATUAL do mês em todas as fases e bônus
+O CEVEN trocou a meta de vários vendedores no meio do mês (ex.: MCD 414 de R$ 279 mil para R$ 1,526 mi em 16/10). Decisão do Vitório: "use a meta atual e refaça os cálculos". Cada corte (dias 7/14/20/fim) e cada bônus (100% até 15 e até 25) divide o faturado+pendente daquele dia pela meta de HOJE (recalcula para trás). Código: `functions/_lib/liga_as.js` (calculaFaseamento).
