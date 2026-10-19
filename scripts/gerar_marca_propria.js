@@ -22,7 +22,7 @@
  *                   pelo orquestrador (pipeline/orquestrador_diario.js) no mesmo dia.
  *
  * Regras de negócio (definidas com Vitório em 22/09/2026):
- * - TBE e TCG não vendem nenhuma marca própria — ficam de fora do envio
+ * - Todas as 11 filiais entram (19/10/2026); quem não vendeu aparece zerado. Varejo e AS contam.
  * - ABC só tem 1 marca (Bellarone) — cobrar mais dele, não tratar com pena
  * - Sem ranking por ora — só visibilidade (consolidado + por filial + por supervisor)
  * - Zerados de hoje mostram há quantos dias o vendedor não vende MP (histórico), não só "zerou hoje"
@@ -121,7 +121,8 @@ async function main() {
   }
   function isRcaVarejoValido(sigla, rcaId) {
     const val = repsMap[`${sigla}_${rcaId}`];
-    return val && engine.isCanalVarejo(val.canal);
+    // VAREJO E AS (Vitorio, 19/10/2026: "tudo que for marca Triunfante precisa contar para todos os acompanhamentos"): antes so o Varejo entrava.
+    return val && (engine.isCanalVarejo(val.canal) || engine.isCanalAS(val.canal));
   }
 
   // TRAVA DE COMPLETUDE (Vitorio, 15/10/2026: "jamais mande sem todos os dados... rode ate finalizar"): o banco do Drive (Data Lake das 03:00) precisa ter
@@ -141,8 +142,9 @@ async function main() {
     try { require('child_process').execSync('rclone copy gdrive:pedidos_historico_ceven.db analises/', { cwd: path.join(__dirname, '..'), stdio: 'inherit' }); } catch (e) { console.log('rclone falhou: ' + e.message); }
   }
   const db = new Database(DB_PATH, { readonly: true });
-  const FILIAIS_EXCLUIDAS = new Set(['TBE', 'TCG']);
-  const ORDEM_FILIAIS = ['TPH', 'API', 'TBL', 'TCA', 'TSJ', 'TPA', 'ABC', 'TCV', 'MCD'];
+  // TODAS AS 11 FILIAIS (Vitorio, 19/10/2026: "pedido e pedido... se nao tem marca propria, vai aparecer"): TBE e TCG entram e aparecem zeradas quando nao venderem.
+  const FILIAIS_EXCLUIDAS = new Set();
+  const ORDEM_FILIAIS = ['TPH', 'API', 'TBL', 'TCA', 'TSJ', 'TPA', 'ABC', 'TCV', 'MCD', 'TBE', 'TCG'];
 
   // =====================================================================
   // DADOS DE HOJE
