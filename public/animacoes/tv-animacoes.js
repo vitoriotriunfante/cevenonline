@@ -195,10 +195,19 @@ function pegaIframePlayer() {
   IFRAME_PLAYER.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0';
   IFRAME_PLAYER.setAttribute('allow', 'autoplay');
   container.appendChild(IFRAME_PLAYER);
-  window.addEventListener('message', (ev) => {
-    if (ev.source === IFRAME_PLAYER.contentWindow && ev.data && ev.data.tipo === 'player-pronto') IFRAME_PLAYER_PRONTO = true;
-  });
+  const f = IFRAME_PLAYER;
+  const onPronto = (ev) => {
+    if (IFRAME_PLAYER !== f) { window.removeEventListener('message', onPronto); return; }
+    if (ev.source === f.contentWindow && ev.data && ev.data.tipo === 'player-pronto') IFRAME_PLAYER_PRONTO = true;
+  };
+  window.addEventListener('message', onPronto);
   return IFRAME_PLAYER;
+}
+// Destroi o iframe do player ao fim de cada vídeo (o próximo cria um novo): libera o decodificador
+// da Smart TV, que travava no 2º/3º vídeo e deixava a imagem congelada na tela (19/10/2026).
+function descartaPlayer() {
+  const f = IFRAME_PLAYER; IFRAME_PLAYER = null; IFRAME_PLAYER_PRONTO = false;
+  if (f) setTimeout(() => { try { f.src = 'about:blank'; f.remove(); } catch (e) {} }, 50);
 }
 // duracaoMaxMs: TETO de segurança — se o player nunca avisar a duração real do arquivo (mensagem
 // 'duracao'), a decisão aparece nesse tempo de qualquer forma, para a TV nunca ficar presa
@@ -225,6 +234,7 @@ function tocaVideoLance(cv, nivel, subtipo, duracaoMaxMs, aoTerminar, arquivoFix
     clearTimeout(t); clearTimeout(vigia);
     window.removeEventListener('message', onEstado);
     try { if (frame.contentWindow) frame.contentWindow.postMessage({ tipo: 'parar' }, '*'); } catch (e) {}
+    descartaPlayer();
     escondeVideo();
     aoTerminar();
   };
@@ -240,7 +250,10 @@ function tocaVideoLance(cv, nivel, subtipo, duracaoMaxMs, aoTerminar, arquivoFix
   let tocou = false, vigia = null;
   const onEstado = (ev) => {
     if (parou || ev.source !== frame.contentWindow || !ev.data) return;
-    if (ev.data.tipo === 'tocando') { tocou = true; clearTimeout(vigia); }
+    if (ev.data.tipo === 'tocando' || ev.data.tipo === 'progresso') {
+      tocou = true; clearTimeout(vigia);
+      vigia = setTimeout(finaliza, 3000); // CONGELOU: 3s sem o vídeo andar = encerra e segue
+    }
     else if (ev.data.tipo === 'erro') { clearTimeout(vigia); finaliza(); }
   };
   window.addEventListener('message', onEstado);
@@ -263,6 +276,7 @@ function tocaVideoLance(cv, nivel, subtipo, duracaoMaxMs, aoTerminar, arquivoFix
     parou = true;
     clearTimeout(t);
     if (frame.contentWindow) frame.contentWindow.postMessage({ tipo: 'parar' }, '*');
+    descartaPlayer();
     escondeVideo();
   };
   stop.arquivo = arquivo; // exposto para o REPLAY reaproveitar exatamente o mesmo vídeo do LANCE

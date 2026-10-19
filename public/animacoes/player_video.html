@@ -21,6 +21,8 @@ v.addEventListener('loadedmetadata', () => {
 // Avisa a TV se o video realmente comecou a tocar ou falhou: sem isso, um MP4 que a Smart TV nao
 // consegue tocar deixava a tela PRETA ate o tempo-teto (19/10/2026, TV da matriz).
 v.addEventListener('playing', () => { if (window.parent) window.parent.postMessage({ tipo: 'tocando' }, '*'); });
+// Progresso: a TV usa para perceber video CONGELADO (decodificador da Smart TV trava no meio, 19/10/2026).
+let ultT = -1; setInterval(() => { if (!v.paused && v.currentTime !== ultT) { ultT = v.currentTime; if (window.parent) window.parent.postMessage({ tipo: 'progresso' }, '*'); } }, 500);
 v.addEventListener('error', () => { if (window.parent && v.getAttribute('src')) window.parent.postMessage({ tipo: 'erro' }, '*'); });
 window.addEventListener('message', (ev) => {
   const msg = ev.data || {};
