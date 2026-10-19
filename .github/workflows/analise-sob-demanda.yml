@@ -1,0 +1,55 @@
+# FICHA DO ARQUIVO
+# O QUE É: análises SOB DEMANDA, só leitura, sobre o banco de pedidos do Drive (pedidos_historico_ceven.db).
+#          Não envia WhatsApp, não grava nada, não mexe em nenhum disparo. O resultado sai no log da execução.
+# POR QUE (Vitório, 19/10/2026): o banco completo (com o mês corrente) fica no Drive; nenhuma análise pode depender da cópia do PC.
+# RODA: só manual (workflow_dispatch), com o script e os argumentos escolhidos.
+name: Análise sob demanda (só leitura)
+
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: 'Script em scripts/ (ex.: analise_mix_quinzenas.py)'
+        required: true
+        default: 'analise_mix_quinzenas.py'
+      args:
+        description: 'Argumentos (ex.: 2026-10)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  analise:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar rclone
+        run: curl -fsS https://rclone.org/install.sh | sudo bash
+      - name: Configurar rclone (Google Drive)
+        env:
+          GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID || '1sqzFpWEKb1WKhT9MksQcQl8RuY94DQum' }}
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "$GDRIVE_SA_JSON" > /tmp/gdrive-sa.json
+          cat > ~/.config/rclone/rclone.conf << EOF
+          [gdrive]
+          type = drive
+          scope = drive
+          service_account_file = /tmp/gdrive-sa.json
+          root_folder_id = $GDRIVE_FOLDER_ID
+          EOF
+      - name: Baixar banco de pedidos do Drive
+        run: |
+          mkdir -p analises
+          rclone copy gdrive:pedidos_historico_ceven.db analises/
+      - name: Rodar a análise
+        env:
+          SCRIPT: ${{ github.event.inputs.script }}
+          ARGS: ${{ github.event.inputs.args }}
+        run: |
+          case "$SCRIPT" in *[!A-Za-z0-9_.-]*|"") echo "nome de script invalido"; exit 1;; esac
+          python3 "scripts/$SCRIPT" $ARGS
