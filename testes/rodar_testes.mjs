@@ -679,7 +679,7 @@ for (const arq of ['public/tvapp.html', 'public/matrizapp.html']) {
 secao('8e. Liga cravada: regras congeladas por versao, fechamento do dia (19h30) e conferencia diaria contra o CEVEN');
 {
   const cfgTxt = ler('config/pontuacao_brasileirao.json'); const cfg = JSON.parse(cfgTxt);
-  const LOCK_HASH = '5ed36c4aff19f02f069c24dfe2d6a8fd86a2ec651e956be483afeaaa3d0b6683'; // sha256 do regulamento na versao 2026-10-19.1 (19/10/2026): amarelo e vermelho de abandono so por falta de CHECK-IN (pedido de manha nao e mais cobrado). Antes, 2026-10-15.1: AS com devolucao 1 por cliente por dia, semana em andamento = J e semanas de trabalho a partir de nov/2026; desempate do Varejo escrito como o sistema calcula
+  const LOCK_HASH = '0b14872e3185228c71c17a52c3a6ed742f7c7a70f8753683ced1819575735fc8'; // sha256 do regulamento na versao 2026-10-19.2 (19/10/2026): motivos de devolucao do Gol Contra e do Vermelho escritos com o texto exato do CEVEN. Antes, 2026-10-19.1: amarelo e vermelho de abandono so por falta de CHECK-IN (pedido de manha nao e mais cobrado). Antes, 2026-10-15.1: AS com devolucao 1 por cliente por dia, semana em andamento = J e semanas de trabalho a partir de nov/2026; desempate do Varejo escrito como o sistema calcula
   const { createHash } = await import('node:crypto');
   const hash = createHash('sha256').update(JSON.stringify(cfg)).digest('hex');
   const lib = ler('functions/_lib/liga_fechamento.js');
