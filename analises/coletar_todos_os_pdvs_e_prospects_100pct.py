@@ -11,7 +11,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 TOKEN = 'IQ6vA2KkKhi1P03bC7WSMZNTw-i-xhJeDLHN3ga9rp4'
 BASE_URL = 'https://ceven.drivetriunfante-locomotiva.com.br'
-HEADERS = {'User-Agent': 'Mozilla/5.0'}
+HEADERS = {'User-Agent': 'Mozilla/5.0', 'X-App-Secret': __import__('os').environ.get('CEVEN_APP_SECRET', '')}  # 19/10/2026: o CEVEN recusa (401) chamada sem esse header desde 09/10/2026
 
 FILIAIS_MAP = {
     'ABC': 'abc1', 'API': 'api1', 'MCD': 'mcd1', 'TBE': 'tbe1',

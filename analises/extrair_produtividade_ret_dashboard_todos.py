@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 urllib3.disable_warnings()
 
-headers = {'User-Agent': 'Mozilla/5.0'}
+headers = {'User-Agent': 'Mozilla/5.0', 'X-App-Secret': __import__('os').environ.get('CEVEN_APP_SECRET', '')}  # 19/10/2026: o CEVEN recusa (401) chamada sem esse header desde 09/10/2026
 base_url = 'https://ceven.drivetriunfante-locomotiva.com.br'
 
 db_path = os.path.join(os.path.dirname(__file__), 'pedidos_historico_ceven.db')
