@@ -1,8 +1,8 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 TBL — FÁBIO • 16/10/2026
+📍 TBL — FÁBIO • 19/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/10/2026 a 16/10/2026)*
+*ACUMULADO DO MÊS (01/10/2026 a 19/10/2026)*
 💰 R$ 3.448,67 • 45 PDVs • ✂️ R$ 25,74 (8 un) • 🚛 R$ 2.859,90 _(filial toda)_
 👤 KLEBERSON BATISTA LIDUARIO — R$ 1.887,38 (19 PDVs)
 👤 LEONARDO MANOSSO DE GODOI — R$ 976,49 (13 PDVs)
@@ -11,11 +11,5 @@
 👤 CRISTIANE DE FREITAS DUARTE — R$ 103,47 (3 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (15/10/2026)*
+*COMO FECHOU ONTEM (18/10/2026)*
 💰 R$ 0,00 • 0 PDVs positivados
-
-🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (1)*
-_(fez pedido ontem, mas nenhum item era marca própria)_
-
-👤 *CRISTIANE DE FREITAS DUARTE*
-  • RAFAEL DOS SANTOS CABRAL — 15d sem vender MP

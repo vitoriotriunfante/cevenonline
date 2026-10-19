@@ -1,19 +1,13 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 ABC — MARCOS • 16/10/2026
+📍 ABC — MARCOS • 19/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/10/2026 a 16/10/2026)*
+*ACUMULADO DO MÊS (01/10/2026 a 19/10/2026)*
 💰 R$ 2.165,27 • 16 PDVs • ✂️ R$ 0,00 (0 un)
 👤 IVONEI PEDRO DE MOURA — R$ 1.188,90 (8 PDVs)
 👤 EDER LUCAS DAS FLORES DE OLIVEIRA — R$ 780,11 (5 PDVs)
 👤 RODRIGO STELLEO COSTA LEITE — R$ 196,26 (3 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (15/10/2026)*
+*COMO FECHOU ONTEM (18/10/2026)*
 💰 R$ 0,00 • 0 PDVs positivados
-
-🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (1)*
-_(fez pedido ontem, mas nenhum item era marca própria)_
-
-👤 *EDER LUCAS DAS FLORES DE OLIVEIRA*
-  • WILLIAN PATRICK VIEIRA DOS SANTOS — 17d sem vender MP
