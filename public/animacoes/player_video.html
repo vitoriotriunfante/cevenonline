@@ -18,6 +18,10 @@ const v = document.getElementById('v');
 v.addEventListener('loadedmetadata', () => {
   if (window.parent && isFinite(v.duration)) window.parent.postMessage({ tipo: 'duracao', segundos: v.duration }, '*');
 });
+// Avisa a TV se o video realmente comecou a tocar ou falhou: sem isso, um MP4 que a Smart TV nao
+// consegue tocar deixava a tela PRETA ate o tempo-teto (19/10/2026, TV da matriz).
+v.addEventListener('playing', () => { if (window.parent) window.parent.postMessage({ tipo: 'tocando' }, '*'); });
+v.addEventListener('error', () => { if (window.parent && v.getAttribute('src')) window.parent.postMessage({ tipo: 'erro' }, '*'); });
 window.addEventListener('message', (ev) => {
   const msg = ev.data || {};
   if (msg.tipo === 'tocar' && msg.arquivo) {

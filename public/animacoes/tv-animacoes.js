@@ -222,7 +222,9 @@ function tocaVideoLance(cv, nivel, subtipo, duracaoMaxMs, aoTerminar, arquivoFix
   const finaliza = () => {
     if (parou) return;
     parou = true;
-    clearTimeout(t);
+    clearTimeout(t); clearTimeout(vigia);
+    window.removeEventListener('message', onEstado);
+    try { if (frame.contentWindow) frame.contentWindow.postMessage({ tipo: 'parar' }, '*'); } catch (e) {}
     escondeVideo();
     aoTerminar();
   };
@@ -233,11 +235,21 @@ function tocaVideoLance(cv, nivel, subtipo, duracaoMaxMs, aoTerminar, arquivoFix
     const restanteMs = ev.data.segundos * 1000;
     if (restanteMs > 0 && restanteMs < duracaoMaxMs) rearmaCronometro(restanteMs); // vídeo mais curto que o teto: usa a duração real
   };
+  // TELA PRETA (19/10/2026, TV da matriz): se o player não confirmar que o vídeo está TOCANDO em 4s,
+  // ou avisar erro, encerra o vídeo na hora e segue para a próxima etapa (VAR / decisão).
+  let tocou = false, vigia = null;
+  const onEstado = (ev) => {
+    if (parou || ev.source !== frame.contentWindow || !ev.data) return;
+    if (ev.data.tipo === 'tocando') { tocou = true; clearTimeout(vigia); }
+    else if (ev.data.tipo === 'erro') { clearTimeout(vigia); finaliza(); }
+  };
+  window.addEventListener('message', onEstado);
   window.addEventListener('message', onDuracaoReal);
 
   const pedeParaTocar = () => {
     if (frame.contentWindow) frame.contentWindow.postMessage({ tipo: 'tocar', arquivo, mudo }, '*');
     mostraVideo();
+    clearTimeout(vigia); vigia = setTimeout(() => { if (!tocou) finaliza(); }, 4000);
   };
   if (IFRAME_PLAYER_PRONTO) pedeParaTocar();
   else frame.onload = pedeParaTocar; // primeira vez: espera o player carregar antes de mandar tocar
@@ -246,6 +258,7 @@ function tocaVideoLance(cv, nivel, subtipo, duracaoMaxMs, aoTerminar, arquivoFix
 
   const stop = () => {
     window.removeEventListener('message', onDuracaoReal);
+    window.removeEventListener('message', onEstado); clearTimeout(vigia);
     if (parou) return;
     parou = true;
     clearTimeout(t);
