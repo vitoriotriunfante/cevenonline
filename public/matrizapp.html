@@ -947,6 +947,9 @@ const ehGrave = (x) => x.tipo === 'vermelho' || x.tipo === 'golcontra'; // carta
 const ruimLiberado = () => sp().h < 15 || ESPERA.some((x) => ehBomLance(x) || ehGrave(x) || x.tipo === 'semanainvicta' || x.tipo === 'bolacheia') || Date.now() - ULT_RUIM >= 10 * 60e3;
 function podeVAR(bom, proprio) { const agora = Date.now(); while (VARS.length && agora - VARS[0] > 3600e3) VARS.shift(); if (proprio) return !emVAR && !FILA.length; /* Gol de Marca Propria: sem intervalo e sem limite por hora */ return !emVAR && !FILA.length && VARS.length < varMaxH() * (bom ? 3 : 1) && (!VARS.length || agora - VARS[VARS.length - 1] >= (bom ? Math.min(varGapS(), sp().h >= 15 ? 30 : 40) : varGapS()) * 1000); }
 function liberaEspera() {
+  // FILA COM LIMITE (19/10/2026: TV da TSJ chegou a '113 lances aguardando'): a filial gera mais lance do que o VAR mostra (~20/h). Acima de 25 na espera,
+  // descarta os lances RUINS mais antigos (continuam no diario e na Liga; so nao viram VAR). Gols, marca propria, Semana Invicta e Bola Cheia nunca saem.
+  if (ESPERA.length > 25) { for (let k = 0; k < ESPERA.length && ESPERA.length > 25; ) { const x = ESPERA[k]; if (ehBomLance(x) || ehMarcaPropria(x) || x.tipo === 'semanainvicta' || x.tipo === 'bolacheia') k++; else ESPERA.splice(k, 1); } }
   if (ESPERA.length && podeVAR(ESPERA.some(ehBomLance), ESPERA.some(ehMarcaPropria)) && (ESPERA.some(ehMarcaPropria) || ruimLiberado())) { const iInv = ESPERA.findIndex(x => x.tipo === 'semanainvicta' || x.tipo === 'bolacheia'); /* Semana Invicta sai SEMPRE sozinha, nunca dentro de um resumo */
     const iProp = ESPERA.findIndex(ehMarcaPropria); /* Gol de Marca Propria: o primeiro da fila, sempre sozinho */
     const iBom = ESPERA.findIndex(ehBomLance); /* gol, hat-trick e defesa saem sozinhos e na frente: o resumo fica so para o que e ruim */

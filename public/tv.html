@@ -35,16 +35,17 @@ const alterna = () => { try { document.fullscreenElement ? document.exitFullscre
 document.addEventListener('keydown', e => { if (e.key === 'f' || e.key === 'F') alterna(); });
 
 // atualização automática: recarrega só o iframe
-let versao = null, pendente = false;
+let versao = null, pendente = false, pendenteDesde = 0;
 async function confere() {
   try {
     const d = await (await fetch('/api/version', { cache: 'no-store' })).json();
-    if (d && d.version) { if (versao && versao !== d.version) pendente = true; else if (!versao) versao = d.version; }
+    if (d && d.version) { if (versao && versao !== d.version) { if (!pendente) pendenteDesde = Date.now(); pendente = true; } else if (!versao) versao = d.version; }
   } catch {}
 }
 setInterval(() => {
   if (!pendente) return;
-  try { const w = f.contentWindow; if (w.__tv && w.__tv.ocupado && w.__tv.ocupado()) return; w.location.reload(); }
+  // 19/10/2026 (TV da TSJ parada com numero velho): um VAR travado deixava 'ocupado' para sempre e a TV nunca mais recarregava. Espera o VAR no maximo 3 min.
+  try { const w = f.contentWindow; if (w.__tv && w.__tv.ocupado && w.__tv.ocupado() && Date.now() - (pendenteDesde || Date.now()) < 3 * 60 * 1000) return; w.location.reload(); }
   catch { f.src = f.src; }
   pendente = false; versao = null; confere();
 }, 2000);
