@@ -946,6 +946,19 @@ async function checaBolaCheia() {
   } catch (e) {}
 }
 setInterval(checaBolaCheia, 60 * 1000); setTimeout(checaBolaCheia, 8000);
+// BOLA CHEIA AS (19/10/2026): no ultimo dia util da semana do AS (normalmente a sexta), depois das 18h, o melhor AS da semana desta filial
+async function checaBolaCheiaAS() {
+  try {
+    if (sp().h < 18) return;
+    const d = await j('/api/bola-cheia?dia=' + HOJE0, 15000); if (!d || d.erro || !d.as || !d.as.existe || d.as.pendente) return;
+    const v = (d.as.vencedores || []).find((x) => x.filial === FIL); if (!v) return;
+    const k = 'bolacheiaas_' + HOJE0 + '_' + FIL; if (BOLA_AVISADA.has(k) || store.get(k, false)) return; BOLA_AVISADA.add(k); store.set(k, true);
+    ESPERA.push({tipo: 'bolacheia', as: true, sig: FIL, bc: v, v: {id: v.rca, nome: v.vendedor, sup: v.supervisor || '', canal: 'AS'}, sub: 'Bola Cheia AS ' + FIL + ': melhor AS da semana (congelada às 18h)', score: 60});
+    liberaEspera();
+  } catch (e) {}
+}
+setInterval(checaBolaCheiaAS, 60 * 1000); setTimeout(checaBolaCheiaAS, 20000);
+
 function enfileira(novos) {
   // Gols têm prioridade máxima de comemoração
   novos.filter(a => a.nivel === 'gol').forEach(a => {
@@ -1017,7 +1030,7 @@ function animBolaCheia(ov, item) {
     if (!document.getElementById('bolacheia-css')) { const st = document.createElement('style'); st.id = 'bolacheia-css'; st.textContent = '@keyframes bcQuica{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-70px) rotate(180deg)}}@keyframes bcCai{from{transform:translateY(-10vh) rotate(0)}to{transform:translateY(110vh) rotate(540deg)}}@keyframes bcEntra{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}.bc{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:radial-gradient(circle at 50% 40%,#14532d,#052e16 70%);color:#fef9c3;text-align:center;overflow:hidden}.bc .bola{font-size:150px;animation:bcQuica 1.1s ease-in-out infinite;filter:drop-shadow(0 20px 18px #0008)}.bc h1{margin:0;font-size:64px;letter-spacing:6px;color:#facc15;animation:bcEntra .8s both}.bc h2{margin:0;font-size:40px;animation:bcEntra 1s .3s both}.bc h3{margin:0;font-size:24px;color:#bbf7d0;animation:bcEntra 1s .6s both}.bc i{position:absolute;top:0;font-style:normal;animation:bcCai linear infinite}'; document.head.appendChild(st); }
     const b = item.bc || {}, nome = item.lista ? 'Os melhores de cada filial' : esc(b.vendedor || (item.v && item.v.nome) || ''), fil = item.lista ? (item.lista.length + ' filiais') : esc(b.filial || item.sig || '');
     let conf = ''; for (let k = 0; k < 40; k++) conf += '<i style="left:' + (Math.random() * 98).toFixed(1) + 'vw;font-size:' + (18 + Math.random() * 26).toFixed(0) + 'px;animation-duration:' + (3 + Math.random() * 4).toFixed(1) + 's;animation-delay:' + (Math.random() * 5).toFixed(1) + 's">' + ['⭐', '🎉', '✨', '⚽'][k % 4] + '</i>';
-    ov.className = 'show'; ov.innerHTML = '<div class="bc">' + conf + '<div class="bola">⚽</div><h1>BOLA CHEIA</h1><h2>' + nome + '</h2><h3>' + fil + ' · melhor do dia</h3></div>';
+    ov.className = 'show'; ov.innerHTML = '<div class="bc">' + conf + '<div class="bola">⚽</div><h1>BOLA CHEIA' + (item.as ? ' AS' : '') + '</h1><h2>' + nome + '</h2><h3>' + fil + (item.as ? ' · melhor AS da semana' : ' · melhor do dia') + '</h3></div>';
   } catch (e) {}
 }
 function pontosLanceOficial(tipo, subtipo) {
@@ -1088,9 +1101,9 @@ function telaVAR(item) {
     veredito = vereditoImpedimento(item.a);
   } else if (item.tipo === 'bolacheia') {
     const bc = item.bc || {}, rs = bc.resumo || {};
-    if (item.lista) { titulo = '🏆 BOLA CHEIA · TODAS AS FILIAIS'; sub = 'Melhor do dia de cada filial (congelada às 18h)'; cls = 'f1'; dec = item.lista.map(function (x) { return '<div class="ln hot"><b>' + esc(x.filial) + '</b><span>' + esc(x.vendedor) + ' · ' + (Number(x.pontos) || 0) + ' pts · ' + (x.positivados || 0) + ' positivados</span></div>'; }).join(''); veredito = '🏆 BOLA CHEIA congelada às 18h: resultado final, não muda mais. Parabéns a todos!'; } else {
-    titulo = '🏆 BOLA CHEIA'; sub = item.sub || 'Melhor do dia da filial (congelada às 18h)'; cls = 'f1';
-    dec = '<div class="ln hot"><b>FILIAL</b><span>' + esc(bc.filial || FIL) + '</span></div><div class="ln hot"><b>VENDEDOR</b><span>' + esc(bc.vendedor || '') + ' <small>(RCA ' + esc(bc.rca || '') + ')</small></span></div>' + (bc.supervisor ? '<div class="ln"><b>SUPERVISOR</b><span>' + esc(bc.supervisor) + '</span></div>' : '') + '<div class="ln"><b>PONTOS NO DIA</b><span>' + (Number(bc.pontos) || 0) + ' (gols ' + (rs.gols || 0) + ' · defesas ' + (rs.defesas || 0) + (rs.negativos ? ' · lances negativos ' + rs.negativos : '') + ')</span></div><div class="ln"><b>RESUMO</b><span>' + (bc.visitas || 0) + ' visitas · ' + (bc.positivados || 0) + ' clientes positivados · digitado ' + brl(bc.digitado || 0) + '</span></div>';
+    if (item.lista) { titulo = item.as ? '🏆 BOLA CHEIA AS · TODAS AS FILIAIS' : '🏆 BOLA CHEIA · TODAS AS FILIAIS'; sub = item.as ? 'Melhor AS da semana de cada filial (congelada às 18h)' : 'Melhor do dia de cada filial (congelada às 18h)'; cls = 'f1'; dec = item.lista.map(function (x) { return '<div class="ln hot"><b>' + esc(x.filial) + '</b><span>' + esc(x.vendedor) + ' · ' + (Number(x.pontos) || 0) + ' pts · ' + (x.positivados || 0) + ' positivados</span></div>'; }).join(''); veredito = '🏆 BOLA CHEIA congelada às 18h: resultado final, não muda mais. Parabéns a todos!'; } else {
+    titulo = item.as ? '🏆 BOLA CHEIA AS' : '🏆 BOLA CHEIA'; sub = item.sub || 'Melhor do dia da filial (congelada às 18h)'; cls = 'f1';
+    dec = '<div class="ln hot"><b>FILIAL</b><span>' + esc(bc.filial || FIL) + '</span></div><div class="ln hot"><b>VENDEDOR</b><span>' + esc(bc.vendedor || '') + ' <small>(RCA ' + esc(bc.rca || '') + ')</small></span></div>' + (bc.supervisor ? '<div class="ln"><b>SUPERVISOR</b><span>' + esc(bc.supervisor) + '</span></div>' : '') + '<div class="ln"><b>' + (rs.as ? 'PONTOS NA SEMANA (AS)' : 'PONTOS NO DIA') + '</b><span>' + (Number(bc.pontos) || 0) + ' (gols ' + (rs.gols || 0) + ' · defesas ' + (rs.defesas || 0) + (rs.negativos ? ' · lances negativos ' + rs.negativos : '') + ')</span></div><div class="ln"><b>RESUMO</b><span>' + (rs.as ? (bc.positivados || 0) + ' positivações na semana · digitado na semana ' + brl(bc.digitado || 0) : (bc.visitas || 0) + ' visitas · ' + (bc.positivados || 0) + ' clientes positivados · digitado ' + brl(bc.digitado || 0)) + '</span></div>';
     veredito = '🏆 BOLA CHEIA congelada às 18h: resultado final, não muda mais. Parabéns!';
     }
   } else if (item.tipo === 'semanainvicta') {

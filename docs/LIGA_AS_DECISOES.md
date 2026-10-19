@@ -61,3 +61,6 @@
 
 ## 19/10/2026 — Meta ATUAL do mês em todas as fases e bônus
 O CEVEN trocou a meta de vários vendedores no meio do mês (ex.: MCD 414 de R$ 279 mil para R$ 1,526 mi em 16/10). Decisão do Vitório: "use a meta atual e refaça os cálculos". Cada corte (dias 7/14/20/fim) e cada bônus (100% até 15 e até 25) divide o faturado+pendente daquele dia pela meta de HOJE (recalcula para trás). Código: `functions/_lib/liga_as.js` (calculaFaseamento).
+
+## 19/10/2026 — Bola Cheia do AS (semanal)
+No último dia útil de cada semana de trabalho do AS (normalmente sexta), às 18h, o melhor AS de cada filial na semana ganha a Bola Cheia AS (só honra, sem pontos). Critério: mais pontos de lance da semana (só os que valem no AS). Precisa ter vendido: ≥ 3 positivações somadas na semana e digitado > 0. Desempate: positivações, digitado, nome. Gravada em `bola_cheia_as`/`bola_cheia_as_dia`; servida por `/api/bola-cheia` (campo `as`); aparece na TV da filial e na Matriz com o mesmo vídeo da Bola Cheia. Código: `functions/_lib/bola_cheia.js`.

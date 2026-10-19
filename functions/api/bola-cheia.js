@@ -4,7 +4,7 @@
 //   ?rodar=1 = congela se já passou das 18h e ainda não congelou (idempotente; chamado pelo coletor de lances a cada 5 min). Ver functions/_lib/bola_cheia.js.
 // =========================================================================
 import { agoraSP, REGRAS_VERSAO } from '../_lib/liga_fechamento.js';
-import { congelaBolaCheia, lerBolaCheia } from '../_lib/bola_cheia.js';
+import { congelaBolaCheia, lerBolaCheia, congelaBolaCheiaAS, lerBolaCheiaAS, semanaASDoDia } from '../_lib/bola_cheia.js';
 const cors = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 
 export async function onRequestGet({ env, request }) {
@@ -12,9 +12,17 @@ export async function onRequestGet({ env, request }) {
   const u = new URL(request.url), t = agoraSP();
   const dia = /^\d{4}-\d{2}-\d{2}$/.test(u.searchParams.get('dia') || '') ? u.searchParams.get('dia') : t.dia;
   try {
-    if (u.searchParams.get('rodar') === '1') return new Response(JSON.stringify(await congelaBolaCheia(env, u.origin, dia, REGRAS_VERSAO)), { headers: cors });
+    if (u.searchParams.get('rodar') === '1') {
+      const vj = await congelaBolaCheia(env, u.origin, dia, REGRAS_VERSAO);
+      const as = await congelaBolaCheiaAS(env, u.origin, dia, REGRAS_VERSAO).catch((e) => ({ status: 'FALHOU', motivo: String(e.message || e).slice(0, 200) }));
+      return new Response(JSON.stringify({ ...vj, as }), { headers: cors });
+    }
+    // BOLA CHEIA AS (19/10/2026): so existe no ultimo dia util da semana de trabalho do AS (normalmente a sexta)
+    const sem = semanaASDoDia(dia), fimAS = !!(sem && sem.fim_util === dia);
+    const ra = fimAS ? await lerBolaCheiaAS(env, dia) : null;
+    const as = !fimAS ? { existe: false, vencedores: [] } : (!ra ? { existe: true, pendente: true, motivo: 'a Bola Cheia AS da semana é congelada às 18h', vencedores: [] } : { existe: true, pendente: false, semana_de: ra.cab.semana_de, hora: ra.cab.hora_sp, vencedores: ra.vencedores });
     const r = await lerBolaCheia(env, dia);
-    if (!r) return new Response(JSON.stringify({ dia, pendente: true, motivo: 'a Bola Cheia do dia é congelada às 18h', vencedores: [] }), { headers: cors });
-    return new Response(JSON.stringify({ dia, pendente: false, congelado_em: r.cab.congelado_em, hora: r.cab.hora_sp, regras_versao: r.cab.regras_versao, vencedores: r.vencedores }), { headers: cors });
+    if (!r) return new Response(JSON.stringify({ dia, pendente: true, motivo: 'a Bola Cheia do dia é congelada às 18h', vencedores: [], as }), { headers: cors });
+    return new Response(JSON.stringify({ dia, pendente: false, congelado_em: r.cab.congelado_em, hora: r.cab.hora_sp, regras_versao: r.cab.regras_versao, vencedores: r.vencedores, as }), { headers: cors });
   } catch (e) { return new Response(JSON.stringify({ erro: String(e.message || e).slice(0, 300) }), { status: 500, headers: cors }); }
 }

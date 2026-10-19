@@ -9,6 +9,7 @@
 //   - Só Varejo (canais VJ, FARMA, PET VJ, ESP do CEVEN); ocultos já vêm fora dos lances. AS = por semana (sexta), vem em outra etapa.
 // =========================================================================
 import { agoraSP } from './liga_fechamento.js';
+import { semanasAS } from './liga_as.js';
 export const MIN_VISITAS = 5;
 export const MIN_POSITIVADOS = 1; // TEM QUE TER VENDIDO (Vitorio, 07/10/2026): pelo menos 1 cliente positivado (numero oficial do CEVEN) e digitado > 0; subir este numero endurece a regra
 export const HORA_CONGELA_MIN = 18 * 60;
@@ -90,5 +91,81 @@ export async function congelaBolaCheia(env, origin, dia, regrasVersao) {
       JSON.stringify({ gols: v.gols, defesas: v.defesas, negativos: v.negativos, lances: v.lances, concorrentes: cands.filter((c) => c.filial === v.filial && c.visitas >= MIN_VISITAS && c.positivados >= MIN_POSITIVADOS && c.digitado > 0).length, min_visitas: MIN_VISITAS })));
   for (let i = 0; i < stmts.length; i += 40) await env.DB.batch(stmts.slice(i, i + 40));
   await env.DB.prepare('INSERT OR IGNORE INTO bola_cheia_dia (dia, congelado_em, hora_sp, regras_versao, vencedores) VALUES (?,?,?,?,?)').bind(dia, new Date().toISOString(), hora, regrasVersao || '', venc.length).run(); // cabecalho POR ULTIMO
+  return { dia, status: 'CONGELADA', vencedores: venc.length, hora };
+}
+
+// =========================================================================
+// BOLA CHEIA DO AS (Vitório, 19/10/2026: "pode"): no ÚLTIMO DIA ÚTIL de cada semana de trabalho do AS (normalmente a sexta; ver semanasAS),
+// às 18h, o melhor vendedor AS de cada filial NA SEMANA ganha o título. Só honra, sem pontos.
+//   - Critério: mais PONTOS DE LANCE NA SEMANA (só os lances que valem no AS; mesma lista de fora da página da Liga).
+//   - TEM QUE TER VENDIDO: pelo menos MIN_POSITIVACOES_AS positivações somadas nos dias da semana (CEVEN) e digitado da semana > 0.
+//   - Desempate: mais positivações, mais digitado, nome. Sem pontos positivos = sem Bola Cheia AS (nunca inventa).
+//   - Congelado e gravado (bola_cheia_as / bola_cheia_as_dia) pela data do último dia útil da semana.
+// =========================================================================
+export const MIN_POSITIVACOES_AS = 3;
+export const CANAIS_AS = ['AS', 'PET AS'];
+// iguais a AS_TIPOS_FORA de public/brasileirao.html (dependem do horario/visita do DIA; o AS visita num dia e vende em outro)
+const AS_TIPOS_FORA = ['ven10', 'vis10', 'vis11', 'gol_relampago', 'gol_acrescimos', 'gol_meta1t', 'gol_hattrick', 'hattrick', 'gol_conversao', 'gol_goleada', 'gol_campeao'];
+const AS_NIVEIS_FORA = ['amarelo', 'visita10', 'venda10'];
+const tipoDaChave = (ch) => String(ch || '').replace(/^[A-Z]{3}[|]/, '').split('|')[0];
+
+export function semanaASDoDia(dia) {
+  return semanasAS(String(dia).slice(0, 7)).find((s) => s.dias.includes(dia)) || null;
+}
+
+export async function garanteTabelasBolaAS(env) {
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS bola_cheia_as_dia (dia TEXT PRIMARY KEY, semana_de TEXT, congelado_em TEXT, hora_sp TEXT, regras_versao TEXT, vencedores INTEGER)').run();
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS bola_cheia_as (dia TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT, vendedor TEXT, supervisor TEXT, pontos REAL, positivados INTEGER, digitado REAL, resumo_json TEXT, PRIMARY KEY (dia, filial))').run();
+}
+
+export async function lerBolaCheiaAS(env, dia) {
+  try {
+    const cab = await env.DB.prepare('SELECT semana_de, congelado_em, hora_sp, regras_versao, vencedores FROM bola_cheia_as_dia WHERE dia = ?').bind(dia).first();
+    if (!cab) return null;
+    const { results } = await env.DB.prepare('SELECT filial, rca, vendedor, supervisor, pontos, positivados, digitado, resumo_json FROM bola_cheia_as WHERE dia = ? ORDER BY filial').bind(dia).all();
+    return { cab, vencedores: (results || []).map((r) => { let resumo = {}; try { resumo = JSON.parse(r.resumo_json) || {}; } catch (e) { resumo = {}; } const { resumo_json, ...resto } = r; return { ...resto, resumo: { ...resumo, as: true } }; }) };
+  } catch (e) { return null; }
+}
+
+export async function congelaBolaCheiaAS(env, origin, dia, regrasVersao) {
+  const sem = semanaASDoDia(dia);
+  if (!sem || sem.fim_util !== dia) return { dia, status: 'NAO_E_FIM_DE_SEMANA_AS' };
+  await garanteTabelasBolaAS(env);
+  const ja = await env.DB.prepare('SELECT congelado_em FROM bola_cheia_as_dia WHERE dia = ?').bind(dia).first();
+  if (ja) return { dia, status: 'JA_CONGELADA', congelado_em: ja.congelado_em };
+  const t = agoraSP();
+  if (!(dia < t.dia || (dia === t.dia && t.min >= HORA_CONGELA_MIN))) return { dia, status: 'AINDA_NAO', motivo: 'a Bola Cheia AS congela às 18h do último dia útil da semana' };
+  const dias = sem.dias.filter((d) => d <= dia);
+  const lidos = await Promise.all(dias.map((d) => fetch(`${origin}/api/brasileirao-lances?dia=${d}${d === t.dia ? '&ao_vivo=1' : ''}`, { signal: AbortSignal.timeout(40000) }).then((r) => r.json()).catch(() => null)));
+  if (lidos.some((j) => !j || !Array.isArray(j.lances))) return { dia, status: 'FALHOU', motivo: 'nao consegui ler os lances de todos os dias da semana' };
+  const { results: cs } = await env.DB.prepare('SELECT filial, rca, canal FROM canal_ceven').all();
+  const canal = new Map((cs || []).map((x) => [String(x.filial).toUpperCase().slice(0, 3) + '|' + x.rca, String(x.canal || '').toUpperCase()]));
+  const ph = dias.map(() => '?').join(',');
+  const { results: vs } = await env.DB.prepare(`SELECT rca_codigo r, filial_sigla f, json_extract(produtividade_json,'$.dia.dig_pedido') dig, json_extract(produtividade_json,'$.dia.positivacao') pos FROM varredura_central_rca WHERE data_ref IN (${ph})`).bind(...dias).all();
+  const dadosSem = new Map();
+  for (const x of vs || []) { const k = String(x.f).toUpperCase() + '|' + x.r; const e = dadosSem.get(k) || { positivados: 0, digitado: 0 }; e.positivados += Number(x.pos) || 0; e.digitado += Number(x.dig) || 0; dadosSem.set(k, e); }
+  const por = new Map();
+  for (const j of lidos) for (const l of j.lances) {
+    if (NIVEIS_FORA.includes(l.nivel) || AS_NIVEIS_FORA.includes(l.nivel) || !l.rca || /^sup[|]/.test(String(l.chave || '').replace(/^[A-Z]{3}[|]/, ''))) continue;
+    if (AS_TIPOS_FORA.includes(tipoDaChave(l.chave))) continue;
+    const chave = l.filial + '|' + l.rca;
+    if (!CANAIS_AS.includes(canal.get(chave) || '')) continue;
+    const e = por.get(chave) || { filial: l.filial, rca: String(l.rca), vendedor: l.vendedor, supervisor: l.supervisor && l.supervisor !== 'Direto ao gerente' ? l.supervisor : '', pontos: 0, gols: 0, defesas: 0, negativos: 0, lances: 0 };
+    e.pontos += Number(l.pontos) || 0; e.lances++;
+    if (Number(l.pontos) > 0 && (l.nivel === 'gol' || l.nivel === 'hattrick')) e.gols++;
+    else if (l.nivel === 'defesa') e.defesas++;
+    else if (Number(l.pontos) < 0) e.negativos++;
+    por.set(chave, e);
+  }
+  const ok = (c) => Number(c.pontos) > 0 && Number(c.positivados) >= MIN_POSITIVACOES_AS && Number(c.digitado) > 0;
+  const cands = [...por.values()].map((e) => ({ ...e, ...(dadosSem.get(e.filial + '|' + e.rca) || { positivados: 0, digitado: 0 }) }));
+  // mesmo desempate do Varejo (pontos, positivados, digitado, nome); visitas nao entram no AS
+  const venc = escolheVencedores(cands.filter(ok).map((c) => ({ ...c, visitas: 0 })), 0);
+  const hora = `${String(t.h).padStart(2, '0')}:${String(t.m).padStart(2, '0')}`;
+  const stmts = venc.map((v) => env.DB.prepare('INSERT OR IGNORE INTO bola_cheia_as (dia, filial, rca, vendedor, supervisor, pontos, positivados, digitado, resumo_json) VALUES (?,?,?,?,?,?,?,?,?)')
+    .bind(dia, v.filial, v.rca, v.vendedor, v.supervisor, v.pontos, v.positivados, v.digitado,
+      JSON.stringify({ gols: v.gols, defesas: v.defesas, negativos: v.negativos, lances: v.lances, concorrentes: cands.filter((c) => c.filial === v.filial && ok(c)).length, semana_de: dias[0], semana_ate: dia, dias_uteis: dias.length, min_positivacoes: MIN_POSITIVACOES_AS })));
+  for (let i = 0; i < stmts.length; i += 40) await env.DB.batch(stmts.slice(i, i + 40));
+  await env.DB.prepare('INSERT OR IGNORE INTO bola_cheia_as_dia (dia, semana_de, congelado_em, hora_sp, regras_versao, vencedores) VALUES (?,?,?,?,?,?)').bind(dia, dias[0], new Date().toISOString(), hora, regrasVersao || '', venc.length).run(); // cabecalho POR ULTIMO
   return { dia, status: 'CONGELADA', vencedores: venc.length, hora };
 }
