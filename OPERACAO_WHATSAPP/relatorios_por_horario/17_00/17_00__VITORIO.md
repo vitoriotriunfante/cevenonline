@@ -1,114 +1,114 @@
 📊 *RELATÓRIO OFICIAL CONSOLIDADO — 17:00*
-📅 19/10/2026
+📅 20/10/2026
 🏢 *Grupo Triunfante — 11 Filiais*
 ⚡ Conciliado 100% com o Clube da Venda — Foco Exclusivo Varejo (VJ)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📌 *RESULTADO GERAL DA COMPANHIA:*
-💰 *Total Digitado:* R$ 2.028.222,64
-📦 *Total de Pedidos:* 1.516 pedidos
-📍 *Visitas Realizadas:* 2.808 de 4.189 (67,03%)
+💰 *Total Digitado:* R$ 2.361.530,51
+📦 *Total de Pedidos:* 1.564 pedidos
+📍 *Visitas Realizadas:* 2.438 de 4.101 (59,45%)
 
 🎯 *FORÇA DE VENDAS VAREJO:*
-👥 *Total Varejo em Campo:* 323 vendedores
-✅ *Positivados no Dia:* 263 vendedores (81,4%)
-🚨 *Varejo Zerados (17:00):* *60 vendedores (18,6%)*
+👥 *Total Varejo em Campo:* 319 vendedores
+✅ *Positivados no Dia:* 262 vendedores (82,1%)
+🚨 *Varejo Zerados (17:00):* *57 vendedores (17,9%)*
 
 🚨 *PERDAS E ATENÇÃO OPERACIONAL HOJE:*
-✂️ *Cortes nos Pedidos de Hoje:* R$ 18.513,64 (36 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 250.537,46 (273 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 97.586,72
+✂️ *Cortes nos Pedidos de Hoje:* R$ 11.656,20 (28 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 562.944,87 (245 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 64.136,74
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 *DESEMPENHO POR FILIAL (RANKING DE VENDAS)*
 
-🥇 *1. FILIAL TSJ — SALDANHA*
-💰 Total Digitado: R$ 461.982,39 • 📦 Pedidos: 179
-📍 Visitas Varejo: 302 de 385 (78,4%) • Eficácia: 46,5%
-👥 Varejo com Pedido: 21 de 24 (88%) | 🚨 Varejo SEM PEDIDO: *3 (13%)*
-✂️ Cortes: R$ 109,08 (2 ped) • 🔒 Bloqueados: R$ 63.340,33 (64 ped)
-🚛 Devoluções Entradas Hoje: R$ 7.526,34
+🥇 *1. FILIAL TCV — LEONARDO*
+💰 Total Digitado: R$ 418.086,49 • 📦 Pedidos: 166
+📍 Visitas Varejo: 210 de 283 (74,2%) • Eficácia: 58,7%
+👥 Varejo com Pedido: 27 de 29 (93%) | 🚨 Varejo SEM PEDIDO: *2 (7%)*
+✂️ Cortes: R$ 13,15 (2 ped) • 🔒 Bloqueados: R$ 69.259,03 (34 ped)
+🚛 Devoluções Entradas Hoje: R$ 11.868,53
 
-🥈 *2. FILIAL TCV — LEONARDO*
-💰 Total Digitado: R$ 242.317,88 • 📦 Pedidos: 167
-📍 Visitas Varejo: 248 de 293 (84,6%) • Eficácia: 57,0%
-👥 Varejo com Pedido: 25 de 31 (81%) | 🚨 Varejo SEM PEDIDO: *6 (19%)*
-✂️ Cortes: R$ 2.794,06 (5 ped) • 🔒 Bloqueados: R$ 45.722,34 (48 ped)
+🥈 *2. FILIAL TSJ — SALDANHA*
+💰 Total Digitado: R$ 344.837,28 • 📦 Pedidos: 173
+📍 Visitas Varejo: 286 de 339 (84,4%) • Eficácia: 51,0%
+👥 Varejo com Pedido: 21 de 23 (91%) | 🚨 Varejo SEM PEDIDO: *2 (9%)*
+✂️ Cortes: R$ 516,81 (3 ped) • 🔒 Bloqueados: R$ 204.881,08 (39 ped)
+🚛 Devoluções Entradas Hoje: R$ 19.573,87
+
+🥉 *3. FILIAL TPA — RADKE / LEANDRO*
+💰 Total Digitado: R$ 302.700,91 • 📦 Pedidos: 124
+📍 Visitas Varejo: 124 de 258 (48,1%) • Eficácia: 48,1%
+👥 Varejo com Pedido: 14 de 16 (88%) | 🚨 Varejo SEM PEDIDO: *2 (13%)*
+✂️ Cortes: R$ 131,00 (2 ped) • 🔒 Bloqueados: R$ 2.099,31 (2 ped)
 🚛 Devoluções Entradas Hoje: R$ 0,00
 
-🥉 *3. FILIAL TCA — BECHER*
-💰 Total Digitado: R$ 210.413,59 • 📦 Pedidos: 116
-📍 Visitas Varejo: 127 de 305 (41,6%) • Eficácia: 38,0%
-👥 Varejo com Pedido: 23 de 29 (79%) | 🚨 Varejo SEM PEDIDO: *6 (21%)*
-✂️ Cortes: R$ 2.386,60 (2 ped) • 🔒 Bloqueados: R$ 18.130,48 (17 ped)
-🚛 Devoluções Entradas Hoje: R$ 0,00
-
-🏢 *4. FILIAL MCD — CLEVERSON*
-💰 Total Digitado: R$ 152.986,83 • 📦 Pedidos: 93
-📍 Visitas Varejo: 83 de 218 (38,1%) • Eficácia: 42,7%
-👥 Varejo com Pedido: 15 de 19 (79%) | 🚨 Varejo SEM PEDIDO: *4 (21%)*
-✂️ Cortes: R$ 0,00 (0 ped) • 🔒 Bloqueados: R$ 0,00 (0 ped)
-🚛 Devoluções Entradas Hoje: R$ 16.899,40
+🏢 *4. FILIAL ABC — MARCOS*
+💰 Total Digitado: R$ 289.592,20 • 📦 Pedidos: 192
+📍 Visitas Varejo: 283 de 380 (74,5%) • Eficácia: 50,5%
+👥 Varejo com Pedido: 22 de 23 (96%) | 🚨 Varejo SEM PEDIDO: *1 (4%)*
+✂️ Cortes: R$ 675,80 (3 ped) • 🔒 Bloqueados: R$ 116.866,33 (57 ped)
+🚛 Devoluções Entradas Hoje: R$ 13.055,42
 
 🏢 *5. FILIAL API — MARCELO*
-💰 Total Digitado: R$ 144.190,91 • 📦 Pedidos: 156
-📍 Visitas Varejo: 298 de 411 (72,5%) • Eficácia: 38,0%
-👥 Varejo com Pedido: 26 de 31 (84%) | 🚨 Varejo SEM PEDIDO: *5 (16%)*
-✂️ Cortes: R$ 908,12 (6 ped) • 🔒 Bloqueados: R$ 22.490,52 (17 ped)
-🚛 Devoluções Entradas Hoje: R$ 2.111,91
+💰 Total Digitado: R$ 188.969,64 • 📦 Pedidos: 162
+📍 Visitas Varejo: 262 de 426 (61,5%) • Eficácia: 38,0%
+👥 Varejo com Pedido: 23 de 30 (77%) | 🚨 Varejo SEM PEDIDO: *7 (23%)*
+✂️ Cortes: R$ 3.723,50 (4 ped) • 🔒 Bloqueados: R$ 30.263,00 (18 ped)
+🚛 Devoluções Entradas Hoje: R$ 1.192,11
 
-🏢 *6. FILIAL ABC — MARCOS*
-💰 Total Digitado: R$ 138.848,84 • 📦 Pedidos: 176
-📍 Visitas Varejo: 312 de 382 (81,7%) • Eficácia: 46,1%
-👥 Varejo com Pedido: 23 de 23 (100%) | 🚨 Varejo SEM PEDIDO: *0 (0%)*
-✂️ Cortes: R$ 124,67 (3 ped) • 🔒 Bloqueados: R$ 42.435,53 (52 ped)
+🏢 *6. FILIAL TCA — BECHER*
+💰 Total Digitado: R$ 147.211,18 • 📦 Pedidos: 120
+📍 Visitas Varejo: 126 de 294 (42,9%) • Eficácia: 40,8%
+👥 Varejo com Pedido: 23 de 30 (77%) | 🚨 Varejo SEM PEDIDO: *7 (23%)*
+✂️ Cortes: R$ 115,17 (2 ped) • 🔒 Bloqueados: R$ 32.281,71 (12 ped)
 🚛 Devoluções Entradas Hoje: R$ 0,00
 
 🏢 *7. FILIAL TPH — VAGNER*
-💰 Total Digitado: R$ 137.857,52 • 📦 Pedidos: 147
-📍 Visitas Varejo: 367 de 457 (80,3%) • Eficácia: 32,2%
-👥 Varejo com Pedido: 29 de 35 (83%) | 🚨 Varejo SEM PEDIDO: *6 (17%)*
-✂️ Cortes: R$ 242,69 (4 ped) • 🔒 Bloqueados: R$ 36.473,96 (23 ped)
-🚛 Devoluções Entradas Hoje: R$ 33.490,20
+💰 Total Digitado: R$ 146.258,07 • 📦 Pedidos: 147
+📍 Visitas Varejo: 310 de 469 (66,1%) • Eficácia: 31,3%
+👥 Varejo com Pedido: 28 de 34 (82%) | 🚨 Varejo SEM PEDIDO: *6 (18%)*
+✂️ Cortes: R$ 759,48 (6 ped) • 🔒 Bloqueados: R$ 26.194,15 (21 ped)
+🚛 Devoluções Entradas Hoje: R$ 7.786,40
 
-🏢 *8. FILIAL TPH — FÁBIO*
-💰 Total Digitado: R$ 125.804,02 • 📦 Pedidos: 85
-📍 Visitas Varejo: 240 de 455 (52,7%) • Eficácia: 18,7%
+🏢 *8. FILIAL TBL — FÁBIO*
+💰 Total Digitado: R$ 139.720,67 • 📦 Pedidos: 142
+📍 Visitas Varejo: 233 de 374 (62,3%) • Eficácia: 38,0%
+👥 Varejo com Pedido: 27 de 30 (90%) | 🚨 Varejo SEM PEDIDO: *3 (10%)*
+✂️ Cortes: R$ 5.269,49 (3 ped) • 🔒 Bloqueados: R$ 60.173,36 (35 ped)
+🚛 Devoluções Entradas Hoje: R$ 1.863,42
+
+🏢 *9. FILIAL TPH — FÁBIO*
+💰 Total Digitado: R$ 134.268,46 • 📦 Pedidos: 118
+📍 Visitas Varejo: 191 de 460 (41,5%) • Eficácia: 25,7%
 👥 Varejo com Pedido: 17 de 25 (68%) | 🚨 Varejo SEM PEDIDO: *8 (32%)*
-✂️ Cortes: R$ 0,00 (0 ped) • 🔒 Bloqueados: R$ 6.218,41 (15 ped)
-🚛 Devoluções Entradas Hoje: R$ 5.520,40
+✂️ Cortes: R$ 62,92 (1 ped) • 🔒 Bloqueados: R$ 7.638,33 (10 ped)
+🚛 Devoluções Entradas Hoje: R$ 1.438,52
 
-🏢 *9. FILIAL TPA — RADKE / LEANDRO*
-💰 Total Digitado: R$ 115.815,22 • 📦 Pedidos: 68
-📍 Visitas Varejo: 134 de 235 (57,0%) • Eficácia: 28,9%
-👥 Varejo com Pedido: 12 de 16 (75%) | 🚨 Varejo SEM PEDIDO: *4 (25%)*
-✂️ Cortes: R$ 9.952,54 (3 ped) • 🔒 Bloqueados: R$ 514,20 (2 ped)
+🏢 *10. FILIAL MCD — CLEVERSON*
+💰 Total Digitado: R$ 75.919,21 • 📦 Pedidos: 27
+📍 Visitas Varejo: 66 de 182 (36,3%) • Eficácia: 14,8%
+👥 Varejo com Pedido: 13 de 19 (68%) | 🚨 Varejo SEM PEDIDO: *6 (32%)*
+✂️ Cortes: R$ 0,00 (0 ped) • 🔒 Bloqueados: R$ 703,38 (1 ped)
 🚛 Devoluções Entradas Hoje: R$ 0,00
-
-🏢 *10. FILIAL TBL — FÁBIO*
-💰 Total Digitado: R$ 112.272,13 • 📦 Pedidos: 133
-📍 Visitas Varejo: 292 de 374 (78,1%) • Eficácia: 35,6%
-👥 Varejo com Pedido: 28 de 29 (97%) | 🚨 Varejo SEM PEDIDO: *1 (3%)*
-✂️ Cortes: R$ 526,97 (3 ped) • 🔒 Bloqueados: R$ 11.232,47 (25 ped)
-🚛 Devoluções Entradas Hoje: R$ 15.118,64
 
 🏢 *11. FILIAL TBE — DIEGO*
-💰 Total Digitado: R$ 76.706,57 • 📦 Pedidos: 110
-📍 Visitas Varejo: 195 de 329 (59,3%) • Eficácia: 33,4%
-👥 Varejo com Pedido: 15 de 20 (75%) | 🚨 Varejo SEM PEDIDO: *5 (25%)*
-✂️ Cortes: R$ 1.086,51 (4 ped) • 🔒 Bloqueados: R$ 2.714,91 (8 ped)
+💰 Total Digitado: R$ 69.026,35 • 📦 Pedidos: 105
+📍 Visitas Varejo: 169 de 287 (58,9%) • Eficácia: 36,6%
+👥 Varejo com Pedido: 14 de 19 (74%) | 🚨 Varejo SEM PEDIDO: *5 (26%)*
+✂️ Cortes: R$ 34,18 (1 ped) • 🔒 Bloqueados: R$ 9.582,35 (13 ped)
+🚛 Devoluções Entradas Hoje: R$ 2.763,72
+
+🏢 *12. FILIAL MCD — ADRIANO*
+💰 Total Digitado: R$ 55.239,08 • 📦 Pedidos: 42
+📍 Visitas Varejo: 104 de 171 (60,8%) • Eficácia: 24,6%
+👥 Varejo com Pedido: 17 de 21 (81%) | 🚨 Varejo SEM PEDIDO: *4 (19%)*
+✂️ Cortes: R$ 354,70 (1 ped) • 🔒 Bloqueados: R$ 1.800,66 (1 ped)
+🚛 Devoluções Entradas Hoje: R$ 4.594,75
+
+🏢 *13. FILIAL TCG — DANILO*
+💰 Total Digitado: R$ 49.700,97 • 📦 Pedidos: 46
+📍 Visitas Varejo: 74 de 178 (41,6%) • Eficácia: 25,8%
+👥 Varejo com Pedido: 16 de 20 (80%) | 🚨 Varejo SEM PEDIDO: *4 (20%)*
+✂️ Cortes: R$ 0,00 (0 ped) • 🔒 Bloqueados: R$ 1.202,18 (2 ped)
 🚛 Devoluções Entradas Hoje: R$ 0,00
-
-🏢 *12. FILIAL TCG — DANILO*
-💰 Total Digitado: R$ 57.260,29 • 📦 Pedidos: 44
-📍 Visitas Varejo: 95 de 176 (54,0%) • Eficácia: 25,0%
-👥 Varejo com Pedido: 15 de 20 (75%) | 🚨 Varejo SEM PEDIDO: *5 (25%)*
-✂️ Cortes: R$ 0,00 (0 ped) • 🔒 Bloqueados: R$ 566,85 (1 ped)
-🚛 Devoluções Entradas Hoje: R$ 9.524,21
-
-🏢 *13. FILIAL MCD — ADRIANO*
-💰 Total Digitado: R$ 51.766,45 • 📦 Pedidos: 42
-📍 Visitas Varejo: 115 de 169 (68,0%) • Eficácia: 24,9%
-👥 Varejo com Pedido: 14 de 21 (67%) | 🚨 Varejo SEM PEDIDO: *7 (33%)*
-✂️ Cortes: R$ 382,40 (4 ped) • 🔒 Bloqueados: R$ 697,46 (1 ped)
-🚛 Devoluções Entradas Hoje: R$ 7.395,62
