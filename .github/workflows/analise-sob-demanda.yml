@@ -46,6 +46,7 @@ jobs:
         run: |
           mkdir -p analises
           rclone copy gdrive:pedidos_historico_ceven.db analises/
+          rclone copy gdrive:mix_gap_hist.db analises/ || echo "sem historico do +MIX ainda"
       - name: Rodar a análise
         env:
           SCRIPT: ${{ github.event.inputs.script }}
