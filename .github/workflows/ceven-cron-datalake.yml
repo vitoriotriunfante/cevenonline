@@ -103,3 +103,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run brasileirao-dataset.yml --ref ${{ github.ref_name }}
+
+      - name: Disparar o dataset do +MIX (tela /mix, com o banco ja atualizado)
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run mix-dataset.yml --ref ${{ github.ref_name }}

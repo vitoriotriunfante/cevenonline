@@ -1,0 +1,85 @@
+# FICHA DO ARQUIVO
+# O QUE É: base do acompanhamento do +MIX (tela /mix). Roda analises/gerar_dados_mix.js com o banco de pedidos do Drive (dados até ontem)
+#          e o +MIX de cada cliente (mesmo cálculo do app do CEVEN). Publica public/dados_mix.json e guarda o histórico das recomendações
+#          (analises/mix_gap_hist.db) no Drive. Só leitura no CEVEN; não envia WhatsApp nem mexe em disparo.
+# RODA: disparado no fim do Data Lake (03:00) e manual (workflow_dispatch). Vitório, 20/10/2026.
+name: +MIX — dataset diário
+
+on:
+  workflow_dispatch:
+    inputs:
+      mes:
+        description: 'Mês AAAA-MM (vazio = mês atual)'
+        required: false
+        default: ''
+
+concurrency:
+  group: mix-dataset
+  cancel-in-progress: false
+
+env:
+  CEVEN_APP_SECRET: ${{ secrets.CEVEN_APP_SECRET }}
+
+jobs:
+  mix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Header X-App-Secret em toda chamada ao CEVEN (node sempre com --require)
+        run: |
+          REAL="$(command -v node)"
+          mkdir -p "$HOME/ceven-bin"
+          printf '#!/bin/bash\nexec "%s" --require "%s/pipeline/ceven_header.js" "$@"\n' "$REAL" "$GITHUB_WORKSPACE" > "$HOME/ceven-bin/node"
+          chmod +x "$HOME/ceven-bin/node"
+          echo "$HOME/ceven-bin" >> "$GITHUB_PATH"
+      - name: Instalar dependências
+        run: npm ci
+      - name: Instalar rclone
+        run: curl -fsS https://rclone.org/install.sh | sudo bash
+      - name: Configurar rclone (Google Drive)
+        env:
+          GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID || '1sqzFpWEKb1WKhT9MksQcQl8RuY94DQum' }}
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "$GDRIVE_SA_JSON" > /tmp/gdrive-sa.json
+          cat > ~/.config/rclone/rclone.conf << EOF
+          [gdrive]
+          type = drive
+          scope = drive
+          service_account_file = /tmp/gdrive-sa.json
+          root_folder_id = $GDRIVE_FOLDER_ID
+          EOF
+      - name: Baixar bancos do Drive
+        run: |
+          mkdir -p analises
+          rclone copy gdrive:pedidos_historico_ceven.db analises/
+          rclone copy gdrive:mix_gap_hist.db analises/ || echo "histórico do +MIX ainda não existe: começa hoje"
+      - name: Gerar o dataset do +MIX
+        env:
+          MES: ${{ github.event.inputs.mes }}
+        run: node analises/gerar_dados_mix.js $MES
+      - name: Guardar o histórico do +MIX no Drive
+        if: always()
+        run: if [ -f analises/mix_gap_hist.db ]; then rclone copy analises/mix_gap_hist.db gdrive:/; fi
+      - name: Gravar o dataset na main
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/dados_mix.json
+          if git diff --cached --quiet; then echo "Dataset sem mudança."; exit 0; fi
+          git commit -m "chore: dataset do +MIX (gerado online) [skip ci]"
+          for i in 1 2 3 4 5 6; do
+            if git push; then exit 0; fi
+            git fetch origin ${{ github.ref_name }}
+            git rebase -X theirs origin/${{ github.ref_name }} || git rebase --abort
+            sleep $((i * 5))
+          done
+          exit 1
