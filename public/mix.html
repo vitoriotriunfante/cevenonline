@@ -38,14 +38,17 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
   .chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800}
   .cA{color:var(--a)}.cB{color:var(--b)}
   .compGrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(420px,1fr);gap:20px;align-items:start}@media (min-width:2200px){.compGrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
-  #compBox .g2{grid-template-columns:1fr}@media (min-width:1900px){#compBox .g2{grid-template-columns:1fr 1fr}}
+  #compBox .g2{grid-template-columns:1fr}#compBox .box{overflow-x:visible}#compBox td.l{white-space:normal}
   #mapaCol{position:sticky;top:64px;height:calc(100vh - 80px);min-height:560px}
   #mapa{height:100%;border-radius:12px}
   @media (max-width:1100px){.compGrid{grid-template-columns:1fr}#mapaCol{position:static;height:560px}}
   .leaflet-popup-content{font-size:12.5px;line-height:1.4;max-height:340px;overflow:auto;color:#0d1b30}
-  .duo{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
-  .duo .k{padding:9px 11px}.duo .k span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.4px}.duo .k div{display:flex;justify-content:space-between;gap:6px;font-size:17px;font-weight:800;margin-top:3px}
-  .duo .k div i{font-style:normal}.duo .k div i.w{text-decoration:underline;text-decoration-color:var(--ok);text-decoration-thickness:3px}
+  .vs{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+  .vs .r{display:grid;grid-template-columns:90px 1fr 170px 1fr 90px;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--line)}.vs .r:last-child{border:0}
+  .vs .t{text-align:center;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+  .vs .va{text-align:right;font-weight:800;font-size:16px;color:var(--a)}.vs .vb{font-weight:800;font-size:16px;color:var(--b)}
+  .vs .ba{display:flex;justify-content:flex-end}.vs .ba i,.vs .bb i{display:block;height:10px;border-radius:6px;opacity:.35}.vs .ba i{background:var(--a)}.vs .bb i{background:var(--b)}.vs i.w{opacity:1}
+  .vs .hd{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:end;margin-bottom:8px;font-weight:800;font-size:15px}.vs .hd .b2{text-align:left;color:var(--b)}.vs .hd .a2{text-align:right;color:var(--a)}
   details.full summary{cursor:pointer;color:var(--acc);font-weight:700;margin:10px 0}
   #compBox table td,#compBox table th{padding:5px 6px}
   .btPdf{background:var(--acc);color:#04202e;border:0;border-radius:8px;padding:8px 14px;font-weight:800;cursor:pointer}
@@ -241,9 +244,9 @@ function comparar() {
   // RESUMO LADO A LADO (20/10/2026: "ver tudo junto o que e mais importante") + tabela completa recolhida
   const K = [['Canal', 'canal', (x) => esc(x || '—'), 0], ['Carteira', 'carteira', nf], ['% carteira positivada', 'cobertura_pct', pc], ['Uso do +MIX', 'uso_pct', pc], ['Mix por cliente', 'mix_medio', (x) => nf(x, 1)],
     ['R$ por cliente', 'faturado_por_cliente', brl], ['% meta faturamento', 'pct_meta_fat', pc], ['Dobradinha', 'dobradinha_pct', pc], ['Recompra', 'ja_eram_clientes_pct', pc]];
-  let h = `<div class="ctl" style="justify-content:space-between"><div><b class="cA">● ${esc(a.nome)}</b> &nbsp;×&nbsp; <b class="cB">● ${esc(b.nome)}</b><div class="sub">${esc(a.filial)} · ${esc(a.supervisor)}${a.supervisor !== b.supervisor ? ' / ' + esc(b.supervisor) : ''}</div></div><button class="btPdf" onclick="document.querySelectorAll('details').forEach((d)=>d.open=true);setTimeout(()=>{mapa&&mapa.invalidateSize();window.print()},300)">📄 PDF para o time</button></div>
-    <div class="duo">` + K.map(([t, k, f, cmp]) => { const x = a[k], y = b[k]; const ga = cmp !== 0 && typeof x === 'number' && typeof y === 'number' && x > y, gb = cmp !== 0 && typeof x === 'number' && typeof y === 'number' && y > x;
-      return `<div class="k"><span>${t}</span><div><i class="cA${ga ? ' w' : ''}">${f(x)}</i><i class="cB${gb ? ' w' : ''}">${f(y)}</i></div></div>`; }).join('') + `</div>
+  let h = `<div class="ctl" style="justify-content:space-between"><div class="sub">${esc(a.filial)} · ${esc(a.supervisor)}${a.supervisor !== b.supervisor ? ' / ' + esc(b.supervisor) : ''}</div><button class="btPdf" onclick="document.querySelectorAll('details').forEach((d)=>d.open=true);setTimeout(()=>{mapa&&mapa.invalidateSize();window.print()},300)">📄 PDF para o time</button></div>
+    <div class="vs"><div class="hd"><div class="a2">${esc(a.nome)}</div><div class="sub">×</div><div class="b2">${esc(b.nome)}</div></div>` + K.map(([t, k, f, cmp]) => { const x = a[k], y = b[k]; const num = cmp !== 0 && typeof x === 'number' && typeof y === 'number'; const mx = num ? Math.max(Math.abs(x), Math.abs(y)) || 1 : 1;
+      return `<div class="r"><div class="va">${f(x)}</div><div class="ba">${num ? `<i class="${x >= y ? 'w' : ''}" style="width:${Math.abs(x) / mx * 100}%"></i>` : ''}</div><div class="t">${t}</div><div class="bb">${num ? `<i class="${y >= x ? 'w' : ''}" style="width:${Math.abs(y) / mx * 100}%"></i>` : ''}</div><div class="vb">${f(y)}</div></div>`; }).join('') + `</div>
     <details class="full"><summary>Ver todos os indicadores</summary>`;
   h += `<div class="box"><table><thead><tr><th class="l">Indicador</th><th class="cA">${esc(a.nome)}</th><th class="cB">${esc(b.nome)}</th></tr></thead><tbody>` +
     M.map(([t, k, f]) => { const [ma, mb] = melhor(k, a[k], b[k]); return `<tr><td class="l">${t}</td><td class="ver${ma}">${f(a[k])}</td><td class="ver${mb}">${f(b[k])}</td></tr>`; }).join('') + '</tbody></table></div></details>';
