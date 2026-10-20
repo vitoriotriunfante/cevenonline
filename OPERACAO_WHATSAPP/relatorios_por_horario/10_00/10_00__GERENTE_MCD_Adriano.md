@@ -1,12 +1,35 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 MCD — ADRIANO • 19/10/2026
+📍 MCD — ADRIANO • 20/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/10/2026 a 19/10/2026)*
-💰 R$ 2.535,34 • 22 PDVs • ✂️ R$ 0,00 (0 un) • 🚛 R$ 328,56 _(filial toda)_
-👤 CLEOMAR DINIZ BARBOSA — R$ 2.414,29 (19 PDVs)
-👤 CARLOS ALAGUEZ DA SILVA — R$ 121,05 (3 PDVs)
+*ACUMULADO DO MÊS (01/10/2026 a 20/10/2026)*
+💰 R$ 5.237,53 • 48 PDVs • ✂️ R$ 416,93 (92 un) • 🚛 R$ 328,56 _(filial toda)_
+👤 CLEOMAR DINIZ BARBOSA — R$ 4.448,52 (36 PDVs)
+👤 CARLOS ALAGUEZ DA SILVA — R$ 723,51 (9 PDVs)
+👤 ALYFER PEREIRA MENDES — R$ 65,50 (3 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (18/10/2026)*
-💰 R$ 0,00 • 0 PDVs positivados
+*COMO FECHOU ONTEM (19/10/2026)*
+💰 R$ 1.049,23 • 8 PDVs positivados
+👤 CARLOS ALAGUEZ DA SILVA — R$ 468,78 (3 PDVs)
+👤 CLEOMAR DINIZ BARBOSA — R$ 580,45 (5 PDVs)
+
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (11)*
+_(fez pedido ontem, mas nenhum item era marca própria)_
+
+👤 *ALYFER PEREIRA MENDES*
+  • ALAN AFFONSO ALMIRAO — nunca vendeu MP
+  • JESUS DA SILVA SOUZA — nunca vendeu MP
+  • LAURA CRISTINA ANJOS DE MACEDO — nunca vendeu MP
+  • CINTIA RENATA DA CRUZ — 5d sem vender MP
+
+👤 *CARLOS ALAGUEZ DA SILVA*
+  • TIEGO RISALDI RAMOS — nunca vendeu MP
+  • IGOR ROBERTO JESUS DA SILVA — 7d sem vender MP
+  • EDMILSON RODRIGES FERREIRA — -27d sem vender MP
+
+👤 *CLEOMAR DINIZ BARBOSA*
+  • FRANCISCO ROGERIO SOUZA DINIZ — 6d sem vender MP
+  • KLEYTON CEZAR PINTO JULIATO — 5d sem vender MP
+  • ROBERTO DE SENNA PEREIRA — -2d sem vender MP
+  • CIL FARNEY BARBOSA DE ALCANTARA — -17d sem vender MP
