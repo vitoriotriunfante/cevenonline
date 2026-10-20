@@ -37,7 +37,12 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
   .ver{font-weight:800}.up{color:var(--ok)}.dn{color:var(--bad)}
   .chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800}
   .cA{color:var(--a)}.cB{color:var(--b)}
-  #mapa{height:440px;border-radius:12px}
+  .compGrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(420px,42%);gap:16px;align-items:start}
+  #mapaCol{position:sticky;top:64px;height:calc(100vh - 80px);min-height:560px}
+  #mapa{height:100%;border-radius:12px}
+  @media (max-width:1100px){.compGrid{grid-template-columns:1fr}#mapaCol{position:static;height:560px}}
+  .leaflet-popup-content{font-size:12.5px;line-height:1.4;max-height:340px;overflow:auto;color:#0d1b30}
+  .gl{columns:2 380px;column-gap:26px}.gl p{break-inside:avoid;margin:0 0 9px}
   .insight{background:var(--card2);border-left:4px solid var(--acc);border-radius:10px;padding:12px 14px;margin-top:12px;line-height:1.55;font-size:14px}
   canvas{max-height:360px}
 </style></head>
@@ -87,7 +92,7 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
     <div class="ctl" style="margin-top:14px"><select id="cA"></select><span>×</span><select id="cB"></select></div>
     <h2>Vendedores parecidos com <span id="paresNome"></span> (para comparar de forma justa)</h2>
     <div class="box"><table id="pares"></table><div class="leg">Distância = entre o centro das duas carteiras. Sobreposição = % dos clientes do vendedor escolhido que estão a até 2 km de algum cliente do outro. Mais parecido = mesma região e carteira de tamanho parecido.</div></div>
-    <div id="compBox"></div>
+    <div class="compGrid"><div id="compBox"></div><div id="mapaCol"><div id="mapa"></div><div class="leg" id="mapaLeg"></div></div></div>
   </section>
 
   <section id="s-vend">
@@ -102,8 +107,24 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
   </section>
 
   <section id="s-quinz">
+    <h2>Quem compra mais produtos diferentes compra mais vezes?</h2>
+    <div class="box"><table id="qFx"></table><div class="leg" id="qFxLeg"></div></div>
+    <div class="g2" style="margin-top:14px"><div class="box"><canvas id="cQ"></canvas></div><div id="qIns"></div></div>
+    <h2>As 11 filiais</h2>
+    <div class="box"><table id="qFil"></table></div>
+    <h2>Dobradinha: o que muda da 1ª para a 2ª quinzena</h2>
     <div class="box" id="quinz"></div>
-    <div class="insight">Nos clientes que compram nas duas quinzenas, a maior parte do pedido da 2ª quinzena é de produtos que não vieram na 1ª. O mix cresce porque o cliente compra coisas diferentes em cada visita.</div>
+    <h2>O que significa cada coisa</h2>
+    <div class="box gl">
+      <p><b>Mix do cliente:</b> quantos produtos diferentes o cliente comprou no mês.</p>
+      <p><b>Pedidos no mês:</b> quantas vezes o cliente fez pedido no mês.</p>
+      <p><b>Dobradinha:</b> % dos clientes que compraram na 1ª quinzena (dia 1 a 15) e de novo na 2ª (16 em diante).</p>
+      <p><b>Recompra</b> (antes chamada de "fidelização"): % dos clientes que compraram neste mês e também tinham comprado no mês anterior. Mostra se o cliente continua com a gente.</p>
+      <p><b>R$ por cliente:</b> faturado médio por cliente no mês.</p>
+      <p><b>Ligação (correlação):</b> de -1 a +1. Perto de +1 = quanto mais mix, mais pedidos. Perto de 0 = uma coisa não tem a ver com a outra. Acima de 0,3 já é ligação clara.</p>
+      <p><b>Uso do +MIX:</b> % dos clientes que compraram no mês um produto novo para eles (não compravam nos 60 dias antes) que estava na recomendação do +MIX. Provisório.</p>
+      <p><b>Atividade do cliente:</b> o ramo do cliente no cadastro (Padaria, Mercearia, Mercado, Lanchonete…). Serve para provar que dois vendedores atendem o mesmo perfil.</p>
+    </div>
   </section>
   <div class="leg" id="defs"></div>
 </div>
@@ -206,18 +227,20 @@ function comparar() {
   const a = D.vendedores.find((v) => v.filial + '|' + v.rca === $('cA').value), b = D.vendedores.find((v) => v.filial + '|' + v.rca === $('cB').value);
   pares(a);
   if (!a || !b || a === b) { $('compBox').innerHTML = '<div class="leg">Escolha dois vendedores diferentes da mesma filial (de preferência do mesmo supervisor).</div>'; return; }
-  const M = [['Supervisor', 'supervisor', esc], ['Carteira (clientes)', 'carteira', nf], ['Clientes positivados', 'clientes', nf], ['% da carteira positivada', 'cobertura_pct', pc], ['Uso do +MIX', 'uso_pct', pc],
+  const M = [['Canal', 'canal', (x) => esc(x || '—')], ['Supervisor', 'supervisor', esc], ['Carteira (clientes)', 'carteira', nf], ['Clientes positivados', 'clientes', nf], ['% da carteira positivada', 'cobertura_pct', pc], ['Uso do +MIX', 'uso_pct', pc],
     ['Produtos novos via +MIX', 'skus_mix_vendidos', nf], ['Mix por cliente', 'mix_medio', (x) => nf(x, 1)], ['Produtos por pedido', 'skus_por_pedido', (x) => nf(x, 1)], ['R$ por cliente', 'faturado_por_cliente', brl],
-    ['% meta de faturamento', 'pct_meta_fat', pc], ['% meta de positivação', 'pct_meta_pos', pc], ['Prêmio no incentivo', 'premio', (v) => v == null ? '—' : v ? 'G' + v : 'não'], ['Pontos na Liga', 'liga_pts', nf], ['Dobradinha', 'dobradinha_pct', pc], ['Fidelização', 'ja_eram_clientes_pct', pc]];
+    ['% meta de faturamento', 'pct_meta_fat', pc], ['% meta de positivação', 'pct_meta_pos', pc], ['Prêmio no incentivo', 'premio', (v) => v == null ? '—' : v ? 'G' + v : 'não'], ['Pontos na Liga', 'liga_pts', nf], ['Pedidos por cliente no mês', 'pedidos_por_cliente', (x) => nf(x, 1)], ['Dobradinha', 'dobradinha_pct', pc], ['Recompra (comprou também no mês anterior)', 'ja_eram_clientes_pct', pc]];
   const melhor = (k, x, y) => typeof x !== 'number' || typeof y !== 'number' || x === y ? ['', ''] : x > y ? [' up', ''] : ['', ' up'];
   let h = `<div class="box"><table><thead><tr><th class="l">Indicador</th><th class="cA">${esc(a.nome)}</th><th class="cB">${esc(b.nome)}</th></tr></thead><tbody>` +
     M.map(([t, k, f]) => { const [ma, mb] = melhor(k, a[k], b[k]); return `<tr><td class="l">${t}</td><td class="ver${ma}">${f(a[k])}</td><td class="ver${mb}">${f(b[k])}</td></tr>`; }).join('') + '</tbody></table></div>';
   // top produtos lado a lado + o que um vende e o outro nao
   const ta = a.top_skus || [], tb = b.top_skus || [], ia = new Map(ta.map((x) => [x.c, x])), ib = new Map(tb.map((x) => [x.c, x]));
-  const lst = (t, other, cl) => t.slice(0, 10).map((x, i) => { const o = other.get(x.c); return `<tr><td>${i + 1}</td><td class="l">${esc(x.n || '#' + x.c)}</td><td class="${cl}">${nf(x.cli)} (${pc(x.pct)})<div class="bar"><i style="width:${Math.min(100, x.pct)}%"></i></div></td><td>${o ? pc(o.pct) : '<span class="dn">não está no top</span>'}</td><td>${brl(x.val)}</td></tr>`; }).join('');
+  const RA = new Map(a.rec_top || []), RB = new Map(b.rec_top || []);
+  const lst = (t, other, cl, recOutro) => t.slice(0, 10).map((x, i) => { const o = other.get(x.c); const r = recOutro.get(x.c); return `<tr><td>${i + 1}</td><td class="l">${esc(x.n || '#' + x.c)}</td><td class="${cl}">${nf(x.cli)} (${pc(x.pct)})<div class="bar"><i style="width:${Math.min(100, x.pct)}%"></i></div></td><td>${o ? pc(o.pct) : '<span class="dn">não está no top</span>'}</td><td>${r ? `<b class="up">${nf(r)}</b>` : '—'}</td><td>${brl(x.val)}</td></tr>`; }).join('');
   h += `<h2>Top 10 produtos por penetração na carteira positivada</h2><div class="g2">
-    <div class="box"><table><thead><tr><th>#</th><th class="l cA">${esc(a.nome)}</th><th>Clientes</th><th>No outro</th><th>Faturado</th></tr></thead><tbody>${lst(ta, ib, 'cA')}</tbody></table></div>
-    <div class="box"><table><thead><tr><th>#</th><th class="l cB">${esc(b.nome)}</th><th>Clientes</th><th>No outro</th><th>Faturado</th></tr></thead><tbody>${lst(tb, ia, 'cB')}</tbody></table></div></div>`;
+    <div class="box"><table><thead><tr><th>#</th><th class="l cA">${esc(a.nome)}</th><th>Clientes</th><th>No outro</th><th>No +MIX do outro</th><th>Faturado</th></tr></thead><tbody>${lst(ta, ib, 'cA', RB)}</tbody></table></div>
+    <div class="box"><table><thead><tr><th>#</th><th class="l cB">${esc(b.nome)}</th><th>Clientes</th><th>No outro</th><th>No +MIX do outro</th><th>Faturado</th></tr></thead><tbody>${lst(tb, ia, 'cB', RA)}</tbody></table></div></div>
+    <div class="leg">Estes são os produtos que <b>cada vendedor mais vende</b> (não é a lista do +MIX). "No +MIX do outro" = em quantos clientes do outro vendedor esse produto aparece hoje como recomendação do +MIX (o cliente não compra e os vizinhos compram). Número alto = o outro tem o produto na mão e não está vendendo.</div>`;
   const gap = (t, other) => t.filter((x) => !other.has(x.c) || x.pct - other.get(x.c).pct >= 15).slice(0, 4).map((x) => `${esc(x.n || '#' + x.c)} (${pc(x.pct)} x ${other.has(x.c) ? pc(other.get(x.c).pct) : 'fora do top'})`).join('; ');
   const ga = gap(ta, ib), gb = gap(tb, ia);
   h += `<div class="insight"><b>Vício de portfólio:</b> mesma filial${a.supervisor === b.supervisor ? ' e mesmo supervisor' : ''}, e cada um empurra produtos diferentes.<br>` +
@@ -225,26 +248,66 @@ function comparar() {
     `O +MIX mostra a cada vendedor o que os vizinhos do cliente compram e ele ainda não vende: é a ferramenta para fechar esse buraco.</div>`;
   const temMapa = (a.pontos || []).length || (b.pontos || []).length;
   if (!ta.length && !tb.length) h = h.replace('<h2>Top 10 produtos', '<div class="leg">Os produtos de cada vendedor e o mapa chegam na próxima atualização dos dados (rodada em andamento).</div><h2 style="display:none">Top 10 produtos');
+  // PERFIL DOS CLIENTES (20/10/2026: "identifique perfil de clientes por CNAE... que provem que sao os mesmos perfis")
+  const AA = new Map((a.atividades || []).map((x) => [x.c, x])), AB = new Map((b.atividades || []).map((x) => [x.c, x]));
+  const ats = [...new Set([...AA.keys(), ...AB.keys()])].sort((x, y) => Math.max((AA.get(y) || {}).pct || 0, (AB.get(y) || {}).pct || 0) - Math.max((AA.get(x) || {}).pct || 0, (AB.get(x) || {}).pct || 0));
+  if (ats.length) {
+    const igual = ats.reduce((t, c) => t + Math.min((AA.get(c) || {}).pct || 0, (AB.get(c) || {}).pct || 0), 0);
+    h += `<h2>Perfil dos clientes (atividade no cadastro)</h2><div class="box"><table><thead><tr><th class="l">Atividade</th><th class="cA">${esc(a.nome.split(' ')[0])}</th><th class="cB">${esc(b.nome.split(' ')[0])}</th></tr></thead><tbody>` +
+      ats.map((c) => { const x = AA.get(c) || {}, y = AB.get(c) || {}; const nm = (x.nome || y.nome) ? `${c} · ${x.nome || y.nome}` : c; return `<tr><td class="l">${esc(nm)}</td><td class="cA">${pc(x.pct || 0)} <span class="sub">(${nf(x.n || 0)})</span></td><td class="cB">${pc(y.pct || 0)} <span class="sub">(${nf(y.n || 0)})</span></td></tr>`; }).join('') +
+      `</tbody></table><div class="leg">% da carteira de cada vendedor por atividade do cliente. <b>Perfil em comum: ${pc(igual)}</b> (100% = carteiras com exatamente a mesma mistura de ramos). Acima de 70% = mesmo perfil de cliente.</div></div>`;
+  }
   // PORTFOLIO POR INDUSTRIA (20/10/2026: "vai ter comparacao entre portfolio?"): % dos clientes positivados que compram cada industria, lado a lado
   const IA = new Map((a.industrias || []).map((x) => [x.n, x])), IB = new Map((b.industrias || []).map((x) => [x.n, x]));
   const inds = [...new Set([...IA.keys(), ...IB.keys()])].sort((x, y) => Math.max((IB.get(y) || {}).pct || 0, (IA.get(y) || {}).pct || 0) - Math.max((IB.get(x) || {}).pct || 0, (IA.get(x) || {}).pct || 0)).slice(0, 18);
   if (inds.length) h += `<h2>Portfólio por indústria (% dos clientes positivados que compram)</h2><div class="box"><table><thead><tr><th class="l">Indústria</th><th class="cA">${esc(a.nome.split(' ')[0])}</th><th class="cB">${esc(b.nome.split(' ')[0])}</th><th>Diferença</th></tr></thead><tbody>` + inds.map((n) => { const x = (IA.get(n) || {}).pct || 0, y = (IB.get(n) || {}).pct || 0; return `<tr><td class="l">${esc(n)}</td><td class="cA">${pc(x)}<div class="bar"><i style="width:${x}%;background:var(--a)"></i></div></td><td class="cB">${pc(y)}<div class="bar"><i style="width:${y}%;background:var(--b)"></i></div></td><td class="${Math.abs(x - y) >= 15 ? 'ver' : ''}">${x - y > 0 ? '+' : ''}${nf(x - y, 1)} p.p.</td></tr>`; }).join('') + '</tbody></table></div>';
-  if (!temMapa) { $('compBox').innerHTML = h; return; }
-  h += `<h2>Mapa das carteiras</h2><div class="box"><div id="mapa"></div><div class="leg"><span class="cA">●</span> ${esc(a.nome)} · <span class="cB">●</span> ${esc(b.nome)} · ponto cheio = positivado no mês · ponto vazado = sem compra no mês · contorno verde = comprou produto novo do +MIX</div></div>`;
   $('compBox').innerHTML = h;
+  $('mapaLeg').innerHTML = temMapa ? `<span class="cA">●</span> ${esc(a.nome)} · <span class="cB">●</span> ${esc(b.nome)}<br>ponto cheio = comprou no mês · vazado = sem compra no mês · contorno verde = comprou produto novo do +MIX · <b>clique no cliente</b> para ver o que o +MIX recomenda e ele ainda não compra` : 'O mapa chega na próxima atualização dos dados.';
   if (!window.L) return;
   if (mapa) { mapa.remove(); mapa = null; }
   mapa = L.map('mapa'); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(mapa);
   const pts = [];
-  [[a, cor('--a')], [b, cor('--b')]].forEach(([v, c]) => (v.pontos || []).forEach(([la, lo, st]) => { pts.push([la, lo]); L.circleMarker([la, lo], { radius: 5, color: st === 2 ? '#22c55e' : c, weight: st === 2 ? 3 : 1.5, fillColor: c, fillOpacity: st ? 0.85 : 0.08 }).addTo(mapa); }));
+  [[a, cor('--a')], [b, cor('--b')]].forEach(([v, c]) => (v.pontos || []).forEach(([la, lo, st, cnpj]) => { pts.push([la, lo]);
+    const m = L.circleMarker([la, lo], { radius: 5.5, color: st === 2 ? '#22c55e' : c, weight: st === 2 ? 3 : 1.5, fillColor: c, fillOpacity: st ? 0.85 : 0.08 }).addTo(mapa);
+    m.bindPopup('carregando…', { maxWidth: 380 }); m.on('click', () => popupCliente(m, v, cnpj, st)); }));
   if (pts.length) mapa.fitBounds(pts, { padding: [20, 20] }); else mapa.setView([-23.5, -49], 6);
+  setTimeout(() => mapa && mapa.invalidateSize(), 50);
+}
+// +MIX DO CLIENTE (20/10/2026: "se eu clicar no cliente no mapa nao consigo ver o que falta ele comprar que esta no +MIX?")
+const REC = new Map();
+async function recFilial(f) {
+  if (!REC.has(f)) REC.set(f, fetch('mix_rec/' + f + '.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null).catch(() => null));
+  return REC.get(f);
+}
+async function popupCliente(m, v, cnpj, st) {
+  const R = await recFilial(v.filial); const c = R && cnpj ? R.clientes[cnpj] : null;
+  const stx = st === 2 ? 'comprou produto novo do +MIX no mês' : st ? 'comprou no mês' : 'sem compra no mês';
+  if (!c) { m.setPopupContent(`<b>${esc(v.nome)}</b><br>CNPJ ${esc(cnpj || '—')} · ${stx}<br><i>Sem +MIX gravado para este cliente (só gravamos clientes que compraram no mês ou estavam na rota).</i>`); return; }
+  m.setPopupContent(`<b>${esc(c.n)}</b><br>CNPJ ${esc(cnpj)} · atividade ${esc(c.a)}<br>Vendedor: ${esc(v.nome)} · ${stx}<br><br><b>No +MIX e ainda não compra (${c.rec.length}):</b>` +
+    (c.rec.length ? '<table style="font-size:12px;margin-top:4px"><tr><th style="text-align:left">Produto</th><th>Vizinhos que compram</th></tr>' + c.rec.map(([cod, n, ind, pen]) => `<tr><td style="text-align:left;white-space:normal">${esc(cod)} · ${esc(n)}<br><span style="color:#5b6f8f">${esc(ind)}</span></td><td>${pen == null ? '—' : nf(pen, 0) + '%'}</td></tr>`).join('') + '</table>' : '<br>nada — já compra tudo que o +MIX recomenda.'));
 }
 
 function produtos() {
   $('ti').innerHTML = '<thead><tr><th>#</th><th class="l">Produto</th><th class="l">Indústria</th><th>Clientes novos via +MIX</th></tr></thead><tbody>' +
     (D.itens_mais_vendidos_via_mix || []).map((it, i) => `<tr><td>${i + 1}</td><td class="l">${esc(it.cod)} · ${esc(it.nome)}</td><td class="l">${esc(it.industria)}</td><td>${nf(it.clientes)}</td></tr>`).join('') + '</tbody>';
 }
+let chQ = null;
 function quinzenas() {
+  const FX = D.quinz_faixas || [], FI = D.quinz_filiais || [];
+  const cab = '<th>Clientes</th><th>Mix médio</th><th>Pedidos no mês</th><th>Dobradinha</th><th>Recompra</th><th>R$ por cliente</th>';
+  const lin = (x) => `<td>${nf(x.clientes)}</td><td>${nf(x.mix, 1)}</td><td class="ver">${nf(x.pedidos, 2)}</td><td>${pc(x.dobradinha_pct)}</td><td>${pc(x.recompra_pct)}</td><td>${brl(x.rs)}</td>`;
+  if (!FX.length) { $('qFx').innerHTML = '<tr><td class="l">Este estudo chega na próxima atualização dos dados.</td></tr>'; }
+  else {
+    $('qFx').innerHTML = `<thead><tr><th class="l">Mix do cliente no mês</th>${cab}</tr></thead><tbody>` + FX.map((x) => `<tr><td class="l">${esc(x.faixa)}</td>${lin(x)}</tr>`).join('') + '</tbody>';
+    $('qFxLeg').innerHTML = `Todos os clientes que compraram no mês (Varejo, 11 filiais), separados pela quantidade de produtos diferentes que compraram. Ligação mix × pedidos: <b>${nf(D.quinz_corr_mix_pedidos, 2)}</b>.`;
+    if (chQ) chQ.destroy();
+    chQ = new Chart($('cQ'), { type: 'bar', data: { labels: FX.map((x) => x.faixa), datasets: [{ label: 'pedidos no mês', data: FX.map((x) => x.pedidos), backgroundColor: '#38bdf8', yAxisID: 'y' }, { label: 'dobradinha (%)', data: FX.map((x) => x.dobradinha_pct), backgroundColor: '#22c55e', yAxisID: 'y2' }] },
+      options: { scales: { y: { position: 'left', title: { display: true, text: 'pedidos' } }, y2: { position: 'right', grid: { display: false }, title: { display: true, text: '%' } } } } });
+    const p0 = FX[0], pN = FX.filter((x) => x.clientes).slice(-1)[0];
+    $('qIns').innerHTML = `<div class="insight" style="margin-top:0"><b>Resposta:</b> ${pN.pedidos > p0.pedidos ? 'sim' : 'não'}. Cliente com ${esc(p0.faixa)} faz <b>${nf(p0.pedidos, 2)}</b> pedidos no mês; com ${esc(pN.faixa)} faz <b>${nf(pN.pedidos, 2)}</b>.<br>Dobradinha vai de ${pc(p0.dobradinha_pct)} para ${pc(pN.dobradinha_pct)}; R$ por cliente de ${brl(p0.rs)} para ${brl(pN.rs)}.<br>
+      <span class="sub">Atenção: isso mostra que andam juntos, não prova qual causa qual — cliente que compra mais vezes também tem mais chance de pegar mais produtos.</span></div>`;
+  }
+  $('qFil').innerHTML = FI.length ? `<thead><tr><th class="l">Filial</th>${cab}<th>Ligação mix × pedidos</th></tr></thead><tbody>` + FI.map((x) => `<tr><td class="l"><b>${esc(x.filial)}</b></td>${lin(x)}<td>${nf(x.corr_mix_pedidos, 2)}</td></tr>`).join('') + '</tbody>' : '';
   const Q = D.estudo_quinzenas || {};
   $('quinz').innerHTML = `<table><tbody><tr><td class="l">Clientes que compraram nas duas quinzenas</td><td>${nf(Q.clientes_dobradinha)}</td></tr>
     <tr><td class="l">Produtos diferentes na 1ª quinzena (média)</td><td>${nf(Q.skus_q1_medio, 1)}</td></tr><tr><td class="l">Produtos diferentes na 2ª quinzena (média)</td><td>${nf(Q.skus_q2_medio, 1)}</td></tr>

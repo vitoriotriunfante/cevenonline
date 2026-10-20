@@ -28,6 +28,9 @@ const INI = `${MES}-01`;
 const ANTES = (() => { const d = new Date(INI + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 60); return d.toISOString().slice(0, 10); })();
 const VAREJO = ['VJ', 'FARMA', 'PET VJ', 'ESP'];
 // industria de cada produto (catalogo da Relacao de itens por filial) para comparar PORTFOLIO POR INDUSTRIA entre vendedores
+// ATIVIDADE DO CLIENTE (cadastro do CEVEN: A02 Padarias, A14 Mercearias, A33 Mercados, A40 Lanchonetes...) para provar se dois vendedores atendem o mesmo perfil (20/10/2026)
+const ATV = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'atividade_por_cnpj.json'), 'utf8')); } catch (e) { return { nomes: {}, cnpj: {} }; } })();
+const atv = (cnpj) => ATV.cnpj[cnpj] || 'sem cadastro';
 const IND = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'catalogo_industrias.json'), 'utf8')).i || {}; } catch (e) { return {}; } })();
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -61,7 +64,7 @@ async function main() {
   const eq = await getJson(`${SITE}/api/tv-mostra`);
   if (!eq || !eq.filiais) throw new Error('sem a Gestão de Equipe');
   const vend = new Map();
-  for (const [k, lst] of Object.entries(eq.filiais)) for (const v of lst) if (VAREJO.includes(String(v.canal || '').toUpperCase())) vend.set(`${k.split('_')[0].toUpperCase()}|${v.rca}`, { filial: k.split('_')[0].toUpperCase(), rca: String(v.rca), nome: v.nome, supervisor: v.supervisor || '', mostra: v.mostra !== false });
+  for (const [k, lst] of Object.entries(eq.filiais)) for (const v of lst) if (VAREJO.includes(String(v.canal || '').toUpperCase())) vend.set(`${k.split('_')[0].toUpperCase()}|${v.rca}`, { filial: k.split('_')[0].toUpperCase(), rca: String(v.rca), nome: v.nome, supervisor: v.supervisor || '', mostra: v.mostra !== false, canal: String(v.canal || '').toUpperCase() });
   console.log(`vendedores de varejo: ${vend.size}`);
 
   // 1b) RESULTADO DE CADA VENDEDOR (Vitorio, 20/10/2026: "verificar se quem usa bate a meta... ganha mais dinheiro e tudo mais"):
@@ -175,6 +178,8 @@ async function main() {
     let v = porV.get(k);
     if (!v) porV.set(k, (v = { ...vend.get(k), clientes: 0, com_mix: 0, clientes_usou: 0, skus_mix_vendidos: 0, mix: [], novos: [], valor: 0, recompra_base: 0, recompra: 0, dobradinha: 0, skus_ped: [] }));
     v.clientes++; if (r) v.com_mix++;
+    v.peds_cli = v.peds_cli || []; v.peds_cli.push(o.peds.size);
+    if (r) { v.recCnt = v.recCnt || new Map(); for (const c of r.cods.keys()) if (!o.antes.has(c) && !mesSkus.has(c)) v.recCnt.set(c, (v.recCnt.get(c) || 0) + 1); }
     if (novosMix.length) v.clientes_usou++;
     v.skus_mix_vendidos += novosMix.length;
     v.mix.push(mesSkus.size); v.novos.push(novos.length); v.valor += o.valor;
@@ -213,7 +218,14 @@ async function main() {
     top_skus: [...(v.skus || new Map()).entries()].sort((a, b) => b[1].cli - a[1].cli).slice(0, 15).map(([c, x]) => ({ c, n: nomeProd.get(c) || '', cli: x.cli, pct: r1(x.cli / v.clientes * 100), val: Math.round(x.val) })),
     industrias: [...(v.inds || new Map()).entries()].sort((a, b) => b[1] - a[1]).slice(0, 25).map(([n, cli]) => ({ n, cli, pct: r1(cli / v.clientes * 100), val: Math.round((v.indVal || new Map()).get(n) || 0) })),
     // pontos do mapa: [lat, lon, 0 = carteira sem compra no mes | 1 = positivado | 2 = positivado com produto novo do +MIX]
-    pontos: [...(carteira.get(v.filial + '|' + v.rca) || new Map()).values()].map((c) => [Math.round(c.lat * 1e4) / 1e4, Math.round(c.lon * 1e4) / 1e4, (v.cnpjsPos && v.cnpjsPos.get(c.cnpj)) || 0]),
+    pontos: [...(carteira.get(v.filial + '|' + v.rca) || new Map()).values()].map((c) => [Math.round(c.lat * 1e4) / 1e4, Math.round(c.lon * 1e4) / 1e4, (v.cnpjsPos && v.cnpjsPos.get(c.cnpj)) || 0, c.cnpj]),
+    canal: v.canal || '',
+    // perfil da carteira por atividade do cliente (cadastro do CEVEN)
+    atividades: (() => { const m = new Map(); const cart = [...(carteira.get(v.filial + '|' + v.rca) || new Map()).values()]; for (const c of cart) { const a = atv(c.cnpj); m.set(a, (m.get(a) || 0) + 1); }
+      return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([c, n]) => ({ c, nome: ATV.nomes[c] || '', n, pct: r1(n / (cart.length || 1) * 100) })); })(),
+    pedidos_por_cliente: r1((v.peds_cli || []).length ? v.peds_cli.reduce((a, b) => a + b, 0) / v.peds_cli.length : null),
+    // o que o +MIX recomenda aos clientes DESTE vendedor (produto -> quantos clientes), para cruzar com o top do outro vendedor no comparativo
+    rec_top: [...(v.recCnt || new Map()).entries()].sort((a, b) => b[1] - a[1]).slice(0, 80).map(([c, n]) => [c, n]),
     ...(() => { const x = res.get(v.filial + '|' + v.rca) || {}; return {
       pct_meta_fat: x.meta ? r1(x.fat_pend / x.meta * 100) : null, pct_meta_pos: x.pos_meta ? r1(x.pos_real / x.pos_meta * 100) : null,
       incentivo_pct: x.inc_pct == null || isNaN(x.inc_pct) ? null : r1(x.inc_pct), premio: x.premio_g2 ? 2 : x.premio_g1 ? 1 : (x.inc_pct == null ? null : 0),
@@ -235,7 +247,27 @@ async function main() {
     // filial x produto: [filial, cod, nome, industria, clientes, faturado, vendedores, +MIX recomendou (clientes), +MIX virou compra (clientes)]
     fp: [...cuboFP.entries()].filter(([, x]) => x.cli.size >= 2 || x.rec >= 5).map(([k, x]) => { const [f, c] = k.split('|'); return [f, c, nomeProd.get(c) || '', IND[c] || '', x.cli.size, Math.round(x.val), x.vend.size, x.rec, x.conv]; })
   };
+  // +MIX DE CADA CLIENTE (clique no cliente no mapa: "o que falta ele comprar que esta no +MIX"): um arquivo por filial em public/mix_rec/
+  { const porF = new Map();
+    for (const o of alvo) {
+      const r = rec.get(o.filial + '|' + o.id); if (!r) continue;
+      const lista = [...r.cods.entries()].filter(([c]) => !o.antes.has(c) && !(o.q1.has(c) || o.q2.has(c))).sort((a, b) => (b[1].pen || 0) - (a[1].pen || 0)).slice(0, 15)
+        .map(([c, x]) => [c, x.nome || nomeProd.get(c) || '', x.ind || '', x.pen == null ? null : r1(x.pen)]);
+      const m = porF.get(o.filial) || porF.set(o.filial, {}).get(o.filial);
+      m[o.cnpj] = { n: o.nome || '', a: atv(o.cnpj), rca: o.rca, rec: lista };
+    }
+    fs.mkdirSync(path.join(__dirname, '..', 'public', 'mix_rec'), { recursive: true });
+    for (const [f, m] of porF) fs.writeFileSync(path.join(__dirname, '..', 'public', 'mix_rec', f + '.json'), JSON.stringify({ gerado_em: new Date().toISOString(), clientes: m }));
+    console.log(`+MIX por cliente gravado para ${porF.size} filiais`); }
   console.log(`cubo: ${cubo.vi.length} linhas vendedor x industria, ${cubo.fp.length} linhas filial x produto`);
+  // QUEM TEM MAIS MIX COMPRA MAIS VEZES? (Vitorio, 20/10/2026: "a tela das quinzenas nao serve pra nada do jeito que ta"): por faixa de mix do cliente e por filial
+  const clis = alvo.filter((o) => !o.rota_hoje && o.peds.size);
+  const linhaQ = (L) => ({ clientes: L.length, mix: r1(media(L.map((o) => new Set([...o.q1, ...o.q2]).size))), pedidos: r2(media(L.map((o) => o.peds.size))),
+    dobradinha_pct: r1(L.filter((o) => o.pedsQ.q1.size && o.pedsQ.q2.size).length / (L.length || 1) * 100), rs: Math.round(media(L.map((o) => o.valor)) || 0),
+    recompra_pct: r1(L.filter((o) => o.comprouMesAnt).length / (L.length || 1) * 100) });
+  const FX = [[1, 3], [4, 7], [8, 12], [13, 20], [21, 40], [41, 9999]];
+  const quinz_faixas = FX.map(([a, b]) => ({ faixa: b === 9999 ? `${a}+ produtos` : `${a} a ${b} produtos`, ...linhaQ(clis.filter((o) => { const n = new Set([...o.q1, ...o.q2]).size; return n >= a && n <= b; })) }));
+  const quinz_filiais = [...new Set(clis.map((o) => o.filial))].sort().map((f) => { const L = clis.filter((o) => o.filial === f); return { filial: f, ...linhaQ(L), corr_mix_pedidos: corr(L.map((o) => new Set([...o.q1, ...o.q2]).size), L.map((o) => o.peds.size)) }; });
   const saida = {
     gerado_em: new Date().toISOString(), mes: MES, dados_ate: ATE, historico_desde: ANTES,
     definicoes: {
@@ -257,7 +289,8 @@ async function main() {
       pct_q2_que_e_novo: r1(media(estudoQ.novos_q2) / media(estudoQ.skus_q2) * 100) },
     itens_mais_vendidos_via_mix: [...itensMix.values()].sort((a, b) => b.clientes - a.clientes).slice(0, 60),
     vendedores,
-    cubo
+    cubo,
+    quinz_faixas, quinz_filiais, quinz_corr_mix_pedidos: corr(clis.map((o) => new Set([...o.q1, ...o.q2]).size), clis.map((o) => o.peds.size))
   };
   fs.writeFileSync(path.join(__dirname, '..', 'public', 'dados_mix.json'), JSON.stringify(saida));
   console.log(JSON.stringify({ resumo: saida.resumo, faixas, estudo_quinzenas: saida.estudo_quinzenas }, null, 1));
