@@ -3,15 +3,15 @@
 📍 *FILIAL TPH — FÁBIO*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 53.891,33
-📦 *Pedidos Colocados:* 99 pedidos
-📍 *Visitas Realizadas:* 155 de 460 (33,7%)
-👥 *Vendedores Varejo com Pedido:* 16 de 25 (64%)
+💰 *Total Digitado Hoje:* R$ 68.449,18
+📦 *Pedidos Colocados:* 112 pedidos
+📍 *Visitas Realizadas:* 189 de 460 (41,1%)
+👥 *Vendedores Varejo com Pedido:* 17 de 25 (68%)
 ✂️ *Cortes nos Pedidos de Hoje:* R$ 0,00 (0 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 8.303,95 (11 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 1.370,58
+🔒 *Pedidos Bloqueados Hoje:* R$ 7.015,47 (10 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 1.438,52
 
-🚨 *Varejo Zerados (14:30):* 9 (36%)
+🚨 *Varejo Zerados (14:30):* 8 (32%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚨 *VENDEDORES DE VAREJO ZERADOS NO HORÁRIO (14:30):*
@@ -21,9 +21,6 @@ _(Visitas realizadas sem conversão de pedido)_
   ▫️ Cód. 113 • PAULO HENRIQUE NUNES CARDOSO: *0 visitas feitas* (de 15 na rota) • R$ 0
   ▫️ Cód. 1045 • CESAR SANTOS LIMA: *0 visitas feitas* (de 17 na rota) • R$ 0
   ▫️ Cód. 1154 • EDERSON SUONSKI: *0 visitas feitas* (de 0 na rota) • R$ 0
-
-👤 *Supervisor: EDI CARLOS MEIRA* (1 zerados)
-  ▫️ Cód. 120 • CHARLENE ANCINEIDE DA ROSA: *0 visitas feitas* (de 23 na rota) • R$ 0
 
 👤 *Supervisor: JONATHAN FERNANDES* (1 zerados)
   ▫️ Cód. 1156 • JONATHAN FERNANDES: *0 visitas feitas* (de 0 na rota) • R$ 0
