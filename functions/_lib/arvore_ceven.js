@@ -9,7 +9,28 @@
 // SEGREDO: CEVEN_GERENTE_SENHA (Cloudflare Pages secret). Nunca no código.
 // REGRA:   sem dado novo do CEVEN, mantém a última árvore gravada; sem árvore nenhuma, não altera nada (nunca inventa supervisor).
 // =========================================================================
+import { tokenAdmin } from './ceven_admin_token.js';
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
+// UNIVERSO = TUDO O QUE EXISTE HOJE NO CEVEN (Vitorio, 20/10/2026: "o que vale e a base atual de vendedores no CEVEN... se ele e adm, interno, rca ou qualquer
+// outra coisa... VC busca a arvore inteira todos os dias"). O CEVEN tem DUAS listas que nao batem: a do gerente (tabelas-cascata, 549 RCAs em 20/10) e a da
+// administracao (admin/filiais/hierarquia, 464). A TV somava so a do gerente (R$ 80,56 mi) e a planilha so a da adm (R$ 79,16 mi). Agora a arvore = UNIAO das duas.
+async function arvoreAdmin(env) {
+  try {
+    const tk = await tokenAdmin(env);
+    if (!tk) return null;
+    const r = await fetch(`${CEVEN}/api/admin/filiais/hierarquia?refreshMetas=false`, { headers: { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(20000) });
+    if (!r.ok) return null;
+    const lista = await r.json();
+    if (!Array.isArray(lista)) return null;
+    const out = new Map();   // SIGLA -> [{rca, sup_id, sup_nome, nome}]
+    for (const f of lista) {
+      const sig = String(f.sigla || '').toUpperCase().slice(0, 3);
+      const arr = out.get(sig) || out.set(sig, []).get(sig);
+      for (const s of f.supervisores || []) for (const v of s.vendedores || []) if (v && v.id != null) arr.push({ rca: String(v.id), sup_id: String(s.id == null ? '' : s.id), sup_nome: limpaSup(s.nome || 'SEM SUPERVISOR'), nome: String(v.nome || '') });
+    }
+    return out;
+  } catch { return null; }
+}
 export const GERENTES = [
   { sigla: 'TBE', filialKey: 'tbe1', loginNome: 'Diego' }, { sigla: 'TSJ', filialKey: 'tsj1', loginNome: 'Saldanha' },
   { sigla: 'MCD', filialKey: 'mcd1', loginNome: 'Cleverson' }, { sigla: 'TPH', filialKey: 'tph1', loginNome: 'Vagner' },
@@ -78,6 +99,15 @@ export async function atualizaArvore(env) {
   await tabela(env);
   const agora = new Date().toISOString();
   const resultados = await Promise.all(GERENTES.map(async (g) => ({ g, rows: await arvoreDaFilial(g, env.CEVEN_GERENTE_SENHA) })));
+  // junta a lista da administracao: quem so existe nela entra tambem (RCA nnn sem supervisor, contas internas...). Falha na adm = segue so com a do gerente.
+  const adm = await arvoreAdmin(env);
+  let soAdm = 0;
+  if (adm) for (const it of resultados) {
+    const extra = adm.get(it.g.sigla) || [];
+    if (!it.rows) { if (extra.length) { it.rows = extra.slice(); soAdm += extra.length; } continue; }
+    const tem = new Set(it.rows.map((r) => r.rca));
+    for (const r of extra) if (!tem.has(r.rca)) { it.rows.push(r); soAdm++; }
+  }
   const ok = [], falhas = [];
   let gravados = 0;
   // canal (area_atuacao) ja conhecido + quem ja esta na Gestao (so quem NAO esta precisa do canal para entrar nas telas)
@@ -105,7 +135,7 @@ export async function atualizaArvore(env) {
     ok.push(g.sigla); gravados += rows.length;
   }
   const canaisAtualizados = await atualizaCanais(env, 150);
-  return { status: falhas.length ? 'PARCIAL' : 'ATUALIZADA', filiais_ok: ok, filiais_falharam: falhas, vendedores: gravados, canais_atualizados: canaisAtualizados, atualizado_em: agora };
+  return { status: falhas.length ? 'PARCIAL' : 'ATUALIZADA', filiais_ok: ok, filiais_falharam: falhas, vendedores: gravados, so_na_lista_da_adm: soAdm, lista_adm: adm ? 'ok' : 'falhou', canais_atualizados: canaisAtualizados, atualizado_em: agora };
 }
 
 // Renova só se a árvore está velha (padrão 45 min). Devolve o status.
