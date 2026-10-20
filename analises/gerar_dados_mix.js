@@ -26,6 +26,8 @@ const ATE = (() => { const d = new Date(hojeSP + 'T12:00:00Z'); d.setUTCDate(d.g
 const INI = `${MES}-01`;
 const ANTES = (() => { const d = new Date(INI + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 90); return d.toISOString().slice(0, 10); })();
 const VAREJO = ['VJ', 'FARMA', 'PET VJ', 'ESP'];
+// industria de cada produto (catalogo da Relacao de itens por filial) para comparar PORTFOLIO POR INDUSTRIA entre vendedores
+const IND = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'catalogo_industrias.json'), 'utf8')).i || {}; } catch (e) { return {}; } })();
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function getJson(url, opts = {}, tent = 4) {
@@ -175,6 +177,10 @@ async function main() {
     v.skus = v.skus || new Map();
     for (const [c, val] of (o.vsku || new Map())) { const it = v.skus.get(c) || { cli: 0, val: 0 }; it.cli++; it.val += val; v.skus.set(c, it); }
     v.cnpjsPos = v.cnpjsPos || new Map(); v.cnpjsPos.set(o.cnpj, novosMix.length ? 2 : 1);
+    v.inds = v.inds || new Map();
+    for (const ind of new Set([...(o.vsku || new Map()).keys()].map((c) => IND[c]).filter(Boolean))) v.inds.set(ind, (v.inds.get(ind) || 0) + 1);
+    v.indVal = v.indVal || new Map();
+    for (const [c, val] of (o.vsku || new Map())) { const ind = IND[c]; if (ind) v.indVal.set(ind, (v.indVal.get(ind) || 0) + val); }
     for (const c of novosMix) { const it = itensMix.get(c) || { cod: c, nome: nomeProd.get(c) || '', clientes: 0, industria: r.cods.get(c).ind }; it.clientes++; itensMix.set(c, it); }
   }
   // fidelizacao: dos clientes positivados no mes ANTERIOR por esse vendedor, quantos voltaram a comprar neste mes
@@ -189,6 +195,7 @@ async function main() {
     carteira: (carteira.get(v.filial + '|' + v.rca) || new Map()).size || null,
     cobertura_pct: (carteira.get(v.filial + '|' + v.rca) || new Map()).size ? r1(v.clientes / carteira.get(v.filial + '|' + v.rca).size * 100) : null,
     top_skus: [...(v.skus || new Map()).entries()].sort((a, b) => b[1].cli - a[1].cli).slice(0, 15).map(([c, x]) => ({ c, n: nomeProd.get(c) || '', cli: x.cli, pct: r1(x.cli / v.clientes * 100), val: Math.round(x.val) })),
+    industrias: [...(v.inds || new Map()).entries()].sort((a, b) => b[1] - a[1]).slice(0, 25).map(([n, cli]) => ({ n, cli, pct: r1(cli / v.clientes * 100), val: Math.round((v.indVal || new Map()).get(n) || 0) })),
     // pontos do mapa: [lat, lon, 0 = carteira sem compra no mes | 1 = positivado | 2 = positivado com produto novo do +MIX]
     pontos: [...(carteira.get(v.filial + '|' + v.rca) || new Map()).values()].map((c) => [Math.round(c.lat * 1e4) / 1e4, Math.round(c.lon * 1e4) / 1e4, (v.cnpjsPos && v.cnpjsPos.get(c.cnpj)) || 0]),
     ...(() => { const x = res.get(v.filial + '|' + v.rca) || {}; return {
