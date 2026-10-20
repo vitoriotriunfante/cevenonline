@@ -541,6 +541,21 @@ export async function onRequestGet({ env, request }) {
       });
     }
 
+    // 2c. ROTEIRO DE QUEM TEM ROTA, MESMO SEM VENDER (20/10/2026, TSJ: 7 amarelos as 10h em vendedores com check-in desde as 08:26): no caminho do admin o roteiro
+    // so era renovado para quem teve PEDIDO novo; quem visitava sem vender ficava com o roteiro da meia-noite (tudo ABERTO). Agora ate 10 por rodada, os mais velhos primeiro.
+    if (viaAdmin && temRoteiroEm && Date.now() - t0 < 70000) {
+      const comRota = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return a && a.n_rota > 0 && !jaBuscouRota.has(String(r.codigo)); })
+        .sort((x, y) => String((ant.get(String(x.codigo)) || {}).roteiro_em || '').localeCompare(String((ant.get(String(y.codigo)) || {}).roteiro_em || ''))).slice(0, 10);
+      const rr = await poolLimitado(comRota.map((rca) => () => getJson(urlRca('roteiro-hoje', rca), 1)), concAtual, Date.now() + 15000);
+      comRota.forEach((rca, i) => {
+        if (!Array.isArray(rr[i])) return;
+        contagem.rota_renovada = (contagem.rota_renovada || 0) + 1;
+        jaBuscouRota.add(String(rca.codigo));
+        stmts.push(upsertParcial(env, dataRef, rca, { roteiro_json: JSON.stringify(rr[i]) }));
+      });
+      await gravaLote(env, stmts.splice(0));
+    }
+
     // 3. MORNA: rota de todos, em fatias (so quem ainda nao foi buscado por evento)
     const fatiaRota = viaAdmin ? [] : rcas.filter((rca, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA && !jaBuscouRota.has(String(rca.codigo)));
     const rotas = await poolLimitado(fatiaRota.map((rca) => () => getJson(urlRca('roteiro-hoje', rca))), concAtual, prazo);

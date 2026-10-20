@@ -128,7 +128,9 @@ const comQ = (v, p) => [p, provaQ(v)].filter(Boolean).join(' | ');
 function vend(id, canal, sup, d, carteira) {
   const cl = Array.isArray(d.clientes) ? d.clientes : null;
   const st = (s) => (cl ? cl.filter((c) => s.includes(c.status)).length : null);
-  const feitas = cl ? cl.filter((c) => !['AGENDADO', 'ABERTO'].includes(c.status)).length : null;
+  // VISITAS = o maior entre o roteiro e a produtividade do CEVEN (20/10/2026, TSJ: amarelo das 10h em quem tinha check-in as 08:39; a base so renovava o roteiro de quem teve pedido novo).
+  const feitasRot = cl ? cl.filter((c) => !['AGENDADO', 'ABERTO'].includes(c.status)).length : null;
+  const feitas = feitasRot == null ? null : Math.max(feitasRot, Number(d.visitas_na_rota) || 0);
   const campo = CAMPO.includes(canal);
   return {
     id, nome: d.nome, canal, sup: sup || '',     carteira: carteiraEfetiva(carteira, cl), campo, cl,
