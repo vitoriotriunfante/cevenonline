@@ -156,6 +156,8 @@ async function main() {
   await Promise.all(Array.from({ length: 6 }, worker));
   hist.close();
   console.log(`+MIX buscado: ok ${ok} | sem coordenada na carteira ${semCoord} | falha ${falha}`);
+  // TRAVA (20/10/2026): com o CEVEN instavel uma rodada voltou com 12 mil falhas e 141 vendedores. Mais de 10% de falha = nao grava nada (fica o dataset anterior)
+  if (falha + semCoord > alvo.length * 0.1) throw new Error(`+MIX incompleto: ${falha} falhas e ${semCoord} sem coordenada em ${alvo.length} clientes (limite 10%). Dataset anterior mantido.`);
   if (!ok) throw new Error('nenhuma recomendação do +MIX lida: não é sucesso');
 
   // 4) métricas por cliente
