@@ -1,5 +1,6 @@
 import { ocultosDaEquipe, lanceDeOculto } from '../_lib/equipe_ocultos.js';
 import { ehFeriado, ehFimDeSemana } from '../_lib/feriados.js';
+import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
 // =========================================================================
 // FICHA DO ARQUIVO
 // O QUE É: registro dos LANCES da TV (pênaltis, cartões, supervisores) no D1 (tabela tv_lances,
@@ -86,6 +87,34 @@ export async function onRequestPost({ request, env }) {
       const m = /^(?:[A-Z]{3}[|])?gol_hattrick[|]([^|]+)[|]/.exec(validos[i].chave); if (!m) continue;
       const ja = await env.DB.prepare("SELECT 1 AS x FROM tv_lances WHERE dia = ? AND rca = ? AND chave LIKE '%gol_hattrick|%' AND chave NOT LIKE ? LIMIT 1").bind(dia, String(validos[i].rca == null ? m[1] : validos[i].rca), '%' + validos[i].chave.replace(/^[A-Z]{3}[|]/, '')).first();
       if (ja) validos.splice(i, 1);
+    }
+    // CARTAO SO COM O CEVEN AO VIVO (Vitorio, 20/10/2026: "o cara tem que ter check-in, nao e isso?"; 45 de 72 amarelos sairam com o roteiro da meia-noite da base):
+    // antes de gravar um amarelo (ven10) ou vermelho de abandono (vis10/vis11) NOVO, le o roteiro do vendedor no CEVEN agora. Qualquer check-in = sem cartao.
+    // CEVEN nao respondeu = sem cartao (nunca pune sem prova); o coletor tenta de novo na proxima rodada.
+    {
+      const CARTAO = /^(?:[A-Z]{3}[|])?(ven10|vis10|vis11)[|]/;
+      const cand = validos.filter((l) => CARTAO.test(l.chave));
+      if (cand.length) {
+        const { results: ja } = await env.DB.prepare("SELECT chave FROM tv_lances WHERE dia = ? AND filial = ? AND (chave LIKE '%ven10|%' OR chave LIKE '%vis10|%' OR chave LIKE '%vis11|%')").bind(dia, filial).all();
+        const gravados = new Set((ja || []).map((x) => x.chave));
+        const rcaDe = (l) => String(l.rca == null ? l.chave.split('|').pop() : l.rca);
+        const rcas = [...new Set(cand.filter((l) => !gravados.has(l.chave)).map(rcaDe))];
+        const temCheckin = new Map();
+        for (let i = 0; i < rcas.length; i += 5) {
+          await Promise.all(rcas.slice(i, i + 5).map(async (r) => {
+            try {
+              const x = await fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/roteiro-hoje?filial=${filial.toLowerCase()}1&id=${r}`, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(12000) });
+              const rot = x.ok ? await x.json() : null;
+              if (Array.isArray(rot)) temCheckin.set(r, rot.some((c) => c && (c.checkin_horario || !['ABERTO', 'AGENDADO'].includes(c.status))));
+            } catch (e) { /* sem resposta = sem cartao */ }
+          }));
+        }
+        for (let i = validos.length - 1; i >= 0; i--) {
+          const l = validos[i];
+          if (!CARTAO.test(l.chave) || gravados.has(l.chave)) continue;
+          if (temCheckin.get(rcaDe(l)) !== false) validos.splice(i, 1);   // tem check-in no CEVEN agora, ou o CEVEN nao confirmou: nao grava
+        }
+      }
     }
     const antes = validos.length;
     for (let i = validos.length - 1; i >= 0; i--) if (PRECISA_PROVA.test(validos[i].chave) && String(validos[i].obs || '').length <= 3) validos.splice(i, 1);

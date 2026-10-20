@@ -128,9 +128,9 @@ const comQ = (v, p) => [p, provaQ(v)].filter(Boolean).join(' | ');
 function vend(id, canal, sup, d, carteira) {
   const cl = Array.isArray(d.clientes) ? d.clientes : null;
   const st = (s) => (cl ? cl.filter((c) => s.includes(c.status)).length : null);
-  // VISITAS = o maior entre o roteiro e a produtividade do CEVEN (20/10/2026, TSJ: amarelo das 10h em quem tinha check-in as 08:39; a base so renovava o roteiro de quem teve pedido novo).
+  // 20/10/2026: visitas = check-in do roteiro (o campo visitas_na_rota da produtividade NAO entra). O cartao e conferido no roteiro AO VIVO do CEVEN em /api/tv-lances antes de gravar.
   const feitasRot = cl ? cl.filter((c) => !['AGENDADO', 'ABERTO'].includes(c.status)).length : null;
-  const feitas = feitasRot == null ? null : Math.max(feitasRot, Number(d.visitas_na_rota) || 0);
+  const feitas = feitasRot;   // visitas = check-ins do roteiro; o cartao ainda e conferido no CEVEN ao vivo antes de gravar (/api/tv-lances)
   const campo = CAMPO.includes(canal);
   return {
     id, nome: d.nome, canal, sup: sup || '',     carteira: carteiraEfetiva(carteira, cl), campo, cl,
