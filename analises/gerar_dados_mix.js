@@ -180,6 +180,8 @@ async function main() {
     v.clientes++; if (r) v.com_mix++;
     v.peds_cli = v.peds_cli || []; v.peds_cli.push(o.peds.size);
     v.compCnt = v.compCnt || new Map(); for (const c of mesSkus) v.compCnt.set(c, (v.compCnt.get(c) || 0) + 1);
+    { const at = atv(o.cnpj); v.porAtv = v.porAtv || {}; const x = v.porAtv[at] || (v.porAtv[at] = { clientes: 0, comp: {}, rec: {} }); x.clientes++; for (const c of mesSkus) x.comp[c] = (x.comp[c] || 0) + 1;
+      if (r) for (const c of r.cods.keys()) if (!o.antes.has(c) && !mesSkus.has(c)) x.rec[c] = (x.rec[c] || 0) + 1; }
     if (r) { let n = 0; for (const c of r.cods.keys()) if (!o.antes.has(c)) n++; v.rec_total = (v.rec_total || 0) + n; }
     if (r) { v.recCnt = v.recCnt || new Map(); for (const c of r.cods.keys()) if (!o.antes.has(c) && !mesSkus.has(c)) v.recCnt.set(c, (v.recCnt.get(c) || 0) + 1); }
     if (novosMix.length) v.clientes_usou++;
@@ -269,7 +271,7 @@ async function main() {
       const comp = {}, rc = {};
       for (const [c, n] of v.compCnt || []) { comp[c] = n; m.nomes[c] = nomeProd.get(c) || ''; }
       for (const [c, n] of v.recCnt || []) { rc[c] = n; m.nomes[c] = m.nomes[c] || nomeProd.get(c) || ''; }
-      m.vend[v.rca] = { clientes: v.clientes, comp, rec: rc };
+      m.vend[v.rca] = { clientes: v.clientes, comp, rec: rc, atv: v.porAtv || {} };
     }
     fs.mkdirSync(path.join(__dirname, '..', 'public', 'mix_vend'), { recursive: true });
     for (const [f, m] of porF) fs.writeFileSync(path.join(__dirname, '..', 'public', 'mix_vend', f + '.json'), JSON.stringify({ gerado_em: new Date().toISOString(), ...m })); }

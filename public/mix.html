@@ -249,6 +249,9 @@ function comparar() {
   const temMapa = (a.pontos || []).length || (b.pontos || []).length;
   if (!ta.length && !tb.length) h = h.replace('<h2>Top 10 produtos', '<div class="leg">Os produtos de cada vendedor e o mapa chegam na próxima atualização dos dados (rodada em andamento).</div><h2 style="display:none">Top 10 produtos');
   if ((a.canal || '') !== (b.canal || '')) h = `<div class="insight" style="border-color:var(--bad)"><b>Canais diferentes:</b> ${esc(a.nome.split(' ')[0])} é ${esc(a.canal || '?')} e ${esc(b.nome.split(' ')[0])} é ${esc(b.canal || '?')}. Atendem tipos de cliente diferentes (ex.: especialista vende só para pet shop), então a comparação fica distorcida. Escolha dois do mesmo canal.</div>` + h;
+  { const AA = new Map((a.atividades || []).map((x) => [x.c, x])), AB = new Map((b.atividades || []).map((x) => [x.c, x]));
+    const ks = [...new Set([...AA.keys(), ...AB.keys()])].filter((k) => AA.has(k) && AB.has(k));
+    h += `<h2>Comparar só clientes do mesmo ramo</h2><div class="ctl"><select id="cAtv"><option value="">Todos os clientes</option>${ks.map((k) => { const x = AA.get(k), y = AB.get(k); return `<option value="${esc(k)}">${esc(k)}${(x.nome || y.nome) ? ' · ' + esc(x.nome || y.nome) : ''} (${esc(a.nome.split(' ')[0])} ${x.n} · ${esc(b.nome.split(' ')[0])} ${y.n})</option>`; }).join('')}</select><span class="sub">Só aparecem ramos que os dois atendem. Escolha um para refazer o top 10 e o +MIX apenas com esses clientes.</span></div><div id="atvTop"></div>`; }
   h += '<div id="gapBox"></div><div id="testeBox"></div>';
   // PERFIL DOS CLIENTES (20/10/2026: "identifique perfil de clientes por CNAE... que provem que sao os mesmos perfis")
   const AA = new Map((a.atividades || []).map((x) => [x.c, x])), AB = new Map((b.atividades || []).map((x) => [x.c, x]));
@@ -265,6 +268,7 @@ function comparar() {
   if (inds.length) h += `<h2>Portfólio por indústria (% dos clientes positivados que compram)</h2><div class="box"><table><thead><tr><th class="l">Indústria</th><th class="cA">${esc(a.nome.split(' ')[0])}</th><th class="cB">${esc(b.nome.split(' ')[0])}</th><th>Diferença</th></tr></thead><tbody>` + inds.map((n) => { const x = (IA.get(n) || {}).pct || 0, y = (IB.get(n) || {}).pct || 0; return `<tr><td class="l">${esc(n)}</td><td class="cA">${pc(x)}<div class="bar"><i style="width:${x}%;background:var(--a)"></i></div></td><td class="cB">${pc(y)}<div class="bar"><i style="width:${y}%;background:var(--b)"></i></div></td><td class="${Math.abs(x - y) >= 15 ? 'ver' : ''}">${x - y > 0 ? '+' : ''}${nf(x - y, 1)} p.p.</td></tr>`; }).join('') + '</tbody></table></div>';
   $('compBox').innerHTML = h;
   blocoGap(a, b); blocoTeste(a, b);
+  if ($('cAtv')) $('cAtv').onchange = () => blocoGap(a, b);
   $('mapaLeg').innerHTML = temMapa ? `<span class="cA">●</span> ${esc(a.nome)} · <span class="cB">●</span> ${esc(b.nome)}<br>ponto cheio = comprou no mês · vazado = sem compra no mês · contorno verde = comprou produto novo do +MIX · <b>clique no cliente</b> para ver o que o +MIX recomenda e ele ainda não compra` : 'O mapa chega na próxima atualização dos dados.';
   if (!window.L) return;
   if (mapa) { mapa.remove(); mapa = null; }
@@ -446,9 +450,16 @@ async function vendFilial(f) {
 async function blocoGap(a, b) {
   const F = await vendFilial(a.filial), G = a.filial === b.filial ? F : await vendFilial(b.filial);
   const box = $('gapBox'); if (!box) return;
-  const va = F && F.vend[a.rca], vb = G && G.vend[b.rca];
+  let va = F && F.vend[a.rca], vb = G && G.vend[b.rca];
+  const at = $('cAtv') ? $('cAtv').value : '';
+  if (at && va && vb) { va = va.atv && va.atv[at]; vb = vb.atv && vb.atv[at];
+    if (!va || !vb) { box.innerHTML = '<div class="leg">O detalhe por ramo chega na próxima atualização dos dados.</div>'; $('atvTop').innerHTML = ''; return; } }
   if (!va || !vb) { box.innerHTML = '<h2>O que um vende e o outro não × o +MIX mostrou?</h2><div class="leg">Chega na próxima atualização dos dados.</div>'; return; }
   const nomes = { ...(G.nomes || {}), ...(F.nomes || {}) };
+  // top 10 do ramo escolhido (mesmo perfil de cliente)
+  if ($('atvTop')) $('atvTop').innerHTML = !at ? '' : (() => { const top = (X) => Object.entries(X.comp).sort((p, q) => q[1] - p[1]).slice(0, 10);
+    const t = (X, Y, n, cl, R) => `<div class="box"><table><thead><tr><th>#</th><th class="l ${cl}">${esc(n)} · ${nf(X.clientes)} clientes</th><th>Clientes</th><th>No outro</th><th>No +MIX do outro</th></tr></thead><tbody>` + top(X).map(([c, k], i) => `<tr><td>${i + 1}</td><td class="l">${esc(nomes[c] || '#' + c)}</td><td class="${cl}">${nf(k)} (${pc(k / X.clientes * 100)})</td><td>${pc((Y.comp[c] || 0) / Y.clientes * 100)}</td><td>${Y.rec[c] ? `<b class="up">${nf(Y.rec[c])}</b>` : '—'}</td></tr>`).join('') + '</tbody></table></div>';
+    return `<div class="g2">${t(va, vb, a.nome, 'cA')}${t(vb, va, b.nome, 'cB')}</div>`; })();
   const tab = (X, Y, nx, ny, cx, cy) => {
     const L = Object.keys(X.comp).map((c) => { const px = X.comp[c] / X.clientes * 100, py = (Y.comp[c] || 0) / Y.clientes * 100; const sem = Y.clientes - (Y.comp[c] || 0); const rc = Y.rec[c] || 0; return { c, px, py, sem, rc, prc: sem ? rc / sem * 100 : 0 }; })
       .filter((x) => x.px - x.py >= 15 && x.px >= 20).sort((p, q) => (q.px - q.py) - (p.px - p.py)).slice(0, 12);
