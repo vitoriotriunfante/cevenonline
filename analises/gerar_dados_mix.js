@@ -116,9 +116,14 @@ async function main() {
     const alvoT = t0 + (i * 60000) / 80; if (Date.now() < alvoT) await espera(alvoT - Date.now());
     const rm = await getJson(`${CEVEN}/api/rca/roteiro-mes?filial=${f.toLowerCase()}1&id=${r}`);
     const m = new Map();
-    for (const c of Array.isArray(rm) ? rm : []) { const cn = so(c.cnpj); if (cn.length === 14 && Number(c.latitude) && Number(c.longitude)) m.set(cn, { cnpj: cn, nome: c.nome_cliente, lat: Number(c.latitude), lon: Number(c.longitude) }); }
+    for (const c of Array.isArray(rm) ? rm : []) { const cn = so(c.cnpj); if (cn.length === 14 && Number(c.latitude) && Number(c.longitude)) m.set(cn, { cnpj: cn, nome: c.nome_cliente, lat: Number(c.latitude), lon: Number(c.longitude), id: String(c.id_cliente || ''), hoje: String(c.data_visita || '').slice(0, 10) === hojeSP || (m.get(cn) || {}).hoje }); }
     carteira.set(rcas[i], m);
   }
+  // MEDICAO CORRETA (Vitorio, 20/10/2026: "o +MIX nao deveria constar os produtos que o cliente ja compra... se o cara comprar o D, amanha so aparece o E"):
+  // a recomendacao tem que ser a do DIA DA VISITA, gravada ANTES dela. Entram como alvo tambem os clientes da ROTA DE HOJE (mesmo sem compra no mes).
+  { const ja = new Set(alvo.map((o) => o.filial + '|' + o.cnpj));
+    for (const [k, m] of carteira) { const [f, r] = k.split('|'); for (const c of m.values()) if (c.hoje && !ja.has(f + '|' + c.cnpj)) { ja.add(f + '|' + c.cnpj); alvo.push({ filial: f, id: c.id, rca: r, cnpj: c.cnpj, nome: c.nome, rota_hoje: true, q1: new Set(), q2: new Set(), peds: new Set(), pedsQ: { q1: new Set(), q2: new Set() }, valor: 0, antes: new Set(), skusPed: new Map() }); } } }
+  console.log(`alvos do +MIX (positivados no mes + rota de hoje): ${alvo.length}`);
   console.log(`carteiras lidas: ${carteira.size} (${[...carteira.values()].filter((m) => m.size).length} com clientes)`);
   let ok = 0, semCoord = 0, falha = 0, idx = 0;
   const rec = new Map();
@@ -154,6 +159,7 @@ async function main() {
   const itensMix = new Map();   // codprod -> {nome, clientes, valor}
   const estudoQ = { clientes: 0, skus_q1: [], skus_q2: [], novos_q2: [], repetidos: [] };
   for (const o of alvo) {
+    if (o.rota_hoje) continue;   // cliente da rota de hoje sem compra no mes: so gravado para a medicao correta
     const r = rec.get(o.filial + '|' + o.id);
     const mesSkus = new Set([...o.q1, ...o.q2]);
     const novos = [...mesSkus].filter((c) => !o.antes.has(c));

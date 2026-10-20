@@ -52,6 +52,7 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
   </nav>
 
   <section id="s-resumo" class="on">
+    <div class="insight" style="border-left-color:var(--warn)"><b>⚠️ Uso do +MIX provisório.</b> A recomendação de outubro foi buscada depois das compras, e o +MIX só mostra o que o cliente ainda não compra. Por isso o "uso" e as comparações por uso (meta, prêmio, Liga) <b>ainda não são conclusivas</b>. Desde 20/10 a recomendação de cada cliente da rota é gravada <b>antes da visita</b>; em 2 a 3 semanas a medida passa a ser a real. Mix, portfólio, quinzenas e o comparativo entre vendedores já valem.</div>
     <div class="kpis" id="kpis"></div>
     <h2>Quem usa mais o +MIX vende melhor?</h2>
     <div class="box" id="faixas"></div>
@@ -157,7 +158,7 @@ function filtros() {
 }
 
 const COLS = [['filial', 'Filial', esc], ['nome', 'Vendedor', esc], ['supervisor', 'Supervisor', esc], ['clientes', 'Clientes', nf], ['cobertura_pct', '% carteira', pc],
-  ['uso_pct', 'Uso +MIX', (v) => `${pc(v)}<div class="bar"><i style="width:${Math.min(100, (v || 0) * 2)}%"></i></div>`], ['skus_mix_vendidos', 'Via +MIX', nf], ['mix_medio', 'Mix/cli', (v) => nf(v, 1)],
+  ['uso_pct', 'Uso +MIX*', (v) => `${pc(v)}<div class="bar"><i style="width:${Math.min(100, (v || 0) * 2)}%"></i></div>`], ['skus_mix_vendidos', 'Via +MIX', nf], ['mix_medio', 'Mix/cli', (v) => nf(v, 1)],
   ['skus_por_pedido', 'Prod/ped', (v) => nf(v, 1)], ['faturado_por_cliente', 'R$/cli', brl], ['pct_meta_fat', '% meta fat', pc], ['pct_meta_pos', '% meta pos', pc],
   ['premio', 'Prêmio', (v) => v == null ? '—' : v ? '✅ G' + v : '—'], ['liga_pts', 'Liga', nf], ['dobradinha_pct', 'Dobrad.', pc], ['ja_eram_clientes_pct', 'Fideliz.', pc]];
 function tabelaV() {
@@ -165,7 +166,7 @@ function tabelaV() {
   const [lo, hi] = fx ? fx.split('-').map(Number) : [-1, 1e9];
   const L = D.vendedores.filter((v) => (!f || v.filial === f) && (!s || v.supervisor === s) && (v.uso_pct || 0) >= lo && (v.uso_pct || 0) < hi + (hi === 100 ? 1 : 0) && (!b || v.nome.toUpperCase().includes(b)))
     .sort((x, y) => { const a = x[ORD], c = y[ORD]; return (typeof a === 'string' ? a.localeCompare(c) : (a ?? -1) - (c ?? -1)) * (DESC ? -1 : 1); });
-  $('fCont').textContent = L.length + ' vendedores';
+  $('fCont').textContent = L.length + ' vendedores · *uso do +MIX provisório';
   $('tv').innerHTML = '<thead><tr>' + COLS.map(([k, t], i) => `<th class="${i < 3 ? 'l' : ''}" data-k="${k}">${t}${ORD === k ? (DESC ? ' ▼' : ' ▲') : ''}</th>`).join('') + '</tr></thead><tbody>' +
     L.map((v) => '<tr>' + COLS.map(([k, , fm], i) => `<td class="${i < 3 ? 'l' : ''}">${fm(v[k])}</td>`).join('') + '</tr>').join('') + '</tbody>';
   document.querySelectorAll('#tv th').forEach((th) => th.onclick = () => { const k = th.dataset.k; DESC = ORD === k ? !DESC : true; ORD = k; tabelaV(); });
