@@ -179,6 +179,8 @@ async function main() {
     if (!v) porV.set(k, (v = { ...vend.get(k), clientes: 0, com_mix: 0, clientes_usou: 0, skus_mix_vendidos: 0, mix: [], novos: [], valor: 0, recompra_base: 0, recompra: 0, dobradinha: 0, skus_ped: [] }));
     v.clientes++; if (r) v.com_mix++;
     v.peds_cli = v.peds_cli || []; v.peds_cli.push(o.peds.size);
+    v.compCnt = v.compCnt || new Map(); for (const c of mesSkus) v.compCnt.set(c, (v.compCnt.get(c) || 0) + 1);
+    if (r) { let n = 0; for (const c of r.cods.keys()) if (!o.antes.has(c)) n++; v.rec_total = (v.rec_total || 0) + n; }
     if (r) { v.recCnt = v.recCnt || new Map(); for (const c of r.cods.keys()) if (!o.antes.has(c) && !mesSkus.has(c)) v.recCnt.set(c, (v.recCnt.get(c) || 0) + 1); }
     if (novosMix.length) v.clientes_usou++;
     v.skus_mix_vendidos += novosMix.length;
@@ -210,6 +212,7 @@ async function main() {
   const vendedores = [...porV.values()].filter((v) => v.com_mix >= 5).map((v) => ({
     filial: v.filial, rca: v.rca, nome: v.nome, supervisor: v.supervisor, clientes: v.clientes, clientes_com_mix: v.com_mix,
     uso_pct: r1(v.clientes_usou / v.com_mix * 100), clientes_usou: v.clientes_usou, skus_mix_vendidos: v.skus_mix_vendidos,
+    rec_total: v.rec_total || 0, conversao_pct: v.rec_total ? r1(v.skus_mix_vendidos / v.rec_total * 100) : null,
     mix_medio: r1(media(v.mix)), skus_novos_medio: r1(media(v.novos)), skus_por_pedido: r1(media(v.skus_ped)),
     faturado_por_cliente: Math.round(v.valor / v.clientes), dobradinha_pct: r1(v.dobradinha / v.clientes * 100),
     ja_eram_clientes_pct: r1(v.recompra_base / v.clientes * 100),
@@ -259,6 +262,17 @@ async function main() {
     fs.mkdirSync(path.join(__dirname, '..', 'public', 'mix_rec'), { recursive: true });
     for (const [f, m] of porF) fs.writeFileSync(path.join(__dirname, '..', 'public', 'mix_rec', f + '.json'), JSON.stringify({ gerado_em: new Date().toISOString(), clientes: m }));
     console.log(`+MIX por cliente gravado para ${porF.size} filiais`); }
+  // POR VENDEDOR, TODOS OS PRODUTOS: quantos clientes compraram no mes e em quantos o +MIX recomendou (o cliente nao comprava) -> comparativo "o que um vende e o outro nao" x "a ferramenta mostrou?"
+  { const porF = new Map();
+    for (const v of porV.values()) {
+      const m = porF.get(v.filial) || porF.set(v.filial, { vend: {}, nomes: {} }).get(v.filial);
+      const comp = {}, rc = {};
+      for (const [c, n] of v.compCnt || []) { comp[c] = n; m.nomes[c] = nomeProd.get(c) || ''; }
+      for (const [c, n] of v.recCnt || []) { rc[c] = n; m.nomes[c] = m.nomes[c] || nomeProd.get(c) || ''; }
+      m.vend[v.rca] = { clientes: v.clientes, comp, rec: rc };
+    }
+    fs.mkdirSync(path.join(__dirname, '..', 'public', 'mix_vend'), { recursive: true });
+    for (const [f, m] of porF) fs.writeFileSync(path.join(__dirname, '..', 'public', 'mix_vend', f + '.json'), JSON.stringify({ gerado_em: new Date().toISOString(), ...m })); }
   console.log(`cubo: ${cubo.vi.length} linhas vendedor x industria, ${cubo.fp.length} linhas filial x produto`);
   // QUEM TEM MAIS MIX COMPRA MAIS VEZES? (Vitorio, 20/10/2026: "a tela das quinzenas nao serve pra nada do jeito que ta"): por faixa de mix do cliente e por filial
   const clis = alvo.filter((o) => !o.rota_hoje && o.peds.size);

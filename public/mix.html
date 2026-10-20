@@ -181,11 +181,11 @@ function filtros() {
   const pVend = () => {
     const f = $('cFilial').value, s = $('cSup').value;
     const L = D.vendedores.filter((v) => v.filial === f && (!s || v.supervisor === s)).sort((a, b) => a.nome.localeCompare(b.nome));
-    const op = L.map((v) => `<option value="${v.filial}|${v.rca}">${esc(v.nome)} (RCA ${v.rca}) · uso ${pc(v.uso_pct)}</option>`).join('');
+    const op = L.map((v) => `<option value="${v.filial}|${v.rca}">${esc(v.nome)} (RCA ${v.rca}) · ${esc(v.canal || "?")} · uso ${pc(v.uso_pct)}</option>`).join('');
     $('cA').innerHTML = op; $('cB').innerHTML = op;
     // sugestao (20/10/2026: "apesar de serem da mesma filial, atendem clientes diferentes"): o PAR MAIS PARECIDO da selecao (mesma regiao, carteira parecida)
     let melhor = null;
-    for (const a of L) for (const b of L) { if (a === b) continue; const sc = semelhanca(a, b); if (sc && (!melhor || sc.score > melhor.sc.score)) melhor = { a, b, sc }; }
+    for (const a of L) for (const b of L) { if (a === b || (a.canal || '') !== (b.canal || '')) continue; const sc = semelhanca(a, b); if (sc && (!melhor || sc.score > melhor.sc.score)) melhor = { a, b, sc }; }
     if (melhor) { $('cA').value = melhor.a.filial + '|' + melhor.a.rca; $('cB').value = melhor.b.filial + '|' + melhor.b.rca; }
     mapaTodos(L); comparar();
   };
@@ -228,7 +228,7 @@ function comparar() {
   pares(a);
   if (!a || !b || a === b) { $('compBox').innerHTML = '<div class="leg">Escolha dois vendedores diferentes da mesma filial (de preferência do mesmo supervisor).</div>'; return; }
   const M = [['Canal', 'canal', (x) => esc(x || '—')], ['Supervisor', 'supervisor', esc], ['Carteira (clientes)', 'carteira', nf], ['Clientes positivados', 'clientes', nf], ['% da carteira positivada', 'cobertura_pct', pc], ['Uso do +MIX', 'uso_pct', pc],
-    ['Produtos novos via +MIX', 'skus_mix_vendidos', nf], ['Mix por cliente', 'mix_medio', (x) => nf(x, 1)], ['Produtos por pedido', 'skus_por_pedido', (x) => nf(x, 1)], ['R$ por cliente', 'faturado_por_cliente', brl],
+    ['Recomendações do +MIX no mês', 'rec_total', nf], ['Produtos novos via +MIX', 'skus_mix_vendidos', nf], ['Conversão do +MIX (vendeu / recomendado)', 'conversao_pct', pc], ['Mix por cliente', 'mix_medio', (x) => nf(x, 1)], ['Produtos por pedido', 'skus_por_pedido', (x) => nf(x, 1)], ['R$ por cliente', 'faturado_por_cliente', brl],
     ['% meta de faturamento', 'pct_meta_fat', pc], ['% meta de positivação', 'pct_meta_pos', pc], ['Prêmio no incentivo', 'premio', (v) => v == null ? '—' : v ? 'G' + v : 'não'], ['Pontos na Liga', 'liga_pts', nf], ['Pedidos por cliente no mês', 'pedidos_por_cliente', (x) => nf(x, 1)], ['Dobradinha', 'dobradinha_pct', pc], ['Recompra (comprou também no mês anterior)', 'ja_eram_clientes_pct', pc]];
   const melhor = (k, x, y) => typeof x !== 'number' || typeof y !== 'number' || x === y ? ['', ''] : x > y ? [' up', ''] : ['', ' up'];
   let h = `<div class="box"><table><thead><tr><th class="l">Indicador</th><th class="cA">${esc(a.nome)}</th><th class="cB">${esc(b.nome)}</th></tr></thead><tbody>` +
@@ -248,6 +248,8 @@ function comparar() {
     `O +MIX mostra a cada vendedor o que os vizinhos do cliente compram e ele ainda não vende: é a ferramenta para fechar esse buraco.</div>`;
   const temMapa = (a.pontos || []).length || (b.pontos || []).length;
   if (!ta.length && !tb.length) h = h.replace('<h2>Top 10 produtos', '<div class="leg">Os produtos de cada vendedor e o mapa chegam na próxima atualização dos dados (rodada em andamento).</div><h2 style="display:none">Top 10 produtos');
+  if ((a.canal || '') !== (b.canal || '')) h = `<div class="insight" style="border-color:var(--bad)"><b>Canais diferentes:</b> ${esc(a.nome.split(' ')[0])} é ${esc(a.canal || '?')} e ${esc(b.nome.split(' ')[0])} é ${esc(b.canal || '?')}. Atendem tipos de cliente diferentes (ex.: especialista vende só para pet shop), então a comparação fica distorcida. Escolha dois do mesmo canal.</div>` + h;
+  h += '<div id="gapBox"></div><div id="testeBox"></div>';
   // PERFIL DOS CLIENTES (20/10/2026: "identifique perfil de clientes por CNAE... que provem que sao os mesmos perfis")
   const AA = new Map((a.atividades || []).map((x) => [x.c, x])), AB = new Map((b.atividades || []).map((x) => [x.c, x]));
   const ats = [...new Set([...AA.keys(), ...AB.keys()])].sort((x, y) => Math.max((AA.get(y) || {}).pct || 0, (AB.get(y) || {}).pct || 0) - Math.max((AA.get(x) || {}).pct || 0, (AB.get(x) || {}).pct || 0));
@@ -262,6 +264,7 @@ function comparar() {
   const inds = [...new Set([...IA.keys(), ...IB.keys()])].sort((x, y) => Math.max((IB.get(y) || {}).pct || 0, (IA.get(y) || {}).pct || 0) - Math.max((IB.get(x) || {}).pct || 0, (IA.get(x) || {}).pct || 0)).slice(0, 18);
   if (inds.length) h += `<h2>Portfólio por indústria (% dos clientes positivados que compram)</h2><div class="box"><table><thead><tr><th class="l">Indústria</th><th class="cA">${esc(a.nome.split(' ')[0])}</th><th class="cB">${esc(b.nome.split(' ')[0])}</th><th>Diferença</th></tr></thead><tbody>` + inds.map((n) => { const x = (IA.get(n) || {}).pct || 0, y = (IB.get(n) || {}).pct || 0; return `<tr><td class="l">${esc(n)}</td><td class="cA">${pc(x)}<div class="bar"><i style="width:${x}%;background:var(--a)"></i></div></td><td class="cB">${pc(y)}<div class="bar"><i style="width:${y}%;background:var(--b)"></i></div></td><td class="${Math.abs(x - y) >= 15 ? 'ver' : ''}">${x - y > 0 ? '+' : ''}${nf(x - y, 1)} p.p.</td></tr>`; }).join('') + '</tbody></table></div>';
   $('compBox').innerHTML = h;
+  blocoGap(a, b); blocoTeste(a, b);
   $('mapaLeg').innerHTML = temMapa ? `<span class="cA">●</span> ${esc(a.nome)} · <span class="cB">●</span> ${esc(b.nome)}<br>ponto cheio = comprou no mês · vazado = sem compra no mês · contorno verde = comprou produto novo do +MIX · <b>clique no cliente</b> para ver o que o +MIX recomenda e ele ainda não compra` : 'O mapa chega na próxima atualização dos dados.';
   if (!window.L) return;
   if (mapa) { mapa.remove(); mapa = null; }
@@ -416,9 +419,9 @@ function semelhanca(a, b) {
 function pares(a) {
   if (!a) return;
   $('paresNome').textContent = a.nome;
-  const L = D.vendedores.filter((v) => v.filial === a.filial && v !== a).map((v) => ({ v, sc: semelhanca(a, v) })).filter((x) => x.sc).sort((x, y) => y.sc.score - x.sc.score).slice(0, 12);
-  $('pares').innerHTML = '<thead><tr><th class="l">Vendedor</th><th class="l">Supervisor</th><th>Distância</th><th>Sobreposição</th><th>Carteira</th><th>Uso +MIX*</th><th>Mix/cli</th><th></th></tr></thead><tbody>' +
-    L.map(({ v, sc }) => `<tr><td class="l">${esc(v.nome)}</td><td class="l">${esc(v.supervisor)}</td><td>${nf(sc.dist, 1)} km</td><td>${pc(sc.sobre)}</td><td>${nf((v.pontos || []).length)}</td><td>${pc(v.uso_pct)}</td><td>${nf(v.mix_medio, 1)}</td>
+  const L = D.vendedores.filter((v) => v.filial === a.filial && v !== a && (v.canal || '') === (a.canal || '')).map((v) => ({ v, sc: semelhanca(a, v) })).filter((x) => x.sc).sort((x, y) => y.sc.score - x.sc.score).slice(0, 12);
+  $('pares').innerHTML = '<thead><tr><th class="l">Vendedor</th><th class="l">Supervisor</th><th>Canal</th><th>Distância</th><th>Sobreposição</th><th>Carteira</th><th>Uso +MIX*</th><th>Mix/cli</th><th></th></tr></thead><tbody>' +
+    L.map(({ v, sc }) => `<tr><td class="l">${esc(v.nome)}</td><td class="l">${esc(v.supervisor)}</td><td>${esc(v.canal || "?")}</td><td>${nf(sc.dist, 1)} km</td><td>${pc(sc.sobre)}</td><td>${nf((v.pontos || []).length)}</td><td>${pc(v.uso_pct)}</td><td>${nf(v.mix_medio, 1)}</td>
       <td><button class="tab-btn" style="background:var(--acc);color:#04202e;border:0;border-radius:8px;padding:4px 10px;font-weight:700;cursor:pointer" onclick="$('cB').value='${v.filial}|${v.rca}';comparar();window.scrollTo({top:$('compBox').offsetTop-80,behavior:'smooth'})">Comparar</button></td></tr>`).join('') + '</tbody>';
 }
 let mapaT = null;
@@ -432,6 +435,65 @@ function mapaTodos(L) {
     (v.pontos || []).forEach(([la, lo]) => { pts.push([la, lo]); window.L.circleMarker([la, lo], { radius: 3.5, color: c, weight: 1, fillColor: c, fillOpacity: 0.8 }).bindTooltip(v.nome).addTo(mapaT); }); });
   if (pts.length) mapaT.fitBounds(pts, { padding: [16, 16] }); else mapaT.setView([-23.5, -49], 6);
   $('mapaTodosLeg').innerHTML = leg.join(' · ') + '<br>Cada cor é um vendedor (ponto = cliente da carteira). Passe o mouse no ponto para ver o nome.';
+}
+
+// ===================== +MIX NO COMPARATIVO (20/10/2026: "como encaixar nessa analise o +MIX") =====================
+const VEND = new Map();
+async function vendFilial(f) {
+  if (!VEND.has(f)) VEND.set(f, fetch('mix_vend/' + f + '.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null).catch(() => null));
+  return VEND.get(f);
+}
+async function blocoGap(a, b) {
+  const F = await vendFilial(a.filial), G = a.filial === b.filial ? F : await vendFilial(b.filial);
+  const box = $('gapBox'); if (!box) return;
+  const va = F && F.vend[a.rca], vb = G && G.vend[b.rca];
+  if (!va || !vb) { box.innerHTML = '<h2>O que um vende e o outro não × o +MIX mostrou?</h2><div class="leg">Chega na próxima atualização dos dados.</div>'; return; }
+  const nomes = { ...(G.nomes || {}), ...(F.nomes || {}) };
+  const tab = (X, Y, nx, ny, cx, cy) => {
+    const L = Object.keys(X.comp).map((c) => { const px = X.comp[c] / X.clientes * 100, py = (Y.comp[c] || 0) / Y.clientes * 100; const sem = Y.clientes - (Y.comp[c] || 0); const rc = Y.rec[c] || 0; return { c, px, py, sem, rc, prc: sem ? rc / sem * 100 : 0 }; })
+      .filter((x) => x.px - x.py >= 15 && x.px >= 20).sort((p, q) => (q.px - q.py) - (p.px - p.py)).slice(0, 12);
+    if (!L.length) return `<div class="leg">Nenhum produto em que <span class="${cx}">${esc(nx)}</span> esteja 15 p.p. acima de <span class="${cy}">${esc(ny)}</span>.</div>`;
+    const tot = L.reduce((t, x) => t + x.sem, 0), totR = L.reduce((t, x) => t + x.rc, 0);
+    return `<table><thead><tr><th class="l">Produto (forte em <span class="${cx}">${esc(nx.split(' ')[0])}</span>)</th><th class="${cx}">${esc(nx.split(' ')[0])}</th><th class="${cy}">${esc(ny.split(' ')[0])}</th><th>Clientes de ${esc(ny.split(' ')[0])} sem o produto</th><th>+MIX recomendou</th><th>Leitura</th></tr></thead><tbody>` +
+      L.map((x) => `<tr><td class="l" style="white-space:normal">${esc(x.c)} · ${esc(nomes[x.c] || '')}</td><td class="${cx}">${pc(x.px)}</td><td class="${cy}">${pc(x.py)}</td><td>${nf(x.sem)}</td><td class="ver">${nf(x.rc)} (${pc(x.prc)})</td><td class="l">${x.prc >= 50 ? '<span class="up">ferramenta mostrou, vendedor não vendeu</span>' : x.prc >= 15 ? 'mostrou em parte' : '<span class="dn">ferramenta NÃO mostrou</span>'}</td></tr>`).join('') +
+      `</tbody></table><div class="leg">Nesses ${L.length} produtos, ${esc(ny.split(' ')[0])} tem ${nf(tot)} clientes sem o produto e o +MIX recomendou em <b>${nf(totR)} (${pc(tot ? totR / tot * 100 : 0)})</b>.</div>`;
+  };
+  box.innerHTML = `<h2>O que um vende e o outro não × o +MIX mostrou?</h2>
+    <div class="box">${tab(va, vb, a.nome, b.nome, 'cA', 'cB')}</div><div class="box" style="margin-top:12px">${tab(vb, va, b.nome, a.nome, 'cB', 'cA')}</div>
+    <div class="leg">% = clientes que compraram o produto no mês ÷ clientes que compraram do vendedor. "+MIX recomendou" = desses clientes sem o produto, em quantos ele estava na lista do +MIX. Recomendou e não vendeu = falta usar a ferramenta. Não recomendou = a ferramenta não mostra (ela só olha a carteira do próprio vendedor).</div>`;
+}
+// TESTE DO UNIVERSO: o mesmo cliente consultado no CEVEN com a carteira do vendedor (como o app faz) x com a regiao inteira da filial
+function blocoTeste(a, b) {
+  const box = $('testeBox'); if (!box) return;
+  box.innerHTML = `<h2>Teste do universo do +MIX (ao vivo no CEVEN)</h2><div class="box"><div class="leg" style="margin-top:0">Pega até 20 clientes de <span class="cB">${esc(b.nome)}</span> mais próximos dos clientes de <span class="cA">${esc(a.nome)}</span> e pergunta o +MIX duas vezes: <b>(a)</b> como o app faz hoje (vizinhos só da carteira do próprio vendedor) e <b>(b)</b> com todos os clientes da filial a até 3 km. Leva 1 a 2 minutos.</div>
+    <button id="btTeste" style="margin-top:10px;background:var(--acc);color:#04202e;border:0;border-radius:8px;padding:8px 14px;font-weight:800;cursor:pointer">Rodar o teste</button> <span class="sub" id="stTeste"></span><div id="resTeste"></div></div>`;
+  $('btTeste').onclick = () => rodaTeste(a, b);
+}
+async function rodaTeste(a, b) {
+  $('btTeste').disabled = true;
+  const pa = (a.pontos || []).filter((p) => p[3]), pb = (b.pontos || []).filter((p) => p[3]);
+  const regiaoPts = D.vendedores.filter((v) => v.filial === b.filial).flatMap((v) => (v.pontos || []).filter((p) => p[3]));
+  const alvos = pb.map((p) => ({ p, d: Math.min(...pa.map((q) => kmEntre(p[0], p[1], q[0], q[1])), 999) })).filter((x) => x.d <= 2).sort((x, y) => x.d - y.d).slice(0, 20);
+  if (!alvos.length) { $('stTeste').textContent = 'Nenhum cliente dos dois a menos de 2 km um do outro: não dá para testar este par.'; $('btTeste').disabled = false; return; }
+  const perto = (P, t) => { let u = P.map((q) => ({ c: q[3], d: kmEntre(t[0], t[1], q[0], q[1]) })).sort((x, y) => x.d - y.d); const d3 = u.filter((x) => x.d <= 3); return (d3.length >= 8 ? d3 : u.slice(0, 8)).map((x) => x.c).slice(0, 400); };
+  const topA = new Map((a.top_skus || []).slice(0, 20).map((x) => [x.c, x.n]));
+  const R = [];
+  for (let i = 0; i < alvos.length; i++) {
+    $('stTeste').textContent = `consultando ${i + 1}/${alvos.length}…`;
+    const t = alvos[i].p;
+    try { const r = await fetch('/api/mix-teste', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rca: b.rca, target: t[3], proprio: perto(pb, t), regiao: perto(regiaoPts, t) }) }).then((x) => x.json()); if (r.proprio && r.regiao) R.push(r); } catch (e) { /* conta como falha */ }
+  }
+  $('btTeste').disabled = false;
+  if (!R.length) { $('stTeste').textContent = 'O CEVEN não respondeu. Tente de novo.'; return; }
+  $('stTeste').textContent = `${R.length} de ${alvos.length} clientes consultados.`;
+  const md = (k) => R.reduce((t, r) => t + Object.keys(r[k].cods).length, 0) / R.length;
+  const so_b = R.reduce((t, r) => t + Object.keys(r.regiao.cods).filter((c) => !r.proprio.cods[c]).length, 0) / R.length;
+  const linhas = [...topA.entries()].map(([c, n]) => ({ c, n, x: R.filter((r) => r.proprio.cods[c]).length, y: R.filter((r) => r.regiao.cods[c]).length })).filter((l) => l.x || l.y);
+  $('resTeste').innerHTML = `<div class="kpis"><div class="k"><b>${nf(md('proprio'), 1)}</b><span>produtos recomendados por cliente (a) só carteira</span></div><div class="k"><b>${nf(md('regiao'), 1)}</b><span>produtos recomendados por cliente (b) região</span></div><div class="k"><b>${nf(so_b, 1)}</b><span>produtos que só aparecem olhando a região</span></div></div>
+    <h2>Produtos mais vendidos por <span class="cA">${esc(a.nome.split(' ')[0])}</span>: aparecem no +MIX dos clientes de <span class="cB">${esc(b.nome.split(' ')[0])}</span>?</h2>
+    <table><thead><tr><th class="l">Produto</th><th>(a) só carteira</th><th>(b) região</th></tr></thead><tbody>` +
+    (linhas.length ? linhas.map((l) => `<tr><td class="l">${esc(l.c)} · ${esc(l.n)}</td><td>${nf(l.x)} de ${R.length}</td><td class="ver${l.y > l.x ? ' up' : ''}">${nf(l.y)} de ${R.length}</td></tr>`).join('') : `<tr><td class="l" colspan="3">Nenhum dos 20 mais vendidos aparece em nenhum dos dois (o cliente já compra ou ninguém em volta compra).</td></tr>`) +
+    `</tbody></table><div class="leg">Se a coluna (b) for bem maior que a (a), está provado: o +MIX precisa olhar a região inteira, não só a carteira do vendedor.</div>`;
 }
 carrega();
 </script></body></html>
