@@ -1850,7 +1850,8 @@ Nada foi enviado aos gerentes: relatório incompleto não sai.`;
     fs.mkdirSync(outDirVendas, { recursive: true });
     fs.writeFileSync(path.join(outDirVendas, `${horaPasta}__VITORIO.md`), relatorios.msgConsolidado, 'utf8');
     Object.entries(relatorios.mensagensGerentes || {}).forEach(([sigla, txt]) => {
-      if (txt) fs.writeFileSync(path.join(outDirVendas, `${horaPasta}__${String(sigla).replace('::', '_')}.md`), txt, 'utf8');
+      // 20/10/2026: o 14:30 caiu sem enviar nada porque o gerente padrao da TPH e 'Vagner / Fábio' e a barra virou pasta (ENOENT). Nome de arquivo sem / \ : * ? " < > |
+      if (txt) fs.writeFileSync(path.join(outDirVendas, `${horaPasta}__${String(sigla).replace('::', '_').replace(/[\/\:*?"<>|]/g, '-')}.md`), txt, 'utf8');
     });
 
     if (destino === 'vitorio' || destino === 'todos') {
