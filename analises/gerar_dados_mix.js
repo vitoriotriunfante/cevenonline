@@ -7,7 +7,7 @@
  *   2) Pedidos do mês e dos 90 dias anteriores = banco do Drive (analises/pedidos_historico_ceven.db), item a item.
  *   3) Recomendação do +MIX de cada cliente positivado no mês = o MESMO cálculo do app (/mixapi/mix/gap): universo = carteira do vendedor
  *      (roteiro do mês) num raio de 3 km, no mínimo os 8 mais próximos. Guarda a resposta inteira em analises/mix_gap_hist.db (vai para o Drive).
- *   4) "USOU O +MIX" = o cliente comprou no mês um produto NOVO para ele (não comprou nos 90 dias antes do mês) que ESTÁ na recomendação do +MIX dele.
+ *   4) "USOU O +MIX" = o cliente comprou no mês um produto NOVO para ele (não comprou nos 60 dias antes do mês) que ESTÁ na recomendação do +MIX dele.
  *   5) Compara os vendedores por faixa de uso: mix por cliente, SKUs novos, recompra (fidelização), dobradinha das quinzenas, faturado por cliente.
  *   6) Estudo das quinzenas: nos clientes que compraram nas duas quinzenas, quanto do pedido da 2ª é produto novo em relação à 1ª.
  * ESCREVE: public/dados_mix.json (lido pela tela /mix via GitHub) + analises/mix_gap_hist.db (histórico completo das recomendações).
@@ -24,7 +24,8 @@ const hojeSP = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' 
 const MES = process.argv[2] || hojeSP.slice(0, 7);
 const ATE = (() => { const d = new Date(hojeSP + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 1); const o = d.toISOString().slice(0, 10); return o.slice(0, 7) === MES ? o : `${MES}-31`; })();
 const INI = `${MES}-01`;
-const ANTES = (() => { const d = new Date(INI + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 90); return d.toISOString().slice(0, 10); })();
+// PRODUTO NOVO = nao comprou nos 60 dias antes do mes (Vitorio, 20/10/2026: "produto tem que ser recomprado a cada 60 dias no maximo; 90 dias ja e galinha morta")
+const ANTES = (() => { const d = new Date(INI + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 60); return d.toISOString().slice(0, 10); })();
 const VAREJO = ['VJ', 'FARMA', 'PET VJ', 'ESP'];
 // industria de cada produto (catalogo da Relacao de itens por filial) para comparar PORTFOLIO POR INDUSTRIA entre vendedores
 const IND = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'catalogo_industrias.json'), 'utf8')).i || {}; } catch (e) { return {}; } })();
@@ -238,9 +239,9 @@ async function main() {
   const saida = {
     gerado_em: new Date().toISOString(), mes: MES, dados_ate: ATE, historico_desde: ANTES,
     definicoes: {
-      usou_mix: 'o cliente comprou no mês um produto NOVO para ele (não comprou nos 90 dias antes do mês) que está na recomendação do +MIX dele',
+      usou_mix: 'o cliente comprou no mês um produto NOVO para ele (não comprou nos 60 dias antes do mês) que está na recomendação do +MIX dele',
       uso_pct: '% dos clientes positivados do vendedor (com +MIX disponível) em que ele vendeu ao menos 1 produto novo vindo do +MIX',
-      mix_medio: 'produtos diferentes comprados pelo cliente no mês', skus_novos_medio: 'produtos novos por cliente (não comprados nos 90 dias antes)',
+      mix_medio: 'produtos diferentes comprados pelo cliente no mês', skus_novos_medio: 'produtos novos por cliente (não comprados nos 60 dias antes)',
       dobradinha_pct: '% dos clientes que compraram nas duas quinzenas', pct_meta_fat: '(faturado + pendente) / meta de faturamento do mês, igual ao app', pct_meta_pos: 'positivados / meta de positivação do mês',
       premio: 'incentivo de outubro: 0 = sem prêmio, 1 = gatilho 1, 2 = gatilho 2', liga_pts: 'pontos na tabela da Liga (Champions Triunfante)', ja_eram_clientes_pct: '% dos clientes do mês que também compraram no mês anterior (fidelização)',
       ressalva: 'a recomendação do +MIX é calculada pelo CEVEN na hora da consulta; para dias passados ela é uma aproximação do que o vendedor viu. A partir de hoje a recomendação de cada dia fica gravada.'
