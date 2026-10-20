@@ -35,7 +35,7 @@ LIGADA = sinal nos últimos 3 min. DESLIGADA = já mandou sinal e parou. SEM SIN
     <div class="placar" id="placar"></div>
   </header>
   <div class="grid" id="grid"></div>
-  <div class="leg">🟢 <b>LIGADA</b>: mandou sinal nos últimos 3 min · 🟡 <b>ATUALIZANDO</b>: ligada, ainda pegando a última versão · 🔴 <b>DESLIGADA</b>: parou de mandar sinal · 🔴 <b>SEM SINAL</b>: desligada ou precisa ser reiniciada uma vez (desligar e ligar). Só conta o sinal da TV; computador ou celular com a mesma tela aberta aparece à parte.</div>
+  <div class="leg">🟢 <b>LIGADA</b>: mandou sinal nos últimos 3 min · 🟡 <b>ATUALIZANDO</b>: ligada, ainda pegando a última versão · 🔴 <b>DESLIGADA</b>: parou de mandar sinal · 🔴 <b>SEM SINAL</b>: desligada ou precisa ser reiniciada uma vez (desligar e ligar). Conta a TV ou o computador ligado nela; o cartão mostra qual aparelho é.</div>
 </div>
 <script>
 const FILIAIS = [['MTZ','Matriz (central)'],['ABC','Marcos'],['API','Marcelo'],['MCD','Cleverson / Adriano'],['TBE','Diego'],['TBL','Fábio'],['TCA','Becher'],['TCG','Danilo'],['TCV','Leonardo'],['TPA','Radke / Leandro'],['TPH','Vagner / Fábio'],['TSJ','Saldanha']];
@@ -46,14 +46,16 @@ async function carrega() {
   try { d = await (await fetch('/api/tv-ping?t=' + Date.now(), { cache: 'no-store' })).json(); } catch (e) {}
   const agora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   if (!d || !Array.isArray(d.tvs)) { document.getElementById('sub').textContent = agora + ' · sem resposta do servidor, tentando de novo…'; return; }
-  // POR APARELHO (19/10/2026): o sinal pode vir da TV ou de um computador/celular com a mesma tela aberta. O cartao so fica verde com a TV.
-  const por = {}, outros = {};
+  // POR APARELHO (20/10/2026): na TSJ e na TCA a TV e ligada a um COMPUTADOR (Windows), nao usa o navegador da propria TV. Entao qualquer aparelho com o link da TV
+  // aberto conta como ligado; o cartao mostra quais aparelhos sao (Smart TV / computador) e quantos. Celular nao conta.
+  const por = {}, apar = {};
   for (const t of d.tvs) {
     const k = t.filial;
-    if (t.tipo !== 'tv' && t.tipo !== '?') { if (t.minutos_sem_sinal <= 3) outros[k] = (outros[k] || 0) + 1; continue; }
-    if (!por[k] || t.minutos_sem_sinal < por[k].minutos_sem_sinal) por[k] = t;
+    if (t.tipo === 'celular') continue;
+    if (t.minutos_sem_sinal <= 3) { const a = apar[k] = apar[k] || { tv: 0, pc: 0 }; if (t.tipo === 'tv') a.tv++; else a.pc++; }
+    if (!por[k] || t.minutos_sem_sinal < por[k].minutos_sem_sinal || (t.minutos_sem_sinal === por[k].minutos_sem_sinal && por[k].versao_velha && !t.versao_velha)) por[k] = t;
   }
-  const notaOutros = (f) => outros[f] ? ' · + ' + outros[f] + ' computador/celular com a tela aberta (não conta)' : '';
+  const notaOutros = (f) => { const a = apar[f]; if (!a) return ''; const p = []; if (a.tv) p.push(a.tv + ' Smart TV'); if (a.pc) p.push(a.pc + (a.pc > 1 ? ' computadores' : ' computador')); return ' · aparelho: ' + p.join(' + '); };
   let lig = 0, atu = 0, des = 0;
   document.getElementById('grid').innerHTML = FILIAIS.map(([f, ger]) => {
     const t = por[f];
