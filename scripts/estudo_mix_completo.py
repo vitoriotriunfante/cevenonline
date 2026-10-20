@@ -8,7 +8,7 @@ MES = sys.argv[1] if len(sys.argv) > 1 else datetime.date.today().strftime('%Y-%
 hoje = datetime.date.today()
 ATE = (hoje - datetime.timedelta(days=1)).isoformat()
 INI = MES + '-01'
-ANTES = (datetime.date.fromisoformat(INI) - datetime.timedelta(days=90)).isoformat()
+ANTES = (datetime.date.fromisoformat(INI) - datetime.timedelta(days=60)).isoformat()   # produto novo = nao comprado em 60 dias (regra do Vitorio)
 MES_ANT = (datetime.date.fromisoformat(INI) - datetime.timedelta(days=1)).strftime('%Y-%m')
 VAREJO = {'VJ', 'FARMA', 'PET VJ', 'ESP'}
 SITE, CEVEN = 'https://ceven-cftv-matrix.pages.dev', 'https://ceven.drivetriunfante-locomotiva.com.br'
@@ -20,9 +20,9 @@ def get(url, ceven=False, tent=4):
     if ceven: h['X-App-Secret'] = SEC
     for t in range(tent):
         try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers=h), timeout=60) as r: return json.load(r)
+            with urllib.request.urlopen(urllib.request.Request(url, headers=h), timeout=40) as r: return json.load(r)
         except urllib.error.HTTPError as e:
-            if e.code == 429: time.sleep(25); continue
+            if e.code == 429: time.sleep(15); continue
             return None
         except Exception: time.sleep(3 * (t + 1))
     return None
@@ -105,12 +105,19 @@ for f, cnpj, resp in h.execute('SELECT filial, cnpj, resposta_json FROM mix_gap 
     rec[(f, cnpj)] = s
 
 # ---------- visitas do mes (roteiro do mes, CEVEN) ----------
-alvos = sorted(V)
-t0 = time.time()
-for i, k in enumerate(alvos):
-    alvo = t0 + i * 0.8
-    if time.time() < alvo: time.sleep(alvo - time.time())
-    rm = get(f'{CEVEN}/api/rca/roteiro-mes?filial={k[0].lower()}1&id={k[1]}', ceven=True)
+# 6 leituras ao mesmo tempo, no maximo ~80 por minuto (limite do CEVEN e 100/min); a 1a versao lia 1 por vez e estourou 60 min (20/10/2026)
+import concurrent.futures, threading
+alvos = sorted(V); trava = threading.Lock(); proxima = [time.time()]
+def le(k):
+    with trava:
+        espera = proxima[0] - time.time(); proxima[0] = max(proxima[0], time.time()) + 0.75
+    if espera > 0: time.sleep(espera)
+    return k, get(f'{CEVEN}/api/rca/roteiro-mes?filial={k[0].lower()}1&id={k[1]}', ceven=True)
+lidos = 0
+with concurrent.futures.ThreadPoolExecutor(6) as ex:
+  for k, rm in ex.map(le, alvos):
+    lidos += 1
+    if lidos % 50 == 0: print(f'  roteiros lidos: {lidos}/{len(alvos)}', flush=True)
     if not isinstance(rm, list): continue
     L = [x for x in rm if str(x.get('data_visita') or '') <= ATE and str(x.get('data_visita') or '') >= INI]
     V[k].update(carteira=len({x.get('cnpj') for x in rm if x.get('cnpj')}), programadas=len(L),
