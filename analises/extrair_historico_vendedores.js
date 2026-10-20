@@ -21,10 +21,10 @@ const db = new Database(path.join(__dirname, 'pedidos_historico_ceven.db'));
 const POR_MINUTO = 80;
 
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
-async function buscar(url) {
+async function buscar(url, prazoMs = 60000) {
   for (let t = 1; t <= 4; t++) {
     try {
-      const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' }, signal: AbortSignal.timeout(60000) });
+      const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' }, signal: AbortSignal.timeout(prazoMs) });
       if (r.status === 429) { await espera(((Number(r.headers.get('x-ratelimit-reset')) || 30) + 2) * 1000); continue; }
       if (!r.ok) return { erro: 'HTTP ' + r.status };
       return { dados: await r.json() };
@@ -54,11 +54,14 @@ async function main() {
 
   let pedidos = 0, itens = 0, falhas = [], semPedido = 0, menor = null, maior = null;
   const t0 = Date.now();
-  for (let i = 0; i < rcas.length; i++) {
-    const r = rcas[i];
-    const alvo = t0 + (i * 60000) / POR_MINUTO; if (Date.now() < alvo) await espera(alvo - Date.now());
-    const { dados, erro } = await buscar(`${CEVEN}/api/rca/historico-vendedor?filial=${r.key}&id=${r.id}&expandido=true`);
-    if (erro || !dados || !Array.isArray(dados.ultimas_visitas)) { falhas.push(`${r.sigla} ${r.id} (${erro || 'resposta sem ultimas_visitas'})`); continue; }
+  // 2 passadas (20/10/2026): na 1a noite 72-78 RCAs (varios da TBE, historico grande) deram 'sem resposta' em 60 s. A 2a passada refaz so quem falhou, com 180 s.
+  const pendentes = [];
+  const processa = async (r, prazo, ultima) => {
+    const { dados, erro } = await buscar(`${CEVEN}/api/rca/historico-vendedor?filial=${r.key}&id=${r.id}&expandido=true`, prazo);
+    if (erro || !dados || !Array.isArray(dados.ultimas_visitas)) { if (ultima) falhas.push(`${r.sigla} ${r.id} (${erro || 'resposta sem ultimas_visitas'})`); else pendentes.push(r); return; }
+    grava(r, dados);
+  };
+  const grava = (r, dados) => {
     const vis = dados.ultimas_visitas.filter((v) => String(v.num_pedido || '').trim());
     if (!vis.length) semPedido++;
     db.transaction(() => {
@@ -78,7 +81,15 @@ async function main() {
         if (d) { if (!menor || d < menor) menor = d; if (!maior || d > maior) maior = d; }
       }
     })();
-    if ((i + 1) % 50 === 0 || i + 1 === rcas.length) console.log(`  ${i + 1}/${rcas.length} RCAs | pedidos ${pedidos} | itens ${itens} | falhas ${falhas.length}`);
+  };
+  for (let i = 0; i < rcas.length; i++) {
+    const alvo = t0 + (i * 60000) / POR_MINUTO; if (Date.now() < alvo) await espera(alvo - Date.now());
+    await processa(rcas[i], 60000, false);
+    if ((i + 1) % 50 === 0 || i + 1 === rcas.length) console.log(`  ${i + 1}/${rcas.length} RCAs | pedidos ${pedidos} | itens ${itens} | para a 2a passada ${pendentes.length}`);
+  }
+  if (pendentes.length) {
+    console.log(`🔁 2a passada: ${pendentes.length} RCAs sem resposta na 1a, agora com ate 180 s cada`);
+    for (const r of pendentes.splice(0)) { await espera(1500); await processa(r, 180000, true); }
   }
   console.log(`✅ Pedidos gravados: ${pedidos} (de ${menor} a ${maior}) | itens ${itens} | RCAs sem pedido no período ${semPedido} | falhas ${falhas.length}`);
   if (falhas.length) console.log('   Falhas: ' + falhas.slice(0, 40).join(', '));
