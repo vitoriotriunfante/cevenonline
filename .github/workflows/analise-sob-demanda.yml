@@ -20,10 +20,13 @@ on:
 permissions:
   contents: read
 
+env:
+  CEVEN_APP_SECRET: ${{ secrets.CEVEN_APP_SECRET }}   # analises que leem o CEVEN (ex.: visitas do roteiro do mes); so leitura
+
 jobs:
   analise:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - name: Instalar rclone
