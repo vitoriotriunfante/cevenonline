@@ -27,6 +27,8 @@ LIGADA = sinal nos últimos 3 min. DESLIGADA = já mandou sinal e parou. SEM SIN
   .tela:after{content:"";position:absolute;left:50%;bottom:-9px;width:16px;height:4px;margin-left:-8px;background:var(--c);border-radius:2px}
   .st{margin-top:12px;font-weight:900;font-size:17px;color:var(--c)}
   .det{color:var(--mut);font-size:12.5px;margin-top:4px;line-height:1.4}
+  .nt{text-align:center;min-width:70px;border:2px solid var(--c);border-radius:10px;padding:4px 8px;background:color-mix(in srgb,var(--c) 14%,transparent)}.nt b{display:block;font-size:26px;line-height:1.1}.nt span{font-size:10.5px;color:var(--mut);text-transform:uppercase}
+  .ap{margin-top:8px;font-size:12.5px;font-weight:700}
   .leg{color:var(--mut);font-size:12px;margin-top:16px;line-height:1.5}
 </style></head>
 <body><div class="wrap">
@@ -49,13 +51,16 @@ async function carrega() {
   // POR APARELHO (20/10/2026): na TSJ e na TCA a TV e ligada a um COMPUTADOR (Windows), nao usa o navegador da propria TV. Entao qualquer aparelho com o link da TV
   // aberto conta como ligado; o cartao mostra quais aparelhos sao (Smart TV / computador) e quantos. Celular nao conta.
   const por = {}, apar = {};
+  // TELAS ABERTAS POR FILIAL (20/10/2026): conta cada aparelho com o painel da filial aberto agora (sinal nos ultimos 3 min), inclusive celular.
   for (const t of d.tvs) {
     const k = t.filial;
+    if (t.minutos_sem_sinal <= 3) { const a = apar[k] = apar[k] || { tv: 0, pc: 0, cel: 0 }; if (t.tipo === 'tv') a.tv++; else if (t.tipo === 'celular') a.cel++; else a.pc++; }
     if (t.tipo === 'celular') continue;
-    if (t.minutos_sem_sinal <= 3) { const a = apar[k] = apar[k] || { tv: 0, pc: 0 }; if (t.tipo === 'tv') a.tv++; else a.pc++; }
     if (!por[k] || t.minutos_sem_sinal < por[k].minutos_sem_sinal || (t.minutos_sem_sinal === por[k].minutos_sem_sinal && por[k].versao_velha && !t.versao_velha)) por[k] = t;
   }
-  const notaOutros = (f) => { const a = apar[f]; if (!a) return ''; const p = []; if (a.tv) p.push(a.tv + ' Smart TV'); if (a.pc) p.push(a.pc + (a.pc > 1 ? ' computadores' : ' computador')); return ' · aparelho: ' + p.join(' + '); };
+  const telas = (f) => { const a = apar[f]; return a ? a.tv + a.pc + a.cel : 0; };
+  const notaOutros = (f) => { const a = apar[f]; if (!a) return ''; const p = []; if (a.tv) p.push(a.tv + ' Smart TV'); if (a.pc) p.push(a.pc + (a.pc > 1 ? ' computadores' : ' computador')); if (a.cel) p.push(a.cel + (a.cel > 1 ? ' celulares' : ' celular')); return '<div class="ap">' + p.join(' · ') + '</div>'; };
+  let totTelas = 0;
   let lig = 0, atu = 0, des = 0;
   document.getElementById('grid').innerHTML = FILIAIS.map(([f, ger]) => {
     const t = por[f];
@@ -64,10 +69,10 @@ async function carrega() {
     else if (t.minutos_sem_sinal > 3) { cls = 'bad'; st = 'DESLIGADA'; det = 'último sinal há ' + tempo(t.minutos_sem_sinal); des++; }
     else if (t.versao_velha) { cls = 'warn'; st = 'ATUALIZANDO'; det = 'ligada · pegando a versão nova'; atu++; }
     else { cls = 'ok'; st = 'LIGADA'; det = f === 'MTZ' ? 'no ar, versão atual' : (t.vendedores ? t.vendedores + ' vendedores na tela' : 'no ar, versão atual') + (t.dados_de ? ' · dados de ' + esc(t.dados_de) : ''); lig++; }
-    det += notaOutros(f);
-    return `<div class="tv ${cls}"><div class="top"><div><div class="fil">${f}</div><div class="ger">${esc(ger)}</div></div><div class="tela"></div></div><div class="st">${st}</div><div class="det">${det}</div></div>`;
+    const n = telas(f); totTelas += n;
+    return `<div class="tv ${cls}"><div class="top"><div><div class="fil">${f}</div><div class="ger">${esc(ger)}</div></div><div class="nt"><b>${n}</b><span>${n === 1 ? 'tela aberta' : 'telas abertas'}</span></div></div><div class="st">${st}</div><div class="det">${det}</div>${notaOutros(f)}</div>`;
   }).join('');
-  document.getElementById('placar').innerHTML = `<div class="pl" style="border-color:var(--ok)"><b style="color:var(--ok)">${lig}</b><span>ligadas</span></div>` + (atu ? `<div class="pl" style="border-color:var(--warn)"><b style="color:var(--warn)">${atu}</b><span>atualizando</span></div>` : '') + `<div class="pl" style="border-color:var(--bad)"><b style="color:var(--bad)">${des}</b><span>desligadas</span></div>`;
+  document.getElementById('placar').innerHTML = `<div class="pl" style="border-color:var(--ok)"><b style="color:var(--ok)">${lig}</b><span>ligadas</span></div>` + (atu ? `<div class="pl" style="border-color:var(--warn)"><b style="color:var(--warn)">${atu}</b><span>atualizando</span></div>` : '') + `<div class="pl" style="border-color:var(--bad)"><b style="color:var(--bad)">${des}</b><span>desligadas</span></div><div class="pl"><b>${totTelas}</b><span>telas abertas</span></div>`;
   document.getElementById('sub').textContent = agora + ' (Brasília) · ' + FILIAIS.length + ' TVs · atualiza sozinho';
 }
 carrega(); setInterval(carrega, 30000);
