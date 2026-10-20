@@ -82,7 +82,11 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
 
   <section id="s-comp">
     <div class="ctl"><select id="cFilial"><option value="">Filial</option></select><select id="cSup"><option value="">Supervisor (todos)</option></select></div>
-    <div class="ctl"><select id="cA"></select><span>×</span><select id="cB"></select></div>
+    <h2>Todos os vendedores da seleção</h2>
+    <div class="box"><div id="mapaTodos" style="height:380px;border-radius:12px"></div><div class="leg" id="mapaTodosLeg">Cada cor é um vendedor (ponto = cliente da carteira). Use para ver quem atende a mesma região antes de comparar.</div></div>
+    <div class="ctl" style="margin-top:14px"><select id="cA"></select><span>×</span><select id="cB"></select></div>
+    <h2>Vendedores parecidos com <span id="paresNome"></span> (para comparar de forma justa)</h2>
+    <div class="box"><table id="pares"></table><div class="leg">Distância = entre o centro das duas carteiras. Sobreposição = % dos clientes do vendedor escolhido que estão a até 2 km de algum cliente do outro. Mais parecido = mesma região e carteira de tamanho parecido.</div></div>
     <div id="compBox"></div>
   </section>
 
@@ -158,10 +162,11 @@ function filtros() {
     const L = D.vendedores.filter((v) => v.filial === f && (!s || v.supervisor === s)).sort((a, b) => a.nome.localeCompare(b.nome));
     const op = L.map((v) => `<option value="${v.filial}|${v.rca}">${esc(v.nome)} (RCA ${v.rca}) · uso ${pc(v.uso_pct)}</option>`).join('');
     $('cA').innerHTML = op; $('cB').innerHTML = op;
-    // sugestao: quem MAIS usa x quem MENOS usa na mesma selecao
-    const o = L.slice().sort((a, b) => (b.uso_pct || 0) - (a.uso_pct || 0));
-    if (o.length > 1) { $('cA').value = o[0].filial + '|' + o[0].rca; $('cB').value = o[o.length - 1].filial + '|' + o[o.length - 1].rca; }
-    comparar();
+    // sugestao (20/10/2026: "apesar de serem da mesma filial, atendem clientes diferentes"): o PAR MAIS PARECIDO da selecao (mesma regiao, carteira parecida)
+    let melhor = null;
+    for (const a of L) for (const b of L) { if (a === b) continue; const sc = semelhanca(a, b); if (sc && (!melhor || sc.score > melhor.sc.score)) melhor = { a, b, sc }; }
+    if (melhor) { $('cA').value = melhor.a.filial + '|' + melhor.a.rca; $('cB').value = melhor.b.filial + '|' + melhor.b.rca; }
+    mapaTodos(L); comparar();
   };
   $('cFilial').onchange = () => { pSup('cSup', $('cFilial').value, 'Supervisor (todos)'); pVend(); };
   $('cSup').onchange = pVend; $('cA').onchange = comparar; $('cB').onchange = comparar;
@@ -199,6 +204,7 @@ function graficos() {
 function comparar() {
   if (!D) return;
   const a = D.vendedores.find((v) => v.filial + '|' + v.rca === $('cA').value), b = D.vendedores.find((v) => v.filial + '|' + v.rca === $('cB').value);
+  pares(a);
   if (!a || !b || a === b) { $('compBox').innerHTML = '<div class="leg">Escolha dois vendedores diferentes da mesma filial (de preferência do mesmo supervisor).</div>'; return; }
   const M = [['Supervisor', 'supervisor', esc], ['Carteira (clientes)', 'carteira', nf], ['Clientes positivados', 'clientes', nf], ['% da carteira positivada', 'cobertura_pct', pc], ['Uso do +MIX', 'uso_pct', pc],
     ['Produtos novos via +MIX', 'skus_mix_vendidos', nf], ['Mix por cliente', 'mix_medio', (x) => nf(x, 1)], ['Produtos por pedido', 'skus_por_pedido', (x) => nf(x, 1)], ['R$ por cliente', 'faturado_por_cliente', brl],
@@ -325,6 +331,44 @@ function heat(vk) {
   const celula = (p) => { const a = Math.min(1, (p || 0) / 80); return `<td style="background:rgba(34,197,94,${(a * 0.85).toFixed(2)});color:${a > 0.55 ? '#04210f' : 'inherit'};text-align:center">${p ? nf(p, 0) : ''}</td>`; };
   $('xHeat').innerHTML = `<table><thead><tr><th class="l">Vendedor (clientes)</th>${inds.map((i) => `<th style="white-space:normal;min-width:70px;font-size:10.5px">${esc(i.replace(/^A ?- ?/, '').slice(0, 26))}</th>`).join('')}</tr></thead><tbody>` +
     vends.sort((a, b) => b.clientes - a.clientes).map((v) => `<tr><td class="l">${esc(v.nome)} <span class="sub">(${v.clientes})</span></td>${inds.map((i) => celula(pen.get(v.filial + '|' + v.rca + '|' + i))).join('')}</tr>`).join('') + '</tbody></table>';
+}
+
+// ===================== PARES PARECIDOS =====================
+const kmEntre = (a, b, c, d) => { const R = 6371, x = (c - a) * Math.PI / 180, y = (d - b) * Math.PI / 180, h = Math.sin(x / 2) ** 2 + Math.cos(a * Math.PI / 180) * Math.cos(c * Math.PI / 180) * Math.sin(y / 2) ** 2; return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h)); };
+const centro = (v) => { const p = v.pontos || []; if (!p.length) return null; return [p.reduce((t, x) => t + x[0], 0) / p.length, p.reduce((t, x) => t + x[1], 0) / p.length]; };
+const cacheSem = new Map();
+function semelhanca(a, b) {
+  const k = a.filial + a.rca + '|' + b.filial + b.rca; if (cacheSem.has(k)) return cacheSem.get(k);
+  const ca = centro(a), cb = centro(b); let r = null;
+  if (ca && cb) {
+    const dist = kmEntre(ca[0], ca[1], cb[0], cb[1]);
+    const pa = a.pontos, pb = b.pontos; let perto = 0;
+    for (const x of pa) { for (const y of pb) { if (Math.abs(x[0] - y[0]) < 0.03 && Math.abs(x[1] - y[1]) < 0.03 && kmEntre(x[0], x[1], y[0], y[1]) <= 2) { perto++; break; } } }
+    const sobre = pa.length ? perto / pa.length * 100 : 0;
+    const tam = Math.min(pa.length, pb.length) / Math.max(pa.length, pb.length || 1);
+    r = { dist, sobre, tam, score: sobre * 0.6 + tam * 25 + Math.max(0, 15 - dist) };
+  }
+  cacheSem.set(k, r); return r;
+}
+function pares(a) {
+  if (!a) return;
+  $('paresNome').textContent = a.nome;
+  const L = D.vendedores.filter((v) => v.filial === a.filial && v !== a).map((v) => ({ v, sc: semelhanca(a, v) })).filter((x) => x.sc).sort((x, y) => y.sc.score - x.sc.score).slice(0, 12);
+  $('pares').innerHTML = '<thead><tr><th class="l">Vendedor</th><th class="l">Supervisor</th><th>Distância</th><th>Sobreposição</th><th>Carteira</th><th>Uso +MIX*</th><th>Mix/cli</th><th></th></tr></thead><tbody>' +
+    L.map(({ v, sc }) => `<tr><td class="l">${esc(v.nome)}</td><td class="l">${esc(v.supervisor)}</td><td>${nf(sc.dist, 1)} km</td><td>${pc(sc.sobre)}</td><td>${nf((v.pontos || []).length)}</td><td>${pc(v.uso_pct)}</td><td>${nf(v.mix_medio, 1)}</td>
+      <td><button class="tab-btn" style="background:var(--acc);color:#04202e;border:0;border-radius:8px;padding:4px 10px;font-weight:700;cursor:pointer" onclick="$('cB').value='${v.filial}|${v.rca}';comparar();window.scrollTo({top:$('compBox').offsetTop-80,behavior:'smooth'})">Comparar</button></td></tr>`).join('') + '</tbody>';
+}
+let mapaT = null;
+function mapaTodos(L) {
+  if (!window.L || !$('mapaTodos')) return;
+  if (mapaT) { mapaT.remove(); mapaT = null; }
+  mapaT = window.L.map('mapaTodos'); window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(mapaT);
+  const pal = ['#38bdf8', '#f59e0b', '#22c55e', '#ef4444', '#a78bfa', '#f472b6', '#14b8a6', '#eab308', '#fb923c', '#60a5fa', '#94a3b8', '#84cc16', '#e879f9', '#2dd4bf', '#f87171'];
+  const pts = [], leg = [];
+  L.forEach((v, i) => { const c = pal[i % pal.length]; leg.push(`<span style="color:${c}">●</span> ${esc(v.nome.split(' ').slice(0, 2).join(' '))}`);
+    (v.pontos || []).forEach(([la, lo]) => { pts.push([la, lo]); window.L.circleMarker([la, lo], { radius: 3.5, color: c, weight: 1, fillColor: c, fillOpacity: 0.8 }).bindTooltip(v.nome).addTo(mapaT); }); });
+  if (pts.length) mapaT.fitBounds(pts, { padding: [16, 16] }); else mapaT.setView([-23.5, -49], 6);
+  $('mapaTodosLeg').innerHTML = leg.join(' · ') + '<br>Cada cor é um vendedor (ponto = cliente da carteira). Passe o mouse no ponto para ver o nome.';
 }
 carrega();
 </script></body></html>
