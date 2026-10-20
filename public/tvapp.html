@@ -867,7 +867,7 @@ async function carregaLancesServidor() {
   const tem = new Set(LOG.map(e => e.key).filter(Boolean));
   const agoraS = secDe(sp().hms);
   const ehRecente = (r) => !Number(r.baseline) && NIVEIS_APITAM.includes(r.nivel) && !EXIB.has(r.chave) && (agoraS - secDe(r.hora_sp)) >= 0 && (agoraS - secDe(r.hora_sp)) <= 12 * 60;
-  d.lances.forEach(r => { if (ehRecente(r)) RECENTES.add(r.chave); else seen.add(r.chave); if (!tem.has(r.chave)) LOG.push({key: r.chave, t: r.hora_sp, nivel: r.nivel, rca: r.rca, vendedor: r.vendedor, supervisor: r.supervisor || '', cliente: r.cliente, id_cliente: r.cliente_id, motivo: r.motivo, dias_sem_compra: r.dias_sem_compra, ultima_compra: r.ultima_compra, tempo_visita: r.tempo_visita, obs: r.obs, filial: FIL, ao_ligar: !!r.baseline}); });
+  d.lances.forEach(r => { if (ehRecente(r)) RECENTES.add(r.chave); else seen.add(r.chave); if (!tem.has(r.chave)) LOG.push({key: r.chave, t: r.hora_sp, nivel: r.nivel, rca: r.rca, vendedor: r.vendedor, supervisor: r.supervisor || '', obs: r.obs || '', cliente: r.cliente, id_cliente: r.cliente_id, motivo: r.motivo, dias_sem_compra: r.dias_sem_compra, ultima_compra: r.ultima_compra, tempo_visita: r.tempo_visita, obs: r.obs, filial: FIL, ao_ligar: !!r.baseline}); });
   // SEMANA INVICTA (lance gravado pelo servidor na sexta apos as 19h): avisa na tela UMA vez, so se for recente (ate 3 h) e esta tela ainda nao o conhecia.
   d.lances.forEach(r => {
     if (r.nivel !== 'semanainvicta' || tem.has(r.chave) || INVICTA_AVISADA.has(r.chave)) return;
@@ -1062,6 +1062,15 @@ function pontosLanceOficial(tipo, subtipo) {
   if (tipo === 'vermelho' || tipo === 'venda10' || tipo === 'visita10') return { nome: 'Cartão Vermelho', pts: '-10 PONTOS NA LIGA', cor: '#ef4444' };
   return { nome: 'LANCE DA LIGA', pts: '', cor: '#38bdf8' };
 }
+// PROVA DA DEVOLUCAO NO VAR (Vitorio, 20/10/2026: "mostrando devolucao sem o motivo? nao falamos disso ontem?"): o lance do servidor grava em obs
+// "nota N de AAAA-MM-DD | R$ X | cliente | motivo oficial: MOTIVO". O popup do Gol Contra e do Vermelho de devolucao mostra motivo oficial, nota e valor.
+function provaDev(item) {
+  const a = item && item.a, k = a && a.key;
+  const obs = String((a && a.obs) || (item && item.obs) || ((typeof LOG !== 'undefined' && k && (LOG.find((e) => e.key === k) || {}).obs)) || '');
+  const m = /motivo oficial:\s*([^|]+)/i.exec(obs), n = /nota\s+(\S+)\s+de\s+(\d{4}-\d{2}-\d{2})/i.exec(obs), v = /\|\s*(R\$\s*[\d.,]+)\s*\|/.exec(obs);
+  const ln = (t, x) => '<div class="ln' + (t === 'MOTIVO OFICIAL' ? ' hot' : '') + '"><b>' + t + '</b><span>' + esc(x) + '</span></div>';
+  return (m ? ln('MOTIVO OFICIAL', m[1].trim()) : ln('MOTIVO OFICIAL', 'sem motivo gravado no lance')) + (n ? ln('NOTA', n[1] + ' de ' + n[2].split('-').reverse().join('/')) : '') + (v ? ln('VALOR', v[1]) : '');
+}
 function telaVAR(item) {
   let titulo, sub, dec, veredito, cls = 'f1';
   const subtipo = (item.a && item.a.subtipo) || item.subtipo;
@@ -1091,11 +1100,11 @@ function telaVAR(item) {
     veredito = '🔥 HAT-TRICK DE OURO! Constância que decide o mês!';
   } else if (item.tipo === 'vermelho') {
     titulo = '🟥 CARTÃO VERMELHO'; sub = item.sub || 'Infração disciplinar grave detectada!'; cls = 'f1';
-    dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>MOTIVO</b><span>${esc(item.sub || 'EXPULSÃO DIRETA')}</span></div>`;
+    dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>MOTIVO</b><span>${esc(item.sub || 'EXPULSÃO DIRETA')}</span></div>${item.a && item.a.subtipo === 'devolucao_nao_pediu' ? provaDev(item) : ''}`;
     veredito = '🟥 EXPULSÃO! Rever rota e devolução imediatamente!';
   } else if (item.tipo === 'golcontra') {
     titulo = '⚽ GOL CONTRA'; sub = item.sub || 'Devolução de mercadoria registrada'; cls = 'f1';
-    dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>DEVOLUÇÃO</b><span>${esc(item.sub || 'Devolução registrada hoje')}</span></div>`;
+    dec = `${seloLiga}<div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>DEVOLUÇÃO</b><span>${esc(item.sub || 'Devolução registrada hoje')}</span></div>${provaDev(item)}`;
     veredito = '⚽ GOL CONTRA! Devolução impacta o resultado do dia.';
   } else if (item.tipo === 'amarelo') {
     titulo = '🟨 CARTÃO AMARELO'; sub = item.sub || 'Advertência de rota'; cls = 'f1';

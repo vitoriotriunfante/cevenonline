@@ -841,11 +841,11 @@ async function carregaGolsServidor() {
       const mpv = /MARCA PROPRIA R\$ ([\d.,]+)/.exec(String(r.obs || ''));
       const valor = mpv ? Number(mpv[1].replace(/\./g, '').replace(',', '.')) : null;
       const textoSrv = (c && c.nome ? c.nome + ' · ' : '') + (grave ? 'Devolução: ' + (r.cliente || 'cliente') : (ROTULO_SRV[sub] || 'GOL DE PLACA')) + (valor && sub === 'marca_propria' ? ' R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' de Marca Própria no pedido!' : '');
-      const a = { key: sig + '|' + ch, sig, nivel: grave ? (tipo0 === 'ver_dev' ? 'vermelho' : 'golcontra') : (sub === 'hattrick' ? 'hattrick' : 'gol'), subtipo: grave ? (tipo0 === 'ver_dev' ? 'devolucao_nao_pediu' : 'devolucao') : sub, v, c, valor, clienteDev: r.cliente, srv: true };
+      const a = { key: sig + '|' + ch, sig, nivel: grave ? (tipo0 === 'ver_dev' ? 'vermelho' : 'golcontra') : (sub === 'hattrick' ? 'hattrick' : 'gol'), subtipo: grave ? (tipo0 === 'ver_dev' ? 'devolucao_nao_pediu' : 'devolucao') : sub, v, c, valor, clienteDev: r.cliente, srv: true, obs: r.obs || '' };
       const tarde = sp().h >= 15;
       const score = sub === 'marca_propria' || sub === 'mp_tripla' ? 500 : grave ? (tarde ? 16 : 22) : (sub === 'hattrick' ? 30 + (tarde ? 22 : 0) : 28 + (tarde ? 20 : 0));
       ESPERA.push({ tipo: a.nivel === 'hattrick' ? 'hattrick' : a.nivel, sig, v, c, a, sub: textoSrv, score, srv: true, qualif });
-      if (!LOG.some((e) => e.key === a.key)) LOG.push({ key: a.key, t: r.hora_sp, nivel: a.nivel, rca: r.rca, vendedor: v.nome, supervisor: v.sup || '', sig, cliente: c && c.nome, motivo: r.motivo, ao_ligar: false });
+      if (!LOG.some((e) => e.key === a.key)) LOG.push({ key: a.key, t: r.hora_sp, nivel: a.nivel, rca: r.rca, vendedor: v.nome, supervisor: v.sup || '', sig, cliente: c && c.nome, motivo: r.motivo, obs: r.obs || '', ao_ligar: false });
       entrou++;
     }
     store.set('ceven_exib_srv_MTZ_' + HOJE0, [...EXIB_SRV]);
@@ -1003,6 +1003,15 @@ function pontosLanceOficial(tipo, subtipo) {
   if (tipo === 'vermelho' || tipo === 'venda10' || tipo === 'visita10') return { nome: 'Cartão Vermelho', pts: '-10 PONTOS NA LIGA', cor: '#ef4444' };
   return { nome: 'LANCE DA LIGA', pts: '', cor: '#38bdf8' };
 }
+// PROVA DA DEVOLUCAO NO VAR (Vitorio, 20/10/2026: "mostrando devolucao sem o motivo? nao falamos disso ontem?"): o lance do servidor grava em obs
+// "nota N de AAAA-MM-DD | R$ X | cliente | motivo oficial: MOTIVO". O popup do Gol Contra e do Vermelho de devolucao mostra motivo oficial, nota e valor.
+function provaDev(item) {
+  const a = item && item.a, k = a && a.key;
+  const obs = String((a && a.obs) || (item && item.obs) || ((typeof LOG !== 'undefined' && k && (LOG.find((e) => e.key === k) || {}).obs)) || '');
+  const m = /motivo oficial:\s*([^|]+)/i.exec(obs), n = /nota\s+(\S+)\s+de\s+(\d{4}-\d{2}-\d{2})/i.exec(obs), v = /\|\s*(R\$\s*[\d.,]+)\s*\|/.exec(obs);
+  const ln = (t, x) => '<div class="ln' + (t === 'MOTIVO OFICIAL' ? ' hot' : '') + '"><b>' + t + '</b><span>' + esc(x) + '</span></div>';
+  return (m ? ln('MOTIVO OFICIAL', m[1].trim()) : ln('MOTIVO OFICIAL', 'sem motivo gravado no lance')) + (n ? ln('NOTA', n[1] + ' de ' + n[2].split('-').reverse().join('/')) : '') + (v ? ln('VALOR', v[1]) : '');
+}
 function telaVAR(item) {
   let titulo, sub, dec, veredito, cls = 'f1';
   const subtipo = (item.a && item.a.subtipo) || item.subtipo;
@@ -1054,11 +1063,11 @@ function telaVAR(item) {
     veredito = '🔥 HAT-TRICK DE OURO! Constância que decide o mês!';
   } else if (item.tipo === 'vermelho') {
     titulo = '🟥 CARTÃO VERMELHO'; sub = item.sub || 'Infração disciplinar grave detectada!'; cls = 'f1';
-    dec = `${seloLiga}<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>MOTIVO</b><span>${esc(item.sub || 'EXPULSÃO DIRETA')}</span></div>`;
+    dec = `${seloLiga}<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>MOTIVO</b><span>${esc(item.sub || 'EXPULSÃO DIRETA')}</span></div>${item.a && item.a.subtipo === 'devolucao_nao_pediu' ? provaDev(item) : ''}`;
     veredito = '🟥 EXPULSÃO! Rever rota e devolução imediatamente!';
   } else if (item.tipo === 'golcontra') {
     titulo = '⚽ GOL CONTRA'; sub = item.sub || 'Devolução de mercadoria registrada'; cls = 'f1';
-    dec = `${seloLiga}<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>DEVOLUÇÃO</b><span>${esc(item.sub || 'Devolução registrada hoje')}</span></div>`;
+    dec = `${seloLiga}<div class="ln hot"><b>FILIAL</b><span>${item.sig || (item.a && item.a.sig) || 'MTZ'}</span></div><div class="ln hot"><b>VENDEDOR</b><span>${nomeComRca(item.v || (item.a && item.a.v))}</span></div><div class="ln"><b>DEVOLUÇÃO</b><span>${esc(item.sub || 'Devolução registrada hoje')}</span></div>${provaDev(item)}`;
     veredito = '⚽ GOL CONTRA! Devolução impacta o resultado do dia.';
   } else if (item.tipo === 'amarelo') {
     titulo = '🟨 CARTÃO AMARELO'; sub = item.sub || 'Advertência de rota'; cls = 'f1';
