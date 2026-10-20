@@ -53,7 +53,7 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
   </header>
   <nav class="tabs" id="tabs">
     <button data-s="resumo" class="on">Resumo</button><button data-s="cubo">Explorar</button><button data-s="graf">Gráficos</button><button data-s="comp">Comparar vendedores</button>
-    <button data-s="vend">Vendedores</button><button data-s="prod">Produtos</button><button data-s="quinz">Quinzenas</button>
+    <button data-s="vend">Vendedores</button><button data-s="quinz">Quinzenas</button>
   </nav>
 
   <section id="s-resumo" class="on">
@@ -102,9 +102,6 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
     <div class="box"><table id="tv"></table></div>
   </section>
 
-  <section id="s-prod">
-    <div class="box"><table id="ti"></table></div>
-  </section>
 
   <section id="s-quinz">
     <h2>Quem compra mais produtos diferentes compra mais vezes?</h2>
@@ -152,7 +149,7 @@ async function carrega() {
   $('kpis').innerHTML = [[nf(R.clientes_com_mix), 'clientes positivados com +MIX calculado'], [nf(R.clientes_que_usaram), 'compraram produto NOVO que estava no +MIX'],
     [pc(R.clientes_com_mix ? R.clientes_que_usaram / R.clientes_com_mix * 100 : null), 'taxa de uso geral'], [nf(R.skus_mix_vendidos), 'produtos novos vendidos via +MIX']]
     .map(([v, t]) => `<div class="k"><b>${v}</b><span>${t}</span></div>`).join('');
-  resumo(); filtros(); tabelaV(); produtos(); quinzenas(); filtrosCubo();
+  resumo(); filtros(); tabelaV(); quinzenas(); filtrosCubo();
   $('defs').innerHTML = Object.entries(D.definicoes || {}).map(([k, v]) => `<b>${esc(k.replace(/_/g, ' '))}:</b> ${esc(v)}`).join('<br>');
 }
 
