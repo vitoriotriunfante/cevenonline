@@ -1,44 +1,43 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 segunda-feira, 19/10/2026
+📅 terça-feira, 20/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 19 • Visitas: 218 (média 11,5/vendedor)
-Sem compra +30d: 92 (42,2%) • Recorrência: 24 (11,0%)
-Oportunidades CNAE 4789: +327 PDVs
+👥 Vendedores: 19 • Visitas: 178 (média 9,4/vendedor)
+Sem compra +30d: 48 (27,0%) • Recorrência: 13 (7,3%)
+Oportunidades CNAE 4721: +265 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — CLEVERSON* • 19/10/2026
+📍 *MCD — CLEVERSON* • 20/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 91  •  🟡 Preventivo: 0
+🔴 Última Chance: 48  •  🟡 Preventivo: 0
 
-👤 *Vendedores ligados direto ao gerente* (59 em risco)
-  🔴 MERCEARIA E CONVENIENCIA JP (1070) — 05/12
-  🔴 POSTO AROEIRA (1070) — 05/12
-  🔴 PASTEL E CO (1070) — 05/12
+👤 *Vendedores ligados direto ao gerente* (20 em risco)
+  🔴 MANIA DE PET (1070) — 05/12
+  🔴 MERCADINHO DO LAGOA (1070) — 27/05
+  🔴 ATACADO CAMPEIRO (1070) — 15/09
   🔴 MIX COSMETICOS (1070) — 05/12
-  🔴 MIX COSMETICOS (1070) — 05/12
-  _+54 outros_
+  🔴 POSTO RIBALTA 1 (1070) — 05/12
+  _+15 outros_
 
-👤 *JONATAS DA SILVA DE OLIVEIRA* (5 em risco)
-  🔴 MERCADO REAL (442) — 05/09
-  🔴 BR MANIA (445) — 05/12
-  🔴 MERCEARIA VITORIA (453) — 05/12
-  🔴 MERCADO TRES PODERES (1060) — 17/08
-  🔴 CHURRASCARIA TALISMA (1063) — 05/12
+👤 *JONATAS DA SILVA DE OLIVEIRA* (15 em risco)
+  🔴 MERCADO ABC (429) — 15/09
+  🔴 TIGRE EXPRESS (429) — 05/12
+  🔴 STOP BEER (441) — 05/12
+  🔴 SUPERMERCADO HIPOLITO (441) — 29/08
+  🔴 CONVENIENCIA E MERCEARIA CURUJAO (1060) — 05/12
+  _+10 outros_
 
-👤 *THIAGO DA SILVA CONEGUNDES* (5 em risco)
-  🔴 CLICKBEER EMPORIO E BEBIDAS LTDA (433) — 31/08
-  🔴 CLICKBEER (433) — 05/12
-  🔴 GOMMA E GOUMERT (433) — 24/08
-  🔴 REDE IPE (433) — 05/12
-  🔴 PANIFICADORA OLIVEIRA (1068) — 05/09
+👤 *THIAGO DA SILVA CONEGUNDES* (3 em risco)
+  🔴 PAO E TAL CONVENIENCIAS (433) — 05/12
+  🔴 CHURRASCARIA ARARA AZUL (1068) — 28/08
+  🔴 MERCEARIA SEMPRE TEM (1068) — 18/09
 
-👤 *TIAGO MARTINES OTAVIANO* (22 em risco)
-  🔴 PANIF CONQUISTA (413) — 18/02
-  🔴 SM ECONOMICO (413) — 18/09
-  🔴 MERCADO DO NEGO (413) — 05/12
-  🔴 MERCEARIA E CONV TODA HORA (413) — 05/12
-  🔴 EMPORIO BEER CONVENIENCIA (420) — 05/09
-  _+17 outros_
+👤 *TIAGO MARTINES OTAVIANO* (10 em risco)
+  🔴 SUPERMERCADO COLOMBI (412) — 18/09
+  🔴 SACOLAO ECONOMICO (412) — 18/09
+  🔴 PET SHOP CACHORRAO (420) — 31/08
+  🔴 PANIF E CONF JARDIM (450) — 14/09
+  🔴 PEDRINHO CONVENIENCIA (450) — 18/09
+  _+5 outros_

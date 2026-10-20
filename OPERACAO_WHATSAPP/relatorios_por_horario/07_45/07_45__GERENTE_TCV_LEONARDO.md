@@ -1,38 +1,38 @@
 🌅 *ABERTURA MATINAL — TCV (07:45)*
-📅 segunda-feira, 19/10/2026
+📅 terça-feira, 20/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 28 • Visitas: 293 (média 10,5/vendedor)
-Sem compra +30d: 34 (11,6%) • Recorrência: 39 (13,3%)
-Oportunidades CNAE 4789: +305 PDVs
+👥 Vendedores: 28 • Visitas: 284 (média 10,1/vendedor)
+Sem compra +30d: 53 (18,7%) • Recorrência: 36 (12,7%)
+Oportunidades CNAE 4721: +653 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCV — LEONARDO* • 19/10/2026
+📍 *TCV — LEONARDO* • 20/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 33  •  🟡 Preventivo: 0
+🔴 Última Chance: 53  •  🟡 Preventivo: 0
 
-👤 *GESSANDRO SPEROTTO* (9 em risco)
-  🔴 LOJA 199 (324) — 31/08
-  🔴 NEILA CONVENIENCIAS (324) — 11/09
-  🔴 DEROMA EMBALAGENS (324) — 18/09
-  🔴 PANIFICADORA ROMANA (346) — 31/07
-  🔴 LANCHONETE LORENCO (1057) — 17/06
-  _+4 outros_
+👤 *GESSANDRO SPEROTTO* (18 em risco)
+  🔴 MERCEARIA CAMILO (324) — 09/09
+  🔴 MERCEARIA OLIVEIRA (328) — 10/09
+  🔴 PANIFICADORA E CONFEITARIA OSTELONES LTD (328) — 10/09
+  🔴 DOURADAO EXPRESS (328) — 13/08
+  🔴 KANGOL CONVENIENCIA LTDA (328) — 15/09
+  _+13 outros_
 
-👤 *GIANI GREGOLIN* (16 em risco)
-  🔴 MERCADO BOA VISTA (335) — 16/09
-  🔴 MERCADO DOS PASSOS (335) — 31/07
-  🔴 MERCADO VALIM (333) — 08/07
-  🔴 IDEAL SUPERMERCADO (333) — 24/08
-  🔴 DAMIAN (333) — 31/08
-  _+11 outros_
+👤 *GIANI GREGOLIN* (18 em risco)
+  🔴 MESTRE ATACADO (338) — 27/08
+  🔴 SUPERMERCADO MENUSSI SANTA IZABEL LTDA (338) — 14/09
+  🔴 MINIMERCADO (343) — 14/09
+  🔴 HORIZONTE (343) — 01/01
+  🔴 MERCADO MACHADO (335) — 27/08
+  _+13 outros_
 
-👤 *VAGO - GABRIEL* (8 em risco)
-  🔴 AUTO POSTO BETO MORUMBI (325) — 18/09
-  🔴 MERCADO ELITE (330) — 18/08
-  🔴 MARQUES GASTRONOMIA (337) — 05/12
-  🔴 PIZZARIA JACAREZINHO (337) — 27/08
-  🔴 REINO DAS PIZZA E GRILL (347) — 26/06
-  _+3 outros_
+👤 *VAGO - GABRIEL* (17 em risco)
+  🔴 COMERCIAL DE ALIMENTOS VILA VELHA (325) — 01/01
+  🔴 BETO AUTO POSTO (330) — 26/08
+  🔴 COMERCIAL BELAL (330) — 15/09
+  🔴 JC BEBIDAS (337) — 10/09
+  🔴 J A SUPERMERCADO LTDA (337) — 04/09
+  _+12 outros_

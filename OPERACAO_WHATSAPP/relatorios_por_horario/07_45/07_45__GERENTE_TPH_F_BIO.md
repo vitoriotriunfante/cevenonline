@@ -1,46 +1,46 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 segunda-feira, 19/10/2026
+📅 terça-feira, 20/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 23 • Visitas: 442 (média 19,2/vendedor)
-Sem compra +30d: 166 (37,6%) • Recorrência: 67 (15,2%)
-Oportunidades CNAE 4789: +1.768 PDVs
+👥 Vendedores: 23 • Visitas: 460 (média 20,0/vendedor)
+Sem compra +30d: 178 (38,7%) • Recorrência: 49 (10,7%)
+Oportunidades CNAE 4721: +1.840 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPH — FÁBIO* • 19/10/2026
+📍 *TPH — FÁBIO* • 20/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 163  •  🟡 Preventivo: 0
+🔴 Última Chance: 178  •  🟡 Preventivo: 0
 
-👤 *EDERSON SUONSKI* (56 em risco)
-  🔴 AVENIDA FRIOS (69) — 26/08
-  🔴 NATO ALIMENTOS CWB LTDA (69) — 05/12
-  🔴 DISTRIBUIDORA SAO JOSE (69) — 15/09
-  🔴 RESTAURANTE PELANDA RIO BONITO (111) — 30/06
-  🔴 REPRESA KM 42 EIRELI - ME (111) — 05/12
-  _+51 outros_
+👤 *EDERSON SUONSKI* (44 em risco)
+  🔴 PANIFICADORA DEGUSTI (69) — 31/07
+  🔴 MAXIFARMA (69) — 05/12
+  🔴 FARMACIA MASTERMAIS (69) — 05/12
+  🔴 MERC DISTR DE ERVA MATE SGODA (111) — 05/12
+  🔴 DISTRIBUIDORA DE BEBIDAS SEX (111) — 05/12
+  _+39 outros_
 
-👤 *EDI CARLOS MEIRA* (23 em risco)
-  🔴 SUPERMERCADO BEIL (120) — 31/08
-  🔴 GIL SUPERMERCADO LTDA (120) — 08/08
-  🔴 SUPERMERCADO GELLY LTDA (120) — 13/06
-  🔴 SUPERMERCADO RUDNICK (120) — 11/09
-  🔴 APOEMA MINI MERCADO E PAPELARIA (116) — 03/07
-  _+18 outros_
+👤 *EDI CARLOS MEIRA* (26 em risco)
+  🔴 LETTS ROAD (115) — 05/12
+  🔴 POSTO DO MEL 6 PALMEIRA (115) — 22/08
+  🔴 PARADA DO MEL (115) — 17/09
+  🔴 POSTO DO MEL IMBAU (115) — 26/08
+  🔴 MERCADO ESTRELA (115) — 05/12
+  _+21 outros_
 
-👤 *PRISCILA A D NASCIMENTO STRAPASSON* (37 em risco)
-  🔴 POSTO ALPHAVILLE (65) — 05/09
-  🔴 CONVENIENCIA DJ (65) — 28/08
-  🔴 AUTO POSTO TUIA LTDA (65) — 27/08
-  🔴 AUTO POSTO CANDAMAN (65) — 05/12
-  🔴 AUTO POSTO BABADINCA (65) — 05/12
-  _+32 outros_
+👤 *PRISCILA A D NASCIMENTO STRAPASSON* (40 em risco)
+  🔴 TIC POSTO LTDA (65) — 25/08
+  🔴 AUTO POSTO ALMIRANTE (65) — 05/09
+  🔴 POSTO LINHA VERDE (65) — 05/09
+  🔴 AUTO POSTO ALMIRANTE (65) — 05/12
+  🔴 POSTO ALMIRANTE (65) — 05/09
+  _+35 outros_
 
-👤 *RODRIGO BERTONI* (47 em risco)
-  🔴 UP FIT FOOD (47) — 31/07
-  🔴 QUEIJOS E VINHOS (47) — 01/07
-  🔴 MOTEL LUNA (47) — 28/08
-  🔴 COMERCIAL BAGGIO LTDA (47) — 05/12
-  🔴 PET EXPRESS (47) — 29/08
-  _+42 outros_
+👤 *RODRIGO BERTONI* (68 em risco)
+  🔴 LANCHONETE DOIS CORACOES (47) — 08/08
+  🔴 CRIADOURO ONCA PINTADA (47) — 30/06
+  🔴 K ALIMENTOS INDUSTRIA DE LATICINIOS LTDA (47) — 05/12
+  🔴 ITALIN HOUSE MACARRAO GOURMET CAMPO LAR (47) — 05/12
+  🔴 SOLO COMERCIAL (47) — 05/12
+  _+63 outros_

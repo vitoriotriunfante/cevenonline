@@ -1,41 +1,38 @@
 🌅 *ABERTURA MATINAL — TPA (07:45)*
-📅 segunda-feira, 19/10/2026
+📅 terça-feira, 20/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 16 • Visitas: 236 (média 14,8/vendedor)
-Sem compra +30d: 87 (36,9%) • Recorrência: 34 (14,4%)
-Oportunidades CNAE 4789: +236 PDVs
+👥 Vendedores: 15 • Visitas: 258 (média 17,2/vendedor)
+Sem compra +30d: 76 (29,5%) • Recorrência: 30 (11,6%)
+Oportunidades CNAE 4721: +384 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPA — RADKE / LEANDRO* • 19/10/2026
+📍 *TPA — RADKE / LEANDRO* • 20/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 87  •  🟡 Preventivo: 0
+🔴 Última Chance: 75  •  🟡 Preventivo: 0
 
-👤 *ANDERSON GIOVANI FERREIRA BOLTER* (42 em risco)
-  🔴 MERCADO SACOLAO SOUZA (150) — 31/07
-  🔴 MERCADO ROCHA (150) — 05/12
-  🔴 MERCADO GUARUJA (150) — 05/12
-  🔴 SUPERMERCADO GIRIS (150) — 05/12
-  🔴 MERCAFLEX (150) — 01/01
-  _+37 outros_
+👤 *ANDERSON GIOVANI FERREIRA BOLTER* (34 em risco)
+  🔴 ATACADO VITORIA (150) — 17/09
+  🔴 MINI MERCADO E SACOLAO PONTO DAS FRUTAS (150) — 05/12
+  🔴 ACOUGUE GUARAGNI LTDA (150) — 16/07
+  🔴 MERCADO ALT (150) — 31/08
+  🔴 MERCADO MALFATTI (150) — 05/12
+  _+29 outros_
 
-👤 *Vendedores ligados direto ao gerente* (1 em risco)
-  🔴 REDE GRANDESUL (1048) — 05/12
+👤 *RAFAEL DA SILVA CARPENA* (23 em risco)
+  🔴 SERRA (140) — 05/12
+  🔴 MERCADO ACSS (140) — 01/01
+  🔴 SUPER REAL (140) — 17/09
+  🔴 ACOUGUE SAO JOSE (140) — 05/12
+  🔴 BR TRINDADE (140) — 05/12
+  _+18 outros_
 
-👤 *RAFAEL DA SILVA CARPENA* (30 em risco)
-  🔴 COMERCIAL R B (140) — 19/02
-  🔴 MERCADO MORADA DO SOL (140) — 15/09
-  🔴 MERCADO BONIATTI (140) — 20/02
-  🔴 TENDA COLONIAL (140) — 01/01
-  🔴 MAURO MARCONE BONETTO (140) — 31/07
-  _+25 outros_
-
-👤 *ROGERIO DORNELLES PASSOS* (14 em risco)
-  🔴 MERCADO MACIEL (144) — 20/08
-  🔴 MERCADO DU ALEMAO (144) — 17/07
-  🔴 MERCADO PORTIOLLI (144) — 17/09
-  🔴 SUPERMERCADO DULUKAS (154) — 16/09
-  🔴 CROSTOLLI MERCADO E PADARIA (154) — 19/08
-  _+9 outros_
+👤 *ROGERIO DORNELLES PASSOS* (18 em risco)
+  🔴 MERC COLONIAL (144) — 13/08
+  🔴 PONTO CERTO (144) — 17/09
+  🔴 INOV FARMA COMERCIO DE MEDICAMENTOS LTDA (144) — 20/07
+  🔴 TOSSELI COM DE ALIMENTOS (154) — 05/12
+  🔴 CGF ARMAZEM ACOUGUE E FERRAGEM (154) — 10/09
+  _+13 outros_

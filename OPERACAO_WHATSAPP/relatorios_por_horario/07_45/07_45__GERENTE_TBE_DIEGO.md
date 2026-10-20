@@ -1,38 +1,36 @@
 🌅 *ABERTURA MATINAL — TBE (07:45)*
-📅 segunda-feira, 19/10/2026
+📅 terça-feira, 20/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 16 • Visitas: 311 (média 19,4/vendedor)
-Sem compra +30d: 119 (38,3%) • Recorrência: 28 (9,0%)
-Oportunidades CNAE 4789: +311 PDVs
+👥 Vendedores: 16 • Visitas: 310 (média 19,4/vendedor)
+Sem compra +30d: 115 (37,1%) • Recorrência: 25 (8,1%)
+Oportunidades CNAE 4721: +586 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TBE — DIEGO* • 19/10/2026
+📍 *TBE — DIEGO* • 20/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 119  •  🟡 Preventivo: 0
+🔴 Última Chance: 106  •  🟡 Preventivo: 0
 
-👤 *HAMILTON RICARDO DOS SANTOS MENDES* (59 em risco)
-  🔴 JARDIM DO SOL COMERCIO DE COMBUSTIVEIS (301) — 01/01
-  🔴 C P J PADARIA LTDA (301) — 01/01
-  🔴 CESTA BASICA (301) — 31/07
-  🔴 SORVETERIA ESKIMO CAVALHADA (301) — 01/01
-  🔴 CAMILLY PULGATTI DOS SANTOS (301) — 01/01
-  _+54 outros_
+👤 *HAMILTON RICARDO DOS SANTOS MENDES* (39 em risco)
+  🔴 CRISTIANA MARQUES BRAGA (301) — 01/01
+  🔴 CREMOLATTO JUCA BATISTA (301) — 01/01
+  🔴 ANTONIO OLIVEIRA DA SILVA (301) — 09/07
+  🔴 BANCA 7 (301) — 01/01
+  🔴 GARCIA REPRESENTACOES (301) — 01/01
+  _+34 outros_
 
-👤 *NEIVA CLEONICE SERRA ISOPPO* (8 em risco)
-  🔴 COMERCIAL DE BEBIDAS RITTER (289) — 15/09
-  🔴 MERCADO CARIOCA (289) — 09/09
-  🔴 MERCADO CARDOSO (289) — 25/08
-  🔴 MALU KREPS (289) — 05/12
-  🔴 LUIS MARCELO RODRIGUES DE AZEVEDO (293) — 31/08
-  _+3 outros_
+👤 *NEIVA CLEONICE SERRA ISOPPO* (4 em risco)
+  🔴 SUMMER ACAI DELIVERY (289) — 28/07
+  🔴 DEBORA MARCIELI DA SILVA (289) — 31/08
+  🔴 LS GAS (289) — 11/09
+  🔴 PADARIA E CONFEITARIA SAO RAFAEL (293) — 05/12
 
-👤 *PATRICIA CHAVES MACHADO* (52 em risco)
-  🔴 ANDREZA FLORES DE ANDRADE (285) — 25/08
-  🔴 ARMAZEM GRASSY (285) — 15/09
-  🔴 MERCADO SILVA (285) — 27/05
-  🔴 MERCEARIA PLACEDINO (285) — 05/12
-  🔴 MERCADO SAO JORGE (285) — 08/09
-  _+47 outros_
+👤 *PATRICIA CHAVES MACHADO* (63 em risco)
+  🔴 MINI MERCADO SOUZA (285) — 17/09
+  🔴 MERCADO E PADARIA SAO ROQUE (285) — 09/09
+  🔴 PADARIA E CONFEITARIA MARROCOS (285) — 03/09
+  🔴 LEANDRO RICARDO DA ROSA RODRIGUES (285) — 03/09
+  🔴 MERCADO SANTA CRUZ (285) — 16/09
+  _+58 outros_

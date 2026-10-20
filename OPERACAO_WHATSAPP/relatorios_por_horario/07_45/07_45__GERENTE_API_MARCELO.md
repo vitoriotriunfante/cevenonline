@@ -1,41 +1,38 @@
 🌅 *ABERTURA MATINAL — API (07:45)*
-📅 segunda-feira, 19/10/2026
+📅 terça-feira, 20/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 29 • Visitas: 410 (média 14,1/vendedor)
-Sem compra +30d: 112 (27,3%) • Recorrência: 87 (21,2%)
-Oportunidades CNAE 4789: +459 PDVs
+👥 Vendedores: 27 • Visitas: 426 (média 15,8/vendedor)
+Sem compra +30d: 121 (28,4%) • Recorrência: 65 (15,3%)
+Oportunidades CNAE 4721: +1.325 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *API — MARCELO* • 19/10/2026
+📍 *API — MARCELO* • 20/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 112  •  🟡 Preventivo: 0
+🔴 Última Chance: 121  •  🟡 Preventivo: 0
 
-👤 *ALESSANDRO JUNIOR LOPES* (1 em risco)
-  🔴 ASSIS SUPERMERCADOS (1186) — 11/07
+👤 *WASHINGTON FLORES DA ROSA* (41 em risco)
+  🔴 FARMACIA ROTAFARMA (244) — 05/12
+  🔴 MERCEARIA PREMIER (244) — 31/07
+  🔴 MERCEARIA VITORIA (245) — 10/06
+  🔴 MERCEARIA VITORIA (245) — 05/12
+  🔴 BIG PAO (245) — 20/07
+  _+36 outros_
 
-👤 *WASHINGTON FLORES DA ROSA* (39 em risco)
-  🔴 VINICIUS SAVIAN SEGANFREDO (244) — 10/09
-  🔴 SUPERMERCADO PALACIO DAS CARNES LTDA (244) — 25/08
-  🔴 SANDRO LUIZ BUENO (244) — 05/12
-  🔴 SUPER PAO (245) — 28/08
-  🔴 PANIFICADORA E CONFEITARIA DOIS IRMAOS (245) — 14/09
-  _+34 outros_
+👤 *RODRIGO FARIAS* (74 em risco)
+  🔴 MERCADO KILLO S (239) — 27/08
+  🔴 SUPERMERCADO ELO (239) — 16/09
+  🔴 CONVENIENCIA DJ (239) — 28/08
+  🔴 MERCADO COELHO (241) — 13/06
+  🔴 TOPPER LANCHES (241) — 31/07
+  _+69 outros_
 
-👤 *RODRIGO FARIAS* (65 em risco)
-  🔴 TOP BRIL (239) — 02/07
-  🔴 SOUZA SUPERMERCADOS (239) — 05/12
-  🔴 PLASTIMELOS (239) — 05/12
-  🔴 LOJA AKI TEM (239) — 05/12
-  🔴 CARAMELOS DISTRIBUIDORAS (239) — 05/12
-  _+60 outros_
-
-👤 *SUELI APARECIDA TEIXEIRA POLLI* (7 em risco)
-  🔴 MERCARIA SANTANA (261) — 21/07
-  🔴 PEDRO FIDELIS MACHADO 01585560979 (261) — 28/08
-  🔴 PANIFICADORA XV DE NOVEMBRO (261) — 30/07
-  🔴 CASA DE CARNES NELORE (261) — 05/12
-  🔴 POSTO GUARTELA (529) — 31/08
-  _+2 outros_
+👤 *SUELI APARECIDA TEIXEIRA POLLI* (6 em risco)
+  🔴 JHON BARR (249) — 12/09
+  🔴 ATACADAO DO REAL (249) — 27/08
+  🔴 MERCADO DA SERRA (249) — 10/07
+  🔴 BIG MASSAS COMERCIO DE ALIMENTOS (249) — 10/06
+  🔴 CASA DE CARNES BOI NA BRASA (249) — 27/08
+  _+1 outros_

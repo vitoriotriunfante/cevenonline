@@ -1,38 +1,38 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 segunda-feira, 19/10/2026
+📅 terça-feira, 20/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 21 • Visitas: 169 (média 8,0/vendedor)
-Sem compra +30d: 51 (30,2%) • Recorrência: 32 (18,9%)
-Oportunidades CNAE 4789: +254 PDVs
+👥 Vendedores: 21 • Visitas: 171 (média 8,1/vendedor)
+Sem compra +30d: 36 (21,1%) • Recorrência: 16 (9,4%)
+Oportunidades CNAE 4721: +255 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — ADRIANO* • 19/10/2026
+📍 *MCD — ADRIANO* • 20/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 49  •  🟡 Preventivo: 0
+🔴 Última Chance: 36  •  🟡 Preventivo: 0
 
-👤 *ALYFER PEREIRA MENDES* (7 em risco)
-  🔴 FUTRICAO PET-SHOP (432) — 05/12
-  🔴 PET SHOP LULU (432) — 05/12
-  🔴 ANIZ PET (436) — 03/05
-  🔴 EUROPET (436) — 05/12
-  🔴 PET REIS (436) — 05/12
-  _+2 outros_
+👤 *ALYFER PEREIRA MENDES* (6 em risco)
+  🔴 BANCA SAO JOSE (432) — 19/08
+  🔴 CENTRAL PET SHOP (432) — 05/12
+  🔴 LOVE PETS (436) — 05/12
+  🔴 PET DA VILA (436) — 20/08
+  🔴 ELISABETE PET SHOP LTDA (436) — 27/08
+  _+1 outros_
 
-👤 *CARLOS ALAGUEZ DA SILVA* (23 em risco)
-  🔴 MERCADO AVENIDA (423) — 21/08
-  🔴 SUPERMERCADO ULIAN (423) — 05/12
-  🔴 MERCADO E CONVENIENCIA IDEAL (423) — 18/09
-  🔴 MERCADO SOL NASCENTE (430) — 05/12
-  🔴 PORTAL CONVENIENCIA (430) — 18/09
-  _+18 outros_
+👤 *CARLOS ALAGUEZ DA SILVA* (20 em risco)
+  🔴 MERCEARIA BRASIL (423) — 20/08
+  🔴 CONVENIENCIA (423) — 31/08
+  🔴 REI DOS PETS (430) — 05/12
+  🔴 MERCEARIA VITORIA (430) — 05/12
+  🔴 MERCEARIA SARAIVA (430) — 05/12
+  _+15 outros_
 
-👤 *CLEOMAR DINIZ BARBOSA* (19 em risco)
-  🔴 AGORO (415) — 05/12
-  🔴 MERCADO GALVAO (415) — 31/08
-  🔴 MERCADO ABBA (424) — 31/08
-  🔴 MERCADO E CONVENIENCIA B G (424) — 19/08
-  🔴 MERCEARIA E CONVENIENCIA GARCI (424) — 12/09
-  _+14 outros_
+👤 *CLEOMAR DINIZ BARBOSA* (10 em risco)
+  🔴 MERCEARIA SAO BENTO (415) — 18/02
+  🔴 MERCADO TRES PODERES (415) — 17/08
+  🔴 RURAL PET PRODUTOS AGROPECUAR (447) — 05/12
+  🔴 SAO JOAO CLINICA VETERINARIA (447) — 05/09
+  🔴 DANIEL FABIANO DOS SANTOS (447) — 01/01
+  _+5 outros_
