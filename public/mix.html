@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Uso do +MIX</title>
+<!--
+FICHA DO ARQUIVO: public/mix.html  (link: /mix)
+O QUE É: acompanhamento do uso do +MIX (Vitório, 20/10/2026): quem usa a ferramenta, quanto mix e faturado isso gera, e se quem usa tem mais mix,
+         fideliza mais e faz mais dobradinha. Dados ATÉ ONTEM, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/dados_mix.json).
+"USOU O +MIX" = o cliente comprou no mês um produto NOVO para ele (não comprou nos 90 dias antes) que estava na recomendação do +MIX dele.
+-->
+<style>
+  :root{--bg:#06101f;--card:#0d1b30;--line:#1d3152;--tx:#e6eefb;--mut:#8aa0c2;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--acc:#38bdf8}
+  @media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#eef3fa;--card:#fff;--line:#d5e0ef;--tx:#0d1b30;--mut:#5b6f8f}}
+  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:Segoe UI,system-ui,sans-serif}
+  .wrap{max-width:1250px;margin:0 auto;padding:20px 16px 40px}
+  h1{margin:0;font-size:26px}.sub{color:var(--mut);font-size:13.5px;margin-top:4px}
+  h2{font-size:15px;letter-spacing:.6px;text-transform:uppercase;color:var(--acc);margin:28px 0 10px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:16px}
+  .k{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}.k b{display:block;font-size:26px}.k span{font-size:12px;color:var(--mut)}
+  .box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+  th:first-child,td:first-child,th.l,td.l{text-align:left}th{color:var(--mut);font-size:11.5px;text-transform:uppercase;cursor:pointer}
+  .bar{height:8px;border-radius:5px;background:var(--line);overflow:hidden;min-width:70px}.bar i{display:block;height:100%;background:var(--ok)}
+  .leg{color:var(--mut);font-size:12.5px;line-height:1.55;margin-top:10px}
+  .ctl{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}select,input{background:var(--card);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+  .ver{font-weight:800}.up{color:var(--ok)}.dn{color:var(--bad)}
+</style></head>
+<body><div class="wrap">
+  <h1>🧩 Uso do +MIX</h1>
+  <div class="sub" id="sub">carregando…</div>
+  <div class="kpis" id="kpis"></div>
+
+  <h2>Quem usa mais o +MIX vende melhor?</h2>
+  <div class="box" id="faixas"></div>
+  <div class="leg" id="corr"></div>
+
+  <h2>Estudo das quinzenas: o cliente compra coisas diferentes na 2ª visita?</h2>
+  <div class="box" id="quinz"></div>
+
+  <h2>Vendedores</h2>
+  <div class="ctl"><select id="fFil"><option value="">Todas as filiais</option></select><input id="fBusca" placeholder="Buscar vendedor ou supervisor"></div>
+  <div class="box"><table id="tv"></table></div>
+
+  <h2>Produtos que mais entraram pelo +MIX</h2>
+  <div class="box"><table id="ti"></table></div>
+  <div class="leg" id="defs"></div>
+</div>
+<script>
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const nf = (n, d = 0) => n == null ? '—' : Number(n).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
+const brl = (n) => n == null ? '—' : 'R$ ' + nf(n);
+const pc = (n) => n == null ? '—' : nf(n, 1) + '%';
+let D = null, ORD = 'uso_pct', DESC = true;
+async function carrega() {
+  for (const u of ['https://raw.githubusercontent.com/vitoriotriunfante/cevenonline/main/public/dados_mix.json?t=' + Date.now(), '/dados_mix.json?t=' + Date.now()]) {
+    try { const r = await fetch(u, { cache: 'no-store' }); if (r.ok) { D = await r.json(); break; } } catch (e) {}
+  }
+  if (!D) { document.getElementById('sub').textContent = 'Ainda sem dados: o primeiro cálculo está rodando. Volte em alguns minutos.'; return; }
+  const R = D.resumo;
+  document.getElementById('sub').textContent = `Mês ${D.mes} · dados até ${D.dados_ate.split('-').reverse().join('/')} · só Varejo · gerado em ${new Date(D.gerado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`;
+  document.getElementById('kpis').innerHTML = [
+    [nf(R.vendedores), 'vendedores de Varejo'], [nf(R.clientes_com_mix), 'clientes positivados com +MIX calculado'],
+    [nf(R.clientes_que_usaram), 'clientes que compraram produto novo do +MIX'], [pc(R.clientes_com_mix ? R.clientes_que_usaram / R.clientes_com_mix * 100 : null), 'taxa de uso geral'],
+    [nf(R.skus_mix_vendidos), 'produtos novos vendidos via +MIX']
+  ].map(([v, t]) => `<div class="k"><b>${v}</b><span>${t}</span></div>`).join('');
+  const F = D.faixas || [];
+  const melhor = (k, i) => { const a = F[0] && F[0][k], b = F[3] && F[3][k]; return a == null || b == null ? '' : (b > a ? ' up' : b < a ? ' dn' : ''); };
+  const lin = (rot, k, fmt) => `<tr><td class="l">${rot}</td>${F.map((f, i) => `<td class="${i === 3 ? 'ver' + melhor(k) : ''}">${fmt(f[k])}</td>`).join('')}</tr>`;
+  document.getElementById('faixas').innerHTML = `<table><thead><tr><th class="l">Indicador (média dos vendedores)</th>${F.map((f) => `<th>${esc(f.faixa)}<br>${f.vendedores} vend.</th>`).join('')}</tr></thead><tbody>` +
+    lin('Uso do +MIX (% dos clientes)', 'uso_pct', pc) + lin('Mix por cliente no mês (produtos diferentes)', 'mix_medio', (x) => nf(x, 1)) + lin('Produtos NOVOS por cliente', 'skus_novos_medio', (x) => nf(x, 1)) +
+    lin('Produtos por pedido', 'skus_por_pedido', (x) => nf(x, 1)) + lin('Faturado por cliente no mês', 'faturado_por_cliente', brl) + lin('Dobradinha das quinzenas (% clientes)', 'dobradinha_pct', pc) +
+    lin('Fidelização (% que já compravam no mês anterior)', 'ja_eram_clientes_pct', pc) + '</tbody></table>';
+  const c = (v) => v == null ? '—' : (v >= 0.3 ? `<b class="up">${nf(v, 2)} (forte)</b>` : v >= 0.1 ? `<b>${nf(v, 2)} (fraca)</b>` : v <= -0.1 ? `<b class="dn">${nf(v, 2)} (contrária)</b>` : `${nf(v, 2)} (nenhuma)`);
+  document.getElementById('corr').innerHTML = `Correlação entre o uso do +MIX e: mix por cliente ${c(R.correlacao_uso_x_mix)} · faturado por cliente ${c(R.correlacao_uso_x_faturado_cliente)} · dobradinha ${c(R.correlacao_uso_x_dobradinha)} · fidelização ${c(R.correlacao_uso_x_fidelizacao)}. Correlação vai de −1 a 1; acima de 0,3 é relação forte. Correlação mostra que andam juntos, não prova que um causa o outro.`;
+  const Q = D.estudo_quinzenas || {};
+  document.getElementById('quinz').innerHTML = `<table><tbody>
+    <tr><td class="l">Clientes que compraram nas duas quinzenas</td><td>${nf(Q.clientes_dobradinha)}</td></tr>
+    <tr><td class="l">Produtos diferentes na 1ª quinzena (média)</td><td>${nf(Q.skus_q1_medio, 1)}</td></tr>
+    <tr><td class="l">Produtos diferentes na 2ª quinzena (média)</td><td>${nf(Q.skus_q2_medio, 1)}</td></tr>
+    <tr><td class="l">… dos quais NOVOS em relação à 1ª quinzena</td><td class="ver up">${nf(Q.skus_novos_na_q2_medio, 1)} (${pc(Q.pct_q2_que_e_novo)})</td></tr>
+    <tr><td class="l">… dos quais REPETIDOS da 1ª quinzena</td><td>${nf(Q.skus_repetidos_na_q2_medio, 1)}</td></tr></tbody></table>`;
+  const fs = [...new Set(D.vendedores.map((v) => v.filial))].sort();
+  document.getElementById('fFil').innerHTML = '<option value="">Todas as filiais</option>' + fs.map((f) => `<option>${f}</option>`).join('');
+  tabelaV();
+  document.getElementById('ti').innerHTML = '<thead><tr><th>#</th><th class="l">Produto</th><th class="l">Indústria</th><th>Clientes novos</th></tr></thead><tbody>' +
+    (D.itens_mais_vendidos_via_mix || []).map((it, i) => `<tr><td>${i + 1}</td><td class="l">${esc(it.cod)} · ${esc(it.nome)}</td><td class="l">${esc(it.industria)}</td><td>${nf(it.clientes)}</td></tr>`).join('') + '</tbody>';
+  document.getElementById('defs').innerHTML = Object.entries(D.definicoes || {}).map(([k, v]) => `<b>${esc(k.replace(/_/g, ' '))}:</b> ${esc(v)}`).join('<br>');
+}
+const COLS = [['filial', 'Filial', (v) => esc(v)], ['nome', 'Vendedor', (v) => esc(v)], ['supervisor', 'Supervisor', (v) => esc(v)], ['clientes', 'Clientes', nf], ['uso_pct', 'Uso +MIX', (v) => `${pc(v)} <div class="bar"><i style="width:${Math.min(100, v || 0)}%"></i></div>`], ['skus_mix_vendidos', 'Produtos via +MIX', nf], ['mix_medio', 'Mix/cliente', (v) => nf(v, 1)], ['skus_novos_medio', 'Novos/cliente', (v) => nf(v, 1)], ['faturado_por_cliente', 'R$/cliente', brl], ['dobradinha_pct', 'Dobradinha', pc], ['ja_eram_clientes_pct', 'Fidelização', pc]];
+function tabelaV() {
+  const f = document.getElementById('fFil').value, b = document.getElementById('fBusca').value.trim().toUpperCase();
+  const L = D.vendedores.filter((v) => (!f || v.filial === f) && (!b || (v.nome + ' ' + v.supervisor).toUpperCase().includes(b)))
+    .sort((x, y) => { const a = x[ORD], c = y[ORD]; return (typeof a === 'string' ? a.localeCompare(c) : (a || 0) - (c || 0)) * (DESC ? -1 : 1); });
+  document.getElementById('tv').innerHTML = '<thead><tr>' + COLS.map(([k, t], i) => `<th class="${i < 3 ? 'l' : ''}" data-k="${k}">${t}${ORD === k ? (DESC ? ' ▼' : ' ▲') : ''}</th>`).join('') + '</tr></thead><tbody>' +
+    L.map((v) => '<tr>' + COLS.map(([k, , fm], i) => `<td class="${i < 3 ? 'l' : ''}">${fm(v[k])}</td>`).join('') + '</tr>').join('') + '</tbody>';
+  document.querySelectorAll('#tv th').forEach((th) => th.onclick = () => { const k = th.dataset.k; DESC = ORD === k ? !DESC : true; ORD = k; tabelaV(); });
+}
+document.getElementById('fFil').onchange = tabelaV; document.getElementById('fBusca').oninput = tabelaV;
+carrega();
+</script></body></html>
