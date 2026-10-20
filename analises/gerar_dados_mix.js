@@ -61,6 +61,23 @@ async function main() {
   for (const [k, lst] of Object.entries(eq.filiais)) for (const v of lst) if (VAREJO.includes(String(v.canal || '').toUpperCase())) vend.set(`${k.split('_')[0].toUpperCase()}|${v.rca}`, { filial: k.split('_')[0].toUpperCase(), rca: String(v.rca), nome: v.nome, supervisor: v.supervisor || '', mostra: v.mostra !== false });
   console.log(`vendedores de varejo: ${vend.size}`);
 
+  // 1b) RESULTADO DE CADA VENDEDOR (Vitorio, 20/10/2026: "verificar se quem usa bate a meta... ganha mais dinheiro e tudo mais"):
+  //     % da meta de faturamento (painel do CEVEN, base central), incentivo do mes (% e gatilhos = premio) e Liga (pontos, aproveitamento, gols).
+  const res = new Map();
+  for (const f of [...new Set([...vend.values()].map((v) => v.filial))]) {
+    const sn = await getJson(`${SITE}/api/central-snapshot?filial=${f}`);
+    for (const [r, x] of Object.entries((sn && sn.rcas) || {})) {
+      const fin = x && x.dashboard && x.dashboard.financeiro, pos = x && x.dashboard && x.dashboard.positivacao;
+      if (!fin) continue;
+      res.set(`${f}|${r}`, { meta: Number(fin.meta) || 0, fat_pend: (Number(fin.faturado) || 0) + (Number(fin.pendente) || 0), pos_meta: pos ? Number(pos.meta) || 0 : 0, pos_real: pos ? Number(pos.realizado) || 0 : 0 });
+    }
+  }
+  const inc = await getJson(`${SITE}/api/incentivo-outubro`);
+  for (const x of (inc && inc.vendedores) || []) { const k = `${String(x.filial).toUpperCase()}|${x.rca}`; const o = res.get(k) || {}; o.inc_pct = Number(x.pct); o.premio_g1 = !!x.g1; o.premio_g2 = !!x.g2; res.set(k, o); }
+  const liga = await getJson('https://raw.githubusercontent.com/vitoriotriunfante/cevenonline/main/public/dados_brasileirao.json');
+  for (const x of (liga && liga.vendedores) || []) { const k = `${String(x.filial).toUpperCase()}|${x.rca}`; const o = res.get(k) || {}; o.liga_pts = Number(x.pts_tabela) || 0; o.liga_aprov = Number(x.aprov) || 0; o.liga_gols = Number(x.gp) || 0; res.set(k, o); }
+  console.log(`resultados por vendedor: ${res.size} (incentivo ${((inc && inc.vendedores) || []).length}, liga ${((liga && liga.vendedores) || []).length})`);
+
   // 2) pedidos
   const db = new Database(path.join(__dirname, 'pedidos_historico_ceven.db'), { readonly: true });
   const linhas = db.prepare(`SELECT ph.filial_sigla f, CAST(ph.rca_id AS TEXT) r, ph.id_cliente c, ph.cnpj_cliente cnpj, ph.nome_cliente nome, substr(ph.data_pedido,1,10) d, ph.num_pedido p, i.codprod cod, i.descricao des, i.valor_total v
@@ -164,13 +181,20 @@ async function main() {
     uso_pct: r1(v.clientes_usou / v.com_mix * 100), clientes_usou: v.clientes_usou, skus_mix_vendidos: v.skus_mix_vendidos,
     mix_medio: r1(media(v.mix)), skus_novos_medio: r1(media(v.novos)), skus_por_pedido: r1(media(v.skus_ped)),
     faturado_por_cliente: Math.round(v.valor / v.clientes), dobradinha_pct: r1(v.dobradinha / v.clientes * 100),
-    ja_eram_clientes_pct: r1(v.recompra_base / v.clientes * 100)
+    ja_eram_clientes_pct: r1(v.recompra_base / v.clientes * 100),
+    ...(() => { const x = res.get(v.filial + '|' + v.rca) || {}; return {
+      pct_meta_fat: x.meta ? r1(x.fat_pend / x.meta * 100) : null, pct_meta_pos: x.pos_meta ? r1(x.pos_real / x.pos_meta * 100) : null,
+      incentivo_pct: x.inc_pct == null || isNaN(x.inc_pct) ? null : r1(x.inc_pct), premio: x.premio_g2 ? 2 : x.premio_g1 ? 1 : (x.inc_pct == null ? null : 0),
+      liga_pts: x.liga_pts == null ? null : x.liga_pts, liga_aprov: x.liga_aprov == null ? null : x.liga_aprov, liga_gols: x.liga_gols == null ? null : x.liga_gols }; })()
   })).sort((a, b) => b.uso_pct - a.uso_pct);
   // 5) faixas de uso (quartis)
   const ord = vendedores.slice().sort((a, b) => a.uso_pct - b.uso_pct), q = Math.ceil(ord.length / 4);
   const faixas = [0, 1, 2, 3].map((i) => {
     const g = ord.slice(i * q, (i + 1) * q);
-    return { faixa: ['25% que MENOS usam', '2º quartil', '3º quartil', '25% que MAIS usam'][i], vendedores: g.length, uso_pct: r1(media(g.map((x) => x.uso_pct))), mix_medio: r1(media(g.map((x) => x.mix_medio))), skus_novos_medio: r1(media(g.map((x) => x.skus_novos_medio))), skus_por_pedido: r1(media(g.map((x) => x.skus_por_pedido))), faturado_por_cliente: Math.round(media(g.map((x) => x.faturado_por_cliente))), dobradinha_pct: r1(media(g.map((x) => x.dobradinha_pct))), ja_eram_clientes_pct: r1(media(g.map((x) => x.ja_eram_clientes_pct))), clientes: g.reduce((s, x) => s + x.clientes, 0) };
+    return { faixa: ['25% que MENOS usam', '2º quartil', '3º quartil', '25% que MAIS usam'][i], vendedores: g.length, uso_pct: r1(media(g.map((x) => x.uso_pct))), mix_medio: r1(media(g.map((x) => x.mix_medio))), skus_novos_medio: r1(media(g.map((x) => x.skus_novos_medio))), skus_por_pedido: r1(media(g.map((x) => x.skus_por_pedido))), faturado_por_cliente: Math.round(media(g.map((x) => x.faturado_por_cliente))), dobradinha_pct: r1(media(g.map((x) => x.dobradinha_pct))), ja_eram_clientes_pct: r1(media(g.map((x) => x.ja_eram_clientes_pct))), clientes: g.reduce((s, x) => s + x.clientes, 0),
+      pct_meta_fat: r1(media(g.filter((x) => x.pct_meta_fat != null).map((x) => x.pct_meta_fat))), pct_meta_pos: r1(media(g.filter((x) => x.pct_meta_pos != null).map((x) => x.pct_meta_pos))),
+      com_premio_pct: (() => { const h = g.filter((x) => x.premio != null); return h.length ? r1(h.filter((x) => x.premio > 0).length / h.length * 100) : null; })(),
+      liga_pts: r1(media(g.filter((x) => x.liga_pts != null).map((x) => x.liga_pts))), liga_gols: r1(media(g.filter((x) => x.liga_gols != null).map((x) => x.liga_gols))) };
   });
   const U = vendedores.map((v) => v.uso_pct);
   const saida = {
@@ -179,13 +203,16 @@ async function main() {
       usou_mix: 'o cliente comprou no mês um produto NOVO para ele (não comprou nos 90 dias antes do mês) que está na recomendação do +MIX dele',
       uso_pct: '% dos clientes positivados do vendedor (com +MIX disponível) em que ele vendeu ao menos 1 produto novo vindo do +MIX',
       mix_medio: 'produtos diferentes comprados pelo cliente no mês', skus_novos_medio: 'produtos novos por cliente (não comprados nos 90 dias antes)',
-      dobradinha_pct: '% dos clientes que compraram nas duas quinzenas', ja_eram_clientes_pct: '% dos clientes do mês que também compraram no mês anterior (fidelização)',
+      dobradinha_pct: '% dos clientes que compraram nas duas quinzenas', pct_meta_fat: '(faturado + pendente) / meta de faturamento do mês, igual ao app', pct_meta_pos: 'positivados / meta de positivação do mês',
+      premio: 'incentivo de outubro: 0 = sem prêmio, 1 = gatilho 1, 2 = gatilho 2', liga_pts: 'pontos na tabela da Liga (Champions Triunfante)', ja_eram_clientes_pct: '% dos clientes do mês que também compraram no mês anterior (fidelização)',
       ressalva: 'a recomendação do +MIX é calculada pelo CEVEN na hora da consulta; para dias passados ela é uma aproximação do que o vendedor viu. A partir de hoje a recomendação de cada dia fica gravada.'
     },
     resumo: { vendedores: vendedores.length, clientes: alvo.length, clientes_com_mix: ok, sem_coordenada: semCoord, falha_mix: falha,
       clientes_que_usaram: vendedores.reduce((s, v) => s + v.clientes_usou, 0), skus_mix_vendidos: vendedores.reduce((s, v) => s + v.skus_mix_vendidos, 0),
       correlacao_uso_x_mix: corr(U, vendedores.map((v) => v.mix_medio)), correlacao_uso_x_faturado_cliente: corr(U, vendedores.map((v) => v.faturado_por_cliente)),
-      correlacao_uso_x_dobradinha: corr(U, vendedores.map((v) => v.dobradinha_pct)), correlacao_uso_x_fidelizacao: corr(U, vendedores.map((v) => v.ja_eram_clientes_pct)) },
+      correlacao_uso_x_dobradinha: corr(U, vendedores.map((v) => v.dobradinha_pct)), correlacao_uso_x_fidelizacao: corr(U, vendedores.map((v) => v.ja_eram_clientes_pct)),
+      ...(() => { const par = (k) => { const L = vendedores.filter((v) => v[k] != null); return corr(L.map((v) => v.uso_pct), L.map((v) => v[k])); };
+        return { correlacao_uso_x_meta_fat: par('pct_meta_fat'), correlacao_uso_x_meta_pos: par('pct_meta_pos'), correlacao_uso_x_incentivo: par('incentivo_pct'), correlacao_uso_x_liga_pts: par('liga_pts') }; })() },
     faixas,
     estudo_quinzenas: { clientes_dobradinha: estudoQ.clientes, skus_q1_medio: r1(media(estudoQ.skus_q1)), skus_q2_medio: r1(media(estudoQ.skus_q2)), skus_novos_na_q2_medio: r1(media(estudoQ.novos_q2)), skus_repetidos_na_q2_medio: r1(media(estudoQ.repetidos)),
       pct_q2_que_e_novo: r1(media(estudoQ.novos_q2) / media(estudoQ.skus_q2) * 100) },

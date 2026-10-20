@@ -877,6 +877,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
       <div id="gab-as-fase" style="padding:0 20px 14px;display:none"></div>
       <div style="overflow-x:auto"><table class="tb-league"><thead><tr><th style="width:25%">Lance (regra oficial)</th><th style="text-align:center">Pontos</th><th>Critério</th><th style="text-align:center;width:90px">Lances hoje</th><th style="text-align:center;width:110px">Pontos no dia</th></tr></thead><tbody id="tbody-gabarito"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--tx-mut)">Carregando…</td></tr></tbody></table></div>
       <!-- 19/10/2026 (Vitorio: "coloca os lances no inicio"): a auditoria do dia vem DEPOIS da tabela de lances -->
+      <div id="gab-mix" style="padding:14px 20px"></div>
       <div id="gab-auditoria" style="padding:14px 20px;display:none"></div>
     </div>
   </section>
@@ -1369,7 +1370,23 @@ async function carregaAuditoriaGabarito(dia, fil) {
 }
 const nfmt = (n) => Number(n || 0).toLocaleString('pt-BR');
 
+// USO DO +MIX NO GABARITO (Vitorio, 20/10/2026: "quero olhar no gabarito"): resumo do dataset do +MIX (dados ate ontem, so Varejo). Completo em /mix.
+async function carregaMixGabarito() {
+  const box = document.getElementById('gab-mix'); if (!box) return;
+  let d = null;
+  try { const r = await fetch('https://raw.githubusercontent.com/vitoriotriunfante/cevenonline/main/public/dados_mix.json?t=' + Date.now(), { cache: 'no-store' }); if (r.ok) d = await r.json(); } catch (e) {}
+  if (!d || !d.faixas) { box.innerHTML = '<div class="rule-card" style="margin:0"><h3 style="margin:0 0 6px">🧩 Uso do +MIX</h3><p style="margin:0;color:var(--tx-mut)">Primeiro cálculo em andamento. <a href="/mix" target="_blank" style="color:#38bdf8">Abrir /mix</a></p></div>'; return; }
+  const F = d.faixas, R = d.resumo, n = (x, k = 1) => x == null ? '—' : Number(x).toLocaleString('pt-BR', { minimumFractionDigits: k, maximumFractionDigits: k });
+  const L = [['Uso do +MIX (% clientes)', 'uso_pct', '%'], ['Mix por cliente', 'mix_medio', ''], ['Produtos novos por cliente', 'skus_novos_medio', ''], ['R$ por cliente', 'faturado_por_cliente', 'R$'], ['% meta de faturamento', 'pct_meta_fat', '%'], ['% meta de positivação', 'pct_meta_pos', '%'], ['Com prêmio no incentivo', 'com_premio_pct', '%'], ['Dobradinha', 'dobradinha_pct', '%'], ['Fidelização', 'ja_eram_clientes_pct', '%'], ['Pontos na Liga', 'liga_pts', '']];
+  const fmt = (v, u) => u === 'R$' ? 'R$ ' + n(v, 0) : n(v) + (u === '%' ? '%' : '');
+  box.innerHTML = '<div class="rule-card" style="margin:0"><h3 style="margin:0 0 6px">🧩 Uso do +MIX · quem usa vende melhor?</h3>'
+    + '<p style="margin:0 0 10px;color:var(--tx-mut)">Mês ' + d.mes + ', dados até ' + d.dados_ate.split('-').reverse().join('/') + ', só Varejo. ' + n(R.clientes_que_usaram, 0) + ' clientes compraram produto novo que estava no +MIX deles (' + n(R.skus_mix_vendidos, 0) + ' produtos). <a href="/mix" target="_blank" style="color:#38bdf8">Ver completo →</a></p>'
+    + '<div style="overflow-x:auto"><table class="tb-league"><thead><tr><th>Média dos vendedores</th>' + F.map((f) => '<th style="text-align:center">' + f.faixa + '</th>').join('') + '</tr></thead><tbody>'
+    + L.map(([t, k, u]) => '<tr><td>' + t + '</td>' + F.map((f, i) => '<td style="text-align:center' + (i === 3 ? ';font-weight:800' : '') + '">' + fmt(f[k], u) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div></div>';
+}
+
 async function carregarGabarito() {
+  carregaMixGabarito();
   const tb = document.getElementById('tbody-gabarito'), inp = document.getElementById('gab-data');
   if (!tb) return;
   montaGabaritoFase();
