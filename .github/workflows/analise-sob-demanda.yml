@@ -57,3 +57,11 @@ jobs:
         run: |
           case "$SCRIPT" in *[!A-Za-z0-9_.-]*|"") echo "nome de script invalido"; exit 1;; esac
           python3 "scripts/$SCRIPT" $ARGS
+      - name: Guardar arquivos gerados (pasta saida/)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: saida
+          path: saida/
+          if-no-files-found: ignore
+          retention-days: 30
