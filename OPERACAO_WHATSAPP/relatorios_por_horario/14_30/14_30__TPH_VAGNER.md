@@ -3,12 +3,12 @@
 📍 *FILIAL TPH — VAGNER*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 141.622,86
-📦 *Pedidos Colocados:* 138 pedidos
-📍 *Visitas Realizadas:* 289 de 469 (61,6%)
+💰 *Total Digitado Hoje:* R$ 141.969,14
+📦 *Pedidos Colocados:* 140 pedidos
+📍 *Visitas Realizadas:* 290 de 469 (61,8%)
 👥 *Vendedores Varejo com Pedido:* 28 de 34 (82%)
 ✂️ *Cortes nos Pedidos de Hoje:* R$ 759,48 (6 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 30.614,12 (20 pedidos retidos)
+🔒 *Pedidos Bloqueados Hoje:* R$ 23.528,12 (19 pedidos retidos)
 🚛 *Devoluções Entradas Hoje:* R$ 7.786,40
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
