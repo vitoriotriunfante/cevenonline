@@ -62,13 +62,12 @@ jobs:
           mkdir -p analises
           rclone copy gdrive:pedidos_historico_ceven.db analises/
           rclone copy gdrive:mix_gap_hist.db analises/ || echo "histórico do +MIX ainda não existe: começa hoje"
+          # arquivo-semente de 1 byte criado no Drive (a conta de serviço não pode CRIAR arquivo, só atualizar): descarta e começa o banco do zero
+          if [ -f analises/mix_gap_hist.db ] && [ $(stat -c%s analises/mix_gap_hist.db) -lt 1024 ]; then rm -f analises/mix_gap_hist.db; fi
       - name: Gerar o dataset do +MIX
         env:
           MES: ${{ github.event.inputs.mes }}
         run: node analises/gerar_dados_mix.js $MES
-      - name: Guardar o histórico do +MIX no Drive
-        if: always()
-        run: if [ -f analises/mix_gap_hist.db ]; then rclone copy analises/mix_gap_hist.db gdrive:/; fi
       - name: Gravar o dataset na main
         run: |
           git config --global user.name "github-actions[bot]"
@@ -83,3 +82,7 @@ jobs:
             sleep $((i * 5))
           done
           exit 1
+      - name: Guardar o histórico do +MIX no Drive
+        if: always()
+        continue-on-error: true   # a tela recebe o dataset mesmo se o Drive falhar
+        run: if [ -f analises/mix_gap_hist.db ]; then rclone copy analises/mix_gap_hist.db gdrive:/; fi
