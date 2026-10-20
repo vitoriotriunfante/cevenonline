@@ -3,9 +3,9 @@
 📍 *FILIAL MCD — CLEVERSON*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 75.919,21
-📦 *Pedidos Colocados:* 27 pedidos
-📍 *Visitas Realizadas:* 66 de 182 (36,3%)
+💰 *Total Digitado Hoje:* R$ 79.663,37
+📦 *Pedidos Colocados:* 29 pedidos
+📍 *Visitas Realizadas:* 79 de 182 (43,4%)
 👥 *Vendedores Varejo com Pedido:* 13 de 19 (68%)
 ✂️ *Cortes nos Pedidos de Hoje:* R$ 0,00 (0 pedidos afetados)
 🔒 *Pedidos Bloqueados Hoje:* R$ 703,38 (1 pedidos retidos)

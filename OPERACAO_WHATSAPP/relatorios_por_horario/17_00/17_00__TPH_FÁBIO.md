@@ -3,18 +3,18 @@
 📍 *FILIAL TPH — FÁBIO*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 134.268,46
-📦 *Pedidos Colocados:* 118 pedidos
-📍 *Visitas Realizadas:* 191 de 460 (41,5%)
-👥 *Vendedores Varejo com Pedido:* 17 de 25 (68%)
+💰 *Total Digitado Hoje:* R$ 212.969,50
+📦 *Pedidos Colocados:* 129 pedidos
+📍 *Visitas Realizadas:* 211 de 460 (45,9%)
+👥 *Vendedores Varejo com Pedido:* 18 de 25 (72%)
 ✂️ *Cortes nos Pedidos de Hoje:* R$ 62,92 (1 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 7.638,33 (10 pedidos retidos)
+🔒 *Pedidos Bloqueados Hoje:* R$ 8.952,29 (12 pedidos retidos)
 🚛 *Devoluções Entradas Hoje:* R$ 1.438,52
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
   ▫️ Cód. 117 • MEIRY ALESSANDRA KAVALKIEVIZ: -R$ 62,92 em  (SKU em falta)
 
-🚨 *Varejo Zerados (17:00):* 8 (32%)
+🚨 *Varejo Zerados (17:00):* 7 (28%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚨 *VENDEDORES DE VAREJO ZERADOS NO HORÁRIO (17:00):*
@@ -32,6 +32,3 @@ _(Visitas realizadas sem conversão de pedido)_
   ▫️ Cód. 65 • SIRLENE DE FATIMA BORGES: *0 visitas feitas* (de 23 na rota) • R$ 0
   ▫️ Cód. 106 • LUCAS MACHADO MARINHO: *0 visitas feitas* (de 16 na rota) • R$ 0
   ▫️ Cód. 1031 • WILLIAM LISBOA NUNES: *0 visitas feitas* (de 18 na rota) • R$ 0
-
-👤 *Supervisor: RODRIGO BERTONI* (1 zerados)
-  ▫️ Cód. 47 • FABIANE SILVA SANTOS: *0 visitas feitas* (de 77 na rota) • R$ 0
