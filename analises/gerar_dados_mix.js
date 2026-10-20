@@ -95,7 +95,7 @@ async function main() {
     if (x.d >= INI) {
       o.rca = x.r; if (!o.cnpj) o.cnpj = so(x.cnpj);
       const q = Number(x.d.slice(8, 10)) <= 15 ? 'q1' : 'q2';
-      o[q].add(String(x.cod)); o.peds.add(x.p); o.pedsQ[q].add(x.p); o.valor += Number(x.v) || 0;
+      o[q].add(String(x.cod)); o.peds.add(x.p); o.pedsQ[q].add(x.p); o.valor += Number(x.v) || 0; o.vsku = o.vsku || new Map(); o.vsku.set(String(x.cod), (o.vsku.get(String(x.cod)) || 0) + (Number(x.v) || 0));
       if (!o.skusPed.has(x.p)) o.skusPed.set(x.p, new Set()); o.skusPed.get(x.p).add(String(x.cod));
     } else { o.antes.add(String(x.cod)); if (x.d.slice(0, 7) === mesAnt) o.comprouMesAnt = true; }
   }
@@ -171,6 +171,10 @@ async function main() {
     if (o.comprouMesAnt) { v.recompra_base++; }
     if (dob) v.dobradinha++;
     for (const s of o.skusPed.values()) v.skus_ped.push(s.size);
+    // COMPARATIVO ENTRE VENDEDORES (20/10/2026, estilo da apresentacao de 18/09: "clientes do mesmo perfil, vendas diferentes"): penetracao de cada produto na carteira positivada
+    v.skus = v.skus || new Map();
+    for (const [c, val] of (o.vsku || new Map())) { const it = v.skus.get(c) || { cli: 0, val: 0 }; it.cli++; it.val += val; v.skus.set(c, it); }
+    v.cnpjsPos = v.cnpjsPos || new Map(); v.cnpjsPos.set(o.cnpj, novosMix.length ? 2 : 1);
     for (const c of novosMix) { const it = itensMix.get(c) || { cod: c, nome: nomeProd.get(c) || '', clientes: 0, industria: r.cods.get(c).ind }; it.clientes++; itensMix.set(c, it); }
   }
   // fidelizacao: dos clientes positivados no mes ANTERIOR por esse vendedor, quantos voltaram a comprar neste mes
@@ -182,6 +186,11 @@ async function main() {
     mix_medio: r1(media(v.mix)), skus_novos_medio: r1(media(v.novos)), skus_por_pedido: r1(media(v.skus_ped)),
     faturado_por_cliente: Math.round(v.valor / v.clientes), dobradinha_pct: r1(v.dobradinha / v.clientes * 100),
     ja_eram_clientes_pct: r1(v.recompra_base / v.clientes * 100),
+    carteira: (carteira.get(v.filial + '|' + v.rca) || new Map()).size || null,
+    cobertura_pct: (carteira.get(v.filial + '|' + v.rca) || new Map()).size ? r1(v.clientes / carteira.get(v.filial + '|' + v.rca).size * 100) : null,
+    top_skus: [...(v.skus || new Map()).entries()].sort((a, b) => b[1].cli - a[1].cli).slice(0, 15).map(([c, x]) => ({ c, n: nomeProd.get(c) || '', cli: x.cli, pct: r1(x.cli / v.clientes * 100), val: Math.round(x.val) })),
+    // pontos do mapa: [lat, lon, 0 = carteira sem compra no mes | 1 = positivado | 2 = positivado com produto novo do +MIX]
+    pontos: [...(carteira.get(v.filial + '|' + v.rca) || new Map()).values()].map((c) => [Math.round(c.lat * 1e4) / 1e4, Math.round(c.lon * 1e4) / 1e4, (v.cnpjsPos && v.cnpjsPos.get(c.cnpj)) || 0]),
     ...(() => { const x = res.get(v.filial + '|' + v.rca) || {}; return {
       pct_meta_fat: x.meta ? r1(x.fat_pend / x.meta * 100) : null, pct_meta_pos: x.pos_meta ? r1(x.pos_real / x.pos_meta * 100) : null,
       incentivo_pct: x.inc_pct == null || isNaN(x.inc_pct) ? null : r1(x.inc_pct), premio: x.premio_g2 ? 2 : x.premio_g1 ? 1 : (x.inc_pct == null ? null : 0),
