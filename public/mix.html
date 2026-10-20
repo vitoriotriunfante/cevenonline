@@ -47,7 +47,7 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
     <div class="sub">Estudo · não pontua na Liga</div>
   </header>
   <nav class="tabs" id="tabs">
-    <button data-s="resumo" class="on">Resumo</button><button data-s="graf">Gráficos</button><button data-s="comp">Comparar vendedores</button>
+    <button data-s="resumo" class="on">Resumo</button><button data-s="cubo">Explorar</button><button data-s="graf">Gráficos</button><button data-s="comp">Comparar vendedores</button>
     <button data-s="vend">Vendedores</button><button data-s="prod">Produtos</button><button data-s="quinz">Quinzenas</button>
   </nav>
 
@@ -57,6 +57,17 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
     <h2>Quem usa mais o +MIX vende melhor?</h2>
     <div class="box" id="faixas"></div>
     <div class="leg" id="corr"></div>
+  </section>
+
+  <section id="s-cubo">
+    <div class="ctl"><b>Olhar por:</b><select id="xDim"><option value="filial">Filial</option><option value="sup">Supervisor</option><option value="vend">Vendedor</option><option value="ind" selected>Indústria</option><option value="prod">Produto</option></select>
+      <select id="xFil"><option value="">Todas as filiais</option></select><select id="xSup"><option value="">Todos os supervisores</option></select><select id="xVend"><option value="">Todos os vendedores</option></select>
+      <select id="xInd"><option value="">Todas as indústrias</option></select><input id="xBusca" placeholder="Buscar"><span class="sub" id="xCont"></span></div>
+    <div class="box"><table id="xTab"></table></div>
+    <div class="leg" id="xLeg"></div>
+    <h2>Mapa de calor: vendedor × indústria (% dos clientes positivados do vendedor que compram a indústria)</h2>
+    <div class="leg">Escolha uma filial ou um supervisor acima. Verde forte = a indústria entra em quase todos os clientes do vendedor; vazio = ele praticamente não vende. Colunas com cores muito diferentes entre vendedores da mesma equipe são o vício de portfólio.</div>
+    <div class="box" id="xHeat"></div>
   </section>
 
   <section id="s-graf">
@@ -103,7 +114,7 @@ const cor = (v) => getComputedStyle(document.documentElement).getPropertyValue(v
 document.querySelectorAll('#tabs button').forEach((b) => b.onclick = () => {
   document.querySelectorAll('#tabs button').forEach((x) => x.classList.toggle('on', x === b));
   document.querySelectorAll('section').forEach((s) => s.classList.toggle('on', s.id === 's-' + b.dataset.s));
-  if (b.dataset.s === 'graf') graficos(); if (b.dataset.s === 'comp') comparar();
+  if (b.dataset.s === 'graf') graficos(); if (b.dataset.s === 'cubo') cubo(); if (b.dataset.s === 'comp') comparar();
 });
 
 async function carrega() {
@@ -116,7 +127,7 @@ async function carrega() {
   $('kpis').innerHTML = [[nf(R.clientes_com_mix), 'clientes positivados com +MIX calculado'], [nf(R.clientes_que_usaram), 'compraram produto NOVO que estava no +MIX'],
     [pc(R.clientes_com_mix ? R.clientes_que_usaram / R.clientes_com_mix * 100 : null), 'taxa de uso geral'], [nf(R.skus_mix_vendidos), 'produtos novos vendidos via +MIX']]
     .map(([v, t]) => `<div class="k"><b>${v}</b><span>${t}</span></div>`).join('');
-  resumo(); filtros(); tabelaV(); produtos(); quinzenas();
+  resumo(); filtros(); tabelaV(); produtos(); quinzenas(); filtrosCubo();
   $('defs').innerHTML = Object.entries(D.definicoes || {}).map(([k, v]) => `<b>${esc(k.replace(/_/g, ' '))}:</b> ${esc(v)}`).join('<br>');
 }
 
@@ -232,6 +243,88 @@ function quinzenas() {
   $('quinz').innerHTML = `<table><tbody><tr><td class="l">Clientes que compraram nas duas quinzenas</td><td>${nf(Q.clientes_dobradinha)}</td></tr>
     <tr><td class="l">Produtos diferentes na 1ª quinzena (média)</td><td>${nf(Q.skus_q1_medio, 1)}</td></tr><tr><td class="l">Produtos diferentes na 2ª quinzena (média)</td><td>${nf(Q.skus_q2_medio, 1)}</td></tr>
     <tr><td class="l">… dos quais NOVOS em relação à 1ª</td><td class="ver up">${nf(Q.skus_novos_na_q2_medio, 1)} (${pc(Q.pct_q2_que_e_novo)})</td></tr><tr><td class="l">… dos quais REPETIDOS</td><td>${nf(Q.skus_repetidos_na_q2_medio, 1)}</td></tr></tbody></table>`;
+}
+
+// ===================== EXPLORAR (CUBO) =====================
+// Vitorio, 20/10/2026: "quero enxergar todos os lados do cubo... partindo por vendedor, produto, industria, regiao e todas as possibilidades".
+// Fatos: D.cubo.vi = [filial, rca, industria, clientes, faturado, produtos]; D.cubo.fp = [filial, cod, nome, industria, clientes, faturado, vendedores, mix_recomendou, mix_virou_compra]
+let XORD = 'cli', XDESC = true;
+function filtrosCubo() {
+  if (!D.cubo) { $('xTab').innerHTML = '<tr><td class="l">Os dados do explorador chegam na próxima atualização (rodada em andamento).</td></tr>'; return; }
+  const fs = [...new Set(D.vendedores.map((v) => v.filial))].sort();
+  $('xFil').innerHTML = '<option value="">Todas as filiais</option>' + fs.map((f) => `<option>${f}</option>`).join('');
+  const inds = [...new Set(D.cubo.vi.map((x) => x[2]))].sort();
+  $('xInd').innerHTML = '<option value="">Todas as indústrias</option>' + inds.map((i) => `<option>${esc(i)}</option>`).join('');
+  const atualiza = (mudouFilial) => {
+    const f = $('xFil').value;
+    if (mudouFilial) {
+      const sups = [...new Set(D.vendedores.filter((v) => !f || v.filial === f).map((v) => v.supervisor).filter(Boolean))].sort();
+      $('xSup').innerHTML = '<option value="">Todos os supervisores</option>' + sups.map((x) => `<option>${esc(x)}</option>`).join('');
+    }
+    const vs = D.vendedores.filter((v) => (!f || v.filial === f) && (!$('xSup').value || v.supervisor === $('xSup').value)).sort((a, b) => a.nome.localeCompare(b.nome));
+    $('xVend').innerHTML = '<option value="">Todos os vendedores</option>' + vs.map((v) => `<option value="${v.filial}|${v.rca}">${esc(v.nome)}</option>`).join('');
+    cubo();
+  };
+  $('xFil').onchange = () => atualiza(true); $('xSup').onchange = () => atualiza(false);
+  ['xVend', 'xInd', 'xDim'].forEach((id) => $(id).onchange = cubo); $('xBusca').oninput = cubo;
+  atualiza(true);
+}
+function noRecorte(v) {
+  const f = $('xFil').value, s = $('xSup').value, vv = $('xVend').value;
+  return v && (!f || v.filial === f) && (!s || v.supervisor === s) && (!vv || v.filial + '|' + v.rca === vv);
+}
+function cubo() {
+  if (!D || !D.cubo) return;
+  const dim = $('xDim').value, f = $('xFil').value, ind = $('xInd').value, b = $('xBusca').value.trim().toUpperCase();
+  const vk = new Map(D.vendedores.map((v) => [v.filial + '|' + v.rca, v]));
+  const base = D.vendedores.filter(noRecorte).reduce((t, v) => t + (v.clientes || 0), 0);   // clientes positivados no recorte (denominador da penetracao)
+  let linhas, cols, nTexto = 1;
+  if (dim === 'prod') {
+    nTexto = 2;
+    const posFil = new Map(); for (const v of D.vendedores) posFil.set(v.filial, (posFil.get(v.filial) || 0) + (v.clientes || 0));
+    const g = new Map();
+    for (const [fil, cod, nome, i, cli, val, vend, rec, conv] of D.cubo.fp) {
+      if ((f && fil !== f) || (ind && i !== ind)) continue;
+      const x = g.get(cod) || { k: cod + ' · ' + nome, ind: i, cli: 0, val: 0, vend: 0, rec: 0, conv: 0, pos: 0 };
+      x.cli += cli; x.val += val; x.vend += vend; x.rec += rec; x.conv += conv; x.pos += posFil.get(fil) || 0; g.set(cod, x);
+    }
+    linhas = [...g.values()].map((x) => ({ ...x, pen: x.pos ? x.cli / x.pos * 100 : null, cv: x.rec ? x.conv / x.rec * 100 : null }));
+    cols = [['k', 'Produto', esc], ['ind', 'Indústria', esc], ['cli', 'Clientes', nf], ['pen', '% penetração', pc], ['val', 'Faturado', brl], ['vend', 'Vendedores', nf], ['rec', '+MIX recomendou*', nf], ['conv', 'Virou compra*', nf], ['cv', 'Conversão*', pc]];
+    $('xLeg').textContent = 'Produto: só os filtros de filial e de indústria se aplicam (dado por filial). *+MIX: medida provisória até a coleta antes da visita completar 2 a 3 semanas.';
+  } else {
+    const chave = (v, i) => dim === 'filial' ? v.filial : dim === 'sup' ? v.filial + ' · ' + (v.supervisor || '—') : dim === 'vend' ? v.filial + ' · ' + v.nome : i;
+    const g = new Map(), posK = new Map();
+    for (const v of D.vendedores) if (noRecorte(v)) { const k = chave(v, null); posK.set(k, (posK.get(k) || 0) + (v.clientes || 0)); }
+    for (const [fil, rca, i, cli, val, sk] of D.cubo.vi) {
+      const v = vk.get(fil + '|' + rca);
+      if (!noRecorte(v) || (ind && i !== ind)) continue;
+      const k = chave(v, i), x = g.get(k) || { k, cli: 0, val: 0, sk: 0, inds: new Set(), vend: new Set() };
+      x.cli += cli; x.val += val; x.sk += sk; x.inds.add(i); x.vend.add(fil + '|' + rca); g.set(k, x);
+    }
+    linhas = [...g.values()].map((x) => ({ ...x, nInd: x.inds.size, nVend: x.vend.size, pen: dim === 'ind' ? (base ? x.cli / base * 100 : null) : null }));
+    cols = dim === 'ind'
+      ? [['k', 'Indústria', esc], ['cli', 'Clientes que compram', nf], ['pen', '% dos positivados', pc], ['val', 'Faturado', brl], ['sk', 'Produtos (soma por vendedor)', nf], ['nVend', 'Vendedores que vendem', nf]]
+      : [['k', { filial: 'Filial', sup: 'Supervisor', vend: 'Vendedor' }[dim], esc], ['nVend', 'Vendedores', nf], ['cli', 'Compras cliente×indústria', nf], ['val', 'Faturado', brl], ['nInd', 'Indústrias vendidas', nf], ['sk', 'Produtos (soma)', nf]];
+    $('xLeg').textContent = dim === 'ind' ? `% dos positivados = clientes que compram a indústria ÷ ${nf(base)} clientes positivados no recorte.` : 'Use os filtros para descer: filial → supervisor → vendedor; escolha uma indústria para ver só ela.';
+  }
+  if (b) linhas = linhas.filter((x) => String(x.k).toUpperCase().includes(b) || String(x.ind || '').toUpperCase().includes(b));
+  if (!cols.some((c) => c[0] === XORD)) XORD = 'cli';
+  linhas.sort((x, y) => { const a = x[XORD], c = y[XORD]; return (typeof a === 'string' ? a.localeCompare(c) : (a ?? -1) - (c ?? -1)) * (XDESC ? -1 : 1); });
+  $('xCont').textContent = linhas.length + ' linhas' + (linhas.length > 400 ? ' (mostrando 400)' : '');
+  $('xTab').innerHTML = '<thead><tr>' + cols.map(([k, t], i) => `<th class="${i < nTexto ? 'l' : ''}" data-k="${k}">${t}${XORD === k ? (XDESC ? ' ▼' : ' ▲') : ''}</th>`).join('') + '</tr></thead><tbody>' +
+    linhas.slice(0, 400).map((x) => '<tr>' + cols.map(([k, , fm], i) => `<td class="${i < nTexto ? 'l' : ''}">${fm(x[k])}${k === 'pen' ? `<div class="bar"><i style="width:${Math.min(100, x[k] || 0)}%"></i></div>` : ''}</td>`).join('') + '</tr>').join('') + '</tbody>';
+  document.querySelectorAll('#xTab th').forEach((th) => th.onclick = () => { const k = th.dataset.k; XDESC = XORD === k ? !XDESC : true; XORD = k; cubo(); });
+  heat(vk);
+}
+function heat(vk) {
+  if (!$('xFil').value && !$('xSup').value) { $('xHeat').innerHTML = '<div class="leg">Escolha uma filial ou um supervisor para ver o mapa de calor.</div>'; return; }
+  const vends = D.vendedores.filter((v) => (!$('xFil').value || v.filial === $('xFil').value) && (!$('xSup').value || v.supervisor === $('xSup').value));
+  const set = new Set(vends.map((v) => v.filial + '|' + v.rca)), pen = new Map(), totI = new Map();
+  for (const [fil, rca, i, cli] of D.cubo.vi) { const k = fil + '|' + rca; if (!set.has(k)) continue; const v = vk.get(k); pen.set(k + '|' + i, v.clientes ? cli / v.clientes * 100 : 0); totI.set(i, (totI.get(i) || 0) + cli); }
+  const inds = [...totI.entries()].sort((a, b) => b[1] - a[1]).slice(0, 16).map((x) => x[0]);
+  const celula = (p) => { const a = Math.min(1, (p || 0) / 80); return `<td style="background:rgba(34,197,94,${(a * 0.85).toFixed(2)});color:${a > 0.55 ? '#04210f' : 'inherit'};text-align:center">${p ? nf(p, 0) : ''}</td>`; };
+  $('xHeat').innerHTML = `<table><thead><tr><th class="l">Vendedor (clientes)</th>${inds.map((i) => `<th style="white-space:normal;min-width:70px;font-size:10.5px">${esc(i.replace(/^A ?- ?/, '').slice(0, 26))}</th>`).join('')}</tr></thead><tbody>` +
+    vends.sort((a, b) => b.clientes - a.clientes).map((v) => `<tr><td class="l">${esc(v.nome)} <span class="sub">(${v.clientes})</span></td>${inds.map((i) => celula(pen.get(v.filial + '|' + v.rca + '|' + i))).join('')}</tr>`).join('') + '</tbody></table>';
 }
 carrega();
 </script></body></html>

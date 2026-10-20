@@ -156,6 +156,7 @@ async function main() {
 
   // 4) métricas por cliente
   const porV = new Map();
+  const cuboVI = new Map(), cuboFP = new Map();
   const itensMix = new Map();   // codprod -> {nome, clientes, valor}
   const estudoQ = { clientes: 0, skus_q1: [], skus_q2: [], novos_q2: [], repetidos: [] };
   for (const o of alvo) {
@@ -187,6 +188,14 @@ async function main() {
     for (const ind of new Set([...(o.vsku || new Map()).keys()].map((c) => IND[c]).filter(Boolean))) v.inds.set(ind, (v.inds.get(ind) || 0) + 1);
     v.indVal = v.indVal || new Map();
     for (const [c, val] of (o.vsku || new Map())) { const ind = IND[c]; if (ind) v.indVal.set(ind, (v.indVal.get(ind) || 0) + val); }
+    // CUBO (Vitorio, 20/10/2026: "quero ver partindo por vendedor, produto, industria, regiao e todas as possibilidades"):
+    // fato vendedor x industria e fato filial x produto, com clientes, faturado e o que o +MIX recomendou/converteu
+    for (const [c, val] of (o.vsku || new Map())) {
+      const ind = IND[c] || 'SEM INDUSTRIA NO CATALOGO';
+      const kv = `${o.filial}|${o.rca}|${ind}`; const x = cuboVI.get(kv) || { cli: new Set(), val: 0, skus: new Set() }; x.cli.add(o.cnpj); x.val += val; x.skus.add(c); cuboVI.set(kv, x);
+      const kp = `${o.filial}|${c}`; const y = cuboFP.get(kp) || { cli: new Set(), val: 0, vend: new Set(), rec: 0, conv: 0 }; y.cli.add(o.cnpj); y.val += val; y.vend.add(o.rca); cuboFP.set(kp, y);
+    }
+    if (r) for (const c of r.cods.keys()) { if (o.antes.has(c)) continue; const kp = `${o.filial}|${c}`; const y = cuboFP.get(kp) || { cli: new Set(), val: 0, vend: new Set(), rec: 0, conv: 0 }; y.rec++; if (novosMix.includes(c)) y.conv++; cuboFP.set(kp, y); }
     for (const c of novosMix) { const it = itensMix.get(c) || { cod: c, nome: nomeProd.get(c) || '', clientes: 0, industria: r.cods.get(c).ind }; it.clientes++; itensMix.set(c, it); }
   }
   // fidelizacao: dos clientes positivados no mes ANTERIOR por esse vendedor, quantos voltaram a comprar neste mes
@@ -219,6 +228,13 @@ async function main() {
       liga_pts: r1(media(g.filter((x) => x.liga_pts != null).map((x) => x.liga_pts))), liga_gols: r1(media(g.filter((x) => x.liga_gols != null).map((x) => x.liga_gols))) };
   });
   const U = vendedores.map((v) => v.uso_pct);
+  const cubo = {
+    // vendedor x industria: [filial, rca, industria, clientes que compram, faturado, produtos diferentes]
+    vi: [...cuboVI.entries()].map(([k, x]) => { const [f, r, i] = k.split('|'); return [f, r, i, x.cli.size, Math.round(x.val), x.skus.size]; }),
+    // filial x produto: [filial, cod, nome, industria, clientes, faturado, vendedores, +MIX recomendou (clientes), +MIX virou compra (clientes)]
+    fp: [...cuboFP.entries()].filter(([, x]) => x.cli.size >= 2 || x.rec >= 5).map(([k, x]) => { const [f, c] = k.split('|'); return [f, c, nomeProd.get(c) || '', IND[c] || '', x.cli.size, Math.round(x.val), x.vend.size, x.rec, x.conv]; })
+  };
+  console.log(`cubo: ${cubo.vi.length} linhas vendedor x industria, ${cubo.fp.length} linhas filial x produto`);
   const saida = {
     gerado_em: new Date().toISOString(), mes: MES, dados_ate: ATE, historico_desde: ANTES,
     definicoes: {
@@ -239,7 +255,8 @@ async function main() {
     estudo_quinzenas: { clientes_dobradinha: estudoQ.clientes, skus_q1_medio: r1(media(estudoQ.skus_q1)), skus_q2_medio: r1(media(estudoQ.skus_q2)), skus_novos_na_q2_medio: r1(media(estudoQ.novos_q2)), skus_repetidos_na_q2_medio: r1(media(estudoQ.repetidos)),
       pct_q2_que_e_novo: r1(media(estudoQ.novos_q2) / media(estudoQ.skus_q2) * 100) },
     itens_mais_vendidos_via_mix: [...itensMix.values()].sort((a, b) => b.clientes - a.clientes).slice(0, 60),
-    vendedores
+    vendedores,
+    cubo
   };
   fs.writeFileSync(path.join(__dirname, '..', 'public', 'dados_mix.json'), JSON.stringify(saida));
   console.log(JSON.stringify({ resumo: saida.resumo, faixas, estudo_quinzenas: saida.estudo_quinzenas }, null, 1));
