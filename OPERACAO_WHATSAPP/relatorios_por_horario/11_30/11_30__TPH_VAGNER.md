@@ -1,24 +1,24 @@
 🏢 *FILIAL TPH — GESTÃO DE CAMPO*
-📅 19/10/2026 • Gerente: Vagner
+📅 20/10/2026 • Gerente: Vagner
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 *PAINEL DE ATIVIDADES (8 SUPERVISORES):*
-📝 Compromissos: *7 de 8* lançados
-🚗 Em Rota (RET): *6 de 8* em campo
+📝 Compromissos: *6 de 8* lançados
+🚗 Em Rota (RET): *5 de 8* em campo
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 👤 *ALLISON ANTONIO FAGUNDES M PINHEIRO*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 08:08)
+🚗 Rota (RET): ✅ Em campo (início às 08:11)
 └ 👥 RCA: RODRIGO MORAIS DE LIMA
-└ 📍 3 PDVs visitados • 📸 0 fotos • Score: 100%
+└ 📍 2 PDVs visitados • 📸 0 fotos • Score: 100%
 
 👤 *ANDREY CAMILLO PIRAGINE*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 08:44)
-└ 👥 RCA: FABIANA MARIA DE SOUSA SANTOS
-└ 📍 4 PDVs visitados • 📸 13 fotos • Score: 100%
+🚗 Rota (RET): ✅ Em campo (início às 09:42)
+└ 👥 RCA: MARCIA SILVA DO NASCIMENTO
+└ 📍 2 PDVs visitados • 📸 6 fotos • Score: 100%
 
 👤 *CLAUDETE DE SOUZA SCHULTZ*
 📝 Compromisso: ❌ Não lançado
@@ -26,28 +26,26 @@
 
 👤 *JEFFERSON POLETTO*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 08:57)
-└ 👥 RCA: VANESSA THAIS OLIVEIRA MANCINI
-└ 📍 2 PDVs visitados • 📸 8 fotos • Score: 100%
+🚗 Rota (RET): ✅ Em campo (início às 08:36)
+└ 👥 RCA: LEANDRO HORACIO NETO
+└ 📍 3 PDVs visitados • 📸 5 fotos • Score: 100%
 
 👤 *LUCAS RAMOS MONTAGNHANI*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 10:37)
-└ 👥 RCA: LUCAS RAMOS MONTAGNHANI
-└ 📍 2 PDVs visitados • 📸 27 fotos • Score: 100%
+🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
 👤 *LUIZ AUGUSTO RAMOS*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 09:31)
-└ 👥 RCA: GERMANO LEMOS CAVALHEIRO JUNIOR
-└ 📍 5 PDVs visitados • 📸 19 fotos • Score: 82%
+🚗 Rota (RET): ✅ Em campo (início às 09:06)
+└ 👥 RCA: JULIANO VIEIRA DA SILVA
+└ 📍 4 PDVs visitados • 📸 6 fotos • Score: 88%
 
 👤 *RODRIGO DE ARRUDA DARROS*
-📝 Compromisso: ✅ Lançado
+📝 Compromisso: ❌ Não lançado
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
 👤 *JONATHAN FERNANDES*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 09:41)
+🚗 Rota (RET): ✅ Em campo (início às 09:48)
 └ 👥 RCA: ALTEMIO HENRIQUE DIVINO
-└ 📍 1 PDV visitado • 📸 0 fotos • Score: 86%
+└ 📍 4 PDVs visitados • 📸 8 fotos • Score: 91%
