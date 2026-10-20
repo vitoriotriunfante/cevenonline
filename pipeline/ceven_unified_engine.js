@@ -1191,7 +1191,9 @@ function formatarAlertaRiscoGerente(gerente, sigla, supervisoresMap, horaLabel) 
 
 // 5. Formatar Relatório de Vendas (Consolidado e Gerentes)
 function formatarRelatoriosVendas(filialVendas, horaLabel) {
-  const ranking = Object.values(filialVendas).map(f => {
+  // 20/10/2026 (Vitorio: "dinovo eu ia passar vergonha? mandando informacao incompleta?"): grupo SEM nenhum dado (ex.: 'TPH — VAGNER / FÁBIO', RCAs novos do CEVEN
+  // ainda sem grupo na Gestao de Equipe) saia como linha toda zerada no consolidado. Grupo sem vendedor, rota, pedido, devolucao, corte e bloqueio nao entra no ranking.
+  const ranking = Object.values(filialVendas).filter(f => (f.fatTotalDigitado || 0) || (f.pedidosTotal || 0) || (f.visitasProg || 0) || (f.vjTotal || 0) || (f.devolucoesValor || 0) || (f.cortesValor || 0) || (f.bloqueadosValor || 0)).map(f => {
     const fat = f.fatTotalDigitado || 0;
     const ped = f.pedidosTotal || 0;
     const vis = f.visitasReal || 0;
