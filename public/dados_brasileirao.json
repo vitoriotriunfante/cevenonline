@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-21T10:32:58.094243Z",
+  "gerado_em": "2026-10-21T10:47:55.584328Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -13,7 +13,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 23738,
+  "total_lances_auditados": 23739,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -199,8 +199,8 @@
       "empates": 6,
       "derrotas": 0,
       "gp": 1638,
-      "gc": 1836,
-      "sg": -198,
+      "gc": 1840,
+      "sg": -202,
       "aprov": 33.3,
       "super_pedidos": 30,
       "inativos_resgatados": 16,
@@ -538,8 +538,8 @@
       "empates": 6,
       "derrotas": 0,
       "gp": 604,
-      "gc": 788,
-      "sg": -184,
+      "gc": 792,
+      "sg": -188,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -1659,8 +1659,8 @@
       "empates": 6,
       "derrotas": 0,
       "gp": 335,
-      "gc": 173,
-      "sg": 162,
+      "gc": 177,
+      "sg": 158,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -2435,15 +2435,15 @@
       "filial": "TBE",
       "canal": "VAREJO",
       "gerente": "Diego",
-      "total_vendedores": 6,
+      "total_vendedores": 7,
       "jogos": 6,
       "pts_tabela": 4,
       "vitorias": 0,
       "empates": 4,
       "derrotas": 2,
-      "gp": 340,
-      "gc": 487,
-      "sg": -147,
+      "gp": 381,
+      "gc": 686,
+      "sg": -305,
       "aprov": 22.2,
       "forma": [
         "E",
@@ -11665,40 +11665,6 @@
       "pos_filial": 18
     },
     {
-      "rca": "1063",
-      "nome": "WALTER PEREIRA CORDEIRO",
-      "filial": "MCD",
-      "supervisor": "JONATAS DA SILVA DE OLIVEIRA",
-      "gerente": "Cleverson",
-      "canal": "VAREJO",
-      "jogos": 6,
-      "vitorias": 1,
-      "empates": 2,
-      "derrotas": 3,
-      "pts_tabela": 5,
-      "aprov": 27.8,
-      "gp": 27,
-      "gc": 28,
-      "sg": -1,
-      "super_pedidos": 1,
-      "inativos_resgatados": 0,
-      "forma": [
-        "D",
-        "V",
-        "E",
-        "D",
-        "E",
-        "D",
-        "J"
-      ],
-      "streak": 1,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 159,
-      "pos_filial": 15
-    },
-    {
       "rca": "442",
       "nome": "MARCELO ALVES MALESKI",
       "filial": "MCD",
@@ -11729,8 +11695,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 160,
-      "pos_filial": 16
+      "pos_brasil": 159,
+      "pos_filial": 15
     },
     {
       "rca": "1023",
@@ -11763,8 +11729,42 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 161,
+      "pos_brasil": 160,
       "pos_filial": 19
+    },
+    {
+      "rca": "1063",
+      "nome": "WALTER PEREIRA CORDEIRO",
+      "filial": "MCD",
+      "supervisor": "JONATAS DA SILVA DE OLIVEIRA",
+      "gerente": "Cleverson",
+      "canal": "VAREJO",
+      "jogos": 6,
+      "vitorias": 1,
+      "empates": 2,
+      "derrotas": 3,
+      "pts_tabela": 5,
+      "aprov": 27.8,
+      "gp": 27,
+      "gc": 32,
+      "sg": -5,
+      "super_pedidos": 1,
+      "inativos_resgatados": 0,
+      "forma": [
+        "D",
+        "V",
+        "E",
+        "D",
+        "E",
+        "D",
+        "J"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 161,
+      "pos_filial": 16
     },
     {
       "rca": "304",
@@ -16634,7 +16634,7 @@
       "filial": "TBE",
       "supervisor": "HAMILTON RICARDO DOS SANTOS MENDES",
       "gerente": "Diego",
-      "canal": "AS",
+      "canal": "VAREJO",
       "jogos": 6,
       "vitorias": 0,
       "empates": 1,
@@ -16659,8 +16659,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 93,
-      "pos_filial": 11
+      "pos_brasil": 260,
+      "pos_filial": 15
     },
     {
       "rca": "207",
@@ -16693,7 +16693,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 94,
+      "pos_brasil": 93,
       "pos_filial": 11
     },
     {
@@ -16727,7 +16727,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 95,
+      "pos_brasil": 94,
       "pos_filial": 12
     },
     {
@@ -16761,7 +16761,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 96,
+      "pos_brasil": 95,
       "pos_filial": 10
     },
     {
@@ -16795,7 +16795,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 97,
+      "pos_brasil": 96,
       "pos_filial": 11
     },
     {
@@ -16829,7 +16829,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 98,
+      "pos_brasil": 97,
       "pos_filial": 12
     },
     {
@@ -16863,7 +16863,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 99,
+      "pos_brasil": 98,
       "pos_filial": 13
     },
     {
@@ -16897,7 +16897,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 260,
+      "pos_brasil": 261,
       "pos_filial": 27
     },
     {
@@ -16931,7 +16931,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 261,
+      "pos_brasil": 262,
       "pos_filial": 28
     },
     {
@@ -16965,7 +16965,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 262,
+      "pos_brasil": 263,
       "pos_filial": 29
     },
     {
@@ -16999,7 +16999,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 100,
+      "pos_brasil": 99,
       "pos_filial": 7
     },
     {
@@ -17033,7 +17033,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 101,
+      "pos_brasil": 100,
       "pos_filial": 8
     },
     {
@@ -17067,7 +17067,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 102,
+      "pos_brasil": 101,
       "pos_filial": 9
     },
     {
@@ -17101,7 +17101,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 103,
+      "pos_brasil": 102,
       "pos_filial": 4
     },
     {
@@ -17135,7 +17135,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 104,
+      "pos_brasil": 103,
       "pos_filial": 5
     },
     {
@@ -17169,7 +17169,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 105,
+      "pos_brasil": 104,
       "pos_filial": 6
     },
     {
@@ -17203,7 +17203,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 106,
+      "pos_brasil": 105,
       "pos_filial": 7
     },
     {
@@ -17237,7 +17237,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 263,
+      "pos_brasil": 264,
       "pos_filial": 17
     },
     {
@@ -17271,7 +17271,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 264,
+      "pos_brasil": 265,
       "pos_filial": 18
     },
     {
@@ -17305,7 +17305,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 107,
+      "pos_brasil": 106,
       "pos_filial": 8
     },
     {
@@ -17339,8 +17339,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 265,
-      "pos_filial": 15
+      "pos_brasil": 266,
+      "pos_filial": 16
     },
     {
       "rca": "318",
@@ -17373,8 +17373,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 266,
-      "pos_filial": 16
+      "pos_brasil": 267,
+      "pos_filial": 17
     },
     {
       "rca": "1095",
@@ -17407,8 +17407,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 267,
-      "pos_filial": 17
+      "pos_brasil": 268,
+      "pos_filial": 18
     },
     {
       "rca": "312",
@@ -17441,8 +17441,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 108,
-      "pos_filial": 12
+      "pos_brasil": 107,
+      "pos_filial": 11
     },
     {
       "rca": "552",
@@ -17475,8 +17475,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 268,
-      "pos_filial": 18
+      "pos_brasil": 269,
+      "pos_filial": 19
     },
     {
       "rca": "1086",
@@ -17509,8 +17509,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 269,
-      "pos_filial": 19
+      "pos_brasil": 270,
+      "pos_filial": 20
     },
     {
       "rca": "199",
@@ -17543,7 +17543,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 109,
+      "pos_brasil": 108,
       "pos_filial": 1
     },
     {
@@ -17577,7 +17577,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 270,
+      "pos_brasil": 271,
       "pos_filial": 27
     },
     {
@@ -17611,7 +17611,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 271,
+      "pos_brasil": 272,
       "pos_filial": 25
     },
     {
@@ -17645,7 +17645,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 110,
+      "pos_brasil": 109,
       "pos_filial": 7
     },
     {
@@ -17679,7 +17679,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 111,
+      "pos_brasil": 110,
       "pos_filial": 8
     },
     {
@@ -17713,7 +17713,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 112,
+      "pos_brasil": 111,
       "pos_filial": 9
     },
     {
@@ -17747,7 +17747,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 113,
+      "pos_brasil": 112,
       "pos_filial": 10
     },
     {
@@ -17781,7 +17781,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 114,
+      "pos_brasil": 113,
       "pos_filial": 11
     },
     {
@@ -17815,7 +17815,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 115,
+      "pos_brasil": 114,
       "pos_filial": 12
     },
     {
@@ -17849,7 +17849,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 116,
+      "pos_brasil": 115,
       "pos_filial": 13
     },
     {
@@ -17883,7 +17883,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 272,
+      "pos_brasil": 273,
       "pos_filial": 26
     },
     {
@@ -17917,7 +17917,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 273,
+      "pos_brasil": 274,
       "pos_filial": 27
     },
     {
@@ -17951,7 +17951,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 117,
+      "pos_brasil": 116,
       "pos_filial": 16
     },
     {
@@ -17985,7 +17985,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 274,
+      "pos_brasil": 275,
       "pos_filial": 27
     },
     {
@@ -18019,7 +18019,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 275,
+      "pos_brasil": 276,
       "pos_filial": 28
     },
     {
@@ -18053,7 +18053,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 118,
+      "pos_brasil": 117,
       "pos_filial": 7
     },
     {
@@ -18087,7 +18087,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 276,
+      "pos_brasil": 277,
       "pos_filial": 12
     },
     {
@@ -18121,7 +18121,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 277,
+      "pos_brasil": 278,
       "pos_filial": 13
     },
     {
@@ -18155,7 +18155,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 278,
+      "pos_brasil": 279,
       "pos_filial": 14
     },
     {
@@ -18189,7 +18189,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 119,
+      "pos_brasil": 118,
       "pos_filial": 16
     },
     {
@@ -18223,7 +18223,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 120,
+      "pos_brasil": 119,
       "pos_filial": 17
     },
     {
@@ -18257,7 +18257,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 121,
+      "pos_brasil": 120,
       "pos_filial": 18
     },
     {
@@ -18291,7 +18291,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 122,
+      "pos_brasil": 121,
       "pos_filial": 19
     },
     {
@@ -18325,7 +18325,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 123,
+      "pos_brasil": 122,
       "pos_filial": 20
     },
     {
@@ -18359,7 +18359,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 279,
+      "pos_brasil": 280,
       "pos_filial": 43
     },
     {
@@ -18393,7 +18393,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 280,
+      "pos_brasil": 281,
       "pos_filial": 44
     },
     {
@@ -18427,7 +18427,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 281,
+      "pos_brasil": 282,
       "pos_filial": 45
     },
     {
@@ -18461,7 +18461,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 124,
+      "pos_brasil": 123,
       "pos_filial": 21
     },
     {
@@ -18495,7 +18495,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 125,
+      "pos_brasil": 124,
       "pos_filial": 10
     },
     {
@@ -18529,7 +18529,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 126,
+      "pos_brasil": 125,
       "pos_filial": 22
     },
     {
@@ -18563,7 +18563,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 127,
+      "pos_brasil": 126,
       "pos_filial": 23
     },
     {
@@ -18597,7 +18597,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 128,
+      "pos_brasil": 127,
       "pos_filial": 24
     },
     {
@@ -18631,7 +18631,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 129,
+      "pos_brasil": 128,
       "pos_filial": 17
     },
     {
@@ -18665,7 +18665,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 130,
+      "pos_brasil": 129,
       "pos_filial": 11
     },
     {
@@ -18699,7 +18699,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 131,
+      "pos_brasil": 130,
       "pos_filial": 8
     },
     {
@@ -18733,7 +18733,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 132,
+      "pos_brasil": 131,
       "pos_filial": 13
     },
     {
@@ -18767,7 +18767,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 282,
+      "pos_brasil": 283,
       "pos_filial": 28
     },
     {
@@ -18801,7 +18801,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 133,
+      "pos_brasil": 132,
       "pos_filial": 18
     },
     {
@@ -18835,7 +18835,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 283,
+      "pos_brasil": 284,
       "pos_filial": 46
     },
     {
@@ -18869,7 +18869,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 284,
+      "pos_brasil": 285,
       "pos_filial": 47
     },
     {
@@ -18903,7 +18903,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 285,
+      "pos_brasil": 286,
       "pos_filial": 32
     },
     {
@@ -18937,7 +18937,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 134,
+      "pos_brasil": 133,
       "pos_filial": 12
     },
     {
@@ -18971,7 +18971,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 135,
+      "pos_brasil": 134,
       "pos_filial": 9
     },
     {
@@ -19005,7 +19005,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 286,
+      "pos_brasil": 287,
       "pos_filial": 28
     },
     {
@@ -19039,7 +19039,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 287,
+      "pos_brasil": 288,
       "pos_filial": 48
     },
     {
@@ -19073,7 +19073,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 288,
+      "pos_brasil": 289,
       "pos_filial": 22
     },
     {
@@ -19107,7 +19107,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 289,
+      "pos_brasil": 290,
       "pos_filial": 29
     },
     {
@@ -19141,7 +19141,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 136,
+      "pos_brasil": 135,
       "pos_filial": 10
     },
     {
@@ -19175,7 +19175,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 290,
+      "pos_brasil": 291,
       "pos_filial": 33
     },
     {
@@ -19209,7 +19209,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 291,
+      "pos_brasil": 292,
       "pos_filial": 30
     },
     {
@@ -19243,8 +19243,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 292,
-      "pos_filial": 20
+      "pos_brasil": 293,
+      "pos_filial": 21
     },
     {
       "rca": "123",
@@ -19277,7 +19277,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 293,
+      "pos_brasil": 294,
       "pos_filial": 49
     },
     {
@@ -19311,7 +19311,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 294,
+      "pos_brasil": 295,
       "pos_filial": 30
     },
     {
@@ -19345,7 +19345,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 295,
+      "pos_brasil": 296,
       "pos_filial": 50
     },
     {
@@ -19379,7 +19379,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 296,
+      "pos_brasil": 297,
       "pos_filial": 19
     },
     {
@@ -19413,7 +19413,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 297,
+      "pos_brasil": 298,
       "pos_filial": 34
     },
     {
@@ -19447,7 +19447,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 137,
+      "pos_brasil": 136,
       "pos_filial": 14
     },
     {
@@ -19481,7 +19481,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 298,
+      "pos_brasil": 299,
       "pos_filial": 20
     },
     {
@@ -19515,7 +19515,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 299,
+      "pos_brasil": 300,
       "pos_filial": 29
     },
     {
@@ -19549,7 +19549,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 300,
+      "pos_brasil": 301,
       "pos_filial": 35
     },
     {
@@ -19583,7 +19583,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 301,
+      "pos_brasil": 302,
       "pos_filial": 51
     },
     {
@@ -19617,7 +19617,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 302,
+      "pos_brasil": 303,
       "pos_filial": 21
     },
     {
@@ -19651,7 +19651,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 303,
+      "pos_brasil": 304,
       "pos_filial": 31
     },
     {
@@ -19685,7 +19685,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 304,
+      "pos_brasil": 305,
       "pos_filial": 29
     },
     {
@@ -19719,7 +19719,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 305,
+      "pos_brasil": 306,
       "pos_filial": 36
     },
     {
@@ -19753,7 +19753,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 306,
+      "pos_brasil": 307,
       "pos_filial": 52
     },
     {
@@ -19787,7 +19787,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 307,
+      "pos_brasil": 308,
       "pos_filial": 53
     },
     {
@@ -19821,7 +19821,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 308,
+      "pos_brasil": 309,
       "pos_filial": 23
     },
     {
@@ -19855,7 +19855,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 309,
+      "pos_brasil": 310,
       "pos_filial": 54
     },
     {
@@ -19889,7 +19889,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 310,
+      "pos_brasil": 311,
       "pos_filial": 15
     },
     {
@@ -19923,7 +19923,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 311,
+      "pos_brasil": 312,
       "pos_filial": 16
     },
     {
@@ -19957,7 +19957,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 312,
+      "pos_brasil": 313,
       "pos_filial": 30
     },
     {
@@ -19991,7 +19991,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 313,
+      "pos_brasil": 314,
       "pos_filial": 37
     },
     {
@@ -20025,7 +20025,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 138,
+      "pos_brasil": 137,
       "pos_filial": 25
     },
     {
@@ -20059,7 +20059,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 314,
+      "pos_brasil": 315,
       "pos_filial": 55
     },
     {
@@ -20093,7 +20093,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 315,
+      "pos_brasil": 316,
       "pos_filial": 32
     },
     {
@@ -20127,7 +20127,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 316,
+      "pos_brasil": 317,
       "pos_filial": 17
     },
     {
@@ -20161,7 +20161,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 317,
+      "pos_brasil": 318,
       "pos_filial": 38
     },
     {
@@ -20195,7 +20195,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 318,
+      "pos_brasil": 319,
       "pos_filial": 39
     },
     {
@@ -20229,7 +20229,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 319,
+      "pos_brasil": 320,
       "pos_filial": 40
     },
     {
@@ -20263,7 +20263,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 139,
+      "pos_brasil": 138,
       "pos_filial": 26
     },
     {
@@ -20297,7 +20297,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 320,
+      "pos_brasil": 321,
       "pos_filial": 31
     },
     {
@@ -20331,7 +20331,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 321,
+      "pos_brasil": 322,
       "pos_filial": 56
     },
     {
@@ -20365,7 +20365,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 322,
+      "pos_brasil": 323,
       "pos_filial": 57
     },
     {
@@ -20399,7 +20399,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 323,
+      "pos_brasil": 324,
       "pos_filial": 23
     },
     {
@@ -20433,7 +20433,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 324,
+      "pos_brasil": 325,
       "pos_filial": 33
     },
     {
@@ -20467,7 +20467,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 325,
+      "pos_brasil": 326,
       "pos_filial": 41
     },
     {
@@ -20501,8 +20501,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 326,
-      "pos_filial": 21
+      "pos_brasil": 327,
+      "pos_filial": 22
     },
     {
       "rca": "1120",
@@ -20535,7 +20535,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 327,
+      "pos_brasil": 328,
       "pos_filial": 18
     },
     {
@@ -20569,7 +20569,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 328,
+      "pos_brasil": 329,
       "pos_filial": 58
     },
     {
@@ -20603,7 +20603,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 140,
+      "pos_brasil": 139,
       "pos_filial": 11
     },
     {
@@ -20637,7 +20637,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 329,
+      "pos_brasil": 330,
       "pos_filial": 22
     },
     {
@@ -20671,7 +20671,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 330,
+      "pos_brasil": 331,
       "pos_filial": 59
     },
     {
@@ -20705,7 +20705,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 331,
+      "pos_brasil": 332,
       "pos_filial": 60
     }
   ],
@@ -39145,138 +39145,6 @@
         "pts_bonus": 0,
         "pos_brasil": 139,
         "pos_filial": 11
-      },
-      {
-        "rca": "1121",
-        "nome": "OLDA DANIELA GONCALVES SOARES",
-        "filial": "TBE",
-        "supervisor": "HAMILTON RICARDO DOS SANTOS MENDES",
-        "gerente": "Diego",
-        "meta_mes": 68000,
-        "pct_hoje": 50.4,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-10-07",
-            "status": "nao_batida",
-            "pct": 13.5,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-10-14",
-            "status": "nao_batida",
-            "pct": 30.6,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-10-20",
-            "status": "nao_batida",
-            "pct": 50.4,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 31,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-10-31",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "perdido",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 2,
-            "pts_lances": -110,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": -110,
-            "jogada": true,
-            "resultado": "D",
-            "pts_tabela": 0
-          },
-          {
-            "n": 3,
-            "pts_lances": -48,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": -48,
-            "jogada": true,
-            "resultado": "J",
-            "pts_tabela": 0
-          },
-          {
-            "n": 4,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 1,
-        "vitorias": 0,
-        "empates": 0,
-        "derrotas": 1,
-        "pts_tabela": 0,
-        "aprov": 0.0,
-        "forma": [
-          "D",
-          "J"
-        ],
-        "pontos": -110,
-        "pts_lances": -158,
-        "pts_faseamento": 0,
-        "pts_bonus": 0,
-        "pos_brasil": 140,
-        "pos_filial": 12
       }
     ],
     "supervisores": [
