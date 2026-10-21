@@ -1,34 +1,34 @@
 🏢 *RELATÓRIO OPERACIONAL — 17:00*
-📅 20/10/2026
+📅 21/10/2026
 📍 *FILIAL TPH — FÁBIO*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 212.969,50
-📦 *Pedidos Colocados:* 129 pedidos
-📍 *Visitas Realizadas:* 211 de 460 (45,9%)
-👥 *Vendedores Varejo com Pedido:* 18 de 25 (72%)
-✂️ *Cortes nos Pedidos de Hoje:* R$ 62,92 (1 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 8.952,29 (12 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 1.438,52
+💰 *Total Digitado Hoje:* R$ 80.471,08
+📦 *Pedidos Colocados:* 90 pedidos
+📍 *Visitas Realizadas:* 229 de 474 (48,3%)
+👥 *Vendedores Varejo com Pedido:* 19 de 25 (76%)
+✂️ *Cortes nos Pedidos de Hoje:* R$ 598,27 (2 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 19.408,70 (36 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 313,50
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
-  ▫️ Cód. 117 • MEIRY ALESSANDRA KAVALKIEVIZ: -R$ 62,92 em  (SKU em falta)
+  ▫️ Cód. 69 • KAUALBERT DE FARIAS MARTINS BARBOSA: -R$ 39,74 em  (SKU em falta)
+  ▫️ Cód. 111 • IZAQUE PEREIRA GONCALVES: -R$ 558,53 em  (SKU em falta)
 
-🚨 *Varejo Zerados (17:00):* 7 (28%)
+🚨 *Varejo Zerados (17:00):* 6 (24%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚨 *VENDEDORES DE VAREJO ZERADOS NO HORÁRIO (17:00):*
 _(Visitas realizadas sem conversão de pedido)_
 
-👤 *Supervisor: EDERSON SUONSKI* (3 zerados)
-  ▫️ Cód. 113 • PAULO HENRIQUE NUNES CARDOSO: *0 visitas feitas* (de 15 na rota) • R$ 0
-  ▫️ Cód. 1045 • CESAR SANTOS LIMA: *0 visitas feitas* (de 17 na rota) • R$ 0
+👤 *Supervisor: EDERSON SUONSKI* (2 zerados)
+  ▫️ Cód. 113 • PAULO HENRIQUE NUNES CARDOSO: *0 visitas feitas* (de 20 na rota) • R$ 0
   ▫️ Cód. 1154 • EDERSON SUONSKI: *0 visitas feitas* (de 0 na rota) • R$ 0
 
 👤 *Supervisor: JONATHAN FERNANDES* (1 zerados)
   ▫️ Cód. 1156 • JONATHAN FERNANDES: *0 visitas feitas* (de 0 na rota) • R$ 0
 
 👤 *Supervisor: PRISCILA A D NASCIMENTO STRAPASSON* (3 zerados)
-  ▫️ Cód. 65 • SIRLENE DE FATIMA BORGES: *0 visitas feitas* (de 23 na rota) • R$ 0
-  ▫️ Cód. 106 • LUCAS MACHADO MARINHO: *0 visitas feitas* (de 16 na rota) • R$ 0
-  ▫️ Cód. 1031 • WILLIAM LISBOA NUNES: *0 visitas feitas* (de 18 na rota) • R$ 0
+  ▫️ Cód. 106 • LUCAS MACHADO MARINHO: *0 visitas feitas* (de 18 na rota) • R$ 0
+  ▫️ Cód. 1031 • WILLIAM LISBOA NUNES: *2 visitas feitas* (de 30 na rota) • R$ 0
+  ▫️ Cód. 1119 • VICTORIA DE MENEZES RIBEIRO: *0 visitas feitas* (de 5 na rota) • R$ 0
