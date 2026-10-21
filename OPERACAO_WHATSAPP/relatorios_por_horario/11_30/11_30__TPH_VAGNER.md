@@ -1,5 +1,5 @@
 🏢 *FILIAL TPH — GESTÃO DE CAMPO*
-📅 20/10/2026 • Gerente: Vagner
+📅 21/10/2026 • Gerente: Vagner
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 *PAINEL DE ATIVIDADES (8 SUPERVISORES):*
@@ -10,15 +10,15 @@
 
 👤 *ALLISON ANTONIO FAGUNDES M PINHEIRO*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 08:11)
-└ 👥 RCA: RODRIGO MORAIS DE LIMA
+🚗 Rota (RET): ✅ Em campo (início às 08:36)
+└ 👥 RCA: ANDERSON IACZINSKI DA SILVA
 └ 📍 2 PDVs visitados • 📸 0 fotos • Score: 100%
 
 👤 *ANDREY CAMILLO PIRAGINE*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 09:42)
-└ 👥 RCA: MARCIA SILVA DO NASCIMENTO
-└ 📍 2 PDVs visitados • 📸 6 fotos • Score: 100%
+🚗 Rota (RET): ✅ Em campo (início às 09:20)
+└ 👥 RCA: ALDER ALVES BELINI
+└ 📍 4 PDVs visitados • 📸 6 fotos • Score: 100%
 
 👤 *CLAUDETE DE SOUZA SCHULTZ*
 📝 Compromisso: ❌ Não lançado
@@ -26,9 +26,9 @@
 
 👤 *JEFFERSON POLETTO*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 08:36)
-└ 👥 RCA: LEANDRO HORACIO NETO
-└ 📍 3 PDVs visitados • 📸 5 fotos • Score: 100%
+🚗 Rota (RET): ✅ Em campo (início às 09:16)
+└ 👥 RCA: VANESSA THAIS OLIVEIRA MANCINI
+└ 📍 1 PDV visitado • 📸 2 fotos • Score: 100%
 
 👤 *LUCAS RAMOS MONTAGNHANI*
 📝 Compromisso: ✅ Lançado
@@ -36,9 +36,9 @@
 
 👤 *LUIZ AUGUSTO RAMOS*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 09:06)
-└ 👥 RCA: JULIANO VIEIRA DA SILVA
-└ 📍 4 PDVs visitados • 📸 6 fotos • Score: 88%
+🚗 Rota (RET): ✅ Em campo (início às 09:52)
+└ 👥 RCA: LUCAS GABRIEL PEDROSO
+└ 📍 5 PDVs visitados • 📸 7 fotos • Score: 97%
 
 👤 *RODRIGO DE ARRUDA DARROS*
 📝 Compromisso: ❌ Não lançado
@@ -46,6 +46,6 @@
 
 👤 *JONATHAN FERNANDES*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 09:48)
-└ 👥 RCA: ALTEMIO HENRIQUE DIVINO
-└ 📍 4 PDVs visitados • 📸 8 fotos • Score: 91%
+🚗 Rota (RET): ✅ Em campo (início às 09:39)
+└ 👥 RCA: MARCELO LUIZ DE ALMEIDA GARRETT
+└ 📍 3 PDVs visitados • 📸 12 fotos • Score: 88%
