@@ -254,6 +254,18 @@ async function main() {
     // filial x produto: [filial, cod, nome, industria, clientes, faturado, vendedores, +MIX recomendou (clientes), +MIX virou compra (clientes)]
     fp: [...cuboFP.entries()].filter(([, x]) => x.cli.size >= 2 || x.rec >= 5).map(([k, x]) => { const [f, c] = k.split('|'); return [f, c, nomeProd.get(c) || '', IND[c] || '', x.cli.size, Math.round(x.val), x.vend.size, x.rec, x.conv]; })
   };
+  // CUBO DE VENDAS (21/10/2026: "se eu ver produto quero ver onde ele impacta, se eu ver vendedor quero ver o que ele faz"): um fato por cliente x produto do mes
+  { const cliL = [], prodIdx = new Map(), prods = [], f = [];
+    for (const o of alvo) {
+      if (o.rota_hoje || !o.vsku || !o.vsku.size) continue;
+      const r = rec.get(o.filial + '|' + o.id); const ci = cliL.length; cliL.push([o.filial, String(o.rca), atv(o.cnpj)]);
+      for (const [c, val] of o.vsku) {
+        let pi = prodIdx.get(c); if (pi == null) { pi = prods.length; prodIdx.set(c, pi); prods.push([c, nomeProd.get(c) || '', IND[c] || 'SEM INDUSTRIA NO CATALOGO']); }
+        f.push([ci, pi, Math.round(val), r && r.cods.has(c) && !o.antes.has(c) ? 1 : 0]);
+      }
+    }
+    fs.writeFileSync(path.join(__dirname, '..', 'public', 'mix_cubo.json'), JSON.stringify({ gerado_em: new Date().toISOString(), atv_nomes: ATV.nomes || {}, cli: cliL, prods, f }));
+    console.log(`cubo de vendas: ${cliL.length} clientes, ${prods.length} produtos, ${f.length} fatos`); }
   // +MIX DE CADA CLIENTE (clique no cliente no mapa: "o que falta ele comprar que esta no +MIX"): um arquivo por filial em public/mix_rec/
   { const porF = new Map();
     for (const o of alvo) {
