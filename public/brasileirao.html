@@ -530,6 +530,45 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
   main { padding: 0 8px; }
   .tb-league td, .tb-league thead th { padding: 6px 4px; }
   #tab-supervisores .tb-league th:nth-child(6), #tab-supervisores .tb-league td:nth-child(6), #tab-gerencias .tb-league th:nth-child(3), #tab-gerencias .tb-league td:nth-child(3) { display: none; }
+  /* CELULAR FACIL (Vitorio, 21/10/2026): abas e botoes numa linha que rola de lado; tabelas so com o essencial */
+  .nav-tabs { flex-wrap: nowrap !important; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 6px; padding-bottom: 4px; }
+  .nav-tabs .tab-btn { flex: none; white-space: nowrap; font-size: 12.5px; padding: 8px 12px; }
+  .header-actions { flex-wrap: nowrap !important; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 4px; }
+  .header-actions > * { flex: none; }
+  .brand-trophy { font-size: 26px; }
+  #hdr-info { display: none; }
+  .hero-stats { display: none; }
+  #tab-filiais .tb-league th:nth-child(10), #tab-filiais .tb-league td:nth-child(10), #tab-filiais .tb-league th:nth-child(12), #tab-filiais .tb-league td:nth-child(12) { display: none; }
+  #tab-gerencias .tb-league th:nth-child(11), #tab-gerencias .tb-league td:nth-child(11) { display: none; }
+  .team-shield { display: none; }
+  .pos-box { min-width: 30px; height: 26px; font-size: 12px; }
+  .pts-cell { font-size: 18px !important; }
+  .btn-export { width: 100%; justify-content: center; }
+  main, .tab-content, .table-card { max-width: 100%; min-width: 0; }
+  .table-header h2 { font-size: 18px !important; white-space: normal; }
+  .tb-league { min-width: 0 !important; width: 100%; }
+  #tab-filiais .tb-league th:nth-child(11), #tab-filiais .tb-league td:nth-child(11) { display: none; }
+  .brand-text p select { max-width: 150px; }
+  body, header, .header-top, .brand, .brand-text, .header-actions, .nav-tabs, main { max-width: 100vw; min-width: 0; box-sizing: border-box; }
+  .header-top { width: 100%; align-items: stretch !important; }
+  .brand-text { flex: 1; overflow: hidden; }
+  .brand-text p { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .input-search { min-width: 0 !important; flex: 1; }
+}
+.btn-export { cursor: pointer; }
+.mob-list { display: none; }
+@media (max-width: 700px) {
+  #tab-filiais .tb-league, #tab-gerencias .tb-league, #tab-supervisores .tb-league, #tab-vendedores .tb-league { display: none; }
+  .mob-list { display: block; padding: 4px 10px 12px; }
+  .mob-row { display: flex; align-items: center; gap: 10px; padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,.06); }
+  .mob-row.top { background: rgba(251,191,36,.08); border-radius: 10px; }
+  .mob-pos { width: 40px; text-align: center; font-weight: 900; font-size: 16px; }
+  .mob-mov { display: block; font-size: 10.5px; font-weight: 800; }
+  .mob-nm { flex: 1; min-width: 0; }
+  .mob-nm b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mob-nm span { font-size: 11.5px; color: var(--tx-mut); }
+  .mob-pts { text-align: right; font-weight: 900; font-size: 20px; color: #fbbf24; }
+  .mob-pts small { display: block; font-size: 10.5px; color: var(--tx-mut); font-weight: 600; }
 }
 .canal-sw{display:inline-flex;border:1px solid var(--border,#22304d);border-radius:10px;overflow:hidden}
 .canal-sw button{background:transparent;color:var(--tx,#e8eefc);border:0;padding:8px 14px;font:inherit;font-weight:800;cursor:pointer}
@@ -1585,10 +1624,12 @@ function renderizarTudo() {
 
   // 4. Vendedores
   filtrarVendedores();
+  renderMob();
 }
 
 function filtrarSupervisores() {
   if (!DADOS || !DADOS.supervisores) return;
+  setTimeout(renderMob, 0);
   if (CANAL === 'AS') { renderSupervisoresAS(); return; }
   restauraThead('thr-sup');
   const q = (document.getElementById('busca-sup').value || '').toLowerCase();
@@ -1623,6 +1664,7 @@ function filtrarSupervisores() {
 
 function filtrarVendedores() {
   if (!DADOS || !DADOS.vendedores) return;
+  setTimeout(renderMob, 0);
   if (CANAL === 'AS') { renderVendedoresAS(); return; }
   restauraThead('thr-vend');
   const q = (document.getElementById('busca-vend').value || '').toLowerCase();
@@ -1914,6 +1956,94 @@ window.addEventListener('load', iniciarAbaUrl);
 window.addEventListener('load', function () { var h = location.hash.replace('#', ''); if (['filiais', 'gerencias', 'supervisores', 'vendedores', 'lances', 'gabarito', 'regulamento'].indexOf(h) >= 0 && typeof switchTab === 'function') setTimeout(function () { switchTab(h); }, 600); });
 // Atualiza sozinha quando sai uma versao nova do site (mesma regra das TVs)
 (function () { let v0 = null; async function chk() { try { const r = await fetch('/api/version', { cache: 'no-store' }); const j = await r.json(); if (v0 && j.version && j.version !== v0 && !document.activeElement.matches('input,select,textarea')) location.reload(); v0 = v0 || j.version; } catch (e) {} } chk(); setInterval(chk, 60000); })();
+
+// ===================== EXPORTAR RANKING EM IMAGEM (Vitorio, 21/10/2026: "facil de tirar print e enviar... estilo ranking mesmo... botao exportar") =====================
+// Monta um cartaz 1080px (formato de post) com o ranking da aba aberta, respeitando canal e filtro de filial, e gera PNG.
+// No celular abre o compartilhar (WhatsApp direto); no PC baixa o arquivo.
+function dadosRanking(tipo, tudo) {
+  const AS = CANAL === 'AS', A = (DADOS && DADOS.as) || {};
+  const vedS = (x) => `${x.vitorias || 0}V · ${x.empates || 0}E · ${x.derrotas || 0}D`;
+  if (tipo === 'filiais') return { titulo: 'Série A — Filiais', linhas: (DADOS.filiais || []).map((f) => ({ pos: f.pos, ant: f.pos_ant, nome: f.sigla, sub: `${f.total_vendedores} vendedores`, ved: vedS(f), pts: f.pts_tabela })) };
+  if (tipo === 'gerencias') return { titulo: 'Campeonato de Gerências', linhas: (DADOS.gerentes || []).map((g) => ({ pos: g.pos, ant: g.pos_ant, nome: g.nome, sub: (g.filiais || []).join(', '), ved: vedS(g), pts: g.pts_tabela })) };
+  if (tipo === 'supervisores') {
+    const f = (document.getElementById('filtro-sup-filial') || {}).value || '';
+    let L = AS ? (A.supervisores || []) : (DADOS.supervisores || []).filter((s) => (s.canal || 'VAREJO') !== 'AS');
+    if (f) L = L.filter((s) => s.filial === f);
+    return { titulo: 'Liga dos Supervisores' + (AS ? ' · AS' : ' · Varejo') + (f ? ' · ' + f : ''), linhas: L.slice().sort((a, b) => a.pos - b.pos).slice(0, tudo ? 9999 : 20).map((s) => ({ pos: s.pos, ant: s.pos_ant, nome: s.supervisor, sub: s.filial, ved: vedS(s), pts: s.pts_tabela })) };
+  }
+  const f = (document.getElementById('seletor-filial-vend') || {}).value || 'BRASIL', br = f === 'BRASIL';
+  let L = AS ? (A.vendedores || []) : (DADOS.vendedores || []).filter((v) => (v.canal || 'VAREJO') !== 'AS');
+  if (!br) L = L.filter((v) => v.filial === f);
+  const P = (v) => br ? v.pos_brasil : v.pos_filial, PA = (v) => br ? v.pos_brasil_ant : v.pos_filial_ant;
+  return { titulo: 'Artilharia de Vendedores' + (AS ? ' · AS' : ' · Varejo') + (br ? ' · Brasil' : ' · ' + f), linhas: L.slice().sort((a, b) => P(a) - P(b)).slice(0, tudo ? 300 : 20).map((v) => ({ pos: P(v), ant: PA(v), nome: v.nome, sub: (br ? v.filial + ' · ' : '') + (v.supervisor || ''), ved: vedS(v), pts: v.pts_tabela })) };
+}
+let _h2c = null;
+function carregaH2C() {
+  if (window.html2canvas) return Promise.resolve();
+  if (!_h2c) _h2c = new Promise((ok, erro) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'; s.onload = ok; s.onerror = erro; document.head.appendChild(s); });
+  return _h2c;
+}
+async function exportarRanking(tipo, bt) {
+  if (!DADOS) return;
+  const txt = bt ? bt.textContent : ''; if (bt) bt.textContent = '⏳ gerando…';
+  try {
+    await carregaH2C();
+    const R = dadosRanking(tipo);
+    const agora = new Date(), quando = agora.toLocaleDateString('pt-BR') + ' · ' + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const ref = DADOS.pos_anterior_de ? DADOS.pos_anterior_de.split('-').reverse().slice(0, 2).join('/') : '';
+    const medalha = (p) => p === 1 ? '🥇' : p === 2 ? '🥈' : p === 3 ? '🥉' : '';
+    const seta = (p, a) => a == null ? '' : a > p ? `<span style="color:#22c55e">▲${a - p}</span>` : a < p ? `<span style="color:#ef4444">▼${p - a}</span>` : '<span style="color:#64748b">=</span>';
+    const el = document.createElement('div');
+    el.style.cssText = 'position:fixed;left:-99999px;top:0;width:1080px;padding:56px 56px 40px;background:linear-gradient(160deg,#071427 0%,#0b2347 55%,#071427 100%);color:#e8eefc;font-family:Segoe UI,Arial,sans-serif;box-sizing:border-box';
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;gap:22px;margin-bottom:8px">
+        <div style="font-size:76px;line-height:1">🏆</div>
+        <div><div style="font-size:50px;font-weight:900;letter-spacing:.04em;color:#fbbf24">CHAMPIONS TRIUNFANTE</div>
+        <div style="font-size:24px;color:#93c5fd;font-weight:700;letter-spacing:.06em">CADA DIA É UM JOGO</div></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin:26px 0 18px;border-bottom:3px solid #fbbf24;padding-bottom:14px">
+        <div style="font-size:38px;font-weight:800">${esc(R.titulo)}</div>
+        <div style="font-size:20px;color:#94a3b8;text-align:right">${quando}${ref ? `<br>▲▼ desde o fechamento de ${ref}` : ''}</div>
+      </div>
+      ${R.linhas.map((l, i) => `
+        <div style="display:flex;align-items:center;gap:18px;padding:${R.linhas.length > 14 ? 10 : 14}px 18px;margin-bottom:8px;border-radius:14px;background:${l.pos <= 3 ? 'rgba(251,191,36,.13)' : i % 2 ? 'rgba(255,255,255,.035)' : 'rgba(255,255,255,.07)'};border:1px solid ${l.pos <= 3 ? 'rgba(251,191,36,.45)' : 'rgba(255,255,255,.06)'}">
+          <div style="width:74px;font-size:34px;font-weight:900;text-align:center">${medalha(l.pos) || l.pos + 'º'}</div>
+          <div style="width:56px;font-size:22px;font-weight:800;text-align:center">${seta(l.pos, l.ant)}</div>
+          <div style="flex:1;min-width:0"><div style="font-size:28px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(l.nome)}</div><div style="font-size:18px;color:#94a3b8">${esc(l.sub || '')}</div></div>
+          <div style="font-size:20px;color:#cbd5e1;white-space:nowrap">${l.ved}</div>
+          <div style="width:120px;text-align:right"><span style="font-size:40px;font-weight:900;color:#fbbf24">${l.pts}</span><span style="font-size:18px;color:#94a3b8"> pts</span></div>
+        </div>`).join('')}
+      <div style="margin-top:22px;font-size:18px;color:#64748b;display:flex;justify-content:space-between"><span>Vitória 3 pts · Empate 1 pt · Derrota 0</span><span>Triunfante · Champions Triunfante</span></div>`;
+    document.body.appendChild(el);
+    const cv = await window.html2canvas(el, { backgroundColor: '#071427', scale: 1, useCORS: true });
+    el.remove();
+    const blob = await new Promise((ok) => cv.toBlob(ok, 'image/png'));
+    const nome = 'ranking_' + tipo + '_' + agora.toISOString().slice(0, 10) + '.png';
+    const arq = new File([blob], nome, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [arq] }) && /Android|iPhone|iPad/i.test(navigator.userAgent)) await navigator.share({ files: [arq], title: R.titulo });
+    else { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+  } catch (e) { alert('Não consegui gerar a imagem: ' + (e && e.message ? e.message : e)); }
+  finally { if (bt) bt.textContent = txt; }
+}
+function renderMob() {
+  if (!DADOS || window.innerWidth > 700) return;
+  ['filiais', 'gerencias', 'supervisores', 'vendedores'].forEach((t) => {
+    const card = document.querySelector('#tab-' + t + ' .table-card'); if (!card) return;
+    let box = card.querySelector('.mob-list'); if (!box) { box = document.createElement('div'); box.className = 'mob-list'; card.appendChild(box); }
+    const R = dadosRanking(t, true);
+    const med = (p) => p === 1 ? '🥇' : p === 2 ? '🥈' : p === 3 ? '🥉' : p + 'º';
+    const sm = (p, a) => a == null ? '' : a > p ? `<span class="mob-mov" style="color:#22c55e">▲${a - p}</span>` : a < p ? `<span class="mob-mov" style="color:#ef4444">▼${p - a}</span>` : '<span class="mob-mov" style="color:var(--tx-mut)">=</span>';
+    box.innerHTML = R.linhas.map((l) => `<div class="mob-row${l.pos <= 3 ? ' top' : ''}"><div class="mob-pos">${med(l.pos)}${sm(l.pos, l.ant)}</div><div class="mob-nm"><b>${esc(l.nome)}</b><span>${esc(l.sub || '')} · ${l.ved}</span></div><div class="mob-pts">${l.pts}<small>pts</small></div></div>`).join('') || '<div style="padding:20px;color:var(--tx-mut)">Sem dados.</div>';
+  });
+}
+window.addEventListener('resize', () => renderMob());
+window.addEventListener('load', () => {
+  ['filiais', 'gerencias', 'supervisores', 'vendedores'].forEach((t) => {
+    const h = document.querySelector('#tab-' + t + ' .table-header'); if (!h) return;
+    const b = document.createElement('button'); b.className = 'btn-nav btn-export'; b.textContent = '📸 Exportar imagem'; b.title = 'Gera uma imagem do ranking para mandar no WhatsApp';
+    b.onclick = () => exportarRanking(t, b); h.appendChild(b);
+  });
+});
 </script>
 </body>
 </html>
