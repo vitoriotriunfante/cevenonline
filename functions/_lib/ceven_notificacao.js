@@ -2,7 +2,7 @@
 // FICHA DO ARQUIVO: functions/_lib/ceven_notificacao.js
 // O QUE É: envia uma NOTIFICAÇÃO (sino do CEVEN) para Master, Gerente e Supervisor de uma filial, pelo webhook oficial do CEVEN:
 //          POST https://ceven.drivetriunfante-locomotiva.com.br/api/notificacoes/webhook/{filial}   (filial = tca1, abc1, tcv1, api1, tpa1, tcg1, tbl1, tph1, mcd1, tsj1, tbe1)
-//          Headers: Content-Type: application/json + X-Webhook-Secret   |   Body: { origem, mensagem, supervisorid? }
+//          Headers: Content-Type: application/json + X-Webhook-Secret   |   Body: { origem, mensagem, supervisorId? }  (21/10/2026: o CEVEN confirmou que o campo e supervisorId, com I maiusculo; com "supervisorid" ia para todos os supervisores da filial)
 //          supervisorid (13/10/2026): o CEVEN entrega SO ao supervisor desse id (alem de Master/Gerente da filial). Sem ele, a notificacao vai para todos os supervisores da filial.
 // REGRAS:  - O segredo NUNCA fica no código: vem do segredo CEVEN_WEBHOOK_SECRET do Cloudflare Pages (env.CEVEN_WEBHOOK_SECRET). Nunca é registrado em log nem devolvido.
 //          - Com supervisorId a notificação vai para aquele supervisor (e Master/Gerente da filial); sem supervisorId vai para todos os supervisores da filial.
@@ -28,7 +28,7 @@ export async function enviaNotificacao(env, filial, origem, mensagem, supervisor
     const r = await fetch(`${CEVEN_BASE}/api/notificacoes/webhook/${k}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Webhook-Secret': env.CEVEN_WEBHOOK_SECRET },
-      body: JSON.stringify(supervisorId != null && supervisorId !== '' && Number.isFinite(Number(supervisorId)) ? { origem: o, mensagem: m, supervisorid: Number(supervisorId) } : { origem: o, mensagem: m }),
+      body: JSON.stringify(supervisorId != null && supervisorId !== '' && Number.isFinite(Number(supervisorId)) ? { origem: o, mensagem: m, supervisorId: Number(supervisorId) } : { origem: o, mensagem: m }),
       signal: AbortSignal.timeout(15000)
     });
     return { ok: r.ok, status: r.status, filial: k, supervisorid: supervisorId != null && supervisorId !== '' ? Number(supervisorId) : null };
