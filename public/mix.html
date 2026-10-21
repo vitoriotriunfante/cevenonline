@@ -12,8 +12,8 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-  :root{--bg:#06101f;--card:#0d1b30;--card2:#11223b;--line:#1d3152;--tx:#e6eefb;--mut:#8aa0c2;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--acc:#38bdf8;--a:#38bdf8;--b:#f59e0b}
-  @media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#eef3fa;--card:#fff;--card2:#f4f7fc;--line:#d5e0ef;--tx:#0d1b30;--mut:#5b6f8f}}
+  :root{--bg:#06101f;--card:#0d1b30;--card2:#11223b;--line:#1d3152;--tx:#e6eefb;--mut:#8aa0c2;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--acc:#38bdf8;--a:#38bdf8;--b:#f59e0b;--q1:#2a4466;--q2:#3f6ea3;--q3:#5c9be0;--q4:#9cc9ff}
+  @media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#eef3fa;--card:#fff;--card2:#f4f7fc;--line:#d5e0ef;--tx:#0d1b30;--mut:#5b6f8f;--q1:#c9def7;--q2:#8ab8ec;--q3:#4a8fd6;--q4:#1d5fa8}}
   *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:Segoe UI,system-ui,sans-serif}
   .wrap{max-width:none;margin:0 auto;padding:20px clamp(16px,2vw,40px) 48px}
   header{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-end}
@@ -56,6 +56,17 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
     body{background:#fff;color:#000}.wrap{padding:0}.compGrid{display:block}#mapaCol{position:static;height:auto;break-inside:avoid;margin-top:12px}#mapa{height:520px}#defs{display:none}
     .box{overflow:visible!important}table{table-layout:auto}th,td{white-space:normal!important}h2{break-after:avoid}.vs .r{break-inside:avoid}
     .box,.k,.insight{border-color:#ccc;background:#fff;break-inside:avoid}details.full>*{display:block}@page{size:A4 portrait;margin:10mm}}
+  .sm{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+  .smc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  .smc h3{margin:0 0 2px;font-size:13px}.smc .ler{font-size:12px;color:var(--mut);min-height:16px}
+  .bars{display:flex;align-items:flex-end;gap:8px;height:120px;margin-top:10px;border-bottom:1px solid var(--line)}
+  .bars div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+  .bars i{display:block;width:100%;max-width:46px;border-radius:4px 4px 0 0}.bars b{font-size:11.5px;margin-bottom:3px;white-space:nowrap}
+  .qlab{display:flex;gap:8px;font-size:10.5px;color:var(--mut);margin-top:4px}.qlab span{flex:1;text-align:center}
+  .qleg{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--mut);margin:6px 0 10px}.qleg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px}
+  .hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.hero .k b{font-size:30px}.hero .k em{font-style:normal;color:var(--mut);font-size:13px;display:block;margin-top:4px}
+  .tp{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:10px 14px;align-items:center}.tp .nm{font-size:13px}.tp .nm span{display:block;font-size:11px;color:var(--mut)}
+  .tp .bb{display:grid;gap:2px}.tp .bb div{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mut)}.tp .bb i{display:block;height:9px;border-radius:0 4px 4px 0}
   .gl{columns:2 380px;column-gap:26px}.gl p{break-inside:avoid;margin:0 0 9px}
   .insight{background:var(--card2);border-left:4px solid var(--acc);border-radius:10px;padding:12px 14px;margin-top:12px;line-height:1.55;font-size:14px}
   canvas{max-height:360px}
@@ -74,12 +85,15 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
     <div class="insight" style="border-left-color:var(--warn)"><b>⚠️ Uso do +MIX provisório.</b> A recomendação de outubro foi buscada depois das compras, e o +MIX só mostra o que o cliente ainda não compra. Por isso o "uso" e as comparações por uso (meta, prêmio, Liga) <b>ainda não são conclusivas</b>. Desde 20/10 a recomendação de cada cliente da rota é gravada <b>antes da visita</b>; em 2 a 3 semanas a medida passa a ser a real. Mix, portfólio, quinzenas e o comparativo entre vendedores já valem.</div>
     <div class="kpis" id="kpis"></div>
     <h2>Quem usa mais o +MIX vende melhor?</h2>
-    <div class="box" id="faixas"></div>
+    <div class="qleg" id="qleg"></div>
+    <div class="sm" id="faixasG"></div>
+    <details class="full"><summary>Ver em tabela</summary><div class="box" id="faixas"></div></details>
     <div class="leg">Vendedores divididos em 4 grupos pelo uso do +MIX. <b>Dobradinha</b> = % dos clientes que compraram na 1ª quinzena (dia 1 a 15) e de novo na 2ª. <b>Recompra</b> = % dos clientes deste mês que também tinham comprado no mês anterior (o cliente continua com a gente).</div>
     <h2>Se todos chegassem no patamar dos 25% que mais usam</h2>
-    <div class="box" id="simul"></div>
-    <h2>R$ por cliente por tipo de cliente</h2>
-    <div class="box" id="porTipo"></div>
+    <div id="simul"></div>
+    <h2>Mesmo tipo de cliente, grupos diferentes</h2>
+    <div class="ctl"><select id="tpK"><option value="rs">R$ por cliente</option><option value="mix">Mix por cliente</option></select><span class="sub">compara farmácia com farmácia, posto com posto</span></div>
+    <div class="box"><div class="qleg" id="qleg2"></div><div class="tp" id="porTipo"></div></div>
   </section>
 
   <section id="s-cubo">
@@ -176,6 +190,18 @@ function resumo() {
     lin('Uso do +MIX (% dos clientes)', 'uso_pct', pc) + lin('<span class="sub">Clientes positivados (total do grupo, só informativo)</span>', 'clientes', nf) + lin('Mix por cliente', 'mix_medio', (x) => nf(x, 1)) + lin('Produtos NOVOS por cliente', 'skus_novos_medio', (x) => nf(x, 1)) +
     lin('Produtos por pedido', 'skus_por_pedido', (x) => nf(x, 1)) + lin('R$ por cliente', 'faturado_por_cliente', brl) + lin('% meta de faturamento', 'pct_meta_fat', pc) + lin('% meta de positivação', 'pct_meta_pos', pc) +
     lin('Com prêmio no incentivo', 'com_premio_pct', pc) + lin('Pontos na Liga', 'liga_pts', (x) => nf(x, 1)) + lin('Dobradinha', 'dobradinha_pct', pc) + lin('Recompra (comprou também no mês anterior)', 'ja_eram_clientes_pct', pc) + '</tbody></table>';
+  // GRAFICOS DOS 4 GRUPOS (21/10/2026: "essa tela ta horrivel... graficos"): um mini grafico por indicador, a tabela fica recolhida
+  const QN = ['menos usam', '2º grupo', '3º grupo', 'mais usam'];
+  const leg = F.map((f, i) => `<span><i style="background:var(--q${i + 1})"></i>${i === 0 ? '25% que menos usam' : i === 3 ? '25% que mais usam' : QN[i]} (${f.vendedores} vend.)</span>`).join('');
+  $('qleg').innerHTML = leg; $('qleg2').innerHTML = leg;
+  const K = [['uso_pct', 'Uso do +MIX', pc], ['mix_medio', 'Mix por cliente', (x) => nf(x, 1)], ['skus_por_pedido', 'Produtos por pedido', (x) => nf(x, 1)], ['skus_novos_medio', 'Produtos novos por cliente', (x) => nf(x, 1)],
+    ['faturado_por_cliente', 'R$ por cliente', brl], ['pct_meta_fat', '% meta de faturamento', pc], ['pct_meta_pos', '% meta de positivação', pc], ['com_premio_pct', 'Com prêmio no incentivo', pc],
+    ['liga_pts', 'Pontos na Liga', (x) => nf(x, 1)], ['dobradinha_pct', 'Dobradinha', pc], ['ja_eram_clientes_pct', 'Recompra', pc]];
+  $('faixasG').innerHTML = K.map(([k, t, f]) => {
+    const v = F.map((x) => x[k]); const mx = Math.max(...v.map((x) => x || 0)) || 1; const d = v[3] != null && v[0] != null ? v[3] - v[0] : null;
+    const ler = d == null ? '' : Math.abs(d) < mx * 0.03 ? 'praticamente igual nos 4 grupos' : `quem mais usa tem ${d > 0 ? 'MAIS' : 'MENOS'} que quem menos usa`;
+    return `<div class="smc"><h3>${t}</h3><div class="ler">${ler}</div><div class="bars">${v.map((x, i) => `<div title="${QN[i]}: ${f(x)}"><b>${f(x)}</b><i style="height:${Math.max(2, (x || 0) / mx * 85)}%;background:var(--q${i + 1})"></i></div>`).join('')}</div><div class="qlab">${QN.map((q) => `<span>${q}</span>`).join('')}</div></div>`;
+  }).join('');
   resumoExtra();
 }
 
@@ -191,12 +217,11 @@ async function resumoExtra() {
   const ped = (v) => v.clientes * (v.pedidos_por_cliente || 1);
   const extraPed = V.filter((v) => v.skus_por_pedido != null).reduce((t, v) => t + ped(v) * Math.max(0, top.skus_por_pedido - v.skus_por_pedido) * rsProd, 0);
   const fatMes = V.reduce((t, v) => t + v.clientes * (v.faturado_por_cliente || 0), 0);
-  $('simul').innerHTML = `<table><tbody>
-    <tr><td class="l">Faturado do mês até ontem (vendedores do estudo)</td><td>${brl(fatMes)}</td><td></td></tr>
-    <tr><td class="l">Se <b>cada cliente</b> levasse <b>+0,3 produto</b> (a diferença entre os grupos)</td><td class="ver">+ ${brl(extra03)}</td><td>+${pc(extra03 / fatMes * 100)}</td></tr>
-    <tr><td class="l">Se todo vendedor abaixo chegasse a <b>${nf(top.mix_medio, 1)} produtos por cliente</b></td><td class="ver">+ ${brl(extraMix)}</td><td>+${pc(extraMix / fatMes * 100)}</td></tr>
-    <tr><td class="l">Se todo vendedor abaixo chegasse a <b>${nf(top.skus_por_pedido, 1)} produtos por pedido</b></td><td class="ver">+ ${brl(extraPed)}</td><td>+${pc(extraPed / fatMes * 100)}</td></tr></tbody></table>
-    <div class="leg">Simulação, não é venda: cada produto a mais vale ${brl(rsProd)}, que é quanto, em média, um produto rendeu por cliente neste mês. Os números não se somam: são três jeitos de ver o mesmo ganho.</div>`;
+  $('simul').innerHTML = `<div class="hero">
+    <div class="k"><span>Cada cliente levando +0,3 produto</span><b>+ ${brl(extra03)}</b><em>+${pc(extra03 / fatMes * 100)} no mês</em></div>
+    <div class="k"><span>Todos com ${nf(top.mix_medio, 1)} produtos por cliente</span><b>+ ${brl(extraMix)}</b><em>+${pc(extraMix / fatMes * 100)} no mês</em></div>
+    <div class="k"><span>Todos com ${nf(top.skus_por_pedido, 1)} produtos por pedido</span><b>+ ${brl(extraPed)}</b><em>+${pc(extraPed / fatMes * 100)} no mês</em></div></div>
+    <div class="leg">Base: ${brl(fatMes)} faturados no mês até ontem. Simulação, não é venda: cada produto a mais vale ${brl(rsProd)}, que é quanto, em média, um produto rendeu por cliente neste mês. Os números não se somam: são três jeitos de ver o mesmo ganho.</div>`;
   // quartil de cada vendedor pelo uso (mesma divisao da tabela acima: ordem crescente de uso)
   const ord = D.vendedores.filter((v) => v.uso_pct != null).sort((a, b) => a.uso_pct - b.uso_pct), q = new Map();
   ord.forEach((v, i) => q.set(v.filial + '|' + v.rca, Math.min(3, Math.floor(i / ord.length * 4))));
@@ -204,9 +229,12 @@ async function resumoExtra() {
   CB.f.forEach((fa) => { const c = CB.cli[fa[0]], k = q.get(c[0] + '|' + c[1]); if (k == null) return; const t = c[2];
     if (!g.has(t)) g.set(t, [0, 1, 2, 3].map(() => ({ cli: new Set(), val: 0, it: 0 }))); const x = g.get(t)[k]; x.cli.add(fa[0]); x.val += fa[2]; x.it++; });
   const tot = [...g.entries()].map(([t, a]) => [t, a, a.reduce((s, x) => s + x.cli.size, 0)]).sort((a, b) => b[2] - a[2]);
-  $('porTipo').innerHTML = `<table><thead><tr><th class="l">Tipo de cliente</th>${F.map((f) => `<th>${esc(f.faixa)}</th>`).join('')}</tr></thead><tbody>` +
-    tot.map(([t, a, n]) => `<tr><td class="l">${esc(t)} <span class="sub">(${nf(n)} clientes)</span></td>${a.map((x) => `<td>${x.cli.size >= 10 ? `${brl(x.val / x.cli.size)}<div class="sub">mix ${nf(x.it / x.cli.size, 1)} · ${nf(x.cli.size)} cli.</div>` : '<span class="sub">poucos clientes</span>'}</td>`).join('')}</tr>`).join('') + '</tbody></table>' +
-    '<div class="leg">Compara o mesmo tipo de cliente entre os 4 grupos de uso do +MIX: farmácia com farmácia, posto com posto. Com menos de 10 clientes a célula não é mostrada.</div>';
+  const desenha = () => {
+    const k = $('tpK').value; const val = (x) => x.cli.size < 10 ? null : k === 'rs' ? x.val / x.cli.size : x.it / x.cli.size;
+    const mx = Math.max(...tot.flatMap(([, a]) => a.map(val)).filter((x) => x != null)) || 1; const fm = k === 'rs' ? brl : (x) => nf(x, 1);
+    $('porTipo').innerHTML = tot.map(([t, a, n]) => `<div class="nm">${esc(t)}<span>${nf(n)} clientes</span></div><div class="bb">${a.map((x, i) => { const v = val(x); return `<div title="${x.cli.size} clientes"><i style="width:${v == null ? 0 : Math.max(1, v / mx * 80)}%;background:var(--q${i + 1})"></i>${v == null ? 'poucos clientes' : fm(v)}</div>`; }).join('')}</div>`).join('');
+  };
+  $('tpK').onchange = desenha; desenha();
 }
 
 function filtros() {
