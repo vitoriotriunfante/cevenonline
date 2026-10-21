@@ -722,6 +722,47 @@ resultado_final = {
     'as': bloco_as
 }
 
+# POSICAO NO JOGO ANTERIOR (Vitorio, 21/10/2026: "em todos os rankings, como estava ontem e como esta hoje; se subiu ou caiu quantas posicoes, sempre contra o ultimo jogo").
+# Guarda a foto das posicoes de cada dia de jogo em public/brasileirao_posicoes.json (a ultima geracao do dia vale como fechamento)
+# e compara com a foto do dia de jogo anterior. Pre-temporada e saidas de teste nao mexem no historico.
+def _foto(r):
+    a = r.get('as') or {}
+    return {
+        'f': {x['sigla']: x['pos'] for x in r.get('filiais') or []},
+        'g': {x['nome']: x['pos'] for x in r.get('gerentes') or []},
+        's': {f"{x['filial']}|{x['supervisor']}|{x.get('canal', '')}": x['pos'] for x in r.get('supervisores') or []},
+        'vb': {f"{x['filial']}|{x['rca']}": x.get('pos_brasil') for x in r.get('vendedores') or []},
+        'vf': {f"{x['filial']}|{x['rca']}": x.get('pos_filial') for x in r.get('vendedores') or []},
+        'ab': {f"{x['filial']}|{x['rca']}": x.get('pos_brasil') for x in a.get('vendedores') or []},
+        'af': {f"{x['filial']}|{x['rca']}": x.get('pos_filial') for x in a.get('vendedores') or []},
+        'as': {f"{x['filial']}|{x['supervisor']}": x.get('pos') for x in a.get('supervisores') or []},
+    }
+def _aplica_anterior(r, ant):
+    a = r.get('as') or {}
+    for x in r.get('filiais') or []: x['pos_ant'] = ant['f'].get(x['sigla'])
+    for x in r.get('gerentes') or []: x['pos_ant'] = ant['g'].get(x['nome'])
+    for x in r.get('supervisores') or []: x['pos_ant'] = ant['s'].get(f"{x['filial']}|{x['supervisor']}|{x.get('canal', '')}")
+    for x in r.get('vendedores') or []:
+        k = f"{x['filial']}|{x['rca']}"; x['pos_brasil_ant'] = ant['vb'].get(k); x['pos_filial_ant'] = ant['vf'].get(k)
+    for x in a.get('vendedores') or []:
+        k = f"{x['filial']}|{x['rca']}"; x['pos_brasil_ant'] = ant['ab'].get(k); x['pos_filial_ant'] = ant['af'].get(k)
+    for x in a.get('supervisores') or []: x['pos_ant'] = ant['as'].get(f"{x['filial']}|{x['supervisor']}")
+if not PRE_TEMPORADA and not os.environ.get('BRASILEIRAO_SAIDA') and DIAS_RODADA:
+    _hp = 'public/brasileirao_posicoes.json'
+    try:
+        with open(_hp, 'r', encoding='utf-8') as _fh: _hist = json.load(_fh)
+    except Exception:
+        _hist = {}
+    _hoje = DIAS_RODADA[-1]
+    _hist[_hoje] = _foto(resultado_final)
+    _antes = sorted(d for d in _hist if d < _hoje)
+    if _antes:
+        _aplica_anterior(resultado_final, _hist[_antes[-1]])
+        resultado_final['pos_anterior_de'] = _antes[-1]
+    _hist = {d: _hist[d] for d in sorted(_hist)[-30:]}
+    with open(_hp, 'w', encoding='utf-8') as _fh: json.dump(_hist, _fh, ensure_ascii=False)
+    print('posicoes do jogo anterior:', resultado_final.get('pos_anterior_de', 'sem historico ainda'))
+
 with open(os.environ.get('BRASILEIRAO_SAIDA') or 'public/dados_brasileirao.json', 'w', encoding='utf-8') as f:  # BRASILEIRAO_SAIDA so para teste
     json.dump(resultado_final, f, ensure_ascii=False, indent=2)
 

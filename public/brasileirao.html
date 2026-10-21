@@ -1500,6 +1500,15 @@ function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 }
 
+// SUBIU / CAIU contra o fechamento do ultimo jogo (Vitorio, 21/10/2026)
+function mov(pos, ant) {
+  if (ant == null || pos == null) return '';
+  const d = ant - pos, dia = DADOS && DADOS.pos_anterior_de ? DADOS.pos_anterior_de.split('-').reverse().slice(0, 2).join('/') : 'último jogo';
+  const t = `title="no fechamento de ${dia}: ${ant}º"`;
+  if (d > 0) return `<span ${t} style="display:block;font-size:11px;font-weight:800;color:#22c55e;margin-top:3px">▲ ${d} <span style="color:var(--tx-mut);font-weight:600">(era ${ant}º)</span></span>`;
+  if (d < 0) return `<span ${t} style="display:block;font-size:11px;font-weight:800;color:#ef4444;margin-top:3px">▼ ${-d} <span style="color:var(--tx-mut);font-weight:600">(era ${ant}º)</span></span>`;
+  return `<span ${t} style="display:block;font-size:11px;color:var(--tx-mut);margin-top:3px">= mantém</span>`;
+}
 function renderizarTudo() {
   if (!DADOS) return;
   { const hi = document.getElementById('hdr-info'); if (hi && DADOS.vendedores) { const as = DADOS.vendedores.filter(v => v.canal === 'AS').length; hi.textContent = '• A pontuação é contra o seu próprio dia (Varejo) e contra a sua semana (AS) • 11 Filiais • ' + (DADOS.vendedores.length - as) + ' Vendedores Varejo + ' + as + ' AS'; } }
@@ -1517,7 +1526,7 @@ function renderizarTudo() {
 
       return `
         <tr>
-          <td><span class="pos-box ${posClass}">${f.pos}º</span></td>
+          <td><span class="pos-box ${posClass}">${f.pos}º</span>${mov(f.pos, f.pos_ant)}</td>
           <td>
             <div class="team-cell">
               <div class="team-shield">${f.sigla}</div>
@@ -1554,7 +1563,7 @@ function renderizarTudo() {
       const posClass = g.pos <= 3 ? 'pos-g4' : 'pos-mid';
       return `
         <tr>
-          <td><span class="pos-box ${posClass}">${g.pos}º</span></td>
+          <td><span class="pos-box ${posClass}">${g.pos}º</span>${mov(g.pos, g.pos_ant)}</td>
           <td><strong style="color:#fff;font-size:14px">${g.nome}</strong></td>
           <td><span class="tag-badge" style="background:rgba(56,189,248,0.15);color:var(--acc);">${g.filiais.join(', ')}</span></td>
           <td style="text-align:right" class="pts-cell">${g.pts_tabela}</td>
@@ -1596,7 +1605,7 @@ function filtrarSupervisores() {
     const posClass = s.pos <= 5 ? 'pos-g4' : 'pos-mid';
     return `
       <tr>
-        <td><span class="pos-box ${posClass}">${s.pos}º</span></td>
+        <td><span class="pos-box ${posClass}">${s.pos}º</span>${mov(s.pos, s.pos_ant)}</td>
         <td><strong style="color:#fff">${s.supervisor}</strong></td>
         <td><span class="tag-badge" style="background:rgba(56,189,248,0.15);color:var(--acc);">${s.filial}</span></td>
         <td style="color:var(--tx-mut);font-size:12px;">${s.gerente || '—'}</td>
@@ -1659,7 +1668,7 @@ function filtrarVendedores() {
 
     return `
       <tr>
-        <td><span class="pos-box ${posClass}">${posNum}º</span>${subPos}</td>
+        <td><span class="pos-box ${posClass}">${posNum}º</span>${mov(posNum, isBrasil ? v.pos_brasil_ant : v.pos_filial_ant)}${subPos}</td>
         <td>
           <div style="font-weight:700;color:#fff">${v.nome}</div>
           <div style="font-size:11px;color:var(--tx-mut)">RCA ${v.rca}<span class="cv-filin" style="display:none"> · ${v.filial}</span></div>
@@ -1796,7 +1805,7 @@ function renderVendedoresAS() {
   tb.innerHTML = lista.slice(0, 150).map(v => {
     const pos = isBrasil ? v.pos_brasil : v.pos_filial, cls = pos <= 3 ? 'pos-g4' : 'pos-mid', sub = !isBrasil ? '<span style="font-size:10px;color:var(--tx-mut);display:block">(' + v.pos_brasil + 'º no Brasil)</span>' : '';
     const det = (v.semanas || []).filter(s => s.jogada).map(s => 'Semana ' + s.n + ': lances ' + s.pts_lances + ' + faseamento ' + s.pts_faseamento + ' + bônus ' + s.pts_bonus + ' = ' + s.score + ' (' + s.resultado + ')').join(' | ');
-    return '<tr><td><span class="pos-box ' + cls + '">' + pos + 'º</span>' + sub + '</td><td><div style="font-weight:700;color:#fff">' + esc(v.nome) + '</div><div style="font-size:11px;color:var(--tx-mut)">RCA ' + esc(v.rca) + '</div></td>' +
+    return '<tr><td><span class="pos-box ' + cls + '">' + pos + 'º</span>' + mov(pos, isBrasil ? v.pos_brasil_ant : v.pos_filial_ant) + sub + '</td><td><div style="font-weight:700;color:#fff">' + esc(v.nome) + '</div><div style="font-size:11px;color:var(--tx-mut)">RCA ' + esc(v.rca) + '</div></td>' +
       '<td><span class="tag-badge" style="background:rgba(56,189,248,0.15);color:var(--acc);">' + esc(v.filial) + '</span></td><td style="color:var(--tx-mut);font-size:12px;">' + esc(v.supervisor || '—') + '</td>' +
       '<td style="text-align:right" class="pts-cell">' + v.pts_tabela + '</td><td style="text-align:center"><span class="tag-badge tag-v">' + v.vitorias + '</span></td><td style="text-align:center"><span class="tag-badge tag-e">' + v.empates + '</span></td><td style="text-align:center"><span class="tag-badge tag-d">' + v.derrotas + '</span></td>' +
       '<td style="text-align:center;font-weight:700;color:var(--acc)">' + v.aprov + '%</td><td style="text-align:center"><div class="forma-container" title="' + esc(det) + '">' + formaSemanas(v.forma) + '</div></td>' +
@@ -1811,7 +1820,7 @@ function renderSupervisoresAS() {
   if (!A || !A.supervisores) { tb.innerHTML = '<tr><td colspan="15" style="text-align:center;padding:30px;color:var(--tx-mut)">' + (A && A.erro ? 'A Liga AS ainda não carregou (' + esc(A.erro) + ')' : 'Sem dados da Liga AS ainda.') + '</td></tr>'; return; }
   const q = (document.getElementById('busca-sup').value || '').toLowerCase(), f = document.getElementById('filtro-sup-filial').value;
   const lista = A.supervisores.filter(s => (!f || s.filial === f) && (s.supervisor.toLowerCase().includes(q) || s.filial.toLowerCase().includes(q)));
-  tb.innerHTML = lista.map(s => '<tr><td><span class="pos-box ' + (s.pos <= 5 ? 'pos-g4' : 'pos-mid') + '">' + s.pos + 'º</span></td><td><strong style="color:#fff">' + esc(s.supervisor) + '</strong></td>' +
+  tb.innerHTML = lista.map(s => '<tr><td><span class="pos-box ' + (s.pos <= 5 ? 'pos-g4' : 'pos-mid') + '">' + s.pos + 'º</span>' + mov(s.pos, s.pos_ant) + '</td><td><strong style="color:#fff">' + esc(s.supervisor) + '</strong></td>' +
     '<td><span class="tag-badge" style="background:rgba(56,189,248,0.15);color:var(--acc);">' + esc(s.filial) + '</span></td><td style="color:var(--tx-mut);font-size:12px;">' + esc(s.gerente || '—') + '</td>' +
     '<td style="text-align:right" class="pts-cell">' + s.pts_tabela + '</td><td style="text-align:center"><span class="tag-badge tag-v">+' + s.pontos_faseamento + '</span></td>' +
     '<td style="text-align:center"><span class="tag-badge tag-v">' + s.vitorias + '</span></td><td style="text-align:center"><span class="tag-badge tag-e">' + s.empates + '</span></td><td style="text-align:center"><span class="tag-badge tag-d">' + s.derrotas + '</span></td>' +
