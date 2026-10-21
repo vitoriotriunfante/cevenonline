@@ -85,15 +85,13 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
     <div class="insight" style="border-left-color:var(--warn)"><b>⚠️ Uso do +MIX provisório.</b> A recomendação de outubro foi buscada depois das compras, e o +MIX só mostra o que o cliente ainda não compra. Por isso o "uso" e as comparações por uso (meta, prêmio, Liga) <b>ainda não são conclusivas</b>. Desde 20/10 a recomendação de cada cliente da rota é gravada <b>antes da visita</b>; em 2 a 3 semanas a medida passa a ser a real. Mix, portfólio, quinzenas e o comparativo entre vendedores já valem.</div>
     <div class="kpis" id="kpis"></div>
     <h2>Quem usa mais o +MIX vende melhor?</h2>
+    <div class="ctl"><select id="rFil"></select><select id="rSup"></select><select id="rTipo"><option value="">Todos os tipos de cliente</option></select></div>
     <div class="qleg" id="qleg"></div>
     <div class="sm" id="faixasG"></div>
     <details class="full"><summary>Ver em tabela</summary><div class="box" id="faixas"></div></details>
-    <div class="leg">Vendedores divididos em 4 grupos pelo uso do +MIX. <b>Dobradinha</b> = % dos clientes que compraram na 1ª quinzena (dia 1 a 15) e de novo na 2ª. <b>Recompra</b> = % dos clientes deste mês que também tinham comprado no mês anterior (o cliente continua com a gente).</div>
+    <div class="leg">Cada gráfico tem 4 barras: os vendedores que <b>usam pouco</b> o +MIX (barra clara) até os que <b>usam muito</b> (barra escura). Se a barra escura for a maior, quem usa mais o +MIX está melhor naquele indicador. <b>Dobradinha</b> = % dos clientes que compraram na 1ª quinzena (dia 1 a 15) e de novo na 2ª. <b>Recompra</b> = % dos clientes deste mês que também tinham comprado no mês anterior (o cliente continua com a gente).</div>
     <h2>Se todos chegassem no patamar dos 25% que mais usam</h2>
     <div id="simul"></div>
-    <h2>Mesmo tipo de cliente, grupos diferentes</h2>
-    <div class="ctl"><select id="tpK"><option value="rs">R$ por cliente</option><option value="mix">Mix por cliente</option></select><span class="sub">compara farmácia com farmácia, posto com posto</span></div>
-    <div class="box"><div class="qleg" id="qleg2"></div><div class="tp" id="porTipo"></div></div>
   </section>
 
   <section id="s-cubo">
@@ -183,58 +181,72 @@ async function carrega() {
   $('defs').innerHTML = Object.entries(D.definicoes || {}).map(([k, v]) => `<b>${esc(k.replace(/_/g, ' '))}:</b> ${esc(v)}`).join('<br>');
 }
 
+// RESUMO COM FILTROS (Vitorio, 21/10/2026: "nao entendi esses graficos... coloque filtro para ver por CNAE, por filial e etc")
+// Os vendedores do filtro sao divididos em 4 grupos pelo uso do +MIX (do que menos usa ao que mais usa) e cada grafico compara os 4 grupos.
+// Com "tipo de cliente" escolhido, mix e R$ por cliente sao recalculados so com os clientes daquele tipo (cubo); metas, premio e Liga sao do vendedor inteiro.
+const QN = ['usam pouco', 'usam médio-baixo', 'usam médio-alto', 'usam muito'];
 function resumo() {
-  const F = D.faixas || [], R = D.resumo;
-  const lin = (rot, k, fmt) => `<tr><td class="l">${rot}</td>${F.map((f) => `<td>${fmt(f[k])}</td>`).join('')}</tr>`;
-  $('faixas').innerHTML = `<table><thead><tr><th class="l">Média dos vendedores</th>${F.map((f) => `<th>${esc(f.faixa)}<br>${f.vendedores} vend.</th>`).join('')}</tr></thead><tbody>` +
-    lin('Uso do +MIX (% dos clientes)', 'uso_pct', pc) + lin('<span class="sub">Clientes positivados (total do grupo, só informativo)</span>', 'clientes', nf) + lin('Mix por cliente', 'mix_medio', (x) => nf(x, 1)) + lin('Produtos NOVOS por cliente', 'skus_novos_medio', (x) => nf(x, 1)) +
-    lin('Produtos por pedido', 'skus_por_pedido', (x) => nf(x, 1)) + lin('R$ por cliente', 'faturado_por_cliente', brl) + lin('% meta de faturamento', 'pct_meta_fat', pc) + lin('% meta de positivação', 'pct_meta_pos', pc) +
-    lin('Com prêmio no incentivo', 'com_premio_pct', pc) + lin('Pontos na Liga', 'liga_pts', (x) => nf(x, 1)) + lin('Dobradinha', 'dobradinha_pct', pc) + lin('Recompra (comprou também no mês anterior)', 'ja_eram_clientes_pct', pc) + '</tbody></table>';
-  // GRAFICOS DOS 4 GRUPOS (21/10/2026: "essa tela ta horrivel... graficos"): um mini grafico por indicador, a tabela fica recolhida
-  const QN = ['menos usam', '2º grupo', '3º grupo', 'mais usam'];
-  const leg = F.map((f, i) => `<span><i style="background:var(--q${i + 1})"></i>${i === 0 ? '25% que menos usam' : i === 3 ? '25% que mais usam' : QN[i]} (${f.vendedores} vend.)</span>`).join('');
-  $('qleg').innerHTML = leg; $('qleg2').innerHTML = leg;
-  const K = [['uso_pct', 'Uso do +MIX', pc], ['mix_medio', 'Mix por cliente', (x) => nf(x, 1)], ['skus_por_pedido', 'Produtos por pedido', (x) => nf(x, 1)], ['skus_novos_medio', 'Produtos novos por cliente', (x) => nf(x, 1)],
-    ['faturado_por_cliente', 'R$ por cliente', brl], ['pct_meta_fat', '% meta de faturamento', pc], ['pct_meta_pos', '% meta de positivação', pc], ['com_premio_pct', 'Com prêmio no incentivo', pc],
-    ['liga_pts', 'Pontos na Liga', (x) => nf(x, 1)], ['dobradinha_pct', 'Dobradinha', pc], ['ja_eram_clientes_pct', 'Recompra', pc]];
-  $('faixasG').innerHTML = K.map(([k, t, f]) => {
-    const v = F.map((x) => x[k]); const mx = Math.max(...v.map((x) => x || 0)) || 1; const d = v[3] != null && v[0] != null ? v[3] - v[0] : null;
-    const ler = d == null ? '' : Math.abs(d) < mx * 0.03 ? 'praticamente igual nos 4 grupos' : `quem mais usa tem ${d > 0 ? 'MAIS' : 'MENOS'} que quem menos usa`;
-    return `<div class="smc"><h3>${t}</h3><div class="ler">${ler}</div><div class="bars">${v.map((x, i) => `<div title="${QN[i]}: ${f(x)}"><b>${f(x)}</b><i style="height:${Math.max(2, (x || 0) / mx * 85)}%;background:var(--q${i + 1})"></i></div>`).join('')}</div><div class="qlab">${QN.map((q) => `<span>${q}</span>`).join('')}</div></div>`;
-  }).join('');
+  const fs = [...new Set(D.vendedores.map((v) => v.filial))].sort();
+  $('rFil').innerHTML = '<option value="">Todas as filiais</option>' + fs.map((f) => `<option>${f}</option>`).join('');
+  const sups = () => { const f = $('rFil').value; $('rSup').innerHTML = '<option value="">Todos os supervisores</option>' + [...new Set(D.vendedores.filter((v) => !f || v.filial === f).map((v) => v.supervisor).filter(Boolean))].sort().map((s) => `<option>${esc(s)}</option>`).join(''); };
+  sups();
+  $('rFil').onchange = () => { sups(); quartis(); }; $('rSup').onchange = quartis; $('rTipo').onchange = quartis;
   resumoExtra();
 }
-
-// SIMULACAO E TIPO DE CLIENTE (Vitorio, 21/10/2026: "imagina se todos estivessem no patamar desse grupo, para quanto iria o faturamento?"; "R$ por cliente precisa abrir por CNAE")
 async function resumoExtra() {
   if (!CB) { try { CB = await fetch('mix_cubo.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null); } catch (e) { CB = null; } }
-  const F = D.faixas || [], top = F[3];
-  if (!CB || !top) { $('simul').innerHTML = $('porTipo').innerHTML = '<div class="leg">Chega na próxima atualização dos dados.</div>'; return; }
-  const totVal = CB.f.reduce((t, x) => t + x[2], 0), rsProd = totVal / CB.f.length;   // R$ medio de 1 produto num cliente no mes
-  const V = D.vendedores.filter((v) => v.clientes && v.mix_medio != null);
-  const extraMix = V.reduce((t, v) => t + v.clientes * Math.max(0, top.mix_medio - v.mix_medio) * rsProd, 0);
-  const extra03 = V.reduce((t, v) => t + v.clientes * 0.3 * rsProd, 0);
-  const ped = (v) => v.clientes * (v.pedidos_por_cliente || 1);
-  const extraPed = V.filter((v) => v.skus_por_pedido != null).reduce((t, v) => t + ped(v) * Math.max(0, top.skus_por_pedido - v.skus_por_pedido) * rsProd, 0);
-  const fatMes = V.reduce((t, v) => t + v.clientes * (v.faturado_por_cliente || 0), 0);
+  if (CB) { const ts = {}; CB.cli.forEach((c) => ts[c[2]] = (ts[c[2]] || 0) + 1); $('rTipo').innerHTML = '<option value="">Todos os tipos de cliente</option>' + Object.entries(ts).sort((a, b) => b[1] - a[1]).map(([t, n]) => `<option value="${esc(t)}">${esc(t)} (${nf(n)})</option>`).join(''); }
+  quartis();
+}
+function quartis() {
+  const f = $('rFil').value, s = $('rSup').value, tipo = $('rTipo').value;
+  let V = D.vendedores.filter((v) => v.uso_pct != null && (!f || v.filial === f) && (!s || v.supervisor === s)).map((v) => ({ ...v }));
+  // por tipo de cliente: recalcula mix, R$ e clientes do vendedor so com os clientes daquele tipo
+  if (tipo && CB) {
+    const m = new Map();
+    CB.f.forEach((fa) => { const c = CB.cli[fa[0]]; if (c[2] !== tipo) return; const k = c[0] + '|' + c[1]; let x = m.get(k); if (!x) m.set(k, (x = { cli: new Set(), val: 0, it: 0 })); x.cli.add(fa[0]); x.val += fa[2]; x.it++; });
+    V = V.filter((v) => { const x = m.get(v.filial + '|' + v.rca); if (!x || x.cli.size < 3) return false; v.clientes = x.cli.size; v.mix_medio = x.it / x.cli.size; v.faturado_por_cliente = x.val / x.cli.size; return true; });
+  }
+  if (V.length < 8) { $('faixasG').innerHTML = '<div class="leg">Poucos vendedores neste filtro (menos de 8) para dividir em 4 grupos.</div>'; $('simul').innerHTML = ''; $('qleg').innerHTML = ''; return; }
+  V.sort((a, b) => a.uso_pct - b.uso_pct);
+  const G = [0, 1, 2, 3].map((i) => V.slice(Math.floor(i * V.length / 4), Math.floor((i + 1) * V.length / 4)));
+  const med = (L, k) => { const x = L.map((v) => v[k]).filter((y) => y != null && !isNaN(y)); return x.length ? x.reduce((a, b) => a + b, 0) / x.length : null; };
+  $('qleg').innerHTML = `<b>${nf(V.length)} vendedores</b> no filtro, divididos em 4 grupos iguais pelo uso do +MIX: ` + G.map((L, i) => `<span><i style="background:var(--q${i + 1})"></i>${QN[i]} <span class="sub">(${pc(L[0].uso_pct)} a ${pc(L[L.length - 1].uso_pct)} · ${L.length} vend.)</span></span>`).join('');
+  const K = [
+    ['mix_medio', 'Mix por cliente', 'produtos diferentes que cada cliente comprou no mês', (x) => nf(x, 1), 1],
+    ['faturado_por_cliente', 'R$ por cliente', 'quanto cada cliente comprou no mês', brl, 1],
+    ['skus_por_pedido', 'Produtos por pedido', 'tamanho médio de cada pedido', (x) => nf(x, 1), 0],
+    ['skus_novos_medio', 'Produtos novos por cliente', 'produtos que o cliente não comprava nos 60 dias antes', (x) => nf(x, 1), 0],
+    ['pct_meta_fat', '% da meta de faturamento', 'do vendedor, até ontem', pc, 1],
+    ['pct_meta_pos', '% da meta de positivação', 'do vendedor, até ontem', pc, 1],
+    ['premio_pct', 'Vendedores com prêmio', '% do grupo que já ganha prêmio no incentivo', pc, 1],
+    ['liga_pts', 'Pontos na Liga', 'média do grupo', (x) => nf(x, 1), 1],
+    ['dobradinha_pct', 'Dobradinha', '% dos clientes que compraram na 1ª e na 2ª quinzena', pc, 0],
+    ['ja_eram_clientes_pct', 'Recompra', '% dos clientes do mês que também compraram no mês passado', pc, 0]];
+  V.forEach((v) => v.premio_pct = v.premio == null ? null : v.premio ? 100 : 0);
+  $('faixasG').innerHTML = K.filter((k) => !tipo || k[4]).map(([k, t, sub, fm]) => {
+    const v = G.map((L) => med(L, k)); const mx = Math.max(...v.map((x) => x || 0)) || 1;
+    const a = v[0], b = v[3]; let ler = '';
+    if (a != null && b != null) { const d = (b - a) / (Math.abs(a) || 1) * 100; ler = Math.abs(d) < 3 ? `<b>Igual</b> nos 4 grupos (${fm(a)} × ${fm(b)})` : `Quem usa muito: <b>${fm(b)}</b> · quem usa pouco: <b>${fm(a)}</b> → <b>${d > 0 ? '+' : ''}${nf(d, 0)}%</b>`; }
+    return `<div class="smc"><h3>${t}</h3><div class="sub" style="font-size:11.5px">${sub}</div><div class="ler" style="margin-top:6px;color:var(--tx)">${ler}</div><div class="bars">${v.map((x, i) => `<div title="${QN[i]}: ${fm(x)}"><b>${fm(x)}</b><i style="height:${Math.max(2, (x || 0) / mx * 85)}%;background:var(--q${i + 1})"></i></div>`).join('')}</div><div class="qlab">${QN.map((q) => `<span>${q}</span>`).join('')}</div></div>`;
+  }).join('') + (tipo ? `<div class="leg" style="grid-column:1/-1">Com tipo de cliente escolhido, só aparecem mix e R$ por cliente (recalculados com os clientes desse tipo) e os números do vendedor inteiro (metas, prêmio, Liga).</div>` : '');
+  // tabela recolhida
+  $('faixas').innerHTML = `<table><thead><tr><th class="l">Média dos vendedores</th>${G.map((L, i) => `<th>${QN[i]}<br>${L.length} vend.</th>`).join('')}</tr></thead><tbody>` +
+    [['uso_pct', 'Uso do +MIX', pc], ['clientes', 'Clientes (soma do grupo)', nf, 1], ...K.map((k) => [k[0], k[1], k[3]])].map(([k, t, fm, soma]) => `<tr><td class="l">${t}</td>${G.map((L) => `<td>${fm(soma ? L.reduce((a, v) => a + (v[k] || 0), 0) : med(L, k))}</td>`).join('')}</tr>`).join('') + '</tbody></table>';
+  // SIMULACAO no mesmo filtro
+  if (!CB) { $('simul').innerHTML = ''; return; }
+  const totVal = CB.f.reduce((t, x) => t + x[2], 0), rsProd = totVal / CB.f.length;
+  const topMix = med(G[3], 'mix_medio'), topPed = med(G[3], 'skus_por_pedido');
+  const Vm = V.filter((v) => v.clientes && v.mix_medio != null);
+  const fatMes = Vm.reduce((t, v) => t + v.clientes * (v.faturado_por_cliente || 0), 0);
+  const extra03 = Vm.reduce((t, v) => t + v.clientes * 0.3 * rsProd, 0);
+  const extraMix = Vm.reduce((t, v) => t + v.clientes * Math.max(0, topMix - v.mix_medio) * rsProd, 0);
+  const extraPed = tipo ? null : Vm.filter((v) => v.skus_por_pedido != null).reduce((t, v) => t + v.clientes * (v.pedidos_por_cliente || 1) * Math.max(0, topPed - v.skus_por_pedido) * rsProd, 0);
   $('simul').innerHTML = `<div class="hero">
-    <div class="k"><span>Cada cliente levando +0,3 produto</span><b>+ ${brl(extra03)}</b><em>+${pc(extra03 / fatMes * 100)} no mês</em></div>
-    <div class="k"><span>Todos com ${nf(top.mix_medio, 1)} produtos por cliente</span><b>+ ${brl(extraMix)}</b><em>+${pc(extraMix / fatMes * 100)} no mês</em></div>
-    <div class="k"><span>Todos com ${nf(top.skus_por_pedido, 1)} produtos por pedido</span><b>+ ${brl(extraPed)}</b><em>+${pc(extraPed / fatMes * 100)} no mês</em></div></div>
-    <div class="leg">Base: ${brl(fatMes)} faturados no mês até ontem. Simulação, não é venda: cada produto a mais vale ${brl(rsProd)}, que é quanto, em média, um produto rendeu por cliente neste mês. Os números não se somam: são três jeitos de ver o mesmo ganho.</div>`;
-  // quartil de cada vendedor pelo uso (mesma divisao da tabela acima: ordem crescente de uso)
-  const ord = D.vendedores.filter((v) => v.uso_pct != null).sort((a, b) => a.uso_pct - b.uso_pct), q = new Map();
-  ord.forEach((v, i) => q.set(v.filial + '|' + v.rca, Math.min(3, Math.floor(i / ord.length * 4))));
-  const g = new Map();   // tipo -> [quartil] -> {cli:Set, val}
-  CB.f.forEach((fa) => { const c = CB.cli[fa[0]], k = q.get(c[0] + '|' + c[1]); if (k == null) return; const t = c[2];
-    if (!g.has(t)) g.set(t, [0, 1, 2, 3].map(() => ({ cli: new Set(), val: 0, it: 0 }))); const x = g.get(t)[k]; x.cli.add(fa[0]); x.val += fa[2]; x.it++; });
-  const tot = [...g.entries()].map(([t, a]) => [t, a, a.reduce((s, x) => s + x.cli.size, 0)]).sort((a, b) => b[2] - a[2]);
-  const desenha = () => {
-    const k = $('tpK').value; const val = (x) => x.cli.size < 10 ? null : k === 'rs' ? x.val / x.cli.size : x.it / x.cli.size;
-    const mx = Math.max(...tot.flatMap(([, a]) => a.map(val)).filter((x) => x != null)) || 1; const fm = k === 'rs' ? brl : (x) => nf(x, 1);
-    $('porTipo').innerHTML = tot.map(([t, a, n]) => `<div class="nm">${esc(t)}<span>${nf(n)} clientes</span></div><div class="bb">${a.map((x, i) => { const v = val(x); return `<div title="${x.cli.size} clientes"><i style="width:${v == null ? 0 : Math.max(1, v / mx * 80)}%;background:var(--q${i + 1})"></i>${v == null ? 'poucos clientes' : fm(v)}</div>`; }).join('')}</div>`).join('');
-  };
-  $('tpK').onchange = desenha; desenha();
+    <div class="k"><span>Se <b>3 em cada 10 clientes</b> comprassem <b>1 produto a mais</b> no mês (+0,3 por cliente)</span><b>+ ${brl(extra03)}</b><em>a mais por mês (+${pc(extra03 / fatMes * 100)})</em></div>
+    <div class="k"><span>Se todo vendedor abaixo vendesse <b>${nf(topMix, 1)} produtos por cliente</b>, como o grupo que usa muito</span><b>+ ${brl(extraMix)}</b><em>a mais por mês (+${pc(extraMix / fatMes * 100)})</em></div>
+    ${extraPed == null ? '' : `<div class="k"><span>Se todo vendedor abaixo fizesse pedidos de <b>${nf(topPed, 1)} produtos</b>, como o grupo que usa muito</span><b>+ ${brl(extraPed)}</b><em>a mais por mês (+${pc(extraPed / fatMes * 100)})</em></div>`}</div>
+    <div class="leg">Conta: produtos a mais × ${brl(rsProd)} (quanto um produto rende, em média, num cliente por mês). Base do filtro: ${brl(fatMes)} no mês até ontem. É simulação, não é venda; os cartões não se somam.</div>`;
 }
 
 function filtros() {
