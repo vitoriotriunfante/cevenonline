@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-21T11:02:45.493906Z",
+  "gerado_em": "2026-10-21T11:18:45.599119Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -2106,7 +2106,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 30,
+      "plus_lideranca": 35,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2133,7 +2133,7 @@
           "ret": 0
         },
         "2026-10-21": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2315,6 +2315,64 @@
       "pos": 25
     },
     {
+      "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
+      "filial": "TCV",
+      "canal": "AS",
+      "gerente": "Leonardo",
+      "total_vendedores": 4,
+      "jogos": 6,
+      "pts_tabela": 4,
+      "vitorias": 0,
+      "empates": 4,
+      "derrotas": 2,
+      "gp": 122,
+      "gc": 8,
+      "sg": 114,
+      "aprov": 22.2,
+      "forma": [
+        "E",
+        "E",
+        "D",
+        "E",
+        "E",
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 65,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 6
+    },
+    {
       "supervisor": "ALESSANDRO JUNIOR LOPES",
       "filial": "API",
       "canal": "AS",
@@ -2366,64 +2424,6 @@
         },
         "2026-10-21": {
           "compromisso": 5,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 6
-    },
-    {
-      "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
-      "filial": "TCV",
-      "canal": "AS",
-      "gerente": "Leonardo",
-      "total_vendedores": 4,
-      "jogos": 6,
-      "pts_tabela": 4,
-      "vitorias": 0,
-      "empates": 4,
-      "derrotas": 2,
-      "gp": 122,
-      "gc": 8,
-      "sg": 114,
-      "aprov": 22.2,
-      "forma": [
-        "E",
-        "E",
-        "D",
-        "E",
-        "E",
-        "D",
-        "J"
-      ],
-      "plus_lideranca": 60,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 0,
           "ret": 0
         }
       },
@@ -2570,7 +2570,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 40,
+      "plus_lideranca": 45,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2597,7 +2597,7 @@
           "ret": 0
         },
         "2026-10-21": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3243,6 +3243,64 @@
       "pos": 33
     },
     {
+      "supervisor": "ALEX SANDRO SOARES ELIAS",
+      "filial": "TBE",
+      "canal": "AS",
+      "gerente": "Diego",
+      "total_vendedores": 4,
+      "jogos": 6,
+      "pts_tabela": 2,
+      "vitorias": 0,
+      "empates": 2,
+      "derrotas": 4,
+      "gp": 100,
+      "gc": 10,
+      "sg": 90,
+      "aprov": 11.1,
+      "forma": [
+        "D",
+        "E",
+        "D",
+        "E",
+        "D",
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 65,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 14
+    },
+    {
       "supervisor": "LUIZ AUGUSTO RAMOS",
       "filial": "TPH",
       "canal": "VAREJO",
@@ -3299,64 +3357,6 @@
       },
       "plus_pendente": false,
       "pos": 34
-    },
-    {
-      "supervisor": "ALEX SANDRO SOARES ELIAS",
-      "filial": "TBE",
-      "canal": "AS",
-      "gerente": "Diego",
-      "total_vendedores": 4,
-      "jogos": 6,
-      "pts_tabela": 2,
-      "vitorias": 0,
-      "empates": 2,
-      "derrotas": 4,
-      "gp": 100,
-      "gc": 10,
-      "sg": 90,
-      "aprov": 11.1,
-      "forma": [
-        "D",
-        "E",
-        "D",
-        "E",
-        "D",
-        "D",
-        "J"
-      ],
-      "plus_lideranca": 60,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 5,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 14
     },
     {
       "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
@@ -4020,7 +4020,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 40,
+      "plus_lideranca": 45,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -4047,7 +4047,7 @@
           "ret": 5
         },
         "2026-10-21": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -23577,7 +23577,7 @@
         "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
         "gerente": "Vagner",
         "meta_mes": 349314,
-        "pct_hoje": 70.2,
+        "pct_hoje": 72.4,
         "fases": [
           {
             "n": 1,
@@ -24369,7 +24369,7 @@
         "supervisor": "MISSAID MAINARDES RAMOS",
         "gerente": "Marcos",
         "meta_mes": 191016,
-        "pct_hoje": 74.8,
+        "pct_hoje": 75.2,
         "fases": [
           {
             "n": 1,
@@ -28461,7 +28461,7 @@
         "supervisor": "ALYFER PEREIRA MENDES",
         "gerente": "Adriano",
         "meta_mes": 150000,
-        "pct_hoje": 76.7,
+        "pct_hoje": 73.8,
         "fases": [
           {
             "n": 1,
@@ -31101,7 +31101,7 @@
         "supervisor": "ELIENAY VIANA DA SILVA",
         "gerente": "Danilo",
         "meta_mes": 250000,
-        "pct_hoje": 52.2,
+        "pct_hoje": 52.1,
         "fases": [
           {
             "n": 1,
@@ -31233,7 +31233,7 @@
         "supervisor": "JULIO CESAR SOARES DE PAULO",
         "gerente": "Saldanha",
         "meta_mes": 440000.01,
-        "pct_hoje": 18.3,
+        "pct_hoje": 18.8,
         "fases": [
           {
             "n": 1,
@@ -36909,7 +36909,7 @@
         "supervisor": "PEDRO PAULO PERICLES SALAZAR",
         "gerente": "Danilo",
         "meta_mes": 150000,
-        "pct_hoje": 8.8,
+        "pct_hoje": 8.4,
         "fases": [
           {
             "n": 1,
@@ -39155,7 +39155,7 @@
         "total_vendedores": 6,
         "com_meta": 6,
         "meta_mes": 2009407,
-        "pct_hoje": 69.4,
+        "pct_hoje": 69.7,
         "fases": [
           {
             "n": 1,
@@ -39258,7 +39258,7 @@
         "total_vendedores": 6,
         "com_meta": 6,
         "meta_mes": 1840000,
-        "pct_hoje": 79.3,
+        "pct_hoje": 79.4,
         "fases": [
           {
             "n": 1,
@@ -41421,7 +41421,7 @@
         "total_vendedores": 5,
         "com_meta": 5,
         "meta_mes": 1315715.87,
-        "pct_hoje": 46.1,
+        "pct_hoje": 45.8,
         "fases": [
           {
             "n": 1,
