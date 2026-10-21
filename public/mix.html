@@ -75,7 +75,11 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
     <div class="kpis" id="kpis"></div>
     <h2>Quem usa mais o +MIX vende melhor?</h2>
     <div class="box" id="faixas"></div>
-    <div class="leg" id="corr"></div>
+    <div class="leg">Vendedores divididos em 4 grupos pelo uso do +MIX. <b>Dobradinha</b> = % dos clientes que compraram na 1ª quinzena (dia 1 a 15) e de novo na 2ª. <b>Recompra</b> = % dos clientes deste mês que também tinham comprado no mês anterior (o cliente continua com a gente).</div>
+    <h2>Se todos chegassem no patamar dos 25% que mais usam</h2>
+    <div class="box" id="simul"></div>
+    <h2>R$ por cliente por tipo de cliente</h2>
+    <div class="box" id="porTipo"></div>
   </section>
 
   <section id="s-cubo">
@@ -167,14 +171,42 @@ async function carrega() {
 
 function resumo() {
   const F = D.faixas || [], R = D.resumo;
-  const cls = (k) => { const a = F[0] && F[0][k], b = F[3] && F[3][k]; return a == null || b == null ? '' : b > a ? ' up' : b < a ? ' dn' : ''; };
-  const lin = (rot, k, fmt) => `<tr><td class="l">${rot}</td>${F.map((f, i) => `<td class="${i === 3 ? 'ver' + cls(k) : ''}">${fmt(f[k])}</td>`).join('')}</tr>`;
+  const lin = (rot, k, fmt) => `<tr><td class="l">${rot}</td>${F.map((f) => `<td>${fmt(f[k])}</td>`).join('')}</tr>`;
   $('faixas').innerHTML = `<table><thead><tr><th class="l">Média dos vendedores</th>${F.map((f) => `<th>${esc(f.faixa)}<br>${f.vendedores} vend.</th>`).join('')}</tr></thead><tbody>` +
-    lin('Uso do +MIX (% dos clientes)', 'uso_pct', pc) + lin('Clientes positivados (total do grupo)', 'clientes', nf) + lin('Mix por cliente', 'mix_medio', (x) => nf(x, 1)) + lin('Produtos NOVOS por cliente', 'skus_novos_medio', (x) => nf(x, 1)) +
+    lin('Uso do +MIX (% dos clientes)', 'uso_pct', pc) + lin('<span class="sub">Clientes positivados (total do grupo, só informativo)</span>', 'clientes', nf) + lin('Mix por cliente', 'mix_medio', (x) => nf(x, 1)) + lin('Produtos NOVOS por cliente', 'skus_novos_medio', (x) => nf(x, 1)) +
     lin('Produtos por pedido', 'skus_por_pedido', (x) => nf(x, 1)) + lin('R$ por cliente', 'faturado_por_cliente', brl) + lin('% meta de faturamento', 'pct_meta_fat', pc) + lin('% meta de positivação', 'pct_meta_pos', pc) +
-    lin('Com prêmio no incentivo', 'com_premio_pct', pc) + lin('Pontos na Liga', 'liga_pts', (x) => nf(x, 1)) + lin('Dobradinha', 'dobradinha_pct', pc) + lin('Fidelização', 'ja_eram_clientes_pct', pc) + '</tbody></table>';
-  const c = (v) => v == null ? '—' : (v >= 0.3 ? `<b class="up">${nf(v, 2)} forte</b>` : v >= 0.1 ? `<b>${nf(v, 2)} fraca</b>` : v <= -0.1 ? `<b class="dn">${nf(v, 2)} contrária</b>` : `${nf(v, 2)} nenhuma`);
-  $('corr').innerHTML = `Correlação do uso do +MIX com: mix ${c(R.correlacao_uso_x_mix)} · R$/cliente ${c(R.correlacao_uso_x_faturado_cliente)} · meta de faturamento ${c(R.correlacao_uso_x_meta_fat)} · meta de positivação ${c(R.correlacao_uso_x_meta_pos)} · incentivo ${c(R.correlacao_uso_x_incentivo)} · Liga ${c(R.correlacao_uso_x_liga_pts)} · dobradinha ${c(R.correlacao_uso_x_dobradinha)} · fidelização ${c(R.correlacao_uso_x_fidelizacao)}. Vai de −1 a 1; acima de 0,3 é forte. Andar junto não prova que um causa o outro.`;
+    lin('Com prêmio no incentivo', 'com_premio_pct', pc) + lin('Pontos na Liga', 'liga_pts', (x) => nf(x, 1)) + lin('Dobradinha', 'dobradinha_pct', pc) + lin('Recompra (comprou também no mês anterior)', 'ja_eram_clientes_pct', pc) + '</tbody></table>';
+  resumoExtra();
+}
+
+// SIMULACAO E TIPO DE CLIENTE (Vitorio, 21/10/2026: "imagina se todos estivessem no patamar desse grupo, para quanto iria o faturamento?"; "R$ por cliente precisa abrir por CNAE")
+async function resumoExtra() {
+  if (!CB) { try { CB = await fetch('mix_cubo.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null); } catch (e) { CB = null; } }
+  const F = D.faixas || [], top = F[3];
+  if (!CB || !top) { $('simul').innerHTML = $('porTipo').innerHTML = '<div class="leg">Chega na próxima atualização dos dados.</div>'; return; }
+  const totVal = CB.f.reduce((t, x) => t + x[2], 0), rsProd = totVal / CB.f.length;   // R$ medio de 1 produto num cliente no mes
+  const V = D.vendedores.filter((v) => v.clientes && v.mix_medio != null);
+  const extraMix = V.reduce((t, v) => t + v.clientes * Math.max(0, top.mix_medio - v.mix_medio) * rsProd, 0);
+  const extra03 = V.reduce((t, v) => t + v.clientes * 0.3 * rsProd, 0);
+  const ped = (v) => v.clientes * (v.pedidos_por_cliente || 1);
+  const extraPed = V.filter((v) => v.skus_por_pedido != null).reduce((t, v) => t + ped(v) * Math.max(0, top.skus_por_pedido - v.skus_por_pedido) * rsProd, 0);
+  const fatMes = V.reduce((t, v) => t + v.clientes * (v.faturado_por_cliente || 0), 0);
+  $('simul').innerHTML = `<table><tbody>
+    <tr><td class="l">Faturado do mês até ontem (vendedores do estudo)</td><td>${brl(fatMes)}</td><td></td></tr>
+    <tr><td class="l">Se <b>cada cliente</b> levasse <b>+0,3 produto</b> (a diferença entre os grupos)</td><td class="ver">+ ${brl(extra03)}</td><td>+${pc(extra03 / fatMes * 100)}</td></tr>
+    <tr><td class="l">Se todo vendedor abaixo chegasse a <b>${nf(top.mix_medio, 1)} produtos por cliente</b></td><td class="ver">+ ${brl(extraMix)}</td><td>+${pc(extraMix / fatMes * 100)}</td></tr>
+    <tr><td class="l">Se todo vendedor abaixo chegasse a <b>${nf(top.skus_por_pedido, 1)} produtos por pedido</b></td><td class="ver">+ ${brl(extraPed)}</td><td>+${pc(extraPed / fatMes * 100)}</td></tr></tbody></table>
+    <div class="leg">Simulação, não é venda: cada produto a mais vale ${brl(rsProd)}, que é quanto, em média, um produto rendeu por cliente neste mês. Os números não se somam: são três jeitos de ver o mesmo ganho.</div>`;
+  // quartil de cada vendedor pelo uso (mesma divisao da tabela acima: ordem crescente de uso)
+  const ord = D.vendedores.filter((v) => v.uso_pct != null).sort((a, b) => a.uso_pct - b.uso_pct), q = new Map();
+  ord.forEach((v, i) => q.set(v.filial + '|' + v.rca, Math.min(3, Math.floor(i / ord.length * 4))));
+  const g = new Map();   // tipo -> [quartil] -> {cli:Set, val}
+  CB.f.forEach((fa) => { const c = CB.cli[fa[0]], k = q.get(c[0] + '|' + c[1]); if (k == null) return; const t = c[2];
+    if (!g.has(t)) g.set(t, [0, 1, 2, 3].map(() => ({ cli: new Set(), val: 0, it: 0 }))); const x = g.get(t)[k]; x.cli.add(fa[0]); x.val += fa[2]; x.it++; });
+  const tot = [...g.entries()].map(([t, a]) => [t, a, a.reduce((s, x) => s + x.cli.size, 0)]).sort((a, b) => b[2] - a[2]);
+  $('porTipo').innerHTML = `<table><thead><tr><th class="l">Tipo de cliente</th>${F.map((f) => `<th>${esc(f.faixa)}</th>`).join('')}</tr></thead><tbody>` +
+    tot.map(([t, a, n]) => `<tr><td class="l">${esc(t)} <span class="sub">(${nf(n)} clientes)</span></td>${a.map((x) => `<td>${x.cli.size >= 10 ? `${brl(x.val / x.cli.size)}<div class="sub">mix ${nf(x.it / x.cli.size, 1)} · ${nf(x.cli.size)} cli.</div>` : '<span class="sub">poucos clientes</span>'}</td>`).join('')}</tr>`).join('') + '</tbody></table>' +
+    '<div class="leg">Compara o mesmo tipo de cliente entre os 4 grupos de uso do +MIX: farmácia com farmácia, posto com posto. Com menos de 10 clientes a célula não é mostrada.</div>';
 }
 
 function filtros() {
@@ -348,7 +380,7 @@ const XPROX = { filial: 'sup', sup: 'vend', vend: 'ind', ramo: 'ind', ind: 'prod
 const pill = (on) => `margin:2px;border-radius:999px;padding:6px 12px;font-weight:700;cursor:pointer;border:1px solid ${on ? 'var(--acc)' : 'var(--line)'};background:${on ? 'var(--acc)' : 'var(--card)'};color:${on ? '#04202e' : 'var(--tx)'}`;
 async function filtrosCubo() {
   $('xTab').innerHTML = '<tr><td class="l">carregando o cubo…</td></tr>';
-  try { CB = await fetch('mix_cubo.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null); } catch (e) { CB = null; }
+  if (!CB) try { CB = await fetch('mix_cubo.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null); } catch (e) { CB = null; }
   if (!CB) { $('xTab').innerHTML = '<tr><td class="l">O cubo chega na próxima atualização dos dados.</td></tr>'; $('xHeat').innerHTML = ''; return; }
   const vk = new Map(D.vendedores.map((v) => [v.filial + '|' + v.rca, v]));
   CB.vc = CB.cli.map(([f, r]) => vk.get(f + '|' + r) || { filial: f, rca: r, nome: 'RCA ' + r, supervisor: '' });
