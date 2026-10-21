@@ -1,44 +1,46 @@
 🌅 *ABERTURA MATINAL — TCG (07:45)*
-📅 terça-feira, 20/10/2026
+📅 quarta-feira, 21/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 20 • Visitas: 178 (média 8,9/vendedor)
-Sem compra +30d: 42 (23,6%) • Recorrência: 13 (7,3%)
-Oportunidades CNAE 4721: +178 PDVs
+👥 Vendedores: 20 • Visitas: 194 (média 9,7/vendedor)
+Sem compra +30d: 45 (23,2%) • Recorrência: 14 (7,2%)
+Oportunidades CNAE 4639: +194 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCG — DANILO* • 20/10/2026
+📍 *TCG — DANILO* • 21/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 42  •  🟡 Preventivo: 0
+🔴 Última Chance: 45  •  🟡 Preventivo: 0
 
-👤 *DELINLSON ANTONIO LIMA SILVA* (17 em risco)
-  🔴 MERCEARIA DUARTE (456) — 15/09
-  🔴 MERCADO REAL (461) — 05/09
-  🔴 MERCADO GILBERTO (461) — 19/09
-  🔴 COMERCIAL K (461) — 01/01
-  🔴 SORVETERIA TROPICAL (468) — 18/08
-  _+12 outros_
+👤 *DELINLSON ANTONIO LIMA SILVA* (11 em risco)
+  🔴 PADARIA DOCE MEL (456) — 12/09
+  🔴 MERCADO BRASIL (456) — 05/12
+  🔴 mercado nossa senhora aparecia (468) — 28/08
+  🔴 POSTO SENA (481) — 05/12
+  🔴 AUTO POSTO AVENIDA (481) — 12/09
+  _+6 outros_
 
-👤 *EDSON RODRIGO LINIA* (8 em risco)
-  🔴 SR MARDEGAN (459) — 16/09
-  🔴 CONVENIENCIA E MERCEARIA PANORAMA (459) — 17/09
-  🔴 MERCADO D CASA (474) — 29/08
-  🔴 DROGARIA FARMAKO (474) — 17/09
-  🔴 MERCAFRIOS 2 (474) — 14/09
-  _+3 outros_
+👤 *EDSON RODRIGO LINIA* (9 em risco)
+  🔴 CELEIRO (458) — 19/08
+  🔴 POSTO JM PAULISTA (458) — 05/12
+  🔴 ESPETO BRASA CHURRASCARIA (459) — 17/09
+  🔴 CONVENIENCIA DO BALINHA (459) — 17/09
+  🔴 FRUTARIA MIYAZAKI (474) — 17/09
+  _+4 outros_
 
-👤 *Vendedores ligados direto ao gerente* (13 em risco)
-  🔴 TCG - TRIUNFANTE BRASIL DISTRIBUIDORA (489) — 19/06
-  🔴 TARSILA LOPES SILVA (489) — 03/05
-  🔴 PONTO DA CARNE (489) — 05/12
-  🔴 DROGARIA SAO LEOPOLDO (489) — 05/12
-  🔴 FARMACIAS MAIS POPULAR (489) — 05/12
-  _+8 outros_
+👤 *Vendedores ligados direto ao gerente* (15 em risco)
+  🔴 CONVENIENCIA PRIME (489) — 05/12
+  🔴 BROTHER S BAR (489) — 05/12
+  🔴 HORTIFRUTI GALEGO (489) — 05/12
+  🔴 MIX COSMETICOS (489) — 05/12
+  🔴 MERCADO CACULA (489) — 05/12
+  _+10 outros_
 
-👤 *TIAGO SANTOS CORREA* (4 em risco)
-  🔴 GUAICURUS CONVENIENCIA (488) — 12/09
-  🔴 Linda imagem (488) — 05/12
-  🔴 DISTRIBUIDORA EMBALA MS (1072) — 01/01
-  🔴 BIG BOM (1072) — 01/01
+👤 *TIAGO SANTOS CORREA* (10 em risco)
+  🔴 ALEMAO CONVENIENCIA (486) — 05/12
+  🔴 RESTAURANTE GRAMADAO (486) — 14/09
+  🔴 TOMATE RESTAURANTE (486) — 14/09
+  🔴 CASA DOS DOCES (486) — 05/12
+  🔴 SUPERMERCADO OLIVEIRA (488) — 05/12
+  _+5 outros_

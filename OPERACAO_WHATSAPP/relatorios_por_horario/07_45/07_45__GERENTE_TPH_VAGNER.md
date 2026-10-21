@@ -1,54 +1,54 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 terça-feira, 20/10/2026
+📅 quarta-feira, 21/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 34 • Visitas: 468 (média 13,8/vendedor)
-Sem compra +30d: 140 (29,9%) • Recorrência: 67 (14,3%)
-Oportunidades CNAE 4721: +1.872 PDVs
+👥 Vendedores: 32 • Visitas: 453 (média 14,2/vendedor)
+Sem compra +30d: 130 (28,7%) • Recorrência: 52 (11,5%)
+Oportunidades CNAE 4639: +793 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPH — VAGNER* • 20/10/2026
+📍 *TPH — VAGNER* • 21/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 139  •  🟡 Preventivo: 0
+🔴 Última Chance: 130  •  🟡 Preventivo: 0
 
-👤 *ANDREY CAMILLO PIRAGINE* (25 em risco)
-  🔴 VIA PLAST DIST DOCES E EMB (66) — 12/09
-  🔴 FARMA TOTAL (66) — 31/07
-  🔴 POSTO ALPINO 3 (67) — 05/09
-  🔴 GAFFENA MINIMERCADO LTDA (67) — 30/07
-  🔴 PANIFICADORA E MERCEARIA BISCOITO (67) — 05/09
-  _+20 outros_
+👤 *ANDREY CAMILLO PIRAGINE* (16 em risco)
+  🔴 MERCEARIA GENTIL (66) — 31/08
+  🔴 HIPERFARMA (66) — 11/09
+  🔴 MERCADO SOUZA ROSA (66) — 31/08
+  🔴 RESTALRANTE BLUE ANGEL (66) — 13/06
+  🔴 MERCADO BITTENCOURT (66) — 05/12
+  _+11 outros_
 
-👤 *JEFFERSON POLETTO* (26 em risco)
-  🔴 CASA RURAL AGROPECUARIA (128) — 05/09
-  🔴 AVIARIO MUNDIAL (128) — 16/09
-  🔴 PIRIQUITOS RACOES (128) — 31/07
-  🔴 N/D (128) — 01/01
-  🔴 CANTINHO DO ANIMAL (133) — 16/09
-  _+21 outros_
-
-👤 *JONATHAN FERNANDES* (44 em risco)
-  🔴 BOB VET (123) — 05/12
-  🔴 AGROPECUARIA BENAZZI (123) — 03/07
-  🔴 JOSE GIOVANE GELASKI (123) — 18/09
-  🔴 VIER INSUMOS (123) — 12/09
-  🔴 UNIPET (123) — 29/08
-  _+39 outros_
-
-👤 *LUIZ AUGUSTO RAMOS* (33 em risco)
-  🔴 60.519.809 MARIO FERREIRA (74) — 30/06
-  🔴 MERCEARIA PAOLA (74) — 03/07
-  🔴 BAR DO JAICO (74) — 12/09
-  🔴 52.400.761 MARCO ANTONIO GERALDI (74) — 31/07
-  🔴 SUPERMERCADO ASA BRANCA (74) — 31/08
-  _+28 outros_
-
-👤 *RODRIGO DE ARRUDA DARROS* (11 em risco)
-  🔴 MERCEARIA BRANGIEL (84) — 31/08
-  🔴 MERCEARIA E ACOUGUE VILA REIS (85) — 05/12
-  🔴 MERCADINHO MIKEI (86) — 30/06
-  🔴 CASSIO ANDRE WOLSKI TRANSPORTES LTDA (87) — 17/07
-  🔴 COMERCIAL GOLINSKI (87) — 21/08
+👤 *JEFFERSON POLETTO* (11 em risco)
+  🔴 AMC AVIARIO (125) — 28/08
+  🔴 AVIARIO QUATRO PATAS (125) — 20/08
+  🔴 AVIARIO ANDRADE (128) — 02/07
+  🔴 BOM TRATO PET SHOP (128) — 05/12
+  🔴 EMPORIO ZOO (128) — 10/07
   _+6 outros_
+
+👤 *JONATHAN FERNANDES* (36 em risco)
+  🔴 CASA DE RACAO SAO MATEUS (123) — 05/09
+  🔴 AGRO BENTO (123) — 12/09
+  🔴 AGROCOMERCIAL PAVANELO (123) — 05/12
+  🔴 AGROCOMERCIAL PAVANELO (123) — 16/09
+  🔴 AGROPECUARIA SAO MATEUS (123) — 30/07
+  _+31 outros_
+
+👤 *LUIZ AUGUSTO RAMOS* (55 em risco)
+  🔴 SABOR DO CAMPO (74) — 05/12
+  🔴 MERCADO BERG (74) — 05/12
+  🔴 FERREIRA DISTRIBUIDORA (74) — 30/06
+  🔴 MERCEARIA DO MARCOS (74) — 17/09
+  🔴 PAO LITORAL (74) — 12/09
+  _+50 outros_
+
+👤 *RODRIGO DE ARRUDA DARROS* (12 em risco)
+  🔴 MERCADO DA FAMILIA (84) — 05/12
+  🔴 ESTACAO CAFE (85) — 05/12
+  🔴 POSTO SPREA (85) — 24/08
+  🔴 CHURRASCARIA CARRETAO III (85) — 29/08
+  🔴 POSTO GUARTELA (86) — 31/08
+  _+7 outros_

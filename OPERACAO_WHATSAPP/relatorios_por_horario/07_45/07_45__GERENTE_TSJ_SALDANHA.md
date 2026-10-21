@@ -1,46 +1,46 @@
 🌅 *ABERTURA MATINAL — TSJ (07:45)*
-📅 terça-feira, 20/10/2026
+📅 quarta-feira, 21/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 24 • Visitas: 398 (média 16,6/vendedor)
-Sem compra +30d: 147 (36,9%) • Recorrência: 27 (6,8%)
-Oportunidades CNAE 4721: +1.106 PDVs
+👥 Vendedores: 22 • Visitas: 329 (média 15,0/vendedor)
+Sem compra +30d: 98 (29,8%) • Recorrência: 29 (8,8%)
+Oportunidades CNAE 4639: +355 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TSJ — SALDANHA* • 20/10/2026
+📍 *TSJ — SALDANHA* • 21/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 147  •  🟡 Preventivo: 0
+🔴 Última Chance: 135  •  🟡 Preventivo: 0
 
-👤 *ANA CRISTINA DOS SANTOS YAMATO* (24 em risco)
-  🔴 MONTEIRO MARKET (5) — 31/07
-  🔴 POTIGUAR ALIMENTOS E BEBIDAS (5) — 05/12
-  🔴 SUPERMERCADO PEDROZO (5) — 05/12
-  🔴 MARMITAX E ESPETINHO (8) — 05/12
-  🔴 SUPERMERCADO ESPLENDOR DO VALE (8) — 05/12
-  _+19 outros_
-
-👤 *JULIO CESAR SOARES DE PAULO* (30 em risco)
-  🔴 ACOGUE DO IRINEU (7) — 15/07
-  🔴 41.263.128 NADYA THATIANE SILVA DE MACED (7) — 14/08
-  🔴 MERCEARIA FERNANDES (7) — 07/09
-  🔴 MERCEARIA DA EXPEDITA (7) — 30/07
-  🔴 CASA DE RACAO BRUKALU (7) — 21/05
+👤 *ANA CRISTINA DOS SANTOS YAMATO* (30 em risco)
+  🔴 MERCADO LAINE E CARRE (5) — 09/09
+  🔴 SUPERMERCADO BIOMA (5) — 10/09
+  🔴 SUPERMERCADO JK (5) — 05/12
+  🔴 MERCADO RAIZ (8) — 11/09
+  🔴 MERCADO PARANA (8) — 14/09
   _+25 outros_
 
-👤 *Venda empresa (interno)* (31 em risco)
-  🔴 MELITTA DO BRASIL (2) — 05/12
-  🔴 LANCHONETE JUNIOR (2) — 05/12
-  🔴 MERCADINHO E HORT FRUT INTERLAGOD (2) — 05/12
-  🔴 MERCADINHO BANDEIRA BRANCA (2) — 05/12
-  🔴 ADRIANA LEITE VERGARA 61324612134 (2) — 05/12
-  _+26 outros_
+👤 *JULIO CESAR SOARES DE PAULO* (22 em risco)
+  🔴 RODRIGUES E BETARELO LTDA (7) — 25/05
+  🔴 ANNECY POUSADA (7) — 31/08
+  🔴 LUCIA APARECIDA DA SILVA FERNANDES 29077 (7) — 13/08
+  🔴 KATATAU PADARIA E MERCEARIA (25) — 27/08
+  🔴 SELECT PONTAL (25) — 14/08
+  _+17 outros_
 
-👤 *VICTOR HUGO FONSECA CARVALHO* (62 em risco)
-  🔴 MINI MERCADO IRMAOS SANTANA (16) — 05/12
-  🔴 SABIA RACOES (16) — 05/12
-  🔴 EDISON DE JESUS EMPORIO ME (16) — 14/05
-  🔴 PIRPOUL (23) — 05/12
-  🔴 PADARIA GUERREIRO (23) — 12/08
-  _+57 outros_
+👤 *Venda empresa (interno)* (39 em risco)
+  🔴 EMPORIO E CONV DO MORAES (2) — 05/12
+  🔴 SUPERMERCADO DIAMANTE (2) — 05/12
+  🔴 MERCADO RENNER (2) — 05/12
+  🔴 AUT BEER (2) — 05/12
+  🔴 CASA CARNE MIRANDA (2) — 05/12
+  _+34 outros_
+
+👤 *VICTOR HUGO FONSECA CARVALHO* (44 em risco)
+  🔴 BELLO LANCHONETE E MERCEARIA (16) — 17/09
+  🔴 ENCANTO FLORES E PRESENTES (16) — 31/07
+  🔴 QUITANDA TEM TUDO (16) — 15/09
+  🔴 JOSE BATISTA RODRIGUES ARAUJO84276762634 (16) — 29/07
+  🔴 DEPOSITO DOS AMIGOS (23) — 07/08
+  _+39 outros_

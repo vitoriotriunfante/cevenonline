@@ -1,43 +1,43 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 terça-feira, 20/10/2026
+📅 quarta-feira, 21/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 19 • Visitas: 178 (média 9,4/vendedor)
-Sem compra +30d: 48 (27,0%) • Recorrência: 13 (7,3%)
-Oportunidades CNAE 4721: +265 PDVs
+👥 Vendedores: 19 • Visitas: 240 (média 12,6/vendedor)
+Sem compra +30d: 101 (42,1%) • Recorrência: 27 (11,3%)
+Oportunidades CNAE 4639: +250 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — CLEVERSON* • 20/10/2026
+📍 *MCD — CLEVERSON* • 21/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 48  •  🟡 Preventivo: 0
+🔴 Última Chance: 98  •  🟡 Preventivo: 0
 
-👤 *Vendedores ligados direto ao gerente* (20 em risco)
-  🔴 MANIA DE PET (1070) — 05/12
-  🔴 MERCADINHO DO LAGOA (1070) — 27/05
-  🔴 ATACADO CAMPEIRO (1070) — 15/09
-  🔴 MIX COSMETICOS (1070) — 05/12
-  🔴 POSTO RIBALTA 1 (1070) — 05/12
-  _+15 outros_
+👤 *Vendedores ligados direto ao gerente* (72 em risco)
+  🔴 PANIFICADORA AGUA NA BOCA (1070) — 05/12
+  🔴 MERCADO AVENIDA (1070) — 21/08
+  🔴 POSTO TIGRAO (1070) — 25/08
+  🔴 PADARIA GABRIELA (1070) — 05/12
+  🔴 LIFE MODA INTIMA (1070) — 05/12
+  _+67 outros_
 
-👤 *JONATAS DA SILVA DE OLIVEIRA* (15 em risco)
-  🔴 MERCADO ABC (429) — 15/09
-  🔴 TIGRE EXPRESS (429) — 05/12
-  🔴 STOP BEER (441) — 05/12
-  🔴 SUPERMERCADO HIPOLITO (441) — 29/08
-  🔴 CONVENIENCIA E MERCEARIA CURUJAO (1060) — 05/12
-  _+10 outros_
+👤 *JONATAS DA SILVA DE OLIVEIRA* (13 em risco)
+  🔴 MERCADO SANTANA (429) — 18/09
+  🔴 MERCADO POPULAR (429) — 05/12
+  🔴 CASA DE CARNE E MERCADO BOI GORDO (429) — 18/09
+  🔴 CD NAVIRAI (441) — 05/12
+  🔴 C VALE (441) — 12/09
+  _+8 outros_
 
 👤 *THIAGO DA SILVA CONEGUNDES* (3 em risco)
-  🔴 PAO E TAL CONVENIENCIAS (433) — 05/12
-  🔴 CHURRASCARIA ARARA AZUL (1068) — 28/08
-  🔴 MERCEARIA SEMPRE TEM (1068) — 18/09
+  🔴 SEU MARTINS (433) — 05/12
+  🔴 ULTRA FARMA TOTAL (1068) — 05/09
+  🔴 ULTRA FARMA TOTAL (1068) — 05/09
 
 👤 *TIAGO MARTINES OTAVIANO* (10 em risco)
-  🔴 SUPERMERCADO COLOMBI (412) — 18/09
-  🔴 SACOLAO ECONOMICO (412) — 18/09
-  🔴 PET SHOP CACHORRAO (420) — 31/08
-  🔴 PANIF E CONF JARDIM (450) — 14/09
-  🔴 PEDRINHO CONVENIENCIA (450) — 18/09
+  🔴 MANGOLE CONVENIENCIA (420) — 20/08
+  🔴 RESTAURANTE E CHURRASCARIA (420) — 05/12
+  🔴 CELEIRO (1061) — 19/08
+  🔴 DROGARIA IACAL (1064) — 05/12
+  🔴 FERREIRA CONVENIENCIA (1064) — 05/12
   _+5 outros_
