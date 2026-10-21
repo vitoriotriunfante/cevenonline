@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-21T10:47:55.584328Z",
+  "gerado_em": "2026-10-21T11:02:45.493906Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -13,7 +13,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 23739,
+  "total_lances_auditados": 23742,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -273,9 +273,9 @@
       "vitorias": 0,
       "empates": 4,
       "derrotas": 2,
-      "gp": 436,
-      "gc": 1086,
-      "sg": -650,
+      "gp": 439,
+      "gc": 1106,
+      "sg": -667,
       "aprov": 22.2,
       "super_pedidos": 7,
       "inativos_resgatados": 12,
@@ -615,9 +615,9 @@
       "vitorias": 0,
       "empates": 4,
       "derrotas": 2,
-      "gp": 436,
-      "gc": 1086,
-      "sg": -650,
+      "gp": 439,
+      "gc": 1106,
+      "sg": -667,
       "aprov": 22.2,
       "forma": [
         "D",
@@ -2315,6 +2315,64 @@
       "pos": 25
     },
     {
+      "supervisor": "ALESSANDRO JUNIOR LOPES",
+      "filial": "API",
+      "canal": "AS",
+      "gerente": "Marcelo",
+      "total_vendedores": 4,
+      "jogos": 6,
+      "pts_tabela": 4,
+      "vitorias": 0,
+      "empates": 4,
+      "derrotas": 2,
+      "gp": 248,
+      "gc": 59,
+      "sg": 189,
+      "aprov": 22.2,
+      "forma": [
+        "E",
+        "E",
+        "E",
+        "D",
+        "E",
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 60,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 6
+    },
+    {
       "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
       "filial": "TCV",
       "canal": "AS",
@@ -2343,64 +2401,6 @@
         "2026-10-13": {
           "compromisso": 5,
           "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 6
-    },
-    {
-      "supervisor": "ALESSANDRO JUNIOR LOPES",
-      "filial": "API",
-      "canal": "AS",
-      "gerente": "Marcelo",
-      "total_vendedores": 4,
-      "jogos": 6,
-      "pts_tabela": 4,
-      "vitorias": 0,
-      "empates": 4,
-      "derrotas": 2,
-      "gp": 248,
-      "gc": 59,
-      "sg": 189,
-      "aprov": 22.2,
-      "forma": [
-        "E",
-        "E",
-        "E",
-        "D",
-        "E",
-        "D",
-        "J"
-      ],
-      "plus_lideranca": 55,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 0
         },
         "2026-10-14": {
           "compromisso": 5,
@@ -2512,7 +2512,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 45,
+      "plus_lideranca": 50,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2539,7 +2539,7 @@
           "ret": 0
         },
         "2026-10-21": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3243,6 +3243,64 @@
       "pos": 33
     },
     {
+      "supervisor": "LUIZ AUGUSTO RAMOS",
+      "filial": "TPH",
+      "canal": "VAREJO",
+      "gerente": "Vagner",
+      "total_vendedores": 9,
+      "jogos": 6,
+      "pts_tabela": 2,
+      "vitorias": 0,
+      "empates": 2,
+      "derrotas": 4,
+      "gp": 231,
+      "gc": 510,
+      "sg": -279,
+      "aprov": 11.1,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "E",
+        "D",
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 65,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 34
+    },
+    {
       "supervisor": "ALEX SANDRO SOARES ELIAS",
       "filial": "TBE",
       "canal": "AS",
@@ -3301,64 +3359,6 @@
       "pos": 14
     },
     {
-      "supervisor": "LUIZ AUGUSTO RAMOS",
-      "filial": "TPH",
-      "canal": "VAREJO",
-      "gerente": "Vagner",
-      "total_vendedores": 9,
-      "jogos": 6,
-      "pts_tabela": 2,
-      "vitorias": 0,
-      "empates": 2,
-      "derrotas": 4,
-      "gp": 231,
-      "gc": 510,
-      "sg": -279,
-      "aprov": 11.1,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "E",
-        "D",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 60,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 34
-    },
-    {
       "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
       "filial": "TPA",
       "canal": "AS",
@@ -3370,8 +3370,8 @@
       "empates": 2,
       "derrotas": 4,
       "gp": 39,
-      "gc": 144,
-      "sg": -105,
+      "gc": 154,
+      "sg": -115,
       "aprov": 11.1,
       "forma": [
         "D",
@@ -3717,9 +3717,9 @@
       "vitorias": 0,
       "empates": 2,
       "derrotas": 4,
-      "gp": 260,
-      "gc": 364,
-      "sg": -104,
+      "gp": 263,
+      "gc": 374,
+      "sg": -111,
       "aprov": 11.1,
       "forma": [
         "D",
@@ -3788,7 +3788,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 55,
+      "plus_lideranca": 60,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -3815,7 +3815,7 @@
           "ret": 5
         },
         "2026-10-21": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3881,6 +3881,64 @@
       "pos": 19
     },
     {
+      "supervisor": "LUCAS RAMOS MONTAGNHANI",
+      "filial": "TPH",
+      "canal": "AS",
+      "gerente": "Vagner",
+      "total_vendedores": 6,
+      "jogos": 6,
+      "pts_tabela": 1,
+      "vitorias": 0,
+      "empates": 1,
+      "derrotas": 5,
+      "gp": 35,
+      "gc": 40,
+      "sg": -5,
+      "aprov": 5.6,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "E",
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 50,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 20
+    },
+    {
       "supervisor": "RAFAEL DA SILVA CARPENA",
       "filial": "TPA",
       "canal": "VAREJO",
@@ -3937,64 +3995,6 @@
       },
       "plus_pendente": false,
       "pos": 39
-    },
-    {
-      "supervisor": "LUCAS RAMOS MONTAGNHANI",
-      "filial": "TPH",
-      "canal": "AS",
-      "gerente": "Vagner",
-      "total_vendedores": 6,
-      "jogos": 6,
-      "pts_tabela": 1,
-      "vitorias": 0,
-      "empates": 1,
-      "derrotas": 5,
-      "gp": 35,
-      "gc": 40,
-      "sg": -5,
-      "aprov": 5.6,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "E",
-        "D",
-        "J"
-      ],
-      "plus_lideranca": 45,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 20
     },
     {
       "supervisor": "EDERSON SUONSKI",
@@ -10237,6 +10237,40 @@
       "pos_filial": 13
     },
     {
+      "rca": "161",
+      "nome": "JANAINA BOEIRA RECH",
+      "filial": "TPA",
+      "supervisor": "ROGERIO DORNELLES PASSOS",
+      "gerente": "Radke / Leandro",
+      "canal": "VAREJO",
+      "jogos": 7,
+      "vitorias": 1,
+      "empates": 4,
+      "derrotas": 2,
+      "pts_tabela": 7,
+      "aprov": 33.3,
+      "gp": 49,
+      "gc": 17,
+      "sg": 32,
+      "super_pedidos": 0,
+      "inativos_resgatados": 2,
+      "forma": [
+        "D",
+        "E",
+        "E",
+        "D",
+        "E",
+        "V",
+        "E"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 135,
+      "pos_filial": 1
+    },
+    {
       "rca": "1126",
       "nome": "FLAVIO ALVES DA SILVA",
       "filial": "API",
@@ -10267,7 +10301,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 135,
+      "pos_brasil": 136,
       "pos_filial": 19
     },
     {
@@ -10437,7 +10471,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 136,
+      "pos_brasil": 137,
       "pos_filial": 12
     },
     {
@@ -10471,7 +10505,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 137,
+      "pos_brasil": 138,
       "pos_filial": 16
     },
     {
@@ -10505,7 +10539,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 138,
+      "pos_brasil": 139,
       "pos_filial": 14
     },
     {
@@ -10573,7 +10607,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 139,
+      "pos_brasil": 140,
       "pos_filial": 22
     },
     {
@@ -10607,7 +10641,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 140,
+      "pos_brasil": 141,
       "pos_filial": 5
     },
     {
@@ -10675,7 +10709,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 141,
+      "pos_brasil": 142,
       "pos_filial": 15
     },
     {
@@ -10709,7 +10743,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 142,
+      "pos_brasil": 143,
       "pos_filial": 13
     },
     {
@@ -10743,7 +10777,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 143,
+      "pos_brasil": 144,
       "pos_filial": 17
     },
     {
@@ -10811,7 +10845,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 144,
+      "pos_brasil": 145,
       "pos_filial": 13
     },
     {
@@ -10845,42 +10879,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 145,
-      "pos_filial": 7
-    },
-    {
-      "rca": "161",
-      "nome": "JANAINA BOEIRA RECH",
-      "filial": "TPA",
-      "supervisor": "ROGERIO DORNELLES PASSOS",
-      "gerente": "Radke / Leandro",
-      "canal": "VAREJO",
-      "jogos": 6,
-      "vitorias": 1,
-      "empates": 3,
-      "derrotas": 2,
-      "pts_tabela": 6,
-      "aprov": 33.3,
-      "gp": 46,
-      "gc": 17,
-      "sg": 29,
-      "super_pedidos": 0,
-      "inativos_resgatados": 2,
-      "forma": [
-        "D",
-        "E",
-        "E",
-        "D",
-        "E",
-        "V",
-        "J"
-      ],
-      "streak": 1,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
       "pos_brasil": 146,
-      "pos_filial": 1
+      "pos_filial": 7
     },
     {
       "rca": "78",
@@ -12821,40 +12821,6 @@
       "pos_filial": 9
     },
     {
-      "rca": "144",
-      "nome": "ALEXSANDRO VALDIR DA SILVA VASQUES",
-      "filial": "TPA",
-      "supervisor": "ROGERIO DORNELLES PASSOS",
-      "gerente": "Radke / Leandro",
-      "canal": "VAREJO",
-      "jogos": 6,
-      "vitorias": 1,
-      "empates": 1,
-      "derrotas": 4,
-      "pts_tabela": 4,
-      "aprov": 22.2,
-      "gp": 110,
-      "gc": 125,
-      "sg": -15,
-      "super_pedidos": 0,
-      "inativos_resgatados": 2,
-      "forma": [
-        "D",
-        "D",
-        "E",
-        "V",
-        "D",
-        "D",
-        "J"
-      ],
-      "streak": 1,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 181,
-      "pos_filial": 3
-    },
-    {
       "rca": "1068",
       "nome": "FERNANDO ANJOS MACEDO",
       "filial": "MCD",
@@ -12885,8 +12851,42 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 182,
+      "pos_brasil": 181,
       "pos_filial": 19
+    },
+    {
+      "rca": "144",
+      "nome": "ALEXSANDRO VALDIR DA SILVA VASQUES",
+      "filial": "TPA",
+      "supervisor": "ROGERIO DORNELLES PASSOS",
+      "gerente": "Radke / Leandro",
+      "canal": "VAREJO",
+      "jogos": 6,
+      "vitorias": 1,
+      "empates": 1,
+      "derrotas": 4,
+      "pts_tabela": 4,
+      "aprov": 22.2,
+      "gp": 110,
+      "gc": 135,
+      "sg": -25,
+      "super_pedidos": 0,
+      "inativos_resgatados": 2,
+      "forma": [
+        "D",
+        "D",
+        "E",
+        "V",
+        "D",
+        "D",
+        "J"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 182,
+      "pos_filial": 3
     },
     {
       "rca": "225",
@@ -20586,8 +20586,8 @@
       "pts_tabela": 0,
       "aprov": 0.0,
       "gp": 0,
-      "gc": 134,
-      "sg": -134,
+      "gc": 144,
+      "sg": -144,
       "super_pedidos": 0,
       "inativos_resgatados": 0,
       "forma": [
@@ -27537,7 +27537,7 @@
         "supervisor": "GILBERTO GOMES DOMINGOS",
         "gerente": "Marcos",
         "meta_mes": 262899,
-        "pct_hoje": 33.4,
+        "pct_hoje": 32.9,
         "fases": [
           {
             "n": 1,
@@ -39021,7 +39021,7 @@
         "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
         "gerente": "Radke / Leandro",
         "meta_mes": 592000,
-        "pct_hoje": 44.7,
+        "pct_hoje": 42,
         "fases": [
           {
             "n": 1,
@@ -39110,10 +39110,10 @@
           },
           {
             "n": 3,
-            "pts_lances": 0,
+            "pts_lances": -10,
             "pts_faseamento": 0,
             "pts_bonus": 0,
-            "score": 0,
+            "score": -10,
             "jogada": true,
             "resultado": "J",
             "pts_tabela": 0
@@ -39140,7 +39140,7 @@
           "J"
         ],
         "pontos": -84,
-        "pts_lances": -84,
+        "pts_lances": -94,
         "pts_faseamento": 10,
         "pts_bonus": 0,
         "pos_brasil": 139,
@@ -41215,7 +41215,7 @@
         "total_vendedores": 5,
         "com_meta": 5,
         "meta_mes": 1558000,
-        "pct_hoje": 50.1,
+        "pct_hoje": 49.1,
         "fases": [
           {
             "n": 1,
@@ -41308,7 +41308,7 @@
           }
         ],
         "aprov": 33.3,
-        "pts_lances_equipe": -55,
+        "pts_lances_equipe": -65,
         "pos": 21
       },
       {
