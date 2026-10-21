@@ -820,7 +820,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
           </select>
           <input type="text" id="lances-supervisor" class="input-search" placeholder="Filtrar supervisor..." style="max-width:200px" oninput="filtrarLancesRenderizados()">
           <input type="text" id="lances-vendedor" class="input-search" placeholder="Filtrar vendedor..." style="max-width:200px" oninput="filtrarLancesRenderizados()">
-          <select id="lances-nivel" class="select-ctl" onchange="atualizaRegrasLances(true); filtrarLancesRenderizados()">
+          <select id="lances-nivel" class="select-ctl" style="display:none" onchange="atualizaRegrasLances(true); filtrarLancesRenderizados()">
             <option value="TODOS">TODOS OS TIPOS</option>
             <option value="gol">⚽ Gol</option>
             <option value="hattrick">🔥 Hat-Trick</option>
@@ -1403,16 +1403,22 @@ async function carregarGabarito() {
   }
 }
 
+const TIPOS_SEL = new Set();
+const passaTipo = (l) => !TIPOS_SEL.size || TIPOS_SEL.has(l.nivel);
 function renderizarChipsResumo(porNivel, total) {
   const box = document.getElementById('lances-resumo-chips');
   if (!box) return;
-  const chips = [`<span style="background:var(--surface-hover);padding:6px 14px;border-radius:8px;font-weight:700;font-size:13px">TOTAL: ${total}</span>`];
+  // VARIOS TIPOS AO MESMO TEMPO (Vitorio, 21/10/2026): cada chip liga/desliga o tipo; TOTAL limpa a selecao
+  const est = (on) => `cursor:pointer;user-select:none;padding:6px 14px;border-radius:8px;font-weight:700;font-size:13px;border:2px solid ${on ? 'var(--acc,#38bdf8)' : 'transparent'};background:${on ? 'rgba(56,189,248,.18)' : 'var(--surface-hover)'}`;
+  const chips = [`<span data-nv="" title="mostrar todos os tipos" style="${est(!TIPOS_SEL.size)}">TOTAL: ${total}</span>`];
   if (CANAL === 'AS' && PERIODO_LANCES) chips.unshift(`<span style="background:var(--acc,#38bdf8);color:#04202e;padding:6px 14px;border-radius:8px;font-weight:800;font-size:13px">AS · Semana ${PERIODO_LANCES.n} (${ddmm(PERIODO_LANCES.de)} a ${ddmm(PERIODO_LANCES.ate)})</span>`);
   Object.entries(ROTULO_LANCE).forEach(([nivel, rotulo]) => {
     const n = porNivel[nivel] || 0;
-    if (n > 0) chips.push(`<span style="background:var(--surface-hover);padding:6px 14px;border-radius:8px;font-weight:700;font-size:13px">${rotulo}: ${n}</span>`);
+    if (n > 0) chips.push(`<span data-nv="${nivel}" title="clique para incluir/tirar este tipo" style="${est(TIPOS_SEL.has(nivel))}">${rotulo}: ${n}</span>`);
   });
-  box.innerHTML = chips.join('');
+  box.innerHTML = chips.join('') + `<span style="align-self:center;font-size:12px;color:var(--tx-mut)">clique nos tipos para escolher vários</span>`;
+  box.querySelectorAll('[data-nv]').forEach((c) => c.onclick = () => { const nv = c.dataset.nv; if (!nv) TIPOS_SEL.clear(); else if (TIPOS_SEL.has(nv)) TIPOS_SEL.delete(nv); else TIPOS_SEL.add(nv);
+    renderizarChipsResumo(porNivel, total); atualizaRegrasLances(true); filtrarLancesRenderizados(); });
 }
 
 // SUB-FILTRO POR REGRA (Vitorio, 19/10/2026: "queria ver quantos gols de Dobrou o Mix e nao consegui"): a regra e o nome do lance sem o nivel
@@ -1420,19 +1426,18 @@ function renderizarChipsResumo(porNivel, total) {
 const regraDoLance = (l) => String(l.pontos_nome || '').replace(/\s+(BRONZE|PRATA|OURO|PLATINA|DIAMANTE)\s*$/i, '').trim() || 'sem regra mapeada';
 function atualizaRegrasLances(reset) {
   const sel = document.getElementById('lances-regra'); if (!sel) return;
-  const nivel = document.getElementById('lances-nivel').value, atual = reset ? 'TODAS' : sel.value;
+  const atual = reset ? 'TODAS' : sel.value;
   const cont = {};
-  (nivel === 'TODOS' ? LANCES_ATUAIS : LANCES_ATUAIS.filter(l => l.nivel === nivel)).forEach(l => { const r = regraDoLance(l); cont[r] = (cont[r] || 0) + 1; });
+  LANCES_ATUAIS.filter(passaTipo).forEach(l => { const r = regraDoLance(l); cont[r] = (cont[r] || 0) + 1; });
   const ops = Object.entries(cont).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
   sel.innerHTML = '<option value="TODAS">TODAS AS REGRAS</option>' + ops.map(([r, n]) => `<option value="${esc(r)}">${esc(r)} (${n})</option>`).join('');
   sel.value = ops.some(([r]) => r === atual) ? atual : 'TODAS';
 }
 function lancesFiltradosTela() {
-  const nivel = document.getElementById('lances-nivel').value;
   const regra = (document.getElementById('lances-regra') || {}).value || 'TODAS';
   const supBusca = (document.getElementById('lances-supervisor').value || '').trim().toUpperCase();
   const vendBusca = (document.getElementById('lances-vendedor').value || '').trim().toUpperCase();
-  let filtrados = nivel === 'TODOS' ? LANCES_ATUAIS : LANCES_ATUAIS.filter(l => l.nivel === nivel);
+  let filtrados = LANCES_ATUAIS.filter(passaTipo);
   if (regra !== 'TODAS') filtrados = filtrados.filter(l => regraDoLance(l) === regra);
   if (supBusca) filtrados = filtrados.filter(l => (l.supervisor || '').toUpperCase().includes(supBusca));
   if (vendBusca) filtrados = filtrados.filter(l => (l.vendedor || '').toUpperCase().includes(vendBusca));
