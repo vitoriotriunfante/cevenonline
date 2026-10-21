@@ -435,6 +435,7 @@ const ddmm = iso => iso ? iso.slice(8,10) + '/' + iso.slice(5,7) : '—';
 const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
 const secDe = hms => { const [h, m, x] = String(hms || '0:0:0').split(':').map(Number); return h * 3600 + m * 60 + (x || 0); };
 const limpaNome = n => String(n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
+const INICIO_MTZ = Date.now();
 const HOJE0 = sp().date, K = {seen: 'ceven_mtz_seen_', log: 'ceven_mtz_log2_', devMax: 'ceven_mtz_devmax_', data: 'ceven_mtz_data_'};
 (function limpa() { try { Object.keys(localStorage).forEach(k => { if (/^ceven_mtz_(seen|log|devmax|data)_/.test(k) && !k.endsWith(HOJE0)) localStorage.removeItem(k); }); } catch {} })();
 // Maior devolução acumulada do mês já vista HOJE por vendedor (chave sig|id -> valor). O CEVEN só
@@ -1997,10 +1998,13 @@ let ultMetas = Date.now();
 async function laco() {
   await carregaBase(); if (!MOSTRA) { $('upd').textContent = 'sem lista de vendedores'; $('upd').className = 'upd old'; }
   await carregaLances();
+  // 21/10/2026: a Matriz amanheceu 'SEM ATUALIZAR HA 768 MIN' - um erro dentro do laco matava a leitura para sempre. Agora cada volta e protegida.
   for (;;) {
-    for (const sig of ORDEM) { if (MOSTRA) await atualizaFilial(sig); await processa(); render(); }
-    await atualizaSups(); await sleep(3000);
-    if (Date.now() % 600000 < 60000) carregaBase(); else if (Date.now() - ultMetas > 60000) { ultMetas = Date.now(); carregaMetas(); }
+    try {
+      for (const sig of ORDEM) { try { if (MOSTRA) await atualizaFilial(sig); await processa(); render(); } catch (e) { console.error('laco', sig, e); } }
+      await atualizaSups(); await sleep(3000);
+      if (Date.now() % 600000 < 60000) carregaBase(); else if (Date.now() - ultMetas > 60000) { ultMetas = Date.now(); carregaMetas(); }
+    } catch (e) { console.error('laco', e); await sleep(5000); }
   }
 }
 // ROLAGEM AUTOMÁTICA (pedido do Vitório, 29/09/2026): mesma lógica de tvapp.html — qualquer
@@ -2046,6 +2050,9 @@ async function checaDisparos() {
 checaDisparos(); setInterval(checaDisparos, 5 * 60 * 1000);
 setInterval(autoScrollPaineis, 80);
 ctl(); setInterval(relogio, 1000); relogio(); laco();
+// VIGIA (21/10/2026): virou o dia ou ficou 15 min sem ler nenhuma filial -> recarrega a tela sozinha (dados do dia ficam no localStorage)
+setInterval(() => { const vistas = ORDEM.map((x) => TS[x]).filter(Boolean); const ult = vistas.length ? Math.max(...vistas) : INICIO_MTZ;
+  if (sp().date !== HOJE0 || Date.now() - ult > 15 * 60000) location.reload(); }, 60000);
 window.__mtz = {DATA, TS, get ALERTAS() { return ALERTAS; }, get LOG() { return LOG; }, statFilial, ORDEM, ocupado: () => emVAR || FILA.length > 0, animTeste: typeof animTeste === 'function' ? animTeste : null};
 window.__tv = window.__mtz; // a casca /tv usa __tv.ocupado para não recarregar durante um lance
 

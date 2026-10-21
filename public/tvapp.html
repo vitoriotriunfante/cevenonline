@@ -2011,6 +2011,8 @@ async function pingTV() {
   try { await fetch('/api/tv-ping', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ aparelho: (() => { try { let k = localStorage.getItem('ceven_aparelho'); if (!k) { k = Math.random().toString(36).slice(2, 10); localStorage.setItem('ceven_aparelho', k); } return k; } catch (e) { return ''; } })(), tela: window.top === window ? 'tvapp' : 'tv', filial: FIL, grupo: (P.get('grupo') || ''), versao: versao || '', ocupado: !!(emVAR || FILA.length), espera: ESPERA.length, vendedores: Object.keys(DATA).length, dados_de: lastOk ? sp(new Date(lastOk)).hms : '' }) }); } catch (e) {}
 }
 setInterval(pingTV, 60 * 1000); setTimeout(pingTV, 15000);
+// VIRADA DO DIA (21/10/2026): a tela aberta desde ontem recarrega sozinha quando muda a data
+setInterval(() => { if (sp().date !== HOJE0) location.reload(); }, 60000);
 async function checaVersao() {
   const d = await j('/api/version', 8000);
   if (d && d.version) {
