@@ -11,6 +11,8 @@ import sqlite3, json, collections, datetime as dt, statistics as st, sys, os
 
 MES = sys.argv[1] if len(sys.argv) > 1 else dt.date.today().strftime('%Y-%m')
 INI = MES + '-01'
+# pedidos com data no futuro existem no banco (ex.: 18/12): so vale ate ontem
+ONTEM = (dt.date.today() - dt.timedelta(days=1)).isoformat()
 ANTES_DE = (dt.date.fromisoformat(INI) - dt.timedelta(days=90)).isoformat()
 db = sqlite3.connect('analises/pedidos_historico_ceven.db')
 h = sqlite3.connect('analises/mix_gap_hist.db')
@@ -38,7 +40,7 @@ print(f'MES {MES} | clientes com recomendacao do +MIX gravada: {len(rec)}')
 ped = collections.defaultdict(lambda: collections.defaultdict(lambda: {'d': '', 'v': 0.0, 'p': set(), 'rca': ''}))
 for f, rca, cnpj, d, num, cod, v in db.execute("""SELECT ph.filial_sigla, CAST(ph.rca_id AS TEXT), ph.cnpj_cliente, substr(ph.data_pedido,1,10), ph.num_pedido, i.codprod, i.valor_total
     FROM pedidos_historico ph JOIN pedidos_historico_itens i ON i.chave_pedido = ph.chave
-    WHERE i.tipo_registro = 'VENDA' AND i.codprod <> '12229' AND substr(ph.data_pedido,1,10) >= ?""", (ANTES_DE,)):
+    WHERE i.tipo_registro = 'VENDA' AND i.codprod <> '12229' AND substr(ph.data_pedido,1,10) >= ? AND substr(ph.data_pedido,1,10) <= ?""", (ANTES_DE, ONTEM)):
     k = (f, so(cnpj)); o = ped[k][num]; o['d'] = d; o['v'] += float(v or 0); o['p'].add(str(cod))
     if d >= INI: o['rca'] = rca
 hoje = max(o['d'] for c in ped.values() for o in c.values())
