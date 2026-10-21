@@ -164,7 +164,7 @@ const cor = (v) => getComputedStyle(document.documentElement).getPropertyValue(v
 document.querySelectorAll('#tabs button').forEach((b) => b.onclick = () => {
   document.querySelectorAll('#tabs button').forEach((x) => x.classList.toggle('on', x === b));
   document.querySelectorAll('section').forEach((s) => s.classList.toggle('on', s.id === 's-' + b.dataset.s));
-  if (b.dataset.s === 'graf') graficos(); if (b.dataset.s === 'cubo') cubo(); if (b.dataset.s === 'comp') comparar();
+  if (b.dataset.s === 'graf') graficos(); if (b.dataset.s === 'cubo') { if (window._cuboPend) { window._cuboPend = false; filtrosCubo(); } else cubo(); } if (b.dataset.s === 'comp') { if (window._pVend) { const f = window._pVend; window._pVend = null; f(); } else comparar(); }
 });
 
 async function carrega() {
@@ -177,7 +177,7 @@ async function carrega() {
   $('kpis').innerHTML = [[nf(R.clientes_com_mix), 'clientes positivados com +MIX calculado'], [nf(R.clientes_que_usaram), 'compraram produto NOVO que estava no +MIX'],
     [pc(R.clientes_com_mix ? R.clientes_que_usaram / R.clientes_com_mix * 100 : null), 'taxa de uso geral'], [nf(R.skus_mix_vendidos), 'produtos novos vendidos via +MIX']]
     .map(([v, t]) => `<div class="k"><b>${v}</b><span>${t}</span></div>`).join('');
-  resumo(); filtros(); tabelaV(); quinzenas(); filtrosCubo();
+  resumo(); filtros(); tabelaV(); quinzenas(); window._cuboPend = true;
   $('defs').innerHTML = Object.entries(D.definicoes || {}).map(([k, v]) => `<b>${esc(k.replace(/_/g, ' '))}:</b> ${esc(v)}`).join('<br>');
 }
 
@@ -272,7 +272,7 @@ function filtros() {
   };
   $('cFilial').onchange = () => { pSup('cSup', $('cFilial').value, 'Supervisor (todos)'); pVend(); };
   $('cSup').onchange = pVend; $('cA').onchange = comparar; $('cB').onchange = comparar;
-  pSup('cSup', $('cFilial').value, 'Supervisor (todos)'); pVend();
+  pSup('cSup', $('cFilial').value, 'Supervisor (todos)'); window._pVend = pVend;   // o comparativo (mapas) so monta quando a aba e aberta: a pagina abre mais rapido
 }
 
 const COLS = [['filial', 'Filial', esc], ['nome', 'Vendedor', esc], ['supervisor', 'Supervisor', esc], ['clientes', 'Clientes', nf], ['cobertura_pct', '% carteira', pc],
