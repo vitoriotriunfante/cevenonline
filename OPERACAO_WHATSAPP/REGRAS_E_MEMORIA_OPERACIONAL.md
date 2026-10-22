@@ -259,3 +259,12 @@ Planilha na raiz do projeto (fora do git, tem dado de pessoa real — mesmo trat
 - **19/10/2026 — Marca própria em todos os acompanhamentos (Vitório):** marca própria = fornecedor 24318 (Triunfante Brasil: Bellarone, Calira, Mitbit, Skive, Zipoca — 36 produtos). PALLET MADEIRA PBR (8171, fornecedor 38779) não conta. O relatório das 10h conta Varejo E AS; TBE e TCG continuam fora (não têm marca própria no catálogo). Gol de Marca Própria segue com mínimo de R$ 50.
 
 - **19/10/2026 — Data Lake gravou ZERO pedidos de 08/10 a 18/10 (falha silenciosa).** Causa: desde 09/10 o CEVEN exige o header X-App-Secret; os workflows tentavam injetar via NODE_OPTIONS no $GITHUB_ENV, que o GitHub BLOQUEIA ("Can't store NODE_OPTIONS"). Todas as chamadas iam sem header (401) e o extrator contava 0 pedidos, 0 erros. Correção: atalho `node` no PATH com --require pipeline/ceven_header.js (nos 4 workflows) + header nos 2 scripts Python. Conferir o Data Lake de 20/10 03:00 e se o histórico de 08 a 18/10 voltou.
+
+
+## Servidor do WhatsApp (Evolution API) — registrado em 22/10/2026
+- Roda na **Oracle Cloud**, conta `vitoriotriunfante`, região **Brazil East (São Paulo)**, máquina **ceven-whats** (Ubuntu 24.04, IP público 137.131.147.223).
+- **Painel para conectar/trocar o número (QR Code):** https://137-131-147-223.sslip.io/manager — pede a API Key global (= segredo `EVO_KEY` do GitHub).
+- Instância usada pelos disparos: **ceven-noc**. Para trocar o número: abrir a instância → DISCONNECT → conectar de novo e ler o QR Code no celular novo (WhatsApp → Aparelhos conectados).
+- O endereço só pelo IP não abre: o servidor (Caddy) exige o nome `137-131-147-223.sslip.io` para o HTTPS.
+- Login da Oracle tem verificação em 2 etapas pelo app autenticador do celular ("Vitorio's Phone-2").
+- O endereço antigo do Railway (evolution-api-production-8999.up.railway.app) e a Green API não são mais usados.
