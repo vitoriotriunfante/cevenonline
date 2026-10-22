@@ -1,5 +1,5 @@
 🏢 *FILIAL MCD — GESTÃO DE CAMPO*
-📅 21/10/2026 • Gerente: Cleverson
+📅 22/10/2026 • Gerente: Cleverson
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 *PAINEL DE ATIVIDADES (5 SUPERVISORES):*
@@ -26,6 +26,6 @@
 
 👤 *TIAGO MARTINES OTAVIANO*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 09:57)
+🚗 Rota (RET): ✅ Em campo (início às 10:37)
 └ 👥 RCA: ADENIS CRISTALDO PEREIRA
 └ 📍 1 PDV visitado • 📸 8 fotos • Score: 93%
