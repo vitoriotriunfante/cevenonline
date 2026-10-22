@@ -128,7 +128,7 @@ function respFilial(fil, d) {
   if (top.length) L.push(`✅ Melhores na meta: ${top.map((v) => `${nome2(v.vendedor)} ${pctN(v)}`).join(' · ')}`);
   if (bx.length) L.push(`🔻 Mais atrás: ${bx.map((v) => `${nome2(v.vendedor)} ${pctN(v)}`).join(' · ')}`);
   const sz = Object.entries(d._sup || {}).sort((x, y) => y[1].zerados - x[1].zerados)[0];
-  L.push('', sz && sz[1].zerados ? `🎯 *Sugestão:* falar com ${nome2(sz[0])} — ${sz[1].zerados} vendedor(es) dele sem pedido hoje.` : `🎯 *Sugestão:* puxar os mais atrás na meta para fechar o mês.`);
+  L.push('', sz && sz[1].zerados ? `🎯 *Sugestão do Jota:* falar com ${nome2(sz[0])} — ${sz[1].zerados} vendedor(es) dele sem pedido hoje.` : `🎯 *Sugestão do Jota:* puxar os mais atrás na meta para fechar o mês.`);
   L.push('_Peça "por supervisor", "supervisor Nome" ou "liga"._');
   return L.join('\n');
 }
@@ -144,7 +144,7 @@ function respSupervisor(fil, d, s) {
   const x = (d._sup || {})[s] || {};
   return [`👤 *${titulo(s)}* (${fil}) — ${x.pct == null ? 'sem dado' : x.pct.toFixed(1).replace('.', ',') + '%'} da meta`,
     ...V.map((v) => `• ${v.zerado_hoje ? '⚠️' : '✅'} *${nome2(v.vendedor)}* — fat. ${v.faturado} (${pctN(v)}) · pend. ${v.pendente} · hoje ${v.digitado_hoje} (${v.pedidos_hoje} ped.) · visitas ${v.visitas_hoje}`),
-    '', V.some((v) => v.zerado_hoje) ? `🎯 *Sugestão:* ligar agora para ${V.filter((v) => v.zerado_hoje).slice(0, 3).map((v) => nome2(v.vendedor)).join(', ')} (sem pedido hoje).` : '🎯 *Sugestão:* equipe toda com pedido hoje; foco em mix nos próximos clientes.'].join('\n');
+    '', V.some((v) => v.zerado_hoje) ? `🎯 *Sugestão do Jota:* ligar agora para ${V.filter((v) => v.zerado_hoje).slice(0, 3).map((v) => nome2(v.vendedor)).join(', ')} (sem pedido hoje).` : '🎯 *Sugestão do Jota:* equipe toda com pedido hoje; foco em mix nos próximos clientes.'].join('\n');
 }
 function respLiga(fil, d) {
   return [`🏆 *Champions Triunfante — ${fil}*`, d.liga_filial ? `Filial: *${d.liga_filial}*` : 'Filial: sem dado',
@@ -156,7 +156,7 @@ function respCompromisso(fil, d) {
   return [`🗓️ *Supervisores de ${fil} hoje* (${S.length})`, `Compromisso matinal: *${S.length - semC.length} fizeram* · *${semC.length} não fizeram*` + (semC.length ? ' — ' + semC.map((x) => nome2(x.supervisor)).join(', ') : ''),
     `Rota com vendedor (RET): *${S.length - semR.length} iniciaram* · *${semR.length} não* ` + (semR.length ? '— ' + semR.map((x) => nome2(x.supervisor)).join(', ') : ''),
     ...S.filter((x) => x.iniciou_ret && x.ret_pdvs > 0).map((x) => `• ${nome2(x.supervisor)}: ${x.ret_pdvs} PDV(s) na RET, 1º check-in ${x.ret_primeiro_checkin || '—'}`),
-    '', semC.length ? `🎯 *Sugestão:* cobrar o compromisso de ${semC.slice(0, 3).map((x) => nome2(x.supervisor)).join(', ')}.` : '🎯 *Sugestão:* todos fizeram o compromisso; acompanhar a execução das RETs.'].join('\n');
+    '', semC.length ? `🎯 *Sugestão do Jota:* cobrar o compromisso de ${semC.slice(0, 3).map((x) => nome2(x.supervisor)).join(', ')}.` : '🎯 *Sugestão do Jota:* todos fizeram o compromisso; acompanhar a execução das RETs.'].join('\n');
 }
 function respostaPronta(texto, fil, d) {
   const t = sem(texto);
@@ -182,7 +182,7 @@ async function respondeIA(env, origin, c, texto, historico) {
   if (fil) { const pronta = respostaPronta(texto, fil, dados[fil]); if (pronta) return pronta; }
   for (const f of filiais) { delete dados[f]._raw; delete dados[f]._sup; delete dados[f]._ger; }
   try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(c.celular, c.nome, 'debug', JSON.stringify(Object.fromEntries(Object.entries(dados).map(([k, v]) => [k, Object.keys(v)])))).run(); } catch (e) {}
-  const sys = `Você é o assistente do +MIX da Triunfante no WhatsApp. Responde em português do Brasil como um gerente comercial experiente: natural, objetivo, sem enrolação.
+  const sys = `Você é o JOTA, o assistente do +MIX da Triunfante no WhatsApp: colega de vendas animado, direto, que usa a linguagem do futebol da Champions Triunfante quando cabe. Responde em português do Brasil como um gerente comercial experiente: natural, objetivo, sem enrolação.
 Quem fala com você: ${titulo(c.nome)}, ${c.papel}${c.filial ? ' da filial ' + c.filial : ' (diretoria, vê todas as filiais)'}${c.grupo ? ', grupo ' + c.grupo : ''}.
 COMO RESPONDER:
 - Use SÓ os números dos DADOS, exatamente como estão escritos (já vêm formatados, ex.: "R$ 6.054.971", "50,3%"). Nunca invente, estime nem recalcule; se não tiver o dado, diga que não tem.
@@ -219,7 +219,7 @@ export async function onRequestPost({ request, env }) {
   let resp = await respondeIA(env, u.origin, c, texto, historico);
   if (!resp) {
   if (c.papel === 'diretoria' || !c.filial) {
-    resp = `Oi, ${primeiro}! Sou o assistente do +MIX. Me diga a filial (ex.: *TPH*) que eu mostro como ela está agora.`;
+    resp = `Oi, ${primeiro}! Sou o Jota, do +MIX. Me diga a filial (ex.: *TPH*) que eu mostro como ela está agora.`;
     const fil = (texto.toUpperCase().match(/\b(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\b/) || [])[1];
     if (fil) resp = await resumoFilial(u.origin, fil);
   } else {
