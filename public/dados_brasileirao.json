@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-22T10:32:50.365778Z",
+  "gerado_em": "2026-10-22T10:47:56.604013Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -14,7 +14,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 25754,
+  "total_lances_auditados": 25755,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -214,8 +214,8 @@
       "empates": 7,
       "derrotas": 0,
       "gp": 4839,
-      "gc": 4806,
-      "sg": 33,
+      "gc": 4810,
+      "sg": 29,
       "aprov": 33.3,
       "super_pedidos": 13,
       "inativos_resgatados": 85,
@@ -607,8 +607,8 @@
       "empates": 7,
       "derrotas": 0,
       "gp": 1745,
-      "gc": 2183,
-      "sg": -438,
+      "gc": 2187,
+      "sg": -442,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -2600,6 +2600,70 @@
       "pos_ant": 26
     },
     {
+      "supervisor": "HAMILTON RICARDO DOS SANTOS MENDES",
+      "filial": "TBE",
+      "canal": "VAREJO",
+      "gerente": "Diego",
+      "total_vendedores": 7,
+      "jogos": 7,
+      "pts_tabela": 5,
+      "vitorias": 0,
+      "empates": 5,
+      "derrotas": 2,
+      "gp": 474,
+      "gc": 824,
+      "sg": -350,
+      "aprov": 23.8,
+      "forma": [
+        "E",
+        "D",
+        "D",
+        "E",
+        "E",
+        "E",
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 70,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 27,
+      "pos_ant": 27
+    },
+    {
       "supervisor": "ALESSANDRO JUNIOR LOPES",
       "filial": "API",
       "canal": "AS",
@@ -2662,70 +2726,6 @@
       "plus_pendente": false,
       "pos": 6,
       "pos_ant": 6
-    },
-    {
-      "supervisor": "HAMILTON RICARDO DOS SANTOS MENDES",
-      "filial": "TBE",
-      "canal": "VAREJO",
-      "gerente": "Diego",
-      "total_vendedores": 7,
-      "jogos": 7,
-      "pts_tabela": 5,
-      "vitorias": 0,
-      "empates": 5,
-      "derrotas": 2,
-      "gp": 474,
-      "gc": 824,
-      "sg": -350,
-      "aprov": 23.8,
-      "forma": [
-        "E",
-        "D",
-        "D",
-        "E",
-        "E",
-        "E",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 65,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-22": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 27,
-      "pos_ant": 27
     },
     {
       "supervisor": "SUELI APARECIDA TEIXEIRA POLLI",
@@ -3520,7 +3520,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 45,
+      "plus_lideranca": 50,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -3551,7 +3551,7 @@
           "ret": 5
         },
         "2026-10-22": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3968,7 +3968,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 70,
+      "plus_lideranca": 75,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -3999,7 +3999,7 @@
           "ret": 5
         },
         "2026-10-22": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -4915,8 +4915,8 @@
       "empates": 0,
       "derrotas": 7,
       "gp": 13,
-      "gc": 88,
-      "sg": -75,
+      "gc": 92,
+      "sg": -79,
       "aprov": 0.0,
       "forma": [
         "D",
@@ -22030,43 +22030,6 @@
       "pos_filial_ant": 57
     },
     {
-      "rca": "58",
-      "nome": "SIMONE SCHIMILOSKI DE DEUS",
-      "filial": "TPH",
-      "supervisor": "AILTON LUIZ ARENDT JUNIOR",
-      "gerente": "Fábio",
-      "canal": "AS",
-      "jogos": 7,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 7,
-      "pts_tabela": 0,
-      "aprov": 0.0,
-      "gp": 2,
-      "gc": 84,
-      "sg": -82,
-      "super_pedidos": 0,
-      "inativos_resgatados": 0,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "J"
-      ],
-      "streak": 0,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 138,
-      "pos_filial": 26,
-      "pos_brasil_ant": 138,
-      "pos_filial_ant": 26
-    },
-    {
       "rca": "386",
       "nome": "FELIPE DE OLIVEIRA LIMA",
       "filial": "TCA",
@@ -22102,6 +22065,43 @@
       "pos_filial": 33,
       "pos_brasil_ant": 319,
       "pos_filial_ant": 33
+    },
+    {
+      "rca": "58",
+      "nome": "SIMONE SCHIMILOSKI DE DEUS",
+      "filial": "TPH",
+      "supervisor": "AILTON LUIZ ARENDT JUNIOR",
+      "gerente": "Fábio",
+      "canal": "AS",
+      "jogos": 7,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 7,
+      "pts_tabela": 0,
+      "aprov": 0.0,
+      "gp": 2,
+      "gc": 88,
+      "sg": -86,
+      "super_pedidos": 0,
+      "inativos_resgatados": 0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "J"
+      ],
+      "streak": 0,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 138,
+      "pos_filial": 26,
+      "pos_brasil_ant": 138,
+      "pos_filial_ant": 26
     },
     {
       "rca": "1031",
@@ -23753,7 +23753,7 @@
         "supervisor": "ALESSANDRO JUNIOR LOPES",
         "gerente": "Marcelo",
         "meta_mes": 493084,
-        "pct_hoje": 118.5,
+        "pct_hoje": 118.7,
         "fases": [
           {
             "n": 1,
@@ -25227,7 +25227,7 @@
         "supervisor": "CRISTIANO RODRIGUES MACHADO",
         "gerente": "Saldanha",
         "meta_mes": 350000,
-        "pct_hoje": 50,
+        "pct_hoje": 42.3,
         "fases": [
           {
             "n": 1,
@@ -41039,7 +41039,7 @@
         "supervisor": "AILTON LUIZ ARENDT JUNIOR",
         "gerente": "Fábio",
         "meta_mes": 426362,
-        "pct_hoje": 7.9,
+        "pct_hoje": 2.4,
         "fases": [
           {
             "n": 1,
@@ -41128,10 +41128,10 @@
           },
           {
             "n": 3,
-            "pts_lances": -18,
+            "pts_lances": -22,
             "pts_faseamento": 0,
             "pts_bonus": 0,
-            "score": -18,
+            "score": -22,
             "jogada": true,
             "resultado": "J",
             "pts_tabela": 0
@@ -41158,7 +41158,7 @@
           "J"
         ],
         "pontos": -60,
-        "pts_lances": -78,
+        "pts_lances": -82,
         "pts_faseamento": 0,
         "pts_bonus": 0,
         "pos_brasil": 138,
@@ -41829,7 +41829,7 @@
         "total_vendedores": 8,
         "com_meta": 8,
         "meta_mes": 4400000,
-        "pct_hoje": 48.7,
+        "pct_hoje": 48.1,
         "fases": [
           {
             "n": 1,
@@ -42141,7 +42141,7 @@
         "total_vendedores": 4,
         "com_meta": 3,
         "meta_mes": 997102,
-        "pct_hoje": 83,
+        "pct_hoje": 83.1,
         "fases": [
           {
             "n": 1,
@@ -43805,7 +43805,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 1910349,
-        "pct_hoje": 34.4,
+        "pct_hoje": 33.2,
         "fases": [
           {
             "n": 1,
@@ -43898,7 +43898,7 @@
           }
         ],
         "aprov": 16.7,
-        "pts_lances_equipe": -71,
+        "pts_lances_equipe": -75,
         "pos": 25,
         "pos_ant": 25
       },
