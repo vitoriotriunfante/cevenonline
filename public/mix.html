@@ -479,13 +479,13 @@ async function desenhaMapa() {
   const comp = PROD ? await compradores([a, b]) : null;
   [[a, cor('--a')], [b, cor('--b')]].forEach(([v, c]) => (v.pontos || []).forEach(([la, lo, st, cnpj, tp]) => {
     if (tipo && tp && tp !== tipo) return;
-    if (!PROD || v === W) pts.push([la, lo]); n++;
+    n++;
     let m;
     if (!PROD) m = L.circleMarker([la, lo], { radius: 5.5, color: st === 2 ? '#22c55e' : c, weight: st === 2 ? 3 : 1.5, fillColor: c, fillOpacity: st ? 0.85 : 0.08 });
     else if (v === W) { const x = sit.get(cnpj) || {}; const k = catDe(x); if (!CAM.has(k)) return;
       m = L.circleMarker([la, lo], { radius: 7, color: '#ffffff', weight: 1.5, fillColor: corCat(k), fillOpacity: 0.95 }); }
     else { if (!CAM.has('outro')) return; const pr = comp.get(cnpj) && comp.get(cnpj).has(PROD.c); m = L.circleMarker([la, lo], { radius: 3.5, color: c, weight: 1, fillColor: c, fillOpacity: pr ? 0.9 : 0.15 }); }
-    m.addTo(mapa); MKS.set(cnpj, m);
+    m.addTo(mapa); MKS.set(cnpj, m); if (!PROD || v === W) pts.push([la, lo]);
     m.bindPopup('carregando…', { maxWidth: 380 }); m.on('click', () => popupCliente(m, v, cnpj, st));
   }));
   const enquadra = () => { if (!mapa) return; mapa.invalidateSize(); if (pts.length) mapa.fitBounds(pts, { padding: [24, 24] }); else mapa.setView([-23.5, -49], 6); };
@@ -499,12 +499,13 @@ function focaCliente(cnpj) {
   const m = MKS.get(cnpj); if (!m || !mapa) return;
   mapa.setView(m.getLatLng(), 16); m.fire('click'); m.openPopup();
 }
+const LIM_LISTA = 15;
 function abreCliente(cn, tr) {
   const prox = tr.nextElementSibling; if (prox && prox.classList.contains('det')) { prox.remove(); return; }
   const x = (window._SIT || []).find((y) => y.cn === cn); if (!x) return;
   const cp = (window._COMPRAS && window._COMPRAS.get(cn)) || [], v = x.vis;
   const row = document.createElement('tr'); row.className = 'det';
-  row.innerHTML = `<td colspan="6" style="background:var(--card2);padding:10px 14px"><div class="g2" style="gap:18px">
+  row.innerHTML = `<td colspan="5" style="background:var(--card2);padding:10px 14px"><div class="g2" style="gap:18px">
     <div><b>Visitas no mês:</b> ${nf(v[7] || 0)}<br><b>Última:</b> ${v[0] ? ddmm(v[0]) : '—'}${v[1] ? ' · check-in ' + esc(v[1]) : ''}${v[6] ? ' · check-out ' + esc(v[6]) : ''}${v[5] ? ' · <b>ficou ' + esc(v[5]) + '</b>' : ''}${v[2] ? '<br><b>Resultado:</b> ' + esc(v[2]) : ''}<br><b>Próxima:</b> ${v[3] ? ddmm(v[3]) : 'fora da rota'} · <b>última compra:</b> ${dataOk(v[4]) ? ddmm(v[4]) + ' (há ' + diasDesde(v[4]) + ' dias)' : '—'}
       ${x.parou ? `<br><b style="color:#a855f7">Comprou ${esc(PROD.n)} em ${ddmm(x.parou)}</b> e não comprou mais neste mês.` : ''}</div>
     <div><b>Comprou no mês (${nf(cp.length)} produtos, ${brl(cp.reduce((t, y) => t + y[1], 0))}):</b><br>${cp.length ? cp.sort((p, q) => q[1] - p[1]).slice(0, 25).map((y) => `${esc(y[0])} <span class="sub">${brl(y[1])}</span>`).join(' · ') + (cp.length > 25 ? ` <span class="sub">(+${cp.length - 25})</span>` : '') : '<span class="sub">nada no mês</span>'}</div></div></td>`;
@@ -529,11 +530,12 @@ async function produtoBox() {
     <div class="ctl" style="margin-top:12px"><b>Camadas:</b> ${CAMS.map(([k, t, c]) => { const n = k === 'outro' ? '' : ` (${nf(sw.filter((x) => catDe(x) === k).length)})`; const on = CAM.has(k);
       return `<button onclick="trocaCamada('${k}')" style="cursor:pointer;border-radius:999px;padding:5px 11px;font-weight:700;font-size:12.5px;border:2px solid ${c};background:${on ? c : 'transparent'};color:${on ? '#04121f' : 'var(--tx)'}">${on ? '✓ ' : ''}${t}${n}</button>`; }).join(' ')}</div>
     <h2>Lista de cobrança de ${esc(W.nome.split(' ')[0])} (${nf(alvo.length)} clientes nas camadas ligadas)</h2>
-    <table><thead><tr><th class="l">Cliente (📍 mapa · ▸ detalhes)</th><th class="l">Situação</th><th>Última visita</th><th>Próxima</th><th>Última compra</th><th></th></tr></thead><tbody>${alvo.map((x) => { const v = x.vis;
-      return `<tr${x.parou || x.mostra ? '' : ' style="opacity:.75"'}><td class="l"><a href="#" onclick="focaCliente('${x.cn}');return false"><u>${esc(x.nome)}</u> 📍</a><div class="sub">${esc(x.p[4] || '')} · ${esc(x.cn)}</div></td><td class="l" style="white-space:normal">${tags(x)}</td>
+    <table><thead><tr><th class="l">Cliente</th><th class="l">Situação</th><th>Última visita</th><th>Próxima</th><th>Última compra</th></tr></thead><tbody>${alvo.map((x, i) => { const v = x.vis;
+      return `<tr style="cursor:pointer${x.parou || x.mostra ? '' : ';opacity:.8'}${i >= LIM_LISTA ? ';display:none' : ''}" class="${i >= LIM_LISTA ? 'mais' : ''}" onclick="abreCliente('${x.cn}', this); focaCliente('${x.cn}')"><td class="l"><b>${esc(x.nome)}</b><div class="sub">${esc(x.p[4] || '')} · ${esc(x.cn)}</div></td><td class="l" style="white-space:normal">${tags(x)}</td>
         <td>${v[0] ? ddmm(v[0]) + (v[5] ? ' <span class="sub">(ficou ' + esc(v[5]) + ')</span>' : '') + (v[2] ? `<div class="sub">${esc(v[2])}</div>` : '') : '<span class="sub">sem visita</span>'}</td><td>${v[3] ? `<b>${ddmm(v[3])}</b>` : '<span class="sub">fora da rota</span>'}</td>
-        <td>${dataOk(v[4]) ? ddmm(v[4]) + ` <span class="sub">(${diasDesde(v[4])}d)</span>` : '—'}</td><td><a href="#" onclick="abreCliente('${x.cn}', this.closest('tr'));return false">▸ detalhes</a></td></tr>`; }).join('')}</tbody></table>
-    <div class="leg">Ordem: primeiro quem <b style="color:#a855f7">comprava e parou</b>, depois quem tem o produto no <b style="color:#ef4444">+MIX</b>, depois quem já compra outras coisas; dentro de cada grupo, a próxima visita primeiro. "▸ detalhes" mostra o que o cliente comprou no mês e a última visita (check-in, check-out e quanto tempo ficou).</div></div>`;
+        <td>${dataOk(v[4]) ? ddmm(v[4]) + ` <span class="sub">(${diasDesde(v[4])}d)</span>` : '—'}</td></tr>`; }).join('')}</tbody></table>
+    ${alvo.length > LIM_LISTA ? `<div style="text-align:center;margin-top:8px"><button class="btPdf" onclick="this.parentNode.previousElementSibling.querySelectorAll('tr.mais').forEach((r)=>r.style.display='');this.remove()">ver os outros ${nf(alvo.length - LIM_LISTA)}</button></div>` : ''}
+    <div class="leg"><b>Clique no cliente</b>: o mapa vai até ele e abre o que ele comprou no mês e a última visita. Ordem: primeiro quem <b style="color:#a855f7">comprava e parou</b>, depois quem tem o produto no <b style="color:#ef4444">+MIX</b>, depois quem já compra outras coisas; dentro de cada grupo, a próxima visita primeiro.</div></div>`;
 }
 // INVERTER O PLANO (22/10/2026: "coloca uma seta para trocar o Carlos pelo Elton e vice-versa"): o plano, o quadro do produto e a lista de cobranca passam a ser do outro
 function trocaPlano() {
