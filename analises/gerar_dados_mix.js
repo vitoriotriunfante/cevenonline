@@ -258,7 +258,7 @@ async function main() {
     top_skus: [...(v.skus || new Map()).entries()].sort((a, b) => b[1].cli - a[1].cli).slice(0, 15).map(([c, x]) => ({ c, n: nomeProd.get(c) || '', cli: x.cli, pct: r1(x.cli / v.clientes * 100), val: Math.round(x.val) })),
     industrias: [...(v.inds || new Map()).entries()].sort((a, b) => b[1] - a[1]).slice(0, 25).map(([n, cli]) => ({ n, cli, pct: r1(cli / v.clientes * 100), val: Math.round((v.indVal || new Map()).get(n) || 0) })),
     // pontos do mapa: [lat, lon, 0 = carteira sem compra no mes | 1 = positivado | 2 = positivado com produto novo do +MIX]
-    pontos: [...(carteira.get(v.filial + '|' + v.rca) || new Map()).values()].map((c) => [Math.round(c.lat * 1e4) / 1e4, Math.round(c.lon * 1e4) / 1e4, (v.cnpjsPos && v.cnpjsPos.get(c.cnpj)) || 0, c.cnpj]),
+    pontos: [...(carteira.get(v.filial + '|' + v.rca) || new Map()).values()].map((c) => [Math.round(c.lat * 1e4) / 1e4, Math.round(c.lon * 1e4) / 1e4, (v.cnpjsPos && v.cnpjsPos.get(c.cnpj)) || 0, c.cnpj, atv(c.cnpj), c.nome || '']),
     canal: v.canal || '',
     // perfil da carteira por atividade do cliente (cadastro do CEVEN)
     atividades: (() => { const m = new Map(); const cart = [...(carteira.get(v.filial + '|' + v.rca) || new Map()).values()]; for (const c of cart) { const a = atv(c.cnpj); m.set(a, (m.get(a) || 0) + 1); }
@@ -291,7 +291,7 @@ async function main() {
   { const cliL = [], prodIdx = new Map(), prods = [], f = [];
     for (const o of alvo) {
       if (o.rota_hoje || !o.vsku || !o.vsku.size) continue;
-      const r = rec.get(o.filial + '|' + o.id); const ci = cliL.length; cliL.push([o.filial, String(o.rca), atv(o.cnpj)]);
+      const r = rec.get(o.filial + '|' + o.id); const ci = cliL.length; cliL.push([o.filial, String(o.rca), atv(o.cnpj), o.cnpj]);
       for (const [c, val] of o.vsku) {
         let pi = prodIdx.get(c); if (pi == null) { pi = prods.length; prodIdx.set(c, pi); prods.push([c, nomeProd.get(c) || '', IND[c] || 'SEM INDUSTRIA NO CATALOGO']); }
         f.push([ci, pi, Math.round(val), o.novosMix && o.novosMix.includes(c) ? 1 : 0]);   // venda nova via +MIX pela medida REAL
@@ -306,7 +306,7 @@ async function main() {
       const lista = [...r.cods.entries()].filter(([c]) => !o.antes.has(c) && !(o.q1.has(c) || o.q2.has(c))).sort((a, b) => (b[1].pen || 0) - (a[1].pen || 0)).slice(0, 15)
         .map(([c, x]) => [c, x.nome || nomeProd.get(c) || '', x.ind || '', x.pen == null ? null : r1(x.pen)]);
       const m = porF.get(o.filial) || porF.set(o.filial, {}).get(o.filial);
-      m[o.cnpj] = { n: o.nome || '', a: atv(o.cnpj), rca: o.rca, rec: lista };
+      m[o.cnpj] = { n: o.nome || '', a: atv(o.cnpj), rca: o.rca, rec: lista, all: [...r.cods.keys()].filter((c) => !o.antes.has(c) && !(o.q1.has(c) || o.q2.has(c))) };
     }
     fs.mkdirSync(path.join(__dirname, '..', 'public', 'mix_rec'), { recursive: true });
     for (const [f, m] of porF) fs.writeFileSync(path.join(__dirname, '..', 'public', 'mix_rec', f + '.json'), JSON.stringify({ gerado_em: new Date().toISOString(), clientes: m }));
