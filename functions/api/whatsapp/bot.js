@@ -182,11 +182,11 @@ export async function onRequestPost({ request, env }) {
   if (!jid.endsWith('@s.whatsapp.net')) return new Response('ok');   // grupo, status, broadcast: ignora
   const texto = String((d.message && (d.message.conversation || (d.message.extendedTextMessage && d.message.extendedTextMessage.text))) || '').trim();
   if (!texto) return new Response('ok');
-  const cel = so(jid.split('@')[0]);
+  const cel = so(u.searchParams.get('seco') === '1' && u.searchParams.get('como') ? u.searchParams.get('como') : jid.split('@')[0]);
   await tabelas(env.DB);
   const vs = variantes(cel);
   const c = await env.DB.prepare(`SELECT * FROM bot_contatos WHERE ativo = 1 AND celular IN (${vs.map(() => '?').join(',')}) LIMIT 1`).bind(...vs).first();
-  await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, msg_id) VALUES (?,?,?,?,?)').bind(cel, c ? c.nome : null, 'in', texto.slice(0, 2000), d.key.id || null).run();
+  if (u.searchParams.get('seco') !== '1') await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, msg_id) VALUES (?,?,?,?,?)').bind(cel, c ? c.nome : null, 'in', texto.slice(0, 2000), d.key.id || null).run();
   if (!c) return new Response('ok');   // so responde quem esta cadastrado
   const primeiro = titulo(String(c.nome).split(' ')[0]);
   const { results: hist } = await env.DB.prepare("SELECT direcao, texto FROM bot_msgs WHERE celular = ? AND direcao IN ('in','out') AND quando >= datetime('now','-6 hours') ORDER BY id DESC LIMIT 7").bind(cel).all();
@@ -201,6 +201,8 @@ export async function onRequestPost({ request, env }) {
     resp = `Oi, ${primeiro}! ` + await resumoFilial(u.origin, c.filial) + `\n\n_Em breve você vai poder perguntar do seu jeito (clientes, produtos, +MIX, Liga)._`;
   }
   }
+  // teste sem enviar (?seco=1&como=CELULAR): devolve a resposta em vez de mandar no WhatsApp
+  if (u.searchParams.get('seco') === '1') return new Response(resp, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
   const e = await enviar(env, cel, resp);
   await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, e.ok ? 'out' : 'erro', resp.slice(0, 2000)).run();
   return new Response('ok');
