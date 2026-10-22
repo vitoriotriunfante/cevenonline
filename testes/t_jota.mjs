@@ -15,6 +15,7 @@ const P = [
  [DIR, '+mix'], [DIR, 'quem compra oreo?'], [DIR, 'incentivo'], [DIR, 'o que é positivação?'], [DIR, 'o que é eficácia'], [DIR, 'ajuda'], [DIR, 'oi'],
  [DIR, 'por supervisor em MCD'], [DIR, 'compromisso TSJ'], [DIR, 'como está a vendedora Tamara?'], [DIR, 'supervisor Kleberson'], [DIR, 'quanto vendeu o Gilmar hoje?'],
  [DIR, 'qual a posição do Gilmar na liga?'], [DIR, 'quem tá mal na positivação?'], [DIR, 'qual o ticket médio de hoje?'], [DIR, 'me fala do clima amanhã'],
+ [DIR, 'responde sobre mais mix?'], [DIR, 'quantos clientes na rota hoje em TBL?'], [DIR, 'quantas visitas foram feitas hoje?'], [DIR, 'quantos pontos a Tamara tem na champions?'], [DIR, 'qual posição está o Gilmar Poteriko?'], [DIR, 'quais clientes ainda faltam visitar hoje?'], [DIR, 'quais clientes faltam visitar da vendedora Tamara?'], [DIR, 'falta visitar supervisor Kleberson'],
  [GER_API, 'como está minha filial?'], [GER_API, 'zerados'], [GER_API, 'por supervisor'], [GER_API, 'como está TPH?'], [GER_API, 'quem compra trident?'],
  [GER_TPH, 'como está?'], [GER_TPH, 'por supervisor'], [GER_TPH, 'liga'], [GER_TPH, 'hoje rota'], [GER_TPH, 'compromisso'],
 ];
