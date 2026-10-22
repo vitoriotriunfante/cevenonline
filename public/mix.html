@@ -361,14 +361,23 @@ function comparar() {
   h += `<h2>Detalhes</h2>
     <details class="full"><summary>Todos os indicadores</summary><div class="box"><table><thead><tr><th class="l">Indicador</th><th class="cA">${esc(a.nome)}</th><th class="cB">${esc(b.nome)}</th></tr></thead><tbody>${M.map(([t, k, f]) => `<tr><td class="l">${t}</td><td>${f(a[k])}</td><td>${f(b[k])}</td></tr>`).join('')}</tbody></table></div></details>
     <details class="full"><summary>Que tipo de cliente cada um atende (carteiras parecidas em ${pc(igual)})</summary><div class="box"><table><thead><tr><th class="l">Tipo de cliente</th><th class="cA">${p1(a)}</th><th class="cB">${p1(b)}</th></tr></thead><tbody>${atsO.map((c) => { const x = AA.get(c) || {}, y = AB.get(c) || {}; return `<tr><td class="l">${esc(c)}</td><td>${pc(x.pct || 0)} <span class="sub">(${nf(x.n || 0)})</span></td><td>${pc(y.pct || 0)} <span class="sub">(${nf(y.n || 0)})</span></td></tr>`; }).join('')}</tbody></table></div></details>
-    <details class="full"><summary>Os 10 produtos que cada um mais vende</summary><div class="g2"><div class="box"><table><thead><tr><th>#</th><th class="l cA">${esc(a.nome)}</th><th>% clientes</th><th>em ${p1(b)}</th><th>Faturado</th></tr></thead><tbody>${lst(ta, ib)}</tbody></table></div><div class="box"><table><thead><tr><th>#</th><th class="l cB">${esc(b.nome)}</th><th>% clientes</th><th>em ${p1(a)}</th><th>Faturado</th></tr></thead><tbody>${lst(tb, ia)}</tbody></table></div></div></details>
+    <details class="full"><summary>Os 10 produtos que cada um mais vende</summary><div id="top10Box"><div class="leg">carregando…</div></div></details>
     <details class="full"><summary>Portfólio por indústria</summary><div class="box"><table><thead><tr><th class="l">Indústria (% dos clientes que compram)</th><th class="cA">${p1(a)}</th><th class="cB">${p1(b)}</th><th>Diferença</th></tr></thead><tbody>${inds.map((n) => { const x = (IA.get(n) || {}).pct || 0, y = (IB.get(n) || {}).pct || 0; return `<tr><td class="l">${esc(n)}</td><td>${pc(x)}</td><td>${pc(y)}</td><td class="${Math.abs(x - y) >= 15 ? 'ver' : ''}">${x - y > 0 ? '+' : ''}${nf(x - y, 1)} p.p.</td></tr>`; }).join('')}</tbody></table></div></details>
     <details class="full"><summary>Teste do universo do +MIX (ao vivo no CEVEN)</summary><div id="testeBox"></div></details>`;
   $('compBox').innerHTML = h;
-  plano(F, W); blocoTeste(a, b);
+  plano(F, W); blocoTeste(a, b); top10(a, b);
   $('cAtv').onchange = () => { plano(COMP.F, COMP.W); desenhaMapa(); produtoBox(); };
   COMP = { a, b, F, W }; PROD = null;
   desenhaMapa();
+}
+// TOP 10 com o % do outro calculado na base completa (22/10/2026: aparecia '—' quando o produto nao estava no top do outro, ex.: Tortinha no Elton = 7,3%)
+async function top10(a, b) {
+  const P = await vendFilial(a.filial), Q = a.filial === b.filial ? P : await vendFilial(b.filial);
+  const va = P && P.vend[a.rca], vb = Q && Q.vend[b.rca], box = $('top10Box'); if (!box) return;
+  const pct = (v, c) => v && v.clientes ? (v.comp[c] || 0) / v.clientes * 100 : null;
+  const t = (x, y, outro, cl) => (x.top_skus || []).slice(0, 10).map((s, i) => `<tr><td>${i + 1}</td><td class="l">${esc(s.n || '#' + s.c)}</td><td>${pc(s.pct)}</td><td>${pc(pct(y, s.c))}</td><td>${brl(s.val)}</td></tr>`).join('');
+  box.innerHTML = `<div class="g2"><div class="box"><table><thead><tr><th>#</th><th class="l cA">${esc(a.nome)}</th><th>% clientes</th><th>em ${esc(b.nome.split(' ')[0])}</th><th>Faturado</th></tr></thead><tbody>${t(a, vb)}</tbody></table></div>
+    <div class="box"><table><thead><tr><th>#</th><th class="l cB">${esc(b.nome)}</th><th>% clientes</th><th>em ${esc(a.nome.split(' ')[0])}</th><th>Faturado</th></tr></thead><tbody>${t(b, va)}</tbody></table></div></div>`;
 }
 // PLANO DE ACAO: produtos que F coloca bem e W nao, ordenados pelo R$ em jogo
 async function plano(F, W, alvo = 'plano') {
@@ -384,13 +393,13 @@ async function plano(F, W, alvo = 'plano') {
   const rsProd = V0.reduce((t, v) => t + v.clientes * v.faturado_por_cliente, 0) / (V0.reduce((t, v) => t + v.clientes * v.mix_medio, 0) || 1);
   const L = Object.keys(vf.comp).map((c) => { const pf = vf.comp[c] / vf.clientes * 100, pw = (vw.comp[c] || 0) / vw.clientes * 100; const abordar = Math.round((pf - pw) / 100 * vw.clientes);
       const t = tk.get(c) || rsProd; return { c, pf, pw, abordar, sem: vw.clientes - (vw.comp[c] || 0), rec: vw.rec[c] || 0, rs: abordar * t, t }; })
-    .filter((x) => x.pf >= 15 && x.pf - x.pw >= 10 && x.abordar > 0).sort((x, y) => y.rs - x.rs).slice(0, 10);
+    .filter((x) => x.pf >= 10 && x.pf - x.pw >= 5 && x.abordar > 0).sort((x, y) => y.rs - x.rs).slice(0, 20);   // 22/10/2026: 'expandir para 20+'
   // mesma conta do quadro do produto (22/10/2026: 'diz 2 clientes no +MIX e aparecem 3 em vermelho')
   for (const x of L) { const S = await situacoes(W, x.c); x.parouN = S.filter((y) => y.parou).length; x.mostraN = S.filter((y) => y.mostra).length; }
-  if (!L.length) { box.innerHTML = `<div class="leg">${esc(W.nome.split(' ')[0])} já coloca os mesmos produtos que ${esc(F.nome.split(' ')[0])} (nenhum com 10 pontos ou mais de diferença).</div>`; return; }
+  if (!L.length) { box.innerHTML = `<div class="leg">${esc(W.nome.split(' ')[0])} já coloca os mesmos produtos que ${esc(F.nome.split(' ')[0])} (nenhum com 5 pontos ou mais de diferença).</div>`; return; }
   const tot = L.reduce((t, x) => t + x.rs, 0), totCli = L.reduce((t, x) => t + x.abordar, 0);
   box.innerHTML = `<div class="leg" style="margin:0 0 8px;font-size:13.5px;color:var(--tx)">Produtos que <b>${esc(F.nome.split(' ')[0])}</b> coloca e <b>${esc(W.nome.split(' ')[0])}</b> não. Levando cada um ao mesmo nível: <b>${nf(totCli)} vendas a fazer ≈ ${brl(tot)} por mês</b>.</div>
-    <table><thead><tr><th>#</th><th class="l">Produto</th><th>${esc(F.nome.split(' ')[0])}</th><th>${esc(W.nome.split(' ')[0])}</th><th>Vendas para empatar</th><th>Comprava e parou</th><th>+MIX mostra</th><th>R$ em jogo/mês</th></tr></thead><tbody>` +
+    <table><thead><tr><th>#</th><th class="l">Produto</th><th>${esc(F.nome.split(' ')[0])}</th><th>${esc(W.nome.split(' ')[0])}</th><th>Vendas para empatar</th><th>Clientes de ${esc(W.nome.split(' ')[0])} que compravam e pararam</th><th>Clientes de ${esc(W.nome.split(' ')[0])} com o produto no +MIX</th><th>R$ em jogo/mês</th></tr></thead><tbody>` +
     L.map((x, i) => `<tr style="cursor:pointer" title="clique para ver no mapa quem compra e para quem o +MIX mostra" onclick="escolheProduto('${x.c}', '${esc(nomes[x.c] || '#' + x.c).replace(/'/g, '')}')"><td>${i + 1}</td><td class="l" style="white-space:normal"><u>${esc(nomes[x.c] || '#' + x.c)}</u> 🔎</td><td>${pc(x.pf)}</td><td>${pc(x.pw)}</td><td class="ver">${nf(x.abordar)}</td><td style="color:#a855f7">${x.parouN ? nf(x.parouN) : '—'}</td><td style="color:#ef4444">${x.mostraN ? nf(x.mostraN) : '—'}</td><td class="ver">${brl(x.rs)}</td></tr>`).join('') +
     `</tbody></table><div class="leg"><b>Clique num produto</b> para ver no mapa quem compra e a lista de clientes onde o +MIX mostra e não vendeu. % = clientes que compraram o produto no mês. <b>Vendas para empatar</b> = quantos clientes de ${esc(W.nome.split(' ')[0])} precisariam comprar para chegar ao mesmo % de ${esc(F.nome.split(' ')[0])}. <b>Comprava e parou</b> = clientes dele que compraram o produto nos 60 dias antes e não compraram neste mês. <b>+MIX mostra</b> = clientes dele que não compraram e têm o produto na lista do app. R$ = clientes a abordar × quanto o produto rende por cliente em ${esc(F.nome.split(' ')[0])}.</div>`;
 }
