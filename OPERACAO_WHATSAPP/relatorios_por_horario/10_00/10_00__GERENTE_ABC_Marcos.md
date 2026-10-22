@@ -1,45 +1,51 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 ABC — MARCOS • 21/10/2026
+📍 ABC — MARCOS • 22/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/10/2026 a 21/10/2026)*
-💰 R$ 6.756,45 • 67 PDVs • ✂️ R$ 0,00 (0 un)
-👤 IVONEI PEDRO DE MOURA — R$ 3.060,53 (30 PDVs)
+*ACUMULADO DO MÊS (01/10/2026 a 22/10/2026)*
+💰 R$ 8.009,14 • 76 PDVs • ✂️ R$ 0,00 (0 un)
+👤 IVONEI PEDRO DE MOURA — R$ 4.313,22 (39 PDVs)
 👤 EDER LUCAS DAS FLORES DE OLIVEIRA — R$ 2.424,51 (24 PDVs)
 👤 RODRIGO STELLEO COSTA LEITE — R$ 1.115,01 (12 PDVs)
 👤 GILBERTO GOMES DOMINGOS — R$ 156,40 (1 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (20/10/2026)*
-💰 R$ 489,95 • 8 PDVs positivados
-👤 EDER LUCAS DAS FLORES DE OLIVEIRA — R$ 38,78 (1 PDVs)
-👤 IVONEI PEDRO DE MOURA — R$ 402,78 (6 PDVs)
-👤 RODRIGO STELLEO COSTA LEITE — R$ 48,39 (1 PDVs)
+*COMO FECHOU ONTEM (21/10/2026)*
+💰 R$ 1.233,97 • 10 PDVs positivados
+👤 IVONEI PEDRO DE MOURA — R$ 1.233,97 (10 PDVs)
 
 🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (26)*
 _(fez pedido ontem, mas nenhum item era marca própria)_
 
 👤 *EDER LUCAS DAS FLORES DE OLIVEIRA*
-  • LUIZ FELIPE LUCIANO DOS SANTOS — 57d sem vender MP
-  • JOAO GABRIEL TAVARES DA LUZ — 37d sem vender MP
-  • WILLIAN PATRICK VIEIRA DOS SANTOS — 22d sem vender MP
-  • DILNEI MARCOLIN — 2d sem vender MP
-  • ELTON PEREIRA ALVES — 2d sem vender MP
-  • CARLOS AUGUSTO CUETO — -16d sem vender MP
+  • LUIZ FELIPE LUCIANO DOS SANTOS — 58d sem vender MP
+  • JOAO GABRIEL TAVARES DA LUZ — 38d sem vender MP
+  • WILLIAN PATRICK VIEIRA DOS SANTOS — 23d sem vender MP
+  • DILNEI MARCOLIN — 3d sem vender MP
+  • ELTON PEREIRA ALVES — 3d sem vender MP
+  • KELLY CRISTINA GONCALVES — 2d sem vender MP
+  • CARLOS AUGUSTO CUETO — -15d sem vender MP
+
+👤 *RODRIGO STELLEO COSTA LEITE*
+  • PATRIK DE JESUS SANTOS — nunca vendeu MP
+  • WILIAM LUCAS POSSATO — nunca vendeu MP
+  • VIVIANE RIBEIRO BRANCO — 13d sem vender MP
+  • KAUE DOS SANTOS — 8d sem vender MP
+  • CAMILA TURCZINSKI — 6d sem vender MP
+  • DIEGO FERNANDES — 2d sem vender MP
 
 👤 *GILBERTO GOMES DOMINGOS*
   • ALEXSANDRO APARECIDO DE SALES — nunca vendeu MP
   • GABRIELLY JANDIRA BACHINSKI SCHEFFER — nunca vendeu MP
   • NEIL ALEXANDER ZOZ — nunca vendeu MP
   • VITOR FELIPE DE ALMEIDA CARMO — nunca vendeu MP
-  • GENESIO REBOUCAS JUNIOR — 8d sem vender MP
+  • GENESIO REBOUCAS JUNIOR — 9d sem vender MP
 
 👤 *IVONEI PEDRO DE MOURA*
-  • MARCOS VINICIUS CZEKAY PIRES — 2d sem vender MP
+  • DOUGLAS CERRI — 2d sem vender MP
 
 👤 *MARCIO ROSA SOBRAL BATISTA*
   • LEONIDAS JOSE PORTELLA — nunca vendeu MP
-  • MARLON SERGIO MARQUES DOS ANJOS — nunca vendeu MP
   • NILVA TEREZA NUNES BISCAIA — nunca vendeu MP
   • RICARDO PEREIRA DA SILVA — nunca vendeu MP
 
@@ -48,11 +54,3 @@ _(fez pedido ontem, mas nenhum item era marca própria)_
   • CASSIANY FERNADA BARTH — nunca vendeu MP
   • EDIVANDRO MINUSSU — nunca vendeu MP
   • ITAMAR BEZ — nunca vendeu MP
-  • LEANDRO ANDRADE DA SILVA — nunca vendeu MP
-
-👤 *RODRIGO STELLEO COSTA LEITE*
-  • PATRIK DE JESUS SANTOS — nunca vendeu MP
-  • WILIAM LUCAS POSSATO — nunca vendeu MP
-  • VIVIANE RIBEIRO BRANCO — 12d sem vender MP
-  • KAUE DOS SANTOS — 7d sem vender MP
-  • CAMILA TURCZINSKI — 5d sem vender MP
