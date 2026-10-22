@@ -392,6 +392,18 @@ async function plano(F, W, alvo = 'plano') {
     L.map((x, i) => `<tr style="cursor:pointer" title="clique para ver no mapa quem compra e para quem o +MIX mostra" onclick="escolheProduto('${x.c}', '${esc(nomes[x.c] || '#' + x.c).replace(/'/g, '')}')"><td>${i + 1}</td><td class="l" style="white-space:normal"><u>${esc(nomes[x.c] || '#' + x.c)}</u> 🔎</td><td>${pc(x.pf)}</td><td>${pc(x.pw)}</td><td class="ver">${nf(x.abordar)}</td><td>${x.rec ? `${nf(x.rec)} clientes` : '<span class="sub">não mostra</span>'}</td><td class="ver">${brl(x.rs)}</td></tr>`).join('') +
     `</tbody></table><div class="leg"><b>Clique num produto</b> para ver no mapa quem compra e a lista de clientes onde o +MIX mostra e não vendeu. % = clientes que compraram o produto no mês. <b>Clientes a abordar</b> = quantos clientes de ${esc(W.nome.split(' ')[0])} precisariam comprar para chegar ao mesmo % de ${esc(F.nome.split(' ')[0])}. <b>+MIX já mostra</b> = em quantos clientes dele o app já sugere o produto (se mostra e não vende, é falta de uso). R$ = clientes a abordar × quanto o produto rende por cliente em ${esc(F.nome.split(' ')[0])}.</div>`;
 }
+// CLIENTES DO TESTE (22/10/2026: "por que nao posso clicar e ver os clientes que estao ai?"): abre embaixo da linha a lista dos clientes testados
+function testeClientes(c, tr) {
+  const T = window.TESTE; if (!T) return;
+  const prox = tr.nextElementSibling; if (prox && prox.classList.contains('det')) { prox.remove(); return; }
+  const L = T.R.map((r) => { const p = T.nomes.get(r.target) || []; return { nome: p[5] || r.target, tipo: p[4] || '', comprou: p[2], hoje: !!r.proprio.cods[c], reg: !!r.regiao.cods[c] }; })
+    .sort((x, y) => (y.hoje - x.hoje) || (y.reg - x.reg));
+  const row = document.createElement('tr'); row.className = 'det';
+  row.innerHTML = `<td colspan="3" style="background:var(--card2);padding:10px 14px"><table><thead><tr><th class="l">Cliente de ${esc(T.b.nome.split(' ')[0])}</th><th class="l">Tipo</th><th>+MIX mostra hoje?</th><th>Olhando a região?</th><th>Comprou no mês?</th></tr></thead><tbody>` +
+    L.map((x) => `<tr><td class="l">${esc(x.nome)}</td><td class="l">${esc(x.tipo)}</td><td>${x.hoje ? '<b style="color:#ef4444">sim — e não comprou</b>' : 'não'}</td><td>${x.reg ? 'sim' : 'não'}</td><td>${x.comprou ? 'sim' : 'não'}</td></tr>`).join('') +
+    `</tbody></table><div class="leg">"Sim — e não comprou" = o app mostrou o produto e ${esc(T.b.nome.split(' ')[0])} não vendeu: é a conversa com o vendedor.</div></td>`;
+  tr.after(row);
+}
 // MAPA COM FILTRO E PRODUTO (Vitorio, 22/10/2026: "filtrar aqui ja filtra no mapa; clicar no produto e ver quais clientes compram, quais o outro vende e quais faltam;
 // 'vendedor, esta aparecendo esse produto no +MIX para o cliente X, por que voce nao vende?'")
 let COMP = null, PROD = null;
@@ -670,6 +682,7 @@ async function rodaTeste(a, b) {
   const linhas = [...topA.entries()].map(([c, n]) => ({ c, n, x: R.filter((r) => r.proprio.cods[c]).length, y: R.filter((r) => r.regiao.cods[c]).length })).filter((l) => l.x || l.y);
   const nA = `${esc(a.nome.split(' ')[0])}`, nB = `${esc(b.nome.split(' ')[0])}`;
   // RESULTADO SIMPLES (22/10/2026: "ainda esta confuso"): 1 frase de conclusao, 3 numeros, e a lista so com o que o +MIX mostra hoje
+  window.TESTE = { R, b, nomes: new Map((b.pontos || []).map((p) => [p[3], p])) };
   const jaAparece = linhas.filter((l) => l.x >= R.length * 0.25).length, N = R.length;
   const conclusao = jaAparece >= linhas.length / 2
     ? `O +MIX <b>já mostra</b> ao ${nB} a maior parte do que o ${nA} vende (${jaAparece} de ${linhas.length} produtos). <b>Não falta ferramenta: falta vender.</b>`
@@ -683,7 +696,7 @@ async function rodaTeste(a, b) {
     <div class="leg" style="margin-top:0">Testado em ${N} clientes de ${nB} perto dos clientes de ${nA}. A barra mostra em quantos deles o +MIX já sugere o produto hoje.</div>
     <table style="margin-top:6px"><tbody>` +
     (linhas.length ? linhas.slice().sort((p, q) => q.x - p.x).map((l) => { const d = l.y - l.x;
-      return `<tr><td class="l" style="width:40%">${esc(l.n)}</td><td style="width:40%"><div style="display:flex;align-items:center;gap:8px"><div class="bar" style="flex:1;margin:0"><i style="width:${l.x / N * 100}%;background:var(--b)"></i></div><b>${nf(l.x)} de ${N}</b></div></td><td class="sub" style="width:20%">${d === 0 ? 'olhando a região: igual' : `olhando a região: ${d > 0 ? '+' : ''}${d}`}</td></tr>`; }).join('')
+      return `<tr style="cursor:pointer" title="clique para ver os clientes" onclick="testeClientes('${l.c}', this)"><td class="l" style="width:40%"><u>${esc(l.n)}</u> <span class="sub">cód. ${l.c}</span> 🔎</td><td style="width:40%"><div style="display:flex;align-items:center;gap:8px"><div class="bar" style="flex:1;margin:0"><i style="width:${l.x / N * 100}%;background:var(--b)"></i></div><b>${nf(l.x)} de ${N}</b></div></td><td class="sub" style="width:20%">${d === 0 ? 'olhando a região: igual' : `olhando a região: ${d > 0 ? '+' : ''}${d}`}</td></tr>`; }).join('')
       : `<tr><td class="l">Nenhum dos produtos aparece (o cliente já compra ou ninguém em volta compra).</td></tr>`) + '</tbody></table>';
 }
 carrega();
