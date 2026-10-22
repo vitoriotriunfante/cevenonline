@@ -116,7 +116,7 @@ async function main() {
   // HORA DA CAPTURA (auditoria 22/10/2026: so o dia era gravado; sem a hora nao da para provar que a lista foi pega ANTES da visita)
   try { hist.exec('ALTER TABLE mix_gap ADD COLUMN capturado_em TEXT'); } catch (e) { /* coluna ja existe */ }
   const insH = hist.prepare('INSERT OR REPLACE INTO mix_gap (dia, filial, rca, cnpj, id_cliente, universo_json, resposta_json, capturado_em) VALUES (?,?,?,?,?,?,?,?)');
-  const carteira = new Map();
+  const carteira = new Map(), infoCli = new Map();
   const rcas = [...new Set(alvo.map((o) => o.filial + '|' + o.rca))];
   const t0 = Date.now();
   for (let i = 0; i < rcas.length; i++) {
@@ -126,6 +126,16 @@ async function main() {
     const m = new Map();
     for (const c of Array.isArray(rm) ? rm : []) { const cn = so(c.cnpj); if (cn.length === 14 && Number(c.latitude) && Number(c.longitude)) m.set(cn, { cnpj: cn, nome: c.nome_cliente, lat: Number(c.latitude), lon: Number(c.longitude), id: String(c.id_cliente || ''), hoje: String(c.data_visita || '').slice(0, 10) === hojeSP || (m.get(cn) || {}).hoje }); }
     carteira.set(rcas[i], m);
+    // VISITAS DE CADA CLIENTE NO MES (22/10/2026: "ele ja visitou esses clientes? quando foi?"): ultima visita feita, proxima prevista, ultima compra
+    for (const c of Array.isArray(rm) ? rm : []) {
+      const cn = so(c.cnpj); if (cn.length !== 14) continue;
+      const k = f + '|' + cn, x = infoCli.get(k) || { rca: r, uv: '', uh: '', um: '', pv: '', uc: '' };
+      const d = String(c.data_visita || '').slice(0, 10), feita = !!(c.checkin_horario || c.motivo_nao_visita) || /VISITADO|JUSTIFICADO/i.test(String(c.status || ''));
+      if (d && d <= hojeSP && feita && d >= x.uv) { x.uv = d; x.uh = c.checkin_horario || ''; x.um = c.motivo_nao_visita || (c.checkin_horario ? '' : String(c.status || '')); }
+      if (d && (d > hojeSP || (d === hojeSP && !feita)) && (!x.pv || d < x.pv)) x.pv = d;
+      if (c.data_ultima_compra) x.uc = String(c.data_ultima_compra).slice(0, 10);
+      infoCli.set(k, x);
+    }
   }
   // MEDICAO CORRETA (Vitorio, 20/10/2026: "o +MIX nao deveria constar os produtos que o cliente ja compra... se o cara comprar o D, amanha so aparece o E"):
   // a recomendacao tem que ser a do DIA DA VISITA, gravada ANTES dela. Entram como alvo tambem os clientes da ROTA DE HOJE (mesmo sem compra no mes).
@@ -299,6 +309,10 @@ async function main() {
     }
     fs.writeFileSync(path.join(__dirname, '..', 'public', 'mix_cubo.json'), JSON.stringify({ gerado_em: new Date().toISOString(), atv_nomes: ATV.nomes || {}, cli: cliL, prods, f }));
     console.log(`cubo de vendas: ${cliL.length} clientes, ${prods.length} produtos, ${f.length} fatos`); }
+  { const porF = new Map();
+    for (const [k, x] of infoCli) { const [f, cn] = k.split('|'); const m = porF.get(f) || porF.set(f, {}).get(f); m[cn] = [x.uv, x.uh, x.um, x.pv, x.uc]; }
+    fs.mkdirSync(path.join(__dirname, '..', 'public', 'mix_cli'), { recursive: true });
+    for (const [f, m] of porF) fs.writeFileSync(path.join(__dirname, '..', 'public', 'mix_cli', f + '.json'), JSON.stringify({ gerado_em: new Date().toISOString(), campos: ['ultima_visita', 'hora_checkin', 'motivo_ou_status', 'proxima_visita', 'ultima_compra'], c: m })); }
   // +MIX DE CADA CLIENTE (clique no cliente no mapa: "o que falta ele comprar que esta no +MIX"): um arquivo por filial em public/mix_rec/
   { const porF = new Map();
     for (const o of alvo) {
