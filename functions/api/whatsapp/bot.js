@@ -78,28 +78,85 @@ async function dadosDaFilial(origin, filial, env) {
     const rot = Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hoje) : [];
     const feitas = rot.filter((c) => c.checkin_horario).length;
     vend.push({ vendedor: (e && e.nome) || d.nome || 'RCA ' + rca, rca, supervisor: e ? e.supervisor : '', grupo: e ? e.grupo : '',
-      pct_meta_fat: fi.meta ? +((fi.total_com_pendente || 0) / fi.meta * 100).toFixed(1) : null, faturado_mais_pendente: R$(fi.total_com_pendente), meta: R$(fi.meta),
+      fatN: fi.total_com_pendente || 0, metaN: fi.meta || 0, pct_meta_fat: fi.meta ? +((fi.total_com_pendente || 0) / fi.meta * 100).toFixed(1) : null, faturado_mais_pendente: R$(fi.total_com_pendente), meta: R$(fi.meta),
       positivacao: `${po.realizado ?? '?'} de ${po.meta ?? '?'}`, digitado_hoje: R$(pd.dig_pedido), visitas_hoje: `${feitas} de ${rot.length}`, zerado_hoje: rot.length > 0 && !(pd.dig_pedido > 0),
       lances_hoje: lv.get(rca) || {} });
   }
   vend.sort((a, b) => (b.pct_meta_fat ?? -1) - (a.pct_meta_fat ?? -1));
+  out._raw = vend.map((v) => ({ ...v, pct_num: v.pct_meta_fat }));
   out.vendedores = vend.map((v) => ({ ...v, pct_meta_fat: v.pct_meta_fat == null ? 'sem dado' : String(v.pct_meta_fat).replace('.', ',') + '%' }));
   out.zerados_hoje = vend.filter((v) => v.zerado_hoje).map((v) => `${v.vendedor} (${v.supervisor || 'sem supervisor'}, visitas ${v.visitas_hoje})`);
   if (lances) out.lances_hoje_filial = lances.porNivel;
   // supervisores (soma dos vendedores, sem rateio)
   const sup = new Map(); for (const v of vend) { const s = v.supervisor || 'sem supervisor'; const x = sup.get(s) || { vendedores: 0, zerados: 0, penaltis: 0, gols: 0 }; x.vendedores++; if (v.zerado_hoje) x.zerados++; x.penaltis += v.lances_hoje.penalti || 0; x.gols += v.lances_hoje.gol || 0; sup.set(s, x); }
-  out.supervisores_hoje = Object.fromEntries(sup);
+  for (const v of vend) { const x = sup.get(v.supervisor || 'sem supervisor'); x.fat = (x.fat || 0) + v.fatN; x.meta = (x.meta || 0) + v.metaN; }
+  for (const x of sup.values()) x.pct = x.meta ? x.fat / x.meta * 100 : null;
+  out._sup = Object.fromEntries(sup);
+  out.supervisores_hoje = Object.fromEntries([...sup].map(([k, x]) => [k, { vendedores: x.vendedores, zerados: x.zerados, penaltis: x.penaltis, gols: x.gols, pct_meta: x.pct == null ? 'sem dado' : x.pct.toFixed(1).replace('.', ',') + '%' }]));
   if (liga) { const lf = (liga.filiais || []).find((x) => x.sigla === filial); if (lf) out.liga_filial = `${lf.pos}º de 11, ${lf.pts_tabela} pontos (${lf.vitorias}V ${lf.empates}E ${lf.derrotas}D)`;
     out.liga_supervisores = (liga.supervisores || []).filter((x) => x.filial === filial).map((x) => `${x.pos}º ${x.supervisor} (${x.pts_tabela} pts)`); }
   if (mix) out.mais_mix = (mix.vendedores || []).filter((x) => x.filial === filial).map((x) => `${x.nome}: mix ${String(x.mix_medio).replace('.', ',')} produtos/cliente, ${R$(x.faturado_por_cliente)}/cliente, uso do +MIX ${x.uso_pct == null ? 'sem dado' : String(x.uso_pct).replace('.', ',') + '%'}`);
   return out;
 }
+// RESPOSTAS PRONTAS (22/10/2026: "e se o gerente perguntar como esta minha filial? aberto por supervisor? dentro do supervisor por vendedor? como esta na liga?"):
+// as perguntas principais tem resposta MONTADA PELO CODIGO com os numeros da base (sem IA = sem erro de conta). A IA so entra na pergunta livre.
+const sem = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+const nome2 = (n) => titulo(String(n || '').split(' ').filter(Boolean).slice(0, 2).join(' '));
+const pctN = (v) => v.pct_num == null ? 'sem dado' : v.pct_num.toFixed(1).replace('.', ',') + '%';
+function respFilial(fil, d) {
+  const a = d.filial_agora; if (!a) return `Não consegui ler ${fil} agora. Tente em alguns minutos.`;
+  const V = d._raw || [], com = V.filter((v) => v.pct_num != null);
+  const top = com.slice(0, 2), bx = com.slice(-2).reverse(), z = V.filter((v) => v.zerado_hoje);
+  const L = [`📊 *${fil} agora* (${a.hora})`, `💰 Faturado + pendente: *${a.faturado_mais_pendente}* de ${a.meta_mes} → *${a.pct_meta}*`, `👥 Positivação: ${a.positivados_mes}`, `📝 Digitado hoje: *${a.digitado_hoje}*`];
+  if (d.liga_filial) L.push(`🏆 Liga: ${d.liga_filial}`);
+  L.push(`⚠️ Zerados hoje: *${z.length}*` + (z.length ? ' — ' + z.slice(0, 4).map((v) => nome2(v.vendedor)).join(', ') + (z.length > 4 ? ` +${z.length - 4}` : '') : ''));
+  if (top.length) L.push(`✅ Melhores na meta: ${top.map((v) => `${nome2(v.vendedor)} ${pctN(v)}`).join(' · ')}`);
+  if (bx.length) L.push(`🔻 Mais atrás: ${bx.map((v) => `${nome2(v.vendedor)} ${pctN(v)}`).join(' · ')}`);
+  const sz = Object.entries(d._sup || {}).sort((x, y) => y[1].zerados - x[1].zerados)[0];
+  L.push('', sz && sz[1].zerados ? `🎯 *Sugestão:* falar com ${nome2(sz[0])} — ${sz[1].zerados} vendedor(es) dele sem pedido hoje.` : `🎯 *Sugestão:* puxar os mais atrás na meta para fechar o mês.`);
+  L.push('_Peça "por supervisor", "supervisor Nome" ou "liga"._');
+  return L.join('\n');
+}
+function respPorSupervisor(fil, d) {
+  const S = Object.entries(d._sup || {}).sort((x, y) => (y[1].pct ?? -1) - (x[1].pct ?? -1));
+  if (!S.length) return `Sem dados por supervisor de ${fil} agora.`;
+  return [`👥 *${fil} por supervisor*`, ...S.map(([s, x]) => `• *${nome2(s)}* — ${x.pct == null ? 'sem dado' : x.pct.toFixed(1).replace('.', ',') + '%'} da meta · ${x.vendedores} vend. · ${x.zerados} zerado(s) · ${x.gols} gol(s) · ${x.penaltis} pênalti(s)`),
+    '', '_Peça "supervisor Nome" para ver os vendedores dele._'].join('\n');
+}
+function respSupervisor(fil, d, s) {
+  const V = (d._raw || []).filter((v) => v.supervisor === s);
+  if (!V.length) return `Não achei vendedores de ${titulo(s)} em ${fil}.`;
+  const x = (d._sup || {})[s] || {};
+  return [`👤 *${titulo(s)}* (${fil}) — ${x.pct == null ? 'sem dado' : x.pct.toFixed(1).replace('.', ',') + '%'} da meta`,
+    ...V.map((v) => `• ${v.zerado_hoje ? '⚠️' : '✅'} *${nome2(v.vendedor)}* — ${pctN(v)} meta · dig. hoje ${v.digitado_hoje} · visitas ${v.visitas_hoje}`),
+    '', V.some((v) => v.zerado_hoje) ? `🎯 *Sugestão:* ligar agora para ${V.filter((v) => v.zerado_hoje).slice(0, 3).map((v) => nome2(v.vendedor)).join(', ')} (sem pedido hoje).` : '🎯 *Sugestão:* equipe toda com pedido hoje; foco em mix nos próximos clientes.'].join('\n');
+}
+function respLiga(fil, d) {
+  return [`🏆 *Champions Triunfante — ${fil}*`, d.liga_filial ? `Filial: *${d.liga_filial}*` : 'Filial: sem dado',
+    ...(d.liga_supervisores || []).slice(0, 8).map((x) => `• ${x}`), '', '_Ranking completo: ceven-cftv-matrix.pages.dev/championstriunfante_'].join('\n');
+}
+function respostaPronta(texto, fil, d) {
+  const t = sem(texto);
+  if (/LIGA|CHAMPIONS|RANKING|TABELA|CLASSIFICA/.test(t)) return respLiga(fil, d);
+  const sups = Object.keys(d._sup || {}).filter((s) => s !== 'sem supervisor');
+  const achou = sups.find((s) => sem(s).split(' ').filter((w) => w.length > 2).some((w) => new RegExp('\\b' + w + '\\b').test(t)) && /SUPERVIS|EQUIPE|TIME|VENDEDOR/.test(t))
+    || sups.find((s) => t.includes(sem(s).split(' ').slice(0, 2).join(' ')));
+  if (achou) return respSupervisor(fil, d, achou);
+  if (/SUPERVIS|POR EQUIPE|ABERTO/.test(t)) return respPorSupervisor(fil, d);
+  if (/COMO (ESTA|TA|VAI)|MINHA FILIAL|RESUMO|HOJE|PANORAMA|STATUS/.test(t)) return respFilial(fil, d);
+  return null;
+}
+
 async function respondeIA(env, origin, c, texto, historico) {
   if (!env.AI) return null;
-  // filial citada agora ou nas ultimas mensagens (para 'e o supervisor X?' continuar na mesma filial)
-  const conversa = [texto, ...historico.map((h) => h.content)].join(' ').toUpperCase();
-  const filiais = c.filial ? [c.filial] : [...new Set(conversa.match(/\b(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\b/g) || [])];
-  const dados = {}; for (const f of [...new Set(filiais)].slice(0, 2)) dados[f] = await dadosDaFilial(origin, f, env);
+  // filial: a do cadastro (gerente) ou a citada agora; senao a mais recente da conversa (diretoria)
+  const FRX = /\b(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\b/;
+  let fil = c.filial || (texto.toUpperCase().match(FRX) || [])[1];
+  if (!fil) for (const h of [...historico].reverse()) { const m = String(h.content).toUpperCase().match(FRX); if (m) { fil = m[1]; break; } }
+  const filiais = fil ? [fil] : [];
+  const dados = {}; for (const f of filiais) dados[f] = await dadosDaFilial(origin, f, env);
+  if (fil) { const pronta = respostaPronta(texto, fil, dados[fil]); if (pronta) return pronta; }
+  for (const f of filiais) { delete dados[f]._raw; delete dados[f]._sup; }
   try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(c.celular, c.nome, 'debug', JSON.stringify(Object.fromEntries(Object.entries(dados).map(([k, v]) => [k, Object.keys(v)])))).run(); } catch (e) {}
   const sys = `Você é o assistente do +MIX da Triunfante no WhatsApp. Responde em português do Brasil como um gerente comercial experiente: natural, objetivo, sem enrolação.
 Quem fala com você: ${titulo(c.nome)}, ${c.papel}${c.filial ? ' da filial ' + c.filial : ' (diretoria, vê todas as filiais)'}${c.grupo ? ', grupo ' + c.grupo : ''}.
