@@ -111,7 +111,9 @@ async function main() {
   // 3) carteira (roteiro do mês) de cada vendedor e +MIX de cada cliente
   const hist = new Database(path.join(__dirname, 'mix_gap_hist.db'));
   hist.exec('CREATE TABLE IF NOT EXISTS mix_gap (dia TEXT, filial TEXT, rca TEXT, cnpj TEXT, id_cliente TEXT, universo_json TEXT, resposta_json TEXT, PRIMARY KEY (dia, filial, cnpj))');
-  const insH = hist.prepare('INSERT OR REPLACE INTO mix_gap VALUES (?,?,?,?,?,?,?)');
+  // HORA DA CAPTURA (auditoria 22/10/2026: so o dia era gravado; sem a hora nao da para provar que a lista foi pega ANTES da visita)
+  try { hist.exec('ALTER TABLE mix_gap ADD COLUMN capturado_em TEXT'); } catch (e) { /* coluna ja existe */ }
+  const insH = hist.prepare('INSERT OR REPLACE INTO mix_gap (dia, filial, rca, cnpj, id_cliente, universo_json, resposta_json, capturado_em) VALUES (?,?,?,?,?,?,?,?)');
   const carteira = new Map();
   const rcas = [...new Set(alvo.map((o) => o.filial + '|' + o.rca))];
   const t0 = Date.now();
@@ -144,7 +146,7 @@ async function main() {
       const g = await getJson(`${CEVEN}/mixapi/mix/gap`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target_cnpj: o.cnpj, universo_cnpjs: cnpjs, limite: 100, raio_km: 3, cod_rca: Number(o.rca) }) }, 3);
       if (!g || !g.disponivel) { falha++; continue; }
       ok++;
-      insH.run(hojeSP, o.filial, o.rca, o.cnpj, o.id, JSON.stringify(uni.filter((c) => c.cnpj !== o.cnpj).map((c) => ({ cnpj: c.cnpj, nome: c.nome, km: r1(c.d) }))), JSON.stringify(g));
+      insH.run(hojeSP, o.filial, o.rca, o.cnpj, o.id, JSON.stringify(uni.filter((c) => c.cnpj !== o.cnpj).map((c) => ({ cnpj: c.cnpj, nome: c.nome, km: r1(c.d) }))), JSON.stringify(g), new Date().toISOString());
       const cods = new Map();
       for (const ind of g.industrias_gap || []) for (const p of ind.produtos || []) cods.set(String(p.codprod), { ind: ind.industria, pen: p.penetracao, n: p.n_clientes, nome: p.produto });
       for (const p of g.produtos_top || []) if (!cods.has(String(p.codprod))) cods.set(String(p.codprod), { ind: p.industria, pen: p.penetracao, n: p.n_clientes, nome: p.produto });
