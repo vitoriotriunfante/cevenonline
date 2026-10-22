@@ -155,7 +155,7 @@ function respCompromisso(fil, d) {
   const semC = S.filter((x) => !x.fez_compromisso), semR = S.filter((x) => !x.iniciou_ret);
   return [`🗓️ *Supervisores de ${fil} hoje* (${S.length})`, `Compromisso matinal: *${S.length - semC.length} fizeram* · *${semC.length} não fizeram*` + (semC.length ? ' — ' + semC.map((x) => nome2(x.supervisor)).join(', ') : ''),
     `Rota com vendedor (RET): *${S.length - semR.length} iniciaram* · *${semR.length} não* ` + (semR.length ? '— ' + semR.map((x) => nome2(x.supervisor)).join(', ') : ''),
-    ...S.filter((x) => x.iniciou_ret).map((x) => `• ${nome2(x.supervisor)}: ${x.ret_pdvs} PDV(s) na RET, 1º check-in ${x.ret_primeiro_checkin || '—'}`),
+    ...S.filter((x) => x.iniciou_ret && x.ret_pdvs > 0).map((x) => `• ${nome2(x.supervisor)}: ${x.ret_pdvs} PDV(s) na RET, 1º check-in ${x.ret_primeiro_checkin || '—'}`),
     '', semC.length ? `🎯 *Sugestão:* cobrar o compromisso de ${semC.slice(0, 3).map((x) => nome2(x.supervisor)).join(', ')}.` : '🎯 *Sugestão:* todos fizeram o compromisso; acompanhar a execução das RETs.'].join('\n');
 }
 function respostaPronta(texto, fil, d) {
