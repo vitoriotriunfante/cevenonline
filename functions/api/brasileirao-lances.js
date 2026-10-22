@@ -95,7 +95,7 @@ export async function onRequestGet({ request, env }) {
   // DIA FECHADO (congelado as 19h30, ver _lib/liga_fechamento.js): devolve o que foi gravado no fechamento, sem recalcular. ?ao_vivo=1 ignora o congelamento (so o proprio fechamento usa).
   if (u.searchParams.get('ao_vivo') !== '1') {
     const f = await lerDiaFechado(env, dia, filial);
-    if (f) { const oc = await ocultosDaEquipe(u.origin); const fl = f.lances.filter((l) => !lanceDeOculto(l, oc)).map(separaImpedimento);   // dia fechado: so o NOME do impedimento e separado; pontos congelados nao mudam const porNivel = {}; for (const l of fl) porNivel[l.nivel] = (porNivel[l.nivel] || 0) + 1; return resp({ dia, filial: filial || 'TODAS', total: fl.length, ocultos_fora: f.lances.length - fl.length, duplicados_removidos: 0, porNivel, lances: fl, fechado: true, fechado_em: f.cab.fechado_em, regras_versao: f.cab.regras_versao }); }
+    if (f) { const oc = await ocultosDaEquipe(u.origin); const fl = f.lances.filter((l) => !lanceDeOculto(l, oc)).map(separaImpedimento); /* dia fechado: so o NOME do impedimento e separado; pontos congelados nao mudam */ const porNivel = {}; for (const l of fl) porNivel[l.nivel] = (porNivel[l.nivel] || 0) + 1; return resp({ dia, filial: filial || 'TODAS', total: fl.length, ocultos_fora: f.lances.length - fl.length, duplicados_removidos: 0, porNivel, lances: fl, fechado: true, fechado_em: f.cab.fechado_em, regras_versao: f.cab.regras_versao }); }
   }
 
   try {
