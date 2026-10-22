@@ -61,3 +61,9 @@ Legenda: ✅ já responde · 🟡 o dado já existe no nosso site, falta só ens
 ## Próxima etapa sugerida
 1. Ensinar os 🟡 (dados já no site): vendedor X, MN/falta, zerados, top/piores, eficácia, cliente X, produto X, +MIX do cliente, lances, regras, incentivo.
 2. Os 🔴 exigem nova leitura do CEVEN (respeitando o teto de 6 chamadas): premiação, vespertina, PA, cadastros, D-1/M-1.
+
+## Atualização 22/10/2026 17h10 — ensinado e publicado
+- Diretoria sem filial na mensagem = **Brasil (11 filiais)**; gerente = só a filial dele (TPH/MCD só o grupo); gerente pedindo outra filial recebe o aviso.
+- **Rota = varejo** (VJ, PET VJ, FARMA, ESP): visitas, eficácia, zerados, "vendedores de rota". Dinheiro e pedidos somam todos.
+- Novas respostas prontas: hoje/acumulado (com ou sem "rota"), ticket médio, vendedor Nome (fat., falta e MN, positivação, hoje, rota do mês, Liga, +MIX, lances), zerados, quanto falta/MN, ranking (meta, positivação, hoje, top 10), positivação, visitas/eficácia, devoluções, lances (pênaltis, impedimentos, cartões, gols com motivo), Liga (Brasil, filial, vendedor com ▲▼), compromisso/RET Brasil, +MIX e "quem compra PRODUTO", incentivo 110/110, "o que é X", ajuda.
+- Simulador: `node testes/t_jota.mjs` (44 perguntas na base real, nada é enviado).

@@ -1,0 +1,29 @@
+// SIMULADOR DO JOTA: roda perguntas reais contra a base de PRODUCAO (somente leitura, nada e enviado).
+// uso: node testes/t_jota.mjs [filtro]
+import fs from 'fs'; import path from 'path'; import os from 'os'; import { pathToFileURL } from 'url';
+const src = fs.readFileSync(new URL('../functions/api/whatsapp/bot.js', import.meta.url), 'utf8');
+const tmp = path.join(os.tmpdir(), 'jota_bot_' + Date.now() + '.mjs'); fs.writeFileSync(tmp, src);
+const { _teste } = await import(pathToFileURL(tmp).href);
+const ORIGIN = 'https://ceven-cftv-matrix.pages.dev';
+const DIR = { nome: 'VITORIO', papel: 'diretoria', filial: null, grupo: null };
+const GER_API = { nome: 'GERENTE API', papel: 'gerente', filial: 'API', grupo: null };
+const GER_TPH = { nome: 'FABIO', papel: 'gerente', filial: 'TPH', grupo: 'FABIO' };
+const P = [
+ [DIR, 'Qual o acumulado de hoje dos vendedores de rota em API?'], [DIR, 'quem não fez RET hoje ?'], [DIR, 'quero saber quem não fez o RET em todo o brasil?'],
+ [DIR, 'como estamos?'], [DIR, 'como está TPH?'], [DIR, 'hoje'], [DIR, 'zerados'], [DIR, 'quanto falta pra bater a meta?'], [DIR, 'ranking'], [DIR, 'top 10 hoje'],
+ [DIR, 'positivação'], [DIR, 'visitas'], [DIR, 'eficácia da rota TBL'], [DIR, 'devoluções'], [DIR, 'pênaltis'], [DIR, 'impedimentos de hoje em TSJ'], [DIR, 'liga'],
+ [DIR, '+mix'], [DIR, 'quem compra oreo?'], [DIR, 'incentivo'], [DIR, 'o que é positivação?'], [DIR, 'o que é eficácia'], [DIR, 'ajuda'], [DIR, 'oi'],
+ [DIR, 'por supervisor em MCD'], [DIR, 'compromisso TSJ'], [DIR, 'como está a vendedora Tamara?'], [DIR, 'supervisor Kleberson'], [DIR, 'quanto vendeu o Gilmar hoje?'],
+ [DIR, 'qual a posição do Gilmar na liga?'], [DIR, 'quem tá mal na positivação?'], [DIR, 'qual o ticket médio de hoje?'], [DIR, 'me fala do clima amanhã'],
+ [GER_API, 'como está minha filial?'], [GER_API, 'zerados'], [GER_API, 'por supervisor'], [GER_API, 'como está TPH?'], [GER_API, 'quem compra trident?'],
+ [GER_TPH, 'como está?'], [GER_TPH, 'por supervisor'], [GER_TPH, 'liga'], [GER_TPH, 'hoje rota'], [GER_TPH, 'compromisso'],
+];
+const f = process.argv[2]; let erros = 0;
+for (const [c, q] of P) {
+  if (f && !q.includes(f)) continue;
+  const B = _teste.criaBase(ORIGIN, {}); const t0 = Date.now();
+  let r; try { r = await _teste.respostaPronta(B, c, q); } catch (e) { r = 'ERRO: ' + e.stack; erros++; }
+  console.log(`\n==== [${c.nome}] ${q}  (${Date.now() - t0} ms)\n${r === null ? '(sem resposta pronta -> IA)' : r}`);
+  if (r && /undefined|NaN|\[object/.test(r)) { erros++; console.log('!!!! TEXTO SUSPEITO'); }
+}
+fs.unlinkSync(tmp); console.log('\nerros:', erros);
