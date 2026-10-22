@@ -108,6 +108,7 @@ export async function onRequestPost({ request, env }) {
   } else {
     resp = `Oi, ${primeiro}! ` + await resumoFilial(u.origin, c.filial) + `\n\n_Em breve você vai poder perguntar do seu jeito (clientes, produtos, +MIX, Liga)._`;
   }
+  }
   const e = await enviar(env, cel, resp);
   await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, e.ok ? 'out' : 'erro', resp.slice(0, 2000)).run();
   return new Response('ok');
