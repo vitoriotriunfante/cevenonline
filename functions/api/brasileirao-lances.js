@@ -68,6 +68,14 @@ const REGRAS_PONTOS = {
 
 import { lerQualif } from '../_lib/qualificacao_gol.js';
 import { lerDiaFechado } from '../_lib/liga_fechamento.js';
+// IMPEDIMENTO SEPARADO POR TIPO (Vitorio, 22/10/2026): GPS fora x check-in/check-out zerado. Mesmos -5 pontos; vale tambem para os dias ja fechados (so o nome).
+function separaImpedimento(l) {
+  if (!l || l.nivel !== 'impedimento') return l;
+  const k = String(l.chave || '');
+  if (/[|]gps[|]/.test(k)) return { ...l, pontos_nome: 'Impedimento — fora do local (GPS)', pontos_motivo: 'Check-out a mais de 500 m do cadastro do cliente' };
+  if (/[|]visita0[|]/.test(k)) return { ...l, pontos_nome: 'Impedimento — check-in/check-out zerado (00:00)', pontos_motivo: 'Visita de 00:00: check-in e check-out sem permanência' };
+  return l;
+}
 import { ocultosDaEquipe, lanceDeOculto } from '../_lib/equipe_ocultos.js';
 function achaPontuacao(chave, nivel) {
   const partes = String(chave || '').split('|');
@@ -87,7 +95,7 @@ export async function onRequestGet({ request, env }) {
   // DIA FECHADO (congelado as 19h30, ver _lib/liga_fechamento.js): devolve o que foi gravado no fechamento, sem recalcular. ?ao_vivo=1 ignora o congelamento (so o proprio fechamento usa).
   if (u.searchParams.get('ao_vivo') !== '1') {
     const f = await lerDiaFechado(env, dia, filial);
-    if (f) { const oc = await ocultosDaEquipe(u.origin); const fl = f.lances.filter((l) => !lanceDeOculto(l, oc)); const porNivel = {}; for (const l of fl) porNivel[l.nivel] = (porNivel[l.nivel] || 0) + 1; return resp({ dia, filial: filial || 'TODAS', total: fl.length, ocultos_fora: f.lances.length - fl.length, duplicados_removidos: 0, porNivel, lances: fl, fechado: true, fechado_em: f.cab.fechado_em, regras_versao: f.cab.regras_versao }); }
+    if (f) { const oc = await ocultosDaEquipe(u.origin); const fl = f.lances.filter((l) => !lanceDeOculto(l, oc)).map(separaImpedimento);   // dia fechado: so o NOME do impedimento e separado; pontos congelados nao mudam const porNivel = {}; for (const l of fl) porNivel[l.nivel] = (porNivel[l.nivel] || 0) + 1; return resp({ dia, filial: filial || 'TODAS', total: fl.length, ocultos_fora: f.lances.length - fl.length, duplicados_removidos: 0, porNivel, lances: fl, fechado: true, fechado_em: f.cab.fechado_em, regras_versao: f.cab.regras_versao }); }
   }
 
   try {
