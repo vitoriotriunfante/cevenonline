@@ -79,12 +79,17 @@ async function dadosDaFilial(origin, filial, env, grupo) {
     const rot = Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hoje) : [];
     const feitas = rot.filter((c) => c.checkin_horario).length;
     vend.push({ vendedor: (e && e.nome) || d.nome || 'RCA ' + rca, rca, supervisor: e ? e.supervisor : '', grupo: e ? e.grupo : '',
-      fatN: fi.faturado || 0, pendN: fi.pendente || 0, metaN: fi.meta || 0, digN: pd.dig_pedido || 0, pct_meta_fat: fi.meta ? +((fi.faturado || 0) / fi.meta * 100).toFixed(1) : null, faturado: R$(fi.faturado), pendente: R$(fi.pendente), meta: R$(fi.meta),
+      fatN: fi.faturado || 0, pendN: fi.pendente || 0, metaN: fi.meta || 0, digN: pd.dig_pedido || 0, pedN: pd.positivacao || 0, devN: fi.devolucao || 0, visF: 0, visP: 0, pedidos_hoje: pd.positivacao || 0, pct_meta_fat: fi.meta ? +((fi.faturado || 0) / fi.meta * 100).toFixed(1) : null, faturado: R$(fi.faturado), pendente: R$(fi.pendente), meta: R$(fi.meta),
       positivacao: `${po.realizado ?? '?'} de ${po.meta ?? '?'}`, digitado_hoje: R$(pd.dig_pedido), visitas_hoje: `${feitas} de ${rot.length}`, zerado_hoje: rot.length > 0 && !(pd.dig_pedido > 0),
       lances_hoje: lv.get(rca) || {} });
+    vend[vend.length - 1].visF = feitas; vend[vend.length - 1].visP = rot.length;
   }
   vend.sort((a, b) => (b.pct_meta_fat ?? -1) - (a.pct_meta_fat ?? -1));
   out._raw = vend.map((v) => ({ ...v, pct_num: v.pct_meta_fat }));
+  // totais do dia como na TV (soma dos vendedores, sem rateio)
+  const sm = (k) => vend.reduce((t, v) => t + (v[k] || 0), 0);
+  out.dia = { pedidos_hoje: sm('pedN'), visitas_hoje: `${sm('visF')} de ${sm('visP')}`, zerados_hoje: vend.filter((v) => v.zerado_hoje).length, sem_nenhuma_visita: vend.filter((v) => v.visP > 0 && v.visF === 0).length,
+    meta_batida_no_mes: vend.filter((v) => (v.pct_meta_fat || 0) >= 100).length, vendedores: vend.length, devolucoes_mes: R$(sm('devN')), penaltis_hoje: vend.reduce((t, v) => t + (v.lances_hoje.penalti || 0), 0), gols_hoje: vend.reduce((t, v) => t + (v.lances_hoje.gol || 0), 0) };
   out.vendedores = vend.map((v) => ({ ...v, pct_meta_fat: v.pct_meta_fat == null ? 'sem dado' : String(v.pct_meta_fat).replace('.', ',') + '%' }));
   out.zerados_hoje = vend.filter((v) => v.zerado_hoje).map((v) => `${v.vendedor} (${v.supervisor || 'sem supervisor'}, visitas ${v.visitas_hoje})`);
   if (lances) out.lances_hoje_filial = lances.porNivel;
@@ -112,7 +117,8 @@ function respFilial(fil, d) {
   const a = d.filial_agora; if (!a) return `Não consegui ler ${fil} agora. Tente em alguns minutos.`;
   const V = d._raw || [], com = V.filter((v) => v.pct_num != null);
   const top = com.slice(0, 2), bx = com.slice(-2).reverse(), z = V.filter((v) => v.zerado_hoje);
-  const L = [`📊 *${fil}${a.grupo ? ' · ' + titulo(a.grupo) : ''} agora* (${a.hora})`, `💰 Faturado: *${a.faturado}* de ${a.meta_mes} → *${a.pct_meta}*`, `⏳ Pendente: ${a.pendente}`, `👥 Positivação: ${a.positivados_mes}`, `📝 Digitado hoje: *${a.digitado_hoje}*`];
+  const L = [`📊 *${fil}${a.grupo ? ' · ' + titulo(a.grupo) : ''} agora* (${a.hora})`, `💰 Faturado: *${a.faturado}* de ${a.meta_mes} → *${a.pct_meta}*`, `⏳ Pendente: ${a.pendente}`, `👥 Positivação: ${a.positivados_mes}`, `📝 Digitado hoje: *${a.digitado_hoje}* em *${d.dia ? d.dia.pedidos_hoje : '?'}* pedidos`];
+  if (d.dia) L.push(`🚶 Visitas hoje: ${d.dia.visitas_hoje} · sem nenhuma visita: ${d.dia.sem_nenhuma_visita}`, `🏁 Meta batida no mês: ${d.dia.meta_batida_no_mes} de ${d.dia.vendedores} vendedores`, `↩️ Devoluções no mês: ${d.dia.devolucoes_mes}`, `⚽ Hoje: ${d.dia.gols_hoje} gol(s) · ${d.dia.penaltis_hoje} pênalti(s)`);
   const G = Object.entries(d._ger || {}); if (!a.grupo && G.length > 1) { L.push('*Por gerente:*'); for (const [g, x] of G) L.push(`• ${titulo(g)}: ${R$(x.fat)} (${P(x.fat, x.meta)}) · pend. ${R$(x.pend)} · ${x.zerados} zerado(s)`); }
   if (d.liga_filial) L.push(`🏆 Liga: ${d.liga_filial}`);
   L.push(`⚠️ Zerados hoje: *${z.length}*` + (z.length ? ' — ' + z.slice(0, 4).map((v) => nome2(v.vendedor)).join(', ') + (z.length > 4 ? ` +${z.length - 4}` : '') : ''));
@@ -134,7 +140,7 @@ function respSupervisor(fil, d, s) {
   if (!V.length) return `Não achei vendedores de ${titulo(s)} em ${fil}.`;
   const x = (d._sup || {})[s] || {};
   return [`👤 *${titulo(s)}* (${fil}) — ${x.pct == null ? 'sem dado' : x.pct.toFixed(1).replace('.', ',') + '%'} da meta`,
-    ...V.map((v) => `• ${v.zerado_hoje ? '⚠️' : '✅'} *${nome2(v.vendedor)}* — fat. ${v.faturado} (${pctN(v)}) · pend. ${v.pendente} · hoje ${v.digitado_hoje} · visitas ${v.visitas_hoje}`),
+    ...V.map((v) => `• ${v.zerado_hoje ? '⚠️' : '✅'} *${nome2(v.vendedor)}* — fat. ${v.faturado} (${pctN(v)}) · pend. ${v.pendente} · hoje ${v.digitado_hoje} (${v.pedidos_hoje} ped.) · visitas ${v.visitas_hoje}`),
     '', V.some((v) => v.zerado_hoje) ? `🎯 *Sugestão:* ligar agora para ${V.filter((v) => v.zerado_hoje).slice(0, 3).map((v) => nome2(v.vendedor)).join(', ')} (sem pedido hoje).` : '🎯 *Sugestão:* equipe toda com pedido hoje; foco em mix nos próximos clientes.'].join('\n');
 }
 function respLiga(fil, d) {
@@ -170,7 +176,7 @@ COMO RESPONDER:
 - Use SÓ os números dos DADOS, exatamente como estão escritos (já vêm formatados, ex.: "R$ 6.054.971", "50,3%"). Nunca invente, estime nem recalcule; se não tiver o dado, diga que não tem.
 - Formato WhatsApp: *negrito* com UM asterisco de cada lado (nunca **). Uma ideia por linha. Use no máximo 10 linhas. Pode usar emoji com moderação (📊 ✅ ⚠️ 🎯).
 - "Como está a filial": 1) faturado + pendente e % da meta; 2) positivação; 3) digitado hoje; 4) zerados hoje (cite até 3 nomes); 5) destaque e alerta de vendedor (maior e menor % da meta).
-- Pergunta sobre vendedor ou supervisor: use a lista de vendedores e supervisores.
+- Pergunta sobre vendedor ou supervisor: use a lista de vendedores e supervisores. Pedidos de hoje: campo pedidos_hoje (filial em dia.pedidos_hoje).
 - Sempre termine com *🎯 Sugestão:* UMA ação concreta e nominal baseada nos dados (ex.: cobrar o supervisor X pelos 3 zerados).
 - Fale só da filial ${c.filial || 'que a pessoa pediu'}.${filiais.length ? '' : ' A pessoa não disse a filial: pergunte qual.'}
 DADOS (JSON): ${JSON.stringify(dados).slice(0, 24000)}`;
