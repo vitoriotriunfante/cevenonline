@@ -1,46 +1,46 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 quarta-feira, 21/10/2026
+📅 quinta-feira, 22/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 23 • Visitas: 474 (média 20,6/vendedor)
-Sem compra +30d: 174 (36,7%) • Recorrência: 45 (9,5%)
-Oportunidades CNAE 4639: +830 PDVs
+👥 Vendedores: 23 • Visitas: 488 (média 21,2/vendedor)
+Sem compra +30d: 196 (40,2%) • Recorrência: 52 (10,7%)
+Oportunidades CNAE 4712: +1.332 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPH — FÁBIO* • 21/10/2026
+📍 *TPH — FÁBIO* • 22/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 174  •  🟡 Preventivo: 0
+🔴 Última Chance: 195  •  🟡 Preventivo: 0
 
-👤 *EDERSON SUONSKI* (34 em risco)
-  🔴 MERCEARIA PREMIER (69) — 31/07
-  🔴 REVISTARIA DA ESQUINA (69) — 10/07
-  🔴 BAZAR JANSEN LTDA (69) — 05/12
-  🔴 BOI NOBRE (69) — 02/07
-  🔴 SUPERMERCADO ZAMPOLI (111) — 05/12
-  _+29 outros_
+👤 *EDERSON SUONSKI* (56 em risco)
+  🔴 POSTO PETROXIML (1071) — 05/09
+  🔴 ANTONIO MOACIR BONATO (1071) — 27/08
+  🔴 PANIFICADORA DA SIL (1071) — 05/12
+  🔴 IMPERIO DA GULA (1071) — 05/12
+  🔴 EMPORIO MANUDI (1071) — 21/08
+  _+51 outros_
 
-👤 *EDI CARLOS MEIRA* (23 em risco)
-  🔴 SUPER PG SUPERMERCADOS LTDA (114) — 05/12
-  🔴 LIZIANE NALIFICO MERCEARIA EIRELI (114) — 31/07
-  🔴 BOA VISTA REDE DE POSTOS - SELECT (114) — 20/08
-  🔴 NOFFKE COMERCIO ATACADISTA E VAREJISTA L (114) — 12/09
-  🔴 ALPAR FERRAMRNTAS (115) — 05/12
-  _+18 outros_
+👤 *EDI CARLOS MEIRA* (20 em risco)
+  🔴 DAL BO PIZZARIA E RESTAURANTE (116) — 18/09
+  🔴 REDE FEMININA DE COM AO CANCER (116) — 29/08
+  🔴 MERCADO MATHEUS (118) — 15/09
+  🔴 MERCADO LUZ (118) — 31/07
+  🔴 PIZZARIA E REST PRIMAVERA (118) — 30/07
+  _+15 outros_
 
-👤 *PRISCILA A D NASCIMENTO STRAPASSON* (45 em risco)
-  🔴 POSTO GERMANIA (65) — 16/09
-  🔴 POSTO UGANDA (65) — 05/09
-  🔴 AUTO POSTO LEGO (65) — 16/09
-  🔴 AUTO PISTO AMG LTDA (65) — 28/08
-  🔴 AUTO POSTO AEROPORTO (65) — 30/07
-  _+40 outros_
+👤 *PRISCILA A D NASCIMENTO STRAPASSON* (44 em risco)
+  🔴 AUTO POSTO APARECIDA (65) — 05/12
+  🔴 POSTO PETRO IGUACU (65) — 01/07
+  🔴 POSTO LINHA VERDE (65) — 05/09
+  🔴 POSTO VIA TORRES (65) — 05/12
+  🔴 POSTO LINHA VERDE 2 (65) — 27/05
+  _+39 outros_
 
-👤 *RODRIGO BERTONI* (72 em risco)
-  🔴 SINDEL FUCKNER (47) — 31/08
-  🔴 ICH ADM HOTEIS S.A. (47) — 05/12
-  🔴 BRF SA (47) — 05/12
-  🔴 COMUNIDADE EVANGELICA ALCANCE DE CURITIB (47) — 05/12
-  🔴 H E K CHOCOLATES LTDA (47) — 05/12
-  _+67 outros_
+👤 *RODRIGO BERTONI* (75 em risco)
+  🔴 HOTEL DORIZON (47) — 05/12
+  🔴 QUALITY (47) — 05/12
+  🔴 RADISON HOTEL CURITIBA (47) — 31/07
+  🔴 VCO COMERCIO DE MEDICAMENTOS LTDA - ME (47) — 05/12
+  🔴 VICCENZA RISTORANTE (47) — 05/12
+  _+70 outros_

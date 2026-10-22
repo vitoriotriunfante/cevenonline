@@ -1,38 +1,38 @@
 🌅 *ABERTURA MATINAL — TCV (07:45)*
-📅 quarta-feira, 21/10/2026
+📅 quinta-feira, 22/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 27 • Visitas: 280 (média 10,4/vendedor)
-Sem compra +30d: 44 (15,7%) • Recorrência: 41 (14,6%)
-Oportunidades CNAE 4639: +350 PDVs
+👥 Vendedores: 27 • Visitas: 279 (média 10,3/vendedor)
+Sem compra +30d: 41 (14,7%) • Recorrência: 27 (9,7%)
+Oportunidades CNAE 4712: +432 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCV — LEONARDO* • 21/10/2026
+📍 *TCV — LEONARDO* • 22/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 44  •  🟡 Preventivo: 0
+🔴 Última Chance: 41  •  🟡 Preventivo: 0
 
-👤 *GESSANDRO SPEROTTO* (18 em risco)
-  🔴 SUPERMERCADOS ISAELLE (322) — 31/08
-  🔴 SUPERMERCADO BRASIL (322) — 15/09
-  🔴 EXPRESSO 223 (324) — 31/08
-  🔴 MERI MERCADO DE UTILIDADES (324) — 31/08
-  🔴 BAZAR TUDO A PARTIR DE 199 PREDIO ROXO (324) — 31/08
-  _+13 outros_
+👤 *GESSANDRO SPEROTTO* (7 em risco)
+  🔴 MERCEARIA PARAISO (324) — 31/08
+  🔴 BRASA GAUCHA (324) — 31/08
+  🔴 CONVENIENCIA ALPHAVILE (328) — 31/08
+  🔴 MEGA REAL DO BRASIL LTDA (328) — 08/07
+  🔴 MEGA REAL UMUARAMA LTDA (328) — 08/07
+  _+2 outros_
 
-👤 *GIANI GREGOLIN* (14 em risco)
-  🔴 MERCADO ZANONI (333) — 31/08
-  🔴 SULA SUPERMERCADO (338) — 14/09
-  🔴 PACHECO CONFECCOES E MERCADO MINI PRECO (338) — 18/08
-  🔴 LANCHONETE E MERCEARIA PIRAN (339) — 12/09
-  🔴 MERCADO E ACOUGUE DO GAUCHO 3 (339) — 12/09
+👤 *GIANI GREGOLIN* (20 em risco)
+  🔴 SUPERMERCADO PONTO X (333) — 31/07
+  🔴 RESTAURANTE CANTA GALO (333) — 05/12
+  🔴 MINI MERCADO KIKO (333) — 09/07
+  🔴 53.889.696 LEONOR ALVES DE OLIVEIRA (333) — 30/06
+  🔴 RESTAURANTE E LANCHONETE POP (333) — 08/07
+  _+15 outros_
+
+👤 *VAGO - GABRIEL* (14 em risco)
+  🔴 JR LONAS (325) — 31/08
+  🔴 PADARIA E CONFEITARIA MAGDA (325) — 31/07
+  🔴 MERCADO NS APARECIDA (337) — 05/12
+  🔴 MERCEARIA BELA BISTA (337) — 31/07
+  🔴 M. LONGEN COMERCIO IMPORTACAO E EXPORTAC (355) — 01/01
   _+9 outros_
-
-👤 *VAGO - GABRIEL* (12 em risco)
-  🔴 MERCADO PAO DA VIDA (325) — 10/09
-  🔴 LAM EQUIPAMENTOS DE PROTECAO HIGIE E LIM (330) — 09/07
-  🔴 COMERCIO DE BEBIDAS ZERO 45 LTDA (330) — 18/09
-  🔴 POSTO PRA FRENTE BRASIL 14 (330) — 10/09
-  🔴 NITALE SORVETES (337) — 28/08
-  _+7 outros_

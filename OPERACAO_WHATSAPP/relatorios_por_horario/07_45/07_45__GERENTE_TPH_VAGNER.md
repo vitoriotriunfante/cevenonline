@@ -1,54 +1,54 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 quarta-feira, 21/10/2026
+📅 quinta-feira, 22/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 32 • Visitas: 453 (média 14,2/vendedor)
-Sem compra +30d: 130 (28,7%) • Recorrência: 52 (11,5%)
-Oportunidades CNAE 4639: +793 PDVs
+👥 Vendedores: 31 • Visitas: 391 (média 12,6/vendedor)
+Sem compra +30d: 118 (30,2%) • Recorrência: 56 (14,3%)
+Oportunidades CNAE 4712: +1.067 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPH — VAGNER* • 21/10/2026
+📍 *TPH — VAGNER* • 22/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 130  •  🟡 Preventivo: 0
+🔴 Última Chance: 117  •  🟡 Preventivo: 0
 
-👤 *ANDREY CAMILLO PIRAGINE* (16 em risco)
-  🔴 MERCEARIA GENTIL (66) — 31/08
-  🔴 HIPERFARMA (66) — 11/09
-  🔴 MERCADO SOUZA ROSA (66) — 31/08
-  🔴 RESTALRANTE BLUE ANGEL (66) — 13/06
-  🔴 MERCADO BITTENCOURT (66) — 05/12
+👤 *ANDREY CAMILLO PIRAGINE* (15 em risco)
+  🔴 DU GOMES PANIFICADORA E CONFEITARIA (66) — 05/12
+  🔴 BONTORIN E FILHOS COMERCIO DE COMBUSTIVE (66) — 19/07
+  🔴 POSTO SHELL (66) — 05/12
+  🔴 SBJ PRODUTOS DE LIMPEZA (66) — 05/12
+  🔴 ASC COMERCIO E SERVICO DE MERC (70) — 31/07
+  _+10 outros_
+
+👤 *JEFFERSON POLETTO* (16 em risco)
+  🔴 FORTPET (125) — 30/06
+  🔴 MUNDO ANIMAL (125) — 05/12
+  🔴 PETS AVIARIO (125) — 31/08
+  🔴 FERRAGENS FERNANDES (125) — 27/08
+  🔴 AVIARIO REINO ANIMAL (125) — 05/12
   _+11 outros_
 
-👤 *JEFFERSON POLETTO* (11 em risco)
-  🔴 AMC AVIARIO (125) — 28/08
-  🔴 AVIARIO QUATRO PATAS (125) — 20/08
-  🔴 AVIARIO ANDRADE (128) — 02/07
-  🔴 BOM TRATO PET SHOP (128) — 05/12
-  🔴 EMPORIO ZOO (128) — 10/07
-  _+6 outros_
+👤 *JONATHAN FERNANDES* (37 em risco)
+  🔴 LUA NOVA PET SHOP (126) — 05/12
+  🔴 AGRODOG (126) — 05/12
+  🔴 LORE PETZ (124) — 03/05
+  🔴 AVIARIO RAIZ DE DAVI (124) — 31/08
+  🔴 AVIARIO CACHOEIRA (124) — 04/09
+  _+32 outros_
 
-👤 *JONATHAN FERNANDES* (36 em risco)
-  🔴 CASA DE RACAO SAO MATEUS (123) — 05/09
-  🔴 AGRO BENTO (123) — 12/09
-  🔴 AGROCOMERCIAL PAVANELO (123) — 05/12
-  🔴 AGROCOMERCIAL PAVANELO (123) — 16/09
-  🔴 AGROPECUARIA SAO MATEUS (123) — 30/07
-  _+31 outros_
+👤 *LUIZ AUGUSTO RAMOS* (35 em risco)
+  🔴 CONVENIENCIA CORDEIRO SPOT (75) — 05/12
+  🔴 PANIFICADORA PAO TAL (75) — 31/08
+  🔴 MINI MERCADO ITATIAIA (75) — 10/07
+  🔴 SUPERMERCADO GRANDES RIOS (75) — 05/12
+  🔴 FREITAS MERCADO (76) — 31/07
+  _+30 outros_
 
-👤 *LUIZ AUGUSTO RAMOS* (55 em risco)
-  🔴 SABOR DO CAMPO (74) — 05/12
-  🔴 MERCADO BERG (74) — 05/12
-  🔴 FERREIRA DISTRIBUIDORA (74) — 30/06
-  🔴 MERCEARIA DO MARCOS (74) — 17/09
-  🔴 PAO LITORAL (74) — 12/09
-  _+50 outros_
-
-👤 *RODRIGO DE ARRUDA DARROS* (12 em risco)
-  🔴 MERCADO DA FAMILIA (84) — 05/12
-  🔴 ESTACAO CAFE (85) — 05/12
-  🔴 POSTO SPREA (85) — 24/08
-  🔴 CHURRASCARIA CARRETAO III (85) — 29/08
-  🔴 POSTO GUARTELA (86) — 31/08
-  _+7 outros_
+👤 *RODRIGO DE ARRUDA DARROS* (14 em risco)
+  🔴 REST GIRASSOL (85) — 31/08
+  🔴 DANIELE APARECIDA DE FREITAS GUTSTEIN ME (85) — 18/09
+  🔴 MERCADO MATHEUS (86) — 15/09
+  🔴 MERCADO LUZ (86) — 31/07
+  🔴 PIZZARIA E REST PRIMAVERA (86) — 30/07
+  _+9 outros_

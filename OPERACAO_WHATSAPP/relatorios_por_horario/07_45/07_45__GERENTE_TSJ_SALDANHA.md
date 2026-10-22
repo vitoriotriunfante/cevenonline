@@ -1,46 +1,46 @@
 🌅 *ABERTURA MATINAL — TSJ (07:45)*
-📅 quarta-feira, 21/10/2026
+📅 quinta-feira, 22/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 22 • Visitas: 329 (média 15,0/vendedor)
-Sem compra +30d: 98 (29,8%) • Recorrência: 29 (8,8%)
-Oportunidades CNAE 4639: +355 PDVs
+👥 Vendedores: 22 • Visitas: 349 (média 15,9/vendedor)
+Sem compra +30d: 110 (31,5%) • Recorrência: 29 (8,3%)
+Oportunidades CNAE 4712: +1.396 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TSJ — SALDANHA* • 21/10/2026
+📍 *TSJ — SALDANHA* • 22/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 135  •  🟡 Preventivo: 0
+🔴 Última Chance: 141  •  🟡 Preventivo: 0
 
-👤 *ANA CRISTINA DOS SANTOS YAMATO* (30 em risco)
-  🔴 MERCADO LAINE E CARRE (5) — 09/09
-  🔴 SUPERMERCADO BIOMA (5) — 10/09
-  🔴 SUPERMERCADO JK (5) — 05/12
-  🔴 MERCADO RAIZ (8) — 11/09
-  🔴 MERCADO PARANA (8) — 14/09
-  _+25 outros_
+👤 *ANA CRISTINA DOS SANTOS YAMATO* (27 em risco)
+  🔴 MERCADINHO SANTA FE (5) — 18/09
+  🔴 DMB COMERCIO DE PRODUTOS ALIMENTICIOS LT (10) — 14/09
+  🔴 D.P.M DISTRIBUIDORA (33) — 05/12
+  🔴 BOMBONIERE ZAPITH ITAQUA CENTRO (33) — 24/08
+  🔴 BOMBONIERE ZAPITH FERRAZ (33) — 24/08
+  _+22 outros_
 
-👤 *JULIO CESAR SOARES DE PAULO* (22 em risco)
-  🔴 RODRIGUES E BETARELO LTDA (7) — 25/05
-  🔴 ANNECY POUSADA (7) — 31/08
-  🔴 LUCIA APARECIDA DA SILVA FERNANDES 29077 (7) — 13/08
-  🔴 KATATAU PADARIA E MERCEARIA (25) — 27/08
-  🔴 SELECT PONTAL (25) — 14/08
-  _+17 outros_
+👤 *JULIO CESAR SOARES DE PAULO* (18 em risco)
+  🔴 PADARIA MERCEARIA VILA SANTO ANTONIO (7) — 31/07
+  🔴 ACOUGUE DO GUILHERME (7) — 14/09
+  🔴 MERCEARIA SANTA EDWIRGES (7) — 05/12
+  🔴 52.290.626 ANA KARINA DA SILVA (7) — 05/12
+  🔴 63.287.730 JOSE BENEDITO DO NASCIMENTO (25) — 24/07
+  _+13 outros_
 
-👤 *Venda empresa (interno)* (39 em risco)
-  🔴 EMPORIO E CONV DO MORAES (2) — 05/12
-  🔴 SUPERMERCADO DIAMANTE (2) — 05/12
-  🔴 MERCADO RENNER (2) — 05/12
-  🔴 AUT BEER (2) — 05/12
-  🔴 CASA CARNE MIRANDA (2) — 05/12
-  _+34 outros_
+👤 *Venda empresa (interno)* (31 em risco)
+  🔴 M A NASCIMENTO MERCADINHO S - EPP (2) — 05/12
+  🔴 BAIANINHA PAES E BOLOS (2) — 05/12
+  🔴 PADARIA BENFICA (2) — 05/12
+  🔴 QUITANDA DO ODIR (2) — 05/12
+  🔴 RESTAURANTE DA LU (2) — 05/12
+  _+26 outros_
 
-👤 *VICTOR HUGO FONSECA CARVALHO* (44 em risco)
-  🔴 BELLO LANCHONETE E MERCEARIA (16) — 17/09
-  🔴 ENCANTO FLORES E PRESENTES (16) — 31/07
-  🔴 QUITANDA TEM TUDO (16) — 15/09
-  🔴 JOSE BATISTA RODRIGUES ARAUJO84276762634 (16) — 29/07
-  🔴 DEPOSITO DOS AMIGOS (23) — 07/08
-  _+39 outros_
+👤 *VICTOR HUGO FONSECA CARVALHO* (65 em risco)
+  🔴 ROOTS COMMERCE (16) — 05/12
+  🔴 TUDO DE BOM (16) — 05/12
+  🔴 KAMEOKA MERCEARIA (16) — 05/12
+  🔴 SUPERMERCADOS ALBUQUERQUE SOUZA LTDA (16) — 17/08
+  🔴 MERCEARIA TRES MARIAS (16) — 05/12
+  _+60 outros_
