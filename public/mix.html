@@ -303,63 +303,72 @@ function graficos() {
   chF = new Chart($('cFil'), { type: 'bar', data: { labels: porF.map((x) => x.f), datasets: [{ label: 'uso do +MIX (%)', data: porF.map((x) => x.uso), backgroundColor: '#38bdf8' }, { label: 'mix por cliente', data: porF.map((x) => x.mix), backgroundColor: '#22c55e' }] } });
 }
 
+// COMPARATIVO PARA DIRECIONAR O TIME (Vitorio, 22/10/2026: "muita informacao repetida... preciso de dados para direcionar o time; pense como gerente de varejo senior")
+// Ordem de leitura: 1) VEREDITO (quem vende mais, se a comparacao e justa, onde o mais fraco perde e quanto vale)
+//                   2) os 6 numeros que importam frente a frente
+//                   3) PLANO DE ACAO: os produtos que o mais forte coloca e o mais fraco nao, com clientes a abordar e R$ em jogo
+//                   4) mapa a direita; tudo o mais fica em "Detalhes", fechado
 function comparar() {
   if (!D) return;
   const a = D.vendedores.find((v) => v.filial + '|' + v.rca === $('cA').value), b = D.vendedores.find((v) => v.filial + '|' + v.rca === $('cB').value);
   pares(a);
   if (!a || !b || a === b) { $('compBox').innerHTML = '<div class="leg">Escolha dois vendedores diferentes da mesma filial (de preferência do mesmo supervisor).</div>'; return; }
-  const M = [['Canal', 'canal', (x) => esc(x || '—')], ['Supervisor', 'supervisor', esc], ['Carteira (clientes)', 'carteira', nf], ['Clientes positivados', 'clientes', nf], ['% da carteira positivada', 'cobertura_pct', pc], ['Uso do +MIX', 'uso_pct', pc],
-    ['Recomendações do +MIX no mês', 'rec_total', nf], ['Produtos novos via +MIX', 'skus_mix_vendidos', nf], ['Conversão do +MIX (vendeu / recomendado)', 'conversao_pct', pc], ['Mix por cliente', 'mix_medio', (x) => nf(x, 1)], ['Produtos por pedido', 'skus_por_pedido', (x) => nf(x, 1)], ['R$ por cliente', 'faturado_por_cliente', brl],
-    ['% meta de faturamento', 'pct_meta_fat', pc], ['% meta de positivação', 'pct_meta_pos', pc], ['Prêmio no incentivo', 'premio', (v) => v == null ? '—' : v ? 'G' + v : 'não'], ['Pontos na Liga', 'liga_pts', nf], ['Pedidos por cliente no mês', 'pedidos_por_cliente', (x) => nf(x, 1)], ['Dobradinha', 'dobradinha_pct', pc], ['Recompra (comprou também no mês anterior)', 'ja_eram_clientes_pct', pc]];
-  const melhor = (k, x, y) => typeof x !== 'number' || typeof y !== 'number' || x === y ? ['', ''] : x > y ? [' up', ''] : ['', ' up'];
-  // RESUMO LADO A LADO (20/10/2026: "ver tudo junto o que e mais importante") + tabela completa recolhida
-  const K = [['Canal', 'canal', (x) => esc(x || '—'), 0], ['Carteira', 'carteira', nf], ['% carteira positivada', 'cobertura_pct', pc], ['Uso do +MIX', 'uso_pct', pc], ['Mix por cliente', 'mix_medio', (x) => nf(x, 1)],
-    ['R$ por cliente', 'faturado_por_cliente', brl], ['% meta faturamento', 'pct_meta_fat', pc], ['Dobradinha', 'dobradinha_pct', pc], ['Recompra', 'ja_eram_clientes_pct', pc]];
-  let h = `<div class="ctl" style="justify-content:space-between"><div class="sub">${esc(a.filial)} · ${esc(a.supervisor)}${a.supervisor !== b.supervisor ? ' / ' + esc(b.supervisor) : ''}</div><button class="btPdf" onclick="document.querySelectorAll('details').forEach((d)=>d.open=true);setTimeout(()=>{mapa&&mapa.invalidateSize();window.print()},300)">📄 PDF para o time</button></div>
-    <div class="vs"><div class="hd"><div class="a2">${esc(a.nome)}</div><div class="sub">×</div><div class="b2">${esc(b.nome)}</div></div>` + K.map(([t, k, f, cmp]) => { const x = a[k], y = b[k]; const num = cmp !== 0 && typeof x === 'number' && typeof y === 'number'; const mx = num ? Math.max(Math.abs(x), Math.abs(y)) || 1 : 1;
-      return `<div class="r"><div class="va">${f(x)}</div><div class="ba">${num ? `<i class="${x >= y ? 'w' : ''}" style="width:${Math.abs(x) / mx * 100}%"></i>` : ''}</div><div class="t">${t}</div><div class="bb">${num ? `<i class="${y >= x ? 'w' : ''}" style="width:${Math.abs(y) / mx * 100}%"></i>` : ''}</div><div class="vb">${f(y)}</div></div>`; }).join('') + `</div>
-    <div class="insight"><b>O +MIX mexe no número deles?</b> ${[a, b].map((v) => `${esc(v.nome.split(' ')[0])}: o +MIX sugeriu ${nf(v.rec_total)} produtos aos clientes dele no mês e ${nf(v.skus_mix_vendidos)} viraram venda (${pc(v.conversao_pct)})`).join('; ')}.
-      ${Math.max(a.conversao_pct || 0, b.conversao_pct || 0) < 2 ? '<b>Quase nada.</b> A diferença de resultado entre os dois vem de outras coisas (quantos clientes compram, quanto cada um compra), não do +MIX.' : 'O +MIX já ajuda no resultado de pelo menos um deles.'}</div>
-    <details class="full"><summary>Ver todos os indicadores</summary>`;
-  h += `<div class="box"><table><thead><tr><th class="l">Indicador</th><th class="cA">${esc(a.nome)}</th><th class="cB">${esc(b.nome)}</th></tr></thead><tbody>` +
-    M.map(([t, k, f]) => { const [ma, mb] = melhor(k, a[k], b[k]); return `<tr><td class="l">${t}</td><td class="ver${ma}">${f(a[k])}</td><td class="ver${mb}">${f(b[k])}</td></tr>`; }).join('') + '</tbody></table></div></details>';
-  // top produtos lado a lado + o que um vende e o outro nao
-  const ta = a.top_skus || [], tb = b.top_skus || [], ia = new Map(ta.map((x) => [x.c, x])), ib = new Map(tb.map((x) => [x.c, x]));
-  const RA = new Map(a.rec_top || []), RB = new Map(b.rec_top || []);
-  const lst = (t, other, cl, recOutro) => t.slice(0, 10).map((x, i) => { const o = other.get(x.c); const r = recOutro.get(x.c); return `<tr><td>${i + 1}</td><td class="l">${esc(x.n || '#' + x.c)}</td><td class="${cl}">${nf(x.cli)} (${pc(x.pct)})<div class="bar"><i style="width:${Math.min(100, x.pct)}%"></i></div></td><td>${o ? pc(o.pct) : '<span class="dn">não está no top</span>'}</td><td>${r ? `<b class="up">${nf(r)}</b>` : '—'}</td><td>${brl(x.val)}</td></tr>`; }).join('');
-  h += `<h2>Top 10 produtos por penetração na carteira positivada</h2><div class="g2">
-    <div class="box"><table><thead><tr><th>#</th><th class="l cA">${esc(a.nome)}</th><th>Clientes</th><th>% em ${esc(b.nome.split(' ')[0])}</th><th>+MIX sugeriu a clientes de ${esc(b.nome.split(' ')[0])}</th><th>Faturado</th></tr></thead><tbody>${lst(ta, ib, 'cA', RB)}</tbody></table></div>
-    <div class="box"><table><thead><tr><th>#</th><th class="l cB">${esc(b.nome)}</th><th>Clientes</th><th>% em ${esc(a.nome.split(' ')[0])}</th><th>+MIX sugeriu a clientes de ${esc(a.nome.split(' ')[0])}</th><th>Faturado</th></tr></thead><tbody>${lst(tb, ia, 'cB', RA)}</tbody></table></div></div>
-    <div class="leg">Os 10 produtos que <b>cada vendedor mais vende</b>. <b>"% no outro"</b> = quantos % dos clientes do outro vendedor compram o mesmo produto. <b>"+MIX sugeriu"</b> = para quantos clientes do outro vendedor o aplicativo +MIX está mostrando esse produto como sugestão (o cliente ainda não compra). Ex.: 41 = o +MIX está mandando o outro vender esse produto em 41 clientes e ele não vendeu.</div>`;
-  const gap = (t, other) => t.filter((x) => !other.has(x.c) || x.pct - other.get(x.c).pct >= 15).slice(0, 4).map((x) => `${esc(x.n || '#' + x.c)} (${pc(x.pct)} x ${other.has(x.c) ? pc(other.get(x.c).pct) : 'fora do top'})`).join('; ');
-  const ga = gap(ta, ib), gb = gap(tb, ia);
-  h += `<div class="insight"><b>Vício de portfólio:</b> mesma filial${a.supervisor === b.supervisor ? ' e mesmo supervisor' : ''}, e cada um empurra produtos diferentes.<br>` +
-    (ga ? `<span class="cA"><b>${esc(a.nome.split(' ')[0])}</b></span> coloca muito mais: ${ga}.<br>` : '') + (gb ? `<span class="cB"><b>${esc(b.nome.split(' ')[0])}</b></span> coloca muito mais: ${gb}.<br>` : '') +
-    `O +MIX mostra a cada vendedor o que os vizinhos do cliente compram e ele ainda não vende: é a ferramenta para fechar esse buraco.</div>`;
-  const temMapa = (a.pontos || []).length || (b.pontos || []).length;
-  if (!ta.length && !tb.length) h = h.replace('<h2>Top 10 produtos', '<div class="leg">Os produtos de cada vendedor e o mapa chegam na próxima atualização dos dados (rodada em andamento).</div><h2 style="display:none">Top 10 produtos');
-  if ((a.canal || '') !== (b.canal || '')) h = `<div class="insight" style="border-color:var(--bad)"><b>Canais diferentes:</b> ${esc(a.nome.split(' ')[0])} é ${esc(a.canal || '?')} e ${esc(b.nome.split(' ')[0])} é ${esc(b.canal || '?')}. Atendem tipos de cliente diferentes (ex.: especialista vende só para pet shop), então a comparação fica distorcida. Escolha dois do mesmo canal.</div>` + h;
-  { const AA = new Map((a.atividades || []).map((x) => [x.c, x])), AB = new Map((b.atividades || []).map((x) => [x.c, x]));
-    const ks = [...new Set([...AA.keys(), ...AB.keys()])].filter((k) => AA.has(k) && AB.has(k));
-    h += `<h2>Comparar só clientes do mesmo ramo</h2><div class="ctl"><select id="cAtv"><option value="">Todos os clientes</option>${ks.map((k) => { const x = AA.get(k), y = AB.get(k); return `<option value="${esc(k)}">${esc(k)}${(x.nome || y.nome) ? ' · ' + esc(x.nome || y.nome) : ''} (${esc(a.nome.split(' ')[0])} ${x.n} · ${esc(b.nome.split(' ')[0])} ${y.n})</option>`; }).join('')}</select><span class="sub">Só aparecem ramos que os dois atendem. Escolha um para refazer o top 10 e o +MIX apenas com esses clientes.</span></div><div id="atvTop"></div>`; }
-  h += '<div id="gapBox"></div><div id="testeBox"></div>';
-  // PERFIL DOS CLIENTES (20/10/2026: "identifique perfil de clientes por CNAE... que provem que sao os mesmos perfis")
+  const p1 = (v) => esc(v.nome.split(' ')[0]);
+  const fat = (v) => (v.clientes || 0) * (v.faturado_por_cliente || 0);
+  const [F, W] = fat(a) >= fat(b) ? [a, b] : [b, a];   // F = quem vende mais no mes, W = quem tem mais a ganhar
+  const cF = F === a ? 'cA' : 'cB', cW = W === a ? 'cA' : 'cB';
+  // R$ que um produto a mais rende num cliente no mes (media da base inteira)
+  const V0 = D.vendedores.filter((v) => v.clientes && v.mix_medio);
+  const rsProd = V0.reduce((t, v) => t + fat(v), 0) / (V0.reduce((t, v) => t + v.clientes * v.mix_medio, 0) || 1);
+  // perfil de cliente em comum
   const AA = new Map((a.atividades || []).map((x) => [x.c, x])), AB = new Map((b.atividades || []).map((x) => [x.c, x]));
-  const ats = [...new Set([...AA.keys(), ...AB.keys()])].sort((x, y) => Math.max((AA.get(y) || {}).pct || 0, (AB.get(y) || {}).pct || 0) - Math.max((AA.get(x) || {}).pct || 0, (AB.get(x) || {}).pct || 0));
-  if (ats.length) {
-    const igual = ats.reduce((t, c) => t + Math.min((AA.get(c) || {}).pct || 0, (AB.get(c) || {}).pct || 0), 0);
-    h += `<h2>Que tipo de cliente cada um atende</h2><div class="box"><table><thead><tr><th class="l">Tipo de cliente</th><th class="cA">${esc(a.nome.split(' ')[0])}</th><th class="cB">${esc(b.nome.split(' ')[0])}</th></tr></thead><tbody>` +
-      ats.map((c) => { const x = AA.get(c) || {}, y = AB.get(c) || {}; const nm = c; return `<tr><td class="l">${esc(nm)}</td><td class="cA">${pc(x.pct || 0)} <span class="sub">(${nf(x.n || 0)})</span></td><td class="cB">${pc(y.pct || 0)} <span class="sub">(${nf(y.n || 0)})</span></td></tr>`; }).join('') +
-      `</tbody></table><div class="leg">% da carteira de cada vendedor em cada tipo de cliente (pelo nome do cliente no cadastro: farmácia, padaria, posto…). <b>Carteiras parecidas em ${pc(igual)}</b>: acima de 70% os dois atendem o mesmo tipo de cliente e a comparação é justa.</div></div>`;
-  }
-  // PORTFOLIO POR INDUSTRIA (20/10/2026: "vai ter comparacao entre portfolio?"): % dos clientes positivados que compram cada industria, lado a lado
+  const ats = [...new Set([...AA.keys(), ...AB.keys()])];
+  const igual = ats.reduce((t, c) => t + Math.min((AA.get(c) || {}).pct || 0, (AB.get(c) || {}).pct || 0), 0);
+  // onde o mais fraco perde e quanto vale
+  const ganhoCob = W.cobertura_pct != null && F.cobertura_pct > W.cobertura_pct ? { cli: Math.round((F.cobertura_pct - W.cobertura_pct) / 100 * (W.carteira || 0)) } : null;
+  if (ganhoCob) ganhoCob.rs = ganhoCob.cli * (W.faturado_por_cliente || 0);
+  const ganhoMix = F.mix_medio > W.mix_medio ? { d: F.mix_medio - W.mix_medio, rs: W.clientes * (F.mix_medio - W.mix_medio) * rsProd } : null;
+  const just = igual >= 70 ? `<span class="up">comparação justa</span>: carteiras parecidas em ${pc(igual)}` : igual >= 50 ? `comparação <b>razoável</b>: carteiras parecidas em ${pc(igual)} (veja o tipo de cliente em Detalhes)` : `<span class="dn">cuidado</span>: carteiras parecidas só em ${pc(igual)}, atendem clientes diferentes`;
+  let h = `<div class="ctl" style="justify-content:space-between"><div class="sub">${esc(a.filial)} · ${esc(a.supervisor)}${a.supervisor !== b.supervisor ? ' / ' + esc(b.supervisor) : ''} · canal ${esc(a.canal || '?')}${(a.canal || '') !== (b.canal || '') ? ' × ' + esc(b.canal || '?') : ''}</div><button class="btPdf" onclick="document.querySelectorAll('#compBox details').forEach((d)=>d.open=true);setTimeout(()=>{mapa&&mapa.invalidateSize();window.print()},300)">📄 PDF para o time</button></div>`;
+  if ((a.canal || '') !== (b.canal || '')) h += `<div class="insight" style="border-color:var(--bad)"><b>Canais diferentes</b> (${esc(a.canal || '?')} × ${esc(b.canal || '?')}): atendem clientes diferentes e a comparação fica distorcida. Escolha dois do mesmo canal.</div>`;
+  // 1) VEREDITO
+  h += `<div class="insight" style="font-size:15px;margin-top:6px"><b class="${cF}">${esc(F.nome)}</b> vende mais: <b>${brl(fat(F))}</b> no mês contra <b>${brl(fat(W))}</b> de <b class="${cW}">${esc(W.nome)}</b> — ${just}.
+    <div style="margin-top:10px"><b>Onde ${esc(W.nome.split(' ')[0])} perde e quanto vale por mês:</b></div><ol style="margin:6px 0 0 18px;padding:0">` +
+    (ganhoCob && ganhoCob.cli > 0 ? `<li><b>Cobertura:</b> comprou ${pc(W.cobertura_pct)} da carteira contra ${pc(F.cobertura_pct)}. No mesmo nível seriam <b>+${nf(ganhoCob.cli)} clientes</b> ≈ <b>${brl(ganhoCob.rs)}</b>.</li>` : '') +
+    (ganhoMix ? `<li><b>Mix:</b> ${nf(W.mix_medio, 1)} produtos por cliente contra ${nf(F.mix_medio, 1)}. No mesmo nível ≈ <b>${brl(ganhoMix.rs)}</b>.</li>` : '') +
+    (!(ganhoCob && ganhoCob.cli > 0) && !ganhoMix ? '<li>Não perde em cobertura nem em mix: a diferença está no valor de cada pedido.</li>' : '') +
+    `</ol><div style="margin-top:8px" class="sub">+MIX no mês: ${p1(W)} recebeu ${nf(W.rec_total)} sugestões e vendeu ${nf(W.skus_mix_vendidos)} (${pc(W.conversao_pct)}); ${p1(F)} recebeu ${nf(F.rec_total)} e vendeu ${nf(F.skus_mix_vendidos)} (${pc(F.conversao_pct)}). Valores em R$ são estimativa: cada produto a mais ≈ ${brl(rsProd)} por cliente no mês.</div></div>`;
+  // 2) OS NUMEROS QUE IMPORTAM
+  const K = [['Carteira', 'carteira', nf], ['% da carteira que comprou', 'cobertura_pct', pc], ['Mix por cliente', 'mix_medio', (x) => nf(x, 1)], ['Produtos por pedido', 'skus_por_pedido', (x) => nf(x, 1)], ['R$ por cliente', 'faturado_por_cliente', brl], ['% meta de faturamento', 'pct_meta_fat', pc]];
+  h += `<div class="vs" style="margin-top:12px"><div class="hd"><div class="a2">${esc(a.nome)}</div><div class="sub">×</div><div class="b2">${esc(b.nome)}</div></div>` + K.map(([t, k, f]) => { const x = a[k], y = b[k]; const num = typeof x === 'number' && typeof y === 'number'; const mx = num ? Math.max(Math.abs(x), Math.abs(y)) || 1 : 1;
+    return `<div class="r"><div class="va">${f(x)}</div><div class="ba">${num ? `<i class="${x >= y ? 'w' : ''}" style="width:${Math.abs(x) / mx * 100}%"></i>` : ''}</div><div class="t">${t}</div><div class="bb">${num ? `<i class="${y >= x ? 'w' : ''}" style="width:${Math.abs(y) / mx * 100}%"></i>` : ''}</div><div class="vb">${f(y)}</div></div>`; }).join('') + '</div>';
+  // 3) PLANO DE ACAO
+  const ks = ats.filter((k) => AA.has(k) && AB.has(k));
+  h += `<h2>Plano de ação para ${esc(W.nome)}</h2>
+    <div class="ctl"><select id="cAtv"><option value="">Todos os clientes</option>${ks.map((k) => `<option value="${esc(k)}">Só ${esc(k)} (${p1(a)} ${AA.get(k).n} · ${p1(b)} ${AB.get(k).n})</option>`).join('')}</select><span class="sub">filtre por tipo de cliente para comparar o mesmo perfil</span></div>
+    <div class="box" id="plano"><div class="leg">carregando…</div></div>`;
+  // 4) DETALHES (fechados)
+  const M = [['Canal', 'canal', (x) => esc(x || '—')], ['Supervisor', 'supervisor', esc], ['Carteira (clientes)', 'carteira', nf], ['Clientes que compraram', 'clientes', nf], ['% da carteira que comprou', 'cobertura_pct', pc], ['Uso do +MIX', 'uso_pct', pc],
+    ['Sugestões do +MIX no mês', 'rec_total', nf], ['Produtos novos via +MIX', 'skus_mix_vendidos', nf], ['Conversão do +MIX', 'conversao_pct', pc], ['Mix por cliente', 'mix_medio', (x) => nf(x, 1)], ['Produtos por pedido', 'skus_por_pedido', (x) => nf(x, 1)], ['R$ por cliente', 'faturado_por_cliente', brl],
+    ['% meta de faturamento', 'pct_meta_fat', pc], ['% meta de positivação', 'pct_meta_pos', pc], ['Prêmio no incentivo', 'premio', (v) => v == null ? '—' : v ? 'G' + v : 'não'], ['Pontos na Liga', 'liga_pts', nf], ['Pedidos por cliente no mês', 'pedidos_por_cliente', (x) => nf(x, 1)], ['Dobradinha', 'dobradinha_pct', pc], ['Recompra', 'ja_eram_clientes_pct', pc]];
+  const ta = a.top_skus || [], tb = b.top_skus || [], ia = new Map(ta.map((x) => [x.c, x])), ib = new Map(tb.map((x) => [x.c, x]));
+  const lst = (t, other) => t.slice(0, 10).map((x, i) => { const o = other.get(x.c); return `<tr><td>${i + 1}</td><td class="l">${esc(x.n || '#' + x.c)}</td><td>${pc(x.pct)}</td><td>${o ? pc(o.pct) : '—'}</td><td>${brl(x.val)}</td></tr>`; }).join('');
   const IA = new Map((a.industrias || []).map((x) => [x.n, x])), IB = new Map((b.industrias || []).map((x) => [x.n, x]));
-  const inds = [...new Set([...IA.keys(), ...IB.keys()])].sort((x, y) => Math.max((IB.get(y) || {}).pct || 0, (IA.get(y) || {}).pct || 0) - Math.max((IB.get(x) || {}).pct || 0, (IA.get(x) || {}).pct || 0)).slice(0, 18);
-  if (inds.length) h += `<h2>Portfólio por indústria (% dos clientes positivados que compram)</h2><div class="box"><table><thead><tr><th class="l">Indústria</th><th class="cA">${esc(a.nome.split(' ')[0])}</th><th class="cB">${esc(b.nome.split(' ')[0])}</th><th>Diferença</th></tr></thead><tbody>` + inds.map((n) => { const x = (IA.get(n) || {}).pct || 0, y = (IB.get(n) || {}).pct || 0; return `<tr><td class="l">${esc(n)}</td><td class="cA">${pc(x)}<div class="bar"><i style="width:${x}%;background:var(--a)"></i></div></td><td class="cB">${pc(y)}<div class="bar"><i style="width:${y}%;background:var(--b)"></i></div></td><td class="${Math.abs(x - y) >= 15 ? 'ver' : ''}">${x - y > 0 ? '+' : ''}${nf(x - y, 1)} p.p.</td></tr>`; }).join('') + '</tbody></table></div>';
+  const inds = [...new Set([...IA.keys(), ...IB.keys()])].sort((x, y) => Math.max((IB.get(y) || {}).pct || 0, (IA.get(y) || {}).pct || 0) - Math.max((IB.get(x) || {}).pct || 0, (IA.get(x) || {}).pct || 0)).slice(0, 15);
+  const atsO = ats.slice().sort((x, y) => Math.max((AA.get(y) || {}).pct || 0, (AB.get(y) || {}).pct || 0) - Math.max((AA.get(x) || {}).pct || 0, (AB.get(x) || {}).pct || 0));
+  h += `<h2>Detalhes</h2>
+    <details class="full"><summary>O caminho inverso: o que ${esc(W.nome.split(' ')[0])} coloca e ${esc(F.nome.split(' ')[0])} não</summary><div class="box" id="plano2"></div></details>
+    <details class="full"><summary>Todos os indicadores</summary><div class="box"><table><thead><tr><th class="l">Indicador</th><th class="cA">${esc(a.nome)}</th><th class="cB">${esc(b.nome)}</th></tr></thead><tbody>${M.map(([t, k, f]) => `<tr><td class="l">${t}</td><td>${f(a[k])}</td><td>${f(b[k])}</td></tr>`).join('')}</tbody></table></div></details>
+    <details class="full"><summary>Que tipo de cliente cada um atende (carteiras parecidas em ${pc(igual)})</summary><div class="box"><table><thead><tr><th class="l">Tipo de cliente</th><th class="cA">${p1(a)}</th><th class="cB">${p1(b)}</th></tr></thead><tbody>${atsO.map((c) => { const x = AA.get(c) || {}, y = AB.get(c) || {}; return `<tr><td class="l">${esc(c)}</td><td>${pc(x.pct || 0)} <span class="sub">(${nf(x.n || 0)})</span></td><td>${pc(y.pct || 0)} <span class="sub">(${nf(y.n || 0)})</span></td></tr>`; }).join('')}</tbody></table></div></details>
+    <details class="full"><summary>Os 10 produtos que cada um mais vende</summary><div class="g2"><div class="box"><table><thead><tr><th>#</th><th class="l cA">${esc(a.nome)}</th><th>% clientes</th><th>em ${p1(b)}</th><th>Faturado</th></tr></thead><tbody>${lst(ta, ib)}</tbody></table></div><div class="box"><table><thead><tr><th>#</th><th class="l cB">${esc(b.nome)}</th><th>% clientes</th><th>em ${p1(a)}</th><th>Faturado</th></tr></thead><tbody>${lst(tb, ia)}</tbody></table></div></div></details>
+    <details class="full"><summary>Portfólio por indústria</summary><div class="box"><table><thead><tr><th class="l">Indústria (% dos clientes que compram)</th><th class="cA">${p1(a)}</th><th class="cB">${p1(b)}</th><th>Diferença</th></tr></thead><tbody>${inds.map((n) => { const x = (IA.get(n) || {}).pct || 0, y = (IB.get(n) || {}).pct || 0; return `<tr><td class="l">${esc(n)}</td><td>${pc(x)}</td><td>${pc(y)}</td><td class="${Math.abs(x - y) >= 15 ? 'ver' : ''}">${x - y > 0 ? '+' : ''}${nf(x - y, 1)} p.p.</td></tr>`; }).join('')}</tbody></table></div></details>
+    <details class="full"><summary>Teste do universo do +MIX (ao vivo no CEVEN)</summary><div id="testeBox"></div></details>`;
   $('compBox').innerHTML = h;
-  blocoGap(a, b); blocoTeste(a, b);
-  if ($('cAtv')) $('cAtv').onchange = () => blocoGap(a, b);
-  $('mapaLeg').innerHTML = temMapa ? `<span class="cA">●</span> ${esc(a.nome)} · <span class="cB">●</span> ${esc(b.nome)}<br>ponto cheio = comprou no mês · vazado = sem compra no mês · contorno verde = comprou produto novo do +MIX · <b>clique no cliente</b> para ver o que o +MIX recomenda e ele ainda não compra` : 'O mapa chega na próxima atualização dos dados.';
+  plano(F, W); plano(W, F, 'plano2'); blocoTeste(a, b);
+  $('cAtv').onchange = () => { plano(F, W); plano(W, F, 'plano2'); };
+  // MAPA (22/10/2026: o mapa aparecia fora dos pontos: o enquadramento era feito antes de a coluna ter tamanho)
+  const temMapa = (a.pontos || []).length || (b.pontos || []).length;
+  $('mapaLeg').innerHTML = temMapa ? `<span class="cA">●</span> ${esc(a.nome)} · <span class="cB">●</span> ${esc(b.nome)}<br>cheio = comprou no mês · vazado = não comprou · contorno verde = comprou produto novo do +MIX · <b>clique no cliente</b> para ver o +MIX dele` : 'O mapa chega na próxima atualização dos dados.';
   if (!window.L) return;
   if (mapa) { mapa.remove(); mapa = null; }
   mapa = L.map('mapa'); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(mapa);
@@ -367,8 +376,30 @@ function comparar() {
   [[a, cor('--a')], [b, cor('--b')]].forEach(([v, c]) => (v.pontos || []).forEach(([la, lo, st, cnpj]) => { pts.push([la, lo]);
     const m = L.circleMarker([la, lo], { radius: 5.5, color: st === 2 ? '#22c55e' : c, weight: st === 2 ? 3 : 1.5, fillColor: c, fillOpacity: st ? 0.85 : 0.08 }).addTo(mapa);
     m.bindPopup('carregando…', { maxWidth: 380 }); m.on('click', () => popupCliente(m, v, cnpj, st)); }));
-  if (pts.length) mapa.fitBounds(pts, { padding: [20, 20] }); else mapa.setView([-23.5, -49], 6);
-  setTimeout(() => mapa && mapa.invalidateSize(), 50);
+  const enquadra = () => { if (!mapa) return; mapa.invalidateSize(); if (pts.length) mapa.fitBounds(pts, { padding: [24, 24] }); else mapa.setView([-23.5, -49], 6); };
+  enquadra(); setTimeout(enquadra, 120); setTimeout(enquadra, 600);
+}
+// PLANO DE ACAO: produtos que F coloca bem e W nao, ordenados pelo R$ em jogo
+async function plano(F, W, alvo = 'plano') {
+  const box = $(alvo); if (!box) return;
+  const P = await vendFilial(F.filial), Q = F.filial === W.filial ? P : await vendFilial(W.filial);
+  let vf = P && P.vend[F.rca], vw = Q && Q.vend[W.rca];
+  const at = $('cAtv') ? $('cAtv').value : '';
+  if (at && vf && vw) { vf = vf.atv && vf.atv[at]; vw = vw.atv && vw.atv[at]; }
+  if (!vf || !vw || !vf.clientes || !vw.clientes) { box.innerHTML = '<div class="leg">Sem dados suficientes para este filtro.</div>'; return; }
+  const nomes = { ...(Q.nomes || {}), ...(P.nomes || {}) };
+  const tk = new Map((F.top_skus || []).map((x) => [x.c, x.cli ? x.val / x.cli : null]));
+  const V0 = D.vendedores.filter((v) => v.clientes && v.mix_medio);
+  const rsProd = V0.reduce((t, v) => t + v.clientes * v.faturado_por_cliente, 0) / (V0.reduce((t, v) => t + v.clientes * v.mix_medio, 0) || 1);
+  const L = Object.keys(vf.comp).map((c) => { const pf = vf.comp[c] / vf.clientes * 100, pw = (vw.comp[c] || 0) / vw.clientes * 100; const abordar = Math.round((pf - pw) / 100 * vw.clientes);
+      const t = tk.get(c) || rsProd; return { c, pf, pw, abordar, sem: vw.clientes - (vw.comp[c] || 0), rec: vw.rec[c] || 0, rs: abordar * t, t }; })
+    .filter((x) => x.pf >= 15 && x.pf - x.pw >= 10 && x.abordar > 0).sort((x, y) => y.rs - x.rs).slice(0, 10);
+  if (!L.length) { box.innerHTML = `<div class="leg">${esc(W.nome.split(' ')[0])} já coloca os mesmos produtos que ${esc(F.nome.split(' ')[0])} (nenhum com 10 pontos ou mais de diferença).</div>`; return; }
+  const tot = L.reduce((t, x) => t + x.rs, 0), totCli = L.reduce((t, x) => t + x.abordar, 0);
+  box.innerHTML = `<div class="leg" style="margin:0 0 8px;font-size:13.5px;color:var(--tx)">Produtos que <b>${esc(F.nome.split(' ')[0])}</b> coloca e <b>${esc(W.nome.split(' ')[0])}</b> não. Levando cada um ao mesmo nível: <b>${nf(totCli)} vendas a fazer ≈ ${brl(tot)} por mês</b>.</div>
+    <table><thead><tr><th>#</th><th class="l">Produto</th><th>${esc(F.nome.split(' ')[0])}</th><th>${esc(W.nome.split(' ')[0])}</th><th>Clientes a abordar</th><th>+MIX já mostra em</th><th>R$ em jogo/mês</th></tr></thead><tbody>` +
+    L.map((x, i) => `<tr><td>${i + 1}</td><td class="l" style="white-space:normal">${esc(nomes[x.c] || '#' + x.c)}</td><td>${pc(x.pf)}</td><td>${pc(x.pw)}</td><td class="ver">${nf(x.abordar)}</td><td>${x.rec ? `${nf(x.rec)} clientes` : '<span class="sub">não mostra</span>'}</td><td class="ver">${brl(x.rs)}</td></tr>`).join('') +
+    `</tbody></table><div class="leg">% = clientes que compraram o produto no mês. <b>Clientes a abordar</b> = quantos clientes de ${esc(W.nome.split(' ')[0])} precisariam comprar para chegar ao mesmo % de ${esc(F.nome.split(' ')[0])}. <b>+MIX já mostra</b> = em quantos clientes dele o app já sugere o produto (se mostra e não vende, é falta de uso). R$ = clientes a abordar × quanto o produto rende por cliente em ${esc(F.nome.split(' ')[0])}.</div>`;
 }
 // +MIX DO CLIENTE (20/10/2026: "se eu clicar no cliente no mapa nao consigo ver o que falta ele comprar que esta no +MIX?")
 const REC = new Map();
