@@ -451,6 +451,12 @@ async function situacoes(v, c) {   // situacao de cada cliente do vendedor v par
     const mostra = !prod && !!(R && R.clientes[cn] && (R.clientes[cn].all || []).includes(c));
     return { p, cn, prod, ativo, parou, mostra, vis: (CI && CI.c && CI.c[cn]) || [], nome: p[5] || (R && R.clientes[cn] && R.clientes[cn].n) || cn }; });
 }
+// CAMADAS (22/10/2026: "ficou confuso... manter como estava e ir adicionando ou tirando camadas"): cada situacao e uma camada que liga/desliga no mapa e na lista
+const CAMS = [['prod', 'Comprou o produto', '#22c55e'], ['parou', 'Comprava e parou', '#a855f7'], ['mostra', '+MIX mostra', '#ef4444'], ['outros', 'Compra outras coisas', '#38bdf8'], ['nada', 'Não comprou nada no mês', '#94a3b8'], ['outro', 'Clientes do outro vendedor', '#f59e0b']];
+const CAM = new Set(['prod', 'parou', 'mostra']);
+const catDe = (x) => x.prod ? 'prod' : x.parou ? 'parou' : x.mostra ? 'mostra' : x.ativo ? 'outros' : 'nada';
+const corCat = (k) => (CAMS.find((c) => c[0] === k) || [])[2];
+function trocaCamada(k) { if (CAM.has(k)) CAM.delete(k); else CAM.add(k); desenhaMapa(); produtoBox(); }
 const forma = (tipo, cor, borda, bw) => { const s = 18; const b = `stroke="${borda}" stroke-width="${bw}"`;
   const g = tipo === 'c' ? `<circle cx="9" cy="9" r="6" fill="${cor}" ${b}/>` : tipo === 'q' ? `<rect x="3" y="3" width="12" height="12" rx="2" fill="${cor}" ${b}/>` : `<polygon points="9,2 16,15 2,15" fill="${cor}" ${b}/>`;
   return L.divIcon({ className: '', html: `<svg width="${s}" height="${s}" viewBox="0 0 18 18">${g}</svg>`, iconSize: [s, s], iconAnchor: [9, 9] }); };
@@ -467,10 +473,9 @@ async function desenhaMapa() {
     if (!PROD || v === W) pts.push([la, lo]); n++;
     let m;
     if (!PROD) m = L.circleMarker([la, lo], { radius: 5.5, color: st === 2 ? '#22c55e' : c, weight: st === 2 ? 3 : 1.5, fillColor: c, fillOpacity: st ? 0.85 : 0.08 });
-    else if (v === W) { const x = sit.get(cnpj) || {}; const f = x.prod ? 'c' : x.ativo ? 'q' : 't';
-      const borda = x.parou ? '#a855f7' : x.mostra ? '#ef4444' : '#ffffff', bw = x.parou || x.mostra ? 3 : 1;
-      m = L.marker([la, lo], { icon: forma(f, x.prod ? c : x.ativo ? c + 'aa' : '#94a3b8', borda, bw), zIndexOffset: x.parou || x.mostra ? 500 : 0 }); }
-    else { const pr = comp.get(cnpj) && comp.get(cnpj).has(PROD.c); m = L.circleMarker([la, lo], { radius: pr ? 5 : 3, color: c, weight: 1, fillColor: c, fillOpacity: pr ? 0.9 : 0.1 }); }
+    else if (v === W) { const x = sit.get(cnpj) || {}; const k = catDe(x); if (!CAM.has(k)) return;
+      m = L.circleMarker([la, lo], { radius: 7, color: '#ffffff', weight: 1.5, fillColor: corCat(k), fillOpacity: 0.95 }); }
+    else { if (!CAM.has('outro')) return; const pr = comp.get(cnpj) && comp.get(cnpj).has(PROD.c); m = L.circleMarker([la, lo], { radius: 3.5, color: c, weight: 1, fillColor: c, fillOpacity: pr ? 0.9 : 0.15 }); }
     m.addTo(mapa); MKS.set(cnpj, m);
     m.bindPopup('carregando…', { maxWidth: 380 }); m.on('click', () => popupCliente(m, v, cnpj, st));
   }));
@@ -478,7 +483,7 @@ async function desenhaMapa() {
   enquadra(); setTimeout(enquadra, 120); setTimeout(enquadra, 600);
   const cW = W === a ? 'cA' : 'cB', oW = W === a ? b : a;
   $('mapaLeg').innerHTML = PROD
-    ? `<b>${esc(PROD.n)}</b>${tipo ? ' · só ' + esc(tipo) : ''} · clientes de <b class="${cW}">${esc(W.nome.split(' ')[0])}</b>: ● comprou o produto · ■ comprou outras coisas · ▲ não comprou nada · borda <b style="color:#a855f7">roxa</b> = comprava e parou · borda <b style="color:#ef4444">vermelha</b> = +MIX mostra · pontos pequenos = ${esc(oW.nome.split(' ')[0])} · <a href="#" onclick="PROD=null;desenhaMapa();produtoBox();return false">ver todos os produtos</a>`
+    ? `<b>${esc(PROD.n)}</b>${tipo ? ' · só ' + esc(tipo) : ''} · clientes de <b class="${cW}">${esc(W.nome.split(' ')[0])}</b> · ligue e desligue as camadas no quadro do produto · <a href="#" onclick="PROD=null;desenhaMapa();produtoBox();return false">ver todos os produtos</a>`
     : `<span class="cA">●</span> ${esc(a.nome)} · <span class="cB">●</span> ${esc(b.nome)}${tipo ? ' · só ' + esc(tipo) : ''} (${nf(n)} clientes)<br>cheio = comprou no mês · vazado = não comprou · contorno verde = comprou produto novo do +MIX · <b>clique no cliente</b> para ver o +MIX dele · <b>clique num produto do plano</b> para ver quem compra`;
 }
 function focaCliente(cnpj) {
@@ -505,14 +510,16 @@ async function produtoBox() {
   const res = (S) => ({ tot: S.length, ativos: S.filter((x) => x.ativo).length, prod: S.filter((x) => x.prod).length, parou: S.filter((x) => x.parou).length, mostra: S.filter((x) => x.mostra).length, outros: S.filter((x) => !x.prod && x.ativo).length, nada: S.filter((x) => !x.ativo).length });
   const rw = res(sw), rf = res(sf);
   const lin = (v, r) => `<tr><td class="l ${v === COMP.a ? 'cA' : 'cB'}">${esc(v.nome)}</td><td>${nf(r.tot)}</td><td>${nf(r.ativos)}</td><td><b>${nf(r.prod)}</b> de ${nf(r.ativos)} (${pc(r.prod / (r.ativos || 1) * 100)})</td><td style="color:#a855f7">${nf(r.parou)}</td><td style="color:#ef4444">${nf(r.mostra)}</td><td>${nf(r.outros)}</td></tr>`;
-  const alvo = sw.filter((x) => !x.prod).sort((p, q) => (!!q.parou - !!p.parou) || (q.mostra - p.mostra) || (q.ativo - p.ativo) || (p.vis[3] || '9999').localeCompare(q.vis[3] || '9999'));
+  const alvo = sw.filter((x) => !x.prod && CAM.has(catDe(x))).sort((p, q) => (!!q.parou - !!p.parou) || (q.mostra - p.mostra) || (q.ativo - p.ativo) || (p.vis[3] || '9999').localeCompare(q.vis[3] || '9999'));
   const tags = (x) => [x.parou ? `<span class="chip" style="background:#a855f722;color:#a855f7">comprava e parou (${ddmm(x.parou)})</span>` : '', x.mostra ? '<span class="chip" style="background:#ef444422;color:#ef4444">+MIX mostra</span>' : '', x.ativo ? '<span class="chip" style="background:#38bdf822;color:var(--acc)">compra de você, mas não este</span>' : '<span class="chip" style="background:#94a3b822;color:var(--mut)">não comprou nada no mês</span>'].join(' ');
   const forte = alvo.filter((x) => x.parou || x.mostra).length;
   box.innerHTML = `<div class="box" style="margin-top:12px;border-color:#ef4444">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><b style="font-size:16px">${esc(PROD.n)}${tipo ? ' · só ' + esc(tipo) : ''}</b><a href="#" onclick="PROD=null;desenhaMapa();produtoBox();return false">fechar</a></div>
     <table style="margin-top:8px"><thead><tr><th class="l">Vendedor</th><th>Clientes na carteira</th><th>Compraram no mês</th><th>Compraram este produto</th><th>Comprava e parou</th><th>+MIX mostra</th><th>Compra outras coisas, não este</th></tr></thead><tbody>${lin(W, rw)}${lin(F, rf)}</tbody></table>
     <div class="leg">Para ficar igual a ${esc(F.nome.split(' ')[0])} em %, ${esc(W.nome.split(' ')[0])} precisa vender para <b>${nf(Math.max(0, Math.round(rf.prod / (rf.ativos || 1) * rw.ativos) - rw.prod))}</b> clientes a mais. Os mais fáceis: <b style="color:#a855f7">${nf(rw.parou)}</b> já compravam e pararam e <b style="color:#ef4444">${nf(rw.mostra)}</b> têm o produto no +MIX.</div>
-    <h2>Lista de cobrança de ${esc(W.nome.split(' ')[0])} (${nf(alvo.length)} clientes sem ${esc(PROD.n)}; ${nf(forte)} prioritários)</h2>
+    <div class="ctl" style="margin-top:12px"><b>Camadas:</b> ${CAMS.map(([k, t, c]) => { const n = k === 'outro' ? '' : ` (${nf(sw.filter((x) => catDe(x) === k).length)})`; const on = CAM.has(k);
+      return `<button onclick="trocaCamada('${k}')" style="cursor:pointer;border-radius:999px;padding:5px 11px;font-weight:700;font-size:12.5px;border:2px solid ${c};background:${on ? c : 'transparent'};color:${on ? '#04121f' : 'var(--tx)'}">${on ? '✓ ' : ''}${t}${n}</button>`; }).join(' ')}</div>
+    <h2>Lista de cobrança de ${esc(W.nome.split(' ')[0])} (${nf(alvo.length)} clientes nas camadas ligadas)</h2>
     <table><thead><tr><th class="l">Cliente (📍 mapa · ▸ detalhes)</th><th class="l">Situação</th><th>Última visita</th><th>Próxima</th><th>Última compra</th><th></th></tr></thead><tbody>${alvo.map((x) => { const v = x.vis;
       return `<tr${x.parou || x.mostra ? '' : ' style="opacity:.75"'}><td class="l"><a href="#" onclick="focaCliente('${x.cn}');return false"><u>${esc(x.nome)}</u> 📍</a><div class="sub">${esc(x.p[4] || '')} · ${esc(x.cn)}</div></td><td class="l" style="white-space:normal">${tags(x)}</td>
         <td>${v[0] ? ddmm(v[0]) + (v[5] ? ' <span class="sub">(ficou ' + esc(v[5]) + ')</span>' : '') + (v[2] ? `<div class="sub">${esc(v[2])}</div>` : '') : '<span class="sub">sem visita</span>'}</td><td>${v[3] ? `<b>${ddmm(v[3])}</b>` : '<span class="sub">fora da rota</span>'}</td>
