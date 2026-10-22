@@ -64,7 +64,7 @@ async function dadosDaFilial(origin, filial, env, grupo) {
   const est = (p) => (env && env.ASSETS ? env.ASSETS.fetch(new Request(origin + p)) : fetch(origin + p)).then((r) => r.json());
   const api = (p) => fetch(origin + p, { signal: AbortSignal.timeout(25000) }).then((r) => r.json());
   const hoje = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
-  const [saude, snap, mostra, lances, liga, mix] = await Promise.all([api('/api/saude'), api('/api/central-snapshot?filial=' + filial), api('/api/tv-mostra'), api(`/api/brasileirao-lances?dia=${hoje}&filial=${filial}`), est('/dados_brasileirao.json'), est('/dados_mix.json')].map((p) => p.catch(() => null)));
+  const [saude, snap, mostra, lances, liga, mix, supdia] = await Promise.all([api('/api/saude'), api('/api/central-snapshot?filial=' + filial), api('/api/tv-mostra'), api(`/api/brasileirao-lances?dia=${hoje}&filial=${filial}`), est('/dados_brasileirao.json'), est('/dados_mix.json'), api('/api/tv-supervisores?filial=' + filial)].map((p) => p.catch(() => null)));
   const f = saude && (saude.filiais || []).find((x) => x.filial === filial);
   if (f) out.filial_agora = { hora: saude.hora_sp, faturado: R$(f.faturado), meta_mes: R$(f.meta_fat), pct_meta: P(f.faturado || 0, f.meta_fat), pendente: R$(f.pendente), positivados_mes: `${f.positivados} de ${f.meta_pos} (${P(f.positivados, f.meta_pos)})`, digitado_hoje: R$(f.digitado_hoje) };
   // equipe: supervisor e grupo pela Gestao de Equipe
@@ -91,6 +91,9 @@ async function dadosDaFilial(origin, filial, env, grupo) {
   out.dia = { pedidos_hoje: sm('pedN'), visitas_hoje: `${sm('visF')} de ${sm('visP')}`, zerados_hoje: vend.filter((v) => v.zerado_hoje).length, sem_nenhuma_visita: vend.filter((v) => v.visP > 0 && v.visF === 0).length,
     meta_batida_no_mes: vend.filter((v) => v.metaN && (v.fatN + v.pendN) >= v.metaN).length, /* igual a TV: faturado + pendente */ vendedores: vend.length, devolucoes_mes: R$(sm('devN')), penaltis_hoje: vend.reduce((t, v) => t + (v.lances_hoje.penalti || 0), 0), gols_hoje: vend.reduce((t, v) => t + (v.lances_hoje.gol || 0), 0) };
   out.vendedores = vend.map((v) => ({ ...v, pct_meta_fat: v.pct_meta_fat == null ? 'sem dado' : String(v.pct_meta_fat).replace('.', ',') + '%' }));
+  // COMPROMISSO MATINAL e ROTA DO SUPERVISOR (RET) de hoje (22/10/2026: 'quantos supervisores nao fizeram o compromisso?')
+  if (supdia && Array.isArray(supdia.supervisores)) out.supervisores_compromisso_ret = supdia.supervisores.filter((x) => !grupo || vend.some((v) => v.supervisor === x.nome))
+    .map((x) => ({ supervisor: x.nome, fez_compromisso: !!x.fez_compromisso, iniciou_ret: !!x.iniciou_ret, ret_pdvs: x.retDetalhe ? x.retDetalhe.pdvs : 0, ret_primeiro_checkin: x.retDetalhe ? x.retDetalhe.primeiroCheckin : null }));
   out.zerados_hoje = vend.filter((v) => v.zerado_hoje).map((v) => `${v.vendedor} (${v.supervisor || 'sem supervisor'}, visitas ${v.visitas_hoje})`);
   if (lances) out.lances_hoje_filial = lances.porNivel;
   // supervisores (soma dos vendedores, sem rateio)
@@ -147,8 +150,17 @@ function respLiga(fil, d) {
   return [`🏆 *Champions Triunfante — ${fil}*`, d.liga_filial ? `Filial: *${d.liga_filial}*` : 'Filial: sem dado',
     ...(d.liga_supervisores || []).slice().sort((x, y) => parseInt(x) - parseInt(y)).slice(0, 10).map((x) => `• ${x}`), '', '_Ranking completo: ceven-cftv-matrix.pages.dev/championstriunfante_'].join('\n');
 }
+function respCompromisso(fil, d) {
+  const S = d.supervisores_compromisso_ret; if (!S) return `Não consegui ler o compromisso dos supervisores de ${fil} agora.`;
+  const semC = S.filter((x) => !x.fez_compromisso), semR = S.filter((x) => !x.iniciou_ret);
+  return [`🗓️ *Supervisores de ${fil} hoje* (${S.length})`, `Compromisso matinal: *${S.length - semC.length} fizeram* · *${semC.length} não fizeram*` + (semC.length ? ' — ' + semC.map((x) => nome2(x.supervisor)).join(', ') : ''),
+    `Rota com vendedor (RET): *${S.length - semR.length} iniciaram* · *${semR.length} não* ` + (semR.length ? '— ' + semR.map((x) => nome2(x.supervisor)).join(', ') : ''),
+    ...S.filter((x) => x.iniciou_ret).map((x) => `• ${nome2(x.supervisor)}: ${x.ret_pdvs} PDV(s) na RET, 1º check-in ${x.ret_primeiro_checkin || '—'}`),
+    '', semC.length ? `🎯 *Sugestão:* cobrar o compromisso de ${semC.slice(0, 3).map((x) => nome2(x.supervisor)).join(', ')}.` : '🎯 *Sugestão:* todos fizeram o compromisso; acompanhar a execução das RETs.'].join('\n');
+}
 function respostaPronta(texto, fil, d) {
   const t = sem(texto);
+  if (/COMPROMISSO|MATINAL|\bRET\b|ROTA DO SUPERVISOR|SUPERVISOR(ES)? (NA|EM) ROTA/.test(t)) return respCompromisso(fil, d);
   if (/LIGA|CHAMPIONS|RANKING|TABELA|CLASSIFICA/.test(t)) return respLiga(fil, d);
   const sups = Object.keys(d._sup || {}).filter((s) => s !== 'sem supervisor');
   const achou = sups.find((s) => sem(s).split(' ').filter((w) => w.length > 2).some((w) => new RegExp('\\b' + w + '\\b').test(t)) && /SUPERVIS|EQUIPE|TIME|VENDEDOR/.test(t))
@@ -176,6 +188,7 @@ COMO RESPONDER:
 - Use SÓ os números dos DADOS, exatamente como estão escritos (já vêm formatados, ex.: "R$ 6.054.971", "50,3%"). Nunca invente, estime nem recalcule; se não tiver o dado, diga que não tem.
 - Formato WhatsApp: *negrito* com UM asterisco de cada lado (nunca **). Uma ideia por linha. Use no máximo 10 linhas. Pode usar emoji com moderação (📊 ✅ ⚠️ 🎯).
 - "Como está a filial": 1) faturado + pendente e % da meta; 2) positivação; 3) digitado hoje; 4) zerados hoje (cite até 3 nomes); 5) destaque e alerta de vendedor (maior e menor % da meta).
+- Compromisso matinal e rota do supervisor (RET): campo supervisores_compromisso_ret.
 - Pergunta sobre vendedor ou supervisor: use a lista de vendedores e supervisores. Pedidos de hoje: campo pedidos_hoje (filial em dia.pedidos_hoje).
 - Sempre termine com *🎯 Sugestão:* UMA ação concreta e nominal baseada nos dados (ex.: cobrar o supervisor X pelos 3 zerados).
 - Fale só da filial ${c.filial || 'que a pessoa pediu'}.${filiais.length ? '' : ' A pessoa não disse a filial: pergunte qual.'}
