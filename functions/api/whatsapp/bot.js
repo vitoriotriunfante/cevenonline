@@ -54,18 +54,44 @@ async function resumoFilial(origin, filial) {
 }
 
 const MODELO = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+// DADOS DA FILIAL PARA O ASSISTENTE (22/10/2026: "so isso de dados? olha o tanto de coisa que tem na TV"): a MESMA base da TV/Matriz
+//   /api/saude (totais), /api/central-snapshot (cada vendedor: meta, faturado, pendente, positivacao, digitado hoje, visitas), /api/tv-mostra (supervisor e grupo),
+//   /api/brasileirao-lances (lances de hoje), dados_brasileirao.json (Liga) e dados_mix.json (+MIX). Valores ja formatados para a IA nao errar formato.
+const R$ = (n) => n == null || isNaN(n) ? 'sem dado' : 'R$ ' + Math.round(n).toLocaleString('pt-BR');
+const P = (a, b) => (b ? (a / b * 100).toFixed(1).replace('.', ',') + '%' : 'sem dado');
 async function dadosDaFilial(origin, filial, env) {
   const out = {};
-  // arquivos estaticos: lidos direto do proprio site (env.ASSETS); chamar o proprio dominio por fetch falhava
   const est = (p) => (env && env.ASSETS ? env.ASSETS.fetch(new Request(origin + p)) : fetch(origin + p)).then((r) => r.json());
-  try { const j = await fetch(`${origin}/api/saude`, { signal: AbortSignal.timeout(20000) }).then((r) => r.json()); const f = (j.filiais || []).find((x) => x.filial === filial);
-    if (f) out.agora = { hora: j.hora_sp, faturado: Math.round(f.faturado || 0), pendente: Math.round(f.pendente || 0), meta_faturamento: Math.round(f.meta_fat || 0), positivados: f.positivados, meta_positivacao: f.meta_pos, digitado_hoje: Math.round(f.digitado_hoje || 0), vendedores: f.rcas }; } catch (e) {}
-  try { const b = await est('/dados_brasileirao.json');
-    const f = (b.filiais || []).find((x) => x.sigla === filial); if (f) out.liga_filial = { posicao: f.pos, pontos: f.pts_tabela, vitorias: f.vitorias, empates: f.empates, derrotas: f.derrotas };
-    out.liga_supervisores = (b.supervisores || []).filter((x) => x.filial === filial).map((x) => ({ supervisor: x.supervisor, posicao: x.pos, pontos: x.pts_tabela }));
-    out.liga_top_vendedores = (b.vendedores || []).filter((x) => x.filial === filial).sort((x, y) => x.pos_filial - y.pos_filial).slice(0, 10).map((x) => ({ vendedor: x.nome, supervisor: x.supervisor, posicao_na_filial: x.pos_filial, pontos: x.pts_tabela })); } catch (e) {}
-  try { const m = await est('/dados_mix.json');
-    out.mix_vendedores = (m.vendedores || []).filter((x) => x.filial === filial).map((x) => ({ vendedor: x.nome, supervisor: x.supervisor, clientes_que_compraram_no_mes: x.clientes, mix_por_cliente: x.mix_medio, reais_por_cliente: x.faturado_por_cliente, pct_meta_faturamento: x.pct_meta_fat, uso_do_mais_mix_pct: x.uso_pct, dados_ate: m.dados_ate })); } catch (e) {}
+  const api = (p) => fetch(origin + p, { signal: AbortSignal.timeout(25000) }).then((r) => r.json());
+  const hoje = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+  const [saude, snap, mostra, lances, liga, mix] = await Promise.all([api('/api/saude'), api('/api/central-snapshot?filial=' + filial), api('/api/tv-mostra'), api(`/api/brasileirao-lances?dia=${hoje}&filial=${filial}`), est('/dados_brasileirao.json'), est('/dados_mix.json')].map((p) => p.catch(() => null)));
+  const f = saude && (saude.filiais || []).find((x) => x.filial === filial);
+  if (f) out.filial_agora = { hora: saude.hora_sp, faturado_mais_pendente: R$((f.faturado || 0) + (f.pendente || 0)), meta_mes: R$(f.meta_fat), pct_meta: P((f.faturado || 0) + (f.pendente || 0), f.meta_fat), pendente: R$(f.pendente), positivados_mes: `${f.positivados} de ${f.meta_pos} (${P(f.positivados, f.meta_pos)})`, digitado_hoje: R$(f.digitado_hoje) };
+  // equipe: supervisor e grupo pela Gestao de Equipe
+  const eq = new Map(); if (mostra && mostra.filiais) for (const [k, L] of Object.entries(mostra.filiais)) if (k.split('_')[0] === filial) for (const v of L) eq.set(String(v.rca), v);
+  // lances de hoje por vendedor
+  const lv = new Map(); for (const l of (lances && lances.lances) || []) { const k = String(l.rca); const x = lv.get(k) || {}; x[l.nivel] = (x[l.nivel] || 0) + 1; lv.set(k, x); }
+  const vend = [];
+  for (const [rca, r] of Object.entries((snap && snap.rcas) || {})) {
+    const e = eq.get(rca); if (e && e.mostra === false) continue;
+    const d = r.dashboard || {}, fi = d.financeiro || {}, po = d.positivacao || {}, pd = (r.produtividade && r.produtividade.dia) || {};
+    const rot = Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hoje) : [];
+    const feitas = rot.filter((c) => c.checkin_horario).length;
+    vend.push({ vendedor: (e && e.nome) || d.nome || 'RCA ' + rca, rca, supervisor: e ? e.supervisor : '', grupo: e ? e.grupo : '',
+      pct_meta_fat: fi.meta ? +((fi.total_com_pendente || 0) / fi.meta * 100).toFixed(1) : null, faturado_mais_pendente: R$(fi.total_com_pendente), meta: R$(fi.meta),
+      positivacao: `${po.realizado ?? '?'} de ${po.meta ?? '?'}`, digitado_hoje: R$(pd.dig_pedido), visitas_hoje: `${feitas} de ${rot.length}`, zerado_hoje: rot.length > 0 && !(pd.dig_pedido > 0),
+      lances_hoje: lv.get(rca) || {} });
+  }
+  vend.sort((a, b) => (b.pct_meta_fat ?? -1) - (a.pct_meta_fat ?? -1));
+  out.vendedores = vend.map((v) => ({ ...v, pct_meta_fat: v.pct_meta_fat == null ? 'sem dado' : String(v.pct_meta_fat).replace('.', ',') + '%' }));
+  out.zerados_hoje = vend.filter((v) => v.zerado_hoje).map((v) => `${v.vendedor} (${v.supervisor || 'sem supervisor'}, visitas ${v.visitas_hoje})`);
+  if (lances) out.lances_hoje_filial = lances.porNivel;
+  // supervisores (soma dos vendedores, sem rateio)
+  const sup = new Map(); for (const v of vend) { const s = v.supervisor || 'sem supervisor'; const x = sup.get(s) || { vendedores: 0, zerados: 0, penaltis: 0, gols: 0 }; x.vendedores++; if (v.zerado_hoje) x.zerados++; x.penaltis += v.lances_hoje.penalti || 0; x.gols += v.lances_hoje.gol || 0; sup.set(s, x); }
+  out.supervisores_hoje = Object.fromEntries(sup);
+  if (liga) { const lf = (liga.filiais || []).find((x) => x.sigla === filial); if (lf) out.liga_filial = `${lf.pos}º de 11, ${lf.pts_tabela} pontos (${lf.vitorias}V ${lf.empates}E ${lf.derrotas}D)`;
+    out.liga_supervisores = (liga.supervisores || []).filter((x) => x.filial === filial).map((x) => `${x.pos}º ${x.supervisor} (${x.pts_tabela} pts)`); }
+  if (mix) out.mais_mix = (mix.vendedores || []).filter((x) => x.filial === filial).map((x) => `${x.nome}: mix ${String(x.mix_medio).replace('.', ',')} produtos/cliente, ${R$(x.faturado_por_cliente)}/cliente, uso do +MIX ${x.uso_pct == null ? 'sem dado' : String(x.uso_pct).replace('.', ',') + '%'}`);
   return out;
 }
 async function respondeIA(env, origin, c, texto, historico) {
@@ -75,14 +101,18 @@ async function respondeIA(env, origin, c, texto, historico) {
   const filiais = c.filial ? [c.filial] : [...new Set(conversa.match(/\b(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\b/g) || [])];
   const dados = {}; for (const f of [...new Set(filiais)].slice(0, 2)) dados[f] = await dadosDaFilial(origin, f, env);
   try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(c.celular, c.nome, 'debug', JSON.stringify(Object.fromEntries(Object.entries(dados).map(([k, v]) => [k, Object.keys(v)])))).run(); } catch (e) {}
-  const sys = `Você é o assistente do +MIX da Triunfante no WhatsApp. Fala português do Brasil, de forma natural, curta (até 8 linhas) e direta, como um colega de vendas experiente.
+  const sys = `Você é o assistente do +MIX da Triunfante no WhatsApp. Responde em português do Brasil como um gerente comercial experiente: natural, objetivo, sem enrolação.
 Quem fala com você: ${titulo(c.nome)}, ${c.papel}${c.filial ? ' da filial ' + c.filial : ' (diretoria, vê todas as filiais)'}${c.grupo ? ', grupo ' + c.grupo : ''}.
-REGRAS: 1) Use SOMENTE os números dos DADOS abaixo. Nunca invente, estime ou arredonde para cima; se o dado não estiver aqui, diga que não tem esse dado.
-2) Fale só da filial dessa pessoa${c.filial ? ' (' + c.filial + ')' : ''}. 3) Termine sempre com UMA sugestão prática do que fazer agora, baseada nos dados (ex.: vendedor com mix baixo, posição na Liga).
-4) Use *negrito* do WhatsApp com moderação. Sem tabelas.${filiais.length ? '' : ' 5) Se a pessoa não disse a filial, pergunte qual.'}
-DADOS (JSON): ${JSON.stringify(dados).slice(0, 20000)}`;
+COMO RESPONDER:
+- Use SÓ os números dos DADOS, exatamente como estão escritos (já vêm formatados, ex.: "R$ 6.054.971", "50,3%"). Nunca invente, estime nem recalcule; se não tiver o dado, diga que não tem.
+- Formato WhatsApp: *negrito* com UM asterisco de cada lado (nunca **). Uma ideia por linha. Use no máximo 10 linhas. Pode usar emoji com moderação (📊 ✅ ⚠️ 🎯).
+- "Como está a filial": 1) faturado + pendente e % da meta; 2) positivação; 3) digitado hoje; 4) zerados hoje (cite até 3 nomes); 5) destaque e alerta de vendedor (maior e menor % da meta).
+- Pergunta sobre vendedor ou supervisor: use a lista de vendedores e supervisores.
+- Sempre termine com *🎯 Sugestão:* UMA ação concreta e nominal baseada nos dados (ex.: cobrar o supervisor X pelos 3 zerados).
+- Fale só da filial ${c.filial || 'que a pessoa pediu'}.${filiais.length ? '' : ' A pessoa não disse a filial: pergunte qual.'}
+DADOS (JSON): ${JSON.stringify(dados).slice(0, 24000)}`;
   const msgs = [{ role: 'system', content: sys }, ...historico, { role: 'user', content: texto }];
-  try { const r = await env.AI.run(MODELO, { messages: msgs, max_tokens: 500 }); const t = String((r && (r.response || r.result)) || '').trim(); return t || null; } catch (e) { return null; }
+  try { const r = await env.AI.run(MODELO, { messages: msgs, max_tokens: 700 }); const t = String((r && (r.response || r.result)) || '').trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, ''); return t || null; } catch (e) { return null; }
 }
 
 export async function onRequestPost({ request, env }) {
