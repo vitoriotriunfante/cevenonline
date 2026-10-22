@@ -593,7 +593,7 @@ async function blocoGap(a, b) {
 // TESTE DO UNIVERSO: o mesmo cliente consultado no CEVEN com a carteira do vendedor (como o app faz) x com a regiao inteira da filial
 function blocoTeste(a, b) {
   const box = $('testeBox'); if (!box) return;
-  box.innerHTML = `<h2>Teste do universo do +MIX (ao vivo no CEVEN)</h2><div class="box"><div class="leg" style="margin-top:0">Pega até 20 clientes de <span class="cB">${esc(b.nome)}</span> a até 3 km dos clientes de <span class="cA">${esc(a.nome)}</span> e pergunta o +MIX duas vezes: <b>(a)</b> como o app faz hoje (vizinhos só da carteira do próprio vendedor) e <b>(b)</b> com todos os clientes da filial a até 3 km. Leva 1 a 2 minutos.</div>
+  box.innerHTML = `<h2>Teste do universo do +MIX (ao vivo no CEVEN)</h2><div class="box"><div class="leg" style="margin-top:0">Pergunta: o +MIX está mostrando ao <span class="cB">${esc(b.nome.split(' ')[0])}</span> os produtos que o <span class="cA">${esc(a.nome.split(' ')[0])}</span> vende bem? O teste consulta o CEVEN agora, em até 20 clientes vizinhos dos dois (leva 1 a 2 minutos).</div>
     <button id="btTeste" style="margin-top:10px;background:var(--acc);color:#04202e;border:0;border-radius:8px;padding:8px 14px;font-weight:800;cursor:pointer">Rodar o teste</button> <span class="sub" id="stTeste"></span><div id="resTeste"></div></div>`;
   $('btTeste').onclick = () => rodaTeste(a, b);
 }
@@ -619,13 +619,22 @@ async function rodaTeste(a, b) {
   const so_b = R.reduce((t, r) => t + Object.keys(r.regiao.cods).filter((c) => !r.proprio.cods[c]).length, 0) / R.length;
   const linhas = [...topA.entries()].map(([c, n]) => ({ c, n, x: R.filter((r) => r.proprio.cods[c]).length, y: R.filter((r) => r.regiao.cods[c]).length })).filter((l) => l.x || l.y);
   const nA = `${esc(a.nome.split(' ')[0])}`, nB = `${esc(b.nome.split(' ')[0])}`;
-  const jaAparece = linhas.filter((l) => l.x >= R.length * 0.25).length;
-  $('resTeste').innerHTML = `<div class="insight" style="margin-top:12px"><b>Resultado em português:</b><br>
-    1) Hoje o +MIX sugere, em média, <b>${nf(md('proprio'), 0)} produtos</b> para cada cliente de ${nB}. Se ele olhasse também os clientes dos outros vendedores da região, sugeriria <b>${nf(md('regiao'), 0)}</b> — são <b>${nf(so_b, 0)} produtos a mais</b> que hoje ${nB} nem vê.<br>
-    2) Dos produtos que ${nA} mais vende, <b>${jaAparece} de ${linhas.length}</b> já aparecem hoje no +MIX de pelo menos 1 em cada 4 clientes de ${nB}. ${jaAparece >= linhas.length / 2 ? `Ou seja: a ferramenta <b>já mostra</b> esses produtos para ${nB}; o que falta é ele <b>vender</b>.` : `Ou seja: a ferramenta <b>não mostra</b> a maior parte do que ${nA} vende; olhar a região resolveria.`}</div>
-    <h2>Produtos que ${nA} mais vende: em quantos dos ${R.length} clientes de ${nB} o +MIX sugere?</h2>
-    <table><thead><tr><th class="l">Produto</th><th>Hoje (+MIX olha só a carteira de ${nB})</th><th>Se o +MIX olhasse a região toda</th></tr></thead><tbody>` +
-    (linhas.length ? linhas.map((l) => `<tr><td class="l">${esc(l.c)} · ${esc(l.n)}</td><td>${nf(l.x)} de ${R.length}</td><td class="ver${l.y > l.x ? ' up' : ''}">${nf(l.y)} de ${R.length}</td></tr>`).join('') : `<tr><td class="l" colspan="3">Nenhum dos 20 mais vendidos aparece nos dois casos (o cliente já compra ou ninguém em volta compra).</td></tr>`) + '</tbody></table>';
+  // RESULTADO SIMPLES (22/10/2026: "ainda esta confuso"): 1 frase de conclusao, 3 numeros, e a lista so com o que o +MIX mostra hoje
+  const jaAparece = linhas.filter((l) => l.x >= R.length * 0.25).length, N = R.length;
+  const conclusao = jaAparece >= linhas.length / 2
+    ? `O +MIX <b>já mostra</b> ao ${nB} a maior parte do que o ${nA} vende (${jaAparece} de ${linhas.length} produtos). <b>Não falta ferramenta: falta vender.</b>`
+    : `O +MIX <b>não mostra</b> ao ${nB} a maior parte do que o ${nA} vende (só ${jaAparece} de ${linhas.length}). <b>Aqui falta ferramenta.</b>`;
+  $('resTeste').innerHTML = `<div class="insight" style="margin-top:12px;font-size:15.5px">${conclusao}</div>
+    <div class="kpis" style="margin-top:12px">
+      <div class="k"><b>${nf(md('proprio'), 0)}</b><span>produtos que o +MIX mostra hoje para cada cliente de ${nB}</span></div>
+      <div class="k"><b>${nf(md('regiao'), 0)}</b><span>mostraria se olhasse também os clientes dos outros vendedores perto</span></div>
+      <div class="k"><b>+${nf(so_b, 0)}</b><span>produtos novos que ${nB} passaria a ver</span></div></div>
+    <h2>Os produtos que ${nA} mais vende aparecem para os clientes de ${nB}?</h2>
+    <div class="leg" style="margin-top:0">Testado em ${N} clientes de ${nB} perto dos clientes de ${nA}. A barra mostra em quantos deles o +MIX já sugere o produto hoje.</div>
+    <table style="margin-top:6px"><tbody>` +
+    (linhas.length ? linhas.slice().sort((p, q) => q.x - p.x).map((l) => { const d = l.y - l.x;
+      return `<tr><td class="l" style="width:40%">${esc(l.n)}</td><td style="width:40%"><div style="display:flex;align-items:center;gap:8px"><div class="bar" style="flex:1;margin:0"><i style="width:${l.x / N * 100}%;background:var(--b)"></i></div><b>${nf(l.x)} de ${N}</b></div></td><td class="sub" style="width:20%">${d === 0 ? 'olhando a região: igual' : `olhando a região: ${d > 0 ? '+' : ''}${d}`}</td></tr>`; }).join('')
+      : `<tr><td class="l">Nenhum dos produtos aparece (o cliente já compra ou ninguém em volta compra).</td></tr>`) + '</tbody></table>';
 }
 carrega();
 </script></body></html>
