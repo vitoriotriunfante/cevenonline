@@ -1,0 +1,35 @@
+# FICHA DO ARQUIVO
+# O QUE É: manda UMA mensagem de teste pelo WhatsApp (Evolution, instancia dos disparos) para um numero escolhido.
+#          Nao mexe nos ciclos, nao marca nada como disparado. Vitorio, 22/10/2026 (troca do numero para Mais Mix Triunfante).
+name: WhatsApp — mensagem de teste
+
+on:
+  workflow_dispatch:
+    inputs:
+      numero:
+        description: 'Numero com DDI e DDD (ex.: 554187525605)'
+        required: true
+        default: '554187525605'
+
+permissions:
+  contents: read
+
+jobs:
+  teste:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Enviar
+        env:
+          EVO_URL: ${{ secrets.EVO_URL }}
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+          EVO_INSTANCE: ${{ secrets.EVO_INSTANCE }}
+          NUMERO: ${{ github.event.inputs.numero }}
+        run: |
+          case "$NUMERO" in *[!0-9]*|"") echo "numero invalido"; exit 1;; esac
+          INST="${EVO_INSTANCE:-ceven-noc}"
+          TXT="✅ Teste do CEVEN NOC: esta mensagem saiu do número novo dos disparos (Mais Mix Triunfante) em $(TZ=America/Sao_Paulo date '+%d/%m %H:%M')."
+          BODY=$(jq -n --arg n "$NUMERO" --arg t "$TXT" '{number:$n, text:$t}')
+          CODE=$(curl -s -o resp.json -w '%{http_code}' -X POST "${EVO_URL%/}/message/sendText/$INST" -H "apikey: $EVO_KEY" -H 'Content-Type: application/json' -d "$BODY")
+          echo "HTTP $CODE"; jq -c '{status: .status, key: .key.remoteJid, erro: .response}' resp.json || cat resp.json
+          [ "$CODE" -lt 300 ] || exit 1
