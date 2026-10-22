@@ -218,6 +218,7 @@ async function main() {
       if (r) for (const c of r.cods.keys()) if (!o.antes.has(c) && !mesSkus.has(c)) x.rec[c] = (x.rec[c] || 0) + 1; }
     if (r) { let n = 0; for (const c of r.cods.keys()) if (!o.antes.has(c)) n++; v.rec_total = (v.rec_total || 0) + n; }
     if (r) { v.recCnt = v.recCnt || new Map(); for (const c of r.cods.keys()) if (!o.antes.has(c) && !mesSkus.has(c)) v.recCnt.set(c, (v.recCnt.get(c) || 0) + 1); }
+    o.novosMix = novosMix;
     if (novosMix.length) v.clientes_usou++;
     v.skus_mix_vendidos += novosMix.length;
     v.mix.push(mesSkus.size); v.novos.push(novos.length); v.valor += o.valor;
@@ -240,7 +241,7 @@ async function main() {
       const kp = `${o.filial}|${c}`; const y = cuboFP.get(kp) || { cli: new Set(), val: 0, vend: new Set(), rec: 0, conv: 0 }; y.cli.add(o.cnpj); y.val += val; y.vend.add(o.rca); cuboFP.set(kp, y);
     }
     if (r) for (const c of r.cods.keys()) { if (o.antes.has(c)) continue; const kp = `${o.filial}|${c}`; const y = cuboFP.get(kp) || { cli: new Set(), val: 0, vend: new Set(), rec: 0, conv: 0 }; y.rec++; if (novosMix.includes(c)) y.conv++; cuboFP.set(kp, y); }
-    for (const c of novosMix) { const it = itensMix.get(c) || { cod: c, nome: nomeProd.get(c) || '', clientes: 0, industria: r.cods.get(c).ind }; it.clientes++; itensMix.set(c, it); }
+    for (const c of novosMix) { const it = itensMix.get(c) || { cod: c, nome: nomeProd.get(c) || '', clientes: 0, industria: (r && r.cods.get(c) && r.cods.get(c).ind) || IND[c] || '' }; it.clientes++; itensMix.set(c, it); }
   }
   // fidelizacao: dos clientes positivados no mes ANTERIOR por esse vendedor, quantos voltaram a comprar neste mes
   const voltou = new Map();
@@ -293,7 +294,7 @@ async function main() {
       const r = rec.get(o.filial + '|' + o.id); const ci = cliL.length; cliL.push([o.filial, String(o.rca), atv(o.cnpj)]);
       for (const [c, val] of o.vsku) {
         let pi = prodIdx.get(c); if (pi == null) { pi = prods.length; prodIdx.set(c, pi); prods.push([c, nomeProd.get(c) || '', IND[c] || 'SEM INDUSTRIA NO CATALOGO']); }
-        f.push([ci, pi, Math.round(val), r && r.cods.has(c) && !o.antes.has(c) ? 1 : 0]);
+        f.push([ci, pi, Math.round(val), o.novosMix && o.novosMix.includes(c) ? 1 : 0]);   // venda nova via +MIX pela medida REAL
       }
     }
     fs.writeFileSync(path.join(__dirname, '..', 'public', 'mix_cubo.json'), JSON.stringify({ gerado_em: new Date().toISOString(), atv_nomes: ATV.nomes || {}, cli: cliL, prods, f }));
