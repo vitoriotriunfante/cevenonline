@@ -78,7 +78,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/dados_mix.json public/mix_rec public/mix_vend public/mix_cubo.json public/mix_cli
+          git add public/dados_mix.json public/mix_rec public/mix_vend public/mix_cubo.json public/mix_cli public/mix_hist
           if git diff --cached --quiet; then echo "Dataset sem mudança."; exit 0; fi
           git commit -m "chore: dataset do +MIX (gerado online) [skip ci]"
           for i in 1 2 3 4 5 6; do

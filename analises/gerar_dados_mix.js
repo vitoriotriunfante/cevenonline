@@ -105,7 +105,7 @@ async function main() {
       const q = Number(x.d.slice(8, 10)) <= 15 ? 'q1' : 'q2';
       o[q].add(String(x.cod)); o.peds.add(x.p); o.pedsQ[q].add(x.p); o.dPed = o.dPed || new Map(); o.dPed.set(x.p, x.d); o.valor += Number(x.v) || 0; o.vsku = o.vsku || new Map(); o.vsku.set(String(x.cod), (o.vsku.get(String(x.cod)) || 0) + (Number(x.v) || 0));
       if (!o.skusPed.has(x.p)) o.skusPed.set(x.p, new Set()); o.skusPed.get(x.p).add(String(x.cod));
-    } else { o.antes.add(String(x.cod)); if (x.d.slice(0, 7) === mesAnt) o.comprouMesAnt = true; }
+    } else { o.antes.add(String(x.cod)); o.antesD = o.antesD || new Map(); if ((o.antesD.get(String(x.cod)) || '') < x.d) o.antesD.set(String(x.cod), x.d); if (x.d.slice(0, 7) === mesAnt) o.comprouMesAnt = true; }
   }
   const alvo = [...cli.values()].filter((o) => o.rca && vend.has(o.filial + '|' + o.rca) && o.cnpj.length === 14);
   console.log(`clientes positivados no mês por vendedores de varejo: ${alvo.length}`);
@@ -129,9 +129,10 @@ async function main() {
     // VISITAS DE CADA CLIENTE NO MES (22/10/2026: "ele ja visitou esses clientes? quando foi?"): ultima visita feita, proxima prevista, ultima compra
     for (const c of Array.isArray(rm) ? rm : []) {
       const cn = so(c.cnpj); if (cn.length !== 14) continue;
-      const k = f + '|' + cn, x = infoCli.get(k) || { rca: r, uv: '', uh: '', um: '', pv: '', uc: '' };
+      const k = f + '|' + cn, x = infoCli.get(k) || { rca: r, uv: '', uh: '', um: '', pv: '', uc: '', ut: '', uo: '', nv: 0 };
       const d = String(c.data_visita || '').slice(0, 10), feita = !!(c.checkin_horario || c.motivo_nao_visita) || /VISITADO|JUSTIFICADO/i.test(String(c.status || ''));
-      if (d && d <= hojeSP && feita && d >= x.uv) { x.uv = d; x.uh = c.checkin_horario || ''; x.um = c.motivo_nao_visita || (c.checkin_horario ? '' : String(c.status || '')); }
+      if (d && d <= hojeSP && feita) x.nv++;
+      if (d && d <= hojeSP && feita && d >= x.uv) { x.uv = d; x.uh = c.checkin_horario || ''; x.um = c.motivo_nao_visita || (c.checkin_horario ? '' : String(c.status || '')); x.ut = c.tempo_visita || ''; x.uo = c.checkout_horario || ''; }
       if (d && (d > hojeSP || (d === hojeSP && !feita)) && (!x.pv || d < x.pv)) x.pv = d;
       if (c.data_ultima_compra) x.uc = String(c.data_ultima_compra).slice(0, 10);
       infoCli.set(k, x);
@@ -310,9 +311,21 @@ async function main() {
     fs.writeFileSync(path.join(__dirname, '..', 'public', 'mix_cubo.json'), JSON.stringify({ gerado_em: new Date().toISOString(), atv_nomes: ATV.nomes || {}, cli: cliL, prods, f }));
     console.log(`cubo de vendas: ${cliL.length} clientes, ${prods.length} produtos, ${f.length} fatos`); }
   { const porF = new Map();
-    for (const [k, x] of infoCli) { const [f, cn] = k.split('|'); const m = porF.get(f) || porF.set(f, {}).get(f); m[cn] = [x.uv, x.uh, x.um, x.pv, x.uc]; }
+    for (const [k, x] of infoCli) { const [f, cn] = k.split('|'); const m = porF.get(f) || porF.set(f, {}).get(f); m[cn] = [x.uv, x.uh, x.um, x.pv, x.uc, x.ut, x.uo, x.nv]; }
     fs.mkdirSync(path.join(__dirname, '..', 'public', 'mix_cli'), { recursive: true });
-    for (const [f, m] of porF) fs.writeFileSync(path.join(__dirname, '..', 'public', 'mix_cli', f + '.json'), JSON.stringify({ gerado_em: new Date().toISOString(), campos: ['ultima_visita', 'hora_checkin', 'motivo_ou_status', 'proxima_visita', 'ultima_compra'], c: m })); }
+    for (const [f, m] of porF) fs.writeFileSync(path.join(__dirname, '..', 'public', 'mix_cli', f + '.json'), JSON.stringify({ gerado_em: new Date().toISOString(), campos: ['ultima_visita', 'hora_checkin', 'motivo_ou_status', 'proxima_visita', 'ultima_compra', 'tempo_visita', 'hora_checkout', 'visitas_no_mes'], c: m })); }
+  // HISTORICO DO PRODUTO (22/10/2026: "ver se o cara nao vendeu para um cliente que tem historico desse produto"): produtos que o cliente comprou nos 60 dias
+  // antes do mes e NAO comprou no mes (parou de comprar), com a data da ultima compra. Um arquivo por filial: cnpj -> "cod:AAMMDD,cod:AAMMDD"
+  { const porF = new Map();
+    for (const o of cli.values()) {
+      if (!o.antesD || !o.cnpj || o.cnpj.length !== 14) continue;
+      const mes = new Set([...o.q1, ...o.q2]); const L = [];
+      for (const [c, d] of o.antesD) if (!mes.has(c)) L.push(c + ':' + d.slice(2, 10).replace(/-/g, ''));
+      if (!L.length) continue;
+      const m = porF.get(o.filial) || porF.set(o.filial, {}).get(o.filial); m[o.cnpj] = L.join(',');
+    }
+    fs.mkdirSync(path.join(__dirname, '..', 'public', 'mix_hist'), { recursive: true });
+    for (const [f, m] of porF) fs.writeFileSync(path.join(__dirname, '..', 'public', 'mix_hist', f + '.json'), JSON.stringify({ gerado_em: new Date().toISOString(), c: m })); }
   // +MIX DE CADA CLIENTE (clique no cliente no mapa: "o que falta ele comprar que esta no +MIX"): um arquivo por filial em public/mix_rec/
   { const porF = new Map();
     for (const o of alvo) {
