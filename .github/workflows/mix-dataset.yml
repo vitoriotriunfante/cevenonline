@@ -6,6 +6,10 @@
 name: +MIX — dataset diário
 
 on:
+  # CAPTURA DA MADRUGADA (Vitorio, 22/10/2026): 02:00 de Brasilia, de segunda a sexta, so grava a lista do +MIX de cada cliente (antes de qualquer visita).
+  # O dataset continua sendo gerado depois do Data Lake, reaproveitando essas listas.
+  schedule:
+    - cron: '0 5 * * 1-5'
   workflow_dispatch:
     inputs:
       mes:
@@ -67,8 +71,10 @@ jobs:
       - name: Gerar o dataset do +MIX
         env:
           MES: ${{ github.event.inputs.mes }}
+          MIX_SO_CAPTURA: ${{ github.event_name == 'schedule' && '1' || '' }}
         run: node analises/gerar_dados_mix.js $MES
       - name: Gravar o dataset na main
+        if: github.event_name != 'schedule'
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"

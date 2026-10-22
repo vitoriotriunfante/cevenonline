@@ -82,7 +82,7 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
   </nav>
 
   <section id="s-resumo" class="on">
-    <div class="insight" style="border-left-color:var(--warn)"><b>⚠️ Uso do +MIX provisório.</b> A recomendação de outubro foi buscada depois das compras, e o +MIX só mostra o que o cliente ainda não compra. Por isso o "uso" e as comparações por uso (meta, prêmio, Liga) <b>ainda não são conclusivas</b>. Desde 20/10 a recomendação de cada cliente da rota é gravada <b>antes da visita</b>; em 2 a 3 semanas a medida passa a ser a real. Mix, portfólio, quinzenas e o comparativo entre vendedores já valem.</div>
+    <div class="insight"><b>✅ Uso do +MIX REAL desde 21/10.</b> A lista do +MIX de cada cliente é gravada <b>antes da visita</b> (de madrugada). "Usou" = o cliente comprou um produto <b>novo</b> para ele que estava nessa lista gravada <b>antes</b> da compra. Só contam compras de 21/10 em diante, então a base ainda é pequena e fica mais firme a cada dia. Vendedor com menos de 3 clientes nessa condição aparece sem uso.</div>
     <div class="kpis" id="kpis"></div>
     <h2>Quem usa mais o +MIX vende melhor?</h2>
     <div class="ctl"><select id="rFil"></select><select id="rSup"></select><select id="rTipo"><option value="">Todos os tipos de cliente</option></select></div>
@@ -174,7 +174,7 @@ async function carrega() {
   if (!D) { $('sub').textContent = 'Ainda sem dados: o cálculo está rodando. Volte em alguns minutos.'; return; }
   const R = D.resumo;
   $('sub').textContent = `Mês ${D.mes} · dados até ${D.dados_ate.split('-').reverse().join('/')} · só Varejo · ${nf(R.vendedores)} vendedores · gerado em ${new Date(D.gerado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`;
-  $('kpis').innerHTML = [[nf(R.clientes_com_mix), 'clientes positivados com +MIX calculado'], [nf(R.clientes_que_usaram), 'compraram produto NOVO que estava no +MIX'],
+  $('kpis').innerHTML = [[nf(R.clientes_com_mix), 'clientes que compraram depois de ter a lista gravada'], [nf(R.clientes_que_usaram), 'compraram produto NOVO que estava no +MIX'],
     [pc(R.clientes_com_mix ? R.clientes_que_usaram / R.clientes_com_mix * 100 : null), 'taxa de uso geral'], [nf(R.skus_mix_vendidos), 'produtos novos vendidos via +MIX']]
     .map(([v, t]) => `<div class="k"><b>${v}</b><span>${t}</span></div>`).join('');
   resumo(); filtros(); tabelaV(); quinzenas(); window._cuboPend = true;

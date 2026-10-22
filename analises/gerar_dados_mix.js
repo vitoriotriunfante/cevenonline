@@ -20,6 +20,7 @@ const Database = require('better-sqlite3');
 
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const SITE = 'https://ceven-cftv-matrix.pages.dev';
+const INICIO_REAL = '2026-10-21';   // primeiro dia com a lista gravada ANTES das visitas
 const hojeSP = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
 const MES = process.argv[2] || hojeSP.slice(0, 7);
 const ATE = (() => { const d = new Date(hojeSP + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 1); const o = d.toISOString().slice(0, 10); return o.slice(0, 7) === MES ? o : `${MES}-31`; })();
@@ -51,6 +52,7 @@ const media = (a) => (a.length ? a.reduce((s, x) => s + x, 0) / a.length : null)
 const r1 = (x) => (x == null ? null : Math.round(x * 10) / 10);
 const r2 = (x) => (x == null ? null : Math.round(x * 100) / 100);
 function corr(a, b) {
+  { const ok = a.map((x, i) => x != null && b[i] != null && !isNaN(x) && !isNaN(b[i])); a = a.filter((_, i) => ok[i]); b = b.filter((_, i) => ok[i]); }
   const n = a.length; if (n < 3) return null;
   const ma = media(a), mb = media(b);
   let num = 0, da = 0, db = 0;
@@ -101,7 +103,7 @@ async function main() {
     if (x.d >= INI) {
       o.rca = x.r; if (!o.cnpj) o.cnpj = so(x.cnpj);
       const q = Number(x.d.slice(8, 10)) <= 15 ? 'q1' : 'q2';
-      o[q].add(String(x.cod)); o.peds.add(x.p); o.pedsQ[q].add(x.p); o.valor += Number(x.v) || 0; o.vsku = o.vsku || new Map(); o.vsku.set(String(x.cod), (o.vsku.get(String(x.cod)) || 0) + (Number(x.v) || 0));
+      o[q].add(String(x.cod)); o.peds.add(x.p); o.pedsQ[q].add(x.p); o.dPed = o.dPed || new Map(); o.dPed.set(x.p, x.d); o.valor += Number(x.v) || 0; o.vsku = o.vsku || new Map(); o.vsku.set(String(x.cod), (o.vsku.get(String(x.cod)) || 0) + (Number(x.v) || 0));
       if (!o.skusPed.has(x.p)) o.skusPed.set(x.p, new Set()); o.skusPed.get(x.p).add(String(x.cod));
     } else { o.antes.add(String(x.cod)); if (x.d.slice(0, 7) === mesAnt) o.comprouMesAnt = true; }
   }
@@ -131,7 +133,8 @@ async function main() {
     for (const [k, m] of carteira) { const [f, r] = k.split('|'); for (const c of m.values()) if (c.hoje && !ja.has(f + '|' + c.cnpj)) { ja.add(f + '|' + c.cnpj); alvo.push({ filial: f, id: c.id, rca: r, cnpj: c.cnpj, nome: c.nome, rota_hoje: true, q1: new Set(), q2: new Set(), peds: new Set(), pedsQ: { q1: new Set(), q2: new Set() }, valor: 0, antes: new Set(), skusPed: new Map() }); } } }
   console.log(`alvos do +MIX (positivados no mes + rota de hoje): ${alvo.length}`);
   console.log(`carteiras lidas: ${carteira.size} (${[...carteira.values()].filter((m) => m.size).length} com clientes)`);
-  let ok = 0, semCoord = 0, falha = 0, idx = 0;
+  let ok = 0, semCoord = 0, falha = 0, idx = 0, reus = 0;
+  const selHoje = hist.prepare('SELECT resposta_json FROM mix_gap WHERE dia = ? AND filial = ? AND cnpj = ?');
   const rec = new Map();
   const worker = async () => {
     while (idx < alvo.length) {
@@ -143,21 +146,37 @@ async function main() {
       let uni = todos.filter((c) => c.d <= 3);
       if (uni.length < 8) uni = todos.sort((a, b) => a.d - b.d).slice(0, 8);
       const cnpjs = uni.map((c) => c.cnpj).slice(0, 400);
+      // CAPTURA DA MADRUGADA (Vitorio, 22/10/2026: "pq nao grava junto com a das 03h?"): se a lista de hoje ja foi gravada, usa a gravada
+      const jaHoje = selHoje.get(hojeSP, o.filial, o.cnpj);
+      if (jaHoje) { let g0 = null; try { g0 = JSON.parse(jaHoje.resposta_json); } catch (e) {} if (g0 && g0.disponivel) { ok++; reus++; usaG(o, g0); continue; } }
       const g = await getJson(`${CEVEN}/mixapi/mix/gap`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target_cnpj: o.cnpj, universo_cnpjs: cnpjs, limite: 100, raio_km: 3, cod_rca: Number(o.rca) }) }, 3);
       if (!g || !g.disponivel) { falha++; continue; }
       ok++;
       insH.run(hojeSP, o.filial, o.rca, o.cnpj, o.id, JSON.stringify(uni.filter((c) => c.cnpj !== o.cnpj).map((c) => ({ cnpj: c.cnpj, nome: c.nome, km: r1(c.d) }))), JSON.stringify(g), new Date().toISOString());
+      usaG(o, g);
+      if ((ok + falha + semCoord) % 500 === 0) console.log(`  +MIX ${ok + falha + semCoord}/${alvo.length} | ok ${ok} | sem coordenada ${semCoord} | falha ${falha}`);
+    }
+  };
+  function usaG(o, g) {
       const cods = new Map();
       for (const ind of g.industrias_gap || []) for (const p of ind.produtos || []) cods.set(String(p.codprod), { ind: ind.industria, pen: p.penetracao, n: p.n_clientes, nome: p.produto });
       for (const p of g.produtos_top || []) if (!cods.has(String(p.codprod))) cods.set(String(p.codprod), { ind: p.industria, pen: p.penetracao, n: p.n_clientes, nome: p.produto });
       for (const [c, v] of cods) if (v.nome) nomeProd.set(c, v.nome);
       rec.set(o.filial + '|' + o.id, { cods, universo: g.total_universo, impacto: g.impacto_total_estimado });
-      if ((ok + falha + semCoord) % 500 === 0) console.log(`  +MIX ${ok + falha + semCoord}/${alvo.length} | ok ${ok} | sem coordenada ${semCoord} | falha ${falha}`);
-    }
-  };
+  }
   await Promise.all(Array.from({ length: 6 }, worker));
+  // LISTAS GRAVADAS ANTES DA COMPRA (medida REAL do uso, Vitorio 22/10/2026: "SIM SIM"): desde 21/10 a lista e gravada de manha/madrugada.
+  // Uso real = o cliente comprou, num dia D, um produto NOVO (nao comprado nos 60 dias antes do mes nem antes no mes) que estava na ultima lista gravada ate D.
+  const capt = new Map();   // filial|cnpj -> [{dia, cods:Set}] em ordem
+  for (const r of hist.prepare("SELECT dia, filial, cnpj, resposta_json FROM mix_gap WHERE dia >= ? AND dia <= ? ORDER BY dia").iterate(INICIO_REAL, hojeSP)) {
+    let g = null; try { g = JSON.parse(r.resposta_json); } catch (e) {}
+    if (!g || !g.disponivel) continue;
+    const cs = new Set(); for (const i of g.industrias_gap || []) for (const p of i.produtos || []) cs.add(String(p.codprod)); for (const p of g.produtos_top || []) cs.add(String(p.codprod));
+    const k = r.filial + '|' + r.cnpj; if (!capt.has(k)) capt.set(k, []); capt.get(k).push({ dia: r.dia, cods: cs });
+  }
   hist.close();
-  console.log(`+MIX buscado: ok ${ok} | sem coordenada na carteira ${semCoord} | falha ${falha}`);
+  console.log(`+MIX buscado: ok ${ok} (reaproveitados da madrugada ${reus}) | sem coordenada na carteira ${semCoord} | falha ${falha} | clientes com lista gravada antes (desde ${INICIO_REAL}): ${capt.size}`);
+  if (process.env.MIX_SO_CAPTURA === '1') { console.log('modo so captura: listas gravadas, dataset nao e gerado'); return; }
   // TRAVA (20/10/2026): com o CEVEN instavel uma rodada voltou com 12 mil falhas e 141 vendedores. Mais de 10% de falha = nao grava nada (fica o dataset anterior)
   if (falha + semCoord > alvo.length * 0.1) throw new Error(`+MIX incompleto: ${falha} falhas e ${semCoord} sem coordenada em ${alvo.length} clientes (limite 10%). Dataset anterior mantido.`);
   if (!ok) throw new Error('nenhuma recomendação do +MIX lida: não é sucesso');
@@ -172,7 +191,18 @@ async function main() {
     const r = rec.get(o.filial + '|' + o.id);
     const mesSkus = new Set([...o.q1, ...o.q2]);
     const novos = [...mesSkus].filter((c) => !o.antes.has(c));
-    const novosMix = r ? novos.filter((c) => r.cods.has(c)) : [];
+    // USO REAL: so conta produto novo que estava na lista gravada ANTES daquela compra
+    const caps = capt.get(o.filial + '|' + o.cnpj) || [];
+    const novosMix = []; let elegivel = false;
+    if (caps.length) {
+      const vistos = new Set(o.antes);
+      const pedsOrd = [...o.skusPed.entries()].map(([p, S]) => [(o.dPed && o.dPed.get(p)) || '', S]).sort((a, b) => a[0].localeCompare(b[0]));
+      for (const [d, S] of pedsOrd) {
+        let cap = null; for (const c of caps) if (c.dia <= d) cap = c;
+        if (cap) { elegivel = true; for (const c of S) if (!vistos.has(c) && cap.cods.has(c) && !novosMix.includes(c)) novosMix.push(c); }
+        for (const c of S) vistos.add(c);
+      }
+    }
     const dob = o.pedsQ.q1.size > 0 && o.pedsQ.q2.size > 0;
     if (dob) {
       estudoQ.clientes++; estudoQ.skus_q1.push(o.q1.size); estudoQ.skus_q2.push(o.q2.size);
@@ -181,7 +211,7 @@ async function main() {
     const k = o.filial + '|' + o.rca;
     let v = porV.get(k);
     if (!v) porV.set(k, (v = { ...vend.get(k), clientes: 0, com_mix: 0, clientes_usou: 0, skus_mix_vendidos: 0, mix: [], novos: [], valor: 0, recompra_base: 0, recompra: 0, dobradinha: 0, skus_ped: [] }));
-    v.clientes++; if (r) v.com_mix++;
+    v.clientes++; if (elegivel) v.com_mix++;
     v.peds_cli = v.peds_cli || []; v.peds_cli.push(o.peds.size);
     v.compCnt = v.compCnt || new Map(); for (const c of mesSkus) v.compCnt.set(c, (v.compCnt.get(c) || 0) + 1);
     { const at = atv(o.cnpj); v.porAtv = v.porAtv || {}; const x = v.porAtv[at] || (v.porAtv[at] = { clientes: 0, comp: {}, rec: {} }); x.clientes++; for (const c of mesSkus) x.comp[c] = (x.comp[c] || 0) + 1;
@@ -215,9 +245,9 @@ async function main() {
   // fidelizacao: dos clientes positivados no mes ANTERIOR por esse vendedor, quantos voltaram a comprar neste mes
   const voltou = new Map();
   for (const o of cli.values()) if (o.comprouMesAnt) { const k = o.filial + '|' + (o.rca || ''); if (o.rca) voltou.set(k, (voltou.get(k) || 0) + 1); }
-  const vendedores = [...porV.values()].filter((v) => v.com_mix >= 5).map((v) => ({
+  const vendedores = [...porV.values()].filter((v) => v.clientes >= 5).map((v) => ({
     filial: v.filial, rca: v.rca, nome: v.nome, supervisor: v.supervisor, clientes: v.clientes, clientes_com_mix: v.com_mix,
-    uso_pct: r1(v.clientes_usou / v.com_mix * 100), clientes_usou: v.clientes_usou, skus_mix_vendidos: v.skus_mix_vendidos,
+    uso_pct: v.com_mix >= 3 ? r1(v.clientes_usou / v.com_mix * 100) : null, clientes_com_lista: v.com_mix, clientes_usou: v.clientes_usou, skus_mix_vendidos: v.skus_mix_vendidos,
     rec_total: v.rec_total || 0, conversao_pct: v.rec_total ? r1(v.skus_mix_vendidos / v.rec_total * 100) : null,
     mix_medio: r1(media(v.mix)), skus_novos_medio: r1(media(v.novos)), skus_por_pedido: r1(media(v.skus_ped)),
     faturado_por_cliente: Math.round(v.valor / v.clientes), dobradinha_pct: r1(v.dobradinha / v.clientes * 100),
@@ -239,9 +269,9 @@ async function main() {
       pct_meta_fat: x.meta ? r1(x.fat_pend / x.meta * 100) : null, pct_meta_pos: x.pos_meta ? r1(x.pos_real / x.pos_meta * 100) : null,
       incentivo_pct: x.inc_pct == null || isNaN(x.inc_pct) ? null : r1(x.inc_pct), premio: x.premio_g2 ? 2 : x.premio_g1 ? 1 : (x.inc_pct == null ? null : 0),
       liga_pts: x.liga_pts == null ? null : x.liga_pts, liga_aprov: x.liga_aprov == null ? null : x.liga_aprov, liga_gols: x.liga_gols == null ? null : x.liga_gols }; })()
-  })).sort((a, b) => b.uso_pct - a.uso_pct);
+  })).sort((a, b) => (b.uso_pct ?? -1) - (a.uso_pct ?? -1));
   // 5) faixas de uso (quartis)
-  const ord = vendedores.slice().sort((a, b) => a.uso_pct - b.uso_pct), q = Math.ceil(ord.length / 4);
+  const ord = vendedores.filter((v) => v.uso_pct != null).sort((a, b) => a.uso_pct - b.uso_pct), q = Math.ceil(ord.length / 4);
   const faixas = [0, 1, 2, 3].map((i) => {
     const g = ord.slice(i * q, (i + 1) * q);
     return { faixa: ['25% que MENOS usam', '2º quartil', '3º quartil', '25% que MAIS usam'][i], vendedores: g.length, uso_pct: r1(media(g.map((x) => x.uso_pct))), mix_medio: r1(media(g.map((x) => x.mix_medio))), skus_novos_medio: r1(media(g.map((x) => x.skus_novos_medio))), skus_por_pedido: r1(media(g.map((x) => x.skus_por_pedido))), faturado_por_cliente: Math.round(media(g.map((x) => x.faturado_por_cliente))), dobradinha_pct: r1(media(g.map((x) => x.dobradinha_pct))), ja_eram_clientes_pct: r1(media(g.map((x) => x.ja_eram_clientes_pct))), clientes: g.reduce((s, x) => s + x.clientes, 0),
@@ -303,14 +333,14 @@ async function main() {
   const saida = {
     gerado_em: new Date().toISOString(), mes: MES, dados_ate: ATE, historico_desde: ANTES,
     definicoes: {
-      usou_mix: 'o cliente comprou no mês um produto NOVO para ele (não comprou nos 60 dias antes do mês) que está na recomendação do +MIX dele',
-      uso_pct: '% dos clientes positivados do vendedor (com +MIX disponível) em que ele vendeu ao menos 1 produto novo vindo do +MIX',
+      usou_mix: 'MEDIDA REAL (desde 21/10): o cliente comprou um produto NOVO para ele (não comprado nos 60 dias antes) que estava na lista do +MIX gravada ANTES daquela compra (de madrugada/manhã)',
+      uso_pct: '% dos clientes que compraram depois de ter a lista gravada (desde 21/10) e levaram ao menos 1 produto novo dessa lista; vendedor com menos de 3 clientes nessa condição fica sem uso',
       mix_medio: 'produtos diferentes comprados pelo cliente no mês', skus_novos_medio: 'produtos novos por cliente (não comprados nos 60 dias antes)',
       dobradinha_pct: '% dos clientes que compraram nas duas quinzenas', pct_meta_fat: '(faturado + pendente) / meta de faturamento do mês, igual ao app', pct_meta_pos: 'positivados / meta de positivação do mês',
       premio: 'incentivo de outubro: 0 = sem prêmio, 1 = gatilho 1, 2 = gatilho 2', liga_pts: 'pontos na tabela da Liga (Champions Triunfante)', ja_eram_clientes_pct: '% dos clientes do mês que também compraram no mês anterior (fidelização)',
-      ressalva: 'a recomendação do +MIX é calculada pelo CEVEN na hora da consulta; para dias passados ela é uma aproximação do que o vendedor viu. A partir de hoje a recomendação de cada dia fica gravada.'
+      ressalva: 'o uso conta só compras feitas a partir de 21/10, com a lista gravada antes; com poucos dias ainda é pouca base e o número fica mais firme a cada dia'
     },
-    resumo: { vendedores: vendedores.length, clientes: alvo.length, clientes_com_mix: ok, sem_coordenada: semCoord, falha_mix: falha,
+    resumo: { vendedores: vendedores.length, clientes: alvo.length, clientes_com_mix: vendedores.reduce((s2, v) => s2 + (v.clientes_com_lista || 0), 0), listas_lidas_hoje: ok, sem_coordenada: semCoord, falha_mix: falha,
       clientes_que_usaram: vendedores.reduce((s, v) => s + v.clientes_usou, 0), skus_mix_vendidos: vendedores.reduce((s, v) => s + v.skus_mix_vendidos, 0),
       correlacao_uso_x_mix: corr(U, vendedores.map((v) => v.mix_medio)), correlacao_uso_x_faturado_cliente: corr(U, vendedores.map((v) => v.faturado_por_cliente)),
       correlacao_uso_x_dobradinha: corr(U, vendedores.map((v) => v.dobradinha_pct)), correlacao_uso_x_fidelizacao: corr(U, vendedores.map((v) => v.ja_eram_clientes_pct)),
