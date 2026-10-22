@@ -31,7 +31,13 @@ const VAREJO = ['VJ', 'FARMA', 'PET VJ', 'ESP'];
 // industria de cada produto (catalogo da Relacao de itens por filial) para comparar PORTFOLIO POR INDUSTRIA entre vendedores
 // ATIVIDADE DO CLIENTE (cadastro do CEVEN: A02 Padarias, A14 Mercearias, A33 Mercados, A40 Lanchonetes...) para provar se dois vendedores atendem o mesmo perfil (20/10/2026)
 const ATV = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'atividade_por_cnpj.json'), 'utf8')); } catch (e) { return { nomes: {}, cnpj: {} }; } })();
-const atv = (cnpj) => ATV.cnpj[cnpj] || 'sem cadastro';
+// TIPO DE CLIENTE: pelo arquivo (nome no cadastro de 12/09); cliente novo, que nao esta no arquivo, e classificado pelo nome que vem do CEVEN (22/10/2026: "o que e cliente sem cadastro?")
+const NOMECLI = new Map();
+const TIPOS_NOME = [['Farmácia', /FARMAC|DROGA|MEDICAMENT/], ['Padaria', /PANIFIC|PADARIA|CONFEITAR|PAO|PAES/], ['Posto / conveniência', /POSTO|COMBUST|CONVENIENC/],
+  ['Pet / agropecuária', /PET|RACO|AGROPEC|AVIARIO|VETERIN/], ['Bar / lanchonete / restaurante', /LANCHON|LANCHES|RESTAUR|BAR|CHURRASC|PIZZAR|HOTEL|CAFE|BEER|CHOPP|BEBIDAS/],
+  ['Supermercado', /SUPERMERC|SUPER|HIPER/], ['Mercado / mercearia', /MERCAD|MERCEAR|MINIMERC|EMPORIO|ARMAZEM|SACOLAO|HORTIFRUT|ACOUGUE|CARNES/],
+  ['Distribuidora / atacado', /DISTRIBU|ATACAD/], ['Utilidades / loja', /UTILIDAD|PAPELAR|PRESENTE|LOJA|BAZAR|EMBALAG|VAREJO/]];
+const atv = (cnpj) => { if (ATV.cnpj[cnpj]) return ATV.cnpj[cnpj]; const n = String(NOMECLI.get(cnpj) || '').toUpperCase(); if (!n) return 'Outros'; const t = TIPOS_NOME.find(([, r]) => r.test(n)); return t ? t[0] : 'Outros'; };
 const IND = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'catalogo_industrias.json'), 'utf8')).i || {}; } catch (e) { return {}; } })();
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -99,7 +105,7 @@ async function main() {
     const k = x.f + '|' + x.c;
     let o = cli.get(k);
     if (!o) cli.set(k, (o = { filial: x.f, id: String(x.c), rca: null, cnpj: so(x.cnpj), nome: x.nome, q1: new Set(), q2: new Set(), peds: new Set(), pedsQ: { q1: new Set(), q2: new Set() }, valor: 0, antes: new Set(), comprouMesAnt: false, skusPed: new Map() }));
-    nomeProd.set(String(x.cod), x.des);
+    nomeProd.set(String(x.cod), x.des); if (x.nome && !NOMECLI.has(so(x.cnpj))) NOMECLI.set(so(x.cnpj), x.nome);
     if (x.d >= INI) {
       o.rca = x.r; if (!o.cnpj) o.cnpj = so(x.cnpj);
       const q = Number(x.d.slice(8, 10)) <= 15 ? 'q1' : 'q2';
@@ -126,6 +132,7 @@ async function main() {
     const m = new Map();
     for (const c of Array.isArray(rm) ? rm : []) { const cn = so(c.cnpj); if (cn.length === 14 && Number(c.latitude) && Number(c.longitude)) m.set(cn, { cnpj: cn, nome: c.nome_cliente, lat: Number(c.latitude), lon: Number(c.longitude), id: String(c.id_cliente || ''), hoje: String(c.data_visita || '').slice(0, 10) === hojeSP || (m.get(cn) || {}).hoje }); }
     carteira.set(rcas[i], m);
+    for (const c of m.values()) if (c.nome && !NOMECLI.has(c.cnpj)) NOMECLI.set(c.cnpj, c.nome);
     // VISITAS DE CADA CLIENTE NO MES (22/10/2026: "ele ja visitou esses clientes? quando foi?"): ultima visita feita, proxima prevista, ultima compra
     for (const c of Array.isArray(rm) ? rm : []) {
       const cn = so(c.cnpj); if (cn.length !== 14) continue;
