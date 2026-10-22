@@ -406,7 +406,7 @@ function testeClientes(c, tr) {
 }
 // MAPA COM FILTRO E PRODUTO (Vitorio, 22/10/2026: "filtrar aqui ja filtra no mapa; clicar no produto e ver quais clientes compram, quais o outro vende e quais faltam;
 // 'vendedor, esta aparecendo esse produto no +MIX para o cliente X, por que voce nao vende?'")
-let COMP = null, PROD = null;
+let COMP = null, PROD = null; const MKS = new Map();
 async function compradores(vs) {   // cnpj -> Set(produtos comprados no mes), so dos vendedores do comparativo
   if (!CB) { try { CB = await fetch('mix_cubo.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null); } catch (e) { CB = null; } }
   const m = new Map(); if (!CB) return m;
@@ -421,7 +421,7 @@ async function desenhaMapa() {
   mapa = L.map('mapa'); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(mapa);
   const comp = PROD ? await compradores([a, b]) : null;
   const recs = PROD ? { [a.filial]: await recFilial(a.filial), [b.filial]: await recFilial(b.filial) } : null;
-  const pts = []; let n = 0;
+  const pts = []; let n = 0; MKS.clear();
   [[a, cor('--a')], [b, cor('--b')]].forEach(([v, c]) => (v.pontos || []).forEach(([la, lo, st, cnpj, tp]) => {
     if (tipo && tp && tp !== tipo) return;
     pts.push([la, lo]); n++;
@@ -433,7 +433,7 @@ async function desenhaMapa() {
         : mostra ? { radius: 7.5, color: '#ef4444', weight: 3, fillColor: '#ef4444', fillOpacity: 0.55 }
         : { radius: 4, color: '#94a3b8', weight: 1, fillColor: '#94a3b8', fillOpacity: 0.1 };
     }
-    const m = L.circleMarker([la, lo], est).addTo(mapa);
+    const m = L.circleMarker([la, lo], est).addTo(mapa); MKS.set(cnpj, m);
     m.bindPopup('carregando…', { maxWidth: 380 }); m.on('click', () => popupCliente(m, v, cnpj, st));
   }));
   const enquadra = () => { if (!mapa) return; mapa.invalidateSize(); if (pts.length) mapa.fitBounds(pts, { padding: [24, 24] }); else mapa.setView([-23.5, -49], 6); };
@@ -442,25 +442,45 @@ async function desenhaMapa() {
     ? `<b>${esc(PROD.n)}</b> · ${tipo ? 'só ' + esc(tipo) + ' · ' : ''}<span class="cA">●</span> / <span class="cB">●</span> cheio = comprou o produto no mês · <span style="color:#ef4444">●</span> vermelho = <b>o +MIX mostra e não comprou</b> · cinza = não compra e não aparece · <a href="#" onclick="PROD=null;desenhaMapa();produtoBox();return false">ver todos os produtos</a>`
     : `<span class="cA">●</span> ${esc(a.nome)} · <span class="cB">●</span> ${esc(b.nome)}${tipo ? ' · só ' + esc(tipo) : ''} (${nf(n)} clientes)<br>cheio = comprou no mês · vazado = não comprou · contorno verde = comprou produto novo do +MIX · <b>clique no cliente</b> para ver o +MIX dele · <b>clique num produto do plano</b> para ver quem compra`);
 }
-// quadro do produto escolhido: quem compra, e a lista de cobranca (o +MIX mostra e nao comprou)
+// VISITAS DO CLIENTE (22/10/2026: "ele ja visitou? quando foi? podemos ser mais informativos"): ultima visita, proxima e ultima compra
+const CLI = new Map();
+async function cliFilial(f) {
+  if (!CLI.has(f)) CLI.set(f, fetch('mix_cli/' + f + '.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null).catch(() => null));
+  return CLI.get(f);
+}
+const ddmm = (d) => d ? d.slice(8, 10) + '/' + d.slice(5, 7) : '—';
+const diasDesde = (d) => d ? Math.round((Date.now() - new Date(d + 'T12:00:00')) / 86400000) : null;
+// clique no cliente da lista: o mapa vai ate ele e abre o +MIX dele
+function focaCliente(cnpj) {
+  const m = MKS.get(cnpj); if (!m || !mapa) return;
+  mapa.setView(m.getLatLng(), 16); m.fire('click'); m.openPopup();
+  const col = $('mapaCol'); if (col && col.getBoundingClientRect().top < 0) col.scrollIntoView({ behavior: 'smooth' });
+}
 async function produtoBox() {
   const box = $('prodBox'); if (!box) return;
   if (!PROD || !COMP) { box.innerHTML = ''; return; }
   const { F, W } = COMP, tipo = $('cAtv') ? $('cAtv').value : '';
-  const comp = await compradores([F, W]); const R = await recFilial(W.filial), RF = await recFilial(F.filial);
-  const conta = (v, Rr) => { const L = (v.pontos || []).filter((p) => !tipo || !p[4] || p[4] === tipo); const r = { tot: L.length, compra: 0, cobrar: [], nada: 0 };
-    for (const p of L) { const cn = p[3]; if (comp.get(cn) && comp.get(cn).has(PROD.c)) r.compra++; else if (Rr && Rr.clientes[cn] && (Rr.clientes[cn].all || []).includes(PROD.c)) r.cobrar.push(p); else r.nada++; }
+  const comp = await compradores([F, W]); const R = await recFilial(W.filial), RF = await recFilial(F.filial), CI = await cliFilial(W.filial);
+  // mesma base do plano: % = clientes que compraram o produto / clientes que compraram algo no mes
+  const conta = (v, Rr) => { const L = (v.pontos || []).filter((p) => !tipo || !p[4] || p[4] === tipo); const r = { tot: L.length, ativos: 0, compra: 0, cobrar: [], nada: 0 };
+    for (const p of L) { const cn = p[3]; if (p[2]) r.ativos++; if (comp.get(cn) && comp.get(cn).has(PROD.c)) r.compra++; else if (Rr && Rr.clientes[cn] && (Rr.clientes[cn].all || []).includes(PROD.c)) r.cobrar.push(p); else r.nada++; }
     return r; };
   const w = conta(W, R), f = conta(F, RF);
   const nome = (p) => (p[5] || (R && R.clientes[p[3]] && R.clientes[p[3]].n) || p[3]);
+  const vis = (p) => (CI && CI.c && CI.c[p[3]]) || [];
+  const linha = (v, r) => `<tr><td class="l ${v === COMP.a ? 'cA' : 'cB'}">${esc(v.nome)}</td><td>${nf(r.tot)}</td><td>${nf(r.ativos)}</td><td><b>${nf(r.compra)}</b> de ${nf(r.ativos)} (${pc(r.compra / (r.ativos || 1) * 100)})</td><td class="ver" style="color:#ef4444">${nf(r.cobrar.length)}</td><td>${nf(r.nada)}</td></tr>`;
+  // ordem da lista: quem tem visita marcada mais cedo primeiro (e o que o vendedor faz amanha)
+  const ord = w.cobrar.slice().sort((x, y) => (vis(x)[3] || '9999').localeCompare(vis(y)[3] || '9999'));
   box.innerHTML = `<div class="box" style="margin-top:12px;border-color:#ef4444">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><b style="font-size:16px">${esc(PROD.n)}${tipo ? ' · só ' + esc(tipo) : ''}</b><a href="#" onclick="PROD=null;desenhaMapa();produtoBox();return false">fechar</a></div>
-    <table style="margin-top:8px"><thead><tr><th class="l">Vendedor</th><th>Clientes</th><th>Compram</th><th>+MIX mostra e não compram</th><th>Não compram nem aparece</th></tr></thead><tbody>
-      <tr><td class="l ${W === COMP.a ? 'cA' : 'cB'}">${esc(W.nome)}</td><td>${nf(w.tot)}</td><td>${nf(w.compra)} (${pc(w.compra / (w.tot || 1) * 100)})</td><td class="ver" style="color:#ef4444">${nf(w.cobrar.length)}</td><td>${nf(w.nada)}</td></tr>
-      <tr><td class="l ${F === COMP.a ? 'cA' : 'cB'}">${esc(F.nome)}</td><td>${nf(f.tot)}</td><td>${nf(f.compra)} (${pc(f.compra / (f.tot || 1) * 100)})</td><td>${nf(f.cobrar.length)}</td><td>${nf(f.nada)}</td></tr></tbody></table>
-    <h2 style="color:#ef4444">Para cobrar de ${esc(W.nome.split(' ')[0])}: o +MIX mostra ${esc(PROD.n)} e o cliente não comprou (${nf(w.cobrar.length)})</h2>
-    ${w.cobrar.length ? `<table><thead><tr><th class="l">Cliente</th><th class="l">Tipo</th><th class="l">CNPJ</th><th>Comprou no mês?</th></tr></thead><tbody>${w.cobrar.sort((x, y) => (y[2] || 0) - (x[2] || 0)).map((p) => `<tr><td class="l">${esc(nome(p))}</td><td class="l">${esc(p[4] || '')}</td><td class="l">${esc(p[3])}</td><td>${p[2] ? 'sim, sem este produto' : 'não comprou nada'}</td></tr>`).join('')}</tbody></table>
-      <div class="leg">"Comprou no mês? sim" = o cliente já faz pedido com ${esc(W.nome.split(' ')[0])}: é só incluir o produto no próximo pedido.</div>` : '<div class="leg">Nenhum cliente com o produto aparecendo no +MIX sem comprar.</div>'}</div>`;
+    <table style="margin-top:8px"><thead><tr><th class="l">Vendedor</th><th>Clientes na carteira</th><th>Compraram no mês</th><th>Compraram este produto</th><th>+MIX mostra e não compram</th><th>Não compram nem aparece</th></tr></thead><tbody>${linha(W, w)}${linha(F, f)}</tbody></table>
+    <h2 style="color:#ef4444">Para cobrar de ${esc(W.nome.split(' ')[0])}: o +MIX mostra ${esc(PROD.n)} e o cliente não comprou (${nf(ord.length)})</h2>
+    ${ord.length ? `<table><thead><tr><th class="l">Cliente (clique para ver no mapa)</th><th class="l">Tipo</th><th>Última visita</th><th>Próxima visita</th><th>Última compra</th></tr></thead><tbody>${ord.map((p) => { const x = vis(p); const dc = diasDesde(x[4]);
+      return `<tr style="cursor:pointer" onclick="focaCliente('${p[3]}')"><td class="l"><u>${esc(nome(p))}</u> 📍<div class="sub">${esc(p[3])}</div></td><td class="l">${esc(p[4] || '')}</td>
+        <td>${x[0] ? ddmm(x[0]) + (x[1] ? ' ' + esc(x[1]) : '') + (x[2] ? `<div class="sub">${esc(x[2])}</div>` : '') : '<span class="sub">sem visita no mês</span>'}</td>
+        <td>${x[3] ? `<b>${ddmm(x[3])}</b>` : '<span class="sub">fora da rota</span>'}</td>
+        <td>${x[4] ? ddmm(x[4]) + ` <span class="sub">(há ${dc} dias)</span>` : '—'}</td></tr>`; }).join('')}</tbody></table>
+      <div class="leg">Ordenado pela próxima visita: os primeiros são os que ${esc(W.nome.split(' ')[0])} visita antes. Na última visita aparece o motivo quando foi justificada sem pedido.</div>` : '<div class="leg">Nenhum cliente com o produto aparecendo no +MIX sem comprar.</div>'}</div>`;
 }
 function escolheProduto(c, n) { PROD = { c: String(c), n }; desenhaMapa(); produtoBox(); const b = $('prodBox'); if (b) b.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 // +MIX DO CLIENTE (20/10/2026: "se eu clicar no cliente no mapa nao consigo ver o que falta ele comprar que esta no +MIX?")
@@ -471,9 +491,11 @@ async function recFilial(f) {
 }
 async function popupCliente(m, v, cnpj, st) {
   const R = await recFilial(v.filial); const c = R && cnpj ? R.clientes[cnpj] : null;
+  const CI = await cliFilial(v.filial), x = (CI && CI.c && CI.c[cnpj]) || [];
+  const visTxt = `<br>Última visita: <b>${x[0] ? ddmm(x[0]) + (x[1] ? ' ' + esc(x[1]) : '') + (x[2] ? ' (' + esc(x[2]) + ')' : '') : 'nenhuma no mês'}</b> · próxima: <b>${x[3] ? ddmm(x[3]) : 'fora da rota'}</b> · última compra: <b>${x[4] ? ddmm(x[4]) : '—'}</b>`;
   const stx = st === 2 ? 'comprou produto novo do +MIX no mês' : st ? 'comprou no mês' : 'sem compra no mês';
-  if (!c) { m.setPopupContent(`<b>${esc(v.nome)}</b><br>CNPJ ${esc(cnpj || '—')} · ${stx}<br><i>Sem +MIX gravado para este cliente (só gravamos clientes que compraram no mês ou estavam na rota).</i>`); return; }
-  m.setPopupContent(`<b>${esc(c.n)}</b><br>CNPJ ${esc(cnpj)} · atividade ${esc(c.a)}<br>Vendedor: ${esc(v.nome)} · ${stx}<br><br><b>No +MIX e ainda não compra (${c.rec.length}):</b>` +
+  if (!c) { m.setPopupContent(`<b>${esc(v.nome)}</b><br>CNPJ ${esc(cnpj || '—')} · ${stx}${visTxt}<br><i>Sem +MIX gravado para este cliente (só gravamos clientes que compraram no mês ou estavam na rota).</i>`); return; }
+  m.setPopupContent(`<b>${esc(c.n)}</b><br>CNPJ ${esc(cnpj)} · atividade ${esc(c.a)}<br>Vendedor: ${esc(v.nome)} · ${stx}${visTxt}<br><br><b>No +MIX e ainda não compra (${c.rec.length}):</b>` +
     (c.rec.length ? '<table style="font-size:12px;margin-top:4px"><tr><th style="text-align:left">Produto</th><th>Vizinhos que compram</th></tr>' + c.rec.map(([cod, n, ind, pen]) => `<tr><td style="text-align:left;white-space:normal">${esc(cod)} · ${esc(n)}<br><span style="color:#5b6f8f">${esc(ind)}</span></td><td>${pen == null ? '—' : nf(pen, 0) + '%'}</td></tr>`).join('') + '</table>' : '<br>nada — já compra tudo que o +MIX recomenda.'));
 }
 
