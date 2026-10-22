@@ -346,7 +346,7 @@ function comparar() {
     return `<div class="r"><div class="va">${f(x)}</div><div class="ba">${num ? `<i class="${x >= y ? 'w' : ''}" style="width:${Math.abs(x) / mx * 100}%"></i>` : ''}</div><div class="t">${t}</div><div class="bb">${num ? `<i class="${y >= x ? 'w' : ''}" style="width:${Math.abs(y) / mx * 100}%"></i>` : ''}</div><div class="vb">${f(y)}</div></div>`; }).join('') + '</div>';
   // 3) PLANO DE ACAO
   const ks = ats.filter((k) => AA.has(k) && AB.has(k));
-  h += `<h2>Plano de ação para ${esc(W.nome)}</h2>
+  h += `<h2 style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">Plano de ação para <span id="planoNome">${esc(W.nome)}</span> <button class="btPdf" style="padding:5px 12px;font-size:12.5px" onclick="trocaPlano()" title="inverter: ver o que o outro vendedor deveria aprender">⇄ ver para <span id="planoOutro">${esc(F.nome.split(' ')[0])}</span></button></h2>
     <div class="ctl"><select id="cAtv"><option value="">Todos os clientes</option>${ks.map((k) => `<option value="${esc(k)}">Só ${esc(k)} (${p1(a)} ${AA.get(k).n} · ${p1(b)} ${AB.get(k).n})</option>`).join('')}</select><span class="sub">filtre por tipo de cliente para comparar o mesmo perfil</span></div>
     <div class="box" id="plano"><div class="leg">carregando…</div></div><div id="prodBox"></div>`;
   // 4) DETALHES (fechados)
@@ -359,15 +359,14 @@ function comparar() {
   const inds = [...new Set([...IA.keys(), ...IB.keys()])].sort((x, y) => Math.max((IB.get(y) || {}).pct || 0, (IA.get(y) || {}).pct || 0) - Math.max((IB.get(x) || {}).pct || 0, (IA.get(x) || {}).pct || 0)).slice(0, 15);
   const atsO = ats.slice().sort((x, y) => Math.max((AA.get(y) || {}).pct || 0, (AB.get(y) || {}).pct || 0) - Math.max((AA.get(x) || {}).pct || 0, (AB.get(x) || {}).pct || 0));
   h += `<h2>Detalhes</h2>
-    <details class="full"><summary>O caminho inverso: o que ${esc(W.nome.split(' ')[0])} coloca e ${esc(F.nome.split(' ')[0])} não</summary><div class="box" id="plano2"></div></details>
     <details class="full"><summary>Todos os indicadores</summary><div class="box"><table><thead><tr><th class="l">Indicador</th><th class="cA">${esc(a.nome)}</th><th class="cB">${esc(b.nome)}</th></tr></thead><tbody>${M.map(([t, k, f]) => `<tr><td class="l">${t}</td><td>${f(a[k])}</td><td>${f(b[k])}</td></tr>`).join('')}</tbody></table></div></details>
     <details class="full"><summary>Que tipo de cliente cada um atende (carteiras parecidas em ${pc(igual)})</summary><div class="box"><table><thead><tr><th class="l">Tipo de cliente</th><th class="cA">${p1(a)}</th><th class="cB">${p1(b)}</th></tr></thead><tbody>${atsO.map((c) => { const x = AA.get(c) || {}, y = AB.get(c) || {}; return `<tr><td class="l">${esc(c)}</td><td>${pc(x.pct || 0)} <span class="sub">(${nf(x.n || 0)})</span></td><td>${pc(y.pct || 0)} <span class="sub">(${nf(y.n || 0)})</span></td></tr>`; }).join('')}</tbody></table></div></details>
     <details class="full"><summary>Os 10 produtos que cada um mais vende</summary><div class="g2"><div class="box"><table><thead><tr><th>#</th><th class="l cA">${esc(a.nome)}</th><th>% clientes</th><th>em ${p1(b)}</th><th>Faturado</th></tr></thead><tbody>${lst(ta, ib)}</tbody></table></div><div class="box"><table><thead><tr><th>#</th><th class="l cB">${esc(b.nome)}</th><th>% clientes</th><th>em ${p1(a)}</th><th>Faturado</th></tr></thead><tbody>${lst(tb, ia)}</tbody></table></div></div></details>
     <details class="full"><summary>Portfólio por indústria</summary><div class="box"><table><thead><tr><th class="l">Indústria (% dos clientes que compram)</th><th class="cA">${p1(a)}</th><th class="cB">${p1(b)}</th><th>Diferença</th></tr></thead><tbody>${inds.map((n) => { const x = (IA.get(n) || {}).pct || 0, y = (IB.get(n) || {}).pct || 0; return `<tr><td class="l">${esc(n)}</td><td>${pc(x)}</td><td>${pc(y)}</td><td class="${Math.abs(x - y) >= 15 ? 'ver' : ''}">${x - y > 0 ? '+' : ''}${nf(x - y, 1)} p.p.</td></tr>`; }).join('')}</tbody></table></div></details>
     <details class="full"><summary>Teste do universo do +MIX (ao vivo no CEVEN)</summary><div id="testeBox"></div></details>`;
   $('compBox').innerHTML = h;
-  plano(F, W); plano(W, F, 'plano2'); blocoTeste(a, b);
-  $('cAtv').onchange = () => { plano(F, W); plano(W, F, 'plano2'); desenhaMapa(); produtoBox(); };
+  plano(F, W); blocoTeste(a, b);
+  $('cAtv').onchange = () => { plano(COMP.F, COMP.W); desenhaMapa(); produtoBox(); };
   COMP = { a, b, F, W }; PROD = null;
   desenhaMapa();
 }
@@ -482,6 +481,13 @@ async function produtoBox() {
         <td>${x[3] ? `<b>${ddmm(x[3])}</b>` : '<span class="sub">fora da rota</span>'}</td>
         <td>${x[4] ? ddmm(x[4]) + ` <span class="sub">(há ${dc} dias)</span>` : '—'}</td></tr>`; }).join('')}</tbody></table>
       <div class="leg">Ordenado pela próxima visita: os primeiros são os que ${esc(W.nome.split(' ')[0])} visita antes. Na última visita aparece o motivo quando foi justificada sem pedido.</div>` : '<div class="leg">Nenhum cliente com o produto aparecendo no +MIX sem comprar.</div>'}</div>`;
+}
+// INVERTER O PLANO (22/10/2026: "coloca uma seta para trocar o Carlos pelo Elton e vice-versa"): o plano, o quadro do produto e a lista de cobranca passam a ser do outro
+function trocaPlano() {
+  if (!COMP) return;
+  const { F, W } = COMP; COMP.F = W; COMP.W = F; PROD = null;
+  $('planoNome').textContent = COMP.W.nome; $('planoOutro').textContent = COMP.F.nome.split(' ')[0];
+  plano(COMP.F, COMP.W); desenhaMapa(); produtoBox();
 }
 function escolheProduto(c, n) { PROD = { c: String(c), n }; desenhaMapa(); produtoBox(); const b = $('prodBox'); if (b) b.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 // +MIX DO CLIENTE (20/10/2026: "se eu clicar no cliente no mapa nao consigo ver o que falta ele comprar que esta no +MIX?")
