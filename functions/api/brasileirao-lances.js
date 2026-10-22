@@ -202,9 +202,10 @@ export async function onRequestGet({ request, env }) {
         obs: l.obs,
         chave: l.chave,
         pontos: pont.pontos,
-        pontos_nome: pont.nome,
+        // IMPEDIMENTO SEPARADO POR TIPO (Vitorio, 22/10/2026: "manter a punicao, so separar os tipos; os gerentes pediram para apurar separado"). Mesmos -5 pontos.
+        pontos_nome: l.nivel === 'impedimento' && /[|]gps[|]/.test(String(l.chave || '')) ? 'Impedimento — fora do local (GPS)' : l.nivel === 'impedimento' && /[|]visita0[|]/.test(String(l.chave || '')) ? 'Impedimento — check-in/check-out zerado (00:00)' : pont.nome,
         regra: regraDoRegulamento(l.chave, l.nivel),
-        pontos_motivo: pont.motivo,
+        pontos_motivo: l.nivel === 'impedimento' && /[|]gps[|]/.test(String(l.chave || '')) ? 'Check-out a mais de 500 m do cadastro do cliente' : l.nivel === 'impedimento' && /[|]visita0[|]/.test(String(l.chave || '')) ? 'Visita de 00:00: check-in e check-out sem permanência' : pont.motivo,
         qualificacao: q ? q.nivel : null,
         extra_qualificacao: q ? q.extra : 0
       };
