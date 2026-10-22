@@ -12,3 +12,7 @@ migrations_dir = "./migrations"
 # (ex.: Vitorio na Argentina -> EZE/Buenos Aires) e o CEVEN trava. Smart placement: o Cloudflare passa a rodar perto do backend (region fixa nao e aceita no Pages).
 [placement]
 mode = "smart"
+
+# Assistente +MIX no WhatsApp (22/10/2026): IA gratuita da Cloudflare (Workers AI, cota diaria gratis). Sem custo: Vitorio sem orcamento.
+[ai]
+binding = "AI"
