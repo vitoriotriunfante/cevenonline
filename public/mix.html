@@ -134,10 +134,11 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
 
   <section id="s-quinz">
     <h2>Quem compra mais produtos diferentes compra mais vezes?</h2>
+    <div class="ctl"><select id="qfFil"></select><select id="qfSup"></select><select id="qfVend"></select><select id="qfTipo"></select></div>
     <div class="box"><table id="qFx"></table><div class="leg" id="qFxLeg"></div></div>
     <div class="g2" style="margin-top:14px"><div class="box"><canvas id="cQ"></canvas></div><div id="qIns"></div></div>
-    <h2>As 11 filiais</h2>
-    <div class="box"><table id="qFil"></table></div>
+    <h2>Abrir por <select id="qfPor" style="font-size:13px;text-transform:none;letter-spacing:0"><option value="fil">Filial</option><option value="sup">Supervisor</option><option value="vend">Vendedor</option><option value="tipo">Tipo de cliente</option></select></h2>
+    <div class="box"><table id="qPorTab"></table></div>
     <h2>Dobradinha: o que muda da 1ª para a 2ª quinzena</h2>
     <div class="box" id="quinz"></div>
     <h2>O que significa cada coisa</h2>
@@ -148,8 +149,8 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
       <p><b>Recompra</b> (antes chamada de "fidelização"): % dos clientes que compraram neste mês e também tinham comprado no mês anterior. Mostra se o cliente continua com a gente.</p>
       <p><b>R$ por cliente:</b> faturado médio por cliente no mês.</p>
       <p><b>Ligação (correlação):</b> de -1 a +1. Perto de +1 = quanto mais mix, mais pedidos. Perto de 0 = uma coisa não tem a ver com a outra. Acima de 0,3 já é ligação clara.</p>
-      <p><b>Uso do +MIX:</b> % dos clientes que compraram no mês um produto novo para eles (não compravam nos 60 dias antes) que estava na recomendação do +MIX. Provisório.</p>
-      <p><b>Atividade do cliente:</b> o ramo do cliente no cadastro (Padaria, Mercearia, Mercado, Lanchonete…). Serve para provar que dois vendedores atendem o mesmo perfil.</p>
+      <p><b>Uso do +MIX:</b> % dos clientes que compraram um produto novo para eles (não compravam nos 60 dias antes) que estava na lista do +MIX gravada antes da compra. Medida real desde 21/10.</p>
+      <p><b>Tipo de cliente:</b> farmácia, padaria, posto, mercado… tirado do nome do cliente no cadastro. Serve para comparar o mesmo perfil de cliente.</p>
     </div>
   </section>
   <div class="leg" id="defs"></div>
@@ -165,7 +166,7 @@ const cor = (v) => getComputedStyle(document.documentElement).getPropertyValue(v
 document.querySelectorAll('#tabs button').forEach((b) => b.onclick = () => {
   document.querySelectorAll('#tabs button').forEach((x) => x.classList.toggle('on', x === b));
   document.querySelectorAll('section').forEach((s) => s.classList.toggle('on', s.id === 's-' + b.dataset.s));
-  if (b.dataset.s === 'graf') graficos(); if (b.dataset.s === 'cubo') { if (window._cuboPend) { window._cuboPend = false; filtrosCubo(); } else cubo(); } if (b.dataset.s === 'comp') { if (window._pVend) { const f = window._pVend; window._pVend = null; f(); } else comparar(); }
+  if (b.dataset.s === 'graf') graficos(); if (b.dataset.s === 'quinz') quinzenas(); if (b.dataset.s === 'cubo') { if (window._cuboPend) { window._cuboPend = false; filtrosCubo(); } else cubo(); } if (b.dataset.s === 'comp') { if (window._pVend) { const f = window._pVend; window._pVend = null; f(); } else comparar(); }
 });
 
 async function carrega() {
@@ -178,7 +179,7 @@ async function carrega() {
   $('kpis').innerHTML = [[nf(R.clientes_com_mix), 'clientes que compraram depois de ter a lista gravada'], [nf(R.clientes_que_usaram), 'compraram produto NOVO que estava no +MIX'],
     [pc(R.clientes_com_mix ? R.clientes_que_usaram / R.clientes_com_mix * 100 : null), 'taxa de uso geral'], [nf(R.skus_mix_vendidos), 'produtos novos vendidos via +MIX']]
     .map(([v, t]) => `<div class="k"><b>${v}</b><span>${t}</span></div>`).join('');
-  resumo(); filtros(); tabelaV(); quinzenas(); window._cuboPend = true;
+  resumo(); filtros(); tabelaV(); window._cuboPend = true;
   $('defs').innerHTML = Object.entries(D.definicoes || {}).map(([k, v]) => `<b>${esc(k.replace(/_/g, ' '))}:</b> ${esc(v)}`).join('<br>');
 }
 
@@ -503,27 +504,63 @@ function produtos() {
   $('ti').innerHTML = '<thead><tr><th>#</th><th class="l">Produto</th><th class="l">Indústria</th><th>Clientes novos via +MIX</th></tr></thead><tbody>' +
     (D.itens_mais_vendidos_via_mix || []).map((it, i) => `<tr><td>${i + 1}</td><td class="l">${esc(it.cod)} · ${esc(it.nome)}</td><td class="l">${esc(it.industria)}</td><td>${nf(it.clientes)}</td></tr>`).join('') + '</tbody>';
 }
-let chQ = null;
-function quinzenas() {
-  const FX = D.quinz_faixas || [], FI = D.quinz_filiais || [];
-  const cab = '<th>Clientes</th><th>Mix médio</th><th>Pedidos no mês</th><th>Dobradinha</th><th>Recompra</th><th>R$ por cliente</th>';
-  const lin = (x) => `<td>${nf(x.clientes)}</td><td>${nf(x.mix, 1)}</td><td class="ver">${nf(x.pedidos, 2)}</td><td>${pc(x.dobradinha_pct)}</td><td>${pc(x.recompra_pct)}</td><td>${brl(x.rs)}</td>`;
-  if (!FX.length) { $('qFx').innerHTML = '<tr><td class="l">Este estudo chega na próxima atualização dos dados.</td></tr>'; }
-  else {
-    $('qFx').innerHTML = `<thead><tr><th class="l">Mix do cliente no mês</th>${cab}</tr></thead><tbody>` + FX.map((x) => `<tr><td class="l">${esc(x.faixa)}</td>${lin(x)}</tr>`).join('') + '</tbody>';
-    $('qFxLeg').innerHTML = `Todos os clientes que compraram no mês (Varejo, 11 filiais), separados pela quantidade de produtos diferentes que compraram. Ligação mix × pedidos: <b>${nf(D.quinz_corr_mix_pedidos, 2)}</b>.`;
-    if (chQ) chQ.destroy();
-    chQ = new Chart($('cQ'), { type: 'bar', data: { labels: FX.map((x) => x.faixa), datasets: [{ label: 'pedidos no mês', data: FX.map((x) => x.pedidos), backgroundColor: '#38bdf8', yAxisID: 'y' }, { label: 'dobradinha (%)', data: FX.map((x) => x.dobradinha_pct), backgroundColor: '#22c55e', yAxisID: 'y2' }] },
-      options: { scales: { y: { position: 'left', title: { display: true, text: 'pedidos' } }, y2: { position: 'right', grid: { display: false }, title: { display: true, text: '%' } } } } });
-    const p0 = FX[0], pN = FX.filter((x) => x.clientes).slice(-1)[0];
-    $('qIns').innerHTML = `<div class="insight" style="margin-top:0"><b>Resposta:</b> ${pN.pedidos > p0.pedidos ? 'sim' : 'não'}. Cliente com ${esc(p0.faixa)} faz <b>${nf(p0.pedidos, 2)}</b> pedidos no mês; com ${esc(pN.faixa)} faz <b>${nf(pN.pedidos, 2)}</b>.<br>Dobradinha vai de ${pc(p0.dobradinha_pct)} para ${pc(pN.dobradinha_pct)}; R$ por cliente de ${brl(p0.rs)} para ${brl(pN.rs)}.<br>
-      <span class="sub">Atenção: isso mostra que andam juntos, não prova qual causa qual — cliente que compra mais vezes também tem mais chance de pegar mais produtos.</span></div>`;
+// QUINZENAS COM FILTROS (Vitorio, 22/10/2026: "abrir por supervisor e vendedor, e filtrar as filiais no grafico"): calculado aqui, cliente a cliente, a partir do cubo
+let chQ = null, QF = null;
+const FXQ = [[1, 3], [4, 7], [8, 12], [13, 20], [21, 40], [41, 99999]];
+async function quinzenas() {
+  if (!CB) { try { CB = await fetch('mix_cubo.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null); } catch (e) { CB = null; } }
+  if (!CB || !CB.cli.length || CB.cli[0].length < 7) { $('qFx').innerHTML = '<tr><td class="l">Os filtros chegam na próxima atualização dos dados.</td></tr>'; return; }
+  if (!QF) {   // um registro por cliente: mix, R$, pedidos, dobradinha, recompra
+    const vk = new Map(D.vendedores.map((v) => [v.filial + '|' + v.rca, v]));
+    QF = CB.cli.map((c) => ({ f: c[0], rca: c[1], tipo: c[2], peds: c[4], dob: c[5], rec: c[6], mix: 0, val: 0, v: vk.get(c[0] + '|' + c[1]) }));
+    for (const fa of CB.f) { const x = QF[fa[0]]; x.mix++; x.val += fa[2]; }
+    const fs = [...new Set(QF.map((x) => x.f))].sort();
+    $('qfFil').innerHTML = '<option value="">Todas as filiais</option>' + fs.map((f) => `<option>${f}</option>`).join('');
+    const ts = {}; QF.forEach((x) => ts[x.tipo] = (ts[x.tipo] || 0) + 1);
+    $('qfTipo').innerHTML = '<option value="">Todos os tipos de cliente</option>' + Object.entries(ts).sort((a, b) => b[1] - a[1]).map(([t, n]) => `<option value="${esc(t)}">${esc(t)} (${nf(n)})</option>`).join('');
+    const sups = () => { const f = $('qfFil').value; $('qfSup').innerHTML = '<option value="">Todos os supervisores</option>' + [...new Set(QF.filter((x) => !f || x.f === f).map((x) => x.v && x.v.supervisor).filter(Boolean))].sort().map((s) => `<option>${esc(s)}</option>`).join(''); vends(); };
+    const vends = () => { const f = $('qfFil').value, s = $('qfSup').value; $('qfVend').innerHTML = '<option value="">Todos os vendedores</option>' + D.vendedores.filter((v) => (!f || v.filial === f) && (!s || v.supervisor === s)).sort((a, b) => a.nome.localeCompare(b.nome)).map((v) => `<option value="${v.filial}|${v.rca}">${esc(v.nome)}</option>`).join(''); };
+    $('qfFil').onchange = () => { sups(); desenhaQ(); }; $('qfSup').onchange = () => { vends(); desenhaQ(); }; $('qfVend').onchange = desenhaQ; $('qfTipo').onchange = desenhaQ; $('qfPor').onchange = desenhaQ;
+    sups();
   }
-  $('qFil').innerHTML = FI.length ? `<thead><tr><th class="l">Filial</th>${cab}<th>Ligação mix × pedidos</th></tr></thead><tbody>` + FI.map((x) => `<tr><td class="l"><b>${esc(x.filial)}</b></td>${lin(x)}<td>${nf(x.corr_mix_pedidos, 2)}</td></tr>`).join('') + '</tbody>' : '';
+  desenhaQ();
+}
+function linhaQ(L) {
+  const n = L.length || 1, m = (k) => L.reduce((t, x) => t + x[k], 0) / n;
+  return { clientes: L.length, mix: m('mix'), pedidos: m('peds'), dob: m('dob') * 100, rec: m('rec') * 100, rs: m('val') };
+}
+function corrQ(L) {
+  const n = L.length; if (n < 10) return null;
+  const ma = L.reduce((t, x) => t + x.mix, 0) / n, mb = L.reduce((t, x) => t + x.peds, 0) / n;
+  let a = 0, b = 0, c = 0; for (const x of L) { a += (x.mix - ma) * (x.peds - mb); b += (x.mix - ma) ** 2; c += (x.peds - mb) ** 2; }
+  return b && c ? a / Math.sqrt(b * c) : null;
+}
+function desenhaQ() {
+  const f = $('qfFil').value, s = $('qfSup').value, vv = $('qfVend').value, t = $('qfTipo').value, por = $('qfPor').value;
+  const L = QF.filter((x) => (!f || x.f === f) && (!s || (x.v && x.v.supervisor === s)) && (!vv || x.f + '|' + x.rca === vv) && (!t || x.tipo === t));
+  const cab = '<th>Clientes</th><th>Mix médio</th><th>Pedidos no mês</th><th>Dobradinha</th><th>Recompra</th><th>R$ por cliente</th>';
+  const lin = (x) => `<td>${nf(x.clientes)}</td><td>${nf(x.mix, 1)}</td><td class="ver">${nf(x.pedidos, 2)}</td><td>${pc(x.dob)}</td><td>${pc(x.rec)}</td><td>${brl(x.rs)}</td>`;
+  const FX = FXQ.map(([a, b]) => ({ faixa: b > 9999 ? `${a}+ produtos` : `${a} a ${b} produtos`, ...linhaQ(L.filter((x) => x.mix >= a && x.mix <= b)) }));
+  const recorte = [f, s, vv && (D.vendedores.find((v) => v.filial + '|' + v.rca === vv) || {}).nome, t].filter(Boolean).join(' · ') || 'Varejo, 11 filiais';
+  $('qFx').innerHTML = `<thead><tr><th class="l">Mix do cliente no mês</th>${cab}</tr></thead><tbody>` + FX.map((x) => `<tr><td class="l">${esc(x.faixa)}</td>${x.clientes ? lin(x) : '<td colspan="6" class="sub">sem clientes</td>'}</tr>`).join('') + `<tr style="font-weight:800"><td class="l">Total</td>${lin(linhaQ(L))}</tr></tbody>`;
+  $('qFxLeg').innerHTML = `${nf(L.length)} clientes que compraram no mês (${esc(recorte)}), separados pela quantidade de produtos diferentes. Ligação mix × pedidos: <b>${nf(corrQ(L), 2)}</b>.`;
+  const G = FX.filter((x) => x.clientes);
+  if (chQ) chQ.destroy();
+  chQ = new Chart($('cQ'), { type: 'bar', data: { labels: G.map((x) => x.faixa), datasets: [{ label: 'pedidos no mês', data: G.map((x) => x.pedidos), backgroundColor: '#38bdf8', yAxisID: 'y' }, { label: 'dobradinha (%)', data: G.map((x) => x.dob), backgroundColor: '#22c55e', yAxisID: 'y2' }] },
+    options: { scales: { y: { position: 'left', title: { display: true, text: 'pedidos' } }, y2: { position: 'right', grid: { display: false }, title: { display: true, text: '%' } } } } });
+  if (G.length >= 2) { const p0 = G[0], pN = G[G.length - 1];
+    $('qIns').innerHTML = `<div class="insight" style="margin-top:0"><b>${esc(recorte)} — resposta:</b> ${pN.pedidos > p0.pedidos ? 'sim' : 'não'}. Cliente com ${esc(p0.faixa)} faz <b>${nf(p0.pedidos, 2)}</b> pedidos no mês; com ${esc(pN.faixa)} faz <b>${nf(pN.pedidos, 2)}</b>.<br>Dobradinha vai de ${pc(p0.dob)} para ${pc(pN.dob)}; R$ por cliente de ${brl(p0.rs)} para ${brl(pN.rs)}.<br>
+      <span class="sub">Atenção: isso mostra que andam juntos, não prova qual causa qual.</span></div>`; } else $('qIns').innerHTML = '';
+  // ABRIR POR filial / supervisor / vendedor / tipo de cliente
+  const chave = (x) => por === 'sup' ? x.f + ' · ' + ((x.v && x.v.supervisor) || '—') : por === 'vend' ? x.f + ' · ' + ((x.v && x.v.nome) || 'RCA ' + x.rca) : por === 'tipo' ? x.tipo : x.f;
+  const g = new Map(); L.forEach((x) => { const k = chave(x); if (!g.has(k)) g.set(k, []); g.get(k).push(x); });
+  const linhas = [...g.entries()].map(([k, A]) => ({ k, ...linhaQ(A), c: corrQ(A) })).sort((a, b) => b.clientes - a.clientes);
+  $('qPorTab').innerHTML = `<thead><tr><th class="l">${{ fil: 'Filial', sup: 'Supervisor', vend: 'Vendedor', tipo: 'Tipo de cliente' }[por]}</th>${cab}<th>Ligação mix × pedidos</th></tr></thead><tbody>` +
+    linhas.map((x) => `<tr><td class="l"><b>${esc(x.k)}</b></td>${lin(x)}<td>${nf(x.c, 2)}</td></tr>`).join('') + '</tbody>';
   const Q = D.estudo_quinzenas || {};
   $('quinz').innerHTML = `<table><tbody><tr><td class="l">Clientes que compraram nas duas quinzenas</td><td>${nf(Q.clientes_dobradinha)}</td></tr>
     <tr><td class="l">Produtos diferentes na 1ª quinzena (média)</td><td>${nf(Q.skus_q1_medio, 1)}</td></tr><tr><td class="l">Produtos diferentes na 2ª quinzena (média)</td><td>${nf(Q.skus_q2_medio, 1)}</td></tr>
-    <tr><td class="l">… dos quais NOVOS em relação à 1ª</td><td class="ver up">${nf(Q.skus_novos_na_q2_medio, 1)} (${pc(Q.pct_q2_que_e_novo)})</td></tr><tr><td class="l">… dos quais REPETIDOS</td><td>${nf(Q.skus_repetidos_na_q2_medio, 1)}</td></tr></tbody></table>`;
+    <tr><td class="l">… dos quais NOVOS em relação à 1ª</td><td class="ver up">${nf(Q.skus_novos_na_q2_medio, 1)} (${pc(Q.pct_q2_que_e_novo)})</td></tr><tr><td class="l">… dos quais REPETIDOS</td><td>${nf(Q.skus_repetidos_na_q2_medio, 1)}</td></tr></tbody></table><div class="leg">Este quadro é da base inteira (não segue os filtros).</div>`;
 }
 
 // ===================== EXPLORAR (CUBO DE VENDAS) =====================
