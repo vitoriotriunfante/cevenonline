@@ -301,7 +301,7 @@ async function main() {
   { const cliL = [], prodIdx = new Map(), prods = [], f = [];
     for (const o of alvo) {
       if (o.rota_hoje || !o.vsku || !o.vsku.size) continue;
-      const r = rec.get(o.filial + '|' + o.id); const ci = cliL.length; cliL.push([o.filial, String(o.rca), atv(o.cnpj), o.cnpj]);
+      const r = rec.get(o.filial + '|' + o.id); const ci = cliL.length; cliL.push([o.filial, String(o.rca), atv(o.cnpj), o.cnpj, o.peds.size, o.pedsQ.q1.size && o.pedsQ.q2.size ? 1 : 0, o.comprouMesAnt ? 1 : 0]);   // + pedidos no mes, dobradinha, recompra (Quinzenas com filtros, 22/10/2026)
       for (const [c, val] of o.vsku) {
         let pi = prodIdx.get(c); if (pi == null) { pi = prods.length; prodIdx.set(c, pi); prods.push([c, nomeProd.get(c) || '', IND[c] || 'SEM INDUSTRIA NO CATALOGO']); }
         f.push([ci, pi, Math.round(val), o.novosMix && o.novosMix.includes(c) ? 1 : 0]);   // venda nova via +MIX pela medida REAL
