@@ -89,7 +89,7 @@ async function dadosDaFilial(origin, filial, env, grupo) {
   // totais do dia como na TV (soma dos vendedores, sem rateio)
   const sm = (k) => vend.reduce((t, v) => t + (v[k] || 0), 0);
   out.dia = { pedidos_hoje: sm('pedN'), visitas_hoje: `${sm('visF')} de ${sm('visP')}`, zerados_hoje: vend.filter((v) => v.zerado_hoje).length, sem_nenhuma_visita: vend.filter((v) => v.visP > 0 && v.visF === 0).length,
-    meta_batida_no_mes: vend.filter((v) => (v.pct_meta_fat || 0) >= 100).length, vendedores: vend.length, devolucoes_mes: R$(sm('devN')), penaltis_hoje: vend.reduce((t, v) => t + (v.lances_hoje.penalti || 0), 0), gols_hoje: vend.reduce((t, v) => t + (v.lances_hoje.gol || 0), 0) };
+    meta_batida_no_mes: vend.filter((v) => v.metaN && (v.fatN + v.pendN) >= v.metaN).length, /* igual a TV: faturado + pendente */ vendedores: vend.length, devolucoes_mes: R$(sm('devN')), penaltis_hoje: vend.reduce((t, v) => t + (v.lances_hoje.penalti || 0), 0), gols_hoje: vend.reduce((t, v) => t + (v.lances_hoje.gol || 0), 0) };
   out.vendedores = vend.map((v) => ({ ...v, pct_meta_fat: v.pct_meta_fat == null ? 'sem dado' : String(v.pct_meta_fat).replace('.', ',') + '%' }));
   out.zerados_hoje = vend.filter((v) => v.zerado_hoje).map((v) => `${v.vendedor} (${v.supervisor || 'sem supervisor'}, visitas ${v.visitas_hoje})`);
   if (lances) out.lances_hoje_filial = lances.porNivel;
