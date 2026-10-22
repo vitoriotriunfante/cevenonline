@@ -72,7 +72,7 @@ async function respondeIA(env, origin, c, texto, historico) {
   if (!env.AI) return null;
   // filial citada agora ou nas ultimas mensagens (para 'e o supervisor X?' continuar na mesma filial)
   const conversa = [texto, ...historico.map((h) => h.content)].join(' ').toUpperCase();
-  const filiais = c.filial ? [c.filial] : [...new Set(conversa.match(/(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)/g) || [])];
+  const filiais = c.filial ? [c.filial] : [...new Set(conversa.match(/\b(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\b/g) || [])];
   const dados = {}; for (const f of [...new Set(filiais)].slice(0, 2)) dados[f] = await dadosDaFilial(origin, f, env);
   try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(c.celular, c.nome, 'debug', JSON.stringify(Object.fromEntries(Object.entries(dados).map(([k, v]) => [k, Object.keys(v)])))).run(); } catch (e) {}
   const sys = `Você é o assistente do +MIX da Triunfante no WhatsApp. Fala português do Brasil, de forma natural, curta (até 8 linhas) e direta, como um colega de vendas experiente.
