@@ -128,7 +128,10 @@ async function main() {
   for (let i = 0; i < rcas.length; i++) {
     const [f, r] = rcas[i].split('|');
     const alvoT = t0 + (i * 60000) / 80; if (Date.now() < alvoT) await espera(alvoT - Date.now());
-    const rm = await getJson(`${CEVEN}/api/rca/roteiro-mes?filial=${f.toLowerCase()}1&id=${r}`);
+    // LIMITE DE TEMPO (25/10/2026: um run ficou 2h30 preso aqui e foi cortado): passou de 30 min, os que faltam ficam sem carteira (avisado no log)
+    if (Date.now() - t0 > 30 * 60000) { if (!carteira.has('__corte')) { carteira.set('__corte', new Map()); console.log(`⚠️ carteiras: limite de 30 min atingido em ${i}/${rcas.length}; os demais ficam sem carteira nesta rodada`); } carteira.set(rcas[i], new Map()); continue; }
+    if (i % 50 === 0) console.log(`  carteiras ${i}/${rcas.length} (${Math.round((Date.now() - t0) / 60000)} min)`);
+    const rm = await getJson(`${CEVEN}/api/rca/roteiro-mes?filial=${f.toLowerCase()}1&id=${r}`, {}, 2);
     const m = new Map();
     for (const c of Array.isArray(rm) ? rm : []) { const cn = so(c.cnpj); if (cn.length === 14 && Number(c.latitude) && Number(c.longitude)) m.set(cn, { cnpj: cn, nome: c.nome_cliente, lat: Number(c.latitude), lon: Number(c.longitude), id: String(c.id_cliente || ''), hoje: String(c.data_visita || '').slice(0, 10) === hojeSP || (m.get(cn) || {}).hoje }); }
     carteira.set(rcas[i], m);
@@ -145,6 +148,7 @@ async function main() {
       infoCli.set(k, x);
     }
   }
+  carteira.delete('__corte');
   // MEDICAO CORRETA (Vitorio, 20/10/2026: "o +MIX nao deveria constar os produtos que o cliente ja compra... se o cara comprar o D, amanha so aparece o E"):
   // a recomendacao tem que ser a do DIA DA VISITA, gravada ANTES dela. Entram como alvo tambem os clientes da ROTA DE HOJE (mesmo sem compra no mes).
   { const ja = new Set(alvo.map((o) => o.filial + '|' + o.cnpj));
