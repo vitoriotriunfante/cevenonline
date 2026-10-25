@@ -18,6 +18,7 @@ const P = [
  [DIR, 'responde sobre mais mix?'], [DIR, 'quantos clientes na rota hoje em TBL?'], [DIR, 'quantas visitas foram feitas hoje?'], [DIR, 'quantos pontos a Tamara tem na champions?'], [DIR, 'qual posição está o Gilmar Poteriko?'], [DIR, 'quais clientes ainda faltam visitar hoje?'], [DIR, 'quais clientes faltam visitar da vendedora Tamara?'], [DIR, 'falta visitar supervisor Kleberson'],
  [DIR, 'a Luana visitou 5 clientes já? quais?'], [DIR, 'quais clientes ela visitou e não vendeu? quais as justificativas que ela deu?', ['a Luana visitou 5 clientes já? quais?']],
  [DIR, 'incentivo TPH'], [DIR, 'incentivo do supervisor Kleberson'], [DIR, 'recorrência'], [DIR, 'resgates em TBL'], [DIR, 'liga AS'], [DIR, 'compromisso da semana TSJ'], [DIR, 'divergências'], [DIR, 'motivos de devolução'], [DIR, 'bola cheia'],
+ [DIR, 'cortes e bloqueados de hoje'], [DIR, 'quantos inativos reativados hoje?'], [DIR, 'gestão de campo por filial'], [DIR, 'me manda o relatório das 18:30'], [DIR, 'como fechou ontem?'], [DIR, 'marca própria'], [DIR, 'devoluções entradas hoje'], [GER_TPH, 'me manda o boletim das 17h'], [GER_TPH, 'cortes de hoje'],
  [GER_API, 'como está minha filial?'], [GER_API, 'zerados'], [GER_API, 'por supervisor'], [GER_API, 'como está TPH?'], [GER_API, 'quem compra trident?'],
  [GER_TPH, 'como está?'], [GER_TPH, 'por supervisor'], [GER_TPH, 'liga'], [GER_TPH, 'hoje rota'], [GER_TPH, 'compromisso'],
 ];
