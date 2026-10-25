@@ -344,12 +344,12 @@ async function main() {
     dbv.close();
     const forn = new Map();   // FIL|cod -> fornecedor
     try { const cat = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config', 'catalogo_produtos_por_filial.json'), 'utf8')); const C = cat.campos; const iS = C.indexOf('sigla'), iC = C.indexOf('codprod'), iF = C.indexOf('fornecedor');
-      for (const l of cat.linhas || []) forn.set(String(l[iS]).toUpperCase() + '|' + String(l[iC]), String(l[iF] || '')); } catch (e) { console.log('catalogo sem fornecedor:', e.message); }
+      for (const l of cat.linhas || []) { forn.set(String(l[iS]).toUpperCase() + '|' + String(l[iC]), String(l[iF] || '')); if (l[iF] && !forn.has('*|' + String(l[iC]))) forn.set('*|' + String(l[iC]), String(l[iF])); } } catch (e) { console.log('catalogo sem fornecedor:', e.message); }   /* '*|cod' = fornecedor do mesmo produto em qualquer filial (catalogo da filial pode nao ter) */
     const porF = new Map();
     for (const x of rows) {
       const m = porF.get(x.f) || porF.set(x.f, { clientes: {}, produtos: {}, l: [] }).get(x.f);
       m.clientes[String(x.c)] = x.n || '';
-      if (!m.produtos[String(x.cod)]) m.produtos[String(x.cod)] = [x.des || '', forn.get(String(x.f).toUpperCase() + '|' + String(x.cod)) || ''];
+      if (!m.produtos[String(x.cod)]) m.produtos[String(x.cod)] = [x.des || '', forn.get(String(x.f).toUpperCase() + '|' + String(x.cod)) || forn.get('*|' + String(x.cod)) || ''];
       m.l.push([Number(x.d.replace(/-/g, '')), x.r, String(x.c), String(x.cod), Number(x.q) || 0, Math.round((Number(x.v) || 0) * 100) / 100]);
     }
     fs.mkdirSync(path.join(__dirname, '..', 'public', 'vendas_mes'), { recursive: true });

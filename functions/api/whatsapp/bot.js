@@ -524,7 +524,7 @@ async function vendasEscopo(B, E) {
   const ok = arqs.filter(Boolean); if (!ok.length) return null;
   const restrito = E.grupo || E.supervisor || E.rca, rcas = new Set(E.vend.map((v) => v.filial + '|' + v.rca));
   const linhas = [], prod = {}, cli = {}; let ate = '';
-  for (const a of ok) { if (a.ate > ate) ate = a.ate; for (const [k, v] of Object.entries(a.produtos || {})) prod[k] = v; for (const [k, v] of Object.entries(a.clientes || {})) cli[a.f + '|' + k] = v;
+  for (const a of ok) { if (a.ate > ate) ate = a.ate; for (const [k, v] of Object.entries(a.produtos || {})) if (!prod[k] || (!prod[k][1] && v[1])) prod[k] = v; for (const [k, v] of Object.entries(a.clientes || {})) cli[a.f + '|' + k] = v;
     for (const l of a.l || []) if (!restrito || rcas.has(a.f + '|' + l[1])) linhas.push({ f: a.f, d: l[0], r: l[1], c: l[2], p: l[3], q: l[4], v: l[5] }); }
   return { linhas, prod, cli, ate, filiais: ok.map((a) => a.f) };
 }
@@ -547,9 +547,16 @@ function achaProdutos(t, V, E) {
   const cods = Object.keys(sc).filter((c) => sc[c] === melhor);
   return { cods: new Set(cods), termo: titulo(toks.filter((w) => cods.some((c) => sem(V.prod[c][0]).includes(w))).join(' ')) };
 }
+// nome legivel da industria: tira codigo/prefixo ("A - ARCOR DO BRASIL LTDA" -> "Arcor do Brasil"), sem LTDA/S.A.
+function nomeIndustria(I) {
+  const n = String(I[0] || '').replace(/^[A-Z0-9]{1,3}\s*-\s*/i, '').replace(/\b(LTDA|S\.?\s?A\.?|EIRELI|ME|EPP|IND(USTRIA)?|COM(ERCIO)?|DE ALIMENTOS)\b\.?/gi, '').replace(/\s+/g, ' ').trim();
+  return titulo(n.split(' ').slice(0, 3).join(' ')) || titulo(String(I[0]));
+}
 function achaIndustria(t, V) {
   const inds = [...new Set(Object.values(V.prod).map((p) => p[1]).filter(Boolean))];
-  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w));
+  // apelidos: como o time fala x como o fornecedor esta no catalogo (Mars = MASTERFOODS etc.)
+  const APELIDO = { MARS: 'MASTERFOODS', MASTERFOODS: 'MASTERFOODS', LACTA: 'MONDELEZ', OREO: 'MONDELEZ', NESTLE: 'NESTLE', GAROTO: 'GAROTO', KITKAT: 'NESTLE', ELMA: 'PEPSICO', PEPSICO: 'PEPSICO', KELLOGGS: 'KELLOGG', KELLOGG: 'KELLOGG' };
+  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w)).flatMap((w) => (APELIDO[w] ? [w, APELIDO[w]] : [w]));
   const hit = inds.filter((i) => toks.some((w) => sem(i).split(/[^A-Z0-9]+/).includes(w)));
   return hit.length ? hit : null;
 }
@@ -576,7 +583,7 @@ async function respIndustria(B, E, t, pessoa) {
   const I = achaIndustria(t, V); if (!I) return null;
   const per = periodoDe(t, V);
   const L = V.linhas.filter((l) => I.includes((V.prod[l.p] || [])[1]) && per.ok(l) && (!pessoa || pessoa.tipo !== 'vend' || (l.f === pessoa.alvo.filial && l.r === pessoa.alvo.rca)));
-  const nomeI = titulo(I[0].split(' ').slice(0, 2).join(' '));
+  const nomeI = nomeIndustria(I);
   if (!L.length) return `🏭 *${nomeI}* — ${E.nome}, ${per.nome}: nenhuma venda encontrada.`;
   const tot = L.reduce((a, l) => a + l.v, 0), clis = new Set(L.map((l) => l.f + '|' + l.c));
   const todosCli = new Set(V.linhas.filter(per.ok).map((l) => l.f + '|' + l.c));
@@ -593,7 +600,7 @@ async function respRecuperacao(B, E, t) {
   const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
   const I = achaIndustria(t, V), Pr = I ? null : achaProdutos(t, V, E); if (!I && !Pr) return null;
   const cods = new Set(Object.entries(V.prod).filter(([c, p]) => (I ? I.includes(p[1]) : Pr.cods.has(c))).map(([c]) => c));
-  const nome = I ? titulo(I[0].split(' ').slice(0, 2).join(' ')) : Pr.termo;
+  const nome = I ? nomeIndustria(I) : Pr.termo;
   const H = await Promise.all(E.filiais.map((f) => B.raw(`public/mix_hist/${f}.json`).then((x) => { try { return { f, c: JSON.parse(x).c || {} }; } catch (e) { return { f, c: {} }; } })));
   const porF = {}; let n = 0;
   for (const { f, c } of H) for (const [cnpj, s] of Object.entries(c)) { const parou = String(s).split(',').filter((x) => cods.has(x.split(':')[0])); if (parou.length) { porF[f] = (porF[f] || 0) + 1; n++; } }
@@ -624,11 +631,13 @@ async function respTopProdutos(B, E, t) {
 async function respPreco(B, E, t) {
   const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
   const P = achaProdutos(t, V, E); if (!P) return null;
-  const L = V.linhas.filter((l) => P.cods.has(l.p) && l.q > 0);
+  const L = V.linhas.filter((l) => P.cods.has(l.p) && l.q > 0 && l.v > 0);   /* sem bonificacao (R$ 0) */
   if (!L.length) return `Sem venda de ${P.termo} no mês em ${E.nome}.`;
   const pu = L.map((l) => l.v / l.q).sort((a, b) => a - b), tot = L.reduce((a, l) => ({ v: a.v + l.v, q: a.q + l.q }), { v: 0, q: 0 });
-  const porF = [...somaPor(L, (l) => l.f)].map(([f, x]) => `• ${f}: ${R$(x.q ? x.v / x.q : null)}/un.`);
-  return [`💲 *Preço médio — ${P.termo}* (${E.nome}, mês)`, `Média ponderada: *${R$(tot.v / tot.q)}*/un. · menor ${R$(pu[0])} · maior ${R$(pu[pu.length - 1])} (por item de pedido)`, ...(E.nacional ? porF : [])].join('\n');
+  const porF = [...somaPor(L, (l) => l.f)].map(([f, x]) => `• ${f}: ${R$(x.q ? x.v / x.q : null)} (média)`);
+  const med = pu[Math.floor(pu.length / 2)], q1 = pu[Math.floor(pu.length * 0.1)], q9 = pu[Math.floor(pu.length * 0.9)];
+  return [`💲 *Preço praticado — ${P.termo}* (${E.nome}, mês)`, `Preço típico: *${R$(med)}* por unidade de venda · faixa normal ${R$(q1)} a ${R$(q9)} (${N(L.length)} itens de pedido)`, ...(E.nacional ? porF : []),
+    '_Unidade de venda = como foi digitado no pedido (caixa ou unidade). Bonificação (R$ 0) fora da conta._'].join('\n');
 }
 async function respMarcaPropriaVivo(B, E, t) {
   const V = await vendasEscopo(B, E); if (!V) return null;
@@ -906,7 +915,7 @@ async function respostaInterna(B, c, texto, anteriores) {
   let pessoa = achaPessoa(E, t);
   if (E.rca && E.vend[0]) pessoa = { tipo: 'vend', alvo: E.vend[0], empate: [E.vend[0]] };   /* vendedor: toda pergunta e sobre ele mesmo */
   if (!pessoa && /\b(ELA|ELE|DELA|DELE|DESSA|DESSE|ESSA|ESSE|NELA|NELE|PRA ELA|PRA ELE|MESMA|MESMO)\b/.test(t)) for (const h of anteriores || []) { pessoa = achaPessoa(E, sem(h)); if (pessoa) break; }
-  if (pessoa && pessoa.tipo === 'vend' && /QUA(L|IS) (OS )?CLIENTES?|QUAIS\??$|JUSTIFICATIV|MOTIVO|NAO VENDEU|SEM VENDA|VISITOU|VISITAD|CHECK|ONDE (ELA|ELE) (FOI|ESTA)|POSITIVOU|VENDEU (PARA|PRA)/.test(t)) return respClientesDia(pessoa.alvo, t);
+  if (pessoa && pessoa.tipo === 'vend' && !/COMPR|PRODUTO|SKU/.test(t) && /QUA(L|IS) (OS )?CLIENTES?|QUAIS\??$|JUSTIFICATIV|MOTIVO|NAO VENDEU|SEM VENDA|VISITOU|VISITAD|CHECK|ONDE (ELA|ELE) (FOI|ESTA)|POSITIVOU|VENDEU (PARA|PRA)/.test(t)) return respClientesDia(pessoa.alvo, t);
   // vendas item a item (produto, industria, cliente, preco, top produtos, marca propria ao vivo)
   if (ehMP) { const r = await respMarcaPropriaVivo(B, E, t); return r || respRelatorio(B, c, t); }
   if (/PRECO|QUANTO SAIU/.test(t)) { const r = await respPreco(B, E, t); if (r) return r; }
