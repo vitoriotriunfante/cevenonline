@@ -10,6 +10,7 @@
 // REGRA:   sem dado novo do CEVEN, mantém a última árvore gravada; sem árvore nenhuma, não altera nada (nunca inventa supervisor).
 // =========================================================================
 import { tokenAdmin } from './ceven_admin_token.js';
+import { CEVEN_APP_SECRET } from './ceven_auth.js';
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 // UNIVERSO = TUDO O QUE EXISTE HOJE NO CEVEN (Vitorio, 20/10/2026: "o que vale e a base atual de vendedores no CEVEN... se ele e adm, interno, rca ou qualquer
 // outra coisa... VC busca a arvore inteira todos os dias"). O CEVEN tem DUAS listas que nao batem: a do gerente (tabelas-cascata, 549 RCAs em 20/10) e a da
@@ -39,7 +40,6 @@ export const GERENTES = [
   { sigla: 'ABC', filialKey: 'abc1', loginNome: 'Marcos Colling' }, { sigla: 'TCA', filialKey: 'tca1', loginNome: 'Becher' },
   { sigla: 'TBL', filialKey: 'tbl1', loginNome: 'Fabio Machado' }
 ];
-const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
 const UA = { 'User-Agent': 'Mozilla/5.0', 'Content-Type': 'application/json', 'X-App-Secret': CEVEN_APP_SECRET };
 export const limpaSup = (n) => String(n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').toUpperCase().replace(/\s+/g, ' ').trim();
 

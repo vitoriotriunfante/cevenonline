@@ -11,7 +11,7 @@ const MAX = Number(arg('max', 12000)); let seed = Number(arg('seed', 7));
 const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
 const pick = (L) => L[Math.floor(rnd() * L.length)];
 const tmp = path.join(os.tmpdir(), 'jota_banco_' + Date.now() + '.mjs');
-fs.writeFileSync(tmp, fs.readFileSync(path.join(raiz, 'functions/api/whatsapp/bot.js'), 'utf8'));
+fs.writeFileSync(tmp, fs.readFileSync(path.join(raiz, 'functions/api/whatsapp/bot.js'), 'utf8').replace("'../../../public/regras.js'", JSON.stringify(new URL('../public/regras.js', import.meta.url).href)));
 const { _teste } = await import(pathToFileURL(tmp).href);
 const { BANCO, PERIODOS, INDUSTRIAS, ESTILOS } = await import(pathToFileURL(path.join(raiz, 'MAIS_MIX/JOTA/reuniao/banco_perguntas.mjs')).href);
 const ORIGIN = 'https://ceven-cftv-matrix.pages.dev';

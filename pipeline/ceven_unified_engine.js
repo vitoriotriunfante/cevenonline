@@ -28,6 +28,7 @@ const path = require('path');
 const axios = require('axios');
 // BASE UNICA (Vitorio, 07/10/2026: "um motor so alimentando varias fontes"): antes de perguntar ao CEVEN, le o que a varredura central ja gravou (ver pipeline/fonte_base.js)
 const fonteBase = require('./fonte_base');
+const R = require('../public/regras.js'); // regras unicas (public/regras.js): canais, data de Brasilia, envio Evolution
 
 // Limite global: no maximo 6 chamadas em andamento ao mesmo tempo (CEVEN e WhatsApp), qualquer que seja o lote.
 // Antes os lotes somavam ate 24+ chamadas simultaneas e sobrecarregavam o servidor do CEVEN.
@@ -118,8 +119,8 @@ function cleanName(name) {
 // Classificação de canal real (area_atuacao do CEVEN). Grupos de negócio definidos por Vitório em 22/09/2026:
 // Varejo = VJ + FARMA + PET VJ + ESP · AS = AS + PET AS · Excluídos de ambos: SUP, GER, NULO (sem classificação).
 // Lista de exclusões adicionais (contas específicas) a ser fornecida por Vitório — ainda não aplicada.
-const CANAIS_VAREJO = ['VJ', 'FARMA', 'PET VJ', 'ESP'];
-const CANAIS_AS = ['AS', 'PET AS'];
+const CANAIS_VAREJO = R.CANAIS_VAREJO;
+const CANAIS_AS = R.CANAIS_AS;
 function isCanalVarejo(canal) { return CANAIS_VAREJO.includes(canal); }
 function isCanalAS(canal) { return CANAIS_AS.includes(canal); }
 
@@ -887,7 +888,7 @@ function filiaisSemDadosAbertura(ab) {
 }
 async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
   try {
-    const rb = await fonteBase.carregarBase(Object.keys(FILIAIS_MAP), new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }));
+    const rb = await fonteBase.carregarBase(Object.keys(FILIAIS_MAP), R.hojeSP());
     console.log('🗄️ Base única (abertura): ' + (rb.ligada ? rb.rcas + ' RCAs de ' + rb.filiais + ' filiais' : 'desligada'));
   } catch (e) { /* sem base: coleta pelo CEVEN, com tentativas */ }
   // TRAVA DE COMPLETUDE (15/10/2026): repete ate TODAS as filiais e TODOS os vendedores lidos; nunca sai com "dados incompletos"
@@ -1407,9 +1408,8 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
 
 // Validador Oficial de Calendário Operacional (Fins de Semana, Feriados e Exceções Esporádicas)
 function verificarPermissaoCalendario(dataIso, diretrizes = null, args = {}) {
-  const dataHoje = dataIso || new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
-  const dtBrt = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-  const diaSemana = dtBrt.getDay(); // 0 = Domingo, 6 = Sábado
+  const dataHoje = dataIso || R.hojeSP();
+  const diaSemana = R.relogioSP().dow; // 0 = Domingo, 6 = Sábado
   const isFimDeSemana = (diaSemana === 0 || diaSemana === 6);
 
   if (!diretrizes) {
@@ -1479,14 +1479,9 @@ async function enviarWhatsapp(numero, texto, tentativas = 3) {
 
   for (let i = 1; i <= tentativas; i++) {
     try {
-      const res = await axios.post(`${EVO_URL}/message/sendText/${EVO_INSTANCE}`, {
-        number: numero,
-        text: texto
-      }, {
-        headers: { 'Content-Type': 'application/json', apikey: EVO_KEY },
-        timeout: 15000
-      });
-      return { sucesso: true, id: res.data?.key?.id || 'OK' };
+      const res = await R.evolution({ url: EVO_URL, key: EVO_KEY, instancia: EVO_INSTANCE }, '/message/sendText', { number: numero, text: texto }, 15000);
+      if (!res.ok) throw new Error(res.erro || ('Evolution respondeu HTTP ' + res.status));
+      return { sucesso: true, id: res.resposta?.key?.id || 'OK' };
     } catch (err) {
       console.warn(`  ⚠️ Tentativa ${i} falhou para ${numero}: ${err.message}`);
       if (i === tentativas) { FALHAS_ENVIO++; return { sucesso: false, erro: err.message }; }
@@ -1509,7 +1504,7 @@ async function main() {
   const destino = args.destino || 'dry_run';
   process.env.CEVEN_DESTINO_ATUAL = destino;
   const hora = args.hora || '11:00';
-  const dataHoje = args.data || new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
+  const dataHoje = args.data || R.hojeSP();
 
   const diretrizes = carregarDiretrizesOperacionais(args);
 

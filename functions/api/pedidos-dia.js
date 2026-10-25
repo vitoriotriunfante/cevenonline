@@ -7,8 +7,9 @@
 // USO:  GET /api/pedidos-dia?dia=AAAA-MM-DD[&filial=TBL]  ->  { dia, pedidos: [{ filial, rca, id_cliente, num, status_pedido, categoria_corte, itens_cortados, ... }], clientes }
 // REGRA: só o que o CEVEN respondeu (falha nunca entra no cache). Nunca inventa: cliente sem análise simplesmente não aparece.
 // =========================================================================
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 const cors = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
-const hojeSP = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+const hojeSP = () => R.hojeSP();
 
 export async function onRequestGet({ env, request }) {
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 indisponivel' }), { status: 503, headers: cors });

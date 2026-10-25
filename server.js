@@ -24,7 +24,7 @@ const apiClient = axios.create({
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
     'Referer': 'https://ceven.drivetriunfante-locomotiva.com.br/setup',
     'Accept': 'application/json, text/plain, */*',
-    'X-App-Secret': '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d'
+    'X-App-Secret': (process.env.CEVEN_APP_SECRET || '')
   }
 });
 

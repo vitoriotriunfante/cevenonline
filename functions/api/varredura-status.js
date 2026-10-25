@@ -9,15 +9,11 @@
 //           a varredura leva para percorrer todos). Quem tem mais de 15 min de idade a TV ignora e lê ao vivo
 //           (tv-vendedor.js, lerCentral).
 // =========================================================================
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: CORS });
 
-function dataHojeBrasilia() {
-  const p = {};
-  new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' })
-    .formatToParts(new Date()).forEach((x) => (p[x.type] = x.value));
-  return `${p.year}-${p.month}-${p.day}`;
-}
+function dataHojeBrasilia() { return R.hojeSP(); }
 const quantil = (a, q) => (a.length ? a[Math.min(a.length - 1, Math.floor(q * a.length))] : null);
 
 export async function onRequestGet({ env }) {

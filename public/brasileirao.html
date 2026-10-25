@@ -1090,6 +1090,7 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
   </p>
 </footer>
 
+<script src="/regras.js"></script><!-- regras unicas (public/regras.js) -->
 <script>
 let DADOS = null;
 
@@ -1310,12 +1311,7 @@ function acharPontuacaoRegra(chave, nivel) {
   return { nome: nivel ? nivel.toUpperCase() : 'LANCE', pontos: 0, motivo: 'Lance auditado' };
 }
 
-function hojeISOBrasilia() {
-  const p = {};
-  new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' })
-    .formatToParts(new Date()).forEach(x => p[x.type] = x.value);
-  return `${p.year}-${p.month}-${p.day}`;
-}
+function hojeISOBrasilia() { return REGRAS.hojeSP(); }
 
 async function carregarLances() {
   const tbody = document.getElementById('tbody-lances');

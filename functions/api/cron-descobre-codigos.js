@@ -9,6 +9,7 @@
 //       /api/rca/produtividade). 4 chamadas simultâneas no máximo. Roda de madrugada pelo workflow descoberta-codigos.yml (loop até fechar o ciclo).
 // REGRA: nunca inventa; só registra o que o CEVEN devolveu. Somente leitura do CEVEN; só escreve nas tabelas próprias (codigos_descobertos, descoberta_cursor).
 // =========================================================================
+import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
 
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const FILIAIS = ['TBL', 'TPH', 'TCV', 'ABC', 'API', 'TSJ', 'TBE', 'TPA', 'MCD', 'TCA', 'TCG'];
@@ -23,7 +24,7 @@ const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, header
 
 async function getJson(url, ms = 20000) {
   try {
-    const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d' }, signal: AbortSignal.timeout(ms) });
+    const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(ms) });
     if (!r.ok) return null;
     return JSON.parse(await r.text());
   } catch { return null; }

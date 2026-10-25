@@ -21,13 +21,13 @@ const Database = require('better-sqlite3');
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const SITE = 'https://ceven-cftv-matrix.pages.dev';
 const INICIO_REAL = '2026-10-21';   // primeiro dia com a lista gravada ANTES das visitas
-const hojeSP = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+const hojeSP = require('../public/regras.js').hojeSP();
 const MES = process.argv[2] || hojeSP.slice(0, 7);
 const ATE = (() => { const d = new Date(hojeSP + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 1); const o = d.toISOString().slice(0, 10); return o.slice(0, 7) === MES ? o : `${MES}-31`; })();
 const INI = `${MES}-01`;
 // PRODUTO NOVO = nao comprou nos 60 dias antes do mes (Vitorio, 20/10/2026: "produto tem que ser recomprado a cada 60 dias no maximo; 90 dias ja e galinha morta")
 const ANTES = (() => { const d = new Date(INI + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 60); return d.toISOString().slice(0, 10); })();
-const VAREJO = ['VJ', 'FARMA', 'PET VJ', 'ESP'];
+const VAREJO = require('../public/regras.js').CANAIS_VAREJO; // regras unicas
 // industria de cada produto (catalogo da Relacao de itens por filial) para comparar PORTFOLIO POR INDUSTRIA entre vendedores
 // ATIVIDADE DO CLIENTE (cadastro do CEVEN: A02 Padarias, A14 Mercearias, A33 Mercados, A40 Lanchonetes...) para provar se dois vendedores atendem o mesmo perfil (20/10/2026)
 const ATV = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'atividade_por_cnpj.json'), 'utf8')); } catch (e) { return { nomes: {}, cnpj: {} }; } })();

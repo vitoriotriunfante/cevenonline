@@ -20,8 +20,9 @@ const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin'
 const resp = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: CORS });
 
 import { calculaResumoMes } from '../_lib/resumo_base.js';
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 
-const hojeSP = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+const hojeSP = () => R.hojeSP();
 
 export async function onRequestGet({ env }) {
   if (!env.DB) return resp({ erro: 'D1 (env.DB) não configurado' }, 503);

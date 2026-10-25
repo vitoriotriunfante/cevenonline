@@ -5,9 +5,10 @@
 //   rodam só a cada 30 min em vez de a cada 2/5/15 min. Sábado conta como dia útil (pode ter venda).
 //   Sem estado: decide pelo relógio. ?forcar=1 sempre roda.
 // =========================================================================
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 export function agoraBrasilia(d = new Date()) {
-  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', hour12: false, weekday: 'short', hour: '2-digit', minute: '2-digit' }).formatToParts(d).map((x) => [x.type, x.value]));
-  return { dow: p.weekday, h: Number(p.hour) % 24, m: Number(p.minute) };
+  const c = R.relogioSP(d);
+  return { dow: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][c.dow], h: c.h, m: c.m };
 }
 export function foraDoHorario(d = new Date()) {
   const { dow, h } = agoraBrasilia(d);

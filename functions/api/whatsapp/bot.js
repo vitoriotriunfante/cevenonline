@@ -15,6 +15,7 @@
 // SEGREDOS (Cloudflare Pages, nunca no codigo): EVO_URL, EVO_KEY, EVO_INSTANCE, BOT_WEBHOOK_KEY.
 // REGRA: nunca inventar nem estimar. Sem dado = "sem dado". Pertence ao Projeto B (WhatsApp), autorizado pelo Vitorio em 22/10/2026.
 // =========================================================================
+import R from '../../../public/regras.js'; // regras unicas (public/regras.js)
 const so = (x) => String(x || '').replace(/\D/g, '');
 const R$ = (n) => n == null || isNaN(n) ? 'sem dado' : 'R$ ' + Math.round(n).toLocaleString('pt-BR');
 const P = (a, b) => (b ? (a / b * 100).toFixed(1).replace('.', ',') + '%' : 'sem dado');
@@ -23,11 +24,11 @@ const titulo = (s) => String(s || '').toLowerCase().replace(/(^|\s)\S/g, (c) => 
 const sem = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
 const nome2 = (n) => { const p = String(n || '').replace(/^CLT\s*-?\s*/i, '').split(' ').filter((w) => w && !/^(DE|DA|DO|DOS|DAS|E|A)$/i.test(w)); return titulo(p.length > 1 ? p[0] + ' ' + p[p.length - 1] : p[0] || ''); };
 // vendedor sempre com CODIGO e CANAL (sugestao do Vitorio, 25/10/2026: "identifique sempre o vendedor com COD e se ele e AS ou varejo")
-const canalCurto = (c) => { const x = String(c || '').toUpperCase(); return /^(VJ|PET VJ|FARMA|ESP)$/.test(x) ? 'varejo' : /^(AS|PET AS)$/.test(x) ? 'AS' : x ? x.toLowerCase() : ''; };
+const canalCurto = R.canalCurto;
 const vn = (v) => (v && v.rca ? `${nome2(v.nome)} (${v.rca}${canalCurto(v.canal) ? ' · ' + canalCurto(v.canal) : ''})` : nome2(v && v.nome));
 const FILIAIS = ['TPH', 'ABC', 'API', 'TBL', 'TCV', 'TSJ', 'TCA', 'TBE', 'TPA', 'MCD', 'TCG'];
 const FRX = /\b(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\b/;
-const VAREJO = new Set(['VJ', 'PET VJ', 'FARMA', 'ESP']);
+const VAREJO = new Set(R.CANAIS_VAREJO);
 const SUGESTAO = '🎯 *Sugestão do Jota:* ';
 
 // celular brasileiro com e sem o 9: 5541987525605 <-> 554187525605
@@ -46,14 +47,10 @@ async function tabelas(db) {
 }
 async function enviar(env, numero, texto) {
   if (!env.EVO_URL || !env.EVO_KEY) return { ok: false, erro: 'EVO_URL/EVO_KEY nao configurados' };
-  const inst = env.EVO_INSTANCE || 'ceven-noc';
-  const r = await fetch(`${String(env.EVO_URL).replace(/\/$/, '')}/message/sendText/${inst}`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json', apikey: env.EVO_KEY },
-    body: JSON.stringify({ number: numero, text: texto }), signal: AbortSignal.timeout(20000)
-  });
+  const r = await R.evolution(R.evoCfg(env), '/message/sendText', { number: numero, text: texto });
   return { ok: r.ok, status: r.status };
 }
-const hojeSP = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+const hojeSP = () => R.hojeSP();
 // dias uteis (seg-sex) que faltam no mes, contando hoje; feriados nao sao descontados (dito na resposta)
 function diasUteisRestantes() {
   const [y, m, d] = hojeSP().split('-').map(Number); let n = 0;
@@ -420,7 +417,7 @@ const normArq = (s) => sem(s).replace(/[^A-Z0-9]+/g, '_');
 async function respRelatorio(B, c, t) {
   let ciclo = CICLOS.find(([re]) => re.test(t));
   if (!ciclo && /ONTEM|COMO FECHOU/.test(t)) ciclo = CICLOS[5];
-  if (!ciclo) { const h = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', hour: '2-digit', hour12: false }).format(new Date())) % 24; ciclo = h >= 19 ? CICLOS[5] : h >= 17 ? CICLOS[4] : h >= 15 ? CICLOS[3] : h >= 12 ? CICLOS[2] : h >= 10 ? CICLOS[1] : CICLOS[0]; }
+  if (!ciclo) { const h = R.horaSP(); ciclo = h >= 19 ? CICLOS[5] : h >= 17 ? CICLOS[4] : h >= 15 ? CICLOS[3] : h >= 12 ? CICLOS[2] : h >= 10 ? CICLOS[1] : CICLOS[0]; }
   const dir = `OPERACAO_WHATSAPP/relatorios_por_horario/${ciclo[1]}`;
   const lista = await B.pasta(dir);
   let arqs = Array.isArray(lista) ? lista.filter((a) => a && /\.md$/.test(a.name)).map((a) => a.name) : null;
@@ -1076,7 +1073,7 @@ RESUMO: ${base.slice(0, 6000)}`;
 
 // ---------- PERSONA (MAIS_MIX/JOTA/PERSONA Claude Online.md; Vitorio 25/10/2026: "ta muito direto... quero uma persona... figurinhas... precisa ser mais HUMANO") ----------
 const FIG = (n) => `https://ceven-cftv-matrix.pages.dev/jota/figurinhas/${n}.webp`;
-function horaSP() { return Number(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', hour: '2-digit', hour12: false }).format(new Date())) % 24; }
+function horaSP() { return R.horaSP(); }
 const diaSemana = () => new Date(hojeSP() + 'T12:00:00Z').getUTCDay();
 const cumprimento = () => { const h = horaSP(); return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'; };
 const primeiroNome = (c) => titulo(String(c.nome || '').split(' ')[0]);
@@ -1129,7 +1126,7 @@ function figurinhaPara(resp, tipo) {
 }
 async function enviarFigurinha(env, numero, nome) {
   if (!env.EVO_URL || !env.EVO_KEY || !nome) return false;
-  try { const r = await fetch(`${String(env.EVO_URL).replace(/\/$/, '')}/message/sendSticker/${env.EVO_INSTANCE || 'ceven-noc'}`, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: env.EVO_KEY }, body: JSON.stringify({ number: numero, sticker: FIG(nome) }), signal: AbortSignal.timeout(20000) }); return r.ok; } catch (e) { return false; }
+  return (await R.evolution(R.evoCfg(env), '/message/sendSticker', { number: numero, sticker: FIG(nome) })).ok;
 }
 // abertura humana: na primeira resposta do dia, chama pelo nome
 function humaniza(resp, c, primeiraDoDia) {
@@ -1151,8 +1148,8 @@ async function transcreveAudio(env, d) {
   if (!env.AI || !env.EVO_URL || !env.EVO_KEY) return { erro: 'sem_ia' };
   let b64 = d.message.base64 || null;
   if (!b64) {
-    try { const r = await fetch(`${String(env.EVO_URL).replace(/\/$/, '')}/chat/getBase64FromMediaMessage/${env.EVO_INSTANCE || 'ceven-noc'}`, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: env.EVO_KEY }, body: JSON.stringify({ message: { key: d.key, message: d.message, messageTimestamp: d.messageTimestamp }, convertToMp4: false }), signal: AbortSignal.timeout(25000) });
-      const j = await r.json().catch(() => null); b64 = j && (j.base64 || (j.data && j.data.base64)); } catch (e) { b64 = null; }
+    const r = await R.evolution(R.evoCfg(env), '/chat/getBase64FromMediaMessage', { message: { key: d.key, message: d.message, messageTimestamp: d.messageTimestamp }, convertToMp4: false }, 25000);
+    const j = r.resposta; b64 = j && (j.base64 || (j.data && j.data.base64)) || null;
   }
   if (!b64) return { erro: 'download' };
   try { const out = await env.AI.run('@cf/openai/whisper-large-v3-turbo', { audio: String(b64).replace(/^data:[^,]+,/, ''), language: 'pt' }); const txt = String((out && (out.text || out.transcription_info && out.text)) || '').trim(); return txt ? { texto: txt, seg } : { erro: 'vazio' }; }

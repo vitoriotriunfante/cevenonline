@@ -9,6 +9,7 @@
 // TABELA: bot_contatos (do JOTA, nao e esquema compartilhado) + colunas situacao ('ativo'|'pendente'|'inativo'|'recusado') e rca.
 // =========================================================================
 import { exigeSenhaEquipe } from '../_lib/senha_equipe.js';
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 
 const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Equipe-Senha', 'Cache-Control': 'no-store' };
 const PAPEIS = ['diretoria', 'gerente', 'supervisor', 'vendedor'];
@@ -37,7 +38,7 @@ export async function onRequestGet({ request, env }) {
 
 async function enviar(env, numero, texto) {
   if (!env.EVO_URL || !env.EVO_KEY) return false;
-  try { const r = await fetch(`${String(env.EVO_URL).replace(/\/$/, '')}/message/sendText/${env.EVO_INSTANCE || 'ceven-noc'}`, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: env.EVO_KEY }, body: JSON.stringify({ number: numero, text: texto }), signal: AbortSignal.timeout(20000) }); return r.ok; } catch (e) { return false; }
+  return (await R.evolution(R.evoCfg(env), '/message/sendText', { number: numero, text: texto })).ok;
 }
 
 export async function onRequestPost({ request, env }) {

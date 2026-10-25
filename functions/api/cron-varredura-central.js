@@ -22,8 +22,10 @@ import { rodaAgora } from '../_lib/horario_reduzido.js';   // custo Cloudflare: 
 // =========================================================================
 
 import { proximaConc, lerEstado, gravaEstado, CONC_PADRAO } from '../_lib/concorrencia.js';   // concorrencia adaptativa a cota do CEVEN (12/10/2026)
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
+import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
+export { CEVEN_APP_SECRET };
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
-export const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
 const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Secret': CEVEN_APP_SECRET };
 // LIMITE PRATICO DE CHAMADAS SIMULTANEAS AO CEVEN = 6 (decisao do Vitorio, 03/10/2026; medido: ate 6 nao muda
 // a resposta, com 9 a latencia dobra). Antes: lotes de 20 RCAs x 4 chamadas = 80 simultaneas.
@@ -230,12 +232,7 @@ async function getJson(url, tentativas = 2) {
   return null;
 }
 
-function dataHojeBrasilia() {
-  const p = {};
-  new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' })
-    .formatToParts(new Date()).forEach((x) => (p[x.type] = x.value));
-  return `${p.year}-${p.month}-${p.day}`;
-}
+function dataHojeBrasilia() { return R.hojeSP(); }
 
 const urlRca = (ep, rca) => `${CEVEN}/api/rca/${ep}?filial=${String(rca.filial || '').toLowerCase() + '1'}&id=${rca.codigo}`;
 const num = (x) => { const n = Number(x); return Number.isFinite(n) ? n : 0; };

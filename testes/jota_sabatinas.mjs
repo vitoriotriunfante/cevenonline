@@ -12,7 +12,7 @@ const arg = (k, d) => { const a = process.argv.find((x) => x.startsWith('--' + k
 const DIA = arg('dia', ''), MAX = Number(arg('max', 500)), SO = arg('so', '');
 if (DIA) { const REAL = Date; const FIXO = REAL.parse(DIA + 'T21:40:00Z'); globalThis.Date = class extends REAL { constructor(...a) { super(...(a.length ? a : [FIXO])); } static now() { return FIXO; } }; }
 const ORIGIN = 'https://ceven-cftv-matrix.pages.dev', GH = 'https://raw.githubusercontent.com/vitoriotriunfante/cevenonline/main/';
-const tmp = path.join(os.tmpdir(), 'jota_sab_' + process.pid + '.mjs'); fs.writeFileSync(tmp, fs.readFileSync(path.join(raiz, 'functions/api/whatsapp/bot.js'), 'utf8'));
+const tmp = path.join(os.tmpdir(), 'jota_sab_' + process.pid + '.mjs'); fs.writeFileSync(tmp, fs.readFileSync(path.join(raiz, 'functions/api/whatsapp/bot.js'), 'utf8').replace("'../../../public/regras.js'", JSON.stringify(new URL('../public/regras.js', import.meta.url).href)));
 const { _teste } = await import(pathToFileURL(tmp).href);
 const j = async (u) => (await fetch(u)).json();
 const sem = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();

@@ -10,10 +10,11 @@
 // =========================================================================
 import { agoraSP } from './liga_fechamento.js';
 import { semanasAS } from './liga_as.js';
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 export const MIN_VISITAS = 5;
 export const MIN_POSITIVADOS = 1; // TEM QUE TER VENDIDO (Vitorio, 07/10/2026): pelo menos 1 cliente positivado (numero oficial do CEVEN) e digitado > 0; subir este numero endurece a regra
 export const HORA_CONGELA_MIN = 18 * 60;
-export const CANAIS_VAREJO = ['VJ', 'FARMA', 'PET VJ', 'ESP'];
+export const CANAIS_VAREJO = R.CANAIS_VAREJO;
 const NIVEIS_FORA = ['marker', 'supervisor'];
 
 // Pura (testável): candidatos = [{filial, rca, vendedor, supervisor, pontos, visitas, positivados, digitado, ...}]

@@ -1,6 +1,7 @@
 import { ocultosDaEquipe, lanceDeOculto } from '../_lib/equipe_ocultos.js';
 import { ehFeriado, ehFimDeSemana } from '../_lib/feriados.js';
 import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 // =========================================================================
 // FICHA DO ARQUIVO
 // O QUE É: registro dos LANCES da TV (pênaltis, cartões, supervisores) no D1 (tabela tv_lances,
@@ -18,12 +19,7 @@ import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
 const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const resp = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: CORS });
 
-function agoraSP() {
-  const p = {};
-  new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
-    .formatToParts(new Date()).forEach((x) => (p[x.type] = x.value));
-  return { dia: `${p.year}-${p.month}-${p.day}`, hora: `${String(+p.hour % 24).padStart(2, '0')}:${p.minute}:${p.second}` };
-}
+function agoraSP() { const c = R.relogioSP(); return { dia: c.dia, hora: c.hms }; }
 const txt = (v, n = 200) => (v == null ? null : String(v).slice(0, n));
 const int = (v) => (Number.isFinite(+v) && v !== null && v !== '' ? Math.trunc(+v) : null);
 

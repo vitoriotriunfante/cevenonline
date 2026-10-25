@@ -10,8 +10,9 @@ import { NAO_SUPERVISORES, normNome } from '../_lib/nao_supervisores.js';
 import { supervisoresAtivos, ehAtivo } from '../_lib/sup_ativos.js';
 import { tokenAdmin, ultimaFalhaLogin } from '../_lib/ceven_admin_token.js';
 import { comCache } from '../_lib/cache_borda.js';
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
+import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
-const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
 const FERIADOS = ['2026-01-01', '2026-02-16', '2026-02-17', '2026-04-03', '2026-04-21', '2026-05-01', '2026-06-04', '2026-09-07', '2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25'];
 let cacheDados = { chave: '', exp: 0, corpo: null };
 
@@ -26,11 +27,7 @@ async function getJson(url, tk) {
 const limpa = (n) => String(n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
 const iso = (d) => d.toISOString().slice(0, 10);
 
-function hojeBrt() {
-  const p = {};
-  new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()).forEach((x) => (p[x.type] = x.value));
-  return `${p.year}-${p.month}-${p.day}`;
-}
+function hojeBrt() { return R.hojeSP(); }
 // segunda a sexta da semana que contem 'ref' (AAAA-MM-DD)
 function diasDaSemana(ref) {
   const d = new Date(ref + 'T12:00:00Z');

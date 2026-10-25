@@ -6,6 +6,7 @@
 //   POST ?k=<BOT_WEBHOOK_KEY>&celular=55...  -> envia para UM (texto + figurinha "Oi, eu sou o Jota") e marca como enviado
 // Quem chama: workflow .github/workflows/jota-boas-vindas.yml (segunda 26/10/2026, 07:30, 15 s entre um e outro). Nunca reenvia.
 // =========================================================================
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 const FIG = 'https://ceven-cftv-matrix.pages.dev/jota/figurinhas/01_oi_eu_sou_o_jota.webp';
 const titulo = (s) => String(s || '').toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
 function texto(c) {
@@ -17,7 +18,7 @@ function texto(c) {
     `Se eu não tiver um dado, eu falo. Número eu não invento.\n\n_Meu DNA é Triunfante!_`;
 }
 async function evo(env, rota, corpo) {
-  return fetch(`${String(env.EVO_URL).replace(/\/$/, '')}${rota}/${env.EVO_INSTANCE || 'ceven-noc'}`, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: env.EVO_KEY }, body: JSON.stringify(corpo), signal: AbortSignal.timeout(20000) }).then((r) => r.ok).catch(() => false);
+  return (await R.evolution(R.evoCfg(env), rota, corpo)).ok; // true so se a Evolution aceitou (antes era sempre verdadeiro)
 }
 // autoriza pela chave do JOTA (?k=) OU pela chave da Evolution no header X-Evo-Key (o GitHub ja tem EVO_KEY; sem segredo novo)
 const autorizado = (request, env) => { const u = new URL(request.url); return (env.BOT_WEBHOOK_KEY && u.searchParams.get('k') === env.BOT_WEBHOOK_KEY) || (env.EVO_KEY && request.headers.get('x-evo-key') === env.EVO_KEY); };

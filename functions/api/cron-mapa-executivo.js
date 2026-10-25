@@ -1,5 +1,7 @@
 // =========================================================================
 import { participa } from '../_lib/participacao.js';
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
+import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
 // FICHA DO ARQUIVO
 // O QUE É: lê roteiro-hoje/produtividade de TODOS os RCAs ativos a partir da varredura central
 //          (varredura_central_rca, ver ETAPA 2 abaixo — não chama mais o CEVEN direto aqui).
@@ -41,7 +43,6 @@ import { participa } from '../_lib/participacao.js';
 // =========================================================================
 
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
-const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
 const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Secret': CEVEN_APP_SECRET };
 const LOTE = 6; // chamadas simultaneas ao CEVEN (limite pratico de 6, decisao de 03/10/2026; antes 40)
 
@@ -56,14 +57,9 @@ async function getJson(url) {
   }
 }
 
-function dataHojeBrasilia() {
-  const p = {};
-  new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' })
-    .formatToParts(new Date()).forEach((x) => (p[x.type] = x.value));
-  return `${p.year}-${p.month}-${p.day}`;
-}
+function dataHojeBrasilia() { return R.hojeSP(); }
 
-const CANAIS_CAMPO = ['VJ', 'PET VJ', 'FARMA', 'ESP']; // cobrança de rota/visita — ver ficha do arquivo
+const CANAIS_CAMPO = R.CANAIS_VAREJO; // cobrança de rota/visita — ver ficha do arquivo
 // rca (codigo) -> canal, direto da Gestao de Equipe (mesma fonte que matrizapp.html/tvapp.html).
 async function carregaCanalPorRca(env, request) {
   const mapa = new Map();

@@ -1,4 +1,5 @@
 // Worker de Aquecimento Matinal Automático (Executado via Cloudflare Cron Triggers / Webhook às 04h00)
+import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
 export async function onRequestGet({ env }) {
   const inicio = Date.now();
   const logs = [];
@@ -28,7 +29,7 @@ export async function onRequestGet({ env }) {
       try {
         const fId = r.filial_id || 'tbl1';
         // Dispara em paralelo para esquentar os 3 endpoints mais pesados
-        const cevenHdr = { 'User-Agent': 'CEVEN-NOC-Cron/1.0', 'X-App-Secret': '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d' };
+        const cevenHdr = { 'User-Agent': 'CEVEN-NOC-Cron/1.0', 'X-App-Secret': CEVEN_APP_SECRET };
         await Promise.allSettled([
           fetch(`${CEVEN_BASE}/api/rca/dashboard?filial=${fId}&id=${r.codigo}`, { headers: cevenHdr }),
           fetch(`${CEVEN_BASE}/api/rca/roteiro-hoje?filial=${fId}&id=${r.codigo}`, { headers: cevenHdr }),

@@ -2,6 +2,8 @@
 // API VENDEDOR DETALHE (CLOUDFLARE EDGE - 100% ONLINE 24/7)
 // Não depende de máquina local. Busca no D1 ou busca live no upstream com cache.
 // =========================================================================
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
+import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
 
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
@@ -31,7 +33,7 @@ export async function onRequestGet({ request, env }) {
     }
 
     let dash = null, prod = null, dev = null, rot = null, rotMes = null, pros = null;
-    const CEVEN_HDR = { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d' };
+    const CEVEN_HDR = { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET };
     try {
       const [dashRes, prodRes, devRes, rotRes, rotMesRes, prosRes] = await Promise.all([
         fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/dashboard?filial=${filialKey}&id=${id}`, { headers: CEVEN_HDR }),
@@ -300,7 +302,7 @@ export async function onRequestGet({ request, env }) {
     }
 
     // 4.0 Busca pedidos faturados reais integrados no D1 (estritamente da data de hoje)
-    const hojeIso = new Intl.DateTimeFormat('fr-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+    const hojeIso = R.hojeSP();
     if (env && env.DB) {
       try {
         const { results: itensReais } = await env.DB.prepare(`

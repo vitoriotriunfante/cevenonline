@@ -16,17 +16,13 @@
 //          (fica de fora do agregado daquele ciclo) — nunca usa valor de outro RCA/dia no lugar.
 // =========================================================================
 
-function dataHojeBrasilia() {
-  const p = {};
-  new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' })
-    .formatToParts(new Date()).forEach((x) => (p[x.type] = x.value));
-  return `${p.year}-${p.month}-${p.day}`;
-}
+function dataHojeBrasilia() { return R.hojeSP(); }
 
 const espera = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 import { calculaResumoMes } from '../_lib/resumo_base.js';
 import { rodaAgora } from '../_lib/horario_reduzido.js';   // custo Cloudflare: fora do horario, 1 rodada a cada 30 min (25/10/2026)
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 
 export async function onRequestGet({ env, request }) {
   const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };

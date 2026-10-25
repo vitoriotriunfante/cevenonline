@@ -1,4 +1,6 @@
 import { foraDoHorario } from '../_lib/horario_reduzido.js';
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
+import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
 // =========================================================================
 // FICHA DO ARQUIVO
 // O QUE É: endpoint enxuto da TV (CFTV) — 1 vendedor, só dado AO VIVO do CEVEN.
@@ -13,7 +15,6 @@ import { foraDoHorario } from '../_lib/horario_reduzido.js';
 // =========================================================================
 
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
-const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
 const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Secret': CEVEN_APP_SECRET };
 
 async function getJson(url, ms = 20000) {
@@ -190,12 +191,7 @@ function montarTv(id, dash, prod, rot, analisePorCliente) {
 // (dashboard, produtividade e roteiro) vem do que a varredura central ja guardou no D1, se tiver menos de 15
 // minutos; so o historico dos clientes positivados continua indo ao CEVEN, em no maximo 2 chamadas simultaneas.
 // Se nao houver dado recente e completo, cai para a consulta direta ao CEVEN, como sempre foi.
-function dataHojeBrasilia() {
-  const p = {};
-  new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' })
-    .formatToParts(new Date()).forEach((x) => (p[x.type] = x.value));
-  return `${p.year}-${p.month}-${p.day}`;
-}
+function dataHojeBrasilia() { return R.hojeSP(); }
 
 // DEVOLVE O QUE A BASE TEM, MESMO INCOMPLETO (11/10/2026): antes, linha sem dashboard ou com mais de 15 min = 3 chamadas ao vivo; com o coletor de lances passando
 // por todos os RCAs, isso estourava o limite do CEVEN (HTTP 429 para a chave inteira), a varredura central tambem era bloqueada e a base ficava cada vez mais velha.

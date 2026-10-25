@@ -302,7 +302,9 @@ secao('5b. Relogios da TV no Worker (varredura, lances, mapa, faturado)');
   }
   { const src = ler('worker-cron/src/index.js'); ok(src.includes("event.cron === '2-59/15 * * * *'") && src.includes("dispararWorkflow(env, 'brasileirao-dataset.yml'") && src.includes('h >= 7 && h <= 20'), 'Liga ao vivo: o relogio de 15 em 15 min dispara brasileirao-dataset.yml (seg-sex, 07h-20h45 BRT)');
   }
-  for (const wf of ['tv-varredura-central-cron', 'tv-lances-cron', 'tv-executiva-mapa-live', 'tv-faturado-mes-cron', 'ceven-cron-datalake']) {
+  // os 4 workflows manuais da TV foram apagados em 25/10/2026 (duplicavam o relogio da Cloudflare); fica o do datalake
+  for (const wf of ['tv-varredura-central-cron', 'tv-lances-cron', 'tv-executiva-mapa-live', 'tv-faturado-mes-cron']) ok(!existsSync(`.github/workflows/${wf}.yml`), `${wf}.yml apagado (nao volta)`);
+  for (const wf of ['ceven-cron-datalake']) {
     const y = ler(`.github/workflows/${wf}.yml`);
     ok(!/^\s*schedule:/m.test(y) && /workflow_dispatch/.test(y), `${wf}.yml sem agendamento proprio no GitHub (quem dispara e o Worker) e com execucao manual`);
   }

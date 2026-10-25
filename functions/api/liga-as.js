@@ -8,9 +8,10 @@
 // =========================================================================
 import { participa } from '../_lib/participacao.js';   // representante fica fora da Liga AS (Vitorio, 12/10/2026)
 import { calculaFaseamento, somaSnaps, AS_FASES, AS_BONUS, AS_MODO, AS_VALE_DESDE } from '../_lib/liga_as.js';
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 const cors = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: cors });
-const hojeSP = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+const hojeSP = () => R.hojeSP();
 
 export async function onRequestGet({ env, request }) {
   if (!env.DB) return resp({ erro: 'D1 nao configurado' }, 503);

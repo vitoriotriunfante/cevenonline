@@ -27,7 +27,7 @@ export default async function t(ok) {
   ok(v.length === 1 && v[0].vendedor === 'BIA', 'Bola Cheia: tem que ter vendido (0 positivados e R$ 0 digitado fica fora, mesmo com mais pontos)');
   v = bc.escolheVencedores([c('TBL', '1', 'ANA', 40, 12, 3, 0)]);
   ok(v.length === 0, 'Bola Cheia: positivado mas com digitado R$ 0 tambem nao conta como venda');
-  ok(bc.MIN_VISITAS === 5 && bc.HORA_CONGELA_MIN === 18 * 60 && JSON.stringify(bc.CANAIS_VAREJO) === JSON.stringify(['VJ', 'FARMA', 'PET VJ', 'ESP']), 'Bola Cheia: 18h, minimo 5 visitas, so canais do Varejo');
+  ok(bc.MIN_VISITAS === 5 && bc.HORA_CONGELA_MIN === 18 * 60 && [...bc.CANAIS_VAREJO].sort().join() === ['VJ', 'FARMA', 'PET VJ', 'ESP'].sort().join(), 'Bola Cheia: 18h, minimo 5 visitas, so canais do Varejo');
   // ligacao: coletor congela, endpoint existe, TV e Matriz avisam, video prevê arquivo
   const lib = readFileSync(join(RAIZ, 'functions/_lib/bola_cheia.js'), 'utf8'), cl = readFileSync(join(RAIZ, 'functions/api/cron-lances.js'), 'utf8');
   ok(cl.includes('/api/bola-cheia?rodar=1') && cl.includes('t.agoraMin >= 18 * 60') && lib.includes('INSERT OR IGNORE INTO bola_cheia ') && lib.includes('bola_cheia_dia') && lib.indexOf('INSERT OR IGNORE INTO bola_cheia (') < lib.indexOf('INSERT OR IGNORE INTO bola_cheia_dia'), 'Bola Cheia: o coletor congela a partir das 18h; grava uma vez (INSERT OR IGNORE) e o cabecalho por ultimo');

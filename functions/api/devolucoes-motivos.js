@@ -6,11 +6,12 @@
 // FONTE: varredura_central_rca.devolucoes_json (lista) + devolucao_nota_motivo (motivo por nota).
 // REGRA: nunca inventa; nota sem motivo consultado aparece como "pendente".
 // =========================================================================
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 const cors = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 
 export async function onRequestGet({ env }) {
   if (!env.DB) return new Response(JSON.stringify({ erro: 'banco indisponivel' }), { status: 503, headers: cors });
-  const dia = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+  const dia = R.hojeSP();
   const mes = dia.slice(0, 7);
   try {
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS devolucao_nota_motivo (rca TEXT NOT NULL, nota TEXT NOT NULL, nao_pediu INTEGER, motivos TEXT, resolvido_em TEXT, PRIMARY KEY (rca, nota))').run();

@@ -9,15 +9,10 @@
 
 // Versão das regras da liga (config/pontuacao_brasileirao.json -> "versao_regras"). Um teste automático confere que as duas batem e que as regras não mudaram sem subir a versão.
 import { auditaLista } from './auditoria_lance.js';
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 export const REGRAS_VERSAO = '2026-10-19.2';
 
-export function agoraSP() {
-  const p = {};
-  new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
-    .formatToParts(new Date()).forEach((x) => (p[x.type] = x.value));
-  const h = (+p.hour) % 24;
-  return { dia: `${p.year}-${p.month}-${p.day}`, h, m: +p.minute, min: h * 60 + +p.minute };
-}
+export function agoraSP() { const c = R.relogioSP(); return { dia: c.dia, h: c.h, m: c.m, min: c.min }; }
 
 export async function garanteTabelasFechamento(env) {
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS liga_fechamento (dia TEXT PRIMARY KEY, fechado_em TEXT, regras_versao TEXT, total_lances INTEGER, total_pontos REAL)').run();

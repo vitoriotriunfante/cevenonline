@@ -1,7 +1,8 @@
 // FICHA: conferência do digitado de hoje POR SUPERVISOR e por RCA (só leitura, da base varredura_central_rca) para comparar com o Clube da Venda,
 // que agrupa por supervisor/coordenador. Uso: /api/conferencia-supervisor?filial=TPH   (sem 'filial' = todas). Nunca grava.
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
-const hojeSP = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+const hojeSP = () => R.hojeSP();
 export async function onRequestGet({ env, request }) {
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 nao configurado' }), { status: 503, headers: CORS });
   const filial = (new URL(request.url).searchParams.get('filial') || '').toUpperCase();

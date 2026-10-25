@@ -12,6 +12,7 @@
 // NUNCA inventa: só vendedor com Vitória comprovada em todos os dias esperados.
 // =========================================================================
 import { participa } from '../_lib/participacao.js';   // representante fora da Liga (12/10/2026)
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 const FERIADOS_2026 = new Set(['2026-01-01', '2026-02-16', '2026-02-17', '2026-04-03', '2026-04-21', '2026-05-01', '2026-06-04', '2026-09-07', '2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25']);
 const INICIO_TEMPORADA = '2026-09-28';
 const HORA_FECHAMENTO = 19;
@@ -20,11 +21,7 @@ const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, header
 
 const somaDias = (iso, n) => new Date(Date.parse(iso + 'T12:00:00Z') + n * 86400000).toISOString().slice(0, 10);
 const diaSemana = (iso) => new Date(Date.parse(iso + 'T12:00:00Z')).getUTCDay(); // 0 = domingo
-function agoraBRT() {
-  const p = {};
-  new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hour12: false }).formatToParts(new Date()).forEach((x) => (p[x.type] = x.value));
-  return { iso: `${p.year}-${p.month}-${p.day}`, h: (+p.hour) % 24 };
-}
+function agoraBRT() { const c = R.relogioSP(); return { iso: c.dia, h: c.h }; }
 // dias úteis esperados (seg-sex, sem feriado) da semana que contém `iso`
 function diasUteisDaSemana(iso) {
   const dow = diaSemana(iso), segunda = somaDias(iso, -((dow + 6) % 7));

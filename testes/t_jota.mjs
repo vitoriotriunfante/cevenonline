@@ -2,7 +2,7 @@
 // uso: node testes/t_jota.mjs [filtro]
 import fs from 'fs'; import path from 'path'; import os from 'os'; import { pathToFileURL } from 'url';
 const src = fs.readFileSync(new URL('../functions/api/whatsapp/bot.js', import.meta.url), 'utf8');
-const tmp = path.join(os.tmpdir(), 'jota_bot_' + Date.now() + '.mjs'); fs.writeFileSync(tmp, src);
+const tmp = path.join(os.tmpdir(), 'jota_bot_' + Date.now() + '.mjs'); fs.writeFileSync(tmp, src.replace("'../../../public/regras.js'", JSON.stringify(new URL('../public/regras.js', import.meta.url).href)));
 const { _teste } = await import(pathToFileURL(tmp).href);
 const ORIGIN = 'https://ceven-cftv-matrix.pages.dev';
 const DIR = { nome: 'VITORIO', papel: 'diretoria', filial: null, grupo: null };

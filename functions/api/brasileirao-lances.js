@@ -7,12 +7,7 @@
 const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const resp = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: CORS });
 
-function agoraSP() {
-  const p = {};
-  new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' })
-    .formatToParts(new Date()).forEach((x) => (p[x.type] = x.value));
-  return `${p.year}-${p.month}-${p.day}`;
-}
+function agoraSP() { return R.hojeSP(); }
 
 // CHAVE DA REGRA DO REGULAMENTO (config/pontuacao_brasileirao.json -> pontos_por_lance) de cada lance. O gabarito casa por ESTA chave, nao por nome: o nome da API
 // ('Pênalti', 'Impedimento', 'Defesa (Recorrência)') nao era igual ao do regulamento e 8 lances de 13/10/2026 (-21 pts) caiam em 'Outros (sem regra no gabarito)'.
@@ -77,6 +72,7 @@ function separaImpedimento(l) {
   return l;
 }
 import { ocultosDaEquipe, lanceDeOculto } from '../_lib/equipe_ocultos.js';
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 function achaPontuacao(chave, nivel) {
   const partes = String(chave || '').split('|');
   for (const p of partes) {

@@ -57,6 +57,7 @@ h2 b{color:var(--tx)}
 <h2><span>Hoje · compromisso matinal e rota (RET)</span><b id="hojeTot"></b></h2>
 <div id="cards" class="grade"></div>
 <script src="/animacoes/tv-animacoes.js"></script>
+<script src="/regras.js"></script><!-- regras unicas (public/regras.js) -->
 <script>
 const FILIAIS = ['TBL','TCV','TPH','ABC','API','TSJ','TBE','TPA','MCD','TCA','TCG'];
 const $ = (id) => document.getElementById(id);
@@ -77,7 +78,7 @@ async function j(u, ms = 40000) {
   } finally { clearTimeout(t); }
 }
 const sp = () => new Date().toLocaleTimeString('pt-BR', {timeZone: 'America/Sao_Paulo'});
-const hojeISO = () => new Date().toLocaleDateString('en-CA', {timeZone: 'America/Sao_Paulo'});
+const hojeISO = () => REGRAS.hojeSP();
 
 $('fFilial').innerHTML = '<option value="TODAS">📋 Todas as filiais</option>' + FILIAIS.map((s) => '<option>' + s + '</option>').join('');
 try { const f = localStorage.getItem('sup_filial'); if (f) $('fFilial').value = f; } catch {}

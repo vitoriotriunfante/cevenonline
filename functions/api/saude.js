@@ -9,13 +9,14 @@
 import { CEVEN_HDR } from '../_lib/ceven_auth.js';
 import { calculaResumoMes } from '../_lib/resumo_base.js';
 import { foraDoHorario } from '../_lib/horario_reduzido.js';
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const FILIAIS = ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
 
-const hojeSP = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
-const horaSP = () => new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
+const hojeSP = () => R.hojeSP();
+const horaSP = () => R.relogioSP().hm;
 const q = (a, p) => (a.length ? a[Math.min(a.length - 1, Math.floor(p * a.length))] : null);
 const utc = (s) => Date.parse(String(s).replace(' ', 'T') + 'Z');
 const safe = async (fn, padrao = null) => { try { return await fn(); } catch { return padrao; } };
@@ -32,7 +33,7 @@ export async function onRequestGet({ env, request }) {
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 não configurado' }), { status: 503, headers: CORS });
   const origin = new URL(request.url).origin;
   const dia = hojeSP(), agora = Date.now(), hm = horaSP();
-  const diaUtil = ![0, 6].includes(new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' })).getDay());
+  const diaUtil = ![0, 6].includes(R.relogioSP().dow);
   const horarioComercial = !foraDoHorario();   /* mesma regra dos crons (25/10/2026): fora das 06h-21h e domingo a coleta roda a cada 30 min; nao alarma */
   const problemas = [];
   const add = (nivel, bloco, texto) => problemas.push({ nivel, bloco, texto });

@@ -10,6 +10,8 @@
 // =========================================================================
 import { aplicaArvore } from '../_lib/arvore_ceven.js';
 import { comCache } from '../_lib/cache_borda.js';
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
+import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
 const cors = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: cors });
 const arred = (x) => Math.round((Number(x) || 0) * 100) / 100;
@@ -36,7 +38,7 @@ function leitura(x) {
 async function semCache({ env, request }) {
   if (!env.DB) return resp({ erro: 'D1 não configurado' }, 503);
   const origin = new URL(request.url).origin;
-  const dia = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+  const dia = R.hojeSP();
   try {
     // PLANILHA
     const planilha = new Map(); // filial|codigo -> {nome, mostra, canal, supervisor}
@@ -180,7 +182,7 @@ async function semCache({ env, request }) {
       for (let i = 0; i < velhas.length; i += 12) {
         await Promise.all(velhas.slice(i, i + 12).map(async (l) => {
           try {
-            const x = await fetch(CEVEN_BASE + '/api/filiais/' + l.filial.toLowerCase() + '1/representante/' + l.codigo, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d' }, signal: AbortSignal.timeout(6000) });
+            const x = await fetch(CEVEN_BASE + '/api/filiais/' + l.filial.toLowerCase() + '1/representante/' + l.codigo, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(6000) });
             let canal = '';
             try { const j = await x.json(); canal = String(j.area_atuacao || '').toUpperCase(); } catch { /* corpo vazio: o CEVEN nao tem cadastro desse codigo */ }
             mapa.set(l.filial + '|' + l.codigo, { canal, em: Date.now() });

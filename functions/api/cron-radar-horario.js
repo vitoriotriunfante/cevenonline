@@ -3,6 +3,7 @@
 // Varre todos os vendedores, compara deltas de status/faturamento
 // e gera Flash Alerts automáticos no D1 para exibição nas Smart TVs
 // =========================================================================
+import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
 
 export async function onRequest({ request, env }) {
   const url = new URL(request.url);
@@ -75,8 +76,8 @@ export async function onRequest({ request, env }) {
 
         try {
           const [dashRes, prodRes] = await Promise.all([
-            fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/dashboard?filial=${fKey}&id=${rep.codigo}`, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d' } }),
-            fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/produtividade?filial=${fKey}&id=${rep.codigo}`, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d' } })
+            fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/dashboard?filial=${fKey}&id=${rep.codigo}`, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET } }),
+            fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/produtividade?filial=${fKey}&id=${rep.codigo}`, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET } })
           ]);
 
           let dash = null, prod = null;

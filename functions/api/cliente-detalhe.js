@@ -3,6 +3,7 @@
 // Retorna histórico integral de compras, deltas de volume, auditoria de cortes
 // e produtos que o cliente deixou de comprar.
 // =========================================================================
+import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
 
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
@@ -47,7 +48,7 @@ export async function onRequestGet({ request, env }) {
     const fKey = filial.toLowerCase().endsWith('1') ? filial.toLowerCase() : (filial.toLowerCase() + '1');
     const cevenUrl = `https://ceven.drivetriunfante-locomotiva.com.br/api/rca/historico-cliente/${codcli}?filial=${fKey}`;
 
-    const cevenRes = await fetch(cevenUrl, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d' } });
+    const cevenRes = await fetch(cevenUrl, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET } });
     if (cevenRes.ok) {
       const h = await cevenRes.json();
       if (h) {

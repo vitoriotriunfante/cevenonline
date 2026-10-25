@@ -19,13 +19,9 @@
 // =========================================================================
 
 import { calculaResumoMes } from '../_lib/resumo_base.js';   // campos do MES saem direto da base (13/10/2026)
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 
-function dataHojeBrasilia() {
-  const p = {};
-  new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' })
-    .formatToParts(new Date()).forEach((x) => (p[x.type] = x.value));
-  return `${p.year}-${p.month}-${p.day}`;
-}
+function dataHojeBrasilia() { return R.hojeSP(); }
 
 const STATUS_POSITIVADO = ['POSITIVADO', 'EFETIVADO'];
 

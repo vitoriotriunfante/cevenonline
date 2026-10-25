@@ -16,8 +16,9 @@ import { NAO_SUPERVISORES, normNome } from '../_lib/nao_supervisores.js';
 import { supervisoresAtivos, ehAtivo } from '../_lib/sup_ativos.js';
 import { tokenAdmin, ultimaFalhaLogin } from '../_lib/ceven_admin_token.js';
 import { comCache } from '../_lib/cache_borda.js';
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
+import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
-const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
 
 // token de admin COMPARTILHADO entre as copias do site (15/10/2026: logins simultaneos eram recusados -> "login no CEVEN falhou")
 const token = (env) => tokenAdmin(env);
@@ -43,9 +44,7 @@ async function semCache({ request, env }) {
   if (!tk) return new Response(JSON.stringify({ erro: 'login no CEVEN falhou', motivo: ultimaFalhaLogin }), { status: 502, headers: cors });
 
   // data de hoje no horário de Brasília
-  const p = {};
-  new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()).forEach((x) => (p[x.type] = x.value));
-  const dia = `${p.year}-${p.month}-${p.day}`;
+  const dia = R.hojeSP();
 
   const [comp, ret] = await Promise.all([
     getJson(`${CEVEN}/api/admin/supervisores/matriz-compromissos?dataInicio=${dia}&dataFim=${dia}`, tk),

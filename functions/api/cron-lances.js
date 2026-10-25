@@ -23,17 +23,11 @@
 // =========================================================================
 
 const LOTE = 3; // 3 vendedores em paralelo; com central=1 so o historico dos positivados vai ao CEVEN (no maximo 2 simultaneas por vendedor = 6)
-const CAMPO = ['VJ', 'PET VJ', 'FARMA', 'ESP'];
+const CAMPO = R.CANAIS_VAREJO;
 const DIAS_PENALTI_ESTOQUE = 30, DIAS_PENALTI_FECHADO = 45;
 const FRESCOR_MAX_MIN = 30; // só considera lance de horário "novo" se detectado nos últimos 30min
 
-function agoraSP() {
-  const p = {};
-  new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
-    .formatToParts(new Date()).forEach((x) => (p[x.type] = x.value));
-  const h = (+p.hour) % 24;
-  return { dia: `${p.year}-${p.month}-${p.day}`, h, m: +p.minute, hms: `${String(h).padStart(2, '0')}:${p.minute}:${p.second}`, agoraMin: h * 60 + +p.minute };
-}
+function agoraSP() { const c = R.relogioSP(); return { dia: c.dia, h: c.h, m: c.m, hms: c.hms, agoraMin: c.min }; }
 
 function diasDesde(dataISO, hojeISO) {
   if (!dataISO || +dataISO.slice(0, 4) < 2000) return null;
@@ -112,6 +106,7 @@ import { garanteArvore } from '../_lib/arvore_ceven.js';
 import { ehRepresentante } from '../_lib/participacao.js';   // representante nao e monitorado (12/10/2026)
 import { ehFeriado, ehFimDeSemana } from '../_lib/feriados.js';
 import { rodaAgora } from '../_lib/horario_reduzido.js';   // custo Cloudflare: fora do horario, 1 rodada a cada 30 min (25/10/2026)
+import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 // Prova do gol de cliente: pedido de hoje (numero, status, valor) e, na dobradinha, os pedidos reais de cada quinzena do mes
 function provaPedidoHoje(c) {
   const p = c && c.pedidoHoje;
