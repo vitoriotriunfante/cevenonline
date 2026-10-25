@@ -36,6 +36,7 @@ function variantes(n) {
 }
 async function tabelas(db) {
   await db.prepare(`CREATE TABLE IF NOT EXISTS bot_contatos (celular TEXT PRIMARY KEY, nome TEXT, papel TEXT, filial TEXT, grupo TEXT, supervisor TEXT, ativo INTEGER DEFAULT 1, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)`).run();
+  for (const c of ['situacao TEXT', 'rca TEXT', 'atualizado_em TEXT']) { try { await db.prepare(`ALTER TABLE bot_contatos ADD COLUMN ${c}`).run(); } catch (e) { /* ja existe */ } }
   await db.prepare(`CREATE TABLE IF NOT EXISTS bot_msgs (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, nome TEXT, direcao TEXT, texto TEXT, msg_id TEXT)`).run();
 }
 async function enviar(env, numero, texto) {
@@ -732,8 +733,10 @@ async function cadastraPorCodigo(env, cel, texto, pushName) {
     const nome = String(ok.sup_nome).replace(/^CLT\s*-?\s*/i, '').trim();
     let grupo = null;
     try { const mo = await (await fetch('https://ceven-cftv-matrix.pages.dev/api/tv-mostra', { signal: AbortSignal.timeout(10000) })).json(); for (const [k, L] of Object.entries(mo.filiais || {})) for (const v of L) if (k.split('_')[0] === ok.filial && sem(v.supervisor) === sem(nome) && v.grupo) grupo = v.grupo; } catch (e) {}
-    await env.DB.prepare('INSERT INTO bot_contatos (celular, nome, papel, filial, grupo, supervisor, ativo) VALUES (?,?,?,?,?,?,1) ON CONFLICT(celular) DO UPDATE SET nome=excluded.nome, papel=excluded.papel, filial=excluded.filial, grupo=excluded.grupo, supervisor=excluded.supervisor, ativo=1')
-      .bind(cel, nome, 'supervisor', ok.filial, grupo, nome).run();
+    // PRECISA DO OK DO VITORIO (25/10/2026): entra como PENDENTE (ativo = 0); quem libera e a tela de contatos. Nunca reativa nem rebaixa quem ja existe.
+    const ja = await env.DB.prepare('SELECT ativo FROM bot_contatos WHERE celular = ?').bind(cel).first();
+    if (ja) return null;
+    await env.DB.prepare("INSERT INTO bot_contatos (celular, nome, papel, filial, grupo, supervisor, ativo, situacao) VALUES (?,?,?,?,?,?,0,'pendente')").bind(cel, nome, 'supervisor', ok.filial, grupo, nome).run();
     return { nome, filial: ok.filial, cod: ok.sup_id };
   } catch (e) { return null; }
 }
@@ -760,7 +763,8 @@ export async function onRequestPost({ request, env }) {
   if (!c) {   // so responde quem esta cadastrado — EXCETO o supervisor que se apresenta com "Nome ... COD 123" (codigo da arvore do CEVEN e nome batendo)
     const novo = await cadastraPorCodigo(env, cel, texto, d.pushName);
     if (!novo) return new Response('ok');
-    const boas = `Fala, ${titulo(String(novo.nome).split(' ')[0])}! Eu sou o *Jota* ⚽, o assistente do Comercial da Triunfante.\nTe reconheci como supervisor *${titulo(novo.nome)}* (${novo.filial}, COD ${novo.cod}). Você vê a sua equipe.\n\nExperimenta: "como está minha equipe?", "zerados", "faltam visitar", "vendedor Nome", "liga".\n\n_Meu DNA é Triunfante!_`;
+    const boas = `Fala, ${titulo(String(novo.nome).split(' ')[0])}! Eu sou o *Jota* ⚽, o assistente do Comercial da Triunfante.\nRecebi seu pedido de acesso como supervisor *${titulo(novo.nome)}* (${novo.filial}, COD ${novo.cod}).\nAssim que a diretoria liberar, eu te aviso aqui. _Meu DNA é Triunfante!_`;
+    if (!seco) { const av = `🔔 *Jota — pedido de acesso*\n${titulo(novo.nome)} (${novo.filial}, COD ${novo.cod})\nCelular: ${cel}\nLiberar na tela de contatos: ceven-cftv-matrix.pages.dev/saude`; for (const t of ['554187525605']) { try { await enviar(env, t, av); } catch (e) {} } }
     if (seco) return new Response(boas, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
     const e0 = await enviar(env, destino, boas);
     await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, novo.nome, e0.ok ? 'out' : 'erro', boas).run();

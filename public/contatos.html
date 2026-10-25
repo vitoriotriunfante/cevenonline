@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contatos do JOTA</title>
+<!--
+FICHA: public/contatos.html (/contatos) — gestão dos contatos do JOTA (WhatsApp Mais Mix Triunfante).
+Vitório, 25/10/2026: "precisamos ter dentro da tela saúde os contatos dos gerentes, supervisores e vendedores (segundo passo) já ligados a um setor e filial,
+para que eu gerencie"; "cadastro automático: aqui eu vou precisar dar o OK".
+API: /api/jota-contatos (senha da Gestão de Equipe). Aprovar = libera e avisa a pessoa no WhatsApp.
+-->
+<style>
+:root { --bg: #0b1220; --card: #111a2e; --borda: #22304d; --txt: #e5e7eb; --sub: #94a3b8; --azul: #38bdf8; --verde: #22c55e; --amarelo: #f59e0b; --vermelho: #ef4444; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--txt); font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--borda); flex-wrap: wrap; }
+header h1 { font-size: 18px; margin: 0; }
+header a { color: var(--azul); text-decoration: none; }
+.grow { flex: 1; }
+main { padding: 16px; max-width: 1200px; margin: 0 auto; }
+.card { background: var(--card); border: 1px solid var(--borda); border-radius: 10px; padding: 14px; margin-bottom: 16px; }
+.card h2 { font-size: 15px; margin: 0 0 10px; }
+.kpis { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.kpi { background: var(--card); border: 1px solid var(--borda); border-radius: 10px; padding: 10px 14px; min-width: 120px; }
+.kpi b { font-size: 20px; display: block; }
+.kpi span { color: var(--sub); font-size: 12px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--borda); vertical-align: middle; }
+th { color: var(--sub); font-weight: 600; font-size: 12px; }
+.tabela { overflow-x: auto; }
+input, select { background: #0e1729; color: var(--txt); border: 1px solid var(--borda); border-radius: 6px; padding: 6px 8px; font: inherit; max-width: 100%; }
+button { background: #1e293b; color: var(--txt); border: 1px solid var(--borda); border-radius: 6px; padding: 6px 10px; font: inherit; cursor: pointer; white-space: nowrap; }
+button.ok { background: #14532d; border-color: #166534; }
+button.no { background: #450a0a; border-color: #7f1d1d; }
+button.pri { background: #0c4a6e; border-color: #0369a1; }
+.pill { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 12px; border: 1px solid var(--borda); }
+.pill.ativo { color: var(--verde); border-color: #166534; } .pill.pendente { color: var(--amarelo); border-color: #92400e; } .pill.inativo, .pill.recusado { color: var(--sub); }
+.filtros { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.form { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; align-items: end; }
+.form label { font-size: 12px; color: var(--sub); display: flex; flex-direction: column; gap: 3px; }
+.msg { padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; display: none; }
+.msg.show { display: block; } .msg.ok { background: #052e16; } .msg.erro { background: #450a0a; }
+.login { max-width: 360px; margin: 60px auto; }
+.mut { color: var(--sub); font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>👥 Contatos do JOTA</h1>
+  <span class="mut">quem conversa com o assistente no WhatsApp</span>
+  <div class="grow"></div>
+  <a href="/saude">← Sala de Controle</a>
+</header>
+<main id="raiz"></main>
+<script>
+const $ = (id) => document.getElementById(id);
+let SENHA = ''; try { SENHA = sessionStorage.getItem('equipe_senha') || ''; } catch (e) {}
+let D = null, F = { papel: '', filial: '', sit: '', q: '' };
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const tit = (s) => String(s || '').toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+async function api(metodo, corpo) {
+  const r = await fetch('/api/jota-contatos', { method: metodo, headers: { 'Content-Type': 'application/json', 'X-Equipe-Senha': SENHA }, body: corpo ? JSON.stringify(corpo) : undefined, cache: 'no-store' });
+  const j = await r.json().catch(() => ({ erro: 'resposta invalida' }));
+  if (r.status === 401 || r.status === 403) { SENHA = ''; try { sessionStorage.removeItem('equipe_senha'); } catch (e) {} telaLogin(j.erro || 'senha incorreta'); throw new Error('senha'); }
+  if (!r.ok) throw new Error(j.erro || 'erro ' + r.status);
+  return j;
+}
+function aviso(t, tipo) { const m = $('msg'); if (!m) return; m.textContent = t; m.className = 'msg show ' + tipo; setTimeout(() => (m.className = 'msg'), 5000); }
+function telaLogin(erro) {
+  $('raiz').innerHTML = `<div class="card login"><h2>Senha da Diretoria</h2><p class="mut">A mesma da Gestão de Equipe.</p>
+    <input id="senha" type="password" style="width:100%" placeholder="senha"> <div style="height:8px"></div><button class="pri" id="entrar">Entrar</button>
+    ${erro ? `<p style="color:var(--vermelho)">${esc(erro)}</p>` : ''}</div>`;
+  const ir = () => { SENHA = $('senha').value; try { sessionStorage.setItem('equipe_senha', SENHA); } catch (e) {} carrega(); };
+  $('entrar').onclick = ir; $('senha').onkeydown = (e) => { if (e.key === 'Enter') ir(); }; $('senha').focus();
+}
+async function carrega() { try { D = await api('GET'); desenha(); } catch (e) { if (e.message !== 'senha') $('raiz').innerHTML = `<div class="card">Erro: ${esc(e.message)}</div>`; } }
+const opts = (L, sel, vazio) => (vazio !== undefined ? `<option value="">${vazio}</option>` : '') + L.map((x) => `<option value="${esc(x)}"${x === sel ? ' selected' : ''}>${esc(x)}</option>`).join('');
+function supsDaFilial(f) { return [...new Set((D.supervisores_arvore || []).filter((s) => s.filial === f).map((s) => String(s.sup_nome).replace(/^CLT\s*-?\s*/i, '')))]; }
+function desenha() {
+  const C = D.contatos, pend = C.filter((c) => c.situacao === 'pendente');
+  const cont = (p) => C.filter((c) => c.papel === p && c.situacao === 'ativo').length;
+  const L = C.filter((c) => (!F.papel || c.papel === F.papel) && (!F.filial || c.filial === F.filial) && (!F.sit || c.situacao === F.sit) && (!F.q || (c.nome + ' ' + c.celular).toUpperCase().includes(F.q.toUpperCase())));
+  $('raiz').innerHTML = `<div id="msg" class="msg"></div>
+  <div class="kpis">${['diretoria', 'gerente', 'supervisor', 'vendedor'].map((p) => `<div class="kpi"><b>${cont(p)}</b><span>${p} ativo(s)</span></div>`).join('')}<div class="kpi"><b style="color:var(--amarelo)">${pend.length}</b><span>pedido(s) pendente(s)</span></div></div>
+  ${pend.length ? `<div class="card"><h2>🔔 Pedidos de acesso (precisam do seu OK)</h2><div class="tabela"><table><thead><tr><th>Nome</th><th>Filial</th><th>Cargo</th><th>Celular</th><th>Pedido em</th><th></th></tr></thead><tbody>
+    ${pend.map((c) => `<tr><td>${esc(tit(c.nome))}</td><td>${esc(c.filial || '')}${c.grupo ? ' · ' + esc(tit(c.grupo)) : ''}</td><td>${esc(c.papel)}</td><td>${esc(c.celular)}</td><td class="mut">${esc(String(c.criado_em || '').slice(0, 16))}</td>
+    <td><button class="ok" data-a="aprovar" data-c="${esc(c.celular)}">Aprovar</button> <button class="no" data-a="recusar" data-c="${esc(c.celular)}">Recusar</button></td></tr>`).join('')}</tbody></table></div></div>` : ''}
+  <div class="card"><h2>➕ Novo contato / editar</h2><div class="form" id="form">
+    <label>Celular (55 + DDD + número)<input id="f_cel" placeholder="5541999998888"></label>
+    <label>Nome<input id="f_nome"></label>
+    <label>Cargo<select id="f_papel">${opts(D.papeis, 'supervisor')}</select></label>
+    <label>Filial<select id="f_fil">${opts(D.filiais, '', '—')}</select></label>
+    <label>Grupo (TPH/MCD)<input id="f_grupo" placeholder="VAGNER, FABIO…"></label>
+    <label>Supervisor<select id="f_sup"><option value="">—</option></select></label>
+    <label>Código RCA (vendedor)<input id="f_rca"></label>
+    <div><button class="pri" id="salvar">Salvar</button> <button id="limpar">Limpar</button></div>
+  </div><p class="mut">Para editar, clique em "editar" na lista. Vendedor (2º passo) precisa do código RCA; ele verá só os próprios números.</p></div>
+  <div class="card"><h2>Todos os contatos (${L.length} de ${C.length})</h2>
+    <div class="filtros"><select id="q_papel">${opts(D.papeis, F.papel, 'todos os cargos')}</select><select id="q_fil">${opts(D.filiais, F.filial, 'todas as filiais')}</select>
+      <select id="q_sit">${opts(['ativo', 'pendente', 'inativo', 'recusado'], F.sit, 'qualquer situação')}</select><input id="q_txt" placeholder="buscar nome ou celular" value="${esc(F.q)}"></div>
+    <div class="tabela"><table><thead><tr><th>Nome</th><th>Cargo</th><th>Filial</th><th>Supervisor / RCA</th><th>Celular</th><th>Situação</th><th>Uso</th><th></th></tr></thead><tbody>
+    ${L.map((c) => `<tr><td>${esc(tit(c.nome))}</td><td>${esc(c.papel)}</td><td>${esc(c.filial || 'todas')}${c.grupo ? ' · ' + esc(tit(c.grupo)) : ''}</td>
+      <td class="mut">${c.papel === 'vendedor' ? 'RCA ' + esc(c.rca || '?') + (c.supervisor ? ' · ' + esc(tit(c.supervisor)) : '') : c.papel === 'supervisor' ? 'equipe própria' : ''}</td><td>${esc(c.celular)}</td>
+      <td><span class="pill ${esc(c.situacao)}">${esc(c.situacao)}</span></td><td class="mut">${c.perguntas ? c.perguntas + ' pergunta(s)' : '—'}</td>
+      <td><button data-ed="${esc(c.celular)}">editar</button> ${c.situacao === 'ativo' ? `<button class="no" data-a="desativar" data-c="${esc(c.celular)}">desativar</button>` : `<button class="ok" data-a="ativar" data-c="${esc(c.celular)}">ativar</button>`}</td></tr>`).join('')}
+    </tbody></table></div></div>`;
+  const fil = $('f_fil'), sup = $('f_sup');
+  const encheSup = (sel) => { sup.innerHTML = '<option value="">—</option>' + opts(supsDaFilial(fil.value), sel); };
+  fil.onchange = () => encheSup('');
+  $('q_papel').onchange = (e) => { F.papel = e.target.value; desenha(); };
+  $('q_fil').onchange = (e) => { F.filial = e.target.value; desenha(); };
+  $('q_sit').onchange = (e) => { F.sit = e.target.value; desenha(); };
+  $('q_txt').oninput = (e) => { F.q = e.target.value; clearTimeout(window._t); window._t = setTimeout(() => { desenha(); const i = $('q_txt'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 300); };
+  $('limpar').onclick = () => { for (const id of ['f_cel', 'f_nome', 'f_grupo', 'f_rca']) $(id).value = ''; fil.value = ''; encheSup(''); };
+  document.querySelectorAll('[data-ed]').forEach((b) => (b.onclick = () => {
+    const c = C.find((x) => x.celular === b.dataset.ed); if (!c) return;
+    $('f_cel').value = c.celular; $('f_nome').value = c.nome || ''; $('f_papel').value = c.papel || 'supervisor'; fil.value = c.filial || ''; $('f_grupo').value = c.grupo || ''; $('f_rca').value = c.rca || '';
+    encheSup(c.supervisor || ''); if (c.supervisor && sup.value !== c.supervisor) sup.innerHTML += `<option selected>${esc(c.supervisor)}</option>`;
+    $('form').scrollIntoView({ behavior: 'smooth' });
+  }));
+  $('salvar').onclick = async () => {
+    try { await api('POST', { acao: 'salvar', celular: $('f_cel').value, nome: $('f_nome').value, papel: $('f_papel').value, filial: fil.value, grupo: $('f_grupo').value, supervisor: sup.value, rca: $('f_rca').value });
+      aviso('Salvo.', 'ok'); await carrega(); } catch (e) { if (e.message !== 'senha') aviso(e.message, 'erro'); }
+  };
+  document.querySelectorAll('[data-a]').forEach((b) => (b.onclick = async () => {
+    const a = b.dataset.a, c = b.dataset.c;
+    if (a === 'recusar' || a === 'desativar') { if (!confirm(`${a === 'recusar' ? 'Recusar o pedido' : 'Desativar'} de ${c}?`)) return; }
+    try { const r = await api('POST', { acao: a, celular: c }); aviso(a === 'aprovar' ? (r.avisado ? 'Aprovado e avisado no WhatsApp.' : 'Aprovado (não consegui avisar no WhatsApp).') : 'Feito.', 'ok'); await carrega(); } catch (e) { if (e.message !== 'senha') aviso(e.message, 'erro'); }
+  }));
+}
+if (SENHA) carrega(); else telaLogin();
+</script>
+</body>
+</html>
