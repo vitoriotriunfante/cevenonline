@@ -104,7 +104,9 @@ function desenha() {
       <td class="mut">${c.papel === 'vendedor' ? 'RCA ' + esc(c.rca || '?') + (c.supervisor ? ' · ' + esc(tit(c.supervisor)) : '') : c.papel === 'supervisor' ? 'equipe própria' : ''}</td><td>${esc(c.celular)}</td>
       <td><span class="pill ${esc(c.situacao)}">${esc(c.situacao)}</span></td><td class="mut">${c.perguntas ? c.perguntas + ' pergunta(s)' : '—'}</td>
       <td><button data-ed="${esc(c.celular)}">editar</button> ${c.situacao === 'ativo' ? `<button class="no" data-a="desativar" data-c="${esc(c.celular)}">desativar</button>` : `<button class="ok" data-a="ativar" data-c="${esc(c.celular)}">ativar</button>`}</td></tr>`).join('')}
-    </tbody></table></div></div>`;
+    </tbody></table></div></div>
+  <div class="card" id="conversas"><h2>💬 Conversas</h2><p class="mut">carregando…</p></div>`;
+  carregaConversas();
   const fil = $('f_fil'), sup = $('f_sup');
   const encheSup = (sel) => { sup.innerHTML = '<option value="">—</option>' + opts(supsDaFilial(fil.value), sel); };
   fil.onchange = () => encheSup('');
@@ -128,6 +130,32 @@ function desenha() {
     if (a === 'recusar' || a === 'desativar') { if (!confirm(`${a === 'recusar' ? 'Recusar o pedido' : 'Desativar'} de ${c}?`)) return; }
     try { const r = await api('POST', { acao: a, celular: c }); aviso(a === 'aprovar' ? (r.avisado ? 'Aprovado e avisado no WhatsApp.' : 'Aprovado (não consegui avisar no WhatsApp).') : 'Feito.', 'ok'); await carrega(); } catch (e) { if (e.message !== 'senha') aviso(e.message, 'erro'); }
   }));
+}
+// CONVERSAS (Vitório, 25/10/2026: "vamos conseguir monitorar TODAS as conversas? e as respostas que não ajudarem?")
+let CV = null, CVF = { so_ruins: false, quem: '', dias: 7 };
+async function carregaConversas() {
+  try { const r = await fetch('/api/jota-conversas?dias=' + CVF.dias, { headers: { 'X-Equipe-Senha': SENHA }, cache: 'no-store' }); CV = await r.json(); desenhaConversas(); }
+  catch (e) { const el = $('conversas'); if (el) el.innerHTML = '<h2>💬 Conversas</h2><p class="mut">Não consegui carregar: ' + esc(e.message) + '</p>'; }
+}
+function desenhaConversas() {
+  const el = $('conversas'); if (!el || !CV) return;
+  const pc = (a) => CV.total ? Math.round(a / CV.total * 100) + '%' : '–';
+  const tag = { pronta: '✅ resposta pronta', saudacao: '👋 saudação', saudacao_primeira: '👋 boas-vindas', ia: '🤖 IA (sem resposta pronta)', ajuda: '❓ menu de ajuda', 'erro de envio': '⚠️ erro de envio', 'sem resposta': '… sem resposta', 'não cadastrado': '🚫 não cadastrado' };
+  const L = (CV.conversas || []).filter((x) => (!CVF.so_ruins || x.nao_ajudou || !x.cadastrado) && (!CVF.quem || (x.quem + ' ' + x.celular).toUpperCase().includes(CVF.quem.toUpperCase())));
+  el.innerHTML = `<h2>💬 Conversas (últimos ${CV.dias} dias)</h2>
+    <div class="kpis"><div class="kpi"><b>${CV.total}</b><span>perguntas</span></div><div class="kpi"><b style="color:var(--verde)">${pc(CV.prontas)}</b><span>resposta pronta</span></div>
+    <div class="kpi"><b style="color:var(--amarelo)">${CV.ia}</b><span>caíram na IA</span></div><div class="kpi"><b style="color:var(--vermelho)">${CV.reclamadas}</b><span>reclamadas ("não foi isso")</span></div>
+    <div class="kpi"><b>${CV.nao_cadastrados}</b><span>de não cadastrados</span></div></div>
+    <div class="filtros"><label class="mut"><input type="checkbox" id="cv_ruins" ${CVF.so_ruins ? 'checked' : ''}> só as que não ajudaram</label>
+      <select id="cv_dias">${[1, 7, 30].map((d) => `<option value="${d}"${d === CVF.dias ? ' selected' : ''}>${d === 1 ? 'hoje/24 h' : d + ' dias'}</option>`).join('')}</select>
+      <input id="cv_quem" placeholder="filtrar pessoa" value="${esc(CVF.quem)}"></div>
+    <div class="tabela"><table><thead><tr><th>Quando</th><th>Quem</th><th>Pergunta</th><th>Resposta do Jota</th><th>Tipo</th></tr></thead><tbody>
+    ${L.slice(0, 300).map((x) => `<tr${x.nao_ajudou ? ' style="background:#2a1212"' : ''}><td class="mut">${esc(String(x.quando).slice(5, 16))}</td><td>${esc(tit(x.quem))}<div class="mut">${esc(x.papel)} ${esc(x.filial)}</div></td>
+      <td>${esc(x.pergunta)}</td><td class="mut" style="max-width:420px;white-space:pre-wrap">${esc(String(x.resposta || '').slice(0, 280))}${String(x.resposta || '').length > 280 ? '…' : ''}</td>
+      <td>${esc(tag[x.tipo] || x.tipo)}${x.ajudou === 0 ? '<div style="color:var(--vermelho)">reclamou</div>' : ''}</td></tr>`).join('')}</tbody></table></div>`;
+  $('cv_ruins').onchange = (e) => { CVF.so_ruins = e.target.checked; desenhaConversas(); };
+  $('cv_dias').onchange = (e) => { CVF.dias = Number(e.target.value); carregaConversas(); };
+  $('cv_quem').oninput = (e) => { CVF.quem = e.target.value; clearTimeout(window._c); window._c = setTimeout(() => { desenhaConversas(); const i = $('cv_quem'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 300); };
 }
 if (SENHA) carrega(); else telaLogin();
 </script>

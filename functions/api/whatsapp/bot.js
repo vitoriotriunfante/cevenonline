@@ -38,6 +38,7 @@ async function tabelas(db) {
   await db.prepare(`CREATE TABLE IF NOT EXISTS bot_contatos (celular TEXT PRIMARY KEY, nome TEXT, papel TEXT, filial TEXT, grupo TEXT, supervisor TEXT, ativo INTEGER DEFAULT 1, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)`).run();
   for (const c of ['situacao TEXT', 'rca TEXT', 'atualizado_em TEXT']) { try { await db.prepare(`ALTER TABLE bot_contatos ADD COLUMN ${c}`).run(); } catch (e) { /* ja existe */ } }
   await db.prepare(`CREATE TABLE IF NOT EXISTS bot_msgs (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, nome TEXT, direcao TEXT, texto TEXT, msg_id TEXT)`).run();
+  for (const col of ['tipo TEXT', 'ajudou INTEGER']) { try { await db.prepare(`ALTER TABLE bot_msgs ADD COLUMN ${col}`).run(); } catch (e) { /* ja existe */ } }
 }
 async function enviar(env, numero, texto) {
   if (!env.EVO_URL || !env.EVO_KEY) return { ok: false, erro: 'EVO_URL/EVO_KEY nao configurados' };
@@ -948,6 +949,49 @@ RESUMO: ${base.slice(0, 6000)}`;
   try { const r = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', { messages: [{ role: 'system', content: sys }, ...historico, { role: 'user', content: texto }], max_tokens: 600 }); const s = String((r && (r.response || r.result)) || '').trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, ''); return s || null; } catch (e) { return null; }
 }
 
+// ---------- PERSONA (MAIS_MIX/JOTA/PERSONA Claude Online.md; Vitorio 25/10/2026: "ta muito direto... quero uma persona... figurinhas... precisa ser mais HUMANO") ----------
+const FIG = (n) => `https://ceven-cftv-matrix.pages.dev/jota/figurinhas/${n}.webp`;
+function horaSP() { return Number(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', hour: '2-digit', hour12: false }).format(new Date())) % 24; }
+const diaSemana = () => new Date(hojeSP() + 'T12:00:00Z').getUTCDay();
+const cumprimento = () => { const h = horaSP(); return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'; };
+const primeiroNome = (c) => titulo(String(c.nome || '').split(' ')[0]);
+const ehSaudacao = (t) => /^(BOM DIA|BOA TARDE|BOA NOITE|OI+|OLA|E AI|EAI|FALA|SALVE|OPA|HEY|PICO ?PICO)( (JOTA|NOVAMENTE|DE NOVO|PESSOAL|TIME|TUDO BEM|TUDO BOM|BELEZA|MEU AMIGO|AMIGO|CHEFE))*[ !.,?]*$/.test(t);
+function respSaudacao(c, primeiraVez) {
+  const n = primeiroNome(c), d = diaSemana(), fds = d === 0 || d === 6;
+  const papel = c.papel === 'diretoria' ? 'nas 11 filiais' : c.papel === 'gerente' ? `na ${c.filial}` : c.papel === 'supervisor' ? 'na sua equipe' : 'nos seus números';
+  const L = [primeiraVez ? `${cumprimento()}, ${n}! Eu sou o *Jota* ⚽, o reforço do Comercial da Triunfante.` : `${cumprimento()}, ${n}! ☀️ Bom te ver por aqui.`];
+  if (fds) L.push(d === 0 ? 'Hoje é domingo, as filiais estão paradas e a bola volta a rolar amanhã às 6h. Bom descanso! 🙌' : 'Sábado é dia de jogo mais curto: só algumas rotas rodam.');
+  L.push('', `Tô de olho ${papel}. Quer que eu te mostre algo?`, fds ? '• "como fechou sexta?"' : '• "como estamos?"', '• "zerados" · "quanto falta pra meta"', '• "liga" · "+mix"', '', '_A sua confiança é meu compromisso. Seu tempo, minha prioridade._');
+  return L.join('\n');
+}
+// figurinha que combina com a resposta (no maximo 1 a cada 2 h por pessoa: figurinha demais vira spam)
+function figurinhaPara(resp, tipo) {
+  if (tipo === 'saudacao_primeira') return '01_oi_eu_sou_o_jota';
+  if (tipo === 'saudacao') return horaSP() < 12 ? '03_bom_dia_time' : '02_conta_comigo';
+  const r = String(resp || '');
+  if (/Zerados hoje[^\n]*\*[1-9]/.test(r)) return '13_zerado_nao';
+  if (/Meta batida[^\n]*\*[1-9]|Golaço/.test(r)) return '07_meta_batida';
+  if (/Champions Triunfante|Liga AS/.test(r)) return '06_golaco';
+  if (/Relatório das 18:30|fechamento/i.test(r)) return '08_fechou_o_dia';
+  if (/^🧺|\+MIX —/.test(r)) return '15_olha_o_mais_mix';
+  if (/Rota de hoje|faltam \*\d/.test(r)) return '18_proximo_cliente';
+  if (/quanto falta|Ritmo da meta|Abaixo do ritmo/i.test(r)) return '12_bora_destravar';
+  if (/^👥 \*Positivação/.test(r)) return '05_bora_positivar';
+  if (/sem dado|não tenho|Não consegui|ainda não tenho/i.test(r) && r.length < 400) return '20_sem_dado_agora';
+  return null;
+}
+async function enviarFigurinha(env, numero, nome) {
+  if (!env.EVO_URL || !env.EVO_KEY || !nome) return false;
+  try { const r = await fetch(`${String(env.EVO_URL).replace(/\/$/, '')}/message/sendSticker/${env.EVO_INSTANCE || 'ceven-noc'}`, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: env.EVO_KEY }, body: JSON.stringify({ number: numero, sticker: FIG(nome) }), signal: AbortSignal.timeout(20000) }); return r.ok; } catch (e) { return false; }
+}
+// abertura humana: na primeira resposta do dia, chama pelo nome
+function humaniza(resp, c, primeiraDoDia) {
+  if (!resp || !primeiraDoDia) return resp;
+  return `${cumprimento()}, ${primeiroNome(c)}! ` + (horaSP() < 12 ? 'Já separei os números pra você. 👇' : 'Aqui está. 👇') + '\n\n' + resp;
+}
+// MONITORAMENTO (Vitorio: "vamos conseguir monitorar TODAS as conversas? e as respostas que nao ajudarem?"): toda resposta grava o TIPO
+// (pronta | ia | ajuda | saudacao | cadastro | erro) e reclamacao logo depois ("nao foi isso", "errado", "nao entendi") marca a resposta anterior como NAO AJUDOU.
+const RECLAMACAO = /N(A|Ã)O (FOI|ERA|E) ISSO|NAO ENTENDI|NAO ENTENDEU|ERRAD|NAO AJUDOU|NAO RESPONDEU|DIVAGOU|NADA A VER|NAO TEM NADA|VOCE NAO|VC NAO|PERGUNTEI OUTRA|NAO PERGUNTEI|REPET|DE NOVO ISSO|INUTIL|NAO SERVE/;
 // CADASTRO AUTOMATICO DE SUPERVISOR (Vitorio, 25/10/2026: "vai achar um padrao: o nome e no final o codigo deles, ex.: Washington COD 100").
 // Regra: o numero do codigo tem que existir na arvore do CEVEN (arvore_supervisores.sup_id) E o primeiro nome do supervisor tem que aparecer na mensagem
 // (ou no nome do WhatsApp). Senao, nada acontece (numero desconhecido continua sem resposta). Gerente e diretoria so por cadastro manual.
@@ -1003,19 +1047,30 @@ export async function onRequestPost({ request, env }) {
     return new Response('ok');
   }
   const B = criaBase(u.origin, env);
-  let resp = null;
+  let resp = null, tipo = 'pronta';
+  const tN = sem(texto);
+  const jaFalou = await env.DB.prepare("SELECT COUNT(*) n, SUM(CASE WHEN direcao = 'out' AND date(quando, '-3 hours') = date('now', '-3 hours') THEN 1 ELSE 0 END) hoje FROM bot_msgs WHERE celular = ?").bind(cel).first().catch(() => ({ n: 1, hoje: 1 }));
+  const primeiraVez = !jaFalou || !(jaFalou.n > 1), primeiraDoDia = !jaFalou || !(jaFalou.hoje > 0);
+  // reclamacao: marca a ultima resposta como "nao ajudou" (vai para o painel de conversas)
+  if (!seco && RECLAMACAO.test(tN)) { try { await env.DB.prepare("UPDATE bot_msgs SET ajudou = 0 WHERE id = (SELECT id FROM bot_msgs WHERE celular = ? AND direcao = 'out' ORDER BY id DESC LIMIT 1)").bind(cel).run(); } catch (e) {} }
+  if (ehSaudacao(tN)) { resp = respSaudacao(c, primeiraVez); tipo = primeiraVez ? 'saudacao_primeira' : 'saudacao'; }
   const { results: hist } = await env.DB.prepare("SELECT direcao, texto FROM bot_msgs WHERE celular = ? AND direcao IN ('in','out') AND quando >= datetime('now','-6 hours') ORDER BY id DESC LIMIT 7").bind(cel).all();
   const anteriores = (hist || []).filter((h) => h.direcao === 'in').map((h) => h.texto).filter((x) => x !== texto).slice(0, 4);
-  try { resp = await respostaPronta(B, c, texto, anteriores); } catch (e) { resp = null; if (seco) return new Response('ERRO: ' + String(e && e.stack || e), { status: 500 }); try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'erro: ' + String(e && e.stack || e).slice(0, 1500)).run(); } catch (x) {} }
+  if (!resp) try { resp = await respostaPronta(B, c, texto, anteriores); } catch (e) { resp = null; if (seco) return new Response('ERRO: ' + String(e && e.stack || e), { status: 500 }); try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'erro: ' + String(e && e.stack || e).slice(0, 1500)).run(); } catch (x) {} }
   if (!resp && seco && u.searchParams.get('sem_ia') === '1') return new Response('(sem resposta pronta)', { status: 404 });
   if (!resp) {
     const historico = (hist || []).slice(1).reverse().map((h) => ({ role: h.direcao === 'in' ? 'user' : 'assistant', content: h.texto }));
-    resp = await respondeIA(env, B, c, texto, historico);
+    resp = await respondeIA(env, B, c, texto, historico); if (resp) tipo = 'ia';
   }
-  if (!resp) resp = respAjuda(c);
-  if (seco) return new Response(resp, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+  if (!resp) { resp = respAjuda(c); tipo = 'ajuda'; }
+  if (tipo === 'pronta') resp = humaniza(resp, c, primeiraDoDia);
+  if (seco) return new Response(resp + (u.searchParams.get('fig') === '1' ? `\n\n[figurinha: ${figurinhaPara(resp, tipo) || 'nenhuma'} · tipo: ${tipo}]` : ''), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
   const e = await enviar(env, destino, resp);
-  await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, e.ok ? 'out' : 'erro', resp.slice(0, 2000)).run();
+  await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, e.ok ? 'out' : 'erro', resp.slice(0, 4000), tipo).run();
+  // figurinha (no maximo 1 a cada 2 h por pessoa)
+  const fig = figurinhaPara(resp, tipo);
+  if (fig && e.ok) { const ult = await env.DB.prepare("SELECT MAX(quando) q FROM bot_msgs WHERE celular = ? AND direcao = 'figurinha'").bind(cel).first().catch(() => null);
+    if (!ult || !ult.q || Date.now() - Date.parse(ult.q + 'Z') > 2 * 3600 * 1000) { const ok = await enviarFigurinha(env, destino, fig); if (ok) await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, 'figurinha', fig, tipo).run(); } }
   return new Response('ok');
 }
 export async function onRequestGet() { return new Response('JOTA (+MIX): use POST (webhook da Evolution)', { status: 200 }); }
