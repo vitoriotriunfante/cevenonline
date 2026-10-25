@@ -66,6 +66,7 @@ function criaBase(origin, env) {
   const est = (p) => (env && env.ASSETS ? env.ASSETS.fetch(new Request(origin + p)) : fetch(origin + p)).then((r) => r.json()).catch(() => null);
   const memo = (k, f) => cache[k] || (cache[k] = f());
   return {
+    env,
     saude: () => memo('saude', () => api('/api/saude')),
     mostra: () => memo('mostra', () => api('/api/tv-mostra')),
     snap: (f) => memo('snap' + f, () => api('/api/central-snapshot?filial=' + f + '&dia=' + hojeSP())),
@@ -98,7 +99,7 @@ function criaBase(origin, env) {
 }
 
 // vendedores de uma filial (mostrados na Gestao de Equipe) + totais que somam TODOS (macro)
-async function vendedoresDaFilial(B, filial, grupo, supervisor) {
+async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
   const [snap, mostra] = await Promise.all([B.snap(filial), B.mostra()]);
   const eq = new Map(); if (mostra && mostra.filiais) for (const [k, L] of Object.entries(mostra.filiais)) if (k.split('_')[0] === filial) for (const v of L) eq.set(String(v.rca), v);
   const vend = []; const macro = { pedidos: 0, dig: 0, devHoje: 0 };
@@ -106,13 +107,14 @@ async function vendedoresDaFilial(B, filial, grupo, supervisor) {
     const e = eq.get(rca);
     if (grupo && (!e || String(e.grupo || '').toUpperCase() !== String(grupo).toUpperCase())) continue;
     if (supervisor && (!e || sem(e.supervisor) !== sem(supervisor))) continue;   /* supervisor ve so a equipe dele (25/10/2026) */
+    if (soRca && String(rca) !== String(soRca)) continue;   /* vendedor ve so os proprios numeros */
     const d = r.dashboard || {}, fi = d.financeiro || {}, po = d.positivacao || {}, pd = (r.produtividade && r.produtividade.dia) || {}, pm = (r.produtividade && r.produtividade.mes) || {};
     macro.pedidos += pd.positivacao || 0; macro.dig += pd.dig_pedido || 0;
     macro.devHoje += (Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).reduce((t, x) => t + Math.abs(parseFloat(x.vl_devolvido || x.valor || 0) || 0), 0);
     if (!e || e.mostra === false) continue;   // listas: so quem a Gestao de Equipe mostra
     const varejo = VAREJO.has(String(e.canal || '').toUpperCase());
     const visP = varejo ? pd.total_programado || 0 : 0, visF = varejo ? pd.visitas_na_rota || 0 : 0;
-    vend.push({ filial, rca, nome: e.nome || d.nome || 'RCA ' + rca, supervisor: e.supervisor || '', grupo: e.grupo || '', canal: e.canal || '', varejo,
+    vend.push({ filial, rca, nome: e.nome || d.nome || 'RCA ' + rca, supervisor: e.supervisor || '', grupo: e.grupo || '', gerente: e.gerente || '', canal: e.canal || '', varejo,
       fat: fi.faturado || 0, pend: fi.pendente || 0, meta: fi.meta || 0, dev: fi.devolucao || 0, pct: fi.meta ? (fi.faturado || 0) / fi.meta * 100 : null,
       pos: po.realizado ?? null, metaPos: po.meta ?? null, dig: pd.dig_pedido || 0, ped: pd.positivacao || 0, visP, visF, comVenda: varejo ? pd.visitas_com_venda || 0 : 0,
       visPlanMes: varejo ? pm.visit_plan || 0 : 0, visRealMes: varejo ? pm.visit_real || 0 : 0,
@@ -130,7 +132,7 @@ async function vendedoresDaFilial(B, filial, grupo, supervisor) {
 
 // ESCOPO: { nome, filiais:[...], grupo, nacional }
 async function carregaEscopo(B, esc) {
-  const partes = await Promise.all(esc.filiais.map((f) => vendedoresDaFilial(B, f, esc.grupo, esc.supervisor)));
+  const partes = await Promise.all(esc.filiais.map((f) => vendedoresDaFilial(B, f, esc.grupo, esc.supervisor, esc.rca)));
   const vend = partes.flatMap((p) => p.vend);
   const macro = partes.reduce((t, p) => ({ pedidos: t.pedidos + p.macro.pedidos, dig: t.dig + p.macro.dig, devHoje: t.devHoje + p.macro.devHoje }), { pedidos: 0, dig: 0, devHoje: 0 });
   return { ...esc, vend, macro, porFilial: Object.fromEntries(esc.filiais.map((f, i) => [f, partes[i]])) };
@@ -169,15 +171,15 @@ async function respResumo(B, E) {
   }
   const fil = E.filiais[0]; const f = s && (s.filiais || []).find((x) => x.filial === fil);
   const V = E.vend; const G = agrupa(V, (v) => 'x').get('x') || { fat: 0, pend: 0, meta: 0 };
-  const fat = (E.grupo || E.supervisor) ? G.fat : f ? f.faturado : null, pend = (E.grupo || E.supervisor) ? G.pend : f ? f.pendente : null, meta = (E.grupo || E.supervisor) ? G.meta : f ? f.meta_fat : null;
+  const fat = (E.grupo || E.supervisor || E.rca) ? G.fat : f ? f.faturado : null, pend = (E.grupo || E.supervisor || E.rca) ? G.pend : f ? f.pendente : null, meta = (E.grupo || E.supervisor || E.rca) ? G.meta : f ? f.meta_fat : null;
   const Vr = V.filter((v) => v.varejo), z = Vr.filter((v) => v.zerado), com = V.filter((v) => v.pct != null);
   const L = [`📊 *${E.nome} agora* (${hora})`, `💰 Faturado: *${R$(fat)}* de ${R$(meta)} → *${P(fat || 0, meta)}*`, `⏳ Pendente: ${R$(pend)}`];
-  if (!(E.grupo || E.supervisor) && f) L.push(`👥 Positivação: ${N(f.positivados)} de ${N(f.meta_pos)} (${P(f.positivados, f.meta_pos)})`); else L.push(`👥 Positivação: ${N(G.pos)} de ${N(G.metaPos)} (${P(G.pos, G.metaPos)})`);
-  L.push(`📝 Digitado hoje: *${R$((E.grupo || E.supervisor) ? G.dig : f ? f.digitado_hoje : E.macro.dig)}* em *${N((E.grupo || E.supervisor) ? G.ped : E.macro.pedidos)}* pedidos`,
+  if (!(E.grupo || E.supervisor || E.rca) && f) L.push(`👥 Positivação: ${N(f.positivados)} de ${N(f.meta_pos)} (${P(f.positivados, f.meta_pos)})`); else L.push(`👥 Positivação: ${N(G.pos)} de ${N(G.metaPos)} (${P(G.pos, G.metaPos)})`);
+  L.push(`📝 Digitado hoje: *${R$((E.grupo || E.supervisor || E.rca) ? G.dig : f ? f.digitado_hoje : E.macro.dig)}* em *${N((E.grupo || E.supervisor || E.rca) ? G.ped : E.macro.pedidos)}* pedidos`,
     `🚶 Rota do varejo hoje: ${Vr.reduce((a, v) => a + v.visF, 0)} de ${Vr.reduce((a, v) => a + v.visP, 0)} visitas · sem nenhuma visita: ${Vr.filter((v) => v.semVisita).length}`,
     `🏁 Meta batida no mês (fat.+pend.): ${V.filter((v) => v.meta && v.fat + v.pend >= v.meta).length} de ${V.length} vendedores`, `↩️ Devoluções no mês: ${R$(V.reduce((a, v) => a + v.dev, 0))}`);
-  const lc = await B.lances(); if (lc) { const Lf = (lc.lances || []).filter((l) => l.filial === fil && (!(E.grupo || E.supervisor) || V.some((v) => v.rca === String(l.rca)))); L.push(`⚽ Hoje: ${Lf.filter((l) => l.nivel === 'gol').length} gol(s) · ${Lf.filter((l) => l.nivel === 'penalti').length} pênalti(s) · ${Lf.filter((l) => l.nivel === 'impedimento').length} impedimento(s)`); }
-  if (!(E.grupo || E.supervisor)) { const Gr = [...agrupa(V.filter((v) => v.grupo), (v) => v.grupo)]; if (Gr.length > 1) { L.push('*Por gerente:*'); for (const [g, x] of Gr) L.push(`• ${titulo(g)}: ${R$(x.fat)} (${pctTxt(x.pct)}) · pend. ${R$(x.pend)} · ${x.zerados} zerado(s)`); } }
+  const lc = await B.lances(); if (lc) { const Lf = (lc.lances || []).filter((l) => l.filial === fil && (!(E.grupo || E.supervisor || E.rca) || V.some((v) => v.rca === String(l.rca)))); L.push(`⚽ Hoje: ${Lf.filter((l) => l.nivel === 'gol').length} gol(s) · ${Lf.filter((l) => l.nivel === 'penalti').length} pênalti(s) · ${Lf.filter((l) => l.nivel === 'impedimento').length} impedimento(s)`); }
+  if (!(E.grupo || E.supervisor || E.rca)) { const Gr = [...agrupa(V.filter((v) => v.grupo), (v) => v.grupo)]; if (Gr.length > 1) { L.push('*Por gerente:*'); for (const [g, x] of Gr) L.push(`• ${titulo(g)}: ${R$(x.fat)} (${pctTxt(x.pct)}) · pend. ${R$(x.pend)} · ${x.zerados} zerado(s)`); } }
   const lg = await B.liga(); const lf = lg && (lg.filiais || []).find((x) => x.sigla === fil); if (lf) L.push(`🏆 Liga: ${lf.pos}º de 11, ${lf.pts_tabela} pontos (${lf.vitorias}V ${lf.empates}E ${lf.derrotas}D)`);
   L.push(`⚠️ Zerados hoje (varejo com rota): *${z.length}*` + (z.length ? ' — ' + listaNomes(z) : ''));
   if (com.length) L.push(`✅ Melhores na meta: ${com.slice(0, 2).map((v) => `${nome2(v.nome)} ${pctTxt(v.pct)}`).join(' · ')}`, `🔻 Mais atrás: ${com.slice(-2).reverse().map((v) => `${nome2(v.nome)} ${pctTxt(v.pct)}`).join(' · ')}`);
@@ -202,7 +204,7 @@ async function respHoje(B, E, t) {
       soVarejo ? '' : '_Totais com todos os canais; peça "hoje rota" para só o varejo._', SUGESTAO + `ver os zerados da filial com mais vendedores sem pedido: ${(G.slice().sort((a, b) => b[1].zerados - a[1].zerados)[0] || [''])[0]}.`].filter((x) => x !== null).join('\n');
   }
   const tot = { ...(agrupa(V, () => 'x').get('x') || { dig: 0, ped: 0, visF: 0, visP: 0, comVenda: 0, zerados: 0 }) };
-  if (!soVarejo && !E.grupo && !E.supervisor) { tot.dig = E.macro.dig; tot.ped = E.macro.pedidos; }
+  if (!soVarejo && !E.grupo && !E.supervisor && !E.rca) { tot.dig = E.macro.dig; tot.ped = E.macro.pedidos; }
   if (/TICKET/.test(t)) return `🧾 *Ticket médio de hoje — ${E.nome}${rot}*: *${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}* (${R$(tot.dig)} ÷ ${tot.ped} pedidos)`;
   const Vs = V.slice().sort((a, b) => b.dig - a.dig);
   const L = [`📝 *${E.nome} hoje${rot}* (${hora})`, `Digitado: *${R$(tot.dig)}* em *${tot.ped}* pedidos · ticket ${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}`, `Visitas da rota: ${tot.visF} de ${tot.visP} · com venda: ${tot.comVenda} · zerados: ${tot.zerados}`, ''];
@@ -232,7 +234,7 @@ async function respVendedor(B, E, v) {
   const L = [`🧑‍💼 *${titulo(v.nome)}* — ${v.filial} · sup. ${nome2(v.supervisor)} · ${v.canal || 'sem canal'}`,
     `💰 Faturado: *${R$(v.fat)}* de ${R$(v.meta)} → *${pctTxt(v.pct)}* · pendente ${R$(v.pend)}`, `🎯 Falta: ${R$(falta)}` + (falta && dn ? ` · ${R$(falta / dn)} por dia útil (${dn} dias)` : ''),
     `👥 Positivação: ${v.pos ?? 'sem dado'} de ${v.metaPos ?? 'sem dado'} (${P(v.pos, v.metaPos)})` + (faltaPos ? ` · faltam ${faltaPos} clientes` : ''),
-    `📝 Hoje: ${R$(v.dig)} em ${v.ped} pedido(s)` + (v.varejo ? ` · visitas ${v.visF} de ${v.visP} · com venda ${v.comVenda}` : ''), `↩️ Devolução no mês: ${R$(v.dev)}`];
+    `📝 Hoje: ${R$(v.dig)} em ${v.ped} pedido(s)` + ` · ticket ${v.ped ? R$(v.dig / v.ped) : 'sem pedido hoje'}` + (v.varejo ? ` · visitas ${v.visF} de ${v.visP} · com venda ${v.comVenda}` : ''), `↩️ Devolução no mês: ${R$(v.dev)}`];
   if (v.varejo && v.visPlanMes) L.push(`📅 Rota do mês: ${v.visRealMes} de ${v.visPlanMes} visitas (${P(v.visRealMes, v.visPlanMes)})`);
   const lg = await B.liga(); const lv = lg && (lg.vendedores || []).find((x) => String(x.rca) === v.rca && x.filial === v.filial);
   if (lv) L.push(`🏆 Liga: ${lv.pos_brasil}º no Brasil · ${lv.pos_filial}º na filial · ${lv.pts_tabela} pts (${lv.vitorias}V ${lv.empates}E ${lv.derrotas}D)`);
@@ -245,7 +247,7 @@ async function respVendedor(B, E, v) {
 }
 async function totaisOficiais(B, E) {
   const x = { ...(agrupa(E.vend, () => 'x').get('x') || { fat: 0, pend: 0, meta: 0, pos: 0, metaPos: 0 }) };
-  if (E.grupo || E.supervisor) return x;   /* grupo (TPH/MCD) ou equipe do supervisor: soma dos vendedores */
+  if (E.grupo || E.supervisor || E.rca) return x;   /* grupo (TPH/MCD) ou equipe do supervisor: soma dos vendedores */
   const s = await B.saude(); const F = ((s && s.filiais) || []).filter((f) => E.filiais.includes(f.filial)); if (!F.length) return x;
   x.fat = F.reduce((a, f) => a + (f.faturado || 0), 0); x.pend = F.reduce((a, f) => a + (f.pendente || 0), 0); x.meta = F.reduce((a, f) => a + (f.meta_fat || 0), 0);
   x.pos = F.reduce((a, f) => a + (f.positivados || 0), 0); x.metaPos = F.reduce((a, f) => a + (f.meta_pos || 0), 0); x.pct = x.meta ? x.fat / x.meta * 100 : null; return x;
@@ -287,7 +289,7 @@ async function respIncentivoOficial(B, E, pessoa) {
   } else {
     const f = (x.filiais || []).find((y) => y.filial === E.filiais[0]);
     if (f) { L.push(`Filial (meta do regulamento): ${N(f.real)} de ${N(f.coluna_n)} (${pctTxt(f.pct_coluna_n)}) ${ok(f.ok)} · faltam ${N(f.falta)} p/ 110% (${N(f.alvo110_coluna_n)})`); for (const g of f.gerentes || []) if (!E.grupo || sem(g.grupo) === sem(E.grupo)) L.push(`• Gerência ${g.gerente} (meta das pastas): ${N(g.real)} de ${N(g.meta)} (${pctTxt(g.pct)}) ${ok(g.ok)}`); }
-    const S = (x.supervisores || []).filter((s) => s.filial === E.filiais[0] && (!(E.grupo || E.supervisor) || E.vend.some((v) => v.supervisor === s.nome))).sort((a, b) => b.pct - a.pct);
+    const S = (x.supervisores || []).filter((s) => s.filial === E.filiais[0] && (!(E.grupo || E.supervisor || E.rca) || E.vend.some((v) => v.supervisor === s.nome))).sort((a, b) => b.pct - a.pct);
     L.push('*Supervisores (R$ 300 com 110%):*', ...S.map((s) => `• ${nome2(s.nome)}: ${s.real}/${s.meta} (${pctTxt(s.pct)}) ${ok(s.ok)}${s.falta ? ' · faltam ' + s.falta : ''}`));
     const V = (x.vendedores || []).filter((v) => v.filial === E.filiais[0] && (!E.grupo || sem(v.grupo) === sem(E.grupo)) && (!E.supervisor || sem(v.supervisor) === sem(E.supervisor)));
     L.push(`Vendedores: G1 ✅ ${V.filter((v) => v.g1).length} de ${V.length} · G2 ✅ ${V.filter((v) => v.g2).length}`);
@@ -307,7 +309,7 @@ async function respLigaAs(B, E, pessoa) {
 async function respSemana(B, E) {
   const R = await Promise.all(E.filiais.map((f) => B.semana(f).then((j) => ({ f, S: j && j.filiais && j.filiais[f] }))));
   const sups = new Set(E.vend.map((v) => v.filial + '|' + v.supervisor));
-  const all = R.flatMap(({ f, S }) => (S || []).filter((s) => !/^GERENTE/i.test(s.nome) && (!(E.grupo || E.supervisor) || sups.has(f + '|' + s.nome))).map((s) => ({ ...s, filial: f })));
+  const all = R.flatMap(({ f, S }) => (S || []).filter((s) => !/^GERENTE/i.test(s.nome) && (!(E.grupo || E.supervisor || E.rca) || sups.has(f + '|' + s.nome))).map((s) => ({ ...s, filial: f })));
   if (!all.length) return 'Não consegui ler a semana dos supervisores agora.';
   const pass = (s) => (s.dias || []).filter((d) => d.estado !== 'futuro');
   const L = [`🗓️ *Semana dos supervisores — ${E.nome}* (compromisso / RET por dia útil até hoje)`];
@@ -348,7 +350,7 @@ function valorCorte(v) {
 async function operacao(B, E) {
   const [pd, lc] = await Promise.all([B.pedidosDia(), B.lances()]);
   const rcas = new Set(E.vend.map((v) => v.filial + '|' + v.rca));
-  const dentro = (fil, rca) => E.filiais.includes(fil) && (!(E.grupo || E.supervisor) || rcas.has(fil + '|' + rca));
+  const dentro = (fil, rca) => E.filiais.includes(fil) && (!(E.grupo || E.supervisor || E.rca) || rcas.has(fil + '|' + rca));
   const chave = (fil, rca) => { if (E.nacional) return fil; const v = E.vend.find((x) => x.filial === fil && x.rca === String(rca)); return (v && v.supervisor) || 'sem supervisor'; };
   const G = {}; const g = (k) => G[k] || (G[k] = { dig: 0, ped: 0, cortes: 0, nCortes: 0, bloq: 0, nBloq: 0, reat: 0, rec: 0, devHoje: 0, varejo: 0, vendeu: 0 });
   for (const v of (pd && pd.pedidos) || []) {
@@ -366,7 +368,7 @@ async function operacao(B, E) {
   for (const v of E.vend) { const x = g(E.nacional ? v.filial : (v.supervisor || 'sem supervisor')); x.dig += v.dig; x.ped += v.ped; x.devHoje += v.devHoje; if (v.varejo && v.visP > 0) { x.varejo++; if (v.vendeuHoje) x.vendeu++; } }
   if (E.nacional) for (const f of E.filiais) { const m = E.porFilial[f].macro; const x = g(f); x.dig = m.dig; x.ped = m.pedidos; x.devHoje = m.devHoje; }
   const T = Object.values(G).reduce((a, x) => { for (const k in x) a[k] = (a[k] || 0) + x[k]; return a; }, {});
-  if (!E.grupo && !E.supervisor && !E.nacional) { T.dig = E.macro.dig; T.ped = E.macro.pedidos; T.devHoje = E.macro.devHoje; }
+  if (!E.grupo && !E.supervisor && !E.rca && !E.nacional) { T.dig = E.macro.dig; T.ped = E.macro.pedidos; T.devHoje = E.macro.devHoje; }
   return { G, T, semPedidos: !pd, semLances: !lc };
 }
 async function respOperacao(B, E, t) {
@@ -443,6 +445,200 @@ async function respRelatorio(B, c, t) {
   if (/Faturado: R\$ 0,00 • 📦 0 itens/.test(txt) && ciclo[1] === '10_00') avisos.push('⚠️ _Este relatório saiu ZERADO por falha na coleta do dia (a lista de vendedores veio vazia do CEVEN). Não é venda zero; o número real não foi apurado._');
   return [`📄 *Relatório das ${ciclo[2]}*${dt ? ' — ' + dt : ''}`, ...avisos, '', txt.trim().slice(0, 6000)].join('\n');
 }
+// ---------- PERGUNTAS DA REUNIAO DE 5 H (25/10/2026) que o dado do site ja responde ----------
+function diasUteisMes() {
+  const [y, m, d] = hojeSP().split('-').map(Number), fim = new Date(Date.UTC(y, m, 0)).getUTCDate(); let tot = 0, pass = 0;
+  for (let i = 1; i <= fim; i++) { const w = new Date(Date.UTC(y, m - 1, i)).getUTCDay(); if (w > 0 && w < 6) { tot++; if (i < d) pass++; } }
+  return { tot, pass };
+}
+async function respCarteira(B, E) {
+  const x = await totaisOficiais(B, E); if (!x.meta) return 'Sem dado agora.';
+  const soma = x.fat + x.pend, falta = Math.max(0, x.meta - soma);
+  const G = [...agrupa(E.vend, (v) => (E.nacional ? v.filial : supChave(v, false)))].filter(([k]) => E.nacional || supReal(k)).map(([k, y]) => [k, y, y.meta ? (y.fat + y.pend) / y.meta * 100 : null]).sort((a, b) => (b[2] ?? -1) - (a[2] ?? -1));
+  return [`💼 *Faturado + carteira — ${E.nome}*`, `Faturado: *${R$(x.fat)}* · carteira (pendente): *${R$(x.pend)}*`, `Projeção do que já está na mão: *${R$(soma)}* de ${R$(x.meta)} → *${P(soma, x.meta)}*`, `Falta além da carteira: *${R$(falta)}* (${P(falta, x.meta)} da meta)`, '',
+    `*Ranking por (faturado + carteira) ÷ meta — ${E.nacional ? 'filiais' : 'supervisores'}:*`, ...G.map(([k, y, p], i) => `${i + 1}. ${E.nacional ? k : nome2(k)}: ${pctTxt(p)} · fat. ${R$(y.fat)} + cart. ${R$(y.pend)} · gap ${R$(Math.max(0, y.meta - y.fat - y.pend))}`),
+    '', '_"Faturado + carteira" é projeção: carteira ainda pode ser cortada ou bloqueada._'].join('\n');
+}
+async function respRitmo(B, E) {
+  const x = await totaisOficiais(B, E); if (!x.meta) return 'Sem dado agora.';
+  const { tot, pass } = diasUteisMes(), esp = tot ? pass / tot * 100 : 0, real = x.fat / x.meta * 100;
+  const tom = real >= esp ? '🟢 *No ritmo ou acima.* Golaço, mantém.' : real >= esp * 0.9 ? '🟡 *Jogo apertado*, dá para virar no segundo tempo.' : '🔴 *Abaixo do ritmo.* Precisamos reagir.';
+  const G = [...agrupa(E.vend, (v) => (E.nacional ? v.filial : supChave(v, false)))].filter(([k]) => E.nacional || supReal(k)).map(([k, y]) => [k, y.meta ? y.fat / y.meta * 100 - esp : null]).sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0));
+  return [`⏱️ *Ritmo da meta — ${E.nome}*`, `Dias úteis: ${pass} de ${tot} passados → o ritmo pede *${pctTxt(esp)}* da meta hoje (seg–sex, sem feriados)`, `Faturado: *${pctTxt(real)}* da meta`, tom, '',
+    `*Mais atrás do ritmo (${E.nacional ? 'filiais' : 'supervisores'}):*`, ...G.slice(0, 6).map(([k, d]) => `• ${E.nacional ? k : nome2(k)}: ${d == null ? 'sem dado' : (d >= 0 ? '+' : '') + d.toFixed(1).replace('.', ',') + ' p.p.'}`)].join('\n');
+}
+function respMaiorGap(E) {
+  const V = E.vend.filter((v) => v.meta > 0 && pessoaReal(v)).map((v) => ({ v, gap: Math.max(0, v.meta - v.fat - v.pend) })).sort((a, b) => b.gap - a.gap).slice(0, 10);
+  return [`🕳️ *Maior gap para a meta — ${E.nome}* (meta − faturado − carteira)`, ...V.map(({ v, gap }, i) => `${i + 1}. ${nome2(v.nome)} (RCA ${v.rca}${E.nacional ? ', ' + v.filial : ''}) — falta *${R$(gap)}* · ${pctTxt(v.pct)} · setor/sup. ${nome2(v.supervisor)}`), '', SUGESTAO + `sentar com ${nome2(V[0] && V[0].v.supervisor)} sobre ${nome2(V[0] && V[0].v.nome)} hoje.`].join('\n');
+}
+function respRankingSupervisores(E) {
+  const S = [...agrupa(E.vend, (v) => supChave(v, true))].filter(([k]) => supReal(k) && !/^VAGO/.test(k)).filter(([, x]) => x.meta > 0).sort((a, b) => (b[1].pct ?? -1) - (a[1].pct ?? -1));
+  return [`👥 *Ranking dos supervisores — ${E.nome}* (% da meta faturada)`, '*Melhores:*', ...S.slice(0, 10).map(([k, x], i) => `${i + 1}. ${supNome(k)} — ${pctTxt(x.pct)} · ${R$(x.fat)}`), '*Mais atrás:*', ...S.slice(-8).reverse().map(([k, x]) => `• ${supNome(k)} — ${pctTxt(x.pct)} · ${x.zerados} zerado(s)`)].join('\n');
+}
+function respRankingGerentes(E) {
+  const G = [...agrupa(E.vend, (v) => v.filial + (v.grupo ? ' · ' + titulo(v.grupo) : ''))].filter(([, x]) => x.meta > 0).sort((a, b) => (b[1].pct ?? -1) - (a[1].pct ?? -1));
+  return [`🧑‍💼 *Ranking dos gerentes* (% da meta faturada; TPH e MCD por gerente)`, ...G.map(([k, x], i) => `${i + 1}. ${k}${x.V[0] && x.V[0].gerente && !k.includes('·') ? ' — ' + titulo(x.V[0].gerente) : ''}: ${pctTxt(x.pct)} · ${R$(x.fat)} · pend. ${R$(x.pend)}`)].join('\n');
+}
+async function respComparar(B, fs) {
+  const s = await B.saude(); const F = ((s && s.filiais) || []).filter((f) => fs.includes(f.filial));
+  if (F.length < 2) return null;
+  const lin = (r, fn) => `${r}: ` + F.map((f) => `*${f.filial}* ${fn(f)}`).join(' × ');
+  return [`⚖️ *${fs.join(' × ')}* (${s.hora_sp})`, lin('Faturado', (f) => `${P(f.faturado || 0, f.meta_fat)} (${R$(f.faturado)})`), lin('Pendente', (f) => R$(f.pendente)), lin('Positivação', (f) => `${P(f.positivados, f.meta_pos)} (${N(f.positivados)})`), lin('Digitado hoje', (f) => R$(f.digitado_hoje))].join('\n');
+}
+async function respPontosPerdidos(B, E) {
+  const lc = await B.lances(); if (!lc) return 'Não consegui ler os lances agora.';
+  const rcas = new Set(E.vend.map((v) => v.filial + '|' + v.rca));
+  const L = (lc.lances || []).filter((l) => E.filiais.includes(l.filial) && (!(E.grupo || E.supervisor || E.rca) || rcas.has(l.filial + '|' + l.rca)) && (l.pontos || 0) < 0);
+  const G = {}; for (const l of L) { const k = l.pontos_nome || l.nivel; G[k] = G[k] || { n: 0, p: 0 }; G[k].n++; G[k].p += l.pontos; }
+  const tot = L.reduce((a, l) => a + l.pontos, 0);
+  return [`🚨 *Pontos perdidos hoje na Liga — ${E.nome}*: *${tot} pontos* em ${L.length} lance(s)`, ...Object.entries(G).sort((a, b) => a[1].p - b[1].p).map(([k, x]) => `• ${k}: ${x.n}× = ${x.p} pts`), '', '_Peça "pênaltis" ou "impedimentos" para ver quem e por quê._'].join('\n');
+}
+function respMetaBatida(E) {
+  const V = E.vend.filter((v) => v.meta > 0 && pessoaReal(v));
+  const fat = V.filter((v) => v.fat >= v.meta).sort((a, b) => b.pct - a.pct), proj = V.filter((v) => v.fat < v.meta && v.fat + v.pend >= v.meta);
+  return [`🏁 *Meta batida — ${E.nome}*`, `No faturado: *${fat.length} de ${V.length}* vendedores` + (fat.length ? ' — ' + fat.slice(0, 12).map((v) => `${nome2(v.nome)} ${pctTxt(v.pct)}`).join(', ') : ''), `Batem com a carteira (fat. + pend.): ${proj.length}` + (proj.length ? ' — ' + proj.slice(0, 10).map((v) => nome2(v.nome)).join(', ') : '')].join('\n');
+}
+async function respDobradinha(B, E) {
+  const mx = await B.mix(); if (!mx) return 'Não consegui ler o +MIX agora.';
+  const rcas = new Set(E.vend.map((v) => v.filial + '|' + v.rca));
+  const V = (mx.vendedores || []).filter((x) => E.filiais.includes(x.filial) && (!(E.grupo || E.supervisor || E.rca) || rcas.has(x.filial + '|' + x.rca)) && x.dobradinha_pct != null).sort((a, b) => b.dobradinha_pct - a.dobradinha_pct);
+  if (!V.length) return 'Sem dado de dobradinha agora.';
+  const f = (v) => `${nome2(v.nome)}${E.nacional ? ' ' + v.filial : ''}: ${String(v.dobradinha_pct).replace('.', ',')}%`;
+  return [`🔁 *Dobradinha das quinzenas — ${E.nome}* (% dos clientes do mês que compraram nas duas quinzenas; +MIX, até ${mx.dados_ate || 'ontem'})`, '*Mais dobradinha:*', ...V.slice(0, 8).map((v) => '• ' + f(v)), '*Menos:*', ...V.slice(-5).reverse().map((v) => '• ' + f(v)), '', SUGESTAO + 'quem compra só numa quinzena é o primeiro da rota na segunda.'].join('\n');
+}
+const SEM_HISTORICO = 'Esse eu ainda não tenho: precisa do *histórico diário* por vendedor (uma foto do dia guardada todo fim de tarde), que ainda não guardamos. Com ele eu respondo "dias seguidos sem pedido" e a comparação com o mesmo período do mês passado. Já está na lista da reunião de metas.';
+async function respInfoEquipe(env, c, texto) {
+  try { await env.DB.prepare('CREATE TABLE IF NOT EXISTS bot_avisos_equipe (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, quem TEXT, filial TEXT, texto TEXT, situacao TEXT DEFAULT \'novo\')').run();
+    await env.DB.prepare('INSERT INTO bot_avisos_equipe (celular, quem, filial, texto) VALUES (?,?,?,?)').bind(c.celular || '', c.nome || '', c.filial || '', String(texto).slice(0, 500)).run(); } catch (e) { return 'Não consegui anotar agora. Me manda de novo em instantes.'; }
+  return `📝 Anotado, ${titulo(String(c.nome || '').split(' ')[0])}. Mandei para a *Gestão de Equipe* decidir (ex.: tirar da cobrança, desconsiderar da leitura). Enquanto não for decidido lá, eu continuo mostrando a pessoa normalmente.`;
+}
+// ---------- VENDAS ITEM A ITEM (public/vendas_mes/<FIL>.json, gerado toda noite pelo +MIX com o banco do Data Lake) ----------
+// Reuniao de 5 h (25/10/2026): produto x cliente x vendedor x dia, industria, preco medio, top produtos, marca propria. Dado ate ONTEM (nunca hoje).
+const SEM_VENDAS = '📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta filial; tente depois das 06h._';
+const PARADAS = new Set(['QUAIS', 'QUAL', 'QUEM', 'OS', 'AS', 'DO', 'DA', 'DE', 'DOS', 'DAS', 'NO', 'NA', 'NOS', 'EM', 'QUE', 'MAIS', 'COMPROU', 'COMPRARAM', 'COMPRA', 'COMPRAM', 'COMPRADO', 'CLIENTES', 'CLIENTE', 'TOP', 'MES', 'ONTEM', 'HOJE', 'SEMANA', 'ESSA', 'ESSE', 'ESTE', 'ESTA', 'VENDEDORA', 'VENDEDOR', 'PRODUTO', 'PRODUTOS', 'POSITIVACAO', 'QUANTOS', 'QUANTO', 'PRECO', 'MEDIO', 'SAIU', 'MEDIA', 'VENDE', 'VENDEU', 'VENDERAM', 'PELO', 'PELA', 'POR', 'PARA', 'PRA', 'COM', 'UM', 'UMA', 'MEU', 'MINHA', 'JOTA', 'FAVOR', 'PICO', 'ULTIMA', 'ULTIMO', 'LOJA', 'NUMERICA', 'PDVS', 'PDV', 'FILIAL', 'SUPERVISOR', 'EQUIPE', 'CARTEIRA', 'ITEM', 'ITENS', 'LISTA', 'SKU', 'FOCO']);
+async function vendasEscopo(B, E) {
+  const arqs = await Promise.all(E.filiais.map((f) => B.raw(`public/vendas_mes/${f}.json`).then((t) => { try { return t ? { f, ...JSON.parse(t) } : null; } catch (e) { return null; } })));
+  const ok = arqs.filter(Boolean); if (!ok.length) return null;
+  const restrito = E.grupo || E.supervisor || E.rca, rcas = new Set(E.vend.map((v) => v.filial + '|' + v.rca));
+  const linhas = [], prod = {}, cli = {}; let ate = '';
+  for (const a of ok) { if (a.ate > ate) ate = a.ate; for (const [k, v] of Object.entries(a.produtos || {})) prod[k] = v; for (const [k, v] of Object.entries(a.clientes || {})) cli[a.f + '|' + k] = v;
+    for (const l of a.l || []) if (!restrito || rcas.has(a.f + '|' + l[1])) linhas.push({ f: a.f, d: l[0], r: l[1], c: l[2], p: l[3], q: l[4], v: l[5] }); }
+  return { linhas, prod, cli, ate, filiais: ok.map((a) => a.f) };
+}
+const dIso = (n) => { const s = String(n); return `${s.slice(6, 8)}/${s.slice(4, 6)}`; };
+function periodoDe(t, V) {
+  const ult = V.linhas.reduce((m, l) => Math.max(m, l.d), 0);
+  if (/\bONTEM\b/.test(t)) return { nome: 'ontem (' + dIso(ult) + ')', ok: (l) => l.d === ult, aviso: '' };
+  if (/\bHOJE\b|\bHJ\b/.test(t)) return { nome: 'ontem (' + dIso(ult) + ')', ok: (l) => l.d === ult, aviso: '_Item a item vai até ontem; o de hoje entra na madrugada._' };
+  if (/SEMANA/.test(t)) { const lim = Number(new Date(Date.UTC(+String(ult).slice(0, 4), +String(ult).slice(4, 6) - 1, +String(ult).slice(6, 8) - 6)).toISOString().slice(0, 10).replace(/-/g, '')); return { nome: 'últimos 7 dias', ok: (l) => l.d >= lim, aviso: '' }; }
+  return { nome: 'no mês (até ' + dIso(ult) + ')', ok: () => true, aviso: '' };
+}
+// acha produto(s) pelas palavras da pergunta (ex.: "snickers original" -> todos os SKUs com SNICKERS e ORIGINAL)
+function achaProdutos(t, V, E) {
+  const nomesPessoas = new Set(E.vend.flatMap((v) => sem(v.nome).split(/\s+/)).concat(E.vend.flatMap((v) => sem(v.supervisor).split(/\s+/))));
+  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !FILIAIS.includes(w) && !nomesPessoas.has(w) && !/^\d+$/.test(w));
+  if (!toks.length) return null;
+  let melhor = 0; const sc = {};
+  for (const [cod, [des]] of Object.entries(V.prod)) { const d = sem(des); const n = toks.filter((w) => d.includes(w)).length; if (n) { sc[cod] = n; if (n > melhor) melhor = n; } }
+  if (!melhor || (toks.length >= 2 && melhor < 2 && Object.values(sc).filter((x) => x === melhor).length > 40)) return null;
+  const cods = Object.keys(sc).filter((c) => sc[c] === melhor);
+  return { cods: new Set(cods), termo: titulo(toks.filter((w) => cods.some((c) => sem(V.prod[c][0]).includes(w))).join(' ')) };
+}
+function achaIndustria(t, V) {
+  const inds = [...new Set(Object.values(V.prod).map((p) => p[1]).filter(Boolean))];
+  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w));
+  const hit = inds.filter((i) => toks.some((w) => sem(i).split(/[^A-Z0-9]+/).includes(w)));
+  return hit.length ? hit : null;
+}
+const somaPor = (L, chave) => { const m = new Map(); for (const l of L) { const k = chave(l); const x = m.get(k) || { v: 0, q: 0, cli: new Set(), n: 0 }; x.v += l.v; x.q += l.q; x.cli.add(l.f + '|' + l.c); x.n++; m.set(k, x); } return m; };
+async function respProduto(B, E, t, pessoa) {
+  const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
+  const P = achaProdutos(t, V, E); if (!P) return null;
+  const per = periodoDe(t, V);
+  let L = V.linhas.filter((l) => P.cods.has(l.p) && per.ok(l));
+  let quem = E.nome;
+  if (pessoa && pessoa.tipo === 'vend') { L = L.filter((l) => l.f === pessoa.alvo.filial && l.r === pessoa.alvo.rca); quem = titulo(pessoa.alvo.nome) + ' (RCA ' + pessoa.alvo.rca + ')'; }
+  if (!L.length) return `📦 *${P.termo}* — ${quem}, ${per.nome}: *nenhuma venda* encontrada.${per.aviso ? '\n' + per.aviso : ''}`;
+  const C = [...somaPor(L, (l) => l.f + '|' + l.c)].sort((a, b) => b[1].v - a[1].v);
+  const tot = L.reduce((a, l) => ({ v: a.v + l.v, q: a.q + l.q }), { v: 0, q: 0 });
+  const vend = new Map(E.vend.map((v) => [v.filial + '|' + v.rca, nome2(v.nome)]));
+  const porV = [...somaPor(L, (l) => l.f + '|' + l.r)].sort((a, b) => b[1].v - a[1].v).slice(0, 5);
+  return [`📦 *${P.termo}* — ${quem}, ${per.nome}`, `${R$(tot.v)} · ${N(tot.q)} un. · *${C.length} cliente(s)* · preço médio ${R$(tot.q ? tot.v / tot.q : null)}/un.`, per.aviso, '', `*Clientes que mais compraram:*`,
+    ...C.slice(0, 10).map(([k, x], i) => `${i + 1}. ${titulo(V.cli[k] || k.split('|')[1])} (#${k.split('|')[1]}) — ${R$(x.v)} · ${N(x.q)} un.`),
+    ...(pessoa ? [] : ['', '*Por vendedor:*', ...porV.map(([k, x]) => `• ${vend.get(k) || 'RCA ' + k.split('|')[1]} ${E.nacional ? k.split('|')[0] : ''}: ${R$(x.v)} · ${x.cli.size} cli.`)]),
+    '', SUGESTAO + `oferecer ${P.termo} nos clientes da rota que ainda não compraram (peça "quem comprava ${P.termo} e parou").`].filter((x) => x !== '').join('\n').replace(/\n\*Clientes/, '\n\n*Clientes');
+}
+async function respIndustria(B, E, t, pessoa) {
+  const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
+  const I = achaIndustria(t, V); if (!I) return null;
+  const per = periodoDe(t, V);
+  const L = V.linhas.filter((l) => I.includes((V.prod[l.p] || [])[1]) && per.ok(l) && (!pessoa || pessoa.tipo !== 'vend' || (l.f === pessoa.alvo.filial && l.r === pessoa.alvo.rca)));
+  const nomeI = titulo(I[0].split(' ').slice(0, 2).join(' '));
+  if (!L.length) return `🏭 *${nomeI}* — ${E.nome}, ${per.nome}: nenhuma venda encontrada.`;
+  const tot = L.reduce((a, l) => a + l.v, 0), clis = new Set(L.map((l) => l.f + '|' + l.c));
+  const todosCli = new Set(V.linhas.filter(per.ok).map((l) => l.f + '|' + l.c));
+  const porVend = /VENDEDOR|CARTEIRA|POR VEND/.test(t) || E.supervisor || E.grupo;
+  const chave = E.nacional ? (l) => l.f : porVend ? (l) => l.f + '|' + l.r : (l) => { const v = E.vend.find((x) => x.filial === l.f && x.rca === l.r); return (v && v.supervisor) || 'sem supervisor'; };
+  const vend = new Map(E.vend.map((v) => [v.filial + '|' + v.rca, nome2(v.nome)]));
+  const G = [...somaPor(L, chave)].sort((a, b) => b[1].cli.size - a[1].cli.size);
+  const SK = [...somaPor(L, (l) => l.p)].sort((a, b) => b[1].cli.size - a[1].cli.size).slice(0, 5);
+  return [`🏭 *${nomeI}* — ${E.nome}, ${per.nome}`, `Faturado: *${R$(tot)}* · positivação: *${N(clis.size)} clientes* (${P(clis.size, todosCli.size)} dos que compraram algo)`, '',
+    `*Por ${E.nacional ? 'filial' : porVend ? 'vendedor' : 'supervisor'} (clientes · R$):*`, ...G.slice(0, 12).map(([k, x]) => `• ${E.nacional ? k : porVend ? (vend.get(k) || 'RCA ' + k.split('|')[1]) : nome2(k)}: ${x.cli.size} cli. · ${R$(x.v)}`),
+    '*SKUs que mais positivam:*', ...SK.map(([c, x]) => `• ${titulo((V.prod[c] || [''])[0])}: ${x.cli.size} cli.`), '', SUGESTAO + `peça "quem comprava ${nomeI} e parou" para a lista de recuperação.`].join('\n');
+}
+async function respRecuperacao(B, E, t) {
+  const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
+  const I = achaIndustria(t, V), Pr = I ? null : achaProdutos(t, V, E); if (!I && !Pr) return null;
+  const cods = new Set(Object.entries(V.prod).filter(([c, p]) => (I ? I.includes(p[1]) : Pr.cods.has(c))).map(([c]) => c));
+  const nome = I ? titulo(I[0].split(' ').slice(0, 2).join(' ')) : Pr.termo;
+  const H = await Promise.all(E.filiais.map((f) => B.raw(`public/mix_hist/${f}.json`).then((x) => { try { return { f, c: JSON.parse(x).c || {} }; } catch (e) { return { f, c: {} }; } })));
+  const porF = {}; let n = 0;
+  for (const { f, c } of H) for (const [cnpj, s] of Object.entries(c)) { const parou = String(s).split(',').filter((x) => cods.has(x.split(':')[0])); if (parou.length) { porF[f] = (porF[f] || 0) + 1; n++; } }
+  return [`🔁 *Recuperação — ${nome}* (${E.nome})`, `*${N(n)} clientes* compraram ${nome} nos últimos 60 dias e *não compraram este mês*.`, ...Object.entries(porF).sort((a, b) => b[1] - a[1]).map(([f, x]) => `• ${f}: ${x} cliente(s)`),
+    '', '_A lista nominal por cliente fica no +MIX (ceven-cftv-matrix.pages.dev/mix), por vendedor._', SUGESTAO + 'distribuir a lista para os vendedores visitarem esta semana.'].join('\n');
+}
+async function respCliente(B, E, t) {
+  const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
+  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !FILIAIS.includes(w));
+  const num = (t.match(/#?(\d{3,7})\b/) || [])[1];
+  let melhor = null, ms = 0;
+  for (const [k, nome] of Object.entries(V.cli)) { const n = sem(nome); const s = (num && k.endsWith('|' + num) ? 10 : 0) + toks.filter((w) => n.includes(w)).length; if (s > ms) { ms = s; melhor = k; } }
+  if (!melhor || ms < Math.min(2, toks.length)) return null;
+  const L = V.linhas.filter((l) => l.f + '|' + l.c === melhor);
+  const tot = L.reduce((a, l) => a + l.v, 0), dias = [...new Set(L.map((l) => l.d))].sort();
+  const PR = [...somaPor(L, (l) => l.p)].sort((a, b) => b[1].v - a[1].v);
+  const v = E.vend.find((x) => x.filial + '|' + x.rca === melhor.split('|')[0] + '|' + (L[0] || {}).r);
+  return [`🏪 *${titulo(V.cli[melhor])}* (#${melhor.split('|')[1]}, ${melhor.split('|')[0]})${v ? ' · vendedor ' + nome2(v.nome) : ''}`, `No mês: *${R$(tot)}* em ${dias.length} dia(s) de compra · último: ${dIso(dias[dias.length - 1])} · ${PR.length} SKUs`, '',
+    '*O que comprou (mês):*', ...PR.slice(0, 12).map(([c, x]) => `• ${titulo((V.prod[c] || [''])[0])}: ${N(x.q)} un. · ${R$(x.v)}`), PR.length > 12 ? `… e mais ${PR.length - 12} SKUs` : '',
+    '', SUGESTAO + 'peça "o que oferecer" no +MIX deste cliente antes da próxima visita.'].filter((x) => x !== '').join('\n');
+}
+async function respTopProdutos(B, E, t) {
+  const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
+  const per = periodoDe(t, V); const L = V.linhas.filter(per.ok);
+  const PR = [...somaPor(L, (l) => l.p)].sort((a, b) => b[1].v - a[1].v).slice(0, 10);
+  return [`🏆 *Produtos mais vendidos — ${E.nome}, ${per.nome}*`, ...PR.map(([c, x], i) => `${i + 1}. ${titulo((V.prod[c] || [''])[0])} — ${R$(x.v)} · ${x.cli.size} cli.`), per.aviso].filter(Boolean).join('\n');
+}
+async function respPreco(B, E, t) {
+  const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
+  const P = achaProdutos(t, V, E); if (!P) return null;
+  const L = V.linhas.filter((l) => P.cods.has(l.p) && l.q > 0);
+  if (!L.length) return `Sem venda de ${P.termo} no mês em ${E.nome}.`;
+  const pu = L.map((l) => l.v / l.q).sort((a, b) => a - b), tot = L.reduce((a, l) => ({ v: a.v + l.v, q: a.q + l.q }), { v: 0, q: 0 });
+  const porF = [...somaPor(L, (l) => l.f)].map(([f, x]) => `• ${f}: ${R$(x.q ? x.v / x.q : null)}/un.`);
+  return [`💲 *Preço médio — ${P.termo}* (${E.nome}, mês)`, `Média ponderada: *${R$(tot.v / tot.q)}*/un. · menor ${R$(pu[0])} · maior ${R$(pu[pu.length - 1])} (por item de pedido)`, ...(E.nacional ? porF : [])].join('\n');
+}
+async function respMarcaPropriaVivo(B, E, t) {
+  const V = await vendasEscopo(B, E); if (!V) return null;
+  const marca = (t.match(/ZIPOCA|CALIRA|MITBIT|BELLARONE|SKIVE/) || [])[0];
+  const ehMP = (p) => /TRIUNFANTE/.test(sem((V.prod[p] || [])[1])) && (!marca || sem((V.prod[p] || [''])[0]).includes(marca));
+  const per = periodoDe(t, V); const L = V.linhas.filter((l) => ehMP(l.p));
+  const ult = V.linhas.reduce((m, l) => Math.max(m, l.d), 0);
+  const mes = L.reduce((a, l) => a + l.v, 0), ont = L.filter((l) => l.d === ult).reduce((a, l) => a + l.v, 0);
+  const G = [...somaPor(L, (l) => (E.nacional ? l.f : l.r))].sort((a, b) => b[1].v - a[1].v);
+  const vend = new Map(E.vend.map((v) => [v.rca, nome2(v.nome)]));
+  return [`🎯 *Marca Própria${marca ? ' — ' + titulo(marca) : ''}* (${E.nome}, mês até ${dIso(ult)})`, `Mês: *${R$(mes)}* · ${new Set(L.map((l) => l.f + '|' + l.c)).size} clientes · ontem: *${R$(ont)}*`, '',
+    ...G.slice(0, 12).map(([k, x]) => `• ${E.nacional ? k : vend.get(k) || 'RCA ' + k}: ${R$(x.v)} · ${x.cli.size} cli.`), '_Fonte: vendas item a item (fornecedor Triunfante do catálogo)._'].join('\n');
+}
 // DETALHE DO DETALHE (Vitorio, 25/10/2026): "quais clientes ela visitou e nao vendeu? quais as justificativas?" -> cliente a cliente, com check-in, tempo e motivo
 function respClientesDia(v, t) {
   const R = v.rotaHoje || [];
@@ -489,7 +685,7 @@ function respAVisitar(E, pessoa) {
 }
 function respZerados(E) {
   const Z = E.vend.filter((v) => v.zerado), SV = E.vend.filter((v) => v.semVisita);
-  if (!Z.length) return `✅ *${E.nome}*: nenhum vendedor do varejo com rota está sem pedido agora.`;
+  if (!Z.length) return `✅ *Zerados hoje — ${E.nome}: 0.* Nenhum vendedor do varejo com rota está sem pedido agora.`;
   const G = [...agrupa(Z, (v) => supChave(v, E.nacional))].sort((a, b) => b[1].V.length - a[1].V.length);
   const L = [`⚠️ *Zerados hoje — ${E.nome}* (varejo com rota e sem pedido): *${Z.length}* · sem nenhuma visita: ${SV.length}`, ''];
   for (const [s, x] of G.slice(0, 15)) L.push(`*${supNome(s)}*: ` + x.V.map((v) => `${nome2(v.nome)} (${v.visF}/${v.visP} vis.)`).join(', '));
@@ -534,7 +730,7 @@ function respDevolucao(E) {
 async function respLances(B, E, t) {
   const lc = await B.lances(); if (!lc) return 'Não consegui ler os lances de hoje agora.';
   const rcas = new Set(E.vend.map((v) => v.filial + '|' + v.rca));
-  let L = (lc.lances || []).filter((l) => E.filiais.includes(l.filial) && (!(E.grupo || E.supervisor) || rcas.has(l.filial + '|' + l.rca)));
+  let L = (lc.lances || []).filter((l) => E.filiais.includes(l.filial) && (!(E.grupo || E.supervisor || E.rca) || rcas.has(l.filial + '|' + l.rca)));
   const tipos = [['PENALTI', 'penalti'], ['IMPEDIMENTO', 'impedimento'], ['VERMELHO', 'vermelho'], ['AMARELO', 'amarelo'], ['CARTAO', 'vermelho|amarelo'], ['GOL CONTRA', 'golcontra'], ['HAT', 'hattrick'], ['DEFESA', 'defesa'], ['GOL', 'gol']];
   const tp = tipos.find(([k]) => t.includes(k));
   const cont = {}; for (const l of L) cont[l.nivel] = (cont[l.nivel] || 0) + 1;
@@ -559,14 +755,14 @@ async function respLiga(B, E, alvo) {
   const fil = E.filiais[0]; const lf = (lg.filiais || []).find((x) => x.sigla === fil);
   const sups = new Set(E.vend.map((v) => v.supervisor));
   return [`🏆 *Champions Triunfante — ${E.nome}*`, lf ? `Filial: *${lf.pos}º de 11*, ${lf.pts_tabela} pts (${lf.vitorias}V ${lf.empates}E ${lf.derrotas}D)` : 'Filial: sem dado',
-    '*Supervisores:*', ...(lg.supervisores || []).filter((x) => x.filial === fil && (!(E.grupo || E.supervisor) || sups.has(x.supervisor))).sort((a, b) => a.pos - b.pos).slice(0, 10).map((x) => `${x.pos}º ${nome2(x.supervisor)} — ${x.pts_tabela} pts`),
-    '*Top vendedores da filial:*', ...(lg.vendedores || []).filter((v) => v.filial === fil && (!(E.grupo || E.supervisor) || E.vend.some((y) => y.rca === String(v.rca)))).sort((a, b) => a.pos_filial - b.pos_filial).slice(0, 5).map((v) => `${v.pos_filial}º ${nome2(v.nome)} — ${v.pts_tabela} pts (${v.pos_brasil}º Brasil)`),
+    '*Supervisores:*', ...(lg.supervisores || []).filter((x) => x.filial === fil && (!(E.grupo || E.supervisor || E.rca) || sups.has(x.supervisor))).sort((a, b) => a.pos - b.pos).slice(0, 10).map((x) => `${x.pos}º ${nome2(x.supervisor)} — ${x.pts_tabela} pts`),
+    '*Top vendedores da filial:*', ...(lg.vendedores || []).filter((v) => v.filial === fil && (!(E.grupo || E.supervisor || E.rca) || E.vend.some((y) => y.rca === String(v.rca)))).sort((a, b) => a.pos_filial - b.pos_filial).slice(0, 5).map((v) => `${v.pos_filial}º ${nome2(v.nome)} — ${v.pts_tabela} pts (${v.pos_brasil}º Brasil)`),
     '', '_Ranking completo: ceven-cftv-matrix.pages.dev/championstriunfante_'].join('\n');
 }
 async function respCompromisso(B, E) {
   const R = await Promise.all(E.filiais.map((f) => B.sups(f).then((j) => ({ f, S: (j && j.supervisores) || null }))));
   const sups = new Set(E.vend.map((v) => v.filial + '|' + v.supervisor));
-  const all = R.flatMap(({ f, S }) => (S || []).filter((x) => !/^GERENTE/i.test(x.nome) && (!(E.grupo || E.supervisor) || sups.has(f + '|' + x.nome))).map((x) => ({ ...x, filial: f })));
+  const all = R.flatMap(({ f, S }) => (S || []).filter((x) => !/^GERENTE/i.test(x.nome) && (!(E.grupo || E.supervisor || E.rca) || sups.has(f + '|' + x.nome))).map((x) => ({ ...x, filial: f })));
   if (!all.length) return `Não consegui ler o compromisso dos supervisores de ${E.nome} agora.`;
   const semC = all.filter((x) => !x.fez_compromisso), semR = all.filter((x) => !x.iniciou_ret);
   const nm = (x) => nome2(x.nome) + (E.nacional ? ' ' + x.filial : '');
@@ -582,7 +778,7 @@ async function respCompromisso(B, E) {
 async function respMix(B, E, t) {
   const mx = await B.mix(); if (!mx) return 'Não consegui ler o +MIX agora.';
   const rcas = new Set(E.vend.map((v) => v.filial + '|' + v.rca));
-  const V = (mx.vendedores || []).filter((x) => E.filiais.includes(x.filial) && (!(E.grupo || E.supervisor) || rcas.has(x.filial + '|' + x.rca)));
+  const V = (mx.vendedores || []).filter((x) => E.filiais.includes(x.filial) && (!(E.grupo || E.supervisor || E.rca) || rcas.has(x.filial + '|' + x.rca)));
   // produto: "quem compra X", "produto X"
   const m = t.match(/(?:PRODUTO|QUEM COMPRA|QUEM VENDE|VENDE MAIS|SKU)\s+(?:O |A |DE |DO |DA )?([A-Z0-9 ]{3,})/);
   if (m) {
@@ -652,7 +848,7 @@ function achaPessoa(E, t) {
 
 async function respostaPronta(B, c, texto, anteriores) {
   const fm = sem(texto).match(FRX);
-  const outra = (c.papel === 'gerente' || c.papel === 'supervisor') && c.filial && fm && fm[1] !== c.filial ? `_Você vê só ${c.filial}${c.grupo ? ' · ' + titulo(c.grupo) : ''}; outras filiais são com a diretoria._\n\n` : '';
+  const outra = (c.papel === 'gerente' || c.papel === 'supervisor' || c.papel === 'vendedor') && c.filial && fm && fm[1] !== c.filial ? `_Você vê só ${c.filial}${c.grupo ? ' · ' + titulo(c.grupo) : ''}; outras filiais são com a diretoria._\n\n` : '';
   const r = await respostaInterna(B, c, texto, anteriores);
   return r && outra + r;
 }
@@ -660,46 +856,82 @@ async function respostaInterna(B, c, texto, anteriores) {
   const t = sem(texto);
   // escopo: gerente = a filial dele; diretoria = a filial citada, senao o Brasil
   const fm = t.match(FRX);
-  const preso = (c.papel === 'gerente' || c.papel === 'supervisor') && c.filial;
+  if (c.papel === 'vendedor' && !(c.filial && c.rca)) return 'Seu cadastro no Jota está sem filial ou código RCA. Peça para a diretoria completar na tela de contatos.';
+  const preso = (c.papel === 'gerente' || c.papel === 'supervisor' || c.papel === 'vendedor') && c.filial;
   const fil = preso ? c.filial : fm ? fm[1] : null;
   const grupo = preso ? c.grupo || null : null;
   const supervisor = c.papel === 'supervisor' ? c.supervisor || c.nome : null;
-  const esc = fil ? { nome: supervisor ? 'Equipe ' + nome2(supervisor) + ' (' + fil + ')' : fil + (grupo ? ' · ' + titulo(grupo) : ''), filiais: [fil], grupo: supervisor ? null : grupo, supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
+  const rcaV = c.papel === 'vendedor' ? String(c.rca) : null;
+  const esc = rcaV ? { nome: nome2(c.nome) + ' (RCA ' + rcaV + ')', filiais: [fil], grupo: null, supervisor: null, rca: rcaV, nacional: false }
+    : fil ? { nome: supervisor ? 'Equipe ' + nome2(supervisor) + ' (' + fil + ')' : fil + (grupo ? ' · ' + titulo(grupo) : ''), filiais: [fil], grupo: supervisor ? null : grupo, supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
   if (/^(OI|OLA|E AI|AJUDA|MENU|INICIO|COMECAR|BOM DIA|BOA TARDE|BOA NOITE)\b[ !?.]*$|O QUE (VOCE|VC) (SABE|FAZ|RESPONDE)|^AJUDA/.test(t)) return respAjuda(c);
   if (/O QUE (E|EH|SIGNIFICA)|COMO FUNCIONA|COMO (E|EH) CALCULAD|QUE QUER DIZER|DEFINICAO/.test(t)) { const g = respGlossario(t); if (g) return g; }
   if (/DIVERGENC/.test(t) && c.papel === 'diretoria') return respDivergencias(B);
   if (/BOLA CHEIA/.test(t)) return respBola(B, esc);
   if (/SEMANA/.test(t) && /COMPROMISSO|\bRETS?\b|SUPERVISOR/.test(t)) return respSemana(B, await carregaEscopo(B, esc));
-  if (/RELATORIO|BOLETIM|DISPARO|MENSAGEM DAS|MARCAS? PROPRIAS?|COMO FECHOU|\bONTEM\b/.test(t)) return respRelatorio(B, c, t);
+  if (/ATESTADO|DEMITID|DESLIGAD|FERIAS|AFASTAD|LICENCA|DESCONSIDER|SAIU DA EMPRESA|PEDIU DEMISSAO/.test(t) && c.papel !== 'vendedor') return respInfoEquipe(B.env, c, texto);
+  if (/DOBRADINHA|DUAS QUINZENAS/.test(t)) return respDobradinha(B, await carregaEscopo(B, esc));
+  if (/HISTORICO DIARIO|DIAS (SEGUIDOS )?SEM (VENDER|PEDIDO|VENDA)|HA \d+ DIAS SEM|HA MAIS DE \d+ DIAS|\d+ DIAS SEM|MES PASSADO|MES ANTERIOR|\bM-1\b|SETEMBRO|CAIU EM RELACAO|COMPARADO COM O MES/.test(t)) return SEM_HISTORICO;
+  if (/HORARIOS? DAS? ATUALIZA|QUANDO (VOCE|VC) ATUALIZA|DE QUANTO EM QUANTO/.test(t)) return '⏱️ *Atualizações:* a base do CEVEN é lida a cada 2 min (06h–21h, seg–sáb; fora disso a cada 30 min). Lances da Liga a cada 5 min. Vendas item a item: toda madrugada (até ontem). Relatórios do WhatsApp: 07:45, 10:00, 11:30, 14:30, 17:00 e 18:30.';
+  if (/\bTAGS?\b|FALTA FOCO|COMBO|CHAMP KITEKAT|SEM COMPRAS P11|VOLTA COMIGO|CAMPANHA/.test(t) && !/RECORRENCIA/.test(t)) return 'As *tags de campanha* (FALTA FOCO MARS, COMBO, SEM COMPRAS P11…) eu só enxergo nos clientes da *rota de hoje*. A positivação por tag no mês ainda não está na base (está na lista da reunião de metas). Para a RECORRÊNCIA eu tenho: peça "recorrência".';
+  const ehMP = /MARCAS? PROPRIAS?|ZIPOCA|CALIRA|MITBIT|BELLARONE|SKIVE/.test(t);
+  if (/RELATORIO|BOLETIM|DISPARO|MENSAGEM DAS|COMO FECHOU|\bONTEM\b/.test(t) && !/COMPR|PRODUTO|CLIENTE/.test(t) || (ehMP && /RELATORIO|10[:H ]?00|\b10H\b/.test(t))) return respRelatorio(B, c, t);
   if (/GESTAO DE CAMPO|SUPERVISORES EM CAMPO|EM ROTA \(RET\)|RANKING DE ATIVIDADE/.test(t) || (/COMPROMISSO|\bRET\b/.test(t) && /POR FILIAL|RANKING|PERCENT|%/.test(t))) return respGestaoCampo(B, await carregaEscopo(B, esc));
-  if (/CORTE|BLOQUEAD|RETID|PERDAS|OPERACAO|RANKING DE VENDAS|RANKING FINAL|FECHAMENTO DO DIA|DEVOLUC\w* (DE |ENTRADAS? )?HOJE|ENTRADAS? HOJE/.test(t)) return respOperacao(B, await carregaEscopo(B, esc), t);
+  if (/CORTE|CORTAD|BLOQUEAD|RETID|PERDAS|OPERACAO|RANKING DE VENDAS|RANKING FINAL|FECHAMENTO DO DIA|DEVOLUC\w* (DE |ENTRADAS? )?HOJE|ENTRADAS? HOJE/.test(t)) return respOperacao(B, await carregaEscopo(B, esc), t);
   if (/RECORRENCIA|RESGAT|REATIVAD|INATIVOS? (RECUPERAD|REATIVAD)/.test(t) && !/O QUE (E|EH)/.test(t)) return respRecorrenciaLances(B, await carregaEscopo(B, esc));
   if (/MOTIVO/.test(t) && /DEVOLU/.test(t)) return respDevMotivos(B);
   if (/COMPROMISSO|MATINAL|\bRET\b|\bRETS\b|ROTA DO SUPERVISOR/.test(t)) return respCompromisso(B, await carregaEscopo(B, esc));
-  if (/PENALTI|IMPEDIMENTO|CARTA|VERMELHO|AMARELO|GOL CONTRA|\bGOLS?\b|LANCES?\b|HAT ?TRICK|DEFESAS?\b/.test(t) && !/LIGA|CHAMPIONS|CLASSIFICA/.test(t)) return respLances(B, await carregaEscopo(B, esc), t);
-  if (/\+ ?MIX|MAIS ?MIX|\bMIX\b|PRODUTO|QUEM COMPRA|\bSKU/.test(t)) return respMix(B, await carregaEscopo(B, esc), t);
+  if (/PENALTI|IMPEDIMENTO|CARTA|VERMELHO|AMARELO|GOL CONTRA|\bGOLS?\b|LANCES?\b|HAT ?TRICK|DEFESAS?\b|CHECK.?IN FORA|FORA DO CLIENTE|00:00|CARTO(ES|ESS)?\b/.test(t) && !/LIGA|CHAMPIONS|CLASSIFICA|PONTOS? (FOMOS|PERDID|PENALIZ)|PENALIZAD/.test(t)) return respLances(B, await carregaEscopo(B, esc), t);
+  if (/\+ ?MIX|MAIS ?MIX|\bMIX\b/.test(t) && !/COMPROU|COMPRARAM|PRECO/.test(t)) return respMix(B, await carregaEscopo(B, esc), t);
   const E = await carregaEscopo(B, esc);
   let pessoa = achaPessoa(E, t);
+  if (E.rca && E.vend[0]) pessoa = { tipo: 'vend', alvo: E.vend[0], empate: [E.vend[0]] };   /* vendedor: toda pergunta e sobre ele mesmo */
   if (!pessoa && /\b(ELA|ELE|DELA|DELE|DESSA|DESSE|ESSA|ESSE|NELA|NELE|PRA ELA|PRA ELE|MESMA|MESMO)\b/.test(t)) for (const h of anteriores || []) { pessoa = achaPessoa(E, sem(h)); if (pessoa) break; }
   if (pessoa && pessoa.tipo === 'vend' && /QUA(L|IS) (OS )?CLIENTES?|QUAIS\??$|JUSTIFICATIV|MOTIVO|NAO VENDEU|SEM VENDA|VISITOU|VISITAD|CHECK|ONDE (ELA|ELE) (FOI|ESTA)|POSITIVOU|VENDEU (PARA|PRA)/.test(t)) return respClientesDia(pessoa.alvo, t);
-  if (/INCENTIVO|GATILHO|110 ?%|\b110\b|BONUS|PREMIA/.test(t)) return respIncentivoOficial(B, E, pessoa);
+  // vendas item a item (produto, industria, cliente, preco, top produtos, marca propria ao vivo)
+  if (ehMP) { const r = await respMarcaPropriaVivo(B, E, t); return r || respRelatorio(B, c, t); }
+  if (/PRECO|QUANTO SAIU/.test(t)) { const r = await respPreco(B, E, t); if (r) return r; }
+  if (/COMPRAVA|PAROU|PARARAM|DEIXOU DE COMPRAR|DEIXARAM DE COMPRAR|RECUPERACAO D/.test(t)) { const r = await respRecuperacao(B, E, t); if (r) return r; }
+  if (/PRODUTOS? MAIS VENDID|TOP \d* ?PRODUTOS|QUAL PRODUTO MAIS|MAIS VENDIDOS/.test(t)) return respTopProdutos(B, E, t);
+  if (/CLIENTE|LOJA/.test(t) && /COMPROU|COMPRA|ULTIMO PEDIDO|SEM COMPRAR|OFERECER|PRODUTOS D/.test(t) && !/CLIENTES QUE|QUAIS (OS )?CLIENTES|QUEM/.test(t)) { const r = await respCliente(B, E, t); if (r) return r; }
+  if (/COMPRA|COMPROU|COMPRARAM|POSITIVACAO D[OEA]S? |(VENDE MAIS|MAIS VENDE)(?!U)(?!.*(SUPERVISOR|VENDEDOR|FILIAL|GERENTE))|EM QUANTOS CLIENTES|CLIENTES COMPRARAM|PDVS COMPRARAM/.test(t) || /\b(MONDELEZ|MARS|ARCOR|BAGLEY|CONDOR|FERRERO|NESTLE|HERSHEY|FINI|DORI|PEPSICO|KELLOGG|LACTA|DIVERSAO)\b/.test(t)) {
+    const ri = await respIndustria(B, E, t, pessoa); if (ri && ri !== SEM_VENDAS) return ri;
+    const rp = await respProduto(B, E, t, pessoa);
+    if (rp === SEM_VENDAS || (!rp && !ri)) { const m = await respMix(B, E, t); if (m && !/^Não achei|^🧺 \*\+MIX —/.test(m)) return m; }   /* sem vendas item a item ainda: reserva = +MIX */
+    if (rp) return rp;
+    if (ri) return ri;
+  }
+  if (/CARTEIRA|A FATURAR|FATURADO (\+|MAIS|E) (CARTEIRA|PENDENTE)|SOMANDO|VOLUME FINANCEIRO|\bPENDENTE\b/.test(t)) return respCarteira(B, E);
+  if (/RITMO|NO RITMO|VAMOS BATER|DA PRA BATER|PROJECAO/.test(t)) return respRitmo(B, E);
+  if (/MAIOR GAP|MAIS LONGE DA META|MAIOR BURACO|\bGAP\b/.test(t) && !pessoa) return respMaiorGap(E);
+  if (/PONTOS? (FOMOS |PERDID|PENALIZ)|PENALIZAD|PERDEMOS PONTOS/.test(t)) return respPontosPerdidos(B, E);
+  if (/RANKING (DOS |DE )?GERENTES|QUAL GERENTE|GERENTE (ESTA |TA )?MELHOR/.test(t)) return respRankingGerentes(E.nacional ? E : await carregaEscopo(B, { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true }));
+  if (/SUPERVISOR/.test(t) && /MAIS VENDEU|MAIS VENDE|VENDEU MAIS/.test(t)) { const S = [...agrupa(E.vend, (v) => supChave(v, E.nacional))].filter(([k]) => supReal(k)).sort((a, b) => b[1].dig - a[1].dig); return [`💰 *Supervisores que mais venderam hoje — ${E.nome}* (digitado)`, ...S.slice(0, 10).map(([k, x], i) => `${i + 1}. ${supNome(k)} — ${R$(x.dig)} · ${x.ped} ped.`)].join('\n'); }
+  if (/SUPERVISOR/.test(t) && /RANKING|MELHORES|POR % DA META/.test(t) && E.nacional) return respRankingSupervisores(E);
+  { const fs2 = [...new Set((t.match(new RegExp(FRX.source, 'g')) || []))]; if (fs2.length >= 2 && /COMPARA|\bX\b|VERSUS|\bVS\b|CONTRA|COM /.test(t) && c.papel === 'diretoria') { const r = await respComparar(B, fs2); if (r) return r; } }
+  if (/BATERAM (A )?META|BATEU (A )?META|ATINGIRAM (A )?META|META BATIDA/.test(t) && !pessoa) return respMetaBatida(E);
+  if (/INCENTIVO|GATILHO|110 ?%|\b110\b|BONUS|PREMIA|PREMIO|PREMIAC/.test(t)) return respIncentivoOficial(B, E, pessoa);
+  if (/\bAS\b/.test(t) && /RANKING|VENCEDOR|LIGA|PONTOS/.test(t)) return respLigaAs(B, E, pessoa);
   if (/LIGA (DO |DOS |DA )?AS\b|LIGA DO ATACADO/.test(t) || (pessoa && pessoa.tipo === 'vend' && /^(AS|PET AS)$/.test(pessoa.alvo.canal) && /LIGA|PONTOS|POSICAO|CHAMPIONS/.test(t))) return respLigaAs(B, E, pessoa);
   if (/LIGA|CHAMPIONS|CLASSIFICA|TABELA|POSICAO|PONTOS|PONTUACAO|COLOCAD/.test(t)) return respLiga(B, E, pessoa && pessoa.tipo === 'vend' ? pessoa.alvo : null);
   if (/FALTA(M)? (SER )?VISITA|NAO (FOI |FORAM )?VISITAD|AINDA (NAO )?(FORAM )?VISITAD|CLIENTES? (EM )?ABERTO|PENDENTES? (DE |NA )?(VISITA|ROTA)|SEM VISITA AINDA|CLIENTES? (NA|DA) ROTA|FALTA VISITAR|FALTAM VISITAR|QUEM FALTA VISITAR/.test(t)) return respAVisitar(E, pessoa);
+  if (pessoa && pessoa.tipo === 'sup' && /ZERAD|ZEROU|SEM PEDIDO/.test(t)) return respZerados({ ...E, nome: 'Equipe ' + nome2(pessoa.alvo.nome), vend: E.vend.filter((v) => v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial) });
+  if (pessoa && pessoa.tipo === 'sup' && /MAIS VENDEU|MAIS VENDE/.test(t)) pessoa = null;
   if (pessoa) {
     const amb = pessoa.empate.length > 1 ? `\n\n_Achei mais de um: ${pessoa.empate.slice(0, 5).map((x) => titulo(x.nome) + ' ' + x.filial).join(' · ')}. Mande o nome completo se não for este._` : '';
     return (pessoa.tipo === 'sup' ? respSupervisor(E, pessoa.alvo) : await respVendedor(B, E, pessoa.alvo)) + amb;
   }
-  if (/ZERAD|SEM PEDIDO|SEM VENDA|NAO VENDEU|NAO VENDERAM|NINGUEM VENDEU/.test(t)) return respZerados(E);
+  if (/ZERAD|ZEROU|SEM PEDIDO|SEM VENDA|NAO VENDEU|NAO VENDERAM|NINGUEM VENDEU/.test(t)) return respZerados(E);
   if (/DEVOLU/.test(t)) { const a = respDevolucao(E); const m = E.nacional ? await respDevMotivos(B) : null; return m ? a + '\n\n' + m : a; }
-  if (/QUANTO FALTA|FALTA (PARA|PRA|BATER)|\bFALTA\b|POR DIA UTIL|\bMN\b|PRECISA (VENDER|FATURAR)/.test(t)) return respFalta(B, E);
+  if (/QUANTO FALTA|FALTA (PARA|PRA|BATER)|\bFALTA\b|POR DIA UTIL|\bMN\b|PRECISA (VENDER|FATURAR)|POR DIA PRA|COMO BATER|BATER A META/.test(t)) return respFalta(B, E);
   if (/RANKING|MELHOR|PIOR|\bTOP\b|DESTAQUE|MAIS ATRAS|QUEM (ESTA|TA) (BEM|MAL)/.test(t)) return respRanking(E, t);
   if (/VISITA|EFICACIA|EFICIENCIA|ROTEIRO|CHECK.?IN/.test(t) && !/ACUMULADO|DIGITAD/.test(t)) return respVisitas(E);
   if (/POSITIVA/.test(t)) return respPositivacao(B, E);
   if (/COMO (ESTA|TA|VAI|ESTAMOS|ANDA)|RESUMO|PANORAMA|STATUS|GERAL|SITUACAO/.test(t) && !/ACUMULADO|DIGITAD/.test(t)) return respResumo(B, E);
-  if (/HOJE|ACUMULADO|DIGITAD|PEDIDOS?\b|TICKET|VENDEU|VENDERAM|\bDIA\b|ROTA|VAREJO/.test(t)) return respHoje(B, E, t);
+  if (/HOJE|\bHJ\b|ACUMULADO|DIGITAD|PEDIDOS?\b|TICKET|VENDEU|VENDERAM|\bDIA\b|ROTA|VAREJO/.test(t)) return respHoje(B, E, t);
+  if (/QUEM COBRAR|PLANO DO DIA|O QUE (EU )?FACO|ONDE ATACAR/.test(t)) return respFalta(B, E);
   if (/SUPERVIS|POR EQUIPE|ABERT|POR GERENTE/.test(t)) return respPorSupervisor(E);
-  if (fm || /BRASIL|TODAS|NACIONAL|REDE/.test(t)) return respResumo(B, E);
+  if (fm || /BRASIL|TODAS|NACIONAL|REDE|FILIAIS|QUAL FILIAL/.test(t)) return respResumo(B, E);
   return null;
 }
 
