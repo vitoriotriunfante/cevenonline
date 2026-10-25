@@ -636,9 +636,10 @@ async function respMetasIndustria(B, E, t, pessoa) {
   const dentro = (c) => !cods || cods.has(c);
   // industria citada (pelo nome da Premiacao; Mars = MARS CHOC/MARS PET etc.)
   const nomes = new Map(); for (const m of RV.metas) if (!nomes.has(m[1])) nomes.set(m[1], m[2]);
-  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !['META', 'METAS', 'INDUSTRIA', 'INDUSTRIAS', 'BATENDO', 'BATEU', 'BATER', 'ESTAMOS', 'FORNECEDOR', 'FORNECEDORES', 'PREMIACAO', 'PREMIO', 'ATINGIMENTO', 'ATINGIU'].includes(w) && !FILIAIS.includes(w));
+  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !['META', 'METAS', 'INDUSTRIA', 'INDUSTRIAS', 'BATENDO', 'BATEU', 'BATER', 'ESTAMOS', 'FORNECEDOR', 'FORNECEDORES', 'PREMIACAO', 'PREMIO', 'ATINGIMENTO', 'ATINGIU', 'BRASIL', 'LTDA', 'ALIMENTOS', 'ALIMENTAR', 'COMERCIAL', 'IND', 'DOCEIRA', 'CHOC', 'PET', 'FALTA', 'BATENDO', 'BATIDA', 'GRUPO', 'TODAS', 'TODOS', 'GERAL'].includes(w) && !FILIAIS.includes(w));
   const pessoasT = new Set(E.vend.flatMap((v) => sem(v.nome).split(/\s+/)).concat(E.vend.flatMap((v) => sem(v.supervisor).split(/\s+/))));
   const alvoI = new Set([...nomes].filter(([, n]) => toks.some((w) => !pessoasT.has(w) && sem(n).split(/[^A-Z0-9]+/).includes(w))).map(([id]) => id));
+  if (!alvoI.size && !/INDUSTRI|FORNECEDOR|FABRICANTE|PREMIA/.test(t)) return null;   /* meta sem industria = meta da filial/vendedor (outra resposta) */
   const G = new Map();   // id -> { meta, metaPos, fat, vend, pos, posV, porVend: Map }
   const g = (id) => { if (!G.has(id)) G.set(id, { meta: 0, metaPos: 0, fat: 0, ven: 0, pos: 0, posV: 0, pv: new Map() }); return G.get(id); };
   const gv = (x, c) => { if (!x.pv.has(c)) x.pv.set(c, { meta: 0, metaPos: 0, fat: 0, ven: 0, pos: 0 }); return x.pv.get(c); };
@@ -646,15 +647,25 @@ async function respMetasIndustria(B, E, t, pessoa) {
   for (const [c, id, ff, fv, pf, pv] of RV.apu) if (dentro(c) && G.has(id)) { const x = G.get(id), y = gv(x, c); x.fat += ff; x.ven += fv; x.pos += pf; x.posV += pv; y.fat += ff; y.ven += fv; y.pos += pf; }
   const L = [...G].filter(([, x]) => x.meta > 0 || x.metaPos > 0);
   const corte = RV.cutoff ? RV.cutoff.split('-').reverse().slice(0, 2).join('/') : '?';
-  const cab = `🏆 *Metas das indústrias — ${quem}* · ${MESES[+RV.mes.slice(5, 7)]} · _Premiação do CEVEN, apuração até ${corte}_`;
-  if (!L.length) return alvoI.size ? `${cab}\nNenhuma meta de *${[...alvoI].map((i) => nomeForn(nomes.get(i))).join(', ')}* para ${quem} neste mês.` : `${cab}\nNenhuma meta por indústria cadastrada para ${quem} neste mês.`;
+  const cab = `🏆 *Metas das indústrias — ${quem}* · ${MESES[+RV.mes.slice(5, 7)]} · _Premiação RV, apuração até ${corte}_`;
+  // filial de cada codigo (Gestao de Equipe): para o Brasil por filial e para dizer onde a industria tem meta
+  const mo = await B.mostra(); const filDe = new Map(); for (const [k, Lm] of Object.entries((mo && mo.filiais) || {})) for (const v of Lm) filDe.set(String(v.rca), k.split('_')[0]);
+  if (!L.length) {
+    if (!alvoI.size) return `${cab}\nNenhuma meta por indústria cadastrada para ${quem} neste mês.`;
+    const onde = [...new Set(RV.metas.filter((m) => alvoI.has(m[1]) && m[3] === 1).map((m) => filDe.get(m[0]) || 'fora da Gestão'))].sort();
+    return `${cab}\nNenhuma meta de *${[...alvoI].map((i) => nomeForn(nomes.get(i))).join(', ')}* para ${quem} neste mês.${onde.length ? ` Essa indústria tem meta em: *${onde.join(', ')}*.` : ''}`;
+  }
   const sel = (x) => (x.fat >= x.meta && x.meta ? '✅' : x.meta && x.fat / x.meta >= 0.8 ? '🟡' : '🔴');
   const linha = (n, x) => `${sel(x)} *${n}*: faturado ${R$(x.fat)} de ${R$(x.meta)} (${P(x.fat, x.meta)})${x.ven > x.fat ? ` · vendido ${R$(x.ven)} (${P(x.ven, x.meta)})` : ''}${x.metaPos ? ` · positivação ${N(x.pos)}/${N(x.metaPos)} (${P(x.pos, x.metaPos)})` : ''}`;
   if (alvoI.size) {   /* industria citada: total + quem esta puxando */
     const out = [cab];
     for (const [id, x] of L) {
       out.push('', linha(nomeForn(nomes.get(id)), x));
-      if (x.pv.size > 1) {
+      if (x.pv.size > 1 && E.nacional && !pessoa) {   /* Brasil: por filial (soma dos vendedores, sem rateio) */
+        const pf = new Map(); for (const [c, y] of x.pv) { const f = filDe.get(c) || 'fora da Gestão'; const z = pf.get(f) || { meta: 0, fat: 0 }; z.meta += y.meta; z.fat += y.fat; pf.set(f, z); }
+        const lf = [...pf].filter(([, y]) => y.meta > 0).sort((a, b) => b[1].fat / b[1].meta - a[1].fat / a[1].meta);
+        out.push(`*Por filial* (${lf.filter(([, y]) => y.fat >= y.meta).length} de ${lf.length} já bateram o faturado):`, ...lf.map(([f, y]) => `• ${f}: ${R$(y.fat)} de ${R$(y.meta)} (${P(y.fat, y.meta)})`));
+      } else if (x.pv.size > 1) {
         const nm = new Map(E.vend.map((v) => [String(v.rca), v]));
         const pv = [...x.pv].filter(([, y]) => y.meta > 0).sort((a, b) => b[1].fat / (b[1].meta || 1) - a[1].fat / (a[1].meta || 1));
         out.push(`*Por vendedor* (${pv.filter(([, y]) => y.fat >= y.meta).length} de ${pv.length} já bateram o faturado):`, ...pv.slice(0, 8).map(([c, y]) => `• ${nm.get(c) ? vn(nm.get(c)) : 'RCA ' + c}: ${R$(y.fat)} de ${R$(y.meta)} (${P(y.fat, y.meta)})`));
@@ -796,7 +807,13 @@ async function respComparaMes(B, E, t, pessoa) {
     const ga = somaPor(LA, chave), gz = somaPor(LZ, chave);
     const D = [...new Set([...ga.keys(), ...gz.keys()])].filter((k) => E.nacional || supReal(k) || k.includes('|')).map((k) => [k, (ga.get(k) || { v: 0 }).v, (gz.get(k) || { v: 0 }).v]).filter((x) => x[2] > 0).sort((a, b) => (a[1] / a[2]) - (b[1] / b[2]));
     const nomeK = (k) => (E.nacional ? k : k.includes('|') ? vn(E.vend.find((v) => v.filial + '|' + v.rca === k) || { nome: 'RCA ' + k.split('|')[1] }) : nome2(k));
-    if (D.length) L.push('', '*Mais caíram:*', ...D.slice(0, 4).map(([k, a, z]) => `• ${nomeK(k)}: ${R$(a)} × ${R$(z)} (${delta(a, z)})`), '*Mais cresceram:*', ...D.slice(-3).reverse().map(([k, a, z]) => `• ${nomeK(k)}: ${R$(a)} × ${R$(z)} (${delta(a, z)})`));
+    if (D.length) {   /* so chama de "cresceram" quem cresceu de fato; o resto e "menores quedas" (25/10/2026) */
+      const fmt = ([k, a, z]) => `• ${nomeK(k)}: ${R$(a)} × ${R$(z)} (${delta(a, z)})`;
+      const cai = D.filter(([, a, z]) => a < z), sobe = D.filter(([, a, z]) => a >= z).reverse();
+      if (cai.length) L.push('', '*Mais caíram:*', ...cai.slice(0, 4).map(fmt));
+      if (sobe.length) L.push('*Cresceram:*', ...sobe.slice(0, 3).map(fmt));
+      else if (cai.length > 4) L.push('*Menores quedas:*', ...cai.slice(-3).reverse().map(fmt));
+    }
     if (D.length) L.push('', SUGESTAO + `entender a queda de ${nomeK(D[0][0])} (${delta(D[0][1], D[0][2])}) antes do fechamento.`);
   }
   L.push('_Régua: valor dos pedidos item a item (não é o faturado líquido do CEVEN)._');
@@ -1010,7 +1027,7 @@ function respIncentivo(E) {
   const g1 = V.filter((v) => pp(v) >= 60);
   return [`🏆 *Incentivo Outubro — ${E.nome}* (varejo)`, 'Regras: R$ 150 se ≥60% da positivação até 15/10 · R$ 350 se ≥110% positivação *e* ≥110% faturado em 31/10 · +R$ 30 por cliente novo do LinkUp com 1ª compra faturada.',
     `Hoje já com ≥110%/110%: *${ok.length} de ${V.length}*` + (ok.length ? ' — ' + listaNomes(ok, 6) : ''), `Perto (≥95% nos dois): ${quase.length}` + (quase.length ? ' — ' + quase.slice(0, 6).map((v) => `${vn(v)} (${pctTxt(pf(v))}/${pctTxt(pp(v))})`).join(', ') : ''),
-    `Com ≥60% da positivação hoje: ${g1.length} de ${V.length}`, '_Valor oficial do prêmio = apuração do CEVEN (Premiação RV) com faturado; aqui é a leitura de agora._', '', SUGESTAO + (quase.length ? `empurrar ${listaNomes(quase, 3)}: estão perto dos 110%.` : 'focar positivação: é a régua mais difícil.')].join('\n');
+    `Com ≥60% da positivação hoje: ${g1.length} de ${V.length}`, '_Valor oficial do prêmio = apuração da Premiação RV com faturado; aqui é a leitura de agora._', '', SUGESTAO + (quase.length ? `empurrar ${listaNomes(quase, 3)}: estão perto dos 110%.` : 'focar positivação: é a régua mais difícil.')].join('\n');
 }
 const GLOSSARIO = [
   [/POSITIVA/, '*Positivação* = clientes (CNPJs distintos) com faturamento líquido > 0 no mês. Pedido 100% cortado ou devolvido inteiro não conta.'],
@@ -1103,7 +1120,7 @@ async function respostaInterna(B, c, texto, anteriores) {
   if (/DIAS (SEGUIDOS )?SEM (VENDER|PEDIDO|VENDA)|HA \d+ DIAS SEM|HA MAIS DE \d+ DIAS|\d+ DIAS SEM|SEM PEDIDO HA/.test(t)) return respDiasSemPedido(B, E, t);
   if (/MES PASSADO|MES ANTERIOR|SETEMBRO|AGOSTO|\bM-1\b|COMPARAD|EM RELACAO AO MES|CAIU|CRESCEU|EVOLUCAO|ESTE MES X|ESSE MES X/.test(t) && !/LIGA|CHAMPI|POSICAO|RANKING DA LIGA/.test(t) && !(t.match(new RegExp(FRX.source, 'g')) || []).slice(1).length) return respComparaMes(B, E, t, pessoa);
   // METAS DAS INDUSTRIAS = Premiacao RV do CEVEN (Vitorio, 25/10/2026)
-  if (/META/.test(t) && (/INDUSTRI|FORNECEDOR|FABRICANTE|PREMIA/.test(t) || /\b(MARS|MARILAN|AMPARO|MAURI|AEROFLEX|LINDT|DAFRUTA|MEDIX|BEST POP|SUPER SAUDE|MONDELEZ|ARCOR|NESTLE|FERRERO|HERSHEY|COLGATE|KELLOGG|PEPSICO|BAGLEY|CONDOR|FINI|DORI)\b/.test(t))) return respMetasIndustria(B, E, t, pessoa);
+  if (/\bMETAS?\b/.test(t)) { const r = await respMetasIndustria(B, E, t, pessoa); if (r) return r; }
   // vendas item a item (produto, industria, cliente, preco, top produtos, marca propria ao vivo)
   if (ehMP) { const r = await respMarcaPropriaVivo(B, E, t); return r || respRelatorio(B, c, t); }
   if (/PRECO|QUANTO SAIU/.test(t)) { const r = await respPreco(B, E, t); if (r) return r; }

@@ -42,6 +42,12 @@ const gerentes = contatos.filter((c) => c.papel === 'gerente');
 const supervisores = [...new Map([...EQ.values()].filter((v) => v.mostra !== false && v.supervisor && !/^(GERENTE|VAGO|SEM )/i.test(v.supervisor)).map((v) => [v.filial + '|' + v.supervisor, { filial: v.filial, nome: v.supervisor, grupo: v.grupo || null }])).values()];
 // ---------- VALIDADORES (recalculo independente) ----------
 const tem = (r, s) => String(r).includes(s);
+// Premiacao RV (metas por industria) direto da fonte + utilitarios de produto
+const RVB = 'https://mapa.drivetriunfante-lastmile.com.br/rv/api', MES = hoje.slice(0, 7);
+const RV = await Promise.all([j(`${RVB}/metas?mes=${MES}`), j(`${RVB}/apuracao-agregada?mes=${MES}`)]).then(([m, a]) => ({ metas: m.rows, apu: a.fornecedores })).catch(() => null);
+const DSEM = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+const dU = (d) => new Date(Date.UTC(Math.floor(d / 10000), Math.floor(d / 100) % 100 - 1, d % 100));
+const linhasProd = (f, termo, fonte = vendas) => { const vm = fonte[f]; if (!vm) return []; const T = sem(termo).split(/\s+/); const cods = new Set(Object.entries(vm.produtos).filter(([, p]) => T.every((w) => sem(p[0]).includes(w))).map(([c]) => c)); return vm.l.filter((l) => cods.has(l[3])); };
 const V = {
   fat_filial: (r, ctx) => { const f = (saude.filiais || []).find((x) => x.filial === ctx.filial); if (!f) return null; return tem(r, R$(f.faturado)) ? 'ok' : `faturado esperado ${R$(f.faturado)}`; },
   pos_filial: (r, ctx) => { const f = (saude.filiais || []).find((x) => x.filial === ctx.filial); if (!f) return null; return tem(r, N(f.positivados)) ? 'ok' : `positivados esperado ${N(f.positivados)}`; },
@@ -55,6 +61,17 @@ const V = {
   dig_vend: (r, ctx) => { const d = prodDia(ctx.filial, ctx.rca); return tem(r, R$(d.dig_pedido || 0)) ? 'ok' : `digitado esperado ${R$(d.dig_pedido || 0)}`; },
   produto_vend: (r, ctx) => { const vm = vendas[ctx.filial]; if (!vm) return null; const cods = new Set(Object.entries(vm.produtos).filter(([, p]) => sem(p[0]).includes(sem(ctx.prodTermo))).map(([c]) => c)); const tot = vm.l.filter((l) => l[1] === ctx.rca && cods.has(l[3])).reduce((a, l) => a + l[5], 0); if (!tot) return /nenhuma venda|Não achei/.test(r) ? 'ok' : 'esperado "nenhuma venda"'; return tem(r, R$(tot)) ? 'ok' : `produto esperado ${R$(tot)}`; },
   compara_mes: (r, ctx) => { const A = vendas[ctx.filial], Z = vendasAnt[ctx.filial]; if (!A || !Z) return null; const ate = A.l.reduce((m, l) => Math.max(m, l[0]), 0), dc = ate % 100; const f = (l) => !ctx.rca || l[1] === ctx.rca; const vA = A.l.filter(f).reduce((a, l) => a + l[5], 0), vZ = Z.l.filter((l) => f(l) && l[0] % 100 <= dc).reduce((a, l) => a + l[5], 0); return tem(r, R$(vA)) && tem(r, R$(vZ)) ? 'ok' : `comparação esperada ${R$(vA)} × ${R$(vZ)}`; },
+  // PREMIACAO RV (25/10/2026): meta x faturado por industria, conferido direto na fonte (/rv/api), sem passar pelo JOTA
+  meta_ind: (r, ctx) => { if (!RV) return null; const ok = (c) => !ctx.rcas || ctx.rcas.includes(c); const ids = new Set(); let meta = 0, fat = 0;
+    for (const m of RV.metas) if (ok(String(m.cod_vendedor)) && (!ctx.ind || String(m.id_fornecedor) === ctx.ind)) { ids.add(String(m.id_fornecedor)); if (m.tipo_meta === 1) meta += m.meta; }
+    for (const a of RV.apu) if (ok(String(a.CODUSUR)) && ids.has(String(a.cnpj_fornecedor))) fat += a.fat_f;
+    if (!ids.size) return /Nenhuma meta/.test(r) ? 'ok' : 'esperado "nenhuma meta"'; return tem(r, R$(fat)) && tem(r, R$(meta)) ? 'ok' : `meta esperada ${R$(fat)} de ${R$(meta)}`; },
+  dia_semana: (r, ctx) => { const L = linhasProd(ctx.filial, ctx.termo); if (!L.length) return null; const W = Array.from({ length: 7 }, () => ({ v: 0, d: new Set() })); for (const l of L) { const w = dU(l[0]).getUTCDay(); W[w].v += l[5]; W[w].d.add(l[0]); }
+    const best = W.map((x, i) => ({ i, m: x.d.size ? x.v / x.d.size : -1 })).sort((a, b) => b.m - a.m)[0]; return tem(r, `*${DSEM[best.i]}*`) ? 'ok' : `melhor dia esperado ${DSEM[best.i]}`; },
+  semanas: (r, ctx) => { const L = linhasProd(ctx.filial, ctx.termo); if (!L.length) return null; const S = new Map(); for (const l of L) { const d = dU(l[0]); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); const k = d.toISOString().slice(0, 10); S.set(k, (S.get(k) || 0) + l[5]); }
+    const falta = [...S.values()].filter((v) => !tem(r, R$(v))); return falta.length ? `semanas esperadas ${[...S.values()].map(R$).join(' / ')}` : 'ok'; },
+  mes_a_mes: (r, ctx) => { const L = linhasProd(ctx.filial, ctx.termo), Z = linhasProd(ctx.filial, ctx.termo, vendasAnt); if (!L.length || !vendasAnt[ctx.filial]) return null; const dia = L.reduce((m, l) => Math.max(m, l[0]), 0) % 100;
+    const a = L.reduce((s, l) => s + l[5], 0), z = Z.filter((l) => l[0] % 100 <= dia).reduce((s, l) => s + l[5], 0); return tem(r, R$(a)) && tem(r, R$(z)) ? 'ok' : `mês a mês esperado ${R$(a)} × ${R$(z)}`; },
   escopo: (r) => (/Você vê só|outras filiais são com a diretoria/.test(r) ? 'ok' : 'gerente/supervisor viu outra filial sem aviso'),
   sugestao: (r) => (/Sugestão do Jota/.test(r) ? 'ok' : 'sem sugestão'),
 };
@@ -67,6 +84,36 @@ if (SO !== 'rota') {
   sabs.push({ tipo: 'Evandro → Gerente de AS (Paulo)', perfil: dir('PAULO MICHELETO JUNIOR'), perguntas: [pr('ranking dos vendedores AS'), pr('liga AS'), pr('quem é o melhor AS da TPH?'), pr('5 piores AS em faturamento'), pr('como está o AS da API?'), pr('quanto o AS faturou no mês?'), pr('qual AS mais deve meta?')] });
   sabs.push({ tipo: 'Diretor → Gerente de rota varejo (Vitório)', perfil: dir('VITORIO'), perguntas: [pr('visitas de hoje'), pr('eficácia da rota no mês'), pr('quem tem rota e não visitou ninguém?'), pr('zerados por supervisor'), pr('quantos clientes faltam visitar hoje?'), pr('impedimentos de hoje'), pr('recorrência positivada hoje'), pr('dobradinha por vendedor'), pr('quem mais usa o +mix?'), pr('10 melhores de varejo em positivação')] });
   for (const ind of IND) sabs.push({ tipo: 'Diretor → Gerente de Relacionamento com Indústrias', perfil: dir('VITORIO'), perguntas: [pr(`positivação de ${ind} por filial`), pr(`quanto vendemos de ${ind} no mês?`), pr(`quem comprava ${ind} e parou?`), pr(`positivação de ${ind} na TPH por vendedor`), pr(`como está ${ind} na API?`)] });
+  // DIRETOR APRESENTANDO PARA A INDUSTRIA (Vitorio, 25/10/2026): metas da Premiacao + dia da semana, vendedor especifico, semanal e mensal
+  if (RV) {
+    const filDe = new Map([...EQ.values()].map((v) => [String(v.rca), v.filial]));
+    const porInd = new Map(); for (const m of RV.metas) if (m.tipo_meta === 1) { const id = String(m.id_fornecedor), x = porInd.get(id) || { nome: m.fornecedor, meta: 0, fil: new Map(), vend: new Map() }; x.meta += m.meta; const f = filDe.get(String(m.cod_vendedor)); if (f) x.fil.set(f, (x.fil.get(f) || 0) + m.meta); x.vend.set(String(m.cod_vendedor), (x.vend.get(String(m.cod_vendedor)) || 0) + m.meta); porInd.set(id, x); }
+    const nomeI = (n) => titulo(String(n).replace(/^[A-Z0-9]{1,3}\s*-\s*/i, '').replace(/\(.*?\)|\.{2,}/g, '').split(/\s+/).slice(0, 2).join(' '));
+    const GENERICO = /^(BISC|LAVA|ROUP|CHOC|CHOCOLATE|BALA|PIR|PANO|LUVA|DESOD|REPEL|BATATA|SALGAD|BARRA|TABL|BOMBOM|AO|LEITE|COM|SEM|PO|LIQ|CT|UN|KG|ORIGINAL)$/;
+    for (const [id, x] of [...porInd].sort((a, b) => b[1].meta - a[1].meta).slice(0, 14)) {
+      const fil = [...x.fil].sort((a, b) => b[1] - a[1]).map(([f]) => f);
+      for (const F of fil.slice(0, 3)) {
+        const vm = vendas[F]; if (!vm) continue;
+        // produto da industria mais vendido na filial -> palavra distintiva (marca)
+        const w0 = sem(nomeI(x.nome)).split(' ')[0]; const cnt = new Map();
+        for (const l of vm.l) { const p = vm.produtos[l[3]]; if (p && sem(p[1]).includes(w0)) cnt.set(l[3], (cnt.get(l[3]) || 0) + l[5]); }
+        const top = [...cnt].sort((a, b) => b[1] - a[1])[0]; if (!top) continue;
+        const termo = titulo((sem(vm.produtos[top[0]][0]).split(/\s+/).find((w) => w.length > 3 && !GENERICO.test(w)) || ''));
+        if (!termo) continue;
+        const vs = [...x.vend].filter(([c]) => filDe.get(c) === F).sort((a, b) => b[1] - a[1]); const v0 = vs.length ? EQ.get(F + '|' + vs[0][0]) : null;
+        const I = nomeI(x.nome), ctxF = { filial: F, termo };
+        const perg = [pr(`como está a meta da ${I} no Brasil?`, ['meta_ind'], { rcas: null, ind: id }),
+          pr(`qual dia da semana mais vende ${termo} em ${F}?`, ['dia_semana'], ctxF),
+          pr(`tem algum vendedor específico que vende mais ${termo} em ${F}?`),
+          pr(`vendas semanais de ${termo} em ${F}`, ['semanas'], ctxF),
+          pr(`vendas mensais de ${termo} em ${F}`, ['mes_a_mes'], ctxF)];
+        if (v0) { const n = titulo(v0.nome.split(' ').slice(0, 2).join(' ')); perg.push(pr(`como está a meta da ${I} do vendedor ${n} ${v0.rca}?`, ['meta_ind'], { rcas: [String(v0.rca)], ind: id }), pr(`estamos batendo as metas das indústrias do vendedor ${n} ${v0.rca}?`, ['meta_ind'], { rcas: [String(v0.rca)], ind: null })); }
+        sabs.push({ tipo: `Diretor apresentando para a Indústria (${I})`, perfil: dir('EVANDRO SERVAT'), perguntas: perg });
+      }
+    }
+    // o exemplo do Vitorio: vendedora 181 de TBL
+    sabs.push({ tipo: 'Diretor apresentando para a Indústria (exemplo Giovana 181 TBL)', perfil: dir('EVANDRO SERVAT'), perguntas: [pr('estamos batendo as metas das indústrias da Giovana 181?', ['meta_ind'], { rcas: ['181'], ind: null }), pr('como está a meta da Mars Choc da Giovana 181?', ['meta_ind'], { rcas: ['181'], ind: '13136' }), pr('qual dia da semana mais vende Snickers em TBL?', ['dia_semana'], { filial: 'TBL', termo: 'Snickers' }), pr('vendas semanais de Snickers em TBL', ['semanas'], { filial: 'TBL', termo: 'Snickers' }), pr('vendas mensais de Snickers em TBL', ['mes_a_mes'], { filial: 'TBL', termo: 'Snickers' })] });
+  }
   for (const nac of ['PAULO MICHELETO JUNIOR', 'VITORIO', 'RUDINEI RIZATTI']) for (const g of gerentes) {
     const sups = supervisores.filter((s) => s.filial === g.filial && (!g.grupo || String(s.grupo || '').toUpperCase() === String(g.grupo).toUpperCase()));
     const s0 = sups[Math.floor(Math.random() * Math.max(1, sups.length))] || {};
