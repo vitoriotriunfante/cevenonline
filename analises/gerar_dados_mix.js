@@ -338,9 +338,14 @@ async function main() {
   // com o nome de cada cliente e de cada produto e a INDUSTRIA (fornecedor do catalogo da filial). Lido pelo JOTA direto do GitHub (zero gravacao na Cloudflare).
   try {
     const dbv = new Database(path.join(__dirname, 'pedidos_historico_ceven.db'), { readonly: true });
-    const rows = dbv.prepare(`SELECT ph.filial_sigla f, CAST(ph.rca_id AS TEXT) r, ph.id_cliente c, ph.nome_cliente n, substr(ph.data_pedido,1,10) d, i.codprod cod, i.descricao des, i.quantidade q, i.valor_total v
+    const SQLV = `SELECT ph.filial_sigla f, CAST(ph.rca_id AS TEXT) r, ph.id_cliente c, ph.nome_cliente n, substr(ph.data_pedido,1,10) d, i.codprod cod, i.descricao des, i.quantidade q, i.valor_total v
       FROM pedidos_historico ph JOIN pedidos_historico_itens i ON i.chave_pedido = ph.chave
-      WHERE i.tipo_registro = 'VENDA' AND i.codprod <> '12229' AND i.codprod <> '' AND substr(ph.data_pedido,1,10) >= ? AND substr(ph.data_pedido,1,10) <= ?`).all(INI, ATE);
+      WHERE i.tipo_registro = 'VENDA' AND i.codprod <> '12229' AND i.codprod <> '' AND substr(ph.data_pedido,1,10) >= ? AND substr(ph.data_pedido,1,10) <= ?`;
+    const rows = dbv.prepare(SQLV).all(INI, ATE);
+    // MES ANTERIOR inteiro, mesmo formato (Vitorio, 25/10/2026: "comparacao com mes passado... mes passado com esse mes ate agora... o negocio e complexo")
+    const iniAnt = (() => { const d = new Date(INI + 'T12:00:00Z'); d.setUTCMonth(d.getUTCMonth() - 1); return d.toISOString().slice(0, 10); })();
+    const fimAnt = (() => { const d = new Date(INI + 'T12:00:00Z'); d.setUTCDate(0); return d.toISOString().slice(0, 10); })();
+    const rowsAnt = dbv.prepare(SQLV).all(iniAnt, fimAnt);
     dbv.close();
     const forn = new Map();   // FIL|cod -> fornecedor
     try { const cat = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config', 'catalogo_produtos_por_filial.json'), 'utf8')); const C = cat.campos; const iS = C.indexOf('sigla'), iC = C.indexOf('codprod'), iF = C.indexOf('fornecedor');
@@ -355,6 +360,16 @@ async function main() {
     fs.mkdirSync(path.join(__dirname, '..', 'public', 'vendas_mes'), { recursive: true });
     for (const [f, m] of porF) fs.writeFileSync(path.join(__dirname, '..', 'public', 'vendas_mes', f + '.json'), JSON.stringify({ gerado_em: new Date().toISOString(), de: INI, ate: ATE, campos: ['data', 'rca', 'cliente', 'produto', 'qtd', 'valor'], produtos_campos: ['descricao', 'industria'], ...m }));
     console.log(`vendas do mes item a item: ${rows.length} itens em ${porF.size} filiais (public/vendas_mes)`);
+    const porA = new Map();
+    for (const x of rowsAnt) {
+      const m = porA.get(x.f) || porA.set(x.f, { clientes: {}, produtos: {}, l: [] }).get(x.f);
+      m.clientes[String(x.c)] = x.n || '';
+      if (!m.produtos[String(x.cod)]) m.produtos[String(x.cod)] = [x.des || '', forn.get(String(x.f).toUpperCase() + '|' + String(x.cod)) || forn.get('*|' + String(x.cod)) || ''];
+      m.l.push([Number(x.d.replace(/-/g, '')), x.r, String(x.c), String(x.cod), Number(x.q) || 0, Math.round((Number(x.v) || 0) * 100) / 100]);
+    }
+    fs.mkdirSync(path.join(__dirname, '..', 'public', 'vendas_mes_anterior'), { recursive: true });
+    for (const [f, m] of porA) fs.writeFileSync(path.join(__dirname, '..', 'public', 'vendas_mes_anterior', f + '.json'), JSON.stringify({ gerado_em: new Date().toISOString(), de: iniAnt, ate: fimAnt, campos: ['data', 'rca', 'cliente', 'produto', 'qtd', 'valor'], produtos_campos: ['descricao', 'industria'], ...m }));
+    console.log(`mes anterior item a item: ${rowsAnt.length} itens (${iniAnt} a ${fimAnt}) em ${porA.size} filiais (public/vendas_mes_anterior)`);
   } catch (e) { console.log('⚠️ vendas_mes nao gerado:', e.message); }
   // +MIX DE CADA CLIENTE (clique no cliente no mapa: "o que falta ele comprar que esta no +MIX"): um arquivo por filial em public/mix_rec/
   { const porF = new Map();
