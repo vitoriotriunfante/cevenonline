@@ -13,14 +13,9 @@ import { fileURLToPath } from 'url';
 const RAIZ = fileURLToPath(new URL('..', import.meta.url));
 const PASTAS = ['functions', 'pipeline', 'worker-cron', 'analises', 'public'];
 const EXT = /\.(js|mjs|cjs|html)$/;
-// Exceções conhecidas. LEGADO = endpoints sem chamador, aguardando o ok do Vitório para apagar (docs/AUDITORIA_LIMPEZA_2026-10-25.md).
-// Quando forem apagados, sai daqui. Nunca acrescentar arquivo novo nesta lista sem o Vitório pedir.
+// Exceções conhecidas. os 12 endpoints mortos foram apagados em 25/10/2026 (docs/AUDITORIA_LIMPEZA_2026-10-25.md). Nunca acrescentar arquivo novo nesta lista sem o Vitório pedir.
 const EXCECOES = new Set([
   'public/regras.js', 'functions/_lib/ceven_auth.js',
-  'functions/api/cron-whatsapp-dispatcher.js', 'functions/api/cron-relatorio-horario.js', 'functions/api/whatsapp/flash-alert.js',
-  'functions/api/cron-matinal-04h.js', 'functions/api/cron-aquecimento-matinal.js', 'functions/api/cron-fechamento-20h.js',
-  'functions/api/consolidador-diario.js', 'functions/api/historico.js', 'functions/api/cliente-detalhe.js',
-  'functions/api/oportunidades-mix.js', 'functions/api/pre-analise-rca.js', 'functions/api/anomalias-roteiro.js',
   // worker separado (dispara o WhatsApp; publicar o worker troca o login do wrangler): migra no proximo deploy dele
   'worker-cron/src/vigia.js',
 ]);
