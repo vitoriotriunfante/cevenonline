@@ -22,6 +22,9 @@ const N = (n) => n == null || isNaN(n) ? 'sem dado' : Math.round(n).toLocaleStri
 const titulo = (s) => String(s || '').toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
 const sem = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
 const nome2 = (n) => { const p = String(n || '').replace(/^CLT\s*-?\s*/i, '').split(' ').filter((w) => w && !/^(DE|DA|DO|DOS|DAS|E|A)$/i.test(w)); return titulo(p.length > 1 ? p[0] + ' ' + p[p.length - 1] : p[0] || ''); };
+// vendedor sempre com CODIGO e CANAL (sugestao do Vitorio, 25/10/2026: "identifique sempre o vendedor com COD e se ele e AS ou varejo")
+const canalCurto = (c) => { const x = String(c || '').toUpperCase(); return /^(VJ|PET VJ|FARMA|ESP)$/.test(x) ? 'varejo' : /^(AS|PET AS)$/.test(x) ? 'AS' : x ? x.toLowerCase() : ''; };
+const vn = (v) => (v && v.rca ? `${nome2(v.nome)} (${v.rca}${canalCurto(v.canal) ? ' · ' + canalCurto(v.canal) : ''})` : nome2(v && v.nome));
 const FILIAIS = ['TPH', 'ABC', 'API', 'TBL', 'TCV', 'TSJ', 'TCA', 'TBE', 'TPA', 'MCD', 'TCG'];
 const FRX = /\b(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\b/;
 const VAREJO = new Set(['VJ', 'PET VJ', 'FARMA', 'ESP']);
@@ -153,7 +156,7 @@ function agrupa(V, chave) {
   return m;
 }
 const pctTxt = (x) => x == null ? 'sem dado' : x.toFixed(1).replace('.', ',') + '%';
-const listaNomes = (V, n = 4) => V.slice(0, n).map((v) => nome2(v.nome)).join(', ') + (V.length > n ? ` +${V.length - n}` : '');
+const listaNomes = (V, n = 4) => V.slice(0, n).map((v) => vn(v)).join(', ') + (V.length > n ? ` +${V.length - n}` : '');
 
 // ---------------- RESPOSTAS ----------------
 async function respResumo(B, E) {
@@ -184,7 +187,7 @@ async function respResumo(B, E) {
   if (!(E.grupo || E.supervisor || E.rca)) { const Gr = [...agrupa(V.filter((v) => v.grupo), (v) => v.grupo)]; if (Gr.length > 1) { L.push('*Por gerente:*'); for (const [g, x] of Gr) L.push(`• ${titulo(g)}: ${R$(x.fat)} (${pctTxt(x.pct)}) · pend. ${R$(x.pend)} · ${x.zerados} zerado(s)`); } }
   const lg = await B.liga(); const lf = lg && (lg.filiais || []).find((x) => x.sigla === fil); if (lf) L.push(`🏆 Liga: ${lf.pos}º de 11, ${lf.pts_tabela} pontos (${lf.vitorias}V ${lf.empates}E ${lf.derrotas}D)`);
   L.push(`⚠️ Zerados hoje (varejo com rota): *${z.length}*` + (z.length ? ' — ' + listaNomes(z) : ''));
-  if (com.length) L.push(`✅ Melhores na meta: ${com.slice(0, 2).map((v) => `${nome2(v.nome)} ${pctTxt(v.pct)}`).join(' · ')}`, `🔻 Mais atrás: ${com.slice(-2).reverse().map((v) => `${nome2(v.nome)} ${pctTxt(v.pct)}`).join(' · ')}`);
+  if (com.length) L.push(`✅ Melhores na meta: ${com.slice(0, 2).map((v) => `${vn(v)} ${pctTxt(v.pct)}`).join(' · ')}`, `🔻 Mais atrás: ${com.slice(-2).reverse().map((v) => `${vn(v)} ${pctTxt(v.pct)}`).join(' · ')}`);
   const sz = [...agrupa(Vr, (v) => v.supervisor || 'sem supervisor')].filter(([k]) => supReal(k)).sort((a, b) => b[1].zerados - a[1].zerados)[0];
   { const { tot, pass } = diasUteisMes(), esp = tot ? pass / tot * 100 : 0, pr = meta ? (fat || 0) / meta * 100 : null;
     if (pr != null) L.push('', `👀 *Leitura do Jota:* ${pr >= esp ? 'no ritmo ou acima' : pr >= esp * 0.9 ? 'jogo apertado, dá pra virar' : 'abaixo do ritmo, precisamos reagir'} (o calendário pede ${esp.toFixed(0)}% e estamos em ${pr.toFixed(1).replace('.', ',')}%).`); }
@@ -212,7 +215,7 @@ async function respHoje(B, E, t) {
   if (/TICKET/.test(t)) return `🧾 *Ticket médio de hoje — ${E.nome}${rot}*: *${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}* (${R$(tot.dig)} ÷ ${tot.ped} pedidos)`;
   const Vs = V.slice().sort((a, b) => b.dig - a.dig);
   const L = [`📝 *${E.nome} hoje${rot}* (${hora})`, `Digitado: *${R$(tot.dig)}* em *${tot.ped}* pedidos · ticket ${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}`, `Visitas da rota: ${tot.visF} de ${tot.visP} · com venda: ${tot.comVenda} · zerados: ${tot.zerados}`, ''];
-  for (const v of Vs.slice(0, 40)) L.push(`• ${v.zerado ? '⚠️' : v.dig > 0 ? '✅' : '▫️'} ${nome2(v.nome)}: ${R$(v.dig)} · ${v.ped} ped.` + (v.varejo ? ` · visitas ${v.visF}/${v.visP}` : ` · ${v.canal || 'sem canal'}`));
+  for (const v of Vs.slice(0, 40)) L.push(`• ${v.zerado ? '⚠️' : v.dig > 0 ? '✅' : '▫️'} ${vn(v)}: ${R$(v.dig)} · ${v.ped} ped.` + (v.varejo ? ` · visitas ${v.visF}/${v.visP}` : ` · ${v.canal || 'sem canal'}`));
   if (Vs.length > 40) L.push(`… e mais ${Vs.length - 40}`);
   const z = V.filter((v) => v.zerado);
   L.push('', SUGESTAO + (z.length ? `cobrar quem tem rota e está sem pedido: ${listaNomes(z, 3)}.` : 'todo o varejo com rota já tem pedido; focar em mix por cliente.'));
@@ -230,7 +233,7 @@ function respSupervisor(E, s) {
   const V = E.vend.filter((v) => v.supervisor === s.nome && v.filial === s.filial);
   const x = agrupa(V, () => 'x').get('x');
   return [`👤 *${titulo(s.nome)}* (${s.filial}) — ${pctTxt(x.pct)} da meta · fat. ${R$(x.fat)} · pend. ${R$(x.pend)}`, `Positivação: ${x.pos} de ${x.metaPos} (${P(x.pos, x.metaPos)}) · hoje ${R$(x.dig)} em ${x.ped} ped. · visitas ${x.visF}/${x.visP}`, '',
-    ...V.map((v) => `• ${v.zerado ? '⚠️' : '✅'} *${nome2(v.nome)}* ${pctTxt(v.pct)} · fat. ${R$(v.fat)} · pend. ${R$(v.pend)} · hoje ${R$(v.dig)} (${v.ped} ped.)` + (v.varejo ? ` · visitas ${v.visF}/${v.visP}` : '')),
+    ...V.map((v) => `• ${v.zerado ? '⚠️' : '✅'} *${vn(v)}* ${pctTxt(v.pct)} · fat. ${R$(v.fat)} · pend. ${R$(v.pend)} · hoje ${R$(v.dig)} (${v.ped} ped.)` + (v.varejo ? ` · visitas ${v.visF}/${v.visP}` : '')),
     '', V.some((v) => v.zerado) ? SUGESTAO + `ligar agora para ${listaNomes(V.filter((v) => v.zerado), 3)} (rota sem pedido hoje).` : SUGESTAO + 'equipe com pedido hoje; foco em mix nos próximos clientes.'].join('\n');
 }
 async function respVendedor(B, E, v) {
@@ -298,7 +301,7 @@ async function respIncentivoOficial(B, E, pessoa) {
     const V = (x.vendedores || []).filter((v) => v.filial === E.filiais[0] && (!E.grupo || sem(v.grupo) === sem(E.grupo)) && (!E.supervisor || sem(v.supervisor) === sem(E.supervisor)));
     L.push(`Vendedores: G1 ✅ ${V.filter((v) => v.g1).length} de ${V.length} · G2 ✅ ${V.filter((v) => v.g2).length}`);
     const perto = V.filter((v) => !v.g2 && v.falta_g2 > 0 && v.falta_g2 <= 5).sort((a, b) => a.falta_g2 - b.falta_g2);
-    if (perto.length) L.push(`Perto do G2 (≤5 clientes): ${perto.slice(0, 8).map((v) => `${nome2(v.nome)} (${v.falta_g2})`).join(', ')}`);
+    if (perto.length) L.push(`Perto do G2 (≤5 clientes): ${perto.slice(0, 8).map((v) => `${vn(v)} (${v.falta_g2})`).join(', ')}`);
   }
   L.push('', SUGESTAO + 'focar quem está a poucos clientes do 110%: é prêmio garantido com pouco esforço.', '_Painel completo: ceven-cftv-matrix.pages.dev/incentivo_');
   return L.join('\n');
@@ -308,7 +311,7 @@ async function respLigaAs(B, E, pessoa) {
   if (pessoa && pessoa.tipo === 'vend') { const v = x.vendedores.find((y) => y.rca === pessoa.alvo.rca && y.filial === pessoa.alvo.filial); if (v) return `🏆 *Liga AS — ${titulo(v.nome)}* (${v.filial}): *${v.pontos} pontos* · ${pctTxt(v.pct_hoje)} da meta (faturado + pendente) · fases: ${(v.fases || []).map((f) => `F${f.n} ${f.status === 'batida' ? '✅' : f.status === 'futuro' ? '⏳' : '❌'}`).join(' ')} · bônus: ${(v.bonus || []).map((b) => `${b.nome} ${b.status === 'batido' ? '✅' : b.status === 'perdido' ? '❌' : '⏳'}`).join(' · ')}`; }
   const V = x.vendedores.filter((v) => E.filiais.includes(v.filial)).sort((a, b) => b.pontos - a.pontos || b.pct_hoje - a.pct_hoje);
   const S = (x.supervisores || []).filter((v) => E.filiais.includes(v.filial)).sort((a, b) => b.pontos - a.pontos);
-  return [`🏆 *Liga AS — ${E.nome}* (${x.mes})`, `_${(x.regras && x.regras.base) || ''}_`, '*Vendedores AS:*', ...V.slice(0, 10).map((v, i) => `${i + 1}. ${nome2(v.nome)}${E.nacional ? ' ' + v.filial : ''} — ${v.pontos} pts · ${pctTxt(v.pct_hoje)}`), '*Supervisores:*', ...S.slice(0, 6).map((s, i) => `${i + 1}. ${nome2(s.supervisor)}${E.nacional ? ' ' + s.filial : ''} — ${s.pontos} pts · ${pctTxt(s.pct_hoje)}`), '', '_ceven-cftv-matrix.pages.dev/liga-as_'].join('\n');
+  return [`🏆 *Liga AS — ${E.nome}* (${x.mes})`, `_${(x.regras && x.regras.base) || ''}_`, '*Vendedores AS:*', ...V.slice(0, 10).map((v, i) => `${i + 1}. ${vn(v)}${E.nacional ? ' ' + v.filial : ''} — ${v.pontos} pts · ${pctTxt(v.pct_hoje)}`), '*Supervisores:*', ...S.slice(0, 6).map((s, i) => `${i + 1}. ${nome2(s.supervisor)}${E.nacional ? ' ' + s.filial : ''} — ${s.pontos} pts · ${pctTxt(s.pct_hoje)}`), '', '_ceven-cftv-matrix.pages.dev/liga-as_'].join('\n');
 }
 async function respSemana(B, E) {
   const R = await Promise.all(E.filiais.map((f) => B.semana(f).then((j) => ({ f, S: j && j.filiais && j.filiais[f] }))));
@@ -473,7 +476,7 @@ async function respRitmo(B, E) {
 }
 function respMaiorGap(E) {
   const V = E.vend.filter((v) => v.meta > 0 && pessoaReal(v)).map((v) => ({ v, gap: Math.max(0, v.meta - v.fat - v.pend) })).sort((a, b) => b.gap - a.gap).slice(0, 10);
-  return [`🕳️ *Maior gap para a meta — ${E.nome}* (meta − faturado − carteira)`, ...V.map(({ v, gap }, i) => `${i + 1}. ${nome2(v.nome)} (RCA ${v.rca}${E.nacional ? ', ' + v.filial : ''}) — falta *${R$(gap)}* · ${pctTxt(v.pct)} · setor/sup. ${nome2(v.supervisor)}`), '', SUGESTAO + `sentar com ${nome2(V[0] && V[0].v.supervisor)} sobre ${nome2(V[0] && V[0].v.nome)} hoje.`].join('\n');
+  return [`🕳️ *Maior gap para a meta — ${E.nome}* (meta − faturado − carteira)`, ...V.map(({ v, gap }, i) => `${i + 1}. ${vn(v)} (RCA ${v.rca}${E.nacional ? ', ' + v.filial : ''}) — falta *${R$(gap)}* · ${pctTxt(v.pct)} · setor/sup. ${nome2(v.supervisor)}`), '', SUGESTAO + `sentar com ${nome2(V[0] && V[0].v.supervisor)} sobre ${nome2(V[0] && V[0].v.nome)} hoje.`].join('\n');
 }
 function respRankingSupervisores(E) {
   const S = [...agrupa(E.vend, (v) => supChave(v, true))].filter(([k]) => supReal(k) && !/^VAGO/.test(k)).filter(([, x]) => x.meta > 0).sort((a, b) => (b[1].pct ?? -1) - (a[1].pct ?? -1));
@@ -500,14 +503,14 @@ async function respPontosPerdidos(B, E) {
 function respMetaBatida(E) {
   const V = E.vend.filter((v) => v.meta > 0 && pessoaReal(v));
   const fat = V.filter((v) => v.fat >= v.meta).sort((a, b) => b.pct - a.pct), proj = V.filter((v) => v.fat < v.meta && v.fat + v.pend >= v.meta);
-  return [`🏁 *Meta batida — ${E.nome}*`, `No faturado: *${fat.length} de ${V.length}* vendedores` + (fat.length ? ' — ' + fat.slice(0, 12).map((v) => `${nome2(v.nome)} ${pctTxt(v.pct)}`).join(', ') : ''), `Batem com a carteira (fat. + pend.): ${proj.length}` + (proj.length ? ' — ' + proj.slice(0, 10).map((v) => nome2(v.nome)).join(', ') : '')].join('\n');
+  return [`🏁 *Meta batida — ${E.nome}*`, `No faturado: *${fat.length} de ${V.length}* vendedores` + (fat.length ? ' — ' + fat.slice(0, 12).map((v) => `${vn(v)} ${pctTxt(v.pct)}`).join(', ') : ''), `Batem com a carteira (fat. + pend.): ${proj.length}` + (proj.length ? ' — ' + proj.slice(0, 10).map((v) => vn(v)).join(', ') : '')].join('\n');
 }
 async function respDobradinha(B, E) {
   const mx = await B.mix(); if (!mx) return 'Não consegui ler o +MIX agora.';
   const rcas = new Set(E.vend.map((v) => v.filial + '|' + v.rca));
   const V = (mx.vendedores || []).filter((x) => E.filiais.includes(x.filial) && (!(E.grupo || E.supervisor || E.rca) || rcas.has(x.filial + '|' + x.rca)) && x.dobradinha_pct != null).sort((a, b) => b.dobradinha_pct - a.dobradinha_pct);
   if (!V.length) return 'Sem dado de dobradinha agora.';
-  const f = (v) => `${nome2(v.nome)}${E.nacional ? ' ' + v.filial : ''}: ${String(v.dobradinha_pct).replace('.', ',')}%`;
+  const f = (v) => `${vn(v)}${E.nacional ? ' ' + v.filial : ''}: ${String(v.dobradinha_pct).replace('.', ',')}%`;
   return [`🔁 *Dobradinha das quinzenas — ${E.nome}* (% dos clientes do mês que compraram nas duas quinzenas; +MIX, até ${mx.dados_ate || 'ontem'})`, '*Mais dobradinha:*', ...V.slice(0, 8).map((v) => '• ' + f(v)), '*Menos:*', ...V.slice(-5).reverse().map((v) => '• ' + f(v)), '', SUGESTAO + 'quem compra só numa quinzena é o primeiro da rota na segunda.'].join('\n');
 }
 const SEM_HISTORICO = 'Esse eu ainda não tenho: precisa do *histórico diário* por vendedor (uma foto do dia guardada todo fim de tarde), que ainda não guardamos. Com ele eu respondo "dias seguidos sem pedido" e a comparação com o mesmo período do mês passado. Já está na lista da reunião de metas.';
@@ -519,7 +522,7 @@ async function respInfoEquipe(env, c, texto) {
 // ---------- VENDAS ITEM A ITEM (public/vendas_mes/<FIL>.json, gerado toda noite pelo +MIX com o banco do Data Lake) ----------
 // Reuniao de 5 h (25/10/2026): produto x cliente x vendedor x dia, industria, preco medio, top produtos, marca propria. Dado ate ONTEM (nunca hoje).
 const SEM_VENDAS = '📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta filial; tente depois das 06h._';
-const PARADAS = new Set(['QUAIS', 'QUAL', 'QUEM', 'OS', 'AS', 'DO', 'DA', 'DE', 'DOS', 'DAS', 'NO', 'NA', 'NOS', 'EM', 'QUE', 'MAIS', 'COMPROU', 'COMPRARAM', 'COMPRA', 'COMPRAM', 'COMPRADO', 'CLIENTES', 'CLIENTE', 'TOP', 'MES', 'ONTEM', 'HOJE', 'SEMANA', 'ESSA', 'ESSE', 'ESTE', 'ESTA', 'VENDEDORA', 'VENDEDOR', 'PRODUTO', 'PRODUTOS', 'POSITIVACAO', 'QUANTOS', 'QUANTO', 'PRECO', 'MEDIO', 'SAIU', 'MEDIA', 'VENDE', 'VENDEU', 'VENDERAM', 'PELO', 'PELA', 'POR', 'PARA', 'PRA', 'COM', 'UM', 'UMA', 'MEU', 'MINHA', 'JOTA', 'FAVOR', 'PICO', 'ULTIMA', 'ULTIMO', 'LOJA', 'NUMERICA', 'PDVS', 'PDV', 'FILIAL', 'SUPERVISOR', 'EQUIPE', 'CARTEIRA', 'ITEM', 'ITENS', 'LISTA', 'SKU', 'FOCO']);
+const PARADAS = new Set(['COMPRAVA', 'COMPRAVAM', 'PAROU', 'PARARAM', 'DEIXOU', 'DEIXARAM', 'COMPRAR', 'RECUPERACAO', 'LISTA', 'COMO', 'ESTA', 'TA', 'ESTAO', 'VAI', 'ANDA', 'NOSSA', 'NOSSO', 'MINHA', 'TEM', 'TEMOS', 'QUAL', 'QUAIS', 'QUAL', 'QUEM', 'OS', 'AS', 'DO', 'DA', 'DE', 'DOS', 'DAS', 'NO', 'NA', 'NOS', 'EM', 'QUE', 'MAIS', 'COMPROU', 'COMPRARAM', 'COMPRA', 'COMPRAM', 'COMPRADO', 'CLIENTES', 'CLIENTE', 'TOP', 'MES', 'ONTEM', 'HOJE', 'SEMANA', 'ESSA', 'ESSE', 'ESTE', 'ESTA', 'VENDEDORA', 'VENDEDOR', 'PRODUTO', 'PRODUTOS', 'POSITIVACAO', 'QUANTOS', 'QUANTO', 'PRECO', 'MEDIO', 'SAIU', 'MEDIA', 'VENDE', 'VENDEU', 'VENDERAM', 'PELO', 'PELA', 'POR', 'PARA', 'PRA', 'COM', 'UM', 'UMA', 'MEU', 'MINHA', 'JOTA', 'FAVOR', 'PICO', 'ULTIMA', 'ULTIMO', 'LOJA', 'NUMERICA', 'PDVS', 'PDV', 'FILIAL', 'SUPERVISOR', 'EQUIPE', 'CARTEIRA', 'ITEM', 'ITENS', 'LISTA', 'SKU', 'FOCO']);
 async function vendasEscopo(B, E) {
   const arqs = await Promise.all(E.filiais.map((f) => B.raw(`public/vendas_mes/${f}.json`).then((t) => { try { return t ? { f, ...JSON.parse(t) } : null; } catch (e) { return null; } })));
   const ok = arqs.filter(Boolean); if (!ok.length) return null;
@@ -553,6 +556,12 @@ function nomeIndustria(I) {
   const n = String(I[0] || '').replace(/^[A-Z0-9]{1,3}\s*-\s*/i, '').replace(/\b(LTDA|S\.?\s?A\.?|EIRELI|ME|EPP|IND(USTRIA)?|COM(ERCIO)?|DE ALIMENTOS)\b\.?/gi, '').replace(/\s+/g, ' ').trim();
   return titulo(n.split(' ').slice(0, 3).join(' ')) || titulo(String(I[0]));
 }
+// palavras da pergunta que sobram depois de tirar as palavras comuns (para dizer "nao achei X")
+function termoDaPergunta(t, E) {
+  const nomes = new Set(E.vend.flatMap((v) => sem(v.nome).split(/\s+/)));
+  return titulo(t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !FILIAIS.includes(w) && !nomes.has(w) && !/^\d+$/.test(w)).slice(0, 4).join(' '));
+}
+const naoVende = (E, termo) => `🔎 Não achei venda de *${termo || 'esse produto'}* em ${E.nome} neste mês. Pode não estar no portfólio da filial (cada filial tem o seu catálogo) ou o nome está diferente. Tenta pelo código ou outra palavra do produto.`;
 function achaIndustria(t, V) {
   const inds = [...new Set(Object.values(V.prod).map((p) => p[1]).filter(Boolean))];
   // apelidos: como o time fala x como o fornecedor esta no catalogo (Mars = MASTERFOODS etc.)
@@ -564,7 +573,7 @@ function achaIndustria(t, V) {
 const somaPor = (L, chave) => { const m = new Map(); for (const l of L) { const k = chave(l); const x = m.get(k) || { v: 0, q: 0, cli: new Set(), n: 0 }; x.v += l.v; x.q += l.q; x.cli.add(l.f + '|' + l.c); x.n++; m.set(k, x); } return m; };
 async function respProduto(B, E, t, pessoa) {
   const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
-  const P = achaProdutos(t, V, E); if (!P) return null;
+  const P = achaProdutos(t, V, E); if (!P) return /COMPR|PRODUTO|SKU|VEND/.test(t) && termoDaPergunta(t, E) ? naoVende(E, termoDaPergunta(t, E)) : null;
   const per = periodoDe(t, V);
   let L = V.linhas.filter((l) => P.cods.has(l.p) && per.ok(l));
   let quem = E.nome;
@@ -572,7 +581,7 @@ async function respProduto(B, E, t, pessoa) {
   if (!L.length) return `📦 *${P.termo}* — ${quem}, ${per.nome}: *nenhuma venda* encontrada.${per.aviso ? '\n' + per.aviso : ''}`;
   const C = [...somaPor(L, (l) => l.f + '|' + l.c)].sort((a, b) => b[1].v - a[1].v);
   const tot = L.reduce((a, l) => ({ v: a.v + l.v, q: a.q + l.q }), { v: 0, q: 0 });
-  const vend = new Map(E.vend.map((v) => [v.filial + '|' + v.rca, nome2(v.nome)]));
+  const vend = new Map(E.vend.map((v) => [v.filial + '|' + v.rca, vn(v)]));
   const porV = [...somaPor(L, (l) => l.f + '|' + l.r)].sort((a, b) => b[1].v - a[1].v).slice(0, 5);
   return [`📦 *${P.termo}* — ${quem}, ${per.nome}`, `${R$(tot.v)} · ${N(tot.q)} un. · *${C.length} cliente(s)* · preço médio ${R$(tot.q ? tot.v / tot.q : null)}/un.`, per.aviso, '', `*Clientes que mais compraram:*`,
     ...C.slice(0, 10).map(([k, x], i) => `${i + 1}. ${titulo(V.cli[k] || k.split('|')[1])} (#${k.split('|')[1]}) — ${R$(x.v)} · ${N(x.q)} un.`),
@@ -590,7 +599,7 @@ async function respIndustria(B, E, t, pessoa) {
   const todosCli = new Set(V.linhas.filter(per.ok).map((l) => l.f + '|' + l.c));
   const porVend = /VENDEDOR|CARTEIRA|POR VEND/.test(t) || E.supervisor || E.grupo;
   const chave = E.nacional ? (l) => l.f : porVend ? (l) => l.f + '|' + l.r : (l) => { const v = E.vend.find((x) => x.filial === l.f && x.rca === l.r); return (v && v.supervisor) || 'sem supervisor'; };
-  const vend = new Map(E.vend.map((v) => [v.filial + '|' + v.rca, nome2(v.nome)]));
+  const vend = new Map(E.vend.map((v) => [v.filial + '|' + v.rca, vn(v)]));
   const G = [...somaPor(L, chave)].sort((a, b) => b[1].cli.size - a[1].cli.size);
   const SK = [...somaPor(L, (l) => l.p)].sort((a, b) => b[1].cli.size - a[1].cli.size).slice(0, 5);
   return [`🏭 *${nomeI}* — ${E.nome}, ${per.nome}`, `Faturado: *${R$(tot)}* · positivação: *${N(clis.size)} clientes* (${P(clis.size, todosCli.size)} dos que compraram algo)`, '',
@@ -599,7 +608,7 @@ async function respIndustria(B, E, t, pessoa) {
 }
 async function respRecuperacao(B, E, t) {
   const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
-  const I = achaIndustria(t, V), Pr = I ? null : achaProdutos(t, V, E); if (!I && !Pr) return null;
+  const I = achaIndustria(t, V), Pr = I ? null : achaProdutos(t, V, E); if (!I && !Pr) return naoVende(E, termoDaPergunta(t, E));
   const cods = new Set(Object.entries(V.prod).filter(([c, p]) => (I ? I.includes(p[1]) : Pr.cods.has(c))).map(([c]) => c));
   const nome = I ? nomeIndustria(I) : Pr.termo;
   const H = await Promise.all(E.filiais.map((f) => B.raw(`public/mix_hist/${f}.json`).then((x) => { try { return { f, c: JSON.parse(x).c || {} }; } catch (e) { return { f, c: {} }; } })));
@@ -619,7 +628,7 @@ async function respCliente(B, E, t) {
   const tot = L.reduce((a, l) => a + l.v, 0), dias = [...new Set(L.map((l) => l.d))].sort();
   const PR = [...somaPor(L, (l) => l.p)].sort((a, b) => b[1].v - a[1].v);
   const v = E.vend.find((x) => x.filial + '|' + x.rca === melhor.split('|')[0] + '|' + (L[0] || {}).r);
-  return [`🏪 *${titulo(V.cli[melhor])}* (#${melhor.split('|')[1]}, ${melhor.split('|')[0]})${v ? ' · vendedor ' + nome2(v.nome) : ''}`, `No mês: *${R$(tot)}* em ${dias.length} dia(s) de compra · último: ${dIso(dias[dias.length - 1])} · ${PR.length} SKUs`, '',
+  return [`🏪 *${titulo(V.cli[melhor])}* (#${melhor.split('|')[1]}, ${melhor.split('|')[0]})${v ? ' · vendedor ' + vn(v) : ''}`, `No mês: *${R$(tot)}* em ${dias.length} dia(s) de compra · último: ${dIso(dias[dias.length - 1])} · ${PR.length} SKUs`, '',
     '*O que comprou (mês):*', ...PR.slice(0, 12).map(([c, x]) => `• ${titulo((V.prod[c] || [''])[0])}: ${N(x.q)} un. · ${R$(x.v)}`), PR.length > 12 ? `… e mais ${PR.length - 12} SKUs` : '',
     '', SUGESTAO + 'peça "o que oferecer" no +MIX deste cliente antes da próxima visita.'].filter((x) => x !== '').join('\n');
 }
@@ -631,7 +640,7 @@ async function respTopProdutos(B, E, t) {
 }
 async function respPreco(B, E, t) {
   const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
-  const P = achaProdutos(t, V, E); if (!P) return null;
+  const P = achaProdutos(t, V, E); if (!P) return naoVende(E, termoDaPergunta(t, E));
   const L = V.linhas.filter((l) => P.cods.has(l.p) && l.q > 0 && l.v > 0);   /* sem bonificacao (R$ 0) */
   if (!L.length) return `Sem venda de ${P.termo} no mês em ${E.nome}.`;
   const pu = L.map((l) => l.v / l.q).sort((a, b) => a - b), tot = L.reduce((a, l) => ({ v: a.v + l.v, q: a.q + l.q }), { v: 0, q: 0 });
@@ -648,7 +657,7 @@ async function respMarcaPropriaVivo(B, E, t) {
   const ult = V.linhas.reduce((m, l) => Math.max(m, l.d), 0);
   const mes = L.reduce((a, l) => a + l.v, 0), ont = L.filter((l) => l.d === ult).reduce((a, l) => a + l.v, 0);
   const G = [...somaPor(L, (l) => (E.nacional ? l.f : l.r))].sort((a, b) => b[1].v - a[1].v);
-  const vend = new Map(E.vend.map((v) => [v.rca, nome2(v.nome)]));
+  const vend = new Map(E.vend.map((v) => [v.rca, vn(v)]));
   return [`🎯 *Marca Própria${marca ? ' — ' + titulo(marca) : ''}* (${E.nome}, mês até ${dIso(ult)})`, `Mês: *${R$(mes)}* · ${new Set(L.map((l) => l.f + '|' + l.c)).size} clientes · ontem: *${R$(ont)}*`, '',
     ...G.slice(0, 12).map(([k, x]) => `• ${E.nacional ? k : vend.get(k) || 'RCA ' + k}: ${R$(x.v)} · ${x.cli.size} cli.`), '_Fonte: vendas item a item (fornecedor Triunfante do catálogo)._'].join('\n');
 }
@@ -691,7 +700,7 @@ function respAVisitar(E, pessoa) {
   const nome = pessoa ? titulo(pessoa.alvo.nome) + ' (' + pessoa.alvo.filial + ')' : E.nome;
   const L = [`📍 *Rota de hoje — ${nome}* (varejo)`, `Clientes na rota: *${N(prog)}* · visitados: *${N(feitas)}* · *faltam ${N(tot)}*`, ''];
   if (E.nacional && !pessoa) { for (const [f, x] of [...agrupa(V, (v) => v.filial)].map(([f, x]) => [f, x.V.reduce((a, v) => a + v.aVisitar.length, 0)]).sort((a, b) => b[1] - a[1])) L.push(`• ${f}: faltam ${x}`); }
-  else for (const v of V.filter((v) => v.aVisitar.length).sort((a, b) => b.aVisitar.length - a.aVisitar.length).slice(0, 25)) L.push(`• ${nome2(v.nome)}: faltam *${v.aVisitar.length}* de ${v.visP}` + (pessoa ? ' — ' + v.aVisitar.slice(0, 3).map((c) => titulo(c.nome_cliente || '')).join(', ') + (v.aVisitar.length > 3 ? '…' : '') : ''));
+  else for (const v of V.filter((v) => v.aVisitar.length).sort((a, b) => b.aVisitar.length - a.aVisitar.length).slice(0, 25)) L.push(`• ${vn(v)}: faltam *${v.aVisitar.length}* de ${v.visP}` + (pessoa ? ' — ' + v.aVisitar.slice(0, 3).map((c) => titulo(c.nome_cliente || '')).join(', ') + (v.aVisitar.length > 3 ? '…' : '') : ''));
   const pior = V.slice().sort((a, b) => b.aVisitar.length - a.aVisitar.length)[0];
   L.push('', pior && pior.aVisitar.length ? SUGESTAO + `${nome2(pior.nome)} tem ${pior.aVisitar.length} clientes por visitar.` : SUGESTAO + 'rota do dia concluída.', '_Peça "faltam visitar vendedor Nome" para a lista de clientes._');
   return L.join('\n');
@@ -701,7 +710,7 @@ function respZerados(E) {
   if (!Z.length) return `✅ *Zerados hoje — ${E.nome}: 0.* Nenhum vendedor do varejo com rota está sem pedido agora.`;
   const G = [...agrupa(Z, (v) => supChave(v, E.nacional))].sort((a, b) => b[1].V.length - a[1].V.length);
   const L = [`⚠️ *Zerados hoje — ${E.nome}* (varejo com rota e sem pedido): *${Z.length}* · sem nenhuma visita: ${SV.length}`, ''];
-  for (const [s, x] of G.slice(0, 15)) L.push(`*${supNome(s)}*: ` + x.V.map((v) => `${nome2(v.nome)} (${v.visF}/${v.visP} vis.)`).join(', '));
+  for (const [s, x] of G.slice(0, 15)) L.push(`*${supNome(s)}*: ` + x.V.map((v) => `${vn(v)} (${v.visF}/${v.visP} vis.)`).join(', '));
   if (G.length > 15) L.push(`… e mais ${G.length - 15} supervisores`);
   L.push('', SUGESTAO + `começar por ${supNome((G.find(([k]) => supReal(k)) || G[0])[0])}: ${G[0][1].V.length} zerado(s).`);
   return L.join('\n');
@@ -730,7 +739,7 @@ function respRanking(E, t) {
   const S = V.slice().sort((a, b) => val(b) - val(a));
   if (!S.length) return `Não achei vendedores ${as ? 'AS' : 'de varejo'} com dado para esse ranking em ${E.nome}.`;
   const crit = pos ? 'positivação do mês (% da meta de clientes)' : hoje ? 'digitado hoje' : '% da meta faturada no mês';
-  const lin = (v, i) => `${i + 1}. ${nome2(v.nome)}${E.nacional ? ' · ' + v.filial : ''} — ${fmt(v)}`;
+  const lin = (v, i) => `${i + 1}. ${vn(v)}${E.nacional ? ' · ' + v.filial : ''} — ${fmt(v)}`;
   const L = [`🏅 *${E.nome} — ${querMelhor && !querPior ? n + ' melhores' : querPior && !querMelhor ? n + ' mais atrás' : 'ranking'}, ${as ? 'AS' : 'varejo'}*`, `_Critério: ${crit}._`];
   if (querMelhor) L.push('', ...S.slice(0, n).map(lin));
   if (querPior) { const P2 = S.slice(-n).reverse(); L.push('', querMelhor ? '*Mais atrás:*' : '', ...P2.map((v, i) => lin(v, S.length - 1 - i - 0).replace(/^\d+\./, `${S.length - i}º`))); }
@@ -750,7 +759,7 @@ function respDevolucao(E) {
   const V = E.vend.filter((v) => v.dev > 0).sort((a, b) => b.dev - a.dev); const tot = E.vend.reduce((a, v) => a + v.dev, 0);
   const G = [...agrupa(E.vend, (v) => E.nacional ? v.filial : supChave(v, false))].filter(([, y]) => y.dev > 0).sort((a, b) => b[1].dev - a[1].dev);
   const notas = E.vend.flatMap((v) => v.devolucoes.map((d) => ({ ...d, vend: v.nome }))).filter((d) => d && (d.valor || d.vl_total || d.total));
-  return [`↩️ *Devoluções no mês — ${E.nome}*: *${R$(tot)}*`, `*Por ${E.nacional ? 'filial' : 'supervisor'}:*`, ...G.slice(0, 10).map(([k, y]) => `• ${E.nacional ? k : nome2(k)}: ${R$(y.dev)}`), '*Vendedores com mais devolução:*', ...V.slice(0, 8).map((v) => `• ${nome2(v.nome)}${E.nacional ? ' ' + v.filial : ''}: ${R$(v.dev)}`),
+  return [`↩️ *Devoluções no mês — ${E.nome}*: *${R$(tot)}*`, `*Por ${E.nacional ? 'filial' : 'supervisor'}:*`, ...G.slice(0, 10).map(([k, y]) => `• ${E.nacional ? k : nome2(k)}: ${R$(y.dev)}`), '*Vendedores com mais devolução:*', ...V.slice(0, 8).map((v) => `• ${vn(v)}${E.nacional ? ' ' + v.filial : ''}: ${R$(v.dev)}`),
     notas.length ? `_${notas.length} nota(s) detalhadas na base._` : '', '', SUGESTAO + (V[0] ? `entender as devoluções de ${nome2(V[0].nome)} (${R$(V[0].dev)}).` : 'sem devoluções relevantes.')].filter(Boolean).join('\n');
 }
 async function respLances(B, E, t) {
@@ -776,13 +785,13 @@ async function respLiga(B, E, alvo) {
   if (alvo) { const lv = (lg.vendedores || []).find((x) => String(x.rca) === alvo.rca && x.filial === alvo.filial); if (lv) { const mv = (lv.pos_brasil_ant || lv.pos_brasil) - lv.pos_brasil; return `🏆 *${titulo(lv.nome)}* (${lv.filial}): ${lv.pos_brasil}º no Brasil (${mv > 0 ? '▲' + mv : mv < 0 ? '▼' + -mv : '='} desde o último jogo) · ${lv.pos_filial}º na filial · ${lv.pts_tabela} pts · ${lv.vitorias}V ${lv.empates}E ${lv.derrotas}D · forma ${(lv.forma || []).slice(-5).join('')}`; } }
   if (E.nacional) {
     return ['🏆 *Champions Triunfante — Brasil*', '*Filiais:*', ...(lg.filiais || []).slice().sort((a, b) => a.pos - b.pos).map((f) => `${f.pos}º ${f.sigla} — ${f.pts_tabela} pts (${f.vitorias}V ${f.empates}E ${f.derrotas}D)`),
-      '*Top 5 vendedores (varejo):*', ...(lg.vendedores || []).filter((v) => v.canal !== 'AS').sort((a, b) => a.pos_brasil - b.pos_brasil).slice(0, 5).map((v) => `${v.pos_brasil}º ${nome2(v.nome)} ${v.filial} — ${v.pts_tabela} pts`), '', '_ceven-cftv-matrix.pages.dev/championstriunfante_'].join('\n');
+      '*Top 5 vendedores (varejo):*', ...(lg.vendedores || []).filter((v) => v.canal !== 'AS').sort((a, b) => a.pos_brasil - b.pos_brasil).slice(0, 5).map((v) => `${v.pos_brasil}º ${vn(v)} ${v.filial} — ${v.pts_tabela} pts`), '', '_ceven-cftv-matrix.pages.dev/championstriunfante_'].join('\n');
   }
   const fil = E.filiais[0]; const lf = (lg.filiais || []).find((x) => x.sigla === fil);
   const sups = new Set(E.vend.map((v) => v.supervisor));
   return [`🏆 *Champions Triunfante — ${E.nome}*`, lf ? `Filial: *${lf.pos}º de 11*, ${lf.pts_tabela} pts (${lf.vitorias}V ${lf.empates}E ${lf.derrotas}D)` : 'Filial: sem dado',
     '*Supervisores:*', ...(lg.supervisores || []).filter((x) => x.filial === fil && (!(E.grupo || E.supervisor || E.rca) || sups.has(x.supervisor))).sort((a, b) => a.pos - b.pos).slice(0, 10).map((x) => `${x.pos}º ${nome2(x.supervisor)} — ${x.pts_tabela} pts`),
-    '*Top vendedores da filial:*', ...(lg.vendedores || []).filter((v) => v.filial === fil && (!(E.grupo || E.supervisor || E.rca) || E.vend.some((y) => y.rca === String(v.rca)))).sort((a, b) => a.pos_filial - b.pos_filial).slice(0, 5).map((v) => `${v.pos_filial}º ${nome2(v.nome)} — ${v.pts_tabela} pts (${v.pos_brasil}º Brasil)`),
+    '*Top vendedores da filial:*', ...(lg.vendedores || []).filter((v) => v.filial === fil && (!(E.grupo || E.supervisor || E.rca) || E.vend.some((y) => y.rca === String(v.rca)))).sort((a, b) => a.pos_filial - b.pos_filial).slice(0, 5).map((v) => `${v.pos_filial}º ${vn(v)} — ${v.pts_tabela} pts (${v.pos_brasil}º Brasil)`),
     '', '_Ranking completo: ceven-cftv-matrix.pages.dev/championstriunfante_'].join('\n');
 }
 async function respCompromisso(B, E) {
@@ -812,15 +821,15 @@ async function respMix(B, E, t) {
     const hit = []; for (const v of V) for (const s of v.top_skus || []) if (q.length && q.every((w) => sem(s.n).includes(w))) hit.push({ v, s });
     if (!hit.length) return `Não achei "${titulo(q.join(' '))}" entre os produtos mais vendidos dos vendedores de ${E.nome} neste mês (${mx.mes || ''}). Tente outro nome do produto.`;
     hit.sort((a, b) => b.s.cli - a.s.cli);
-    return [`🧺 *${titulo(hit[0].s.n)}* — quem mais vende em ${E.nome} (clientes no mês):`, ...hit.slice(0, 12).map(({ v, s }) => `• ${nome2(v.nome)}${E.nacional ? ' ' + v.filial : ''}: ${s.cli} clientes (${String(s.pct).replace('.', ',')}% da carteira atendida) · ${R$(s.val)}`), '', SUGESTAO + 'quem tem pouca penetração nesse produto pode oferecer no próximo cliente do +MIX.'].join('\n');
+    return [`🧺 *${titulo(hit[0].s.n)}* — quem mais vende em ${E.nome} (clientes no mês):`, ...hit.slice(0, 12).map(({ v, s }) => `• ${vn(v)}${E.nacional ? ' ' + v.filial : ''}: ${s.cli} clientes (${String(s.pct).replace('.', ',')}% da carteira atendida) · ${R$(s.val)}`), '', SUGESTAO + 'quem tem pouca penetração nesse produto pode oferecer no próximo cliente do +MIX.'].join('\n');
   }
   const tot = V.reduce((a, v) => ({ cli: a.cli + (v.clientes_com_lista || 0), usou: a.usou + (v.clientes_usou || 0) }), { cli: 0, usou: 0 });
   const S = V.slice().sort((a, b) => (b.mix_medio || 0) - (a.mix_medio || 0));
   const usam = V.filter((v) => v.uso_pct != null).sort((a, b) => b.uso_pct - a.uso_pct);
   return [`🧺 *+MIX — ${E.nome}* (${mx.mes || 'mês'}, dados até ${mx.dados_ate || '—'})`, `Uso real: *${tot.usou}* de *${tot.cli}* clientes com lista compraram produto recomendado (${P(tot.usou, tot.cli)})`,
-    '*Mais mix por cliente:*', ...S.slice(0, 5).map((v) => `• ${nome2(v.nome)}${E.nacional ? ' ' + v.filial : ''}: ${String(v.mix_medio).replace('.', ',')} produtos/cliente · ${R$(v.faturado_por_cliente)}/cliente`),
-    '*Menos mix por cliente:*', ...S.slice(-5).reverse().map((v) => `• ${nome2(v.nome)}${E.nacional ? ' ' + v.filial : ''}: ${String(v.mix_medio).replace('.', ',')} produtos/cliente`),
-    usam.length ? `*Quem mais usa o +MIX:* ${usam.slice(0, 3).map((v) => `${nome2(v.nome)} ${String(v.uso_pct).replace('.', ',')}%`).join(' · ')}` : '',
+    '*Mais mix por cliente:*', ...S.slice(0, 5).map((v) => `• ${vn(v)}${E.nacional ? ' ' + v.filial : ''}: ${String(v.mix_medio).replace('.', ',')} produtos/cliente · ${R$(v.faturado_por_cliente)}/cliente`),
+    '*Menos mix por cliente:*', ...S.slice(-5).reverse().map((v) => `• ${vn(v)}${E.nacional ? ' ' + v.filial : ''}: ${String(v.mix_medio).replace('.', ',')} produtos/cliente`),
+    usam.length ? `*Quem mais usa o +MIX:* ${usam.slice(0, 3).map((v) => `${vn(v)} ${String(v.uso_pct).replace('.', ',')}%`).join(' · ')}` : '',
     '', SUGESTAO + (S.length ? `${nome2(S[S.length - 1].nome)} tem o menor mix: abrir o +MIX em cada cliente antes do pedido.` : 'usar o +MIX antes de cada pedido.'), '_Peça "quem compra NOME DO PRODUTO"._', '_Detalhe por cliente: ceven-cftv-matrix.pages.dev/mix_'].filter(Boolean).join('\n');
 }
 function respIncentivo(E) {
@@ -829,7 +838,7 @@ function respIncentivo(E) {
   const ok = V.filter((v) => pf(v) >= 110 && pp(v) >= 110), quase = V.filter((v) => !ok.includes(v) && pf(v) >= 95 && pp(v) >= 95).sort((a, b) => Math.min(pf(b), pp(b)) - Math.min(pf(a), pp(a)));
   const g1 = V.filter((v) => pp(v) >= 60);
   return [`🏆 *Incentivo Outubro — ${E.nome}* (varejo)`, 'Regras: R$ 150 se ≥60% da positivação até 15/10 · R$ 350 se ≥110% positivação *e* ≥110% faturado em 31/10 · +R$ 30 por cliente novo do LinkUp com 1ª compra faturada.',
-    `Hoje já com ≥110%/110%: *${ok.length} de ${V.length}*` + (ok.length ? ' — ' + listaNomes(ok, 6) : ''), `Perto (≥95% nos dois): ${quase.length}` + (quase.length ? ' — ' + quase.slice(0, 6).map((v) => `${nome2(v.nome)} (${pctTxt(pf(v))}/${pctTxt(pp(v))})`).join(', ') : ''),
+    `Hoje já com ≥110%/110%: *${ok.length} de ${V.length}*` + (ok.length ? ' — ' + listaNomes(ok, 6) : ''), `Perto (≥95% nos dois): ${quase.length}` + (quase.length ? ' — ' + quase.slice(0, 6).map((v) => `${vn(v)} (${pctTxt(pf(v))}/${pctTxt(pp(v))})`).join(', ') : ''),
     `Com ≥60% da positivação hoje: ${g1.length} de ${V.length}`, '_Valor oficial do prêmio = apuração do CEVEN (Premiação RV) com faturado; aqui é a leitura de agora._', '', SUGESTAO + (quase.length ? `empurrar ${listaNomes(quase, 3)}: estão perto dos 110%.` : 'focar positivação: é a régua mais difícil.')].join('\n');
 }
 const GLOSSARIO = [
@@ -878,6 +887,7 @@ async function respostaPronta(B, c, texto, anteriores) {
   const r = await respostaInterna(B, c, texto, anteriores);
   // pergunta composta (Vitorio, 25/10/2026: "nao tem positivacao aberta por vendedor? ranking? e o ranking da champions?" -> so a 1a parte foi respondida)
   const tc = sem(texto);
+  if (r && /Champions Triunfante/.test(r) && /PENALTI|IMPEDIMENTO|CARTAO|LANCE/.test(tc)) { const l = await respostaInterna(B, c, /IMPEDIMENTO/.test(tc) ? 'impedimentos' : /CARTAO/.test(tc) ? 'cartoes' : 'penaltis', anteriores); if (l) return outra + r + '\n\n' + l; }
   if (r && /CHAMPION|CHMAPION|CHAMPIOS|CAMPIONS|CHAMPI|\bLIGA\b/.test(tc) && !/Champions Triunfante|Liga AS/.test(r) && /\bE (O|A)\b|\?.*\?|\bTAMBEM\b/.test(tc)) { const l = await respostaInterna(B, c, 'liga', anteriores); if (l) return outra + r + '\n\n' + l; }
   return r && outra + r;
 }
@@ -921,7 +931,7 @@ async function respostaInterna(B, c, texto, anteriores) {
   if (ehMP) { const r = await respMarcaPropriaVivo(B, E, t); return r || respRelatorio(B, c, t); }
   if (/PRECO|QUANTO SAIU/.test(t)) { const r = await respPreco(B, E, t); if (r) return r; }
   if (/COMPRAVA|PAROU|PARARAM|DEIXOU DE COMPRAR|DEIXARAM DE COMPRAR|RECUPERACAO D/.test(t)) { const r = await respRecuperacao(B, E, t); if (r) return r; }
-  if (/PRODUTOS? MAIS VENDID|TOP \d* ?PRODUTOS|QUAL PRODUTO MAIS|MAIS VENDIDOS/.test(t)) return respTopProdutos(B, E, t);
+  if (/PRODUTOS? (QUE )?MAIS VEND|TOP \d* ?PRODUTOS|\d+ PRODUTOS|QUAL PRODUTO MAIS|MAIS VENDIDOS/.test(t)) return respTopProdutos(B, E, t);
   if (/CLIENTE|LOJA/.test(t) && /COMPROU|COMPRA|ULTIMO PEDIDO|SEM COMPRAR|OFERECER|PRODUTOS D/.test(t) && !/CLIENTES QUE|QUAIS (OS )?CLIENTES|QUEM/.test(t)) { const r = await respCliente(B, E, t); if (r) return r; }
   if (/COMPRA|COMPROU|COMPRARAM|POSITIVACAO D[OEA]S? |(VENDE MAIS|MAIS VENDE)(?!U)(?!.*(SUPERVISOR|VENDEDOR|FILIAL|GERENTE))|EM QUANTOS CLIENTES|CLIENTES COMPRARAM|PDVS COMPRARAM/.test(t) || /\b(MONDELEZ|MARS|ARCOR|BAGLEY|CONDOR|FERRERO|NESTLE|HERSHEY|FINI|DORI|PEPSICO|KELLOGG|LACTA|DIVERSAO)\b/.test(t)) {
     const ri = await respIndustria(B, E, t, pessoa); if (ri && ri !== SEM_VENDAS) return ri;
@@ -929,6 +939,8 @@ async function respostaInterna(B, c, texto, anteriores) {
     if (rp === SEM_VENDAS || (!rp && !ri)) { const m = await respMix(B, E, t); if (m && !/^Não achei|^🧺 \*\+MIX —/.test(m)) return m; }   /* sem vendas item a item ainda: reserva = +MIX */
     if (rp) return rp;
     if (ri) return ri;
+    const ind = (t.match(/\b(MONDELEZ|MARS|ARCOR|BAGLEY|CONDOR|FERRERO|NESTLE|HERSHEY|FINI|DORI|PEPSICO|KELLOGG|LACTA|DIVERSAO)\b/) || [])[1];
+    if (ind) return naoVende(E, titulo(ind));   /* industria citada que a filial nao vende: dizer, nunca cair em outra resposta */
   }
   if (/CARTEIRA|A FATURAR|FATURADO (\+|MAIS|E) (CARTEIRA|PENDENTE)|SOMANDO|VOLUME FINANCEIRO|\bPENDENTE\b/.test(t)) return respCarteira(B, E);
   if (/RITMO|NO RITMO|VAMOS BATER|DA PRA BATER|PROJECAO/.test(t)) return respRitmo(B, E);
@@ -951,15 +963,17 @@ async function respostaInterna(B, c, texto, anteriores) {
     return (pessoa.tipo === 'sup' ? respSupervisor(E, pessoa.alvo) : await respVendedor(B, E, pessoa.alvo)) + amb;
   }
   if (/ZERAD|ZEROU|SEM PEDIDO|SEM VENDA|NAO VENDEU|NAO VENDERAM|NINGUEM VENDEU/.test(t)) return respZerados(E);
-  if (/DEVOLU/.test(t)) { const a = respDevolucao(E); const m = E.nacional ? await respDevMotivos(B) : null; return m ? a + '\n\n' + m : a; }
+  if (/DEVOL/.test(t)) { const a = respDevolucao(E); const m = E.nacional ? await respDevMotivos(B) : null; return m ? a + '\n\n' + m : a; }
+  if (/POSITIV/.test(t) && /QUANTOS|QUANTO/.test(t) && !/110/.test(t)) return respPositivacao(B, E);
   if (/QUANTO FALTA|FALTA (PARA|PRA|BATER)|\bFALTA\b|POR DIA UTIL|\bMN\b|PRECISA (VENDER|FATURAR)|POR DIA PRA|COMO BATER|BATER A META/.test(t)) return respFalta(B, E);
   if (/RANKING|MELHOR|PIOR|\bTOP\b|DESTAQUE|MAIS ATRAS|QUEM (ESTA|TA) (BEM|MAL)/.test(t)) return respRanking(E, t);
-  if (/VISITA|EFICACIA|EFICIENCIA|ROTEIRO|CHECK.?IN/.test(t) && !/ACUMULADO|DIGITAD/.test(t)) return respVisitas(E);
+  if (/VISIT|EFICACIA|EFICIENCIA|ROTEIRO|CHECK.?IN/.test(t) && !/ACUMULADO|DIGITAD/.test(t)) return respVisitas(E);
   if (/POSITIVA/.test(t) && /POR VENDEDOR|RANKING|ABERTA POR|MELHORES|PIORES|TOP/.test(t)) return respRanking(E, t);
   if (/POSITIVA/.test(t)) return respPositivacao(B, E);
   if (/COMO (ESTA|TA|VAI|ESTAMOS|ANDA)|RESUMO|PANORAMA|STATUS|GERAL|SITUACAO/.test(t) && !/ACUMULADO|DIGITAD/.test(t)) return respResumo(B, E);
   if (/HOJE|\bHJ\b|ACUMULADO|DIGITAD|PEDIDOS?\b|TICKET|VENDEU|VENDERAM|\bDIA\b|ROTA|VAREJO/.test(t)) return respHoje(B, E, t);
   if (/QUEM COBRAR|PLANO DO DIA|O QUE (EU )?FACO|ONDE ATACAR/.test(t)) return respFalta(B, E);
+  if (/SUPERVIS/.test(t) && /PIOR|PRA BAIXO|PARA BAIXO|ATRAS|PUXANDO|MAL\b/.test(t)) { const S = [...agrupa(E.vend, (v) => supChave(v, E.nacional))].filter(([k]) => supReal(k) && !/^VAGO/.test(k)).filter(([, x]) => x.meta > 0).sort((a, b) => (a[1].pct ?? 999) - (b[1].pct ?? 999)); if (S.length) { const [k, x] = S[0]; return [`🔻 *Quem está puxando ${E.nome} para baixo:* ${supNome(k)} — *${pctTxt(x.pct)}* da meta (fat. ${R$(x.fat)} de ${R$(x.meta)}, pend. ${R$(x.pend)})`, '', '*Os mais atrás:*', ...S.slice(0, 4).map(([k2, y], i) => `${i + 1}. ${supNome(k2)} — ${pctTxt(y.pct)} · gap ${R$(Math.max(0, y.meta - y.fat - y.pend))}`), '', SUGESTAO + `sentar hoje com ${supNome(k)} e abrir vendedor por vendedor (peça "supervisor ${supNome(k).split(' ')[0]}").`].join('\n'); } }
   if (/SUPERVIS|POR EQUIPE|ABERT|POR GERENTE/.test(t)) return respPorSupervisor(E);
   if (fm || /BRASIL|TODAS|NACIONAL|REDE|FILIAIS|QUAL FILIAL/.test(t)) return respResumo(B, E);
   return null;
@@ -1039,7 +1053,7 @@ async function enviarFigurinha(env, numero, nome) {
 function humaniza(resp, c, primeiraDoDia) {
   if (!resp || !primeiraDoDia) return resp;
   const n = primeiroNome(c), tj = tempoDeJogo();
-  const abre = varia([`${cumprimento()}, ${n}! Já separei pra você:`, `${cumprimento()}, ${n}! ${titulo(tj)} por aqui. Olha só:`, `Fala, ${n}! ${cumprimento()}. Vamos lá:`, `${cumprimento()}, ${n}! Buscando os números agora mesmo:`], c.celular);
+  const abre = varia([`${cumprimento()}, ${n}! Já separei pra você:`, `${cumprimento()}, ${n}! ${tj.charAt(0).toUpperCase() + tj.slice(1)} por aqui. Olha só:`, `Fala, ${n}! ${cumprimento()}. Vamos lá:`, `${cumprimento()}, ${n}! Buscando os números agora mesmo:`], c.celular);
   return abre + '\n\n' + resp;
 }
 // MONITORAMENTO (Vitorio: "vamos conseguir monitorar TODAS as conversas? e as respostas que nao ajudarem?"): toda resposta grava o TIPO
