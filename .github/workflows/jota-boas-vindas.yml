@@ -1,0 +1,25 @@
+# Boas-vindas do JOTA aos supervisores (Vitório, 25/10/2026: "amanhã cedo").
+# Uma vez só: segunda 26/10/2026 às 07:30 de Brasília (10:30 UTC). 15 s entre um envio e outro. Quem já recebeu nunca recebe de novo.
+# Manual (workflow_dispatch) também funciona, com o mesmo cuidado.
+name: JOTA — boas-vindas aos supervisores
+on:
+  schedule:
+    - cron: '30 10 26 10 *'
+  workflow_dispatch:
+jobs:
+  enviar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Enviar (um por vez, 15 s de intervalo)
+        env:
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+        run: |
+          if [ "$(date -u +%Y)" != "2026" ] && [ "${{ github.event_name }}" = "schedule" ]; then echo "agendamento so vale em 2026"; exit 0; fi
+          B=https://ceven-cftv-matrix.pages.dev/api/jota-boas-vindas
+          LISTA=$(curl -fsS -m 30 -H "X-Evo-Key: $EVO_KEY" "$B" | python3 -c "import json,sys; print(' '.join(json.load(sys.stdin)['pendentes']))")
+          echo "pendentes: $(echo $LISTA | wc -w)"
+          for c in $LISTA; do
+            echo "$c: $(curl -fsS -m 40 -X POST -H "X-Evo-Key: $EVO_KEY" "$B?celular=$c")"
+            sleep 15
+          done
