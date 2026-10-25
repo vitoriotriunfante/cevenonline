@@ -6,6 +6,7 @@
 //   POST ?k=<BOT_WEBHOOK_KEY>&celular=55...  -> envia para UM (texto + figurinha "Oi, eu sou o Jota") e marca como enviado
 // Quem chama: workflow .github/workflows/jota-boas-vindas.yml (segunda 26/10/2026, 07:30, 15 s entre um e outro). Nunca reenvia.
 // =========================================================================
+import { chaveEvoValida } from '../_lib/chave_evo.js';
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 const FIG = 'https://ceven-cftv-matrix.pages.dev/jota/figurinhas/01_oi_eu_sou_o_jota.webp';
 const titulo = (s) => String(s || '').toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
@@ -21,18 +22,18 @@ async function evo(env, rota, corpo) {
   return (await R.evolution(R.evoCfg(env), rota, corpo)).ok; // true so se a Evolution aceitou (antes era sempre verdadeiro)
 }
 // autoriza pela chave do JOTA (?k=) OU pela chave da Evolution no header X-Evo-Key (o GitHub ja tem EVO_KEY; sem segredo novo)
-const autorizado = (request, env) => { const u = new URL(request.url); return (env.BOT_WEBHOOK_KEY && u.searchParams.get('k') === env.BOT_WEBHOOK_KEY) || (env.EVO_KEY && request.headers.get('x-evo-key') === env.EVO_KEY); };
+const autorizado = async (request, env) => { const u = new URL(request.url); return (env.BOT_WEBHOOK_KEY && u.searchParams.get('k') === env.BOT_WEBHOOK_KEY) || await chaveEvoValida(request, env); };
 const pendentes = (env) => env.DB.prepare("SELECT c.celular, c.nome, c.filial, c.papel FROM bot_contatos c WHERE c.papel = 'supervisor' AND c.ativo = 1 AND NOT EXISTS (SELECT 1 FROM bot_msgs m WHERE m.celular = c.celular AND m.tipo = 'boas_vindas') ORDER BY c.filial, c.nome").all();
 export async function onRequestGet({ request, env }) {
   const u = new URL(request.url);
-  if (!autorizado(request, env)) return new Response('nao autorizado', { status: 401 });
+  if (!(await autorizado(request, env))) return new Response('nao autorizado', { status: 401 });
   if (u.searchParams.get('previa') === '1') return new Response(texto({ nome: 'WASHINGTON', filial: 'API' }), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
   const { results } = await pendentes(env);
   return new Response(JSON.stringify({ pendentes: (results || []).map((c) => c.celular), total: (results || []).length }), { headers: { 'Content-Type': 'application/json' } });
 }
 export async function onRequestPost({ request, env }) {
   const u = new URL(request.url);
-  if (!autorizado(request, env)) return new Response('nao autorizado', { status: 401 });
+  if (!(await autorizado(request, env))) return new Response('nao autorizado', { status: 401 });
   const cel = String(u.searchParams.get('celular') || '').replace(/\D/g, '');
   const { results } = await pendentes(env);
   const c = (results || []).find((x) => x.celular === cel);

@@ -6,8 +6,9 @@
 // GRAVA: bot_msgs com direcao 'motor' (enviada) ou 'motor_erro' (falhou) e tipo = ciclo (ex.: '07:45'). ~100 linhas/dia.
 // NUNCA atrapalha o envio: o motor chama com timeout curto e ignora qualquer erro daqui.
 // =========================================================================
+import { chaveEvoValida } from '../../_lib/chave_evo.js';
 export async function onRequestPost({ request, env }) {
-  if (!env.EVO_KEY || request.headers.get('x-evo-key') !== env.EVO_KEY) return new Response('nao autorizado', { status: 401 });
+  if (!(await chaveEvoValida(request, env))) return new Response('nao autorizado', { status: 401 });
   if (!env.DB) return new Response('sem D1', { status: 503 });
   let b = {}; try { b = await request.json(); } catch (e) { return new Response('json invalido', { status: 400 }); }
   const cel = String(b.celular || '').replace(/\D/g, '');
