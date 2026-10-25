@@ -49,16 +49,25 @@ async function main() {
   const ini = `${ano}-${String(mes).padStart(2, '0')}-01`;
   const diasMes = new Date(Date.UTC(ano, mes, 0)).getUTCDate();
   const decorrido = dia - 1 + (c.h * 60 + c.m) / 1440; // fração de dias já passados no mês
-  const fator = diasMes / Math.max(decorrido, 0.25);
 
   const d = await gql(`query ($conta: string!, $ini: Date!, $fim: Date!) { viewer { accounts(filter: { accountTag: $conta }) {
-      d1: d1AnalyticsAdaptiveGroups(limit: 10000, filter: { date_geq: $ini, date_leq: $fim }) { sum { readQueries writeQueries rowsRead rowsWritten } }
-      w: workersInvocationsAdaptive(limit: 10000, filter: { date_geq: $ini, date_leq: $fim }) { sum { requests } }
-    } } }`, { conta: conta.id, ini, fim: c.dia });
+      d1: d1AnalyticsAdaptiveGroups(limit: 10000, filter: { date_geq: $ini, date_leq: $fim }) { dimensions { date } sum { readQueries writeQueries rowsRead rowsWritten } }
+      w: workersInvocationsAdaptive(limit: 10000, filter: { date_geq: $ini, date_leq: $fim }) { dimensions { date } sum { requests } }
+    } } }`, { conta: conta.id, ini, fim: new Date().toISOString().slice(0, 10) });
   const a = d.viewer.accounts[0] || {};
   const soma = (lista, campo) => (lista || []).reduce((s, x) => s + Number((x.sum || {})[campo] || 0), 0);
   const uso = { lidas: soma(a.d1, 'rowsRead'), gravadas: soma(a.d1, 'rowsWritten'), req: soma(a.w, 'requests'), gb: Number(banco.file_size || 0) / 1e9 };
-  const proj = { lidas: uso.lidas * fator, gravadas: uso.gravadas * fator, req: uso.req * fator, gb: uso.gb };
+  // RITMO DE AGORA (o freio olha isto): últimas 24 h (dia UTC de hoje + parte proporcional de ontem) × 30. O que já foi gasto no mês não volta;
+  // se o freio olhasse a média do mês, um estouro antigo (o de antes de 25/10) deixaria o freio ligado o mês inteiro sem motivo.
+  const agoraUtc = new Date(), hojeUtc = agoraUtc.toISOString().slice(0, 10), ontemUtc = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+  const fracHoje = (agoraUtc.getUTCHours() * 60 + agoraUtc.getUTCMinutes()) / 1440;
+  const doDia = (lista, campo, dd) => (lista || []).filter((x) => x.dimensions && x.dimensions.date === dd).reduce((s, x) => s + Number((x.sum || {})[campo] || 0), 0);
+  const ult24 = (lista, campo) => doDia(lista, campo, hojeUtc) + doDia(lista, campo, ontemUtc) * (1 - fracHoje);
+  const proj = { lidas: ult24(a.d1, 'rowsRead') * 30, gravadas: ult24(a.d1, 'rowsWritten') * 30, req: ult24(a.w, 'requests') * 30, gb: uso.gb };
+  // fatura do mês (aproximada): o já usado + o ritmo de agora até o fim do mês
+  const resta = Math.max(0, diasMes - decorrido) / 30;
+  const custoDe = (p) => 5 + Math.max(0, p.req - 10e6) / 1e6 * 0.30 + Math.max(0, p.lidas - 25e9) / 1e6 * 0.001 + Math.max(0, p.gravadas - 50e6) / 1e6 * 1.00 + Math.max(0, uso.gb - 5) * 0.75;
+  const fatura = custoDe({ lidas: uso.lidas + proj.lidas * resta, gravadas: uso.gravadas + proj.gravadas * resta, req: uso.req + proj.req * resta });
   const extra = {
     'requisições': Math.max(0, proj.req - 10e6) / 1e6 * 0.30,
     'D1 linhas lidas': Math.max(0, proj.lidas - 25e9) / 1e6 * 0.001,
@@ -69,14 +78,16 @@ async function main() {
   const pesa = Object.entries(extra).sort((x, y) => y[1] - x[1]).filter((x) => x[1] > 0);
   const linhas = [
     `💰 *Guarda de custo Cloudflare* — ${c.dia.split('-').reverse().join('/')} ${c.hm}`,
-    `Projeção do mês: *${usd(total)}* (teto: US$ 20 · aviso: US$ ${AVISO} · freio: US$ ${FREIO})`,
+    `Ritmo de agora (últimas 24 h × 30): *${usd(total)}/mês* (teto: US$ 20 · aviso: US$ ${AVISO} · freio: US$ ${FREIO})`,
+    `Fatura de ${String(mes).padStart(2, '0')}/${ano} (já usado + ritmo de agora até o fim do mês): *${usd(fatura)}*`,
     '',
-    `• Requisições: ${mi(uso.req)} mi até agora → ${mi(proj.req)} mi no mês (10 mi inclusas)`,
-    `• D1 linhas gravadas: ${mi(uso.gravadas)} mi → ${mi(proj.gravadas)} mi (50 mi inclusas)`,
-    `• D1 linhas lidas: ${mi(uso.lidas)} mi → ${mi(proj.lidas)} mi (25.000 mi inclusas)`,
+    `• Requisições: ${mi(uso.req)} mi no mês · ritmo ${mi(proj.req)} mi/mês (10 mi inclusas)`,
+    `• D1 linhas gravadas: ${mi(uso.gravadas)} mi no mês · ritmo ${mi(proj.gravadas)} mi/mês (50 mi inclusas)`,
+    `• D1 linhas lidas: ${mi(uso.lidas)} mi no mês · ritmo ${mi(proj.lidas)} mi/mês (25.000 mi inclusas)`,
     `• D1 armazenamento: ${uso.gb.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} GB (5 GB inclusos)`,
-    pesa.length ? `\nO que está pesando: ${pesa.map(([k, v]) => `${k} (+${usd(v)})`).join(', ')}` : '\nTudo dentro do plano de US$ 5.',
-  ];
+    pesa.length ? `\nO que pesa no ritmo de agora: ${pesa.map(([k, v]) => `${k} (+${usd(v)})`).join(', ')}` : '\nNo ritmo de agora, tudo dentro do plano de US$ 5.',
+    fatura > 20 ? `\n⚠️ A fatura deste mês já passa de US$ 20 por consumo ANTERIOR às correções de 25/10. O freio não desfaz o que já foi gasto; ele segura o daqui pra frente. Confira no painel da Cloudflare em que dia o seu ciclo de cobrança fecha.` : '',
+  ].filter((x) => x !== '' || true);
   console.log(linhas.join('\n'));
 
   // freio
