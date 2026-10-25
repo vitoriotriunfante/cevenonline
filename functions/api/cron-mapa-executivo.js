@@ -100,7 +100,7 @@ export async function onRequestGet({ env, request, waitUntil }) {
   // com pedidos concorrentes vindos de várias TVs abrindo ao mesmo tempo).
   if (!forcar) {
     const ultima = await env.DB.prepare(
-      'SELECT MAX(updated_at) as u FROM mapa_executivo_live WHERE data_ref = ?'
+      'SELECT MAX(updated_at) as u FROM resumo_executivo_live WHERE data_ref = ?'   /* o mapa agora so grava o que muda; o resumo e gravado em toda rodada */
     ).bind(dataRef).first();
     if (ultima && ultima.u) {
       const idadeMs = Date.now() - new Date(ultima.u + 'Z').getTime();
@@ -285,12 +285,22 @@ export async function onRequestGet({ env, request, waitUntil }) {
     });
   }
 
-  // Grava em lotes (D1 batch) — apaga o snapshot antigo do dia e insere o novo, tudo em uma
-  // transação por lote (evita ficar com metade dado velho / metade novo se cair no meio).
-  await env.DB.prepare('DELETE FROM mapa_executivo_live WHERE data_ref = ?').bind(dataRef).run();
+  // GRAVA SO O QUE MUDOU (25/10/2026 — conta da Cloudflare de US$ 170: este DELETE + regravar o mapa inteiro a cada rodada
+  // era 70 milhoes de linhas gravadas por semana no D1, quase todo o custo). Le o mapa atual (leitura e gratis ate 25 bilhoes),
+  // compara cliente a cliente e so grava cliente novo ou que mudou; apaga so quem saiu do mapa. Resultado na tela: identico.
+  const sig = (p) => [p.cnpj, p.nome, p.cidade, p.filial, p.rca, p.lat, p.lon, p.status, Math.round((Number(p.valor) || 0) * 100), p.ehResgateOuro ? 1 : 0, p.ehOuro ? 1 : 0].join('|');
+  const { results: atuais } = await env.DB.prepare('SELECT id_cliente, cnpj, nome_cliente AS nome, cidade, filial_sigla AS filial, rca_codigo AS rca, latitude AS lat, longitude AS lon, status, valor_pedido AS valor, eh_resgate_ouro AS ehResgateOuro, eh_ouro AS ehOuro FROM mapa_executivo_live WHERE data_ref = ?').bind(dataRef).all();
+  const antes = new Map((atuais || []).map((r) => [String(r.id_cliente), sig(r)]));
+  const novos = new Map(); for (const p of pontos) novos.set(String(p.idCliente), p);   // mesma regra do INSERT OR REPLACE: o ultimo vence
+  const mudou = [...novos.values()].filter((p) => antes.get(String(p.idCliente)) !== sig(p));
+  const sairam = [...antes.keys()].filter((id) => !novos.has(id));
   const TAM_BATCH = 80;
-  for (let i = 0; i < pontos.length; i += TAM_BATCH) {
-    const fatia = pontos.slice(i, i + TAM_BATCH);
+  for (let i = 0; i < sairam.length; i += TAM_BATCH) {
+    const ids = sairam.slice(i, i + TAM_BATCH);
+    await env.DB.prepare(`DELETE FROM mapa_executivo_live WHERE data_ref = ? AND id_cliente IN (${ids.map(() => '?').join(',')})`).bind(dataRef, ...ids).run();
+  }
+  for (let i = 0; i < mudou.length; i += TAM_BATCH) {
+    const fatia = mudou.slice(i, i + TAM_BATCH);
     const stmts = fatia.map((p) =>
       env.DB.prepare(
         `INSERT OR REPLACE INTO mapa_executivo_live
@@ -321,7 +331,6 @@ export async function onRequestGet({ env, request, waitUntil }) {
   try {
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS recorrencia_resumo_live (filial_sigla TEXT NOT NULL, data_ref TEXT NOT NULL, na_rota INTEGER NOT NULL DEFAULT 0, positivados INTEGER NOT NULL DEFAULT 0, pedidos_campo INTEGER NOT NULL DEFAULT 0, updated_at TEXT, PRIMARY KEY (filial_sigla, data_ref))').run();
     try { await env.DB.prepare('ALTER TABLE recorrencia_resumo_live ADD COLUMN pedidos_campo INTEGER NOT NULL DEFAULT 0').run(); } catch (e) { /* coluna ja existe */ }
-    await env.DB.prepare('DELETE FROM recorrencia_resumo_live WHERE data_ref = ?').bind(dataRef).run();
     const stmtsRec = Object.entries(rec).map(([sig, a]) =>
       env.DB.prepare('INSERT OR REPLACE INTO recorrencia_resumo_live (filial_sigla, data_ref, na_rota, positivados, pedidos_campo, updated_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)').bind(sig, dataRef, a.naRota, a.positivados, a.pedidosCampo));
     if (stmtsRec.length) await env.DB.batch(stmtsRec);
@@ -332,7 +341,7 @@ export async function onRequestGet({ env, request, waitUntil }) {
     data_ref: dataRef,
     rcas_processados: rcas.length,
     rcas_sem_resposta: falhas,
-    pontos_gravados: pontos.length,
+    pontos_no_mapa: novos.size, pontos_gravados: mudou.length, pontos_apagados: sairam.length,
     duracao_ms: Date.now() - t0
   }), { headers: cors });
 }

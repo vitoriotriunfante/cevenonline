@@ -404,3 +404,8 @@ pequenos.
 - **20/10/2026 — Amarelo errado na TSJ (vendedores com check-in às 08:26-09:50 levaram amarelo às 10h).** Causa: no caminho do admin a varredura só renovava o ROTEIRO de quem tinha pedido novo; quem visitava sem vender ficava com o roteiro da meia-noite (tudo ABERTO). Correções: (1) visitas = maior entre roteiro e produtividade.dia.visitas_na_rota (coletor, TV e Matriz); (2) varredura renova o roteiro de até 10 RCAs com rota por rodada, os mais velhos primeiro.
 
 - **20/10/2026 (revisão) — Cartão conferido no CEVEN ao vivo:** /api/tv-lances, antes de gravar amarelo (ven10) ou vermelho de abandono (vis10/vis11) NOVO, lê o roteiro-hoje do vendedor no CEVEN; qualquer check-in = sem cartão. CEVEN sem resposta = cartão fica para a próxima rodada do coletor (5 min), nunca é perdoado. O campo visitas_na_rota da produtividade NÃO entra na decisão (Vitório: "o cara tem que ter check-in").
+
+## 25/10/2026 — Custo Cloudflare (US$ 166,94 no ciclo 25/09–24/10)
+- US$ 160 = D1 Rows Written (209M; 50M grátis). 92% vinham de cron-mapa-executivo: DELETE + regravar o mapa inteiro a cada rodada (~70M linhas/semana).
+- Corrigido: grava só cliente novo ou alterado e apaga só quem saiu; trava de 2 min lê resumo_executivo_live. Resto do projeto ≈ 3M linhas/semana (dentro do grátis).
+- Regra: nenhum cron pode apagar e regravar tabela; conferir semanalmente com `wrangler d1 insights --sort-by=writes`.
