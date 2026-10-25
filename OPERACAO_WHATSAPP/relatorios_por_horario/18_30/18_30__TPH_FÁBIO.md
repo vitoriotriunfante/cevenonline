@@ -1,23 +1,19 @@
 🏢 *BOLETIM DE FECHAMENTO OFICIAL — 18:30*
-📅 21/10/2026
+📅 23/10/2026
 📍 *FILIAL TPH — FÁBIO*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 133.918,10
-📦 *Pedidos Colocados:* 116 pedidos
-📍 *Visitas Realizadas:* 254 de 474 (53,6%)
-👥 *Vendedores Varejo com Pedido:* 19 de 25 (76%)
-✂️ *Cortes nos Pedidos de Hoje:* R$ 1.110,88 (5 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 21.647,30 (32 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 313,50
+💰 *Total Digitado Hoje:* R$ 170.269,13
+📦 *Pedidos Colocados:* 94 pedidos
+📍 *Visitas Realizadas:* 246 de 456 (53,9%)
+👥 *Vendedores Varejo com Pedido:* 20 de 26 (77%)
+✂️ *Cortes nos Pedidos de Hoje:* R$ 117,12 (1 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 7.869,39 (15 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 4.135,12
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
-  ▫️ Cód. 118 • EMILLEI CARNEIRO: -R$ 387,61 em  (SKU em falta)
-  ▫️ Cód. 118 • EMILLEI CARNEIRO: -R$ 34,87 em  (SKU em falta)
-  ▫️ Cód. 69 • KAUALBERT DE FARIAS MARTINS BARBOSA: -R$ 39,74 em  (SKU em falta)
-  ▫️ Cód. 116 • MIRIANE SALETE BIGAS: -R$ 90,13 em  (SKU em falta)
-  ▫️ _... e mais 1 pedidos com corte._
-🟢 *Recuperação de Inativos (+30d):* 5 de 153 PDVs reativados hoje
+  ▫️ Cód. 111 • IZAQUE PEREIRA GONCALVES: -R$ 117,12 em  (SKU em falta)
+🟢 *Recuperação de Inativos (+30d):* 3 de 143 PDVs reativados hoje
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*

@@ -1,78 +1,78 @@
 🌅 *ABERTURA MATINAL DE OPERAÇÃO (07:45)*
-📅 Quinta-feira, 22/10/2026 • Grupo Triunfante
+📅 Sexta-feira, 23/10/2026 • Grupo Triunfante
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📌 *PANORAMA GERAL*
-👥 *Vendedores Varejo em Rota:* 295
-📍 *Visitas Planejadas:* 4.020 PDVs (Varejo) de 5.093 (Total)
-🔴 *Última Chance do Mês:* 1.283 PDVs (31,9% da rota)
-🔄 *Recorrência na rota:* 450 PDVs (11,2%)
-🏬 *Oportunidades CNAE 4712 (Comércio varejista de mercadorias em geral, com predominância de produtos alimentícios - minimercados, mercearias e armazéns):* +8.507 PDVs
+👥 *Vendedores Varejo em Rota:* 291
+📍 *Visitas Planejadas:* 3.607 PDVs (Varejo) de 4.514 (Total)
+🔴 *Última Chance do Mês:* 1.240 PDVs (34,4% da rota)
+🔄 *Recorrência na rota:* 459 PDVs (12,7%)
+🏬 *Oportunidades CNAE 4771 (Comércio varejista de produtos farmacêuticos, sem manipulação de fórmulas):* +7.209 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏢 *POR FILIAL (VAREJO)*
 
-📍 *TBL — FÁBIO*
-• Vendedores: 28 • Visitas: 493
-• Sem compra +30d: 169 (34,3%) • Recorrência: 43 (8,7%)
-• CNAE 4712: +537 PDVs
-
 📍 *TPH — FÁBIO*
-• Vendedores: 23 • Visitas: 488
-• Sem compra +30d: 196 (40,2%) • Recorrência: 52 (10,7%)
-• CNAE 4712: +1.332 PDVs
+• Vendedores: 24 • Visitas: 456
+• Sem compra +30d: 162 (35,5%) • Recorrência: 45 (9,9%)
+• CNAE 4771: +1.824 PDVs
+
+📍 *TBL — FÁBIO*
+• Vendedores: 28 • Visitas: 413
+• Sem compra +30d: 188 (45,5%) • Recorrência: 56 (13,6%)
+• CNAE 4771: +520 PDVs
 
 📍 *API — MARCELO*
-• Vendedores: 28 • Visitas: 406
-• Sem compra +30d: 104 (25,6%) • Recorrência: 64 (15,8%)
-• CNAE 4712: +885 PDVs
+• Vendedores: 28 • Visitas: 402
+• Sem compra +30d: 128 (31,8%) • Recorrência: 55 (13,7%)
+• CNAE 4771: +744 PDVs
 
 📍 *TPH — VAGNER*
-• Vendedores: 31 • Visitas: 391
-• Sem compra +30d: 118 (30,2%) • Recorrência: 56 (14,3%)
-• CNAE 4712: +1.067 PDVs
-
-📍 *ABC — MARCOS*
-• Vendedores: 23 • Visitas: 369
-• Sem compra +30d: 109 (29,5%) • Recorrência: 43 (11,7%)
-• CNAE 4712: +369 PDVs
+• Vendedores: 32 • Visitas: 400
+• Sem compra +30d: 130 (32,5%) • Recorrência: 60 (15,0%)
+• CNAE 4771: +1.600 PDVs
 
 📍 *TSJ — SALDANHA*
-• Vendedores: 22 • Visitas: 349
-• Sem compra +30d: 110 (31,5%) • Recorrência: 29 (8,3%)
-• CNAE 4712: +1.396 PDVs
+• Vendedores: 22 • Visitas: 334
+• Sem compra +30d: 116 (34,7%) • Recorrência: 31 (9,3%)
+• CNAE 4771: +357 PDVs
+
+📍 *ABC — MARCOS*
+• Vendedores: 23 • Visitas: 318
+• Sem compra +30d: 96 (30,2%) • Recorrência: 49 (15,4%)
+• CNAE 4771: +547 PDVs
 
 📍 *TBE — DIEGO*
-• Vendedores: 15 • Visitas: 287
-• Sem compra +30d: 99 (34,5%) • Recorrência: 16 (5,6%)
-• CNAE 4712: +287 PDVs
-
-📍 *TCV — LEONARDO*
-• Vendedores: 27 • Visitas: 279
-• Sem compra +30d: 41 (14,7%) • Recorrência: 27 (9,7%)
-• CNAE 4712: +432 PDVs
+• Vendedores: 16 • Visitas: 297
+• Sem compra +30d: 126 (42,4%) • Recorrência: 14 (4,7%)
+• CNAE 4771: +318 PDVs
 
 📍 *TPA — RADKE / LEANDRO*
-• Vendedores: 15 • Visitas: 259
-• Sem compra +30d: 97 (37,5%) • Recorrência: 43 (16,6%)
-• CNAE 4712: +352 PDVs
+• Vendedores: 15 • Visitas: 255
+• Sem compra +30d: 95 (37,3%) • Recorrência: 36 (14,1%)
+• CNAE 4771: +273 PDVs
 
-📍 *MCD — CLEVERSON*
-• Vendedores: 19 • Visitas: 206
-• Sem compra +30d: 72 (35,0%) • Recorrência: 20 (9,7%)
-• CNAE 4712: +562 PDVs
-
-📍 *TCA — BECHER*
-• Vendedores: 24 • Visitas: 202
-• Sem compra +30d: 102 (50,5%) • Recorrência: 29 (14,4%)
-• CNAE 4712: +679 PDVs
-
-📍 *MCD — ADRIANO*
-• Vendedores: 20 • Visitas: 146
-• Sem compra +30d: 39 (26,7%) • Recorrência: 13 (8,9%)
-• CNAE 4712: +399 PDVs
+📍 *TCV — LEONARDO*
+• Vendedores: 27 • Visitas: 243
+• Sem compra +30d: 61 (25,1%) • Recorrência: 37 (15,2%)
+• CNAE 4771: +275 PDVs
 
 📍 *TCG — DANILO*
-• Vendedores: 20 • Visitas: 145
-• Sem compra +30d: 27 (18,6%) • Recorrência: 15 (10,3%)
-• CNAE 4712: +210 PDVs
+• Vendedores: 20 • Visitas: 153
+• Sem compra +30d: 28 (18,3%) • Recorrência: 30 (19,6%)
+• CNAE 4771: +173 PDVs
+
+📍 *TCA — BECHER*
+• Vendedores: 19 • Visitas: 128
+• Sem compra +30d: 73 (57,0%) • Recorrência: 28 (21,9%)
+• CNAE 4771: +329 PDVs
+
+📍 *MCD — ADRIANO*
+• Vendedores: 19 • Visitas: 106
+• Sem compra +30d: 17 (16,0%) • Recorrência: 8 (7,5%)
+• CNAE 4771: +127 PDVs
+
+📍 *MCD — CLEVERSON*
+• Vendedores: 18 • Visitas: 102
+• Sem compra +30d: 20 (19,6%) • Recorrência: 10 (9,8%)
+• CNAE 4771: +122 PDVs

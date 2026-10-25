@@ -1,46 +1,46 @@
 🌅 *ABERTURA MATINAL — TSJ (07:45)*
-📅 quinta-feira, 22/10/2026
+📅 sexta-feira, 23/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 22 • Visitas: 349 (média 15,9/vendedor)
-Sem compra +30d: 110 (31,5%) • Recorrência: 29 (8,3%)
-Oportunidades CNAE 4712: +1.396 PDVs
+👥 Vendedores: 22 • Visitas: 334 (média 15,2/vendedor)
+Sem compra +30d: 116 (34,7%) • Recorrência: 31 (9,3%)
+Oportunidades CNAE 4771: +357 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TSJ — SALDANHA* • 22/10/2026
+📍 *TSJ — SALDANHA* • 23/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 141  •  🟡 Preventivo: 0
+🔴 Última Chance: 143  •  🟡 Preventivo: 0
 
-👤 *ANA CRISTINA DOS SANTOS YAMATO* (27 em risco)
-  🔴 MERCADINHO SANTA FE (5) — 18/09
-  🔴 DMB COMERCIO DE PRODUTOS ALIMENTICIOS LT (10) — 14/09
-  🔴 D.P.M DISTRIBUIDORA (33) — 05/12
-  🔴 BOMBONIERE ZAPITH ITAQUA CENTRO (33) — 24/08
-  🔴 BOMBONIERE ZAPITH FERRAZ (33) — 24/08
+👤 *ANA CRISTINA DOS SANTOS YAMATO* (29 em risco)
+  🔴 MERCEARIA MARTINS (5) — 14/09
+  🔴 CASA DE CARNES VAL (5) — 07/09
+  🔴 MERCADO ITAIM (5) — 05/12
+  🔴 MERCADO VITORIA (8) — 15/09
+  🔴 EMPORIO ESPLANADA (8) — 05/12
+  _+24 outros_
+
+👤 *JULIO CESAR SOARES DE PAULO* (28 em risco)
+  🔴 RAFAEL BATISTA DOS SANTOS 36631463831 (7) — 05/12
+  🔴 QUITANDA DO XANDAO (7) — 31/07
+  🔴 MERCADINHO ZEQUINHA (7) — 23/06
+  🔴 BAR DA NEIDE (7) — 05/12
+  🔴 RONALDO LOJA DE CONVENIENCIA LTDA ME (25) — 03/09
+  _+23 outros_
+
+👤 *Venda empresa (interno)* (27 em risco)
+  🔴 GTI LOG SA (2) — 05/12
+  🔴 AMILTON GOMES ME (2) — 05/12
+  🔴 MERCEARIA CASA DO BIRA (2) — 05/12
+  🔴 MERCADO JARDINS (2) — 05/12
+  🔴 NOVA PADARIA SERV BEM (2) — 05/12
   _+22 outros_
 
-👤 *JULIO CESAR SOARES DE PAULO* (18 em risco)
-  🔴 PADARIA MERCEARIA VILA SANTO ANTONIO (7) — 31/07
-  🔴 ACOUGUE DO GUILHERME (7) — 14/09
-  🔴 MERCEARIA SANTA EDWIRGES (7) — 05/12
-  🔴 52.290.626 ANA KARINA DA SILVA (7) — 05/12
-  🔴 63.287.730 JOSE BENEDITO DO NASCIMENTO (25) — 24/07
-  _+13 outros_
-
-👤 *Venda empresa (interno)* (31 em risco)
-  🔴 M A NASCIMENTO MERCADINHO S - EPP (2) — 05/12
-  🔴 BAIANINHA PAES E BOLOS (2) — 05/12
-  🔴 PADARIA BENFICA (2) — 05/12
-  🔴 QUITANDA DO ODIR (2) — 05/12
-  🔴 RESTAURANTE DA LU (2) — 05/12
-  _+26 outros_
-
-👤 *VICTOR HUGO FONSECA CARVALHO* (65 em risco)
-  🔴 ROOTS COMMERCE (16) — 05/12
-  🔴 TUDO DE BOM (16) — 05/12
-  🔴 KAMEOKA MERCEARIA (16) — 05/12
-  🔴 SUPERMERCADOS ALBUQUERQUE SOUZA LTDA (16) — 17/08
-  🔴 MERCEARIA TRES MARIAS (16) — 05/12
-  _+60 outros_
+👤 *VICTOR HUGO FONSECA CARVALHO* (59 em risco)
+  🔴 LUIZ CARLOS R DE SOUZA MOGI DAS CRUZES (16) — 08/07
+  🔴 MERCEARIA ESPERANCA (16) — 05/12
+  🔴 MARCILIO PINTO DE GODOY FILHO ME (16) — 22/09
+  🔴 36.666.053 ARIANE CRISTINA LEMES (23) — 23/06
+  🔴 BAR E MERCEARIA SM LUZIA (23) — 14/09
+  _+54 outros_

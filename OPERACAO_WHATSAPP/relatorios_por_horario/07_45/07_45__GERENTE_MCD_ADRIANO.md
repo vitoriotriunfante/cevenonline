@@ -1,38 +1,36 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 quinta-feira, 22/10/2026
+📅 sexta-feira, 23/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 20 • Visitas: 146 (média 7,3/vendedor)
-Sem compra +30d: 39 (26,7%) • Recorrência: 13 (8,9%)
-Oportunidades CNAE 4712: +399 PDVs
+👥 Vendedores: 19 • Visitas: 106 (média 5,6/vendedor)
+Sem compra +30d: 17 (16,0%) • Recorrência: 8 (7,5%)
+Oportunidades CNAE 4771: +127 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — ADRIANO* • 22/10/2026
+📍 *MCD — ADRIANO* • 23/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 39  •  🟡 Preventivo: 0
+🔴 Última Chance: 18  •  🟡 Preventivo: 0
 
-👤 *ALYFER PEREIRA MENDES* (10 em risco)
-  🔴 PET CLUB CLUB (432) — 05/12
-  🔴 CENTER DOG RACOES (432) — 05/12
-  🔴 PATINHAS PET SHOP (432) — 05/12
-  🔴 MASCOTE PET SHOP (432) — 18/09
-  🔴 PETSHOP DIAS (436) — 27/05
-  _+5 outros_
+👤 *ALYFER PEREIRA MENDES* (6 em risco)
+  🔴 PET SHOP PATAS E PELOS (432) — 16/09
+  🔴 RACOES TAMANDARE (432) — 05/12
+  🔴 BUMMER PET SHOP (432) — 05/12
+  🔴 ESTILO PET SHOP (436) — 31/08
+  🔴 CLINICA POPULAR PET (436) — 16/09
+  _+1 outros_
 
-👤 *CARLOS ALAGUEZ DA SILVA* (10 em risco)
-  🔴 CD NAVIRAI (430) — 05/12
-  🔴 C VALE (430) — 12/09
-  🔴 MERCEARIA NANICO (438) — 21/09
-  🔴 MERCADO FERREIRA (440) — 19/09
-  🔴 AGRO PET (449) — 05/12
-  _+5 outros_
+👤 *CARLOS ALAGUEZ DA SILVA* (4 em risco)
+  🔴 MERCADO MS (423) — 21/09
+  🔴 M D CONVENIENCIA (423) — 31/08
+  🔴 SOBERANA PETSHOP (449) — 05/12
+  🔴 KACHINSCKY E RIZO (463) — 05/09
 
-👤 *CLEOMAR DINIZ BARBOSA* (19 em risco)
-  🔴 LANCHAO E CONVENIENCIA (415) — 05/12
-  🔴 MIYAZATO COMERCIO DE HORTIFRUT (424) — 05/12
-  🔴 REDE FAMILIA (426) — 28/08
-  🔴 CASA DE RACAO NOSSA SENHORA AP (447) — 25/08
-  🔴 REDE CENTRAL (447) — 05/12
-  _+14 outros_
+👤 *CLEOMAR DINIZ BARBOSA* (8 em risco)
+  🔴 OI TOTO PET SHOP (427) — 31/08
+  🔴 DELICIAS DA GIGI (447) — 05/12
+  🔴 PRONTO VET (447) — 05/12
+  🔴 SUPERMERCADO GAMA (447) — 05/12
+  🔴 MINI MERCADO BOM PRECO (452) — 16/09
+  _+3 outros_

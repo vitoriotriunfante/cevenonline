@@ -1,43 +1,42 @@
 🌅 *ABERTURA MATINAL — TCG (07:45)*
-📅 quinta-feira, 22/10/2026
+📅 sexta-feira, 23/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 20 • Visitas: 145 (média 7,3/vendedor)
-Sem compra +30d: 27 (18,6%) • Recorrência: 15 (10,3%)
-Oportunidades CNAE 4712: +210 PDVs
+👥 Vendedores: 20 • Visitas: 153 (média 7,7/vendedor)
+Sem compra +30d: 28 (18,3%) • Recorrência: 30 (19,6%)
+Oportunidades CNAE 4771: +173 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCG — DANILO* • 22/10/2026
+📍 *TCG — DANILO* • 23/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 27  •  🟡 Preventivo: 0
+🔴 Última Chance: 28  •  🟡 Preventivo: 0
 
-👤 *DELINLSON ANTONIO LIMA SILVA* (8 em risco)
-  🔴 MERC CONV COLIBRI (456) — 05/12
-  🔴 MERCADO COLIBRI (456) — 05/12
-  🔴 MERCADO E ACOUQUE TROPICAL (461) — 05/12
-  🔴 ENZO COMERCIO DE CARNE (461) — 17/09
-  🔴 CONVENIENCIA NOVO SUL (468) — 27/05
-  _+3 outros_
+👤 *DELINLSON ANTONIO LIMA SILVA* (6 em risco)
+  🔴 COVENIENCIA DO CALIXTO (461) — 31/08
+  🔴 BLACK BEER (461) — 05/12
+  🔴 JOAO PAULO CAVALCANTE DOS SANTOS 0021339 (468) — 31/08
+  🔴 MERCADO BIG BOM (481) — 31/08
+  🔴 VILLAS MERCEARIA E FRUTARIA (481) — 05/12
+  _+1 outros_
 
-👤 *EDSON RODRIGO LINIA* (10 em risco)
-  🔴 CENTR EMBALEGEM (458) — 05/12
-  🔴 COMERCIAL BELEN (458) — 27/08
-  🔴 SERTANEJA PROD AGROPECUARIOS (459) — 15/09
-  🔴 PITSTOP COSTA LESTE (459) — 17/09
-  🔴 MERCADO ELDORADO (459) — 17/09
-  _+5 outros_
+👤 *EDSON RODRIGO LINIA* (13 em risco)
+  🔴 BABY FESTA (458) — 05/12
+  🔴 CASA DE CARNE URUCUM (458) — 05/12
+  🔴 SO FESTA E EVENTOS (458) — 19/09
+  🔴 CONVENIENCIA CONSUELO VIEIRA (458) — 05/12
+  🔴 BRUNA MARTINS STURION (458) — 16/09
+  _+8 outros_
 
-👤 *Vendedores ligados direto ao gerente* (5 em risco)
-  🔴 MORENA COSMETICOS (489) — 05/12
-  🔴 MERCEARIA IPE E CIA (489) — 05/12
-  🔴 MERCEARIA SAO CARLOS (489) — 17/09
-  🔴 DELICIAS DA GIGI (489) — 05/12
-  🔴 YGAO CONVENIENCIA (489) — 01/01
+👤 *Vendedores ligados direto ao gerente* (2 em risco)
+  🔴 MS LICITACOES (489) — 05/12
+  🔴 HELP CAMISETERIA (489) — 03/09
 
-👤 *TIAGO SANTOS CORREA* (4 em risco)
-  🔴 FARMACIA REAL (486) — 14/09
-  🔴 JF COVENIECIA (487) — 10/09
-  🔴 CASA DO SCHET (488) — 15/09
-  🔴 NORTAO CONVENIENCIA E MERCEARIA (1072) — 05/12
+👤 *TIAGO SANTOS CORREA* (7 em risco)
+  🔴 SUP MANAIM (473) — 05/12
+  🔴 PE DE GARRAFA CONVENIENCIA (486) — 05/12
+  🔴 G BERNARDES CORREA DA SILVA LTDA (486) — 05/12
+  🔴 JOTA BEER (486) — 05/12
+  🔴 BIG FOUR (488) — 01/01
+  _+2 outros_
