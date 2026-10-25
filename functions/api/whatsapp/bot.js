@@ -580,7 +580,7 @@ const naoVende = (E, termo) => `🔎 Não achei venda de *${termo || 'esse produ
 function achaIndustria(t, V) {
   const inds = [...new Set(Object.values(V.prod).map((p) => p[1]).filter(Boolean))];
   // apelidos: como o time fala x como o fornecedor esta no catalogo (Mars = MASTERFOODS etc.)
-  const APELIDO = { MARS: 'MASTERFOODS', MASTERFOODS: 'MASTERFOODS', LACTA: 'MONDELEZ', OREO: 'MONDELEZ', NESTLE: 'NESTLE', GAROTO: 'GAROTO', KITKAT: 'NESTLE', ELMA: 'PEPSICO', PEPSICO: 'PEPSICO', KELLOGGS: 'KELLOGG', KELLOGG: 'KELLOGG' };
+  const APELIDO = { MARS: 'MASTERFOODS', MASTERFOODS: 'MASTERFOODS', NESTLE: 'NESTLE', GAROTO: 'GAROTO', PEPSICO: 'PEPSICO', PEPSICO: 'PEPSICO', KELLOGGS: 'KELLOGG', KELLOGG: 'KELLOGG' };
   const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w)).flatMap((w) => (APELIDO[w] ? [w, APELIDO[w]] : [w]));
   const hit = inds.filter((i) => toks.some((w) => sem(i).split(/[^A-Z0-9]+/).includes(w)));
   return hit.length ? hit : null;
@@ -637,7 +637,8 @@ async function respMetasIndustria(B, E, t, pessoa) {
   // industria citada (pelo nome da Premiacao; Mars = MARS CHOC/MARS PET etc.)
   const nomes = new Map(); for (const m of RV.metas) if (!nomes.has(m[1])) nomes.set(m[1], m[2]);
   const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !['META', 'METAS', 'INDUSTRIA', 'INDUSTRIAS', 'BATENDO', 'BATEU', 'BATER', 'ESTAMOS', 'FORNECEDOR', 'FORNECEDORES', 'PREMIACAO', 'PREMIO', 'ATINGIMENTO', 'ATINGIU', 'BRASIL', 'LTDA', 'ALIMENTOS', 'ALIMENTAR', 'COMERCIAL', 'IND', 'DOCEIRA', 'CHOC', 'PET', 'FALTA', 'BATENDO', 'BATIDA', 'GRUPO', 'TODAS', 'TODOS', 'GERAL'].includes(w) && !FILIAIS.includes(w));
-  const pessoasT = new Set(E.vend.flatMap((v) => sem(v.nome).split(/\s+/)).concat(E.vend.flatMap((v) => sem(v.supervisor).split(/\s+/))));
+  // so o nome da PESSOA CITADA sai da busca (ha contas com nome de industria, ex.: vendedor 'MONDELEZ'; 25/10/2026)
+  const pessoasT = new Set(pessoa && pessoa.alvo ? sem(pessoa.alvo.nome).split(/\s+/) : []);
   const alvoI = new Set([...nomes].filter(([, n]) => toks.some((w) => !pessoasT.has(w) && sem(n).split(/[^A-Z0-9]+/).includes(w))).map(([id]) => id));
   if (!alvoI.size && !/INDUSTRI|FORNECEDOR|FABRICANTE|PREMIA/.test(t)) return null;   /* meta sem industria = meta da filial/vendedor (outra resposta) */
   const G = new Map();   // id -> { meta, metaPos, fat, vend, pos, posV, porVend: Map }

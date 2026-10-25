@@ -98,7 +98,7 @@ if (SO !== 'rota') {
         const w0 = sem(nomeI(x.nome)).split(' ')[0]; const cnt = new Map();
         for (const l of vm.l) { const p = vm.produtos[l[3]]; if (p && sem(p[1]).includes(w0)) cnt.set(l[3], (cnt.get(l[3]) || 0) + l[5]); }
         const top = [...cnt].sort((a, b) => b[1] - a[1])[0]; if (!top) continue;
-        const termo = titulo((sem(vm.produtos[top[0]][0]).split(/\s+/).find((w) => w.length > 3 && !GENERICO.test(w)) || ''));
+        const termo = titulo((sem(vm.produtos[top[0]][0]).split(/\s+/).find((w) => w.length > 3 && !GENERICO.test(w) && w !== w0) || ''));
         if (!termo) continue;
         const vs = [...x.vend].filter(([c]) => filDe.get(c) === F).sort((a, b) => b[1] - a[1]); const v0 = vs.length ? EQ.get(F + '|' + vs[0][0]) : null;
         const I = nomeI(x.nome), ctxF = { filial: F, termo };
