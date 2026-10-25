@@ -34,6 +34,9 @@ WHERE v.data_ref = date('now', '-3 hours')
   AND v.produtividade_json IS NOT NULL AND v.roteiro_json IS NOT NULL`;
 
 export async function onRequestGet({ env }) {
+  // DESLIGADO em 25/10/2026: gravava ~367 mil linhas/dia no D1 (11 milhoes/mes) e NENHUMA tela, API ou WhatsApp le a tabela piloto_pedidos_intraday.
+  // Custo sem uso (conta Cloudflare de US$ 170). Para religar: apagar a linha abaixo (so com ordem do Vitorio).
+  return new Response(JSON.stringify({ status: 'DESLIGADO', motivo: 'tabela sem leitor; custo D1 (25/10/2026)' }), { headers: { 'Content-Type': 'application/json' } });
   const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: CORS });
   try {
     if (!env.DB) return resp({ erro: 'banco D1 indisponivel' }, 500);
