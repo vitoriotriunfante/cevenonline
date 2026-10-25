@@ -170,7 +170,7 @@ document.querySelectorAll('#tabs button').forEach((b) => b.onclick = () => {
 });
 
 async function carrega() {
-  for (const u of ['https://raw.githubusercontent.com/vitoriotriunfante/cevenonline/main/public/dados_mix.json?t=' + Date.now(), '/dados_mix.json?t=' + Date.now()]) {
+  for (const u of ['/dados_mix.json?t=' + Date.now()]) {
     try { const r = await fetch(u, { cache: 'no-store' }); if (r.ok) { D = await r.json(); break; } } catch (e) {}
   }
   if (!D) { $('sub').textContent = 'Ainda sem dados: o cálculo está rodando. Volte em alguns minutos.'; return; }
