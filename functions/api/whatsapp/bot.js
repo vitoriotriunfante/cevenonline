@@ -185,6 +185,8 @@ async function respResumo(B, E) {
   L.push(`⚠️ Zerados hoje (varejo com rota): *${z.length}*` + (z.length ? ' — ' + listaNomes(z) : ''));
   if (com.length) L.push(`✅ Melhores na meta: ${com.slice(0, 2).map((v) => `${nome2(v.nome)} ${pctTxt(v.pct)}`).join(' · ')}`, `🔻 Mais atrás: ${com.slice(-2).reverse().map((v) => `${nome2(v.nome)} ${pctTxt(v.pct)}`).join(' · ')}`);
   const sz = [...agrupa(Vr, (v) => v.supervisor || 'sem supervisor')].filter(([k]) => supReal(k)).sort((a, b) => b[1].zerados - a[1].zerados)[0];
+  { const { tot, pass } = diasUteisMes(), esp = tot ? pass / tot * 100 : 0, pr = meta ? (fat || 0) / meta * 100 : null;
+    if (pr != null) L.push('', `👀 *Leitura do Jota:* ${pr >= esp ? 'no ritmo ou acima' : pr >= esp * 0.9 ? 'jogo apertado, dá pra virar' : 'abaixo do ritmo, precisamos reagir'} (o calendário pede ${esp.toFixed(0)}% e estamos em ${pr.toFixed(1).replace('.', ',')}%).`); }
   L.push('', SUGESTAO + (sz && sz[1].zerados ? `falar com ${supNome(sz[0])} — ${sz[1].zerados} vendedor(es) dele sem pedido hoje.` : 'puxar os mais atrás na meta para fechar o mês.'), '_Peça "hoje", "por supervisor", "zerados", "falta", "liga", "ajuda"._');
   return L.join('\n');
 }
@@ -955,13 +957,35 @@ function horaSP() { return Number(new Intl.DateTimeFormat('en-US', { timeZone: '
 const diaSemana = () => new Date(hojeSP() + 'T12:00:00Z').getUTCDay();
 const cumprimento = () => { const h = horaSP(); return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'; };
 const primeiroNome = (c) => titulo(String(c.nome || '').split(' ')[0]);
+// tempo de jogo (persona: linguagem da Champions so quando cabe)
+function tempoDeJogo() { const h = horaSP(), d = diaSemana(); if (d === 0) return 'dia de folga'; if (h < 7) return 'antes do apito'; if (h < 10) return 'bola rolando'; if (h < 12) return 'primeiro tempo'; if (h < 14) return 'intervalo'; if (h < 17) return 'segundo tempo'; if (h < 19) return 'reta final'; return 'fim de jogo'; }
+// escolhe uma frase diferente por pessoa e por hora (nao repete sempre a mesma)
+const varia = (lista, chave) => { let h = 0; const k = String(chave || '') + hojeSP() + horaSP(); for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) >>> 0; return lista[h % lista.length]; };
+// manchete pessoal: o numero que importa para QUEM pergunta (filial, grupo, equipe ou Brasil) + posicao na Liga
+async function manchete(B, c) {
+  try {
+    const s = await B.saude(); const F = (s && s.filiais) || [];
+    let pct = null, nome = '', liga = '';
+    if (c.papel === 'diretoria' || !c.filial) { const t = F.reduce((a, f) => ({ fat: a.fat + (f.faturado || 0), meta: a.meta + (f.meta_fat || 0) }), { fat: 0, meta: 0 }); pct = t.meta ? t.fat / t.meta * 100 : null; nome = 'O grupo'; }
+    else if (c.papel === 'gerente' && !c.grupo) { const f = F.find((x) => x.filial === c.filial); if (f) pct = f.meta_fat ? f.faturado / f.meta_fat * 100 : null; nome = 'A ' + c.filial; }
+    if (c.filial) { const lg = await B.liga(); const lf = lg && (lg.filiais || []).find((x) => x.sigla === c.filial); if (lf) liga = `${lf.pos}º na Champions`; }
+    if (pct == null && !liga) return '';
+    const { tot, pass } = diasUteisMes(); const esp = tot ? pass / tot * 100 : 0;
+    const tom = pct == null ? '' : pct >= esp ? ' 📈 acima do ritmo' : pct >= esp * 0.9 ? `, jogo apertado (o calendário pede ${esp.toFixed(0)}%)` : `, abaixo do ritmo (o calendário pede ${esp.toFixed(0)}%)`;
+    return [pct != null ? `${nome} está com *${pct.toFixed(1).replace('.', ',')}%* da meta${tom}` : '', liga].filter(Boolean).join(' · ') + '.';
+  } catch (e) { return ''; }
+}
 const ehSaudacao = (t) => /^(BOM DIA|BOA TARDE|BOA NOITE|OI+|OLA|E AI|EAI|FALA|SALVE|OPA|HEY|PICO ?PICO)( (JOTA|NOVAMENTE|DE NOVO|PESSOAL|TIME|TUDO BEM|TUDO BOM|BELEZA|MEU AMIGO|AMIGO|CHEFE))*[ !.,?]*$/.test(t);
-function respSaudacao(c, primeiraVez) {
+async function respSaudacao(B, c, primeiraVez) {
   const n = primeiroNome(c), d = diaSemana(), fds = d === 0 || d === 6;
   const papel = c.papel === 'diretoria' ? 'nas 11 filiais' : c.papel === 'gerente' ? `na ${c.filial}` : c.papel === 'supervisor' ? 'na sua equipe' : 'nos seus números';
-  const L = [primeiraVez ? `${cumprimento()}, ${n}! Eu sou o *Jota* ⚽, o reforço do Comercial da Triunfante.` : `${cumprimento()}, ${n}! ☀️ Bom te ver por aqui.`];
-  if (fds) L.push(d === 0 ? 'Hoje é domingo, as filiais estão paradas e a bola volta a rolar amanhã às 6h. Bom descanso! 🙌' : 'Sábado é dia de jogo mais curto: só algumas rotas rodam.');
-  L.push('', `Tô de olho ${papel}. Quer que eu te mostre algo?`, fds ? '• "como fechou sexta?"' : '• "como estamos?"', '• "zerados" · "quanto falta pra meta"', '• "liga" · "+mix"', '', '_A sua confiança é meu compromisso. Seu tempo, minha prioridade._');
+  const ola = primeiraVez ? `${cumprimento()}, ${n}! Eu sou o *Jota*, o reforço do Comercial da Triunfante. Prazer! 💪`
+    : varia([`${cumprimento()}, ${n}! Bom te ver por aqui.`, `${cumprimento()}, ${n}! Tudo certo por aí?`, `Opa, ${n}! ${cumprimento()}.`, `${cumprimento()}, ${n}! Pronto pra mais um dia de jogo?`], c.celular);
+  const L = [ola];
+  const m = await manchete(B, c); if (m) L.push(m);
+  if (fds) L.push(d === 0 ? 'Hoje é domingo, as filiais estão paradas. Amanhã às 6h tudo volta a andar. Aproveita o descanso! 🙌' : 'Sábado tem rota mais curta: só algumas equipes rodam.');
+  L.push('', varia([`Tô de olho ${papel}. Por onde quer começar?`, `O que você quer ver ${papel.replace(/^n/, 'n')}?`, `Me diz o que precisa que eu busco ${papel}.`], n),
+    fds ? '• "como fechou sexta?"' : '• "como estamos?"', '• "zerados" · "quanto falta pra meta"', '• "liga" · "+mix"', '', '_A sua confiança é meu compromisso. Seu tempo, minha prioridade._');
   return L.join('\n');
 }
 // figurinha que combina com a resposta (no maximo 1 a cada 2 h por pessoa: figurinha demais vira spam)
@@ -987,7 +1011,9 @@ async function enviarFigurinha(env, numero, nome) {
 // abertura humana: na primeira resposta do dia, chama pelo nome
 function humaniza(resp, c, primeiraDoDia) {
   if (!resp || !primeiraDoDia) return resp;
-  return `${cumprimento()}, ${primeiroNome(c)}! ` + (horaSP() < 12 ? 'Já separei os números pra você. 👇' : 'Aqui está. 👇') + '\n\n' + resp;
+  const n = primeiroNome(c), tj = tempoDeJogo();
+  const abre = varia([`${cumprimento()}, ${n}! Já separei pra você:`, `${cumprimento()}, ${n}! ${titulo(tj)} por aqui. Olha só:`, `Fala, ${n}! ${cumprimento()}. Vamos lá:`, `${cumprimento()}, ${n}! Buscando os números agora mesmo:`], c.celular);
+  return abre + '\n\n' + resp;
 }
 // MONITORAMENTO (Vitorio: "vamos conseguir monitorar TODAS as conversas? e as respostas que nao ajudarem?"): toda resposta grava o TIPO
 // (pronta | ia | ajuda | saudacao | cadastro | erro) e reclamacao logo depois ("nao foi isso", "errado", "nao entendi") marca a resposta anterior como NAO AJUDOU.
@@ -1053,7 +1079,7 @@ export async function onRequestPost({ request, env }) {
   const primeiraVez = !jaFalou || !(jaFalou.n > 1), primeiraDoDia = !jaFalou || !(jaFalou.hoje > 0);
   // reclamacao: marca a ultima resposta como "nao ajudou" (vai para o painel de conversas)
   if (!seco && RECLAMACAO.test(tN)) { try { await env.DB.prepare("UPDATE bot_msgs SET ajudou = 0 WHERE id = (SELECT id FROM bot_msgs WHERE celular = ? AND direcao = 'out' ORDER BY id DESC LIMIT 1)").bind(cel).run(); } catch (e) {} }
-  if (ehSaudacao(tN)) { resp = respSaudacao(c, primeiraVez); tipo = primeiraVez ? 'saudacao_primeira' : 'saudacao'; }
+  if (ehSaudacao(tN)) { resp = await respSaudacao(B, c, primeiraVez); tipo = primeiraVez ? 'saudacao_primeira' : 'saudacao'; }
   const { results: hist } = await env.DB.prepare("SELECT direcao, texto FROM bot_msgs WHERE celular = ? AND direcao IN ('in','out') AND quando >= datetime('now','-6 hours') ORDER BY id DESC LIMIT 7").bind(cel).all();
   const anteriores = (hist || []).filter((h) => h.direcao === 'in').map((h) => h.texto).filter((x) => x !== texto).slice(0, 4);
   if (!resp) try { resp = await respostaPronta(B, c, texto, anteriores); } catch (e) { resp = null; if (seco) return new Response('ERRO: ' + String(e && e.stack || e), { status: 500 }); try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'erro: ' + String(e && e.stack || e).slice(0, 1500)).run(); } catch (x) {} }
@@ -1069,8 +1095,9 @@ export async function onRequestPost({ request, env }) {
   await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, e.ok ? 'out' : 'erro', resp.slice(0, 4000), tipo).run();
   // figurinha (no maximo 1 a cada 2 h por pessoa)
   const fig = figurinhaPara(resp, tipo);
-  if (fig && e.ok) { const ult = await env.DB.prepare("SELECT MAX(quando) q FROM bot_msgs WHERE celular = ? AND direcao = 'figurinha'").bind(cel).first().catch(() => null);
-    if (!ult || !ult.q || Date.now() - Date.parse(ult.q + 'Z') > 2 * 3600 * 1000) { const ok = await enviarFigurinha(env, destino, fig); if (ok) await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, 'figurinha', fig, tipo).run(); } }
+  if (fig && e.ok) { const ult = await env.DB.prepare("SELECT MAX(quando) q, (SELECT COUNT(*) FROM bot_msgs b WHERE b.celular = ? AND b.direcao = 'out' AND b.id > COALESCE((SELECT MAX(id) FROM bot_msgs x WHERE x.celular = ? AND x.direcao = 'figurinha'), 0)) desde FROM bot_msgs WHERE celular = ? AND direcao = 'figurinha'").bind(cel, cel, cel).first().catch(() => null);
+    const ruim = /precisando reagir|Abaixo do ritmo|ERRO|devolu/i.test(resp) && !/^(saudacao)/.test(tipo);
+    if (!ruim && (!ult || !ult.q || ult.desde >= 3 || Date.now() - Date.parse(ult.q + 'Z') > 2 * 3600 * 1000)) { const ok = await enviarFigurinha(env, destino, fig); if (ok) await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, 'figurinha', fig, tipo).run(); } }
   return new Response('ok');
 }
 export async function onRequestGet() { return new Response('JOTA (+MIX): use POST (webhook da Evolution)', { status: 200 }); }

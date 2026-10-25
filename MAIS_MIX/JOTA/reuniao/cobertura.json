@@ -1,0 +1,910 @@
+{
+ "quando": "2026-10-25T18:28:42.745Z",
+ "total": 12000,
+ "acerto": 9927,
+ "errada": 1953,
+ "sem": 120,
+ "erro": 0,
+ "necessidades": [
+  {
+   "n": 1,
+   "intencao": "resumo",
+   "cargo": "diretoria",
+   "total": 448,
+   "acerto": 448,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 2,
+   "intencao": "falta_mn",
+   "cargo": "diretoria",
+   "total": 336,
+   "acerto": 336,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 3,
+   "intencao": "ranking_filiais",
+   "cargo": "diretoria",
+   "total": 280,
+   "acerto": 280,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 4,
+   "intencao": "faturado_mais_carteira",
+   "cargo": "diretoria",
+   "total": 280,
+   "acerto": 280,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 5,
+   "intencao": "pendente",
+   "cargo": "gerente",
+   "total": 224,
+   "acerto": 224,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 6,
+   "intencao": "devolucao_motivo",
+   "cargo": "diretoria",
+   "total": 280,
+   "acerto": 280,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 7,
+   "intencao": "corte",
+   "cargo": "diretoria",
+   "total": 224,
+   "acerto": 168,
+   "errada": 0,
+   "sem_resposta": 56,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "sem_resposta",
+     "pergunta": "o que está cortando?",
+     "resposta": ""
+    },
+    {
+     "st": "sem_resposta",
+     "pergunta": "o que está cortando?",
+     "resposta": ""
+    },
+    {
+     "st": "sem_resposta",
+     "pergunta": "o que está cortando?",
+     "resposta": ""
+    }
+   ]
+  },
+  {
+   "n": 8,
+   "intencao": "industria_faturado",
+   "cargo": "diretoria",
+   "total": 224,
+   "acerto": 0,
+   "errada": 224,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "quanto vendemos de Ferrero no mês?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "quanto vendemos de Condor no mês?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "quanto vendemos de Dori no mês?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    }
+   ]
+  },
+  {
+   "n": 9,
+   "intencao": "industria_positivacao",
+   "cargo": "gerente",
+   "total": 224,
+   "acerto": 0,
+   "errada": 224,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "como está a positivação de Fini por carteira",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "como está a positivação de Fini por carteira",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "como está a positivação de Arcor por carteira",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    }
+   ]
+  },
+  {
+   "n": 10,
+   "intencao": "positivacao",
+   "cargo": "diretoria",
+   "total": 280,
+   "acerto": 280,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 11,
+   "intencao": "comparacao_m1",
+   "cargo": "diretoria",
+   "total": 168,
+   "acerto": 168,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 12,
+   "intencao": "ritmo",
+   "cargo": "diretoria",
+   "total": 168,
+   "acerto": 168,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 13,
+   "intencao": "por_supervisor",
+   "cargo": "gerente",
+   "total": 280,
+   "acerto": 280,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 14,
+   "intencao": "pior_supervisor",
+   "cargo": "gerente",
+   "total": 224,
+   "acerto": 224,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 15,
+   "intencao": "supervisor",
+   "cargo": "gerente",
+   "total": 280,
+   "acerto": 259,
+   "errada": 9,
+   "sem_resposta": 12,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "vendedores do Sem Supervisor",
+     "resposta": "👥 *API por supervisor* (% da meta faturada)"
+    },
+    {
+     "st": "sem_resposta",
+     "pergunta": "vendedores do Washington Flores",
+     "resposta": ""
+    },
+    {
+     "st": "errada",
+     "pergunta": "vendedores do Sem Supervisor",
+     "resposta": "👥 *API por supervisor* (% da meta faturada)"
+    }
+   ]
+  },
+  {
+   "n": 16,
+   "intencao": "dias_sem_pedido",
+   "cargo": "diretoria",
+   "total": 168,
+   "acerto": 165,
+   "errada": 3,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "quantos dias o Venda Industrias esta sem pedido?",
+     "resposta": "✅ *Zerados hoje — Equipe Sem Supervisor: 0.* Nenhum vendedor do varejo com rota está sem pedido agora."
+    },
+    {
+     "st": "errada",
+     "pergunta": "QUANTOS DIAS O FELIPE DE ESTÁ SEM PEDIDO?",
+     "resposta": "✅ *Zerados hoje — Equipe Sem Supervisor: 0.* Nenhum vendedor do varejo com rota está sem pedido agora."
+    },
+    {
+     "st": "errada",
+     "pergunta": "Pico pico, quantos dias o Televenda está sem pedido?",
+     "resposta": "✅ *Zerados hoje — Equipe Sem Supervisor: 0.* Nenhum vendedor do varejo com rota está sem pedido agora."
+    }
+   ]
+  },
+  {
+   "n": 17,
+   "intencao": "sem_visita",
+   "cargo": "gerente",
+   "total": 280,
+   "acerto": 280,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 18,
+   "intencao": "faltam_visitar",
+   "cargo": "supervisor",
+   "total": 224,
+   "acerto": 224,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 19,
+   "intencao": "bloqueados",
+   "cargo": "gerente",
+   "total": 224,
+   "acerto": 224,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 20,
+   "intencao": "aguardando_winthor",
+   "cargo": "gerente",
+   "total": 168,
+   "acerto": 0,
+   "errada": 168,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "quais pedidos estão parados no winthor",
+     "resposta": "📝 *API hoje* (11:34)"
+    },
+    {
+     "st": "errada",
+     "pergunta": "quais pedidos estão parados no winthor",
+     "resposta": "📝 *API hoje* (11:34)"
+    },
+    {
+     "st": "errada",
+     "pergunta": "quais pedidos estão parados no winthor",
+     "resposta": "📝 *API hoje* (11:34)"
+    }
+   ]
+  },
+  {
+   "n": 21,
+   "intencao": "ranking_supervisores_brasil",
+   "cargo": "diretoria",
+   "total": 168,
+   "acerto": 168,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 22,
+   "intencao": "ranking_gerentes",
+   "cargo": "diretoria",
+   "total": 168,
+   "acerto": 168,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 23,
+   "intencao": "comparar_filiais",
+   "cargo": "diretoria",
+   "total": 168,
+   "acerto": 168,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 24,
+   "intencao": "hoje_por_vendedor",
+   "cargo": "supervisor",
+   "total": 336,
+   "acerto": 336,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 25,
+   "intencao": "cliente",
+   "cargo": "vendedor",
+   "total": 224,
+   "acerto": 179,
+   "errada": 1,
+   "sem_resposta": 44,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "sem_resposta",
+     "pergunta": "o que oferecer pro Aviario Fenix?",
+     "resposta": ""
+    },
+    {
+     "st": "sem_resposta",
+     "pergunta": "o que oferecer pro Mercado Da Madrugada Aeroporto?",
+     "resposta": ""
+    },
+    {
+     "st": "sem_resposta",
+     "pergunta": "o que oferecer pro Agropecuaria Lopes?",
+     "resposta": ""
+    }
+   ]
+  },
+  {
+   "n": 26,
+   "intencao": "visitou_nao_vendeu",
+   "cargo": "supervisor",
+   "total": 168,
+   "acerto": 168,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 27,
+   "intencao": "produto_vendedor_periodo",
+   "cargo": "diretoria",
+   "total": 168,
+   "acerto": 5,
+   "errada": 163,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "quais os clientes que mais compraram Oreo Mini Original ontem da vendedora Otavio Borges 484",
+     "resposta": "Otavio Borges Possamai (TCG) não tem clientes na rota de hoje (fim de semana: sem rota)."
+    },
+    {
+     "st": "errada",
+     "pergunta": "quais os clientes que mais compraram Sardinha Sabor Limao no mês da vendedora Elton Pereira 1056",
+     "resposta": "Elton Pereira Alves (ABC) não tem clientes na rota de hoje (fim de semana: sem rota)."
+    },
+    {
+     "st": "errada",
+     "pergunta": "quais os clientes que mais compraram Bisc Bonobon Biscuit Original essa semana da vendedora Pj Pedro 407",
+     "resposta": "Pedro Paulo Do Nascimento não é varejo de rota (AS); não tem roteiro de visitas."
+    }
+   ]
+  },
+  {
+   "n": 28,
+   "intencao": "top_clientes_produto",
+   "cargo": "gerente",
+   "total": 224,
+   "acerto": 9,
+   "errada": 215,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "quem são os 10 clientes que mais compraram Sab Palm Hidrata Saudavel Aloe no mês na API",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "quem são os 10 clientes que mais compraram Tw Cha Limao C Gengibre no mês na API",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "quem são os 10 clientes que mais compraram Tang Laranja no mês na API",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    }
+   ]
+  },
+  {
+   "n": 29,
+   "intencao": "incentivo",
+   "cargo": "vendedor",
+   "total": 336,
+   "acerto": 335,
+   "errada": 1,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "incentivo do Loja Mondelez",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    }
+   ]
+  },
+  {
+   "n": 30,
+   "intencao": "impedimentos",
+   "cargo": "supervisor",
+   "total": 280,
+   "acerto": 280,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 31,
+   "intencao": "maior_gap",
+   "cargo": "gerente",
+   "total": 168,
+   "acerto": 168,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 32,
+   "intencao": "mix",
+   "cargo": "vendedor",
+   "total": 336,
+   "acerto": 336,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 33,
+   "intencao": "dobradinha",
+   "cargo": "supervisor",
+   "total": 168,
+   "acerto": 168,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 34,
+   "intencao": "itens_hoje_vendedor",
+   "cargo": "supervisor",
+   "total": 112,
+   "acerto": 112,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 35,
+   "intencao": "ticket",
+   "cargo": "gerente",
+   "total": 168,
+   "acerto": 167,
+   "errada": 1,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "TICKET DO ARILDO ZAGO",
+     "resposta": "👤 *Arildo Zago* (API) — 42,7% da meta · fat. R$ 572.414 · pend. R$ 39.945"
+    }
+   ]
+  },
+  {
+   "n": 35.1,
+   "intencao": "vendedor",
+   "cargo": "diretoria",
+   "total": 280,
+   "acerto": 276,
+   "errada": 4,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "como está o vendedor Pj Adalberto por favor",
+     "resposta": "📊 *Brasil — 11 filiais* (11:34)"
+    },
+    {
+     "st": "errada",
+     "pergunta": "me passa mais detalhes do vendedor Pj Pedro",
+     "resposta": "🧑‍💼 *Pedro Paulo Do Nascimento* — API · sup. Arildo Zago · AS"
+    },
+    {
+     "st": "errada",
+     "pergunta": "Jota, vendedor Pj Adilson",
+     "resposta": "🧑‍💼 *Adilson Santos Biauki* — API · sup. Sem Supervisor · AS"
+    }
+   ]
+  },
+  {
+   "n": 35.2,
+   "intencao": "zerados",
+   "cargo": "diretoria",
+   "total": 280,
+   "acerto": 280,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 35.3,
+   "intencao": "liga",
+   "cargo": "diretoria",
+   "total": 336,
+   "acerto": 335,
+   "errada": 1,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "qual a posição do Loja Mondelez na liga por favor",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    }
+   ]
+  },
+  {
+   "n": 35.4,
+   "intencao": "pontos_penalizados",
+   "cargo": "gerente",
+   "total": 112,
+   "acerto": 112,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 35.5,
+   "intencao": "compromisso",
+   "cargo": "diretoria",
+   "total": 336,
+   "acerto": 280,
+   "errada": 56,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "compromisso da semana",
+     "resposta": "Não consegui ler a semana dos supervisores agora."
+    },
+    {
+     "st": "errada",
+     "pergunta": "compromisso da semana",
+     "resposta": "Não consegui ler a semana dos supervisores agora."
+    },
+    {
+     "st": "errada",
+     "pergunta": "compromisso da semana",
+     "resposta": "Não consegui ler a semana dos supervisores agora."
+    }
+   ]
+  },
+  {
+   "n": 35.6,
+   "intencao": "piores_positivacao",
+   "cargo": "diretoria",
+   "total": 168,
+   "acerto": 168,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 35.7,
+   "intencao": "ranking_vendedores",
+   "cargo": "diretoria",
+   "total": 280,
+   "acerto": 280,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 36,
+   "intencao": "industria_positivacao_vendedor",
+   "cargo": "industria",
+   "total": 168,
+   "acerto": 0,
+   "errada": 168,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "quantos PDVs compraram Arcor no mês por vendedor?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "quantos PDVs compraram Nestle no mês por vendedor?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "quantos PDVs compraram Nestle no mês por vendedor?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    }
+   ]
+  },
+  {
+   "n": 37,
+   "intencao": "sku_positivacao",
+   "cargo": "industria",
+   "total": 168,
+   "acerto": 5,
+   "errada": 163,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "quantos clientes compraram Bisc Bonobon Biscuit Original no mês?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "quantos clientes compraram Champ Filhotes no mês?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "quantos clientes compraram Raid Aero Base Agua Purific no mês?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    }
+   ]
+  },
+  {
+   "n": 38,
+   "intencao": "recuperacao_industria",
+   "cargo": "industria",
+   "total": 168,
+   "acerto": 0,
+   "errada": 168,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "quem comprava Fini e parou?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "quem comprava Arcor e parou?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "quem comprava Arcor e parou?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    }
+   ]
+  },
+  {
+   "n": 39,
+   "intencao": "itens_loja",
+   "cargo": "promotor",
+   "total": 112,
+   "acerto": 112,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 40,
+   "intencao": "campanha_tag",
+   "cargo": "industria",
+   "total": 280,
+   "acerto": 280,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 41,
+   "intencao": "marca_propria",
+   "cargo": "diretoria",
+   "total": 224,
+   "acerto": 168,
+   "errada": 56,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "zipoca na API",
+     "resposta": "📄 *Relatório das 14:30 (parcial da tarde)* — 22/10/2026"
+    },
+    {
+     "st": "errada",
+     "pergunta": "zipoca na TPA",
+     "resposta": "📄 *Relatório das 14:30 (parcial da tarde)* — 22/10/2026"
+    },
+    {
+     "st": "errada",
+     "pergunta": "zipoca na MCD",
+     "resposta": "📄 *Relatório das 14:30 (parcial da tarde)* — 22/10/2026"
+    }
+   ]
+  },
+  {
+   "n": 42,
+   "intencao": "devolucao_avaria",
+   "cargo": "promotor",
+   "total": 168,
+   "acerto": 168,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 43,
+   "intencao": "preco_medio",
+   "cargo": "industria",
+   "total": 112,
+   "acerto": 0,
+   "errada": 104,
+   "sem_resposta": 8,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "qual o preço médio do Tortug Leite?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "qual o preço médio do Tabl 80g Tortug Branca Cookies?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "qual o preço médio do Pedig Biscrok Ad R Grandes?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    }
+   ]
+  },
+  {
+   "n": 44,
+   "intencao": "produtos_mais_vendidos",
+   "cargo": "gerente",
+   "total": 168,
+   "acerto": 0,
+   "errada": 168,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "produtos mais vendidos da API no mês",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "produtos mais vendidos da API no mês",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "produtos mais vendidos da API no mês",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    }
+   ]
+  },
+  {
+   "n": 45,
+   "intencao": "queda_industria_m1",
+   "cargo": "industria",
+   "total": 112,
+   "acerto": 56,
+   "errada": 56,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": [
+    {
+     "st": "errada",
+     "pergunta": "Arcor caiu?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "Mars caiu?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    },
+    {
+     "st": "errada",
+     "pergunta": "Condor caiu?",
+     "resposta": "📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta"
+    }
+   ]
+  },
+  {
+   "n": 46,
+   "intencao": "plano_do_dia",
+   "cargo": "diretoria",
+   "total": 224,
+   "acerto": 224,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  },
+  {
+   "n": 47,
+   "intencao": "relatorio",
+   "cargo": "diretoria",
+   "total": 128,
+   "acerto": 128,
+   "errada": 0,
+   "sem_resposta": 0,
+   "erro": 0,
+   "exemplos": []
+  }
+ ]
+}
