@@ -127,7 +127,7 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
   ok(/Erro ao autenticar no CEVEN Admin[\s\S]{0,300}process\.exit\(1\)/.test(eng), 'falha de login do administrador derruba o ciclo (nao termina como sucesso sem enviar)');
   ok(/FALHAS_ENVIO\+\+/.test(eng) && /FALHAS_ENVIO > 0 && destino !== 'dry_run'[\s\S]{0,250}process\.exit\(1\)[\s\S]{0,200}marcarCicloDisparado\(\);\n  console\.log\(`\\n🏁/.test(eng), 'envio que falha derruba o ciclo e o ciclo nao e marcado como disparado');
   ok(/const LIMITE_CHAMADAS = 6;/.test(eng) && eng.includes('axios.interceptors.request.use') && eng.includes('axios.interceptors.response.use'), 'motor tem limite global de 6 chamadas simultaneas');
-  { const mapa = ler('functions/api/cron-mapa-executivo.js'); const tvx = ler('public/tv_executiva.html');
+  { const mapa = ler('functions/api/cron-mapa-executivo.js'); const tvx = ler('desligados/tv_executiva.html');
     ok(mapa.includes('ehRecorrencia') && !mapa.includes('cnpjsOuro') && mapa.includes("includes('RECORRENCIA')"), 'TV executiva usa a tag RECORRENCIA do roteiro (nao mais a lista estatica de ouro)');
     ok(!/Ouro na Mesa|OURO NA MESA|13\.634/.test(tvx), 'tela da TV executiva nao mostra mais Ouro na Mesa nem numero fixo de alvos'); }
   { const mp = ler('scripts/gerar_marca_propria.js'); const wfmp = ler('.github/workflows/ceven-cron-marca-propria.yml');
@@ -183,7 +183,7 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
     ok(corpo.nao_supervisores && corpo.nao_supervisores.lista.length === 3 && corpo.nao_supervisores.por.includes('Vitório'), 'a resposta da equipe registra a lista e quem decidiu (auditoria)');
     ok(ler('functions/api/tv-mostra.js').includes('aplicaNaoSupervisores(o)'), 'tv-mostra aplica a regra em todas as fontes (D1 e copia)'); }
   ok(ler('scratch/build_brasileirao_dataset.py').includes("if item.get('mostra') is False:"), 'Brasileirao: vendedores ocultos pela equipe (mostra:false) nao disputam a liga (ocultos pela equipe nao disputam)');
-  { const cr = ler('functions/api/cron-mapa-executivo.js'), lv = ler('functions/api/mapa-executivo-live.js'), tx = ler('public/tv_executiva.html');
+  { const cr = ler('functions/api/cron-mapa-executivo.js'), lv = ler('functions/api/mapa-executivo-live.js'), tx = ler('desligados/tv_executiva.html');
     ok(cr.includes('prod?.dia?.positivacao') && !/comVenda\+\+; aNac\.comVenda\+\+; aFil\.pedidos\+\+/.test(cr) && cr.includes('aF.pedidos += pedDigRca') && cr.includes('pegaRec(sig).pedidosCampo'), 'pedidos colocados da TV executiva = pedidos digitados hoje de TODOS os vendedores (rota e fora da rota); so a media pedidos/visita usa o varejo');
     ok(cr.includes('recorrencia_resumo_live') && cr.includes('ocultos.add') && lv.includes('recorrencia'), 'recorrencia na rota conta TODOS os clientes com a tag (com ou sem coordenada), sem vendedor oculto');
     ok(tx.includes('MAPA_PDVS.recorrencia'), 'TV executiva mostra o total real de recorrencia (chip, card e tabela por filial)'); }
@@ -602,7 +602,7 @@ secao('8p. Horarios dos lances (acrescimos 16h30-18h00), amarelos agrupados, pai
 // ---------------------------------------------------------------- 8q. Responsividade
 secao('8q. Responsividade: abas e rodapes quebram linha, tabelas encolhem, sem colunas cortadas');
 {
-  const br = ler('public/brasileirao.html'), tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), ex = ler('public/tv_executiva.html'), dv = ler('public/divergencias.html'), ge = ler('public/gestao-equipe.html');
+  const br = ler('public/brasileirao.html'), tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), ex = ler('desligados/tv_executiva.html'), dv = ler('public/divergencias.html'), ge = ler('public/gestao-equipe.html');
   ok(br.includes('.nav-tabs { flex-wrap: wrap; overflow-x: visible') && br.includes('@media (max-width: 1360px)') && br.includes('@media (max-width: 700px)') && !br.includes('${f.super_pedidos}') && !br.includes('${v.inativos_resgatados}'), 'Brasileirao: abas quebram linha, tabelas encolhem e escondem colunas secundarias em tela estreita; Super Pedido/Inativos removidos');
   ok([tv, mz].every(h => h.includes('#ctl { display: flex; flex-wrap: wrap') && h.includes('footer { flex-wrap: wrap')), 'TV da filial e Matriz: rodape com botoes que quebram linha (nada cortado)');
   ok(ex.includes('header { height: auto !important') && dv.includes('clamp(5px,.6vw,8px)') && ge.includes('white-space: normal !important'), 'Executiva, Divergencias e Gestao de Equipe: cabecalho/tabelas fluidos');

@@ -92,6 +92,9 @@ export async function onRequestGet({ env, request, waitUntil }) {
   const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 (env.DB) não configurado' }), { status: 503, headers: cors });
 
+  // DESLIGADO pelo Vitorio em 25/10/2026 ("nao vou correr esse risco... desabilite IMEDIATAMENTE a tv_executiva"), apos a conta de US$ 170 no D1.
+  // Nada e lido do CEVEN nem gravado no D1. Para religar: apagar a linha abaixo (so com ordem do Vitorio).
+  return new Response(JSON.stringify({ status: 'DESLIGADO', motivo: 'TV Executiva desativada pelo Vitorio em 25/10/2026 (custo D1)' }), { headers: cors });
   const t0 = Date.now();
   const dataRef = dataHojeBrasilia();
   const forcar = new URL(request.url).searchParams.has('forcar');
