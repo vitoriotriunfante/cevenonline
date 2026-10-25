@@ -97,7 +97,25 @@ function criaBase(origin, env) {
     devMot: () => memo('devmot', () => api('/api/devolucoes-motivos')),
     bola: (f) => memo('bola' + f, () => api('/api/bola-cheia?filial=' + f)),
     diverg: () => memo('div', () => api('/api/divergencias')),
+    rv: () => memo('rv', () => carregaRV(env)),
   };
+}
+// PREMIACAO RV (Vitorio, 25/10/2026: "as metas das industrias vc pega dentro do botao premiacao"): a mesma fonte do holerite simulado do CEVEN.
+// /rv/api/metas = meta de cada vendedor por industria (tipo 1 = faturamento R$, tipo 0 = positivacao); /rv/api/apuracao-agregada = realizado
+// (fat_f faturado, fat_v vendido = faturado + a faturar, pos_f/pos_v). Chave = codigo do fornecedor. Guardado 30 min no D1 (a apuracao leva ~20 s).
+const RV_API = 'https://mapa.drivetriunfante-lastmile.com.br/rv/api';
+async function carregaRV(env) {
+  const mes = hojeSP().slice(0, 7), db = env && env.DB, k = 'rv:' + mes;
+  let velho = null;
+  try { if (db) { await db.prepare('CREATE TABLE IF NOT EXISTS cache_resposta (chave TEXT PRIMARY KEY, corpo TEXT, tipo TEXT, em INTEGER)').run(); const r = await db.prepare('SELECT corpo, em FROM cache_resposta WHERE chave = ?').bind(k).first(); if (r) { velho = JSON.parse(r.corpo); if (Date.now() - r.em < 30 * 60 * 1000) return velho; } } } catch (e) {}
+  const get = (p) => fetch(RV_API + p, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(50000) }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  const [m, a] = await Promise.all([get('/metas?mes=' + mes), get('/apuracao-agregada?mes=' + mes)]);
+  if (!m || !a || !Array.isArray(m.rows) || !Array.isArray(a.fornecedores)) return velho;   /* fonte fora: usa a ultima leitura (avisada pela data de corte) */
+  const o = { mes, cutoff: a.cutoff || null, fechado: !!a.mes_fechado,
+    metas: m.rows.map((x) => [String(x.cod_vendedor), String(x.id_fornecedor ?? x.cnpj_fornecedor), String(x.fornecedor || ''), Number(x.tipo_meta), Number(x.meta) || 0]),
+    apu: a.fornecedores.map((x) => [String(x.CODUSUR), String(x.cnpj_fornecedor), Number(x.fat_f) || 0, Number(x.fat_v) || 0, Number(x.pos_f) || 0, Number(x.pos_v) || 0]) };
+  try { if (db) await db.prepare('INSERT INTO cache_resposta (chave, corpo, tipo, em) VALUES (?,?,?,?) ON CONFLICT (chave) DO UPDATE SET corpo = excluded.corpo, em = excluded.em').bind(k, JSON.stringify(o), 'json', Date.now()).run(); } catch (e) {}
+  return o;
 }
 
 // vendedores de uma filial (mostrados na Gestao de Equipe) + totais que somam TODOS (macro)
@@ -519,7 +537,7 @@ async function respInfoEquipe(env, c, texto) {
 // ---------- VENDAS ITEM A ITEM (public/vendas_mes/<FIL>.json, gerado toda noite pelo +MIX com o banco do Data Lake) ----------
 // Reuniao de 5 h (25/10/2026): produto x cliente x vendedor x dia, industria, preco medio, top produtos, marca propria. Dado ate ONTEM (nunca hoje).
 const SEM_VENDAS = '📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta filial; tente depois das 06h._';
-const PARADAS = new Set(['COMPRAVA', 'COMPRAVAM', 'PAROU', 'PARARAM', 'DEIXOU', 'DEIXARAM', 'COMPRAR', 'RECUPERACAO', 'LISTA', 'COMO', 'ESTA', 'TA', 'ESTAO', 'VAI', 'ANDA', 'NOSSA', 'NOSSO', 'MINHA', 'TEM', 'TEMOS', 'QUAL', 'QUAIS', 'QUAL', 'QUEM', 'OS', 'AS', 'DO', 'DA', 'DE', 'DOS', 'DAS', 'NO', 'NA', 'NOS', 'EM', 'QUE', 'MAIS', 'COMPROU', 'COMPRARAM', 'COMPRA', 'COMPRAM', 'COMPRADO', 'CLIENTES', 'CLIENTE', 'TOP', 'MES', 'ONTEM', 'HOJE', 'SEMANA', 'ESSA', 'ESSE', 'ESTE', 'ESTA', 'VENDEDORA', 'VENDEDOR', 'PRODUTO', 'PRODUTOS', 'POSITIVACAO', 'QUANTOS', 'QUANTO', 'PRECO', 'MEDIO', 'SAIU', 'MEDIA', 'VENDE', 'VENDEU', 'VENDERAM', 'PELO', 'PELA', 'POR', 'PARA', 'PRA', 'COM', 'UM', 'UMA', 'MEU', 'MINHA', 'JOTA', 'FAVOR', 'PICO', 'ULTIMA', 'ULTIMO', 'LOJA', 'NUMERICA', 'PDVS', 'PDV', 'FILIAL', 'SUPERVISOR', 'EQUIPE', 'CARTEIRA', 'ITEM', 'ITENS', 'LISTA', 'SKU', 'FOCO']);
+const PARADAS = new Set(['COMPRAVA', 'COMPRAVAM', 'PAROU', 'PARARAM', 'DEIXOU', 'DEIXARAM', 'COMPRAR', 'RECUPERACAO', 'LISTA', 'COMO', 'ESTA', 'TA', 'ESTAO', 'VAI', 'ANDA', 'NOSSA', 'NOSSO', 'MINHA', 'TEM', 'TEMOS', 'QUAL', 'QUAIS', 'QUAL', 'QUEM', 'OS', 'AS', 'DO', 'DA', 'DE', 'DOS', 'DAS', 'NO', 'NA', 'NOS', 'EM', 'QUE', 'MAIS', 'COMPROU', 'COMPRARAM', 'COMPRA', 'COMPRAM', 'COMPRADO', 'CLIENTES', 'CLIENTE', 'TOP', 'MES', 'ONTEM', 'HOJE', 'SEMANA', 'ESSA', 'ESSE', 'ESTE', 'ESTA', 'VENDEDORA', 'VENDEDOR', 'PRODUTO', 'PRODUTOS', 'POSITIVACAO', 'QUANTOS', 'QUANTO', 'PRECO', 'MEDIO', 'SAIU', 'MEDIA', 'VENDE', 'VENDEU', 'VENDERAM', 'PELO', 'PELA', 'POR', 'PARA', 'PRA', 'COM', 'UM', 'UMA', 'MEU', 'MINHA', 'JOTA', 'FAVOR', 'PICO', 'ULTIMA', 'ULTIMO', 'LOJA', 'NUMERICA', 'PDVS', 'PDV', 'FILIAL', 'SUPERVISOR', 'EQUIPE', 'CARTEIRA', 'ITEM', 'ITENS', 'LISTA', 'SKU', 'FOCO', 'DIA', 'DIAS', 'SEMANAL', 'SEMANAIS', 'MENSAL', 'MENSAIS', 'VENDAS', 'VENDA', 'MELHOR', 'ESPECIFICO', 'ALGUM', 'ALGUMA', 'SEGUNDA', 'TERCA', 'QUARTA', 'QUINTA', 'SEXTA', 'SABADO', 'DOMINGO']);
 async function vendasEscopo(B, E) {
   const arqs = await Promise.all(E.filiais.map((f) => B.raw(`public/vendas_mes/${f}.json`).then((t) => { try { return t ? { f, ...JSON.parse(t) } : null; } catch (e) { return null; } })));
   const ok = arqs.filter(Boolean); if (!ok.length) return null;
@@ -534,7 +552,7 @@ function periodoDe(t, V) {
   const ult = V.linhas.reduce((m, l) => Math.max(m, l.d), 0);
   if (/\bONTEM\b/.test(t)) return { nome: 'ontem (' + dIso(ult) + ')', ok: (l) => l.d === ult, aviso: '' };
   if (/\bHOJE\b|\bHJ\b/.test(t)) return { nome: 'ontem (' + dIso(ult) + ')', ok: (l) => l.d === ult, aviso: '_Item a item vai até ontem; o de hoje entra na madrugada._' };
-  if (/SEMANA/.test(t)) { const lim = Number(new Date(Date.UTC(+String(ult).slice(0, 4), +String(ult).slice(4, 6) - 1, +String(ult).slice(6, 8) - 6)).toISOString().slice(0, 10).replace(/-/g, '')); return { nome: 'últimos 7 dias', ok: (l) => l.d >= lim, aviso: '' }; }
+  if (/SEMANA/.test(t) && !/SEMANA(L|IS)|POR SEMANA|SEMANA A SEMANA|CADA SEMANA|DIA DA SEMANA/.test(t)) { const lim = Number(new Date(Date.UTC(+String(ult).slice(0, 4), +String(ult).slice(4, 6) - 1, +String(ult).slice(6, 8) - 6)).toISOString().slice(0, 10).replace(/-/g, '')); return { nome: 'últimos 7 dias', ok: (l) => l.d >= lim, aviso: '' }; }
   return { nome: 'no mês (até ' + dIso(ult) + ')', ok: () => true, aviso: '' };
 }
 // acha produto(s) pelas palavras da pergunta (ex.: "snickers original" -> todos os SKUs com SNICKERS e ORIGINAL)
@@ -580,10 +598,11 @@ async function respProduto(B, E, t, pessoa) {
   const tot = L.reduce((a, l) => ({ v: a.v + l.v, q: a.q + l.q }), { v: 0, q: 0 });
   const vend = new Map(E.vend.map((v) => [v.filial + '|' + v.rca, vn(v)]));
   const porV = [...somaPor(L, (l) => l.f + '|' + l.r)].sort((a, b) => b[1].v - a[1].v).slice(0, 5);
+  const ex = await extrasTempo(B, E, L, t, (l) => P.cods.has(l.p) && (!pessoa || pessoa.tipo !== 'vend' || (l.f === pessoa.alvo.filial && l.r === pessoa.alvo.rca)));
   return [`📦 *${P.termo}* — ${quem}, ${per.nome}`, `${R$(tot.v)} · ${N(tot.q)} un. · *${C.length} cliente(s)* · preço médio ${R$(tot.q ? tot.v / tot.q : null)}/un.`, per.aviso, '', `*Clientes que mais compraram:*`,
     ...C.slice(0, 10).map(([k, x], i) => `${i + 1}. ${titulo(V.cli[k] || k.split('|')[1])} (#${k.split('|')[1]}) — ${R$(x.v)} · ${N(x.q)} un.`),
     ...(pessoa ? [] : ['', '*Por vendedor:*', ...porV.map(([k, x]) => `• ${vend.get(k) || 'RCA ' + k.split('|')[1]} ${E.nacional ? k.split('|')[0] : ''}: ${R$(x.v)} · ${x.cli.size} cli.`)]),
-    '', SUGESTAO + `oferecer ${P.termo} nos clientes da rota que ainda não compraram (peça "quem comprava ${P.termo} e parou").`].filter((x) => x !== '').join('\n').replace(/\n\*Clientes/, '\n\n*Clientes');
+    ...ex, '', SUGESTAO + `oferecer ${P.termo} nos clientes da rota que ainda não compraram (peça "quem comprava ${P.termo} e parou").`].filter((x) => x !== '').join('\n').replace(/\n\*Clientes/, '\n\n*Clientes');
 }
 async function respIndustria(B, E, t, pessoa) {
   const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
@@ -599,9 +618,86 @@ async function respIndustria(B, E, t, pessoa) {
   const vend = new Map(E.vend.map((v) => [v.filial + '|' + v.rca, vn(v)]));
   const G = [...somaPor(L, chave)].sort((a, b) => b[1].cli.size - a[1].cli.size);
   const SK = [...somaPor(L, (l) => l.p)].sort((a, b) => b[1].cli.size - a[1].cli.size).slice(0, 5);
+  const ex = await extrasTempo(B, E, L, t, (l) => I.includes((V.prod[l.p] || [])[1]) && (!pessoa || pessoa.tipo !== 'vend' || (l.f === pessoa.alvo.filial && l.r === pessoa.alvo.rca)));
   return [`🏭 *${nomeI}* — ${E.nome}, ${per.nome}`, `Faturado: *${R$(tot)}* · positivação: *${N(clis.size)} clientes* (${P(clis.size, todosCli.size)} dos que compraram algo)`, '',
     `*Por ${E.nacional ? 'filial' : porVend ? 'vendedor' : 'supervisor'} (clientes · R$):*`, ...G.slice(0, 12).map(([k, x]) => `• ${E.nacional ? k : porVend ? (vend.get(k) || 'RCA ' + k.split('|')[1]) : nome2(k)}: ${x.cli.size} cli. · ${R$(x.v)}`),
-    '*SKUs que mais positivam:*', ...SK.map(([c, x]) => `• ${titulo((V.prod[c] || [''])[0])}: ${x.cli.size} cli.`), '', SUGESTAO + `peça "quem comprava ${nomeI} e parou" para a lista de recuperação.`].join('\n');
+    '*SKUs que mais positivam:*', ...SK.map(([c, x]) => `• ${titulo((V.prod[c] || [''])[0])}: ${x.cli.size} cli.`), ...ex, '', SUGESTAO + `peça "quem comprava ${nomeI} e parou" para a lista de recuperação.`].join('\n');
+}
+// nome legivel do fornecedor da Premiacao ("A-MARS CHOC" -> "Mars Choc", "A - QUIMICA AMPARO" -> "Quimica Amparo")
+const nomeForn = (n) => titulo(String(n || '').replace(/^[A-Z0-9]{1,3}\s*-\s*/i, '').replace(/\(.*?\)|\.{2,}/g, '').replace(/\s+/g, ' ').trim());
+async function respMetasIndustria(B, E, t, pessoa) {
+  const RV = await B.rv();
+  if (!RV) return '🏆 _A Premiação (metas por indústria) não respondeu agora. Tente em alguns minutos._';
+  // escopo: vendedor citado > equipe do supervisor citado > escopo de quem pergunta
+  let vend = E.vend, quem = E.nome;
+  if (pessoa && pessoa.tipo === 'vend') { vend = [pessoa.alvo]; quem = vn(pessoa.alvo); }
+  else if (pessoa && pessoa.tipo === 'sup') { vend = E.vend.filter((v) => v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial); quem = 'Equipe ' + nome2(pessoa.alvo.nome); }
+  const cods = E.nacional && !pessoa ? null : new Set(vend.map((v) => String(v.rca)));
+  const dentro = (c) => !cods || cods.has(c);
+  // industria citada (pelo nome da Premiacao; Mars = MARS CHOC/MARS PET etc.)
+  const nomes = new Map(); for (const m of RV.metas) if (!nomes.has(m[1])) nomes.set(m[1], m[2]);
+  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !['META', 'METAS', 'INDUSTRIA', 'INDUSTRIAS', 'BATENDO', 'BATEU', 'BATER', 'ESTAMOS', 'FORNECEDOR', 'FORNECEDORES', 'PREMIACAO', 'PREMIO', 'ATINGIMENTO', 'ATINGIU'].includes(w) && !FILIAIS.includes(w));
+  const pessoasT = new Set(E.vend.flatMap((v) => sem(v.nome).split(/\s+/)).concat(E.vend.flatMap((v) => sem(v.supervisor).split(/\s+/))));
+  const alvoI = new Set([...nomes].filter(([, n]) => toks.some((w) => !pessoasT.has(w) && sem(n).split(/[^A-Z0-9]+/).includes(w))).map(([id]) => id));
+  const G = new Map();   // id -> { meta, metaPos, fat, vend, pos, posV, porVend: Map }
+  const g = (id) => { if (!G.has(id)) G.set(id, { meta: 0, metaPos: 0, fat: 0, ven: 0, pos: 0, posV: 0, pv: new Map() }); return G.get(id); };
+  const gv = (x, c) => { if (!x.pv.has(c)) x.pv.set(c, { meta: 0, metaPos: 0, fat: 0, ven: 0, pos: 0 }); return x.pv.get(c); };
+  for (const [c, id, , tipo, meta] of RV.metas) if (dentro(c) && (!alvoI.size || alvoI.has(id))) { const x = g(id), y = gv(x, c); if (tipo === 1) { x.meta += meta; y.meta += meta; } else { x.metaPos += meta; y.metaPos += meta; } }
+  for (const [c, id, ff, fv, pf, pv] of RV.apu) if (dentro(c) && G.has(id)) { const x = G.get(id), y = gv(x, c); x.fat += ff; x.ven += fv; x.pos += pf; x.posV += pv; y.fat += ff; y.ven += fv; y.pos += pf; }
+  const L = [...G].filter(([, x]) => x.meta > 0 || x.metaPos > 0);
+  const corte = RV.cutoff ? RV.cutoff.split('-').reverse().slice(0, 2).join('/') : '?';
+  const cab = `🏆 *Metas das indústrias — ${quem}* · ${MESES[+RV.mes.slice(5, 7)]} · _Premiação do CEVEN, apuração até ${corte}_`;
+  if (!L.length) return alvoI.size ? `${cab}\nNenhuma meta de *${[...alvoI].map((i) => nomeForn(nomes.get(i))).join(', ')}* para ${quem} neste mês.` : `${cab}\nNenhuma meta por indústria cadastrada para ${quem} neste mês.`;
+  const sel = (x) => (x.fat >= x.meta && x.meta ? '✅' : x.meta && x.fat / x.meta >= 0.8 ? '🟡' : '🔴');
+  const linha = (n, x) => `${sel(x)} *${n}*: faturado ${R$(x.fat)} de ${R$(x.meta)} (${P(x.fat, x.meta)})${x.ven > x.fat ? ` · vendido ${R$(x.ven)} (${P(x.ven, x.meta)})` : ''}${x.metaPos ? ` · positivação ${N(x.pos)}/${N(x.metaPos)} (${P(x.pos, x.metaPos)})` : ''}`;
+  if (alvoI.size) {   /* industria citada: total + quem esta puxando */
+    const out = [cab];
+    for (const [id, x] of L) {
+      out.push('', linha(nomeForn(nomes.get(id)), x));
+      if (x.pv.size > 1) {
+        const nm = new Map(E.vend.map((v) => [String(v.rca), v]));
+        const pv = [...x.pv].filter(([, y]) => y.meta > 0).sort((a, b) => b[1].fat / (b[1].meta || 1) - a[1].fat / (a[1].meta || 1));
+        out.push(`*Por vendedor* (${pv.filter(([, y]) => y.fat >= y.meta).length} de ${pv.length} já bateram o faturado):`, ...pv.slice(0, 8).map(([c, y]) => `• ${nm.get(c) ? vn(nm.get(c)) : 'RCA ' + c}: ${R$(y.fat)} de ${R$(y.meta)} (${P(y.fat, y.meta)})`));
+        if (pv.length > 8) out.push(`… e mais ${pv.length - 8}. Os mais longe da meta: ${pv.slice(-3).map(([c]) => (nm.get(c) ? nome2(nm.get(c).nome) : 'RCA ' + c)).join(', ')}.`);
+      }
+    }
+    out.push('', SUGESTAO + 'cobrar primeiro quem tem meta alta e está longe; peça "quem comprava ' + nomeForn(nomes.get([...alvoI][0])) + ' e parou" para a lista de clientes.', '_Vendido = faturado + a faturar. Valor oficial do prêmio = fechamento da Premiação._');
+    return out.join('\n');
+  }
+  const ord = L.sort((a, b) => b[1].meta - a[1].meta);
+  const bat = ord.filter(([, x]) => x.meta && x.fat >= x.meta).length, comMeta = ord.filter(([, x]) => x.meta).length;
+  const tot = ord.reduce((a, [, x]) => ({ m: a.m + x.meta, f: a.f + x.fat, v: a.v + x.ven }), { m: 0, f: 0, v: 0 });
+  return [cab, `*${bat} de ${comMeta} indústrias* com o faturado já batido · total ${R$(tot.f)} de ${R$(tot.m)} (${P(tot.f, tot.m)})${tot.v > tot.f ? ` · vendido ${R$(tot.v)} (${P(tot.v, tot.m)})` : ''}`, '',
+    ...ord.slice(0, 15).map(([id, x]) => linha(nomeForn(nomes.get(id)), x)), ord.length > 15 ? `… e mais ${ord.length - 15} indústrias.` : '',
+    '', SUGESTAO + 'pergunte "como está a meta da <indústria>" para ver quem está puxando para baixo.', '_✅ batida · 🟡 80% ou mais · 🔴 abaixo de 80% (faturado). Vendido = faturado + a faturar._'].filter((x) => x !== '').join('\n');
+}
+// DIA DA SEMANA / SEMANA A SEMANA / MES A MES de um produto ou industria (Vitorio, 25/10/2026: diretor apresentando para a industria:
+// "qual dia mais vende o produto x? tem algum vendedor especifico? como estao as vendas mensais? e semanais?")
+const DSEM = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+const dUtc = (d) => new Date(Date.UTC(Math.floor(d / 10000), Math.floor(d / 100) % 100 - 1, d % 100));
+async function extrasTempo(B, E, L, t, filtroLinha) {
+  const out = [];
+  if (/DIA DA SEMANA|QUAL DIA|QUE DIA|DIAS? (QUE |EM QUE )?(MAIS|MELHOR)|MELHOR DIA|DIA QUE MAIS/.test(t)) {
+    const W = Array.from({ length: 7 }, () => ({ v: 0, dias: new Set() }));
+    for (const l of L) { const w = dUtc(l.d).getUTCDay(); W[w].v += l.v; W[w].dias.add(l.d); }
+    const R0 = W.map((x, i) => ({ i, v: x.v, n: x.dias.size, med: x.dias.size ? x.v / x.dias.size : 0 })).filter((x) => x.n);
+    const top = [...R0].sort((a, b) => b.med - a.med);
+    if (top.length) out.push('', `*Dia da semana (média por dia com venda):* o melhor é *${DSEM[top[0].i]}*`, ...R0.map((x) => `• ${DSEM[x.i]}: ${R$(x.med)}/dia · ${R$(x.v)} em ${x.n} dia(s)`));
+  }
+  if (/SEMANA(L|IS)|POR SEMANA|SEMANA A SEMANA|CADA SEMANA/.test(t)) {
+    const S = new Map(); for (const l of L) { const d = dUtc(l.d); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); const k = d.toISOString().slice(0, 10); S.set(k, (S.get(k) || 0) + l.v); }
+    const ini = dUtc(L.reduce((m, l) => Math.min(m, l.d), 99999999)).toISOString().slice(0, 10);
+    out.push('', '*Semana a semana (segunda a domingo):*', ...[...S].sort().map(([k, v]) => { const d0 = k < ini ? ini : k; return `• semana de ${d0.slice(8, 10)}/${d0.slice(5, 7)}: ${R$(v)}`; }));
+  }
+  if (/MENSA|MES A MES|POR MES|CADA MES/.test(t)) {
+    const Z = await vendasAnterior(B, E);
+    const ateA = L.reduce((m, l) => Math.max(m, l.d), 0), dia = ateA % 100;
+    const tA = L.reduce((a, l) => a + l.v, 0);
+    if (Z) { const LZ = Z.linhas.filter(filtroLinha); const tZ = LZ.reduce((a, l) => a + l.v, 0), tZd = LZ.filter((l) => l.d % 100 <= dia).reduce((a, l) => a + l.v, 0);
+      out.push('', '*Mês a mês:*', `• este mês até dia ${dia}: ${R$(tA)}`, `• mês passado até o mesmo dia: ${R$(tZd)} (${delta(tA, tZd)})`, `• mês passado inteiro: ${R$(tZ)}`); }
+    else out.push('', '_Mês passado item a item ainda não publicado: o mês a mês sai assim que ele chegar._');
+  }
+  return out;
 }
 async function respRecuperacao(B, E, t) {
   const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
@@ -1006,13 +1102,15 @@ async function respostaInterna(B, c, texto, anteriores) {
   if (/CLIENTE/.test(t) && /SEM COMPRAR|NAO COMPRA|PARADOS?|HA MAIS DE|DIAS SEM/.test(t)) return respClientesSemComprar(B, E, t);
   if (/DIAS (SEGUIDOS )?SEM (VENDER|PEDIDO|VENDA)|HA \d+ DIAS SEM|HA MAIS DE \d+ DIAS|\d+ DIAS SEM|SEM PEDIDO HA/.test(t)) return respDiasSemPedido(B, E, t);
   if (/MES PASSADO|MES ANTERIOR|SETEMBRO|AGOSTO|\bM-1\b|COMPARAD|EM RELACAO AO MES|CAIU|CRESCEU|EVOLUCAO|ESTE MES X|ESSE MES X/.test(t) && !/LIGA|CHAMPI|POSICAO|RANKING DA LIGA/.test(t) && !(t.match(new RegExp(FRX.source, 'g')) || []).slice(1).length) return respComparaMes(B, E, t, pessoa);
+  // METAS DAS INDUSTRIAS = Premiacao RV do CEVEN (Vitorio, 25/10/2026)
+  if (/META/.test(t) && (/INDUSTRI|FORNECEDOR|FABRICANTE|PREMIA/.test(t) || /\b(MARS|MARILAN|AMPARO|MAURI|AEROFLEX|LINDT|DAFRUTA|MEDIX|BEST POP|SUPER SAUDE|MONDELEZ|ARCOR|NESTLE|FERRERO|HERSHEY|COLGATE|KELLOGG|PEPSICO|BAGLEY|CONDOR|FINI|DORI)\b/.test(t))) return respMetasIndustria(B, E, t, pessoa);
   // vendas item a item (produto, industria, cliente, preco, top produtos, marca propria ao vivo)
   if (ehMP) { const r = await respMarcaPropriaVivo(B, E, t); return r || respRelatorio(B, c, t); }
   if (/PRECO|QUANTO SAIU/.test(t)) { const r = await respPreco(B, E, t); if (r) return r; }
   if (/COMPRAVA|PAROU|PARARAM|DEIXOU DE COMPRAR|DEIXARAM DE COMPRAR|RECUPERACAO D/.test(t)) { const r = await respRecuperacao(B, E, t); if (r) return r; }
   if (/PRODUTOS? (QUE )?MAIS VEND|TOP \d* ?PRODUTOS|\d+ PRODUTOS|QUAL PRODUTO MAIS|MAIS VENDIDOS/.test(t)) return respTopProdutos(B, E, t);
   if (/CLIENTE|LOJA/.test(t) && /COMPROU|COMPRA|ULTIMO PEDIDO|SEM COMPRAR|OFERECER|PRODUTOS D/.test(t) && !/CLIENTES QUE|QUAIS (OS )?CLIENTES|QUEM/.test(t)) { const r = await respCliente(B, E, t); if (r) return r; }
-  if (/COMPRA|COMPROU|COMPRARAM|VENDEU DE |VENDERAM DE |VENDEU (O|A) |VENDE DE |POSITIVACAO D[OEA]S? |(VENDE MAIS|MAIS VENDE)(?!U)(?!.*(SUPERVISOR|VENDEDOR|FILIAL|GERENTE))|EM QUANTOS CLIENTES|CLIENTES COMPRARAM|PDVS COMPRARAM/.test(t) || /\b(MONDELEZ|MARS|ARCOR|BAGLEY|CONDOR|FERRERO|NESTLE|HERSHEY|FINI|DORI|PEPSICO|KELLOGG|LACTA|DIVERSAO)\b/.test(t)) {
+  if (/COMPRA|COMPROU|COMPRARAM|VENDEU DE |VENDERAM DE |VENDEU (O|A) |VENDE DE |POSITIVACAO D[OEA]S? |(VENDE MAIS|MAIS VENDE)(?!U)(?!.*(SUPERVISOR|VENDEDOR|FILIAL|GERENTE))|EM QUANTOS CLIENTES|CLIENTES COMPRARAM|PDVS COMPRARAM|SEMANA(L|IS)|MENSA(L|IS)|DIA DA SEMANA|QUAL DIA|QUE DIA MAIS|MELHOR DIA|MES A MES|POR SEMANA/.test(t) || /\b(MONDELEZ|MARS|ARCOR|BAGLEY|CONDOR|FERRERO|NESTLE|HERSHEY|FINI|DORI|PEPSICO|KELLOGG|LACTA|DIVERSAO)\b/.test(t)) {
     const ri = await respIndustria(B, E, t, pessoa); if (ri && ri !== SEM_VENDAS) return ri;
     const rp = await respProduto(B, E, t, pessoa);
     if (rp === SEM_VENDAS || (!rp && !ri)) { const m = await respMix(B, E, t); if (m && !/^Não achei|^🧺 \*\+MIX —/.test(m)) return m; }   /* sem vendas item a item ainda: reserva = +MIX */
