@@ -1,0 +1,58 @@
+# FICHA DO ARQUIVO
+# O QUE É: guarda TODA visita da rota com status e JUSTIFICATIVA ("visitou e não vendeu") — Vitório, 23/09 e 25/10/2026:
+#          "preciso dele guardado uai... inclusive para análises". O CEVEN só mostra a rota do dia: o que não for guardado se perde.
+# LÊ: a rota que a varredura central já gravou no D1 (/api/central-snapshot) + Gestão de Equipe (/api/tv-mostra). Não chama o CEVEN.
+# ESCREVE: historico_visitas.db no Drive (pasta CEVEN Datalake). Nunca no GitHub (nome de cliente e CNPJ — LGPD).
+# RODA: todo dia às 22h de Brasília (01:00 UTC) + manual. Não envia WhatsApp nem mexe em disparo.
+name: Guardar visitas e justificativas
+
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+    inputs:
+      desde:
+        description: 'Regravar desde AAAA-MM-DD (vazio = só o que falta)'
+        required: false
+        default: ''
+
+concurrency:
+  group: guardar-visitas
+  cancel-in-progress: false
+
+jobs:
+  visitas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Instalar dependências
+        run: npm ci
+      - name: Instalar rclone
+        run: curl -fsS https://rclone.org/install.sh | sudo bash
+      - name: Configurar rclone (Google Drive)
+        env:
+          GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID || '1sqzFpWEKb1WKhT9MksQcQl8RuY94DQum' }}
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "$GDRIVE_SA_JSON" > /tmp/gdrive-sa.json
+          cat > ~/.config/rclone/rclone.conf << EOF2
+          [gdrive]
+          type = drive
+          scope = drive
+          service_account_file = /tmp/gdrive-sa.json
+          root_folder_id = $GDRIVE_FOLDER_ID
+          EOF2
+      - name: Baixar o histórico do Drive
+        run: |
+          rclone copy gdrive:historico_visitas.db analises/
+          # arquivo-semente de 1 byte (a conta de serviço não cria arquivo, só atualiza): descarta e começa do zero
+          if [ -f analises/historico_visitas.db ] && [ $(stat -c%s analises/historico_visitas.db) -lt 1024 ]; then rm -f analises/historico_visitas.db; fi
+      - name: Guardar as visitas
+        run: node analises/guardar_visitas.js ${{ github.event.inputs.desde }}
+      - name: Subir o histórico para o Drive
+        run: rclone copy analises/historico_visitas.db gdrive:/
