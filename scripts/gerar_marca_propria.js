@@ -105,6 +105,13 @@ async function main() {
   const diaAnteriorFmt = new Date(diaAnterior + 'T12:00:00').toLocaleDateString('pt-BR');
 
   const repsMap = engine.carregarValidacaoVendedores();
+  // TRAVA (Vitorio, 25/10/2026: "ok" — regra "jamais mande sem todos os dados"): em 09/10 e 23/10 a arvore do CEVEN veio VAZIA (CEVEN instavel)
+  // e o relatorio saiu com R$ 0,00 para o Vitorio e NADA para os gerentes. Sem vendedores mapeados = nao envia nada e o workflow fica vermelho (o vigia avisa).
+  const nVend = Object.keys(repsMap || {}).filter((k) => !k.startsWith('__')).length;
+  if (nVend < 100) {
+    console.error(`❌ Equipe com ${nVend} vendedor(es) mapeado(s) (esperado ~550): arvore do CEVEN veio vazia/incompleta. Marca Propria NAO enviada.`);
+    process.exit(1);
+  }
   await engine.enriquecerCanalReal(repsMap);
   engine.aplicarMostraDisparos(repsMap);
   // Ocultos e vendedores so da planilha (fora de repsMap) mantem o gerente que a planilha informa (campo grupo): sem isso caiam num 'terceiro gerente' (padrao da filial, ex.: Vagner / Fábio).
