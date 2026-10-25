@@ -97,13 +97,14 @@ function criaBase(origin, env) {
 }
 
 // vendedores de uma filial (mostrados na Gestao de Equipe) + totais que somam TODOS (macro)
-async function vendedoresDaFilial(B, filial, grupo) {
+async function vendedoresDaFilial(B, filial, grupo, supervisor) {
   const [snap, mostra] = await Promise.all([B.snap(filial), B.mostra()]);
   const eq = new Map(); if (mostra && mostra.filiais) for (const [k, L] of Object.entries(mostra.filiais)) if (k.split('_')[0] === filial) for (const v of L) eq.set(String(v.rca), v);
   const vend = []; const macro = { pedidos: 0, dig: 0, devHoje: 0 };
   for (const [rca, r] of Object.entries((snap && snap.rcas) || {})) {
     const e = eq.get(rca);
     if (grupo && (!e || String(e.grupo || '').toUpperCase() !== String(grupo).toUpperCase())) continue;
+    if (supervisor && (!e || sem(e.supervisor) !== sem(supervisor))) continue;   /* supervisor ve so a equipe dele (25/10/2026) */
     const d = r.dashboard || {}, fi = d.financeiro || {}, po = d.positivacao || {}, pd = (r.produtividade && r.produtividade.dia) || {}, pm = (r.produtividade && r.produtividade.mes) || {};
     macro.pedidos += pd.positivacao || 0; macro.dig += pd.dig_pedido || 0;
     macro.devHoje += (Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).reduce((t, x) => t + Math.abs(parseFloat(x.vl_devolvido || x.valor || 0) || 0), 0);
@@ -128,7 +129,7 @@ async function vendedoresDaFilial(B, filial, grupo) {
 
 // ESCOPO: { nome, filiais:[...], grupo, nacional }
 async function carregaEscopo(B, esc) {
-  const partes = await Promise.all(esc.filiais.map((f) => vendedoresDaFilial(B, f, esc.grupo)));
+  const partes = await Promise.all(esc.filiais.map((f) => vendedoresDaFilial(B, f, esc.grupo, esc.supervisor)));
   const vend = partes.flatMap((p) => p.vend);
   const macro = partes.reduce((t, p) => ({ pedidos: t.pedidos + p.macro.pedidos, dig: t.dig + p.macro.dig, devHoje: t.devHoje + p.macro.devHoje }), { pedidos: 0, dig: 0, devHoje: 0 });
   return { ...esc, vend, macro, porFilial: Object.fromEntries(esc.filiais.map((f, i) => [f, partes[i]])) };
@@ -167,15 +168,15 @@ async function respResumo(B, E) {
   }
   const fil = E.filiais[0]; const f = s && (s.filiais || []).find((x) => x.filial === fil);
   const V = E.vend; const G = agrupa(V, (v) => 'x').get('x') || { fat: 0, pend: 0, meta: 0 };
-  const fat = E.grupo ? G.fat : f ? f.faturado : null, pend = E.grupo ? G.pend : f ? f.pendente : null, meta = E.grupo ? G.meta : f ? f.meta_fat : null;
+  const fat = (E.grupo || E.supervisor) ? G.fat : f ? f.faturado : null, pend = (E.grupo || E.supervisor) ? G.pend : f ? f.pendente : null, meta = (E.grupo || E.supervisor) ? G.meta : f ? f.meta_fat : null;
   const Vr = V.filter((v) => v.varejo), z = Vr.filter((v) => v.zerado), com = V.filter((v) => v.pct != null);
   const L = [`📊 *${E.nome} agora* (${hora})`, `💰 Faturado: *${R$(fat)}* de ${R$(meta)} → *${P(fat || 0, meta)}*`, `⏳ Pendente: ${R$(pend)}`];
-  if (!E.grupo && f) L.push(`👥 Positivação: ${N(f.positivados)} de ${N(f.meta_pos)} (${P(f.positivados, f.meta_pos)})`); else L.push(`👥 Positivação: ${N(G.pos)} de ${N(G.metaPos)} (${P(G.pos, G.metaPos)})`);
-  L.push(`📝 Digitado hoje: *${R$(E.grupo ? G.dig : f ? f.digitado_hoje : E.macro.dig)}* em *${N(E.grupo ? G.ped : E.macro.pedidos)}* pedidos`,
+  if (!(E.grupo || E.supervisor) && f) L.push(`👥 Positivação: ${N(f.positivados)} de ${N(f.meta_pos)} (${P(f.positivados, f.meta_pos)})`); else L.push(`👥 Positivação: ${N(G.pos)} de ${N(G.metaPos)} (${P(G.pos, G.metaPos)})`);
+  L.push(`📝 Digitado hoje: *${R$((E.grupo || E.supervisor) ? G.dig : f ? f.digitado_hoje : E.macro.dig)}* em *${N((E.grupo || E.supervisor) ? G.ped : E.macro.pedidos)}* pedidos`,
     `🚶 Rota do varejo hoje: ${Vr.reduce((a, v) => a + v.visF, 0)} de ${Vr.reduce((a, v) => a + v.visP, 0)} visitas · sem nenhuma visita: ${Vr.filter((v) => v.semVisita).length}`,
     `🏁 Meta batida no mês (fat.+pend.): ${V.filter((v) => v.meta && v.fat + v.pend >= v.meta).length} de ${V.length} vendedores`, `↩️ Devoluções no mês: ${R$(V.reduce((a, v) => a + v.dev, 0))}`);
-  const lc = await B.lances(); if (lc) { const Lf = (lc.lances || []).filter((l) => l.filial === fil && (!E.grupo || V.some((v) => v.rca === String(l.rca)))); L.push(`⚽ Hoje: ${Lf.filter((l) => l.nivel === 'gol').length} gol(s) · ${Lf.filter((l) => l.nivel === 'penalti').length} pênalti(s) · ${Lf.filter((l) => l.nivel === 'impedimento').length} impedimento(s)`); }
-  if (!E.grupo) { const Gr = [...agrupa(V.filter((v) => v.grupo), (v) => v.grupo)]; if (Gr.length > 1) { L.push('*Por gerente:*'); for (const [g, x] of Gr) L.push(`• ${titulo(g)}: ${R$(x.fat)} (${pctTxt(x.pct)}) · pend. ${R$(x.pend)} · ${x.zerados} zerado(s)`); } }
+  const lc = await B.lances(); if (lc) { const Lf = (lc.lances || []).filter((l) => l.filial === fil && (!(E.grupo || E.supervisor) || V.some((v) => v.rca === String(l.rca)))); L.push(`⚽ Hoje: ${Lf.filter((l) => l.nivel === 'gol').length} gol(s) · ${Lf.filter((l) => l.nivel === 'penalti').length} pênalti(s) · ${Lf.filter((l) => l.nivel === 'impedimento').length} impedimento(s)`); }
+  if (!(E.grupo || E.supervisor)) { const Gr = [...agrupa(V.filter((v) => v.grupo), (v) => v.grupo)]; if (Gr.length > 1) { L.push('*Por gerente:*'); for (const [g, x] of Gr) L.push(`• ${titulo(g)}: ${R$(x.fat)} (${pctTxt(x.pct)}) · pend. ${R$(x.pend)} · ${x.zerados} zerado(s)`); } }
   const lg = await B.liga(); const lf = lg && (lg.filiais || []).find((x) => x.sigla === fil); if (lf) L.push(`🏆 Liga: ${lf.pos}º de 11, ${lf.pts_tabela} pontos (${lf.vitorias}V ${lf.empates}E ${lf.derrotas}D)`);
   L.push(`⚠️ Zerados hoje (varejo com rota): *${z.length}*` + (z.length ? ' — ' + listaNomes(z) : ''));
   if (com.length) L.push(`✅ Melhores na meta: ${com.slice(0, 2).map((v) => `${nome2(v.nome)} ${pctTxt(v.pct)}`).join(' · ')}`, `🔻 Mais atrás: ${com.slice(-2).reverse().map((v) => `${nome2(v.nome)} ${pctTxt(v.pct)}`).join(' · ')}`);
@@ -200,7 +201,7 @@ async function respHoje(B, E, t) {
       soVarejo ? '' : '_Totais com todos os canais; peça "hoje rota" para só o varejo._', SUGESTAO + `ver os zerados da filial com mais vendedores sem pedido: ${(G.slice().sort((a, b) => b[1].zerados - a[1].zerados)[0] || [''])[0]}.`].filter((x) => x !== null).join('\n');
   }
   const tot = { ...(agrupa(V, () => 'x').get('x') || { dig: 0, ped: 0, visF: 0, visP: 0, comVenda: 0, zerados: 0 }) };
-  if (!soVarejo && !E.grupo) { tot.dig = E.macro.dig; tot.ped = E.macro.pedidos; }
+  if (!soVarejo && !E.grupo && !E.supervisor) { tot.dig = E.macro.dig; tot.ped = E.macro.pedidos; }
   if (/TICKET/.test(t)) return `🧾 *Ticket médio de hoje — ${E.nome}${rot}*: *${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}* (${R$(tot.dig)} ÷ ${tot.ped} pedidos)`;
   const Vs = V.slice().sort((a, b) => b.dig - a.dig);
   const L = [`📝 *${E.nome} hoje${rot}* (${hora})`, `Digitado: *${R$(tot.dig)}* em *${tot.ped}* pedidos · ticket ${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}`, `Visitas da rota: ${tot.visF} de ${tot.visP} · com venda: ${tot.comVenda} · zerados: ${tot.zerados}`, ''];
@@ -243,7 +244,7 @@ async function respVendedor(B, E, v) {
 }
 async function totaisOficiais(B, E) {
   const x = { ...(agrupa(E.vend, () => 'x').get('x') || { fat: 0, pend: 0, meta: 0, pos: 0, metaPos: 0 }) };
-  if (E.grupo) return x;   /* grupo (TPH/MCD): soma dos vendedores do gerente */
+  if (E.grupo || E.supervisor) return x;   /* grupo (TPH/MCD) ou equipe do supervisor: soma dos vendedores */
   const s = await B.saude(); const F = ((s && s.filiais) || []).filter((f) => E.filiais.includes(f.filial)); if (!F.length) return x;
   x.fat = F.reduce((a, f) => a + (f.faturado || 0), 0); x.pend = F.reduce((a, f) => a + (f.pendente || 0), 0); x.meta = F.reduce((a, f) => a + (f.meta_fat || 0), 0);
   x.pos = F.reduce((a, f) => a + (f.positivados || 0), 0); x.metaPos = F.reduce((a, f) => a + (f.meta_pos || 0), 0); x.pct = x.meta ? x.fat / x.meta * 100 : null; return x;
@@ -285,9 +286,9 @@ async function respIncentivoOficial(B, E, pessoa) {
   } else {
     const f = (x.filiais || []).find((y) => y.filial === E.filiais[0]);
     if (f) { L.push(`Filial (meta do regulamento): ${N(f.real)} de ${N(f.coluna_n)} (${pctTxt(f.pct_coluna_n)}) ${ok(f.ok)} · faltam ${N(f.falta)} p/ 110% (${N(f.alvo110_coluna_n)})`); for (const g of f.gerentes || []) if (!E.grupo || sem(g.grupo) === sem(E.grupo)) L.push(`• Gerência ${g.gerente} (meta das pastas): ${N(g.real)} de ${N(g.meta)} (${pctTxt(g.pct)}) ${ok(g.ok)}`); }
-    const S = (x.supervisores || []).filter((s) => s.filial === E.filiais[0] && (!E.grupo || E.vend.some((v) => v.supervisor === s.nome))).sort((a, b) => b.pct - a.pct);
+    const S = (x.supervisores || []).filter((s) => s.filial === E.filiais[0] && (!(E.grupo || E.supervisor) || E.vend.some((v) => v.supervisor === s.nome))).sort((a, b) => b.pct - a.pct);
     L.push('*Supervisores (R$ 300 com 110%):*', ...S.map((s) => `• ${nome2(s.nome)}: ${s.real}/${s.meta} (${pctTxt(s.pct)}) ${ok(s.ok)}${s.falta ? ' · faltam ' + s.falta : ''}`));
-    const V = (x.vendedores || []).filter((v) => v.filial === E.filiais[0] && (!E.grupo || sem(v.grupo) === sem(E.grupo)));
+    const V = (x.vendedores || []).filter((v) => v.filial === E.filiais[0] && (!E.grupo || sem(v.grupo) === sem(E.grupo)) && (!E.supervisor || sem(v.supervisor) === sem(E.supervisor)));
     L.push(`Vendedores: G1 ✅ ${V.filter((v) => v.g1).length} de ${V.length} · G2 ✅ ${V.filter((v) => v.g2).length}`);
     const perto = V.filter((v) => !v.g2 && v.falta_g2 > 0 && v.falta_g2 <= 5).sort((a, b) => a.falta_g2 - b.falta_g2);
     if (perto.length) L.push(`Perto do G2 (≤5 clientes): ${perto.slice(0, 8).map((v) => `${nome2(v.nome)} (${v.falta_g2})`).join(', ')}`);
@@ -305,7 +306,7 @@ async function respLigaAs(B, E, pessoa) {
 async function respSemana(B, E) {
   const R = await Promise.all(E.filiais.map((f) => B.semana(f).then((j) => ({ f, S: j && j.filiais && j.filiais[f] }))));
   const sups = new Set(E.vend.map((v) => v.filial + '|' + v.supervisor));
-  const all = R.flatMap(({ f, S }) => (S || []).filter((s) => !/^GERENTE/i.test(s.nome) && (!E.grupo || sups.has(f + '|' + s.nome))).map((s) => ({ ...s, filial: f })));
+  const all = R.flatMap(({ f, S }) => (S || []).filter((s) => !/^GERENTE/i.test(s.nome) && (!(E.grupo || E.supervisor) || sups.has(f + '|' + s.nome))).map((s) => ({ ...s, filial: f })));
   if (!all.length) return 'Não consegui ler a semana dos supervisores agora.';
   const pass = (s) => (s.dias || []).filter((d) => d.estado !== 'futuro');
   const L = [`🗓️ *Semana dos supervisores — ${E.nome}* (compromisso / RET por dia útil até hoje)`];
@@ -346,7 +347,7 @@ function valorCorte(v) {
 async function operacao(B, E) {
   const [pd, lc] = await Promise.all([B.pedidosDia(), B.lances()]);
   const rcas = new Set(E.vend.map((v) => v.filial + '|' + v.rca));
-  const dentro = (fil, rca) => E.filiais.includes(fil) && (!E.grupo || rcas.has(fil + '|' + rca));
+  const dentro = (fil, rca) => E.filiais.includes(fil) && (!(E.grupo || E.supervisor) || rcas.has(fil + '|' + rca));
   const chave = (fil, rca) => { if (E.nacional) return fil; const v = E.vend.find((x) => x.filial === fil && x.rca === String(rca)); return (v && v.supervisor) || 'sem supervisor'; };
   const G = {}; const g = (k) => G[k] || (G[k] = { dig: 0, ped: 0, cortes: 0, nCortes: 0, bloq: 0, nBloq: 0, reat: 0, rec: 0, devHoje: 0, varejo: 0, vendeu: 0 });
   for (const v of (pd && pd.pedidos) || []) {
@@ -364,7 +365,7 @@ async function operacao(B, E) {
   for (const v of E.vend) { const x = g(E.nacional ? v.filial : (v.supervisor || 'sem supervisor')); x.dig += v.dig; x.ped += v.ped; x.devHoje += v.devHoje; if (v.varejo && v.visP > 0) { x.varejo++; if (v.vendeuHoje) x.vendeu++; } }
   if (E.nacional) for (const f of E.filiais) { const m = E.porFilial[f].macro; const x = g(f); x.dig = m.dig; x.ped = m.pedidos; x.devHoje = m.devHoje; }
   const T = Object.values(G).reduce((a, x) => { for (const k in x) a[k] = (a[k] || 0) + x[k]; return a; }, {});
-  if (!E.grupo && !E.nacional) { T.dig = E.macro.dig; T.ped = E.macro.pedidos; T.devHoje = E.macro.devHoje; }
+  if (!E.grupo && !E.supervisor && !E.nacional) { T.dig = E.macro.dig; T.ped = E.macro.pedidos; T.devHoje = E.macro.devHoje; }
   return { G, T, semPedidos: !pd, semLances: !lc };
 }
 async function respOperacao(B, E, t) {
@@ -532,7 +533,7 @@ function respDevolucao(E) {
 async function respLances(B, E, t) {
   const lc = await B.lances(); if (!lc) return 'Não consegui ler os lances de hoje agora.';
   const rcas = new Set(E.vend.map((v) => v.filial + '|' + v.rca));
-  let L = (lc.lances || []).filter((l) => E.filiais.includes(l.filial) && (!E.grupo || rcas.has(l.filial + '|' + l.rca)));
+  let L = (lc.lances || []).filter((l) => E.filiais.includes(l.filial) && (!(E.grupo || E.supervisor) || rcas.has(l.filial + '|' + l.rca)));
   const tipos = [['PENALTI', 'penalti'], ['IMPEDIMENTO', 'impedimento'], ['VERMELHO', 'vermelho'], ['AMARELO', 'amarelo'], ['CARTAO', 'vermelho|amarelo'], ['GOL CONTRA', 'golcontra'], ['HAT', 'hattrick'], ['DEFESA', 'defesa'], ['GOL', 'gol']];
   const tp = tipos.find(([k]) => t.includes(k));
   const cont = {}; for (const l of L) cont[l.nivel] = (cont[l.nivel] || 0) + 1;
@@ -557,14 +558,14 @@ async function respLiga(B, E, alvo) {
   const fil = E.filiais[0]; const lf = (lg.filiais || []).find((x) => x.sigla === fil);
   const sups = new Set(E.vend.map((v) => v.supervisor));
   return [`🏆 *Champions Triunfante — ${E.nome}*`, lf ? `Filial: *${lf.pos}º de 11*, ${lf.pts_tabela} pts (${lf.vitorias}V ${lf.empates}E ${lf.derrotas}D)` : 'Filial: sem dado',
-    '*Supervisores:*', ...(lg.supervisores || []).filter((x) => x.filial === fil && (!E.grupo || sups.has(x.supervisor))).sort((a, b) => a.pos - b.pos).slice(0, 10).map((x) => `${x.pos}º ${nome2(x.supervisor)} — ${x.pts_tabela} pts`),
-    '*Top vendedores da filial:*', ...(lg.vendedores || []).filter((v) => v.filial === fil && (!E.grupo || E.vend.some((y) => y.rca === String(v.rca)))).sort((a, b) => a.pos_filial - b.pos_filial).slice(0, 5).map((v) => `${v.pos_filial}º ${nome2(v.nome)} — ${v.pts_tabela} pts (${v.pos_brasil}º Brasil)`),
+    '*Supervisores:*', ...(lg.supervisores || []).filter((x) => x.filial === fil && (!(E.grupo || E.supervisor) || sups.has(x.supervisor))).sort((a, b) => a.pos - b.pos).slice(0, 10).map((x) => `${x.pos}º ${nome2(x.supervisor)} — ${x.pts_tabela} pts`),
+    '*Top vendedores da filial:*', ...(lg.vendedores || []).filter((v) => v.filial === fil && (!(E.grupo || E.supervisor) || E.vend.some((y) => y.rca === String(v.rca)))).sort((a, b) => a.pos_filial - b.pos_filial).slice(0, 5).map((v) => `${v.pos_filial}º ${nome2(v.nome)} — ${v.pts_tabela} pts (${v.pos_brasil}º Brasil)`),
     '', '_Ranking completo: ceven-cftv-matrix.pages.dev/championstriunfante_'].join('\n');
 }
 async function respCompromisso(B, E) {
   const R = await Promise.all(E.filiais.map((f) => B.sups(f).then((j) => ({ f, S: (j && j.supervisores) || null }))));
   const sups = new Set(E.vend.map((v) => v.filial + '|' + v.supervisor));
-  const all = R.flatMap(({ f, S }) => (S || []).filter((x) => !/^GERENTE/i.test(x.nome) && (!E.grupo || sups.has(f + '|' + x.nome))).map((x) => ({ ...x, filial: f })));
+  const all = R.flatMap(({ f, S }) => (S || []).filter((x) => !/^GERENTE/i.test(x.nome) && (!(E.grupo || E.supervisor) || sups.has(f + '|' + x.nome))).map((x) => ({ ...x, filial: f })));
   if (!all.length) return `Não consegui ler o compromisso dos supervisores de ${E.nome} agora.`;
   const semC = all.filter((x) => !x.fez_compromisso), semR = all.filter((x) => !x.iniciou_ret);
   const nm = (x) => nome2(x.nome) + (E.nacional ? ' ' + x.filial : '');
@@ -580,7 +581,7 @@ async function respCompromisso(B, E) {
 async function respMix(B, E, t) {
   const mx = await B.mix(); if (!mx) return 'Não consegui ler o +MIX agora.';
   const rcas = new Set(E.vend.map((v) => v.filial + '|' + v.rca));
-  const V = (mx.vendedores || []).filter((x) => E.filiais.includes(x.filial) && (!E.grupo || rcas.has(x.filial + '|' + x.rca)));
+  const V = (mx.vendedores || []).filter((x) => E.filiais.includes(x.filial) && (!(E.grupo || E.supervisor) || rcas.has(x.filial + '|' + x.rca)));
   // produto: "quem compra X", "produto X"
   const m = t.match(/(?:PRODUTO|QUEM COMPRA|QUEM VENDE|VENDE MAIS|SKU)\s+(?:O |A |DE |DO |DA )?([A-Z0-9 ]{3,})/);
   if (m) {
@@ -650,7 +651,7 @@ function achaPessoa(E, t) {
 
 async function respostaPronta(B, c, texto, anteriores) {
   const fm = sem(texto).match(FRX);
-  const outra = c.papel === 'gerente' && c.filial && fm && fm[1] !== c.filial ? `_Você vê só ${c.filial}${c.grupo ? ' · ' + titulo(c.grupo) : ''}; outras filiais são com a diretoria._\n\n` : '';
+  const outra = (c.papel === 'gerente' || c.papel === 'supervisor') && c.filial && fm && fm[1] !== c.filial ? `_Você vê só ${c.filial}${c.grupo ? ' · ' + titulo(c.grupo) : ''}; outras filiais são com a diretoria._\n\n` : '';
   const r = await respostaInterna(B, c, texto, anteriores);
   return r && outra + r;
 }
@@ -658,9 +659,11 @@ async function respostaInterna(B, c, texto, anteriores) {
   const t = sem(texto);
   // escopo: gerente = a filial dele; diretoria = a filial citada, senao o Brasil
   const fm = t.match(FRX);
-  const fil = c.papel === 'gerente' && c.filial ? c.filial : fm ? fm[1] : null;
-  const grupo = c.papel === 'gerente' && c.filial ? c.grupo || null : null;
-  const esc = fil ? { nome: fil + (grupo ? ' · ' + titulo(grupo) : ''), filiais: [fil], grupo, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
+  const preso = (c.papel === 'gerente' || c.papel === 'supervisor') && c.filial;
+  const fil = preso ? c.filial : fm ? fm[1] : null;
+  const grupo = preso ? c.grupo || null : null;
+  const supervisor = c.papel === 'supervisor' ? c.supervisor || c.nome : null;
+  const esc = fil ? { nome: supervisor ? 'Equipe ' + nome2(supervisor) + ' (' + fil + ')' : fil + (grupo ? ' · ' + titulo(grupo) : ''), filiais: [fil], grupo: supervisor ? null : grupo, supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
   if (/^(OI|OLA|E AI|AJUDA|MENU|INICIO|COMECAR|BOM DIA|BOA TARDE|BOA NOITE)\b[ !?.]*$|O QUE (VOCE|VC) (SABE|FAZ|RESPONDE)|^AJUDA/.test(t)) return respAjuda(c);
   if (/O QUE (E|EH|SIGNIFICA)|COMO FUNCIONA|COMO (E|EH) CALCULAD|QUE QUER DIZER|DEFINICAO/.test(t)) { const g = respGlossario(t); if (g) return g; }
   if (/DIVERGENC/.test(t) && c.papel === 'diretoria') return respDivergencias(B);
@@ -712,6 +715,28 @@ RESUMO: ${base.slice(0, 6000)}`;
   try { const r = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', { messages: [{ role: 'system', content: sys }, ...historico, { role: 'user', content: texto }], max_tokens: 600 }); const s = String((r && (r.response || r.result)) || '').trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, ''); return s || null; } catch (e) { return null; }
 }
 
+// CADASTRO AUTOMATICO DE SUPERVISOR (Vitorio, 25/10/2026: "vai achar um padrao: o nome e no final o codigo deles, ex.: Washington COD 100").
+// Regra: o numero do codigo tem que existir na arvore do CEVEN (arvore_supervisores.sup_id) E o primeiro nome do supervisor tem que aparecer na mensagem
+// (ou no nome do WhatsApp). Senao, nada acontece (numero desconhecido continua sem resposta). Gerente e diretoria so por cadastro manual.
+async function cadastraPorCodigo(env, cel, texto, pushName) {
+  try {
+    const t = sem(texto + ' ' + (pushName || ''));
+    const m = t.match(/\bCOD(?:IGO)?\.?\s*[-:]?\s*(\d{1,4})\b/) || t.match(/\b(?:COORDENADOR|SUPERVISOR|SUP)\.?\s*[-:]?\s*(\d{1,4})\b/) || String(texto).trim().match(/^(\d{1,4})$/);
+    if (!m) return null;
+    const { results } = await env.DB.prepare('SELECT DISTINCT filial, sup_id, sup_nome FROM arvore_supervisores WHERE sup_id = ?').bind(m[1]).all();
+    // "23" sozinho numa mensagem: vale se a mensagem anterior do mesmo numero trouxe o nome
+    let nomes = t;
+    if (/^\d{1,4}$/.test(String(texto).trim())) { const ant = await env.DB.prepare("SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'in' ORDER BY id DESC LIMIT 3").bind(cel).all(); nomes += ' ' + sem((ant.results || []).map((x) => x.texto).join(' ')); }
+    const ok = (results || []).find((r) => { const p = sem(r.sup_nome).replace(/^CLT\s*-?\s*/, '').split(/\s+/); return p[0] && nomes.includes(p[0]) && (p.length < 2 || p.slice(1).some((w) => w.length > 2 && nomes.includes(w))); });
+    if (!ok) return null;
+    const nome = String(ok.sup_nome).replace(/^CLT\s*-?\s*/i, '').trim();
+    let grupo = null;
+    try { const mo = await (await fetch('https://ceven-cftv-matrix.pages.dev/api/tv-mostra', { signal: AbortSignal.timeout(10000) })).json(); for (const [k, L] of Object.entries(mo.filiais || {})) for (const v of L) if (k.split('_')[0] === ok.filial && sem(v.supervisor) === sem(nome) && v.grupo) grupo = v.grupo; } catch (e) {}
+    await env.DB.prepare('INSERT INTO bot_contatos (celular, nome, papel, filial, grupo, supervisor, ativo) VALUES (?,?,?,?,?,?,1) ON CONFLICT(celular) DO UPDATE SET nome=excluded.nome, papel=excluded.papel, filial=excluded.filial, grupo=excluded.grupo, supervisor=excluded.supervisor, ativo=1')
+      .bind(cel, nome, 'supervisor', ok.filial, grupo, nome).run();
+    return { nome, filial: ok.filial, cod: ok.sup_id };
+  } catch (e) { return null; }
+}
 export async function onRequestPost({ request, env }) {
   const u = new URL(request.url);
   if (!env.BOT_WEBHOOK_KEY || u.searchParams.get('k') !== env.BOT_WEBHOOK_KEY) return new Response('nao autorizado', { status: 401 });
@@ -719,16 +744,28 @@ export async function onRequestPost({ request, env }) {
   const d = ev && ev.data;
   if (!d || !d.key || d.key.fromMe) return new Response('ok');
   const jid = String(d.key.remoteJid || '');
-  if (!jid.endsWith('@s.whatsapp.net')) return new Response('ok');   // grupo, status, broadcast: ignora
+  // 25/10/2026: mensagens chegam tambem como "@lid" (identificador anonimo do WhatsApp). Antes eram DESCARTADAS sem gravar (supervisores que escreveram ficaram sem resposta).
+  // O telefone real vem em key.senderPn / key.remoteJidAlt (Evolution v2). Grupo, status e canal continuam ignorados.
+  if (!/@(s\.whatsapp\.net|lid)$/.test(jid)) return new Response('ok');
+  const jidTel = jid.endsWith('@lid') ? String(d.key.senderPn || d.key.remoteJidAlt || d.key.participantPn || '') : jid;
+  const destino = jidTel ? jidTel.split('@')[0] : jid;   /* para responder: telefone, ou o proprio @lid se o telefone nao vier */
   const texto = String((d.message && (d.message.conversation || (d.message.extendedTextMessage && d.message.extendedTextMessage.text))) || '').trim();
   if (!texto) return new Response('ok');
   const seco = u.searchParams.get('seco') === '1';
-  const cel = so(seco && u.searchParams.get('como') ? u.searchParams.get('como') : jid.split('@')[0]);
+  const cel = so(seco && u.searchParams.get('como') ? u.searchParams.get('como') : (jidTel || jid).split('@')[0]);
   await tabelas(env.DB);
   const vs = variantes(cel);
   const c = await env.DB.prepare(`SELECT * FROM bot_contatos WHERE ativo = 1 AND celular IN (${vs.map(() => '?').join(',')}) LIMIT 1`).bind(...vs).first();
   if (!seco) await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, msg_id) VALUES (?,?,?,?,?)').bind(cel, c ? c.nome : null, 'in', texto.slice(0, 2000), d.key.id || null).run();
-  if (!c) return new Response('ok');   // so responde quem esta cadastrado
+  if (!c) {   // so responde quem esta cadastrado — EXCETO o supervisor que se apresenta com "Nome ... COD 123" (codigo da arvore do CEVEN e nome batendo)
+    const novo = await cadastraPorCodigo(env, cel, texto, d.pushName);
+    if (!novo) return new Response('ok');
+    const boas = `Fala, ${titulo(String(novo.nome).split(' ')[0])}! Eu sou o *Jota* ⚽, o assistente do Comercial da Triunfante.\nTe reconheci como supervisor *${titulo(novo.nome)}* (${novo.filial}, COD ${novo.cod}). Você vê a sua equipe.\n\nExperimenta: "como está minha equipe?", "zerados", "faltam visitar", "vendedor Nome", "liga".\n\n_Meu DNA é Triunfante!_`;
+    if (seco) return new Response(boas, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+    const e0 = await enviar(env, destino, boas);
+    await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, novo.nome, e0.ok ? 'out' : 'erro', boas).run();
+    return new Response('ok');
+  }
   const B = criaBase(u.origin, env);
   let resp = null;
   const { results: hist } = await env.DB.prepare("SELECT direcao, texto FROM bot_msgs WHERE celular = ? AND direcao IN ('in','out') AND quando >= datetime('now','-6 hours') ORDER BY id DESC LIMIT 7").bind(cel).all();
@@ -741,7 +778,7 @@ export async function onRequestPost({ request, env }) {
   }
   if (!resp) resp = respAjuda(c);
   if (seco) return new Response(resp, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
-  const e = await enviar(env, cel, resp);
+  const e = await enviar(env, destino, resp);
   await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, e.ok ? 'out' : 'erro', resp.slice(0, 2000)).run();
   return new Response('ok');
 }
