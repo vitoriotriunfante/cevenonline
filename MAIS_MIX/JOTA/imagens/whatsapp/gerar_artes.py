@@ -129,3 +129,37 @@ dr.rounded_rectangle([x0, 572, x0 + 500, 628], 28, outline=OURO, width=3)
 dr.text((x0 + 24, 578), 'Meu DNA é Triunfante!', font=fonte(ITAL, 35), fill=OURO)
 cap.convert('RGB').save(os.path.join(OUT, 'jota_capa_whatsapp_faixa_1920x690.png'), quality=95)
 print('faixa ok')
+
+# ---------------- CAPA 16:9 (o WhatsApp corta a capa em 16:9 e mostra no perfil so a faixa do meio) (proporcao que o WhatsApp Business mostra: ~2,8:1) ----------------
+W, H = 1920, 1080
+OY = 195
+cap = gradiente(W, H, NAVY, AZUL).convert('RGBA'); camada = Image.new('RGBA', (W, H), (0, 0, 0, 0)); dc = ImageDraw.Draw(camada)
+dc.line([(0, 640 + OY + 120), (430, 470 + OY), (600, 560 + OY), (1840, 70 + OY - 120)], fill=(255, 255, 255, 18), width=34, joint='curve')
+for i, x in enumerate([1720, 1785, 1850]): dc.rounded_rectangle([x, 660 + OY - 70 * (i + 1), x + 40, 660 + OY], 9, fill=(255, 255, 255, 14))
+cap.alpha_composite(camada); dr = ImageDraw.Draw(cap)
+def estrela2(cx, cy, r, cor):
+    p = []
+    for k in range(10):
+        ang = -math.pi / 2 + k * math.pi / 5; rr = r if k % 2 == 0 else r * 0.45
+        p.append((cx + rr * math.cos(ang), cy + rr * math.sin(ang)))
+    dr.polygon(p, fill=cor)
+estrela2(1865, 60 + OY, 26, OURO)
+jp = corta(Image.open(os.path.join(D, 'apoio_apontar.png')).convert('RGBA'))
+alt = 1130; jp = jp.resize((int(jp.width * alt / jp.height), alt), Image.LANCZOS)
+sj = sombra(jp, 16, 110, (8, 10)); cap.alpha_composite(sj, (150, 40 + OY - 20))   # JOTA ate a cintura (o resto sai da faixa)
+x0 = 960
+dr.text((x0, 70 + OY), 'Eu sou o', font=fonte(BOLD, 40), fill=CINZA)
+dr.text((x0, 108 + OY), 'JOTA', font=fonte(BLACK, 108), fill=BRANCO)
+wj = dr.textlength('JOTA', font=fonte(BLACK, 108))
+dr.rounded_rectangle([x0 + wj + 30, 150 + OY, x0 + wj + 30 + 540, 214 + OY], 18, fill=VERM)
+dr.text((x0 + wj + 52, 156 + OY), 'assistente do Comercial', font=fonte(BOLD, 40), fill=BRANCO)
+itens = [('Meta e positivação', 'do grupo ao vendedor, na hora'), ('Rota, visitas e zerados', 'cliente por cliente'), ('+MIX e produtos', 'quem comprou, quem parou'), ('Liga Champions', 'lances, pontos e ranking')]
+for i, (a, b) in enumerate(itens):
+    cx = x0 + (i % 2) * 480; cy = 268 + OY + (i // 2) * 118
+    dr.ellipse([cx, cy + 4, cx + 40, cy + 44], fill=OURO); n = str(i + 1); fn = fonte(BLACK, 25); dr.text((cx + 20 - dr.textlength(n, font=fn) / 2, cy + 7), n, font=fn, fill=NAVY)
+    dr.text((cx + 56, cy - 2), a, font=fonte(BOLD, 33), fill=BRANCO); dr.text((cx + 56, cy + 42), b, font=fonte(REG, 27), fill=CINZA)
+dr.text((x0, 518 + OY), 'É só perguntar do seu jeito, aqui no WhatsApp.', font=fonte(REG, 31), fill=CINZA)
+dr.rounded_rectangle([x0, 572 + OY, x0 + 500, 628 + OY], 28, outline=OURO, width=3)
+dr.text((x0 + 24, 578 + OY), 'Meu DNA é Triunfante!', font=fonte(ITAL, 35), fill=OURO)
+cap.convert('RGB').save(os.path.join(OUT, 'jota_capa_whatsapp_16x9_1920x1080.png'), quality=95)
+print('16x9 ok')
