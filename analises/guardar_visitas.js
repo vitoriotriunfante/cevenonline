@@ -76,6 +76,18 @@ async function main() {
   const resumo = db.prepare('SELECT COUNT(*) n, COUNT(DISTINCT dia) d, SUM(motivo IS NOT NULL) m FROM visitas').get();
   console.log(`✅ gravadas nesta rodada: ${total} (${comMotivo} com justificativa). Banco: ${resumo.n} visitas, ${resumo.d} dias, ${resumo.m} com justificativa.`);
   if (semDado.length) console.log(`⚠️ sem dado (não inventado, fica de fora): ${semDado.join(', ')}`);
+  // RESUMO PARA O JOTA (25/10/2026, reunião: "quais os motivos de não venda no mês?"): por filial, contagem motivo x vendedor x dia do mês
+  // corrente e do anterior. SEM nome/CNPJ de cliente (pode ir ao GitHub). Formato: { mes, de, ate, l: [[dia AAAAMMDD, rca, motivo, n]] }
+  const fs = require('fs');
+  const pasta = path.join(__dirname, '..', 'public', 'justificativas'); fs.mkdirSync(pasta, { recursive: true });
+  const iniMesAnt = (() => { const [a, m] = hoje.split('-').map(Number); return `${m === 1 ? a - 1 : a}-${String(m === 1 ? 12 : m - 1).padStart(2, '0')}-01`; })();
+  for (const fil of FILIAIS) {
+    const rows = db.prepare(`SELECT dia, rca, motivo, COUNT(*) n FROM visitas WHERE filial = ? AND dia >= ? AND motivo IS NOT NULL GROUP BY dia, rca, motivo ORDER BY dia`).all(fil, iniMesAnt);
+    const tot = db.prepare(`SELECT dia, rca, COUNT(*) n, SUM(status LIKE 'POSITIV%' OR status LIKE 'EFETIV%') pos FROM visitas WHERE filial = ? AND dia >= ? GROUP BY dia, rca`).all(fil, iniMesAnt);
+    fs.writeFileSync(path.join(pasta, fil + '.json'), JSON.stringify({ filial: fil, gerado_em: agora, de: iniMesAnt, ate: hoje,
+      l: rows.map((r) => [Number(r.dia.replace(/-/g, '')), r.rca, r.motivo, r.n]), rota: tot.map((r) => [Number(r.dia.replace(/-/g, '')), r.rca, r.n, r.pos || 0]) }));
+  }
+  console.log(`📤 resumo de justificativas (sem dado de cliente) em public/justificativas/ (${FILIAIS.length} filiais)`);
   db.close();
 }
 main().catch((e) => { console.error('ERRO:', e.message); process.exit(1); });

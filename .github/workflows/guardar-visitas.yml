@@ -24,6 +24,8 @@ jobs:
   visitas:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -56,3 +58,16 @@ jobs:
         run: node analises/guardar_visitas.js ${{ github.event.inputs.desde }}
       - name: Subir o histórico para o Drive
         run: rclone copy analises/historico_visitas.db gdrive:/
+      - name: Publicar o resumo de justificativas (sem dado de cliente) para o JOTA
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/justificativas
+          if git diff --cached --quiet; then echo "Resumo sem mudança."; exit 0; fi
+          git commit -m "chore: resumo de justificativas de visita [skip ci]"
+          for i in 1 2 3 4 5; do
+            if git push; then exit 0; fi
+            git fetch origin main && git rebase -X theirs origin/main || git rebase --abort
+            sleep $((i * 5))
+          done
+          exit 1
