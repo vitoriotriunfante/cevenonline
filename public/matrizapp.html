@@ -507,8 +507,13 @@ const ehPromotor = r => /^(PROMOTOR|PROMO|P)$/.test(String((r && r.vinculo) || '
 const reps = sig => listaFil(sig).filter(r => !EXCLUI.includes((r.canal || '').toUpperCase()) && !ehPromotor(r)).map(r => ({id: String(r.rca), nome: limpaNome(r.nome), canal: (r.canal || '').toUpperCase(), sup: limpaNome(r.supervisor), grupo: r.grupo || '', carteira: String(r.carteira || '').toUpperCase(), rep: ehRep(r)}));
 async function atualizaFilial(sig) {
   DATA[sig] = DATA[sig] || {};
-  const fila = [...reps(sig)];
-  await Promise.all(Array.from({length: 6}, async () => { while (fila.length) { const r = fila.shift(); const d = await j(`/api/tv-vendedor?filial=${sig}&id=${r.id}&central=1${['AS', 'PET AS'].includes((r.canal || '').toUpperCase()) ? '&canal=AS' : ''}`);
+  // LOTE (25/10/2026, custo Cloudflare): 1 requisição para até 25 vendedores em vez de 1 por vendedor. Quem o lote não trouxer, vai um a um como antes.
+  const ehAS = r => ['AS', 'PET AS'].includes((r.canal || '').toUpperCase());
+  const todos = reps(sig), blocos = [], doLote = {};
+  for (let i = 0; i < todos.length; i += 25) blocos.push(todos.slice(i, i + 25));
+  await Promise.all(blocos.map(async (b) => { const L = await j(`/api/tv-vendedores?filial=${sig}&central=1&ids=${b.map(r => r.id + (ehAS(r) ? ':AS' : '')).join(',')}`, 60000); if (L && L.vendedores) Object.assign(doLote, L.vendedores); }));
+  const fila = [...todos];
+  await Promise.all(Array.from({length: 6}, async () => { while (fila.length) { const r = fila.shift(); const d = doLote[r.id] || await j(`/api/tv-vendedor?filial=${sig}&id=${r.id}&central=1${ehAS(r) ? '&canal=AS' : ''}`);
     if (d && !d.erro && !(d.falhas && d.falhas.length === 3)) {
       if (!d.falhas || !d.falhas.length || !DATA[sig][r.id]) {
         // Preserva o maior dig_hoje já registrado para nunca perder pedido por oscilação momentânea
@@ -877,6 +882,7 @@ const BOLA_AVISADA = new Set();
 async function checaBolaCheia() {
   try {
     if (sp().h < 18) return;
+    if (store.get('bolacheia_' + HOJE0 + '_MTZ', false)) return;   /* ja mostrou hoje: nao consulta mais (custo, 25/10/2026) */
     const d = await j('/api/bola-cheia?dia=' + HOJE0, 15000); if (!d || d.erro || d.pendente) return;
     const lista = d.vencedores || []; if (!lista.length) return;
     const k = 'bolacheia_' + HOJE0 + '_MTZ'; if (BOLA_AVISADA.has(k) || store.get(k, false)) return; BOLA_AVISADA.add(k); store.set(k, true);
@@ -889,6 +895,7 @@ setInterval(checaBolaCheia, 60 * 1000); setTimeout(checaBolaCheia, 8000);
 async function checaBolaCheiaAS() {
   try {
     if (sp().h < 18) return;
+    if (store.get('bolacheiaas_' + HOJE0 + '_MTZ', false)) return;
     const d = await j('/api/bola-cheia?dia=' + HOJE0, 15000); if (!d || d.erro || !d.as || !d.as.existe || d.as.pendente) return;
     const lista = d.as.vencedores || []; if (!lista.length) return;
     const k = 'bolacheiaas_' + HOJE0 + '_MTZ'; if (BOLA_AVISADA.has(k) || store.get(k, false)) return; BOLA_AVISADA.add(k); store.set(k, true);
@@ -2077,6 +2084,6 @@ async function checaVersaoMatriz() {
     else if (!versaoMatriz) versaoMatriz = d.version;
   }
 }
-setInterval(checaVersaoMatriz, 30000); checaVersaoMatriz();
+setInterval(checaVersaoMatriz, 60000); checaVersaoMatriz();
 setInterval(() => { if (recarregarMatriz && !emVAR && !FILA.length) location.reload(); }, 2000);
 </script></body></html>

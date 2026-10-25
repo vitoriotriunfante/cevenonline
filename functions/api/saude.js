@@ -8,6 +8,7 @@
 // =========================================================================
 import { CEVEN_HDR } from '../_lib/ceven_auth.js';
 import { calculaResumoMes } from '../_lib/resumo_base.js';
+import { foraDoHorario } from '../_lib/horario_reduzido.js';
 
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
@@ -32,7 +33,7 @@ export async function onRequestGet({ env, request }) {
   const origin = new URL(request.url).origin;
   const dia = hojeSP(), agora = Date.now(), hm = horaSP();
   const diaUtil = ![0, 6].includes(new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' })).getDay());
-  const horarioComercial = hm >= '06:00' && hm <= '21:00';
+  const horarioComercial = !foraDoHorario();   /* mesma regra dos crons (25/10/2026): fora das 06h-21h e domingo a coleta roda a cada 30 min; nao alarma */
   const problemas = [];
   const add = (nivel, bloco, texto) => problemas.push({ nivel, bloco, texto });
 

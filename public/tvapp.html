@@ -614,15 +614,25 @@ async function atualiza() {
   if (refreshing) return; refreshing = true;
   try {
     if (!REPS.length && !(await carregaReps())) { $('upd').textContent = 'sem lista de vendedores'; $('upd').className = 'upd old'; return; }
-    const fila = [...REPS]; let ok = 0;
+    let ok = 0;
+    const usa = (r, d) => {
+      if (d && !d.erro && !(d.falhas && d.falhas.length === 3)) {
+        if (!d.falhas || !d.falhas.length || !DATA[r.id]) DATA[r.id] = d; // leitura parcial só entra se não houver anterior
+        ok++;
+      }
+    };
+    // LOTE (25/10/2026, custo Cloudflare): 1 requisição para até 25 vendedores em vez de 1 por vendedor. Quem o lote não trouxer, vai um a um como antes.
+    const ehAS = r => ['AS', 'PET AS'].includes((r.canal || '').toUpperCase());
+    const blocos = []; for (let i = 0; i < REPS.length; i += 25) blocos.push(REPS.slice(i, i + 25));
+    const sobra = [];
+    await Promise.all(blocos.map(async (b) => {
+      const L = await j(`/api/tv-vendedores?filial=${FIL}&central=1&ids=${b.map(r => r.id + (ehAS(r) ? ':AS' : '')).join(',')}`, 60000);
+      for (const r of b) { const d = L && L.vendedores ? L.vendedores[r.id] : null; if (d) usa(r, d); else sobra.push(r); }
+    }));
     await Promise.all(Array.from({length: 6}, async () => {
-      while (fila.length) {
-        const r = fila.shift();
-        const d = await j(`/api/tv-vendedor?filial=${FIL}&id=${r.id}&central=1${['AS', 'PET AS'].includes((r.canal || '').toUpperCase()) ? '&canal=AS' : ''}`);
-        if (d && !d.erro && !(d.falhas && d.falhas.length === 3)) {
-          if (!d.falhas || !d.falhas.length || !DATA[r.id]) DATA[r.id] = d; // leitura parcial só entra se não houver anterior
-          ok++;
-        }
+      while (sobra.length) {
+        const r = sobra.shift();
+        usa(r, await j(`/api/tv-vendedor?filial=${FIL}&id=${r.id}&central=1${ehAS(r) ? '&canal=AS' : ''}`));
       }
     }));
     if (ok > 0) {
@@ -940,6 +950,7 @@ const BOLA_AVISADA = new Set();
 async function checaBolaCheia() {
   try {
     if (sp().h < 18) return;
+    if (store.get('bolacheia_' + HOJE0 + '_' + FIL, false)) return;   /* ja mostrou hoje: nao consulta mais (custo, 25/10/2026) */
     const d = await j('/api/bola-cheia?dia=' + HOJE0, 15000); if (!d || d.erro || d.pendente) return;
     const v = (d.vencedores || []).find((x) => x.filial === FIL); if (!v) return;
     const k = 'bolacheia_' + HOJE0 + '_' + FIL; if (BOLA_AVISADA.has(k) || store.get(k, false)) return; BOLA_AVISADA.add(k); store.set(k, true);
@@ -952,6 +963,7 @@ setInterval(checaBolaCheia, 60 * 1000); setTimeout(checaBolaCheia, 8000);
 async function checaBolaCheiaAS() {
   try {
     if (sp().h < 18) return;
+    if (store.get('bolacheiaas_' + HOJE0 + '_' + FIL, false)) return;
     const d = await j('/api/bola-cheia?dia=' + HOJE0, 15000); if (!d || d.erro || !d.as || !d.as.existe || d.as.pendente) return;
     const v = (d.as.vencedores || []).find((x) => x.filial === FIL); if (!v) return;
     const k = 'bolacheiaas_' + HOJE0 + '_' + FIL; if (BOLA_AVISADA.has(k) || store.get(k, false)) return; BOLA_AVISADA.add(k); store.set(k, true);
@@ -2030,7 +2042,7 @@ if (!VALID.includes(FIL)) {
   carregaMetas(); setInterval(carregaMetas, 30 * 60 * 1000);
   setInterval(async () => { if (await carregaReps()) render(); }, 10 * 60 * 1000);
   carregaLancesServidor(); setInterval(carregaLancesServidor, 5 * 60 * 1000);
-  atualiza(); setInterval(atualiza, CICLO_S * 1000); setInterval(checaVersao, 30000); checaVersao();
+  atualiza(); setInterval(atualiza, CICLO_S * 1000); setInterval(checaVersao, 60000); checaVersao();
   window.__tv = {ocupado: () => emVAR || FILA.length > 0, DATA, get ALERTAS() { return ALERTAS; }, get LOG() { return LOG; }, get SNAP() { return SNAP; }, VS, calcAlertas, revisar, exportar, rankingPenaltis, ESPERA, animTeste};
 }
 </script></body></html>

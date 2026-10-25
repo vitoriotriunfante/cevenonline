@@ -244,6 +244,7 @@ async function respFalta(B, E) {
 async function respRecorrencia(B, E) {
   const x = await B.exec(); if (!x || !x.recorrencia) return 'Não consegui ler a recorrência agora.';
   const k = E.nacional ? 'TODAS' : E.filiais[0]; const r = x.recorrencia[k] || {}, s = (x.resumo || {})[k] || {};
+  if (r.naRota == null) return `⭐ *Recorrência e resgates — ${E.nacional ? 'Brasil' : k}*: sem dado hoje. Esse número vinha da TV Executiva, desligada em 25/10/2026 (custo da Cloudflare).`;
   const L = [`⭐ *Recorrência e resgates — ${E.nacional ? 'Brasil' : k}* (hoje)`, `Clientes com tag RECORRÊNCIA na rota: *${N(r.naRota)}* · positivados: *${N(r.positivados)}* (${P(r.positivados || 0, r.naRota)})`, `Resgatados hoje (parados >30 dias que compraram): *${N(s.resgatadosHoje)}*`];
   if (E.nacional) for (const f of FILIAIS) { const a = x.recorrencia[f] || {}; L.push(`• ${f}: ${N(a.positivados)}/${N(a.naRota)} recorrência · ${N((x.resumo[f] || {}).resgatadosHoje)} resgate(s)`); }
   if (E.grupo) L.push('_Visão da filial inteira (a TV Executiva não separa por gerente)._');
