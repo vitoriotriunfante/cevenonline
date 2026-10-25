@@ -33,7 +33,7 @@ As 12 tabelas antigas (todas vazias ou paradas em 08/09) podem sair depois dos e
 | auditoria_mix.py | auditoria do +MIX contra o plano (22/10) | sim (sob demanda) | manter |
 | estudo_mix_antes_depois.py / _completo / _profundo | estudos de correlação +MIX x venda (20–21/10) | sim (sob demanda) | manter |
 | exportar_mix_falhas.py, verificar_mix_acertos.py, mix_listas_vazias.py | provas para o time de dados do CEVEN | sim (sob demanda) | manter |
-| **coletar_justificativas_visitas.js** | acumula o motivo de "visitou e não vendeu" (pedido de 23/09) | **NÃO: só no PC** | **dívida da premissa online**: ligar num workflow ou o dado se perde |
+| **coletar_justificativas_visitas.js** | acumula o motivo de "visitou e não vendeu" (pedido de 23/09) | ✅ **resolvido 25/10**: substituído por `analises/guardar_visitas.js` + workflow `guardar-visitas.yml` (22h, lê a rota já gravada no D1, grava `historico_visitas.db` no Drive). Recuperado desde 29/09: 91.724 visitas, 43.924 com justificativa | pode sair |
 | gerar_auditoria_mensagens.js | gera todas as mensagens do dia sem enviar (auditoria) | não (manual) | manter; é ferramenta de conferência do Projeto B |
 | amostrar_cnae_nacional.js | amostra de prospecção por CNAE (22/09) | não | pode sair (estudo feito) |
 | aplicar_vinculo_representantes.js, incluir_novos_arvore_liga.js | cargas únicas na Gestão de Equipe (12–13/10) | não | podem sair (hoje é pela própria Gestão de Equipe) |
@@ -48,7 +48,7 @@ As 12 tabelas antigas (todas vazias ou paradas em 08/09) podem sair depois dos e
 - Lista arquivo por arquivo, com tipo e se foi achado no código: gerada na sessão (`scratch_aplicado.tsv`).
 
 ## 4. Manual e pacote do JOTA
-`MAIS_MIX/JOTA/OFICIAL - JOTA MANUAL DE USO .pptx` (9,3 MB) e `JOTA_pacote_v1.zip` (8,6 MB): decisão do Vitório, "deixa no Drive". **Não foram achados no Drive**: subir antes de tirar do git.
+`MAIS_MIX/JOTA/OFICIAL - JOTA MANUAL DE USO .pptx` (9,3 MB) e `JOTA_pacote_v1.zip` (8,6 MB): decisão do Vitório, "deixa no Drive". Vitório subiu no Drive (25/10); saíram do git (continuam na pasta local e no histórico).
 
 ## 5. LGPD — como está
 | Camada | Situação |
