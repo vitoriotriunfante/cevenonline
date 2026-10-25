@@ -15,8 +15,18 @@ export function foraDoHorario(d = new Date()) {
   return dow === 'Sun' || h < 6 || h >= 21;
 }
 // true = pode rodar agora. cadenciaMin = de quanto em quanto o cron é chamado (2, 5, 15): só a 1ª chamada de cada meia hora passa.
-export function rodaAgora(cadenciaMin, d = new Date()) {
-  if (!foraDoHorario(d)) return true;
+// freio = true quando o guarda de custo ligou o freio (projeção do mês > US$ 15): aí vale a cadência de 30 min o dia todo.
+export function rodaAgora(cadenciaMin, d = new Date(), freio = false) {
+  if (!freio && !foraDoHorario(d)) return true;
   const { h, m } = agoraBrasilia(d);
   return ((h * 60 + m) % 30) < cadenciaMin;
+}
+// FREIO DE CUSTO (25/10/2026): lido do D1 (config_custo, gravado por /api/custo-freio) no máximo 1 vez a cada 10 min por instância.
+let _freio = { v: false, em: 0 };
+export async function freioCusto(env) {
+  if (Date.now() - _freio.em < 10 * 60 * 1000) return _freio.v;
+  let v = false;
+  try { const r = await env.DB.prepare("SELECT valor FROM config_custo WHERE chave = 'freio'").first(); v = !!(r && JSON.parse(r.valor || '{}').ligado); } catch (e) { /* sem tabela = sem freio */ }
+  _freio = { v, em: Date.now() };
+  return v;
 }

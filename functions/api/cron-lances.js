@@ -105,7 +105,7 @@ import { qualificaGol, carteiraEfetiva } from '../_lib/qualificacao_gol.js';
 import { garanteArvore } from '../_lib/arvore_ceven.js';
 import { ehRepresentante } from '../_lib/participacao.js';   // representante nao e monitorado (12/10/2026)
 import { ehFeriado, ehFimDeSemana } from '../_lib/feriados.js';
-import { rodaAgora } from '../_lib/horario_reduzido.js';   // custo Cloudflare: fora do horario, 1 rodada a cada 30 min (25/10/2026)
+import { rodaAgora, freioCusto } from '../_lib/horario_reduzido.js';   // custo Cloudflare: fora do horario, 1 rodada a cada 30 min (25/10/2026)
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 // Prova do gol de cliente: pedido de hoje (numero, status, valor) e, na dobradinha, os pedidos reais de cada quinzena do mes
 function provaPedidoHoje(c) {
@@ -347,7 +347,7 @@ export async function onRequestGet({ env, request }) {
     return new Response(JSON.stringify({ status: 'FIM_DE_SEMANA_SEM_LANCE', dia: t.dia, hora: t.hms }), { headers: cors });
   }
   const forcar = new URL(request.url).searchParams.has('forcar');
-  if (!forcar && !rodaAgora(5)) return new Response(JSON.stringify({ status: 'FORA_DO_HORARIO', dia: t.dia, hora: t.hms }), { headers: cors });
+  if (!forcar && !rodaAgora(5, undefined, await freioCusto(env))) return new Response(JSON.stringify({ status: 'FORA_DO_HORARIO', dia: t.dia, hora: t.hms }), { headers: cors });
 
   // GANCHOS INTERNOS (so D1, idempotentes): rodam ANTES das travas de lock/cache. Antes ficavam no fim do coletor e nao rodavam quando a coleta
   // pulava (cache fresco porque as TVs gravam o tempo todo, ou WhatsApp ativo): a Bola Cheia das 18h de 07/10/2026 nao congelou por isso.

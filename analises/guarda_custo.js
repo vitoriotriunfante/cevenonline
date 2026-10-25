@@ -1,0 +1,98 @@
+/**
+ * FICHA DO ARQUIVO: analises/guarda_custo.js — GUARDA DE CUSTO DA CLOUDFLARE
+ * POR QUÊ: conta de US$ 170 em out/2026. Vitório, 25/10/2026: "aceito gastar até uns 20 dólares... no máximo do máximo do máximo".
+ *          A Cloudflare não tem teto de gasto (o billing notification só avisa), então o teto é nosso:
+ *   - lê o consumo REAL do mês (API de analytics, token só leitura CF_API_TOKEN) e projeta até o fim do mês;
+ *   - projeção > US$ 10 → WhatsApp para o Vitório com o que está pesando;
+ *   - projeção > US$ 15 → LIGA O FREIO (/api/custo-freio): as rotinas da TV rodam a cada 30 min o dia todo (como de madrugada);
+ *   - projeção < US$ 12 → solta o freio (no mês novo a projeção recomeça e ele solta sozinho).
+ * PREÇOS (Workers Paid, out/2026): US$ 5 fixos; requisições 10 mi inclusas + US$ 0,30/mi; D1 linhas lidas 25 bi + US$ 0,001/mi;
+ *   D1 linhas gravadas 50 mi + US$ 1,00/mi; D1 armazenamento 5 GB + US$ 0,75/GB. Mês = mês do calendário (aproximação do ciclo de cobrança).
+ * RODA: workflow guarda-custo.yml (08h e 20h de Brasília). Manual (--relatorio) sempre manda o relatório no WhatsApp.
+ */
+const R = require('../public/regras.js');
+
+const TOKEN = process.env.CF_API_TOKEN;
+const D1_ID = '6112e60c-3546-41dd-aae1-ef44958596b7';
+const SITE = process.env.SITE || 'https://ceven-cftv-matrix.pages.dev';
+const VITORIO = '5541987525605';
+const AVISO = 10, FREIO = 15, SOLTA = 12;
+const RELATORIO = process.argv.includes('--relatorio');
+
+const cf = async (caminho, opt = {}) => {
+  const r = await fetch('https://api.cloudflare.com/client/v4' + caminho, { ...opt, headers: { Authorization: 'Bearer ' + TOKEN, 'Content-Type': 'application/json', ...(opt.headers || {}) } });
+  const j = await r.json().catch(() => null);
+  if (!r.ok || (j && j.errors && j.errors.length)) throw new Error(`${caminho}: HTTP ${r.status} ${JSON.stringify(j && j.errors || j).slice(0, 300)}`);
+  return j;
+};
+const gql = async (query, variables) => {
+  const j = await cf('/graphql', { method: 'POST', body: JSON.stringify({ query, variables }) });
+  return j.data;
+};
+const mi = (n) => (n / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+const usd = (n) => 'US$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+async function main() {
+  if (!TOKEN) throw new Error('segredo CF_API_TOKEN ausente');
+  // conta: a que tem o banco do projeto
+  const contas = (await cf('/accounts?per_page=50')).result || [];
+  let conta = null, banco = null;
+  for (const c of contas) { try { banco = (await cf(`/accounts/${c.id}/d1/database/${D1_ID}`)).result; conta = c; break; } catch (e) { /* outra conta */ } }
+  if (!conta) throw new Error('nenhuma conta do token enxerga o banco do projeto (falta a permissão D1 Read?)');
+
+  const c = R.relogioSP();
+  const [ano, mes, dia] = c.dia.split('-').map(Number);
+  const ini = `${ano}-${String(mes).padStart(2, '0')}-01`;
+  const diasMes = new Date(Date.UTC(ano, mes, 0)).getUTCDate();
+  const decorrido = dia - 1 + (c.h * 60 + c.m) / 1440; // fração de dias já passados no mês
+  const fator = diasMes / Math.max(decorrido, 0.25);
+
+  const d = await gql(`query ($conta: string!, $ini: Date!, $fim: Date!) { viewer { accounts(filter: { accountTag: $conta }) {
+      d1: d1AnalyticsAdaptiveGroups(limit: 10000, filter: { date_geq: $ini, date_leq: $fim }) { sum { readQueries writeQueries rowsRead rowsWritten } }
+      w: workersInvocationsAdaptive(limit: 10000, filter: { date_geq: $ini, date_leq: $fim }) { sum { requests } }
+    } } }`, { conta: conta.id, ini, fim: c.dia });
+  const a = d.viewer.accounts[0] || {};
+  const soma = (lista, campo) => (lista || []).reduce((s, x) => s + Number((x.sum || {})[campo] || 0), 0);
+  const uso = { lidas: soma(a.d1, 'rowsRead'), gravadas: soma(a.d1, 'rowsWritten'), req: soma(a.w, 'requests'), gb: Number(banco.file_size || 0) / 1e9 };
+  const proj = { lidas: uso.lidas * fator, gravadas: uso.gravadas * fator, req: uso.req * fator, gb: uso.gb };
+  const extra = {
+    'requisições': Math.max(0, proj.req - 10e6) / 1e6 * 0.30,
+    'D1 linhas lidas': Math.max(0, proj.lidas - 25e9) / 1e6 * 0.001,
+    'D1 linhas gravadas': Math.max(0, proj.gravadas - 50e6) / 1e6 * 1.00,
+    'D1 armazenamento': Math.max(0, proj.gb - 5) * 0.75,
+  };
+  const total = 5 + Object.values(extra).reduce((s, x) => s + x, 0);
+  const pesa = Object.entries(extra).sort((x, y) => y[1] - x[1]).filter((x) => x[1] > 0);
+  const linhas = [
+    `💰 *Guarda de custo Cloudflare* — ${c.dia.split('-').reverse().join('/')} ${c.hm}`,
+    `Projeção do mês: *${usd(total)}* (teto: US$ 20 · aviso: US$ ${AVISO} · freio: US$ ${FREIO})`,
+    '',
+    `• Requisições: ${mi(uso.req)} mi até agora → ${mi(proj.req)} mi no mês (10 mi inclusas)`,
+    `• D1 linhas gravadas: ${mi(uso.gravadas)} mi → ${mi(proj.gravadas)} mi (50 mi inclusas)`,
+    `• D1 linhas lidas: ${mi(uso.lidas)} mi → ${mi(proj.lidas)} mi (25.000 mi inclusas)`,
+    `• D1 armazenamento: ${uso.gb.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} GB (5 GB inclusos)`,
+    pesa.length ? `\nO que está pesando: ${pesa.map(([k, v]) => `${k} (+${usd(v)})`).join(', ')}` : '\nTudo dentro do plano de US$ 5.',
+  ];
+  console.log(linhas.join('\n'));
+
+  // freio
+  let freio = null;
+  try { freio = await (await fetch(SITE + '/api/custo-freio')).json(); } catch (e) {}
+  const ligado = !!(freio && freio.ligado);
+  const mexeFreio = async (ligar) => {
+    const r = await fetch(SITE + '/api/custo-freio', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Evo-Key': process.env.EVO_KEY || '' }, body: JSON.stringify({ ligado: ligar, projecao: Math.round(total * 100) / 100 }) });
+    if (!r.ok) throw new Error('não consegui mexer no freio: HTTP ' + r.status);
+  };
+  let acao = '';
+  if (total > FREIO && !ligado) { await mexeFreio(true); acao = `\n🛑 *FREIO LIGADO*: as rotinas da TV passam a rodar a cada 30 min o dia todo até a projeção voltar para baixo de US$ ${SOLTA}.`; }
+  else if (total < SOLTA && ligado) { await mexeFreio(false); acao = '\n✅ Freio solto: projeção voltou ao normal.'; }
+  else if (ligado) acao = '\n🛑 Freio continua ligado.';
+  if (acao) console.log(acao);
+
+  if (RELATORIO || total > AVISO || acao) {
+    const cfg = { url: process.env.EVO_URL, key: process.env.EVO_KEY, instancia: process.env.EVO_INSTANCE || 'ceven-noc' };
+    const r = await R.enviarTexto(cfg, VITORIO, linhas.join('\n') + acao + (RELATORIO && total <= AVISO ? '\n\n_(relatório pedido manualmente; nos dias normais só aviso se passar de US$ ' + AVISO + ')_' : ''));
+    console.log(r.ok ? '📲 WhatsApp enviado ao Vitório' : '⚠️ WhatsApp não saiu: ' + (r.erro || r.status));
+  }
+}
+main().catch((e) => { console.error('ERRO:', e.message); process.exit(1); });

@@ -21,7 +21,7 @@ function dataHojeBrasilia() { return R.hojeSP(); }
 const espera = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 import { calculaResumoMes } from '../_lib/resumo_base.js';
-import { rodaAgora } from '../_lib/horario_reduzido.js';   // custo Cloudflare: fora do horario, 1 rodada a cada 30 min (25/10/2026)
+import { rodaAgora, freioCusto } from '../_lib/horario_reduzido.js';   // custo Cloudflare: fora do horario, 1 rodada a cada 30 min (25/10/2026)
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 
 export async function onRequestGet({ env, request }) {
@@ -31,7 +31,7 @@ export async function onRequestGet({ env, request }) {
   const t0 = Date.now();
   const dataRef = dataHojeBrasilia();
   const forcar = new URL(request.url).searchParams.has('forcar');
-  if (!forcar && !rodaAgora(15)) return new Response(JSON.stringify({ status: 'FORA_DO_HORARIO' }), { headers: cors });
+  if (!forcar && !rodaAgora(15, undefined, await freioCusto(env))) return new Response(JSON.stringify({ status: 'FORA_DO_HORARIO' }), { headers: cors });
 
   // Não refaz se rodou há menos de 12min (o próprio cron chama a cada 15min; essa proteção evita
   // rodar 2x seguidas se alguém disparar manual perto do horário do cron).

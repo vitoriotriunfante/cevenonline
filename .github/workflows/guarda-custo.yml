@@ -1,0 +1,27 @@
+# FICHA DO ARQUIVO
+# O QUE É: guarda de custo da Cloudflare (Vitório, 25/10/2026: teto de US$ 20 "no máximo do máximo do máximo").
+#          Lê o consumo real do mês (token só leitura CF_API_TOKEN), projeta, avisa no WhatsApp acima de US$ 10 e liga o freio acima de US$ 15.
+# RODA: 08h e 20h de Brasília + manual (manual sempre manda o relatório). Não mexe em disparo do WhatsApp dos gerentes.
+name: Guarda de custo Cloudflare
+
+on:
+  schedule:
+    - cron: '0 11,23 * * *'
+  workflow_dispatch:
+
+jobs:
+  custo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Medir e proteger
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          EVO_URL: ${{ secrets.EVO_URL }}
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+          EVO_INSTANCE: ${{ secrets.EVO_INSTANCE }}
+        run: node analises/guarda_custo.js ${{ github.event_name == 'workflow_dispatch' && '--relatorio' || '' }}
