@@ -35,10 +35,14 @@ const usd = (n) => 'US$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2
 async function main() {
   if (!TOKEN) throw new Error('segredo CF_API_TOKEN ausente');
   // conta: a que tem o banco do projeto
-  const contas = (await cf('/accounts?per_page=50')).result || [];
-  let conta = null, banco = null;
-  for (const c of contas) { try { banco = (await cf(`/accounts/${c.id}/d1/database/${D1_ID}`)).result; conta = c; break; } catch (e) { /* outra conta */ } }
-  if (!conta) throw new Error('nenhuma conta do token enxerga o banco do projeto (falta a permissão D1 Read?)');
+  // conta das Pages/D1 do projeto (não é segredo; token pessoal nem sempre lista contas)
+  const conta = { id: process.env.CF_ACCOUNT_ID || 'bd949e0c32a033372ff64b74521e2fe1' };
+  let banco;
+  try { banco = (await cf(`/accounts/${conta.id}/d1/database/${D1_ID}`)).result; }
+  catch (e) {
+    let v = ''; try { v = JSON.stringify((await cf('/user/tokens/verify')).result); } catch (e2) { v = 'token inválido: ' + e2.message; }
+    throw new Error(`o token não lê o banco D1 (${e.message}). Token: ${v}. Confira as permissões Account Analytics Read + D1 Read e se a conta escolhida em "Account Resources" é a ${conta.id}.`);
+  }
 
   const c = R.relogioSP();
   const [ano, mes, dia] = c.dia.split('-').map(Number);
