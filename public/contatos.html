@@ -145,14 +145,15 @@ function desenhaConversas() {
   el.innerHTML = `<h2>💬 Conversas (últimos ${CV.dias} dias)</h2>
     <div class="kpis"><div class="kpi"><b>${CV.total}</b><span>perguntas</span></div><div class="kpi"><b style="color:var(--verde)">${pc(CV.prontas)}</b><span>resposta pronta</span></div>
     <div class="kpi"><b style="color:var(--amarelo)">${CV.ia}</b><span>caíram na IA</span></div><div class="kpi"><b style="color:var(--vermelho)">${CV.reclamadas}</b><span>reclamadas ("não foi isso")</span></div>
-    <div class="kpi"><b>${CV.nao_cadastrados}</b><span>de não cadastrados</span></div></div>
+    <div class="kpi"><b>${CV.nao_cadastrados}</b><span>de não cadastrados</span></div><div class="kpi"><b style="color:var(--azul)">${CV.nota_media ?? '–'}</b><span>nota média (${CV.notas || 0} notas)</span></div><div class="kpi"><b>${(CV.sugestoes || []).length}</b><span>sugestões</span></div></div>
     <div class="filtros"><label class="mut"><input type="checkbox" id="cv_ruins" ${CVF.so_ruins ? 'checked' : ''}> só as que não ajudaram</label>
       <select id="cv_dias">${[1, 7, 30].map((d) => `<option value="${d}"${d === CVF.dias ? ' selected' : ''}>${d === 1 ? 'hoje/24 h' : d + ' dias'}</option>`).join('')}</select>
       <input id="cv_quem" placeholder="filtrar pessoa" value="${esc(CVF.quem)}"></div>
     <div class="tabela"><table><thead><tr><th>Quando</th><th>Quem</th><th>Pergunta</th><th>Resposta do Jota</th><th>Tipo</th></tr></thead><tbody>
     ${L.slice(0, 300).map((x) => `<tr${x.nao_ajudou ? ' style="background:#2a1212"' : ''}><td class="mut">${esc(String(x.quando).slice(5, 16))}</td><td>${esc(tit(x.quem))}<div class="mut">${esc(x.papel)} ${esc(x.filial)}</div></td>
       <td>${esc(x.pergunta)}</td><td class="mut" style="max-width:420px;white-space:pre-wrap">${esc(String(x.resposta || '').slice(0, 280))}${String(x.resposta || '').length > 280 ? '…' : ''}</td>
-      <td>${esc(tag[x.tipo] || x.tipo)}${x.ajudou === 0 ? '<div style="color:var(--vermelho)">reclamou</div>' : ''}</td></tr>`).join('')}</tbody></table></div>`;
+      <td>${esc(tag[x.tipo] || x.tipo)}${x.nota != null ? `<div style="color:${x.nota >= 4 ? 'var(--verde)' : x.nota === 3 ? 'var(--amarelo)' : 'var(--vermelho)'}">nota ${x.nota}</div>` : ''}${x.ajudou === 0 && x.nota == null ? '<div style="color:var(--vermelho)">reclamou</div>' : ''}</td></tr>`).join('')}</tbody></table></div>
+    ${(CV.sugestoes || []).length ? `<h2 style="margin-top:16px">💡 Sugestões</h2><div class="tabela"><table><thead><tr><th>Quando</th><th>Quem</th><th>Sugestão</th><th>Sobre a pergunta</th></tr></thead><tbody>${CV.sugestoes.map((g) => `<tr><td class="mut">${esc(String(g.quando).slice(5, 16))}</td><td>${esc(tit(g.nome))}<div class="mut">${esc(g.papel || '')} ${esc(g.filial || '')}</div></td><td>${esc(g.texto)}</td><td class="mut">${esc(g.sobre || '')}</td></tr>`).join('')}</tbody></table></div>` : ''}`;
   $('cv_ruins').onchange = (e) => { CVF.so_ruins = e.target.checked; desenhaConversas(); };
   $('cv_dias').onchange = (e) => { CVF.dias = Number(e.target.value); carregaConversas(); };
   $('cv_quem').oninput = (e) => { CVF.quem = e.target.value; clearTimeout(window._c); window._c = setTimeout(() => { desenhaConversas(); const i = $('cv_quem'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 300); };

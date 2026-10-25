@@ -38,7 +38,8 @@ async function tabelas(db) {
   await db.prepare(`CREATE TABLE IF NOT EXISTS bot_contatos (celular TEXT PRIMARY KEY, nome TEXT, papel TEXT, filial TEXT, grupo TEXT, supervisor TEXT, ativo INTEGER DEFAULT 1, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)`).run();
   for (const c of ['situacao TEXT', 'rca TEXT', 'atualizado_em TEXT']) { try { await db.prepare(`ALTER TABLE bot_contatos ADD COLUMN ${c}`).run(); } catch (e) { /* ja existe */ } }
   await db.prepare(`CREATE TABLE IF NOT EXISTS bot_msgs (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, nome TEXT, direcao TEXT, texto TEXT, msg_id TEXT)`).run();
-  for (const col of ['tipo TEXT', 'ajudou INTEGER']) { try { await db.prepare(`ALTER TABLE bot_msgs ADD COLUMN ${col}`).run(); } catch (e) { /* ja existe */ } }
+  await db.prepare('CREATE TABLE IF NOT EXISTS bot_sugestoes (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, nome TEXT, papel TEXT, filial TEXT, texto TEXT, sobre TEXT)').run();
+  for (const col of ['tipo TEXT', 'ajudou INTEGER', 'nota INTEGER']) { try { await db.prepare(`ALTER TABLE bot_msgs ADD COLUMN ${col}`).run(); } catch (e) { /* ja existe */ } }
 }
 async function enviar(env, numero, texto) {
   if (!env.EVO_URL || !env.EVO_KEY) return { ok: false, erro: 'EVO_URL/EVO_KEY nao configurados' };
@@ -1130,7 +1131,25 @@ export async function onRequestPost({ request, env }) {
   const primeiraVez = !jaFalou || !(jaFalou.n > 1), primeiraDoDia = !jaFalou || !(jaFalou.hoje > 0);
   // reclamacao: marca a ultima resposta como "nao ajudou" (vai para o painel de conversas)
   if (!seco && RECLAMACAO.test(tN)) { try { await env.DB.prepare("UPDATE bot_msgs SET ajudou = 0 WHERE id = (SELECT id FROM bot_msgs WHERE celular = ? AND direcao = 'out' ORDER BY id DESC LIMIT 1)").bind(cel).run(); } catch (e) {} }
-  if (ehSaudacao(tN)) { resp = await respSaudacao(B, c, primeiraVez); tipo = primeiraVez ? 'saudacao_primeira' : 'saudacao'; }
+  // FEEDBACK (Vitorio, 25/10/2026: "no inicio eu gostaria que as pessoas pudessem dar nota e sugestoes... se a resposta foi satisfatoria, trouxe dados corretos")
+  const ultOut = await env.DB.prepare("SELECT id, texto, nota, quando FROM bot_msgs WHERE celular = ? AND direcao = 'out' ORDER BY id DESC LIMIT 1").bind(cel).first().catch(() => null);
+  const ultIn = await env.DB.prepare("SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'in' ORDER BY id DESC LIMIT 1 OFFSET 1").bind(cel).first().catch(() => null);
+  const notaTxt = (texto.trim().match(/^(?:nota\s*)?([1-5])(?:\s*(?:\/\s*5|estrelas?))?[!. ]*$/i) || [])[1] || (/^\s*(👍|👍🏻|👍🏼|👍🏽)\s*$/.test(texto) ? '5' : /^\s*(👎|👎🏻|👎🏼|👎🏽)\s*$/.test(texto) ? '1' : null);
+  const pediuMotivo = ultOut && /o que faltou ou veio errado/.test(ultOut.texto || '');
+  const sug = (texto.match(/^\s*sugest(?:ã|a)o\s*[:\-]?\s*([\s\S]{3,})/i) || [])[1] || (pediuMotivo && !notaTxt ? texto : null);
+  if (notaTxt && ultOut && ultOut.nota == null && Date.now() - Date.parse(ultOut.quando + 'Z') < 6 * 3600 * 1000) {
+    const nota = Number(notaTxt);
+    await env.DB.prepare('UPDATE bot_msgs SET nota = ?, ajudou = ? WHERE id = ?').bind(nota, nota >= 3 ? 1 : 0, ultOut.id).run();
+    resp = nota >= 4 ? varia([`Valeu, ${primeiroNome(c)}! Nota ${nota} anotada. 💪`, `Obrigado pela nota ${nota}, ${primeiroNome(c)}! Isso me ajuda a melhorar.`], cel)
+      : nota === 3 ? `Anotado, ${primeiroNome(c)}: nota 3. Se quiser, me conta o que deixaria a resposta nota 5 (escreva "sugestão: ...").`
+      : `Poxa, ${primeiroNome(c)}, nota ${nota} anotada. *O que faltou ou veio errado?* Me escreve aqui que eu levo direto para o time que me treina.`;
+    tipo = 'nota';
+  } else if (sug) {
+    await env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(cel, c.nome, c.papel, c.filial || '', sug.slice(0, 1500), (ultIn && ultIn.texto ? String(ultIn.texto).slice(0, 300) : '')).run();
+    resp = `Anotado, ${primeiroNome(c)}! Sua sugestão foi para o time que me treina. 🙏 Obrigado por ajudar a deixar o Jota melhor.`;
+    tipo = 'sugestao';
+  }
+  if (!resp && ehSaudacao(tN)) { resp = await respSaudacao(B, c, primeiraVez); tipo = primeiraVez ? 'saudacao_primeira' : 'saudacao'; }
   const { results: hist } = await env.DB.prepare("SELECT direcao, texto FROM bot_msgs WHERE celular = ? AND direcao IN ('in','out') AND quando >= datetime('now','-6 hours') ORDER BY id DESC LIMIT 7").bind(cel).all();
   const anteriores = (hist || []).filter((h) => h.direcao === 'in').map((h) => h.texto).filter((x) => x !== texto).slice(0, 4);
   if (!resp) try { resp = await respostaPronta(B, c, texto, anteriores); } catch (e) { resp = null; if (seco) return new Response('ERRO: ' + String(e && e.stack || e), { status: 500 }); try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'erro: ' + String(e && e.stack || e).slice(0, 1500)).run(); } catch (x) {} }
@@ -1141,6 +1160,7 @@ export async function onRequestPost({ request, env }) {
   }
   if (!resp) { resp = respAjuda(c); tipo = 'ajuda'; }
   if (tipo === 'pronta') resp = humaniza(resp, c, primeiraDoDia);
+  if (['pronta', 'ia'].includes(tipo) && resp && !/o que faltou/.test(resp)) resp += '\n\n_Nota de 1 a 5 para essa resposta? Ou escreva "sugestão: ..."_';
   if (audio && audio.texto) resp = `🎙️ _Entendi: "${audio.texto.slice(0, 200)}"_\n\n` + resp;
   if (seco) return new Response(resp + (u.searchParams.get('fig') === '1' ? `\n\n[figurinha: ${figurinhaPara(resp, tipo) || 'nenhuma'} · tipo: ${tipo}]` : ''), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
   const e = await enviar(env, destino, resp);
