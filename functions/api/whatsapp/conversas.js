@@ -13,6 +13,23 @@ export async function onRequestGet({ request, env }) {
   const base = String(env.EVO_URL).replace(/\/$/, ''), inst = env.EVO_INSTANCE || 'ceven-noc';
   const evo = (rota, corpo) => fetch(`${base}${rota}/${inst}`, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: env.EVO_KEY }, body: JSON.stringify(corpo || {}), signal: AbortSignal.timeout(25000) }).then(async (r) => ({ ok: r.ok, status: r.status, j: await r.json().catch(() => null) }));
   const desde = Math.floor(Date.now() / 1000) - dias * 86400;
+  if (u.searchParams.get('recebidas') === '1') {   /* todas as mensagens RECEBIDAS desde N dias, direto pela data (a lista de conversas nao atualiza) */
+    const r0 = await evo('/chat/findMessages', { where: {}, offset: 500, page: 1 });
+    const pags = (r0.j && r0.j.messages && r0.j.messages.pages) || 1, arr = [];
+    for (let pg = pags; pg >= Math.max(1, pags - 5); pg--) { const r = await evo('/chat/findMessages', { where: {}, offset: 500, page: pg }); arr.push(...((r.j && r.j.messages && r.j.messages.records) || [])); }
+    const r = r0;
+    const soCod = u.searchParams.get('so_cod') === '1';   /* privacidade: so mensagens com "COD <numero>" (o historico tem conversas pessoais) */
+    const out = arr.map((x) => ({ quando: new Date(Number(x.messageTimestamp) * 1000).toISOString(), jid: x.key && x.key.remoteJid, tel: x.key && (x.key.senderPn || x.key.remoteJidAlt || ''), nome: x.pushName || '', texto: String((x.message && (x.message.conversation || (x.message.extendedTextMessage && x.message.extendedTextMessage.text))) || '').slice(0, 300) }))
+      .filter((x) => x.texto && /@(s.whatsapp.net|lid)$/.test(String(x.jid)) && x.quando >= new Date(desde * 1000).toISOString() && (!soCod || /COD(IGO)?\.?\s*-?\s*\d{1,4}|^\s*\d{1,4}\s*$/i.test(x.texto))).sort((a, b) => a.quando.localeCompare(b.quando));
+    const ts = arr.map((x) => Number(x.messageTimestamp) || 0).filter(Boolean).sort((a, b) => a - b);
+    return new Response(JSON.stringify({ total: r.j && r.j.messages && r.j.messages.total, paginas: pags, lidas: arr.length, mais_antiga: ts.length ? new Date(ts[0] * 1000).toISOString() : null, mais_nova: ts.length ? new Date(ts[ts.length - 1] * 1000).toISOString() : null, mensagens: out }), { headers: { 'Content-Type': 'application/json; charset=utf-8' } });
+  }
+  if (u.searchParams.get('config') === '1') {   /* so leitura: configuracoes da instancia (25/10/2026) */
+    const g = (rota) => fetch(`${base}${rota}`, { headers: { apikey: env.EVO_KEY }, signal: AbortSignal.timeout(20000) }).then(async (r) => ({ status: r.status, j: await r.json().catch(() => null) }));
+    const [st, ins] = await Promise.all([g(`/settings/find/${inst}`), g(`/instance/fetchInstances?instanceName=${inst}`)]);
+    const i0 = Array.isArray(ins.j) ? ins.j[0] : ins.j;
+    return new Response(JSON.stringify({ settings: st, instancia: i0 ? { name: i0.name, connectionStatus: i0.connectionStatus, integration: i0.integration, _count: i0._count, Setting: i0.Setting } : ins }).slice(0, 4000), { headers: { 'Content-Type': 'application/json' } });
+  }
   const chats = await evo('/chat/findChats', {});
   const lista = Array.isArray(chats.j) ? chats.j : [];
   if (u.searchParams.get('contatos') === '1') {   /* agenda do aparelho conectado: quem foi salvo com "COD" no nome (25/10/2026) */
