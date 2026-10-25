@@ -26,6 +26,7 @@ function dataHojeBrasilia() {
 const espera = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 import { calculaResumoMes } from '../_lib/resumo_base.js';
+import { rodaAgora } from '../_lib/horario_reduzido.js';   // custo Cloudflare: fora do horario, 1 rodada a cada 30 min (25/10/2026)
 
 export async function onRequestGet({ env, request }) {
   const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
@@ -34,6 +35,7 @@ export async function onRequestGet({ env, request }) {
   const t0 = Date.now();
   const dataRef = dataHojeBrasilia();
   const forcar = new URL(request.url).searchParams.has('forcar');
+  if (!forcar && !rodaAgora(15)) return new Response(JSON.stringify({ status: 'FORA_DO_HORARIO' }), { headers: cors });
 
   // Não refaz se rodou há menos de 12min (o próprio cron chama a cada 15min; essa proteção evita
   // rodar 2x seguidas se alguém disparar manual perto do horário do cron).

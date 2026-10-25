@@ -5,7 +5,7 @@
 name: Descoberta de códigos (divergências)
 on:
   schedule:
-    - cron: '0 1 * * *'   # 22:00 em Brasília: depois do expediente, antes do Data Lake das 03:00
+    - cron: '0 1 * * 1'   # SEMANAL (25/10/2026, custo/carga): domingo 22:00 em Brasília. Antes: todo dia 22:00.
   workflow_dispatch:
 jobs:
   descobrir:

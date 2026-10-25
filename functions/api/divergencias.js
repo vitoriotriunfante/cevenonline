@@ -9,6 +9,7 @@
 // NUNCA inventa: tudo vem do banco, da planilha e do que o CEVEN devolveu.
 // =========================================================================
 import { aplicaArvore } from '../_lib/arvore_ceven.js';
+import { comCache } from '../_lib/cache_borda.js';
 const cors = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: cors });
 const arred = (x) => Math.round((Number(x) || 0) * 100) / 100;
@@ -32,7 +33,7 @@ function leitura(x) {
   return { tipo, texto, sinais };
 }
 
-export async function onRequestGet({ env, request }) {
+async function semCache({ env, request }) {
   if (!env.DB) return resp({ erro: 'D1 não configurado' }, 503);
   const origin = new URL(request.url).origin;
   const dia = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
@@ -216,3 +217,6 @@ export async function onRequestGet({ env, request }) {
     return resp({ erro: String(e).slice(0, 300) }, 500);
   }
 }
+
+// CACHE (25/10/2026, custo Cloudflare): varias TVs/telas = 1 consulta ao CEVEN a cada 5 min. ?fresco=1 ignora o cache.
+export const onRequestGet = (ctx) => comCache(ctx, 300, semCache);

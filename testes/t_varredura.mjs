@@ -58,7 +58,7 @@ function ativaCevenFalso(estado, opcoes = {}) {
 
 export default async function (ok) {
   const mod = await import(pathToFileURL(join(RAIZ, 'functions', 'api', 'cron-varredura-central.js')).href);
-  const rodar = async (db, query = '') => (await mod.onRequestGet({ env: { DB: db }, request: new Request('https://x/api/cron-varredura-central' + query) })).json();
+  const rodar = async (db, query = '') => (await mod.onRequestGet({ env: { DB: db, TESTE_SEM_HORARIO: '1' }, request: new Request('https://x/api/cron-varredura-central' + query) })).json();
   const N = 12;
   const preenche = (db) => { for (let i = 1; i <= N; i++) db._db.prepare('INSERT INTO representantes VALUES (?, ?, 1)').run(String(i), i % 2 ? 1 : 2); };
 

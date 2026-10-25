@@ -1055,7 +1055,7 @@ async function carregarDivergencias() {
   if (!box || !USUARIO_LOGADO || !USUARIO_LOGADO.isDiretoria) return;
   box.style.display = 'flex';
   let d;
-  try { d = await (await fetch('/api/divergencias?t=' + Date.now())).json(); } catch (e) { document.getElementById('div-resumo').textContent = 'Não consegui ler as divergências agora.'; return; }
+  try { d = await (await fetch('/api/divergencias?fresco=1&t=' + Date.now())).json(); } catch (e) { document.getElementById('div-resumo').textContent = 'Não consegui ler as divergências agora.'; return; }
   if (d.erro) { document.getElementById('div-resumo').textContent = 'Erro: ' + d.erro; return; }
   const jaTem = new Set();
   Object.entries((BASE_MOSTRA && BASE_MOSTRA.filiais) || {}).forEach(([f, l]) => l.forEach((r) => jaTem.add(f + '|' + r.rca)));

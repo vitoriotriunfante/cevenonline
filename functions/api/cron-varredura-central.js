@@ -1,3 +1,4 @@
+import { rodaAgora } from '../_lib/horario_reduzido.js';   // custo Cloudflare: fora do horario, 1 rodada a cada 30 min (25/10/2026)
 // =========================================================================
 // FICHA DO ARQUIVO
 // O QUE É: varredura CENTRAL dos RCAs no CEVEN, gravada em varredura_central_rca (migration 0006). Todas as telas e o
@@ -283,6 +284,7 @@ export async function onRequestGet({ env, request }) {
   const urlParams = new URL(request.url).searchParams;
   const forcar = urlParams.has('forcar');
   const filialParam = (urlParams.get('filial') || '').toUpperCase().trim();
+  if (!forcar && !filialParam && !env.TESTE_SEM_HORARIO && !rodaAgora(2)) return resp({ status: 'FORA_DO_HORARIO', regra: 'antes das 06h, depois das 21h e domingo: a cada 30 min' });
 
   // lock global do WhatsApp (prioridade sobre TV/CFTV)
   if (!forcar && !filialParam) {

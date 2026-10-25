@@ -9,6 +9,7 @@
 import { NAO_SUPERVISORES, normNome } from '../_lib/nao_supervisores.js';
 import { supervisoresAtivos, ehAtivo } from '../_lib/sup_ativos.js';
 import { tokenAdmin, ultimaFalhaLogin } from '../_lib/ceven_admin_token.js';
+import { comCache } from '../_lib/cache_borda.js';
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
 const FERIADOS = ['2026-01-01', '2026-02-16', '2026-02-17', '2026-04-03', '2026-04-21', '2026-05-01', '2026-06-04', '2026-09-07', '2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25'];
@@ -39,7 +40,7 @@ function diasDaSemana(ref) {
 }
 const feitoNoDia = (s, i) => !!(s && ((s.porDia && s.porDia[i]) || (s.dias && s.dias[i])));
 
-export async function onRequestGet({ request, env }) {
+async function semCache({ request, env }) {
   const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
   const url = new URL(request.url);
   const filial = (url.searchParams.get('filial') || '').toLowerCase().replace(/1$/, '');
@@ -92,3 +93,6 @@ export async function onRequestGet({ request, env }) {
   for (const l of Object.values(porFilial)) l.sort((a, b) => a.nome.localeCompare(b.nome));
   return new Response(JSON.stringify({ hoje, dias, filiais: porFilial, consultado_em: new Date().toISOString() }), { headers: cors });
 }
+
+// CACHE (25/10/2026, custo Cloudflare): varias TVs/telas = 1 consulta ao CEVEN a cada 10 min. ?fresco=1 ignora o cache.
+export const onRequestGet = (ctx) => comCache(ctx, 600, semCache);

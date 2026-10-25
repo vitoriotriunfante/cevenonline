@@ -36,3 +36,12 @@ Projetos separados = código separado. Dado = uma fonte só.
 5. Telas leem só a base (tv-vendedor etc. sem chamada ao vivo).
 6. descoberta-codigos semanal.
 7. Aviso de gasto na Cloudflare (US$ 10) + conferência semanal `wrangler d1 insights --sort-by=writes`.
+
+## Execução (25/10/2026, ordem do Vitório: "faça os 5 e depois faça todos os testes")
+1. ✅ Varredura central, lances e faturado do mês: fora do horário (antes 06h, depois 21h, domingo) 1 rodada a cada 30 min (`functions/_lib/horario_reduzido.js`). Sábado = dia útil. TV aceita base de até 45 min fora do horário (senão iria ao CEVEN).
+   "Gravar só quando mudou" NÃO foi aplicado à varredura: as telas usam o horário de cada gravação para saber se o dado é fresco; sem ele iriam ao CEVEN ao vivo.
+2. ✅ Já era assim (correção desta auditoria): cron-faturado-mes e incentivo leem a base; cron-lances lê as devoluções da base e só consulta o CEVEN para o MOTIVO de cada nota (dado que só existe lá; máx. 6 por rodada).
+3. ✅ tv-supervisores (5 min), tv-supervisores-semana (10 min) e divergencias (5 min) com cache (`functions/_lib/cache_borda.js`: memória + D1; o cache da borda não funciona em *.pages.dev). Gestão de Equipe usa ?fresco=1.
+4. ✅ Já era assim (correção desta auditoria): o motor do WhatsApp lê produtividade, dashboard, devoluções e roteiro da base central (pipeline/fonte_base.js, desde 07/10) e o canal da Gestão de Equipe (desde 13/10). Direto no CEVEN só ficam: login, compromisso/RET (matriz do dia) e detalhe da RET — dados que a base não tem.
+5. ✅ descoberta-codigos semanal (domingo 22h).
+Testes: 531/531 + varredura + WhatsApp gerentes + simulador do JOTA.

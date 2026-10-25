@@ -15,6 +15,7 @@
 import { NAO_SUPERVISORES, normNome } from '../_lib/nao_supervisores.js';
 import { supervisoresAtivos, ehAtivo } from '../_lib/sup_ativos.js';
 import { tokenAdmin, ultimaFalhaLogin } from '../_lib/ceven_admin_token.js';
+import { comCache } from '../_lib/cache_borda.js';
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const CEVEN_APP_SECRET = '23bae7bff90221ee91885ea3fc07ac9e0e2b498696b7a3f34ab6466b7da9190d';
 
@@ -32,7 +33,7 @@ async function getJson(url, tk) {
 
 const limpa = (n) => String(n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
 
-export async function onRequestGet({ request, env }) {
+async function semCache({ request, env }) {
   const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
   const filial = (new URL(request.url).searchParams.get('filial') || '').toLowerCase().replace(/1$/, '');
   if (!/^[a-z]{3}$/.test(filial)) return new Response(JSON.stringify({ erro: 'filial (sigla) obrigatória' }), { status: 400, headers: cors });
@@ -108,3 +109,6 @@ export async function onRequestGet({ request, env }) {
 
   return new Response(JSON.stringify({ data: dia, filial: filial.toUpperCase(), supervisores, consultado_em: new Date().toISOString() }), { headers: cors });
 }
+
+// CACHE (25/10/2026, custo Cloudflare): varias TVs/telas = 1 consulta ao CEVEN a cada 5 min. ?fresco=1 ignora o cache.
+export const onRequestGet = (ctx) => comCache(ctx, 300, semCache);

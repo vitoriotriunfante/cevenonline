@@ -1,3 +1,4 @@
+import { foraDoHorario } from '../_lib/horario_reduzido.js';
 // =========================================================================
 // FICHA DO ARQUIVO
 // O QUE É: endpoint enxuto da TV (CFTV) — 1 vendedor, só dado AO VIVO do CEVEN.
@@ -240,7 +241,7 @@ export async function onRequestGet({ request, env }) {
   const q = `filial=${key}&id=${id}`;
   const usarCentral = url.searchParams.get('central') === '1';
   const canalVend = String(url.searchParams.get('canal') || '').toUpperCase() === 'AS' ? 'AS' : '';
-  const central = usarCentral ? await lerCentral(env, id, 30 * 60 * 1000) : null;
+  const central = usarCentral ? await lerCentral(env, id, (foraDoHorario() ? 45 : 30) * 60 * 1000) : null;   /* fora do horario a varredura roda a cada 30 min (25/10/2026) */
   const c = central || {};
   // CEVEN LENTO (15/10/2026 23h: chamadas travando 20 s; a Matriz levava ate 78 s por vendedor e ficava em "carregando"): na coleta central, se a base
   // do dia ja tem o vendedor (mesmo com mais de 30 min), o CEVEN tem so 6 s para responder antes de usar a base.

@@ -358,7 +358,7 @@ secao('5c. Coleta de lances usa os dados da varredura central (menos chamadas ao
     rot.splice(0, rot.length, ...copia);
   }
   { const r = await chamar('&central=1', linha(20)); ok(r.base === 0, 'com dado central de 20 min: usa a base (ate 30 min), nao bate no CEVEN (o excesso de chamadas gerava 429 em 11/10/2026)'); }
-  { const r = await chamar('&central=1', linha(40)); ok(r.base === 3, 'com dado central velho (40 min): volta a consultar o CEVEN (3 chamadas base)'); }
+  { const r = await chamar('&central=1', linha(50)); ok(r.base === 3, 'com dado central velho (50 min; limite 30 min no horario, 45 fora): volta a consultar o CEVEN (3 chamadas base)'); }
   { const r = await chamar('&central=1', linha(3, { dashboard_json: null })); ok(r.base === 1, 'com dado central sem dashboard: busca ao vivo SO o dashboard (1 chamada, nao 3)'); }
   { const r = await chamar('&central=1', null); ok(r.base === 3, 'sem dado central do vendedor: consulta o CEVEN'); }
   { const r = await chamar('', linha(3)); ok(r.base === 3, 'a tela da TV (sem central=1) segue consultando o CEVEN ao vivo'); }
