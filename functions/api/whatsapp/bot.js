@@ -598,7 +598,8 @@ async function respProduto(B, E, t, pessoa) {
   const tot = L.reduce((a, l) => ({ v: a.v + l.v, q: a.q + l.q }), { v: 0, q: 0 });
   const vend = new Map(E.vend.map((v) => [v.filial + '|' + v.rca, vn(v)]));
   const porV = [...somaPor(L, (l) => l.f + '|' + l.r)].sort((a, b) => b[1].v - a[1].v).slice(0, 5);
-  const ex = await extrasTempo(B, E, L, t, (l) => P.cods.has(l.p) && (!pessoa || pessoa.tipo !== 'vend' || (l.f === pessoa.alvo.filial && l.r === pessoa.alvo.rca)));
+  const toksP = sem(P.termo).split(/\s+/).filter(Boolean);
+  const ex = await extrasTempo(B, E, L, t, (l, pm) => (pm ? toksP.every((w) => sem((pm[l.p] || [''])[0]).includes(w)) : P.cods.has(l.p)) && (!pessoa || pessoa.tipo !== 'vend' || (l.f === pessoa.alvo.filial && l.r === pessoa.alvo.rca)));
   return [`📦 *${P.termo}* — ${quem}, ${per.nome}`, `${R$(tot.v)} · ${N(tot.q)} un. · *${C.length} cliente(s)* · preço médio ${R$(tot.q ? tot.v / tot.q : null)}/un.`, per.aviso, '', `*Clientes que mais compraram:*`,
     ...C.slice(0, 10).map(([k, x], i) => `${i + 1}. ${titulo(V.cli[k] || k.split('|')[1])} (#${k.split('|')[1]}) — ${R$(x.v)} · ${N(x.q)} un.`),
     ...(pessoa ? [] : ['', '*Por vendedor:*', ...porV.map(([k, x]) => `• ${vend.get(k) || 'RCA ' + k.split('|')[1]} ${E.nacional ? k.split('|')[0] : ''}: ${R$(x.v)} · ${x.cli.size} cli.`)]),
@@ -618,7 +619,7 @@ async function respIndustria(B, E, t, pessoa) {
   const vend = new Map(E.vend.map((v) => [v.filial + '|' + v.rca, vn(v)]));
   const G = [...somaPor(L, chave)].sort((a, b) => b[1].cli.size - a[1].cli.size);
   const SK = [...somaPor(L, (l) => l.p)].sort((a, b) => b[1].cli.size - a[1].cli.size).slice(0, 5);
-  const ex = await extrasTempo(B, E, L, t, (l) => I.includes((V.prod[l.p] || [])[1]) && (!pessoa || pessoa.tipo !== 'vend' || (l.f === pessoa.alvo.filial && l.r === pessoa.alvo.rca)));
+  const ex = await extrasTempo(B, E, L, t, (l, pm) => I.includes(((pm || V.prod)[l.p] || [])[1]) && (!pessoa || pessoa.tipo !== 'vend' || (l.f === pessoa.alvo.filial && l.r === pessoa.alvo.rca)));
   return [`🏭 *${nomeI}* — ${E.nome}, ${per.nome}`, `Faturado: *${R$(tot)}* · positivação: *${N(clis.size)} clientes* (${P(clis.size, todosCli.size)} dos que compraram algo)`, '',
     `*Por ${E.nacional ? 'filial' : porVend ? 'vendedor' : 'supervisor'} (clientes · R$):*`, ...G.slice(0, 12).map(([k, x]) => `• ${E.nacional ? k : porVend ? (vend.get(k) || 'RCA ' + k.split('|')[1]) : nome2(k)}: ${x.cli.size} cli. · ${R$(x.v)}`),
     '*SKUs que mais positivam:*', ...SK.map(([c, x]) => `• ${titulo((V.prod[c] || [''])[0])}: ${x.cli.size} cli.`), ...ex, '', SUGESTAO + `peça "quem comprava ${nomeI} e parou" para a lista de recuperação.`].join('\n');
@@ -705,7 +706,7 @@ async function extrasTempo(B, E, L, t, filtroLinha) {
     const Z = await vendasAnterior(B, E);
     const ateA = L.reduce((m, l) => Math.max(m, l.d), 0), dia = ateA % 100;
     const tA = L.reduce((a, l) => a + l.v, 0);
-    if (Z) { const LZ = Z.linhas.filter(filtroLinha); const tZ = LZ.reduce((a, l) => a + l.v, 0), tZd = LZ.filter((l) => l.d % 100 <= dia).reduce((a, l) => a + l.v, 0);
+    if (Z) { const LZ = Z.linhas.filter((l) => filtroLinha(l, Z.prod));   /* catalogo do proprio mes passado: produto que nao vendeu neste mes tambem conta */ const tZ = LZ.reduce((a, l) => a + l.v, 0), tZd = LZ.filter((l) => l.d % 100 <= dia).reduce((a, l) => a + l.v, 0);
       out.push('', '*Mês a mês:*', `• este mês até dia ${dia}: ${R$(tA)}`, `• mês passado até o mesmo dia: ${R$(tZd)} (${delta(tA, tZd)})`, `• mês passado inteiro: ${R$(tZ)}`); }
     else out.push('', '_Mês passado item a item ainda não publicado: o mês a mês sai assim que ele chegar._');
   }
@@ -1061,6 +1062,14 @@ function achaPessoa(E, t) {
   const toks = t.split(/[^A-Z]+/).filter((w) => (w.length > 2 || w === 'PJ') && !PAL.has(w));
   if (!toks.length) return null;
   const score = (nome) => { const p = sem(nome).replace(/^CLT\s*-?\s*/, '').split(/\s+/); if (!toks.includes(p[0])) return 0; return 1 + p.slice(1).filter((w) => toks.includes(w)).length; };
+  // CODIGO CITADO MANDA (sabatina 25/10/2026: "vendedor Ana Carolina 483" virou a Ana Broto 251): vale o codigo quando o nome bate com
+  // aquele vendedor ou quando vem escrito "RCA/COD/codigo/vendedor 483". Numero solto ("top 10", "3 dias") nunca vira vendedor.
+  for (const n of t.match(/\b\d{1,5}\b/g) || []) {
+    const cand = E.vend.filter((v) => String(v.rca) === n);
+    const explicito = new RegExp(`(RCA|COD|CODIGO|VENDEDORA?|VEND)\\.?\\s*${n}\\b`).test(t);
+    const bom = cand.map((v) => [v, score(v.nome)]).filter((x) => x[1] || explicito).sort((a, b) => b[1] - a[1]);
+    if (bom.length) return { tipo: 'vend', alvo: bom[0][0], empate: [bom[0][0]] };
+  }
   const querSup = /SUPERVIS|EQUIPE|TIME/.test(t), querVend = /VENDEDOR|\bRCA\b/.test(t);
   const sups = [...new Map(E.vend.filter((v) => v.supervisor).map((v) => [v.filial + '|' + v.supervisor, { nome: v.supervisor, filial: v.filial }])).values()];
   const bs = sups.map((s) => [s, score(s.nome)]).filter((x) => x[1]).sort((a, b) => b[1] - a[1]);
