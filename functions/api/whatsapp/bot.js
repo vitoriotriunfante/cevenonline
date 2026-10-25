@@ -1018,6 +1018,23 @@ function humaniza(resp, c, primeiraDoDia) {
 // MONITORAMENTO (Vitorio: "vamos conseguir monitorar TODAS as conversas? e as respostas que nao ajudarem?"): toda resposta grava o TIPO
 // (pronta | ia | ajuda | saudacao | cadastro | erro) e reclamacao logo depois ("nao foi isso", "errado", "nao entendi") marca a resposta anterior como NAO AJUDOU.
 const RECLAMACAO = /N(A|Ã)O (FOI|ERA|E) ISSO|NAO ENTENDI|NAO ENTENDEU|ERRAD|NAO AJUDOU|NAO RESPONDEU|DIVAGOU|NADA A VER|NAO TEM NADA|VOCE NAO|VC NAO|PERGUNTEI OUTRA|NAO PERGUNTEI|REPET|DE NOVO ISSO|INUTIL|NAO SERVE/;
+// AUDIO (Vitorio, 25/10/2026: "da para colocar para receber audio?"): baixa o audio da Evolution e transcreve com o Whisper da Cloudflare (Workers AI,
+// mesmo plano; ~200 min/dia cabem na cota gratis). Audio > 120 s nao e transcrito (custo). A transcricao vira a pergunta normal.
+async function transcreveAudio(env, d) {
+  const am = d.message && (d.message.audioMessage || d.message.pttMessage);
+  if (!am) return null;
+  const seg = Number(am.seconds || 0);
+  if (seg > 120) return { erro: 'longo', seg };
+  if (!env.AI || !env.EVO_URL || !env.EVO_KEY) return { erro: 'sem_ia' };
+  let b64 = d.message.base64 || null;
+  if (!b64) {
+    try { const r = await fetch(`${String(env.EVO_URL).replace(/\/$/, '')}/chat/getBase64FromMediaMessage/${env.EVO_INSTANCE || 'ceven-noc'}`, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: env.EVO_KEY }, body: JSON.stringify({ message: { key: d.key }, convertToMp4: false }), signal: AbortSignal.timeout(25000) });
+      const j = await r.json().catch(() => null); b64 = j && (j.base64 || (j.data && j.data.base64)); } catch (e) { b64 = null; }
+  }
+  if (!b64) return { erro: 'download' };
+  try { const out = await env.AI.run('@cf/openai/whisper-large-v3-turbo', { audio: String(b64).replace(/^data:[^,]+,/, ''), language: 'pt' }); const txt = String((out && (out.text || out.transcription_info && out.text)) || '').trim(); return txt ? { texto: txt, seg } : { erro: 'vazio' }; }
+  catch (e) { return { erro: 'whisper', detalhe: String(e && e.message || e).slice(0, 200) }; }
+}
 // CADASTRO AUTOMATICO DE SUPERVISOR (Vitorio, 25/10/2026: "vai achar um padrao: o nome e no final o codigo deles, ex.: Washington COD 100").
 // Regra: o numero do codigo tem que existir na arvore do CEVEN (arvore_supervisores.sup_id) E o primeiro nome do supervisor tem que aparecer na mensagem
 // (ou no nome do WhatsApp). Senao, nada acontece (numero desconhecido continua sem resposta). Gerente e diretoria so por cadastro manual.
@@ -1054,14 +1071,22 @@ export async function onRequestPost({ request, env }) {
   if (!/@(s\.whatsapp\.net|lid)$/.test(jid)) return new Response('ok');
   const jidTel = jid.endsWith('@lid') ? String(d.key.senderPn || d.key.remoteJidAlt || d.key.participantPn || '') : jid;
   const destino = jidTel ? jidTel.split('@')[0] : jid;   /* para responder: telefone, ou o proprio @lid se o telefone nao vier */
-  const texto = String((d.message && (d.message.conversation || (d.message.extendedTextMessage && d.message.extendedTextMessage.text))) || '').trim();
-  if (!texto) return new Response('ok');
+  let texto = String((d.message && (d.message.conversation || (d.message.extendedTextMessage && d.message.extendedTextMessage.text))) || '').trim();
+  let audio = null;
+  if (!texto && d.message && (d.message.audioMessage || d.message.pttMessage)) { audio = await transcreveAudio(env, d); if (audio && audio.texto) texto = audio.texto; }
+  if (!texto && !audio) return new Response('ok');
   const seco = u.searchParams.get('seco') === '1';
   const cel = so(seco && u.searchParams.get('como') ? u.searchParams.get('como') : (jidTel || jid).split('@')[0]);
   await tabelas(env.DB);
   const vs = variantes(cel);
   const c = await env.DB.prepare(`SELECT * FROM bot_contatos WHERE ativo = 1 AND celular IN (${vs.map(() => '?').join(',')}) LIMIT 1`).bind(...vs).first();
-  if (!seco) await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, msg_id) VALUES (?,?,?,?,?)').bind(cel, c ? c.nome : null, 'in', texto.slice(0, 2000), d.key.id || null).run();
+  if (!seco) await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, msg_id) VALUES (?,?,?,?,?)').bind(cel, c ? c.nome : null, 'in', (audio ? '[áudio] ' : '') + (texto || '(não transcrito: ' + (audio && audio.erro) + ')').slice(0, 2000), d.key.id || null).run();
+  if (audio && !texto) {
+    if (!c) return new Response('ok');
+    const msg = audio.erro === 'longo' ? `Opa, ${titulo(String(c.nome).split(' ')[0])}! Esse áudio tem ${audio.seg} s; eu consigo ouvir até 2 minutos. Me manda em pedaços menores ou por escrito? 🎙️` : `Não consegui ouvir esse áudio agora 🎙️ Pode mandar de novo ou escrever?`;
+    if (seco) return new Response(msg);
+    await enviar(env, destino, msg); return new Response('ok');
+  }
   if (!c) {   // so responde quem esta cadastrado — EXCETO o supervisor que se apresenta com "Nome ... COD 123" (codigo da arvore do CEVEN e nome batendo)
     const novo = await cadastraPorCodigo(env, cel, texto, d.pushName);
     if (!novo) return new Response('ok');
@@ -1090,6 +1115,7 @@ export async function onRequestPost({ request, env }) {
   }
   if (!resp) { resp = respAjuda(c); tipo = 'ajuda'; }
   if (tipo === 'pronta') resp = humaniza(resp, c, primeiraDoDia);
+  if (audio && audio.texto) resp = `🎙️ _Entendi: "${audio.texto.slice(0, 200)}"_\n\n` + resp;
   if (seco) return new Response(resp + (u.searchParams.get('fig') === '1' ? `\n\n[figurinha: ${figurinhaPara(resp, tipo) || 'nenhuma'} · tipo: ${tipo}]` : ''), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
   const e = await enviar(env, destino, resp);
   await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, e.ok ? 'out' : 'erro', resp.slice(0, 4000), tipo).run();
