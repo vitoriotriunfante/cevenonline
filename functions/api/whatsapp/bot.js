@@ -647,7 +647,7 @@ async function respMetasIndustria(B, E, t, pessoa) {
   for (const [c, id, ff, fv, pf, pv] of RV.apu) if (dentro(c) && G.has(id)) { const x = G.get(id), y = gv(x, c); x.fat += ff; x.ven += fv; x.pos += pf; x.posV += pv; y.fat += ff; y.ven += fv; y.pos += pf; }
   const L = [...G].filter(([, x]) => x.meta > 0 || x.metaPos > 0);
   const corte = RV.cutoff ? RV.cutoff.split('-').reverse().slice(0, 2).join('/') : '?';
-  const cab = `🏆 *Metas das indústrias — ${quem}* · ${MESES[+RV.mes.slice(5, 7)]} · _Premiação RV, apuração até ${corte}_`;
+  const cab = `🏆 *Metas das indústrias — ${quem}* · ${MESES[+RV.mes.slice(5, 7)]} · _apuração até ${corte}_`;
   // filial de cada codigo (Gestao de Equipe): para o Brasil por filial e para dizer onde a industria tem meta
   const mo = await B.mostra(); const filDe = new Map(); for (const [k, Lm] of Object.entries((mo && mo.filiais) || {})) for (const v of Lm) filDe.set(String(v.rca), k.split('_')[0]);
   if (!L.length) {
@@ -672,7 +672,7 @@ async function respMetasIndustria(B, E, t, pessoa) {
         if (pv.length > 8) out.push(`… e mais ${pv.length - 8}. Os mais longe da meta: ${pv.slice(-3).map(([c]) => (nm.get(c) ? nome2(nm.get(c).nome) : 'RCA ' + c)).join(', ')}.`);
       }
     }
-    out.push('', SUGESTAO + 'cobrar primeiro quem tem meta alta e está longe; peça "quem comprava ' + nomeForn(nomes.get([...alvoI][0])) + ' e parou" para a lista de clientes.', '_Vendido = faturado + a faturar. Valor oficial do prêmio = fechamento da Premiação._');
+    out.push('', SUGESTAO + 'cobrar primeiro quem tem meta alta e está longe; peça "quem comprava ' + nomeForn(nomes.get([...alvoI][0])) + ' e parou" para a lista de clientes.', '_Vendido = faturado + a faturar. Valor oficial do prêmio = fechamento do mês._');
     return out.join('\n');
   }
   const ord = L.sort((a, b) => b[1].meta - a[1].meta);
