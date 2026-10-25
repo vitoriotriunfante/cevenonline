@@ -70,6 +70,13 @@ function criaBase(origin, env) {
     sups: (f) => memo('sup' + f, () => api('/api/tv-supervisores?filial=' + f)),
     liga: () => memo('liga', () => est('/dados_brasileirao.json')),
     mix: () => memo('mix', () => est('/dados_mix.json')),
+    exec: () => memo('exec', () => api('/api/mapa-executivo-live')),
+    incentivo: () => memo('inc', () => api('/api/incentivo-outubro')),
+    ligaAs: () => memo('ligaas', () => api('/api/liga-as')),
+    semana: (f) => memo('sem' + f, () => api('/api/tv-supervisores-semana?filial=' + f)),
+    devMot: () => memo('devmot', () => api('/api/devolucoes-motivos')),
+    bola: (f) => memo('bola' + f, () => api('/api/bola-cheia?filial=' + f)),
+    diverg: () => memo('div', () => api('/api/divergencias')),
   };
 }
 
@@ -91,6 +98,7 @@ async function vendedoresDaFilial(B, filial, grupo) {
       pos: po.realizado ?? null, metaPos: po.meta ?? null, dig: pd.dig_pedido || 0, ped: pd.positivacao || 0, visP, visF, comVenda: varejo ? pd.visitas_com_venda || 0 : 0,
       visPlanMes: varejo ? pm.visit_plan || 0 : 0, visRealMes: varejo ? pm.visit_real || 0 : 0,
       zerado: varejo && visP > 0 && !(pd.dig_pedido > 0), semVisita: varejo && visP > 0 && !visF, devolucoes: Array.isArray(r.devolucoes) ? r.devolucoes : [],
+      rotaHoje: varejo && Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hojeSP() || /FORA/i.test(String(c.status || ''))) : [],
       /* clientes da rota de HOJE ainda sem visita (status ABERTO/AGENDADO, sem check-in) */
       aVisitar: varejo && Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hojeSP() && /^(ABERTO|AGENDADO)$/i.test(String(c.status || '')) && !c.checkin_horario) : [] });
   }
@@ -231,6 +239,101 @@ async function respFalta(B, E) {
   L.push(`*Quem mais falta (${E.nacional ? 'filial' : 'supervisor'}):*`, ...G.slice(0, 8).map(([k, f, y]) => `• ${E.nacional ? k : nome2(k)}: ${R$(f)} (${pctTxt(y.pct)})`));
   L.push('', SUGESTAO + (G[0] ? `o maior buraco é ${E.nacional ? G[0][0] : nome2(G[0][0])}: ${R$(G[0][1])}.` : 'manter o ritmo.'));
   return L.join('\n');
+}
+// ---------- indicadores das outras telas (TV Executiva, /incentivo, Liga AS, Supervisores, Devolucoes, Bola Cheia, Divergencias) ----------
+async function respRecorrencia(B, E) {
+  const x = await B.exec(); if (!x || !x.recorrencia) return 'Não consegui ler a recorrência agora.';
+  const k = E.nacional ? 'TODAS' : E.filiais[0]; const r = x.recorrencia[k] || {}, s = (x.resumo || {})[k] || {};
+  const L = [`⭐ *Recorrência e resgates — ${E.nacional ? 'Brasil' : k}* (hoje)`, `Clientes com tag RECORRÊNCIA na rota: *${N(r.naRota)}* · positivados: *${N(r.positivados)}* (${P(r.positivados || 0, r.naRota)})`, `Resgatados hoje (parados >30 dias que compraram): *${N(s.resgatadosHoje)}*`];
+  if (E.nacional) for (const f of FILIAIS) { const a = x.recorrencia[f] || {}; L.push(`• ${f}: ${N(a.positivados)}/${N(a.naRota)} recorrência · ${N((x.resumo[f] || {}).resgatadosHoje)} resgate(s)`); }
+  if (E.grupo) L.push('_Visão da filial inteira (a TV Executiva não separa por gerente)._');
+  L.push('', r.naRota ? SUGESTAO + `cada cliente da recorrência positivado é DEFESA (+3) na Liga: cobrar os ${N(Math.max(0, r.naRota - (r.positivados || 0)))} que faltam.` : '_Sem rota com recorrência hoje._');
+  return L.join('\n');
+}
+async function respIncentivoOficial(B, E, pessoa) {
+  const x = await B.incentivo(); if (!x || !x.nacional) return respIncentivo(E);
+  const ok = (b) => b ? '✅' : '❌';
+  if (pessoa && pessoa.tipo === 'vend') { const v = (x.vendedores || []).find((y) => y.rca === pessoa.alvo.rca && y.filial === pessoa.alvo.filial); if (v) return `🏆 *Incentivo — ${titulo(v.nome)}* (${v.filial})\nPositivação: *${v.real} de ${v.meta}* (${pctTxt(v.pct)})\nGatilho 1 (60% até 15/10, R$ 150): ${ok(v.g1)}${v.falta_g1 ? ' faltam ' + v.falta_g1 : ''}\nGatilho 2 (110% em 31/10, R$ 350): ${ok(v.g2)}${v.falta_g2 ? ' faltam ' + v.falta_g2 + ' clientes' : ''}\n_Régua de positivação da apuração oficial; o G2 também exige 110% do faturado._`; }
+  if (pessoa && pessoa.tipo === 'sup') { const s = (x.supervisores || []).find((y) => y.nome === pessoa.alvo.nome && y.filial === pessoa.alvo.filial); if (s) return `🏆 *Incentivo — ${titulo(s.nome)}* (${s.filial}): ${s.real} de ${s.meta} positivações (${pctTxt(s.pct)}) ${ok(s.ok)}${s.falta ? ' · faltam ' + s.falta + ' para 110%' : ''} · R$ 300 se a equipe fizer 110%.`; }
+  const p = x.premio_se_fechasse_hoje || {};
+  const L = [`🏆 *Incentivo Outubro — ${E.nome}* (dados ${String(x.atualizado_em || '').slice(11, 16)})`];
+  if (E.nacional) {
+    L.push(`Positivação nacional: *${N(x.nacional.real)}* · meta do regulamento ${N(x.nacional.meta_regulamento)} (${pctTxt(x.nacional.pct_regulamento)}) · superação ${N(x.nacional.meta_superacao)} (${pctTxt(x.nacional.pct_superacao)})`,
+      `💰 Se fechasse hoje: G1 ${R$(p.g1)} · G2 ${R$(p.g2)} · supervisores ${R$(p.sup)} · gerentes ${R$(p.ger)} → *${R$(p.total)}*`, '*Filiais (positivação vs alvo 110%):*');
+    for (const f of (x.filiais || []).slice().sort((a, b) => b.pct_coluna_n - a.pct_coluna_n)) L.push(`• ${f.filial}: ${N(f.real)} de ${N(f.coluna_n)} (${pctTxt(f.pct_coluna_n)}) ${ok(f.ok)} · faltam ${N(f.falta)} p/ 110%`);
+  } else {
+    const f = (x.filiais || []).find((y) => y.filial === E.filiais[0]);
+    if (f) { L.push(`Filial (meta do regulamento): ${N(f.real)} de ${N(f.coluna_n)} (${pctTxt(f.pct_coluna_n)}) ${ok(f.ok)} · faltam ${N(f.falta)} p/ 110% (${N(f.alvo110_coluna_n)})`); for (const g of f.gerentes || []) if (!E.grupo || sem(g.grupo) === sem(E.grupo)) L.push(`• Gerência ${g.gerente} (meta das pastas): ${N(g.real)} de ${N(g.meta)} (${pctTxt(g.pct)}) ${ok(g.ok)}`); }
+    const S = (x.supervisores || []).filter((s) => s.filial === E.filiais[0] && (!E.grupo || E.vend.some((v) => v.supervisor === s.nome))).sort((a, b) => b.pct - a.pct);
+    L.push('*Supervisores (R$ 300 com 110%):*', ...S.map((s) => `• ${nome2(s.nome)}: ${s.real}/${s.meta} (${pctTxt(s.pct)}) ${ok(s.ok)}${s.falta ? ' · faltam ' + s.falta : ''}`));
+    const V = (x.vendedores || []).filter((v) => v.filial === E.filiais[0] && (!E.grupo || sem(v.grupo) === sem(E.grupo)));
+    L.push(`Vendedores: G1 ✅ ${V.filter((v) => v.g1).length} de ${V.length} · G2 ✅ ${V.filter((v) => v.g2).length}`);
+    const perto = V.filter((v) => !v.g2 && v.falta_g2 > 0 && v.falta_g2 <= 5).sort((a, b) => a.falta_g2 - b.falta_g2);
+    if (perto.length) L.push(`Perto do G2 (≤5 clientes): ${perto.slice(0, 8).map((v) => `${nome2(v.nome)} (${v.falta_g2})`).join(', ')}`);
+  }
+  L.push('', SUGESTAO + 'focar quem está a poucos clientes do 110%: é prêmio garantido com pouco esforço.', '_Painel completo: ceven-cftv-matrix.pages.dev/incentivo_');
+  return L.join('\n');
+}
+async function respLigaAs(B, E, pessoa) {
+  const x = await B.ligaAs(); if (!x || !x.vendedores) return 'Não consegui ler a Liga AS agora.';
+  if (pessoa && pessoa.tipo === 'vend') { const v = x.vendedores.find((y) => y.rca === pessoa.alvo.rca && y.filial === pessoa.alvo.filial); if (v) return `🏆 *Liga AS — ${titulo(v.nome)}* (${v.filial}): *${v.pontos} pontos* · ${pctTxt(v.pct_hoje)} da meta (faturado + pendente) · fases: ${(v.fases || []).map((f) => `F${f.n} ${f.status === 'batida' ? '✅' : f.status === 'futuro' ? '⏳' : '❌'}`).join(' ')} · bônus: ${(v.bonus || []).map((b) => `${b.nome} ${b.status === 'batido' ? '✅' : b.status === 'perdido' ? '❌' : '⏳'}`).join(' · ')}`; }
+  const V = x.vendedores.filter((v) => E.filiais.includes(v.filial)).sort((a, b) => b.pontos - a.pontos || b.pct_hoje - a.pct_hoje);
+  const S = (x.supervisores || []).filter((v) => E.filiais.includes(v.filial)).sort((a, b) => b.pontos - a.pontos);
+  return [`🏆 *Liga AS — ${E.nome}* (${x.mes})`, `_${(x.regras && x.regras.base) || ''}_`, '*Vendedores AS:*', ...V.slice(0, 10).map((v, i) => `${i + 1}. ${nome2(v.nome)}${E.nacional ? ' ' + v.filial : ''} — ${v.pontos} pts · ${pctTxt(v.pct_hoje)}`), '*Supervisores:*', ...S.slice(0, 6).map((s, i) => `${i + 1}. ${nome2(s.supervisor)}${E.nacional ? ' ' + s.filial : ''} — ${s.pontos} pts · ${pctTxt(s.pct_hoje)}`), '', '_ceven-cftv-matrix.pages.dev/liga-as_'].join('\n');
+}
+async function respSemana(B, E) {
+  const R = await Promise.all(E.filiais.map((f) => B.semana(f).then((j) => ({ f, S: j && j.filiais && j.filiais[f] }))));
+  const sups = new Set(E.vend.map((v) => v.filial + '|' + v.supervisor));
+  const all = R.flatMap(({ f, S }) => (S || []).filter((s) => !/^GERENTE/i.test(s.nome) && (!E.grupo || sups.has(f + '|' + s.nome))).map((s) => ({ ...s, filial: f })));
+  if (!all.length) return 'Não consegui ler a semana dos supervisores agora.';
+  const pass = (s) => (s.dias || []).filter((d) => d.estado !== 'futuro');
+  const L = [`🗓️ *Semana dos supervisores — ${E.nome}* (compromisso / RET por dia útil até hoje)`];
+  const rank = all.map((s) => ({ s, c: pass(s).filter((d) => d.comp).length, r: pass(s).filter((d) => d.ret).length, n: pass(s).length })).sort((a, b) => (a.c + a.r) - (b.c + b.r));
+  for (const { s, c, r, n } of rank.slice(0, E.nacional ? 20 : 30)) L.push(`• ${nome2(s.nome)}${E.nacional ? ' ' + s.filial : ''}: compromisso ${c}/${n} · RET ${r}/${n}`);
+  if (E.nacional && rank.length > 20) L.push(`… (${rank.length} supervisores; mostrando os 20 com menos dias)`);
+  L.push('', SUGESTAO + `${nome2(rank[0].s.nome)} é quem menos fez na semana.`);
+  return L.join('\n');
+}
+async function respDevMotivos(B) {
+  const x = await B.devMot(); if (!x) return null;
+  const M = Object.entries(x.notas_por_motivo || {}).sort((a, b) => b[1] - a[1]);
+  return [`↩️ *Devoluções por motivo — Brasil (${x.mes})*: ${N(x.notas_com_valor)} notas · ${R$(x.valor_total_devolvido)}`, ...M.slice(0, 10).map(([m, n]) => `• ${titulo(m)}: ${n} notas`), `Notas por filial: ${Object.entries(x.notas_por_filial || {}).sort((a, b) => b[1] - a[1]).map(([f, n]) => `${f} ${n}`).join(' · ')}`, '_"Cliente não pediu" = cartão vermelho (−10); motivo comercial = gol contra (−4)._'].join('\n');
+}
+async function respBola(B, E) {
+  const R = await Promise.all(E.filiais.map((f) => B.bola(f).then((j) => ({ f, j }))));
+  const L = ['⚽ *Bola Cheia do dia*'];
+  for (const { f, j } of R) { if (!j) continue; if (j.pendente) { L.push(`• ${f}: ${j.motivo}`); if (E.nacional) break; continue; } L.push(`• ${f}: ${(j.vencedores || []).map((v) => nome2(v.nome || v.vendedor)).join(', ') || 'sem vencedor'}`); }
+  return L.join('\n');
+}
+async function respDivergencias(B) {
+  const x = await B.diverg(); if (!x || !x.resumo) return 'Não consegui ler as divergências agora.';
+  const r = x.resumo;
+  return [`🔎 *Divergências com o CEVEN*`, `No CEVEN e fora da Gestão de Equipe: *${r.banco_fora_da_planilha}* (${r.banco_fora_da_planilha_com_movimento} com movimento hoje, ${R$(r.faturado_mes_fora_da_planilha)} faturado no mês)`, `Na Gestão e sem dado no CEVEN: ${r.planilha_fora_do_banco}`, `Códigos descobertos: ${r.codigos_descobertos} (${r.codigos_descobertos_novos} novos) · devolução descoberta no mês ${R$(r.devolucao_descoberta_mes)}`,
+    '', SUGESTAO + 'decidir na Gestão de Equipe (painel "Divergências com o CEVEN").', '_ceven-cftv-matrix.pages.dev/gestao-equipe_'].join('\n');
+}
+// DETALHE DO DETALHE (Vitorio, 25/10/2026): "quais clientes ela visitou e nao vendeu? quais as justificativas?" -> cliente a cliente, com check-in, tempo e motivo
+function respClientesDia(v, t) {
+  const R = v.rotaHoje || [];
+  if (!v.varejo) return `${titulo(v.nome)} não é varejo de rota (${v.canal || 'sem canal'}); não tem roteiro de visitas.`;
+  if (!R.length) return `${titulo(v.nome)} (${v.filial}) não tem clientes na rota de hoje` + ([0, 6].includes(new Date(hojeSP() + 'T12:00:00Z').getUTCDay()) ? ' (fim de semana: sem rota).' : '.');
+  const st = (c) => String(c.status || '').toUpperCase();
+  const vendeu = (c) => /POSITIVADO|EFETIVADO/.test(st(c));
+  const visitou = (c) => !!c.checkin_horario || /VISITADO|JUSTIFICADO|POSITIVADO|EFETIVADO/.test(st(c));
+  const linha = (c) => `• ${titulo(c.nome_cliente || c.razao_social || 'cliente')} (#${c.id_cliente}) — ${st(c) || 'sem status'}` + (c.checkin_horario ? ` · ${c.checkin_horario}–${c.checkout_horario || '…'} (${c.tempo_visita || '?'})` : '') + (c.motivo_nao_visita ? ` · motivo: *${titulo(c.motivo_nao_visita)}*` : '') + (c.observacao_nao_visita ? ` · obs.: "${c.observacao_nao_visita}"` : '');
+  const fora = R.filter((c) => /FORA/.test(st(c))), rota = R.filter((c) => !/FORA/.test(st(c)));
+  const cab = `📋 *${titulo(v.nome)}* (${v.filial} · sup. ${nome2(v.supervisor)}) — rota de hoje: ${rota.filter(visitou).length} visitados de ${rota.length} · com venda ${rota.filter(vendeu).length}` + (fora.length ? ` · fora da rota ${fora.length}` : '');
+  let L, sug;
+  if (/NAO VENDEU|SEM VENDA|JUSTIFICATIV|MOTIVO/.test(t)) {
+    const S = rota.filter((c) => visitou(c) && !vendeu(c));
+    const M = {}; for (const c of S) { const m = titulo(c.motivo_nao_visita || 'sem justificativa'); M[m] = (M[m] || 0) + 1; }
+    L = [cab, '', `*Visitou e não vendeu (${S.length}):*`, ...S.map(linha), S.length ? '*Justificativas:* ' + Object.entries(M).sort((a, b) => b[1] - a[1]).map(([m, n]) => `${m} ${n}×`).join(' · ') : ''];
+    sug = S.some((c) => /PEDIDO A DIGITAR/i.test(c.motivo_nao_visita || '')) ? 'tem "pedido a digitar": cobrar a digitação hoje para não virar zerado.' : S.length ? 'rever com o supervisor os clientes sem venda e voltar nos de maior potencial.' : 'todas as visitas viraram venda.';
+  } else {
+    const falta = rota.filter((c) => !visitou(c));
+    L = [cab, '', '*Visitados:*', ...rota.filter(visitou).map(linha), fora.length ? '*Fora da rota:*' : '', ...fora.map(linha), falta.length ? '*Ainda sem visita:*' : '', ...falta.map(linha)];
+    sug = rota.filter((c) => !visitou(c)).length ? `faltam ${rota.filter((c) => !visitou(c)).length} cliente(s) na rota; priorizar os parados há mais tempo.` : 'rota de hoje concluída.';
+  }
+  return L.filter((x, i) => x !== '' || i === 1).join('\n').slice(0, 3800) + '\n\n' + SUGESTAO + sug;
 }
 // clientes da rota de hoje que ainda faltam visitar (Vitorio, 22/10/2026: "quais clientes ainda faltam visitar hoje?")
 function respAVisitar(E, pessoa) {
@@ -415,13 +518,13 @@ function achaPessoa(E, t) {
   return null;
 }
 
-async function respostaPronta(B, c, texto) {
+async function respostaPronta(B, c, texto, anteriores) {
   const fm = sem(texto).match(FRX);
   const outra = c.papel === 'gerente' && c.filial && fm && fm[1] !== c.filial ? `_Você vê só ${c.filial}${c.grupo ? ' · ' + titulo(c.grupo) : ''}; outras filiais são com a diretoria._\n\n` : '';
-  const r = await respostaInterna(B, c, texto);
+  const r = await respostaInterna(B, c, texto, anteriores);
   return r && outra + r;
 }
-async function respostaInterna(B, c, texto) {
+async function respostaInterna(B, c, texto, anteriores) {
   const t = sem(texto);
   // escopo: gerente = a filial dele; diretoria = a filial citada, senao o Brasil
   const fm = t.match(FRX);
@@ -430,12 +533,20 @@ async function respostaInterna(B, c, texto) {
   const esc = fil ? { nome: fil + (grupo ? ' · ' + titulo(grupo) : ''), filiais: [fil], grupo, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
   if (/^(OI|OLA|E AI|AJUDA|MENU|INICIO|COMECAR|BOM DIA|BOA TARDE|BOA NOITE)\b[ !?.]*$|O QUE (VOCE|VC) (SABE|FAZ|RESPONDE)|^AJUDA/.test(t)) return respAjuda(c);
   if (/O QUE (E|EH|SIGNIFICA)|COMO FUNCIONA|COMO (E|EH) CALCULAD|QUE QUER DIZER|DEFINICAO/.test(t)) { const g = respGlossario(t); if (g) return g; }
-  if (/INCENTIVO|GATILHO|110 ?%|\b110\b|BONUS|PREMIA/.test(t)) return respIncentivo(await carregaEscopo(B, esc));
+  if (/DIVERGENC/.test(t) && c.papel === 'diretoria') return respDivergencias(B);
+  if (/BOLA CHEIA/.test(t)) return respBola(B, esc);
+  if (/SEMANA/.test(t) && /COMPROMISSO|\bRETS?\b|SUPERVISOR/.test(t)) return respSemana(B, await carregaEscopo(B, esc));
+  if (/RECORRENCIA|RESGAT|INATIVOS? (RECUPERAD|REATIVAD)/.test(t)) return respRecorrencia(B, await carregaEscopo(B, esc));
+  if (/MOTIVO/.test(t) && /DEVOLU/.test(t)) return respDevMotivos(B);
   if (/COMPROMISSO|MATINAL|\bRET\b|\bRETS\b|ROTA DO SUPERVISOR/.test(t)) return respCompromisso(B, await carregaEscopo(B, esc));
   if (/PENALTI|IMPEDIMENTO|CARTA|VERMELHO|AMARELO|GOL CONTRA|\bGOLS?\b|LANCES?\b|HAT ?TRICK|DEFESAS?\b/.test(t) && !/LIGA|CHAMPIONS|CLASSIFICA/.test(t)) return respLances(B, await carregaEscopo(B, esc), t);
   if (/\+ ?MIX|MAIS ?MIX|\bMIX\b|PRODUTO|QUEM COMPRA|\bSKU/.test(t)) return respMix(B, await carregaEscopo(B, esc), t);
   const E = await carregaEscopo(B, esc);
-  const pessoa = achaPessoa(E, t);
+  let pessoa = achaPessoa(E, t);
+  if (!pessoa && /\b(ELA|ELE|DELA|DELE|DESSA|DESSE|ESSA|ESSE|NELA|NELE|PRA ELA|PRA ELE|MESMA|MESMO)\b/.test(t)) for (const h of anteriores || []) { pessoa = achaPessoa(E, sem(h)); if (pessoa) break; }
+  if (pessoa && pessoa.tipo === 'vend' && /QUA(L|IS) (OS )?CLIENTES?|QUAIS\??$|JUSTIFICATIV|MOTIVO|NAO VENDEU|SEM VENDA|VISITOU|VISITAD|CHECK|ONDE (ELA|ELE) (FOI|ESTA)|POSITIVOU|VENDEU (PARA|PRA)/.test(t)) return respClientesDia(pessoa.alvo, t);
+  if (/INCENTIVO|GATILHO|110 ?%|\b110\b|BONUS|PREMIA/.test(t)) return respIncentivoOficial(B, E, pessoa);
+  if (/LIGA (DO |DOS |DA )?AS\b|LIGA DO ATACADO/.test(t) || (pessoa && pessoa.tipo === 'vend' && /^(AS|PET AS)$/.test(pessoa.alvo.canal) && /LIGA|PONTOS|POSICAO|CHAMPIONS/.test(t))) return respLigaAs(B, E, pessoa);
   if (/LIGA|CHAMPIONS|CLASSIFICA|TABELA|POSICAO|PONTOS|PONTUACAO|COLOCAD/.test(t)) return respLiga(B, E, pessoa && pessoa.tipo === 'vend' ? pessoa.alvo : null);
   if (/FALTA(M)? (SER )?VISITA|NAO (FOI |FORAM )?VISITAD|AINDA (NAO )?(FORAM )?VISITAD|CLIENTES? (EM )?ABERTO|PENDENTES? (DE |NA )?(VISITA|ROTA)|SEM VISITA AINDA|CLIENTES? (NA|DA) ROTA|FALTA VISITAR|FALTAM VISITAR|QUEM FALTA VISITAR/.test(t)) return respAVisitar(E, pessoa);
   if (pessoa) {
@@ -443,7 +554,7 @@ async function respostaInterna(B, c, texto) {
     return (pessoa.tipo === 'sup' ? respSupervisor(E, pessoa.alvo) : await respVendedor(B, E, pessoa.alvo)) + amb;
   }
   if (/ZERAD|SEM PEDIDO|SEM VENDA|NAO VENDEU|NAO VENDERAM|NINGUEM VENDEU/.test(t)) return respZerados(E);
-  if (/DEVOLU/.test(t)) return respDevolucao(E);
+  if (/DEVOLU/.test(t)) { const a = respDevolucao(E); const m = E.nacional ? await respDevMotivos(B) : null; return m ? a + '\n\n' + m : a; }
   if (/QUANTO FALTA|FALTA (PARA|PRA|BATER)|\bFALTA\b|POR DIA UTIL|\bMN\b|PRECISA (VENDER|FATURAR)/.test(t)) return respFalta(B, E);
   if (/RANKING|MELHOR|PIOR|\bTOP\b|DESTAQUE|MAIS ATRAS|QUEM (ESTA|TA) (BEM|MAL)/.test(t)) return respRanking(E, t);
   if (/VISITA|EFICACIA|EFICIENCIA|ROTEIRO|CHECK.?IN/.test(t) && !/ACUMULADO|DIGITAD/.test(t)) return respVisitas(E);
@@ -487,9 +598,10 @@ export async function onRequestPost({ request, env }) {
   if (!c) return new Response('ok');   // so responde quem esta cadastrado
   const B = criaBase(u.origin, env);
   let resp = null;
-  try { resp = await respostaPronta(B, c, texto); } catch (e) { resp = null; try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'erro: ' + String(e && e.stack || e).slice(0, 1500)).run(); } catch (x) {} }
+  const { results: hist } = await env.DB.prepare("SELECT direcao, texto FROM bot_msgs WHERE celular = ? AND direcao IN ('in','out') AND quando >= datetime('now','-6 hours') ORDER BY id DESC LIMIT 7").bind(cel).all();
+  const anteriores = (hist || []).filter((h) => h.direcao === 'in').map((h) => h.texto).filter((x) => x !== texto).slice(0, 4);
+  try { resp = await respostaPronta(B, c, texto, anteriores); } catch (e) { resp = null; try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'erro: ' + String(e && e.stack || e).slice(0, 1500)).run(); } catch (x) {} }
   if (!resp) {
-    const { results: hist } = await env.DB.prepare("SELECT direcao, texto FROM bot_msgs WHERE celular = ? AND direcao IN ('in','out') AND quando >= datetime('now','-6 hours') ORDER BY id DESC LIMIT 7").bind(cel).all();
     const historico = (hist || []).slice(1).reverse().map((h) => ({ role: h.direcao === 'in' ? 'user' : 'assistant', content: h.texto }));
     resp = await respondeIA(env, B, c, texto, historico);
   }
@@ -501,4 +613,4 @@ export async function onRequestPost({ request, env }) {
 }
 export async function onRequestGet() { return new Response('JOTA (+MIX): use POST (webhook da Evolution)', { status: 200 }); }
 // exportado so para o simulador de perguntas (testes/t_jota.mjs)
-export const _teste = { respostaPronta, criaBase };
+export const _teste = { respostaPronta, criaBase, respClientesDia };

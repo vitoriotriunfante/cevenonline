@@ -16,14 +16,16 @@ const P = [
  [DIR, 'por supervisor em MCD'], [DIR, 'compromisso TSJ'], [DIR, 'como está a vendedora Tamara?'], [DIR, 'supervisor Kleberson'], [DIR, 'quanto vendeu o Gilmar hoje?'],
  [DIR, 'qual a posição do Gilmar na liga?'], [DIR, 'quem tá mal na positivação?'], [DIR, 'qual o ticket médio de hoje?'], [DIR, 'me fala do clima amanhã'],
  [DIR, 'responde sobre mais mix?'], [DIR, 'quantos clientes na rota hoje em TBL?'], [DIR, 'quantas visitas foram feitas hoje?'], [DIR, 'quantos pontos a Tamara tem na champions?'], [DIR, 'qual posição está o Gilmar Poteriko?'], [DIR, 'quais clientes ainda faltam visitar hoje?'], [DIR, 'quais clientes faltam visitar da vendedora Tamara?'], [DIR, 'falta visitar supervisor Kleberson'],
+ [DIR, 'a Luana visitou 5 clientes já? quais?'], [DIR, 'quais clientes ela visitou e não vendeu? quais as justificativas que ela deu?', ['a Luana visitou 5 clientes já? quais?']],
+ [DIR, 'incentivo TPH'], [DIR, 'incentivo do supervisor Kleberson'], [DIR, 'recorrência'], [DIR, 'resgates em TBL'], [DIR, 'liga AS'], [DIR, 'compromisso da semana TSJ'], [DIR, 'divergências'], [DIR, 'motivos de devolução'], [DIR, 'bola cheia'],
  [GER_API, 'como está minha filial?'], [GER_API, 'zerados'], [GER_API, 'por supervisor'], [GER_API, 'como está TPH?'], [GER_API, 'quem compra trident?'],
  [GER_TPH, 'como está?'], [GER_TPH, 'por supervisor'], [GER_TPH, 'liga'], [GER_TPH, 'hoje rota'], [GER_TPH, 'compromisso'],
 ];
 const f = process.argv[2]; let erros = 0;
-for (const [c, q] of P) {
+for (const [c, q, ant] of P) {
   if (f && !q.includes(f)) continue;
   const B = _teste.criaBase(ORIGIN, {}); const t0 = Date.now();
-  let r; try { r = await _teste.respostaPronta(B, c, q); } catch (e) { r = 'ERRO: ' + e.stack; erros++; }
+  let r; try { r = await _teste.respostaPronta(B, c, q, ant || []); } catch (e) { r = 'ERRO: ' + e.stack; erros++; }
   console.log(`\n==== [${c.nome}] ${q}  (${Date.now() - t0} ms)\n${r === null ? '(sem resposta pronta -> IA)' : r}`);
   if (r && /undefined|NaN|\[object/.test(r)) { erros++; console.log('!!!! TEXTO SUSPEITO'); }
 }
