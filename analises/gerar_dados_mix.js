@@ -333,6 +333,29 @@ async function main() {
     }
     fs.mkdirSync(path.join(__dirname, '..', 'public', 'mix_hist'), { recursive: true });
     for (const [f, m] of porF) fs.writeFileSync(path.join(__dirname, '..', 'public', 'mix_hist', f + '.json'), JSON.stringify({ gerado_em: new Date().toISOString(), c: m })); }
+  // VENDAS DO MES ITEM A ITEM, para o JOTA (Vitorio, 25/10/2026: "quais os clientes que mais compraram Snickers Original ontem da vendedora Giovana 181?"; ok no item 2).
+  // Um arquivo por filial em public/vendas_mes/<FIL>.json: cada linha = [data AAAAMMDD, rca, cliente, produto, quantidade, valor] (pedidos de VENDA do mes, SKU 12229 fora),
+  // com o nome de cada cliente e de cada produto e a INDUSTRIA (fornecedor do catalogo da filial). Lido pelo JOTA direto do GitHub (zero gravacao na Cloudflare).
+  try {
+    const dbv = new Database(path.join(__dirname, 'pedidos_historico_ceven.db'), { readonly: true });
+    const rows = dbv.prepare(`SELECT ph.filial_sigla f, CAST(ph.rca_id AS TEXT) r, ph.id_cliente c, ph.nome_cliente n, substr(ph.data_pedido,1,10) d, i.codprod cod, i.descricao des, i.quantidade q, i.valor_total v
+      FROM pedidos_historico ph JOIN pedidos_historico_itens i ON i.chave_pedido = ph.chave
+      WHERE i.tipo_registro = 'VENDA' AND i.codprod <> '12229' AND i.codprod <> '' AND substr(ph.data_pedido,1,10) >= ? AND substr(ph.data_pedido,1,10) <= ?`).all(INI, ATE);
+    dbv.close();
+    const forn = new Map();   // FIL|cod -> fornecedor
+    try { const cat = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config', 'catalogo_produtos_por_filial.json'), 'utf8')); const C = cat.campos; const iS = C.indexOf('sigla'), iC = C.indexOf('codprod'), iF = C.indexOf('fornecedor');
+      for (const l of cat.linhas || []) forn.set(String(l[iS]).toUpperCase() + '|' + String(l[iC]), String(l[iF] || '')); } catch (e) { console.log('catalogo sem fornecedor:', e.message); }
+    const porF = new Map();
+    for (const x of rows) {
+      const m = porF.get(x.f) || porF.set(x.f, { clientes: {}, produtos: {}, l: [] }).get(x.f);
+      m.clientes[String(x.c)] = x.n || '';
+      if (!m.produtos[String(x.cod)]) m.produtos[String(x.cod)] = [x.des || '', forn.get(String(x.f).toUpperCase() + '|' + String(x.cod)) || ''];
+      m.l.push([Number(x.d.replace(/-/g, '')), x.r, String(x.c), String(x.cod), Number(x.q) || 0, Math.round((Number(x.v) || 0) * 100) / 100]);
+    }
+    fs.mkdirSync(path.join(__dirname, '..', 'public', 'vendas_mes'), { recursive: true });
+    for (const [f, m] of porF) fs.writeFileSync(path.join(__dirname, '..', 'public', 'vendas_mes', f + '.json'), JSON.stringify({ gerado_em: new Date().toISOString(), de: INI, ate: ATE, campos: ['data', 'rca', 'cliente', 'produto', 'qtd', 'valor'], produtos_campos: ['descricao', 'industria'], ...m }));
+    console.log(`vendas do mes item a item: ${rows.length} itens em ${porF.size} filiais (public/vendas_mes)`);
+  } catch (e) { console.log('⚠️ vendas_mes nao gerado:', e.message); }
   // +MIX DE CADA CLIENTE (clique no cliente no mapa: "o que falta ele comprar que esta no +MIX"): um arquivo por filial em public/mix_rec/
   { const porF = new Map();
     for (const o of alvo) {
