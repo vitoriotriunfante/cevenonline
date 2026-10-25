@@ -1468,6 +1468,13 @@ function verificarPermissaoCalendario(dataIso, diretrizes = null, args = {}) {
 // 6. Envio Resiliente via WhatsApp (com retry automático e trava final de calendário)
 // Conta envios que falharam de verdade (servico fora do ar, numero invalido...). Bloqueio de calendario nao conta.
 let FALHAS_ENVIO = 0;
+let CICLO_ATUAL = '';
+// REGISTRO NO PAINEL (Vitorio, 25/10/2026: "pq tambem nao chega no conversas uai?"): cada envio/falha aparece em /contatos -> Conversas.
+// Timeout curto e erro ignorado: o registro NUNCA atrasa nem derruba o envio.
+async function registrarNoPainel(numero, texto, ok) {
+  if (!EVO_KEY) return;
+  try { await fetch((process.env.SITE_CFTV || 'https://ceven-cftv-matrix.pages.dev') + '/api/whatsapp/registro', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Evo-Key': EVO_KEY }, body: JSON.stringify({ celular: numero, texto, ok, ciclo: CICLO_ATUAL }), signal: AbortSignal.timeout(5000) }); } catch (e) { /* so registro */ }
+}
 
 async function enviarWhatsapp(numero, texto, tentativas = 3) {
   // Trava de Segurança Final no Envio (Double-check)
@@ -1481,10 +1488,11 @@ async function enviarWhatsapp(numero, texto, tentativas = 3) {
     try {
       const res = await R.evolution({ url: EVO_URL, key: EVO_KEY, instancia: EVO_INSTANCE }, '/message/sendText', { number: numero, text: texto }, 15000);
       if (!res.ok) throw new Error(res.erro || ('Evolution respondeu HTTP ' + res.status));
+      await registrarNoPainel(numero, texto, true);
       return { sucesso: true, id: res.resposta?.key?.id || 'OK' };
     } catch (err) {
       console.warn(`  ⚠️ Tentativa ${i} falhou para ${numero}: ${err.message}`);
-      if (i === tentativas) { FALHAS_ENVIO++; return { sucesso: false, erro: err.message }; }
+      if (i === tentativas) { FALHAS_ENVIO++; await registrarNoPainel(numero, texto, false); return { sucesso: false, erro: err.message }; }
       await new Promise(r => setTimeout(r, 2000));
     }
   }
@@ -1504,6 +1512,7 @@ async function main() {
   const destino = args.destino || 'dry_run';
   process.env.CEVEN_DESTINO_ATUAL = destino;
   const hora = args.hora || '11:00';
+  CICLO_ATUAL = hora;
   const dataHoje = args.data || R.hojeSP();
 
   const diretrizes = carregarDiretrizesOperacionais(args);

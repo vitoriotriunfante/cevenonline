@@ -7,7 +7,7 @@
 // SENHA: a mesma da Gestão de Equipe (X-Equipe-Senha). Só leitura.
 // =========================================================================
 import { exigeSenhaEquipe } from '../_lib/senha_equipe.js';
-const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type, X-Equipe-Senha', 'Cache-Control': 'no-store' };
+const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Equipe-Senha', 'Cache-Control': 'no-store' };
 export async function onRequestOptions() { return new Response(null, { status: 204, headers: CORS }); }
 export async function onRequestGet({ request, env }) {
   const negado = await exigeSenhaEquipe(request, env, CORS); if (negado) return negado;
@@ -22,10 +22,26 @@ export async function onRequestGet({ request, env }) {
   }
   for (const x of conv) x.nao_ajudou = x.ajudou === 0 || (x.nota != null && x.nota <= 2) || ['ia', 'ajuda', 'erro de envio', 'sem resposta'].includes(x.tipo);
   const notas = conv.filter((x) => x.nota != null).map((x) => x.nota);
-  let sugestoes = []; try { const r = await env.DB.prepare("SELECT quando, nome, papel, filial, texto, sobre FROM bot_sugestoes WHERE quando >= datetime('now', ?) ORDER BY id DESC LIMIT 200").bind(`-${dias} days`).all(); sugestoes = r.results || []; } catch (e) { /* tabela ainda nao existe */ }
+  // SUGESTOES com retorno (Vitorio, 25/10/2026: "e a minha sugestao, vai fazer o que com ela?"): situacao nova|feita|nao_vai + o que foi feito
+  for (const col of ['situacao TEXT', 'resposta TEXT', 'feito_em TEXT']) { try { await env.DB.prepare(`ALTER TABLE bot_sugestoes ADD COLUMN ${col}`).run(); } catch (e) { /* ja existe */ } }
+  let sugestoes = []; try { const r = await env.DB.prepare("SELECT id, quando, nome, papel, filial, texto, sobre, COALESCE(situacao, 'nova') AS situacao, resposta, feito_em FROM bot_sugestoes WHERE quando >= datetime('now', ?) OR COALESCE(situacao, 'nova') = 'nova' ORDER BY id DESC LIMIT 200").bind(`-${dias} days`).all(); sugestoes = r.results || []; } catch (e) { /* tabela ainda nao existe */ }
+  // DISPAROS DO MOTOR (Vitorio, 25/10/2026: "pq tambem nao chega no conversas uai?"): cada mensagem automatica enviada ou que falhou
+  const dsp = await env.DB.prepare(`SELECT m.quando, m.celular, m.direcao, m.texto, m.tipo, c.nome, c.papel, c.filial FROM bot_msgs m LEFT JOIN bot_contatos c ON c.celular = m.celular
+    WHERE m.quando >= datetime('now', ?) AND m.direcao IN ('motor', 'motor_erro') ORDER BY m.id DESC LIMIT 600`).bind(`-${dias} days`).all();
+  const disparos = (dsp.results || []).map((r) => ({ quando: r.quando, celular: r.celular, quem: r.nome || r.celular, papel: r.papel || '', filial: r.filial || '', ciclo: r.tipo || '', ok: r.direcao === 'motor', texto: String(r.texto || '').slice(0, 600) }));
   conv.sort((a, b) => String(b.quando).localeCompare(String(a.quando)));
   const cad = conv.filter((x) => x.cadastrado);
   const cont = (f) => cad.filter(f).length;
   return new Response(JSON.stringify({ dias, total: cad.length, prontas: cont((x) => ['pronta', 'saudacao', 'saudacao_primeira'].includes(x.tipo) && x.ajudou !== 0), ia: cont((x) => x.tipo === 'ia'), ajuda: cont((x) => x.tipo === 'ajuda'),
-    reclamadas: cont((x) => x.ajudou === 0), nao_ajudou: cont((x) => x.nao_ajudou), nao_cadastrados: conv.filter((x) => !x.cadastrado).length, notas: notas.length, nota_media: notas.length ? Math.round(notas.reduce((a, b) => a + b, 0) / notas.length * 10) / 10 : null, sugestoes, conversas: conv.slice(0, 500) }), { headers: CORS });
+    reclamadas: cont((x) => x.ajudou === 0), nao_ajudou: cont((x) => x.nao_ajudou), nao_cadastrados: conv.filter((x) => !x.cadastrado).length, notas: notas.length, nota_media: notas.length ? Math.round(notas.reduce((a, b) => a + b, 0) / notas.length * 10) / 10 : null, sugestoes, disparos, conversas: conv.slice(0, 500) }), { headers: CORS });
+}
+
+// marcar sugestao: { acao: 'sugestao', id, situacao: 'feita'|'nao_vai'|'nova', resposta } (senha da Diretoria)
+export async function onRequestPost({ request, env }) {
+  const negado = await exigeSenhaEquipe(request, env, CORS); if (negado) return negado;
+  let b = {}; try { b = await request.json(); } catch (e) {}
+  if (b.acao !== 'sugestao' || !b.id || !['feita', 'nao_vai', 'nova'].includes(b.situacao)) return new Response(JSON.stringify({ erro: 'acao invalida' }), { status: 400, headers: CORS });
+  for (const col of ['situacao TEXT', 'resposta TEXT', 'feito_em TEXT']) { try { await env.DB.prepare(`ALTER TABLE bot_sugestoes ADD COLUMN ${col}`).run(); } catch (e) { /* ja existe */ } }
+  await env.DB.prepare("UPDATE bot_sugestoes SET situacao = ?, resposta = ?, feito_em = CASE WHEN ? = 'nova' THEN NULL ELSE datetime('now') END WHERE id = ?").bind(b.situacao, String(b.resposta || '').slice(0, 1000) || null, b.situacao, Number(b.id)).run();
+  return new Response(JSON.stringify({ ok: true }), { headers: CORS });
 }

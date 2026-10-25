@@ -137,6 +137,16 @@ async function carregaConversas() {
   try { const r = await fetch('/api/jota-conversas?dias=' + CVF.dias, { headers: { 'X-Equipe-Senha': SENHA }, cache: 'no-store' }); CV = await r.json(); desenhaConversas(); }
   catch (e) { const el = $('conversas'); if (el) el.innerHTML = '<h2>💬 Conversas</h2><p class="mut">Não consegui carregar: ' + esc(e.message) + '</p>'; }
 }
+// DISPAROS AUTOMATICOS do motor do WhatsApp (07:45, 11:30, 14:30, 17:00, 18:30): o que saiu e o que falhou
+function desenhaDisparos() {
+  const D2 = (CV.disparos || []).filter((x) => !CVF.quem || (x.quem + ' ' + x.celular).toUpperCase().includes(CVF.quem.toUpperCase()));
+  if (!D2.length) return `<h2 style="margin-top:16px">📤 Disparos automáticos</h2><p class="mut">Nenhum disparo registrado no período (o registro começou em 26/10/2026).</p>`;
+  const falhas = D2.filter((x) => !x.ok).length;
+  return `<h2 style="margin-top:16px">📤 Disparos automáticos</h2><div class="kpis"><div class="kpi"><b>${D2.length - falhas}</b><span>enviados</span></div><div class="kpi"><b style="color:${falhas ? 'var(--vermelho)' : 'var(--verde)'}">${falhas}</b><span>falharam</span></div></div>
+    <div class="tabela"><table><thead><tr><th>Quando</th><th>Ciclo</th><th>Para</th><th>Mensagem</th><th></th></tr></thead><tbody>
+    ${D2.slice(0, 300).map((x) => `<tr${x.ok ? '' : ' style="background:#2a1212"'}><td class="mut">${esc(String(x.quando).slice(5, 16))}</td><td>${esc(x.ciclo)}</td><td>${esc(tit(x.quem))}<div class="mut">${esc(x.papel)} ${esc(x.filial)}</div></td>
+      <td class="mut" style="max-width:520px;white-space:pre-wrap">${esc(x.texto.slice(0, 300))}${x.texto.length > 300 ? '…' : ''}</td><td>${x.ok ? '✅' : '⚠️ falhou'}</td></tr>`).join('')}</tbody></table></div>`;
+}
 function desenhaConversas() {
   const el = $('conversas'); if (!el || !CV) return;
   const pc = (a) => CV.total ? Math.round(a / CV.total * 100) + '%' : '–';
@@ -153,8 +163,16 @@ function desenhaConversas() {
     ${L.slice(0, 300).map((x) => `<tr${x.nao_ajudou ? ' style="background:#2a1212"' : ''}><td class="mut">${esc(String(x.quando).slice(5, 16))}</td><td>${esc(tit(x.quem))}<div class="mut">${esc(x.papel)} ${esc(x.filial)}</div></td>
       <td>${esc(x.pergunta)}</td><td class="mut" style="max-width:420px;white-space:pre-wrap">${esc(String(x.resposta || '').slice(0, 280))}${String(x.resposta || '').length > 280 ? '…' : ''}</td>
       <td>${esc(tag[x.tipo] || x.tipo)}${x.nota != null ? `<div style="color:${x.nota >= 4 ? 'var(--verde)' : x.nota === 3 ? 'var(--amarelo)' : 'var(--vermelho)'}">nota ${x.nota}</div>` : ''}${x.ajudou === 0 && x.nota == null ? '<div style="color:var(--vermelho)">reclamou</div>' : ''}</td></tr>`).join('')}</tbody></table></div>
-    ${(CV.sugestoes || []).length ? `<h2 style="margin-top:16px">💡 Sugestões</h2><div class="tabela"><table><thead><tr><th>Quando</th><th>Quem</th><th>Sugestão</th><th>Sobre a pergunta</th></tr></thead><tbody>${CV.sugestoes.map((g) => `<tr><td class="mut">${esc(String(g.quando).slice(5, 16))}</td><td>${esc(tit(g.nome))}<div class="mut">${esc(g.papel || '')} ${esc(g.filial || '')}</div></td><td>${esc(g.texto)}</td><td class="mut">${esc(g.sobre || '')}</td></tr>`).join('')}</tbody></table></div>` : ''}`;
+    ${(CV.sugestoes || []).length ? `<h2 style="margin-top:16px">💡 Sugestões</h2><div class="tabela"><table><thead><tr><th>Quando</th><th>Quem</th><th>Sugestão</th><th>Sobre a pergunta</th><th>Situação</th></tr></thead><tbody>${CV.sugestoes.map((g) => `<tr><td class="mut">${esc(String(g.quando).slice(5, 16))}</td><td>${esc(tit(g.nome))}<div class="mut">${esc(g.papel || '')} ${esc(g.filial || '')}</div></td><td>${esc(g.texto)}</td><td class="mut">${esc(g.sobre || '')}</td>
+      <td>${g.situacao === 'feita' ? `<b style="color:var(--verde)">✅ feita</b>` : g.situacao === 'nao_vai' ? `<b style="color:var(--vermelho)">✖ não vai</b>` : `<b style="color:var(--amarelo)">🆕 nova</b>`}${g.resposta ? `<div class="mut" style="max-width:320px;white-space:pre-wrap">${esc(g.resposta)}</div>` : ''}
+      <div style="margin-top:4px"><button class="sg" data-id="${g.id}" data-s="feita">✅ feita</button> <button class="sg" data-id="${g.id}" data-s="nao_vai">✖ não vai</button></div></td></tr>`).join('')}</tbody></table></div>` : ''}
+    ${desenhaDisparos()}`;
   $('cv_ruins').onchange = (e) => { CVF.so_ruins = e.target.checked; desenhaConversas(); };
+  document.querySelectorAll('button.sg').forEach((b) => b.onclick = async () => {
+    const resposta = prompt(b.dataset.s === 'feita' ? 'O que foi feito? (fica registrado na sugestão)' : 'Por que não vai ser feita?'); if (resposta === null) return;
+    const r = await fetch('/api/jota-conversas', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Equipe-Senha': SENHA }, body: JSON.stringify({ acao: 'sugestao', id: b.dataset.id, situacao: b.dataset.s, resposta }) });
+    if (r.ok) carregaConversas(); else alert('Não consegui salvar.');
+  });
   $('cv_dias').onchange = (e) => { CVF.dias = Number(e.target.value); carregaConversas(); };
   $('cv_quem').oninput = (e) => { CVF.quem = e.target.value; clearTimeout(window._c); window._c = setTimeout(() => { desenhaConversas(); const i = $('cv_quem'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 300); };
 }
