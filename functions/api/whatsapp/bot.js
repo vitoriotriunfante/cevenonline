@@ -537,7 +537,7 @@ async function respInfoEquipe(env, c, texto) {
 // ---------- VENDAS ITEM A ITEM (public/vendas_mes/<FIL>.json, gerado toda noite pelo +MIX com o banco do Data Lake) ----------
 // Reuniao de 5 h (25/10/2026): produto x cliente x vendedor x dia, industria, preco medio, top produtos, marca propria. Dado ate ONTEM (nunca hoje).
 const SEM_VENDAS = '📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta filial; tente depois das 06h._';
-const PARADAS = new Set(['COMPRAVA', 'COMPRAVAM', 'PAROU', 'PARARAM', 'DEIXOU', 'DEIXARAM', 'COMPRAR', 'RECUPERACAO', 'LISTA', 'COMO', 'ESTA', 'TA', 'ESTAO', 'VAI', 'ANDA', 'NOSSA', 'NOSSO', 'MINHA', 'TEM', 'TEMOS', 'QUAL', 'QUAIS', 'QUAL', 'QUEM', 'OS', 'AS', 'DO', 'DA', 'DE', 'DOS', 'DAS', 'NO', 'NA', 'NOS', 'EM', 'QUE', 'MAIS', 'COMPROU', 'COMPRARAM', 'COMPRA', 'COMPRAM', 'COMPRADO', 'CLIENTES', 'CLIENTE', 'TOP', 'MES', 'ONTEM', 'HOJE', 'SEMANA', 'ESSA', 'ESSE', 'ESTE', 'ESTA', 'VENDEDORA', 'VENDEDOR', 'PRODUTO', 'PRODUTOS', 'POSITIVACAO', 'QUANTOS', 'QUANTO', 'PRECO', 'MEDIO', 'SAIU', 'MEDIA', 'VENDE', 'VENDEU', 'VENDERAM', 'PELO', 'PELA', 'POR', 'PARA', 'PRA', 'COM', 'UM', 'UMA', 'MEU', 'MINHA', 'JOTA', 'FAVOR', 'PICO', 'ULTIMA', 'ULTIMO', 'LOJA', 'NUMERICA', 'PDVS', 'PDV', 'FILIAL', 'SUPERVISOR', 'EQUIPE', 'CARTEIRA', 'ITEM', 'ITENS', 'LISTA', 'SKU', 'FOCO', 'DIA', 'DIAS', 'SEMANAL', 'SEMANAIS', 'MENSAL', 'MENSAIS', 'VENDAS', 'VENDA', 'MELHOR', 'ESPECIFICO', 'ALGUM', 'ALGUMA', 'SEGUNDA', 'TERCA', 'QUARTA', 'QUINTA', 'SEXTA', 'SABADO', 'DOMINGO']);
+const PARADAS = new Set(['COMPRAVA', 'COMPRAVAM', 'PAROU', 'PARARAM', 'DEIXOU', 'DEIXARAM', 'COMPRAR', 'RECUPERACAO', 'LISTA', 'COMO', 'ESTA', 'TA', 'ESTAO', 'VAI', 'ANDA', 'NOSSA', 'NOSSO', 'MINHA', 'TEM', 'TEMOS', 'QUAL', 'QUAIS', 'QUAL', 'QUEM', 'OS', 'AS', 'DO', 'DA', 'DE', 'DOS', 'DAS', 'NO', 'NA', 'NOS', 'EM', 'QUE', 'MAIS', 'COMPROU', 'COMPRARAM', 'COMPRA', 'COMPRAM', 'COMPRADO', 'CLIENTES', 'CLIENTE', 'TOP', 'MES', 'ONTEM', 'HOJE', 'SEMANA', 'ESSA', 'ESSE', 'ESTE', 'ESTA', 'VENDEDORA', 'VENDEDOR', 'PRODUTO', 'PRODUTOS', 'POSITIVACAO', 'QUANTOS', 'QUANTO', 'PRECO', 'MEDIO', 'SAIU', 'MEDIA', 'VENDE', 'VENDEU', 'VENDERAM', 'PELO', 'PELA', 'POR', 'PARA', 'PRA', 'COM', 'UM', 'UMA', 'MEU', 'MINHA', 'JOTA', 'FAVOR', 'PICO', 'ULTIMA', 'ULTIMO', 'LOJA', 'NUMERICA', 'PDVS', 'PDV', 'FILIAL', 'SUPERVISOR', 'EQUIPE', 'CARTEIRA', 'ITEM', 'ITENS', 'LISTA', 'SKU', 'FOCO', 'DIA', 'DIAS', 'SEMANAL', 'SEMANAIS', 'MENSAL', 'MENSAIS', 'VENDAS', 'VENDA', 'MELHOR', 'ESPECIFICO', 'ALGUM', 'ALGUMA', 'SEGUNDA', 'TERCA', 'QUARTA', 'QUINTA', 'SEXTA', 'SABADO', 'DOMINGO', 'VENDER', 'OFERECER', 'OFERTA', 'SUGERIR', 'PRO', 'PARA', 'ELE', 'ELA']);
 async function vendasEscopo(B, E) {
   const arqs = await Promise.all(E.filiais.map((f) => B.raw(`public/vendas_mes/${f}.json`).then((t) => { try { return t ? { f, ...JSON.parse(t) } : null; } catch (e) { return null; } })));
   const ok = arqs.filter(Boolean); if (!ok.length) return null;
@@ -711,6 +711,64 @@ async function extrasTempo(B, E, L, t, filtroLinha) {
     else out.push('', '_Mês passado item a item ainda não publicado: o mês a mês sai assim que ele chegar._');
   }
   return out;
+}
+// MOTIVOS DE NAO VENDA NO PERIODO (reuniao tensa 25/10/2026): resumo publicado toda noite pela rotina guardar-visitas (sem dado de cliente)
+async function respJustificativas(B, E, t, pessoa) {
+  const arqs = await Promise.all(E.filiais.map((f) => B.raw(`public/justificativas/${f}.json`).then((x) => { try { return x ? { f, ...JSON.parse(x) } : null; } catch (e) { return null; } })));
+  const ok = arqs.filter(Boolean); if (!ok.length) return '📋 _O resumo dos motivos de não venda é publicado toda noite às 22h; ainda não há arquivo para esta filial._';
+  const hj = Number(hojeSP().replace(/-/g, '')), ini = Math.floor(hj / 100) * 100 + 1;
+  let de = ini, ate = hj, nomeP = 'no mês';
+  if (/MES PASSADO|MES ANTERIOR|SETEMBRO/.test(t)) { const m = Math.floor(ini / 100) % 100, a = Math.floor(ini / 10000); de = m === 1 ? (a - 1) * 10000 + 1201 : a * 10000 + (m - 1) * 100 + 1; ate = ini - 1; nomeP = 'no mês passado'; }
+  else if (/SEMANA/.test(t)) { de = Number(new Date(Date.now() - 6 * 864e5).toISOString().slice(0, 10).replace(/-/g, '')); nomeP = 'nos últimos 7 dias'; }
+  let rs = null, quem = E.nome;
+  if (pessoa && pessoa.tipo === 'vend') { rs = new Set([pessoa.alvo.filial + '|' + pessoa.alvo.rca]); quem = vn(pessoa.alvo); }
+  else if (pessoa && pessoa.tipo === 'sup') { rs = new Set(E.vend.filter((v) => v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial).map((v) => v.filial + '|' + v.rca)); quem = 'Equipe ' + nome2(pessoa.alvo.nome); }
+  else if (E.grupo || E.supervisor || E.rca) rs = new Set(E.vend.map((v) => v.filial + '|' + v.rca));
+  const dentro = (f, r, d) => d >= de && d <= ate && (!rs || rs.has(f + '|' + r));
+  const M = new Map(), V = new Map(); let visitas = 0, pos = 0, just = 0, ult = 0;
+  for (const a of ok) {
+    for (const [d, r, n, p] of a.rota || []) if (dentro(a.f, r, d)) { visitas += n; pos += p; if (d > ult) ult = d; }
+    for (const [d, r, mot, n] of a.l || []) if (dentro(a.f, r, d)) { just += n; M.set(mot, (M.get(mot) || 0) + n); const k = a.f + '|' + r, x = V.get(k) || { n: 0, m: new Map() }; x.n += n; x.m.set(mot, (x.m.get(mot) || 0) + n); V.set(k, x); }
+  }
+  if (!visitas) return `📋 *Motivos de não venda — ${quem}* ${nomeP}: nenhuma visita registrada no período.`;
+  const top = [...M].sort((a, b) => b[1] - a[1]);
+  const nm = new Map(E.vend.map((v) => [v.filial + '|' + v.rca, v]));
+  const dica = { 'ESTOQUE SUFICIENTE': 'cliente com estoque: oferecer itens que ele ainda não compra (+MIX) em vez do mesmo pedido', 'CLIENTE SEM INTERESSE': '"sem interesse" é o maior motivo: revisar oferta e preço com o supervisor e acompanhar uma rota', 'PEDIDO A DIGITAR': 'tem pedido "a digitar": cobrar a digitação no mesmo dia', 'RESPONSAVEL PELA COMPRA AUSENTE (COMPRADOR / DONO)': 'comprador ausente: combinar horário fixo de visita com o cliente' };
+  const out = [`📋 *Motivos de não venda — ${quem}* · ${nomeP} (até ${dIso(ult || ate)})`, `Clientes na rota: *${N(visitas)}* · com justificativa de não venda: *${N(just)}* (${P(just, visitas)})`, '',
+    '*Motivos mais dados:*', ...top.slice(0, 8).map(([m, n]) => `• ${titulo(m)}: ${N(n)} (${P(n, just)})`)];
+  if (!(pessoa && pessoa.tipo === 'vend') && V.size > 1) {
+    const vs = [...V].sort((a, b) => b[1].n - a[1].n).slice(0, 5);
+    out.push('', '*Quem mais justificou:*', ...vs.map(([k, x]) => { const mm = [...x.m].sort((a, b) => b[1] - a[1])[0]; return `• ${nm.get(k) ? vn(nm.get(k)) : 'RCA ' + k.split('|')[1]}${E.nacional ? ' ' + k.split('|')[0] : ''}: ${N(x.n)} · mais "${titulo(mm[0])}"`; }));
+  }
+  out.push('', SUGESTAO + (dica[top[0] && top[0][0]] || 'cruzar o motivo principal com os clientes da rota de amanhã.'));
+  return out.join('\n');
+}
+// O QUE A BASE NAO TEM: dizer com clareza e oferecer o que existe (regra: nunca inventar nem estimar)
+function respSemDado(t) {
+  if (/SELL.?OUT|ESTOQUE (D[OEA]S?|NO|NOS|NA|NAS) |RUPTURA|GIRO NO (PDV|CLIENTE)/.test(t)) return '📭 *Sell-out, estoque e ruptura no cliente* eu não tenho: a nossa base é do que *nós vendemos* (sell-in), não do que o cliente vende ou tem na gôndola.\nO que eu tenho: quem comprou e quanto, dias sem comprar, quem comprava e parou, dia da semana e semana a semana. Ex.: "quem comprava Snickers e parou na TBL".';
+  if (/\bSHARE\b|CONCORR|MARKET ?SHARE|PARTICIPACAO DE MERCADO/.test(t)) return '📭 *Share e concorrência* eu não tenho: não há dado de mercado na base (só as nossas vendas).\nO que eu tenho: nossa positivação e faturado por indústria, filial e vendedor, e a meta de cada indústria. Ex.: "como está a meta da Mondelez no Brasil?".';
+  if (/MARGEM|\bLUCRO\b|LUCRATIV|RENTABIL|CUSTO DOS? PRODUTOS?|\bCMV\b/.test(t)) return '📭 *Margem, lucro e rentabilidade* eu não tenho: a base não traz custo nem preço de compra.\nO que eu tenho: faturado, preço médio de venda, devolução e corte. Ex.: "qual o preço médio do Snickers?".';
+  if (/SEMESTRE|TRIMESTRE|MELHOR MES DO ANO|PIOR MES DO ANO|ANO PASSADO|ULTIMOS? \d+ MESES|NO ANO\b|ACUMULADO DO ANO|\bYTD\b/.test(t)) return '📭 *Histórico longo* (ano, semestre, ano passado) eu ainda não tenho aqui: comparo *este mês* com o *mês passado* (item a item, até o mesmo dia).\nEx.: "como estamos em relação ao mês passado?".';
+  return null;
+}
+// O QUE OFERECER PARA O CLIENTE X = lista do +MIX daquele cliente (mesma do app do CEVEN; ja tira o que ele comprou nos ultimos 60 dias)
+async function respOferecer(B, E, t) {
+  const arqs = await Promise.all(E.filiais.map((f) => B.raw(`public/mix_rec/${f}.json`).then((x) => { try { return x ? { f, ...JSON.parse(x) } : null; } catch (e) { return null; } })));
+  const ok = arqs.filter(Boolean); if (!ok.length) return null;
+  const rcas = (E.grupo || E.supervisor || E.rca) ? new Set(E.vend.map((v) => v.filial + '|' + v.rca)) : null;
+  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !FILIAIS.includes(w) && !/^(QUE|CLIENTE|LOJA|MERCADO|SUPERMERCADO|POSTO)$/.test(w));
+  const num = (t.replace(/\D+/g, ' ').match(/\b\d{14}\b/) || [])[0];
+  let best = null, bs = 0;
+  for (const a of ok) for (const [cnpj, c] of Object.entries(a.clientes || {})) {
+    if (rcas && !rcas.has(a.f + '|' + c.rca)) continue;
+    const n = sem(c.n); const sc = (num && cnpj === num ? 10 : 0) + toks.filter((w) => n.split(/[^A-Z0-9]+/).includes(w)).length;
+    if (sc > bs) { bs = sc; best = { f: a.f, cnpj, c }; }
+  }
+  if (!best || bs < Math.min(2, toks.length)) return null;
+  const v = E.vend.find((x) => x.filial === best.f && String(x.rca) === String(best.c.rca));
+  const rec = best.c.rec || [];
+  if (!rec.length) return `🧺 *${titulo(best.c.n)}* (${best.f}${v ? ' · ' + vn(v) : ''}): o +MIX não tem produto novo para sugerir agora (ele já compra o que os parecidos compram).`;
+  return [`🧺 *O que oferecer — ${titulo(best.c.n)}* (${best.c.a || 'cliente'} · ${best.f}${v ? ' · ' + vn(v) : ' · RCA ' + best.c.rca})`, ...rec.slice(0, 10).map(([cod, nome, ind]) => `• ${titulo(nome)} (${nomeIndustria([ind])}) · cód. ${cod}`), '', SUGESTAO + 'levar os 3 primeiros na próxima visita; são os que clientes parecidos compram e ele ainda não.', '_Lista do +MIX (sem o que ele comprou nos últimos 60 dias)._'].join('\n');
 }
 async function respRecuperacao(B, E, t) {
   const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
@@ -1120,10 +1178,17 @@ async function respostaInterna(B, c, texto, anteriores) {
   if (/COMPROMISSO|MATINAL|\bRET\b|\bRETS\b|ROTA DO SUPERVISOR/.test(t)) return respCompromisso(B, await carregaEscopo(B, esc));
   if (/PENALTI|IMPEDIMENTO|CARTA|VERMELHO|AMARELO|GOL CONTRA|\bGOLS?\b|LANCES?\b|HAT ?TRICK|DEFESAS?\b|CHECK.?IN FORA|FORA DO CLIENTE|00:00|CARTO(ES|ESS)?\b/.test(t) && !/LIGA|CHAMPIONS|CLASSIFICA|PONTOS? (FOMOS|PERDID|PENALIZ)|PENALIZAD/.test(t)) return respLances(B, await carregaEscopo(B, esc), t);
   if (/\+ ?MIX|MAIS ?MIX|\bMIX\b/.test(t) && !/COMPROU|COMPRARAM|PRECO/.test(t)) return respMix(B, await carregaEscopo(B, esc), t);
+  { const sd = respSemDado(t); if (sd) return sd; }
   const E = await carregaEscopo(B, esc);
+  // PROJECAO (regra do Vitorio: nunca estimar/projetar): diz que nao projeta e mostra quanto precisa por dia
+  if (/PROJE|PREVISAO|VAMOS FECHAR|VAI FECHAR|QUANTO (VAMOS|VAI|IREMOS) FECHAR|FECHAMENTO DO MES|ESTIMATIVA/.test(t)) return '🚫 *Projeção eu não faço* (regra da casa: só número real, nunca estimativa). O que eu mostro é quanto *precisa* por dia para bater a meta:\n\n' + await respFalta(B, E);
+  if (/PERDENDO VENDA|PERDEMOS VENDA|ONDE (ESTAMOS )?PERDE|OPORTUNIDADES?\b/.test(t) && !/\+ ?MIX|MAIS ?MIX/.test(t)) return '🔎 *Onde estamos perdendo venda* (o que mais caiu contra o mês passado até o mesmo dia):\n\n' + await respComparaMes(B, E, 'MES PASSADO', null);
+  if (/OFERECER|O QUE (EU )?(POSSO |DEVO )?(VENDER|LEVAR) (PRO|PARA|NO|NA)|SUGESTAO PARA O CLIENTE/.test(t)) { const r = await respOferecer(B, E, t); if (r) return r; }
   let pessoa = achaPessoa(E, t);
   if (E.rca && E.vend[0]) pessoa = { tipo: 'vend', alvo: E.vend[0], empate: [E.vend[0]] };   /* vendedor: toda pergunta e sobre ele mesmo */
   if (!pessoa && /\b(ELA|ELE|DELA|DELE|DESSA|DESSE|ESSA|ESSE|NELA|NELE|PRA ELA|PRA ELE|MESMA|MESMO)\b/.test(t)) for (const h of anteriores || []) { pessoa = achaPessoa(E, sem(h)); if (pessoa) break; }
+  // motivos de nao venda NO PERIODO (mes, semana, mes passado) ou do grupo: resumo noturno; os de HOJE seguem para a rota do dia
+  if (/MOTIVO|JUSTIFICATIV|POR QUE (OS )?CLIENTES? NAO (COMPRA|COMPRAM)|PORQUE (OS )?CLIENTES? NAO COMPRA|NAO VENDA/.test(t) && !/DEVOLU/.test(t) && (/\bMES\b|SEMANA|PASSAD|NO MES|DO MES|SETEMBRO|OUTUBRO/.test(t) || !pessoa)) return respJustificativas(B, E, t, pessoa);
   if (pessoa && pessoa.tipo === 'vend' && !/COMPR|PRODUTO|SKU/.test(t) && /QUA(L|IS) (OS )?CLIENTES?|QUAIS\??$|JUSTIFICATIV|MOTIVO|NAO VENDEU|SEM VENDA|VISITOU|VISITAD|CHECK|ONDE (ELA|ELE) (FOI|ESTA)|POSITIVOU|VENDEU (PARA|PRA)/.test(t)) return respClientesDia(pessoa.alvo, t);
   // PERIODOS (25/10/2026): comparacao com o mes passado, dias sem pedido, clientes sem comprar
   if (/CLIENTE/.test(t) && /SEM COMPRAR|NAO COMPRA|PARADOS?|HA MAIS DE|DIAS SEM/.test(t)) return respClientesSemComprar(B, E, t);
@@ -1136,7 +1201,7 @@ async function respostaInterna(B, c, texto, anteriores) {
   if (/PRECO|QUANTO SAIU/.test(t)) { const r = await respPreco(B, E, t); if (r) return r; }
   if (/COMPRAVA|PAROU|PARARAM|DEIXOU DE COMPRAR|DEIXARAM DE COMPRAR|RECUPERACAO D/.test(t)) { const r = await respRecuperacao(B, E, t); if (r) return r; }
   if (/PRODUTOS? (QUE )?MAIS VEND|TOP \d* ?PRODUTOS|\d+ PRODUTOS|QUAL PRODUTO MAIS|MAIS VENDIDOS/.test(t)) return respTopProdutos(B, E, t);
-  if (/CLIENTE|LOJA/.test(t) && /COMPROU|COMPRA|ULTIMO PEDIDO|SEM COMPRAR|OFERECER|PRODUTOS D/.test(t) && !/CLIENTES QUE|QUAIS (OS )?CLIENTES|QUEM/.test(t)) { const r = await respCliente(B, E, t); if (r) return r; }
+  if (/CLIENTE|LOJA/.test(t) && /COMPROU|COMPRA|ULTIMO PEDIDO|SEM COMPRAR|OFERECER|PRODUTOS D/.test(t) && !/CLIENTES QUE|QUAIS (OS )?CLIENTES|QUEM/.test(t)) { const r = await respCliente(B, E, t); if (r) return r; if (/OFERECER|ULTIMO PEDIDO|PRODUTOS D/.test(t)) return `🔎 Não achei esse cliente em ${E.nome} (vendas do mês). Confira o nome ou mande o código do cliente (ex.: #212704).`; }
   if (/COMPRA|COMPROU|COMPRARAM|VENDEU DE |VENDERAM DE |VENDEU (O|A) |VENDE DE |POSITIVACAO D[OEA]S? |(VENDE MAIS|MAIS VENDE)(?!U)(?!.*(SUPERVISOR|VENDEDOR|FILIAL|GERENTE))|EM QUANTOS CLIENTES|CLIENTES COMPRARAM|PDVS COMPRARAM|SEMANA(L|IS)|MENSA(L|IS)|DIA DA SEMANA|QUAL DIA|QUE DIA MAIS|MELHOR DIA|MES A MES|POR SEMANA/.test(t) || /\b(MONDELEZ|MARS|ARCOR|BAGLEY|CONDOR|FERRERO|NESTLE|HERSHEY|FINI|DORI|PEPSICO|KELLOGG|LACTA|DIVERSAO)\b/.test(t)) {
     const ri = await respIndustria(B, E, t, pessoa); if (ri && ri !== SEM_VENDAS) return ri;
     const rp = await respProduto(B, E, t, pessoa);
