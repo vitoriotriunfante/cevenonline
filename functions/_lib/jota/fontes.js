@@ -60,15 +60,17 @@ export function criaBase(origin, env) {
 // (fat_f faturado, fat_v vendido = faturado + a faturar, pos_f/pos_v). Chave = codigo do fornecedor. Guardado 30 min no D1 (a apuracao leva ~20 s).
 export const RV_API = 'https://mapa.drivetriunfante-lastmile.com.br/rv/api';
 export async function carregaRV(env) {
-  const mes = hojeSP().slice(0, 7), db = env && env.DB, k = 'rv:' + mes;
+  const mes = hojeSP().slice(0, 7), db = env && env.DB, k = 'rv2:' + mes;   /* rv2 (26/10/2026): + faseamento, mix do vendedor e metas de ticket/mix */
   let velho = null;
   try { if (db) { await db.prepare('CREATE TABLE IF NOT EXISTS cache_resposta (chave TEXT PRIMARY KEY, corpo TEXT, tipo TEXT, em INTEGER)').run(); const r = await db.prepare('SELECT corpo, em FROM cache_resposta WHERE chave = ?').bind(k).first(); if (r) { velho = JSON.parse(r.corpo); if (Date.now() - r.em < 30 * 60 * 1000) return velho; } } } catch (e) {}
   const get = (p) => fetch(RV_API + p, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(50000) }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
-  const [m, a] = await Promise.all([get('/metas?mes=' + mes), get('/apuracao-agregada?mes=' + mes)]);
+  const [m, a, tm] = await Promise.all([get('/metas?mes=' + mes), get('/apuracao-agregada?mes=' + mes), get('/metas-tmmix?mes=' + mes)]);
   if (!m || !a || !Array.isArray(m.rows) || !Array.isArray(a.fornecedores)) return velho;   /* fonte fora: usa a ultima leitura (avisada pela data de corte) */
   const o = { mes, cutoff: a.cutoff || null, fechado: !!a.mes_fechado,
     metas: m.rows.map((x) => [String(x.cod_vendedor), String(x.id_fornecedor ?? x.cnpj_fornecedor), String(x.fornecedor || ''), Number(x.tipo_meta), Number(x.meta) || 0]),
-    apu: a.fornecedores.map((x) => [String(x.CODUSUR), String(x.cnpj_fornecedor), Number(x.fat_f) || 0, Number(x.fat_v) || 0, Number(x.pos_f) || 0, Number(x.pos_v) || 0]) };
+    apu: a.fornecedores.map((x) => [String(x.CODUSUR), String(x.cnpj_fornecedor), Number(x.fat_f) || 0, Number(x.fat_v) || 0, Number(x.pos_f) || 0, Number(x.pos_v) || 0, Number(x.fase_f) || 0]),
+    mixV: Object.fromEntries((a.mix_vendedor || []).map((x) => [String(x.CODUSUR), Number(x.mix_f) || 0])), posV: Object.fromEntries((a.pos_vendedor || []).map((x) => [String(x.CODUSUR), Number(x.pos_f) || 0])),
+    tmmix: ((tm && tm.rows) || []).filter((x) => x.fornecedor).map((x) => [String(x.CODUSUR), String(x.fornecedor || '').replace(/\.+$/, '').trim(), Number(x.meta_tm) || 0, Number(x.meta_mix) || 0]) };
   try { if (db) await db.prepare('INSERT INTO cache_resposta (chave, corpo, tipo, em) VALUES (?,?,?,?) ON CONFLICT (chave) DO UPDATE SET corpo = excluded.corpo, em = excluded.em').bind(k, JSON.stringify(o), 'json', Date.now()).run(); } catch (e) {}
   return o;
 }

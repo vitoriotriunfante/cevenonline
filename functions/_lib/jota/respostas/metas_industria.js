@@ -95,3 +95,45 @@ export async function extrasTempo(B, E, L, t, filtroLinha) {
   }
   return out;
 }
+
+// KPIs DA PREMIACAO (Vitorio, 26/10/2026: Allison perguntou meta de mix, ticket medio e faseamento e o JOTA nao sabia). Regras lidas do proprio codigo da Premiacao
+// (mapa.drivetriunfante-lastmile.com.br/rv/Apuracao_RV.html): Ticket medio (MC/KA) = Meta Faturamento / Meta Positivacao, realizado = faturado / positivados;
+// Faseamento (MC/KA) = 60% da meta de faturamento, faturado ate o dia 20 (cutoff da Premiacao); Mix = itens por cliente (meta por industria = media 3 meses + 5%);
+// Recorrencia (so Varejo, no lugar do ticket medio) = meta 80% dos clientes com a tag RECORRENCIA na carteira do mes.
+export async function respKpisPremiacao(B, E, t, pessoa) {
+  const RV = await B.rv();
+  if (!RV) return '🏆 _A Premiação não respondeu agora. Tente em alguns minutos._';
+  let vend = E.vend, quem = E.nome;
+  if (pessoa && pessoa.tipo === 'vend') { vend = [pessoa.alvo]; quem = vn(pessoa.alvo); }
+  else if (pessoa && pessoa.tipo === 'sup') { vend = E.vend.filter((v) => v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial); quem = 'Equipe ' + nome2(pessoa.alvo.nome); }
+  const cods = new Set(vend.map((v) => String(v.rca))), ehAS = (v) => /^(AS|PET AS)$/i.test(String(v.canal || ''));
+  const codAS = new Set(vend.filter(ehAS).map((v) => String(v.rca)));
+  let metaFat = 0, metaFatAS = 0, fat = 0, fase = 0;
+  for (const [c, , , tipo, m] of RV.metas || []) if (tipo === 1 && cods.has(c)) { metaFat += m; if (codAS.has(c)) metaFatAS += m; }
+  for (const a of RV.apu || []) if (cods.has(a[0])) { fat += a[2]; if (codAS.has(a[0])) fase += a[6] || 0; }
+  const metaPos = vend.reduce((s, v) => s + (Number(v.metaPos) || 0), 0), pos = vend.reduce((s, v) => s + ((RV.posV && RV.posV[String(v.rca)]) ?? (Number(v.pos) || 0)), 0);
+  const pc = (r, m) => (m > 0 ? ' → *' + (r / m * 100).toFixed(1).replace('.', ',') + '%*' : '');
+  const L = [`🏆 *Metas da Premiação — ${quem}* (${RV.mes}${RV.cutoff ? ', apuração até ' + RV.cutoff.slice(8, 10) + '/' + RV.cutoff.slice(5, 7) : ''})`, ''];
+  L.push(`💰 *Faturamento:* ${R$(fat)} de ${R$(metaFat)}${pc(fat, metaFat)}`);
+  L.push(`👥 *Positivação:* ${N(pos)} de ${N(Math.round(metaPos))} clientes${pc(pos, metaPos)}`);
+  if (codAS.size) {
+    const metaTM = metaPos > 0 ? metaFat / metaPos : null, tm = pos > 0 ? fat / pos : null;
+    L.push(`🧾 *Ticket médio (AS):* ${tm != null ? R$(tm) : 'sem dado'} de ${metaTM != null ? R$(metaTM) : 'sem meta'}${tm != null && metaTM ? pc(tm, metaTM) : ''} _(meta = meta de faturamento ÷ meta de positivação)_`);
+    L.push(`📅 *Faseamento (AS):* ${R$(fase)} de ${R$(metaFatAS * 0.6)}${pc(fase, metaFatAS * 0.6)} _(60% da meta de faturamento até o dia 20)_`);
+  }
+  // mix: realizado do vendedor; meta por industria (Premiacao) so quando o vendedor e citado
+  const mixR = vend.map((v) => [v, RV.mixV && RV.mixV[String(v.rca)]]).filter((x) => x[1] != null);
+  if (vend.length === 1 && mixR.length) {
+    const M = (RV.tmmix || []).filter((x) => x[0] === String(vend[0].rca) && x[3] > 0).sort((a, b) => b[3] - a[3]);
+    L.push(`🧺 *Mix:* ${String(mixR[0][1]).replace('.', ',')} itens por cliente` + (M.length ? ` · meta por indústria: ${M.slice(0, 6).map((x) => `${nomeForn(x[1])} ${Math.round(x[3])}`).join(' · ')}` : ''));
+  } else if (mixR.length) L.push(`🧺 *Mix (itens por cliente):* ${mixR.sort((a, b) => b[1] - a[1]).slice(0, 8).map(([v, m]) => `${nome2(v.nome)} ${String(m).replace('.', ',')}`).join(' · ')}`, '_A meta de mix na Premiação é por indústria e por vendedor (média dos 3 últimos meses + 5%); peça "meta de mix do vendedor 59" para ver a de cada um._');
+  // recorrencia (varejo): carteira do mes com a tag RECORRENCIA
+  const VR = vend.filter((v) => !ehAS(v) && Array.isArray(v.roteiroMes) && v.roteiroMes.length);
+  if (VR.length) {
+    const ini = RV.mes + '-01'; let uni = 0, real = 0;
+    for (const v of VR) { const cli = new Map(); for (const c of v.roteiroMes) if ((c.focos || []).some((f) => /RECORRENCIA/i.test(f.industria_foco || ''))) { const u = String(c.data_ultima_compra || '').slice(0, 10); const k = String(c.id_cliente); if (!cli.has(k) || u > cli.get(k)) cli.set(k, u); } uni += cli.size; real += [...cli.values()].filter((u) => u >= ini).length; }
+    if (uni) L.push(`🔄 *Recorrência (varejo):* ${N(real)} de ${N(Math.ceil(uni * 0.8))} clientes${pc(real, Math.ceil(uni * 0.8))} _(meta 80% dos ${N(uni)} clientes com a tag)_`);
+  } else if (vend.some((v) => !ehAS(v))) L.push('🔄 *Recorrência (varejo):* _carteira do mês ainda sendo lida na base; peça de novo mais tarde._');
+  L.push('', SUGESTAO + (metaFat > fat ? `faltam ${R$(metaFat - fat)} de faturamento para a meta da Premiação.` : 'meta de faturamento da Premiação batida; buscar os outros KPIs.'));
+  return L.join('\n');
+}
