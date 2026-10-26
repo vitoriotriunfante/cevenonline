@@ -28,10 +28,12 @@ export function periodoDe(t, V) {
   if (/SEMANA/.test(t) && !/SEMANA(L|IS)|POR SEMANA|SEMANA A SEMANA|CADA SEMANA|DIA DA SEMANA/.test(t)) { const lim = Number(new Date(Date.UTC(+String(ult).slice(0, 4), +String(ult).slice(4, 6) - 1, +String(ult).slice(6, 8) - 6)).toISOString().slice(0, 10).replace(/-/g, '')); return { nome: 'últimos 7 dias', ok: (l) => l.d >= lim, aviso: '' }; }
   return { nome: 'no mês (até ' + dIso(ult) + ')', ok: () => true, aviso: '' };
 }
+// PALAVRAS GENERICAS NUNCA IDENTIFICAM INDUSTRIA NEM PRODUTO (26/10/2026: "o Brasil estava com 3 milhoes de devolucao" virou "Heinz Brasil"; "vendemos 45 milhoes" virou "Empresa Brasileira De")
+export const GENERICAS = /^(BRASIL|BRASILEIRA|BRASILEIRO|BRASILEIRAS|EMPRESA|EMPRESAS|INDUSTRIA|INDUSTRIAS|ALIMENTOS|ALIMENTO|COMERCIO|DISTRIBUIDORA|DISTRIBUICAO|PRODUTOS|PRODUTO|GRUPO|LTDA|NACIONAL|CIA|COMPANHIA|DOCES|BEBIDAS|MES|DIA|HOJE|MILHOES|MILHAO|REAIS|VENDA|VENDAS|VENDEMOS|DEVOLUCAO|DEVOLUCOES)$/;
 // acha produto(s) pelas palavras da pergunta (ex.: "snickers original" -> todos os SKUs com SNICKERS e ORIGINAL)
 export function achaProdutos(t, V, E) {
   const nomesPessoas = new Set(E.vend.flatMap((v) => sem(v.nome).split(/\s+/)).concat(E.vend.flatMap((v) => sem(v.supervisor).split(/\s+/))));
-  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !FILIAIS.includes(w) && !nomesPessoas.has(w) && !/^\d+$/.test(w));
+  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !FILIAIS.includes(w) && !nomesPessoas.has(w) && !/^\d+$/.test(w) && !GENERICAS.test(w));
   if (!toks.length) return null;
   let melhor = 0; const sc = {};
   for (const [cod, [des]] of Object.entries(V.prod)) { const d = sem(des); const n = toks.filter((w) => d.includes(w)).length; if (n) { sc[cod] = n; if (n > melhor) melhor = n; } }
@@ -54,8 +56,8 @@ export function achaIndustria(t, V) {
   const inds = [...new Set(Object.values(V.prod).map((p) => p[1]).filter(Boolean))];
   // apelidos: como o time fala x como o fornecedor esta no catalogo (Mars = MASTERFOODS etc.)
   const APELIDO = { MARS: 'MASTERFOODS', MASTERFOODS: 'MASTERFOODS', NESTLE: 'NESTLE', GAROTO: 'GAROTO', PEPSICO: 'PEPSICO', KELLOGGS: 'KELLOGG', KELLOGG: 'KELLOGG' };
-  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w)).flatMap((w) => (APELIDO[w] ? [w, APELIDO[w]] : [w]));
-  const hit = inds.filter((i) => toks.some((w) => sem(i).split(/[^A-Z0-9]+/).includes(w)));
+  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !GENERICAS.test(w)).flatMap((w) => (APELIDO[w] ? [w, APELIDO[w]] : [w]));
+  const hit = inds.filter((i) => toks.some((w) => sem(i).split(/[^A-Z0-9]+/).filter((x) => !GENERICAS.test(x)).includes(w)));
   return hit.length ? hit : null;
 }
 export const somaPor = (L, chave) => { const m = new Map(); for (const l of L) { const k = chave(l); const x = m.get(k) || { v: 0, q: 0, cli: new Set(), n: 0 }; x.v += l.v; x.q += l.q; x.cli.add(l.f + '|' + l.c); x.n++; m.set(k, x); } return m; };
