@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-26T11:03:41.052256Z",
+  "gerado_em": "2026-10-26T11:18:30.128587Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -1283,6 +1283,80 @@
       "pos_ant": 8
     },
     {
+      "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+      "filial": "TPH",
+      "canal": "AS",
+      "gerente": "Vagner",
+      "total_vendedores": 6,
+      "jogos": 9,
+      "pts_tabela": 17,
+      "vitorias": 4,
+      "empates": 5,
+      "derrotas": 0,
+      "gp": 917,
+      "gc": 28,
+      "sg": 889,
+      "aprov": 63.0,
+      "forma": [
+        "E",
+        "E",
+        "E",
+        "E",
+        "V",
+        "V",
+        "V",
+        "E",
+        "V",
+        "J"
+      ],
+      "plus_lideranca": 95,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 1,
+      "pos_ant": 1
+    },
+    {
       "supervisor": "WASHINGTON FLORES DA ROSA",
       "filial": "API",
       "canal": "VAREJO",
@@ -1355,80 +1429,6 @@
       "plus_pendente": false,
       "pos": 9,
       "pos_ant": 9
-    },
-    {
-      "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
-      "filial": "TPH",
-      "canal": "AS",
-      "gerente": "Vagner",
-      "total_vendedores": 6,
-      "jogos": 9,
-      "pts_tabela": 17,
-      "vitorias": 4,
-      "empates": 5,
-      "derrotas": 0,
-      "gp": 917,
-      "gc": 28,
-      "sg": 889,
-      "aprov": 63.0,
-      "forma": [
-        "E",
-        "E",
-        "E",
-        "E",
-        "V",
-        "V",
-        "V",
-        "E",
-        "V",
-        "J"
-      ],
-      "plus_lideranca": 90,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-22": {
-          "compromisso": 0,
-          "ret": 5
-        },
-        "2026-10-23": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-26": {
-          "compromisso": 5,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 1,
-      "pos_ant": 1
     },
     {
       "supervisor": "GIANI GREGOLIN",
@@ -1605,7 +1605,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 90,
+      "plus_lideranca": 95,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1644,7 +1644,7 @@
           "ret": 5
         },
         "2026-10-26": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -1753,7 +1753,7 @@
         "V",
         "J"
       ],
-      "plus_lideranca": 70,
+      "plus_lideranca": 75,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1792,7 +1792,7 @@
           "ret": 0
         },
         "2026-10-26": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2863,7 +2863,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 85,
+      "plus_lideranca": 90,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2902,7 +2902,7 @@
           "ret": 5
         },
         "2026-10-26": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3281,6 +3281,80 @@
       "pos_ant": 29
     },
     {
+      "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
+      "filial": "TCV",
+      "canal": "AS",
+      "gerente": "Leonardo",
+      "total_vendedores": 4,
+      "jogos": 9,
+      "pts_tabela": 6,
+      "vitorias": 0,
+      "empates": 6,
+      "derrotas": 3,
+      "gp": 190,
+      "gc": 12,
+      "sg": 178,
+      "aprov": 22.2,
+      "forma": [
+        "E",
+        "E",
+        "D",
+        "E",
+        "E",
+        "D",
+        "D",
+        "E",
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 95,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 7,
+      "pos_ant": 7
+    },
+    {
       "supervisor": "ALEX SANDRO SOARES ELIAS",
       "filial": "TBE",
       "canal": "AS",
@@ -3351,82 +3425,8 @@
         }
       },
       "plus_pendente": false,
-      "pos": 7,
-      "pos_ant": 8
-    },
-    {
-      "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
-      "filial": "TCV",
-      "canal": "AS",
-      "gerente": "Leonardo",
-      "total_vendedores": 4,
-      "jogos": 9,
-      "pts_tabela": 6,
-      "vitorias": 0,
-      "empates": 6,
-      "derrotas": 3,
-      "gp": 190,
-      "gc": 12,
-      "sg": 178,
-      "aprov": 22.2,
-      "forma": [
-        "E",
-        "E",
-        "D",
-        "E",
-        "E",
-        "D",
-        "D",
-        "E",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 90,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-22": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-23": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-26": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
       "pos": 8,
-      "pos_ant": 7
+      "pos_ant": 8
     },
     {
       "supervisor": "HAMILTON RICARDO DOS SANTOS MENDES",
@@ -3455,7 +3455,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 85,
+      "plus_lideranca": 90,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -3494,7 +3494,7 @@
           "ret": 5
         },
         "2026-10-26": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3751,7 +3751,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 35,
+      "plus_lideranca": 40,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 0,
@@ -3790,7 +3790,7 @@
           "ret": 0
         },
         "2026-10-26": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -4195,7 +4195,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 25,
+      "plus_lideranca": 30,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 0,
@@ -4234,7 +4234,7 @@
           "ret": 0
         },
         "2026-10-26": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -4861,7 +4861,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 80,
+      "plus_lideranca": 85,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -4900,7 +4900,7 @@
           "ret": 0
         },
         "2026-10-26": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -5157,7 +5157,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 80,
+      "plus_lideranca": 85,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -5196,7 +5196,7 @@
           "ret": 5
         },
         "2026-10-26": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -24801,7 +24801,7 @@
         "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
         "gerente": "Vagner",
         "meta_mes": 413732,
-        "pct_hoje": 102.2,
+        "pct_hoje": 101.8,
         "fases": [
           {
             "n": 1,
@@ -30336,7 +30336,7 @@
         "supervisor": "NEIVA CLEONICE SERRA ISOPPO",
         "gerente": "Diego",
         "meta_mes": 300000,
-        "pct_hoje": 9.9,
+        "pct_hoje": 13.3,
         "fases": [
           {
             "n": 1,
@@ -31146,7 +31146,7 @@
         "supervisor": "JULIO CESAR SOARES DE PAULO",
         "gerente": "Saldanha",
         "meta_mes": 320000,
-        "pct_hoje": 82.5,
+        "pct_hoje": 82.2,
         "fases": [
           {
             "n": 1,
@@ -33846,7 +33846,7 @@
         "supervisor": "CRISTIAN EDUARDO RAFFAELLI",
         "gerente": "Fábio",
         "meta_mes": 182000,
-        "pct_hoje": 32.9,
+        "pct_hoje": 32.7,
         "fases": [
           {
             "n": 1,
@@ -43028,7 +43028,7 @@
         "total_vendedores": 6,
         "com_meta": 6,
         "meta_mes": 2009407,
-        "pct_hoje": 79.5,
+        "pct_hoje": 79.4,
         "fases": [
           {
             "n": 1,
@@ -44036,7 +44036,7 @@
         "total_vendedores": 3,
         "com_meta": 2,
         "meta_mes": 1980000,
-        "pct_hoje": 12.3,
+        "pct_hoje": 12.8,
         "fases": [
           {
             "n": 1,
