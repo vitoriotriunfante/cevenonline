@@ -3,6 +3,7 @@
 // O QUE É: resumo, hoje, supervisor, vendedor, quanto falta.
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
+import { sn } from '../escopo.js';
 import { N, P, R$, SUGESTAO, VAREJO, diasUteisRestantes, nome2, sem, titulo, vn } from '../base.js';
 import { agrupa, listaNomes, pctTxt, supChave, supNome, supReal } from '../escopo.js';
 import { diasUteisMes } from './gestao.js';
@@ -88,7 +89,7 @@ export function respSupervisor(E, s) {
 }
 export async function respVendedor(B, E, v) {
   const dn = diasUteisRestantes(); const falta = Math.max(0, v.meta - v.fat), faltaPos = v.metaPos != null && v.pos != null ? Math.max(0, v.metaPos - v.pos) : null;
-  const L = [`🧑‍💼 *${titulo(v.nome)}* — ${v.filial} · sup. ${nome2(v.supervisor)} · ${v.canal || 'sem canal'}`,
+  const L = [`🧑‍💼 *${v.rca} - ${titulo(v.nome)}* — ${v.filial} · sup. ${sn(v.supervisor, v.supCod)} · ${v.canal || 'sem canal'}`,
     `💰 Faturado: *${R$(v.fat)}* de ${R$(v.meta)} → *${pctTxt(v.pct)}* · pendente ${R$(v.pend)}`, `🎯 Falta: ${R$(falta)}` + (falta && dn ? ` · ${R$(falta / dn)} por dia útil (${dn} dias)` : ''),
     `👥 Positivação: ${v.pos ?? 'sem dado'} de ${v.metaPos ?? 'sem dado'} (${P(v.pos, v.metaPos)})` + (faltaPos ? ` · faltam ${faltaPos} clientes` : ''),
     `📝 Hoje: ${R$(v.dig)} em ${v.ped} pedido(s)` + ` · ticket ${v.ped ? R$(v.dig / v.ped) : 'sem pedido hoje'}` + (v.varejo ? ` · visitas ${v.visF} de ${v.visP} · com venda ${v.comVenda}` : ''), `↩️ Devolução no mês: ${R$(v.dev)}`];

@@ -3,6 +3,7 @@
 // O QUE É: ENTENDER a pergunta e escolher a resposta (roteamento) + IA de reserva.
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
+import { sn } from './escopo.js';
 import { FILIAIS, FRX, R$, SUGESTAO, VAREJO, fraca, hojeSP, nome2, sem, titulo, vn } from './base.js';
 const x0 = (V) => (V[0] ? V[0].v.rca : '');
 import { PAL, achaPessoa, agrupa, carregaEscopo, pctTxt, supChave, supNome, supReal } from './escopo.js';
@@ -12,7 +13,7 @@ import { respAjuda, respCompromisso, respGlossario, respLances, respLiga, respMi
 import { respKpisPremiacao, respMetasIndustria } from './respostas/metas_industria.js';
 import { respGestaoCampo, respOperacao, respRecorrenciaLances, respRelatorio } from './respostas/operacao.js';
 import { respJustificativas, respOferecer, respSemDado } from './respostas/oportunidades.js';
-import { respClientesSemComprar, respComparaMes, respDiasSemPedido } from './respostas/periodos.js';
+import { pedePeriodo, respClientesSemComprar, respComparaMes, respDiasSemPedido, respPeriodoDias } from './respostas/periodos.js';
 import { respFalta, respHoje, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
 import { respAVisitar, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
 import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo, respPreco, respProduto, respRecuperacao, respTopProdutos } from './respostas/vendas.js';
@@ -122,13 +123,13 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
       for (const c of v.roteiroMes) { const k = String(c.id_cliente); const u = String(c.data_ultima_compra || '').slice(0, 10); if (!cli.has(k) || u > cli.get(k).u) cli.set(k, { c, u }); }
       const nao = [...cli.values()].filter((x) => !x.u || x.u < ini).sort((a, b) => (a.u || '').localeCompare(b.u || ''));
       const dias = (u) => (u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) + ' dias' : 'nunca comprou');
-      return [`📉 *Curva negativa — ${titulo(v.nome)}* (${v.rca} · ${v.filial} · sup. ${nome2(v.supervisor)})`, `Carteira do mês: *${cli.size} clientes* · já compraram: *${cli.size - nao.length}* · *ainda não compraram: ${nao.length}*`, '',
+      return [`📉 *Curva negativa — ${v.rca} - ${titulo(v.nome)}* (${v.filial} · sup. ${sn(v.supervisor, v.supCod)})`, `Carteira do mês: *${cli.size} clientes* · já compraram: *${cli.size - nao.length}* · *ainda não compraram: ${nao.length}*`, '',
         ...nao.slice(0, 40).map((x) => `• ${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} (#${x.c.id_cliente}) — última compra ${x.u ? x.u.slice(8, 10) + '/' + x.u.slice(5, 7) + ' (' + dias(x.u) + ')' : 'nunca'}`),
         nao.length > 40 ? `… e mais ${nao.length - 40}` : '', '', SUGESTAO + (nao.length ? `começar pelos parados há mais tempo: ${titulo(nao[0].c.nome_cliente || '')}.` : 'carteira inteira já comprou no mês.')].filter((x) => x !== '').join('\n');
     }
-    if (m.plan == null) return `${titulo(v.nome)} (${v.filial}): sem a produtividade do mês na base agora.`;
+    if (m.plan == null) return `${v.rca} - ${titulo(v.nome)} (${v.filial}): sem a produtividade do mês na base agora.`;
     const semVenda = m.real != null && m.pedRota != null ? Math.max(0, m.real - m.pedRota) : null;
-    return [`📅 *${titulo(v.nome)}* (${v.rca} · ${v.filial} · sup. ${nome2(v.supervisor)}) — *mês até hoje*`,
+    return [`📅 *${v.rca} - ${titulo(v.nome)}* (${v.filial} · sup. ${sn(v.supervisor, v.supCod)}) — *mês até hoje*`,
       `Visitas planejadas: *${m.plan}* · realizadas: *${m.real}*` + (m.efic != null ? ` (eficiência ${String(m.efic).replace('.', ',')}%)` : ''),
       `Pedidos na rota: *${m.pedRota}*` + (semVenda != null ? ` → *${semVenda} visitas sem venda* no mês` : ''),
       `Positivação do mês: ${v.pos ?? 'sem dado'} de ${v.metaPos != null ? Math.round(v.metaPos) : 'sem meta'} clientes`,
@@ -141,6 +142,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   // PERIODOS (25/10/2026): comparacao com o mes passado, dias sem pedido, clientes sem comprar
   if (/CLIENTE/.test(t) && /SEM COMPRAR|NAO COMPRA|\bN COMPRA|PARADOS?|HA MAIS DE|DIAS SEM/.test(t)) return respClientesSemComprar(B, E, t);
   if (/DIAS (SEGUIDOS )?SEM (VENDER|PEDIDO|VENDA)|HA \d+ DIAS SEM|HA MAIS DE \d+ DIAS|\d+ DIAS SEM|SEM PEDIDO HA/.test(t)) return respDiasSemPedido(B, E, t);
+  { const per = pedePeriodo(t); if (per && /PEDIDO|CAPTA|VEND|DIGITA|FATUR|QUANTO/.test(t)) return respPeriodoDias(B, E, t, per); }
   if (/MES PASSADO|MES ANTERIOR|SETEMBRO|AGOSTO|\bM-1\b|COMPARAD|EM RELACAO AO MES|CAIU|CRESCEU|EVOLUCAO|ESTE MES X|ESSE MES X/.test(t) && !/LIGA|CHAMPI|POSICAO|RANKING DA LIGA/.test(t) && !/SEMANA(L|IS)|POR SEMANA|SEMANA A SEMANA|DIA DA SEMANA|QUE DIA/.test(t) && !(t.match(new RegExp(FRX.source, 'g')) || []).slice(1).length) return respComparaMes(B, E, t, pessoa);
   // METAS DAS INDUSTRIAS = Premiacao RV do CEVEN (Vitorio, 25/10/2026)
   // KPIs DA PREMIACAO (26/10/2026: meta de ticket medio, mix, faseamento, recorrencia)

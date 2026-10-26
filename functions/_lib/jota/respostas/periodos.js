@@ -3,6 +3,7 @@
 // O QUE É: comparação com o mês passado, dias sem pedido, clientes sem comprar.
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
+import { sn } from '../escopo.js';
 import { N, R$, SUGESTAO, nome2, sem, so, titulo, vn } from '../base.js';
 import { pessoaReal, supReal } from '../escopo.js';
 import { SEM_VENDAS, achaIndustria, achaProdutos, dIso, nomeIndustria, somaPor, vendasEscopo } from './vendas.js';
@@ -72,7 +73,7 @@ export async function respDiasSemPedido(B, E, t) {
   const lim = Number((t.match(/(\d+)\s*DIAS?/) || [])[1]) || 3;
   const V = E.vend.filter((v) => v.varejo && pessoaReal(v)).map((v) => ({ v, d: ult.get(v.filial + '|' + v.rca) })).map((x) => ({ ...x, dias: x.d ? uteis(x.d, ateA) : 99 })).filter((x) => x.dias >= lim).sort((a, b) => b.dias - a.dias);
   if (!V.length) return `✅ *${E.nome}*: nenhum vendedor do varejo está há ${lim}+ dias úteis sem pedido (até ${dIso(ateA)}).`;
-  return [`⏳ *${E.nome} — varejo há ${lim}+ dias úteis sem pedido* (até ${dIso(ateA)})`, ...V.slice(0, 20).map((x) => `• ${vn(x.v)}${E.nacional ? ' ' + x.v.filial : ''}: ${x.dias >= 99 ? 'sem pedido em 60 dias' : x.dias + ' dias úteis'} (último ${x.d ? dIso(x.d) : '—'}) · sup. ${nome2(x.v.supervisor)}`), V.length > 20 ? `… e mais ${V.length - 20}` : '', '', SUGESTAO + `ligar hoje para ${vn(V[0].v)} e o supervisor ${nome2(V[0].v.supervisor)}.`].filter((x) => x !== '').join('\n');
+  return [`⏳ *${E.nome} — varejo há ${lim}+ dias úteis sem pedido* (até ${dIso(ateA)})`, ...V.slice(0, 20).map((x) => `• ${vn(x.v)}${E.nacional ? ' ' + x.v.filial : ''}: ${x.dias >= 99 ? 'sem pedido em 60 dias' : x.dias + ' dias úteis'} (último ${x.d ? dIso(x.d) : '—'}) · sup. ${sn(x.v.supervisor, x.v.supCod)}`), V.length > 20 ? `… e mais ${V.length - 20}` : '', '', SUGESTAO + `ligar hoje para ${vn(V[0].v)} e o supervisor ${sn(V[0].v.supervisor, V[0].v.supCod)}.`].filter((x) => x !== '').join('\n');
 }
 // CLIENTES SEM COMPRAR ha N dias (curva A = os que mais compraram no periodo): mes atual + anterior item a item
 export async function respClientesSemComprar(B, E, t) {
@@ -92,4 +93,22 @@ export async function respClientesSemComprar(B, E, t) {
   return [`🚨 *${E.nome} — clientes ${curvaA ? 'curva A (20% que mais compram) ' : ''}há mais de ${lim} dias sem comprar*: *${L.length}*`,
     ...L.slice(0, 15).map(([k, x]) => `• ${titulo(cli[k] || 'cliente ' + k.split('|')[1])} (#${k.split('|')[1]}${E.nacional ? ', ' + k.split('|')[0] : ''}) — ${dias(x.ult)} dias · comprou ${R$(x.v)} no período · ${vend.get(k.split('|')[0] + '|' + x.r) ? vn(vend.get(k.split('|')[0] + '|' + x.r)) : 'RCA ' + x.r}`),
     L.length > 15 ? `… e mais ${L.length - 15}` : '', '', SUGESTAO + 'colocar esses clientes na rota desta semana, começando pelos de maior valor.', '_Base: pedidos item a item do mês atual e do anterior._'].filter((x) => x !== '').join('\n');
+}
+
+// PEDIDOS DE UM PERIODO, DIA A DIA (26/10/2026, Vitorio: "quanto captamos de pedido do dia 19 para ca? aberto por dia" caiu no "hoje"). Dias fechados = valor dos
+// pedidos item a item (Data Lake, ate ontem); hoje = digitado agora (mesma base do "hoje"). Nada estimado.
+export function pedePeriodo(t) {
+  const m = t.match(/(?:DESDE O? ?DIA|DO DIA|A PARTIR DO DIA|DIA)\s*(\d{1,2})\s*(?:PARA CA|PRA CA|ATE HOJE|ATE AGORA|EM DIANTE)/) || t.match(/(?:DE|DO DIA|DIA)\s*(\d{1,2})\s*(?:A|ATE|AO DIA)\s*(\d{1,2})\b/);
+  return m ? { de: +m[1], ate: m[2] ? +m[2] : null } : null;
+}
+export async function respPeriodoDias(B, E, t, per) {
+  const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
+  const ult = V.linhas.reduce((m, l) => Math.max(m, l.d), 0), ym = Math.floor(ult / 100), hojeD = Number(new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10).replace(/-/g, ''));
+  const de = ym * 100 + per.de, ate = per.ate ? ym * 100 + per.ate : hojeD;
+  const porD = new Map(); for (const l of V.linhas) if (l.d >= de && l.d <= ate) { const x = porD.get(l.d) || { v: 0, cli: new Set() }; x.v += l.v; x.cli.add(l.f + '|' + l.c); porD.set(l.d, x); }
+  const L = [...porD].sort((a, b) => a[0] - b[0]).map(([d, x]) => [dIso(d), x.v, x.cli.size + ' cli.']);
+  if (ate >= hojeD && hojeD > ult) { const dig = (E.nacional || !(E.grupo || E.supervisor || E.rca)) ? E.macro.dig : E.vend.reduce((a, v) => a + (v.dig || 0), 0); L.push([dIso(hojeD) + ' (hoje, digitado até agora)', dig, '']); }
+  const tot = L.reduce((a, x) => a + (x[1] || 0), 0);
+  return [`🧾 *Pedidos de ${String(per.de).padStart(2, '0')}/${String(ym % 100).padStart(2, '0')} ${per.ate ? 'a ' + String(per.ate).padStart(2, '0') : 'até hoje'} — ${E.nome}*`, `Total: *${R$(tot)}*`, '',
+    ...L.map(([d, v, c]) => `• ${d}: ${R$(v)}${c ? ' · ' + c : ''}`), '', '_Dias fechados = valor dos pedidos item a item; hoje = digitado até agora._'].join('\n');
 }

@@ -3,6 +3,7 @@
 // O QUE É: recorrência, incentivo, Liga AS, semana, devoluções, Bola Cheia, divergências.
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
+import { sn } from '../escopo.js';
 import R from '../../../../public/regras.js'; // regras unicas (public/regras.js)
 import { FILIAIS, N, P, R$, SUGESTAO, nome2, sem, titulo, vn } from '../base.js';
 import { pctTxt } from '../escopo.js';
@@ -22,7 +23,7 @@ export async function respRecorrencia(B, E) {
 export async function respIncentivoOficial(B, E, pessoa) {
   const x = await B.incentivo(); if (!x || !x.nacional) return respIncentivo(E);
   const ok = (b) => b ? '✅' : '❌';
-  if (pessoa && pessoa.tipo === 'vend') { const v = (x.vendedores || []).find((y) => y.rca === pessoa.alvo.rca && y.filial === pessoa.alvo.filial); if (v) return `🏆 *Incentivo — ${titulo(v.nome)}* (${v.filial})\nPositivação: *${v.real} de ${v.meta}* (${pctTxt(v.pct)})\nGatilho 1 (60% até 15/10, R$ 150): ${ok(v.g1)}${v.falta_g1 ? ' faltam ' + v.falta_g1 : ''}\nGatilho 2 (110% em 31/10, R$ 350): ${ok(v.g2)}${v.falta_g2 ? ' faltam ' + v.falta_g2 + ' clientes' : ''}\n_Régua de positivação da apuração oficial; o G2 também exige 110% do faturado._`; }
+  if (pessoa && pessoa.tipo === 'vend') { const v = (x.vendedores || []).find((y) => y.rca === pessoa.alvo.rca && y.filial === pessoa.alvo.filial); if (v) return `🏆 *Incentivo — ${v.rca} - ${titulo(v.nome)}* (${v.filial})\nPositivação: *${v.real} de ${v.meta}* (${pctTxt(v.pct)})\nGatilho 1 (60% até 15/10, R$ 150): ${ok(v.g1)}${v.falta_g1 ? ' faltam ' + v.falta_g1 : ''}\nGatilho 2 (110% em 31/10, R$ 350): ${ok(v.g2)}${v.falta_g2 ? ' faltam ' + v.falta_g2 + ' clientes' : ''}\n_Régua de positivação da apuração oficial; o G2 também exige 110% do faturado._`; }
   if (pessoa && pessoa.tipo === 'sup') { const s = (x.supervisores || []).find((y) => y.nome === pessoa.alvo.nome && y.filial === pessoa.alvo.filial); if (s) return `🏆 *Incentivo — ${titulo(s.nome)}* (${s.filial}): ${s.real} de ${s.meta} positivações (${pctTxt(s.pct)}) ${ok(s.ok)}${s.falta ? ' · faltam ' + s.falta + ' para 110%' : ''} · R$ 300 se a equipe fizer 110%.`; }
   const p = x.premio_se_fechasse_hoje || {};
   const L = [`🏆 *Incentivo Outubro — ${E.nome}* (dados ${String(x.atualizado_em || '').slice(11, 16)})`];
@@ -45,10 +46,10 @@ export async function respIncentivoOficial(B, E, pessoa) {
 }
 export async function respLigaAs(B, E, pessoa) {
   const x = await B.ligaAs(); if (!x || !x.vendedores) return 'Não consegui ler a Liga AS agora.';
-  if (pessoa && pessoa.tipo === 'vend') { const v = x.vendedores.find((y) => y.rca === pessoa.alvo.rca && y.filial === pessoa.alvo.filial); if (v) return `🏆 *Liga AS — ${titulo(v.nome)}* (${v.filial}): *${v.pontos} pontos* · ${pctTxt(v.pct_hoje)} da meta (faturado + pendente) · fases: ${(v.fases || []).map((f) => `F${f.n} ${f.status === 'batida' ? '✅' : f.status === 'futuro' ? '⏳' : '❌'}`).join(' ')} · bônus: ${(v.bonus || []).map((b) => `${b.nome} ${b.status === 'batido' ? '✅' : b.status === 'perdido' ? '❌' : '⏳'}`).join(' · ')}`; }
+  if (pessoa && pessoa.tipo === 'vend') { const v = x.vendedores.find((y) => y.rca === pessoa.alvo.rca && y.filial === pessoa.alvo.filial); if (v) return `🏆 *Liga AS — ${v.rca} - ${titulo(v.nome)}* (${v.filial}): *${v.pontos} pontos* · ${pctTxt(v.pct_hoje)} da meta (faturado + pendente) · fases: ${(v.fases || []).map((f) => `F${f.n} ${f.status === 'batida' ? '✅' : f.status === 'futuro' ? '⏳' : '❌'}`).join(' ')} · bônus: ${(v.bonus || []).map((b) => `${b.nome} ${b.status === 'batido' ? '✅' : b.status === 'perdido' ? '❌' : '⏳'}`).join(' · ')}`; }
   const V = x.vendedores.filter((v) => E.filiais.includes(v.filial)).sort((a, b) => b.pontos - a.pontos || b.pct_hoje - a.pct_hoje);
   const S = (x.supervisores || []).filter((v) => E.filiais.includes(v.filial)).sort((a, b) => b.pontos - a.pontos);
-  return [`🏆 *Liga AS — ${E.nome}* (${x.mes})`, `_${(x.regras && x.regras.base) || ''}_`, '*Vendedores AS:*', ...V.slice(0, 10).map((v, i) => `${i + 1}. ${vn(v)}${E.nacional ? ' ' + v.filial : ''} — ${v.pontos} pts · ${pctTxt(v.pct_hoje)}`), '*Supervisores:*', ...S.slice(0, 6).map((s, i) => `${i + 1}. ${nome2(s.supervisor)}${E.nacional ? ' ' + s.filial : ''} — ${s.pontos} pts · ${pctTxt(s.pct_hoje)}`), ''].join('\n');
+  return [`🏆 *Liga AS — ${E.nome}* (${x.mes})`, `_${(x.regras && x.regras.base) || ''}_`, '*Vendedores AS:*', ...V.slice(0, 10).map((v, i) => `${i + 1}. ${vn(v)}${E.nacional ? ' ' + v.filial : ''} — ${v.pontos} pts · ${pctTxt(v.pct_hoje)}`), '*Supervisores:*', ...S.slice(0, 6).map((s, i) => `${i + 1}. ${sn(s.supervisor, s.supCod)}${E.nacional ? ' ' + s.filial : ''} — ${s.pontos} pts · ${pctTxt(s.pct_hoje)}`), ''].join('\n');
 }
 export async function respSemana(B, E) {
   const R = await Promise.all(E.filiais.map((f) => B.semana(f).then((j) => ({ f, S: j && j.filiais && j.filiais[f] }))));

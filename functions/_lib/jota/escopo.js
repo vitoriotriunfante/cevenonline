@@ -6,6 +6,9 @@
 import { VAREJO, hojeSP, nome2, sem, so, vn } from './base.js';
 
 // vendedores de uma filial (mostrados na Gestao de Equipe) + totais que somam TODOS (macro)
+// codigo do supervisor pelo nome (preenchido ao carregar a equipe) -> supNome/sn mostram 'COD - Nome'
+export const SUPCOD = new Map();
+export const sn = (nome, cod) => { const c = cod || SUPCOD.get(sem(nome)); return (c ? c + ' - ' : '') + nome2(nome); };
 export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
   const [snap, mostra] = await Promise.all([B.snap(filial), B.mostra()]);
   const eq = new Map(); if (mostra && mostra.filiais) for (const [k, L] of Object.entries(mostra.filiais)) if (k.split('_')[0] === filial) for (const v of L) eq.set(String(v.rca), v);
@@ -20,10 +23,11 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     macro.devHoje += (Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).reduce((t, x) => t + Math.abs(parseFloat(x.vl_devolvido || x.valor || 0) || 0), 0);
     if (!e) continue;   // fora da arvore do CEVEN de hoje = nao existe
     // OCULTO NA GESTAO (26/10/2026, Francisco: 'setor 1028' = Adevane, oculto): fica fora das listas e totais, mas o JOTA o encontra quando citado (nome ou codigo)
+    if (e.supervisor && e.sup_cod) SUPCOD.set(sem(e.supervisor), e.sup_cod);
     const destino = e.mostra === false ? ocultos : vend;
     const varejo = VAREJO.has(String(e.canal || '').toUpperCase());
     const visP = varejo ? pd.total_programado || 0 : 0, visF = varejo ? pd.visitas_na_rota || 0 : 0;
-    destino.push({ filial, rca, nome: e.nome || d.nome || 'RCA ' + rca, supervisor: e.supervisor || '', grupo: e.grupo || '', gerente: e.gerente || '', canal: e.canal || '', varejo,
+    destino.push({ filial, rca, nome: e.nome || d.nome || 'RCA ' + rca, supervisor: e.supervisor || '', supCod: e.sup_cod || '', grupo: e.grupo || '', gerente: e.gerente || '', canal: e.canal || '', varejo,
       fat: fi.faturado || 0, pend: fi.pendente || 0, meta: fi.meta || 0, dev: fi.devolucao || 0, pct: fi.meta ? (fi.faturado || 0) / fi.meta * 100 : null,
       pos: po.realizado ?? null, metaPos: po.meta ?? null, dig: pd.dig_pedido || 0, ped: pd.positivacao || 0, visP, visF, comVenda: varejo ? pd.visitas_com_venda || 0 : 0,
       visPlanMes: varejo ? pm.visit_plan || 0 : 0, visRealMes: varejo ? pm.visit_real || 0 : 0,
@@ -51,7 +55,7 @@ export async function carregaEscopo(B, esc) {
 }
 // chave de supervisor: "NOME|FIL" no Brasil; pseudo-supervisores (sem supervisor, GERENTE X, VAGO) nao entram em ranking nem sugestao
 export const supChave = (v, nac) => (v.supervisor || 'sem supervisor') + (nac ? '|' + v.filial : '');
-export const supNome = (k) => { const [s, f] = String(k).split('|'); return (/^sem supervisor$/i.test(s) ? 'Ligados ao gerente' : /^GERENTE/i.test(s) ? 'Ligados ao gerente' : nome2(s)) + (f ? ' ' + f : ''); };
+export const supNome = (k) => { const [s, f] = String(k).split('|'); return (/^sem supervisor$/i.test(s) ? 'Ligados ao gerente' : /^GERENTE/i.test(s) ? 'Ligados ao gerente' : sn(s)) + (f ? ' ' + f : ''); };
 export const supReal = (k) => !/^(sem supervisor|GERENTE|VAGO)/i.test(String(k));
 export const pessoaReal = (v) => !/^(VAGO|RCA\b|VENDA |GERENTE)/i.test(String(v.nome || ''));
 export function agrupa(V, chave) {

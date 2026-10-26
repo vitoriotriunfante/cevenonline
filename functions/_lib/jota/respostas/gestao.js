@@ -3,6 +3,7 @@
 // O QUE É: carteira, ritmo, gaps, rankings, comparações, dobradinha, aviso de equipe.
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
+import { sn } from '../escopo.js';
 import { N, P, R$, SUGESTAO, hojeSP, nome2, sem, titulo, vn } from '../base.js';
 import { agrupa, pctTxt, pessoaReal, supChave, supNome, supReal } from '../escopo.js';
 import { totaisOficiais } from './resumo.js';
@@ -31,7 +32,7 @@ export async function respRitmo(B, E) {
 }
 export function respMaiorGap(E) {
   const V = E.vend.filter((v) => v.meta > 0 && pessoaReal(v)).map((v) => ({ v, gap: Math.max(0, v.meta - v.fat - v.pend) })).sort((a, b) => b.gap - a.gap).slice(0, 10);
-  return [`🕳️ *Maior gap para a meta — ${E.nome}* (meta − faturado − carteira)`, ...V.map(({ v, gap }, i) => `${i + 1}. ${vn(v)} (RCA ${v.rca}${E.nacional ? ', ' + v.filial : ''}) — falta *${R$(gap)}* · ${pctTxt(v.pct)} · setor/sup. ${nome2(v.supervisor)}`), '', SUGESTAO + `sentar com ${nome2(V[0] && V[0].v.supervisor)} sobre ${nome2(V[0] && V[0].v.nome)} hoje.`].join('\n');
+  return [`🕳️ *Maior gap para a meta — ${E.nome}* (meta − faturado − carteira)`, ...V.map(({ v, gap }, i) => `${i + 1}. ${vn(v)}${E.nacional ? ' (' + v.filial + ')' : ''} — falta *${R$(gap)}* · ${pctTxt(v.pct)} · setor/sup. ${sn(v.supervisor, v.supCod)}`), '', SUGESTAO + `sentar com ${sn(V[0] && V[0].v.supervisor, V[0].v.supCod)} sobre ${nome2(V[0] && V[0].v.nome)} hoje.`].join('\n');
 }
 export function respRankingSupervisores(E) {
   const S = [...agrupa(E.vend, (v) => supChave(v, true))].filter(([k]) => supReal(k) && !/^VAGO/.test(k)).filter(([, x]) => x.meta > 0).sort((a, b) => (b[1].pct ?? -1) - (a[1].pct ?? -1));

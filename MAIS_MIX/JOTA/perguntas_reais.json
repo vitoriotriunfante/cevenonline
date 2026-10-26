@@ -615,5 +615,23 @@
    "0 DE 0",
    "TODO O VAREJO COM ROTA"
   ]
+ },
+ {
+  "id": "vitorio-pedidos-desde-dia",
+  "perfil": {
+   "nome": "VITORIO",
+   "papel": "diretoria",
+   "filial": null,
+   "supervisor": null
+  },
+  "pergunta": "quanto captamos de pedido do dia 19 para cá? aberto por dia",
+  "deve": [
+   "19/10",
+   "20/10",
+   "TOTAL"
+  ],
+  "nao": [
+   "HOJE NO BRASIL"
+  ]
  }
 ]

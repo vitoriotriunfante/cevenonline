@@ -14,7 +14,8 @@ export const sem = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '
 export const nome2 = (n) => { const p = String(n || '').replace(/^CLT\s*-?\s*/i, '').split(' ').filter((w) => w && !/^(DE|DA|DO|DOS|DAS|E|A)$/i.test(w)); return titulo(p.length > 1 ? p[0] + ' ' + p[p.length - 1] : p[0] || ''); };
 // vendedor sempre com CODIGO e CANAL (sugestao do Vitorio, 25/10/2026: "identifique sempre o vendedor com COD e se ele e AS ou varejo")
 export const canalCurto = R.canalCurto;
-export const vn = (v) => (v && v.rca ? `${nome2(v.nome)} (${v.rca}${canalCurto(v.canal) ? ' · ' + canalCurto(v.canal) : ''})` : nome2(v && v.nome));
+// CODIGO SEMPRE NA FRENTE (Vitorio, 26/10/2026: 'TODA vez que falar de algum vendedor ou supervisor coloque sempre o codigo na frente')
+export const vn = (v) => (v && v.rca ? `${v.rca} - ${nome2(v.nome)}${canalCurto(v.canal) ? ' (' + canalCurto(v.canal) + ')' : ''}` : nome2(v && v.nome));
 export const FILIAIS = ['TPH', 'ABC', 'API', 'TBL', 'TCV', 'TSJ', 'TCA', 'TBE', 'TPA', 'MCD', 'TCG'];
 export const FRX = /\b(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\b/;
 export const VAREJO = new Set(R.CANAIS_VAREJO);

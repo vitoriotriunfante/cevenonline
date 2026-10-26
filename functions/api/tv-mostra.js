@@ -19,12 +19,13 @@ let cache = { exp: 0, corpo: null };
 async function aplicaUniverso(env, corpo, completo) {
   try {
     if (!env.DB || !corpo || !corpo.filiais) return corpo;
-    const { results } = await env.DB.prepare('SELECT filial, rca, nome, sup_nome, canal FROM arvore_supervisores').all();
+    const { results } = await env.DB.prepare('SELECT filial, rca, nome, sup_id, sup_nome, canal FROM arvore_supervisores').all();
     if (!results || results.length < 300) return corpo;
     // VENDEDOR ATIVO NO CEVEN (Vitorio, 26/10/2026: "se o vendedor nao esta no CEVEN ele nao existe... o que soma para TUDO e CEVEN ativo"): a arvore traz codigos de rota
     // vaga (TCG 466) que o cadastro de representante do CEVEN nao tem. Codigo com canal_ceven.existe = 0 (conferido todo dia) sai do universo: nenhuma tela, total, WhatsApp ou Liga o ve.
     let inexistentes = new Set();
     try { const { results: ne } = await env.DB.prepare('SELECT filial, rca FROM canal_ceven WHERE existe = 0').all(); inexistentes = new Set((ne || []).map((x) => String(x.filial).toUpperCase() + '|' + String(x.rca))); } catch { /* coluna ainda nao existe */ }
+    const supCod = new Map(results.map((a) => [String(a.filial).toUpperCase() + '|' + String(a.rca), a.sup_id]));   /* codigo do supervisor (Vitorio, 26/10/2026: 'sempre o codigo na frente') */
     const ok = new Set(results.map((a) => String(a.filial).toUpperCase() + '|' + String(a.rca)).filter((k) => !inexistentes.has(k)));
     const novo = { ...corpo, filiais: {} };
     let fora = 0, sim = 0, nao = 0, novos = 0;
@@ -39,7 +40,7 @@ async function aplicaUniverso(env, corpo, completo) {
         const na = ok.has(sig + '|' + String(v.rca));
         if (!na) fora++;
         if (!na && !completo) continue;
-        novo.filiais[k].push({ ...v, na_arvore: na });
+        novo.filiais[k].push({ ...v, na_arvore: na, sup_cod: supCod.get(sig + '|' + String(v.rca)) || '' });
         if (v.mostra === false) nao++; else sim++;
       }
     }
