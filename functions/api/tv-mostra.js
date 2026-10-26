@@ -21,7 +21,11 @@ async function aplicaUniverso(env, corpo, completo) {
     if (!env.DB || !corpo || !corpo.filiais) return corpo;
     const { results } = await env.DB.prepare('SELECT filial, rca, nome, sup_nome, canal FROM arvore_supervisores').all();
     if (!results || results.length < 300) return corpo;
-    const ok = new Set(results.map((a) => String(a.filial).toUpperCase() + '|' + String(a.rca)));
+    // VENDEDOR ATIVO NO CEVEN (Vitorio, 26/10/2026: "se o vendedor nao esta no CEVEN ele nao existe... o que soma para TUDO e CEVEN ativo"): a arvore traz codigos de rota
+    // vaga (TCG 466) que o cadastro de representante do CEVEN nao tem. Codigo com canal_ceven.existe = 0 (conferido todo dia) sai do universo: nenhuma tela, total, WhatsApp ou Liga o ve.
+    let inexistentes = new Set();
+    try { const { results: ne } = await env.DB.prepare('SELECT filial, rca FROM canal_ceven WHERE existe = 0').all(); inexistentes = new Set((ne || []).map((x) => String(x.filial).toUpperCase() + '|' + String(x.rca))); } catch { /* coluna ainda nao existe */ }
+    const ok = new Set(results.map((a) => String(a.filial).toUpperCase() + '|' + String(a.rca)).filter((k) => !inexistentes.has(k)));
     const novo = { ...corpo, filiais: {} };
     let fora = 0, sim = 0, nao = 0, novos = 0;
     // O NUMERO DO CEVEN E UM SO: toda pessoa da arvore entra no universo. Quem a Gestao ainda nao conhece entra como "novo na arvore" (conta nos totais; mostra=false ate
@@ -42,6 +46,7 @@ async function aplicaUniverso(env, corpo, completo) {
     for (const a of results) {
       const sig = String(a.filial).toUpperCase();
       if (naGestao.has(sig + '|' + String(a.rca))) continue;
+      if (inexistentes.has(sig + '|' + String(a.rca))) continue;   // nao existe no CEVEN hoje
       (novo.filiais[sig] = novo.filiais[sig] || []).push({
         rca: /^\d+$/.test(String(a.rca)) ? Number(a.rca) : a.rca, nome: a.nome || ('RCA ' + a.rca), supervisor: a.sup_nome || '', gerente: '', grupo: '',
         canal: String(a.canal || '').toUpperCase(), mostra: false, motivo: 'Novo na arvore do CEVEN: decidir em Gestao de Equipe > Divergencias', auto_arvore: true, na_arvore: true, novo_na_arvore: true
