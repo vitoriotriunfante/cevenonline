@@ -1,38 +1,38 @@
 🌅 *ABERTURA MATINAL — TPA (07:45)*
-📅 sexta-feira, 23/10/2026
+📅 segunda-feira, 26/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 15 • Visitas: 255 (média 17,0/vendedor)
-Sem compra +30d: 95 (37,3%) • Recorrência: 36 (14,1%)
-Oportunidades CNAE 4771: +273 PDVs
+👥 Vendedores: 15 • Visitas: 254 (média 16,9/vendedor)
+Sem compra +30d: 94 (37,0%) • Recorrência: 43 (16,9%)
+Oportunidades CNAE 4789: +254 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPA — RADKE / LEANDRO* • 23/10/2026
+📍 *TPA — RADKE / LEANDRO* • 26/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🔴 Última Chance: 94  •  🟡 Preventivo: 0
 
-👤 *ANDERSON GIOVANI FERREIRA BOLTER* (39 em risco)
-  🔴 MERCEARIA DI ITALLIANI (150) — 05/12
-  🔴 MERCEARIA MARTINI (150) — 05/12
-  🔴 KI CARNE (150) — 18/08
-  🔴 MINI MERCADO FREITAS (150) — 05/12
-  🔴 MERCADO MACHADO (150) — 23/07
-  _+34 outros_
+👤 *ANDERSON GIOVANI FERREIRA BOLTER* (40 em risco)
+  🔴 MERCAFLEX (150) — 01/01
+  🔴 MERCADO OFERTAO (150) — 31/08
+  🔴 MERCADO OFERTAO (150) — 01/01
+  🔴 MERCADO SAO CRISTOVAO (150) — 21/09
+  🔴 SUPERMERCADOS ADORO (150) — 17/09
+  _+35 outros_
 
-👤 *RAFAEL DA SILVA CARPENA* (38 em risco)
-  🔴 COMERCIO VAREJISTA LINDOL (140) — 15/09
-  🔴 MINI MERCADO CONTESTADO (140) — 31/08
-  🔴 SUPER MARTINS LTDA (140) — 01/01
-  🔴 PANDOLFO OLIVEIRA LTDA (140) — 01/01
-  🔴 MERCADO LU (140) — 01/01
-  _+33 outros_
+👤 *RAFAEL DA SILVA CARPENA* (24 em risco)
+  🔴 COMERCIAL R B (140) — 19/02
+  🔴 MINIMERCADO ALTAS HORAS (140) — 05/12
+  🔴 TENDA COLONIAL (140) — 01/01
+  🔴 MERCADO BONIATTI (140) — 20/02
+  🔴 MAURO MARCONE BONETTO (140) — 31/07
+  _+19 outros_
 
-👤 *ROGERIO DORNELLES PASSOS* (17 em risco)
-  🔴 JOAO LENO FERREIRA SEVERO (144) — 05/12
-  🔴 ONIRIO PEREIRA DA SILVA (144) — 05/12
-  🔴 ANA KARINA RIUS (144) — 05/12
-  🔴 JACIR JOSE PEREIRA DA SILVA COMERCIAL (144) — 15/07
-  🔴 GOOD COMPRA (144) — 20/07
-  _+12 outros_
+👤 *ROGERIO DORNELLES PASSOS* (30 em risco)
+  🔴 VALDOMIRO FEIBER (144) — 21/09
+  🔴 PELVALE COMERCIO DE PAPEIS LTDA (144) — 20/07
+  🔴 PAO E CAFE LTDA (144) — 21/09
+  🔴 FORTPEL (144) — 24/07
+  🔴 CENTRAL DOS DOCES (144) — 09/09
+  _+25 outros_

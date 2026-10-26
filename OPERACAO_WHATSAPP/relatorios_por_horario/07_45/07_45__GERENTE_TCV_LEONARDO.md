@@ -1,38 +1,38 @@
 🌅 *ABERTURA MATINAL — TCV (07:45)*
-📅 sexta-feira, 23/10/2026
+📅 segunda-feira, 26/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 27 • Visitas: 243 (média 9,0/vendedor)
-Sem compra +30d: 61 (25,1%) • Recorrência: 37 (15,2%)
-Oportunidades CNAE 4771: +275 PDVs
+👥 Vendedores: 27 • Visitas: 286 (média 10,6/vendedor)
+Sem compra +30d: 49 (17,1%) • Recorrência: 42 (14,7%)
+Oportunidades CNAE 4789: +297 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCV — LEONARDO* • 23/10/2026
+📍 *TCV — LEONARDO* • 26/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 60  •  🟡 Preventivo: 0
+🔴 Última Chance: 48  •  🟡 Preventivo: 0
 
-👤 *GESSANDRO SPEROTTO* (17 em risco)
-  🔴 POLI PAES (324) — 17/09
-  🔴 AUTO POSTO NOVO TRES PASSOS (324) — 17/09
-  🔴 SUPER RODO (346) — 31/08
-  🔴 LOJA PEDROSO (346) — 19/09
-  🔴 MERCADO AVESTRUZ (346) — 31/08
-  _+12 outros_
+👤 *GESSANDRO SPEROTTO* (9 em risco)
+  🔴 PADARIA KOLLING (324) — 25/09
+  🔴 CASA DE CARNES FONSECA (328) — 15/09
+  🔴 SUPERMERCADO SODER (346) — 21/08
+  🔴 DISTRIBUIDORA DE DOCES MENDES (346) — 17/09
+  🔴 MERC E PADARIA BRESSAN (1057) — 15/09
+  _+4 outros_
 
-👤 *GIANI GREGOLIN* (22 em risco)
-  🔴 MERCEARIA JD (333) — 05/12
-  🔴 MERCADINHO DOZEZO (333) — 31/08
-  🔴 LIVRARIA E PAPELARIA CULTURA (333) — 05/09
-  🔴 COMERCIAL BUFFON COMBUSTIVEIS E TRANSPOR (335) — 01/01
-  🔴 COMERCIAL BUFFON COMBUSTIVEIS E TRANSPOR (335) — 01/01
-  _+17 outros_
+👤 *GIANI GREGOLIN* (20 em risco)
+  🔴 MERCEARIA E ACOUGUE CARA (333) — 01/08
+  🔴 POSTO SULINA (333) — 08/08
+  🔴 00CASA DO SABOR (333) — 21/09
+  🔴 FARMACIA POPULAR (343) — 05/12
+  🔴 MERCADO UNIAO (343) — 31/08
+  _+15 outros_
 
-👤 *VAGO - GABRIEL* (21 em risco)
-  🔴 MERCADO MHM (325) — 14/09
-  🔴 DISK BEBIDAS E MERCEARIA ALVES (325) — 31/07
-  🔴 TABACARIA DUBAY (325) — 15/09
-  🔴 MERCEARIA MOURA (325) — 21/08
-  🔴 MAYA ALIMENTOS (330) — 08/07
-  _+16 outros_
+👤 *VAGO - GABRIEL* (19 em risco)
+  🔴 ENCOPEL (325) — 22/09
+  🔴 HULK EMBALAGENS (325) — 31/08
+  🔴 MERCADO TIBAGI (325) — 16/09
+  🔴 NSA DISTRIBUIDORA (347) — 08/08
+  🔴 CANTINA FAG 2 (347) — 07/07
+  _+14 outros_

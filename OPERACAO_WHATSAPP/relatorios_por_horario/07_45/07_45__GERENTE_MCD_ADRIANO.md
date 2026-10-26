@@ -1,36 +1,38 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 sexta-feira, 23/10/2026
+📅 segunda-feira, 26/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 19 • Visitas: 106 (média 5,6/vendedor)
-Sem compra +30d: 17 (16,0%) • Recorrência: 8 (7,5%)
-Oportunidades CNAE 4771: +127 PDVs
+👥 Vendedores: 21 • Visitas: 163 (média 7,8/vendedor)
+Sem compra +30d: 50 (30,7%) • Recorrência: 31 (19,0%)
+Oportunidades CNAE 4789: +245 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — ADRIANO* • 23/10/2026
+📍 *MCD — ADRIANO* • 26/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 18  •  🟡 Preventivo: 0
+🔴 Última Chance: 50  •  🟡 Preventivo: 0
 
-👤 *ALYFER PEREIRA MENDES* (6 em risco)
-  🔴 PET SHOP PATAS E PELOS (432) — 16/09
-  🔴 RACOES TAMANDARE (432) — 05/12
-  🔴 BUMMER PET SHOP (432) — 05/12
-  🔴 ESTILO PET SHOP (436) — 31/08
-  🔴 CLINICA POPULAR PET (436) — 16/09
-  _+1 outros_
+👤 *ALYFER PEREIRA MENDES* (10 em risco)
+  🔴 PET SPIPE (432) — 28/08
+  🔴 PET SHOP CAOTEINER (432) — 21/09
+  🔴 PETISCAO PET SHOP (432) — 05/12
+  🔴 PETSHOP CAPITAL (432) — 31/08
+  🔴 PET SHOP CAOSULTORIO (436) — 05/12
+  _+5 outros_
 
-👤 *CARLOS ALAGUEZ DA SILVA* (4 em risco)
-  🔴 MERCADO MS (423) — 21/09
-  🔴 M D CONVENIENCIA (423) — 31/08
-  🔴 SOBERANA PETSHOP (449) — 05/12
-  🔴 KACHINSCKY E RIZO (463) — 05/09
+👤 *CARLOS ALAGUEZ DA SILVA* (13 em risco)
+  🔴 PANIFICADORA AGUA NA BOCA (423) — 05/12
+  🔴 MERCADO POPULAR (430) — 05/12
+  🔴 MERCADO SANTANA (430) — 18/09
+  🔴 MERCADINHO BOM DIA (430) — 18/09
+  🔴 MERCADO ALFA (430) — 17/09
+  _+8 outros_
 
-👤 *CLEOMAR DINIZ BARBOSA* (8 em risco)
-  🔴 OI TOTO PET SHOP (427) — 31/08
-  🔴 DELICIAS DA GIGI (447) — 05/12
-  🔴 PRONTO VET (447) — 05/12
-  🔴 SUPERMERCADO GAMA (447) — 05/12
-  🔴 MINI MERCADO BOM PRECO (452) — 16/09
-  _+3 outros_
+👤 *CLEOMAR DINIZ BARBOSA* (27 em risco)
+  🔴 ROOSTEL MERCADO (415) — 17/09
+  🔴 VET HOME (415) — 19/09
+  🔴 AMIGO PET (415) — 05/12
+  🔴 SUPERMERCADO KARINNE (415) — 21/09
+  🔴 PRIMOS BOUTIQUE CARNES ESPECIA (415) — 05/12
+  _+22 outros_

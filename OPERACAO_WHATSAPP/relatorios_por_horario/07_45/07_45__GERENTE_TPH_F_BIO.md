@@ -1,54 +1,54 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 sexta-feira, 23/10/2026
+📅 segunda-feira, 26/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 24 • Visitas: 456 (média 19,0/vendedor)
-Sem compra +30d: 162 (35,5%) • Recorrência: 45 (9,9%)
-Oportunidades CNAE 4771: +1.824 PDVs
+👥 Vendedores: 24 • Visitas: 502 (média 20,9/vendedor)
+Sem compra +30d: 235 (46,8%) • Recorrência: 67 (13,3%)
+Oportunidades CNAE 4789: +2.008 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPH — FÁBIO* • 23/10/2026
+📍 *TPH — FÁBIO* • 26/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 160  •  🟡 Preventivo: 0
+🔴 Última Chance: 234  •  🟡 Preventivo: 0
 
-👤 *EDERSON SUONSKI* (43 em risco)
-  🔴 KINDER ACOUGUE E MERCADO (1045) — 31/08
-  🔴 MERCADO ZUCCO (1045) — 05/12
-  🔴 POSTO BARCELONA - SELECT (1045) — 05/09
-  🔴 BOLA DE NEVE CHURCH (1045) — 05/12
-  🔴 IFM COMERCIO DE ALIMENTOS LTDA (1045) — 21/09
-  _+38 outros_
-
-👤 *CRISTIAN EDUARDO RAFFAELLI* (9 em risco)
+👤 *CRISTIAN EDUARDO RAFFAELLI* (14 em risco)
   🔴 FARMACIA NISSEI (90) — 05/12
   🔴 FARMACIA NISSEI (90) — 05/12
   🔴 FARMACIA NISSEI (90) — 05/12
   🔴 FARMACIA NISSEI (90) — 05/12
   🔴 FARMACIA NISSEI (90) — 05/12
-  _+4 outros_
+  _+9 outros_
 
-👤 *EDI CARLOS MEIRA* (10 em risco)
-  🔴 MERCADO BELA VISTA (115) — 31/08
-  🔴 AUTO POSTO S V II LTDA (114) — 31/08
-  🔴 FLORENAU ZERO HORA (114) — 05/12
-  🔴 POSTO STA RITA (114) — 05/12
-  🔴 DANIELE APARECIDA DE FREITAS GUTSTEIN ME (117) — 18/09
-  _+5 outros_
+👤 *EDERSON SUONSKI* (68 em risco)
+  🔴 MERCADINHO DA LENA (69) — 31/08
+  🔴 ESPACO DA GULA (69) — 30/06
+  🔴 SS MACIEL MERCEARIA (111) — 11/07
+  🔴 MERCEARIA ROSSINI (111) — 30/07
+  🔴 MERCADINHO DAMI (111) — 16/09
+  _+63 outros_
 
-👤 *PRISCILA A D NASCIMENTO STRAPASSON* (29 em risco)
-  🔴 PETROCENTER ECOVILE (65) — 05/12
-  🔴 POSTO PELLANDA (65) — 05/12
-  🔴 AUTO POSTO NOSSA SENHORA APARE (65) — 15/09
-  🔴 AUTO POSTO PETROCENTER IZABEL (65) — 05/12
-  🔴 AUTO POSTO PEREQUE (65) — 05/09
-  _+24 outros_
+👤 *EDI CARLOS MEIRA* (24 em risco)
+  🔴 SUPERMERCADO CAMBARA (114) — 12/09
+  🔴 TIO MUCUFA (114) — 05/09
+  🔴 CAROLITA (114) — 04/09
+  🔴 POSTO NEGO (114) — 18/09
+  🔴 MERCADO LEVE MAIS (114) — 18/09
+  _+19 outros_
 
-👤 *RODRIGO BERTONI* (69 em risco)
-  🔴 AVIARIO 3F (47) — 02/07
-  🔴 PIT PET CWB (47) — 10/07
-  🔴 MUNDO SAUDE LTDA - ME (47) — 05/12
-  🔴 FARMA TOTAL (47) — 05/12
-  🔴 PIZZARIA ABARE (47) — 05/12
-  _+64 outros_
+👤 *PRISCILA A D NASCIMENTO STRAPASSON* (81 em risco)
+  🔴 AUTO POSTO CONQUISTA II (65) — 08/08
+  🔴 AUTO POSTO JARDIM ALIANCA LTDA (65) — 30/06
+  🔴 COMERCIO DE COMBUSTIVEIS RUBI LTDA (65) — 21/09
+  🔴 POSTO PALOMA (65) — 05/12
+  🔴 POSTO CONQUISTA (65) — 16/09
+  _+76 outros_
+
+👤 *RODRIGO BERTONI* (47 em risco)
+  🔴 UP FIT FOOD (47) — 31/07
+  🔴 QUEIJOS E VINHOS (47) — 01/07
+  🔴 THAIS MILENA PORTES DE CASTILHO (47) — 25/09
+  🔴 COMERCIAL BAGGIO LTDA (47) — 05/12
+  🔴 PET EXPRESS (47) — 29/08
+  _+42 outros_

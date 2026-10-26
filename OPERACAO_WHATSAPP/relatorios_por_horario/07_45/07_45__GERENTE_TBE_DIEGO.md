@@ -1,38 +1,38 @@
 🌅 *ABERTURA MATINAL — TBE (07:45)*
-📅 sexta-feira, 23/10/2026
+📅 segunda-feira, 26/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 16 • Visitas: 297 (média 18,6/vendedor)
-Sem compra +30d: 126 (42,4%) • Recorrência: 14 (4,7%)
-Oportunidades CNAE 4771: +318 PDVs
+👥 Vendedores: 16 • Visitas: 316 (média 19,8/vendedor)
+Sem compra +30d: 150 (47,5%) • Recorrência: 19 (6,0%)
+Oportunidades CNAE 4789: +316 PDVs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TBE — DIEGO* • 23/10/2026
+📍 *TBE — DIEGO* • 26/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 126  •  🟡 Preventivo: 0
+🔴 Última Chance: 150  •  🟡 Preventivo: 0
 
 👤 *HAMILTON RICARDO DOS SANTOS MENDES* (56 em risco)
-  🔴 FRUTEIRA DAVI ORILEI (301) — 01/01
-  🔴 TAIANE MORAES POMPEO LTDA (301) — 01/01
-  🔴 LECHROME SUPLEMENTOS (301) — 01/01
-  🔴 MERCADINHO BELIZE (301) — 01/01
-  🔴 HEMERSON EICKHOFF (301) — 01/01
+  🔴 M C X SUPERMERCADO LTDA (301) — 08/09
+  🔴 MERCADO BELEM VELHO (301) — 08/09
+  🔴 MERCADO MARIANTE (301) — 20/07
+  🔴 FORMENTON S A (304) — 21/09
+  🔴 BOLOS DO BAIRRO MD (304) — 01/01
   _+51 outros_
 
-👤 *NEIVA CLEONICE SERRA ISOPPO* (8 em risco)
-  🔴 MERCEARIA VEBER (289) — 01/01
-  🔴 POSTO REZENDE (289) — 23/07
-  🔴 DELICIAS GOURMET (289) — 15/09
-  🔴 PARADOURO E RESTAURANTE DO GUI (289) — 21/09
-  🔴 VERA REGINA DA SILVA SEDREZ (289) — 05/12
-  _+3 outros_
+👤 *NEIVA CLEONICE SERRA ISOPPO* (14 em risco)
+  🔴 TIAGO DINOSSANI RODRIGUES (289) — 11/08
+  🔴 MERC ACOU PAD PARQUE DOS PRESIDENTES (289) — 31/07
+  🔴 SUPERMERCADO BOM PRECO (289) — 21/07
+  🔴 POSTO POINT (289) — 15/09
+  🔴 SUPER DIJUCA (289) — 15/09
+  _+9 outros_
 
-👤 *PATRICIA CHAVES MACHADO* (62 em risco)
-  🔴 AUTO POSTO ALPHAVILLE (285) — 27/07
-  🔴 ABASTECEDRA DE COMBUSTIVEIS ELVAS (285) — 14/09
-  🔴 MINIMERCADO PINHEIRO (285) — 21/09
-  🔴 ENGENHO DO BOI (285) — 27/05
-  🔴 POSTO DA UPA (285) — 27/08
-  _+57 outros_
+👤 *PATRICIA CHAVES MACHADO* (80 em risco)
+  🔴 NEIVA DE OLIVEIRA VALADA (285) — 01/01
+  🔴 BC FARMA (285) — 01/01
+  🔴 ALINE BEBIDAS (285) — 27/05
+  🔴 X BACURAL (285) — 23/07
+  🔴 LUANA BARUFFI (285) — 21/09
+  _+75 outros_
