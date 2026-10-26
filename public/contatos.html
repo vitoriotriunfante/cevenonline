@@ -150,7 +150,7 @@ function desenhaDisparos() {
 function desenhaConversas() {
   const el = $('conversas'); if (!el || !CV) return;
   const pc = (a) => CV.total ? Math.round(a / CV.total * 100) + '%' : '–';
-  const tag = { pronta: '✅ resposta pronta', saudacao: '👋 saudação', saudacao_primeira: '👋 boas-vindas', ia: '🤖 IA (sem resposta pronta)', ajuda: '❓ menu de ajuda', 'erro de envio': '⚠️ erro de envio', 'sem resposta': '… sem resposta', 'não cadastrado': '🚫 não cadastrado' };
+  const tag = { pronta: '✅ resposta pronta', entendida_ia: '🧠 entendida pela IA (resposta do código)', saudacao: '👋 saudação', saudacao_primeira: '👋 boas-vindas', ia: '🤖 IA (sem resposta pronta)', ajuda: '❓ menu de ajuda', 'erro de envio': '⚠️ erro de envio', 'sem resposta': '… sem resposta', 'não cadastrado': '🚫 não cadastrado' };
   const L = (CV.conversas || []).filter((x) => (!CVF.so_ruins || x.nao_ajudou || !x.cadastrado) && (!CVF.quem || (x.quem + ' ' + x.celular).toUpperCase().includes(CVF.quem.toUpperCase())));
   el.innerHTML = `<h2>💬 Conversas (últimos ${CV.dias} dias)</h2>
     <div class="kpis"><div class="kpi"><b>${CV.total}</b><span>perguntas</span></div><div class="kpi"><b style="color:var(--verde)">${pc(CV.prontas)}</b><span>resposta pronta</span></div>

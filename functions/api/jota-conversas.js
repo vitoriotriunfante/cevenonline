@@ -32,7 +32,7 @@ export async function onRequestGet({ request, env }) {
   conv.sort((a, b) => String(b.quando).localeCompare(String(a.quando)));
   const cad = conv.filter((x) => x.cadastrado);
   const cont = (f) => cad.filter(f).length;
-  return new Response(JSON.stringify({ dias, total: cad.length, prontas: cont((x) => ['pronta', 'saudacao', 'saudacao_primeira'].includes(x.tipo) && x.ajudou !== 0), ia: cont((x) => x.tipo === 'ia'), ajuda: cont((x) => x.tipo === 'ajuda'),
+  return new Response(JSON.stringify({ dias, total: cad.length, prontas: cont((x) => ['pronta', 'saudacao', 'saudacao_primeira', 'entendida_ia'].includes(x.tipo) && x.ajudou !== 0), ia: cont((x) => x.tipo === 'ia'), ajuda: cont((x) => x.tipo === 'ajuda'),
     reclamadas: cont((x) => x.ajudou === 0), nao_ajudou: cont((x) => x.nao_ajudou), nao_cadastrados: conv.filter((x) => !x.cadastrado).length, notas: notas.length, nota_media: notas.length ? Math.round(notas.reduce((a, b) => a + b, 0) / notas.length * 10) / 10 : null, sugestoes, disparos, conversas: conv.slice(0, 500) }), { headers: CORS });
 }
 
