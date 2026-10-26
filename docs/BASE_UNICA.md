@@ -99,5 +99,5 @@ Fontes: `varredura_central_rca` (roteiro de cada dia, 29/09 a 26/10) e `piloto_p
 3. Tolerância dos boletins de vendas: ZERADA em 26/10 (decisão do Vitório), no ar no GitHub desde o push b46bdb78.
 
 ## 7. Histórico
-- 26/10/2026 09:30–10:00 — Cascata do gerente gravada (`cascata_dia`, 11 filiais, cota separada). Roteiro de quem o gerente vê com visita nova vai primeiro. Lances e cartões sem chamada ao vivo de roteiro. Compromissos e RET gravados pelo coletor; `/api/tv-supervisores` lê só a base. Mapa: 34 → 32 rotinas chamando o CEVEN.
+- 26/10/2026 09:30–10:00 — Cascata do gerente gravada (`cascata_dia`, 11 filiais, cota separada). Roteiro de quem o gerente vê com visita nova vai primeiro. Lances e cartões sem chamada ao vivo de roteiro. Compromissos e RET gravados pelo coletor; `/api/tv-supervisores` lê só a base. Mapa: 34 → 33 rotinas chamando o CEVEN (tv-lances ainda cita o CEVEN em outro trecho; a coleta de supervisores entrou no lugar do tv-supervisores).
 - 26/10/2026 — Documento criado. Medições do §3 feitas no D1 de produção. `/api/totais-dia` no ar. Telas `so_base`, madrugada 00:30 e redesenho imediato da Matriz publicados às 08:45 (tv-20261026-084506).
