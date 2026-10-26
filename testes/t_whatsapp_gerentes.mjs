@@ -20,6 +20,16 @@ export default async function (ok, RAIZ) {
     '3002': { prog: 0, vis: 0, dig: 300, ped: 1 }       // TCA, so na planilha (so entra no total)
   };
   const original = axios.get;
+  // 26/10/2026: o motor le SO a base unica (/api/central-snapshot); a base falsa tem os mesmos numeros do CEVEN falso
+  const fetchOriginal = globalThis.fetch;
+  const FIL_DO = { '1001': 'tph', '1002': 'tph', '1003': 'tph', '2001': 'mcd', '2002': 'mcd', '2003': 'mcd', '3001': 'tca', '3002': 'tca' };
+  globalThis.fetch = async (url) => {
+    const u = new URL(String(url));
+    if (!u.pathname.endsWith('/api/central-snapshot')) return { ok: false, json: async () => null };
+    const f = String(u.searchParams.get('filial') || '').toLowerCase(), rcas = {};
+    for (const [id, p] of Object.entries(PROD)) if (FIL_DO[id] === f) rcas[id] = { idade_s: 10, produtividade: { dia: { total_programado: p.prog, visitas_na_rota: p.vis, visitas_com_venda: p.ped, positivacao: p.ped, dig_pedido: p.dig } }, dashboard: { financeiro: { meta: 1000 }, positivacao: { meta: 10 } }, devolucoes: [], roteiro: [] };
+    return { ok: true, json: async () => ({ filial: f.toUpperCase(), rcas }) };
+  };
   axios.get = async (url) => {
     const u = new URL(url);
     const id = u.searchParams.get('id');
@@ -106,6 +116,6 @@ export default async function (ok, RAIZ) {
     ok(fonte.includes("relatorios.mensagensGerentes[g.filial + '::' + String(g.gerente).toUpperCase()] || relatorios.mensagensGerentes[g.filial]"), 'envio 14:30/17:00/18:30: cada gerente recebe a mensagem da chave SIGLA::GERENTE');
     ok(fonte.includes("(auditoria.__porGerente || {})[g.filial + '::' + String(g.gerente).toUpperCase()] || auditoria[g.filial]"), 'envio 11:30: cada gerente recebe a gestao de campo da chave SIGLA::GERENTE');
   } finally {
-    axios.get = original;
+    axios.get = original; globalThis.fetch = fetchOriginal;
   }
 }

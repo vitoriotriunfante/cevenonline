@@ -146,8 +146,13 @@ function fmtMoeda(val) {
 const RESPOSTAS_OK = new Map();
 async function safeGet(url, maxRetries = 3, timeout = 10000) {
   if (RESPOSTAS_OK.has(url)) return RESPOSTAS_OK.get(url);
-  const daBase = fonteBase.lerBase(url); // produtividade, dashboard, devolucoes e roteiro-hoje: da base unica quando fresca
-  if (daBase !== undefined) { RESPOSTAS_OK.set(url, daBase); return daBase; }
+  // BASE UNICA (26/10/2026): produtividade, dashboard, devolucoes e roteiro-hoje vem SO da base do dia (varredura central); o motor nao chama o CEVEN.
+  // Sem a linha na base = falha da coleta (ateCompletar tenta de novo; nada sai incompleto). Antes: base se fresca (<45 min), senao CEVEN ao vivo.
+  if (/\/api\/rca\/(produtividade|dashboard|devolucoes|roteiro-hoje)\?/.test(url)) {
+    const daBase = fonteBase.lerBaseReserva(url);
+    if (daBase !== undefined) { RESPOSTAS_OK.set(url, daBase); return daBase; }
+    throw new Error('sem dado na base unica: ' + url.replace(/^.*\/api\//, '/api/'));
+  }
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const res = await axios.get(url, { timeout });
@@ -259,60 +264,25 @@ function carregarGerentesComCorrecoes() {
 
 // 2. Carregar Mapa de Vendedores puramente da Árvore Viva do CEVEN (Zero Planilhas)
 function carregarValidacaoVendedores() {
+  // BASE UNICA (26/10/2026, Vitorio: "qual parte do a BASE e UMA SO vc nao entendeu"): a equipe do WhatsApp e a MESMA lista da TV, /api/tv-mostra (baixada pelo
+  // workflow em mostra_equipe.json): arvore do CEVEN atualizada todo dia (supervisor de hoje), so vendedor que EXISTE no CEVEN, decisoes da Gestao de Equipe.
+  // Antes lia scripts/supervisores_11_filiais_completo.json, uma 2a arvore montada por outro script direto no CEVEN (por isso TV e WhatsApp divergiam).
+  // Sem o arquivo: mapa vazio -> as travas de "equipe vazia" impedem qualquer envio.
   const map = {};
-  const onlineTreePath = path.join(__dirname, '../scripts/supervisores_11_filiais_completo.json');
-
-  if (!fs.existsSync(onlineTreePath)) {
-    console.error('ERRO CRÍTICO: Árvore de supervisores do CEVEN não encontrada em', onlineTreePath);
-    return map;
-  }
-
-  try {
-    const data = JSON.parse(fs.readFileSync(onlineTreePath, 'utf8'));
-
-    // Mapeamento Oficial das Sub-Gerências de MCD e TPH
-    const extrairGerente = (filial, supNome, gerenteBase) => gerenteDaSupervisao(filial, supNome, gerenteBase);
-
-    for (const [sigla, f] of Object.entries(data)) {
-      const gerentePadrao = f.gerente || `Gerente ${sigla}`;
-      (f.cascata?.supervisores || []).forEach(s => {
-        const supNome = cleanName(s.supervisorNome);
-        const supCod = String(s.supervisorId || '');
-        const gerenteOficial = extrairGerente(sigla, supNome, gerentePadrao);
-
-        ['produtividade', 'faturamento', 'positivacao'].forEach(t => {
-          (s.tabelas?.[t] || []).forEach(v => {
-            const key = `${sigla}_${v.id}`;
-            const metaFat = t === 'faturamento' ? parseFloat(v.meta || 0) : 0;
-            const metaPos = t === 'positivacao' ? parseInt(v.meta || 0, 10) : 0;
-
-            if (!map[key]) {
-              map[key] = {
-                filial: sigla,
-                gerente: gerenteOficial,
-                supCod,
-                supNome: supNome || 'SUPERVISÃO GERAL',
-                rca: String(v.id),
-                nome: cleanName(v.nome),
-                canal: 'VJ',
-                metaFat,
-                metaPos
-              };
-            } else {
-              if (metaFat > 0) map[key].metaFat = metaFat;
-              if (metaPos > 0) map[key].metaPos = metaPos;
-              map[key].supNome = supNome || map[key].supNome;
-              map[key].gerente = gerenteOficial;
-            }
-          });
-        });
-      });
+  const filePath = path.join(__dirname, '..', 'mostra_equipe.json');
+  let dados = null;
+  try { dados = JSON.parse(fs.readFileSync(filePath, 'utf8')); } catch (e) { dados = null; }
+  if (!dados || !dados.filiais) { console.error('ERRO CRÍTICO: equipe da base (/api/tv-mostra -> mostra_equipe.json) não encontrada. Nada sai.'); return map; }
+  for (const [k, lista] of Object.entries(dados.filiais)) {
+    const sigla = String(k).split('_')[0].toUpperCase();
+    const gerentePadrao = (Object.values(FILIAIS_MAP).find((f) => f.sigla === sigla) || {}).gerente || `Gerente ${sigla}`;
+    for (const v of Array.isArray(lista) ? lista : []) {
+      if (!v || v.rca == null || v.na_arvore === false) continue;   // fora da arvore do CEVEN de hoje = nao existe
+      const supNome = cleanName(v.supervisor || '') || 'SUPERVISÃO GERAL';
+      map[`${sigla}_${v.rca}`] = { filial: sigla, gerente: gerenteDaSupervisao(sigla, supNome, gerentePadrao), supCod: '', supNome, rca: String(v.rca), nome: cleanName(v.nome || ''), canal: String(v.canal || '').toUpperCase() || 'NULO', canalBase: true, metaFat: 0, metaPos: 0 };
     }
-    console.log(`✅ Árvore viva do CEVEN carregada: ${Object.keys(map).length} vendedores mapeados diretamente dos endpoints.`);
-  } catch (e) {
-    console.error('Erro ao processar árvore de supervisores do CEVEN:', e.message);
   }
-
+  console.log(`✅ Equipe da BASE ÚNICA (/api/tv-mostra): ${Object.keys(map).length} vendedores.`);
   return map;
 }
 
@@ -518,7 +488,8 @@ async function coletarVendasCompleto(repsMap, dataRef) {
 
 async function coletarVendasEZerados(repsValidationMap, dataRef) {
   console.log(`📡 Coletando produtividade e vendedores de varejo para ${dataRef}...`);
-  { const rb = await fonteBase.carregarBase(Object.keys(FILIAIS_MAP), dataRef); console.log(`🗄️ Base única: ${rb.ligada ? rb.rcas + ' RCAs de ' + rb.filiais + ' filiais carregados (idade máx. ' + rb.max_idade_s + 's)' : 'DESLIGADA (CEVEN_FONTE_BASE=0)'}`); }
+  // base relida a cada rodada (26/10/2026)
+  { fonteBase.limpar(); RESPOSTAS_OK.clear(); const rb = await fonteBase.carregarBase(Object.keys(FILIAIS_MAP), dataRef); console.log(`🗄️ Base única: ${rb.ligada ? rb.rcas + ' RCAs de ' + rb.filiais + ' filiais carregados (idade máx. ' + rb.max_idade_s + 's)' : 'DESLIGADA (CEVEN_FONTE_BASE=0)'}`); }
   // Antes lia public/reps_data.json (estático, 13 dias desatualizado). Deriva do repsValidationMap.
   const reps = Object.values(repsValidationMap).map(v => ({ codigo: v.rca, nome: v.nome, filial: v.filial }))
     // ocultos e vendedores so da planilha: somam nos TOTAIS, nunca nas listas/contagens de varejo (macroOnly)
@@ -734,6 +705,8 @@ function comTimeoutForcadoCanal(promessa, ms) {
 }
 
 async function enriquecerCanalReal(repsValidationMap) {
+  // 26/10/2026: o canal ja vem da BASE (/api/tv-mostra = canal do CEVEN conferido no cadastro). Nada de SQLite local nem cadastro ao vivo.
+  { const vs = Object.values(repsValidationMap || {}).filter((v) => v && v.rca); if (vs.length && vs.every((v) => v.canalBase)) return repsValidationMap; }
   // 1ª fonte: rca_segmentos (banco local, populado por scripts/extrair_segmentos_rcas.js).
   // Muito mais rápido e confiável que bater na API ao vivo pra cada um dos 500+ vendedores
   // — já vimos travar/falhar em massa pra uma filial inteira sem aviso (ex: TBL 22/09).
@@ -854,14 +827,16 @@ function filiaisSemDadosAbertura(ab) {
   const com = new Set(Object.values((ab && ab.dadosAbertura) || {}).filter((b) => b && b.visitas > 0).map((b) => b.sigla));
   return FILIAIS_ESPERADAS_ABERTURA().filter((sg) => !com.has(sg));
 }
+async function recarregaBaseDoDia(rotulo) {
+  // 26/10/2026: a base e relida a CADA tentativa (antes 1x so, antes das tentativas: faltando vendedor, repetia para sempre com os mesmos dados)
+  fonteBase.limpar(); RESPOSTAS_OK.clear();
+  const rb = await fonteBase.carregarBase(Object.keys(FILIAIS_MAP), R.hojeSP());
+  console.log('🗄️ Base única (' + rotulo + '): ' + rb.rcas + ' RCAs de ' + rb.filiais + ' filiais');
+}
 async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
-  try {
-    const rb = await fonteBase.carregarBase(Object.keys(FILIAIS_MAP), R.hojeSP());
-    console.log('🗄️ Base única (abertura): ' + (rb.ligada ? rb.rcas + ' RCAs de ' + rb.filiais + ' filiais' : 'desligada'));
-  } catch (e) { /* sem base: coleta pelo CEVEN, com tentativas */ }
   // TRAVA DE COMPLETUDE (15/10/2026): repete ate TODAS as filiais e TODOS os vendedores lidos; nunca sai com "dados incompletos"
   // 26/10/2026 (Vitorio: "nao da para enviar faltando dados para ninguem"): tambem espera o numero unico (/api/totais-dia) com TODOS os vendedores lidos.
-  return ateCompletar('Abertura', () => coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes), (res) => { res.faltam = filiaisSemDadosAbertura(res); if (!res.totaisCompletos) console.log('  numero unico ainda incompleto: ' + res.totaisLidos + ' vendedores lidos'); return res.faltam.length === 0 && res.totaisCompletos; });
+  return ateCompletar('Abertura', async () => { await recarregaBaseDoDia('abertura'); return coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes); }, (res) => { res.faltam = filiaisSemDadosAbertura(res); if (!res.totaisCompletos) console.log('  numero unico ainda incompleto: ' + res.totaisLidos + ' vendedores lidos'); return res.faltam.length === 0 && res.totaisCompletos; });
 }
 async function coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes = null) {
   const dir = diretrizes || carregarDiretrizesOperacionais();
@@ -1616,7 +1591,7 @@ async function main() {
     let geralRisco = '';
     {
       console.log(`📋 Coletando Alerta de Risco (07:45)...`);
-      porGerenteRisco = await ateCompletar('Alerta de Risco', () => coletarAlertaRisco(repsMap, dataHoje));
+      porGerenteRisco = await ateCompletar('Alerta de Risco', async () => { await recarregaBaseDoDia('alerta de risco'); return coletarAlertaRisco(repsMap, dataHoje); });
       geralRisco = formatarAlertaRiscoGeral(porGerenteRisco, '07:45');
     }
 

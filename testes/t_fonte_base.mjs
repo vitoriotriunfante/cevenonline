@@ -23,6 +23,6 @@ export default async function t(ok, RAIZ) {
     ok(fb.lerBase(`${U}/produtividade?filial=tph1&id=1`) === undefined, 'base unica: base fora do ar = tudo ao CEVEN como antes (nao quebra o disparo)');
   } finally { globalThis.fetch = original; fb.limpar(); }
   const motor = readFileSync(join(RAIZ, 'pipeline', 'ceven_unified_engine.js'), 'utf8');
-  ok(motor.includes("require('./fonte_base')") && motor.includes('fonteBase.lerBase(url)') && motor.includes('fonteBase.carregarBase(Object.keys(FILIAIS_MAP), dataRef)'), 'motor do WhatsApp: le da base unica antes de perguntar ao CEVEN');
+  ok(motor.includes("require('./fonte_base')") && motor.includes('fonteBase.lerBaseReserva(url)') && motor.includes('sem dado na base unica') && motor.includes('fonteBase.carregarBase(Object.keys(FILIAIS_MAP), dataRef)'), 'motor do WhatsApp: le SO da base unica (26/10/2026: sem chamada ao CEVEN; sem linha na base = falha, nada sai)');
   ok(readFileSync(join(RAIZ, 'functions/api/central-snapshot.js'), 'utf8').includes('varredura_central_rca') && readFileSync(join(RAIZ, '.github/workflows/ceven-cron-whatsapp.yml'), 'utf8').includes('pipeline'), 'base unica: endpoint /api/central-snapshot le a varredura central');
 }
