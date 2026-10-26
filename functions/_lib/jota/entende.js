@@ -59,7 +59,13 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/MOTIVO|POR ?QUE/.test(t) && /DEVOLU|DEVOLVID|VOLTOU DE MERCADORIA/.test(t)) return respDevMotivos(B);
   if (/COMPROMISSO|MATINAL|\bRET\b|\bRETS\b|ROTA DO SUPERVISOR/.test(t)) return respCompromisso(B, await carregaEscopo(B, esc));
   if (/PENALTI|PENALIDADE|IMPEDIMENTO|CARTA|VERMELHO|AMARELO|GOL CONTRA|\bGOLS?\b|LANCES?\b|HAT ?TRICK|DEFESAS?\b|CHECK.?IN FORA|FORA DO CLIENTE|00:00|CARTO(ES|ESS)?\b/.test(t) && !/LIGA|CHAMPIONS|CLASSIFICA|PONTOS? (FOMOS|PERDID|PENALIZ)|PENALIZAD/.test(t)) return respLances(B, await carregaEscopo(B, esc), t);
-  if (/\+ ?MIX|MAIS ?MIX|\bMIX\b/.test(t) && !/COMPROU|COMPRARAM|PRECO/.test(t) && !(/\bMETAS?\b|KPI|PREMIA/.test(t) && !/\+ ?MIX|MAIS ?MIX/.test(t))) return respMix(B, await carregaEscopo(B, esc), t);
+  if (/\+ ?MIX|MAIS ?MIX|\bMIX\b/.test(t) && !/COMPROU|COMPRARAM|PRECO/.test(t) && !(/\bMETAS?\b|KPI|PREMIA/.test(t) && !/\+ ?MIX|MAIS ?MIX/.test(t))) {
+    // 26/10/2026 (Cristiano, equipe AS: 'foco em mix' -> '0 de 0 clientes'): o +MIX (lista de recomendacao) cobre o varejo; sem dado de uso no escopo, mostra o
+    // MIX DA PREMIACAO por vendedor (itens por cliente, todos os canais), nunca uma resposta vazia
+    const Em = await carregaEscopo(B, esc), rm = await respMix(B, Em, t);
+    if (rm && !/de \*0\* clientes com lista/.test(String(rm))) return rm;
+    return respKpisPremiacao(B, Em, 'META MIX', null);
+  }
   { const sd = respSemDado(t); if (sd) return sd; }
   const E = await carregaEscopo(B, esc);
   // PEDIDOS QUE O JOTA NAO EXECUTA (26/10/2026): "247 nao trabalha mais", "retirar a Claudete dos controles" (a IA respondia "vou considerar que nao esta mais na

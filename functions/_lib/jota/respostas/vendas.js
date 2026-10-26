@@ -99,16 +99,32 @@ export async function respIndustria(B, E, t, pessoa) {
     `*Por ${E.nacional ? 'filial' : porVend ? 'vendedor' : 'supervisor'} (clientes · R$):*`, ...G.slice(0, 12).map(([k, x]) => `• ${E.nacional ? k : porVend ? (vend.get(k) || 'RCA ' + k.split('|')[1]) : nome2(k)}: ${x.cli.size} cli. · ${R$(x.v)}`),
     '*SKUs que mais positivam:*', ...SK.map(([c, x]) => `• ${titulo((V.prod[c] || [''])[0])}: ${x.cli.size} cli.`), ...ex, '', SUGESTAO + `peça "quem comprava ${nomeI} e parou" para a lista de recuperação.`].join('\n');
 }
+// RECUPERACAO (26/10/2026, Cristiano/TSJ: "Quem comprava TRIDENT GARRAFA e parou" so recebeu a contagem da filial): lista NOMINAL, do escopo de quem pergunta
+// (supervisor = so a equipe dele), aberta por vendedor: comprou o produto/industria no mes passado e ainda NAO comprou neste mes.
 export async function respRecuperacao(B, E, t) {
   const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
-  const I = achaIndustria(t, V), Pr = I ? null : achaProdutos(t, V, E); if (!I && !Pr) return naoVende(E, termoDaPergunta(t, E));
-  const cods = new Set(Object.entries(V.prod).filter(([c, p]) => (I ? I.includes(p[1]) : Pr.cods.has(c))).map(([c]) => c));
+  const { vendasAnterior } = await import('./periodos.js'); const A = await vendasAnterior(B, E);
+  if (!A) return '📦 _O mês anterior item a item ainda está sendo publicado (sai junto com o Data Lake). Tente daqui a pouco._';
+  const VA = { ...V, prod: { ...A.prod, ...V.prod } };
+  const I = achaIndustria(t, VA), Pr = I ? null : achaProdutos(t, VA, E); if (!I && !Pr) return naoVende(E, termoDaPergunta(t, E));
+  const cods = new Set(Object.entries(VA.prod).filter(([c, p]) => (I ? I.includes(p[1]) : Pr.cods.has(c))).map(([c]) => c));
   const nome = I ? nomeIndustria(I) : Pr.termo;
-  const H = await Promise.all(E.filiais.map((f) => B.raw(`public/mix_hist/${f}.json`).then((x) => { try { return { f, c: JSON.parse(x).c || {} }; } catch (e) { return { f, c: {} }; } })));
-  const porF = {}; let n = 0;
-  for (const { f, c } of H) for (const [cnpj, s] of Object.entries(c)) { const parou = String(s).split(',').filter((x) => cods.has(x.split(':')[0])); if (parou.length) { porF[f] = (porF[f] || 0) + 1; n++; } }
-  return [`🔁 *Recuperação — ${nome}* (${E.nome})`, `*${N(n)} clientes* compraram ${nome} nos últimos 60 dias e *não compraram este mês*.`, ...Object.entries(porF).sort((a, b) => b[1] - a[1]).map(([f, x]) => `• ${f}: ${x} cliente(s)`),
-    '', '_A lista nominal por cliente fica no +MIX por vendedor._', SUGESTAO + 'distribuir a lista para os vendedores visitarem esta semana.'].join('\n');
+  const agora = new Set(V.linhas.filter((l) => cods.has(l.p)).map((l) => l.f + '|' + l.c)), antes = new Map();
+  for (const l of A.linhas) if (cods.has(l.p)) { const k = l.f + '|' + l.c; if (agora.has(k)) continue; const x = antes.get(k) || { r: l.r, f: l.f, v: 0 }; x.v += l.v; antes.set(k, x); }
+  if (!antes.size) return `🔁 *Recuperação — ${nome}* (${E.nome})\nNinguém parou: todo cliente que comprou ${nome} no mês passado já comprou de novo este mês.`;
+  const vend = new Map(E.vend.map((v) => [v.filial + '|' + v.rca, vn(v)])), porV = new Map();
+  for (const [k, x] of antes) { const kv = x.f + '|' + x.r; if (!porV.has(kv)) porV.set(kv, []); porV.get(kv).push([k, x]); }
+  // citou vendedor (nome ou codigo) -> so a lista dele
+  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2), citado = E.vend.filter((v) => sem(v.nome).split(/\s+/).some((w) => w.length > 3 && toks.includes(w)) || toks.includes(String(v.rca)));
+  if (citado.length) { const ks = new Set(citado.map((v) => v.filial + '|' + v.rca)); for (const k of [...porV.keys()]) if (!ks.has(k)) porV.delete(k); }
+  const G = [...porV].sort((a, b) => b[1].length - a[1].length), out = [], MAX = 20; let n = 0;
+  if (citado.length && !G.length) return `🔁 *Recuperação — ${nome}*\n${citado.map(vn).join(', ')}: nenhum cliente parou de comprar ${nome}.`;
+  if (!citado.length && G.length > 1) out.push('', '*Por vendedor:* ' + G.map(([kv, L]) => `${vend.get(kv) || 'RCA ' + kv.split('|')[1]}: ${L.length}`).join(' · '));
+  for (const [kv, L] of G) { out.push('', `*${vend.get(kv) || 'RCA ' + kv.split('|')[1]}* — ${L.length} cliente(s)`);
+    for (const [k, x] of L.sort((a, b) => b[1].v - a[1].v)) { if (n++ >= MAX) break; out.push(`• ${titulo((V.cli[k] || A.cli[k] || 'Cliente #' + k.split('|')[1]))} (#${k.split('|')[1]}) · ${R$(x.v)} no mês passado`); }
+    if (n >= MAX) { out.push(`… e mais ${antes.size - MAX} cliente(s). Peça "quem comprava ${nome} e parou" + o nome do vendedor para ver a lista dele.`); break; } }
+  return [`🔁 *Recuperação — ${nome}* (${E.nome})`, `*${N(antes.size)} clientes* compraram ${nome} no mês passado e *ainda não compraram este mês*.`, ...out,
+    '', SUGESTAO + 'distribuir a lista para os vendedores visitarem esta semana.'].join('\n');
 }
 export async function respCliente(B, E, t) {
   const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;

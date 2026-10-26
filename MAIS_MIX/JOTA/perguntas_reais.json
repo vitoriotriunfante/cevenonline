@@ -562,5 +562,58 @@
   "nao": [
    "ROTA DO DIA CONCLUIDA"
   ]
+ },
+ {
+  "id": "cristiano-foco-mix",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TSJ",
+   "nome": "CRISTIANO RODRIGUES MACHADO",
+   "supervisor": "CRISTIANO RODRIGUES MACHADO"
+  },
+  "pergunta": "Foco em mix",
+  "deve": [
+   "MIX .ITENS POR CLIENTE."
+  ],
+  "nao": [
+   "DE .0. CLIENTES"
+  ]
+ },
+ {
+  "id": "cristiano-recuperacao-trident",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TSJ",
+   "nome": "CRISTIANO RODRIGUES MACHADO",
+   "supervisor": "CRISTIANO RODRIGUES MACHADO"
+  },
+  "pergunta": "Quem comprava TRIDENT GARRAFA e parou",
+  "deve": [
+   "RECUPERACAO",
+   "#[0-9]{5,}",
+   "CLIENTE.S."
+  ],
+  "nao": [
+   "LISTA NOMINAL",
+   "FICA NO .MIX",
+   "TSJ: d. CLIENTE"
+  ]
+ },
+ {
+  "id": "cristiano-rota-hoje-as",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TSJ",
+   "nome": "CRISTIANO RODRIGUES MACHADO",
+   "supervisor": "CRISTIANO RODRIGUES MACHADO"
+  },
+  "pergunta": "Rota de hoje",
+  "deve": [
+   "PEDIDOS"
+  ],
+  "nao": [
+   "0 DE 0",
+   "TODO O VAREJO COM ROTA"
+  ]
  }
 ]

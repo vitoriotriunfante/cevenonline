@@ -134,6 +134,9 @@ export async function respKpisPremiacao(B, E, t, pessoa) {
     for (const v of VR) { const cli = new Map(); for (const c of v.roteiroMes) if ((c.focos || []).some((f) => /RECORRENCIA/i.test(f.industria_foco || ''))) { const u = String(c.data_ultima_compra || '').slice(0, 10); const k = String(c.id_cliente); if (!cli.has(k) || u > cli.get(k)) cli.set(k, u); } uni += cli.size; real += [...cli.values()].filter((u) => u >= ini).length; }
     if (uni) L.push(`🔄 *Recorrência (varejo):* ${N(real)} de ${N(Math.ceil(uni * 0.8))} clientes${pc(real, Math.ceil(uni * 0.8))} _(meta 80% dos ${N(uni)} clientes com a tag)_`);
   } else if (vend.some((v) => !ehAS(v))) L.push('🔄 *Recorrência (varejo):* _carteira do mês ainda sendo lida na base; peça de novo mais tarde._');
+  // o KPI perguntado vem primeiro (26/10/2026: 'foco em mix' trazia o mix no meio)
+  { const alvo = /\bMIX\b/.test(t) ? '🧺' : /TICKET/.test(t) ? '🧾' : /FASEAMENTO|FASIAMENTO/.test(t) ? '📅' : /RECORRENCIA/.test(t) ? '🔄' : null;
+    if (alvo) { const i = L.findIndex((x) => x.startsWith(alvo)); if (i > 2) { const tira = L.splice(i, L[i + 1] && L[i + 1].startsWith('_') ? 2 : 1); L.splice(2, 0, ...tira, ''); } } }
   L.push('', SUGESTAO + (metaFat > fat ? `faltam ${R$(metaFat - fat)} de faturamento para a meta da Premiação.` : 'meta de faturamento da Premiação batida; buscar os outros KPIs.'));
   return L.join('\n');
 }
