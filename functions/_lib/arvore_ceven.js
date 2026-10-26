@@ -138,7 +138,7 @@ export async function atualizaArvore(env) {
     await env.DB.batch(stmts);
     ok.push(g.sigla); gravados += rows.length;
   }
-  const canaisAtualizados = await atualizaCanais(env, 150);
+  const canaisAtualizados = await atualizaCanais(env, 400);   // 26/10/2026: 150 -> 400 (conferencia diaria de quem existe no CEVEN fecha numa rodada)
   return { status: falhas.length ? 'PARCIAL' : 'ATUALIZADA', filiais_ok: ok, filiais_falharam: falhas, vendedores: gravados, so_na_lista_da_adm: soAdm, lista_adm: adm ? 'ok' : 'falhou', canais_atualizados: canaisAtualizados, atualizado_em: agora };
 }
 

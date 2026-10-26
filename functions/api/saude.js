@@ -76,6 +76,15 @@ export async function onRequestGet({ env, request }) {
     p.meta_fat += l.meta || 0; p.faturado += l.fat || 0; p.pendente += l.pend || 0; p.meta_pos += l.pmeta || 0; p.positivados += l.preal || 0; p.digitado_hoje += l.dig || 0;
     p.mais_antigo_s = Math.max(p.mais_antigo_s, Math.round((agora - utc(l.ua)) / 1000));
   }
+  // NUMERO UNICO (26/10/2026, Vitorio: "perguntei como tava hoje e a meta ainda continua errada" no JOTA): meta, faturado, pendente e positivacao de cada filial
+  // vem da MESMA conta das telas (calculaResumoMes: so vendedor ativo no CEVEN). Antes esta rota somava tudo por conta propria e o JOTA mostrava R$ 82,79 mi.
+  try {
+    const rbU = await calculaResumoMes(env, dia);
+    for (const [sig, a] of Object.entries((rbU && rbU.porFilial) || {})) {
+      const p = porFilial[sig]; if (!p) continue;
+      p.meta_fat = a.metaFaturado; p.faturado = a.faturado; p.pendente = a.pendente; p.meta_pos = a.metaPositivados; p.positivados = a.positivados;
+    }
+  } catch (e) { /* sem a conta unica: mantem a soma da linha (aviso no painel) */ }
   const filiais = Object.values(porFilial);
   for (const p of filiais) if (!p.rcas && linhas.length) add('critico', 'filiais', `${p.filial}: nenhum RCA na base de hoje.`);
 
