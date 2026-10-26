@@ -126,3 +126,23 @@ export function respDevolucao(E, t = '') {
     notas.length ? `_${notas.length} nota(s) detalhadas na base._` : '',
     '_Fonte: painel do CEVEN, só vendedores ativos. O GEROT mostra mais porque soma também devoluções lançadas em contas internas (ex.: VENDA EMPRESA) e códigos que não são de vendedor._', '', SUGESTAO + (V[0] ? `entender as devoluções de ${nome2(V[0].nome)} (${R$(V[0].dev)}).` : 'sem devoluções relevantes.')].filter(Boolean).join('\n');
 }
+
+// CHECK-IN / CHECK-OUT DA EQUIPE (26/10/2026, Anderson/TPA: "consegue relatorio de chek in e chek out da equipe" -> o JOTA recusou; Vitorio: "pq nao fornecer isso
+// para os supervisores?"). Por vendedor, da rota de hoje (base): 1o check-in, ultimo check-out, visitas feitas, tempo somado dentro dos clientes. Detalhe cliente a
+// cliente: "rota de hoje do <vendedor>".
+export function respCheckinEquipe(E) {
+  const seg = (x) => { const p = String(x || '').split(':').map(Number); return p.length >= 2 && p.every((n) => !isNaN(n)) ? p[0] * 3600 + p[1] * 60 + (p[2] || 0) : 0; };
+  const hm = (s) => `${String(Math.floor(s / 3600)).padStart(2, '0')}h${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}`;
+  const L = [], semCheckin = [];
+  for (const v of E.vend) {
+    const R = (v.rotaHoje || []).filter((c) => !/FORA/i.test(String(c.status || '')));
+    if (!R.length) continue;
+    const ci = R.map((c) => c.checkin_horario).filter(Boolean).map((x) => String(x).slice(0, 5)).sort(), co = R.map((c) => c.checkout_horario).filter(Boolean).map((x) => String(x).slice(0, 5)).sort();
+    if (!ci.length) { semCheckin.push(v); continue; }
+    const dentro = R.reduce((a, c) => a + seg(c.tempo_visita), 0);
+    L.push([ci[0], `• *${vn(v)}*: 1º check-in ${ci[0]} · último check-out ${co.length ? co[co.length - 1] : '—'} · ${ci.length} de ${R.length} visitas · ${hm(dentro)} dentro dos clientes`]);
+  }
+  if (!L.length && !semCheckin.length) return `📍 *${E.nome}* — ninguém da equipe tem rota de visitas hoje.`;
+  return [`📍 *Check-in e check-out de hoje — ${E.nome}* (${hojeSP().slice(8, 10)}/${hojeSP().slice(5, 7)})`, ...L.sort((a, b) => a[0].localeCompare(b[0])).map((x) => x[1]),
+    semCheckin.length ? `\n⚠️ *Sem nenhum check-in hoje:* ${semCheckin.map(vn).join(', ')}` : '', '', SUGESTAO + (semCheckin.length ? `ligar para ${vn(semCheckin[0])}: rota de hoje sem check-in.` : 'peça "rota de hoje do <vendedor>" para ver cliente a cliente, com os horários.')].filter((x) => x !== '').join('\n');
+}

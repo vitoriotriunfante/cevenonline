@@ -124,8 +124,12 @@ export async function respKpisPremiacao(B, E, t, pessoa) {
   // mix: realizado do vendedor; meta por industria (Premiacao) so quando o vendedor e citado
   const mixR = vend.map((v) => [v, RV.mixV && RV.mixV[String(v.rca)]]).filter((x) => x[1] != null);
   if (vend.length === 1 && mixR.length) {
-    const M = (RV.tmmix || []).filter((x) => x[0] === String(vend[0].rca) && x[3] > 0).sort((a, b) => b[3] - a[3]);
-    L.push(`🧺 *Mix:* ${String(mixR[0][1]).replace('.', ',')} itens por cliente` + (M.length ? ` · meta por indústria: ${M.slice(0, 6).map((x) => `${nomeForn(x[1])} ${Math.round(x[3])}`).join(' · ')}` : ''));
+    // SO A PASTA DO VENDEDOR (Allison/TPH, 26/10/2026: 'na meta mix do vendedor 63 nao pode contabilizar Mars Choc, Topei, Triunfante Corporativo, Heinz-Hemmer'):
+    // pasta = industrias com meta de FATURAMENTO > 0 na Premiacao. A tabela de mix traz tambem industria sem meta e linhas de preenchimento automatico.
+    const nf = (n) => String(n || '').replace(/\s+/g, ' ').replace(/\.+$/, '').trim().toUpperCase();
+    const pasta = new Set((RV.metas || []).filter((x) => x[0] === String(vend[0].rca) && x[3] === 1 && x[4] > 0).map((x) => nf(x[2])));
+    const M = (RV.tmmix || []).filter((x) => x[0] === String(vend[0].rca) && x[3] > 0 && (!pasta.size || pasta.has(nf(x[1])))).sort((a, b) => b[3] - a[3]);
+    L.push(`🧺 *Mix:* ${String(mixR[0][1]).replace('.', ',')} itens por cliente` + (M.length ? ` · meta por indústria: ${M.slice(0, 6).map((x) => `${nomeForn(x[1])} ${String(Math.round(x[3] * 100) / 100).replace('.', ',')}`).join(' · ')}` : ''));
   } else if (mixR.length) L.push(`🧺 *Mix (itens por cliente):* ${mixR.sort((a, b) => b[1] - a[1]).slice(0, 8).map(([v, m]) => `${nome2(v.nome)} ${String(m).replace('.', ',')}`).join(' · ')}`, '_A meta de mix na Premiação é por indústria e por vendedor (média dos 3 últimos meses + 5%); peça "meta de mix do vendedor 59" para ver a de cada um._');
   // recorrencia (varejo): carteira do mes com a tag RECORRENCIA
   const VR = vend.filter((v) => !ehAS(v) && Array.isArray(v.roteiroMes) && v.roteiroMes.length);

@@ -809,5 +809,57 @@
   "nao": [
    "NAO TENHO ACESSO"
   ]
+ },
+ {
+  "id": "allison-mix-so-pasta",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPH",
+   "nome": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+   "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO"
+  },
+  "pergunta": "meta de mix do vendedor 63",
+  "deve": [
+   "QUIMICA AMPARO",
+   "LEAO"
+  ],
+  "nao": [
+   "MARS CHOC",
+   "TOPEI",
+   "CORPORATIVO",
+   "HEMMER"
+  ]
+ },
+ {
+  "id": "anderson-vendedor-bruno-oculto",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPA",
+   "nome": "ANDERSON GIOVANI FERREIRA BOLTER",
+   "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER"
+  },
+  "pergunta": "Como está vendedor Bruno",
+  "deve": [
+   "153 - BRUNO"
+  ],
+  "nao": [
+   "EQUIPE ANDERSON BOLTER .TPA. AGORA"
+  ]
+ },
+ {
+  "id": "anderson-checkin-equipe",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPA",
+   "nome": "ANDERSON GIOVANI FERREIRA BOLTER",
+   "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER"
+  },
+  "pergunta": "Consegue relatorio de chek in e chek out da equipe",
+  "deve": [
+   "CHECK-IN E CHECK-OUT"
+  ],
+  "nao": [
+   "RELATORIOS AUTOMATICOS"
+  ]
  }
 ]
