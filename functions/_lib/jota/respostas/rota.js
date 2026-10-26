@@ -24,7 +24,7 @@ export function respClientesDia(v, t) {
     const S = rota.filter((c) => visitou(c) && !vendeu(c));
     const M = {}; for (const c of S) { const m = titulo(c.motivo_nao_visita || 'sem justificativa'); M[m] = (M[m] || 0) + 1; }
     L = [cab, '', `*Visitou e não vendeu (${S.length}):*`, ...S.map(linha), S.length ? '*Justificativas:* ' + Object.entries(M).sort((a, b) => b[1] - a[1]).map(([m, n]) => `${m} ${n}×`).join(' · ') : ''];
-    sug = S.some((c) => /PEDIDO A DIGITAR/i.test(c.motivo_nao_visita || '')) ? 'tem "pedido a digitar": cobrar a digitação hoje para não virar zerado.' : S.length ? 'rever com o supervisor os clientes sem venda e voltar nos de maior potencial.' : !rota.filter(visitou).length ? 'nenhuma visita na rota ainda hoje: cobrar o início da rota.' : 'todas as visitas viraram venda.';
+    sug = S.some((c) => /PEDIDO A DIGITAR/i.test(c.motivo_nao_visita || '')) ? 'tem "pedido a digitar": cobrar a digitação hoje para não virar zerado.' : S.length ? 'rever com o supervisor os clientes sem venda e voltar nos de maior potencial.' : !rota.filter(visitou).length ? (fora.length ? `fez ${fora.length} visita(s) fora da rota e ainda não visitou os ${rota.length} cliente(s) da rota de hoje.` : 'nenhuma visita na rota ainda hoje: cobrar o início da rota.') : 'todas as visitas viraram venda.';
   } else {
     const falta = rota.filter((c) => !visitou(c));
     L = [cab, '', '*Visitados:*', ...rota.filter(visitou).map(linha), fora.length ? '*Fora da rota:*' : '', ...fora.map(linha), falta.length ? '*Ainda sem visita:*' : '', ...falta.map(linha)];

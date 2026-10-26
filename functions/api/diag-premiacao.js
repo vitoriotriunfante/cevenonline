@@ -16,6 +16,9 @@ export async function onRequestGet({ env, request }) {
   const lj = lr.ok ? await lr.json().catch(() => null) : null, tk = lj && (lj.access_token || lj.token);
   if (!tk) return new Response(JSON.stringify({ erro: 'login gerente', status: lr.status }), { status: 502 });
   const out = {};
+  // A tela do gerente pede ao CEVEN o LINK do holerite (/api/gerente/holerite-link), que traz o token proprio da Premiacao
+  try { const hl = await fetch(`${CEVEN}/api/gerente/holerite-link?filial=${g.filialKey}${cod ? '&id=' + cod + '&rca=' + cod : ''}`, { headers: { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET } }); const t = await hl.text(); out.holerite_link = { status: hl.status, corpo: t.slice(0, 600) };
+    const m = t.match(/token=([A-Za-z0-9._\-]+)/); if (m) { for (const q of [`token=${m[1]}`, `token=${m[1]}&cod=${cod}`]) { const r = await fetch(`${RV}/holerite-resolve?${q}`, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(60000) }); out['resolve ' + q.replace(m[1], 'TKH')] = { status: r.status, corpo: (await r.text()).slice(0, 6000) }; } } } catch (e) { out.holerite_link = { erro: String(e.message || e) }; }
   for (const q of [`token=${tk}`, `token=${tk}&cod=${cod}`, `token=${tk}&codusur=${cod}`, `token=${tk}&mes=2026-10&cod=${cod}`]) {
     try { const r = await fetch(`${RV}/holerite-resolve?${q}`, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(60000) }); out[q.replace(tk, 'TK')] = { status: r.status, corpo: (await r.text()).slice(0, 3000) }; } catch (e) { out[q.replace(tk, 'TK')] = { erro: String(e.message || e) }; }
   }
