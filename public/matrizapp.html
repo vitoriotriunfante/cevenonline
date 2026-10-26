@@ -1350,7 +1350,7 @@ function modoSup() { if (SUP_MANUAL) return true; const t = sp(), m = t.h * 60 +
 function renderTotais(stats) {
   const s = f => stats.reduce((x, y) => x + (f(y) || 0), 0), fat = s(x => x.fat), pend = s(x => x.pendente), mF = METAS ? METAS.total.meta_fat : s(x => x.metaFat), pos = s(x => x.realCli), mP = METAS ? METAS.total.meta_pos : s(x => x.metaPos);
   // NUMERO UNICO (26/10/2026): visitas e zerados vem de /api/totais-dia (mesmo numero na TV, no PC, no celular e no WhatsApp). Sem ele ou incompleto: nada de soma propria.
-  const TB = TOTAIS && TOTAIS.brasil, ate = v => !TB ? '<small>sem dado</small>' : TB.completo ? v : `<small>aguardando ${nv(TB.vendedores - TB.lidos)} de ${nv(TB.vendedores)} vendedores</small>`;   // incompleto = nenhum numero (Vitorio, 26/10/2026)
+  const TB = TOTAIS && TOTAIS.brasil, ate = v => !TB ? '<small>carregando</small>' : TB.completo ? v : `<small>aguardando ${nv(TB.vendedores - TB.lidos)} de ${nv(TB.vendedores)} vendedores</small>`;   // incompleto = nenhum numero (Vitorio, 26/10/2026)
   const pendHtml = pend > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--muted);margin-top:2px;letter-spacing:-0.2px">+ ${brl(pend)} pendente</div>` : '';
   $('tot').innerHTML = [['Faturado no mês', `${brl(fat)} <small>${mF ? pc(fat / mF * 100) : ''}</small>${pendHtml}`], [METAS ? 'Meta do mês (CEVEN)' : 'Meta (soma)', brl(mF) + fotoMeta()], ['Positivados no mês', `${nv(pos)} <small>de ${nv(mP)} · ${mP ? pc(pos / mP * 100) : ''}</small>`],
     ['Digitado hoje', brl(RESUMO_OF && RESUMO_OF.TODAS ? RESUMO_OF.TODAS.digitado : s(x => x.dig))], ['Visitas feitas / programadas (CEVEN)', ate(TB && nv(TB.feitas) + ' / ' + nv(TB.programadas))], ['Zerados · Pênaltis ativos', ate(TB && nv(TB.zerados)) + ' · ' + nv(s(x => x.pen))]].map(([l, v]) => `<div><span>${l}</span><b class="mono">${v}</b></div>`).join('');
@@ -1467,7 +1467,7 @@ function renderFilial(x) {
     <div class="kpi"><span>Faturado no mês</span><b class="mono">${brl(x.fat)}</b><small>${pc(pctF)} de ${brl(x.metaFat)}</small>${x.pendente > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--mut);margin-top:2px">+ ${brl(x.pendente)} pendente</div>` : ""}</div>
     <div class="kpi"><span>Positivados no mês</span><b class="mono">${nv(x.realCli)}</b><small>${pc(pctP)} de ${nv(x.metaPos)}</small></div>
     <div class="kpi"><span>Digitado hoje</span><b class="mono">${brl(RESUMO_OF && RESUMO_OF[x.sig] ? RESUMO_OF[x.sig].digitado : x.dig)}</b><small>${nv(x.pos)} positivações</small></div>
-    <div class="kpi"><span>Visitas hoje (CEVEN)</span><b class="mono">${x.totCompleto ? nv(x.feitasCeven) + ' / ' + nv(x.rotaCeven) : (x.rotaCeven == null ? 'sem dado' : 'aguardando')}</b><small>${x.totCompleto ? x.nZer + ' zerados · ' : (x.rotaCeven == null ? '' : 'faltam ' + (x.totVend - x.totLidos) + ' vendedor(es) · ')}${x.pen} pênaltis</small></div></div>
+    <div class="kpi"><span>Visitas hoje (CEVEN)</span><b class="mono">${x.totCompleto ? nv(x.feitasCeven) + ' / ' + nv(x.rotaCeven) : (x.rotaCeven == null ? 'carregando' : 'aguardando')}</b><small>${x.totCompleto ? x.nZer + ' zerados · ' : (x.rotaCeven == null ? '' : 'faltam ' + (x.totVend - x.totLidos) + ' vendedor(es) · ')}${x.pen} pênaltis</small></div></div>
    <div class="subtab">
     ${sub === 0 ? `<h2 style="margin:6px 0 2px"><span>Resumo da filial</span><b>1/3</b></h2>${gruposHtml ? `<div style="margin-bottom:6px">${gruposHtml}</div>` : ''}
       <div class="grid4">
@@ -2073,7 +2073,7 @@ async function carregaResumoOficial() { const d = await j('/api/mapa-executivo-l
 setInterval(carregaResumoOficial, 60000); carregaResumoOficial();
 var TOTAIS = null; // /api/totais-dia: visitas programadas/feitas e zerados, o MESMO numero em toda tela e no WhatsApp (26/10/2026)
 var TOTAIS_V = null;
-async function carregaTotais() { const d = await j('/api/totais-dia', 20000); if (d && d.brasil) { TOTAIS = d; TOTAIS_V = new Map((d.vendedores || []).map(v => [v.filial + '|' + v.rca, v])); } }
+async function carregaTotais() { const d = await j('/api/totais-dia', 20000); if (d && d.brasil) { TOTAIS = d; TOTAIS_V = new Map((d.vendedores || []).map(v => [v.filial + '|' + v.rca, v])); try { render(); } catch (e) {} } }   // redesenha assim que o numero chega (26/10: ficava 'sem dado' ate a proxima volta)
 setInterval(carregaTotais, 60000); carregaTotais();
 
 // ATUALIZACAO AUTOMATICA DA MATRIZ (05/10/2026): a Matriz aberta direto (sem a casca /tv) nao recarregava quando publicavamos e ficava horas rodando codigo velho
