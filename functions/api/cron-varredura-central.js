@@ -295,6 +295,14 @@ export async function onRequestGet({ env, request }) {
   const urlParams = new URL(request.url).searchParams;
   const forcar = urlParams.has('forcar');
   const filialParam = (urlParams.get('filial') || '').toUpperCase().trim();
+  // ROTEIRO DO MES NA HORA (26/10/2026): ?rmes=ABC:1108,TCA:1028 le o roteiro do mes desses vendedores agora e grava na base (pergunta de supervisor esperando)
+  if (urlParams.get('rmes')) {
+    if (!(await garanteRoteiroMes(env))) return resp({ erro: 'coluna roteiro_mes_json indisponivel' }, 500);
+    const alvo = String(urlParams.get('rmes')).split(',').map((x) => x.split(':')).filter((x) => /^[A-Z]{3}$/i.test(x[0] || '') && /^\d+$/.test(x[1] || '')).slice(0, 10).map(([f, c]) => ({ filial: f.toUpperCase(), codigo: c }));
+    const out = {};
+    for (const rca of alvo) { const r = await getJson(urlRca('roteiro-mes', rca), 2); if (Array.isArray(r)) { await gravaLote(env, [upsertParcial(env, dataRef, rca, { roteiro_mes_json: JSON.stringify(r) })]); out[rca.filial + ':' + rca.codigo] = r.length; } else out[rca.filial + ':' + rca.codigo] = 'falhou'; }
+    return resp({ status: 'ROTEIRO_MES', data_ref: dataRef, lidos: out });
+  }
   // POPULACAO DA MADRUGADA (Vitorio, 26/10/2026: "vc nao roda toda a populacao de todos os dados na madrugada?"): a rota do dia (total_programado) ja existe cedo e nao muda.
   // Das 00:30 as 06:00 (seg-sab) roda a cada 2 min com o CEVEN livre e le TODOS os vendedores antes do expediente; antes so rodava a cada 30 min ate as 06h e a rota
   // so era lida no pico da manha, com 429: as 08h ainda faltavam vendedores. Durante o dia so rele quem teve pedido novo (camada quente).

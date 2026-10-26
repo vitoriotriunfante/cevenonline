@@ -48,7 +48,8 @@ export async function onRequestPost({ request, env }) {
   await tabelas(env.DB);
   const vs = variantes(cel);
   const c = await env.DB.prepare(`SELECT * FROM bot_contatos WHERE ativo = 1 AND celular IN (${vs.map(() => '?').join(',')}) LIMIT 1`).bind(...vs).first();
-  if (!seco) await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, msg_id) VALUES (?,?,?,?,?)').bind(cel, c ? c.nome : null, 'in', (audio ? '[áudio] ' : '') + (texto || '(não transcrito: ' + (audio && audio.erro) + ')').slice(0, 2000), d.key.id || null).run();
+  let meuId = null;
+  if (!seco) meuId = await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, msg_id) VALUES (?,?,?,?,?)').bind(cel, c ? c.nome : null, 'in', (audio ? '[áudio] ' : '') + (texto || '(não transcrito: ' + (audio && audio.erro) + ')').slice(0, 2000), d.key.id || null).run().then((r) => r && r.meta && r.meta.last_row_id).catch(() => null);
   if (audio && !texto) {
     if (!c) return new Response('ok');
     const msg = audio.erro === 'longo' ? `Opa, ${titulo(String(c.nome).split(' ')[0])}! Esse áudio tem ${audio.seg} s; eu consigo ouvir até 2 minutos. Me manda em pedaços menores ou por escrito? 🎙️` : `Não consegui ouvir esse áudio agora 🎙️ Pode mandar de novo ou escrever?`;
@@ -64,6 +65,15 @@ export async function onRequestPost({ request, env }) {
     const e0 = await enviar(env, destino, boas);
     await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, novo.nome, e0.ok ? 'out' : 'erro', boas).run();
     return new Response('ok');
+  }
+  // ESPERA A PESSOA TERMINAR (Vitorio, 26/10/2026: "as pessoas as vezes picam as mensagens... espere um pouco antes de sair respondendo tudo"): 9 s;
+  // se chegou outra mensagem dela nesse tempo, esta nao responde (a ultima responde tudo junto, com os pedados somados).
+  if (!seco && meuId) {
+    await new Promise((ok) => setTimeout(ok, 9000));
+    const depois = await env.DB.prepare("SELECT id FROM bot_msgs WHERE celular = ? AND direcao = 'in' AND id > ? LIMIT 1").bind(cel, meuId).first().catch(() => null);
+    if (depois) return new Response('ok');
+    const { results: pend } = await env.DB.prepare("SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'in' AND id <= ? AND id > COALESCE((SELECT MAX(id) FROM bot_msgs WHERE celular = ? AND direcao IN ('out','erro','figurinha')), 0) AND quando >= datetime('now', '-3 minutes') ORDER BY id").bind(cel, meuId, cel).all().catch(() => ({ results: [] }));
+    if (pend && pend.length > 1) texto = pend.map((p) => String(p.texto || '').replace(/^\[áudio\]\s*/, '')).join('. ');
   }
   const B = criaBase(u.origin, env);
   let resp = null, tipo = 'pronta';
