@@ -421,8 +421,14 @@ async function coletarAuditoriaCampo(token, dataRef, repsMap) {
   const porGerente = {};
   const subdivididasCampo = gerentesPorFilialDividida(repsMap);
 
+  // SO SUPERVISOR COM EQUIPE NO CEVEN DE HOJE (26/10/2026, Vitorio: "o Rosival e o fantasminha camarada?"): a matriz de compromissos traz TODO supervisor cadastrado
+  // na filial, inclusive quem nao tem mais vendedor (Rosival em TCV). Vale a arvore viva (supervisor de cada vendedor ativo). Filial sem arvore carregada: nao filtra.
+  const normSup = (x) => cleanName(String(x || '')).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/^CLT\s*-?\s*/i, '').toUpperCase().replace(/\s+/g, ' ').trim();
+  const supsComEquipe = {};
+  for (const v of Object.values(repsMap || {})) { if (!v || !v.filial || !v.supNome) continue; (supsComEquipe[String(v.filial).toUpperCase()] = supsComEquipe[String(v.filial).toUpperCase()] || new Set()).add(normSup(v.supNome)); }
   for (const [fKey, meta] of Object.entries(FILIAIS_MAP)) {
-    const sups = allComp.filter(s => s.filial === fKey && !rotuloSupervisaoFalsa(cleanName(s.nome)));
+    const temEquipe = supsComEquipe[meta.sigla];
+    const sups = allComp.filter(s => s.filial === fKey && !rotuloSupervisaoFalsa(cleanName(s.nome)) && (!temEquipe || temEquipe.has(normSup(s.nome))));
     let countComp = 0;
     let countRet = 0;
     const supervisores = [];
