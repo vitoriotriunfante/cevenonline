@@ -129,7 +129,9 @@ export async function respKpisPremiacao(B, E, t, pessoa) {
     const nf = (n) => String(n || '').replace(/\s+/g, ' ').replace(/\.+$/, '').trim().toUpperCase();
     const pasta = new Set((RV.metas || []).filter((x) => x[0] === String(vend[0].rca) && x[3] === 1 && x[4] > 0).map((x) => nf(x[2])));
     const M = (RV.tmmix || []).filter((x) => x[0] === String(vend[0].rca) && x[3] > 0 && (!pasta.size || pasta.has(nf(x[1])))).sort((a, b) => b[3] - a[3]);
-    L.push(`🧺 *Mix:* ${String(mixR[0][1]).replace('.', ',')} itens por cliente` + (M.length ? ` · meta por indústria: ${M.slice(0, 6).map((x) => `${nomeForn(x[1])} ${String(Math.round(x[3] * 100) / 100).replace('.', ',')}`).join(' · ')}` : ''));
+    // CLAREZA (Allison, 26/10/2026: '31,46 = 31 meta e 46 realizado? ou numero com casa decimal?'): cada numero com o que ele e, 1 casa, sem misturar
+    const n1 = (v) => (Math.round(v * 10) / 10).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    L.push([`🧺 *Mix realizado (todas as indústrias):* em média *${n1(mixR[0][1])} produtos diferentes por cliente*`, ...(M.length ? [`🎯 *Meta de mix por indústria da pasta* (produtos diferentes por cliente, em cada indústria):`, ...M.slice(0, 8).map((x) => `   • ${nomeForn(x[1])}: meta ${n1(x[3])}`), '_O realizado por indústria não vem na apuração da Premiação; o número acima é o mix geral do vendedor._'] : [])].join('\n'));
   } else if (mixR.length) L.push(`🧺 *Mix (itens por cliente):* ${mixR.sort((a, b) => b[1] - a[1]).slice(0, 8).map(([v, m]) => `${nome2(v.nome)} ${String(m).replace('.', ',')}`).join(' · ')}`, '_A meta de mix na Premiação é por indústria e por vendedor (média dos 3 últimos meses + 5%); peça "meta de mix do vendedor 59" para ver a de cada um._');
   // recorrencia (varejo): carteira do mes com a tag RECORRENCIA
   const VR = vend.filter((v) => !ehAS(v) && Array.isArray(v.roteiroMes) && v.roteiroMes.length);

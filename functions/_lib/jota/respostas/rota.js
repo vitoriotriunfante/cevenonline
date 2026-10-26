@@ -107,7 +107,11 @@ export async function respPositivacao(B, E) {
     : [...agrupa(E.vend, (v) => E.nacional ? v.filial : supChave(v, false))].filter(([k]) => supReal(k)).sort((a, b) => (b[1].pos / (b[1].metaPos || 1)) - (a[1].pos / (a[1].metaPos || 1)));
   return [`👥 *Positivação — ${E.nome}* (clientes com faturamento no mês)`, `*${N(x.pos)} de ${N(x.metaPos)}* (${P(x.pos, x.metaPos)}) · faltam ${N(Math.max(0, x.metaPos - x.pos))} → ${N(Math.ceil(Math.max(0, x.metaPos - x.pos) / Math.max(dn, 1)))} por dia útil`, '',
     ...G.map(([k, y]) => `• ${E.nacional || porVend ? k : nome2(k)}: ${N(y.pos)} de ${N(y.metaPos)} (${P(y.pos, y.metaPos)}) · faltam ${N(Math.max(0, y.metaPos - y.pos))}`), '', SUGESTAO + (G.length ? `o mais atrás é ${E.nacional || porVend ? G[G.length - 1][0] : nome2(G[G.length - 1][0])}.` : 'sem meta de positivação cadastrada.'),
-    '_Total = oficial da filial (igual à TV); a lista soma os vendedores mostrados._'].join('\n');
+    E.nacional
+      // BRASIL (Vitorio, 26/10/2026): deixar claro por que a soma passa da meta do grupo (27.000 PDVs) e o que nao entra
+      ? '⚠️ _Atenção: esta é a *soma do CEVEN* (vendedor a vendedor). Ela fica *maior que a meta do grupo de 27.000 PDVs*, porque há filiais com mais de uma pasta: o mesmo cliente comprado por duas pastas conta duas vezes. Também *não entram* os PDVs com pedido ainda pendente de faturamento._'
+      : '_Total = oficial da filial (igual à TV); a lista soma os vendedores mostrados._',
+    E.nacional ? '❓ _Quer aberto por *supervisor* de alguma filial? É só pedir, ex.: "positivação TPH por supervisor"._' : !E.supervisor ? '❓ _Quer aberto por *vendedor* de algum supervisor? Ex.: "positivação do supervisor Nome"._' : ''].filter((x) => x !== '').join('\n');
 }
 export function respDevolucao(E, t = '') {
   // DEVOLUCAO DE HOJE (26/10/2026): notas com data de hoje, por filial/supervisor e vendedor
