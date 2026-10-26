@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-26 14:40 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-26 14:47 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (33)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -21,7 +21,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `analises/gerar_mix_gap_real.js` | GitHub Actions (datalake 03:00) | (monta a URL dinamicamente) |
 | `analises/gerar_dados_mix.js` | GitHub Actions (workflow) | /api/rca/roteiro-mes |
 | `pipeline/ceven_header.js` | GitHub Actions (workflow) | (monta a URL dinamicamente) |
-| `pipeline/ceven_unified_engine.js` | GitHub Actions (workflow) | /api/admin/login, /api/admin/ret/periodo, /api/admin/supervisores/matriz-compromissos, /api/admin/supervisores/matriz-ret, /api/filiais//{id}/representante//{id}, /api/rca/dashboard, /api/rca/devolucoes, /api/rca/produtividade, /api/rca/roteiro-hoje |
+| `pipeline/ceven_unified_engine.js` | GitHub Actions (workflow) | /api/admin/login, /api/filiais//{id}/representante//{id}, /api/rca/dashboard, /api/rca/devolucoes, /api/rca/produtividade, /api/rca/roteiro-hoje |
 | `scripts/atualizar_arvore_viva_11_filiais.js` | GitHub Actions (workflow) | /api/gerente-auth/login, /api/gerente/supervisores, /api/gerente/tabelas-cascata |
 | `scripts/coletar_plus_lideranca.js` | GitHub Actions (workflow) | /api/admin/login, /api/admin/supervisores//{id} |
 | `functions/_lib/arvore_ceven.js` | site (Cloudflare) | /api/admin/filiais/hierarquia, /api/filiais/${String, /api/filiais//{id}/representante//{id}, /api/gerente-auth/login, /api/gerente/tabelas-cascata |

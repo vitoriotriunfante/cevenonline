@@ -62,11 +62,12 @@ async function semCache({ request, env }) {
             const scoreMedio = Math.round(scores.reduce((a, b) => a + b, 0) / (scores.length || 1));
             retDetalhe = {
               pdvs: d0.visitas.length,
-              primeiroCheckin: d0.overview?.primeiroCheckin ? d0.overview.primeiroCheckin.slice(11, 16) : null,
-              ultimoCheckout: d0.overview?.ultimoCheckout ? d0.overview.ultimoCheckout.slice(11, 16) : null,
+              primeiroCheckin: d0.overview?.primeiroCheckin ? R.relogioSP(new Date(d0.overview.primeiroCheckin)).hm : null,   // 26/10/2026: era slice do texto UTC (08:35 virava 11:35)
+              ultimoCheckout: d0.overview?.ultimoCheckout ? R.relogioSP(new Date(d0.overview.ultimoCheckout)).hm : null,
               rca: d0.visitas[0]?.rca_name ? limpa(d0.visitas[0].rca_name) : null,
               ultimoCliente: d0.visitas[d0.visitas.length - 1]?.client_name || null,
               scoreMedio,
+              nFotos: fotos.length,   // total de fotos (o WhatsApp mostra o numero; 26/10/2026)
               fotos: fotos.slice(0, 6) // Até 6 fotos da rota
             };
           }

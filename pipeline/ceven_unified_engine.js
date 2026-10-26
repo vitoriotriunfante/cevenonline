@@ -406,65 +406,32 @@ function textoGestaoCampo(sigla, gerente, dataRef, supervisores) {
 }
 
 async function coletarAuditoriaCampo(token, dataRef, repsMap) {
-  console.log(`📡 Coletando auditoria de campo para ${dataRef}...`);
-  const headers = { Authorization: 'Bearer ' + token };
-
-  const [compRes, retRes] = await Promise.all([
-    axios.get(`${CEVEN_BASE}/api/admin/supervisores/matriz-compromissos?dataInicio=${dataRef}&dataFim=${dataRef}`, { headers }),
-    axios.get(`${CEVEN_BASE}/api/admin/supervisores/matriz-ret?dataInicio=${dataRef}&dataFim=${dataRef}`, { headers })
-  ]);
-
-  const allComp = compRes.data.supervisores || [];
-  const allRet = retRes.data.supervisores || [];
-
+  // BASE UNICA (26/10/2026, Vitorio: "o Rosival entrou pq vc ate hoje nao fez o que te pedi... usar a base atualizada diariamente"): antes este ciclo ia AO VIVO na
+  // matriz de compromissos do CEVEN, que lista todo supervisor cadastrado (inclusive sem equipe: Rosival em TCV). Agora le /api/tv-supervisores = a mesma base da TV:
+  // compromissos/RET gravados pelo coletor + so supervisor com vendedor na arvore do CEVEN atualizada todo dia. Nao chama o CEVEN daqui.
+  console.log(`📡 Coletando auditoria de campo da BASE para ${dataRef}...`);
+  const BASE_SITE_SUP = process.env.CEVEN_FONTE_BASE_URL || 'https://ceven-cftv-matrix.pages.dev';
   const resultadoPorFilial = {};
   const porGerente = {};
   const subdivididasCampo = gerentesPorFilialDividida(repsMap);
 
   for (const [fKey, meta] of Object.entries(FILIAIS_MAP)) {
-    const sups = allComp.filter(s => s.filial === fKey && !rotuloSupervisaoFalsa(cleanName(s.nome)));
+    let base = null;
+    try { base = (await axios.get(`${BASE_SITE_SUP}/api/tv-supervisores?filial=${meta.sigla}&fresco=1`, { timeout: 30000 })).data; } catch (e) { base = null; }
+    if (!base || !Array.isArray(base.supervisores) || base.data !== dataRef) { FALHAS_COLETA++; continue; }   // sem base do dia: nada sai (ateCompletar tenta de novo)
+    const sups = base.supervisores.filter(s => !rotuloSupervisaoFalsa(cleanName(s.nome)));
     let countComp = 0;
     let countRet = 0;
     const supervisores = [];
-
     for (const s of sups) {
-      const fezComp = (s.porDia && s.porDia[0]) || (s.dias && s.dias[0]) ? true : false;
-      const sRet = allRet.find(r => r.id === s.id || r.nome === s.nome);
-      const fezRet = (sRet && sRet.porDia && sRet.porDia[0]) || (sRet && sRet.dias && sRet.dias[0]) ? true : false;
-
-      if (fezComp) countComp++;
-      if (fezRet) countRet++;
-
-      let retDetalhe = null;
-      if (fezRet) {
-        try {
-          const detRes = await axios.get(`${CEVEN_BASE}/api/admin/ret/periodo?filial=${fKey}&supervisorName=${encodeURIComponent(s.nome)}&dataInicio=${dataRef}&dataFim=${dataRef}`, { headers, timeout: 8000 });
-          const dia = detRes.data.dias?.[0];
-          if (dia && dia.visitas && dia.visitas.length > 0) {
-            let totalFotos = 0;
-            dia.visitas.forEach(v => {
-              totalFotos += (v.checklist?.photos?.length || (v.photo_url ? 1 : 0));
-            });
-            const rcaName = cleanName(dia.visitas[0]?.rca_name || '');
-            const scores = dia.visitas.map(v => v.ia_score || 0);
-            const scoreMedio = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
-
-            retDetalhe = {
-              pdvs: dia.visitas.length,
-              primeiroCheckin: toBrt(dia.overview?.primeiroCheckin || dia.visitas[0]?.checkin_time),
-              rca: rcaName,
-              fotos: totalFotos,
-              scoreMedio
-            };
-          }
-        } catch (e) { FALHAS_COLETA++; }
-      }
-
+      if (s.fez_compromisso) countComp++;
+      if (s.iniciou_ret) countRet++;
+      const d = s.retDetalhe;
       supervisores.push({
         nome: cleanName(s.nome),
-        fezComp,
-        fezRet,
-        retDetalhe
+        fezComp: !!s.fez_compromisso,
+        fezRet: !!s.iniciou_ret,
+        retDetalhe: d ? { pdvs: d.pdvs, primeiroCheckin: d.primeiroCheckin, rca: cleanName(d.rca || ''), fotos: d.nFotos != null ? d.nFotos : (d.fotos || []).length, scoreMedio: d.scoreMedio } : null
       });
     }
 
