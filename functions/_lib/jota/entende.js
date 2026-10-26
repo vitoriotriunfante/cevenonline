@@ -19,12 +19,14 @@ import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo,
 export async function respostaPronta(B, c, texto, anteriores) {
   const fm = sem(texto).match(FRX);
   const outra = (c.papel === 'gerente' || c.papel === 'supervisor' || c.papel === 'vendedor') && c.filial && fm && fm[1] !== c.filial ? `_Você vê só ${c.filial}${c.grupo ? ' · ' + titulo(c.grupo) : ''}; outras filiais são com a diretoria._\n\n` : '';
-  const r = await respostaInterna(B, c, texto, anteriores);
+  const r0 = await respostaInterna(B, c, texto, anteriores);
+  const bd = B.baseDe && B.baseDe();   /* base de hoje ainda vazia: avisa de que dia sao os numeros (nunca mostrar ontem como se fosse hoje) */
+  const r = r0 && bd ? (r0.fraca ? fraca(`_⏳ A base de hoje ainda não carregou (a coleta começa cedo). Números de ${bd.split('-').reverse().slice(0, 2).join('/')}._\n\n` + r0, r0.fraca, r0.termo) : `_⏳ A base de hoje ainda não carregou (a coleta começa cedo). Números de ${bd.split('-').reverse().slice(0, 2).join('/')}._\n\n` + r0) : r0;
   // pergunta composta (Vitorio, 25/10/2026: "nao tem positivacao aberta por vendedor? ranking? e o ranking da champions?" -> so a 1a parte foi respondida)
   const tc = sem(texto);
   if (r && /Champions Triunfante/.test(r) && /PENALTI|IMPEDIMENTO|CARTAO|LANCE/.test(tc)) { const l = await respostaInterna(B, c, /IMPEDIMENTO/.test(tc) ? 'impedimentos' : /CARTAO/.test(tc) ? 'cartoes' : 'penaltis', anteriores); if (l) return outra + r + '\n\n' + l; }
   if (r && /CHAMPION|CHMAPION|CHAMPIOS|CAMPIONS|CHAMPI|\bLIGA\b/.test(tc) && !/Champions Triunfante|Liga AS/.test(r) && /\bE (O|A)\b|\?.*\?|\bTAMBEM\b/.test(tc)) { const l = await respostaInterna(B, c, 'liga', anteriores); if (l) return outra + r + '\n\n' + l; }
-  return r && (r.fraca ? fraca(outra + r) : outra + r);
+  return r && (r.fraca ? fraca(outra + r, r.fraca, r.termo) : outra + r);
 }
 export async function respostaInterna(B, c, texto, anteriores) {
   const t = sem(texto);
@@ -48,7 +50,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/HISTORICO DIARIO/.test(t)) return SEM_HISTORICO;
   if (/HORARIOS? DAS? ATUALIZA|QUANDO (VOCE|VC) ATUALIZA|DE QUANTO EM QUANTO/.test(t)) return '⏱️ *Atualizações:* a base do CEVEN é lida a cada 2 min (06h–21h, seg–sáb; fora disso a cada 30 min). Lances da Liga a cada 5 min. Vendas item a item: toda madrugada (até ontem). Relatórios do WhatsApp: 07:45, 10:00, 11:30, 14:30, 17:00 e 18:30.';
   if (/\bTAGS?\b|FALTA FOCO|COMBO|CHAMP KITEKAT|SEM COMPRAS P11|VOLTA COMIGO|CAMPANHA/.test(t) && !/RECORRENCIA/.test(t)) return 'As *tags de campanha* (FALTA FOCO MARS, COMBO, SEM COMPRAS P11…) eu só enxergo nos clientes da *rota de hoje*. A positivação por tag no mês ainda não está na base (está na lista da reunião de metas). Para a RECORRÊNCIA eu tenho: peça "recorrência".';
-  const ehMP = /MARCAS? PROPRIAS?|ZIPOCA|CALIRA|MITBIT|BELLARONE|SKIVE/.test(t);
+  const ehMP = /MARCAS? PROPRIAS?|NOSSAS MARCAS|ZIPOCA|CALIRA|MITBIT|BELLARONE|SKIVE/.test(t);
   if (/RELATORIO|BOLETIM|DISPARO|MENSAGEM DAS|COMO FECHOU|\bONTEM\b/.test(t) && !/COMPR|PRODUTO|CLIENTE/.test(t) || (ehMP && /RELATORIO|10[:H ]?00|\b10H\b/.test(t))) return respRelatorio(B, c, t);
   if (/GESTAO DE CAMPO|SUPERVISORES EM CAMPO|EM ROTA \(RET\)|RANKING DE ATIVIDADE/.test(t) || (/COMPROMISSO|\bRET\b/.test(t) && /POR FILIAL|RANKING|PERCENT|%/.test(t))) return respGestaoCampo(B, await carregaEscopo(B, esc));
   if (/CORTE|CORTAD|BLOQUEAD|RETID|PERDAS|OPERACAO|RANKING DE VENDAS|RANKING FINAL|FECHAMENTO DO DIA|DEVOLUC\w* (DE |ENTRADAS? )?HOJE|ENTRADAS? HOJE/.test(t)) return respOperacao(B, await carregaEscopo(B, esc), t);
@@ -70,7 +72,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/MOTIVO|JUSTIFICATIV|DESCULPA|POR ?QUE .{0,30}NAO .{0,15}COMPR|POR QUE (OS )?CLIENTES? NAO (COMPRA|COMPRAM)|PORQUE (OS )?CLIENTES? NAO COMPRA|NAO VENDA/.test(t) && !/DEVOLU/.test(t) && (/\bMES\b|SEMANA|PASSAD|NO MES|DO MES|SETEMBRO|OUTUBRO/.test(t) || !pessoa)) return respJustificativas(B, E, t, pessoa);
   if (pessoa && pessoa.tipo === 'vend' && !/COMPR|PRODUTO|SKU/.test(t) && /QUA(L|IS) (OS )?CLIENTES?|QUAIS\??$|JUSTIFICATIV|MOTIVO|NAO VENDEU|SEM VENDA|VISITOU|VISITAD|CHECK|ONDE (ELA|ELE) (FOI|ESTA)|POSITIVOU|VENDEU (PARA|PRA)/.test(t)) return respClientesDia(pessoa.alvo, t);
   // PERIODOS (25/10/2026): comparacao com o mes passado, dias sem pedido, clientes sem comprar
-  if (/CLIENTE/.test(t) && /SEM COMPRAR|NAO COMPRA|PARADOS?|HA MAIS DE|DIAS SEM/.test(t)) return respClientesSemComprar(B, E, t);
+  if (/CLIENTE/.test(t) && /SEM COMPRAR|NAO COMPRA|\bN COMPRA|PARADOS?|HA MAIS DE|DIAS SEM/.test(t)) return respClientesSemComprar(B, E, t);
   if (/DIAS (SEGUIDOS )?SEM (VENDER|PEDIDO|VENDA)|HA \d+ DIAS SEM|HA MAIS DE \d+ DIAS|\d+ DIAS SEM|SEM PEDIDO HA/.test(t)) return respDiasSemPedido(B, E, t);
   if (/MES PASSADO|MES ANTERIOR|SETEMBRO|AGOSTO|\bM-1\b|COMPARAD|EM RELACAO AO MES|CAIU|CRESCEU|EVOLUCAO|ESTE MES X|ESSE MES X/.test(t) && !/LIGA|CHAMPI|POSICAO|RANKING DA LIGA/.test(t) && !/SEMANA(L|IS)|POR SEMANA|SEMANA A SEMANA|DIA DA SEMANA|QUE DIA/.test(t) && !(t.match(new RegExp(FRX.source, 'g')) || []).slice(1).length) return respComparaMes(B, E, t, pessoa);
   // METAS DAS INDUSTRIAS = Premiacao RV do CEVEN (Vitorio, 25/10/2026)
@@ -81,7 +83,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/COMPRAVA|PAROU|PARARAM|DEIXOU DE COMPRAR|DEIXARAM DE COMPRAR|RECUPERACAO D/.test(t)) { const r = await respRecuperacao(B, E, t); if (r) return r; }
   if (/PRODUTOS? (QUE )?MAIS VEND|TOP \d* ?PRODUTOS|\d+ PRODUTOS|QUAL PRODUTO MAIS|MAIS VENDIDOS/.test(t)) return respTopProdutos(B, E, t);
   if (/CLIENTE|LOJA/.test(t) && /COMPROU|COMPRA|ULTIMO PEDIDO|SEM COMPRAR|OFERECER|PRODUTOS D/.test(t) && !/CLIENTES QUE|QUAIS (OS )?CLIENTES|QUEM/.test(t)) { const r = await respCliente(B, E, t); if (r) return r; if (/OFERECER|ULTIMO PEDIDO|PRODUTOS D/.test(t)) return `🔎 Não achei esse cliente em ${E.nome} (vendas do mês). Confira o nome ou mande o código do cliente (ex.: #212704).`; }
-  if (/COMPRA|COMPROU|COMPRARAM|VENDEU DE |VENDERAM DE |VENDEU (O|A) |VENDE DE |POSITIVACAO D[OEA]S? |(VENDE MAIS|MAIS VENDE)(?!U)(?!.*(SUPERVISOR|VENDEDOR|FILIAL|GERENTE))|EM QUANTOS CLIENTES|CLIENTES COMPRARAM|PDVS COMPRARAM|SEMANA(L|IS)|MENSA(L|IS)|DIA DA SEMANA|QUAL DIA|QUE DIA|MELHOR DIA|MES A MES|POR SEMANA|POSITIVAND|(SEGUNDA|TERCA|QUARTA|QUINTA|SEXTA|SABADO) OU /.test(t) || /\b(MONDELEZ|MARS|ARCOR|BAGLEY|CONDOR|FERRERO|NESTLE|HERSHEY|FINI|DORI|PEPSICO|KELLOGG|LACTA|DIVERSAO)\b/.test(t)) {
+  if (/COMPRA|COMPROU|COMPRARAM|VENDEU DE |VENDERAM DE |VENDEU (O|A) |VENDE DE |POSITIVACAO D[OEA]S? |(VENDE MAIS|MAIS VENDE)(?!U)(?!.*(SUPERVISOR|VENDEDOR|FILIAL|GERENTE))|EM QUANTOS CLIENTES|CLIENTES COMPRARAM|PDVS COMPRARAM|SEMANA(L|IS)|MENSA(L|IS)|DIA DA SEMANA|QUAL DIA|QUE DIA|MELHOR DIA|MES A MES|POR SEMANA|SEMANA A SEMANA|POSITIVAND|(SEGUNDA|TERCA|QUARTA|QUINTA|SEXTA|SABADO) OU /.test(t) || /\b(MONDELEZ|MARS|ARCOR|BAGLEY|CONDOR|FERRERO|NESTLE|HERSHEY|FINI|DORI|PEPSICO|KELLOGG|LACTA|DIVERSAO)\b/.test(t)) {
     const ri = await respIndustria(B, E, t, pessoa); if (ri && ri !== SEM_VENDAS) return ri;
     const rp = await respProduto(B, E, t, pessoa);
     if (rp === SEM_VENDAS || (!rp && !ri)) { const m = await respMix(B, E, t); if (m && !/^Não achei|^🧺 \*\+MIX —/.test(m)) return m; }   /* sem vendas item a item ainda: reserva = +MIX */

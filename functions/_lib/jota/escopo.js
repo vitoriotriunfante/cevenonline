@@ -75,7 +75,7 @@ export function achaPessoa(E, t) {
     if (bom.length) return { tipo: 'vend', alvo: bom[0][0], empate: [bom[0][0]] };
   }
   const querSup = /SUPERVIS|EQUIPE|TIME/.test(t), querVend = /VENDEDOR|\bRCA\b/.test(t);
-  const sups = [...new Map(E.vend.filter((v) => v.supervisor).map((v) => [v.filial + '|' + v.supervisor, { nome: v.supervisor, filial: v.filial }])).values()];
+  const sups = [...new Map(E.vend.filter((v) => v.supervisor && supReal(v.supervisor)).map((v) => [v.filial + '|' + v.supervisor, { nome: v.supervisor, filial: v.filial }])).values()];
   const bs = sups.map((s) => [s, score(s.nome)]).filter((x) => x[1]).sort((a, b) => b[1] - a[1]);
   const bv = E.vend.map((v) => [v, score(v.nome)]).filter((x) => x[1]).sort((a, b) => b[1] - a[1]);
   if (bs.length && !querVend && (querSup || !bv.length || bs[0][1] >= bv[0][1])) return { tipo: 'sup', alvo: bs[0][0], empate: bs.filter((x) => x[1] === bs[0][1]).map((x) => x[0]) };

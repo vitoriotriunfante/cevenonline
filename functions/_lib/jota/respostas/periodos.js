@@ -34,6 +34,8 @@ export async function respComparaMes(B, E, t, pessoa) {
   const Pr = I ? null : achaProdutos(t, { prod: prodAll }, E);
   const filtroP = I ? (l) => I.includes((prodAll[l.p] || [])[1]) : Pr ? (l) => Pr.cods.has(l.p) : () => true;
   const rotulo = I ? ' · ' + nomeIndustria(I) : Pr ? ' · ' + Pr.termo : '';
+  // escopo sem nenhuma venda item a item neste mes (equipe interna, vendedor parado): dizer, nunca montar "R$ 0 x undefined" (26/10/2026)
+  if (!A.linhas.length) return `📅 *${sobre}*: nenhuma venda item a item neste mês até agora — não há o que comparar com o mês passado.`;
   const ateA = A.linhas.reduce((m, l) => Math.max(m, l.d), 0), diaCorte = ateA % 100;
   const mesA = Math.floor(ateA / 100) % 100, mesZ = mesA === 1 ? 12 : mesA - 1;
   const LA = A.linhas.filter((l) => filtro(l) && filtroP(l));

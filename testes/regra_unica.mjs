@@ -39,7 +39,10 @@ let lidos = 0;
 for (const p of PASTAS) for (const f of arquivos(p)) {
   if (EXCECOES.has(f)) continue;
   lidos++;
-  readFileSync(join(RAIZ, f), 'utf8').split('\n').forEach((l, i) => {
+  const conteudo = readFileSync(join(RAIZ, f), 'utf8');
+  // caractere invisivel (backspace) no lugar de \b numa regex: a regra para de funcionar sem dar erro (aconteceu 3x em 25/10/2026)
+  if (conteudo.includes('\x08')) falhas.push(`${f}: caractere invisível (backspace) no código — provavelmente um \\b de regex estragado`);
+  conteudo.split('\n').forEach((l, i) => {
     if (ehComentario(l)) return;
     for (const [nome, rx] of REGRAS) if (rx.test(l)) falhas.push(`${f}:${i + 1}  ${nome}\n      ${l.trim().replace(/[0-9a-f]{64}/g, '<chave>').slice(0, 160)}`);
   });

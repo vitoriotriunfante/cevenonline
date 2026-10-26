@@ -17,7 +17,16 @@ export function criaBase(origin, env) {
     env,
     saude: () => memo('saude', () => api('/api/saude')),
     mostra: () => memo('mostra', () => api('/api/tv-mostra')),
-    snap: (f) => memo('snap' + f, () => api('/api/central-snapshot?filial=' + f + '&dia=' + hojeSP())),
+    // VIRADA DO DIA (26/10/2026, 01h): a base de hoje so enche com a primeira coleta; ate la vinha VAZIA e toda pergunta de equipe saia 'R$ 0'
+    // com texto quebrado. Agora: base de hoje vazia -> usa o ULTIMO DIA COM DADO REAL (ate 4 dias atras) e marca cache.baseDe para o aviso.
+    snap: (f) => memo('snap' + f, async () => {
+      const h = hojeSP(); const s = await api('/api/central-snapshot?filial=' + f + '&dia=' + h);
+      if (s && s.rcas && Object.keys(s.rcas).length) return s;
+      for (let k = 1; k <= 4; k++) { const d = new Date(Date.parse(h + 'T12:00:00Z') - k * 864e5).toISOString().slice(0, 10); const o = await api('/api/central-snapshot?filial=' + f + '&dia=' + d);
+        if (o && o.rcas && Object.keys(o.rcas).length) { cache.baseDe = d; return o; } }
+      return s;
+    }),
+    baseDe: () => cache.baseDe || null,
     lances: () => memo('lances', () => api('/api/brasileirao-lances?dia=' + hojeSP())),
     sups: (f) => memo('sup' + f, () => api('/api/tv-supervisores?filial=' + f)),
     // Liga e +MIX: datasets gerados no GitHub (a copia do site pode estar velha); mesma ordem que as telas usam (26/10/2026)

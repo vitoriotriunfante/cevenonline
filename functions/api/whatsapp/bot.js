@@ -21,6 +21,7 @@
 import { enviar, sem, so, tabelas, titulo, variantes } from '../../_lib/jota/base.js';
 import { respondeIA, respostaPronta } from '../../_lib/jota/entende.js';
 import { entendePorIA } from '../../_lib/jota/entende_ia.js';
+import { aceitaTraducao } from '../../_lib/jota/base.js';
 import { criaBase } from '../../_lib/jota/fontes.js';
 import { RECLAMACAO, cadastraPorCodigo, ehSaudacao, enviarFigurinha, figurinhaPara, humaniza, primeiroNome, respSaudacao, transcreveAudio, varia } from '../../_lib/jota/persona.js';
 import { respAjuda } from '../../_lib/jota/respostas/liga_mix.js';
@@ -97,7 +98,7 @@ export async function onRequestPost({ request, env }) {
   // ENTENDER COM IA (25/10/2026): a IA traduz a pergunta para um formato que o Jota ja responde; o numero sai do codigo, nunca da IA
   if ((!resp || resp.fraca) && !(seco && u.searchParams.get('sem_ia') === '1')) {
     const ent = await entendePorIA(env, c, texto);
-    if (ent) { try { const r2 = await respostaPronta(B, c, ent.pergunta, anteriores); if (r2 && !r2.fraca) { resp = `_Entendi: "${ent.pergunta}"_
+    if (ent) { try { const r2 = await respostaPronta(B, c, ent.pergunta, anteriores); if (aceitaTraducao(resp, r2, ent.pergunta, ent.ficha)) { resp = `_Entendi: "${ent.pergunta}"_
 
 ` + r2; tipo = 'entendida_ia'; } } catch (e) {} }
   }
@@ -122,4 +123,4 @@ export async function onRequestPost({ request, env }) {
 }
 export async function onRequestGet() { return new Response('JOTA (+MIX): use POST (webhook da Evolution)', { status: 200 }); }
 // exportado so para o simulador de perguntas (testes/t_jota.mjs)
-export const _teste = { respostaPronta, criaBase, respClientesDia };
+export const _teste = { respostaPronta, criaBase, respClientesDia, aceitaTraducao };

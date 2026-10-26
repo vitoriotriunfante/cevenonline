@@ -51,7 +51,7 @@ for (const [i, [perfil, q, re]] of P.entries()) {
   const B = _teste.criaBase(ORIGIN, {});
   let a = null; try { a = await _teste.respostaPronta(B, perfil, q, []); } catch (e) {}
   let d = a, via = 'palavras';
-  if ((!d || d.fraca) && fichas[i]) { try { const r2 = await _teste.respostaPronta(_teste.criaBase(ORIGIN, {}), perfil, fichas[i].pergunta, []); if (r2 && !r2.fraca) { d = r2; via = 'IA → "' + fichas[i].pergunta + '"'; } } catch (e) {} }
+  if ((!d || d.fraca) && fichas[i]) { try { const r2 = await _teste.respostaPronta(_teste.criaBase(ORIGIN, {}), perfil, fichas[i].pergunta, []); if (_teste.aceitaTraducao(a, r2, fichas[i].pergunta, fichas[i].ficha)) { d = r2; via = 'IA → "' + fichas[i].pergunta + '"'; } } catch (e) {} }
   if (a != null) a = String(a); if (d != null) d = String(d);
   const st = (r) => (r == null ? 'nada' : re.test(r) ? 'ok' : 'errada');
   R.antes[st(a)]++; R.depois[st(d)]++;

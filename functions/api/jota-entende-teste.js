@@ -9,6 +9,7 @@ export async function onRequestPost({ request, env }) {
   if (env.JOTA_TESTE !== '1') return new Response('nao encontrado', { status: 404 });
   const lista = await request.json().catch(() => []);
   const out = [];
-  for (const x of Array.isArray(lista) ? lista.slice(0, 400) : []) out.push(await entendePorIA(env, x.perfil || { papel: 'diretoria' }, x.texto));
+  const L = Array.isArray(lista) ? lista.slice(0, 400) : [];
+  for (let i = 0; i < L.length; i += 8) out.push(...await Promise.all(L.slice(i, i + 8).map((x) => entendePorIA(env, x.perfil || { papel: 'diretoria' }, x.texto))));
   return new Response(JSON.stringify(out), { headers: { 'Content-Type': 'application/json' } });
 }

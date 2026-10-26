@@ -20,7 +20,13 @@ export const FRX = /\b(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\b/;
 export const VAREJO = new Set(R.CANAIS_VAREJO);
 // RESPOSTA FRACA (25/10/2026): resposta de 'quebra-galho' (resumo geral quando so a filial bateu, 'nao achei venda de X' com palavra solta).
 // O texto e o mesmo; a etiqueta faz o webhook perguntar primeiro a IA o que a pessoa quis dizer (functions/_lib/jota/entende_ia.js).
-export const fraca = (txt) => { if (txt == null) return txt; const s = new String(txt); s.fraca = true; return s; };
+export const fraca = (txt, tipo = 'coringa', termo = '') => { if (txt == null) return txt; const s = new String(txt); s.fraca = tipo; s.termo = termo; return s; };
+// a IA pode trocar uma resposta fraca? coringa: sim, se achou algo; 'nao achei X': so se a pergunta traduzida ainda fala de X (25/10/2026: 'positivacao de Hershey'
+// virava 'positivacao geral' e a resposta honesta 'nao achei Hershey' era trocada por outra coisa); sem resposta: aceita tambem um 'nao achei'.
+export const aceitaTraducao = (orig, nova, pergunta, ficha) => { if (!nova) return false; if (orig == null) return !nova.fraca || nova.fraca === 'naoachei'; if (orig.fraca === 'coringa') return true;
+  if (orig.fraca === 'naoachei') { if (nova.fraca) return false; const temItem = ficha && (ficha.produto || ficha.industria);
+    return !temItem || (!!orig.termo && sem(pergunta).includes(sem(orig.termo).split(' ')[0])); }   /* so recusa se a IA viu produto/industria e a traducao perdeu o nome */
+  return false; };
 export const SUGESTAO = '🎯 *Sugestão do Jota:* ';
 
 // celular brasileiro com e sem o 9: 5541987525605 <-> 554187525605

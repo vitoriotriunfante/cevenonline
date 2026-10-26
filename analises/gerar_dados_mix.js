@@ -33,10 +33,10 @@ const VAREJO = require('../public/regras.js').CANAIS_VAREJO; // regras unicas
 const ATV = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'atividade_por_cnpj.json'), 'utf8')); } catch (e) { return { nomes: {}, cnpj: {} }; } })();
 // TIPO DE CLIENTE: pelo arquivo (nome no cadastro de 12/09); cliente novo, que nao esta no arquivo, e classificado pelo nome que vem do CEVEN (22/10/2026: "o que e cliente sem cadastro?")
 const NOMECLI = new Map();
-const TIPOS_NOME = [['Farmácia', /FARMAC|DROGA|MEDICAMENT/], ['Padaria', /PANIFIC|PADARIA|CONFEITAR|PAO|PAES/], ['Posto / conveniência', /POSTO|COMBUST|CONVENIENC/],
-  ['Pet / agropecuária', /PET|RACO|AGROPEC|AVIARIO|VETERIN/], ['Bar / lanchonete / restaurante', /LANCHON|LANCHES|RESTAUR|BAR|CHURRASC|PIZZAR|HOTEL|CAFE|BEER|CHOPP|BEBIDAS/],
-  ['Supermercado', /SUPERMERC|SUPER|HIPER/], ['Mercado / mercearia', /MERCAD|MERCEAR|MINIMERC|EMPORIO|ARMAZEM|SACOLAO|HORTIFRUT|ACOUGUE|CARNES/],
-  ['Distribuidora / atacado', /DISTRIBU|ATACAD/], ['Utilidades / loja', /UTILIDAD|PAPELAR|PRESENTE|LOJA|BAZAR|EMBALAG|VAREJO/]];
+const TIPOS_NOME = [['Farmácia', /FARMAC|DROGA|MEDICAMENT/], ['Padaria', /PANIFIC|PADARIA|CONFEITAR|\bPAO\b|PAES/], ['Posto / conveniência', /\bPOSTO|COMBUST|CONVENIENC/],
+  ['Pet / agropecuária', /\bPET\b|RACO|AGROPEC|AVIARIO|VETERIN/], ['Bar / lanchonete / restaurante', /LANCHON|LANCHES|RESTAUR|\bBAR\b|CHURRASC|PIZZAR|HOTEL|CAFE|BEER|CHOPP|BEBIDAS/],
+  ['Supermercado', /SUPERMERC|\bSUPER\b|HIPER/], ['Mercado / mercearia', /MERCAD|MERCEAR|MINIMERC|EMPORIO|ARMAZEM|SACOLAO|HORTIFRUT|ACOUGUE|CARNES/],
+  ['Distribuidora / atacado', /DISTRIBU|ATACAD/], ['Utilidades / loja', /UTILIDAD|PAPELAR|PRESENTE|\bLOJA|BAZAR|EMBALAG|VAREJO/]];
 const atv = (cnpj) => { if (ATV.cnpj[cnpj]) return ATV.cnpj[cnpj]; const n = String(NOMECLI.get(cnpj) || '').toUpperCase(); if (!n) return 'Outros'; const t = TIPOS_NOME.find(([, r]) => r.test(n)); return t ? t[0] : 'Outros'; };
 const IND = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'catalogo_industrias.json'), 'utf8')).i || {}; } catch (e) { return {}; } })();
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
