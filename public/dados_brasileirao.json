@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-26T10:48:29.564860Z",
+  "gerado_em": "2026-10-26T11:03:41.052256Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -16,7 +16,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 29146,
+  "total_lances_auditados": 29148,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -113,9 +113,9 @@
       "vitorias": 0,
       "empates": 9,
       "derrotas": 0,
-      "gp": 5261,
-      "gc": 1631,
-      "sg": 3630,
+      "gp": 5269,
+      "gc": 1641,
+      "sg": 3628,
       "aprov": 33.3,
       "super_pedidos": 12,
       "inativos_resgatados": 73,
@@ -440,9 +440,9 @@
       "vitorias": 0,
       "empates": 9,
       "derrotas": 0,
-      "gp": 5261,
-      "gc": 1631,
-      "sg": 3630,
+      "gp": 5269,
+      "gc": 1641,
+      "sg": 3628,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -2847,9 +2847,9 @@
       "vitorias": 0,
       "empates": 7,
       "derrotas": 2,
-      "gp": 346,
-      "gc": 59,
-      "sg": 287,
+      "gp": 354,
+      "gc": 69,
+      "sg": 285,
       "aprov": 25.9,
       "forma": [
         "E",
@@ -5453,7 +5453,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 75,
+      "plus_lideranca": 80,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -5492,7 +5492,7 @@
           "ret": 0
         },
         "2026-10-26": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -8089,8 +8089,8 @@
       "pts_tabela": 20,
       "aprov": 74.1,
       "gp": 207,
-      "gc": 4,
-      "sg": 203,
+      "gc": 14,
+      "sg": 193,
       "super_pedidos": 0,
       "inativos_resgatados": 0,
       "forma": [
@@ -12795,6 +12795,45 @@
       "pos_filial_ant": 18
     },
     {
+      "rca": "238",
+      "nome": "AQUINELE ROBERTA DA SILVA",
+      "filial": "API",
+      "supervisor": "ALESSANDRO JUNIOR LOPES",
+      "gerente": "Marcelo",
+      "canal": "AS",
+      "jogos": 10,
+      "vitorias": 2,
+      "empates": 4,
+      "derrotas": 4,
+      "pts_tabela": 10,
+      "aprov": 33.3,
+      "gp": 108,
+      "gc": 0,
+      "sg": 108,
+      "super_pedidos": 2,
+      "inativos_resgatados": 0,
+      "forma": [
+        "D",
+        "E",
+        "V",
+        "E",
+        "D",
+        "E",
+        "D",
+        "D",
+        "V",
+        "E"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 30,
+      "pos_filial": 6,
+      "pos_brasil_ant": 36,
+      "pos_filial_ant": 7
+    },
+    {
       "rca": "210",
       "nome": "VITOR FELIPE DE ALMEIDA CARMO",
       "filial": "ABC",
@@ -12828,7 +12867,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 30,
+      "pos_brasil": 31,
       "pos_filial": 4,
       "pos_brasil_ant": 30,
       "pos_filial_ant": 4
@@ -12945,7 +12984,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 31,
+      "pos_brasil": 32,
       "pos_filial": 5,
       "pos_brasil_ant": 31,
       "pos_filial_ant": 5
@@ -13101,7 +13140,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 32,
+      "pos_brasil": 33,
       "pos_filial": 4,
       "pos_brasil_ant": 32,
       "pos_filial_ant": 4
@@ -13140,7 +13179,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 33,
+      "pos_brasil": 34,
       "pos_filial": 6,
       "pos_brasil_ant": 33,
       "pos_filial_ant": 6
@@ -13179,8 +13218,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 34,
-      "pos_filial": 6,
+      "pos_brasil": 35,
+      "pos_filial": 7,
       "pos_brasil_ant": 34,
       "pos_filial_ant": 6
     },
@@ -13257,49 +13296,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 35,
+      "pos_brasil": 36,
       "pos_filial": 3,
       "pos_brasil_ant": 35,
       "pos_filial_ant": 3
-    },
-    {
-      "rca": "238",
-      "nome": "AQUINELE ROBERTA DA SILVA",
-      "filial": "API",
-      "supervisor": "ALESSANDRO JUNIOR LOPES",
-      "gerente": "Marcelo",
-      "canal": "AS",
-      "jogos": 9,
-      "vitorias": 2,
-      "empates": 3,
-      "derrotas": 4,
-      "pts_tabela": 9,
-      "aprov": 33.3,
-      "gp": 100,
-      "gc": 0,
-      "sg": 100,
-      "super_pedidos": 2,
-      "inativos_resgatados": 0,
-      "forma": [
-        "D",
-        "E",
-        "V",
-        "E",
-        "D",
-        "E",
-        "D",
-        "D",
-        "V",
-        "J"
-      ],
-      "streak": 1,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 36,
-      "pos_filial": 7,
-      "pos_brasil_ant": 36,
-      "pos_filial_ant": 7
     },
     {
       "rca": "444",
@@ -24396,7 +24396,7 @@
         "supervisor": "ANDERSON FERNANDES CORREIA",
         "gerente": "Marcelo",
         "meta_mes": 357839,
-        "pct_hoje": 144.3,
+        "pct_hoje": 141.8,
         "fases": [
           {
             "n": 1,
@@ -25980,10 +25980,10 @@
           },
           {
             "n": 4,
-            "pts_lances": 0,
+            "pts_lances": -10,
             "pts_faseamento": 0,
             "pts_bonus": 0,
-            "score": 0,
+            "score": -10,
             "jogada": true,
             "resultado": "J",
             "pts_tabela": 0
@@ -26001,7 +26001,7 @@
           "J"
         ],
         "pontos": 165,
-        "pts_lances": 165,
+        "pts_lances": 155,
         "pts_faseamento": 0,
         "pts_bonus": 0,
         "pos_brasil": 12,
@@ -28986,7 +28986,7 @@
         "supervisor": "CRISTIANO RODRIGUES MACHADO",
         "gerente": "Saldanha",
         "meta_mes": 350000,
-        "pct_hoje": 41.5,
+        "pct_hoje": 41.4,
         "fases": [
           {
             "n": 1,
@@ -35595,6 +35595,141 @@
         "pos_filial_ant": 10
       },
       {
+        "rca": "1043",
+        "nome": "THIAGO GONCALVES LOPES",
+        "filial": "TPH",
+        "supervisor": "CRISTIAN EDUARDO RAFFAELLI",
+        "gerente": "Fábio",
+        "meta_mes": 170000,
+        "pct_hoje": 102.2,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-10-07",
+            "status": "nao_batida",
+            "pct": 14.7,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-10-14",
+            "status": "nao_batida",
+            "pct": 22.3,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-10-20",
+            "status": "batida",
+            "pct": 67.7,
+            "ganhou": 30
+          },
+          {
+            "n": 4,
+            "ate": 31,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-10-31",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "perdido",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "perdido",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "D",
+            "pts_tabela": 0
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 30,
+            "pts_bonus": 0,
+            "score": 30,
+            "jogada": true,
+            "resultado": "V",
+            "pts_tabela": 3
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "J",
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 2,
+        "vitorias": 1,
+        "empates": 0,
+        "derrotas": 1,
+        "pts_tabela": 3,
+        "aprov": 50.0,
+        "forma": [
+          "D",
+          "V",
+          "J"
+        ],
+        "pontos": 30,
+        "pts_lances": 0,
+        "pts_faseamento": 30,
+        "pts_bonus": 0,
+        "pos_brasil": 84,
+        "pos_filial": 17,
+        "pos_brasil_ant": 85,
+        "pos_filial_ant": 17
+      },
+      {
         "rca": "208",
         "nome": "ALEXSANDRO APARECIDO DE SALES",
         "filial": "ABC",
@@ -35724,145 +35859,10 @@
         "pts_lances": 0,
         "pts_faseamento": 30,
         "pts_bonus": 0,
-        "pos_brasil": 84,
+        "pos_brasil": 85,
         "pos_filial": 11,
         "pos_brasil_ant": 84,
         "pos_filial_ant": 11
-      },
-      {
-        "rca": "1043",
-        "nome": "THIAGO GONCALVES LOPES",
-        "filial": "TPH",
-        "supervisor": "CRISTIAN EDUARDO RAFFAELLI",
-        "gerente": "Fábio",
-        "meta_mes": 170000,
-        "pct_hoje": 72.2,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-10-07",
-            "status": "nao_batida",
-            "pct": 14.7,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-10-14",
-            "status": "nao_batida",
-            "pct": 22.3,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-10-20",
-            "status": "batida",
-            "pct": 67.7,
-            "ganhou": 30
-          },
-          {
-            "n": 4,
-            "ate": 31,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-10-31",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "perdido",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "perdido",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 2,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": true,
-            "resultado": "D",
-            "pts_tabela": 0
-          },
-          {
-            "n": 3,
-            "pts_lances": 0,
-            "pts_faseamento": 30,
-            "pts_bonus": 0,
-            "score": 30,
-            "jogada": true,
-            "resultado": "V",
-            "pts_tabela": 3
-          },
-          {
-            "n": 4,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": true,
-            "resultado": "J",
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 2,
-        "vitorias": 1,
-        "empates": 0,
-        "derrotas": 1,
-        "pts_tabela": 3,
-        "aprov": 50.0,
-        "forma": [
-          "D",
-          "V",
-          "J"
-        ],
-        "pontos": 30,
-        "pts_lances": 0,
-        "pts_faseamento": 30,
-        "pts_bonus": 0,
-        "pos_brasil": 85,
-        "pos_filial": 17,
-        "pos_brasil_ant": 85,
-        "pos_filial_ant": 17
       },
       {
         "rca": "331",
@@ -37221,7 +37221,7 @@
         "supervisor": "AILTON LUIZ ARENDT JUNIOR",
         "gerente": "Fábio",
         "meta_mes": 363824,
-        "pct_hoje": 37.9,
+        "pct_hoje": 39,
         "fases": [
           {
             "n": 1,
@@ -42486,7 +42486,7 @@
         "supervisor": "ARILDO ZAGO",
         "gerente": "Marcelo",
         "meta_mes": 344125,
-        "pct_hoje": 33.3,
+        "pct_hoje": 35.1,
         "fases": [
           {
             "n": 1,
@@ -42756,7 +42756,7 @@
         "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
         "gerente": "Radke / Leandro",
         "meta_mes": 592000,
-        "pct_hoje": 47.4,
+        "pct_hoje": 55.5,
         "fases": [
           {
             "n": 1,
@@ -43140,7 +43140,7 @@
         "total_vendedores": 5,
         "com_meta": 5,
         "meta_mes": 1300833,
-        "pct_hoje": 104.3,
+        "pct_hoje": 103.6,
         "fases": [
           {
             "n": 1,
@@ -43588,7 +43588,7 @@
         "total_vendedores": 7,
         "com_meta": 7,
         "meta_mes": 1052367,
-        "pct_hoje": 51.7,
+        "pct_hoje": 56.5,
         "fases": [
           {
             "n": 1,
@@ -44249,7 +44249,7 @@
           }
         ],
         "aprov": 66.7,
-        "pts_lances_equipe": 295,
+        "pts_lances_equipe": 285,
         "pos": 11,
         "pos_ant": 11
       },
@@ -45380,7 +45380,7 @@
         "total_vendedores": 5,
         "com_meta": 5,
         "meta_mes": 1558000,
-        "pct_hoje": 59.8,
+        "pct_hoje": 62.9,
         "fases": [
           {
             "n": 1,
@@ -45604,7 +45604,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 1340676,
-        "pct_hoje": 49.9,
+        "pct_hoje": 50.4,
         "fases": [
           {
             "n": 1,
@@ -45716,7 +45716,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 1910349,
-        "pct_hoje": 32.9,
+        "pct_hoje": 33.1,
         "fases": [
           {
             "n": 1,
