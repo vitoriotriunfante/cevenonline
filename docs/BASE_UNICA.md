@@ -61,9 +61,9 @@ Fontes: `varredura_central_rca` (roteiro de cada dia, 29/09 a 26/10) e `piloto_p
 | JOTA, +MIX | não verificado (código fora desta pasta) | base | levantar |
 
 ## 6. Pontos em aberto
-1. **Testar se o caminho admin (`view-as`, ~100/min) serve também `produtividade`, `roteiro-hoje` e `devolucoes`.** Se servir, a capacidade sobe ~25x e o pico de pedidos (220/h) deixa de ser problema. O teste precisa rodar de dentro do site (o token admin não sai do Cloudflare).
+1. **TESTADO 26/10 08:45 (`/api/diag-admin-caminhos`):** o caminho admin `view-as/rca/*` serve **só `dashboard`** (200). `produtividade`, `roteiro-hoje`, `devolucoes` e `roteiro-mes` dão **404** (não existem). Produtividade/roteiro/devoluções ficam na cota de 3–4/min: por isso a madrugada (00:30) e reler só quem mudou são obrigatórios.
 2. Madrugada antecipada para 00:30 (26/10, commit seguinte ao 8dc66dd2): pelos números a rota completa por `/api/rca/*` leva horas.
 3. Tolerância dos boletins de vendas (2%): com a base completa de madrugada, zerar (decisão do Vitório pendente).
 
 ## 7. Histórico
-- 26/10/2026 — Documento criado. Medições do §3 feitas no D1 de produção. `/api/totais-dia` no ar. Telas `so_base` e madrugada 03:30 commitadas (8dc66dd2), aguardando publicação.
+- 26/10/2026 — Documento criado. Medições do §3 feitas no D1 de produção. `/api/totais-dia` no ar. Telas `so_base`, madrugada 00:30 e redesenho imediato da Matriz publicados às 08:45 (tv-20261026-084506).
