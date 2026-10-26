@@ -24,6 +24,7 @@ import { rodaAgora, freioCusto } from '../_lib/horario_reduzido.js';   // custo 
 import { proximaConc, lerEstado, gravaEstado, CONC_PADRAO } from '../_lib/concorrencia.js';   // concorrencia adaptativa a cota do CEVEN (12/10/2026)
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
+import { coletaSupervisores } from '../_lib/supervisores_coleta.js';   // compromissos e RET na base (26/10/2026)
 import { gravaCascatas } from '../_lib/arvore_ceven.js';   // cascata do gerente (visitas/eficacia de hoje de todos), cota separada (26/10/2026)
 export { CEVEN_APP_SECRET };
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
@@ -616,6 +617,7 @@ export async function onRequestGet({ env, request }) {
     // (pedido novo levava ate ~8 min para chegar na Executiva). So se sobrou tempo antes de a trava expirar (150 s).
     // telemetria ANTES da etapa do mapa (que pode demorar ate 30 s e estourar o prazo do agendador)
     // CASCATA DO GERENTE (26/10/2026): 11 chamadas (1 por filial) fora da cota de /api/rca/*; grava so o que mudou
+    try { contagem.supervisores = await coletaSupervisores(env); } catch (e) { contagem.supervisores = { erro: String(e.message || e).slice(0, 80) }; }
     try { contagem.cascata = await gravaCascatas(env, dataRef, 25000); } catch (e) { contagem.cascata = { erro: String(e.message || e).slice(0, 80) }; }
     await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);
     let mapa = 'pulado';

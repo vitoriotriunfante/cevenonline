@@ -4,7 +4,7 @@
 //          lançou o compromisso ("matinal")? iniciou a rota (RET)?
 // PROJETO: CFTV/TV (não é WhatsApp). O ciclo 11:30 do WhatsApp calcula o mesmo dado
 //          (pipeline/ceven_unified_engine.js -> coletarAuditoriaCampo). Aqui é a versão da TV.
-// LÊ: CEVEN /api/admin/login + /api/admin/supervisores/matriz-compromissos e matriz-ret.
+// LÊ: a BASE ÚNICA (D1 supervisores_dia / supervisores_ret_detalhe), gravada pelo coletor (functions/_lib/supervisores_coleta.js). Desde 26/10/2026 não fala com o CEVEN.
 // SEGREDOS (Cloudflare Pages, produção): CEVEN_ADMIN_USER e CEVEN_ADMIN_PASS.
 //          Configurar com: npx wrangler pages secret put CEVEN_ADMIN_USER --project-name ceven-cftv-matrix
 // REGRA: nunca inventa dado; sem resposta do CEVEN devolve erro (a TV não mostra nada).
@@ -14,43 +14,23 @@
 
 import { NAO_SUPERVISORES, normNome } from '../_lib/nao_supervisores.js';
 import { supervisoresAtivos, ehAtivo } from '../_lib/sup_ativos.js';
-import { tokenAdmin, ultimaFalhaLogin } from '../_lib/ceven_admin_token.js';
 import { comCache } from '../_lib/cache_borda.js';
+import { lerSupervisoresDia } from '../_lib/supervisores_coleta.js';   // base unica (26/10/2026)
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
-import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
-const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
-
-// token de admin COMPARTILHADO entre as copias do site (15/10/2026: logins simultaneos eram recusados -> "login no CEVEN falhou")
-const token = (env) => tokenAdmin(env);
-
-async function getJson(url, tk) {
-  try {
-    const r = await fetch(url, { headers: { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(20000) });
-    return r.ok ? await r.json() : null;
-  } catch {
-    return null;
-  }
-}
-
 const limpa = (n) => String(n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
 
 async function semCache({ request, env }) {
   const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
   const filial = (new URL(request.url).searchParams.get('filial') || '').toLowerCase().replace(/1$/, '');
   if (!/^[a-z]{3}$/.test(filial)) return new Response(JSON.stringify({ erro: 'filial (sigla) obrigatória' }), { status: 400, headers: cors });
-  if (!env.CEVEN_ADMIN_USER || !env.CEVEN_ADMIN_PASS) return new Response(JSON.stringify({ erro: 'segredos não configurados' }), { status: 503, headers: cors });
-
-  const tk = await token(env);
-  if (!tk) return new Response(JSON.stringify({ erro: 'login no CEVEN falhou', motivo: ultimaFalhaLogin }), { status: 502, headers: cors });
 
   // data de hoje no horário de Brasília
   const dia = R.hojeSP();
 
-  const [comp, ret] = await Promise.all([
-    getJson(`${CEVEN}/api/admin/supervisores/matriz-compromissos?dataInicio=${dia}&dataFim=${dia}`, tk),
-    getJson(`${CEVEN}/api/admin/supervisores/matriz-ret?dataInicio=${dia}&dataFim=${dia}`, tk)
-  ]);
-  if (!comp || !ret) return new Response(JSON.stringify({ erro: 'CEVEN não respondeu (compromissos/RET)' }), { status: 502, headers: cors });
+  // BASE UNICA (26/10/2026): compromissos e RET vem do D1, gravados pelo coletor (functions/_lib/supervisores_coleta.js). Nunca vai ao CEVEN daqui.
+  const base = await lerSupervisoresDia(env, dia);
+  const comp = base && base.compromissos && base.compromissos.j, ret = base && base.ret && base.ret.j;
+  if (!comp || !ret) return new Response(JSON.stringify({ erro: 'sem dado na base ainda (compromissos/RET)' }), { status: 503, headers: cors });
 
   const ativos = await supervisoresAtivos(env);
   const key = filial + '1';
@@ -66,10 +46,7 @@ async function semCache({ request, env }) {
 
       if (fezRet) {
         try {
-          const det = await getJson(
-            `${CEVEN}/api/admin/ret/periodo?filial=${key}&supervisorName=${encodeURIComponent(s.nome)}&dataInicio=${dia}&dataFim=${dia}`,
-            tk
-          );
+          const det = base.detalhe.get(key + '|' + s.nome) || null;
           const d0 = det && det.dias && det.dias[0];
           if (d0 && d0.visitas && d0.visitas.length) {
             const fotos = [];
@@ -106,8 +83,8 @@ async function semCache({ request, env }) {
     })
   );
 
-  return new Response(JSON.stringify({ data: dia, filial: filial.toUpperCase(), supervisores, consultado_em: new Date().toISOString() }), { headers: cors });
+  return new Response(JSON.stringify({ data: dia, filial: filial.toUpperCase(), supervisores, consultado_em: new Date().toISOString(), base_compromissos_em: base.compromissos.em, base_ret_em: base.ret.em }), { headers: cors });
 }
 
-// CACHE (25/10/2026, custo Cloudflare): varias TVs/telas = 1 consulta ao CEVEN a cada 5 min. ?fresco=1 ignora o cache.
+// CACHE (25/10/2026, custo Cloudflare): varias TVs/telas = 1 leitura da base a cada 5 min. ?fresco=1 ignora o cache.
 export const onRequestGet = (ctx) => comCache(ctx, 300, semCache);

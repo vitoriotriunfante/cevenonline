@@ -50,9 +50,10 @@ Fontes: `varredura_central_rca` (roteiro de cada dia, 29/09 a 26/10) e `piloto_p
 |---|---|---|---|
 | TV da filial (`tvapp.html`) / Matriz (`matrizapp.html`) | `tv-vendedor` ia ao CEVEN com base de +30 min | `so_base=1` (só D1) | commit 8dc66dd2, **não publicado** |
 | Visitas/zerados (todas as telas + abertura) | cada um somava | `/api/totais-dia` | no ar 26/10 |
-| `tv-vendedor` (coletor de lances, `central=1`) | ao vivo se base +30 min | só base | pendente |
-| `tv-supervisores`, `tv-supervisores-semana` | admin ao vivo a cada tela | tabela de supervisores gravada pelo coletor | pendente |
-| `cron-lances`, `tv-lances` | `rca/devolucoes/{nota}`, `roteiro-hoje` ao vivo | base | pendente |
+| `tv-vendedor` (coletor de lances, `central=1`) | ao vivo se base +30 min | só base | **feito 26/10** (`so_base=1&hist=1`) |
+| `tv-supervisores` | admin ao vivo a cada tela | `supervisores_dia` + `supervisores_ret_detalhe` (coletor: compromissos 5 em 5 min até 10:30, RET 15 em 15 min) | **feito 26/10** (commit seguinte a b1cec486) |
+| `tv-supervisores-semana` | admin ao vivo (semana) | dias anteriores gravados na mesma tabela | pendente (a tabela começa a acumular hoje) |
+| `cron-lances`, `tv-lances` | `rca/devolucoes/{nota}`, `roteiro-hoje` ao vivo | base | **feito 26/10** (b1cec486): lances só base + histórico do cliente com pedido novo; prova do cartão pela cascata do gerente. Falta: `rca/devolucoes/{nota}` |
 | `cron-mapa-executivo` | `historico-cliente` ao vivo | base (`cache_analise_cliente`) | pendente |
 | `cron-radar-horario`, `cron-conferencia-dia` | `rca/produtividade`, `dashboard`, `devolucoes` ao vivo | base | pendente |
 | `vendedor-detalhe` (celular) | 6 endpoints ao vivo | base | pendente |
@@ -98,4 +99,5 @@ Fontes: `varredura_central_rca` (roteiro de cada dia, 29/09 a 26/10) e `piloto_p
 3. Tolerância dos boletins de vendas: ZERADA em 26/10 (decisão do Vitório), no ar no GitHub desde o push b46bdb78.
 
 ## 7. Histórico
+- 26/10/2026 09:30–10:00 — Cascata do gerente gravada (`cascata_dia`, 11 filiais, cota separada). Roteiro de quem o gerente vê com visita nova vai primeiro. Lances e cartões sem chamada ao vivo de roteiro. Compromissos e RET gravados pelo coletor; `/api/tv-supervisores` lê só a base. Mapa: 34 → 32 rotinas chamando o CEVEN.
 - 26/10/2026 — Documento criado. Medições do §3 feitas no D1 de produção. `/api/totais-dia` no ar. Telas `so_base`, madrugada 00:30 e redesenho imediato da Matriz publicados às 08:45 (tv-20261026-084506).

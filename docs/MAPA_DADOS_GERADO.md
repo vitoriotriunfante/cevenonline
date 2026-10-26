@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-26 12:39 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-26 12:44 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (33)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -27,6 +27,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `functions/_lib/arvore_ceven.js` | site (Cloudflare) | /api/admin/filiais/hierarquia, /api/filiais/${String, /api/filiais//{id}/representante//{id}, /api/gerente-auth/login, /api/gerente/tabelas-cascata |
 | `functions/_lib/ceven_admin_token.js` | site (Cloudflare) | /api/admin/login |
 | `functions/_lib/ceven_notificacao.js` | site (Cloudflare) | /api/notificacoes/webhook//{id} |
+| `functions/_lib/supervisores_coleta.js` | site (Cloudflare) | /api/admin/ret/periodo, /api/admin/supervisores/matriz-compromissos, /api/admin/supervisores/matriz-ret |
 | `functions/api/cron-conferencia-dia.js` | site (Cloudflare) | /api/rca/devolucoes, /api/rca/produtividade |
 | `functions/api/cron-descobre-codigos.js` | site (Cloudflare) | /api/rca |
 | `functions/api/cron-radar-horario.js` | site (Cloudflare) | /api/rca/dashboard, /api/rca/produtividade |
@@ -37,7 +38,6 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `functions/api/mix-teste.js` | site (Cloudflare) | (monta a URL dinamicamente) |
 | `functions/api/saude.js` | site (Cloudflare) | /api/metas-mes |
 | `functions/api/tv-supervisores-semana.js` | site (Cloudflare) | /api/admin/supervisores/matriz-compromissos, /api/admin/supervisores/matriz-ret |
-| `functions/api/tv-supervisores.js` | site (Cloudflare) | /api/admin/ret/periodo, /api/admin/supervisores/matriz-compromissos, /api/admin/supervisores/matriz-ret |
 | `functions/api/tv-vendedor.js` | site (Cloudflare) | /api/rca/dashboard, /api/rca/historico-cliente//{id}, /api/rca/produtividade, /api/rca/roteiro-hoje |
 | `functions/api/vendedor-detalhe.js` | site (Cloudflare) | /api/ceven/prospeccao-roteiro, /api/rca/dashboard, /api/rca/devolucoes, /api/rca/produtividade, /api/rca/roteiro-hoje, /api/rca/roteiro-mes |
 
@@ -95,6 +95,8 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `saude_coleta` | `functions/api/cron-varredura-central.js` |
 | `semana_invicta_checada` | `functions/api/cron-semana-invicta.js` |
 | `solicitacoes_ajuste_equipe` | `functions/api/equipe-solicitacoes.js` |
+| `supervisores_dia` | `functions/_lib/supervisores_coleta.js` |
+| `supervisores_ret_detalhe` | `functions/_lib/supervisores_coleta.js` |
 | `tv_lances` | `functions/api/tv-lances.js`, `scratch/patch_qual_todos.js`, `scratch/patch_qual_todos2.js` |
 | `tv_ping` | `functions/api/tv-ping.js` |
 | `varredura_central_rca` | `functions/api/cron-varredura-central.js`, `scripts/popular_varredura_manual.mjs` |
