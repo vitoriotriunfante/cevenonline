@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-26 20:46 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-26 21:34 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (32)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -82,8 +82,8 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `gerentes_filiais` | `functions/api/whatsapp/gerentes.js` |
 | `historico_cliente` | `functions/api/tv-vendedor.js` |
 | `lances_excluidos_liga` | `functions/_lib/liga_fechamento.js` |
-| `liga_dia_fechado` | `functions/_lib/liga_fechamento.js`, `scratch/patch_teste_trava.js` |
-| `liga_fechamento` | `functions/_lib/liga_fechamento.js`, `scratch/patch_fecha_2330.js`, `scratch/patch_penalti_motivo.js`, `scratch/patch_teste_trava.js` |
+| `liga_dia_fechado` | `functions/api/liga-repara-devolucao.js`, `functions/_lib/liga_fechamento.js`, `scratch/patch_teste_trava.js` |
+| `liga_fechamento` | `functions/api/liga-repara-devolucao.js`, `functions/_lib/liga_fechamento.js`, `scratch/patch_fecha_2330.js`, `scratch/patch_penalti_motivo.js`, `scratch/patch_teste_trava.js` |
 | `mapa_executivo_live` | `functions/api/cron-mapa-executivo.js` |
 | `notif_envio_log` | `functions/api/cron-notificacoes-supervisores.js` |
 | `notif_lance_enviado` | `functions/api/cron-notificacoes-supervisores.js` |
@@ -98,7 +98,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `solicitacoes_ajuste_equipe` | `functions/api/equipe-solicitacoes.js` |
 | `supervisores_dia` | `functions/_lib/supervisores_coleta.js` |
 | `supervisores_ret_detalhe` | `functions/_lib/supervisores_coleta.js` |
-| `tv_lances` | `functions/api/tv-lances.js`, `scratch/patch_qual_todos.js`, `scratch/patch_qual_todos2.js` |
+| `tv_lances` | `functions/api/liga-repara-devolucao.js`, `functions/api/tv-lances.js`, `scratch/patch_qual_todos.js`, `scratch/patch_qual_todos2.js` |
 | `tv_ping` | `functions/api/tv-ping.js` |
 | `varredura_central_rca` | `functions/api/cron-varredura-central.js`, `scripts/popular_varredura_manual.mjs` |
 | `varredura_slot` | `functions/api/cron-varredura-central.js` |
