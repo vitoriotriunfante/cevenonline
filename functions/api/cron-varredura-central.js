@@ -365,6 +365,7 @@ export async function onRequestGet({ env, request }) {
             CAST(COALESCE(json_extract(produtividade_json, '$.dia.positivacao'), 0) AS REAL) AS pos,
             CAST(COALESCE(json_extract(produtividade_json, '$.dia.dig_pedido'), 0) AS REAL) AS dig,
             (dashboard_json IS NULL OR dashboard_json = 'null') AS sem_dash,
+            (devolucoes_json IS NULL OR devolucoes_json = 'null') AS sem_dev,
             CAST(json_extract(dashboard_json, '$.financeiro.faturado_bruto') AS REAL) AS d_bruto,
             CAST(json_extract(dashboard_json, '$.financeiro.pendente') AS REAL) AS d_pend,
             CAST(json_extract(dashboard_json, '$.financeiro.devolucao') AS REAL) AS d_dev,
@@ -610,18 +611,22 @@ export async function onRequestGet({ env, request }) {
     const semDash = rcas.filter((rca) => { const a = ant.get(String(rca.codigo)); return a && a.sem_dash; }).slice(0, 30);
     const idsDash = new Set(semDash.map((r) => String(r.codigo)));
     const fatiaDash = viaAdmin ? [] : semDash.concat(rcas.filter((rca, i) => i % FATIAS_FRIA === ciclo % FATIAS_FRIA && !idsDash.has(String(rca.codigo)) && !dashIgual.has(String(rca.codigo))));   // identico na hierarquia = pula
-    const fatiaDev = viaAdmin
+    // QUEM ESTA SEM DEVOLUCAO HOJE VAI PRIMEIRO, em qualquer modo (26/10/2026: no modo admin so entrava quem 'mudou' e 274 de 562 vendedores passaram o dia sem
+    // devolucao gravada; o WhatsApp das 17:00 ficou esperando a base completar e nao saiu). Ate 25 por rodada, antes da fatia normal.
+    const semDev = rcas.filter((rca) => { const a = ant.get(String(rca.codigo)); return !a || a.sem_dev; }).slice(0, 25), idsSemDev = new Set(semDev.map((r) => String(r.codigo)));
+    const fatiaDev0 = viaAdmin
       ? rcas.filter((rca) => devMudou.has(String(rca.codigo))).slice(0, 6)
       : hier
       ? rcas.filter((rca, i) => idsMudou.has(String(rca.codigo)) || i % (FATIAS_DEV * 2) === ciclo % (FATIAS_DEV * 2))   // com a hierarquia: quem mudou + 1/6 por rodada
       : rcas.filter((rca, i) => i % FATIAS_DEV === ciclo % FATIAS_DEV);
+    const fatiaDev = semDev.concat(fatiaDev0.filter((rca) => !idsSemDev.has(String(rca.codigo))));
     // A etapa FRIA tem FATIA PROPRIA de tempo (05/10/2026): com o prazo geral, as etapas 1 a 3 consumiam os 100 s e a fria nunca rodava, entao painel (faturado do mes)
     // e devolucoes ficavam congelados no dado da varredura completa (ex.: TPA R$ 42 mil na Executiva contra R$ 133 mil no CEVEN).
     const prazoFria = Date.now() + 30000;
     // DEVOLUCOES primeiro (prioridade) e ponto de partida GIRANDO a cada tick: se o prazo estourar, nao e sempre o mesmo vendedor do fim da lista que fica sem atualizar
     const rodar = (L) => { if (!L.length) return L; const k = (ciclo * 7) % L.length; return L.slice(k).concat(L.slice(0, k)); };
     // Dashboard e devolucoes com PRAZO PROPRIO cada (20 s + 20 s dentro do orcamento do tick): um nao come o tempo do outro.
-    const itensDev = rodar(fatiaDev).map((rca) => ({ rca, tipo: 'devolucoes' }));
+    const itensDev = semDev.concat(rodar(fatiaDev.slice(semDev.length))).map((rca) => ({ rca, tipo: 'devolucoes' }));
     const itensDash = fatiaDash.map((rca) => ({ rca, tipo: 'dashboard' }));
     const itensFria = [...itensDev, ...itensDash];
     const buscaFria = (L, ms) => poolLimitado(L.map((it) => () => getJson(urlRca(it.tipo, it.rca))), concAtual, Date.now() + ms);
