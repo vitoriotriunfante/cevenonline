@@ -1,8 +1,8 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-26 17:18 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-26 19:51 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
-## 1. Quem chama o CEVEN e RODA SOZINHO (33)
+## 1. Quem chama o CEVEN e RODA SOZINHO (32)
 Meta: só `functions/api/cron-varredura-central.js`.
 
 | Arquivo | Roda | Endpoints |
@@ -32,8 +32,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `functions/api/cron-descobre-codigos.js` | site (Cloudflare) | /api/rca |
 | `functions/api/cron-radar-horario.js` | site (Cloudflare) | /api/rca/dashboard, /api/rca/produtividade |
 | `functions/api/debug-ceven.js` | site (Cloudflare) | /api/rca/produtividade |
-| `functions/api/diag-admin-caminhos.js` | site (Cloudflare) | /api/admin/view-as/rca//{id} |
-| `functions/api/diag-supervisor-caminhos.js` | site (Cloudflare) | /api/gerente-auth/login, /api/gerente/tabelas-cascata, /api/rca/roteiro-hoje, /api/supervisor/roteiro-mes |
+| `functions/api/diag-premiacao.js` | site (Cloudflare) | /api/gerente-auth/login, /api/gerente/holerite-link |
 | `functions/api/divergencias.js` | site (Cloudflare) | /api/filiais |
 | `functions/api/mix-teste.js` | site (Cloudflare) | (monta a URL dinamicamente) |
 | `functions/api/saude.js` | site (Cloudflare) | /api/metas-mes |
@@ -56,8 +55,8 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `bot_avisos_equipe` | `functions/_lib/jota/respostas/gestao.js` |
 | `bot_contatos` | `functions/api/jota-contatos.js`, `functions/_lib/jota/persona.js` |
 | `bot_contatos_log` | `functions/api/jota-contatos.js` |
-| `bot_msgs` | `functions/api/jota-boas-vindas.js`, `functions/api/whatsapp/bot.js`, `functions/api/whatsapp/registro.js` |
-| `bot_sugestoes` | `functions/api/jota-conversas.js`, `functions/api/whatsapp/bot.js` |
+| `bot_msgs` | `functions/api/jota-boas-vindas.js`, `functions/api/jota-reenviar.js`, `functions/api/whatsapp/bot.js`, `functions/api/whatsapp/registro.js` |
+| `bot_sugestoes` | `functions/api/jota-conversas.js`, `functions/api/whatsapp/bot.js`, `functions/_lib/jota/fontes.js` |
 | `cache_analise_cliente` | `functions/api/tv-vendedor.js` |
 | `cache_resposta` | `functions/_lib/cache_borda.js`, `functions/_lib/jota/fontes.js` |
 | `canal_ceven` | `functions/api/divergencias.js`, `functions/_lib/arvore_ceven.js`, `scratch/patch_canal_ceven.js`, `scratch/patch_canal_ocultos_super.js` |
