@@ -178,7 +178,10 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   if (/SUPERVISOR/.test(t) && /RANKING|MELHORES|POR % DA META/.test(t) && E.nacional) return respRankingSupervisores(E);
   { const fs2 = [...new Set((t.match(new RegExp(FRX.source, 'g')) || []))]; if (fs2.length >= 2 && /COMPARA|\bX\b|VERSUS|\bVS\b|CONTRA|COM /.test(t) && c.papel === 'diretoria') { const r = await respComparar(B, fs2); if (r) return r; } }
   if (/BATERAM (A )?META|BATEU (A )?META|ATINGIRAM (A )?META|META BATIDA/.test(t) && !pessoa) return respMetaBatida(E);
-  if (/INCENTIVO|GATILHO|110 ?%|\b110\b|BONUS|PREMIA|PREMIO|PREMIAC/.test(t)) return respIncentivoOficial(B, E, pessoa);
+  // PREMIACAO = holerite simulado do CEVEN (RV: metas por industria, faturamento, positivacao, ticket, faseamento, mix, recorrencia). INCENTIVO = campanha de outubro
+  // (110%). CHAMPIONS = Liga/Brasileirao. (Vitorio, 26/10/2026: 'premiacao vem dessa aba aqui... a champions e a liga ou brasileirao, entendeu?')
+  if (/PREMIA|SALARIO|HOLERITE|\bRV\b|REMUNERA/.test(t) && !/INCENTIVO|GATILHO|110/.test(t)) return respKpisPremiacao(B, E, t, pessoa);
+  if (/INCENTIVO|GATILHO|110 ?%|\b110\b|BONUS|PREMIO/.test(t)) return respIncentivoOficial(B, E, pessoa);
   if (/\bAS\b/.test(t) && /RANKING|VENCEDOR|LIGA|PONTOS/.test(t)) return respLigaAs(B, E, pessoa);
   if (/LIGA (DO |DOS |DA )?AS\b|LIGA DO ATACADO/.test(t) || (pessoa && pessoa.tipo === 'vend' && /^(AS|PET AS)$/.test(pessoa.alvo.canal) && /LIGA|PONTOS|POSICAO|CHAMPIONS/.test(t))) return respLigaAs(B, E, pessoa);
   if (/LIGA|CHAMPION|CHMAPION|CHAMPIOS|CAMPIONS|CHAMPI|CLASSIFICA|TABELA|POSICAO|PONTOS|PONTUACAO|COLOCAD|COLOCACAO|BRASILEIRAO/.test(t) && !(/POSITIVA|FATURA/.test(t) && /RANKING|POR VENDEDOR|ABERTA/.test(t))) return respLiga(B, E, pessoa && pessoa.tipo === 'vend' ? pessoa.alvo : null, t);
