@@ -97,12 +97,15 @@ export async function transcreveAudio(env, d) {
 export async function cadastraPorCodigo(env, cel, texto, pushName) {
   try {
     const t = sem(texto + ' ' + (pushName || ''));
-    const m = t.match(/\bCOD(?:IGO)?\.?\s*[-:]?\s*(\d{1,4})\b/) || t.match(/\b(?:COORDENADOR|SUPERVISOR|SUP)\.?\s*[-:]?\s*(\d{1,4})\b/) || String(texto).trim().match(/^(\d{1,4})$/);
-    if (!m) return null;
-    const { results } = await env.DB.prepare('SELECT DISTINCT filial, sup_id, sup_nome FROM arvore_supervisores WHERE sup_id = ?').bind(m[1]).all();
-    // "23" sozinho numa mensagem: vale se a mensagem anterior do mesmo numero trouxe o nome
+    // 26/10/2026: supervisores se apresentaram como "Setor 72", "Equipe 33", "codigo 1037", "39 - Nome" e ficaram SEM RESPOSTA. Aceita todos os jeitos;
+    // o nome pode estar em mensagem anterior (mandam picado). Cada numero candidato e conferido na arvore do CEVEN pelo nome.
+    const nums = new Set();
+    for (const re of [/\b(?:COD(?:IGO)?|SETOR|EQUIPE|COORDENADOR|SUPERVISOR|SUP)\.?\s*(?:DE\s+VENDAS\s*)?(?:N[O°º]?\.?\s*)?[-:]?\s*(\d{1,4})\b/g, /(?:^|\n)\s*(\d{1,4})\s*[-–]\s*[A-Z]/g, /\b(\d{1,4})\s+(?:TBE|TBL|TPH|TCV|ABC|TCA|MCD|TCG|API|TPA|TSJ)\b/g, /\bSETOR\s+(\d{1,4})\s+D[AO]\b/g]) { let mm; const tt = sem(String(texto)); while ((mm = re.exec(tt))) nums.add(mm[1]); }
+    if (/^\d{1,4}$/.test(String(texto).trim())) nums.add(String(texto).trim());
+    if (!nums.size) return null;
     let nomes = t;
-    if (/^\d{1,4}$/.test(String(texto).trim())) { const ant = await env.DB.prepare("SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'in' ORDER BY id DESC LIMIT 3").bind(cel).all(); nomes += ' ' + sem((ant.results || []).map((x) => x.texto).join(' ')); }
+    { const ant = await env.DB.prepare("SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'in' ORDER BY id DESC LIMIT 4").bind(cel).all(); nomes += ' ' + sem((ant.results || []).map((x) => x.texto).join(' ')); }
+    const { results } = await env.DB.prepare(`SELECT DISTINCT filial, sup_id, sup_nome FROM arvore_supervisores WHERE sup_id IN (${[...nums].map(() => '?').join(',')})`).bind(...nums).all();
     const ok = (results || []).find((r) => { const p = sem(r.sup_nome).replace(/^CLT\s*-?\s*/, '').split(/\s+/); return p[0] && nomes.includes(p[0]) && (p.length < 2 || p.slice(1).some((w) => w.length > 2 && nomes.includes(w))); });
     if (!ok) return null;
     const nome = String(ok.sup_nome).replace(/^CLT\s*-?\s*/i, '').trim();

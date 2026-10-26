@@ -53,6 +53,8 @@ export function criaBase(origin, env) {
     bola: (f) => memo('bola' + f, () => api('/api/bola-cheia?filial=' + f)),
     diverg: () => memo('div', () => api('/api/divergencias')),
     rv: () => memo('rv', () => carregaRV(env)),
+    // pedidos que o JOTA nao executa (mudanca de equipe, envio automatico): ficam em bot_sugestoes (painel de conversas) para a diretoria (26/10/2026)
+    registraPedido: async (tipo, texto, quem, c) => { try { const db = env && env.DB; if (!db || !c) return; const B_CTX = { c }; await db.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(B_CTX.c.celular || '', B_CTX.c.nome || '', B_CTX.c.papel || '', B_CTX.c.filial || '', `[PEDIDO ${tipo.toUpperCase()}] ${texto}`.slice(0, 1500), quem || '').run(); } catch (e) {} },
   };
 }
 // PREMIACAO RV (Vitorio, 25/10/2026: "as metas das industrias vc pega dentro do botao premiacao"): a mesma fonte do holerite simulado do CEVEN.

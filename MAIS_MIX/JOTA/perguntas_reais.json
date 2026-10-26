@@ -367,5 +367,200 @@
    "PROJECAO EU NAO FACO"
   ],
   "nao": []
+ },
+ {
+  "id": "2026-10-26-22",
+  "data": "2026-10-26",
+  "origem": "WASHINGTON FLORES DA ROSA",
+  "perfil": {
+   "nome": "WASHINGTON FLORES DA ROSA",
+   "papel": "supervisor",
+   "filial": "API",
+   "supervisor": "WASHINGTON FLORES DA ROSA"
+  },
+  "pergunta": "244 hoje",
+  "deve": [
+   "MARCIA|244"
+  ],
+  "nao": [
+   "EQUIPE WASHINGTON"
+  ]
+ },
+ {
+  "id": "2026-10-26-23",
+  "data": "2026-10-26",
+  "origem": "WASHINGTON FLORES DA ROSA",
+  "perfil": {
+   "nome": "WASHINGTON FLORES DA ROSA",
+   "papel": "supervisor",
+   "filial": "API",
+   "supervisor": "WASHINGTON FLORES DA ROSA"
+  },
+  "pergunta": "247 não trabalha mais empresa",
+  "deve": [
+   "ANOTADO",
+   "GESTAO DE EQUIPE"
+  ],
+  "nao": [
+   "VOU CONSIDERAR"
+  ]
+ },
+ {
+  "id": "2026-10-26-24",
+  "data": "2026-10-26",
+  "origem": "JONATHAN FERNANDES",
+  "perfil": {
+   "nome": "JONATHAN FERNANDES",
+   "papel": "supervisor",
+   "filial": "TPH",
+   "supervisor": "JONATHAN FERNANDES"
+  },
+  "pergunta": "como está a colocação dos vendedores da equipe 541",
+  "deve": [
+   "CHAMPIONS|LIGA"
+  ],
+  "nao": [
+   "FATURADO:"
+  ]
+ },
+ {
+  "id": "2026-10-26-25",
+  "data": "2026-10-26",
+  "origem": "YASMIM PRISCILA DA SILVA",
+  "perfil": {
+   "nome": "YASMIM PRISCILA DA SILVA",
+   "papel": "supervisor",
+   "filial": "TCA",
+   "supervisor": "YASMIM PRISCILA DA SILVA"
+  },
+  "pergunta": "como esta minha equipe no brasileirão triunfante",
+  "deve": [
+   "CHAMPIONS|LIGA"
+  ],
+  "nao": [
+   "FATURADO:"
+  ]
+ },
+ {
+  "id": "2026-10-26-26",
+  "data": "2026-10-26",
+  "origem": "RODRIGO FARIAS",
+  "perfil": {
+   "nome": "RODRIGO FARIAS",
+   "papel": "supervisor",
+   "filial": "API",
+   "supervisor": "RODRIGO FARIAS"
+  },
+  "pergunta": "Preciso que a partir de amanhã voce mande 3 vezes ao dia o acompanhamento do meu time",
+  "deve": [
+   "ANOTADO"
+  ],
+  "nao": []
+ },
+ {
+  "id": "2026-10-26-27",
+  "data": "2026-10-26",
+  "origem": "VAGNER",
+  "perfil": {
+   "nome": "VAGNER",
+   "papel": "gerente",
+   "filial": "TPH",
+   "grupo": "VAGNER"
+  },
+  "pergunta": "Retirar claudete dos controles, ele nao trabalha mais conosco",
+  "deve": [
+   "ANOTADO",
+   "GESTAO DE EQUIPE"
+  ],
+  "nao": [
+   "NAO TEM DADO"
+  ]
+ },
+ {
+  "id": "2026-10-26-28",
+  "data": "2026-10-26",
+  "origem": "RODRIGO FARIAS",
+  "perfil": {
+   "nome": "RODRIGO FARIAS",
+   "papel": "supervisor",
+   "filial": "API",
+   "supervisor": "RODRIGO FARIAS"
+  },
+  "pergunta": "Faz melhor que relatorio programável de hora em hora começando as 8:00 e terminando as 19:00",
+  "deve": [],
+  "nao": [
+   "CONSOLIDADO",
+   "11 FILIAIS",
+   "RESULTADO GERAL"
+  ]
+ },
+ {
+  "id": "2026-10-26-29",
+  "data": "2026-10-26",
+  "origem": "RODRIGO FARIAS",
+  "perfil": {
+   "nome": "RODRIGO FARIAS",
+   "papel": "supervisor",
+   "filial": "API",
+   "supervisor": "RODRIGO FARIAS"
+  },
+  "pergunta": "relatório das 14:30",
+  "deve": [],
+  "nao": [
+   "CONSOLIDADO",
+   "11 FILIAIS"
+  ]
+ },
+ {
+  "id": "2026-10-26-30",
+  "data": "2026-10-26",
+  "origem": "PRISCILA A D NASCIMENTO STRAPASSON",
+  "perfil": {
+   "nome": "PRISCILA A D NASCIMENTO STRAPASSON",
+   "papel": "supervisor",
+   "filial": "TPH",
+   "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON"
+  },
+  "pergunta": "Positivaçoes",
+  "deve": [
+   "FALTAM"
+  ],
+  "nao": [
+   "• PRISCILA STRAPASSON:"
+  ]
+ },
+ {
+  "id": "2026-10-26-31",
+  "data": "2026-10-26",
+  "origem": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+  "perfil": {
+   "nome": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+   "papel": "supervisor",
+   "filial": "TPH",
+   "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO"
+  },
+  "pergunta": "Quanto falta para a meta da equipe?",
+  "deve": [
+   "QUEM MAIS FALTA .VENDEDOR."
+  ],
+  "nao": [
+   "• ALLISON PINHEIRO:"
+  ]
+ },
+ {
+  "id": "2026-10-26-32",
+  "data": "2026-10-26",
+  "origem": "ALEX SANDRO SOARES ELIAS",
+  "perfil": {
+   "nome": "ALEX SANDRO SOARES ELIAS",
+   "papel": "supervisor",
+   "filial": "TBE",
+   "supervisor": "ALEX SANDRO SOARES ELIAS"
+  },
+  "pergunta": "Oi como está minha equipe? Quem falta visitar? Quem falta positivar?",
+  "deve": [],
+  "nao": [
+   "ROTA DO DIA CONCLUIDA"
+  ]
  }
 ]

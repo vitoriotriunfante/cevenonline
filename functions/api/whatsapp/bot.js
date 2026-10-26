@@ -58,7 +58,19 @@ export async function onRequestPost({ request, env }) {
   }
   if (!c) {   // so responde quem esta cadastrado — EXCETO o supervisor que se apresenta com "Nome ... COD 123" (codigo da arvore do CEVEN e nome batendo)
     const novo = await cadastraPorCodigo(env, cel, texto, d.pushName);
-    if (!novo) return new Response('ok');
+    if (!novo) {
+      // 26/10/2026: supervisor que se apresenta e nao e achado na arvore ficava SEM RESPOSTA. Agora: resposta educada + aviso ao Vitorio (1x por numero por dia).
+      if (!seco && /SUPERVIS|SETOR|EQUIPE|\bCOD|CODIGO|COORDENADOR|GERENTE/.test(sem(texto))) {
+        const ja = await env.DB.prepare("SELECT COUNT(*) n FROM bot_msgs WHERE celular = ? AND direcao = 'out' AND date(quando,'-3 hours') = date('now','-3 hours')").bind(cel).first().catch(() => ({ n: 1 }));
+        if (!ja || !ja.n) {
+          const msg = `Oi! Eu sou o *Jota* ⚽, do Comercial da Triunfante. Não consegui confirmar seu cadastro pelo código que você mandou. Já avisei a diretoria para liberar seu acesso; assim que liberar, eu te aviso aqui.`;
+          const e1 = await enviar(env, destino, msg);
+          await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, d.pushName || null, e1.ok ? 'out' : 'erro', msg).run();
+          for (const tv of ['554187525605']) { try { await enviar(env, tv, `🔔 *Jota — pedido de acesso (não achei na árvore)*\nCelular: ${cel}${d.pushName ? ' (' + d.pushName + ')' : ''}\nMensagem: ${String(texto).slice(0, 300)}`); } catch (e) {} }
+        }
+      }
+      return new Response('ok');
+    }
     const boas = `Fala, ${titulo(String(novo.nome).split(' ')[0])}! Eu sou o *Jota* ⚽, o assistente do Comercial da Triunfante.\nRecebi seu pedido de acesso como supervisor *${titulo(novo.nome)}* (${novo.filial}, COD ${novo.cod}).\nAssim que a diretoria liberar, eu te aviso aqui. _Meu DNA é Triunfante!_`;
     if (!seco) { const av = `🔔 *Jota — pedido de acesso*\n${titulo(novo.nome)} (${novo.filial}, COD ${novo.cod})\nCelular: ${cel}\nLiberar na tela de contatos do painel.`; for (const t of ['554187525605']) { try { await enviar(env, t, av); } catch (e) {} } }
     if (seco) return new Response(boas, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
@@ -122,6 +134,11 @@ export async function onRequestPost({ request, env }) {
   if (['pronta', 'ia'].includes(tipo) && resp && !/o que faltou/.test(resp)) resp += '\n\n_Nota de 1 a 5 para essa resposta? Ou escreva "sugestão: ..."_';
   if (audio && audio.texto) resp = `🎙️ _Entendi: "${audio.texto.slice(0, 200)}"_\n\n` + resp;
   if (seco) return new Response(resp + (u.searchParams.get('fig') === '1' ? `\n\n[figurinha: ${figurinhaPara(resp, tipo) || 'nenhuma'} · tipo: ${tipo}]` : ''), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+  // TRAVA DE ESCOPO (26/10/2026, vazamento do consolidado para um supervisor): nada do consolidado nacional sai para quem nao e diretoria, venha de onde vier a resposta
+  if (c.papel !== 'diretoria' && /CONSOLIDADO|11 FILIAIS|GRUPO TRIUNFANTE —|RESULTADO GERAL DA COMPANHIA|DESEMPENHO POR FILIAL/i.test(resp)) {
+    try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'BLOQUEADO (escopo): ' + resp.slice(0, 1500)).run(); } catch (x) {}
+    resp = `Essa informação é da visão da diretoria. Para a sua equipe, me pergunte "como está minha equipe?", "hoje" ou "zerados".`; tipo = 'bloqueado';
+  }
   const e = await enviar(env, destino, resp);
   await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, e.ok ? 'out' : 'erro', resp.slice(0, 4000), tipo).run();
   // figurinha (no maximo 1 a cada 2 h por pessoa)
