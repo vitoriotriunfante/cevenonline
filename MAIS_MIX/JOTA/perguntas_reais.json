@@ -896,5 +896,38 @@
   "nao": [
    "12.060"
   ]
+ },
+ {
+  "id": "ceo-clientes-vendidos-mes",
+  "perfil": {
+   "nome": "VITORIO",
+   "papel": "diretoria",
+   "filial": null,
+   "supervisor": null
+  },
+  "pergunta": "Quantos clientes a triunfante já vendeu esse mês de outubro",
+  "deve": [
+   "POSITIVACAO",
+   "BRASIL"
+  ],
+  "nao": [
+   "HOJE NO BRASIL"
+  ]
+ },
+ {
+  "id": "ivayr-pedido-por-numero",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TCA",
+   "nome": "IVAYR PRINCIPE FREITAS DE MIRANDA",
+   "supervisor": "IVAYR PRINCIPE FREITAS DE MIRANDA"
+  },
+  "pergunta": "gostaria saber se já faturou o pedido 1190000030",
+  "deve": [
+   "PEDIDO PELO NUMERO"
+  ],
+  "nao": [
+   "EQUIPE IVAYR MIRANDA .TCA. HOJE"
+  ]
  }
 ]

@@ -194,6 +194,11 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   }
   if (/ZERAD|ZEROU|SEM PEDIDO|SEM VENDA|NAO VENDEU|NAO VENDERAM|NINGUEM VENDEU/.test(t)) return respZerados(E);
   if (/POSITIV/.test(t) && /QUANTOS|QUANTO/.test(t) && !/110/.test(t)) return respPositivacao(B, E);
+  // PEDIDO POR NUMERO (Ivayr/TCA, 26/10/2026: "ja faturou o pedido 1190000030" -> recebeu o resumo da equipe). O numero/status do pedido ainda NAO esta na base (D1);
+  // fica no banco do Data Lake, que esta sendo levado para o D1. Ate la: diz a verdade e registra o pedido para a diretoria.
+  if (/PEDIDO\D{0,12}\d{7,}|\b\d{9,11}\b.{0,20}(FATUROU|FATURADO|STATUS)/.test(t)) { try { await B.registraPedido('pedido_por_numero', texto, c.nome, c); } catch (e) {} return `🔎 Ainda não consigo consultar *pedido pelo número* (${(t.match(/\d{7,}/) || [''])[0]}): o status de cada pedido ainda não está na base do Jota. Anotei para a diretoria.\n\nO que eu já respondo: "rota de hoje do <vendedor>" ou "o que o cliente <nome> comprou" (até ontem).`; }
+  // CEO, 26/10/2026: "quantos clientes a Triunfante ja vendeu esse mes de outubro" caiu no "hoje" -> clientes que compraram no mes = positivacao do mes
+  if (/QUANTOS CLIENTES|CLIENTES (JA )?(COMPRARAM|POSITIVAD|ATENDID)|CLIENTES? (QUE )?(A \w+ )?(JA )?(VENDEU|VENDEMOS|VENDERAM)/.test(t) && !/PRODUTO|SKU|INDUSTRIA|PAROU|NAO COMPR|SEM COMPR/.test(t)) return respPositivacao(B, E);
   if (/QUANTO FALTA|FALTA (PARA|PRA|BATER)|\bFALTA\b|POR DIA UTIL|\bMN\b|PRECISA (VENDER|FATURAR)|POR DIA PRA|COMO BATER|BATER A META/.test(t)) return respFalta(B, E);
   if (/RANKING|MELHOR|PIOR|\bTOP\b|DESTAQUE|MAIS ATRAS|QUEM (ESTA|TA) (BEM|MAL)/.test(t)) {
     // "piores vendedores E supervisores" (26/10/2026: so vinham vendedores): junta o ranking de supervisores
