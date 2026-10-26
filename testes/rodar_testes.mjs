@@ -124,7 +124,8 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
   // Login do administrador do CEVEN: nunca escrito no codigo (repositorio publico) e falha de login nao pode ser silenciosa
   ok(!/const CEVEN_USER = '/.test(eng) && !/const CEVEN_PASS = '/.test(eng), 'motor nao tem o login do administrador escrito no codigo');
   ok(eng.includes('process.env.CEVEN_ADMIN_USER') && eng.includes('process.env.CEVEN_ADMIN_PASS'), 'motor le o login dos segredos CEVEN_ADMIN_USER / CEVEN_ADMIN_PASS');
-  ok(/Erro ao autenticar no CEVEN Admin[\s\S]{0,300}process\.exit\(1\)/.test(eng), 'falha de login do administrador derruba o ciclo (nao termina como sucesso sem enviar)');
+  // 26/10/2026: o 14:30 abortou por timeout do login de admin do GitHub; o motor so le a base unica, entao sem login ele SEGUE (nao aborta)
+  ok(/Erro ao autenticar no CEVEN Admin[\s\S]{0,400}seguindo so com a base unica/.test(eng) && !/Erro ao autenticar no CEVEN Admin[\s\S]{0,300}process\.exit\(1\)/.test(eng), 'falha de login do administrador NAO derruba o ciclo (tudo vem da base unica)');
   ok(/FALHAS_ENVIO\+\+/.test(eng) && /FALHAS_ENVIO > 0 && destino !== 'dry_run'[\s\S]{0,250}process\.exit\(1\)[\s\S]{0,200}marcarCicloDisparado\(\);\n  console\.log\(`\\n🏁/.test(eng), 'envio que falha derruba o ciclo e o ciclo nao e marcado como disparado');
   ok(/const LIMITE_CHAMADAS = 6;/.test(eng) && eng.includes('axios.interceptors.request.use') && eng.includes('axios.interceptors.response.use'), 'motor tem limite global de 6 chamadas simultaneas');
   { const mapa = ler('functions/api/cron-mapa-executivo.js'); const tvx = ler('desligados/tv_executiva.html');
