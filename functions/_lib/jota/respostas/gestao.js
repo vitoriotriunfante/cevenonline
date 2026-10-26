@@ -7,11 +7,12 @@ import { sn } from '../escopo.js';
 import { N, P, R$, SUGESTAO, hojeSP, nome2, sem, titulo, vn } from '../base.js';
 import { agrupa, pctTxt, pessoaReal, supChave, supNome, supReal } from '../escopo.js';
 import { totaisOficiais } from './resumo.js';
+import { ehFeriado } from '../../feriados.js';
 
 // ---------- PERGUNTAS DA REUNIAO DE 5 H (25/10/2026) que o dado do site ja responde ----------
 export function diasUteisMes() {
   const [y, m, d] = hojeSP().split('-').map(Number), fim = new Date(Date.UTC(y, m, 0)).getUTCDate(); let tot = 0, pass = 0;
-  for (let i = 1; i <= fim; i++) { const w = new Date(Date.UTC(y, m - 1, i)).getUTCDay(); if (w > 0 && w < 6) { tot++; if (i < d) pass++; } }
+  for (let i = 1; i <= fim; i++) { const w = new Date(Date.UTC(y, m - 1, i)).getUTCDay(); if (w > 0 && w < 6 && !ehFeriado(`${y}-${String(m).padStart(2, '0')}-${String(i).padStart(2, '0')}`)) { tot++; if (i < d) pass++; }   /* feriado nao e dia util (12/10) */ }
   return { tot, pass };
 }
 export async function respCarteira(B, E) {
@@ -74,4 +75,25 @@ export async function respInfoEquipe(env, c, texto) {
   try { await env.DB.prepare('CREATE TABLE IF NOT EXISTS bot_avisos_equipe (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, quem TEXT, filial TEXT, texto TEXT, situacao TEXT DEFAULT \'novo\')').run();
     await env.DB.prepare('INSERT INTO bot_avisos_equipe (celular, quem, filial, texto) VALUES (?,?,?,?)').bind(c.celular || '', c.nome || '', c.filial || '', String(texto).slice(0, 500)).run(); } catch (e) { return 'Não consegui anotar agora. Me manda de novo em instantes.'; }
   return `📝 Anotado, ${titulo(String(c.nome || '').split(' ')[0])}. Mandei para a *Gestão de Equipe* decidir (ex.: tirar da cobrança, desconsiderar da leitura). Enquanto não for decidido lá, eu continuo mostrando a pessoa normalmente.`;
+}
+
+// TENDENCIA DE FECHAMENTO (Vitorio, 26/10/2026: "pq vc nao pode fazer uma projecao? se vc tem o faturado + pendente... sabe quantos dias faltam... e matematica
+// pura... so deixa claro que isso e tendencia... e da para atualizar diario"). Conta: ritmo = (faturado + pendente) / dias uteis decorridos (hoje conta);
+// tendencia = ritmo x dias uteis do mes. Necessario = (meta - faturado - pendente) / dias uteis que faltam. Seg-sex, sem descontar feriado. Sempre rotulado TENDENCIA.
+export async function respTendencia(B, E) {
+  const x = await totaisOficiais(B, E); if (!x.meta) return 'Sem dado agora.';
+  const { tot, pass } = diasUteisMes(), dec = Math.min(tot, pass + 1), falt = Math.max(0, tot - dec);
+  const tend = (y) => { const s = (y.fat || 0) + (y.pend || 0); const t = dec ? s / dec * tot : s; return { s, t, pct: y.meta ? t / y.meta * 100 : null, nec: falt ? Math.max(0, y.meta - s) / falt : 0, rit: dec ? s / dec : s }; };
+  const T = tend(x);
+  const G = [...agrupa(E.vend, (v) => (E.nacional ? v.filial : E.supervisor ? v.filial + '|' + v.rca : supChave(v, false)))].filter(([k]) => E.nacional || E.supervisor || supReal(k))
+    .map(([k, y]) => [k, y, tend(y)]).filter(([, y]) => y.meta > 0).sort((a, b) => (a[2].pct ?? 0) - (b[2].pct ?? 0));
+  const nome = (k) => E.nacional ? k : E.supervisor ? vn(E.vend.find((v) => v.filial + '|' + v.rca === k) || { nome: k }) : supNome(k);
+  return [`📈 *TENDÊNCIA de fechamento — ${E.nome}* _(conta, não é número real: mantém o ritmo de hoje até o fim do mês)_`,
+    `💰 Faturado + pendente: *${R$(T.s)}* em ${dec} de ${tot} dias úteis → ritmo de *${R$(T.rit)}/dia*`,
+    `📈 Se mantiver esse ritmo: fecha em *${R$(T.t)}* = *${P(T.t, x.meta)}* da meta (${R$(x.meta)})`,
+    falt ? `🎯 Para bater a meta: precisa de *${R$(T.nec)}/dia* nos ${falt} dias úteis que faltam (${T.rit ? (T.nec / T.rit).toFixed(1).replace('.', ',') + 'x o ritmo atual' : 'sem ritmo'})` : '🏁 Último dia útil do mês.',
+    '', `*Tendência por ${E.nacional ? 'filial' : E.supervisor ? 'vendedor' : 'supervisor'} (do pior para o melhor):*`,
+    ...G.slice(0, 12).map(([k, y, r]) => `• ${nome(k)}: ${r.pct == null ? 'sem meta' : r.pct.toFixed(1).replace('.', ',') + '%'} · precisa ${R$(r.nec)}/dia`),
+    '', '_Dias úteis seg–sex sem feriados; atualiza a cada consulta com o faturado + pendente de agora._',
+    SUGESTAO + (G[0] ? `atacar ${nome(G[0][0])}, a pior tendência.` : 'manter o ritmo.')].join('\n');
 }

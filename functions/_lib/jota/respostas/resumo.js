@@ -138,7 +138,7 @@ export async function respFalta(B, E) {
   const dn = diasUteisRestantes(); const x = await totaisOficiais(B, E);
   if (!x.meta) return 'Sem dado agora.';
   /* falta = meta - faturado - pendente (igual ao CEVEN) */ const falta = Math.max(0, x.meta - x.fat - (x.pend || 0)), fpos = Math.max(0, x.metaPos - x.pos);
-  const L = [`🎯 *${E.nome} — quanto falta* (${dn} dias úteis seg–sex, sem descontar feriados)`, `💰 Meta ${R$(x.meta)} · faturado ${R$(x.fat)} (${pctTxt(x.pct)}) · pendente ${R$(x.pend)}`,
+  const L = [`🎯 *${E.nome} — quanto falta* (${dn} dias úteis seg–sex, sem descontar feriados)`, `💰 Meta ${R$(x.meta)} · faturado ${R$(x.fat)} + pendente ${R$(x.pend)} = *${pctTxt(x.meta ? (x.fat + (x.pend || 0)) / x.meta * 100 : null)}* da meta (igual ao CEVEN)`,
     `Falta (meta − faturado − pendente): *${R$(falta)}* → *${R$(dn ? falta / dn : falta)} por dia útil* (MN)`,
     `👥 Positivação: falta *${N(fpos)}* clientes → *${N(dn ? Math.ceil(fpos / dn) : fpos)} por dia útil*`, ''];
   // ABRE UM NIVEL ABAIXO (26/10/2026: o Allison recebia "quem mais falta (supervisor): Allison"): supervisor -> vendedores

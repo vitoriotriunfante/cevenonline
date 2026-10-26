@@ -364,7 +364,7 @@
   },
   "pergunta": "Qual a tendência de fechamento atualizada?",
   "deve": [
-   "PROJECAO EU NAO FACO"
+   "TENDENCIA DE FECHAMENTO"
   ],
   "nao": []
  },
@@ -860,6 +860,41 @@
   ],
   "nao": [
    "RELATORIOS AUTOMATICOS"
+  ]
+ },
+ {
+  "id": "paulo-tendencia-fechamento",
+  "perfil": {
+   "nome": "VITORIO",
+   "papel": "diretoria",
+   "filial": null,
+   "supervisor": null
+  },
+  "pergunta": "Qual a tendência de fechamento atualizada?",
+  "deve": [
+   "TENDENCIA DE FECHAMENTO",
+   "SE MANTIVER ESSE RITMO",
+   "PRECISA DE"
+  ],
+  "nao": [
+   "PROJECAO EU NAO FACO"
+  ]
+ },
+ {
+  "id": "priscila-minha-meta",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPH",
+   "nome": "PRISCILA A D NASCIMENTO STRAPASSON",
+   "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON"
+  },
+  "pergunta": "minha meta de faturamento?",
+  "deve": [
+   "EQUIPE PRISCILA",
+   "META R. 451"
+  ],
+  "nao": [
+   "12.060"
   ]
  }
 ]

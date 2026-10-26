@@ -7,7 +7,7 @@ import { sn } from './escopo.js';
 import { FILIAIS, FRX, R$, SUGESTAO, VAREJO, fraca, hojeSP, nome2, sem, titulo, vn } from './base.js';
 const x0 = (V) => (V[0] ? V[0].v.rca : '');
 import { PAL, achaPessoa, agrupa, carregaEscopo, pctTxt, supChave, supNome, supReal } from './escopo.js';
-import { SEM_HISTORICO, respCarteira, respComparar, respDobradinha, respInfoEquipe, respMaiorGap, respMetaBatida, respPontosPerdidos, respRankingGerentes, respRankingSupervisores, respRitmo } from './respostas/gestao.js';
+import { SEM_HISTORICO, respCarteira, respComparar, respDobradinha, respInfoEquipe, respMaiorGap, respMetaBatida, respPontosPerdidos, respRankingGerentes, respRankingSupervisores, respRitmo, respTendencia } from './respostas/gestao.js';
 import { respBola, respDevMotivos, respDivergencias, respIncentivoOficial, respLigaAs, respSemana } from './respostas/indicadores.js';
 import { respAjuda, respCompromisso, respGlossario, respLances, respLiga, respMix } from './respostas/liga_mix.js';
 import { respKpisPremiacao, respMetasIndustria } from './respostas/metas_industria.js';
@@ -35,11 +35,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // escopo: gerente = a filial dele; diretoria = a filial citada, senao o Brasil
   const fm = t.match(FRX);
   if (c.papel === 'vendedor' && !(c.filial && c.rca)) return 'Seu cadastro no Jota está sem filial ou código RCA. Peça para a diretoria completar na tela de contatos.';
-  const preso = (c.papel === 'gerente' || c.papel === 'supervisor' || c.papel === 'vendedor') && c.filial;
-  const fil = preso ? c.filial : fm ? fm[1] : null;
-  const grupo = preso ? c.grupo || null : null;
-  const supervisor = c.papel === 'supervisor' ? c.supervisor || c.nome : null;
-  const rcaV = c.papel === 'vendedor' ? String(c.rca) : null;
+  const { fil, grupo, supervisor, rcaV, preso } = escopoDoContato(c, fm);
   const esc = rcaV ? { nome: nome2(c.nome) + ' (RCA ' + rcaV + ')', filiais: [fil], grupo: null, supervisor: null, rca: rcaV, nacional: false }
     : fil ? { nome: supervisor ? 'Equipe ' + nome2(supervisor) + ' (' + fil + ')' : fil + (grupo ? ' · ' + titulo(grupo) : ''), filiais: [fil], grupo: supervisor ? null : grupo, supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
   if (/^(OI|OLA|E AI|AJUDA|MENU|INICIO|COMECAR|BOM DIA|BOA TARDE|BOA NOITE)\b[ !?.]*$|O QUE (VOCE|VC) (SABE|FAZ|RESPONDE)|^AJUDA/.test(t)) return respAjuda(c);
@@ -77,6 +73,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/FATURAMENTO|FATURADO/.test(t) && (/POSITIVA/.test(t) || /\bMES\b|OUTUBRO|COMO (EU )?(ESTOU|TO|ESTAMOS)|ATUALIZAD/.test(t)) && !/PREMIA|KPI|INDUSTRIA|SEMANA|PASSADO|ANTERIOR/.test(t) && !pedePeriodo(t)) return respResumo(B, E);
   if (/\bROTA\b/.test(t) && /HOJE|\bHJ\b/.test(t) && /COMO (ESTA|TA|VAI|ANDA)/.test(t)) return respHoje(B, E, t);
   if (/(EM RELACAO|SOBRE|SABER) (A |DA )?MINHA EQUIPE|^MINHA EQUIPE\W*$/.test(t)) return respResumo(B, E);
+  // "minha meta (de faturamento)?" (Priscila, 26/10/2026, caiu na IA com numero da filial): meta, faturado, pendente e falta DO ESCOPO, sempre resposta pronta
+  if (/\bMETAS?\b/.test(t) && !/PREMIA|KPI|\bMIX\b|TICKET|FASEAMENTO|RECORRENCIA|INDUSTRIA|FORNECEDOR|BATER(AM)?\b|BATEU|BATIDA|QUEM|QUAIS|POSITIVA/.test(t) && !pessoa0(E, t)) return respFalta(B, E);
   if (/CHE?C?K.?IN|CHE?C?K.?OUT/.test(t) && !/FORA DO CLIENTE|CHE?C?K.?IN FORA/.test(t)) { const pc = achaPessoa(E, t); return pc && pc.tipo === 'vend' ? respClientesDia(pc.alvo, t) : respCheckinEquipe(E); }
   if (/NAO TRABALHA MAIS|SAIU DA EMPRESA|FOI DESLIGAD|DESLIGAD[OA]|FOI DEMITID|PEDIU (AS )?CONTAS?|PEDIU DEMISSAO|RETIRAR .{0,40}(EQUIPE|CONTROLE|LISTA|RELATORIO)|TIRAR .{0,40}(DA EQUIPE|DOS CONTROLES|DA LISTA)|NAO E MAIS (DA|DO) (EQUIPE|TIME)/.test(t)) {
     const p = achaPessoa(E, t) || null; const quem = p && p.tipo === 'vend' ? `${nome2(p.alvo.nome)} (${p.alvo.rca} · ${p.alvo.filial})` : 'o vendedor citado';
@@ -103,7 +101,8 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
       ...V.slice(0, n).map((v, i) => `${i + 1}. ${nome2(v.nome)} (${v.rca}) ${E.nacional ? v.filial : ''} — *${Math.round(v.pos / v.metaPos * 100)}%* · ${v.pos} de ${Math.round(v.metaPos)} clientes`)].join('\n');
   }
   // PROJECAO (regra do Vitorio: nunca estimar/projetar): diz que nao projeta e mostra quanto precisa por dia
-  if (/PROJE|PREVISAO|TENDENCIA|VAMOS FECHAR|VAI FECHAR|QUANTO (VAMOS|VAI|IREMOS) FECHAR|FECHAMENTO DO MES|ESTIMATIVA/.test(t)) return '🚫 *Projeção eu não faço* (regra da casa: só número real, nunca estimativa). O que eu mostro é quanto *precisa* por dia para bater a meta:\n\n' + await respFalta(B, E);
+  // TENDENCIA liberada (Vitorio, 26/10/2026: "e matematica pura... so deixa claro que isso e tendencia"): ritmo de faturado+pendente x dias uteis, sempre rotulado
+  if (/PROJE|PREVISAO|TENDENCIA|VAMOS FECHAR|VAI FECHAR|QUANTO (VAMOS|VAI|IREMOS) FECHAR|FECHAMENTO DO MES|ESTIMATIVA/.test(t)) return respTendencia(B, E);
   if (/PERDENDO VENDA|PERDEMOS VENDA|ONDE (ESTAMOS )?PERDE|OPORTUNIDADES?\b/.test(t) && !/\+ ?MIX|MAIS ?MIX/.test(t)) return '🔎 *Onde estamos perdendo venda* (o que mais caiu contra o mês passado até o mesmo dia):\n\n' + await respComparaMes(B, E, 'MES PASSADO', null);
   if (/OFERECER|O QUE (EU )?(POSSO |DEVO )?(VENDER|LEVAR) (PRO|PARA|NO|NA)|SUGESTAO PARA O CLIENTE|(LEVAR|SUGERIR) (PRO|PARA O|PARA A|NO|NA) |PRODUTOS? (LEVAR|OFERECER|SUGERIR)/.test(t)) { const r = await respOferecer(B, E, t); if (r) return r; }
   let pessoa = achaPessoa(E, t);
@@ -214,10 +213,23 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
 }
 
 // pergunta livre: IA gratuita com o resumo do escopo (nunca inventar)
+// ESCOPO DE QUEM PERGUNTA (um lugar so): gerente = filial/grupo; supervisor = equipe; vendedor = ele; diretoria = Brasil ou a filial citada
+// pessoa citada (vendedor/supervisor) -> a pergunta de meta e sobre ela, nao sobre o escopo
+const pessoa0 = (E, t) => { const p = achaPessoa(E, t); return p && p.tipo === 'vend' ? p : null; };
+export function escopoDoContato(c, fm) {
+  const preso = (c.papel === 'gerente' || c.papel === 'supervisor' || c.papel === 'vendedor') && c.filial;
+  const fil = preso ? c.filial : fm ? fm[1] : null;
+  return { preso, fil, grupo: preso ? c.grupo || null : null, supervisor: c.papel === 'supervisor' ? c.supervisor || c.nome : null, rcaV: c.papel === 'vendedor' ? String(c.rca) : null };
+}
 export async function respondeIA(env, B, c, texto, historico) {
   if (!env.AI) return null;
-  const t = sem(texto); const fm = t.match(FRX); const fil = c.papel === 'gerente' && c.filial ? c.filial : fm ? fm[1] : null;
-  let base; try { base = await respResumo(B, await carregaEscopo(B, fil ? { nome: fil, filiais: [fil], grupo: c.papel === 'gerente' ? c.grupo : null, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true })); } catch (e) { base = 'sem dado'; }
+  const t = sem(texto); const fm = t.match(FRX);
+  // VAZAMENTO CORRIGIDO (26/10/2026, Priscila/TPH supervisora: 'minha meta de faturamento?' -> R$ 12,06 mi): a IA recebia o resumo do Brasil (supervisor) ou da filial.
+  // Agora o MESMO escopo das respostas prontas: supervisor ve so a equipe, vendedor so ele.
+  const ec = escopoDoContato(c, fm);
+  const escIA = ec.rcaV ? { nome: nome2(c.nome) + ' (RCA ' + ec.rcaV + ')', filiais: [ec.fil], grupo: null, supervisor: null, rca: ec.rcaV, nacional: false }
+    : ec.fil ? { nome: ec.supervisor ? 'Equipe ' + nome2(ec.supervisor) + ' (' + ec.fil + ')' : ec.fil + (ec.grupo ? ' · ' + titulo(ec.grupo) : ''), filiais: [ec.fil], grupo: ec.supervisor ? null : ec.grupo, supervisor: ec.supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
+  let base; try { base = await respResumo(B, await carregaEscopo(B, escIA)); } catch (e) { base = 'sem dado'; }
   const sys = `Você é o JOTA, o assistente do +MIX da Triunfante no WhatsApp: colega de vendas animado e direto, que usa a linguagem do futebol da Champions Triunfante quando cabe. Responde em português do Brasil como um gerente comercial experiente.
 Quem fala com você: ${titulo(c.nome)}, ${c.papel}${c.filial ? ' da filial ' + c.filial : ' (diretoria nacional: sem filial citada = Brasil todo)'}${c.grupo ? ', grupo ' + c.grupo : ''}.
 REGRAS: use SÓ os números do RESUMO abaixo, exatamente como estão; nunca invente, estime ou projete; sem o dado, diga que não tem e sugira uma pergunta que o Jota responde (ex.: "hoje", "zerados", "por supervisor", "vendedor Nome", "falta", "liga", "+mix", "quem compra Oreo", "compromisso", "devoluções", "pênaltis", "incentivo").
