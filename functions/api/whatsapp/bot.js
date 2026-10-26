@@ -78,10 +78,10 @@ export async function onRequestPost({ request, env }) {
     await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, novo.nome, e0.ok ? 'out' : 'erro', boas).run();
     return new Response('ok');
   }
-  // ESPERA A PESSOA TERMINAR (Vitorio, 26/10/2026: "as pessoas as vezes picam as mensagens... espere um pouco antes de sair respondendo tudo"): 9 s;
+  // ESPERA A PESSOA TERMINAR (Vitorio, 26/10/2026: "as pessoas as vezes picam as mensagens... espere um pouco antes de sair respondendo tudo"): 20 s (era 9 s; 26/10 o Allison corrigiu "vendedor 6" para "62" 11 s depois e recebeu 2 respostas);
   // se chegou outra mensagem dela nesse tempo, esta nao responde (a ultima responde tudo junto, com os pedados somados).
   if (!seco && meuId) {
-    await new Promise((ok) => setTimeout(ok, 9000));
+    await new Promise((ok) => setTimeout(ok, 20000));
     const depois = await env.DB.prepare("SELECT id FROM bot_msgs WHERE celular = ? AND direcao = 'in' AND id > ? LIMIT 1").bind(cel, meuId).first().catch(() => null);
     if (depois) return new Response('ok');
     const { results: pend } = await env.DB.prepare("SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'in' AND id <= ? AND id > COALESCE((SELECT MAX(id) FROM bot_msgs WHERE celular = ? AND direcao IN ('out','erro','figurinha')), 0) AND quando >= datetime('now', '-3 minutes') ORDER BY id").bind(cel, meuId, cel).all().catch(() => ({ results: [] }));

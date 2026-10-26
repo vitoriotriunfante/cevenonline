@@ -88,9 +88,9 @@ export function respSupervisor(E, s) {
     '', V.some((v) => v.zerado) ? SUGESTAO + `ligar agora para ${listaNomes(V.filter((v) => v.zerado), 3)} (rota sem pedido hoje).` : SUGESTAO + 'equipe com pedido hoje; foco em mix nos próximos clientes.'].join('\n');
 }
 export async function respVendedor(B, E, v) {
-  const dn = diasUteisRestantes(); const falta = Math.max(0, v.meta - v.fat), faltaPos = v.metaPos != null && v.pos != null ? Math.max(0, v.metaPos - v.pos) : null;
+  const dn = diasUteisRestantes(); const falta = Math.max(0, v.meta - v.fat - (v.pend || 0)), faltaPos = v.metaPos != null && v.pos != null ? Math.max(0, v.metaPos - v.pos) : null;
   const L = [`🧑‍💼 *${v.rca} - ${titulo(v.nome)}* — ${v.filial} · sup. ${sn(v.supervisor, v.supCod)} · ${v.canal || 'sem canal'}`,
-    `💰 Faturado: *${R$(v.fat)}* de ${R$(v.meta)} → *${pctTxt(v.pct)}* · pendente ${R$(v.pend)}`, `🎯 Falta: ${R$(falta)}` + (falta && dn ? ` · ${R$(falta / dn)} por dia útil (${dn} dias)` : ''),
+    `💰 Faturado: *${R$(v.fat)}* + pendente ${R$(v.pend)} de ${R$(v.meta)} → *${pctTxt(v.meta ? (v.fat + (v.pend || 0)) / v.meta * 100 : null)}* da meta (igual ao CEVEN)`, `🎯 Falta: ${R$(falta)}` + (falta && dn ? ` · ${R$(falta / dn)} por dia útil (${dn} dias)` : ''),
     `👥 Positivação: ${v.pos ?? 'sem dado'} de ${v.metaPos ?? 'sem dado'} (${P(v.pos, v.metaPos)})` + (faltaPos ? ` · faltam ${faltaPos} clientes` : ''),
     `📝 Hoje: ${R$(v.dig)} em ${v.ped} pedido(s)` + ` · ticket ${v.ped ? R$(v.dig / v.ped) : 'sem pedido hoje'}` + (v.varejo ? ` · visitas ${v.visF} de ${v.visP} · com venda ${v.comVenda}` : ''), `↩️ Devolução no mês: ${R$(v.dev)}`];
   if (v.varejo && v.visPlanMes) L.push(`📅 Rota do mês: ${v.visRealMes} de ${v.visPlanMes} visitas (${P(v.visRealMes, v.visPlanMes)})`);
@@ -113,14 +113,14 @@ export async function totaisOficiais(B, E) {
 export async function respFalta(B, E) {
   const dn = diasUteisRestantes(); const x = await totaisOficiais(B, E);
   if (!x.meta) return 'Sem dado agora.';
-  const falta = Math.max(0, x.meta - x.fat), fpos = Math.max(0, x.metaPos - x.pos);
+  /* falta = meta - faturado - pendente (igual ao CEVEN) */ const falta = Math.max(0, x.meta - x.fat - (x.pend || 0)), fpos = Math.max(0, x.metaPos - x.pos);
   const L = [`🎯 *${E.nome} — quanto falta* (${dn} dias úteis seg–sex, sem descontar feriados)`, `💰 Meta ${R$(x.meta)} · faturado ${R$(x.fat)} (${pctTxt(x.pct)}) · pendente ${R$(x.pend)}`,
-    `Falta faturar: *${R$(falta)}* → *${R$(dn ? falta / dn : falta)} por dia útil* (MN)`, `Pendente cobre ${P(Math.min(x.pend, falta), falta || 1)} do que falta`,
+    `Falta (meta − faturado − pendente): *${R$(falta)}* → *${R$(dn ? falta / dn : falta)} por dia útil* (MN)`,
     `👥 Positivação: falta *${N(fpos)}* clientes → *${N(dn ? Math.ceil(fpos / dn) : fpos)} por dia útil*`, ''];
   // ABRE UM NIVEL ABAIXO (26/10/2026: o Allison recebia "quem mais falta (supervisor): Allison"): supervisor -> vendedores
   const porVend = !!E.supervisor;
-  const G = porVend ? E.vend.filter((v) => v.meta > 0).map((v) => [vn(v), Math.max(0, v.meta - v.fat), { pct: v.pct }]).sort((a, b) => b[1] - a[1])
-    : [...agrupa(E.vend, (v) => E.nacional ? v.filial : supChave(v, false))].filter(([k]) => supReal(k)).map(([k, y]) => [k, Math.max(0, y.meta - y.fat), y]).sort((a, b) => b[1] - a[1]);
+  const G = porVend ? E.vend.filter((v) => v.meta > 0).map((v) => [vn(v), Math.max(0, v.meta - v.fat - (v.pend || 0)), { pct: v.meta ? (v.fat + (v.pend || 0)) / v.meta * 100 : null }]).sort((a, b) => b[1] - a[1])
+    : [...agrupa(E.vend, (v) => E.nacional ? v.filial : supChave(v, false))].filter(([k]) => supReal(k)).map(([k, y]) => [k, Math.max(0, y.meta - y.fat - (y.pend || 0)), { ...y, pct: y.meta ? (y.fat + (y.pend || 0)) / y.meta * 100 : null }]).sort((a, b) => b[1] - a[1]);
   const nm = (k) => (E.nacional || porVend ? k : nome2(k));
   L.push(`*Quem mais falta (${E.nacional ? 'filial' : porVend ? 'vendedor' : 'supervisor'}):*`, ...G.slice(0, 10).map(([k, f, y]) => `• ${nm(k)}: ${R$(f)} (${pctTxt(y.pct)})`));
   L.push('', SUGESTAO + (G[0] ? `o maior buraco é ${nm(G[0][0])}: ${R$(G[0][1])}.` : 'manter o ritmo.'));

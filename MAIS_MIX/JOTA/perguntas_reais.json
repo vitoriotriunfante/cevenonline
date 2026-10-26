@@ -740,5 +740,38 @@
    "TOP 20 VENDEDORES"
   ],
   "nao": []
+ },
+ {
+  "id": "brenda-falta-tira-pendente",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPA",
+   "nome": "ANDERSON GIOVANI FERREIRA BOLTER",
+   "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER"
+  },
+  "pergunta": "vendedor 150",
+  "deve": [
+   "FALTA: R. 18",
+   "60,0%"
+  ],
+  "nao": [
+   "47,4%"
+  ]
+ },
+ {
+  "id": "allison-corrigiu-vendedor",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPH",
+   "nome": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+   "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO"
+  },
+  "pergunta": "Quanto falta para o vendedor 6?. Quanto falta para o vendedor 62?",
+  "deve": [
+   "62 - IRACEMA"
+  ],
+  "nao": [
+   "QUEM MAIS FALTA"
+  ]
  }
 ]
