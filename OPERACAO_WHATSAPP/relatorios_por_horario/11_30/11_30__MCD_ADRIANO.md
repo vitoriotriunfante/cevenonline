@@ -1,10 +1,10 @@
 🏢 *FILIAL MCD — GESTÃO DE CAMPO*
-📅 23/10/2026 • Gerente: Adriano
+📅 26/10/2026 • Gerente: Adriano
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 *PAINEL DE ATIVIDADES (3 SUPERVISORES):*
 📝 Compromissos: *3 de 3* lançados
-🚗 Em Rota (RET): *1 de 3* em campo
+🚗 Em Rota (RET): *0 de 3* em campo
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -18,6 +18,4 @@
 
 👤 *CLEOMAR DINIZ BARBOSA*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 09:31)
-└ 👥 RCA: FRANCIELE BRUNETTO FRANCA
-└ 📍 3 PDVs visitados • 📸 5 fotos • Score: 95%
+🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
