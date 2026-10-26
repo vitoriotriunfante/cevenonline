@@ -633,5 +633,112 @@
   "nao": [
    "HOJE NO BRASIL"
   ]
+ },
+ {
+  "id": "priscila-fat-e-pos",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPH",
+   "nome": "PRISCILA A D NASCIMENTO STRAPASSON",
+   "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON"
+  },
+  "pergunta": "Faturamento e positivação do dia 1 do 10 ao dia 26 do 10.",
+  "deve": [
+   "FATURADO",
+   "POSITIVACAO"
+  ],
+  "nao": []
+ },
+ {
+  "id": "priscila-fat-outubro",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPH",
+   "nome": "PRISCILA A D NASCIMENTO STRAPASSON",
+   "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON"
+  },
+  "pergunta": "E em relação ao faturamento, como eu estou nesse mês de outubro?",
+  "deve": [
+   "EQUIPE PRISCILA",
+   "FATURADO"
+  ],
+  "nao": [
+   "7.2"
+  ]
+ },
+ {
+  "id": "priscila-equipe-54",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPH",
+   "nome": "PRISCILA A D NASCIMENTO STRAPASSON",
+   "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON"
+  },
+  "pergunta": "Eu gostaria de saber em relação a minha equipe, equipe 54.",
+  "deve": [
+   "EQUIPE PRISCILA"
+  ],
+  "nao": [
+   "ZERADOS: 9"
+  ]
+ },
+ {
+  "id": "priscila-citados-mes",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPH",
+   "nome": "PRISCILA A D NASCIMENTO STRAPASSON",
+   "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON"
+  },
+  "pergunta": "Os citados desse mês.",
+  "deve": [
+   "PEDIDOS DE 01/10",
+   "TOTAL"
+  ],
+  "nao": []
+ },
+ {
+  "id": "leandro-fat-atualizado",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TCV",
+   "nome": "LEANDRO MARINHO ABRANCHES",
+   "supervisor": "LEANDRO MARINHO ABRANCHES"
+  },
+  "pergunta": "Qual faturamento atualizado da minha equipe hoje",
+  "deve": [
+   "FATURADO",
+   "DIGITADO HOJE"
+  ],
+  "nao": []
+ },
+ {
+  "id": "vitorio-rota-hoje",
+  "perfil": {
+   "nome": "VITORIO",
+   "papel": "diretoria",
+   "filial": null,
+   "supervisor": null
+  },
+  "pergunta": "como esta a rota hoje?",
+  "deve": [
+   "VAREJO DE ROTA",
+   "VISITAS DA ROTA"
+  ],
+  "nao": []
+ },
+ {
+  "id": "vitorio-liga-por-vendedor",
+  "perfil": {
+   "nome": "VITORIO",
+   "papel": "diretoria",
+   "filial": null,
+   "supervisor": null
+  },
+  "pergunta": "qaul a classificação da liga por vendedor do varejo?",
+  "deve": [
+   "TOP 20 VENDEDORES"
+  ],
+  "nao": []
  }
 ]

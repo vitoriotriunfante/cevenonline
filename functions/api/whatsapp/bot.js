@@ -60,10 +60,10 @@ export async function onRequestPost({ request, env }) {
     const novo = await cadastraPorCodigo(env, cel, texto, d.pushName);
     if (!novo) {
       // 26/10/2026: supervisor que se apresenta e nao e achado na arvore ficava SEM RESPOSTA. Agora: resposta educada + aviso ao Vitorio (1x por numero por dia).
-      if (!seco && /SUPERVIS|SETOR|EQUIPE|AREA|\bCOD|CODIGO|COORDENADOR|GERENTE/.test(sem(texto))) {
+      if (!seco && /SUPERVIS|SETOR|EQUIPE|AREA|\bCOD|CODIGO|COORDENADOR|GERENTE/.test(sem(texto)) || ehSaudacao(texto)) {   /* 26/10/2026: 'Boa tarde' de numero desconhecido ficava sem resposta */
         const ja = await env.DB.prepare("SELECT COUNT(*) n FROM bot_msgs WHERE celular = ? AND direcao = 'out' AND date(quando,'-3 hours') = date('now','-3 hours')").bind(cel).first().catch(() => ({ n: 1 }));
         if (!ja || !ja.n) {
-          const msg = `Oi! Eu sou o *Jota* ⚽, do Comercial da Triunfante. Não consegui confirmar seu cadastro pelo código que você mandou. Já avisei a diretoria para liberar seu acesso; assim que liberar, eu te aviso aqui.`;
+          const msg = `Oi! Eu sou o *Jota* ⚽, do Comercial da Triunfante. Ainda não achei seu cadastro. Me manda seu *nome completo* e o *código* de supervisor do CEVEN (ex.: "Fulano de Tal - COD 65"). Já avisei a diretoria; assim que liberar, eu te aviso aqui.`;
           const e1 = await enviar(env, destino, msg);
           await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, d.pushName || null, e1.ok ? 'out' : 'erro', msg).run();
           for (const tv of ['554187525605']) { try { await enviar(env, tv, `🔔 *Jota — pedido de acesso (não achei na árvore)*\nCelular: ${cel}${d.pushName ? ' (' + d.pushName + ')' : ''}\nMensagem: ${String(texto).slice(0, 300)}`); } catch (e) {} }
