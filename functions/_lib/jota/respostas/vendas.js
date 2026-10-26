@@ -170,3 +170,20 @@ export async function respMarcaPropriaVivo(B, E, t) {
   return [`🎯 *Marca Própria${marca ? ' — ' + titulo(marca) : ''}* (${E.nome}, mês até ${dIso(ult)})`, `Mês: *${R$(mes)}* · ${new Set(L.map((l) => l.f + '|' + l.c)).size} clientes · ontem: *${R$(ont)}*`, '',
     ...G.slice(0, 12).map(([k, x]) => `• ${E.nacional ? k : vend.get(k) || 'RCA ' + k}: ${R$(x.v)} · ${x.cli.size} cli.`), '_Fonte: vendas item a item (fornecedor Triunfante do catálogo)._'].join('\n');
 }
+
+// PEDIDO PELO NUMERO (Ivayr/TCA, 26/10/2026: "ja faturou o pedido 1190000030"; Vitorio: "vc tem o numero do pedido... status, o que veio no pedido, se teve corte").
+// Fonte: base do dia (/api/pedidos-dia = analise do coletor, cache_analise_cliente): numero, status, valor, faturado no Winthor, corte e itens cortados.
+// Escopo: so pedido de vendedor que a pessoa enxerga. Fora da base = diz a verdade.
+export async function respPedidoNumero(B, E, t) {
+  const num = (t.match(/\d{7,}/) || [''])[0]; if (!num) return null;
+  const pd = await B.pedidosDia(); const P = ((pd && pd.pedidos) || []).find((p) => String(p.num) === num);
+  const meu = (p) => E.nacional || E.vend.concat(E.ocultos || []).some((v) => v.filial === p.filial && String(v.rca) === String(p.rca));
+  if (!P) return `🔎 *Pedido ${num}*: não está na base de hoje. A base lê o pedido de cada cliente positivado dos vendedores acompanhados (Liga), alguns minutos depois de o pedido entrar; pedido de outro dia ou de código fora desse acompanhamento ainda não aparece aqui. _Anotei para a diretoria._`;
+  if (!meu(P)) return `🔎 O pedido ${num} não é da sua equipe.`;
+  const v = E.vend.concat(E.ocultos || []).find((x) => x.filial === P.filial && String(x.rca) === String(P.rca));
+  const corte = (P.itens_cortados || []).length ? `✂️ *Corte:* ${P.categoria_corte || 'sim'} · ${P.itens_cortados.length} item(ns) cortado(s)` + (P.vl_perdido_logistica ? ` · ${R$(P.vl_perdido_logistica)} perdido` : '') : `✂️ Corte: ${P.categoria_corte || 'sem corte'}`;
+  return [`🧾 *Pedido ${num}* — ${v ? vn(v) : 'RCA ' + P.rca} (${P.filial}) · cliente #${P.id_cliente}`,
+    `📌 *Status:* ${P.status_pedido || 'sem status'}` + (/BLOQ/i.test(P.status_pedido || '') ? ' _(pendência comercial/crédito: ainda não fatura)_' : /LIBER/i.test(P.status_pedido || '') ? ' _(liberado para faturar)_' : ''),
+    `💰 Valor do pedido: ${R$(P.total_clube || P.valor)}` + (P.vl_faturado_winthor ? ` · valor no Winthor: ${R$(P.vl_faturado_winthor)}` : ''),
+    corte, `_Lido da base às ${new Date(P.analisado_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}._`].join('\n');
+}
