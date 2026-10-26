@@ -423,3 +423,9 @@ Plano (um número, um lugar):
 - C. WhatsApp: remover "Total" do arquivo velho e o CNAE estimado (precisa liberação do Vitório — Projeto B).
 - D. Conferência automática: a cada ciclo comparar o endpoint com o CEVEN para uma amostra; divergência vira alerta, não número.
 Status 26/10: feita só a proteção "lidos X de Y vendedores" na Matriz (commit 835c90c4, não publicada). A–D pendentes.
+Atualização 26/10/2026 (mesma manhã):
+- Causa raiz medida: CEVEN responde 429 (Too Many Requests); roteiro gravado em fatias falha e 207 RCAs ficaram sem roteiro na base às 08h; produtividade (lida a cada rodada) cobre 341 de 351 vendedores de varejo.
+- FEITO (commit bad524a4): `functions/api/totais-dia.js` = número único (programadas=total_programado, feitas=visitas_na_rota, zerado=com rota e sem digitado/positivação; universo = Gestão de Equipe varejo de campo; informa lidos/vendedores e quem falta). Matriz (cabeçalho, filial, lista de zerados), TV da filial (zerados) e abertura 07:45 do WhatsApp (geral e por gerente) leem dele. Abertura sem "de N (Total)" (somava todas as contas, outro universo) e sem "+N PDVs CNAE" (visitas × fator = estimativa).
+- Correção do diagnóstico anterior: o arquivo da árvore é regenerado a cada disparo no GitHub; o problema do "Total" era o universo (todas as contas), não arquivo velho.
+- ORDEM DE PUBLICAÇÃO: 1º `node publicar_tv.js` (sobe /api/totais-dia), conferir /api/totais-dia; 2º push da main (motor do WhatsApp). Ao contrário, a abertura sai "sem dado".
+- Pendente: D (conferência automática com o CEVEN) e reduzir chamadas ao vivo que geram o 429.
