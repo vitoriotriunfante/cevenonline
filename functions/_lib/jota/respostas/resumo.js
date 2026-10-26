@@ -4,7 +4,7 @@
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
 import { sn } from '../escopo.js';
-import { N, P, R$, SUGESTAO, VAREJO, diasUteisRestantes, nome2, sem, titulo, vn } from '../base.js';
+import { N, P, R$, SUGESTAO, VAREJO, diasUteisRestantes, hojeSP, nome2, sem, titulo, vn } from '../base.js';
 import { agrupa, listaNomes, pctTxt, supChave, supNome, supReal } from '../escopo.js';
 import { diasUteisMes } from './gestao.js';
 
@@ -100,6 +100,30 @@ export async function respVendedor(B, E, v) {
   if (mv) L.push(`🧺 +MIX: ${String(mv.mix_medio).replace('.', ',')} produtos/cliente · uso ${mv.uso_pct == null ? 'sem dado' : String(mv.uso_pct).replace('.', ',') + '%'}`);
   const lc = await B.lances(); const hj = lc ? (lc.lances || []).filter((l) => String(l.rca) === v.rca && l.filial === v.filial) : [];
   if (hj.length) { const c = {}; for (const l of hj) c[l.pontos_nome || l.nivel] = (c[l.pontos_nome || l.nivel] || 0) + 1; L.push(`⚽ Hoje na Liga: *${hj.reduce((a, l) => a + (l.pontos || 0), 0)} pontos* em ${hj.length} lance(s) — ` + Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, n]) => `${n}× ${k}`).join(' · ')); }
+  // PROATIVO (Vitorio, 26/10/2026: "como faltam 15 positivacoes para ela, esses sao os clientes que ela ja visitou e nao vendeu esse mes... com a data da visita e
+  // quanto tempo estao sem compras"). Fonte: roteiro do mes do vendedor (base). Visitou (check-in) e o cliente nao comprou no mes.
+  if (faltaPos && Array.isArray(v.roteiroMes) && v.roteiroMes.length) {
+    const mes = hojeSP().slice(0, 7), C = new Map();
+    // quem COMPROU no mes = vendas item a item (pedido na visita ou fora dela); o status da rota sozinho nao enxerga pedido feito fora da visita
+    const { vendasEscopo } = await import('./vendas.js'); const VM = await vendasEscopo(B, { ...E, filiais: [v.filial], rca: v.rca, vend: [v] }).catch(() => null);
+    // ULTIMA COMPRA REAL = historico do +MIX (cnpj -> 'cod:AAMMDD', 60 dias antes do mes). A data_ultima_compra do roteiro nao serve: 75 clientes da Brenda
+    // vinham com 05/12/2025 (valor-padrao do CEVEN). Fora do historico = sem compra nos ultimos 60 dias.
+    let H = {}; try { H = JSON.parse(await B.raw(`public/mix_hist/${v.filial}.json`) || '{}').c || {}; } catch (e) { H = {}; }
+    const ultH = (cnpj) => { const x = H[String(cnpj || '').replace(/D/g, '')]; if (!x) return null; const m = String(x).split(',').map((p) => p.split(':')[1]).filter(Boolean).sort().pop(); return m ? `20${m.slice(0, 2)}-${m.slice(2, 4)}-${m.slice(4, 6)}` : null; };
+    const compraram = new Set(((VM && VM.linhas) || []).filter((l) => String(l.r) === String(v.rca)).map((l) => String(l.c)));
+    for (const r of v.roteiroMes) {
+      const k = String(r.id_cliente || r.cnpj || ''); if (!k) continue;
+      const c = C.get(k) || { nome: r.nome_cliente || r.razao_social || 'Cliente', vis: '', uc: ultH(r.cnpj) || '', comprou: false };
+      if (/POSITIVADO|EFETIVADO/.test(String(r.status || ''))) c.comprou = true;
+      
+      if (r.checkin_horario && String(r.data_visita || '') > c.vis) c.vis = String(r.data_visita).slice(0, 10);
+      C.set(k, c);
+    }
+    const dias = (d) => (d ? Math.round((Date.parse(hojeSP()) - Date.parse(d)) / 864e5) : null);
+    const lista = [...C.entries()].filter(([k, c]) => c.vis && !c.comprou && !(c.uc >= mes) && !compraram.has(k)).map(([k, c]) => ({ k, ...c, sem: dias(c.uc) })).sort((a, b) => (a.sem ?? 9999) - (b.sem ?? 9999));   /* quem comprou ha menos tempo primeiro: mais facil de recuperar */
+    if (lista.length) L.push('', `📌 *Faltam ${faltaPos} positivações — clientes que ${titulo(String(v.nome).split(' ')[0])} já visitou e não vendeu no mês (${lista.length}):*`,
+      ...lista.slice(0, 20).map((c) => `• ${titulo(c.nome)} (#${c.k}) · visita ${c.vis.slice(8, 10)}/${c.vis.slice(5, 7)} · ${c.sem == null ? 'sem compra nos últimos 60 dias' : 'última compra ' + c.uc.slice(8, 10) + '/' + c.uc.slice(5, 7) + ' (' + c.sem + ' dias)'}`), lista.length > 20 ? `… e mais ${lista.length - 20}` : '');
+  }
   L.push('', SUGESTAO + (v.zerado ? 'está com rota e sem pedido hoje: ligar já.' : falta > 0 ? `precisa de ${R$(falta / Math.max(dn, 1))} por dia útil; priorizar clientes curva A e o +MIX.` : 'meta financeira batida; buscar positivação e mix.'));
   return L.join('\n');
 }
