@@ -502,7 +502,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
     vjTotal: 0, vjCom: 0, vjSem: 0, asTotal: 0, asCom: 0, asSem: 0,
     inativosRota: 0, inativosRecuperados: 0, recorrenciaPositivados: 0,
     cortesValor: 0, cortesQtd: 0, bloqueadosValor: 0, bloqueadosQtd: 0, itensCortados: [],
-    devolucoesValor: 0, supervisores: {}
+    devolucoesValor: 0, devFaltam: 0, supervisores: {}
   });
   const filialResult = {};
   for (const [fKey, meta] of Object.entries(FILIAIS_MAP)) filialResult[meta.sigla] = novoResultado(meta.sigla, meta.gerente);
@@ -551,12 +551,14 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
         const [diaData, finData, devData] = await Promise.all([
           safeGet(`${CEVEN_BASE}/api/rca/produtividade?filial=${fKey}&id=${rca.codigo}`),
           safeGet(`${CEVEN_BASE}/api/rca/dashboard?filial=${fKey}&id=${rca.codigo}`),
-          safeGet(`${CEVEN_BASE}/api/rca/devolucoes?filial=${fKey}&id=${rca.codigo}`)
+          // 26/10/2026: devolucao do dia NAO trava o relatorio (17:00 ficou 50 min esperando 274 listas). Sem a lista na base: a linha sai 'aguardando', sem numero.
+          safeGet(`${CEVEN_BASE}/api/rca/devolucoes?filial=${fKey}&id=${rca.codigo}`).catch(() => null)
         ]);
 
         const dia = diaData?.dia || {};
         const fin = finData?.financeiro || {};
         const pos = finData?.positivacao || {};
+        if (!Array.isArray(devData)) resFil.devFaltam++;
         const devs = Array.isArray(devData) ? devData : [];
 
         const prog = parseInt(dia.total_programado || dia.visitas_programadas || 0, 10);
@@ -1160,7 +1162,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       bloqueadosValor: f.bloqueadosValor || 0,
       bloqueadosQtd: f.bloqueadosQtd || 0,
       itensCortados: f.itensCortados || [],
-      devolucoesValor: f.devolucoesValor || 0,
+      devolucoesValor: f.devolucoesValor || 0, devFaltam: f.devFaltam || 0,
       pctCom,
       pctSem,
       supervisores: f.supervisores
@@ -1173,7 +1175,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
   let totFat = 0, totPed = 0, totVis = 0, totRot = 0;
   let totVj = 0, totVjCom = 0, totVjSem = 0;
   let totInatRota = 0, totInatRec = 0, totRec = 0;
-  let totCortes = 0, totCortesQtd = 0, totBloq = 0, totBloqQtd = 0, totDev = 0;
+  let totCortes = 0, totCortesQtd = 0, totBloq = 0, totBloqQtd = 0, totDev = 0, totDevFaltam = 0;
   ranking.forEach(r => {
     totFat += r.fat;
     totPed += r.ped;
@@ -1189,7 +1191,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
     totCortesQtd += r.cortesQtd;
     totBloq += r.bloqueadosValor;
     totBloqQtd += r.bloqueadosQtd;
-    totDev += r.devolucoesValor;
+    totDev += r.devolucoesValor; totDevFaltam += r.devFaltam || 0;
   });
 
   const pctGeralCom = totVj > 0 ? ((totVjCom / totVj) * 100).toFixed(1).replace('.', ',') : '0,0';
@@ -1212,7 +1214,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       if (r.recorrenciaPositivados > 0) conquistas.push(`🔄 Recorrência: ${r.recorrenciaPositivados} PDVs`);
       b += conquistas.join(' • ') + '\n';
       b += `✂️ Cortes: R$ ${fmtMoeda(r.cortesValor)} (${r.cortesQtd} ped) • 🔒 Bloqueados: R$ ${fmtMoeda(r.bloqueadosValor)} (${r.bloqueadosQtd} ped)\n`;
-      b += `🚛 Devoluções Entradas Hoje: R$ ${fmtMoeda(r.devolucoesValor)}`;
+      b += `🚛 Devoluções Entradas Hoje: ${r.devFaltam ? 'aguardando a base (' + r.devFaltam + ' vendedor(es) sem a lista)' : 'R$ ' + fmtMoeda(r.devolucoesValor)}`;
       return b;
     });
 
@@ -1231,7 +1233,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       `🚨 *PERDAS E ATENÇÃO OPERACIONAL HOJE:*`,
       `✂️ *Cortes nos Pedidos de Hoje:* R$ ${fmtMoeda(totCortes)} (${totCortesQtd} pedidos afetados)`,
       `🔒 *Pedidos Bloqueados Hoje:* R$ ${fmtMoeda(totBloq)} (${totBloqQtd} pedidos retidos)`,
-      `🚛 *Devoluções Entradas Hoje:* R$ ${fmtMoeda(totDev)}`,
+      `🚛 *Devoluções Entradas Hoje:* ${totDevFaltam ? "aguardando a base (" + totDevFaltam + " vendedor(es) sem a lista)" : "R$ " + fmtMoeda(totDev)}`,
       `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
       `🏆 *RANKING FINAL DE FECHAMENTO (11 FILIAIS):*`,
       ``,
@@ -1248,7 +1250,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       b += `📍 Visitas Varejo: ${r.vis} de ${r.rot} (${r.efici}%) • Eficácia: ${r.efica}%\n`;
       b += `👥 Varejo com Pedido: ${r.vjCom} de ${r.vjTotal} (${r.pctCom}%) | 🚨 Varejo SEM PEDIDO: *${r.vjSem} (${r.pctSem}%)*\n`;
       b += `✂️ Cortes: R$ ${fmtMoeda(r.cortesValor)} (${r.cortesQtd} ped) • 🔒 Bloqueados: R$ ${fmtMoeda(r.bloqueadosValor)} (${r.bloqueadosQtd} ped)\n`;
-      b += `🚛 Devoluções Entradas Hoje: R$ ${fmtMoeda(r.devolucoesValor)}`;
+      b += `🚛 Devoluções Entradas Hoje: ${r.devFaltam ? 'aguardando a base (' + r.devFaltam + ' vendedor(es) sem a lista)' : 'R$ ' + fmtMoeda(r.devolucoesValor)}`;
       return b;
     });
 
@@ -1272,7 +1274,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       `🚨 *PERDAS E ATENÇÃO OPERACIONAL HOJE:*`,
       `✂️ *Cortes nos Pedidos de Hoje:* R$ ${fmtMoeda(totCortes)} (${totCortesQtd} pedidos afetados)`,
       `🔒 *Pedidos Bloqueados Hoje:* R$ ${fmtMoeda(totBloq)} (${totBloqQtd} pedidos retidos)`,
-      `🚛 *Devoluções Entradas Hoje:* R$ ${fmtMoeda(totDev)}`,
+      `🚛 *Devoluções Entradas Hoje:* ${totDevFaltam ? "aguardando a base (" + totDevFaltam + " vendedor(es) sem a lista)" : "R$ " + fmtMoeda(totDev)}`,
       ``,
       `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
       `📊 *DESEMPENHO POR FILIAL (RANKING DE VENDAS)*`,
@@ -1294,7 +1296,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
     m += `👥 *Vendedores Varejo com Pedido:* ${r.vjCom} de ${r.vjTotal} (${r.pctCom}%)\n`;
     m += `✂️ *Cortes nos Pedidos de Hoje:* R$ ${fmtMoeda(r.cortesValor)} (${r.cortesQtd} pedidos afetados)\n`;
     m += `🔒 *Pedidos Bloqueados Hoje:* R$ ${fmtMoeda(r.bloqueadosValor)} (${r.bloqueadosQtd} pedidos retidos)\n`;
-    m += `🚛 *Devoluções Entradas Hoje:* R$ ${fmtMoeda(r.devolucoesValor)}\n`;
+    m += `🚛 *Devoluções Entradas Hoje:* ${r.devFaltam ? 'aguardando a base (' + r.devFaltam + ' vendedor(es) sem a lista)' : 'R$ ' + fmtMoeda(r.devolucoesValor)}\n`;
 
     // Se houver cortes na filial, detalhar os primeiros para ação rápida do gerente
     if (r.itensCortados && r.itensCortados.length > 0) {
@@ -1537,11 +1539,8 @@ async function main() {
     console.log(`🔑 Sessão CEVEN Admin autenticada com sucesso.`);
   } catch (e) {
     console.warn(`⚠️ Erro ao autenticar no CEVEN Admin: ${e.message}`);
-    if (destino !== 'dry_run') {
-      // antes o ciclo terminava com 'sucesso' sem enviar nada e ninguem percebia
-      console.error('❌ Sem login de administrador no CEVEN: ciclo ABORTADO, nenhuma mensagem enviada.');
-      process.exit(1);
-    }
+    // 26/10/2026: o 14:30 ABORTOU porque o login de admin deu timeout do GitHub. Todos os dados do motor vem da BASE UNICA (site), nao do CEVEN: segue sem o login.
+    console.warn('⚠️ Sem login de administrador no CEVEN: seguindo so com a base unica (o motor nao depende do CEVEN).');
   }
 
   // 0) Abertura Matinal (07:00)
@@ -1659,7 +1658,7 @@ async function main() {
 
   // A) Gestão de Campo (Compromissos & RETs)
   if (acao === 'gestao_campo' || acao === 'completo') {
-    if (token) {
+    {   /* le a base (/api/tv-supervisores); nao precisa do login do CEVEN */
       const auditoria = await ateCompletar('Gestão de Campo', () => coletarAuditoriaCampo(token, dataHoje, repsMap));
       console.log(`✅ Auditoria de campo processada para 11 filiais.`);
 
