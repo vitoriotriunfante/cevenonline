@@ -77,6 +77,7 @@ function telaLogin(erro) {
 async function carrega() { try { D = await api('GET'); desenha(); } catch (e) { if (e.message !== 'senha') $('raiz').innerHTML = `<div class="card">Erro: ${esc(e.message)}</div>`; } }
 const opts = (L, sel, vazio) => (vazio !== undefined ? `<option value="">${vazio}</option>` : '') + L.map((x) => `<option value="${esc(x)}"${x === sel ? ' selected' : ''}>${esc(x)}</option>`).join('');
 function supsDaFilial(f) { return [...new Set((D.supervisores_arvore || []).filter((s) => s.filial === f).map((s) => String(s.sup_nome).replace(/^CLT\s*-?\s*/i, '')))]; }
+let ABA = (() => { try { return localStorage.getItem('contatos_aba') || 'contatos'; } catch (e) { return 'contatos'; } })(), FS = '';
 function desenha() {
   const C = D.contatos, pend = C.filter((c) => c.situacao === 'pendente');
   const cont = (p) => C.filter((c) => c.papel === p && c.situacao === 'ativo').length;
@@ -87,15 +88,39 @@ function desenha() {
   const jaTem = new Set(C.flatMap((c) => [c.filial + '|' + nrm(c.nome), c.filial + '|' + nrm(c.supervisor)]));
   const prim2 = (s) => nrm(s).split(' ').slice(0, 2).join(' ');
   const jaTem2 = new Set(C.map((c) => c.filial + '|' + prim2(c.nome)));
-  const semAcesso = [...new Map((D.supervisores_arvore || []).filter((s) => !/^(GERENTE|VAGO|SEM SUPERVISOR|RCAS INATIVOS|VENDA EMPRESA|SUPERVISAO GERAL|SUPERVISOR d)/.test(nrm(s.sup_nome)))
-    .filter((s) => !jaTem.has(s.filial + '|' + nrm(s.sup_nome)) && !jaTem2.has(s.filial + '|' + prim2(s.sup_nome))).map((s) => [s.filial + '|' + nrm(s.sup_nome), s])).values()];
-  $('raiz').innerHTML = `<div id="msg" class="msg"></div>
+  const semAcesso = [...new Map((D.supervisores_arvore || []).filter((s) => !/^(GERENTE|VAGO|SEM SUPERVISOR|RCAS INATIVOS|VENDA EMPRESA|SUPERVISAO GERAL|SUPERVISOR \d)/.test(nrm(s.sup_nome)))
+    .filter((s) => !jaTem.has(s.filial + '|' + nrm(s.sup_nome)) && !jaTem2.has(s.filial + '|' + prim2(s.sup_nome))).map((s) => [s.filial + '|' + nrm(s.sup_nome), s])).values()]
+    .sort((a, b) => (a.filial + a.sup_nome).localeCompare(b.filial + b.sup_nome));
+  // ABA SEPARADA (Vitorio, 26/10/2026: "coloque isso em uma aba aqui dentro para nao atrapalhar... filtro por filial e envie para as filiais... botao para excluir da lista")
+  const EXC = new Set((D.sem_acesso_excluidos || []).map((x) => x.filial + '|' + x.sup_id));
+  const faltam = semAcesso.filter((s) => !EXC.has(s.filial + '|' + s.sup_id)), vis = faltam.filter((s) => !FS || s.filial === FS);
+  const abas = `<div class="filtros" style="margin-bottom:12px"><button data-aba="contatos" class="${ABA === 'contatos' ? 'pri' : ''}">👥 Contatos</button> <button data-aba="sem" class="${ABA === 'sem' ? 'pri' : ''}">👀 Supervisores sem acesso (${faltam.length})</button></div>`;
+  const ligaAbas = () => document.querySelectorAll('[data-aba]').forEach((x) => (x.onclick = () => { ABA = x.dataset.aba; try { localStorage.setItem('contatos_aba', ABA); } catch (e) {} desenha(); }));
+  if (ABA === 'sem') {
+    const exL = (D.sem_acesso_excluidos || []).filter((x) => !FS || x.filial === FS);
+    $('raiz').innerHTML = `<div id="msg" class="msg"></div>${abas}
+    <div class="card"><h2>👀 Supervisores da árvore do CEVEN que ainda não pediram acesso (${vis.length}${FS ? ' em ' + esc(FS) : ''})</h2>
+      <p class="mut">Eles precisam mandar para o Jota: nome + código de supervisor (ex.: "Maria Silva, supervisora, código 45"). Gerente ou inativo: clique em "excluir da lista" e ele não aparece nem é enviado.</p>
+      <div class="filtros"><select id="s_fil">${opts(D.filiais, FS, 'todas as filiais')}</select> <button class="pri" id="s_env" ${FS && vis.length ? '' : 'disabled'}>📲 Enviar a lista para o gerente da ${esc(FS || 'filial')}</button> ${FS ? '' : '<span class="mut">escolha a filial para enviar</span>'}</div>
+      <div class="tabela"><table><thead><tr><th>Filial</th><th>Código</th><th>Supervisor</th><th></th></tr></thead><tbody>
+      ${vis.map((s) => `<tr><td>${esc(s.filial)}</td><td>${esc(s.sup_id || '')}</td><td>${esc(tit(String(s.sup_nome).replace(/^CLT\s*-?\s*/i, '')))}</td><td><button class="no" data-ex="${esc(s.filial)}|${esc(s.sup_id)}|${esc(s.sup_nome)}">excluir da lista</button></td></tr>`).join('') || '<tr><td colspan="4" class="mut">ninguém faltando</td></tr>'}</tbody></table></div></div>
+    ${exL.length ? `<div class="card"><h2>🚫 Excluídos da lista (${exL.length})</h2><div class="tabela"><table><thead><tr><th>Filial</th><th>Código</th><th>Nome</th><th>Motivo</th><th></th></tr></thead><tbody>
+      ${exL.map((x) => `<tr><td>${esc(x.filial)}</td><td>${esc(x.sup_id)}</td><td>${esc(tit(x.sup_nome || ''))}</td><td class="mut">${esc(x.motivo || '')}</td><td><button class="ok" data-re="${esc(x.filial)}|${esc(x.sup_id)}">reincluir</button></td></tr>`).join('')}</tbody></table></div></div>` : ''}`;
+    ligaAbas();
+    $('s_fil').onchange = (e) => { FS = e.target.value; desenha(); };
+    document.querySelectorAll('[data-ex]').forEach((x) => (x.onclick = async () => { const [f, id, nome] = x.dataset.ex.split('|'); const motivo = prompt(`Excluir ${tit(nome)} (${f}) da lista? Motivo (ex.: gerente, inativo):`, 'gerente'); if (motivo === null) return;
+      try { await api('POST', { acao: 'excluir_sem_acesso', filial: f, sup_id: id, sup_nome: nome, motivo }); aviso('Excluído da lista.', 'ok'); await carrega(); } catch (e) { if (e.message !== 'senha') aviso(e.message, 'erro'); } }));
+    document.querySelectorAll('[data-re]').forEach((x) => (x.onclick = async () => { const [f, id] = x.dataset.re.split('|');
+      try { await api('POST', { acao: 'reincluir_sem_acesso', filial: f, sup_id: id }); aviso('Reincluído.', 'ok'); await carrega(); } catch (e) { if (e.message !== 'senha') aviso(e.message, 'erro'); } }));
+    const env = $('s_env'); if (env) env.onclick = async () => { if (!confirm(`Enviar pelo WhatsApp para o(s) gerente(s) da ${FS} a lista de ${vis.length} supervisor(es) sem acesso?`)) return;
+      try { const r = await api('POST', { acao: 'enviar_sem_acesso', filial: FS, lista: vis.map((s) => ({ sup_id: s.sup_id, sup_nome: String(s.sup_nome).replace(/^CLT\s*-?\s*/i, '') })) }); aviso(r.enviados && r.enviados.length ? 'Enviado para: ' + r.enviados.map(tit).join(', ') : 'Não consegui enviar.', r.enviados && r.enviados.length ? 'ok' : 'erro'); } catch (e) { if (e.message !== 'senha') aviso(e.message, 'erro'); } };
+    return;
+  }
+  $('raiz').innerHTML = `<div id="msg" class="msg"></div>${abas}
   <div class="kpis">${['diretoria', 'gerente', 'supervisor', 'vendedor'].map((p) => `<div class="kpi"><b>${cont(p)}</b><span>${p} ativo(s)</span></div>`).join('')}<div class="kpi"><b style="color:var(--amarelo)">${pend.length}</b><span>pedido(s) pendente(s)</span></div></div>
   ${pend.length ? `<div class="card"><h2>🔔 Pedidos de acesso (precisam do seu OK)</h2><div class="tabela"><table><thead><tr><th>Nome</th><th>Filial</th><th>Cargo</th><th>Celular</th><th>Pedido em</th><th></th></tr></thead><tbody>
     ${pend.map((c) => `<tr><td>${esc(tit(c.nome))}</td><td>${esc(c.filial || '')}${c.grupo ? ' · ' + esc(tit(c.grupo)) : ''}</td><td>${esc(c.papel)}</td><td>${esc(c.celular)}</td><td class="mut">${esc(String(c.criado_em || '').slice(0, 16))}</td>
     <td><button class="ok" data-a="aprovar" data-c="${esc(c.celular)}">Aprovar</button> <button class="no" data-a="recusar" data-c="${esc(c.celular)}">Recusar</button></td></tr>`).join('')}</tbody></table></div></div>` : ''}
-  ${semAcesso.length ? `<div class="card"><h2>👀 Supervisores da árvore do CEVEN que ainda não pediram acesso (${semAcesso.length})</h2><p class="mut">Eles precisam mandar para o Jota: nome + código de supervisor (ex.: "Maria Silva, supervisora, código 45").</p><div class="tabela"><table><thead><tr><th>Filial</th><th>Código</th><th>Supervisor</th></tr></thead><tbody>
-    ${semAcesso.sort((a, b) => (a.filial + a.sup_nome).localeCompare(b.filial + b.sup_nome)).map((s) => `<tr><td>${esc(s.filial)}</td><td>${esc(s.sup_id || '')}</td><td>${esc(tit(String(s.sup_nome).replace(/^CLT\s*-?\s*/i, '')))}</td></tr>`).join('')}</tbody></table></div></div>` : ''}
   <div class="card"><h2>➕ Novo contato / editar</h2><div class="form" id="form">
     <label>Celular (55 + DDD + número)<input id="f_cel" placeholder="5541999998888"></label>
     <label>Nome<input id="f_nome"></label>
@@ -117,6 +142,7 @@ function desenha() {
     </tbody></table></div></div>
   <div class="card" id="conversas"><h2>💬 Conversas</h2><p class="mut">carregando…</p></div>`;
   carregaConversas();
+  ligaAbas();
   const fil = $('f_fil'), sup = $('f_sup');
   const encheSup = (sel) => { sup.innerHTML = '<option value="">—</option>' + opts(supsDaFilial(fil.value), sel); };
   fil.onchange = () => encheSup('');

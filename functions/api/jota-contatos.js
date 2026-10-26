@@ -20,6 +20,8 @@ const j = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: 
 async function garante(db) {
   await db.prepare(`CREATE TABLE IF NOT EXISTS bot_contatos (celular TEXT PRIMARY KEY, nome TEXT, papel TEXT, filial TEXT, grupo TEXT, supervisor TEXT, ativo INTEGER DEFAULT 1, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)`).run();
   for (const c of ['situacao TEXT', 'rca TEXT', 'atualizado_em TEXT']) { try { await db.prepare(`ALTER TABLE bot_contatos ADD COLUMN ${c}`).run(); } catch (e) { /* ja existe */ } }
+  // supervisores da arvore que NAO devem aparecer em 'Sem acesso' (gerente, inativo...): decisao do Vitorio pela tela (26/10/2026)
+  await db.prepare('CREATE TABLE IF NOT EXISTS bot_sem_acesso_excluidos (filial TEXT NOT NULL, sup_id TEXT NOT NULL, sup_nome TEXT, motivo TEXT, em TEXT DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (filial, sup_id))').run();
   await db.prepare('CREATE TABLE IF NOT EXISTS bot_contatos_log (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, acao TEXT, antes TEXT, depois TEXT)').run();
 }
 const situacao = (c) => c.situacao || (c.ativo ? 'ativo' : 'inativo');
@@ -33,7 +35,8 @@ export async function onRequestGet({ request, env }) {
   const { results: arv } = await env.DB.prepare('SELECT DISTINCT filial, sup_id, sup_nome FROM arvore_supervisores ORDER BY filial, sup_nome').all().catch(() => ({ results: [] }));
   const { results: uso } = await env.DB.prepare("SELECT celular, COUNT(*) n, MAX(quando) ult FROM bot_msgs WHERE direcao = 'in' GROUP BY celular").all().catch(() => ({ results: [] }));
   const U = new Map((uso || []).map((r) => [r.celular, r]));
-  return j({ contatos: (results || []).map((c) => ({ ...c, situacao: situacao(c), perguntas: (U.get(c.celular) || {}).n || 0, ultima: (U.get(c.celular) || {}).ult || null })), supervisores_arvore: arv || [], papeis: PAPEIS, filiais: FILIAIS });
+  const { results: exc } = await env.DB.prepare('SELECT * FROM bot_sem_acesso_excluidos').all().catch(() => ({ results: [] }));
+  return j({ sem_acesso_excluidos: exc || [], contatos: (results || []).map((c) => ({ ...c, situacao: situacao(c), perguntas: (U.get(c.celular) || {}).n || 0, ultima: (U.get(c.celular) || {}).ult || null })), supervisores_arvore: arv || [], papeis: PAPEIS, filiais: FILIAIS });
 }
 
 async function enviar(env, numero, texto) {
@@ -45,6 +48,24 @@ export async function onRequestPost({ request, env }) {
   const negado = await exigeSenhaEquipe(request, env, CORS); if (negado) return negado;
   await garante(env.DB);
   let b; try { b = await request.json(); } catch { return j({ erro: 'json invalido' }, 400); }
+  // ABA "SEM ACESSO" (26/10/2026): excluir/reincluir da lista e enviar a lista para o(s) gerente(s) ativo(s) da filial pelo WhatsApp
+  if (b.acao === 'excluir_sem_acesso' || b.acao === 'reincluir_sem_acesso') {
+    const f = String(b.filial || '').toUpperCase(), id = String(b.sup_id || '');
+    if (!FILIAIS.includes(f) || !id) return j({ erro: 'filial e codigo obrigatorios' }, 400);
+    if (b.acao === 'excluir_sem_acesso') await env.DB.prepare('INSERT OR REPLACE INTO bot_sem_acesso_excluidos (filial, sup_id, sup_nome, motivo) VALUES (?,?,?,?)').bind(f, id, String(b.sup_nome || ''), String(b.motivo || '')).run();
+    else await env.DB.prepare('DELETE FROM bot_sem_acesso_excluidos WHERE filial = ? AND sup_id = ?').bind(f, id).run();
+    return j({ ok: true });
+  }
+  if (b.acao === 'enviar_sem_acesso') {
+    const f = String(b.filial || '').toUpperCase(), lista = Array.isArray(b.lista) ? b.lista.slice(0, 40) : [];
+    if (!FILIAIS.includes(f) || !lista.length) return j({ erro: 'filial e lista obrigatorias' }, 400);
+    const { results: ger } = await env.DB.prepare("SELECT celular, nome FROM bot_contatos WHERE papel = 'gerente' AND filial = ? AND COALESCE(situacao, CASE WHEN ativo = 1 THEN 'ativo' ELSE 'inativo' END) = 'ativo'").bind(f).all();
+    if (!ger || !ger.length) return j({ erro: 'nenhum gerente ativo cadastrado para ' + f }, 404);
+    const tit = (s) => String(s || '').toLowerCase().replace(/(^|\s)\S/g, (x) => x.toUpperCase());
+    const texto = `📲 *Jota — supervisores da ${f} ainda sem acesso*\n\nPara liberar, cada um manda no WhatsApp do Jota (este número) o *nome + código de supervisor*, por exemplo: "Maria Silva, supervisora, código 45".\n\n` + lista.map((s) => `• ${tit(s.sup_nome)} (código ${s.sup_id})`).join('\n');
+    const enviados = []; for (const g of ger) { if (await enviar(env, g.celular, texto)) enviados.push(g.nome); }
+    return j({ ok: true, enviados });
+  }
   const cel = so(b.celular);
   if (cel.length < 12 || cel.length > 13 || !cel.startsWith('55')) return j({ erro: 'celular deve ter DDI 55 + DDD + numero (ex.: 5541999998888)' }, 400);
   const antes = await env.DB.prepare('SELECT * FROM bot_contatos WHERE celular = ?').bind(cel).first();
