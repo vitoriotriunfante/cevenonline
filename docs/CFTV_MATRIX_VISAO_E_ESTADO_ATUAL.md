@@ -409,3 +409,17 @@ pequenos.
 - US$ 160 = D1 Rows Written (209M; 50M grátis). 92% vinham de cron-mapa-executivo: DELETE + regravar o mapa inteiro a cada rodada (~70M linhas/semana).
 - Corrigido: grava só cliente novo ou alterado e apaga só quem saiu; trava de 2 min lê resumo_executivo_live. Resto do projeto ≈ 3M linhas/semana (dentro do grátis).
 - Regra: nenhum cron pode apagar e regravar tabela; conferir semanalmente com `wrangler d1 insights --sort-by=writes`.
+
+## 26/10/2026 — Números divergentes entre TV, PC e WhatsApp (DIAGNÓSTICO + COMPROMISSO)
+Prints 07:52/07:53: TV Matriz 1/3.013 visitas e 225 zerados; PC 1/3.960 e 290; abertura WhatsApp 07:45: 4.220 (varejo) de 5.254 (total). Faturado/positivados/digitado bateram (resumo oficial único).
+Causas confirmadas no código:
+1. Cada navegador monta visitas/zerados vendedor a vendedor; leitura que falha some da soma sem aviso, e "11/11 filiais lidas" não enxerga isso.
+2. A base única (`varredura_central_rca` no D1, `/api/central-snapshot`) JÁ EXISTE, mas TV e WhatsApp ainda caem no CEVEN ao vivo quando ela não tem o vendedor, e cada um usa um universo diferente (TV: campo da Gestão de Equipe, `total_programado`; WhatsApp: lista do disparo, contagem do roteiro com faixa fixa de IDs).
+3. WhatsApp: "Total 5.254" lido de `scripts/supervisores_11_filiais_completo.json` (parado desde 23/09); "+N PDVs CNAE" = visitas × fator fixo (estimativa, proibida).
+Zerados alimentam punição e a abertura vai ao CEO: tratar como prioridade máxima.
+Plano (um número, um lugar):
+- A. Um endpoint só (`/api/totais-dia`) calcula visitas programadas/feitas e zerados por vendedor/supervisor/filial/Brasil a partir da `varredura_central_rca`, com universo = Gestão de Equipe, e diz quantos vendedores estão cobertos. Sem cobertura total, o número sai marcado incompleto — nunca soma parcial.
+- B. TV, Matriz, celular e WhatsApp leem SÓ esse endpoint para esses números (sem conta própria no navegador, sem CEVEN ao vivo).
+- C. WhatsApp: remover "Total" do arquivo velho e o CNAE estimado (precisa liberação do Vitório — Projeto B).
+- D. Conferência automática: a cada ciclo comparar o endpoint com o CEVEN para uma amostra; divergência vira alerta, não número.
+Status 26/10: feita só a proteção "lidos X de Y vendedores" na Matriz (commit 835c90c4, não publicada). A–D pendentes.
