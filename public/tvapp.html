@@ -926,7 +926,7 @@ function snapshot(vs) {
   const s = (a, f) => a.reduce((x, v) => x + (f(v) || 0), 0);
   SNAP.push({data: t.date, hora: t.hm, min: cur, faturado: s(vs, v => v.fat), pendente: s(vs, v => v.pend), digitado_hoje: s(vs, v => v.dig), positivacoes_hoje: s(vs, v => v.pos),
     visitas_feitas: s(campo, v => v.feitas), visitas_rota: s(campo, v => v.rota), campo_com_rota: campo.length,
-    zerados: campo.filter(v => !(v.dig > 0) && !(v.pos > 0)).length, sem_visita: campo.filter(v => v.feitas === 0).length,
+    zerados: vs.filter(zerado).length, sem_visita: campo.filter(v => v.feitas === 0).length,
     alertas_ativos: ALERTAS.length, por_vendedor: vs.map(v => ({rca: v.id, dig: v.dig, pos: v.pos, feitas: v.feitas, rota: v.rota}))});
   store.set(K.snap + HOJE0, SNAP);
 }
@@ -1385,7 +1385,11 @@ function linhaRevisao(e) {
 // ============================== RENDER ==============================
 const seg = v => { const m = v.meta || 0; if (!m) return ''; const f = Math.max(v.fat || 0, 0) / m * 100, p = Math.max(v.pend || 0, 0) / m * 100; const fw = Math.min(f, 100);
   return `<i style="width:${fw}%;background:var(--ok)"></i><i style="width:${Math.min(p, 100 - fw)}%;background:var(--pend)"></i>`; };
-const zerado = v => v.campo && v.temRota && !(v.dig > 0) && !(v.pos > 0);
+// zerado = o MESMO veredito de /api/totais-dia (26/10/2026): TV da filial, Matriz e WhatsApp com o mesmo numero. Sem o total unico, cai na conta local.
+var TOTAIS_V = null;
+async function carregaTotais() { try { const r = await fetch('/api/totais-dia?filial=' + encodeURIComponent(FIL), {cache: 'no-store'}); const d = await r.json(); if (d && d.vendedores) TOTAIS_V = new Map(d.vendedores.map(v => [v.rca, v])); } catch (e) {} }
+if (FIL) { carregaTotais(); setInterval(carregaTotais, 60000); }
+function zerado(v) { const t = TOTAIS_V && TOTAIS_V.get(String(v.id)); return t && t.lido ? !!t.zerado : (!TOTAIS_V && v.campo && v.temRota && !(v.dig > 0) && !(v.pos > 0)); }
 const alertasDe = id => ALERTAS.filter(a => a.v.id === id);
 function montaOrdem(vs) {
   return [...vs].sort((a, b) => (Math.max(0, ...alertasDe(b.id).map(x => PESO[x.nivel])) - Math.max(0, ...alertasDe(a.id).map(x => PESO[x.nivel]))) || (zerado(b) - zerado(a)) || ((b.dig || 0) - (a.dig || 0))).map(v => v.id);

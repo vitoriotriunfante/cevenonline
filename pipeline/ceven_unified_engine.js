@@ -912,24 +912,12 @@ async function coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes = null)
   const dataLimite = new Date();
   dataLimite.setDate(dataLimite.getDate() - 30);
 
-  // Total de visitas planejadas hoje, TODAS as contas da árvore viva (todos os canais,
-  // sem filtro de canal real — ver seção 9 do OPERACAO_WHATSAPP/REGRAS_E_MEMORIA_OPERACIONAL.md,
-  // integração do campo `area_atuacao` ainda pendente pra excluir SUP/GER com precisão).
-  let totalVisitasTodasContas = 0;
+  // 26/10/2026: o "de N (Total)" somava TODAS as contas da arvore (gerente, AS, supervisor) ao lado do varejo: outro universo, numero que nenhuma tela mostrava. Removido.
+  // Vendedores em rota e visitas planejadas agora vem de /api/totais-dia: o MESMO numero da TV, da Matriz e do celular.
+  let TOTAIS = null;
   try {
-    const arvorePath = path.join(__dirname, '../scripts/supervisores_11_filiais_completo.json');
-    if (fs.existsSync(arvorePath)) {
-      const arvore = JSON.parse(fs.readFileSync(arvorePath, 'utf8'));
-      Object.values(arvore).forEach(f => {
-        (f.cascata?.supervisores || []).forEach(s => {
-          (s.tabelas?.produtividade || []).forEach(v => {
-            if (cleanName(v.nome).toUpperCase() !== 'INTERNO') {
-              totalVisitasTodasContas += parseInt(v.visit_plan_hoje || 0, 10);
-            }
-          });
-        });
-      });
-    }
+    const r = await axios.get(`${process.env.CEVEN_FONTE_BASE_URL || 'https://ceven-cftv-matrix.pages.dev'}/api/totais-dia`, { timeout: 30000 });
+    if (r.data && r.data.brasil) TOTAIS = r.data;
   } catch (e) { FALHAS_COLETA++; }
 
   // resultado é indexado por chave composta "SIGLA::gerente" pra permitir separar
@@ -1006,15 +994,18 @@ async function coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes = null)
     }));
   }
 
-  let totVj = 0, totVis = 0, totInat = 0, totRec = 0, totProsp = 0;
+  let totVj = 0, totVis = 0, totInat = 0, totRec = 0;
   Object.values(resultado).forEach(r => {
-    const ratio = ratiosCnae[r.sigla] || 2.0;
-    r.prospects = Math.round(r.visitas * ratio);
+    // numero unico (/api/totais-dia): grupo do gerente (TPH/MCD) ou a filial inteira. Sem ele: "sem dado", nunca a conta propria. CNAE estimado (visitas x fator) removido em 26/10/2026.
+    const tf = TOTAIS && TOTAIS.filiais && TOTAIS.filiais[r.sigla];
+    const norm = (x) => String(x || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().trim();
+    const grupos = tf && tf.grupos ? Object.entries(tf.grupos) : [];
+    const tg = grupos.length > 1 ? (grupos.find(([g]) => norm(r.gerente).split(/\s+/)[0] === norm(g)) || [])[1] : tf;
+    r.vjsRota = tg ? tg.com_rota : null; r.visProg = tg ? tg.programadas : null; r.totCompleto = !!(tg && tg.completo);
     totVj += r.vjs;
     totVis += r.visitas;
     totInat += r.inativos;
     totRec += r.rec;
-    totProsp += r.prospects;
   });
 
   const pctInatGeral = totVis > 0 ? ((totInat / totVis) * 100).toFixed(1).replace('.', ',') : '0,0';
@@ -1030,24 +1021,24 @@ async function coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes = null)
   msg += `📅 ${dataCapitalizada} • Grupo Triunfante\n`;
   msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
   msg += `📌 *PANORAMA GERAL*\n`;
-  msg += `👥 *Vendedores Varejo em Rota:* ${totVj}\n`;
-  msg += `📍 *Visitas Planejadas:* ${totVis.toLocaleString('pt-BR')} PDVs (Varejo) de ${totalVisitasTodasContas.toLocaleString('pt-BR')} (Total)\n`;
+  const TB = TOTAIS && TOTAIS.brasil, nvb = (v) => (v == null ? 'sem dado' : Number(v).toLocaleString('pt-BR'));
+  if (TB && !TB.completo) msg += `⚠️ *Lidos ${TB.lidos} de ${TB.vendedores} vendedores* — números abaixo ainda incompletos\n`;
+  msg += `👥 *Vendedores Varejo em Rota:* ${nvb(TB && TB.com_rota)}\n`;
+  msg += `📍 *Visitas Planejadas (Varejo):* ${nvb(TB && TB.programadas)} PDVs\n`;
   msg += `${quinzenaEmoji} *${quinzenaLabel}:* ${totInat.toLocaleString('pt-BR')} PDVs (${pctInatGeral}% da rota)\n`;
   msg += `🔄 *Recorrência na rota:* ${totRec.toLocaleString('pt-BR')} PDVs (${pctRecGeral}%)\n`;
-  msg += `🏬 *Oportunidades CNAE ${cnaeCodigo} (${cnaeDesc}):* +${totProsp.toLocaleString('pt-BR')} PDVs\n`;
   msg += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
   msg += `🏢 *POR FILIAL (VAREJO)*\n\n`;
 
   // Ordenar filiais por volume de visitas
-  const filiaisOrd = Object.values(resultado).sort((a, b) => b.visitas - a.visitas);
+  const filiaisOrd = Object.values(resultado).sort((a, b) => (b.visProg || 0) - (a.visProg || 0));
   filiaisOrd.forEach(f => {
     const pInat = f.visitas > 0 ? ((f.inativos / f.visitas) * 100).toFixed(1).replace('.', ',') : '0,0';
     const pRec = f.visitas > 0 ? ((f.rec / f.visitas) * 100).toFixed(1).replace('.', ',') : '0,0';
 
     msg += `📍 *${f.sigla} — ${f.gerente.toUpperCase()}*\n`;
-    msg += `• Vendedores: ${f.vjs} • Visitas: ${f.visitas}\n`;
-    msg += `• Sem compra +30d: ${f.inativos} (${pInat}%) • Recorrência: ${f.rec} (${pRec}%)\n`;
-    msg += `• CNAE ${cnaeCodigo}: +${f.prospects.toLocaleString('pt-BR')} PDVs\n\n`;
+    msg += `• Vendedores: ${nvb(f.vjsRota)} • Visitas: ${nvb(f.visProg)}\n`;
+    msg += `• Sem compra +30d: ${f.inativos} (${pInat}%) • Recorrência: ${f.rec} (${pRec}%)\n\n`;
   });
 
   return { textoAbertura: msg.trim(), dadosAbertura: resultado, cnaeFoco: { codigo: cnaeCodigo, descricao: cnaeDesc } };
@@ -1692,13 +1683,12 @@ async function main() {
         }
         const pInat = f.visitas > 0 ? ((f.inativos / f.visitas) * 100).toFixed(1).replace('.', ',') : '0,0';
         const pRec = f.visitas > 0 ? ((f.rec / f.visitas) * 100).toFixed(1).replace('.', ',') : '0,0';
-        const mediaVend = f.vjs > 0 ? (f.visitas / f.vjs).toFixed(1).replace('.', ',') : '0,0';
+        const mediaVend = f.vjsRota > 0 && f.visProg != null ? (f.visProg / f.vjsRota).toFixed(1).replace('.', ',') : 'sem dado';
         let msgGerente = `🌅 *ABERTURA MATINAL — ${g.filial} (07:45)*\n`;
         msgGerente += `📅 ${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}\n`;
         msgGerente += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        msgGerente += `👥 Vendedores: ${f.vjs} • Visitas: ${f.visitas} (média ${mediaVend}/vendedor)\n`;
+        msgGerente += `👥 Vendedores: ${f.vjsRota == null ? 'sem dado' : f.vjsRota} • Visitas: ${f.visProg == null ? 'sem dado' : f.visProg} (média ${mediaVend}/vendedor)\n`;
         msgGerente += `Sem compra +30d: ${f.inativos} (${pInat}%) • Recorrência: ${f.rec} (${pRec}%)\n`;
-        msgGerente += `Oportunidades CNAE ${abertura.cnaeFoco?.codigo || ''}: +${f.prospects.toLocaleString('pt-BR')} PDVs\n`;
 
         // Junta o bloco de Alerta de Risco desse gerente, se houver (match exato,
         // depois fallback por sigla, igual acima).
