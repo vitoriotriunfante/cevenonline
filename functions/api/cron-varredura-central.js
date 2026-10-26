@@ -562,8 +562,8 @@ export async function onRequestGet({ env, request }) {
       // sem roteiro novo nao nasce lance. Agora vai primeiro quem VENDEU e tem a produtividade mais nova que o roteiro (pedido ainda fora da rota gravada); depois o mais velho.
       const atrasado = (a) => (feitasGer.get(String(a.rca_codigo)) || 0) > (Number(a.n_feitas_rot) || 0) ? '0' : (a.pos > 0 || a.dig > 0) && String(a.pe || '') > String(a.roteiro_em || '') ? '1' : '2';   // 0 = gerente ve visita nova; 1 = vendeu
       const comRota = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return a && (a.n_rota > 0 || a.pos > 0 || a.dig > 0 || (feitasGer.get(String(r.codigo)) || 0) > (Number(a.n_feitas_rot) || 0)) && !jaBuscouRota.has(String(r.codigo)); })
-        .sort((x, y) => { const k = (r) => { const a = ant.get(String(r.codigo)) || {}; return atrasado(a) + String(a.roteiro_em || ''); }; return k(x).localeCompare(k(y)); }).slice(0, 10);
-      const rr = await poolLimitado(comRota.map((rca) => () => getJson(urlRca('roteiro-hoje', rca), 1)), concAtual, Date.now() + 15000);
+        .sort((x, y) => { const k = (r) => { const a = ant.get(String(r.codigo)) || {}; return atrasado(a) + String(a.roteiro_em || ''); }; return k(x).localeCompare(k(y)); }).slice(0, 40);   // 26/10/2026: 10 -> 40. Medido: rodadas de ~30 chamadas terminavam em 20 s (de 115) com 0-6 recusas; o limite era nosso. A pausa do 429 freia sozinha
+      const rr = await poolLimitado(comRota.map((rca) => () => getJson(urlRca('roteiro-hoje', rca), 1)), concAtual, Math.min(Date.now() + 45000, t0 + PRAZO_GLOBAL_MS - 20000));
       comRota.forEach((rca, i) => {
         if (!Array.isArray(rr[i])) return;
         contagem.rota_renovada = (contagem.rota_renovada || 0) + 1;
