@@ -311,14 +311,31 @@ export async function onRequestGet({ request, env }) {
     // CEVEN acabou de falhar nesta leitura: nao abre mais chamadas de historico agora (so o cache); os gols desses clientes saem na proxima rodada
     // hist=1 (coletor de lances, 26/10/2026): base so do D1, mas o historico de cliente com pedido NOVO ainda vem do CEVEN (e dele que saem dobradinha/mix)
     const permiteHist = url.searchParams.get('hist') === '1';
-    const faltam = (soBase && !permiteHist) || (usarCentral && cevenFalhou && !soBase) ? [] : positivadosHoje.filter((c) => !emCache.has(chaveCache(c)));
+    const semVivo = soBase && !permiteHist;   // telas (so_base sem hist): usam o historico GRAVADO; nunca chamam o CEVEN
+    const faltam = (usarCentral && cevenFalhou && !soBase) ? [] : positivadosHoje.filter((c) => !emCache.has(chaveCache(c)));
     const catalogo = faltam.length ? await carregaCatalogo(request) : null;
     // na coleta central, o primeiro historico que travar encerra os demais desta leitura (15/10/2026: 4 travamentos seguidos = 32 s num vendedor); ficam para a proxima rodada
     let travou = false;
+    // HISTORICO DO CLIENTE NA BASE UNICA (26/10/2026, Vitorio: "o historico do cliente nao deveria ficar gravado e ir apenas atualizando?"): o historico bruto fica em
+    // historico_cliente (1 linha por cliente) com a ASSINATURA da ultima compra que o roteiro mostra (data, valor, status, checkout). So volta ao CEVEN quando a assinatura muda
+    // (compra nova); senao a analise e refeita em cima do que esta gravado. Antes: cache de 20 min e nova chamada ao CEVEN mesmo sem compra nova.
+    const sig = (c) => [c.data_ultima_compra, c.valor_ultima_compra, c.status, c.checkout_horario].map((x) => (x == null ? '' : String(x))).join('|');
+    const gravado = new Map(), novosHist = [];
+    if (faltam.length && env && env.DB) {
+      try {
+        await env.DB.prepare('CREATE TABLE IF NOT EXISTS historico_cliente (filial TEXT NOT NULL, id_cliente TEXT NOT NULL, rca TEXT, assinatura TEXT, json TEXT NOT NULL, atualizado_em TEXT NOT NULL, PRIMARY KEY (filial, id_cliente))').run();
+        const ids = faltam.map((c) => String(c.id_cliente));
+        const { results } = await env.DB.prepare(`SELECT id_cliente, assinatura, json FROM historico_cliente WHERE filial = ? AND id_cliente IN (${ids.map(() => '?').join(',')})`).bind(key, ...ids).all();
+        for (const r of results || []) gravado.set(String(r.id_cliente), r);
+      } catch { /* sem tabela: segue ao vivo */ }
+    }
     const buscas = faltam.map((c) => async () => {
-      if (travou) return null;
+      const g = gravado.get(String(c.id_cliente));
+      if (g && g.assinatura === sig(c)) { try { return JSON.parse(g.json); } catch { /* gravado estragado: busca de novo */ } }
+      if (travou || semVivo) return null;
       const r = await getJson(`${CEVEN}/api/rca/historico-cliente/${c.id_cliente}?${q}`, usarCentral ? 8000 : 20000);
       if (r == null && usarCentral) travou = true;
+      if (r != null) novosHist.push([key, String(c.id_cliente), String(id), sig(c), JSON.stringify(r)]);
       return r;
     });
     // pela coleta de lances (central=1): no maximo 2 simultaneas; na tela da TV segue como antes
@@ -335,6 +352,11 @@ export async function onRequestGet({ request, env }) {
         await env.DB.batch(novos.map(([k, j]) => env.DB.prepare('INSERT INTO cache_analise_cliente (chave, json, criado_em) VALUES (?, ?, ?) ON CONFLICT (chave) DO UPDATE SET json = excluded.json, criado_em = excluded.criado_em').bind(k, j, Date.now())));
         if (Math.random() < 0.02) await env.DB.prepare('DELETE FROM cache_analise_cliente WHERE criado_em < ?').bind(Date.now() - 2 * 86400000).run();
       } catch { /* cache e so economia: falha aqui nao muda a resposta */ }
+    }
+    if (novosHist.length && env && env.DB) {
+      try {
+        await env.DB.batch(novosHist.map((v) => env.DB.prepare("INSERT INTO historico_cliente (filial, id_cliente, rca, assinatura, json, atualizado_em) VALUES (?, ?, ?, ?, ?, datetime('now')) ON CONFLICT (filial, id_cliente) DO UPDATE SET rca = excluded.rca, assinatura = excluded.assinatura, json = excluded.json, atualizado_em = excluded.atualizado_em").bind(...v)));
+      } catch { /* falha ao gravar: na proxima leitura busca de novo */ }
     }
     positivadosHoje.forEach((c) => {
       let analise = null;

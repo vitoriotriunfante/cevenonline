@@ -78,7 +78,7 @@ Fontes: `varredura_central_rca` (roteiro de cada dia, 29/09 a 26/10) e `piloto_p
 | Meta/faturado/pendente/devolução do mês | `rca/dashboard`, `admin/view-as/rca/dashboard` | **sim** | — |
 | Devoluções (notas) | `rca/devolucoes` | **sim** | — |
 | Motivo da devolução por nota | `rca/devolucoes/{nota}` | parcial (`devolucao_nota_motivo`, 1.806) | gravar toda nota nova (conta na Liga/incentivo) |
-| Histórico do cliente (pedidos, itens, corte) | `rca/historico-cliente/{id}` | **não** (cache de 20 min) | gravar e só acrescentar pedido novo |
+| Histórico do cliente (pedidos, itens, corte) | `rca/historico-cliente/{id}` | **sim desde 26/10** (`historico_cliente`, 1 linha por cliente) | só volta ao CEVEN quando a última compra do roteiro muda; telas usam o gravado |
 | Roteiro do mês | `rca/roteiro-mes`, `supervisor/roteiro-mes` | **não** | gravar de madrugada; o dia corrente vem do roteiro do dia |
 | Prospecção (quem cadastrou) | `ceven/prospeccao-roteiro` | **não** (só no SQLite do datalake) | gravar no D1 |
 | LinkUp (solicitações de cadastro) | `linkup/solicitacoes` | **não** (só SQLite) | gravar no D1 |
