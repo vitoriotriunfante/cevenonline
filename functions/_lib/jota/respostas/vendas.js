@@ -108,7 +108,7 @@ export async function respRecuperacao(B, E, t) {
   const porF = {}; let n = 0;
   for (const { f, c } of H) for (const [cnpj, s] of Object.entries(c)) { const parou = String(s).split(',').filter((x) => cods.has(x.split(':')[0])); if (parou.length) { porF[f] = (porF[f] || 0) + 1; n++; } }
   return [`🔁 *Recuperação — ${nome}* (${E.nome})`, `*${N(n)} clientes* compraram ${nome} nos últimos 60 dias e *não compraram este mês*.`, ...Object.entries(porF).sort((a, b) => b[1] - a[1]).map(([f, x]) => `• ${f}: ${x} cliente(s)`),
-    '', '_A lista nominal por cliente fica no +MIX (ceven-cftv-matrix.pages.dev/mix), por vendedor._', SUGESTAO + 'distribuir a lista para os vendedores visitarem esta semana.'].join('\n');
+    '', '_A lista nominal por cliente fica no +MIX por vendedor._', SUGESTAO + 'distribuir a lista para os vendedores visitarem esta semana.'].join('\n');
 }
 export async function respCliente(B, E, t) {
   const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;

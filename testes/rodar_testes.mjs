@@ -835,6 +835,13 @@ secao('13. Sintaxe do JavaScript das paginas principais (o /saude ficou quebrado
   }
 }
 
+secao('15. Nenhuma mensagem do JOTA/WhatsApp leva link do site (Vitorio, 26/10/2026: "tire o link urgente de toda e qualquer msg")');
+{
+  const arqs = ['functions/api/whatsapp/bot.js', ...readdirSync(join(RAIZ, 'functions/_lib/jota/respostas')).map((n) => 'functions/_lib/jota/respostas/' + n)];
+  const comLink = arqs.filter((a) => ler(a).split('\n').some((l) => /pages\.dev/.test(l) && !/figurinhas|fetch\(|api\(|BASE/.test(l)));
+  ok(!comLink.length, 'sem link do site no texto das respostas' + (comLink.length ? ': ' + comLink.join(', ') : ''));
+}
+
 secao('14. Base unica (26/10/2026): nenhum arquivo NOVO chamando o CEVEN e nenhum banco NOVO fora do D1 (scripts/mapa_dados.mjs)');
 {
   const r = spawnSync(process.execPath, [join(RAIZ, 'scripts', 'mapa_dados.mjs'), '--verificar'], { encoding: 'utf8' });

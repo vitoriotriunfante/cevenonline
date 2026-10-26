@@ -3,7 +3,7 @@
 // O QUE É: ENTENDER a pergunta e escolher a resposta (roteamento) + IA de reserva.
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
-import { FILIAIS, FRX, R$, SUGESTAO, VAREJO, fraca, nome2, sem, titulo } from './base.js';
+import { FILIAIS, FRX, R$, SUGESTAO, VAREJO, fraca, hojeSP, nome2, sem, titulo } from './base.js';
 import { PAL, achaPessoa, agrupa, carregaEscopo, pctTxt, supChave, supNome, supReal } from './escopo.js';
 import { SEM_HISTORICO, respCarteira, respComparar, respDobradinha, respInfoEquipe, respMaiorGap, respMetaBatida, respPontosPerdidos, respRankingGerentes, respRankingSupervisores, respRitmo } from './respostas/gestao.js';
 import { respBola, respDevMotivos, respDivergencias, respIncentivoOficial, respLigaAs, respSemana } from './respostas/indicadores.js';
@@ -86,6 +86,16 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   // MES DO VENDEDOR (26/10/2026, Missaid: "desde o dia 1 ate hoje, quantos clientes o setor 1108 nao vendeu, a curva negativa" -> respondia so o dia)
   if (pessoa && pessoa.tipo === 'vend' && /DESDE O DIA|NO MES|DO MES|ESTE MES|ESSE MES|NESTE MES|CURVA NEGATIVA|ATE HOJE/.test(t) && /NAO VEND|NAO COMPR|SEM VENDA|SEM PEDIDO|CURVA|NAO POSITIV/.test(t)) {
     const v = pessoa.alvo, m = v.mesV || {};
+    // CURVA NEGATIVA = clientes da carteira do mes (roteiro do mes) que ainda NAO compraram neste mes (data da ultima compra antes do dia 1)
+    if (Array.isArray(v.roteiroMes) && v.roteiroMes.length) {
+      const ini = hojeSP().slice(0, 7) + '-01', cli = new Map();
+      for (const c of v.roteiroMes) { const k = String(c.id_cliente); const u = String(c.data_ultima_compra || '').slice(0, 10); if (!cli.has(k) || u > cli.get(k).u) cli.set(k, { c, u }); }
+      const nao = [...cli.values()].filter((x) => !x.u || x.u < ini).sort((a, b) => (a.u || '').localeCompare(b.u || ''));
+      const dias = (u) => (u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) + ' dias' : 'nunca comprou');
+      return [`📉 *Curva negativa — ${titulo(v.nome)}* (${v.rca} · ${v.filial} · sup. ${nome2(v.supervisor)})`, `Carteira do mês: *${cli.size} clientes* · já compraram: *${cli.size - nao.length}* · *ainda não compraram: ${nao.length}*`, '',
+        ...nao.slice(0, 40).map((x) => `• ${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} (#${x.c.id_cliente}) — última compra ${x.u ? x.u.slice(8, 10) + '/' + x.u.slice(5, 7) + ' (' + dias(x.u) + ')' : 'nunca'}`),
+        nao.length > 40 ? `… e mais ${nao.length - 40}` : '', '', SUGESTAO + (nao.length ? `começar pelos parados há mais tempo: ${titulo(nao[0].c.nome_cliente || '')}.` : 'carteira inteira já comprou no mês.')].filter((x) => x !== '').join('\n');
+    }
     if (m.plan == null) return `${titulo(v.nome)} (${v.filial}): sem a produtividade do mês na base agora.`;
     const semVenda = m.real != null && m.pedRota != null ? Math.max(0, m.real - m.pedRota) : null;
     return [`📅 *${titulo(v.nome)}* (${v.rca} · ${v.filial} · sup. ${nome2(v.supervisor)}) — *mês até hoje*`,

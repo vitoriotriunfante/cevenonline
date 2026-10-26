@@ -40,7 +40,7 @@ export async function respIncentivoOficial(B, E, pessoa) {
     const perto = V.filter((v) => !v.g2 && v.falta_g2 > 0 && v.falta_g2 <= 5).sort((a, b) => a.falta_g2 - b.falta_g2);
     if (perto.length) L.push(`Perto do G2 (≤5 clientes): ${perto.slice(0, 8).map((v) => `${vn(v)} (${v.falta_g2})`).join(', ')}`);
   }
-  L.push('', SUGESTAO + 'focar quem está a poucos clientes do 110%: é prêmio garantido com pouco esforço.', '_Painel completo: ceven-cftv-matrix.pages.dev/incentivo_');
+  L.push('', SUGESTAO + 'focar quem está a poucos clientes do 110%: é prêmio garantido com pouco esforço.');
   return L.join('\n');
 }
 export async function respLigaAs(B, E, pessoa) {
@@ -48,7 +48,7 @@ export async function respLigaAs(B, E, pessoa) {
   if (pessoa && pessoa.tipo === 'vend') { const v = x.vendedores.find((y) => y.rca === pessoa.alvo.rca && y.filial === pessoa.alvo.filial); if (v) return `🏆 *Liga AS — ${titulo(v.nome)}* (${v.filial}): *${v.pontos} pontos* · ${pctTxt(v.pct_hoje)} da meta (faturado + pendente) · fases: ${(v.fases || []).map((f) => `F${f.n} ${f.status === 'batida' ? '✅' : f.status === 'futuro' ? '⏳' : '❌'}`).join(' ')} · bônus: ${(v.bonus || []).map((b) => `${b.nome} ${b.status === 'batido' ? '✅' : b.status === 'perdido' ? '❌' : '⏳'}`).join(' · ')}`; }
   const V = x.vendedores.filter((v) => E.filiais.includes(v.filial)).sort((a, b) => b.pontos - a.pontos || b.pct_hoje - a.pct_hoje);
   const S = (x.supervisores || []).filter((v) => E.filiais.includes(v.filial)).sort((a, b) => b.pontos - a.pontos);
-  return [`🏆 *Liga AS — ${E.nome}* (${x.mes})`, `_${(x.regras && x.regras.base) || ''}_`, '*Vendedores AS:*', ...V.slice(0, 10).map((v, i) => `${i + 1}. ${vn(v)}${E.nacional ? ' ' + v.filial : ''} — ${v.pontos} pts · ${pctTxt(v.pct_hoje)}`), '*Supervisores:*', ...S.slice(0, 6).map((s, i) => `${i + 1}. ${nome2(s.supervisor)}${E.nacional ? ' ' + s.filial : ''} — ${s.pontos} pts · ${pctTxt(s.pct_hoje)}`), '', '_ceven-cftv-matrix.pages.dev/liga-as_'].join('\n');
+  return [`🏆 *Liga AS — ${E.nome}* (${x.mes})`, `_${(x.regras && x.regras.base) || ''}_`, '*Vendedores AS:*', ...V.slice(0, 10).map((v, i) => `${i + 1}. ${vn(v)}${E.nacional ? ' ' + v.filial : ''} — ${v.pontos} pts · ${pctTxt(v.pct_hoje)}`), '*Supervisores:*', ...S.slice(0, 6).map((s, i) => `${i + 1}. ${nome2(s.supervisor)}${E.nacional ? ' ' + s.filial : ''} — ${s.pontos} pts · ${pctTxt(s.pct_hoje)}`), ''].join('\n');
 }
 export async function respSemana(B, E) {
   const R = await Promise.all(E.filiais.map((f) => B.semana(f).then((j) => ({ f, S: j && j.filiais && j.filiais[f] }))));
@@ -78,5 +78,5 @@ export async function respDivergencias(B) {
   const x = await B.diverg(); if (!x || !x.resumo) return 'Não consegui ler as divergências agora.';
   const r = x.resumo;
   return [`🔎 *Divergências com o CEVEN*`, `No CEVEN e fora da Gestão de Equipe: *${r.banco_fora_da_planilha}* (${r.banco_fora_da_planilha_com_movimento} com movimento hoje, ${R$(r.faturado_mes_fora_da_planilha)} faturado no mês)`, `Na Gestão e sem dado no CEVEN: ${r.planilha_fora_do_banco}`, `Códigos descobertos: ${r.codigos_descobertos} (${r.codigos_descobertos_novos} novos) · devolução descoberta no mês ${R$(r.devolucao_descoberta_mes)}`,
-    '', SUGESTAO + 'decidir na Gestão de Equipe (painel "Divergências com o CEVEN").', '_ceven-cftv-matrix.pages.dev/gestao-equipe_'].join('\n');
+    '', SUGESTAO + 'decidir na Gestão de Equipe (painel "Divergências com o CEVEN").'].join('\n');
 }

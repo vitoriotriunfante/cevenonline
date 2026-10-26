@@ -59,7 +59,7 @@ export async function onRequestPost({ request, env }) {
     const novo = await cadastraPorCodigo(env, cel, texto, d.pushName);
     if (!novo) return new Response('ok');
     const boas = `Fala, ${titulo(String(novo.nome).split(' ')[0])}! Eu sou o *Jota* ⚽, o assistente do Comercial da Triunfante.\nRecebi seu pedido de acesso como supervisor *${titulo(novo.nome)}* (${novo.filial}, COD ${novo.cod}).\nAssim que a diretoria liberar, eu te aviso aqui. _Meu DNA é Triunfante!_`;
-    if (!seco) { const av = `🔔 *Jota — pedido de acesso*\n${titulo(novo.nome)} (${novo.filial}, COD ${novo.cod})\nCelular: ${cel}\nLiberar na tela de contatos: ceven-cftv-matrix.pages.dev/saude`; for (const t of ['554187525605']) { try { await enviar(env, t, av); } catch (e) {} } }
+    if (!seco) { const av = `🔔 *Jota — pedido de acesso*\n${titulo(novo.nome)} (${novo.filial}, COD ${novo.cod})\nCelular: ${cel}\nLiberar na tela de contatos do painel.`; for (const t of ['554187525605']) { try { await enviar(env, t, av); } catch (e) {} } }
     if (seco) return new Response(boas, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
     const e0 = await enviar(env, destino, boas);
     await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, novo.nome, e0.ok ? 'out' : 'erro', boas).run();

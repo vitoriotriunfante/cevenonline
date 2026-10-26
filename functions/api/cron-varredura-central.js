@@ -77,6 +77,18 @@ async function garanteProdEm(env) {
   } catch { colProdEm = false; }
   return colProdEm;
 }
+// ROTEIRO DO MES NA BASE (26/10/2026, Missaid: "curva negativa do setor 1108" = clientes da carteira do mes que ainda nao compraram): 1 leitura por vendedor por dia
+// (cada data_ref nova comeca vazia = refeito todo dia). Madrugada: ate 40 por rodada; de dia: ate 8 (nao tirar a cota do roteiro de hoje, que gera os lances).
+let colRoteiroMes = null;
+async function garanteRoteiroMes(env) {
+  if (colRoteiroMes !== null) return colRoteiroMes;
+  try {
+    const { results } = await env.DB.prepare("SELECT name FROM pragma_table_info('varredura_central_rca') WHERE name = 'roteiro_mes_json'").all();
+    if (!results || !results.length) await env.DB.prepare('ALTER TABLE varredura_central_rca ADD COLUMN roteiro_mes_json TEXT').run();
+    colRoteiroMes = true;
+  } catch { colRoteiroMes = false; }
+  return colRoteiroMes;
+}
 let colRoteiroEm = null;
 async function garanteRoteiroEm(env) {
   if (colRoteiroEm !== null) return colRoteiroEm;
@@ -616,6 +628,17 @@ export async function onRequestGet({ env, request }) {
     // Encadeia o MAPA DA EXECUTIVA logo apos a rodada (05/10/2026): antes ele rodava em cron proprio de 5 em 5 min e o atraso se somava ao da varredura
     // (pedido novo levava ate ~8 min para chegar na Executiva). So se sobrou tempo antes de a trava expirar (150 s).
     // telemetria ANTES da etapa do mapa (que pode demorar ate 30 s e estourar o prazo do agendador)
+    // ROTEIRO DO MES (26/10/2026): quem ainda nao tem o do dia, ate 40 (madrugada) ou 8 (dia) por rodada
+    if (await garanteRoteiroMes(env) && Date.now() - t0 < 80000) {
+      try {
+        const { results: semMes } = await env.DB.prepare('SELECT rca_codigo FROM varredura_central_rca WHERE data_ref = ? AND roteiro_mes_json IS NULL').bind(dataRef).all();
+        const falta = new Set((semMes || []).map((x) => String(x.rca_codigo)));
+        const alvo = rcas.filter((r) => falta.has(String(r.codigo))).slice(0, madrugada ? 40 : 8);
+        const rm = await poolLimitado(alvo.map((rca) => () => getJson(urlRca('roteiro-mes', rca), 1)), concAtual, Math.min(Date.now() + 25000, t0 + PRAZO_GLOBAL_MS - 15000));
+        alvo.forEach((rca, i) => { if (Array.isArray(rm[i])) { stmts.push(upsertParcial(env, dataRef, rca, { roteiro_mes_json: JSON.stringify(rm[i]) })); contagem.roteiro_mes = (contagem.roteiro_mes || 0) + 1; } });
+        await gravaLote(env, stmts.splice(0));
+      } catch (e) { contagem.roteiro_mes_erro = String(e.message || e).slice(0, 80); }
+    }
     // CASCATA DO GERENTE (26/10/2026): 11 chamadas (1 por filial) fora da cota de /api/rca/*; grava so o que mudou
     try { contagem.supervisores = await coletaSupervisores(env); } catch (e) { contagem.supervisores = { erro: String(e.message || e).slice(0, 80) }; }
     try { contagem.cascata = await gravaCascatas(env, dataRef, 25000); } catch (e) { contagem.cascata = { erro: String(e.message || e).slice(0, 80) }; }
