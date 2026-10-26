@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-26T10:33:24.861591Z",
+  "gerado_em": "2026-10-26T10:48:29.564860Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -16,7 +16,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 29145,
+  "total_lances_auditados": 29146,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -200,9 +200,9 @@
       "vitorias": 0,
       "empates": 9,
       "derrotas": 0,
-      "gp": 6421,
+      "gp": 6429,
       "gc": 5849,
-      "sg": 572,
+      "sg": 580,
       "aprov": 33.3,
       "super_pedidos": 17,
       "inativos_resgatados": 108,
@@ -530,9 +530,9 @@
       "vitorias": 0,
       "empates": 9,
       "derrotas": 0,
-      "gp": 4231,
+      "gp": 4239,
       "gc": 3085,
-      "sg": 1146,
+      "sg": 1154,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -816,9 +816,9 @@
       "vitorias": 6,
       "empates": 3,
       "derrotas": 0,
-      "gp": 1202,
+      "gp": 1210,
       "gc": 438,
-      "sg": 764,
+      "sg": 772,
       "aprov": 77.8,
       "forma": [
         "E",
@@ -1383,7 +1383,7 @@
         "V",
         "J"
       ],
-      "plus_lideranca": 85,
+      "plus_lideranca": 90,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1422,7 +1422,7 @@
           "ret": 5
         },
         "2026-10-26": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3281,6 +3281,80 @@
       "pos_ant": 29
     },
     {
+      "supervisor": "ALEX SANDRO SOARES ELIAS",
+      "filial": "TBE",
+      "canal": "AS",
+      "gerente": "Diego",
+      "total_vendedores": 4,
+      "jogos": 9,
+      "pts_tabela": 6,
+      "vitorias": 1,
+      "empates": 3,
+      "derrotas": 5,
+      "gp": 203,
+      "gc": 10,
+      "sg": 193,
+      "aprov": 22.2,
+      "forma": [
+        "D",
+        "E",
+        "D",
+        "E",
+        "D",
+        "D",
+        "E",
+        "V",
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 90,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 7,
+      "pos_ant": 8
+    },
+    {
       "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
       "filial": "TCV",
       "canal": "AS",
@@ -3351,82 +3425,8 @@
         }
       },
       "plus_pendente": false,
-      "pos": 7,
-      "pos_ant": 7
-    },
-    {
-      "supervisor": "ALEX SANDRO SOARES ELIAS",
-      "filial": "TBE",
-      "canal": "AS",
-      "gerente": "Diego",
-      "total_vendedores": 4,
-      "jogos": 9,
-      "pts_tabela": 6,
-      "vitorias": 1,
-      "empates": 3,
-      "derrotas": 5,
-      "gp": 203,
-      "gc": 10,
-      "sg": 193,
-      "aprov": 22.2,
-      "forma": [
-        "D",
-        "E",
-        "D",
-        "E",
-        "D",
-        "D",
-        "E",
-        "V",
-        "D",
-        "J"
-      ],
-      "plus_lideranca": 85,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-22": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-23": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-26": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
       "pos": 8,
-      "pos_ant": 8
+      "pos_ant": 7
     },
     {
       "supervisor": "HAMILTON RICARDO DOS SANTOS MENDES",
@@ -4639,7 +4639,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 70,
+      "plus_lideranca": 75,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 0,
@@ -4678,7 +4678,7 @@
           "ret": 0
         },
         "2026-10-26": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -5231,7 +5231,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 75,
+      "plus_lideranca": 80,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 0,
@@ -5270,7 +5270,7 @@
           "ret": 5
         },
         "2026-10-26": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -7023,6 +7023,45 @@
       "pos_filial_ant": 1
     },
     {
+      "rca": "68",
+      "nome": "ALDER ALVES BELINI",
+      "filial": "TPH",
+      "supervisor": "ANDREY CAMILLO PIRAGINE",
+      "gerente": "Vagner",
+      "canal": "VAREJO",
+      "jogos": 10,
+      "vitorias": 7,
+      "empates": 2,
+      "derrotas": 1,
+      "pts_tabela": 23,
+      "aprov": 76.7,
+      "gp": 292,
+      "gc": 28,
+      "sg": 264,
+      "super_pedidos": 0,
+      "inativos_resgatados": 4,
+      "forma": [
+        "V",
+        "V",
+        "D",
+        "V",
+        "V",
+        "V",
+        "V",
+        "V",
+        "E",
+        "E"
+      ],
+      "streak": 5,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 27,
+      "pos_filial": 2,
+      "pos_brasil_ant": 36,
+      "pos_filial_ant": 2
+    },
+    {
       "rca": "253",
       "nome": "APARECIDO AGNALDO ARAUJO",
       "filial": "API",
@@ -7056,7 +7095,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 27,
+      "pos_brasil": 28,
       "pos_filial": 5,
       "pos_brasil_ant": 27,
       "pos_filial_ant": 5
@@ -7095,7 +7134,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 28,
+      "pos_brasil": 29,
       "pos_filial": 4,
       "pos_brasil_ant": 28,
       "pos_filial_ant": 4
@@ -7134,7 +7173,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 29,
+      "pos_brasil": 30,
       "pos_filial": 5,
       "pos_brasil_ant": 29,
       "pos_filial_ant": 5
@@ -7173,7 +7212,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 1,
       "bonus_semana_invicta": 3,
-      "pos_brasil": 30,
+      "pos_brasil": 31,
       "pos_filial": 6,
       "pos_brasil_ant": 30,
       "pos_filial_ant": 6
@@ -7212,7 +7251,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 1,
       "bonus_semana_invicta": 3,
-      "pos_brasil": 31,
+      "pos_brasil": 32,
       "pos_filial": 8,
       "pos_brasil_ant": 31,
       "pos_filial_ant": 8
@@ -7251,7 +7290,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 1,
       "bonus_semana_invicta": 3,
-      "pos_brasil": 32,
+      "pos_brasil": 33,
       "pos_filial": 6,
       "pos_brasil_ant": 32,
       "pos_filial_ant": 6
@@ -7290,7 +7329,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 1,
       "bonus_semana_invicta": 3,
-      "pos_brasil": 33,
+      "pos_brasil": 34,
       "pos_filial": 7,
       "pos_brasil_ant": 33,
       "pos_filial_ant": 7
@@ -7329,7 +7368,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 34,
+      "pos_brasil": 35,
       "pos_filial": 7,
       "pos_brasil_ant": 34,
       "pos_filial_ant": 7
@@ -7368,49 +7407,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 35,
+      "pos_brasil": 36,
       "pos_filial": 8,
       "pos_brasil_ant": 35,
       "pos_filial_ant": 8
-    },
-    {
-      "rca": "68",
-      "nome": "ALDER ALVES BELINI",
-      "filial": "TPH",
-      "supervisor": "ANDREY CAMILLO PIRAGINE",
-      "gerente": "Vagner",
-      "canal": "VAREJO",
-      "jogos": 9,
-      "vitorias": 7,
-      "empates": 1,
-      "derrotas": 1,
-      "pts_tabela": 22,
-      "aprov": 81.5,
-      "gp": 284,
-      "gc": 28,
-      "sg": 256,
-      "super_pedidos": 0,
-      "inativos_resgatados": 4,
-      "forma": [
-        "V",
-        "V",
-        "D",
-        "V",
-        "V",
-        "V",
-        "V",
-        "V",
-        "E",
-        "J"
-      ],
-      "streak": 5,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 36,
-      "pos_filial": 2,
-      "pos_brasil_ant": 36,
-      "pos_filial_ant": 2
     },
     {
       "rca": "251",
@@ -25881,7 +25881,7 @@
         "supervisor": "ALESSANDRO JUNIOR LOPES",
         "gerente": "Marcelo",
         "meta_mes": 454762,
-        "pct_hoje": 56.1,
+        "pct_hoje": 56,
         "fases": [
           {
             "n": 1,
@@ -37221,7 +37221,7 @@
         "supervisor": "AILTON LUIZ ARENDT JUNIOR",
         "gerente": "Fábio",
         "meta_mes": 363824,
-        "pct_hoje": 39,
+        "pct_hoje": 37.9,
         "fases": [
           {
             "n": 1,
@@ -42486,7 +42486,7 @@
         "supervisor": "ARILDO ZAGO",
         "gerente": "Marcelo",
         "meta_mes": 344125,
-        "pct_hoje": 31.8,
+        "pct_hoje": 33.3,
         "fases": [
           {
             "n": 1,
@@ -44148,7 +44148,7 @@
         "total_vendedores": 4,
         "com_meta": 3,
         "meta_mes": 997102,
-        "pct_hoje": 89.8,
+        "pct_hoje": 89.7,
         "fases": [
           {
             "n": 1,
@@ -45604,7 +45604,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 1340676,
-        "pct_hoje": 49.5,
+        "pct_hoje": 49.9,
         "fases": [
           {
             "n": 1,
@@ -45716,7 +45716,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 1910349,
-        "pct_hoje": 33.1,
+        "pct_hoje": 32.9,
         "fases": [
           {
             "n": 1,
