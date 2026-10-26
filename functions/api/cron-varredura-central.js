@@ -24,6 +24,7 @@ import { rodaAgora, freioCusto } from '../_lib/horario_reduzido.js';   // custo 
 import { proximaConc, lerEstado, gravaEstado, CONC_PADRAO } from '../_lib/concorrencia.js';   // concorrencia adaptativa a cota do CEVEN (12/10/2026)
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
+import { gravaCascatas } from '../_lib/arvore_ceven.js';   // cascata do gerente (visitas/eficacia de hoje de todos), cota separada (26/10/2026)
 export { CEVEN_APP_SECRET };
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Secret': CEVEN_APP_SECRET };
@@ -339,6 +340,7 @@ export async function onRequestGet({ env, request }) {
   const { results: estado } = await env.DB.prepare(
     `SELECT rca_codigo,
             COALESCE(json_array_length(roteiro_json), 0) AS n_rota,
+            (SELECT COUNT(*) FROM json_each(COALESCE(roteiro_json, '[]')) WHERE json_extract(value, '$.status') NOT IN ('ABERTO', 'AGENDADO')) AS n_feitas_rot,
             CAST(COALESCE(json_extract(produtividade_json, '$.dia.positivacao'), 0) AS REAL) AS pos,
             CAST(COALESCE(json_extract(produtividade_json, '$.dia.dig_pedido'), 0) AS REAL) AS dig,
             (dashboard_json IS NULL OR dashboard_json = 'null') AS sem_dash,
@@ -356,6 +358,13 @@ export async function onRequestGet({ env, request }) {
        FROM varredura_central_rca WHERE data_ref = ?`
   ).bind(dataRef).all();
   const ant = new Map((estado || []).map((e) => [String(e.rca_codigo), e]));
+  // VISITAS DO GERENTE x ROTEIRO GRAVADO (26/10/2026): a cascata do gerente (cota separada) diz quantas visitas cada vendedor ja fez hoje; se for mais do que o roteiro
+  // gravado mostra, o roteiro esta atrasado e vai primeiro (e dele que nascem os lances). Sem cascata do dia, segue a ordem antiga.
+  const feitasGer = new Map();
+  try {
+    const { results: cs } = await env.DB.prepare('SELECT json FROM cascata_dia WHERE data_ref = ?').bind(dataRef).all();
+    for (const c of cs || []) { const j = JSON.parse(c.json); for (const s of j.supervisores || []) for (const v of (s.tabelas && s.tabelas.produtividade) || []) if (v && v.id != null) feitasGer.set(String(v.id), Number(v.visit_real_hoje) || 0); }
+  } catch (e) { /* tabela ainda nao existe no primeiro tick */ }
 
   const completa = forcar || filialParam || ant.size < Math.ceil(rcas.length * 0.5);   // partida a frio ou recuperacao
   const dono = (completa ? 'completa:' : 'tick:') + (filialParam ? filialParam + ':' : '') + t0;
@@ -550,8 +559,8 @@ export async function onRequestGet({ env, request }) {
     if (viaAdmin && temRoteiroEm && Date.now() - t0 < 70000) {
       // PEDIDO PRIMEIRO (26/10/2026, Vitorio: "olha o tanto de lance que ja era para ter saido"): as 08:55, 41 vendedores com pedido e so 11 com o pedido no roteiro gravado;
       // sem roteiro novo nao nasce lance. Agora vai primeiro quem VENDEU e tem a produtividade mais nova que o roteiro (pedido ainda fora da rota gravada); depois o mais velho.
-      const atrasado = (a) => (a.pos > 0 || a.dig > 0) && String(a.pe || '') > String(a.roteiro_em || '') ? '0' : '1';
-      const comRota = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return a && (a.n_rota > 0 || a.pos > 0 || a.dig > 0) && !jaBuscouRota.has(String(r.codigo)); })
+      const atrasado = (a) => (feitasGer.get(String(a.rca_codigo)) || 0) > (Number(a.n_feitas_rot) || 0) ? '0' : (a.pos > 0 || a.dig > 0) && String(a.pe || '') > String(a.roteiro_em || '') ? '1' : '2';   // 0 = gerente ve visita nova; 1 = vendeu
+      const comRota = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return a && (a.n_rota > 0 || a.pos > 0 || a.dig > 0 || (feitasGer.get(String(r.codigo)) || 0) > (Number(a.n_feitas_rot) || 0)) && !jaBuscouRota.has(String(r.codigo)); })
         .sort((x, y) => { const k = (r) => { const a = ant.get(String(r.codigo)) || {}; return atrasado(a) + String(a.roteiro_em || ''); }; return k(x).localeCompare(k(y)); }).slice(0, 10);
       const rr = await poolLimitado(comRota.map((rca) => () => getJson(urlRca('roteiro-hoje', rca), 1)), concAtual, Date.now() + 15000);
       comRota.forEach((rca, i) => {
@@ -606,6 +615,8 @@ export async function onRequestGet({ env, request }) {
     // Encadeia o MAPA DA EXECUTIVA logo apos a rodada (05/10/2026): antes ele rodava em cron proprio de 5 em 5 min e o atraso se somava ao da varredura
     // (pedido novo levava ate ~8 min para chegar na Executiva). So se sobrou tempo antes de a trava expirar (150 s).
     // telemetria ANTES da etapa do mapa (que pode demorar ate 30 s e estourar o prazo do agendador)
+    // CASCATA DO GERENTE (26/10/2026): 11 chamadas (1 por filial) fora da cota de /api/rca/*; grava so o que mudou
+    try { contagem.cascata = await gravaCascatas(env, dataRef, 25000); } catch (e) { contagem.cascata = { erro: String(e.message || e).slice(0, 80) }; }
     await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);
     let mapa = 'pulado';
     if (Date.now() - t0 < 85000) {

@@ -212,3 +212,40 @@ export async function aplicaArvore(env, corpo) {
   } catch { corpo.arvore_viva = null; }
   return corpo;
 }
+
+// CASCATA DO DIA NA BASE (26/10/2026, Vitorio: "tem coisa que da pra ver sim na tela do gerente"): /api/gerente/tabelas-cascata traz, numa chamada por filial,
+// visitas planejadas/realizadas HOJE, eficacia de hoje, faturamento e positivacao de TODOS os vendedores, e respondeu 200 no mesmo instante em que /api/rca/* dava 429
+// (cota separada). Gravada inteira em cascata_dia (1 linha por filial por dia, so muda quando o conteudo muda: custo D1 = linhas gravadas).
+// Usos: numero unico de visitas (/api/totais-dia) e saber QUEM teve visita/venda nova para buscar so o roteiro desses (lances).
+const tokGer = new Map();   // filialKey -> { tk, ate }
+async function tokenGerente(g, senha) {
+  const m = tokGer.get(g.filialKey);
+  if (m && Date.now() < m.ate) return m.tk;
+  const lr = await fetch(`${CEVEN}/api/gerente-auth/login`, { method: 'POST', headers: UA, body: JSON.stringify({ filial: g.filialKey, nome: g.loginNome, password: senha }), signal: AbortSignal.timeout(15000) });
+  if (!lr.ok) return null;
+  const lj = await lr.json().catch(() => null), tk = lj && (lj.access_token || lj.token);
+  if (tk) tokGer.set(g.filialKey, { tk, ate: Date.now() + 20 * 60 * 1000 });
+  return tk || null;
+}
+export async function gravaCascatas(env, dataRef, prazoMs = 30000) {
+  if (!env.CEVEN_GERENTE_SENHA || !env.DB) return { status: 'SEM_SEGREDO_OU_D1' };
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS cascata_dia (filial TEXT NOT NULL, data_ref TEXT NOT NULL, json TEXT NOT NULL, atualizado_em TEXT NOT NULL, PRIMARY KEY (filial, data_ref))').run();
+  const fim = Date.now() + prazoMs, res = { lidas: 0, mudaram: 0, falhas: [] };
+  await Promise.all(GERENTES.map(async (g) => {
+    try {
+      let tk = await tokenGerente(g, env.CEVEN_GERENTE_SENHA);
+      if (!tk) { res.falhas.push(g.sigla + ':login'); return; }
+      let r = await fetch(`${CEVEN}/api/gerente/tabelas-cascata?filial=${g.filialKey}`, { headers: { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(Math.max(3000, fim - Date.now())) });
+      if (r.status === 401) { tokGer.delete(g.filialKey); res.falhas.push(g.sigla + ':401'); return; }
+      if (!r.ok) { res.falhas.push(g.sigla + ':' + r.status); return; }
+      const j = await r.json();
+      if (!j || !Array.isArray(j.supervisores)) { res.falhas.push(g.sigla + ':vazio'); return; }
+      res.lidas++;
+      const txt = JSON.stringify(j);
+      const w = await env.DB.prepare("INSERT INTO cascata_dia (filial, data_ref, json, atualizado_em) VALUES (?, ?, ?, datetime('now')) ON CONFLICT (filial, data_ref) DO UPDATE SET json = excluded.json, atualizado_em = excluded.atualizado_em WHERE cascata_dia.json <> excluded.json")
+        .bind(g.sigla, dataRef, txt).run();
+      if (w && w.meta && w.meta.changes) res.mudaram++;
+    } catch (e) { res.falhas.push(g.sigla + ':' + String(e.message || e).slice(0, 40)); }
+  }));
+  return res;
+}
