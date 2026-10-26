@@ -34,7 +34,7 @@ export async function onRequestGet({ env, request }) {
   const notas = [];
   for (const r of results || []) {
     const f = String(r.filial_sigla).toUpperCase(), v = vend.get(f + '|' + String(r.rca_codigo));
-    if (!v || ehRepresentante(v)) continue;
+    if (!v || ehRepresentante(v) || v.mostra === false || /^(VAGO|GERENTE|RCA|VENDA )/i.test(String(v.nome || ''))) continue;   /* so quem joga a Liga (oculto, vago e gerente nao jogam) */
     let L = null; try { L = JSON.parse(r.devolucoes_json); } catch { continue; }
     for (const n of Array.isArray(L) ? L : []) {
       const d = String(n.data || '').slice(0, 10);
