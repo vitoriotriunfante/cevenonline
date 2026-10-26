@@ -18,6 +18,9 @@ export const vn = (v) => (v && v.rca ? `${nome2(v.nome)} (${v.rca}${canalCurto(v
 export const FILIAIS = ['TPH', 'ABC', 'API', 'TBL', 'TCV', 'TSJ', 'TCA', 'TBE', 'TPA', 'MCD', 'TCG'];
 export const FRX = /\b(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\b/;
 export const VAREJO = new Set(R.CANAIS_VAREJO);
+// RESPOSTA FRACA (25/10/2026): resposta de 'quebra-galho' (resumo geral quando so a filial bateu, 'nao achei venda de X' com palavra solta).
+// O texto e o mesmo; a etiqueta faz o webhook perguntar primeiro a IA o que a pessoa quis dizer (functions/_lib/jota/entende_ia.js).
+export const fraca = (txt) => { if (txt == null) return txt; const s = new String(txt); s.fraca = true; return s; };
 export const SUGESTAO = '🎯 *Sugestão do Jota:* ';
 
 // celular brasileiro com e sem o 9: 5541987525605 <-> 554187525605

@@ -8,6 +8,7 @@ import fs from 'fs'; import path from 'path';
 import { carregaJota } from './_jota_loader.mjs';
 const { casos, SALA, raiz } = await import('./_casos_reuniao.mjs');
 const J = await carregaJota(raiz); const { _teste } = J;
+const ORIGIN = 'https://ceven-cftv-matrix.pages.dev';
 // ---------- reunião ----------
 const HON = /não tenho|sem dado|ainda não|não está na base|não consigo|não projeto|não faço projeção/i;
 const B = _teste.criaBase(ORIGIN, {});

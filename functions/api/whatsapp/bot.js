@@ -20,6 +20,7 @@
 // =========================================================================
 import { enviar, sem, so, tabelas, titulo, variantes } from '../../_lib/jota/base.js';
 import { respondeIA, respostaPronta } from '../../_lib/jota/entende.js';
+import { entendePorIA } from '../../_lib/jota/entende_ia.js';
 import { criaBase } from '../../_lib/jota/fontes.js';
 import { RECLAMACAO, cadastraPorCodigo, ehSaudacao, enviarFigurinha, figurinhaPara, humaniza, primeiroNome, respSaudacao, transcreveAudio, varia } from '../../_lib/jota/persona.js';
 import { respAjuda } from '../../_lib/jota/respostas/liga_mix.js';
@@ -93,6 +94,14 @@ export async function onRequestPost({ request, env }) {
   const anteriores = (hist || []).filter((h) => h.direcao === 'in').map((h) => h.texto).filter((x) => x !== texto).slice(0, 4);
   if (!resp) try { resp = await respostaPronta(B, c, texto, anteriores); } catch (e) { resp = null; if (seco) return new Response('ERRO: ' + String(e && e.stack || e), { status: 500 }); try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'erro: ' + String(e && e.stack || e).slice(0, 1500)).run(); } catch (x) {} }
   if (!resp && seco && u.searchParams.get('sem_ia') === '1') return new Response('(sem resposta pronta)', { status: 404 });
+  // ENTENDER COM IA (25/10/2026): a IA traduz a pergunta para um formato que o Jota ja responde; o numero sai do codigo, nunca da IA
+  if ((!resp || resp.fraca) && !(seco && u.searchParams.get('sem_ia') === '1')) {
+    const ent = await entendePorIA(env, c, texto);
+    if (ent) { try { const r2 = await respostaPronta(B, c, ent.pergunta, anteriores); if (r2 && !r2.fraca) { resp = `_Entendi: "${ent.pergunta}"_
+
+` + r2; tipo = 'entendida_ia'; } } catch (e) {} }
+  }
+  if (resp && resp.fraca) resp = String(resp);
   if (!resp) {
     const historico = (hist || []).slice(1).reverse().map((h) => ({ role: h.direcao === 'in' ? 'user' : 'assistant', content: h.texto }));
     resp = await respondeIA(env, B, c, texto, historico); if (resp) tipo = 'ia';

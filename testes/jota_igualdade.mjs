@@ -35,7 +35,7 @@ const roda = async (J, c) => { semente = 1; const B = J._teste.criaBase(ORIGIN, 
 let iguais = 0; const difs = []; const t0 = DataReal.now();
 for (const [i, c] of lista.entries()) {
   const a = await roda(ANT, c), b = await roda(NOV, c);
-  if (a === b) iguais++; else difs.push({ c, a, b });
+  if (String(a) === String(b)) iguais++; else difs.push({ c, a, b });
   if ((i + 1) % 300 === 0) console.log(`  ${i + 1}/${lista.length} (${Math.round((DataReal.now() - t0) / 1000)} s) · diferentes ${difs.length}`);
 }
 ANT.limpa(); NOV.limpa();

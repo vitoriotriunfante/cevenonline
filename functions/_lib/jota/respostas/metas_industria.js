@@ -20,7 +20,7 @@ export async function respMetasIndustria(B, E, t, pessoa) {
   const dentro = (c) => !cods || cods.has(c);
   // industria citada (pelo nome da Premiacao; Mars = MARS CHOC/MARS PET etc.)
   const nomes = new Map(); for (const m of RV.metas) if (!nomes.has(m[1])) nomes.set(m[1], m[2]);
-  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !['META', 'METAS', 'INDUSTRIA', 'INDUSTRIAS', 'BATENDO', 'BATEU', 'BATER', 'ESTAMOS', 'FORNECEDOR', 'FORNECEDORES', 'PREMIACAO', 'PREMIO', 'ATINGIMENTO', 'ATINGIU', 'BRASIL', 'LTDA', 'ALIMENTOS', 'ALIMENTAR', 'COMERCIAL', 'IND', 'DOCEIRA', 'CHOC', 'PET', 'FALTA', 'BATENDO', 'BATIDA', 'GRUPO', 'TODAS', 'TODOS', 'GERAL'].includes(w) && !FILIAIS.includes(w));
+  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !['META', 'METAS', 'INDUSTRIA', 'INDUSTRIAS', 'BATENDO', 'BATEU', 'BATER', 'ESTAMOS', 'FORNECEDOR', 'FORNECEDORES', 'PREMIACAO', 'PREMIO', 'ATINGIMENTO', 'ATINGIU', 'OBJETIVO', 'OBJETIVOS', 'DELES', 'DELAS', 'BRASIL', 'LTDA', 'ALIMENTOS', 'ALIMENTAR', 'COMERCIAL', 'IND', 'DOCEIRA', 'CHOC', 'PET', 'FALTA', 'BATENDO', 'BATIDA', 'GRUPO', 'TODAS', 'TODOS', 'GERAL'].includes(w) && !FILIAIS.includes(w));
   // so o nome da PESSOA CITADA sai da busca (ha contas com nome de industria, ex.: vendedor 'MONDELEZ'; 25/10/2026)
   const pessoasT = new Set(pessoa && pessoa.alvo ? sem(pessoa.alvo.nome).split(/\s+/) : []);
   const alvoI = new Set([...nomes].filter(([, n]) => toks.some((w) => !pessoasT.has(w) && sem(n).split(/[^A-Z0-9]+/).includes(w))).map(([id]) => id));
@@ -73,7 +73,7 @@ export const DSEM = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta'
 export const dUtc = (d) => new Date(Date.UTC(Math.floor(d / 10000), Math.floor(d / 100) % 100 - 1, d % 100));
 export async function extrasTempo(B, E, L, t, filtroLinha) {
   const out = [];
-  if (/DIA DA SEMANA|QUAL DIA|QUE DIA|DIAS? (QUE |EM QUE )?(MAIS|MELHOR)|MELHOR DIA|DIA QUE MAIS/.test(t)) {
+  if (/DIA DA SEMANA|QUAL DIA|QUE DIA|DIAS? (QUE |EM QUE )?(MAIS|MELHOR)|MELHOR DIA|DIA QUE MAIS|(SEGUNDA|TERCA|QUARTA|QUINTA|SEXTA|SABADO) OU /.test(t)) {
     const W = Array.from({ length: 7 }, () => ({ v: 0, dias: new Set() }));
     for (const l of L) { const w = dUtc(l.d).getUTCDay(); W[w].v += l.v; W[w].dias.add(l.d); }
     const R0 = W.map((x, i) => ({ i, v: x.v, n: x.dias.size, med: x.dias.size ? x.v / x.dias.size : 0 })).filter((x) => x.n);

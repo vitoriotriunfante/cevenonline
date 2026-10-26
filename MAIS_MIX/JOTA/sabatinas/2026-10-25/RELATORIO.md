@@ -1,8 +1,8 @@
 # Sabatinas do JOTA — 2026-10-25
 
-**147 sabatinas · 1789 perguntas** · ok 96,7% · sem resposta pronta (IA) 1,8% · dado divergente 1,5% · erro/texto quebrado 0
+**147 sabatinas · 1789 perguntas** · ok 96,8% · sem resposta pronta (IA) 1,8% · dado divergente 1,4% · erro/texto quebrado 0
 
-**Validação dado por dado:** 772 números conferidos com recálculo independente das fontes · **96,6% batem**
+**Validação dado por dado:** 772 números conferidos com recálculo independente das fontes · **96,8% batem**
 
 ## Por tipo de sabatina
 | Sabatina | Perguntas | OK | Sem resposta (IA) | Dado divergente |
@@ -12,7 +12,7 @@
 | Diretor → Gerente de rota varejo | 10 | 100,0% | 0,0% | 0,0% |
 | Diretor → Gerente de Relacionamento com Indústrias | 35 | 100,0% | 0,0% | 0,0% |
 | Diretor apresentando para a Indústria | 180 | 98,9% | 0,0% | 1,1% |
-| Gerente nacional → Gerente | 714 | 95,7% | 4,2% | 0,1% |
+| Gerente nacional → Gerente | 714 | 95,8% | 4,2% | 0,0% |
 | Gerente → Supervisor | 828 | 97,1% | 0,1% | 2,8% |
 
 ## Por dado validado
@@ -25,7 +25,7 @@
 | mes_a_mes | 26 | 100,0% |  |
 | fat_filial | 30 | 100,0% |  |
 | sugestao | 30 | 100,0% |  |
-| fat_equipe | 111 | 99,1% | Adriano: "supervisor Thiago Da" → faturado da equipe esperado R$ 3.206.522 |
+| fat_equipe | 111 | 100,0% |  |
 | liga_filial | 42 | 100,0% |  |
 | compara_mes | 99 | 76,8% | Alessandro Junior Lopes: "o vendedor Aquinele Roberta está melhor ou pior que o mês passado?" → comparação esperada R$ 756.574 × R$ 426.687<br>Anderson Fernandes Correia: "o vendedor Eliseu Hauagge está melhor ou pior que o mês passado?" → comparação esperada R$ 92.348 × R$ 167.279<br>Washington Flores Da Rosa: "o vendedor Marcia Martins está melhor ou pior que o mês passado?" → comparação esperada R$ 62.486 × R$ 88.314<br>Sueli Aparecida Teixeira Polli: "o vendedor Edinei Diego está melhor ou pior que o mês passado?" → comparação esperada R$ 86.378 × R$ 76.031 |
 | escopo | 99 | 100,0% |  |
