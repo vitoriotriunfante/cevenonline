@@ -1,9 +1,9 @@
 // SIMULADOR DO JOTA: roda perguntas reais contra a base de PRODUCAO (somente leitura, nada e enviado).
 // uso: node testes/t_jota.mjs [filtro]
 import fs from 'fs'; import path from 'path'; import os from 'os'; import { pathToFileURL } from 'url';
-const src = fs.readFileSync(new URL('../functions/api/whatsapp/bot.js', import.meta.url), 'utf8');
-const tmp = path.join(os.tmpdir(), 'jota_bot_' + Date.now() + '.mjs'); fs.writeFileSync(tmp, src.replace("'../../../public/regras.js'", JSON.stringify(new URL('../public/regras.js', import.meta.url).href)));
-const { _teste } = await import(pathToFileURL(tmp).href);
+import { carregaJota } from './_jota_loader.mjs';
+import { fileURLToPath as _f2p } from 'url';
+const _J = await carregaJota(_f2p(new URL('..', import.meta.url))); const { _teste } = _J;
 const ORIGIN = 'https://ceven-cftv-matrix.pages.dev';
 const DIR = { nome: 'VITORIO', papel: 'diretoria', filial: null, grupo: null };
 const GER_API = { nome: 'GERENTE API', papel: 'gerente', filial: 'API', grupo: null };
@@ -30,4 +30,4 @@ for (const [c, q, ant] of P) {
   console.log(`\n==== [${c.nome}] ${q}  (${Date.now() - t0} ms)\n${r === null ? '(sem resposta pronta -> IA)' : r}`);
   if (r && /undefined|NaN|\[object/.test(r)) { erros++; console.log('!!!! TEXTO SUSPEITO'); }
 }
-fs.unlinkSync(tmp); console.log('\nerros:', erros);
+_J.limpa(); console.log('\nerros:', erros);

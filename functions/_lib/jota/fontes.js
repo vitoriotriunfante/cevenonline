@@ -1,0 +1,65 @@
+// =========================================================================
+// JOTA · functions/_lib/jota/fontes.js
+// O QUE É: leitura das bases (site, GitHub, Premiação RV), cada fonte uma vez por pergunta.
+// Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
+// =========================================================================
+import { hojeSP, sem } from './base.js';
+
+// ---------------- BASE (carregada sob demanda, cada fonte uma vez so) ----------------
+export const REPO = 'vitoriotriunfante/cevenonline';
+export const gh = (p) => fetch(`https://raw.githubusercontent.com/${REPO}/main/${p.split('/').map(encodeURIComponent).join('/')}`, { cf: { cacheTtl: 300, cacheEverything: true }, signal: AbortSignal.timeout(20000) }).then((r) => { if (!r.ok) throw new Error('gh ' + r.status); return r.text(); });
+export function criaBase(origin, env) {
+  const cache = {};
+  const api = (p) => fetch(origin + p, { signal: AbortSignal.timeout(25000) }).then((r) => r.json()).catch(() => null);
+  const est = (p) => (env && env.ASSETS ? env.ASSETS.fetch(new Request(origin + p)) : fetch(origin + p)).then((r) => r.json()).catch(() => null);
+  const memo = (k, f) => cache[k] || (cache[k] = f());
+  return {
+    env,
+    saude: () => memo('saude', () => api('/api/saude')),
+    mostra: () => memo('mostra', () => api('/api/tv-mostra')),
+    snap: (f) => memo('snap' + f, () => api('/api/central-snapshot?filial=' + f + '&dia=' + hojeSP())),
+    lances: () => memo('lances', () => api('/api/brasileirao-lances?dia=' + hojeSP())),
+    sups: (f) => memo('sup' + f, () => api('/api/tv-supervisores?filial=' + f)),
+    // Liga e +MIX: datasets gerados no GitHub (a copia do site pode estar velha); mesma ordem que as telas usam (26/10/2026)
+    liga: () => memo('liga', () => gh('public/dados_brasileirao.json').then((t) => JSON.parse(t)).catch(() => est('/dados_brasileirao.json'))),
+    mix: () => memo('mix', () => gh('public/dados_mix.json').then((t) => JSON.parse(t)).catch(() => est('/dados_mix.json'))),
+    pedidosDia: () => memo('ped', () => api('/api/pedidos-dia?dia=' + hojeSP())),
+    raw: (p) => memo('raw' + p, () => gh(p).catch(() => null)),
+    // lista de arquivos da pasta: a API do GitHub limita 60 consultas/hora por IP (dividido com outros clientes da Cloudflare) -> guarda 30 min no D1
+    pasta: (p) => memo('dir' + p, async () => {
+      const db = env && env.DB, k = 'gh_dir:' + p;
+      try { if (db) { await db.prepare('CREATE TABLE IF NOT EXISTS cache_resposta (chave TEXT PRIMARY KEY, corpo TEXT, tipo TEXT, em INTEGER)').run(); const r = await db.prepare('SELECT corpo, em FROM cache_resposta WHERE chave = ?').bind(k).first(); if (r && Date.now() - r.em < 30 * 60 * 1000) return JSON.parse(r.corpo); } } catch (e) {}
+      const j = await fetch(`https://api.github.com/repos/${REPO}/contents/${p.split('/').map(encodeURIComponent).join('/')}?ref=main`, { headers: { 'User-Agent': 'jota-ceven', Accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(15000) }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      const nomes = Array.isArray(j) ? j.map((a) => ({ name: a.name })) : null;
+      if (nomes && db) { try { await db.prepare('INSERT INTO cache_resposta (chave, corpo, tipo, em) VALUES (?,?,?,?) ON CONFLICT (chave) DO UPDATE SET corpo = excluded.corpo, em = excluded.em').bind(k, JSON.stringify(nomes), 'json', Date.now()).run(); } catch (e) {} }
+      if (nomes) return nomes;
+      try { if (db) { const r = await db.prepare('SELECT corpo FROM cache_resposta WHERE chave = ?').bind(k).first(); if (r) return JSON.parse(r.corpo); } } catch (e) {}   /* GitHub recusou: usa a lista velha */
+      return null;
+    }),
+    exec: () => memo('exec', () => api('/api/mapa-executivo-live')),
+    incentivo: () => memo('inc', () => api('/api/incentivo-outubro')),
+    ligaAs: () => memo('ligaas', () => api('/api/liga-as')),
+    semana: (f) => memo('sem' + f, () => api('/api/tv-supervisores-semana?filial=' + f)),
+    devMot: () => memo('devmot', () => api('/api/devolucoes-motivos')),
+    bola: (f) => memo('bola' + f, () => api('/api/bola-cheia?filial=' + f)),
+    diverg: () => memo('div', () => api('/api/divergencias')),
+    rv: () => memo('rv', () => carregaRV(env)),
+  };
+}
+// PREMIACAO RV (Vitorio, 25/10/2026: "as metas das industrias vc pega dentro do botao premiacao"): a mesma fonte do holerite simulado do CEVEN.
+// /rv/api/metas = meta de cada vendedor por industria (tipo 1 = faturamento R$, tipo 0 = positivacao); /rv/api/apuracao-agregada = realizado
+// (fat_f faturado, fat_v vendido = faturado + a faturar, pos_f/pos_v). Chave = codigo do fornecedor. Guardado 30 min no D1 (a apuracao leva ~20 s).
+export const RV_API = 'https://mapa.drivetriunfante-lastmile.com.br/rv/api';
+export async function carregaRV(env) {
+  const mes = hojeSP().slice(0, 7), db = env && env.DB, k = 'rv:' + mes;
+  let velho = null;
+  try { if (db) { await db.prepare('CREATE TABLE IF NOT EXISTS cache_resposta (chave TEXT PRIMARY KEY, corpo TEXT, tipo TEXT, em INTEGER)').run(); const r = await db.prepare('SELECT corpo, em FROM cache_resposta WHERE chave = ?').bind(k).first(); if (r) { velho = JSON.parse(r.corpo); if (Date.now() - r.em < 30 * 60 * 1000) return velho; } } } catch (e) {}
+  const get = (p) => fetch(RV_API + p, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(50000) }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  const [m, a] = await Promise.all([get('/metas?mes=' + mes), get('/apuracao-agregada?mes=' + mes)]);
+  if (!m || !a || !Array.isArray(m.rows) || !Array.isArray(a.fornecedores)) return velho;   /* fonte fora: usa a ultima leitura (avisada pela data de corte) */
+  const o = { mes, cutoff: a.cutoff || null, fechado: !!a.mes_fechado,
+    metas: m.rows.map((x) => [String(x.cod_vendedor), String(x.id_fornecedor ?? x.cnpj_fornecedor), String(x.fornecedor || ''), Number(x.tipo_meta), Number(x.meta) || 0]),
+    apu: a.fornecedores.map((x) => [String(x.CODUSUR), String(x.cnpj_fornecedor), Number(x.fat_f) || 0, Number(x.fat_v) || 0, Number(x.pos_f) || 0, Number(x.pos_v) || 0]) };
+  try { if (db) await db.prepare('INSERT INTO cache_resposta (chave, corpo, tipo, em) VALUES (?,?,?,?) ON CONFLICT (chave) DO UPDATE SET corpo = excluded.corpo, em = excluded.em').bind(k, JSON.stringify(o), 'json', Date.now()).run(); } catch (e) {}
+  return o;
+}

@@ -10,9 +10,8 @@ const arg = (k, d) => { const a = process.argv.find((x) => x.startsWith('--' + k
 const MAX = Number(arg('max', 12000)); let seed = Number(arg('seed', 7));
 const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
 const pick = (L) => L[Math.floor(rnd() * L.length)];
-const tmp = path.join(os.tmpdir(), 'jota_banco_' + Date.now() + '.mjs');
-fs.writeFileSync(tmp, fs.readFileSync(path.join(raiz, 'functions/api/whatsapp/bot.js'), 'utf8').replace("'../../../public/regras.js'", JSON.stringify(new URL('../public/regras.js', import.meta.url).href)));
-const { _teste } = await import(pathToFileURL(tmp).href);
+import { carregaJota } from './_jota_loader.mjs';
+const _J = await carregaJota(raiz); const { _teste } = _J;
 const { BANCO, PERIODOS, INDUSTRIAS, ESTILOS } = await import(pathToFileURL(path.join(raiz, 'MAIS_MIX/JOTA/reuniao/banco_perguntas.mjs')).href);
 const ORIGIN = 'https://ceven-cftv-matrix.pages.dev';
 const titulo = (s) => String(s || '').toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
@@ -71,7 +70,7 @@ for (const c of casos) {
   if (++k % 100 === 0) console.log(k, c.n, c.intencao, Math.round(process.memoryUsage().heapUsed/1e6) + 'MB');
   if (k % 1000 === 0) console.log(`  ${k} (${Math.round((Date.now() - t0) / 1000)} s)`);
 }
-fs.unlinkSync(tmp);
+_J.limpa();
 const L = [...R.values()].sort((a, b) => a.n - b.n);
 const tot = L.reduce((t, x) => ({ total: t.total + x.total, acerto: t.acerto + x.acerto, errada: t.errada + x.errada, sem: t.sem + x.sem_resposta, erro: t.erro + x.erro }), { total: 0, acerto: 0, errada: 0, sem: 0, erro: 0 });
 const pc = (a, b) => (b ? (a / b * 100).toFixed(1).replace('.', ',') + '%' : '-');

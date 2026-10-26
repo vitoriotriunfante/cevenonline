@@ -352,7 +352,9 @@ secao('5c. Coleta de lances usa os dados da varredura central (menos chamadas ao
     let r = await chamar('&central=1', linha(3));
     ok(r.corpo.rota_antiga === true && r.corpo.clientes.length === 0, 'roteiro com cliente de OUTRA data (ontem) e descartado: rota_antiga e nenhum cliente');
     rot.splice(0, rot.length, { ...copia[0], data_visita: hoje, checkin_horario: '23:59:00' }, copia[1]);
-    r = await chamar('&central=1', linha(3));
+    // relogio fixo as 15h de Brasilia: a regra so descarta check-in mais de 3 h a frente; depois das 21h o teste falhava sozinho (25/10/2026)
+    { const D0 = Date, T = D0.parse(hoje + 'T15:00:00-03:00'); globalThis.Date = class extends D0 { constructor(...a) { super(...(a.length ? a : [T])); } static now() { return T; } };
+      try { r = await chamar('&central=1', linha(3)); } finally { globalThis.Date = D0; } }
     ok(r.corpo.rota_antiga === true && r.corpo.clientes.length === 0, 'roteiro com check-in as 23:59 (depois da hora de agora) e descartado como dado de ontem');
     rot.splice(0, rot.length, { ...copia[0], data_visita: hoje }, copia[1]);
     r = await chamar('&central=1', linha(3));
