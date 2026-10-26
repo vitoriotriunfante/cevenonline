@@ -1,23 +1,23 @@
 🏢 *BOLETIM DE FECHAMENTO OFICIAL — 18:30*
-📅 23/10/2026
+📅 26/10/2026
 📍 *FILIAL TPH — VAGNER*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 298.350,86
-📦 *Pedidos Colocados:* 174 pedidos
-📍 *Visitas Realizadas:* 318 de 400 (79,5%)
-👥 *Vendedores Varejo com Pedido:* 29 de 35 (83%)
-✂️ *Cortes nos Pedidos de Hoje:* R$ 1.864,16 (5 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 27.472,41 (19 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 14.124,73
+💰 *Total Digitado Hoje:* R$ 176.484,98
+📦 *Pedidos Colocados:* 162 pedidos
+📍 *Visitas Realizadas:* 347 de 435 (79,8%)
+👥 *Vendedores Varejo com Pedido:* 30 de 34 (88%)
+✂️ *Cortes nos Pedidos de Hoje:* R$ 9.569,20 (6 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 94.900,23 (38 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 4.560,15
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
-  ▫️ Cód. 61 • RODRIGO MORAIS DE LIMA: -R$ 862,84 em  (SKU em falta)
-  ▫️ Cód. 88 • RODRIGO GROSSL: -R$ 94,08 em  (SKU em falta)
-  ▫️ Cód. 60 • DIEGO FERNANDO RIBEIRO: -R$ 335,34 em  (SKU em falta)
-  ▫️ Cód. 48 • PJ ALEX SANDRO REPRESENTACOES COM: -R$ 476,95 em  (SKU em falta)
-  ▫️ _... e mais 1 pedidos com corte._
-🟢 *Recuperação de Inativos (+30d):* 7 de 109 PDVs reativados hoje
+  ▫️ Cód. 48 • RCA ALEX SANDRO REPRESENTACOES COM: -R$ 6.425,26 em  (SKU em falta)
+  ▫️ Cód. 78 • DEISIELE VIEIRA DA SILVA: -R$ 32,90 em  (SKU em falta)
+  ▫️ Cód. 61 • RODRIGO MORAIS DE LIMA: -R$ 171,92 em  (SKU em falta)
+  ▫️ Cód. 61 • RODRIGO MORAIS DE LIMA: -R$ 2.748,64 em  (SKU em falta)
+  ▫️ _... e mais 2 pedidos com corte._
+🟢 *Recuperação de Inativos (+30d):* 14 de 144 PDVs reativados hoje
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*

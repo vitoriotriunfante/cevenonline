@@ -1,33 +1,37 @@
 🏢 *RELATÓRIO OPERACIONAL — 17:00*
-📅 26/10/2026
+📅 23/10/2026
 📍 *FILIAL TPH — VAGNER*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 173.938,54
-📦 *Pedidos Colocados:* 160 pedidos
-📍 *Visitas Realizadas:* 346 de 435 (79,5%)
-👥 *Vendedores Varejo com Pedido:* 30 de 34 (88%)
-✂️ *Cortes nos Pedidos de Hoje:* R$ 9.569,20 (6 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 90.599,70 (37 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 4.560,15
+💰 *Total Digitado Hoje:* R$ 236.218,72
+📦 *Pedidos Colocados:* 140 pedidos
+📍 *Visitas Realizadas:* 311 de 400 (77,8%)
+👥 *Vendedores Varejo com Pedido:* 29 de 35 (83%)
+✂️ *Cortes nos Pedidos de Hoje:* R$ 907,24 (3 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 23.153,86 (17 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 14.124,73
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
-  ▫️ Cód. 48 • RCA ALEX SANDRO REPRESENTACOES COM: -R$ 6.425,26 em  (SKU em falta)
-  ▫️ Cód. 78 • DEISIELE VIEIRA DA SILVA: -R$ 32,90 em  (SKU em falta)
-  ▫️ Cód. 61 • RODRIGO MORAIS DE LIMA: -R$ 171,92 em  (SKU em falta)
-  ▫️ Cód. 61 • RODRIGO MORAIS DE LIMA: -R$ 2.748,64 em  (SKU em falta)
-  ▫️ _... e mais 2 pedidos com corte._
+  ▫️ Cód. 60 • DIEGO FERNANDO RIBEIRO: -R$ 335,34 em  (SKU em falta)
+  ▫️ Cód. 48 • PJ ALEX SANDRO REPRESENTACOES COM: -R$ 476,95 em  (SKU em falta)
+  ▫️ Cód. 61 • RODRIGO MORAIS DE LIMA: -R$ 94,95 em  (SKU em falta)
 
-🚨 *Varejo Zerados (17:00):* 4 (12%)
+🚨 *Varejo Zerados (17:00):* 6 (17%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚨 *VENDEDORES DE VAREJO ZERADOS NO HORÁRIO (17:00):*
 _(Visitas realizadas sem conversão de pedido)_
 
-👤 *Supervisor: LUIZ AUGUSTO RAMOS* (2 zerados)
-  ▫️ Cód. 76 • ARTHUR MAIKI LEAL GERMANO: *0 visitas feitas* (de 10 na rota) • R$ 0
-  ▫️ Cód. 544 • LUIZ AUGUSTO RAMOS: *0 visitas feitas* (de 1 na rota) • R$ 0
+👤 *Supervisor: JEFFERSON POLETTO* (1 zerados)
+  ▫️ Cód. 526 • JEFFERSON POLETTO: *0 visitas feitas* (de 0 na rota) • R$ 0
 
-👤 *Supervisor: RODRIGO DE ARRUDA DARROS* (2 zerados)
-  ▫️ Cód. 88 • RODRIGO GROSSL: *0 visitas feitas* (de 5 na rota) • R$ 0
-  ▫️ Cód. 82 • RODRIGO CESAR RODRIGUES: *0 visitas feitas* (de 11 na rota) • R$ 0
+👤 *Supervisor: JONATHAN FERNANDES* (1 zerados)
+  ▫️ Cód. 126 • PAOLA CRISTINA LEAL COLLI: *0 visitas feitas* (de 15 na rota) • R$ 0
+
+👤 *Supervisor: LUIZ AUGUSTO RAMOS* (3 zerados)
+  ▫️ Cód. 76 • ARTHUR MAIKI LEAL GERMANO: *0 visitas feitas* (de 14 na rota) • R$ 0
+  ▫️ Cód. 544 • LUIZ AUGUSTO RAMOS: *0 visitas feitas* (de 0 na rota) • R$ 0
+  ▫️ Cód. 1090 • DEISI DE SOUZA DA SILVA: *0 visitas feitas* (de 20 na rota) • R$ 0
+
+👤 *Supervisor: RODRIGO DE ARRUDA DARROS* (1 zerados)
+  ▫️ Cód. 82 • RODRIGO CESAR RODRIGUES: *0 visitas feitas* (de 0 na rota) • R$ 0
