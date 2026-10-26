@@ -3,7 +3,8 @@
 // O QUE É: ENTENDER a pergunta e escolher a resposta (roteamento) + IA de reserva.
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
-import { FILIAIS, FRX, R$, SUGESTAO, VAREJO, fraca, hojeSP, nome2, sem, titulo } from './base.js';
+import { FILIAIS, FRX, R$, SUGESTAO, VAREJO, fraca, hojeSP, nome2, sem, titulo, vn } from './base.js';
+const x0 = (V) => (V[0] ? V[0].v.rca : '');
 import { PAL, achaPessoa, agrupa, carregaEscopo, pctTxt, supChave, supNome, supReal } from './escopo.js';
 import { SEM_HISTORICO, respCarteira, respComparar, respDobradinha, respInfoEquipe, respMaiorGap, respMetaBatida, respPontosPerdidos, respRankingGerentes, respRankingSupervisores, respRitmo } from './respostas/gestao.js';
 import { respBola, respDevMotivos, respDivergencias, respIncentivoOficial, respLigaAs, respSemana } from './respostas/indicadores.js';
@@ -84,7 +85,19 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   if (E.rca && E.vend[0]) pessoa = { tipo: 'vend', alvo: E.vend[0], empate: [E.vend[0]] };   /* vendedor: toda pergunta e sobre ele mesmo */
   if (!pessoa && /\b(ELA|ELE|DELA|DELE|DESSA|DESSE|ESSA|ESSE|NELA|NELE|PRA ELA|PRA ELE|MESMA|MESMO)\b/.test(t)) for (const h of anteriores || []) { pessoa = achaPessoa(E, sem(h)); if (pessoa) break; }
   // MES DO VENDEDOR (26/10/2026, Missaid: "desde o dia 1 ate hoje, quantos clientes o setor 1108 nao vendeu, a curva negativa" -> respondia so o dia)
-  if (pessoa && pessoa.tipo === 'vend' && /DESDE O DIA|NO MES|DO MES|ESTE MES|ESSE MES|NESTE MES|CURVA NEGATIVA|ATE HOJE/.test(t) && /NAO VEND|NAO COMPR|SEM VENDA|SEM PEDIDO|CURVA|NAO POSITIV/.test(t)) {
+  // QUEM FALTA POSITIVAR (Vitorio, 26/10/2026: "se ele pergunta quem falta positivar ele quer saber para quem falta o vendedor dele vender"): carteira do mes (roteiro do mes)
+  // sem compra no mes, qualquer canal (AS inclusive). Equipe: por vendedor; vendedor citado: a lista de clientes (bloco do mes, abaixo).
+  if (/FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA/.test(t) && !(pessoa && pessoa.tipo === 'vend')) {
+    const ini = hojeSP().slice(0, 7) + '-01';
+    const V = E.vend.filter((v) => Array.isArray(v.roteiroMes) && v.roteiroMes.length && (!pessoa || (v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial))).map((v) => {
+      const cli = new Map(); for (const c of v.roteiroMes) { const k = String(c.id_cliente); const u = String(c.data_ultima_compra || '').slice(0, 10); if (!cli.has(k) || u > cli.get(k)) cli.set(k, u); }
+      return { v, tot: cli.size, falta: [...cli.values()].filter((u) => !u || u < ini).length };
+    }).filter((x) => x.falta > 0).sort((a, b) => b.falta - a.falta);
+    if (!V.length) return `👥 *Quem falta positivar — ${E.nome}*: a carteira do mês ainda não está completa na base (ela é lida vendedor a vendedor ao longo do dia). Tente de novo mais tarde ou cite o vendedor.`;
+    return [`👥 *Quem falta positivar — ${E.nome}* (clientes da carteira do mês sem compra no mês)`, `Total: *${V.reduce((a, x) => a + x.falta, 0)}* clientes · ${V.length} vendedor(es)`, '',
+      ...V.slice(0, 25).map((x) => `• ${vn(x.v)}: *${x.falta}* de ${x.tot} clientes`), '', SUGESTAO + `peça "curva negativa vendedor ${x0(V)}" para a lista de clientes.`].join('\n');
+  }
+  if (pessoa && pessoa.tipo === 'vend' && /DESDE O DIA|NO MES|DO MES|ESTE MES|ESSE MES|NESTE MES|CURVA NEGATIVA|ATE HOJE/.test(t) && /NAO VEND|NAO COMPR|SEM VENDA|SEM PEDIDO|CURVA|NAO POSITIV/.test(t) || (pessoa && pessoa.tipo === 'vend' && /FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA/.test(t))) {
     const v = pessoa.alvo, m = v.mesV || {};
     // CURVA NEGATIVA = clientes da carteira do mes (roteiro do mes) que ainda NAO compraram neste mes (data da ultima compra antes do dia 1)
     if (Array.isArray(v.roteiroMes) && v.roteiroMes.length) {

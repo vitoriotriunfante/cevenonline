@@ -1,32 +1,32 @@
 # Sabatinas do JOTA — 2026-10-26
 
-**450 sabatinas · 3318 perguntas** · ok 97,3% · sem resposta pronta (IA) 1,4% · dado divergente 1,4% · erro/texto quebrado 0
+**450 sabatinas · 3318 perguntas** · ok 97,6% · sem resposta pronta (IA) 1,4% · dado divergente 1,0% · erro/texto quebrado 0
 
-**Validação dado por dado:** 1988 números conferidos com recálculo independente das fontes · **97,7% batem**
+**Validação dado por dado:** 1988 números conferidos com recálculo independente das fontes · **98,3% batem**
 
 ## Por tipo de sabatina
 | Sabatina | Perguntas | OK | Sem resposta (IA) | Dado divergente |
 |---|---|---|---|---|
-| CEO → Diretor Evandro | 15 | 93,3% | 0,0% | 6,7% |
+| CEO → Diretor Evandro | 15 | 100,0% | 0,0% | 0,0% |
 | Evandro → Gerente de AS | 7 | 71,4% | 28,6% | 0,0% |
 | Diretor → Gerente de rota varejo | 10 | 100,0% | 0,0% | 0,0% |
 | Diretor → Gerente de Relacionamento com Indústrias | 35 | 100,0% | 0,0% | 0,0% |
-| Diretor apresentando para a Indústria | 180 | 98,9% | 0,0% | 1,1% |
-| Gerente nacional → Gerente | 714 | 93,0% | 5,9% | 1,1% |
-| Gerente → Supervisor | 852 | 96,7% | 0,1% | 3,2% |
+| Diretor apresentando para a Indústria | 180 | 100,0% | 0,0% | 0,0% |
+| Gerente nacional → Gerente | 714 | 94,0% | 5,9% | 0,1% |
+| Gerente → Supervisor | 852 | 96,9% | 0,1% | 2,9% |
 | Supervisor → Vendedor | 1505 | 99,5% | 0,0% | 0,5% |
 
 ## Por dado validado
 | Dado | Conferidos | Batem | Exemplos de divergência |
 |---|---|---|---|
-| fat_brasil | 1 | 0,0% | Evandro Servat: "como estamos no mês?" → faturado Brasil esperado R$ 42.561.059 |
-| meta_ind | 77 | 97,4% | Evandro Servat: "como está a meta da Ab Mauri do vendedor Cirlene De 517?" → meta esperada R$ 27.726 de R$ 100.000<br>Evandro Servat: "estamos batendo as metas das indústrias do vendedor Cirlene De 517?" → meta esperada R$ 254.559 de R$ 507.945 |
+| fat_brasil | 1 | 100,0% |  |
+| meta_ind | 77 | 100,0% |  |
 | dia_semana | 26 | 100,0% |  |
 | semanas | 26 | 100,0% |  |
 | mes_a_mes | 26 | 100,0% |  |
-| fat_filial | 30 | 80,0% | Fabio: "como está a filial?" → faturado esperado R$ 2.837.012<br>Saldanha: "como está a filial?" → faturado esperado R$ 4.124.361<br>Fabio: "como está a filial?" → faturado esperado R$ 2.837.012<br>Saldanha: "como está a filial?" → faturado esperado R$ 4.124.361 |
+| fat_filial | 30 | 100,0% |  |
 | sugestao | 30 | 100,0% |  |
-| fat_equipe | 113 | 96,5% | Fabio: "supervisor Igor Rodrigues" → faturado da equipe esperado R$ 583.161<br>Saldanha: "supervisor Venda Empresa" → faturado da equipe esperado R$ 60<br>Igor Rodrigues Duarte: "como está minha equipe?" → faturado da equipe esperado R$ 583.161<br>Venda Empresa (interno): "como está minha equipe?" → faturado da equipe esperado R$ 60 |
+| fat_equipe | 113 | 99,1% | Adriano: "supervisor Thiago Da" → faturado da equipe esperado R$ 3.217.572 |
 | liga_filial | 42 | 100,0% |  |
 | compara_mes | 101 | 75,2% | Alessandro Junior Lopes: "o vendedor Aquinele Roberta está melhor ou pior que o mês passado?" → comparação esperada R$ 756.574 × R$ 426.687<br>Anderson Fernandes Correia: "o vendedor Eliseu Hauagge está melhor ou pior que o mês passado?" → comparação esperada R$ 92.348 × R$ 167.279<br>Washington Flores Da Rosa: "o vendedor Marcia Martins está melhor ou pior que o mês passado?" → comparação esperada R$ 62.486 × R$ 88.314<br>Sueli Aparecida Teixeira Polli: "o vendedor Edinei Diego está melhor ou pior que o mês passado?" → comparação esperada R$ 86.378 × R$ 76.031 |
 | escopo | 101 | 100,0% |  |
