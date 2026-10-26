@@ -101,8 +101,10 @@ async function main() {
   // do dia mal começou). Pedido do Vitório em 23/09/2026: mostrar como FECHOU ONTEM
   // em vez de "hoje" quase sempre zerado. O bloco abaixo (antes "DADOS DE HOJE") usa
   // diaAnterior pra tudo que antes usava dataRef como "hoje".
-  const diaAnterior = new Date(new Date(dataRef + 'T12:00:00').getTime() - 86400000).toISOString().split('T')[0];
-  const diaAnteriorFmt = new Date(diaAnterior + 'T12:00:00').toLocaleDateString('pt-BR');
+  // ULTIMO DIA COM VENDA (Vitorio, 26/10/2026: "se ontem foi domingo... deveria pegar o dia anterior que teve venda, nesse caso sexta... feriado 02/11 -> na terca pega
+  // o dia anterior"): o bloco "como fechou" usa o ultimo dia antes de hoje que NAO e domingo nem feriado e TEM pedido no banco (sabado entra se teve venda).
+  // Definido depois que o banco esta aberto (abaixo). Antes: sempre o dia de calendario anterior -> na segunda saia o domingo zerado.
+  let diaAnterior = null, diaAnteriorFmt = '', rotuloDia = 'ONTEM';
 
   const repsMap = engine.carregarValidacaoVendedores();
   // TRAVA (Vitorio, 25/10/2026: "ok" — regra "jamais mande sem todos os dados"): em 09/10 e 23/10 a arvore do CEVEN veio VAZIA (CEVEN instavel)
@@ -149,6 +151,22 @@ async function main() {
     try { require('child_process').execSync('rclone copy gdrive:pedidos_historico_ceven.db analises/', { cwd: path.join(__dirname, '..'), stdio: 'inherit' }); } catch (e) { console.log('rclone falhou: ' + e.message); }
   }
   const db = new Database(DB_PATH, { readonly: true });
+  {
+    const temPedido = db.prepare('SELECT COUNT(*) AS n FROM pedidos_historico WHERE substr(data_pedido, 1, 10) = ?');
+    let d = new Date(dataRef + 'T12:00:00Z');
+    for (let i = 0; i < 10; i++) {
+      d = new Date(d.getTime() - 86400000);
+      const iso = d.toISOString().slice(0, 10);
+      if (d.getUTCDay() === 0 || feriados.has(iso)) continue;
+      if (temPedido.get(iso).n > 0) { diaAnterior = iso; break; }
+    }
+    if (!diaAnterior) { console.error('❌ Nenhum dia com venda nos ultimos 10 dias no banco: Marca Propria NAO enviada.'); process.exit(1); }
+    diaAnteriorFmt = new Date(diaAnterior + 'T12:00:00').toLocaleDateString('pt-BR');
+    const ontemCal = new Date(new Date(dataRef + 'T12:00:00Z').getTime() - 86400000).toISOString().slice(0, 10);
+    const DIAS = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
+    rotuloDia = diaAnterior === ontemCal ? 'ONTEM' : `NO ÚLTIMO DIA DE VENDA — ${DIAS[new Date(diaAnterior + 'T12:00:00Z').getUTCDay()]}`;
+    console.log(`📅 Bloco "como fechou": ${diaAnterior} (${rotuloDia})`);
+  }
   // TBE e TCG nao tem nenhum produto de marca propria no catalogo (Vitorio, 19/10/2026: "se o pessoal nem vende, pq vai incluir?"): ficam de fora.
   const FILIAIS_EXCLUIDAS = new Set(['TBE', 'TCG']);
   const ORDEM_FILIAIS = ['TPH', 'API', 'TBL', 'TCA', 'TSJ', 'TPA', 'ABC', 'TCV', 'MCD'];
@@ -253,7 +271,7 @@ async function main() {
 
   const devPlaceholders = codigosMP.map(() => '?').join(',');
   const devolucoesMes = db.prepare(`
-    SELECT filial_codigo as filial_sigla, qtdev, vl_devolvido, data_devolucao
+    SELECT filial_codigo as filial_sigla, rca_id, qtdev, vl_devolvido, data_devolucao
     FROM devolucoes_itens
     WHERE data_devolucao BETWEEN ? AND ?
       AND codprod IN (${devPlaceholders})
@@ -291,6 +309,9 @@ async function main() {
     if (!devPorFilial[r.filial_sigla]) devPorFilial[r.filial_sigla] = { valor: 0, qtd: 0 };
     devPorFilial[r.filial_sigla].valor += r.vl_devolvido || 0;
     devPorFilial[r.filial_sigla].qtd += r.qtdev || 0;
+    // DEVOLUCAO POR GERENTE (26/10/2026: MCD saiu com os mesmos R$ 328,56 no Adriano e no Cleverson): pelo vendedor da nota, igual aos cortes
+    const g = getMes(r.filial_sigla, resolverGerente(r.filial_sigla, r.rca_id));
+    g.devValor = (g.devValor || 0) + (r.vl_devolvido || 0); g.devQtd = (g.devQtd || 0) + (r.qtdev || 0);
   });
 
   // =====================================================================
@@ -331,13 +352,13 @@ async function main() {
     const nota = sigla === 'ABC' ? ' _(só 1 marca)_' : '';
     if (!lista) { msgVitorio += `📍 ${sigla}: R$ 0,00${nota}\n`; return; }
     lista.forEach(g => {
-      msgVitorio += `📍 ${sigla} — ${g.gerente.toUpperCase()}: R$ ${fmtMoeda(g.fat)} • ${g.positivados.size} PDVs • ✂️ R$ ${fmtMoeda(g.cortesValor)} • 🚛 R$ ${fmtMoeda(dev?.valor || 0)}${nota}\n`;
+      msgVitorio += `📍 ${sigla} — ${g.gerente.toUpperCase()}: R$ ${fmtMoeda(g.fat)} • ${g.positivados.size} PDVs • ✂️ R$ ${fmtMoeda(g.cortesValor)} • 🚛 R$ ${fmtMoeda(g.devValor || 0)}${nota}\n`;
     });
   });
   // Sem nota na mensagem (Vitorio, 05/10/2026): a defasagem de devolucoes vai so para o log do robo, nunca para o texto enviado.
   if (devMaxData < dataRef) console.log(`ℹ️ Devoluções no banco só até ${devMaxData} (dataRef ${dataRef}) — conferir a coleta do Data Lake.`);
 
-  msgVitorio += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n*COMO FECHOU ONTEM (${diaAnteriorFmt})*\n`;
+  msgVitorio += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n*COMO FECHOU ${rotuloDia} (${diaAnteriorFmt})*\n`;
   msgVitorio += `💰 Faturado: R$ ${fmtMoeda(totFatHoje)} • 📦 ${Math.round(totItensHoje)} itens • ✅ ${totPositivadosHoje.size} PDVs\n\n`;
   ORDEM_FILIAIS.forEach(sigla => {
     const lista = somaPorSiglaHoje[sigla];
@@ -370,7 +391,7 @@ async function main() {
 
     m += `*ACUMULADO DO MÊS (${inicioFmt} a ${dataFmt})*\n`;
     m += `💰 R$ ${fmtMoeda(mes.fat)} • ${mes.positivados.size} PDVs • ✂️ R$ ${fmtMoeda(mes.cortesValor)} (${Math.round(mes.cortesQtd)} un)`;
-    if (dev) m += ` • 🚛 R$ ${fmtMoeda(dev.valor)} _(filial toda)_`;
+    if (mes.devValor) m += ` • 🚛 R$ ${fmtMoeda(mes.devValor)}`;
     m += `\n`;
     Object.entries(mes.porSupervisor)
       .sort((a, b) => b[1].fat - a[1].fat)
@@ -378,14 +399,14 @@ async function main() {
         m += `👤 ${sup} — R$ ${fmtMoeda(v.fat)} (${v.positivados.size} PDVs)\n`;
       });
 
-    m += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n*COMO FECHOU ONTEM (${diaAnteriorFmt})*\n💰 R$ ${fmtMoeda(hoje.fatMP)} • ${hoje.positivados.size} PDVs positivados\n`;
+    m += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n*COMO FECHOU ${rotuloDia} (${diaAnteriorFmt})*\n💰 R$ ${fmtMoeda(hoje.fatMP)} • ${hoje.positivados.size} PDVs positivados\n`;
     Object.entries(hoje.porSupervisor).forEach(([sup, v]) => {
       m += `👤 ${sup} — R$ ${fmtMoeda(v.fat)} (${v.positivados.size} PDVs)\n`;
     });
 
     if (totalZerados > 0) {
-      m += `\n🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (${totalZerados})*\n`;
-      m += `_(fez pedido ontem, mas nenhum item era marca própria)_\n`;
+      m += `\n🚨 *ZERADOS EM MARCA PRÓPRIA ${rotuloDia} (${totalZerados})*\n`;
+      m += `_(fez pedido nesse dia, mas nenhum item era marca própria)_\n`;
       Object.entries(zerados).forEach(([sup, vendedores]) => {
         m += `\n👤 *${sup}*\n`;
         vendedores
