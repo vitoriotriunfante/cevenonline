@@ -60,7 +60,7 @@ export async function onRequestPost({ request, env }) {
     const novo = await cadastraPorCodigo(env, cel, texto, d.pushName);
     if (!novo) {
       // 26/10/2026: supervisor que se apresenta e nao e achado na arvore ficava SEM RESPOSTA. Agora: resposta educada + aviso ao Vitorio (1x por numero por dia).
-      if (!seco && /SUPERVIS|SETOR|EQUIPE|\bCOD|CODIGO|COORDENADOR|GERENTE/.test(sem(texto))) {
+      if (!seco && /SUPERVIS|SETOR|EQUIPE|AREA|\bCOD|CODIGO|COORDENADOR|GERENTE/.test(sem(texto))) {
         const ja = await env.DB.prepare("SELECT COUNT(*) n FROM bot_msgs WHERE celular = ? AND direcao = 'out' AND date(quando,'-3 hours') = date('now','-3 hours')").bind(cel).first().catch(() => ({ n: 1 }));
         if (!ja || !ja.n) {
           const msg = `Oi! Eu sou o *Jota* ⚽, do Comercial da Triunfante. Não consegui confirmar seu cadastro pelo código que você mandou. Já avisei a diretoria para liberar seu acesso; assim que liberar, eu te aviso aqui.`;

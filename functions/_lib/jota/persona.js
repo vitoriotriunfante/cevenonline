@@ -100,7 +100,7 @@ export async function cadastraPorCodigo(env, cel, texto, pushName) {
     // 26/10/2026: supervisores se apresentaram como "Setor 72", "Equipe 33", "codigo 1037", "39 - Nome" e ficaram SEM RESPOSTA. Aceita todos os jeitos;
     // o nome pode estar em mensagem anterior (mandam picado). Cada numero candidato e conferido na arvore do CEVEN pelo nome.
     const nums = new Set();
-    for (const re of [/\b(?:COD(?:IGO)?|SETOR|EQUIPE|COORDENADOR|SUPERVISOR|SUP)\.?\s*(?:DE\s+VENDAS\s*)?(?:N[O°º]?\.?\s*)?[-:]?\s*(\d{1,4})\b/g, /(?:^|\n)\s*(\d{1,4})\s*[-–]\s*[A-Z]/g, /\b(\d{1,4})\s+(?:TBE|TBL|TPH|TCV|ABC|TCA|MCD|TCG|API|TPA|TSJ)\b/g, /\bSETOR\s+(\d{1,4})\s+D[AO]\b/g]) { let mm; const tt = sem(String(texto)); while ((mm = re.exec(tt))) nums.add(mm[1]); }
+    for (const re of [/\b(?:COD(?:IGO)?|SETOR|EQUIPE|AREA|COORDENADOR|SUPERVISOR|SUP)\.?\s*(?:DE\s+VENDAS\s*)?(?:N[O°º]?\.?\s*)?[-:]?\s*(\d{1,4})\b/g, /(?:^|\n)\s*(\d{1,4})\s*[-–]\s*[A-Z]/g, /\b(\d{1,4})\s+(?:TBE|TBL|TPH|TCV|ABC|TCA|MCD|TCG|API|TPA|TSJ)\b/g, /\bSETOR\s+(\d{1,4})\s+D[AO]\b/g]) { let mm; const tt = sem(String(texto)); while ((mm = re.exec(tt))) nums.add(mm[1]); }
     if (/^\d{1,4}$/.test(String(texto).trim())) nums.add(String(texto).trim());
     if (!nums.size) return null;
     let nomes = t;

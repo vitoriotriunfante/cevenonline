@@ -81,11 +81,21 @@ function desenha() {
   const C = D.contatos, pend = C.filter((c) => c.situacao === 'pendente');
   const cont = (p) => C.filter((c) => c.papel === p && c.situacao === 'ativo').length;
   const L = C.filter((c) => (!F.papel || c.papel === F.papel) && (!F.filial || c.filial === F.filial) && (!F.sit || c.situacao === F.sit) && (!F.q || (c.nome + ' ' + c.celular).toUpperCase().includes(F.q.toUpperCase())));
+  // SUPERVISORES DA ARVORE SEM ACESSO (Vitorio, 26/10/2026: "vc tem a arvore de supervisores, coloque quais ainda nao pediram acesso"): arvore do CEVEN de hoje
+  // menos quem ja esta nos contatos (qualquer situacao), pelo nome na mesma filial. Rotulos que nao sao pessoa (GERENTE, VAGO, SEM SUPERVISOR...) ficam de fora.
+  const nrm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/^CLT\s*-?\s*/, '').replace(/\s+/g, ' ').trim();
+  const jaTem = new Set(C.flatMap((c) => [c.filial + '|' + nrm(c.nome), c.filial + '|' + nrm(c.supervisor)]));
+  const prim2 = (s) => nrm(s).split(' ').slice(0, 2).join(' ');
+  const jaTem2 = new Set(C.map((c) => c.filial + '|' + prim2(c.nome)));
+  const semAcesso = [...new Map((D.supervisores_arvore || []).filter((s) => !/^(GERENTE|VAGO|SEM SUPERVISOR|RCAS INATIVOS|VENDA EMPRESA|SUPERVISAO GERAL|SUPERVISOR d)/.test(nrm(s.sup_nome)))
+    .filter((s) => !jaTem.has(s.filial + '|' + nrm(s.sup_nome)) && !jaTem2.has(s.filial + '|' + prim2(s.sup_nome))).map((s) => [s.filial + '|' + nrm(s.sup_nome), s])).values()];
   $('raiz').innerHTML = `<div id="msg" class="msg"></div>
   <div class="kpis">${['diretoria', 'gerente', 'supervisor', 'vendedor'].map((p) => `<div class="kpi"><b>${cont(p)}</b><span>${p} ativo(s)</span></div>`).join('')}<div class="kpi"><b style="color:var(--amarelo)">${pend.length}</b><span>pedido(s) pendente(s)</span></div></div>
   ${pend.length ? `<div class="card"><h2>🔔 Pedidos de acesso (precisam do seu OK)</h2><div class="tabela"><table><thead><tr><th>Nome</th><th>Filial</th><th>Cargo</th><th>Celular</th><th>Pedido em</th><th></th></tr></thead><tbody>
     ${pend.map((c) => `<tr><td>${esc(tit(c.nome))}</td><td>${esc(c.filial || '')}${c.grupo ? ' · ' + esc(tit(c.grupo)) : ''}</td><td>${esc(c.papel)}</td><td>${esc(c.celular)}</td><td class="mut">${esc(String(c.criado_em || '').slice(0, 16))}</td>
     <td><button class="ok" data-a="aprovar" data-c="${esc(c.celular)}">Aprovar</button> <button class="no" data-a="recusar" data-c="${esc(c.celular)}">Recusar</button></td></tr>`).join('')}</tbody></table></div></div>` : ''}
+  ${semAcesso.length ? `<div class="card"><h2>👀 Supervisores da árvore do CEVEN que ainda não pediram acesso (${semAcesso.length})</h2><p class="mut">Eles precisam mandar para o Jota: nome + código de supervisor (ex.: "Maria Silva, supervisora, código 45").</p><div class="tabela"><table><thead><tr><th>Filial</th><th>Código</th><th>Supervisor</th></tr></thead><tbody>
+    ${semAcesso.sort((a, b) => (a.filial + a.sup_nome).localeCompare(b.filial + b.sup_nome)).map((s) => `<tr><td>${esc(s.filial)}</td><td>${esc(s.sup_id || '')}</td><td>${esc(tit(String(s.sup_nome).replace(/^CLT\s*-?\s*/i, '')))}</td></tr>`).join('')}</tbody></table></div></div>` : ''}
   <div class="card"><h2>➕ Novo contato / editar</h2><div class="form" id="form">
     <label>Celular (55 + DDD + número)<input id="f_cel" placeholder="5541999998888"></label>
     <label>Nome<input id="f_nome"></label>
