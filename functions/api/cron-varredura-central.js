@@ -548,8 +548,11 @@ export async function onRequestGet({ env, request }) {
     // 2c. ROTEIRO DE QUEM TEM ROTA, MESMO SEM VENDER (20/10/2026, TSJ: 7 amarelos as 10h em vendedores com check-in desde as 08:26): no caminho do admin o roteiro
     // so era renovado para quem teve PEDIDO novo; quem visitava sem vender ficava com o roteiro da meia-noite (tudo ABERTO). Agora ate 10 por rodada, os mais velhos primeiro.
     if (viaAdmin && temRoteiroEm && Date.now() - t0 < 70000) {
-      const comRota = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return a && a.n_rota > 0 && !jaBuscouRota.has(String(r.codigo)); })
-        .sort((x, y) => String((ant.get(String(x.codigo)) || {}).roteiro_em || '').localeCompare(String((ant.get(String(y.codigo)) || {}).roteiro_em || ''))).slice(0, 10);
+      // PEDIDO PRIMEIRO (26/10/2026, Vitorio: "olha o tanto de lance que ja era para ter saido"): as 08:55, 41 vendedores com pedido e so 11 com o pedido no roteiro gravado;
+      // sem roteiro novo nao nasce lance. Agora vai primeiro quem VENDEU e tem a produtividade mais nova que o roteiro (pedido ainda fora da rota gravada); depois o mais velho.
+      const atrasado = (a) => (a.pos > 0 || a.dig > 0) && String(a.pe || '') > String(a.roteiro_em || '') ? '0' : '1';
+      const comRota = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return a && (a.n_rota > 0 || a.pos > 0 || a.dig > 0) && !jaBuscouRota.has(String(r.codigo)); })
+        .sort((x, y) => { const k = (r) => { const a = ant.get(String(r.codigo)) || {}; return atrasado(a) + String(a.roteiro_em || ''); }; return k(x).localeCompare(k(y)); }).slice(0, 10);
       const rr = await poolLimitado(comRota.map((rca) => () => getJson(urlRca('roteiro-hoje', rca), 1)), concAtual, Date.now() + 15000);
       comRota.forEach((rca, i) => {
         if (!Array.isArray(rr[i])) return;
