@@ -25,13 +25,16 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
       fat: fi.faturado || 0, pend: fi.pendente || 0, meta: fi.meta || 0, dev: fi.devolucao || 0, pct: fi.meta ? (fi.faturado || 0) / fi.meta * 100 : null,
       pos: po.realizado ?? null, metaPos: po.meta ?? null, dig: pd.dig_pedido || 0, ped: pd.positivacao || 0, visP, visF, comVenda: varejo ? pd.visitas_com_venda || 0 : 0,
       visPlanMes: varejo ? pm.visit_plan || 0 : 0, visRealMes: varejo ? pm.visit_real || 0 : 0,
+      /* mes do PROPRIO vendedor, qualquer canal (detalhe do vendedor; os totais de rota seguem so varejo) */ mesV: { plan: pm.visit_plan ?? null, real: pm.visit_real ?? null, pedRota: pm.ped_rota_mes ?? null, efic: pm.eficiencia_pct ?? null },
       zerado: varejo && visP > 0 && !(pd.dig_pedido > 0), semVisita: varejo && visP > 0 && !visF, devolucoes: Array.isArray(r.devolucoes) ? r.devolucoes : [],
       /* devolucoes que ENTRARAM hoje (mesma regra do WhatsApp 17:00/18:30: d.data === hoje) */
       devHoje: (Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).reduce((t, x) => t + Math.abs(parseFloat(x.vl_devolvido || x.valor || 0) || 0), 0),
       vendeuHoje: (pd.dig_pedido || 0) > 0 || (pd.positivacao || 0) > 0 || (pd.visitas_com_venda || 0) > 0,
-      rotaHoje: varejo && Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hojeSP() || /FORA/i.test(String(c.status || ''))) : [],
+      // AS tambem tem roteiro (26/10/2026, Missaid: 'quais clientes o setor 1108 visitou e nao vendeu?' -> 'nao e varejo de rota'): o detalhe do vendedor mostra o roteiro de quem tiver;
+      // a regra 'rota so varejo' vale para cobranca e medias (eficacia, zerados), nao para responder sobre os clientes de um vendedor.
+      rotaHoje: Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hojeSP() || /FORA/i.test(String(c.status || ''))) : [],
       /* clientes da rota de HOJE ainda sem visita (status ABERTO/AGENDADO, sem check-in) */
-      aVisitar: varejo && Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hojeSP() && /^(ABERTO|AGENDADO)$/i.test(String(c.status || '')) && !c.checkin_horario) : [] });
+      aVisitar: Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hojeSP() && /^(ABERTO|AGENDADO)$/i.test(String(c.status || '')) && !c.checkin_horario) : [] });
   }
   vend.sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1));
   return { vend, macro };
@@ -70,7 +73,7 @@ export function achaPessoa(E, t) {
   // aquele vendedor ou quando vem escrito "RCA/COD/codigo/vendedor 483". Numero solto ("top 10", "3 dias") nunca vira vendedor.
   for (const n of t.match(/\b\d{1,5}\b/g) || []) {
     const cand = E.vend.filter((v) => String(v.rca) === n);
-    const explicito = new RegExp(`(RCA|COD|CODIGO|VENDEDORA?|VEND)\\.?\\s*${n}\\b`).test(t);
+    const explicito = new RegExp(`(RCA|COD|CODIGO|VENDEDORA?|VEND|SETOR)\\.?\\s*${n}\\b`).test(t);
     const bom = cand.map((v) => [v, score(v.nome)]).filter((x) => x[1] || explicito).sort((a, b) => b[1] - a[1]);
     if (bom.length) return { tipo: 'vend', alvo: bom[0][0], empate: [bom[0][0]] };
   }
