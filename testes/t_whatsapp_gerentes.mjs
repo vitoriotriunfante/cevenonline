@@ -39,6 +39,12 @@ export default async function (ok, RAIZ) {
     }
     if (caminho.includes('/api/admin/supervisores/matriz-ret')) return { data: { supervisores: [{ id: 1, porDia: [true] }, { id: 3, porDia: [true] }] } };
     if (caminho.includes('/api/admin/ret/periodo')) return { data: { dias: [] } };
+    // 26/10/2026: o ciclo 11:30 le a BASE (/api/tv-supervisores), nao mais a matriz do CEVEN
+    if (caminho.endsWith('/api/tv-supervisores')) {
+      const sig = String(u.searchParams.get('filial') || '').toUpperCase();
+      const BASE_SUP = { TPH: [['LUCAS RAMOS MONTAGNHANI', true, true], ['AILTON LUIZ ARENDT JUNIOR', false, false]], MCD: [['THIAGO TESTE', true, true], ['CLEOMAR DINIZ BARBOSA', true, false], ['GERENTE MCD', false, false]], TCA: [['SUPERVISOR TCA', true, false]] };
+      return { data: { data: '2026-10-05', filial: sig, supervisores: (BASE_SUP[sig] || []).map(([nome, c, r], i) => ({ id: i + 1, nome, fez_compromisso: c, iniciou_ret: r, retDetalhe: null })) } };
+    }
     return { data: null };
   };
 
