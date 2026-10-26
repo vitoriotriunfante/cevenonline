@@ -134,7 +134,10 @@ export async function onRequestGet({ env, request }) {
       if (String(v.vinculo || '').toUpperCase().startsWith('REP')) { rep++; reps.add(String(v.rca)); }
       if (v.mostra === false) nao++; else sim++;
     }
-    for (const l of linhas) if (!naGestao.has(String(l.r)) && (l.meta || 0) > 0) semGestao.push({ rca: l.r, filial: l.f, meta: Math.round(l.meta) });
+    // UNIVERSO = vendedor ATIVO no CEVEN hoje (Vitorio, 26/10/2026: "olhamos hoje e nem existem"): a base guarda tambem codigo de rota vaga / fora da arvore (TCG 466, 482...).
+    // Esses NAO existem: nao entram em "fora da Gestao" nem na soma das metas. Fora da Gestao = esta na arvore do CEVEN de hoje e a Gestao ainda nao decidiu.
+    const metaDe = new Map(linhas.map((l) => [l.f + '|' + l.r, l.meta || 0]));
+    for (const [k, lista] of Object.entries(mostra.filiais)) for (const v of lista) if (v.novo_na_arvore) { const m = metaDe.get(k.split('_')[0] + '|' + String(v.rca)) || 0; if (m > 0) semGestao.push({ rca: String(v.rca), filial: k.split('_')[0], meta: Math.round(m) }); }
     const repL = linhas.filter((l) => reps.has(String(l.r)));
     equipe = {
       origem: mostra.origem, atualizado_em: mostra.atualizado_em || null, atualizado_por: mostra.atualizado_por || null,
@@ -148,7 +151,8 @@ export async function onRequestGet({ env, request }) {
   } else add('critico', 'equipe', 'Gestão de Equipe não respondeu (/api/tv-mostra).');
 
   // ---------- 6. metas ----------
-  const somaMeta = linhas.reduce((a, l) => a + (l.meta || 0), 0);
+  const universo = new Set(); if (mostra && mostra.filiais) for (const [k, lista] of Object.entries(mostra.filiais)) for (const v of lista) universo.add(k.split('_')[0] + '|' + String(v.rca));
+  const somaMeta = linhas.filter((l) => !universo.size || universo.has(l.f + '|' + l.r)).reduce((a, l) => a + (l.meta || 0), 0);   /* so o universo (ativo no CEVEN hoje) */
   const resumo = await safe(async () => (await env.DB.prepare("SELECT filial_sigla AS f, mes_meta_faturado AS meta, mes_faturado AS fat, updated_at AS ua FROM resumo_executivo_live WHERE data_ref = ? AND filial_sigla != '_LOCK_'").bind(dia).all()).results, []) || [];
   const todas = resumo.find((r) => r.f === 'TODAS');
   const nFilResumo = resumo.filter((r) => r.f !== 'TODAS' && r.meta > 0).length;
