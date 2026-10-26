@@ -892,7 +892,8 @@ async function coletarAberturaVarejo(repsValidationMap, diretrizes = null) {
     console.log('🗄️ Base única (abertura): ' + (rb.ligada ? rb.rcas + ' RCAs de ' + rb.filiais + ' filiais' : 'desligada'));
   } catch (e) { /* sem base: coleta pelo CEVEN, com tentativas */ }
   // TRAVA DE COMPLETUDE (15/10/2026): repete ate TODAS as filiais e TODOS os vendedores lidos; nunca sai com "dados incompletos"
-  return ateCompletar('Abertura', () => coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes), (res) => { res.faltam = filiaisSemDadosAbertura(res); return res.faltam.length === 0; });
+  // 26/10/2026 (Vitorio: "nao da para enviar faltando dados para ninguem"): tambem espera o numero unico (/api/totais-dia) com TODOS os vendedores lidos.
+  return ateCompletar('Abertura', () => coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes), (res) => { res.faltam = filiaisSemDadosAbertura(res); if (!res.totaisCompletos) console.log('  numero unico ainda incompleto: ' + res.totaisLidos + ' vendedores lidos'); return res.faltam.length === 0 && res.totaisCompletos; });
 }
 async function coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes = null) {
   const dir = diretrizes || carregarDiretrizesOperacionais();
@@ -1022,7 +1023,6 @@ async function coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes = null)
   msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
   msg += `📌 *PANORAMA GERAL*\n`;
   const TB = TOTAIS && TOTAIS.brasil, nvb = (v) => (v == null ? 'sem dado' : Number(v).toLocaleString('pt-BR'));
-  if (TB && !TB.completo) msg += `⚠️ *Lidos ${TB.lidos} de ${TB.vendedores} vendedores* — números abaixo ainda incompletos\n`;
   msg += `👥 *Vendedores Varejo em Rota:* ${nvb(TB && TB.com_rota)}\n`;
   msg += `📍 *Visitas Planejadas (Varejo):* ${nvb(TB && TB.programadas)} PDVs\n`;
   msg += `${quinzenaEmoji} *${quinzenaLabel}:* ${totInat.toLocaleString('pt-BR')} PDVs (${pctInatGeral}% da rota)\n`;
@@ -1041,7 +1041,7 @@ async function coletarAberturaVarejoUmaVez(repsValidationMap, diretrizes = null)
     msg += `• Sem compra +30d: ${f.inativos} (${pInat}%) • Recorrência: ${f.rec} (${pRec}%)\n\n`;
   });
 
-  return { textoAbertura: msg.trim(), dadosAbertura: resultado, cnaeFoco: { codigo: cnaeCodigo, descricao: cnaeDesc } };
+  return { textoAbertura: msg.trim(), dadosAbertura: resultado, cnaeFoco: { codigo: cnaeCodigo, descricao: cnaeDesc }, totaisCompletos: !!(TB && TB.completo), totaisLidos: TB ? TB.lidos + '/' + TB.vendedores : 'sem dado' };
 }
 
 // 4C. Coleta de PDVs em Risco (Última Chance / Alerta Preventivo) — reaproveita o mesmo
