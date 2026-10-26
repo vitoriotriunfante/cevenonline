@@ -59,6 +59,17 @@ export async function onRequestGet({ env, request }) {
     else if (x.status === 429) cota.r429++; else cota.outros++;
   }
   out.cota_roteiro_todos_supervisores = cota;
+  // COTA DO GERENTE (26/10/2026): a tela do gerente mostra o roteiro de HOJE de cada vendedor, com check-in. Com o token do GERENTE, /api/rca/roteiro-hoje
+  // escapa da cota de 3-4/min da chave do app? Le 20 vendedores da cascata em sequencia e conta 429.
+  const vends = [...new Set(((cas.j && cas.j.supervisores) || []).flatMap((s) => ((s.tabelas && s.tabelas.produtividade) || []).filter((v) => Number(v.visit_plan_hoje) > 0).map((v) => String(v.id))))].slice(0, 20);
+  const cg = { chamadas: 0, ok: 0, r429: 0, outros: 0, com_checkin: 0, ms_total: 0, primeiro_429_na: null };
+  for (const id of vends) {
+    const x = await chama(`${CEVEN}/api/rca/roteiro-hoje?filial=${g.filialKey}&id=${id}`, tk);
+    cg.chamadas++; cg.ms_total += x.ms;
+    if (x.status === 200) { cg.ok++; if (Array.isArray(x.j) && x.j.some((c) => c.checkin_horario)) cg.com_checkin++; }
+    else if (x.status === 429) { cg.r429++; if (cg.primeiro_429_na == null) cg.primeiro_429_na = cg.chamadas; } else cg.outros++;
+  }
+  out.cota_roteiro_hoje_com_token_gerente = cg;
   const corpo = JSON.stringify(out);
   cache.set(sig, { exp: Date.now() + 10 * 60 * 1000, corpo });
   return new Response(corpo, { headers: CORS });
