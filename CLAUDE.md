@@ -13,6 +13,14 @@ Este repositório tem **dois projetos independentes** que compartilham os mesmos
 4. **Arquivos de configuração que o código lê de `public/` ou `config/` (ex.: `pontuacao_brasileirao.json`) são tão importantes quanto código — commitar sempre**, nunca deixar como untracked "por enquanto".
 5. Se em algum momento voltar a existir mais de uma branch local com commits não mesclados, isso é uma emergência a resolver **antes** de qualquer outro pedido — não deixar acumular.
 
+## 🗺️ BASE ÚNICA — NUNCA RESPONDER DE MEMÓRIA SOBRE DADOS (Vitório, 26/10/2026)
+
+**Incidente 26/10/2026:** na mesma manhã TV, PC e WhatsApp mostraram números diferentes, e o Claude deu explicações erradas sobre de onde vinha cada dado e onde estava gravado ("tabelas vazias" quando o histórico estava num SQLite do Drive). Vitório: "se vc que é uma IA e que desenhou o projeto não sabe... imagina eu".
+
+1. **Antes de afirmar qualquer coisa sobre de onde vem um dado, quem chama o CEVEN ou onde algo é gravado:** rodar `node scripts/mapa_dados.mjs` e ler `docs/MAPA_DADOS_GERADO.md` (gerado do código) + `docs/BASE_UNICA.md` (plano e decisões). Medir no D1 de produção quando a pergunta for sobre ritmo/volume. Nunca de cabeça.
+2. **Meta:** só `functions/api/cron-varredura-central.js` fala com o CEVEN; tudo é gravado no **D1**; TV, Matriz, celular, WhatsApp, Liga, JOTA e +MIX leem só do D1.
+3. **Trava:** `testes/rodar_testes.mjs` (roda antes de toda publicação) falha se aparecer arquivo NOVO chamando o CEVEN ou banco NOVO fora do D1. A base `docs/mapa_dados_base.json` só encolhe; nunca acrescentar sem o Vitório pedir.
+
 ## 🌐 PREMISSA INEGOCIÁVEL — TUDO RODA ONLINE (Vitório, 23/09/2026)
 
 **O projeto CEVEN várias telas roda ONLINE. Nada — nenhum dado, arquivo, cálculo, publicação ou execução — pode depender do computador do Vitório (nem de qualquer computador pessoal).**

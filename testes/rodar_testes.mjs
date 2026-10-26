@@ -835,5 +835,12 @@ secao('13. Sintaxe do JavaScript das paginas principais (o /saude ficou quebrado
   }
 }
 
+secao('14. Base unica (26/10/2026): nenhum arquivo NOVO chamando o CEVEN e nenhum banco NOVO fora do D1 (scripts/mapa_dados.mjs)');
+{
+  const r = spawnSync(process.execPath, [join(RAIZ, 'scripts', 'mapa_dados.mjs'), '--verificar'], { encoding: 'utf8' });
+  ok(r.status === 0, (r.stdout || r.stderr || '').trim().split('\n').join(' | '));
+  spawnSync(process.execPath, [join(RAIZ, 'scripts', 'mapa_dados.mjs')]);   // regera docs/MAPA_DADOS_GERADO.md a cada publicacao
+}
+
 console.log(`\nRESULTADO: ${total - falhas} de ${total} verificacoes OK` + (falhas ? ` | ${falhas} FALHARAM` : ''));
 process.exit(falhas ? 1 : 0);
