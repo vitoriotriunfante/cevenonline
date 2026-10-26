@@ -282,9 +282,10 @@ export async function onRequestGet({ env, request }) {
   const forcar = urlParams.has('forcar');
   const filialParam = (urlParams.get('filial') || '').toUpperCase().trim();
   // POPULACAO DA MADRUGADA (Vitorio, 26/10/2026: "vc nao roda toda a populacao de todos os dados na madrugada?"): a rota do dia (total_programado) ja existe cedo e nao muda.
-  // Das 03:30 as 06:00 (seg-sab) roda a cada 2 min com o CEVEN livre e le TODOS os vendedores antes do expediente; antes so rodava a cada 30 min ate as 06h e a rota
+  // Das 00:30 as 06:00 (seg-sab) roda a cada 2 min com o CEVEN livre e le TODOS os vendedores antes do expediente; antes so rodava a cada 30 min ate as 06h e a rota
   // so era lida no pico da manha, com 429: as 08h ainda faltavam vendedores. Durante o dia so rele quem teve pedido novo (camada quente).
-  const rel = R.relogioSP(), madrugada = rel.dow !== 0 && rel.min >= 3 * 60 + 30 && rel.min < 6 * 60;
+  // MEDIDO (docs/BASE_UNICA.md): a rota do dia ja esta pronta as 00:07; ~600 vendedores a 3-4 chamadas/min levam horas, por isso comeca 00:30.
+  const rel = R.relogioSP(), madrugada = rel.dow !== 0 && rel.min >= 30 && rel.min < 6 * 60;
   if (!forcar && !filialParam && !env.TESTE_SEM_HORARIO && !madrugada && !rodaAgora(2, undefined, await freioCusto(env))) return resp({ status: 'FORA_DO_HORARIO', regra: 'antes das 06h, depois das 21h e domingo: a cada 30 min' });
 
   // lock global do WhatsApp (prioridade sobre TV/CFTV)
