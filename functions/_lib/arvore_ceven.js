@@ -76,15 +76,19 @@ async function arvoreDaFilial(g, senha) {
 export async function atualizaCanais(env, limite = 150) {
   try {
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS canal_ceven (filial TEXT NOT NULL, rca TEXT NOT NULL, canal TEXT, em INTEGER, PRIMARY KEY (filial, rca))').run();
-    const { results } = await env.DB.prepare("SELECT a.filial AS filial, a.rca AS rca FROM arvore_supervisores a LEFT JOIN canal_ceven c ON c.filial = a.filial AND c.rca = a.rca WHERE c.em IS NULL OR c.em < ? ORDER BY COALESCE(c.em, 0) LIMIT ?").bind(Date.now() - 24 * 3600e3, limite).all();
+    // EXISTE NO CEVEN (26/10/2026, Vitorio: "o TCG 466 nem existe!"): o cadastro /api/filiais/X/representante/N responde 200 VAZIO para codigo sem representante (rota vaga),
+    // mas o painel /api/rca/dashboard do mesmo codigo traz meta (TCG 466: R$ 800 mil). existe = 0 tira o codigo de meta e totais (functions/_lib/resumo_base.js).
+    try { await env.DB.prepare('ALTER TABLE canal_ceven ADD COLUMN existe INTEGER').run(); } catch { /* ja existe */ }
+    const { results } = await env.DB.prepare("SELECT a.filial AS filial, a.rca AS rca FROM arvore_supervisores a LEFT JOIN canal_ceven c ON c.filial = a.filial AND c.rca = a.rca WHERE c.em IS NULL OR c.existe IS NULL OR c.em < ? ORDER BY COALESCE(c.em, 0) LIMIT ?").bind(Date.now() - 24 * 3600e3, limite).all();
     const lista = results || [];
     for (let i = 0; i < lista.length; i += 10) {
       await Promise.all(lista.slice(i, i + 10).map(async (v) => {
         try {
           const x = await fetch(`${CEVEN}/api/filiais/${String(v.filial).toLowerCase()}1/representante/${v.rca}`, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(6000) });
           if (!x.ok) return;
-          let canal = ''; try { const j = await x.json(); canal = String(j.area_atuacao || '').toUpperCase(); } catch { /* corpo vazio: o CEVEN nao tem canal desse codigo */ }
-          await env.DB.prepare('INSERT OR REPLACE INTO canal_ceven (filial, rca, canal, em) VALUES (?, ?, ?, ?)').bind(v.filial, String(v.rca), canal, Date.now()).run();
+          const txt = await x.text(); let canal = '', existe = 0;
+          try { const j = JSON.parse(txt); if (j && (j.id != null || j.nome || j.name || j.area_atuacao)) existe = 1; canal = String((j && j.area_atuacao) || '').toUpperCase(); } catch { /* corpo vazio = codigo sem representante no CEVEN */ }
+          await env.DB.prepare('INSERT OR REPLACE INTO canal_ceven (filial, rca, canal, em, existe) VALUES (?, ?, ?, ?, ?)').bind(v.filial, String(v.rca), canal, Date.now(), existe).run();
         } catch { /* tenta de novo na proxima rodada */ }
       }));
     }

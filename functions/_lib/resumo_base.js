@@ -25,7 +25,9 @@ export async function universoArvore(env) {
     return !!(r && r.n >= 300);
   } catch { return false; }
 }
-const SO_ARVORE = ' AND EXISTS (SELECT 1 FROM arvore_supervisores a WHERE a.rca = varredura_central_rca.rca_codigo AND a.filial = varredura_central_rca.filial_sigla)';
+// + so codigo que EXISTE no CEVEN (26/10/2026): rota vaga sem representante (TCG 466, TSJ 3...) tem meta no painel do CEVEN mas nao tem vendedor -> fora de meta e totais
+const SO_ARVORE = ' AND EXISTS (SELECT 1 FROM arvore_supervisores a WHERE a.rca = varredura_central_rca.rca_codigo AND a.filial = varredura_central_rca.filial_sigla)'
+  + ' AND NOT EXISTS (SELECT 1 FROM canal_ceven c WHERE c.rca = varredura_central_rca.rca_codigo AND c.filial = varredura_central_rca.filial_sigla AND c.existe = 0)';
 
 export async function calculaResumoMes(env, dataRef) {
   const filtra = await universoArvore(env);
