@@ -60,10 +60,42 @@ Fontes: `varredura_central_rca` (roteiro de cada dia, 29/09 a 26/10) e `piloto_p
 | Motor do WhatsApp (`pipeline/ceven_unified_engine.js`) | base primeiro; CEVEN se linha +45 min; RET/compromisso ao vivo | só base | pendente |
 | JOTA, +MIX | não verificado (código fora desta pasta) | base | levantar |
 
+## 5b. Coletores paralelos que ainda existem (devem acabar — só o coletor central fala com o CEVEN)
+| Onde | O que | Roda sozinho | Destino |
+|---|---|---|---|
+| `pipeline/orquestrador_diario.js` (GitHub 03:00, `ceven-cron-datalake.yml`) | 9 extratores de `analises/` (hierarquia, roteiros+prospecção, produtividade+RET, histórico de pedidos, histórico do vendedor, devoluções+LinkUp, metas) | sim | SQLite no GitHub/Drive (2ª base; alimenta o +MIX) → passar a gravar no D1 pelo coletor |
+| `scripts/atualizar_arvore_viva_11_filiais.js`, `scripts/coletar_plus_lideranca.js`, `analises/gerar_dados_mix.js` (GitHub) | árvore, RET/compromisso, mix | sim | ler do D1 |
+| `CEVEN OFFLINE/CEVEN_3_Celulares_Isolado.*` | abre o CEVEN no navegador | só quando aberto | fora do escopo da base |
+| `CEVEN TELAS E ENDPOINTS/07_ENG_PIPELINE/*.py` | extratores manuais | não | aposentar |
+
+## 5c. Inventário: cada informação do CEVEN e se está GRAVADA na base (26/10/2026)
+"Gravado" = fica no D1 e é atualizado; "não" = cada um busca ao vivo e nada fica. Tabelas criadas e **vazias** (nunca alimentadas): `clientes_historico_compras`, `roteiros_visitas`, `prospects_receita`, `linkup_cadastros_preparados`, `devolucoes_auditoria`, `pedidos_faturados_itens`.
+| Informação | Endpoint | Gravado? | O que fazer |
+|---|---|---|---|
+| Roteiro do dia (status, check-in por cliente) | `rca/roteiro-hoje` (ou por supervisor, em teste) | **sim** (`varredura_central_rca`, por dia) | priorizar quem vendeu (feito, não publicado) |
+| Produtividade do dia/mês | `rca/produtividade` | **sim** | — |
+| Meta/faturado/pendente/devolução do mês | `rca/dashboard`, `admin/view-as/rca/dashboard` | **sim** | — |
+| Devoluções (notas) | `rca/devolucoes` | **sim** | — |
+| Motivo da devolução por nota | `rca/devolucoes/{nota}` | parcial (`devolucao_nota_motivo`, 1.806) | gravar toda nota nova (conta na Liga/incentivo) |
+| Histórico do cliente (pedidos, itens, corte) | `rca/historico-cliente/{id}` | **não** (cache de 20 min) | gravar e só acrescentar pedido novo |
+| Roteiro do mês | `rca/roteiro-mes`, `supervisor/roteiro-mes` | **não** | gravar de madrugada; o dia corrente vem do roteiro do dia |
+| Prospecção (quem cadastrou) | `ceven/prospeccao-roteiro` | **não** (só no SQLite do datalake) | gravar no D1 |
+| LinkUp (solicitações de cadastro) | `linkup/solicitacoes` | **não** (só SQLite) | gravar no D1 |
+| Histórico do vendedor | `rca/historico-vendedor` | **não** (só SQLite) | gravar no D1 |
+| Clientes-foco / campanhas | `rca/clientes-foco`, `admin/clientes-foco` | **não** | gravar 1x/dia |
+| RET dos supervisores | `admin/supervisores/matriz-ret`, `admin/ret/periodo`, `gerente/supervisor/ret-hoje` | **não** (ao vivo em cada tela e no WhatsApp) | gravar a cada 15 min |
+| Compromissos | `admin/supervisores/matriz-compromissos` | **não** | gravar a cada 5 min até 10:30 |
+| Tabelas do supervisor / vespertina | `supervisor/tabelas`, `supervisor/vespertina` | **não** | avaliar (teste) |
+| Árvore (supervisor de cada vendedor) | `gerente/tabelas-cascata` | **sim** (`arvore_supervisores`) | incluir visitas plan/real do dia da cascata |
+| Hierarquia/metas admin | `admin/filiais/hierarquia` | usada como detector, **não** gravada | gravar |
+| Notificações | `notificacoes/*` | não | só envio |
+
+**Check-in na visão do supervisor:** nas gravações (22/09 e RETs), a tela do supervisor mostra o horário do check-in chamando `rca/roteiro-mes` **do vendedor** (campo `checkin_horario`); o `supervisor/roteiro-mes` gravado não trazia esse campo. O teste `/api/diag-supervisor-caminhos` confere os campos de HOJE.
+
 ## 6. Pontos em aberto
 1. **TESTADO 26/10 08:45 (`/api/diag-admin-caminhos`):** o caminho admin `view-as/rca/*` serve **só `dashboard`** (200). `produtividade`, `roteiro-hoje`, `devolucoes` e `roteiro-mes` dão **404** (não existem). Produtividade/roteiro/devoluções ficam na cota de 3–4/min: por isso a madrugada (00:30) e reler só quem mudou são obrigatórios.
 2. Madrugada antecipada para 00:30 (26/10, commit seguinte ao 8dc66dd2): pelos números a rota completa por `/api/rca/*` leva horas.
-3. Tolerância dos boletins de vendas (2%): com a base completa de madrugada, zerar (decisão do Vitório pendente).
+3. Tolerância dos boletins de vendas: ZERADA em 26/10 (decisão do Vitório), no ar no GitHub desde o push b46bdb78.
 
 ## 7. Histórico
 - 26/10/2026 — Documento criado. Medições do §3 feitas no D1 de produção. `/api/totais-dia` no ar. Telas `so_base`, madrugada 00:30 e redesenho imediato da Matriz publicados às 08:45 (tv-20261026-084506).
