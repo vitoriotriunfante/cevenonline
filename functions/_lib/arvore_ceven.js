@@ -215,7 +215,7 @@ export async function aplicaArvore(env, corpo) {
 
 // CASCATA DO DIA NA BASE (26/10/2026, Vitorio: "tem coisa que da pra ver sim na tela do gerente"): /api/gerente/tabelas-cascata traz, numa chamada por filial,
 // visitas planejadas/realizadas HOJE, eficacia de hoje, faturamento e positivacao de TODOS os vendedores, e respondeu 200 no mesmo instante em que /api/rca/* dava 429
-// (cota separada). Gravada inteira em cascata_dia (1 linha por filial por dia, so muda quando o conteudo muda: custo D1 = linhas gravadas).
+// (cota separada). Gravada inteira em cascata_dia (1 linha por filial por dia; 11 linhas por rodada, custo desprezivel).
 // Usos: numero unico de visitas (/api/totais-dia) e saber QUEM teve visita/venda nova para buscar so o roteiro desses (lances).
 const tokGer = new Map();   // filialKey -> { tk, ate }
 async function tokenGerente(g, senha) {
@@ -242,7 +242,7 @@ export async function gravaCascatas(env, dataRef, prazoMs = 30000) {
       if (!j || !Array.isArray(j.supervisores)) { res.falhas.push(g.sigla + ':vazio'); return; }
       res.lidas++;
       const txt = JSON.stringify(j);
-      const w = await env.DB.prepare("INSERT INTO cascata_dia (filial, data_ref, json, atualizado_em) VALUES (?, ?, ?, datetime('now')) ON CONFLICT (filial, data_ref) DO UPDATE SET json = excluded.json, atualizado_em = excluded.atualizado_em WHERE cascata_dia.json <> excluded.json")
+      const w = await env.DB.prepare("INSERT INTO cascata_dia (filial, data_ref, json, atualizado_em) VALUES (?, ?, ?, datetime('now')) ON CONFLICT (filial, data_ref) DO UPDATE SET json = excluded.json, atualizado_em = excluded.atualizado_em")   // sempre marca a hora da leitura: tv-lances so da cartao com cascata de menos de 10 min
         .bind(g.sigla, dataRef, txt).run();
       if (w && w.meta && w.meta.changes) res.mudaram++;
     } catch (e) { res.falhas.push(g.sigla + ':' + String(e.message || e).slice(0, 40)); }

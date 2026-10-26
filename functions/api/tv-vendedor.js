@@ -309,7 +309,9 @@ export async function onRequestGet({ request, env }) {
       } catch { /* sem cache: segue ao vivo */ }
     }
     // CEVEN acabou de falhar nesta leitura: nao abre mais chamadas de historico agora (so o cache); os gols desses clientes saem na proxima rodada
-    const faltam = soBase || (usarCentral && cevenFalhou) ? [] : positivadosHoje.filter((c) => !emCache.has(chaveCache(c)));
+    // hist=1 (coletor de lances, 26/10/2026): base so do D1, mas o historico de cliente com pedido NOVO ainda vem do CEVEN (e dele que saem dobradinha/mix)
+    const permiteHist = url.searchParams.get('hist') === '1';
+    const faltam = (soBase && !permiteHist) || (usarCentral && cevenFalhou && !soBase) ? [] : positivadosHoje.filter((c) => !emCache.has(chaveCache(c)));
     const catalogo = faltam.length ? await carregaCatalogo(request) : null;
     // na coleta central, o primeiro historico que travar encerra os demais desta leitura (15/10/2026: 4 travamentos seguidos = 32 s num vendedor); ficam para a proxima rodada
     let travou = false;

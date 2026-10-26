@@ -1,8 +1,8 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-26 12:14 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-26 12:37 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
-## 1. Quem chama o CEVEN e RODA SOZINHO (34)
+## 1. Quem chama o CEVEN e RODA SOZINHO (33)
 Meta: só `functions/api/cron-varredura-central.js`.
 
 | Arquivo | Roda | Endpoints |
@@ -32,11 +32,10 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `functions/api/cron-radar-horario.js` | site (Cloudflare) | /api/rca/dashboard, /api/rca/produtividade |
 | `functions/api/debug-ceven.js` | site (Cloudflare) | /api/rca/produtividade |
 | `functions/api/diag-admin-caminhos.js` | site (Cloudflare) | /api/admin/view-as/rca//{id} |
-| `functions/api/diag-supervisor-caminhos.js` | site (Cloudflare) | /api/gerente-auth/login, /api/gerente/tabelas-cascata, /api/supervisor/roteiro-mes |
+| `functions/api/diag-supervisor-caminhos.js` | site (Cloudflare) | /api/gerente-auth/login, /api/gerente/tabelas-cascata, /api/rca/roteiro-hoje, /api/supervisor/roteiro-mes |
 | `functions/api/divergencias.js` | site (Cloudflare) | /api/filiais |
 | `functions/api/mix-teste.js` | site (Cloudflare) | (monta a URL dinamicamente) |
 | `functions/api/saude.js` | site (Cloudflare) | /api/metas-mes |
-| `functions/api/tv-lances.js` | site (Cloudflare) | /api/rca/roteiro-hoje |
 | `functions/api/tv-supervisores-semana.js` | site (Cloudflare) | /api/admin/supervisores/matriz-compromissos, /api/admin/supervisores/matriz-ret |
 | `functions/api/tv-supervisores.js` | site (Cloudflare) | /api/admin/ret/periodo, /api/admin/supervisores/matriz-compromissos, /api/admin/supervisores/matriz-ret |
 | `functions/api/tv-vendedor.js` | site (Cloudflare) | /api/rca/dashboard, /api/rca/historico-cliente//{id}, /api/rca/produtividade, /api/rca/roteiro-hoje |
@@ -63,6 +62,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `cache_resposta` | `functions/_lib/cache_borda.js`, `functions/_lib/jota/fontes.js` |
 | `canal_ceven` | `functions/api/divergencias.js`, `functions/_lib/arvore_ceven.js`, `scratch/patch_canal_ceven.js`, `scratch/patch_canal_ocultos_super.js` |
 | `cancel` | `.github/workflows/ceven-cron-datalake.yml` |
+| `cascata_dia` | `functions/_lib/arvore_ceven.js` |
 | `clientes_historico_compras` | `scripts/sincronizar_filiais_faltantes.js` |
 | `codigos_descobertos` | `functions/api/cron-descobre-codigos.js` |
 | `coleta_estado` | `functions/api/cron-varredura-central.js`, `functions/_lib/concorrencia.js` |

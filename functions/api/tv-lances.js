@@ -95,16 +95,19 @@ export async function onRequestPost({ request, env }) {
         const gravados = new Set((ja || []).map((x) => x.chave));
         const rcaDe = (l) => String(l.rca == null ? l.chave.split('|').pop() : l.rca);
         const rcas = [...new Set(cand.filter((l) => !gravados.has(l.chave)).map(rcaDe))];
+        // PROVA PELA CASCATA DO GERENTE (26/10/2026): antes lia o roteiro de cada vendedor AO VIVO no CEVEN (cota de /api/rca/* de 3-4/min, a mesma que atrasava os
+        // lances). Agora: visitas realizadas hoje na cascata do gerente (D1 cascata_dia, gravada pelo coletor a cada rodada, cota separada). Cascata com mais de 10 min
+        // ou vendedor fora dela = sem prova = sem cartao (nunca pune sem prova).
         const temCheckin = new Map();
-        for (let i = 0; i < rcas.length; i += 5) {
-          await Promise.all(rcas.slice(i, i + 5).map(async (r) => {
-            try {
-              const x = await fetch(`https://ceven.drivetriunfante-locomotiva.com.br/api/rca/roteiro-hoje?filial=${filial.toLowerCase()}1&id=${r}`, { headers: { 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(12000) });
-              const rot = x.ok ? await x.json() : null;
-              if (Array.isArray(rot)) temCheckin.set(r, rot.some((c) => c && (c.checkin_horario || !['ABERTO', 'AGENDADO'].includes(c.status))));
-            } catch (e) { /* sem resposta = sem cartao */ }
-          }));
-        }
+        try {
+          const c = await env.DB.prepare("SELECT json, atualizado_em FROM cascata_dia WHERE filial = ? AND data_ref = ?").bind(filial, dia).first();
+          const idade = c ? Date.now() - Date.parse(String(c.atualizado_em).replace(' ', 'T') + 'Z') : Infinity;
+          if (c && idade < 10 * 60 * 1000) {
+            const real = new Map();
+            for (const s of JSON.parse(c.json).supervisores || []) for (const v of (s.tabelas && s.tabelas.produtividade) || []) if (v && v.id != null) real.set(String(v.id), Number(v.visit_real_hoje) || 0);
+            for (const r of rcas) if (real.has(String(r))) temCheckin.set(r, real.get(String(r)) > 0);
+          }
+        } catch (e) { /* sem cascata = sem cartao */ }
         for (let i = validos.length - 1; i >= 0; i--) {
           const l = validos[i];
           if (!CARTAO.test(l.chave) || gravados.has(l.chave)) continue;

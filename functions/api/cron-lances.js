@@ -429,7 +429,7 @@ export async function onRequestGet({ env, request }) {
       const lote = codigos.slice(i, i + LOTE).filter((c) => !semLances.has(String(c)));   // representante: nem busca (economiza chamada ao CEVEN)
       const resultados = await Promise.all(
         lote.map(async (codigo) => {
-          const d = await getJson(`${origin}/api/tv-vendedor?filial=${filial}&id=${codigo}&central=1${['AS', 'PET AS'].includes((canalMapa.get(String(codigo)) || {}).canal) ? '&canal=AS' : ''}`);
+          const d = await getJson(`${origin}/api/tv-vendedor?filial=${filial}&id=${codigo}&central=1&so_base=1&hist=1${['AS', 'PET AS'].includes((canalMapa.get(String(codigo)) || {}).canal) ? '&canal=AS' : ''}`);
           return { codigo, d };
         })
       );
