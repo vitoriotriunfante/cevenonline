@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-26 12:56 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-26 13:16 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (33)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -80,6 +80,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `filiais` | `pipeline/1_sync_cadastros_mestre.js` |
 | `flash_alerts` | `functions/api/cron-radar-horario.js` |
 | `gerentes_filiais` | `functions/api/whatsapp/gerentes.js` |
+| `historico_cliente` | `functions/api/tv-vendedor.js` |
 | `lances_excluidos_liga` | `functions/_lib/liga_fechamento.js` |
 | `liga_dia_fechado` | `functions/_lib/liga_fechamento.js`, `scratch/patch_teste_trava.js` |
 | `liga_fechamento` | `functions/_lib/liga_fechamento.js`, `scratch/patch_fecha_2330.js`, `scratch/patch_penalti_motivo.js`, `scratch/patch_teste_trava.js` |
