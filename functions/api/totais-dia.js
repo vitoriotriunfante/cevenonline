@@ -15,7 +15,6 @@
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const FILIAIS = ['TBL', 'TPH', 'TCV', 'ABC', 'TCA', 'MCD', 'TCG', 'API', 'TBE', 'TPA', 'TSJ'];
-const MAX_IDADE_S = 45 * 60;   // linha mais velha que isso não conta como lida (mesma tolerância do motor do WhatsApp, pipeline/fonte_base.js)
 const num = (v) => (v == null || v === '' || !isFinite(Number(v)) ? null : Number(v));
 const ehPromotor = (r) => /^(PROMOTOR|PROMO|P)$/.test(String((r && r.vinculo) || '').toUpperCase());
 const ehRep = (r) => !!(r && r.participa && r.participa.lances === false);
@@ -52,7 +51,8 @@ async function calcula(env, request) {
         idade = Number.isFinite(t) ? Math.round((agora - t) / 1000) : null;
         try { const p = JSON.parse(linha.produtividade_json || 'null'); d = p && p.dia ? p.dia : null; } catch (e) { d = null; }
       }
-      const lido = !!d && idade != null && idade <= MAX_IDADE_S;
+      // lido = produtividade DE HOJE na base, de qualquer hora: a rota do dia nao muda e quem vende e relido pela varredura assim que o pedido aparece (camada quente)
+      const lido = !!d;
       const programadas = lido ? num(d.total_programado) || 0 : null;
       const dig = lido ? num(d.dig_pedido) || 0 : null, pos = lido ? num(d.positivacao) || 0 : null;
       vendedores.push({

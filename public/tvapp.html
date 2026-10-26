@@ -622,13 +622,13 @@ async function atualiza() {
     const blocos = []; for (let i = 0; i < REPS.length; i += 25) blocos.push(REPS.slice(i, i + 25));
     const sobra = [];
     await Promise.all(blocos.map(async (b) => {
-      const L = await j(`/api/tv-vendedores?filial=${FIL}&central=1&ids=${b.map(r => r.id + (ehAS(r) ? ':AS' : '')).join(',')}`, 60000);
+      const L = await j(`/api/tv-vendedores?filial=${FIL}&central=1&so_base=1&ids=${b.map(r => r.id + (ehAS(r) ? ':AS' : '')).join(',')}`, 60000);
       for (const r of b) { const d = L && L.vendedores ? L.vendedores[r.id] : null; if (d) usa(r, d); else sobra.push(r); }
     }));
     await Promise.all(Array.from({length: 6}, async () => {
       while (sobra.length) {
         const r = sobra.shift();
-        usa(r, await j(`/api/tv-vendedor?filial=${FIL}&id=${r.id}&central=1${ehAS(r) ? '&canal=AS' : ''}`));
+        usa(r, await j(`/api/tv-vendedor?filial=${FIL}&id=${r.id}&central=1&so_base=1${ehAS(r) ? '&canal=AS' : ''}`));
       }
     }));
     if (ok > 0) {

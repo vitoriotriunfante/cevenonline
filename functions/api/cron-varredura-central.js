@@ -281,7 +281,11 @@ export async function onRequestGet({ env, request }) {
   const urlParams = new URL(request.url).searchParams;
   const forcar = urlParams.has('forcar');
   const filialParam = (urlParams.get('filial') || '').toUpperCase().trim();
-  if (!forcar && !filialParam && !env.TESTE_SEM_HORARIO && !rodaAgora(2, undefined, await freioCusto(env))) return resp({ status: 'FORA_DO_HORARIO', regra: 'antes das 06h, depois das 21h e domingo: a cada 30 min' });
+  // POPULACAO DA MADRUGADA (Vitorio, 26/10/2026: "vc nao roda toda a populacao de todos os dados na madrugada?"): a rota do dia (total_programado) ja existe cedo e nao muda.
+  // Das 03:30 as 06:00 (seg-sab) roda a cada 2 min com o CEVEN livre e le TODOS os vendedores antes do expediente; antes so rodava a cada 30 min ate as 06h e a rota
+  // so era lida no pico da manha, com 429: as 08h ainda faltavam vendedores. Durante o dia so rele quem teve pedido novo (camada quente).
+  const rel = R.relogioSP(), madrugada = rel.dow !== 0 && rel.min >= 3 * 60 + 30 && rel.min < 6 * 60;
+  if (!forcar && !filialParam && !env.TESTE_SEM_HORARIO && !madrugada && !rodaAgora(2, undefined, await freioCusto(env))) return resp({ status: 'FORA_DO_HORARIO', regra: 'antes das 06h, depois das 21h e domingo: a cada 30 min' });
 
   // lock global do WhatsApp (prioridade sobre TV/CFTV)
   if (!forcar && !filialParam) {

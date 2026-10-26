@@ -15,7 +15,7 @@ export async function onRequestGet(ctx) {
   const { request } = ctx;
   const url = new URL(request.url);
   const filial = String(url.searchParams.get('filial') || '').toUpperCase().trim();
-  const central = url.searchParams.get('central') === '1' ? '&central=1' : '';
+  const central = (url.searchParams.get('central') === '1' ? '&central=1' : '') + (url.searchParams.get('so_base') === '1' ? '&so_base=1' : '');   // so_base: nunca vai ao CEVEN (26/10/2026)
   const ids = String(url.searchParams.get('ids') || '').split(',').map((s) => s.trim()).filter(Boolean).slice(0, MAX_IDS);
   const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
   if (!filial || !ids.length) return new Response(JSON.stringify({ erro: 'informe filial e ids' }), { status: 400, headers: cors });

@@ -510,9 +510,9 @@ async function atualizaFilial(sig) {
   const ehAS = r => ['AS', 'PET AS'].includes((r.canal || '').toUpperCase());
   const todos = reps(sig), blocos = [], doLote = {};
   for (let i = 0; i < todos.length; i += 25) blocos.push(todos.slice(i, i + 25));
-  await Promise.all(blocos.map(async (b) => { const L = await j(`/api/tv-vendedores?filial=${sig}&central=1&ids=${b.map(r => r.id + (ehAS(r) ? ':AS' : '')).join(',')}`, 60000); if (L && L.vendedores) Object.assign(doLote, L.vendedores); }));
+  await Promise.all(blocos.map(async (b) => { const L = await j(`/api/tv-vendedores?filial=${sig}&central=1&so_base=1&ids=${b.map(r => r.id + (ehAS(r) ? ':AS' : '')).join(',')}`, 60000); if (L && L.vendedores) Object.assign(doLote, L.vendedores); }));
   const fila = [...todos];
-  await Promise.all(Array.from({length: 6}, async () => { while (fila.length) { const r = fila.shift(); const d = doLote[r.id] || await j(`/api/tv-vendedor?filial=${sig}&id=${r.id}&central=1${ehAS(r) ? '&canal=AS' : ''}`);
+  await Promise.all(Array.from({length: 6}, async () => { while (fila.length) { const r = fila.shift(); const d = doLote[r.id] || await j(`/api/tv-vendedor?filial=${sig}&id=${r.id}&central=1&so_base=1${ehAS(r) ? '&canal=AS' : ''}`);
     if (d && !d.erro && !(d.falhas && d.falhas.length === 3)) {
       if (!d.falhas || !d.falhas.length || !DATA[sig][r.id]) {
         // Preserva o maior dig_hoje já registrado para nunca perder pedido por oscilação momentânea

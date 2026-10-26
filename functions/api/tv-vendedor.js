@@ -237,16 +237,20 @@ export async function onRequestGet({ request, env }) {
   const q = `filial=${key}&id=${id}`;
   const usarCentral = url.searchParams.get('central') === '1';
   const canalVend = String(url.searchParams.get('canal') || '').toUpperCase() === 'AS' ? 'AS' : '';
-  const central = usarCentral ? await lerCentral(env, id, (foraDoHorario() ? 45 : 30) * 60 * 1000) : null;   /* fora do horario a varredura roda a cada 30 min (25/10/2026) */
+  // SO A BASE (26/10/2026): TV e Matriz pedem so_base=1 e NUNCA vao ao CEVEN. Antes, cada tela aberta com base de +30 min fazia 3 chamadas por vendedor ao CEVEN,
+  // gastava a cota (429) e a propria varredura central ficava sem conseguir ler: cada tela mostrava um numero. Quem le o CEVEN e so a varredura central.
+  const soBase = url.searchParams.get('so_base') === '1';
+  const central = soBase ? await lerCentral(env, id, 24 * 60 * 60 * 1000) : usarCentral ? await lerCentral(env, id, (foraDoHorario() ? 45 : 30) * 60 * 1000) : null;   /* fora do horario a varredura roda a cada 30 min (25/10/2026) */
+  if (soBase && !central) return new Response(JSON.stringify({ erro: 'sem dado na base hoje', id: String(id) }), { status: 404, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' } });
   const c = central || {};
   // CEVEN LENTO (15/10/2026 23h: chamadas travando 20 s; a Matriz levava ate 78 s por vendedor e ficava em "carregando"): na coleta central, se a base
   // do dia ja tem o vendedor (mesmo com mais de 30 min), o CEVEN tem so 6 s para responder antes de usar a base.
   const temReserva = usarCentral && !central ? !!(await lerCentral(env, id, 24 * 60 * 60 * 1000)) : false;
   const msCeven = temReserva ? 6000 : 20000;
   let [dash, prod, rot] = await Promise.all([
-    c.dash || getJson(`${CEVEN}/api/rca/dashboard?${q}`, msCeven),
-    c.prod || getJson(`${CEVEN}/api/rca/produtividade?${q}`, msCeven),
-    c.rot || getJson(`${CEVEN}/api/rca/roteiro-hoje?${q}`, msCeven)
+    c.dash || (soBase ? null : getJson(`${CEVEN}/api/rca/dashboard?${q}`, msCeven)),
+    c.prod || (soBase ? null : getJson(`${CEVEN}/api/rca/produtividade?${q}`, msCeven)),
+    c.rot || (soBase ? null : getJson(`${CEVEN}/api/rca/roteiro-hoje?${q}`, msCeven))
   ]);
   const cevenFalhou = !dash || !prod || !rot;
   // RESERVA DA BASE (15/10/2026: o coletor de lances falhou em 400 de 548 vendedores — a base com mais de 30 min ia ao CEVEN e levava 429): se o CEVEN
@@ -300,12 +304,12 @@ export async function onRequestGet({ request, env }) {
         await env.DB.prepare('CREATE TABLE IF NOT EXISTS cache_analise_cliente (chave TEXT PRIMARY KEY, json TEXT, criado_em INTEGER NOT NULL)').run();
         const chaves = positivadosHoje.map(chaveCache);
         const { results } = await env.DB.prepare(`SELECT chave, json FROM cache_analise_cliente WHERE criado_em > ? AND chave IN (${chaves.map(() => '?').join(',')})`)
-          .bind(Date.now() - 20 * 60 * 1000, ...chaves).all();
+          .bind(Date.now() - (soBase ? 24 * 60 : 20) * 60 * 1000, ...chaves).all();   // so_base: a analise que o coletor de lances ja fez hoje
         for (const r of results || []) emCache.set(r.chave, r.json);
       } catch { /* sem cache: segue ao vivo */ }
     }
     // CEVEN acabou de falhar nesta leitura: nao abre mais chamadas de historico agora (so o cache); os gols desses clientes saem na proxima rodada
-    const faltam = usarCentral && cevenFalhou ? [] : positivadosHoje.filter((c) => !emCache.has(chaveCache(c)));
+    const faltam = soBase || (usarCentral && cevenFalhou) ? [] : positivadosHoje.filter((c) => !emCache.has(chaveCache(c)));
     const catalogo = faltam.length ? await carregaCatalogo(request) : null;
     // na coleta central, o primeiro historico que travar encerra os demais desta leitura (15/10/2026: 4 travamentos seguidos = 32 s num vendedor); ficam para a proxima rodada
     let travou = false;
