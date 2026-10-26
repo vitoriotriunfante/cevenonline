@@ -520,7 +520,8 @@ let FALHAS_COLETA = 0;
 // TOLERANCIA (Vitorio, 19/10/2026: "preciso sempre que seja enviado os acomps... nao sao 3 clientes que vai mudar... o que nao deve ser feito e enviar
 // sem fazer um check em todos os vendedores; um errinho ou outro nao tem problema"). Todo vendedor continua sendo conferido em toda rodada; o envio so
 // trava se a falha for GRANDE: base fora do ar, ou mais que TOLERANCIA_VENDEDORES vendedores sem dado / com cliente positivado sem analise.
-const TOLERANCIA_VENDEDORES = (total) => Math.max(5, Math.ceil((Number(total) || 0) * 0.02));
+// 26/10/2026 (Vitorio: "e zerado"): TOLERANCIA ZERO. Com a base completa desde a madrugada (docs/BASE_UNICA.md), nenhum boletim sai com vendedor sem dado.
+const TOLERANCIA_VENDEDORES = () => 0;
 let TOTAL_VENDEDORES_RODADA = 0;
 const PRAZO_COMPLETUDE_MS = Number(process.env.CEVEN_PRAZO_COMPLETUDE_MIN || 20) * 60 * 1000;
 // Repete uma coleta inteira ate sair com ZERO falhas (FALHAS_COLETA) e passar na verificacao extra. SEM PRAZO: nunca desiste e nunca envia incompleto.
