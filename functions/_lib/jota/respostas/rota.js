@@ -229,3 +229,20 @@ export function respRecorrenciaClientes(E, v) {
   if (!L.length) return `🔄 *${E.nome}*: nenhum cliente com a tag RECORRÊNCIA no roteiro.`;
   return [`🔄 *Recorrência — ${E.nome}*`, `Hoje na rota: *${tH} clientes* com a tag · Mês: *${tC} de ${tM}* (80% dos ${tT} com a tag)`, '', ...L.sort((a, b) => b[0] - a[0]).map((x) => x[1]), '', '_Peça "recorrência do vendedor <nome>" para ver os clientes._'].join('\n');
 }
+
+// ROTA DE HOJE COMPLETA (Vitorio, 27/10/2026: "quando quero saber da rota e importante saber quem ja comprou ou nao, se tem tag como recorrencia etc"; Marcio/ABC:
+// "quais clientes a Nilva vai visitar hoje" vinha so com ABERTO). Cada cliente: status da visita · comprou no mes (ou dias sem compra) · tags do roteiro.
+export async function respRotaHojeCompleta(B, v, soSemCompra = false) {
+  const { rota, sem: semC } = await semCompraNaRota(B, v);
+  if (!rota.length) return `${vn(v)} (${v.filial}) não tem clientes na rota de hoje.`;
+  const semMap = new Map(semC.map((x) => [String(x.c.id_cliente), x]));
+  const tags = (c) => [...new Set((c.focos || []).map((f) => titulo(String(f.industria_foco || '').trim())).filter(Boolean))].join(', ');
+  const st = (c) => { const s = String(c.status || '').toUpperCase(); return /POSITIVADO|EFETIVADO/.test(s) ? '✅ vendeu hoje' : /VISITADO|JUSTIFICADO/.test(s) ? '👣 visitado' : '⏳ a visitar'; };
+  const L0 = (soSemCompra ? rota.filter((c) => semMap.has(String(c.id_cliente))) : rota).map((c) => {
+    const x = semMap.get(String(c.id_cliente)); const comp = x ? `❌ sem compra no mês (${x.dias == null ? '+60' : x.dias} dias)` : '✔️ já comprou no mês'; const tg = tags(c);
+    return [x ? 0 : 1, `${titulo(c.nome_cliente || c.razao_social || 'cliente')} · ${st(c)} · ${comp}` + (tg ? ` · 🏷️ ${tg}` : '')];
+  }).sort((a, b) => a[0] - b[0]).map((x) => x[1]);
+  return [`📋 *${vn(v)}* (${v.filial}) — rota de hoje: *${rota.length} clientes* · *${semC.length} ainda sem compra no mês*`,
+    soSemCompra ? `_Só os que ainda não compraram no mês:_` : '_Cliente · Visita · Compra no mês · Tags_', '', ...L0, '',
+    'Boas vendas e foco no +MIX! _Peça "+mix" para o que oferecer a quem não comprou._'].join('\n');
+}

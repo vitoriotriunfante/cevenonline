@@ -15,7 +15,7 @@ import { respGestaoCampo, respOperacao, respRecorrenciaLances, respRelatorio } f
 import { respJustificativas, respOferecer, respSemDado } from './respostas/oportunidades.js';
 import { pedePeriodo, respClientesSemComprar, respComparaMes, respDiasSemPedido, respPeriodoDias } from './respostas/periodos.js';
 import { respDiaVendedor, respFalta, respHoje, respTodosVendedores, totaisOficiais, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
-import { respAVisitar, respCheckinEquipe, respMixRotaHoje, respRecorrenciaClientes, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
+import { respAVisitar, respCheckinEquipe, respMixRotaHoje, respRecorrenciaClientes, respRotaHojeCompleta, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
 import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo, respPreco, respPedidoNumero, respPedidosStatus, respProduto, respRecuperacao, respTopProdutos } from './respostas/vendas.js';
 
 // CONTINUACAO (Vitorio, 27/10/2026: "precisa ir salvando a mensagem anterior para que vc continue a conversa... pergunto como foi o dia do vendedor X, dai
@@ -164,6 +164,11 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   // CONTINUACAO DA CONVERSA (Vitorio, 27/10/2026: "pergunto como foi o dia do vendedor X... dai pergunto e o mes, vc respondeu outra coisa totalmente diferente"):
   // pergunta curta ou que comeca com "e ..." sem pessoa citada herda o vendedor/supervisor da ultima pergunta (a mais recente primeiro).
   if (!pessoa && (/^E\b/.test(t) || t.split(/\s+/).filter(Boolean).length <= 4) && !/MINHA EQUIPE|MEU TIME|\bBRASIL\b|TODAS/.test(t)) for (const h of (anteriores || []).slice().reverse()) { pessoa = achaPessoa(E, sem(h)); if (pessoa) break; }
+  // ROTA DE HOJE x MES (27/10/2026, Marcio/ABC: "dos clientes que a Nilva vai visitar HOJE, quais ainda nao positivou esse mes" ia para a curva do mes inteiro;
+  // Vitorio: "misturando mes com dia"). Hoje/visitar/rota + nao comprou = so a rota de hoje; "quais clientes vai visitar hoje" = rota completa com compra e tags.
+  { const hojeRota = /(VISITAR|VISITA|ROTA|PASSAR).{0,30}\b(HOJE|HJ)\b|\b(HOJE|HJ)\b.{0,40}(VISITAR|ROTA)|VAI VISITAR|IRA VISITAR|VAO SER VISITAD/.test(t);
+    if (pessoa && pessoa.tipo === 'vend' && hojeRota && /NAO (COMPR|POSITIV|VEND)|SEM COMPRA|AINDA NAO/.test(t)) return respRotaHojeCompleta(B, pessoa.alvo, true);
+    if (pessoa && pessoa.tipo === 'vend' && hojeRota && /QUA(L|IS)|QUE CLIENTES|LISTA/.test(t) && !/VISITOU|VISITADOS|JUSTIF|CHE?C?K|HORARIO|MOTIVO/.test(t)) return respRotaHojeCompleta(B, pessoa.alvo, false); }
   // DIA x MES DO VENDEDOR (27/10/2026): "como foi o dia do X" = so hoje; "e o mes?" / "como foi o mes" = resumo do mes dele (respVendedor)
   if (pessoa && pessoa.tipo === 'vend' && /\bE (O |NO )?MES\W*$|^(E )?(O |NO |DO )?MES\W*$|COMO (FOI|ESTA|TA|VAI) O MES/.test(t) && !/NAO VEND|NAO COMPR|CURVA|SEM VENDA/.test(t)) return respVendedor(B, E, pessoa.alvo);
   if (pessoa && pessoa.tipo === 'vend' && /COMO FOI O DIA|O DIA D[AOE]\b|COMO FOI (HOJE|O DIA)/.test(t) && !/LIGA|BRASILEIRAO|CHAMPIONS/.test(t)) return respDiaVendedor(B, E, pessoa.alvo);

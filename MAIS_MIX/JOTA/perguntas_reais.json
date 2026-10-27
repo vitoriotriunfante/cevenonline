@@ -1451,5 +1451,39 @@
   "nao": [
    "DEFESA"
   ]
+ },
+ {
+  "id": "marcio-nilva-visitar-hoje",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "ABC",
+   "nome": "MARCIO ROSA SOBRAL BATISTA",
+   "supervisor": "MARCIO ROSA SOBRAL BATISTA"
+  },
+  "pergunta": "Qual clientes a Nilva código 1149 irá visitar hoje no dia 27/10/2026?",
+  "deve": [
+   "ROTA DE HOJE",
+   "COMPRA NO MES"
+  ],
+  "nao": [
+   "ABERTO$"
+  ]
+ },
+ {
+  "id": "marcio-nilva-hoje-nao-positivou",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "ABC",
+   "nome": "MARCIO ROSA SOBRAL BATISTA",
+   "supervisor": "MARCIO ROSA SOBRAL BATISTA"
+  },
+  "pergunta": "Dos clientes que a Nilva irá visitar hoje dia 27/10/26 quais clientes ela ainda não positivou esse mês?",
+  "deve": [
+   "SO OS QUE AINDA NAO COMPRARAM"
+  ],
+  "nao": [
+   "CURVA NEGATIVA",
+   "CARTEIRA DO MES"
+  ]
  }
 ]
