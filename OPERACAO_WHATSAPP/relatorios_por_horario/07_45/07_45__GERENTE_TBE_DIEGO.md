@@ -1,38 +1,37 @@
 🌅 *ABERTURA MATINAL — TBE (07:45)*
-📅 segunda-feira, 26/10/2026
+📅 terça-feira, 27/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 16 • Visitas: 316 (média 19,8/vendedor)
-Sem compra +30d: 150 (47,5%) • Recorrência: 19 (6,0%)
-Oportunidades CNAE 4789: +316 PDVs
+👥 Vendedores: 16 • Visitas: 312 (média 19,5/vendedor)
+Sem compra +30d: 126 (40,4%) • Recorrência: 13 (4,2%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TBE — DIEGO* • 26/10/2026
+📍 *TBE — DIEGO* • 27/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 150  •  🟡 Preventivo: 0
+🔴 Última Chance: 126  •  🟡 Preventivo: 0
 
-👤 *HAMILTON RICARDO DOS SANTOS MENDES* (56 em risco)
-  🔴 M C X SUPERMERCADO LTDA (301) — 08/09
-  🔴 MERCADO BELEM VELHO (301) — 08/09
-  🔴 MERCADO MARIANTE (301) — 20/07
-  🔴 FORMENTON S A (304) — 21/09
-  🔴 BOLOS DO BAIRRO MD (304) — 01/01
-  _+51 outros_
+👤 *HAMILTON RICARDO DOS SANTOS MENDES* (54 em risco)
+  🔴 CASA DAS BALAS (301) — 05/12
+  🔴 MERCADO NAVEGANTES (301) — 21/09
+  🔴 ARMAZEM DO PORTO (301) — 25/09
+  🔴 MINIMERCADO 24H (301) — 31/08
+  🔴 MINIMERCADO HIPICA (301) — 16/09
+  _+49 outros_
 
-👤 *NEIVA CLEONICE SERRA ISOPPO* (14 em risco)
-  🔴 TIAGO DINOSSANI RODRIGUES (289) — 11/08
-  🔴 MERC ACOU PAD PARQUE DOS PRESIDENTES (289) — 31/07
-  🔴 SUPERMERCADO BOM PRECO (289) — 21/07
-  🔴 POSTO POINT (289) — 15/09
-  🔴 SUPER DIJUCA (289) — 15/09
-  _+9 outros_
+👤 *NEIVA CLEONICE SERRA ISOPPO* (7 em risco)
+  🔴 SILVANE MARIA SCHMIDT DE LIMA (289) — 05/12
+  🔴 CONFEITARIA KI SABOR (289) — 17/09
+  🔴 SUPERMECADO GUARANI (293) — 21/09
+  🔴 ELITON KENNEDY GUIMARAES DOS SANTOS (293) — 03/05
+  🔴 MERCADO ACOUGUE E PADARIA DO GAGO (293) — 27/08
+  _+2 outros_
 
-👤 *PATRICIA CHAVES MACHADO* (80 em risco)
-  🔴 NEIVA DE OLIVEIRA VALADA (285) — 01/01
-  🔴 BC FARMA (285) — 01/01
-  🔴 ALINE BEBIDAS (285) — 27/05
-  🔴 X BACURAL (285) — 23/07
-  🔴 LUANA BARUFFI (285) — 21/09
-  _+75 outros_
+👤 *PATRICIA CHAVES MACHADO* (65 em risco)
+  🔴 LENIO LUIZ WEBBER (285) — 01/01
+  🔴 MARILENE MOREIRA SCHREIBER (285) — 27/05
+  🔴 LUCIANA PEREIRA COSTA (285) — 01/01
+  🔴 VIVIAN OLIVEIRA WOLTMANN DA SILVA (285) — 27/05
+  🔴 AUTO POSTO 70 (285) — 24/09
+  _+60 outros_

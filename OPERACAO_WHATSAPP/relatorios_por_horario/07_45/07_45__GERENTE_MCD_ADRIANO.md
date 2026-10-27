@@ -1,38 +1,37 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 segunda-feira, 26/10/2026
+📅 terça-feira, 27/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 21 • Visitas: 163 (média 7,8/vendedor)
-Sem compra +30d: 50 (30,7%) • Recorrência: 31 (19,0%)
-Oportunidades CNAE 4789: +245 PDVs
+👥 Vendedores: 21 • Visitas: 165 (média 7,9/vendedor)
+Sem compra +30d: 40 (26,7%) • Recorrência: 16 (10,7%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — ADRIANO* • 26/10/2026
+📍 *MCD — ADRIANO* • 27/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 50  •  🟡 Preventivo: 0
+🔴 Última Chance: 40  •  🟡 Preventivo: 0
 
-👤 *ALYFER PEREIRA MENDES* (10 em risco)
-  🔴 PET SPIPE (432) — 28/08
-  🔴 PET SHOP CAOTEINER (432) — 21/09
-  🔴 PETISCAO PET SHOP (432) — 05/12
-  🔴 PETSHOP CAPITAL (432) — 31/08
-  🔴 PET SHOP CAOSULTORIO (436) — 05/12
-  _+5 outros_
+👤 *ALYFER PEREIRA MENDES* (8 em risco)
+  🔴 AGRO BOI FORTE (432) — 17/08
+  🔴 TOP VET LTDA (432) — 27/08
+  🔴 AGRONUTRI PETSHOP (436) — 08/08
+  🔴 PET CENTER CAFEZAIS (436) — 05/12
+  🔴 OX HEADE (436) — 05/09
+  _+3 outros_
 
-👤 *CARLOS ALAGUEZ DA SILVA* (13 em risco)
-  🔴 PANIFICADORA AGUA NA BOCA (423) — 05/12
-  🔴 MERCADO POPULAR (430) — 05/12
-  🔴 MERCADO SANTANA (430) — 18/09
-  🔴 MERCADINHO BOM DIA (430) — 18/09
-  🔴 MERCADO ALFA (430) — 17/09
-  _+8 outros_
+👤 *CARLOS ALAGUEZ DA SILVA* (17 em risco)
+  🔴 CASA DE CARNE E MERCADO BOI GORDO (430) — 18/09
+  🔴 SUPERMERCADOS CHAMA (430) — 05/12
+  🔴 MERCADO ESPERANCA (438) — 05/12
+  🔴 VIA SUL VEICULOS (438) — 03/05
+  🔴 MERCADO KI PRECO (438) — 15/09
+  _+12 outros_
 
-👤 *CLEOMAR DINIZ BARBOSA* (27 em risco)
-  🔴 ROOSTEL MERCADO (415) — 17/09
-  🔴 VET HOME (415) — 19/09
-  🔴 AMIGO PET (415) — 05/12
-  🔴 SUPERMERCADO KARINNE (415) — 21/09
-  🔴 PRIMOS BOUTIQUE CARNES ESPECIA (415) — 05/12
-  _+22 outros_
+👤 *CLEOMAR DINIZ BARBOSA* (15 em risco)
+  🔴 PET HOMME (415) — 28/08
+  🔴 CENTRAL CONVENIENCIA (415) — 05/12
+  🔴 MERCADO VILA CRISTINA (415) — 19/09
+  🔴 MERCEARIA VENTURA (424) — 24/09
+  🔴 JF COVENIECIA (424) — 10/09
+  _+10 outros_
