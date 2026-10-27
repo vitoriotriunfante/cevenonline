@@ -91,8 +91,17 @@ export function achaPessoa(E, t) {
   const querSup = /SUPERVIS|EQUIPE|TIME/.test(t), querVend = /VENDEDOR|\bRCA\b/.test(t);
   const sups = [...new Map(E.vend.filter((v) => v.supervisor && supReal(v.supervisor)).map((v) => [v.filial + '|' + v.supervisor, { nome: v.supervisor, filial: v.filial }])).values()];
   const bs = sups.map((s) => [s, score(s.nome)]).filter((x) => x[1]).sort((a, b) => b[1] - a[1]);
-  const bv = E.vend.concat(E.ocultos || []).map((v) => [v, score(v.nome)])   /* oculto na Gestao tambem e achado pelo NOME (26/10/2026: Anderson, "vendedor Bruno" = 153 oculto) */.filter((x) => x[1]).sort((a, b) => b[1] - a[1]);
+  const bv = E.vend.concat(E.ocultos || []).filter((v) => !/^(GERENTE|VAGO|RCA\b|VENDA |SUPERVIS)/i.test(String(v.nome || '')))   /* conta que nao e vendedor so pelo codigo (27/10/2026: "gerente" achava 1010 GERENTE TPH) */.map((v) => [v, score(v.nome)])   /* oculto na Gestao tambem e achado pelo NOME (26/10/2026: Anderson, "vendedor Bruno" = 153 oculto) */.filter((x) => x[1]).sort((a, b) => b[1] - a[1]);
   if (bs.length && !querVend && (querSup || !bv.length || bs[0][1] >= bv[0][1])) return { tipo: 'sup', alvo: bs[0][0], empate: bs.filter((x) => x[1] === bs[0][1]).map((x) => x[0]) };
   if (bv.length) return { tipo: 'vend', alvo: bv[0][0], empate: bv.filter((x) => x[1] === bv[0][1]).map((x) => x[0]) };
+  // NOME COM ERRO DE DIGITACAO/AUDIO (27/10/2026: Evandro "Branda" = Brenda; "Josiane" = Joseanne): so com "vendedor(a)" na frente, 1 letra de diferenca no 1o nome
+  // (ou som parecido: s/z, y/i, sem h), e so se for um unico vendedor; nunca adivinha entre varios
+  const mv = t.match(/VENDEDORA?\s+([A-Z]{4,})/);
+  if (mv) {
+    const fon = (w) => w.replace(/H/g, '').replace(/Y/g, 'I').replace(/Z/g, 'S').replace(/([A-Z])\1+/g, '$1');
+    const perto = (a, b) => { if (fon(a) === fon(b)) return true; if (Math.abs(a.length - b.length) > 1) return false; let i = 0, j = 0, d = 0; while (i < a.length && j < b.length) { if (a[i] === b[j]) { i++; j++; continue; } if (++d > 1) return false; if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; } } return d + (a.length - i) + (b.length - j) <= 1; };
+    const cand = E.vend.concat(E.ocultos || []).filter((v) => !/^(GERENTE|VAGO|RCA\b|VENDA )/i.test(String(v.nome || '')) && perto(sem(v.nome).split(/\s+/)[0] || '', mv[1]));
+    if (cand.length === 1) return { tipo: 'vend', alvo: cand[0], empate: cand };
+  }
   return null;
 }

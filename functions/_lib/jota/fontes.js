@@ -57,6 +57,11 @@ export function criaBase(origin, env) {
     diverg: () => memo('div', () => api('/api/divergencias')),
     rv: () => memo('rv', () => carregaRV(env)),
     // pedidos que o JOTA nao executa (mudanca de equipe, envio automatico): ficam em bot_sugestoes (painel de conversas) para a diretoria (26/10/2026)
+    // ESTADO DA CONVERSA (dialogue state tracking, 27/10/2026): por pessoa, os "campos" da conversa (filial, vendedor, supervisor, assunto, periodo), valido 2 h.
+    // Vitorio: "se estou falando de uma filial precisa falar sobre ela... se eu peco a nivel vendedor, ate que eu peca outra coisa, as respostas sao sobre aquele vendedor".
+    ctxLer: async (cel) => { try { const db = env && env.DB; if (!db || !cel) return null; await db.prepare('CREATE TABLE IF NOT EXISTS bot_contexto (celular TEXT PRIMARY KEY, json TEXT, em INTEGER)').run();
+      const r = await db.prepare('SELECT json, em FROM bot_contexto WHERE celular = ?').bind(String(cel)).first(); return r && Date.now() - r.em < 2 * 3600 * 1000 ? JSON.parse(r.json) : null; } catch (e) { return null; } },
+    ctxGravar: async (cel, ctx) => { try { const db = env && env.DB; if (!db || !cel) return; await db.prepare('INSERT INTO bot_contexto (celular, json, em) VALUES (?,?,?) ON CONFLICT (celular) DO UPDATE SET json = excluded.json, em = excluded.em').bind(String(cel), JSON.stringify(ctx || {}), Date.now()).run(); } catch (e) { /* sem estado: segue sem */ } },
     registraPedido: async (tipo, texto, quem, c) => { try { const db = env && env.DB; if (!db || !c) return; const B_CTX = { c }; await db.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(B_CTX.c.celular || '', B_CTX.c.nome || '', B_CTX.c.papel || '', B_CTX.c.filial || '', `[PEDIDO ${tipo.toUpperCase()}] ${texto}`.slice(0, 1500), quem || '').run(); } catch (e) {} },
   };
 }

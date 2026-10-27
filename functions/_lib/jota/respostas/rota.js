@@ -214,15 +214,25 @@ export async function respMixRotaHoje(B, v) {
 // CLIENTES DE RECORRENCIA (Vitorio, 27/10/2026: "o pessoal esta perguntando sobre recorrencia e vc nao ta respondendo... so nesse vendedor hoje tem 4 clientes de
 // recorrencia (TCV 346)... vc tem que buscar recorrencia por meta e por TAG"). TAG = foco RECORRENCIA no roteiro (hoje e mes). META = 80% dos clientes com a tag (Premiacao).
 const temTagRec = (c) => (c.focos || []).some((f) => /RECORRENCIA/i.test(String(f.industria_foco || '')));
-export function respRecorrenciaClientes(E, v) {
-  const mes = hojeSP().slice(0, 7), dd = (s) => (s ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : '—');
+export async function respRecorrenciaClientes(B, E, v, t = '') {
+  const mes = hojeSP().slice(0, 7), dd = (s) => (s && s >= '2000' ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : '—');
+  // COMPROU NO MES = vendas item a item do mes (pedido) ou positivado no roteiro (27/10/2026: a data do roteiro tem valor-padrao do CEVEN e dava "3 de 82")
+  const { vendasEscopo } = await import('./vendas.js'); const VM = await vendasEscopo(B, E).catch(() => null);
+  const compraram = new Set(((VM && VM.linhas) || []).map((l) => l.f + '|' + l.c));
   const um = (x) => {
     const hoje = []; const vh = new Set();
     for (const c of (x.rotaHoje || []).filter(temTagRec)) { if (vh.has(String(c.id_cliente))) continue; vh.add(String(c.id_cliente)); hoje.push(c); }
-    const mesC = new Map(); for (const c of (x.roteiroMes || []).filter(temTagRec)) { const k = String(c.id_cliente), u = String(c.data_ultima_compra || '').slice(0, 10); if (!mesC.has(k) || u > mesC.get(k).u) mesC.set(k, { c, u }); }
-    const comprou = [...mesC.values()].filter((y) => y.u >= mes + '-01').length, meta = Math.ceil(mesC.size * 0.8);
+    const mesC = new Map(); for (const c of (x.roteiroMes || []).filter(temTagRec)) { const k = String(c.id_cliente), u = String(c.data_ultima_compra || '').slice(0, 10); const y = mesC.get(k) || { c, u: '', comp: false }; if (u > y.u) y.u = u; if (/POSITIVADO|EFETIVADO/i.test(String(c.status || ''))) y.comp = true; mesC.set(k, y); }
+    for (const [k, y] of mesC) if (compraram.has(x.filial + '|' + k)) y.comp = true;
+    for (const y of mesC.values()) if (y.comp) y.u = mes + '-01';   /* marca como comprou no mes */
+    const comprou = [...mesC.values()].filter((y) => y.comp).length, meta = Math.ceil(mesC.size * 0.8);
     return { hoje, mesC, comprou, meta };
   };
+  // "SO QUERO SABER QUANTOS clientes com tag recorrencia" (Ivayr/TCA, 27/10/2026): menos e mais — so o numero
+  if (!v && /QUANTOS/.test(t) && !/CADA|POR VENDEDOR|QUAIS|LISTA|QUEM/.test(t)) {
+    let tag = 0, comp = 0, hj = 0; for (const x of E.vend) { const r = um(x); tag += r.mesC.size; comp += r.comprou; hj += r.hoje.length; }
+    return `🔄 *${E.nome}*: *${tag} clientes* com a tag RECORRÊNCIA no mês · já compraram *${comp}* · meta da Premiação: ${Math.ceil(tag * 0.8)} (80%) · hoje na rota: ${hj}.\n_Peça "recorrência por vendedor" para abrir._`;
+  }
   if (v) {
     const r = um(v);
     if (!r.hoje.length && !r.mesC.size) return `🔄 ${vn(v)}: nenhum cliente com a tag RECORRÊNCIA no roteiro (hoje e no mês).`;
@@ -321,4 +331,34 @@ export async function respDiaEquipe(B, E) {
     '_⚠️ sem pedido · 🟡 rota em andamento · ✅ rota feita_', '', ...L.map((x) => x[2]),
     ...(as.length ? ['', `*Sem rota hoje (AS e outros):* ` + as.map((v) => `${vn(v)} ${R$(v.dig)}`).join(' · ')] : []),
     '', SUGESTAO + (tot.z ? `comece pelos ⚠️ (rota e sem pedido). ` : '') + 'Para abrir um vendedor, mande o *nome* ou o *código* (ex.: "clientes 352"); para o *+MIX* da rota dele, depois mande "+mix"; para receber *cada vendedor em uma mensagem*, mande "um por um".'].join('\n');
+}
+
+// VENDEDORES SEM NENHUMA VISITA HOJE, na hierarquia (Vitorio, 27/10/2026: "so queria saber os sem nenhuma visita ainda... como sou da diretoria, teria que mostrar
+// a hierarquia filial, supervisor, vendedor"; Evandro: "lista completa dos vendedores sem visita, hoje, por filial")
+export function respSemVisita(E) {
+  const V = E.vend.filter((v) => v.varejo && v.visP > 0 && !v.visF);
+  if (!V.length) return `✅ *${E.nome}*: todo vendedor com rota hoje já fez pelo menos uma visita.`;
+  const porF = new Map(); for (const v of V) { const f = porF.get(v.filial) || new Map(); const s = v.supervisor || 'sem supervisor'; (f.get(s) || f.set(s, []).get(s)).push(v); porF.set(v.filial, f); }
+  const L = [`🚶 *Sem nenhuma visita hoje — ${E.nome}*: *${V.length}* vendedor(es) com rota (${hojeSP().slice(8, 10)}/${hojeSP().slice(5, 7)})`];
+  for (const [f, S] of [...porF].sort((a, b) => [...b[1].values()].flat().length - [...a[1].values()].flat().length)) {
+    if (E.nacional) L.push('', `*${f}* (${[...S.values()].flat().length})`);
+    for (const [s, vs] of S) L.push(`${E.nacional ? '  ' : ''}_${sn(s)}_: ` + vs.map((v) => `${vn(v)} (0/${v.visP})`).join(' · '));
+  }
+  L.push('', SUGESTAO + 'ligar para os supervisores com mais vendedores parados; peça "clientes <vendedor>" para ver a rota de um.');
+  return L.join('\n');
+}
+
+// CLIENTES NA ROTA DE HOJE, VISITADOS E SEM VENDA, PARADOS HA MAIS DE N DIAS (Vitorio, 27/10/2026: "quantos e quais clientes que nao compram a mais de 30 dias tem na
+// rota hoje e o vendedor ja visitou e nao vendeu?") — do escopo (filial/equipe) ou do vendedor
+export async function respRotaFiltro(B, E, t) {
+  const n = Number((t.match(/(\d{1,3})\s*DIAS/) || [])[1]) || 30, soVisitados = /VISITOU|VISITAD|JA PASSOU/.test(t);
+  const L = []; let tot = 0;
+  for (const v of E.vend.filter((x) => (x.rotaHoje || []).length)) {
+    const { sem: S } = await semCompraNaRota(B, v);
+    const ok = S.filter((x) => (x.dias == null || x.dias > n) && (!soVisitados || !!x.c.checkin_horario || /VISITADO|JUSTIFICADO/i.test(String(x.c.status || ''))) && !/POSITIVADO|EFETIVADO/i.test(String(x.c.status || '')));
+    if (!ok.length) continue; tot += ok.length;
+    L.push('', `*${vn(v)}* — ${ok.length}`, ...ok.map((x) => `${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} · ${x.dias == null ? '+60' : x.dias} dias`));
+  }
+  const cab = `📋 *${E.nome}* — clientes na rota de hoje${soVisitados ? ', já visitados e sem venda,' : ''} parados há mais de ${n} dias: *${tot}*`;
+  return tot ? [cab, '_Cliente · Dias sem compra_', ...L].join('\n') : cab.replace(/: \*0\*$/, ': nenhum agora.');
 }

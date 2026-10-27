@@ -109,3 +109,12 @@ Fontes: `varredura_central_rca` (roteiro de cada dia, 29/09 a 26/10) e `piloto_p
 - Rechecagem: `cron-lances` relê 4 clientes por rodada com pedido não final (bloqueados primeiro, depois quem está há mais tempo sem conferir). **Capacidade medida pendente**: ~1.000 pedidos/dia não cabem em 4/rodada; subir medindo 429 ou achar endpoint de gerente com status.
 - Leitura: `/api/pedidos-dia` (status mais recente) e `/api/pedidos-dia?num=` (qualquer dia + linha do tempo). JOTA: "pedido <número>", "pedidos bloqueados/liberados/com corte".
 - Limite atual: o coletor só analisa os vendedores acompanhados (Liga); vendedor fora disso (ex.: 1190 sem canal) só entra quando for lido.
+
+## JOTA: estado da conversa (27/10/2026)
+Vitório: "se estou falando de uma filial precisa falar sobre ela... se eu peço a nível vendedor, até que eu peça outra coisa, as respostas são sobre aquele vendedor".
+- Técnica: *dialogue state tracking* com *slot carryover* (ver Amazon Science, "turning dialogue tracking into a reading comprehension problem"; arXiv 1906.01149).
+- Tabela D1 `bot_contexto` (1 linha por celular, vale 2 h): `{filial, vend:{rca,filial,nome}, assunto}`.
+- Herda: filial (diretoria) se a pergunta não cita outra; vendedor se a pergunta não cita ninguém e não é de equipe/filial/Brasil (o texto é completado com "vendedor <código> <filial>").
+- Zera: "Brasil"/"por filial" zera filial e vendedor; "equipe", "time", "filial", "zerados", "ranking", "sem visita" zeram o vendedor; filial nova zera vendedor de outra filial.
+- WhatsApp manda as mensagens anteriores da MAIS NOVA para a mais velha (anteriores[0] = a última).
+- Teste: `node testes/jota_conversas.mjs` (sequências reais com estado).

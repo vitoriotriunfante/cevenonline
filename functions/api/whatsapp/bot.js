@@ -107,7 +107,9 @@ export async function onRequestPost({ request, env }) {
   const ultIn = await env.DB.prepare("SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'in' ORDER BY id DESC LIMIT 1 OFFSET 1").bind(cel).first().catch(() => null);
   const notaTxt = (texto.trim().match(/^(?:nota\s*)?([1-5])(?:\s*(?:\/\s*5|estrelas?))?[!. ]*$/i) || [])[1] || (/^\s*(👍|👍🏻|👍🏼|👍🏽)\s*$/.test(texto) ? '5' : /^\s*(👎|👎🏻|👎🏼|👎🏽)\s*$/.test(texto) ? '1' : null);
   const pediuMotivo = ultOut && /o que faltou ou veio errado/.test(ultOut.texto || '');
-  const sug = (texto.match(/^\s*sugest(?:ã|a)o\s*[:\-]?\s*([\s\S]{3,})/i) || [])[1] || (pediuMotivo && !notaTxt ? texto : null);
+  // sugestao tambem no meio da frase (27/10/2026: "...nao acha? fica a sugestao", "anote ai como sugestao", "precisa ajustar as respostas... dei uma sugestao")
+  const sugMeio = /fica (a|como) (sugest(ã|a)o|dica)|anot(e|a)( a(í|i))?( isso)?( como)? sugest(ã|a)o|como sugest(ã|a)o|dei uma sugest(ã|a)o|minha sugest(ã|a)o (é|e)/i.test(texto) ? texto : null;
+  const sug = (texto.match(/^\s*sugest(?:ã|a)o\s*[:\-]?\s*([\s\S]{3,})/i) || [])[1] || sugMeio || (pediuMotivo && !notaTxt ? texto : null);
   if (notaTxt && ultOut && ultOut.nota == null && Date.now() - Date.parse(ultOut.quando + 'Z') < 6 * 3600 * 1000) {
     const nota = Number(notaTxt);
     await env.DB.prepare('UPDATE bot_msgs SET nota = ?, ajudou = ? WHERE id = ?').bind(nota, nota >= 3 ? 1 : 0, ultOut.id).run();

@@ -1647,5 +1647,60 @@
    "⟪⟫"
   ],
   "nao": []
+ },
+ {
+  "id": "ivayr-quantos-com-tag-recorrencia",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TCA",
+   "nome": "IVAYR PRINCIPE FREITAS DE MIRANDA",
+   "supervisor": "IVAYR PRINCIPE FREITAS DE MIRANDA"
+  },
+  "pergunta": "Só quero saber quantos clientes eu tenho no mês de outubro com tag recorrência",
+  "deve": [
+   "CLIENTES. COM A TAG RECORRENCIA NO MES"
+  ],
+  "nao": [
+   "HOJE .*NA ROTA . MES"
+  ]
+ },
+ {
+  "id": "cristiano-equipe-agora-depois-de-vendedor",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TSJ",
+   "nome": "CRISTIANO RODRIGUES MACHADO",
+   "supervisor": "CRISTIANO RODRIGUES MACHADO"
+  },
+  "anteriores": [
+   "Clientes x vendedor 32 Adilson hoje"
+  ],
+  "pergunta": "Equipe agora",
+  "deve": [
+   "EQUIPE CRISTIANO"
+  ],
+  "nao": [
+   "32 - ADILSON MANARETA. —"
+  ]
+ },
+ {
+  "id": "marcio-cliente-1891",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "ABC",
+   "nome": "MARCIO ROSA SOBRAL BATISTA",
+   "supervisor": "MARCIO ROSA SOBRAL BATISTA"
+  },
+  "anteriores": [
+   "clientes nilva acumulado"
+  ],
+  "pergunta": "Quero saber apenas se o cliente código 1891 realizou compra nesse mês de outubro de 2026",
+  "deve": [
+   "#1891",
+   "NO MES"
+  ],
+  "nao": [
+   "CLIENTES NO MES —"
+  ]
  }
 ]
