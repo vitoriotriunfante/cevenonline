@@ -301,3 +301,24 @@ export async function respClientesVend(B, v, periodo) {
   return r.replace('\n', '\n' + cab + '\n');
 }
 const dIsoBR = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}`;
+
+// "COMO ESTA O DIA DA MINHA EQUIPE" (Vitorio, 27/10/2026: "uma mensagem so, uma linha por vendedor focada na rota... e coloca a sugestao no final explicando o que
+// fazer"). Ordem: quem mais precisa de atencao primeiro (sem pedido com rota, depois menos visitas feitas).
+export async function respDiaEquipe(B, E) {
+  const V = E.vend.filter((v) => v.varejo && v.visP > 0);
+  const outros = E.vend.filter((v) => !(v.varejo && v.visP > 0));
+  if (!V.length && !outros.length) return `📋 *${E.nome}* — ninguém com rota hoje.`;
+  const L = [];
+  for (const v of V) {
+    let semMes = null; try { semMes = (await semCompraNaRota(B, v)).sem.length; } catch (e) { semMes = null; }
+    const icone = !v.ped ? '⚠️' : v.visF >= v.visP ? '✅' : '🟡';
+    L.push([!v.ped ? 0 : 1, v.visP ? v.visF / v.visP : 1, `${icone} *${vn(v)}* · ${v.visF}/${v.visP} visitas · ${v.comVenda} com venda · ${R$(v.dig)}` + (semMes != null ? ` · ${semMes} sem compra no mês` : '')]);
+  }
+  L.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const tot = V.reduce((a, v) => ({ f: a.f + v.visF, p: a.p + v.visP, d: a.d + v.dig, z: a.z + (v.ped ? 0 : 1) }), { f: 0, p: 0, d: 0, z: 0 });
+  const as = outros.filter((v) => v.dig > 0 || v.ped > 0 || v.meta > 0);
+  return [`📋 *Dia da ${E.nome}* (${hojeSP().slice(8, 10)}/${hojeSP().slice(5, 7)})`, `Rota: *${tot.f} de ${tot.p}* visitas · digitado *${R$(tot.d)}* · *${tot.z}* vendedor(es) com rota e sem pedido`,
+    '_⚠️ sem pedido · 🟡 rota em andamento · ✅ rota feita_', '', ...L.map((x) => x[2]),
+    ...(as.length ? ['', `*Sem rota hoje (AS e outros):* ` + as.map((v) => `${vn(v)} ${R$(v.dig)}`).join(' · ')] : []),
+    '', SUGESTAO + (tot.z ? `comece pelos ⚠️ (rota e sem pedido). ` : '') + 'Para abrir um vendedor, mande o *nome* ou o *código* (ex.: "clientes 352"); para o *+MIX* da rota dele, depois mande "+mix"; para receber *cada vendedor em uma mensagem*, mande "um por um".'].join('\n');
+}

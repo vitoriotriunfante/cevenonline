@@ -15,7 +15,7 @@ import { respGestaoCampo, respOperacao, respRecorrenciaLances, respRelatorio } f
 import { respJustificativas, respOferecer, respSemDado } from './respostas/oportunidades.js';
 import { pedePeriodo, respClientesSemComprar, respComparaMes, respDiasSemPedido, respPeriodoDias } from './respostas/periodos.js';
 import { respDiaVendedor, respFalta, respHoje, respTodosVendedores, totaisOficiais, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
-import { respAVisitar, respCheckinEquipe, respClientesVend, respMixRotaHoje, respRecorrenciaClientes, respRotaHojeCompleta, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
+import { respAVisitar, respCheckinEquipe, respClientesVend, respDiaEquipe, respMixRotaHoje, respRecorrenciaClientes, respRotaHojeCompleta, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
 import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo, respPreco, respPedidoNumero, respPedidosStatus, respProduto, respRecuperacao, respTopProdutos } from './respostas/vendas.js';
 
 // CONTINUACAO (Vitorio, 27/10/2026: "precisa ir salvando a mensagem anterior para que vc continue a conversa... pergunto como foi o dia do vendedor X, dai
@@ -122,7 +122,15 @@ export async function respostaInterna(B, c, texto, anteriores) {
       `• *Positivação:* clientes com faturamento no mês, do CEVEN: ${N(x.pos)} de ${N(x.metaPos)}`,
       '', 'Me diga *qual número* e *qual valor* você vê (ou mande o print) que eu comparo vendedor a vendedor.'].join('\n');
   }
-  if (/TODOS (OS )?(MEUS )?VENDEDORES|UM POR UM|CADA (UM DOS )?VENDEDOR(ES)?\b|VENDEDOR POR VENDEDOR/.test(t) && !/POSITIVA|RECORRENCIA|MIX|LIGA|ZERAD|ROTA|VISITA|PREMIA|META DE |INDUSTRIA|DEVOLU|PEDIDO/.test(t)) return respTodosVendedores(E);
+  // EQUIPE (Vitorio, 27/10/2026): "como esta o dia da minha equipe" = 1 mensagem, 1 linha por vendedor (rota) + sugestao do que pedir; "panorama da minha equipe" =
+  // 1 linha por vendedor com o mes; "um por um" = uma mensagem por vendedor (o bot separa no ⟪⟫)
+  if (/UM POR UM|UMA MENSAGEM POR VENDEDOR|SEPARADO POR VENDEDOR/.test(t) && E.vend.length > 1) {
+    const V = E.vend.filter((v) => v.varejo ? v.visP > 0 || v.dig > 0 : v.meta > 0 || v.dig > 0).slice(0, 20);
+    const partes = []; for (const v of V) partes.push(await respDiaVendedor(B, E, v));
+    return [`📋 *${E.nome}* — ${V.length} vendedores, um por mensagem:`, ...partes].join('\n⟪⟫\n');
+  }
+  if (/DIA DA (MINHA )?EQUIPE|COMO (ESTA|FOI|TA|VAI) (O DIA|A ROTA) DA (MINHA )?EQUIPE|ROTA DA (MINHA )?EQUIPE|COMO (ESTA|TA) (A )?MINHA EQUIPE HOJE|MINHA EQUIPE HOJE/.test(t) && !/LIGA|MIX|ZERAD|POSITIVA|META|FATUR/.test(t)) return respDiaEquipe(B, E);
+  if (/PANORAMA DA (MINHA )?EQUIPE|TODOS (OS )?(MEUS )?VENDEDORES|CADA (UM DOS )?VENDEDOR(ES)?\b|VENDEDOR POR VENDEDOR/.test(t) && !/POSITIVA|RECORRENCIA|MIX|LIGA|ZERAD|ROTA|VISITA|PREMIA|META DE |INDUSTRIA|DEVOLU|PEDIDO/.test(t)) return respTodosVendedores(E);
   // ONTEM (27/10/2026: Allison "como foi a venda do vendedor 60 ontem?", Cristiano "desempenho da equipe ontem"): pedidos de ontem do escopo ou do vendedor citado
   if (/\bONTEM\b/.test(t) && !/LIGA|CHAMPIONS|BRASILEIRAO|DEVOLU|COMO FECHOU|RELATORIO DE ONTEM|^(OS )?CLIENTES?\b|\bCLIENTES (D[AOE]|DA VENDEDORA|DO VENDEDOR)\b/.test(t)) {   /* "clientes X ontem" = lista de clientes (abaixo) */ const po = achaPessoa(E, t); const Eo = po && po.tipo === 'vend' ? { ...E, nome: vn(po.alvo), vend: [po.alvo], rca: po.alvo.rca, filiais: [po.alvo.filial] } : E; return respPeriodoDias(B, Eo, t, { de: 1, ate: 1, ontem: true }); }
   // "minha meta (de faturamento)?" (Priscila, 26/10/2026, caiu na IA com numero da filial): meta, faturado, pendente e falta DO ESCOPO, sempre resposta pronta

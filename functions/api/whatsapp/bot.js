@@ -149,7 +149,11 @@ export async function onRequestPost({ request, env }) {
     try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'BLOQUEADO (escopo): ' + resp.slice(0, 1500)).run(); } catch (x) {}
     resp = `Essa informação é da visão da diretoria. Para a sua equipe, me pergunte "como está minha equipe?", "hoje" ou "zerados".`; tipo = 'bloqueado';
   }
-  const e = await enviar(env, destino, resp);
+  // "UM POR UM" (27/10/2026): a resposta pode vir em partes (separador ⟪⟫); cada parte vai numa mensagem, na ordem, com 1,2 s entre elas
+  const partes = String(resp).split('\n⟪⟫\n').filter((x) => x.trim());
+  let e = { ok: true };
+  for (let i = 0; i < partes.length; i++) { if (i) await new Promise((ok) => setTimeout(ok, 1200)); const ei = await enviar(env, destino, partes[i]); if (!ei.ok) e = ei; }
+  resp = partes.join('\n\n');
   await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, e.ok ? 'out' : 'erro', resp.slice(0, 4000), tipo).run();
   // figurinha (no maximo 1 a cada 2 h por pessoa)
   const fig = figurinhaPara(resp, tipo);

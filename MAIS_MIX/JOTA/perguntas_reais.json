@@ -1616,5 +1616,36 @@
   "nao": [
    "MIX .. BRASIL"
   ]
+ },
+ {
+  "id": "gessandro-dia-da-equipe",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TCV",
+   "nome": "GESSANDRO SPEROTTO",
+   "supervisor": "GESSANDRO SPEROTTO"
+  },
+  "pergunta": "como está o dia da minha equipe?",
+  "deve": [
+   "DIA DA EQUIPE",
+   "VISITAS",
+   "UM POR UM"
+  ],
+  "nao": []
+ },
+ {
+  "id": "gessandro-um-por-um",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TCV",
+   "nome": "GESSANDRO SPEROTTO",
+   "supervisor": "GESSANDRO SPEROTTO"
+  },
+  "pergunta": "um por um",
+  "deve": [
+   "UM POR MENSAGEM",
+   "⟪⟫"
+  ],
+  "nao": []
  }
 ]
