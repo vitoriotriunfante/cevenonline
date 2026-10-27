@@ -149,6 +149,20 @@ async function dashboardsAdmin(env, lista, prazoMs) {
 let banRcaAte = 0;
 let tickFim = Infinity;   // instante limite desta rodada (para o pacing decidir se vale esperar a janela da cota)
 const hierVisto = new Map();   // rca -> ultimo valor da hierarquia que ja motivou um rebuscar (o painel admin tem metas em cache e pode divergir sempre do dashboard: nao rebusca em loop)
+let metaGravadaEm = 0;
+async function gravaMetaHierarquia(env, lista) {
+  if (Date.now() - metaGravadaEm < 10 * 60 * 1000) return;
+  const rows = [];
+  for (const f of lista) { const sig = String(f.sigla || '').toUpperCase().slice(0, 3); for (const s of f.supervisores || []) for (const v of s.vendedores || []) if (v && v.id != null) rows.push([sig, String(v.id), Number(v.meta_financeira) || 0, Number(v.meta_positivacao) || 0]); }
+  if (rows.length < 100) return;   /* resposta pequena demais = suspeita */
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS meta_hierarquia (filial TEXT NOT NULL, rca TEXT NOT NULL, meta REAL, meta_pos REAL, atualizado_em TEXT, PRIMARY KEY (filial, rca))').run();
+  const { results } = await env.DB.prepare('SELECT filial, rca, meta, meta_pos FROM meta_hierarquia').all();
+  const ant = new Map((results || []).map((x) => [x.filial + '|' + x.rca, x]));
+  const mud = rows.filter(([f, r, m, p]) => { const a = ant.get(f + '|' + r); return !a || Math.abs((a.meta || 0) - m) > 0.01 || Math.abs((a.meta_pos || 0) - p) > 0.01; });
+  const agora = new Date().toISOString();
+  for (let i = 0; i < mud.length; i += 80) await env.DB.batch(mud.slice(i, i + 80).map(([f, r, m, p]) => env.DB.prepare('INSERT INTO meta_hierarquia (filial, rca, meta, meta_pos, atualizado_em) VALUES (?,?,?,?,?) ON CONFLICT (filial, rca) DO UPDATE SET meta = excluded.meta, meta_pos = excluded.meta_pos, atualizado_em = excluded.atualizado_em').bind(f, r, m, p, agora)));
+  metaGravadaEm = Date.now();
+}
 async function hierarquiaAdmin(env) {
   if (!env.CEVEN_ADMIN_USER || !env.CEVEN_ADMIN_PASS) return null;
   try {
@@ -164,6 +178,10 @@ async function hierarquiaAdmin(env) {
     if (!r.ok) return null;
     const lista = await r.json();
     if (!Array.isArray(lista)) return null;
+    // META OFICIAL POR FILIAL E VENDEDOR (Vitorio, 27/10/2026: "a cascata e unica e a fonte e unica"): a tela "Filiais" do CEVEN (esta mesma hierarquia) e a meta
+    // que vale. Grava em meta_hierarquia (filial, rca) SO o que mudou, no maximo a cada 10 min (custo D1 = linhas gravadas). Antes: so em memoria, por codigo sem
+    // filial (1035 existe em TPA e TBE), e a meta usada vinha do painel do vendedor / cascata do gerente, que divergem em 5 filiais.
+    try { await gravaMetaHierarquia(env, lista); } catch { /* sem gravar: fica a ultima gravada */ }
     const mapa = new Map();
     for (const f of lista) for (const s of f.supervisores || []) for (const v of s.vendedores || []) {
       mapa.set(String(v.id), { bruto: Number(v.faturado) || 0, pend: Number(v.a_faturar) || 0, meta: Number(v.meta_financeira) || 0, pmeta: Number(v.meta_positivacao) || 0, preal: Number(v.positivado) || 0 });

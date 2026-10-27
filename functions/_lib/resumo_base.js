@@ -8,11 +8,12 @@
 //          lido hoje, com a última leitura REAL dos 7 dias anteriores (nunca estimada); se nunca foi lido, fica de fora e é CONTADO.
 //          O retorno diz quantos vieram de hoje, de leitura anterior e sem leitura, para a tela poder avisar (nunca esconder).
 // =========================================================================
+// META OFICIAL = tela "Filiais" do CEVEN (admin/filiais/hierarquia), gravada em meta_hierarquia por filial e vendedor (27/10/2026); sem ela, a do painel do vendedor
 const CAMPOS = `CAST(json_extract(dashboard_json, '$.financeiro.faturado') AS REAL) AS fat,
                 CAST(json_extract(dashboard_json, '$.financeiro.pendente') AS REAL) AS pend,
-                CAST(json_extract(dashboard_json, '$.financeiro.meta') AS REAL) AS meta,
+                COALESCE((SELECT mh.meta FROM meta_hierarquia mh WHERE mh.filial = varredura_central_rca.filial_sigla AND mh.rca = varredura_central_rca.rca_codigo), CAST(json_extract(dashboard_json, '$.financeiro.meta') AS REAL)) AS meta,
                 CAST(json_extract(dashboard_json, '$.positivacao.realizado') AS REAL) AS pos,
-                CAST(json_extract(dashboard_json, '$.positivacao.meta') AS REAL) AS pmeta,
+                CAST(json_extract(dashboard_json, '$.positivacao.meta') AS REAL) AS pmeta,   /* positivacao: a da tela Filiais esta incoerente (API 146, TCV 846); fica a do painel */
                 CAST(COALESCE(json_extract(produtividade_json, '$.dia.dig_pedido'), 0) AS REAL) AS dig,
                 (json_extract(dashboard_json, '$.financeiro') IS NOT NULL) AS tem`;
 
@@ -30,6 +31,7 @@ const SO_ARVORE = ' AND EXISTS (SELECT 1 FROM arvore_supervisores a WHERE a.rca 
   + ' AND NOT EXISTS (SELECT 1 FROM canal_ceven c WHERE c.rca = varredura_central_rca.rca_codigo AND c.filial = varredura_central_rca.filial_sigla AND c.existe = 0)';
 
 export async function calculaResumoMes(env, dataRef) {
+  try { await env.DB.prepare('CREATE TABLE IF NOT EXISTS meta_hierarquia (filial TEXT NOT NULL, rca TEXT NOT NULL, meta REAL, meta_pos REAL, atualizado_em TEXT, PRIMARY KEY (filial, rca))').run(); } catch { /* ja existe */ }
   const filtra = await universoArvore(env);
   const F = filtra ? SO_ARVORE : '';
   const { results: hoje } = await env.DB.prepare(

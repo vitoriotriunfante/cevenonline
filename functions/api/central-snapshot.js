@@ -34,6 +34,11 @@ export async function onRequestGet({ env, request }) {
       const c = await env.DB.prepare('SELECT json FROM cascata_dia WHERE filial = ? ORDER BY data_ref DESC LIMIT 1').bind(filial).first();
       if (c) for (const s of JSON.parse(c.json).supervisores || []) for (const v of (s.tabelas && s.tabelas.faturamento) || []) if (v && v.id != null && rcas[String(v.id)]) rcas[String(v.id)].meta_hier = Number(v.meta) || 0;
     } catch { /* sem cascata: fica so o painel */ }
+    // META OFICIAL = tela "Filiais" do CEVEN (admin/filiais/hierarquia), gravada por filial e vendedor em meta_hierarquia (27/10/2026): manda sobre a cascata
+    try {
+      const { results: mh } = await env.DB.prepare('SELECT rca, meta, meta_pos FROM meta_hierarquia WHERE filial = ?').bind(filial).all();
+      for (const x of mh || []) if (rcas[String(x.rca)]) { rcas[String(x.rca)].meta_hier = Number(x.meta) || 0; rcas[String(x.rca)].meta_pos_hier = Number(x.meta_pos) || 0; }
+    } catch { /* tabela ainda nao existe: fica a cascata */ }
     return new Response(JSON.stringify({ filial, dia, gerado_em: new Date().toISOString(), total: Object.keys(rcas).length, rcas }), { headers: cors });
   } catch (e) { return new Response(JSON.stringify({ erro: String(e.message || e).slice(0, 300) }), { status: 500, headers: cors }); }
 }
