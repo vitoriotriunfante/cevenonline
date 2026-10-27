@@ -36,7 +36,12 @@ export async function onRequestGet({ env, request }) {
     }
     // STATUS MAIS RECENTE (26/10/2026): a linha do tempo (pedido_status, rechecada pelo coletor) manda sobre a 1a leitura; ?num= acha pedido de qualquer dia (15 dias)
     try {
-      const num = (u.searchParams.get('num') || '').replace(/D/g, '');
+      // ?abertos=1: todos os pedidos AINDA NAO FINAIS dos ultimos 15 dias (status mais recente), para "pendentes/bloqueados/liberados" de qualquer dia
+      if (u.searchParams.get('abertos') === '1') {
+        const { results: ab } = await env.DB.prepare("SELECT num, filial, rca, id_cliente, data_pedido, status AS status_pedido, valor, itens_cortados, rechecado_em FROM pedido_status WHERE final = 0 AND data_pedido >= date('now', '-15 days') ORDER BY data_pedido DESC").all();
+        return new Response(JSON.stringify({ abertos: ab || [] }), { headers: cors });
+      }
+      const num = (u.searchParams.get('num') || '').replace(/\D/g, '');
       if (num) {
         const p = await env.DB.prepare('SELECT * FROM pedido_status WHERE num = ?').bind(num).first();
         const { results: h } = await env.DB.prepare('SELECT status, visto_em FROM pedido_status_hist WHERE num = ? ORDER BY visto_em').bind(num).all();

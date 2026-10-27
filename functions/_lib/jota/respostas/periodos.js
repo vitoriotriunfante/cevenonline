@@ -104,11 +104,19 @@ export function pedePeriodo(t) {
 export async function respPeriodoDias(B, E, t, per) {
   const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
   const ult = V.linhas.reduce((m, l) => Math.max(m, l.d), 0), ym = Math.floor(ult / 100), hojeD = Number(new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10).replace(/-/g, ''));
+  if (per.ontem) { per.de = ult % 100; per.ate = ult % 100; }   /* "ontem" = ultimo dia com pedido na base item a item (sabado/domingo/feriado pulam) */
   const de = ym * 100 + per.de, ate = per.ate ? ym * 100 + per.ate : hojeD;
   const porD = new Map(); for (const l of V.linhas) if (l.d >= de && l.d <= ate) { const x = porD.get(l.d) || { v: 0, cli: new Set() }; x.v += l.v; x.cli.add(l.f + '|' + l.c); porD.set(l.d, x); }
   const L = [...porD].sort((a, b) => a[0] - b[0]).map(([d, x]) => [dIso(d), x.v, x.cli.size + ' cli.']);
   if (ate >= hojeD && hojeD > ult) { const dig = (E.nacional || !(E.grupo || E.supervisor || E.rca)) ? E.macro.dig : E.vend.reduce((a, v) => a + (v.dig || 0), 0); L.push([dIso(hojeD) + ' (hoje, digitado até agora)', dig, '']); }
   const tot = L.reduce((a, x) => a + (x[1] || 0), 0);
+  if (per.ontem) {   /* ontem: total + por vendedor (equipe) ou so o total (vendedor) */
+    const Lo = V.linhas.filter((l) => l.d === ult), pv = new Map();
+    for (const l of Lo) { const k = l.f + '|' + l.r; const x = pv.get(k) || { v: 0, cli: new Set() }; x.v += l.v; x.cli.add(l.c); pv.set(k, x); }
+    const nomeV = (k) => { const v = E.vend.find((y) => y.filial + '|' + y.rca === k); return v ? vn(v) : 'RCA ' + k.split('|')[1]; };
+    return [`🧾 *Ontem (${dIso(ult)}) — ${E.nome}*: *${R$(tot)}* em pedidos · ${new Set(Lo.map((l) => l.f + '|' + l.c)).size} clientes`,
+      ...(E.vend.length > 1 ? ['', ...[...pv].sort((a, b) => b[1].v - a[1].v).map(([k, x]) => `• ${nomeV(k)}: ${R$(x.v)} · ${x.cli.size} cli.`)] : [])].join('\n');
+  }
   return [`🧾 *Pedidos de ${String(per.de).padStart(2, '0')}/${String(ym % 100).padStart(2, '0')} ${per.ate ? 'a ' + String(per.ate).padStart(2, '0') : 'até hoje'} — ${E.nome}*`, `Total: *${R$(tot)}*`, '',
     ...L.map(([d, v, c]) => `• ${d}: ${R$(v)}${c ? ' · ' + c : ''}`), '', '_Dias fechados = valor dos pedidos item a item; hoje = digitado até agora._'].join('\n');
 }

@@ -139,6 +139,13 @@ export async function respKpisPremiacao(B, E, t, pessoa) {
     const ini = RV.mes + '-01'; let uni = 0, real = 0;
     for (const v of VR) { const cli = new Map(); for (const c of v.roteiroMes) if ((c.focos || []).some((f) => /RECORRENCIA/i.test(f.industria_foco || ''))) { const u = String(c.data_ultima_compra || '').slice(0, 10); const k = String(c.id_cliente); if (!cli.has(k) || u > cli.get(k)) cli.set(k, u); } uni += cli.size; real += [...cli.values()].filter((u) => u >= ini).length; }
     if (uni) L.push(`🔄 *Recorrência (varejo):* ${N(real)} de ${N(Math.ceil(uni * 0.8))} clientes${pc(real, Math.ceil(uni * 0.8))} _(meta 80% dos ${N(uni)} clientes com a tag)_`);
+    // SO A RECORRENCIA, DE CADA UM (27/10/2026, Andrey/TPH: "preciso da meta de recorrencia de cada um da minha equipe... so a recorrencia, nao geral"): menos e mais
+    if (uni && /RECORRENCIA/.test(t) && !/FATURAMENTO|POSITIVA|TICKET|FASEAMENTO|\bMIX\b/.test(t) && VR.length > 1) {
+      const linhas = VR.map((v) => { const cli = new Map(); for (const c of v.roteiroMes) if ((c.focos || []).some((f) => /RECORRENCIA/i.test(f.industria_foco || ''))) { const u = String(c.data_ultima_compra || '').slice(0, 10); const k = String(c.id_cliente); if (!cli.has(k) || u > cli.get(k)) cli.set(k, u); }
+        const meta = Math.ceil(cli.size * 0.8), r = [...cli.values()].filter((u) => u >= ini).length; return { v, meta, r, tag: cli.size }; }).filter((x) => x.tag).sort((a, b) => (a.r / (a.meta || 1)) - (b.r / (b.meta || 1)));
+      return [`🔄 *Recorrência — ${quem}* (meta = 80% dos clientes com a tag RECORRÊNCIA; Premiação ${RV.mes})`, `Equipe: *${N(real)} de ${N(Math.ceil(uni * 0.8))}*${pc(real, Math.ceil(uni * 0.8))}`, '',
+        ...linhas.map((x) => `• ${vn(x.v)}: *${x.r} de ${x.meta}*${pc(x.r, x.meta)} · faltam ${Math.max(0, x.meta - x.r)}`), '', SUGESTAO + (linhas[0] ? `começar por ${vn(linhas[0].v)}; peça "recorrência do vendedor ${linhas[0].v.rca}" para os clientes.` : '')].join('\n');
+    }
   } else if (vend.some((v) => !ehAS(v))) L.push('🔄 *Recorrência (varejo):* _carteira do mês ainda sendo lida na base; peça de novo mais tarde._');
   // o KPI perguntado vem primeiro (26/10/2026: 'foco em mix' trazia o mix no meio)
   { const alvo = /\bMIX\b/.test(t) ? '🧺' : /TICKET/.test(t) ? '🧾' : /FASEAMENTO|FASIAMENTO/.test(t) ? '📅' : /RECORRENCIA/.test(t) ? '🔄' : null;

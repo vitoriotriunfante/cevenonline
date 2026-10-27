@@ -753,8 +753,7 @@
   "deve": [
    "FALTA: R. 18",
    "60,0%",
-   "JA VISITOU E NAO VENDEU",
-   "ULTIMA COMPRA"
+   "JA VISITADOS NO MES E SEM COMPRA"
   ],
   "nao": [
    "47,4%",
@@ -995,7 +994,7 @@
   "deve": [
    "CLIENTES. NA ROTA DE HOJE",
    "AINDA NAO COMPRARAM NO MES",
-   "SEM COMPRA HA"
+   "DIAS SEM COMPRA"
   ],
   "nao": [
    "FALTAM .* POSITIVACOES"
@@ -1032,5 +1031,425 @@
    "CLIENTES DA ROTA DE HOJE"
   ],
   "nao": []
+ },
+ {
+  "id": "luciana-e-o-mes",
+  "perfil": {
+   "nome": "VITORIO",
+   "papel": "diretoria",
+   "filial": null,
+   "supervisor": null
+  },
+  "pergunta": "e o mês?",
+  "deve": [
+   "252 - LUCIANA",
+   "DA META"
+  ],
+  "nao": [
+   "CURVA NEGATIVA —"
+  ],
+  "anteriores": [
+   "como foi o dia da vendedora Luciana de API?"
+  ]
+ },
+ {
+  "id": "luciana-dia",
+  "perfil": {
+   "nome": "VITORIO",
+   "papel": "diretoria",
+   "filial": null,
+   "supervisor": null
+  },
+  "pergunta": "como foi o dia da vendedora Luciana de API?",
+  "deve": [
+   "252 - LUCIANA",
+   "HOJE"
+  ],
+  "nao": [
+   "FALTAM .* POSITIVACOES"
+  ]
+ },
+ {
+  "id": "mpa-apenas-tpa",
+  "perfil": {
+   "nome": "VITORIO",
+   "papel": "diretoria",
+   "filial": null,
+   "supervisor": null
+  },
+  "pergunta": "Quero saber apenas em TPA",
+  "deve": [
+   "TPA"
+  ],
+  "nao": [
+   "TPA AGORA"
+  ],
+  "anteriores": [
+   "para quantos clientes vendemos MPA?"
+  ]
+ },
+ {
+  "id": "allison-vendedor-60-ontem",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPH",
+   "nome": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+   "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO"
+  },
+  "pergunta": "Como foi a venda do vendedor 60 ontem?",
+  "deve": [
+   "ONTEM",
+   "60 - DIEGO"
+  ],
+  "nao": [
+   "RELATORIOS AUTOMATICOS"
+  ]
+ },
+ {
+  "id": "cristiano-equipe-ontem",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TSJ",
+   "nome": "CRISTIANO RODRIGUES MACHADO",
+   "supervisor": "CRISTIANO RODRIGUES MACHADO"
+  },
+  "pergunta": "como foi o desempenho da equipe ontem",
+  "deve": [
+   "ONTEM",
+   "EQUIPE CRISTIANO"
+  ],
+  "nao": [
+   "RELATORIOS AUTOMATICOS"
+  ]
+ },
+ {
+  "id": "rodrigo-positivacao-industria-fabio",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "API",
+   "nome": "RODRIGO FARIAS",
+   "supervisor": "RODRIGO FARIAS"
+  },
+  "pergunta": "Voce tem relatorio de Positivação por indústria do vendedor fabio ?",
+  "deve": [
+   "FABIO"
+  ],
+  "nao": [
+   "RELATORIOS AUTOMATICOS"
+  ]
+ },
+ {
+  "id": "jefferson-pendentes-128",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPH",
+   "nome": "JEFFERSON POLETTO",
+   "supervisor": "JEFFERSON POLETTO"
+  },
+  "pergunta": "Consigo saber quais são os pedidos pendentes do vendedor 128?",
+  "deve": [
+   "128 - RENAN",
+   "AINDA NAO FATURADOS"
+  ],
+  "nao": [
+   "QUANTO FALTA"
+  ]
+ },
+ {
+  "id": "vagner-cortes",
+  "perfil": {
+   "papel": "gerente",
+   "filial": "TPH",
+   "nome": "VAGNER",
+   "grupo": "VAGNER"
+  },
+  "pergunta": "de mais detalhes dos cortes de hoje",
+  "deve": [
+   "COM CORTE"
+  ],
+  "nao": [
+   "OPERACAO DE HOJE"
+  ]
+ },
+ {
+  "id": "rodrigo-um-por-um",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "API",
+   "nome": "RODRIGO FARIAS",
+   "supervisor": "RODRIGO FARIAS"
+  },
+  "pergunta": "Quero todos os vendedores um por um",
+  "deve": [
+   "VENDEDOR POR VENDEDOR"
+  ],
+  "nao": [
+   "10 MELHORES"
+  ]
+ },
+ {
+  "id": "priscila-numeros-juntos",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPH",
+   "nome": "PRISCILA A D NASCIMENTO STRAPASSON",
+   "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON"
+  },
+  "pergunta": "100. 103",
+  "deve": [
+   "103 - JEFERSON"
+  ],
+  "nao": [
+   "100 - FLORENTINO"
+  ]
+ },
+ {
+  "id": "cristiano-vendedor-fora-equipe",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TSJ",
+   "nome": "CRISTIANO RODRIGUES MACHADO",
+   "supervisor": "CRISTIANO RODRIGUES MACHADO"
+  },
+  "pergunta": "meta de mix do vendedor 59",
+  "deve": [
+   "NAO ESTA NA SUA EQUIPE"
+  ],
+  "nao": [
+   "METAS DA PREMIACAO .. EQUIPE"
+  ]
+ },
+ {
+  "id": "thiago-sugestao-sozinha",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "MCD",
+   "nome": "THIAGO DA SILVA CONEGUNDES",
+   "supervisor": "THIAGO DA SILVA CONEGUNDES"
+  },
+  "pergunta": "Sugestão",
+  "deve": [
+   "SUGESTAO:"
+  ],
+  "nao": [
+   "PECA .HOJE."
+  ]
+ },
+ {
+  "id": "washington-sem-compra-marcia",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "API",
+   "nome": "WASHINGTON FLORES DA ROSA",
+   "supervisor": "WASHINGTON FLORES DA ROSA"
+  },
+  "pergunta": "Clientes sem compra vendedora Márcia",
+  "deve": [
+   "CURVA NEGATIVA",
+   "244"
+  ],
+  "nao": [
+   "SEM. — MARCIA"
+  ]
+ },
+ {
+  "id": "jorge-ranking-as",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TCV",
+   "nome": "JORGE BONI",
+   "supervisor": "JORGE BONI"
+  },
+  "pergunta": "Passa ranking tcv",
+  "deve": [
+   "AS"
+  ],
+  "nao": [
+   "NAO ACHEI VENDEDORES DE VAREJO"
+  ]
+ },
+ {
+  "id": "anderson-meta-colgate",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPA",
+   "nome": "ANDERSON GIOVANI FERREIRA BOLTER",
+   "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER"
+  },
+  "pergunta": "Como está a meta da colgate da equipe",
+  "deve": [
+   "COLGATE",
+   "POR VENDEDOR"
+  ],
+  "nao": [
+   "QUANTO FALTA"
+  ]
+ },
+ {
+  "id": "jorge-meta-condor",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TCV",
+   "nome": "JORGE BONI",
+   "supervisor": "JORGE BONI"
+  },
+  "pergunta": "Quanto falta da meta condor do meu setor 18",
+  "deve": [
+   "CONDOR"
+  ],
+  "nao": [
+   "QUANTO FALTA"
+  ]
+ },
+ {
+  "id": "washington-tania-recorrencia",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "API",
+   "nome": "WASHINGTON FLORES DA ROSA",
+   "supervisor": "WASHINGTON FLORES DA ROSA"
+  },
+  "pergunta": "Como está a vendedora Tânia em recorrência?",
+  "deve": [
+   "250 - TANIA"
+  ],
+  "nao": [
+   "EQUIPE WASHINGTON"
+  ]
+ },
+ {
+  "id": "allison-carteira-59",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPH",
+   "nome": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+   "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO"
+  },
+  "pergunta": "Faturado + Carteira do vendedor 59 ?",
+  "deve": [
+   "59 - ALEXSSANDRO"
+  ],
+  "nao": [
+   "EQUIPE ALLISON"
+  ]
+ },
+ {
+  "id": "andrey-recorrencia-cada-um",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPH",
+   "nome": "ANDREY CAMILLO PIRAGINE",
+   "supervisor": "ANDREY CAMILLO PIRAGINE"
+  },
+  "pergunta": "Preciso saber a meta de recorrencia de cada um da minha equipe",
+  "deve": [
+   "RECORRENCIA.{1,4}EQUIPE",
+   "FALTAM"
+  ],
+  "nao": [
+   "FATURAMENTO:"
+  ]
+ },
+ {
+  "id": "leandro-divergente",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TCV",
+   "nome": "LEANDRO MARINHO ABRANCHES",
+   "supervisor": "LEANDRO MARINHO ABRANCHES"
+  },
+  "pergunta": "Valor do faturado está divergente do acompanhamento do analista",
+  "deve": [
+   "ANOTEI A DIVERGENCIA",
+   "DE ONDE VEM"
+  ],
+  "nao": [
+   "DIGITADO"
+  ]
+ },
+ {
+  "id": "samuel-e-o-salario",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TPA",
+   "nome": "SAMUEL PALHANO DE OLIVEIRA",
+   "supervisor": "SAMUEL PALHANO DE OLIVEIRA"
+  },
+  "pergunta": "E o salário?",
+  "deve": [
+   "1019 - LEANDRO"
+  ],
+  "nao": [
+   "EQUIPE SAMUEL"
+  ],
+  "anteriores": [
+   "Como esta o vendedor leandro aquino ?"
+  ]
+ },
+ {
+  "id": "ana-joyce-nome-do-meio",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TSJ",
+   "nome": "ANA CRISTINA DOS SANTOS YAMATO",
+   "supervisor": "ANA CRISTINA DOS SANTOS YAMATO"
+  },
+  "pergunta": "Como esta a vendedora Joyce de TSJ",
+  "deve": [
+   "1114 - APARECIDA JOYCE"
+  ],
+  "nao": []
+ },
+ {
+  "id": "ana-ver-mais",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TSJ",
+   "nome": "ANA CRISTINA DOS SANTOS YAMATO",
+   "supervisor": "ANA CRISTINA DOS SANTOS YAMATO"
+  },
+  "anteriores": [
+   "Como esta o vendedor Ewerton"
+  ],
+  "pergunta": "ver mais",
+  "deve": [
+   "FALTAM .* POSITIVACOES",
+   "ULTIMA VISITA . DIAS SEM COMPRA"
+  ],
+  "nao": []
+ },
+ {
+  "id": "gessandro-recorrencia-346",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TCV",
+   "nome": "GESSANDRO SPEROTTO",
+   "supervisor": "GESSANDRO SPEROTTO"
+  },
+  "pergunta": "quais são os clientes de recorrência do vendedor 346?",
+  "deve": [
+   "RECORRENCIA.{1,4}346",
+   "NA ROTA DE HOJE"
+  ],
+  "nao": [
+   "DEFESA"
+  ]
+ },
+ {
+  "id": "gessandro-recorrencia-equipe-hoje",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TCV",
+   "nome": "GESSANDRO SPEROTTO",
+   "supervisor": "GESSANDRO SPEROTTO"
+  },
+  "pergunta": "hoje quais são os meus clientes de recorrência?",
+  "deve": [
+   "HOJE NA ROTA",
+   "COM A TAG"
+  ],
+  "nao": [
+   "DEFESA"
+  ]
  }
 ]

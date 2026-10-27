@@ -79,7 +79,8 @@ export function respVisitas(E) {
 // Regras: so o que foi pedido (melhores OU piores; os dois so se pedir); varejo por padrao (AS se pedir); fora quem tem meta minuscula (distorce o %).
 export function respRanking(E, t) {
   const pos = /POSITIVA/.test(t), hoje = /HOJE|\bHJ\b|\bDIA\b/.test(t) && !pos;
-  const as = /\bAS\b|ATACADO/.test(t);
+  // equipe so de AS (27/10/2026, Jorge/TCV: "passa ranking tcv" -> "nao achei vendedores de varejo"): o ranking e do canal que a equipe tem
+  const as = /\bAS\b|ATACADO/.test(t) || (!E.vend.some((v) => v.varejo) && E.vend.some((v) => /^(AS|PET AS)$/.test(String(v.canal).toUpperCase())));
   const n = Math.min(30, Number((t.match(/\b(\d{1,2})\b/) || [])[1]) || (/\bDEZ\b/.test(t) ? 10 : /\bCINCO\b/.test(t) ? 5 : 10));
   const querPior = /PIOR|ATRAS|\bMAL\b|FUNDO|ULTIMOS|LANTERNA/.test(t), querMelhor = /MELHOR|TOP|DESTAQUE|LIDER|PRIMEIROS/.test(t) || !querPior;
   const canalOk = (v) => (as ? /^(AS|PET AS)$/.test(String(v.canal).toUpperCase()) : v.varejo);
@@ -154,7 +155,7 @@ export function respCheckinEquipe(E) {
 // ROTA DE HOJE: QUANTOS E QUEM AINDA NAO COMPROU NO MES (Vitorio, 27/10/2026: "quando perguntar quantos clientes na rota de hoje, pense que ele quer saber a
 // quantidade e quais clientes nao compraram ainda esse mes... os outros ja compraram, se quiser a lista me pergunte... se ele quiser o +mix desses clientes
 // pergunta apenas 'mais mix' e vc ja entende"). Comprou no mes = vendas item a item (ate ontem) + positivado hoje na rota. Dias sem compra = historico do +MIX.
-async function semCompraNaRota(B, v) {
+export async function semCompraNaRota(B, v) {
   const mes = hojeSP().slice(0, 7), R0 = (v.rotaHoje || []).filter((c) => !/FORA/i.test(String(c.status || '')));
   const { vendasEscopo } = await import('./vendas.js');
   const VM = await vendasEscopo(B, { filiais: [v.filial], rca: v.rca, vend: [v] }).catch(() => null);
@@ -173,8 +174,8 @@ export async function respRotaHojeResumo(B, E, v) {
     const { rota, sem } = await semCompraNaRota(B, v);
     if (!rota.length) return `${vn(v)} (${v.filial}) não tem clientes na rota de hoje.`;
     return [`📋 *${vn(v)}* (${v.filial}) — *${rota.length} clientes* na rota de hoje.`, '',
-      sem.length ? `Destes, *${sem.length} ainda não compraram no mês:*` : '✅ Todos já compraram no mês.',
-      ...sem.slice(0, 25).map((x) => `• ${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} (#${x.c.id_cliente}) — ${x.dias == null ? 'sem compra há mais de 60 dias' : `sem compra há ${x.dias} dias`}`),
+      sem.length ? `Destes, *${sem.length} ainda não compraram no mês:*` : '✅ Todos já compraram no mês.', ...(sem.length ? ['_Cliente · Dias sem compra_'] : []),
+      ...sem.slice(0, 25).map((x) => `${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} · ${x.dias == null ? '+60 dias' : x.dias + ' dias'}`),   /* formato limpo (27/10/2026) */
       '', `Os outros *${rota.length - sem.length}* já compraram no mês; se quiser a lista, me pergunte.`, '', 'Boas vendas e foco no +MIX! _Peça "+mix" que eu trago o que oferecer para esses clientes._'].join('\n');
   }
   const L = [], tot = { r: 0, s: 0 };
@@ -194,4 +195,32 @@ export async function respMixRotaHoje(B, v) {
     L.push('', `*${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')}* (#${x.c.id_cliente})`, ...(r.length ? r.slice(0, 4).map(([cod, nome]) => `• ${titulo(nome)} · cód. ${cod}`) : ['• o +MIX não tem sugestão nova para este cliente']));
   }
   return L.join('\n');
+}
+
+// CLIENTES DE RECORRENCIA (Vitorio, 27/10/2026: "o pessoal esta perguntando sobre recorrencia e vc nao ta respondendo... so nesse vendedor hoje tem 4 clientes de
+// recorrencia (TCV 346)... vc tem que buscar recorrencia por meta e por TAG"). TAG = foco RECORRENCIA no roteiro (hoje e mes). META = 80% dos clientes com a tag (Premiacao).
+const temTagRec = (c) => (c.focos || []).some((f) => /RECORRENCIA/i.test(String(f.industria_foco || '')));
+export function respRecorrenciaClientes(E, v) {
+  const mes = hojeSP().slice(0, 7), dd = (s) => (s ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : '—');
+  const um = (x) => {
+    const hoje = []; const vh = new Set();
+    for (const c of (x.rotaHoje || []).filter(temTagRec)) { if (vh.has(String(c.id_cliente))) continue; vh.add(String(c.id_cliente)); hoje.push(c); }
+    const mesC = new Map(); for (const c of (x.roteiroMes || []).filter(temTagRec)) { const k = String(c.id_cliente), u = String(c.data_ultima_compra || '').slice(0, 10); if (!mesC.has(k) || u > mesC.get(k).u) mesC.set(k, { c, u }); }
+    const comprou = [...mesC.values()].filter((y) => y.u >= mes + '-01').length, meta = Math.ceil(mesC.size * 0.8);
+    return { hoje, mesC, comprou, meta };
+  };
+  if (v) {
+    const r = um(v);
+    if (!r.hoje.length && !r.mesC.size) return `🔄 ${vn(v)}: nenhum cliente com a tag RECORRÊNCIA no roteiro (hoje e no mês).`;
+    const hj = new Set(r.hoje.map((c) => String(c.id_cliente)));
+    const naoMes = [...r.mesC.values()].filter((y) => !(y.u >= mes + '-01') && !hj.has(String(y.c.id_cliente)));   /* quem esta na rota de hoje ja aparece acima */
+    return [`🔄 *Recorrência — ${vn(v)}*`,
+      `Mês: *${r.comprou} de ${r.meta}* (meta = 80% dos ${r.mesC.size} clientes com a tag)` + (r.meta ? ` · faltam ${Math.max(0, r.meta - r.comprou)}` : ''),
+      ...(r.hoje.length ? ['', `*Na rota de hoje (${r.hoje.length}):*`, '_Cliente · Status · Última compra_', ...r.hoje.map((c) => `${titulo(c.nome_cliente || c.razao_social || 'cliente')} · ${titulo(String(c.status || 'aberto'))} · ${dd(String(c.data_ultima_compra || '').slice(0, 10))}`)] : ['', '_Nenhum cliente de recorrência na rota de hoje._']),
+      ...(naoMes.length ? ['', `*Ainda sem compra no mês (${naoMes.length}):*`, '_Cliente · Última compra_', ...naoMes.slice(0, 10).map((y) => `${titulo(y.c.nome_cliente || y.c.razao_social || 'cliente')} · ${dd(y.u)}`)] : [])].join('\n');
+  }
+  const L = []; let tH = 0, tC = 0, tM = 0, tT = 0;
+  for (const x of E.vend) { const r = um(x); if (!r.hoje.length && !r.mesC.size) continue; tH += r.hoje.length; tC += r.comprou; tM += r.meta; tT += r.mesC.size; L.push([r.hoje.length, `• ${vn(x)}: hoje *${r.hoje.length}* na rota · mês ${r.comprou} de ${r.meta}`]); }
+  if (!L.length) return `🔄 *${E.nome}*: nenhum cliente com a tag RECORRÊNCIA no roteiro.`;
+  return [`🔄 *Recorrência — ${E.nome}*`, `Hoje na rota: *${tH} clientes* com a tag · Mês: *${tC} de ${tM}* (80% dos ${tT} com a tag)`, '', ...L.sort((a, b) => b[0] - a[0]).map((x) => x[1]), '', '_Peça "recorrência do vendedor <nome>" para ver os clientes._'].join('\n');
 }

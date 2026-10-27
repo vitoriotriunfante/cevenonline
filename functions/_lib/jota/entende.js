@@ -4,7 +4,7 @@
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
 import { sn } from './escopo.js';
-import { FILIAIS, FRX, R$, SUGESTAO, VAREJO, fraca, hojeSP, nome2, sem, titulo, vn } from './base.js';
+import { FILIAIS, FRX, N, R$, SUGESTAO, VAREJO, fraca, hojeSP, nome2, sem, titulo, vn } from './base.js';
 const x0 = (V) => (V[0] ? V[0].v.rca : '');
 import { PAL, achaPessoa, agrupa, carregaEscopo, pctTxt, supChave, supNome, supReal } from './escopo.js';
 import { SEM_HISTORICO, respCarteira, respComparar, respDobradinha, respInfoEquipe, respMaiorGap, respMetaBatida, respPontosPerdidos, respRankingGerentes, respRankingSupervisores, respRitmo, respTendencia } from './respostas/gestao.js';
@@ -14,11 +14,27 @@ import { respKpisPremiacao, respMetasIndustria } from './respostas/metas_industr
 import { respGestaoCampo, respOperacao, respRecorrenciaLances, respRelatorio } from './respostas/operacao.js';
 import { respJustificativas, respOferecer, respSemDado } from './respostas/oportunidades.js';
 import { pedePeriodo, respClientesSemComprar, respComparaMes, respDiasSemPedido, respPeriodoDias } from './respostas/periodos.js';
-import { respFalta, respHoje, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
-import { respAVisitar, respCheckinEquipe, respMixRotaHoje, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
+import { respDiaVendedor, respFalta, respHoje, respTodosVendedores, totaisOficiais, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
+import { respAVisitar, respCheckinEquipe, respMixRotaHoje, respRecorrenciaClientes, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
 import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo, respPreco, respPedidoNumero, respPedidosStatus, respProduto, respRecuperacao, respTopProdutos } from './respostas/vendas.js';
 
-export async function respostaPronta(B, c, texto, anteriores) {
+// CONTINUACAO (Vitorio, 27/10/2026: "precisa ir salvando a mensagem anterior para que vc continue a conversa... pergunto como foi o dia do vendedor X, dai
+// pergunto e o mes, vc responde outra coisa"). Mensagem que so MODIFICA a anterior ("e o mes?", "do mes", "apenas em TPA", "por vendedor", "sim, ...faturou o pedido")
+// vira a pergunta anterior + o modificador. Comandos completos ("liga", "hoje", "+mix") seguem sozinhos.
+export function juntaComAnterior(texto, anteriores) {
+  const t = sem(texto).trim(), ant = (anteriores || []).length ? String(anteriores[anteriores.length - 1] || '') : '';
+  if (!ant || /^\d{1,5}\W*$/.test(t)) return texto;
+  const modificador = /^(E|E O|E A|E NO|E NA|E DO|E DA|E OS|E AS)\b|^(APENAS|SO|SOMENTE|AGORA)\b|^(QUERO|QUERIA|PRECISO)( SABER)? (APENAS|SO|SOMENTE)\b|^(DO|DA|NO|NA) (MES|SEMANA|DIA)\W*$|^(DE |EM )?(ONTEM|HOJE)\W*$|^(POR|ABERTO POR|ABERTA POR) (VENDEDOR|SUPERVISOR|FILIAL|CLIENTE|INDUSTRIA)|^SIM\b|^(QUAIS|QUEM) SAO( ELES| ELAS)?\W*$|^(EM|DE) (TPH|ABC|API|TBL|TCV|TSJ|TCA|TBE|TPA|MCD|TCG)\W*$/.test(t);
+  if (!modificador) return texto;
+  const ta = sem(ant);
+  if (/^SIM\b/.test(t) && !/\d{7,}/.test(t) && /\d{7,}/.test(ta)) return texto + ' ' + (ta.match(/\d{7,}/) || [''])[0];   /* "sim, ...faturou o pedido" + numero anterior */
+  // periodo novo ("e o mes?") substitui o da pergunta anterior ("como foi o DIA da Luciana")
+  const PER = /\b(HOJE|HJ|ONTEM|DIA|SEMANA|MES|OUTUBRO)\b/g;
+  const antSemPer = PER.test(t) ? ta.replace(PER, ' ').replace(/\s+/g, ' ') : ant;
+  return antSemPer + ' ' + texto;
+}
+export async function respostaPronta(B, c, texto0, anteriores) {
+  const texto = juntaComAnterior(texto0, anteriores);
   const fm = sem(texto).match(FRX);
   const outra = (c.papel === 'gerente' || c.papel === 'supervisor' || c.papel === 'vendedor') && c.filial && fm && fm[1] !== c.filial ? `_Você vê só ${c.filial}${c.grupo ? ' · ' + titulo(c.grupo) : ''}; outras filiais são com a diretoria._\n\n` : '';
   const r0 = await respostaInterna(B, c, texto, anteriores);
@@ -32,6 +48,8 @@ export async function respostaPronta(B, c, texto, anteriores) {
 }
 export async function respostaInterna(B, c, texto, anteriores) {
   const t = sem(texto);
+  // "Sugestao" sozinha (27/10/2026, Thiago/Sueli/Rodrigo: a IA inventava uma resposta): pede a sugestao
+  if (/^\W*SUGEST(AO|OES|AO DO JOTA)?\W*$/.test(t)) return '💡 Pode mandar! Escreva *"sugestão:"* e o que você quer que eu faça diferente (ex.: "sugestão: mandar a meta de cada vendedor"). Vai direto para o time que me treina.';
   // escopo: gerente = a filial dele; diretoria = a filial citada, senao o Brasil
   const fm = t.match(FRX);
   if (c.papel === 'vendedor' && !(c.filial && c.rca)) return 'Seu cadastro no Jota está sem filial ou código RCA. Peça para a diretoria completar na tela de contatos.';
@@ -49,15 +67,31 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/HORARIOS? DAS? ATUALIZA|QUANDO (VOCE|VC) ATUALIZA|DE QUANTO EM QUANTO/.test(t)) return '⏱️ *Atualizações:* a base do CEVEN é lida a cada 2 min (06h–21h, seg–sáb; fora disso a cada 30 min). Lances da Liga a cada 5 min. Vendas item a item: toda madrugada (até ontem). Relatórios do WhatsApp: 07:45, 10:00, 11:30, 14:30, 17:00 e 18:30.';
   if (/\bTAGS?\b|FALTA FOCO|COMBO|CHAMP KITEKAT|SEM COMPRAS P11|VOLTA COMIGO|CAMPANHA/.test(t) && !/RECORRENCIA/.test(t)) return 'As *tags de campanha* (FALTA FOCO MARS, COMBO, SEM COMPRAS P11…) eu só enxergo nos clientes da *rota de hoje*. A positivação por tag no mês ainda não está na base (está na lista da reunião de metas). Para a RECORRÊNCIA eu tenho: peça "recorrência".';
   const ehMP = /MARCAS? PROPRIAS?|NOSSAS MARCAS|ZIPOCA|CALIRA|MITBIT|BELLARONE|SKIVE/.test(t);
-  if (/RELATORIO|BOLETIM|DISPARO|MENSAGEM DAS|COMO FECHOU|\bONTEM\b/.test(t) && !/COMPR|PRODUTO|CLIENTE|CHE?C?K.?IN|CHE?C?K.?OUT/.test(t) || (ehMP && /RELATORIO|10[:H ]?00|\b10H\b/.test(t))) return respRelatorio(B, c, t);
+  // RELATORIO AUTOMATICO so para diretoria/gerente pedindo O RELATORIO (27/10/2026: supervisor com "relatorio de positivacao por industria do Fabio" e
+  // "como foi a venda do vendedor 60 ontem" recebia "os relatorios automaticos sao da gerencia"). "Ontem" com equipe/vendedor = pedidos de ontem (abaixo).
+  const pedeRelatorio = /RELATORIO (DAS|DE HOJE|DO DIA|DA MANHA|DA TARDE|DE ONTEM|AUTOMATIC)|BOLETIM|DISPARO|MENSAGEM DAS|COMO FECHOU/.test(t) && !/VENDEDOR|EQUIPE|INDUSTRIA|POSITIVA|CLIENTE|CHE?C?K.?IN|CHE?C?K.?OUT|PRODUTO|COMPR/.test(t);
+  if ((pedeRelatorio && (c.papel === 'diretoria' || c.papel === 'gerente')) || (ehMP && /RELATORIO|10[:H ]?00|\b10H\b/.test(t))) return respRelatorio(B, c, t);
   if (/GESTAO DE CAMPO|SUPERVISORES EM CAMPO|EM ROTA \(RET\)|RANKING DE ATIVIDADE/.test(t) || (/COMPROMISSO|\bRET\b/.test(t) && /POR FILIAL|RANKING|PERCENT|%/.test(t))) return respGestaoCampo(B, await carregaEscopo(B, esc));
   // LISTA de pedidos por status do escopo (bloqueados, liberados sem faturar, com corte): antes da Operacao, que so da o total (26/10/2026)
-  if (/PEDIDOS?/.test(t) && /BLOQUEAD|LIBERAD|CORTAD|COM CORTE|SEM FATURAR|NAO FATUR/.test(t) && !/[0-9]{7,}/.test(t)) return respPedidosStatus(B, await carregaEscopo(B, esc), t);
+  // + pendentes/nao faturados (Jefferson: "pedidos pendentes do vendedor 128, de quais clientes"; Allison: "pendente/nao faturado aberto por cliente") e cortes
+  // (Vagner: "detalhes dos cortes de hoje", "quais produtos estao com cortes") -> lista; vendedor citado filtra so ele (27/10/2026)
+  if ((/PEDIDOS?/.test(t) && /BLOQUEAD|LIBERAD|CORTAD|COM CORTE|SEM FATURAR|NAO FATUR|PENDENTE/.test(t) || /(DETALHE|QUAIS|LISTA).{0,25}CORTE/.test(t)) && !/[0-9]{7,}/.test(t)) {
+    const Ep = await carregaEscopo(B, esc), pp = achaPessoa(Ep, t);
+    return respPedidosStatus(B, pp && pp.tipo === 'vend' ? { ...Ep, nome: vn(pp.alvo), vend: [pp.alvo], ocultos: [] } : Ep, /CORTE/.test(t) ? 'CORTE' : /PENDENTE|NAO FATUR|SEM FATURAR/.test(t) && !/BLOQUEAD|LIBERAD/.test(t) ? 'PENDENTES' : t);
+  }
   if (/CORTE|CORTAD|BLOQUEAD|RETID|PERDAS|OPERACAO|RANKING DE VENDAS|RANKING FINAL|FECHAMENTO DO DIA/.test(t) && !/DEVOL/.test(t)) return respOperacao(B, await carregaEscopo(B, esc), t);
-  if (/RECORRENCIA|RESGAT|REATIVAD|INATIVOS? (RECUPERAD|REATIVAD)/.test(t) && !/O QUE (E|EH)/.test(t) && !/\bMETAS?\b|KPI|PREMIA/.test(t)) return respRecorrenciaLances(B, await carregaEscopo(B, esc));
+  if (/RECORRENCIA|RESGAT|REATIVAD|INATIVOS? (RECUPERAD|REATIVAD)/.test(t) && !/O QUE (E|EH)/.test(t) && !/\bMETAS?\b|KPI|PREMIA/.test(t)) { const Er = await carregaEscopo(B, esc), pr = achaPessoa(Er, t);
+    // RECORRENCIA POR TAG (27/10/2026): clientes com a tag no roteiro (hoje e mes) = a pergunta normal; os lances (defesa +3, reativados) so quando pedir pontos/defesa/liga
+    if (/RECORRENCIA/.test(t) && !/DEFESA|PONTO|LANCE|LIGA|REATIVAD|RESGAT/.test(t)) return respRecorrenciaClientes(Er, pr && pr.tipo === 'vend' ? pr.alvo : null);
+    return respRecorrenciaLances(B, pr && pr.tipo === 'vend' ? { ...Er, nome: vn(pr.alvo), vend: [pr.alvo] } : Er); }   /* vendedor citado = so ele (27/10/2026, "Tania em recorrencia") */
   if (/MOTIVO|POR ?QUE/.test(t) && /DEVOLU|DEVOLVID|VOLTOU DE MERCADORIA/.test(t)) return respDevMotivos(B);
   if (/COMPROMISSO|MATINAL|\bRET\b|\bRETS\b|ROTA DO SUPERVISOR/.test(t)) return respCompromisso(B, await carregaEscopo(B, esc));
   if (/PENALTI|PENALIDADE|IMPEDIMENTO|CARTA|VERMELHO|AMARELO|GOL CONTRA|\bGOLS?\b|LANCES?\b|HAT ?TRICK|DEFESAS?\b|CHECK.?IN FORA|FORA DO CLIENTE|00:00|CARTO(ES|ESS)?\b/.test(t) && !/LIGA|CHAMPIONS|CLASSIFICA|PONTOS? (FOMOS|PERDID|PENALIZ)|PENALIZAD/.test(t)) return respLances(B, await carregaEscopo(B, esc), t);
+  // "VER MAIS" logo depois do detalhe de um vendedor: a lista completa dos clientes sem compra (27/10/2026)
+  if (/^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA))\W*$/.test(t) && (anteriores || []).length) {
+    const Ev = await carregaEscopo(B, esc), pv = achaPessoa(Ev, sem(String(anteriores[anteriores.length - 1] || '')));
+    if (pv && pv.tipo === 'vend') return respVendedor(B, Ev, pv.alvo, { tudo: true });
+  }
   // "+MIX" logo depois de "rota de hoje": o que oferecer aos clientes da rota que ainda nao compraram no mes (Vitorio, 27/10/2026: 'ele pergunta apenas mais mix e vc ja entende')
   if (/^\W*(\+ ?MIX|MAIS ?MIX)\W*(DELES|DESSES|DESTES|PARA ELES|DESSES CLIENTES)?\W*$/.test(t) && (anteriores || []).length) { const ant = sem(String(anteriores[anteriores.length - 1] || '')); if (/ROTA/.test(ant)) { const Ea = await carregaEscopo(B, esc); const pa = achaPessoa(Ea, ant) || (Ea.rca && Ea.vend[0] ? { tipo: 'vend', alvo: Ea.vend[0] } : null); if (pa && pa.tipo === 'vend') return respMixRotaHoje(B, pa.alvo); } }
   if (/\+ ?MIX|MAIS ?MIX|\bMIX\b/.test(t) && !/COMPROU|COMPRARAM|PRECO/.test(t) && !(/\bMETAS?\b|KPI|PREMIA/.test(t) && !/\+ ?MIX|MAIS ?MIX/.test(t))) {
@@ -77,8 +111,21 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/FATURAMENTO|FATURADO/.test(t) && (/POSITIVA/.test(t) || /\bMES\b|OUTUBRO|COMO (EU )?(ESTOU|TO|ESTAMOS)|ATUALIZAD/.test(t)) && !/PREMIA|KPI|INDUSTRIA|SEMANA|PASSADO|ANTERIOR/.test(t) && !pedePeriodo(t)) return respResumo(B, E);
   if (/\bROTA\b/.test(t) && /HOJE|\bHJ\b/.test(t) && /COMO (ESTA|TA|VAI|ANDA)/.test(t)) return respHoje(B, E, t);
   if (/(EM RELACAO|SOBRE|SABER) (A |DA )?MINHA EQUIPE|^MINHA EQUIPE\W*$/.test(t)) return respResumo(B, E);
+  // "NAO BATE / DIVERGENTE DO CEVEN" (27/10/2026, Andrey e Leandro: a IA pedia desculpas e dizia que nao tem o CEVEN): de onde vem cada numero + registra para auditoria
+  if (/DIVERGENTE|DIFERENTE(S)? D[OA] (CEVEN|ANALISTA|ACOMPANHAMENTO)|NAO BATE|NAO ESTA BATENDO|NUMEROS? ERRAD|ESTA ERRAD/.test(t)) {
+    try { await B.registraPedido('divergencia', texto, c.nome, c); } catch (e) {}
+    const x = await totaisOficiais(B, E);
+    return [`🔎 *Anotei a divergência para conferir hoje, ${titulo(String(c.nome || '').split(' ')[0])}.* De onde vêm os meus números (${E.nome}):`,
+      `• *Faturado e pendente:* painel de cada vendedor no CEVEN (atualiza ao longo do dia): ${R$(x.fat)} + ${R$(x.pend)}`,
+      `• *Meta:* a da hierarquia do CEVEN (tela do supervisor/gerente): ${R$(x.meta)}`,
+      `• *Positivação:* clientes com faturamento no mês, do CEVEN: ${N(x.pos)} de ${N(x.metaPos)}`,
+      '', 'Me diga *qual número* e *qual valor* você vê (ou mande o print) que eu comparo vendedor a vendedor.'].join('\n');
+  }
+  if (/TODOS (OS )?(MEUS )?VENDEDORES|UM POR UM|CADA (UM DOS )?VENDEDOR(ES)?\b|VENDEDOR POR VENDEDOR/.test(t) && !/POSITIVA|RECORRENCIA|MIX|LIGA|ZERAD|ROTA|VISITA|PREMIA|META DE |INDUSTRIA|DEVOLU|PEDIDO/.test(t)) return respTodosVendedores(E);
+  // ONTEM (27/10/2026: Allison "como foi a venda do vendedor 60 ontem?", Cristiano "desempenho da equipe ontem"): pedidos de ontem do escopo ou do vendedor citado
+  if (/\bONTEM\b/.test(t) && !/LIGA|CHAMPIONS|BRASILEIRAO|DEVOLU|COMO FECHOU|RELATORIO DE ONTEM/.test(t)) { const po = achaPessoa(E, t); const Eo = po && po.tipo === 'vend' ? { ...E, nome: vn(po.alvo), vend: [po.alvo], rca: po.alvo.rca, filiais: [po.alvo.filial] } : E; return respPeriodoDias(B, Eo, t, { de: 1, ate: 1, ontem: true }); }
   // "minha meta (de faturamento)?" (Priscila, 26/10/2026, caiu na IA com numero da filial): meta, faturado, pendente e falta DO ESCOPO, sempre resposta pronta
-  if (/\bMETAS?\b/.test(t) && !/PREMIA|KPI|\bMIX\b|TICKET|FASEAMENTO|RECORRENCIA|INDUSTRIA|FORNECEDOR|BATER(AM)?\b|BATEU|BATIDA|QUEM|QUAIS|POSITIVA/.test(t) && !pessoa0(E, t)) return respFalta(B, E);
+  if (/\bMETAS?\b/.test(t) && !/PREMIA|KPI|\bMIX\b|TICKET|FASEAMENTO|RECORRENCIA|INDUSTRIA|FORNECEDOR|BATER(AM)?\b|BATEU|BATIDA|QUEM|QUAIS|POSITIVA/.test(t) && !pessoa0(E, t)) { const ri = await respMetasIndustria(B, E, t, achaPessoa(E, t)); if (ri) return ri; return respFalta(B, E); }   /* industria citada (Condor, Colgate) = meta da industria (27/10/2026, Jorge/Anderson) */
   if (/CHE?C?K.?IN|CHE?C?K.?OUT/.test(t) && !/FORA DO CLIENTE|CHE?C?K.?IN FORA/.test(t)) { const pc = achaPessoa(E, t); return pc && pc.tipo === 'vend' ? respClientesDia(pc.alvo, t) : respCheckinEquipe(E); }
   if (/NAO TRABALHA MAIS|SAIU DA EMPRESA|FOI DESLIGAD|DESLIGAD[OA]|FOI DEMITID|PEDIU (AS )?CONTAS?|PEDIU DEMISSAO|RETIRAR .{0,40}(EQUIPE|CONTROLE|LISTA|RELATORIO)|TIRAR .{0,40}(DA EQUIPE|DOS CONTROLES|DA LISTA)|NAO E MAIS (DA|DO) (EQUIPE|TIME)/.test(t)) {
     const p = achaPessoa(E, t) || null; const quem = p && p.tipo === 'vend' ? `${nome2(p.alvo.nome)} (${p.alvo.rca} · ${p.alvo.filial})` : 'o vendedor citado';
@@ -112,6 +159,14 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   let pessoa = achaPessoa(E, t);
   if (E.rca && E.vend[0]) pessoa = { tipo: 'vend', alvo: E.vend[0], empate: [E.vend[0]] };   /* vendedor: toda pergunta e sobre ele mesmo */
   if (!pessoa && /\b(ELA|ELE|DELA|DELE|DESSA|DESSE|ESSA|ESSE|NELA|NELE|PRA ELA|PRA ELE|MESMA|MESMO)\b/.test(t)) for (const h of anteriores || []) { pessoa = achaPessoa(E, sem(h)); if (pessoa) break; }
+  // VENDEDOR CITADO PELO CODIGO E FORA DO ESCOPO (27/10/2026, Cristiano/TSJ "meta de mix do vendedor 59" -> recebia a equipe inteira): diz que nao e da equipe
+  { const mc = t.match(/(VENDEDORA?|RCA|SETOR|COD(?:IGO)?)\s*(\d{1,5})\b/); if (!pessoa && mc && (E.supervisor || E.grupo || E.rca || !E.nacional) && !/TOP|ULTIMOS|DIAS/.test(t)) return `🔎 O código *${mc[2]}* não está ${E.supervisor ? 'na sua equipe' : 'em ' + E.nome}. Confere o número? Se for de outra equipe, quem vê é o supervisor dela ou a diretoria.`; }
+  // CONTINUACAO DA CONVERSA (Vitorio, 27/10/2026: "pergunto como foi o dia do vendedor X... dai pergunto e o mes, vc respondeu outra coisa totalmente diferente"):
+  // pergunta curta ou que comeca com "e ..." sem pessoa citada herda o vendedor/supervisor da ultima pergunta (a mais recente primeiro).
+  if (!pessoa && (/^E\b/.test(t) || t.split(/\s+/).filter(Boolean).length <= 4) && !/MINHA EQUIPE|MEU TIME|\bBRASIL\b|TODAS/.test(t)) for (const h of (anteriores || []).slice().reverse()) { pessoa = achaPessoa(E, sem(h)); if (pessoa) break; }
+  // DIA x MES DO VENDEDOR (27/10/2026): "como foi o dia do X" = so hoje; "e o mes?" / "como foi o mes" = resumo do mes dele (respVendedor)
+  if (pessoa && pessoa.tipo === 'vend' && /\bE (O |NO )?MES\W*$|^(E )?(O |NO |DO )?MES\W*$|COMO (FOI|ESTA|TA|VAI) O MES/.test(t) && !/NAO VEND|NAO COMPR|CURVA|SEM VENDA/.test(t)) return respVendedor(B, E, pessoa.alvo);
+  if (pessoa && pessoa.tipo === 'vend' && /COMO FOI O DIA|O DIA D[AOE]\b|COMO FOI (HOJE|O DIA)/.test(t) && !/LIGA|BRASILEIRAO|CHAMPIONS/.test(t)) return respDiaVendedor(B, E, pessoa.alvo);
   // MES DO VENDEDOR (26/10/2026, Missaid: "desde o dia 1 ate hoje, quantos clientes o setor 1108 nao vendeu, a curva negativa" -> respondia so o dia)
   // QUEM FALTA POSITIVAR (Vitorio, 26/10/2026: "se ele pergunta quem falta positivar ele quer saber para quem falta o vendedor dele vender"): carteira do mes (roteiro do mes)
   // sem compra no mes, qualquer canal (AS inclusive). Equipe: por vendedor; vendedor citado: a lista de clientes (bloco do mes, abaixo).
@@ -125,7 +180,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
     return [`👥 *Quem falta positivar — ${E.nome}* (clientes da carteira do mês sem compra no mês)`, `Total: *${V.reduce((a, x) => a + x.falta, 0)}* clientes · ${V.length} vendedor(es)`, '',
       ...V.slice(0, 25).map((x) => `• ${vn(x.v)}: *${x.falta}* de ${x.tot} clientes`), '', SUGESTAO + `peça "curva negativa vendedor ${x0(V)}" para a lista de clientes.`].join('\n');
   }
-  if (pessoa && pessoa.tipo === 'vend' && /DESDE O DIA|NO MES|DO MES|ESTE MES|ESSE MES|NESTE MES|CURVA NEGATIVA|ATE HOJE/.test(t) && /NAO VEND|NAO COMPR|SEM VENDA|SEM PEDIDO|CURVA|NAO POSITIV/.test(t) || (pessoa && pessoa.tipo === 'vend' && /FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA/.test(t))) {
+  if ((pessoa && pessoa.tipo === 'vend' && /^(E )?(O |NO |DO |E NO )?MES\W*$|COMO (FOI|ESTA|TA|VAI) O MES|^E NO MES|\bE (O |NO )?MES\W*$/.test(t)) || pessoa && pessoa.tipo === 'vend' && /DESDE O DIA|NO MES|DO MES|ESTE MES|ESSE MES|NESTE MES|CURVA NEGATIVA|ATE HOJE|SEM COMPRA|AINDA NAO (VENDEU|COMPROU)|RELACAO D[OE] (TODOS )?(OS )?CLIENTES|LISTA COMPLETA/.test(t) && /NAO VEND|NAO COMPR|SEM VENDA|SEM PEDIDO|CURVA|NAO POSITIV|SEM COMPRA/.test(t) || (pessoa && pessoa.tipo === 'vend' && /FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA/.test(t))) {
     const v = pessoa.alvo, m = v.mesV || {};
     // CURVA NEGATIVA = clientes da carteira do mes (roteiro do mes) que ainda NAO compraram neste mes (data da ultima compra antes do dia 1)
     if (Array.isArray(v.roteiroMes) && v.roteiroMes.length) {
@@ -179,7 +234,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
     const ind = (t.match(/\b(MONDELEZ|MARS|ARCOR|BAGLEY|CONDOR|FERRERO|NESTLE|HERSHEY|FINI|DORI|PEPSICO|KELLOGG|LACTA|DIVERSAO)\b/) || [])[1];
     if (ind) return naoVende(E, titulo(ind));   /* industria citada que a filial nao vende: dizer, nunca cair em outra resposta */
   }
-  if (/CARTEIRA|A FATURAR|FATURADO (\+|MAIS|E) (CARTEIRA|PENDENTE)|SOMANDO|VOLUME FINANCEIRO|\bPENDENTE\b/.test(t)) return respCarteira(B, E);
+  if (/CARTEIRA|A FATURAR|FATURADO (\+|MAIS|E) (CARTEIRA|PENDENTE)|SOMANDO|VOLUME FINANCEIRO|\bPENDENTE\b/.test(t)) return respCarteira(B, pessoa && pessoa.tipo === 'vend' ? { ...E, nome: vn(pessoa.alvo), vend: [pessoa.alvo], rca: pessoa.alvo.rca } : E);   /* "carteira do vendedor 59" = so ele (27/10/2026, Allison) */
   if (/RITMO|NO RITMO|VAMOS BATER|DA PRA BATER|PROJECAO/.test(t)) return respRitmo(B, E);
   if (/MAIOR GAP|MAIS LONGE DA META|MAIOR BURACO|\bGAP\b/.test(t) && !pessoa) return respMaiorGap(E);
   if (/PONTOS? (FOMOS |PERDID|PENALIZ)|PENALIZAD|PERDEMOS PONTOS/.test(t)) return respPontosPerdidos(B, E);

@@ -106,15 +106,19 @@ export async function cadastraPorCodigo(env, cel, texto, pushName) {
     let nomes = t;
     { const ant = await env.DB.prepare("SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'in' ORDER BY id DESC LIMIT 4").bind(cel).all(); nomes += ' ' + sem((ant.results || []).map((x) => x.texto).join(' ')); }
     const { results } = await env.DB.prepare(`SELECT DISTINCT filial, sup_id, sup_nome FROM arvore_supervisores WHERE sup_id IN (${[...nums].map(() => '?').join(',')})`).bind(...nums).all();
-    const ok = (results || []).find((r) => { const p = sem(r.sup_nome).replace(/^CLT\s*-?\s*/, '').split(/\s+/); return p[0] && nomes.includes(p[0]) && (p.length < 2 || p.slice(1).some((w) => w.length > 2 && nomes.includes(w))); });
+    // "VAGO - GABRIEL" (27/10/2026, TCV 543): supervisor novo numa vaga ainda tem o nome da vaga na arvore; confere pelo nome depois do "VAGO -"
+    const ok = (results || []).find((r) => { const p = sem(r.sup_nome).replace(/^CLT\s*-?\s*/, '').replace(/^VAGO\s*-?\s*/, '').split(/\s+/); return p[0] && nomes.includes(p[0]) && (p.length < 2 || p.slice(1).some((w) => w.length > 2 && nomes.includes(w))); });
     if (!ok) return null;
-    const nome = String(ok.sup_nome).replace(/^CLT\s*-?\s*/i, '').trim();
+    const supArv = String(ok.sup_nome).replace(/^CLT\s*-?\s*/i, '').trim();   /* nome do supervisor NA HIERARQUIA (define a equipe) */
+    // nome da pessoa: o que ela mandou quando a arvore ainda tem o nome da vaga ("VAGO - GABRIEL" -> "GABRIEL MONTEIRO GIROTO")
+    const nomeMsg = sem(texto).replace(/\b(COD(IGO)?|SETOR|EQUIPE|AREA|SUP(ERVISORA?)?|COORDENADORA?)\b\.?/g, ' ').replace(/[\d\-:–]+/g, ' ').replace(/\s+/g, ' ').trim();
+    const nome = /^VAGO\b/i.test(supArv) && nomeMsg.split(' ').length >= 2 ? nomeMsg : supArv;
     let grupo = null;
     try { const mo = await (await fetch('https://ceven-cftv-matrix.pages.dev/api/tv-mostra', { signal: AbortSignal.timeout(10000) })).json(); for (const [k, L] of Object.entries(mo.filiais || {})) for (const v of L) if (k.split('_')[0] === ok.filial && sem(v.supervisor) === sem(nome) && v.grupo) grupo = v.grupo; } catch (e) {}
     // PRECISA DO OK DO VITORIO (25/10/2026): entra como PENDENTE (ativo = 0); quem libera e a tela de contatos. Nunca reativa nem rebaixa quem ja existe.
     const ja = await env.DB.prepare('SELECT ativo FROM bot_contatos WHERE celular = ?').bind(cel).first();
     if (ja) return null;
-    await env.DB.prepare("INSERT INTO bot_contatos (celular, nome, papel, filial, grupo, supervisor, ativo, situacao) VALUES (?,?,?,?,?,?,0,'pendente')").bind(cel, nome, 'supervisor', ok.filial, grupo, nome).run();
+    await env.DB.prepare("INSERT INTO bot_contatos (celular, nome, papel, filial, grupo, supervisor, ativo, situacao) VALUES (?,?,?,?,?,?,0,'pendente')").bind(cel, nome, 'supervisor', ok.filial, grupo, supArv).run();
     return { nome, filial: ok.filial, cod: ok.sup_id };
   } catch (e) { return null; }
 }

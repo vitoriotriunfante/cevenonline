@@ -28,7 +28,7 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     const varejo = VAREJO.has(String(e.canal || '').toUpperCase());
     const visP = varejo ? pd.total_programado || 0 : 0, visF = varejo ? pd.visitas_na_rota || 0 : 0;
     destino.push({ filial, rca, nome: e.nome || d.nome || 'RCA ' + rca, supervisor: e.supervisor || '', supCod: e.sup_cod || '', grupo: e.grupo || '', gerente: e.gerente || '', canal: e.canal || '', varejo,
-      fat: fi.faturado || 0, pend: fi.pendente || 0, meta: fi.meta || 0, dev: fi.devolucao || 0, pct: fi.meta ? (fi.faturado || 0) / fi.meta * 100 : null,
+      /* meta = a da HIERARQUIA do CEVEN quando houver (tela do supervisor/gerente; 27/10/2026, Thiago/MCD) */ fat: fi.faturado || 0, pend: fi.pendente || 0, meta: r.meta_hier != null ? r.meta_hier : fi.meta || 0, dev: fi.devolucao || 0, pct: (r.meta_hier != null ? r.meta_hier : fi.meta) ? (fi.faturado || 0) / (r.meta_hier != null ? r.meta_hier : fi.meta) * 100 : null,
       pos: po.realizado ?? null, metaPos: po.meta ?? null, dig: pd.dig_pedido || 0, ped: pd.positivacao || 0, visP, visF, comVenda: varejo ? pd.visitas_com_venda || 0 : 0,
       visPlanMes: varejo ? pm.visit_plan || 0 : 0, visRealMes: varejo ? pm.visit_real || 0 : 0,
       /* mes do PROPRIO vendedor, qualquer canal (detalhe do vendedor; os totais de rota seguem so varejo) */ roteiroMes: Array.isArray(r.roteiro_mes) ? r.roteiro_mes : null, mesV: { plan: pm.visit_plan ?? null, real: pm.visit_real ?? null, pedRota: pm.ped_rota_mes ?? null, efic: pm.eficiencia_pct ?? null },
@@ -73,10 +73,15 @@ export const listaNomes = (V, n = 4) => V.slice(0, n).map((v) => vn(v)).join(', 
 export const PAL = new Set(['SETOR', 'SETORES', 'COMO', 'ESTA', 'QUAL', 'QUAIS', 'HOJE', 'VENDEDOR', 'VENDEDORA', 'SUPERVISOR', 'SUPERVISORA', 'FILIAL', 'ROTA', 'MINHA', 'MEU', 'EQUIPE', 'TIME', 'DELE', 'DELA', 'QUANTO', 'FALTA', 'LIGA', 'BRASIL', 'TODOS', 'TODAS', 'SOBRE', 'ESTOU', 'ESTAMOS', 'ONTEM', 'MAIS', 'MENOS', 'PEDIDO', 'PEDIDOS', 'VENDA', 'VENDAS', 'META', 'POSICAO', 'TABELA', 'ANDA', 'VAI', 'PARA', 'COM']);
 export function achaPessoa(E, t) {
   const toks = t.split(/[^A-Z]+/).filter((w) => (w.length > 2 || w === 'PJ') && !PAL.has(w));
-  const score = (nome) => { const p = sem(nome).replace(/^CLT\s*-?\s*/, '').split(/\s+/); if (!toks.includes(p[0])) return 0; return 1 + p.slice(1).filter((w) => toks.includes(w)).length; };
+  // primeiro nome vale mais; nome do meio tambem acha (27/10/2026: "vendedora Joyce" = 1114 APARECIDA JOYCE GOMES FERREIRA), com peso menor para nao roubar de quem tem o 1o nome
+  const score = (nome) => { const p = sem(nome).replace(/^CLT\s*-?\s*/, '').split(/\s+/); if (!toks.includes(p[0])) return p.slice(1).some((w) => w.length > 3 && toks.includes(w) && !/^(DOS?|DAS?|SILVA|SANTOS|SOUZA|OLIVEIRA|PEREIRA|FERREIRA|COSTA|LIMA|ALVES|RODRIGUES|GOMES)$/.test(w)) ? 0.5 : 0; return 1 + p.slice(1).filter((w) => toks.includes(w)).length; };
   // CODIGO CITADO MANDA (sabatina 25/10/2026: "vendedor Ana Carolina 483" virou a Ana Broto 251): vale o codigo quando o nome bate com
   // aquele vendedor ou quando vem escrito "RCA/COD/codigo/vendedor 483". Numero solto ("top 10", "3 dias") nunca vira vendedor.
-  for (const n of t.match(/\b\d{1,5}\b/g) || []) {
+  // SUPERVISOR PELO CODIGO (27/10/2026, Priscila "meta da supervisora 97" pegou o vendedor 97): "supervisor(a) N" = o supervisor de codigo N
+  const ms = t.match(/SUPERVISORA?\s*(?:COD(?:IGO)?\s*)?(\d{1,4})\b/);
+  if (ms) { const v0 = E.vend.find((v) => String(v.supCod || '') === ms[1] || String(SUPCOD.get(sem(v.supervisor)) || '') === ms[1]); if (v0) return { tipo: 'sup', alvo: { nome: v0.supervisor, filial: v0.filial }, empate: [{ nome: v0.supervisor, filial: v0.filial }] }; }
+  // VARIAS MENSAGENS JUNTAS ("100. 103. 1119"): vale o ULTIMO numero citado (o que a pessoa pediu por ultimo), nao o primeiro (27/10/2026, Priscila)
+  for (const n of (t.match(/\b\d{1,5}\b/g) || []).reverse()) {
     const cand = E.vend.concat(E.ocultos || []).filter((v) => String(v.rca) === n);
     const explicito = new RegExp(`(RCA|COD|CODIGO|VENDEDORA?|VEND|SETOR)\\.?\\s*${n}\\b`).test(t) || (E.supervisor && !/\b(TOP|DIAS?|ULTIMOS?|PRIMEIROS?|MAIORES|MENORES)\s+\d/.test(t));   /* supervisor: numero do proprio time = vendedor (26/10/2026) */
     const bom = cand.map((v) => [v, score(v.nome)]).filter((x) => x[1] || explicito).sort((a, b) => b[1] - a[1]);

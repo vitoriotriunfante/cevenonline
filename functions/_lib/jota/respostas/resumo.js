@@ -87,7 +87,7 @@ export function respSupervisor(E, s) {
     ...V.map((v) => `• ${v.zerado ? '⚠️' : '✅'} *${vn(v)}* ${pctTxt(v.pct)} · fat. ${R$(v.fat)} · pend. ${R$(v.pend)} · hoje ${R$(v.dig)} (${v.ped} ped.)` + (v.varejo ? ` · visitas ${v.visF}/${v.visP}` : '')),
     '', V.some((v) => v.zerado) ? SUGESTAO + `ligar agora para ${listaNomes(V.filter((v) => v.zerado), 3)} (rota sem pedido hoje).` : SUGESTAO + 'equipe com pedido hoje; foco em mix nos próximos clientes.'].join('\n');
 }
-export async function respVendedor(B, E, v) {
+export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mais": so as listas completas */
   const dn = diasUteisRestantes(); const falta = Math.max(0, v.meta - v.fat - (v.pend || 0)), faltaPos = v.metaPos != null && v.pos != null ? Math.max(0, v.metaPos - v.pos) : null;
   const L = [`🧑‍💼 *${v.rca} - ${titulo(v.nome)}* — ${v.filial} · sup. ${sn(v.supervisor, v.supCod)} · ${v.canal || 'sem canal'}`,
     `💰 Faturado: *${R$(v.fat)}* + pendente ${R$(v.pend)} de ${R$(v.meta)} → *${pctTxt(v.meta ? (v.fat + (v.pend || 0)) / v.meta * 100 : null)}* da meta (igual ao CEVEN)`, `🎯 Falta: ${R$(falta)}` + (falta && dn ? ` · ${R$(falta / dn)} por dia útil (${dn} dias)` : ''),
@@ -109,7 +109,7 @@ export async function respVendedor(B, E, v) {
     // ULTIMA COMPRA REAL = historico do +MIX (cnpj -> 'cod:AAMMDD', 60 dias antes do mes). A data_ultima_compra do roteiro nao serve: 75 clientes da Brenda
     // vinham com 05/12/2025 (valor-padrao do CEVEN). Fora do historico = sem compra nos ultimos 60 dias.
     let H = {}; try { H = JSON.parse(await B.raw(`public/mix_hist/${v.filial}.json`) || '{}').c || {}; } catch (e) { H = {}; }
-    const ultH = (cnpj) => { const x = H[String(cnpj || '').replace(/D/g, '')]; if (!x) return null; const m = String(x).split(',').map((p) => p.split(':')[1]).filter(Boolean).sort().pop(); return m ? `20${m.slice(0, 2)}-${m.slice(2, 4)}-${m.slice(4, 6)}` : null; };
+    const ultH = (cnpj) => { const x = H[String(cnpj || '').replace(/\D/g, '')]; if (!x) return null; const m = String(x).split(',').map((p) => p.split(':')[1]).filter(Boolean).sort().pop(); return m ? `20${m.slice(0, 2)}-${m.slice(2, 4)}-${m.slice(4, 6)}` : null; };
     const compraram = new Set(((VM && VM.linhas) || []).filter((l) => String(l.r) === String(v.rca)).map((l) => String(l.c)));
     for (const r of v.roteiroMes) {
       const k = String(r.id_cliente || r.cnpj || ''); if (!k) continue;
@@ -121,9 +121,22 @@ export async function respVendedor(B, E, v) {
     }
     const dias = (d) => (d ? Math.round((Date.parse(hojeSP()) - Date.parse(d)) / 864e5) : null);
     const lista = [...C.entries()].filter(([k, c]) => c.vis && !c.comprou && !(c.uc >= mes) && !compraram.has(k)).map(([k, c]) => ({ k, ...c, sem: dias(c.uc) })).sort((a, b) => (a.sem ?? 9999) - (b.sem ?? 9999));   /* quem comprou ha menos tempo primeiro: mais facil de recuperar */
-    if (lista.length) L.push('', `📌 *Faltam ${faltaPos} positivações — clientes que ${titulo(String(v.nome).split(' ')[0])} já visitou e não vendeu no mês (${lista.length}):*`,
-      ...lista.slice(0, 20).map((c) => `• ${titulo(c.nome)} (#${c.k}) · visita ${c.vis.slice(8, 10)}/${c.vis.slice(5, 7)} · ${c.sem == null ? 'sem compra nos últimos 60 dias' : 'última compra ' + c.uc.slice(8, 10) + '/' + c.uc.slice(5, 7) + ' (' + c.sem + ' dias)'}`), lista.length > 20 ? `… e mais ${lista.length - 20}` : '');
-  }
+    // FORMATO LIMPO (Vitorio, 27/10/2026: "no whats fica confuso... mostrar o cabecalho Cliente / Ultima visita / Dias sem compra... 5 da rota de hoje que nao
+    // compraram, 5 que ele ja visitou e nao compraram e dar a opcao de ver mais"). "ver mais" logo depois abre a lista inteira (respVerMais).
+    const dd = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}`, semTxt = (n) => (n == null ? '+60 dias' : n + ' dias');
+    let rotaSem = []; try { const { semCompraNaRota } = await import('./rota.js'); rotaSem = (await semCompraNaRota(B, v)).sem; } catch (e) { rotaSem = []; }
+    const naRota = new Set(rotaSem.map((x) => String(x.c.id_cliente)));
+    const visit = lista.filter((c) => !naRota.has(String(c.k)));
+    const n = opt.tudo ? 60 : 5;
+    if (rotaSem.length || visit.length) {
+      const B0 = [`📌 *Faltam ${faltaPos} positivações*` + (opt.tudo ? ` — ${vn(v)}` : '')];
+      if (rotaSem.length) B0.push('', `*Na rota de hoje e sem compra no mês (${Math.min(n, rotaSem.length)} de ${rotaSem.length}):*`, '_Cliente · Dias sem compra_', ...rotaSem.slice(0, n).map((x) => `${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} · ${semTxt(x.dias)}`));
+      if (visit.length) B0.push('', `*Já visitados no mês e sem compra (${Math.min(n, visit.length)} de ${visit.length}):*`, '_Cliente · Última visita · Dias sem compra_', ...visit.slice(0, n).map((c) => `${titulo(c.nome)} · ${dd(c.vis)} · ${semTxt(c.sem)}`));
+      if (!opt.tudo && (rotaSem.length > 5 || visit.length > 5)) B0.push('', '_Peça *"ver mais"* para a lista completa._');
+      if (opt.tudo) return B0.join('\n');
+      L.push('', ...B0);
+    } else if (opt.tudo) return `${vn(v)}: nenhum cliente visitado e sem compra no mês.`;
+  } else if (opt.tudo) return `${vn(v)}: sem positivação faltando ou sem o roteiro do mês na base.`;
   L.push('', SUGESTAO + (v.zerado ? 'está com rota e sem pedido hoje: ligar já.' : falta > 0 ? `precisa de ${R$(falta / Math.max(dn, 1))} por dia útil; priorizar clientes curva A e o +MIX.` : 'meta financeira batida; buscar positivação e mix.'));
   return L.join('\n');
 }
@@ -149,4 +162,25 @@ export async function respFalta(B, E) {
   L.push(`*Quem mais falta (${E.nacional ? 'filial' : porVend ? 'vendedor' : 'supervisor'}):*`, ...G.slice(0, 10).map(([k, f, y]) => `• ${nm(k)}: ${R$(f)} (${pctTxt(y.pct)})`));
   L.push('', SUGESTAO + (G[0] ? `o maior buraco é ${nm(G[0][0])}: ${R$(G[0][1])}.` : 'manter o ritmo.'));
   return L.join('\n');
+}
+
+// "COMO FOI O DIA DO VENDEDOR X" (Vitorio, 27/10/2026: "as vezes a pessoa quer saber uma informacao basica... menos e mais"): so o dia. O mes vem em "e o mes?".
+export async function respDiaVendedor(B, E, v) {
+  const lc = await B.lances(); const hj = lc ? (lc.lances || []).filter((l) => String(l.rca) === v.rca && l.filial === v.filial) : [];
+  const c = {}; for (const l of hj) c[l.pontos_nome || l.nivel] = (c[l.pontos_nome || l.nivel] || 0) + 1;
+  return [`📝 *${vn(v)}* (${v.filial}) — *hoje*`,
+    `Digitado: *${R$(v.dig)}* em ${v.ped} pedido(s)` + (v.ped ? ` · ticket ${R$(v.dig / v.ped)}` : ''),
+    v.varejo ? `Visitas: ${v.visF} de ${v.visP} · com venda: ${v.comVenda}` : '',
+    hj.length ? `⚽ Liga hoje: *${hj.reduce((a, l) => a + (l.pontos || 0), 0)} pontos* (${Object.entries(c).map(([k, n]) => `${n}× ${k}`).join(' · ')})` : '',
+    '', '_Peça "e o mês?" para o acumulado do mês._'].filter((x) => x !== '').join('\n');
+}
+
+// TODOS OS VENDEDORES, UM POR UM (Rodrigo/API, 26/10/2026: "como esta todos os vendedores do meu time", "quero todos os vendedores um por um" -> resumo da equipe):
+// uma linha por vendedor com o essencial (meta com pendente igual ao CEVEN, falta, positivacao, hoje). Menos e mais: detalhe = "vendedor <nome>".
+export function respTodosVendedores(E) {
+  const V = E.vend.filter((v) => v.meta > 0 || v.dig > 0).map((v) => ({ v, pct: v.meta ? (v.fat + (v.pend || 0)) / v.meta * 100 : null, falta: Math.max(0, v.meta - v.fat - (v.pend || 0)) })).sort((a, b) => (a.pct ?? 0) - (b.pct ?? 0));
+  if (!V.length) return `Sem vendedores com meta em ${E.nome} agora.`;
+  return [`👥 *${E.nome} — vendedor por vendedor* (do mais atrás para o mais à frente)`, '',
+    ...V.map(({ v, pct, falta }) => `• *${vn(v)}*: ${pct == null ? 'sem meta' : pctTxt(pct)} da meta · falta ${R$(falta)} · positivação ${v.pos ?? '—'}/${v.metaPos ?? '—'} · hoje ${R$(v.dig)}`),
+    '', '_% = (faturado + pendente) ÷ meta, igual ao CEVEN. Peça "vendedor <nome>" para o detalhe de um._'].join('\n');
 }

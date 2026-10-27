@@ -27,6 +27,13 @@ export async function onRequestGet({ env, request }) {
       const t = Date.parse(String(r.updated_at || '').replace(' ', 'T') + 'Z');
       rcas[r.rca_codigo] = { idade_s: Number.isFinite(t) ? Math.max(0, Math.round((agora - t) / 1000)) : null, produtividade: parse(r.produtividade_json), dashboard: parse(r.dashboard_json), devolucoes: parse(r.devolucoes_json), roteiro: parse(r.roteiro_json), roteiro_mes: parse(r.roteiro_mes_json) };   // roteiro_mes: 26/10/2026
     }
+    // META DA HIERARQUIA (27/10/2026, Thiago/MCD sup. 62: "a meta no CEVEN e de 4.332.386,48"; o JOTA dizia 5.287.235): o painel do vendedor (dashboard do RCA)
+    // ainda mostra meta de quem foi zerado/transferido na hierarquia (MCD 416 Claudimir: R$ 954.849 no painel x R$ 0 na tela do supervisor/gerente). meta_hier = a
+    // meta da cascata do gerente gravada na base (cascata_dia, mesmo numero da tela do supervisor). Quem le decide usar; null = vendedor fora da cascata.
+    try {
+      const c = await env.DB.prepare('SELECT json FROM cascata_dia WHERE filial = ? ORDER BY data_ref DESC LIMIT 1').bind(filial).first();
+      if (c) for (const s of JSON.parse(c.json).supervisores || []) for (const v of (s.tabelas && s.tabelas.faturamento) || []) if (v && v.id != null && rcas[String(v.id)]) rcas[String(v.id)].meta_hier = Number(v.meta) || 0;
+    } catch { /* sem cascata: fica so o painel */ }
     return new Response(JSON.stringify({ filial, dia, gerado_em: new Date().toISOString(), total: Object.keys(rcas).length, rcas }), { headers: cors });
   } catch (e) { return new Response(JSON.stringify({ erro: String(e.message || e).slice(0, 300) }), { status: 500, headers: cors }); }
 }

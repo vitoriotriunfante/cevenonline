@@ -61,6 +61,14 @@ export async function onRequestPost({ request, env }) {
     if (!novo) {
       // 26/10/2026: supervisor que se apresenta e nao e achado na arvore ficava SEM RESPOSTA. Agora: resposta educada + aviso ao Vitorio (1x por numero por dia).
       if (!seco && /SUPERVIS|SETOR|EQUIPE|AREA|\bCOD|CODIGO|COORDENADOR|GERENTE/.test(sem(texto)) || ehSaudacao(texto)) {   /* 26/10/2026: 'Boa tarde' de numero desconhecido ficava sem resposta */
+        // PENDENTE NA TELA DE CONTATOS (27/10/2026, Gabriel Giroto "COD - 543": o aviso chegava no WhatsApp mas nada aparecia em /contatos para liberar).
+        // Grava como pendente; filial deduzida pelo nome na equipe (Gestao + arvore do CEVEN) quando 2 palavras do nome batem. Quem libera e o Vitorio.
+        if (!ehSaudacao(texto)) { try {
+          const nomeP = String(texto).replace(/\b(COD(IGO)?|SETOR|EQUIPE|AREA|SUPERVISORA?|COORDENADORA?( DE VENDAS)?)\b\.?/gi, ' ').replace(/[\d\-:–]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || d.pushName || null;
+          let filP = null; try { const m = await (await fetch(u.origin + '/api/tv-mostra')).json(); const tk = sem(nomeP || '').split(' ').filter((w) => w.length > 2);
+            for (const [k, L] of Object.entries(m.filiais || {})) for (const v of L) { const nv = sem(v.nome).split(' '); if (tk.filter((w) => nv.includes(w)).length >= 2) filP = k.split('_')[0]; } } catch (e) {}
+          await env.DB.prepare("INSERT OR IGNORE INTO bot_contatos (celular, nome, papel, filial, ativo, situacao) VALUES (?,?,?,?,0,'pendente')").bind(cel, nomeP ? nomeP.toUpperCase() : null, 'supervisor', filP).run();
+        } catch (e) { /* aviso no WhatsApp continua */ } }
         const ja = await env.DB.prepare("SELECT COUNT(*) n FROM bot_msgs WHERE celular = ? AND direcao = 'out' AND date(quando,'-3 hours') = date('now','-3 hours')").bind(cel).first().catch(() => ({ n: 1 }));
         if (!ja || !ja.n) {
           const msg = `Oi! Eu sou o *Jota* ⚽, do Comercial da Triunfante. Ainda não achei seu cadastro. Me manda seu *nome completo* e o *código* de supervisor do CEVEN (ex.: "Fulano de Tal - COD 65"). Já avisei a diretoria; assim que liberar, eu te aviso aqui.`;
