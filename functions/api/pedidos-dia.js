@@ -34,6 +34,18 @@ export async function onRequestGet({ env, request }) {
         categoria_corte: p.categoria_corte || null, itens_cortados: p.itens_cortados || [], total_clube: p.total_clube, valor_original: p.valor_original,
         vl_faturado_winthor: p.vl_faturado_winthor, vl_perdido_logistica: p.vl_perdido_logistica, valor: p.valor, tem_corte_info: 'itens_cortados' in p, analisado_em: r.criado_em });
     }
+    // STATUS MAIS RECENTE (26/10/2026): a linha do tempo (pedido_status, rechecada pelo coletor) manda sobre a 1a leitura; ?num= acha pedido de qualquer dia (15 dias)
+    try {
+      const num = (u.searchParams.get('num') || '').replace(/D/g, '');
+      if (num) {
+        const p = await env.DB.prepare('SELECT * FROM pedido_status WHERE num = ?').bind(num).first();
+        const { results: h } = await env.DB.prepare('SELECT status, visto_em FROM pedido_status_hist WHERE num = ? ORDER BY visto_em').bind(num).all();
+        return new Response(JSON.stringify({ num, pedido: p || null, linha_do_tempo: h || [] }), { headers: cors });
+      }
+      const { results: ps } = await env.DB.prepare('SELECT num, status, rechecado_em, final FROM pedido_status WHERE data_pedido = ?').bind(dia).all();
+      const m = new Map((ps || []).map((x) => [x.num, x]));
+      for (const p of pedidos) { const x = m.get(p.num); if (x) { p.status_pedido = x.status; p.conferido_em = x.rechecado_em; p.final = !!x.final; } }
+    } catch { /* sem a linha do tempo: fica a 1a leitura */ }
     return new Response(JSON.stringify({ dia, clientes, analisados, pedidos }), { headers: cors });
   } catch (e) {
     return new Response(JSON.stringify({ erro: String(e.message || e).slice(0, 200) }), { status: 500, headers: cors });

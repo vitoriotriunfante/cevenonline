@@ -16,7 +16,7 @@ import { respJustificativas, respOferecer, respSemDado } from './respostas/oport
 import { pedePeriodo, respClientesSemComprar, respComparaMes, respDiasSemPedido, respPeriodoDias } from './respostas/periodos.js';
 import { respFalta, respHoje, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
 import { respAVisitar, respCheckinEquipe, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
-import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo, respPreco, respPedidoNumero, respProduto, respRecuperacao, respTopProdutos } from './respostas/vendas.js';
+import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo, respPreco, respPedidoNumero, respPedidosStatus, respProduto, respRecuperacao, respTopProdutos } from './respostas/vendas.js';
 
 export async function respostaPronta(B, c, texto, anteriores) {
   const fm = sem(texto).match(FRX);
@@ -51,6 +51,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
   const ehMP = /MARCAS? PROPRIAS?|NOSSAS MARCAS|ZIPOCA|CALIRA|MITBIT|BELLARONE|SKIVE/.test(t);
   if (/RELATORIO|BOLETIM|DISPARO|MENSAGEM DAS|COMO FECHOU|\bONTEM\b/.test(t) && !/COMPR|PRODUTO|CLIENTE|CHE?C?K.?IN|CHE?C?K.?OUT/.test(t) || (ehMP && /RELATORIO|10[:H ]?00|\b10H\b/.test(t))) return respRelatorio(B, c, t);
   if (/GESTAO DE CAMPO|SUPERVISORES EM CAMPO|EM ROTA \(RET\)|RANKING DE ATIVIDADE/.test(t) || (/COMPROMISSO|\bRET\b/.test(t) && /POR FILIAL|RANKING|PERCENT|%/.test(t))) return respGestaoCampo(B, await carregaEscopo(B, esc));
+  // LISTA de pedidos por status do escopo (bloqueados, liberados sem faturar, com corte): antes da Operacao, que so da o total (26/10/2026)
+  if (/PEDIDOS?/.test(t) && /BLOQUEAD|LIBERAD|CORTAD|COM CORTE|SEM FATURAR|NAO FATUR/.test(t) && !/[0-9]{7,}/.test(t)) return respPedidosStatus(B, await carregaEscopo(B, esc), t);
   if (/CORTE|CORTAD|BLOQUEAD|RETID|PERDAS|OPERACAO|RANKING DE VENDAS|RANKING FINAL|FECHAMENTO DO DIA/.test(t) && !/DEVOL/.test(t)) return respOperacao(B, await carregaEscopo(B, esc), t);
   if (/RECORRENCIA|RESGAT|REATIVAD|INATIVOS? (RECUPERAD|REATIVAD)/.test(t) && !/O QUE (E|EH)/.test(t) && !/\bMETAS?\b|KPI|PREMIA/.test(t)) return respRecorrenciaLances(B, await carregaEscopo(B, esc));
   if (/MOTIVO|POR ?QUE/.test(t) && /DEVOLU|DEVOLVID|VOLTOU DE MERCADORIA/.test(t)) return respDevMotivos(B);
@@ -153,6 +155,8 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   // METAS DAS INDUSTRIAS = Premiacao RV do CEVEN (Vitorio, 25/10/2026)
   // KPIs DA PREMIACAO (26/10/2026: meta de ticket medio, mix, faseamento, recorrencia)
   if (/\bMETAS?\b|KPI|PREMIA/.test(t) && /TICKET|\bMIX\b|FASEAMENTO|FASIAMENTO|FASAMENTO|RECORRENCIA|\bKPIS?\b/.test(t)) return respKpisPremiacao(B, E, t, pessoa);
+  // "performance de vendas POR INDUSTRIA da filial" (Rudinei/TPA, 26/10/2026: caia no resumo): mesma resposta das metas por industria da Premiacao
+  if (/POR (INDUSTRIA|FORNECEDOR)|INDUSTRIAS\b|DESEMPENHO DAS INDUSTRIAS|PERFORMANCE (DAS |DE )?(VENDAS )?(POR |DAS )?INDUSTRIA/.test(t)) { const r = await respMetasIndustria(B, E, t, pessoa); if (r) return r; }
   if (/\bMETAS?\b|OBJETIVOS?\b/.test(t)) { const r = await respMetasIndustria(B, E, t, pessoa); if (r) return r; }
   // vendas item a item (produto, industria, cliente, preco, top produtos, marca propria ao vivo)
   if (ehMP) { const r = await respMarcaPropriaVivo(B, E, t); return r || respRelatorio(B, c, t); }

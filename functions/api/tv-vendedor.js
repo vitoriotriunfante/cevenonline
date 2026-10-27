@@ -1,4 +1,5 @@
 import { foraDoHorario } from '../_lib/horario_reduzido.js';
+import { gravaStatusPedidos } from '../_lib/pedido_status.js';   // linha do tempo do status de cada pedido (26/10/2026)
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
 // =========================================================================
@@ -336,6 +337,8 @@ export async function onRequestGet({ request, env }) {
       const r = await getJson(`${CEVEN}/api/rca/historico-cliente/${c.id_cliente}?${q}`, usarCentral ? 8000 : 20000);
       if (r == null && usarCentral) travou = true;
       if (r != null) novosHist.push([key, String(c.id_cliente), String(id), sig(c), JSON.stringify(r)]);
+      // LINHA DO TEMPO DO STATUS (26/10/2026): toda leitura nova do historico grava o status de cada pedido recente do cliente (muda = nova linha em pedido_status_hist)
+      if (r != null && env && env.DB) { try { await gravaStatusPedidos(env, key, id, c.id_cliente, r.ultimas_visitas); } catch { /* nao muda a resposta */ } }
       return r;
     });
     // pela coleta de lances (central=1): no maximo 2 simultaneas; na tela da TV segue como antes

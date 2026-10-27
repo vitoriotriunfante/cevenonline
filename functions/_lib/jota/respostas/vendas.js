@@ -187,3 +187,25 @@ export async function respPedidoNumero(B, E, t) {
     `💰 Valor do pedido: ${R$(P.total_clube || P.valor)}` + (P.vl_faturado_winthor ? ` · valor no Winthor: ${R$(P.vl_faturado_winthor)}` : ''),
     corte, `_Lido da base às ${new Date(P.analisado_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}._`].join('\n');
 }
+
+// PEDIDOS POR STATUS DO ESCOPO (Vitorio, 26/10/2026: "e se o supervisor perguntar quais pedidos estao bloqueados ainda hoje do time dele?").
+// Base do dia (/api/pedidos-dia). Status e o da ULTIMA leitura do pedido (hora mostrada); a rechecagem ate FATURADO e a linha do tempo estao sendo ligadas.
+export async function respPedidosStatus(B, E, t) {
+  const alvo = /BLOQUEAD/.test(t) ? 'BLOQUEADO' : /LIBERAD/.test(t) ? 'LIBERADO' : /CORTE|CORTAD/.test(t) ? 'CORTE' : null;
+  const pd = await B.pedidosDia(); if (!pd || !Array.isArray(pd.pedidos)) return '🧾 _Os pedidos do dia ainda não estão na base. Tente em alguns minutos._';
+  const meus = new Map(E.vend.concat(E.ocultos || []).map((v) => [v.filial + '|' + v.rca, v]));
+  const P = pd.pedidos.filter((p) => (E.nacional || meus.has(p.filial + '|' + p.rca)) && (alvo === 'CORTE' ? (p.itens_cortados || []).length : !alvo || String(p.status_pedido || '').toUpperCase() === alvo));
+  const hm = (ms) => new Date(ms).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+  const titulo0 = alvo === 'CORTE' ? 'com corte' : alvo ? alvo.toLowerCase() + 's' : 'de hoje';
+  if (!P.length) return `🧾 *Pedidos ${titulo0} — ${E.nome}*: nenhum na base agora.`;
+  const porV = new Map(); for (const p of P) { const k = p.filial + '|' + p.rca; if (!porV.has(k)) porV.set(k, []); porV.get(k).push(p); }
+  const tot = P.reduce((a, p) => a + (Number(p.total_clube || p.valor) || 0), 0), L = [`🧾 *Pedidos ${titulo0} hoje — ${E.nome}*: *${P.length}* · ${R$(tot)}`, ''];
+  let n = 0;
+  for (const [k, ps] of [...porV].sort((a, b) => b[1].length - a[1].length)) {
+    const v = meus.get(k); L.push(`*${v ? vn(v) : 'RCA ' + k.split('|')[1]}${E.nacional ? ' ' + k.split('|')[0] : ''}* — ${ps.length}`);
+    for (const p of ps) { if (n++ >= 30) break; L.push(`• ${p.num} · cliente #${p.id_cliente} · ${R$(p.total_clube || p.valor)} · ${p.status_pedido || 'sem status'}` + ((p.itens_cortados || []).length ? ` · ✂️ ${p.itens_cortados.length} item(ns) cortado(s)` : '') + ` _(lido ${hm(p.analisado_em)})_`); }
+    if (n >= 30) { L.push(`… e mais ${P.length - 30}. Peça por vendedor.`); break; }
+  }
+  L.push('', '_Status da última leitura de cada pedido (hora ao lado)._', SUGESTAO + (alvo === 'BLOQUEADO' ? 'bloqueado é pendência comercial/crédito: falar com o crédito hoje para liberar o faturamento.' : 'peça "pedido <número>" para o detalhe de um pedido.'));
+  return L.join('\n');
+}

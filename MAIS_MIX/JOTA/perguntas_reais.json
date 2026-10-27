@@ -933,5 +933,54 @@
   "nao": [
    "EQUIPE IVAYR MIRANDA .TCA. HOJE"
   ]
+ },
+ {
+  "id": "rudinei-industria-tpa",
+  "perfil": {
+   "nome": "VITORIO",
+   "papel": "diretoria",
+   "filial": null,
+   "supervisor": null
+  },
+  "pergunta": "Me traga a performance de vendas por indústria da filial de TPA",
+  "deve": [
+   "METAS DAS INDUSTRIAS",
+   "COLGATE"
+  ],
+  "nao": [
+   "TPA AGORA"
+  ]
+ },
+ {
+  "id": "ivayr-bloqueados-time",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TCA",
+   "nome": "IVAYR PRINCIPE FREITAS DE MIRANDA",
+   "supervisor": "IVAYR PRINCIPE FREITAS DE MIRANDA"
+  },
+  "pergunta": "quais pedidos estão bloqueados ainda hoje do meu time?",
+  "deve": [
+   "PEDIDOS BLOQUEADOS"
+  ],
+  "nao": [
+   "OPERACAO DE HOJE"
+  ]
+ },
+ {
+  "id": "ivayr-liberados-sem-faturar",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "TCA",
+   "nome": "IVAYR PRINCIPE FREITAS DE MIRANDA",
+   "supervisor": "IVAYR PRINCIPE FREITAS DE MIRANDA"
+  },
+  "pergunta": "quais pedidos estão apenas liberados sem faturar?",
+  "deve": [
+   "PEDIDOS LIBERADOS"
+  ],
+  "nao": [
+   "OPERACAO DE HOJE"
+  ]
  }
 ]
