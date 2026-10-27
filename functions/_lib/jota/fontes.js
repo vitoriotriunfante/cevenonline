@@ -33,6 +33,7 @@ export function criaBase(origin, env) {
     liga: () => memo('liga', () => gh('public/dados_brasileirao.json').then((t) => JSON.parse(t)).catch(() => est('/dados_brasileirao.json'))),
     mix: () => memo('mix', () => gh('public/dados_mix.json').then((t) => JSON.parse(t)).catch(() => est('/dados_mix.json'))),
     pedidosDia: () => memo('ped', () => api('/api/pedidos-dia?dia=' + hojeSP())),
+    metaPosFilial: () => memo('mposf', () => api('/meta_positivacao_filial.json')),   /* meta de positivacao por filial (Premiacao), TEMPORARIA ate o CEVEN corrigir (27/10/2026) */
     pedidosAbertos: () => memo('pedab', () => api('/api/pedidos-dia?abertos=1')),   /* nao faturados dos ultimos 15 dias (linha do tempo) */
     pedidoNum: (n) => memo('pednum' + n, () => api('/api/pedidos-dia?num=' + n)),   /* pedido de qualquer dia (15 d) com a linha do tempo do status */
     raw: (p) => memo('raw' + p, () => gh(p).catch(() => null)),
