@@ -982,5 +982,21 @@
   "nao": [
    "OPERACAO DE HOJE"
   ]
+ },
+ {
+  "id": "vitorio-clientes-rota-hoje-luciana",
+  "perfil": {
+   "nome": "VITORIO",
+   "papel": "diretoria",
+   "filial": null,
+   "supervisor": null
+  },
+  "pergunta": "Quantos clientes a vendedora Luciana de API tem na rota hoje?",
+  "deve": [
+   "ROTA DE HOJE: .* DE [0-9]+"
+  ],
+  "nao": [
+   "FALTAM .* POSITIVACOES"
+  ]
  }
 ]
