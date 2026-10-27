@@ -191,14 +191,22 @@ export async function respRotaHojeResumo(B, E, v) {
 }
 // "+MIX" logo depois da rota de hoje: o que oferecer para os clientes da rota que ainda nao compraram no mes (lista do +MIX, a mesma do app)
 export async function respMixRotaHoje(B, v) {
-  const { sem } = await semCompraNaRota(B, v);
-  if (!sem.length) return `🧺 Todos os clientes da rota de hoje de ${vn(v)} já compraram no mês. Peça "+mix" para o mix geral.`;
+  // (Vitorio, 27/10/2026: "tinha que ser dos clientes dela que faltam... e talvez incluir dos que ja compraram algumas sugestoes simples dos itens que mais aparecem")
+  const { rota, sem } = await semCompraNaRota(B, v);
+  if (!rota.length) return `🧺 ${vn(v)} não tem clientes na rota de hoje.`;
   let M = {}; try { M = JSON.parse(await B.raw(`public/mix_rec/${v.filial}.json`) || '{}').clientes || {}; } catch (e) { M = {}; }
-  const L = [`🧺 *+MIX — clientes da rota de hoje de ${vn(v)} que ainda não compraram no mês*`];
-  for (const x of sem.slice(0, 10)) {
-    const r = (M[String(x.c.cnpj || '').replace(/\D/g, '')] || {}).rec || [];
-    L.push('', `*${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')}* (#${x.c.id_cliente})`, ...(r.length ? r.slice(0, 4).map(([cod, nome]) => `• ${titulo(nome)} · cód. ${cod}`) : ['• o +MIX não tem sugestão nova para este cliente']));
+  const recDe = (c) => (M[String(c.cnpj || '').replace(/\D/g, '')] || {}).rec || [];
+  const L = [`🧺 *+MIX — rota de hoje de ${vn(v)}* (${rota.length} clientes)`];
+  if (sem.length) {
+    L.push('', `*Ainda sem compra no mês (${sem.length}) — o que oferecer:*`);
+    for (const x of sem.slice(0, 8)) { const r = recDe(x.c); L.push(`${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')}: ${r.length ? r.slice(0, 3).map(([, nome]) => titulo(nome)).join(' · ') : 'sem sugestão nova no +MIX'}`); }
   }
+  // itens que mais aparecem nas listas do +MIX de TODOS os clientes da rota de hoje (inclusive quem ja comprou no mes): sugestao simples para levar
+  const cont = new Map();
+  for (const c of rota) for (const [cod, nome] of recDe(c).slice(0, 10)) { const k = String(cod); const x = cont.get(k) || { nome, n: 0 }; x.n++; cont.set(k, x); }
+  const top = [...cont.values()].sort((a, b) => b.n - a.n).slice(0, 6);
+  if (top.length) L.push('', `*Para levar hoje (mais pedidos pelo +MIX nos ${rota.length} clientes da rota):*`, ...top.map((x) => `${titulo(x.nome)} · em ${x.n} cliente(s)`));
+  if (!sem.length && !top.length) return `🧺 Todos os clientes da rota de hoje de ${vn(v)} já compraram no mês e o +MIX não tem sugestão nova para eles.`;
   return L.join('\n');
 }
 

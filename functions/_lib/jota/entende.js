@@ -22,7 +22,7 @@ import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo,
 // pergunto e o mes, vc responde outra coisa"). Mensagem que so MODIFICA a anterior ("e o mes?", "do mes", "apenas em TPA", "por vendedor", "sim, ...faturou o pedido")
 // vira a pergunta anterior + o modificador. Comandos completos ("liga", "hoje", "+mix") seguem sozinhos.
 export function juntaComAnterior(texto, anteriores) {
-  const t = sem(texto).trim(), ant = (anteriores || []).length ? String(anteriores[anteriores.length - 1] || '') : '';
+  const t = sem(texto).trim(), ant = (anteriores || []).length ? String(anteriores[0] || '') : '';
   if (!ant || /^\d{1,5}\W*$/.test(t)) return texto;
   const modificador = /^(E|E O|E A|E NO|E NA|E DO|E DA|E OS|E AS)\b|^(APENAS|SO|SOMENTE|AGORA)\b|^(QUERO|QUERIA|PRECISO)( SABER)? (APENAS|SO|SOMENTE)\b|^(DO|DA|NO|NA) (MES|SEMANA|DIA)\W*$|^(DE |EM )?(ONTEM|HOJE)\W*$|^(POR|ABERTO POR|ABERTA POR) (VENDEDOR|SUPERVISOR|FILIAL|CLIENTE|INDUSTRIA)|^SIM\b|^(QUAIS|QUEM) SAO( ELES| ELAS)?\W*$|^(EM|DE) (TPH|ABC|API|TBL|TCV|TSJ|TCA|TBE|TPA|MCD|TCG)\W*$/.test(t);
   if (!modificador) return texto;
@@ -89,12 +89,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/PENALTI|PENALIDADE|IMPEDIMENTO|CARTA|VERMELHO|AMARELO|GOL CONTRA|\bGOLS?\b|LANCES?\b|HAT ?TRICK|DEFESAS?\b|CHECK.?IN FORA|FORA DO CLIENTE|00:00|CARTO(ES|ESS)?\b/.test(t) && !/LIGA|CHAMPIONS|CLASSIFICA|PONTOS? (FOMOS|PERDID|PENALIZ)|PENALIZAD/.test(t)) return respLances(B, await carregaEscopo(B, esc), t);
   // "VER MAIS" logo depois do detalhe de um vendedor: a lista completa dos clientes sem compra (27/10/2026)
   if (/^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA))\W*$/.test(t) && (anteriores || []).length) {
-    const Ev = await carregaEscopo(B, esc), pv = achaPessoa(Ev, sem(String(anteriores[anteriores.length - 1] || '')));
+    const Ev = await carregaEscopo(B, esc), pv = achaPessoa(Ev, sem(String(anteriores[0] || '')));
     if (pv && pv.tipo === 'vend') return respVendedor(B, Ev, pv.alvo, { tudo: true });
   }
   // "+MIX" logo depois de "rota de hoje": o que oferecer aos clientes da rota que ainda nao compraram no mes (Vitorio, 27/10/2026: 'ele pergunta apenas mais mix e vc ja entende')
   // "+ mix" chega como "MIX" depois da normalizacao (27/10/2026: foi para o Brasil todo); "dos 3", "desses clientes" tambem
-  if (/^\W*(\+ ?)?(MIX|MAIS ?MIX)\W*(DELES|DESSES|DESTES|PARA ELES|DESSES CLIENTES|DOS \d+|DELA|DELE)?\W*$|^(E )?O MIX (DELES|DESSES|DOS \d+)/.test(t) && (anteriores || []).length) { const ant = sem(String(anteriores[anteriores.length - 1] || '')); if (/ROTA/.test(ant)) { const Ea = await carregaEscopo(B, esc); const pa = achaPessoa(Ea, ant) || (Ea.rca && Ea.vend[0] ? { tipo: 'vend', alvo: Ea.vend[0] } : null); if (pa && pa.tipo === 'vend') return respMixRotaHoje(B, pa.alvo); } }
+  if (/^\W*(\+ ?)?(MIX|MAIS ?MIX)\W*(DELES|DESSES|DESTES|PARA ELES|DESSES CLIENTES|DOS \d+|DELA|DELE)?\W*$|^(E )?O MIX (DELES|DESSES|DOS \d+)/.test(t) && (anteriores || []).length) { const ant = sem(String(anteriores[0] || '')); if (/ROTA/.test(ant)) { const Ea = await carregaEscopo(B, esc); const pa = achaPessoa(Ea, ant) || (Ea.rca && Ea.vend[0] ? { tipo: 'vend', alvo: Ea.vend[0] } : null); if (pa && pa.tipo === 'vend') return respMixRotaHoje(B, pa.alvo); } }
   if (/\+ ?MIX|MAIS ?MIX|\bMIX\b/.test(t) && !/COMPROU|COMPRARAM|PRECO/.test(t) && !(/\bMETAS?\b|KPI|PREMIA/.test(t) && !/\+ ?MIX|MAIS ?MIX/.test(t))) {
     // 26/10/2026 (Cristiano, equipe AS: 'foco em mix' -> '0 de 0 clientes'): o +MIX (lista de recomendacao) cobre o varejo; sem dado de uso no escopo, mostra o
     // MIX DA PREMIACAO por vendedor (itens por cliente, todos os canais), nunca uma resposta vazia
@@ -164,12 +164,12 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   { const mc = t.match(/(VENDEDORA?|RCA|SETOR|COD(?:IGO)?)\s*(\d{1,5})\b/); if (!pessoa && mc && (E.supervisor || E.grupo || E.rca || !E.nacional) && !/TOP|ULTIMOS|DIAS/.test(t)) return `🔎 O código *${mc[2]}* não está ${E.supervisor ? 'na sua equipe' : 'em ' + E.nome}. Confere o número? Se for de outra equipe, quem vê é o supervisor dela ou a diretoria.`; }
   // CONTINUACAO DA CONVERSA (Vitorio, 27/10/2026: "pergunto como foi o dia do vendedor X... dai pergunto e o mes, vc respondeu outra coisa totalmente diferente"):
   // pergunta curta ou que comeca com "e ..." sem pessoa citada herda o vendedor/supervisor da ultima pergunta (a mais recente primeiro).
-  if (!pessoa && (/^E\b/.test(t) || t.split(/\s+/).filter(Boolean).length <= 4) && !/MINHA EQUIPE|MEU TIME|\bBRASIL\b|TODAS/.test(t)) for (const h of (anteriores || []).slice().reverse()) { pessoa = achaPessoa(E, sem(h)); if (pessoa) break; }
+  if (!pessoa && (/^E\b/.test(t) || t.split(/\s+/).filter(Boolean).length <= 4) && !/MINHA EQUIPE|MEU TIME|\bBRASIL\b|TODAS/.test(t)) for (const h of (anteriores || [])) { pessoa = achaPessoa(E, sem(h)); if (pessoa) break; }
   // ROTA DE HOJE x MES (27/10/2026, Marcio/ABC: "dos clientes que a Nilva vai visitar HOJE, quais ainda nao positivou esse mes" ia para a curva do mes inteiro;
   // Vitorio: "misturando mes com dia"). Hoje/visitar/rota + nao comprou = so a rota de hoje; "quais clientes vai visitar hoje" = rota completa com compra e tags.
-  { const hojeRota = /(VISITAR|VISITA|ROTA|PASSAR).{0,30}\b(HOJE|HJ)\b|\b(HOJE|HJ)\b.{0,40}(VISITAR|ROTA)|VAI VISITAR|IRA VISITAR|VAO SER VISITAD/.test(t);
+  { const hojeRota = /(VISITAR|VISITA|ROTA|PASSAR).{0,30}\b(HOJE|HJ)\b|\b(HOJE|HJ)\b.{0,40}(VISITAR|ROTA)|VAI VISITAR|IRA VISITAR|VAO SER VISITAD|^CLIENTES? .{0,40}\b(HOJE|HJ)\b/.test(t);   /* "cliente da Luciana de API hoje" (27/10/2026) */
     if (pessoa && pessoa.tipo === 'vend' && hojeRota && /NAO (COMPR|POSITIV|VEND)|SEM COMPRA|AINDA NAO/.test(t)) return respRotaHojeCompleta(B, pessoa.alvo, true);
-    if (pessoa && pessoa.tipo === 'vend' && hojeRota && /QUA(L|IS)|QUE CLIENTES|LISTA/.test(t) && !/VISITOU|VISITADOS|JUSTIF|CHE?C?K|HORARIO|MOTIVO/.test(t)) return respRotaHojeCompleta(B, pessoa.alvo, false); }
+    if (pessoa && pessoa.tipo === 'vend' && hojeRota && /QUA(L|IS)|QUE CLIENTES|LISTA|^CLIENTES?\b/.test(t) && !/VISITOU|VISITADOS|JUSTIF|CHE?C?K|HORARIO|MOTIVO/.test(t)) return respRotaHojeCompleta(B, pessoa.alvo, false); }
   // DIA x MES DO VENDEDOR (27/10/2026): "como foi o dia do X" = so hoje; "e o mes?" / "como foi o mes" = resumo do mes dele (respVendedor)
   if (pessoa && pessoa.tipo === 'vend' && /\bE (O |NO )?MES\W*$|^(E )?(O |NO |DO )?MES\W*$|COMO (FOI|ESTA|TA|VAI) O MES/.test(t) && !/NAO VEND|NAO COMPR|CURVA|SEM VENDA/.test(t)) return respVendedor(B, E, pessoa.alvo);
   if (pessoa && pessoa.tipo === 'vend' && /COMO FOI O DIA|O DIA D[AOE]\b|COMO FOI (HOJE|O DIA)/.test(t) && !/LIGA|BRASILEIRAO|CHAMPIONS/.test(t)) return respDiaVendedor(B, E, pessoa.alvo);
