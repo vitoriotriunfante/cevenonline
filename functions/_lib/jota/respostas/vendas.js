@@ -178,6 +178,17 @@ export async function respPedidoNumero(B, E, t) {
   const num = (t.match(/\d{7,}/) || [''])[0]; if (!num) return null;
   const pd = await B.pedidosDia(); const P = ((pd && pd.pedidos) || []).find((p) => String(p.num) === num);
   const meu = (p) => E.nacional || E.vend.concat(E.ocultos || []).some((v) => v.filial === p.filial && String(v.rca) === String(p.rca));
+  if (!P) {   /* pedido de outro dia: linha do tempo do status (pedido_status, desde 26/10/2026) */
+    const o = await B.pedidoNum(num), x = o && o.pedido;
+    if (x && meu(x)) {
+      const v = E.vend.concat(E.ocultos || []).find((y) => y.filial === x.filial && String(y.rca) === String(x.rca));
+      const dt = (iso) => new Date(iso).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      const H = (o.linha_do_tempo || []);
+      return [`🧾 *Pedido ${num}* — ${v ? vn(v) : 'RCA ' + x.rca} (${x.filial}) · cliente #${x.id_cliente} · pedido de ${String(x.data_pedido).slice(8, 10)}/${String(x.data_pedido).slice(5, 7)}`,
+        `📌 *Status:* ${x.status}${x.final ? ' _(final)_' : ''} · conferido em ${dt(x.rechecado_em)}`, `💰 Valor: ${R$(x.valor)}` + (x.itens_cortados ? ` · ✂️ ${x.itens_cortados} item(ns) cortado(s)` : ''),
+        H.length > 1 ? '🕒 *Linha do tempo:* ' + H.map((h) => `${h.status} ${dt(h.visto_em)}`).join(' → ') : ''].filter(Boolean).join('\n');
+    }
+  }
   if (!P) return `🔎 *Pedido ${num}*: não está na base de hoje. A base lê o pedido de cada cliente positivado dos vendedores acompanhados (Liga), alguns minutos depois de o pedido entrar; pedido de outro dia ou de código fora desse acompanhamento ainda não aparece aqui. _Anotei para a diretoria._`;
   if (!meu(P)) return `🔎 O pedido ${num} não é da sua equipe.`;
   const v = E.vend.concat(E.ocultos || []).find((x) => x.filial === P.filial && String(x.rca) === String(P.rca));

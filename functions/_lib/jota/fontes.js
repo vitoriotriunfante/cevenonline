@@ -33,6 +33,7 @@ export function criaBase(origin, env) {
     liga: () => memo('liga', () => gh('public/dados_brasileirao.json').then((t) => JSON.parse(t)).catch(() => est('/dados_brasileirao.json'))),
     mix: () => memo('mix', () => gh('public/dados_mix.json').then((t) => JSON.parse(t)).catch(() => est('/dados_mix.json'))),
     pedidosDia: () => memo('ped', () => api('/api/pedidos-dia?dia=' + hojeSP())),
+    pedidoNum: (n) => memo('pednum' + n, () => api('/api/pedidos-dia?num=' + n)),   /* pedido de qualquer dia (15 d) com a linha do tempo do status */
     raw: (p) => memo('raw' + p, () => gh(p).catch(() => null)),
     // lista de arquivos da pasta: a API do GitHub limita 60 consultas/hora por IP (dividido com outros clientes da Cloudflare) -> guarda 30 min no D1
     pasta: (p) => memo('dir' + p, async () => {
