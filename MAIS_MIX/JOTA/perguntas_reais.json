@@ -1463,7 +1463,7 @@
   "pergunta": "Qual clientes a Nilva código 1149 irá visitar hoje no dia 27/10/2026?",
   "deve": [
    "ROTA DE HOJE",
-   "COMPRA NO MES"
+   "NAO COMPRARAM NO MES"
   ],
   "nao": [
    "ABERTO$"
@@ -1479,11 +1479,11 @@
   },
   "pergunta": "Dos clientes que a Nilva irá visitar hoje dia 27/10/26 quais clientes ela ainda não positivou esse mês?",
   "deve": [
-   "SO OS QUE AINDA NAO COMPRARAM"
+   "AINDA NAO COMPRARAM NO MES"
   ],
   "nao": [
    "CURVA NEGATIVA",
-   "CARTEIRA DO MES"
+   "JA COMPRARAM NO MES ."
   ]
  },
  {
@@ -1538,7 +1538,7 @@
   "pergunta": "Cliente da Luciana de API hoje",
   "deve": [
    "ROTA DE HOJE",
-   "COMPRA NO MES"
+   "NAO COMPRARAM NO MES"
   ],
   "nao": [
    "FALTA:"
@@ -1555,8 +1555,8 @@
   "pergunta": "clientes tamara tcv",
   "deve": [
    "ROTA DE HOJE",
-   "POSITIVACAO .CEVEN, FATURADO.",
-   "COMPRA NO MES"
+   "AINDA NAO COMPRARAM NO MES",
+   "A VISITAR . "
   ],
   "nao": [
    "FALTA:"
@@ -1594,6 +1594,27 @@
   ],
   "nao": [
    "FALTA:"
+  ]
+ },
+ {
+  "id": "giovana-mais-mix-depois-de-clientes",
+  "perfil": {
+   "nome": "VITORIO",
+   "papel": "diretoria",
+   "filial": null,
+   "supervisor": null
+  },
+  "anteriores": [
+   "clientes giovana tbl hoje",
+   "clientes tamara tcv"
+  ],
+  "pergunta": "+mix",
+  "deve": [
+   "ROTA DE HOJE DE 181",
+   "O QUE OFERECER"
+  ],
+  "nao": [
+   "MIX .. BRASIL"
   ]
  }
 ]
