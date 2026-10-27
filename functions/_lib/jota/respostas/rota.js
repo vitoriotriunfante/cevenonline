@@ -150,3 +150,48 @@ export function respCheckinEquipe(E) {
   return [`📍 *Check-in e check-out de hoje — ${E.nome}* (${hojeSP().slice(8, 10)}/${hojeSP().slice(5, 7)})`, ...L.sort((a, b) => a[0].localeCompare(b[0])).map((x) => x[1]),
     semCheckin.length ? `\n⚠️ *Sem nenhum check-in hoje:* ${semCheckin.map(vn).join(', ')}` : '', '', SUGESTAO + (semCheckin.length ? `ligar para ${vn(semCheckin[0])}: rota de hoje sem check-in.` : 'peça "rota de hoje do <vendedor>" para ver cliente a cliente, com os horários.')].filter((x) => x !== '').join('\n');
 }
+
+// ROTA DE HOJE: QUANTOS E QUEM AINDA NAO COMPROU NO MES (Vitorio, 27/10/2026: "quando perguntar quantos clientes na rota de hoje, pense que ele quer saber a
+// quantidade e quais clientes nao compraram ainda esse mes... os outros ja compraram, se quiser a lista me pergunte... se ele quiser o +mix desses clientes
+// pergunta apenas 'mais mix' e vc ja entende"). Comprou no mes = vendas item a item (ate ontem) + positivado hoje na rota. Dias sem compra = historico do +MIX.
+async function semCompraNaRota(B, v) {
+  const mes = hojeSP().slice(0, 7), R0 = (v.rotaHoje || []).filter((c) => !/FORA/i.test(String(c.status || '')));
+  const { vendasEscopo } = await import('./vendas.js');
+  const VM = await vendasEscopo(B, { filiais: [v.filial], rca: v.rca, vend: [v] }).catch(() => null);
+  const compraram = new Set(((VM && VM.linhas) || []).filter((l) => String(l.r) === String(v.rca)).map((l) => String(l.c)));
+  let H = {}; try { H = JSON.parse(await B.raw(`public/mix_hist/${v.filial}.json`) || '{}').c || {}; } catch (e) { H = {}; }
+  const ult = (cnpj) => { const x = H[String(cnpj || '').replace(/\D/g, '')]; if (!x) return null; const m = String(x).split(',').map((p) => p.split(':')[1]).filter(Boolean).sort().pop(); return m ? `20${m.slice(0, 2)}-${m.slice(2, 4)}-${m.slice(4, 6)}` : null; };
+  const vistos = new Set(), rota = [];
+  for (const c of R0) { const k = String(c.id_cliente); if (vistos.has(k)) continue; vistos.add(k); rota.push(c); }
+  const comprou = (c) => compraram.has(String(c.id_cliente)) || /POSITIVADO|EFETIVADO/i.test(String(c.status || '')) || String(c.data_ultima_compra || '').slice(0, 7) === mes;
+  const sem = rota.filter((c) => !comprou(c)).map((c) => { const u = ult(c.cnpj); return { c, u, dias: u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) : null }; })
+    .sort((a, b) => (b.dias ?? 999) - (a.dias ?? 999));
+  return { rota, sem };
+}
+export async function respRotaHojeResumo(B, E, v) {
+  if (v) {
+    const { rota, sem } = await semCompraNaRota(B, v);
+    if (!rota.length) return `${vn(v)} (${v.filial}) não tem clientes na rota de hoje.`;
+    return [`📋 *${vn(v)}* (${v.filial}) — *${rota.length} clientes* na rota de hoje.`, '',
+      sem.length ? `Destes, *${sem.length} ainda não compraram no mês:*` : '✅ Todos já compraram no mês.',
+      ...sem.slice(0, 25).map((x) => `• ${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} (#${x.c.id_cliente}) — ${x.dias == null ? 'sem compra há mais de 60 dias' : `sem compra há ${x.dias} dias`}`),
+      '', `Os outros *${rota.length - sem.length}* já compraram no mês; se quiser a lista, me pergunte.`, '', 'Boas vendas e foco no +MIX! _Peça "+mix" que eu trago o que oferecer para esses clientes._'].join('\n');
+  }
+  const L = [], tot = { r: 0, s: 0 };
+  for (const x of E.vend) { const { rota, sem } = await semCompraNaRota(B, x); if (!rota.length) continue; tot.r += rota.length; tot.s += sem.length; L.push([sem.length, `• ${vn(x)}: ${rota.length} na rota · *${sem.length} sem compra no mês*`]); }
+  if (!L.length) return `📋 *${E.nome}* — ninguém com clientes na rota de hoje.`;
+  return [`📋 *Rota de hoje — ${E.nome}*: *${tot.r} clientes* · *${tot.s} ainda não compraram no mês*`, '', ...L.sort((a, b) => b[0] - a[0]).map((x) => x[1]), '',
+    '_Peça "rota de hoje do <vendedor>" para ver quem são os clientes sem compra._', 'Boas vendas e foco no +MIX!'].join('\n');
+}
+// "+MIX" logo depois da rota de hoje: o que oferecer para os clientes da rota que ainda nao compraram no mes (lista do +MIX, a mesma do app)
+export async function respMixRotaHoje(B, v) {
+  const { sem } = await semCompraNaRota(B, v);
+  if (!sem.length) return `🧺 Todos os clientes da rota de hoje de ${vn(v)} já compraram no mês. Peça "+mix" para o mix geral.`;
+  let M = {}; try { M = JSON.parse(await B.raw(`public/mix_rec/${v.filial}.json`) || '{}').clientes || {}; } catch (e) { M = {}; }
+  const L = [`🧺 *+MIX — clientes da rota de hoje de ${vn(v)} que ainda não compraram no mês*`];
+  for (const x of sem.slice(0, 10)) {
+    const r = (M[String(x.c.cnpj || '').replace(/\D/g, '')] || {}).rec || [];
+    L.push('', `*${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')}* (#${x.c.id_cliente})`, ...(r.length ? r.slice(0, 4).map(([cod, nome]) => `• ${titulo(nome)} · cód. ${cod}`) : ['• o +MIX não tem sugestão nova para este cliente']));
+  }
+  return L.join('\n');
+}

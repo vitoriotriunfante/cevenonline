@@ -993,10 +993,44 @@
   },
   "pergunta": "Quantos clientes a vendedora Luciana de API tem na rota hoje?",
   "deve": [
-   "ROTA DE HOJE: .* DE [0-9]+"
+   "CLIENTES. NA ROTA DE HOJE",
+   "AINDA NAO COMPRARAM NO MES",
+   "SEM COMPRA HA"
   ],
   "nao": [
    "FALTAM .* POSITIVACOES"
   ]
+ },
+ {
+  "id": "washington-clientes-rota-hoje-equipe",
+  "perfil": {
+   "papel": "supervisor",
+   "filial": "API",
+   "nome": "WASHINGTON FLORES DA ROSA",
+   "supervisor": "WASHINGTON FLORES DA ROSA"
+  },
+  "pergunta": "quantos clientes na rota de hoje?",
+  "deve": [
+   "ROTA DE HOJE",
+   "SEM COMPRA NO MES"
+  ],
+  "nao": []
+ },
+ {
+  "id": "vitorio-mais-mix-depois-da-rota",
+  "perfil": {
+   "nome": "VITORIO",
+   "papel": "diretoria",
+   "filial": null,
+   "supervisor": null
+  },
+  "anteriores": [
+   "Quantos clientes a vendedora Luciana de API tem na rota hoje?"
+  ],
+  "pergunta": "mais mix",
+  "deve": [
+   "CLIENTES DA ROTA DE HOJE"
+  ],
+  "nao": []
  }
 ]

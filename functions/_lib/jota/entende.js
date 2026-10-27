@@ -15,7 +15,7 @@ import { respGestaoCampo, respOperacao, respRecorrenciaLances, respRelatorio } f
 import { respJustificativas, respOferecer, respSemDado } from './respostas/oportunidades.js';
 import { pedePeriodo, respClientesSemComprar, respComparaMes, respDiasSemPedido, respPeriodoDias } from './respostas/periodos.js';
 import { respFalta, respHoje, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
-import { respAVisitar, respCheckinEquipe, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
+import { respAVisitar, respCheckinEquipe, respMixRotaHoje, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
 import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo, respPreco, respPedidoNumero, respPedidosStatus, respProduto, respRecuperacao, respTopProdutos } from './respostas/vendas.js';
 
 export async function respostaPronta(B, c, texto, anteriores) {
@@ -58,6 +58,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/MOTIVO|POR ?QUE/.test(t) && /DEVOLU|DEVOLVID|VOLTOU DE MERCADORIA/.test(t)) return respDevMotivos(B);
   if (/COMPROMISSO|MATINAL|\bRET\b|\bRETS\b|ROTA DO SUPERVISOR/.test(t)) return respCompromisso(B, await carregaEscopo(B, esc));
   if (/PENALTI|PENALIDADE|IMPEDIMENTO|CARTA|VERMELHO|AMARELO|GOL CONTRA|\bGOLS?\b|LANCES?\b|HAT ?TRICK|DEFESAS?\b|CHECK.?IN FORA|FORA DO CLIENTE|00:00|CARTO(ES|ESS)?\b/.test(t) && !/LIGA|CHAMPIONS|CLASSIFICA|PONTOS? (FOMOS|PERDID|PENALIZ)|PENALIZAD/.test(t)) return respLances(B, await carregaEscopo(B, esc), t);
+  // "+MIX" logo depois de "rota de hoje": o que oferecer aos clientes da rota que ainda nao compraram no mes (Vitorio, 27/10/2026: 'ele pergunta apenas mais mix e vc ja entende')
+  if (/^\W*(\+ ?MIX|MAIS ?MIX)\W*(DELES|DESSES|DESTES|PARA ELES|DESSES CLIENTES)?\W*$/.test(t) && (anteriores || []).length) { const ant = sem(String(anteriores[anteriores.length - 1] || '')); if (/ROTA/.test(ant)) { const Ea = await carregaEscopo(B, esc); const pa = achaPessoa(Ea, ant) || (Ea.rca && Ea.vend[0] ? { tipo: 'vend', alvo: Ea.vend[0] } : null); if (pa && pa.tipo === 'vend') return respMixRotaHoje(B, pa.alvo); } }
   if (/\+ ?MIX|MAIS ?MIX|\bMIX\b/.test(t) && !/COMPROU|COMPRARAM|PRECO/.test(t) && !(/\bMETAS?\b|KPI|PREMIA/.test(t) && !/\+ ?MIX|MAIS ?MIX/.test(t))) {
     // 26/10/2026 (Cristiano, equipe AS: 'foco em mix' -> '0 de 0 clientes'): o +MIX (lista de recomendacao) cobre o varejo; sem dado de uso no escopo, mostra o
     // MIX DA PREMIACAO por vendedor (itens por cliente, todos os canais), nunca uma resposta vazia
@@ -146,6 +148,10 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   }
   // motivos de nao venda NO PERIODO (mes, semana, mes passado) ou do grupo: resumo noturno; os de HOJE seguem para a rota do dia
   if (/MOTIVO|JUSTIFICATIV|DESCULPA|POR ?QUE .{0,30}NAO .{0,15}COMPR|POR QUE (OS )?CLIENTES? NAO (COMPRA|COMPRAM)|PORQUE (OS )?CLIENTES? NAO COMPRA|NAO VENDA/.test(t) && !/DEVOLU/.test(t) && (/\bMES\b|SEMANA|PASSAD|NO MES|DO MES|SETEMBRO|OUTUBRO/.test(t) || !pessoa)) return respJustificativas(B, E, t, pessoa);
+  // ROTA DE HOJE = QUANTOS + QUEM AINDA NAO COMPROU NO MES (Vitorio, 27/10/2026). Detalhe de visita/justificativa/horario segue para a rota cliente a cliente.
+  const querRotaQtd = /QUANTOS CLIENTES.{0,70}ROTA|NA ROTA (DE )?HOJE|ROTA DE HOJE|CLIENTES (DA|NA) ROTA/.test(t) && !/VISITOU|VISITAD|NAO VENDEU|SEM VENDA|JUSTIFIC|MOTIVO|CHE?C?K|HORARIO|FALTA(M)? VISITAR|COMO ESTA/.test(t);
+  if (querRotaQtd && pessoa && pessoa.tipo === 'vend') return respRotaHojeResumo(B, E, pessoa.alvo);
+  if (querRotaQtd && !pessoa && /QUANTOS|QUAIS/.test(t)) return respRotaHojeResumo(B, E, null);
   if (pessoa && pessoa.tipo === 'vend' && !/COMPR|PRODUTO|SKU/.test(t) && /QUANTOS CLIENTES.{0,70}ROTA|NA ROTA (DE )?HOJE|ROTA DE HOJE|QUA(L|IS) (OS )?CLIENTES?|QUAIS\??$|JUSTIFICATIV|MOTIVO|NAO VENDEU|SEM VENDA|VISITOU|VISITAD|CHECK|ONDE (ELA|ELE) (FOI|ESTA)|POSITIVOU|VENDEU (PARA|PRA)|NENHUMA VISITA|FEZ .{0,20}VISITA|VISITAS? HOJE|NAO VISITOU/.test(t) && !/ROTA DO MES|NO MES|DO MES/.test(t)) return respClientesDia(pessoa.alvo, t);   // 26/10/2026: 'Ronaldo Bica nao fez nenhuma visita?' trazia o resumo
   // PERIODOS (25/10/2026): comparacao com o mes passado, dias sem pedido, clientes sem comprar
   if (/CLIENTE/.test(t) && /SEM COMPRAR|NAO COMPRA|\bN COMPRA|PARADOS?|HA MAIS DE|DIAS SEM/.test(t)) return respClientesSemComprar(B, E, t);
