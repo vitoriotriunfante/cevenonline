@@ -1,13 +1,13 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-26 21:47 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-27 12:48 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (32)
 Meta: só `functions/api/cron-varredura-central.js`.
 
 | Arquivo | Roda | Endpoints |
 |---|---|---|
-| `functions/api/cron-lances.js` | cron do site (worker-cron) | /api/rca, /api/rca/devolucoes/${encodeURIComponent |
+| `functions/api/cron-lances.js` | cron do site (worker-cron) | /api/rca, /api/rca/devolucoes/${encodeURIComponent, /api/rca/historico-cliente/${encodeURIComponent |
 | `functions/api/cron-mapa-executivo.js` | cron do site (worker-cron) | /api/rca/historico-cliente//{id} |
 | `functions/api/cron-varredura-central.js` | cron do site (worker-cron) | /api/admin/filiais/hierarquia, /api/admin/login, /api/admin/view-as/rca/dashboard, /api/rca, /api/rca//{id} |
 | `analises/coletar_todos_os_pdvs_e_prospects_100pct.py` | GitHub Actions (datalake 03:00) | /api/ceven/prospeccao-roteiro, /api/rca/roteiro-hoje |
@@ -53,7 +53,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `bola_cheia_as_dia` | `functions/_lib/bola_cheia.js` |
 | `bola_cheia_dia` | `functions/_lib/bola_cheia.js` |
 | `bot_avisos_equipe` | `functions/_lib/jota/respostas/gestao.js` |
-| `bot_contatos` | `functions/api/jota-contatos.js`, `functions/_lib/jota/persona.js` |
+| `bot_contatos` | `functions/api/jota-contatos.js`, `functions/api/whatsapp/bot.js`, `functions/_lib/jota/persona.js` |
 | `bot_contatos_log` | `functions/api/jota-contatos.js` |
 | `bot_msgs` | `functions/api/jota-boas-vindas.js`, `functions/api/jota-reenviar.js`, `functions/api/whatsapp/bot.js`, `functions/api/whatsapp/registro.js` |
 | `bot_sem_acesso_excluidos` | `functions/api/jota-contatos.js` |
@@ -85,8 +85,11 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `liga_dia_fechado` | `functions/api/liga-repara-devolucao.js`, `functions/_lib/liga_fechamento.js`, `scratch/patch_teste_trava.js` |
 | `liga_fechamento` | `functions/api/liga-repara-devolucao.js`, `functions/_lib/liga_fechamento.js`, `scratch/patch_fecha_2330.js`, `scratch/patch_penalti_motivo.js`, `scratch/patch_teste_trava.js` |
 | `mapa_executivo_live` | `functions/api/cron-mapa-executivo.js` |
+| `meta_hierarquia` | `functions/api/cron-varredura-central.js` |
 | `notif_envio_log` | `functions/api/cron-notificacoes-supervisores.js` |
 | `notif_lance_enviado` | `functions/api/cron-notificacoes-supervisores.js` |
+| `pedido_status` | `functions/api/cron-lances.js`, `functions/_lib/pedido_status.js` |
+| `pedido_status_hist` | `functions/api/cron-lances.js`, `functions/_lib/pedido_status.js` |
 | `piloto_pedidos_intraday` | `functions/api/cron-piloto-pedidos.js` |
 | `rca_kpis` | `functions/api/cron-radar-horario.js`, `pipeline/2_abertura_diaria.js`, `pipeline/3_sync_horario_intraday.js`, `pipeline/github_actions_runner.js` |
 | `recorrencia_resumo_live` | `functions/api/cron-mapa-executivo.js` |
