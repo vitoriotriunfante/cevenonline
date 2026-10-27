@@ -1,23 +1,23 @@
 {
-  "data": "2026-10-26",
-  "geradoEm": "2026-10-26T07:12:32.127Z",
+  "data": "2026-10-27",
+  "geradoEm": "2026-10-27T07:01:32.108Z",
   "diretrizesUsadas": {
     "cnae": {
-      "codigo": "4789",
-      "descricao": "Comércio varejista de suvenires, bijuterias e artesanatos",
-      "justificativa": "Rotação automática seg-sex — CNAE nacional #1 entre os 5 candidatos com amostra >= 20 (280 clientes na amostra nacional).",
+      "codigo": "4721",
+      "descricao": "Padaria e confeitaria com predominância de produção própria",
+      "justificativa": "Rotação automática seg-sex — CNAE nacional #2 entre os 5 candidatos com amostra >= 20 (162 clientes na amostra nacional).",
       "ratios_por_filial": {
-        "TBE": 1,
-        "TSJ": 1.04,
-        "MCD": 1.5,
+        "TBE": 1.89,
+        "TSJ": 2.78,
+        "MCD": 1.49,
         "TPH": 4,
         "TCG": 1,
-        "TPA": 1,
-        "API": 1.12,
-        "TCV": 1.04,
-        "ABC": 2.52,
-        "TCA": 1.17,
-        "TBL": 1
+        "TPA": 1.49,
+        "API": 3.11,
+        "TCV": 2.3,
+        "ABC": 1.89,
+        "TCA": 1.32,
+        "TBL": 2.86
       }
     },
     "produtos": [
@@ -34,130 +34,171 @@
     ]
   },
   "abertura": {
-    "textoAbertura": "🌅 *ABERTURA MATINAL DE OPERAÇÃO (07:45)*\n📅 Segunda-feira, 26/10/2026 • Grupo Triunfante\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📌 *PANORAMA GERAL*\n👥 *Vendedores Varejo em Rota:* 306\n📍 *Visitas Planejadas:* 4.220 PDVs (Varejo) de 5.254 (Total)\n🔴 *Última Chance do Mês:* 1.664 PDVs (39,4% da rota)\n🔄 *Recorrência na rota:* 609 PDVs (14,4%)\n🏬 *Oportunidades CNAE 4789 (Comércio varejista de suvenires, bijuterias e artesanatos):* +7.899 PDVs\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏢 *POR FILIAL (VAREJO)*\n\n📍 *TPH — FÁBIO*\n• Vendedores: 24 • Visitas: 502\n• Sem compra +30d: 235 (46,8%) • Recorrência: 67 (13,3%)\n• CNAE 4789: +2.008 PDVs\n\n📍 *API — MARCELO*\n• Vendedores: 29 • Visitas: 476\n• Sem compra +30d: 174 (36,6%) • Recorrência: 78 (16,4%)\n• CNAE 4789: +533 PDVs\n\n📍 *TPH — VAGNER*\n• Vendedores: 35 • Visitas: 436\n• Sem compra +30d: 157 (36,0%) • Recorrência: 59 (13,5%)\n• CNAE 4789: +1.744 PDVs\n\n📍 *TBL — FÁBIO*\n• Vendedores: 28 • Visitas: 399\n• Sem compra +30d: 218 (54,6%) • Recorrência: 52 (13,0%)\n• CNAE 4789: +399 PDVs\n\n📍 *ABC — MARCOS*\n• Vendedores: 23 • Visitas: 358\n• Sem compra +30d: 125 (34,9%) • Recorrência: 65 (18,2%)\n• CNAE 4789: +902 PDVs\n\n📍 *TSJ — SALDANHA*\n• Vendedores: 22 • Visitas: 334\n• Sem compra +30d: 123 (36,8%) • Recorrência: 41 (12,3%)\n• CNAE 4789: +347 PDVs\n\n📍 *TBE — DIEGO*\n• Vendedores: 16 • Visitas: 316\n• Sem compra +30d: 150 (47,5%) • Recorrência: 19 (6,0%)\n• CNAE 4789: +316 PDVs\n\n📍 *TCV — LEONARDO*\n• Vendedores: 27 • Visitas: 286\n• Sem compra +30d: 49 (17,1%) • Recorrência: 42 (14,7%)\n• CNAE 4789: +297 PDVs\n\n📍 *TCA — BECHER*\n• Vendedores: 28 • Visitas: 282\n• Sem compra +30d: 136 (48,2%) • Recorrência: 62 (22,0%)\n• CNAE 4789: +330 PDVs\n\n📍 *TPA — RADKE / LEANDRO*\n• Vendedores: 15 • Visitas: 254\n• Sem compra +30d: 94 (37,0%) • Recorrência: 43 (16,9%)\n• CNAE 4789: +254 PDVs\n\n📍 *MCD — CLEVERSON*\n• Vendedores: 18 • Visitas: 220\n• Sem compra +30d: 97 (44,1%) • Recorrência: 25 (11,4%)\n• CNAE 4789: +330 PDVs\n\n📍 *TCG — DANILO*\n• Vendedores: 20 • Visitas: 194\n• Sem compra +30d: 56 (28,9%) • Recorrência: 25 (12,9%)\n• CNAE 4789: +194 PDVs\n\n📍 *MCD — ADRIANO*\n• Vendedores: 21 • Visitas: 163\n• Sem compra +30d: 50 (30,7%) • Recorrência: 31 (19,0%)\n• CNAE 4789: +245 PDVs",
+    "textoAbertura": "🌅 *ABERTURA MATINAL DE OPERAÇÃO (07:45)*\n📅 Terça-feira, 27/10/2026 • Grupo Triunfante\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📌 *PANORAMA GERAL*\n👥 *Vendedores Varejo em Rota:* 318\n📍 *Visitas Planejadas (Varejo):* 4.413 PDVs\n🔴 *Última Chance do Mês:* 1.382 PDVs (32,7% da rota)\n🔄 *Recorrência na rota:* 368 PDVs (8,7%)\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏢 *POR FILIAL (VAREJO)*\n\n📍 *TPH — VAGNER*\n• Vendedores: 37 • Visitas: 504\n• Sem compra +30d: 153 (33,8%) • Recorrência: 47 (10,4%)\n\n📍 *TBL — FÁBIO*\n• Vendedores: 29 • Visitas: 484\n• Sem compra +30d: 190 (40,7%) • Recorrência: 29 (6,2%)\n\n📍 *TPH — FÁBIO*\n• Vendedores: 24 • Visitas: 461\n• Sem compra +30d: 181 (39,3%) • Recorrência: 44 (9,5%)\n\n📍 *API — MARCELO*\n• Vendedores: 29 • Visitas: 441\n• Sem compra +30d: 121 (28,2%) • Recorrência: 43 (10,0%)\n\n📍 *ABC — MARCOS*\n• Vendedores: 25 • Visitas: 416\n• Sem compra +30d: 93 (23,7%) • Recorrência: 39 (9,9%)\n\n📍 *TCV — LEONARDO*\n• Vendedores: 28 • Visitas: 317\n• Sem compra +30d: 56 (17,7%) • Recorrência: 28 (8,9%)\n\n📍 *TBE — DIEGO*\n• Vendedores: 16 • Visitas: 312\n• Sem compra +30d: 126 (40,4%) • Recorrência: 13 (4,2%)\n\n📍 *TSJ — SALDANHA*\n• Vendedores: 22 • Visitas: 310\n• Sem compra +30d: 98 (31,6%) • Recorrência: 19 (6,1%)\n\n📍 *TCA — BECHER*\n• Vendedores: 29 • Visitas: 307\n• Sem compra +30d: 121 (41,7%) • Recorrência: 31 (10,7%)\n\n📍 *TPA — RADKE / LEANDRO*\n• Vendedores: 17 • Visitas: 282\n• Sem compra +30d: 97 (36,6%) • Recorrência: 24 (9,1%)\n\n📍 *TCG — DANILO*\n• Vendedores: 20 • Visitas: 224\n• Sem compra +30d: 58 (25,9%) • Recorrência: 25 (11,2%)\n\n📍 *MCD — CLEVERSON*\n• Vendedores: 20 • Visitas: 172\n• Sem compra +30d: 48 (30,4%) • Recorrência: 10 (6,3%)\n\n📍 *MCD — ADRIANO*\n• Vendedores: 21 • Visitas: 165\n• Sem compra +30d: 40 (26,7%) • Recorrência: 16 (10,7%)",
     "dadosAbertura": {
-      "TBE::Diego": {
-        "sigla": "TBE",
-        "gerente": "Diego",
-        "vjs": 16,
-        "visitas": 316,
-        "inativos": 150,
-        "rec": 19,
-        "prospects": 316
+      "ABC::Marcos": {
+        "sigla": "ABC",
+        "gerente": "Marcos",
+        "vjs": 23,
+        "visitas": 393,
+        "inativos": 93,
+        "rec": 39,
+        "prospects": 0,
+        "vjsRota": 25,
+        "visProg": 416,
+        "totCompleto": true
       },
-      "TSJ::Saldanha": {
-        "sigla": "TSJ",
-        "gerente": "Saldanha",
-        "vjs": 22,
-        "visitas": 334,
-        "inativos": 123,
-        "rec": 41,
-        "prospects": 347
-      },
-      "MCD::Adriano": {
-        "sigla": "MCD",
-        "gerente": "Adriano",
-        "vjs": 21,
-        "visitas": 163,
-        "inativos": 50,
-        "rec": 31,
-        "prospects": 245
+      "API::Marcelo": {
+        "sigla": "API",
+        "gerente": "Marcelo",
+        "vjs": 28,
+        "visitas": 429,
+        "inativos": 121,
+        "rec": 43,
+        "prospects": 0,
+        "vjsRota": 29,
+        "visProg": 441,
+        "totCompleto": true
       },
       "MCD::Cleverson": {
         "sigla": "MCD",
         "gerente": "Cleverson",
         "vjs": 18,
-        "visitas": 220,
-        "inativos": 97,
-        "rec": 25,
-        "prospects": 330
+        "visitas": 158,
+        "inativos": 48,
+        "rec": 10,
+        "prospects": 0,
+        "vjsRota": 20,
+        "visProg": 172,
+        "totCompleto": true
       },
-      "TPH::Vagner": {
-        "sigla": "TPH",
-        "gerente": "Vagner",
-        "vjs": 35,
-        "visitas": 436,
-        "inativos": 157,
-        "rec": 59,
-        "prospects": 1744
-      },
-      "TPH::Fábio": {
-        "sigla": "TPH",
-        "gerente": "Fábio",
-        "vjs": 24,
-        "visitas": 502,
-        "inativos": 235,
-        "rec": 67,
-        "prospects": 2008
+      "MCD::Adriano": {
+        "sigla": "MCD",
+        "gerente": "Adriano",
+        "vjs": 20,
+        "visitas": 150,
+        "inativos": 40,
+        "rec": 16,
+        "prospects": 0,
+        "vjsRota": 21,
+        "visProg": 165,
+        "totCompleto": true
       },
       "TCG::Danilo": {
         "sigla": "TCG",
         "gerente": "Danilo",
         "vjs": 20,
-        "visitas": 194,
-        "inativos": 56,
+        "visitas": 224,
+        "inativos": 58,
         "rec": 25,
-        "prospects": 194
+        "prospects": 0,
+        "vjsRota": 20,
+        "visProg": 224,
+        "totCompleto": true
       },
-      "TPA::Radke / Leandro": {
-        "sigla": "TPA",
-        "gerente": "Radke / Leandro",
-        "vjs": 15,
-        "visitas": 254,
-        "inativos": 94,
-        "rec": 43,
-        "prospects": 254
-      },
-      "API::Marcelo": {
-        "sigla": "API",
-        "gerente": "Marcelo",
-        "vjs": 29,
-        "visitas": 476,
-        "inativos": 174,
-        "rec": 78,
-        "prospects": 533
-      },
-      "TCV::Leonardo": {
-        "sigla": "TCV",
-        "gerente": "Leonardo",
-        "vjs": 27,
-        "visitas": 286,
-        "inativos": 49,
-        "rec": 42,
-        "prospects": 297
-      },
-      "ABC::Marcos": {
-        "sigla": "ABC",
-        "gerente": "Marcos",
-        "vjs": 23,
-        "visitas": 358,
-        "inativos": 125,
-        "rec": 65,
-        "prospects": 902
-      },
-      "TCA::Becher": {
-        "sigla": "TCA",
-        "gerente": "Becher",
-        "vjs": 28,
-        "visitas": 282,
-        "inativos": 136,
-        "rec": 62,
-        "prospects": 330
+      "TBE::Diego": {
+        "sigla": "TBE",
+        "gerente": "Diego",
+        "vjs": 16,
+        "visitas": 312,
+        "inativos": 126,
+        "rec": 13,
+        "prospects": 0,
+        "vjsRota": 16,
+        "visProg": 312,
+        "totCompleto": true
       },
       "TBL::Fábio": {
         "sigla": "TBL",
         "gerente": "Fábio",
         "vjs": 28,
-        "visitas": 399,
-        "inativos": 218,
-        "rec": 52,
-        "prospects": 399
+        "visitas": 467,
+        "inativos": 190,
+        "rec": 29,
+        "prospects": 0,
+        "vjsRota": 29,
+        "visProg": 484,
+        "totCompleto": true
+      },
+      "TCA::Becher": {
+        "sigla": "TCA",
+        "gerente": "Becher",
+        "vjs": 27,
+        "visitas": 290,
+        "inativos": 121,
+        "rec": 31,
+        "prospects": 0,
+        "vjsRota": 29,
+        "visProg": 307,
+        "totCompleto": true
+      },
+      "TCV::Leonardo": {
+        "sigla": "TCV",
+        "gerente": "Leonardo",
+        "vjs": 27,
+        "visitas": 316,
+        "inativos": 56,
+        "rec": 28,
+        "prospects": 0,
+        "vjsRota": 28,
+        "visProg": 317,
+        "totCompleto": true
+      },
+      "TPA::Radke / Leandro": {
+        "sigla": "TPA",
+        "gerente": "Radke / Leandro",
+        "vjs": 15,
+        "visitas": 265,
+        "inativos": 97,
+        "rec": 24,
+        "prospects": 0,
+        "vjsRota": 17,
+        "visProg": 282,
+        "totCompleto": true
+      },
+      "TPH::Fábio": {
+        "sigla": "TPH",
+        "gerente": "Fábio",
+        "vjs": 24,
+        "visitas": 461,
+        "inativos": 181,
+        "rec": 44,
+        "prospects": 0,
+        "vjsRota": 24,
+        "visProg": 461,
+        "totCompleto": true
+      },
+      "TPH::Vagner": {
+        "sigla": "TPH",
+        "gerente": "Vagner",
+        "vjs": 33,
+        "visitas": 453,
+        "inativos": 153,
+        "rec": 47,
+        "prospects": 0,
+        "vjsRota": 37,
+        "visProg": 504,
+        "totCompleto": true
+      },
+      "TSJ::Saldanha": {
+        "sigla": "TSJ",
+        "gerente": "Saldanha",
+        "vjs": 22,
+        "visitas": 310,
+        "inativos": 98,
+        "rec": 19,
+        "prospects": 0,
+        "vjsRota": 22,
+        "visProg": 310,
+        "totCompleto": true
       }
     },
     "cnaeFoco": {
-      "codigo": "4789",
-      "descricao": "Comércio varejista de suvenires, bijuterias e artesanatos"
+      "codigo": "4721",
+      "descricao": "Padaria e confeitaria com predominância de produção própria"
     },
+    "totaisCompletos": true,
+    "totaisLidos": "350/350",
     "faltam": []
   }
 }
