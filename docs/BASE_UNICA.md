@@ -101,3 +101,11 @@ Fontes: `varredura_central_rca` (roteiro de cada dia, 29/09 a 26/10) e `piloto_p
 ## 7. Histórico
 - 26/10/2026 09:30–10:00 — Cascata do gerente gravada (`cascata_dia`, 11 filiais, cota separada). Roteiro de quem o gerente vê com visita nova vai primeiro. Lances e cartões sem chamada ao vivo de roteiro. Compromissos e RET gravados pelo coletor; `/api/tv-supervisores` lê só a base. Mapa: 34 → 33 rotinas chamando o CEVEN (tv-lances ainda cita o CEVEN em outro trecho; a coleta de supervisores entrou no lugar do tv-supervisores).
 - 26/10/2026 — Documento criado. Medições do §3 feitas no D1 de produção. `/api/totais-dia` no ar. Telas `so_base`, madrugada 00:30 e redesenho imediato da Matriz publicados às 08:45 (tv-20261026-084506).
+
+## Pedidos: status e linha do tempo (26/10/2026, Vitório: "faturado é o status final; bloqueado/liberado a gente precisa rechecar... com os timelines... comece a partir de hoje")
+- `pedido_status` (1 linha por pedido, últimos 15 dias) e `pedido_status_hist` (1 linha por MUDANÇA de status) — `functions/_lib/pedido_status.js`.
+- Grava em toda leitura do histórico do cliente (tv-vendedor, via coletor de lances): cada leitura atualiza todos os pedidos recentes daquele cliente.
+- Semente: pedidos do dia já analisados (cache_analise_cliente) entram com o status lido (sem chamar o CEVEN).
+- Rechecagem: `cron-lances` relê 4 clientes por rodada com pedido não final (bloqueados primeiro, depois quem está há mais tempo sem conferir). **Capacidade medida pendente**: ~1.000 pedidos/dia não cabem em 4/rodada; subir medindo 429 ou achar endpoint de gerente com status.
+- Leitura: `/api/pedidos-dia` (status mais recente) e `/api/pedidos-dia?num=` (qualquer dia + linha do tempo). JOTA: "pedido <número>", "pedidos bloqueados/liberados/com corte".
+- Limite atual: o coletor só analisa os vendedores acompanhados (Liga); vendedor fora disso (ex.: 1190 sem canal) só entra quando for lido.
