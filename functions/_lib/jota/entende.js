@@ -184,13 +184,21 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
     const v = pessoa.alvo, m = v.mesV || {};
     // CURVA NEGATIVA = clientes da carteira do mes (roteiro do mes) que ainda NAO compraram neste mes (data da ultima compra antes do dia 1)
     if (Array.isArray(v.roteiroMes) && v.roteiroMes.length) {
-      const ini = hojeSP().slice(0, 7) + '-01', cli = new Map();
-      for (const c of v.roteiroMes) { const k = String(c.id_cliente); const u = String(c.data_ultima_compra || '').slice(0, 10); if (!cli.has(k) || u > cli.get(k).u) cli.set(k, { c, u }); }
-      const nao = [...cli.values()].filter((x) => !x.u || x.u < ini).sort((a, b) => (a.u || '').localeCompare(b.u || ''));
-      const dias = (u) => (u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) + ' dias' : 'nunca comprou');
-      return [`📉 *Curva negativa — ${v.rca} - ${titulo(v.nome)}* (${v.filial} · sup. ${sn(v.supervisor, v.supCod)})`, `Carteira do mês: *${cli.size} clientes* · já compraram: *${cli.size - nao.length}* · *ainda não compraram: ${nao.length}*`, '',
-        ...nao.slice(0, 40).map((x) => `• ${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} (#${x.c.id_cliente}) — última compra ${x.u ? x.u.slice(8, 10) + '/' + x.u.slice(5, 7) + ' (' + dias(x.u) + ')' : 'nunca'}`),
-        nao.length > 40 ? `… e mais ${nao.length - 40}` : '', '', SUGESTAO + (nao.length ? `começar pelos parados há mais tempo: ${titulo(nao[0].c.nome_cliente || '')}.` : 'carteira inteira já comprou no mês.')].filter((x) => x !== '').join('\n');
+      // 27/10/2026: a data_ultima_compra do roteiro vem com valor-padrao do CEVEN (01/01/1900, 05/12/2025) -> "46.320 dias". Agora: comprou no mes = vendas item
+      // a item (ate ontem) + positivado no roteiro do mes; ultima compra real = historico do +MIX (60 dias antes do mes); formato limpo Cliente · Ultima compra · Dias.
+      const mes = hojeSP().slice(0, 7), cli = new Map();
+      const { vendasEscopo } = await import('./respostas/vendas.js');
+      const VM = await vendasEscopo(B, { filiais: [v.filial], rca: v.rca, vend: [v] }).catch(() => null);
+      const compraram = new Set(((VM && VM.linhas) || []).filter((l) => String(l.r) === String(v.rca)).map((l) => String(l.c)));
+      let H = {}; try { H = JSON.parse(await B.raw(`public/mix_hist/${v.filial}.json`) || '{}').c || {}; } catch (e) { H = {}; }
+      const ultH = (cnpj) => { const x = H[String(cnpj || '').replace(/\D/g, '')]; if (!x) return null; const m2 = String(x).split(',').map((p) => p.split(':')[1]).filter(Boolean).sort().pop(); return m2 ? `20${m2.slice(0, 2)}-${m2.slice(2, 4)}-${m2.slice(4, 6)}` : null; };
+      for (const c of v.roteiroMes) { const k = String(c.id_cliente); const x = cli.get(k) || { c, comprou: false }; if (/POSITIVADO|EFETIVADO/.test(String(c.status || ''))) x.comprou = true; cli.set(k, x); }
+      const nao = [...cli.entries()].filter(([k, x]) => !x.comprou && !compraram.has(k)).map(([k, x]) => { const u = ultH(x.c.cnpj); return { c: x.c, u, d: u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) : null }; }).sort((a, b) => (a.d ?? 999) - (b.d ?? 999));
+      const n = /VER MAIS|LISTA COMPLETA|TODOS|COMPLETA/.test(t) ? 80 : 25;
+      return [`📉 *Curva negativa — ${v.rca} - ${titulo(v.nome)}* (${v.filial})`, `Carteira do mês: *${cli.size} clientes* · já compraram: *${cli.size - nao.length}* · *ainda não compraram: ${nao.length}*`, '',
+        ...(nao.length ? ['_Cliente · Última compra · Dias sem compra_'] : []),
+        ...nao.slice(0, n).map((x) => `${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} · ${x.u ? x.u.slice(8, 10) + '/' + x.u.slice(5, 7) + ' · ' + x.d + ' dias' : '— · +60 dias'}`),
+        nao.length > n ? `… e mais ${nao.length - n} (peça "ver mais")` : '', '', SUGESTAO + (nao.length ? 'começar por quem comprou há menos tempo: é mais fácil de recuperar.' : 'carteira inteira já comprou no mês.')].filter((x) => x !== '').join('\n');
     }
     if (m.plan == null) return `${v.rca} - ${titulo(v.nome)} (${v.filial}): sem a produtividade do mês na base agora.`;
     const semVenda = m.real != null && m.pedRota != null ? Math.max(0, m.real - m.pedRota) : null;
