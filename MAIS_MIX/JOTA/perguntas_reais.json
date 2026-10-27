@@ -1543,5 +1543,57 @@
   "nao": [
    "FALTA:"
   ]
+ },
+ {
+  "id": "tamara-clientes-hoje",
+  "perfil": {
+   "nome": "VITORIO",
+   "papel": "diretoria",
+   "filial": null,
+   "supervisor": null
+  },
+  "pergunta": "clientes tamara tcv",
+  "deve": [
+   "ROTA DE HOJE",
+   "POSITIVACAO .CEVEN, FATURADO.",
+   "COMPRA NO MES"
+  ],
+  "nao": [
+   "FALTA:"
+  ]
+ },
+ {
+  "id": "tamara-clientes-ontem",
+  "perfil": {
+   "nome": "VITORIO",
+   "papel": "diretoria",
+   "filial": null,
+   "supervisor": null
+  },
+  "pergunta": "clientes tamara tcv ontem?",
+  "deve": [
+   "ROTA DE dd/dd",
+   "COMPRARAM",
+   "RESULTADO DO DIA"
+  ],
+  "nao": []
+ },
+ {
+  "id": "tamara-clientes-acumulado",
+  "perfil": {
+   "nome": "VITORIO",
+   "papel": "diretoria",
+   "filial": null,
+   "supervisor": null
+  },
+  "pergunta": "clientes tamara tcv acumulado",
+  "deve": [
+   "CLIENTES NO MES",
+   "JA COMPRARAM",
+   "AINDA NAO COMPRARAM"
+  ],
+  "nao": [
+   "FALTA:"
+  ]
  }
 ]
