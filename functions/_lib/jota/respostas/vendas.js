@@ -10,7 +10,7 @@ import { extrasTempo } from './metas_industria.js';
 // ---------- VENDAS ITEM A ITEM (public/vendas_mes/<FIL>.json, gerado toda noite pelo +MIX com o banco do Data Lake) ----------
 // Reuniao de 5 h (25/10/2026): produto x cliente x vendedor x dia, industria, preco medio, top produtos, marca propria. Dado ate ONTEM (nunca hoje).
 export const SEM_VENDAS = '📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta filial; tente depois das 06h._';
-export const PARADAS = new Set(['SEM', 'NAO', 'DESSES', 'DESTES', 'DELES', 'ALGUM', 'ALGUNS', 'ROTA', 'TEM', 'ESTAO', 'QUAIS', 'VENDEDORES', 'COMPRARAM', 'COMPRAVA', 'COMPRAVAM', 'PAROU', 'PARARAM', 'DEIXOU', 'DEIXARAM', 'COMPRAR', 'RECUPERACAO', 'LISTA', 'COMO', 'ESTA', 'TA', 'ESTAO', 'VAI', 'ANDA', 'NOSSA', 'NOSSO', 'MINHA', 'TEM', 'TEMOS', 'QUAL', 'QUAIS', 'QUAL', 'QUEM', 'OS', 'AS', 'DO', 'DA', 'DE', 'DOS', 'DAS', 'NO', 'NA', 'NOS', 'EM', 'QUE', 'MAIS', 'COMPROU', 'COMPRARAM', 'COMPRA', 'COMPRAM', 'COMPRADO', 'CLIENTES', 'CLIENTE', 'TOP', 'MES', 'ONTEM', 'HOJE', 'SEMANA', 'ESSA', 'ESSE', 'ESTE', 'ESTA', 'VENDEDORA', 'VENDEDOR', 'PRODUTO', 'PRODUTOS', 'POSITIVACAO', 'QUANTOS', 'QUANTO', 'PRECO', 'MEDIO', 'SAIU', 'MEDIA', 'VENDE', 'VENDEU', 'VENDERAM', 'PELO', 'PELA', 'POR', 'PARA', 'PRA', 'COM', 'UM', 'UMA', 'MEU', 'MINHA', 'JOTA', 'FAVOR', 'PICO', 'ULTIMA', 'ULTIMO', 'LOJA', 'NUMERICA', 'PDVS', 'PDV', 'FILIAL', 'SUPERVISOR', 'EQUIPE', 'CARTEIRA', 'ITEM', 'ITENS', 'LISTA', 'SKU', 'FOCO', 'DIA', 'DIAS', 'SEMANAL', 'SEMANAIS', 'MENSAL', 'MENSAIS', 'VENDAS', 'VENDA', 'MELHOR', 'ESPECIFICO', 'ALGUM', 'ALGUMA', 'SEGUNDA', 'TERCA', 'QUARTA', 'QUINTA', 'SEXTA', 'SABADO', 'DOMINGO', 'VENDER', 'OFERECER', 'OFERTA', 'SUGERIR', 'PRO', 'PARA', 'ELE', 'ELA', 'SAI', 'SAEM', 'EVOLUCAO', 'POSITIVANDO', 'BEM', 'LEVAR', 'ITENS', 'OBJETIVO', 'OBJETIVOS', 'ESTAO', 'COMPRANDO', 'APOS', 'MEUS', 'MINHAS', 'NOSSOS', 'NOSSAS', 'COMPRARAM']);
+export const PARADAS = new Set(['NESTE', 'DESTE', 'NESSE', 'DESSE', 'NAQUELE', 'DAQUELE', 'SEM', 'NAO', 'DESSES', 'DESTES', 'DELES', 'ALGUM', 'ALGUNS', 'ROTA', 'TEM', 'ESTAO', 'QUAIS', 'VENDEDORES', 'COMPRARAM', 'COMPRAVA', 'COMPRAVAM', 'PAROU', 'PARARAM', 'DEIXOU', 'DEIXARAM', 'COMPRAR', 'RECUPERACAO', 'LISTA', 'COMO', 'ESTA', 'TA', 'ESTAO', 'VAI', 'ANDA', 'NOSSA', 'NOSSO', 'MINHA', 'TEM', 'TEMOS', 'QUAL', 'QUAIS', 'QUAL', 'QUEM', 'OS', 'AS', 'DO', 'DA', 'DE', 'DOS', 'DAS', 'NO', 'NA', 'NOS', 'EM', 'QUE', 'MAIS', 'COMPROU', 'COMPRARAM', 'COMPRA', 'COMPRAM', 'COMPRADO', 'CLIENTES', 'CLIENTE', 'TOP', 'MES', 'ONTEM', 'HOJE', 'SEMANA', 'ESSA', 'ESSE', 'ESTE', 'ESTA', 'VENDEDORA', 'VENDEDOR', 'PRODUTO', 'PRODUTOS', 'POSITIVACAO', 'QUANTOS', 'QUANTO', 'PRECO', 'MEDIO', 'SAIU', 'MEDIA', 'VENDE', 'VENDEU', 'VENDERAM', 'PELO', 'PELA', 'POR', 'PARA', 'PRA', 'COM', 'UM', 'UMA', 'MEU', 'MINHA', 'JOTA', 'FAVOR', 'PICO', 'ULTIMA', 'ULTIMO', 'LOJA', 'NUMERICA', 'PDVS', 'PDV', 'FILIAL', 'SUPERVISOR', 'EQUIPE', 'CARTEIRA', 'ITEM', 'ITENS', 'LISTA', 'SKU', 'FOCO', 'DIA', 'DIAS', 'SEMANAL', 'SEMANAIS', 'MENSAL', 'MENSAIS', 'VENDAS', 'VENDA', 'MELHOR', 'ESPECIFICO', 'ALGUM', 'ALGUMA', 'SEGUNDA', 'TERCA', 'QUARTA', 'QUINTA', 'SEXTA', 'SABADO', 'DOMINGO', 'VENDER', 'OFERECER', 'OFERTA', 'SUGERIR', 'PRO', 'PARA', 'ELE', 'ELA', 'SAI', 'SAEM', 'EVOLUCAO', 'POSITIVANDO', 'BEM', 'LEVAR', 'ITENS', 'OBJETIVO', 'OBJETIVOS', 'ESTAO', 'COMPRANDO', 'APOS', 'MEUS', 'MINHAS', 'NOSSOS', 'NOSSAS', 'COMPRARAM']);
 export async function vendasEscopo(B, E) {
   const arqs = await Promise.all(E.filiais.map((f) => B.raw(`public/vendas_mes/${f}.json`).then((t) => { try { return t ? { f, ...JSON.parse(t) } : null; } catch (e) { return null; } })));
   const ok = arqs.filter(Boolean); if (!ok.length) return null;
@@ -135,11 +135,49 @@ export async function respRecuperacao(B, E, t) {
 }
 export async function respCliente(B, E, t) {
   const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
-  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !FILIAIS.includes(w));
+  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !FILIAIS.includes(w) && !GENERICAS.test(w));
   const num = (t.match(/#?(\d{3,7})\b/) || [])[1];
-  let melhor = null, ms = 0;
-  for (const [k, nome] of Object.entries(V.cli)) { const n = sem(nome); const s = (num && k.endsWith('|' + num) ? 10 : 0) + toks.filter((w) => n.includes(w)).length; if (s > ms) { ms = s; melhor = k; } }
-  if (!melhor || ms < Math.min(2, toks.length)) return null;
+  if (num) {
+    const k = Object.keys(V.cli).find((x) => x.endsWith('|' + num));
+    if (k) return clienteDetalhe(E, V, k);
+  }
+  if (!toks.length) return null;
+  // procura clientes que contenham as palavras da pergunta
+  const hits = Object.entries(V.cli).map(([k, nome]) => {
+    const n = sem(nome);
+    const s = toks.filter((w) => n.includes(w)).length;
+    return { k, nome, s };
+  }).filter((x) => x.s > 0).sort((a, b) => b.s - a.s);
+
+  if (!hits.length) return null;
+  const maxS = hits[0].s;
+  const topHits = hits.filter((x) => x.s === maxS);
+
+  // Se são várias lojas da mesma rede (ex.: Shibata, Muffato com múltiplas lojas):
+  if (topHits.length > 1 && topHits.length <= 30) {
+    const ids = new Set(topHits.map((x) => x.k));
+    const L = V.linhas.filter((l) => ids.has(l.f + '|' + l.c));
+    const tot = L.reduce((a, l) => a + l.v, 0);
+    const porLoja = new Map();
+    for (const h of topHits) porLoja.set(h.k, { nome: h.nome, v: 0 });
+    for (const l of L) { const x = porLoja.get(l.f + '|' + l.c); if (x) x.v += l.v; }
+    const termo = titulo(toks.join(' '));
+    const Lj = [...porLoja.entries()].sort((a, b) => b[1].v - a[1].v);
+    return [
+      `🏪 *Rede / Lojas ${termo}* (${E.nome})`,
+      `Total no mês: *${R$(tot)}* em *${Lj.length} loja(s)*`,
+      '',
+      '*Por loja (mês):*',
+      ...Lj.map(([k, x]) => `• #${k.split('|')[1]} - ${titulo(x.nome)}: *${R$(x.v)}*`),
+      '',
+      SUGESTAO + 'peça "compra do cliente #' + (Lj[0] ? Lj[0][0].split('|')[1] : 'código') + '" para ver os produtos comprados por uma loja específica.'
+    ].join('\n');
+  }
+
+  return clienteDetalhe(E, V, topHits[0].k);
+}
+
+function clienteDetalhe(E, V, melhor) {
   const L = V.linhas.filter((l) => l.f + '|' + l.c === melhor);
   const tot = L.reduce((a, l) => a + l.v, 0), dias = [...new Set(L.map((l) => l.d))].sort();
   const PR = [...somaPor(L, (l) => l.p)].sort((a, b) => b[1].v - a[1].v);

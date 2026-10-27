@@ -348,10 +348,13 @@ export async function respDiaEquipe(B, E) {
   }
   L.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
   const tot = V.reduce((a, v) => ({ f: a.f + v.visF, p: a.p + v.visP, d: a.d + v.dig, z: a.z + (v.ped ? 0 : 1) }), { f: 0, p: 0, d: 0, z: 0 });
-  const as = outros.filter((v) => v.dig > 0 || v.ped > 0 || v.meta > 0);
-  return [`📋 *Dia da ${E.nome}* (${hojeSP().slice(8, 10)}/${hojeSP().slice(5, 7)})`, `Rota: *${tot.f} de ${tot.p}* visitas · digitado *${R$(tot.d)}* · *${tot.z}* vendedor(es) com rota e sem pedido`,
+  const totGeral = E.vend.reduce((s, v) => s + (v.dig || 0), 0);
+  const as = outros.filter((v) => v.dig > 0 || v.ped > 0 || v.meta > 0).sort((a, b) => b.dig - a.dig);
+  const totAS = outros.reduce((s, v) => s + (v.dig || 0), 0);
+  const digTxt = outros.length && totAS > 0 ? `digitado *${R$(totGeral)}* (varejo ${R$(tot.d)} · AS ${R$(totAS)})` : `digitado *${R$(totGeral)}*`;
+  return [`📋 *Dia da ${E.nome}* (${hojeSP().slice(8, 10)}/${hojeSP().slice(5, 7)})`, `Rota do varejo: *${tot.f} de ${tot.p}* visitas · ${digTxt} · *${tot.z}* vendedor(es) com rota e sem pedido`,
     '_⚠️ sem pedido · 🟡 rota em andamento · ✅ rota feita_', '', ...L.map((x) => x[2]),
-    ...(as.length ? ['', `*Sem rota hoje (AS e outros):* ` + as.map((v) => `${vn(v)} ${R$(v.dig)}`).join(' · ')] : []),
+    ...(as.length ? ['', `*AS e outros canais:* ` + as.map((v) => `${vn(v)} ${R$(v.dig)}`).join(' · ')] : []),
     '', SUGESTAO + (tot.z ? `comece pelos ⚠️ (rota e sem pedido). ` : '') + 'Para abrir um vendedor, mande o *nome* ou o *código* (ex.: "clientes 352"); para o *+MIX* da rota dele, depois mande "+mix"; para receber *cada vendedor em uma mensagem*, mande "um por um".'].join('\n');
 }
 
