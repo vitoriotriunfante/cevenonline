@@ -230,8 +230,14 @@ export async function respRecorrenciaClientes(B, E, v, t = '') {
   };
   // "SO QUERO SABER QUANTOS clientes com tag recorrencia" (Ivayr/TCA, 27/10/2026): menos e mais — so o numero
   if (!v && /QUANTOS/.test(t) && !/CADA|POR VENDEDOR|QUAIS|LISTA|QUEM/.test(t)) {
-    let tag = 0, comp = 0, hj = 0; for (const x of E.vend) { const r = um(x); tag += r.mesC.size; comp += r.comprou; hj += r.hoje.length; }
-    return `🔄 *${E.nome}*: *${tag} clientes* com a tag RECORRÊNCIA no mês · já compraram *${comp}* · meta da Premiação: ${Math.ceil(tag * 0.8)} (80%) · hoje na rota: ${hj}.\n_Peça "recorrência por vendedor" para abrir._`;
+    // curta, mas util (27/10/2026, Vitorio: "resposta bem sem vergonha"): numero + quanto falta + quem esta na rota de hoje + quem tem mais para recuperar + acao
+    let tag = 0, comp = 0; const hoje = [], porV = [];
+    for (const x of E.vend) { const r = um(x); tag += r.mesC.size; comp += r.comprou; for (const c of r.hoje) if (!(r.mesC.get(String(c.id_cliente)) || {}).comp) hoje.push(`${titulo(c.nome_cliente || c.razao_social || 'cliente')} (${x.rca})`); if (r.mesC.size) porV.push([r.mesC.size - r.comprou, `${vn(x)}: ${r.mesC.size - r.comprou}`]); }
+    const meta = Math.ceil(tag * 0.8);
+    return [`🔄 *Recorrência — ${E.nome}*`, `*${tag} clientes* com a tag no mês · já compraram *${comp}* · faltam *${Math.max(0, meta - comp)}* para a meta da Premiação (${meta} = 80%)`,
+      hoje.length ? `📍 *Na rota de hoje e ainda sem compra (${hoje.length}):* ${hoje.join(' · ')}` : '📍 Nenhum cliente de recorrência sem compra na rota de hoje.',
+      `👤 *Mais para recuperar:* ` + porV.sort((a, b) => b[0] - a[0]).slice(0, 4).map((x) => x[1]).join(' · '),
+      '', SUGESTAO + (hoje.length ? `garantir hoje os ${hoje.length} da rota; ` : '') + 'peça "recorrência do vendedor <nome>" para a lista de clientes dele.'].join('\n');
   }
   if (v) {
     const r = um(v);
