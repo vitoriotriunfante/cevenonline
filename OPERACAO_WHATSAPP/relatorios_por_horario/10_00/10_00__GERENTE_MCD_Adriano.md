@@ -1,13 +1,40 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 MCD — ADRIANO • 26/10/2026
+📍 MCD — ADRIANO • 27/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/10/2026 a 26/10/2026)*
-💰 R$ 13.104,07 • 79 PDVs • ✂️ R$ 575,50 (118 un) • 🚛 R$ 328,56 _(filial toda)_
-👤 CLEOMAR DINIZ BARBOSA — R$ 10.130,54 (52 PDVs)
-👤 CARLOS ALAGUEZ DA SILVA — R$ 2.730,72 (21 PDVs)
+*ACUMULADO DO MÊS (01/10/2026 a 27/10/2026)*
+💰 R$ 14.261,14 • 87 PDVs • ✂️ R$ 566,60 (118 un) • 🚛 R$ 76,56
+👤 CLEOMAR DINIZ BARBOSA — R$ 11.190,89 (59 PDVs)
+👤 CARLOS ALAGUEZ DA SILVA — R$ 2.827,44 (22 PDVs)
 👤 ALYFER PEREIRA MENDES — R$ 242,81 (6 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (25/10/2026)*
-💰 R$ 0,00 • 0 PDVs positivados
+*COMO FECHOU ONTEM (26/10/2026)*
+💰 R$ 822,75 • 8 PDVs positivados
+👤 CARLOS ALAGUEZ DA SILVA — R$ 96,72 (1 PDVs)
+👤 CLEOMAR DINIZ BARBOSA — R$ 726,03 (7 PDVs)
+
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (16)*
+_(fez pedido nesse dia, mas nenhum item era marca própria)_
+
+👤 *CLEOMAR DINIZ BARBOSA*
+  • VALQUIRIA DE FATIMA LEITE GONCALVES — 12d sem vender MP
+  • EVERTON GONCALVES — 6d sem vender MP
+  • TARCISIO GUILHERME BARBOSA — 6d sem vender MP
+  • ROBERTO DE SENNA PEREIRA — 5d sem vender MP
+  • KLEYTON CEZAR PINTO JULIATO — 4d sem vender MP
+
+👤 *ALYFER PEREIRA MENDES*
+  • ALAN AFFONSO ALMIRAO — nunca vendeu MP
+  • JESUS DA SILVA SOUZA — nunca vendeu MP
+  • LIDIA FRANCA BLANCO — nunca vendeu MP
+  • GABRIELA VIEIRA LOPES — 19d sem vender MP
+  • CINTIA RENATA DA CRUZ — 4d sem vender MP
+
+👤 *CARLOS ALAGUEZ DA SILVA*
+  • ADILSON DE SOUZA NUNES JUNIOR — nunca vendeu MP
+  • SAMIRA BARCELOS ALBRES — nunca vendeu MP
+  • IGOR ROBERTO JESUS DA SILVA — 11d sem vender MP
+  • LUAN FELIPE DE SOUZA MEDEIROS — 6d sem vender MP
+  • LUIS FERNANDO CASTILHO ALVES — 4d sem vender MP
+  • RODRIGO ALBUQUERQUE DE SOUZA — -20d sem vender MP

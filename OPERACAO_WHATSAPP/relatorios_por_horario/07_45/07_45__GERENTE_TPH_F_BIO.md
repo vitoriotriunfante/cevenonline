@@ -1,54 +1,52 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 segunda-feira, 26/10/2026
+📅 terça-feira, 27/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 24 • Visitas: 502 (média 20,9/vendedor)
-Sem compra +30d: 235 (46,8%) • Recorrência: 67 (13,3%)
-Oportunidades CNAE 4789: +2.008 PDVs
+👥 Vendedores: 24 • Visitas: 461 (média 19,2/vendedor)
+Sem compra +30d: 181 (39,3%) • Recorrência: 44 (9,5%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPH — FÁBIO* • 26/10/2026
+📍 *TPH — FÁBIO* • 27/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 234  •  🟡 Preventivo: 0
+🔴 Última Chance: 181  •  🟡 Preventivo: 0
 
-👤 *CRISTIAN EDUARDO RAFFAELLI* (14 em risco)
+👤 *EDERSON SUONSKI* (31 em risco)
+  🔴 POSTO ALPINO 3 (111) — 05/09
+  🔴 MERCADO CATARINA (113) — 05/09
+  🔴 A. DOUVE DA SILVA (113) — 31/07
+  🔴 CASA DE CARNES 2 IRMAOS (113) — 18/09
+  🔴 NECKEL CONVENIENCIA (113) — 05/12
+  _+26 outros_
+
+👤 *CRISTIAN EDUARDO RAFFAELLI* (5 em risco)
+  🔴 FARMACIA NISSEI (90) — 05/12
+  🔴 DROGARIAS NISSEI (90) — 05/12
   🔴 FARMACIA NISSEI (90) — 05/12
   🔴 FARMACIA NISSEI (90) — 05/12
   🔴 FARMACIA NISSEI (90) — 05/12
-  🔴 FARMACIA NISSEI (90) — 05/12
-  🔴 FARMACIA NISSEI (90) — 05/12
-  _+9 outros_
 
-👤 *EDERSON SUONSKI* (68 em risco)
-  🔴 MERCADINHO DA LENA (69) — 31/08
-  🔴 ESPACO DA GULA (69) — 30/06
-  🔴 SS MACIEL MERCEARIA (111) — 11/07
-  🔴 MERCEARIA ROSSINI (111) — 30/07
-  🔴 MERCADINHO DAMI (111) — 16/09
-  _+63 outros_
+👤 *EDI CARLOS MEIRA* (16 em risco)
+  🔴 MERCADO ISSAC (115) — 23/09
+  🔴 MERCADO ALVES (115) — 01/01
+  🔴 POSTO CONTORNO (115) — 04/09
+  🔴 MERCADO MONTE BELO (115) — 26/09
+  🔴 O CELEIRO (116) — 18/09
+  _+11 outros_
 
-👤 *EDI CARLOS MEIRA* (24 em risco)
-  🔴 SUPERMERCADO CAMBARA (114) — 12/09
-  🔴 TIO MUCUFA (114) — 05/09
-  🔴 CAROLITA (114) — 04/09
-  🔴 POSTO NEGO (114) — 18/09
-  🔴 MERCADO LEVE MAIS (114) — 18/09
-  _+19 outros_
+👤 *PRISCILA A D NASCIMENTO STRAPASSON* (59 em risco)
+  🔴 AUTO POSTO MOCELIN (65) — 05/12
+  🔴 AUTO POSTO LOGUSI (65) — 09/07
+  🔴 RB 4 CRISTO REI COMERCIO DE COMBUSTIVEIS (65) — 04/09
+  🔴 POSTO JLS (65) — 02/07
+  🔴 POSTO ONYX (65) — 10/07
+  _+54 outros_
 
-👤 *PRISCILA A D NASCIMENTO STRAPASSON* (81 em risco)
-  🔴 AUTO POSTO CONQUISTA II (65) — 08/08
-  🔴 AUTO POSTO JARDIM ALIANCA LTDA (65) — 30/06
-  🔴 COMERCIO DE COMBUSTIVEIS RUBI LTDA (65) — 21/09
-  🔴 POSTO PALOMA (65) — 05/12
-  🔴 POSTO CONQUISTA (65) — 16/09
-  _+76 outros_
-
-👤 *RODRIGO BERTONI* (47 em risco)
-  🔴 UP FIT FOOD (47) — 31/07
-  🔴 QUEIJOS E VINHOS (47) — 01/07
-  🔴 THAIS MILENA PORTES DE CASTILHO (47) — 25/09
-  🔴 COMERCIAL BAGGIO LTDA (47) — 05/12
-  🔴 PET EXPRESS (47) — 29/08
-  _+42 outros_
+👤 *Não informado* (70 em risco)
+  🔴 LANCHONETE DOIS CORACOES (47) — 08/08
+  🔴 CRIADOURO ONCA PINTADA (47) — 30/06
+  🔴 VICENTE HORNUNG RACOES (47) — 24/09
+  🔴 GREICY LOHANA ROSSONI DE LIMA (47) — 23/09
+  🔴 K ALIMENTOS INDUSTRIA DE LATICINIOS LTDA (47) — 05/12
+  _+65 outros_
