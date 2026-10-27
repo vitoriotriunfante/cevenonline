@@ -230,14 +230,30 @@ export async function respRecorrenciaClientes(B, E, v, t = '') {
   };
   // "SO QUERO SABER QUANTOS clientes com tag recorrencia" (Ivayr/TCA, 27/10/2026): menos e mais — so o numero
   if (!v && /QUANTOS/.test(t) && !/CADA|POR VENDEDOR|QUAIS|LISTA|QUEM/.test(t)) {
-    // curta, mas util (27/10/2026, Vitorio: "resposta bem sem vergonha"): numero + quanto falta + quem esta na rota de hoje + quem tem mais para recuperar + acao
+    // completa e acionavel para gestao (27/10/2026, Vitorio: "abrir por vendedor onde tem recorrencia e nome do vendedor para ele cobrar a equipe"):
+    // numero + quanto falta para premiacao + quem esta na rota hoje (cliente e vendedor) + abertura por vendedor da equipe + acao
     let tag = 0, comp = 0; const hoje = [], porV = [];
-    for (const x of E.vend) { const r = um(x); tag += r.mesC.size; comp += r.comprou; for (const c of r.hoje) if (!(r.mesC.get(String(c.id_cliente)) || {}).comp) hoje.push(`${titulo(c.nome_cliente || c.razao_social || 'cliente')} (${x.rca})`); if (r.mesC.size) porV.push([r.mesC.size - r.comprou, `${vn(x)}: ${r.mesC.size - r.comprou}`]); }
+    for (const x of E.vend) {
+      const r = um(x); tag += r.mesC.size; comp += r.comprou;
+      for (const c of r.hoje) if (!(r.mesC.get(String(c.id_cliente)) || {}).comp) {
+        hoje.push(`• ${titulo(c.nome_cliente || c.razao_social || 'cliente')} — *${vn(x)}*`);
+      }
+      if (r.mesC.size) {
+        porV.push([r.mesC.size - r.comprou, `• ${vn(x)}: mês *${r.comprou} de ${r.mesC.size}* (meta ${r.meta})` + (r.hoje.length ? ` · hoje *${r.hoje.length}* na rota` : '')]);
+      }
+    }
     const meta = Math.ceil(tag * 0.8);
-    return [`🔄 *Recorrência — ${E.nome}*`, `*${tag} clientes* com a tag no mês · já compraram *${comp}* · faltam *${Math.max(0, meta - comp)}* para a meta da Premiação (${meta} = 80%)`,
-      hoje.length ? `📍 *Na rota de hoje e ainda sem compra (${hoje.length}):* ${hoje.join(' · ')}` : '📍 Nenhum cliente de recorrência sem compra na rota de hoje.',
-      `👤 *Mais para recuperar:* ` + porV.sort((a, b) => b[0] - a[0]).slice(0, 4).map((x) => x[1]).join(' · '),
-      '', SUGESTAO + (hoje.length ? `garantir hoje os ${hoje.length} da rota; ` : '') + 'peça "recorrência do vendedor <nome>" para a lista de clientes dele.'].join('\n');
+    return [
+      `🔄 *Recorrência — ${E.nome}*`,
+      `*${tag} clientes* com a tag RECORRÊNCIA no mês · já compraram *${comp}* · faltam *${Math.max(0, meta - comp)}* para a meta da Premiação (${meta} = 80%)`,
+      '',
+      hoje.length ? `📍 *Na rota de hoje e ainda sem compra (${hoje.length}):*\n` + hoje.join('\n') : '📍 Nenhum cliente de recorrência sem compra na rota de hoje.',
+      '',
+      `👥 *Recorrência por vendedor:*`,
+      ...porV.sort((a, b) => b[0] - a[0]).map((x) => x[1]),
+      '',
+      SUGESTAO + (hoje.length ? `cobrar hoje os ${hoje.length} clientes da rota com os vendedores acima; ` : '') + 'peça "recorrência do vendedor <nome>" para ver a lista completa de clientes dele.'
+    ].join('\n');
   }
   if (v) {
     const r = um(v);
