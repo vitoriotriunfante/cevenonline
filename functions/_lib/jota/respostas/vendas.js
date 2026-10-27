@@ -10,7 +10,7 @@ import { extrasTempo } from './metas_industria.js';
 // ---------- VENDAS ITEM A ITEM (public/vendas_mes/<FIL>.json, gerado toda noite pelo +MIX com o banco do Data Lake) ----------
 // Reuniao de 5 h (25/10/2026): produto x cliente x vendedor x dia, industria, preco medio, top produtos, marca propria. Dado ate ONTEM (nunca hoje).
 export const SEM_VENDAS = '📦 _As vendas item a item chegam pelo Data Lake da madrugada (arquivo public/vendas_mes). Ainda não há arquivo para esta filial; tente depois das 06h._';
-export const PARADAS = new Set(['NAO', 'DESSES', 'DESTES', 'DELES', 'ALGUM', 'ALGUNS', 'ROTA', 'TEM', 'ESTAO', 'QUAIS', 'VENDEDORES', 'COMPRARAM', 'COMPRAVA', 'COMPRAVAM', 'PAROU', 'PARARAM', 'DEIXOU', 'DEIXARAM', 'COMPRAR', 'RECUPERACAO', 'LISTA', 'COMO', 'ESTA', 'TA', 'ESTAO', 'VAI', 'ANDA', 'NOSSA', 'NOSSO', 'MINHA', 'TEM', 'TEMOS', 'QUAL', 'QUAIS', 'QUAL', 'QUEM', 'OS', 'AS', 'DO', 'DA', 'DE', 'DOS', 'DAS', 'NO', 'NA', 'NOS', 'EM', 'QUE', 'MAIS', 'COMPROU', 'COMPRARAM', 'COMPRA', 'COMPRAM', 'COMPRADO', 'CLIENTES', 'CLIENTE', 'TOP', 'MES', 'ONTEM', 'HOJE', 'SEMANA', 'ESSA', 'ESSE', 'ESTE', 'ESTA', 'VENDEDORA', 'VENDEDOR', 'PRODUTO', 'PRODUTOS', 'POSITIVACAO', 'QUANTOS', 'QUANTO', 'PRECO', 'MEDIO', 'SAIU', 'MEDIA', 'VENDE', 'VENDEU', 'VENDERAM', 'PELO', 'PELA', 'POR', 'PARA', 'PRA', 'COM', 'UM', 'UMA', 'MEU', 'MINHA', 'JOTA', 'FAVOR', 'PICO', 'ULTIMA', 'ULTIMO', 'LOJA', 'NUMERICA', 'PDVS', 'PDV', 'FILIAL', 'SUPERVISOR', 'EQUIPE', 'CARTEIRA', 'ITEM', 'ITENS', 'LISTA', 'SKU', 'FOCO', 'DIA', 'DIAS', 'SEMANAL', 'SEMANAIS', 'MENSAL', 'MENSAIS', 'VENDAS', 'VENDA', 'MELHOR', 'ESPECIFICO', 'ALGUM', 'ALGUMA', 'SEGUNDA', 'TERCA', 'QUARTA', 'QUINTA', 'SEXTA', 'SABADO', 'DOMINGO', 'VENDER', 'OFERECER', 'OFERTA', 'SUGERIR', 'PRO', 'PARA', 'ELE', 'ELA', 'SAI', 'SAEM', 'EVOLUCAO', 'POSITIVANDO', 'BEM', 'LEVAR', 'ITENS', 'OBJETIVO', 'OBJETIVOS', 'ESTAO', 'COMPRANDO', 'APOS', 'MEUS', 'MINHAS', 'NOSSOS', 'NOSSAS', 'COMPRARAM']);
+export const PARADAS = new Set(['SEM', 'NAO', 'DESSES', 'DESTES', 'DELES', 'ALGUM', 'ALGUNS', 'ROTA', 'TEM', 'ESTAO', 'QUAIS', 'VENDEDORES', 'COMPRARAM', 'COMPRAVA', 'COMPRAVAM', 'PAROU', 'PARARAM', 'DEIXOU', 'DEIXARAM', 'COMPRAR', 'RECUPERACAO', 'LISTA', 'COMO', 'ESTA', 'TA', 'ESTAO', 'VAI', 'ANDA', 'NOSSA', 'NOSSO', 'MINHA', 'TEM', 'TEMOS', 'QUAL', 'QUAIS', 'QUAL', 'QUEM', 'OS', 'AS', 'DO', 'DA', 'DE', 'DOS', 'DAS', 'NO', 'NA', 'NOS', 'EM', 'QUE', 'MAIS', 'COMPROU', 'COMPRARAM', 'COMPRA', 'COMPRAM', 'COMPRADO', 'CLIENTES', 'CLIENTE', 'TOP', 'MES', 'ONTEM', 'HOJE', 'SEMANA', 'ESSA', 'ESSE', 'ESTE', 'ESTA', 'VENDEDORA', 'VENDEDOR', 'PRODUTO', 'PRODUTOS', 'POSITIVACAO', 'QUANTOS', 'QUANTO', 'PRECO', 'MEDIO', 'SAIU', 'MEDIA', 'VENDE', 'VENDEU', 'VENDERAM', 'PELO', 'PELA', 'POR', 'PARA', 'PRA', 'COM', 'UM', 'UMA', 'MEU', 'MINHA', 'JOTA', 'FAVOR', 'PICO', 'ULTIMA', 'ULTIMO', 'LOJA', 'NUMERICA', 'PDVS', 'PDV', 'FILIAL', 'SUPERVISOR', 'EQUIPE', 'CARTEIRA', 'ITEM', 'ITENS', 'LISTA', 'SKU', 'FOCO', 'DIA', 'DIAS', 'SEMANAL', 'SEMANAIS', 'MENSAL', 'MENSAIS', 'VENDAS', 'VENDA', 'MELHOR', 'ESPECIFICO', 'ALGUM', 'ALGUMA', 'SEGUNDA', 'TERCA', 'QUARTA', 'QUINTA', 'SEXTA', 'SABADO', 'DOMINGO', 'VENDER', 'OFERECER', 'OFERTA', 'SUGERIR', 'PRO', 'PARA', 'ELE', 'ELA', 'SAI', 'SAEM', 'EVOLUCAO', 'POSITIVANDO', 'BEM', 'LEVAR', 'ITENS', 'OBJETIVO', 'OBJETIVOS', 'ESTAO', 'COMPRANDO', 'APOS', 'MEUS', 'MINHAS', 'NOSSOS', 'NOSSAS', 'COMPRARAM']);
 export async function vendasEscopo(B, E) {
   const arqs = await Promise.all(E.filiais.map((f) => B.raw(`public/vendas_mes/${f}.json`).then((t) => { try { return t ? { f, ...JSON.parse(t) } : null; } catch (e) { return null; } })));
   const ok = arqs.filter(Boolean); if (!ok.length) return null;
@@ -29,7 +29,7 @@ export function periodoDe(t, V) {
   return { nome: 'no mês (até ' + dIso(ult) + ')', ok: () => true, aviso: '' };
 }
 // PALAVRAS GENERICAS NUNCA IDENTIFICAM INDUSTRIA NEM PRODUTO (26/10/2026: "o Brasil estava com 3 milhoes de devolucao" virou "Heinz Brasil"; "vendemos 45 milhoes" virou "Empresa Brasileira De")
-export const GENERICAS = /^(BRASIL|BRASILEIRA|BRASILEIRO|BRASILEIRAS|EMPRESA|EMPRESAS|INDUSTRIA|INDUSTRIAS|ALIMENTOS|ALIMENTO|COMERCIO|DISTRIBUIDORA|DISTRIBUICAO|PRODUTOS|PRODUTO|GRUPO|LTDA|NACIONAL|CIA|COMPANHIA|DOCES|BEBIDAS|MES|DIA|HOJE|MILHOES|MILHAO|REAIS|VENDA|VENDAS|VENDEMOS|DEVOLUCAO|DEVOLUCOES)$/;
+export const GENERICAS = /^(SEM|NAO|BRASIL|BRASILEIRA|BRASILEIRO|BRASILEIRAS|EMPRESA|EMPRESAS|INDUSTRIA|INDUSTRIAS|ALIMENTOS|ALIMENTO|COMERCIO|DISTRIBUIDORA|DISTRIBUICAO|PRODUTOS|PRODUTO|GRUPO|LTDA|NACIONAL|CIA|COMPANHIA|DOCES|BEBIDAS|MES|DIA|HOJE|MILHOES|MILHAO|REAIS|VENDA|VENDAS|VENDEMOS|DEVOLUCAO|DEVOLUCOES)$/;
 // acha produto(s) pelas palavras da pergunta (ex.: "snickers original" -> todos os SKUs com SNICKERS e ORIGINAL)
 export function achaProdutos(t, V, E) {
   const nomesPessoas = new Set(E.vend.flatMap((v) => sem(v.nome).split(/\s+/)).concat(E.vend.flatMap((v) => sem(v.supervisor).split(/\s+/))));
@@ -121,14 +121,17 @@ export async function respRecuperacao(B, E, t) {
   // citou vendedor (nome ou codigo) -> so a lista dele
   const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2), citado = E.vend.filter((v) => sem(v.nome).split(/\s+/).some((w) => w.length > 3 && toks.includes(w)) || toks.includes(String(v.rca)));
   if (citado.length) { const ks = new Set(citado.map((v) => v.filial + '|' + v.rca)); for (const k of [...porV.keys()]) if (!ks.has(k)) porV.delete(k); }
+  const totalCitado = [...porV.values()].reduce((s, L) => s + L.length, 0);
+  const totalExibir = citado.length ? totalCitado : antes.size;
+  const escopoNome = citado.length === 1 ? vn(citado[0]) : E.nome;
   const G = [...porV].sort((a, b) => b[1].length - a[1].length), out = [], MAX = 20; let n = 0;
   if (citado.length && !G.length) return `🔁 *Recuperação — ${nome}*\n${citado.map(vn).join(', ')}: nenhum cliente parou de comprar ${nome}.`;
   if (!citado.length && G.length > 1) out.push('', '*Por vendedor:* ' + G.map(([kv, L]) => `${vend.get(kv) || 'RCA ' + kv.split('|')[1]}: ${L.length}`).join(' · '));
-  for (const [kv, L] of G) { out.push('', `*${vend.get(kv) || 'RCA ' + kv.split('|')[1]}* — ${L.length} cliente(s)`);
+  for (const [kv, L] of G) { if (!citado.length || G.length > 1) out.push('', `*${vend.get(kv) || 'RCA ' + kv.split('|')[1]}* — ${L.length} cliente(s)`);
     for (const [k, x] of L.sort((a, b) => b[1].v - a[1].v)) { if (n++ >= MAX) break; out.push(`• ${titulo((V.cli[k] || A.cli[k] || 'Cliente #' + k.split('|')[1]))} (#${k.split('|')[1]}) · ${R$(x.v)} no mês passado`); }
-    if (n >= MAX) { out.push(`… e mais ${antes.size - MAX} cliente(s). Peça "quem comprava ${nome} e parou" + o nome do vendedor para ver a lista dele.`); break; } }
-  return [`🔁 *Recuperação — ${nome}* (${E.nome})`, `*${N(antes.size)} clientes* compraram ${nome} no mês passado e *ainda não compraram este mês*` + (naRotaHoje ? ' — e *estão na rota de hoje*.' : '.'), ...out,
-    '', SUGESTAO + 'distribuir a lista para os vendedores visitarem esta semana.'].join('\n');
+    if (n >= MAX) { out.push(`… e mais ${totalExibir - MAX} cliente(s).` + (!citado.length ? ` Peça "quem comprava ${nome} e parou" + o nome do vendedor para ver a lista dele.` : '')); break; } }
+  return [`🔁 *Recuperação — ${nome}* (${escopoNome})`, `*${N(totalExibir)} clientes*` + (citado.length ? ` de *${escopoNome}*` : '') + ` compraram ${nome} no mês passado e *ainda não compraram este mês*` + (naRotaHoje ? ' — e *estão na rota de hoje*.' : '.'), ...out,
+    '', SUGESTAO + (citado.length ? `conversar com ${vn(citado[0])} para recuperar esses clientes esta semana.` : 'distribuir a lista para os vendedores visitarem esta semana.')].join('\n');
 }
 export async function respCliente(B, E, t) {
   const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;

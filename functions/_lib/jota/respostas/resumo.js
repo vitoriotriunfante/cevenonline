@@ -127,15 +127,19 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
     let rotaSem = []; try { const { semCompraNaRota } = await import('./rota.js'); rotaSem = (await semCompraNaRota(B, v)).sem; } catch (e) { rotaSem = []; }
     const naRota = new Set(rotaSem.map((x) => String(x.c.id_cliente)));
     const visit = lista.filter((c) => !naRota.has(String(c.k)));
-    const n = opt.tudo ? 60 : 5;
+    if (opt.tudo) {
+      if (!rotaSem.length && !visit.length) return `${vn(v)}: nenhum cliente visitado e sem compra no mês.`;
+      const B0 = [`📌 *Faltam ${faltaPos} positivações* — ${vn(v)}`];
+      if (rotaSem.length) B0.push('', `*Na rota de hoje e sem compra no mês (${rotaSem.length}):*`, '_Cliente · Dias sem compra_', ...rotaSem.slice(0, 40).map((x) => `${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} · ${semTxt(x.dias)}`));
+      if (visit.length) B0.push('', `*Já visitados no mês e sem compra (${visit.length}):*`, '_Cliente · Última visita · Dias sem compra_', ...visit.slice(0, 40).map((c) => `${titulo(c.nome)} · ${dd(c.vis)} · ${semTxt(c.sem)}`));
+      return B0.join('\n');
+    }
     if (rotaSem.length || visit.length) {
-      const B0 = [`📌 *Faltam ${faltaPos} positivações*` + (opt.tudo ? ` — ${vn(v)}` : '')];
-      if (rotaSem.length) B0.push('', `*Na rota de hoje e sem compra no mês (${Math.min(n, rotaSem.length)} de ${rotaSem.length}):*`, '_Cliente · Dias sem compra_', ...rotaSem.slice(0, n).map((x) => `${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} · ${semTxt(x.dias)}`));
-      if (visit.length) B0.push('', `*Já visitados no mês e sem compra (${Math.min(n, visit.length)} de ${visit.length}):*`, '_Cliente · Última visita · Dias sem compra_', ...visit.slice(0, n).map((c) => `${titulo(c.nome)} · ${dd(c.vis)} · ${semTxt(c.sem)}`));
-      if (!opt.tudo && (rotaSem.length > 5 || visit.length > 5)) B0.push('', '_Peça *"ver mais"* para a lista completa._');
-      if (opt.tudo) return B0.join('\n');
-      L.push('', ...B0);
-    } else if (opt.tudo) return `${vn(v)}: nenhum cliente visitado e sem compra no mês.`;
+      const parts = [];
+      if (rotaSem.length) parts.push(`*${rotaSem.length}* na rota de hoje`);
+      if (visit.length) parts.push(`*${visit.length}* já visitados no mês`);
+      L.push(`📌 *Faltam ${faltaPos} positivações:* ` + parts.join(' e ') + ' ainda sem compra. Peça *"ver mais"* para ver a lista de clientes.');
+    }
   } else if (opt.tudo) return `${vn(v)}: sem positivação faltando ou sem o roteiro do mês na base.`;
   L.push('', SUGESTAO + (v.zerado ? 'está com rota e sem pedido hoje: ligar já.' : falta > 0 ? `precisa de ${R$(falta / Math.max(dn, 1))} por dia útil; priorizar clientes curva A e o +MIX.` : 'meta financeira batida; buscar positivação e mix.'));
   return L.join('\n');
