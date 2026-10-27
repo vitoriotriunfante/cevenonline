@@ -1485,5 +1485,24 @@
    "CURVA NEGATIVA",
    "CARTEIRA DO MES"
   ]
+ },
+ {
+  "id": "vitorio-mais-mix-com-sinal",
+  "perfil": {
+   "nome": "VITORIO",
+   "papel": "diretoria",
+   "filial": null,
+   "supervisor": null
+  },
+  "anteriores": [
+   "Quantos clientes a vendedora Luciana de API tem na rota hoje?"
+  ],
+  "pergunta": "+ mix",
+  "deve": [
+   "CLIENTES DA ROTA DE HOJE DE 252"
+  ],
+  "nao": [
+   "MIX .. BRASIL"
+  ]
  }
 ]
