@@ -52,12 +52,14 @@ export async function onRequestPost({ request, env }) {
   let destino = jidTel ? jidTel.split('@')[0] : jid;   /* para responder: telefone, ou o proprio @lid se o telefone nao vier */
   let texto = String((d.message && (d.message.conversation || (d.message.extendedTextMessage && d.message.extendedTextMessage.text) || (d.message.imageMessage && d.message.imageMessage.caption))) || '').trim();
   let audio = null;
+  const ehSticker = !texto && d.message && d.message.stickerMessage;
   const ehImagem = !texto && d.message && d.message.imageMessage;
   if (!texto && d.message && (d.message.audioMessage || d.message.pttMessage)) { audio = await transcreveAudio(env, d); if (audio && audio.texto) texto = audio.texto; }
+  if (ehSticker) texto = '[figurinha recebida]';
   if (ehImagem && !texto) {
     texto = '[imagem recebida sem legenda]';
   }
-  if (!texto && !audio) return new Response('ok');
+  if (!texto && !audio && !ehSticker) return new Response('ok');
   const seco = u.searchParams.get('seco') === '1';
   let cel = so(seco && u.searchParams.get('como') ? u.searchParams.get('como') : (jidTel || jid).split('@')[0]);
 
@@ -80,6 +82,19 @@ export async function onRequestPost({ request, env }) {
     if (seco) return new Response(msg);
     await enviar(env, destino, msg);
     await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(c.celular, c.nome, 'out', msg, 'orientacao_imagem').run();
+    return new Response('ok');
+  }
+  if (ehSticker) {
+    if (!c) return new Response('ok');
+    const msg = varia([
+      `Gostei da figurinha, ${primeiroNome(c)}! ⚽ Bora pra cima! 💪`,
+      `Show de bola, ${primeiroNome(c)}! 🚀 Tamo junto!`,
+      `Essa é boa! 😄 Valeu pelo envio, ${primeiroNome(c)}!`
+    ], cel);
+    if (seco) return new Response(msg);
+    await enviar(env, destino, msg);
+    await enviarFigurinha(env, destino, '02_conta_comigo');
+    await env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)").bind(c.celular, c.nome, 'out', msg, 'reacao_figurinha').run();
     return new Response('ok');
   }
   if (audio && !texto) {
@@ -144,7 +159,8 @@ export async function onRequestPost({ request, env }) {
   const ultIn = await env.DB.prepare("SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'in' ORDER BY id DESC LIMIT 1 OFFSET 1").bind(cel).first().catch(() => null);
   const notaTxt = (texto.trim().match(/^(?:nota\s*)?([1-5])(?:\s*(?:\/\s*5|estrelas?))?[!. ]*$/i) || [])[1] || (/^\s*(👍|👍🏻|👍🏼|👍🏽)\s*$/.test(texto) ? '5' : /^\s*(👎|👎🏻|👎🏼|👎🏽)\s*$/.test(texto) ? '1' : null);
   // Se a última mensagem que o Jota mandou pediu o motivo ("o que faltou ou veio errado"), a próxima mensagem É O MOTIVO/SUGESTÃO!
-  const pediuMotivo = ultOut && (/o que faltou ou veio errado/i.test(ultOut.texto || '') || ultOut.tipo === 'nota');
+  const ehComandoOuPergunta = /^(BOM DIA|BOA TARDE|BOA NOITE|COMO|QUANTO|QUEM|QUAIS|ONDE|VER|MOSTR|LISTA|ROTA|SETOR|EQUIPE|TIME|CLIENTE|VENDEDOR|META|ZERAD|LIGA|MIX|CHAMPIONS|HOJE|ONTEM|RECORRENCIA|TAG|P10|P11|DEVOL|PEDIDO|PRECO|PRODUTO|CARTEIRA|RANKING|SEM COMPRA)\b/i.test(texto.trim());
+  const pediuMotivo = ultOut && (/o que faltou ou veio errado/i.test(ultOut.texto || '') || ultOut.tipo === 'nota') && (Date.now() - Date.parse(ultOut.quando + 'Z') < 5 * 60 * 1000) && !ehComandoOuPergunta;
   const sugMeio = /fica (a|como) (sugest(ã|a)o|dica)|anot(e|a)( a(í|i))?( isso)?( como)? sugest(ã|a)o|como sugest(ã|a)o|dei uma sugest(ã|a)o|minha sugest(ã|a)o (é|e)/i.test(texto) ? texto : null;
   const sug = (texto.match(/^\s*sugest(?:ã|a)o\s*[:\-]?\s*([\s\S]{3,})/i) || [])[1] || sugMeio || (pediuMotivo && !notaTxt ? texto : null);
   const ofereceuOpcao1 = ultOut && /digite \*?1\*?/i.test(ultOut.texto || '');
@@ -162,7 +178,16 @@ export async function onRequestPost({ request, env }) {
   }
   if (!resp && ehSaudacao(tN)) { resp = await respSaudacao(B, c, primeiraVez); tipo = primeiraVez ? 'saudacao_primeira' : 'saudacao'; }
   // AGRADECIMENTO (Vitorio, 27/10/2026: "o cara falou blz... blz quer dizer obrigado... era ter mandado uma figurinha"): resposta curta + figurinha, sem dado
-  if (!resp && /^\W*(BLZ|BELEZA|VALEU|VLW|OBRIGAD[OA]|BRIGAD[OA]|OBG|OK|OKAY|OKS|TOP|SHOW|PERFEITO|OTIMO|LEGAL|TMJ|TAMO JUNTO|JOIA|JOINHA|ENTENDI|CERTO|BOA|SHOW DE BOLA|MUITO BOM)( (JOTA|DEMAIS|MESMO|OBRIGAD[OA]|VALEU|TMJ|PARCEIRO|AMIGO))*\W*$/.test(tN)) { resp = varia([`Tamo junto, ${primeiroNome(c.nome)}! ⚽`, `Valeu, ${primeiroNome(c.nome)}! Bora pra cima! 💪`, `É nóis, ${primeiroNome(c.nome)}! Qualquer coisa, chama. ⚽`], Date.now()); tipo = 'agradecimento'; }
+  if (!resp && /^\W*(BLZ|BELEZA|VALEU|VLW|OBRIGAD[OA]|BRIGAD[OA]|OBG|OK|OKAY|OKS|TOP|SHOW|PERFEITO|OTIMO|LEGAL|TMJ|TAMO JUNTO|JOIA|JOINHA|ENTENDI|CERTO|BOA|SHOW DE BOLA|MUITO BOM)( (JOTA|DEMAIS|MESMO|OBRIGAD[OA]|VALEU|TMJ|PARCEIRO|AMIGO))*\W*$/.test(tN)) { resp = varia([`Tamo junto, ${primeiroNome(c)}! ⚽`, `Valeu, ${primeiroNome(c)}! Bora pra cima! 💪`, `É nóis, ${primeiroNome(c)}! Qualquer coisa, chama. ⚽`], Date.now()); tipo = 'agradecimento'; }
+  // CARINHO / CORAÇÃO (Francisco Franco, 28/10/2026: mandou coraçãozinho e o Jota acolhe carinhosamente)
+  if (!resp && (/[❤️♥️💕💖💗💓💞💘🥰😍😘]/.test(texto) || (/^[\s\p{Emoji_Presentation}\p{Extended_Pictographic}]*$/u.test(texto) && /[❤️♥️💕💖💗💓💞💘🥰😍😘]/u.test(texto)))) {
+    resp = varia([
+      `Tamo junto demais, ${primeiroNome(c)}! ❤️ Bora pra cima!`,
+      `É nóis, ${primeiroNome(c)}! Sempre por aqui pra somar com o time! 👊❤️`,
+      `Valeu pelo carinho, ${primeiroNome(c)}! Conta comigo sempre! 💪`
+    ], cel);
+    tipo = 'agradecimento';
+  }
   const { results: hist } = await env.DB.prepare("SELECT direcao, texto FROM bot_msgs WHERE celular = ? AND direcao IN ('in','out') AND quando >= datetime('now','-6 hours') ORDER BY id DESC LIMIT 7").bind(cel).all();
   const anteriores = (hist || []).filter((h) => h.direcao === 'in').map((h) => h.texto).filter((x) => x !== texto).slice(0, 4);
   if (!resp) try { resp = await respostaPronta(B, c, texto, anteriores); } catch (e) { resp = null; if (seco) return new Response('ERRO: ' + String(e && e.stack || e), { status: 500 }); try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'erro: ' + String(e && e.stack || e).slice(0, 1500)).run(); } catch (x) {} }

@@ -60,7 +60,6 @@ pv = Image.new('RGBA', (S, S), (240, 242, 245, 255)); pv.paste(bg, (0, 0), m); p
 W, H = 1920, 1080
 cap = gradiente(W, H, NAVY, AZUL).convert('RGBA'); camada = Image.new('RGBA', (W, H), (0, 0, 0, 0)); dr = ImageDraw.Draw(camada)
 # seta da marca subindo, ao fundo
-pts = [(120, 900), (620, 560), (860, 700), (1500, 230)]
 pts = [(80, 1000), (560, 760), (760, 860), (1780, 120)]
 dr.line(pts, fill=(255, 255, 255, 20), width=40, joint='curve')
 dr.polygon([(1800, 70), (1860, 190), (1730, 175)], fill=(255, 255, 255, 20))
@@ -75,25 +74,32 @@ def estrela(cx, cy, r, cor):
     dr.polygon(p, fill=cor)
 estrela(1830, 70, 30, OURO + (230,))
 cap.alpha_composite(camada); dr = ImageDraw.Draw(cap)
-# JOTA apontando para o texto
+# JOTA na lateral esquerda
 jp = corta(Image.open(os.path.join(D, 'apoio_apontar.png')).convert('RGBA'))
 alt = 930; jp = jp.resize((int(jp.width * alt / jp.height), alt), Image.LANCZOS)
-sj = sombra(jp, 20, 120, (10, 14)); cap.alpha_composite(sj, (250, H - sj.height + 30))
-x0 = 860
-f_t = fonte(BLACK, 92); f_s = fonte(BOLD, 40); f_i = fonte(BOLD, 40); f_r = fonte(REG, 32); f_b = fonte(ITAL, 38)
+sj = sombra(jp, 20, 120, (10, 14)); cap.alpha_composite(sj, (40, H - sj.height + 30))
+# ESCRITAS NA LATERAL DIREITA (x0 = 1220, liberando o centro para a foto de perfil redonda do WhatsApp)
+x0 = 1220
+f_i = fonte(BOLD, 33); f_r = fonte(REG, 26); f_b = fonte(ITAL, 32)
 dr = ImageDraw.Draw(cap, 'RGBA')
-dr.text((x0, 230), 'Eu sou o', font=fonte(BOLD, 46), fill=CINZA)
-dr.text((x0, 278), 'JOTA', font=fonte(BLACK, 120), fill=BRANCO)
-dr.rounded_rectangle([x0 + 340, 318, x0 + 1010, 388], 18, fill=VERM)
-dr.text((x0 + 362, 326), 'assistente do Comercial', font=fonte(BOLD, 42), fill=BRANCO)
-itens = [('Faturado, meta e positivação', 'na hora, do grupo ao vendedor'), ('Rota, visitas e zerados', 'cliente por cliente'), ('+MIX e produtos', 'quem comprou, quem parou, o que oferecer'), ('Liga Champions', 'lances, pontos e ranking')]
-y = 450
+dr.text((x0, 210), 'Eu sou o', font=fonte(BOLD, 42), fill=CINZA)
+dr.text((x0, 250), 'JOTA', font=fonte(BLACK, 96), fill=BRANCO)
+wj = dr.textlength('JOTA', font=fonte(BLACK, 96))
+dr.rounded_rectangle([x0 + wj + 24, 282, x0 + wj + 24 + 430, 338], 16, fill=VERM)
+dr.text((x0 + wj + 40, 290), 'assistente do Comercial', font=fonte(BOLD, 30), fill=BRANCO)
+itens = [
+    ('Meta e positivação', 'do grupo ao vendedor, na hora'),
+    ('Rota, visitas e zerados', 'cliente por cliente'),
+    ('+MIX e produtos', 'quem comprou, quem parou, o que levar'),
+    ('Liga Champions', 'lances, pontos e ranking')
+]
+y = 380
 for i, (a, b) in enumerate(itens):
-    dr.ellipse([x0, y + 6, x0 + 44, y + 50], fill=OURO); n = str(i + 1); dr.text((x0 + 22 - dr.textlength(n, font=fonte(BLACK, 28)) / 2, y + 9), n, font=fonte(BLACK, 28), fill=NAVY)
-    dr.text((x0 + 66, y), a, font=f_i, fill=BRANCO); dr.text((x0 + 66, y + 50), b, font=f_r, fill=CINZA); y += 112
-dr.text((x0, y + 18), 'É só perguntar do seu jeito aqui no WhatsApp.', font=fonte(REG, 34), fill=CINZA)
-dr.rounded_rectangle([x0, y + 80, x0 + 560, y + 140], 30, outline=OURO, width=3)
-dr.text((x0 + 26, y + 88), 'Meu DNA é Triunfante!', font=f_b, fill=OURO)
+    dr.ellipse([x0, y + 4, x0 + 38, y + 42], fill=OURO); n = str(i + 1); dr.text((x0 + 19 - dr.textlength(n, font=fonte(BLACK, 24)) / 2, y + 7), n, font=fonte(BLACK, 24), fill=NAVY)
+    dr.text((x0 + 52, y), a, font=f_i, fill=BRANCO); dr.text((x0 + 52, y + 40), b, font=f_r, fill=CINZA); y += 92
+dr.text((x0, y + 16), 'É só perguntar do seu jeito aqui no WhatsApp.', font=fonte(REG, 28), fill=CINZA)
+dr.rounded_rectangle([x0, y + 64, x0 + 440, y + 116], 24, outline=OURO, width=2)
+dr.text((x0 + 20, y + 72), 'Meu DNA é Triunfante!', font=f_b, fill=OURO)
 cap.convert('RGB').save(os.path.join(OUT, 'jota_capa_whatsapp_1920x1080.png'), quality=95)
 print('ok')
 
@@ -103,63 +109,77 @@ cap = gradiente(W, H, NAVY, AZUL).convert('RGBA'); camada = Image.new('RGBA', (W
 dc.line([(0, 640), (430, 470), (600, 560), (1840, 70)], fill=(255, 255, 255, 18), width=34, joint='curve')
 for i, x in enumerate([1720, 1785, 1850]): dc.rounded_rectangle([x, 660 - 70 * (i + 1), x + 40, 660], 9, fill=(255, 255, 255, 14))
 cap.alpha_composite(camada); dr = ImageDraw.Draw(cap)
-def estrela2(cx, cy, r, cor):
-    p = []
-    for k in range(10):
-        ang = -math.pi / 2 + k * math.pi / 5; rr = r if k % 2 == 0 else r * 0.45
-        p.append((cx + rr * math.cos(ang), cy + rr * math.sin(ang)))
-    dr.polygon(p, fill=cor)
-estrela2(1865, 60, 26, OURO)
+estrela(1865, 60, 26, OURO)
 jp = corta(Image.open(os.path.join(D, 'apoio_apontar.png')).convert('RGBA'))
-alt = 1000; jp = jp.resize((int(jp.width * alt / jp.height), alt), Image.LANCZOS)
-sj = sombra(jp, 16, 110, (8, 10)); cap.alpha_composite(sj, (150, 40))   # JOTA ate a cintura (o resto sai da faixa)
-x0 = 960
-dr.text((x0, 70), 'Eu sou o', font=fonte(BOLD, 40), fill=CINZA)
-dr.text((x0, 108), 'JOTA', font=fonte(BLACK, 108), fill=BRANCO)
-wj = dr.textlength('JOTA', font=fonte(BLACK, 108))
-dr.rounded_rectangle([x0 + wj + 30, 150, x0 + wj + 30 + 540, 214], 18, fill=VERM)
-dr.text((x0 + wj + 52, 156), 'assistente do Comercial', font=fonte(BOLD, 40), fill=BRANCO)
-itens = [('Meta e positivação', 'do grupo ao vendedor, na hora'), ('Rota, visitas e zerados', 'cliente por cliente'), ('+MIX e produtos', 'quem comprou, quem parou'), ('Liga Champions', 'lances, pontos e ranking')]
+alt = 980; jp = jp.resize((int(jp.width * alt / jp.height), alt), Image.LANCZOS)
+sj = sombra(jp, 16, 110, (8, 10)); cap.alpha_composite(sj, (30, 40))   # JOTA na lateral esquerda
+# ESCRITAS NA LATERAL DIREITA (x0 = 1220)
+x0 = 1220
+dr.text((x0, 45), 'Eu sou o', font=fonte(BOLD, 34), fill=CINZA)
+dr.text((x0, 80), 'JOTA', font=fonte(BLACK, 84), fill=BRANCO)
+wj = dr.textlength('JOTA', font=fonte(BLACK, 84))
+dr.rounded_rectangle([x0 + wj + 20, 106, x0 + wj + 20 + 380, 156], 14, fill=VERM)
+dr.text((x0 + wj + 32, 114), 'assistente do Comercial', font=fonte(BOLD, 26), fill=BRANCO)
+itens = [
+    ('Meta e positivação', 'do grupo ao vendedor, na hora'),
+    ('Rota, visitas e zerados', 'cliente por cliente'),
+    ('+MIX e produtos', 'quem comprou, quem parou'),
+    ('Liga Champions', 'lances, pontos e ranking')
+]
+y = 182
 for i, (a, b) in enumerate(itens):
-    cx = x0 + (i % 2) * 480; cy = 268 + (i // 2) * 118
-    dr.ellipse([cx, cy + 4, cx + 40, cy + 44], fill=OURO); n = str(i + 1); fn = fonte(BLACK, 25); dr.text((cx + 20 - dr.textlength(n, font=fn) / 2, cy + 7), n, font=fn, fill=NAVY)
-    dr.text((cx + 56, cy - 2), a, font=fonte(BOLD, 33), fill=BRANCO); dr.text((cx + 56, cy + 42), b, font=fonte(REG, 27), fill=CINZA)
-dr.text((x0, 518), 'É só perguntar do seu jeito, aqui no WhatsApp.', font=fonte(REG, 31), fill=CINZA)
-dr.rounded_rectangle([x0, 572, x0 + 500, 628], 28, outline=OURO, width=3)
-dr.text((x0 + 24, 578), 'Meu DNA é Triunfante!', font=fonte(ITAL, 35), fill=OURO)
+    dr.ellipse([x0, y + 2, x0 + 34, y + 36], fill=OURO); n = str(i + 1); fn = fonte(BLACK, 22); dr.text((x0 + 17 - dr.textlength(n, font=fn) / 2, y + 5), n, font=fn, fill=NAVY)
+    dr.text((x0 + 46, y - 2), a, font=fonte(BOLD, 28), fill=BRANCO); dr.text((x0 + 46, y + 34), b, font=fonte(REG, 22), fill=CINZA)
+    y += 76
+dr.text((x0, y + 10), 'É só perguntar do seu jeito, aqui no WhatsApp.', font=fonte(REG, 24), fill=CINZA)
+dr.rounded_rectangle([x0, y + 46, x0 + 380, y + 92], 22, outline=OURO, width=2)
+dr.text((x0 + 18, y + 52), 'Meu DNA é Triunfante!', font=fonte(ITAL, 27), fill=OURO)
 cap.convert('RGB').save(os.path.join(OUT, 'jota_capa_whatsapp_faixa_1920x690.png'), quality=95)
 print('faixa ok')
 
-# ---------------- CAPA 16:9 (o WhatsApp corta a capa em 16:9 e mostra no perfil so a faixa do meio) (proporcao que o WhatsApp Business mostra: ~2,8:1) ----------------
+# ---------------- CAPA 16:9 (o WhatsApp corta a capa em 16:9 e mostra no perfil so a faixa do meio) ----------------
 W, H = 1920, 1080
 OY = 195
 cap = gradiente(W, H, NAVY, AZUL).convert('RGBA'); camada = Image.new('RGBA', (W, H), (0, 0, 0, 0)); dc = ImageDraw.Draw(camada)
 dc.line([(0, 640 + OY + 120), (430, 470 + OY), (600, 560 + OY), (1840, 70 + OY - 120)], fill=(255, 255, 255, 18), width=34, joint='curve')
 for i, x in enumerate([1720, 1785, 1850]): dc.rounded_rectangle([x, 660 + OY - 70 * (i + 1), x + 40, 660 + OY], 9, fill=(255, 255, 255, 14))
 cap.alpha_composite(camada); dr = ImageDraw.Draw(cap)
-def estrela2(cx, cy, r, cor):
-    p = []
-    for k in range(10):
-        ang = -math.pi / 2 + k * math.pi / 5; rr = r if k % 2 == 0 else r * 0.45
-        p.append((cx + rr * math.cos(ang), cy + rr * math.sin(ang)))
-    dr.polygon(p, fill=cor)
-estrela2(1865, 60 + OY, 26, OURO)
+estrela(1865, 60 + OY, 26, OURO)
 jp = corta(Image.open(os.path.join(D, 'apoio_apontar.png')).convert('RGBA'))
-alt = 1130; jp = jp.resize((int(jp.width * alt / jp.height), alt), Image.LANCZOS)
-sj = sombra(jp, 16, 110, (8, 10)); cap.alpha_composite(sj, (150, 40 + OY - 20))   # JOTA ate a cintura (o resto sai da faixa)
-x0 = 960
-dr.text((x0, 70 + OY), 'Eu sou o', font=fonte(BOLD, 40), fill=CINZA)
-dr.text((x0, 108 + OY), 'JOTA', font=fonte(BLACK, 108), fill=BRANCO)
-wj = dr.textlength('JOTA', font=fonte(BLACK, 108))
-dr.rounded_rectangle([x0 + wj + 30, 150 + OY, x0 + wj + 30 + 540, 214 + OY], 18, fill=VERM)
-dr.text((x0 + wj + 52, 156 + OY), 'assistente do Comercial', font=fonte(BOLD, 40), fill=BRANCO)
-itens = [('Meta e positivação', 'do grupo ao vendedor, na hora'), ('Rota, visitas e zerados', 'cliente por cliente'), ('+MIX e produtos', 'quem comprou, quem parou'), ('Liga Champions', 'lances, pontos e ranking')]
+alt = 1100; jp = jp.resize((int(jp.width * alt / jp.height), alt), Image.LANCZOS)
+sj = sombra(jp, 16, 110, (8, 10)); cap.alpha_composite(sj, (30, 40 + OY - 20))   # JOTA na lateral esquerda
+# ESCRITAS NA LATERAL DIREITA
+x0 = 1220
+dr.text((x0, 45 + OY), 'Eu sou o', font=fonte(BOLD, 34), fill=CINZA)
+dr.text((x0, 80 + OY), 'JOTA', font=fonte(BLACK, 84), fill=BRANCO)
+wj = dr.textlength('JOTA', font=fonte(BLACK, 84))
+dr.rounded_rectangle([x0 + wj + 20, 106 + OY, x0 + wj + 20 + 380, 156 + OY], 14, fill=VERM)
+dr.text((x0 + wj + 32, 114 + OY), 'assistente do Comercial', font=fonte(BOLD, 26), fill=BRANCO)
+itens = [
+    ('Meta e positivação', 'do grupo ao vendedor, na hora'),
+    ('Rota, visitas e zerados', 'cliente por cliente'),
+    ('+MIX e produtos', 'quem comprou, quem parou'),
+    ('Liga Champions', 'lances, pontos e ranking')
+]
+y = 182 + OY
 for i, (a, b) in enumerate(itens):
-    cx = x0 + (i % 2) * 480; cy = 268 + OY + (i // 2) * 118
-    dr.ellipse([cx, cy + 4, cx + 40, cy + 44], fill=OURO); n = str(i + 1); fn = fonte(BLACK, 25); dr.text((cx + 20 - dr.textlength(n, font=fn) / 2, cy + 7), n, font=fn, fill=NAVY)
-    dr.text((cx + 56, cy - 2), a, font=fonte(BOLD, 33), fill=BRANCO); dr.text((cx + 56, cy + 42), b, font=fonte(REG, 27), fill=CINZA)
-dr.text((x0, 518 + OY), 'É só perguntar do seu jeito, aqui no WhatsApp.', font=fonte(REG, 31), fill=CINZA)
-dr.rounded_rectangle([x0, 572 + OY, x0 + 500, 628 + OY], 28, outline=OURO, width=3)
-dr.text((x0 + 24, 578 + OY), 'Meu DNA é Triunfante!', font=fonte(ITAL, 35), fill=OURO)
+    dr.ellipse([x0, y + 2, x0 + 34, y + 36], fill=OURO); n = str(i + 1); fn = fonte(BLACK, 22); dr.text((x0 + 17 - dr.textlength(n, font=fn) / 2, y + 5), n, font=fn, fill=NAVY)
+    dr.text((x0 + 46, y - 2), a, font=fonte(BOLD, 28), fill=BRANCO); dr.text((x0 + 46, y + 34), b, font=fonte(REG, 22), fill=CINZA)
+    y += 76
+dr.text((x0, y + 10), 'É só perguntar do seu jeito, aqui no WhatsApp.', font=fonte(REG, 24), fill=CINZA)
+dr.rounded_rectangle([x0, y + 46, x0 + 380, y + 92], 22, outline=OURO, width=2)
+dr.text((x0 + 18, y + 52), 'Meu DNA é Triunfante!', font=fonte(ITAL, 27), fill=OURO)
 cap.convert('RGB').save(os.path.join(OUT, 'jota_capa_whatsapp_16x9_1920x1080.png'), quality=95)
 print('16x9 ok')
+
+# ---------------- SIMULAÇÃO DA TELA DO WHATSAPP (com o círculo do perfil no centro) ----------------
+prev_capa = cap.copy()
+# Avatar circular redimensionado para simular a tela do WhatsApp (~440px de diâmetro)
+D_AV = 440
+av_img = Image.open(os.path.join(OUT, '_previa_perfil_redondo.png')).convert('RGBA').resize((D_AV, D_AV), Image.LANCZOS)
+# No WhatsApp mobile, o avatar fica centralizado na horizontal: (1920 - D_AV) // 2
+x_av = (1920 - D_AV) // 2
+y_av = 1080 // 2 - 80 + OY // 2   # Sobrepõe exatamente a zona central inferior da capa
+prev_capa.alpha_composite(av_img, (x_av, y_av))
+prev_capa.convert('RGB').save(os.path.join(OUT, '_previa_whatsapp_tela_com_perfil.png'), quality=95)
+print('previa whatsapp tela ok')

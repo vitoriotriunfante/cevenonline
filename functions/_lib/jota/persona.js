@@ -34,7 +34,10 @@ export const TODAS_FIGURINHAS = [
 export function horaSP() { return R.horaSP(); }
 export const diaSemana = () => new Date(hojeSP() + 'T12:00:00Z').getUTCDay();
 export const cumprimento = () => { const h = horaSP(); return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'; };
-export const primeiroNome = (c) => titulo(String(c.nome || '').split(' ')[0]);
+export const primeiroNome = (c) => {
+  const nm = typeof c === 'string' ? c : (c && c.nome) || '';
+  return titulo(String(nm || '').trim().split(' ')[0]);
+};
 // tempo de jogo (persona: linguagem da Champions so quando cabe)
 export function tempoDeJogo() { const h = horaSP(), d = diaSemana(); if (d === 0) return 'dia de folga'; if (h < 7) return 'antes do apito'; if (h < 10) return 'bola rolando'; if (h < 12) return 'primeiro tempo'; if (h < 14) return 'intervalo'; if (h < 17) return 'segundo tempo'; if (h < 19) return 'reta final'; return 'fim de jogo'; }
 // escolhe uma frase diferente por pessoa e por hora (nao repete sempre a mesma)

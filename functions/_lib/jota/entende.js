@@ -129,9 +129,15 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/COMPROMISSO|MATINAL|\bRET\b|\bRETS\b|ROTA DO SUPERVISOR/.test(t)) return respCompromisso(B, await carregaEscopo(B, esc));
   if (/PENALTI|PENALIDADE|IMPEDIMENTO|CARTA|VERMELHO|AMARELO|GOL CONTRA|\bGOLS?\b|LANCES?\b|HAT ?TRICK|DEFESAS?\b|CHECK.?IN FORA|FORA DO CLIENTE|00:00|CARTO(ES|ESS)?\b/.test(t) && !/LIGA|CHAMPIONS|CLASSIFICA|PONTOS? (FOMOS|PERDID|PENALIZ)|PENALIZAD/.test(t)) return respLances(B, await carregaEscopo(B, esc), t);
   // "VER MAIS" logo depois do detalhe de um vendedor: a lista completa dos clientes sem compra (27/10/2026)
-  if (/^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA))\W*$/.test(t) && (anteriores || []).length) {
-    const Ev = await carregaEscopo(B, esc), pv = achaPessoa(Ev, sem(String(anteriores[0] || '')));
-    if (pv && pv.tipo === 'vend') return respVendedor(B, Ev, pv.alvo, { tudo: true });
+  if (/^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA))\W*$/.test(t)) {
+    const Ev = await carregaEscopo(B, esc);
+    for (const a of (anteriores || [])) {
+      const pv = achaPessoa(Ev, sem(String(a || '')));
+      if (pv && pv.tipo === 'vend') return respVendedor(B, Ev, pv.alvo, { tudo: true });
+    }
+    if (Ev.vend && Ev.vend.length === 1) return respVendedor(B, Ev, Ev.vend[0], { tudo: true });
+    if (antTag) return respTagSeparadoPorSupervisor(B, Ev, sem(antTag));
+    return `📋 Para eu abrir a lista completa certinho, me diz de qual vendedor ou setor você quer ver (ex: "vendedor 125").`;
   }
   // "+MIX" logo depois de "rota de hoje": o que oferecer aos clientes da rota que ainda nao compraram no mes (Vitorio, 27/10/2026: 'ele pergunta apenas mais mix e vc ja entende')
   // "+ mix" chega como "MIX" depois da normalizacao (27/10/2026: foi para o Brasil todo); "dos 3", "desses clientes" tambem
@@ -146,6 +152,9 @@ export async function respostaInterna(B, c, texto, anteriores) {
     return respKpisPremiacao(B, Em, 'META MIX', null);
   }
   // FIGURINHAS DO JOTA (Vitorio, 28/10/2026: "ontem eu pedi para ele me mandar todas as figurinhas disponiveis... ele nao me mandou")
+  if (/OLHA|TANTO DE FIGURINHA|MONTE DE FIGURINHA|NOVAS FIGURINHAS|FIGURINHA NOVA/.test(t) && /FIGURINHA|STICKER/.test(t)) {
+    return '🤩 *Que show essas figurinhas!* Já guardei a referência aqui com o time que me treina. Em breve teremos novidades com mais figurinhas em campo! ⚽🚀';
+  }
   const ehPedidoTodasFigurinhas = /QUERO TODAS|MANDA TODAS|MANDA AS TODAS|ENVIA TODAS|TODAS AS FIGURINHAS|ME MANDA TODAS/.test(t) || (/TODAS\b/.test(t) && (anteriores || []).some((a) => /FIGURINHA|STICKER/.test(sem(String(a)))));
   if (ehPedidoTodasFigurinhas) {
     return '⚽ *Mandando o pacote oficial com todas as 20 figurinhas do Jota!* 🔥\n_Salve nos seus favoritos para usar com o time no WhatsApp!_';
@@ -195,7 +204,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     const partes = []; for (const v of V) partes.push(await respDiaVendedor(B, E, v));
     return [`📋 *${E.nome}* — ${V.length} vendedores, um por mensagem:`, ...partes].join('\n⟪⟫\n');
   }
-  if (/DIA DA (MINHA )?EQUIPE|COMO (ESTA|FOI|TA|VAI) (O DIA|A ROTA) DA (MINHA )?EQUIPE|ROTA DA (MINHA )?EQUIPE|COMO (ESTA|TA) (A )?MINHA EQUIPE HOJE|MINHA EQUIPE HOJE/.test(t) && !/LIGA|MIX|ZERAD|POSITIVA|META|FATUR/.test(t)) return respDiaEquipe(B, E);
+  if (/(DIA D[OA]|COMO (ESTA|FOI|TA|VAI) (O DIA|A ROTA) D[OA]|ROTA D[OA]|COMO (ESTA|TA) [OA]|PANORAMA D[OA]) (MINHA |MEU )?(EQUIPE|TIME)( HOJE| NO DIA DE HOJE)?|(MINHA EQUIPE|MEU TIME) (HOJE|NO DIA DE HOJE)|COMO ESTA MEU TIME/.test(t) && !/LIGA|MIX|ZERAD|POSITIVA|META|FATUR/.test(t)) return respDiaEquipe(B, E);
   if (/PANORAMA DA (MINHA )?EQUIPE|TODOS (OS )?(MEUS )?VENDEDORES|CADA (UM DOS )?VENDEDOR(ES)?\b|VENDEDOR POR VENDEDOR/.test(t) && !/POSITIVA|RECORRENCIA|MIX|LIGA|ZERAD|ROTA|VISITA|PREMIA|META DE |INDUSTRIA|DEVOLU|PEDIDO/.test(t)) return respTodosVendedores(E);
   // ONTEM (27/10/2026: Allison "como foi a venda do vendedor 60 ontem?", Cristiano "desempenho da equipe ontem"): pedidos de ontem do escopo ou do vendedor citado
   if (/\bONTEM\b/.test(t) && !/LIGA|CHAMPIONS|BRASILEIRAO|DEVOLU|COMO FECHOU|RELATORIO DE ONTEM|^(OS )?CLIENTES?\b|\bCLIENTES (D[AOE]|DA VENDEDORA|DO VENDEDOR)\b/.test(t)) {   /* "clientes X ontem" = lista de clientes (abaixo) */ const po = achaPessoa(E, t); const Eo = po && po.tipo === 'vend' ? { ...E, nome: vn(po.alvo), vend: [po.alvo], rca: po.alvo.rca, filiais: [po.alvo.filial] } : E; return respPeriodoDias(B, Eo, t, { de: 1, ate: 1, ontem: true }); }
