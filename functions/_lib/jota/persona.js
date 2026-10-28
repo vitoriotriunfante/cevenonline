@@ -58,6 +58,7 @@ export function figurinhaPara(resp, tipo) {
   if (/Rota de hoje|faltam \*\d/.test(r)) return '18_proximo_cliente';
   if (/quanto falta|Ritmo da meta|Abaixo do ritmo/i.test(r)) return '12_bora_destravar';
   if (/^👥 \*Positivação/.test(r)) return '05_bora_positivar';
+  if (/Figurinhas Oficiais do Jota/i.test(r)) return '10_dna_triunfante';
   if (/sem dado|não tenho|Não consegui|ainda não tenho/i.test(r) && r.length < 400) return '20_sem_dado_agora';
   return null;
 }
@@ -65,12 +66,30 @@ export async function enviarFigurinha(env, numero, nome) {
   if (!env.EVO_URL || !env.EVO_KEY || !nome) return false;
   return (await R.evolution(R.evoCfg(env), '/message/sendSticker', { number: numero, sticker: FIG(nome) })).ok;
 }
-// abertura humana: na primeira resposta do dia, chama pelo nome
+// abertura humana: chama pelo nome, cumprimenta (bom dia, boa tarde) e deseja boas vendas / bom jogo
 export function humaniza(resp, c, primeiraDoDia) {
-  if (!resp || !primeiraDoDia) return resp;
-  const n = primeiroNome(c), tj = tempoDeJogo();
-  const abre = varia([`${cumprimento()}, ${n}! Já separei pra você:`, `${cumprimento()}, ${n}! ${tj.charAt(0).toUpperCase() + tj.slice(1)} por aqui. Olha só:`, `Fala, ${n}! ${cumprimento()}. Vamos lá:`, `${cumprimento()}, ${n}! Buscando os números agora mesmo:`], c.celular);
-  return abre + '\n\n' + resp;
+  if (!resp) return resp;
+  const n = primeiroNome(c), tj = tempoDeJogo(), cump = cumprimento();
+  if (primeiraDoDia) {
+    const abre = varia([
+      `${cump}, ${n}! Ótimas vendas hoje! 🚀 Já separei pra você:`,
+      `${cump}, ${n}! Um excelente dia e boas vendas pra sua equipe! Olha só:`,
+      `Fala, ${n}! ${cump}! Vamos pra cima hoje. Seguem os números:`,
+      `${cump}, ${n}! ${tj.charAt(0).toUpperCase() + tj.slice(1)} por aqui. Bora bater meta!`
+    ], c.celular);
+    return abre + '\n\n' + resp;
+  }
+  // Durante o dia: se a resposta não começar com saudação, adiciona uma abertura amigável
+  if (!/^(BOM DIA|BOA TARDE|BOA NOITE|FALA|OPA|VALEU|OBRIGAD|OI\b)/i.test(resp.trim())) {
+    const intro = varia([
+      `Aqui está, ${n}:`,
+      `Na mão, ${n}:`,
+      `Olha os números aí, ${n}:`,
+      `Seguem os dados, ${n}:`
+    ], c.celular + String(resp.length));
+    return intro + '\n\n' + resp;
+  }
+  return resp;
 }
 // MONITORAMENTO (Vitorio: "vamos conseguir monitorar TODAS as conversas? e as respostas que nao ajudarem?"): toda resposta grava o TIPO
 // (pronta | ia | ajuda | saudacao | cadastro | erro) e reclamacao logo depois ("nao foi isso", "errado", "nao entendi") marca a resposta anterior como NAO AJUDOU.
@@ -103,12 +122,40 @@ export async function cadastraPorCodigo(env, cel, texto, pushName) {
     const nums = new Set();
     for (const re of [/\b(?:COD(?:IGO)?|SETOR|EQUIPE|AREA|COORDENADOR|SUPERVISOR|SUP)\.?\s*(?:DE\s+VENDAS\s*)?(?:N[O°º]?\.?\s*)?[-:]?\s*(\d{1,4})\b/g, /(?:^|\n)\s*(\d{1,4})\s*[-–]\s*[A-Z]/g, /\b(\d{1,4})\s+(?:TBE|TBL|TPH|TCV|ABC|TCA|MCD|TCG|API|TPA|TSJ)\b/g, /\bSETOR\s+(\d{1,4})\s+D[AO]\b/g]) { let mm; const tt = sem(String(texto)); while ((mm = re.exec(tt))) nums.add(mm[1]); }
     if (/^\d{1,4}$/.test(String(texto).trim())) nums.add(String(texto).trim());
-    if (!nums.size) return null;
+    
+    // Normaliza variações numéricas (ex.: "07" -> "7", "07", "007")
+    const numsBusca = new Set();
+    for (const n of nums) {
+      numsBusca.add(n);
+      const ni = parseInt(n, 10);
+      if (!isNaN(ni)) {
+        numsBusca.add(String(ni));
+        numsBusca.add(String(ni).padStart(2, '0'));
+        numsBusca.add(String(ni).padStart(3, '0'));
+      }
+    }
+
     let nomes = t;
     { const ant = await env.DB.prepare("SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'in' ORDER BY id DESC LIMIT 4").bind(cel).all(); nomes += ' ' + sem((ant.results || []).map((x) => x.texto).join(' ')); }
-    const { results } = await env.DB.prepare(`SELECT DISTINCT filial, sup_id, sup_nome FROM arvore_supervisores WHERE sup_id IN (${[...nums].map(() => '?').join(',')})`).bind(...nums).all();
+
+    let results = [];
+    if (numsBusca.size) {
+      const q = await env.DB.prepare(`SELECT DISTINCT filial, sup_id, sup_nome FROM arvore_supervisores WHERE sup_id IN (${[...numsBusca].map(() => '?').join(',')})`).bind(...numsBusca).all().catch(() => ({ results: [] }));
+      results = q.results || [];
+    }
+
+    // Se não achou pelos códigos ou para reforçar: busca supervisores da árvore cujo nome bate com o texto enviado
+    if (!results.length) {
+      const q = await env.DB.prepare(`SELECT DISTINCT filial, sup_id, sup_nome FROM arvore_supervisores WHERE sup_nome IS NOT NULL AND sup_nome != ''`).all().catch(() => ({ results: [] }));
+      const todosSups = q.results || [];
+      results = todosSups.filter((r) => {
+        const p = sem(r.sup_nome).replace(/^CLT\s*-?\s*/, '').replace(/^VAGO\s*-?\s*/, '').split(/\s+/).filter((w) => w.length > 2 && !/^(DE|DA|DO|DOS|DAS|E|A)$/.test(w));
+        return p.length >= 2 && p.filter((w) => nomes.includes(w)).length >= 2;
+      });
+    }
+
     // "VAGO - GABRIEL" (27/10/2026, TCV 543): supervisor novo numa vaga ainda tem o nome da vaga na arvore; confere pelo nome depois do "VAGO -"
-    const ok = (results || []).find((r) => { const p = sem(r.sup_nome).replace(/^CLT\s*-?\s*/, '').replace(/^VAGO\s*-?\s*/, '').split(/\s+/); return p[0] && nomes.includes(p[0]) && (p.length < 2 || p.slice(1).some((w) => w.length > 2 && nomes.includes(w))); });
+    const ok = (results || []).find((r) => { const p = sem(r.sup_nome).replace(/^CLT\s*-?\s*/, '').replace(/^VAGO\s*-?\s*/, '').split(/\s+/); return p[0] && nomes.includes(p[0]) && (p.length < 2 || p.slice(1).some((w) => w.length > 2 && nomes.includes(w))); }) || (results && results.length === 1 ? results[0] : null);
     if (!ok) return null;
     const supArv = String(ok.sup_nome).replace(/^CLT\s*-?\s*/i, '').trim();   /* nome do supervisor NA HIERARQUIA (define a equipe) */
     // nome da pessoa: o que ela mandou quando a arvore ainda tem o nome da vaga ("VAGO - GABRIEL" -> "GABRIEL MONTEIRO GIROTO")

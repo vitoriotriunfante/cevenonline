@@ -12,22 +12,17 @@ export const sn = (nome, cod) => { const c = cod || SUPCOD.get(sem(nome)); retur
 export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
   const [snap, mostra] = await Promise.all([B.snap(filial), B.mostra()]);
   const eq = new Map(); if (mostra && mostra.filiais) for (const [k, L] of Object.entries(mostra.filiais)) if (k.split('_')[0] === filial) for (const v of L) eq.set(String(v.rca), v);
-  const vend = [], ocultos = []; const macro = { pedidos: 0, dig: 0, devHoje: 0 };
+  const vend = [], ocultos = [], outros = []; const macro = { pedidos: 0, dig: 0, devHoje: 0 };
   for (const [rca, r] of Object.entries((snap && snap.rcas) || {})) {
     const e = eq.get(rca);
-    if (grupo && (!e || String(e.grupo || '').toUpperCase() !== String(grupo).toUpperCase())) continue;
-    if (supervisor && (!e || sem(e.supervisor) !== sem(supervisor))) continue;   /* supervisor ve so a equipe dele (25/10/2026) */
-    if (soRca && String(rca) !== String(soRca)) continue;   /* vendedor ve so os proprios numeros */
     const d = r.dashboard || {}, fi = d.financeiro || {}, po = d.positivacao || {}, pd = (r.produtividade && r.produtividade.dia) || {}, pm = (r.produtividade && r.produtividade.mes) || {};
     macro.pedidos += pd.positivacao || 0; macro.dig += pd.dig_pedido || 0;
     macro.devHoje += (Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).reduce((t, x) => t + Math.abs(parseFloat(x.vl_devolvido || x.valor || 0) || 0), 0);
     if (!e) continue;   // fora da arvore do CEVEN de hoje = nao existe
-    // OCULTO NA GESTAO (26/10/2026, Francisco: 'setor 1028' = Adevane, oculto): fica fora das listas e totais, mas o JOTA o encontra quando citado (nome ou codigo)
     if (e.supervisor && e.sup_cod) SUPCOD.set(sem(e.supervisor), e.sup_cod);
-    const destino = e.mostra === false ? ocultos : vend;
     const varejo = VAREJO.has(String(e.canal || '').toUpperCase());
     const visP = varejo ? pd.total_programado || 0 : 0, visF = varejo ? pd.visitas_na_rota || 0 : 0;
-    destino.push({ filial, rca, nome: e.nome || d.nome || 'RCA ' + rca, supervisor: e.supervisor || '', supCod: e.sup_cod || '', grupo: e.grupo || '', gerente: e.gerente || '', canal: e.canal || '', varejo,
+    const vObj = { filial, rca, nome: e.nome || d.nome || 'RCA ' + rca, supervisor: e.supervisor || '', supCod: e.sup_cod || '', grupo: e.grupo || '', gerente: e.gerente || '', canal: e.canal || '', varejo,
       /* meta = a da HIERARQUIA do CEVEN quando houver (tela do supervisor/gerente; 27/10/2026, Thiago/MCD) */ fat: fi.faturado || 0, pend: fi.pendente || 0, meta: r.meta_hier != null ? r.meta_hier : fi.meta || 0, dev: fi.devolucao || 0, pct: (r.meta_hier != null ? r.meta_hier : fi.meta) ? (fi.faturado || 0) / (r.meta_hier != null ? r.meta_hier : fi.meta) * 100 : null,
       pos: po.realizado ?? null, metaPos: po.meta ?? null, dig: pd.dig_pedido || 0, ped: pd.positivacao || 0, visP, visF, comVenda: varejo ? pd.visitas_com_venda || 0 : 0,
       visPlanMes: varejo ? pm.visit_plan || 0 : 0, visRealMes: varejo ? pm.visit_real || 0 : 0,
@@ -36,22 +31,29 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
       /* devolucoes que ENTRARAM hoje (mesma regra do WhatsApp 17:00/18:30: d.data === hoje) */
       devHoje: (Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).reduce((t, x) => t + Math.abs(parseFloat(x.vl_devolvido || x.valor || 0) || 0), 0),
       vendeuHoje: (pd.dig_pedido || 0) > 0 || (pd.positivacao || 0) > 0 || (pd.visitas_com_venda || 0) > 0,
-      // AS tambem tem roteiro (26/10/2026, Missaid: 'quais clientes o setor 1108 visitou e nao vendeu?' -> 'nao e varejo de rota'): o detalhe do vendedor mostra o roteiro de quem tiver;
-      // a regra 'rota so varejo' vale para cobranca e medias (eficacia, zerados), nao para responder sobre os clientes de um vendedor.
       rotaHoje: Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hojeSP() || /FORA/i.test(String(c.status || ''))) : [],
-      /* clientes da rota de HOJE ainda sem visita (status ABERTO/AGENDADO, sem check-in) */
-      aVisitar: Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hojeSP() && /^(ABERTO|AGENDADO)$/i.test(String(c.status || '')) && !c.checkin_horario) : [] });
+      aVisitar: Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hojeSP() && /^(ABERTO|AGENDADO)$/i.test(String(c.status || '')) && !c.checkin_horario) : [] };
+
+    const ehMeuGrupo = !grupo || String(e.grupo || '').toUpperCase() === String(grupo).toUpperCase();
+    const ehMeuSup = !supervisor || sem(e.supervisor) === sem(supervisor);
+    const ehMeuRca = !soRca || String(rca) === String(soRca);
+    if (!ehMeuGrupo || !ehMeuSup || !ehMeuRca) {
+      outros.push(vObj);
+      continue;
+    }
+    const destino = e.mostra === false ? ocultos : vend;
+    destino.push(vObj);
   }
   vend.sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1));
-  return { vend, ocultos, macro };
+  return { vend, ocultos, outros, macro };
 }
 
 // ESCOPO: { nome, filiais:[...], grupo, nacional }
 export async function carregaEscopo(B, esc) {
   const partes = await Promise.all(esc.filiais.map((f) => vendedoresDaFilial(B, f, esc.grupo, esc.supervisor, esc.rca)));
-  const vend = partes.flatMap((p) => p.vend), ocultos = partes.flatMap((p) => p.ocultos || []);
+  const vend = partes.flatMap((p) => p.vend), ocultos = partes.flatMap((p) => p.ocultos || []), outros = partes.flatMap((p) => p.outros || []);
   const macro = partes.reduce((t, p) => ({ pedidos: t.pedidos + p.macro.pedidos, dig: t.dig + p.macro.dig, devHoje: t.devHoje + p.macro.devHoje }), { pedidos: 0, dig: 0, devHoje: 0 });
-  return { ...esc, vend, ocultos, macro, porFilial: Object.fromEntries(esc.filiais.map((f, i) => [f, partes[i]])) };
+  return { ...esc, vend, ocultos, outros, macro, porFilial: Object.fromEntries(esc.filiais.map((f, i) => [f, partes[i]])) };
 }
 // chave de supervisor: "NOME|FIL" no Brasil; pseudo-supervisores (sem supervisor, GERENTE X, VAGO) nao entram em ranking nem sugestao
 export const supChave = (v, nac) => (v.supervisor || 'sem supervisor') + (nac ? '|' + v.filial : '');
@@ -86,6 +88,11 @@ export function achaPessoa(E, t) {
     const explicito = new RegExp(`(RCA|COD|CODIGO|VENDEDORA?|VEND|SETOR)\\.?\\s*${n}\\b`).test(t) || (E.supervisor && !/\b(TOP|DIAS?|ULTIMOS?|PRIMEIROS?|MAIORES|MENORES)\s+\d/.test(t));   /* supervisor: numero do proprio time = vendedor (26/10/2026) */
     const bom = cand.map((v) => [v, score(v.nome)]).filter((x) => x[1] || explicito).sort((a, b) => b[1] - a[1]);
     if (bom.length) return { tipo: 'vend', alvo: bom[0][0], empate: [bom[0][0]] };
+    // Setor explícito de outro supervisor da mesma filial (28/10/2026: Francisco perguntou "setor 378" e recebia consolidado da equipe)
+    if (explicito && E.outros && E.outros.length) {
+      const o = E.outros.find((v) => String(v.rca) === n);
+      if (o) return { tipo: 'vend', alvo: o, empate: [o], outroSupervisor: true };
+    }
   }
   if (!toks.length) return null;   /* 26/10/2026: so DEPOIS do codigo ("vendedor 59" nao tem palavra de nome e saia vazio) */
   const querSup = /SUPERVIS|EQUIPE|TIME/.test(t), querVend = /VENDEDOR|\bRCA\b/.test(t);

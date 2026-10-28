@@ -133,14 +133,20 @@ export async function respRecuperacao(B, E, t) {
   return [`🔁 *Recuperação — ${nome}* (${escopoNome})`, `*${N(totalExibir)} clientes*` + (citado.length ? ` de *${escopoNome}*` : '') + ` compraram ${nome} no mês passado e *ainda não compraram este mês*` + (naRotaHoje ? ' — e *estão na rota de hoje*.' : '.'), ...out,
     '', SUGESTAO + (citado.length ? `conversar com ${vn(citado[0])} para recuperar esses clientes esta semana.` : 'distribuir a lista para os vendedores visitarem esta semana.')].join('\n');
 }
-export async function respCliente(B, E, t) {
+export async function respCliente(B, E, t, anteriores = []) {
   const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
-  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !FILIAIS.includes(w) && !GENERICAS.test(w));
-  const num = (t.match(/#?(\d{3,7})\b/) || [])[1];
+  let num = (t.match(/#?(\d{3,7})\b/) || [])[1];
+  if (!num && /(DESSE|DESTE) CLIENTE|DELE|DE COMPRA|HISTORICO/.test(t) && anteriores && anteriores.length) {
+    for (const ant of anteriores) {
+      const nAnt = (String(ant).match(/#?(\d{3,7})\b/) || [])[1];
+      if (nAnt) { num = nAnt; break; }
+    }
+  }
   if (num) {
     const k = Object.keys(V.cli).find((x) => x.endsWith('|' + num));
     if (k) return clienteDetalhe(E, V, k);
   }
+  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !FILIAIS.includes(w) && !GENERICAS.test(w));
   if (!toks.length) return null;
   // procura clientes que contenham as palavras da pergunta
   const hits = Object.entries(V.cli).map(([k, nome]) => {

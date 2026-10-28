@@ -9,6 +9,7 @@
 // TABELA: bot_contatos (do JOTA, nao e esquema compartilhado) + colunas situacao ('ativo'|'pendente'|'inativo'|'recusado') e rca.
 // =========================================================================
 import { exigeSenhaEquipe } from '../_lib/senha_equipe.js';
+import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 
 const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Equipe-Senha', 'Cache-Control': 'no-store' };
@@ -29,7 +30,10 @@ const situacao = (c) => c.situacao || (c.ativo ? 'ativo' : 'inativo');
 export async function onRequestOptions() { return new Response(null, { status: 204, headers: CORS }); }
 
 export async function onRequestGet({ request, env }) {
-  const negado = await exigeSenhaEquipe(request, env, CORS); if (negado) return negado;
+  const adminOk = await chaveAdminOk(env, request);
+  if (!adminOk) {
+    const negado = await exigeSenhaEquipe(request, env, CORS); if (negado) return negado;
+  }
   await garante(env.DB);
   const { results } = await env.DB.prepare('SELECT * FROM bot_contatos ORDER BY papel, filial, nome').all();
   const { results: arv } = await env.DB.prepare('SELECT DISTINCT filial, sup_id, sup_nome FROM arvore_supervisores ORDER BY filial, sup_nome').all().catch(() => ({ results: [] }));
@@ -45,7 +49,10 @@ async function enviar(env, numero, texto) {
 }
 
 export async function onRequestPost({ request, env }) {
-  const negado = await exigeSenhaEquipe(request, env, CORS); if (negado) return negado;
+  const adminOk = await chaveAdminOk(env, request);
+  if (!adminOk) {
+    const negado = await exigeSenhaEquipe(request, env, CORS); if (negado) return negado;
+  }
   await garante(env.DB);
   let b; try { b = await request.json(); } catch { return j({ erro: 'json invalido' }, 400); }
   // ABA "SEM ACESSO" (26/10/2026): excluir/reincluir da lista e enviar a lista para o(s) gerente(s) ativo(s) da filial pelo WhatsApp

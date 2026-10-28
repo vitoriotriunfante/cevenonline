@@ -136,6 +136,21 @@ export async function respostaInterna(B, c, texto, anteriores) {
     if (rm && !/de \*0\* clientes com lista/.test(String(rm))) return rm;
     return respKpisPremiacao(B, Em, 'META MIX', null);
   }
+  // FIGURINHAS DO JOTA (Vitorio, 28/10/2026: "ontem eu pedi para ele me mandar todas as figurinhas disponiveis... ele nao me mandou")
+  if (/FIGURINHA|STICKER|QUAIS FIGURINHAS|ME MANDA AS FIGURINHAS|MANDA UMA FIGURINHA/.test(t)) {
+    return [
+      '⚽ *Figurinhas Oficiais do Jota!*',
+      'Eu tenho 20 figurinhas exclusivas para animar o nosso dia de jogo! Olha os temas:',
+      '',
+      '• ⚽ *Entrada e boas-vindas:* "Oi, eu sou o Jota", "Bom dia time", "Bola rolando"',
+      '• 🏆 *Conquistas:* "Golaço!", "Meta batida!", "DNA Triunfante"',
+      '• 💪 *Motivação e campo:* "Conta comigo", "Bora positivar!", "Bora destravar", "Zerado não!"',
+      '• 🚶 *Rota e clientes:* "Próximo cliente", "Olha o +MIX", "Tô de olho"',
+      '• 🏁 *Fechamento:* "Fechou o dia!", "Valeu time!"',
+      '',
+      '_Estou te enviando uma figurinha agora mesmo pra você salvar nos seus favoritos!_'
+    ].join('\n');
+  }
   { const sd = respSemDado(t); if (sd) return sd; }
   const E = await carregaEscopo(B, esc);
   // PEDIDOS QUE O JOTA NAO EXECUTA (26/10/2026): "247 nao trabalha mais", "retirar a Claudete dos controles" (a IA respondia "vou considerar que nao esta mais na
@@ -309,7 +324,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   if (/PRECO|QUANTO SAIU/.test(t)) { const r = await respPreco(B, E, t); if (r) return r; }
   if (/COMPRAVA|PAROU|PARARAM|DEIXOU DE COMPRAR|DEIXARAM DE COMPRAR|RECUPERACAO D|QUEM NAO (COMPRA|COMPROU|COMPRARAM)|NAO (COMPROU|COMPRA|COMPRARAM)|SEM COMPRA D[EAO]|SEM COMPRAR/.test(t)) { const r = await respRecuperacao(B, E, t); if (r) return r; }
   if (/PRODUTOS? (QUE )?MAIS VEND|TOP \d* ?PRODUTOS|\d+ PRODUTOS|QUAL PRODUTO MAIS|MAIS VENDIDOS/.test(t)) return respTopProdutos(B, E, t);
-  if ((/CLIENTE|LOJA|REDE\b/.test(t) || /COMPRA D[OA]|COMPRAS D[OA]|QUANTO COMPROU|O QUE COMPROU|PEDIDOS? D[OA]/.test(t)) && /COMPROU|COMPRA|ULTIMO PEDIDO|SEM COMPRAR|OFERECER|PRODUTOS D/.test(t) && !/CLIENTES QUE|QUAIS (OS )?CLIENTES|QUEM/.test(t)) { const r = await respCliente(B, E, t); if (r) return r; if (/OFERECER|ULTIMO PEDIDO|PRODUTOS D/.test(t)) return `🔎 Não achei esse cliente em ${E.nome} (vendas do mês). Confira o nome ou mande o código do cliente (ex.: #212704).`; }
+  if ((/CLIENTE|LOJA|REDE\b/.test(t) || /COMPRA D[OA]|COMPRAS D[OA]|QUANTO COMPROU|O QUE COMPROU|PEDIDOS? D[OA]|HISTORICO/.test(t)) && /COMPROU|COMPRA|ULTIMO PEDIDO|SEM COMPRAR|OFERECER|PRODUTOS D|HISTORICO/.test(t) && !/CLIENTES QUE|QUAIS (OS )?CLIENTES|QUEM/.test(t)) { const r = await respCliente(B, E, t, anteriores); if (r) return r; if (/OFERECER|ULTIMO PEDIDO|PRODUTOS D|HISTORICO/.test(t)) return `🔎 Não achei esse cliente em ${E.nome} (vendas do mês). Confira o nome ou mande o código do cliente (ex.: #212704).`; }
   if (/COMPRA|COMPROU|COMPRARAM|VENDEU DE |VENDERAM DE |VENDEU (O|A) |VENDE DE |POSITIVACAO D[OEA]S? |(VENDE MAIS|MAIS VENDE)(?!U)(?!.*(SUPERVISOR|VENDEDOR|FILIAL|GERENTE))|EM QUANTOS CLIENTES|CLIENTES COMPRARAM|PDVS COMPRARAM|SEMANA(L|IS)|MENSA(L|IS)|DIA DA SEMANA|QUAL DIA|QUE DIA|MELHOR DIA|MES A MES|POR SEMANA|SEMANA A SEMANA|POSITIVAND|(SEGUNDA|TERCA|QUARTA|QUINTA|SEXTA|SABADO) OU /.test(t) || /\b(MONDELEZ|MARS|ARCOR|BAGLEY|CONDOR|FERRERO|NESTLE|HERSHEY|FINI|DORI|PEPSICO|KELLOGG|LACTA|DIVERSAO)\b/.test(t)) {
     const ri = await respIndustria(B, E, t, pessoa); if (ri && ri !== SEM_VENDAS) return ri;
     const rp = await respProduto(B, E, t, pessoa);

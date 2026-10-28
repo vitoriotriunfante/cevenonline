@@ -37,19 +37,51 @@ export async function onRequestPost({ request, env }) {
   // 25/10/2026: mensagens chegam tambem como "@lid" (identificador anonimo do WhatsApp). Antes eram DESCARTADAS sem gravar (supervisores que escreveram ficaram sem resposta).
   // O telefone real vem em key.senderPn / key.remoteJidAlt (Evolution v2). Grupo, status e canal continuam ignorados.
   if (!/@(s\.whatsapp\.net|lid)$/.test(jid)) return new Response('ok');
-  const jidTel = jid.endsWith('@lid') ? String(d.key.senderPn || d.key.remoteJidAlt || d.key.participantPn || '') : jid;
-  const destino = jidTel ? jidTel.split('@')[0] : jid;   /* para responder: telefone, ou o proprio @lid se o telefone nao vier */
-  let texto = String((d.message && (d.message.conversation || (d.message.extendedTextMessage && d.message.extendedTextMessage.text))) || '').trim();
+
+  // DEDUPLICAÇÃO DE MENSAGENS (28/10/2026): o Evolution envia webhook duplicado (ex.: uma via JID normal e outra via @lid 8s depois).
+  // Se o msg_id já foi recebido nos últimos 5 minutos, ignora imediatamente para não responder 2 vezes nem bugar o usuário.
+  const msgId = d.key && d.key.id;
+  if (msgId && !u.searchParams.get('seco')) {
+    try {
+      const ja = await env.DB.prepare("SELECT id FROM bot_msgs WHERE msg_id = ? AND quando >= datetime('now', '-5 minutes') LIMIT 1").bind(msgId).first();
+      if (ja) return new Response('ok (duplicada)');
+    } catch (e) {}
+  }
+
+  const jidTel = jid.endsWith('@lid') ? String(d.key.senderPn || d.key.remoteJidAlt || d.key.participantPn || d.senderPn || d.participant || '') : jid;
+  let destino = jidTel ? jidTel.split('@')[0] : jid;   /* para responder: telefone, ou o proprio @lid se o telefone nao vier */
+  let texto = String((d.message && (d.message.conversation || (d.message.extendedTextMessage && d.message.extendedTextMessage.text) || (d.message.imageMessage && d.message.imageMessage.caption))) || '').trim();
   let audio = null;
+  const ehImagem = !texto && d.message && d.message.imageMessage;
   if (!texto && d.message && (d.message.audioMessage || d.message.pttMessage)) { audio = await transcreveAudio(env, d); if (audio && audio.texto) texto = audio.texto; }
+  if (ehImagem && !texto) {
+    texto = '[imagem recebida sem legenda]';
+  }
   if (!texto && !audio) return new Response('ok');
   const seco = u.searchParams.get('seco') === '1';
-  const cel = so(seco && u.searchParams.get('como') ? u.searchParams.get('como') : (jidTel || jid).split('@')[0]);
+  let cel = so(seco && u.searchParams.get('como') ? u.searchParams.get('como') : (jidTel || jid).split('@')[0]);
+
+  // Se cel ainda for um @lid anônimo (não tem DDI 55 ou tem > 13 dígitos): tenta mapear pelo histórico recente de msg_id ou perfil
+  if (jid.endsWith('@lid') && (!cel.startsWith('55') || cel.length > 13)) {
+    try {
+      const mapped = await env.DB.prepare("SELECT celular FROM bot_msgs WHERE msg_id = ? AND celular LIKE '55%' LIMIT 1").bind(msgId || '').first();
+      if (mapped && mapped.celular) { cel = mapped.celular; destino = mapped.celular; }
+    } catch (e) {}
+  }
+
   await tabelas(env.DB);
   const vs = variantes(cel);
   const c = await env.DB.prepare(`SELECT * FROM bot_contatos WHERE ativo = 1 AND celular IN (${vs.map(() => '?').join(',')}) LIMIT 1`).bind(...vs).first();
   let meuId = null;
   if (!seco) meuId = await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, msg_id) VALUES (?,?,?,?,?)').bind(cel, c ? c.nome : null, 'in', (audio ? '[áudio] ' : '') + (texto || '(não transcrito: ' + (audio && audio.erro) + ')').slice(0, 2000), d.key.id || null).run().then((r) => r && r.meta && r.meta.last_row_id).catch(() => null);
+  if (ehImagem && texto === '[imagem recebida sem legenda]') {
+    if (!c) return new Response('ok');
+    const msg = `Recebi sua imagem, ${primeiroNome(c)}! 📸 Eu ainda não consigo ler o texto dentro de fotos e prints diretamente. Pode me mandar o *código do cliente* (ex.: #322735), *CNPJ* ou a *razão social* por escrito? Assim eu busco tudo pra você na hora! 🚀`;
+    if (seco) return new Response(msg);
+    await enviar(env, destino, msg);
+    await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(c.celular, c.nome, 'out', msg, 'orientacao_imagem').run();
+    return new Response('ok');
+  }
   if (audio && !texto) {
     if (!c) return new Response('ok');
     const msg = audio.erro === 'longo' ? `Opa, ${titulo(String(c.nome).split(' ')[0])}! Esse áudio tem ${audio.seg} s; eu consigo ouvir até 2 minutos. Me manda em pedaços menores ou por escrito? 🎙️` : `Não consegui ouvir esse áudio agora 🎙️ Pode mandar de novo ou escrever?`;
@@ -57,6 +89,10 @@ export async function onRequestPost({ request, env }) {
     await enviar(env, destino, msg); return new Response('ok');
   }
   if (!c) {   // so responde quem esta cadastrado — EXCETO o supervisor que se apresenta com "Nome ... COD 123" (codigo da arvore do CEVEN e nome batendo)
+    // Se cel não for um número de telefone real válido (não começa com 55 ou tamanho inválido): é um @lid anônimo. Não envia resposta de cadastro.
+    const ehCelReal = cel.startsWith('55') && cel.length >= 12 && cel.length <= 13;
+    if (!ehCelReal) return new Response('ok (lid sem cel)');
+
     const novo = await cadastraPorCodigo(env, cel, texto, d.pushName);
     if (!novo) {
       // 26/10/2026: supervisor que se apresenta e nao e achado na arvore ficava SEM RESPOSTA. Agora: resposta educada + aviso ao Vitorio (1x por numero por dia).
@@ -103,11 +139,12 @@ export async function onRequestPost({ request, env }) {
   // reclamacao: marca a ultima resposta como "nao ajudou" (vai para o painel de conversas)
   if (!seco && RECLAMACAO.test(tN)) { try { await env.DB.prepare("UPDATE bot_msgs SET ajudou = 0 WHERE id = (SELECT id FROM bot_msgs WHERE celular = ? AND direcao = 'out' ORDER BY id DESC LIMIT 1)").bind(cel).run(); } catch (e) {} }
   // FEEDBACK (Vitorio, 25/10/2026: "no inicio eu gostaria que as pessoas pudessem dar nota e sugestoes... se a resposta foi satisfatoria, trouxe dados corretos")
-  const ultOut = await env.DB.prepare("SELECT id, texto, nota, quando FROM bot_msgs WHERE celular = ? AND direcao = 'out' ORDER BY id DESC LIMIT 1").bind(cel).first().catch(() => null);
+  // Busca a última resposta OUT real (ignora figurinhas)
+  const ultOut = await env.DB.prepare("SELECT id, texto, nota, quando, tipo FROM bot_msgs WHERE celular = ? AND direcao = 'out' ORDER BY id DESC LIMIT 1").bind(cel).first().catch(() => null);
   const ultIn = await env.DB.prepare("SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'in' ORDER BY id DESC LIMIT 1 OFFSET 1").bind(cel).first().catch(() => null);
   const notaTxt = (texto.trim().match(/^(?:nota\s*)?([1-5])(?:\s*(?:\/\s*5|estrelas?))?[!. ]*$/i) || [])[1] || (/^\s*(👍|👍🏻|👍🏼|👍🏽)\s*$/.test(texto) ? '5' : /^\s*(👎|👎🏻|👎🏼|👎🏽)\s*$/.test(texto) ? '1' : null);
-  const pediuMotivo = ultOut && /o que faltou ou veio errado/.test(ultOut.texto || '');
-  // sugestao tambem no meio da frase (27/10/2026: "...nao acha? fica a sugestao", "anote ai como sugestao", "precisa ajustar as respostas... dei uma sugestao")
+  // Se a última mensagem que o Jota mandou pediu o motivo ("o que faltou ou veio errado"), a próxima mensagem É O MOTIVO/SUGESTÃO!
+  const pediuMotivo = ultOut && (/o que faltou ou veio errado/i.test(ultOut.texto || '') || ultOut.tipo === 'nota');
   const sugMeio = /fica (a|como) (sugest(ã|a)o|dica)|anot(e|a)( a(í|i))?( isso)?( como)? sugest(ã|a)o|como sugest(ã|a)o|dei uma sugest(ã|a)o|minha sugest(ã|a)o (é|e)/i.test(texto) ? texto : null;
   const sug = (texto.match(/^\s*sugest(?:ã|a)o\s*[:\-]?\s*([\s\S]{3,})/i) || [])[1] || sugMeio || (pediuMotivo && !notaTxt ? texto : null);
   if (notaTxt && ultOut && ultOut.nota == null && Date.now() - Date.parse(ultOut.quando + 'Z') < 6 * 3600 * 1000) {
@@ -119,7 +156,7 @@ export async function onRequestPost({ request, env }) {
     tipo = 'nota';
   } else if (sug) {
     await env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(cel, c.nome, c.papel, c.filial || '', sug.slice(0, 1500), (ultIn && ultIn.texto ? String(ultIn.texto).slice(0, 300) : '')).run();
-    resp = `Anotado, ${primeiroNome(c)}! Sua sugestão foi para o time que me treina. 🙏 Obrigado por ajudar a deixar o Jota melhor.`;
+    resp = `Anotado, ${primeiroNome(c)}! Já registrei sua sugestão com o time que me treina. 🙏 Obrigado por ajudar a deixar o Jota melhor!`;
     tipo = 'sugestao';
   }
   if (!resp && ehSaudacao(tN)) { resp = await respSaudacao(B, c, primeiraVez); tipo = primeiraVez ? 'saudacao_primeira' : 'saudacao'; }

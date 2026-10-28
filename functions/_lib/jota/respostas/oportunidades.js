@@ -42,8 +42,10 @@ export async function respJustificativas(B, E, t, pessoa) {
 export function respSemDado(t) {
   if (/SELL.?OUT|ESTOQUE (D[OEA]S?|NO|NOS|NA|NAS) |RUPTURA|GIRO NO (PDV|CLIENTE)/.test(t)) return '📭 *Sell-out, estoque e ruptura no cliente* eu não tenho: a nossa base é do que *nós vendemos* (sell-in), não do que o cliente vende ou tem na gôndola.\nO que eu tenho: quem comprou e quanto, dias sem comprar, quem comprava e parou, dia da semana e semana a semana. Ex.: "quem comprava Snickers e parou na TBL".';
   if (/\bSHARE\b|CONCORR|MARKET ?SHARE|PARTICIPACAO DE MERCADO/.test(t)) return '📭 *Share e concorrência* eu não tenho: não há dado de mercado na base (só as nossas vendas).\nO que eu tenho: nossa positivação e faturado por indústria, filial e vendedor, e a meta de cada indústria. Ex.: "como está a meta da Mondelez no Brasil?".';
-  if (/MARGEM|\bLUCRO\b|LUCRATIV|RENTABIL|CUSTO DOS? PRODUTOS?|\bCMV\b/.test(t)) return '📭 *Margem, lucro e rentabilidade* eu não tenho: a base não traz custo nem preço de compra.\nO que eu tenho: faturado, preço médio de venda, devolução e corte. Ex.: "qual o preço médio do Snickers?".';
-  if (/SEMESTRE|TRIMESTRE|MELHOR MES DO ANO|PIOR MES DO ANO|ANO PASSADO|ULTIMOS? \d+ MESES|NO ANO\b|ACUMULADO DO ANO|\bYTD\b/.test(t)) return '📭 *Histórico longo* (ano, semestre, ano passado) eu ainda não tenho aqui: comparo *este mês* com o *mês passado* (item a item, até o mesmo dia).\nEx.: "como estamos em relação ao mês passado?".';
+  if (/SEMESTRE|TRIMESTRE|MELHOR MES DO ANO|PIOR MES DO ANO|ANO PASSADO|ULTIMOS? \d+ MESES|NO ANO\b|ACUMULADO DO ANO|\bYTD\b/.test(t)) {
+    if (/CLIENTE|LOJA|REDE|#\d{3,7}/.test(t)) return null;
+    return '📭 *Histórico longo* (ano, semestre, ano passado) eu ainda não tenho aqui: comparo *este mês* com o *mês passado* (item a item, até o mesmo dia).\nEx.: "como estamos em relação ao mês passado?".';
+  }
   return null;
 }
 // O QUE OFERECER PARA O CLIENTE X = lista do +MIX daquele cliente (mesma do app do CEVEN; ja tira o que ele comprou nos ultimos 60 dias)
