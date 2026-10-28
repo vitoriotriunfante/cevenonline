@@ -1,45 +1,45 @@
 🌅 *ABERTURA MATINAL — TCG (07:45)*
-📅 terça-feira, 27/10/2026
+📅 quarta-feira, 28/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 20 • Visitas: 224 (média 11,2/vendedor)
-Sem compra +30d: 58 (25,9%) • Recorrência: 25 (11,2%)
+👥 Vendedores: 20 • Visitas: 181 (média 9,1/vendedor)
+Sem compra +30d: 49 (27,1%) • Recorrência: 20 (11,0%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCG — DANILO* • 27/10/2026
+📍 *TCG — DANILO* • 28/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 58  •  🟡 Preventivo: 0
+🔴 Última Chance: 48  •  🟡 Preventivo: 0
 
-👤 *DELINLSON ANTONIO LIMA SILVA* (30 em risco)
-  🔴 MERCADO LEVE MAIS (456) — 05/12
-  🔴 WAGAO (456) — 15/09
-  🔴 MERCEARIA NANICO (456) — 21/09
-  🔴 VARANDA CONVENIENCIAS (456) — 25/09
-  🔴 MERCADO PRATA (456) — 15/09
-  _+25 outros_
+👤 *DELINLSON ANTONIO LIMA SILVA* (22 em risco)
+  🔴 PANIFICADORA E CONFEITARIA LAURA PAES (456) — 15/09
+  🔴 MERCADO KI PRECO (456) — 15/09
+  🔴 MERCADO JOIA (456) — 15/09
+  🔴 GALLO MERCEARIA E CONVENIENCIA (456) — 15/09
+  🔴 MERCADO COMPRE BEM (461) — 24/09
+  _+17 outros_
 
 👤 *EDSON RODRIGO LINIA* (6 em risco)
-  🔴 MERCADO PAVANELI (459) — 31/08
-  🔴 MERCADINHO NOVA ESPERANCA (474) — 23/09
-  🔴 CONVENIENCIA ELDORADO (474) — 29/08
-  🔴 MERCADO GALVAO (475) — 31/08
-  🔴 MERCEARIA E CONV. CARAVELO (476) — 05/12
+  🔴 MERCEARIA PACARA (458) — 31/08
+  🔴 MERCADO UNIAO NOVA OPCAO (458) — 01/01
+  🔴 EONIO MARCONDES GRIZE (458) — 01/01
+  🔴 DROGARIA SAO MATHEUS (474) — 18/09
+  🔴 MERCADO VILA CRISTINA (475) — 19/09
   _+1 outros_
 
 👤 *Vendedores ligados direto ao gerente* (6 em risco)
-  🔴 FARMASILVIA (489) — 05/12
-  🔴 SACOLAO DOIS IRMAOS (489) — 17/08
-  🔴 ROYAL DISTRIBUIDORA (489) — 03/05
-  🔴 MERCADO MAQUINA MONTE ALEGRE (489) — 18/02
-  🔴 CLT ANDERSON DA SILVA ROGRIG (489) — 03/05
+  🔴 ROOSTEL MERCADO (489) — 17/09
+  🔴 MERCADO BRILHANTE (489) — 01/09
+  🔴 RESTAURANTTE BOM APETITE (489) — 05/12
+  🔴 CONVENIENCIA MINIMERCADO TOTAL (489) — 18/09
+  🔴 PET SHOP CACHORRAO (489) — 31/08
   _+1 outros_
 
-👤 *TIAGO SANTOS CORREA* (16 em risco)
-  🔴 SUPERMERCADO COLOMBI (472) — 18/09
-  🔴 MERCADO SAO LUIZ (473) — 12/09
-  🔴 FARMACIA ASSOCIADAS (473) — 17/09
-  🔴 MERCEARIA BOM PRECO (473) — 16/09
-  🔴 MERCEARIA BOM JESUS (486) — 31/08
-  _+11 outros_
+👤 *TIAGO SANTOS CORREA* (14 em risco)
+  🔴 DROGARIA FARMAVIDA (473) — 17/09
+  🔴 CONVENIENCIA PUZZLE (486) — 05/12
+  🔴 REZENDE MERCADO E ACOUGUE (486) — 05/12
+  🔴 TOP MIX (486) — 24/08
+  🔴 UNITED CINEMAS INTERNACIONAL BRASIL (486) — 29/08
+  _+9 outros_

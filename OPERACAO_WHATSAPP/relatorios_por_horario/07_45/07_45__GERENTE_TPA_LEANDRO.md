@@ -1,37 +1,37 @@
 🌅 *ABERTURA MATINAL — TPA (07:45)*
-📅 terça-feira, 27/10/2026
+📅 quarta-feira, 28/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 17 • Visitas: 282 (média 16,6/vendedor)
-Sem compra +30d: 97 (36,6%) • Recorrência: 24 (9,1%)
+👥 Vendedores: 16 • Visitas: 261 (média 16,3/vendedor)
+Sem compra +30d: 86 (34,3%) • Recorrência: 17 (6,8%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPA — RADKE / LEANDRO* • 27/10/2026
+📍 *TPA — RADKE / LEANDRO* • 28/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 97  •  🟡 Preventivo: 0
+🔴 Última Chance: 83  •  🟡 Preventivo: 0
 
-👤 *ROGERIO DORNELLES PASSOS* (33 em risco)
-  🔴 META DISTRIBUIDORA (144) — 20/08
-  🔴 FABESUL (144) — 23/09
-  🔴 COMERCIAL MARTINI (144) — 05/12
-  🔴 ROSSEL COM DE PROD DE LIMP E DESC LTDA (144) — 14/09
-  🔴 MERCADO UNIAO (144) — 21/09
-  _+28 outros_
+👤 *ROGERIO DORNELLES PASSOS* (11 em risco)
+  🔴 JUNIOR DISTRIBUIDORA (144) — 05/12
+  🔴 MERCADO CENTRAL (144) — 23/09
+  🔴 MINI MERCADO E FRUTEIRA CATARINA (154) — 17/09
+  🔴 MERCADO PECCO (154) — 24/09
+  🔴 MEB E MS MERCADINHO (154) — 16/09
+  _+6 outros_
 
-👤 *ANDERSON GIOVANI FERREIRA BOLTER* (37 em risco)
-  🔴 ATACADAO VINICIUS LTDA (150) — 01/01
-  🔴 MERCADO DOS GURIS (150) — 01/01
-  🔴 ATACADO VITORIA (150) — 17/09
-  🔴 ACOUGUE GUARAGNI LTDA (150) — 16/07
-  🔴 MEGAMIX DOCES E FESTAS (150) — 24/09
+👤 *ANDERSON GIOVANI FERREIRA BOLTER* (35 em risco)
+  🔴 SUPER MAIS BARATO (150) — 05/12
+  🔴 MESASUL (150) — 22/07
+  🔴 MERCADO BRANES (150) — 05/12
+  🔴 BRANES MERCADO LTDA (150) — 01/01
+  🔴 SUPERMERCADO D CASA LTDA (150) — 01/01
+  _+30 outros_
+
+👤 *RAFAEL DA SILVA CARPENA* (37 em risco)
+  🔴 ACOUGUE SAO JOSE (140) — 05/12
+  🔴 MERCADO LU (140) — 01/01
+  🔴 MERCADO DA SONIA (140) — 31/07
+  🔴 FRUTEIRA IDEAL STA MARIA (140) — 31/08
+  🔴 MINI MERCADO INTEGRACAO (140) — 01/01
   _+32 outros_
-
-👤 *RAFAEL DA SILVA CARPENA* (27 em risco)
-  🔴 COMERCIAL SANTOS E GOMES (140) — 27/05
-  🔴 LICERES SUPERMERCADO (140) — 01/01
-  🔴 SOUZAMIX (140) — 31/08
-  🔴 COMERCIAL MARACANA (140) — 01/01
-  🔴 ROGERIO JOAO SCHMIDT (145) — 21/09
-  _+22 outros_

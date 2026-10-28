@@ -1,37 +1,37 @@
 🌅 *ABERTURA MATINAL — TBE (07:45)*
-📅 terça-feira, 27/10/2026
+📅 quarta-feira, 28/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 16 • Visitas: 312 (média 19,5/vendedor)
-Sem compra +30d: 126 (40,4%) • Recorrência: 13 (4,2%)
+👥 Vendedores: 16 • Visitas: 365 (média 22,8/vendedor)
+Sem compra +30d: 139 (38,1%) • Recorrência: 23 (6,3%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TBE — DIEGO* • 27/10/2026
+📍 *TBE — DIEGO* • 28/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 126  •  🟡 Preventivo: 0
+🔴 Última Chance: 135  •  🟡 Preventivo: 0
 
-👤 *HAMILTON RICARDO DOS SANTOS MENDES* (54 em risco)
-  🔴 CASA DAS BALAS (301) — 05/12
-  🔴 MERCADO NAVEGANTES (301) — 21/09
-  🔴 ARMAZEM DO PORTO (301) — 25/09
-  🔴 MINIMERCADO 24H (301) — 31/08
-  🔴 MINIMERCADO HIPICA (301) — 16/09
-  _+49 outros_
+👤 *HAMILTON RICARDO DOS SANTOS MENDES* (39 em risco)
+  🔴 BAZAR RC PRESENTES E UTILIDADES (301) — 05/12
+  🔴 HAMBURGAO LANCHES (301) — 05/12
+  🔴 LANCHERIA GIOVANA (301) — 21/09
+  🔴 FBVA POA (304) — 01/01
+  🔴 QING KE COMERCIO DE PRODUTOS ALIMENTICIO (304) — 01/01
+  _+34 outros_
 
-👤 *NEIVA CLEONICE SERRA ISOPPO* (7 em risco)
-  🔴 SILVANE MARIA SCHMIDT DE LIMA (289) — 05/12
-  🔴 CONFEITARIA KI SABOR (289) — 17/09
-  🔴 SUPERMECADO GUARANI (293) — 21/09
-  🔴 ELITON KENNEDY GUIMARAES DOS SANTOS (293) — 03/05
-  🔴 MERCADO ACOUGUE E PADARIA DO GAGO (293) — 27/08
-  _+2 outros_
+👤 *NEIVA CLEONICE SERRA ISOPPO* (9 em risco)
+  🔴 PADARIA SONHO DOCE (289) — 09/09
+  🔴 S O S BEER (289) — 25/08
+  🔴 PASTEIS LANCH E PROD COL DO GUI (289) — 25/08
+  🔴 EVILYN C DE BRITO (293) — 01/01
+  🔴 ANGELITA FERREIRA DA SILVA (293) — 01/01
+  _+4 outros_
 
-👤 *PATRICIA CHAVES MACHADO* (65 em risco)
-  🔴 LENIO LUIZ WEBBER (285) — 01/01
-  🔴 MARILENE MOREIRA SCHREIBER (285) — 27/05
-  🔴 LUCIANA PEREIRA COSTA (285) — 01/01
-  🔴 VIVIAN OLIVEIRA WOLTMANN DA SILVA (285) — 27/05
-  🔴 AUTO POSTO 70 (285) — 24/09
-  _+60 outros_
+👤 *PATRICIA CHAVES MACHADO* (87 em risco)
+  🔴 APOLO FILIAL 13 (285) — 01/01
+  🔴 SALVADOS DO VALE (285) — 31/08
+  🔴 AGAFARMA (285) — 05/12
+  🔴 JULIA ULIANO MONEGO (285) — 01/01
+  🔴 MARGARETE SOLANGEDE JESUS SANTOS (285) — 23/07
+  _+82 outros_

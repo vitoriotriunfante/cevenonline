@@ -1,37 +1,37 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 terça-feira, 27/10/2026
+📅 quarta-feira, 28/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 21 • Visitas: 165 (média 7,9/vendedor)
-Sem compra +30d: 40 (26,7%) • Recorrência: 16 (10,7%)
+👥 Vendedores: 21 • Visitas: 160 (média 7,6/vendedor)
+Sem compra +30d: 37 (24,2%) • Recorrência: 26 (17,0%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — ADRIANO* • 27/10/2026
+📍 *MCD — ADRIANO* • 28/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 40  •  🟡 Preventivo: 0
+🔴 Última Chance: 36  •  🟡 Preventivo: 0
 
-👤 *ALYFER PEREIRA MENDES* (8 em risco)
-  🔴 AGRO BOI FORTE (432) — 17/08
-  🔴 TOP VET LTDA (432) — 27/08
-  🔴 AGRONUTRI PETSHOP (436) — 08/08
-  🔴 PET CENTER CAFEZAIS (436) — 05/12
-  🔴 OX HEADE (436) — 05/09
-  _+3 outros_
+👤 *ALYFER PEREIRA MENDES* (10 em risco)
+  🔴 OUT PET (432) — 18/09
+  🔴 AGROTOURO (432) — 14/08
+  🔴 PET MS (436) — 27/08
+  🔴 MKE RACOES (436) — 03/05
+  🔴 ESTACAO DO PET (436) — 31/08
+  _+5 outros_
 
-👤 *CARLOS ALAGUEZ DA SILVA* (17 em risco)
-  🔴 CASA DE CARNE E MERCADO BOI GORDO (430) — 18/09
-  🔴 SUPERMERCADOS CHAMA (430) — 05/12
-  🔴 MERCADO ESPERANCA (438) — 05/12
-  🔴 VIA SUL VEICULOS (438) — 03/05
-  🔴 MERCADO KI PRECO (438) — 15/09
-  _+12 outros_
+👤 *CARLOS ALAGUEZ DA SILVA* (16 em risco)
+  🔴 MERCADO RODA VIVA (423) — 05/12
+  🔴 POSTO SENA (430) — 05/12
+  🔴 CHAMA PORTAL (430) — 05/12
+  🔴 MERC LUMER (438) — 15/09
+  🔴 SUPERMERCADO COMPRE BEM MAIS (438) — 15/09
+  _+11 outros_
 
-👤 *CLEOMAR DINIZ BARBOSA* (15 em risco)
-  🔴 PET HOMME (415) — 28/08
-  🔴 CENTRAL CONVENIENCIA (415) — 05/12
-  🔴 MERCADO VILA CRISTINA (415) — 19/09
-  🔴 MERCEARIA VENTURA (424) — 24/09
-  🔴 JF COVENIECIA (424) — 10/09
-  _+10 outros_
+👤 *CLEOMAR DINIZ BARBOSA* (10 em risco)
+  🔴 ACOUGUE E MERCEARIA LOPES (424) — 16/09
+  🔴 ViniDog Pet Shop (427) — 29/08
+  🔴 MERCADO COMPRE MAIS (447) — 21/09
+  🔴 MINI MERCADO COMPRE MAIS (447) — 15/09
+  🔴 FLORICULTURA MARROCOS (455) — 24/09
+  _+5 outros_
