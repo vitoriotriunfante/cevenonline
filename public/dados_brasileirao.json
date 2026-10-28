@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-28T12:18:47.289419Z",
+  "gerado_em": "2026-10-28T12:35:11.543604Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -18,7 +18,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 33002,
+  "total_lances_auditados": 33003,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -59,9 +59,9 @@
       "vitorias": 2,
       "empates": 9,
       "derrotas": 0,
-      "gp": 5933,
+      "gp": 5934,
       "gc": 3550,
-      "sg": 2383,
+      "sg": 2384,
       "aprov": 45.5,
       "super_pedidos": 38,
       "inativos_resgatados": 124,
@@ -406,9 +406,9 @@
       "vitorias": 2,
       "empates": 9,
       "derrotas": 0,
-      "gp": 5933,
+      "gp": 5934,
       "gc": 3550,
-      "sg": 2383,
+      "sg": 2384,
       "aprov": 45.5,
       "forma": [
         "E",
@@ -978,7 +978,7 @@
         "V",
         "J"
       ],
-      "plus_lideranca": 110,
+      "plus_lideranca": 115,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1026,7 +1026,7 @@
         },
         "2026-10-28": {
           "compromisso": 5,
-          "ret": 0
+          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -1517,7 +1517,7 @@
         "V",
         "J"
       ],
-      "plus_lideranca": 90,
+      "plus_lideranca": 95,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1565,7 +1565,7 @@
         },
         "2026-10-28": {
           "compromisso": 5,
-          "ret": 0
+          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -2171,9 +2171,9 @@
       "vitorias": 2,
       "empates": 9,
       "derrotas": 0,
-      "gp": 1071,
+      "gp": 1072,
       "gc": 783,
-      "sg": 288,
+      "sg": 289,
       "aprov": 45.5,
       "forma": [
         "E",
@@ -2609,7 +2609,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 80,
+      "plus_lideranca": 85,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2656,7 +2656,7 @@
           "ret": 5
         },
         "2026-10-28": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2861,7 +2861,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 35,
+      "plus_lideranca": 40,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 0,
@@ -2908,7 +2908,7 @@
           "ret": 0
         },
         "2026-10-28": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -4877,7 +4877,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 105,
+      "plus_lideranca": 110,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -4925,7 +4925,7 @@
         },
         "2026-10-28": {
           "compromisso": 5,
-          "ret": 0
+          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -4961,7 +4961,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 95,
+      "plus_lideranca": 100,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 0,
@@ -5009,7 +5009,7 @@
         },
         "2026-10-28": {
           "compromisso": 5,
-          "ret": 0
+          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -5297,7 +5297,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 115,
+      "plus_lideranca": 120,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -5345,7 +5345,7 @@
         },
         "2026-10-28": {
           "compromisso": 5,
-          "ret": 0
+          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -11890,6 +11890,47 @@
       "pos_filial_ant": 14
     },
     {
+      "rca": "1134",
+      "nome": "LIDIANE APARECIDA BARBOSA",
+      "filial": "TBL",
+      "supervisor": "SERGIO LOPES DE OLIVEIRA",
+      "gerente": "Fábio",
+      "canal": "VAREJO",
+      "jogos": 12,
+      "vitorias": 5,
+      "empates": 3,
+      "derrotas": 4,
+      "pts_tabela": 18,
+      "aprov": 50.0,
+      "gp": 340,
+      "gc": 313,
+      "sg": 27,
+      "super_pedidos": 3,
+      "inativos_resgatados": 3,
+      "forma": [
+        "D",
+        "E",
+        "V",
+        "D",
+        "V",
+        "V",
+        "V",
+        "D",
+        "D",
+        "V",
+        "E",
+        "E"
+      ],
+      "streak": 3,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 109,
+      "pos_filial": 13,
+      "pos_brasil_ant": 113,
+      "pos_filial_ant": 13
+    },
+    {
       "rca": "1126",
       "nome": "FLAVIO ALVES DA SILVA",
       "filial": "API",
@@ -11925,7 +11966,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 109,
+      "pos_brasil": 110,
       "pos_filial": 15,
       "pos_brasil_ant": 109,
       "pos_filial_ant": 15
@@ -11966,7 +12007,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 110,
+      "pos_brasil": 111,
       "pos_filial": 5,
       "pos_brasil_ant": 110,
       "pos_filial_ant": 5
@@ -12007,7 +12048,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 111,
+      "pos_brasil": 112,
       "pos_filial": 20,
       "pos_brasil_ant": 111,
       "pos_filial_ant": 20
@@ -12048,51 +12089,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 112,
+      "pos_brasil": 113,
       "pos_filial": 19,
       "pos_brasil_ant": 112,
       "pos_filial_ant": 19
-    },
-    {
-      "rca": "1134",
-      "nome": "LIDIANE APARECIDA BARBOSA",
-      "filial": "TBL",
-      "supervisor": "SERGIO LOPES DE OLIVEIRA",
-      "gerente": "Fábio",
-      "canal": "VAREJO",
-      "jogos": 11,
-      "vitorias": 5,
-      "empates": 2,
-      "derrotas": 4,
-      "pts_tabela": 17,
-      "aprov": 51.5,
-      "gp": 339,
-      "gc": 313,
-      "sg": 26,
-      "super_pedidos": 3,
-      "inativos_resgatados": 3,
-      "forma": [
-        "D",
-        "E",
-        "V",
-        "D",
-        "V",
-        "V",
-        "V",
-        "D",
-        "D",
-        "V",
-        "E",
-        "J"
-      ],
-      "streak": 3,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 113,
-      "pos_filial": 13,
-      "pos_brasil_ant": 113,
-      "pos_filial_ant": 13
     },
     {
       "rca": "406",
