@@ -7,10 +7,15 @@
 // SENHA: a mesma da Gestão de Equipe (X-Equipe-Senha). Só leitura.
 // =========================================================================
 import { exigeSenhaEquipe } from '../_lib/senha_equipe.js';
+import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
 const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Equipe-Senha', 'Cache-Control': 'no-store' };
 export async function onRequestOptions() { return new Response(null, { status: 204, headers: CORS }); }
 export async function onRequestGet({ request, env }) {
-  const negado = await exigeSenhaEquipe(request, env, CORS); if (negado) return negado;
+  const adminOk = await chaveAdminOk(env, request);
+  if (!adminOk) {
+    const negado = await exigeSenhaEquipe(request, env, CORS);
+    if (negado) return negado;
+  }
   const dias = Math.min(60, Number(new URL(request.url).searchParams.get('dias') || 7));
   for (const col of ['tipo TEXT', 'ajudou INTEGER', 'nota INTEGER']) { try { await env.DB.prepare(`ALTER TABLE bot_msgs ADD COLUMN ${col}`).run(); } catch (e) { /* ja existe */ } }
   const { results } = await env.DB.prepare(`SELECT m.id, m.quando, m.celular, m.direcao, m.texto, m.tipo, m.ajudou, m.nota, c.nome, c.papel, c.filial, c.situacao, c.ativo

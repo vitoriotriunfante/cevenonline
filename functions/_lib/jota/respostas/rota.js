@@ -211,27 +211,47 @@ export async function respMixRotaHoje(B, v) {
   return L.join('\n');
 }
 
-// CLIENTES DE RECORRENCIA (Vitorio, 27/10/2026: "o pessoal esta perguntando sobre recorrencia e vc nao ta respondendo... so nesse vendedor hoje tem 4 clientes de
-// recorrencia (TCV 346)... vc tem que buscar recorrencia por meta e por TAG"). TAG = foco RECORRENCIA no roteiro (hoje e mes). META = 80% dos clientes com a tag (Premiacao).
-const temTagRec = (c) => (c.focos || []).some((f) => /RECORRENCIA/i.test(String(f.industria_foco || '')));
-export async function respRecorrenciaClientes(B, E, v, t = '') {
+// CLIENTES DE RECORRENCIA E QUALQUER TAG / CAMPANHA (Vitorio, 28/10/2026: "consegue responder sobre todas as TAGS, certo? e não apenas recorrência... elas foram todas atualizadas agora").
+// Tags conhecidas: RECORRENCIA, SEM COMPRAS P11, SEM COMPRAS LEAO, CAMPANHA BORGES, CHOCO INDEP, SNICKERS CORE, SNICKERS BRANCO, M&M,S CHOCO 40GR, M&M,S TUBO, TWIX 40GR, SKITTLES, TOFFEES, TORT, BISCUIT, BLOCK, BON, FLOW, CHAMP KITEKAT.
+export function achaTagNaPergunta(t) {
+  const s = sem(t);
+  if (/RECORRENCIA/.test(s)) return { tag: 'RECORRENCIA', label: 'Recorrência', ehRec: true };
+  if (/SEM COMPRAS? P11|\bP11\b/.test(s)) return { tag: 'SEM COMPRAS P11', label: 'Sem Compras P11', ehRec: false };
+  if (/SEM COMPRAS? LEAO|SEM COMPRA LEAO/.test(s)) return { tag: 'SEM COMPRAS LEAO', label: 'Sem Compras Leão', ehRec: false };
+  if (/CAMPANHA BORGES|\bBORGES\b/.test(s)) return { tag: 'CAMPANHA BORGES', label: 'Campanha Borges', ehRec: false };
+  if (/CHOCO INDEP/.test(s)) return { tag: 'CHOCO INDEP', label: 'Choco Indep', ehRec: false };
+  if (/SNICKERS CORE/.test(s)) return { tag: 'SNICKERS CORE', label: 'Snickers Core', ehRec: false };
+  if (/SNICKERS BRANCO/.test(s)) return { tag: 'SNICKERS BRANCO', label: 'Snickers Branco', ehRec: false };
+  if (/M&M|M AND M|MEM TUBO|M&M TUBO/.test(s)) return { tag: /TUBO/.test(s) ? 'M&M,S TUBO' : 'M&M,S CHOCO 40GR', label: 'M&M', ehRec: false };
+  if (/TWIX/.test(s)) return { tag: 'TWIX 40GR', label: 'Twix 40g', ehRec: false };
+  if (/SKITTLES/.test(s)) return { tag: 'SKITTLES', label: 'Skittles', ehRec: false };
+  if (/TOFFEES/.test(s)) return { tag: 'TOFFEES', label: 'Toffees', ehRec: false };
+  if (/CHAMP KITEKAT|KITEKAT/.test(s)) return { tag: 'CHAMP KITEKAT', label: 'Champ Kitekat', ehRec: false };
+  if (/BISCUIT/.test(s)) return { tag: 'BISCUIT', label: 'Biscuit', ehRec: false };
+  if (/BLOCK/.test(s)) return { tag: 'BLOCK', label: 'Block', ehRec: false };
+  if (/CHOCOLATE BON|\bBON\b/.test(s) && !/BOM DIA/.test(s)) return { tag: 'BON', label: 'Bon', ehRec: false };
+  if (/FLOW/.test(s)) return { tag: 'FLOW', label: 'Flow', ehRec: false };
+  return { tag: 'RECORRENCIA', label: 'Recorrência', ehRec: true };
+}
+
+export async function respTagCampanhas(B, E, v, t = '') {
+  const tagInfo = achaTagNaPergunta(t);
+  const tagRegex = new RegExp(tagInfo.tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '.*?'), 'i');
+  const temTag = (c) => (c.focos || []).some((f) => tagRegex.test(sem(String(f.industria_foco || ''))));
   const mes = hojeSP().slice(0, 7), dd = (s) => (s && s >= '2000' ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : '—');
-  // COMPROU NO MES = vendas item a item do mes (pedido) ou positivado no roteiro (27/10/2026: a data do roteiro tem valor-padrao do CEVEN e dava "3 de 82")
   const { vendasEscopo } = await import('./vendas.js'); const VM = await vendasEscopo(B, E).catch(() => null);
   const compraram = new Set(((VM && VM.linhas) || []).map((l) => l.f + '|' + l.c));
   const um = (x) => {
     const hoje = []; const vh = new Set();
-    for (const c of (x.rotaHoje || []).filter(temTagRec)) { if (vh.has(String(c.id_cliente))) continue; vh.add(String(c.id_cliente)); hoje.push(c); }
-    const mesC = new Map(); for (const c of (x.roteiroMes || []).filter(temTagRec)) { const k = String(c.id_cliente), u = String(c.data_ultima_compra || '').slice(0, 10); const y = mesC.get(k) || { c, u: '', comp: false }; if (u > y.u) y.u = u; if (/POSITIVADO|EFETIVADO/i.test(String(c.status || ''))) y.comp = true; mesC.set(k, y); }
+    for (const c of (x.rotaHoje || []).filter(temTag)) { if (vh.has(String(c.id_cliente))) continue; vh.add(String(c.id_cliente)); hoje.push(c); }
+    const mesC = new Map(); for (const c of (x.roteiroMes || []).filter(temTag)) { const k = String(c.id_cliente), u = String(c.data_ultima_compra || '').slice(0, 10); const y = mesC.get(k) || { c, u: '', comp: false }; if (u > y.u) y.u = u; if (/POSITIVADO|EFETIVADO/i.test(String(c.status || ''))) y.comp = true; mesC.set(k, y); }
     for (const [k, y] of mesC) if (compraram.has(x.filial + '|' + k)) y.comp = true;
-    for (const y of mesC.values()) if (y.comp) y.u = mes + '-01';   /* marca como comprou no mes */
+    for (const y of mesC.values()) if (y.comp) y.u = mes + '-01';
     const comprou = [...mesC.values()].filter((y) => y.comp).length, meta = Math.ceil(mesC.size * 0.8);
     return { hoje, mesC, comprou, meta };
   };
-  // "SO QUERO SABER QUANTOS clientes com tag recorrencia" (Ivayr/TCA, 27/10/2026): menos e mais — so o numero
+  const querListaCompleta = /LISTA COMPLETA|TODOS|TODAS|QUAIS|QUEM|QUERO A LISTA/.test(sem(t));
   if (!v && /QUANTOS/.test(t) && !/CADA|POR VENDEDOR|QUAIS|LISTA|QUEM/.test(t)) {
-    // completa e acionavel para gestao (27/10/2026, Vitorio: "abrir por vendedor onde tem recorrencia e nome do vendedor para ele cobrar a equipe"):
-    // numero + quanto falta para premiacao + quem esta na rota hoje (cliente e vendedor) + abertura por vendedor da equipe + acao
     let tag = 0, comp = 0; const hoje = [], porV = [];
     for (const x of E.vend) {
       const r = um(x); tag += r.mesC.size; comp += r.comprou;
@@ -239,37 +259,42 @@ export async function respRecorrenciaClientes(B, E, v, t = '') {
         hoje.push(`• ${titulo(c.nome_cliente || c.razao_social || 'cliente')} — *${vn(x)}*`);
       }
       if (r.mesC.size) {
-        porV.push([r.mesC.size - r.comprou, `• ${vn(x)}: mês *${r.comprou} de ${r.mesC.size}* (meta ${r.meta})` + (r.hoje.length ? ` · hoje *${r.hoje.length}* na rota` : '')]);
+        porV.push([r.mesC.size - r.comprou, `• ${vn(x)}: mês *${r.comprou} de ${r.mesC.size}*` + (tagInfo.ehRec ? ` (meta ${r.meta})` : '') + (r.hoje.length ? ` · hoje *${r.hoje.length}* na rota` : '')]);
       }
     }
     const meta = Math.ceil(tag * 0.8);
     return [
-      `🔄 *Recorrência — ${E.nome}*`,
-      `*${tag} clientes* com a tag RECORRÊNCIA no mês · já compraram *${comp}* · faltam *${Math.max(0, meta - comp)}* para a meta da Premiação (${meta} = 80%)`,
+      `🔄 *Tag: ${tagInfo.label} — ${E.nome}*`,
+      `*${tag} clientes* com a tag no mês · já compraram *${comp}*` + (tagInfo.ehRec ? ` · faltam *${Math.max(0, meta - comp)}* para a meta da Premiação (${meta} = 80%)` : ` (${tag ? Math.round(comp / tag * 100) : 0}% positivados)`),
       '',
-      hoje.length ? `📍 *Na rota de hoje e ainda sem compra (${hoje.length}):*\n` + hoje.join('\n') : '📍 Nenhum cliente de recorrência sem compra na rota de hoje.',
+      hoje.length ? `📍 *Na rota de hoje e ainda sem compra (${hoje.length}):*\n` + hoje.join('\n') : `📍 Nenhum cliente com a tag sem compra na rota de hoje.`,
       '',
-      `👥 *Recorrência por vendedor:*`,
+      `👥 *Por vendedor:*`,
       ...porV.sort((a, b) => b[0] - a[0]).map((x) => x[1]),
       '',
-      SUGESTAO + (hoje.length ? `cobrar hoje os ${hoje.length} clientes da rota com os vendedores acima; ` : '') + 'peça "recorrência do vendedor <nome>" para ver a lista completa de clientes dele.'
+      SUGESTAO + (hoje.length ? `cobrar hoje os ${hoje.length} clientes da rota com os vendedores acima; ` : '') + `peça "tag ${tagInfo.label} do vendedor <nome>" para ver a lista completa de clientes dele.`
     ].join('\n');
   }
   if (v) {
     const r = um(v);
-    if (!r.hoje.length && !r.mesC.size) return `🔄 ${vn(v)}: nenhum cliente com a tag RECORRÊNCIA no roteiro (hoje e no mês).`;
+    if (!r.hoje.length && !r.mesC.size) return `🔄 ${vn(v)}: nenhum cliente com a tag *${tagInfo.label}* no roteiro (hoje e no mês).`;
     const hj = new Set(r.hoje.map((c) => String(c.id_cliente)));
-    const naoMes = [...r.mesC.values()].filter((y) => !(y.u >= mes + '-01') && !hj.has(String(y.c.id_cliente)));   /* quem esta na rota de hoje ja aparece acima */
-    return [`🔄 *Recorrência — ${vn(v)}*`,
-      `Mês: *${r.comprou} de ${r.meta}* (meta = 80% dos ${r.mesC.size} clientes com a tag)` + (r.meta ? ` · faltam ${Math.max(0, r.meta - r.comprou)}` : ''),
-      ...(r.hoje.length ? ['', `*Na rota de hoje (${r.hoje.length}):*`, '_Cliente · Status · Última compra_', ...r.hoje.map((c) => `${titulo(c.nome_cliente || c.razao_social || 'cliente')} · ${titulo(String(c.status || 'aberto'))} · ${dd(String(c.data_ultima_compra || '').slice(0, 10))}`)] : ['', '_Nenhum cliente de recorrência na rota de hoje._']),
-      ...(naoMes.length ? ['', `*Ainda sem compra no mês (${naoMes.length}):*`, '_Cliente · Última compra_', ...naoMes.slice(0, 10).map((y) => `${titulo(y.c.nome_cliente || y.c.razao_social || 'cliente')} · ${dd(y.u)}`)] : [])].join('\n');
+    const naoMes = [...r.mesC.values()].filter((y) => !(y.u >= mes + '-01') && !hj.has(String(y.c.id_cliente)));
+    const jaComp = [...r.mesC.values()].filter((y) => y.u >= mes + '-01');
+    const limite = querListaCompleta ? 50 : 10;
+    return [`🔄 *Tag: ${tagInfo.label} — ${vn(v)}*`,
+      `Mês: *${r.comprou} de ${r.mesC.size}* clientes compraram` + (tagInfo.ehRec ? ` (meta = 80% = ${r.meta} · faltam ${Math.max(0, r.meta - r.comprou)})` : ` (${r.mesC.size ? Math.round(r.comprou / r.mesC.size * 100) : 0}%)`),
+      ...(r.hoje.length ? ['', `*Na rota de hoje (${r.hoje.length}):*`, '_Cliente · Status · Última compra_', ...r.hoje.map((c) => `${titulo(c.nome_cliente || c.razao_social || 'cliente')} · ${titulo(String(c.status || 'aberto'))} · ${dd(String(c.data_ultima_compra || '').slice(0, 10))}`)] : ['', '_Nenhum cliente dessa tag na rota de hoje._']),
+      ...(naoMes.length ? ['', `*Ainda sem compra no mês (${naoMes.length}):*`, '_Cliente · Última compra_', ...naoMes.slice(0, limite).map((y) => `${titulo(y.c.nome_cliente || y.c.razao_social || 'cliente')} · ${dd(y.u)}`), ...(naoMes.length > limite ? [`… e mais ${naoMes.length - limite} clientes. Peça "lista completa" para ver mais.`] : [])] : []),
+      ...(querListaCompleta && jaComp.length ? ['', `*Já compraram no mês (${jaComp.length}):*`, ...jaComp.slice(0, 30).map((y) => `✅ ${titulo(y.c.nome_cliente || y.c.razao_social || 'cliente')} · comprado`)] : [])
+    ].join('\n');
   }
   const L = []; let tH = 0, tC = 0, tM = 0, tT = 0;
-  for (const x of E.vend) { const r = um(x); if (!r.hoje.length && !r.mesC.size) continue; tH += r.hoje.length; tC += r.comprou; tM += r.meta; tT += r.mesC.size; L.push([r.hoje.length, `• ${vn(x)}: hoje *${r.hoje.length}* na rota · mês ${r.comprou} de ${r.meta}`]); }
-  if (!L.length) return `🔄 *${E.nome}*: nenhum cliente com a tag RECORRÊNCIA no roteiro.`;
-  return [`🔄 *Recorrência — ${E.nome}*`, `Hoje na rota: *${tH} clientes* com a tag · Mês: *${tC} de ${tM}* (80% dos ${tT} com a tag)`, '', ...L.sort((a, b) => b[0] - a[0]).map((x) => x[1]), '', '_Peça "recorrência do vendedor <nome>" para ver os clientes._'].join('\n');
+  for (const x of E.vend) { const r = um(x); if (!r.hoje.length && !r.mesC.size) continue; tH += r.hoje.length; tC += r.comprou; tM += r.meta; tT += r.mesC.size; L.push([r.hoje.length, `• ${vn(x)}: hoje *${r.hoje.length}* na rota · mês ${r.comprou} de ${r.mesC.size}`]); }
+  if (!L.length) return `🔄 *${E.nome}*: nenhum cliente com a tag *${tagInfo.label}* no roteiro.`;
+  return [`🔄 *Tag: ${tagInfo.label} — ${E.nome}*`, `Hoje na rota: *${tH} clientes* com a tag · Mês: *${tC} de ${tT}* compraram`, '', ...L.sort((a, b) => b[0] - a[0]).map((x) => x[1]), '', `_Peça "${tagInfo.label} do vendedor <nome>" para ver os clientes._`].join('\n');
 }
+export const respRecorrenciaClientes = respTagCampanhas;
 
 // ROTA DE HOJE COMPLETA (Vitorio, 27/10/2026: "quando quero saber da rota e importante saber quem ja comprou ou nao, se tem tag como recorrencia etc"; Marcio/ABC:
 // "quais clientes a Nilva vai visitar hoje" vinha so com ABERTO). Cada cliente: status da visita · comprou no mes (ou dias sem compra) · tags do roteiro.

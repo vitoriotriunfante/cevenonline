@@ -86,7 +86,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   const { fil, grupo, supervisor, rcaV, preso } = escopoDoContato(c, fm);
   const esc = rcaV ? { nome: nome2(c.nome) + ' (RCA ' + rcaV + ')', filiais: [fil], grupo: null, supervisor: null, rca: rcaV, nacional: false }
     : fil ? { nome: supervisor ? 'Equipe ' + nome2(supervisor) + ' (' + fil + ')' : fil + (grupo ? ' · ' + titulo(grupo) : ''), filiais: [fil], grupo: supervisor ? null : grupo, supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
-  if (/^(OI|OLA|E AI|AJUDA|MENU|INICIO|COMECAR|BOM DIA|BOA TARDE|BOA NOITE)\b[ !?.]*$|O QUE (VOCE|VC) (SABE|FAZ|RESPONDE)|^AJUDA/.test(t)) return respAjuda(c);
+  if (/^(OI+|OLA+|E AI|AJUDA|MENU|INICIO|COMECAR|BOM DIA+|BOA TARDE|BOA NOITE)\b[ !?.]*$|O QUE (VOCE|VC) (SABE|FAZ|RESPONDE)|^AJUDA/.test(t)) return respAjuda(c);
   if (/O QUE (E|EH|SIGNIFICA)|COMO FUNCIONA|COMO (E|EH) CALCULAD|QUE QUER DIZER|DEFINICAO/.test(t)) { const g = respGlossario(t); if (g) return g; }
   if (/DIVERGENC/.test(t) && c.papel === 'diretoria') return respDivergencias(B);
   if (/BOLA CHEIA/.test(t)) return respBola(B, esc);
@@ -95,7 +95,6 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/DOBRADINHA|DUAS QUINZENAS/.test(t)) return respDobradinha(B, await carregaEscopo(B, esc));
   if (/HISTORICO DIARIO/.test(t)) return SEM_HISTORICO;
   if (/HORARIOS? DAS? ATUALIZA|QUANDO (VOCE|VC) ATUALIZA|DE QUANTO EM QUANTO/.test(t)) return '⏱️ *Atualizações:* a base do CEVEN é lida a cada 2 min (06h–21h, seg–sáb; fora disso a cada 30 min). Lances da Liga a cada 5 min. Vendas item a item: toda madrugada (até ontem). Relatórios do WhatsApp: 07:45, 10:00, 11:30, 14:30, 17:00 e 18:30.';
-  if (/\bTAGS?\b|FALTA FOCO|COMBO|CHAMP KITEKAT|SEM COMPRAS P11|VOLTA COMIGO|CAMPANHA/.test(t) && !/RECORRENCIA/.test(t)) return 'As *tags de campanha* (FALTA FOCO MARS, COMBO, SEM COMPRAS P11…) eu só enxergo nos clientes da *rota de hoje*. A positivação por tag no mês ainda não está na base (está na lista da reunião de metas). Para a RECORRÊNCIA eu tenho: peça "recorrência".';
   const ehMP = /MARCAS? PROPRIAS?|NOSSAS MARCAS|ZIPOCA|CALIRA|MITBIT|BELLARONE|SKIVE/.test(t);
   // RELATORIO AUTOMATICO so para diretoria/gerente pedindo O RELATORIO (27/10/2026: supervisor com "relatorio de positivacao por industria do Fabio" e
   // "como foi a venda do vendedor 60 ontem" recebia "os relatorios automaticos sao da gerencia"). "Ontem" com equipe/vendedor = pedidos de ontem (abaixo).
@@ -110,10 +109,13 @@ export async function respostaInterna(B, c, texto, anteriores) {
     return respPedidosStatus(B, pp && pp.tipo === 'vend' ? { ...Ep, nome: vn(pp.alvo), vend: [pp.alvo], ocultos: [] } : Ep, /CORTE/.test(t) ? 'CORTE' : (/PENDENTE|NAO FATUR|SEM FATURAR/.test(t) && !/BLOQUEAD|LIBERAD/.test(t)) || (/BLOQUEAD/.test(t) && /LIBERAD/.test(t)) ? 'PENDENTES' : t);   /* "bloqueados e liberados" = os dois (27/10/2026) */
   }
   if (/CORTE|CORTAD|BLOQUEAD|RETID|PERDAS|OPERACAO|RANKING DE VENDAS|RANKING FINAL|FECHAMENTO DO DIA/.test(t) && !/DEVOL/.test(t)) return respOperacao(B, await carregaEscopo(B, esc), t);
-  if (/RECORRENCIA|RESGAT|REATIVAD|INATIVOS? (RECUPERAD|REATIVAD)/.test(t) && !/O QUE (E|EH)/.test(t) && !/\bMETAS?\b|KPI|PREMIA/.test(t)) { const Er = await carregaEscopo(B, esc), pr = achaPessoa(Er, t);
-    // RECORRENCIA POR TAG (27/10/2026): clientes com a tag no roteiro (hoje e mes) = a pergunta normal; os lances (defesa +3, reativados) so quando pedir pontos/defesa/liga
-    if (/RECORRENCIA/.test(t) && !/DEFESA|PONTO|LANCE|LIGA|REATIVAD|RESGAT/.test(t)) return respRecorrenciaClientes(B, Er, pr && pr.tipo === 'vend' ? pr.alvo : null, t);
-    return respRecorrenciaLances(B, pr && pr.tipo === 'vend' ? { ...Er, nome: vn(pr.alvo), vend: [pr.alvo] } : Er); }   /* vendedor citado = so ele (27/10/2026, "Tania em recorrencia") */
+  // TODAS AS TAGS / CAMPANHAS (Vitorio, 28/10/2026: recorrencia, P11, Sem compras Leao, Snickers Core, Borges, etc.)
+  const ehPerguntaTag = /RECORRENCIA|RESGAT|REATIVAD|INATIVOS? (RECUPERAD|REATIVAD)|\bTAGS?\b|SEM COMPRAS? P11|\bP11\b|SEM COMPRAS? LEAO|CAMPANHA BORGES|CHOCO INDEP|SNICKERS CORE|SNICKERS BRANCO|CHAMP KITEKAT|\bSKITTLES\b|\bTOFFEES\b|\bTORT\b|\bBISCUIT\b|\bBLOCK\b|\bFLOW\b/.test(t);
+  if (ehPerguntaTag && !/O QUE (E|EH)/.test(t) && !/\bMETAS?\b|KPI|PREMIA/.test(t)) {
+    const Er = await carregaEscopo(B, esc), pr = achaPessoa(Er, t);
+    if (!/DEFESA|PONTO|LANCE|LIGA|REATIVAD|RESGAT/.test(t) || /TAG|P11|LEAO|BORGES|SNICKERS|KITEKAT/.test(t)) return respRecorrenciaClientes(B, Er, pr && pr.tipo === 'vend' ? pr.alvo : null, t);
+    return respRecorrenciaLances(B, pr && pr.tipo === 'vend' ? { ...Er, nome: vn(pr.alvo), vend: [pr.alvo] } : Er);
+  }
   if (/MOTIVO|POR ?QUE/.test(t) && /DEVOLU|DEVOLVID|VOLTOU DE MERCADORIA/.test(t)) return respDevMotivos(B);
   if (/COMPROMISSO|MATINAL|\bRET\b|\bRETS\b|ROTA DO SUPERVISOR/.test(t)) return respCompromisso(B, await carregaEscopo(B, esc));
   if (/PENALTI|PENALIDADE|IMPEDIMENTO|CARTA|VERMELHO|AMARELO|GOL CONTRA|\bGOLS?\b|LANCES?\b|HAT ?TRICK|DEFESAS?\b|CHECK.?IN FORA|FORA DO CLIENTE|00:00|CARTO(ES|ESS)?\b/.test(t) && !/LIGA|CHAMPIONS|CLASSIFICA|PONTOS? (FOMOS|PERDID|PENALIZ)|PENALIZAD/.test(t)) return respLances(B, await carregaEscopo(B, esc), t);
@@ -227,8 +229,24 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   if (pessoa && pessoa.tipo === 'vend' && /\bE (O |NO )?MES\W*$|^(E )?(O |NO |DO )?MES\W*$|COMO (FOI|ESTA|TA|VAI) O MES/.test(t) && !/NAO VEND|NAO COMPR|CURVA|SEM VENDA/.test(t)) return respVendedor(B, E, pessoa.alvo);
   if (pessoa && pessoa.tipo === 'vend' && /COMO FOI O DIA|O DIA D[AOE]\b|COMO FOI (HOJE|O DIA)/.test(t) && !/LIGA|BRASILEIRAO|CHAMPIONS/.test(t)) return respDiaVendedor(B, E, pessoa.alvo);
   // MES DO VENDEDOR (26/10/2026, Missaid: "desde o dia 1 ate hoje, quantos clientes o setor 1108 nao vendeu, a curva negativa" -> respondia so o dia)
-  // QUEM FALTA POSITIVAR (Vitorio, 26/10/2026: "se ele pergunta quem falta positivar ele quer saber para quem falta o vendedor dele vender"): carteira do mes (roteiro do mes)
-  // sem compra no mes, qualquer canal (AS inclusive). Equipe: por vendedor; vendedor citado: a lista de clientes (bloco do mes, abaixo).
+  // POSITIVACAO DOS SEM COMPRA / QUEM FALTA POSITIVAR (Gessandro Sperotto: "Como está a positivação dos sem compra de hoje")
+  if (/POSITIVACAO DOS SEM COMPRA|SEM COMPRA(S)? (DE )?HOJE|CLIENTES SEM COMPRA DE HOJE/.test(t)) {
+    const hojeRota = E.vend.flatMap(v => (v.rotaHoje || []).map(c => ({ c, v })));
+    const ini = hojeSP().slice(0, 7) + '-01';
+    const semCompraHoje = hojeRota.filter(({ c }) => {
+      const u = String(c.data_ultima_compra || '').slice(0, 10);
+      return !u || u < ini;
+    });
+    const positivadosHoje = semCompraHoje.filter(({ c }) => /POSITIVADO|EFETIVADO/i.test(String(c.status || '')));
+    return [
+      `📋 *Positivação dos Sem Compra na Rota de Hoje — ${E.nome}*`,
+      `Clientes sem compra no mês na rota de hoje: *${semCompraHoje.length}*`,
+      `Já positivados hoje: *${positivadosHoje.length}* (${semCompraHoje.length ? Math.round(positivadosHoje.length / semCompraHoje.length * 100) : 0}%)`,
+      `Ainda em aberto: *${semCompraHoje.length - positivadosHoje.length}*`,
+      '',
+      SUGESTAO + 'peça "rota de hoje do vendedor <nome>" para ver os clientes da rota dele.'
+    ].join('\n');
+  }
   if (/FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA/.test(t) && !(pessoa && pessoa.tipo === 'vend')) {
     const ini = hojeSP().slice(0, 7) + '-01';
     const V = E.vend.filter((v) => Array.isArray(v.roteiroMes) && v.roteiroMes.length && (!pessoa || (v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial))).map((v) => {
