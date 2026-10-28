@@ -27,7 +27,8 @@ export async function respResumo(B, E) {
   const fil = E.filiais[0]; const f = s && (s.filiais || []).find((x) => x.filial === fil);
   const V = E.vend; const G = agrupa(V, (v) => 'x').get('x') || { fat: 0, pend: 0, meta: 0 };
   const fat = (E.grupo || E.supervisor || E.rca) ? G.fat : f ? f.faturado : null, pend = (E.grupo || E.supervisor || E.rca) ? G.pend : f ? f.pendente : null, meta = (E.grupo || E.supervisor || E.rca) ? G.meta : f ? f.meta_fat : null;
-  const Vr = V.filter((v) => v.varejo), z = Vr.filter((v) => v.zerado), com = V.filter((v) => v.pct != null);
+  const Vr = V.filter((v) => v.varejo), z = Vr.filter((v) => v.zerado);
+  const com = V.filter((v) => v.pct != null).sort((a, b) => (b.pct ?? 0) - (a.pct ?? 0));
   const L = [`📊 *${E.nome} agora* (${hora})`, `💰 Faturado: *${R$(fat)}* de ${R$(meta)} → *${P(fat || 0, meta)}*`, `⏳ Pendente: ${R$(pend)}`];
   if (!(E.grupo || E.supervisor || E.rca) && f) L.push(`👥 Positivação: ${N(f.positivados)} de ${N(f.meta_pos)} (${P(f.positivados, f.meta_pos)})`); else L.push(`👥 Positivação: ${N(G.pos)} de ${N(G.metaPos)} (${P(G.pos, G.metaPos)})`);
   L.push(`📝 Digitado hoje: *${R$((E.grupo || E.supervisor || E.rca) ? G.dig : f ? f.digitado_hoje : E.macro.dig)}* em *${N((E.grupo || E.supervisor || E.rca) ? G.ped : E.macro.pedidos)}* pedidos`,
@@ -37,7 +38,17 @@ export async function respResumo(B, E) {
   if (!(E.grupo || E.supervisor || E.rca)) { const Gr = [...agrupa(V.filter((v) => v.grupo), (v) => v.grupo)]; if (Gr.length > 1) { L.push('*Por gerente:*'); for (const [g, x] of Gr) L.push(`• ${titulo(g)}: ${R$(x.fat)} (${pctTxt(x.pct)}) · pend. ${R$(x.pend)} · ${x.zerados} zerado(s)`); } }
   const lg = await B.liga(); const lf = lg && (lg.filiais || []).find((x) => x.sigla === fil); if (lf) L.push(`🏆 Liga: ${lf.pos}º de 11, ${lf.pts_tabela} pontos (${lf.vitorias}V ${lf.empates}E ${lf.derrotas}D)`);
   L.push(`⚠️ Zerados hoje (varejo com rota): *${z.length}*` + (z.length ? ' — ' + listaNomes(z) : ''));
-  if (com.length) L.push(`✅ Melhores na meta: ${com.slice(0, 2).map((v) => `${vn(v)} ${pctTxt(v.pct)}`).join(' · ')}`, `🔻 Mais atrás: ${com.slice(-2).reverse().map((v) => `${vn(v)} ${pctTxt(v.pct)}`).join(' · ')}`);
+  if (com.length) {
+    const nMelhores = Math.min(2, Math.max(1, Math.floor(com.length / 2)));
+    const melhores = com.slice(0, nMelhores);
+    L.push(`✅ Melhores na meta: ${melhores.map((v) => `${vn(v)} ${pctTxt(v.pct)}`).join(' · ')}`);
+    const restantes = com.filter((v) => !melhores.includes(v));
+    const abaixo100 = restantes.filter((v) => (v.pct ?? 0) < 100);
+    const maisAtras = abaixo100.length ? abaixo100.slice(-2).reverse() : restantes.slice(-1);
+    if (maisAtras.length) {
+      L.push(`🔻 Mais atrás: ${maisAtras.map((v) => `${vn(v)} ${pctTxt(v.pct)}`).join(' · ')}`);
+    }
+  }
   const sz = [...agrupa(Vr, (v) => v.supervisor || 'sem supervisor')].filter(([k]) => supReal(k)).sort((a, b) => b[1].zerados - a[1].zerados)[0];
   { const { tot, pass } = diasUteisMes(), esp = tot ? pass / tot * 100 : 0, pr = meta ? (fat || 0) / meta * 100 : null;
     if (pr != null) L.push('', `👀 *Leitura do Jota:* ${pr >= esp ? 'no ritmo ou acima' : pr >= esp * 0.9 ? 'jogo apertado, dá pra virar' : 'abaixo do ritmo, precisamos reagir'} (o calendário pede ${esp.toFixed(0)}% e estamos em ${pr.toFixed(1).replace('.', ',')}%).`); }

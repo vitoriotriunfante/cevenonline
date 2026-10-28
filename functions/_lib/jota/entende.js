@@ -27,7 +27,7 @@ export function juntaComAnterior(texto, anteriores) {
   // pergunta nova e completa (cliente pelo codigo, frase longa com assunto proprio) nao gruda na anterior (27/10/2026: "quero saber APENAS se o cliente codigo 1891
   // comprou" virou a carteira da Nilva)
   if (/\bCLIENTE\b.{0,25}\d{3,}|\bPEDIDO\b.{0,15}\d{7,}/.test(t) || (t.split(/\s+/).length > 9 && !/^(DESSES|DESTES|DELES|DESSAS|DESTAS|DELAS)\b/.test(t))) return texto;
-  const modificador = /^(DESSES|DESTES|DELES|DESSAS|DESTAS|DELAS)\b|^(E|E O|E A|E NO|E NA|E DO|E DA|E OS|E AS)\b|^(APENAS|SO|SOMENTE|AGORA)\b|^(QUERO|QUERIA|PRECISO)( SABER)? (APENAS|SO|SOMENTE)\b|^(DO|DA|NO|NA) (MES|SEMANA|DIA)\W*$|^(DE |EM )?(ONTEM|HOJE)\W*$|^(POR|ABERTO POR|ABERTA POR) (VENDEDOR|SUPERVISOR|FILIAL|CLIENTE|INDUSTRIA)|^SIM\b|^(QUAIS|QUEM) SAO( ELES| ELAS)?\W*$|^(EM|DE) (TPH|ABC|API|TBL|TCV|TSJ|TCA|TBE|TPA|MCD|TCG)\W*$/.test(t);
+  const modificador = /^(DESSES|DESTES|DELES|DESSAS|DESTAS|DELAS)\b|^(E|E O|E A|E NO|E NA|E DO|E DA|E OS|E AS)\b|^(APENAS|SO|SOMENTE|AGORA)\b|^(QUERO|QUERIA|PRECISO)( SABER)? (APENAS|SO|SOMENTE)\b|^(DO|DA|NO|NA) (MES|SEMANA|DIA)\W*$|^(DE |EM )?(ONTEM|HOJE)\W*$|^(POR|ABERTO POR|ABERTA POR) (VENDEDOR|SUPERVISOR|FILIAL|CLIENTE|INDUSTRIA)|^SIM\b|^(QUAIS|QUEM) SAO( ELES| ELAS)?\W*$|^(EM|DE) (TPH|ABC|API|TBL|TCV|TSJ|TCA|TBE|TPA|MCD|TCG)\W*$|^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA))\W*$/.test(t);
   if (!modificador) return texto;
   const ta = sem(ant);
   if (/^SIM\b/.test(t) && !/\d{7,}/.test(t) && /\d{7,}/.test(ta)) return texto + ' ' + (ta.match(/\d{7,}/) || [''])[0];   /* "sim, ...faturou o pedido" + numero anterior */
@@ -128,16 +128,15 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/MOTIVO|POR ?QUE/.test(t) && /DEVOLU|DEVOLVID|VOLTOU DE MERCADORIA/.test(t)) return respDevMotivos(B);
   if (/COMPROMISSO|MATINAL|\bRET\b|\bRETS\b|ROTA DO SUPERVISOR/.test(t)) return respCompromisso(B, await carregaEscopo(B, esc));
   if (/PENALTI|PENALIDADE|IMPEDIMENTO|CARTA|VERMELHO|AMARELO|GOL CONTRA|\bGOLS?\b|LANCES?\b|HAT ?TRICK|DEFESAS?\b|CHECK.?IN FORA|FORA DO CLIENTE|00:00|CARTO(ES|ESS)?\b/.test(t) && !/LIGA|CHAMPIONS|CLASSIFICA|PONTOS? (FOMOS|PERDID|PENALIZ)|PENALIZAD/.test(t)) return respLances(B, await carregaEscopo(B, esc), t);
-  // "VER MAIS" logo depois do detalhe de um vendedor: a lista completa dos clientes sem compra (27/10/2026)
+  // "VER MAIS" logo depois de uma lista truncada: re-executa a pergunta anterior completa (28/10/2026)
   if (/^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA))\W*$/.test(t)) {
-    const Ev = await carregaEscopo(B, esc);
-    for (const a of (anteriores || [])) {
-      const pv = achaPessoa(Ev, sem(String(a || '')));
-      if (pv && pv.tipo === 'vend') return respVendedor(B, Ev, pv.alvo, { tudo: true });
+    if ((anteriores || []).length) {
+      return respostaPronta(B, c, anteriores[0] + ' ver mais', anteriores.slice(1));
     }
+    const Ev = await carregaEscopo(B, esc);
     if (Ev.vend && Ev.vend.length === 1) return respVendedor(B, Ev, Ev.vend[0], { tudo: true });
     if (antTag) return respTagSeparadoPorSupervisor(B, Ev, sem(antTag));
-    return `📋 Para eu abrir a lista completa certinho, me diz de qual vendedor ou setor você quer ver (ex: "vendedor 125").`;
+    return `📋 Para eu abrir a lista completa certinho, me diz o que você quer ver (ex: "curva negativa vendedor 125").`;
   }
   // "+MIX" logo depois de "rota de hoje": o que oferecer aos clientes da rota que ainda nao compraram no mes (Vitorio, 27/10/2026: 'ele pergunta apenas mais mix e vc ja entende')
   // "+ mix" chega como "MIX" depois da normalizacao (27/10/2026: foi para o Brasil todo); "dos 3", "desses clientes" tambem
