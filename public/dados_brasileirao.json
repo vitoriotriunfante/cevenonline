@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-28T09:31:47.268814Z",
+  "gerado_em": "2026-10-28T10:03:54.753481Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -3589,6 +3589,90 @@
       "pos_ant": 29
     },
     {
+      "supervisor": "ALEX SANDRO SOARES ELIAS",
+      "filial": "TBE",
+      "canal": "AS",
+      "gerente": "Diego",
+      "total_vendedores": 4,
+      "jogos": 11,
+      "pts_tabela": 8,
+      "vitorias": 1,
+      "empates": 5,
+      "derrotas": 5,
+      "gp": 291,
+      "gc": 10,
+      "sg": 281,
+      "aprov": 24.2,
+      "forma": [
+        "D",
+        "E",
+        "D",
+        "E",
+        "D",
+        "D",
+        "E",
+        "V",
+        "D",
+        "E",
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 105,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 6,
+      "pos_ant": 7
+    },
+    {
       "supervisor": "ALESSANDRO JUNIOR LOPES",
       "filial": "API",
       "canal": "AS",
@@ -3669,7 +3753,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 6,
+      "pos": 7,
       "pos_ant": 6
     },
     {
@@ -3755,90 +3839,6 @@
       "plus_pendente": false,
       "pos": 30,
       "pos_ant": 30
-    },
-    {
-      "supervisor": "ALEX SANDRO SOARES ELIAS",
-      "filial": "TBE",
-      "canal": "AS",
-      "gerente": "Diego",
-      "total_vendedores": 4,
-      "jogos": 11,
-      "pts_tabela": 8,
-      "vitorias": 1,
-      "empates": 5,
-      "derrotas": 5,
-      "gp": 291,
-      "gc": 10,
-      "sg": 281,
-      "aprov": 24.2,
-      "forma": [
-        "D",
-        "E",
-        "D",
-        "E",
-        "D",
-        "D",
-        "E",
-        "V",
-        "D",
-        "E",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 100,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-22": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-23": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-26": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-27": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-28": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 7,
-      "pos_ant": 7
     },
     {
       "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
@@ -5297,7 +5297,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 110,
+      "plus_lideranca": 115,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -5344,7 +5344,7 @@
           "ret": 5
         },
         "2026-10-28": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -38105,7 +38105,7 @@
         "supervisor": "LEANDRO MARINHO ABRANCHES",
         "gerente": "Leonardo",
         "meta_mes": 355000,
-        "pct_hoje": 84,
+        "pct_hoje": 88.2,
         "fases": [
           {
             "n": 1,
@@ -45908,7 +45908,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 1185000,
-        "pct_hoje": 86.9,
+        "pct_hoje": 88.2,
         "fases": [
           {
             "n": 1,
