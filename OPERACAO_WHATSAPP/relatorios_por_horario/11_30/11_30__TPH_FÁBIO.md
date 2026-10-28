@@ -1,10 +1,10 @@
 🏢 *FILIAL TPH — GESTÃO DE CAMPO*
-📅 27/10/2026 • Gerente: Fábio
+📅 28/10/2026 • Gerente: Fábio
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 *PAINEL DE ATIVIDADES (5 SUPERVISORES):*
-📝 Compromissos: *4 de 5* lançados
-🚗 Em Rota (RET): *2 de 5* em campo
+📝 Compromissos: *3 de 5* lançados
+🚗 Em Rota (RET): *3 de 5* em campo
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -18,16 +18,18 @@
 
 👤 *EDI CARLOS MEIRA*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 09:12)
-└ 👥 RCA: BRUNO AMARAL
-└ 📍 5 PDVs visitados • 📸 5 fotos • Score: 41%
+🚗 Rota (RET): ✅ Em campo (início às 09:47)
+└ 👥 RCA: MAICO ADILTON PRESTES
+└ 📍 3 PDVs visitados • 📸 1 foto • Score: 91%
 
 👤 *PRISCILA A D NASCIMENTO STRAPASSON*
-📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 10:21)
-└ 👥 RCA: VICTORIA DE MENEZES RIBEIRO
-└ 📍 5 PDVs visitados • 📸 10 fotos • Score: 90%
+📝 Compromisso: ❌ Não lançado
+🚗 Rota (RET): ✅ Em campo (início às 10:54)
+└ 👥 RCA: JEFERSON JUSTINO
+└ 📍 2 PDVs visitados • 📸 6 fotos • Score: 100%
 
 👤 *EDERSON SUONSKI*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
+🚗 Rota (RET): ✅ Em campo (início às 09:54)
+└ 👥 RCA: ROSIMEIRE FERNANDES GONCALVES
+└ 📍 1 PDV visitado • 📸 0 fotos • Score: 71%
