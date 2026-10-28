@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-28T12:35:11.543604Z",
+  "gerado_em": "2026-10-28T12:48:38.518581Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -1062,7 +1062,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 115,
+      "plus_lideranca": 120,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1110,7 +1110,7 @@
         },
         "2026-10-28": {
           "compromisso": 5,
-          "ret": 0
+          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -1314,7 +1314,7 @@
         "V",
         "E"
       ],
-      "plus_lideranca": 110,
+      "plus_lideranca": 115,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1362,7 +1362,7 @@
         },
         "2026-10-28": {
           "compromisso": 5,
-          "ret": 0
+          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -1769,7 +1769,7 @@
         "V",
         "E"
       ],
-      "plus_lideranca": 55,
+      "plus_lideranca": 60,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1816,7 +1816,7 @@
           "ret": 0
         },
         "2026-10-28": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2777,7 +2777,7 @@
         "V",
         "J"
       ],
-      "plus_lideranca": 40,
+      "plus_lideranca": 45,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2824,7 +2824,7 @@
           "ret": 0
         },
         "2026-10-28": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -5045,7 +5045,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 80,
+      "plus_lideranca": 90,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -5092,8 +5092,8 @@
           "ret": 0
         },
         "2026-10-28": {
-          "compromisso": 0,
-          "ret": 0
+          "compromisso": 5,
+          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -5633,7 +5633,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 95,
+      "plus_lideranca": 100,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -5680,7 +5680,7 @@
           "ret": 5
         },
         "2026-10-28": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -5857,6 +5857,90 @@
       "pos_ant": 20
     },
     {
+      "supervisor": "RAFAEL DA SILVA CARPENA",
+      "filial": "TPA",
+      "canal": "VAREJO",
+      "gerente": "Radke / Leandro",
+      "total_vendedores": 4,
+      "jogos": 11,
+      "pts_tabela": 1,
+      "vitorias": 0,
+      "empates": 1,
+      "derrotas": 10,
+      "gp": 118,
+      "gc": 364,
+      "sg": -246,
+      "aprov": 3.0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "E",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 105,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 42,
+      "pos_ant": 42
+    },
+    {
       "supervisor": "LUIS THIAGO VIRTUOSO BOEIRA",
       "filial": "TBE",
       "canal": "AS",
@@ -5939,90 +6023,6 @@
       "plus_pendente": false,
       "pos": 21,
       "pos_ant": 21
-    },
-    {
-      "supervisor": "RAFAEL DA SILVA CARPENA",
-      "filial": "TPA",
-      "canal": "VAREJO",
-      "gerente": "Radke / Leandro",
-      "total_vendedores": 4,
-      "jogos": 11,
-      "pts_tabela": 1,
-      "vitorias": 0,
-      "empates": 1,
-      "derrotas": 10,
-      "gp": 118,
-      "gc": 364,
-      "sg": -246,
-      "aprov": 3.0,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "E",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "J"
-      ],
-      "plus_lideranca": 100,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-19": {
-          "compromisso": 0,
-          "ret": 5
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-22": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-23": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-26": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-27": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-28": {
-          "compromisso": 5,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 42,
-      "pos_ant": 42
     },
     {
       "supervisor": "PEDRO PAULO PERICLES SALAZAR",
