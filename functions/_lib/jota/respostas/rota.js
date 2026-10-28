@@ -216,17 +216,22 @@ export async function respMixRotaHoje(B, v) {
 export function achaTagNaPergunta(t) {
   const s = sem(t);
   if (/RECORRENCIA/.test(s)) return { tag: 'RECORRENCIA', label: 'Recorrência', ehRec: true };
-  if (/SEM COMPRAS? P11|\bP11\b/.test(s)) return { tag: 'SEM COMPRAS P11', label: 'Sem Compras P11', ehRec: false };
-  if (/SEM COMPRAS? LEAO|SEM COMPRA LEAO/.test(s)) return { tag: 'SEM COMPRAS LEAO', label: 'Sem Compras Leão', ehRec: false };
-  if (/CAMPANHA BORGES|\bBORGES\b/.test(s)) return { tag: 'CAMPANHA BORGES', label: 'Campanha Borges', ehRec: false };
+  if (/SEM COMPRAS? P1[01]|\bP10\b|\bP11\b/.test(s)) {
+    const tem10 = /P10/.test(s), tem11 = /P11/.test(s);
+    if (tem10 && tem11) return { tag: 'SEM COMPRAS P10|SEM COMPRAS P11|P10|P11', label: 'Sem Compras P10 e P11', ehRec: false };
+    if (tem10) return { tag: 'SEM COMPRAS P10|P10', label: 'Sem Compras P10', ehRec: false };
+    return { tag: 'SEM COMPRAS P11|P11', label: 'Sem Compras P11', ehRec: false };
+  }
+  if (/SEM COMPRAS? LEAO|SEM COMPRA LEAO/.test(s)) return { tag: 'SEM COMPRAS LEAO|LEAO', label: 'Sem Compras Leão', ehRec: false };
+  if (/CAMPANHA BORGES|\bBORGES\b/.test(s)) return { tag: 'CAMPANHA BORGES|BORGES', label: 'Campanha Borges', ehRec: false };
   if (/CHOCO INDEP/.test(s)) return { tag: 'CHOCO INDEP', label: 'Choco Indep', ehRec: false };
   if (/SNICKERS CORE/.test(s)) return { tag: 'SNICKERS CORE', label: 'Snickers Core', ehRec: false };
   if (/SNICKERS BRANCO/.test(s)) return { tag: 'SNICKERS BRANCO', label: 'Snickers Branco', ehRec: false };
-  if (/M&M|M AND M|MEM TUBO|M&M TUBO/.test(s)) return { tag: /TUBO/.test(s) ? 'M&M,S TUBO' : 'M&M,S CHOCO 40GR', label: 'M&M', ehRec: false };
-  if (/TWIX/.test(s)) return { tag: 'TWIX 40GR', label: 'Twix 40g', ehRec: false };
+  if (/M&M|M AND M|MEM TUBO|M&M TUBO/.test(s)) return { tag: /TUBO/.test(s) ? 'M&M,S TUBO|TUBO' : 'M&M,S CHOCO 40GR|40GR', label: 'M&M', ehRec: false };
+  if (/TWIX/.test(s)) return { tag: 'TWIX 40GR|TWIX', label: 'Twix 40g', ehRec: false };
   if (/SKITTLES/.test(s)) return { tag: 'SKITTLES', label: 'Skittles', ehRec: false };
   if (/TOFFEES/.test(s)) return { tag: 'TOFFEES', label: 'Toffees', ehRec: false };
-  if (/CHAMP KITEKAT|KITEKAT/.test(s)) return { tag: 'CHAMP KITEKAT', label: 'Champ Kitekat', ehRec: false };
+  if (/CHAMP KITEKAT|KITEKAT/.test(s)) return { tag: 'CHAMP KITEKAT|KITEKAT', label: 'Champ Kitekat', ehRec: false };
   if (/BISCUIT/.test(s)) return { tag: 'BISCUIT', label: 'Biscuit', ehRec: false };
   if (/BLOCK/.test(s)) return { tag: 'BLOCK', label: 'Block', ehRec: false };
   if (/CHOCOLATE BON|\bBON\b/.test(s) && !/BOM DIA/.test(s)) return { tag: 'BON', label: 'Bon', ehRec: false };
@@ -234,17 +239,18 @@ export function achaTagNaPergunta(t) {
   return { tag: 'RECORRENCIA', label: 'Recorrência', ehRec: true };
 }
 
-export async function respTagCampanhas(B, E, v, t = '') {
+export async function respTagCampanhas(B, E, v, t = '', c = null) {
   const tagInfo = achaTagNaPergunta(t);
-  const tagRegex = new RegExp(tagInfo.tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '.*?'), 'i');
-  const temTag = (c) => (c.focos || []).some((f) => tagRegex.test(sem(String(f.industria_foco || ''))));
+  const padrao = tagInfo.tag.split('|').map((part) => part.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '.*?')).join('|');
+  const tagRegex = new RegExp(padrao, 'i');
+  const temTag = (cli) => (cli.focos || []).some((f) => tagRegex.test(sem(String(f.industria_foco || ''))));
   const mes = hojeSP().slice(0, 7), dd = (s) => (s && s >= '2000' ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : '—');
   const { vendasEscopo } = await import('./vendas.js'); const VM = await vendasEscopo(B, E).catch(() => null);
   const compraram = new Set(((VM && VM.linhas) || []).map((l) => l.f + '|' + l.c));
   const um = (x) => {
     const hoje = []; const vh = new Set();
-    for (const c of (x.rotaHoje || []).filter(temTag)) { if (vh.has(String(c.id_cliente))) continue; vh.add(String(c.id_cliente)); hoje.push(c); }
-    const mesC = new Map(); for (const c of (x.roteiroMes || []).filter(temTag)) { const k = String(c.id_cliente), u = String(c.data_ultima_compra || '').slice(0, 10); const y = mesC.get(k) || { c, u: '', comp: false }; if (u > y.u) y.u = u; if (/POSITIVADO|EFETIVADO/i.test(String(c.status || ''))) y.comp = true; mesC.set(k, y); }
+    for (const cli of (x.rotaHoje || []).filter(temTag)) { if (vh.has(String(cli.id_cliente))) continue; vh.add(String(cli.id_cliente)); hoje.push(cli); }
+    const mesC = new Map(); for (const cli of (x.roteiroMes || []).filter(temTag)) { const k = String(cli.id_cliente), u = String(cli.data_ultima_compra || '').slice(0, 10); const y = mesC.get(k) || { c: cli, u: '', comp: false }; if (u > y.u) y.u = u; if (/POSITIVADO|EFETIVADO/i.test(String(cli.status || ''))) y.comp = true; mesC.set(k, y); }
     for (const [k, y] of mesC) if (compraram.has(x.filial + '|' + k)) y.comp = true;
     for (const y of mesC.values()) if (y.comp) y.u = mes + '-01';
     const comprou = [...mesC.values()].filter((y) => y.comp).length, meta = Math.ceil(mesC.size * 0.8);
@@ -255,8 +261,8 @@ export async function respTagCampanhas(B, E, v, t = '') {
     let tag = 0, comp = 0; const hoje = [], porV = [];
     for (const x of E.vend) {
       const r = um(x); tag += r.mesC.size; comp += r.comprou;
-      for (const c of r.hoje) if (!(r.mesC.get(String(c.id_cliente)) || {}).comp) {
-        hoje.push(`• ${titulo(c.nome_cliente || c.razao_social || 'cliente')} — *${vn(x)}*`);
+      for (const cli of r.hoje) if (!(r.mesC.get(String(cli.id_cliente)) || {}).comp) {
+        hoje.push(`• ${titulo(cli.nome_cliente || cli.razao_social || 'cliente')} — *${vn(x)}*`);
       }
       if (r.mesC.size) {
         porV.push([r.mesC.size - r.comprou, `• ${vn(x)}: mês *${r.comprou} de ${r.mesC.size}*` + (tagInfo.ehRec ? ` (meta ${r.meta})` : '') + (r.hoje.length ? ` · hoje *${r.hoje.length}* na rota` : '')]);
@@ -278,21 +284,93 @@ export async function respTagCampanhas(B, E, v, t = '') {
   if (v) {
     const r = um(v);
     if (!r.hoje.length && !r.mesC.size) return `🔄 ${vn(v)}: nenhum cliente com a tag *${tagInfo.label}* no roteiro (hoje e no mês).`;
-    const hj = new Set(r.hoje.map((c) => String(c.id_cliente)));
+    const hj = new Set(r.hoje.map((cli) => String(cli.id_cliente)));
     const naoMes = [...r.mesC.values()].filter((y) => !(y.u >= mes + '-01') && !hj.has(String(y.c.id_cliente)));
     const jaComp = [...r.mesC.values()].filter((y) => y.u >= mes + '-01');
     const limite = querListaCompleta ? 50 : 10;
     return [`🔄 *Tag: ${tagInfo.label} — ${vn(v)}*`,
       `Mês: *${r.comprou} de ${r.mesC.size}* clientes compraram` + (tagInfo.ehRec ? ` (meta = 80% = ${r.meta} · faltam ${Math.max(0, r.meta - r.comprou)})` : ` (${r.mesC.size ? Math.round(r.comprou / r.mesC.size * 100) : 0}%)`),
-      ...(r.hoje.length ? ['', `*Na rota de hoje (${r.hoje.length}):*`, '_Cliente · Status · Última compra_', ...r.hoje.map((c) => `${titulo(c.nome_cliente || c.razao_social || 'cliente')} · ${titulo(String(c.status || 'aberto'))} · ${dd(String(c.data_ultima_compra || '').slice(0, 10))}`)] : ['', '_Nenhum cliente dessa tag na rota de hoje._']),
+      ...(r.hoje.length ? ['', `*Na rota de hoje (${r.hoje.length}):*`, '_Cliente · Status · Última compra_', ...r.hoje.map((cli) => `${titulo(cli.nome_cliente || cli.razao_social || 'cliente')} · ${titulo(String(cli.status || 'aberto'))} · ${dd(String(cli.data_ultima_compra || '').slice(0, 10))}`)] : ['', '_Nenhum cliente dessa tag na rota de hoje._']),
       ...(naoMes.length ? ['', `*Ainda sem compra no mês (${naoMes.length}):*`, '_Cliente · Última compra_', ...naoMes.slice(0, limite).map((y) => `${titulo(y.c.nome_cliente || y.c.razao_social || 'cliente')} · ${dd(y.u)}`), ...(naoMes.length > limite ? [`… e mais ${naoMes.length - limite} clientes. Peça "lista completa" para ver mais.`] : [])] : []),
       ...(querListaCompleta && jaComp.length ? ['', `*Já compraram no mês (${jaComp.length}):*`, ...jaComp.slice(0, 30).map((y) => `✅ ${titulo(y.c.nome_cliente || y.c.razao_social || 'cliente')} · comprado`)] : [])
     ].join('\n');
   }
   const L = []; let tH = 0, tC = 0, tM = 0, tT = 0;
-  for (const x of E.vend) { const r = um(x); if (!r.hoje.length && !r.mesC.size) continue; tH += r.hoje.length; tC += r.comprou; tM += r.meta; tT += r.mesC.size; L.push([r.hoje.length, `• ${vn(x)}: hoje *${r.hoje.length}* na rota · mês ${r.comprou} de ${r.mesC.size}`]); }
-  if (!L.length) return `🔄 *${E.nome}*: nenhum cliente com a tag *${tagInfo.label}* no roteiro.`;
+  const porSup = new Map();
+  for (const x of E.vend) {
+    const r = um(x); if (!r.hoje.length && !r.mesC.size) continue;
+    tH += r.hoje.length; tC += r.comprou; tM += r.meta; tT += r.mesC.size;
+    L.push([r.hoje.length, `• ${vn(x)}: hoje *${r.hoje.length}* na rota · mês ${r.comprou} de ${r.mesC.size}`]);
+    const supK = x.supervisor || 'Sem Supervisor';
+    const sObj = porSup.get(supK) || { nome: supK, cod: x.supCod || '', filial: x.filial, hoje: 0, comp: 0, total: 0, vends: [] };
+    sObj.hoje += r.hoje.length; sObj.comp += r.comprou; sObj.total += r.mesC.size;
+    sObj.vends.push({ v: x, r });
+    porSup.set(supK, sObj);
+  }
+  if (!tH && !tT) return `🔄 *${E.nome}*: nenhum cliente com a tag *${tagInfo.label}* no roteiro.`;
+
+  // VISÃO EXECUTIVA (Gerente / Diretoria, 28/10/2026): hierarquia gerencial é SUPERVISOR -> VENDEDOR!
+  if (porSup.size > 1) {
+    const cargo = c && c.papel === 'gerente' ? 'Gerente ' : c && c.papel === 'diretoria' ? 'Diretor ' : '';
+    const nomeTrat = c && c.nome ? `${cargo}${titulo(String(c.nome).split(' ')[0])}` : (cargo || 'Gerente');
+    const linhasSup = [...porSup.values()].sort((a, b) => b.hoje - a.hoje).map((s) => {
+      const codStr = s.cod ? `${s.cod} - ` : '';
+      return `• *${codStr}${nome2(s.nome)}:* hoje *${s.hoje}* na rota (${s.vends.length} vendedores) · mês ${s.comp} de ${s.total}`;
+    });
+
+    return [
+      `🔄 *Tag: ${tagInfo.label} — ${E.nome}*`,
+      `Caro ${nomeTrat}, aqui está o *consolidado por supervisor* (${porSup.size} equipes com *${tH} clientes* na rota de hoje · mês: ${tC} de ${tT} compraram):`,
+      '',
+      `👥 *Consolidado por Supervisor:*`,
+      ...linhasSup,
+      '',
+      `📲 *Como agir agora:*`,
+      `• Se quiser aberto por supervisor / vendedor, digite *1* que te mando uma mensagem por supervisor para você encaminhar ao time no WhatsApp!`,
+      `• Ou peça "clientes do supervisor <nome>" para ver a lista de uma equipe específica agora.`
+    ].join('\n');
+  }
+
   return [`🔄 *Tag: ${tagInfo.label} — ${E.nome}*`, `Hoje na rota: *${tH} clientes* com a tag · Mês: *${tC} de ${tT}* compraram`, '', ...L.sort((a, b) => b[0] - a[0]).map((x) => x[1]), '', `_Peça "${tagInfo.label} do vendedor <nome>" para ver os clientes._`].join('\n');
+}
+
+// GERA MENSAGENS SEPARADAS POR SUPERVISOR (quando o gerente/diretoria digita 1)
+export async function respTagSeparadoPorSupervisor(B, E, t = '') {
+  const tagInfo = achaTagNaPergunta(t);
+  const padrao = tagInfo.tag.split('|').map((part) => part.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '.*?')).join('|');
+  const tagRegex = new RegExp(padrao, 'i');
+  const temTag = (cli) => (cli.focos || []).some((f) => tagRegex.test(sem(String(f.industria_foco || ''))));
+  const porSup = new Map();
+  for (const x of E.vend) {
+    const hoje = (x.rotaHoje || []).filter(temTag);
+    if (!hoje.length) continue;
+    const supK = x.supervisor || 'Sem Supervisor';
+    const sObj = porSup.get(supK) || { nome: supK, cod: x.supCod || '', filial: x.filial, totalHoje: 0, vends: [] };
+    sObj.totalHoje += hoje.length;
+    sObj.vends.push({ v: x, clientes: hoje });
+    porSup.set(supK, sObj);
+  }
+  if (!porSup.size) return `🔄 Não encontrei clientes na rota de hoje com a tag *${tagInfo.label}* em ${E.nome}.`;
+  const msgs = [];
+  for (const s of [...porSup.values()].sort((a, b) => b.totalHoje - a.totalHoje)) {
+    const codStr = s.cod ? `COD ${s.cod} - ` : '';
+    const linhas = [
+      `📋 *Equipe ${codStr}${nome2(s.nome)} (${s.filial})*`,
+      `Tag: *${tagInfo.label}* · *${s.totalHoje} clientes* na rota de hoje para positivar:`,
+      ''
+    ];
+    for (const item of s.vends) {
+      linhas.push(`🧑‍💼 *${vn(item.v)}* (${item.clientes.length}):`);
+      for (const cli of item.clientes.slice(0, 15)) {
+        linhas.push(`  • ${titulo(cli.nome_cliente || cli.razao_social || 'cliente')} (#${cli.id_cliente || ''})`);
+      }
+      if (item.clientes.length > 15) linhas.push(`  … e mais ${item.clientes.length - 15} clientes`);
+      linhas.push('');
+    }
+    linhas.push('_Encaminhe para o supervisor cobrar o time agora! 🚀_');
+    msgs.push(linhas.join('\n').trim());
+  }
+  return msgs.join('\n⟪⟫\n');
 }
 export const respRecorrenciaClientes = respTagCampanhas;
 

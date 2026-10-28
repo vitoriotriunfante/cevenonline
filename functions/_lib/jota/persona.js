@@ -9,6 +9,28 @@ import { diasUteisMes } from './respostas/gestao.js';
 
 // ---------- PERSONA (MAIS_MIX/JOTA/PERSONA Claude Online.md; Vitorio 25/10/2026: "ta muito direto... quero uma persona... figurinhas... precisa ser mais HUMANO") ----------
 export const FIG = (n) => `https://ceven-cftv-matrix.pages.dev/jota/figurinhas/${n}.webp`;
+export const TODAS_FIGURINHAS = [
+  '01_oi_eu_sou_o_jota',
+  '02_conta_comigo',
+  '03_bom_dia_time',
+  '04_bola_rolando',
+  '05_bora_positivar',
+  '06_golaco',
+  '07_meta_batida',
+  '08_fechou_o_dia',
+  '09_valeu_time',
+  '10_dna_triunfante',
+  '11_to_de_olho',
+  '12_bora_destravar',
+  '13_zerado_nao',
+  '14_confere_no_ceven',
+  '15_olha_o_mais_mix',
+  '16_ja_te_respondo',
+  '17_buscando_numeros',
+  '18_proximo_cliente',
+  '19_sugestao_do_jota',
+  '20_sem_dado_agora'
+];
 export function horaSP() { return R.horaSP(); }
 export const diaSemana = () => new Date(hojeSP() + 'T12:00:00Z').getUTCDay();
 export const cumprimento = () => { const h = horaSP(); return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'; };

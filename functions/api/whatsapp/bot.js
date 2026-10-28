@@ -23,7 +23,7 @@ import { respondeIA, respostaPronta } from '../../_lib/jota/entende.js';
 import { entendePorIA } from '../../_lib/jota/entende_ia.js';
 import { aceitaTraducao } from '../../_lib/jota/base.js';
 import { criaBase } from '../../_lib/jota/fontes.js';
-import { RECLAMACAO, cadastraPorCodigo, ehSaudacao, enviarFigurinha, figurinhaPara, humaniza, primeiroNome, respSaudacao, transcreveAudio, varia } from '../../_lib/jota/persona.js';
+import { RECLAMACAO, cadastraPorCodigo, ehSaudacao, enviarFigurinha, figurinhaPara, humaniza, primeiroNome, respSaudacao, TODAS_FIGURINHAS, transcreveAudio, varia } from '../../_lib/jota/persona.js';
 import { respAjuda } from '../../_lib/jota/respostas/liga_mix.js';
 import { respClientesDia } from '../../_lib/jota/respostas/rota.js';
 
@@ -147,7 +147,8 @@ export async function onRequestPost({ request, env }) {
   const pediuMotivo = ultOut && (/o que faltou ou veio errado/i.test(ultOut.texto || '') || ultOut.tipo === 'nota');
   const sugMeio = /fica (a|como) (sugest(ã|a)o|dica)|anot(e|a)( a(í|i))?( isso)?( como)? sugest(ã|a)o|como sugest(ã|a)o|dei uma sugest(ã|a)o|minha sugest(ã|a)o (é|e)/i.test(texto) ? texto : null;
   const sug = (texto.match(/^\s*sugest(?:ã|a)o\s*[:\-]?\s*([\s\S]{3,})/i) || [])[1] || sugMeio || (pediuMotivo && !notaTxt ? texto : null);
-  if (notaTxt && ultOut && ultOut.nota == null && Date.now() - Date.parse(ultOut.quando + 'Z') < 6 * 3600 * 1000) {
+  const ofereceuOpcao1 = ultOut && /digite \*?1\*?/i.test(ultOut.texto || '');
+  if (notaTxt && ultOut && ultOut.nota == null && !ofereceuOpcao1 && Date.now() - Date.parse(ultOut.quando + 'Z') < 6 * 3600 * 1000) {
     const nota = Number(notaTxt);
     await env.DB.prepare('UPDATE bot_msgs SET nota = ?, ajudou = ? WHERE id = ?').bind(nota, nota >= 3 ? 1 : 0, ultOut.id).run();
     resp = nota >= 4 ? varia([`Valeu, ${primeiroNome(c)}! Nota ${nota} anotada. 💪`, `Obrigado pela nota ${nota}, ${primeiroNome(c)}! Isso me ajuda a melhorar.`], cel)
@@ -194,11 +195,27 @@ export async function onRequestPost({ request, env }) {
   for (let i = 0; i < partes.length; i++) { if (i) await new Promise((ok) => setTimeout(ok, 1200)); const ei = await enviar(env, destino, partes[i]); if (!ei.ok) e = ei; }
   resp = partes.join('\n\n');
   await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, e.ok ? 'out' : 'erro', resp.slice(0, 4000), tipo).run();
-  // figurinha (no maximo 1 a cada 2 h por pessoa)
-  const fig = figurinhaPara(resp, tipo);
-  if (fig && e.ok) { const ult = await env.DB.prepare("SELECT MAX(quando) q, (SELECT COUNT(*) FROM bot_msgs b WHERE b.celular = ? AND b.direcao = 'out' AND b.id > COALESCE((SELECT MAX(id) FROM bot_msgs x WHERE x.celular = ? AND x.direcao = 'figurinha'), 0)) desde FROM bot_msgs WHERE celular = ? AND direcao = 'figurinha'").bind(cel, cel, cel).first().catch(() => null);
-    const ruim = /precisando reagir|Abaixo do ritmo|ERRO|devolu/i.test(resp) && !/^(saudacao)/.test(tipo);
-    if (!ruim && (tipo === 'agradecimento' || !ult || !ult.q || ult.desde >= 3 || Date.now() - Date.parse(ult.q + 'Z') > 2 * 3600 * 1000)) { const ok = await enviarFigurinha(env, destino, fig); if (ok) await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, 'figurinha', fig, tipo).run(); } }
+  // figurinha: pacote quando pedido ou contextual (no maximo 1 a cada 2 h por pessoa)
+  const ehLoteFig = /pacote (com as|oficial com as|de) figurinhas|Figurinhas Oficiais do Jota/i.test(resp);
+  if (ehLoteFig && e.ok) {
+    const querTodasMesmo = /QUERO TODAS|MANDA TODAS|TODAS AS FIGURINHAS/i.test(texto);
+    const lote = querTodasMesmo ? TODAS_FIGURINHAS : ['01_oi_eu_sou_o_jota', '03_bom_dia_time', '02_conta_comigo', '07_meta_batida', '06_golaco', '05_bora_positivar', '13_zerado_nao', '08_fechou_o_dia', '10_dna_triunfante', '15_olha_o_mais_mix'];
+    for (let fi = 0; fi < lote.length; fi++) {
+      if (fi) await new Promise((ok) => setTimeout(ok, 400));
+      await enviarFigurinha(env, destino, lote[fi]);
+    }
+    try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, 'figurinha', 'lote_figurinhas', 'figurinhas_lote').run(); } catch (x) {}
+  } else {
+    const fig = figurinhaPara(resp, tipo);
+    if (fig && e.ok) {
+      const ult = await env.DB.prepare("SELECT MAX(quando) q, (SELECT COUNT(*) FROM bot_msgs b WHERE b.celular = ? AND b.direcao = 'out' AND b.id > COALESCE((SELECT MAX(id) FROM bot_msgs x WHERE x.celular = ? AND x.direcao = 'figurinha'), 0)) desde FROM bot_msgs WHERE celular = ? AND direcao = 'figurinha'").bind(cel, cel, cel).first().catch(() => null);
+      const ruim = /precisando reagir|Abaixo do ritmo|ERRO|devolu/i.test(resp) && !/^(saudacao)/.test(tipo);
+      if (!ruim && (tipo === 'agradecimento' || !ult || !ult.q || ult.desde >= 3 || Date.now() - Date.parse(ult.q + 'Z') > 2 * 3600 * 1000)) {
+        const ok = await enviarFigurinha(env, destino, fig);
+        if (ok) await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, 'figurinha', fig, tipo).run();
+      }
+    }
+  }
   return new Response('ok');
 }
 export async function onRequestGet() { return new Response('JOTA (+MIX): use POST (webhook da Evolution)', { status: 200 }); }

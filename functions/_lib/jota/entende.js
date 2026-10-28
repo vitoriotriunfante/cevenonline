@@ -15,7 +15,7 @@ import { respGestaoCampo, respOperacao, respRecorrenciaLances, respRelatorio } f
 import { respJustificativas, respOferecer, respSemDado } from './respostas/oportunidades.js';
 import { pedePeriodo, respClientesSemComprar, respComparaMes, respDiasSemPedido, respPeriodoDias } from './respostas/periodos.js';
 import { respDiaVendedor, respFalta, respHoje, respTodosVendedores, totaisOficiais, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
-import { respAVisitar, respCheckinEquipe, respClientesVend, respDiaEquipe, respRotaFiltro, respSemVisita, respMixRotaHoje, respRecorrenciaClientes, respRotaHojeCompleta, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
+import { respAVisitar, respCheckinEquipe, respClientesVend, respDiaEquipe, respRotaFiltro, respSemVisita, respMixRotaHoje, respRecorrenciaClientes, respTagSeparadoPorSupervisor, respRotaHojeCompleta, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
 import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo, respPreco, respPedidoNumero, respPedidosStatus, respProduto, respRecuperacao, respTopProdutos } from './respostas/vendas.js';
 
 // CONTINUACAO (Vitorio, 27/10/2026: "precisa ir salvando a mensagem anterior para que vc continue a conversa... pergunto como foi o dia do vendedor X, dai
@@ -47,9 +47,12 @@ export async function respostaPronta(B, c, texto0, anteriores) {
   const abre = /\bBRASIL\b|TODAS AS FILIAIS|NACIONAL|GRUPO TODO|\bREDE\b|POR FILIAL/.test(t0);
   const equipe = /\bEQUIPE\b|\bTIME\b|\bFILIAL\b|DOS VENDEDORES|TODOS (OS )?VENDEDORES|POR SUPERVISOR|POR VENDEDOR|UM POR UM|ZERADOS|RANKING|SEM VISITA|SEM NENHUMA VISITA/.test(t0);
   if (c.papel === 'diretoria' && !filCit && !abre && ctx.filial) texto += ' ' + ctx.filial;   /* filial da conversa */
-  B._ctxVend = !abre && !equipe && (!filCit || !ctx.vend || ctx.vend.filial === filCit) ? ctx.vend || null : null;   /* vendedor da conversa (usado se nenhum for citado) */
+  const ehSobreOutroTema = /CLIENTE|LOJA|REDE|#\d+|HIST[OÓ]RI|FIGURINHA|STICKER|TODAS?|TODOS?|TAG|P10|P11|CAMPANHA|RECORRENCIA|PEDIDO|NOTA|SUGEST|BOM DIA|BOA TARDE|GERENTE|SUPERVISOR/.test(t0);
+  const ehContinuacaoVend = /^(E\b|E O\b|E A\b|E DELE|E DELA|E HOJE|E ONTEM|E NO MES|ROTA|VISITAS?|FALTA|QUANTO FALTA|COMO FOI|COMO ESTA|DETALHE|VER MAIS|\+ ?MIX|MAIS ?MIX)/.test(t0);
+  B._ctxVend = !abre && !equipe && !ehSobreOutroTema && ehContinuacaoVend && (!filCit || !ctx.vend || ctx.vend.filial === filCit) ? ctx.vend || null : null;   /* vendedor da conversa só herdado em continuação direta */
+  B._ctxAssunto = ctx.assunto || null;
   B._ultPessoa = null;
-  if (B._ctxVend) {   /* ninguem citado nesta pergunta -> completa com o vendedor da conversa (todas as respostas passam a ve-lo) */
+  if (B._ctxVend && c.papel !== 'diretoria') {   /* diretoria nunca fica amarrada a vendedor de conversa anterior */
     try {
       const ec = escopoDoContato(c, sem(texto).match(FRX));
       const escX = ec.rcaV ? null : ec.fil ? { nome: ec.fil, filiais: [ec.fil], grupo: ec.supervisor ? null : ec.grupo, supervisor: ec.supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
@@ -109,11 +112,17 @@ export async function respostaInterna(B, c, texto, anteriores) {
     return respPedidosStatus(B, pp && pp.tipo === 'vend' ? { ...Ep, nome: vn(pp.alvo), vend: [pp.alvo], ocultos: [] } : Ep, /CORTE/.test(t) ? 'CORTE' : (/PENDENTE|NAO FATUR|SEM FATURAR/.test(t) && !/BLOQUEAD|LIBERAD/.test(t)) || (/BLOQUEAD/.test(t) && /LIBERAD/.test(t)) ? 'PENDENTES' : t);   /* "bloqueados e liberados" = os dois (27/10/2026) */
   }
   if (/CORTE|CORTAD|BLOQUEAD|RETID|PERDAS|OPERACAO|RANKING DE VENDAS|RANKING FINAL|FECHAMENTO DO DIA/.test(t) && !/DEVOL/.test(t)) return respOperacao(B, await carregaEscopo(B, esc), t);
-  // TODAS AS TAGS / CAMPANHAS (Vitorio, 28/10/2026: recorrencia, P11, Sem compras Leao, Snickers Core, Borges, etc.)
-  const ehPerguntaTag = /RECORRENCIA|RESGAT|REATIVAD|INATIVOS? (RECUPERAD|REATIVAD)|\bTAGS?\b|SEM COMPRAS? P11|\bP11\b|SEM COMPRAS? LEAO|CAMPANHA BORGES|CHOCO INDEP|SNICKERS CORE|SNICKERS BRANCO|CHAMP KITEKAT|\bSKITTLES\b|\bTOFFEES\b|\bTORT\b|\bBISCUIT\b|\bBLOCK\b|\bFLOW\b/.test(t);
+  // DIGITE 1 (Opção do Gerente/Diretoria para receber a lista de tags separada por supervisor para encaminhar):
+  const antTag = (anteriores || []).find((a) => /Tag:|SEM COMPRAS|P11|P10|RECORRENCIA/i.test(String(a))) || ((B._ctxAssunto || '').match(/SEM COMPRAS|P11|P10|RECORRENCIA/i) ? B._ctxAssunto : null);
+  if (/^\W*1\W*$|^1\b|OPCAO 1|MANDA POR SUPERVISOR|SEPARADO POR SUPERVISOR|MANDA PRA CADA SUPERVISOR|ABERTO POR SUPERVISOR/.test(t) && antTag) {
+    const Er = await carregaEscopo(B, esc);
+    return respTagSeparadoPorSupervisor(B, Er, sem(antTag));
+  }
+  // TODAS AS TAGS / CAMPANHAS (Vitorio, 28/10/2026: recorrencia, P10, P11, Sem compras Leao, Snickers Core, Borges, etc.)
+  const ehPerguntaTag = /RECORRENCIA|RESGAT|REATIVAD|INATIVOS? (RECUPERAD|REATIVAD)|\bTAGS?\b|SEM COMPRAS? P1[01]|\bP10\b|\bP11\b|SEM COMPRAS? LEAO|CAMPANHA BORGES|CHOCO INDEP|SNICKERS CORE|SNICKERS BRANCO|CHAMP KITEKAT|\bSKITTLES\b|\bTOFFEES\b|\bTORT\b|\bBISCUIT\b|\bBLOCK\b|\bFLOW\b/.test(t);
   if (ehPerguntaTag && !/O QUE (E|EH)/.test(t) && !/\bMETAS?\b|KPI|PREMIA/.test(t)) {
     const Er = await carregaEscopo(B, esc), pr = achaPessoa(Er, t);
-    if (!/DEFESA|PONTO|LANCE|LIGA|REATIVAD|RESGAT/.test(t) || /TAG|P11|LEAO|BORGES|SNICKERS|KITEKAT/.test(t)) return respRecorrenciaClientes(B, Er, pr && pr.tipo === 'vend' ? pr.alvo : null, t);
+    if (!/DEFESA|PONTO|LANCE|LIGA|REATIVAD|RESGAT/.test(t) || /TAG|P11|P10|LEAO|BORGES|SNICKERS|KITEKAT/.test(t)) return respRecorrenciaClientes(B, Er, pr && pr.tipo === 'vend' ? pr.alvo : null, t, c);
     return respRecorrenciaLances(B, pr && pr.tipo === 'vend' ? { ...Er, nome: vn(pr.alvo), vend: [pr.alvo] } : Er);
   }
   if (/MOTIVO|POR ?QUE/.test(t) && /DEVOLU|DEVOLVID|VOLTOU DE MERCADORIA/.test(t)) return respDevMotivos(B);
@@ -137,6 +146,10 @@ export async function respostaInterna(B, c, texto, anteriores) {
     return respKpisPremiacao(B, Em, 'META MIX', null);
   }
   // FIGURINHAS DO JOTA (Vitorio, 28/10/2026: "ontem eu pedi para ele me mandar todas as figurinhas disponiveis... ele nao me mandou")
+  const ehPedidoTodasFigurinhas = /QUERO TODAS|MANDA TODAS|MANDA AS TODAS|ENVIA TODAS|TODAS AS FIGURINHAS|ME MANDA TODAS/.test(t) || (/TODAS\b/.test(t) && (anteriores || []).some((a) => /FIGURINHA|STICKER/.test(sem(String(a)))));
+  if (ehPedidoTodasFigurinhas) {
+    return '⚽ *Mandando o pacote oficial com todas as 20 figurinhas do Jota!* 🔥\n_Salve nos seus favoritos para usar com o time no WhatsApp!_';
+  }
   if (/FIGURINHA|STICKER|QUAIS FIGURINHAS|ME MANDA AS FIGURINHAS|MANDA UMA FIGURINHA/.test(t)) {
     return [
       '⚽ *Figurinhas Oficiais do Jota!*',
@@ -148,7 +161,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
       '• 🚶 *Rota e clientes:* "Próximo cliente", "Olha o +MIX", "Tô de olho"',
       '• 🏁 *Fechamento:* "Fechou o dia!", "Valeu time!"',
       '',
-      '_Estou te enviando uma figurinha agora mesmo pra você salvar nos seus favoritos!_'
+      '_Estou te enviando o pacote de figurinhas agora mesmo pra você salvar nos seus favoritos!_'
     ].join('\n');
   }
   { const sd = respSemDado(t); if (sd) return sd; }
@@ -324,7 +337,17 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   if (/PRECO|QUANTO SAIU/.test(t)) { const r = await respPreco(B, E, t); if (r) return r; }
   if (/COMPRAVA|PAROU|PARARAM|DEIXOU DE COMPRAR|DEIXARAM DE COMPRAR|RECUPERACAO D|QUEM NAO (COMPRA|COMPROU|COMPRARAM)|NAO (COMPROU|COMPRA|COMPRARAM)|SEM COMPRA D[EAO]|SEM COMPRAR/.test(t)) { const r = await respRecuperacao(B, E, t); if (r) return r; }
   if (/PRODUTOS? (QUE )?MAIS VEND|TOP \d* ?PRODUTOS|\d+ PRODUTOS|QUAL PRODUTO MAIS|MAIS VENDIDOS/.test(t)) return respTopProdutos(B, E, t);
-  if ((/CLIENTE|LOJA|REDE\b/.test(t) || /COMPRA D[OA]|COMPRAS D[OA]|QUANTO COMPROU|O QUE COMPROU|PEDIDOS? D[OA]|HISTORICO/.test(t)) && /COMPROU|COMPRA|ULTIMO PEDIDO|SEM COMPRAR|OFERECER|PRODUTOS D|HISTORICO/.test(t) && !/CLIENTES QUE|QUAIS (OS )?CLIENTES|QUEM/.test(t)) { const r = await respCliente(B, E, t, anteriores); if (r) return r; if (/OFERECER|ULTIMO PEDIDO|PRODUTOS D|HISTORICO/.test(t)) return `🔎 Não achei esse cliente em ${E.nome} (vendas do mês). Confira o nome ou mande o código do cliente (ex.: #212704).`; }
+  const codCliDireto = (t.match(/\bCLIENTE\s*#?\s*(\d{3,7})\b/) || t.match(/^#(\d{3,7})\b/) || ((anteriores || []).some((a) => /CLIENTE|#\d+|HIST[OÓ]RI/i.test(String(a))) && t.match(/^\s*#?(\d{4,7})(?:\s+[A-Z]{3})?\s*$/))) ? true : false;
+  const ehPerguntaCliente = codCliDireto || ((/CLIENTE|LOJA|REDE\b/.test(t) || /COMPRA D[OA]|COMPRAS D[OA]|QUANTO COMPROU|O QUE COMPROU|PEDIDOS? D[OA]|HIST[OÓ]RI/.test(t)) && /COMPROU|COMPRA|ULTIMO PEDIDO|SEM COMPRAR|OFERECER|PRODUTOS D|HIST[OÓ]RI|#\d+/.test(t) && !/CLIENTES QUE|QUAIS (OS )?CLIENTES|QUEM/.test(t));
+  if (ehPerguntaCliente) {
+    const r = await respCliente(B, E, t, anteriores);
+    if (r) return r;
+    const numDigitado = (t.match(/#?(\d{3,7})\b/) || [])[1];
+    if (numDigitado) {
+      return `🔎 Não encontrei compras para o cliente *#${numDigitado}* nas vendas deste mês em ${E.nome}. Confere se o código é esse mesmo ou me manda a Razão Social / CNPJ por escrito!`;
+    }
+    return `🔎 Para eu buscar o histórico certinho desse cliente, me manda o *código dele* (ex.: #252181), *CNPJ* ou a *razão social* por escrito! Como recebi imagem/print, ainda não consigo ler o texto dentro da foto diretamente. Com o código eu puxo todas as compras na hora! 🚀`;
+  }
   if (/COMPRA|COMPROU|COMPRARAM|VENDEU DE |VENDERAM DE |VENDEU (O|A) |VENDE DE |POSITIVACAO D[OEA]S? |(VENDE MAIS|MAIS VENDE)(?!U)(?!.*(SUPERVISOR|VENDEDOR|FILIAL|GERENTE))|EM QUANTOS CLIENTES|CLIENTES COMPRARAM|PDVS COMPRARAM|SEMANA(L|IS)|MENSA(L|IS)|DIA DA SEMANA|QUAL DIA|QUE DIA|MELHOR DIA|MES A MES|POR SEMANA|SEMANA A SEMANA|POSITIVAND|(SEGUNDA|TERCA|QUARTA|QUINTA|SEXTA|SABADO) OU /.test(t) || /\b(MONDELEZ|MARS|ARCOR|BAGLEY|CONDOR|FERRERO|NESTLE|HERSHEY|FINI|DORI|PEPSICO|KELLOGG|LACTA|DIVERSAO)\b/.test(t)) {
     const ri = await respIndustria(B, E, t, pessoa); if (ri && ri !== SEM_VENDAS) return ri;
     const rp = await respProduto(B, E, t, pessoa);
