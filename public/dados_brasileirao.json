@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-28T12:48:38.518581Z",
+  "gerado_em": "2026-10-28T13:03:41.809264Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -18,7 +18,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 33003,
+  "total_lances_auditados": 33008,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -214,9 +214,9 @@
       "vitorias": 0,
       "empates": 12,
       "derrotas": 0,
-      "gp": 8450,
+      "gp": 8451,
       "gc": 6869,
-      "sg": 1581,
+      "sg": 1582,
       "aprov": 33.3,
       "super_pedidos": 21,
       "inativos_resgatados": 157,
@@ -246,8 +246,8 @@
       "empates": 11,
       "derrotas": 0,
       "gp": 2775,
-      "gc": 2382,
-      "sg": 393,
+      "gc": 2397,
+      "sg": 378,
       "aprov": 33.3,
       "super_pedidos": 9,
       "inativos_resgatados": 114,
@@ -339,8 +339,8 @@
       "empates": 9,
       "derrotas": 2,
       "gp": 1135,
-      "gc": 1793,
-      "sg": -658,
+      "gc": 1798,
+      "sg": -663,
       "aprov": 27.3,
       "super_pedidos": 12,
       "inativos_resgatados": 29,
@@ -599,8 +599,8 @@
       "empates": 11,
       "derrotas": 0,
       "gp": 2775,
-      "gc": 2382,
-      "sg": 393,
+      "gc": 2397,
+      "sg": 378,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -694,9 +694,9 @@
       "vitorias": 0,
       "empates": 11,
       "derrotas": 0,
-      "gp": 2982,
+      "gp": 2983,
       "gc": 3205,
-      "sg": -223,
+      "sg": -222,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -759,8 +759,8 @@
       "empates": 9,
       "derrotas": 2,
       "gp": 1135,
-      "gc": 1793,
-      "sg": -658,
+      "gc": 1798,
+      "sg": -663,
       "aprov": 27.3,
       "forma": [
         "D",
@@ -894,7 +894,7 @@
         "V",
         "J"
       ],
-      "plus_lideranca": 70,
+      "plus_lideranca": 75,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -942,7 +942,7 @@
         },
         "2026-10-28": {
           "compromisso": 5,
-          "ret": 0
+          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -1230,7 +1230,7 @@
         "V",
         "J"
       ],
-      "plus_lideranca": 75,
+      "plus_lideranca": 80,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1277,7 +1277,7 @@
           "ret": 5
         },
         "2026-10-28": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -1685,7 +1685,7 @@
         "V",
         "J"
       ],
-      "plus_lideranca": 90,
+      "plus_lideranca": 95,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1732,7 +1732,7 @@
           "ret": 5
         },
         "2026-10-28": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2441,7 +2441,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 75,
+      "plus_lideranca": 80,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2489,7 +2489,7 @@
         },
         "2026-10-28": {
           "compromisso": 5,
-          "ret": 0
+          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -3113,7 +3113,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 25,
+      "plus_lideranca": 30,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -3160,7 +3160,7 @@
           "ret": 0
         },
         "2026-10-28": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3684,8 +3684,8 @@
       "empates": 8,
       "derrotas": 3,
       "gp": 746,
-      "gc": 1291,
-      "sg": -545,
+      "gc": 1306,
+      "sg": -560,
       "aprov": 24.2,
       "forma": [
         "E",
@@ -5111,9 +5111,9 @@
       "vitorias": 0,
       "empates": 6,
       "derrotas": 5,
-      "gp": 770,
+      "gp": 771,
       "gc": 1209,
-      "sg": -439,
+      "sg": -438,
       "aprov": 18.2,
       "forma": [
         "D",
@@ -5353,6 +5353,90 @@
       "pos_ant": 39
     },
     {
+      "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
+      "filial": "TPA",
+      "canal": "VAREJO",
+      "gerente": "Radke / Leandro",
+      "total_vendedores": 5,
+      "jogos": 11,
+      "pts_tabela": 5,
+      "vitorias": 0,
+      "empates": 5,
+      "derrotas": 6,
+      "gp": 176,
+      "gc": 519,
+      "sg": -343,
+      "aprov": 15.2,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "E",
+        "E",
+        "E",
+        "D",
+        "E",
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 110,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 40,
+      "pos_ant": 40
+    },
+    {
       "supervisor": "JORGE BONI",
       "filial": "TCV",
       "canal": "AS",
@@ -5435,90 +5519,6 @@
       "plus_pendente": false,
       "pos": 17,
       "pos_ant": 17
-    },
-    {
-      "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
-      "filial": "TPA",
-      "canal": "VAREJO",
-      "gerente": "Radke / Leandro",
-      "total_vendedores": 5,
-      "jogos": 11,
-      "pts_tabela": 5,
-      "vitorias": 0,
-      "empates": 5,
-      "derrotas": 6,
-      "gp": 176,
-      "gc": 514,
-      "sg": -338,
-      "aprov": 15.2,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "E",
-        "E",
-        "E",
-        "D",
-        "E",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 105,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-22": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-23": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-26": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-27": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-28": {
-          "compromisso": 5,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 40,
-      "pos_ant": 40
     },
     {
       "supervisor": "TIAGO MARTINES OTAVIANO",
@@ -5857,6 +5857,90 @@
       "pos_ant": 20
     },
     {
+      "supervisor": "LUIS THIAGO VIRTUOSO BOEIRA",
+      "filial": "TBE",
+      "canal": "AS",
+      "gerente": "Diego",
+      "total_vendedores": 3,
+      "jogos": 11,
+      "pts_tabela": 1,
+      "vitorias": 0,
+      "empates": 1,
+      "derrotas": 10,
+      "gp": 75,
+      "gc": 4,
+      "sg": 71,
+      "aprov": 3.0,
+      "forma": [
+        "D",
+        "D",
+        "E",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 105,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 21,
+      "pos_ant": 21
+    },
+    {
       "supervisor": "RAFAEL DA SILVA CARPENA",
       "filial": "TPA",
       "canal": "VAREJO",
@@ -5939,90 +6023,6 @@
       "plus_pendente": false,
       "pos": 42,
       "pos_ant": 42
-    },
-    {
-      "supervisor": "LUIS THIAGO VIRTUOSO BOEIRA",
-      "filial": "TBE",
-      "canal": "AS",
-      "gerente": "Diego",
-      "total_vendedores": 3,
-      "jogos": 11,
-      "pts_tabela": 1,
-      "vitorias": 0,
-      "empates": 1,
-      "derrotas": 10,
-      "gp": 75,
-      "gc": 4,
-      "sg": 71,
-      "aprov": 3.0,
-      "forma": [
-        "D",
-        "D",
-        "E",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "J"
-      ],
-      "plus_lideranca": 100,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-22": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-23": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-26": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-27": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-28": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 21,
-      "pos_ant": 21
     },
     {
       "supervisor": "PEDRO PAULO PERICLES SALAZAR",
@@ -10045,6 +10045,47 @@
       "pos_filial_ant": 3
     },
     {
+      "rca": "1046",
+      "nome": "ROSIMEIRE FERNANDES GONCALVES",
+      "filial": "TPH",
+      "supervisor": "EDERSON SUONSKI",
+      "gerente": "Fábio",
+      "canal": "VAREJO",
+      "jogos": 12,
+      "vitorias": 5,
+      "empates": 7,
+      "derrotas": 0,
+      "pts_tabela": 22,
+      "aprov": 61.1,
+      "gp": 233,
+      "gc": 73,
+      "sg": 160,
+      "super_pedidos": 0,
+      "inativos_resgatados": 5,
+      "forma": [
+        "E",
+        "E",
+        "E",
+        "E",
+        "V",
+        "E",
+        "V",
+        "V",
+        "E",
+        "V",
+        "V",
+        "E"
+      ],
+      "streak": 2,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 75,
+      "pos_filial": 5,
+      "pos_brasil_ant": 82,
+      "pos_filial_ant": 7
+    },
+    {
       "rca": "19",
       "nome": "MARCO AURELIO COELHO CIRINO",
       "filial": "TSJ",
@@ -10203,7 +10244,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 75,
+      "pos_brasil": 76,
       "pos_filial": 16,
       "pos_brasil_ant": 73,
       "pos_filial_ant": 15
@@ -10285,7 +10326,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 76,
+      "pos_brasil": 77,
       "pos_filial": 11,
       "pos_brasil_ant": 75,
       "pos_filial_ant": 10
@@ -10326,7 +10367,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 77,
+      "pos_brasil": 78,
       "pos_filial": 1,
       "pos_brasil_ant": 76,
       "pos_filial_ant": 1
@@ -10367,8 +10408,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 78,
-      "pos_filial": 5,
+      "pos_brasil": 79,
+      "pos_filial": 6,
       "pos_brasil_ant": 77,
       "pos_filial_ant": 5
     },
@@ -10408,7 +10449,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 79,
+      "pos_brasil": 80,
       "pos_filial": 11,
       "pos_brasil_ant": 99,
       "pos_filial_ant": 12
@@ -10449,7 +10490,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 80,
+      "pos_brasil": 81,
       "pos_filial": 17,
       "pos_brasil_ant": 78,
       "pos_filial_ant": 17
@@ -10490,7 +10531,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 81,
+      "pos_brasil": 82,
       "pos_filial": 8,
       "pos_brasil_ant": 79,
       "pos_filial_ant": 8
@@ -10531,8 +10572,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 82,
-      "pos_filial": 6,
+      "pos_brasil": 83,
+      "pos_filial": 7,
       "pos_brasil_ant": 80,
       "pos_filial_ant": 6
     },
@@ -10572,51 +10613,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 83,
+      "pos_brasil": 84,
       "pos_filial": 4,
       "pos_brasil_ant": 81,
       "pos_filial_ant": 4
-    },
-    {
-      "rca": "1046",
-      "nome": "ROSIMEIRE FERNANDES GONCALVES",
-      "filial": "TPH",
-      "supervisor": "EDERSON SUONSKI",
-      "gerente": "Fábio",
-      "canal": "VAREJO",
-      "jogos": 11,
-      "vitorias": 5,
-      "empates": 6,
-      "derrotas": 0,
-      "pts_tabela": 21,
-      "aprov": 63.6,
-      "gp": 232,
-      "gc": 73,
-      "sg": 159,
-      "super_pedidos": 0,
-      "inativos_resgatados": 5,
-      "forma": [
-        "E",
-        "E",
-        "E",
-        "E",
-        "V",
-        "E",
-        "V",
-        "V",
-        "E",
-        "V",
-        "V",
-        "J"
-      ],
-      "streak": 2,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 84,
-      "pos_filial": 7,
-      "pos_brasil_ant": 82,
-      "pos_filial_ant": 7
     },
     {
       "rca": "378",
@@ -18340,8 +18340,8 @@
       "pts_tabela": 6,
       "aprov": 18.2,
       "gp": 27,
-      "gc": 59,
-      "sg": -32,
+      "gc": 64,
+      "sg": -37,
       "super_pedidos": 0,
       "inativos_resgatados": 1,
       "forma": [
@@ -18873,8 +18873,8 @@
       "pts_tabela": 5,
       "aprov": 15.2,
       "gp": 109,
-      "gc": 230,
-      "sg": -121,
+      "gc": 245,
+      "sg": -136,
       "super_pedidos": 0,
       "inativos_resgatados": 5,
       "forma": [
