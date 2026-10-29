@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-29T11:18:23.565732Z",
+  "gerado_em": "2026-10-29T11:33:31.679744Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -19,7 +19,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 34570,
+  "total_lances_auditados": 34571,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -317,9 +317,9 @@
       "vitorias": 0,
       "empates": 11,
       "derrotas": 1,
-      "gp": 1687,
+      "gp": 1690,
       "gc": 1598,
-      "sg": 89,
+      "sg": 92,
       "aprov": 30.6,
       "super_pedidos": 26,
       "inativos_resgatados": 34,
@@ -749,9 +749,9 @@
       "vitorias": 0,
       "empates": 11,
       "derrotas": 1,
-      "gp": 1687,
+      "gp": 1690,
       "gc": 1598,
-      "sg": 89,
+      "sg": 92,
       "aprov": 30.6,
       "forma": [
         "E",
@@ -1103,7 +1103,7 @@
         "V",
         "J"
       ],
-      "plus_lideranca": 110,
+      "plus_lideranca": 115,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1154,7 +1154,7 @@
           "ret": 5
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -1370,7 +1370,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 120,
+      "plus_lideranca": 125,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1421,7 +1421,7 @@
           "ret": 5
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -1459,7 +1459,7 @@
         "V",
         "J"
       ],
-      "plus_lideranca": 95,
+      "plus_lideranca": 100,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1510,7 +1510,7 @@
           "ret": 5
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -1673,7 +1673,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 60,
+      "plus_lideranca": 65,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1724,7 +1724,7 @@
           "ret": 0
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -1762,7 +1762,7 @@
         "V",
         "J"
       ],
-      "plus_lideranca": 45,
+      "plus_lideranca": 50,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1813,7 +1813,7 @@
           "ret": 0
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -1851,7 +1851,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 100,
+      "plus_lideranca": 105,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1902,7 +1902,7 @@
           "ret": 5
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2029,7 +2029,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 105,
+      "plus_lideranca": 110,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2080,7 +2080,7 @@
           "ret": 0
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2207,7 +2207,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 120,
+      "plus_lideranca": 125,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2258,7 +2258,7 @@
           "ret": 5
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3898,7 +3898,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 60,
+      "plus_lideranca": 65,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 0,
@@ -3949,7 +3949,7 @@
           "ret": 5
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -4225,6 +4225,95 @@
       "pos_ant": 31
     },
     {
+      "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
+      "filial": "TCV",
+      "canal": "AS",
+      "gerente": "Leonardo",
+      "total_vendedores": 4,
+      "jogos": 12,
+      "pts_tabela": 8,
+      "vitorias": 0,
+      "empates": 8,
+      "derrotas": 4,
+      "gp": 294,
+      "gc": 12,
+      "sg": 282,
+      "aprov": 22.2,
+      "forma": [
+        "E",
+        "E",
+        "D",
+        "E",
+        "E",
+        "D",
+        "D",
+        "E",
+        "E",
+        "D",
+        "E",
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 120,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 9,
+      "pos_ant": 10
+    },
+    {
       "supervisor": "ALESSANDRO JUNIOR LOPES",
       "filial": "API",
       "canal": "AS",
@@ -4310,97 +4399,8 @@
         }
       },
       "plus_pendente": false,
-      "pos": 9,
-      "pos_ant": 9
-    },
-    {
-      "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
-      "filial": "TCV",
-      "canal": "AS",
-      "gerente": "Leonardo",
-      "total_vendedores": 4,
-      "jogos": 12,
-      "pts_tabela": 8,
-      "vitorias": 0,
-      "empates": 8,
-      "derrotas": 4,
-      "gp": 294,
-      "gc": 12,
-      "sg": 282,
-      "aprov": 22.2,
-      "forma": [
-        "E",
-        "E",
-        "D",
-        "E",
-        "E",
-        "D",
-        "D",
-        "E",
-        "E",
-        "D",
-        "E",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 115,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-22": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-23": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-26": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-27": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-28": {
-          "compromisso": 0,
-          "ret": 5
-        },
-        "2026-10-29": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
       "pos": 10,
-      "pos_ant": 10
+      "pos_ant": 9
     },
     {
       "supervisor": "HAMILTON RICARDO DOS SANTOS MENDES",
@@ -4610,7 +4610,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 85,
+      "plus_lideranca": 90,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -4661,7 +4661,7 @@
           "ret": 5
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -4947,9 +4947,9 @@
       "vitorias": 0,
       "empates": 8,
       "derrotas": 4,
-      "gp": 311,
+      "gp": 314,
       "gc": 333,
-      "sg": -22,
+      "sg": -19,
       "aprov": 22.2,
       "forma": [
         "E",
@@ -5055,7 +5055,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 110,
+      "plus_lideranca": 115,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -5106,7 +5106,7 @@
           "ret": 5
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -5144,7 +5144,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 75,
+      "plus_lideranca": 80,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -5195,7 +5195,7 @@
           "ret": 5
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -6034,7 +6034,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 105,
+      "plus_lideranca": 110,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -6085,7 +6085,7 @@
           "ret": 5
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -12723,6 +12723,48 @@
       "pos_filial_ant": 14
     },
     {
+      "rca": "476",
+      "nome": "EDIELSON LOPES CARDOSO",
+      "filial": "TCG",
+      "supervisor": "EDSON RODRIGO LINIA",
+      "gerente": "Danilo",
+      "canal": "VAREJO",
+      "jogos": 13,
+      "vitorias": 4,
+      "empates": 6,
+      "derrotas": 3,
+      "pts_tabela": 18,
+      "aprov": 46.2,
+      "gp": 93,
+      "gc": 17,
+      "sg": 76,
+      "super_pedidos": 2,
+      "inativos_resgatados": 2,
+      "forma": [
+        "V",
+        "E",
+        "V",
+        "D",
+        "E",
+        "E",
+        "D",
+        "E",
+        "E",
+        "V",
+        "V",
+        "D",
+        "E"
+      ],
+      "streak": 2,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 116,
+      "pos_filial": 3,
+      "pos_brasil_ant": 124,
+      "pos_filial_ant": 3
+    },
+    {
       "rca": "300",
       "nome": "HELIO LEMOS DA SILVA",
       "filial": "TBE",
@@ -12759,7 +12801,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 116,
+      "pos_brasil": 117,
       "pos_filial": 5,
       "pos_brasil_ant": 116,
       "pos_filial_ant": 5
@@ -12801,7 +12843,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 117,
+      "pos_brasil": 118,
       "pos_filial": 15,
       "pos_brasil_ant": 117,
       "pos_filial_ant": 15
@@ -12843,7 +12885,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 118,
+      "pos_brasil": 119,
       "pos_filial": 12,
       "pos_brasil_ant": 118,
       "pos_filial_ant": 12
@@ -12885,7 +12927,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 119,
+      "pos_brasil": 120,
       "pos_filial": 20,
       "pos_brasil_ant": 119,
       "pos_filial_ant": 20
@@ -12969,7 +13011,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 120,
+      "pos_brasil": 121,
       "pos_filial": 11,
       "pos_brasil_ant": 120,
       "pos_filial_ant": 11
@@ -13011,7 +13053,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 121,
+      "pos_brasil": 122,
       "pos_filial": 16,
       "pos_brasil_ant": 121,
       "pos_filial_ant": 16
@@ -13053,7 +13095,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 122,
+      "pos_brasil": 123,
       "pos_filial": 21,
       "pos_brasil_ant": 122,
       "pos_filial_ant": 21
@@ -13095,52 +13137,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 123,
+      "pos_brasil": 124,
       "pos_filial": 8,
       "pos_brasil_ant": 123,
       "pos_filial_ant": 8
-    },
-    {
-      "rca": "476",
-      "nome": "EDIELSON LOPES CARDOSO",
-      "filial": "TCG",
-      "supervisor": "EDSON RODRIGO LINIA",
-      "gerente": "Danilo",
-      "canal": "VAREJO",
-      "jogos": 12,
-      "vitorias": 4,
-      "empates": 5,
-      "derrotas": 3,
-      "pts_tabela": 17,
-      "aprov": 47.2,
-      "gp": 90,
-      "gc": 17,
-      "sg": 73,
-      "super_pedidos": 2,
-      "inativos_resgatados": 2,
-      "forma": [
-        "V",
-        "E",
-        "V",
-        "D",
-        "E",
-        "E",
-        "D",
-        "E",
-        "E",
-        "V",
-        "V",
-        "D",
-        "J"
-      ],
-      "streak": 2,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 124,
-      "pos_filial": 3,
-      "pos_brasil_ant": 124,
-      "pos_filial_ant": 3
     },
     {
       "rca": "250",
@@ -30171,7 +30171,7 @@
         "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
         "gerente": "Leonardo",
         "meta_mes": 270000,
-        "pct_hoje": 98.7,
+        "pct_hoje": 98.8,
         "fases": [
           {
             "n": 1,
@@ -44346,7 +44346,7 @@
         "supervisor": "JULIO CESAR SOARES DE PAULO",
         "gerente": "Saldanha",
         "meta_mes": 320000,
-        "pct_hoje": 82,
+        "pct_hoje": 81.7,
         "fases": [
           {
             "n": 1,
@@ -46077,7 +46077,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 700000,
-        "pct_hoje": 80.6,
+        "pct_hoje": 80.7,
         "fases": [
           {
             "n": 1,
