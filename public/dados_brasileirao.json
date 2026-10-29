@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-29T10:03:24.769047Z",
+  "gerado_em": "2026-10-29T10:18:30.367322Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -19,7 +19,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 34569,
+  "total_lances_auditados": 34570,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -221,9 +221,9 @@
       "vitorias": 0,
       "empates": 12,
       "derrotas": 0,
-      "gp": 9162,
+      "gp": 9170,
       "gc": 7360,
-      "sg": 1802,
+      "sg": 1810,
       "aprov": 33.3,
       "super_pedidos": 22,
       "inativos_resgatados": 170,
@@ -584,9 +584,9 @@
       "vitorias": 0,
       "empates": 12,
       "derrotas": 0,
-      "gp": 5959,
+      "gp": 5967,
       "gc": 3895,
-      "sg": 2064,
+      "sg": 2072,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -4502,9 +4502,9 @@
       "vitorias": 2,
       "empates": 2,
       "derrotas": 8,
-      "gp": 379,
+      "gp": 387,
       "gc": 418,
-      "sg": -39,
+      "sg": -31,
       "aprov": 22.2,
       "forma": [
         "D",
@@ -5589,7 +5589,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 100,
+      "plus_lideranca": 105,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 0,
@@ -5640,7 +5640,7 @@
           "ret": 5
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -16251,6 +16251,48 @@
       "pos_filial_ant": 23
     },
     {
+      "rca": "128",
+      "nome": "RENAN LECHUK",
+      "filial": "TPH",
+      "supervisor": "JEFFERSON POLETTO",
+      "gerente": "Vagner",
+      "canal": "VAREJO",
+      "jogos": 13,
+      "vitorias": 1,
+      "empates": 8,
+      "derrotas": 4,
+      "pts_tabela": 11,
+      "aprov": 28.2,
+      "gp": 123,
+      "gc": 63,
+      "sg": 60,
+      "super_pedidos": 1,
+      "inativos_resgatados": 5,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "E",
+        "E",
+        "V",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 181,
+      "pos_filial": 23,
+      "pos_brasil_ant": 187,
+      "pos_filial_ant": 23
+    },
+    {
       "rca": "285",
       "nome": "EDUARDO PEREIRA",
       "filial": "TBE",
@@ -16287,7 +16329,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 181,
+      "pos_brasil": 182,
       "pos_filial": 7,
       "pos_brasil_ant": 180,
       "pos_filial_ant": 7
@@ -16371,7 +16413,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 182,
+      "pos_brasil": 183,
       "pos_filial": 20,
       "pos_brasil_ant": 181,
       "pos_filial_ant": 20
@@ -16539,7 +16581,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 183,
+      "pos_brasil": 184,
       "pos_filial": 14,
       "pos_brasil_ant": 182,
       "pos_filial_ant": 14
@@ -16623,7 +16665,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 184,
+      "pos_brasil": 185,
       "pos_filial": 9,
       "pos_brasil_ant": 183,
       "pos_filial_ant": 9
@@ -16707,7 +16749,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 185,
+      "pos_brasil": 186,
       "pos_filial": 15,
       "pos_brasil_ant": 184,
       "pos_filial_ant": 15
@@ -16749,52 +16791,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 186,
+      "pos_brasil": 187,
       "pos_filial": 8,
       "pos_brasil_ant": 185,
       "pos_filial_ant": 8
-    },
-    {
-      "rca": "128",
-      "nome": "RENAN LECHUK",
-      "filial": "TPH",
-      "supervisor": "JEFFERSON POLETTO",
-      "gerente": "Vagner",
-      "canal": "VAREJO",
-      "jogos": 12,
-      "vitorias": 1,
-      "empates": 7,
-      "derrotas": 4,
-      "pts_tabela": 10,
-      "aprov": 27.8,
-      "gp": 115,
-      "gc": 63,
-      "sg": 52,
-      "super_pedidos": 1,
-      "inativos_resgatados": 5,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "E",
-        "E",
-        "V",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "J"
-      ],
-      "streak": 1,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 187,
-      "pos_filial": 23,
-      "pos_brasil_ant": 187,
-      "pos_filial_ant": 23
     },
     {
       "rca": "209",
