@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-29T23:33:50.759961Z",
+  "gerado_em": "2026-10-29T23:48:52.053148Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -19,7 +19,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 35817,
+  "total_lances_auditados": 35820,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -157,12 +157,12 @@
       "vitorias": 0,
       "empates": 13,
       "derrotas": 0,
-      "gp": 7366,
+      "gp": 7377,
       "gc": 2719,
-      "sg": 4647,
+      "sg": 4658,
       "aprov": 33.3,
       "super_pedidos": 59,
-      "inativos_resgatados": 217,
+      "inativos_resgatados": 218,
       "forma": [
         "E",
         "E",
@@ -221,9 +221,9 @@
       "vitorias": 0,
       "empates": 13,
       "derrotas": 0,
-      "gp": 9613,
+      "gp": 9616,
       "gc": 7717,
-      "sg": 1896,
+      "sg": 1899,
       "aprov": 33.3,
       "super_pedidos": 27,
       "inativos_resgatados": 174,
@@ -518,9 +518,9 @@
       "vitorias": 0,
       "empates": 13,
       "derrotas": 0,
-      "gp": 7366,
+      "gp": 7377,
       "gc": 2719,
-      "sg": 4647,
+      "sg": 4658,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -683,9 +683,9 @@
       "vitorias": 0,
       "empates": 13,
       "derrotas": 0,
-      "gp": 3332,
+      "gp": 3335,
       "gc": 3592,
-      "sg": -260,
+      "sg": -257,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -3790,9 +3790,9 @@
       "vitorias": 0,
       "empates": 10,
       "derrotas": 3,
-      "gp": 868,
+      "gp": 871,
       "gc": 1135,
-      "sg": -267,
+      "sg": -264,
       "aprov": 25.6,
       "forma": [
         "D",
@@ -13785,11 +13785,11 @@
       "derrotas": 7,
       "pts_tabela": 16,
       "aprov": 41.0,
-      "gp": 124,
+      "gp": 135,
       "gc": 24,
-      "sg": 100,
+      "sg": 111,
       "super_pedidos": 0,
-      "inativos_resgatados": 3,
+      "inativos_resgatados": 4,
       "forma": [
         "E",
         "V",
@@ -14499,9 +14499,9 @@
       "derrotas": 3,
       "pts_tabela": 15,
       "aprov": 41.7,
-      "gp": 196,
+      "gp": 199,
       "gc": 112,
-      "sg": 84,
+      "sg": 87,
       "super_pedidos": 2,
       "inativos_resgatados": 4,
       "forma": [
@@ -28998,7 +28998,7 @@
         "supervisor": "ANDERSON FERNANDES CORREIA",
         "gerente": "Marcelo",
         "meta_mes": 166530,
-        "pct_hoje": 111.1,
+        "pct_hoje": 112.5,
         "fases": [
           {
             "n": 1,
@@ -30213,7 +30213,7 @@
         "supervisor": "CRISTIANO RODRIGUES MACHADO",
         "gerente": "Saldanha",
         "meta_mes": 720000,
-        "pct_hoje": 138.8,
+        "pct_hoje": 139.7,
         "fases": [
           {
             "n": 1,
@@ -30483,7 +30483,7 @@
         "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
         "gerente": "Leonardo",
         "meta_mes": 270000,
-        "pct_hoje": 108.8,
+        "pct_hoje": 112.3,
         "fases": [
           {
             "n": 1,
@@ -32502,6 +32502,141 @@
         "pos_filial_ant": 5
       },
       {
+        "rca": "1111",
+        "nome": "ANGELICA DE ANHAIA",
+        "filial": "TCA",
+        "supervisor": "JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR",
+        "gerente": "Becher",
+        "meta_mes": 83000,
+        "pct_hoje": 87.9,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-10-07",
+            "status": "batida",
+            "pct": 37.4,
+            "ganhou": 10
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-10-14",
+            "status": "nao_batida",
+            "pct": 37.9,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-10-20",
+            "status": "batida",
+            "pct": 64.1,
+            "ganhou": 30
+          },
+          {
+            "n": 4,
+            "ate": 31,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-10-31",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "perdido",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "perdido",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 10,
+            "pts_bonus": 0,
+            "score": 10,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 85,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 85,
+            "jogada": true,
+            "resultado": "V",
+            "pts_tabela": 3
+          },
+          {
+            "n": 3,
+            "pts_lances": 21,
+            "pts_faseamento": 30,
+            "pts_bonus": 0,
+            "score": 51,
+            "jogada": true,
+            "resultado": "V",
+            "pts_tabela": 3
+          },
+          {
+            "n": 4,
+            "pts_lances": 5,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 5,
+            "jogada": true,
+            "resultado": "E",
+            "pts_tabela": 1
+          }
+        ],
+        "jogos": 3,
+        "vitorias": 2,
+        "empates": 1,
+        "derrotas": 0,
+        "pts_tabela": 7,
+        "aprov": 77.8,
+        "forma": [
+          "V",
+          "V",
+          "E"
+        ],
+        "pontos": 141,
+        "pts_lances": 111,
+        "pts_faseamento": 40,
+        "pts_bonus": 0,
+        "pos_brasil": 42,
+        "pos_filial": 2,
+        "pos_brasil_ant": 58,
+        "pos_filial_ant": 4
+      },
+      {
         "rca": "370",
         "nome": "DEIZIANE DOS SANTOS",
         "filial": "TCA",
@@ -32631,8 +32766,8 @@
         "pts_lances": 117,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 42,
-        "pos_filial": 2,
+        "pos_brasil": 43,
+        "pos_filial": 3,
         "pos_brasil_ant": 40,
         "pos_filial_ant": 2
       },
@@ -32766,7 +32901,7 @@
         "pts_lances": 65,
         "pts_faseamento": 50,
         "pts_bonus": 0,
-        "pos_brasil": 43,
+        "pos_brasil": 44,
         "pos_filial": 6,
         "pos_brasil_ant": 38,
         "pos_filial_ant": 6
@@ -32901,7 +33036,7 @@
         "pts_lances": 9,
         "pts_faseamento": 40,
         "pts_bonus": 75,
-        "pos_brasil": 44,
+        "pos_brasil": 45,
         "pos_filial": 6,
         "pos_brasil_ant": 39,
         "pos_filial_ant": 6
@@ -33036,7 +33171,7 @@
         "pts_lances": 67,
         "pts_faseamento": 30,
         "pts_bonus": 0,
-        "pos_brasil": 45,
+        "pos_brasil": 46,
         "pos_filial": 7,
         "pos_brasil_ant": 62,
         "pos_filial_ant": 9
@@ -33171,7 +33306,7 @@
         "pts_lances": 95,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 46,
+        "pos_brasil": 47,
         "pos_filial": 10,
         "pos_brasil_ant": 41,
         "pos_filial_ant": 10
@@ -33306,8 +33441,8 @@
         "pts_lances": 8,
         "pts_faseamento": 60,
         "pts_bonus": 25,
-        "pos_brasil": 47,
-        "pos_filial": 3,
+        "pos_brasil": 48,
+        "pos_filial": 4,
         "pos_brasil_ant": 42,
         "pos_filial_ant": 3
       },
@@ -33441,7 +33576,7 @@
         "pts_lances": 37,
         "pts_faseamento": 30,
         "pts_bonus": 0,
-        "pos_brasil": 48,
+        "pos_brasil": 49,
         "pos_filial": 5,
         "pos_brasil_ant": 45,
         "pos_filial_ant": 5
@@ -33576,7 +33711,7 @@
         "pts_lances": 65,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 49,
+        "pos_brasil": 50,
         "pos_filial": 11,
         "pos_brasil_ant": 47,
         "pos_filial_ant": 11
@@ -33711,7 +33846,7 @@
         "pts_lances": 62,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 50,
+        "pos_brasil": 51,
         "pos_filial": 6,
         "pos_brasil_ant": 46,
         "pos_filial_ant": 6
@@ -33846,7 +33981,7 @@
         "pts_lances": 26,
         "pts_faseamento": 30,
         "pts_bonus": 0,
-        "pos_brasil": 51,
+        "pos_brasil": 52,
         "pos_filial": 8,
         "pos_brasil_ant": 48,
         "pos_filial_ant": 7
@@ -33858,7 +33993,7 @@
         "supervisor": "PEDRO PAULO PERICLES SALAZAR",
         "gerente": "Danilo",
         "meta_mes": 140000,
-        "pct_hoje": 88.4,
+        "pct_hoje": 88,
         "fases": [
           {
             "n": 1,
@@ -33981,7 +34116,7 @@
         "pts_lances": 22,
         "pts_faseamento": 30,
         "pts_bonus": 0,
-        "pos_brasil": 52,
+        "pos_brasil": 53,
         "pos_filial": 2,
         "pos_brasil_ant": 51,
         "pos_filial_ant": 2
@@ -34116,7 +34251,7 @@
         "pts_lances": 51,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 53,
+        "pos_brasil": 54,
         "pos_filial": 7,
         "pos_brasil_ant": 56,
         "pos_filial_ant": 7
@@ -34128,7 +34263,7 @@
         "supervisor": "GILBERTO GOMES DOMINGOS",
         "gerente": "Marcos",
         "meta_mes": 262899,
-        "pct_hoje": 61.1,
+        "pct_hoje": 61.6,
         "fases": [
           {
             "n": 1,
@@ -34251,7 +34386,7 @@
         "pts_lances": 51,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 54,
+        "pos_brasil": 55,
         "pos_filial": 7,
         "pos_brasil_ant": 50,
         "pos_filial_ant": 7
@@ -34386,7 +34521,7 @@
         "pts_lances": 45,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 55,
+        "pos_brasil": 56,
         "pos_filial": 9,
         "pos_brasil_ant": 53,
         "pos_filial_ant": 8
@@ -34521,7 +34656,7 @@
         "pts_lances": 44,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 56,
+        "pos_brasil": 57,
         "pos_filial": 2,
         "pos_brasil_ant": 72,
         "pos_filial_ant": 3
@@ -34656,7 +34791,7 @@
         "pts_lances": 40,
         "pts_faseamento": 10,
         "pts_bonus": 0,
-        "pos_brasil": 57,
+        "pos_brasil": 58,
         "pos_filial": 12,
         "pos_brasil_ant": 54,
         "pos_filial_ant": 12
@@ -34791,7 +34926,7 @@
         "pts_lances": 39,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 58,
+        "pos_brasil": 59,
         "pos_filial": 8,
         "pos_brasil_ant": 55,
         "pos_filial_ant": 8
@@ -34926,145 +35061,10 @@
         "pts_lances": 113,
         "pts_faseamento": 40,
         "pts_bonus": 0,
-        "pos_brasil": 59,
+        "pos_brasil": 60,
         "pos_filial": 7,
         "pos_brasil_ant": 57,
         "pos_filial_ant": 7
-      },
-      {
-        "rca": "1111",
-        "nome": "ANGELICA DE ANHAIA",
-        "filial": "TCA",
-        "supervisor": "JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR",
-        "gerente": "Becher",
-        "meta_mes": 83000,
-        "pct_hoje": 85.9,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-10-07",
-            "status": "batida",
-            "pct": 37.4,
-            "ganhou": 10
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-10-14",
-            "status": "nao_batida",
-            "pct": 37.9,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-10-20",
-            "status": "batida",
-            "pct": 64.1,
-            "ganhou": 30
-          },
-          {
-            "n": 4,
-            "ate": 31,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-10-31",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "perdido",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "perdido",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": 0,
-            "pts_faseamento": 10,
-            "pts_bonus": 0,
-            "score": 10,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 2,
-            "pts_lances": 85,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 85,
-            "jogada": true,
-            "resultado": "V",
-            "pts_tabela": 3
-          },
-          {
-            "n": 3,
-            "pts_lances": 21,
-            "pts_faseamento": 30,
-            "pts_bonus": 0,
-            "score": 51,
-            "jogada": true,
-            "resultado": "V",
-            "pts_tabela": 3
-          },
-          {
-            "n": 4,
-            "pts_lances": -6,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": -6,
-            "jogada": true,
-            "resultado": "J",
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 2,
-        "vitorias": 2,
-        "empates": 0,
-        "derrotas": 0,
-        "pts_tabela": 6,
-        "aprov": 100.0,
-        "forma": [
-          "V",
-          "V",
-          "J"
-        ],
-        "pontos": 136,
-        "pts_lances": 100,
-        "pts_faseamento": 40,
-        "pts_bonus": 0,
-        "pos_brasil": 60,
-        "pos_filial": 4,
-        "pos_brasil_ant": 58,
-        "pos_filial_ant": 4
       },
       {
         "rca": "48",
@@ -38853,7 +38853,7 @@
         "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
         "gerente": "Radke / Leandro",
         "meta_mes": 276000,
-        "pct_hoje": 103,
+        "pct_hoje": 103.7,
         "fases": [
           {
             "n": 1,
@@ -41418,7 +41418,7 @@
         "supervisor": "ALYFER PEREIRA MENDES",
         "gerente": "Adriano",
         "meta_mes": 445000,
-        "pct_hoje": 55.8,
+        "pct_hoje": 56.7,
         "fases": [
           {
             "n": 1,
@@ -45447,7 +45447,7 @@
         "total_vendedores": 5,
         "com_meta": 5,
         "meta_mes": 1300833,
-        "pct_hoje": 121.9,
+        "pct_hoje": 122,
         "fases": [
           {
             "n": 1,
@@ -45559,7 +45559,7 @@
         "total_vendedores": 8,
         "com_meta": 8,
         "meta_mes": 4400000,
-        "pct_hoje": 89.3,
+        "pct_hoje": 89.5,
         "fases": [
           {
             "n": 1,
@@ -46231,7 +46231,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 700000,
-        "pct_hoje": 87.1,
+        "pct_hoje": 88.4,
         "fases": [
           {
             "n": 1,
@@ -46567,7 +46567,7 @@
         "total_vendedores": 6,
         "com_meta": 6,
         "meta_mes": 1850000,
-        "pct_hoje": 68.7,
+        "pct_hoje": 68.8,
         "fases": [
           {
             "n": 1,
@@ -47687,7 +47687,7 @@
         "total_vendedores": 5,
         "com_meta": 5,
         "meta_mes": 1558000,
-        "pct_hoje": 85.7,
+        "pct_hoje": 85.9,
         "fases": [
           {
             "n": 1,
@@ -47911,7 +47911,7 @@
         "total_vendedores": 5,
         "com_meta": 5,
         "meta_mes": 1315715.87,
-        "pct_hoje": 72.6,
+        "pct_hoje": 72.9,
         "fases": [
           {
             "n": 1,
