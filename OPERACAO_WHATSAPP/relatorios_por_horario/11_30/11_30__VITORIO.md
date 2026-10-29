@@ -1,50 +1,50 @@
 📋 *PAINEL EXECUTIVO — GESTÃO DE CAMPO (11 FILIAIS)*
-📅 28/10/2026 • ⏱️ Referência: 11:30
+📅 29/10/2026 • ⏱️ Referência: 11:30
 🏢 *Grupo Triunfante*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📌 *RESULTADO GERAL DA COMPANHIA:*
 👥 *Supervisores em Campo:* 69 supervisores
-📝 *Compromissos Lançados:* 55 de 69 (79,7%)
-🚗 *Em Rota (RET Ativo):* 20 de 69 (29,0%)
+📝 *Compromissos Lançados:* 23 de 69 (33,3%)
+🚗 *Em Rota (RET Ativo):* 1 de 69 (1,4%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 *DESEMPENHO POR FILIAL (RANKING DE ATIVIDADE):*
 
-🥇 *1. FILIAL TPA — RADKE / LEANDRO*
-📝 Compromissos: *6 de 6* (100%) • 🚗 Em Rota: *4 de 6* (67%)
+🥇 *1. FILIAL TPH — VAGNER / FÁBIO*
+📝 Compromissos: *9 de 12* (75%) • 🚗 Em Rota: *1 de 12* (8%)
 
-🥈 *2. FILIAL API — MARCELO*
-📝 Compromissos: *6 de 6* (100%) • 🚗 Em Rota: *3 de 6* (50%)
+🥈 *2. FILIAL ABC — MARCOS*
+📝 Compromissos: *3 de 6* (50%) • 🚗 Em Rota: *0 de 6* (0%)
 
-🥉 *3. FILIAL TPH — VAGNER / FÁBIO*
-📝 Compromissos: *9 de 12* (75%) • 🚗 Em Rota: *9 de 12* (75%)
+🥉 *3. FILIAL API — MARCELO*
+📝 Compromissos: *3 de 6* (50%) • 🚗 Em Rota: *0 de 6* (0%)
 
-🏢 *4. FILIAL TSJ — SALDANHA*
-📝 Compromissos: *4 de 4* (100%) • 🚗 Em Rota: *1 de 4* (25%)
+🏢 *4. FILIAL TBE — DIEGO*
+📝 Compromissos: *2 de 5* (40%) • 🚗 Em Rota: *0 de 5* (0%)
 
-🏢 *5. FILIAL ABC — MARCOS*
-📝 Compromissos: *5 de 6* (83%) • 🚗 Em Rota: *1 de 6* (17%)
+🏢 *5. FILIAL TBL — FÁBIO*
+📝 Compromissos: *2 de 6* (33%) • 🚗 Em Rota: *0 de 6* (0%)
 
-🏢 *6. FILIAL TCV — LEONARDO*
-📝 Compromissos: *4 de 7* (57%) • 🚗 Em Rota: *2 de 7* (29%)
+🏢 *6. FILIAL TSJ — SALDANHA*
+📝 Compromissos: *1 de 4* (25%) • 🚗 Em Rota: *0 de 4* (0%)
 
-🏢 *7. FILIAL MCD — CLEVERSON / ADRIANO*
-📝 Compromissos: *5 de 6* (83%) • 🚗 Em Rota: *0 de 6* (0%)
+🏢 *7. FILIAL TCG — DANILO*
+📝 Compromissos: *1 de 5* (20%) • 🚗 Em Rota: *0 de 5* (0%)
 
-🏢 *8. FILIAL TBE — DIEGO*
-📝 Compromissos: *4 de 5* (80%) • 🚗 Em Rota: *0 de 5* (0%)
+🏢 *8. FILIAL TPA — RADKE / LEANDRO*
+📝 Compromissos: *1 de 6* (17%) • 🚗 Em Rota: *0 de 6* (0%)
 
-🏢 *9. FILIAL TCG — DANILO*
-📝 Compromissos: *4 de 5* (80%) • 🚗 Em Rota: *0 de 5* (0%)
+🏢 *9. FILIAL TCV — LEONARDO*
+📝 Compromissos: *1 de 7* (14%) • 🚗 Em Rota: *0 de 7* (0%)
 
-🏢 *10. FILIAL TBL — FÁBIO*
-📝 Compromissos: *4 de 6* (67%) • 🚗 Em Rota: *0 de 6* (0%)
+🏢 *10. FILIAL MCD — CLEVERSON / ADRIANO*
+📝 Compromissos: *0 de 6* (0%) • 🚗 Em Rota: *0 de 6* (0%)
 
 🏢 *11. FILIAL TCA — BECHER*
-📝 Compromissos: *4 de 6* (67%) • 🚗 Em Rota: *0 de 6* (0%)
+📝 Compromissos: *0 de 6* (0%) • 🚗 Em Rota: *0 de 6* (0%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⚠️ *ATENÇÃO OPERACIONAL:*
-🚨 *14 supervisores* sem compromisso lançado
-🚨 *49 supervisores* sem início de rota (RET) no sistema
+🚨 *46 supervisores* sem compromisso lançado
+🚨 *68 supervisores* sem início de rota (RET) no sistema
