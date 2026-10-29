@@ -441,8 +441,8 @@ const dIsoBR = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}`;
 // "COMO ESTA O DIA DA MINHA EQUIPE" (Vitorio, 27/10/2026: "uma mensagem so, uma linha por vendedor focada na rota... e coloca a sugestao no final explicando o que
 // fazer"). Ordem: quem mais precisa de atencao primeiro (sem pedido com rota, depois menos visitas feitas).
 export async function respDiaEquipe(B, E) {
-  const V = E.vend.filter((v) => v.varejo && v.visP > 0);
-  const outros = E.vend.filter((v) => !(v.varejo && v.visP > 0));
+  const V = E.vend.filter((v) => v.visP > 0);
+  const outros = E.vend.filter((v) => !(v.visP > 0));
   if (!V.length && !outros.length) return `📋 *${E.nome}* — ninguém com rota hoje.`;
   const L = [];
   for (const v of V) {
@@ -453,19 +453,20 @@ export async function respDiaEquipe(B, E) {
   L.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
   const tot = V.reduce((a, v) => ({ f: a.f + v.visF, p: a.p + v.visP, d: a.d + v.dig, z: a.z + (v.ped ? 0 : 1) }), { f: 0, p: 0, d: 0, z: 0 });
   const totGeral = E.vend.reduce((s, v) => s + (v.dig || 0), 0);
-  const as = outros.filter((v) => v.dig > 0 || v.ped > 0 || v.meta > 0).sort((a, b) => b.dig - a.dig);
-  const totAS = outros.reduce((s, v) => s + (v.dig || 0), 0);
-  const digTxt = outros.length && totAS > 0 ? `digitado *${R$(totGeral)}* (varejo ${R$(tot.d)} · AS ${R$(totAS)})` : `digitado *${R$(totGeral)}*`;
-  return [`📋 *Dia da ${E.nome}* (${hojeSP().slice(8, 10)}/${hojeSP().slice(5, 7)})`, `Rota do varejo: *${tot.f} de ${tot.p}* visitas · ${digTxt} · *${tot.z}* vendedor(es) com rota e sem pedido`,
+  const outrosComVenda = outros.filter((v) => v.dig > 0 || v.ped > 0 || v.meta > 0).sort((a, b) => b.dig - a.dig);
+  const totOutros = outros.reduce((s, v) => s + (v.dig || 0), 0);
+  const digTxt = outros.length && totOutros > 0 ? `digitado *${R$(totGeral)}* (com rota ${R$(tot.d)} · sem rota ${R$(totOutros)})` : `digitado *${R$(totGeral)}*`;
+  const rotLabel = V.length && !V.some((v) => v.varejo) ? 'Rota' : (V.some((v) => !v.varejo) ? 'Rota (geral)' : 'Rota do varejo');
+  return [`📋 *Dia da ${E.nome}* (${hojeSP().slice(8, 10)}/${hojeSP().slice(5, 7)})`, `${rotLabel}: *${tot.f} de ${tot.p}* visitas · ${digTxt} · *${tot.z}* vendedor(es) com rota e sem pedido`,
     '_⚠️ sem pedido · 🟡 rota em andamento · ✅ rota feita_', '', ...L.map((x) => x[2]),
-    ...(as.length ? ['', `*AS e outros canais:* ` + as.map((v) => `${vn(v)} ${R$(v.dig)}`).join(' · ')] : []),
+    ...(outrosComVenda.length ? ['', `*Outros canais / sem rota:* ` + outrosComVenda.map((v) => `${vn(v)} ${R$(v.dig)}`).join(' · ')] : []),
     '', SUGESTAO + (tot.z ? `comece pelos ⚠️ (rota e sem pedido). ` : '') + 'Para abrir um vendedor, mande o *nome* ou o *código* (ex.: "clientes 352"); para o *+MIX* da rota dele, depois mande "+mix"; para receber *cada vendedor em uma mensagem*, mande "um por um".'].join('\n');
 }
 
 // VENDEDORES SEM NENHUMA VISITA HOJE, na hierarquia (Vitorio, 27/10/2026: "so queria saber os sem nenhuma visita ainda... como sou da diretoria, teria que mostrar
 // a hierarquia filial, supervisor, vendedor"; Evandro: "lista completa dos vendedores sem visita, hoje, por filial")
 export function respSemVisita(E) {
-  const V = E.vend.filter((v) => v.varejo && v.visP > 0 && !v.visF);
+  const V = E.vend.filter((v) => v.visP > 0 && !v.visF);
   if (!V.length) return `✅ *${E.nome}*: todo vendedor com rota hoje já fez pelo menos uma visita.`;
   const porF = new Map(); for (const v of V) { const f = porF.get(v.filial) || new Map(); const s = v.supervisor || 'sem supervisor'; (f.get(s) || f.set(s, []).get(s)).push(v); porF.set(v.filial, f); }
   const L = [`🚶 *Sem nenhuma visita hoje — ${E.nome}*: *${V.length}* vendedor(es) com rota (${hojeSP().slice(8, 10)}/${hojeSP().slice(5, 7)})`];

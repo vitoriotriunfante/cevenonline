@@ -21,6 +21,9 @@ export function criaBase(origin, env) {
     // com texto quebrado. Agora: base de hoje vazia -> usa o ULTIMO DIA COM DADO REAL (ate 4 dias atras) e marca cache.baseDe para o aviso.
     snap: (f) => memo('snap' + f, async () => {
       const h = hojeSP(); const s = await api('/api/central-snapshot?filial=' + f + '&dia=' + h);
+      // Auto-aquecimento: se a base de hoje da filial estiver com dado muito velho (> 25 min) em horário comercial, dispara varredura em background
+      const maxIdade = s && s.rcas ? Math.max(...Object.values(s.rcas).map((r) => r.idade_s || 0)) : 9999;
+      if (maxIdade > 1500) fetch(origin + '/api/cron-varredura-central?filial=' + f + '&forcar=1').catch(() => {});
       if (s && s.rcas && Object.keys(s.rcas).length) return s;
       for (let k = 1; k <= 4; k++) { const d = new Date(Date.parse(h + 'T12:00:00Z') - k * 864e5).toISOString().slice(0, 10); const o = await api('/api/central-snapshot?filial=' + f + '&dia=' + d);
         if (o && o.rcas && Object.keys(o.rcas).length) { cache.baseDe = d; return o; } }

@@ -32,7 +32,23 @@ export async function onRequestGet({ env, request }) {
     // meta da cascata do gerente gravada na base (cascata_dia, mesmo numero da tela do supervisor). Quem le decide usar; null = vendedor fora da cascata.
     try {
       const c = await env.DB.prepare('SELECT json FROM cascata_dia WHERE filial = ? ORDER BY data_ref DESC LIMIT 1').bind(filial).first();
-      if (c) for (const s of JSON.parse(c.json).supervisores || []) for (const v of (s.tabelas && s.tabelas.faturamento) || []) if (v && v.id != null && rcas[String(v.id)]) rcas[String(v.id)].meta_hier = Number(v.meta) || 0;
+      if (c) {
+        const j = JSON.parse(c.json);
+        for (const s of j.supervisores || []) {
+          for (const v of (s.tabelas && s.tabelas.faturamento) || []) if (v && v.id != null && rcas[String(v.id)]) rcas[String(v.id)].meta_hier = Number(v.meta) || 0;
+          for (const v of (s.tabelas && s.tabelas.produtividade) || []) {
+            if (v && v.id != null && rcas[String(v.id)]) {
+              const r = rcas[String(v.id)];
+              if (!r.produtividade) r.produtividade = { dia: {}, mes: {} };
+              if (!r.produtividade.dia) r.produtividade.dia = {};
+              const vr = Number(v.visit_real_hoje) || 0;
+              if (vr > (r.produtividade.dia.visitas_na_rota || 0)) r.produtividade.dia.visitas_na_rota = vr;
+              const vp = Number(v.visit_plan_hoje) || 0;
+              if (vp > (r.produtividade.dia.total_programado || 0)) r.produtividade.dia.total_programado = vp;
+            }
+          }
+        }
+      }
     } catch { /* sem cascata: fica so o painel */ }
     // META OFICIAL = tela "Filiais" do CEVEN (admin/filiais/hierarquia), gravada por filial e vendedor em meta_hierarquia (27/10/2026): manda sobre a cascata
     try {

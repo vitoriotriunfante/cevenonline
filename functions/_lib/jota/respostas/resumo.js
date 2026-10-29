@@ -81,7 +81,7 @@ export async function respHoje(B, E, t) {
   if (/TICKET/.test(t)) return `🧾 *Ticket médio de hoje — ${E.nome}${rot}*: *${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}* (${R$(tot.dig)} ÷ ${tot.ped} pedidos)`;
   const Vs = V.slice().sort((a, b) => b.dig - a.dig);
   const L = [`📝 *${E.nome} hoje${rot}* (${hora})`, `Digitado: *${R$(tot.dig)}* em *${tot.ped}* pedidos · ticket ${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}`, ...(tot.visP ? [`Visitas da rota: ${tot.visF} de ${tot.visP} · com venda: ${tot.comVenda} · zerados: ${tot.zerados}`] : []), ''];
-  for (const v of Vs.slice(0, 40)) L.push(`• ${v.zerado ? '⚠️' : v.dig > 0 ? '✅' : '▫️'} ${vn(v)}: ${R$(v.dig)} · ${v.ped} ped.` + (v.varejo ? ` · visitas ${v.visF}/${v.visP}` : ` · ${v.canal || 'sem canal'}`));
+  for (const v of Vs.slice(0, 40)) L.push(`• ${v.zerado ? '⚠️' : v.dig > 0 ? '✅' : '▫️'} ${vn(v)}: ${R$(v.dig)} · ${v.ped} ped.` + (v.visP ? ` · visitas ${v.visF}/${v.visP}` : ` · ${v.canal || 'sem canal'}`));
   if (Vs.length > 40) L.push(`… e mais ${Vs.length - 40}`);
   const z = V.filter((v) => v.zerado);
   L.push('', SUGESTAO + (z.length ? `cobrar quem tem rota e está sem pedido: ${listaNomes(z, 3)}.` : !tot.ped ? 'ainda sem pedido hoje; acompanhar a primeira visita de cada vendedor.' : V.some((v) => !v.ped) ? `ainda sem pedido hoje: ${listaNomes(V.filter((v) => !v.ped), 3)}.` : 'todo mundo com rota já tem pedido; focar em mix por cliente.'));
@@ -99,7 +99,7 @@ export function respSupervisor(E, s) {
   const V = E.vend.filter((v) => v.supervisor === s.nome && v.filial === s.filial);
   const x = agrupa(V, () => 'x').get('x');
   return [`👤 *${titulo(s.nome)}* (${s.filial}) — ${pctTxt(x.pct)} da meta · fat. ${R$(x.fat)} · pend. ${R$(x.pend)}`, `Positivação: ${x.pos} de ${x.metaPos} (${P(x.pos, x.metaPos)}) · hoje ${R$(x.dig)} em ${x.ped} ped. · visitas ${x.visF}/${x.visP}`, '',
-    ...V.map((v) => `• ${v.zerado ? '⚠️' : '✅'} *${vn(v)}* ${pctTxt(v.pct)} · fat. ${R$(v.fat)} · pend. ${R$(v.pend)} · hoje ${R$(v.dig)} (${v.ped} ped.)` + (v.varejo ? ` · visitas ${v.visF}/${v.visP}` : '')),
+    ...V.map((v) => `• ${v.zerado ? '⚠️' : '✅'} *${vn(v)}* ${pctTxt(v.pct)} · fat. ${R$(v.fat)} · pend. ${R$(v.pend)} · hoje ${R$(v.dig)} (${v.ped} ped.)` + (v.visP ? ` · visitas ${v.visF}/${v.visP}` : '')),
     '', V.some((v) => v.zerado) ? SUGESTAO + `ligar agora para ${listaNomes(V.filter((v) => v.zerado), 3)} (rota sem pedido hoje).` : SUGESTAO + 'equipe com pedido hoje; foco em mix nos próximos clientes.'].join('\n');
 }
 export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mais": so as listas completas */
@@ -107,8 +107,8 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
   const L = [`🧑‍💼 *${v.rca} - ${titulo(v.nome)}* — ${v.filial} · sup. ${sn(v.supervisor, v.supCod)} · ${v.canal || 'sem canal'}`,
     `💰 Faturado: *${R$(v.fat)}* + pendente ${R$(v.pend)} de ${R$(v.meta)} → *${pctTxt(v.meta ? (v.fat + (v.pend || 0)) / v.meta * 100 : null)}* da meta (igual ao CEVEN)`, `🎯 Falta: ${R$(falta)}` + (falta && dn ? ` · ${R$(falta / dn)} por dia útil (${dn} dias)` : ''),
     `👥 Positivação: ${v.pos ?? 'sem dado'} de ${v.metaPos ?? 'sem dado'} (${P(v.pos, v.metaPos)})` + (faltaPos ? ` · faltam ${faltaPos} clientes` : ''),
-    `📝 Hoje: ${R$(v.dig)} em ${v.ped} pedido(s)` + ` · ticket ${v.ped ? R$(v.dig / v.ped) : 'sem pedido hoje'}` + (v.varejo ? ` · visitas ${v.visF} de ${v.visP} · com venda ${v.comVenda}` : ''), `↩️ Devolução no mês: ${R$(v.dev)}`];
-  if (v.varejo && v.visPlanMes) L.push(`📅 Rota do mês: ${v.visRealMes} de ${v.visPlanMes} visitas (${P(v.visRealMes, v.visPlanMes)})`);
+    `📝 Hoje: ${R$(v.dig)} em ${v.ped} pedido(s)` + ` · ticket ${v.ped ? R$(v.dig / v.ped) : 'sem pedido hoje'}` + (v.visP ? ` · visitas ${v.visF} de ${v.visP} · com venda ${v.comVenda}` : ''), `↩️ Devolução no mês: ${R$(v.dev)}`];
+  if (v.visPlanMes) L.push(`📅 Rota do mês: ${v.visRealMes} de ${v.visPlanMes} visitas (${P(v.visRealMes, v.visPlanMes)})`);
   const lg = await B.liga(); const lv = lg && (lg.vendedores || []).find((x) => String(x.rca) === v.rca && x.filial === v.filial);
   if (lv) L.push(`🏆 Liga: ${lv.pos_brasil}º no Brasil · ${lv.pos_filial}º na filial · ${lv.pts_tabela} pts (${lv.vitorias}V ${lv.empates}E ${lv.derrotas}D)`);
   const mx = await B.mix(); const mv = mx && (mx.vendedores || []).find((x) => String(x.rca) === v.rca && x.filial === v.filial);
@@ -190,7 +190,7 @@ export async function respDiaVendedor(B, E, v) {
   const c = {}; for (const l of hj) c[l.pontos_nome || l.nivel] = (c[l.pontos_nome || l.nivel] || 0) + 1;
   return [`📝 *${vn(v)}* (${v.filial}) — *hoje*`,
     `Digitado: *${R$(v.dig)}* em ${v.ped} pedido(s)` + (v.ped ? ` · ticket ${R$(v.dig / v.ped)}` : ''),
-    v.varejo ? `Visitas: ${v.visF} de ${v.visP} · com venda: ${v.comVenda}` : '',
+    v.visP ? `Visitas: ${v.visF} de ${v.visP} · com venda: ${v.comVenda}` : '',
     hj.length ? `⚽ Liga hoje: *${hj.reduce((a, l) => a + (l.pontos || 0), 0)} pontos* (${Object.entries(c).map(([k, n]) => `${n}× ${k}`).join(' · ')})` : '',
     '', '_Peça "e o mês?" para o acumulado do mês._'].filter((x) => x !== '').join('\n');
 }
@@ -247,7 +247,7 @@ export async function respMensagensPorVendedor(B, E) {
       `   • Pendente: ${R$(v.pend || 0)}`,
       falta > 0 ? `🔥 *Falta:* *${R$(falta)}*` + (dn ? ` (${R$(Math.round(falta / dn))}/dia útil nos ${dn} dias restantes)` : '') : `✅ *Superávit:* *${R$(superavit)}*`,
       `📍 *Positivação:* ${v.pos ?? '—'} de ${v.metaPos ?? '—'} clientes` + (pctPos != null ? ` (${pctPos}%)` : '') + (faltaPos ? ` · faltam ${faltaPos}` : ''),
-      `📝 *Hoje:* ${R$(v.dig)} em ${v.ped || 0} pedido(s)` + (v.varejo && v.visP ? ` · Visitas: ${v.visF}/${v.visP}` : ''),
+      `📝 *Hoje:* ${R$(v.dig)} em ${v.ped || 0} pedido(s)` + (v.visP ? ` · Visitas: ${v.visF}/${v.visP}` : ''),
       '',
       incentivo
     ].filter(Boolean).join('\n');
