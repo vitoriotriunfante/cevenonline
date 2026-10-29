@@ -1,37 +1,37 @@
 🌅 *ABERTURA MATINAL — TCV (07:45)*
-📅 quarta-feira, 28/10/2026
+📅 quinta-feira, 29/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 28 • Visitas: 299 (média 10,7/vendedor)
-Sem compra +30d: 54 (18,1%) • Recorrência: 18 (6,0%)
+👥 Vendedores: 28 • Visitas: 286 (média 10,2/vendedor)
+Sem compra +30d: 57 (20,0%) • Recorrência: 19 (6,7%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCV — LEONARDO* • 28/10/2026
+📍 *TCV — LEONARDO* • 29/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 49  •  🟡 Preventivo: 0
+🔴 Última Chance: 56  •  🟡 Preventivo: 0
 
-👤 *GESSANDRO SPEROTTO* (9 em risco)
-  🔴 SUPERMERCADO SAO JORGE (336) — 21/09
-  🔴 PANIFICADORA NOSSA SRA APARECIDA (336) — 21/09
-  🔴 BIGS LANCHES (336) — 25/09
-  🔴 M GRANDO SUPERMERCADO (336) — 01/01
-  🔴 TENA TUDO 1 99 (346) — 21/08
-  _+4 outros_
-
-👤 *GIANI GREGOLIN* (19 em risco)
-  🔴 MERCADO REAL DA ECONOMIA (333) — 05/09
-  🔴 LARANJAO LANCHONETE E PANIFICADORA (333) — 26/08
-  🔴 SUPERMERCADO LASKOSKI (333) — 24/08
-  🔴 PINDUCA CONVENIENCIA E PINDUQUINHA ALIME (333) — 31/08
-  🔴 MULTINEGOCIOS JMC (338) — 05/09
+👤 *GESSANDRO SPEROTTO* (19 em risco)
+  🔴 EQUIPE TROPICAL BOI NO ROLETE (324) — 19/09
+  🔴 EMBALAGENS BRASIL (328) — 05/09
+  🔴 MERCADO MIOTTO (336) — 16/09
+  🔴 CANTINHO DO SABOR (336) — 22/09
+  🔴 PANIFICADORA CENTRA PAES (336) — 22/09
   _+14 outros_
 
-👤 *VAGO - GABRIEL* (21 em risco)
-  🔴 64.696.030 LUCIMARA DO CARMO LIMA SCHUCK (337) — 15/07
-  🔴 AILSON RODRIGUES TEIXEIRA 68106955915 (337) — 04/09
-  🔴 RESTAURANTE DA Z (337) — 30/07
-  🔴 CONVENIENCIA TALISMA (342) — 05/09
-  🔴 14.938.933 CRISTIANE MARIA PEREIRA (342) — 21/09
-  _+16 outros_
+👤 *GIANI GREGOLIN* (18 em risco)
+  🔴 EMERSON FERMO (333) — 22/09
+  🔴 FARMACIA SANTA CRUZ (333) — 25/09
+  🔴 SK SUPERMERCADOS (333) — 05/12
+  🔴 AUTO POSTO AVENIDA (333) — 19/09
+  🔴 SUPERMERCADO JN (333) — 25/09
+  _+13 outros_
+
+👤 *VAGO - GABRIEL* (19 em risco)
+  🔴 DISK E SORVETERIA SANTA RITA (325) — 18/09
+  🔴 AUTO POSTO LAMBORGHINI (337) — 22/09
+  🔴 MERCEARIA D LUCIA (337) — 20/08
+  🔴 MERCADO BORESQUI (337) — 21/09
+  🔴 MERCADO E CONVENIENCIA CARVALHO (337) — 05/12
+  _+14 outros_

@@ -1,37 +1,37 @@
 🌅 *ABERTURA MATINAL — TSJ (07:45)*
-📅 quarta-feira, 28/10/2026
+📅 quinta-feira, 29/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 23 • Visitas: 345 (média 15,0/vendedor)
-Sem compra +30d: 116 (33,6%) • Recorrência: 32 (9,3%)
+👥 Vendedores: 22 • Visitas: 359 (média 16,3/vendedor)
+Sem compra +30d: 127 (35,4%) • Recorrência: 32 (8,9%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TSJ — SALDANHA* • 28/10/2026
+📍 *TSJ — SALDANHA* • 29/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 116  •  🟡 Preventivo: 0
+🔴 Última Chance: 124  •  🟡 Preventivo: 0
 
-👤 *ANA CRISTINA DOS SANTOS YAMATO* (27 em risco)
-  🔴 MERCEARIA JD PRIMAVERA (5) — 24/09
-  🔴 A F L DIAS LTDA (5) — 05/12
-  🔴 MERCADINHO MARTINS EXPRESS (8) — 07/08
-  🔴 MERCADINHO PORTUGAL (8) — 06/08
-  🔴 MERCEARIA DA VILA (8) — 22/11
-  _+22 outros_
+👤 *ANA CRISTINA DOS SANTOS YAMATO* (41 em risco)
+  🔴 DOM RUBI (8) — 26/06
+  🔴 ROSA DE SARON EVENTOS (8) — 05/12
+  🔴 MINHA QUITANDINHA (8) — 04/09
+  🔴 SUPERMERCADO MAX VALE (10) — 08/09
+  🔴 MERCADINHO SAO FRANCISCO (10) — 17/09
+  _+36 outros_
 
-👤 *JULIO CESAR SOARES DE PAULO* (27 em risco)
-  🔴 FULVIO SUPERMERCADO (7) — 21/09
-  🔴 61.518.058 GUILHERME DE LIMA SOARES (7) — 05/12
-  🔴 MERCADINHO J E R (7) — 07/09
-  🔴 MERCADO E POUSADA FAMILIA (7) — 05/12
-  🔴 MERCADINHO TARUMAS (25) — 05/12
-  _+22 outros_
+👤 *JULIO CESAR SOARES DE PAULO* (37 em risco)
+  🔴 MERCEARIA BIQUINHA (7) — 15/05
+  🔴 ABOUT CLEANING (7) — 27/08
+  🔴 MERCADO BACANA (7) — 31/07
+  🔴 ARMAZEM DIVINO (7) — 22/09
+  🔴 AMOR DA SERRA (7) — 01/01
+  _+32 outros_
 
-👤 *VICTOR HUGO FONSECA CARVALHO* (62 em risco)
-  🔴 S R PANIFICADORA (16) — 17/09
-  🔴 VILLA BOVINA (16) — 28/05
-  🔴 CASA DE RACAO 2 IRMAOS (16) — 05/12
-  🔴 RACOES CEZAR DE SOUZA (16) — 05/12
-  🔴 PADARIA CHACARA SILVESTRE (23) — 05/12
-  _+57 outros_
+👤 *VICTOR HUGO FONSECA CARVALHO* (46 em risco)
+  🔴 GETPHONE (16) — 31/07
+  🔴 AVICOLA BOM APETITE (16) — 07/09
+  🔴 PADARIA TITA (16) — 18/09
+  🔴 BAR DO JOAO DIAS (23) — 07/09
+  🔴 BAR DO LAGOINHA (23) — 25/07
+  _+41 outros_

@@ -1,37 +1,37 @@
 🌅 *ABERTURA MATINAL — API (07:45)*
-📅 quarta-feira, 28/10/2026
+📅 quinta-feira, 29/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 28 • Visitas: 405 (média 14,5/vendedor)
-Sem compra +30d: 110 (27,2%) • Recorrência: 28 (6,9%)
+👥 Vendedores: 28 • Visitas: 433 (média 15,5/vendedor)
+Sem compra +30d: 123 (28,4%) • Recorrência: 49 (11,3%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *API — MARCELO* • 28/10/2026
+📍 *API — MARCELO* • 29/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 108  •  🟡 Preventivo: 0
+🔴 Última Chance: 116  •  🟡 Preventivo: 0
 
-👤 *WASHINGTON FLORES DA ROSA* (35 em risco)
-  🔴 DISTRIBUIDORA MAXIMUS (244) — 21/08
-  🔴 PANIFICADORA PRESTIGIO (245) — 05/12
-  🔴 POSTO CONTORNO SUL (245) — 05/12
-  🔴 MERCEARIA RUSAN (245) — 04/09
-  🔴 MERCEARIA SIL (245) — 05/12
-  _+30 outros_
+👤 *WASHINGTON FLORES DA ROSA* (52 em risco)
+  🔴 PANIF FERNANDES (244) — 05/12
+  🔴 FOCACCIA RESTAURANTE (244) — 05/12
+  🔴 MERCEARIA OLIVEIRA (244) — 05/09
+  🔴 PANIFICADORA E CONF SHEKINAH (244) — 21/09
+  🔴 PANIFICADORA SAO PAULO (245) — 05/12
+  _+47 outros_
 
-👤 *RODRIGO FARIAS* (54 em risco)
-  🔴 FARMACIA PAULO CEZAR PARQUE DOS LAGOS (239) — 05/12
-  🔴 ZAP DISTRIBUIDORA RESTAURANTE (239) — 05/12
-  🔴 SUPERMERCADO WOLFF (241) — 05/12
-  🔴 SM MARIENTAL (241) — 05/12
-  🔴 PRIMORDIAL FRUTAS (241) — 05/12
-  _+49 outros_
+👤 *RODRIGO FARIAS* (55 em risco)
+  🔴 LOJA AKI TEM (239) — 05/12
+  🔴 MERCADO MANNA (241) — 19/02
+  🔴 MERCADO BURDA (241) — 16/09
+  🔴 LOJA CASA NOSSA (241) — 24/09
+  🔴 CLEVERSON RAMOS (241) — 24/09
+  _+50 outros_
 
-👤 *SUELI APARECIDA TEIXEIRA POLLI* (19 em risco)
-  🔴 JOSE MARIA COSTA VIEIRA (249) — 05/12
-  🔴 DANIELE APARECIDA DE FREITAS GUTSTEIN ME (249) — 18/09
-  🔴 BAR E MERCEARIA ENTRE AMIGOS (249) — 31/07
-  🔴 REST GIRASSOL (249) — 31/08
-  🔴 REST PALMEIRENSE (249) — 05/12
-  _+14 outros_
+👤 *SUELI APARECIDA TEIXEIRA POLLI* (9 em risco)
+  🔴 MERCADO SAO LUIS (249) — 27/08
+  🔴 DROGARIA FARMAIS (249) — 12/09
+  🔴 MERCADO ELISAUER (529) — 30/07
+  🔴 PANIF E CONFEITARIA COLONIAL (529) — 28/09
+  🔴 MERCADO SANTO ANTONIO (529) — 25/09
+  _+4 outros_
