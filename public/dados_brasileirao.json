@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-29T21:33:55.910851Z",
+  "gerado_em": "2026-10-29T21:49:06.765314Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -19,7 +19,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 34995,
+  "total_lances_auditados": 35000,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -222,8 +222,8 @@
       "empates": 13,
       "derrotas": 0,
       "gp": 9455,
-      "gc": 7590,
-      "sg": 1865,
+      "gc": 7594,
+      "sg": 1861,
       "aprov": 33.3,
       "super_pedidos": 24,
       "inativos_resgatados": 174,
@@ -285,11 +285,11 @@
       "vitorias": 0,
       "empates": 12,
       "derrotas": 0,
-      "gp": 3234,
+      "gp": 3244,
       "gc": 3087,
-      "sg": 147,
+      "sg": 157,
       "aprov": 33.3,
-      "super_pedidos": 46,
+      "super_pedidos": 47,
       "inativos_resgatados": 40,
       "forma": [
         "E",
@@ -651,8 +651,8 @@
       "empates": 13,
       "derrotas": 0,
       "gp": 3307,
-      "gc": 3542,
-      "sg": -235,
+      "gc": 3546,
+      "sg": -239,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -683,9 +683,9 @@
       "vitorias": 0,
       "empates": 12,
       "derrotas": 0,
-      "gp": 2169,
+      "gp": 2179,
       "gc": 1811,
-      "sg": 358,
+      "sg": 368,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -2811,9 +2811,9 @@
       "vitorias": 0,
       "empates": 12,
       "derrotas": 0,
-      "gp": 1151,
+      "gp": 1157,
       "gc": 843,
-      "sg": 308,
+      "sg": 314,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -3701,9 +3701,9 @@
       "vitorias": 0,
       "empates": 10,
       "derrotas": 2,
-      "gp": 736,
+      "gp": 740,
       "gc": 718,
-      "sg": 18,
+      "sg": 22,
       "aprov": 27.8,
       "forma": [
         "D",
@@ -5215,8 +5215,8 @@
       "empates": 7,
       "derrotas": 5,
       "gp": 835,
-      "gc": 1311,
-      "sg": -476,
+      "gc": 1315,
+      "sg": -480,
       "aprov": 19.4,
       "forma": [
         "D",
@@ -10119,6 +10119,48 @@
       "pos_filial_ant": 15
     },
     {
+      "rca": "415",
+      "nome": "CIL FARNEY BARBOSA DE ALCANTARA",
+      "filial": "MCD",
+      "supervisor": "CLEOMAR DINIZ BARBOSA",
+      "gerente": "Adriano",
+      "canal": "VAREJO",
+      "jogos": 13,
+      "vitorias": 7,
+      "empates": 4,
+      "derrotas": 2,
+      "pts_tabela": 25,
+      "aprov": 64.1,
+      "gp": 154,
+      "gc": 14,
+      "sg": 140,
+      "super_pedidos": 2,
+      "inativos_resgatados": 1,
+      "forma": [
+        "E",
+        "D",
+        "V",
+        "V",
+        "V",
+        "V",
+        "E",
+        "V",
+        "D",
+        "V",
+        "V",
+        "E",
+        "E"
+      ],
+      "streak": 4,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 67,
+      "pos_filial": 3,
+      "pos_brasil_ant": 70,
+      "pos_filial_ant": 3
+    },
+    {
       "rca": "382",
       "nome": "LIELSON CARLOS MACHADO",
       "filial": "TCA",
@@ -10155,7 +10197,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 67,
+      "pos_brasil": 68,
       "pos_filial": 8,
       "pos_brasil_ant": 65,
       "pos_filial_ant": 7
@@ -10197,7 +10239,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 68,
+      "pos_brasil": 69,
       "pos_filial": 7,
       "pos_brasil_ant": 66,
       "pos_filial_ant": 7
@@ -10281,7 +10323,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 69,
+      "pos_brasil": 70,
       "pos_filial": 15,
       "pos_brasil_ant": 89,
       "pos_filial_ant": 16
@@ -10365,7 +10407,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 70,
+      "pos_brasil": 71,
       "pos_filial": 4,
       "pos_brasil_ant": 67,
       "pos_filial_ant": 4
@@ -10407,52 +10449,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 71,
+      "pos_brasil": 72,
       "pos_filial": 11,
       "pos_brasil_ant": 69,
       "pos_filial_ant": 11
-    },
-    {
-      "rca": "415",
-      "nome": "CIL FARNEY BARBOSA DE ALCANTARA",
-      "filial": "MCD",
-      "supervisor": "CLEOMAR DINIZ BARBOSA",
-      "gerente": "Adriano",
-      "canal": "VAREJO",
-      "jogos": 12,
-      "vitorias": 7,
-      "empates": 3,
-      "derrotas": 2,
-      "pts_tabela": 24,
-      "aprov": 66.7,
-      "gp": 148,
-      "gc": 14,
-      "sg": 134,
-      "super_pedidos": 1,
-      "inativos_resgatados": 1,
-      "forma": [
-        "E",
-        "D",
-        "V",
-        "V",
-        "V",
-        "V",
-        "E",
-        "V",
-        "D",
-        "V",
-        "V",
-        "E",
-        "J"
-      ],
-      "streak": 4,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 72,
-      "pos_filial": 3,
-      "pos_brasil_ant": 70,
-      "pos_filial_ant": 3
     },
     {
       "rca": "410",
@@ -10510,8 +10510,8 @@
       "pts_tabela": 24,
       "aprov": 66.7,
       "gp": 271,
-      "gc": 83,
-      "sg": 188,
+      "gc": 87,
+      "sg": 184,
       "super_pedidos": 0,
       "inativos_resgatados": 7,
       "forma": [
@@ -11631,6 +11631,48 @@
       "pos_filial_ant": 12
     },
     {
+      "rca": "463",
+      "nome": "RODRIGO ALBUQUERQUE DE SOUZA",
+      "filial": "MCD",
+      "supervisor": "CARLOS ALAGUEZ DA SILVA",
+      "gerente": "Adriano",
+      "canal": "VAREJO",
+      "jogos": 13,
+      "vitorias": 6,
+      "empates": 3,
+      "derrotas": 4,
+      "pts_tabela": 21,
+      "aprov": 53.8,
+      "gp": 134,
+      "gc": 28,
+      "sg": 106,
+      "super_pedidos": 1,
+      "inativos_resgatados": 3,
+      "forma": [
+        "D",
+        "V",
+        "D",
+        "D",
+        "V",
+        "V",
+        "V",
+        "D",
+        "V",
+        "E",
+        "V",
+        "E",
+        "E"
+      ],
+      "streak": 3,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 97,
+      "pos_filial": 5,
+      "pos_brasil_ant": 103,
+      "pos_filial_ant": 6
+    },
+    {
       "rca": "550",
       "nome": "FABIO SEREIA",
       "filial": "TBL",
@@ -11667,7 +11709,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 97,
+      "pos_brasil": 98,
       "pos_filial": 11,
       "pos_brasil_ant": 94,
       "pos_filial_ant": 10
@@ -11709,7 +11751,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 98,
+      "pos_brasil": 99,
       "pos_filial": 13,
       "pos_brasil_ant": 96,
       "pos_filial_ant": 13
@@ -11793,7 +11835,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 99,
+      "pos_brasil": 100,
       "pos_filial": 18,
       "pos_brasil_ant": 97,
       "pos_filial_ant": 18
@@ -11877,7 +11919,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 100,
+      "pos_brasil": 101,
       "pos_filial": 14,
       "pos_brasil_ant": 98,
       "pos_filial_ant": 14
@@ -11919,8 +11961,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 101,
-      "pos_filial": 5,
+      "pos_brasil": 102,
+      "pos_filial": 6,
       "pos_brasil_ant": 99,
       "pos_filial_ant": 5
     },
@@ -11961,7 +12003,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 102,
+      "pos_brasil": 103,
       "pos_filial": 11,
       "pos_brasil_ant": 100,
       "pos_filial_ant": 11
@@ -12003,52 +12045,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 103,
+      "pos_brasil": 104,
       "pos_filial": 17,
       "pos_brasil_ant": 102,
       "pos_filial_ant": 17
-    },
-    {
-      "rca": "463",
-      "nome": "RODRIGO ALBUQUERQUE DE SOUZA",
-      "filial": "MCD",
-      "supervisor": "CARLOS ALAGUEZ DA SILVA",
-      "gerente": "Adriano",
-      "canal": "VAREJO",
-      "jogos": 12,
-      "vitorias": 6,
-      "empates": 2,
-      "derrotas": 4,
-      "pts_tabela": 20,
-      "aprov": 55.6,
-      "gp": 130,
-      "gc": 28,
-      "sg": 102,
-      "super_pedidos": 1,
-      "inativos_resgatados": 3,
-      "forma": [
-        "D",
-        "V",
-        "D",
-        "D",
-        "V",
-        "V",
-        "V",
-        "D",
-        "V",
-        "E",
-        "V",
-        "E",
-        "J"
-      ],
-      "streak": 3,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 104,
-      "pos_filial": 6,
-      "pos_brasil_ant": 103,
-      "pos_filial_ant": 6
     },
     {
       "rca": "336",
@@ -27066,7 +27066,7 @@
         "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
         "gerente": "Vagner",
         "meta_mes": 237232,
-        "pct_hoje": 102.8,
+        "pct_hoje": 102.3,
         "fases": [
           {
             "n": 1,
@@ -27471,7 +27471,7 @@
         "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
         "gerente": "Vagner",
         "meta_mes": 405459,
-        "pct_hoje": 118.5,
+        "pct_hoje": 120.4,
         "fases": [
           {
             "n": 1,
@@ -28146,7 +28146,7 @@
         "supervisor": "MISSAID MAINARDES RAMOS",
         "gerente": "Marcos",
         "meta_mes": 369192,
-        "pct_hoje": 84.1,
+        "pct_hoje": 92.4,
         "fases": [
           {
             "n": 1,
@@ -28416,7 +28416,7 @@
         "supervisor": "ANA CRISTINA DOS SANTOS YAMATO",
         "gerente": "Saldanha",
         "meta_mes": 340000,
-        "pct_hoje": 76.2,
+        "pct_hoje": 78.4,
         "fases": [
           {
             "n": 1,
@@ -29226,7 +29226,7 @@
         "supervisor": "JEFFERSON POLETTO",
         "gerente": "Vagner",
         "meta_mes": 183370,
-        "pct_hoje": 100.8,
+        "pct_hoje": 102.1,
         "fases": [
           {
             "n": 1,
@@ -29631,7 +29631,7 @@
         "supervisor": "ANDERSON FERNANDES CORREIA",
         "gerente": "Marcelo",
         "meta_mes": 166530,
-        "pct_hoje": 105.6,
+        "pct_hoje": 107.1,
         "fases": [
           {
             "n": 1,
@@ -29766,7 +29766,7 @@
         "supervisor": "ALEX SANDRO SOARES ELIAS",
         "gerente": "Diego",
         "meta_mes": 300000,
-        "pct_hoje": 61.8,
+        "pct_hoje": 61.3,
         "fases": [
           {
             "n": 1,
@@ -30981,7 +30981,7 @@
         "supervisor": "ALEX SANDRO SOARES ELIAS",
         "gerente": "Diego",
         "meta_mes": 1100000,
-        "pct_hoje": 81.3,
+        "pct_hoje": 85.2,
         "fases": [
           {
             "n": 1,
@@ -31116,7 +31116,7 @@
         "supervisor": "ALEX SANDRO SOARES ELIAS",
         "gerente": "Diego",
         "meta_mes": 350000,
-        "pct_hoje": 73.2,
+        "pct_hoje": 72.7,
         "fases": [
           {
             "n": 1,
@@ -32466,7 +32466,7 @@
         "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
         "gerente": "Vagner",
         "meta_mes": 401170,
-        "pct_hoje": 46.8,
+        "pct_hoje": 43.9,
         "fases": [
           {
             "n": 1,
@@ -34086,7 +34086,7 @@
         "supervisor": "JEFFERSON POLETTO",
         "gerente": "Vagner",
         "meta_mes": 196203,
-        "pct_hoje": 76.8,
+        "pct_hoje": 80.5,
         "fases": [
           {
             "n": 1,
@@ -34491,7 +34491,7 @@
         "supervisor": "ARILDO ZAGO",
         "gerente": "Marcelo",
         "meta_mes": 76456,
-        "pct_hoje": 113.9,
+        "pct_hoje": 113.5,
         "fases": [
           {
             "n": 1,
@@ -38406,7 +38406,7 @@
         "supervisor": "ARILDO ZAGO",
         "gerente": "Marcelo",
         "meta_mes": 362894,
-        "pct_hoje": 94.3,
+        "pct_hoje": 108.5,
         "fases": [
           {
             "n": 1,
@@ -38946,7 +38946,7 @@
         "supervisor": "ALEX SANDRO SOARES ELIAS",
         "gerente": "Diego",
         "meta_mes": 330000,
-        "pct_hoje": 77.4,
+        "pct_hoje": 77.3,
         "fases": [
           {
             "n": 1,
@@ -40026,7 +40026,7 @@
         "supervisor": "LUCAS RAMOS MONTAGNHANI",
         "gerente": "Vagner",
         "meta_mes": 458885,
-        "pct_hoje": 73.6,
+        "pct_hoje": 74.4,
         "fases": [
           {
             "n": 1,
@@ -41241,7 +41241,7 @@
         "supervisor": "ELIENAY VIANA DA SILVA",
         "gerente": "Danilo",
         "meta_mes": 230000,
-        "pct_hoje": 61.1,
+        "pct_hoje": 60.3,
         "fases": [
           {
             "n": 1,
@@ -45293,7 +45293,7 @@
         "total_vendedores": 6,
         "com_meta": 6,
         "meta_mes": 1965961,
-        "pct_hoje": 96.2,
+        "pct_hoje": 96,
         "fases": [
           {
             "n": 1,
@@ -45405,7 +45405,7 @@
         "total_vendedores": 5,
         "com_meta": 5,
         "meta_mes": 1300833,
-        "pct_hoje": 120.1,
+        "pct_hoje": 120.3,
         "fases": [
           {
             "n": 1,
@@ -45517,7 +45517,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 2080000,
-        "pct_hoje": 76.5,
+        "pct_hoje": 78.4,
         "fases": [
           {
             "n": 1,
@@ -45853,7 +45853,7 @@
         "total_vendedores": 6,
         "com_meta": 6,
         "meta_mes": 1840000,
-        "pct_hoje": 97.9,
+        "pct_hoje": 99.6,
         "fases": [
           {
             "n": 1,
@@ -45965,7 +45965,7 @@
         "total_vendedores": 3,
         "com_meta": 3,
         "meta_mes": 383319,
-        "pct_hoje": 87.5,
+        "pct_hoje": 90,
         "fases": [
           {
             "n": 1,
@@ -46973,7 +46973,7 @@
         "total_vendedores": 6,
         "com_meta": 6,
         "meta_mes": 3135270,
-        "pct_hoje": 73,
+        "pct_hoje": 73.1,
         "fases": [
           {
             "n": 1,
@@ -47309,7 +47309,7 @@
         "total_vendedores": 3,
         "com_meta": 3,
         "meta_mes": 660000,
-        "pct_hoje": 68,
+        "pct_hoje": 67.8,
         "fases": [
           {
             "n": 1,
@@ -47645,7 +47645,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 1340676,
-        "pct_hoje": 76.7,
+        "pct_hoje": 80.6,
         "fases": [
           {
             "n": 1,
