@@ -54,7 +54,8 @@ export async function respResumo(B, E) {
   const sz = [...agrupa(Vr, (v) => v.supervisor || 'sem supervisor')].filter(([k]) => supReal(k)).sort((a, b) => b[1].zerados - a[1].zerados)[0];
   { const { tot, pass } = diasUteisMes(), esp = tot ? pass / tot * 100 : 0, pr = meta ? (fat || 0) / meta * 100 : null;
     if (pr != null) L.push('', `👀 *Leitura do Jota:* ${pr >= esp ? 'no ritmo ou acima' : pr >= esp * 0.9 ? 'jogo apertado, dá pra virar' : 'abaixo do ritmo, precisamos reagir'} (o calendário pede ${esp.toFixed(0)}% e estamos em ${pr.toFixed(1).replace('.', ',')}%).`); }
-  L.push('', SUGESTAO + (E.supervisor && z.length ? `ligar agora para ${listaNomes(z, 3)}: rota de hoje sem pedido.` : !E.supervisor && sz && sz[1].zerados ? `falar com ${supNome(sz[0])}: ${sz[1].zerados} vendedor(es) da equipe sem pedido hoje.` : 'puxar os mais atrás na meta para fechar o mês.'), '_Peça "hoje", "por supervisor", "zerados", "falta", "liga", "ajuda"._');
+  const dicaEscopo = E.supervisor ? 'por vendedor' : 'por supervisor';
+  L.push('', SUGESTAO + (E.supervisor && z.length ? `ligar agora para ${listaNomes(z, 3)}: rota de hoje sem pedido.` : !E.supervisor && sz && sz[1].zerados ? `falar com ${supNome(sz[0])}: ${sz[1].zerados} vendedor(es) da equipe sem pedido hoje.` : 'puxar os mais atrás na meta para fechar o mês.'), `_Peça "hoje", "${dicaEscopo}", "zerados", "falta", "liga", "ajuda"._`);
   return L.join('\n');
 }
 
@@ -201,5 +202,58 @@ export function respTodosVendedores(E) {
   if (!V.length) return `Sem vendedores com meta em ${E.nome} agora.`;
   return [`👥 *${E.nome} — vendedor por vendedor* (do mais atrás para o mais à frente)`, '',
     ...V.map(({ v, pct, falta }) => `• *${vn(v)}*: ${pct == null ? 'sem meta' : pctTxt(pct)} da meta · falta ${R$(falta)} · positivação ${v.pos ?? '—'}/${v.metaPos ?? '—'} · hoje ${R$(v.dig)}`),
-    '', '_% = (faturado + pendente) ÷ meta, igual ao CEVEN. Peça "vendedor <nome>" para o detalhe de um._'].join('\n');
+    '',
+    '📲 *Quer encaminhar a situação individual para cada um?*',
+    'Digite *1* (ou mande *"1 por vendedor"*) que eu te envio uma mensagem individual pronta de cada vendedor para você encaminhar direto a eles no WhatsApp!',
+    '',
+    '_% = (faturado + pendente) ÷ meta, igual ao CEVEN. Peça "vendedor <nome>" para o detalhe de um._'].join('\n');
+}
+
+// MENSAGENS INDIVIDUAIS POR VENDEDOR PARA ENCAMINHAR (Vitorio, 29/10/2026):
+// Quando o supervisor digita 1 (ou "um por um", "1 por vendedor"), envia uma mensagem por vendedor pronta para encaminhar no WhatsApp
+export async function respMensagensPorVendedor(B, E) {
+  const dn = diasUteisRestantes();
+  const V = E.vend.filter((v) => v.meta > 0 || v.dig > 0 || v.fat > 0 || v.ped > 0).sort((a, b) => {
+    const pa = a.meta ? (a.fat + (a.pend || 0)) / a.meta : 0;
+    const pb = b.meta ? (b.fat + (b.pend || 0)) / b.meta : 0;
+    return pa - pb;
+  }).slice(0, 20);
+
+  if (!V.length) return `Sem vendedores ativos em ${E.nome} para encaminhar.`;
+
+  const msgs = [];
+  for (const v of V) {
+    const totalReal = v.fat + (v.pend || 0);
+    const pct = v.meta ? totalReal / v.meta * 100 : null;
+    const falta = Math.max(0, v.meta - totalReal);
+    const superavit = Math.max(0, totalReal - v.meta);
+    const faltaPos = v.metaPos != null && v.pos != null ? Math.max(0, v.metaPos - v.pos) : null;
+    const pctPos = v.metaPos ? Math.round((v.pos || 0) / v.metaPos * 100) : null;
+
+    let incentivo = '';
+    if (pct >= 100) {
+      incentivo = '🎉 *Meta batida! Sensacional!* Vamos acelerar agora para buscar o superávit e o topo da Liga!';
+    } else if (pct >= 85) {
+      incentivo = '⚡ *Falta muito pouco para bater a meta!* Foco total nos clientes da curva A e positivação para fechar com chave de ouro!';
+    } else {
+      incentivo = '💪 *Bora pra cima!* Cada cliente positivado e cada pedido contam muito. Foco nos clientes sem compra e no +MIX hoje!';
+    }
+
+    const card = [
+      `🧑‍💼 *${v.rca} - ${nome2(v.nome)}* (${v.filial} · ${v.canal || 'varejo'})`,
+      `🎯 *Meta do Mês:* ${R$(v.meta)}`,
+      `💰 *Faturado + Pendente:* *${R$(totalReal)}* (${pctTxt(pct)})`,
+      `   • Faturado: ${R$(v.fat)}`,
+      `   • Pendente: ${R$(v.pend || 0)}`,
+      falta > 0 ? `🔥 *Falta:* *${R$(falta)}*` + (dn ? ` (${R$(Math.round(falta / dn))}/dia útil nos ${dn} dias restantes)` : '') : `✅ *Superávit:* *${R$(superavit)}*`,
+      `📍 *Positivação:* ${v.pos ?? '—'} de ${v.metaPos ?? '—'} clientes` + (pctPos != null ? ` (${pctPos}%)` : '') + (faltaPos ? ` · faltam ${faltaPos}` : ''),
+      `📝 *Hoje:* ${R$(v.dig)} em ${v.ped || 0} pedido(s)` + (v.varejo && v.visP ? ` · Visitas: ${v.visF}/${v.visP}` : ''),
+      '',
+      incentivo
+    ].filter(Boolean).join('\n');
+
+    msgs.push(card);
+  }
+
+  return [`📋 *${E.nome}* — ${msgs.length} mensagens prontas para você encaminhar ao time no WhatsApp:`, ...msgs].join('\n⟪⟫\n');
 }

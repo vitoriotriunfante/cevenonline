@@ -14,7 +14,7 @@ import { respKpisPremiacao, respMetasIndustria } from './respostas/metas_industr
 import { respGestaoCampo, respOperacao, respRecorrenciaLances, respRelatorio } from './respostas/operacao.js';
 import { respJustificativas, respOferecer, respSemDado } from './respostas/oportunidades.js';
 import { pedePeriodo, respClientesSemComprar, respComparaMes, respDiasSemPedido, respPeriodoDias, respPositivadosMesAnterior } from './respostas/periodos.js';
-import { respDiaVendedor, respFalta, respHoje, respTodosVendedores, totaisOficiais, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
+import { respDiaVendedor, respFalta, respHoje, respMensagensPorVendedor, respTodosVendedores, totaisOficiais, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
 import { respAVisitar, respCheckinEquipe, respClientesVend, respDiaEquipe, respRotaFiltro, respSemVisita, respMixRotaHoje, respRecorrenciaClientes, respTagSeparadoPorSupervisor, respRotaHojeCompleta, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
 import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo, respPreco, respPedidoNumero, respPedidosStatus, respProduto, respRecuperacao, respTopProdutos } from './respostas/vendas.js';
 
@@ -112,11 +112,20 @@ export async function respostaInterna(B, c, texto, anteriores) {
     return respPedidosStatus(B, pp && pp.tipo === 'vend' ? { ...Ep, nome: vn(pp.alvo), vend: [pp.alvo], ocultos: [] } : Ep, /CORTE/.test(t) ? 'CORTE' : (/PENDENTE|NAO FATUR|SEM FATURAR/.test(t) && !/BLOQUEAD|LIBERAD/.test(t)) || (/BLOQUEAD/.test(t) && /LIBERAD/.test(t)) ? 'PENDENTES' : t);   /* "bloqueados e liberados" = os dois (27/10/2026) */
   }
   if (/CORTE|CORTAD|BLOQUEAD|RETID|PERDAS|OPERACAO|RANKING DE VENDAS|RANKING FINAL|FECHAMENTO DO DIA/.test(t) && !/DEVOL/.test(t)) return respOperacao(B, await carregaEscopo(B, esc), t);
-  // DIGITE 1 (Opção do Gerente/Diretoria para receber a lista de tags separada por supervisor para encaminhar):
+  // DIGITE 1 (Opção de encaminhar: Tags por supervisor para Diretoria/Gerente, OU Mensagens por vendedor para Supervisor):
   const antTag = (anteriores || []).find((a) => /Tag:|SEM COMPRAS|P11|P10|RECORRENCIA/i.test(String(a))) || ((B._ctxAssunto || '').match(/SEM COMPRAS|P11|P10|RECORRENCIA/i) ? B._ctxAssunto : null);
   if (/^\W*1\W*$|^1\b|OPCAO 1|MANDA POR SUPERVISOR|SEPARADO POR SUPERVISOR|MANDA PRA CADA SUPERVISOR|ABERTO POR SUPERVISOR/.test(t) && antTag) {
     const Er = await carregaEscopo(B, esc);
     return respTagSeparadoPorSupervisor(B, Er, sem(antTag));
+  }
+  const antVend = (anteriores || []).some((a) => /VENDEDOR|EQUIPE|TIME|PANORAMA|TODOS|RESUMO/i.test(String(a)));
+  const querMsgVend = /1 POR VENDEDOR|UM POR UM|UMA MENSAGEM POR VENDEDOR|SEPARADO POR VENDEDOR|MANDAR? (AS )?MENSAGENS?|MANDAR? POR VENDEDOR|MENSAGENS? (POR VENDEDOR|PRO TIME|PARA O TIME|PRA ENCAMINHAR|PARA ENCAMINHAR)/i.test(t)
+    || (/^\W*1\W*$|^1\b|OPCAO 1|OPÇÃO 1/i.test(t) && !antTag && (antVend || c.papel === 'supervisor'));
+  if (querMsgVend) {
+    const Er = await carregaEscopo(B, esc);
+    if (Er.vend.length > 1) {
+      return respMensagensPorVendedor(B, Er);
+    }
   }
   // REGRAS E CONCEITO DE RECORRÊNCIA (Jonathan TPH, 28/10/2026)
   if (/RECORRENCIA/.test(t) && (/O QUE (E|EH)|COMO (E|EH|O CLIENTE E) ESCOLHID|QUAL (E |EH )?(A )?REGRA|COMO FUNCIONA/.test(t))) {
@@ -201,7 +210,11 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/ROTA/.test(t) && /\bHOJE\b|\bHJ\b/.test(t) && /\d{1,3}\s*DIAS|VISITOU E NAO VENDEU|VISITADO E NAO VENDEU|JA VISITOU/.test(t) && !/VENDEDORA?\s+\d|VENDEDORA?\s+[A-Z]{3,}/.test(t)) return respRotaFiltro(B, E, t);
   if (/(EM RELACAO|SOBRE|SABER) (A |DA )?MINHA EQUIPE|^(MINHA |A )?EQUIPE( AGORA| JA)?\W*$|^(E )?(A )?(MINHA )?EQUIPE\W*$/.test(t)) return respResumo(B, E);   /* "equipe agora" (27/10/2026, Cristiano) */
   // EQUIPE HOJE (Alex Sandro TBE, 28/10/2026: "Oi , como está o meu time hoje?"): o que a equipe fez HOJE (rota, visitas, digitado)
-  if (/(EQUIPE|TIME).*(HOJE|HJ|NO DIA DE HOJE)|(HOJE|HJ).*(EQUIPE|TIME)|COMO (ESTA|FOI|TA|VAI).*(EQUIPE|TIME)|DIA D[OA] (EQUIPE|TIME)/.test(t) && !/LIGA|MIX|ZERAD|POSITIVA|META|FATUR|RANKING|HISTORIC/.test(t)) return respDiaEquipe(B, E);
+  if (/(EQUIPE|TIME).*(HOJE|HJ|NO DIA DE HOJE)|(HOJE|HJ).*(EQUIPE|TIME)|COMO (ESTA|FOI|TA|VAI).*(EQUIPE|TIME)|DIA D[OA] (EQUIPE|TIME)/.test(t) && !/LIGA|MIX|ZERAD|POSITIVA|META|FATUR|RANKING|HISTORIC|POR VENDEDOR/.test(t)) return respDiaEquipe(B, E);
+  // EQUIPE POR VENDEDOR / CONSOLIDADO DOS VENDEDORES (Vitorio, 29/10/2026: "quando o supervisor falar por vendedor a gente manda um consolidado e dá a opção para ele digitar 1")
+  const ehEquipePorVendedor = /(EQUIPE|TIME).*(POR VENDEDOR|VENDEDOR POR VENDEDOR)|(POR VENDEDOR|VENDEDOR POR VENDEDOR).*(EQUIPE|TIME)|^\W*(E )?(A )?(MINHA )?(EQUIPE|TIME)?\s*(POR|ABERTO POR|ABERTA POR) VENDEDOR\W*$|^\W*VENDEDOR POR VENDEDOR\W*$|PANORAMA (DA (MINHA )?EQUIPE|POR VENDEDOR|DOS VENDEDORES)|TODOS (OS )?(MEUS )?VENDEDORES|CADA (UM DOS )?VENDEDOR(ES)?\b|CONSOLIDADO (POR VENDEDOR|DOS VENDEDORES)|SITUA(C|Ç)(A|Ã)O (POR VENDEDOR|DOS VENDEDORES)/i.test(t)
+    && !/POSITIVA|RECORRENCIA|MIX|LIGA|ZERAD|ROTA|VISITA|PREMIA|META DE |INDUSTRIA|DEVOLU|PEDIDO|HISTORIC/.test(t);
+  if (ehEquipePorVendedor) return respTodosVendedores(E);
   // CLIENTES POSITIVADOS EM SETEMBRO / MÊS PASSADO (Washington API, 28/10/2026: "Clientes positivados em setembro, vendedora Ana, todos")
   if (/POSITIVAD.*(SETEMBRO|MES PASSADO|MES ANTERIOR)|(CLIENTES?|QUEM|QUAIS).*(COMPROU|COMPRARAM|POSITIVOU|POSITIVARAM).*(SETEMBRO|MES PASSADO|MES ANTERIOR)|(SETEMBRO|MES PASSADO|MES ANTERIOR).*(POSITIVAD|COMPRARAM|COMPROU)/.test(t)) {
     const pr = achaPessoa(E, t);
@@ -220,9 +233,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // EQUIPE (Vitorio, 27/10/2026): "como esta o dia da minha equipe" = 1 mensagem, 1 linha por vendedor (rota) + sugestao do que pedir; "panorama da minha equipe" =
   // 1 linha por vendedor com o mes; "um por um" = uma mensagem por vendedor (o bot separa no ⟪⟫)
   if (/UM POR UM|UMA MENSAGEM POR VENDEDOR|SEPARADO POR VENDEDOR/.test(t) && E.vend.length > 1) {
-    const V = E.vend.filter((v) => v.varejo ? v.visP > 0 || v.dig > 0 : v.meta > 0 || v.dig > 0).slice(0, 20);
-    const partes = []; for (const v of V) partes.push(await respDiaVendedor(B, E, v));
-    return [`📋 *${E.nome}* — ${V.length} vendedores, um por mensagem:`, ...partes].join('\n⟪⟫\n');
+    return respMensagensPorVendedor(B, E);
   }
   if (/(DIA D[OA]|COMO (ESTA|FOI|TA|VAI) (O DIA|A ROTA) D[OA]|ROTA D[OA]|COMO (ESTA|TA) [OA]|PANORAMA D[OA]) (MINHA |MEU )?(EQUIPE|TIME)( HOJE| NO DIA DE HOJE)?|(MINHA EQUIPE|MEU TIME) (HOJE|NO DIA DE HOJE)|COMO ESTA MEU TIME/.test(t) && !/LIGA|MIX|ZERAD|POSITIVA|META|FATUR/.test(t)) return respDiaEquipe(B, E);
   if (/PANORAMA DA (MINHA )?EQUIPE|TODOS (OS )?(MEUS )?VENDEDORES|CADA (UM DOS )?VENDEDOR(ES)?\b|VENDEDOR POR VENDEDOR/.test(t) && !/POSITIVA|RECORRENCIA|MIX|LIGA|ZERAD|ROTA|VISITA|PREMIA|META DE |INDUSTRIA|DEVOLU|PEDIDO/.test(t)) return respTodosVendedores(E);
