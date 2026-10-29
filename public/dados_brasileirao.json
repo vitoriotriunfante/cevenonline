@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-29T11:33:31.679744Z",
+  "gerado_em": "2026-10-29T11:48:23.183315Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -19,7 +19,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 34571,
+  "total_lances_auditados": 34578,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -62,8 +62,8 @@
       "empates": 10,
       "derrotas": 0,
       "gp": 6559,
-      "gc": 3884,
-      "sg": 2675,
+      "gc": 3889,
+      "sg": 2670,
       "aprov": 44.4,
       "super_pedidos": 42,
       "inativos_resgatados": 137,
@@ -221,12 +221,12 @@
       "vitorias": 0,
       "empates": 12,
       "derrotas": 0,
-      "gp": 9170,
-      "gc": 7360,
-      "sg": 1810,
+      "gp": 9176,
+      "gc": 7365,
+      "sg": 1811,
       "aprov": 33.3,
       "super_pedidos": 22,
-      "inativos_resgatados": 170,
+      "inativos_resgatados": 171,
       "forma": [
         "E",
         "E",
@@ -312,15 +312,15 @@
     {
       "sigla": "TCG",
       "total_vendedores": 29,
-      "jogos": 12,
-      "pts_tabela": 11,
+      "jogos": 13,
+      "pts_tabela": 12,
       "vitorias": 0,
-      "empates": 11,
+      "empates": 12,
       "derrotas": 1,
-      "gp": 1690,
+      "gp": 1703,
       "gc": 1598,
-      "sg": 92,
-      "aprov": 30.6,
+      "sg": 105,
+      "aprov": 30.8,
       "super_pedidos": 26,
       "inativos_resgatados": 34,
       "forma": [
@@ -336,7 +336,7 @@
         "E",
         "E",
         "E",
-        "J"
+        "E"
       ],
       "pos": 10,
       "pos_ant": 10
@@ -420,8 +420,8 @@
       "empates": 10,
       "derrotas": 0,
       "gp": 6559,
-      "gc": 3884,
-      "sg": 2675,
+      "gc": 3889,
+      "sg": 2670,
       "aprov": 44.4,
       "forma": [
         "E",
@@ -673,6 +673,39 @@
       "pos_ant": 9
     },
     {
+      "nome": "Danilo",
+      "filiais": [
+        "TCG"
+      ],
+      "total_vendedores": 26,
+      "jogos": 13,
+      "pts_tabela": 12,
+      "vitorias": 0,
+      "empates": 12,
+      "derrotas": 1,
+      "gp": 1703,
+      "gc": 1598,
+      "sg": 105,
+      "aprov": 30.8,
+      "forma": [
+        "E",
+        "E",
+        "E",
+        "E",
+        "D",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E"
+      ],
+      "pos": 10,
+      "pos_ant": 12
+    },
+    {
       "nome": "Cleverson",
       "filiais": [
         "MCD"
@@ -702,7 +735,7 @@
         "E",
         "J"
       ],
-      "pos": 10,
+      "pos": 11,
       "pos_ant": 10
     },
     {
@@ -716,9 +749,9 @@
       "vitorias": 0,
       "empates": 12,
       "derrotas": 0,
-      "gp": 3203,
-      "gc": 3452,
-      "sg": -249,
+      "gp": 3209,
+      "gc": 3457,
+      "sg": -248,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -735,41 +768,8 @@
         "E",
         "J"
       ],
-      "pos": 11,
-      "pos_ant": 11
-    },
-    {
-      "nome": "Danilo",
-      "filiais": [
-        "TCG"
-      ],
-      "total_vendedores": 26,
-      "jogos": 12,
-      "pts_tabela": 11,
-      "vitorias": 0,
-      "empates": 11,
-      "derrotas": 1,
-      "gp": 1690,
-      "gc": 1598,
-      "sg": 92,
-      "aprov": 30.6,
-      "forma": [
-        "E",
-        "E",
-        "E",
-        "E",
-        "D",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "J"
-      ],
       "pos": 12,
-      "pos_ant": 12
+      "pos_ant": 11
     },
     {
       "nome": "Radke / Leandro",
@@ -925,7 +925,7 @@
         "V",
         "J"
       ],
-      "plus_lideranca": 75,
+      "plus_lideranca": 80,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -976,7 +976,7 @@
           "ret": 5
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -1014,7 +1014,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 115,
+      "plus_lideranca": 120,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1065,7 +1065,7 @@
           "ret": 5
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -1548,7 +1548,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 90,
+      "plus_lideranca": 95,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1599,7 +1599,7 @@
           "ret": 0
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2278,8 +2278,8 @@
       "empates": 10,
       "derrotas": 0,
       "gp": 1144,
-      "gc": 816,
-      "sg": 328,
+      "gc": 821,
+      "sg": 323,
       "aprov": 44.4,
       "forma": [
         "E",
@@ -2544,9 +2544,9 @@
       "vitorias": 2,
       "empates": 7,
       "derrotas": 3,
-      "gp": 1126,
+      "gp": 1132,
       "gc": 800,
-      "sg": 326,
+      "sg": 332,
       "aprov": 36.1,
       "forma": [
         "E",
@@ -2652,7 +2652,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 90,
+      "plus_lideranca": 95,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2703,7 +2703,7 @@
           "ret": 0
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2830,7 +2830,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 60,
+      "plus_lideranca": 65,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2881,7 +2881,7 @@
           "ret": 5
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3364,7 +3364,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 55,
+      "plus_lideranca": 60,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -3415,7 +3415,7 @@
           "ret": 0
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3453,7 +3453,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 55,
+      "plus_lideranca": 60,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -3504,7 +3504,7 @@
           "ret": 0
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3542,7 +3542,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 45,
+      "plus_lideranca": 50,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -3593,7 +3593,7 @@
           "ret": 0
         },
         "2026-10-29": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -4225,6 +4225,95 @@
       "pos_ant": 31
     },
     {
+      "supervisor": "EDSON RODRIGO LINIA",
+      "filial": "TCG",
+      "canal": "VAREJO",
+      "gerente": "Danilo",
+      "total_vendedores": 7,
+      "jogos": 13,
+      "pts_tabela": 9,
+      "vitorias": 0,
+      "empates": 9,
+      "derrotas": 4,
+      "gp": 327,
+      "gc": 333,
+      "sg": -6,
+      "aprov": 23.1,
+      "forma": [
+        "E",
+        "D",
+        "E",
+        "D",
+        "D",
+        "E",
+        "D",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E"
+      ],
+      "plus_lideranca": 0,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 32,
+      "pos_ant": 36
+    },
+    {
       "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
       "filial": "TCV",
       "canal": "AS",
@@ -4488,7 +4577,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 32,
+      "pos": 33,
       "pos_ant": 32
     },
     {
@@ -4577,7 +4666,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 33,
+      "pos": 34,
       "pos_ant": 33
     },
     {
@@ -4755,7 +4844,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 34,
+      "pos": 35,
       "pos_ant": 34
     },
     {
@@ -4844,7 +4933,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 35,
+      "pos": 36,
       "pos_ant": 35
     },
     {
@@ -4935,95 +5024,6 @@
       "plus_pendente": false,
       "pos": 12,
       "pos_ant": 12
-    },
-    {
-      "supervisor": "EDSON RODRIGO LINIA",
-      "filial": "TCG",
-      "canal": "VAREJO",
-      "gerente": "Danilo",
-      "total_vendedores": 7,
-      "jogos": 12,
-      "pts_tabela": 8,
-      "vitorias": 0,
-      "empates": 8,
-      "derrotas": 4,
-      "gp": 314,
-      "gc": 333,
-      "sg": -19,
-      "aprov": 22.2,
-      "forma": [
-        "E",
-        "D",
-        "E",
-        "D",
-        "D",
-        "E",
-        "D",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 0,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-14": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-15": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-16": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-19": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-20": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-21": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-22": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-23": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-26": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-27": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-28": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-29": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 36,
-      "pos_ant": 36
     },
     {
       "supervisor": "JONATHAN FERNANDES",
@@ -5126,8 +5126,8 @@
       "empates": 7,
       "derrotas": 5,
       "gp": 825,
-      "gc": 1285,
-      "sg": -460,
+      "gc": 1290,
+      "sg": -465,
       "aprov": 19.4,
       "forma": [
         "D",
@@ -9405,6 +9405,48 @@
       "pos_filial_ant": 4
     },
     {
+      "rca": "118",
+      "nome": "EMILLEI CARNEIRO",
+      "filial": "TPH",
+      "supervisor": "EDI CARLOS MEIRA",
+      "gerente": "Fábio",
+      "canal": "VAREJO",
+      "jogos": 13,
+      "vitorias": 7,
+      "empates": 6,
+      "derrotas": 0,
+      "pts_tabela": 27,
+      "aprov": 69.2,
+      "gp": 348,
+      "gc": 14,
+      "sg": 334,
+      "super_pedidos": 1,
+      "inativos_resgatados": 4,
+      "forma": [
+        "E",
+        "V",
+        "E",
+        "E",
+        "E",
+        "V",
+        "V",
+        "V",
+        "V",
+        "V",
+        "E",
+        "V",
+        "E"
+      ],
+      "streak": 5,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 54,
+      "pos_filial": 3,
+      "pos_brasil_ant": 58,
+      "pos_filial_ant": 3
+    },
+    {
       "rca": "197",
       "nome": "RICARDO MORENO SATURNINO",
       "filial": "TBL",
@@ -9441,7 +9483,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 54,
+      "pos_brasil": 55,
       "pos_filial": 5,
       "pos_brasil_ant": 54,
       "pos_filial_ant": 5
@@ -9483,7 +9525,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 55,
+      "pos_brasil": 56,
       "pos_filial": 13,
       "pos_brasil_ant": 55,
       "pos_filial_ant": 13
@@ -9525,7 +9567,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 56,
+      "pos_brasil": 57,
       "pos_filial": 14,
       "pos_brasil_ant": 56,
       "pos_filial_ant": 14
@@ -9567,52 +9609,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 57,
+      "pos_brasil": 58,
       "pos_filial": 14,
       "pos_brasil_ant": 57,
       "pos_filial_ant": 14
-    },
-    {
-      "rca": "118",
-      "nome": "EMILLEI CARNEIRO",
-      "filial": "TPH",
-      "supervisor": "EDI CARLOS MEIRA",
-      "gerente": "Fábio",
-      "canal": "VAREJO",
-      "jogos": 12,
-      "vitorias": 7,
-      "empates": 5,
-      "derrotas": 0,
-      "pts_tabela": 26,
-      "aprov": 72.2,
-      "gp": 342,
-      "gc": 14,
-      "sg": 328,
-      "super_pedidos": 1,
-      "inativos_resgatados": 3,
-      "forma": [
-        "E",
-        "V",
-        "E",
-        "E",
-        "E",
-        "V",
-        "V",
-        "V",
-        "V",
-        "V",
-        "E",
-        "V",
-        "J"
-      ],
-      "streak": 5,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 58,
-      "pos_filial": 3,
-      "pos_brasil_ant": 58,
-      "pos_filial_ant": 3
     },
     {
       "rca": "464",
@@ -11518,8 +11518,8 @@
       "pts_tabela": 21,
       "aprov": 58.3,
       "gp": 256,
-      "gc": 154,
-      "sg": 102,
+      "gc": 159,
+      "sg": 97,
       "super_pedidos": 2,
       "inativos_resgatados": 6,
       "forma": [
@@ -12135,6 +12135,48 @@
       "pos_filial_ant": 7
     },
     {
+      "rca": "476",
+      "nome": "EDIELSON LOPES CARDOSO",
+      "filial": "TCG",
+      "supervisor": "EDSON RODRIGO LINIA",
+      "gerente": "Danilo",
+      "canal": "VAREJO",
+      "jogos": 13,
+      "vitorias": 5,
+      "empates": 5,
+      "derrotas": 3,
+      "pts_tabela": 20,
+      "aprov": 51.3,
+      "gp": 106,
+      "gc": 17,
+      "sg": 89,
+      "super_pedidos": 2,
+      "inativos_resgatados": 2,
+      "forma": [
+        "V",
+        "E",
+        "V",
+        "D",
+        "E",
+        "E",
+        "D",
+        "E",
+        "E",
+        "V",
+        "V",
+        "D",
+        "V"
+      ],
+      "streak": 2,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 107,
+      "pos_filial": 2,
+      "pos_brasil_ant": 124,
+      "pos_filial_ant": 3
+    },
+    {
       "rca": "28",
       "nome": "CRISTIANO ANDRIOLO RAMOS OLIVEIRA",
       "filial": "TSJ",
@@ -12255,7 +12297,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 107,
+      "pos_brasil": 108,
       "pos_filial": 10,
       "pos_brasil_ant": 107,
       "pos_filial_ant": 10
@@ -12297,7 +12339,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 108,
+      "pos_brasil": 109,
       "pos_filial": 13,
       "pos_brasil_ant": 108,
       "pos_filial_ant": 13
@@ -12381,8 +12423,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 109,
-      "pos_filial": 2,
+      "pos_brasil": 110,
+      "pos_filial": 3,
       "pos_brasil_ant": 109,
       "pos_filial_ant": 2
     },
@@ -12423,7 +12465,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 110,
+      "pos_brasil": 111,
       "pos_filial": 12,
       "pos_brasil_ant": 110,
       "pos_filial_ant": 12
@@ -12507,7 +12549,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 111,
+      "pos_brasil": 112,
       "pos_filial": 18,
       "pos_brasil_ant": 111,
       "pos_filial_ant": 18
@@ -12549,7 +12591,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 112,
+      "pos_brasil": 113,
       "pos_filial": 13,
       "pos_brasil_ant": 112,
       "pos_filial_ant": 13
@@ -12633,7 +12675,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 113,
+      "pos_brasil": 114,
       "pos_filial": 19,
       "pos_brasil_ant": 113,
       "pos_filial_ant": 19
@@ -12675,7 +12717,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 114,
+      "pos_brasil": 115,
       "pos_filial": 14,
       "pos_brasil_ant": 114,
       "pos_filial_ant": 14
@@ -12717,52 +12759,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 115,
+      "pos_brasil": 116,
       "pos_filial": 14,
       "pos_brasil_ant": 115,
       "pos_filial_ant": 14
-    },
-    {
-      "rca": "476",
-      "nome": "EDIELSON LOPES CARDOSO",
-      "filial": "TCG",
-      "supervisor": "EDSON RODRIGO LINIA",
-      "gerente": "Danilo",
-      "canal": "VAREJO",
-      "jogos": 13,
-      "vitorias": 4,
-      "empates": 6,
-      "derrotas": 3,
-      "pts_tabela": 18,
-      "aprov": 46.2,
-      "gp": 93,
-      "gc": 17,
-      "sg": 76,
-      "super_pedidos": 2,
-      "inativos_resgatados": 2,
-      "forma": [
-        "V",
-        "E",
-        "V",
-        "D",
-        "E",
-        "E",
-        "D",
-        "E",
-        "E",
-        "V",
-        "V",
-        "D",
-        "E"
-      ],
-      "streak": 2,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 116,
-      "pos_filial": 3,
-      "pos_brasil_ant": 124,
-      "pos_filial_ant": 3
     },
     {
       "rca": "300",
@@ -20716,8 +20716,8 @@
       "pts_tabela": 4,
       "aprov": 11.1,
       "gp": 89,
-      "gc": 161,
-      "sg": -72,
+      "gc": 166,
+      "sg": -77,
       "super_pedidos": 0,
       "inativos_resgatados": 1,
       "forma": [
