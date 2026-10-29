@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-29T14:48:54.462539Z",
+  "gerado_em": "2026-10-29T15:04:05.369455Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -19,7 +19,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 34586,
+  "total_lances_auditados": 34590,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -253,9 +253,9 @@
       "vitorias": 0,
       "empates": 12,
       "derrotas": 0,
-      "gp": 2911,
-      "gc": 2564,
-      "sg": 347,
+      "gp": 2914,
+      "gc": 2576,
+      "sg": 338,
       "aprov": 33.3,
       "super_pedidos": 12,
       "inativos_resgatados": 116,
@@ -650,9 +650,9 @@
       "vitorias": 0,
       "empates": 12,
       "derrotas": 0,
-      "gp": 2911,
-      "gc": 2564,
-      "sg": 347,
+      "gp": 2914,
+      "gc": 2576,
+      "sg": 338,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -2188,9 +2188,9 @@
       "vitorias": 3,
       "empates": 8,
       "derrotas": 1,
-      "gp": 1344,
-      "gc": 875,
-      "sg": 469,
+      "gp": 1347,
+      "gc": 887,
+      "sg": 460,
       "aprov": 47.2,
       "forma": [
         "E",
@@ -2385,7 +2385,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 105,
+      "plus_lideranca": 110,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2437,7 +2437,7 @@
         },
         "2026-10-29": {
           "compromisso": 5,
-          "ret": 0
+          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -12778,8 +12778,8 @@
       "pts_tabela": 17,
       "aprov": 47.2,
       "gp": 219,
-      "gc": 110,
-      "sg": 109,
+      "gc": 114,
+      "sg": 105,
       "super_pedidos": 0,
       "inativos_resgatados": 7,
       "forma": [
@@ -15999,6 +15999,48 @@
       "pos_filial_ant": 22
     },
     {
+      "rca": "285",
+      "nome": "EDUARDO PEREIRA",
+      "filial": "TBE",
+      "supervisor": "PATRICIA CHAVES MACHADO",
+      "gerente": "Diego",
+      "canal": "VAREJO",
+      "jogos": 13,
+      "vitorias": 1,
+      "empates": 9,
+      "derrotas": 3,
+      "pts_tabela": 12,
+      "aprov": 30.8,
+      "gp": 166,
+      "gc": 112,
+      "sg": 54,
+      "super_pedidos": 0,
+      "inativos_resgatados": 14,
+      "forma": [
+        "D",
+        "E",
+        "E",
+        "E",
+        "D",
+        "V",
+        "E",
+        "E",
+        "D",
+        "E",
+        "E",
+        "E",
+        "E"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 177,
+      "pos_filial": 7,
+      "pos_brasil_ant": 180,
+      "pos_filial_ant": 7
+    },
+    {
       "rca": "144",
       "nome": "ALEXSANDRO VALDIR DA SILVA VASQUES",
       "filial": "TPA",
@@ -16035,7 +16077,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 177,
+      "pos_brasil": 178,
       "pos_filial": 3,
       "pos_brasil_ant": 177,
       "pos_filial_ant": 3
@@ -16161,7 +16203,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 178,
+      "pos_brasil": 179,
       "pos_filial": 19,
       "pos_brasil_ant": 178,
       "pos_filial_ant": 19
@@ -16203,7 +16245,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 179,
+      "pos_brasil": 180,
       "pos_filial": 19,
       "pos_brasil_ant": 179,
       "pos_filial_ant": 19
@@ -16245,7 +16287,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 180,
+      "pos_brasil": 181,
       "pos_filial": 23,
       "pos_brasil_ant": 186,
       "pos_filial_ant": 23
@@ -16287,52 +16329,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 181,
+      "pos_brasil": 182,
       "pos_filial": 23,
       "pos_brasil_ant": 187,
       "pos_filial_ant": 23
-    },
-    {
-      "rca": "285",
-      "nome": "EDUARDO PEREIRA",
-      "filial": "TBE",
-      "supervisor": "PATRICIA CHAVES MACHADO",
-      "gerente": "Diego",
-      "canal": "VAREJO",
-      "jogos": 12,
-      "vitorias": 1,
-      "empates": 8,
-      "derrotas": 3,
-      "pts_tabela": 11,
-      "aprov": 30.6,
-      "gp": 163,
-      "gc": 112,
-      "sg": 51,
-      "super_pedidos": 0,
-      "inativos_resgatados": 14,
-      "forma": [
-        "D",
-        "E",
-        "E",
-        "E",
-        "D",
-        "V",
-        "E",
-        "E",
-        "D",
-        "E",
-        "E",
-        "E",
-        "J"
-      ],
-      "streak": 1,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 182,
-      "pos_filial": 7,
-      "pos_brasil_ant": 180,
-      "pos_filial_ant": 7
     },
     {
       "rca": "477",
@@ -21388,8 +21388,8 @@
       "pts_tabela": 3,
       "aprov": 8.3,
       "gp": 191,
-      "gc": 354,
-      "sg": -163,
+      "gc": 362,
+      "sg": -171,
       "super_pedidos": 0,
       "inativos_resgatados": 15,
       "forma": [
@@ -30846,7 +30846,7 @@
         "supervisor": "ALEX SANDRO SOARES ELIAS",
         "gerente": "Diego",
         "meta_mes": 1100000,
-        "pct_hoje": 79,
+        "pct_hoje": 80.8,
         "fases": [
           {
             "n": 1,
@@ -32601,7 +32601,7 @@
         "supervisor": "NEIVA CLEONICE SERRA ISOPPO",
         "gerente": "Diego",
         "meta_mes": 1680000,
-        "pct_hoje": 13.7,
+        "pct_hoje": 23.3,
         "fases": [
           {
             "n": 1,
@@ -34356,7 +34356,7 @@
         "supervisor": "LUIS THIAGO VIRTUOSO BOEIRA",
         "gerente": "Diego",
         "meta_mes": 760000,
-        "pct_hoje": 64.5,
+        "pct_hoje": 66.3,
         "fases": [
           {
             "n": 1,
@@ -45629,7 +45629,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 2080000,
-        "pct_hoje": 66.6,
+        "pct_hoje": 67.6,
         "fases": [
           {
             "n": 1,
@@ -46525,7 +46525,7 @@
         "total_vendedores": 3,
         "com_meta": 2,
         "meta_mes": 1980000,
-        "pct_hoje": 18.3,
+        "pct_hoje": 26.4,
         "fases": [
           {
             "n": 1,
@@ -47197,7 +47197,7 @@
         "total_vendedores": 3,
         "com_meta": 3,
         "meta_mes": 1665000,
-        "pct_hoje": 73,
+        "pct_hoje": 73.8,
         "fases": [
           {
             "n": 1,
