@@ -120,3 +120,42 @@ export async function respPeriodoDias(B, E, t, per) {
   return [`🧾 *Pedidos de ${String(per.de).padStart(2, '0')}/${String(ym % 100).padStart(2, '0')} ${per.ate ? 'a ' + String(per.ate).padStart(2, '0') : 'até hoje'} — ${E.nome}*`, `Total: *${R$(tot)}*`, '',
     ...L.map(([d, v, c]) => `• ${d}: ${R$(v)}${c ? ' · ' + c : ''}`), '', '_Dias fechados = valor dos pedidos item a item; hoje = digitado até agora._'].join('\n');
 }
+
+export async function respPositivadosMesAnterior(B, E, t, pessoa) {
+  const Z = await vendasAnterior(B, E);
+  if (!Z || !Z.linhas.length) return '📦 _As vendas do mês anterior (setembro) ainda não estão disponíveis para esta filial._';
+  let sobre = E.nome, linhas = Z.linhas;
+  if (pessoa && pessoa.tipo === 'vend') {
+    linhas = Z.linhas.filter((l) => l.f === pessoa.alvo.filial && String(l.r) === String(pessoa.alvo.rca));
+    sobre = vn(pessoa.alvo);
+  } else if (pessoa && pessoa.tipo === 'sup') {
+    const rs = new Set(E.vend.filter((v) => v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial).map((v) => v.filial + '|' + v.rca));
+    linhas = Z.linhas.filter((l) => rs.has(l.f + '|' + l.r));
+    sobre = 'Equipe ' + nome2(pessoa.alvo.nome);
+  }
+  const porCli = new Map();
+  for (const l of linhas) {
+    const k = l.f + '|' + l.c;
+    const item = porCli.get(k) || { cod: l.c, nome: Z.cli[k] || ('Cliente #' + l.c), tot: 0, itens: 0 };
+    item.tot += l.v;
+    item.itens += l.q;
+    porCli.set(k, item);
+  }
+  const lista = [...porCli.values()].sort((a, b) => b.tot - a.tot);
+  if (!lista.length) return `👥 *Clientes positivados em setembro — ${sobre}*: nenhuma compra registrada em setembro.`;
+  const querTudo = /TODOS|TODAS|COMPLETA|LISTA COMPLETA|VER MAIS/i.test(sem(t));
+  const n = querTudo ? (lista.length <= 120 ? lista.length : 80) : 25;
+  const totalVal = lista.reduce((s, x) => s + x.tot, 0);
+  const L = [
+    `👥 *Clientes positivados em setembro — ${sobre}* (${E.filiais.join(', ')})`,
+    `Total: *${lista.length} clientes positivados* · faturado *${R$(totalVal)}*`,
+    '',
+    '_Cliente · Faturado no mês_',
+    ...lista.slice(0, n).map((x, i) => `${i + 1}. ${titulo(x.nome)} (#${x.cod}) — *${R$(x.tot)}*`),
+    ...(lista.length > n ? ['', `… e mais ${lista.length - n} clientes. Peça "lista completa" para ver mais.`] : []),
+    '',
+    SUGESTAO + 'comparar com a curva negativa deste mês para resgatar quem comprou em setembro e ainda não comprou em outubro.'
+  ];
+  return L.join('\n');
+}
+

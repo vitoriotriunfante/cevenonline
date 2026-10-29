@@ -13,7 +13,7 @@ import { respAjuda, respCompromisso, respGlossario, respLances, respLiga, respMi
 import { respKpisPremiacao, respMetasIndustria } from './respostas/metas_industria.js';
 import { respGestaoCampo, respOperacao, respRecorrenciaLances, respRelatorio } from './respostas/operacao.js';
 import { respJustificativas, respOferecer, respSemDado } from './respostas/oportunidades.js';
-import { pedePeriodo, respClientesSemComprar, respComparaMes, respDiasSemPedido, respPeriodoDias } from './respostas/periodos.js';
+import { pedePeriodo, respClientesSemComprar, respComparaMes, respDiasSemPedido, respPeriodoDias, respPositivadosMesAnterior } from './respostas/periodos.js';
 import { respDiaVendedor, respFalta, respHoje, respTodosVendedores, totaisOficiais, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
 import { respAVisitar, respCheckinEquipe, respClientesVend, respDiaEquipe, respRotaFiltro, respSemVisita, respMixRotaHoje, respRecorrenciaClientes, respTagSeparadoPorSupervisor, respRotaHojeCompleta, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
 import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo, respPreco, respPedidoNumero, respPedidosStatus, respProduto, respRecuperacao, respTopProdutos } from './respostas/vendas.js';
@@ -27,7 +27,7 @@ export function juntaComAnterior(texto, anteriores) {
   // pergunta nova e completa (cliente pelo codigo, frase longa com assunto proprio) nao gruda na anterior (27/10/2026: "quero saber APENAS se o cliente codigo 1891
   // comprou" virou a carteira da Nilva)
   if (/\bCLIENTE\b.{0,25}\d{3,}|\bPEDIDO\b.{0,15}\d{7,}/.test(t) || (t.split(/\s+/).length > 9 && !/^(DESSES|DESTES|DELES|DESSAS|DESTAS|DELAS)\b/.test(t))) return texto;
-  const modificador = /^(DESSES|DESTES|DELES|DESSAS|DESTAS|DELAS)\b|^(E|E O|E A|E NO|E NA|E DO|E DA|E OS|E AS)\b|^(APENAS|SO|SOMENTE|AGORA)\b|^(QUERO|QUERIA|PRECISO)( SABER)? (APENAS|SO|SOMENTE)\b|^(DO|DA|NO|NA) (MES|SEMANA|DIA)\W*$|^(DE |EM )?(ONTEM|HOJE)\W*$|^(POR|ABERTO POR|ABERTA POR) (VENDEDOR|SUPERVISOR|FILIAL|CLIENTE|INDUSTRIA)|^SIM\b|^(QUAIS|QUEM) SAO( ELES| ELAS)?\W*$|^(EM|DE) (TPH|ABC|API|TBL|TCV|TSJ|TCA|TBE|TPA|MCD|TCG)\W*$|^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA))\W*$/.test(t);
+  const modificador = /^(DESSES|DESTES|DELES|DESSAS|DESTAS|DELAS)\b|^(E|E O|E A|E NO|E NA|E DO|E DA|E OS|E AS)\b|^(APENAS|SO|SOMENTE|AGORA)\b|^(QUERO|QUERIA|PRECISO)( SABER)? (APENAS|SO|SOMENTE)\b|^(DO|DA|NO|NA) (MES|SEMANA|DIA)\W*$|^(DE |EM )?(ONTEM|HOJE)\W*$|^(POR|ABERTO POR|ABERTA POR) (VENDEDOR|SUPERVISOR|FILIAL|CLIENTE|INDUSTRIA)|^SIM\b|^(QUAIS|QUEM) SAO( ELES| ELAS)?\W*$|^(EM|DE) (TPH|ABC|API|TBL|TCV|TSJ|TCA|TBE|TPA|MCD|TCG)\W*$|^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA)|RESTANTE|RESTO|OUTROS? \d+|MAIS \d+|CONTINUA(CAO)?|PROXIMOS?)\b/i.test(t);
   if (!modificador) return texto;
   const ta = sem(ant);
   if (/^SIM\b/.test(t) && !/\d{7,}/.test(t) && /\d{7,}/.test(ta)) return texto + ' ' + (ta.match(/\d{7,}/) || [''])[0];   /* "sim, ...faturou o pedido" + numero anterior */
@@ -48,7 +48,7 @@ export async function respostaPronta(B, c, texto0, anteriores) {
   const equipe = /\bEQUIPE\b|\bTIME\b|\bFILIAL\b|DOS VENDEDORES|TODOS (OS )?VENDEDORES|POR SUPERVISOR|POR VENDEDOR|UM POR UM|ZERADOS|RANKING|SEM VISITA|SEM NENHUMA VISITA/.test(t0);
   if (c.papel === 'diretoria' && !filCit && !abre && ctx.filial) texto += ' ' + ctx.filial;   /* filial da conversa */
   const ehSobreOutroTema = /CLIENTE|LOJA|REDE|#\d+|HIST[OÓ]RI|FIGURINHA|STICKER|TODAS?|TODOS?|TAG|P10|P11|CAMPANHA|RECORRENCIA|PEDIDO|NOTA|SUGEST|BOM DIA|BOA TARDE|GERENTE|SUPERVISOR/.test(t0);
-  const ehContinuacaoVend = /^(E\b|E O\b|E A\b|E DELE|E DELA|E HOJE|E ONTEM|E NO MES|ROTA|VISITAS?|FALTA|QUANTO FALTA|COMO FOI|COMO ESTA|DETALHE|VER MAIS|\+ ?MIX|MAIS ?MIX)/.test(t0);
+  const ehContinuacaoVend = /^(E\b|E O\b|E A\b|E DELE|E DELA|E HOJE|E ONTEM|E NO MES|ROTA|VISITAS?|FALTA|QUANTO FALTA|COMO FOI|COMO ESTA|DETALHE|VER MAIS|MOSTRA(R)? MAIS|RESTANTE|RESTO|OUTROS|\+ ?MIX|MAIS ?MIX)/.test(t0);
   B._ctxVend = !abre && !equipe && !ehSobreOutroTema && ehContinuacaoVend && (!filCit || !ctx.vend || ctx.vend.filial === filCit) ? ctx.vend || null : null;   /* vendedor da conversa só herdado em continuação direta */
   B._ctxAssunto = ctx.assunto || null;
   B._ultPessoa = null;
@@ -118,6 +118,18 @@ export async function respostaInterna(B, c, texto, anteriores) {
     const Er = await carregaEscopo(B, esc);
     return respTagSeparadoPorSupervisor(B, Er, sem(antTag));
   }
+  // REGRAS E CONCEITO DE RECORRÊNCIA (Jonathan TPH, 28/10/2026)
+  if (/RECORRENCIA/.test(t) && (/O QUE (E|EH)|COMO (E|EH|O CLIENTE E) ESCOLHID|QUAL (E |EH )?(A )?REGRA|COMO FUNCIONA/.test(t))) {
+    return [
+      '🔄 *Regra da Meta de Recorrência (Premiação e Liga)*',
+      '',
+      '• *Como o cliente é escolhido:* são os clientes com a tag RECORRÊNCIA na carteira do CEVEN — clientes chave que compraram com frequência nos últimos meses e têm histórico de compra recorrente.',
+      '• *Meta da Premiação:* o vendedor e a equipe precisam positivar no mínimo *80%* dos clientes com a tag RECORRÊNCIA até o fechamento do mês (vale 10% da pontuação total da premiação).',
+      '• *Na Liga:* cada venda faturada em cliente de recorrência conta como lance de *DEFESA* (+3 pontos para o seu time na rodada).',
+      '',
+      '💡 Peça *"recorrência equipe"* para ver a situação de todos os vendedores ou *"recorrência vendedor <código>"* para a lista de clientes.'
+    ].join('\n');
+  }
   // TODAS AS TAGS / CAMPANHAS (Vitorio, 28/10/2026: recorrencia, P10, P11, Sem compras Leao, Snickers Core, Borges, etc.)
   const ehPerguntaTag = /RECORRENCIA|RESGAT|REATIVAD|INATIVOS? (RECUPERAD|REATIVAD)|\bTAGS?\b|SEM COMPRAS? P1[01]|\bP10\b|\bP11\b|SEM COMPRAS? LEAO|CAMPANHA BORGES|CHOCO INDEP|SNICKERS CORE|SNICKERS BRANCO|CHAMP KITEKAT|\bSKITTLES\b|\bTOFFEES\b|\bTORT\b|\bBISCUIT\b|\bBLOCK\b|\bFLOW\b/.test(t);
   if (ehPerguntaTag && !/O QUE (E|EH)/.test(t) && !/\bMETAS?\b|KPI|PREMIA/.test(t)) {
@@ -129,11 +141,13 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/COMPROMISSO|MATINAL|\bRET\b|\bRETS\b|ROTA DO SUPERVISOR/.test(t)) return respCompromisso(B, await carregaEscopo(B, esc));
   if (/PENALTI|PENALIDADE|IMPEDIMENTO|CARTA|VERMELHO|AMARELO|GOL CONTRA|\bGOLS?\b|LANCES?\b|HAT ?TRICK|DEFESAS?\b|CHECK.?IN FORA|FORA DO CLIENTE|00:00|CARTO(ES|ESS)?\b/.test(t) && !/LIGA|CHAMPIONS|CLASSIFICA|PONTOS? (FOMOS|PERDID|PENALIZ)|PENALIZAD/.test(t)) return respLances(B, await carregaEscopo(B, esc), t);
   // "VER MAIS" logo depois de uma lista truncada: re-executa a pergunta anterior completa (28/10/2026)
-  if (/^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA))\W*$/.test(t)) {
+  if (/^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA)|VER (O )?RESTANTE|VER (OS )?OUTROS|OUTROS \d+|MAIS \d+|CONTINUA(CAO)?|PROXIMOS?)\b/i.test(t)) {
     if ((anteriores || []).length) {
-      return respostaPronta(B, c, anteriores[0] + ' ver mais', anteriores.slice(1));
+      return respostaPronta(B, c, anteriores[0] + ' ' + texto, anteriores.slice(1));
     }
     const Ev = await carregaEscopo(B, esc);
+    const p = achaPessoa(Ev, t);
+    if (p && p.tipo === 'vend') return respostaPronta(B, c, `curva negativa vendedor ${p.alvo.rca} ver mais`, []);
     if (Ev.vend && Ev.vend.length === 1) return respVendedor(B, Ev, Ev.vend[0], { tudo: true });
     if (antTag) return respTagSeparadoPorSupervisor(B, Ev, sem(antTag));
     return `📋 Para eu abrir a lista completa certinho, me diz o que você quer ver (ex: "curva negativa vendedor 125").`;
@@ -185,7 +199,14 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/SEM (NENHUMA )?VISITA|NENHUMA VISITA|NAO (FEZ|FIZERAM) (NENHUMA )?VISITA/.test(t) && /VENDEDOR|LISTA|QUEM|QUAIS|POR FILIAL/.test(t)) return respSemVisita(E);
   if (/CLIENTES (DOS VENDEDORES|DA FILIAL|DA EQUIPE|DA MINHA EQUIPE)/.test(t) && !/ROTA DE HOJE.{0,40}VISITOU|PAROU|COMPRAVA/.test(t)) return respRotaHojeResumo(B, E, null);
   if (/ROTA/.test(t) && /\bHOJE\b|\bHJ\b/.test(t) && /\d{1,3}\s*DIAS|VISITOU E NAO VENDEU|VISITADO E NAO VENDEU|JA VISITOU/.test(t) && !/VENDEDORA?\s+\d|VENDEDORA?\s+[A-Z]{3,}/.test(t)) return respRotaFiltro(B, E, t);
-  if (/(EM RELACAO|SOBRE|SABER) (A |DA )?MINHA EQUIPE|^(MINHA |A )?EQUIPE( AGORA| HOJE| JA)?\W*$|^(E )?(A )?(MINHA )?EQUIPE\W*$/.test(t)) return respResumo(B, E);   /* "equipe agora" (27/10/2026, Cristiano) */
+  if (/(EM RELACAO|SOBRE|SABER) (A |DA )?MINHA EQUIPE|^(MINHA |A )?EQUIPE( AGORA| JA)?\W*$|^(E )?(A )?(MINHA )?EQUIPE\W*$/.test(t)) return respResumo(B, E);   /* "equipe agora" (27/10/2026, Cristiano) */
+  // EQUIPE HOJE (Alex Sandro TBE, 28/10/2026: "Oi , como está o meu time hoje?"): o que a equipe fez HOJE (rota, visitas, digitado)
+  if (/(EQUIPE|TIME).*(HOJE|HJ|NO DIA DE HOJE)|(HOJE|HJ).*(EQUIPE|TIME)|COMO (ESTA|FOI|TA|VAI).*(EQUIPE|TIME)|DIA D[OA] (EQUIPE|TIME)/.test(t) && !/LIGA|MIX|ZERAD|POSITIVA|META|FATUR|RANKING|HISTORIC/.test(t)) return respDiaEquipe(B, E);
+  // CLIENTES POSITIVADOS EM SETEMBRO / MÊS PASSADO (Washington API, 28/10/2026: "Clientes positivados em setembro, vendedora Ana, todos")
+  if (/POSITIVAD.*(SETEMBRO|MES PASSADO|MES ANTERIOR)|(CLIENTES?|QUEM|QUAIS).*(COMPROU|COMPRARAM|POSITIVOU|POSITIVARAM).*(SETEMBRO|MES PASSADO|MES ANTERIOR)|(SETEMBRO|MES PASSADO|MES ANTERIOR).*(POSITIVAD|COMPRARAM|COMPROU)/.test(t)) {
+    const pr = achaPessoa(E, t);
+    return respPositivadosMesAnterior(B, E, t, pr);
+  }
   // "NAO BATE / DIVERGENTE DO CEVEN" (27/10/2026, Andrey e Leandro: a IA pedia desculpas e dizia que nao tem o CEVEN): de onde vem cada numero + registra para auditoria
   if (/DIVERGENTE|DIFERENTE(S)? D[OA] (CEVEN|ANALISTA|ACOMPANHAMENTO)|NAO BATE|NAO ESTA BATENDO|NUMEROS? ERRAD|ESTA ERRAD/.test(t)) {
     try { await B.registraPedido('divergencia', texto, c.nome, c); } catch (e) {}
@@ -307,11 +328,26 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
       const ultH = (cnpj) => { const x = H[String(cnpj || '').replace(/\D/g, '')]; if (!x) return null; const m2 = String(x).split(',').map((p) => p.split(':')[1]).filter(Boolean).sort().pop(); return m2 ? `20${m2.slice(0, 2)}-${m2.slice(2, 4)}-${m2.slice(4, 6)}` : null; };
       for (const c of v.roteiroMes) { const k = String(c.id_cliente); const x = cli.get(k) || { c, comprou: false }; if (/POSITIVADO|EFETIVADO/.test(String(c.status || ''))) x.comprou = true; cli.set(k, x); }
       const nao = [...cli.entries()].filter(([k, x]) => !x.comprou && !compraram.has(k)).map(([k, x]) => { const u = ultH(x.c.cnpj); return { c: x.c, u, d: u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) : null }; }).sort((a, b) => (a.d ?? 999) - (b.d ?? 999));
-      const n = /VER MAIS|LISTA COMPLETA|TODOS|COMPLETA/.test(t) ? 80 : 25;
-      return [`📉 *Curva negativa — ${v.rca} - ${titulo(v.nome)}* (${v.filial})`, `Carteira do mês: *${cli.size} clientes* · já compraram: *${cli.size - nao.length}* · *ainda não compraram: ${nao.length}*`, '',
-        ...(nao.length ? ['_Cliente · Última compra · Dias sem compra_'] : []),
-        ...nao.slice(0, n).map((x) => `${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} · ${x.u ? x.u.slice(8, 10) + '/' + x.u.slice(5, 7) + ' · ' + x.d + ' dias' : '— · +60 dias'}`),
-        nao.length > n ? `… e mais ${nao.length - n} (peça "ver mais")` : '', '', SUGESTAO + (nao.length ? 'começar por quem comprou há menos tempo: é mais fácil de recuperar.' : 'carteira inteira já comprou no mês.')].filter((x) => x !== '').join('\n');
+      const ehMais = /VER MAIS|LISTA COMPLETA|TODOS|COMPLETA|RESTANTE|RESTO|OUTROS|MAIS \d+/.test(t);
+      const antJaTinhaMais = (anteriores || []).some((a) => /VER MAIS|LISTA COMPLETA|TODOS|COMPLETA|RESTANTE/.test(sem(String(a))));
+      let ini = 0, fim = 25;
+      if (ehMais) {
+        if (antJaTinhaMais || /RESTANTE|RESTO|OUTROS|PARTE 2|CONTINUA|\b(3[0-9]|4[0-9]|[5-9][0-9]|1[0-9]{2})\b/.test(t)) {
+          ini = 80;
+          fim = nao.length;
+        } else {
+          ini = 0;
+          fim = nao.length <= 120 ? nao.length : 80;
+        }
+      }
+      const lista = nao.slice(ini, fim);
+      const sobra = nao.length - fim;
+      return [`📉 *Curva negativa — ${v.rca} - ${titulo(v.nome)}* (${v.filial})` + (ini > 0 ? ` _(continuação: ${ini + 1}º ao ${Math.min(fim, nao.length)}º)_` : ''),
+        `Carteira do mês: *${cli.size} clientes* · já compraram: *${cli.size - nao.length}* · *ainda não compraram: ${nao.length}*`, '',
+        ...(lista.length ? ['_Cliente · Última compra · Dias sem compra_'] : []),
+        ...lista.map((x) => `${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} · ${x.u ? x.u.slice(8, 10) + '/' + x.u.slice(5, 7) + ' · ' + x.d + ' dias' : '— · +60 dias'}`),
+        sobra > 0 ? `… e mais ${sobra} (peça "ver mais")` : '', '',
+        SUGESTAO + (sobra > 0 ? 'começar por quem comprou há menos tempo: é mais fácil de recuperar.' : (ini > 0 ? 'lista completa entregue.' : 'começar por quem comprou há menos tempo: é mais fácil de recuperar.'))].filter((x) => x !== '').join('\n');
     }
     if (m.plan == null) return `${v.rca} - ${titulo(v.nome)} (${v.filial}): sem a produtividade do mês na base agora.`;
     const semVenda = m.real != null && m.pedRota != null ? Math.max(0, m.real - m.pedRota) : null;

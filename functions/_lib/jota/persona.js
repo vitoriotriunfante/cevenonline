@@ -29,7 +29,13 @@ export const TODAS_FIGURINHAS = [
   '17_buscando_numeros',
   '18_proximo_cliente',
   '19_sugestao_do_jota',
-  '20_sem_dado_agora'
+  '20_sem_dado_agora',
+  '21_acelera_triunfante',
+  '22_cartao_vermelho',
+  '23_cartao_amarelo',
+  '24_chutando_pro_gol',
+  '25_bora_pra_cima',
+  '26_bora_vender'
 ];
 export function horaSP() { return R.horaSP(); }
 export const diaSemana = () => new Date(hojeSP() + 'T12:00:00Z').getUTCDay();
@@ -83,7 +89,11 @@ export function figurinhaPara(resp, tipo) {
   if (/Rota de hoje|faltam \*\d/.test(r)) return '18_proximo_cliente';
   if (/quanto falta|Ritmo da meta|Abaixo do ritmo/i.test(r)) return '12_bora_destravar';
   if (/^👥 \*Positivação/.test(r)) return '05_bora_positivar';
-  if (/Figurinhas Oficiais do Jota/i.test(r)) return '10_dna_triunfante';
+  if (/Cartão Vermelho|cartao vermelho|sem venda/i.test(r)) return '22_cartao_vermelho';
+  if (/Cartão Amarelo|cartao amarelo|impedimento/i.test(r)) return '23_cartao_amarelo';
+  if (/#?aceleratriunfante|foguete|acelera/i.test(r)) return '21_acelera_triunfante';
+  if (/Chutando pro gol|golaço/i.test(r)) return '24_chutando_pro_gol';
+  if (/Figurinhas Oficiais do Jota/i.test(r)) return '21_acelera_triunfante';
   if (/sem dado|não tenho|Não consegui|ainda não tenho/i.test(r) && r.length < 400) return '20_sem_dado_agora';
   return null;
 }

@@ -35,7 +35,8 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
       aVisitar: Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hojeSP() && /^(ABERTO|AGENDADO)$/i.test(String(c.status || '')) && !c.checkin_horario) : [] };
 
     const ehMeuGrupo = !grupo || String(e.grupo || '').toUpperCase() === String(grupo).toUpperCase();
-    const ehMeuSup = !supervisor || sem(e.supervisor) === sem(supervisor);
+    const sSup = sem(supervisor || ''), sESup = sem(e.supervisor || '');
+    const ehMeuSup = !supervisor || sESup === sSup || (sSup.length >= 4 && (sESup.includes(sSup) || sSup.includes(sESup))) || (sSup.split(/\s+/)[0] && sSup.split(/\s+/)[0] === sESup.split(/\s+/)[0] && sSup.split(/\s+/).pop() === sESup.split(/\s+/).pop());
     const ehMeuRca = !soRca || String(rca) === String(soRca);
     if (!ehMeuGrupo || !ehMeuSup || !ehMeuRca) {
       outros.push(vObj);

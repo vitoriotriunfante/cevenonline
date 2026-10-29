@@ -36,7 +36,7 @@ export function criaBase(origin, env) {
     metaPosFilial: () => memo('mposf', () => api('/meta_positivacao_filial.json')),   /* meta de positivacao por filial (Premiacao), TEMPORARIA ate o CEVEN corrigir (27/10/2026) */
     pedidosAbertos: () => memo('pedab', () => api('/api/pedidos-dia?abertos=1')),   /* nao faturados dos ultimos 15 dias (linha do tempo) */
     pedidoNum: (n) => memo('pednum' + n, () => api('/api/pedidos-dia?num=' + n)),   /* pedido de qualquer dia (15 d) com a linha do tempo do status */
-    raw: (p) => memo('raw' + p, () => gh(p).catch(() => null)),
+    raw: (p) => memo('raw' + p, () => gh(p).catch(() => (env && env.ASSETS ? env.ASSETS.fetch(new Request(origin + '/' + p.replace(/^public\//, ''))).then((r) => r.text()) : null))),
     // lista de arquivos da pasta: a API do GitHub limita 60 consultas/hora por IP (dividido com outros clientes da Cloudflare) -> guarda 30 min no D1
     pasta: (p) => memo('dir' + p, async () => {
       const db = env && env.DB, k = 'gh_dir:' + p;

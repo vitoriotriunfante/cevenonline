@@ -32,6 +32,8 @@ export function periodoDe(t, V) {
 export const GENERICAS = /^(SEM|NAO|BRASIL|BRASILEIRA|BRASILEIRO|BRASILEIRAS|EMPRESA|EMPRESAS|INDUSTRIA|INDUSTRIAS|ALIMENTOS|ALIMENTO|COMERCIO|DISTRIBUIDORA|DISTRIBUICAO|PRODUTOS|PRODUTO|GRUPO|LTDA|NACIONAL|CIA|COMPANHIA|DOCES|BEBIDAS|MES|DIA|HOJE|MILHOES|MILHAO|REAIS|VENDA|VENDAS|VENDEMOS|DEVOLUCAO|DEVOLUCOES|VER|VEJA|OLHA|MOSTRA|ABRIR|ABRE|MAIS)$/;
 // acha produto(s) pelas palavras da pergunta (ex.: "snickers original" -> todos os SKUs com SNICKERS e ORIGINAL)
 export function achaProdutos(t, V, E) {
+  if (/^\W*(VER|VEJA|OLHA|MOSTRA|ABRE|ABRIR)?\s*(MAIS|RESTO|RESTANTE|OUTROS|TUDO|TODOS)(\s+\d+)?\W*$/i.test(t)) return null;
+  if (/^VER MAIS\b|VER OS OUTROS|VER RESTANTE|MOSTRAR MAIS/i.test(t)) return null;
   const nomesPessoas = new Set(E.vend.flatMap((v) => sem(v.nome).split(/\s+/)).concat(E.vend.flatMap((v) => sem(v.supervisor).split(/\s+/))));
   const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !FILIAIS.includes(w) && !nomesPessoas.has(w) && !/^\d+$/.test(w) && !GENERICAS.test(w));
   if (!toks.length) return null;

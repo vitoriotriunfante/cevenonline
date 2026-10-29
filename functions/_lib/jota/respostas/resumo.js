@@ -25,7 +25,9 @@ export async function respResumo(B, E) {
     return L.join('\n');
   }
   const fil = E.filiais[0]; const f = s && (s.filiais || []).find((x) => x.filial === fil);
-  const V = E.vend; const G = agrupa(V, (v) => 'x').get('x') || { fat: 0, pend: 0, meta: 0 };
+  const V = E.vend;
+  const Vtotais = V.concat((E.ocultos || []).filter((o) => (o.fat > 0 || o.pend > 0 || o.dig > 0) && (!E.supervisor || sem(o.supervisor) === sem(E.supervisor) || (o.nome && sem(o.nome).includes(sem(E.supervisor))))));
+  const G = agrupa(Vtotais, (v) => 'x').get('x') || { fat: 0, pend: 0, meta: 0 };
   const fat = (E.grupo || E.supervisor || E.rca) ? G.fat : f ? f.faturado : null, pend = (E.grupo || E.supervisor || E.rca) ? G.pend : f ? f.pendente : null, meta = (E.grupo || E.supervisor || E.rca) ? G.meta : f ? f.meta_fat : null;
   const Vr = V.filter((v) => v.varejo), z = Vr.filter((v) => v.zerado);
   const com = V.filter((v) => v.pct != null).sort((a, b) => (b.pct ?? 0) - (a.pct ?? 0));
@@ -72,7 +74,8 @@ export async function respHoje(B, E, t) {
       ...G.map(([f, x]) => `• *${f}* ${R$(x.dig)} · ${x.ped} ped. · visitas ${x.visF}/${x.visP} · ${x.zerados} zerado(s)`),
       soVarejo ? '' : '_Totais com todos os canais; peça "hoje rota" para só o varejo._', SUGESTAO + `ver os zerados da filial com mais vendedores sem pedido: ${(G.slice().sort((a, b) => b[1].zerados - a[1].zerados)[0] || [''])[0]}.`].filter((x) => x !== null).join('\n');
   }
-  const tot = { ...(agrupa(V, () => 'x').get('x') || { dig: 0, ped: 0, visF: 0, visP: 0, comVenda: 0, zerados: 0 }) };
+  const Vtotais = V.concat((E.ocultos || []).filter((o) => (o.fat > 0 || o.pend > 0 || o.dig > 0) && (!E.supervisor || sem(o.supervisor) === sem(E.supervisor) || (o.nome && sem(o.nome).includes(sem(E.supervisor))))));
+  const tot = { ...(agrupa(Vtotais, () => 'x').get('x') || { dig: 0, ped: 0, visF: 0, visP: 0, comVenda: 0, zerados: 0 }) };
   if (!soVarejo && !E.grupo && !E.supervisor && !E.rca) { tot.dig = E.macro.dig; tot.ped = E.macro.pedidos; }
   if (/TICKET/.test(t)) return `🧾 *Ticket médio de hoje — ${E.nome}${rot}*: *${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}* (${R$(tot.dig)} ÷ ${tot.ped} pedidos)`;
   const Vs = V.slice().sort((a, b) => b.dig - a.dig);
@@ -156,7 +159,8 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
   return L.join('\n');
 }
 export async function totaisOficiais(B, E) {
-  const x = { ...(agrupa(E.vend, () => 'x').get('x') || { fat: 0, pend: 0, meta: 0, pos: 0, metaPos: 0 }) };
+  const Vtotais = E.vend.concat((E.ocultos || []).filter((o) => (o.fat > 0 || o.pend > 0 || o.dig > 0) && (!E.supervisor || sem(o.supervisor) === sem(E.supervisor) || (o.nome && sem(o.nome).includes(sem(E.supervisor))))));
+  const x = { ...(agrupa(Vtotais, () => 'x').get('x') || { fat: 0, pend: 0, meta: 0, pos: 0, metaPos: 0 }) };
   if (E.grupo || E.supervisor || E.rca) return x;   /* grupo (TPH/MCD) ou equipe do supervisor: soma dos vendedores */
   const s = await B.saude(); const F = ((s && s.filiais) || []).filter((f) => E.filiais.includes(f.filial)); if (!F.length) return x;
   x.fat = F.reduce((a, f) => a + (f.faturado || 0), 0); x.pend = F.reduce((a, f) => a + (f.pendente || 0), 0); x.meta = F.reduce((a, f) => a + (f.meta_fat || 0), 0);

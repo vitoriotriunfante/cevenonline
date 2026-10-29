@@ -256,8 +256,8 @@ export async function respTagCampanhas(B, E, v, t = '', c = null) {
     const comprou = [...mesC.values()].filter((y) => y.comp).length, meta = Math.ceil(mesC.size * 0.8);
     return { hoje, mesC, comprou, meta };
   };
-  const querListaCompleta = /LISTA COMPLETA|TODOS|TODAS|QUAIS|QUEM|QUERO A LISTA/.test(sem(t));
-  if (!v && /QUANTOS/.test(t) && !/CADA|POR VENDEDOR|QUAIS|LISTA|QUEM/.test(t)) {
+  const querListaCompleta = /LISTA(GEM)? COMPLETA|TODOS|TODAS|QUAIS|QUEM|QUERO A LISTA|RELACAO COMPLETA|RELAÇÃO COMPLETA|LISTAGEM/i.test(sem(t));
+  if (!v && (/QUANTOS/.test(t) || !/CADA|POR VENDEDOR|QUAIS|LISTA|QUEM/.test(t) || /EQUIPE|TIME|RESUMO|META|MINHA META/i.test(t))) {
     let tag = 0, comp = 0; const hoje = [], porV = [];
     for (const x of E.vend) {
       const r = um(x); tag += r.mesC.size; comp += r.comprou;
@@ -265,7 +265,8 @@ export async function respTagCampanhas(B, E, v, t = '', c = null) {
         hoje.push(`• ${titulo(cli.nome_cliente || cli.razao_social || 'cliente')} — *${vn(x)}*`);
       }
       if (r.mesC.size) {
-        porV.push([r.mesC.size - r.comprou, `• ${vn(x)}: mês *${r.comprou} de ${r.mesC.size}*` + (tagInfo.ehRec ? ` (meta ${r.meta})` : '') + (r.hoje.length ? ` · hoje *${r.hoje.length}* na rota` : '')]);
+        const falta = Math.max(0, r.meta - r.comprou);
+        porV.push([r.mesC.size - r.comprou, `• *${vn(x)}*: mês *${r.comprou} de ${r.mesC.size}*` + (tagInfo.ehRec ? ` (meta ${r.meta} · faltam ${falta})` : '') + (r.hoje.length ? ` · hoje *${r.hoje.length}* na rota` : '')]);
       }
     }
     const meta = Math.ceil(tag * 0.8);
@@ -287,7 +288,7 @@ export async function respTagCampanhas(B, E, v, t = '', c = null) {
     const hj = new Set(r.hoje.map((cli) => String(cli.id_cliente)));
     const naoMes = [...r.mesC.values()].filter((y) => !(y.u >= mes + '-01') && !hj.has(String(y.c.id_cliente)));
     const jaComp = [...r.mesC.values()].filter((y) => y.u >= mes + '-01');
-    const limite = querListaCompleta ? 50 : 10;
+    const limite = querListaCompleta ? (naoMes.length <= 100 ? naoMes.length : 60) : 15;
     return [`🔄 *Tag: ${tagInfo.label} — ${vn(v)}*`,
       `Mês: *${r.comprou} de ${r.mesC.size}* clientes compraram` + (tagInfo.ehRec ? ` (meta = 80% = ${r.meta} · faltam ${Math.max(0, r.meta - r.comprou)})` : ` (${r.mesC.size ? Math.round(r.comprou / r.mesC.size * 100) : 0}%)`),
       ...(r.hoje.length ? ['', `*Na rota de hoje (${r.hoje.length}):*`, '_Cliente · Status · Última compra_', ...r.hoje.map((cli) => `${titulo(cli.nome_cliente || cli.razao_social || 'cliente')} · ${titulo(String(cli.status || 'aberto'))} · ${dd(String(cli.data_ultima_compra || '').slice(0, 10))}`)] : ['', '_Nenhum cliente dessa tag na rota de hoje._']),
