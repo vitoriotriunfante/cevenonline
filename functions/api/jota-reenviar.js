@@ -18,7 +18,7 @@ export async function onRequestPost({ request, env }) {
   if (!c) return new Response(JSON.stringify({ erro: 'contato nao encontrado' }), { status: 404, headers: J });
   const B = criaBase(new URL(request.url).origin, env), partes = [];
   for (const q of (b.perguntas || []).slice(0, 4)) { let r = null; try { r = await respostaPronta(B, c, String(q), []); } catch (e) { r = null; } partes.push(r ? `❓ _${q}_\n\n${String(r)}` : `❓ _${q}_\n\nsem resposta`); }
-  const texto = [b.abertura || '', ...partes].filter(Boolean).join('\n\n━━━━━━━━━━━━━━━\n\n');
+  const texto = b.texto || [b.abertura || '', ...partes].filter(Boolean).join('\n\n━━━━━━━━━━━━━━━\n\n');
   if (b.ensaio !== false) return new Response(JSON.stringify({ contato: c.nome, texto }), { headers: J });
   const e = await enviar(env, c.celular, texto);
   await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(c.celular, c.nome, e.ok ? 'out' : 'erro', texto.slice(0, 4000), 'reenvio').run();
