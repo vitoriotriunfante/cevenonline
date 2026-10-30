@@ -210,7 +210,7 @@ export function foraDoEscopoContato(c, texto) {
 }
 
 export async function respostaInterna(B, c, texto, anteriores) {
-  const t = sem(texto);
+  let t = sem(texto);
   // "Sugestao" sozinha (27/10/2026, Thiago/Sueli/Rodrigo: a IA inventava uma resposta): pede a sugestao
   if (/^\W*SUGEST(AO|OES|AO DO JOTA)?\W*$/.test(t)) return '💡 Pode mandar! Escreva *"sugestão:"* e o que você quer que eu faça diferente (ex.: "sugestão: mandar a meta de cada vendedor"). Vai direto para o time que me treina.';
   // escopo: gerente = a filial dele; diretoria = a filial citada, senao o Brasil
