@@ -106,13 +106,6 @@ Quem pergunta: ${c.papel}${c.filial ? ' da filial ' + c.filial : ''}.`;
   }
 
   if (!env || !env.AI) return null;
-  const lista = Object.entries(CATALOGO).map(([k, [, d]]) => `- ${k}: ${d}`).join('\n');
-  const sys = `Você classifica perguntas de gestores comerciais de uma distribuidora (filiais: ${FILIAIS.join(', ')}). NÃO responda a pergunta.
-Devolva SOMENTE um JSON: {"intencao": "<uma das intenções abaixo ou nenhuma>", "lugar": "<sigla da filial citada ou vazio>", "pessoa": "<nome de vendedor/supervisor citado ou vazio>", "codigo": "<código RCA citado ou vazio>", "produto": "<produto/marca citado ou vazio>", "industria": "<indústria/fornecedor citado ou vazio>", "cliente": "<nome do cliente citado ou vazio>"}
-Intenções:
-${lista}
-Regras: use "nenhuma" se a pergunta não se encaixa em nenhuma. Copie nomes exatamente como escritos. Não invente filial, pessoa, produto ou código que não estejam na pergunta.
-Quem pergunta: ${c.papel}${c.filial ? ' da filial ' + c.filial : ''}.`;
   try {
     const r = await env.AI.run(MODELO, { messages: [{ role: 'system', content: sys }, { role: 'user', content: String(texto).slice(0, 400) }], max_tokens: 160, temperature: 0 });
     const s = String((r && (r.response ?? r.result)) || '');
