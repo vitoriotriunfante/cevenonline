@@ -153,10 +153,15 @@ export function achaPessoa(E, t) {
   }
   if (!toks.length) return null;   /* 26/10/2026: so DEPOIS do codigo ("vendedor 59" nao tem palavra de nome e saia vazio) */
   const querSup = /SUPERVIS|EQUIPE|TIME/.test(t), querVend = /VENDEDOR|\bRCA\b/.test(t);
+  const querAberturaVend = /POR VENDEDOR|ABERTO POR VENDEDOR|ABERTA POR VENDEDOR/.test(t);
   const sups = [...new Map(E.vend.filter((v) => v.supervisor && supReal(v.supervisor)).map((v) => [v.filial + '|' + v.supervisor, { nome: v.supervisor, filial: v.filial }])).values()];
   const bs = sups.map((s) => [s, score(s.nome)]).filter((x) => x[1]).sort((a, b) => b[1] - a[1]);
-  const bv = E.vend.concat(E.ocultos || []).filter((v) => !/^(GERENTE|VAGO|RCA\b|VENDA |SUPERVIS)/i.test(String(v.nome || '')))   /* conta que nao e vendedor so pelo codigo (27/10/2026: "gerente" achava 1010 GERENTE TPH) */.map((v) => [v, score(v.nome)])   /* oculto na Gestao tambem e achado pelo NOME (26/10/2026: Anderson, "vendedor Bruno" = 153 oculto) */.filter((x) => x[1]).sort((a, b) => b[1] - a[1]);
-  if (bs.length && !querVend && (querSup || !bv.length || bs[0][1] >= bv[0][1])) return { tipo: 'sup', alvo: bs[0][0], empate: bs.filter((x) => x[1] === bs[0][1]).map((x) => x[0]) };
+  const bv = E.vend.concat(E.ocultos || []).filter((v) => {
+    if (/^(GERENTE|VAGO|RCA\b|VENDA |SUPERVIS)/i.test(String(v.nome || ''))) return false;
+    if (v.canal === 'SUP' || v.canal === 'GER' || v.cargo === 'supervisor') return false;
+    return true;
+  }).map((v) => [v, score(v.nome)]).filter((x) => x[1]).sort((a, b) => b[1] - a[1]);
+  if (bs.length && (querAberturaVend || querSup || !querVend || !bv.length || bs[0][1] >= bv[0][1])) return { tipo: 'sup', alvo: bs[0][0], empate: bs.filter((x) => x[1] === bs[0][1]).map((x) => x[0]) };
   if (bv.length) return { tipo: 'vend', alvo: bv[0][0], empate: bv.filter((x) => x[1] === bv[0][1]).map((x) => x[0]) };
   // Vendedor de outro supervisor citado por nome (ex.: supervisor pergunta por nome de alguém que não é da equipe dele)
   if (!bv.length && E.outros && E.outros.length) {

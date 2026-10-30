@@ -209,7 +209,10 @@ export async function respFalta(B, E) {
   const G = porVend ? E.vend.filter((v) => v.meta > 0).map((v) => [vn(v), Math.max(0, v.meta - v.fat - (v.pend || 0)), { pct: v.meta ? (v.fat + (v.pend || 0)) / v.meta * 100 : null }]).sort((a, b) => b[1] - a[1])
     : [...agrupa(E.vend, (v) => E.nacional ? v.filial : supChave(v, false))].filter(([k]) => supReal(k)).map(([k, y]) => [k, Math.max(0, y.meta - y.fat - (y.pend || 0)), { ...y, pct: y.meta ? (y.fat + (y.pend || 0)) / y.meta * 100 : null }]).sort((a, b) => b[1] - a[1]);
   const nm = (k) => (E.nacional || porVend ? k : nome2(k));
-  L.push(`*Quem mais falta (${E.nacional ? 'filial' : porVend ? 'vendedor' : 'supervisor'}):*`, ...G.slice(0, 10).map(([k, f, y]) => `• ${nm(k)}: ${R$(f)} (${pctTxt(y.pct)})`));
+  L.push(`*Quem mais falta (${E.nacional ? 'filial' : porVend ? 'vendedor' : 'supervisor'}):*`, ...G.slice(0, 10).map(([k, f, y], i) => `${i + 1}. ${nm(k)}: ${R$(f)} (${pctTxt(y.pct)})`));
+  if (!porVend && G.length) {
+    L.push('', '💡 *Para abrir qualquer equipe por vendedor, digite apenas o número correspondente (ex: 1, 2...)*');
+  }
   L.push('', SUGESTAO + (G[0] ? `o maior buraco é ${nm(G[0][0])}: ${R$(G[0][1])}.` : 'manter o ritmo.'));
   return L.join('\n');
 }

@@ -262,6 +262,21 @@ export async function respostaInterna(B, c, texto, anteriores) {
     const Er = await carregaEscopo(B, esc);
     return respTagSeparadoPorSupervisor(B, Er, sem(antTag));
   }
+  // DIGITE NÚMERO (1, 2, 3...) para abrir a equipe do supervisor do ranking/falta anterior:
+  const antRankingSup = (B.ultOut && /Quem mais falta \(supervisor\)|Supervisores que mais venderam|ranking.*supervisor/i.test(B.ultOut)) ? B.ultOut : (anteriores || []).find((a) => /Quem mais falta \(supervisor\)|Supervisores que mais venderam/i.test(String(a)));
+  if (/^\W*([1-9]|10)\W*$/.test(t) && antRankingSup && !antTag) {
+    const num = parseInt(t.match(/\b([1-9]|10)\b/)[1], 10);
+    const linhas = String(antRankingSup).split('\n').filter((l) => new RegExp(`^${num}\\.\\s+`).test(l.trim()));
+    if (linhas.length) {
+      const nomeSup = linhas[0].replace(new RegExp(`^${num}\\.\\s+`), '').split(':')[0].trim();
+      const toksSup = sem(nomeSup).split(/\s+/).filter((w) => w.length > 2);
+      const Es = await carregaEscopo(B, esc);
+      const vendsSup = Es.vend.filter((v) => toksSup.every((tok) => sem(v.supervisor).includes(tok)));
+      if (vendsSup.length) {
+        return await respDiaEquipe(B, { ...Es, nome: 'Equipe ' + titulo(nomeSup), supervisor: vendsSup[0].supervisor, vend: vendsSup, ocultos: [] });
+      }
+    }
+  }
   const antVend = (anteriores || []).some((a) => /VENDEDOR|EQUIPE|TIME|PANORAMA|TODOS|RESUMO/i.test(String(a)));
   const querMsgVend = /1 POR VENDEDOR|UM POR UM|UMA MENSAGEM POR VENDEDOR|SEPARADO POR VENDEDOR|MANDAR? (AS )?MENSAGENS?|MANDAR? POR VENDEDOR|MENSAGENS? (POR VENDEDOR|PRO TIME|PARA O TIME|PRA ENCAMINHAR|PARA ENCAMINHAR)/i.test(t)
     || (/^\W*1\W*$|^1\b|OPCAO 1|OPÇÃO 1/i.test(t) && !antTag && (antVend || c.papel === 'supervisor'));
@@ -739,7 +754,16 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
       ].join('\n');
     }
     const amb = pessoa.empate.length > 1 ? `\n\n_Achei mais de um: ${pessoa.empate.slice(0, 5).map((x) => titulo(x.nome) + ' ' + x.filial).join(' · ')}. Mande o nome completo se não for este._` : '';
-    return (pessoa.tipo === 'sup' ? respSupervisor(E, pessoa.alvo) : await respVendedor(B, E, pessoa.alvo)) + amb;
+    if (pessoa.tipo === 'sup') {
+      if (/POR VENDEDOR|ABRE|ABRIR|EQUIPE|TIME|HOJE|DIA/.test(t)) {
+        const vendsEq = E.vend.filter((v) => v.supervisor === pessoa.alvo.nome && (!pessoa.alvo.filial || v.filial === pessoa.alvo.filial));
+        if (vendsEq.length) {
+          return (await respDiaEquipe(B, { ...E, nome: 'Equipe ' + nome2(pessoa.alvo.nome), supervisor: pessoa.alvo.nome, vend: vendsEq, ocultos: [] })) + amb;
+        }
+      }
+      return respSupervisor(E, pessoa.alvo) + amb;
+    }
+    return (await respVendedor(B, E, pessoa.alvo)) + amb;
   }
   if (/ZERAD|ZEROU|SEM PEDIDO|SEM VENDA|NAO VENDEU|NAO VENDERAM|NINGUEM VENDEU/.test(t)) return respZerados(E);
   if (/POSITIV/.test(t) && /QUANTOS|QUANTO/.test(t) && !/110/.test(t)) return respPositivacao(B, E);
