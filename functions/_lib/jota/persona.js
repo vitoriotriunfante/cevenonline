@@ -4,7 +4,7 @@
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
 import R from '../../../public/regras.js'; // regras unicas (public/regras.js)
-import { N, hojeSP, sem, titulo } from './base.js';
+import { N, hojeSP, sem, so, titulo, variantes } from './base.js';
 import { diasUteisMes } from './respostas/gestao.js';
 
 // ---------- PERSONA (MAIS_MIX/JOTA/PERSONA Claude Online.md; Vitorio 25/10/2026: "ta muito direto... quero uma persona... figurinhas... precisa ser mais HUMANO") ----------
@@ -99,7 +99,16 @@ export function figurinhaPara(resp, tipo) {
 }
 export async function enviarFigurinha(env, numero, nome) {
   if (!env.EVO_URL || !env.EVO_KEY || !nome) return false;
-  return (await R.evolution(R.evoCfg(env), '/message/sendSticker', { number: numero, sticker: FIG(nome) })).ok;
+  const d = so(numero);
+  if (!d) return false;
+  const r = await R.evolution(R.evoCfg(env), '/message/sendSticker', { number: d, sticker: FIG(nome) });
+  if (r.ok) return true;
+  const alts = variantes(d).filter((v) => v !== d);
+  for (const alt of alts) {
+    const rAlt = await R.evolution(R.evoCfg(env), '/message/sendSticker', { number: alt, sticker: FIG(nome) });
+    if (rAlt.ok) return true;
+  }
+  return false;
 }
 // abertura humana: chama pelo nome, cumprimenta (bom dia, boa tarde) e deseja boas vendas / bom jogo
 export function humaniza(resp, c, primeiraDoDia) {

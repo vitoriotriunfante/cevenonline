@@ -21,17 +21,21 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     if (!e) continue;   // fora da arvore do CEVEN de hoje = nao existe
     if (e.supervisor && e.sup_cod) SUPCOD.set(sem(e.supervisor), e.sup_cod);
     const varejo = VAREJO.has(String(e.canal || '').toUpperCase());
-    const visP = pd.total_programado || (Array.isArray(r.roteiro) ? r.roteiro.length : 0);
-    const visF = pd.visitas_na_rota || 0;
-    const vObj = { filial, rca, nome: e.nome || d.nome || 'RCA ' + rca, supervisor: e.supervisor || '', supCod: e.sup_cod || '', grupo: e.grupo || '', gerente: e.gerente || '', canal: e.canal || '', varejo,
+    const nomeVend = e.nome || d.nome || 'RCA ' + rca;
+    const ehVendReal = pessoaReal({ nome: nomeVend, supervisor: e.supervisor });
+    const visP = (varejo && ehVendReal) ? (pd.total_programado || (Array.isArray(r.roteiro) ? r.roteiro.length : 0)) : 0;
+    const visF = (varejo && ehVendReal) ? (pd.visitas_na_rota || 0) : 0;
+    const comVenda = (varejo && ehVendReal) ? (pd.visitas_com_venda || 0) : 0;
+    const vendeuHoje = (pd.dig_pedido || 0) > 0 || (pd.positivacao || 0) > 0 || (pd.visitas_com_venda || 0) > 0;
+    const vObj = { filial, rca, nome: nomeVend, supervisor: e.supervisor || '', supCod: e.sup_cod || '', grupo: e.grupo || '', gerente: e.gerente || '', canal: e.canal || '', varejo, ehVendedorReal: ehVendReal,
       /* meta = a da HIERARQUIA do CEVEN quando houver (tela do supervisor/gerente; 27/10/2026, Thiago/MCD) */ fat: fi.faturado || 0, pend: fi.pendente || 0, meta: r.meta_hier != null ? r.meta_hier : fi.meta || 0, dev: fi.devolucao || 0, pct: (r.meta_hier != null ? r.meta_hier : fi.meta) ? (fi.faturado || 0) / (r.meta_hier != null ? r.meta_hier : fi.meta) * 100 : null,
-      pos: po.realizado ?? null, metaPos: po.meta ?? null, dig: pd.dig_pedido || 0, ped: pd.positivacao || 0, visP, visF, comVenda: pd.visitas_com_venda || 0,
+      pos: po.realizado ?? null, metaPos: po.meta ?? null, dig: pd.dig_pedido || 0, ped: pd.positivacao || 0, visP, visF, comVenda,
       visPlanMes: pm.visit_plan || 0, visRealMes: pm.visit_real || 0,
       /* mes do PROPRIO vendedor, qualquer canal (detalhe do vendedor; os totais de rota seguem quem tem rota) */ roteiroMes: Array.isArray(r.roteiro_mes) ? r.roteiro_mes : null, mesV: { plan: pm.visit_plan ?? null, real: pm.visit_real ?? null, pedRota: pm.ped_rota_mes ?? null, efic: pm.eficiencia_pct ?? null },
-      zerado: visP > 0 && !((pd.dig_pedido || 0) > 0 || (pd.positivacao || 0) > 0 || (pd.visitas_com_venda || 0) > 0), semVisita: visP > 0 && !(visF > 0), devolucoes: Array.isArray(r.devolucoes) ? r.devolucoes : [],
+      zerado: varejo && ehVendReal && visP > 0 && !vendeuHoje, semVisita: varejo && ehVendReal && visP > 0 && !(visF > 0), devolucoes: Array.isArray(r.devolucoes) ? r.devolucoes : [],
       /* devolucoes que ENTRARAM hoje (mesma regra do WhatsApp 17:00/18:30: d.data === hoje) */
       devHoje: (Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).reduce((t, x) => t + Math.abs(parseFloat(x.vl_devolvido || x.valor || 0) || 0), 0),
-      vendeuHoje: (pd.dig_pedido || 0) > 0 || (pd.positivacao || 0) > 0 || (pd.visitas_com_venda || 0) > 0,
+      vendeuHoje,
       rotaHoje: Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hojeSP() || /FORA/i.test(String(c.status || ''))) : [],
       aVisitar: Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hojeSP() && /^(ABERTO|AGENDADO)$/i.test(String(c.status || '')) && !c.checkin_horario) : [] };
 
@@ -84,12 +88,37 @@ export async function carregaEscopo(B, esc) {
 export const supChave = (v, nac) => (v.supervisor || 'sem supervisor') + (nac ? '|' + v.filial : '');
 export const supNome = (k) => { const [s, f] = String(k).split('|'); return (/^sem supervisor$/i.test(s) ? 'Ligados ao gerente' : /^GERENTE/i.test(s) ? 'Ligados ao gerente' : sn(s)) + (f ? ' ' + f : ''); };
 export const supReal = (k) => !/^(sem supervisor|GERENTE|VAGO)/i.test(String(k));
-export const pessoaReal = (v) => !/^(VAGO|RCA\b|VENDA |GERENTE)/i.test(String(v.nome || ''));
+export const pessoaReal = (v) => {
+  if (!v) return false;
+  const n = String(v.nome || '').trim();
+  if (!n || /^(VAGO|RCA\b|VENDA |GERENTE|SUPERVISOR|EMPRESA|INTERNO|ADMIN|CONTA )/i.test(n)) return false;
+  if (v.supervisor && sem(n) === sem(v.supervisor)) return false;
+  return true;
+};
 export function agrupa(V, chave) {
   const m = new Map();
-  for (const v of V) { const k = chave(v); const x = m.get(k) || { V: [], fat: 0, pend: 0, meta: 0, dig: 0, ped: 0, dev: 0, pos: 0, metaPos: 0, visP: 0, visF: 0, comVenda: 0, zerados: 0, semVisita: 0, varejo: 0 };
-    x.V.push(v); x.fat += v.fat; x.pend += v.pend; x.meta += v.meta; x.dig += v.dig; x.ped += v.ped; x.dev += v.dev; x.pos += v.pos || 0; x.metaPos += v.metaPos || 0;
-    x.visP += v.visP; x.visF += v.visF; x.comVenda += v.comVenda; if (v.zerado) x.zerados++; if (v.semVisita) x.semVisita++; if (v.varejo) x.varejo++; m.set(k, x); }
+  for (const v of V) {
+    const k = chave(v);
+    const x = m.get(k) || { V: [], fat: 0, pend: 0, meta: 0, dig: 0, ped: 0, dev: 0, pos: 0, metaPos: 0, visP: 0, visF: 0, comVenda: 0, zerados: 0, semVisita: 0, varejo: 0 };
+    x.V.push(v);
+    x.fat += v.fat || 0;
+    x.pend += v.pend || 0;
+    x.meta += v.meta || 0;
+    x.dig += v.dig || 0;
+    x.ped += v.ped || 0;
+    x.dev += v.dev || 0;
+    x.pos += v.pos || 0;
+    x.metaPos += v.metaPos || 0;
+    if (v.varejo && pessoaReal(v)) {
+      x.visP += v.visP || 0;
+      x.visF += v.visF || 0;
+      x.comVenda += v.comVenda || 0;
+      if (v.zerado) x.zerados++;
+      if (v.semVisita) x.semVisita++;
+      x.varejo++;
+    }
+    m.set(k, x);
+  }
   for (const x of m.values()) x.pct = x.meta ? x.fat / x.meta * 100 : null;
   return m;
 }

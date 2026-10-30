@@ -312,17 +312,19 @@ export async function respostaInterna(B, c, texto, anteriores) {
   }
   const ehPedidoTodasFigurinhas = /QUERO TODAS|MANDA TODAS|MANDA AS TODAS|ENVIA TODAS|TODAS AS FIGURINHAS|ME MANDA TODAS/.test(t) || (/TODAS\b/.test(t) && (anteriores || []).some((a) => /FIGURINHA|STICKER/.test(sem(String(a)))));
   if (ehPedidoTodasFigurinhas) {
-    return '⚽ *Mandando o pacote oficial com todas as 20 figurinhas do Jota!* 🔥\n_Salve nos seus favoritos para usar com o time no WhatsApp!_';
+    return '⚽ *Mandando o pacote oficial com todas as 26 figurinhas exclusivas do Jota!* 🔥\n_Salve nos seus favoritos para usar com o time no WhatsApp!_';
   }
   if (/FIGURINHA|STICKER|QUAIS FIGURINHAS|ME MANDA AS FIGURINHAS|MANDA UMA FIGURINHA/.test(t)) {
     return [
       '⚽ *Figurinhas Oficiais do Jota!*',
-      'Eu tenho 20 figurinhas exclusivas para animar o nosso dia de jogo! Olha os temas:',
+      'Eu tenho 26 figurinhas exclusivas para animar o nosso dia de jogo! Olha os temas:',
       '',
       '• ⚽ *Entrada e boas-vindas:* "Oi, eu sou o Jota", "Bom dia time", "Bola rolando"',
       '• 🏆 *Conquistas:* "Golaço!", "Meta batida!", "DNA Triunfante"',
       '• 💪 *Motivação e campo:* "Conta comigo", "Bora positivar!", "Bora destravar", "Zerado não!"',
+      '• 🚀 *Aceleração e jogo:* "Acelera Triunfante", "Bora pra cima!", "Bora vender", "Chutando pro gol"',
       '• 🚶 *Rota e clientes:* "Próximo cliente", "Olha o +MIX", "Tô de olho"',
+      '• 🛑 *Arbitragem:* "Cartão Amarelo", "Cartão Vermelho"',
       '• 🏁 *Fechamento:* "Fechou o dia!", "Valeu time!"',
       '',
       '_Estou te enviando o pacote de figurinhas agora mesmo pra você salvar nos seus favoritos!_'

@@ -46,8 +46,16 @@ export async function tabelas(db) {
 }
 export async function enviar(env, numero, texto) {
   if (!env.EVO_URL || !env.EVO_KEY) return { ok: false, erro: 'EVO_URL/EVO_KEY nao configurados' };
-  const r = await R.evolution(R.evoCfg(env), '/message/sendText', { number: numero, text: texto });
-  return { ok: r.ok, status: r.status };
+  const d = so(numero);
+  if (!d) return { ok: false, erro: 'numero vazio ou invalido' };
+  const r = await R.evolution(R.evoCfg(env), '/message/sendText', { number: d, text: texto });
+  if (r.ok) return { ok: true, status: r.status };
+  const alts = variantes(d).filter((v) => v !== d);
+  for (const alt of alts) {
+    const rAlt = await R.evolution(R.evoCfg(env), '/message/sendText', { number: alt, text: texto });
+    if (rAlt.ok) return { ok: true, status: rAlt.status };
+  }
+  return { ok: false, status: r.status, erro: r.erro, resposta: r.resposta };
 }
 export const hojeSP = () => R.hojeSP();
 // dias uteis (seg-sex) que faltam no mes, contando hoje; feriados nao sao descontados (dito na resposta)

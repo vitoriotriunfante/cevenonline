@@ -74,6 +74,7 @@ export async function onRequestPost({ request, env }) {
   await tabelas(env.DB);
   const vs = variantes(cel);
   const c = await env.DB.prepare(`SELECT * FROM bot_contatos WHERE ativo = 1 AND celular IN (${vs.map(() => '?').join(',')}) LIMIT 1`).bind(...vs).first();
+  if (c && c.celular) { cel = c.celular; destino = c.celular; }
   let meuId = null;
   if (!seco) meuId = await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, msg_id) VALUES (?,?,?,?,?)').bind(cel, c ? c.nome : null, 'in', (audio ? '[áudio] ' : '') + (texto || '(não transcrito: ' + (audio && audio.erro) + ')').slice(0, 2000), d.key.id || null).run().then((r) => r && r.meta && r.meta.last_row_id).catch(() => null);
   if (ehImagem && texto === '[imagem recebida sem legenda]') {
@@ -219,17 +220,20 @@ export async function onRequestPost({ request, env }) {
   // "UM POR UM" (27/10/2026): a resposta pode vir em partes (separador ⟪⟫); cada parte vai numa mensagem, na ordem, com 1,2 s entre elas
   const partes = String(resp).split('\n⟪⟫\n').filter((x) => x.trim());
   let e = { ok: true };
-  for (let i = 0; i < partes.length; i++) { if (i) await new Promise((ok) => setTimeout(ok, 1200)); const ei = await enviar(env, destino, partes[i]); if (!ei.ok) e = ei; }
+  const numEnvio = (c && c.celular) ? c.celular : (destino && !destino.endsWith('@lid') ? destino.replace(/\D/g, '') : cel);
+  for (let i = 0; i < partes.length; i++) { if (i) await new Promise((ok) => setTimeout(ok, 1200)); const ei = await enviar(env, numEnvio, partes[i]); if (!ei.ok) e = ei; }
   resp = partes.join('\n\n');
   await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, e.ok ? 'out' : 'erro', resp.slice(0, 4000), tipo).run();
   // figurinha: pacote quando pedido ou contextual (no maximo 1 a cada 2 h por pessoa)
   const ehLoteFig = /pacote (com as|oficial com as|de) figurinhas|Figurinhas Oficiais do Jota/i.test(resp);
   if (ehLoteFig && e.ok) {
     const querTodasMesmo = /QUERO TODAS|MANDA TODAS|TODAS AS FIGURINHAS/i.test(texto);
-    const lote = querTodasMesmo ? TODAS_FIGURINHAS : ['01_oi_eu_sou_o_jota', '03_bom_dia_time', '02_conta_comigo', '07_meta_batida', '06_golaco', '05_bora_positivar', '13_zerado_nao', '08_fechou_o_dia', '10_dna_triunfante', '15_olha_o_mais_mix'];
+    // Anti-spam do WhatsApp / Evolution (Vitório, 29/10/2026: "mandar 1, esperar 1 pouco... dai mandar outra... trava antispam"):
+    // Espaçamento de 2.500 ms entre cada envio para não engasgar a conexão nem tomar rate limit
+    const lote = querTodasMesmo ? TODAS_FIGURINHAS.slice(0, 10) : ['01_oi_eu_sou_o_jota', '02_conta_comigo', '25_bora_pra_cima', '07_meta_batida', '15_olha_o_mais_mix'];
     for (let fi = 0; fi < lote.length; fi++) {
-      if (fi) await new Promise((ok) => setTimeout(ok, 400));
-      await enviarFigurinha(env, destino, lote[fi]);
+      if (fi) await new Promise((ok) => setTimeout(ok, 2500));
+      await enviarFigurinha(env, numEnvio, lote[fi]);
     }
     try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, 'figurinha', 'lote_figurinhas', 'figurinhas_lote').run(); } catch (x) {}
   } else {
@@ -239,7 +243,7 @@ export async function onRequestPost({ request, env }) {
       const ruim = /precisando reagir|Abaixo do ritmo|ERRO|devolu/i.test(resp) && !/^(saudacao)/.test(tipo);
       const ehOutraFigurinha = ult && ult.fig_nome && ult.fig_nome !== fig;
       if (!ruim && (tipo === 'agradecimento' || ehOutraFigurinha || !ult || !ult.q || ult.desde >= 3 || Date.now() - Date.parse(ult.q + 'Z') > 2 * 3600 * 1000)) {
-        const ok = await enviarFigurinha(env, destino, fig);
+        const ok = await enviarFigurinha(env, numEnvio, fig);
         if (ok) await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, 'figurinha', fig, tipo).run();
       }
     }

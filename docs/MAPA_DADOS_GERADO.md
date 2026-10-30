@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-30 01:43 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-30 02:32 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (32)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -231,6 +231,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 - `scripts/reprocessar_metas_reais_zerados.js` (manual): `lista_zerados_com_metas_reais.json`
 - `scratch/analisar_conversas_hoje.mjs` (manual): `scratch/analise_problemas_hoje.json`
 - `scratch/analisar_qualidade.mjs` (manual): `scratch/resumo_auditoria.json`
+- `scratch/auditar_conversas.mjs` (manual): `scratch/pares_conversas.json`
 - `scratch/auditar_hoje_08h.mjs` (manual): `scratch/auditoria_hoje_08h.json`
 - `scratch/audita_gols_hoje.js` (manual): `/gols_falsos.json`
 - `scratch/cmp_dev.js` (manual): `/dev_ceven.json`
@@ -239,6 +240,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 - `scratch/extrair_hoje_29.mjs` (manual): `scratch/msgs_hoje_29.json`
 - `scratch/listar_39_sugestoes.mjs` (manual): `scratch/todas_sugestoes.json`
 - `scratch/listar_sugestoes.mjs` (manual): `scratch/sugestoes_d1_atual.json`
+- `scratch/processar_auditoria.mjs` (manual): `scratch/auditoria_resultado.json`, `scratch/pares_auditados.json`
 - `scratch/t_incentivo.mjs` (manual): `/inc_out.json`
 
 ## 3. Chamam o CEVEN mas só rodam à mão (155)

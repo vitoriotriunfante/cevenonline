@@ -22,5 +22,5 @@ export async function onRequestPost({ request, env }) {
   if (b.ensaio !== false) return new Response(JSON.stringify({ contato: c.nome, texto }), { headers: J });
   const e = await enviar(env, c.celular, texto);
   await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(c.celular, c.nome, e.ok ? 'out' : 'erro', texto.slice(0, 4000), 'reenvio').run();
-  return new Response(JSON.stringify({ enviado: !!e.ok, contato: c.nome }), { headers: J });
+  return new Response(JSON.stringify({ enviado: !!e.ok, contato: c.nome, detalhe: e }), { headers: J });
 }
