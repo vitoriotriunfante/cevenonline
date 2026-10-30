@@ -93,7 +93,6 @@ export async function respSegmentoCnae(B, E, t, pessoa) {
 export function respPastas(c, t, pessoa) {
   const tUpper = String(t || '').toUpperCase();
   const filial = (c && c.filial) || '';
-  const papel = (c && c.papel) || '';
 
   // Caso Cleverson / MCD
   if (/CLEVERSON/i.test(c?.nome || '') || /MCD/.test(filial) && /CLEVERSON/.test(tUpper)) {
@@ -143,72 +142,97 @@ export function respPastas(c, t, pessoa) {
 
 // 3. ESTRATÉGIA DE RECUPERAÇÃO DE VENDAS / TOP CLIENTES (Caso Fábio TBL - 500 mil)
 export async function respEstrategiaFabio(env, B, c, texto, E) {
-  let mx, tblHist;
+  let ant, mes, reps;
   try {
-    mx = await B.mix() || {};
+    ant = JSON.parse(await B.raw('public/vendas_mes_anterior/TBL.json') || '{}');
+    mes = JSON.parse(await B.raw('public/vendas_mes/TBL.json') || '{}');
+    reps = JSON.parse(await B.raw('public/mostra_vendedores.json') || '{}');
   } catch (e) {
-    mx = {};
-  }
-  try {
-    tblHist = JSON.parse(await B.raw('public/mix_hist/TBL.json') || '{}').c || {};
-  } catch (e) {
-    tblHist = {};
+    return '📊 Base de fechamento de TBL sendo compilada. Tente em alguns minutos.';
   }
 
-  const tblVends = ((mx && mx.vendedores) || []).filter((v) => v.filial === 'TBL');
-  const porSup = {};
+  const rcaMap = {};
+  for (const v of ((reps.filiais && reps.filiais['TBL']) || [])) {
+    rcaMap[String(v.rca)] = { nome: v.nome, supervisor: v.supervisor };
+  }
 
-  for (const v of tblVends) {
-    const sup = v.supervisor || 'OUTROS TBL';
-    if (!porSup[sup]) porSup[sup] = [];
+  const totSet = {}, totOut = {}, cliNome = { ...(ant.clientes || {}), ...(mes.clientes || {}) }, rcaCli = {};
 
-    for (const pt of (v.pontos || [])) {
-      const [lat, lng, comprouOut, cnpj, seg, razao] = pt;
-      if (comprouOut === 0 && razao && razao !== 'N/D') {
-        const hist = tblHist[cnpj] || '';
-        const comprouSet = /:2609\d{2}/.test(hist);
-        const skusSet = (hist.match(/:2609\d{2}/g) || []).length;
-        if (comprouSet && skusSet >= 15) {
-          porSup[sup].push({
-            cnpj,
-            razao: titulo(razao),
-            seg: seg || 'Varejo',
-            rca: v.rca,
-            rcaNome: nome2(v.nome),
-            skusSet,
-            ticketEst: Math.round(v.faturado_por_cliente || 1800)
-          });
-        }
-      }
+  for (const l of (ant.l || [])) {
+    const cod = String(l[2]);
+    totSet[cod] = (totSet[cod] || 0) + (l[5] || 0);
+    rcaCli[cod] = String(l[1]);
+  }
+
+  for (const l of (mes.l || [])) {
+    const cod = String(l[2]);
+    totOut[cod] = (totOut[cod] || 0) + (l[5] || 0);
+    rcaCli[cod] = String(l[1]);
+  }
+
+  const gaps = [];
+  for (const [cod, vSet] of Object.entries(totSet)) {
+    const vOut = totOut[cod] || 0;
+    const gap = vSet - vOut;
+    if (gap >= 5000) {
+      const rInfo = rcaMap[rcaCli[cod]] || { nome: 'RCA ' + rcaCli[cod], supervisor: 'Outros TBL' };
+      gaps.push({
+        cod,
+        nome: titulo(cliNome[cod] || 'Cliente ' + cod),
+        rca: rcaCli[cod],
+        rcaNome: nome2(rInfo.nome),
+        supervisor: rInfo.supervisor || 'Geral TBL',
+        vSet: Math.round(vSet),
+        vOut: Math.round(vOut),
+        gap: Math.round(gap)
+      });
     }
   }
 
+  gaps.sort((a, b) => b.gap - a.gap);
+  const totalGapGeral = gaps.reduce((s, g) => s + g.gap, 0);
+
+  // Agrupa por supervisor
+  const porSup = {};
+  for (const g of gaps) {
+    const s = g.supervisor;
+    if (!porSup[s]) porSup[s] = [];
+    porSup[s].push(g);
+  }
+
+  const supsOrd = Object.entries(porSup).sort((a, b) => {
+    const sA = a[1].reduce((acc, x) => acc + x.gap, 0);
+    const sB = b[1].reduce((acc, x) => acc + x.gap, 0);
+    return sB - sA;
+  });
+
   const out = [
-    '🎯 *Plano de Recuperação TBL — R$ 500 Mil* (Gestão Fábio)',
-    'Cruzamento de *clientes quentes*: compraram forte em setembro (M-1) e estão zerados em outubro.',
+    '🎯 *ESTRATÉGIA EXECUTIVA TBL — RECUPERAÇÃO DE R$ 500 MIL*',
+    `Análise de faturamento real: *${gaps.length} contas de Curva A/B* perderam faturamento em relação a Setembro.`,
+    `💰 *Buraco total identificado:* *${R$(totalGapGeral)}* (Para bater os R$ 500k, precisamos capturar apenas 26% desse valor!).`,
     '',
-    '📊 *Engenharia da Meta (5 Supervisões em Campo):*'
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
   ];
 
-  const supsOrd = Object.entries(porSup).sort((a, b) => b[1].length - a[1].length);
-
-  for (const [sup, clis] of supsOrd) {
-    clis.sort((a, b) => b.skusSet - a.skusSet);
-    const topClis = clis.slice(0, 3);
-    const potEquipe = clis.reduce((s, x) => s + x.ticketEst, 0);
-
-    out.push(`👤 *Supervisor ${nome2(sup)}* (${clis.length} contas quentes sem compra · pot. ~${R$(potEquipe)})`);
-    for (const cli of topClis) {
-      out.push(`  • *${cli.razao}* (${cli.seg})`);
-      out.push(`    RCA: ${cli.rca} - ${cli.rcaNome} · ${cli.skusSet} SKUs comprados em Setembro · CNPJ: ${cli.cnpj}`);
+  for (const [sup, lista] of supsOrd.slice(0, 4)) {
+    const somaGap = lista.reduce((s, x) => s + x.gap, 0);
+    out.push(`👤 *EQUIPE: Sup. ${nome2(sup)}* (Buraco Total: *${R$(somaGap)}*)`);
+    out.push('*As 3 Maiores Contas para Fechar Hoje:*');
+    for (const g of lista.slice(0, 3)) {
+      const statusOut = g.vOut === 0 ? '❌ *ZERO em Outubro*' : `Comprou só ${R$(g.vOut)}`;
+      out.push(`• *${g.nome}* (#${g.cod}) — RCA: ${g.rca} (${g.rcaNome})`);
+      out.push(`  Set: ${R$(g.vSet)} ➔ Out: ${statusOut} | *Falta: ${R$(g.gap)}*`);
     }
     out.push('');
   }
 
   out.push(
-    '💡 *Foco nas Indústrias Oficiais da Pasta TBL:*',
-    'As contas acima são grandes compradoras de *Química Amparo, Marilan, Masterfoods (Snickers/M&M), Bebidas Grassi e AB Mauri*.',
-    'A meta de R$ 500k se recupera ativando essas contas-âncora que já possuem cadastro ativo e histórico recente de recompra!'
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    '📲 *MENSAGEM PRONTA PARA O FÁBIO ENVIAR AOS SUPERVISORES:*',
+    '',
+    '_"Time, analisamos os clientes que compraram forte no mês passado e despencaram ou zeraram em outubro. O nosso gap de R$ 500k está concentrado nas 3 maiores contas de cada um (São Francisco, Casquinha, Irmãos Sartori, Amaro, Miliozzi). Precisamos acionar esses clientes com reposição de Amparo, Marilan e Snickers para faturar ainda hoje. Foco total nelas!"_',
+    '',
+    SUGESTAO + 'peça "prospecção vendedor <código>" para ver os clientes da rota de hoje de cada RCA.'
   );
 
   return out.join('\n');
@@ -305,5 +329,3 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
     '💡 O Jota cruza a localização dos clientes da rota de hoje com a base da Receita e do CEVEN Mapas para indicar estabelecimentos comerciais vizinhos que ainda não compram!'
   ].join('\n');
 }
-
-
