@@ -5,7 +5,7 @@
 // (Vitório, 30/10/2026: Cleverson MCD, Allison TPH, segmentos por CNPJ).
 // =========================================================================
 
-import { R$, P, N, titulo, nome2, vn, SUGESTAO } from '../base.js';
+import { R$, P, N, titulo, nome2, vn, SUGESTAO, sem } from '../base.js';
 import { analisaEstrategiaComGemini } from '../gemini.js';
 
 // Pastas oficiais parametrizadas
@@ -189,12 +189,23 @@ export async function respEstrategiaFabio(env, B, c, texto, E) {
     }
   }
 
-  gaps.sort((a, b) => b.gap - a.gap);
-  const totalGapGeral = gaps.reduce((s, g) => s + g.gap, 0);
+  // Divisão estratégica solicitada (Vitório, 30/10/2026: geral, apenas faturamento ou positivação)
+  const tNormE = sem(texto || '');
+  const ehFocoFat = /APENAS FATURAMENTO|SO FATURAMENTO|FOCO FATURAMENTO/.test(tNormE);
+  const ehFocoPos = /APENAS POSITIVACAO|SO POSITIVACAO|FOCO POSITIVACAO|\bPOSITIVACAO\b/.test(tNormE) && !ehFocoFat;
+  const tituloFoco = ehFocoFat ? ' [Foco: Volume e Faturamento]' : ehFocoPos ? ' [Foco: Positivação e Inativos Zero]' : ' [Visão Geral]';
+
+  let gapsFiltrados = gaps;
+  if (ehFocoPos) {
+    gapsFiltrados = gaps.filter((g) => g.vOut === 0);
+  }
+
+  gapsFiltrados.sort((a, b) => b.gap - a.gap);
+  const totalGapGeral = gapsFiltrados.reduce((s, g) => s + g.gap, 0);
 
   // Agrupa por supervisor
   const porSup = {};
-  for (const g of gaps) {
+  for (const g of gapsFiltrados) {
     const s = g.supervisor;
     if (!porSup[s]) porSup[s] = [];
     porSup[s].push(g);
@@ -207,8 +218,8 @@ export async function respEstrategiaFabio(env, B, c, texto, E) {
   });
 
   const out = [
-    '🎯 *ESTRATÉGIA EXECUTIVA TBL — RECUPERAÇÃO DE R$ 500 MIL*',
-    `Análise de faturamento real: *${gaps.length} contas de Curva A/B* perderam faturamento em relação a Setembro.`,
+    `🎯 *ESTRATÉGIA EXECUTIVA TBL — RECUPERAÇÃO DE R$ 500 MIL*${tituloFoco}`,
+    `Análise de contas reais: *${gapsFiltrados.length} clientes Curva A/B* ${ehFocoPos ? 'sem nenhuma compra em Outubro' : 'com perda de faturamento em relação a Setembro'}.`,
     `💰 *Buraco total identificado:* *${R$(totalGapGeral)}* (Para bater os R$ 500k, precisamos capturar apenas 26% desse valor!).`,
     '',
     '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
