@@ -358,12 +358,12 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
           const end = p.endereco ? ` · ${p.endereco}` : '';
           const cnae = p.cnae_desc || p.familia || 'Comércio';
           const tel = p.telefone || p.celular || p.fone;
-          const telLinha = tel ? `\n   📞 Telefone: ${tel}` : '\n   📞 Telefone: Consultar no LinkUp';
+          const telLinha = tel ? `\n   📞 ${tel}` : '';
           const mapsLink = (p.lat && p.lon) ? `https://maps.google.com/?q=${p.lat},${p.lon}` : `https://maps.google.com/?q=${encodeURIComponent((p.razao || p.nome || '') + ' ' + (alvoVend.filial || ''))}`;
           const cnpjFmt = p.cnpj && String(p.cnpj).replace(/\D/g, '').length === 14
             ? String(p.cnpj).replace(/\D/g, '').replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
             : (p.cnpj || '—');
-          return `${i + 1}. *${rz}* (${cnae})\n   📍 CNPJ: ${cnpjFmt}${end}${telLinha}\n   🗺️ *Abrir Maps:* ${mapsLink}`;
+          return `${i + 1}. *${rz}* (${cnae})\n   📍 CNPJ: ${cnpjFmt}${end}${telLinha}\n   🌐 *Ir até o cliente:* ${mapsLink}`;
         }),
         '',
         SUGESTAO + 'visitar esses pontos no caminho da rota e cadastrar direto no LinkUp para garantir o bônus de ativação!'
@@ -404,9 +404,9 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
             ? cnpjLimpo.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
             : (p[3] || '—');
           const tel = mapaTels.get(cnpjLimpo) || p[6];
-          const telLinha = tel ? `\n   📞 Telefone: ${tel}` : '\n   📞 Telefone: Consultar no LinkUp';
+          const telLinha = tel ? `\n   📞 ${tel}` : '';
           const mapsLink = (p[0] && p[1]) ? `https://maps.google.com/?q=${p[0]},${p[1]}` : `https://maps.google.com/?q=${encodeURIComponent(p[5] + ' ' + (alvoVend.filial || ''))}`;
-          return `${i + 1}. *${rz}* (${seg})\n   📍 CNPJ: ${cnpjFmt}${telLinha}\n   🗺️ *Abrir Maps:* ${mapsLink}`;
+          return `${i + 1}. *${rz}* (${seg})\n   📍 CNPJ: ${cnpjFmt}${telLinha}\n   🌐 *Ir até o cliente:* ${mapsLink}`;
         }),
         '',
         SUGESTAO + 'apresentar os itens líderes de giro do +MIX nesses estabelecimentos para abrir novos clientes!'
