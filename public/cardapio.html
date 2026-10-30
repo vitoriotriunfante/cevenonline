@@ -3,25 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cardápio do Jota ⚽ · O Assistente Comercial da Triunfante</title>
+  <title>Guia de Comandos do Jota ⚽ · Comercial Triunfante</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #070b14;
-      --card-bg: rgba(16, 24, 43, 0.75);
+      --bg: #0b111e;
+      --card-bg: rgba(17, 26, 44, 0.85);
       --card-border: rgba(255, 255, 255, 0.08);
       --primary: #10b981;
       --primary-hover: #059669;
       --gold: #f59e0b;
-      --gold-light: #fcd34d;
+      --gold-light: #fbbf24;
       --blue: #3b82f6;
       --purple: #8b5cf6;
       --text: #f3f4f6;
-      --text-muted: #9ca3af;
+      --text-muted: #94a3b8;
       --whatsapp-green: #25d366;
-      --whatsapp-bubble: #122e23;
+      --whatsapp-bubble: #0f2e21;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,9 +29,9 @@
     body {
       background-color: var(--bg);
       background-image: 
-        radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.12) 0%, transparent 40%),
-        radial-gradient(circle at 85% 30%, rgba(245, 158, 11, 0.1) 0%, transparent 40%),
-        radial-gradient(circle at 50% 85%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
+        radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 90% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 50% 90%, rgba(245, 158, 11, 0.06) 0%, transparent 50%);
       color: var(--text);
       font-family: 'Inter', sans-serif;
       min-height: 100vh;
@@ -49,7 +49,7 @@
     .header {
       text-align: center;
       margin-bottom: 32px;
-      padding: 32px 20px;
+      padding: 36px 24px;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 24px;
@@ -63,16 +63,16 @@
       content: '';
       position: absolute;
       top: 0; left: 0; right: 0; height: 4px;
-      background: linear-gradient(90deg, var(--primary), var(--gold), var(--blue));
+      background: linear-gradient(90deg, var(--primary), #3b82f6, var(--gold));
     }
 
-    .badge-champions {
+    .badge-scope {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(245, 158, 11, 0.15);
-      border: 1px solid rgba(245, 158, 11, 0.4);
-      color: var(--gold-light);
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
       padding: 6px 16px;
       border-radius: 100px;
       font-size: 13px;
@@ -84,23 +84,27 @@
 
     .title {
       font-family: 'Outfit', sans-serif;
-      font-size: 40px;
+      font-size: 38px;
       font-weight: 900;
       letter-spacing: -0.5px;
-      background: linear-gradient(135deg, #ffffff 40%, var(--gold-light) 100%);
+      color: #ffffff;
+      margin-bottom: 10px;
+    }
+
+    .title span {
+      background: linear-gradient(135deg, var(--primary) 0%, #34d399 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 8px;
     }
 
     .subtitle {
       color: var(--text-muted);
       font-size: 16px;
-      max-width: 700px;
+      max-width: 720px;
       margin: 0 auto;
     }
 
-    /* SEARCH & FILTER */
+    /* CONTROLS */
     .controls {
       display: flex;
       flex-direction: column;
@@ -114,8 +118,8 @@
 
     .search-input {
       width: 100%;
-      background: rgba(16, 24, 43, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(17, 26, 44, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       padding: 16px 20px 16px 48px;
       border-radius: 16px;
       color: #fff;
@@ -152,9 +156,9 @@
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--card-border);
       color: var(--text-muted);
-      padding: 10px 20px;
+      padding: 10px 18px;
       border-radius: 100px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       white-space: nowrap;
       cursor: pointer;
@@ -169,12 +173,12 @@
     .cat-btn.active {
       background: var(--primary);
       border-color: var(--primary);
-      color: #000;
+      color: #032015;
       font-weight: 700;
       box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
     }
 
-    /* GRID DE PRATOS */
+    /* GRID */
     .menu-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
@@ -191,7 +195,6 @@
       flex-direction: column;
       justify-content: space-between;
       transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-      position: relative;
     }
 
     .card:hover {
@@ -214,16 +217,18 @@
       width: fit-content;
     }
 
-    .tag-entrada { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
-    .tag-principal { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
-    .tag-especial { background: rgba(245, 158, 11, 0.2); color: #fde68a; }
-    .tag-champions { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; }
-    .tag-sobremesa { background: rgba(236, 72, 153, 0.2); color: #fbcfe8; }
+    .tag-equipe { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+    .tag-campo { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
+    .tag-vendedor { background: rgba(245, 158, 11, 0.2); color: #fde68a; }
+    .tag-mix { background: rgba(168, 85, 247, 0.2); color: #d8b4fe; }
+    .tag-credito { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+    .tag-champions { background: rgba(234, 179, 8, 0.2); color: #fef08a; }
+    .tag-stickers { background: rgba(236, 72, 153, 0.2); color: #fbcfe8; }
 
     .card-title {
       font-family: 'Outfit', sans-serif;
-      font-size: 22px;
-      font-weight: 800;
+      font-size: 21px;
+      font-weight: 700;
       color: #fff;
       margin-bottom: 8px;
     }
@@ -231,17 +236,17 @@
     .card-desc {
       font-size: 14px;
       color: var(--text-muted);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       flex-grow: 1;
     }
 
-    /* COMO PEDIR */
+    /* ORDER BOX */
     .order-box {
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px dashed rgba(255, 255, 255, 0.15);
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px dashed rgba(255, 255, 255, 0.12);
       border-radius: 12px;
       padding: 14px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .order-label {
@@ -249,16 +254,13 @@
       color: var(--text-muted);
       font-weight: 600;
       margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
     }
 
     .command-pills {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
     .pill {
@@ -270,9 +272,6 @@
       font-family: monospace;
       font-size: 13px;
       font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
 
     .btn-action-group {
@@ -294,8 +293,8 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      transition: background 0.2s, transform 0.1s;
       text-decoration: none;
+      transition: background 0.2s, transform 0.1s;
     }
 
     .btn-whatsapp:hover {
@@ -321,7 +320,7 @@
     /* PREVIEW TOGGLE */
     .preview-toggle {
       font-size: 12px;
-      color: var(--gold-light);
+      color: #38bdf8;
       background: none;
       border: none;
       cursor: pointer;
@@ -334,35 +333,37 @@
 
     .preview-content {
       display: none;
-      background: #09121d;
+      background: #070d17;
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 10px;
       padding: 12px;
       font-size: 12px;
-      color: #e2e8f0;
+      color: #cbd5e1;
       font-family: monospace;
       white-space: pre-wrap;
       margin-top: 10px;
-      max-height: 220px;
+      max-height: 200px;
       overflow-y: auto;
     }
 
-    .preview-content.show {
-      display: block;
-    }
+    .preview-content.show { display: block; }
 
-    /* DICA DO CHEF */
-    .chef-tip {
+    /* ACTION TIP */
+    .action-tip {
       font-size: 12px;
-      color: #fcd34d;
-      background: rgba(245, 158, 11, 0.08);
-      border-left: 3px solid var(--gold);
+      color: #cbd5e1;
+      background: rgba(16, 185, 129, 0.08);
+      border-left: 3px solid var(--primary);
       padding: 8px 12px;
       border-radius: 0 8px 8px 0;
       margin-top: 12px;
     }
 
-    /* FIGURINHAS GRID */
+    .action-tip b {
+      color: #34d399;
+    }
+
+    /* STICKERS */
     .stickers-section {
       margin-top: 48px;
       padding: 32px 24px;
@@ -383,7 +384,7 @@
     }
 
     .sticker-item {
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0, 0, 0, 0.35);
       border: 1px solid var(--card-border);
       border-radius: 16px;
       padding: 12px;
@@ -434,100 +435,40 @@
 
     <!-- CABEÇALHO -->
     <header class="header">
-      <div class="badge-champions">⚽ O Reforço do Comercial da Triunfante</div>
-      <h1 class="title">CARDÁPIO DO JOTA</h1>
-      <p class="subtitle">Peça pelo WhatsApp do jeito certo e receba dados 100% fidedignos em tempo real direto da base oficial do CEVEN.</p>
+      <div class="badge-scope">📱 Guia Operacional Comercial · WhatsApp</div>
+      <h1 class="title">GUIA DE COMANDOS DO <span>JOTA ⚽</span></h1>
+      <p class="subtitle">Manual rápido de consultas no WhatsApp para Supervisores, Gerentes e Vendedores da Triunfante. Digite exatamente o comando e receba números 100% fidedignos em tempo real.</p>
     </header>
 
-    <!-- CONTROLES & FILTROS -->
+    <!-- BUSCA & CATEGORIAS -->
     <div class="controls">
       <div class="search-box">
         <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" class="search-input" placeholder="O que você precisa hoje? (ex: zerados, faturamento, vendedor, liga, rota...)">
+        <input type="text" id="searchInput" class="search-input" placeholder="Buscar por comando ou assunto (ex: equipe, zerados, vendedor, curva negativa, bloqueados, liga...)">
       </div>
       <div class="categories">
-        <button class="cat-btn active" data-cat="all">🌟 Todos os Pratos (13)</button>
-        <button class="cat-btn" data-cat="entrada">🍲 Entradas Executivas</button>
-        <button class="cat-btn" data-cat="principal">🥩 Pratos de Campo</button>
-        <button class="cat-btn" data-cat="especial">🧺 Especiais +MIX & Crédito</button>
-        <button class="cat-btn" data-cat="champions">🏆 Menu Champions</button>
-        <button class="cat-btn" data-cat="sobremesa">🎨 Figurinhas (26)</button>
+        <button class="cat-btn active" data-cat="all">🌟 Todos os Comandos</button>
+        <button class="cat-btn" data-cat="equipe">👥 Minha Equipe</button>
+        <button class="cat-btn" data-cat="campo">🚶 Rotas & Zerados</button>
+        <button class="cat-btn" data-cat="vendedor">🧑‍💼 Raio-X do Vendedor</button>
+        <button class="cat-btn" data-cat="mix">🧺 Oportunidades +MIX</button>
+        <button class="cat-btn" data-cat="credito">💳 Clientes & Crédito</button>
+        <button class="cat-btn" data-cat="champions">🏆 Champions Triunfante</button>
+        <button class="cat-btn" data-cat="stickers">🎨 Figurinhas (26)</button>
       </div>
     </div>
 
-    <!-- GRID DE PRATOS -->
+    <!-- GRID DE COMANDOS -->
     <div class="menu-grid" id="menuGrid">
 
-      <!-- PRATO 1 -->
-      <div class="card" data-category="entrada" data-keywords="brasil faturamento hoje pedidos meta geral filiais panorama">
+      <!-- COMANDO 1: MINHA EQUIPE -->
+      <div class="card" data-category="equipe" data-keywords="minha equipe time hoje supervisor setor pedidos faturamento visitas">
         <div>
-          <span class="card-tag tag-entrada">🍲 Entrada Executiva · Visão Geral</span>
-          <h2 class="card-title">Prato 1: Panorama Brasil</h2>
-          <p class="card-desc">Faturamento consolidado das 11 filiais, pendente, pedidos digitados, ticket médio e lista ordenada de filiais por % da meta batida.</p>
+          <span class="card-tag tag-equipe">👥 Gestão de Equipe · Diário</span>
+          <h2 class="card-title">1. Desempenho da Minha Equipe</h2>
+          <p class="card-desc">Visão consolidada da sua equipe no dia: total digitado hoje, quantidade de pedidos, visitas realizadas na rota e quem ainda está zerado.</p>
           <div class="order-box">
-            <div class="order-label">💬 Como pedir no WhatsApp:</div>
-            <div class="command-pills">
-              <span class="pill">brasil hoje pedidos</span>
-              <span class="pill">como estamos</span>
-              <span class="pill">hoje brasil</span>
-            </div>
-            <div class="btn-action-group">
-              <button class="btn-copy" onclick="copiarComando('brasil hoje pedidos')">📋 Copiar</button>
-              <a href="https://wa.me/?text=brasil%20hoje%20pedidos" target="_blank" class="btn-whatsapp">🟢 Pedir no WhatsApp</a>
-            </div>
-            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver exemplo servido ▾</button>
-            <div class="preview-content">📝 *Hoje no Brasil* (22:04)
-Digitado: *R$ 6.142.318* em *2.207* pedidos · ticket R$ 2.783
-Visitas da rota: 3.555 de 5.020 (com venda na rota: 511) · zerados: 8
-
-• *TSJ* R$ 1.282.995 · 281 ped. · visitas 389/434 · 0 zerado(s)
-• *TPH* R$ 1.145.792 · 402 ped. · visitas 753/1063 · 2 zerado(s)
-• *TBE* R$ 688.270 · 175 ped. · visitas 188/396 · 0 zerado(s)
-...
-🎯 *Sugestão do Jota:* acompanhar as filiais mais atrás.</div>
-          </div>
-        </div>
-        <div class="chef-tip">💡 <b>Dica da Diretoria:</b> Use às 12h, 16h e 19h para balizar o fechamento e direcionar a cobrança regional.</div>
-      </div>
-
-      <!-- PRATO 2 -->
-      <div class="card" data-category="entrada" data-keywords="filial tph mcd tsj tbe tbl resumo filial boletim meta positivação">
-        <div>
-          <span class="card-tag tag-entrada">🍲 Entrada Executiva · Por Filial</span>
-          <h2 class="card-title">Prato 2: Boletim da Filial</h2>
-          <p class="card-desc">Raio-X completo da filial: faturado, pendente, ritmo de vendas contra os dias úteis, positivação e posição na Champions.</p>
-          <div class="order-box">
-            <div class="order-label">💬 Como pedir no WhatsApp:</div>
-            <div class="command-pills">
-              <span class="pill">como está TPH</span>
-              <span class="pill">resumo MCD</span>
-              <span class="pill">hoje TSJ</span>
-            </div>
-            <div class="btn-action-group">
-              <button class="btn-copy" onclick="copiarComando('como está TPH')">📋 Copiar</button>
-              <a href="https://wa.me/?text=como%20está%20TPH" target="_blank" class="btn-whatsapp">🟢 Pedir no WhatsApp</a>
-            </div>
-            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver exemplo servido ▾</button>
-            <div class="preview-content">📊 *TPH agora* (18:30)
-💰 Faturado: *R$ 1.145.792* de R$ 2.400.000 → *47,7%*
-⏳ Pendente: R$ 89.450
-👥 Positivação: 890 de 1.150 (77,4%)
-📝 Digitado hoje: *R$ 185.340* em 402 pedidos
-🚶 Rota do varejo hoje: 753 de 1063 visitas
-🏆 Liga: 1º na Champions Triunfante</div>
-          </div>
-        </div>
-        <div class="chef-tip">💡 <b>Dica do Gerente:</b> Mostra se a filial está no ritmo do calendário ou precisando reagir.</div>
-      </div>
-
-      <!-- PRATO 3 -->
-      <div class="card" data-category="principal" data-keywords="equipe supervisor time hoje setor visitas pedidos">
-        <div>
-          <span class="card-tag tag-principal">🥩 Prato Principal · Gestão de Equipe</span>
-          <h2 class="card-title">Prato 3: Café da Manhã do Supervisor</h2>
-          <p class="card-desc">Visão em tempo real da sua equipe: pedidos passados hoje, faturamento vs meta e quem da rota ainda não vendeu.</p>
-          <div class="order-box">
-            <div class="order-label">💬 Como pedir no WhatsApp:</div>
+            <div class="order-label">💬 O que digitar no WhatsApp:</div>
             <div class="command-pills">
               <span class="pill">como está minha equipe</span>
               <span class="pill">time hoje</span>
@@ -535,9 +476,9 @@ Visitas da rota: 3.555 de 5.020 (com venda na rota: 511) · zerados: 8
             </div>
             <div class="btn-action-group">
               <button class="btn-copy" onclick="copiarComando('como está minha equipe')">📋 Copiar</button>
-              <a href="https://wa.me/?text=como%20está%20minha%20equipe" target="_blank" class="btn-whatsapp">🟢 Pedir no WhatsApp</a>
+              <a href="https://wa.me/?text=como%20está%20minha%20equipe" target="_blank" class="btn-whatsapp">🟢 Enviar no WhatsApp</a>
             </div>
-            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver exemplo servido ▾</button>
+            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver resposta do Jota ▾</button>
             <div class="preview-content">📋 *Dia da Equipe Cristiano Machado (TSJ)*
 Rota: *37 de 52* visitas · *0* ainda sem visita
 💰 Digitado hoje: *R$ 48.950* em 28 pedidos
@@ -545,283 +486,283 @@ Rota: *37 de 52* visitas · *0* ainda sem visita
 🎯 *Sugestão do Jota:* ligar agora para Woshington: rota de hoje sem pedido.</div>
           </div>
         </div>
-        <div class="chef-tip">💡 <b>Dica do Supervisor:</b> Peça às 08h30 e às 14h para garantir que 100% da equipe ativou clientes cedo.</div>
+        <div class="action-tip">🎯 <b>Ação Recomendada:</b> Consulte às 08h30 e às 14h para garantir que 100% dos vendedores iniciaram a positivação cedo.</div>
       </div>
 
-      <!-- PRATO 4 -->
-      <div class="card" data-category="principal" data-keywords="zerados rota campo quem não vendeu sem pedido">
+      <!-- COMANDO 2: ZERADOS NA ROTA -->
+      <div class="card" data-category="campo" data-keywords="zerados quem nao vendeu rota campo sem pedido vendedores zerados">
         <div>
-          <span class="card-tag tag-principal">🥩 Prato Principal · Rota de Campo</span>
-          <h2 class="card-title">Prato 4: Tira-Gosto Zerado Não!</h2>
-          <p class="card-desc">A lista cirúrgica dos vendedores de Varejo de campo que têm rota hoje e ainda não colocaram nenhum pedido. Zero confusão com AS ou interno.</p>
+          <span class="card-tag tag-campo">🚶 Campo · Vendedores Zerados</span>
+          <h2 class="card-title">2. Zerados na Rota de Hoje</h2>
+          <p class="card-desc">Lista precisa de vendedores do Varejo com rota hoje que ainda não colocaram nenhum pedido. Exclui automaticamente contas de gestão e AS.</p>
           <div class="order-box">
-            <div class="order-label">💬 Como pedir no WhatsApp:</div>
+            <div class="order-label">💬 O que digitar no WhatsApp:</div>
             <div class="command-pills">
               <span class="pill">zerados</span>
               <span class="pill">quem não vendeu hoje</span>
-              <span class="pill">zerados TPH</span>
             </div>
             <div class="btn-action-group">
               <button class="btn-copy" onclick="copiarComando('zerados')">📋 Copiar</button>
-              <a href="https://wa.me/?text=zerados" target="_blank" class="btn-whatsapp">🟢 Pedir no WhatsApp</a>
+              <a href="https://wa.me/?text=zerados" target="_blank" class="btn-whatsapp">🟢 Enviar no WhatsApp</a>
             </div>
-            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver exemplo servido ▾</button>
-            <div class="preview-content">⚠️ *Zerados hoje — TPH* (varejo com rota e sem pedido): *2*
-• *252 - Luciana Pinto* (sup. 88 - Eder) · 8 visitas feitas de 14
-• *310 - Carlos Eduardo* (sup. 45 - Fabio) · 12 visitas feitas de 18
-🎯 *Sugestão do Jota:* cobrar a digitação imediata dos pedidos já negociados.</div>
+            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver resposta do Jota ▾</button>
+            <div class="preview-content">⚠️ *Zerados hoje na sua equipe* (varejo com rota e sem pedido): *2*
+• *21 - Woshington Souza* (rota: 9 clientes · 6 visitas feitas)
+• *45 - Rafael Lima* (rota: 12 clientes · 8 visitas feitas)
+🎯 *Sugestão do Jota:* cobrar a digitação imediata dos pedidos já negociados em campo.</div>
           </div>
         </div>
-        <div class="chef-tip">💡 <b>Dica de Campo:</b> Zerado às 15h é emergência. Dá tempo de acionar o vendedor antes do final da rota.</div>
+        <div class="action-tip">🎯 <b>Ação Recomendada:</b> Zerado às 15h é prioridade máxima. Ligue direto para o vendedor antes do término do expediente de campo.</div>
       </div>
 
-      <!-- PRATO 5 -->
-      <div class="card" data-category="principal" data-keywords="vendedor rca ficha individual meta faturado positivação">
+      <!-- COMANDO 3: RAIO-X DO VENDEDOR -->
+      <div class="card" data-category="vendedor" data-keywords="vendedor rca individual ficha lincon meta positivação quanto falta">
         <div>
-          <span class="card-tag tag-principal">🥩 Prato Principal · Raio-X Individual</span>
-          <h2 class="card-title">Prato 5: Raio-X do Vendedor</h2>
-          <p class="card-desc">Dossiê completo de qualquer vendedor: faturado, pendente, % exato da meta (igual à tela do CEVEN), quanto falta por dia útil, clientes positivados e visitas.</p>
+          <span class="card-tag tag-vendedor">🧑‍💼 Vendedor · Raio-X Individual</span>
+          <h2 class="card-title">3. Ficha Completa do Vendedor</h2>
+          <p class="card-desc">Faturado, pendente, % da meta oficial do CEVEN, quanto precisa faturar por dia útil restante, positivação de clientes e devoluções.</p>
           <div class="order-box">
-            <div class="order-label">💬 Como pedir no WhatsApp:</div>
+            <div class="order-label">💬 O que digitar no WhatsApp:</div>
             <div class="command-pills">
               <span class="pill">vendedor 1018</span>
-              <span class="pill">rca Lincon</span>
-              <span class="pill">como está o vendedor 229?</span>
+              <span class="pill">rca 229</span>
+              <span class="pill">como está Lincon?</span>
             </div>
             <div class="btn-action-group">
               <button class="btn-copy" onclick="copiarComando('vendedor 1018')">📋 Copiar</button>
-              <a href="https://wa.me/?text=vendedor%201018" target="_blank" class="btn-whatsapp">🟢 Pedir no WhatsApp</a>
+              <a href="https://wa.me/?text=vendedor%201018" target="_blank" class="btn-whatsapp">🟢 Enviar no WhatsApp</a>
             </div>
-            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver exemplo servido ▾</button>
-            <div class="preview-content">🧑‍💼 *1018 - Lincon Luiz Romao* — TBL · sup. 115 - Leonardo Godoi · VJ
+            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver resposta do Jota ▾</button>
+            <div class="preview-content">🧑‍💼 *1018 - Lincon Luiz Romao* — TBL · sup. Leonardo Godoi · VJ
 💰 Faturado: *R$ 111.288* + pendente R$ 12.400 de R$ 135.000 → *91,6%* da meta
-🎯 Falta: R$ 11.312 · *R$ 5.656 por dia útil (2 dias)*
+🎯 Falta: R$ 11.312 · *R$ 5.656 por dia útil (2 dias restantes)*
 👥 Positivação: 48 de 55 (87,3%) · faltam 7 clientes
 📝 Hoje: R$ 4.890 em 3 pedido(s) · visitas 12 de 16 · com venda 3
-🏆 Liga: 4º no Brasil · 1º na filial</div>
+🏆 Liga: 1º na equipe</div>
           </div>
         </div>
-        <div class="chef-tip">💡 <b>Dica do Coach:</b> Mostra exatamente quanto o vendedor precisa faturar por dia até o último dia do mês.</div>
+        <div class="action-tip">🎯 <b>Ação Recomendada:</b> Use o valor diário de *"falta por dia útil"* no alinhamento individual com o vendedor para bater a meta.</div>
       </div>
 
-      <!-- PRATO 6 -->
-      <div class="card" data-category="principal" data-keywords="curva negativa inativos sem compra carteira reativação">
+      <!-- COMANDO 4: CURVA NEGATIVA & INATIVOS -->
+      <div class="card" data-category="vendedor" data-keywords="curva negativa inativos sem compra carteira reativacao clientes sumidos">
         <div>
-          <span class="card-tag tag-principal">🥩 Prato Principal · Reativação</span>
-          <h2 class="card-title">Prato 6: Curva Negativa & Inativos</h2>
-          <p class="card-desc">Clientes da carteira cadastrada que não compram há mais de 30, 60 ou 90 dias. A mina de ouro para reativar faturamento rápido.</p>
+          <span class="card-tag tag-vendedor">🧑‍💼 Carteira · Clientes Inativos</span>
+          <h2 class="card-title">4. Curva Negativa da Carteira</h2>
+          <p class="card-desc">Clientes cadastrados na carteira do vendedor ou equipe que não compram há mais de 30 dias. Identifica perda de clientes na raiz.</p>
           <div class="order-box">
-            <div class="order-label">💬 Como pedir no WhatsApp:</div>
+            <div class="order-label">💬 O que digitar no WhatsApp:</div>
             <div class="command-pills">
               <span class="pill">curva negativa</span>
               <span class="pill">inativos vendedor 229</span>
-              <span class="pill">clientes sem compra</span>
             </div>
             <div class="btn-action-group">
               <button class="btn-copy" onclick="copiarComando('curva negativa')">📋 Copiar</button>
-              <a href="https://wa.me/?text=curva%20negativa" target="_blank" class="btn-whatsapp">🟢 Pedir no WhatsApp</a>
+              <a href="https://wa.me/?text=curva%20negativa" target="_blank" class="btn-whatsapp">🟢 Enviar no WhatsApp</a>
             </div>
-            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver exemplo servido ▾</button>
-            <div class="preview-content">📉 *Curva negativa — 229 - Gabriel Junio* (ABC)
-*18 clientes da carteira sem compra há mais de 30 dias:*
+            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver resposta do Jota ▾</button>
+            <div class="preview-content">📉 *Curva negativa — Equipe Leonardo Godoi*
+*14 clientes da carteira sem compra há mais de 30 dias:*
 • Cliente #128901 - Mercearia Central (última compra há 42 dias · comprava R$ 3.500)
 • Cliente #130452 - Mercado Pague Menos (última compra há 35 dias · comprava R$ 2.800)
-🎯 *Sugestão do Jota:* colocar na rota desta semana com oferta de itens de alto giro.</div>
+🎯 *Sugestão do Jota:* programar visita de resgate com mix prioritário nesta semana.</div>
           </div>
         </div>
-        <div class="chef-tip">💡 <b>Dica de Ouro:</b> Recuperar cliente inativo é 5x mais rápido do que cadastrar um novo.</div>
+        <div class="action-tip">🎯 <b>Ação Recomendada:</b> Recuperar clientes inativos é mais rápido e rentável do que abrir cadastros novos do zero.</div>
       </div>
 
-      <!-- PRATO 7 -->
-      <div class="card" data-category="especial" data-keywords="mix mais mix produto industria marca oreo mondele heinz colgate">
+      <!-- COMANDO 5: OPORTUNIDADES +MIX -->
+      <div class="card" data-category="mix" data-keywords="mix mais mix produto industria oreo mondelez heinz heshey colgate">
         <div>
-          <span class="card-tag tag-especial">🧺 Especial do Chef · +MIX & Indústrias</span>
-          <h2 class="card-title">Prato 7: Cesta Mais Mix (+MIX)</h2>
-          <p class="card-desc">Identifica quais clientes compram ou deixaram de comprar marcas específicas da Triunfante (Mondelez, Colgate, Heinz, Hershey, etc.).</p>
+          <span class="card-tag tag-mix">🧺 Vendas · Oportunidades +MIX</span>
+          <h2 class="card-title">5. Oportunidades de +MIX & Indústrias</h2>
+          <p class="card-desc">Descubra quais clientes da sua rota compram marcas líderes ou estão sem comprar determinado produto para positivar mais itens por pedido.</p>
           <div class="order-box">
-            <div class="order-label">💬 Como pedir no WhatsApp:</div>
+            <div class="order-label">💬 O que digitar no WhatsApp:</div>
             <div class="command-pills">
               <span class="pill">+mix</span>
               <span class="pill">quem compra Oreo</span>
-              <span class="pill">Mondelez em TSJ</span>
+              <span class="pill">Mondelez</span>
             </div>
             <div class="btn-action-group">
               <button class="btn-copy" onclick="copiarComando('quem compra Oreo')">📋 Copiar</button>
-              <a href="https://wa.me/?text=quem%20compra%20Oreo" target="_blank" class="btn-whatsapp">🟢 Pedir no WhatsApp</a>
+              <a href="https://wa.me/?text=quem%20compra%20Oreo" target="_blank" class="btn-whatsapp">🟢 Enviar no WhatsApp</a>
             </div>
-            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver exemplo servido ▾</button>
+            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver resposta do Jota ▾</button>
             <div class="preview-content">🧺 *Oportunidade +MIX — Oreo (Mondelez)*
-Clientes na rota de hoje que já compraram Oreo e estão sem compra há > 20 dias:
+Clientes na rota de hoje que já compraram Oreo e estão sem compra há mais de 20 dias:
 • #204511 - Padaria Estrela (último pedido: 15 cx)
 • #198032 - Minimercado União (último pedido: 8 cx)
 🎯 *Sugestão do Jota:* oferecer na abertura do atendimento com o display de balcão.</div>
           </div>
         </div>
-        <div class="chef-tip">💡 <b>Dica de Rentabilidade:</b> O +MIX é o segredo para aumentar o ticket médio por visita.</div>
+        <div class="action-tip">🎯 <b>Ação Recomendada:</b> Usar o +MIX em cada visita é o segredo para expandir o número de itens por pedido (fator multiplicador).</div>
       </div>
 
-      <!-- PRATO 8 -->
-      <div class="card" data-category="especial" data-keywords="bloqueados credito financeiro pedidos retidos liberação">
+      <!-- COMANDO 6: PEDIDOS BLOQUEADOS -->
+      <div class="card" data-category="credito" data-keywords="pedidos bloqueados credito financeiro retidos liberacao pendentes">
         <div>
-          <span class="card-tag tag-especial">🧺 Especial do Chef · Crédito & Faturamento</span>
-          <h2 class="card-title">Prato 8: Desbloqueio Comercial</h2>
-          <p class="card-desc">Valores travados no crédito ou financeiro aguardando liberação para faturar no mesmo dia antes do horário de corte.</p>
+          <span class="card-tag tag-credito">💳 Financeiro · Pedidos Bloqueados</span>
+          <h2 class="card-title">6. Pedidos Bloqueados no Crédito</h2>
+          <p class="card-desc">Relação de pedidos digitados retidos no financeiro aguardando liberação para faturamento antes do horário de corte do CD.</p>
           <div class="order-box">
-            <div class="order-label">💬 Como pedir no WhatsApp:</div>
+            <div class="order-label">💬 O que digitar no WhatsApp:</div>
             <div class="command-pills">
               <span class="pill">pedidos bloqueados</span>
               <span class="pill">bloqueados hoje</span>
-              <span class="pill">bloqueados TPH</span>
             </div>
             <div class="btn-action-group">
               <button class="btn-copy" onclick="copiarComando('pedidos bloqueados')">📋 Copiar</button>
-              <a href="https://wa.me/?text=pedidos%20bloqueados" target="_blank" class="btn-whatsapp">🟢 Pedir no WhatsApp</a>
+              <a href="https://wa.me/?text=pedidos%20bloqueados" target="_blank" class="btn-whatsapp">🟢 Enviar no WhatsApp</a>
             </div>
-            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver exemplo servido ▾</button>
-            <div class="preview-content">🧾 *Pedidos bloqueados — TPH*: *R$ 142.800* em 18 pedidos
-• Sup. Fabio Colares: R$ 68.400 (8 pedidos)
-• Sup. Wagner Flager: R$ 74.400 (10 pedidos)
-🎯 *Sugestão do Jota:* acionar a mesa de crédito antes das 16h para faturar ainda hoje!</div>
+            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver resposta do Jota ▾</button>
+            <div class="preview-content">🧾 *Pedidos bloqueados na sua equipe*: *R$ 28.400* em 4 pedidos
+• RCA 1018 - Lincon: R$ 14.200 (2 pedidos - limite de crédito)
+• RCA 229 - Gabriel: R$ 14.200 (2 pedidos - título vencido)
+🎯 *Sugestão do Jota:* alinhar com a mesa de crédito antes das 16h para faturar hoje!</div>
           </div>
         </div>
-        <div class="chef-tip">💡 <b>Dica Financeira:</b> Pedido digitado que não fatura no dia vira pendente de risco. Desbloqueie cedo.</div>
+        <div class="action-tip">🎯 <b>Ação Recomendada:</b> Atue junto ao cliente e crédito antes das 16h para evitar que o pedido fique para o dia seguinte.</div>
       </div>
 
-      <!-- PRATO 9 -->
-      <div class="card" data-category="especial" data-keywords="cliente cnpj razao social historico limite titulos">
+      <!-- COMANDO 7: DOSSIÊ DO CLIENTE -->
+      <div class="card" data-category="credito" data-keywords="cliente cnpj razao social historico limite titulos compras">
         <div>
-          <span class="card-tag tag-especial">🧺 Especial do Chef · Consulta Rápida</span>
-          <h2 class="card-title">Prato 9: Dossiê do Cliente</h2>
-          <p class="card-desc">Tudo sobre o cliente na palma da mão antes de entrar na loja: limite disponível, títulos em aberto, última compra e itens habituais.</p>
+          <span class="card-tag tag-credito">🏪 Clientes · Dossiê Rápido</span>
+          <h2 class="card-title">7. Dossiê Completo do Cliente</h2>
+          <p class="card-desc">Consulte a ficha de qualquer PDV pelo código ou CNPJ antes da visita: limite de crédito disponível, títulos em aberto e histórico de compras.</p>
           <div class="order-box">
-            <div class="order-label">💬 Como pedir no WhatsApp:</div>
+            <div class="order-label">💬 O que digitar no WhatsApp:</div>
             <div class="command-pills">
               <span class="pill">cliente #322735</span>
               <span class="pill">CNPJ 12.345...</span>
             </div>
             <div class="btn-action-group">
               <button class="btn-copy" onclick="copiarComando('cliente #322735')">📋 Copiar</button>
-              <a href="https://wa.me/?text=cliente%20%23322735" target="_blank" class="btn-whatsapp">🟢 Pedir no WhatsApp</a>
+              <a href="https://wa.me/?text=cliente%20%23322735" target="_blank" class="btn-whatsapp">🟢 Enviar no WhatsApp</a>
             </div>
-            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver exemplo servido ▾</button>
-            <div class="preview-content">🏪 *Cliente #322735 — Supermercado São José* (TPH)
+            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver resposta do Jota ▾</button>
+            <div class="preview-content">🏪 *Cliente #322735 — Supermercado São José*
 RCA responsável: 104 - Marcos Vinicius · sup. Eder
 💰 Limite disponível: *R$ 18.500* (sem títulos vencidos)
 📦 Última compra: há 8 dias (R$ 4.200 em Mondelez e Bauducco)
 ⭐ Principais itens: Biscoito Club Social, Chocolate Lacta 90g</div>
           </div>
         </div>
-        <div class="chef-tip">💡 <b>Dica do Vendedor:</b> Olhar o limite e o que ele compra antes de entrar na loja dobra a taxa de fechamento.</div>
+        <div class="action-tip">🎯 <b>Ação Recomendada:</b> Conhecer o limite e o histórico do cliente antes de entrar na loja aumenta a assertividade do fechamento.</div>
       </div>
 
-      <!-- PRATO 10 -->
-      <div class="card" data-category="champions" data-keywords="liga champions tabela pontos classificacao ranking">
+      <!-- COMANDO 8: PANORAMA DA FILIAL (PARA GERENTES) -->
+      <div class="card" data-category="equipe" data-keywords="gerente filial tph tsj mcd tbe tbl panorama filial resumo">
         <div>
-          <span class="card-tag tag-champions">🏆 Champions · Classificação</span>
-          <h2 class="card-title">Prato 10: Tabela da Champions Triunfante</h2>
-          <p class="card-desc">Posição na corrida da Liga, pontuação acumulada, vitórias, empates, derrotas e saldo de gols da sua filial ou equipe.</p>
+          <span class="card-tag tag-equipe">🏢 Gerência · Visão da Filial</span>
+          <h2 class="card-title">8. Panorama Geral da Filial</h2>
+          <p class="card-desc">Exclusivo para a gerência da filial: faturado, pendente, positivação total, total de visitas da rota e posição na Champions Triunfante.</p>
           <div class="order-box">
-            <div class="order-label">💬 Como pedir no WhatsApp:</div>
+            <div class="order-label">💬 O que digitar no WhatsApp:</div>
+            <div class="command-pills">
+              <span class="pill">como está TPH</span>
+              <span class="pill">resumo MCD</span>
+              <span class="pill">hoje TSJ</span>
+            </div>
+            <div class="btn-action-group">
+              <button class="btn-copy" onclick="copiarComando('como está TPH')">📋 Copiar</button>
+              <a href="https://wa.me/?text=como%20está%20TPH" target="_blank" class="btn-whatsapp">🟢 Enviar no WhatsApp</a>
+            </div>
+            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver resposta do Jota ▾</button>
+            <div class="preview-content">📊 *TPH agora* (18:30)
+💰 Faturado: *R$ 1.145.792* de R$ 2.400.000 → *47,7%* da meta
+⏳ Pendente: R$ 89.450
+👥 Positivação: 890 de 1.150 (77,4%)
+📝 Digitado hoje: *R$ 185.340* em 402 pedidos
+🚶 Rota do varejo hoje: 753 de 1063 visitas · zerados: 2
+🏆 Liga: 1º na Champions Triunfante</div>
+          </div>
+        </div>
+        <div class="action-tip">🎯 <b>Ação Recomendada:</b> Cada gerente visualiza estritamente os dados da sua filial com total sigilo e governança.</div>
+      </div>
+
+      <!-- COMANDO 9: CHAMPIONS TRIUNFANTE -->
+      <div class="card" data-category="champions" data-keywords="liga champions tabela pontos classificacao lances gols cartoes">
+        <div>
+          <span class="card-tag tag-champions">🏆 Champions · Corrida da Liga</span>
+          <h2 class="card-title">9. Tabela & Lances da Champions</h2>
+          <p class="card-desc">Classificação na corrida da Liga Triunfante, pontos, vitórias, empates, gols anotados (+10) e penalidades de impedimento (-5 checkout fora).</p>
+          <div class="order-box">
+            <div class="order-label">💬 O que digitar no WhatsApp:</div>
             <div class="command-pills">
               <span class="pill">liga</span>
-              <span class="pill">classificação champions</span>
-              <span class="pill">tabela da liga</span>
+              <span class="pill">gols de hoje</span>
+              <span class="pill">lances</span>
             </div>
             <div class="btn-action-group">
               <button class="btn-copy" onclick="copiarComando('liga')">📋 Copiar</button>
-              <a href="https://wa.me/?text=liga" target="_blank" class="btn-whatsapp">🟢 Pedir no WhatsApp</a>
+              <a href="https://wa.me/?text=liga" target="_blank" class="btn-whatsapp">🟢 Enviar no WhatsApp</a>
             </div>
-            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver exemplo servido ▾</button>
+            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver resposta do Jota ▾</button>
             <div class="preview-content">🏆 *Champions Triunfante 2026*
-1º TPH — 42 pts (13V 3E 2D) · Saldo: +18
-2º TSJ — 39 pts (12V 3E 3D) · Saldo: +14
-3º TBE — 35 pts (11V 2E 5D) · Saldo: +8
-...
-⚽ *Acelera Triunfante! Cada pedido é gol na Champions!*</div>
+Sua filial está em *1º lugar* com 42 pontos (13V 3E 2D)!
+⚽ *Lances de Hoje:*
+• ⚽ Golaço (+10): RCA 104 - Marcos Vinicius
+• 🎩 Hat-Trick (+15): RCA 1018 - Lincon Romao (3 vendas seguidas)
+_Acelera Triunfante! Cada pedido é gol na Champions!_</div>
           </div>
         </div>
-        <div class="chef-tip">💡 <b>Dica do Técnico:</b> Acompanhe a pontuação diária para engajar a equipe nas reuniões matinais.</div>
+        <div class="action-tip">🎯 <b>Ação Recomendada:</b> Use o ranking e os lances para criar rivalidades saudáveis e motivar o time no encerramento diário.</div>
       </div>
 
-      <!-- PRATO 11 -->
-      <div class="card" data-category="champions" data-keywords="lances gols penaltis cartoes impedimento hat-trick">
+      <!-- COMANDO 10: FIGURINHAS DO JOTA -->
+      <div class="card" data-category="stickers" data-keywords="figurinhas stickers jota pacote imagens reacoes">
         <div>
-          <span class="card-tag tag-champions">🏆 Champions · Arbitragem & Lances</span>
-          <h2 class="card-title">Prato 11: Lances & Golaços do Dia</h2>
-          <p class="card-desc">Extrato de lances positivos (+10 gol, +15 hat-trick) e penalidades (-5 impedimento de checkout fora da rota) apurados pelo VAR da Triunfante.</p>
+          <span class="card-tag tag-stickers">🎨 Relacionamento · Figurinhas</span>
+          <h2 class="card-title">10. Pacote Oficial de Figurinhas</h2>
+          <p class="card-desc">Receba o catálogo temático das 26 figurinhas esportivas exclusivas do Jota direto no seu WhatsApp para usar com a sua equipe.</p>
           <div class="order-box">
-            <div class="order-label">💬 Como pedir no WhatsApp:</div>
-            <div class="command-pills">
-              <span class="pill">gols de hoje</span>
-              <span class="pill">lances</span>
-              <span class="pill">cartões da equipe</span>
-            </div>
-            <div class="btn-action-group">
-              <button class="btn-copy" onclick="copiarComando('gols de hoje')">📋 Copiar</button>
-              <a href="https://wa.me/?text=gols%20de%20hoje" target="_blank" class="btn-whatsapp">🟢 Pedir no WhatsApp</a>
-            </div>
-            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver exemplo servido ▾</button>
-            <div class="preview-content">⚽ *Lances de Hoje — TPH*
-• ⚽ *Golaço (+10)*: 252 - Luciana Pinto (venda de R$ 8.900 na rota)
-• 🎩 *Hat-Trick (+15)*: 104 - Marcos Vinicius (3 vendas seguidas)
-• ⚠️ *Impedimento (-5)*: 310 - Carlos (checkout a 1.200m da loja)</div>
-          </div>
-        </div>
-        <div class="chef-tip">💡 <b>Dica de Conformidade:</b> Evite checkout fora do raio para não perder pontos preciosos na tabela.</div>
-      </div>
-
-      <!-- PRATO 12 -->
-      <div class="card" data-category="sobremesa" data-keywords="figurinhas stickers jota pacote imagens reações">
-        <div>
-          <span class="card-tag tag-sobremesa">🎨 Sobremesa · Persona & Figurinhas</span>
-          <h2 class="card-title">Prato 12: Figurinhas Oficiais do Jota</h2>
-          <p class="card-desc">Coleção completa das 26 figurinhas esportivas exclusivas do Jota enviadas com intervalo anti-spam de 2,5s para salvar nos favoritos.</p>
-          <div class="order-box">
-            <div class="order-label">💬 Como pedir no WhatsApp:</div>
+            <div class="order-label">💬 O que digitar no WhatsApp:</div>
             <div class="command-pills">
               <span class="pill">quais figurinhas vc tem?</span>
               <span class="pill">manda figurinhas</span>
             </div>
             <div class="btn-action-group">
               <button class="btn-copy" onclick="copiarComando('quais figurinhas vc tem?')">📋 Copiar</button>
-              <a href="https://wa.me/?text=quais%20figurinhas%20vc%20tem%3F" target="_blank" class="btn-whatsapp">🟢 Pedir no WhatsApp</a>
+              <a href="https://wa.me/?text=quais%20figurinhas%20vc%20tem%3F" target="_blank" class="btn-whatsapp">🟢 Enviar no WhatsApp</a>
             </div>
-            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver exemplo servido ▾</button>
+            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver resposta do Jota ▾</button>
             <div class="preview-content">⚽ *Figurinhas Oficiais do Jota!*
 Eu tenho 26 figurinhas exclusivas para animar o nosso dia de jogo! Olha os temas:
 
 • ⚽ Entrada: "Oi, eu sou o Jota", "Bom dia time", "Bola rolando"
 • 🏆 Conquistas: "Golaço!", "Meta batida!", "DNA Triunfante"
 • 💪 Motivação: "Conta comigo", "Bora positivar!", "Bora destravar"
-• 🚀 Jogo: "Acelera Triunfante", "Bora pra cima!", "Bora vender"
+• 🚀 Aceleração: "Acelera Triunfante", "Bora pra cima!", "Bora vender"
 • 🛑 Arbitragem: "Cartão Amarelo", "Cartão Vermelho"</div>
           </div>
         </div>
-        <div class="chef-tip">💡 <b>Dica de Engajamento:</b> Use nos grupos matinais para comemorar metas e vendas grandes!</div>
+        <div class="action-tip">🎯 <b>Ação Recomendada:</b> Salve as figurinhas nos favoritos do WhatsApp e comemore grandes pedidos e metas nos grupos!</div>
       </div>
 
-      <!-- PRATO 13 -->
-      <div class="card" data-category="sobremesa" data-keywords="sugestão nota feedback avaliação diretoria">
+      <!-- COMANDO 11: FEEDBACK & NOTA -->
+      <div class="card" data-category="equipe" data-keywords="nota sugestao feedback avaliacao melhoria">
         <div>
-          <span class="card-tag tag-sobremesa">⭐ Sobremesa · Avaliação & Sugestão</span>
-          <h2 class="card-title">Prato 13: Sugestão & Avaliação do Chef</h2>
-          <p class="card-desc">Avalie qualquer resposta de 1 a 5 ou mande uma sugestão. Ela cai instantaneamente na mesa da Diretoria e treina o Jota a ser 99,9% fidedigno.</p>
+          <span class="card-tag tag-equipe">⭐ Treinamento · Feedback & Notas</span>
+          <h2 class="card-title">11. Dar Nota ou Mandar Sugestão</h2>
+          <p class="card-desc">Avalie qualquer resposta do Jota de 1 a 5 ou mande uma sugestão comercial. O feedback vai direto para a fila de melhoria contínua.</p>
           <div class="order-box">
-            <div class="order-label">💬 Como pedir no WhatsApp:</div>
+            <div class="order-label">💬 O que digitar no WhatsApp:</div>
             <div class="command-pills">
               <span class="pill">nota 5</span>
               <span class="pill">sugestão: gostaria que...</span>
             </div>
             <div class="btn-action-group">
               <button class="btn-copy" onclick="copiarComando('nota 5')">📋 Copiar</button>
-              <a href="https://wa.me/?text=nota%205" target="_blank" class="btn-whatsapp">🟢 Pedir no WhatsApp</a>
+              <a href="https://wa.me/?text=nota%205" target="_blank" class="btn-whatsapp">🟢 Enviar no WhatsApp</a>
             </div>
-            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver exemplo servido ▾</button>
-            <div class="preview-content">Valeu, Vitorio! Nota 5 anotada. 💪
-Anotado: Já registrei sua sugestão com o time que me treina. 🙏 Obrigado por ajudar a deixar o Jota melhor!</div>
+            <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver resposta do Jota ▾</button>
+            <div class="preview-content">Valeu pelo retorno! Nota 5 anotada. 💪
+Já registrei sua sugestão com o time que me treina. 🙏 Obrigado por ajudar a deixar o Jota cada dia mais preciso!</div>
           </div>
         </div>
-        <div class="chef-tip">💡 <b>Dica de Co-criação:</b> Somos nós que treinamos o Jota todos os dias. Mande sua ideia!</div>
+        <div class="action-tip">🎯 <b>Ação Recomendada:</b> O Jota auto-aprende com as sugestões do campo. Mande suas ideias diretamente por texto ou áudio.</div>
       </div>
 
     </div>
@@ -829,9 +770,9 @@ Anotado: Já registrei sua sugestão com o time que me treina. 🙏 Obrigado por
     <!-- SEÇÃO DAS 26 FIGURINHAS -->
     <section class="stickers-section" id="stickersSection">
       <div class="stickers-header">
-        <span class="badge-champions">🎨 Coleção Oficial</span>
-        <h2 style="font-family:'Outfit'; font-size: 28px; font-weight: 800; margin-bottom: 8px;">26 FIGURINHAS DO JOTA</h2>
-        <p style="color: var(--text-muted); font-size: 14px;">Criadas com exclusividade para a força de vendas do Comercial Triunfante.</p>
+        <span class="badge-scope">🎨 Galeria Oficial do Jota</span>
+        <h2 style="font-family:'Outfit'; font-size: 26px; font-weight: 800; margin-bottom: 8px;">26 FIGURINHAS EXCLUSIVAS</h2>
+        <p style="color: var(--text-muted); font-size: 14px;">Criadas com exclusividade para incentivar, cobrar e engajar o time de vendas da Triunfante.</p>
       </div>
       <div class="stickers-grid" id="stickersGrid">
         <!-- Renderizado dinamicamente via JS -->
@@ -840,14 +781,14 @@ Anotado: Já registrei sua sugestão com o time que me treina. 🙏 Obrigado por
 
     <!-- FOOTER -->
     <footer class="footer">
-      <p>Grupo Triunfante · CEVEN Comercial · Inteligência Artificial em Tempo Real</p>
-      <p style="margin-top: 4px; font-size: 11px; opacity: 0.7;">Fidelidade de dados garantida pelo D1 Cloudflare e sincronização contínua com a base da companhia.</p>
+      <p><b>Grupo Triunfante · CEVEN Comercial · Inteligência em Tempo Real</b></p>
+      <p style="margin-top: 6px; font-size: 12px; opacity: 0.75;">Governança de dados: cada usuário acessa estritamente as informações da sua alçada e equipe comercial.</p>
     </footer>
 
   </div>
 
   <script>
-    // LISTA DAS 26 FIGURINHAS
+    // 26 FIGURINHAS OFICIAIS
     const FIGURINHAS = [
       { id: '01_oi_eu_sou_o_jota', nome: 'Oi, sou o Jota' },
       { id: '02_conta_comigo', nome: 'Conta comigo' },
@@ -891,7 +832,7 @@ Anotado: Já registrei sua sugestão com o time que me treina. 🙏 Obrigado por
       const content = btn.nextElementSibling;
       const isOpen = content.classList.contains('show');
       content.classList.toggle('show');
-      btn.innerText = isOpen ? '👀 Ver exemplo servido ▾' : '▲ Esconder exemplo';
+      btn.innerText = isOpen ? '👀 Ver resposta do Jota ▾' : '▲ Esconder exemplo';
     }
 
     // COPIAR COMANDO
@@ -912,7 +853,7 @@ Anotado: Já registrei sua sugestão com o time que me treina. 🙏 Obrigado por
         btn.classList.add('active');
         const cat = btn.dataset.cat;
 
-        if (cat === 'sobremesa') {
+        if (cat === 'stickers') {
           stickersSection.scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -926,7 +867,7 @@ Anotado: Já registrei sua sugestão com o time que me treina. 🙏 Obrigado por
       });
     });
 
-    // BUSCA
+    // BUSCA INSTANTÂNEA
     const searchInput = document.getElementById('searchInput');
     searchInput.addEventListener('input', (e) => {
       const q = e.target.value.toLowerCase().trim();
