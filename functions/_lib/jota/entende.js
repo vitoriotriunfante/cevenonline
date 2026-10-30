@@ -349,15 +349,22 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // faturamento atualizado = resumo completo; "como esta a rota hoje" = hoje so varejo de rota.
   if (/DIGITAD|CITAD/.test(t) && /\bMES\b|OUTUBRO|NOVEMBRO|DEZEMBRO/.test(t) && !pedePeriodo(t)) return respPeriodoDias(B, E, t, { de: 1, ate: null });
   if (/FATURAMENTO|FATURADO/.test(t) && (/POSITIVA/.test(t) || /\bMES\b|OUTUBRO|COMO (EU )?(ESTOU|TO|ESTAMOS)|ATUALIZAD/.test(t)) && !/PREMIA|KPI|INDUSTRIA|SEMANA|PASSADO|ANTERIOR/.test(t) && !pedePeriodo(t)) return respResumo(B, E);
-  // PERGUNTA DIRETA SOBRE FILIAL HOJE (Vitório, 29/10/2026: "TBe hoje", "como está a TBE hoje"):
-  // Se perguntar por filial específica de forma direta, responde o resumo daquela filial (nunca confunde com vendedor)
-  const mFilialDireta = t.match(/^\W*(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\s*(?:HOJE|HJ|DO DIA|AGORA)?\W*$/i) ||
-                        t.match(/^\W*(?:COMO (?:ESTA|TA|FOI|VAI)|STATUS|RESUMO|SITUACAO)\s+(?:A\s+|DA\s+|NA\s+)?(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\s*(?:HOJE|HJ|DO DIA|AGORA)?\W*$/i);
-  if (mFilialDireta) {
-    const siglaAlvo = mFilialDireta[1].toUpperCase();
-    if (E.nacional || E.filiais.includes(siglaAlvo) || (c && c.filial === siglaAlvo) || (c && c.papel === 'diretoria')) {
+  // PERGUNTA DIRETA SOBRE FILIAL OU BRASIL HOJE (Vitório, 29/10/2026: "venda brasil atualizada agora", "Venda Brasil Hoje", "TBe hoje"):
+  // Se perguntar por filial específica ou Brasil de forma direta, responde o resumo do dia daquele escopo
+  const mFilialOuBrasil = t.match(/^\W*(?:VENDAS?|DIGITAD[OA]|PEDIDOS?)?\s*(?:DO |NO |EM |NA )?(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ|BRASIL|NACIONAL)\s*(?:VENDAS?|DIGITAD[OA]|PEDIDOS?)?\s*(?:HOJE|HJ|DO DIA|AGORA|ATUALIZAD[OA]|DE AGORA)?\s*(?:HOJE|HJ|AGORA|ATUALIZAD[OA])?\W*$/i) ||
+                          t.match(/^\W*(?:COMO (?:ESTA|TA|FOI|VAI)|STATUS|RESUMO|SITUACAO)\s+(?:A\s+|DA\s+|NA\s+|NO\s+|O\s+)?(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ|BRASIL|NACIONAL)\s*(?:HOJE|HJ|DO DIA|AGORA|ATUALIZAD[OA])?\W*$/i);
+  if (mFilialOuBrasil) {
+    const siglaAlvo = mFilialOuBrasil[1].toUpperCase();
+    if (siglaAlvo === 'BRASIL' || siglaAlvo === 'NACIONAL') {
+      if (E.nacional || (c && c.papel === 'diretoria')) {
+        const Ebr = E.nacional ? E : await carregaEscopo(B, { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true });
+        const querMesGeral = /COMO (ESTA|TA)|RESUMO|PANORAMA|GERAL|SITUACAO/.test(t) && !/HOJE|HJ|AGORA|ATUALIZAD|VENDAS?|DIGITAD/.test(t);
+        return querMesGeral ? respResumo(B, Ebr) : respHoje(B, Ebr, t);
+      }
+    } else if (E.nacional || E.filiais.includes(siglaAlvo) || (c && c.filial === siglaAlvo) || (c && c.papel === 'diretoria')) {
       const Efil = (E.filiais.length === 1 && E.filiais[0] === siglaAlvo) ? E : await carregaEscopo(B, { nome: siglaAlvo, filiais: [siglaAlvo], grupo: null, nacional: false });
-      return respHoje(B, Efil, t);
+      const querMesGeral = /COMO (ESTA|TA)|RESUMO|PANORAMA|GERAL|SITUACAO/.test(t) && !/HOJE|HJ|AGORA|ATUALIZAD|VENDAS?|DIGITAD/.test(t);
+      return querMesGeral ? respResumo(B, Efil) : respHoje(B, Efil, t);
     }
   }
   // ROTA / VENDAS X ROTA / VISITAS DE HOJE (Vitório, 29/10/2026: "o que o cara quer saber quando pergunta rota...? quer saber de visitas, pedidos e etc..."):
@@ -699,7 +706,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   if (/POSITIVA/.test(t) && /POR VENDEDOR|RANKING|ABERTA POR|MELHORES|PIORES|TOP/.test(t)) return respRanking(E, t);
   if (/POSITIVA/.test(t)) return respPositivacao(B, E);
   if (/COMO (ESTA|TA|VAI|ESTAMOS|ANDA)|RESUMO|RESULTADO|PANORAMA|STATUS|GERAL|SITUACAO/.test(t) && !/ACUMULADO|DIGITAD/.test(t)) return respResumo(B, E);
-  if (/HOJE|\bHJ\b|ACUMULADO|DIGITAD|PEDIDOS?\b|TICKET|VENDEU|VENDERAM|\bDIA\b|ROTA|VAREJO/.test(t)) return respHoje(B, E, t);
+  if (/HOJE|\bHJ\b|ACUMULADO|DIGITAD|PEDIDOS?\b|TICKET|VENDEU|VENDERAM|\bDIA\b|ROTA|VAREJO|\bAGORA\b|\bATUALIZAD/.test(t)) return respHoje(B, E, t);
   if (/QUEM COBRAR|PLANO DO DIA|O QUE (EU )?FACO|ONDE ATACAR/.test(t)) return respFalta(B, E);
   if (/SUPERVIS/.test(t) && /PIOR|PRA BAIXO|PARA BAIXO|ATRAS|PUXANDO|MAL\b/.test(t)) { const S = [...agrupa(E.vend, (v) => supChave(v, E.nacional))].filter(([k]) => supReal(k) && !/^VAGO/.test(k)).filter(([, x]) => x.meta > 0).sort((a, b) => (a[1].pct ?? 999) - (b[1].pct ?? 999)); if (S.length) { const [k, x] = S[0]; return [`🔻 *Quem está puxando ${E.nome} para baixo:* ${supNome(k)} — *${pctTxt(x.pct)}* da meta (fat. ${R$(x.fat)} de ${R$(x.meta)}, pend. ${R$(x.pend)})`, '', '*Os mais atrás:*', ...S.slice(0, 4).map(([k2, y], i) => `${i + 1}. ${supNome(k2)} — ${pctTxt(y.pct)} · gap ${R$(Math.max(0, y.meta - y.fat - y.pend))}`), '', SUGESTAO + `sentar hoje com ${supNome(k)} e abrir vendedor por vendedor (peça "supervisor ${supNome(k).split(' ')[0]}").`].join('\n'); } }
   if (/SUPERVIS|POR EQUIPE|ABERT|POR GERENTE/.test(t)) return respPorSupervisor(E);

@@ -10,12 +10,38 @@ import { diasUteisMes } from './gestao.js';
 
 // ---------------- RESPOSTAS ----------------
 export async function respResumo(B, E) {
-  const s = await B.saude(); const hora = s ? s.hora_sp : '';
+  const s = await B.saude();
+  const hora = (s && s.hora_sp) || new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
   if (E.nacional) {
-    const F = (s && s.filiais) || []; const t = F.reduce((a, f) => ({ fat: a.fat + (f.faturado || 0), pend: a.pend + (f.pendente || 0), meta: a.meta + (f.meta_fat || 0), pos: a.pos + (f.positivados || 0), mpos: a.mpos + (f.meta_pos || 0), dig: a.dig + (f.digitado_hoje || 0) }), { fat: 0, pend: 0, meta: 0, pos: 0, mpos: 0, dig: 0 });
+    let F = (s && s.filiais) || [];
+    // FALLBACK DE SEGURANÇA (29/10/2026, Vitorio: 'Brasil R$ 0 de R$ 0' quando saude falha ou demora):
+    // Se s.filiais vier vazio, monta a partir de E.vend e E.porFilial! NUNCA MOSTRAR BRASIL ZERADO!
+    if (!F.length && E.vend && E.vend.length) {
+      const mapaFil = new Map();
+      for (const v of E.vend) {
+        const x = mapaFil.get(v.filial) || { filial: v.filial, faturado: 0, pendente: 0, meta_fat: 0, positivados: 0, meta_pos: 0, digitado_hoje: 0 };
+        x.faturado += (v.fat || 0);
+        x.pendente += (v.pend || 0);
+        x.meta_fat += (v.meta || 0);
+        x.positivados += (v.pos || 0);
+        x.meta_pos += (v.metaPos || 0);
+        x.digitado_hoje += (v.dig || 0);
+        mapaFil.set(v.filial, x);
+      }
+      if (E.porFilial) {
+        for (const [sigla, dados] of Object.entries(E.porFilial)) {
+          const x = mapaFil.get(sigla) || { filial: sigla, faturado: 0, pendente: 0, meta_fat: 0, positivados: 0, meta_pos: 0, digitado_hoje: 0 };
+          if (dados.macro) x.digitado_hoje = dados.macro.dig || x.digitado_hoje;
+          mapaFil.set(sigla, x);
+        }
+      }
+      F = [...mapaFil.values()];
+    }
+    const t = F.reduce((a, f) => ({ fat: a.fat + (f.faturado || 0), pend: a.pend + (f.pendente || 0), meta: a.meta + (f.meta_fat || 0), pos: a.pos + (f.positivados || 0), mpos: a.mpos + (f.meta_pos || 0), dig: a.dig + (f.digitado_hoje || 0) }), { fat: 0, pend: 0, meta: 0, pos: 0, mpos: 0, dig: 0 });
+    if (!t.dig && E.macro) t.dig = E.macro.dig || 0;
     const V = E.vend.filter((v) => v.varejo); const z = V.filter((v) => v.zerado);
     const L = [`📊 *Brasil — 11 filiais* (${hora})`, `💰 Faturado: *${R$(t.fat)}* de ${R$(t.meta)} → *${P(t.fat, t.meta)}*`, `⏳ Pendente: ${R$(t.pend)}`, `👥 Positivação: ${N(t.pos)} de ${N(t.mpos)} (${P(t.pos, t.mpos)})`,
-      `📝 Digitado hoje: *${R$(t.dig)}* em *${N(E.macro.pedidos)}* pedidos`, `🚶 Rota do varejo hoje: ${N(V.reduce((a, v) => a + v.visF, 0))} de ${N(V.reduce((a, v) => a + v.visP, 0))} visitas · zerados: ${z.length}`, '', '*Por filial (% da meta faturada):*'];
+      `📝 Digitado hoje: *${R$(t.dig)}* em *${N((E.macro && E.macro.pedidos) || (E.vend ? E.vend.reduce((a, v) => a + (v.ped || 0), 0) : 0))}* pedidos`, `🚶 Rota do varejo hoje: ${N(V.reduce((a, v) => a + v.visF, 0))} de ${N(V.reduce((a, v) => a + v.visP, 0))} visitas · zerados: ${z.length}`, '', '*Por filial (% da meta faturada):*'];
     for (const f of F.slice().sort((a, b) => (b.faturado / b.meta_fat) - (a.faturado / a.meta_fat))) {
       const zf = V.filter((v) => v.filial === f.filial && v.zerado).length;
       L.push(`• *${f.filial}* ${P(f.faturado || 0, f.meta_fat)} · ${R$(f.faturado)} · pend. ${R$(f.pendente)} · hoje ${R$(f.digitado_hoje)} · ${zf} zerado(s)`);
@@ -65,13 +91,14 @@ export async function respHoje(B, E, t) {
   const soVarejo = /ROTA|VAREJO|CAMPO|\bVJ\b/.test(t) && E.vend.some((v) => v.varejo);
   const V = soVarejo ? E.vend.filter((v) => v.varejo) : E.vend;
   const rot = soVarejo ? ' (varejo de rota)' : '';
-  const hora = (await B.saude() || {}).hora_sp || '';
+  const sSaude = await B.saude();
+  const hora = (sSaude && sSaude.hora_sp) || new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
   if (E.nacional) {
     const G = [...agrupa(V, (v) => v.filial)].sort((a, b) => b[1].dig - a[1].dig);
     const tot = { ...(agrupa(V, () => 'x').get('x') || { dig: 0, ped: 0, visF: 0, visP: 0, comVenda: 0, zerados: 0 }) };
     if (!soVarejo) { tot.dig = E.macro.dig; tot.ped = E.macro.pedidos; for (const g of G) { const m = E.porFilial[g[0]].macro; g[1].dig = m.dig; g[1].ped = m.pedidos; } G.sort((a, b) => b[1].dig - a[1].dig); }
     if (/TICKET/.test(t)) return [`🧾 *Ticket médio de hoje — Brasil${rot}*: *${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}* (${R$(tot.dig)} ÷ ${N(tot.ped)} pedidos)`, ...G.map(([f, x]) => `• ${f}: ${x.ped ? R$(x.dig / x.ped) : 'sem dado'}`)].join('\n');
-    return [`📝 *Hoje no Brasil${rot}* (${hora})`, `Digitado: *${R$(tot.dig)}* em *${N(tot.ped)}* pedidos · ticket ${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}`, `Visitas da rota: ${N(tot.visF)} de ${N(tot.visP)} (com venda na rota: ${N(tot.comVenda)}) · vendedores zerados: ${tot.zerados}`, '',
+    return [`📝 *Hoje no Brasil${rot}* (${hora})`, `Digitado: *${R$(tot.dig)}* em *${N(tot.ped)}* pedidos · ticket ${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}`, `Visitas da rota: ${N(tot.visF)} de ${N(tot.visP)} (com venda na rota: ${N(tot.comVenda)}) · zerados: ${tot.zerados}`, '',
       ...G.map(([f, x]) => `• *${f}* ${R$(x.dig)} · ${x.ped} ped. · visitas ${x.visF}/${x.visP} · ${x.zerados} zerado(s)`),
       soVarejo ? '' : '_Totais com todos os canais; peça "hoje rota" para só o varejo._', SUGESTAO + `ver os zerados da filial com mais vendedores sem pedido: ${(G.slice().sort((a, b) => b[1].zerados - a[1].zerados)[0] || [''])[0]}.`].filter((x) => x !== null).join('\n');
   }

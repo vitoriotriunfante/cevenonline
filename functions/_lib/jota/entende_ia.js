@@ -10,9 +10,9 @@
 import { FILIAIS, sem } from './base.js';
 
 export const CATALOGO = {
-  resumo: ['como está {lugar}?', 'situação geral de uma filial ou do grupo (como está, como anda, panorama)'],
+  resumo: ['como está {lugar}?', 'situação geral do mês de uma filial ou do grupo (como está o mês, fechamento do mês, panorama geral) — se a pergunta for sobre vendas ou digitado de hoje use a intenção "hoje"'],
   falta: ['quanto falta pra meta {lugar}?', 'quanto falta para bater a meta, MN por dia'],
-  hoje: ['hoje {lugar}', 'o que foi vendido/digitado hoje'],
+  hoje: ['hoje {lugar}', 'o que foi vendido/digitado hoje, vendas de hoje, vendas agora, venda atualizada, digitado hoje, pedidos de hoje'],
   por_supervisor: ['por supervisor {lugar}', 'resultado aberto por supervisor'],
   supervisor: ['supervisor {pessoa}', 'resultado de um supervisor e sua equipe'],
   pior_supervisor: ['qual supervisor está puxando pra baixo {lugar}?', 'qual supervisor está pior / puxando para baixo / mais atrás'],

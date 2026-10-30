@@ -97,7 +97,7 @@ export const pctTxt = (x) => x == null ? 'sem dado' : x.toFixed(1).replace('.', 
 export const listaNomes = (V, n = 4) => V.slice(0, n).map((v) => vn(v)).join(', ') + (V.length > n ? ` +${V.length - n}` : '');
 
 // acha supervisor ou vendedor citado na mensagem (primeiro nome tem que bater)
-export const PAL = new Set(['SETOR', 'SETORES', 'COMO', 'ESTA', 'QUAL', 'QUAIS', 'HOJE', 'VENDEDOR', 'VENDEDORA', 'SUPERVISOR', 'SUPERVISORA', 'FILIAL', 'ROTA', 'MINHA', 'MEU', 'EQUIPE', 'TIME', 'DELE', 'DELA', 'QUANTO', 'FALTA', 'LIGA', 'BRASIL', 'TODOS', 'TODAS', 'SOBRE', 'ESTOU', 'ESTAMOS', 'ONTEM', 'MAIS', 'MENOS', 'PEDIDO', 'PEDIDOS', 'VENDA', 'VENDAS', 'META', 'POSICAO', 'TABELA', 'ANDA', 'VAI', 'PARA', 'COM']);
+export const PAL = new Set(['SETOR', 'SETORES', 'COMO', 'ESTA', 'QUAL', 'QUAIS', 'HOJE', 'VENDEDOR', 'VENDEDORA', 'SUPERVISOR', 'SUPERVISORA', 'FILIAL', 'ROTA', 'MINHA', 'MEU', 'EQUIPE', 'TIME', 'DELE', 'DELA', 'QUANTO', 'FALTA', 'LIGA', 'BRASIL', 'TODOS', 'TODAS', 'SOBRE', 'ESTOU', 'ESTAMOS', 'ONTEM', 'MAIS', 'MENOS', 'PEDIDO', 'PEDIDOS', 'VENDA', 'VENDAS', 'META', 'POSICAO', 'TABELA', 'ANDA', 'VAI', 'PARA', 'COM', 'AGORA', 'ATUALIZADA', 'ATUALIZADO', 'ATUALIZADAS', 'ATUALIZADOS', 'RESUMO', 'SITUACAO', 'STATUS', 'GERAL', 'PANORAMA', 'RESULTADO', 'NUMERO', 'NUMEROS', 'DADOS']);
 export function achaPessoa(E, t) {
   const toks = t.split(/[^A-Z]+/).filter((w) => (w.length > 2 || w === 'PJ') && !PAL.has(w));
   // primeiro nome vale mais; nome do meio tambem acha (27/10/2026: "vendedora Joyce" = 1114 APARECIDA JOYCE GOMES FERREIRA), com peso menor para nao roubar de quem tem o 1o nome
