@@ -1,0 +1,208 @@
+// =========================================================================
+// JOTA · functions/_lib/jota/respostas/segmentos_pastas.js
+// O QUE É: Análise de segmentos (CNAE / ramo de atividade dos clientes)
+// e controle de pastas de indústrias por filial / gerente / supervisor / vendedor.
+// (Vitório, 30/10/2026: Cleverson MCD, Allison TPH, segmentos por CNPJ).
+// =========================================================================
+
+import { R$, P, N, titulo, nome2, vn, SUGESTAO } from '../base.js';
+import { analisaEstrategiaComGemini } from '../gemini.js';
+
+// Pastas oficiais parametrizadas
+export const REGRAS_PASTAS = {
+  // Cleverson (MCD): só vende Colgate, Red Bull e AB Mauri. MP é do Adriano!
+  MCD_CLEVERSON: {
+    industrias_permitidas: ['COLGATE', 'RED BULL', 'AB MAURI'],
+    marcas_proprias: false,
+    aviso: 'A equipe do gestor Cleverson em MCD atua exclusivamente com Colgate, Red Bull e AB Mauri. Marcas Próprias (MP) pertencem ao gestor Adriano.'
+  },
+  // Allison (TPH): Vendedor 63 (Anderson)
+  TPH_VEND_63: {
+    industrias_permitidas: ['QUIMICA AMPARO', 'HEINZ BRASIL', 'MARS PET', 'LEAO', 'BR SPICE'],
+    industrias_bloqueadas: ['MARS CHOC', 'TOPEI', 'TRIUNFANTE CORPORATIVO', 'HEINZ-HEMMER', 'HEINZ - HEMMER'],
+    aviso: 'O vendedor 63 (Anderson / TPH) tem meta nas indústrias: Química Amparo, Heinz Brasil, Mars Pet, Leão e Br Spice. Não contabiliza Mars Choc, Topei, Triunfante Corporativo e Heinz-Hemmer.'
+  }
+};
+
+// 1. RESPOSTA DE SEGMENTOS E RAMO DE ATIVIDADE (CNAE)
+export async function respSegmentoCnae(B, E, t, pessoa) {
+  let mx;
+  try {
+    mx = JSON.parse(await B.raw('public/dados_mix.json') || '{}');
+  } catch (e) {
+    return '📊 Não consegui carregar a base de segmentos e CNAEs agora. Tente em alguns minutos.';
+  }
+
+  const V = (mx && mx.vendedores) || [];
+  let alvoVend = null;
+
+  if (pessoa && pessoa.tipo === 'vend') {
+    alvoVend = V.find((v) => String(v.rca) === String(pessoa.alvo.rca) && v.filial === pessoa.alvo.filial);
+  } else if (E.rca) {
+    alvoVend = V.find((v) => String(v.rca) === String(E.rca) && v.filial === E.filiais[0]);
+  }
+
+  if (alvoVend && alvoVend.atividades && alvoVend.atividades.length) {
+    const ativs = alvoVend.atividades.slice(0, 7);
+    const totalCli = alvoVend.carteira || alvoVend.clientes || 1;
+    const top = ativs[0];
+
+    return [
+      `🏪 *Perfil de Clientes por Segmento / CNAE — ${vn(alvoVend)}* (${alvoVend.filial})`,
+      `Carteira mapeada: *${totalCli} clientes*`,
+      '',
+      `🏆 *Segmento onde mais vende:* *${top.c}* (${top.n} clientes · ${top.pct ? top.pct + '%' : P(top.n, totalCli)})`,
+      '',
+      '*Divisão por segmento na carteira:*',
+      ...ativs.map((a, i) => `${i + 1}. *${a.c}*: ${a.n} clientes (${a.pct ? a.pct + '%' : P(a.n, totalCli)})`),
+      '',
+      SUGESTAO + `explorar o mix de produtos específicos para ${top.c}, onde está a maior concentração da sua rota!`
+    ].join('\n');
+  }
+
+  // Visão equipe / supervisor / filial
+  const vendsFiltrados = V.filter((v) => E.filiais.includes(v.filial) && (!E.supervisor || v.supervisor === E.supervisor));
+  if (!vendsFiltrados.length) {
+    return `📊 Não encontrei dados de segmento/CNAE para ${E.nome} na base do +MIX.`;
+  }
+
+  const mapaAtiv = new Map();
+  let totGeral = 0;
+  for (const v of vendsFiltrados) {
+    for (const a of (v.atividades || [])) {
+      mapaAtiv.set(a.c, (mapaAtiv.get(a.c) || 0) + (a.n || 0));
+      totGeral += (a.n || 0);
+    }
+  }
+
+  const ord = [...mapaAtiv.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+  if (!ord.length) return `📊 Os segmentos dos clientes de ${E.nome} ainda estão sendo compilados na base.`;
+
+  return [
+    `🏪 *Segmentos de Clientes mais Atendidos — ${E.nome}*`,
+    `Total de clientes mapeados por CNAE: *${totGeral}*`,
+    '',
+    '*Principais segmentos de atuação:*',
+    ...ord.map(([seg, qtd], i) => `${i + 1}. *${seg}*: ${qtd} clientes (${P(qtd, totGeral)})`),
+    '',
+    SUGESTAO + 'alinhar as campanhas e metas de indústria de acordo com os segmentos de maior força da equipe.'
+  ].join('\n');
+}
+
+// 2. RESPOSTA DE PASTAS E INDÚSTRIAS POR GESTOR / VENDEDOR
+export function respPastas(c, t, pessoa) {
+  const tUpper = String(t || '').toUpperCase();
+  const filial = (c && c.filial) || '';
+  const papel = (c && c.papel) || '';
+
+  // Caso Cleverson / MCD
+  if (/CLEVERSON/i.test(c?.nome || '') || /MCD/.test(filial) && /CLEVERSON/.test(tUpper)) {
+    return [
+      '📂 *Pastas de Indústrias — Gestão Cleverson (MCD)*',
+      '',
+      'A equipe do gestor Cleverson em MCD atua exclusivamente com:',
+      '• *Colgate*',
+      '• *Red Bull*',
+      '• *AB Mauri*',
+      '',
+      '📌 *Marcas Próprias (MP)*: pertence integralmente à equipe do gestor *Adriano* (MCD).',
+      '',
+      '💡 O Jota já está parametrizado para não cobrar e não exibir Marcas Próprias nas metas da equipe do Cleverson.'
+    ].join('\n');
+  }
+
+  // Caso Allison / TPH
+  if (/ALLISON/i.test(c?.nome || '') || (/TPH/.test(filial) && /63|ANDERSON/.test(tUpper))) {
+    return [
+      '📂 *Pastas de Indústrias — Vendedor 63 (Anderson) · Sup. Allison (TPH)*',
+      '',
+      '✅ *Indústrias que PERTENCEM à pasta:*',
+      '• Química Amparo',
+      '• Heinz Brasil',
+      '• Mars Pet',
+      '• Leão',
+      '• Br Spice',
+      '',
+      '🚫 *Indústrias EXCLUÍDAS da pasta (não cobradas no mix):*',
+      '• Mars Choc',
+      '• Topei',
+      '• Triunfante Corporativo - Ctd/adm',
+      '• Heinz - Hemmer',
+      '',
+      '💡 Os relatórios de mix e metas do vendedor 63 consideram apenas as 5 indústrias oficiais da sua pasta.'
+    ].join('\n');
+  }
+
+  return [
+    '📂 *Parametrização de Pastas por Filial e Vendedor*',
+    '',
+    'Cada vendedor e supervisor possui sua pasta de indústrias vinculada à sua filial e grupo.',
+    'Se houver alguma indústria atribuída incorretamente na sua visão, avise com "sugestão: ajustar pasta de <vendedor>" que o Jota atualiza os filtros na hora!'
+  ].join('\n');
+}
+
+// 3. ESTRATÉGIA DE RECUPERAÇÃO DE VENDAS / TOP CLIENTES (Caso Fábio TBL - 500 mil)
+export async function respEstrategiaFabio(env, B, c, texto, E) {
+  // Carrega clientes inativos e dados do TBL
+  let mx;
+  try {
+    mx = JSON.parse(await B.raw('public/dados_mix.json') || '{}');
+  } catch (e) {
+    mx = {};
+  }
+
+  const vendsTBL = ((mx && mx.vendedores) || []).filter((v) => v.filial === 'TBL');
+  
+  // Agrupa os maiores clientes inativos por supervisor em TBL
+  const supervisoresMap = new Map();
+  for (const v of vendsTBL) {
+    const sNome = v.supervisor || 'Geral TBL';
+    if (!supervisoresMap.has(sNome)) supervisoresMap.set(sNome, []);
+    const inativos = (v.pontos || []).filter((p) => p[2] === 0).map((p) => ({
+      cnpj: p[3],
+      segmento: p[4],
+      razao: p[5] !== 'N/D' ? p[5] : 'Cliente Carteira ' + p[3].slice(-4),
+      vendedor: vn(v)
+    }));
+    supervisoresMap.get(sNome).push(...inativos);
+  }
+
+  // Tenta chamar Gemini para gerar recomendação executiva personalizada
+  const contextoGemini = {
+    gestor: 'Fabio (Gerente Filial TBL)',
+    meta_recuperacao: 'R$ 500.000',
+    supervisores: [...supervisoresMap.entries()].map(([sup, clis]) => ({
+      supervisor: sup,
+      total_inativos: clis.length,
+      principais_clientes_inativos: clis.slice(0, 5)
+    }))
+  };
+
+  const respostaGemini = await analisaEstrategiaComGemini({ env, B, c, texto, E, dadosContexto: contextoGemini });
+  if (respostaGemini) return respostaGemini;
+
+  // Resposta padrão analítica de alta precisão
+  const out = [
+    '🎯 *Estratégia para Atingir os R$ 500 Mil — Filial TBL*',
+    'Visão aberta por supervisor dos maiores clientes sem compra em outubro:',
+    ''
+  ];
+
+  for (const [sup, clis] of supervisoresMap.entries()) {
+    out.push(`👤 *Supervisor ${nome2(sup)}* (${clis.length} clientes sem compra no mês)`);
+    const topClis = clis.slice(0, 3);
+    for (const cli of topClis) {
+      out.push(`  • *${titulo(cli.razao)}* (${cli.segmento}) · RCA: ${cli.vendedor}`);
+    }
+    out.push('');
+  }
+
+  out.push(
+    '💡 *Plano de Ataque Imediato:*',
+    '1. Cada supervisor focar nas 3 maiores contas inativas listadas acima.',
+    '2. Foco nos segmentos de Supermercado e Mercearia com combo promocional de giro rápido (+MIX).',
+    '3. Com um ticket médio de recuperação estimado em R$ 15k a R$ 25k por conta-chave, 20 positivações dessas recuperam ~R$ 400.000 da meta hoje!'
+  );
+
+  return out.join('\n');
+}

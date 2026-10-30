@@ -116,14 +116,16 @@ main { flex: 1; display: flex; flex-direction: column; }
 /* INBOX MASTER-DETAIL PARA CONVERSAS */
 .inbox-container {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: var(--sidebar-w, 380px) 6px 1fr;
   height: calc(100vh - 110px);
   overflow: hidden;
   background: var(--bg);
+  position: relative;
 }
 @media (max-width: 900px) {
   .inbox-container { grid-template-columns: 1fr; height: auto; }
   .chat-view { min-height: 500px; }
+  .sidebar-resizer { display: none; }
 }
 
 /* COLUNA ESQUERDA: LISTA DE CHATS */
@@ -254,6 +256,141 @@ main { flex: 1; display: flex; flex-direction: column; }
   height: 100%; color: var(--txt-dim); gap: 12px; text-align: center; padding: 40px;
 }
 .empty-chat-icon { font-size: 48px; opacity: 0.5; }
+
+/* RESIZER BARRA LATERAL */
+.sidebar-resizer {
+  width: 6px;
+  background: var(--borda);
+  cursor: col-resize;
+  position: relative;
+  z-index: 10;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.sidebar-resizer:hover, .sidebar-resizer.dragging {
+  background: var(--azul);
+  box-shadow: 0 0 10px var(--azul-glow);
+}
+
+/* CONTROLES DE LARGURA E VISÃO */
+.sidebar-width-ctrls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0,0,0,0.25);
+  padding: 3px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--borda);
+}
+.w-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--txt-dim);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.w-btn:hover { color: var(--txt); background: rgba(255,255,255,0.05); }
+.w-btn.active { background: var(--azul); color: #041226; font-weight: 800; border-color: var(--azul); }
+
+/* BARRA DE MODOS DE VISÃO */
+.view-mode-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 16px;
+  background: #091224;
+  border-bottom: 1px solid var(--borda);
+  flex-wrap: wrap;
+}
+.mode-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mode-btn {
+  background: #111e36;
+  border: 1px solid var(--borda);
+  color: var(--txt-mut);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+.mode-btn:hover { color: var(--txt); border-color: var(--txt-mut); background: rgba(255,255,255,0.05); }
+.mode-btn.active {
+  background: var(--azul);
+  color: #041226;
+  border-color: var(--azul);
+  font-weight: 800;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+}
+
+/* MOSAICO MULTI-CHAT (GRID WALL) */
+.grid-wall-container {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+  background: var(--bg);
+}
+.grid-wall-container.cols-3 { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); }
+.grid-wall-container.cols-6 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.grid-wall-container.cols-9 { grid-template-columns: repeat(3, 1fr); }
+.grid-wall-container.cols-12 { grid-template-columns: repeat(4, 1fr); }
+
+.grid-chat-card {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 480px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  transition: transform 0.15s, border-color 0.15s;
+}
+.grid-chat-card:hover {
+  border-color: var(--azul);
+  transform: translateY(-2px);
+}
+.grid-chat-header {
+  padding: 10px 14px;
+  background: #0f1c33;
+  border-bottom: 1px solid var(--borda);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.grid-chat-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #060b14;
+}
+.grid-chat-footer {
+  padding: 8px 12px;
+  background: #0b1526;
+  border-top: 1px solid var(--borda);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
 
 /* CARDS & GRIDS (Abas de Sugestões, Pedidos, etc.) */
 .grid-cards {
@@ -470,11 +607,19 @@ input:focus, select:focus { border-color: var(--azul); }
   <!-- SESSAO 1: CONVERSAS (INBOX MASTER-DETAIL) -->
   <div id="tab-conversas" class="inbox-container" style="display:grid;">
     <!-- SIDEBAR LISTA DE CHATS -->
-    <div class="chat-sidebar">
+    <div class="chat-sidebar" id="cv-chat-sidebar">
       <div class="sidebar-header">
-        <div class="search-box">
-          <span class="icon">🔍</span>
-          <input type="text" id="cv-busca" placeholder="Buscar por nome, filial ou número...">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+          <div class="search-box" style="flex:1;">
+            <span class="icon">🔍</span>
+            <input type="text" id="cv-busca" placeholder="Buscar por nome, filial ou número...">
+          </div>
+          <div class="sidebar-width-ctrls">
+            <button class="w-btn active" onclick="ajustarLarguraSidebar(380)">380</button>
+            <button class="w-btn" onclick="ajustarLarguraSidebar(500)">500</button>
+            <button class="w-btn" onclick="ajustarLarguraSidebar(650)">650</button>
+            <button class="w-btn" onclick="ajustarLarguraSidebar('50%')">50%</button>
+          </div>
         </div>
         <div class="filter-chips">
           <span class="chip active" data-filtro="todos">Todos</span>
@@ -497,8 +642,26 @@ input:focus, select:focus { border-color: var(--azul); }
       </div>
     </div>
 
-    <!-- PAINEL DIREITO: THREAD DE CONVERSA SELECIONADA -->
+    <!-- DIVISOR ARRASTÁVEL (RESIZER) -->
+    <div class="sidebar-resizer" id="cv-resizer" title="Arraste para redimensionar a barra lateral"></div>
+
+    <!-- PAINEL DIREITO: THREAD DE CONVERSA OU GRADE MULTI-CHAT -->
     <div class="chat-view" id="cv-chat-view">
+      <!-- BARRA DE MODOS DE VISÃO (FOCO OU GRADES MULTITELA) -->
+      <div class="view-mode-bar">
+        <div class="mode-group">
+          <span style="font-size:11px; font-weight:700; color:var(--txt-dim); text-transform:uppercase;">Visualização:</span>
+          <button class="mode-btn active" id="btn-mode-1" onclick="setModoVisao('1')">📱 Foco (1 Chat)</button>
+          <button class="mode-btn" id="btn-mode-3" onclick="setModoVisao('3')">🔲 Grade 3</button>
+          <button class="mode-btn" id="btn-mode-6" onclick="setModoVisao('6')">🔲 Grade 6</button>
+          <button class="mode-btn" id="btn-mode-9" onclick="setModoVisao('9')">🔲 Grade 9 (3x3)</button>
+          <button class="mode-btn" id="btn-mode-12" onclick="setModoVisao('12')">🔲 Grade 12 (Wall)</button>
+        </div>
+        <div style="font-size:11px; color:var(--txt-dim);" id="grid-status-info">1 conversa em foco</div>
+      </div>
+
+      <!-- MOSAICO MULTITELA / GRID WALL -->
+      <div id="cv-grid-wall" class="grid-wall-container cols-3" style="display:none;"></div>
       <div class="empty-chat" id="cv-chat-empty">
         <div class="empty-chat-icon">💬</div>
         <h3 style="margin:0; color:#fff;">Nenhuma conversa selecionada</h3>
@@ -753,6 +916,8 @@ let DADOS_CONVERSAS = null;
 let CHATS_AGRUPADOS = [];
 let CHAT_SELECIONADO_CEL = null;
 let FILTRO_CHATS = 'todos';
+let MODO_VISAO = localStorage.getItem('jota_modo_visao') || '1';
+let FILTRADOS_ATUAIS = [];
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const tit = (s) => String(s || '').toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
@@ -924,11 +1089,13 @@ function agruparERenderizarConversas() {
     return true;
   });
 
+  FILTRADOS_ATUAIS = filtrados;
   $('cv-contador-chats').textContent = `${filtrados.length} contato(s) no período`;
 
   const container = $('cv-lista-chats');
   if (!filtrados.length) {
     container.innerHTML = `<div style="padding:30px 16px; text-align:center; color:var(--txt-dim);">Nenhuma conversa encontrada com este filtro.</div>`;
+    if (MODO_VISAO !== '1') renderizarGradeConversas(MODO_VISAO);
     return;
   }
 
@@ -981,10 +1148,176 @@ function agruparERenderizarConversas() {
     };
   });
 
-  // Se já tinha um selecionado, reabre
-  if (CHAT_SELECIONADO_CEL) {
+  // Atualiza visão atual
+  if (MODO_VISAO !== '1') {
+    renderizarGradeConversas(MODO_VISAO);
+  } else if (CHAT_SELECIONADO_CEL) {
     abrirChat(CHAT_SELECIONADO_CEL);
+  } else if (filtrados.length) {
+    abrirChat(filtrados[0].celular);
   }
+}
+
+function renderizarGradeConversas(qtd) {
+  const gridWall = $('cv-grid-wall');
+  const chatActive = $('cv-chat-active');
+  const chatEmpty = $('cv-chat-empty');
+
+  if (MODO_VISAO === '1') {
+    if (gridWall) gridWall.style.display = 'none';
+    if (CHAT_SELECIONADO_CEL) {
+      if (chatActive) chatActive.style.display = 'flex';
+      if (chatEmpty) chatEmpty.style.display = 'none';
+    } else {
+      if (chatActive) chatActive.style.display = 'none';
+      if (chatEmpty) chatEmpty.style.display = 'flex';
+    }
+    const info = $('grid-status-info');
+    if (info) info.textContent = '1 conversa em foco';
+    return;
+  }
+
+  // Modo Grade ativo
+  if (chatActive) chatActive.style.display = 'none';
+  if (chatEmpty) chatEmpty.style.display = 'none';
+  if (gridWall) {
+    gridWall.style.display = 'grid';
+    gridWall.className = `grid-wall-container cols-${qtd}`;
+  }
+
+  const lista = (FILTRADOS_ATUAIS || []).slice(0, Number(qtd));
+  const info = $('grid-status-info');
+  if (info) info.textContent = `Exibindo ${lista.length} de ${FILTRADOS_ATUAIS.length} conversas na grade (${qtd} telas)`;
+
+  if (!lista.length) {
+    if (gridWall) gridWall.innerHTML = `<div style="grid-column: 1/-1; padding:50px; text-align:center; color:var(--txt-dim);">Nenhuma conversa encontrada para exibir nesta grade.</div>`;
+    return;
+  }
+
+  gridWall.innerHTML = lista.map((ch) => {
+    const iniciais = (ch.quem || '?').split(' ').filter(Boolean).slice(0, 2).map((x) => x[0].toUpperCase()).join('');
+    const hora = ch.ultimaData ? ch.ultimaData.slice(11, 16) : '';
+    const msgsCron = [...ch.mensagens].reverse();
+
+    let badgeNota = '';
+    if (ch.piorNota != null) {
+      const cor = ch.piorNota >= 4 ? 'var(--verde)' : ch.piorNota === 3 ? 'var(--amarelo)' : 'var(--vermelho)';
+      badgeNota = `<span class="tag-badge" style="background:rgba(255,255,255,0.08); color:${cor}; border:1px solid ${cor}">⭐ Nota ${ch.piorNota}</span>`;
+    }
+    const badgeProblema = ch.temReclamacao ? `<span class="tag-badge reclamou">⚠️ Reclamou</span>`
+      : ch.temProblema ? `<span class="tag-badge erro">Não ajudou</span>` : '';
+
+    const msgsHtml = msgsCron.map((m) => {
+      const h = m.quando ? m.quando.slice(11, 16) : '';
+      return `
+        <div style="display:flex; flex-direction:column; gap:2px; font-size:12px;">
+          <div style="background:#14223b; color:#f8fafc; padding:6px 10px; border-radius:8px 8px 8px 2px; align-self:flex-start; max-width:92%; word-break:break-word;">
+            ${esc(m.pergunta || '')}
+            <div style="font-size:9px; color:var(--txt-dim); margin-top:2px;">${esc(h)}</div>
+          </div>
+          <div style="background:#0c335e; color:#f0f9ff; padding:6px 10px; border-radius:8px 8px 2px 8px; align-self:flex-end; max-width:92%; border:1px solid #0284c7; word-break:break-word;">
+            ${esc(m.resposta || 'Sem resposta')}
+            <div style="font-size:9px; color:var(--txt-dim); margin-top:2px; text-align:right;">🤖 Jota</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="grid-chat-card">
+        <div class="grid-chat-header">
+          <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+            <div class="avatar" style="width:32px; height:32px; font-size:12px;">${esc(iniciais)}</div>
+            <div style="min-width:0;">
+              <div style="font-weight:700; font-size:12px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(tit(ch.quem))}</div>
+              <div style="font-size:10px; color:var(--txt-mut);">${esc(ch.papel || '—')} ${ch.filial ? '· ' + esc(ch.filial) : ''} · ${ch.mensagens.length} msg(s)</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:4px; flex-shrink:0;">
+            ${badgeProblema}
+            ${badgeNota}
+          </div>
+        </div>
+        <div class="grid-chat-body" id="grid-body-${esc(ch.celular)}">
+          ${msgsHtml}
+        </div>
+        <div class="grid-chat-footer">
+          <button class="link-btn" style="padding:3px 8px; font-size:11px;" onclick="focarChatIndividual('${esc(ch.celular)}')">🔍 Focar Chat</button>
+          <a href="https://wa.me/${esc(ch.celular)}" target="_blank" class="link-btn" style="padding:3px 8px; font-size:11px; border-color:#166534; color:#86efac; background:var(--verde-bg);">📲 WhatsApp</a>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  setTimeout(() => {
+    lista.forEach((ch) => {
+      const b = $(`grid-body-${ch.celular}`);
+      if (b) b.scrollTop = b.scrollHeight;
+    });
+  }, 60);
+}
+
+function focarChatIndividual(cel) {
+  setModoVisao('1');
+  abrirChat(cel);
+  const container = $('cv-lista-chats');
+  if (container) {
+    container.querySelectorAll('.chat-item').forEach((x) => {
+      x.classList.toggle('active', x.dataset.cel === cel);
+    });
+  }
+}
+
+function setModoVisao(modo) {
+  MODO_VISAO = String(modo);
+  localStorage.setItem('jota_modo_visao', modo);
+  document.querySelectorAll('.view-mode-bar .mode-btn').forEach((b) => {
+    b.classList.toggle('active', b.id === `btn-mode-${modo}`);
+  });
+  renderizarGradeConversas(modo);
+}
+
+function ajustarLarguraSidebar(w) {
+  const val = typeof w === 'number' ? `${w}px` : w;
+  document.documentElement.style.setProperty('--sidebar-w', val);
+  localStorage.setItem('jota_sidebar_width', val);
+  document.querySelectorAll('.sidebar-width-ctrls .w-btn').forEach((b) => {
+    b.classList.toggle('active', b.textContent === String(w).replace('px', ''));
+  });
+}
+
+function initResizer() {
+  const resizer = $('cv-resizer');
+  if (!resizer) return;
+  let isDragging = false;
+
+  resizer.addEventListener('mousedown', () => {
+    isDragging = true;
+    resizer.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const newWidth = Math.max(260, Math.min(e.clientX, window.innerWidth - 300));
+    ajustarLarguraSidebar(newWidth);
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      resizer.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+  });
+
+  const salva = localStorage.getItem('jota_sidebar_width');
+  if (salva) ajustarLarguraSidebar(salva);
+  const modoSalvo = localStorage.getItem('jota_modo_visao') || '1';
+  setModoVisao(modoSalvo);
+}
 }
 
 function abrirChat(celular) {
@@ -1822,6 +2155,7 @@ $('btn-atualizar').onclick = () => carregarTudo();
 
 // Inicialização
 initAbas();
+initResizer();
 if (SENHA) carregarTudo(); else telaLogin();
 </script>
 </body>

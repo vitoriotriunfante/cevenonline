@@ -227,12 +227,11 @@ export async function onRequestPost({ request, env }) {
   // figurinha: pacote quando pedido ou contextual (no maximo 1 a cada 2 h por pessoa)
   const ehLoteFig = /pacote (com as|oficial com as|de) figurinhas|Figurinhas Oficiais do Jota/i.test(resp);
   if (ehLoteFig && e.ok) {
-    const querTodasMesmo = /QUERO TODAS|MANDA TODAS|TODAS AS FIGURINHAS/i.test(texto);
-    // Anti-spam do WhatsApp / Evolution (Vitório, 29/10/2026: "mandar 1, esperar 1 pouco... dai mandar outra... trava antispam"):
-    // Espaçamento de 2.500 ms entre cada envio para não engasgar a conexão nem tomar rate limit
-    const lote = querTodasMesmo ? TODAS_FIGURINHAS.slice(0, 10) : ['01_oi_eu_sou_o_jota', '02_conta_comigo', '25_bora_pra_cima', '07_meta_batida', '15_olha_o_mais_mix'];
+    // Envio do pacote completo de figurinhas (Vitório, 30/10/2026: despachar as 26 figurinhas)
+    // Espaçamento de 1.200 ms entre cada envio para estabilidade na Evolution API
+    const lote = TODAS_FIGURINHAS;
     for (let fi = 0; fi < lote.length; fi++) {
-      if (fi) await new Promise((ok) => setTimeout(ok, 2500));
+      if (fi) await new Promise((ok) => setTimeout(ok, 1200));
       await enviarFigurinha(env, numEnvio, lote[fi]);
     }
     try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, 'figurinha', 'lote_figurinhas', 'figurinhas_lote').run(); } catch (x) {}

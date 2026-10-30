@@ -18,6 +18,19 @@ export async function respMetasIndustria(B, E, t, pessoa) {
   else if (pessoa && pessoa.tipo === 'sup') { vend = E.vend.filter((v) => v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial); quem = 'Equipe ' + nome2(pessoa.alvo.nome); }
   const cods = E.nacional && !pessoa ? null : new Set(vend.map((v) => String(v.rca)));
   const dentro = (c) => !cods || cods.has(c);
+  // PARAMETRIZAÇÃO DE PASTAS (Vitório, 30/10/2026: Cleverson/MCD e Allison/TPH vend 63)
+  const ehCleversonMCD = (E.filiais.includes('MCD') && (/CLEVERSON/i.test(quem || '') || (vend[0] && /CLEVERSON/i.test(vend[0].grupo || ''))));
+  const ehPastaPermitida = (c, indNome) => {
+    const nSem = sem(indNome || '');
+    if (ehCleversonMCD) {
+      if (/MARCA PROPRIA|PROPRIA TRIUNFANTE|\bMP\b/.test(nSem)) return false;
+      return /COLGATE|RED BULL|MAURI/.test(nSem);
+    }
+    if (String(c) === '63' && E.filiais.includes('TPH')) {
+      if (/MARS CHOC|TOPEI|CORPORATIVO|HEINZ.?HEMMER|HEMMER/.test(nSem)) return false;
+    }
+    return true;
+  };
   // industria citada (pelo nome da Premiacao; Mars = MARS CHOC/MARS PET etc.)
   const nomes = new Map(); for (const m of RV.metas) if (!nomes.has(m[1])) nomes.set(m[1], m[2]);
   const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !['META', 'METAS', 'INDUSTRIA', 'INDUSTRIAS', 'BATENDO', 'BATEU', 'BATER', 'ESTAMOS', 'FORNECEDOR', 'FORNECEDORES', 'PREMIACAO', 'PREMIO', 'ATINGIMENTO', 'ATINGIU', 'OBJETIVO', 'OBJETIVOS', 'DELES', 'DELAS', 'BRASIL', 'LTDA', 'ALIMENTOS', 'ALIMENTAR', 'COMERCIAL', 'IND', 'DOCEIRA', 'CHOC', 'PET', 'FALTA', 'BATENDO', 'BATIDA', 'GRUPO', 'TODAS', 'TODOS', 'GERAL'].includes(w) && !FILIAIS.includes(w));
@@ -28,8 +41,8 @@ export async function respMetasIndustria(B, E, t, pessoa) {
   const G = new Map();   // id -> { meta, metaPos, fat, vend, pos, posV, porVend: Map }
   const g = (id) => { if (!G.has(id)) G.set(id, { meta: 0, metaPos: 0, fat: 0, ven: 0, pos: 0, posV: 0, pv: new Map() }); return G.get(id); };
   const gv = (x, c) => { if (!x.pv.has(c)) x.pv.set(c, { meta: 0, metaPos: 0, fat: 0, ven: 0, pos: 0 }); return x.pv.get(c); };
-  for (const [c, id, , tipo, meta] of RV.metas) if (dentro(c) && (!alvoI.size || alvoI.has(id))) { const x = g(id), y = gv(x, c); if (tipo === 1) { x.meta += meta; y.meta += meta; } else { x.metaPos += meta; y.metaPos += meta; } }
-  for (const [c, id, ff, fv, pf, pv] of RV.apu) if (dentro(c) && G.has(id)) { const x = G.get(id), y = gv(x, c); x.fat += ff; x.ven += fv; x.pos += pf; x.posV += pv; y.fat += ff; y.ven += fv; y.pos += pf; }
+  for (const [c, id, , tipo, meta] of RV.metas) if (dentro(c) && (!alvoI.size || alvoI.has(id)) && ehPastaPermitida(c, nomes.get(id))) { const x = g(id), y = gv(x, c); if (tipo === 1) { x.meta += meta; y.meta += meta; } else { x.metaPos += meta; y.metaPos += meta; } }
+  for (const [c, id, ff, fv, pf, pv] of RV.apu) if (dentro(c) && G.has(id) && ehPastaPermitida(c, nomes.get(id))) { const x = G.get(id), y = gv(x, c); x.fat += ff; x.ven += fv; x.pos += pf; x.posV += pv; y.fat += ff; y.ven += fv; y.pos += pf; }
   const L = [...G].filter(([, x]) => x.meta > 0 || x.metaPos > 0);
   const corte = RV.cutoff ? RV.cutoff.split('-').reverse().slice(0, 2).join('/') : '?';
   const cab = `🏆 *Metas das indústrias — ${quem}* · ${MESES[+RV.mes.slice(5, 7)]} · _apuração até ${corte}_`;

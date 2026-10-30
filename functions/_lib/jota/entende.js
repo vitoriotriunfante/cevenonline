@@ -17,6 +17,7 @@ import { pedePeriodo, respClientesSemComprar, respComparaMes, respDiasSemPedido,
 import { respDiaVendedor, respFalta, respHoje, respMensagensPorVendedor, respTodosVendedores, totaisOficiais, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
 import { respAVisitar, respCheckinEquipe, respClientesVend, respDiaEquipe, respRotaFiltro, respSemVisita, respMixRotaHoje, respRecorrenciaClientes, respTagSeparadoPorSupervisor, respRotaHojeCompleta, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
 import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo, respPreco, respPedidoNumero, respPedidosStatus, respProduto, respRecuperacao, respTopProdutos } from './respostas/vendas.js';
+import { respSegmentoCnae, respPastas, respEstrategiaFabio } from './respostas/segmentos_pastas.js';
 
 // CONTINUACAO (Vitorio, 27/10/2026: "precisa ir salvando a mensagem anterior para que vc continue a conversa... pergunto como foi o dia do vendedor X, dai
 // pergunto e o mes, vc responde outra coisa"). Mensagem que so MODIFICA a anterior ("e o mes?", "do mes", "apenas em TPA", "por vendedor", "sim, ...faturou o pedido")
@@ -278,6 +279,30 @@ export async function respostaInterna(B, c, texto, anteriores) {
     const Er = await carregaEscopo(B, esc), pr = achaPessoa(Er, t);
     if (!/DEFESA|PONTO|LANCE|LIGA|REATIVAD|RESGAT/.test(t) || /TAG|P11|P10|LEAO|BORGES|SNICKERS|KITEKAT/.test(t)) return respRecorrenciaClientes(B, Er, pr && pr.tipo === 'vend' ? pr.alvo : null, t, c);
     return respRecorrenciaLances(B, pr && pr.tipo === 'vend' ? { ...Er, nome: vn(pr.alvo), vend: [pr.alvo] } : Er);
+  }
+  // PEDIDOS ENTREGUES / CANHOTO / STATUS DE ENTREGA FISICA (Vitório, 30/10/2026: acionar o app NEXUS)
+  if (/(FOI|JA) ENTREGUE|STATUS (DA )?ENTREGA|COMPROVANTE (DE )?ENTREGA|CANHOTO|ENTREGOU O PEDIDO|O PEDIDO JA CHEGOU|ENTREGA DO PEDIDO/.test(t) || /PEDIDO \d+.*ENTREGUE/.test(t)) {
+    return [
+      '📦 *Status de Entrega e Canhoto*',
+      '',
+      'Para conferir se um pedido já foi entregue ao cliente ou visualizar a foto do canhoto assinado, consulte diretamente o *aplicativo NEXUS* da equipe de logística/entregas.',
+      '',
+      '💡 O Jota acompanha pedidos faturados, carteira e positivação no CEVEN; a confirmação de rota física e canhotos de entrega ficam disponíveis em tempo real diretamente no NEXUS.'
+    ].join('\n');
+  }
+  // PASTAS DE INDÚSTRIAS POR GERENTE / SUPERVISOR / VENDEDOR (Vitório, 30/10/2026: Cleverson MCD / Allison TPH)
+  if (/MINHAS? PASTAS?|PASTA D[OE] |PASTAS D[OE] |QUAIS INDUSTRIAS (EU VENDO|DA MINHA PASTA)|O QUE (A MINHA EQUIPE|EU) VEND(E|O)|CADASTRO.*MP.*ADRIANO/.test(t)) {
+    return respPastas(c, t, achaPessoa(await carregaEscopo(B, esc), t));
+  }
+  // SEGMENTOS / CNAE / RAMO DE ATIVIDADE DOS CLIENTES (Vitório, 30/10/2026: onde mais vende, perfil)
+  if (/SEGMENT(OS?|ACAO)|CNAE|RAMO (DE ATIVIDADE|DE NEGOCIO)|QUAL SEGMENTO|MAIS VENDE POR SEGMENTO|PERFIL D[OE] (CLIENTE|CLIENTES)/.test(t)) {
+    const Es = await carregaEscopo(B, esc);
+    return respSegmentoCnae(B, Es, t, achaPessoa(Es, t));
+  }
+  // ESTRATÉGIA COMERCIAL EXECUTIVA / RECUPERAÇÃO DE INATIVOS (Vitório, 30/10/2026: Fábio TBL / 500 mil / Gemini)
+  if (/500 ?(MIL|K)|ATINGIR (ESSES|OS) 500|MAIORES DE COMPRA DA CARTEIRA DE CADA SUPERVISOR|QUAIS CLIENTES ELES TEM QUE BUSCAR HOJE/.test(t)) {
+    const Ef = await carregaEscopo(B, esc);
+    return respEstrategiaFabio(B._env || {}, B, c, texto, Ef);
   }
   if (/MOTIVO|POR ?QUE/.test(t) && /DEVOLU|DEVOLVID|VOLTOU DE MERCADORIA/.test(t)) return respDevMotivos(B);
   if (/COMPROMISSO|MATINAL|\bRET\b|\bRETS\b|ROTA DO SUPERVISOR/.test(t)) return respCompromisso(B, await carregaEscopo(B, esc));
@@ -543,7 +568,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
       SUGESTAO + 'peça "rota de hoje do vendedor <nome>" para ver os clientes da rota dele.'
     ].join('\n');
   }
-  if (/FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA/.test(t) && !(pessoa && pessoa.tipo === 'vend')) {
+  if (/FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA|\bINATIV(OS?|AS?)?\b/.test(t) && !(pessoa && pessoa.tipo === 'vend')) {
     const ini = hojeSP().slice(0, 7) + '-01';
     const numE = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
     const numL = (i) => numE[i] || `${i + 1}.`;
@@ -555,7 +580,12 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
     return [`👥 *Quem falta positivar — ${E.nome}* (clientes da carteira do mês sem compra no mês)`, `Total: *${V.reduce((a, x) => a + x.falta, 0)}* clientes · ${V.length} vendedor(es)`, '',
       ...V.slice(0, 25).map((x, i) => `${numL(i)} *${vn(x.v)}*: *${x.falta}* de ${x.tot} clientes`), '', SUGESTAO + `digite o número (ex: *1* ou *2*) para ver a curva negativa daquele vendedor.`].join('\n');
   }
-  if ((pessoa && pessoa.tipo === 'vend' && /^(E )?(O |NO |DO |E NO )?MES\W*$|COMO (FOI|ESTA|TA|VAI) O MES|^E NO MES|\bE (O |NO )?MES\W*$/.test(t)) || pessoa && pessoa.tipo === 'vend' && /DESDE O DIA|NO MES|DO MES|ESTE MES|ESSE MES|NESTE MES|CURVA NEGATIVA|ATE HOJE|SEM COMPRA|AINDA NAO (VENDEU|COMPROU)|RELACAO D[OE] (TODOS )?(OS )?CLIENTES|LISTA COMPLETA/.test(t) && /NAO VEND|NAO COMPR|SEM VENDA|SEM PEDIDO|CURVA|NAO POSITIV|SEM COMPRA/.test(t) || (pessoa && pessoa.tipo === 'vend' && /FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA/.test(t))) {
+  const ehCurvaOuInativoVend = (
+    (pessoa && pessoa.tipo === 'vend' && /^(E )?(O |NO |DO |E NO )?MES\W*$|COMO (FOI|ESTA|TA|VAI) O MES|^E NO MES|\bE (O |NO )?MES\W*$/.test(t)) ||
+    (pessoa && pessoa.tipo === 'vend' && /DESDE O DIA|NO MES|DO MES|ESTE MES|ESSE MES|NESTE MES|CURVA NEGATIVA|ATE HOJE|SEM COMPRA|AINDA NAO (VENDEU|COMPROU)|RELACAO D[OE] (TODOS )?(OS )?CLIENTES|LISTA COMPLETA|\bINATIV(OS?|AS?)?\b/.test(t) && /NAO VEND|NAO COMPR|SEM VENDA|SEM PEDIDO|CURVA|NAO POSITIV|SEM COMPRA|\bINATIV(OS?|AS?)?\b/.test(t)) ||
+    (pessoa && pessoa.tipo === 'vend' && /FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA|\bINATIV(OS?|AS?)?\b/.test(t))
+  );
+  if (ehCurvaOuInativoVend) {
     const v = pessoa.alvo, m = v.mesV || {};
     // CURVA NEGATIVA = clientes da carteira do mes (roteiro do mes) que ainda NAO compraram neste mes (data da ultima compra antes do dia 1)
     if (Array.isArray(v.roteiroMes) && v.roteiroMes.length) {
@@ -656,7 +686,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
     const ind = (t.match(/\b(MONDELEZ|MARS|ARCOR|BAGLEY|CONDOR|FERRERO|NESTLE|HERSHEY|FINI|DORI|PEPSICO|KELLOGG|LACTA|DIVERSAO)\b/) || [])[1];
     if (ind) return naoVende(E, titulo(ind));   /* industria citada que a filial nao vende: dizer, nunca cair em outra resposta */
   }
-  if (/CARTEIRA|A FATURAR|FATURADO (\+|MAIS|E) (CARTEIRA|PENDENTE)|SOMANDO|VOLUME FINANCEIRO|\bPENDENTE\b/.test(t)) return respCarteira(B, pessoa && pessoa.tipo === 'vend' ? { ...E, nome: vn(pessoa.alvo), vend: [pessoa.alvo], rca: pessoa.alvo.rca } : E);   /* "carteira do vendedor 59" = so ele (27/10/2026, Allison) */
+  if (/CARTEIRA|A FATURAR|FATURAMENTOS?|FATURAD[OA]S? (\+|MAIS|E) (CARTEIRA|PENDENTES?)|SOMANDO|VOLUME FINANCEIRO|\bPENDENTES?\b|BLOQUEAD[OA]S?|LIBERAD[OA]S?|PEDIDOS? PENDENTES?/.test(t)) return respCarteira(B, pessoa && pessoa.tipo === 'vend' ? { ...E, nome: vn(pessoa.alvo), vend: [pessoa.alvo], rca: pessoa.alvo.rca } : E);   /* "carteira do vendedor 59" = so ele (27/10/2026, Allison) */
   if (/RITMO|NO RITMO|VAMOS BATER|DA PRA BATER|PROJECAO/.test(t)) return respRitmo(B, E);
   if (/MAIOR GAP|MAIS LONGE DA META|MAIOR BURACO|\bGAP\b/.test(t) && !pessoa) return respMaiorGap(E);
   if (/PONTOS? (FOMOS |PERDID|PENALIZ)|PENALIZAD|PERDEMOS PONTOS/.test(t)) return respPontosPerdidos(B, E);

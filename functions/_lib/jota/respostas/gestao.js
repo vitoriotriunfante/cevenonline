@@ -18,10 +18,31 @@ export function diasUteisMes() {
 export async function respCarteira(B, E) {
   const x = await totaisOficiais(B, E); if (!x.meta) return 'Sem dado agora.';
   const soma = x.fat + x.pend, falta = Math.max(0, x.meta - soma);
-  const G = [...agrupa(E.vend, (v) => (E.nacional ? v.filial : supChave(v, false)))].filter(([k]) => E.nacional || supReal(k)).map(([k, y]) => [k, y, y.meta ? (y.fat + y.pend) / y.meta * 100 : null]).sort((a, b) => (b[2] ?? -1) - (a[2] ?? -1));
-  return [`💼 *Faturado + carteira — ${E.nome}*`, `Faturado: *${R$(x.fat)}* · carteira (pendente): *${R$(x.pend)}*`, `Projeção do que já está na mão: *${R$(soma)}* de ${R$(x.meta)} → *${P(soma, x.meta)}*`, `Falta além da carteira: *${R$(falta)}* (${P(falta, x.meta)} da meta)`, '',
-    `*Ranking por (faturado + carteira) ÷ meta — ${E.nacional ? 'filiais' : 'supervisores'}:*`, ...G.map(([k, y, p], i) => `${i + 1}. ${E.nacional ? k : nome2(k)}: ${pctTxt(p)} · fat. ${R$(y.fat)} + cart. ${R$(y.pend)} · gap ${R$(Math.max(0, y.meta - y.fat - y.pend))}`),
-    '', '_"Faturado + carteira" é projeção: carteira ainda pode ser cortada ou bloqueada._'].join('\n');
+  const out = [
+    `💼 *Faturado + Pedidos Pendentes — ${E.nome}*`,
+    `💰 Faturado oficial: *${R$(x.fat)}* de ${R$(x.meta)} (${P(x.fat, x.meta)})`,
+    `⏳ Carteira liberada (pendente de faturamento): *${R$(x.pend)}*`,
+    `📦 Projeção total na mão: *${R$(soma)}* (${P(soma, x.meta)} da meta)`,
+    `🎯 Falta para a meta: *${R$(falta)}*`
+  ];
+  if (E.vend && E.vend.length > 1 && !E.nacional) {
+    const porVend = E.vend.filter((v) => pessoaReal(v)).map((v) => ({
+      v,
+      fat: v.fat || 0,
+      pend: v.pend || 0,
+      soma: (v.fat || 0) + (v.pend || 0),
+      meta: v.meta || 0,
+      pct: v.meta ? ((v.fat || 0) + (v.pend || 0)) / v.meta * 100 : 0
+    })).sort((a, b) => b.soma - a.soma);
+    out.push('', `*Aberto por vendedor (Faturado + Carteira pendente):*`);
+    out.push(...porVend.map((item, i) => `${i + 1}. *${vn(item.v)}*: faturado ${R$(item.fat)} + pendente ${R$(item.pend)} = *${R$(item.soma)}* (${pctTxt(item.pct)})`));
+  } else {
+    const G = [...agrupa(E.vend, (v) => (E.nacional ? v.filial : supChave(v, false)))].filter(([k]) => E.nacional || supReal(k)).map(([k, y]) => [k, y, y.meta ? (y.fat + y.pend) / y.meta * 100 : null]).sort((a, b) => (b[2] ?? -1) - (a[2] ?? -1));
+    out.push('', `*Ranking por (faturado + carteira) ÷ meta — ${E.nacional ? 'filiais' : 'supervisores'}:*`);
+    out.push(...G.map(([k, y, p], i) => `${i + 1}. ${E.nacional ? k : nome2(k)}: ${pctTxt(p)} · fat. ${R$(y.fat)} + cart. ${R$(y.pend)} · gap ${R$(Math.max(0, y.meta - y.fat - y.pend))}`));
+  }
+  out.push('', '_"Faturado + carteira" são pedidos liberados; pedidos bloqueados/crédito aguardam liberação financeira._');
+  return out.join('\n');
 }
 export async function respRitmo(B, E) {
   const x = await totaisOficiais(B, E); if (!x.meta) return 'Sem dado agora.';
