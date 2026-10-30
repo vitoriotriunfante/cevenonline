@@ -1,53 +1,53 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 quinta-feira, 29/10/2026
+📅 sexta-feira, 30/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 36 • Visitas: 476 (média 13,2/vendedor)
-Sem compra +30d: 128 (29,4%) • Recorrência: 35 (8,0%)
+👥 Vendedores: 36 • Visitas: 453 (média 12,6/vendedor)
+Sem compra +30d: 148 (34,8%) • Recorrência: 35 (8,2%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPH — VAGNER* • 29/10/2026
+📍 *TPH — VAGNER* • 30/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 121  •  🟡 Preventivo: 0
+🔴 Última Chance: 136  •  🟡 Preventivo: 0
 
-👤 *ANDREY CAMILLO PIRAGINE* (15 em risco)
-  🔴 EMBALA TUDO (66) — 11/09
-  🔴 POSTO PEDRA BRANCA (66) — 31/07
-  🔴 HOTEL DO LAGO (66) — 05/12
-  🔴 MERCEARIA DA MARLI (66) — 22/09
-  🔴 AUTO POSTO AFONSO PENA (68) — 19/09
-  _+10 outros_
+👤 *ANDREY CAMILLO PIRAGINE* (18 em risco)
+  🔴 PANIFICADORA LUDIMAP (66) — 31/07
+  🔴 MERCEARIA A CASA DA AZEITONA LTDA (68) — 05/09
+  🔴 F MARIM CASA DA AZEITONA (68) — 05/12
+  🔴 EMPORIO PALU (68) — 05/09
+  🔴 MERCADO VINCE (68) — 02/07
+  _+13 outros_
 
-👤 *JONATHAN FERNANDES* (31 em risco)
-  🔴 AGROVETERINARIA DORIZON (123) — 05/09
-  🔴 AGROPECUARIA CZPAK (123) — 05/09
-  🔴 COMERCIAL SERTAO (123) — 05/09
-  🔴 AGRO LEO (123) — 08/08
-  🔴 CASA DO CRIADOR (123) — 05/09
-  _+26 outros_
+👤 *JONATHAN FERNANDES* (45 em risco)
+  🔴 SEMENTES VENTURA (123) — 05/12
+  🔴 AGRO IRATI (123) — 05/12
+  🔴 AGROPECUARIA GOTA D AGUA (124) — 05/12
+  🔴 AVIARIO AVENIDA (124) — 05/12
+  🔴 AVIARIO PETUNA (124) — 05/09
+  _+40 outros_
 
-👤 *JEFFERSON POLETTO* (19 em risco)
-  🔴 CLINICA VETERINARIA VITAL CARE (125) — 05/12
-  🔴 OUTPETS COLOMBO (125) — 05/12
-  🔴 DOG MARLEY (125) — 05/12
-  🔴 PONTO ANIMAL PET SHOP (125) — 05/12
-  🔴 DOG BOUTIQUE BRASIL (125) — 05/09
-  _+14 outros_
+👤 *JEFFERSON POLETTO* (22 em risco)
+  🔴 FIDELY (125) — 30/07
+  🔴 HONJO (125) — 05/12
+  🔴 MERCADO PET (125) — 26/09
+  🔴 PET FANTASY (125) — 05/12
+  🔴 AVIARIO BOTICAO (125) — 05/12
+  _+17 outros_
 
-👤 *LUIZ AUGUSTO RAMOS* (34 em risco)
-  🔴 CONVENIENCIAS POSTO MIMES II (74) — 25/09
-  🔴 FARMACIA BIG FARMA (74) — 08/08
-  🔴 MERCADO HORLY (74) — 28/09
-  🔴 OFERTAO SUPERMERCADOS (74) — 08/08
-  🔴 MERCADO RIOMAR (75) — 13/06
-  _+29 outros_
+👤 *LUIZ AUGUSTO RAMOS* (29 em risco)
+  🔴 MERCADO SOL NASCENTE (74) — 25/09
+  🔴 IBIS HOTEL (74) — 20/08
+  🔴 POSTO ALE (74) — 31/07
+  🔴 POSTO PARANAGUA (74) — 05/12
+  🔴 POSTO MAHLE SANTA RITA LTDA (74) — 11/09
+  _+24 outros_
 
 👤 *RODRIGO DE ARRUDA DARROS* (22 em risco)
-  🔴 COMERCIO DE COMBUSTIVEIS BORDIGNON LTDA (85) — 02/07
-  🔴 POSTO WD (86) — 05/09
-  🔴 ELIANE MARIANO GOMES MINIMERCADO (86) — 05/09
-  🔴 OURO BRANCO (86) — 05/12
-  🔴 POSTO BARRA MANSA (86) — 05/09
+  🔴 COLEGIO VISAO JUNIOR LTDA - ME (84) — 17/08
+  🔴 MERCEARIA SILA (84) — 05/12
+  🔴 CASA DE CARNES CONFIANCA (84) — 27/07
+  🔴 CAIAN COMERCIO E REPRES DE BEBIDAS LTDA (84) — 27/07
+  🔴 MERCADO SAGRADA FAMILIA (84) — 24/09
   _+17 outros_

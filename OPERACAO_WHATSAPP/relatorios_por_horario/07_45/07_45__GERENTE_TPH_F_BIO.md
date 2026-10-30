@@ -1,53 +1,51 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 quinta-feira, 29/10/2026
+📅 sexta-feira, 30/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 24 • Visitas: 489 (média 20,4/vendedor)
-Sem compra +30d: 195 (39,8%) • Recorrência: 29 (5,9%)
+👥 Vendedores: 24 • Visitas: 384 (média 16,0/vendedor)
+Sem compra +30d: 162 (42,2%) • Recorrência: 24 (6,3%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPH — FÁBIO* • 29/10/2026
+📍 *TPH — FÁBIO* • 30/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 194  •  🟡 Preventivo: 0
+🔴 Última Chance: 155  •  🟡 Preventivo: 0
 
-👤 *EDERSON SUONSKI* (43 em risco)
-  🔴 60.897.158 INEZ ROSSA (111) — 21/09
-  🔴 D ALE GULA (111) — 30/06
-  🔴 YOU GOLE DISTRIBUIDORA (111) — 05/12
-  🔴 ADRIANA JULIA DA SILVA (111) — 05/12
-  🔴 ESC CELL (111) — 26/08
-  _+38 outros_
+👤 *EDERSON SUONSKI* (35 em risco)
+  🔴 PANIFICADORA E MERCEARIA BISCOITO (111) — 05/09
+  🔴 AGRANEL PRODUTOS ALIMENTICIOS LTDA (111) — 05/12
+  🔴 NBS HIGIENE (111) — 16/09
+  🔴 FARMACIA DESCONTO FACIL (111) — 19/09
+  🔴 PANIFICADORA E CONFEITARIA EUGENIA MARIA (111) — 05/12
+  _+30 outros_
 
-👤 *CRISTIAN EDUARDO RAFFAELLI* (8 em risco)
-  🔴 GATO BEER (90) — 05/12
+👤 *CRISTIAN EDUARDO RAFFAELLI* (4 em risco)
   🔴 FARMACIA NISSEI (90) — 05/12
   🔴 FARMACIA NISSEI (90) — 05/12
   🔴 FARMACIA NISSEI (90) — 05/12
-  🔴 FARMACIA NISSEI (90) — 05/12
-  _+3 outros_
+  🔴 FARMACIA PIX (90) — 29/09
 
-👤 *EDI CARLOS MEIRA* (18 em risco)
-  🔴 RB 3 COMERCIO DE COMBUSTIVEIS LTDA (114) — 10/07
-  🔴 PANIFICADORA LIDER (114) — 30/07
-  🔴 PROCEX LTDA (114) — 05/12
-  🔴 PACHECO MERCEARIA LTDA (115) — 28/09
-  🔴 MERCADINHO PROGRESSO (115) — 31/08
-  _+13 outros_
+👤 *EDI CARLOS MEIRA* (15 em risco)
+  🔴 FLEMING FILIAL 3 (114) — 29/09
+  🔴 BAR E MERCEARIA CAMARGO (114) — 05/12
+  🔴 MERCARIA SANTANA (114) — 21/07
+  🔴 JP ATACADO DAS EMBALAGENS E FESTAS (114) — 29/09
+  🔴 MERCADO DONA MARIA (114) — 05/12
+  _+10 outros_
 
-👤 *PRISCILA A D NASCIMENTO STRAPASSON* (49 em risco)
-  🔴 N/ (65) — 01/01
-  🔴 AUTO POSTO PORTO FINO LTDA (65) — 14/07
-  🔴 AUTO POSTO SOL (65) — 25/08
-  🔴 AUTO POSTO ROSANE (65) — 26/02
-  🔴 LOJA DE CONVENIENCIAS NACOES AMPM (65) — 05/12
-  _+44 outros_
+👤 *PRISCILA A D NASCIMENTO STRAPASSON* (31 em risco)
+  🔴 COPA BRASIL COMERCIO DE COMBUSTIVEIS (65) — 05/09
+  🔴 POSTO RUI BARBOSA (65) — 30/06
+  🔴 N/D (65) — 01/01
+  🔴 PAO DE QUEIJO CIRCULO MILITAR (97) — 05/12
+  🔴 PANNI (97) — 03/07
+  _+26 outros_
 
-👤 *Vendedores ligados direto ao gerente* (76 em risco)
-  🔴 HOTEL DORIZON (47) — 05/12
-  🔴 QUALITY (47) — 05/12
-  🔴 RADISON HOTEL CURITIBA (47) — 31/07
-  🔴 VCO COMERCIO DE MEDICAMENTOS LTDA - ME (47) — 05/12
-  🔴 VICCENZA RISTORANTE (47) — 05/12
-  _+71 outros_
+👤 *Vendedores ligados direto ao gerente* (70 em risco)
+  🔴 FERRAMENTAS RASKA (47) — 26/09
+  🔴 AVIARIO 3F (47) — 02/07
+  🔴 PIT PET CWB (47) — 10/07
+  🔴 MUNDO SAUDE LTDA - ME (47) — 05/12
+  🔴 FARMA TOTAL (47) — 05/12
+  _+65 outros_

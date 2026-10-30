@@ -1,37 +1,37 @@
 🌅 *ABERTURA MATINAL — API (07:45)*
-📅 quinta-feira, 29/10/2026
+📅 sexta-feira, 30/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 28 • Visitas: 433 (média 15,5/vendedor)
-Sem compra +30d: 123 (28,4%) • Recorrência: 49 (11,3%)
+👥 Vendedores: 28 • Visitas: 400 (média 14,3/vendedor)
+Sem compra +30d: 116 (29,0%) • Recorrência: 41 (10,3%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *API — MARCELO* • 29/10/2026
+📍 *API — MARCELO* • 30/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 116  •  🟡 Preventivo: 0
+🔴 Última Chance: 108  •  🟡 Preventivo: 0
 
-👤 *WASHINGTON FLORES DA ROSA* (52 em risco)
-  🔴 PANIF FERNANDES (244) — 05/12
-  🔴 FOCACCIA RESTAURANTE (244) — 05/12
-  🔴 MERCEARIA OLIVEIRA (244) — 05/09
-  🔴 PANIFICADORA E CONF SHEKINAH (244) — 21/09
-  🔴 PANIFICADORA SAO PAULO (245) — 05/12
+👤 *WASHINGTON FLORES DA ROSA* (38 em risco)
+  🔴 ZINCO FERRAGENS HIDRAULICA E ELETRICA ME (244) — 21/09
+  🔴 MAXIFARMA (244) — 05/12
+  🔴 PANIFICADORA DEGUSTI (244) — 31/07
+  🔴 POSTO CAYMAN (244) — 05/09
+  🔴 CASA DE PAES KAROA (244) — 21/09
+  _+33 outros_
+
+👤 *RODRIGO FARIAS* (52 em risco)
+  🔴 MERCADO RIBEIRO LTDA (241) — 12/08
+  🔴 PONTAROLO MERCADO E ACOUGUE LTDA (241) — 31/07
+  🔴 MERCADO DO MARCOS (241) — 05/12
+  🔴 SM SAO JOSE (241) — 12/09
+  🔴 BIG BRILHO (241) — 05/12
   _+47 outros_
 
-👤 *RODRIGO FARIAS* (55 em risco)
-  🔴 LOJA AKI TEM (239) — 05/12
-  🔴 MERCADO MANNA (241) — 19/02
-  🔴 MERCADO BURDA (241) — 16/09
-  🔴 LOJA CASA NOSSA (241) — 24/09
-  🔴 CLEVERSON RAMOS (241) — 24/09
-  _+50 outros_
-
-👤 *SUELI APARECIDA TEIXEIRA POLLI* (9 em risco)
-  🔴 MERCADO SAO LUIS (249) — 27/08
-  🔴 DROGARIA FARMAIS (249) — 12/09
-  🔴 MERCADO ELISAUER (529) — 30/07
-  🔴 PANIF E CONFEITARIA COLONIAL (529) — 28/09
-  🔴 MERCADO SANTO ANTONIO (529) — 25/09
-  _+4 outros_
+👤 *SUELI APARECIDA TEIXEIRA POLLI* (18 em risco)
+  🔴 POSTO ROTTA 400 (249) — 25/09
+  🔴 MERCADO VALIGUARA (249) — 12/09
+  🔴 MILLENIUM DOCES (529) — 29/06
+  🔴 PANIFICADORA SANTA CRUZ (529) — 25/09
+  🔴 BARAO CONVENIENCIA (529) — 03/07
+  _+13 outros_

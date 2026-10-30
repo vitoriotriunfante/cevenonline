@@ -1,45 +1,43 @@
 🌅 *ABERTURA MATINAL — TCG (07:45)*
-📅 quinta-feira, 29/10/2026
+📅 sexta-feira, 30/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 20 • Visitas: 188 (média 9,4/vendedor)
-Sem compra +30d: 57 (30,3%) • Recorrência: 10 (5,3%)
+👥 Vendedores: 20 • Visitas: 190 (média 9,5/vendedor)
+Sem compra +30d: 79 (41,6%) • Recorrência: 18 (9,5%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCG — DANILO* • 29/10/2026
+📍 *TCG — DANILO* • 30/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 54  •  🟡 Preventivo: 0
+🔴 Última Chance: 49  •  🟡 Preventivo: 0
 
-👤 *DELINLSON ANTONIO LIMA SILVA* (22 em risco)
-  🔴 COMERCIO DE ALIMENTOS TRIUNFO (456) — 26/09
-  🔴 BAR E MERCEARIA MOURA (456) — 21/09
-  🔴 MERCADO BRASIL (456) — 15/09
-  🔴 MERCADINHO BETANIA (456) — 15/09
-  🔴 MERCADO E CONVENIENCIA MIRASOL (461) — 05/12
-  _+17 outros_
-
-👤 *EDSON RODRIGO LINIA* (6 em risco)
-  🔴 COMERCIAL ABENCOADO (458) — 05/12
-  🔴 MERCEARIA LLUSCO (458) — 21/08
-  🔴 COMERCIAL RIBAS (474) — 25/09
-  🔴 SAO BENTO FL 86 (475) — 05/12
-  🔴 MS COMERCIO E SERVICO LTDA (475) — 16/09
-  _+1 outros_
-
-👤 *Vendedores ligados direto ao gerente* (18 em risco)
-  🔴 DISTRIBUIDORA 67 (489) — 05/12
-  🔴 MERCADO MADU (489) — 05/12
-  🔴 SUPERMERCADO TARUMA (489) — 05/12
-  🔴 ACOUGUE GK (489) — 05/12
-  🔴 SHALOM TRANSPORTES (489) — 05/12
+👤 *DELINLSON ANTONIO LIMA SILVA* (18 em risco)
+  🔴 MERC LUMER (456) — 15/09
+  🔴 MERCADINHO JAIRO (456) — 05/12
+  🔴 COMERCIAL DUTRA (461) — 05/12
+  🔴 SUPERMERCADO MIYAKE (468) — 31/08
+  🔴 HIPER POPULAR (468) — 01/01
   _+13 outros_
 
-👤 *TIAGO SANTOS CORREA* (8 em risco)
-  🔴 IMPORTS 67 (472) — 25/08
-  🔴 JUNIOR GAS E CONVENIENCIA (473) — 11/09
-  🔴 MERCADO MANGABA (473) — 28/09
-  🔴 ACOUGUE PANTANEIRO (486) — 17/09
-  🔴 CICLO PARK E MERCEARIA (486) — 19/09
-  _+3 outros_
+👤 *EDSON RODRIGO LINIA* (4 em risco)
+  🔴 CASA DE CARNE CASTELO (458) — 05/12
+  🔴 MERCADO BOM PRECO (475) — 05/12
+  🔴 MERCADO PAZ (475) — 26/09
+  🔴 MERCEARIA E CONVENIENCIA BOLICHUS (476) — 23/09
+
+👤 *Vendedores ligados direto ao gerente* (12 em risco)
+  🔴 MERCADO SOARES (489) — 05/12
+  🔴 NA BOA SUPERMERCADO (489) — 05/12
+  🔴 CASA DE CARNE EL SHADDAY (489) — 05/12
+  🔴 PONTO 10 (489) — 05/12
+  🔴 PROVINCIA DA CARNE (489) — 19/09
+  _+7 outros_
+
+👤 *TIAGO SANTOS CORREA* (15 em risco)
+  🔴 DINEI CONVENIENCIA (472) — 05/12
+  🔴 SUPERMERCADO PONTO MAXIMO (473) — 16/09
+  🔴 CONV BOM JESUS (473) — 16/09
+  🔴 MINI MERCADO LEVE + (473) — 01/01
+  🔴 CONVENIENCIA DOIS AMIGOS (487) — 05/12
+  _+10 outros_

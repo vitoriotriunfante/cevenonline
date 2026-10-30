@@ -1,37 +1,37 @@
 🌅 *ABERTURA MATINAL — TSJ (07:45)*
-📅 quinta-feira, 29/10/2026
+📅 sexta-feira, 30/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 22 • Visitas: 359 (média 16,3/vendedor)
-Sem compra +30d: 127 (35,4%) • Recorrência: 32 (8,9%)
+👥 Vendedores: 22 • Visitas: 311 (média 14,1/vendedor)
+Sem compra +30d: 109 (35,0%) • Recorrência: 23 (7,4%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TSJ — SALDANHA* • 29/10/2026
+📍 *TSJ — SALDANHA* • 30/10/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 124  •  🟡 Preventivo: 0
+🔴 Última Chance: 99  •  🟡 Preventivo: 0
 
-👤 *ANA CRISTINA DOS SANTOS YAMATO* (41 em risco)
-  🔴 DOM RUBI (8) — 26/06
-  🔴 ROSA DE SARON EVENTOS (8) — 05/12
-  🔴 MINHA QUITANDINHA (8) — 04/09
-  🔴 SUPERMERCADO MAX VALE (10) — 08/09
-  🔴 MERCADINHO SAO FRANCISCO (10) — 17/09
-  _+36 outros_
+👤 *ANA CRISTINA DOS SANTOS YAMATO* (27 em risco)
+  🔴 CGS ALIMENTICIOS LTDA (5) — 21/09
+  🔴 MERCADINHO VALE OURO (8) — 05/12
+  🔴 SUPERMERCADO THAUAN (8) — 05/12
+  🔴 BAR DO ELDO (8) — 28/09
+  🔴 RG PIT STOP (10) — 21/09
+  _+22 outros_
 
-👤 *JULIO CESAR SOARES DE PAULO* (37 em risco)
-  🔴 MERCEARIA BIQUINHA (7) — 15/05
-  🔴 ABOUT CLEANING (7) — 27/08
-  🔴 MERCADO BACANA (7) — 31/07
-  🔴 ARMAZEM DIVINO (7) — 22/09
-  🔴 AMOR DA SERRA (7) — 01/01
-  _+32 outros_
+👤 *JULIO CESAR SOARES DE PAULO* (29 em risco)
+  🔴 ESTACAO MIRAGLIA CAFE E EMPORIO (7) — 28/05
+  🔴 LANCHANETA MC JOM (7) — 21/09
+  🔴 LANCHONETE DO DANIEL (7) — 31/08
+  🔴 SUPERMERCADO SUPIMPA (7) — 31/07
+  🔴 CAMPOS CLEAN PRODUTOS DE LIMPEZA (7) — 21/07
+  _+24 outros_
 
-👤 *VICTOR HUGO FONSECA CARVALHO* (46 em risco)
-  🔴 GETPHONE (16) — 31/07
-  🔴 AVICOLA BOM APETITE (16) — 07/09
-  🔴 PADARIA TITA (16) — 18/09
-  🔴 BAR DO JOAO DIAS (23) — 07/09
-  🔴 BAR DO LAGOINHA (23) — 25/07
-  _+41 outros_
+👤 *VICTOR HUGO FONSECA CARVALHO* (43 em risco)
+  🔴 COMERCIAL ANTUNES SP (16) — 05/12
+  🔴 SUPERMERCADOS ALBUQUERQUE SOUZA LTDA (16) — 18/08
+  🔴 MERCEARIA CUNHA (16) — 28/07
+  🔴 MERCEARIA BENFICA (16) — 23/09
+  🔴 MERCEARIA E QUITANDA E E LTDA ME (16) — 29/06
+  _+38 outros_
