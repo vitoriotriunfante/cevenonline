@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-30T22:19:00.686471Z",
+  "gerado_em": "2026-10-30T22:33:55.429265Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -20,7 +20,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 37129,
+  "total_lances_auditados": 37134,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -59,16 +59,16 @@
       "sigla": "TBL",
       "total_vendedores": 30,
       "jogos": 14,
-      "pts_tabela": 18,
-      "vitorias": 2,
-      "empates": 12,
+      "pts_tabela": 20,
+      "vitorias": 3,
+      "empates": 11,
       "derrotas": 0,
-      "gp": 7718,
+      "gp": 7725,
       "gc": 4356,
-      "sg": 3362,
-      "aprov": 42.9,
+      "sg": 3369,
+      "aprov": 47.6,
       "super_pedidos": 52,
-      "inativos_resgatados": 181,
+      "inativos_resgatados": 182,
       "forma": [
         "E",
         "E",
@@ -83,7 +83,7 @@
         "V",
         "E",
         "E",
-        "E"
+        "V"
       ],
       "pos": 2,
       "pos_ant": 2
@@ -130,8 +130,8 @@
       "empates": 14,
       "derrotas": 0,
       "gp": 7454,
-      "gc": 2152,
-      "sg": 5302,
+      "gc": 2157,
+      "sg": 5297,
       "aprov": 33.3,
       "super_pedidos": 26,
       "inativos_resgatados": 123,
@@ -162,11 +162,11 @@
       "vitorias": 0,
       "empates": 14,
       "derrotas": 0,
-      "gp": 7779,
+      "gp": 7784,
       "gc": 2929,
-      "sg": 4850,
+      "sg": 4855,
       "aprov": 33.3,
-      "super_pedidos": 67,
+      "super_pedidos": 68,
       "inativos_resgatados": 232,
       "forma": [
         "E",
@@ -295,8 +295,8 @@
       "empates": 14,
       "derrotas": 0,
       "gp": 3562,
-      "gc": 3555,
-      "sg": 7,
+      "gc": 3560,
+      "sg": 2,
       "aprov": 33.3,
       "super_pedidos": 56,
       "inativos_resgatados": 47,
@@ -428,14 +428,14 @@
       ],
       "total_vendedores": 30,
       "jogos": 14,
-      "pts_tabela": 18,
-      "vitorias": 2,
-      "empates": 12,
+      "pts_tabela": 20,
+      "vitorias": 3,
+      "empates": 11,
       "derrotas": 0,
-      "gp": 7718,
+      "gp": 7725,
       "gc": 4356,
-      "sg": 3362,
-      "aprov": 42.9,
+      "sg": 3369,
+      "aprov": 47.6,
       "forma": [
         "E",
         "E",
@@ -450,7 +450,7 @@
         "V",
         "E",
         "E",
-        "E"
+        "V"
       ],
       "pos": 2,
       "pos_ant": 2
@@ -501,8 +501,8 @@
       "empates": 13,
       "derrotas": 0,
       "gp": 7454,
-      "gc": 2152,
-      "sg": 5302,
+      "gc": 2157,
+      "sg": 5297,
       "aprov": 38.1,
       "forma": [
         "E",
@@ -534,9 +534,9 @@
       "vitorias": 0,
       "empates": 14,
       "derrotas": 0,
-      "gp": 7779,
+      "gp": 7784,
       "gc": 2929,
-      "sg": 4850,
+      "sg": 4855,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -671,8 +671,8 @@
       "empates": 14,
       "derrotas": 0,
       "gp": 2344,
-      "gc": 2110,
-      "sg": 234,
+      "gc": 2115,
+      "sg": 229,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -1809,6 +1809,100 @@
       "pos_ant": 9
     },
     {
+      "supervisor": "IGOR RODRIGUES DUARTE",
+      "filial": "TBL",
+      "canal": "VAREJO",
+      "gerente": "Fábio",
+      "total_vendedores": 7,
+      "jogos": 14,
+      "pts_tabela": 24,
+      "vitorias": 5,
+      "empates": 9,
+      "derrotas": 0,
+      "gp": 1988,
+      "gc": 1034,
+      "sg": 954,
+      "aprov": 57.1,
+      "forma": [
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "V",
+        "E",
+        "V",
+        "V",
+        "V",
+        "E",
+        "E",
+        "V"
+      ],
+      "plus_lideranca": 115,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 11,
+      "pos_ant": 12
+    },
+    {
       "supervisor": "IVONEI PEDRO DE MOURA",
       "filial": "ABC",
       "canal": "VAREJO",
@@ -1899,102 +1993,8 @@
         }
       },
       "plus_pendente": false,
-      "pos": 11,
-      "pos_ant": 11
-    },
-    {
-      "supervisor": "IGOR RODRIGUES DUARTE",
-      "filial": "TBL",
-      "canal": "VAREJO",
-      "gerente": "Fábio",
-      "total_vendedores": 7,
-      "jogos": 14,
-      "pts_tabela": 22,
-      "vitorias": 4,
-      "empates": 10,
-      "derrotas": 0,
-      "gp": 1981,
-      "gc": 1034,
-      "sg": 947,
-      "aprov": 52.4,
-      "forma": [
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "V",
-        "E",
-        "V",
-        "V",
-        "V",
-        "E",
-        "E",
-        "E"
-      ],
-      "plus_lideranca": 115,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-22": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-23": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-26": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-27": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-28": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-29": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-30": {
-          "compromisso": 5,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
       "pos": 12,
-      "pos_ant": 12
+      "pos_ant": 11
     },
     {
       "supervisor": "RODRIGO STELLEO COSTA LEITE",
@@ -2478,8 +2478,8 @@
       "empates": 13,
       "derrotas": 0,
       "gp": 2426,
-      "gc": 1142,
-      "sg": 1284,
+      "gc": 1147,
+      "sg": 1279,
       "aprov": 38.1,
       "forma": [
         "E",
@@ -3041,9 +3041,9 @@
       "vitorias": 1,
       "empates": 11,
       "derrotas": 2,
-      "gp": 831,
+      "gp": 836,
       "gc": 354,
-      "sg": 477,
+      "sg": 482,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -13830,6 +13830,49 @@
       "pos_filial_ant": 3
     },
     {
+      "rca": "179",
+      "nome": "FERNANDO LOPES BRUM",
+      "filial": "TBL",
+      "supervisor": "IGOR RODRIGUES DUARTE",
+      "gerente": "Fábio",
+      "canal": "VAREJO",
+      "jogos": 14,
+      "vitorias": 5,
+      "empates": 3,
+      "derrotas": 6,
+      "pts_tabela": 18,
+      "aprov": 42.9,
+      "gp": 177,
+      "gc": 80,
+      "sg": 97,
+      "super_pedidos": 0,
+      "inativos_resgatados": 7,
+      "forma": [
+        "E",
+        "E",
+        "V",
+        "D",
+        "E",
+        "D",
+        "V",
+        "D",
+        "V",
+        "D",
+        "V",
+        "D",
+        "D",
+        "V"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 125,
+      "pos_filial": 17,
+      "pos_brasil_ant": 140,
+      "pos_filial_ant": 18
+    },
+    {
       "rca": "102",
       "nome": "HEMERSON LUIS COSTA CHUSTAKE",
       "filial": "TPH",
@@ -13953,7 +13996,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 125,
+      "pos_brasil": 126,
       "pos_filial": 17,
       "pos_brasil_ant": 123,
       "pos_filial_ant": 16
@@ -13996,7 +14039,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 126,
+      "pos_brasil": 127,
       "pos_filial": 8,
       "pos_brasil_ant": 148,
       "pos_filial_ant": 9
@@ -14039,7 +14082,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 127,
+      "pos_brasil": 128,
       "pos_filial": 11,
       "pos_brasil_ant": 130,
       "pos_filial_ant": 11
@@ -14082,7 +14125,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 128,
+      "pos_brasil": 129,
       "pos_filial": 15,
       "pos_brasil_ant": 124,
       "pos_filial_ant": 15
@@ -14211,7 +14254,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 129,
+      "pos_brasil": 130,
       "pos_filial": 5,
       "pos_brasil_ant": 125,
       "pos_filial_ant": 5
@@ -14254,7 +14297,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 130,
+      "pos_brasil": 131,
       "pos_filial": 21,
       "pos_brasil_ant": 126,
       "pos_filial_ant": 20
@@ -14297,7 +14340,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 131,
+      "pos_brasil": 132,
       "pos_filial": 4,
       "pos_brasil_ant": 127,
       "pos_filial_ant": 4
@@ -14340,8 +14383,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 132,
-      "pos_filial": 17,
+      "pos_brasil": 133,
+      "pos_filial": 18,
       "pos_brasil_ant": 128,
       "pos_filial_ant": 17
     },
@@ -14383,7 +14426,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 133,
+      "pos_brasil": 134,
       "pos_filial": 18,
       "pos_brasil_ant": 129,
       "pos_filial_ant": 17
@@ -14426,7 +14469,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 134,
+      "pos_brasil": 135,
       "pos_filial": 9,
       "pos_brasil_ant": 132,
       "pos_filial_ant": 8
@@ -14469,7 +14512,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 135,
+      "pos_brasil": 136,
       "pos_filial": 5,
       "pos_brasil_ant": 134,
       "pos_filial_ant": 5
@@ -14512,7 +14555,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 136,
+      "pos_brasil": 137,
       "pos_filial": 19,
       "pos_brasil_ant": 137,
       "pos_filial_ant": 20
@@ -14555,7 +14598,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 137,
+      "pos_brasil": 138,
       "pos_filial": 12,
       "pos_brasil_ant": 138,
       "pos_filial_ant": 12
@@ -14598,7 +14641,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 138,
+      "pos_brasil": 139,
       "pos_filial": 14,
       "pos_brasil_ant": 135,
       "pos_filial_ant": 14
@@ -14684,7 +14727,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 139,
+      "pos_brasil": 140,
       "pos_filial": 15,
       "pos_brasil_ant": 161,
       "pos_filial_ant": 17
@@ -14727,53 +14770,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 140,
-      "pos_filial": 18,
-      "pos_brasil_ant": 164,
-      "pos_filial_ant": 21
-    },
-    {
-      "rca": "179",
-      "nome": "FERNANDO LOPES BRUM",
-      "filial": "TBL",
-      "supervisor": "IGOR RODRIGUES DUARTE",
-      "gerente": "Fábio",
-      "canal": "VAREJO",
-      "jogos": 14,
-      "vitorias": 4,
-      "empates": 4,
-      "derrotas": 6,
-      "pts_tabela": 16,
-      "aprov": 38.1,
-      "gp": 170,
-      "gc": 80,
-      "sg": 90,
-      "super_pedidos": 0,
-      "inativos_resgatados": 6,
-      "forma": [
-        "E",
-        "E",
-        "V",
-        "D",
-        "E",
-        "D",
-        "V",
-        "D",
-        "V",
-        "D",
-        "V",
-        "D",
-        "D",
-        "E"
-      ],
-      "streak": 1,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
       "pos_brasil": 141,
       "pos_filial": 19,
-      "pos_brasil_ant": 140,
-      "pos_filial_ant": 18
+      "pos_brasil_ant": 164,
+      "pos_filial_ant": 21
     },
     {
       "rca": "381",
@@ -19390,8 +19390,8 @@
       "pts_tabela": 8,
       "aprov": 20.5,
       "gp": 44,
-      "gc": 45,
-      "sg": -1,
+      "gc": 50,
+      "sg": -6,
       "super_pedidos": 0,
       "inativos_resgatados": 2,
       "forma": [
@@ -22872,10 +22872,10 @@
       "derrotas": 10,
       "pts_tabela": 3,
       "aprov": 7.7,
-      "gp": 49,
+      "gp": 54,
       "gc": 126,
-      "sg": -77,
-      "super_pedidos": 1,
+      "sg": -72,
+      "super_pedidos": 2,
       "inativos_resgatados": 2,
       "forma": [
         "D",
@@ -23088,8 +23088,8 @@
       "pts_tabela": 3,
       "aprov": 7.7,
       "gp": 129,
-      "gc": 287,
-      "sg": -158,
+      "gc": 292,
+      "sg": -163,
       "super_pedidos": 0,
       "inativos_resgatados": 3,
       "forma": [
@@ -29687,7 +29687,7 @@
         "supervisor": "YASMIM PRISCILA DA SILVA",
         "gerente": "Becher",
         "meta_mes": 121000,
-        "pct_hoje": 121.3,
+        "pct_hoje": 118.9,
         "fases": [
           {
             "n": 1,
@@ -31172,7 +31172,7 @@
         "supervisor": "JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR",
         "gerente": "Becher",
         "meta_mes": 83000,
-        "pct_hoje": 103.4,
+        "pct_hoje": 102.3,
         "fases": [
           {
             "n": 1,
@@ -31982,7 +31982,7 @@
         "supervisor": "ALEX SANDRO SOARES ELIAS",
         "gerente": "Diego",
         "meta_mes": 1100000,
-        "pct_hoje": 98.5,
+        "pct_hoje": 98.4,
         "fases": [
           {
             "n": 1,
@@ -32657,7 +32657,7 @@
         "supervisor": "NEIVA CLEONICE SERRA ISOPPO",
         "gerente": "Diego",
         "meta_mes": 1680000,
-        "pct_hoje": 31.5,
+        "pct_hoje": 34,
         "fases": [
           {
             "n": 1,
@@ -33737,7 +33737,7 @@
         "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
         "gerente": "Vagner",
         "meta_mes": 401170,
-        "pct_hoje": 107.3,
+        "pct_hoje": 109.3,
         "fases": [
           {
             "n": 1,
@@ -35627,7 +35627,7 @@
         "supervisor": "PEDRO PAULO PERICLES SALAZAR",
         "gerente": "Danilo",
         "meta_mes": 140000,
-        "pct_hoje": 90.4,
+        "pct_hoje": 100.3,
         "fases": [
           {
             "n": 1,
@@ -35762,7 +35762,7 @@
         "supervisor": "LUIS THIAGO VIRTUOSO BOEIRA",
         "gerente": "Diego",
         "meta_mes": 760000,
-        "pct_hoje": 84.3,
+        "pct_hoje": 83.8,
         "fases": [
           {
             "n": 1,
@@ -37112,7 +37112,7 @@
         "supervisor": "ANDERSON FERNANDES CORREIA",
         "gerente": "Marcelo",
         "meta_mes": 102938,
-        "pct_hoje": 237.7,
+        "pct_hoje": 243.3,
         "fases": [
           {
             "n": 1,
@@ -37517,7 +37517,7 @@
         "supervisor": "PEDRO PAULO PERICLES SALAZAR",
         "gerente": "",
         "meta_mes": 498528,
-        "pct_hoje": 77.9,
+        "pct_hoje": 79,
         "fases": [
           {
             "n": 1,
@@ -37652,7 +37652,7 @@
         "supervisor": "SAMUEL PALHANO DE OLIVEIRA",
         "gerente": "Radke / Leandro",
         "meta_mes": 328637,
-        "pct_hoje": 118.1,
+        "pct_hoje": 118,
         "fases": [
           {
             "n": 1,
@@ -39407,7 +39407,7 @@
         "supervisor": "RAFAEL DA SILVA CARPENA",
         "gerente": "Radke / Leandro",
         "meta_mes": 183500,
-        "pct_hoje": 104.8,
+        "pct_hoje": 104.5,
         "fases": [
           {
             "n": 1,
@@ -39677,7 +39677,7 @@
         "supervisor": "YASMIM PRISCILA DA SILVA",
         "gerente": "Becher",
         "meta_mes": 181000,
-        "pct_hoje": 95.7,
+        "pct_hoje": 92,
         "fases": [
           {
             "n": 1,
@@ -41162,7 +41162,7 @@
         "supervisor": "YASMIM PRISCILA DA SILVA",
         "gerente": "Becher",
         "meta_mes": 114000,
-        "pct_hoje": 26.4,
+        "pct_hoje": 23.1,
         "fases": [
           {
             "n": 1,
@@ -41567,7 +41567,7 @@
         "supervisor": "LUCAS RAMOS MONTAGNHANI",
         "gerente": "Vagner",
         "meta_mes": 466367,
-        "pct_hoje": 89.9,
+        "pct_hoje": 85.6,
         "fases": [
           {
             "n": 1,
@@ -41702,7 +41702,7 @@
         "supervisor": "LUCAS RAMOS MONTAGNHANI",
         "gerente": "Vagner",
         "meta_mes": 476922,
-        "pct_hoje": 86,
+        "pct_hoje": 83.4,
         "fases": [
           {
             "n": 1,
@@ -42512,7 +42512,7 @@
         "supervisor": "JEFERSON ANTONIO HOESER",
         "gerente": "Radke / Leandro",
         "meta_mes": 750000,
-        "pct_hoje": 119.4,
+        "pct_hoje": 118.9,
         "fases": [
           {
             "n": 1,
@@ -44537,7 +44537,7 @@
         "supervisor": "THIAGO DA SILVA CONEGUNDES",
         "gerente": "Cleverson",
         "meta_mes": 319509,
-        "pct_hoje": 92.9,
+        "pct_hoje": 94.1,
         "fases": [
           {
             "n": 1,
@@ -44672,7 +44672,7 @@
         "supervisor": "AILTON LUIZ ARENDT JUNIOR",
         "gerente": "Fábio",
         "meta_mes": 445354,
-        "pct_hoje": 139.2,
+        "pct_hoje": 130.9,
         "fases": [
           {
             "n": 1,
@@ -46834,7 +46834,7 @@
         "total_vendedores": 6,
         "com_meta": 6,
         "meta_mes": 1965961,
-        "pct_hoje": 118.2,
+        "pct_hoje": 118.6,
         "fases": [
           {
             "n": 1,
@@ -46946,7 +46946,7 @@
         "total_vendedores": 5,
         "com_meta": 5,
         "meta_mes": 1300833,
-        "pct_hoje": 121.3,
+        "pct_hoje": 121.7,
         "fases": [
           {
             "n": 1,
@@ -47282,7 +47282,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 2080000,
-        "pct_hoje": 93,
+        "pct_hoje": 92.9,
         "fases": [
           {
             "n": 1,
@@ -47394,7 +47394,7 @@
         "total_vendedores": 7,
         "com_meta": 7,
         "meta_mes": 840000,
-        "pct_hoje": 110,
+        "pct_hoje": 108.5,
         "fases": [
           {
             "n": 1,
@@ -47730,7 +47730,7 @@
         "total_vendedores": 6,
         "com_meta": 6,
         "meta_mes": 3135270,
-        "pct_hoje": 99.6,
+        "pct_hoje": 98.5,
         "fases": [
           {
             "n": 1,
@@ -47842,7 +47842,7 @@
         "total_vendedores": 3,
         "com_meta": 3,
         "meta_mes": 1665000,
-        "pct_hoje": 133.4,
+        "pct_hoje": 133.2,
         "fases": [
           {
             "n": 1,
@@ -48178,7 +48178,7 @@
         "total_vendedores": 3,
         "com_meta": 2,
         "meta_mes": 1980000,
-        "pct_hoje": 33.4,
+        "pct_hoje": 35.5,
         "fases": [
           {
             "n": 1,
@@ -48290,7 +48290,7 @@
         "total_vendedores": 1,
         "com_meta": 1,
         "meta_mes": 328637,
-        "pct_hoje": 118.1,
+        "pct_hoje": 118,
         "fases": [
           {
             "n": 1,
@@ -49186,7 +49186,7 @@
         "total_vendedores": 1,
         "com_meta": 1,
         "meta_mes": 750000,
-        "pct_hoje": 119.4,
+        "pct_hoje": 118.9,
         "fases": [
           {
             "n": 1,
@@ -49298,7 +49298,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 2458528,
-        "pct_hoje": 49.3,
+        "pct_hoje": 50.1,
         "fases": [
           {
             "n": 1,
@@ -49522,7 +49522,7 @@
         "total_vendedores": 7,
         "com_meta": 7,
         "meta_mes": 4789566.17,
-        "pct_hoje": 77.9,
+        "pct_hoje": 78,
         "fases": [
           {
             "n": 1,
@@ -49634,7 +49634,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 1858056,
-        "pct_hoje": 93,
+        "pct_hoje": 91,
         "fases": [
           {
             "n": 1,
