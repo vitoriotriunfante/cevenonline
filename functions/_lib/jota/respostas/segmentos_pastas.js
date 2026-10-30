@@ -142,17 +142,18 @@ export function respPastas(c, t, pessoa) {
 
 // 3. ESTRATÉGIA DE RECUPERAÇÃO DE VENDAS / TOP CLIENTES (Caso Fábio TBL - 500 mil)
 export async function respEstrategiaFabio(env, B, c, texto, E) {
+  const filAlvo = (E.filiais && E.filiais.length === 1) ? E.filiais[0] : (E.filial || 'TBL');
   let ant, mes, reps;
   try {
-    ant = JSON.parse(await B.raw('public/vendas_mes_anterior/TBL.json') || '{}');
-    mes = JSON.parse(await B.raw('public/vendas_mes/TBL.json') || '{}');
+    ant = JSON.parse(await B.raw(`public/vendas_mes_anterior/${filAlvo}.json`) || '{}');
+    mes = JSON.parse(await B.raw(`public/vendas_mes/${filAlvo}.json`) || '{}');
     reps = JSON.parse(await B.raw('public/mostra_vendedores.json') || '{}');
   } catch (e) {
-    return '📊 Base de fechamento de TBL sendo compilada. Tente em alguns minutos.';
+    return `📊 Base de fechamento de ${filAlvo} sendo compilada. Tente em alguns minutos.`;
   }
 
   const rcaMap = {};
-  for (const v of ((reps.filiais && reps.filiais['TBL']) || [])) {
+  for (const v of ((reps.filiais && reps.filiais[filAlvo]) || [])) {
     rcaMap[String(v.rca)] = { nome: v.nome, supervisor: v.supervisor };
   }
 
@@ -175,13 +176,13 @@ export async function respEstrategiaFabio(env, B, c, texto, E) {
     const vOut = totOut[cod] || 0;
     const gap = vSet - vOut;
     if (gap >= 5000) {
-      const rInfo = rcaMap[rcaCli[cod]] || { nome: 'RCA ' + rcaCli[cod], supervisor: 'Outros TBL' };
+      const rInfo = rcaMap[rcaCli[cod]] || { nome: 'RCA ' + rcaCli[cod], supervisor: 'Outros ' + filAlvo };
       gaps.push({
         cod,
         nome: titulo(cliNome[cod] || 'Cliente ' + cod),
         rca: rcaCli[cod],
         rcaNome: nome2(rInfo.nome),
-        supervisor: rInfo.supervisor || 'Geral TBL',
+        supervisor: rInfo.supervisor || 'Geral ' + filAlvo,
         vSet: Math.round(vSet),
         vOut: Math.round(vOut),
         gap: Math.round(gap)
@@ -217,10 +218,37 @@ export async function respEstrategiaFabio(env, B, c, texto, E) {
     return sB - sA;
   });
 
+  // Tenta gerar análise estratégica sênior via Gemini Generativo
+  try {
+    const dadosContexto = {
+      filial: filAlvo,
+      totalGapGeral,
+      foco: ehFocoFat ? 'Volume e Faturamento' : ehFocoPos ? 'Positivação e Inativos Zero' : 'Geral',
+      supervisores: supsOrd.slice(0, 5).map(([sup, lista]) => ({
+        supervisor: sup,
+        buracoTotal: lista.reduce((s, x) => s + x.gap, 0),
+        topContasQueda: lista.slice(0, 3).map((g) => ({
+          cliente: g.nome,
+          codigo: g.cod,
+          rca: `${g.rca} (${g.rcaNome})`,
+          compraSetembro: g.vSet,
+          compraOutubro: g.vOut,
+          gapRecuperar: g.gap
+        }))
+      }))
+    };
+    const iaOut = await analisaEstrategiaComGemini({ env, B, c, texto, E, dadosContexto });
+    if (iaOut && iaOut.length > 100) {
+      return iaOut;
+    }
+  } catch (e) {
+    console.error('Falha Gemini Estratégico:', e);
+  }
+
   const out = [
-    `🎯 *ESTRATÉGIA EXECUTIVA TBL — RECUPERAÇÃO DE R$ 500 MIL*${tituloFoco}`,
+    `🎯 *ESTRATÉGIA EXECUTIVA ${filAlvo} — PLANO DE RECUPERAÇÃO*${tituloFoco}`,
     `Análise de contas reais: *${gapsFiltrados.length} clientes Curva A/B* ${ehFocoPos ? 'sem nenhuma compra em Outubro' : 'com perda de faturamento em relação a Setembro'}.`,
-    `💰 *Buraco total identificado:* *${R$(totalGapGeral)}* (Para bater os R$ 500k, precisamos capturar apenas 26% desse valor!).`,
+    `💰 *Buraco total identificado:* *${R$(totalGapGeral)}*.`,
     '',
     '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
   ];
@@ -239,9 +267,9 @@ export async function respEstrategiaFabio(env, B, c, texto, E) {
 
   out.push(
     '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
-    '📲 *MENSAGEM PRONTA PARA O FÁBIO ENVIAR AOS SUPERVISORES:*',
+    '📲 *MENSAGEM PRONTA PARA ENVIAR AOS SUPERVISORES:*',
     '',
-    '_"Time, analisamos os clientes que compraram forte no mês passado e despencaram ou zeraram em outubro. O nosso gap de R$ 500k está concentrado nas 3 maiores contas de cada um (São Francisco, Casquinha, Irmãos Sartori, Amaro, Miliozzi). Precisamos acionar esses clientes com reposição de Amparo, Marilan e Snickers para faturar ainda hoje. Foco total nelas!"_',
+    `_"Time ${filAlvo}, analisamos os clientes que compraram forte no mês passado e despencaram ou zeraram neste mês. O nosso gap está concentrado nas 3 maiores contas de cada equipe. Precisamos acionar esses clientes com reposição imediata para faturar ainda hoje. Foco total nelas!"_`,
     '',
     SUGESTAO + 'peça "prospecção vendedor <código>" para ver os clientes da rota de hoje de cada RCA.'
   );
@@ -290,6 +318,7 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
     alvoVend = V.find((v) => String(v.rca) === String(pessoa.alvo.rca) && (!pessoa.alvo.filial || v.filial === pessoa.alvo.filial)) || pessoa.alvo;
   } else if (codCitado && !['10', '20', '30', '50'].includes(codCitado)) {
     alvoVend = V.find((v) => String(v.rca) === codCitado && (!E.filiais || !E.filiais.length || E.filiais.includes(v.filial))) ||
+               V.find((v) => String(v.rca) === codCitado) ||
                (E.vend || []).find((v) => String(v.rca) === codCitado);
   } else if (E.rca) {
     alvoVend = V.find((v) => String(v.rca) === String(E.rca) && v.filial === E.filiais[0]);
@@ -328,10 +357,13 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
           const rz = titulo(p.razao || p.nome || 'Cliente Potencial');
           const end = p.endereco ? ` · ${p.endereco}` : '';
           const cnae = p.cnae_desc || p.familia || 'Comércio';
-          const tel = p.telefone || p.celular || p.fone ? ` · 📞 ${p.telefone || p.celular || p.fone}` : '';
-          const queryMaps = encodeURIComponent(`${p.razao || p.nome || ''} ${p.endereco || ''} ${alvoVend.filial || ''}`);
-          const mapsLink = `https://www.google.com/maps/search/?api=1&query=${queryMaps}`;
-          return `${i + 1}. *${rz}* (${cnae})\n   📍 CNPJ: ${p.cnpj || '—'}${end}${tel}\n   🗺️ *Navegar no Maps:* ${mapsLink}`;
+          const tel = p.telefone || p.celular || p.fone;
+          const telLinha = tel ? `\n   📞 Telefone: ${tel}` : '\n   📞 Telefone: Consultar no LinkUp';
+          const mapsLink = (p.lat && p.lon) ? `https://maps.google.com/?q=${p.lat},${p.lon}` : `https://maps.google.com/?q=${encodeURIComponent((p.razao || p.nome || '') + ' ' + (alvoVend.filial || ''))}`;
+          const cnpjFmt = p.cnpj && String(p.cnpj).replace(/\D/g, '').length === 14
+            ? String(p.cnpj).replace(/\D/g, '').replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
+            : (p.cnpj || '—');
+          return `${i + 1}. *${rz}* (${cnae})\n   📍 CNPJ: ${cnpjFmt}${end}${telLinha}\n   🗺️ *Abrir Maps:* ${mapsLink}`;
         }),
         '',
         SUGESTAO + 'visitar esses pontos no caminho da rota e cadastrar direto no LinkUp para garantir o bônus de ativação!'
@@ -346,6 +378,19 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
     }
     pontosProspect = pontosProspect.slice(0, 5);
 
+    // Tenta carregar telefones do banco se disponível
+    const mapaTels = new Map();
+    if (B.env && B.env.DB && pontosProspect.length) {
+      try {
+        const cnpjsLimpos = pontosProspect.map((p) => String(p[3]).replace(/\D/g, '')).filter((c) => c.length === 14);
+        if (cnpjsLimpos.length) {
+          const placeholders = cnpjsLimpos.map(() => '?').join(',');
+          const { results: pro } = await B.env.DB.prepare(`SELECT cnpj, telefone FROM prospects_receita WHERE cnpj IN (${placeholders})`).bind(...cnpjsLimpos).all();
+          for (const r of (pro || [])) if (r.telefone) mapaTels.set(String(r.cnpj).replace(/\D/g, ''), r.telefone);
+        }
+      } catch (e) {}
+    }
+
     if (pontosProspect.length) {
       return [
         `📍 *Clientes para Prospecção no Mapa — ${vn(alvoVend)}* (${alvoVend.filial})${nomeFiltroSeg ? ` [Foco: ${nomeFiltroSeg}]` : ''}`,
@@ -354,9 +399,14 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
         ...pontosProspect.map((p, i) => {
           const rz = titulo(p[5]);
           const seg = p[4] || 'Varejo';
-          const queryMaps = encodeURIComponent(`${p[5]} ${alvoVend.filial || ''}`);
-          const mapsLink = `https://www.google.com/maps/search/?api=1&query=${queryMaps}`;
-          return `${i + 1}. *${rz}* (${seg})\n   📍 CNPJ: ${p[3]}\n   🗺️ *Navegar no Maps:* ${mapsLink}`;
+          const cnpjLimpo = String(p[3] || '').replace(/\D/g, '');
+          const cnpjFmt = cnpjLimpo.length === 14
+            ? cnpjLimpo.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
+            : (p[3] || '—');
+          const tel = mapaTels.get(cnpjLimpo) || p[6];
+          const telLinha = tel ? `\n   📞 Telefone: ${tel}` : '\n   📞 Telefone: Consultar no LinkUp';
+          const mapsLink = (p[0] && p[1]) ? `https://maps.google.com/?q=${p[0]},${p[1]}` : `https://maps.google.com/?q=${encodeURIComponent(p[5] + ' ' + (alvoVend.filial || ''))}`;
+          return `${i + 1}. *${rz}* (${seg})\n   📍 CNPJ: ${cnpjFmt}${telLinha}\n   🗺️ *Abrir Maps:* ${mapsLink}`;
         }),
         '',
         SUGESTAO + 'apresentar os itens líderes de giro do +MIX nesses estabelecimentos para abrir novos clientes!'

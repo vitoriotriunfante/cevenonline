@@ -285,22 +285,43 @@ export async function respPedidosStatus(B, E, t) {
   const meus = new Map(E.vend.concat(E.ocultos || []).map((v) => [v.filial + '|' + v.rca, v]));
   const P = pd.pedidos.filter((p) => (E.nacional || meus.has(p.filial + '|' + p.rca)) && (alvo === 'CORTE' ? (p.itens_cortados || []).length : alvo === 'PENDENTES' ? !/FATURAD|CANCELAD/i.test(String(p.status_pedido || '')) : !alvo || String(p.status_pedido || '').toUpperCase() === alvo));
   const hm = (ms) => new Date(ms).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
-  const titulo0 = alvo === 'CORTE' ? 'com corte' : ehBloqELiber ? 'bloqueados e liberados' : alvo === 'PENDENTES' ? 'ainda não faturados' : alvo ? alvo.toLowerCase() + 's' : 'de hoje';
+
+  let V = null;
+  try { V = await vendasEscopo(B, E); } catch (e) {}
+  const getNomeCli = (fil, id) => {
+    if (V && V.cli && V.cli[fil + '|' + id]) return titulo(V.cli[fil + '|' + id]);
+    return null;
+  };
+
+  const ehLiberado = alvo === 'LIBERADO';
+  const ehBloqueado = alvo === 'BLOQUEADO';
+  const titulo0 = alvo === 'CORTE' ? 'com corte' : ehBloqELiber ? 'bloqueados e liberados' : ehLiberado ? 'pendentes de faturamento (liberados)' : ehBloqueado ? 'bloqueados por crédito' : alvo === 'PENDENTES' ? 'ainda não faturados' : alvo ? alvo.toLowerCase() + 's' : 'de hoje';
   if (!P.length) return `🧾 *Pedidos ${titulo0} — ${E.nome}*: nenhum na base agora.`;
   const porV = new Map(); for (const p of P) { const k = p.filial + '|' + p.rca; if (!porV.has(k)) porV.set(k, []); porV.get(k).push(p); }
-  const tot = P.reduce((a, p) => a + (Number(p.total_clube || p.valor) || 0), 0), L = [`🧾 *Pedidos ${titulo0} — ${E.nome}*: *${P.length}* · ${R$(tot)}`, ''];
+  const tot = P.reduce((a, p) => a + (Number(p.total_clube || p.valor) || 0), 0);
+  const cabeçalho = ehLiberado ? `💼 *Clientes com Pedidos Pendentes de Faturamento (Liberados) — ${E.nome}*` : ehBloqueado ? `🔒 *Pedidos Bloqueados por Crédito — ${E.nome}*` : `🧾 *Pedidos ${titulo0} — ${E.nome}*`;
+  const L = [cabeçalho, `Total: *${P.length} pedido(s)* · *${R$(tot)}*`, ''];
   let n = 0;
   for (const [k, ps] of [...porV].sort((a, b) => b[1].length - a[1].length)) {
-    const v = meus.get(k); L.push(`*${v ? vn(v) : 'RCA ' + k.split('|')[1]}${E.nacional ? ' ' + k.split('|')[0] : ''}* — ${ps.length}`);
+    const v = meus.get(k); L.push(`*${v ? vn(v) : 'RCA ' + k.split('|')[1]}${E.nacional ? ' ' + k.split('|')[0] : ''}* — ${ps.length} pedido(s)`);
     for (const p of ps) {
       if (n++ >= 30) break;
       const dataStr = p.data && p.data !== hojeSP() ? ' (' + String(p.data).slice(8, 10) + '/' + String(p.data).slice(5, 7) + ')' : '';
       const corteStr = (p.itens_cortados || []).length ? ` · ✂️ ${p.itens_cortados.length} item(ns) cortado(s)` : '';
       const horaStr = p.analisado_em ? ` _(lido ${hm(p.analisado_em)})_` : '';
-      L.push(`• ${p.num}${dataStr} · cliente #${p.id_cliente} · ${R$(p.total_clube || p.valor)} · ${p.status_pedido || 'sem status'}${corteStr}${horaStr}`);
+      const cNome = getNomeCli(p.filial, p.id_cliente);
+      const cliStr = cNome ? `*${cNome}* (#${p.id_cliente})` : `cliente #${p.id_cliente}`;
+      L.push(`• Pedido ${p.num}${dataStr} · ${cliStr} · *${R$(p.total_clube || p.valor)}* · ${p.status_pedido || (ehLiberado ? 'Liberado' : 'sem status')}${corteStr}${horaStr}`);
     }
     if (n >= 30) { L.push(`… e mais ${P.length - 30}. Peça por vendedor.`); break; }
   }
-  L.push('', '_Status da última leitura de cada pedido (hora ao lado)._', SUGESTAO + (alvo === 'BLOQUEADO' ? 'bloqueado é pendência comercial/crédito: falar com o crédito hoje para liberar o faturamento.' : 'peça "pedido <número>" para o detalhe de um pedido.'));
+  L.push('', '_Status da última leitura de cada pedido (hora ao lado)._');
+  if (ehLiberado) {
+    L.push('💡 *Quer ver também os pedidos bloqueados por crédito?* Digite *1* para ver os bloqueados.');
+  } else if (ehBloqueado) {
+    L.push('💡 *Pedidos bloqueados por crédito:* pendência comercial/financeira. Alinhar liberação com a equipe de crédito para seguir para faturamento.');
+  } else {
+    L.push(SUGESTAO + 'peça "pedido <número>" para o detalhe de um pedido.');
+  }
   return L.join('\n');
 }

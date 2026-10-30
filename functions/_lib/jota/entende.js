@@ -238,15 +238,25 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if ((pedeRelatorio && (c.papel === 'diretoria' || c.papel === 'gerente')) || (ehMP && /RELATORIO|10[:H ]?00|\b10H\b/.test(t))) return respRelatorio(B, c, t);
   if (/GESTAO DE CAMPO|SUPERVISORES EM CAMPO|EM ROTA \(RET\)|RANKING DE ATIVIDADE/.test(t) || (/COMPROMISSO|\bRET\b/.test(t) && /POR FILIAL|RANKING|PERCENT|%/.test(t))) return respGestaoCampo(B, await carregaEscopo(B, esc));
   // LISTA de pedidos por status do escopo (bloqueados, liberados sem faturar, com corte): antes da Operacao, que so da o total (26/10/2026)
-  // + pendentes/nao faturados (Jefferson: "pedidos pendentes do vendedor 128, de quais clientes"; Allison: "pendente/nao faturado aberto por cliente") e cortes
-  // (Vagner: "detalhes dos cortes de hoje", "quais produtos estao com cortes") -> lista; vendedor citado filtra so ele (27/10/2026)
-  if ((/PEDIDOS?/.test(t) && /BLOQUEAD|LIBERAD|CORTAD|COM CORTE|SEM FATURAR|NAO FATUR|PENDENTE/.test(t) || /(DETALHE|QUAIS|LISTA).{0,25}CORTE/.test(t)) && !/[0-9]{7,}/.test(t)) {
+  // + pendentes/nao faturados (Jefferson: "pedidos pendentes do vendedor 128, de quais clientes"; Andrey COD 103: "quais sao os clientes que estao no pendente?")
+  const ehPerguntaStatusPedidos = ((/PEDIDOS?/.test(t) && /BLOQUEAD|LIBERAD|CORTAD|COM CORTE|SEM FATURAR|NAO FATUR|PENDENTE/.test(t))
+    || /(DETALHE|QUAIS|LISTA).{0,25}CORTE/.test(t)
+    || /CLIENTES? (QUE ESTAO |NO |EM |COM )?PENDENTES?|QUAIS (SAO OS )?CLIENTES?.*PENDENTE|CLIENTES PENDENTES|QUEM (ESTA|TA) NO PENDENTE|QUEM (ESTA|TA) PENDENTE/i.test(t)
+    || (/QUAIS (SAO )?(OS )?(PEDIDOS|CLIENTES)/.test(t) && /PENDENTE|LIBERAD|BLOQUEAD/.test(t))) && !/[0-9]{7,}/.test(t);
+
+  if (ehPerguntaStatusPedidos) {
     const Ep = await carregaEscopo(B, esc), pp = achaPessoa(Ep, t);
-    const tipoAlvo = /CORTE/.test(t) ? 'CORTE' : (/BLOQUEAD/.test(t) && /LIBERAD/.test(t)) ? 'BLOQUEADOS_E_LIBERADOS' : (/PENDENTE|NAO FATUR|SEM FATURAR/.test(t) && !/BLOQUEAD|LIBERAD/.test(t)) ? 'PENDENTES' : t;
-    return respPedidosStatus(B, pp && pp.tipo === 'vend' ? { ...Ep, nacional: false, nome: vn(pp.alvo), vend: [pp.alvo], ocultos: [] } : Ep, tipoAlvo);   /* "bloqueados e liberados" = os dois (27/10/2026) */
+    const tipoAlvo = /CORTE/.test(t) ? 'CORTE' : (/BLOQUEAD/.test(t) && /LIBERAD/.test(t)) ? 'BLOQUEADOS_E_LIBERADOS' : /BLOQUEAD/.test(t) ? 'BLOQUEADO' : (/PENDENTE|LIBERAD|NAO FATUR|SEM FATURAR/.test(t) && !/BLOQUEAD/.test(t)) ? 'LIBERADO' : t;
+    return respPedidosStatus(B, pp && pp.tipo === 'vend' ? { ...Ep, nacional: false, nome: vn(pp.alvo), vend: [pp.alvo], ocultos: [] } : Ep, tipoAlvo);
   }
   if (/CORTE|CORTAD|BLOQUEAD|RETID|PERDAS|OPERACAO|RANKING DE VENDAS|RANKING FINAL|FECHAMENTO DO DIA/.test(t) && !/DEVOL/.test(t)) return respOperacao(B, await carregaEscopo(B, esc), t);
-  // DIGITE 1 (Opção de encaminhar: Tags por supervisor para Diretoria/Gerente, OU Mensagens por vendedor para Supervisor):
+  // DIGITE 1 (Opção de ver bloqueados após consultar pendentes/liberados, OU Tags por supervisor, OU Mensagens por vendedor):
+  const antPendente = (B.ultOut && /pendentes de faturamento|liberados|clientes com pedidos pendentes|pedidos pendentes|pedidos do dia ainda nao estao na base|quer ver tambem os pedidos bloqueados/i.test(B.ultOut))
+    || (anteriores || []).some((a) => /pendentes de faturamento|liberados|clientes com pedidos pendentes|pedidos pendentes|quer ver tambem os pedidos bloqueados|clientes que estao no pendente|clientes pendentes|pedidos pendentes/i.test(String(a)));
+  if (/^\W*1\W*$|^1\b|OPCAO 1|OPÇÃO 1|BLOQUEAD/i.test(t) && antPendente) {
+    const Ep = await carregaEscopo(B, esc);
+    return respPedidosStatus(B, Ep, 'BLOQUEADO');
+  }
   const antTag = (B.ultOut && /Tag:|SEM COMPRAS|P11|P10|RECORRENCIA/i.test(B.ultOut) ? B.ultOut : null) || (anteriores || []).find((a) => /Tag:|SEM COMPRAS|P11|P10|RECORRENCIA/i.test(String(a))) || ((B._ctxAssunto || '').match(/SEM COMPRAS|P11|P10|RECORRENCIA/i) ? B._ctxAssunto : null);
   if (/^\W*1\W*$|^1\b|OPCAO 1|MANDA POR SUPERVISOR|SEPARADO POR SUPERVISOR|MANDA PRA CADA SUPERVISOR|ABERTO POR SUPERVISOR/.test(t) && antTag) {
     const Er = await carregaEscopo(B, esc);
@@ -299,9 +309,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
     const Es = await carregaEscopo(B, esc);
     return respSegmentoCnae(B, Es, t, achaPessoa(Es, t));
   }
-  // ESTRATÉGIA COMERCIAL EXECUTIVA / RECUPERAÇÃO DE INATIVOS (Vitório, 30/10/2026: Fábio TBL / 500 mil / Gemini)
-  if (/500 ?(MIL|K)|ATINGIR (ESSES|OS) 500|MAIORES DE COMPRA DA CARTEIRA DE CADA SUPERVISOR|QUAIS CLIENTES ELES TEM QUE BUSCAR HOJE/.test(t)) {
-    const Ef = await carregaEscopo(B, esc);
+  // ESTRATÉGIA COMERCIAL EXECUTIVA / RECUPERAÇÃO / PLANO DE FECHAMENTO (Vitório, 30/10/2026: IA Generativa / Gemini)
+  if (/ESTRATEG(IA|ICO)|PLANO (DE ACAO)?|ONDE ATACAR|COMO (BATER|ATINGIR|VIRAR|FECHAR|RECUPERAR|CHEGAR)|RECUPERAR (A )?META/.test(t)
+    || /500 ?(MIL|K)|ATINGIR (ESSES|OS) 500|MAIORES DE COMPRA DA CARTEIRA|QUAIS CLIENTES ELES TEM QUE BUSCAR/.test(t)) {
+    const fCit = (t.match(new RegExp('\\b(' + FILIAIS.join('|') + ')\\b')) || [])[1];
+    const escE = fCit ? { nome: fCit, filiais: [fCit], grupo: null, nacional: false } : esc;
+    const Ef = await carregaEscopo(B, escE);
     return respEstrategiaFabio(B._env || {}, B, c, texto, Ef);
   }
   // PROSPECÇÃO DE CLIENTES NO MAPA DO CEVEN (Vitório, 30/10/2026: CEVEN Mapas / Rota de hoje)

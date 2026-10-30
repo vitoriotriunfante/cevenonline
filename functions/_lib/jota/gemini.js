@@ -55,7 +55,24 @@ Regras fundamentais:
     }
   }
 
-  // Fallback inteligente estruturado caso a chave do Gemini ainda não esteja cadastrada no Cloudflare
+  // Fallback para Workers AI Generativo (LLaMA 3.3 70B) quando a chave do Gemini ainda não estiver cadastrada
+  if (env?.AI) {
+    try {
+      const r = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
+        messages: [
+          { role: 'system', content: promptSistema },
+          { role: 'user', content: `--- DADOS REAIS DO CEVEN ---\n${JSON.stringify(dadosContexto, null, 2)}\n\n--- PERGUNTA DO GESTOR (${c.nome} - ${c.papel} ${c.filial || ''}) ---\n"${texto}"` }
+        ],
+        max_tokens: 1200,
+        temperature: 0.2
+      });
+      const s = String((r && (r.response || r.result)) || '').trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, '');
+      if (s) return s;
+    } catch (e) {
+      console.error('Erro ao chamar Workers AI Generativo:', e);
+    }
+  }
+
   return null;
 }
 
