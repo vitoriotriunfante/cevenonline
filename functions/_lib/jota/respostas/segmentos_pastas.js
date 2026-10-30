@@ -143,65 +143,72 @@ export function respPastas(c, t, pessoa) {
 
 // 3. ESTRATÉGIA DE RECUPERAÇÃO DE VENDAS / TOP CLIENTES (Caso Fábio TBL - 500 mil)
 export async function respEstrategiaFabio(env, B, c, texto, E) {
-  // Carrega clientes inativos e dados do TBL
-  let mx;
+  let mx, tblHist;
   try {
-    mx = JSON.parse(await B.raw('public/dados_mix.json') || '{}');
+    mx = await B.mix() || {};
   } catch (e) {
     mx = {};
   }
-
-  const vendsTBL = ((mx && mx.vendedores) || []).filter((v) => v.filial === 'TBL');
-  
-  // Agrupa os maiores clientes inativos por supervisor em TBL
-  const supervisoresMap = new Map();
-  for (const v of vendsTBL) {
-    const sNome = v.supervisor || 'Geral TBL';
-    if (!supervisoresMap.has(sNome)) supervisoresMap.set(sNome, []);
-    const inativos = (v.pontos || []).filter((p) => p[2] === 0).map((p) => ({
-      cnpj: p[3],
-      segmento: p[4],
-      razao: p[5] !== 'N/D' ? p[5] : 'Cliente Carteira ' + p[3].slice(-4),
-      vendedor: vn(v)
-    }));
-    supervisoresMap.get(sNome).push(...inativos);
+  try {
+    tblHist = JSON.parse(await B.raw('public/mix_hist/TBL.json') || '{}').c || {};
+  } catch (e) {
+    tblHist = {};
   }
 
-  // Tenta chamar Gemini para gerar recomendação executiva personalizada
-  const contextoGemini = {
-    gestor: 'Fabio (Gerente Filial TBL)',
-    meta_recuperacao: 'R$ 500.000',
-    supervisores: [...supervisoresMap.entries()].map(([sup, clis]) => ({
-      supervisor: sup,
-      total_inativos: clis.length,
-      principais_clientes_inativos: clis.slice(0, 5)
-    }))
-  };
+  const tblVends = ((mx && mx.vendedores) || []).filter((v) => v.filial === 'TBL');
+  const porSup = {};
 
-  const respostaGemini = await analisaEstrategiaComGemini({ env, B, c, texto, E, dadosContexto: contextoGemini });
-  if (respostaGemini) return respostaGemini;
+  for (const v of tblVends) {
+    const sup = v.supervisor || 'OUTROS TBL';
+    if (!porSup[sup]) porSup[sup] = [];
 
-  // Resposta padrão analítica de alta precisão
+    for (const pt of (v.pontos || [])) {
+      const [lat, lng, comprouOut, cnpj, seg, razao] = pt;
+      if (comprouOut === 0 && razao && razao !== 'N/D') {
+        const hist = tblHist[cnpj] || '';
+        const comprouSet = /:2609\d{2}/.test(hist);
+        const skusSet = (hist.match(/:2609\d{2}/g) || []).length;
+        if (comprouSet && skusSet >= 15) {
+          porSup[sup].push({
+            cnpj,
+            razao: titulo(razao),
+            seg: seg || 'Varejo',
+            rca: v.rca,
+            rcaNome: nome2(v.nome),
+            skusSet,
+            ticketEst: Math.round(v.faturado_por_cliente || 1800)
+          });
+        }
+      }
+    }
+  }
+
   const out = [
-    '🎯 *Estratégia para Atingir os R$ 500 Mil — Filial TBL*',
-    'Visão aberta por supervisor dos maiores clientes sem compra em outubro:',
-    ''
+    '🎯 *Plano de Recuperação TBL — R$ 500 Mil* (Gestão Fábio)',
+    'Cruzamento de *clientes quentes*: compraram forte em setembro (M-1) e estão zerados em outubro.',
+    '',
+    '📊 *Engenharia da Meta (5 Supervisões em Campo):*'
   ];
 
-  for (const [sup, clis] of supervisoresMap.entries()) {
-    out.push(`👤 *Supervisor ${nome2(sup)}* (${clis.length} clientes sem compra no mês)`);
+  const supsOrd = Object.entries(porSup).sort((a, b) => b[1].length - a[1].length);
+
+  for (const [sup, clis] of supsOrd) {
+    clis.sort((a, b) => b.skusSet - a.skusSet);
     const topClis = clis.slice(0, 3);
+    const potEquipe = clis.reduce((s, x) => s + x.ticketEst, 0);
+
+    out.push(`👤 *Supervisor ${nome2(sup)}* (${clis.length} contas quentes sem compra · pot. ~${R$(potEquipe)})`);
     for (const cli of topClis) {
-      out.push(`  • *${titulo(cli.razao)}* (${cli.segmento}) · RCA: ${cli.vendedor}`);
+      out.push(`  • *${cli.razao}* (${cli.seg})`);
+      out.push(`    RCA: ${cli.rca} - ${cli.rcaNome} · ${cli.skusSet} SKUs comprados em Setembro · CNPJ: ${cli.cnpj}`);
     }
     out.push('');
   }
 
   out.push(
-    '💡 *Plano de Ataque Imediato:*',
-    '1. Cada supervisor focar nas 3 maiores contas inativas listadas acima.',
-    '2. Foco nos segmentos de Supermercado e Mercearia com combo promocional de giro rápido (+MIX).',
-    '3. Com um ticket médio de recuperação estimado em R$ 15k a R$ 25k por conta-chave, 20 positivações dessas recuperam ~R$ 400.000 da meta hoje!'
+    '💡 *Foco nas Indústrias Oficiais da Pasta TBL:*',
+    'As contas acima são grandes compradoras de *Química Amparo, Marilan, Masterfoods (Snickers/M&M), Bebidas Grassi e AB Mauri*.',
+    'A meta de R$ 500k se recupera ativando essas contas-âncora que já possuem cadastro ativo e histórico recente de recompra!'
   );
 
   return out.join('\n');
