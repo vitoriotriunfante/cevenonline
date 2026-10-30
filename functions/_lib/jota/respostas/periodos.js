@@ -14,7 +14,7 @@ import { SEM_VENDAS, achaIndustria, achaProdutos, dIso, nomeIndustria, somaPor, 
 export async function vendasAnterior(B, E) {
   const arqs = await Promise.all(E.filiais.map((f) => B.raw(`public/vendas_mes_anterior/${f}.json`).then((t) => { try { return t ? { f, ...JSON.parse(t) } : null; } catch (e) { return null; } })));
   const ok = arqs.filter(Boolean); if (!ok.length) return null;
-  const restrito = E.grupo || E.supervisor || E.rca, rcas = new Set(E.vend.map((v) => v.filial + '|' + v.rca));
+  const restrito = E.grupo || E.supervisor || E.rca, rcas = new Set(E.vend.concat(E.ocultos || []).map((v) => v.filial + '|' + v.rca));
   const linhas = [], prod = {}, cli = {}; let de = '', ate = '';
   for (const a of ok) { de = a.de; ate = a.ate; for (const [k, v] of Object.entries(a.produtos || {})) if (!prod[k] || (!prod[k][1] && v[1])) prod[k] = v; for (const [k, v] of Object.entries(a.clientes || {})) cli[a.f + '|' + k] = v;
     for (const l of a.l || []) if (!restrito || rcas.has(a.f + '|' + l[1])) linhas.push({ f: a.f, d: l[0], r: l[1], c: l[2], p: l[3], q: l[4], v: l[5] }); }
@@ -29,7 +29,7 @@ export async function respComparaMes(B, E, t, pessoa) {
   // filtro opcional: vendedor, industria ou produto citado
   let filtro = () => true, sobre = E.nome;
   if (pessoa && pessoa.tipo === 'vend') { filtro = (l) => l.f === pessoa.alvo.filial && l.r === pessoa.alvo.rca; sobre = vn(pessoa.alvo); }
-  else if (pessoa && pessoa.tipo === 'sup') { const rs = new Set(E.vend.filter((v) => v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial).map((v) => v.filial + '|' + v.rca)); filtro = (l) => rs.has(l.f + '|' + l.r); sobre = 'Equipe ' + nome2(pessoa.alvo.nome); }
+  else if (pessoa && pessoa.tipo === 'sup') { const rs = new Set(E.vend.concat(E.ocultos || []).filter((v) => v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial).map((v) => v.filial + '|' + v.rca)); filtro = (l) => rs.has(l.f + '|' + l.r); sobre = 'Equipe ' + nome2(pessoa.alvo.nome); }
   const prodAll = { ...Z.prod, ...A.prod };
   const I = achaIndustria(t, { prod: prodAll });
   const Pr = I ? null : achaProdutos(t, { prod: prodAll }, E);

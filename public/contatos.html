@@ -3,216 +3,1292 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Contatos do JOTA</title>
+<title>JOTA — Central de Conversas & Contatos</title>
 <!--
-FICHA: public/contatos.html (/contatos) — gestão dos contatos do JOTA (WhatsApp Mais Mix Triunfante).
-Vitório, 25/10/2026: "precisamos ter dentro da tela saúde os contatos dos gerentes, supervisores e vendedores (segundo passo) já ligados a um setor e filial,
-para que eu gerencie"; "cadastro automático: aqui eu vou precisar dar o OK".
-API: /api/jota-contatos (senha da Gestão de Equipe). Aprovar = libera e avisa a pessoa no WhatsApp.
+FICHA: public/contatos.html (/contatos) — Central de Conversas & Gestão do JOTA (WhatsApp Mais Mix Triunfante).
+Redesenhado em 29/10/2026: UI/UX moderna tipo Inbox CRM (conversas agrupadas por número/pessoa com histórico em thread de chat,
+sugestões em grid com resposta, pedidos de acesso com 1 clique, e gestão de cadastros em aba separada).
 -->
 <style>
-:root { --bg: #0b1220; --card: #111a2e; --borda: #22304d; --txt: #e5e7eb; --sub: #94a3b8; --azul: #38bdf8; --verde: #22c55e; --amarelo: #f59e0b; --vermelho: #ef4444; }
+:root {
+  --bg: #070d18;
+  --sidebar: #0c1527;
+  --card: #101c33;
+  --card-hover: #162544;
+  --card-active: #1a2c50;
+  --borda: #1e3052;
+  --borda-sub: #16243d;
+  --txt: #f1f5f9;
+  --txt-mut: #94a3b8;
+  --txt-dim: #64748b;
+  --azul: #38bdf8;
+  --azul-glow: rgba(56, 189, 248, 0.15);
+  --verde: #22c55e;
+  --verde-bg: rgba(34, 197, 94, 0.12);
+  --verde-borda: #166534;
+  --amarelo: #f59e0b;
+  --amarelo-bg: rgba(245, 158, 11, 0.12);
+  --amarelo-borda: #92400e;
+  --vermelho: #ef4444;
+  --vermelho-bg: rgba(239, 68, 68, 0.12);
+  --vermelho-borda: #991b1b;
+  --roxo: #a855f7;
+}
+
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--txt); font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--borda); flex-wrap: wrap; }
-header h1 { font-size: 18px; margin: 0; }
-header a { color: var(--azul); text-decoration: none; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--txt);
+  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: rgba(12, 21, 39, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--borda);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  flex-wrap: wrap;
+}
+
+.logo-area { display: flex; align-items: center; gap: 10px; }
+.logo-icon {
+  width: 34px; height: 34px; border-radius: 9px;
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 17px; color: #fff;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.35);
+}
+header h1 { font-size: 16px; font-weight: 700; margin: 0; letter-spacing: 0.02em; }
+.header-sub { font-size: 12px; color: var(--txt-mut); }
 .grow { flex: 1; }
-main { padding: 16px; max-width: 1200px; margin: 0 auto; }
-.card { background: var(--card); border: 1px solid var(--borda); border-radius: 10px; padding: 14px; margin-bottom: 16px; }
-.card h2 { font-size: 15px; margin: 0 0 10px; }
-.kpis { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-.kpi { background: var(--card); border: 1px solid var(--borda); border-radius: 10px; padding: 10px 14px; min-width: 120px; }
-.kpi b { font-size: 20px; display: block; }
-.kpi span { color: var(--sub); font-size: 12px; }
-table { width: 100%; border-collapse: collapse; }
-th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--borda); vertical-align: middle; }
-th { color: var(--sub); font-weight: 600; font-size: 12px; }
-.tabela { overflow-x: auto; }
-input, select { background: #0e1729; color: var(--txt); border: 1px solid var(--borda); border-radius: 6px; padding: 6px 8px; font: inherit; max-width: 100%; }
-button { background: #1e293b; color: var(--txt); border: 1px solid var(--borda); border-radius: 6px; padding: 6px 10px; font: inherit; cursor: pointer; white-space: nowrap; }
-button.ok { background: #14532d; border-color: #166534; }
-button.no { background: #450a0a; border-color: #7f1d1d; }
-button.pri { background: #0c4a6e; border-color: #0369a1; }
-.pill { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 12px; border: 1px solid var(--borda); }
-.pill.ativo { color: var(--verde); border-color: #166534; } .pill.pendente { color: var(--amarelo); border-color: #92400e; } .pill.inativo, .pill.recusado { color: var(--sub); }
-.filtros { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-.form { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; align-items: end; }
-.form label { font-size: 12px; color: var(--sub); display: flex; flex-direction: column; gap: 3px; }
-.msg { padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; display: none; }
-.msg.show { display: block; } .msg.ok { background: #052e16; } .msg.erro { background: #450a0a; }
-.login { max-width: 360px; margin: 60px auto; }
-.mut { color: var(--sub); font-size: 12px; }
+
+.header-nav { display: flex; align-items: center; gap: 8px; }
+.link-btn {
+  color: var(--txt-mut); text-decoration: none; font-size: 13px; font-weight: 500;
+  padding: 6px 12px; border-radius: 8px; border: 1px solid var(--borda);
+  background: rgba(255,255,255,0.02); transition: all 0.2s;
+}
+.link-btn:hover { color: var(--txt); border-color: var(--azul); background: var(--azul-glow); }
+
+/* TAB BAR PRINCIPAL */
+.tabs-nav {
+  display: flex;
+  gap: 6px;
+  padding: 8px 20px;
+  background: #091120;
+  border-bottom: 1px solid var(--borda);
+  overflow-x: auto;
+}
+.tab-btn {
+  background: transparent; color: var(--txt-mut); border: 1px solid transparent;
+  padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--txt); background: rgba(255,255,255,0.04); }
+.tab-btn.active {
+  color: #fff; background: var(--card); border-color: var(--borda);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+.tab-badge {
+  font-size: 11px; padding: 2px 7px; border-radius: 99px;
+  background: rgba(255,255,255,0.1); color: var(--txt); font-weight: 700;
+}
+.tab-badge.alerta { background: var(--vermelho); color: #fff; animation: pulseBadge 1.5s infinite; }
+.tab-badge.aviso { background: var(--amarelo); color: #000; }
+@keyframes pulseBadge { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+/* CONTEUDO GERAL */
+main { flex: 1; display: flex; flex-direction: column; }
+.view-pane { padding: 16px 20px; display: none; width: 100%; max-width: 1500px; margin: 0 auto; }
+.view-pane.active { display: block; }
+
+/* INBOX MASTER-DETAIL PARA CONVERSAS */
+.inbox-container {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  height: calc(100vh - 110px);
+  overflow: hidden;
+  background: var(--bg);
+}
+@media (max-width: 900px) {
+  .inbox-container { grid-template-columns: 1fr; height: auto; }
+  .chat-view { min-height: 500px; }
+}
+
+/* COLUNA ESQUERDA: LISTA DE CHATS */
+.chat-sidebar {
+  border-right: 1px solid var(--borda);
+  background: var(--sidebar);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sidebar-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--borda);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.search-box { position: relative; width: 100%; }
+.search-box input {
+  width: 100%; background: #070d18; color: var(--txt);
+  border: 1px solid var(--borda); border-radius: 8px;
+  padding: 8px 12px 8px 32px; font-size: 13px; outline: none;
+  transition: border-color 0.2s;
+}
+.search-box input:focus { border-color: var(--azul); }
+.search-box .icon { position: absolute; left: 10px; top: 9px; color: var(--txt-dim); font-size: 13px; }
+
+.filter-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.chip {
+  padding: 4px 9px; border-radius: 6px; font-size: 11px; font-weight: 600;
+  background: #111e36; border: 1px solid var(--borda); color: var(--txt-mut);
+  cursor: pointer; white-space: nowrap; transition: all 0.2s;
+}
+.chip:hover { color: var(--txt); border-color: var(--txt-mut); }
+.chip.active { background: var(--azul); color: #041226; border-color: var(--azul); font-weight: 700; }
+.chip.chip-bad.active { background: var(--vermelho); color: #fff; border-color: var(--vermelho); }
+
+.chat-list { flex: 1; overflow-y: auto; padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; }
+.chat-item {
+  display: flex; gap: 10px; padding: 10px 12px; border-radius: 9px;
+  background: transparent; border: 1px solid transparent; cursor: pointer;
+  transition: all 0.15s; position: relative;
+}
+.chat-item:hover { background: var(--card); border-color: var(--borda-sub); }
+.chat-item.active { background: var(--card-active); border-color: var(--azul); }
+
+.avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: #1e3052; color: #fff; font-weight: 700; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.chat-info { flex: 1; min-width: 0; }
+.chat-top { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; margin-bottom: 3px; }
+.chat-name { font-weight: 600; font-size: 13px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-time { font-size: 11px; color: var(--txt-dim); flex-shrink: 0; }
+.chat-meta { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--txt-mut); margin-bottom: 4px; }
+.chat-snippet { font-size: 12px; color: var(--txt-mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-badges { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+
+/* COLUNA DIREITA: VISUALIZADOR DE THREAD DO CHAT */
+.chat-view {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+  position: relative;
+}
+.chat-view-header {
+  padding: 12px 20px;
+  background: rgba(16, 28, 51, 0.7);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--borda);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.chat-view-profile { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.chat-view-profile h2 { margin: 0; font-size: 15px; font-weight: 700; color: #fff; }
+.chat-view-sub { font-size: 12px; color: var(--txt-mut); display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+
+.chat-view-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* MENSAGENS EM BALÕES */
+.msg-row { display: flex; flex-direction: column; max-width: 80%; }
+.msg-row.in { align-self: flex-start; }
+.msg-row.out { align-self: flex-end; }
+
+.bubble {
+  padding: 12px 16px; border-radius: 12px; font-size: 13px; line-height: 1.5;
+  white-space: pre-wrap; word-break: break-word; position: relative;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.msg-row.in .bubble {
+  background: #14223b; color: #f8fafc; border: 1px solid var(--borda);
+  border-bottom-left-radius: 2px;
+}
+.msg-row.out .bubble {
+  background: #0c335e; color: #f0f9ff; border: 1px solid #0284c7;
+  border-bottom-right-radius: 2px;
+}
+.bubble-meta {
+  display: flex; align-items: center; gap: 8px; font-size: 11px;
+  color: var(--txt-dim); margin-top: 4px; padding: 0 4px;
+}
+.msg-row.out .bubble-meta { justify-content: flex-end; }
+
+.tag-badge {
+  display: inline-block; padding: 1px 7px; border-radius: 5px; font-size: 10px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.tag-badge.pronta { background: var(--verde-bg); color: var(--verde); border: 1px solid var(--verde-borda); }
+.tag-badge.ia { background: var(--amarelo-bg); color: var(--amarelo); border: 1px solid var(--amarelo-borda); }
+.tag-badge.erro { background: var(--vermelho-bg); color: var(--vermelho); border: 1px solid var(--vermelho-borda); }
+.tag-badge.reclamou { background: #7f1d1d; color: #fecaca; }
+
+.empty-chat {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; color: var(--txt-dim); gap: 12px; text-align: center; padding: 40px;
+}
+.empty-chat-icon { font-size: 48px; opacity: 0.5; }
+
+/* CARDS & GRIDS (Abas de Sugestões, Pedidos, etc.) */
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.card-item {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.card-item:hover { border-color: var(--azul); transform: translateY(-1px); }
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.card-title { font-weight: 700; font-size: 14px; color: #fff; margin: 0; }
+.card-sub { font-size: 12px; color: var(--txt-mut); }
+.card-body { font-size: 13px; line-height: 1.5; color: #e2e8f0; white-space: pre-wrap; }
+.card-context { font-size: 12px; color: var(--txt-dim); background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 6px; }
+.card-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 8px; border-top: 1px solid var(--borda-sub); }
+
+/* TABELA MODERNA PARA GESTAO DE CONTATOS */
+.table-wrapper {
+  background: var(--card); border: 1px solid var(--borda); border-radius: 10px;
+  overflow: hidden; margin-top: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+table { width: 100%; border-collapse: collapse; text-align: left; }
+th, td { padding: 10px 14px; border-bottom: 1px solid var(--borda-sub); font-size: 13px; }
+th { background: #0c1527; color: var(--txt-mut); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* BOTOES E FORMULARIOS */
+button {
+  background: #1e293b; color: var(--txt); border: 1px solid var(--borda);
+  border-radius: 7px; padding: 7px 12px; font: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s;
+}
+button:hover { background: #28374d; border-color: var(--txt-mut); }
+button.pri { background: #0284c7; color: #fff; border-color: #0369a1; }
+button.pri:hover { background: #0369a1; }
+button.ok { background: #166534; color: #fff; border-color: #15803d; }
+button.ok:hover { background: #15803d; }
+button.no { background: #7f1d1d; color: #fff; border-color: #991b1b; }
+button.no:hover { background: #991b1b; }
+
+input, select {
+  background: #0a1324; color: var(--txt); border: 1px solid var(--borda);
+  border-radius: 7px; padding: 7px 10px; font: inherit; font-size: 13px; outline: none;
+}
+input:focus, select:focus { border-color: var(--azul); }
+
+.kpis-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.kpi-card {
+  background: var(--card); border: 1px solid var(--borda); border-radius: 10px;
+  padding: 10px 14px; min-width: 130px; flex: 1;
+}
+.kpi-card b { font-size: 20px; font-weight: 800; display: block; color: #fff; }
+.kpi-card span { font-size: 11px; color: var(--txt-mut); text-transform: uppercase; letter-spacing: 0.04em; }
+
+.login-modal { max-width: 360px; margin: 80px auto; background: var(--card); border: 1px solid var(--borda); border-radius: 12px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+.msg-alert { padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; display: none; font-size: 13px; font-weight: 500; }
+.msg-alert.show { display: block; }
+.msg-alert.ok { background: var(--verde-bg); color: #86efac; border: 1px solid var(--verde-borda); }
+.msg-alert.erro { background: var(--vermelho-bg); color: #fca5a5; border: 1px solid var(--vermelho-borda); }
 </style>
 </head>
 <body>
+
 <header>
-  <h1>👥 Contatos do JOTA</h1>
-  <span class="mut">quem conversa com o assistente no WhatsApp</span>
+  <div class="logo-area">
+    <div class="logo-icon">J</div>
+    <div>
+      <h1>Central de Atendimento & Contatos JOTA</h1>
+      <div class="header-sub">WhatsApp Corporativo · Mais Mix Triunfante</div>
+    </div>
+  </div>
   <div class="grow"></div>
-  <a href="/saude">← Sala de Controle</a>
+  <div class="header-nav">
+    <a href="/saude" class="link-btn">🚀 Sala de Controle (NASA)</a>
+    <button id="btn-atualizar" class="link-btn" title="Recarregar dados">🔄 Atualizar</button>
+  </div>
 </header>
-<main id="raiz"></main>
+
+<div class="tabs-nav" id="nav-abas">
+  <button class="tab-btn active" data-tab="conversas">
+    <span>💬 Conversas (Inbox)</span>
+    <span class="tab-badge" id="b-total-conv">0</span>
+  </button>
+  <button class="tab-btn" data-tab="sugestoes">
+    <span>💡 Sugestões da Equipe</span>
+    <span class="tab-badge" id="b-total-sug">0</span>
+  </button>
+  <button class="tab-btn" data-tab="pedidos">
+    <span>🔔 Pedidos de Acesso</span>
+    <span class="tab-badge" id="b-total-ped">0</span>
+  </button>
+  <button class="tab-btn" data-tab="supervisores-sem">
+    <span>👀 Supervisores sem Acesso</span>
+    <span class="tab-badge" id="b-total-sem">0</span>
+  </button>
+  <button class="tab-btn" data-tab="contatos-gestao">
+    <span>👥 Gestão de Contatos</span>
+    <span class="tab-badge" id="b-total-cad">0</span>
+  </button>
+  <button class="tab-btn" data-tab="disparos">
+    <span>📤 Disparos Automáticos</span>
+  </button>
+</div>
+
+<div id="msg-global" class="msg-alert" style="margin: 12px 20px 0;"></div>
+
+<main id="app-root">
+  <!-- SESSAO 1: CONVERSAS (INBOX MASTER-DETAIL) -->
+  <div id="tab-conversas" class="inbox-container" style="display:grid;">
+    <!-- SIDEBAR LISTA DE CHATS -->
+    <div class="chat-sidebar">
+      <div class="sidebar-header">
+        <div class="search-box">
+          <span class="icon">🔍</span>
+          <input type="text" id="cv-busca" placeholder="Buscar por nome, filial ou número...">
+        </div>
+        <div class="filter-chips">
+          <span class="chip active" data-filtro="todos">Todos</span>
+          <span class="chip chip-bad" data-filtro="problemas">⚠️ Reclamadas / Falhas</span>
+          <span class="chip" data-filtro="avaliados">⭐ Avaliados</span>
+          <span class="chip" data-filtro="ia">🤖 IA Genérica</span>
+          <span class="chip" data-filtro="nao_cadastrados">🚫 Não Cadastrados</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--txt-dim);">
+          <span id="cv-contador-chats">Carregando conversas...</span>
+          <select id="cv-periodo-select" style="font-size:11px; padding:3px 6px;">
+            <option value="1">Hoje (24h)</option>
+            <option value="7" selected>Últimos 7 dias</option>
+            <option value="30">Últimos 30 dias</option>
+          </select>
+        </div>
+      </div>
+      <div class="chat-list" id="cv-lista-chats">
+        <div style="padding:20px; text-align:center; color:var(--txt-dim);">Carregando conversas...</div>
+      </div>
+    </div>
+
+    <!-- PAINEL DIREITO: THREAD DE CONVERSA SELECIONADA -->
+    <div class="chat-view" id="cv-chat-view">
+      <div class="empty-chat" id="cv-chat-empty">
+        <div class="empty-chat-icon">💬</div>
+        <h3 style="margin:0; color:#fff;">Nenhuma conversa selecionada</h3>
+        <p style="margin:0; max-width:320px;">Clique em um dos contatos na lista à esquerda para auditar o histórico de perguntas e respostas.</p>
+      </div>
+      <div id="cv-chat-active" style="display:none; height:100%; display:none; flex-direction:column;">
+        <div class="chat-view-header">
+          <div class="chat-view-profile">
+            <div class="avatar" id="active-avatar">?</div>
+            <div>
+              <h2 id="active-nome">—</h2>
+              <div class="chat-view-sub" id="active-meta">
+                <span id="active-papel">—</span>
+                <span>·</span>
+                <span id="active-filial">—</span>
+                <span>·</span>
+                <span id="active-celular">—</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <a id="active-wa-link" href="#" target="_blank" class="link-btn" style="border-color:#166534; color:#86efac; background:var(--verde-bg);">
+              📲 Abrir no WhatsApp Web
+            </a>
+          </div>
+        </div>
+        <div class="chat-view-body" id="active-thread"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SESSAO 2: SUGESTOES DA EQUIPE -->
+  <div id="tab-sugestoes" class="view-pane">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+      <div>
+        <h2 style="margin:0 0 4px; font-size:18px;">💡 Sugestões Recebidas da Equipe</h2>
+        <span class="header-sub">Supervisores e gerentes que enviaram ideias e feedback de melhoria para o JOTA</span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <select id="sug-filtro-status">
+          <option value="">Todas as situações</option>
+          <option value="nova">Apenas novas</option>
+          <option value="feita">Já atendidas (feitas)</option>
+          <option value="nao_vai">Descartadas (não vai)</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid-cards" id="sug-cards-grid">Carregando sugestões...</div>
+  </div>
+
+  <!-- SESSAO 3: PEDIDOS DE ACESSO -->
+  <div id="tab-pedidos" class="view-pane">
+    <div style="margin-bottom:14px;">
+      <h2 style="margin:0 0 4px; font-size:18px;">🔔 Pedidos de Acesso Pendentes</h2>
+      <span class="header-sub">Pessoas da equipe que chamaram o JOTA e aguardam sua aprovação para interagir</span>
+    </div>
+    <div id="pedidos-container"></div>
+  </div>
+
+  <!-- SESSAO 4: SUPERVISORES SEM ACESSO -->
+  <div id="tab-supervisores-sem" class="view-pane">
+    <div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <div>
+        <h2 style="margin:0 0 4px; font-size:18px;">👀 Supervisores da Árvore do CEVEN sem Acesso</h2>
+        <span class="header-sub">Supervisores ativos no CEVEN que ainda não mandaram mensagem para liberar o bot</span>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <select id="sem-filial-select"></select>
+        <button id="sem-enviar-btn" class="pri" disabled>📲 Enviar cobrança ao Gerente da Filial</button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Filial</th>
+            <th>Cód. Supervisor</th>
+            <th>Nome do Supervisor</th>
+            <th style="text-align:right;">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="sem-tabela-corpo"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SESSAO 5: GESTAO DE CONTATOS (CADASTROS & APROVADOS) -->
+  <div id="tab-contatos-gestao" class="view-pane">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+      <div>
+        <h2 style="margin:0 0 4px; font-size:18px;">👥 Contatos Ativos & Cadastrados</h2>
+        <span class="header-sub">Diretoria, Gerentes, Supervisores e Vendedores autorizados a usar o assistente</span>
+      </div>
+      <button class="pri" id="btn-toggle-novo-contato">+ Novo Contato Manual</button>
+    </div>
+
+    <!-- FORMULÁRIO RETRÁTIL DE CADASTRO -->
+    <div id="box-form-contato" style="display:none; background:var(--card); border:1px solid var(--azul); border-radius:12px; padding:18px; margin-bottom:18px;">
+      <h3 id="form-contato-titulo" style="margin:0 0 12px; font-size:15px; color:#fff;">➕ Cadastrar / Editar Contato</h3>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; align-items:end;">
+        <div>
+          <label style="font-size:12px; color:var(--txt-mut); display:block; margin-bottom:4px;">Celular (55 + DDD + número)</label>
+          <input type="text" id="f-cel" placeholder="5541999998888" style="width:100%;">
+        </div>
+        <div>
+          <label style="font-size:12px; color:var(--txt-mut); display:block; margin-bottom:4px;">Nome Completo</label>
+          <input type="text" id="f-nome" placeholder="Nome da pessoa" style="width:100%;">
+        </div>
+        <div>
+          <label style="font-size:12px; color:var(--txt-mut); display:block; margin-bottom:4px;">Cargo / Papel</label>
+          <select id="f-papel" style="width:100%;">
+            <option value="supervisor">Supervisor</option>
+            <option value="gerente">Gerente</option>
+            <option value="diretoria">Diretoria</option>
+            <option value="vendedor">Vendedor</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px; color:var(--txt-mut); display:block; margin-bottom:4px;">Filial</label>
+          <select id="f-filial" style="width:100%;"></select>
+        </div>
+        <div>
+          <label style="font-size:12px; color:var(--txt-mut); display:block; margin-bottom:4px;">Grupo (TPH/MCD opcional)</label>
+          <input type="text" id="f-grupo" placeholder="VAGNER, FABIO..." style="width:100%;">
+        </div>
+        <div>
+          <label style="font-size:12px; color:var(--txt-mut); display:block; margin-bottom:4px;">Supervisor Vinculado</label>
+          <select id="f-supervisor" style="width:100%;"><option value="">—</option></select>
+        </div>
+        <div>
+          <label style="font-size:12px; color:var(--txt-mut); display:block; margin-bottom:4px;">Cód. RCA (se vendedor)</label>
+          <input type="text" id="f-rca" placeholder="Ex: 114" style="width:100%;">
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="ok" id="f-salvar-btn">Salvar Contato</button>
+          <button id="f-cancelar-btn">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTROS DA TABELA DE CONTATOS -->
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+      <input type="text" id="cad-busca" placeholder="Filtrar por nome ou celular..." style="min-width:220px;">
+      <select id="cad-filtro-papel"><option value="">Todos os cargos</option></select>
+      <select id="cad-filtro-filial"><option value="">Todas as filiais</option></select>
+      <select id="cad-filtro-situacao"><option value="">Qualquer situação</option><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Cargo</th>
+            <th>Filial</th>
+            <th>Supervisor / RCA</th>
+            <th>Celular</th>
+            <th>Situação</th>
+            <th>Uso do JOTA</th>
+            <th style="text-align:right;">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="cad-tabela-corpo"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SESSAO 6: DISPAROS AUTOMATICOS -->
+  <div id="tab-disparos" class="view-pane">
+    <div style="margin-bottom:14px;">
+      <h2 style="margin:0 0 4px; font-size:18px;">📤 Disparos Automáticos do Motor (07:45, 11:30, 14:30, 17:00, 18:30)</h2>
+      <span class="header-sub">Auditoria dos relatórios enviados de forma automatizada pelo WhatsApp</span>
+    </div>
+    <div class="kpis-bar" id="disparos-kpis"></div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Horário</th>
+            <th>Ciclo</th>
+            <th>Destinatário</th>
+            <th>Filial / Cargo</th>
+            <th>Resumo do Texto</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="disparos-tabela-corpo"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
 <script>
 const $ = (id) => document.getElementById(id);
 let SENHA = ''; try { SENHA = sessionStorage.getItem('equipe_senha') || ''; } catch (e) {}
-let D = null, F = { papel: '', filial: '', sit: '', q: '' };
+
+let DADOS_CONTATOS = null;
+let DADOS_CONVERSAS = null;
+let CHATS_AGRUPADOS = [];
+let CHAT_SELECIONADO_CEL = null;
+let FILTRO_CHATS = 'todos';
+
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const tit = (s) => String(s || '').toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
-async function api(metodo, corpo) {
-  const r = await fetch('/api/jota-contatos', { method: metodo, headers: { 'Content-Type': 'application/json', 'X-Equipe-Senha': SENHA }, body: corpo ? JSON.stringify(corpo) : undefined, cache: 'no-store' });
+
+function aviso(t, tipo) {
+  const m = $('msg-global');
+  if (!m) return;
+  m.textContent = t;
+  m.className = 'msg-alert show ' + (tipo || 'ok');
+  setTimeout(() => (m.className = 'msg-alert'), 6000);
+}
+
+async function api(metodo, rota, corpo) {
+  const r = await fetch(rota, {
+    method: metodo,
+    headers: { 'Content-Type': 'application/json', 'X-Equipe-Senha': SENHA },
+    body: corpo ? JSON.stringify(corpo) : undefined,
+    cache: 'no-store'
+  });
   const j = await r.json().catch(() => ({ erro: 'resposta invalida' }));
-  if (r.status === 401 || r.status === 403) { SENHA = ''; try { sessionStorage.removeItem('equipe_senha'); } catch (e) {} telaLogin(j.erro || 'senha incorreta'); throw new Error('senha'); }
-  if (!r.ok) throw new Error(j.erro || 'erro ' + r.status);
+  if (r.status === 401 || r.status === 403) {
+    SENHA = '';
+    try { sessionStorage.removeItem('equipe_senha'); } catch (e) {}
+    telaLogin(j.erro || 'Senha incorreta da Diretoria');
+    throw new Error('senha');
+  }
+  if (!r.ok) throw new Error(j.erro || 'Erro HTTP ' + r.status);
   return j;
 }
-function aviso(t, tipo) { const m = $('msg'); if (!m) return; m.textContent = t; m.className = 'msg show ' + tipo; setTimeout(() => (m.className = 'msg'), 5000); }
+
 function telaLogin(erro) {
-  $('raiz').innerHTML = `<div class="card login"><h2>Senha da Diretoria</h2><p class="mut">A mesma da Gestão de Equipe.</p>
-    <input id="senha" type="password" style="width:100%" placeholder="senha"> <div style="height:8px"></div><button class="pri" id="entrar">Entrar</button>
-    ${erro ? `<p style="color:var(--vermelho)">${esc(erro)}</p>` : ''}</div>`;
-  const ir = () => { SENHA = $('senha').value; try { sessionStorage.setItem('equipe_senha', SENHA); } catch (e) {} carrega(); };
-  $('entrar').onclick = ir; $('senha').onkeydown = (e) => { if (e.key === 'Enter') ir(); }; $('senha').focus();
+  $('app-root').innerHTML = `
+    <div class="login-modal">
+      <div style="font-size:32px; text-align:center; margin-bottom:12px;">🔒</div>
+      <h2 style="font-size:18px; margin:0 0 6px; text-align:center;">Senha da Diretoria</h2>
+      <p style="color:var(--txt-mut); font-size:13px; text-align:center; margin:0 0 16px;">
+        Digite a senha de Gestão do CEVEN para auditar conversas e gerenciar contatos.
+      </p>
+      <input id="in-senha" type="password" style="width:100%; padding:10px; margin-bottom:12px;" placeholder="Digite a senha...">
+      <button class="pri" id="btn-entrar" style="width:100%; justify-content:center; padding:10px; font-size:14px;">Entrar na Central</button>
+      ${erro ? `<p style="color:var(--vermelho); font-size:13px; margin:12px 0 0; text-align:center;">${esc(erro)}</p>` : ''}
+    </div>
+  `;
+  const entrar = () => {
+    SENHA = $('in-senha').value.trim();
+    if (!SENHA) return;
+    try { sessionStorage.setItem('equipe_senha', SENHA); } catch (e) {}
+    carregarTudo();
+  };
+  $('btn-entrar').onclick = entrar;
+  $('in-senha').onkeydown = (e) => { if (e.key === 'Enter') entrar(); };
+  setTimeout(() => $('in-senha').focus(), 100);
 }
-async function carrega() { try { D = await api('GET'); desenha(); } catch (e) { if (e.message !== 'senha') $('raiz').innerHTML = `<div class="card">Erro: ${esc(e.message)}</div>`; } }
-const opts = (L, sel, vazio) => (vazio !== undefined ? `<option value="">${vazio}</option>` : '') + L.map((x) => `<option value="${esc(x)}"${x === sel ? ' selected' : ''}>${esc(x)}</option>`).join('');
-function supsDaFilial(f) { return [...new Set((D.supervisores_arvore || []).filter((s) => s.filial === f).map((s) => String(s.sup_nome).replace(/^CLT\s*-?\s*/i, '')))]; }
-let ABA = (() => { try { return localStorage.getItem('contatos_aba') || 'contatos'; } catch (e) { return 'contatos'; } })(), FS = '';
-function desenha() {
-  const C = D.contatos, pend = C.filter((c) => c.situacao === 'pendente');
-  const cont = (p) => C.filter((c) => c.papel === p && c.situacao === 'ativo').length;
-  const L = C.filter((c) => (!F.papel || c.papel === F.papel) && (!F.filial || c.filial === F.filial) && (!F.sit || c.situacao === F.sit) && (!F.q || (c.nome + ' ' + c.celular).toUpperCase().includes(F.q.toUpperCase())));
-  // SUPERVISORES DA ARVORE SEM ACESSO (Vitorio, 26/10/2026: "vc tem a arvore de supervisores, coloque quais ainda nao pediram acesso"): arvore do CEVEN de hoje
-  // menos quem ja esta nos contatos (qualquer situacao), pelo nome na mesma filial. Rotulos que nao sao pessoa (GERENTE, VAGO, SEM SUPERVISOR...) ficam de fora.
+
+// ============================== NAVEGAÇÃO DE ABAS ==============================
+function initAbas() {
+  const btns = document.querySelectorAll('#nav-abas .tab-btn');
+  btns.forEach((b) => {
+    b.onclick = () => {
+      btns.forEach((x) => x.classList.remove('active'));
+      b.classList.add('active');
+      const tabId = b.dataset.tab;
+      document.querySelectorAll('.view-pane').forEach((p) => p.classList.remove('active'));
+      const containerInbox = $('tab-conversas');
+      if (tabId === 'conversas') {
+        containerInbox.style.display = 'grid';
+      } else {
+        containerInbox.style.display = 'none';
+        const pane = $('tab-' + tabId);
+        if (pane) pane.classList.add('active');
+      }
+    };
+  });
+}
+
+// ============================== CARREGAMENTO DOS DADOS ==============================
+async function carregarTudo() {
+  try {
+    const [cContatos, cConversas] = await Promise.all([
+      api('GET', '/api/jota-contatos'),
+      api('GET', '/api/jota-conversas?dias=' + ($('cv-periodo-select')?.value || 7))
+    ]);
+    DADOS_CONTATOS = cContatos;
+    DADOS_CONVERSAS = cConversas;
+    renderizarTudo();
+  } catch (e) {
+    if (e.message !== 'senha') {
+      aviso('Falha ao carregar dados: ' + e.message, 'erro');
+    }
+  }
+}
+
+function renderizarTudo() {
+  if (!DADOS_CONTATOS || !DADOS_CONVERSAS) return;
+
+  // Atualizar Badges das Abas
+  const pendentes = (DADOS_CONTATOS.contatos || []).filter((c) => c.situacao === 'pendente');
+  const bPed = $('b-total-ped');
+  bPed.textContent = pendentes.length;
+  bPed.className = 'tab-badge ' + (pendentes.length > 0 ? 'alerta' : '');
+
+  const sugestoes = DADOS_CONVERSAS.sugestoes || [];
+  const bSug = $('b-total-sug');
+  bSug.textContent = sugestoes.length;
+
+  $('b-total-conv').textContent = (DADOS_CONVERSAS.conversas || []).length;
+  $('b-total-cad').textContent = (DADOS_CONTATOS.contatos || []).length;
+
+  // Renderizar cada módulo
+  agruparERenderizarConversas();
+  renderizarSugestoes();
+  renderizarPedidosAcesso(pendentes);
+  renderizarSupervisoresSem();
+  renderizarGestaoContatos();
+  renderizarDisparos();
+}
+
+// ============================== MÓDULO 1: INBOX CONVERSAS ==============================
+function agruparERenderizarConversas() {
+  const lista = DADOS_CONVERSAS.conversas || [];
+  const busca = ($('cv-busca')?.value || '').toLowerCase().trim();
+
+  // Agrupar por celular
+  const mapChats = new Map();
+  for (const c of lista) {
+    if (!mapChats.has(c.celular)) {
+      mapChats.set(c.celular, {
+        celular: c.celular,
+        quem: c.quem || c.celular,
+        papel: c.papel || '',
+        filial: c.filial || '',
+        cadastrado: c.cadastrado,
+        mensagens: [],
+        temProblema: false,
+        temReclamacao: false,
+        temIA: false,
+        piorNota: null,
+        ultimaData: c.quando,
+        ultimoTexto: c.pergunta || c.resposta || ''
+      });
+    }
+    const chat = mapChats.get(c.celular);
+    chat.mensagens.push(c);
+    if (c.nao_ajudou) chat.temProblema = true;
+    if (c.ajudou === 0) chat.temReclamacao = true;
+    if (c.tipo === 'ia') chat.temIA = true;
+    if (c.nota != null && (chat.piorNota == null || c.nota < chat.piorNota)) {
+      chat.piorNota = c.nota;
+    }
+  }
+
+  CHATS_AGRUPADOS = [...mapChats.values()];
+
+  // Aplicar filtros
+  let filtrados = CHATS_AGRUPADOS.filter((ch) => {
+    if (busca) {
+      const match = (ch.quem + ' ' + ch.celular + ' ' + ch.filial + ' ' + ch.papel).toLowerCase().includes(busca);
+      if (!match) return false;
+    }
+    if (FILTRO_CHATS === 'problemas') return ch.temProblema || ch.temReclamacao;
+    if (FILTRO_CHATS === 'avaliados') return ch.piorNota != null;
+    if (FILTRO_CHATS === 'ia') return ch.temIA;
+    if (FILTRO_CHATS === 'nao_cadastrados') return !ch.cadastrado;
+    return true;
+  });
+
+  $('cv-contador-chats').textContent = `${filtrados.length} contato(s) no período`;
+
+  const container = $('cv-lista-chats');
+  if (!filtrados.length) {
+    container.innerHTML = `<div style="padding:30px 16px; text-align:center; color:var(--txt-dim);">Nenhuma conversa encontrada com este filtro.</div>`;
+    return;
+  }
+
+  container.innerHTML = filtrados.map((ch) => {
+    const iniciais = (ch.quem || '?').split(' ').filter(Boolean).slice(0, 2).map((x) => x[0].toUpperCase()).join('');
+    const hora = ch.ultimaData ? ch.ultimaData.slice(11, 16) : '';
+    const dia = ch.ultimaData ? ch.ultimaData.slice(8, 10) + '/' + ch.ultimaData.slice(5, 7) : '';
+    const isActive = ch.celular === CHAT_SELECIONADO_CEL ? ' active' : '';
+
+    let badgeNota = '';
+    if (ch.piorNota != null) {
+      const cor = ch.piorNota >= 4 ? 'var(--verde)' : ch.piorNota === 3 ? 'var(--amarelo)' : 'var(--vermelho)';
+      badgeNota = `<span class="tag-badge" style="background:rgba(255,255,255,0.06); color:${cor}; border:1px solid ${cor}">⭐ Nota ${ch.piorNota}</span>`;
+    }
+
+    const badgeProblema = ch.temReclamacao ? `<span class="tag-badge reclamou">⚠️ Reclamou</span>`
+      : ch.temProblema ? `<span class="tag-badge erro">Não ajudou</span>` : '';
+    const badgeNaoCad = !ch.cadastrado ? `<span class="tag-badge" style="background:#334155; color:#cbd5e1;">Não cadastrado</span>` : '';
+
+    return `
+      <div class="chat-item${isActive}" data-cel="${esc(ch.celular)}">
+        <div class="avatar">${esc(iniciais || '?')}</div>
+        <div class="chat-info">
+          <div class="chat-top">
+            <span class="chat-name">${esc(tit(ch.quem))}</span>
+            <span class="chat-time">${esc(dia)} ${esc(hora)}</span>
+          </div>
+          <div class="chat-meta">
+            <span>${esc(ch.papel || '—')}</span>
+            ${ch.filial ? `<span>· ${esc(ch.filial)}</span>` : ''}
+            <span>· ${ch.mensagens.length} msg(s)</span>
+          </div>
+          <div class="chat-snippet">${esc(ch.ultimoTexto)}</div>
+          <div class="chat-badges">
+            ${badgeProblema}
+            ${badgeNota}
+            ${badgeNaoCad}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Eventos de clique nos chats
+  container.querySelectorAll('.chat-item').forEach((el) => {
+    el.onclick = () => {
+      container.querySelectorAll('.chat-item').forEach((x) => x.classList.remove('active'));
+      el.classList.add('active');
+      abrirChat(el.dataset.cel);
+    };
+  });
+
+  // Se já tinha um selecionado, reabre
+  if (CHAT_SELECIONADO_CEL) {
+    abrirChat(CHAT_SELECIONADO_CEL);
+  }
+}
+
+function abrirChat(celular) {
+  CHAT_SELECIONADO_CEL = celular;
+  const chat = CHATS_AGRUPADOS.find((x) => x.celular === celular);
+  if (!chat) return;
+
+  $('cv-chat-empty').style.display = 'none';
+  const chatActive = $('cv-chat-active');
+  chatActive.style.display = 'flex';
+
+  // Preencher Header
+  $('active-avatar').textContent = (chat.quem || '?').split(' ').filter(Boolean).slice(0, 2).map((x) => x[0].toUpperCase()).join('');
+  $('active-nome').textContent = tit(chat.quem);
+  $('active-papel').textContent = chat.papel || 'Contato';
+  $('active-filial').textContent = chat.filial ? 'Filial ' + chat.filial : 'Sem filial';
+  $('active-celular').textContent = '+' + chat.celular;
+  $('active-wa-link').href = 'https://wa.me/' + chat.celular;
+
+  // Renderizar Thread de Mensagens em ordem cronológica (mais antiga para mais recente)
+  const threadContainer = $('active-thread');
+  const msgsCron = [...chat.mensagens].reverse();
+
+  threadContainer.innerHTML = msgsCron.map((m) => {
+    const hora = m.quando ? m.quando.slice(11, 16) : '';
+    const data = m.quando ? m.quando.slice(8, 10) + '/' + m.quando.slice(5, 7) : '';
+
+    let tagTipo = '';
+    if (m.tipo === 'pronta') tagTipo = '<span class="tag-badge pronta">✅ Resposta Pronta</span>';
+    else if (m.tipo === 'ia') tagTipo = '<span class="tag-badge ia">🤖 IA Genérica</span>';
+    else if (m.tipo === 'erro de envio') tagTipo = '<span class="tag-badge erro">⚠️ Erro de envio</span>';
+    else if (m.tipo) tagTipo = `<span class="tag-badge" style="background:#1e293b; color:#cbd5e1;">${esc(m.tipo)}</span>`;
+
+    let notaBadge = '';
+    if (m.nota != null) {
+      const cor = m.nota >= 4 ? 'var(--verde)' : m.nota === 3 ? 'var(--amarelo)' : 'var(--vermelho)';
+      notaBadge = `<span class="tag-badge" style="background:rgba(255,255,255,0.08); color:${cor}; border:1px solid ${cor}">⭐ Avaliação: Nota ${m.nota}</span>`;
+    }
+
+    const recBadge = m.ajudou === 0 ? '<span class="tag-badge reclamou">⚠️ Usuário marcou que NÃO ajudou</span>' : '';
+
+    return `
+      <!-- PERGUNTA DA PESSOA -->
+      <div class="msg-row in">
+        <div class="bubble">${esc(m.pergunta || '')}</div>
+        <div class="bubble-meta">
+          <span>${esc(tit(m.quem))}</span>
+          <span>·</span>
+          <span>${esc(data)} ${esc(hora)}</span>
+        </div>
+      </div>
+
+      <!-- RESPOSTA DO JOTA -->
+      <div class="msg-row out">
+        <div class="bubble">${esc(m.resposta || 'Sem resposta')}</div>
+        <div class="bubble-meta">
+          ${tagTipo}
+          ${recBadge}
+          ${notaBadge}
+          <span>🤖 Jota · ${esc(hora)}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Rolar para a última mensagem
+  setTimeout(() => {
+    threadContainer.scrollTop = threadContainer.scrollHeight;
+  }, 50);
+}
+
+// Filtros do Inbox
+document.querySelectorAll('.filter-chips .chip').forEach((c) => {
+  c.onclick = () => {
+    document.querySelectorAll('.filter-chips .chip').forEach((x) => x.classList.remove('active'));
+    c.classList.add('active');
+    FILTRO_CHATS = c.dataset.filtro;
+    agruparERenderizarConversas();
+  };
+});
+$('cv-busca').oninput = () => agruparERenderizarConversas();
+$('cv-periodo-select').onchange = () => carregarTudo();
+
+// ============================== MÓDULO 2: SUGESTÕES DA EQUIPE ==============================
+function renderizarSugestoes() {
+  const lista = DADOS_CONVERSAS.sugestoes || [];
+  const statusFiltro = $('sug-filtro-status').value;
+  const filtradas = lista.filter((s) => !statusFiltro || s.situacao === statusFiltro);
+
+  const container = $('sug-cards-grid');
+  if (!filtradas.length) {
+    container.innerHTML = `<div style="grid-column:1/-1; padding:40px; text-align:center; color:var(--txt-dim);">Nenhuma sugestão encontrada.</div>`;
+    return;
+  }
+
+  container.innerHTML = filtradas.map((s) => {
+    const iniciais = (s.nome || '?').split(' ').filter(Boolean).slice(0, 2).map((x) => x[0].toUpperCase()).join('');
+    const hora = s.quando ? s.quando.slice(11, 16) : '';
+    const dia = s.quando ? s.quando.slice(8, 10) + '/' + s.quando.slice(5, 7) : '';
+
+    let badgeStatus = '<span class="tag-badge ia">🆕 Nova</span>';
+    if (s.situacao === 'feita') badgeStatus = '<span class="tag-badge pronta">✅ Feita / Atendida</span>';
+    else if (s.situacao === 'nao_vai') badgeStatus = '<span class="tag-badge erro">✖ Não vai ser feita</span>';
+
+    return `
+      <div class="card-item">
+        <div class="card-header">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="avatar" style="width:32px; height:32px; font-size:12px;">${esc(iniciais)}</div>
+            <div>
+              <div class="card-title">${esc(tit(s.nome))}</div>
+              <div class="card-sub">${esc(s.papel || '')} · Filial ${esc(s.filial || '—')}</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            ${badgeStatus}
+            <div style="font-size:11px; color:var(--txt-dim); margin-top:3px;">${esc(dia)} ${esc(hora)}</div>
+          </div>
+        </div>
+
+        <div class="card-body">"${esc(s.texto)}"</div>
+
+        ${s.sobre ? `<div class="card-context"><b>Contexto:</b> "${esc(s.sobre)}"</div>` : ''}
+
+        ${s.resposta ? `
+          <div style="font-size:12px; background:rgba(34,197,94,0.08); border-left:3px solid var(--verde); padding:8px 10px; border-radius:4px;">
+            <b>Resolução da Diretoria:</b> ${esc(s.resposta)}
+          </div>
+        ` : ''}
+
+        <div class="card-actions">
+          <button class="ok btn-sug-acao" data-id="${s.id}" data-st="feita">✅ Marcar como Feita</button>
+          <button class="no btn-sug-acao" data-id="${s.id}" data-st="nao_vai">✖ Marcar como Não Vai</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.btn-sug-acao').forEach((btn) => {
+    btn.onclick = async () => {
+      const acao = btn.dataset.st;
+      const id = btn.dataset.id;
+      const resp = prompt(acao === 'feita' ? 'O que foi feito/ajustado para atender essa sugestão?' : 'Qual o motivo para não implementar?');
+      if (resp === null) return;
+      try {
+        await api('POST', '/api/jota-conversas', { acao: 'sugestao', id, situacao: acao, resposta: resp });
+        aviso('Sugestão atualizada com sucesso!', 'ok');
+        await carregarTudo();
+      } catch (e) {
+        aviso('Erro ao salvar sugestão: ' + e.message, 'erro');
+      }
+    };
+  });
+}
+$('sug-filtro-status').onchange = () => renderizarSugestoes();
+
+// ============================== MÓDULO 3: PEDIDOS DE ACESSO ==============================
+function renderizarPedidosAcesso(pendentes) {
+  const container = $('pedidos-container');
+  if (!pendentes.length) {
+    container.innerHTML = `
+      <div style="background:var(--card); border:1px solid var(--borda); border-radius:12px; padding:40px; text-align:center;">
+        <div style="font-size:40px; margin-bottom:8px;">✅</div>
+        <h3 style="margin:0 0 6px; color:#fff;">Tudo em dia!</h3>
+        <p style="color:var(--txt-mut); margin:0;">Nenhum pedido de acesso pendente de aprovação no momento.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="grid-cards">
+      ${pendentes.map((p) => `
+        <div class="card-item" style="border-left:4px solid var(--amarelo);">
+          <div class="card-header">
+            <div>
+              <div class="card-title">${esc(tit(p.nome))}</div>
+              <div class="card-sub">${esc(p.papel)} · Filial ${esc(p.filial || '—')}${p.grupo ? ' · ' + esc(p.grupo) : ''}</div>
+            </div>
+            <span class="tag-badge ia">Aguardando OK</span>
+          </div>
+          <div style="font-size:13px; color:var(--txt-mut);">
+            <div><b>Celular:</b> +${esc(p.celular)}</div>
+            <div><b>Pedido em:</b> ${esc(String(p.criado_em || '').slice(0, 16))}</div>
+          </div>
+          <div class="card-actions" style="margin-top:12px;">
+            <button class="ok btn-aprovar-acesso" data-cel="${esc(p.celular)}" style="flex:1; justify-content:center;">✅ Aprovar Acesso</button>
+            <button class="no btn-recusar-acesso" data-cel="${esc(p.celular)}" style="flex:1; justify-content:center;">✖ Recusar</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  container.querySelectorAll('.btn-aprovar-acesso').forEach((b) => {
+    b.onclick = async () => {
+      try {
+        const r = await api('POST', '/api/jota-contatos', { acao: 'aprovar', celular: b.dataset.cel });
+        aviso(r.avisado ? 'Aprovado! Mensagem de boas-vindas enviada no WhatsApp.' : 'Aprovado com sucesso!', 'ok');
+        await carregarTudo();
+      } catch (e) {
+        aviso('Erro ao aprovar: ' + e.message, 'erro');
+      }
+    };
+  });
+
+  container.querySelectorAll('.btn-recusar-acesso').forEach((b) => {
+    b.onclick = async () => {
+      if (!confirm(`Recusar o acesso de ${b.dataset.cel}?`)) return;
+      try {
+        await api('POST', '/api/jota-contatos', { acao: 'recusar', celular: b.dataset.cel });
+        aviso('Pedido recusado.', 'ok');
+        await carregarTudo();
+      } catch (e) {
+        aviso('Erro ao recusar: ' + e.message, 'erro');
+      }
+    };
+  });
+}
+
+// ============================== MÓDULO 4: SUPERVISORES SEM ACESSO ==============================
+function renderizarSupervisoresSem() {
+  const C = DADOS_CONTATOS.contatos || [];
   const nrm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/^CLT\s*-?\s*/, '').replace(/\s+/g, ' ').trim();
   const jaTem = new Set(C.flatMap((c) => [c.filial + '|' + nrm(c.nome), c.filial + '|' + nrm(c.supervisor)]));
   const prim2 = (s) => nrm(s).split(' ').slice(0, 2).join(' ');
   const jaTem2 = new Set(C.map((c) => c.filial + '|' + prim2(c.nome)));
-  const semAcesso = [...new Map((D.supervisores_arvore || []).filter((s) => !/^(GERENTE|VAGO|SEM SUPERVISOR|RCAS INATIVOS|VENDA EMPRESA|SUPERVISAO GERAL|SUPERVISOR \d)/.test(nrm(s.sup_nome)))
-    .filter((s) => !jaTem.has(s.filial + '|' + nrm(s.sup_nome)) && !jaTem2.has(s.filial + '|' + prim2(s.sup_nome))).map((s) => [s.filial + '|' + nrm(s.sup_nome), s])).values()]
+
+  const semAcesso = [...new Map((DADOS_CONTATOS.supervisores_arvore || []).filter((s) => !/^(GERENTE|VAGO|SEM SUPERVISOR|RCAS INATIVOS|VENDA EMPRESA|SUPERVISAO GERAL|SUPERVISOR \d)/.test(nrm(s.sup_nome)))
+    .filter((s) => !jaTem.has(s.filial + '|' + nrm(s.sup_nome)) && !jaTem2.has(s.filial + '|' + prim2(s.sup_nome)))
+    .map((s) => [s.filial + '|' + nrm(s.sup_nome), s])).values()]
     .sort((a, b) => (a.filial + a.sup_nome).localeCompare(b.filial + b.sup_nome));
-  // ABA SEPARADA (Vitorio, 26/10/2026: "coloque isso em uma aba aqui dentro para nao atrapalhar... filtro por filial e envie para as filiais... botao para excluir da lista")
-  const EXC = new Set((D.sem_acesso_excluidos || []).map((x) => x.filial + '|' + x.sup_id));
-  const faltam = semAcesso.filter((s) => !EXC.has(s.filial + '|' + s.sup_id)), vis = faltam.filter((s) => !FS || s.filial === FS);
-  const abas = `<div class="filtros" style="margin-bottom:12px"><button data-aba="contatos" class="${ABA === 'contatos' ? 'pri' : ''}">👥 Contatos</button> <button data-aba="sem" class="${ABA === 'sem' ? 'pri' : ''}">👀 Supervisores sem acesso (${faltam.length})</button></div>`;
-  const ligaAbas = () => document.querySelectorAll('[data-aba]').forEach((x) => (x.onclick = () => { ABA = x.dataset.aba; try { localStorage.setItem('contatos_aba', ABA); } catch (e) {} desenha(); }));
-  if (ABA === 'sem') {
-    const exL = (D.sem_acesso_excluidos || []).filter((x) => !FS || x.filial === FS);
-    $('raiz').innerHTML = `<div id="msg" class="msg"></div>${abas}
-    <div class="card"><h2>👀 Supervisores da árvore do CEVEN que ainda não pediram acesso (${vis.length}${FS ? ' em ' + esc(FS) : ''})</h2>
-      <p class="mut">Eles precisam mandar para o Jota: nome + código de supervisor (ex.: "Maria Silva, supervisora, código 45"). Gerente ou inativo: clique em "excluir da lista" e ele não aparece nem é enviado.</p>
-      <div class="filtros"><select id="s_fil">${opts(D.filiais, FS, 'todas as filiais')}</select> <button class="pri" id="s_env" ${FS && vis.length ? '' : 'disabled'}>📲 Enviar a lista para o gerente da ${esc(FS || 'filial')}</button> ${FS ? '' : '<span class="mut">escolha a filial para enviar</span>'}</div>
-      <div class="tabela"><table><thead><tr><th>Filial</th><th>Código</th><th>Supervisor</th><th></th></tr></thead><tbody>
-      ${vis.map((s) => `<tr><td>${esc(s.filial)}</td><td>${esc(s.sup_id || '')}</td><td>${esc(tit(String(s.sup_nome).replace(/^CLT\s*-?\s*/i, '')))}</td><td><button class="no" data-ex="${esc(s.filial)}|${esc(s.sup_id)}|${esc(s.sup_nome)}">excluir da lista</button></td></tr>`).join('') || '<tr><td colspan="4" class="mut">ninguém faltando</td></tr>'}</tbody></table></div></div>
-    ${exL.length ? `<div class="card"><h2>🚫 Excluídos da lista (${exL.length})</h2><div class="tabela"><table><thead><tr><th>Filial</th><th>Código</th><th>Nome</th><th>Motivo</th><th></th></tr></thead><tbody>
-      ${exL.map((x) => `<tr><td>${esc(x.filial)}</td><td>${esc(x.sup_id)}</td><td>${esc(tit(x.sup_nome || ''))}</td><td class="mut">${esc(x.motivo || '')}</td><td><button class="ok" data-re="${esc(x.filial)}|${esc(x.sup_id)}">reincluir</button></td></tr>`).join('')}</tbody></table></div></div>` : ''}`;
-    ligaAbas();
-    $('s_fil').onchange = (e) => { FS = e.target.value; desenha(); };
-    document.querySelectorAll('[data-ex]').forEach((x) => (x.onclick = async () => { const [f, id, nome] = x.dataset.ex.split('|'); const motivo = prompt(`Excluir ${tit(nome)} (${f}) da lista? Motivo (ex.: gerente, inativo):`, 'gerente'); if (motivo === null) return;
-      try { await api('POST', { acao: 'excluir_sem_acesso', filial: f, sup_id: id, sup_nome: nome, motivo }); aviso('Excluído da lista.', 'ok'); await carrega(); } catch (e) { if (e.message !== 'senha') aviso(e.message, 'erro'); } }));
-    document.querySelectorAll('[data-re]').forEach((x) => (x.onclick = async () => { const [f, id] = x.dataset.re.split('|');
-      try { await api('POST', { acao: 'reincluir_sem_acesso', filial: f, sup_id: id }); aviso('Reincluído.', 'ok'); await carrega(); } catch (e) { if (e.message !== 'senha') aviso(e.message, 'erro'); } }));
-    const env = $('s_env'); if (env) env.onclick = async () => { if (!confirm(`Enviar pelo WhatsApp para o(s) gerente(s) da ${FS} a lista de ${vis.length} supervisor(es) sem acesso?`)) return;
-      try { const r = await api('POST', { acao: 'enviar_sem_acesso', filial: FS, lista: vis.map((s) => ({ sup_id: s.sup_id, sup_nome: String(s.sup_nome).replace(/^CLT\s*-?\s*/i, '') })) }); aviso(r.enviados && r.enviados.length ? 'Enviado para: ' + r.enviados.map(tit).join(', ') : 'Não consegui enviar.', r.enviados && r.enviados.length ? 'ok' : 'erro'); } catch (e) { if (e.message !== 'senha') aviso(e.message, 'erro'); } };
+
+  const EXC = new Set((DADOS_CONTATOS.sem_acesso_excluidos || []).map((x) => x.filial + '|' + x.sup_id));
+  const faltam = semAcesso.filter((s) => !EXC.has(s.filial + '|' + s.sup_id));
+  $('b-total-sem').textContent = faltam.length;
+
+  const filSelect = $('sem-filial-select');
+  const selAtual = filSelect.value;
+  filSelect.innerHTML = '<option value="">Todas as filiais</option>' + (DADOS_CONTATOS.filiais || []).map((f) => `<option value="${f}"${f === selAtual ? ' selected' : ''}>${f}</option>`).join('');
+
+  const filtrados = faltam.filter((s) => !filSelect.value || s.filial === filSelect.value);
+  const btnEnv = $('sem-enviar-btn');
+  btnEnv.disabled = !filSelect.value || !filtrados.length;
+  btnEnv.textContent = `📲 Enviar lista (${filtrados.length}) para o Gerente de ${filSelect.value || '...'}`;
+
+  const tbody = $('sem-tabela-corpo');
+  if (!filtrados.length) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--txt-dim); padding:24px;">Nenhum supervisor pendente nesta filial.</td></tr>`;
     return;
   }
-  $('raiz').innerHTML = `<div id="msg" class="msg"></div>${abas}
-  <div class="kpis">${['diretoria', 'gerente', 'supervisor', 'vendedor'].map((p) => `<div class="kpi"><b>${cont(p)}</b><span>${p} ativo(s)</span></div>`).join('')}<div class="kpi"><b style="color:var(--amarelo)">${pend.length}</b><span>pedido(s) pendente(s)</span></div></div>
-  ${pend.length ? `<div class="card"><h2>🔔 Pedidos de acesso (precisam do seu OK)</h2><div class="tabela"><table><thead><tr><th>Nome</th><th>Filial</th><th>Cargo</th><th>Celular</th><th>Pedido em</th><th></th></tr></thead><tbody>
-    ${pend.map((c) => `<tr><td>${esc(tit(c.nome))}</td><td>${esc(c.filial || '')}${c.grupo ? ' · ' + esc(tit(c.grupo)) : ''}</td><td>${esc(c.papel)}</td><td>${esc(c.celular)}</td><td class="mut">${esc(String(c.criado_em || '').slice(0, 16))}</td>
-    <td><button class="ok" data-a="aprovar" data-c="${esc(c.celular)}">Aprovar</button> <button class="no" data-a="recusar" data-c="${esc(c.celular)}">Recusar</button></td></tr>`).join('')}</tbody></table></div></div>` : ''}
-  <div class="card"><h2>➕ Novo contato / editar</h2><div class="form" id="form">
-    <label>Celular (55 + DDD + número)<input id="f_cel" placeholder="5541999998888"></label>
-    <label>Nome<input id="f_nome"></label>
-    <label>Cargo<select id="f_papel">${opts(D.papeis, 'supervisor')}</select></label>
-    <label>Filial<select id="f_fil">${opts(D.filiais, '', '—')}</select></label>
-    <label>Grupo (TPH/MCD)<input id="f_grupo" placeholder="VAGNER, FABIO…"></label>
-    <label>Supervisor<select id="f_sup"><option value="">—</option></select></label>
-    <label>Código RCA (vendedor)<input id="f_rca"></label>
-    <div><button class="pri" id="salvar">Salvar</button> <button id="limpar">Limpar</button></div>
-  </div><p class="mut">Para editar, clique em "editar" na lista. Vendedor (2º passo) precisa do código RCA; ele verá só os próprios números.</p></div>
-  <div class="card"><h2>Todos os contatos (${L.length} de ${C.length})</h2>
-    <div class="filtros"><select id="q_papel">${opts(D.papeis, F.papel, 'todos os cargos')}</select><select id="q_fil">${opts(D.filiais, F.filial, 'todas as filiais')}</select>
-      <select id="q_sit">${opts(['ativo', 'pendente', 'inativo', 'recusado'], F.sit, 'qualquer situação')}</select><input id="q_txt" placeholder="buscar nome ou celular" value="${esc(F.q)}"></div>
-    <div class="tabela"><table><thead><tr><th>Nome</th><th>Cargo</th><th>Filial</th><th>Supervisor / RCA</th><th>Celular</th><th>Situação</th><th>Uso</th><th></th></tr></thead><tbody>
-    ${L.map((c) => `<tr><td>${esc(tit(c.nome))}</td><td>${esc(c.papel)}</td><td>${esc(c.filial || 'todas')}${c.grupo ? ' · ' + esc(tit(c.grupo)) : ''}</td>
-      <td class="mut">${c.papel === 'vendedor' ? 'RCA ' + esc(c.rca || '?') + (c.supervisor ? ' · ' + esc(tit(c.supervisor)) : '') : c.papel === 'supervisor' ? 'equipe própria' : ''}</td><td>${esc(c.celular)}</td>
-      <td><span class="pill ${esc(c.situacao)}">${esc(c.situacao)}</span></td><td class="mut">${c.perguntas ? c.perguntas + ' pergunta(s)' : '—'}</td>
-      <td><button data-ed="${esc(c.celular)}">editar</button> ${c.situacao === 'ativo' ? `<button class="no" data-a="desativar" data-c="${esc(c.celular)}">desativar</button>` : `<button class="ok" data-a="ativar" data-c="${esc(c.celular)}">ativar</button>`}</td></tr>`).join('')}
-    </tbody></table></div></div>
-  <div class="card" id="conversas"><h2>💬 Conversas</h2><p class="mut">carregando…</p></div>`;
-  carregaConversas();
-  ligaAbas();
-  const fil = $('f_fil'), sup = $('f_sup');
-  const encheSup = (sel) => { sup.innerHTML = '<option value="">—</option>' + opts(supsDaFilial(fil.value), sel); };
-  fil.onchange = () => encheSup('');
-  $('q_papel').onchange = (e) => { F.papel = e.target.value; desenha(); };
-  $('q_fil').onchange = (e) => { F.filial = e.target.value; desenha(); };
-  $('q_sit').onchange = (e) => { F.sit = e.target.value; desenha(); };
-  $('q_txt').oninput = (e) => { F.q = e.target.value; clearTimeout(window._t); window._t = setTimeout(() => { desenha(); const i = $('q_txt'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 300); };
-  $('limpar').onclick = () => { for (const id of ['f_cel', 'f_nome', 'f_grupo', 'f_rca']) $(id).value = ''; fil.value = ''; encheSup(''); };
-  document.querySelectorAll('[data-ed]').forEach((b) => (b.onclick = () => {
-    const c = C.find((x) => x.celular === b.dataset.ed); if (!c) return;
-    $('f_cel').value = c.celular; $('f_nome').value = c.nome || ''; $('f_papel').value = c.papel || 'supervisor'; fil.value = c.filial || ''; $('f_grupo').value = c.grupo || ''; $('f_rca').value = c.rca || '';
-    encheSup(c.supervisor || ''); if (c.supervisor && sup.value !== c.supervisor) sup.innerHTML += `<option selected>${esc(c.supervisor)}</option>`;
-    $('form').scrollIntoView({ behavior: 'smooth' });
-  }));
-  $('salvar').onclick = async () => {
-    try { await api('POST', { acao: 'salvar', celular: $('f_cel').value, nome: $('f_nome').value, papel: $('f_papel').value, filial: fil.value, grupo: $('f_grupo').value, supervisor: sup.value, rca: $('f_rca').value });
-      aviso('Salvo.', 'ok'); await carrega(); } catch (e) { if (e.message !== 'senha') aviso(e.message, 'erro'); }
-  };
-  document.querySelectorAll('[data-a]').forEach((b) => (b.onclick = async () => {
-    const a = b.dataset.a, c = b.dataset.c;
-    if (a === 'recusar' || a === 'desativar') { if (!confirm(`${a === 'recusar' ? 'Recusar o pedido' : 'Desativar'} de ${c}?`)) return; }
-    try { const r = await api('POST', { acao: a, celular: c }); aviso(a === 'aprovar' ? (r.avisado ? 'Aprovado e avisado no WhatsApp.' : 'Aprovado (não consegui avisar no WhatsApp).') : 'Feito.', 'ok'); await carrega(); } catch (e) { if (e.message !== 'senha') aviso(e.message, 'erro'); }
-  }));
-}
-// CONVERSAS (Vitório, 25/10/2026: "vamos conseguir monitorar TODAS as conversas? e as respostas que não ajudarem?")
-let CV = null, CVF = { so_ruins: false, quem: '', dias: 7 };
-async function carregaConversas() {
-  try { const r = await fetch('/api/jota-conversas?dias=' + CVF.dias, { headers: { 'X-Equipe-Senha': SENHA }, cache: 'no-store' }); CV = await r.json(); desenhaConversas(); }
-  catch (e) { const el = $('conversas'); if (el) el.innerHTML = '<h2>💬 Conversas</h2><p class="mut">Não consegui carregar: ' + esc(e.message) + '</p>'; }
-}
-// DISPAROS AUTOMATICOS do motor do WhatsApp (07:45, 11:30, 14:30, 17:00, 18:30): o que saiu e o que falhou
-function desenhaDisparos() {
-  const D2 = (CV.disparos || []).filter((x) => !CVF.quem || (x.quem + ' ' + x.celular).toUpperCase().includes(CVF.quem.toUpperCase()));
-  if (!D2.length) return `<h2 style="margin-top:16px">📤 Disparos automáticos</h2><p class="mut">Nenhum disparo registrado no período (o registro começou em 26/10/2026).</p>`;
-  const falhas = D2.filter((x) => !x.ok).length;
-  return `<h2 style="margin-top:16px">📤 Disparos automáticos</h2><div class="kpis"><div class="kpi"><b>${D2.length - falhas}</b><span>enviados</span></div><div class="kpi"><b style="color:${falhas ? 'var(--vermelho)' : 'var(--verde)'}">${falhas}</b><span>falharam</span></div></div>
-    <div class="tabela"><table><thead><tr><th>Quando</th><th>Ciclo</th><th>Para</th><th>Mensagem</th><th></th></tr></thead><tbody>
-    ${D2.slice(0, 300).map((x) => `<tr${x.ok ? '' : ' style="background:#2a1212"'}><td class="mut">${esc(String(x.quando).slice(5, 16))}</td><td>${esc(x.ciclo)}</td><td>${esc(tit(x.quem))}<div class="mut">${esc(x.papel)} ${esc(x.filial)}</div></td>
-      <td class="mut" style="max-width:520px;white-space:pre-wrap">${esc(x.texto.slice(0, 300))}${x.texto.length > 300 ? '…' : ''}</td><td>${x.ok ? '✅' : '⚠️ falhou'}</td></tr>`).join('')}</tbody></table></div>`;
-}
-function desenhaConversas() {
-  const el = $('conversas'); if (!el || !CV) return;
-  const pc = (a) => CV.total ? Math.round(a / CV.total * 100) + '%' : '–';
-  const tag = { pronta: '✅ resposta pronta', entendida_ia: '🧠 entendida pela IA (resposta do código)', saudacao: '👋 saudação', saudacao_primeira: '👋 boas-vindas', ia: '🤖 IA (sem resposta pronta)', ajuda: '❓ menu de ajuda', 'erro de envio': '⚠️ erro de envio', 'sem resposta': '… sem resposta', 'não cadastrado': '🚫 não cadastrado' };
-  const L = (CV.conversas || []).filter((x) => (!CVF.so_ruins || x.nao_ajudou || !x.cadastrado) && (!CVF.quem || (x.quem + ' ' + x.celular).toUpperCase().includes(CVF.quem.toUpperCase())));
-  el.innerHTML = `<h2>💬 Conversas (últimos ${CV.dias} dias)</h2>
-    <div class="kpis"><div class="kpi"><b>${CV.total}</b><span>perguntas</span></div><div class="kpi"><b style="color:var(--verde)">${pc(CV.prontas)}</b><span>resposta pronta</span></div>
-    <div class="kpi"><b style="color:var(--amarelo)">${CV.ia}</b><span>caíram na IA</span></div><div class="kpi"><b style="color:var(--vermelho)">${CV.reclamadas}</b><span>reclamadas ("não foi isso")</span></div>
-    <div class="kpi"><b>${CV.nao_cadastrados}</b><span>de não cadastrados</span></div><div class="kpi"><b style="color:var(--azul)">${CV.nota_media ?? '–'}</b><span>nota média (${CV.notas || 0} notas)</span></div><div class="kpi"><b>${(CV.sugestoes || []).length}</b><span>sugestões</span></div></div>
-    <div class="filtros"><label class="mut"><input type="checkbox" id="cv_ruins" ${CVF.so_ruins ? 'checked' : ''}> só as que não ajudaram</label>
-      <select id="cv_dias">${[1, 7, 30].map((d) => `<option value="${d}"${d === CVF.dias ? ' selected' : ''}>${d === 1 ? 'hoje/24 h' : d + ' dias'}</option>`).join('')}</select>
-      <input id="cv_quem" placeholder="filtrar pessoa" value="${esc(CVF.quem)}"></div>
-    <div class="tabela"><table><thead><tr><th>Quando</th><th>Quem</th><th>Pergunta</th><th>Resposta do Jota</th><th>Tipo</th></tr></thead><tbody>
-    ${L.slice(0, 300).map((x) => `<tr${x.nao_ajudou ? ' style="background:#2a1212"' : ''}><td class="mut">${esc(String(x.quando).slice(5, 16))}</td><td>${esc(tit(x.quem))}<div class="mut">${esc(x.papel)} ${esc(x.filial)}</div></td>
-      <td>${esc(x.pergunta)}</td><td class="mut" style="max-width:420px;white-space:pre-wrap">${esc(String(x.resposta || '').slice(0, 280))}${String(x.resposta || '').length > 280 ? '…' : ''}</td>
-      <td>${esc(tag[x.tipo] || x.tipo)}${x.nota != null ? `<div style="color:${x.nota >= 4 ? 'var(--verde)' : x.nota === 3 ? 'var(--amarelo)' : 'var(--vermelho)'}">nota ${x.nota}</div>` : ''}${x.ajudou === 0 && x.nota == null ? '<div style="color:var(--vermelho)">reclamou</div>' : ''}</td></tr>`).join('')}</tbody></table></div>
-    ${(CV.sugestoes || []).length ? `<h2 style="margin-top:16px">💡 Sugestões</h2><div class="tabela"><table><thead><tr><th>Quando</th><th>Quem</th><th>Sugestão</th><th>Sobre a pergunta</th><th>Situação</th></tr></thead><tbody>${CV.sugestoes.map((g) => `<tr><td class="mut">${esc(String(g.quando).slice(5, 16))}</td><td>${esc(tit(g.nome))}<div class="mut">${esc(g.papel || '')} ${esc(g.filial || '')}</div></td><td>${esc(g.texto)}</td><td class="mut">${esc(g.sobre || '')}</td>
-      <td>${g.situacao === 'feita' ? `<b style="color:var(--verde)">✅ feita</b>` : g.situacao === 'nao_vai' ? `<b style="color:var(--vermelho)">✖ não vai</b>` : `<b style="color:var(--amarelo)">🆕 nova</b>`}${g.resposta ? `<div class="mut" style="max-width:320px;white-space:pre-wrap">${esc(g.resposta)}</div>` : ''}
-      <div style="margin-top:4px"><button class="sg" data-id="${g.id}" data-s="feita">✅ feita</button> <button class="sg" data-id="${g.id}" data-s="nao_vai">✖ não vai</button></div></td></tr>`).join('')}</tbody></table></div>` : ''}
-    ${desenhaDisparos()}`;
-  $('cv_ruins').onchange = (e) => { CVF.so_ruins = e.target.checked; desenhaConversas(); };
-  document.querySelectorAll('button.sg').forEach((b) => b.onclick = async () => {
-    const resposta = prompt(b.dataset.s === 'feita' ? 'O que foi feito? (fica registrado na sugestão)' : 'Por que não vai ser feita?'); if (resposta === null) return;
-    const r = await fetch('/api/jota-conversas', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Equipe-Senha': SENHA }, body: JSON.stringify({ acao: 'sugestao', id: b.dataset.id, situacao: b.dataset.s, resposta }) });
-    if (r.ok) carregaConversas(); else alert('Não consegui salvar.');
+
+  tbody.innerHTML = filtrados.map((s) => `
+    <tr>
+      <td><b>${esc(s.filial)}</b></td>
+      <td>${esc(s.sup_id || '—')}</td>
+      <td>${esc(tit(String(s.sup_nome).replace(/^CLT\s*-?\s*/i, '')))}</td>
+      <td style="text-align:right;">
+        <button class="no btn-excluir-sem" data-ex="${esc(s.filial)}|${esc(s.sup_id)}|${esc(s.sup_nome)}">Excluir da Lista</button>
+      </td>
+    </tr>
+  `).join('');
+
+  tbody.querySelectorAll('.btn-excluir-sem').forEach((b) => {
+    b.onclick = async () => {
+      const [f, id, nome] = b.dataset.ex.split('|');
+      const motivo = prompt(`Excluir ${tit(nome)} (${f}) da lista? Motivo (ex.: gerente, saiu da empresa):`, 'gerente');
+      if (motivo === null) return;
+      try {
+        await api('POST', '/api/jota-contatos', { acao: 'excluir_sem_acesso', filial: f, sup_id: id, sup_nome: nome, motivo });
+        aviso('Excluído da lista.', 'ok');
+        await carregarTudo();
+      } catch (e) {
+        aviso('Erro: ' + e.message, 'erro');
+      }
+    };
   });
-  $('cv_dias').onchange = (e) => { CVF.dias = Number(e.target.value); carregaConversas(); };
-  $('cv_quem').oninput = (e) => { CVF.quem = e.target.value; clearTimeout(window._c); window._c = setTimeout(() => { desenhaConversas(); const i = $('cv_quem'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 300); };
+
+  btnEnv.onclick = async () => {
+    const f = filSelect.value;
+    if (!confirm(`Disparar mensagem no WhatsApp para os gerentes da ${f} cobrando os ${filtrados.length} supervisores sem acesso?`)) return;
+    try {
+      const r = await api('POST', '/api/jota-contatos', {
+        acao: 'enviar_sem_acesso', filial: f,
+        lista: filtrados.map((s) => ({ sup_id: s.sup_id, sup_nome: String(s.sup_nome).replace(/^CLT\s*-?\s*/i, '') }))
+      });
+      aviso(r.enviados && r.enviados.length ? 'Cobrança enviada para: ' + r.enviados.map(tit).join(', ') : 'Cobrança disparada!', 'ok');
+    } catch (e) {
+      aviso('Erro ao enviar: ' + e.message, 'erro');
+    }
+  };
 }
-if (SENHA) carrega(); else telaLogin();
+$('sem-filial-select').onchange = () => renderizarSupervisoresSem();
+
+// ============================== MÓDULO 5: GESTÃO DE CONTATOS (APROVADOS) ==============================
+function renderizarGestaoContatos() {
+  const lista = DADOS_CONTATOS.contatos || [];
+  const busca = ($('cad-busca')?.value || '').toLowerCase().trim();
+  const fPapel = $('cad-filtro-papel').value;
+  const fFilial = $('cad-filtro-filial').value;
+  const fSit = $('cad-filtro-situacao').value;
+
+  // Preencher Selects de filtro se vazios
+  const selPapel = $('cad-filtro-papel');
+  if (selPapel.options.length <= 1) {
+    (DADOS_CONTATOS.papeis || []).forEach((p) => selPapel.innerHTML += `<option value="${p}">${tit(p)}</option>`);
+  }
+  const selFilial = $('cad-filtro-filial');
+  if (selFilial.options.length <= 1) {
+    (DADOS_CONTATOS.filiais || []).forEach((f) => selFilial.innerHTML += `<option value="${f}">${f}</option>`);
+  }
+
+  // Preencher Select de filial do Form
+  const fFil = $('f-filial');
+  if (fFil.options.length === 0) {
+    fFil.innerHTML = '<option value="">— Escolha a filial —</option>' + (DADOS_CONTATOS.filiais || []).map((f) => `<option value="${f}">${f}</option>`).join('');
+  }
+
+  const filtrados = lista.filter((c) => {
+    if (busca && !(c.nome + ' ' + c.celular).toLowerCase().includes(busca)) return false;
+    if (fPapel && c.papel !== fPapel) return false;
+    if (fFilial && c.filial !== fFilial) return false;
+    if (fSit && c.situacao !== fSit) return false;
+    return true;
+  });
+
+  const tbody = $('cad-tabela-corpo');
+  tbody.innerHTML = filtrados.map((c) => `
+    <tr>
+      <td><b>${esc(tit(c.nome))}</b></td>
+      <td>${esc(c.papel)}</td>
+      <td>${esc(c.filial || 'Todas')}${c.grupo ? ' · ' + esc(tit(c.grupo)) : ''}</td>
+      <td style="color:var(--txt-mut); font-size:12px;">
+        ${c.papel === 'vendedor' ? 'RCA ' + esc(c.rca || '?') + (c.supervisor ? ' · ' + esc(tit(c.supervisor)) : '') : c.papel === 'supervisor' ? 'Equipe própria' : '—'}
+      </td>
+      <td>+${esc(c.celular)}</td>
+      <td>
+        <span class="tag-badge ${c.situacao === 'ativo' ? 'pronta' : 'erro'}">${esc(c.situacao)}</span>
+      </td>
+      <td style="color:var(--txt-mut);">${c.perguntas ? c.perguntas + ' pergunta(s)' : '—'}</td>
+      <td style="text-align:right; white-space:nowrap;">
+        <button class="btn-editar-contato" data-cel="${esc(c.celular)}">Editar</button>
+        ${c.situacao === 'ativo'
+          ? `<button class="no btn-toggle-ativo" data-cel="${esc(c.celular)}" data-acao="desativar">Desativar</button>`
+          : `<button class="ok btn-toggle-ativo" data-cel="${esc(c.celular)}" data-acao="ativar">Ativar</button>`}
+      </td>
+    </tr>
+  `).join('');
+
+  tbody.querySelectorAll('.btn-editar-contato').forEach((b) => {
+    b.onclick = () => {
+      const c = lista.find((x) => x.celular === b.dataset.cel);
+      if (!c) return;
+      $('f-cel').value = c.celular;
+      $('f-nome').value = c.nome || '';
+      $('f-papel').value = c.papel || 'supervisor';
+      $('f-filial').value = c.filial || '';
+      $('f-grupo').value = c.grupo || '';
+      $('f-rca').value = c.rca || '';
+      atualizarSupervisoresForm(c.filial, c.supervisor);
+      $('box-form-contato').style.display = 'block';
+      $('box-form-contato').scrollIntoView({ behavior: 'smooth' });
+    };
+  });
+
+  tbody.querySelectorAll('.btn-toggle-ativo').forEach((b) => {
+    b.onclick = async () => {
+      const a = b.dataset.acao;
+      const cel = b.dataset.cel;
+      if (!confirm(`${a === 'desativar' ? 'Desativar' : 'Reativar'} o acesso de +${cel}?`)) return;
+      try {
+        await api('POST', '/api/jota-contatos', { acao: a, celular: cel });
+        aviso(`Contato ${a === 'desativar' ? 'desativado' : 'ativado'}.`, 'ok');
+        await carregarTudo();
+      } catch (e) {
+        aviso('Erro: ' + e.message, 'erro');
+      }
+    };
+  });
+}
+
+function atualizarSupervisoresForm(filial, sel) {
+  const sups = [...new Set((DADOS_CONTATOS.supervisores_arvore || []).filter((s) => s.filial === filial).map((s) => String(s.sup_nome).replace(/^CLT\s*-?\s*/i, '')))];
+  $('f-supervisor').innerHTML = '<option value="">— Sem supervisor —</option>' + sups.map((s) => `<option value="${esc(s)}"${s === sel ? ' selected' : ''}>${esc(s)}</option>`).join('');
+}
+$('f-filial').onchange = () => atualizarSupervisoresForm($('f-filial').value, '');
+$('cad-busca').oninput = () => renderizarGestaoContatos();
+$('cad-filtro-papel').onchange = () => renderizarGestaoContatos();
+$('cad-filtro-filial').onchange = () => renderizarGestaoContatos();
+$('cad-filtro-situacao').onchange = () => renderizarGestaoContatos();
+
+$('btn-toggle-novo-contato').onclick = () => {
+  const box = $('box-form-contato');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  if (box.style.display === 'block') {
+    for (const id of ['f-cel', 'f-nome', 'f-grupo', 'f-rca']) $(id).value = '';
+    $('f-filial').value = '';
+    $('f-supervisor').innerHTML = '<option value="">—</option>';
+  }
+};
+$('f-cancelar-btn').onclick = () => { $('box-form-contato').style.display = 'none'; };
+$('f-salvar-btn').onclick = async () => {
+  const cel = $('f-cel').value.replace(/\D/g, '');
+  if (cel.length < 10) { aviso('Informe um celular válido com DDD', 'erro'); return; }
+  try {
+    await api('POST', '/api/jota-contatos', {
+      acao: 'salvar',
+      celular: cel,
+      nome: $('f-nome').value,
+      papel: $('f-papel').value,
+      filial: $('f-filial').value,
+      grupo: $('f-grupo').value,
+      supervisor: $('f-supervisor').value,
+      rca: $('f-rca').value
+    });
+    aviso('Contato salvo com sucesso!', 'ok');
+    $('box-form-contato').style.display = 'none';
+    await carregarTudo();
+  } catch (e) {
+    aviso('Erro ao salvar: ' + e.message, 'erro');
+  }
+};
+
+// ============================== MÓDULO 6: DISPAROS AUTOMÁTICOS ==============================
+function renderizarDisparos() {
+  const disparos = DADOS_CONVERSAS.disparos || [];
+  const falhas = disparos.filter((d) => !d.ok).length;
+
+  $('disparos-kpis').innerHTML = `
+    <div class="kpi-card"><b>${disparos.length}</b><span>Total Disparados</span></div>
+    <div class="kpi-card"><b style="color:var(--verde)">${disparos.length - falhas}</b><span>Enviados com Sucesso</span></div>
+    <div class="kpi-card"><b style="color:${falhas ? 'var(--vermelho)' : 'var(--txt-mut)'}">${falhas}</b><span>Falhas de Envio</span></div>
+  `;
+
+  const tbody = $('disparos-tabela-corpo');
+  if (!disparos.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--txt-dim); padding:24px;">Nenhum disparo registrado no período.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = disparos.slice(0, 200).map((d) => `
+    <tr style="${d.ok ? '' : 'background:rgba(239,68,68,0.06)'}">
+      <td style="color:var(--txt-mut); font-size:12px;">${esc(String(d.quando || '').slice(5, 16))}</td>
+      <td><span class="tag-badge pronta">${esc(d.ciclo || 'Oficial')}</span></td>
+      <td><b>${esc(tit(d.quem))}</b><div style="font-size:11px; color:var(--txt-dim);">+${esc(d.celular)}</div></td>
+      <td>${esc(d.filial)} · ${esc(d.papel)}</td>
+      <td style="max-width:400px; white-space:pre-wrap; font-size:12px; color:var(--txt-mut);">${esc(d.texto.slice(0, 240))}${d.texto.length > 240 ? '…' : ''}</td>
+      <td>${d.ok ? '<span class="tag-badge pronta">✅ Enviado</span>' : '<span class="tag-badge erro">⚠️ Falhou</span>'}</td>
+    </tr>
+  `).join('');
+}
+
+$('btn-atualizar').onclick = () => carregarTudo();
+
+// Inicialização
+initAbas();
+if (SENHA) carregarTudo(); else telaLogin();
 </script>
 </body>
 </html>

@@ -101,7 +101,7 @@ function horariosCheckinDoDia(cl) {
 // Mesma lógica de vend() em tvapp.html: transforma resposta de /api/tv-vendedor no objeto usado
 // por calcAlertas.
 import { CEVEN_APP_SECRET } from './cron-varredura-central.js';
-import { garanteTabelasPedido, gravaStatusPedidos } from '../_lib/pedido_status.js';
+import { garanteTabelasPedido, gravaStatusPedidos, rcaDoPedido } from '../_lib/pedido_status.js';
 import { qualificaGol, carteiraEfetiva } from '../_lib/qualificacao_gol.js';
 import { garanteArvore } from '../_lib/arvore_ceven.js';
 import { ehRepresentante } from '../_lib/participacao.js';   // representante nao e monitorado (12/10/2026)
@@ -286,7 +286,7 @@ const DEV_MOTIVO_COMERCIAL = /SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD|PEDIDO DUP
 // RECHECAGEM DO STATUS DOS PEDIDOS (Vitorio, 26/10/2026: "faturado e o status final... bloqueados ou liberados a gente precisa rechecar... com os timelines"):
 // a cada rodada, relê no CEVEN o historico de poucos clientes com pedido ainda NAO final (ultimos 10 dias), bloqueados primeiro e quem esta ha mais tempo sem
 // conferir. Cada leitura atualiza todos os pedidos recentes daquele cliente (pedido_status) e grava a mudanca na linha do tempo (pedido_status_hist).
-const RECHECA_POR_RODADA = 4;   // cota de /api/rca/* dividida com a varredura e os motivos de devolucao; subir so medindo 429
+const RECHECA_POR_RODADA = 4;   // cota de /api/rca/* (4 por rodada, sem roubar tempo dos lances)
 async function rechecaPedidos(env) {
   try {
     await garanteTabelasPedido(env);
@@ -295,20 +295,54 @@ async function rechecaPedidos(env) {
     const dia = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
     const { results: ca } = await env.DB.prepare("SELECT chave, json, criado_em FROM cache_analise_cliente WHERE chave LIKE ?").bind('%|%|%|' + dia + '|%').all();
     const sem = [];
-    for (const r of ca || []) { const [k, rca, cli] = String(r.chave).split('|'); let x = null; try { x = JSON.parse(r.json); } catch { continue; } const p = x && x.pedidoHoje; if (!p || !p.num || !p.status_pedido) continue;
+    for (const r of ca || []) {
+      const [k, rca, cli] = String(r.chave).split('|');
+      let x = null; try { x = JSON.parse(r.json); } catch { continue; }
+      const p = x && x.pedidoHoje;
+      if (!p || !p.num || !p.status_pedido) continue;
+      const numPed = String(p.num);
       const st = String(p.status_pedido).toUpperCase().trim(), em = new Date(r.criado_em).toISOString();
+      const donoRca = rcaDoPedido(numPed) || rca;
       sem.push(env.DB.prepare("INSERT OR IGNORE INTO pedido_status (num, filial, rca, id_cliente, data_pedido, status, valor, valor_winthor, categoria_corte, itens_cortados, final, primeiro_em, atualizado_em, rechecado_em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-        .bind(String(p.num), k.replace(/1$/, '').toUpperCase(), rca, cli, p.data || dia, st, Number(p.total_clube || p.valor) || null, Number(p.vl_faturado_winthor) || null, p.categoria_corte || null, (p.itens_cortados || []).length, /FATURAD|CANCELAD/.test(st) ? 1 : 0, em, em, em));
-      sem.push(env.DB.prepare('INSERT OR IGNORE INTO pedido_status_hist (num, status, visto_em) VALUES (?, ?, ?)').bind(String(p.num), st, em)); }
+        .bind(numPed, k.replace(/1$/, '').toUpperCase(), donoRca, cli, p.data || dia, st, Number(p.total_clube || p.valor) || null, Number(p.vl_faturado_winthor) || null, p.categoria_corte || null, (p.itens_cortados || []).length, /FATURAD|CANCELAD/.test(st) ? 1 : 0, em, em, em));
+      sem.push(env.DB.prepare('INSERT OR IGNORE INTO pedido_status_hist (num, status, visto_em) VALUES (?, ?, ?)').bind(numPed, st, em));
+    }
     for (let i = 0; i < sem.length; i += 100) await env.DB.batch(sem.slice(i, i + 100));
     const { results } = await env.DB.prepare(`SELECT filial, rca, id_cliente, MIN(CASE WHEN status LIKE 'BLOQ%' THEN 0 ELSE 1 END) pri, MIN(COALESCE(rechecado_em, '')) ult
       FROM pedido_status WHERE final = 0 AND data_pedido >= ? GROUP BY filial, rca, id_cliente ORDER BY pri, ult LIMIT ?`).bind(lim, RECHECA_POR_RODADA).all();
     let feitos = 0;
+    const agora = new Date().toISOString();
     for (const p of results || []) {
       if (cevenBloqueado) break;
-      const h = await getJson(`${CEVEN_API}/api/rca/historico-cliente/${encodeURIComponent(p.id_cliente)}?filial=${String(p.filial).toLowerCase()}1&id=${p.rca}`);
-      if (!h || !Array.isArray(h.ultimas_visitas)) continue;
-      await gravaStatusPedidos(env, p.filial, p.rca, p.id_cliente, h.ultimas_visitas); feitos++;
+      let h = null;
+      try {
+        h = await getJson(`${CEVEN_API}/api/rca/historico-cliente/${encodeURIComponent(p.id_cliente)}?filial=${String(p.filial).toLowerCase()}1&id=${p.rca}`);
+      } catch (e) { h = null; }
+      if (!h || !Array.isArray(h.ultimas_visitas)) {
+        // Falha ou cliente sem visitas: avança rechecado_em para NÃO travar a fila no mesmo cliente eternamente (29/10/2026)
+        try {
+          await env.DB.prepare("UPDATE pedido_status SET rechecado_em = ? WHERE filial = ? AND id_cliente = ? AND final = 0").bind(agora, p.filial, p.id_cliente).run();
+        } catch (e) {}
+        continue;
+      }
+      await gravaStatusPedidos(env, p.filial, p.rca, p.id_cliente, h.ultimas_visitas);
+      feitos++;
+
+      // DESTRAVA DA FILA (29/10/2026): pedidos do cliente que SUMIRAM do historico do CEVEN (excluidos/cancelados no Winthor)
+      // Se o cliente tem visitas retornadas mas um pedido aberto antigo nao veio nelas, ele foi cancelado ou precisa avancar o rechecado_em
+      try {
+        const numsVistos = (h.ultimas_visitas || []).map((v) => String(v.num_pedido)).filter(Boolean);
+        if (numsVistos.length) {
+          const inPlaceholders = numsVistos.map(() => '?').join(',');
+          await env.DB.prepare(`UPDATE pedido_status SET rechecado_em = ?,
+            status = CASE WHEN data_pedido >= date('now', '-7 days') THEN 'CANCELADO' ELSE status END,
+            final = CASE WHEN data_pedido >= date('now', '-7 days') THEN 1 ELSE final END
+            WHERE filial = ? AND id_cliente = ? AND final = 0 AND num NOT IN (${inPlaceholders})`)
+            .bind(agora, p.filial, p.id_cliente, ...numsVistos).run();
+        } else {
+          await env.DB.prepare("UPDATE pedido_status SET rechecado_em = ? WHERE filial = ? AND id_cliente = ? AND final = 0").bind(agora, p.filial, p.id_cliente).run();
+        }
+      } catch (e) {}
     }
     return feitos;
   } catch (e) { return 0; }
@@ -364,6 +398,11 @@ export async function onRequestGet({ env, request }) {
 
   const t0 = Date.now();
   const t = agoraSP();
+  const urlParams = new URL(request.url).searchParams;
+  if (urlParams.get('so_recheca') === '1') {
+    const feitos = await rechecaPedidos(env, urlParams.get('rca'), urlParams.get('filial'));
+    return new Response(JSON.stringify({ recheca: 'ok', feitos }), { headers: cors });
+  }
   // TRAVA DA MADRUGADA (06/10/2026): a meia-noite o CEVEN ainda serve o roteiro de ONTEM com o dia novo; o coletor registrava os lances de ontem como se
   // fossem de hoje (845 lances em 06/10, 793 repetidos de 05/10; 1.813 em 01/10). Antes das 06h nao ha venda do dia: nao coleta nada.
   if (t.h < 6 && !new URL(request.url).searchParams.has('madrugada')) {
@@ -399,7 +438,7 @@ export async function onRequestGet({ env, request }) {
     const lock = await env.DB.prepare("SELECT dono, criado_em FROM cron_lock_global WHERE id = 1").first().catch(() => null);
     if (lock) {
       const idadeLockMs = Date.now() - new Date(lock.criado_em + 'Z').getTime();
-      if (idadeLockMs < 20 * 60 * 1000) {
+      if (idadeLockMs < 5 * 60 * 1000) {
         return new Response(JSON.stringify({ status: 'PULADO_WHATSAPP_ATIVO', dono: lock.dono }), { headers: cors });
       }
     }
@@ -449,7 +488,6 @@ export async function onRequestGet({ env, request }) {
   } catch { /* sem planilha: segue so com o banco */ }
   for (const r of canalRows) (rcasPorFilial[r.filial] = rcasPorFilial[r.filial] || []).push(r.codigo);
   const devPorRca = await carregaDevolucoes(env, t, new Map(canalRows.map((r) => [String(r.codigo), r.filial])));
-  await rechecaPedidos(env);   // linha do tempo do status dos pedidos (26/10/2026)
 
   const FUSO1H = ['TCG', 'MCD', 'TCA'];
   let totalNovos = 0, totalFalhas = 0;
@@ -490,6 +528,11 @@ export async function onRequestGet({ env, request }) {
     const novos = j?.novos?.length || 0;
     totalNovos += novos;
     porFilial[filial] = novos;
+  }
+
+  // RECHECAGEM DOS PEDIDOS (apos os lances das 11 filiais): so se sobrou tempo no tick
+  if (Date.now() - t0 < 80000) {
+    try { await rechecaPedidos(env); } catch {}
   }
 
   // Semana Invicta: confere a semana fechada (sexta apos as 19h) e grava o lance. Idempotente; so custa uma leitura rapida quando nao ha nada a fazer.

@@ -14,7 +14,7 @@ export const PARADAS = new Set(['NESTE', 'DESTE', 'NESSE', 'DESSE', 'NAQUELE', '
 export async function vendasEscopo(B, E) {
   const arqs = await Promise.all(E.filiais.map((f) => B.raw(`public/vendas_mes/${f}.json`).then((t) => { try { return t ? { f, ...JSON.parse(t) } : null; } catch (e) { return null; } })));
   const ok = arqs.filter(Boolean); if (!ok.length) return null;
-  const restrito = E.grupo || E.supervisor || E.rca, rcas = new Set(E.vend.map((v) => v.filial + '|' + v.rca));
+  const restrito = E.grupo || E.supervisor || E.rca, rcas = new Set(E.vend.concat(E.ocultos || []).map((v) => v.filial + '|' + v.rca));
   const linhas = [], prod = {}, cli = {}; let ate = '';
   for (const a of ok) { if (a.ate > ate) ate = a.ate; for (const [k, v] of Object.entries(a.produtos || {})) if (!prod[k] || (!prod[k][1] && v[1])) prod[k] = v; for (const [k, v] of Object.entries(a.clientes || {})) cli[a.f + '|' + k] = v;
     for (const l of a.l || []) if (!restrito || rcas.has(a.f + '|' + l[1])) linhas.push({ f: a.f, d: l[0], r: l[1], c: l[2], p: l[3], q: l[4], v: l[5] }); }
@@ -255,23 +255,50 @@ export async function respPedidoNumero(B, E, t) {
 // PEDIDOS POR STATUS DO ESCOPO (Vitorio, 26/10/2026: "e se o supervisor perguntar quais pedidos estao bloqueados ainda hoje do time dele?").
 // Base do dia (/api/pedidos-dia). Status e o da ULTIMA leitura do pedido (hora mostrada); a rechecagem ate FATURADO e a linha do tempo estao sendo ligadas.
 export async function respPedidosStatus(B, E, t) {
-  const alvo = t === 'PENDENTES' ? 'PENDENTES' : /BLOQUEAD/.test(t) ? 'BLOQUEADO' : /LIBERAD/.test(t) ? 'LIBERADO' : /CORTE|CORTAD/.test(t) ? 'CORTE' : null;
+  const ehBloqELiber = t === 'BLOQUEADOS_E_LIBERADOS' || (/BLOQUEAD/.test(t) && /LIBERAD/.test(t));
+  const alvo = t === 'PENDENTES' || ehBloqELiber ? 'PENDENTES' : /BLOQUEAD/.test(t) ? 'BLOQUEADO' : /LIBERAD/.test(t) ? 'LIBERADO' : /CORTE|CORTAD/.test(t) ? 'CORTE' : null;
+
+  // Se perguntou por UM vendedor específico, aciona rechecagem ao vivo das pendências desse vendedor no CEVEN antes de responder (29/10/2026)
+  const unicoVend = (E.vend && E.vend.length === 1 && !E.nacional) ? E.vend[0] : null;
+  if (unicoVend && alvo !== 'CORTE' && B.rechecaPedidosVend) {
+    try { await B.rechecaPedidosVend(unicoVend.filial, unicoVend.rca); } catch (e) {}
+  }
+
   const pd0 = await B.pedidosDia(); if (!pd0 || !Array.isArray(pd0.pedidos)) return '🧾 _Os pedidos do dia ainda não estão na base. Tente em alguns minutos._';
   // pendente/bloqueado/liberado de QUALQUER dia (linha do tempo, ultimos 15 dias) + os de hoje; status mais recente vence (27/10/2026)
   const pd = { pedidos: pd0.pedidos.slice() };
-  if (alvo !== 'CORTE') { const ab = await B.pedidosAbertos(); const ja = new Set(pd.pedidos.map((p) => String(p.num)));
-    for (const a of (ab && ab.abertos) || []) if (!ja.has(String(a.num))) pd.pedidos.push({ ...a, num: String(a.num), total_clube: a.valor, analisado_em: Date.parse(a.rechecado_em), data: a.data_pedido }); }
+  if (alvo !== 'CORTE') {
+    const ab = await B.pedidosAbertos(unicoVend ? unicoVend.filial : null, unicoVend ? unicoVend.rca : null);
+    const ja = new Set(pd.pedidos.map((p) => String(p.num)));
+    for (const a of (ab && ab.abertos) || []) {
+      if (!ja.has(String(a.num))) {
+        pd.pedidos.push({ ...a, num: String(a.num), total_clube: a.valor, analisado_em: Date.parse(a.rechecado_em), data: a.data_pedido });
+      } else {
+        const idx = pd.pedidos.findIndex((p) => String(p.num) === String(a.num));
+        if (idx >= 0 && a.status_pedido) {
+          pd.pedidos[idx].status_pedido = a.status_pedido;
+          if (a.rechecado_em) pd.pedidos[idx].analisado_em = Date.parse(a.rechecado_em);
+        }
+      }
+    }
+  }
   const meus = new Map(E.vend.concat(E.ocultos || []).map((v) => [v.filial + '|' + v.rca, v]));
   const P = pd.pedidos.filter((p) => (E.nacional || meus.has(p.filial + '|' + p.rca)) && (alvo === 'CORTE' ? (p.itens_cortados || []).length : alvo === 'PENDENTES' ? !/FATURAD|CANCELAD/i.test(String(p.status_pedido || '')) : !alvo || String(p.status_pedido || '').toUpperCase() === alvo));
   const hm = (ms) => new Date(ms).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
-  const titulo0 = alvo === 'CORTE' ? 'com corte' : alvo === 'PENDENTES' ? 'ainda não faturados' : alvo ? alvo.toLowerCase() + 's' : 'de hoje';
+  const titulo0 = alvo === 'CORTE' ? 'com corte' : ehBloqELiber ? 'bloqueados e liberados' : alvo === 'PENDENTES' ? 'ainda não faturados' : alvo ? alvo.toLowerCase() + 's' : 'de hoje';
   if (!P.length) return `🧾 *Pedidos ${titulo0} — ${E.nome}*: nenhum na base agora.`;
   const porV = new Map(); for (const p of P) { const k = p.filial + '|' + p.rca; if (!porV.has(k)) porV.set(k, []); porV.get(k).push(p); }
   const tot = P.reduce((a, p) => a + (Number(p.total_clube || p.valor) || 0), 0), L = [`🧾 *Pedidos ${titulo0} — ${E.nome}*: *${P.length}* · ${R$(tot)}`, ''];
   let n = 0;
   for (const [k, ps] of [...porV].sort((a, b) => b[1].length - a[1].length)) {
     const v = meus.get(k); L.push(`*${v ? vn(v) : 'RCA ' + k.split('|')[1]}${E.nacional ? ' ' + k.split('|')[0] : ''}* — ${ps.length}`);
-    for (const p of ps) { if (n++ >= 30) break; L.push(`• ${p.num}${p.data && p.data !== hojeSP() ? ' (' + String(p.data).slice(8, 10) + '/' + String(p.data).slice(5, 7) + ')' : ''} · cliente #${p.id_cliente} · ${R$(p.total_clube || p.valor)} · ${p.status_pedido || 'sem status'}` + ((p.itens_cortados || []).length ? ` · ✂️ ${p.itens_cortados.length} item(ns) cortado(s)` : '') + ` _(lido ${hm(p.analisado_em)})_`); }
+    for (const p of ps) {
+      if (n++ >= 30) break;
+      const dataStr = p.data && p.data !== hojeSP() ? ' (' + String(p.data).slice(8, 10) + '/' + String(p.data).slice(5, 7) + ')' : '';
+      const corteStr = (p.itens_cortados || []).length ? ` · ✂️ ${p.itens_cortados.length} item(ns) cortado(s)` : '';
+      const horaStr = p.analisado_em ? ` _(lido ${hm(p.analisado_em)})_` : '';
+      L.push(`• ${p.num}${dataStr} · cliente #${p.id_cliente} · ${R$(p.total_clube || p.valor)} · ${p.status_pedido || 'sem status'}${corteStr}${horaStr}`);
+    }
     if (n >= 30) { L.push(`… e mais ${P.length - 30}. Peça por vendedor.`); break; }
   }
   L.push('', '_Status da última leitura de cada pedido (hora ao lado)._', SUGESTAO + (alvo === 'BLOQUEADO' ? 'bloqueado é pendência comercial/crédito: falar com o crédito hoje para liberar o faturamento.' : 'peça "pedido <número>" para o detalhe de um pedido.'));

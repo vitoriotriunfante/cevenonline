@@ -20,7 +20,7 @@ import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 const limpa = (n) => String(n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
 
 async function semCache({ request, env }) {
-  const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
+  const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=30, s-maxage=30, stale-while-revalidate=15' };
   const filial = (new URL(request.url).searchParams.get('filial') || '').toLowerCase().replace(/1$/, '');
   if (!/^[a-z]{3}$/.test(filial)) return new Response(JSON.stringify({ erro: 'filial (sigla) obrigatória' }), { status: 400, headers: cors });
 

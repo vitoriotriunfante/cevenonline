@@ -30,8 +30,17 @@ export async function universoArvore(env) {
 const SO_ARVORE = ' AND EXISTS (SELECT 1 FROM arvore_supervisores a WHERE a.rca = varredura_central_rca.rca_codigo AND a.filial = varredura_central_rca.filial_sigla)'
   + ' AND NOT EXISTS (SELECT 1 FROM canal_ceven c WHERE c.rca = varredura_central_rca.rca_codigo AND c.filial = varredura_central_rca.filial_sigla AND c.existe = 0)';
 
+let cacheResumo = { exp: 0, dataRef: null, res: null };
+let tabelaMetaHierarquiaGarantida = false;
+
 export async function calculaResumoMes(env, dataRef) {
-  try { await env.DB.prepare('CREATE TABLE IF NOT EXISTS meta_hierarquia (filial TEXT NOT NULL, rca TEXT NOT NULL, meta REAL, meta_pos REAL, atualizado_em TEXT, PRIMARY KEY (filial, rca))').run(); } catch { /* ja existe */ }
+  const agora = Date.now();
+  if (cacheResumo.res && cacheResumo.dataRef === dataRef && agora < cacheResumo.exp) {
+    return cacheResumo.res;
+  }
+  if (!tabelaMetaHierarquiaGarantida) {
+    try { await env.DB.prepare('CREATE TABLE IF NOT EXISTS meta_hierarquia (filial TEXT NOT NULL, rca TEXT NOT NULL, meta REAL, meta_pos REAL, atualizado_em TEXT, PRIMARY KEY (filial, rca))').run(); tabelaMetaHierarquiaGarantida = true; } catch { /* ja existe */ }
+  }
   const filtra = await universoArvore(env);
   const F = filtra ? SO_ARVORE : '';
   const { results: hoje } = await env.DB.prepare(
@@ -75,5 +84,7 @@ export async function calculaResumoMes(env, dataRef) {
       alvo.rcas++;
     }
   }
-  return { dataRef, rcas: linhas.length, deHoje, anteriores, semLeitura, maisAntiga, porFilial, total };
+  const res = { dataRef, rcas: linhas.length, deHoje, anteriores, semLeitura, maisAntiga, porFilial, total };
+  cacheResumo = { exp: agora + 25 * 1000, dataRef, res };
+  return res;
 }

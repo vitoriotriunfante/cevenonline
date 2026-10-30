@@ -266,10 +266,24 @@ export async function respTagCampanhas(B, E, v, t = '', c = null) {
       }
       if (r.mesC.size) {
         const falta = Math.max(0, r.meta - r.comprou);
-        porV.push([r.mesC.size - r.comprou, `• *${vn(x)}*: mês *${r.comprou} de ${r.mesC.size}*` + (tagInfo.ehRec ? ` (meta ${r.meta} · faltam ${falta})` : '') + (r.hoje.length ? ` · hoje *${r.hoje.length}* na rota` : '')]);
+        porV.push({
+          diff: r.mesC.size - r.comprou,
+          vend: x,
+          comprou: r.comprou,
+          total: r.mesC.size,
+          falta,
+          ehRec: tagInfo.ehRec,
+          meta: r.meta,
+          hojeLen: r.hoje.length
+        });
       }
     }
     const meta = Math.ceil(tag * 0.8);
+    const numE = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+    const numL = (i) => numE[i] || `${i + 1}.`;
+    const porVLinhas = porV.sort((a, b) => b.diff - a.diff).map((item, i) =>
+      `${numL(i)} *${vn(item.vend)}*: mês *${item.comprou} de ${item.total}*` + (item.ehRec ? ` (meta ${item.meta} · faltam ${item.falta})` : '') + (item.hojeLen ? ` · hoje *${item.hojeLen}* na rota` : '')
+    );
     return [
       `🔄 *Tag: ${tagInfo.label} — ${E.nome}*`,
       `*${tag} clientes* com a tag no mês · já compraram *${comp}*` + (tagInfo.ehRec ? ` · faltam *${Math.max(0, meta - comp)}* para a meta da Premiação (${meta} = 80%)` : ` (${tag ? Math.round(comp / tag * 100) : 0}% positivados)`),
@@ -277,9 +291,9 @@ export async function respTagCampanhas(B, E, v, t = '', c = null) {
       hoje.length ? `📍 *Na rota de hoje e ainda sem compra (${hoje.length}):*\n` + hoje.join('\n') : `📍 Nenhum cliente com a tag sem compra na rota de hoje.`,
       '',
       `👥 *Por vendedor:*`,
-      ...porV.sort((a, b) => b[0] - a[0]).map((x) => x[1]),
+      ...porVLinhas,
       '',
-      SUGESTAO + (hoje.length ? `cobrar hoje os ${hoje.length} clientes da rota com os vendedores acima; ` : '') + `peça "tag ${tagInfo.label} do vendedor <nome>" para ver a lista completa de clientes dele.`
+      SUGESTAO + (hoje.length ? `cobrar hoje os ${hoje.length} clientes da rota com os vendedores acima; ` : '') + `digite o número (ex: *1* ou *2*) para ver os clientes daquele vendedor.`
     ].join('\n');
   }
   if (v) {

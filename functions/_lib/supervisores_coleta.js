@@ -14,7 +14,7 @@ import { CEVEN_APP_SECRET } from './ceven_auth.js';
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 
-async function getJson(url, tk, ms = 20000) {
+async function getJson(url, tk, ms = 6000) {
   try {
     const r = await fetch(url, { headers: { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(ms) });
     return r.ok ? await r.json() : null;
@@ -33,7 +33,7 @@ export async function coletaSupervisores(env, forcar = false) {
   const rel = R.relogioSP(), dia = rel.dia, m = rel.min, res = {};
   const { results } = await env.DB.prepare('SELECT tipo, atualizado_em FROM supervisores_dia WHERE data_ref = ?').bind(dia).all();
   const ult = new Map((results || []).map((x) => [x.tipo, x.atualizado_em]));
-  const querComp = forcar || (m >= 6 * 60 && m <= 10 * 60 + 30 ? idadeMin(ult.get('compromissos')) >= 5 : m <= 19 * 60 && idadeMin(ult.get('compromissos')) >= 60);
+  const querComp = forcar || (m >= 6 * 60 && m <= 10 * 60 + 30 ? idadeMin(ult.get('compromissos')) >= 5 : m <= 14 * 60 ? idadeMin(ult.get('compromissos')) >= 10 : m <= 19 * 60 + 30 && idadeMin(ult.get('compromissos')) >= 20);
   const querRet = forcar || (m >= 7 * 60 && m <= 19 * 60 + 30 && idadeMin(ult.get('ret')) >= 15);
   if (!querComp && !querRet) return { status: 'nao_e_hora' };
   const tk = await tokenAdmin(env);
@@ -49,11 +49,12 @@ export async function coletaSupervisores(env, forcar = false) {
       await grava('ret', ret);
       const comRota = (ret.supervisores || []).filter(feito);
       res.ret = (ret.supervisores || []).length; res.ret_iniciados = comRota.length; res.detalhes = 0;
-      for (let i = 0; i < comRota.length; i += 6) {
-        await Promise.all(comRota.slice(i, i + 6).map(async (s) => {
+      const loteSupervisores = comRota.slice(0, 18);
+      for (let i = 0; i < loteSupervisores.length; i += 6) {
+        await Promise.all(loteSupervisores.slice(i, i + 6).map(async (s) => {
           const fil = String(s.filial || '').toLowerCase();
           if (!/^[a-z]{3}1$/.test(fil)) return;
-          const det = await getJson(`${CEVEN}/api/admin/ret/periodo?filial=${fil}&supervisorName=${encodeURIComponent(s.nome)}&dataInicio=${dia}&dataFim=${dia}`, tk);
+          const det = await getJson(`${CEVEN}/api/admin/ret/periodo?filial=${fil}&supervisorName=${encodeURIComponent(s.nome)}&dataInicio=${dia}&dataFim=${dia}`, tk, 6000);
           if (!det) return;
           await env.DB.prepare("INSERT INTO supervisores_ret_detalhe (data_ref, filial, supervisor, json, atualizado_em) VALUES (?, ?, ?, ?, datetime('now')) ON CONFLICT (data_ref, filial, supervisor) DO UPDATE SET json = excluded.json, atualizado_em = excluded.atualizado_em")
             .bind(dia, fil, String(s.nome), JSON.stringify(det)).run();

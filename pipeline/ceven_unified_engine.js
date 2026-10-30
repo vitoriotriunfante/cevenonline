@@ -474,15 +474,38 @@ async function ateCompletar(nome, coleta, verifica = () => true) {
 }
 async function coletarVendasCompleto(repsMap, dataRef) {
   const inicio = Date.now();
+  const BASE_SITE = process.env.CEVEN_FONTE_BASE_URL || 'https://ceven-cftv-matrix.pages.dev';
   for (let rodada = 1; ; rodada++) {
     const res = await coletarVendasEZerados(repsMap, dataRef);
     const semDado = res.__semDado || []; delete res.__semDado;
+
+    // GUARDA CONTRA SNAPSHOT VELHO / 429 (Vitório, 29/10/2026: "como assim zerado... tudo tá doido!"):
+    // Se após as 13h uma filial/gerência de 5+ vendedores tiver R$ 0,00 digitado e 0 pedidos,
+    // significa que a varredura central sofreu 429 e a base ficou defasada. Dispara varredura direcionada da filial!
+    const relSP = R.relogioSP();
+    const horaAtual = (relSP && relSP.h) != null ? relSP.h : new Date().getHours();
+    let filialZeradaDetectada = false;
+    if (horaAtual >= 13) {
+      for (const [k, r] of Object.entries(res)) {
+        if (r && r.vjTotal >= 5 && r.fatTotalDigitado === 0 && r.pedidosTotal === 0) {
+          console.log(`🚨 [FILIAL ZERADA] ${r.chave || k} saiu com R$ 0,00 e 0 pedidos após as 13h (${horaAtual}h). Disparando varredura forçada para ${r.sigla}...`);
+          try {
+            await axios.get(`${BASE_SITE}/api/cron-varredura-central?filial=${r.sigla}&forcar=1`, { timeout: 35000 });
+          } catch (e) {
+            console.error(`Falha ao disparar varredura para ${r.sigla}:`, e.message);
+          }
+          filialZeradaDetectada = true;
+          FALHAS_COLETA++;
+        }
+      }
+    }
+
     if (FALHAS_COLETA === 0) { console.log(`✅ Coleta COMPLETA na rodada ${rodada}: todos os vendedores e todos os pedidos apurados.`); return { completo: true, res }; }
     // so falhas de vendedor isolado (sem dado), dentro da tolerancia: envia assim mesmo e registra quem ficou de fora
     const tol = TOLERANCIA_VENDEDORES(TOTAL_VENDEDORES_RODADA);
-    if (FALHAS_COLETA === semDado.length && semDado.length <= tol) { console.log(`✅ Coleta conferiu todos os ${TOTAL_VENDEDORES_RODADA} vendedores na rodada ${rodada}; ${semDado.length} sem dado (tolerancia ${tol}): ${semDado.join(', ')}. ENVIA.`); return { completo: true, res }; }
+    if (!filialZeradaDetectada && FALHAS_COLETA === semDado.length && semDado.length <= tol) { console.log(`✅ Coleta conferiu todos os ${TOTAL_VENDEDORES_RODADA} vendedores na rodada ${rodada}; ${semDado.length} sem dado (tolerancia ${tol}): ${semDado.join(', ')}. ENVIA.`); return { completo: true, res }; }
     console.log(`⚠️ Rodada ${rodada} INCOMPLETA: ${FALHAS_COLETA} falha(s) (${semDado.length} vendedor(es) sem dado: ${semDado.slice(0, 15).join(', ')}). Nada sera enviado assim.`);
-    await new Promise((ok) => setTimeout(ok, 60000));   // da folga a cota do CEVEN e tenta a coleta inteira de novo
+    await new Promise((ok) => setTimeout(ok, filialZeradaDetectada ? 15000 : 60000));   // se foi filial zerada revarrida, 15 s bastam para rechecar
   }
 }
 

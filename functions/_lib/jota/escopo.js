@@ -28,7 +28,7 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
       pos: po.realizado ?? null, metaPos: po.meta ?? null, dig: pd.dig_pedido || 0, ped: pd.positivacao || 0, visP, visF, comVenda: pd.visitas_com_venda || 0,
       visPlanMes: pm.visit_plan || 0, visRealMes: pm.visit_real || 0,
       /* mes do PROPRIO vendedor, qualquer canal (detalhe do vendedor; os totais de rota seguem quem tem rota) */ roteiroMes: Array.isArray(r.roteiro_mes) ? r.roteiro_mes : null, mesV: { plan: pm.visit_plan ?? null, real: pm.visit_real ?? null, pedRota: pm.ped_rota_mes ?? null, efic: pm.eficiencia_pct ?? null },
-      zerado: visP > 0 && !(pd.dig_pedido > 0), semVisita: visP > 0 && !visF, devolucoes: Array.isArray(r.devolucoes) ? r.devolucoes : [],
+      zerado: visP > 0 && !((pd.dig_pedido || 0) > 0 || (pd.positivacao || 0) > 0 || (pd.visitas_com_venda || 0) > 0), semVisita: visP > 0 && !(visF > 0), devolucoes: Array.isArray(r.devolucoes) ? r.devolucoes : [],
       /* devolucoes que ENTRARAM hoje (mesma regra do WhatsApp 17:00/18:30: d.data === hoje) */
       devHoje: (Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).reduce((t, x) => t + Math.abs(parseFloat(x.vl_devolvido || x.valor || 0) || 0), 0),
       vendeuHoje: (pd.dig_pedido || 0) > 0 || (pd.positivacao || 0) > 0 || (pd.visitas_com_venda || 0) > 0,
@@ -37,7 +37,7 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
 
     const ehMeuGrupo = !grupo || String(e.grupo || '').toUpperCase() === String(grupo).toUpperCase();
     const sSup = sem(supervisor || ''), sESup = sem(e.supervisor || '');
-    const ehMeuSup = !supervisor || sESup === sSup || (sSup.length >= 4 && (sESup.includes(sSup) || sSup.includes(sESup))) || (sSup.split(/\s+/)[0] && sSup.split(/\s+/)[0] === sESup.split(/\s+/)[0] && sSup.split(/\s+/).pop() === sESup.split(/\s+/).pop());
+    const ehMeuSup = !supervisor || (sESup && (sESup === sSup || (sSup.length >= 4 && sESup.length >= 4 && (sESup.includes(sSup) || sSup.includes(sESup))) || (sSup.split(/\s+/)[0] && sSup.split(/\s+/)[0] === sESup.split(/\s+/)[0] && sSup.split(/\s+/).pop() === sESup.split(/\s+/).pop())));
     const ehMeuRca = !soRca || String(rca) === String(soRca);
     if (!ehMeuGrupo || !ehMeuSup || !ehMeuRca) {
       outros.push(vObj);
@@ -45,6 +45,29 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     }
     const destino = e.mostra === false ? ocultos : vend;
     destino.push(vObj);
+  }
+  // CONFERENCIA AO VIVO DE QUEM TEM VISITA E DIGITADO ZERO (29/10/2026, Vitorio: "olha o tanto de visita que o Maico ja fez"):
+  // Quando uma equipe/supervisor e consultado, quem ja fez visitas hoje (visF > 0) mas o snapshot da rodada anterior ainda mostra
+  // dig == 0 e ped == 0 pode ter colocado pedidos durante a rota. Recheca a produtividade desses vendedores ao vivo antes de responder.
+  if (supervisor && B.rechecaProdVend) {
+    const suspeitos = vend.filter((v) => v.varejo && v.visF > 0 && !(v.dig > 0) && !(v.ped > 0)).slice(0, 8);
+    if (suspeitos.length) {
+      await Promise.all(suspeitos.map(async (v) => {
+        try {
+          const det = await B.rechecaProdVend(v.filial, v.rca);
+          if (det) {
+            const dig = Number(det.digitacao_hoje) || 0;
+            const ped = Array.isArray(det.pedidos_digitados_hoje) ? det.pedidos_digitados_hoje.length : (Number(det.pedidos) || 0);
+            if (dig > 0 || ped > 0) {
+              v.dig = dig;
+              v.ped = ped;
+              v.vendeuHoje = true;
+              v.zerado = false;
+            }
+          }
+        } catch {}
+      }));
+    }
   }
   vend.sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1));
   return { vend, ocultos, outros, macro };
@@ -85,13 +108,16 @@ export function achaPessoa(E, t) {
   const ms = t.match(/SUPERVISORA?\s*(?:COD(?:IGO)?\s*)?(\d{1,4})\b/);
   if (ms) { const v0 = E.vend.find((v) => String(v.supCod || '') === ms[1] || String(SUPCOD.get(sem(v.supervisor)) || '') === ms[1]); if (v0) return { tipo: 'sup', alvo: { nome: v0.supervisor, filial: v0.filial }, empate: [{ nome: v0.supervisor, filial: v0.filial }] }; }
   // VARIAS MENSAGENS JUNTAS ("100. 103. 1119"): vale o ULTIMO numero citado (o que a pessoa pediu por ultimo), nao o primeiro (27/10/2026, Priscila)
-  for (const n of (t.match(/\b\d{1,5}\b/g) || []).reverse()) {
+  const tSemMilhar = t.replace(/R\$\s*[\d.]+(?:,\d+)?/gi, ' ').replace(/\b\d{1,3}\.\d{3}\b/g, ' ').replace(/\b\d{1,2}\/\d{1,2}\b/g, ' ');
+  for (const n of (tSemMilhar.match(/\b\d{1,5}\b/g) || []).reverse()) {
     const cand = E.vend.concat(E.ocultos || []).filter((v) => String(v.rca) === n);
     const explicito = new RegExp(`(RCA|COD|CODIGO|VENDEDORA?|VEND|SETOR)\\.?\\s*${n}\\b`).test(t) || (E.supervisor && !/\b(TOP|DIAS?|ULTIMOS?|PRIMEIROS?|MAIORES|MENORES)\s+\d/.test(t));   /* supervisor: numero do proprio time = vendedor (26/10/2026) */
     const bom = cand.map((v) => [v, score(v.nome)]).filter((x) => x[1] || explicito).sort((a, b) => b[1] - a[1]);
     if (bom.length) return { tipo: 'vend', alvo: bom[0][0], empate: [bom[0][0]] };
     // Setor explícito de outro supervisor da mesma filial (28/10/2026: Francisco perguntou "setor 378" e recebia consolidado da equipe)
-    if (explicito && E.outros && E.outros.length) {
+    // Para vendedores de outros supervisores, EXIGE termo explícito (RCA, COD, SETOR, VENDEDOR) para nunca vazar por número solto/formatação
+    const citouSetorOuRca = new RegExp(`(RCA|COD|CODIGO|VENDEDORA?|VEND|SETOR)\\.?\\s*${n}\\b`).test(t);
+    if (citouSetorOuRca && E.outros && E.outros.length) {
       const o = E.outros.find((v) => String(v.rca) === n);
       if (o) return { tipo: 'vend', alvo: o, empate: [o], outroSupervisor: true };
     }
@@ -103,6 +129,11 @@ export function achaPessoa(E, t) {
   const bv = E.vend.concat(E.ocultos || []).filter((v) => !/^(GERENTE|VAGO|RCA\b|VENDA |SUPERVIS)/i.test(String(v.nome || '')))   /* conta que nao e vendedor so pelo codigo (27/10/2026: "gerente" achava 1010 GERENTE TPH) */.map((v) => [v, score(v.nome)])   /* oculto na Gestao tambem e achado pelo NOME (26/10/2026: Anderson, "vendedor Bruno" = 153 oculto) */.filter((x) => x[1]).sort((a, b) => b[1] - a[1]);
   if (bs.length && !querVend && (querSup || !bv.length || bs[0][1] >= bv[0][1])) return { tipo: 'sup', alvo: bs[0][0], empate: bs.filter((x) => x[1] === bs[0][1]).map((x) => x[0]) };
   if (bv.length) return { tipo: 'vend', alvo: bv[0][0], empate: bv.filter((x) => x[1] === bv[0][1]).map((x) => x[0]) };
+  // Vendedor de outro supervisor citado por nome (ex.: supervisor pergunta por nome de alguém que não é da equipe dele)
+  if (!bv.length && E.outros && E.outros.length) {
+    const bo = E.outros.filter((v) => !/^(GERENTE|VAGO|RCA\b|VENDA |SUPERVIS)/i.test(String(v.nome || ''))).map((v) => [v, score(v.nome)]).filter((x) => x[1] >= 1).sort((a, b) => b[1] - a[1]);
+    if (bo.length) return { tipo: 'vend', alvo: bo[0][0], empate: bo.filter((x) => x[1] === bo[0][1]).map((x) => x[0]), outroSupervisor: true };
+  }
   // NOME COM ERRO DE DIGITACAO/AUDIO (27/10/2026: Evandro "Branda" = Brenda; "Josiane" = Joseanne): so com "vendedor(a)" na frente, 1 letra de diferenca no 1o nome
   // (ou som parecido: s/z, y/i, sem h), e so se for um unico vendedor; nunca adivinha entre varios
   const mv = t.match(/VENDEDORA?\s+([A-Z]{4,})/);

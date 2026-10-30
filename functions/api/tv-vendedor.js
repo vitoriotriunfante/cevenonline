@@ -140,6 +140,12 @@ function montarTv(id, dash, prod, rot, analisePorCliente) {
   const fin = dash?.financeiro || {};
   const pos = dash?.positivacao || {};
   const dia = prod?.dia || {};
+  const rotFeitas = Array.isArray(rot) ? rot.filter((c) => !!c.checkin_horario || !!c.checkout_horario || ['POSITIVADO', 'EFETIVADO', 'NAO_POSITIVADO', 'DEVOLUCAO'].includes(c.status)).length : 0;
+  const rotPos = Array.isArray(rot) ? rot.filter((c) => ['POSITIVADO', 'EFETIVADO'].includes(c.status)).length : 0;
+  const analisePedSoma = Object.values(analisePorCliente || {}).reduce((s, a) => s + (Number(a?.pedidoHoje?.valor || a?.valorAtual || 0) || 0), 0);
+  const rotPedSoma = Array.isArray(rot) ? rot.reduce((s, c) => s + (['POSITIVADO', 'EFETIVADO'].includes(c.status) && Number(c.valor_ultima_compra) > 0 ? Number(c.valor_ultima_compra) : 0), 0) : 0;
+  const pedSoma = Math.max(analisePedSoma, rotPedSoma);
+
   return {
     id: String(id),
     nome: dash?.nome || null,
@@ -149,11 +155,11 @@ function montarTv(id, dash, prod, rot, analisePorCliente) {
     devolucao: num(fin.devolucao),
     meta_cli: num(pos.meta),
     real_cli: num(pos.realizado),
-    dig_hoje: num(dia.dig_pedido),
-    pos_hoje: num(dia.positivacao),
+    dig_hoje: Math.max(num(dia.dig_pedido) || 0, pedSoma),
+    pos_hoje: Math.max(num(dia.positivacao) || 0, rotPos),
     visitas_prog: num(dia.total_programado),
-    visitas_na_rota: num(dia.visitas_na_rota), // oficial do CEVEN: visitas realizadas na rota hoje
-    visitas_com_venda: num(dia.visitas_com_venda),
+    visitas_na_rota: Math.max(num(dia.visitas_na_rota) || 0, rotFeitas), // oficial do CEVEN: visitas realizadas na rota hoje
+    visitas_com_venda: Math.max(num(dia.visitas_com_venda) || 0, rotPos),
     clientes: Array.isArray(rot)
       ? rot.map((c) => ({
           id: c.id_cliente,
@@ -197,17 +203,44 @@ function dataHojeBrasilia() { return R.hojeSP(); }
 // DEVOLVE O QUE A BASE TEM, MESMO INCOMPLETO (11/10/2026): antes, linha sem dashboard ou com mais de 15 min = 3 chamadas ao vivo; com o coletor de lances passando
 // por todos os RCAs, isso estourava o limite do CEVEN (HTTP 429 para a chave inteira), a varredura central tambem era bloqueada e a base ficava cada vez mais velha.
 // Agora o chamador busca ao vivo SO o pedaco que faltar. maxIdadeMs: 15 min na tela; 30 min no coletor de lances (central=1).
-async function lerCentral(env, id, maxIdadeMs) {
+async function lerCentral(env, id, maxIdadeMs, filial) {
   if (!env || !env.DB) return null;
   try {
     const row = await env.DB.prepare(
-      'SELECT roteiro_json, produtividade_json, dashboard_json, updated_at FROM varredura_central_rca WHERE rca_codigo = ? AND data_ref = ?'
+      'SELECT roteiro_json, produtividade_json, dashboard_json, updated_at, filial_sigla FROM varredura_central_rca WHERE rca_codigo = ? AND data_ref = ?'
     ).bind(String(id), dataHojeBrasilia()).first();
     if (!row || !row.updated_at) return null;
     const idade = Date.now() - Date.parse(String(row.updated_at).replace(' ', 'T') + 'Z');
     if (!(idade >= 0 && idade < maxIdadeMs)) return null;
     const lê = (s) => { try { return s ? JSON.parse(s) : null; } catch { return null; } };
-    const rot = lê(row.roteiro_json), prod = lê(row.produtividade_json), dash = lê(row.dashboard_json);
+    const rot = lê(row.roteiro_json), dash = lê(row.dashboard_json);
+    let prod = lê(row.produtividade_json);
+    try {
+      const sigFil = String(row.filial_sigla || filial || '').toUpperCase();
+      if (sigFil) {
+        const cRow = await env.DB.prepare('SELECT json FROM cascata_dia WHERE filial = ? AND data_ref = ?').bind(sigFil, dataHojeBrasilia()).first();
+        if (cRow && cRow.json) {
+          const cj = JSON.parse(cRow.json);
+          for (const s of cj.supervisores || []) {
+            for (const v of (s.tabelas && s.tabelas.produtividade) || []) {
+              if (v && String(v.id) === String(id)) {
+                if (!prod) prod = { dia: {}, mes: {} };
+                if (!prod.dia) prod.dia = {};
+                const vr = Number(v.visit_real_hoje) || 0;
+                if (vr > (prod.dia.visitas_na_rota || 0)) prod.dia.visitas_na_rota = vr;
+                const vp = Number(v.visit_plan_hoje) || 0;
+                if (vp > (prod.dia.total_programado || 0)) prod.dia.total_programado = vp;
+                const ef = Number(v.eficacia_hoje_pct) || 0;
+                if (ef > 0) {
+                  prod.dia.eficacia_pct = ef;
+                  if (!(prod.dia.positivacao > 0)) prod.dia.positivacao = Math.max(1, Math.round(vr * ef / 100));
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch { /* segue com o que a base tem */ }
     return { rot: Array.isArray(rot) ? rot : null, prod: prod || null, dash: dash || null };
   } catch { return null; }
 }
@@ -241,12 +274,12 @@ export async function onRequestGet({ request, env }) {
   // SO A BASE (26/10/2026): TV e Matriz pedem so_base=1 e NUNCA vao ao CEVEN. Antes, cada tela aberta com base de +30 min fazia 3 chamadas por vendedor ao CEVEN,
   // gastava a cota (429) e a propria varredura central ficava sem conseguir ler: cada tela mostrava um numero. Quem le o CEVEN e so a varredura central.
   const soBase = url.searchParams.get('so_base') === '1';
-  const central = soBase ? await lerCentral(env, id, 24 * 60 * 60 * 1000) : usarCentral ? await lerCentral(env, id, (foraDoHorario() ? 45 : 30) * 60 * 1000) : null;   /* fora do horario a varredura roda a cada 30 min (25/10/2026) */
+  const central = soBase ? await lerCentral(env, id, 24 * 60 * 60 * 1000, filial) : usarCentral ? await lerCentral(env, id, (foraDoHorario() ? 45 : 30) * 60 * 1000, filial) : null;   /* fora do horario a varredura roda a cada 30 min (25/10/2026) */
   if (soBase && !central) return new Response(JSON.stringify({ erro: 'sem dado na base hoje', id: String(id) }), { status: 404, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' } });
   const c = central || {};
   // CEVEN LENTO (15/10/2026 23h: chamadas travando 20 s; a Matriz levava ate 78 s por vendedor e ficava em "carregando"): na coleta central, se a base
   // do dia ja tem o vendedor (mesmo com mais de 30 min), o CEVEN tem so 6 s para responder antes de usar a base.
-  const temReserva = usarCentral && !central ? !!(await lerCentral(env, id, 24 * 60 * 60 * 1000)) : false;
+  const temReserva = usarCentral && !central ? !!(await lerCentral(env, id, 24 * 60 * 60 * 1000, filial)) : false;
   const msCeven = temReserva ? 6000 : 20000;
   let [dash, prod, rot] = await Promise.all([
     c.dash || (soBase ? null : getJson(`${CEVEN}/api/rca/dashboard?${q}`, msCeven)),
@@ -257,7 +290,7 @@ export async function onRequestGet({ request, env }) {
   // RESERVA DA BASE (15/10/2026: o coletor de lances falhou em 400 de 548 vendedores — a base com mais de 30 min ia ao CEVEN e levava 429): se o CEVEN
   // recusar, usa o dado REAL do dia que a varredura central ja leu (mesmo mais velho). Nunca inventa: sem base do dia, segue como falha.
   if (!dash || !prod || !rot) {
-    const reserva = await lerCentral(env, id, 24 * 60 * 60 * 1000);
+    const reserva = await lerCentral(env, id, 24 * 60 * 60 * 1000, filial);
     if (reserva) { dash = dash || reserva.dash; prod = prod || reserva.prod; rot = rot || reserva.rot; }
   }
   // DADO DE ONTEM NA MANHA DE HOJE (Vitório, 07/10/2026: "tô recebendo lance de ontem agora"): na virada do dia o CEVEN ainda serve o roteiro e a produtividade de ONTEM.

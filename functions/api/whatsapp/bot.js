@@ -164,7 +164,8 @@ export async function onRequestPost({ request, env }) {
   const sugMeio = /fica (a|como) (sugest(ã|a)o|dica)|anot(e|a)( a(í|i))?( isso)?( como)? sugest(ã|a)o|como sugest(ã|a)o|dei uma sugest(ã|a)o|minha sugest(ã|a)o (é|e)/i.test(texto) ? texto : null;
   const sug = (texto.match(/^\s*sugest(?:ã|a)o\s*[:\-]?\s*([\s\S]{3,})/i) || [])[1] || sugMeio || (pediuMotivo && !notaTxt ? texto : null);
   const ofereceuOpcao1 = ultOut && /digite \*?1\*?/i.test(ultOut.texto || '');
-  if (notaTxt && ultOut && ultOut.nota == null && !ofereceuOpcao1 && Date.now() - Date.parse(ultOut.quando + 'Z') < 6 * 3600 * 1000) {
+  const ofereceuOpcoesNum = ultOut && /(?:digite\s+(?:o\s+)?n[uú]mero|\bdigite\s+\*?[1-9]\*?|[1-9]️⃣|10️⃣)/i.test(ultOut.texto || '');
+  if (notaTxt && ultOut && ultOut.nota == null && !ofereceuOpcao1 && !ofereceuOpcoesNum && Date.now() - Date.parse(ultOut.quando + 'Z') < 6 * 3600 * 1000) {
     const nota = Number(notaTxt);
     await env.DB.prepare('UPDATE bot_msgs SET nota = ?, ajudou = ? WHERE id = ?').bind(nota, nota >= 3 ? 1 : 0, ultOut.id).run();
     resp = nota >= 4 ? varia([`Valeu, ${primeiroNome(c)}! Nota ${nota} anotada. 💪`, `Obrigado pela nota ${nota}, ${primeiroNome(c)}! Isso me ajuda a melhorar.`], cel)
@@ -190,7 +191,7 @@ export async function onRequestPost({ request, env }) {
   }
   const { results: hist } = await env.DB.prepare("SELECT direcao, texto FROM bot_msgs WHERE celular = ? AND direcao IN ('in','out') AND quando >= datetime('now','-6 hours') ORDER BY id DESC LIMIT 7").bind(cel).all();
   const anteriores = (hist || []).filter((h) => h.direcao === 'in').map((h) => h.texto).filter((x) => x !== texto).slice(0, 4);
-  if (ultOut && ultOut.texto) anteriores.push(ultOut.texto);
+  B.ultOut = ultOut && ultOut.texto ? ultOut.texto : null;
   if (!resp) try { resp = await respostaPronta(B, c, texto, anteriores); } catch (e) { resp = null; if (seco) return new Response('ERRO: ' + String(e && e.stack || e), { status: 500 }); try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'erro: ' + String(e && e.stack || e).slice(0, 1500)).run(); } catch (x) {} }
   if (!resp && seco && u.searchParams.get('sem_ia') === '1') return new Response('(sem resposta pronta)', { status: 404 });
   // ENTENDER COM IA (25/10/2026): a IA traduz a pergunta para um formato que o Jota ja responde; o numero sai do codigo, nunca da IA

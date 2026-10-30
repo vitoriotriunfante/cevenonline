@@ -38,7 +38,14 @@ export async function onRequestGet({ env, request }) {
     try {
       // ?abertos=1: todos os pedidos AINDA NAO FINAIS dos ultimos 15 dias (status mais recente), para "pendentes/bloqueados/liberados" de qualquer dia
       if (u.searchParams.get('abertos') === '1') {
-        const { results: ab } = await env.DB.prepare("SELECT num, filial, rca, id_cliente, data_pedido, status AS status_pedido, valor, itens_cortados, rechecado_em FROM pedido_status WHERE final = 0 AND data_pedido >= date('now', '-15 days') ORDER BY data_pedido DESC").all();
+        const rcaF = (u.searchParams.get('rca') || '').trim();
+        const filF = (u.searchParams.get('filial') || '').toUpperCase().trim();
+        let q = "SELECT num, filial, rca, id_cliente, data_pedido, status AS status_pedido, valor, itens_cortados, rechecado_em FROM pedido_status WHERE final = 0 AND data_pedido >= date('now', '-15 days')";
+        const params = [];
+        if (filF) { q += " AND filial = ?"; params.push(filF); }
+        if (rcaF) { q += " AND rca = ?"; params.push(rcaF); }
+        q += " ORDER BY data_pedido DESC";
+        const { results: ab } = await env.DB.prepare(q).bind(...params).all();
         return new Response(JSON.stringify({ abertos: ab || [] }), { headers: cors });
       }
       const num = (u.searchParams.get('num') || '').replace(/\D/g, '');

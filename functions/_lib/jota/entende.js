@@ -27,7 +27,7 @@ export function juntaComAnterior(texto, anteriores) {
   // pergunta nova e completa (cliente pelo codigo, frase longa com assunto proprio) nao gruda na anterior (27/10/2026: "quero saber APENAS se o cliente codigo 1891
   // comprou" virou a carteira da Nilva)
   if (/\bCLIENTE\b.{0,25}\d{3,}|\bPEDIDO\b.{0,15}\d{7,}/.test(t) || (t.split(/\s+/).length > 9 && !/^(DESSES|DESTES|DELES|DESSAS|DESTAS|DELAS)\b/.test(t))) return texto;
-  const modificador = /^(DESSES|DESTES|DELES|DESSAS|DESTAS|DELAS)\b|^(E|E O|E A|E NO|E NA|E DO|E DA|E OS|E AS)\b|^(APENAS|SO|SOMENTE|AGORA)\b|^(QUERO|QUERIA|PRECISO)( SABER)? (APENAS|SO|SOMENTE)\b|^(DO|DA|NO|NA) (MES|SEMANA|DIA)\W*$|^(DE |EM )?(ONTEM|HOJE)\W*$|^(POR|ABERTO POR|ABERTA POR) (VENDEDOR|SUPERVISOR|FILIAL|CLIENTE|INDUSTRIA)|^SIM\b|^(QUAIS|QUEM) SAO( ELES| ELAS)?\W*$|^(EM|DE) (TPH|ABC|API|TBL|TCV|TSJ|TCA|TBE|TPA|MCD|TCG)\W*$|^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA)|RESTANTE|RESTO|OUTROS? \d+|MAIS \d+|CONTINUA(CAO)?|PROXIMOS?)\b/i.test(t);
+  const modificador = /^(DESSES|DESTES|DELES|DESSAS|DESTAS|DELAS)\b|^(E|E O|E A|E NO|E NA|E DO|E DA|E OS|E AS)\b|^(APENAS|SO|SOMENTE|AGORA)\b|^(QUERO|QUERIA|PRECISO)( SABER)? (APENAS|SO|SOMENTE)\b|^(DO|DA|NO|NA) (MES|SEMANA|DIA)\W*$|^(DE |EM )?(ONTEM|HOJE)\W*$|^(POR|ABERTO POR|ABERTA POR) (VENDEDOR|SUPERVISOR|FILIAL|CLIENTE|INDUSTRIA)|^SIM\b|^(QUAIS|QUEM) SAO( ELES| ELAS)?\W*$|^(EM|DE) (TPH|ABC|API|TBL|TCV|TSJ|TCA|TBE|TPA|MCD|TCG)\W*$|^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA)|RESTANTE|RESTO|OUTROS? \d+|MAIS \d+|CONTINUA(CAO)?|PROXIMOS?)\b|^\W*(E\s+)?(DE\s+)?CADA\s+UM(\s+DELES|\s+DELAS)?\W*$/i.test(t);
   if (!modificador) return texto;
   const ta = sem(ant);
   if (/^SIM\b/.test(t) && !/\d{7,}/.test(t) && /\d{7,}/.test(ta)) return texto + ' ' + (ta.match(/\d{7,}/) || [''])[0];   /* "sim, ...faturou o pedido" + numero anterior */
@@ -45,10 +45,11 @@ export async function respostaPronta(B, c, texto0, anteriores) {
   let texto = juntaComAnterior(String(texto0 || '').replace(/\bvendedores gerados\b/gi, 'vendedores zerados'), anteriores);   /* audio: "gerados" = zerados (27/10/2026) */
   const t0 = sem(texto), filCit = (t0.match(FRX) || [])[1] || null;
   const abre = /\bBRASIL\b|TODAS AS FILIAIS|NACIONAL|GRUPO TODO|\bREDE\b|POR FILIAL/.test(t0);
-  const equipe = /\bEQUIPE\b|\bTIME\b|\bFILIAL\b|DOS VENDEDORES|TODOS (OS )?VENDEDORES|POR SUPERVISOR|POR VENDEDOR|UM POR UM|ZERADOS|RANKING|SEM VISITA|SEM NENHUMA VISITA/.test(t0);
+  const ehPerguntaRotaGeral = /^(ROTA|VISITAS?|VENDAS?(\s*X\s*ROTA)?)\s*(HOJE|HJ)?$/i.test(t0) || /\b(VENDAS?\s*X\s*ROTA|ROTA\s*HOJE|ROTA\s*HJ|VISITAS?\s*HOJE)\b/i.test(t0);
+  const equipe = ehPerguntaRotaGeral || /\bEQUIPE\b|\bTIME\b|\bFILIAL\b|DOS VENDEDORES|TODOS (OS )?VENDEDORES|POR SUPERVISOR|POR VENDEDOR|UM POR UM|ZERADOS|RANKING|SEM VISITA|SEM NENHUMA VISITA/.test(t0);
   if (c.papel === 'diretoria' && !filCit && !abre && ctx.filial) texto += ' ' + ctx.filial;   /* filial da conversa */
   const ehSobreOutroTema = /CLIENTE|LOJA|REDE|#\d+|HIST[OÓ]RI|FIGURINHA|STICKER|TODAS?|TODOS?|TAG|P10|P11|CAMPANHA|RECORRENCIA|PEDIDO|NOTA|SUGEST|BOM DIA|BOA TARDE|GERENTE|SUPERVISOR/.test(t0);
-  const ehContinuacaoVend = /^(E\b|E O\b|E A\b|E DELE|E DELA|E HOJE|E ONTEM|E NO MES|ROTA|VISITAS?|FALTA|QUANTO FALTA|COMO FOI|COMO ESTA|DETALHE|VER MAIS|MOSTRA(R)? MAIS|RESTANTE|RESTO|OUTROS|\+ ?MIX|MAIS ?MIX)/.test(t0);
+  const ehContinuacaoVend = !ehPerguntaRotaGeral && /^(E\b|E O\b|E A\b|E DELE|E DELA|E HOJE|E ONTEM|E NO MES|FALTA|QUANTO FALTA|COMO FOI|COMO ESTA|DETALHE|VER MAIS|MOSTRA(R)? MAIS|RESTANTE|RESTO|OUTROS|\+ ?MIX|MAIS ?MIX)/.test(t0);
   B._ctxVend = !abre && !equipe && !ehSobreOutroTema && ehContinuacaoVend && (!filCit || !ctx.vend || ctx.vend.filial === filCit) ? ctx.vend || null : null;   /* vendedor da conversa só herdado em continuação direta */
   B._ctxAssunto = ctx.assunto || null;
   B._ultPessoa = null;
@@ -77,8 +78,137 @@ export async function respostaPronta(B, c, texto0, anteriores) {
     const novo = { filial: abre ? null : filCit || (up && up.filial) || ctx.filial || null, vend: abre || equipe ? null : up ? { rca: String(up.rca), filial: up.filial, nome: up.nome } : (filCit && ctx.vend && ctx.vend.filial !== filCit ? null : ctx.vend || null), assunto: t0.slice(0, 200) };
     if (c && c.celular && B.ctxGravar) await B.ctxGravar(c.celular, novo);
   } catch (e) { /* sem estado */ }
-  return r && (r.fraca ? fraca(outra + r, r.fraca, r.termo) : outra + r);
+  const prefixo = outra && !/Você vê só|alçada|Olá/i.test(r || '') ? outra : '';
+  return r && (r.fraca ? fraca(prefixo + r, r.fraca, r.termo) : prefixo + r);
 }
+
+// AVALIAÇÃO DE ALÇADA (Vitório, 29/10/2026):
+// Quando um supervisor perguntar algo que não esteja na alçada dele (filial inteira, outra filial, Brasil, gerência),
+// responder de forma educada, profissional e solícita, explicando que a filial é com a gerência/diretoria
+// e oferecendo proativamente os dados da equipe dele.
+export function foraDoEscopoContato(c, texto) {
+  if (!c || !c.papel) return null;
+  const t = sem(texto).trim();
+  const fm = t.match(FRX);
+
+  // Coisas universais abertas a todos: Champions/Liga, ajuda, glossário, sugestão, horários, regras/regulamento
+  if (/CHAMPION|CHMAPION|CHAMPIOS|CAMPIONS|CHAMPI|\bLIGA\b|\bAJUDA\b|\bGLOSSARIO\b|\bSUGEST(AO|OES)?\b|\bREGRAS?\b|\bPREMIA(CAO)?\b|\bHORARIOS?\b/i.test(t)) {
+    return null;
+  }
+
+  // 1. SE FOR SUPERVISOR:
+  if (c.papel === 'supervisor') {
+    const nome = nome2(c.nome);
+    const equipe = c.supervisor ? `Equipe ${nome2(c.supervisor)}` : 'sua equipe';
+    const fil = c.filial || '';
+
+    // Se fala explicitamente de sua equipe / time / vendedor / meus:
+    const ehEquipe = /\b(EQUIPE|TIME|MEU TIME|MINHA EQUIPE|MEUS VENDEDORES|MEU VENDEDOR|MINHA META|MEUS NUMEROS|MEU FATURAMENTO|DA EQUIPE|DO MEU TIME|MEUS ZERADOS)\b/i.test(t);
+
+    // 1a. Brasil / Nacional / Todas as filiais / Grupo todo / Rede
+    if (/\b(BRASIL|NACIONAL|REDE|GRUPO TODO|TODAS AS FILIAIS)\b/i.test(t) && !ehEquipe) {
+      return [
+        `Olá, ${nome}! 👋`,
+        '',
+        `Como supervisor, seu acesso no Jota é exclusivo para acompanhar os números e os vendedores da sua equipe (*${equipe}*).`,
+        '',
+        `A visão consolidada do *Brasil todo* (todas as 11 filiais) é de alçada restrita à diretoria. _Você vê só a sua equipe na filial ${fil}; outras filiais são com a diretoria._`,
+        '',
+        `Mas estou à disposição para te apoiar com tudo do seu time na ${fil}! Você pode me perguntar:`,
+        `• *"Como está meu time"* ou *"resumo da equipe"*`,
+        `• *"Quanto falta para a meta"* (ritmo diário da equipe)`,
+        `• *"Zerados hoje"* ou *"rota hoje"*`,
+        `• *"Vendedor <código ou nome>"* para ver o detalhe de alguém do seu time.`,
+        '',
+        `🎯 *Sugestão do Jota:* quer ver os números da sua equipe agora? É só me pedir *"quanto falta pra meta da equipe"* ou *"como está meu time"*.`
+      ].join('\n');
+    }
+
+    // 1b. Pergunta sobre OUTRA filial (ex.: supervisor de TCA perguntando de TPH)
+    if (fm && fil && fm[1] !== fil && !ehEquipe) {
+      return [
+        `Olá, ${nome}! 👋`,
+        '',
+        `Como supervisor na filial ${fil}, você tem acesso exclusivo para acompanhar a sua equipe (*${equipe}*). Informações e números consolidados de outras filiais (${fm[1]}) são de alçada da diretoria e dos respectivos gerentes. _Você vê só ${fil}; outras filiais são com a diretoria._`,
+        '',
+        `Estou à disposição para te apoiar com todos os dados do seu time na ${fil}! Peça *"como está meu time"* ou *"quanto falta"* quando quiser.`
+      ].join('\n');
+    }
+
+    // 1c. Pergunta sobre a FILIAL (seja a dele ou filial no geral)
+    // Ex.: "como está a meta da filial tca", "meta da filial", "como está a filial", "faturamento da filial tca", "como está tca", etc.
+    const querVend = /\b(VENDEDOR|VENDEDORA|RCA|SETOR)\b/i.test(t) || /\b\d{2,5}\b/.test(t);
+    const temPalavraFilial = /\bFILIAL\b|\bFILIAIS\b/i.test(t);
+    const pedeFilialDireta = fm && new RegExp(`^(COMO (ESTA|TA|VAI)|META|FATURAMENTO|FATURADO|POSITIVACAO|RESUMO|HOJE|NUMEROS?|SITUACAO)\\s+(DE |DA |EM )?${fm[1]}$`, 'i').test(t);
+    const pedeFilialGenerica = /^(COMO (ESTA|TA|VAI)|META|FATURAMENTO|FATURADO|POSITIVACAO|RESUMO|HOJE|NUMEROS?|SITUACAO)\\s+(DE |DA |EM |NA )?FILIAL/i.test(t);
+
+    if ((temPalavraFilial || pedeFilialDireta || pedeFilialGenerica) && !ehEquipe && !querVend) {
+      return [
+        `Olá, ${nome}! 👋`,
+        '',
+        `Como supervisor, seu acesso no Jota é exclusivo para acompanhar os números e os vendedores da sua equipe (*${equipe}*).`,
+        '',
+        `Os dados consolidados da *filial ${fil}* (faturamento total da filial, meta da filial e fechamento geral) são de alçada do gerente da filial e da diretoria. _Você vê só a sua equipe na filial ${fil}; outras filiais são com a diretoria._`,
+        '',
+        `Mas estou à disposição para te apoiar com tudo do seu time! Você pode me perguntar:`,
+        `• *"Como está meu time"* ou *"resumo da equipe"* (faturamento e positivação)`,
+        `• *"Quanto falta para a meta"* (ritmo diário da sua equipe)`,
+        `• *"Zerados hoje"* ou *"rota hoje"*`,
+        `• *"Vendedor <código ou nome>"* para ver o detalhe de alguém do seu time.`,
+        '',
+        `🎯 *Sugestão do Jota:* quer ver os números da sua equipe agora? É só me pedir *"quanto falta pra meta da equipe"* ou *"como está meu time"*.`
+      ].join('\n');
+    }
+
+    // 1d. Pergunta sobre a Gerência / Geral
+    if (/\b(GERENTE|GERENCIA|DO GERENTE|DA GERENCIA)\b/i.test(t) && !ehEquipe && !/SUPERVISOR/i.test(t)) {
+      return [
+        `Olá, ${nome}! 👋`,
+        '',
+        `Como supervisor, seu acesso no Jota é focado no acompanhamento da sua equipe (*${equipe}*). Os números consolidados da gerência são de alçada do gerente da filial e da diretoria. _Você vê só a sua equipe na filial ${fil}; outras filiais são com a diretoria._`,
+        '',
+        `Estou aqui para te apoiar com todos os dados do seu time! Peça *"como está meu time"* ou *"quanto falta"* quando quiser.`
+      ].join('\n');
+    }
+
+    // 1e. Ranking de supervisores da filial
+    if (/\bPOR SUPERVISOR\b|\bRANKING (DOS? )?SUPERVISORES?\b/i.test(t) && !ehEquipe) {
+      return [
+        `Olá, ${nome}! 👋`,
+        '',
+        `Como supervisor, seu acesso no Jota é exclusivo para acompanhar a sua equipe (*${equipe}*). O comparativo consolidado entre supervisores da filial é restrito à gerência e à diretoria. _Você vê só a sua equipe na filial ${fil}; outras filiais são com a diretoria._`,
+        '',
+        `Você pode consultar qualquer informação do seu time: faturamento, zerados, quem falta bater a meta e os vendedores da sua equipe!`
+      ].join('\n');
+    }
+  }
+
+  // 2. SE FOR VENDEDOR:
+  if (c.papel === 'vendedor') {
+    const nome = nome2(c.nome);
+    const rca = c.rca ? `RCA ${c.rca}` : '';
+    if (/\b(FILIAL|EQUIPE|TIME|SUPERVISOR|GERENTE|BRASIL|TODOS OS VENDEDORES|RANKING GERAL)\b/i.test(t) && !/\b(MEUS?|MINHA?|EU)\b/i.test(t)) {
+      return [
+        `Olá, ${nome}! 👋`,
+        '',
+        `Como vendedor, seu acesso no Jota é exclusivo para acompanhar a sua carteira, sua rota e as suas metas individuais (${rca}).`,
+        '',
+        `Os números consolidados da equipe e da filial são de alçada do seu supervisor e da gerência.`,
+        '',
+        `Mas posso te ajudar com tudo sobre o seu resultado! Você pode me perguntar:`,
+        `• *"Quanto falta para a minha meta"*`,
+        `• *"Minha rota de hoje"* ou *"clientes a visitar"`,
+        `• *"Meus clientes positivados"`,
+        `• *"O que oferecer"* ou *"+mix"*`,
+        '',
+        `🎯 *Sugestão do Jota:* quer ver como está o seu ritmo hoje? Me peça *"quanto falta para a minha meta"*!`
+      ].join('\n');
+    }
+  }
+
+  return null;
+}
+
 export async function respostaInterna(B, c, texto, anteriores) {
   const t = sem(texto);
   // "Sugestao" sozinha (27/10/2026, Thiago/Sueli/Rodrigo: a IA inventava uma resposta): pede a sugestao
@@ -91,6 +221,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
     : fil ? { nome: supervisor ? 'Equipe ' + nome2(supervisor) + ' (' + fil + ')' : fil + (grupo ? ' · ' + titulo(grupo) : ''), filiais: [fil], grupo: supervisor ? null : grupo, supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
   if (/^(OI+|OLA+|E AI|AJUDA|MENU|INICIO|COMECAR|BOM DIA+|BOA TARDE|BOA NOITE)\b[ !?.]*$|O QUE (VOCE|VC) (SABE|FAZ|RESPONDE)|^AJUDA/.test(t)) return respAjuda(c);
   if (/O QUE (E|EH|SIGNIFICA)|COMO FUNCIONA|COMO (E|EH) CALCULAD|QUE QUER DIZER|DEFINICAO/.test(t)) { const g = respGlossario(t); if (g) return g; }
+  const foraEscopo = foraDoEscopoContato(c, texto);
+  if (foraEscopo) return foraEscopo;
   if (/DIVERGENC/.test(t) && c.papel === 'diretoria') return respDivergencias(B);
   if (/BOLA CHEIA/.test(t)) return respBola(B, esc);
   if (/SEMANA/.test(t) && /COMPROMISSO|\bRETS?\b|SUPERVISOR/.test(t)) return respSemana(B, await carregaEscopo(B, esc));
@@ -109,11 +241,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // (Vagner: "detalhes dos cortes de hoje", "quais produtos estao com cortes") -> lista; vendedor citado filtra so ele (27/10/2026)
   if ((/PEDIDOS?/.test(t) && /BLOQUEAD|LIBERAD|CORTAD|COM CORTE|SEM FATURAR|NAO FATUR|PENDENTE/.test(t) || /(DETALHE|QUAIS|LISTA).{0,25}CORTE/.test(t)) && !/[0-9]{7,}/.test(t)) {
     const Ep = await carregaEscopo(B, esc), pp = achaPessoa(Ep, t);
-    return respPedidosStatus(B, pp && pp.tipo === 'vend' ? { ...Ep, nome: vn(pp.alvo), vend: [pp.alvo], ocultos: [] } : Ep, /CORTE/.test(t) ? 'CORTE' : (/PENDENTE|NAO FATUR|SEM FATURAR/.test(t) && !/BLOQUEAD|LIBERAD/.test(t)) || (/BLOQUEAD/.test(t) && /LIBERAD/.test(t)) ? 'PENDENTES' : t);   /* "bloqueados e liberados" = os dois (27/10/2026) */
+    const tipoAlvo = /CORTE/.test(t) ? 'CORTE' : (/BLOQUEAD/.test(t) && /LIBERAD/.test(t)) ? 'BLOQUEADOS_E_LIBERADOS' : (/PENDENTE|NAO FATUR|SEM FATURAR/.test(t) && !/BLOQUEAD|LIBERAD/.test(t)) ? 'PENDENTES' : t;
+    return respPedidosStatus(B, pp && pp.tipo === 'vend' ? { ...Ep, nacional: false, nome: vn(pp.alvo), vend: [pp.alvo], ocultos: [] } : Ep, tipoAlvo);   /* "bloqueados e liberados" = os dois (27/10/2026) */
   }
   if (/CORTE|CORTAD|BLOQUEAD|RETID|PERDAS|OPERACAO|RANKING DE VENDAS|RANKING FINAL|FECHAMENTO DO DIA/.test(t) && !/DEVOL/.test(t)) return respOperacao(B, await carregaEscopo(B, esc), t);
   // DIGITE 1 (Opção de encaminhar: Tags por supervisor para Diretoria/Gerente, OU Mensagens por vendedor para Supervisor):
-  const antTag = (anteriores || []).find((a) => /Tag:|SEM COMPRAS|P11|P10|RECORRENCIA/i.test(String(a))) || ((B._ctxAssunto || '').match(/SEM COMPRAS|P11|P10|RECORRENCIA/i) ? B._ctxAssunto : null);
+  const antTag = (B.ultOut && /Tag:|SEM COMPRAS|P11|P10|RECORRENCIA/i.test(B.ultOut) ? B.ultOut : null) || (anteriores || []).find((a) => /Tag:|SEM COMPRAS|P11|P10|RECORRENCIA/i.test(String(a))) || ((B._ctxAssunto || '').match(/SEM COMPRAS|P11|P10|RECORRENCIA/i) ? B._ctxAssunto : null);
   if (/^\W*1\W*$|^1\b|OPCAO 1|MANDA POR SUPERVISOR|SEPARADO POR SUPERVISOR|MANDA PRA CADA SUPERVISOR|ABERTO POR SUPERVISOR/.test(t) && antTag) {
     const Er = await carregaEscopo(B, esc);
     return respTagSeparadoPorSupervisor(B, Er, sem(antTag));
@@ -197,23 +330,72 @@ export async function respostaInterna(B, c, texto, anteriores) {
   }
   { const sd = respSemDado(t); if (sd) return sd; }
   const E = await carregaEscopo(B, esc);
+  const ppCheck = achaPessoa(E, t);
+  if (ppCheck && ppCheck.outroSupervisor && c.papel === 'supervisor') {
+    const nome = nome2(c.nome);
+    const equipe = c.supervisor ? `Equipe ${nome2(c.supervisor)}` : 'sua equipe';
+    const supDono = ppCheck.alvo.supervisor ? `à equipe de ${nome2(ppCheck.alvo.supervisor)}${ppCheck.alvo.supCod ? ' (sup. ' + ppCheck.alvo.supCod + ')' : ''}` : (ppCheck.alvo.supCod ? `ao supervisor ${ppCheck.alvo.supCod}` : 'a outro supervisor');
+    return [
+      `Olá, ${nome}! 👋`,
+      '',
+      `O vendedor *${ppCheck.alvo.rca} - ${ppCheck.alvo.nome}* pertence ${supDono} e não faz parte da sua equipe (*${equipe}*). Como supervisor, seu acesso no Jota é focado nos vendedores do seu time. _Você vê só a sua equipe na filial ${c.filial || ''}; outras filiais são com a diretoria._`,
+      '',
+      `Posso te mostrar qualquer vendedor da sua equipe! Peça *"vendedores"* para ver a sua lista completa ou o nome/código de alguém do seu time.`
+    ].join('\n');
+  }
   // PEDIDOS QUE O JOTA NAO EXECUTA (26/10/2026): "247 nao trabalha mais", "retirar a Claudete dos controles" (a IA respondia "vou considerar que nao esta mais na
   // equipe" e nada acontecia) e "mande 3 vezes ao dia o acompanhamento". O JOTA registra para a diretoria e diz a verdade: quem muda e a Gestao de Equipe / a diretoria.
   // AUDITORIA 26/10/2026 (Priscila, Leandro, Vitorio): "digitados/citados do mes" = pedidos do mes dia a dia; faturamento do mes / faturamento e positivacao /
   // faturamento atualizado = resumo completo; "como esta a rota hoje" = hoje so varejo de rota.
   if (/DIGITAD|CITAD/.test(t) && /\bMES\b|OUTUBRO|NOVEMBRO|DEZEMBRO/.test(t) && !pedePeriodo(t)) return respPeriodoDias(B, E, t, { de: 1, ate: null });
   if (/FATURAMENTO|FATURADO/.test(t) && (/POSITIVA/.test(t) || /\bMES\b|OUTUBRO|COMO (EU )?(ESTOU|TO|ESTAMOS)|ATUALIZAD/.test(t)) && !/PREMIA|KPI|INDUSTRIA|SEMANA|PASSADO|ANTERIOR/.test(t) && !pedePeriodo(t)) return respResumo(B, E);
-  if (/\bROTA\b/.test(t) && /HOJE|\bHJ\b/.test(t) && /COMO (ESTA|TA|VAI|ANDA)/.test(t)) return respHoje(B, E, t);
+  // PERGUNTA DIRETA SOBRE FILIAL HOJE (Vitório, 29/10/2026: "TBe hoje", "como está a TBE hoje"):
+  // Se perguntar por filial específica de forma direta, responde o resumo daquela filial (nunca confunde com vendedor)
+  const mFilialDireta = t.match(/^\W*(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\s*(?:HOJE|HJ|DO DIA|AGORA)?\W*$/i) ||
+                        t.match(/^\W*(?:COMO (?:ESTA|TA|FOI|VAI)|STATUS|RESUMO|SITUACAO)\s+(?:A\s+|DA\s+|NA\s+)?(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\s*(?:HOJE|HJ|DO DIA|AGORA)?\W*$/i);
+  if (mFilialDireta) {
+    const siglaAlvo = mFilialDireta[1].toUpperCase();
+    if (E.nacional || E.filiais.includes(siglaAlvo) || (c && c.filial === siglaAlvo) || (c && c.papel === 'diretoria')) {
+      const Efil = (E.filiais.length === 1 && E.filiais[0] === siglaAlvo) ? E : await carregaEscopo(B, { nome: siglaAlvo, filiais: [siglaAlvo], grupo: null, nacional: false });
+      return respHoje(B, Efil, t);
+    }
+  }
+  // ROTA / VENDAS X ROTA / VISITAS DE HOJE (Vitório, 29/10/2026: "o que o cara quer saber quando pergunta rota...? quer saber de visitas, pedidos e etc..."):
+  // Perguntas sobre rota, visitas e vendas do dia sem citar vendedor individual retornam o resumo completo do dia (respHoje).
+  const ehRotaHojeGeral = (
+    /\b(VENDAS?(\s*X\s*|\s*E\s*|\s+)ROTA|ROTA(\s*X\s*|\s*E\s*)VENDAS?)\b/.test(t) ||
+    /^(ROTA|VISITAS?|VENDAS?)\s*(DE\s+)?(HOJE|HJ|DO DIA)\W*$/.test(t) ||
+    /^(ROTA|VISITAS?)\W*$/.test(t) ||
+    (/\bROTA\b/.test(t) && /HOJE|\bHJ\b|\bDIA\b/.test(t) && !/CLIENTES?|QUANTOS?|QUAIS|CURVA|MOTIVO|JUSTIF|NAO (COMPR|POSITIV)/.test(t)) ||
+    (/COMO (ESTA|TA|VAI|ANDA).*(ROTA|VISITAS?)/.test(t) && !/CLIENTES?/.test(t)) ||
+    (/\b(STATUS|RESUMO|SITUACAO)\s+(DA\s+)?(ROTA|VISITAS?)\b/.test(t))
+  );
+  if (ehRotaHojeGeral && !achaPessoa(E, t)) return respHoje(B, E, t);
   // AUDITORIA 27/10 (Vitorio e Evandro): sem visita na hierarquia; clientes da filial/equipe; rota de hoje filtrada (parados ha N dias, visitados sem venda)
   if (/SEM (NENHUMA )?VISITA|NENHUMA VISITA|NAO (FEZ|FIZERAM) (NENHUMA )?VISITA/.test(t) && /VENDEDOR|LISTA|QUEM|QUAIS|POR FILIAL/.test(t)) return respSemVisita(E);
   if (/CLIENTES (DOS VENDEDORES|DA FILIAL|DA EQUIPE|DA MINHA EQUIPE)/.test(t) && !/ROTA DE HOJE.{0,40}VISITOU|PAROU|COMPRAVA/.test(t)) return respRotaHojeResumo(B, E, null);
   if (/ROTA/.test(t) && /\bHOJE\b|\bHJ\b/.test(t) && /\d{1,3}\s*DIAS|VISITOU E NAO VENDEU|VISITADO E NAO VENDEU|JA VISITOU/.test(t) && !/VENDEDORA?\s+\d|VENDEDORA?\s+[A-Z]{3,}/.test(t)) return respRotaFiltro(B, E, t);
-  if (/(EM RELACAO|SOBRE|SABER) (A |DA )?MINHA EQUIPE|^(MINHA |A )?EQUIPE( AGORA| JA)?\W*$|^(E )?(A )?(MINHA )?EQUIPE\W*$/.test(t)) return respResumo(B, E);   /* "equipe agora" (27/10/2026, Cristiano) */
+  // RESULTADO / RESUMO DA EQUIPE (Sueli API, 29/10/2026: "Resultado da equipe")
+  if ((/(RESULTADO|RESUMO|FATURAMENTO|FATURADO|SITUACAO|STATUS|NUMEROS?)\s+(D[OA]\s+)?(MINHA\s+)?(EQUIPE|TIME)\b/i.test(t) ||
+      /(EM RELACAO|SOBRE|SABER)\s+(A |DA )?(MINHA )?(EQUIPE|TIME)/i.test(t) ||
+      /^(MINHA |A )?EQUIPE( AGORA| JA)?\W*$/i.test(t) ||
+      /^(E )?(A )?(MINHA )?(EQUIPE|TIME)\W*$/i.test(t)) && !/POR VENDEDOR|CADA UM|VENDEDOR POR VENDEDOR|UM POR UM/i.test(t)) {
+    return respResumo(B, E);
+  }
   // EQUIPE HOJE (Alex Sandro TBE, 28/10/2026: "Oi , como está o meu time hoje?"): o que a equipe fez HOJE (rota, visitas, digitado)
-  if (/(EQUIPE|TIME).*(HOJE|HJ|NO DIA DE HOJE)|(HOJE|HJ).*(EQUIPE|TIME)|COMO (ESTA|FOI|TA|VAI).*(EQUIPE|TIME)|DIA D[OA] (EQUIPE|TIME)/.test(t) && !/LIGA|MIX|ZERAD|POSITIVA|META|FATUR|RANKING|HISTORIC|POR VENDEDOR/.test(t)) return respDiaEquipe(B, E);
-  // EQUIPE POR VENDEDOR / CONSOLIDADO DOS VENDEDORES (Vitorio, 29/10/2026: "quando o supervisor falar por vendedor a gente manda um consolidado e dá a opção para ele digitar 1")
-  const ehEquipePorVendedor = /(EQUIPE|TIME).*(POR VENDEDOR|VENDEDOR POR VENDEDOR)|(POR VENDEDOR|VENDEDOR POR VENDEDOR).*(EQUIPE|TIME)|^\W*(E )?(A )?(MINHA )?(EQUIPE|TIME)?\s*(POR|ABERTO POR|ABERTA POR) VENDEDOR\W*$|^\W*VENDEDOR POR VENDEDOR\W*$|PANORAMA (DA (MINHA )?EQUIPE|POR VENDEDOR|DOS VENDEDORES)|TODOS (OS )?(MEUS )?VENDEDORES|CADA (UM DOS )?VENDEDOR(ES)?\b|CONSOLIDADO (POR VENDEDOR|DOS VENDEDORES)|SITUA(C|Ç)(A|Ã)O (POR VENDEDOR|DOS VENDEDORES)/i.test(t)
-    && !/POSITIVA|RECORRENCIA|MIX|LIGA|ZERAD|ROTA|VISITA|PREMIA|META DE |INDUSTRIA|DEVOLU|PEDIDO|HISTORIC/.test(t);
+  if (/(EQUIPE|TIME).*(HOJE|HJ|NO DIA DE HOJE)|(HOJE|HJ).*(EQUIPE|TIME)|COMO (ESTA|FOI|TA|VAI).*(EQUIPE|TIME)|DIA D[OA] (EQUIPE|TIME)/.test(t) && !/LIGA|CHAMPION|BRASILEIRAO|COLOCA|TABELA|PONTOS|MIX|ZERAD|POSITIVA|META|FATUR|RANKING|HISTORIC|POR VENDEDOR|ONTEM/.test(t)) return respDiaEquipe(B, E);
+  // EQUIPE POR VENDEDOR / CONSOLIDADO DOS VENDEDORES / CADA UM (Vitorio, 29/10/2026: "quando o supervisor falar por vendedor ou cada um a gente manda um consolidado e dá a opção para ele digitar 1")
+  const ehEquipePorVendedor = (
+    /(EQUIPE|TIME).*(POR VENDEDOR|VENDEDOR POR VENDEDOR|CADA UM)|(POR VENDEDOR|VENDEDOR POR VENDEDOR|CADA UM).*(EQUIPE|TIME)/i.test(t) ||
+    /^\W*(E )?(A )?(MINHA )?(EQUIPE|TIME)?\s*(POR|ABERTO POR|ABERTA POR) VENDEDOR\W*$/i.test(t) ||
+    /^\W*(E\s+)?(DE\s+)?CADA\s+UM(\s+DELES|\s+DELAS|\s+DA\s+EQUIPE|\s+DO\s+TIME|\s+DOS\s+VENDEDORES)?\W*$/i.test(t) ||
+    /^\W*VENDEDOR POR VENDEDOR\W*$/i.test(t) ||
+    /PANORAMA (DA (MINHA )?EQUIPE|POR VENDEDOR|DOS VENDEDORES)/i.test(t) ||
+    /TODOS (OS )?(MEUS )?VENDEDORES/i.test(t) ||
+    /\bCADA UM\b|CADA (UM DOS )?VENDEDOR(ES)?\b/i.test(t) ||
+    /CONSOLIDADO (POR VENDEDOR|DOS VENDEDORES)/i.test(t) ||
+    /SITUA(C|Ç)(A|Ã)O (POR VENDEDOR|DOS VENDEDORES)/i.test(t)
+  ) && !/POSITIVA|RECORRENCIA|MIX|LIGA|ZERAD|ROTA|VISITA|PREMIA|META DE |INDUSTRIA|DEVOLU|PEDIDO|HISTORIC/.test(t);
   if (ehEquipePorVendedor) return respTodosVendedores(E);
   // CLIENTES POSITIVADOS EM SETEMBRO / MÊS PASSADO (Washington API, 28/10/2026: "Clientes positivados em setembro, vendedora Ana, todos")
   if (/POSITIVAD.*(SETEMBRO|MES PASSADO|MES ANTERIOR)|(CLIENTES?|QUEM|QUAIS).*(COMPROU|COMPRARAM|POSITIVOU|POSITIVARAM).*(SETEMBRO|MES PASSADO|MES ANTERIOR)|(SETEMBRO|MES PASSADO|MES ANTERIOR).*(POSITIVAD|COMPRARAM|COMPROU)/.test(t)) {
@@ -235,8 +417,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/UM POR UM|UMA MENSAGEM POR VENDEDOR|SEPARADO POR VENDEDOR/.test(t) && E.vend.length > 1) {
     return respMensagensPorVendedor(B, E);
   }
-  if (/(DIA D[OA]|COMO (ESTA|FOI|TA|VAI) (O DIA|A ROTA) D[OA]|ROTA D[OA]|COMO (ESTA|TA) [OA]|PANORAMA D[OA]) (MINHA |MEU )?(EQUIPE|TIME)( HOJE| NO DIA DE HOJE)?|(MINHA EQUIPE|MEU TIME) (HOJE|NO DIA DE HOJE)|COMO ESTA MEU TIME/.test(t) && !/LIGA|MIX|ZERAD|POSITIVA|META|FATUR/.test(t)) return respDiaEquipe(B, E);
-  if (/PANORAMA DA (MINHA )?EQUIPE|TODOS (OS )?(MEUS )?VENDEDORES|CADA (UM DOS )?VENDEDOR(ES)?\b|VENDEDOR POR VENDEDOR/.test(t) && !/POSITIVA|RECORRENCIA|MIX|LIGA|ZERAD|ROTA|VISITA|PREMIA|META DE |INDUSTRIA|DEVOLU|PEDIDO/.test(t)) return respTodosVendedores(E);
+  if (/(DIA D[OA]|COMO (ESTA|FOI|TA|VAI) (O DIA|A ROTA) D[OA]|ROTA D[OA]|COMO (ESTA|TA) [OA]|PANORAMA D[OA]) (MINHA |MEU )?(EQUIPE|TIME)( HOJE| NO DIA DE HOJE)?|(MINHA EQUIPE|MEU TIME) (HOJE|NO DIA DE HOJE)|COMO ESTA MEU TIME/.test(t) && !/LIGA|CHAMPION|BRASILEIRAO|COLOCA|TABELA|PONTOS|MIX|ZERAD|POSITIVA|META|FATUR|ONTEM/.test(t)) return respDiaEquipe(B, E);
+  if (/PANORAMA DA (MINHA )?EQUIPE|TODOS (OS )?(MEUS )?VENDEDORES|\bCADA UM\b|CADA (UM DOS )?VENDEDOR(ES)?\b|VENDEDOR POR VENDEDOR/.test(t) && !/POSITIVA|RECORRENCIA|MIX|LIGA|ZERAD|ROTA|VISITA|PREMIA|META DE |INDUSTRIA|DEVOLU|PEDIDO/.test(t)) return respTodosVendedores(E);
   // ONTEM (27/10/2026: Allison "como foi a venda do vendedor 60 ontem?", Cristiano "desempenho da equipe ontem"): pedidos de ontem do escopo ou do vendedor citado
   if (/\bONTEM\b/.test(t) && !/LIGA|CHAMPIONS|BRASILEIRAO|DEVOLU|COMO FECHOU|RELATORIO DE ONTEM|^(OS )?CLIENTES?\b|\bCLIENTES (D[AOE]|DA VENDEDORA|DO VENDEDOR)\b/.test(t)) {   /* "clientes X ontem" = lista de clientes (abaixo) */ const po = achaPessoa(E, t); const Eo = po && po.tipo === 'vend' ? { ...E, nome: vn(po.alvo), vend: [po.alvo], rca: po.alvo.rca, filiais: [po.alvo.filial] } : E; return respPeriodoDias(B, Eo, t, { de: 1, ate: 1, ontem: true }); }
   // "minha meta (de faturamento)?" (Priscila, 26/10/2026, caiu na IA com numero da filial): meta, faturado, pendente e falta DO ESCOPO, sempre resposta pronta
@@ -275,6 +457,31 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   if (/PROJE|PREVISAO|TENDENCIA|VAMOS FECHAR|VAI FECHAR|QUANTO (VAMOS|VAI|IREMOS) FECHAR|FECHAMENTO DO MES|ESTIMATIVA/.test(t)) return respTendencia(B, E);
   if (/PERDENDO VENDA|PERDEMOS VENDA|ONDE (ESTAMOS )?PERDE|OPORTUNIDADES?\b/.test(t) && !/\+ ?MIX|MAIS ?MIX/.test(t)) return '🔎 *Onde estamos perdendo venda* (o que mais caiu contra o mês passado até o mesmo dia):\n\n' + await respComparaMes(B, E, 'MES PASSADO', null);
   if (/OFERECER|O QUE (EU )?(POSSO |DEVO )?(VENDER|LEVAR) (PRO|PARA|NO|NA)|SUGESTAO PARA O CLIENTE|(LEVAR|SUGERIR) (PRO|PARA O|PARA A|NO|NA) |PRODUTOS? (LEVAR|OFERECER|SUGERIR)/.test(t)) { const r = await respOferecer(B, E, t); if (r) return r; }
+  // ATALHOS NUMÉRICOS 1, 2, 3... (Vitório, 29/10/2026: "para ver do vendedor X digite 1, do vendedor Y digite 2... bora ajudar"):
+  // Quando o usuário responde apenas com um número (ex: "1", "2", "10") e a última resposta listou vendedores numerados
+  const mNumOpcao = t.match(/^\W*([1-9]|1[0-9]|20)\W*$/);
+  if (mNumOpcao && B.ultOut) {
+    const nEsc = Number(mNumOpcao[1]);
+    const regexLinha = /(?:[1-9]️⃣|10️⃣|\b(?:[1-9]|1[0-9]|20)\.)\s*\*([^*]+)\*/g;
+    const itens = [];
+    let mat;
+    while ((mat = regexLinha.exec(B.ultOut)) !== null) {
+      itens.push(mat[1].trim());
+    }
+    if (itens.length >= nEsc) {
+      const nomeAlvo = itens[nEsc - 1];
+      const tagMatch = B.ultOut.match(/Tag:\s*([^\n—*]+)/i);
+      if (tagMatch) {
+        t = `tag ${tagMatch[1].trim()} do vendedor ${nomeAlvo}`;
+      } else if (/Quem falta positivar|Curva negativa/i.test(B.ultOut)) {
+        t = `curva negativa vendedor ${nomeAlvo}`;
+      } else if (/vendedor por vendedor|equipe/i.test(B.ultOut)) {
+        t = `como foi o dia do vendedor ${nomeAlvo}`;
+      } else {
+        t = `vendedor ${nomeAlvo}`;
+      }
+    }
+  }
   let pessoa = achaPessoa(E, t);
   if (E.rca && E.vend[0]) pessoa = { tipo: 'vend', alvo: E.vend[0], empate: [E.vend[0]] };   /* vendedor: toda pergunta e sobre ele mesmo */
   if (!pessoa && /\b(ELA|ELE|DELA|DELE|DESSA|DESSE|ESSA|ESSE|NELA|NELE|PRA ELA|PRA ELE|MESMA|MESMO)\b/.test(t)) for (const h of anteriores || []) { pessoa = achaPessoa(E, sem(h)); if (pessoa) break; }
@@ -282,7 +489,19 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   { const mc = t.match(/(VENDEDORA?|RCA|SETOR|COD(?:IGO)?)\s*(\d{1,5})\b/); if (!pessoa && mc && !/CLIENTE.{0,15}(COD(IGO)?|#)?\s*\d/.test(t) && (E.supervisor || E.grupo || E.rca || !E.nacional) && !/TOP|ULTIMOS|DIAS/.test(t)) return `🔎 O código *${mc[2]}* não está ${E.supervisor ? 'na sua equipe' : 'em ' + E.nome}. Confere o número? Se for de outra equipe, quem vê é o supervisor dela ou a diretoria.`; }
   // CONTINUACAO DA CONVERSA (Vitorio, 27/10/2026: "pergunto como foi o dia do vendedor X... dai pergunto e o mes, vc respondeu outra coisa totalmente diferente"):
   // pergunta curta ou que comeca com "e ..." sem pessoa citada herda o vendedor/supervisor da ultima pergunta (a mais recente primeiro).
-  if (!pessoa && (/^E\b/.test(t) || t.split(/\s+/).filter(Boolean).length <= 4) && !/\bEQUIPE\b|\bTIME\b|\bFILIAL\b|\bBRASIL\b|TODAS|VENDEDORES|ZERADOS|RANKING|\bCLIENTE\b.{0,20}\d/.test(t))   /* "equipe agora" depois do vendedor 32 = a equipe (27/10/2026) */ for (const h of (anteriores || [])) { pessoa = achaPessoa(E, sem(h)); if (pessoa) break; }
+  if (!pessoa && (/^E\b/.test(t) || t.split(/\s+/).filter(Boolean).length <= 4) && !/\bEQUIPE\b|\bTIME\b|\bFILIAL\b|\bBRASIL\b|TODAS|VENDEDORES|ZERADOS|RANKING|\b(TBE|TSJ|TPH|ABC|TBL|API|MCD|TCV|TCA|TPA|TCG)\b|\bCLIENTE\b.{0,20}\d|\bROTA\b|\bVISITAS?\b|^(VENDAS?|VENDA)\s*(HOJE|HJ)?$/i.test(t))   /* "equipe agora" depois do vendedor 32 = a equipe (27/10/2026) */ for (const h of (anteriores || [])) { pessoa = achaPessoa(E, sem(h)); if (pessoa) break; }
+  if (pessoa && pessoa.outroSupervisor && c.papel === 'supervisor') {
+    const nome = nome2(c.nome);
+    const equipe = c.supervisor ? `Equipe ${nome2(c.supervisor)}` : 'sua equipe';
+    const supDono = pessoa.alvo.supervisor ? `à equipe de ${nome2(pessoa.alvo.supervisor)}${pessoa.alvo.supCod ? ' (sup. ' + pessoa.alvo.supCod + ')' : ''}` : (pessoa.alvo.supCod ? `ao supervisor ${pessoa.alvo.supCod}` : 'a outro supervisor');
+    return [
+      `Olá, ${nome}! 👋`,
+      '',
+      `O vendedor *${pessoa.alvo.rca} - ${pessoa.alvo.nome}* pertence ${supDono} e não faz parte da sua equipe (*${equipe}*). Como supervisor, seu acesso no Jota é focado nos vendedores do seu time. _Você vê só a sua equipe na filial ${c.filial || ''}; outras filiais são com a diretoria._`,
+      '',
+      `Posso te mostrar qualquer vendedor da sua equipe! Peça *"vendedores"* para ver a sua lista completa ou me diga o nome/código de alguém do seu time.`
+    ].join('\n');
+  }
   // "CLIENTES <VENDEDOR> [hoje|ontem|acumulado/mes]" (27/10/2026): quem comprou, quem nao (e ha quantos dias), quem foi visitado, quantos ja compraram
   if (pessoa && pessoa.tipo === 'vend' && /^(OS )?CLIENTES?\b|\bCLIENTES (D[AOE]|DA VENDEDORA|DO VENDEDOR)\b/.test(t) && !/PRODUTO|SKU|\bMIX\b|RECORRENCIA|PAROU|COMPRAVA|INDUSTRIA|CHE?C?K|JUSTIF|MOTIVO|QUANTOS CLIENTES.{0,70}ROTA|SEM COMPRA|NAO COMPR|NAO VEND|NAO POSITIV|CURVA/.test(t)) {
     const per = /\bONTEM\b/.test(t) ? 'ontem' : /ACUMULAD|\bMES\b|OUTUBRO|CARTEIRA/.test(t) ? 'mes' : 'hoje';
@@ -317,13 +536,15 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   }
   if (/FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA/.test(t) && !(pessoa && pessoa.tipo === 'vend')) {
     const ini = hojeSP().slice(0, 7) + '-01';
+    const numE = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+    const numL = (i) => numE[i] || `${i + 1}.`;
     const V = E.vend.filter((v) => Array.isArray(v.roteiroMes) && v.roteiroMes.length && (!pessoa || (v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial))).map((v) => {
-      const cli = new Map(); for (const c of v.roteiroMes) { const k = String(c.id_cliente); const u = String(c.data_ultima_compra || '').slice(0, 10); if (!cli.has(k) || u > cli.get(k)) cli.set(k, u); }
+      const cli = new Map(); for (const c of v.roteiroMes) { const k = String(c.id_cliente); const s = String(c.data_ultima_compra || '').slice(0, 10); const u = (/^\d{4}-\d{2}-\d{2}$/.test(s) && s >= '2020-01-01' && s !== '2025-12-05' && s <= hojeSP()) ? s : ''; if (!cli.has(k) || u > cli.get(k)) cli.set(k, u); }
       return { v, tot: cli.size, falta: [...cli.values()].filter((u) => !u || u < ini).length };
     }).filter((x) => x.falta > 0).sort((a, b) => b.falta - a.falta);
     if (!V.length) return `👥 *Quem falta positivar — ${E.nome}*: a carteira do mês ainda não está completa na base (ela é lida vendedor a vendedor ao longo do dia). Tente de novo mais tarde ou cite o vendedor.`;
     return [`👥 *Quem falta positivar — ${E.nome}* (clientes da carteira do mês sem compra no mês)`, `Total: *${V.reduce((a, x) => a + x.falta, 0)}* clientes · ${V.length} vendedor(es)`, '',
-      ...V.slice(0, 25).map((x) => `• ${vn(x.v)}: *${x.falta}* de ${x.tot} clientes`), '', SUGESTAO + `peça "curva negativa vendedor ${x0(V)}" para a lista de clientes.`].join('\n');
+      ...V.slice(0, 25).map((x, i) => `${numL(i)} *${vn(x.v)}*: *${x.falta}* de ${x.tot} clientes`), '', SUGESTAO + `digite o número (ex: *1* ou *2*) para ver a curva negativa daquele vendedor.`].join('\n');
   }
   if ((pessoa && pessoa.tipo === 'vend' && /^(E )?(O |NO |DO |E NO )?MES\W*$|COMO (FOI|ESTA|TA|VAI) O MES|^E NO MES|\bE (O |NO )?MES\W*$/.test(t)) || pessoa && pessoa.tipo === 'vend' && /DESDE O DIA|NO MES|DO MES|ESTE MES|ESSE MES|NESTE MES|CURVA NEGATIVA|ATE HOJE|SEM COMPRA|AINDA NAO (VENDEU|COMPROU)|RELACAO D[OE] (TODOS )?(OS )?CLIENTES|LISTA COMPLETA/.test(t) && /NAO VEND|NAO COMPR|SEM VENDA|SEM PEDIDO|CURVA|NAO POSITIV|SEM COMPRA/.test(t) || (pessoa && pessoa.tipo === 'vend' && /FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA/.test(t))) {
     const v = pessoa.alvo, m = v.mesV || {};
@@ -332,13 +553,27 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
       // 27/10/2026: a data_ultima_compra do roteiro vem com valor-padrao do CEVEN (01/01/1900, 05/12/2025) -> "46.320 dias". Agora: comprou no mes = vendas item
       // a item (ate ontem) + positivado no roteiro do mes; ultima compra real = historico do +MIX (60 dias antes do mes); formato limpo Cliente · Ultima compra · Dias.
       const mes = hojeSP().slice(0, 7), cli = new Map();
+      const extraiDataValida = (dStr) => {
+        if (!dStr) return null;
+        const s = String(dStr).slice(0, 10);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+        if (s < '2020-01-01' || s === '2025-12-05' || s > hojeSP()) return null;
+        return s;
+      };
       const { vendasEscopo } = await import('./respostas/vendas.js');
       const VM = await vendasEscopo(B, { filiais: [v.filial], rca: v.rca, vend: [v] }).catch(() => null);
       const compraram = new Set(((VM && VM.linhas) || []).filter((l) => String(l.r) === String(v.rca)).map((l) => String(l.c)));
       let H = {}; try { H = JSON.parse(await B.raw(`public/mix_hist/${v.filial}.json`) || '{}').c || {}; } catch (e) { H = {}; }
       const ultH = (cnpj) => { const x = H[String(cnpj || '').replace(/\D/g, '')]; if (!x) return null; const m2 = String(x).split(',').map((p) => p.split(':')[1]).filter(Boolean).sort().pop(); return m2 ? `20${m2.slice(0, 2)}-${m2.slice(2, 4)}-${m2.slice(4, 6)}` : null; };
-      for (const c of v.roteiroMes) { const k = String(c.id_cliente); const x = cli.get(k) || { c, comprou: false }; if (/POSITIVADO|EFETIVADO/.test(String(c.status || ''))) x.comprou = true; cli.set(k, x); }
-      const nao = [...cli.entries()].filter(([k, x]) => !x.comprou && !compraram.has(k)).map(([k, x]) => { const u = ultH(x.c.cnpj); return { c: x.c, u, d: u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) : null }; }).sort((a, b) => (a.d ?? 999) - (b.d ?? 999));
+      for (const c of v.roteiroMes) {
+        const k = String(c.id_cliente);
+        const x = cli.get(k) || { c, comprou: false, ultData: null };
+        const uV = extraiDataValida(c.data_ultima_compra);
+        if (uV && (!x.ultData || uV > x.ultData)) x.ultData = uV;
+        if (/POSITIVADO|EFETIVADO/.test(String(c.status || '')) || (uV && uV >= mes + '-01')) x.comprou = true;
+        cli.set(k, x);
+      }
+      const nao = [...cli.entries()].filter(([k, x]) => !x.comprou && !compraram.has(k)).map(([k, x]) => { const u = x.ultData || ultH(x.c.cnpj); return { c: x.c, u, d: u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) : null }; }).sort((a, b) => (a.d ?? 999) - (b.d ?? 999));
       const ehMais = /VER MAIS|LISTA COMPLETA|TODOS|COMPLETA|RESTANTE|RESTO|OUTROS|MAIS \d+/.test(t);
       const antJaTinhaMais = (anteriores || []).some((a) => /VER MAIS|LISTA COMPLETA|TODOS|COMPLETA|RESTANTE/.test(sem(String(a))));
       let ini = 0, fim = 25;
@@ -432,6 +667,18 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   if (pessoa && pessoa.tipo === 'sup' && /ZERAD|ZEROU|SEM PEDIDO/.test(t)) return respZerados({ ...E, nome: 'Equipe ' + nome2(pessoa.alvo.nome), vend: E.vend.filter((v) => v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial) });
   if (pessoa && pessoa.tipo === 'sup' && /MAIS VENDEU|MAIS VENDE/.test(t)) pessoa = null;
   if (pessoa) {
+    if (pessoa.outroSupervisor && c.papel === 'supervisor') {
+      const nome = nome2(c.nome);
+      const equipe = c.supervisor ? `Equipe ${nome2(c.supervisor)}` : 'sua equipe';
+      const supDono = pessoa.alvo.supervisor ? `à equipe de ${nome2(pessoa.alvo.supervisor)}${pessoa.alvo.supCod ? ' (sup. ' + pessoa.alvo.supCod + ')' : ''}` : (pessoa.alvo.supCod ? `ao supervisor ${pessoa.alvo.supCod}` : 'a outro supervisor');
+      return [
+        `Olá, ${nome}! 👋`,
+        '',
+        `O vendedor *${pessoa.alvo.rca} - ${pessoa.alvo.nome}* pertence ${supDono} e não faz parte da sua equipe (*${equipe}*). Como supervisor, seu acesso no Jota é focado nos vendedores do seu time. _Você vê só a sua equipe na filial ${c.filial || ''}; outras filiais são com a diretoria._`,
+        '',
+        `Posso te mostrar qualquer vendedor da sua equipe! Peça *"vendedores"* para ver a sua lista completa ou me diga o nome/código de alguém do seu time.`
+      ].join('\n');
+    }
     const amb = pessoa.empate.length > 1 ? `\n\n_Achei mais de um: ${pessoa.empate.slice(0, 5).map((x) => titulo(x.nome) + ' ' + x.filial).join(' · ')}. Mande o nome completo se não for este._` : '';
     return (pessoa.tipo === 'sup' ? respSupervisor(E, pessoa.alvo) : await respVendedor(B, E, pessoa.alvo)) + amb;
   }
@@ -451,7 +698,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   if (/VISIT|EFICACIA|EFICIENCIA|ROTEIRO|CHECK.?IN/.test(t) && !/ACUMULADO|DIGITAD/.test(t)) return respVisitas(E);
   if (/POSITIVA/.test(t) && /POR VENDEDOR|RANKING|ABERTA POR|MELHORES|PIORES|TOP/.test(t)) return respRanking(E, t);
   if (/POSITIVA/.test(t)) return respPositivacao(B, E);
-  if (/COMO (ESTA|TA|VAI|ESTAMOS|ANDA)|RESUMO|PANORAMA|STATUS|GERAL|SITUACAO/.test(t) && !/ACUMULADO|DIGITAD/.test(t)) return respResumo(B, E);
+  if (/COMO (ESTA|TA|VAI|ESTAMOS|ANDA)|RESUMO|RESULTADO|PANORAMA|STATUS|GERAL|SITUACAO/.test(t) && !/ACUMULADO|DIGITAD/.test(t)) return respResumo(B, E);
   if (/HOJE|\bHJ\b|ACUMULADO|DIGITAD|PEDIDOS?\b|TICKET|VENDEU|VENDERAM|\bDIA\b|ROTA|VAREJO/.test(t)) return respHoje(B, E, t);
   if (/QUEM COBRAR|PLANO DO DIA|O QUE (EU )?FACO|ONDE ATACAR/.test(t)) return respFalta(B, E);
   if (/SUPERVIS/.test(t) && /PIOR|PRA BAIXO|PARA BAIXO|ATRAS|PUXANDO|MAL\b/.test(t)) { const S = [...agrupa(E.vend, (v) => supChave(v, E.nacional))].filter(([k]) => supReal(k) && !/^VAGO/.test(k)).filter(([, x]) => x.meta > 0).sort((a, b) => (a[1].pct ?? 999) - (b[1].pct ?? 999)); if (S.length) { const [k, x] = S[0]; return [`🔻 *Quem está puxando ${E.nome} para baixo:* ${supNome(k)} — *${pctTxt(x.pct)}* da meta (fat. ${R$(x.fat)} de ${R$(x.meta)}, pend. ${R$(x.pend)})`, '', '*Os mais atrás:*', ...S.slice(0, 4).map(([k2, y], i) => `${i + 1}. ${supNome(k2)} — ${pctTxt(y.pct)} · gap ${R$(Math.max(0, y.meta - y.fat - y.pend))}`), '', SUGESTAO + `sentar hoje com ${supNome(k)} e abrir vendedor por vendedor (peça "supervisor ${supNome(k).split(' ')[0]}").`].join('\n'); } }

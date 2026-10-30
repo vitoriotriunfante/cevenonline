@@ -16,7 +16,7 @@
 //        carregou as metas do mês novo, o número é o que o CEVEN tem (é a fonte).
 // =========================================================================
 
-const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
+const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=30, s-maxage=30, stale-while-revalidate=15' };
 const resp = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: CORS });
 
 import { calculaResumoMes } from '../_lib/resumo_base.js';

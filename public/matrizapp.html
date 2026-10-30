@@ -529,7 +529,11 @@ async function atualizaFilial(sig) {
     store.set(K_DATA + HOJE0, DATA);
   } catch {}
 }
+let ultSups = 0;
 async function atualizaSups() {
+  const agora = Date.now();
+  if (agora - ultSups < 3 * 60 * 1000) return;
+  ultSups = agora;
   // Busca das 11:00 até o fim do dia — a tela de RET/Compromissos aparece de 30 em 30min o dia
   // inteiro (ver emJanelaSupPeriodica), não só numa janela fixa 11:00-12:30.
   const t = sp(), m = t.h * 60 + t.m; if (m < 11 * 60 || m >= FIM_H * 60) return;
@@ -2012,7 +2016,7 @@ async function laco() {
   for (;;) {
     try {
       for (const sig of ORDEM) { try { if (MOSTRA) await atualizaFilial(sig); await processa(); render(); } catch (e) { console.error('laco', sig, e); } }
-      await atualizaSups(); await sleep(3000);
+      await atualizaSups(); await sleep(25000);
       if (Date.now() % 600000 < 60000) carregaBase(); else if (Date.now() - ultMetas > 60000) { ultMetas = Date.now(); carregaMetas(); }
     } catch (e) { console.error('laco', e); await sleep(5000); }
   }

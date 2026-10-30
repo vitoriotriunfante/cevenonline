@@ -253,3 +253,26 @@ export async function gravaCascatas(env, dataRef, prazoMs = 30000) {
   }));
   return res;
 }
+
+export async function gravaCascataFilial(env, filialSigla, dataRef, prazoMs = 10000) {
+  if (!env.CEVEN_GERENTE_SENHA || !env.DB) return null;
+  const sig = String(filialSigla || '').toUpperCase().slice(0, 3);
+  const g = GERENTES.find((x) => x.sigla === sig);
+  if (!g) return null;
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS cascata_dia (filial TEXT NOT NULL, data_ref TEXT NOT NULL, json TEXT NOT NULL, atualizado_em TEXT NOT NULL, PRIMARY KEY (filial, data_ref))').run();
+  try {
+    let tk = await tokenGerente(g, env.CEVEN_GERENTE_SENHA);
+    if (!tk) return null;
+    let r = await fetch(`${CEVEN}/api/gerente/tabelas-cascata?filial=${g.filialKey}`, { headers: { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(prazoMs) });
+    if (r.status === 401) { tokGer.delete(g.filialKey); return null; }
+    if (!r.ok) return null;
+    const j = await r.json();
+    if (!j || !Array.isArray(j.supervisores)) return null;
+    const txt = JSON.stringify(j);
+    await env.DB.prepare("INSERT INTO cascata_dia (filial, data_ref, json, atualizado_em) VALUES (?, ?, ?, datetime('now')) ON CONFLICT (filial, data_ref) DO UPDATE SET json = excluded.json, atualizado_em = excluded.atualizado_em").bind(g.sigla, dataRef, txt).run();
+    return j;
+  } catch (e) {
+    return null;
+  }
+}
+

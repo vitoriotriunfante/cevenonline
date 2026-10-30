@@ -46,9 +46,23 @@ async function main() {
 
   const c = R.relogioSP();
   const [ano, mes, dia] = c.dia.split('-').map(Number);
-  const ini = `${ano}-${String(mes).padStart(2, '0')}-01`;
-  const diasMes = new Date(Date.UTC(ano, mes, 0)).getUTCDate();
-  const decorrido = dia - 1 + (c.h * 60 + c.m) / 1440; // fração de dias já passados no mês
+  // Ciclo da Cloudflare: o plano Paid do Vitório fecha todo dia 25 (período "Nov 2026" no painel = 25/10 a 24/11)
+  const DIA_CICLO = Number(process.env.CF_BILLING_CYCLE_DAY || 25);
+  let iniAno = ano, iniMes = mes;
+  let fimAno = ano, fimMes = mes + 1;
+  if (dia < DIA_CICLO) {
+    iniMes = mes - 1;
+    if (iniMes === 0) { iniMes = 12; iniAno = ano - 1; }
+    fimMes = mes;
+  } else {
+    if (fimMes === 13) { fimMes = 1; fimAno = ano + 1; }
+  }
+  const ini = `${iniAno}-${String(iniMes).padStart(2, '0')}-${String(DIA_CICLO).padStart(2, '0')}`;
+  const dtIni = new Date(Date.UTC(iniAno, iniMes - 1, DIA_CICLO));
+  const dtFim = new Date(Date.UTC(fimAno, fimMes - 1, DIA_CICLO));
+  const diasCiclo = Math.round((dtFim - dtIni) / 864e5);
+  const decorrido = Math.max(0, (Date.now() - dtIni.getTime()) / 864e5);
+  const nomeCiclo = `${String(fimMes).padStart(2, '0')}/${fimAno}`;
 
   const d = await gql(`query ($conta: string!, $ini: Date!, $fim: Date!) { viewer { accounts(filter: { accountTag: $conta }) {
       d1: d1AnalyticsAdaptiveGroups(limit: 10000, filter: { date_geq: $ini, date_leq: $fim }) { dimensions { date } sum { readQueries writeQueries rowsRead rowsWritten } }
@@ -64,8 +78,8 @@ async function main() {
   const doDia = (lista, campo, dd) => (lista || []).filter((x) => x.dimensions && x.dimensions.date === dd).reduce((s, x) => s + Number((x.sum || {})[campo] || 0), 0);
   const ult24 = (lista, campo) => doDia(lista, campo, hojeUtc) + doDia(lista, campo, ontemUtc) * (1 - fracHoje);
   const proj = { lidas: ult24(a.d1, 'rowsRead') * 30, gravadas: ult24(a.d1, 'rowsWritten') * 30, req: ult24(a.w, 'requests') * 30, gb: uso.gb };
-  // fatura do mês (aproximada): o já usado + o ritmo de agora até o fim do mês
-  const resta = Math.max(0, diasMes - decorrido) / 30;
+  // fatura do ciclo atual (já usado + ritmo de agora até o fim do ciclo)
+  const resta = Math.max(0, diasCiclo - decorrido) / 30;
   const custoDe = (p) => 5 + Math.max(0, p.req - 10e6) / 1e6 * 0.30 + Math.max(0, p.lidas - 25e9) / 1e6 * 0.001 + Math.max(0, p.gravadas - 50e6) / 1e6 * 1.00 + Math.max(0, uso.gb - 5) * 0.75;
   const fatura = custoDe({ lidas: uso.lidas + proj.lidas * resta, gravadas: uso.gravadas + proj.gravadas * resta, req: uso.req + proj.req * resta });
   const extra = {
@@ -79,15 +93,15 @@ async function main() {
   const linhas = [
     `💰 *Guarda de custo Cloudflare* — ${c.dia.split('-').reverse().join('/')} ${c.hm}`,
     `Ritmo de agora (últimas 24 h × 30): *${usd(total)}/mês* (teto: US$ 20 · aviso: US$ ${AVISO} · freio: US$ ${FREIO})`,
-    `Fatura de ${String(mes).padStart(2, '0')}/${ano} (já usado + ritmo de agora até o fim do mês): *${usd(fatura)}*`,
+    `Fatura do ciclo ${nomeCiclo} (já usado + ritmo de agora até o fim do ciclo): *${usd(fatura)}*`,
     '',
-    `• Requisições: ${mi(uso.req)} mi no mês · ritmo ${mi(proj.req)} mi/mês (10 mi inclusas)`,
-    `• D1 linhas gravadas: ${mi(uso.gravadas)} mi no mês · ritmo ${mi(proj.gravadas)} mi/mês (50 mi inclusas)`,
-    `• D1 linhas lidas: ${mi(uso.lidas)} mi no mês · ritmo ${mi(proj.lidas)} mi/mês (25.000 mi inclusas)`,
+    `• Requisições: ${mi(uso.req)} mi no ciclo · ritmo ${mi(proj.req)} mi/mês (10 mi inclusas)`,
+    `• D1 linhas gravadas: ${mi(uso.gravadas)} mi no ciclo · ritmo ${mi(proj.gravadas)} mi/mês (50 mi inclusas)`,
+    `• D1 linhas lidas: ${mi(uso.lidas)} mi no ciclo · ritmo ${mi(proj.lidas)} mi/mês (25.000 mi inclusas)`,
     `• D1 armazenamento: ${uso.gb.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} GB (5 GB inclusos)`,
     pesa.length ? `\nO que pesa no ritmo de agora: ${pesa.map(([k, v]) => `${k} (+${usd(v)})`).join(', ')}` : '\nNo ritmo de agora, tudo dentro do plano de US$ 5.',
-    fatura > 20 ? `\n⚠️ A fatura deste mês já passa de US$ 20 por consumo ANTERIOR às correções de 25/10. O freio não desfaz o que já foi gasto; ele segura o daqui pra frente. Confira no painel da Cloudflare em que dia o seu ciclo de cobrança fecha.` : '',
-  ].filter((x) => x !== '' || true);
+    fatura > 20 ? `\n⚠️ A fatura deste ciclo projeta passar de US$ 20. O freio segura os consumos pesados automaticamente.` : '',
+  ].filter((x) => x !== '');
   console.log(linhas.join('\n'));
 
   // freio

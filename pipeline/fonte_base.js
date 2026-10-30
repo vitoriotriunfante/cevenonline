@@ -56,7 +56,19 @@ function lerBaseReserva(url) {
   return valor;
 }
 
+// Retorna a idade média das leituras da filial em segundos
+function idadeMediaFilial(fKey) {
+  let soma = 0, n = 0;
+  const prefixo = `${String(fKey).toLowerCase().replace(/1$/, '')}1|`;
+  for (const [k, v] of mapa.entries()) {
+    if (k.startsWith(prefixo)) {
+      if (v && v.idade_s != null) { soma += v.idade_s; n++; }
+    }
+  }
+  return n > 0 ? Math.round(soma / n) : null;
+}
+
 function resumo() { return { ligada: LIGADA, ...contagem, max_idade_s: MAX_IDADE_S }; }
 function limpar() { mapa.clear(); contagem.base = contagem.ceven = contagem.velho = contagem.filiais = contagem.rcas = 0; }
 
-module.exports = { carregarBase, lerBase, lerBaseReserva, resumo, limpar, MAX_IDADE_S };
+module.exports = { carregarBase, lerBase, lerBaseReserva, resumo, limpar, MAX_IDADE_S, idadeMediaFilial };

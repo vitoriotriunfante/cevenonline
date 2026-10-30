@@ -12,7 +12,7 @@ import { foraDoHorario } from '../_lib/horario_reduzido.js';
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
-const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
+const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=10, s-maxage=10, stale-while-revalidate=5' };
 const FILIAIS = ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
 
 const hojeSP = () => R.hojeSP();

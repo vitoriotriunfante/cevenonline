@@ -8,6 +8,7 @@ const ORIGIN = 'https://ceven-cftv-matrix.pages.dev';
 const DIR = { nome: 'VITORIO', papel: 'diretoria', filial: null, grupo: null };
 const GER_API = { nome: 'GERENTE API', papel: 'gerente', filial: 'API', grupo: null };
 const GER_TPH = { nome: 'FABIO', papel: 'gerente', filial: 'TPH', grupo: 'FABIO' };
+const SUP_KLEBERSON = { nome: 'KLEBERSON BATISTA LIDUARIO', papel: 'supervisor', filial: 'TBL', supervisor: 'KLEBERSON BATISTA LIDUARIO' };
 const P = [
  [DIR, 'Qual o acumulado de hoje dos vendedores de rota em API?'], [DIR, 'quem não fez RET hoje ?'], [DIR, 'quero saber quem não fez o RET em todo o brasil?'],
  [DIR, 'como estamos?'], [DIR, 'como está TPH?'], [DIR, 'hoje'], [DIR, 'zerados'], [DIR, 'quanto falta pra bater a meta?'], [DIR, 'ranking'], [DIR, 'top 10 hoje'],
@@ -21,6 +22,7 @@ const P = [
  [DIR, 'cortes e bloqueados de hoje'], [DIR, 'quantos inativos reativados hoje?'], [DIR, 'gestão de campo por filial'], [DIR, 'me manda o relatório das 18:30'], [DIR, 'como fechou ontem?'], [DIR, 'marca própria'], [DIR, 'devoluções entradas hoje'], [GER_TPH, 'me manda o boletim das 17h'], [GER_TPH, 'cortes de hoje'],
  [GER_API, 'como está minha filial?'], [GER_API, 'zerados'], [GER_API, 'por supervisor'], [GER_API, 'como está TPH?'], [GER_API, 'quem compra trident?'],
  [GER_TPH, 'como está?'], [GER_TPH, 'por supervisor'], [GER_TPH, 'liga'], [GER_TPH, 'hoje rota'], [GER_TPH, 'compromisso'],
+ [SUP_KLEBERSON, 'Vendas x rota hoje'], [SUP_KLEBERSON, 'Rota hoje', ['Vendas x rota hoje']], [SUP_KLEBERSON, 'Vendedor 198'], [SUP_KLEBERSON, 'Como tá o Luciano?'],
 ];
 const f = process.argv[2]; let erros = 0;
 for (const [c, q, ant] of P) {

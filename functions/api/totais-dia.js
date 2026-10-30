@@ -13,7 +13,7 @@
 //   o número como total (mostra "lidos X de Y"). Nunca inventa nem completa com estimativa.
 // =========================================================================
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
-const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
+const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=15, s-maxage=15, stale-while-revalidate=10' };
 const FILIAIS = ['TBL', 'TPH', 'TCV', 'ABC', 'TCA', 'MCD', 'TCG', 'API', 'TBE', 'TPA', 'TSJ'];
 const num = (v) => (v == null || v === '' || !isFinite(Number(v)) ? null : Number(v));
 const ehPromotor = (r) => /^(PROMOTOR|PROMO|P)$/.test(String((r && r.vinculo) || '').toUpperCase());
@@ -39,6 +39,28 @@ async function calcula(env, request) {
   const agora = Date.now(), base = new Map();
   for (const r of results || []) base.set(String(r.filial_sigla).toUpperCase() + '|' + String(r.rca_codigo), r);
 
+  const cascataMap = new Map();
+  try {
+    const { results: cRows } = await env.DB.prepare('SELECT filial, json FROM cascata_dia WHERE data_ref = ?').bind(dia).all();
+    for (const cr of cRows || []) {
+      const sig = String(cr.filial || '').toUpperCase();
+      try {
+        const cj = JSON.parse(cr.json);
+        for (const s of cj.supervisores || []) {
+          for (const v of (s.tabelas && s.tabelas.produtividade) || []) {
+            if (v && v.id != null) {
+              cascataMap.set(sig + '|' + String(v.id), {
+                feitas: Number(v.visit_real_hoje) || 0,
+                programadas: Number(v.visit_plan_hoje) || 0,
+                eficacia: Number(v.eficacia_hoje_pct) || 0
+              });
+            }
+          }
+        }
+      } catch (e) {}
+    }
+  } catch (e) {}
+
   const vendedores = [];
   for (const sig of FILIAIS) {
     const chaves = Object.keys(m.filiais).filter((k) => k === sig || k.startsWith(sig + '_'));
@@ -51,15 +73,23 @@ async function calcula(env, request) {
         idade = Number.isFinite(t) ? Math.round((agora - t) / 1000) : null;
         try { const p = JSON.parse(linha.produtividade_json || 'null'); d = p && p.dia ? p.dia : null; } catch (e) { d = null; }
       }
-      // lido = produtividade DE HOJE na base, de qualquer hora: a rota do dia nao muda e quem vende e relido pela varredura assim que o pedido aparece (camada quente)
+      // lido = produtividade DE HOJE na base ou cascata do gerente viva
+      const casc = cascataMap.get(sig + '|' + String(r.rca));
       const lido = !!d;
-      const programadas = lido ? num(d.total_programado) || 0 : null;
-      const dig = lido ? num(d.dig_pedido) || 0 : null, pos = lido ? num(d.positivacao) || 0 : null;
+      let programadas = lido ? num(d.total_programado) || 0 : (casc ? casc.programadas : null);
+      if (casc && casc.programadas > (programadas || 0)) programadas = casc.programadas;
+      let feitas = lido ? num(d.visitas_na_rota) || 0 : (casc ? casc.feitas : null);
+      if (casc && casc.feitas > (feitas || 0)) feitas = casc.feitas;
+      let dig = lido ? num(d.dig_pedido) || 0 : null, pos = lido ? num(d.positivacao) || 0 : null;
+      if (casc && casc.eficacia > 0 && !(pos > 0) && feitas > 0) {
+        pos = Math.max(1, Math.round(feitas * casc.eficacia / 100));
+      }
+      const temInfo = lido || !!casc;
       vendedores.push({
         filial: sig, grupo: r.grupo || (k.includes('_') ? k.split('_').slice(1).join('_') : ''), rca: String(r.rca), nome: r.nome || null, supervisor: r.supervisor || '',
-        canal: String(r.canal || '').toUpperCase(), lido, idade_s: idade,
-        programadas, feitas: lido ? num(d.visitas_na_rota) || 0 : null, digitado: dig, positivados: pos,
-        com_rota: lido ? programadas > 0 : null, zerado: lido ? programadas > 0 && !(dig > 0) && !(pos > 0) : null
+        canal: String(r.canal || '').toUpperCase(), lido: temInfo, idade_s: idade,
+        programadas, feitas, digitado: dig, positivados: pos,
+        com_rota: temInfo ? programadas > 0 : null, zerado: temInfo ? programadas > 0 && !(dig > 0) && !(pos > 0) : null
       });
     }
   }

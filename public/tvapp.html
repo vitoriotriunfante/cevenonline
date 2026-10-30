@@ -587,7 +587,21 @@ const supLista = () => {
   const so = ok.size ? todos.filter(x => ok.has(norm(x.nome))) : todos;
   return so.length ? so : todos;
 };
-const supPend = () => supLista().filter(x => !x.fez_compromisso || !x.iniciou_ret);
+const semSupHoje = (nome) => {
+  if (!SEM || !SEM.filiais || !SEM.filiais[FIL] || !SEM.hoje) return null;
+  const s = SEM.filiais[FIL].find(item => norm(item.nome) === norm(nome));
+  const d = s && s.dias && s.dias.find(dia => dia.data === SEM.hoje);
+  return d || null;
+};
+const supFezComp = (x) => {
+  const sh = semSupHoje(x.nome);
+  return x.fez_compromisso || (sh ? !!sh.comp : false);
+};
+const supIniciouRet = (x) => {
+  const sh = semSupHoje(x.nome);
+  return x.iniciou_ret || (sh ? !!sh.ret : false);
+};
+const supPend = () => supLista().filter(x => !supFezComp(x) || !supIniciouRet(x));
 async function carregaSup() {
   const t = sp(), m = t.h * 60 + t.m;
   // Busca das 11:00 até o fim do dia (não só 11:00-12:30) — a tela de RET/Compromissos agora
@@ -1728,7 +1742,7 @@ function renderSup() {
   if (!SEM && !semCarregando) carregaSemana();
   const el = $('sup'), lista = supLista();
   if (!SUP) { el.innerHTML = '<h2><span>Supervisores · matinal e rota (RET)</span></h2><div style="color:var(--mut);font-size:24px;padding:20px 0">Aguardando dados dos supervisores…</div>'; return; }
-  const peso = x => (!x.fez_compromisso && !x.iniciou_ret) ? 0 : (!x.fez_compromisso || !x.iniciou_ret) ? 1 : 2;
+  const peso = x => (!supFezComp(x) && !supIniciouRet(x)) ? 0 : (!supFezComp(x) || !supIniciouRet(x)) ? 1 : 2;
   const ord = [...lista].sort((a, b) => peso(a) - peso(b) || a.nome.localeCompare(b.nome));
   // painel gerencial da semana no TOPO, fixo (sticky) enquanto os cards rolam por baixo (Vitório, 06/10/2026)
   const semHtml = semErro && !SEM ? '<div style="color:var(--mut,#8b9bbd);padding:8px 0">Falha ao carregar a semana dos supervisores. Nova tentativa em até 5 minutos.</div>' : supSemanaHtml(SEM && SEM.filiais && SEM.filiais[FIL], SEM);
@@ -1744,7 +1758,9 @@ function renderSup() {
           ${d.scoreMedio != null ? `<span>⭐ Nota média ${d.scoreMedio}</span>` : ''}
           ${d.rca ? `<span>RCA em rota: ${esc(d.rca)}</span>` : ''}
         </div>${Array.isArray(d.fotos) && d.fotos.length ? `<div class="supr-fotos">${d.fotos.slice(0, 6).map(f => `<img src="${esc(f.url)}" title="${esc(f.cliente || '')}${f.score != null ? ' · nota ' + f.score : ''}" loading="lazy">`).join('')}</div>` : ''}` : '';
-      return `<div class="supr ${peso(x) === 0 ? 'bad' : peso(x) === 1 ? 'warn' : ''}"><div class="supr-cab"><span>${esc(x.nome)}</span><span class="chip ${x.fez_compromisso ? 'c-ok' : 'c-no'}">${x.fez_compromisso ? '✅ Compromisso' : '❌ Sem compromisso'}</span><span class="chip ${x.iniciou_ret ? 'c-ok' : 'c-no'}">${x.iniciou_ret ? '✅ Em rota (RET)' : '❌ RET não iniciou'}</span></div>${ret}</div>`;
+      const compOk = supFezComp(x);
+      const retOk = supIniciouRet(x);
+      return `<div class="supr ${peso(x) === 0 ? 'bad' : peso(x) === 1 ? 'warn' : ''}"><div class="supr-cab"><span>${esc(x.nome)}</span><span class="chip ${compOk ? 'c-ok' : 'c-no'}">${compOk ? '✅ Compromisso' : '❌ Sem compromisso'}</span><span class="chip ${retOk ? 'c-ok' : 'c-no'}">${retOk ? '✅ Em rota (RET)' : '❌ RET não iniciou'}</span></div>${ret}</div>`;
     }).join('');
 }
 // RET/Compromissos em destaque periódico (decisão do Vitório, 28/09/2026): a partir das 11:00

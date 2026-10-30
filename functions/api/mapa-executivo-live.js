@@ -26,7 +26,7 @@ function dataHojeBrasilia() { return R.hojeSP(); }
 const STATUS_POSITIVADO = ['POSITIVADO', 'EFETIVADO'];
 
 export async function onRequestGet({ env, request, waitUntil }) {
-  const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
+  const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=20, s-maxage=20, stale-while-revalidate=10' };
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 (env.DB) não configurado' }), { status: 503, headers: cors });
 
   const dataRef = dataHojeBrasilia();

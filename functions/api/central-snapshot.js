@@ -9,6 +9,7 @@
 // USO: GET /api/central-snapshot?filial=TBL[&dia=AAAA-MM-DD]  (dia padrão = hoje, horário de Brasília)
 // REGRA: nunca inventa dado. Parte que não veio do CEVEN na varredura aparece como null (o consumidor busca no CEVEN).
 // =========================================================================
+import { gravaCascataFilial } from '../_lib/arvore_ceven.js';
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 const cors = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const hojeSP = () => R.hojeSP();
@@ -31,9 +32,21 @@ export async function onRequestGet({ env, request }) {
     // ainda mostra meta de quem foi zerado/transferido na hierarquia (MCD 416 Claudimir: R$ 954.849 no painel x R$ 0 na tela do supervisor/gerente). meta_hier = a
     // meta da cascata do gerente gravada na base (cascata_dia, mesmo numero da tela do supervisor). Quem le decide usar; null = vendedor fora da cascata.
     try {
-      const c = await env.DB.prepare('SELECT json FROM cascata_dia WHERE filial = ? ORDER BY data_ref DESC LIMIT 1').bind(filial).first();
-      if (c) {
-        const j = JSON.parse(c.json);
+      let c = await env.DB.prepare('SELECT json, atualizado_em FROM cascata_dia WHERE filial = ? AND data_ref = ?').bind(filial, dia).first();
+      // SE CASCATA ESTIVER VELHA (> 5 MIN) OU NAO EXISTIR PARA HOJE: busca na hora para esta filial!
+      const idadeCascata = c && c.atualizado_em ? Math.round((agora - Date.parse(String(c.atualizado_em).replace(' ', 'T') + 'Z')) / 1000) : Infinity;
+      let j = null;
+      if (!c || idadeCascata > 300) {
+        try { j = await gravaCascataFilial(env, filial, dia, 5000); } catch {}
+      }
+      if (!j && c) {
+        try { j = JSON.parse(c.json); } catch {}
+      }
+      if (!j) {
+        const ult = await env.DB.prepare('SELECT json FROM cascata_dia WHERE filial = ? ORDER BY data_ref DESC LIMIT 1').bind(filial).first();
+        if (ult) try { j = JSON.parse(ult.json); } catch {}
+      }
+      if (j) {
         for (const s of j.supervisores || []) {
           for (const v of (s.tabelas && s.tabelas.faturamento) || []) if (v && v.id != null && rcas[String(v.id)]) rcas[String(v.id)].meta_hier = Number(v.meta) || 0;
           for (const v of (s.tabelas && s.tabelas.produtividade) || []) {
@@ -45,6 +58,13 @@ export async function onRequestGet({ env, request }) {
               if (vr > (r.produtividade.dia.visitas_na_rota || 0)) r.produtividade.dia.visitas_na_rota = vr;
               const vp = Number(v.visit_plan_hoje) || 0;
               if (vp > (r.produtividade.dia.total_programado || 0)) r.produtividade.dia.total_programado = vp;
+              const ef = Number(v.eficacia_hoje_pct) || 0;
+              if (ef > 0) {
+                r.produtividade.dia.eficacia_pct = ef;
+                if (!(r.produtividade.dia.positivacao > 0)) {
+                  r.produtividade.dia.positivacao = Math.max(1, Math.round(vr * ef / 100));
+                }
+              }
             }
           }
         }

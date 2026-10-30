@@ -99,6 +99,19 @@ async function garanteRoteiroEm(env) {
   } catch { colRoteiroEm = false; }
   return colRoteiroEm;
 }   // lido de coleta_estado no inicio de cada rodada
+
+let indicesOtimizados = null;
+async function garanteIndicesOtimizacao(env) {
+  if (indicesOtimizados) return;
+  try {
+    await env.DB.batch([
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_varredura_central_data_ref ON varredura_central_rca (data_ref, filial_sigla)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_cascata_dia_data ON cascata_dia (data_ref)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_pedido_status_final_cli ON pedido_status (final, data_pedido, filial, id_cliente)')
+    ]);
+    indicesOtimizados = true;
+  } catch { indicesOtimizados = false; }
+}
 // HIERARQUIA DO PAINEL ADMIN (12/10/2026): 1 chamada devolve meta, faturado BRUTO, a faturar e positivacao de ~443 vendedores. NAO substitui o dashboard (o painel mostra o bruto,
 // antes das devolucoes; o dashboard do RCA mostra o liquido): serve para DESCOBRIR QUEM MUDOU e rebuscar so esses, e para pular o dashboard de quem esta identico.
 // Qualquer falha (login, rede, formato) devolve null e a varredura segue exatamente como antes.
@@ -374,6 +387,7 @@ export async function onRequestGet({ env, request }) {
   }
 
   // estado de hoje: quem ja esta gravado, tem rota ou ja vendeu, e os valores anteriores (para detectar mudanca de pedido)
+  await garanteIndicesOtimizacao(env);
   const temRoteiroEm = await garanteRoteiroEm(env);
   const temProdEm = await garanteProdEm(env);
   const { results: estado } = await env.DB.prepare(
@@ -401,6 +415,11 @@ export async function onRequestGet({ env, request }) {
   // VISITAS DO GERENTE x ROTEIRO GRAVADO (26/10/2026): a cascata do gerente (cota separada) diz quantas visitas cada vendedor ja fez hoje; se for mais do que o roteiro
   // gravado mostra, o roteiro esta atrasado e vai primeiro (e dele que nascem os lances). Sem cascata do dia, segue a ordem antiga.
   const feitasGer = new Map();
+  try {
+    // CASCATA NO INÍCIO DA RODADA (29/10/2026): grava a cascata de todas as filiais no inicio (leva ~1-2 s, cota separada).
+    // Assim a rodada ja comeca sabendo quem teve visita hoje e nunca perde as visitas se a rodada estourar o prazo depois.
+    await gravaCascatas(env, dataRef, 15000);
+  } catch (e) { /* segue com a existente */ }
   try {
     const { results: cs } = await env.DB.prepare('SELECT json FROM cascata_dia WHERE data_ref = ?').bind(dataRef).all();
     for (const c of cs || []) { const j = JSON.parse(c.json); for (const s of j.supervisores || []) for (const v of (s.tabelas && s.tabelas.produtividade) || []) if (v && v.id != null) feitasGer.set(String(v.id), Number(v.visit_real_hoje) || 0); }
@@ -534,9 +553,13 @@ export async function onRequestGet({ env, request }) {
     const kBase = (r) => { const a = ant.get(String(r.codigo)); return !a ? '0' : (a.sem_prod ? '1' : '2') + String(a.pe || ''); };
     let candidatos;
     if (viaAdmin) {
-      // cota de /api/rca/*: ~3 a 4 chamadas por minuto => ~8 por rodada. Primeiro PEDIDO NOVO, depois nunca lidos hoje, depois o mais antigo.
-      const ordem = (r) => { const cod = String(r.codigo), a = ant.get(cod); return admMudou.has(cod) ? '0' : (!a || a.sem_prod) ? '1' : '2' + String(a.pe || ''); };
-      candidatos = rcas.slice().sort((x, y) => ordem(x).localeCompare(ordem(y))).slice(0, 14);
+      // cota de /api/rca/*: ~3 a 4 chamadas por minuto => ~8 por rodada. Primeiro PEDIDO NOVO ou VISITA NOVA HOJE, depois nunca lidos hoje, depois o mais antigo.
+      const ordem = (r) => {
+        const cod = String(r.codigo), a = ant.get(cod);
+        const temVisitaNova = (feitasGer.get(cod) || 0) > (Number(a && a.n_feitas_rot) || 0);
+        return (admMudou.has(cod) || temVisitaNova) ? '0' : (!a || a.sem_prod) ? '1' : '2' + String(a.pe || '');
+      };
+      candidatos = rcas.slice().sort((x, y) => ordem(x).localeCompare(ordem(y))).slice(0, 16);
     } else if (hier) {
       const prioritarios = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return idsMudou.has(String(r.codigo)) || !a || a.sem_prod; });
       const idsPri = new Set(prioritarios.map((r) => String(r.codigo)));
@@ -670,9 +693,12 @@ export async function onRequestGet({ env, request }) {
         await gravaLote(env, stmts.splice(0));
       } catch (e) { contagem.roteiro_mes_erro = String(e.message || e).slice(0, 80); }
     }
-    // CASCATA DO GERENTE (26/10/2026): 11 chamadas (1 por filial) fora da cota de /api/rca/*; grava so o que mudou
-    try { contagem.supervisores = await coletaSupervisores(env); } catch (e) { contagem.supervisores = { erro: String(e.message || e).slice(0, 80) }; }
-    try { contagem.cascata = await gravaCascatas(env, dataRef, 25000); } catch (e) { contagem.cascata = { erro: String(e.message || e).slice(0, 80) }; }
+    // SUPERVISORES E RET (26/10/2026): grava compromissos e RET com prazo
+    if (Date.now() - t0 < 95000) {
+      try { contagem.supervisores = await coletaSupervisores(env); } catch (e) { contagem.supervisores = { erro: String(e.message || e).slice(0, 80) }; }
+    } else {
+      contagem.supervisores = 'pulado_prazo';
+    }
     await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);
     let mapa = 'pulado';
     if (Date.now() - t0 < 85000) {
