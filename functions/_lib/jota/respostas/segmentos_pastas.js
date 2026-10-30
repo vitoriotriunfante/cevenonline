@@ -250,9 +250,30 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
   const V = (mx && mx.vendedores) || [];
   let alvoVend = null;
 
-  // Extrai RCA direto da mensagem se citado (ex: "prospecção 115" ou "prospecção vendedor 115")
+  // Extrai RCA direto da mensagem se citado (ex: "prospecção 115", "setor 290", "prospecção vendedor 115")
   const mRca = String(t || '').match(/\b(?:VENDEDOR|RCA|SETOR|COD(?:IGO)?\s*)?(\d{1,5})\b/);
   const codCitado = mRca ? mRca[1] : null;
+
+  // Filtro de segmento / CNAE solicitado (Vitório, 30/10/2026: "apenas postos e conveniências")
+  const tNorm = sem(t || '');
+  let filtroSeg = null;
+  let nomeFiltroSeg = '';
+  if (/POSTO|CONVENIENCIA|COMBUSTIVEL/.test(tNorm)) {
+    filtroSeg = /POSTO|CONVENIENCIA|COMBUSTIVEL|LUBRIFICANTE/i;
+    nomeFiltroSeg = 'Postos e Conveniências';
+  } else if (/PADARIA|CONFEITARIA|PANIF/.test(tNorm)) {
+    filtroSeg = /PADARIA|CONFEITARIA|PANIFIC/i;
+    nomeFiltroSeg = 'Padarias e Confeitarias';
+  } else if (/MERCADO|MERCEARIA|SUPERMERCADO/.test(tNorm)) {
+    filtroSeg = /MERCADO|MERCEARIA|SUPERMERCADO|HIPERMERCADO/i;
+    nomeFiltroSeg = 'Mercados e Mercearias';
+  } else if (/FARMACIA|DROGARIA/.test(tNorm)) {
+    filtroSeg = /FARMACIA|DROGARIA/i;
+    nomeFiltroSeg = 'Farmácias e Drogarias';
+  } else if (/BAR\b|LANCHONETE|RESTAURANTE/.test(tNorm)) {
+    filtroSeg = /BAR\b|LANCHONETE|RESTAURANTE/i;
+    nomeFiltroSeg = 'Bares e Restaurantes';
+  }
 
   if (pessoa && pessoa.tipo === 'vend') {
     alvoVend = V.find((v) => String(v.rca) === String(pessoa.alvo.rca) && (!pessoa.alvo.filial || v.filial === pessoa.alvo.filial)) || pessoa.alvo;
@@ -269,7 +290,7 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
   if (alvoVend) {
     let prospectsAoVivo = [];
     try {
-      const url = `https://ceven.drivetriunfante-locomotiva.com.br/api/ceven/prospeccao-roteiro?cod_rca=${alvoVend.rca}&hoje=1&max=5`;
+      const url = `https://ceven.drivetriunfante-locomotiva.com.br/api/ceven/prospeccao-roteiro?cod_rca=${alvoVend.rca}&hoje=1&max=15`;
       const ctrl = new AbortController();
       const tid = setTimeout(() => ctrl.abort(), 2000);
       const res = await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'Mozilla/5.0' } });
@@ -282,16 +303,24 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
       }
     } catch (e) {}
 
+    if (filtroSeg && prospectsAoVivo.length) {
+      const filtrados = prospectsAoVivo.filter((p) => filtroSeg.test(p.cnae_desc || '') || filtroSeg.test(p.familia || '') || filtroSeg.test(p.razao || '') || filtroSeg.test(p.nome || ''));
+      if (filtrados.length) prospectsAoVivo = filtrados;
+    }
+
     if (prospectsAoVivo.length) {
       return [
-        `📍 *Clientes para Prospecção no Mapa — ${vn(alvoVend)}* (${alvoVend.filial})`,
+        `📍 *Clientes para Prospecção no Mapa — ${vn(alvoVend)}* (${alvoVend.filial})${nomeFiltroSeg ? ` [Foco: ${nomeFiltroSeg}]` : ''}`,
         `Leitura ao vivo do CEVEN Mapas (no trajeto da rota de hoje):`,
         '',
         ...prospectsAoVivo.slice(0, 5).map((p, i) => {
           const rz = titulo(p.razao || p.nome || 'Cliente Potencial');
           const end = p.endereco ? ` · ${p.endereco}` : '';
           const cnae = p.cnae_desc || p.familia || 'Comércio';
-          return `${i + 1}. *${rz}* (${cnae})\n   📍 CNPJ: ${p.cnpj || '—'}${end}`;
+          const tel = p.telefone || p.celular || p.fone ? ` · 📞 ${p.telefone || p.celular || p.fone}` : '';
+          const queryMaps = encodeURIComponent(`${p.razao || p.nome || ''} ${p.endereco || ''} ${alvoVend.filial || ''}`);
+          const mapsLink = `https://www.google.com/maps/search/?api=1&query=${queryMaps}`;
+          return `${i + 1}. *${rz}* (${cnae})\n   📍 CNPJ: ${p.cnpj || '—'}${end}${tel}\n   🗺️ *Navegar no Maps:* ${mapsLink}`;
         }),
         '',
         SUGESTAO + 'visitar esses pontos no caminho da rota e cadastrar direto no LinkUp para garantir o bônus de ativação!'
@@ -299,16 +328,24 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
     }
 
     // Fallback: busca nos pontos não-positivados da rota do vendedor no dados_mix.json
-    const pontosProspect = (alvoVend.pontos || []).filter((p) => p[2] === 0 && p[5] !== 'N/D').slice(0, 5);
+    let pontosProspect = (alvoVend.pontos || []).filter((p) => p[2] === 0 && p[5] !== 'N/D');
+    if (filtroSeg && pontosProspect.length) {
+      const filtrados = pontosProspect.filter((p) => filtroSeg.test(p[4] || '') || filtroSeg.test(p[5] || ''));
+      if (filtrados.length) pontosProspect = filtrados;
+    }
+    pontosProspect = pontosProspect.slice(0, 5);
+
     if (pontosProspect.length) {
       return [
-        `📍 *Clientes para Prospecção no Mapa — ${vn(alvoVend)}* (${alvoVend.filial})`,
+        `📍 *Clientes para Prospecção no Mapa — ${vn(alvoVend)}* (${alvoVend.filial})${nomeFiltroSeg ? ` [Foco: ${nomeFiltroSeg}]` : ''}`,
         `Oportunidades mapeadas pelo CEVEN na sua rota de atuação:`,
         '',
         ...pontosProspect.map((p, i) => {
           const rz = titulo(p[5]);
           const seg = p[4] || 'Varejo';
-          return `${i + 1}. *${rz}* (${seg})\n   📍 CNPJ: ${p[3]}`;
+          const queryMaps = encodeURIComponent(`${p[5]} ${alvoVend.filial || ''}`);
+          const mapsLink = `https://www.google.com/maps/search/?api=1&query=${queryMaps}`;
+          return `${i + 1}. *${rz}* (${seg})\n   📍 CNPJ: ${p[3]}\n   🗺️ *Navegar no Maps:* ${mapsLink}`;
         }),
         '',
         SUGESTAO + 'apresentar os itens líderes de giro do +MIX nesses estabelecimentos para abrir novos clientes!'

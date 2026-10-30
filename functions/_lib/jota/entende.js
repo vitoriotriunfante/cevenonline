@@ -353,7 +353,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
       '• 🏆 *Conquistas:* "Golaço!", "Meta batida!", "DNA Triunfante"',
       '• 💪 *Motivação e campo:* "Conta comigo", "Bora positivar!", "Bora destravar", "Zerado não!"',
       '• 🚀 *Aceleração e jogo:* "Acelera Triunfante", "Bora pra cima!", "Bora vender", "Chutando pro gol"',
-      '• 🚶 *Rota e clientes:* "Próximo cliente", "Olha o +MIX", "Tô de olho"',
+      '• 🚶 *Rota, clientes e novos cadastros:* "Próximo cliente", "Bora cadastrar!", "Olha o +MIX", "Tô de olho"',
       '• 🛑 *Arbitragem:* "Cartão Amarelo", "Cartão Vermelho"',
       '• 🏁 *Fechamento:* "Fechou o dia!", "Valeu time!"',
       '',
@@ -660,12 +660,14 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   if (/DIAS (SEGUIDOS )?SEM (VENDER|PEDIDO|VENDA)|HA \d+ DIAS SEM|HA MAIS DE \d+ DIAS|\d+ DIAS SEM|SEM PEDIDO HA/.test(t)) return respDiasSemPedido(B, E, t);
   { const per = pedePeriodo(t); if (per && /PEDIDO|CAPTA|VEND|DIGITA|FATUR|QUANTO/.test(t)) return respPeriodoDias(B, E, t, per); }
   if (/MES PASSADO|MES ANTERIOR|SETEMBRO|AGOSTO|\bM-1\b|COMPARAD|EM RELACAO AO MES|CAIU|CRESCEU|EVOLUCAO|ESTE MES X|ESSE MES X/.test(t) && !/LIGA|CHAMPI|POSICAO|RANKING DA LIGA/.test(t) && !/SEMANA(L|IS)|POR SEMANA|SEMANA A SEMANA|DIA DA SEMANA|QUE DIA/.test(t) && !(t.match(new RegExp(FRX.source, 'g')) || []).slice(1).length) return respComparaMes(B, E, t, pessoa);
-  // METAS DAS INDUSTRIAS = Premiacao RV do CEVEN (Vitorio, 25/10/2026)
-  // KPIs DA PREMIACAO (26/10/2026: meta de ticket medio, mix, faseamento, recorrencia)
-  if (/\bMETAS?\b|KPI|PREMIA/.test(t) && /TICKET|\bMIX\b|FASEAMENTO|FASIAMENTO|FASAMENTO|RECORRENCIA|\bKPIS?\b/.test(t)) return respKpisPremiacao(B, E, t, pessoa);
-  // "performance de vendas POR INDUSTRIA da filial" (Rudinei/TPA, 26/10/2026: caia no resumo): mesma resposta das metas por industria da Premiacao
-  if (/POR (INDUSTRIA|FORNECEDOR)|INDUSTRIAS\b|DESEMPENHO DAS INDUSTRIAS|PERFORMANCE (DAS |DE )?(VENDAS )?(POR |DAS )?INDUSTRIA/.test(t)) { const r = await respMetasIndustria(B, E, t, pessoa); if (r) return r; }
-  if (/\bMETAS?\b|OBJETIVOS?\b/.test(t)) { const r = await respMetasIndustria(B, E, t, pessoa); if (r) return r; }
+  // METAS E FATURAMENTO POR INDUSTRIA (Premiação RV / Fornecedores)
+  // Vitório, 30/10/2026: Ivayr/TCA perguntou faturamento + pendente da Duracell e caía no geral de carteira!
+  // Se a pergunta cita indústria ou "referente a indústria", direciona para as metas da indústria!
+  const temCitacaoIndustria = /POR (INDUSTRIA|FORNECEDOR)|INDUSTRIAS\b|DESEMPENHO DAS INDUSTRIAS|PERFORMANCE (DAS |DE )?(VENDAS )?(POR |DAS )?INDUSTRIA|REFERENTE (A|AO)?\s*(A\s+)?(INDUSTRIA|FORNECEDOR)\b|DA INDUSTRIA|NA INDUSTRIA|\b(DURACELL|AMPARO|HEINZ|MARS|ARCOR|MARILAN|MONDELEZ|NESTLE|GAROTO|COLGATE|RED\s*BULL|MAURI|MAGUARY|EBBA|AJINOMOTO|CONDOR|BR\s*SPICE|LEAO|MEDIX|LINDT|FANTONI|STOLFI|SUPER SAUDE)\b/i.test(t);
+  if (temCitacaoIndustria || (/\bMETAS?\b|KPI|PREMIA/.test(t) && /TICKET|\bMIX\b|FASEAMENTO|FASIAMENTO|FASAMENTO|RECORRENCIA|\bKPIS?\b/.test(t)) || /\bMETAS?\b|OBJETIVOS?\b/.test(t)) {
+    const r = await respMetasIndustria(B, E, t, pessoa);
+    if (r) return r;
+  }
   // vendas item a item (produto, industria, cliente, preco, top produtos, marca propria ao vivo)
   if (ehMP) { const r = await respMarcaPropriaVivo(B, E, t); return r || respRelatorio(B, c, t); }
   if (/PRECO|QUANTO SAIU/.test(t)) { const r = await respPreco(B, E, t); if (r) return r; }

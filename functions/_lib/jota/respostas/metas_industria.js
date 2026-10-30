@@ -54,7 +54,7 @@ export async function respMetasIndustria(B, E, t, pessoa) {
     return `${cab}\nNenhuma meta de *${[...alvoI].map((i) => nomeForn(nomes.get(i))).join(', ')}* para ${quem} neste mês.${onde.length ? ` Essa indústria tem meta em: *${onde.join(', ')}*.` : ''}`;
   }
   const sel = (x) => (x.fat >= x.meta && x.meta ? '✅' : x.meta && x.fat / x.meta >= 0.8 ? '🟡' : '🔴');
-  const linha = (n, x) => `${sel(x)} *${n}*: faturado ${R$(x.fat)} de ${R$(x.meta)} (${P(x.fat, x.meta)})${x.ven > x.fat ? ` · vendido ${R$(x.ven)} (${P(x.ven, x.meta)})` : ''}${x.metaPos ? ` · positivação ${N(x.pos)}/${N(x.metaPos)} (${P(x.pos, x.metaPos)})` : ''}`;
+  const linha = (n, x) => `${sel(x)} *${n}*: faturado ${R$(x.fat)} de ${R$(x.meta)} (${P(x.fat, x.meta)})${x.ven > x.fat ? ` · carteira pendente *${R$(x.ven - x.fat)}* (total com pedidos: *${R$(x.ven)}* · ${P(x.ven, x.meta)})` : ''}${x.metaPos ? ` · positivação ${N(x.pos)}/${N(x.metaPos)} (${P(x.pos, x.metaPos)})` : ''}`;
   if (alvoI.size) {   /* industria citada: total + quem esta puxando */
     const out = [cab];
     for (const [id, x] of L) {

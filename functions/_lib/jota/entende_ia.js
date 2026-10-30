@@ -65,6 +65,46 @@ export function perguntaDaFicha(f) {
 
 const MODELO = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 export async function entendePorIA(env, c, texto) {
+  // Prioridade 1: Google Gemini (ativo para gerência e diretoria quando configurado)
+  let apiKey = env?.GEMINI_API_KEY || env?.GOOGLE_AI_KEY;
+  if (!apiKey && env?.DB) {
+    try {
+      const row = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'gemini_api_key'").first();
+      if (row && row.valor) apiKey = row.valor;
+    } catch (e) {}
+  }
+
+  const lista = Object.entries(CATALOGO).map(([k, [, d]]) => `- ${k}: ${d}`).join('\n');
+  const sys = `Você classifica perguntas de gestores comerciais de uma distribuidora (filiais: ${FILIAIS.join(', ')}). NÃO responda a pergunta.
+Devolva SOMENTE um JSON: {"intencao": "<uma das intenções abaixo ou nenhuma>", "lugar": "<sigla da filial citada ou vazio>", "pessoa": "<nome de vendedor/supervisor citado ou vazio>", "codigo": "<código RCA citado ou vazio>", "produto": "<produto/marca citado ou vazio>", "industria": "<indústria/fornecedor citado ou vazio>", "cliente": "<nome do cliente citado ou vazio>"}
+Intenções:
+${lista}
+Regras: use "nenhuma" se a pergunta não se encaixa em nenhuma. Copie nomes exatamente como escritos. Não invente filial, pessoa, produto ou código que não estejam na pergunta.
+Quem pergunta: ${c.papel}${c.filial ? ' da filial ' + c.filial : ''}.`;
+
+  if (apiKey) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: `${sys}\n\nPergunta do gestor:\n"${texto}"` }] }],
+          generationConfig: { responseMimeType: 'application/json', temperature: 0 }
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const rawJson = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        const j = JSON.parse(rawJson);
+        if (j && j.intencao && j.intencao !== 'nenhuma') {
+          const p = perguntaDaFicha(j);
+          if (p) return { ficha: j, pergunta: p };
+        }
+      }
+    } catch (e) {}
+  }
+
   if (!env || !env.AI) return null;
   const lista = Object.entries(CATALOGO).map(([k, [, d]]) => `- ${k}: ${d}`).join('\n');
   const sys = `Você classifica perguntas de gestores comerciais de uma distribuidora (filiais: ${FILIAIS.join(', ')}). NÃO responda a pergunta.

@@ -6,7 +6,13 @@
 // =========================================================================
 
 export async function analisaEstrategiaComGemini({ env, B, c, texto, E, dadosContexto }) {
-  const apiKey = env.GEMINI_API_KEY || env.GOOGLE_AI_KEY;
+  let apiKey = env.GEMINI_API_KEY || env.GOOGLE_AI_KEY;
+  if (!apiKey && env.DB) {
+    try {
+      const row = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'gemini_api_key'").first();
+      if (row && row.valor) apiKey = row.valor;
+    } catch (e) {}
+  }
 
   const promptSistema = `Você é o JOTA Estratégico, o mais sênior consultor e diretor comercial do Grupo Triunfante / Mais Mix no CEVEN.
 Seu papel é orientar gerentes e supervisores comerciais com clareza executiva, foco absoluto em metas, agressividade comercial saudável e ações práticas para o dia de hoje.
