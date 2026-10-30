@@ -1,20 +1,21 @@
 🏢 *BOLETIM DE FECHAMENTO OFICIAL — 18:30*
-📅 29/10/2026
+📅 30/10/2026
 📍 *FILIAL MCD — CLEVERSON*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 2.594,08
-📦 *Pedidos Colocados:* 12 pedidos
-📍 *Visitas Realizadas:* 101 de 254 (39,8%)
-👥 *Vendedores Varejo com Pedido:* 6 de 19 (32%)
-✂️ *Cortes nos Pedidos de Hoje:* R$ 4.963,16 (2 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 0,00 (0 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 132.350,76
+💰 *Total Digitado Hoje:* R$ 194.552,03
+📦 *Pedidos Colocados:* 83 pedidos
+📍 *Visitas Realizadas:* 89 de 103 (86,4%)
+👥 *Vendedores Varejo com Pedido:* 15 de 19 (79%)
+✂️ *Cortes nos Pedidos de Hoje:* R$ 7.131,03 (3 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 1.002,63 (3 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 20.846,30
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
-  ▫️ Cód. 1059 • PAULA REGINA SALAZAR RODRIGUES: -R$ 4.836,28 em  (SKU em falta)
-  ▫️ Cód. 420 • CRISTIAN DE OLIVEIRA VARANDA: -R$ 126,88 em  (SKU em falta)
-🟢 *Recuperação de Inativos (+30d):* 1 de 5 PDVs reativados hoje
+  ▫️ Cód. 412 • ALCINDO DA SILVA GOMES: -R$ 6.717,65 em  (SKU em falta)
+  ▫️ Cód. 1064 • NILVANIA LEONEL DE SOUZA: -R$ 66,06 em  (SKU em falta)
+  ▫️ Cód. 431 • JACKSON MARQUES DA SILVA: -R$ 347,32 em  (SKU em falta)
+🟢 *Recuperação de Inativos (+30d):* 3 de 16 PDVs reativados hoje
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*
