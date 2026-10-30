@@ -81,14 +81,14 @@ export function figurinhaPara(resp, tipo) {
   if (tipo === 'saudacao') return horaSP() < 12 ? '03_bom_dia_time' : '02_conta_comigo';
   if (tipo === 'agradecimento') return '02_conta_comigo';   /* "blz", "valeu", "obrigado" = figurinha (27/10/2026) */
   const r = String(resp || '');
-  if (/Zerados hoje[^\n]*\*[1-9]/.test(r)) return '13_zerado_nao';
-  if (/Meta batida[^\n]*\*[1-9]|Golaço/.test(r)) return '07_meta_batida';
-  if (/Champions Triunfante|Liga AS/.test(r)) return '06_golaco';
+  if (/👥\s*\*Positivação|\bPositivação\b/i.test(r)) return '05_bora_positivar';
+  if (/Zerados hoje[^\n]*\*[1-9]|⚠️\s*Zerados/i.test(r)) return '13_zerado_nao';
+  if (/Meta batida[^\n]*\*[1-9]|Golaço|🎉\s*\*Meta batida/i.test(r)) return '07_meta_batida';
+  if (/Champions Triunfante|Liga AS/i.test(r)) return '06_golaco';
   if (/Relatório das 18:30|fechamento/i.test(r)) return '08_fechou_o_dia';
-  if (/^🧺|\+MIX —/.test(r)) return '15_olha_o_mais_mix';
-  if (/Rota de hoje|faltam \*\d/.test(r)) return '18_proximo_cliente';
+  if (/🧺|\+MIX —|\bMais Mix\b/i.test(r)) return '15_olha_o_mais_mix';
+  if (/Rota de hoje|faltam \*\d/i.test(r)) return '18_proximo_cliente';
   if (/quanto falta|Ritmo da meta|Abaixo do ritmo/i.test(r)) return '12_bora_destravar';
-  if (/^👥 \*Positivação/.test(r)) return '05_bora_positivar';
   if (/Cartão Vermelho|cartao vermelho|sem venda/i.test(r)) return '22_cartao_vermelho';
   if (/Cartão Amarelo|cartao amarelo|impedimento/i.test(r)) return '23_cartao_amarelo';
   if (/#?aceleratriunfante|foguete|acelera/i.test(r)) return '21_acelera_triunfante';

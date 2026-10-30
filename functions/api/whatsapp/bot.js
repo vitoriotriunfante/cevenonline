@@ -235,9 +235,10 @@ export async function onRequestPost({ request, env }) {
   } else {
     const fig = figurinhaPara(resp, tipo);
     if (fig && e.ok) {
-      const ult = await env.DB.prepare("SELECT MAX(quando) q, (SELECT COUNT(*) FROM bot_msgs b WHERE b.celular = ? AND b.direcao = 'out' AND b.id > COALESCE((SELECT MAX(id) FROM bot_msgs x WHERE x.celular = ? AND x.direcao = 'figurinha'), 0)) desde FROM bot_msgs WHERE celular = ? AND direcao = 'figurinha'").bind(cel, cel, cel).first().catch(() => null);
+      const ult = await env.DB.prepare("SELECT MAX(quando) q, (SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'figurinha' ORDER BY id DESC LIMIT 1) fig_nome, (SELECT COUNT(*) FROM bot_msgs b WHERE b.celular = ? AND b.direcao = 'out' AND b.id > COALESCE((SELECT MAX(id) FROM bot_msgs x WHERE x.celular = ? AND x.direcao = 'figurinha'), 0)) desde FROM bot_msgs WHERE celular = ? AND direcao = 'figurinha'").bind(cel, cel, cel, cel).first().catch(() => null);
       const ruim = /precisando reagir|Abaixo do ritmo|ERRO|devolu/i.test(resp) && !/^(saudacao)/.test(tipo);
-      if (!ruim && (tipo === 'agradecimento' || !ult || !ult.q || ult.desde >= 3 || Date.now() - Date.parse(ult.q + 'Z') > 2 * 3600 * 1000)) {
+      const ehOutraFigurinha = ult && ult.fig_nome && ult.fig_nome !== fig;
+      if (!ruim && (tipo === 'agradecimento' || ehOutraFigurinha || !ult || !ult.q || ult.desde >= 3 || Date.now() - Date.parse(ult.q + 'Z') > 2 * 3600 * 1000)) {
         const ok = await enviarFigurinha(env, destino, fig);
         if (ok) await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, 'figurinha', fig, tipo).run();
       }
