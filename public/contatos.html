@@ -324,6 +324,97 @@ input:focus, select:focus { border-color: var(--azul); }
 .msg-alert.show { display: block; }
 .msg-alert.ok { background: var(--verde-bg); color: #86efac; border: 1px solid var(--verde-borda); }
 .msg-alert.erro { background: var(--vermelho-bg); color: #fca5a5; border: 1px solid var(--vermelho-borda); }
+
+/* GALERIA DE FIGURINHAS */
+.fig-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+  margin-top: 14px;
+}
+.fig-card {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.25s ease;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.fig-card:hover {
+  border-color: var(--azul);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.15);
+}
+.fig-preview-box {
+  background: radial-gradient(circle, rgba(30, 48, 82, 0.6) 0%, rgba(10, 19, 36, 0.95) 100%);
+  border: 1px solid var(--borda-sub);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  position: relative;
+}
+.fig-preview-box img {
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,0.6));
+  transition: transform 0.2s ease;
+}
+.fig-card:hover .fig-preview-box img {
+  transform: scale(1.08);
+}
+.fig-tag-nova {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 99px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+}
+.fig-num-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(12, 21, 39, 0.85);
+  border: 1px solid var(--borda);
+  color: var(--azul);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+}
+.fig-info-line {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #cbd5e1;
+}
+.fig-info-line b {
+  color: #fff;
+}
+.fig-code-box {
+  background: #060b14;
+  border: 1px solid var(--borda-sub);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  color: #38bdf8;
+  word-break: break-all;
+}
 </style>
 </head>
 <body>
@@ -366,6 +457,10 @@ input:focus, select:focus { border-color: var(--azul); }
   </button>
   <button class="tab-btn" data-tab="disparos">
     <span>📤 Disparos Automáticos</span>
+  </button>
+  <button class="tab-btn" data-tab="figurinhas">
+    <span>🎨 Figurinhas do Jota</span>
+    <span class="tab-badge" id="b-total-fig">26</span>
   </button>
 </div>
 
@@ -594,6 +689,58 @@ input:focus, select:focus { border-color: var(--azul); }
       </table>
     </div>
   </div>
+
+  <!-- SESSAO 7: FIGURINHAS DO JOTA -->
+  <div id="tab-figurinhas" class="view-pane">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+      <div>
+        <h2 style="margin:0 0 4px; font-size:18px;">🎨 Catálogo de Figurinhas Oficiais do JOTA (26 Figurinhas WebP)</h2>
+        <span class="header-sub">Todas as figurinhas integradas, regras de envio automático por contexto, anti-spam e exemplos</span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="fig-busca" placeholder="🔍 Buscar por nome, número ou regra..." style="min-width:280px;">
+      </div>
+    </div>
+
+    <!-- REGRAS E KPIS -->
+    <div class="kpis-bar" style="margin-bottom:16px;">
+      <div class="kpi-card" style="border-left:3px solid var(--azul);">
+        <span style="color:var(--azul);">Total de Figurinhas</span>
+        <b>26</b>
+        <div style="font-size:11px; color:var(--txt-dim); margin-top:3px;">20 originais + 6 novas</div>
+      </div>
+      <div class="kpi-card" style="border-left:3px solid var(--amarelo);">
+        <span style="color:var(--amarelo);">Trava Anti-Spam</span>
+        <b>2 Horas</b>
+        <div style="font-size:11px; color:var(--txt-dim); margin-top:3px;">Máx. 1 figurinha a cada 2h por pessoa</div>
+      </div>
+      <div class="kpi-card" style="border-left:3px solid var(--verde);">
+        <span style="color:var(--verde);">Exceção Inteligente</span>
+        <b>Troca de Tema</b>
+        <div style="font-size:11px; color:var(--txt-dim); margin-top:3px;">Liberada quando muda de assunto</div>
+      </div>
+      <div class="kpi-card" style="border-left:3px solid var(--roxo);">
+        <span style="color:var(--roxo);">Envio do Pacote</span>
+        <b>Lote Oficial</b>
+        <div style="font-size:11px; color:var(--txt-dim); margin-top:3px;">"quais figurinhas você tem"</div>
+      </div>
+    </div>
+
+    <!-- CHIPS DE FILTRO -->
+    <div class="filter-chips" style="margin-bottom:14px;" id="fig-chips-filtro">
+      <span class="chip active fig-chip" data-cat="todos">Todas (26)</span>
+      <span class="chip fig-chip" data-cat="novas">✨ Novas (6)</span>
+      <span class="chip fig-chip" data-cat="motivacao">💪 Motivação & Aceleração (6)</span>
+      <span class="chip fig-chip" data-cat="relacao">⚽ Boas-vindas & Relação (5)</span>
+      <span class="chip fig-chip" data-cat="conquistas">🏆 Conquistas & Metas (3)</span>
+      <span class="chip fig-chip" data-cat="regras">🛑 Regras & Cartões Liga (3)</span>
+      <span class="chip fig-chip" data-cat="rota">🚶 Rota & Clientes (4)</span>
+      <span class="chip fig-chip" data-cat="fechamento">🏁 Fechamento & Suporte (5)</span>
+    </div>
+
+    <!-- GRID DAS FIGURINHAS -->
+    <div class="fig-grid" id="fig-cards-grid"></div>
+  </div>
 </main>
 
 <script>
@@ -712,6 +859,8 @@ function renderizarTudo() {
 
   $('b-total-conv').textContent = (DADOS_CONVERSAS.conversas || []).length;
   $('b-total-cad').textContent = (DADOS_CONTATOS.contatos || []).length;
+  const bFig = $('b-total-fig');
+  if (bFig) bFig.textContent = FIGURINHAS_INFO.length;
 
   // Renderizar cada módulo
   agruparERenderizarConversas();
@@ -720,6 +869,7 @@ function renderizarTudo() {
   renderizarSupervisoresSem();
   renderizarGestaoContatos();
   renderizarDisparos();
+  renderizarFigurinhas();
 }
 
 // ============================== MÓDULO 1: INBOX CONVERSAS ==============================
@@ -1283,6 +1433,373 @@ function renderizarDisparos() {
     </tr>
   `).join('');
 }
+
+// ============================== MÓDULO 7: FIGURINHAS DO JOTA ==============================
+let FILTRO_FIG = 'todos';
+
+const FIGURINHAS_INFO = [
+  {
+    id: '01_oi_eu_sou_o_jota',
+    num: '01',
+    nome: 'Oi, eu sou o Jota!',
+    cat: 'relacao',
+    catNome: 'Boas-vindas',
+    gatilho: "tipo === 'saudacao_primeira'",
+    uso: 'Primeiro contato do gestor ou quando alguém interage pela primeira vez com o Jota.',
+    exemplo: '"Oi", "Olá", "Quem é você?"',
+    novo: false
+  },
+  {
+    id: '02_conta_comigo',
+    num: '02',
+    nome: 'Conta Comigo',
+    cat: 'relacao',
+    catNome: 'Boas-vindas',
+    gatilho: "tipo === 'agradecimento' ou saudação após 12h",
+    uso: 'Quando o gestor agradece ("valeu", "obrigado", "show", "tmj") ou dá boa tarde.',
+    exemplo: '"Valeu Jota!", "Obrigado pelos números"',
+    novo: false
+  },
+  {
+    id: '03_bom_dia_time',
+    num: '03',
+    nome: 'Bom dia time!',
+    cat: 'relacao',
+    catNome: 'Boas-vindas',
+    gatilho: "tipo === 'saudacao' e horaSP() < 12",
+    uso: 'Primeira saudação matinal do dia até às 12:00.',
+    exemplo: '"Bom dia Jota", "Bom dia time"',
+    novo: false
+  },
+  {
+    id: '04_bola_rolando',
+    num: '04',
+    nome: 'Bola Rolando',
+    cat: 'relacao',
+    catNome: 'Boas-vindas',
+    gatilho: "Abertura matinal / pacote de figurinhas",
+    uso: 'Início da rodada matinal (disparo das 08h) e no pacote oficial.',
+    exemplo: 'Disparos matinais de abertura da rodada',
+    novo: false
+  },
+  {
+    id: '05_bora_positivar',
+    num: '05',
+    nome: 'Bora Positivar!',
+    cat: 'motivacao',
+    catNome: 'Motivação',
+    gatilho: "/👥\\s*\\*Positivação|\\bPositivação\\b/i",
+    uso: 'Consultas sobre positivação de clientes (geral, do mês, por filial ou equipe).',
+    exemplo: '"Como estamos de positivação?", "Meta Positivação x mês"',
+    novo: false
+  },
+  {
+    id: '06_golaco',
+    num: '06',
+    nome: 'Golaço!',
+    cat: 'conquistas',
+    catNome: 'Conquistas',
+    gatilho: "/Champions Triunfante|Liga AS/i",
+    uso: 'Ao consultar a Champions Triunfante, tabela da Liga ou vitória em rodada.',
+    exemplo: '"Liga", "Como está meu time na liga?", "Tabela da Champions"',
+    novo: false
+  },
+  {
+    id: '07_meta_batida',
+    num: '07',
+    nome: 'Meta Batida!',
+    cat: 'conquistas',
+    catNome: 'Conquistas',
+    gatilho: "/Meta batida|Golaço|🎉\\s*\\*Meta batida/i",
+    uso: 'Quando um vendedor ou equipe atinge 100% da meta de faturamento ou positivação.',
+    exemplo: '"Quem bateu a meta?", "Vendedores com meta batida"',
+    novo: false
+  },
+  {
+    id: '08_fechou_o_dia',
+    num: '08',
+    nome: 'Fechou o Dia!',
+    cat: 'fechamento',
+    catNome: 'Fechamento',
+    gatilho: "/Relatório das 18:30|fechamento/i",
+    uso: 'Disparo de fechamento do dia (18:30) ou quando o gestor pergunta pelo fechamento.',
+    exemplo: '"Como fechou o dia?", "Fechamento de hoje"',
+    novo: false
+  },
+  {
+    id: '09_valeu_time',
+    num: '09',
+    nome: 'Valeu Time!',
+    cat: 'fechamento',
+    catNome: 'Fechamento',
+    gatilho: "Encerramento de rodada e agradecimento coletivo",
+    uso: 'Fechamento de semana, sextou e pacote de figurinhas.',
+    exemplo: '"Bom final de semana", encerramento de campanhas',
+    novo: false
+  },
+  {
+    id: '10_dna_triunfante',
+    num: '10',
+    nome: 'DNA Triunfante',
+    cat: 'conquistas',
+    catNome: 'Conquistas',
+    gatilho: "Destaques do mês e superação de recordes",
+    uso: 'Celebração de cultura comercial, superação de resultados históricos e pacote oficial.',
+    exemplo: 'Fechamento de mês com recorde batido',
+    novo: false
+  },
+  {
+    id: '11_to_de_olho',
+    num: '11',
+    nome: 'Tô de Olho',
+    cat: 'rota',
+    catNome: 'Rota & Clientes',
+    gatilho: "Ronda de campo / auditoria",
+    uso: 'Alertas de vendedores sem visita, check-ins fora do cliente e rondas de campo.',
+    exemplo: '"Quem não visitou ninguém?", "Ronda"',
+    novo: false
+  },
+  {
+    id: '12_bora_destravar',
+    num: '12',
+    nome: 'Bora Destravar!',
+    cat: 'motivacao',
+    catNome: 'Motivação',
+    gatilho: "/quanto falta|Ritmo da meta|Abaixo do ritmo/i",
+    uso: 'Consultas de "quanto falta pra meta", ritmo apertado ou vendedores mais atrás.',
+    exemplo: '"Quanto falta pra meta?", "Qual vendedor está mais atrás?"',
+    novo: false
+  },
+  {
+    id: '13_zerado_nao',
+    num: '13',
+    nome: 'Zerado Não!',
+    cat: 'motivacao',
+    catNome: 'Motivação',
+    gatilho: "/Zerados hoje|⚠️\\s*Zerados/i",
+    uso: 'Ao listar vendedores com rota que ainda não passaram pedido no dia.',
+    exemplo: '"Zerados", "Quem está zerado hoje?", "Zerados da equipe"',
+    novo: false
+  },
+  {
+    id: '14_confere_no_ceven',
+    num: '14',
+    nome: 'Confere no CEVEN',
+    cat: 'fechamento',
+    catNome: 'Fechamento',
+    gatilho: "Conciliação de divergências e dados de espelho",
+    uso: 'Quando o gestor pergunta por conciliação de relatórios ou espelho do sistema.',
+    exemplo: '"Não bateu com o analista", "Qual a fonte do número?"',
+    novo: false
+  },
+  {
+    id: '15_olha_o_mais_mix',
+    num: '15',
+    nome: 'Olha o +MIX',
+    cat: 'rota',
+    catNome: 'Rota & Clientes',
+    gatilho: "/🧺|\\+MIX —|\\bMais Mix\\b/i",
+    uso: 'Consultas sobre uso da ferramenta +MIX, mix da rota e oportunidades.',
+    exemplo: '"+mix", "+mix vendedor 181", "O que oferecer pro cliente?"',
+    novo: false
+  },
+  {
+    id: '16_ja_te_respondo',
+    num: '16',
+    nome: 'Já Te Respondo',
+    cat: 'fechamento',
+    catNome: 'Fechamento',
+    gatilho: "Consultas pesadas com fila de processamento",
+    uso: 'Aviso de pesquisa em andamento para consultas complexas.',
+    exemplo: 'Varredura de relatórios históricos completos',
+    novo: false
+  },
+  {
+    id: '17_buscando_numeros',
+    num: '17',
+    nome: 'Buscando Números',
+    cat: 'fechamento',
+    catNome: 'Fechamento',
+    gatilho: "Consultas detalhadas de clientes",
+    uso: 'Pacote de figurinhas e status de busca avançada.',
+    exemplo: 'Consultas de produtos por indústria e cliente',
+    novo: false
+  },
+  {
+    id: '18_proximo_cliente',
+    num: '18',
+    nome: 'Próximo Cliente!',
+    cat: 'rota',
+    catNome: 'Rota & Clientes',
+    gatilho: "/Rota de hoje|faltam \\*\\d/i",
+    uso: 'Consultas sobre rota de hoje, clientes a visitar e eficácia de visitas.',
+    exemplo: '"Rota de hoje", "Quais clientes faltam visitar hoje?"',
+    novo: false
+  },
+  {
+    id: '19_sugestao_do_jota',
+    num: '19',
+    nome: 'Sugestão do Jota',
+    cat: 'motivacao',
+    catNome: 'Motivação',
+    gatilho: "Dicas táticas de plano de ação comercial",
+    uso: 'Final de análises estratégicas recomendando ligar para vendedores ou clientes.',
+    exemplo: '"O que eu faço hoje?", "Onde atacar?"',
+    novo: false
+  },
+  {
+    id: '20_sem_dado_agora',
+    num: '20',
+    nome: 'Sem Dado Agora',
+    cat: 'fechamento',
+    catNome: 'Fechamento',
+    gatilho: "/sem dado|não tenho|Não consegui|ainda não tenho/i (curta)",
+    uso: 'Quando o CEVEN ainda não liberou a informação ou o número não foi encontrado.',
+    exemplo: '"Relatório de 2024", termos fora da base',
+    novo: false
+  },
+  {
+    id: '21_acelera_triunfante',
+    num: '21',
+    nome: 'Acelera Triunfante! (Foguete)',
+    cat: 'motivacao',
+    catNome: 'Motivação',
+    gatilho: "/#?aceleratriunfante|foguete|acelera|Figurinhas Oficiais/i",
+    uso: 'Mensagens de aceleração, fechamento de ciclo com energia e no pacote oficial.',
+    exemplo: '"Acelera time!", "Bora acelerar", "Pacote de figurinhas"',
+    novo: true
+  },
+  {
+    id: '22_cartao_vermelho',
+    num: '22',
+    nome: 'Cartão Vermelho',
+    cat: 'regras',
+    catNome: 'Regras Liga',
+    gatilho: "/Cartão Vermelho|cartao vermelho|sem venda/i",
+    uso: 'Penalidades graves da Champions Triunfante (zerados reincidentes, falta gravíssima).',
+    exemplo: '"Pênaltis e impedimentos", "Cartão vermelho"',
+    novo: true
+  },
+  {
+    id: '23_cartao_amarelo',
+    num: '23',
+    nome: 'Cartão Amarelo',
+    cat: 'regras',
+    catNome: 'Regras Liga',
+    gatilho: "/Cartão Amarelo|cartao amarelo|impedimento/i",
+    uso: 'Advertências da Champions Triunfante (check-in fora do cliente, justificativa sem venda).',
+    exemplo: '"Impedimentos de hoje", "Quem tomou cartão amarelo?"',
+    novo: true
+  },
+  {
+    id: '24_chutando_pro_gol',
+    num: '24',
+    nome: 'Chutando pro Gol!',
+    cat: 'motivacao',
+    catNome: 'Motivação',
+    gatilho: "/Chutando pro gol|golaço|chutando no gol/i",
+    uso: 'Lances de ataque da Liga e vendedores fechando pedidos importantes.',
+    exemplo: '"Lances da rodada", "Chutando pro gol"',
+    novo: true
+  },
+  {
+    id: '25_bora_pra_cima',
+    num: '25',
+    nome: 'Bora pra Cima!',
+    cat: 'motivacao',
+    catNome: 'Motivação',
+    gatilho: "/Bora pra cima|pra cima time|vamos pra cima/i",
+    uso: 'Incentivo de equipe no início da tarde e reação comercial.',
+    exemplo: '"Bora pra cima", "Como está meu time hoje?"',
+    novo: true
+  },
+  {
+    id: '26_bora_vender',
+    num: '26',
+    nome: 'Bora Vender!',
+    cat: 'motivacao',
+    catNome: 'Motivação',
+    gatilho: "/Bora vender|foco em vendas|partiu vender/i",
+    uso: 'Chamado de vendas no WhatsApp com foco em abertura de pedidos.',
+    exemplo: '"Bora vender", "Vendas de hoje"',
+    novo: true
+  }
+];
+
+function renderizarFigurinhas() {
+  const container = $('fig-cards-grid');
+  if (!container) return;
+
+  const busca = ($('fig-busca')?.value || '').toLowerCase().trim();
+  const filtradas = FIGURINHAS_INFO.filter((f) => {
+    const matchCat = (FILTRO_FIG === 'todos') || (FILTRO_FIG === 'novas' ? f.novo : f.cat === FILTRO_FIG);
+    if (!matchCat) return false;
+    if (!busca) return true;
+    return f.nome.toLowerCase().includes(busca) ||
+           f.num.includes(busca) ||
+           f.uso.toLowerCase().includes(busca) ||
+           f.gatilho.toLowerCase().includes(busca) ||
+           f.exemplo.toLowerCase().includes(busca);
+  });
+
+  if (!filtradas.length) {
+    container.innerHTML = `<div style="grid-column:1/-1; padding:40px; text-align:center; color:var(--txt-dim);">Nenhuma figurinha encontrada para o filtro atual.</div>`;
+    return;
+  }
+
+  container.innerHTML = filtradas.map((f) => {
+    return `
+      <div class="fig-card">
+        <div class="fig-preview-box">
+          <span class="fig-num-badge">#${esc(f.num)}</span>
+          ${f.novo ? '<span class="fig-tag-nova">✨ Nova</span>' : ''}
+          <img src="/jota/figurinhas/${esc(f.id)}.webp" alt="${esc(f.nome)}" loading="lazy">
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h3 style="margin:0; font-size:15px; color:#fff; font-weight:700;">${esc(f.nome)}</h3>
+          <span class="tag-badge ${f.novo ? 'ia' : 'pronta'}">${esc(f.catNome)}</span>
+        </div>
+
+        <div class="fig-info-line">
+          <b>🎯 Quando o Jota usa:</b>
+          <div style="margin-top:2px; color:#e2e8f0;">${esc(f.uso)}</div>
+        </div>
+
+        <div class="fig-info-line">
+          <b>⚡ Regra no Código:</b>
+          <div class="fig-code-box" style="margin-top:3px;">${esc(f.gatilho)}</div>
+        </div>
+
+        <div class="fig-info-line">
+          <b>💬 Exemplo de pergunta/contexto:</b>
+          <div style="margin-top:2px; font-style:italic; color:var(--txt-mut);">${esc(f.exemplo)}</div>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:auto; padding-top:10px; border-top:1px solid var(--borda-sub);">
+          <a href="/jota/figurinhas/${esc(f.id)}.webp" target="_blank" class="link-btn" style="flex:1; text-align:center; font-size:11px; padding:5px 8px;">
+            🔍 Abrir WebP
+          </a>
+          <button class="pri" style="font-size:11px; padding:5px 10px;" onclick="navigator.clipboard.writeText('${esc(f.id)}'); aviso('ID copiado: ${esc(f.id)}', 'ok');">
+            📋 Copiar ID
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Filtros de Figurinhas
+document.querySelectorAll('.fig-chip').forEach((chip) => {
+  chip.onclick = () => {
+    document.querySelectorAll('.fig-chip').forEach((c) => c.classList.remove('active'));
+    chip.classList.add('active');
+    FILTRO_FIG = chip.dataset.cat;
+    renderizarFigurinhas();
+  };
+});
+const figBusca = $('fig-busca');
+if (figBusca) figBusca.oninput = () => renderizarFigurinhas();
 
 $('btn-atualizar').onclick = () => carregarTudo();
 
