@@ -28,7 +28,7 @@ export const REGRAS_PASTAS = {
 export async function respSegmentoCnae(B, E, t, pessoa) {
   let mx;
   try {
-    mx = JSON.parse(await B.raw('public/dados_mix.json') || '{}');
+    mx = await B.mix() || {};
   } catch (e) {
     return '📊 Não consegui carregar a base de segmentos e CNAEs agora. Tente em alguns minutos.';
   }
@@ -211,7 +211,7 @@ export async function respEstrategiaFabio(env, B, c, texto, E) {
 export async function respProspeccaoMapas(B, E, t, pessoa) {
   let mx;
   try {
-    mx = JSON.parse(await B.raw('public/dados_mix.json') || '{}');
+    mx = await B.mix() || {};
   } catch (e) {
     mx = {};
   }
@@ -219,8 +219,15 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
   const V = (mx && mx.vendedores) || [];
   let alvoVend = null;
 
+  // Extrai RCA direto da mensagem se citado (ex: "prospecção 115" ou "prospecção vendedor 115")
+  const mRca = String(t || '').match(/\b(?:VENDEDOR|RCA|SETOR|COD(?:IGO)?\s*)?(\d{1,5})\b/);
+  const codCitado = mRca ? mRca[1] : null;
+
   if (pessoa && pessoa.tipo === 'vend') {
-    alvoVend = V.find((v) => String(v.rca) === String(pessoa.alvo.rca) && v.filial === pessoa.alvo.filial);
+    alvoVend = V.find((v) => String(v.rca) === String(pessoa.alvo.rca) && (!pessoa.alvo.filial || v.filial === pessoa.alvo.filial)) || pessoa.alvo;
+  } else if (codCitado && !['10', '20', '30', '50'].includes(codCitado)) {
+    alvoVend = V.find((v) => String(v.rca) === codCitado && (!E.filiais || !E.filiais.length || E.filiais.includes(v.filial))) ||
+               (E.vend || []).find((v) => String(v.rca) === codCitado);
   } else if (E.rca) {
     alvoVend = V.find((v) => String(v.rca) === String(E.rca) && v.filial === E.filiais[0]);
   } else if (E.vend && E.vend.length === 1) {
