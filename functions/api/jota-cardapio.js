@@ -17,32 +17,29 @@ const J = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 
 
 const titulo = (s) => String(s || '').toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
 
-// TEXTO PURO COM EXEMPLOS PRÁTICOS (SEM NENHUM LINK)
+// TEXTO PURO COM EXEMPLOS PRÁTICOS (SEM NENHUM LINK E SEM INVENÇÕES)
 export function textoSupervisores(c) {
   const primeiroNome = titulo(String(c.nome || '').split(' ')[0]);
   const filial = (c.filial || '').toUpperCase();
 
   return `Bom dia, ${primeiroNome}! 🤝\n\n` +
-    `Preparei um resumo prático com os principais comandos do *Jota* para você usar no dia a dia da supervisão na filial *${filial}*.\n\n` +
-    `Você pode consultar os dados da sua equipe a qualquer hora aqui no WhatsApp, digitando ou por *áudio* 🎙️:\n\n` +
-    `👥 *MINHA EQUIPE & ROTAS*\n` +
-    `• *como está minha equipe* → faturado, pendente, positivação e visitas\n` +
-    `• *zerados hoje* → quem da sua equipe ainda não vendeu hoje\n` +
-    `• *quem falta visitar* → lista de clientes restantes na rota\n\n` +
-    `👤 *RAIO-X DO VENDEDOR*\n` +
-    `• *vendedor [código]* → ex: _vendedor 1018_ (faturado, visitas e lances)\n` +
-    `• *inativos vendedor [código]* → clientes sem compra recente\n` +
-    `• *curva negativa* → clientes com queda de faturamento\n\n` +
-    `📦 *MIX & OPORTUNIDADES*\n` +
-    `• *+mix [indústria]* → ex: _+mix Mondelez_ ou _quem compra Oreo_\n` +
-    `• *pedidos bloqueados* → pedidos retidos no crédito/financeiro\n` +
-    `• *cliente [código]* → limite de crédito, títulos e histórico\n\n` +
-    `🏆 *CHAMPIONS TRIUNFANTE*\n` +
-    `• *liga* → posição da sua filial na tabela da Liga\n` +
-    `• *gols de hoje* → vendas e lances comemorados do dia\n\n` +
-    `🎨 *FIGURINHAS OFICIAIS*\n` +
-    `• *quais figurinhas vc tem?* → catálogo para engajar nos grupos\n\n` +
-    `💡 _Dica: Você não precisa decorar o texto exato. Pode perguntar do seu jeito com suas palavras ou mandar áudio!_\n\n` +
+    `Aqui é o *Jota*, seu parceiro de campo no WhatsApp da filial *${filial}*.\n\n` +
+    `Seguem alguns exemplos práticos do que você pode me perguntar a qualquer hora (por texto ou por *áudio* 🎙️):\n\n` +
+    `👥 *EQUIPE & ROTAS*\n` +
+    `• *como está minha equipe* → faturado, pendente, positivação e visitas do time\n` +
+    `• *zerados hoje* → quem da equipe com rota ainda não colocou pedido\n` +
+    `• *quem falta visitar* → clientes restantes na rota do dia\n` +
+    `• *visitou e não vendeu* → clientes atendidos hoje sem pedido e o motivo\n\n` +
+    `👤 *VENDEDOR*\n` +
+    `• *vendedor [código ou nome]* → raio-x: meta, faturado, positivação e visitas\n` +
+    `• *inativos vendedor [código]* → clientes da carteira sem compra recente\n\n` +
+    `📦 *MIX & CLIENTES*\n` +
+    `• *+mix [indústria]* → oportunidades do +MIX (ex: _+mix Mondelez_)\n` +
+    `• *compra cliente [código]* → o que o cliente comprou no mês, última data e SKUs\n\n` +
+    `🏆 *CHAMPIONS & FIGURINHAS*\n` +
+    `• *liga* → posição da sua filial na tabela da Champions Triunfante\n` +
+    `• *quais figurinhas vc tem?* → catálogo para comemorar nos grupos\n\n` +
+    `Pode perguntar do seu jeito, com suas próprias palavras. Se eu não tiver um dado, eu aviso na hora — número eu não invento!\n\n` +
     `_Jota · Comercial Triunfante_`;
 }
 

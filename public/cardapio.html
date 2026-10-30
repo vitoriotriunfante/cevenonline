@@ -453,7 +453,7 @@
         <button class="cat-btn" data-cat="campo">🚶 Rotas & Zerados</button>
         <button class="cat-btn" data-cat="vendedor">🧑‍💼 Raio-X do Vendedor</button>
         <button class="cat-btn" data-cat="mix">🧺 Oportunidades +MIX</button>
-        <button class="cat-btn" data-cat="credito">💳 Clientes & Crédito</button>
+        <button class="cat-btn" data-cat="credito">🏪 Clientes & Pedidos</button>
         <button class="cat-btn" data-cat="champions">🏆 Champions Triunfante</button>
         <button class="cat-btn" data-cat="stickers">🎨 Figurinhas (26)</button>
       </div>
@@ -600,12 +600,12 @@ Clientes na rota de hoje que já compraram Oreo e estão sem compra há mais de 
         <div class="action-tip">🎯 <b>Ação Recomendada:</b> Usar o +MIX em cada visita é o segredo para expandir o número de itens por pedido (fator multiplicador).</div>
       </div>
 
-      <!-- COMANDO 6: PEDIDOS BLOQUEADOS -->
-      <div class="card" data-category="credito" data-keywords="pedidos bloqueados credito financeiro retidos liberacao pendentes">
+      <!-- COMANDO 6: PEDIDOS RETIDOS OU COM CORTE -->
+      <div class="card" data-category="credito" data-keywords="pedidos bloqueados retidos cortes pendentes faturamento">
         <div>
-          <span class="card-tag tag-credito">💳 Financeiro · Pedidos Bloqueados</span>
-          <h2 class="card-title">6. Pedidos Bloqueados no Crédito</h2>
-          <p class="card-desc">Relação de pedidos digitados retidos no financeiro aguardando liberação para faturamento antes do horário de corte do CD.</p>
+          <span class="card-tag tag-credito">🧾 Pedidos · Retidos ou com Corte</span>
+          <h2 class="card-title">6. Pedidos Retidos ou com Corte</h2>
+          <p class="card-desc">Relação de pedidos digitados hoje que estão retidos, pendentes de faturamento ou com ocorrência de corte no CD.</p>
           <div class="order-box">
             <div class="order-label">💬 O que digitar no WhatsApp:</div>
             <div class="command-pills">
@@ -617,40 +617,44 @@ Clientes na rota de hoje que já compraram Oreo e estão sem compra há mais de 
               <a href="https://wa.me/?text=pedidos%20bloqueados" target="_blank" class="btn-whatsapp">🟢 Enviar no WhatsApp</a>
             </div>
             <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver resposta do Jota ▾</button>
-            <div class="preview-content">🧾 *Pedidos bloqueados na sua equipe*: *R$ 28.400* em 4 pedidos
-• RCA 1018 - Lincon: R$ 14.200 (2 pedidos - limite de crédito)
-• RCA 229 - Gabriel: R$ 14.200 (2 pedidos - título vencido)
-🎯 *Sugestão do Jota:* alinhar com a mesa de crédito antes das 16h para faturar hoje!</div>
+            <div class="preview-content">🧾 *Pedidos retidos ou com corte na sua equipe*: *R$ 28.400* em 4 pedidos
+• RCA 1018 - Lincon: pedido 492841 · R$ 14.200 (pendente no CD)
+• RCA 229 - Gabriel: pedido 492855 · R$ 14.200 (bloqueado)
+🎯 *Sugestão do Jota:* alinhar com o faturamento antes das 16h para faturar hoje!</div>
           </div>
         </div>
-        <div class="action-tip">🎯 <b>Ação Recomendada:</b> Atue junto ao cliente e crédito antes das 16h para evitar que o pedido fique para o dia seguinte.</div>
+        <div class="action-tip">🎯 <b>Ação Recomendada:</b> Acompanhar pedidos pendentes antes do horário de corte do CD evita que o faturamento fique para o dia seguinte.</div>
       </div>
 
-      <!-- COMANDO 7: DOSSIÊ DO CLIENTE -->
-      <div class="card" data-category="credito" data-keywords="cliente cnpj razao social historico limite titulos compras">
+      <!-- COMANDO 7: HISTÓRICO DE COMPRAS DO CLIENTE -->
+      <div class="card" data-category="credito" data-keywords="cliente historico compras skus produtos ultima compra">
         <div>
-          <span class="card-tag tag-credito">🏪 Clientes · Dossiê Rápido</span>
-          <h2 class="card-title">7. Dossiê Completo do Cliente</h2>
-          <p class="card-desc">Consulte a ficha de qualquer PDV pelo código ou CNPJ antes da visita: limite de crédito disponível, títulos em aberto e histórico de compras.</p>
+          <span class="card-tag tag-credito">🏪 Clientes · Histórico de Compras</span>
+          <h2 class="card-title">7. Histórico de Compras do Cliente</h2>
+          <p class="card-desc">Consulte a ficha de compras de qualquer PDV pelo código: total faturado no mês, data da última compra e relação dos SKUs mais comprados.</p>
           <div class="order-box">
             <div class="order-label">💬 O que digitar no WhatsApp:</div>
             <div class="command-pills">
               <span class="pill">cliente #322735</span>
-              <span class="pill">CNPJ 12.345...</span>
+              <span class="pill">compra cliente 322735</span>
             </div>
             <div class="btn-action-group">
               <button class="btn-copy" onclick="copiarComando('cliente #322735')">📋 Copiar</button>
               <a href="https://wa.me/?text=cliente%20%23322735" target="_blank" class="btn-whatsapp">🟢 Enviar no WhatsApp</a>
             </div>
             <button class="preview-toggle" onclick="togglePreview(this)">👀 Ver resposta do Jota ▾</button>
-            <div class="preview-content">🏪 *Cliente #322735 — Supermercado São José*
-RCA responsável: 104 - Marcos Vinicius · sup. Eder
-💰 Limite disponível: *R$ 18.500* (sem títulos vencidos)
-📦 Última compra: há 8 dias (R$ 4.200 em Mondelez e Bauducco)
-⭐ Principais itens: Biscoito Club Social, Chocolate Lacta 90g</div>
+            <div class="preview-content">🏪 *Supermercado São José* (#322735, TPH) · vendedor 104 - Marcos Vinicius
+No mês: *R$ 18.500* em 3 dia(s) de compra · último: 28/10 · 14 SKUs
+
+*O que comprou (mês):*
+• Biscoito Club Social 144g: 120 un. · R$ 4.320
+• Chocolate Lacta 90g: 80 un. · R$ 3.840
+• Wafer Bis Chocolate 126g: 95 un. · R$ 2.850
+
+🎯 *Sugestão do Jota:* peça "o que oferecer" no +MIX deste cliente antes da próxima visita.</div>
           </div>
         </div>
-        <div class="action-tip">🎯 <b>Ação Recomendada:</b> Conhecer o limite e o histórico do cliente antes de entrar na loja aumenta a assertividade do fechamento.</div>
+        <div class="action-tip">🎯 <b>Ação Recomendada:</b> Conhecer o histórico de compras e os SKUs que o cliente costuma comprar ajuda o vendedor a recuperar volume e mix.</div>
       </div>
 
       <!-- COMANDO 8: PANORAMA DA FILIAL (PARA GERENTES) -->
