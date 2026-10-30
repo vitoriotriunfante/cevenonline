@@ -206,3 +206,90 @@ export async function respEstrategiaFabio(env, B, c, texto, E) {
 
   return out.join('\n');
 }
+
+// 4. CLIENTES PARA PROSPECÇÃO NO MAPA (CEVEN MAPAS / PROSPECÇÃO NA ROTA)
+export async function respProspeccaoMapas(B, E, t, pessoa) {
+  let mx;
+  try {
+    mx = JSON.parse(await B.raw('public/dados_mix.json') || '{}');
+  } catch (e) {
+    mx = {};
+  }
+
+  const V = (mx && mx.vendedores) || [];
+  let alvoVend = null;
+
+  if (pessoa && pessoa.tipo === 'vend') {
+    alvoVend = V.find((v) => String(v.rca) === String(pessoa.alvo.rca) && v.filial === pessoa.alvo.filial);
+  } else if (E.rca) {
+    alvoVend = V.find((v) => String(v.rca) === String(E.rca) && v.filial === E.filiais[0]);
+  } else if (E.vend && E.vend.length === 1) {
+    alvoVend = V.find((v) => String(v.rca) === String(E.vend[0].rca) && v.filial === E.vend[0].filial);
+  }
+
+  // Tenta puxar direto da API do CEVEN se houver vendedor alvo
+  if (alvoVend) {
+    let prospectsAoVivo = [];
+    try {
+      const url = `https://ceven.drivetriunfante-locomotiva.com.br/api/ceven/prospeccao-roteiro?cod_rca=${alvoVend.rca}&hoje=1&max=5`;
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 2000);
+      const res = await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'Mozilla/5.0' } });
+      clearTimeout(tid);
+      if (res.ok) {
+        const d = await res.json();
+        if (d && Array.isArray(d.prospects) && d.prospects.length) {
+          prospectsAoVivo = d.prospects;
+        }
+      }
+    } catch (e) {}
+
+    if (prospectsAoVivo.length) {
+      return [
+        `📍 *Clientes para Prospecção no Mapa — ${vn(alvoVend)}* (${alvoVend.filial})`,
+        `Leitura ao vivo do CEVEN Mapas (no trajeto da rota de hoje):`,
+        '',
+        ...prospectsAoVivo.slice(0, 5).map((p, i) => {
+          const rz = titulo(p.razao || p.nome || 'Cliente Potencial');
+          const end = p.endereco ? ` · ${p.endereco}` : '';
+          const cnae = p.cnae_desc || p.familia || 'Comércio';
+          return `${i + 1}. *${rz}* (${cnae})\n   📍 CNPJ: ${p.cnpj || '—'}${end}`;
+        }),
+        '',
+        SUGESTAO + 'visitar esses pontos no caminho da rota e cadastrar direto no LinkUp para garantir o bônus de ativação!'
+      ].join('\n');
+    }
+
+    // Fallback: busca nos pontos não-positivados da rota do vendedor no dados_mix.json
+    const pontosProspect = (alvoVend.pontos || []).filter((p) => p[2] === 0 && p[5] !== 'N/D').slice(0, 5);
+    if (pontosProspect.length) {
+      return [
+        `📍 *Clientes para Prospecção no Mapa — ${vn(alvoVend)}* (${alvoVend.filial})`,
+        `Oportunidades mapeadas pelo CEVEN na sua rota de atuação:`,
+        '',
+        ...pontosProspect.map((p, i) => {
+          const rz = titulo(p[5]);
+          const seg = p[4] || 'Varejo';
+          return `${i + 1}. *${rz}* (${seg})\n   📍 CNPJ: ${p[3]}`;
+        }),
+        '',
+        SUGESTAO + 'apresentar os itens líderes de giro do +MIX nesses estabelecimentos para abrir novos clientes!'
+      ].join('\n');
+    }
+
+    return `📍 *Prospecção no Mapa — ${vn(alvoVend)}*: o mapa do CEVEN está processando a rota de hoje para este vendedor. Me pergunte de novo em instantes!`;
+  }
+
+  // Visão equipe / supervisor
+  return [
+    `📍 *Prospecção de Clientes no Mapa — ${E.nome}*`,
+    '',
+    'Para ver a lista de clientes para prospectar no trajeto da rota:',
+    '• Me pergunte: *"prospecção vendedor <código>"* (ex: "prospecção vendedor 115")',
+    '• Ou cite o nome: *"prospects da rota do Claudio"*',
+    '',
+    '💡 O Jota cruza a localização dos clientes da rota de hoje com a base da Receita e do CEVEN Mapas para indicar estabelecimentos comerciais vizinhos que ainda não compram!'
+  ].join('\n');
+}
+
+

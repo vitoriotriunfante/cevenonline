@@ -52,3 +52,4 @@ Regras fundamentais:
   // Fallback inteligente estruturado caso a chave do Gemini ainda não esteja cadastrada no Cloudflare
   return null;
 }
+

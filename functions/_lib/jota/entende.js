@@ -17,7 +17,7 @@ import { pedePeriodo, respClientesSemComprar, respComparaMes, respDiasSemPedido,
 import { respDiaVendedor, respFalta, respHoje, respMensagensPorVendedor, respTodosVendedores, totaisOficiais, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
 import { respAVisitar, respCheckinEquipe, respClientesVend, respDiaEquipe, respRotaFiltro, respSemVisita, respMixRotaHoje, respRecorrenciaClientes, respTagSeparadoPorSupervisor, respRotaHojeCompleta, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
 import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo, respPreco, respPedidoNumero, respPedidosStatus, respProduto, respRecuperacao, respTopProdutos } from './respostas/vendas.js';
-import { respSegmentoCnae, respPastas, respEstrategiaFabio } from './respostas/segmentos_pastas.js';
+import { respSegmentoCnae, respPastas, respEstrategiaFabio, respProspeccaoMapas } from './respostas/segmentos_pastas.js';
 
 // CONTINUACAO (Vitorio, 27/10/2026: "precisa ir salvando a mensagem anterior para que vc continue a conversa... pergunto como foi o dia do vendedor X, dai
 // pergunto e o mes, vc responde outra coisa"). Mensagem que so MODIFICA a anterior ("e o mes?", "do mes", "apenas em TPA", "por vendedor", "sim, ...faturou o pedido")
@@ -303,6 +303,11 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/500 ?(MIL|K)|ATINGIR (ESSES|OS) 500|MAIORES DE COMPRA DA CARTEIRA DE CADA SUPERVISOR|QUAIS CLIENTES ELES TEM QUE BUSCAR HOJE/.test(t)) {
     const Ef = await carregaEscopo(B, esc);
     return respEstrategiaFabio(B._env || {}, B, c, texto, Ef);
+  }
+  // PROSPECÇÃO DE CLIENTES NO MAPA DO CEVEN (Vitório, 30/10/2026: CEVEN Mapas / Rota de hoje)
+  if (/PROSPEC(CAO|TAR)|PROSPECTS?|NOVOS CLIENTES (NO |DO )?MAPA|CLIENTES PARA PROSPEC|MAPA(S)? DO CEVEN/.test(t)) {
+    const Ep = await carregaEscopo(B, esc);
+    return respProspeccaoMapas(B, Ep, t, achaPessoa(Ep, t));
   }
   if (/MOTIVO|POR ?QUE/.test(t) && /DEVOLU|DEVOLVID|VOLTOU DE MERCADORIA/.test(t)) return respDevMotivos(B);
   if (/COMPROMISSO|MATINAL|\bRET\b|\bRETS\b|ROTA DO SUPERVISOR/.test(t)) return respCompromisso(B, await carregaEscopo(B, esc));
