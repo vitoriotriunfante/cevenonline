@@ -452,29 +452,79 @@ export async function respClientesVend(B, v, periodo) {
 }
 const dIsoBR = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}`;
 
-// "COMO ESTA O DIA DA MINHA EQUIPE" (Vitorio, 27/10/2026: "uma mensagem so, uma linha por vendedor focada na rota... e coloca a sugestao no final explicando o que
-// fazer"). Ordem: quem mais precisa de atencao primeiro (sem pedido com rota, depois menos visitas feitas).
+// "COMO ESTA O DIA DA MINHA EQUIPE" / "TIME HOJE"
+// Vitório, 30/10/2026: Não separar artificialmente varejo x outros canais! Ninguém perguntou se é rota ou varejo.
+// Equipes de AS, Key Account ou mistas devem ver todos os vendedores em linhas individuais com layout limpo e profissional.
 export async function respDiaEquipe(B, E) {
-  const V = E.vend.filter((v) => v.visP > 0);
-  const outros = E.vend.filter((v) => !(v.visP > 0));
-  if (!V.length && !outros.length) return `📋 *${E.nome}* — ninguém com rota hoje.`;
-  const L = [];
-  for (const v of V) {
-    let semMes = null; try { semMes = (await semCompraNaRota(B, v)).sem.length; } catch (e) { semMes = null; }
-    const icone = !v.ped ? '⚠️' : v.visF >= v.visP ? '✅' : '🟡';
-    L.push([!v.ped ? 0 : 1, v.visP ? v.visF / v.visP : 1, `${icone} *${vn(v)}* · ${v.visF}/${v.visP} visitas · ${v.comVenda} com venda · ${R$(v.dig)}` + (semMes != null ? ` · ${semMes} sem compra no mês` : '')]);
-  }
-  L.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-  const tot = V.reduce((a, v) => ({ f: a.f + v.visF, p: a.p + v.visP, d: a.d + v.dig, z: a.z + (v.ped ? 0 : 1) }), { f: 0, p: 0, d: 0, z: 0 });
   const totGeral = E.vend.reduce((s, v) => s + (v.dig || 0), 0);
-  const outrosComVenda = outros.filter((v) => v.dig > 0 || v.ped > 0 || v.meta > 0).sort((a, b) => b.dig - a.dig);
-  const totOutros = outros.reduce((s, v) => s + (v.dig || 0), 0);
-  const digTxt = outros.length && totOutros > 0 ? `digitado *${R$(totGeral)}* (com rota ${R$(tot.d)} · sem rota ${R$(totOutros)})` : `digitado *${R$(totGeral)}*`;
-  const rotLabel = V.length && !V.some((v) => v.varejo) ? 'Rota' : (V.some((v) => !v.varejo) ? 'Rota (geral)' : 'Rota do varejo');
-  return [`📋 *Dia da ${E.nome}* (${hojeSP().slice(8, 10)}/${hojeSP().slice(5, 7)})`, `${rotLabel}: *${tot.f} de ${tot.p}* visitas · ${digTxt} · *${tot.z}* vendedor(es) com rota e sem pedido`,
-    '_⚠️ sem pedido · 🟡 rota em andamento · ✅ rota feita_', '', ...L.map((x) => x[2]),
-    ...(outrosComVenda.length ? ['', `*Outros canais / sem rota:* ` + outrosComVenda.map((v) => `${vn(v)} ${R$(v.dig)}`).join(' · ')] : []),
-    '', SUGESTAO + (tot.z ? `comece pelos ⚠️ (rota e sem pedido). ` : '') + 'Para abrir um vendedor, mande o *nome* ou o *código* (ex.: "clientes 352"); para o *+MIX* da rota dele, depois mande "+mix"; para receber *cada vendedor em uma mensagem*, mande "um por um".'].join('\n');
+  const totPed = E.vend.reduce((s, v) => s + (v.ped || 0), 0);
+  const VcomRota = E.vend.filter((v) => (v.visP || 0) > 0);
+  const temRota = VcomRota.length > 0;
+
+  // 1. Equipe sem rota de visitas de rua (ex.: AS / Key Account / Televendas / Cristiano TSJ)
+  if (!temRota) {
+    const Vs = E.vend.slice().sort((a, b) => (b.dig || 0) - (a.dig || 0));
+    const zerados = Vs.filter((v) => !v.ped && !v.dig);
+    const cab = [
+      `📋 *Dia da ${E.nome}* (${hojeSP().slice(8, 10)}/${hojeSP().slice(5, 7)})`,
+      `💰 Digitado hoje: *${R$(totGeral)}* em *${totPed} pedido(s)*` + (totPed ? ` · ticket médio ${R$(totGeral / totPed)}` : ''),
+      ''
+    ];
+    const linhas = Vs.map((v) => {
+      const icone = v.dig > 0 ? '✅' : '◻️';
+      const pedTxt = v.ped ? ` · ${v.ped} ped.` : ' · sem pedido hoje';
+      return `• ${icone} *${vn(v)}*: ${R$(v.dig)}${pedTxt}`;
+    });
+    const sugestao = zerados.length
+      ? `ainda sem pedido hoje: ${zerados.map((z) => nome2(z.nome)).slice(0, 3).join(', ')}.`
+      : 'equipe inteira com pedidos digitados hoje! Golaço!';
+    return [
+      ...cab,
+      ...linhas,
+      '',
+      SUGESTAO + sugestao
+    ].join('\n');
+  }
+
+  // 2. Equipe com vendedores em rota de visitas (varejo ou mista)
+  const L = [];
+  for (const v of E.vend) {
+    let semMes = null;
+    if ((v.visP || 0) > 0) {
+      try { semMes = (await semCompraNaRota(B, v)).sem.length; } catch (e) { semMes = null; }
+    }
+    const temVisita = (v.visP || 0) > 0;
+    const icone = (temVisita && !v.ped) ? '⚠️' : v.dig > 0 ? '✅' : '◻️';
+    const visTxt = temVisita ? ` · ${v.visF}/${v.visP} visitas (${v.comVenda} com venda)` : '';
+    const semMesTxt = semMes != null ? ` · ${semMes} sem compra no mês` : '';
+    const pedTxt = v.ped ? ` · ${v.ped} ped.` : (temVisita ? ' · sem pedido' : ' · sem pedido hoje');
+    const prioridade = (temVisita && !v.ped) ? 0 : v.dig > 0 ? 1 : 2;
+    L.push({
+      prio: prioridade,
+      dig: v.dig || 0,
+      texto: `• ${icone} *${vn(v)}*: ${R$(v.dig)}${pedTxt}${visTxt}${semMesTxt}`
+    });
+  }
+  L.sort((a, b) => a.prio - b.prio || b.dig - a.dig);
+
+  const totVisF = VcomRota.reduce((s, v) => s + (v.visF || 0), 0);
+  const totVisP = VcomRota.reduce((s, v) => s + (v.visP || 0), 0);
+  const totZeradosRota = VcomRota.filter((v) => !v.ped).length;
+
+  const cab = [
+    `📋 *Dia da ${E.nome}* (${hojeSP().slice(8, 10)}/${hojeSP().slice(5, 7)})`,
+    `💰 Digitado hoje: *${R$(totGeral)}* em *${totPed} pedido(s)*`,
+    `🚶 Visitas da rota: *${totVisF} de ${totVisP}* feitas` + (totZeradosRota > 0 ? ` · *${totZeradosRota} vendedor(es) com rota e sem pedido*` : ''),
+    '_Legenda: ⚠️ rota e sem pedido · ✅ pedido digitado · ◻️ sem pedido_',
+    ''
+  ];
+
+  return [
+    ...cab,
+    ...L.map((x) => x.texto),
+    '',
+    SUGESTAO + (totZeradosRota ? `comece pelos ⚠️ (rota e sem pedido). ` : '') + 'Para abrir um vendedor, mande o *nome* ou o *código* (ex.: "clientes 352"); para o *+MIX* da rota dele, depois mande "+mix"; para receber *cada vendedor em uma mensagem*, mande "um por um".'
+  ].join('\n');
 }
 
 // VENDEDORES SEM NENHUMA VISITA HOJE, na hierarquia (Vitorio, 27/10/2026: "so queria saber os sem nenhuma visita ainda... como sou da diretoria, teria que mostrar
