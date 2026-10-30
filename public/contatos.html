@@ -540,9 +540,10 @@ input:focus, select:focus { border-color: var(--azul); }
       <div style="display:flex; gap:8px;">
         <select id="sug-filtro-status">
           <option value="">Todas as situações</option>
-          <option value="nova">Apenas novas</option>
-          <option value="feita">Já atendidas (feitas)</option>
-          <option value="nao_vai">Descartadas (não vai)</option>
+          <option value="atencao">⚡ Precisa de Atenção / Ação Diretoria</option>
+          <option value="nova">🆕 Apenas novas</option>
+          <option value="feita">✅ Já atendidas (feitas)</option>
+          <option value="nao_vai">✖ Descartadas (não vai)</option>
         </select>
       </div>
     </div>
@@ -854,8 +855,10 @@ function renderizarTudo() {
   bPed.className = 'tab-badge ' + (pendentes.length > 0 ? 'alerta' : '');
 
   const sugestoes = DADOS_CONVERSAS.sugestoes || [];
+  const pendentesSug = sugestoes.filter((s) => s.situacao === 'atencao' || s.situacao === 'nova');
   const bSug = $('b-total-sug');
-  bSug.textContent = sugestoes.length;
+  bSug.textContent = pendentesSug.length > 0 ? `${sugestoes.length} (${pendentesSug.length} pendentes)` : sugestoes.length;
+  bSug.className = 'tab-badge ' + (pendentesSug.length > 0 ? 'alerta' : '');
 
   $('b-total-conv').textContent = (DADOS_CONVERSAS.conversas || []).length;
   $('b-total-cad').textContent = (DADOS_CONTATOS.contatos || []).length;
@@ -1084,10 +1087,16 @@ function renderizarSugestoes() {
 
     let badgeStatus = '<span class="tag-badge ia">🆕 Nova</span>';
     if (s.situacao === 'feita') badgeStatus = '<span class="tag-badge pronta">✅ Feita / Atendida</span>';
+    else if (s.situacao === 'atencao') badgeStatus = '<span class="tag-badge alerta" style="background:#fef08a; color:#854d0e; font-weight:700; border:1px solid #eab308;">⚡ Precisa de Ação</span>';
     else if (s.situacao === 'nao_vai') badgeStatus = '<span class="tag-badge erro">✖ Não vai ser feita</span>';
 
+    const ehAtencao = s.situacao === 'atencao';
+    const bgResp = ehAtencao ? 'rgba(234,179,8,0.1)' : 'rgba(34,197,94,0.08)';
+    const bordaResp = ehAtencao ? '#eab308' : 'var(--verde)';
+    const labelResp = ehAtencao ? 'Plano / Ação em Andamento:' : 'Resolução da Diretoria:';
+
     return `
-      <div class="card-item">
+      <div class="card-item" ${ehAtencao ? 'style="border:1px solid rgba(234,179,8,0.5); box-shadow:0 0 10px rgba(234,179,8,0.1);"' : ''}>
         <div class="card-header">
           <div style="display:flex; align-items:center; gap:8px;">
             <div class="avatar" style="width:32px; height:32px; font-size:12px;">${esc(iniciais)}</div>
@@ -1107,14 +1116,16 @@ function renderizarSugestoes() {
         ${s.sobre ? `<div class="card-context"><b>Contexto:</b> "${esc(s.sobre)}"</div>` : ''}
 
         ${s.resposta ? `
-          <div style="font-size:12px; background:rgba(34,197,94,0.08); border-left:3px solid var(--verde); padding:8px 10px; border-radius:4px;">
-            <b>Resolução da Diretoria:</b> ${esc(s.resposta)}
+          <div style="font-size:12px; background:${bgResp}; border-left:3px solid ${bordaResp}; padding:8px 10px; border-radius:4px; margin-top:6px;">
+            <b>${labelResp}</b> ${esc(s.resposta)}
           </div>
         ` : ''}
 
-        <div class="card-actions">
-          <button class="ok btn-sug-acao" data-id="${s.id}" data-st="feita">✅ Marcar como Feita</button>
-          <button class="no btn-sug-acao" data-id="${s.id}" data-st="nao_vai">✖ Marcar como Não Vai</button>
+        <div class="card-actions" style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;">
+          <button class="ok btn-sug-acao" data-id="${s.id}" data-st="feita">✅ Marcar Feita</button>
+          <button class="btn-sug-acao" data-id="${s.id}" data-st="atencao" style="background:#854d0e; color:#fff; border:none; padding:5px 9px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:600;">⚡ Precisa de Ação</button>
+          <button class="no btn-sug-acao" data-id="${s.id}" data-st="nao_vai">✖ Não Vai</button>
+          <button class="btn-sug-acao" data-id="${s.id}" data-st="nova" style="background:transparent; color:var(--txt-dim); border:1px solid var(--borda); padding:5px 9px; border-radius:6px; cursor:pointer; font-size:11px;">↺ Voltar Nova</button>
         </div>
       </div>
     `;
@@ -1124,7 +1135,13 @@ function renderizarSugestoes() {
     btn.onclick = async () => {
       const acao = btn.dataset.st;
       const id = btn.dataset.id;
-      const resp = prompt(acao === 'feita' ? 'O que foi feito/ajustado para atender essa sugestão?' : 'Qual o motivo para não implementar?');
+      const itemAtual = lista.find((x) => String(x.id) === String(id));
+      const defResp = itemAtual ? (itemAtual.resposta || '') : '';
+      const msgPrompt = acao === 'feita' ? 'O que foi feito/ajustado para atender essa sugestão?' :
+                        acao === 'atencao' ? 'Qual a ação necessária da Diretoria / em andamento?' :
+                        acao === 'nao_vai' ? 'Qual o motivo para não implementar?' :
+                        'Deseja adicionar ou limpar a resolução?';
+      const resp = prompt(msgPrompt, defResp);
       if (resp === null) return;
       try {
         await api('POST', '/api/jota-conversas', { acao: 'sugestao', id, situacao: acao, resposta: resp });

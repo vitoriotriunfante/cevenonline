@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-30 00:28 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-10-30 01:43 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (32)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -58,7 +58,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `bot_contexto` | `functions/_lib/jota/fontes.js` |
 | `bot_msgs` | `functions/api/jota-boas-vindas.js`, `functions/api/jota-reenviar.js`, `functions/api/whatsapp/bot.js`, `functions/api/whatsapp/registro.js` |
 | `bot_sem_acesso_excluidos` | `functions/api/jota-contatos.js` |
-| `bot_sugestoes` | `functions/api/jota-conversas.js`, `functions/api/whatsapp/bot.js`, `functions/_lib/jota/fontes.js` |
+| `bot_sugestoes` | `functions/api/jota-conversas.js`, `functions/api/whatsapp/bot.js`, `functions/_lib/jota/fontes.js`, `scratch/atualizar_39_sugestoes.mjs` |
 | `cache_analise_cliente` | `functions/api/tv-vendedor.js` |
 | `cache_resposta` | `functions/_lib/cache_borda.js`, `functions/_lib/jota/fontes.js` |
 | `canal_ceven` | `functions/api/divergencias.js`, `functions/_lib/arvore_ceven.js`, `scratch/patch_canal_ceven.js`, `scratch/patch_canal_ocultos_super.js` |
@@ -172,6 +172,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 - `.github/workflows/mix-dataset.yml`: `rclone copy gdrive:pedidos_historico_ceven.db analises/ `; `rclone copy gdrive:mix_gap_hist.db analises/ || echo "histórico do +MIX ainda não existe: `; `rclone copy analises/mix_gap_hist.db gdrive:/; fi `
 
 ### 2d. Arquivos JSON gerados para o site
+- `pipeline/auditoria_sugestoes_rotina.mjs` (manual): `scratch/auditoria_sugestoes_resultado.json`
 - `analises/gerar_dados_mix.js` (GitHub Actions (workflow)): `dados_mix.json`, `mix_cubo.json`
 - `scripts/analisar_discrepancia_visitas.js` (manual): `scripts/discrepancias_visitas_api.json`
 - `scripts/analisar_endpoints_har.js` (manual): `scripts/endpoints_har_descobertos.json`
@@ -236,6 +237,8 @@ Meta: só `functions/api/cron-varredura-central.js`.
 - `scratch/detalhar_perguntas.mjs` (manual): `scratch/auditoria_completa_perguntas.json`
 - `scratch/extrair_auditoria.mjs` (manual): `scratch/dialogos_hoje.json`
 - `scratch/extrair_hoje_29.mjs` (manual): `scratch/msgs_hoje_29.json`
+- `scratch/listar_39_sugestoes.mjs` (manual): `scratch/todas_sugestoes.json`
+- `scratch/listar_sugestoes.mjs` (manual): `scratch/sugestoes_d1_atual.json`
 - `scratch/t_incentivo.mjs` (manual): `/inc_out.json`
 
 ## 3. Chamam o CEVEN mas só rodam à mão (155)
