@@ -312,6 +312,20 @@ export async function respPedidosStatus(B, E, t) {
       const cNome = getNomeCli(p.filial, p.id_cliente);
       const cliStr = cNome ? `*${cNome}* (#${p.id_cliente})` : `cliente #${p.id_cliente}`;
       L.push(`• Pedido ${p.num}${dataStr} · ${cliStr} · *${R$(p.total_clube || p.valor)}* · ${p.status_pedido || (ehLiberado ? 'Liberado' : 'sem status')}${corteStr}${horaStr}`);
+      if (alvo === 'CORTE' || (p.itens_cortados || []).length) {
+        if (Array.isArray(p.itens_cortados) && p.itens_cortados.length) {
+          for (const it of p.itens_cortados) {
+            const desc = it.descricao || it.produto || (it.codigo && V?.prod?.[it.codigo]?.[0]) || 'SKU com corte de estoque';
+            const vlIt = (Number(it.qt_cortada) || 1) * (Number(it.preco) || 0);
+            const perdaStr = vlIt > 0 ? ` · perda ${R$(vlIt)}` : '';
+            L.push(`    ▫️ ✂️ ${titulo(desc)}: ${it.qt_cortada || 1} un cortada(s)${perdaStr}`);
+          }
+        }
+        if (p.vl_perdido_logistica || (p.valor_original && p.valor && p.valor_original > p.valor)) {
+          const perda = p.vl_perdido_logistica || (p.valor_original - p.valor);
+          L.push(`    ▫️ ✂️ Perda total identificada no pedido: *${R$(perda)}* (corte de estoque)`);
+        }
+      }
     }
     if (n >= 30) { L.push(`… e mais ${P.length - 30}. Peça por vendedor.`); break; }
   }

@@ -160,10 +160,11 @@ export async function onRequestPost({ request, env }) {
   const ultIn = await env.DB.prepare("SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'in' ORDER BY id DESC LIMIT 1 OFFSET 1").bind(cel).first().catch(() => null);
   const notaTxt = (texto.trim().match(/^(?:nota\s*)?([1-5])(?:\s*(?:\/\s*5|estrelas?))?[!. ]*$/i) || [])[1] || (/^\s*(👍|👍🏻|👍🏼|👍🏽)\s*$/.test(texto) ? '5' : /^\s*(👎|👎🏻|👎🏼|👎🏽)\s*$/.test(texto) ? '1' : null);
   // Se a última mensagem que o Jota mandou pediu o motivo ("o que faltou ou veio errado"), a próxima mensagem É O MOTIVO/SUGESTÃO!
-  const ehComandoOuPergunta = /^(BOM DIA|BOA TARDE|BOA NOITE|COMO|QUANTO|QUEM|QUAIS|ONDE|VER|MOSTR|LISTA|ROTA|SETOR|EQUIPE|TIME|CLIENTE|VENDEDOR|META|ZERAD|LIGA|MIX|CHAMPIONS|HOJE|ONTEM|RECORRENCIA|TAG|P10|P11|DEVOL|PEDIDO|PRECO|PRODUTO|CARTEIRA|RANKING|SEM COMPRA)\b/i.test(texto.trim());
-  const pediuMotivo = ultOut && (/o que faltou ou veio errado/i.test(ultOut.texto || '') || ultOut.tipo === 'nota') && (Date.now() - Date.parse(ultOut.quando + 'Z') < 5 * 60 * 1000) && !ehComandoOuPergunta;
+  const ehComandoOuPergunta = /^(AGORA\b|POR FAVOR\b|ME DIZ\b|BOM DIA|BOA TARDE|BOA NOITE|COMO|QUANTO|QUEM|QUAIS|ONDE|VER|MOSTR|LISTA|ROTA|SETOR|EQUIPE|TIME|CLIENTE|VENDEDOR|META|ZERAD|LIGA|MIX|CHAMPIONS|HOJE|ONTEM|RECORRENCIA|TAG|P10|P11|DEVOL|PEDIDO|PRECO|PRODUTO|CARTEIRA|RANKING|SEM COMPRA|ESTRATEG|PLANO)/i.test(texto.trim())
+    || /\b(EQUIPE|TIME|VENDEDOR|HOJE|ONTEM|META|FATURAD|ROTA|VISITA|PEDIDO|PRODUTO|CLIENTE)\b/i.test(texto.trim());
+  const pediuMotivo = ultOut && (/o que faltou ou veio errado/i.test(ultOut.texto || '') && !/obrigado pela nota [45]|valeu.*nota [45]/i.test(ultOut.texto || '')) && (Date.now() - Date.parse(ultOut.quando + 'Z') < 5 * 60 * 1000) && !ehComandoOuPergunta;
   const sugMeio = /fica (a|como) (sugest(ã|a)o|dica)|anot(e|a)( a(í|i))?( isso)?( como)? sugest(ã|a)o|como sugest(ã|a)o|dei uma sugest(ã|a)o|minha sugest(ã|a)o (é|e)/i.test(texto) ? texto : null;
-  const sug = (texto.match(/^\s*sugest(?:ã|a)o\s*[:\-]?\s*([\s\S]{3,})/i) || [])[1] || sugMeio || (pediuMotivo && !notaTxt ? texto : null);
+  const sug = (texto.match(/^\s*sugest(?:ã|a)o\s*[:\-]?\s*([\s\S]{3,})/i) || [])[1] || sugMeio || (pediuMotivo && !notaTxt && !ehComandoOuPergunta ? texto : null);
   const ofereceuOpcao1 = ultOut && /digite \*?1\*?/i.test(ultOut.texto || '');
   const ofereceuOpcoesNum = ultOut && /(?:digite\s+(?:o\s+)?n[uú]mero|\bdigite\s+\*?[1-9]\*?|[1-9]️⃣|10️⃣)/i.test(ultOut.texto || '');
   if (notaTxt && ultOut && ultOut.nota == null && !ofereceuOpcao1 && !ofereceuOpcoesNum && Date.now() - Date.parse(ultOut.quando + 'Z') < 6 * 3600 * 1000) {
