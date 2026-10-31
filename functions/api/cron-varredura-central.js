@@ -830,7 +830,7 @@ export async function onRequestGet({ env, request }) {
       contagem.supervisores = 'pulado_prazo';
     }
     if (Date.now() - t0 < 90000) { try { contagem.pedidos_dia = await coletaPedidosDoDia(env, dataRef); } catch (e) { contagem.pedidos_dia = { erro: String(e.message || e).slice(0, 80) }; } }
-    if (Date.now() - t0 < 95000) { try { contagem.macro = await coletaMacroForaArvore(env); } catch (e) { contagem.macro = { erro: String(e.message || e).slice(0, 80) }; } }
+    if (!env.TESTE_SEM_HORARIO && Date.now() - t0 < 95000) { try { contagem.macro = await coletaMacroForaArvore(env); } catch (e) { contagem.macro = { erro: String(e.message || e).slice(0, 80) }; } }
     if (Date.now() - t0 < 95000) { try { contagem.recheca = await rechecaAbertosPorVendedor(env); } catch (e) { contagem.recheca = { erro: String(e.message || e).slice(0, 80) }; } }
     await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);
     let mapa = 'pulado';
