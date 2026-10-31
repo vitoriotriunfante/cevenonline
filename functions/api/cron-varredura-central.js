@@ -24,6 +24,7 @@ import { rodaAgora, freioCusto, agoraBrasilia } from '../_lib/horario_reduzido.j
 import { proximaConc, lerEstado, gravaEstado, CONC_PADRAO } from '../_lib/concorrencia.js';   // concorrencia adaptativa a cota do CEVEN (12/10/2026)
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
+import { garanteTabelasPedido, gravaStatusPedidos } from '../_lib/pedido_status.js';   // pedidos do dia, com ou sem rota (31/10/2026)
 import { coletaSupervisores } from '../_lib/supervisores_coleta.js';   // compromissos e RET na base (26/10/2026)
 import { gravaCascatas } from '../_lib/arvore_ceven.js';   // cascata do gerente (visitas/eficacia de hoje de todos), cota separada (26/10/2026)
 export { CEVEN_APP_SECRET };
@@ -336,6 +337,39 @@ function upsertParcial(env, dataRef, rca, campos) {
     `INSERT INTO varredura_central_rca (${insCols.join(', ')}) VALUES (${marcas})
      ON CONFLICT (rca_codigo, data_ref) DO UPDATE SET ${sets}`
   ).bind(String(rca.codigo), String(rca.filial || '').toUpperCase(), dataRef, ...cols.map((c) => campos[c]));
+}
+
+// PEDIDOS DO DIA, COM OU SEM ROTA (31/10/2026: no sabado sem rota nada era gravado por cliente; pedido fora da rota so entrava na madrugada). So le quem teve o digitado alterado
+// desde a ultima leitura, ate 6 vendedores por rodada, e grava so pedido cujo numero ainda nao existe (Vitorio: "o numero do pedido e o mesmo e nao vai gravar de novo").
+async function coletaPedidosDoDia(env, dataRef) {
+  if (Date.now() < banRcaAte) return { pulado: 'cota' };
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS pedido_leitura (data_ref TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, dig REAL, PRIMARY KEY (data_ref, filial, rca))').run();
+  const { results } = await env.DB.prepare(`SELECT v.filial_sigla f, v.rca_codigo r, CAST(json_extract(v.produtividade_json, '$.dia.dig_pedido') AS REAL) d FROM varredura_central_rca v
+    LEFT JOIN pedido_leitura p ON p.data_ref = v.data_ref AND p.filial = v.filial_sigla AND p.rca = v.rca_codigo
+    WHERE v.data_ref = ? AND CAST(json_extract(v.produtividade_json, '$.dia.dig_pedido') AS REAL) > 0 AND (p.dig IS NULL OR p.dig <> CAST(json_extract(v.produtividade_json, '$.dia.dig_pedido') AS REAL)) LIMIT 6`).bind(dataRef).all();
+  let lidos = 0, novos = 0;
+  for (const x of results || []) {
+    const key = String(x.f).toLowerCase() + '1';
+    const r = await fetch(`${CEVEN}/api/rca/historico-vendedor?filial=${key}&id=${x.r}&expandido=true`, { headers: HDR, signal: AbortSignal.timeout(20000) }).catch(() => null);
+    if (!r) continue;
+    if (r.status === 429) { banRcaAte = Date.now() + ((Number(r.headers.get('x-ratelimit-reset')) || 30) + 2) * 1000; break; }
+    if (!r.ok) continue;
+    const j = await r.json().catch(() => null);
+    if (!j || !Array.isArray(j.ultimas_visitas)) continue;
+    const doDia = j.ultimas_visitas.filter((v) => v && v.num_pedido && String(v.data_visita || '').slice(0, 10) >= dataRef);
+    if (doDia.length) {
+      await garanteTabelasPedido(env);
+      const nums = [...new Set(doDia.map((v) => String(v.num_pedido)))];
+      const ja = new Set();
+      for (let i = 0; i < nums.length; i += 80) { const p = nums.slice(i, i + 80); const { results: e } = await env.DB.prepare(`SELECT num FROM pedido_status WHERE num IN (${p.map(() => '?').join(',')})`).bind(...p).all(); for (const y of e || []) ja.add(y.num); }
+      const porCli = new Map();
+      for (const v of doDia) if (!ja.has(String(v.num_pedido))) { const c = String(v.id_cliente || ''); if (!porCli.has(c)) porCli.set(c, []); porCli.get(c).push(v); }
+      for (const [c, L] of porCli) { await gravaStatusPedidos(env, key, x.r, c, L); novos += L.length; }
+    }
+    await env.DB.prepare('INSERT INTO pedido_leitura (data_ref, filial, rca, dig) VALUES (?,?,?,?) ON CONFLICT (data_ref, filial, rca) DO UPDATE SET dig = excluded.dig').bind(dataRef, x.f, x.r, x.d).run();
+    lidos++;
+  }
+  return { lidos, novos };
 }
 
 export async function onRequestGet({ env, request }) {
@@ -721,6 +755,7 @@ export async function onRequestGet({ env, request }) {
     } else {
       contagem.supervisores = 'pulado_prazo';
     }
+    if (Date.now() - t0 < 90000) { try { contagem.pedidos_dia = await coletaPedidosDoDia(env, dataRef); } catch (e) { contagem.pedidos_dia = { erro: String(e.message || e).slice(0, 80) }; } }
     await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);
     let mapa = 'pulado';
     if (Date.now() - t0 < 85000) {

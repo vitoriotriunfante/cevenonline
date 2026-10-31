@@ -243,7 +243,7 @@ async function lerCentral(env, id, maxIdadeMs, filial) {
                 const ef = Number(v.eficacia_hoje_pct) || 0;
                 if (ef > 0) {
                   prod.dia.eficacia_pct = ef;
-                  if (!(prod.dia.positivacao > 0)) prod.dia.positivacao = Math.max(1, Math.round(vr * ef / 100));
+                  // positivacao do dia nao e mais estimada por visitas x eficacia (31/10/2026: proibido inventar dado)
                 }
               }
             }

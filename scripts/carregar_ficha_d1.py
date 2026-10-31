@@ -2,7 +2,7 @@
 # FICHA DO ARQUIVO: scripts/carregar_ficha_d1.py
 # O QUE E: leva do banco do Data Lake (pedidos_historico_ceven.db, no Drive) para o D1 a ficha de cada cliente e os prospects (Vitorio, 31/10/2026).
 #   Roda no GitHub depois do Data Lake (.github/workflows/ficha-clientes-d1.yml). So envia cliente cuja ficha mudou. Nao chama o CEVEN.
-# REGRAS: pedido com data futura fica fora (o banco tem datas ate 18/12/2026). "Parou" = comprou antes e nao comprou nos ultimos 60 dias (regra de recompra do +MIX). Nada estimado.
+# REGRAS: pedido com data futura e programado e entra na ficha, mas nao conta como ultima compra nem no gap. "Parou" = comprou antes e nao comprou nos ultimos 60 dias (regra de recompra do +MIX). Nada estimado.
 # USO: EVO_KEY=... python scripts/carregar_ficha_d1.py analises/pedidos_historico_ceven.db [--ensaio]
 # =========================================================================
 import sqlite3, json, hashlib, os, sys, time, datetime, urllib.request
@@ -33,7 +33,7 @@ def mes_antes(n):
     return '%04d-%02d' % (a, m)
 meses3 = [mes_antes(3), mes_antes(2), mes_antes(1)]
 por_cli_mes, vend, ped_cortes = {}, {}, []   # gap x media de 3 meses e cortes do mes, por vendedor
-for p in db.execute("SELECT * FROM pedidos_historico WHERE data_pedido >= '2020-01-01' AND data_pedido <= ? ORDER BY data_pedido DESC", (hoje.isoformat(),)):
+for p in db.execute("SELECT * FROM pedidos_historico WHERE data_pedido >= '2020-01-01' AND data_pedido <= ? ORDER BY data_pedido DESC", ((hoje + datetime.timedelta(days=120)).isoformat(),)):   # data futura = pedido programado, com status AGUARDANDO_WINTHOR (real, 31/10/2026)
     k = (p['filial_sigla'], str(p['id_cliente']))
     rk = (p['filial_sigla'], str(p['rca_id'])); m = p['data_pedido'][:7]
     if p['status_pedido'] != 'CANCELADO' and (m == mes_atual or m in meses3):
@@ -68,7 +68,7 @@ for f in fichas.values():
             if data >= corte60: recente.add(c)
             elif c not in antigos: antigos[c] = {'cod': c, 'd': i['descricao'], 'ult': data, 'rca': rca}
     f['parou'] = [x for c, x in antigos.items() if c not in recente][:PARADOS]
-    f['ult'] = f['chaves'][0][1] if f['chaves'] else None
+    f['ult'] = next((c[1] for c in f['chaves'] if c[1] <= hoje.isoformat()), None)
     del f['chaves']
 print('fichas montadas', len(fichas), 'tamanho medio', sum(len(json.dumps(f)) for f in fichas.values()) // max(1, len(fichas)))
 por_filial = {}
