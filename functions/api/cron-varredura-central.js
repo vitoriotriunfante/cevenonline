@@ -491,7 +491,7 @@ export async function onRequestGet({ env, request }) {
 
   // RECUPERACAO SOZINHA (31/10/2026: das 14:31 em diante o tick fez 48 chamadas com 0 sucesso por rodada e a base parou, enquanto a varredura completa funcionava): 2 ticks seguidos sem nenhum sucesso = esta rodada vai pela completa
   let tickTravado = false;
-  try { const { results: ult } = await env.DB.prepare("SELECT ok, chamadas FROM saude_coleta WHERE modo = 'tick' ORDER BY id DESC LIMIT 2").all(); tickTravado = !filialParam && (ult || []).length === 2 && ult.every((x) => !x.ok && x.chamadas > 0); } catch { /* segue o normal */ }
+  try { const { results: ult } = await env.DB.prepare("SELECT ok, chamadas FROM saude_coleta WHERE modo IN ('tick', 'completa') ORDER BY id DESC LIMIT 2").all();   /* depois de uma completa com sucesso, o tick e testado de novo */ tickTravado = !filialParam && (ult || []).length === 2 && ult.every((x) => !x.ok && x.chamadas > 0); } catch { /* segue o normal */ }
   const completa = forcar || filialParam || tickTravado || ant.size < Math.ceil(rcas.length * 0.5);   // partida a frio ou recuperacao
   const dono = (completa ? 'completa:' : 'tick:') + (filialParam ? filialParam + ':' : '') + t0;
   const slot = filialParam ? { ciclo: 1 } : await tomaSlot(env, dono, completa ? SLOT_COMPLETA_S : SLOT_TICK_S);
