@@ -78,10 +78,63 @@ export async function onRequestPost({ request, env }) {
     const texto = String(b.texto || '').trim();
     const nome = String(b.nome || 'Contato').trim();
     const tipo = String(b.tipo || 'comunicado_diretoria').trim();
-    if (!cel || !texto) return j({ erro: 'celular e texto obrigatorios' }, 400);
-    const ok = await enviar(env, cel, texto);
+    const anexo = b.anexo && typeof b.anexo === 'object' ? b.anexo : null;
+    const audioBase64 = b.audio_base64 ? String(b.audio_base64).trim() : '';
+
+    if (!cel || (!texto && !anexo && !audioBase64)) {
+      return j({ erro: 'celular e conteúdo (texto, anexo ou áudio) são obrigatórios' }, 400);
+    }
+
+    const cfg = R.evoCfg(env);
+    let ok = false;
+
+    // 1. Se tiver anexo (imagem, pdf, planilha, vídeo, documento)
+    if (anexo && anexo.base64) {
+      const mtype = String(anexo.mimetype || 'application/octet-stream');
+      const mediaType = mtype.startsWith('image/') ? 'image' : mtype.startsWith('video/') ? 'video' : 'document';
+      const rMedia = await R.evolution(cfg, '/message/sendMedia', {
+        number: cel,
+        mediatype: mediaType,
+        mimetype: mtype,
+        caption: texto || '',
+        media: String(anexo.base64).replace(/^data:[^;]+;base64,/, ''),
+        fileName: anexo.nome || 'arquivo'
+      }, 35000);
+      ok = !!rMedia.ok;
+    } else if (texto) {
+      // 2. Se não tiver anexo, envia o texto normalmente
+      ok = await enviar(env, cel, texto);
+    }
+
+    // 3. Se tiver áudio gravado (nota de voz do WhatsApp), envia em seguida
+    if (audioBase64) {
+      const rAudio = await R.evolution(cfg, '/message/sendWhatsAppAudio', {
+        number: cel,
+        audio: audioBase64.replace(/^data:[^;]+;base64,/, '')
+      }, 35000);
+      if (!rAudio.ok) {
+        // Fallback caso a versão da Evolution espere sendMedia com mediatype audio
+        const rFallback = await R.evolution(cfg, '/message/sendMedia', {
+          number: cel,
+          mediatype: 'audio',
+          mimetype: 'audio/ogg; codecs=opus',
+          media: audioBase64.replace(/^data:[^;]+;base64,/, ''),
+          fileName: 'audio.ogg'
+        }, 35000);
+        ok = ok || !!rFallback.ok;
+      } else {
+        ok = true;
+      }
+    }
+
+    const resumoLog = [
+      anexo ? `[📎 Anexo: ${anexo.nome || 'arquivo'}]` : '',
+      audioBase64 ? '[🎙️ Áudio de Voz]' : '',
+      texto
+    ].filter(Boolean).join(' ');
+
     try {
-      await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?, ?, ?, ?, ?)').bind(cel, nome, ok ? 'out' : 'erro', texto, tipo).run();
+      await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?, ?, ?, ?, ?)').bind(cel, nome, ok ? 'out' : 'erro', resumoLog || '[Mídia]', tipo).run();
     } catch (e) {}
     return j({ ok, celular: cel });
   }

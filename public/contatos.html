@@ -867,31 +867,85 @@ input:focus, select:focus { border-color: var(--azul); }
         </div>
       </div>
 
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:10px; margin-bottom:12px;">
-        <div>
-          <label style="font-size:11px; color:var(--txt-mut); font-weight:600; display:block; margin-bottom:4px;">Público-Alvo (Cargo)</label>
-          <select id="bc-papel" style="width:100%;">
-            <option value="todos_ativos">🌍 Todos os Contatos Ativos</option>
-            <option value="supervisor" selected>👤 Apenas Supervisores Ativos</option>
-            <option value="gerente">🏢 Apenas Gerentes Ativos</option>
-            <option value="vendedor">🎒 Apenas Vendedores Ativos</option>
-            <option value="diretoria">👑 Apenas Diretoria</option>
-            <option value="individual">📱 Número / Contato Individual</option>
-          </select>
+      <!-- SELETOR MÚLTIPLO DE CARGOS -->
+      <div style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label style="font-size:11.5px; color:var(--txt-mut); font-weight:700; text-transform:uppercase; letter-spacing:0.04em;">1. Público-Alvo (Pode marcar 1 ou vários cargos)</label>
+          <div style="display:flex; gap:6px;">
+            <button type="button" class="w-btn" onclick="selecionarTodosCargos(true)">Marcar Todos</button>
+            <button type="button" class="w-btn" onclick="selecionarTodosCargos(false)">Limpar</button>
+          </div>
         </div>
-        <div>
-          <label style="font-size:11px; color:var(--txt-mut); font-weight:600; display:block; margin-bottom:4px;">Filtrar por Filial</label>
-          <select id="bc-filial" style="width:100%;">
-            <option value="">Todas as Filiais (Brasil)</option>
-          </select>
-        </div>
-        <div id="bc-box-individual" style="display:none;">
-          <label style="font-size:11px; color:var(--txt-mut); font-weight:600; display:block; margin-bottom:4px;">Celular Individual (com DDD)</label>
-          <input type="text" id="bc-cel-individual" placeholder="Ex: 5566996389884" style="width:100%;">
+        <div class="filter-chips" id="bc-chips-papeis" style="flex-wrap:wrap;">
+          <span class="chip active bc-chip-papel" data-papel="supervisor">👤 Supervisores</span>
+          <span class="chip bc-chip-papel" data-papel="gerente">🏢 Gerentes</span>
+          <span class="chip bc-chip-papel" data-papel="vendedor">🎒 Vendedores</span>
+          <span class="chip bc-chip-papel" data-papel="diretoria">👑 Diretoria</span>
+          <span class="chip bc-chip-papel" data-papel="individual">📱 Número Individual</span>
         </div>
       </div>
 
-      <textarea id="bc-texto" rows="4" placeholder="Digite aqui a mensagem que o Jota vai enviar automaticamente para todos os selecionados... (Ex: Fala, {nome}! Atenção para o fechamento da filial {filial}...)" style="width:100%; background:#070d18; color:#fff; border:1px solid var(--borda); border-radius:10px; padding:12px; font:inherit; font-size:13.5px; resize:vertical; outline:none; margin-bottom:12px;"></textarea>
+      <!-- SELETOR MÚLTIPLO DE FILIAIS -->
+      <div id="bc-box-filiais" style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label style="font-size:11.5px; color:var(--txt-mut); font-weight:700; text-transform:uppercase; letter-spacing:0.04em;">2. Filiais (Clique em quantas quiser — ex: apenas 2 filiais — ou deixe "Todas")</label>
+          <div style="display:flex; gap:6px;">
+            <button type="button" class="w-btn" onclick="selecionarTodasFiliais()">🌍 Todas as Filiais (Brasil)</button>
+          </div>
+        </div>
+        <div class="filter-chips" id="bc-chips-filiais" style="flex-wrap:wrap;">
+          <span class="chip active bc-chip-filial" data-filial="TODAS">🌍 Todas (Brasil)</span>
+          <span class="chip bc-chip-filial" data-filial="ABC">ABC</span>
+          <span class="chip bc-chip-filial" data-filial="API">API</span>
+          <span class="chip bc-chip-filial" data-filial="MCD">MCD</span>
+          <span class="chip bc-chip-filial" data-filial="TBE">TBE</span>
+          <span class="chip bc-chip-filial" data-filial="TBL">TBL</span>
+          <span class="chip bc-chip-filial" data-filial="TCA">TCA</span>
+          <span class="chip bc-chip-filial" data-filial="TCG">TCG</span>
+          <span class="chip bc-chip-filial" data-filial="TCV">TCV</span>
+          <span class="chip bc-chip-filial" data-filial="TPA">TPA</span>
+          <span class="chip bc-chip-filial" data-filial="TPH">TPH</span>
+          <span class="chip bc-chip-filial" data-filial="TSJ">TSJ</span>
+        </div>
+      </div>
+
+      <!-- CAMPO DE NÚMERO INDIVIDUAL (SE MARCADO) -->
+      <div id="bc-box-individual" style="display:none; margin-bottom:12px;">
+        <label style="font-size:11.5px; color:var(--txt-mut); font-weight:600; display:block; margin-bottom:4px;">Celular Individual (com DDD — pode separar vários por vírgula)</label>
+        <input type="text" id="bc-cel-individual" placeholder="Ex: 5566996389884, 5541999998888" style="width:100%;">
+      </div>
+
+      <textarea id="bc-texto" rows="4" placeholder="Digite aqui a mensagem que o Jota vai enviar automaticamente... (Opcional se enviar só áudio ou anexo. Use {nome} ou {filial} para personalizar!)" style="width:100%; background:#070d18; color:#fff; border:1px solid var(--borda); border-radius:10px; padding:12px; font:inherit; font-size:13.5px; resize:vertical; outline:none; margin-bottom:10px;"></textarea>
+
+      <!-- BARRA DE MÍDIA: ANEXAR ARQUIVO OU GRAVAR ÁUDIO -->
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; background:#091326; border:1px solid var(--borda); border-radius:10px; padding:10px 14px; margin-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <!-- BOTÃO ANEXAR ARQUIVO -->
+          <input type="file" id="bc-file-input" style="display:none;" accept="image/*,application/pdf,.xlsx,.xls,.csv,.doc,.docx,video/*,audio/*">
+          <button type="button" id="bc-btn-anexo" onclick="$('bc-file-input').click()" style="background:#162544; border-color:var(--azul); color:#e0f2fe;">
+            📎 Anexar Arquivo (Foto, PDF, Planilha, Vídeo)
+          </button>
+          <div id="bc-anexo-preview" style="display:none; align-items:center; gap:8px; background:rgba(56,189,248,0.12); border:1px solid var(--azul); padding:4px 10px; border-radius:8px; font-size:12px; color:#fff;">
+            <span id="bc-anexo-nome">arquivo.pdf</span>
+            <button type="button" onclick="removerAnexoComunicado()" style="background:transparent; border:none; color:var(--vermelho); padding:0 4px; font-weight:800; cursor:pointer;">✖</button>
+          </div>
+
+          <!-- BOTÃO GRAVAR ÁUDIO -->
+          <button type="button" id="bc-btn-gravar" style="background:#162544; border-color:#f59e0b; color:#fef3c7;">
+            🎙️ Gravar Áudio de Voz
+          </button>
+          <div id="bc-audio-gravando" style="display:none; align-items:center; gap:8px; background:rgba(239,68,68,0.18); border:1px solid var(--vermelho); padding:4px 12px; border-radius:8px; font-size:12px; color:#fecaca;">
+            <span style="display:inline-block; width:8px; height:8px; background:#ef4444; border-radius:50%; animation:pulseBadge 1s infinite;"></span>
+            <b id="bc-audio-timer">00:00</b>
+            <button type="button" id="bc-btn-parar-audio" class="ok" style="padding:3px 8px; font-size:11px;">⏹ Concluir Áudio</button>
+          </div>
+          <div id="bc-audio-preview" style="display:none; align-items:center; gap:8px; background:rgba(34,197,94,0.12); border:1px solid var(--verde); padding:4px 10px; border-radius:8px; font-size:12px;">
+            <audio id="bc-audio-player" controls style="height:28px; max-width:210px;"></audio>
+            <button type="button" onclick="removerAudioComunicado()" style="background:transparent; border:none; color:var(--vermelho); padding:0 4px; font-weight:800; cursor:pointer;" title="Excluir áudio">✖</button>
+          </div>
+        </div>
+        <span style="font-size:11px; color:var(--txt-dim);">Você pode enviar texto + arquivo + áudio juntos!</span>
+      </div>
 
       <!-- BARRA DE PROGRESSO DO ENVIO EM LOTE -->
       <div id="bc-progresso-box" style="display:none; background:#070d18; border:1px solid var(--borda); border-radius:10px; padding:12px; margin-bottom:12px;">
@@ -1905,50 +1959,219 @@ $('f-salvar-btn').onclick = async () => {
 // ============================== MÓDULO 6: DISPAROS AUTOMÁTICOS & CENTRAL DE COMUNICADOS ==============================
 let FILTRO_DISP_CAT = 'todos';
 let ENVIO_LOTE_CANCELADO = false;
+let BC_PAPEIS_SEL = new Set(['supervisor']);
+let BC_FILIAIS_SEL = new Set(['TODAS']);
+let BC_ANEXO_ATUAL = null; // { nome, mimetype, base64 }
+let BC_AUDIO_BASE64 = null;
+let MEDIA_RECORDER = null;
+let AUDIO_CHUNKS = [];
+let AUDIO_TIMER_INT = null;
+
+function atualizarUIChipsComunicado() {
+  document.querySelectorAll('.bc-chip-papel').forEach((el) => {
+    el.classList.toggle('active', BC_PAPEIS_SEL.has(el.dataset.papel));
+  });
+  document.querySelectorAll('.bc-chip-filial').forEach((el) => {
+    el.classList.toggle('active', BC_FILIAIS_SEL.has(el.dataset.filial));
+  });
+  const boxInd = $('bc-box-individual');
+  if (boxInd) boxInd.style.display = BC_PAPEIS_SEL.has('individual') ? 'block' : 'none';
+  atualizarContadorComunicado();
+}
+
+function selecionarTodosCargos(marcar) {
+  BC_PAPEIS_SEL.clear();
+  if (marcar) {
+    ['supervisor', 'gerente', 'vendedor', 'diretoria'].forEach((p) => BC_PAPEIS_SEL.add(p));
+  }
+  atualizarUIChipsComunicado();
+}
+
+function selecionarTodasFiliais() {
+  BC_FILIAIS_SEL.clear();
+  BC_FILIAIS_SEL.add('TODAS');
+  atualizarUIChipsComunicado();
+}
+
+document.querySelectorAll('.bc-chip-papel').forEach((chip) => {
+  chip.onclick = () => {
+    const p = chip.dataset.papel;
+    if (BC_PAPEIS_SEL.has(p)) {
+      BC_PAPEIS_SEL.delete(p);
+    } else {
+      BC_PAPEIS_SEL.add(p);
+    }
+    atualizarUIChipsComunicado();
+  };
+});
+
+document.querySelectorAll('.bc-chip-filial').forEach((chip) => {
+  chip.onclick = () => {
+    const f = chip.dataset.filial;
+    if (f === 'TODAS') {
+      BC_FILIAIS_SEL.clear();
+      BC_FILIAIS_SEL.add('TODAS');
+    } else {
+      BC_FILIAIS_SEL.delete('TODAS');
+      if (BC_FILIAIS_SEL.has(f)) {
+        BC_FILIAIS_SEL.delete(f);
+      } else {
+        BC_FILIAIS_SEL.add(f);
+      }
+      if (BC_FILIAIS_SEL.size === 0) {
+        BC_FILIAIS_SEL.add('TODAS');
+      }
+    }
+    atualizarUIChipsComunicado();
+  };
+});
+
+// Upload de Arquivo Anexo
+if ($('bc-file-input')) {
+  $('bc-file-input').onchange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) {
+      aviso('O arquivo excede o limite de 15MB.', 'erro');
+      e.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      BC_ANEXO_ATUAL = {
+        nome: file.name,
+        mimetype: file.type || 'application/octet-stream',
+        base64: reader.result
+      };
+      $('bc-anexo-nome').textContent = `📎 ${file.name} (${Math.round(file.size / 1024)} KB)`;
+      $('bc-anexo-preview').style.display = 'inline-flex';
+      $('bc-btn-anexo').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  };
+}
+
+function removerAnexoComunicado() {
+  BC_ANEXO_ATUAL = null;
+  if ($('bc-file-input')) $('bc-file-input').value = '';
+  if ($('bc-anexo-preview')) $('bc-anexo-preview').style.display = 'none';
+  if ($('bc-btn-anexo')) $('bc-btn-anexo').style.display = 'inline-flex';
+}
+
+// Gravação de Áudio pelo Microfone
+if ($('bc-btn-gravar')) {
+  $('bc-btn-gravar').onclick = async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      aviso('Seu navegador não suporta gravação de áudio.', 'erro');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      AUDIO_CHUNKS = [];
+      const mimePref = MediaRecorder.isTypeSupported('audio/ogg; codecs=opus')
+        ? 'audio/ogg; codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm; codecs=opus')
+        ? 'audio/webm; codecs=opus'
+        : '';
+      MEDIA_RECORDER = mimePref ? new MediaRecorder(stream, { mimeType: mimePref }) : new MediaRecorder(stream);
+
+      MEDIA_RECORDER.ondataavailable = (ev) => {
+        if (ev.data && ev.data.size > 0) AUDIO_CHUNKS.push(ev.data);
+      };
+
+      MEDIA_RECORDER.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop());
+        clearInterval(AUDIO_TIMER_INT);
+        const blob = new Blob(AUDIO_CHUNKS, { type: MEDIA_RECORDER.mimeType || 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        $('bc-audio-player').src = url;
+        const reader = new FileReader();
+        reader.onload = () => {
+          BC_AUDIO_BASE64 = reader.result;
+        };
+        reader.readAsDataURL(blob);
+
+        $('bc-audio-gravando').style.display = 'none';
+        $('bc-audio-preview').style.display = 'inline-flex';
+      };
+
+      MEDIA_RECORDER.start();
+      $('bc-btn-gravar').style.display = 'none';
+      $('bc-audio-preview').style.display = 'none';
+      $('bc-audio-gravando').style.display = 'inline-flex';
+
+      let segs = 0;
+      $('bc-audio-timer').textContent = '00:00';
+      AUDIO_TIMER_INT = setInterval(() => {
+        segs++;
+        const m = String(Math.floor(segs / 60)).padStart(2, '0');
+        const s = String(segs % 60).padStart(2, '0');
+        $('bc-audio-timer').textContent = `${m}:${s}`;
+      }, 1000);
+    } catch (err) {
+      aviso('Permissão de microfone negada ou indisponível: ' + err.message, 'erro');
+    }
+  };
+}
+
+if ($('bc-btn-parar-audio')) {
+  $('bc-btn-parar-audio').onclick = () => {
+    if (MEDIA_RECORDER && MEDIA_RECORDER.state !== 'inactive') {
+      MEDIA_RECORDER.stop();
+    }
+  };
+}
+
+function removerAudioComunicado() {
+  BC_AUDIO_BASE64 = null;
+  if ($('bc-audio-player')) $('bc-audio-player').src = '';
+  if ($('bc-audio-preview')) $('bc-audio-preview').style.display = 'none';
+  if ($('bc-btn-gravar')) $('bc-btn-gravar').style.display = 'inline-flex';
+}
 
 function obterDestinatariosComunicado() {
   if (!DADOS_CONTATOS) return [];
-  const papel = $('bc-papel')?.value || 'supervisor';
-  const filial = $('bc-filial')?.value || '';
-  if (papel === 'individual') {
-    const cel = ($('bc-cel-individual')?.value || '').replace(/\D/g, '');
-    if (cel.length >= 10) {
-      const celNorm = cel.startsWith('55') ? cel : '55' + cel;
-      const achou = (DADOS_CONTATOS.contatos || []).find((c) => c.celular === celNorm);
-      return [achou || { celular: celNorm, nome: 'Contato Individual', filial: filial || 'Triunfante', papel: 'individual' }];
-    }
-    return [];
-  }
-  const ativos = (DADOS_CONTATOS.contatos || []).filter((c) => c.situacao === 'ativo' || c.ativo === 1);
-  const filtrados = ativos.filter((c) => {
-    if (papel !== 'todos_ativos' && c.papel !== papel) return false;
-    if (filial && c.filial !== filial) return false;
-    return true;
-  });
-  // Desduplica por número de celular
   const porCel = new Map();
-  for (const c of filtrados) {
-    if (!porCel.has(c.celular)) porCel.set(c.celular, c);
+
+  // 1. Contatos ativos dos cargos e filiais selecionados
+  const papeisAtivos = [...BC_PAPEIS_SEL].filter((p) => p !== 'individual');
+  if (papeisAtivos.length > 0) {
+    const todasFiliais = BC_FILIAIS_SEL.has('TODAS');
+    const ativos = (DADOS_CONTATOS.contatos || []).filter((c) => c.situacao === 'ativo' || c.ativo === 1);
+    for (const c of ativos) {
+      if (!papeisAtivos.includes(c.papel)) continue;
+      if (!todasFiliais && c.papel !== 'diretoria' && !BC_FILIAIS_SEL.has(c.filial)) continue;
+      if (!porCel.has(c.celular)) porCel.set(c.celular, c);
+    }
   }
+
+  // 2. Números individuais digitados (se o chip "Número Individual" estiver ativo)
+  if (BC_PAPEIS_SEL.has('individual')) {
+    const raw = ($('bc-cel-individual')?.value || '').split(/[,;\s]+/);
+    for (const item of raw) {
+      const cel = item.replace(/\D/g, '');
+      if (cel.length >= 10) {
+        const celNorm = cel.startsWith('55') ? cel : '55' + cel;
+        if (!porCel.has(celNorm)) {
+          const achou = (DADOS_CONTATOS.contatos || []).find((c) => c.celular === celNorm);
+          porCel.set(celNorm, achou || { celular: celNorm, nome: 'Contato Individual', filial: 'Triunfante', papel: 'individual' });
+        }
+      }
+    }
+  }
+
   return [...porCel.values()];
 }
 
 function atualizarContadorComunicado() {
-  const selFil = $('bc-filial');
-  if (selFil && selFil.options.length <= 1 && DADOS_CONTATOS?.filiais) {
-    (DADOS_CONTATOS.filiais || []).forEach((f) => {
-      selFil.innerHTML += `<option value="${f}">${f}</option>`;
-    });
-  }
-  const boxInd = $('bc-box-individual');
-  if (boxInd) boxInd.style.display = ($('bc-papel')?.value === 'individual') ? 'block' : 'none';
   const dests = obterDestinatariosComunicado();
   const badge = $('bc-contador-dest');
-  if (badge) badge.textContent = `${dests.length} destinatário(s) selecionado(s)`;
+  if (badge) {
+    const filStr = BC_FILIAIS_SEL.has('TODAS') ? 'Brasil' : [...BC_FILIAIS_SEL].join(', ');
+    badge.textContent = `${dests.length} destinatário(s) (${filStr})`;
+  }
 }
 
-if ($('bc-papel')) $('bc-papel').onchange = atualizarContadorComunicado;
-if ($('bc-filial')) $('bc-filial').onchange = atualizarContadorComunicado;
 if ($('bc-cel-individual')) $('bc-cel-individual').oninput = atualizarContadorComunicado;
 
 if ($('bc-btn-cancelar')) {
@@ -1960,16 +2183,22 @@ if ($('bc-btn-cancelar')) {
 if ($('bc-btn-enviar')) {
   $('bc-btn-enviar').onclick = async () => {
     const modelo = ($('bc-texto')?.value || '').trim();
-    if (!modelo) {
-      aviso('Escreva a mensagem que deseja enviar antes de clicar em Enviar.', 'erro');
+    if (!modelo && !BC_ANEXO_ATUAL && !BC_AUDIO_BASE64) {
+      aviso('Digite uma mensagem, anexe um arquivo ou grave um áudio antes de enviar.', 'erro');
       return;
     }
     const dests = obterDestinatariosComunicado();
     if (!dests.length) {
-      aviso('Nenhum destinatário encontrado para o filtro selecionado.', 'erro');
+      aviso('Nenhum destinatário encontrado para os cargos/filiais selecionados.', 'erro');
       return;
     }
-    if (!confirm(`Confirmar o disparo automático desta mensagem para ${dests.length} contato(s) (intervalo de 3,5s por mensagem)?`)) return;
+    const resumoMidia = [
+      modelo ? 'texto' : '',
+      BC_ANEXO_ATUAL ? `anexo (${BC_ANEXO_ATUAL.nome})` : '',
+      BC_AUDIO_BASE64 ? 'áudio gravado' : ''
+    ].filter(Boolean).join(' + ');
+
+    if (!confirm(`Confirmar o disparo automático (${resumoMidia}) para ${dests.length} contato(s) (intervalo de 3,5s por mensagem)?`)) return;
 
     ENVIO_LOTE_CANCELADO = false;
     const btnEnv = $('bc-btn-enviar');
@@ -2006,6 +2235,8 @@ if ($('bc-btn-enviar')) {
           celular: d.celular,
           nome: d.nome,
           texto: textoFinal,
+          anexo: BC_ANEXO_ATUAL,
+          audio_base64: BC_AUDIO_BASE64,
           tipo: 'comunicado_diretoria'
         });
         if (r.ok) enviadosOk++;
