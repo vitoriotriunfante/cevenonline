@@ -929,7 +929,8 @@ export async function respondeIA(env, B, c, texto, historico) {
   if (ehExecutivo) {
     // quem falta positivar, por vendedor (31/10/2026: sem isso a estrategia so dizia "levantar a lista"); a pergunta passa pelo mesmo escopo de quem perguntou
     let baseFaltaPos = '';
-    try { baseFaltaPos = String(await respostaPronta(B, c, `quem falta positivar${ec.fil ? ' em ' + ec.fil : ''}`, []) || ''); } catch (e) {}
+    // so com filial: no Brasil le as 11 carteiras e a funcao era cortada sem responder (Rudinei, 31/10/2026, 15:01); no maximo 8 s
+    if (ec.fil) try { baseFaltaPos = String(await Promise.race([respostaPronta(B, c, `quem falta positivar em ${ec.fil}`, []), new Promise((ok) => setTimeout(() => ok(''), 8000))]) || ''); } catch (e) {}
     const dossieExecutivo = [
       baseFaltaPos ? `=== CLIENTES DA CARTEIRA SEM COMPRA NO MÊS, POR VENDEDOR (roteiro do mês; é outra conta, não é a positivação do painel) ===\n${baseFaltaPos}` : '',
       `=== RESUMO DO MÊS (${escIA.nome}) ===\n${baseResumo}`,
@@ -968,6 +969,7 @@ ${dossieExecutivo}`;
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: AbortSignal.timeout(25000),
           body: JSON.stringify({
             contents: [{ role: 'user', parts: [{ text: `${sysExec}\n\n${histTxt ? '--- HISTÓRICO RECENTE ---\n' + histTxt + '\n\n' : ''}--- PERGUNTA ATUAL DO EXECUTIVO ---\n"${texto}"` }] }],
             // o "pensar" do Gemini 2.5 consome este limite: com 1400 a resposta saiu cortada ("clientes que falt", Vitorio, 31/10/2026)
