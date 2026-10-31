@@ -372,6 +372,32 @@ async function coletaPedidosDoDia(env, dataRef) {
   return { lidos, novos };
 }
 
+// MACRO FORA DA ARVORE (Vitorio, 31/10/2026: "eles tem CEVEN, so nao sao monitorados... macro indicadores tem que pegar tudo"): codigos sem supervisor (2 em cada filial, 1035 TPA...) concentram
+// devolucao que nao entrava em nenhum total. Lista vinda do GEROT de outubro, conferida no CEVEN. Tabela propria com filial na chave, porque varredura_central_rca tem 1 linha por codigo.
+const MACRO_CODIGOS = ['ABC|2', 'API|2', 'MCD|2', 'TBE|2', 'TBL|2', 'TCA|2', 'TCG|2', 'TCV|2', 'TPA|2', 'TPH|2', 'TSJ|2', 'TPA|1035', 'TPH|264', 'TPH|240', 'TBL|180', 'TPH|1101', 'TPH|256', 'TPH|238', 'TCG|1059', 'TCG|428', 'TPH|265', 'TCV|221', 'TCG|1065', 'TPH|81', 'ABC|353', 'ABC|110', 'TPH|110'];
+async function coletaMacroForaArvore(env, limite = 3) {
+  if (Date.now() < banRcaAte) return { pulado: 'cota' };
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS macro_fora_arvore (filial TEXT NOT NULL, rca TEXT NOT NULL, mes TEXT NOT NULL, dev_mes REAL, notas_json TEXT, em TEXT, PRIMARY KEY (filial, rca, mes))').run();
+  const mes = new Date(Date.now() - 3 * 3600000).toISOString().slice(0, 7);
+  const { results } = await env.DB.prepare('SELECT filial, rca, em FROM macro_fora_arvore WHERE mes = ?').bind(mes).all();
+  const quando = new Map((results || []).map((x) => [x.filial + '|' + x.rca, x.em || '']));
+  const fila = MACRO_CODIGOS.slice().sort((a, b) => String(quando.get(a) || '').localeCompare(String(quando.get(b) || ''))).slice(0, limite);
+  let lidos = 0;
+  for (const k of fila) {
+    const [f, r] = k.split('|');
+    const x = await fetch(`${CEVEN}/api/rca/devolucoes?filial=${f.toLowerCase()}1&id=${r}`, { headers: HDR, signal: AbortSignal.timeout(15000) }).catch(() => null);
+    if (!x) continue;
+    if (x.status === 429) { banRcaAte = Date.now() + ((Number(x.headers.get('x-ratelimit-reset')) || 30) + 2) * 1000; break; }
+    if (!x.ok) continue;
+    const t = await x.text(); let A = []; try { A = t.trim() ? JSON.parse(t) : []; } catch { continue; }
+    if (!Array.isArray(A)) continue;
+    const doMes = A.filter((n) => String(n.data || '').startsWith(mes));
+    await env.DB.prepare('INSERT INTO macro_fora_arvore (filial, rca, mes, dev_mes, notas_json, em) VALUES (?,?,?,?,?,?) ON CONFLICT (filial, rca, mes) DO UPDATE SET dev_mes = excluded.dev_mes, notas_json = excluded.notas_json, em = excluded.em').bind(f, r, mes, doMes.reduce((a, n) => a + (Number(n.vl_devolvido) || 0), 0), JSON.stringify(doMes.map((n) => ({ d: n.data, c: n.codcli, v: n.vl_devolvido }))), new Date().toISOString()).run();
+    lidos++;
+  }
+  return { lidos };
+}
+
 // RECHECAGEM ATE FATURAR (Vitorio, 31/10/2026: "pedido que identifiquei como bloqueado tenho que checar ate ele virar faturado"; 810 "bloqueados", a maioria ja faturada, quase geraram ligacao
 // a todos os gerentes). Era 4 clientes por rodada para 3 mil em aberto. Agora 1 chamada por vendedor atualiza TODOS os pedidos abertos dele; vai primeiro quem tem o pedido checado ha mais tempo.
 async function rechecaAbertosPorVendedor(env, limite = 6) {
@@ -804,6 +830,7 @@ export async function onRequestGet({ env, request }) {
       contagem.supervisores = 'pulado_prazo';
     }
     if (Date.now() - t0 < 90000) { try { contagem.pedidos_dia = await coletaPedidosDoDia(env, dataRef); } catch (e) { contagem.pedidos_dia = { erro: String(e.message || e).slice(0, 80) }; } }
+    if (Date.now() - t0 < 95000) { try { contagem.macro = await coletaMacroForaArvore(env); } catch (e) { contagem.macro = { erro: String(e.message || e).slice(0, 80) }; } }
     if (Date.now() - t0 < 95000) { try { contagem.recheca = await rechecaAbertosPorVendedor(env); } catch (e) { contagem.recheca = { erro: String(e.message || e).slice(0, 80) }; } }
     await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);
     let mapa = 'pulado';

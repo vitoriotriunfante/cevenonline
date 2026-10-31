@@ -611,7 +611,15 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
     const pd = achaPessoa(E, t), gd = (t.match(/GERENTE\s+([A-Z]{3,})/) || [])[1];
     if (pd && pd.tipo === 'vend') return respDevolucao({ ...E, nome: vn(pd.alvo), vend: [pd.alvo], nacional: false, filiais: [pd.alvo.filial] }, t);
     if (gd && E.vend.some((v) => sem(v.grupo || '') === gd)) return respDevolucao({ ...E, nome: `${E.vend.find((v) => sem(v.grupo || '') === gd).filial} · ${titulo(gd)}`, vend: E.vend.filter((v) => sem(v.grupo || '') === gd), nacional: false }, t);
-    return respDevolucao(E, t);
+    // TOTAL INCLUI QUEM NAO E MONITORADO (31/10/2026): codigo 2 sai da lista de vendedores (a linha dele na base mistura filiais) e entra pela tabela com filial certa
+    { const Em = { ...E, vend: E.vend.filter((v) => String(v.rca) !== '2') }; const base = respDevolucao(Em, t); let extra = '';
+      if (!E.supervisor && !E.rca && B.env && B.env.DB) { try {
+        const mes = hojeSP().slice(0, 7), hoje = hojeSP(), { results: mf } = await B.env.DB.prepare('SELECT filial, rca, dev_mes, notas_json FROM macro_fora_arvore WHERE mes = ?').bind(mes).all();
+        const X = (mf || []).filter((x) => E.filiais.includes(x.filial)); const devH = X.reduce((a, x) => a + JSON.parse(x.notas_json || '[]').filter((n) => n.d === hoje).reduce((s, n) => s + (Number(n.v) || 0), 0), 0), devM = X.reduce((a, x) => a + (Number(x.dev_mes) || 0), 0);
+        const ehHoje = /HOJE|\bHJ\b/.test(t), v = ehHoje ? devH : devM;
+        if (v > 0) extra = `\n\n➕ *Códigos não monitorados (ex.: código 2 de cada filial):* ${R$(v)} ${ehHoje ? 'hoje' : 'no mês'}, fora dos valores acima.`;
+      } catch (e) { /* tabela ainda sem dado */ } }
+      return base + extra; }
   }
   // VENDEDORES BATENDO A META DE POSITIVACAO (26/10/2026: listava filiais)
   if (/POSITIVA/.test(t) && /VENDEDOR|QUEM|QUAIS/.test(t) && /BAT|ATING|ACIMA DA META|CUMPRI/.test(t)) {
