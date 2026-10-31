@@ -110,9 +110,19 @@ async function garanteIndicesOtimizacao(env) {
       env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_cascata_dia_data ON cascata_dia (data_ref)'),
       env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_pedido_status_final_cli ON pedido_status (final, data_pedido, filial, id_cliente)'),
       env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_pedido_status_data ON pedido_status (data_pedido)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_pedido_status_hist_num ON pedido_status_hist (num, visto_em)'),
       env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_tv_lances_dia_filial ON tv_lances (dia, filial)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_tv_lances_dia_rca ON tv_lances (dia, rca)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_tv_lances_filial_chave ON tv_lances (filial, chave)'),
       env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_cache_analise_criado ON cache_analise_cliente (criado_em)'),
-      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_bot_msgs_quando_dir ON bot_msgs (quando, direcao)')
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_saude_coleta_ts ON saude_coleta (ts)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_arvore_sup_id ON arvore_supervisores (sup_id)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_bot_msgs_cel_dir_id ON bot_msgs (celular, direcao, id DESC)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_bot_msgs_cel_id ON bot_msgs (celular, id DESC)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_bot_msgs_msgid_quando ON bot_msgs (msg_id, quando)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_bot_msgs_quando_dir ON bot_msgs (quando, direcao)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_bot_contatos_papel_filial ON bot_contatos (papel, filial, ativo)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_bot_sugestoes_quando ON bot_sugestoes (quando, id DESC)')
     ]);
     indicesOtimizados = true;
   } catch { indicesOtimizados = false; }

@@ -10,6 +10,7 @@
 // =========================================================================
 import { exigeSenhaEquipe } from '../_lib/senha_equipe.js';
 import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
+import { tabelas as garanteTabelasEIndicesJota } from '../_lib/jota/base.js';
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 
 const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Equipe-Senha', 'Cache-Control': 'no-store' };
@@ -33,8 +34,7 @@ function detectarFiliaisDoGrupo(nome) {
 }
 
 async function garante(db) {
-  await db.prepare(`CREATE TABLE IF NOT EXISTS bot_contatos (celular TEXT PRIMARY KEY, nome TEXT, papel TEXT, filial TEXT, grupo TEXT, supervisor TEXT, ativo INTEGER DEFAULT 1, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)`).run();
-  for (const c of ['situacao TEXT', 'rca TEXT', 'atualizado_em TEXT']) { try { await db.prepare(`ALTER TABLE bot_contatos ADD COLUMN ${c}`).run(); } catch (e) { /* ja existe */ } }
+  await garanteTabelasEIndicesJota(db);
   // supervisores da arvore que NAO devem aparecer em 'Sem acesso' (gerente, inativo...): decisao do Vitorio pela tela (26/10/2026)
   await db.prepare('CREATE TABLE IF NOT EXISTS bot_sem_acesso_excluidos (filial TEXT NOT NULL, sup_id TEXT NOT NULL, sup_nome TEXT, motivo TEXT, em TEXT DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (filial, sup_id))').run();
   await db.prepare('CREATE TABLE IF NOT EXISTS bot_contatos_log (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, acao TEXT, antes TEXT, depois TEXT)').run();

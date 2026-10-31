@@ -14,6 +14,7 @@ import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 const cors = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const hojeSP = () => R.hojeSP();
 const parse = (s) => { if (s == null || s === '') return null; try { return JSON.parse(s); } catch (e) { return null; } };
+const memSnap = new Map(); // filial|dia -> { exp, json }
 
 export async function onRequestGet({ env, request }) {
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 nao configurado' }), { status: 503, headers: cors });
@@ -21,6 +22,11 @@ export async function onRequestGet({ env, request }) {
   const filial = String(u.searchParams.get('filial') || '').toUpperCase();
   if (!/^[A-Z]{3}$/.test(filial)) return new Response(JSON.stringify({ erro: 'filial (sigla de 3 letras) obrigatoria' }), { status: 400, headers: cors });
   const dia = /^\d{4}-\d{2}-\d{2}$/.test(u.searchParams.get('dia') || '') ? u.searchParams.get('dia') : hojeSP();
+  const chaveMem = `${filial}|${dia}`;
+  const hit = memSnap.get(chaveMem);
+  if (hit && Date.now() < hit.exp && !u.searchParams.has('fresco')) {
+    return new Response(hit.json, { headers: cors });
+  }
   try {
     const { results } = await env.DB.prepare('SELECT * FROM varredura_central_rca WHERE data_ref = ? AND filial_sigla = ?').bind(dia, filial).all();
     const agora = Date.now(), rcas = {};
@@ -75,6 +81,8 @@ export async function onRequestGet({ env, request }) {
       const { results: mh } = await env.DB.prepare('SELECT rca, meta, meta_pos FROM meta_hierarquia WHERE filial = ?').bind(filial).all();
       for (const x of mh || []) if (rcas[String(x.rca)]) { rcas[String(x.rca)].meta_hier = Number(x.meta) || 0; rcas[String(x.rca)].meta_pos_hier = Number(x.meta_pos) || 0; }
     } catch { /* tabela ainda nao existe: fica a cascata */ }
-    return new Response(JSON.stringify({ filial, dia, gerado_em: new Date().toISOString(), total: Object.keys(rcas).length, rcas }), { headers: cors });
+    const outJson = JSON.stringify({ filial, dia, gerado_em: new Date().toISOString(), total: Object.keys(rcas).length, rcas });
+    if (Object.keys(rcas).length > 0) memSnap.set(chaveMem, { exp: Date.now() + 20000, json: outJson });
+    return new Response(outJson, { headers: cors });
   } catch (e) { return new Response(JSON.stringify({ erro: String(e.message || e).slice(0, 300) }), { status: 500, headers: cors }); }
 }

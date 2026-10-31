@@ -8,6 +8,7 @@
 // =========================================================================
 import { exigeSenhaEquipe } from '../_lib/senha_equipe.js';
 import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
+import { tabelas } from '../_lib/jota/base.js';
 const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Equipe-Senha', 'Cache-Control': 'no-store' };
 export async function onRequestOptions() { return new Response(null, { status: 204, headers: CORS }); }
 export async function onRequestGet({ request, env }) {
@@ -17,7 +18,7 @@ export async function onRequestGet({ request, env }) {
     if (negado) return negado;
   }
   const dias = Math.min(60, Number(new URL(request.url).searchParams.get('dias') || 7));
-  for (const col of ['tipo TEXT', 'ajudou INTEGER', 'nota INTEGER']) { try { await env.DB.prepare(`ALTER TABLE bot_msgs ADD COLUMN ${col}`).run(); } catch (e) { /* ja existe */ } }
+  await tabelas(env.DB);
   const { results } = await env.DB.prepare(`SELECT m.id, m.quando, m.celular, m.direcao, m.texto, m.tipo, m.ajudou, m.nota, c.nome, c.papel, c.filial, c.situacao, c.ativo
     FROM bot_msgs m LEFT JOIN bot_contatos c ON c.celular = m.celular WHERE m.quando >= datetime('now', ?) AND m.direcao IN ('in','out','erro') ORDER BY m.celular, m.id`).bind(`-${dias} days`).all();
   const conv = []; const pend = new Map();

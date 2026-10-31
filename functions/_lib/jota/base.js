@@ -37,12 +37,26 @@ export function variantes(n) {
   if (d.length === 12 && d.startsWith('55')) out.add(d.slice(0, 4) + '9' + d.slice(4));
   return [...out];
 }
+let tabelasJotaGarantidas = false;
 export async function tabelas(db) {
-  await db.prepare(`CREATE TABLE IF NOT EXISTS bot_contatos (celular TEXT PRIMARY KEY, nome TEXT, papel TEXT, filial TEXT, grupo TEXT, supervisor TEXT, ativo INTEGER DEFAULT 1, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)`).run();
-  for (const c of ['situacao TEXT', 'rca TEXT', 'atualizado_em TEXT']) { try { await db.prepare(`ALTER TABLE bot_contatos ADD COLUMN ${c}`).run(); } catch (e) { /* ja existe */ } }
-  await db.prepare(`CREATE TABLE IF NOT EXISTS bot_msgs (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, nome TEXT, direcao TEXT, texto TEXT, msg_id TEXT)`).run();
-  await db.prepare('CREATE TABLE IF NOT EXISTS bot_sugestoes (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, nome TEXT, papel TEXT, filial TEXT, texto TEXT, sobre TEXT)').run();
-  for (const col of ['tipo TEXT', 'ajudou INTEGER', 'nota INTEGER']) { try { await db.prepare(`ALTER TABLE bot_msgs ADD COLUMN ${col}`).run(); } catch (e) { /* ja existe */ } }
+  if (tabelasJotaGarantidas || !db) return;
+  try {
+    await db.prepare(`CREATE TABLE IF NOT EXISTS bot_contatos (celular TEXT PRIMARY KEY, nome TEXT, papel TEXT, filial TEXT, grupo TEXT, supervisor TEXT, ativo INTEGER DEFAULT 1, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)`).run();
+    for (const c of ['situacao TEXT', 'rca TEXT', 'atualizado_em TEXT']) { try { await db.prepare(`ALTER TABLE bot_contatos ADD COLUMN ${c}`).run(); } catch (e) { /* ja existe */ } }
+    await db.prepare(`CREATE TABLE IF NOT EXISTS bot_msgs (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, nome TEXT, direcao TEXT, texto TEXT, msg_id TEXT)`).run();
+    await db.prepare('CREATE TABLE IF NOT EXISTS bot_sugestoes (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, nome TEXT, papel TEXT, filial TEXT, texto TEXT, sobre TEXT)').run();
+    for (const col of ['tipo TEXT', 'ajudou INTEGER', 'nota INTEGER']) { try { await db.prepare(`ALTER TABLE bot_msgs ADD COLUMN ${col}`).run(); } catch (e) { /* ja existe */ } }
+    // INDICES COMPLETOS DO JOTA NO D1 (31/10/2026 — elimina Full Table Scans em bot_msgs, bot_contatos e bot_sugestoes):
+    await db.batch([
+      db.prepare('CREATE INDEX IF NOT EXISTS idx_bot_msgs_cel_dir_id ON bot_msgs (celular, direcao, id DESC)'),
+      db.prepare('CREATE INDEX IF NOT EXISTS idx_bot_msgs_cel_id ON bot_msgs (celular, id DESC)'),
+      db.prepare('CREATE INDEX IF NOT EXISTS idx_bot_msgs_msgid_quando ON bot_msgs (msg_id, quando)'),
+      db.prepare('CREATE INDEX IF NOT EXISTS idx_bot_msgs_quando_dir ON bot_msgs (quando, direcao)'),
+      db.prepare('CREATE INDEX IF NOT EXISTS idx_bot_contatos_papel_filial ON bot_contatos (papel, filial, ativo)'),
+      db.prepare('CREATE INDEX IF NOT EXISTS idx_bot_sugestoes_quando ON bot_sugestoes (quando, id DESC)')
+    ]);
+    tabelasJotaGarantidas = true;
+  } catch (e) {}
 }
 export async function enviar(env, numero, texto) {
   if (!env.EVO_URL || !env.EVO_KEY) return { ok: false, erro: 'EVO_URL/EVO_KEY nao configurados' };

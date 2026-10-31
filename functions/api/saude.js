@@ -20,6 +20,7 @@ const horaSP = () => R.relogioSP().hm;
 const q = (a, p) => (a.length ? a[Math.min(a.length - 1, Math.floor(p * a.length))] : null);
 const utc = (s) => Date.parse(String(s).replace(' ', 'T') + 'Z');
 const safe = async (fn, padrao = null) => { try { return await fn(); } catch { return padrao; } };
+let memSaude = { exp: 0, json: null };
 
 // A SONDA NAO CHAMA MAIS O CEVEN (13/10/2026): cada atualizacao do painel gastava 1 das ~3 chamadas/min que o CEVEN deixa passar em /api/rca/* e ainda renovava o bloqueio.
 // O estado vem do que a propria coleta registrou (ceven_ban_ate em coleta_estado).
@@ -31,7 +32,9 @@ async function sondaCeven(env) {
 
 export async function onRequestGet({ env, request }) {
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 não configurado' }), { status: 503, headers: CORS });
-  const origin = new URL(request.url).origin;
+  const urlObj = new URL(request.url);
+  if (memSaude.json && Date.now() < memSaude.exp && !urlObj.searchParams.has('fresco')) return new Response(memSaude.json, { headers: CORS });
+  const origin = urlObj.origin;
   const dia = hojeSP(), agora = Date.now(), hm = horaSP();
   const diaUtil = ![0, 6].includes(R.relogioSP().dow);
   const horarioComercial = !foraDoHorario();   /* mesma regra dos crons (25/10/2026): fora das 06h-21h e domingo a coleta roda a cada 30 min; nao alarma */
@@ -193,9 +196,9 @@ export async function onRequestGet({ env, request }) {
   const versao = await safe(async () => (await fetch(origin + '/api/version', { signal: AbortSignal.timeout(6000) })).json());
 
   const nivel = problemas.some((p) => p.nivel === 'critico') ? 'critico' : problemas.length ? 'atencao' : 'ok';
-  return new Response(JSON.stringify({
+  const outObj = {
     gerado_em: new Date(agora).toISOString(), hora_sp: hm, dia, dia_util: diaUtil, horario_comercial: horarioComercial, nivel, problemas,
     base, filiais, coleta, ceven: { sonda, requisicoes_60min: coleta.chamadas_60min, r429_60min: coleta.r429_60min, r401_60min: coleta.r401_60min, taxa_sucesso_pct: coleta.taxa_sucesso_pct },
     equipe, metas, lances: lancesBloco, whatsapp: wpp ? { dia_util: wpp.dia_util, horarios: wpp.horarios || [], erro: wpp.erro || null } : null, versao: versao ? versao.version : null
-  }), { headers: CORS });
+  }; memSaude = { exp: Date.now() + 20000, json: JSON.stringify(outObj) }; return new Response(memSaude.json, { headers: CORS });
 }
