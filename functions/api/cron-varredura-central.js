@@ -402,7 +402,8 @@ async function coletaMacroForaArvore(env, limite = 3) {
 // a todos os gerentes). Era 4 clientes por rodada para 3 mil em aberto. Agora 1 chamada por vendedor atualiza TODOS os pedidos abertos dele; vai primeiro quem tem o pedido checado ha mais tempo.
 async function rechecaAbertosPorVendedor(env, limite = 6) {
   if (Date.now() < banRcaAte) return { pulado: 'cota' };
-  const { results: V } = await env.DB.prepare("SELECT filial, rca, MIN(COALESCE(rechecado_em, '')) ult FROM pedido_status WHERE final = 0 AND data_pedido >= date('now', '-15 days') GROUP BY filial, rca ORDER BY MIN(CASE WHEN status LIKE 'BLOQ%' THEN 0 ELSE 1 END), ult LIMIT ?").bind(limite).all();
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS recheca_fila (filial TEXT NOT NULL, rca TEXT NOT NULL, em TEXT, PRIMARY KEY (filial, rca))').run();
+  const { results: V } = await env.DB.prepare("SELECT p.filial, p.rca, COALESCE(f.em, '') ult FROM pedido_status p LEFT JOIN recheca_fila f ON f.filial = p.filial AND f.rca = p.rca WHERE p.final = 0 AND p.data_pedido >= date('now', '-15 days') GROUP BY p.filial, p.rca ORDER BY ult, MIN(CASE WHEN p.status LIKE 'BLOQ%' THEN 0 ELSE 1 END) LIMIT ?").bind(limite).all();
   let lidos = 0, mudaram = 0;
   const FINAL = /FATURAD|CANCELAD|DEVOLVID/i;
   for (const x of V || []) {
@@ -419,7 +420,9 @@ async function rechecaAbertosPorVendedor(env, limite = 6) {
       const v = m.get(p.num), novo = v && String(v.status_pedido || '').toUpperCase().trim();
       if (novo && novo !== p.status) { mudaram++; st.push(env.DB.prepare('UPDATE pedido_status SET status = ?, final = ?, valor = COALESCE(?, valor), valor_winthor = COALESCE(?, valor_winthor), atualizado_em = ?, rechecado_em = ? WHERE num = ?').bind(novo, FINAL.test(novo) ? 1 : 0, Number(v.total_clube) || null, Number(v.vl_faturado_winthor) || null, agora, agora, p.num), env.DB.prepare('INSERT OR IGNORE INTO pedido_status_hist (num, status, visto_em) VALUES (?, ?, ?)').bind(p.num, novo, agora)); }
     }
-    st.push(env.DB.prepare('UPDATE pedido_status SET rechecado_em = ? WHERE filial = ? AND rca = ? AND final = 0').bind(agora, x.filial, x.rca));   /* a fila anda mesmo sem mudanca; pedido fora da resposta volta na proxima volta */
+    // so marca como conferido o pedido que veio na resposta; a fila anda por recheca_fila, para pedido que nunca vem nao travar o vendedor nem parecer confirmado
+    for (const p of ab || []) if (m.has(p.num)) st.push(env.DB.prepare('UPDATE pedido_status SET rechecado_em = ? WHERE num = ?').bind(agora, p.num));
+    st.push(env.DB.prepare('INSERT INTO recheca_fila (filial, rca, em) VALUES (?,?,?) ON CONFLICT (filial, rca) DO UPDATE SET em = excluded.em').bind(x.filial, x.rca, agora));
     for (let i = 0; i < st.length; i += 80) await env.DB.batch(st.slice(i, i + 80));
     lidos++;
   }

@@ -283,7 +283,11 @@ export async function respPedidosStatus(B, E, t) {
     }
   }
   const meus = new Map(E.vend.concat(E.ocultos || []).map((v) => [v.filial + '|' + v.rca, v]));
-  const P = pd.pedidos.filter((p) => (E.nacional || meus.has(p.filial + '|' + p.rca)) && (alvo === 'CORTE' ? (p.itens_cortados || []).length : alvo === 'PENDENTES' ? !/FATURAD|CANCELAD/i.test(String(p.status_pedido || '')) : !alvo || String(p.status_pedido || '').toUpperCase() === alvo));
+  const P0 = pd.pedidos.filter((p) => (E.nacional || meus.has(p.filial + '|' + p.rca)) && (alvo === 'CORTE' ? (p.itens_cortados || []).length : alvo === 'PENDENTES' ? !/FATURAD|CANCELAD/i.test(String(p.status_pedido || '')) : !alvo || String(p.status_pedido || '').toUpperCase() === alvo));
+  // SO O CONFIRMADO (Vitorio, 31/10/2026: "como eu mostro um numero irreal?"): status aberto so entra na lista e no total se foi conferido no CEVEN na ultima hora; o resto e contado a parte, sem valor
+  const confLim = Date.now() - 3600000, ehAberto = alvo && alvo !== 'CORTE';
+  const P = ehAberto ? P0.filter((p) => Number(p.analisado_em) >= confLim) : P0;
+  const naoConf = P0.length - P.length;
   const hm = (ms) => new Date(ms).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
 
   let V = null;
@@ -296,13 +300,12 @@ export async function respPedidosStatus(B, E, t) {
   const ehLiberado = alvo === 'LIBERADO';
   const ehBloqueado = alvo === 'BLOQUEADO';
   const titulo0 = alvo === 'CORTE' ? 'com corte' : ehBloqELiber ? 'bloqueados e liberados' : ehLiberado ? 'pendentes de faturamento (liberados)' : ehBloqueado ? 'bloqueados por crédito' : alvo === 'PENDENTES' ? 'ainda não faturados' : alvo ? alvo.toLowerCase() + 's' : 'de hoje';
-  if (!P.length) return `🧾 *Pedidos ${titulo0} — ${E.nome}*: nenhum na base agora.`;
+  if (!P.length) return `🧾 *Pedidos ${titulo0} — ${E.nome}*: ${naoConf ? `nenhum confirmado no CEVEN na última hora (${naoConf} ainda em conferência).` : 'nenhum na base agora.'}`;
   const porV = new Map(); for (const p of P) { const k = p.filial + '|' + p.rca; if (!porV.has(k)) porV.set(k, []); porV.get(k).push(p); }
   const tot = P.reduce((a, p) => a + (Number(p.total_clube || p.valor) || 0), 0);
   const cabeçalho = ehLiberado ? `💼 *Clientes com Pedidos Pendentes de Faturamento (Liberados) — ${E.nome}*` : ehBloqueado ? `🔒 *Pedidos Bloqueados por Crédito — ${E.nome}*` : `🧾 *Pedidos ${titulo0} — ${E.nome}*`;
   // STATUS COM IDADE (Vitorio, 31/10/2026: "ja ia ligar para todos os gerentes" por uma lista velha): diz quantos foram conferidos na ultima hora; nunca parece "agora" sem ser
-  const umaHora = Date.now() - 3600000, frescos = P.filter((p) => Number(p.analisado_em) >= umaHora).length;
-  const L = [cabeçalho, `Total: *${P.length} pedido(s)* · *${R$(tot)}*`, frescos === P.length ? '_Todos conferidos no CEVEN na última hora._' : `⚠️ *${P.length - frescos} de ${P.length} sem conferência na última hora: podem já ter mudado. Não use para cobrar antes de checar.*`];
+  const L = [cabeçalho, `Total: *${P.length} pedido(s)* · *${R$(tot)}*`, ...(ehAberto ? ['_Confirmados no CEVEN na última hora._' + (naoConf ? ` Outros ${naoConf} em conferência ficam de fora.` : '')] : [])];
   if (E.nacional) { const pf = new Map(); for (const p of P) { const x = pf.get(p.filial) || { n: 0, v: 0 }; x.n++; x.v += Number(p.total_clube || p.valor) || 0; pf.set(p.filial, x); } L.push('', '*Por filial:*', ...[...pf].sort((a, b) => b[1].v - a[1].v).map(([f, x]) => `• *${f}*: ${x.n} pedido(s) · ${R$(x.v)}`)); }
   L.push('');
   let n = 0;
