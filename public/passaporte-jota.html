@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Passaporte Jota ⚽ — Conexão Oficial Comercial Triunfante</title>
+  <style>
+    :root {
+      --bg: #070b14;
+      --card: #111827;
+      --border: #1f2937;
+      --verde: #10b981;
+      --verde-hover: #059669;
+      --amarelo: #f59e0b;
+      --texto: #f9fafb;
+      --sub: #9ca3af;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body {
+      background: radial-gradient(circle at top, #0f2922 0%, var(--bg) 60%);
+      color: var(--texto);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 16px;
+    }
+    .container {
+      width: 100%;
+      max-width: 440px;
+      background: var(--card);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 20px;
+      padding: 26px 22px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    .badge-exclusivo {
+      display: inline-block;
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+    .header p {
+      font-size: 13.5px;
+      color: var(--sub);
+      line-height: 1.4;
+    }
+    .alerta-corporativo {
+      background: rgba(239, 68, 68, 0.12);
+      border-left: 4px solid #ef4444;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      color: #fca5a5;
+      margin-bottom: 18px;
+      line-height: 1.4;
+    }
+    .form-group {
+      margin-bottom: 14px;
+    }
+    label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #d1d5db;
+      margin-bottom: 5px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      background: #0b111e;
+      border: 1px solid #374151;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 82px;
+      line-height: 1.4;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--verde);
+    }
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .btn-submit {
+      width: 100%;
+      margin-top: 8px;
+      padding: 14px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    .btn-submit:active {
+      transform: scale(0.98);
+    }
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .erro-box {
+      display: none;
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid #ef4444;
+      color: #fecaca;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .sucesso-box {
+      display: none;
+      text-align: center;
+      padding: 20px 10px;
+    }
+    .sucesso-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    .sucesso-box h2 {
+      font-size: 21px;
+      color: #34d399;
+      margin-bottom: 10px;
+    }
+    .sucesso-box p {
+      font-size: 14.5px;
+      color: #d1d5db;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    .footer {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 11.5px;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div id="form-view">
+      <div class="header">
+        <span class="badge-exclusivo">⚽ Passaporte Oficial Jota</span>
+        <h1>Conectar ao Jota</h1>
+        <p>Cadastre seus dados abaixo para habilitar o assistente inteligente do Comercial Triunfante no seu WhatsApp.</p>
+      </div>
+
+      <div class="alerta-corporativo">
+        ⚠️ <strong>Atenção:</strong> Este credenciamento é válido <strong>exclusivamente para Telefone Corporativo</strong> da equipe de vendas.
+      </div>
+
+      <div id="erro-msg" class="erro-box"></div>
+
+      <form id="form-passaporte">
+        <div class="form-group">
+          <label for="nome">Nome Completo *</label>
+          <input type="text" id="nome" placeholder="Ex: João Carlos da Silva" required autocomplete="name">
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <label for="cpf">CPF *</label>
+            <input type="tel" id="cpf" placeholder="000.000.000-00" maxlength="14" required>
+          </div>
+          <div class="form-group">
+            <label for="setor">Setor / Cód. RCA *</label>
+            <input type="tel" id="setor" placeholder="Ex: 181" required>
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <label for="filial">Filial *</label>
+            <select id="filial" required>
+              <option value="">Selecione...</option>
+              <option value="ABC">ABC</option>
+              <option value="API">API</option>
+              <option value="MCD">MCD</option>
+              <option value="TBE">TBE</option>
+              <option value="TBL">TBL</option>
+              <option value="TCA">TCA</option>
+              <option value="TCG">TCG</option>
+              <option value="TCV">TCV</option>
+              <option value="TPA">TPA</option>
+              <option value="TPH">TPH</option>
+              <option value="TSJ">TSJ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="supervisor">Supervisor *</label>
+            <input type="text" id="supervisor" placeholder="Nome do Supervisor" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="celular">WhatsApp Corporativo (com DDD) *</label>
+          <input type="tel" id="celular" placeholder="(41) 99999-9999" maxlength="15" required>
+        </div>
+
+        <div class="form-group">
+          <label for="indicadores">Quais indicadores você gostaria de ver ou quais perguntas gostaria de ter respondidas pelo Jota? *</label>
+          <textarea id="indicadores" placeholder="Ex: Gostaria de ver minha comissão, clientes sem compra no mês, sugestão de mix por cliente, status de pedidos..." required minlength="5"></textarea>
+        </div>
+
+        <button type="submit" id="btn-enviar" class="btn-submit">Conectar com o Jota ⚽</button>
+      </form>
+    </div>
+
+    <div id="sucesso-view" class="sucesso-box">
+      <div class="sucesso-icon">✅⚽</div>
+      <h2>Obrigado pelo seu cadastro!</h2>
+      <p>Seus dados foram registrados com sucesso e o <strong>Jota já enviou uma confirmação no seu WhatsApp Corporativo</strong>.</p>
+      <p style="color:#fbbf24; font-size:13.5px;">⏳ Assim que aprovarmos o seu acesso, você receberá no seu WhatsApp todas as instruções para começar a usar!</p>
+    </div>
+
+    <div class="footer">
+      Grupo Triunfante · Inteligência Comercial +MIX & CEVEN
+    </div>
+  </div>
+
+  <script>
+    const cpfInput = document.getElementById('cpf');
+    const celInput = document.getElementById('celular');
+
+    cpfInput.addEventListener('input', (e) => {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+      if (v.length > 9) v = v.replace(/^(\d{3})(\d{3})(\d{3})(\d{1,2})$/, '$1.$2.$3-$4');
+      else if (v.length > 6) v = v.replace(/^(\d{3})(\d{3})(\d{1,3})$/, '$1.$2.$3');
+      else if (v.length > 3) v = v.replace(/^(\d{3})(\d{1,3})$/, '$1.$2');
+      e.target.value = v;
+    });
+
+    celInput.addEventListener('input', (e) => {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+      if (v.length > 6) v = v.replace(/^(\d{2})(\d{4,5})(\d{4})$/, '($1) $2-$3');
+      else if (v.length > 2) v = v.replace(/^(\d{2})(\d+)$/, '($1) $2');
+      e.target.value = v;
+    });
+
+    document.getElementById('form-passaporte').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const erroEl = document.getElementById('erro-msg');
+      const btn = document.getElementById('btn-enviar');
+      erroEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Conectando com o Jota...';
+
+      const payload = {
+        nome: document.getElementById('nome').value.trim(),
+        cpf: document.getElementById('cpf').value.trim(),
+        setor: document.getElementById('setor').value.trim(),
+        filial: document.getElementById('filial').value.trim(),
+        supervisor: document.getElementById('supervisor').value.trim(),
+        celular: document.getElementById('celular').value.trim(),
+        indicadores: document.getElementById('indicadores').value.trim()
+      };
+
+      try {
+        const res = await fetch('/api/jota-passaporte', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.erro || 'Erro ao realizar o cadastro.');
+        }
+        document.getElementById('form-view').style.display = 'none';
+        document.getElementById('sucesso-view').style.display = 'block';
+      } catch (err) {
+        erroEl.textContent = err.message;
+        erroEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Conectar com o Jota ⚽';
+      }
+    });
+  </script>
+</body>
+</html>

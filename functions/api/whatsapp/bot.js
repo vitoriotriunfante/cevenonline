@@ -109,6 +109,28 @@ export async function onRequestPost({ request, env }) {
     const ehCelReal = cel.startsWith('55') && cel.length >= 12 && cel.length <= 13;
     if (!ehCelReal) return new Response('ok (lid sem cel)');
 
+    // CADASTRO DE VENDEDOR (Nome Completo / CPF / Setor de Atendimento / Filial / Supervisor):
+    const matchCpf = texto.replace(/\D/g, '').match(/\d{11}/);
+    const matchFilial = sem(texto).match(/\b(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\b/);
+    if (matchCpf && (matchFilial || /CPF|SETOR|VENDEDOR|PASSAPORTE/i.test(texto) || (texto.match(/\//g) || []).length >= 2)) {
+      try {
+        try { await env.DB.prepare('ALTER TABLE bot_contatos ADD COLUMN cpf TEXT').run(); } catch (e) {}
+        const partes = texto.split(/[\/\n|]+/).map((s) => s.trim()).filter(Boolean);
+        const nomeVend = (partes[0] || d.pushName || 'VENDEDOR').replace(/^(?:NOME(?:\s+COMPLETO)?\s*[:\-]?\s*)/i, '').trim().toUpperCase();
+        const filVend = matchFilial ? matchFilial[1] : null;
+        const mSetor = texto.match(/\b(?:SETOR|RCA|COD(?:IGO)?)\s*[:\-]?\s*(\d{1,5})\b/i) || (partes[2] && partes[2].match(/\b(\d{1,5})\b/));
+        const rcaVend = mSetor ? mSetor[1] : null;
+        const supVend = partes[4] ? partes[4].replace(/^(?:SUPERVISOR(?:A)?\s*[:\-]?\s*)/i, '').trim().toUpperCase() : null;
+        await env.DB.prepare(`INSERT OR IGNORE INTO bot_contatos (celular, nome, papel, filial, supervisor, rca, cpf, ativo, situacao) VALUES (?,?, 'vendedor', ?,?,?,?, 0, 'pendente')`)
+          .bind(cel, nomeVend, filVend, supVend, rcaVend, matchCpf[0]).run();
+        const msgObg = `Olá, *${titulo(nomeVend.split(' ')[0])}*! ⚽\n\nObrigado pelo seu cadastro no *Jota*! Já recebi seus dados corporativos.\n⏳ Assim que aprovarmos o seu acesso, você receberá aqui mesmo no WhatsApp todas as instruções para começar a usar! 🚀`;
+        if (seco) return new Response(msgObg);
+        const eV = await enviar(env, destino, msgObg);
+        await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, nomeVend, eV.ok ? 'out' : 'erro', msgObg, 'cadastro_vendedor').run();
+        return new Response('ok');
+      } catch (e) {}
+    }
+
     const novo = await cadastraPorCodigo(env, cel, texto, d.pushName);
     if (!novo) {
       // 26/10/2026: supervisor que se apresenta e nao e achado na arvore ficava SEM RESPOSTA. Agora: resposta educada + aviso ao Vitorio (1x por numero por dia).

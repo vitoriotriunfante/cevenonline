@@ -99,7 +99,14 @@ export async function onRequestPost({ request, env }) {
   if (acao === 'aprovar' || acao === 'ativar') {
     await muda(1, 'ativo');
     let avisado = false;
-    if (acao === 'aprovar') { const p = String(antes.nome || '').split(' ')[0]; avisado = await enviar(env, cel, `Fala, ${p.charAt(0) + p.slice(1).toLowerCase()}! Seu acesso ao *Jota* foi liberado ⚽\nVocê vê ${antes.papel === 'supervisor' ? 'a sua equipe' : antes.papel === 'gerente' ? 'a sua filial' : 'os seus dados'}.\n\nExperimenta: "como está minha equipe?", "zerados", "faltam visitar", "vendedor Nome", "liga".\n_Meu DNA é Triunfante!_`); }
+    if (acao === 'aprovar') {
+      const p = String(antes.nome || '').split(' ')[0];
+      const pNome = p.charAt(0) + p.slice(1).toLowerCase();
+      const msgLib = antes.papel === 'vendedor'
+        ? `Fala, *${pNome}*! Seu acesso corporativo ao *Jota* ⚽ foi *aprovado e liberado*! 🚀\n\nAgora você pode me consultar a qualquer momento (por texto ou *áudio* 🎙️). Seguem as instruções do que me pedir no dia a dia:\n\n📍 *ROTA & CLIENTES*\n• *"minha rota hoje"* → clientes programados e quem falta visitar\n• *"curva negativa"* → seus clientes que ainda não compraram no mês\n• *"prospecção"* → novos clientes no mapa da sua rota de hoje\n\n💰 *METAS & PEDIDOS*\n• *"como estou?"* → seu faturado, pendente, positivação e falta pra meta\n• *"pedidos pendentes"* → seus pedidos liberados aguardando faturamento\n• *"pedidos bloqueados"* → pedidos retidos no crédito\n\n📦 *+MIX & PRODUTOS*\n• *"+mix"* → oportunidades de mix para oferecer nos clientes\n• *"cliente #código"* → histórico de compras e SKUs daquele cliente\n\nBora pra cima bater meta! _Meu DNA é Triunfante!_ 💪`
+        : `Fala, ${pNome}! Seu acesso ao *Jota* foi liberado ⚽\nVocê vê ${antes.papel === 'supervisor' ? 'a sua equipe' : antes.papel === 'gerente' ? 'a sua filial' : 'os seus dados'}.\n\nExperimenta: "como está minha equipe?", "zerados", "faltam visitar", "vendedor Nome", "liga".\n_Meu DNA é Triunfante!_`;
+      avisado = await enviar(env, cel, msgLib);
+    }
     return j({ ok: true, avisado });
   }
   if (acao === 'recusar') { await muda(0, 'recusado'); return j({ ok: true }); }

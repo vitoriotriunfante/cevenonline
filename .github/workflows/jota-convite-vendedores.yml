@@ -1,0 +1,74 @@
+# =========================================================================
+# JOTA — Envio Agendado do Link Passaporte Jota para os Supervisores
+# Roda: Amanhã (31/10/2026) às 11:00 BRT (14:00 UTC).
+# Intervalo de segurança anti-spam: 4 segundos entre cada supervisor.
+# Quem já recebeu (bot_msgs tipo 'convite_vendedores') NUNCA recebe de novo.
+# =========================================================================
+name: JOTA — Convite Vendedores aos Supervisores (11h)
+
+on:
+  schedule:
+    # 11:00 BRT = 14:00 UTC no dia 31/10/2026
+    - cron: '0 14 31 10 *'
+  workflow_dispatch:
+    inputs:
+      destino:
+        description: 'Destinatário (todos ou teste vitorio)'
+        required: true
+        default: 'todos'
+        type: choice
+        options:
+          - 'todos'
+          - 'vitorio'
+          - 'dry_run'
+
+jobs:
+  disparo_convite_supervisores:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Disparar Convite de Cadastro dos Vendedores via API Cloudflare
+        env:
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+          DESTINO: ${{ github.event.inputs.destino || 'todos' }}
+        run: |
+          echo "Iniciando disparo do Convite Passaporte Jota..."
+          B="https://ceven-cftv-matrix.pages.dev/api/jota-convite-vendedores"
+
+          if [ "$DESTINO" = "vitorio" ]; then
+            echo "Enviando teste exclusivo para Vitório..."
+            curl -fsS -m 40 -X POST -H "X-Evo-Key: $EVO_KEY" "$B?celular=554187525605"
+            echo ""
+            exit 0
+          fi
+
+          if [ "$DESTINO" = "dry_run" ]; then
+            echo "--- PRÉVIA DO TEXTO ---"
+            curl -fsS -m 30 -H "X-Evo-Key: $EVO_KEY" "$B?previa=1"
+            echo ""
+            exit 0
+          fi
+
+          RES_JSON=$(curl -fsS -m 30 -H "X-Evo-Key: $EVO_KEY" "$B")
+          echo "Resposta pendentes: $RES_JSON"
+
+          LISTA=$(echo "$RES_JSON" | python3 -c "import json,sys; d=json.load(sys.stdin); print(' '.join([x['celular'] for x in d.get('pendentes',[])]))")
+          TOTAL=$(echo $LISTA | wc -w)
+          echo "Total de supervisores a enviar: $TOTAL"
+
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "Nenhum supervisor pendente. Todos já receberam!"
+            exit 0
+          fi
+
+          I=1
+          for CEL in $LISTA; do
+            echo "[$I/$TOTAL] Enviando para $CEL..."
+            RESP=$(curl -fsS -m 40 -X POST -H "X-Evo-Key: $EVO_KEY" "$B?celular=$CEL")
+            echo "  Resultado: $RESP"
+            I=$((I + 1))
+            sleep 4
+          done
+
+          echo "Disparo concluído com sucesso!"
