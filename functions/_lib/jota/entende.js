@@ -309,6 +309,16 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/GESTAO DE CAMPO|SUPERVISORES EM CAMPO|EM ROTA \(RET\)|RANKING DE ATIVIDADE/.test(t) || (/COMPROMISSO|\bRET\b/.test(t) && /POR FILIAL|RANKING|PERCENT|%/.test(t))) return respGestaoCampo(B, await carregaEscopo(B, esc));
   // LISTA de pedidos por status do escopo (bloqueados, liberados sem faturar, com corte): antes da Operacao, que so da o total (26/10/2026)
   // + pendentes/nao faturados (Jefferson: "pedidos pendentes do vendedor 128, de quais clientes"; Andrey COD 103: "quais sao os clientes que estao no pendente?")
+  // MESES ANTERIORES (31/10/2026: "fechamento de setembro", "venda do mes anterior"): totais dos pedidos do Data Lake por vendedor, 1 linha por vendedor
+  { const nomesMes = { JANEIRO: '01', FEVEREIRO: '02', MARCO: '03', ABRIL: '04', MAIO: '05', JUNHO: '06', JULHO: '07', AGOSTO: '08', SETEMBRO: '09', OUTUBRO: '10', NOVEMBRO: '11', DEZEMBRO: '12' };
+    const mN = (t.match(/\b(JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO)\b/) || [])[1], antes = /MES (ANTERIOR|PASSADO)/.test(t), hj = hojeSP();
+    if ((mN || antes) && /FECHAMENTO|VENDA|VENDI|VENDEU|FATUR|RESULTADO|TOTAL/.test(t) && !/INDUSTRIA|FORNECEDOR|PRODUTO|CLIENTE/.test(t) && B.env && B.env.DB) {
+      const ant = new Date(Date.parse(hj.slice(0, 7) + '-15T12:00:00Z') - 30 * 864e5).toISOString().slice(0, 7);
+      const alvoM = antes ? ant : hj.slice(0, 4) + '-' + nomesMes[mN];
+      if (alvoM < hj.slice(0, 7)) { const Eh = await carregaEscopo(B, esc), ph = achaPessoa(Eh, t), Vh = ph && ph.tipo === 'vend' ? [ph.alvo] : Eh.vend;
+        const Lh = (await Promise.all(Vh.slice(0, 150).map((v) => B.env.DB.prepare('SELECT json FROM ficha_cliente WHERE filial = ? AND id_cliente = ?').bind(String(v.filial), '_VEND_' + v.rca).first().then((r) => { const x = r && JSON.parse(r.json).hist_meses; return x && x[alvoM] ? { v, ...x[alvoM] } : null; }).catch(() => null)))).filter(Boolean).sort((a, b) => b.valor - a.valor);
+        if (Lh.length) { const soma = (k) => Lh.reduce((a, x) => a + x[k], 0); const nm = Vh.length === 1 ? vn(Vh[0]) : Eh.nome;
+          return [`📅 *${alvoM.slice(5)}/${alvoM.slice(0, 4)} — ${nm}*`, `Pedidos: *${R$(soma('valor'))}* em *${N(soma('pedidos'))}* · faturado ${R$(soma('faturado'))}`, ...(Lh.length > 1 ? ['', ...Lh.slice(0, 25).map((x) => `• ${vn(x.v)}: ${R$(x.valor)} · ${x.pedidos} ped. · ${x.clientes} cli.`)] : [`Clientes: ${N(Lh[0].clientes)}`]), '', '_Soma dos pedidos do histórico do CEVEN, não é o fechamento oficial da meta._'].join('\n'); } } } }
   // CORTES E GAP POR CLIENTE (31/10/2026): vem dos pedidos do Data Lake, 1 linha por vendedor em ficha_cliente (id _VEND_<rca>). Jorge/TCV "corte do setor 363"; Rudinei/diretoria "clientes com maior gap x media dos ultimos 3 meses"
   { const ehCorte = /\bCORTES?\b|CORTAD/.test(t) && !/\d{7,}|DEVOL/.test(t) && !/\bHOJE\b|\bHJ\b/.test(t);
     const ehGapCli = /\bGAPS?\b|MAIOR(ES)? QUEDAS?|CAIU MAIS|CAIRAM MAIS/.test(t) && /CLIENTE|MEDIA|\d MESES/.test(t);
