@@ -118,3 +118,12 @@ Vitório: "se estou falando de uma filial precisa falar sobre ela... se eu peço
 - Zera: "Brasil"/"por filial" zera filial e vendedor; "equipe", "time", "filial", "zerados", "ranking", "sem visita" zeram o vendedor; filial nova zera vendedor de outra filial.
 - WhatsApp manda as mensagens anteriores da MAIS NOVA para a mais velha (anteriores[0] = a última).
 - Teste: `node testes/jota_conversas.mjs` (sequências reais com estado).
+
+## Decisões de 31/10/2026
+
+- **Ficha do cliente:** `ficha_cliente` no D1, carregada do banco do Data Lake por `.github/workflows/ficha-clientes-d1.yml` (`scripts/carregar_ficha_d1.py`). Só envia o que mudou. Uma linha por cliente e filial; `_VEND_<rca>` guarda gaps e cortes do vendedor.
+- **Prospects:** `prospects_mapa` no D1 acumula; repetido não regrava. O coletor do Data Lake só lê com rota e apaga a tabela dele todo dia.
+- **Pedidos do dia:** o coletor central lê `historico-vendedor` de quem teve o digitado alterado (até 6 por rodada, com ou sem rota). Pedido com número já gravado não regrava.
+- **Meta:** lista oficial (`meta_hierarquia`) + cascata do gerente para quem não está nela. A fonte é o CEVEN; o GEROT é apoio. Em 31/10: R$ 80.007.705 contra R$ 80.043.662 do GEROT (API, R$ 35.957, sem explicação).
+- **Vazio do CEVEN:** `historico-cliente` com HTTP 200 e corpo vazio = sem histórico no CEVEN (o app mostra igual). `data_ultima_compra` do roteiro não é confiável.
+- **Incidente:** das 14:31 às 15:41 o tick fez 48 chamadas com 0 sucesso; a causa não foi descoberta. Tick travado agora cai na varredura completa e avisa no WhatsApp. `?diag=1` testa os caminhos.
