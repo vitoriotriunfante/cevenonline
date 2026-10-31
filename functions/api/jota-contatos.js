@@ -123,8 +123,10 @@ export async function onRequestPost({ request, env }) {
     const anexo = b.anexo && typeof b.anexo === 'object' ? b.anexo : null;
     const audioBase64 = b.audio_base64 ? String(b.audio_base64).trim() : '';
 
-    if (!cel || (!texto && !anexo && !audioBase64)) {
-      return j({ erro: 'celular/grupo e conteúdo (texto, anexo ou áudio) são obrigatórios' }, 400);
+    const figurinha = /^\d{2}_[a-z0-9_]+$/.test(String(b.figurinha || '')) ? String(b.figurinha) : '';
+
+    if (!cel || (!texto && !anexo && !audioBase64 && !figurinha)) {
+      return j({ erro: 'celular/grupo e conteúdo (texto, anexo, áudio ou figurinha) são obrigatórios' }, 400);
     }
 
     const cfg = R.evoCfg(env);
@@ -139,7 +141,10 @@ export async function onRequestPost({ request, env }) {
         const r = await R.evolution(cfg, caminho, payloadBuilder(num), 35000);
         if (r.ok) return r;
       }
-      return { ok: false };
+      // segunda passada (31/10/2026: 10 de 90 comunicados falharam na mesma manha)
+      await new Promise((ok) => setTimeout(ok, 1500));
+      const r2 = await R.evolution(cfg, caminho, payloadBuilder(alts[0]), 35000);
+      return r2.ok ? r2 : { ok: false };
     };
 
     let ok = false;
@@ -182,6 +187,15 @@ export async function onRequestPost({ request, env }) {
       } else {
         ok = true;
       }
+    }
+
+    // 4. Figurinha do Jota escolhida na tela /contatos
+    if (figurinha) {
+      const url = `${new URL(request.url).origin}/jota/figurinhas/${figurinha}.webp`;
+      const rFig = await evoTry('/message/sendSticker', (num) => ({ number: num, sticker: url }));
+      if (!texto && !anexo && !audioBase64) ok = !!rFig.ok;
+      try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?, ?, ?, ?, ?)').bind(cel, nome, rFig.ok ? 'figurinha' : 'erro', figurinha, tipo).run(); } catch (e) {}
+      if (!texto && !anexo && !audioBase64) return j({ ok, celular: cel });
     }
 
     const resumoLog = [

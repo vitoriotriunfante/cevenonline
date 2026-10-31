@@ -67,8 +67,14 @@ export async function enviar(env, numero, texto) {
   }
   const d = so(s);
   if (!d) return { ok: false, erro: 'numero vazio ou invalido' };
-  const r = await R.evolution(R.evoCfg(env), '/message/sendText', { number: d, text: texto });
+  let r = await R.evolution(R.evoCfg(env), '/message/sendText', { number: d, text: texto });
   if (r.ok) return { ok: true, status: r.status };
+  // falha passageira da Evolution (31/10/2026: 4 respostas nao chegaram; Franco: "ja que voce nao quer responder meu bom dia"): tenta de novo antes de desistir
+  if (!r.status || r.status >= 500) {
+    await new Promise((ok) => setTimeout(ok, 1500));
+    r = await R.evolution(R.evoCfg(env), '/message/sendText', { number: d, text: texto });
+    if (r.ok) return { ok: true, status: r.status };
+  }
   const alts = variantes(d).filter((v) => v !== d);
   for (const alt of alts) {
     const rAlt = await R.evolution(R.evoCfg(env), '/message/sendText', { number: alt, text: texto });

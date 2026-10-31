@@ -220,7 +220,7 @@ export async function onRequestPost({ request, env }) {
   const notaTxt = (texto.trim().match(/^(?:nota\s*)?([1-5])(?:\s*(?:\/\s*5|estrelas?))?[!. ]*$/i) || [])[1] || (/^\s*(👍|👍🏻|👍🏼|👍🏽)\s*$/.test(texto) ? '5' : /^\s*(👎|👎🏻|👎🏼|👎🏽)\s*$/.test(texto) ? '1' : null);
   // Se a última mensagem que o Jota mandou pediu o motivo ("o que faltou ou veio errado"), a próxima mensagem É O MOTIVO/SUGESTÃO!
   const ehComandoOuPergunta = /^(AGORA\b|POR FAVOR\b|ME DIZ\b|BOM DIA|BOA TARDE|BOA NOITE|COMO|QUANTO|QUEM|QUAIS|ONDE|VER|MOSTR|LISTA|ROTA|SETOR|EQUIPE|TIME|CLIENTE|VENDEDOR|META|ZERAD|LIGA|MIX|CHAMPIONS|HOJE|ONTEM|RECORRENCIA|TAG|P10|P11|DEVOL|PEDIDO|PRECO|PRODUTO|CARTEIRA|RANKING|SEM COMPRA|ESTRATEG|PLANO)/i.test(texto.trim())
-    || /\b(EQUIPE|TIME|VENDEDOR|HOJE|ONTEM|META|FATURAD|ROTA|VISITA|PEDIDO|PRODUTO|CLIENTE)\b/i.test(texto.trim());
+    || /\b(EQUIPES?|TIMES?|VENDEDOR(ES)?|HOJE|ONTEM|METAS?|FATURADOS?|ROTAS?|VISITAS?|PEDIDOS?|PRODUTOS?|CLIENTES?|SETOR(ES)?|SUPERVISOR(ES)?)\b/i.test(texto.trim());
   const pediuMotivo = ultOut && (/o que faltou ou veio errado/i.test(ultOut.texto || '') && !/obrigado pela nota [45]|valeu.*nota [45]/i.test(ultOut.texto || '')) && (Date.now() - Date.parse(ultOut.quando + 'Z') < 5 * 60 * 1000) && !ehComandoOuPergunta;
   const sugMeio = /fica (a|como) (sugest(ã|a)o|dica)|anot(e|a)( a(í|i))?( isso)?( como)? sugest(ã|a)o|como sugest(ã|a)o|dei uma sugest(ã|a)o|minha sugest(ã|a)o (é|e)/i.test(texto) ? texto : null;
   const sug = (texto.match(/^\s*sugest(?:ã|a)o\s*[:\-]?\s*([\s\S]{3,})/i) || [])[1] || sugMeio || (pediuMotivo && !notaTxt && !ehComandoOuPergunta ? texto : null);
@@ -237,6 +237,10 @@ export async function onRequestPost({ request, env }) {
     await env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(cel, c.nome, c.papel, c.filial || '', sug.slice(0, 1500), (ultIn && ultIn.texto ? String(ultIn.texto).slice(0, 300) : '')).run();
     resp = `Anotado, ${primeiroNome(c)}! Já registrei sua sugestão com o time que me treina. 🙏 Obrigado por ajudar a deixar o Jota melhor!`;
     tipo = 'sugestao';
+  } else if (notaTxt && ultOut && ultOut.nota != null && !ofereceuOpcao1 && !ofereceuOpcoesNum) {
+    // nota repetida (Alex/TBE, 30/10/2026: mandou "5" de novo e recebeu o resumo inteiro da equipe)
+    resp = `Nota já anotada, ${primeiroNome(c)}! 💪`;
+    tipo = 'nota';
   }
   if (!resp && ehSaudacao(tN)) { resp = await respSaudacao(B, c, primeiraVez); tipo = primeiraVez ? 'saudacao_primeira' : 'saudacao'; }
   // AGRADECIMENTO (Vitorio, 27/10/2026: "o cara falou blz... blz quer dizer obrigado... era ter mandado uma figurinha"): resposta curta + figurinha, sem dado
@@ -288,6 +292,7 @@ export async function onRequestPost({ request, env }) {
   const numEnvio = (c && c.celular) ? c.celular : (destino && !destino.endsWith('@lid') ? destino.replace(/\D/g, '') : cel);
   for (let i = 0; i < partes.length; i++) { if (i) await new Promise((ok) => setTimeout(ok, 1200)); const ei = await enviar(env, numEnvio, partes[i]); if (!ei.ok) e = ei; }
   resp = partes.join('\n\n');
+  if (!e.ok) { try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'falha de envio: ' + String(e.status || '') + ' ' + String(e.erro || JSON.stringify(e.resposta || '')).slice(0, 500)).run(); } catch (x) {} }
   await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, e.ok ? 'out' : 'erro', resp.slice(0, 4000), tipo).run();
   // figurinha: pacote quando pedido ou contextual (no maximo 1 a cada 2 h por pessoa)
   const ehLoteFig = /pacote (com as|oficial com as|de) figurinhas|Figurinhas Oficiais do Jota/i.test(resp);

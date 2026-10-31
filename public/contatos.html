@@ -462,6 +462,55 @@ input:focus, select:focus { border-color: var(--azul); }
 .msg-alert.ok { background: var(--verde-bg); color: #86efac; border: 1px solid var(--verde-borda); }
 .msg-alert.erro { background: var(--vermelho-bg); color: #fca5a5; border: 1px solid var(--vermelho-borda); }
 
+/* VISUAL 31/10/2026: mais limpo, conversa no jeito do WhatsApp, sem brilho nem contorno em tudo */
+body { font-size: 14px; }
+header { padding: 10px 20px; background: var(--sidebar); backdrop-filter: none; }
+.logo-icon { box-shadow: none; background: #0284c7; }
+.tabs-nav { padding: 0 20px; gap: 2px; background: var(--sidebar); }
+.tab-btn { border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 11px 12px; }
+.tab-btn:hover { background: transparent; }
+.tab-btn.active { background: transparent; border-bottom-color: var(--azul); box-shadow: none; }
+.tab-badge.alerta { animation: none; }
+.inbox-container { height: calc(100vh - 96px); }
+.sidebar-width-ctrls { display: none; }
+.sidebar-resizer { width: 1px; }
+.filter-chips { flex-wrap: wrap; overflow: visible; }
+.chip { border-radius: 99px; padding: 4px 10px; }
+.chat-list { padding: 0; gap: 0; }
+.chat-item { border-radius: 0; border: 0; border-bottom: 1px solid var(--borda-sub); }
+.chat-item:hover { border-color: var(--borda-sub); }
+.chat-item.active { border-color: var(--borda-sub); box-shadow: inset 3px 0 0 var(--azul); }
+.chat-meta { margin-bottom: 2px; }
+.view-mode-bar { padding: 5px 16px; background: var(--sidebar); }
+.mode-btn { background: transparent; border-color: transparent; padding: 3px 8px; }
+.mode-btn.active { box-shadow: none; }
+.chat-view-header { background: var(--sidebar); backdrop-filter: none; padding: 10px 18px; }
+.chat-view-body { background: #0a111d; gap: 3px; padding: 18px 8%; }
+.msg-row { max-width: 72%; margin-bottom: 8px; }
+.bubble { padding: 8px 11px; border-radius: 9px; font-size: 13.5px; box-shadow: none; }
+.msg-row.in .bubble { background: #1b2636; border: 0; }
+.msg-row.out .bubble { background: #0f4a3c; border: 0; color: #eafff7; }
+.msg-row.falhou .bubble { background: var(--vermelho-bg); box-shadow: inset 0 0 0 1px var(--vermelho-borda); }
+.bubble-meta { font-size: 10.5px; flex-wrap: wrap; }
+.bubble.fig { background: transparent !important; padding: 0; }
+.bubble.fig img { width: 130px; height: 130px; object-fit: contain; display: block; }
+.dia-sep { align-self: center; font-size: 11px; color: var(--txt-mut); background: #1b2636; padding: 3px 11px; border-radius: 7px; margin: 10px 0; }
+.tag-badge { text-transform: none; letter-spacing: 0; font-weight: 600; }
+.composer { flex-shrink: 0; display: flex; align-items: flex-end; gap: 8px; padding: 10px 14px; background: var(--sidebar); border-top: 1px solid var(--borda); position: relative; }
+.composer textarea { flex: 1; resize: none; max-height: 130px; min-height: 38px; background: var(--bg); color: var(--txt); border: 1px solid var(--borda); border-radius: 8px; padding: 9px 11px; font: inherit; font-size: 13.5px; outline: none; }
+.composer textarea:focus { border-color: var(--azul); }
+.composer .ic { width: 38px; height: 38px; justify-content: center; padding: 0; font-size: 18px; background: transparent; border-color: transparent; flex-shrink: 0; }
+.composer .ic:hover { background: var(--card); }
+.composer-anexo { flex-basis: 100%; font-size: 12px; color: var(--txt-mut); }
+.composer { flex-wrap: wrap; }
+.solta-aqui { outline: 2px dashed var(--azul); outline-offset: -4px; }
+.fig-picker { position: fixed; z-index: 90; width: 400px; max-width: calc(100vw - 24px); max-height: 390px; overflow-y: auto; background: var(--card); border: 1px solid var(--borda); border-radius: 12px; padding: 10px; display: none; grid-template-columns: repeat(4, 1fr); gap: 4px; box-shadow: 0 12px 30px rgba(0,0,0,.5); }
+.fig-picker.show { display: grid; }
+.fig-picker button { background: transparent; border: 0; padding: 4px; justify-content: center; }
+.fig-picker button:hover { background: var(--card-hover); }
+.fig-picker img { width: 78px; height: 78px; object-fit: contain; }
+@media (max-width: 900px) { .chat-view-body { padding: 14px; } .msg-row { max-width: 90%; } .tabs-nav { padding: 0 8px; } }
+
 /* GALERIA DE FIGURINHAS */
 .fig-grid {
   display: grid;
@@ -560,7 +609,7 @@ input:focus, select:focus { border-color: var(--azul); }
   <div class="logo-area">
     <div class="logo-icon">J</div>
     <div>
-      <h1>Central de Atendimento & Contatos JOTA</h1>
+      <h1>Central do JOTA</h1>
       <div class="header-sub">WhatsApp Corporativo · Mais Mix Triunfante</div>
     </div>
   </div>
@@ -573,31 +622,31 @@ input:focus, select:focus { border-color: var(--azul); }
 
 <div class="tabs-nav" id="nav-abas">
   <button class="tab-btn active" data-tab="conversas">
-    <span>💬 Conversas (Inbox)</span>
+    <span>Conversas</span>
     <span class="tab-badge" id="b-total-conv">0</span>
   </button>
   <button class="tab-btn" data-tab="sugestoes">
-    <span>💡 Sugestões da Equipe</span>
+    <span>Sugestões</span>
     <span class="tab-badge" id="b-total-sug">0</span>
   </button>
   <button class="tab-btn" data-tab="pedidos">
-    <span>🔔 Pedidos de Acesso</span>
+    <span>Pedidos de acesso</span>
     <span class="tab-badge" id="b-total-ped">0</span>
   </button>
   <button class="tab-btn" data-tab="supervisores-sem">
-    <span>👀 Supervisores sem Acesso</span>
+    <span>Sem acesso</span>
     <span class="tab-badge" id="b-total-sem">0</span>
   </button>
   <button class="tab-btn" data-tab="contatos-gestao">
-    <span>👥 Gestão de Contatos</span>
+    <span>Contatos</span>
     <span class="tab-badge" id="b-total-cad">0</span>
   </button>
   <button class="tab-btn" data-tab="disparos">
-    <span>📤 Disparos & Acessos</span>
+    <span>Disparos</span>
     <span class="tab-badge" id="b-total-disp-ped" style="display:none;">0</span>
   </button>
   <button class="tab-btn" data-tab="figurinhas">
-    <span>🎨 Figurinhas do Jota</span>
+    <span>Figurinhas</span>
     <span class="tab-badge" id="b-total-fig">26</span>
   </button>
 </div>
@@ -691,6 +740,15 @@ input:focus, select:focus { border-color: var(--azul); }
           </div>
         </div>
         <div class="chat-view-body" id="active-thread"></div>
+        <div class="composer">
+          <input type="file" id="cp-arquivo" style="display:none;" accept="image/*,application/pdf,.xlsx,.xls,.csv,.doc,.docx,video/*">
+          <button type="button" class="ic" id="cp-btn-fig" title="Enviar figurinha">😀</button>
+          <button type="button" class="ic" title="Anexar arquivo" onclick="$('cp-arquivo').click()">📎</button>
+          <button type="button" class="ic" id="cp-btn-audio" title="Gravar áudio">🎙️</button>
+          <textarea id="cp-texto" rows="1" placeholder="Escreva, cole um print ou solte um arquivo aqui (Enter envia)"></textarea>
+          <button type="button" class="pri" id="cp-enviar" style="height:38px;">Enviar</button>
+          <div class="composer-anexo" id="cp-anexo-info" style="display:none;"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -938,6 +996,9 @@ input:focus, select:focus { border-color: var(--azul); }
             <button type="button" onclick="removerAnexoComunicado()" style="background:transparent; border:none; color:var(--vermelho); padding:0 4px; font-weight:800; cursor:pointer;">✖</button>
           </div>
 
+          <button type="button" id="bc-btn-fig" style="background:#162544;">😀 Figurinha</button>
+          <span id="bc-fig-preview" style="display:none; align-items:center; gap:6px; font-size:12px;"><img id="bc-fig-img" alt="" style="width:38px; height:38px; object-fit:contain;"><button type="button" onclick="escolherFigurinhaComunicado('')" style="background:transparent; border:none; color:var(--vermelho); padding:0 4px; font-weight:800;">✖</button></span>
+
           <!-- BOTÃO GRAVAR ÁUDIO -->
           <button type="button" id="bc-btn-gravar" style="background:#162544; border-color:#f59e0b; color:#fef3c7;">
             🎙️ Gravar Áudio de Voz
@@ -952,7 +1013,7 @@ input:focus, select:focus { border-color: var(--azul); }
             <button type="button" onclick="removerAudioComunicado()" style="background:transparent; border:none; color:var(--vermelho); padding:0 4px; font-weight:800; cursor:pointer;" title="Excluir áudio">✖</button>
           </div>
         </div>
-        <span style="font-size:11px; color:var(--txt-dim);">Você pode enviar texto + arquivo + áudio juntos!</span>
+        <span style="font-size:11px; color:var(--txt-dim);">Cole um print ou solte um arquivo aqui. Texto, arquivo, áudio e figurinha podem ir juntos.</span>
       </div>
 
       <!-- BARRA DE PROGRESSO DO ENVIO EM LOTE -->
@@ -1087,6 +1148,8 @@ let FILTRADOS_ATUAIS = [];
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const tit = (s) => String(s || '').toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+// o banco grava em UTC; a tela mostra horario de Brasilia ("AAAA-MM-DD HH:MM")
+const brt = (q) => { const t = Date.parse(String(q || '').replace(' ', 'T') + 'Z'); return Number.isFinite(t) ? new Date(t - 3 * 3600000).toISOString().slice(0, 16).replace('T', ' ') : ''; };
 
 function aviso(t, tipo) {
   const m = $('msg-global');
@@ -1130,7 +1193,7 @@ function telaLogin(erro) {
   const entrar = () => {
     SENHA = $('in-senha').value.trim();
     if (!SENHA) return;
-    try { sessionStorage.setItem('equipe_senha', SENHA); } catch (e) {}
+    try { sessionStorage.setItem('equipe_senha', SENHA); location.reload(); return; } catch (e) {}
     carregarTudo();
   };
   $('btn-entrar').onclick = entrar;
@@ -1235,6 +1298,7 @@ function agruparERenderizarConversas() {
     if (c.nao_ajudou) chat.temProblema = true;
     if (c.ajudou === 0) chat.temReclamacao = true;
     if (c.tipo === 'ia') chat.temIA = true;
+    if (chat.mensagens.length === 1 && c.saida) chat.ultimoTexto = c.figurinha ? 'Figurinha' : (c.resposta || '');
     if (c.nota != null && (chat.piorNota == null || c.nota < chat.piorNota)) {
       chat.piorNota = c.nota;
     }
@@ -1268,8 +1332,9 @@ function agruparERenderizarConversas() {
 
   container.innerHTML = filtrados.map((ch) => {
     const iniciais = (ch.quem || '?').split(' ').filter(Boolean).slice(0, 2).map((x) => x[0].toUpperCase()).join('');
-    const hora = ch.ultimaData ? ch.ultimaData.slice(11, 16) : '';
-    const dia = ch.ultimaData ? ch.ultimaData.slice(8, 10) + '/' + ch.ultimaData.slice(5, 7) : '';
+    const ultBr = brt(ch.ultimaData);
+    const hora = ultBr.slice(11, 16);
+    const dia = ultBr ? ultBr.slice(8, 10) + '/' + ultBr.slice(5, 7) : '';
     const isActive = ch.celular === CHAT_SELECIONADO_CEL ? ' active' : '';
 
     let badgeNota = '';
@@ -1375,7 +1440,10 @@ function renderizarGradeConversas(qtd) {
       : ch.temProblema ? `<span class="tag-badge erro">Não ajudou</span>` : '';
 
     const msgsHtml = msgsCron.map((m) => {
-      const h = m.quando ? m.quando.slice(11, 16) : '';
+      const h = brt(m.quando).slice(11, 16);
+      if (m.saida) return m.figurinha
+        ? `<img src="/jota/figurinhas/${esc(m.figurinha)}.webp" alt="" style="width:80px; height:80px; object-fit:contain; align-self:flex-end;">`
+        : `<div style="background:#0f4a3c; color:#eafff7; padding:6px 10px; border-radius:8px; align-self:flex-end; max-width:92%; font-size:12px; white-space:pre-wrap; word-break:break-word;">${esc(m.resposta || '')}<div style="font-size:9px; opacity:.7; margin-top:2px; text-align:right;">${esc(h)}</div></div>`;
       return `
         <div style="display:flex; flex-direction:column; gap:2px; font-size:12px;">
           <div style="background:#14223b; color:#f8fafc; padding:6px 10px; border-radius:8px 8px 8px 2px; align-self:flex-start; max-width:92%; word-break:break-word;">
@@ -1502,14 +1570,33 @@ function abrirChat(celular) {
   $('active-filial').textContent = chat.filial ? 'Filial ' + chat.filial : 'Sem filial';
   $('active-celular').textContent = '+' + chat.celular;
   $('active-wa-link').href = 'https://wa.me/' + chat.celular;
+  const trocouConversa = $('cp-texto').dataset.cel !== celular;
+  if (trocouConversa) {
+    $('cp-texto').dataset.cel = celular;
+    try { $('cp-texto').value = localStorage.getItem(CHAVE_RASCUNHO + celular) || ''; } catch (e) { $('cp-texto').value = ''; }
+    CP_ANEXO = null; $('cp-arquivo').value = ''; $('cp-anexo-info').style.display = 'none';
+  }
 
   // Renderizar Thread de Mensagens em ordem cronológica (mais antiga para mais recente)
   const threadContainer = $('active-thread');
   const msgsCron = [...chat.mensagens].reverse();
 
+  let diaAnterior = '';
   threadContainer.innerHTML = msgsCron.map((m) => {
-    const hora = m.quando ? m.quando.slice(11, 16) : '';
-    const data = m.quando ? m.quando.slice(8, 10) + '/' + m.quando.slice(5, 7) : '';
+    const quandoBr = brt(m.quando);
+    const hora = quandoBr.slice(11, 16);
+    const data = quandoBr ? quandoBr.slice(8, 10) + '/' + quandoBr.slice(5, 7) : '';
+    const sepDia = data !== diaAnterior ? `<div class="dia-sep">${esc(data)}</div>` : '';
+    diaAnterior = data;
+
+    if (m.saida) {
+      const quemEnviou = m.tipo === 'comunicado_diretoria' ? 'Comunicado' : m.tipo === 'atendimento_manual' ? 'Enviado pela Central' : 'Jota';
+      return `${sepDia}
+      <div class="msg-row out${m.falhou ? ' falhou' : ''}">
+        ${m.figurinha ? `<div class="bubble fig"><img src="/jota/figurinhas/${esc(m.figurinha)}.webp" alt="Figurinha"></div>` : `<div class="bubble">${esc(m.resposta || '')}</div>`}
+        <div class="bubble-meta"><span>${m.falhou ? '⚠️ Não entregue · ' : ''}${esc(quemEnviou)} · ${esc(hora)}</span></div>
+      </div>`;
+    }
 
     let tagTipo = '';
     if (m.tipo === 'pronta') tagTipo = '<span class="tag-badge pronta">✅ Resposta Pronta</span>';
@@ -1525,7 +1612,7 @@ function abrirChat(celular) {
 
     const recBadge = m.ajudou === 0 ? '<span class="tag-badge reclamou">⚠️ Usuário marcou que NÃO ajudou</span>' : '';
 
-    return `
+    return `${sepDia}
       <!-- PERGUNTA DA PESSOA -->
       <div class="msg-row in">
         <div class="bubble">${esc(m.pergunta || '')}</div>
@@ -1537,7 +1624,7 @@ function abrirChat(celular) {
       </div>
 
       <!-- RESPOSTA DO JOTA -->
-      <div class="msg-row out">
+      <div class="msg-row out${m.tipo === 'erro de envio' ? ' falhou' : ''}">
         <div class="bubble">${esc(m.resposta || 'Sem resposta')}</div>
         <div class="bubble-meta">
           ${tagTipo}
@@ -1554,6 +1641,146 @@ function abrirChat(celular) {
     threadContainer.scrollTop = threadContainer.scrollHeight;
   }, 50);
 }
+
+// ============================== ENVIAR NA CONVERSA E FIGURINHAS (31/10/2026) ==============================
+let CP_ANEXO = null, BC_FIGURINHA = '', PICKER_ACAO = null;
+const CHAVE_RASCUNHO = 'jota_rascunho_';
+
+function abrirPicker(botao, aoEscolher) {
+  let p = $('fig-picker');
+  if (!p) {
+    p = document.createElement('div');
+    p.id = 'fig-picker';
+    p.className = 'fig-picker';
+    p.innerHTML = FIGURINHAS_INFO.map((f) => `<button type="button" title="${esc(f.nome)}" data-fig="${esc(f.id)}"><img src="/jota/figurinhas/${esc(f.id)}.webp" alt="${esc(f.nome)}" loading="lazy"></button>`).join('');
+    p.onclick = (e) => { const b = e.target.closest('[data-fig]'); if (b && PICKER_ACAO) { p.classList.remove('show'); PICKER_ACAO(b.dataset.fig); } };
+    document.body.appendChild(p);
+    document.addEventListener('click', (e) => { if (!e.target.closest('#fig-picker') && !e.target.closest('#cp-btn-fig') && !e.target.closest('#bc-btn-fig')) p.classList.remove('show'); });
+  }
+  PICKER_ACAO = aoEscolher;
+  const r = botao.getBoundingClientRect();
+  p.style.left = Math.max(12, Math.min(r.left, innerWidth - 412)) + 'px';
+  p.style.top = '';
+  p.style.bottom = '';
+  if (r.top > 410) p.style.bottom = (innerHeight - r.top + 8) + 'px'; else p.style.top = (r.bottom + 8) + 'px';
+  p.classList.toggle('show');
+}
+
+async function enviarNaConversa(extra) {
+  const chat = CHATS_AGRUPADOS.find((x) => x.celular === CHAT_SELECIONADO_CEL);
+  if (!chat) { aviso('Abra uma conversa primeiro.', 'erro'); return; }
+  const btn = $('cp-enviar');
+  btn.disabled = true;
+  try {
+    const r = await api('POST', '/api/jota-contatos', { acao: 'disparo_individual', celular: chat.celular, nome: chat.quem, tipo: 'atendimento_manual', ...extra });
+    if (!r.ok) { aviso('Não foi entregue para ' + tit(chat.quem) + '. Tente de novo.', 'erro'); return false; }
+    await carregarTudo();
+    return true;
+  } catch (e) {
+    if (e.message !== 'senha') aviso('Falha ao enviar: ' + e.message, 'erro');
+    return false;
+  } finally { btn.disabled = false; }
+}
+
+$('cp-btn-fig').onclick = (e) => abrirPicker(e.currentTarget, (id) => {
+  const chat = CHATS_AGRUPADOS.find((x) => x.celular === CHAT_SELECIONADO_CEL);
+  if (chat && confirm(`Enviar esta figurinha para ${tit(chat.quem)}?`)) enviarNaConversa({ figurinha: id });
+});
+$('cp-enviar').onclick = async () => {
+  const campo = $('cp-texto'), texto = campo.value.trim();
+  if (!texto && !CP_ANEXO) return;
+  const ok = await enviarNaConversa({ texto, anexo: CP_ANEXO });
+  if (ok) {
+    campo.value = ''; campo.style.height = '';
+    CP_ANEXO = null; $('cp-arquivo').value = ''; $('cp-anexo-info').style.display = 'none';
+    try { localStorage.removeItem(CHAVE_RASCUNHO + CHAT_SELECIONADO_CEL); } catch (e) {}
+  }
+};
+$('cp-texto').onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('cp-enviar').click(); } };
+$('cp-texto').oninput = (e) => {
+  e.target.style.height = 'auto';
+  e.target.style.height = Math.min(130, e.target.scrollHeight) + 'px';
+  try { localStorage.setItem(CHAVE_RASCUNHO + CHAT_SELECIONADO_CEL, e.target.value); } catch (x) {}
+};
+$('cp-arquivo').onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  if (f.size > 15 * 1024 * 1024) { aviso('Arquivo acima de 15 MB.', 'erro'); e.target.value = ''; return; }
+  const rd = new FileReader();
+  rd.onload = () => {
+    CP_ANEXO = { nome: f.name, mimetype: f.type || 'application/octet-stream', base64: rd.result };
+    const info = $('cp-anexo-info');
+    info.innerHTML = `${f.type.startsWith('image/') ? `<img src="${rd.result}" alt="" style="height:56px; border-radius:6px; vertical-align:middle; margin-right:8px;">` : '📎 '}${esc(f.name)} <button type="button" onclick="removerAnexoConversa()" style="background:transparent; border:none; color:var(--vermelho); padding:0 4px; font-weight:800;">✖</button>`;
+    info.style.display = 'block';
+  };
+  rd.readAsDataURL(f);
+};
+
+function escolherFigurinhaComunicado(id) {
+  BC_FIGURINHA = id;
+  $('bc-fig-preview').style.display = id ? 'inline-flex' : 'none';
+  if (id) $('bc-fig-img').src = `/jota/figurinhas/${id}.webp`;
+}
+$('bc-btn-fig').onclick = (e) => abrirPicker(e.currentTarget, escolherFigurinhaComunicado);
+
+function enviarFigurinhaDaGaleria(id) {
+  const chat = CHATS_AGRUPADOS.find((x) => x.celular === CHAT_SELECIONADO_CEL);
+  if (!chat) { aviso('Abra uma conversa primeiro, na aba Conversas.', 'erro'); return; }
+  if (confirm(`Enviar esta figurinha para ${tit(chat.quem)}?`)) enviarNaConversa({ figurinha: id }).then((ok) => { if (ok) aviso('Figurinha enviada para ' + tit(chat.quem) + '.', 'ok'); });
+}
+
+// COLAR E ARRASTAR (31/10/2026): colar print (Ctrl+V) ou soltar arquivo cai no mesmo anexo do botao, na conversa e no comunicado
+function ligaColarArrastar(zona, input) {
+  if (!zona || !input) return;
+  const usa = (arquivos) => {
+    if (!arquivos || !arquivos.length) return false;
+    const dt = new DataTransfer();
+    dt.items.add(arquivos[0]);
+    input.files = dt.files;
+    input.dispatchEvent(new Event('change'));
+    if (arquivos.length > 1) aviso('Vai um arquivo por envio: usei o primeiro.', 'erro');
+    return true;
+  };
+  zona.addEventListener('paste', (e) => { if (usa(e.clipboardData && e.clipboardData.files)) e.preventDefault(); });
+  zona.addEventListener('dragover', (e) => { e.preventDefault(); zona.classList.add('solta-aqui'); });
+  zona.addEventListener('dragleave', (e) => { if (!zona.contains(e.relatedTarget)) zona.classList.remove('solta-aqui'); });
+  zona.addEventListener('drop', (e) => { e.preventDefault(); zona.classList.remove('solta-aqui'); usa(e.dataTransfer && e.dataTransfer.files); });
+}
+ligaColarArrastar($('cv-chat-active'), $('cp-arquivo'));
+ligaColarArrastar($('bc-texto') && $('bc-texto').parentElement, $('bc-file-input'));
+// fora das zonas, soltar arquivo nao pode abrir o arquivo no lugar da tela
+window.addEventListener('dragover', (e) => e.preventDefault());
+window.addEventListener('drop', (e) => e.preventDefault());
+
+function removerAnexoConversa() {
+  CP_ANEXO = null; $('cp-arquivo').value = ''; $('cp-anexo-info').style.display = 'none';
+}
+
+// AUDIO NA CONVERSA: 1o clique grava, 2o clique para e pergunta se envia
+let CP_GRAVADOR = null;
+$('cp-btn-audio').onclick = async (e) => {
+  const btn = e.currentTarget;
+  if (CP_GRAVADOR) { CP_GRAVADOR.stop(); return; }
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch (x) { aviso('Sem acesso ao microfone. Libere no navegador.', 'erro'); return; }
+  const mime = MediaRecorder.isTypeSupported('audio/ogg; codecs=opus') ? 'audio/ogg; codecs=opus' : MediaRecorder.isTypeSupported('audio/webm; codecs=opus') ? 'audio/webm; codecs=opus' : '';
+  const pedacos = [];
+  CP_GRAVADOR = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+  CP_GRAVADOR.ondataavailable = (ev) => { if (ev.data && ev.data.size) pedacos.push(ev.data); };
+  CP_GRAVADOR.onstop = () => {
+    stream.getTracks().forEach((t) => t.stop());
+    CP_GRAVADOR = null;
+    btn.textContent = '🎙️'; btn.title = 'Gravar áudio';
+    const chat = CHATS_AGRUPADOS.find((x) => x.celular === CHAT_SELECIONADO_CEL);
+    if (!chat || !confirm(`Enviar o áudio para ${tit(chat.quem)}?`)) return;
+    const rd = new FileReader();
+    rd.onload = () => enviarNaConversa({ audio_base64: rd.result });
+    rd.readAsDataURL(new Blob(pedacos, { type: mime || 'audio/webm' }));
+  };
+  CP_GRAVADOR.start();
+  btn.textContent = '⏹️'; btn.title = 'Parar e enviar';
+};
 
 // Filtros do Inbox
 document.querySelectorAll('.filter-chips .chip').forEach((c) => {
@@ -2233,8 +2460,8 @@ if ($('bc-btn-cancelar')) {
 if ($('bc-btn-enviar')) {
   $('bc-btn-enviar').onclick = async () => {
     const modelo = ($('bc-texto')?.value || '').trim();
-    if (!modelo && !BC_ANEXO_ATUAL && !BC_AUDIO_BASE64) {
-      aviso('Digite uma mensagem, anexe um arquivo ou grave um áudio antes de enviar.', 'erro');
+    if (!modelo && !BC_ANEXO_ATUAL && !BC_AUDIO_BASE64 && !BC_FIGURINHA) {
+      aviso('Digite uma mensagem, anexe um arquivo, grave um áudio ou escolha uma figurinha antes de enviar.', 'erro');
       return;
     }
     const dests = obterDestinatariosComunicado();
@@ -2245,7 +2472,8 @@ if ($('bc-btn-enviar')) {
     const resumoMidia = [
       modelo ? 'texto' : '',
       BC_ANEXO_ATUAL ? `anexo (${BC_ANEXO_ATUAL.nome})` : '',
-      BC_AUDIO_BASE64 ? 'áudio gravado' : ''
+      BC_AUDIO_BASE64 ? 'áudio gravado' : '',
+      BC_FIGURINHA ? 'figurinha' : ''
     ].filter(Boolean).join(' + ');
 
     if (!confirm(`Confirmar o disparo automático (${resumoMidia}) para ${dests.length} contato(s) (intervalo de 3,5s por mensagem)?`)) return;
@@ -2287,6 +2515,7 @@ if ($('bc-btn-enviar')) {
           texto: textoFinal,
           anexo: BC_ANEXO_ATUAL,
           audio_base64: BC_AUDIO_BASE64,
+          figurinha: BC_FIGURINHA,
           tipo: 'comunicado_diretoria'
         });
         if (r.ok) enviadosOk++;
@@ -2709,8 +2938,8 @@ function renderizarFigurinhas() {
           <a href="/jota/figurinhas/${esc(f.id)}.webp" target="_blank" class="link-btn" style="flex:1; text-align:center; font-size:11px; padding:5px 8px;">
             🔍 Abrir WebP
           </a>
-          <button class="pri" style="font-size:11px; padding:5px 10px;" onclick="navigator.clipboard.writeText('${esc(f.id)}'); aviso('ID copiado: ${esc(f.id)}', 'ok');">
-            📋 Copiar ID
+          <button class="pri" style="font-size:11px; padding:5px 10px;" onclick="enviarFigurinhaDaGaleria('${esc(f.id)}')">
+            Enviar na conversa aberta
           </button>
         </div>
       </div>

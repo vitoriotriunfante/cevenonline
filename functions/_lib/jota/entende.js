@@ -525,7 +525,8 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   if (/OFERECER|O QUE (EU )?(POSSO |DEVO )?(VENDER|LEVAR) (PRO|PARA|NO|NA)|SUGESTAO PARA O CLIENTE|(LEVAR|SUGERIR) (PRO|PARA O|PARA A|NO|NA) |PRODUTOS? (LEVAR|OFERECER|SUGERIR)/.test(t)) { const r = await respOferecer(B, E, t); if (r) return r; }
   // ATALHOS NUMÉRICOS 1, 2, 3... (Vitório, 29/10/2026: "para ver do vendedor X digite 1, do vendedor Y digite 2... bora ajudar"):
   // Quando o usuário responde apenas com um número (ex: "1", "2", "10") e a última resposta listou vendedores numerados
-  const mNumOpcao = t.match(/^\W*([1-9]|1[0-9]|20)\W*$/);
+  // "6" e "(6)" em seguida contam como um so numero (Rogerio/TPA, 31/10/2026)
+  const mNumOpcao = t.match(/^\W*([1-9]|1[0-9]|20)(?:\W+\1)*\W*$/);
   if (mNumOpcao && B.ultOut) {
     const nEsc = Number(mNumOpcao[1]);
     const regexLinha = /(?:[1-9]️⃣|10️⃣|\b(?:[1-9]|1[0-9]|20)\.)\s*\*([^*]+)\*/g;
@@ -546,6 +547,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
       } else {
         t = `vendedor ${nomeAlvo}`;
       }
+      t = sem(t);   // as regras abaixo so reconhecem maiuscula sem acento: em minuscula a curva negativa virava o resumo do vendedor
     }
   }
   let pessoa = achaPessoa(E, t);
@@ -569,7 +571,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
     ].join('\n');
   }
   // "CLIENTES <VENDEDOR> [hoje|ontem|acumulado/mes]" (27/10/2026): quem comprou, quem nao (e ha quantos dias), quem foi visitado, quantos ja compraram
-  if (pessoa && pessoa.tipo === 'vend' && /^(OS )?CLIENTES?\b|\bCLIENTES (D[AOE]|DA VENDEDORA|DO VENDEDOR)\b/.test(t) && !/PRODUTO|SKU|\bMIX\b|RECORRENCIA|PAROU|COMPRAVA|INDUSTRIA|CHE?C?K|JUSTIF|MOTIVO|QUANTOS CLIENTES.{0,70}ROTA|SEM COMPRA|NAO COMPR|NAO VEND|NAO POSITIV|CURVA/.test(t)) {
+  if (pessoa && pessoa.tipo === 'vend' && /^(OS )?CLIENTES?\b|\bCLIENTES (D[AOE]|DA VENDEDORA|DO VENDEDOR)\b/.test(t) && !/PRODUTO|SKU|\bMIX\b|RECORRENCIA|PAROU|COMPRAVA|INDUSTRIA|CHE?C?K|JUSTIF|MOTIVO|QUANTOS CLIENTES.{0,70}ROTA|SEM COMPRA|NAO COMPR|NAO VEND|NAO POSITIV|CURVA|POSITIV\w*\b.{0,50}\bFALTAM?\b/.test(t)) {
     const per = /\bONTEM\b/.test(t) ? 'ontem' : /ACUMULAD|\bMES\b|OUTUBRO|CARTEIRA/.test(t) ? 'mes' : 'hoje';
     return respClientesVend(B, pessoa.alvo, per);
   }
@@ -615,7 +617,9 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   const ehCurvaOuInativoVend = (
     (pessoa && pessoa.tipo === 'vend' && /^(E )?(O |NO |DO |E NO )?MES\W*$|COMO (FOI|ESTA|TA|VAI) O MES|^E NO MES|\bE (O |NO )?MES\W*$/.test(t)) ||
     (pessoa && pessoa.tipo === 'vend' && /DESDE O DIA|NO MES|DO MES|ESTE MES|ESSE MES|NESTE MES|CURVA NEGATIVA|ATE HOJE|SEM COMPRA|AINDA NAO (VENDEU|COMPROU)|RELACAO D[OE] (TODOS )?(OS )?CLIENTES|LISTA COMPLETA|\bINATIV(OS?|AS?)?\b/.test(t) && /NAO VEND|NAO COMPR|SEM VENDA|SEM PEDIDO|CURVA|NAO POSITIV|SEM COMPRA|\bINATIV(OS?|AS?)?\b/.test(t)) ||
-    (pessoa && pessoa.tipo === 'vend' && /FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA|\bINATIV(OS?|AS?)?\b/.test(t))
+    (pessoa && pessoa.tipo === 'vend' && /FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA|\bINATIV(OS?|AS?)?\b/.test(t)) ||
+    // Igor/TBL, 31/10/2026: "quais clientes falta para o Isidio positivar", "positivacao quais sao os clientes do Isidio que faltam" caiam na rota de hoje
+    (pessoa && pessoa.tipo === 'vend' && /CLIENTES?|QUAIS|QUEM/.test(t) && /\bFALTAM?\b.{0,40}\bPOSITIV|\bPOSITIV\w*\b.{0,50}\bFALTAM?\b/.test(t))
   );
   if (ehCurvaOuInativoVend) {
     const v = pessoa.alvo, m = v.mesV || {};
@@ -660,7 +664,9 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
       const lista = nao.slice(ini, fim);
       const sobra = nao.length - fim;
       return [`📉 *Curva negativa — ${v.rca} - ${titulo(v.nome)}* (${v.filial})` + (ini > 0 ? ` _(continuação: ${ini + 1}º ao ${Math.min(fim, nao.length)}º)_` : ''),
-        `Carteira do mês: *${cli.size} clientes* · já compraram: *${cli.size - nao.length}* · *ainda não compraram: ${nao.length}*`, '',
+        `Carteira do mês: *${cli.size} clientes* · já compraram: *${cli.size - nao.length}* · *ainda não compraram: ${nao.length}*`,
+        // duas bases do CEVEN com contas diferentes (Igor/TBL, 31/10/2026: 49 de 51 no roteiro x 31 de 44 no painel): mostra as duas, nunca uma so
+        v.pos != null && v.metaPos != null ? `_Painel do CEVEN: positivação ${v.pos} de ${Math.round(v.metaPos)}. Esta lista segue o roteiro do mês, que é outra conta._` : '', '',
         ...(lista.length ? ['_Cliente · Última compra · Dias sem compra_'] : []),
         ...lista.map((x) => `${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} · ${x.u ? x.u.slice(8, 10) + '/' + x.u.slice(5, 7) + ' · ' + x.d + ' dias' : '— · +60 dias'}`),
         sobra > 0 ? `… e mais ${sobra} (peça "ver mais")` : '', '',
@@ -820,7 +826,11 @@ export async function respondeIA(env, B, c, texto, historico) {
   const ehExecutivo = c.papel === 'diretoria' || c.papel === 'ceo' || c.papel === 'gerente';
 
   if (ehExecutivo) {
+    // quem falta positivar, por vendedor (31/10/2026: sem isso a estrategia so dizia "levantar a lista"); a pergunta passa pelo mesmo escopo de quem perguntou
+    let baseFaltaPos = '';
+    try { baseFaltaPos = String(await respostaPronta(B, c, `quem falta positivar${ec.fil ? ' em ' + ec.fil : ''}`, []) || ''); } catch (e) {}
     const dossieExecutivo = [
+      baseFaltaPos ? `=== CLIENTES DA CARTEIRA SEM COMPRA NO MÊS, POR VENDEDOR (roteiro do mês; é outra conta, não é a positivação do painel) ===\n${baseFaltaPos}` : '',
       `=== RESUMO DO MÊS (${escIA.nome}) ===\n${baseResumo}`,
       baseHoje ? `=== RESULTADO DE HOJE / ROTA ===\n${baseHoje}` : '',
       baseFalta ? `=== RITMO E QUANTO FALTA PRA META ===\n${baseFalta}` : '',
@@ -833,7 +843,8 @@ Quem está conversando com você agora é um EXECUTIVO: ${titulo(c.nome)} (Cargo
 
 SUA MISSÃO COM GERENTES, DIRETORIA E CEO:
 1. Você é uma IA Generativa REAL, consultiva, analítica e estratégica. Responda a QUALQUER pergunta que o executivo fizer — especialmente sobre estratégia comercial, onde atacar, diagnóstico de queda, plano de ação para bater meta, priorização de equipes/supervisores, positivação, faturamento, mix, rotas ou gestão de vendas.
-2. NUNCA deixe de responder e NUNCA dê respostas robóticas do tipo "não tenho esse dado, peça ajuda". Racione em cima do DOSSIÊ DE DADOS REAIS abaixo e responda exatamente o que foi perguntado com inteligência comercial de alto nível.
+2. Raciocine em cima do DOSSIÊ DE DADOS REAIS abaixo e responda exatamente o que foi perguntado com inteligência comercial de alto nível. Se um dado necessário não estiver no dossiê, diga claramente qual falta e responda com o que existe; nunca o preencha com suposição.
+Agora é ${hojeSP().split('-').reverse().join('/')}, ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', hour12: false })}h em Brasília: use o cumprimento certo para essa hora. Negrito só em títulos e números-chave, nunca na frase inteira.
 3. Use APENAS os números reais presentes no dossiê abaixo (nunca invente números ou clientes fictícios), mas faça diagnósticos, cruzamentos, cálculos de gap, alavancas táticas e recomendações estratégicas profundas para ajudar na tomada de decisão.
 4. Faturado e Pendente devem ser analisados com clareza.
 5. Formatação para WhatsApp: use *negrito* com UM asterisco, tópicos claros e objetivos (pode usar até 25–35 linhas quando a pergunta pedir estratégia ou análise detalhada). Termine com "🎯 *Plano de Ação Recomendado:*" com ações práticas imediatas.
@@ -851,20 +862,22 @@ ${dossieExecutivo}`;
     }
     if (apiKey) {
       try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
         const histTxt = (historico || []).map((h) => `${h.role === 'user' ? 'Executivo' : 'Jota'}: ${h.content}`).join('\n');
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ role: 'user', parts: [{ text: `${sysExec}\n\n${histTxt ? '--- HISTÓRICO RECENTE ---\n' + histTxt + '\n\n' : ''}--- PERGUNTA ATUAL DO EXECUTIVO ---\n"${texto}"` }] }],
-            generationConfig: { temperature: 0.25, maxOutputTokens: 1400 }
+            // o "pensar" do Gemini 2.5 consome este limite: com 1400 a resposta saiu cortada ("clientes que falt", Vitorio, 31/10/2026)
+            generationConfig: { temperature: 0.25, maxOutputTokens: 6000, thinkingConfig: { thinkingBudget: 1024 } }
           })
         });
         if (res.ok) {
           const data = await res.json();
-          const txtG = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (txtG) return txtG.trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, '');
+          const cand = data?.candidates?.[0];
+          const txtG = (cand?.content?.parts || []).map((p) => p.text || '').join('');
+          if (txtG && cand.finishReason !== 'MAX_TOKENS') return txtG.trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, '');
         }
       } catch (e) {}
     }

@@ -326,51 +326,9 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
     alvoVend = V.find((v) => String(v.rca) === String(E.vend[0].rca) && v.filial === E.vend[0].filial);
   }
 
-  // Tenta puxar direto da API do CEVEN se houver vendedor alvo
+  // Base unica: so le a base; a chamada ao CEVEN daqui foi retirada em 31/10/2026 (docs/BASE_UNICA.md)
   if (alvoVend) {
-    let prospectsAoVivo = [];
-    try {
-      const url = `https://ceven.drivetriunfante-locomotiva.com.br/api/ceven/prospeccao-roteiro?cod_rca=${alvoVend.rca}&hoje=1&max=15`;
-      const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), 2000);
-      const res = await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'Mozilla/5.0' } });
-      clearTimeout(tid);
-      if (res.ok) {
-        const d = await res.json();
-        if (d && Array.isArray(d.prospects) && d.prospects.length) {
-          prospectsAoVivo = d.prospects;
-        }
-      }
-    } catch (e) {}
-
-    if (filtroSeg && prospectsAoVivo.length) {
-      const filtrados = prospectsAoVivo.filter((p) => filtroSeg.test(p.cnae_desc || '') || filtroSeg.test(p.familia || '') || filtroSeg.test(p.razao || '') || filtroSeg.test(p.nome || ''));
-      if (filtrados.length) prospectsAoVivo = filtrados;
-    }
-
-    if (prospectsAoVivo.length) {
-      return [
-        `📍 *Clientes para Prospecção no Mapa — ${vn(alvoVend)}* (${alvoVend.filial})${nomeFiltroSeg ? ` [Foco: ${nomeFiltroSeg}]` : ''}`,
-        `Leitura ao vivo do CEVEN Mapas (no trajeto da rota de hoje):`,
-        '',
-        ...prospectsAoVivo.slice(0, 5).map((p, i) => {
-          const rz = titulo(p.razao || p.nome || 'Cliente Potencial');
-          const end = p.endereco ? ` · ${p.endereco}` : '';
-          const cnae = p.cnae_desc || p.familia || 'Comércio';
-          const tel = p.telefone || p.celular || p.fone;
-          const telLinha = tel ? `\n   📞 ${tel}` : '';
-          const mapsLink = (p.lat && p.lon) ? `https://maps.google.com/?q=${p.lat},${p.lon}` : `https://maps.google.com/?q=${encodeURIComponent((p.razao || p.nome || '') + ' ' + (alvoVend.filial || ''))}`;
-          const cnpjFmt = p.cnpj && String(p.cnpj).replace(/\D/g, '').length === 14
-            ? String(p.cnpj).replace(/\D/g, '').replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
-            : (p.cnpj || '—');
-          return `${i + 1}. *${rz}* (${cnae})\n   📍 CNPJ: ${cnpjFmt}${end}${telLinha}\n   🌐 *Ir até o cliente:* ${mapsLink}`;
-        }),
-        '',
-        SUGESTAO + 'visitar esses pontos no caminho da rota e cadastrar direto no LinkUp para garantir o bônus de ativação!'
-      ].join('\n');
-    }
-
-    // Fallback: busca nos pontos não-positivados da rota do vendedor no dados_mix.json
+    // pontos da rota do vendedor no dados_mix.json
     let pontosProspect = (alvoVend.pontos || []).filter((p) => p[2] === 0 && p[5] !== 'N/D');
     if (filtroSeg && pontosProspect.length) {
       const filtrados = pontosProspect.filter((p) => filtroSeg.test(p[4] || '') || filtroSeg.test(p[5] || ''));
@@ -413,7 +371,7 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
       ].join('\n');
     }
 
-    return `📍 *Prospecção no Mapa — ${vn(alvoVend)}*: o mapa do CEVEN está processando a rota de hoje para este vendedor. Me pergunte de novo em instantes!`;
+    return `📍 *Prospecção no Mapa — ${vn(alvoVend)}*: sem pontos de prospecção na base para este vendedor agora.`;
   }
 
   // Visão equipe / supervisor
