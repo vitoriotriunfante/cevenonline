@@ -453,6 +453,13 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // AUDITORIA 26/10/2026 (Priscila, Leandro, Vitorio): "digitados/citados do mes" = pedidos do mes dia a dia; faturamento do mes / faturamento e positivacao /
   // faturamento atualizado = resumo completo; "como esta a rota hoje" = hoje so varejo de rota.
   if (/DIGITAD|CITAD/.test(t) && /\bMES\b|OUTUBRO|NOVEMBRO|DEZEMBRO/.test(t) && !pedePeriodo(t)) return respPeriodoDias(B, E, t, { de: 1, ate: null });
+  // POSITIVACAO/VENDA DE HOJE (Diego/TBE, 31/10/2026: "positivacao e venda TBE hoje" respondeu o mes): "hoje" manda; o mes vai numa linha so
+  if (/POSITIV/.test(t) && /\b(HOJE|HJ)\b/.test(t) && !/\bMES\b|QUEM|QUAIS|FALTA|ROTA|SEM COMPRA/.test(t) && !achaPessoa(E, t)) {
+    let posHoje = 0, tem = false;
+    for (const f of E.filiais) { const s = await B.snap(f).catch(() => null); for (const v of E.vend.filter((x) => x.filial === f)) { const d = s && s.rcas && s.rcas[v.rca] && s.rcas[v.rca].produtividade && s.rcas[v.rca].produtividade.dia; if (d && d.positivacao != null) { posHoje += Number(d.positivacao) || 0; tem = true; } } }
+    const mes = E.vend.reduce((a, v) => ({ p: a.p + (v.pos || 0), m: a.m + (v.metaPos || 0) }), { p: 0, m: 0 });
+    return [`👥 *Positivação hoje — ${E.nome}:* ${tem ? `*${N(posHoje)}* clientes` : 'sem dado agora'}`, `_No mês: ${N(mes.p)} de ${N(Math.round(mes.m))}._`, '', await respHoje(B, E, 'HOJE')].join('\n');
+  }
   // "MEUS ULTIMOS PEDIDOS" do vendedor: pedido_status (indice por filial) so com o codigo dele
   if (E.rca && E.vend[0] && /\bMEUS?\b.{0,20}PEDIDOS?|^(ULTIMOS? )?PEDIDOS\W*$/.test(t) && !/PENDENT|BLOQUEAD|LIBERAD|HOJE|CORT/.test(t) && B.env && B.env.DB) {
     try { const { results: mp } = await B.env.DB.prepare('SELECT num, data_pedido, status, valor FROM pedido_status WHERE filial = ? AND rca = ? ORDER BY data_pedido DESC LIMIT 10').bind(String(E.vend[0].filial), String(E.rca)).all();
