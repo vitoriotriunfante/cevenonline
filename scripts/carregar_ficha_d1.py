@@ -32,10 +32,12 @@ def mes_antes(n):
     while m < 1: a, m = a - 1, m + 12
     return '%04d-%02d' % (a, m)
 meses3 = [mes_antes(3), mes_antes(2), mes_antes(1)]
-por_cli_mes, vend, ped_cortes = {}, {}, []   # gap x media de 3 meses e cortes do mes, por vendedor
+por_cli_mes, vend, ped_cortes, meses_vend = {}, {}, [], {}   # gap x media de 3 meses e cortes do mes, por vendedor
 for p in db.execute("SELECT * FROM pedidos_historico WHERE data_pedido >= '2020-01-01' AND data_pedido <= ? ORDER BY data_pedido DESC", ((hoje + datetime.timedelta(days=120)).isoformat(),)):   # data futura = pedido programado, com status AGUARDANDO_WINTHOR (real, 31/10/2026)
     k = (p['filial_sigla'], str(p['id_cliente']))
     rk = (p['filial_sigla'], str(p['rca_id'])); m = p['data_pedido'][:7]
+    if p['status_pedido'] != 'CANCELADO' and m <= mes_atual:   # meses anteriores do vendedor ("fechamento de setembro", 31/10/2026)
+        mm = meses_vend.setdefault(rk, {}).setdefault(m, {'v': 0, 'f': 0, 'n': 0, 'c': set()}); mm['v'] += p['total_clube'] or 0; mm['f'] += p['vl_faturado'] or 0; mm['n'] += 1; mm['c'].add(str(p['id_cliente']))
     if p['status_pedido'] != 'CANCELADO' and (m == mes_atual or m in meses3):
         c = por_cli_mes.setdefault((rk, str(p['id_cliente'])), {'nome': p['nome_cliente']}); c[m] = c.get(m, 0) + (p['total_clube'] or 0)
     if m == mes_atual and p['categoria_corte'] and p['categoria_corte'] != 'SEM CORTE': ped_cortes.append((rk, p['chave'], p['num_pedido'], p['data_pedido'], p['nome_cliente'], p['categoria_corte']))
@@ -53,7 +55,9 @@ for (rk, cli), c in por_cli_mes.items():
     media = sum(c.get(m, 0) for m in meses3) / 3
     gap = media - c.get(mes_atual, 0)
     if media > 0 and gap > 0: vend.setdefault(rk, {'cortes': [], 'gaps': []})['gaps'].append({'id': cli, 'nome': c['nome'], 'media': round(media, 2), 'mes': round(c.get(mes_atual, 0), 2), 'gap': round(gap, 2)})
+for rk in meses_vend: vend.setdefault(rk, {'cortes': [], 'gaps': []})
 for rk, x in vend.items():
+    x['hist_meses'] = {m: {'valor': round(y['v'], 2), 'faturado': round(y['f'], 2), 'pedidos': y['n'], 'clientes': len(y['c'])} for m, y in sorted(meses_vend.get(rk, {}).items())}
     x['gaps'] = sorted(x['gaps'], key=lambda g: -g['gap'])[:30]; x['cortes'] = x['cortes'][:40]; x['meses'] = ', '.join(meses3)
     fichas[(rk[0], '_VEND_' + rk[1])] = dict(x, ped=[], chaves=[])
 for f in fichas.values():
