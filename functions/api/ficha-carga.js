@@ -31,7 +31,7 @@ export async function onRequestPost({ request, env }) {
   }
   if (P.length) {
     await tabelaProsp(env.DB);
-    await env.DB.batch(P.map((x) => env.DB.prepare('INSERT INTO prospects_mapa (filial, rca, cnpj, json, em) VALUES (?,?,?,?,?) ON CONFLICT (filial, rca, cnpj) DO UPDATE SET json = excluded.json, em = excluded.em').bind(String(x.filial), String(x.rca), String(x.cnpj), JSON.stringify(x.dados), agora)));
+    await env.DB.batch(P.map((x) => env.DB.prepare('INSERT INTO prospects_mapa (filial, rca, cnpj, json, em) VALUES (?,?,?,?,?) ON CONFLICT (filial, rca, cnpj) DO NOTHING').bind(String(x.filial), String(x.rca), String(x.cnpj), JSON.stringify(x.dados), agora)));
   }
   if (b.limpar_prospects_antes) { await tabelaProsp(env.DB); await env.DB.prepare('DELETE FROM prospects_mapa WHERE em < ?').bind(String(b.limpar_prospects_antes)).run(); }
   return r({ ok: true, fichas: F.length, prospects: P.length });

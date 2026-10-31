@@ -94,7 +94,7 @@ try:
     P = [{'filial': r['filial'], 'rca': str(r['rca_codigo']), 'cnpj': str(r['cnpj']), 'dados': {'razao': r['razao_social'], 'fantasia': r['nome_fantasia'], 'cnae': r['cnae_desc'], 'end': r['endereco'], 'bairro': r['bairro'], 'mun': r['municipio'], 'tel': r['telefone'], 'km': r['distancia_km'], 'motivo': r['motivo'], 'lat': r['latitude'], 'lon': r['longitude']}} for r in db.execute('SELECT * FROM prospects_mapa_radar')]
     print('prospects', len(P))
     if P and not ENSAIO:
+        # ACUMULA (Vitorio, 31/10/2026: "os prospects se repetem ao longo dos dias, nao precisaria gravar de novo"): o coletor le so a rota do dia e apaga a tabela dele; aqui nada e apagado e o repetido nao regrava
         for i in range(0, len(P), 200): chama('POST', '', {'prospects': P[i:i + 200]})
-        chama('POST', '', {'limpar_prospects_antes': inicio})   # so depois de gravar: quem saiu da lista sai da tabela
 except sqlite3.OperationalError as e:
     print('sem prospects:', e)
