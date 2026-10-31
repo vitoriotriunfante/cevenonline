@@ -56,7 +56,8 @@ export async function gravaStatusPedidos(env, filialKey, rca, idCliente, visitas
   for (const v of V) {
     const num = String(v.num_pedido), status = String(v.status_pedido).toUpperCase().trim(), ant = antes.get(num);
     const cort = Array.isArray(v.itens_cortados) ? v.itens_cortados.length : 0;
-    const donoRca = rcaDoPedido(num) || String(rca);
+    // o vendedor lido manda quando o numero do pedido comeca com o codigo dele; sem isso "5500001020" virava RCA 5500, que nao existe (31/10/2026)
+    const donoRca = rca && num.startsWith(String(rca)) ? String(rca) : (rcaDoPedido(num) || String(rca));
     st.push(env.DB.prepare(`INSERT INTO pedido_status (num, filial, rca, id_cliente, data_pedido, status, valor, valor_winthor, categoria_corte, itens_cortados, final, primeiro_em, atualizado_em, rechecado_em)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (num) DO UPDATE SET rca = excluded.rca, status = excluded.status, valor = excluded.valor, valor_winthor = excluded.valor_winthor,
       categoria_corte = excluded.categoria_corte, itens_cortados = excluded.itens_cortados, final = excluded.final, rechecado_em = excluded.rechecado_em,
