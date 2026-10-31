@@ -375,6 +375,14 @@ async function coletaPedidosDoDia(env, dataRef) {
 export async function onRequestGet({ env, request }) {
   const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 (env.DB) não configurado' }), { status: 503, headers: cors });
+  // DIAGNOSTICO (?diag=1): uma chamada de cada caminho, com status e tempo, sem gravar nada
+  if (new URL(request.url).searchParams.get('diag') === '1') {
+    const out = {}, mede = async (nome, url, h) => { const t = Date.now(); try { const r = await fetch(url, { headers: h, signal: AbortSignal.timeout(15000) }); const x = await r.text(); out[nome] = { http: r.status, ms: Date.now() - t, bytes: x.length, reset: r.headers.get('x-ratelimit-reset') }; } catch (e) { out[nome] = { erro: e.name, ms: Date.now() - t }; } };
+    await mede('produtividade', `${CEVEN}/api/rca/produtividade?filial=tbl1&id=185`, HDR);
+    const tk = await tokenDoAdmin(env).catch(() => null); out.token_admin = !!tk;
+    if (tk) await mede('view_as', `${CEVEN}/api/admin/view-as/rca/dashboard?filial=tbl1&id=185`, { ...HDR, Authorization: `Bearer ${tk}` });
+    return new Response(JSON.stringify(out), { headers: cors });
+  }
   const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: cors });
 
   const t0 = Date.now();
@@ -481,7 +489,10 @@ export async function onRequestGet({ env, request }) {
     for (const c of cs || []) { const j = JSON.parse(c.json); for (const s of j.supervisores || []) for (const v of (s.tabelas && s.tabelas.produtividade) || []) if (v && v.id != null) feitasGer.set(String(v.id), Number(v.visit_real_hoje) || 0); }
   } catch (e) { /* tabela ainda nao existe no primeiro tick */ }
 
-  const completa = forcar || filialParam || ant.size < Math.ceil(rcas.length * 0.5);   // partida a frio ou recuperacao
+  // RECUPERACAO SOZINHA (31/10/2026: das 14:31 em diante o tick fez 48 chamadas com 0 sucesso por rodada e a base parou, enquanto a varredura completa funcionava): 2 ticks seguidos sem nenhum sucesso = esta rodada vai pela completa
+  let tickTravado = false;
+  try { const { results: ult } = await env.DB.prepare("SELECT ok, chamadas FROM saude_coleta WHERE modo = 'tick' ORDER BY id DESC LIMIT 2").all(); tickTravado = !filialParam && (ult || []).length === 2 && ult.every((x) => !x.ok && x.chamadas > 0); } catch { /* segue o normal */ }
+  const completa = forcar || filialParam || tickTravado || ant.size < Math.ceil(rcas.length * 0.5);   // partida a frio ou recuperacao
   const dono = (completa ? 'completa:' : 'tick:') + (filialParam ? filialParam + ':' : '') + t0;
   const slot = filialParam ? { ciclo: 1 } : await tomaSlot(env, dono, completa ? SLOT_COMPLETA_S : SLOT_TICK_S);
   if (!slot) {
