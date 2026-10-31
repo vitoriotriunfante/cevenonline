@@ -431,6 +431,10 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // "+mix" + vendedor da conversa (o estado completa o texto com "vendedor 352 TCV"): mix da rota de hoje dele
   if (/^\W*(\+ ?)?(MIX|MAIS ?MIX)\b/.test(t) && !/METAS?\b|PREMIA|INDUSTRIA|EQUIPE|FILIAL|BRASIL/.test(t)) { const Ea = await carregaEscopo(B, esc), pa = achaPessoa(Ea, t); if (pa && pa.tipo === 'vend') return respMixRotaHoje(B, pa.alvo); }
   if (/^\W*(\+ ?)?(MIX|MAIS ?MIX)\W*(DELES|DESSES|DESTES|PARA ELES|DESSES CLIENTES|DOS \d+|DELA|DELE)?\W*$|^(E )?O MIX (DELES|DESSES|DOS \d+)/.test(t) && (anteriores || []).length) { const ant = sem(String(anteriores[0] || '')); if (/ROTA|CLIENTES?|HOJE|VISITA|VENDEDOR|COMO ESTA/.test(ant)) {   /* 27/10/2026: "clientes giovana tlb hoje" -> "+mix" ia para o Brasil (so aceitava "rota") */ const Ea = await carregaEscopo(B, esc); const pa = achaPessoa(Ea, ant) || (Ea.rca && Ea.vend[0] ? { tipo: 'vend', alvo: Ea.vend[0] } : null); if (pa && pa.tipo === 'vend') return respMixRotaHoje(B, pa.alvo); } }
+  // META DE MIX / FASEAMENTO / TICKET = KPIs da Premiacao, do vendedor citado ou da equipe (31/10/2026: "qual a meta de faseamento?" ficava sem resposta; "meta do mix da minha equipe" caia no ticket do dia)
+  if (/\bMETAS?\b/.test(t) && /\bMIX\b|FASEAMENTO|FASIAMENTO|FASAMENTO|TICKET/.test(t) && !/\+ ?MIX|MAIS ?MIX/.test(t)) {
+    const Ek = await carregaEscopo(B, esc); const rk = await respKpisPremiacao(B, Ek, t, achaPessoa(Ek, t)); if (rk) return rk;
+  }
   if (/\+ ?MIX|MAIS ?MIX|\bMIX\b/.test(t) && !/COMPROU|COMPRARAM|PRECO/.test(t) && !(/\bMETAS?\b|KPI|PREMIA/.test(t) && !/\+ ?MIX|MAIS ?MIX/.test(t))) {
     // 26/10/2026 (Cristiano, equipe AS: 'foco em mix' -> '0 de 0 clientes'): o +MIX (lista de recomendacao) cobre o varejo; sem dado de uso no escopo, mostra o
     // MIX DA PREMIACAO por vendedor (itens por cliente, todos os canais), nunca uma resposta vazia
