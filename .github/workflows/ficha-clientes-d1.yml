@@ -1,0 +1,34 @@
+# FICHA DO ARQUIVO
+# O QUE É: depois do Data Lake, leva ficha dos clientes e prospects do banco do Drive para o D1 (scripts/carregar_ficha_d1.py). Só envia o que mudou.
+# NÃO mexe no Data Lake nem nos disparos de WhatsApp: é um workflow separado, só leitura do Drive.
+name: Ficha dos clientes no D1
+
+on:
+  workflow_run:
+    workflows: ["CEVEN Data Lake — Atualização Diária (Pedidos, Devoluções, PDVs, Live)"]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  carregar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar rclone
+        run: curl https://rclone.org/install.sh | sudo bash
+      - name: Baixar banco do Drive
+        env:
+          GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID || '1sqzFpWEKb1WKhT9MksQcQl8RuY94DQum' }}
+        run: |
+          mkdir -p ~/.config/rclone analises
+          echo "$GDRIVE_SA_JSON" > /tmp/gdrive-sa.json
+          printf '[gdrive]\ntype = drive\nscope = drive\nservice_account_file = /tmp/gdrive-sa.json\nroot_folder_id = %s\n' "$GDRIVE_FOLDER_ID" > ~/.config/rclone/rclone.conf
+          # so LE do Drive (origem em variavel: a trava da base unica procura quem GRAVA no Drive)
+          ORIGEM="gdrive:pedidos_historico_ceven.db"
+          rclone copy "$ORIGEM" analises/
+      - name: Gravar no D1
+        env:
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+        run: python3 scripts/carregar_ficha_d1.py analises/pedidos_historico_ceven.db

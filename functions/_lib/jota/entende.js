@@ -229,6 +229,18 @@ async function respFichaCliente(B, E, t, achado) {
   const { c: x, v } = achado, nome = titulo(x.nome_cliente || x.razao_social || 'cliente');
   const oferta = () => respOferecer(B, E, `OFERECER ${String(x.cnpj || '').replace(/\D/g, '')}`).catch(() => null);
   if (FICHA_OFERTA.test(t)) return (await oferta()) || `🧺 *${nome}*: o +MIX não tem lista para este cliente agora.`;
+  // FICHA DO DATA LAKE (31/10/2026): pedidos, itens e o que parou de TODO cliente, 1 linha pela chave primaria; quem pergunta sendo vendedor ve so os pedidos dele
+  let fic = null;
+  try { const r = B.env && B.env.DB ? await B.env.DB.prepare('SELECT json FROM ficha_cliente WHERE filial = ? AND id_cliente = ?').bind(String(v.filial), String(x.id_cliente)).first() : null; if (r) fic = JSON.parse(r.json); } catch (e) { fic = null; }
+  if (fic) {
+    const dBr2 = (d) => d ? String(d).slice(8, 10) + '/' + String(d).slice(5, 7) + '/' + String(d).slice(0, 4) : 'sem data';
+    const Ps = (fic.ped || []).filter((p) => !E.rca || String(p.rca) === String(E.rca));
+    const cab2 = `🏪 *${nome}* (#${x.id_cliente} · ${v.filial} · ${vn(v)})`;
+    if (!Ps.length) return [cab2, E.rca ? 'Não tenho pedido deste cliente com o seu código no histórico.' : 'Não tenho pedido deste cliente no histórico.', '', SUGESTAO + 'peça "o que oferecer".'].join('\n');
+    const ult2 = `Última compra: *${dBr2(Ps[0].data)}* · ${R$(Ps[0].valor)}`, itens2 = (Ps[0].itens || []).map((s) => `• ${titulo(s.d)}: ${N(s.q)} un. · ${R$(s.v)}`), parou2 = (fic.parou || []).filter((s) => !E.rca || String(s.rca) === String(E.rca)).map((s) => `• ${titulo(s.d)} · última: ${dBr2(s.ult)}`);
+    if (FICHA_PEDIDOS.test(t)) return [cab2, '', '*Últimos pedidos:*', ...Ps.map((p) => `• ${dBr2(p.data)} · nº ${p.num} · ${R$(p.valor)} · ${titulo(String(p.status || 'sem status'))}${p.cortado > 0 ? ` · cortado ${R$(p.cortado)}` : ''}${E.rca ? '' : ` · ${p.rca}`}`), '', SUGESTAO + 'peça "o que oferecer" para a próxima visita.'].join('\n');
+    return [cab2, ult2, ...(itens2.length ? ['', '*O que comprou na última compra:*', ...itens2.slice(0, FICHA_ITENS.test(t) ? 25 : 8)] : []), ...(parou2.length ? ['', '*Comprava e não compra há mais de 60 dias:*', ...parou2.slice(0, 8)] : []), '', SUGESTAO + 'peça "o que oferecer" ou "últimos pedidos dele".'].join('\n');
+  }
   let h = null;
   try { const r = B.env && B.env.DB ? await B.env.DB.prepare('SELECT json, atualizado_em FROM historico_cliente WHERE filial = ? AND id_cliente = ?').bind(String(v.filial).toLowerCase() + '1', String(x.id_cliente)).first() : null; if (r) { h = JSON.parse(r.json); h.lido = r.atualizado_em; } } catch (e) { h = null; }
   const dBr = (d) => d ? String(d).slice(8, 10) + '/' + String(d).slice(5, 7) + '/' + String(d).slice(0, 4) : 'sem data';
@@ -441,6 +453,11 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // AUDITORIA 26/10/2026 (Priscila, Leandro, Vitorio): "digitados/citados do mes" = pedidos do mes dia a dia; faturamento do mes / faturamento e positivacao /
   // faturamento atualizado = resumo completo; "como esta a rota hoje" = hoje so varejo de rota.
   if (/DIGITAD|CITAD/.test(t) && /\bMES\b|OUTUBRO|NOVEMBRO|DEZEMBRO/.test(t) && !pedePeriodo(t)) return respPeriodoDias(B, E, t, { de: 1, ate: null });
+  // "MEUS ULTIMOS PEDIDOS" do vendedor: pedido_status (indice por filial) so com o codigo dele
+  if (E.rca && E.vend[0] && /\bMEUS?\b.{0,20}PEDIDOS?|^(ULTIMOS? )?PEDIDOS\W*$/.test(t) && !/PENDENT|BLOQUEAD|LIBERAD|HOJE|CORT/.test(t) && B.env && B.env.DB) {
+    try { const { results: mp } = await B.env.DB.prepare('SELECT num, data_pedido, status, valor FROM pedido_status WHERE filial = ? AND rca = ? ORDER BY data_pedido DESC LIMIT 10').bind(String(E.vend[0].filial), String(E.rca)).all();
+      if (mp && mp.length) return ['📦 *Seus últimos pedidos*', ...mp.map((p) => `• ${String(p.data_pedido).slice(8, 10)}/${String(p.data_pedido).slice(5, 7)} · nº ${p.num} · ${p.valor != null ? R$(p.valor) : 'sem valor'} · ${titulo(String(p.status || ''))}`)].join('\n'); } catch (e) { /* segue */ }
+  }
   // CLIENTE CITADO OU DA CONVERSA: nome/codigo na carteira de quem pergunta; "o que comprou", "o que oferecer", "ultimos pedidos" seguem com ele. "Meus pedidos" e do proprio vendedor.
   if (!/\bMEUS?\b|\bMINHAS?\b/.test(t)) {
     let fichaCli = clienteNaCarteira(E, t);

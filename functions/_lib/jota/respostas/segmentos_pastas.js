@@ -328,49 +328,14 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
 
   // Base unica: so le a base; a chamada ao CEVEN daqui foi retirada em 31/10/2026 (docs/BASE_UNICA.md)
   if (alvoVend) {
-    // pontos da rota do vendedor no dados_mix.json
-    let pontosProspect = (alvoVend.pontos || []).filter((p) => p[2] === 0 && p[5] !== 'N/D');
-    if (filtroSeg && pontosProspect.length) {
-      const filtrados = pontosProspect.filter((p) => filtroSeg.test(p[4] || '') || filtroSeg.test(p[5] || ''));
-      if (filtrados.length) pontosProspect = filtrados;
-    }
-    pontosProspect = pontosProspect.slice(0, 5);
-
-    // Tenta carregar telefones do banco se disponível
-    const mapaTels = new Map();
-    if (B.env && B.env.DB && pontosProspect.length) {
-      try {
-        const cnpjsLimpos = pontosProspect.map((p) => String(p[3]).replace(/\D/g, '')).filter((c) => c.length === 14);
-        if (cnpjsLimpos.length) {
-          const placeholders = cnpjsLimpos.map(() => '?').join(',');
-          const { results: pro } = await B.env.DB.prepare(`SELECT cnpj, telefone FROM prospects_receita WHERE cnpj IN (${placeholders})`).bind(...cnpjsLimpos).all();
-          for (const r of (pro || [])) if (r.telefone) mapaTels.set(String(r.cnpj).replace(/\D/g, ''), r.telefone);
-        }
-      } catch (e) {}
-    }
-
-    if (pontosProspect.length) {
-      return [
-        `📍 *Clientes para Prospecção no Mapa — ${vn(alvoVend)}* (${alvoVend.filial})${nomeFiltroSeg ? ` [Foco: ${nomeFiltroSeg}]` : ''}`,
-        `Oportunidades mapeadas pelo CEVEN na sua rota de atuação:`,
-        '',
-        ...pontosProspect.map((p, i) => {
-          const rz = titulo(p[5]);
-          const seg = p[4] || 'Varejo';
-          const cnpjLimpo = String(p[3] || '').replace(/\D/g, '');
-          const cnpjFmt = cnpjLimpo.length === 14
-            ? cnpjLimpo.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
-            : (p[3] || '—');
-          const tel = mapaTels.get(cnpjLimpo) || p[6];
-          const telLinha = tel ? `\n   📞 ${tel}` : '';
-          const mapsLink = (p[0] && p[1]) ? `https://maps.google.com/?q=${p[0]},${p[1]}` : `https://maps.google.com/?q=${encodeURIComponent(p[5] + ' ' + (alvoVend.filial || ''))}`;
-          return `${i + 1}. *${rz}* (${seg})\n   📍 CNPJ: ${cnpjFmt}${telLinha}\n   🌐 *Ir até o cliente:* ${mapsLink}`;
-        }),
-        '',
-        SUGESTAO + 'apresentar os itens líderes de giro do +MIX nesses estabelecimentos para abrir novos clientes!'
-      ].join('\n');
-    }
-
+    // PROSPECTS REAIS (31/10/2026): prospects_mapa, gravada do Data Lake (lista do CEVEN). Antes usava pontos da rota e mostrava cliente da carteira como se fosse novo.
+    let prs = [];
+    try { const db = B.env && B.env.DB; if (db) { const { results } = await db.prepare('SELECT cnpj, json FROM prospects_mapa WHERE filial = ? AND rca = ?').bind(String(alvoVend.filial), String(alvoVend.rca)).all(); prs = (results || []).map((r) => ({ cnpj: r.cnpj, ...JSON.parse(r.json) })).sort((a, b) => (a.km ?? 999) - (b.km ?? 999)); } } catch (e) { prs = []; }
+    if (filtroSeg && prs.length) { const fi = prs.filter((p) => filtroSeg.test(p.cnae || '') || filtroSeg.test(p.razao || '') || filtroSeg.test(p.fantasia || '')); if (fi.length) prs = fi; }
+    if (prs.length) return [
+      `📍 *Prospects — ${vn(alvoVend)}* (${alvoVend.filial})${nomeFiltroSeg ? ` [Foco: ${nomeFiltroSeg}]` : ''}`, `${prs.length} na lista do CEVEN; os 5 mais perto da rota:`, '',
+      ...prs.slice(0, 5).map((p, i) => `${i + 1}. *${titulo(p.fantasia || p.razao || 'Sem nome')}* (${p.cnae || 'sem CNAE'})\n   📍 CNPJ: ${p.cnpj}${p.km != null ? ' · ' + String(p.km).replace('.', ',') + ' km' : ''}${p.tel ? '\n   📞 ' + p.tel : ''}${p.lat && p.lon ? '\n   🌐 https://maps.google.com/?q=' + p.lat + ',' + p.lon : ''}`),
+      '', SUGESTAO + 'passar nesses pontos durante a rota e cadastrar no LinkUp.'].join('\n');
     return `📍 *Prospecção no Mapa — ${vn(alvoVend)}*: sem pontos de prospecção na base para este vendedor agora.`;
   }
 
