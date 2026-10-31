@@ -372,6 +372,34 @@ async function coletaPedidosDoDia(env, dataRef) {
   return { lidos, novos };
 }
 
+// RECHECAGEM ATE FATURAR (Vitorio, 31/10/2026: "pedido que identifiquei como bloqueado tenho que checar ate ele virar faturado"; 810 "bloqueados", a maioria ja faturada, quase geraram ligacao
+// a todos os gerentes). Era 4 clientes por rodada para 3 mil em aberto. Agora 1 chamada por vendedor atualiza TODOS os pedidos abertos dele; vai primeiro quem tem o pedido checado ha mais tempo.
+async function rechecaAbertosPorVendedor(env, limite = 6) {
+  if (Date.now() < banRcaAte) return { pulado: 'cota' };
+  const { results: V } = await env.DB.prepare("SELECT filial, rca, MIN(COALESCE(rechecado_em, '')) ult FROM pedido_status WHERE final = 0 AND data_pedido >= date('now', '-15 days') GROUP BY filial, rca ORDER BY MIN(CASE WHEN status LIKE 'BLOQ%' THEN 0 ELSE 1 END), ult LIMIT ?").bind(limite).all();
+  let lidos = 0, mudaram = 0;
+  const FINAL = /FATURAD|CANCELAD|DEVOLVID/i;
+  for (const x of V || []) {
+    const r = await fetch(`${CEVEN}/api/rca/historico-vendedor?filial=${String(x.filial).toLowerCase()}1&id=${x.rca}&expandido=true`, { headers: HDR, signal: AbortSignal.timeout(20000) }).catch(() => null);
+    if (!r) continue;
+    if (r.status === 429) { banRcaAte = Date.now() + ((Number(r.headers.get('x-ratelimit-reset')) || 30) + 2) * 1000; break; }
+    if (!r.ok) continue;
+    const j = await r.json().catch(() => null);
+    if (!j || !Array.isArray(j.ultimas_visitas)) continue;
+    const m = new Map(j.ultimas_visitas.filter((v) => v && v.num_pedido).map((v) => [String(v.num_pedido), v]));
+    const { results: ab } = await env.DB.prepare("SELECT num, status FROM pedido_status WHERE filial = ? AND rca = ? AND final = 0 AND data_pedido >= date('now', '-15 days')").bind(x.filial, x.rca).all();
+    const agora = new Date().toISOString(), st = [];
+    for (const p of ab || []) {
+      const v = m.get(p.num), novo = v && String(v.status_pedido || '').toUpperCase().trim();
+      if (novo && novo !== p.status) { mudaram++; st.push(env.DB.prepare('UPDATE pedido_status SET status = ?, final = ?, valor = COALESCE(?, valor), valor_winthor = COALESCE(?, valor_winthor), atualizado_em = ?, rechecado_em = ? WHERE num = ?').bind(novo, FINAL.test(novo) ? 1 : 0, Number(v.total_clube) || null, Number(v.vl_faturado_winthor) || null, agora, agora, p.num), env.DB.prepare('INSERT OR IGNORE INTO pedido_status_hist (num, status, visto_em) VALUES (?, ?, ?)').bind(p.num, novo, agora)); }
+    }
+    st.push(env.DB.prepare('UPDATE pedido_status SET rechecado_em = ? WHERE filial = ? AND rca = ? AND final = 0').bind(agora, x.filial, x.rca));   /* a fila anda mesmo sem mudanca; pedido fora da resposta volta na proxima volta */
+    for (let i = 0; i < st.length; i += 80) await env.DB.batch(st.slice(i, i + 80));
+    lidos++;
+  }
+  return { lidos, mudaram };
+}
+
 export async function onRequestGet({ env, request }) {
   const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 (env.DB) não configurado' }), { status: 503, headers: cors });
@@ -776,6 +804,7 @@ export async function onRequestGet({ env, request }) {
       contagem.supervisores = 'pulado_prazo';
     }
     if (Date.now() - t0 < 90000) { try { contagem.pedidos_dia = await coletaPedidosDoDia(env, dataRef); } catch (e) { contagem.pedidos_dia = { erro: String(e.message || e).slice(0, 80) }; } }
+    if (Date.now() - t0 < 95000) { try { contagem.recheca = await rechecaAbertosPorVendedor(env); } catch (e) { contagem.recheca = { erro: String(e.message || e).slice(0, 80) }; } }
     await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);
     let mapa = 'pulado';
     if (Date.now() - t0 < 85000) {

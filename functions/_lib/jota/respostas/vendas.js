@@ -300,7 +300,11 @@ export async function respPedidosStatus(B, E, t) {
   const porV = new Map(); for (const p of P) { const k = p.filial + '|' + p.rca; if (!porV.has(k)) porV.set(k, []); porV.get(k).push(p); }
   const tot = P.reduce((a, p) => a + (Number(p.total_clube || p.valor) || 0), 0);
   const cabeçalho = ehLiberado ? `💼 *Clientes com Pedidos Pendentes de Faturamento (Liberados) — ${E.nome}*` : ehBloqueado ? `🔒 *Pedidos Bloqueados por Crédito — ${E.nome}*` : `🧾 *Pedidos ${titulo0} — ${E.nome}*`;
-  const L = [cabeçalho, `Total: *${P.length} pedido(s)* · *${R$(tot)}*`, ''];
+  // STATUS COM IDADE (Vitorio, 31/10/2026: "ja ia ligar para todos os gerentes" por uma lista velha): diz quantos foram conferidos na ultima hora; nunca parece "agora" sem ser
+  const umaHora = Date.now() - 3600000, frescos = P.filter((p) => Number(p.analisado_em) >= umaHora).length;
+  const L = [cabeçalho, `Total: *${P.length} pedido(s)* · *${R$(tot)}*`, frescos === P.length ? '_Todos conferidos no CEVEN na última hora._' : `⚠️ *${P.length - frescos} de ${P.length} sem conferência na última hora: podem já ter mudado. Não use para cobrar antes de checar.*`];
+  if (E.nacional) { const pf = new Map(); for (const p of P) { const x = pf.get(p.filial) || { n: 0, v: 0 }; x.n++; x.v += Number(p.total_clube || p.valor) || 0; pf.set(p.filial, x); } L.push('', '*Por filial:*', ...[...pf].sort((a, b) => b[1].v - a[1].v).map(([f, x]) => `• *${f}*: ${x.n} pedido(s) · ${R$(x.v)}`)); }
+  L.push('');
   let n = 0;
   for (const [k, ps] of [...porV].sort((a, b) => b[1].length - a[1].length)) {
     const v = meus.get(k); L.push(`*${v ? vn(v) : 'RCA ' + k.split('|')[1]}${E.nacional ? ' ' + k.split('|')[0] : ''}* — ${ps.length} pedido(s)`);
@@ -308,7 +312,8 @@ export async function respPedidosStatus(B, E, t) {
       if (n++ >= 30) break;
       const dataStr = p.data && p.data !== hojeSP() ? ' (' + String(p.data).slice(8, 10) + '/' + String(p.data).slice(5, 7) + ')' : '';
       const corteStr = (p.itens_cortados || []).length ? ` · ✂️ ${p.itens_cortados.length} item(ns) cortado(s)` : '';
-      const horaStr = p.analisado_em ? ` _(lido ${hm(p.analisado_em)})_` : '';
+      const lidoHoje = p.analisado_em && new Date(p.analisado_em - 3 * 3600000).toISOString().slice(0, 10) === hojeSP();
+      const horaStr = p.analisado_em ? ` _(lido ${lidoHoje ? '' : new Date(p.analisado_em - 3 * 3600000).toISOString().slice(8, 10) + '/' + new Date(p.analisado_em - 3 * 3600000).toISOString().slice(5, 7) + ' '}${hm(p.analisado_em)})_` : '';
       const cNome = getNomeCli(p.filial, p.id_cliente);
       const cliStr = cNome ? `*${cNome}* (#${p.id_cliente})` : `cliente #${p.id_cliente}`;
       L.push(`• Pedido ${p.num}${dataStr} · ${cliStr} · *${R$(p.total_clube || p.valor)}* · ${p.status_pedido || (ehLiberado ? 'Liberado' : 'sem status')}${corteStr}${horaStr}`);
