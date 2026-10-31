@@ -2129,6 +2129,23 @@ function removerAudioComunicado() {
   if ($('bc-btn-gravar')) $('bc-btn-gravar').style.display = 'inline-flex';
 }
 
+function normalizarTelefoneBR(str) {
+  let d = String(str || '').replace(/\D/g, '');
+  if (!d) return '';
+  if (d.startsWith('0')) d = d.replace(/^0+/, '');
+  if ((d.length === 10 || d.length === 11) && !d.startsWith('55')) {
+    d = '55' + d;
+  }
+  return (d.length >= 12 && d.length <= 13 && d.startsWith('55')) ? d : '';
+}
+
+function variantesTelefoneBR(d) {
+  const out = new Set([d]);
+  if (d.length === 13 && d.startsWith('55') && d[4] === '9') out.add(d.slice(0, 4) + d.slice(5));
+  if (d.length === 12 && d.startsWith('55')) out.add(d.slice(0, 4) + '9' + d.slice(4));
+  return [...out];
+}
+
 function obterDestinatariosComunicado() {
   if (!DADOS_CONTATOS) return [];
   const porCel = new Map();
@@ -2145,16 +2162,17 @@ function obterDestinatariosComunicado() {
     }
   }
 
-  // 2. Números individuais digitados (se o chip "Número Individual" estiver ativo)
+  // 2. Números individuais digitados (separa apenas por vírgula, ponto-e-vírgula ou quebra de linha, preservando espaços/traços/parênteses dentro do número)
   if (BC_PAPEIS_SEL.has('individual')) {
-    const raw = ($('bc-cel-individual')?.value || '').split(/[,;\s]+/);
+    const raw = ($('bc-cel-individual')?.value || '').split(/[,;\n]+/);
     for (const item of raw) {
-      const cel = item.replace(/\D/g, '');
-      if (cel.length >= 10) {
-        const celNorm = cel.startsWith('55') ? cel : '55' + cel;
-        if (!porCel.has(celNorm)) {
-          const achou = (DADOS_CONTATOS.contatos || []).find((c) => c.celular === celNorm);
-          porCel.set(celNorm, achou || { celular: celNorm, nome: 'Contato Individual', filial: 'Triunfante', papel: 'individual' });
+      const celNorm = normalizarTelefoneBR(item);
+      if (celNorm) {
+        const vars = variantesTelefoneBR(celNorm);
+        const achou = (DADOS_CONTATOS.contatos || []).find((c) => vars.includes(c.celular));
+        const chave = achou ? achou.celular : celNorm;
+        if (!porCel.has(chave)) {
+          porCel.set(chave, achou || { celular: celNorm, nome: 'Contato Individual', filial: 'Triunfante', papel: 'individual' });
         }
       }
     }

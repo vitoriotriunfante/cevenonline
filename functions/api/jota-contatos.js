@@ -74,7 +74,9 @@ export async function onRequestPost({ request, env }) {
     return j({ ok: true, enviados });
   }
   if (b.acao === 'disparo_individual') {
-    const cel = so(b.celular);
+    let cel = so(b.celular);
+    if (cel.startsWith('0')) cel = cel.replace(/^0+/, '');
+    if ((cel.length === 10 || cel.length === 11) && !cel.startsWith('55')) cel = '55' + cel;
     const texto = String(b.texto || '').trim();
     const nome = String(b.nome || 'Contato').trim();
     const tipo = String(b.tipo || 'comunicado_diretoria').trim();
@@ -86,41 +88,54 @@ export async function onRequestPost({ request, env }) {
     }
 
     const cfg = R.evoCfg(env);
+    const alts = [cel];
+    if (cel.length === 13 && cel.startsWith('55') && cel[4] === '9') alts.push(cel.slice(0, 4) + cel.slice(5));
+    if (cel.length === 12 && cel.startsWith('55')) alts.push(cel.slice(0, 4) + '9' + cel.slice(4));
+
+    const evoTry = async (caminho, payloadBuilder) => {
+      for (const num of alts) {
+        const r = await R.evolution(cfg, caminho, payloadBuilder(num), 35000);
+        if (r.ok) return r;
+      }
+      return { ok: false };
+    };
+
     let ok = false;
 
     // 1. Se tiver anexo (imagem, pdf, planilha, vídeo, documento)
     if (anexo && anexo.base64) {
       const mtype = String(anexo.mimetype || 'application/octet-stream');
       const mediaType = mtype.startsWith('image/') ? 'image' : mtype.startsWith('video/') ? 'video' : 'document';
-      const rMedia = await R.evolution(cfg, '/message/sendMedia', {
-        number: cel,
+      const rMedia = await evoTry('/message/sendMedia', (num) => ({
+        number: num,
         mediatype: mediaType,
         mimetype: mtype,
         caption: texto || '',
         media: String(anexo.base64).replace(/^data:[^;]+;base64,/, ''),
         fileName: anexo.nome || 'arquivo'
-      }, 35000);
+      }));
       ok = !!rMedia.ok;
     } else if (texto) {
-      // 2. Se não tiver anexo, envia o texto normalmente
-      ok = await enviar(env, cel, texto);
+      // 2. Se não tiver anexo, envia o texto normalmente (tenta com e sem 9º dígito)
+      const rTxt = await evoTry('/message/sendText', (num) => ({ number: num, text: texto }));
+      ok = !!rTxt.ok;
     }
 
     // 3. Se tiver áudio gravado (nota de voz do WhatsApp), envia em seguida
     if (audioBase64) {
-      const rAudio = await R.evolution(cfg, '/message/sendWhatsAppAudio', {
-        number: cel,
-        audio: audioBase64.replace(/^data:[^;]+;base64,/, '')
-      }, 35000);
+      const limpoAudio = audioBase64.replace(/^data:[^;]+;base64,/, '');
+      const rAudio = await evoTry('/message/sendWhatsAppAudio', (num) => ({
+        number: num,
+        audio: limpoAudio
+      }));
       if (!rAudio.ok) {
-        // Fallback caso a versão da Evolution espere sendMedia com mediatype audio
-        const rFallback = await R.evolution(cfg, '/message/sendMedia', {
-          number: cel,
+        const rFallback = await evoTry('/message/sendMedia', (num) => ({
+          number: num,
           mediatype: 'audio',
           mimetype: 'audio/ogg; codecs=opus',
-          media: audioBase64.replace(/^data:[^;]+;base64,/, ''),
+          media: limpoAudio,
           fileName: 'audio.ogg'
-        }, 35000);
+        }));
         ok = ok || !!rFallback.ok;
       } else {
         ok = true;
