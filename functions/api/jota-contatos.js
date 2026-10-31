@@ -73,6 +73,18 @@ export async function onRequestPost({ request, env }) {
     const enviados = []; for (const g of ger) { if (await enviar(env, g.celular, texto)) enviados.push(g.nome); }
     return j({ ok: true, enviados });
   }
+  if (b.acao === 'disparo_individual') {
+    const cel = so(b.celular);
+    const texto = String(b.texto || '').trim();
+    const nome = String(b.nome || 'Contato').trim();
+    const tipo = String(b.tipo || 'comunicado_diretoria').trim();
+    if (!cel || !texto) return j({ erro: 'celular e texto obrigatorios' }, 400);
+    const ok = await enviar(env, cel, texto);
+    try {
+      await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?, ?, ?, ?, ?)').bind(cel, nome, ok ? 'out' : 'erro', texto, tipo).run();
+    } catch (e) {}
+    return j({ ok, celular: cel });
+  }
   const cel = so(b.celular);
   if (cel.length < 12 || cel.length > 13 || !cel.startsWith('55')) return j({ erro: 'celular deve ter DDI 55 + DDD + numero (ex.: 5541999998888)' }, 400);
   const antes = await env.DB.prepare('SELECT * FROM bot_contatos WHERE celular = ?').bind(cel).first();
@@ -106,6 +118,9 @@ export async function onRequestPost({ request, env }) {
         ? `Fala, *${pNome}*! Seu acesso corporativo ao *Jota* ⚽ foi *aprovado e liberado*! 🚀\n\nAgora você pode me consultar a qualquer momento (por texto ou *áudio* 🎙️). Seguem as instruções do que me pedir no dia a dia:\n\n📍 *ROTA & CLIENTES*\n• *"minha rota hoje"* → clientes programados e quem falta visitar\n• *"curva negativa"* → seus clientes que ainda não compraram no mês\n• *"prospecção"* → novos clientes no mapa da sua rota de hoje\n\n💰 *METAS & PEDIDOS*\n• *"como estou?"* → seu faturado, pendente, positivação e falta pra meta\n• *"pedidos pendentes"* → seus pedidos liberados aguardando faturamento\n• *"pedidos bloqueados"* → pedidos retidos no crédito\n\n📦 *+MIX & PRODUTOS*\n• *"+mix"* → oportunidades de mix para oferecer nos clientes\n• *"cliente #código"* → histórico de compras e SKUs daquele cliente\n\nBora pra cima bater meta! _Meu DNA é Triunfante!_ 💪`
         : `Fala, ${pNome}! Seu acesso ao *Jota* foi liberado ⚽\nVocê vê ${antes.papel === 'supervisor' ? 'a sua equipe' : antes.papel === 'gerente' ? 'a sua filial' : 'os seus dados'}.\n\nExperimenta: "como está minha equipe?", "zerados", "faltam visitar", "vendedor Nome", "liga".\n_Meu DNA é Triunfante!_`;
       avisado = await enviar(env, cel, msgLib);
+      try {
+        await env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?, ?, ?, ?, 'boas_vindas_aprovacao')").bind(cel, antes.nome, avisado ? 'out' : 'erro', msgLib).run();
+      } catch (e) {}
     }
     return j({ ok: true, avisado });
   }

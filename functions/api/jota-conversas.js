@@ -30,10 +30,10 @@ export async function onRequestGet({ request, env }) {
   // SUGESTOES com retorno (Vitorio, 25/10/2026: "e a minha sugestao, vai fazer o que com ela?"): situacao nova|feita|nao_vai|atencao + o que foi feito
   for (const col of ['situacao TEXT', 'resposta TEXT', 'feito_em TEXT']) { try { await env.DB.prepare(`ALTER TABLE bot_sugestoes ADD COLUMN ${col}`).run(); } catch (e) { /* ja existe */ } }
   let sugestoes = []; try { const r = await env.DB.prepare("SELECT id, quando, celular, nome, papel, filial, texto, sobre, COALESCE(situacao, 'nova') AS situacao, resposta, feito_em FROM bot_sugestoes WHERE quando >= datetime('now', ?) OR COALESCE(situacao, 'nova') IN ('nova', 'atencao') ORDER BY id DESC LIMIT 200").bind(`-${dias} days`).all(); sugestoes = r.results || []; } catch (e) { /* tabela ainda nao existe */ }
-  // DISPAROS DO MOTOR (Vitorio, 25/10/2026: "pq tambem nao chega no conversas uai?"): cada mensagem automatica enviada ou que falhou
+  // DISPAROS DO MOTOR E AUTOMÁTICOS (Vitorio, 25/10/2026 & 30/10/2026): mensagens do motor + mensagens automáticas de sistema (convite_vendedores, cadastro_passaporte, cardapio, reenvio)
   const dsp = await env.DB.prepare(`SELECT m.quando, m.celular, m.direcao, m.texto, m.tipo, c.nome, c.papel, c.filial FROM bot_msgs m LEFT JOIN bot_contatos c ON c.celular = m.celular
-    WHERE m.quando >= datetime('now', ?) AND m.direcao IN ('motor', 'motor_erro') ORDER BY m.id DESC LIMIT 600`).bind(`-${dias} days`).all();
-  const disparos = (dsp.results || []).map((r) => ({ quando: r.quando, celular: r.celular, quem: r.nome || r.celular, papel: r.papel || '', filial: r.filial || '', ciclo: r.tipo || '', ok: r.direcao === 'motor', texto: String(r.texto || '').slice(0, 600) }));
+    WHERE m.quando >= datetime('now', ?) AND (m.direcao IN ('motor', 'motor_erro') OR m.tipo IN ('convite_vendedores', 'cadastro_passaporte', 'boas_vindas_aprovacao', 'cardapio', 'reenvio', 'comunicado_diretoria')) ORDER BY m.id DESC LIMIT 800`).bind(`-${dias} days`).all();
+  const disparos = (dsp.results || []).map((r) => ({ quando: r.quando, celular: r.celular, quem: r.nome || r.celular, papel: r.papel || '', filial: r.filial || '', ciclo: r.tipo || (r.direcao.startsWith('motor') ? 'Motor' : 'Automático'), categoria: r.direcao.startsWith('motor') ? 'motor' : (['cadastro_passaporte', 'boas_vindas_aprovacao', 'convite_vendedores'].includes(r.tipo) ? 'acesso' : (r.tipo === 'comunicado_diretoria' ? 'comunicado' : 'sistema')), ok: r.direcao === 'motor' || r.direcao === 'out', texto: String(r.texto || '').slice(0, 600) }));
   conv.sort((a, b) => String(b.quando).localeCompare(String(a.quando)));
   const cad = conv.filter((x) => x.cadastrado);
   const cont = (f) => cad.filter(f).length;

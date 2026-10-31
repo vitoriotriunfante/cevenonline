@@ -593,7 +593,8 @@ input:focus, select:focus { border-color: var(--azul); }
     <span class="tab-badge" id="b-total-cad">0</span>
   </button>
   <button class="tab-btn" data-tab="disparos">
-    <span>📤 Disparos Automáticos</span>
+    <span>📤 Disparos & Acessos</span>
+    <span class="tab-badge" id="b-total-disp-ped" style="display:none;">0</span>
   </button>
   <button class="tab-btn" data-tab="figurinhas">
     <span>🎨 Figurinhas do Jota</span>
@@ -716,10 +717,30 @@ input:focus, select:focus { border-color: var(--azul); }
   <!-- SESSAO 3: PEDIDOS DE ACESSO -->
   <div id="tab-pedidos" class="view-pane">
     <div style="margin-bottom:14px;">
-      <h2 style="margin:0 0 4px; font-size:18px;">🔔 Pedidos de Acesso Pendentes</h2>
-      <span class="header-sub">Pessoas da equipe que chamaram o JOTA e aguardam sua aprovação para interagir</span>
+      <h2 style="margin:0 0 4px; font-size:18px;">🔔 Pedidos de Acesso & Mensagens de Credenciamento</h2>
+      <span class="header-sub">Gerencie aprovações de acesso e audite separadamente as mensagens automáticas de credenciamento enviadas pelo JOTA</span>
     </div>
     <div id="pedidos-container"></div>
+
+    <div style="margin-top:26px; padding-top:18px; border-top:1px solid var(--borda);">
+      <h3 style="margin:0 0 4px; font-size:16px; color:#fff;">📨 Mensagens Automáticas de Acesso & Credenciamento (Separado do Motor)</h3>
+      <span class="header-sub">Confirmações do Passaporte Jota, boas-vindas de aprovação e convites enviados aos supervisores</span>
+      <div class="table-wrapper" style="margin-top:10px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Horário</th>
+              <th>Tipo de Mensagem</th>
+              <th>Destinatário</th>
+              <th>Filial / Cargo</th>
+              <th>Texto Enviado</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="pedidos-msgs-corpo"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <!-- SESSAO 4: SUPERVISORES SEM ACESSO -->
@@ -830,11 +851,94 @@ input:focus, select:focus { border-color: var(--azul); }
     </div>
   </div>
 
-  <!-- SESSAO 6: DISPAROS AUTOMATICOS -->
+  <!-- SESSAO 6: DISPAROS AUTOMATICOS + PEDIDOS DE ACESSO + CENTRAL DE COMUNICADOS -->
   <div id="tab-disparos" class="view-pane">
-    <div style="margin-bottom:14px;">
-      <h2 style="margin:0 0 4px; font-size:18px;">📤 Disparos Automáticos do Motor (07:45, 11:30, 14:30, 17:00, 18:30)</h2>
-      <span class="header-sub">Auditoria dos relatórios enviados de forma automatizada pelo WhatsApp</span>
+    <!-- BLOCO 1: COMUNICADO DIRETO DA DIRETORIA (ESCREVER E ENVIAR AUTOMÁTICO) -->
+    <div style="background:linear-gradient(135deg, rgba(16,28,51,0.95), rgba(12,51,94,0.35)); border:1px solid var(--azul); border-radius:14px; padding:18px 20px; margin-bottom:20px; box-shadow:0 8px 24px rgba(0,0,0,0.3);">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+        <div>
+          <h3 style="margin:0 0 3px; font-size:16px; color:#fff; display:flex; align-items:center; gap:8px;">
+            📢 Comunicado Direto da Diretoria — Escrever e Enviar Automático
+          </h3>
+          <span class="header-sub">Envie uma mensagem para todos ou para um grupo específico com cadência automática anti-spam (1 msg a cada 3,5 segundos). Use <b>{nome}</b> ou <b>{filial}</b> se quiser personalizar!</span>
+        </div>
+        <div id="bc-contador-dest" style="background:rgba(56,189,248,0.15); border:1px solid var(--azul); color:var(--azul); font-weight:700; font-size:12px; padding:5px 12px; border-radius:99px;">
+          0 destinatários selecionados
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:10px; margin-bottom:12px;">
+        <div>
+          <label style="font-size:11px; color:var(--txt-mut); font-weight:600; display:block; margin-bottom:4px;">Público-Alvo (Cargo)</label>
+          <select id="bc-papel" style="width:100%;">
+            <option value="todos_ativos">🌍 Todos os Contatos Ativos</option>
+            <option value="supervisor" selected>👤 Apenas Supervisores Ativos</option>
+            <option value="gerente">🏢 Apenas Gerentes Ativos</option>
+            <option value="vendedor">🎒 Apenas Vendedores Ativos</option>
+            <option value="diretoria">👑 Apenas Diretoria</option>
+            <option value="individual">📱 Número / Contato Individual</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px; color:var(--txt-mut); font-weight:600; display:block; margin-bottom:4px;">Filtrar por Filial</label>
+          <select id="bc-filial" style="width:100%;">
+            <option value="">Todas as Filiais (Brasil)</option>
+          </select>
+        </div>
+        <div id="bc-box-individual" style="display:none;">
+          <label style="font-size:11px; color:var(--txt-mut); font-weight:600; display:block; margin-bottom:4px;">Celular Individual (com DDD)</label>
+          <input type="text" id="bc-cel-individual" placeholder="Ex: 5566996389884" style="width:100%;">
+        </div>
+      </div>
+
+      <textarea id="bc-texto" rows="4" placeholder="Digite aqui a mensagem que o Jota vai enviar automaticamente para todos os selecionados... (Ex: Fala, {nome}! Atenção para o fechamento da filial {filial}...)" style="width:100%; background:#070d18; color:#fff; border:1px solid var(--borda); border-radius:10px; padding:12px; font:inherit; font-size:13.5px; resize:vertical; outline:none; margin-bottom:12px;"></textarea>
+
+      <!-- BARRA DE PROGRESSO DO ENVIO EM LOTE -->
+      <div id="bc-progresso-box" style="display:none; background:#070d18; border:1px solid var(--borda); border-radius:10px; padding:12px; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px;">
+          <span id="bc-progresso-txt" style="color:var(--azul); font-weight:600;">Enviando...</span>
+          <span id="bc-progresso-pct" style="color:var(--txt-mut);">0%</span>
+        </div>
+        <div style="width:100%; height:8px; background:#14223b; border-radius:99px; overflow:hidden;">
+          <div id="bc-progresso-bar" style="width:0%; height:100%; background:linear-gradient(90deg, #0284c7, #22c55e); transition:width 0.3s;"></div>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <span style="font-size:11.5px; color:var(--txt-dim);">🛡️ Cadência segura ativada: 1 mensagem a cada 3,5 segundos para blindagem do WhatsApp.</span>
+        <div style="display:flex; gap:8px;">
+          <button id="bc-btn-cancelar" class="no" style="display:none;">⏹ Parar Envio</button>
+          <button id="bc-btn-enviar" class="ok" style="padding:9px 18px; font-size:13px;">🚀 Enviar Mensagem Automaticamente</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOCO 2: PEDIDOS DE ACESSO E DISPAROS NO MESMO LOCAL, MAS SEPARADOS -->
+    <div style="margin-bottom:22px; background:rgba(16,28,51,0.55); border:1px solid var(--borda); border-radius:12px; padding:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+        <div>
+          <h3 style="margin:0; font-size:16px; color:#fff; display:flex; align-items:center; gap:8px;">
+            🔔 Seção A — Pedidos de Acesso Pendentes
+            <span class="tab-badge" id="disp-badge-ped">0</span>
+          </h3>
+          <span class="header-sub">Pessoas que solicitaram acesso via Passaporte Jota ou WhatsApp aguardando seu OK</span>
+        </div>
+      </div>
+      <div id="disparos-pedidos-inline"></div>
+    </div>
+
+    <!-- BLOCO 3: MONITORAMENTO SEPARADO DE MENSAGENS AUTOMÁTICAS -->
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+      <div>
+        <h2 style="margin:0 0 4px; font-size:18px;">📤 Seção B — Monitoramento de Mensagens Automáticas</h2>
+        <span class="header-sub">Auditoria separada por categoria: Boletins do Motor (07:45 a 18:30), Credenciamento/Acessos e Comunicados da Diretoria</span>
+      </div>
+      <div class="filter-chips" id="disp-chips-cat">
+        <span class="chip active" data-dcat="todos">Todas as Automáticas</span>
+        <span class="chip" data-dcat="motor">🤖 Boletins do Motor (Horários)</span>
+        <span class="chip" data-dcat="acesso">🔑 Acessos & Passaporte Jota</span>
+        <span class="chip" data-dcat="comunicado">📢 Comunicados Diretoria</span>
+      </div>
     </div>
     <div class="kpis-bar" id="disparos-kpis"></div>
     <div class="table-wrapper">
@@ -842,7 +946,7 @@ input:focus, select:focus { border-color: var(--azul); }
         <thead>
           <tr>
             <th>Horário</th>
-            <th>Ciclo</th>
+            <th>Categoria / Ciclo</th>
             <th>Destinatário</th>
             <th>Filial / Cargo</th>
             <th>Resumo do Texto</th>
@@ -1488,35 +1592,33 @@ function renderizarSugestoes() {
 $('sug-filtro-status').onchange = () => renderizarSugestoes();
 
 // ============================== MÓDULO 3: PEDIDOS DE ACESSO ==============================
-function renderizarPedidosAcesso(pendentes) {
-  const container = $('pedidos-container');
+function gerarCardsPedidosHtml(pendentes) {
   if (!pendentes.length) {
-    container.innerHTML = `
-      <div style="background:var(--card); border:1px solid var(--borda); border-radius:12px; padding:40px; text-align:center;">
-        <div style="font-size:40px; margin-bottom:8px;">✅</div>
-        <h3 style="margin:0 0 6px; color:#fff;">Tudo em dia!</h3>
-        <p style="color:var(--txt-mut); margin:0;">Nenhum pedido de acesso pendente de aprovação no momento.</p>
+    return `
+      <div style="background:var(--card); border:1px solid var(--borda); border-radius:12px; padding:24px; text-align:center;">
+        <div style="font-size:28px; margin-bottom:4px;">✅</div>
+        <h3 style="margin:0 0 4px; color:#fff; font-size:15px;">Tudo em dia!</h3>
+        <p style="color:var(--txt-mut); margin:0; font-size:12.5px;">Nenhum pedido de acesso pendente de aprovação no momento.</p>
       </div>
     `;
-    return;
   }
-
-  container.innerHTML = `
+  return `
     <div class="grid-cards">
       ${pendentes.map((p) => `
         <div class="card-item" style="border-left:4px solid var(--amarelo);">
           <div class="card-header">
             <div>
               <div class="card-title">${esc(tit(p.nome))}</div>
-              <div class="card-sub">${esc(p.papel)} · Filial ${esc(p.filial || '—')}${p.grupo ? ' · ' + esc(p.grupo) : ''}</div>
+              <div class="card-sub">${esc(p.papel)} · Filial ${esc(p.filial || '—')}${p.rca ? ' · Setor/RCA ' + esc(p.rca) : ''}${p.supervisor ? ' · Sup. ' + esc(tit(p.supervisor)) : ''}</div>
             </div>
             <span class="tag-badge ia">Aguardando OK</span>
           </div>
-          <div style="font-size:13px; color:var(--txt-mut);">
-            <div><b>Celular:</b> +${esc(p.celular)}</div>
-            <div><b>Pedido em:</b> ${esc(String(p.criado_em || '').slice(0, 16))}</div>
+          <div style="font-size:12.5px; color:var(--txt-mut); line-height:1.5;">
+            <div><b>Celular:</b> +${esc(p.celular)}${p.cpf ? ' · <b>CPF:</b> ' + esc(p.cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4')) : ''}</div>
+            <div><b>Pedido em:</b> ${esc(String(p.atualizado_em || p.criado_em || '').slice(0, 16))}</div>
+            ${p.indicadores_desejados ? `<div style="margin-top:6px; padding:6px 8px; background:rgba(56,189,248,0.08); border-left:2px solid var(--azul); border-radius:4px; color:#e2e8f0;"><b>💡 Indicadores desejados:</b> "${esc(p.indicadores_desejados)}"</div>` : ''}
           </div>
-          <div class="card-actions" style="margin-top:12px;">
+          <div class="card-actions" style="margin-top:10px;">
             <button class="ok btn-aprovar-acesso" data-cel="${esc(p.celular)}" style="flex:1; justify-content:center;">✅ Aprovar Acesso</button>
             <button class="no btn-recusar-acesso" data-cel="${esc(p.celular)}" style="flex:1; justify-content:center;">✖ Recusar</button>
           </div>
@@ -1524,8 +1626,11 @@ function renderizarPedidosAcesso(pendentes) {
       `).join('')}
     </div>
   `;
+}
 
-  container.querySelectorAll('.btn-aprovar-acesso').forEach((b) => {
+function vincularBotoesPedidos(rootEl) {
+  if (!rootEl) return;
+  rootEl.querySelectorAll('.btn-aprovar-acesso').forEach((b) => {
     b.onclick = async () => {
       try {
         const r = await api('POST', '/api/jota-contatos', { acao: 'aprovar', celular: b.dataset.cel });
@@ -1536,8 +1641,7 @@ function renderizarPedidosAcesso(pendentes) {
       }
     };
   });
-
-  container.querySelectorAll('.btn-recusar-acesso').forEach((b) => {
+  rootEl.querySelectorAll('.btn-recusar-acesso').forEach((b) => {
     b.onclick = async () => {
       if (!confirm(`Recusar o acesso de ${b.dataset.cel}?`)) return;
       try {
@@ -1549,6 +1653,50 @@ function renderizarPedidosAcesso(pendentes) {
       }
     };
   });
+}
+
+function renderizarPedidosAcesso(pendentes) {
+  const container = $('pedidos-container');
+  if (container) {
+    container.innerHTML = gerarCardsPedidosHtml(pendentes);
+    vincularBotoesPedidos(container);
+  }
+  const inlineDisp = $('disparos-pedidos-inline');
+  if (inlineDisp) {
+    inlineDisp.innerHTML = gerarCardsPedidosHtml(pendentes);
+    vincularBotoesPedidos(inlineDisp);
+  }
+  const bDispPed = $('disp-badge-ped');
+  if (bDispPed) {
+    bDispPed.textContent = pendentes.length;
+    bDispPed.className = 'tab-badge ' + (pendentes.length > 0 ? 'alerta' : '');
+  }
+  const bTabDisp = $('b-total-disp-ped');
+  if (bTabDisp) {
+    bTabDisp.textContent = pendentes.length;
+    bTabDisp.style.display = pendentes.length > 0 ? 'inline-block' : 'none';
+    bTabDisp.className = 'tab-badge ' + (pendentes.length > 0 ? 'alerta' : '');
+  }
+
+  // Tabela de mensagens automáticas de acesso dentro da aba Pedidos de Acesso
+  const tbodyMsgs = $('pedidos-msgs-corpo');
+  if (tbodyMsgs) {
+    const msgsAcesso = (DADOS_CONVERSAS?.disparos || []).filter((d) => d.categoria === 'acesso');
+    if (!msgsAcesso.length) {
+      tbodyMsgs.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--txt-dim); padding:20px;">Nenhuma mensagem automática de credenciamento/acesso enviada no período.</td></tr>`;
+    } else {
+      tbodyMsgs.innerHTML = msgsAcesso.map((d) => `
+        <tr>
+          <td style="color:var(--txt-mut); font-size:12px;">${esc(String(d.quando || '').slice(5, 16))}</td>
+          <td><span class="tag-badge ia">${esc(d.ciclo)}</span></td>
+          <td><b>${esc(tit(d.quem))}</b><div style="font-size:11px; color:var(--txt-dim);">+${esc(d.celular)}</div></td>
+          <td>${esc(d.filial || '—')} · ${esc(d.papel || '—')}</td>
+          <td style="max-width:420px; white-space:pre-wrap; font-size:12px; color:var(--txt-mut);">${esc(d.texto.slice(0, 240))}${d.texto.length > 240 ? '…' : ''}</td>
+          <td>${d.ok ? '<span class="tag-badge pronta">✅ Enviado</span>' : '<span class="tag-badge erro">⚠️ Falhou</span>'}</td>
+        </tr>
+      `).join('');
+    }
+  }
 }
 
 // ============================== MÓDULO 4: SUPERVISORES SEM ACESSO ==============================
@@ -1754,33 +1902,184 @@ $('f-salvar-btn').onclick = async () => {
   }
 };
 
-// ============================== MÓDULO 6: DISPAROS AUTOMÁTICOS ==============================
+// ============================== MÓDULO 6: DISPAROS AUTOMÁTICOS & CENTRAL DE COMUNICADOS ==============================
+let FILTRO_DISP_CAT = 'todos';
+let ENVIO_LOTE_CANCELADO = false;
+
+function obterDestinatariosComunicado() {
+  if (!DADOS_CONTATOS) return [];
+  const papel = $('bc-papel')?.value || 'supervisor';
+  const filial = $('bc-filial')?.value || '';
+  if (papel === 'individual') {
+    const cel = ($('bc-cel-individual')?.value || '').replace(/\D/g, '');
+    if (cel.length >= 10) {
+      const celNorm = cel.startsWith('55') ? cel : '55' + cel;
+      const achou = (DADOS_CONTATOS.contatos || []).find((c) => c.celular === celNorm);
+      return [achou || { celular: celNorm, nome: 'Contato Individual', filial: filial || 'Triunfante', papel: 'individual' }];
+    }
+    return [];
+  }
+  const ativos = (DADOS_CONTATOS.contatos || []).filter((c) => c.situacao === 'ativo' || c.ativo === 1);
+  const filtrados = ativos.filter((c) => {
+    if (papel !== 'todos_ativos' && c.papel !== papel) return false;
+    if (filial && c.filial !== filial) return false;
+    return true;
+  });
+  // Desduplica por número de celular
+  const porCel = new Map();
+  for (const c of filtrados) {
+    if (!porCel.has(c.celular)) porCel.set(c.celular, c);
+  }
+  return [...porCel.values()];
+}
+
+function atualizarContadorComunicado() {
+  const selFil = $('bc-filial');
+  if (selFil && selFil.options.length <= 1 && DADOS_CONTATOS?.filiais) {
+    (DADOS_CONTATOS.filiais || []).forEach((f) => {
+      selFil.innerHTML += `<option value="${f}">${f}</option>`;
+    });
+  }
+  const boxInd = $('bc-box-individual');
+  if (boxInd) boxInd.style.display = ($('bc-papel')?.value === 'individual') ? 'block' : 'none';
+  const dests = obterDestinatariosComunicado();
+  const badge = $('bc-contador-dest');
+  if (badge) badge.textContent = `${dests.length} destinatário(s) selecionado(s)`;
+}
+
+if ($('bc-papel')) $('bc-papel').onchange = atualizarContadorComunicado;
+if ($('bc-filial')) $('bc-filial').onchange = atualizarContadorComunicado;
+if ($('bc-cel-individual')) $('bc-cel-individual').oninput = atualizarContadorComunicado;
+
+if ($('bc-btn-cancelar')) {
+  $('bc-btn-cancelar').onclick = () => {
+    ENVIO_LOTE_CANCELADO = true;
+  };
+}
+
+if ($('bc-btn-enviar')) {
+  $('bc-btn-enviar').onclick = async () => {
+    const modelo = ($('bc-texto')?.value || '').trim();
+    if (!modelo) {
+      aviso('Escreva a mensagem que deseja enviar antes de clicar em Enviar.', 'erro');
+      return;
+    }
+    const dests = obterDestinatariosComunicado();
+    if (!dests.length) {
+      aviso('Nenhum destinatário encontrado para o filtro selecionado.', 'erro');
+      return;
+    }
+    if (!confirm(`Confirmar o disparo automático desta mensagem para ${dests.length} contato(s) (intervalo de 3,5s por mensagem)?`)) return;
+
+    ENVIO_LOTE_CANCELADO = false;
+    const btnEnv = $('bc-btn-enviar');
+    const btnCanc = $('bc-btn-cancelar');
+    const boxProg = $('bc-progresso-box');
+    const txtProg = $('bc-progresso-txt');
+    const pctProg = $('bc-progresso-pct');
+    const barProg = $('bc-progresso-bar');
+
+    btnEnv.disabled = true;
+    btnCanc.style.display = 'inline-flex';
+    boxProg.style.display = 'block';
+
+    let enviadosOk = 0;
+    let falhas = 0;
+
+    for (let i = 0; i < dests.length; i++) {
+      if (ENVIO_LOTE_CANCELADO) break;
+      const d = dests[i];
+      const primeiroNome = tit(String(d.nome || 'Parceiro').split(' ')[0]);
+      const textoFinal = modelo
+        .replace(/\{nome\}/gi, primeiroNome)
+        .replace(/\{nome_completo\}/gi, tit(d.nome || ''))
+        .replace(/\{filial\}/gi, d.filial || 'Triunfante');
+
+      const pct = Math.round(((i + 1) / dests.length) * 100);
+      txtProg.textContent = `Enviando [${i + 1}/${dests.length}] para ${tit(d.nome)} (+${d.celular})...`;
+      pctProg.textContent = `${pct}%`;
+      barProg.style.width = `${pct}%`;
+
+      try {
+        const r = await api('POST', '/api/jota-contatos', {
+          acao: 'disparo_individual',
+          celular: d.celular,
+          nome: d.nome,
+          texto: textoFinal,
+          tipo: 'comunicado_diretoria'
+        });
+        if (r.ok) enviadosOk++;
+        else falhas++;
+      } catch (e) {
+        falhas++;
+      }
+
+      if (i < dests.length - 1 && !ENVIO_LOTE_CANCELADO) {
+        await new Promise((res) => setTimeout(res, 3500));
+      }
+    }
+
+    btnEnv.disabled = false;
+    btnCanc.style.display = 'none';
+    txtProg.textContent = ENVIO_LOTE_CANCELADO
+      ? `Envio interrompido: ${enviadosOk} enviado(s), ${falhas} falha(s).`
+      : `✅ Disparo concluído! ${enviadosOk} enviado(s) com sucesso (${falhas} falha(s)).`;
+    aviso(`Disparo finalizado: ${enviadosOk} mensagem(ns) enviada(s)!`, enviadosOk > 0 ? 'ok' : 'erro');
+    await carregarTudo();
+  };
+}
+
+document.querySelectorAll('#disp-chips-cat .chip').forEach((ch) => {
+  ch.onclick = () => {
+    document.querySelectorAll('#disp-chips-cat .chip').forEach((x) => x.classList.remove('active'));
+    ch.classList.add('active');
+    FILTRO_DISP_CAT = ch.dataset.dcat;
+    renderizarDisparos();
+  };
+});
+
 function renderizarDisparos() {
-  const disparos = DADOS_CONVERSAS.disparos || [];
+  atualizarContadorComunicado();
+  const todosDisparos = DADOS_CONVERSAS.disparos || [];
+  const disparos = todosDisparos.filter((d) => {
+    if (FILTRO_DISP_CAT === 'todos') return true;
+    return (d.categoria || 'motor') === FILTRO_DISP_CAT;
+  });
+
+  const totalMotor = todosDisparos.filter((d) => (d.categoria || 'motor') === 'motor').length;
+  const totalAcesso = todosDisparos.filter((d) => d.categoria === 'acesso').length;
+  const totalComunicado = todosDisparos.filter((d) => d.categoria === 'comunicado').length;
   const falhas = disparos.filter((d) => !d.ok).length;
 
   $('disparos-kpis').innerHTML = `
-    <div class="kpi-card"><b>${disparos.length}</b><span>Total Disparados</span></div>
+    <div class="kpi-card"><b>${disparos.length}</b><span>Exibidos no Filtro</span></div>
     <div class="kpi-card"><b style="color:var(--verde)">${disparos.length - falhas}</b><span>Enviados com Sucesso</span></div>
+    <div class="kpi-card"><b style="color:var(--azul)">${totalMotor}</b><span>Boletins do Motor</span></div>
+    <div class="kpi-card"><b style="color:var(--amarelo)">${totalAcesso}</b><span>Acessos / Passaporte</span></div>
+    <div class="kpi-card"><b style="color:var(--roxo)">${totalComunicado}</b><span>Comunicados Diretoria</span></div>
     <div class="kpi-card"><b style="color:${falhas ? 'var(--vermelho)' : 'var(--txt-mut)'}">${falhas}</b><span>Falhas de Envio</span></div>
   `;
 
   const tbody = $('disparos-tabela-corpo');
   if (!disparos.length) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--txt-dim); padding:24px;">Nenhum disparo registrado no período.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--txt-dim); padding:24px;">Nenhuma mensagem automática registrada nesta categoria.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = disparos.slice(0, 200).map((d) => `
-    <tr style="${d.ok ? '' : 'background:rgba(239,68,68,0.06)'}">
-      <td style="color:var(--txt-mut); font-size:12px;">${esc(String(d.quando || '').slice(5, 16))}</td>
-      <td><span class="tag-badge pronta">${esc(d.ciclo || 'Oficial')}</span></td>
-      <td><b>${esc(tit(d.quem))}</b><div style="font-size:11px; color:var(--txt-dim);">+${esc(d.celular)}</div></td>
-      <td>${esc(d.filial)} · ${esc(d.papel)}</td>
-      <td style="max-width:400px; white-space:pre-wrap; font-size:12px; color:var(--txt-mut);">${esc(d.texto.slice(0, 240))}${d.texto.length > 240 ? '…' : ''}</td>
-      <td>${d.ok ? '<span class="tag-badge pronta">✅ Enviado</span>' : '<span class="tag-badge erro">⚠️ Falhou</span>'}</td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = disparos.slice(0, 250).map((d) => {
+    const badgeCor = d.categoria === 'acesso' ? 'ia' : d.categoria === 'comunicado' ? '' : 'pronta';
+    const badgeStyle = d.categoria === 'comunicado' ? 'background:rgba(168,85,247,0.18); color:#d8b4fe; border:1px solid #9333ea;' : '';
+    return `
+      <tr style="${d.ok ? '' : 'background:rgba(239,68,68,0.06)'}">
+        <td style="color:var(--txt-mut); font-size:12px;">${esc(String(d.quando || '').slice(5, 16))}</td>
+        <td><span class="tag-badge ${badgeCor}" style="${badgeStyle}">${esc(d.ciclo || 'Oficial')}</span></td>
+        <td><b>${esc(tit(d.quem))}</b><div style="font-size:11px; color:var(--txt-dim);">+${esc(d.celular)}</div></td>
+        <td>${esc(d.filial || '—')} · ${esc(d.papel || '—')}</td>
+        <td style="max-width:440px; white-space:pre-wrap; font-size:12px; color:var(--txt-mut);">${esc(d.texto.slice(0, 260))}${d.texto.length > 260 ? '…' : ''}</td>
+        <td>${d.ok ? '<span class="tag-badge pronta">✅ Enviado</span>' : '<span class="tag-badge erro">⚠️ Falhou</span>'}</td>
+      </tr>
+    `;
+  }).join('');
 }
 
 // ============================== MÓDULO 7: FIGURINHAS DO JOTA ==============================
