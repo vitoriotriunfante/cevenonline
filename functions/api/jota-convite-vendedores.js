@@ -12,7 +12,7 @@ const J = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 
 export function textoConviteSupervisores(c) {
   const primeiroNome = titulo(String(c.nome || '').split(' ')[0]);
   const filial = (c.filial || '').toUpperCase();
-  const linkUnico = 'https://ceven-cftv-matrix.pages.dev/passaporte-jota';
+  const linkUnico = 'https://x9k-portal-z7v4q2.pages.dev';
 
   return [
     `Bom dia, *${primeiroNome}*! 🚀`,
