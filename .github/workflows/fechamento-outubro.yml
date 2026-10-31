@@ -1,0 +1,21 @@
+# FICHA DO ARQUIVO
+# O QUE É: fechamento de 31/10/2026 (Vitório: "vai rodar sozinho... as 22 e depois as 23:30 para garantir"). Roda online, sem o PC. Fecha o dia da Liga (idempotente) e guarda no log os totais do mês.
+# O GitHub pode atrasar o agendamento em minutos. Depois de novembro este arquivo pode ser apagado.
+name: Fechamento de outubro (22h e 23h30)
+
+on:
+  schedule:
+    - cron: '0 1 1 11 *'    # 22:00 BRT de 31/10
+    - cron: '30 2 1 11 *'   # 23:30 BRT de 31/10
+  workflow_dispatch:
+
+jobs:
+  fechar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Fechar 31/10 e registrar os totais
+        run: |
+          B="https://ceven-cftv-matrix.pages.dev"
+          curl -sS -m 300 "$B/api/cron-fechamento-dia?dia=2026-10-31"; echo
+          curl -sS -m 60 "$B/api/metas-mes"; echo
