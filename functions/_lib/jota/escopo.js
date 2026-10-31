@@ -34,6 +34,7 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
       /* mes do PROPRIO vendedor, qualquer canal (detalhe do vendedor; os totais de rota seguem quem tem rota) */ roteiroMes: Array.isArray(r.roteiro_mes) ? r.roteiro_mes : null, mesV: { plan: pm.visit_plan ?? null, real: pm.visit_real ?? null, pedRota: pm.ped_rota_mes ?? null, efic: pm.eficiencia_pct ?? null },
       zerado: varejo && ehVendReal && visP > 0 && !vendeuHoje, semVisita: varejo && ehVendReal && visP > 0 && !(visF > 0), devolucoes: Array.isArray(r.devolucoes) ? r.devolucoes : [],
       /* devolucoes que ENTRARAM hoje (mesma regra do WhatsApp 17:00/18:30: d.data === hoje) */
+      devHojeCli: [...new Set((Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).map((x) => String(x.codcli)))],
       devHoje: (Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).reduce((t, x) => t + Math.abs(parseFloat(x.vl_devolvido || x.valor || 0) || 0), 0),
       vendeuHoje,
       rotaHoje: Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hojeSP() || /FORA/i.test(String(c.status || ''))) : [],

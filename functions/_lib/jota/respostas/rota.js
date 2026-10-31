@@ -143,7 +143,8 @@ export function respDevolucao(E, t = '') {
     const Vh = E.vend.filter((v) => v.devHoje > 0).sort((a, b) => b.devHoje - a.devHoje); const toth = E.vend.reduce((a, v) => a + (v.devHoje || 0), 0);
     const Gh = [...agrupa(E.vend, (v) => E.nacional ? v.filial : supChave(v, false))].map(([k, y]) => [k, y.V.reduce((a, v) => a + (v.devHoje || 0), 0)]).filter(([, x]) => x > 0).sort((a, b) => b[1] - a[1]);
     if (!toth) return `↩️ *Devoluções de hoje — ${E.nome}*: nenhuma nota de devolução com data de hoje até agora.`;
-    return [`↩️ *Devoluções de hoje — ${E.nome}*: *${R$(toth)}*`, `*Por ${E.nacional ? 'filial' : 'supervisor'}:*`, ...Gh.slice(0, 11).map(([k, x]) => `• ${E.nacional ? k : nome2(k)}: ${R$(x)}`),
+    const cliHoje = new Set(E.vend.flatMap((v) => (v.devHojeCli || []).map((c) => v.filial + '|' + c))).size;   /* "quantos clientes deram devolucao hoje?" (31/10/2026) */
+    return [`↩️ *Devoluções de hoje — ${E.nome}*: *${R$(toth)}* em *${N(cliHoje)} cliente(s)*`, `*Por ${E.nacional ? 'filial' : 'supervisor'}:*`, ...Gh.slice(0, 11).map(([k, x]) => `• ${E.nacional ? k : nome2(k)}: ${R$(x)}`),
       '*Vendedores:*', ...Vh.slice(0, 10).map((v) => `• ${nome2(v.nome)} (${v.rca}) ${E.nacional ? v.filial : ''}: ${R$(v.devHoje)}`)].join('\n');
   }
   const V = E.vend.filter((v) => v.dev > 0).sort((a, b) => b.dev - a.dev); const tot = E.vend.reduce((a, v) => a + v.dev, 0);
