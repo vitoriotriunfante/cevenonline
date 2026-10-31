@@ -218,7 +218,7 @@ function clienteNaCarteira(E, txt) {
   let achou = null;
   for (const v of E.vend || []) for (const x of v.roteiroMes || []) {
     if (cod && String(x.id_cliente) === cod) return { c: x, v };
-    for (const nome of [x.nome_cliente, x.razao_social]) { const n = sem(String(nome || '')).trim(); if (n.length >= 5 && (t === n || t.includes(n)) && (!achou || n.length > achou.n)) achou = { c: x, v, n }; }
+    for (const nome of [x.nome_cliente, x.razao_social]) { const n = sem(String(nome || '')).trim(); if (n.length >= 5 && (t === n || (n.length >= 10 && n.includes(' ') && ` ${t} `.includes(` ${n} `))) && (!achou || n.length > achou.n))   /* nome curto so se a mensagem for so ele: "na rota hoje" casava com o cliente NA ROTA (31/10/2026) */ achou = { c: x, v, n }; }
   }
   return achou;
 }
@@ -375,7 +375,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   }
   // TODAS AS TAGS / CAMPANHAS (Vitorio, 28/10/2026: recorrencia, P10, P11, Sem compras Leao, Snickers Core, Borges, etc.)
   const ehPerguntaTag = /RECORRENCIA|RESGAT|REATIVAD|INATIVOS? (RECUPERAD|REATIVAD)|\bTAGS?\b|SEM COMPRAS? P1[01]|\bP10\b|\bP11\b|SEM COMPRAS? LEAO|CAMPANHA BORGES|CHOCO INDEP|SNICKERS CORE|SNICKERS BRANCO|CHAMP KITEKAT|\bSKITTLES\b|\bTOFFEES\b|\bTORT\b|\bBISCUIT\b|\bBLOCK\b|\bFLOW\b/.test(t);
-  if (ehPerguntaTag && !/O QUE (E|EH)/.test(t) && !/\bMETAS?\b|KPI|PREMIA/.test(t)) {
+  if (ehPerguntaTag && !/O QUE (E|EH)/.test(t) && (!/\bMETAS?\b|KPI|PREMIA/.test(t) || (/RECORRENCIA/.test(t) && !/KPI|PREMIA/.test(t)))) {   /* "meta de recorrencia" vinha sem resposta (Andrey/TPH) */
     const Er = await carregaEscopo(B, esc), pr = achaPessoa(Er, t);
     if (!/DEFESA|PONTO|LANCE|LIGA|REATIVAD|RESGAT/.test(t) || /TAG|P11|P10|LEAO|BORGES|SNICKERS|KITEKAT/.test(t)) return respRecorrenciaClientes(B, Er, pr && pr.tipo === 'vend' ? pr.alvo : null, t, c);
     return respRecorrenciaLances(B, pr && pr.tipo === 'vend' ? { ...Er, nome: vn(pr.alvo), vend: [pr.alvo] } : Er);

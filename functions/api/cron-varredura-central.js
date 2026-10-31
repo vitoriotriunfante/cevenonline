@@ -492,6 +492,15 @@ export async function onRequestGet({ env, request }) {
   // RECUPERACAO SOZINHA (31/10/2026: das 14:31 em diante o tick fez 48 chamadas com 0 sucesso por rodada e a base parou, enquanto a varredura completa funcionava): 2 ticks seguidos sem nenhum sucesso = esta rodada vai pela completa
   let tickTravado = false;
   try { const { results: ult } = await env.DB.prepare("SELECT ok, chamadas FROM saude_coleta WHERE modo IN ('tick', 'completa') ORDER BY id DESC LIMIT 2").all();   /* depois de uma completa com sucesso, o tick e testado de novo */ tickTravado = !filialParam && (ult || []).length === 2 && ult.every((x) => !x.ok && x.chamadas > 0); } catch { /* segue o normal */ }
+  // AVISO (Vitorio, 31/10/2026): coleta travada avisa no WhatsApp da diretoria, no maximo 1 vez por hora; antes ninguem via ate alguem olhar
+  if (tickTravado) { try {
+    const av = await env.DB.prepare("SELECT valor FROM coleta_estado WHERE chave = 'aviso_coleta_em'").first();
+    if (!av || Date.now() - Number(av.valor) > 3600000) {
+      await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('aviso_coleta_em', ?, 'ultimo aviso de coleta travada', datetime('now')) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = excluded.atualizado_em").bind(Date.now()).run();
+      const eu = await env.DB.prepare("SELECT celular FROM bot_contatos WHERE nome = 'VITORIO' AND papel = 'diretoria' LIMIT 1").first();
+      if (eu) await R.enviarTexto(R.evoCfg(env), eu.celular, '⚠️ *Coleta do CEVEN travada:* as 2 últimas rodadas não tiveram nenhum sucesso. Entrando no modo de recuperação; a base pode estar atrasada.');
+    }
+  } catch { /* o aviso nunca derruba a coleta */ } }
   const completa = forcar || filialParam || tickTravado || ant.size < Math.ceil(rcas.length * 0.5);   // partida a frio ou recuperacao
   const dono = (completa ? 'completa:' : 'tick:') + (filialParam ? filialParam + ':' : '') + t0;
   const slot = filialParam ? { ciclo: 1 } : await tomaSlot(env, dono, completa ? SLOT_COMPLETA_S : SLOT_TICK_S);

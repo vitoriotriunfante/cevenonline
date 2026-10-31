@@ -41,10 +41,10 @@ export async function respResumo(B, E) {
     if (!t.dig && E.macro) t.dig = E.macro.dig || 0;
     const V = E.vend.filter((v) => v.varejo); const z = V.filter((v) => v.zerado);
     const L = [`📊 *Brasil — 11 filiais* (${hora})`, `💰 Faturado: *${R$(t.fat)}* de ${R$(t.meta)} → *${P(t.fat, t.meta)}*`, `⏳ Pendente: ${R$(t.pend)}`, `👥 Positivação: ${N(t.pos)} de ${N(t.mpos)} (${P(t.pos, t.mpos)})`,
-      `📝 Digitado hoje: *${R$(t.dig)}* em *${N((E.macro && E.macro.pedidos) || (E.vend ? E.vend.reduce((a, v) => a + (v.ped || 0), 0) : 0))}* pedidos`, `🚶 Rota do varejo hoje: ${N(V.reduce((a, v) => a + v.visF, 0))} de ${N(V.reduce((a, v) => a + v.visP, 0))} visitas · zerados: ${z.length}`, '', '*Por filial (% da meta faturada):*'];
+      `📝 Digitado hoje: *${R$(t.dig)}* em *${N((E.macro && E.macro.pedidos) || (E.vend ? E.vend.reduce((a, v) => a + (v.ped || 0), 0) : 0))}* pedidos`, ...(V.some((v) => v.visP > 0) ? [`🚶 Rota do varejo hoje: ${N(V.reduce((a, v) => a + v.visF, 0))} de ${N(V.reduce((a, v) => a + v.visP, 0))} visitas · zerados: ${z.length}`] : []), '', '*Por filial (% da meta faturada):*'];
     for (const f of F.slice().sort((a, b) => (b.faturado / b.meta_fat) - (a.faturado / a.meta_fat))) {
       const zf = V.filter((v) => v.filial === f.filial && v.zerado).length;
-      L.push(`• *${f.filial}* ${P(f.faturado || 0, f.meta_fat)} · ${R$(f.faturado)} · pend. ${R$(f.pendente)} · hoje ${R$(f.digitado_hoje)} · ${zf} zerado(s)`);
+      L.push(`• *${f.filial}* ${P(f.faturado || 0, f.meta_fat)} · ${R$(f.faturado)} · pend. ${R$(f.pendente)} · hoje ${R$(f.digitado_hoje)}` + (V.some((v) => v.visP > 0) ? ` · ${zf} zerado(s)` : ''));
     }
     const pior = F.slice().sort((a, b) => (a.faturado / a.meta_fat) - (b.faturado / b.meta_fat))[0];
     L.push('', SUGESTAO + (pior ? `olhar ${pior.filial} (${P(pior.faturado || 0, pior.meta_fat)} da meta), a mais atrás no mês.` : 'acompanhar as filiais mais atrás.'), '_Peça uma filial (ex.: "TPH"), "zerados", "hoje", "liga", "ajuda"._');
