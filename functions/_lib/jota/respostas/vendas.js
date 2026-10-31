@@ -272,12 +272,12 @@ export async function respPedidosStatus(B, E, t) {
     const ja = new Set(pd.pedidos.map((p) => String(p.num)));
     for (const a of (ab && ab.abertos) || []) {
       if (!ja.has(String(a.num))) {
-        pd.pedidos.push({ ...a, num: String(a.num), total_clube: a.valor, analisado_em: Date.parse(a.rechecado_em), data: a.data_pedido });
+        pd.pedidos.push({ ...a, num: String(a.num), total_clube: a.valor, analisado_em: Date.parse(a.confirmado_em), data: a.data_pedido });
       } else {
         const idx = pd.pedidos.findIndex((p) => String(p.num) === String(a.num));
         if (idx >= 0 && a.status_pedido) {
           pd.pedidos[idx].status_pedido = a.status_pedido;
-          if (a.rechecado_em) pd.pedidos[idx].analisado_em = Date.parse(a.rechecado_em);
+          pd.pedidos[idx].analisado_em = a.confirmado_em ? Date.parse(a.confirmado_em) : 0;
         }
       }
     }

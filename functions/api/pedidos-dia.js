@@ -50,7 +50,7 @@ export async function onRequestGet({ env, request }) {
       if (u.searchParams.get('abertos') === '1') {
         const rcaF = (u.searchParams.get('rca') || '').trim();
         const filF = (u.searchParams.get('filial') || '').toUpperCase().trim();
-        let q = "SELECT num, filial, rca, id_cliente, data_pedido, status AS status_pedido, valor, itens_cortados, rechecado_em FROM pedido_status WHERE final = 0 AND data_pedido >= date('now', '-15 days')";
+        let q = "SELECT num, filial, rca, id_cliente, data_pedido, status AS status_pedido, valor, itens_cortados, rechecado_em, confirmado_em FROM pedido_status WHERE final = 0 AND data_pedido >= date('now', '-15 days')";
         const params = [];
         if (filF) { q += " AND filial = ?"; params.push(filF); }
         if (rcaF) { q += " AND rca = ?"; params.push(rcaF); }

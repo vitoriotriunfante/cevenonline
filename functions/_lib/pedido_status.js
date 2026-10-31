@@ -65,6 +65,8 @@ export async function gravaStatusPedidos(env, filialKey, rca, idCliente, visitas
         Number(v.vl_faturado_winthor) || null, v.categoria_corte || null, cort, STATUS_FINAL.test(status) ? 1 : 0, agora, agora, agora));
     if (ant !== status) st.push(env.DB.prepare('INSERT OR IGNORE INTO pedido_status_hist (num, status, visto_em) VALUES (?, ?, ?)').bind(num, status, agora));
   }
+  // confirmado_em: so aqui, com o pedido vindo do CEVEN (rechecado_em tambem anda quando o pedido nao vem, para a fila nao travar) (31/10/2026)
+  for (const v of V) st.push(env.DB.prepare('UPDATE pedido_status SET confirmado_em = ? WHERE num = ?').bind(agora, String(v.num_pedido)));
   await env.DB.batch(st);
   return st.length;
 }

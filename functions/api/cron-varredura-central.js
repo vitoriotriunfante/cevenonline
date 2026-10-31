@@ -421,7 +421,7 @@ async function rechecaAbertosPorVendedor(env, limite = 6) {
       if (novo && novo !== p.status) { mudaram++; st.push(env.DB.prepare('UPDATE pedido_status SET status = ?, final = ?, valor = COALESCE(?, valor), valor_winthor = COALESCE(?, valor_winthor), atualizado_em = ?, rechecado_em = ? WHERE num = ?').bind(novo, FINAL.test(novo) ? 1 : 0, Number(v.total_clube) || null, Number(v.vl_faturado_winthor) || null, agora, agora, p.num), env.DB.prepare('INSERT OR IGNORE INTO pedido_status_hist (num, status, visto_em) VALUES (?, ?, ?)').bind(p.num, novo, agora)); }
     }
     // so marca como conferido o pedido que veio na resposta; a fila anda por recheca_fila, para pedido que nunca vem nao travar o vendedor nem parecer confirmado
-    for (const p of ab || []) if (m.has(p.num)) st.push(env.DB.prepare('UPDATE pedido_status SET rechecado_em = ? WHERE num = ?').bind(agora, p.num));
+    for (const p of ab || []) if (m.has(p.num)) st.push(env.DB.prepare('UPDATE pedido_status SET rechecado_em = ?, confirmado_em = ? WHERE num = ?').bind(agora, agora, p.num));
     st.push(env.DB.prepare('INSERT INTO recheca_fila (filial, rca, em) VALUES (?,?,?) ON CONFLICT (filial, rca) DO UPDATE SET em = excluded.em').bind(x.filial, x.rca, agora));
     for (let i = 0; i < st.length; i += 80) await env.DB.batch(st.slice(i, i + 80));
     lidos++;
