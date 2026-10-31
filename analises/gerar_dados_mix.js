@@ -383,7 +383,8 @@ async function main() {
       const r = rec.get(o.filial + '|' + o.id); if (!r) continue;
       const lista = [...r.cods.entries()].filter(([c]) => !o.antes.has(c) && !(o.q1.has(c) || o.q2.has(c))).sort((a, b) => (b[1].pen || 0) - (a[1].pen || 0)).slice(0, 15)
         .map(([c, x]) => [c, x.nome || nomeProd.get(c) || '', x.ind || '', x.pen == null ? null : r1(x.pen)]);
-      const m = porF.get(o.filial) || porF.set(o.filial, {}).get(o.filial);
+      let m = porF.get(o.filial);
+      if (!m) { let velho = {}; try { velho = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'mix_rec', o.filial + '.json'), 'utf8')).clientes || {}; } catch (e) { /* primeira vez */ } m = velho; porF.set(o.filial, m); }   /* mantem a lista dos clientes de outros dias do rodizio */
       m[o.cnpj] = { n: o.nome || '', a: atv(o.cnpj), rca: o.rca, rec: lista, all: [...r.cods.keys()].filter((c) => !o.antes.has(c) && !(o.q1.has(c) || o.q2.has(c))) };
     }
     fs.mkdirSync(path.join(__dirname, '..', 'public', 'mix_rec'), { recursive: true });
