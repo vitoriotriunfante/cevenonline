@@ -10,15 +10,25 @@
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 const cors = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 const hojeSP = () => R.hojeSP();
+const memPedidosHoje = new Map(); // chave (dia|fil) -> { exp, json }
 
 export async function onRequestGet({ env, request }) {
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 indisponivel' }), { status: 503, headers: cors });
   const u = new URL(request.url);
   const dia = /^\d{4}-\d{2}-\d{2}$/.test(u.searchParams.get('dia') || '') ? u.searchParams.get('dia') : hojeSP();
   const fil = (u.searchParams.get('filial') || '').toLowerCase();
+  const ehSimples = u.searchParams.get('abertos') !== '1' && !u.searchParams.get('num');
+  const chaveMem = `${dia}|${fil}`;
+  if (ehSimples) {
+    const c = memPedidosHoje.get(chaveMem);
+    if (c && Date.now() < c.exp) return new Response(c.json, { headers: cors });
+  }
   try {
-    const { results } = await env.DB.prepare("SELECT chave, json, criado_em FROM cache_analise_cliente WHERE chave LIKE ? ORDER BY criado_em DESC")
-      .bind(`${fil ? fil + '1' : '%'}|%|%|${dia}|%`).all();
+    // OTIMIZACAO D1 (31/10/2026): se tem filial (ex: tbl1|%), o LIKE usa o PRIMARY KEY (chave) sem scan; se nao tem filial, usa criado_em >= inicioDoDia (idx_cache_analise_criado)
+    const iniDiaMs = Date.parse(dia + 'T00:00:00-03:00') || (Date.now() - 2 * 86400000);
+    const { results } = fil
+      ? await env.DB.prepare("SELECT chave, json, criado_em FROM cache_analise_cliente WHERE chave LIKE ? ORDER BY criado_em DESC").bind(`${fil}1|%|%|${dia}|%`).all()
+      : await env.DB.prepare("SELECT chave, json, criado_em FROM cache_analise_cliente WHERE criado_em >= ? AND chave LIKE ? ORDER BY criado_em DESC").bind(iniDiaMs - 3600000, `%|%|%|${dia}|%`).all();
     const visto = new Set(), pedidos = [], analisados = {};   // analisados: FILIAL|RCA -> clientes positivados ja analisados (o motor confere a cobertura)
     let clientes = 0;
     for (const r of results || []) {
@@ -58,7 +68,9 @@ export async function onRequestGet({ env, request }) {
       const m = new Map((ps || []).map((x) => [x.num, x]));
       for (const p of pedidos) { const x = m.get(p.num); if (x) { p.status_pedido = x.status; p.conferido_em = x.rechecado_em; p.final = !!x.final; } }
     } catch { /* sem a linha do tempo: fica a 1a leitura */ }
-    return new Response(JSON.stringify({ dia, clientes, analisados, pedidos }), { headers: cors });
+    const bodyJson = JSON.stringify({ dia, clientes, analisados, pedidos });
+    if (ehSimples) memPedidosHoje.set(chaveMem, { exp: Date.now() + 25000, json: bodyJson });
+    return new Response(bodyJson, { headers: cors });
   } catch (e) {
     return new Response(JSON.stringify({ erro: String(e.message || e).slice(0, 200) }), { status: 500, headers: cors });
   }

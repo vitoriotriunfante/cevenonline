@@ -293,7 +293,7 @@ async function rechecaPedidos(env) {
     const lim = new Date(Date.now() - 10 * 864e5).toISOString().slice(0, 10);
     // semente: pedidos do dia ja analisados pelo coletor (cache_analise_cliente) entram na tabela com o status lido (INSERT OR IGNORE: so os novos gravam)
     const dia = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
-    const { results: ca } = await env.DB.prepare("SELECT chave, json, criado_em FROM cache_analise_cliente WHERE chave LIKE ?").bind('%|%|%|' + dia + '|%').all();
+    const { results: ca } = await env.DB.prepare("SELECT chave, json, criado_em FROM cache_analise_cliente WHERE criado_em >= ? AND chave LIKE ?").bind(Date.now() - 35 * 60 * 1000, '%|%|%|' + dia + '|%').all();
     const sem = [];
     for (const r of ca || []) {
       const [k, rca, cli] = String(r.chave).split('|');

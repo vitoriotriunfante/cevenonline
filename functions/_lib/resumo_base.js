@@ -85,6 +85,6 @@ export async function calculaResumoMes(env, dataRef) {
     }
   }
   const res = { dataRef, rcas: linhas.length, deHoje, anteriores, semLeitura, maisAntiga, porFilial, total };
-  cacheResumo = { exp: agora + 25 * 1000, dataRef, res };
+  cacheResumo = { exp: agora + 45 * 1000, dataRef, res };
   return res;
 }

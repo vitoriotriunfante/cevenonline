@@ -1,4 +1,4 @@
-import { rodaAgora, freioCusto } from '../_lib/horario_reduzido.js';   // custo Cloudflare: fora do horario, 1 rodada a cada 30 min (25/10/2026)
+import { rodaAgora, freioCusto, agoraBrasilia } from '../_lib/horario_reduzido.js';   // custo Cloudflare: fora do horario, 1 rodada a cada 30 min (25/10/2026)
 // =========================================================================
 // FICHA DO ARQUIVO
 // O QUE É: varredura CENTRAL dos RCAs no CEVEN, gravada em varredura_central_rca (migration 0006). Todas as telas e o
@@ -106,8 +106,13 @@ async function garanteIndicesOtimizacao(env) {
   try {
     await env.DB.batch([
       env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_varredura_central_data_ref ON varredura_central_rca (data_ref, filial_sigla)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_varredura_central_rca_data ON varredura_central_rca (rca_codigo, data_ref)'),
       env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_cascata_dia_data ON cascata_dia (data_ref)'),
-      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_pedido_status_final_cli ON pedido_status (final, data_pedido, filial, id_cliente)')
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_pedido_status_final_cli ON pedido_status (final, data_pedido, filial, id_cliente)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_pedido_status_data ON pedido_status (data_pedido)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_tv_lances_dia_filial ON tv_lances (dia, filial)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_cache_analise_criado ON cache_analise_cliente (criado_em)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_bot_msgs_quando_dir ON bot_msgs (quando, direcao)')
     ]);
     indicesOtimizados = true;
   } catch { indicesOtimizados = false; }
@@ -338,8 +343,8 @@ export async function onRequestGet({ env, request }) {
   // Das 00:30 as 06:00 (seg-sab) roda a cada 2 min com o CEVEN livre e le TODOS os vendedores antes do expediente; antes so rodava a cada 30 min ate as 06h e a rota
   // so era lida no pico da manha, com 429: as 08h ainda faltavam vendedores. Durante o dia so rele quem teve pedido novo (camada quente).
   // MEDIDO (docs/BASE_UNICA.md): a rota do dia ja esta pronta as 00:07; ~600 vendedores a 3-4 chamadas/min levam horas, por isso comeca 00:30.
-  const rel = R.relogioSP(), madrugada = rel.dow !== 0 && rel.min >= 30 && rel.min < 6 * 60;
-  if (!forcar && !filialParam && !env.TESTE_SEM_HORARIO && !madrugada && !rodaAgora(2, undefined, await freioCusto(env))) return resp({ status: 'FORA_DO_HORARIO', regra: 'antes das 06h, depois das 21h e domingo: a cada 30 min' });
+  const rel = R.relogioSP(), agBr = agoraBrasilia(), madrugada = rel.dow !== 0 && !agBr.feriado && rel.min >= 30 && rel.min < 6 * 60;
+  if (!forcar && !filialParam && !env.TESTE_SEM_HORARIO && !madrugada && !rodaAgora(2, undefined, await freioCusto(env))) return resp({ status: 'FORA_DO_HORARIO', regra: 'antes das 06h, depois das 21h, domingo e feriado: a cada 30 min' });
 
   // lock global do WhatsApp (prioridade sobre TV/CFTV)
   if (!forcar && !filialParam) {

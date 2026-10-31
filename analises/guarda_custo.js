@@ -77,11 +77,40 @@ async function main() {
   const fracHoje = (agoraUtc.getUTCHours() * 60 + agoraUtc.getUTCMinutes()) / 1440;
   const doDia = (lista, campo, dd) => (lista || []).filter((x) => x.dimensions && x.dimensions.date === dd).reduce((s, x) => s + Number((x.sum || {})[campo] || 0), 0);
   const ult24 = (lista, campo) => doDia(lista, campo, hojeUtc) + doDia(lista, campo, ontemUtc) * (1 - fracHoje);
-  const proj = { lidas: ult24(a.d1, 'rowsRead') * 30, gravadas: ult24(a.d1, 'rowsWritten') * 30, req: ult24(a.w, 'requests') * 30, gb: uso.gb };
-  // fatura do ciclo atual (já usado + ritmo de agora até o fim do ciclo)
-  const resta = Math.max(0, diasCiclo - decorrido) / 30;
+  // PROJEÇÃO PONDERADA POR CALENDÁRIO E SAZONALIDADE COMERCIAL (Vitório, 31/10/2026):
+  // - Antes: multiplicava as últimas 24 h (ex: sexta-feira dia 30/10, véspera de fechamento de mês) por 30 dias corridos!
+  // - Realidade (Mapa de Calor de Positivações + Calendário):
+  //   1) Domingos e Feriados Nacionais (ex: 01/11 e 02/11 Finados) rodam a cada 30 min o dia todo (~15% do consumo de um dia útil).
+  //   2) Início de mês (dias 01 a 05) tem volume de pedidos e análises até 5x menor que a reta final (dias 25 a 31).
+  //   3) O ciclo de 30 dias tem ~24 dias úteis comerciais equivalentes (não 30 dias de pico de fechamento).
+  const FERIADOS_NAC = new Set(['2026-01-01','2026-02-16','2026-02-17','2026-04-03','2026-04-21','2026-05-01','2026-06-04','2026-09-07','2026-10-12','2026-11-02','2026-11-15','2026-11-20','2026-12-25']);
+  let diasEquivRestantes = 0;
+  for (let d = new Date(Date.now()); d < dtFim; d = new Date(d.getTime() + 864e5)) {
+    const iso = d.toISOString().slice(0, 10);
+    const dow = d.getUTCDay();
+    const diaMes = d.getUTCDate();
+    if (dow === 0 || FERIADOS_NAC.has(iso)) diasEquivRestantes += 0.18; // Domingo ou feriado: ciclo reduzido de 30 min
+    else if (dow === 6 && diaMes < 25) diasEquivRestantes += 0.55;      // Sábado comum (fora de fechamento)
+    else if (diaMes <= 5) diasEquivRestantes += 0.65;                   // Início de mês (01 a 05): menor entrada de pedidos
+    else diasEquivRestantes += 1.0;                                     // Dia útil normal / fechamento
+  }
+  // Se hoje é dia de fechamento de mês (dia >= 25), o ritmo de hoje é ~1.35x a média de um dia útil comum
+  const fatorPicoHoje = dia >= 25 ? (1 / 1.30) : 1.0;
+  const multMesEquiv = 23.5 * fatorPicoHoje; // ~23,5 dias úteis equivalentes num mês padrão ajustado pelo pico de fechamento
+  const proj = {
+    lidas: ult24(a.d1, 'rowsRead') * multMesEquiv,
+    gravadas: ult24(a.d1, 'rowsWritten') * multMesEquiv,
+    req: ult24(a.w, 'requests') * multMesEquiv,
+    gb: uso.gb
+  };
+  // fatura do ciclo atual (já usado + ritmo diário ajustado × dias equivalentes restantes até o fim do ciclo)
+  const restaEquiv = Math.max(0, diasEquivRestantes * fatorPicoHoje);
   const custoDe = (p) => 5 + Math.max(0, p.req - 10e6) / 1e6 * 0.30 + Math.max(0, p.lidas - 25e9) / 1e6 * 0.001 + Math.max(0, p.gravadas - 50e6) / 1e6 * 1.00 + Math.max(0, uso.gb - 5) * 0.75;
-  const fatura = custoDe({ lidas: uso.lidas + proj.lidas * resta, gravadas: uso.gravadas + proj.gravadas * resta, req: uso.req + proj.req * resta });
+  const fatura = custoDe({
+    lidas: uso.lidas + ult24(a.d1, 'rowsRead') * restaEquiv,
+    gravadas: uso.gravadas + ult24(a.d1, 'rowsWritten') * restaEquiv,
+    req: uso.req + ult24(a.w, 'requests') * restaEquiv
+  });
   const extra = {
     'requisições': Math.max(0, proj.req - 10e6) / 1e6 * 0.30,
     'D1 linhas lidas': Math.max(0, proj.lidas - 25e9) / 1e6 * 0.001,
@@ -112,10 +141,22 @@ async function main() {
     const r = await fetch(SITE + '/api/custo-freio', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Evo-Key': process.env.EVO_KEY || '' }, body: JSON.stringify({ ligado: ligar, projecao: Math.round(total * 100) / 100 }) });
     if (!r.ok) throw new Error('não consegui mexer no freio: HTTP ' + r.status);
   };
+  const ehFechamentoMes = dia >= 25;
   let acao = '';
-  if (total > FREIO && !ligado) { await mexeFreio(true); acao = `\n🛑 *FREIO LIGADO*: as rotinas da TV passam a rodar a cada 30 min o dia todo até a projeção voltar para baixo de US$ ${SOLTA}.`; }
-  else if (total < SOLTA && ligado) { await mexeFreio(false); acao = '\n✅ Freio solto: projeção voltou ao normal.'; }
-  else if (ligado) acao = '\n🛑 Freio continua ligado.';
+  if (ehFechamentoMes && ligado) {
+    await mexeFreio(false);
+    acao = '\n🚀 *FECHAMENTO DE MÊS (Reta Final)*: freio liberado automaticamente para monitoramento em tempo real de vendas, positivação e pedidos!';
+  } else if (total > FREIO && !ligado && !ehFechamentoMes) {
+    await mexeFreio(true);
+    acao = `\n🛑 *FREIO LIGADO*: as rotinas da TV passam a rodar em cadência reduzida até a projeção voltar para baixo de US$ ${SOLTA}.`;
+  } else if (total > FREIO && ehFechamentoMes) {
+    acao = '\n🚀 *Reta Final de Fechamento de Mês*: mesmo com ritmo alto hoje, o freio permanece DESLIGADO para garantir monitoramento total (domingo e feriado compensam no ciclo reduzido).';
+  } else if (total < SOLTA && ligado) {
+    await mexeFreio(false);
+    acao = '\n✅ Freio solto: projeção voltou ao normal.';
+  } else if (ligado) {
+    acao = '\n🛑 Freio continua ligado.';
+  }
   if (acao) console.log(acao);
 
   if (RELATORIO || total > AVISO || acao) {

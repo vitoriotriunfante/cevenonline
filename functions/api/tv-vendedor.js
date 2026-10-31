@@ -123,10 +123,12 @@ function analisaPedido(historico, cat, rca, hoje, canal) {
   const valorAtual = Array.isArray(atual?.skus) ? atual.skus.reduce((s, item) => s + (Number(item.total) || 0), 0) : 0;
   const { industrias, categorias } = industriasDoPedido(atual?.skus, cat);
   // pedido de hoje e (se houver dobradinha) os pedidos REAIS de cada quinzena do mes, com numero, data e valor (nunca estimativa)
-  const pedidoHoje = { num: atual.num_pedido || null, status_pedido: atual.status_pedido || null, valor: Number(atual.total_clube) || valorAtual,
+  const pedidoHoje = {
+    num: atual.num_pedido || null, status_pedido: atual.status_pedido || null, valor: Number(atual.total_clube) || valorAtual,
     // CORTE do pedido (15/10/2026): o WhatsApp le cortes e bloqueados daqui (/api/pedidos-dia) em vez de perguntar ao CEVEN cliente por cliente na hora do envio
     data: atual.data_visita ? String(atual.data_visita).slice(0, 10) : null, categoria_corte: atual.categoria_corte || null, itens_cortados: Array.isArray(atual.itens_cortados) ? atual.itens_cortados.map((it) => ({ qt_cortada: it.qt_cortada, preco: it.preco })) : [],
-    total_clube: Number(atual.total_clube) || null, valor_original: Number(atual.valor_original) || null, vl_faturado_winthor: Number(atual.vl_faturado_winthor) || null, vl_perdido_logistica: Number(atual.vl_perdido_logistica) || null };
+    total_clube: Number(atual.total_clube) || null, valor_original: Number(atual.valor_original) || null, vl_faturado_winthor: Number(atual.vl_faturado_winthor) || null, vl_perdido_logistica: Number(atual.vl_perdido_logistica) || null
+  };
   let quinzenas = null;
   if (dobradinhaQuinzenas) {
     const doMes = todas.filter((v) => String(v.data_visita || '').slice(0, 7) === mesAtual && v.num_pedido && Number(v.total_clube) > 0);
@@ -162,32 +164,32 @@ function montarTv(id, dash, prod, rot, analisePorCliente) {
     visitas_com_venda: Math.max(num(dia.visitas_com_venda) || 0, rotPos),
     clientes: Array.isArray(rot)
       ? rot.map((c) => ({
-          id: c.id_cliente,
-          nome: c.nome_cliente || c.razao_social || null,
-          status: c.status || null,
-          motivo: c.motivo_nao_visita || null,
-          obs: c.observacao_nao_visita || null,
-          ultima_compra: c.data_ultima_compra ? String(c.data_ultima_compra).slice(0, 10) : null,
-          valor_ultima: num(c.valor_ultima_compra),
-          tempo_visita: c.tempo_visita || null,
-          checkin_horario: c.checkin_horario || null,
-          checkout_horario: c.checkout_horario || null,
-          lat: num(c.latitude),
-          lon: num(c.longitude),
-          checkout_lat: num(c.checkout_latitude),
-          checkout_lon: num(c.checkout_longitude),
-          // null = o CEVEN NAO informou as tags nesta leitura (diferente de false = informou e nao tem RECORRENCIA). Gol de resgate nao nasce sem a tag informada
-          // (achado 05/10/2026: 3 gols de resgate em clientes COM a tag nasceram as 15:43, numa leitura sem o campo).
-          recorrencia: Array.isArray(c.focos) ? c.focos.some((f) => String(f?.industria_foco || '').toUpperCase().includes('RECORRENCIA')) : null,
-          valorVendaAtual: analisePorCliente?.[c.id_cliente]?.valorAtual || 0,
-          dobrouMix: analisePorCliente?.[c.id_cliente]?.dobrouMix || false,
-          bonificacao: analisePorCliente?.[c.id_cliente]?.bonificacao || false,
-          dobradinhaQuinzenas: analisePorCliente?.[c.id_cliente]?.dobradinhaQuinzenas || false,
-          pedidoHoje: analisePorCliente?.[c.id_cliente]?.pedidoHoje || null,
-          quinzenas: analisePorCliente?.[c.id_cliente]?.quinzenas || null,
-          industrias: analisePorCliente?.[c.id_cliente]?.industrias || null,
-          categorias: analisePorCliente?.[c.id_cliente]?.categorias || null
-        }))
+        id: c.id_cliente,
+        nome: c.nome_cliente || c.razao_social || null,
+        status: c.status || null,
+        motivo: c.motivo_nao_visita || null,
+        obs: c.observacao_nao_visita || null,
+        ultima_compra: c.data_ultima_compra ? String(c.data_ultima_compra).slice(0, 10) : null,
+        valor_ultima: num(c.valor_ultima_compra),
+        tempo_visita: c.tempo_visita || null,
+        checkin_horario: c.checkin_horario || null,
+        checkout_horario: c.checkout_horario || null,
+        lat: num(c.latitude),
+        lon: num(c.longitude),
+        checkout_lat: num(c.checkout_latitude),
+        checkout_lon: num(c.checkout_longitude),
+        // null = o CEVEN NAO informou as tags nesta leitura (diferente de false = informou e nao tem RECORRENCIA). Gol de resgate nao nasce sem a tag informada
+        // (achado 05/10/2026: 3 gols de resgate em clientes COM a tag nasceram as 15:43, numa leitura sem o campo).
+        recorrencia: Array.isArray(c.focos) ? c.focos.some((f) => String(f?.industria_foco || '').toUpperCase().includes('RECORRENCIA')) : null,
+        valorVendaAtual: analisePorCliente?.[c.id_cliente]?.valorAtual || 0,
+        dobrouMix: analisePorCliente?.[c.id_cliente]?.dobrouMix || false,
+        bonificacao: analisePorCliente?.[c.id_cliente]?.bonificacao || false,
+        dobradinhaQuinzenas: analisePorCliente?.[c.id_cliente]?.dobradinhaQuinzenas || false,
+        pedidoHoje: analisePorCliente?.[c.id_cliente]?.pedidoHoje || null,
+        quinzenas: analisePorCliente?.[c.id_cliente]?.quinzenas || null,
+        industrias: analisePorCliente?.[c.id_cliente]?.industrias || null,
+        categorias: analisePorCliente?.[c.id_cliente]?.categorias || null
+      }))
       : null,
     falhas: [!dash && 'dashboard', !prod && 'produtividade', !Array.isArray(rot) && 'roteiro'].filter(Boolean),
     consultado_em: new Date().toISOString()
@@ -203,6 +205,7 @@ function dataHojeBrasilia() { return R.hojeSP(); }
 // DEVOLVE O QUE A BASE TEM, MESMO INCOMPLETO (11/10/2026): antes, linha sem dashboard ou com mais de 15 min = 3 chamadas ao vivo; com o coletor de lances passando
 // por todos os RCAs, isso estourava o limite do CEVEN (HTTP 429 para a chave inteira), a varredura central tambem era bloqueada e a base ficava cada vez mais velha.
 // Agora o chamador busca ao vivo SO o pedaco que faltar. maxIdadeMs: 15 min na tela; 30 min no coletor de lances (central=1).
+const memCascata = new Map();
 async function lerCentral(env, id, maxIdadeMs, filial) {
   if (!env || !env.DB) return null;
   try {
@@ -218,7 +221,14 @@ async function lerCentral(env, id, maxIdadeMs, filial) {
     try {
       const sigFil = String(row.filial_sigla || filial || '').toUpperCase();
       if (sigFil) {
-        const cRow = await env.DB.prepare('SELECT json FROM cascata_dia WHERE filial = ? AND data_ref = ?').bind(sigFil, dataHojeBrasilia()).first();
+        const ck = `${sigFil}|${dataHojeBrasilia()}`;
+        let mc = memCascata.get(ck);
+        if (!mc || Date.now() > mc.exp) {
+          const cRow = await env.DB.prepare('SELECT json FROM cascata_dia WHERE filial = ? AND data_ref = ?').bind(sigFil, dataHojeBrasilia()).first();
+          mc = { exp: Date.now() + 45000, cRow };
+          memCascata.set(ck, mc);
+        }
+        const cRow = mc.cRow;
         if (cRow && cRow.json) {
           const cj = JSON.parse(cRow.json);
           for (const s of cj.supervisores || []) {
@@ -297,7 +307,8 @@ export async function onRequestGet({ request, env }) {
   // 1) roteiro com cliente de OUTRA data (data_visita) ou com check-in DEPOIS da hora de agora = roteiro de ontem: descarta (nenhum lance nasce dele).
   // 2) ate as 10h: produtividade do dia com visitas/pedidos mas roteiro (com clientes) SEM nenhum check-in = produtividade de ontem: zera o 'dia'. Nunca inventa: so deixa de usar dado velho.
   let rotaAntiga = false;
-  { const hojeSP = dataHojeBrasilia(), hm = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
+  {
+    const hojeSP = dataHojeBrasilia(), hm = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
     // 19/10/2026 (WhatsApp das 14:30 preso): check-in com hora A FRENTE do relogio (aparelho com hora errada, ex.: MCD 1063 'check-in 16:29' as 15h) com data_visita = HOJE
     // descartava o roteiro inteiro; os pedidos desses vendedores nunca eram analisados e o motor esperava para sempre. Agora a hora futura so condena o roteiro na virada
     // do dia (antes das 10h, quando o CEVEN ainda serve o de ontem) ou quando esta mais de 3 h a frente; relogio de aparelho adiantado a tarde nao derruba mais a rota.
@@ -320,7 +331,8 @@ export async function onRequestGet({ request, env }) {
         } catch { igualAnterior = true; }
       }
       if (igualAnterior) { prod = { ...prod, dia: { ...prod.dia, faturamento: 0, positivacao: 0, dig_pedido: 0, visitas_na_rota: 0, visitas_com_venda: 0, eficacia_pct: 0 } }; rotaAntiga = true; }
-    } }
+    }
+  }
   // G03 (Dobrou o Mix) e V03 (Bonificação): só para clientes positivados HOJE (evita 1 chamada
   // extra por cliente da rota inteira — geralmente são poucos positivados por dia, não os 10-20+
   // da rota completa).
@@ -386,7 +398,7 @@ export async function onRequestGet({ request, env }) {
     if (novos.length && env && env.DB) {
       try {
         await env.DB.batch(novos.map(([k, j]) => env.DB.prepare('INSERT INTO cache_analise_cliente (chave, json, criado_em) VALUES (?, ?, ?) ON CONFLICT (chave) DO UPDATE SET json = excluded.json, criado_em = excluded.criado_em').bind(k, j, Date.now())));
-        if (Math.random() < 0.02) await env.DB.prepare('DELETE FROM cache_analise_cliente WHERE criado_em < ?').bind(Date.now() - 2 * 86400000).run();
+        if (Math.random() < 0.08) await env.DB.prepare('DELETE FROM cache_analise_cliente WHERE criado_em < ?').bind(Date.now() - 36 * 3600000).run();
       } catch { /* cache e so economia: falha aqui nao muda a resposta */ }
     }
     if (novosHist.length && env && env.DB) {
@@ -396,7 +408,7 @@ export async function onRequestGet({ request, env }) {
     }
     positivadosHoje.forEach((c) => {
       let analise = null;
-      try { analise = JSON.parse(emCache.get(chaveCache(c)) || 'null'); } catch {}
+      try { analise = JSON.parse(emCache.get(chaveCache(c)) || 'null'); } catch { }
       if (analise) analisePorCliente[c.id_cliente] = analise;
     });
   }
