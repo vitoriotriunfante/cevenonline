@@ -798,6 +798,7 @@ input:focus, select:focus { border-color: var(--azul); }
             <option value="supervisor">Supervisor</option>
             <option value="gerente">Gerente</option>
             <option value="diretoria">Diretoria</option>
+            <option value="ceo">CEO</option>
             <option value="vendedor">Vendedor</option>
           </select>
         </div>
@@ -881,6 +882,7 @@ input:focus, select:focus { border-color: var(--azul); }
           <span class="chip bc-chip-papel" data-papel="gerente">🏢 Gerentes</span>
           <span class="chip bc-chip-papel" data-papel="vendedor">🎒 Vendedores</span>
           <span class="chip bc-chip-papel" data-papel="diretoria">👑 Diretoria</span>
+          <span class="chip bc-chip-papel" data-papel="ceo">🏛️ CEO</span>
           <span class="chip bc-chip-papel" data-papel="individual">📱 Número Individual</span>
         </div>
       </div>
@@ -2157,7 +2159,7 @@ function obterDestinatariosComunicado() {
     const ativos = (DADOS_CONTATOS.contatos || []).filter((c) => c.situacao === 'ativo' || c.ativo === 1);
     for (const c of ativos) {
       if (!papeisAtivos.includes(c.papel)) continue;
-      if (!todasFiliais && c.papel !== 'diretoria' && !BC_FILIAIS_SEL.has(c.filial)) continue;
+      if (!todasFiliais && c.papel !== 'diretoria' && c.papel !== 'ceo' && !BC_FILIAIS_SEL.has(c.filial)) continue;
       if (!porCel.has(c.celular)) porCel.set(c.celular, c);
     }
   }

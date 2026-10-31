@@ -13,7 +13,7 @@ import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 
 const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Equipe-Senha', 'Cache-Control': 'no-store' };
-const PAPEIS = ['diretoria', 'gerente', 'supervisor', 'vendedor'];
+const PAPEIS = ['ceo', 'diretoria', 'gerente', 'supervisor', 'vendedor'];
 const FILIAIS = ['TPH', 'ABC', 'API', 'TBL', 'TCV', 'TSJ', 'TCA', 'TBE', 'TPA', 'MCD', 'TCG'];
 const so = (x) => String(x || '').replace(/\D/g, '');
 const j = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: CORS });
@@ -161,8 +161,8 @@ export async function onRequestPost({ request, env }) {
   if (acao === 'salvar') {
     const papel = String(b.papel || '').toLowerCase();
     if (!PAPEIS.includes(papel)) return j({ erro: 'papel invalido' }, 400);
-    const filial = papel === 'diretoria' ? null : String(b.filial || '').toUpperCase();
-    if (papel !== 'diretoria' && !FILIAIS.includes(filial)) return j({ erro: 'filial obrigatoria para ' + papel }, 400);
+    const filial = (papel === 'diretoria' || papel === 'ceo') ? null : String(b.filial || '').toUpperCase();
+    if (papel !== 'diretoria' && papel !== 'ceo' && !FILIAIS.includes(filial)) return j({ erro: 'filial obrigatoria para ' + papel }, 400);
     const nome = String(b.nome || '').trim().toUpperCase(); if (!nome) return j({ erro: 'nome obrigatorio' }, 400);
     const sup = papel === 'supervisor' ? String(b.supervisor || nome).trim().toUpperCase() : papel === 'vendedor' ? String(b.supervisor || '').trim().toUpperCase() || null : null;
     const grupo = b.grupo ? String(b.grupo).trim().toUpperCase() : null, rca = papel === 'vendedor' ? so(b.rca) || null : null;

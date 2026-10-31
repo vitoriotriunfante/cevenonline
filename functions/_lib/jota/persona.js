@@ -53,7 +53,7 @@ export async function manchete(B, c) {
   try {
     const s = await B.saude(); const F = (s && s.filiais) || [];
     let pct = null, nome = '', liga = '';
-    if (c.papel === 'diretoria' || !c.filial) { const t = F.reduce((a, f) => ({ fat: a.fat + (f.faturado || 0), meta: a.meta + (f.meta_fat || 0) }), { fat: 0, meta: 0 }); pct = t.meta ? t.fat / t.meta * 100 : null; nome = 'O grupo'; }
+    if (c.papel === 'diretoria' || c.papel === 'ceo' || !c.filial) { const t = F.reduce((a, f) => ({ fat: a.fat + (f.faturado || 0), meta: a.meta + (f.meta_fat || 0) }), { fat: 0, meta: 0 }); pct = t.meta ? t.fat / t.meta * 100 : null; nome = 'O grupo'; }
     else if (c.papel === 'gerente' && !c.grupo) { const f = F.find((x) => x.filial === c.filial); if (f) pct = f.meta_fat ? f.faturado / f.meta_fat * 100 : null; nome = 'A ' + c.filial; }
     if (c.filial) { const lg = await B.liga(); const lf = lg && (lg.filiais || []).find((x) => x.sigla === c.filial); if (lf) liga = `${lf.pos}º na Champions`; }
     if (pct == null && !liga) return '';
@@ -65,7 +65,7 @@ export async function manchete(B, c) {
 export const ehSaudacao = (t) => /^(BOM DIA|BOA TARDE|BOA NOITE|OI+|OLA|E AI|EAI|FALA|SALVE|OPA|HEY|PICO ?PICO)( (JOTA|NOVAMENTE|DE NOVO|PESSOAL|TIME|TUDO BEM|TUDO BOM|BELEZA|MEU AMIGO|AMIGO|CHEFE))*[ !.,?]*$/.test(t);
 export async function respSaudacao(B, c, primeiraVez) {
   const n = primeiroNome(c), d = diaSemana(), fds = d === 0 || d === 6;
-  const papel = c.papel === 'diretoria' ? 'nas 11 filiais' : c.papel === 'gerente' ? `na ${c.filial}` : c.papel === 'supervisor' ? 'na sua equipe' : 'nos seus números';
+  const papel = (c.papel === 'diretoria' || c.papel === 'ceo') ? 'nas 11 filiais' : c.papel === 'gerente' ? `na ${c.filial}` : c.papel === 'supervisor' ? 'na sua equipe' : 'nos seus números';
   const ola = primeiraVez ? `${cumprimento()}, ${n}! Eu sou o *Jota*, o reforço do Comercial da Triunfante. Prazer! 💪`
     : varia([`${cumprimento()}, ${n}! Bom te ver por aqui.`, `${cumprimento()}, ${n}! Tudo certo por aí?`, `Opa, ${n}! ${cumprimento()}.`, `${cumprimento()}, ${n}! Pronto pra mais um dia de jogo?`], c.celular);
   const L = [ola];

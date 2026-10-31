@@ -172,6 +172,11 @@ export async function onRequestPost({ request, env }) {
   const B = criaBase(u.origin, env);
   let resp = null, tipo = 'pronta';
   const tN = sem(texto);
+  const ehExecutivo = c.papel === 'diretoria' || c.papel === 'ceo' || c.papel === 'gerente';
+  const ehPerguntaEstrategicaOuConsultiva = ehExecutivo && (
+    /\b(ESTRATEG(IA|ICO|ICA|IAS)|PLANO DE ACAO|PLANO COMERCIAL|COMO (PODEMOS|DEVEMOS|VAMOS|EU POSSO|FAZER PARA) (MELHORAR|RECUPERAR|VIRAR|AUMENTAR|CRESCER|ACELERAR|DESTRAVAR|REVERTER|BATER)|ONDE (DEVEMOS|PODEMOS|PRECISAMOS) (FOCAR|ATACAR|ATUAR|MELHORAR)|QUAL (A MELHOR|SUA) (ESTRATEGIA|SUGESTAO|RECOMENDACAO|IDEIA|OPINIAO|ANALISE)|ME D[AE] UMA (SUGESTAO|IDEIA|ESTRATEGIA|ANALISE|ORIENTACAO)|O QUE VOCE (ACHA|SUGERE|RECOMENDA|PENSA|INDICARIA|FARIA)|POR QUE (CAIU|ESTAMOS ABAIXO|NAO ESTAMOS BATENDO)|DIAGNOSTICO|CONSULTORIA|GARGALO|PONTOS? FRACOS?|PONTOS? FORTES?|ANALISE (EXECUTIVA|ESTRATEGICA|CRITICA))\b/i.test(tN)
+    || (texto.trim().split(/\s+/).length >= 10 && /\?/.test(texto) && /\b(COMO|POR QUE|PORQUE|QUAL|O QUE|ONDE|DEVO|PODEMOS|SUGERE|ACHA)\b/i.test(tN) && !/^(QUAIS|QUANTOS) (CLIENTES|PEDIDOS|VENDEDORES)/i.test(tN))
+  );
   const jaFalou = await env.DB.prepare("SELECT COUNT(*) n, SUM(CASE WHEN direcao = 'out' AND date(quando, '-3 hours') = date('now', '-3 hours') THEN 1 ELSE 0 END) hoje FROM bot_msgs WHERE celular = ?").bind(cel).first().catch(() => ({ n: 1, hoje: 1 }));
   const primeiraVez = !jaFalou || !(jaFalou.n > 1), primeiraDoDia = !jaFalou || !(jaFalou.hoje > 0);
   // reclamacao: marca a ultima resposta como "nao ajudou" (vai para o painel de conversas)
@@ -216,6 +221,11 @@ export async function onRequestPost({ request, env }) {
   const { results: hist } = await env.DB.prepare("SELECT direcao, texto FROM bot_msgs WHERE celular = ? AND direcao IN ('in','out') AND quando >= datetime('now','-6 hours') ORDER BY id DESC LIMIT 7").bind(cel).all();
   const anteriores = (hist || []).filter((h) => h.direcao === 'in').map((h) => h.texto).filter((x) => x !== texto).slice(0, 4);
   B.ultOut = ultOut && ultOut.texto ? ultOut.texto : null;
+  if (!resp && ehPerguntaEstrategicaOuConsultiva) {
+    const historico = (hist || []).slice(1).reverse().map((h) => ({ role: h.direcao === 'in' ? 'user' : 'assistant', content: h.texto }));
+    resp = await respondeIA(env, B, c, texto, historico);
+    if (resp) tipo = 'ia';
+  }
   if (!resp) try { resp = await respostaPronta(B, c, texto, anteriores); } catch (e) { resp = null; if (seco) return new Response('ERRO: ' + String(e && e.stack || e), { status: 500 }); try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'erro: ' + String(e && e.stack || e).slice(0, 1500)).run(); } catch (x) {} }
   if (!resp && seco && u.searchParams.get('sem_ia') === '1') return new Response('(sem resposta pronta)', { status: 404 });
   // ENTENDER COM IA (25/10/2026): a IA traduz a pergunta para um formato que o Jota ja responde; o numero sai do codigo, nunca da IA
@@ -235,8 +245,8 @@ export async function onRequestPost({ request, env }) {
   if (['pronta', 'ia'].includes(tipo) && resp && !/o que faltou/.test(resp) && !/⟪⟫/.test(resp)) resp += '\n\n_Nota de 1 a 5 para essa resposta? Ou escreva "sugestão: ..."_';
   if (audio && audio.texto) resp = `🎙️ _Entendi: "${audio.texto.slice(0, 200)}"_\n\n` + resp;
   if (seco) return new Response(resp + (u.searchParams.get('fig') === '1' ? `\n\n[figurinha: ${figurinhaPara(resp, tipo) || 'nenhuma'} · tipo: ${tipo}]` : ''), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
-  // TRAVA DE ESCOPO (26/10/2026, vazamento do consolidado para um supervisor): nada do consolidado nacional sai para quem nao e diretoria, venha de onde vier a resposta
-  if (c.papel !== 'diretoria' && /CONSOLIDADO|11 FILIAIS|GRUPO TRIUNFANTE —|RESULTADO GERAL DA COMPANHIA|DESEMPENHO POR FILIAL/i.test(resp)) {
+  // TRAVA DE ESCOPO (26/10/2026, vazamento do consolidado para um supervisor): nada do consolidado nacional sai para quem nao e diretoria/ceo, venha de onde vier a resposta
+  if (c.papel !== 'diretoria' && c.papel !== 'ceo' && /CONSOLIDADO|11 FILIAIS|GRUPO TRIUNFANTE —|RESULTADO GERAL DA COMPANHIA|DESEMPENHO POR FILIAL/i.test(resp)) {
     try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'BLOQUEADO (escopo): ' + resp.slice(0, 1500)).run(); } catch (x) {}
     resp = `Essa informação é da visão da diretoria. Para a sua equipe, me pergunte "como está minha equipe?", "hoje" ou "zerados".`; tipo = 'bloqueado';
   }

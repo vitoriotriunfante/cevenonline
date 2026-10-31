@@ -48,13 +48,13 @@ export async function respostaPronta(B, c, texto0, anteriores) {
   const abre = /\bBRASIL\b|TODAS AS FILIAIS|NACIONAL|GRUPO TODO|\bREDE\b|POR FILIAL/.test(t0);
   const ehPerguntaRotaGeral = /^(ROTA|VISITAS?|VENDAS?(\s*X\s*ROTA)?)\s*(HOJE|HJ)?$/i.test(t0) || /\b(VENDAS?\s*X\s*ROTA|ROTA\s*HOJE|ROTA\s*HJ|VISITAS?\s*HOJE)\b/i.test(t0);
   const equipe = ehPerguntaRotaGeral || /\bEQUIPE\b|\bTIME\b|\bFILIAL\b|DOS VENDEDORES|TODOS (OS )?VENDEDORES|POR SUPERVISOR|POR VENDEDOR|UM POR UM|ZERADOS|RANKING|SEM VISITA|SEM NENHUMA VISITA/.test(t0);
-  if (c.papel === 'diretoria' && !filCit && !abre && ctx.filial) texto += ' ' + ctx.filial;   /* filial da conversa */
+  if ((c.papel === 'diretoria' || c.papel === 'ceo') && !filCit && !abre && ctx.filial) texto += ' ' + ctx.filial;   /* filial da conversa */
   const ehSobreOutroTema = /CLIENTE|LOJA|REDE|#\d+|HIST[OÓ]RI|FIGURINHA|STICKER|TODAS?|TODOS?|TAG|P10|P11|CAMPANHA|RECORRENCIA|PEDIDO|NOTA|SUGEST|BOM DIA|BOA TARDE|GERENTE|SUPERVISOR/.test(t0);
   const ehContinuacaoVend = !ehPerguntaRotaGeral && /^(E\b|E O\b|E A\b|E DELE|E DELA|E HOJE|E ONTEM|E NO MES|FALTA|QUANTO FALTA|COMO FOI|COMO ESTA|DETALHE|VER MAIS|MOSTRA(R)? MAIS|RESTANTE|RESTO|OUTROS|\+ ?MIX|MAIS ?MIX)/.test(t0);
   B._ctxVend = !abre && !equipe && !ehSobreOutroTema && ehContinuacaoVend && (!filCit || !ctx.vend || ctx.vend.filial === filCit) ? ctx.vend || null : null;   /* vendedor da conversa só herdado em continuação direta */
   B._ctxAssunto = ctx.assunto || null;
   B._ultPessoa = null;
-  if (B._ctxVend && c.papel !== 'diretoria') {   /* diretoria nunca fica amarrada a vendedor de conversa anterior */
+  if (B._ctxVend && c.papel !== 'diretoria' && c.papel !== 'ceo') {   /* diretoria/ceo nunca fica amarrada a vendedor de conversa anterior */
     try {
       const ec = escopoDoContato(c, sem(texto).match(FRX));
       const escX = ec.rcaV ? null : ec.fil ? { nome: ec.fil, filiais: [ec.fil], grupo: ec.supervisor ? null : ec.grupo, supervisor: ec.supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
@@ -224,7 +224,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/O QUE (E|EH|SIGNIFICA)|COMO FUNCIONA|COMO (E|EH) CALCULAD|QUE QUER DIZER|DEFINICAO/.test(t)) { const g = respGlossario(t); if (g) return g; }
   const foraEscopo = foraDoEscopoContato(c, texto);
   if (foraEscopo) return foraEscopo;
-  if (/DIVERGENC/.test(t) && c.papel === 'diretoria') return respDivergencias(B);
+  if (/DIVERGENC/.test(t) && (c.papel === 'diretoria' || c.papel === 'ceo')) return respDivergencias(B);
   if (/BOLA CHEIA/.test(t)) return respBola(B, esc);
   if (/SEMANA/.test(t) && /COMPROMISSO|\bRETS?\b|SUPERVISOR/.test(t)) return respSemana(B, await carregaEscopo(B, esc));
   if (/ATESTADO|DEMITID|DESLIGAD|FERIAS|AFASTAD|LICENCA|DESCONSIDER|SAIU DA EMPRESA|PEDIU DEMISSAO/.test(t) && c.papel !== 'vendedor') return respInfoEquipe(B.env, c, texto);
@@ -235,7 +235,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // RELATORIO AUTOMATICO so para diretoria/gerente pedindo O RELATORIO (27/10/2026: supervisor com "relatorio de positivacao por industria do Fabio" e
   // "como foi a venda do vendedor 60 ontem" recebia "os relatorios automaticos sao da gerencia"). "Ontem" com equipe/vendedor = pedidos de ontem (abaixo).
   const pedeRelatorio = /RELATORIO (DAS|DE HOJE|DO DIA|DA MANHA|DA TARDE|DE ONTEM|AUTOMATIC)|BOLETIM|DISPARO|MENSAGEM DAS|COMO FECHOU/.test(t) && !/VENDEDOR|EQUIPE|INDUSTRIA|POSITIVA|CLIENTE|CHE?C?K.?IN|CHE?C?K.?OUT|PRODUTO|COMPR/.test(t);
-  if ((pedeRelatorio && (c.papel === 'diretoria' || c.papel === 'gerente')) || (ehMP && /RELATORIO|10[:H ]?00|\b10H\b/.test(t))) return respRelatorio(B, c, t);
+  if ((pedeRelatorio && (c.papel === 'diretoria' || c.papel === 'ceo' || c.papel === 'gerente')) || (ehMP && /RELATORIO|10[:H ]?00|\b10H\b/.test(t))) return respRelatorio(B, c, t);
   if (/GESTAO DE CAMPO|SUPERVISORES EM CAMPO|EM ROTA \(RET\)|RANKING DE ATIVIDADE/.test(t) || (/COMPROMISSO|\bRET\b/.test(t) && /POR FILIAL|RANKING|PERCENT|%/.test(t))) return respGestaoCampo(B, await carregaEscopo(B, esc));
   // LISTA de pedidos por status do escopo (bloqueados, liberados sem faturar, com corte): antes da Operacao, que so da o total (26/10/2026)
   // + pendentes/nao faturados (Jefferson: "pedidos pendentes do vendedor 128, de quais clientes"; Andrey COD 103: "quais sao os clientes que estao no pendente?")
@@ -325,12 +325,11 @@ export async function respostaInterna(B, c, texto, anteriores) {
     return respSegmentoCnae(B, Es, t, achaPessoa(Es, t));
   }
   // ESTRATÉGIA COMERCIAL EXECUTIVA / RECUPERAÇÃO / PLANO DE FECHAMENTO (Vitório, 30/10/2026: IA Generativa / Gemini)
-  if (/ESTRATEG(IA|ICO)|PLANO (DE ACAO)?|ONDE ATACAR|COMO (BATER|ATINGIR|VIRAR|FECHAR|RECUPERAR|CHEGAR)|RECUPERAR (A )?META/.test(t)
-    || /500 ?(MIL|K)|ATINGIR (ESSES|OS) 500|MAIORES DE COMPRA DA CARTEIRA|QUAIS CLIENTES ELES TEM QUE BUSCAR/.test(t)) {
+  if (/500 ?(MIL|K)|ATINGIR (ESSES|OS) 500|MAIORES DE COMPRA DA CARTEIRA|QUAIS CLIENTES ELES TEM QUE BUSCAR/.test(t)) {
     const fCit = (t.match(new RegExp('\\b(' + FILIAIS.join('|') + ')\\b')) || [])[1];
     const escE = fCit ? { nome: fCit, filiais: [fCit], grupo: null, nacional: false } : esc;
     const Ef = await carregaEscopo(B, escE);
-    return respEstrategiaFabio(B._env || {}, B, c, texto, Ef);
+    return respEstrategiaFabio(B.env || {}, B, c, texto, Ef);
   }
   // PROSPECÇÃO DE CLIENTES NO MAPA DO CEVEN (Vitório, 30/10/2026: CEVEN Mapas / Rota de hoje)
   if (/PROSPEC(CAO|TAR)|PROSPECTS?|NOVOS CLIENTES (NO |DO )?MAPA|CLIENTES PARA PROSPEC|MAPA(S)? DO CEVEN/.test(t)) {
@@ -416,12 +415,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (mFilialOuBrasil) {
     const siglaAlvo = mFilialOuBrasil[1].toUpperCase();
     if (siglaAlvo === 'BRASIL' || siglaAlvo === 'NACIONAL') {
-      if (E.nacional || (c && c.papel === 'diretoria')) {
+      if (E.nacional || (c && (c.papel === 'diretoria' || c.papel === 'ceo'))) {
         const Ebr = E.nacional ? E : await carregaEscopo(B, { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true });
         const querMesGeral = /COMO (ESTA|TA)|RESUMO|PANORAMA|GERAL|SITUACAO/.test(t) && !/HOJE|HJ|AGORA|ATUALIZAD|VENDAS?|DIGITAD/.test(t);
         return querMesGeral ? respResumo(B, Ebr) : respHoje(B, Ebr, t);
       }
-    } else if (E.nacional || E.filiais.includes(siglaAlvo) || (c && c.filial === siglaAlvo) || (c && c.papel === 'diretoria')) {
+    } else if (E.nacional || E.filiais.includes(siglaAlvo) || (c && c.filial === siglaAlvo) || (c && (c.papel === 'diretoria' || c.papel === 'ceo'))) {
       const Efil = (E.filiais.length === 1 && E.filiais[0] === siglaAlvo) ? E : await carregaEscopo(B, { nome: siglaAlvo, filiais: [siglaAlvo], grupo: null, nacional: false });
       const querMesGeral = /COMO (ESTA|TA)|RESUMO|PANORAMA|GERAL|SITUACAO/.test(t) && !/HOJE|HJ|AGORA|ATUALIZAD|VENDAS?|DIGITAD/.test(t);
       return querMesGeral ? respResumo(B, Efil) : respHoje(B, Efil, t);
@@ -728,7 +727,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   if (/RANKING (DOS |DE )?GERENTES|QUAL GERENTE|GERENTE (ESTA |TA )?MELHOR/.test(t)) return respRankingGerentes(E.nacional ? E : await carregaEscopo(B, { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true }));
   if (/SUPERVISOR/.test(t) && /MAIS VENDEU|MAIS VENDE|VENDEU MAIS/.test(t)) { const S = [...agrupa(E.vend, (v) => supChave(v, E.nacional))].filter(([k]) => supReal(k)).sort((a, b) => b[1].dig - a[1].dig); return [`💰 *Supervisores que mais venderam hoje — ${E.nome}* (digitado)`, ...S.slice(0, 10).map(([k, x], i) => `${i + 1}. ${supNome(k)} — ${R$(x.dig)} · ${x.ped} ped.`)].join('\n'); }
   if (/SUPERVISOR/.test(t) && /RANKING|MELHORES|POR % DA META/.test(t) && E.nacional) return respRankingSupervisores(E);
-  { const fs2 = [...new Set((t.match(new RegExp(FRX.source, 'g')) || []))]; if (fs2.length >= 2 && /COMPARA|\bX\b|VERSUS|\bVS\b|CONTRA|COM /.test(t) && c.papel === 'diretoria') { const r = await respComparar(B, fs2); if (r) return r; } }
+  { const fs2 = [...new Set((t.match(new RegExp(FRX.source, 'g')) || []))]; if (fs2.length >= 2 && /COMPARA|\bX\b|VERSUS|\bVS\b|CONTRA|COM /.test(t) && (c.papel === 'diretoria' || c.papel === 'ceo')) { const r = await respComparar(B, fs2); if (r) return r; } }
   if (/BATERAM (A )?META|BATEU (A )?META|ATINGIRAM (A )?META|META BATIDA/.test(t) && !pessoa) return respMetaBatida(E);
   // PREMIACAO = holerite simulado do CEVEN (RV: metas por industria, faturamento, positivacao, ticket, faseamento, mix, recorrencia). INCENTIVO = campanha de outubro
   // (110%). CHAMPIONS = Liga/Brasileirao. (Vitorio, 26/10/2026: 'premiacao vem dessa aba aqui... a champions e a liga ou brasileirao, entendeu?')
@@ -800,18 +799,93 @@ export function escopoDoContato(c, fm) {
   return { preso, fil, grupo: preso ? c.grupo || null : null, supervisor: c.papel === 'supervisor' ? c.supervisor || c.nome : null, rcaV: c.papel === 'vendedor' ? String(c.rca) : null };
 }
 export async function respondeIA(env, B, c, texto, historico) {
-  if (!env.AI) return null;
+  if (!env.AI && !env.GEMINI_API_KEY && !env.GOOGLE_AI_KEY) return null;
   const t = sem(texto); const fm = t.match(FRX);
-  // VAZAMENTO CORRIGIDO (26/10/2026, Priscila/TPH supervisora: 'minha meta de faturamento?' -> R$ 12,06 mi): a IA recebia o resumo do Brasil (supervisor) ou da filial.
-  // Agora o MESMO escopo das respostas prontas: supervisor ve so a equipe, vendedor so ele.
   const ec = escopoDoContato(c, fm);
   const escIA = ec.rcaV ? { nome: nome2(c.nome) + ' (RCA ' + ec.rcaV + ')', filiais: [ec.fil], grupo: null, supervisor: null, rca: ec.rcaV, nacional: false }
     : ec.fil ? { nome: ec.supervisor ? 'Equipe ' + nome2(ec.supervisor) + ' (' + ec.fil + ')' : ec.fil + (ec.grupo ? ' · ' + titulo(ec.grupo) : ''), filiais: [ec.fil], grupo: ec.supervisor ? null : ec.grupo, supervisor: ec.supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
-  let base; try { base = await respResumo(B, await carregaEscopo(B, escIA)); } catch (e) { base = 'sem dado'; }
+
+  let escopoCarregado = null;
+  try { escopoCarregado = await carregaEscopo(B, escIA); } catch (e) {}
+
+  let baseResumo = 'sem dado', baseHoje = '', baseFalta = '', baseSup = '', baseLiga = '';
+  if (escopoCarregado) {
+    try { baseResumo = await respResumo(B, escopoCarregado); } catch (e) {}
+    try { baseHoje = await respHoje(B, escopoCarregado, 'HOJE'); } catch (e) {}
+    try { baseFalta = await respFalta(B, escopoCarregado); } catch (e) {}
+    try { baseSup = await respPorSupervisor(escopoCarregado); } catch (e) {}
+    try { baseLiga = await respLiga(B, escopoCarregado, null, 'LIGA'); } catch (e) {}
+  }
+
+  const ehExecutivo = c.papel === 'diretoria' || c.papel === 'ceo' || c.papel === 'gerente';
+
+  if (ehExecutivo) {
+    const dossieExecutivo = [
+      `=== RESUMO DO MÊS (${escIA.nome}) ===\n${baseResumo}`,
+      baseHoje ? `=== RESULTADO DE HOJE / ROTA ===\n${baseHoje}` : '',
+      baseFalta ? `=== RITMO E QUANTO FALTA PRA META ===\n${baseFalta}` : '',
+      baseSup ? `=== ABERTURA POR SUPERVISOR / EQUIPE ===\n${baseSup}` : '',
+      baseLiga ? `=== LIGA / CHAMPIONS TRIUNFANTE ===\n${baseLiga}` : ''
+    ].filter(Boolean).join('\n\n').slice(0, 12000);
+
+    const sysExec = `Você é o JOTA ⚽, Estrategista e Diretor Comercial Inteligente do Grupo Triunfante (+MIX & CEVEN).
+Quem está conversando com você agora é um EXECUTIVO: ${titulo(c.nome)} (Cargo: ${c.papel.toUpperCase()}${c.filial ? ' — Filial ' + c.filial : ' — Visão Nacional Brasil 11 Filiais'}${c.grupo ? ' · Grupo ' + c.grupo : ''}).
+
+SUA MISSÃO COM GERENTES, DIRETORIA E CEO:
+1. Você é uma IA Generativa REAL, consultiva, analítica e estratégica. Responda a QUALQUER pergunta que o executivo fizer — especialmente sobre estratégia comercial, onde atacar, diagnóstico de queda, plano de ação para bater meta, priorização de equipes/supervisores, positivação, faturamento, mix, rotas ou gestão de vendas.
+2. NUNCA deixe de responder e NUNCA dê respostas robóticas do tipo "não tenho esse dado, peça ajuda". Racione em cima do DOSSIÊ DE DADOS REAIS abaixo e responda exatamente o que foi perguntado com inteligência comercial de alto nível.
+3. Use APENAS os números reais presentes no dossiê abaixo (nunca invente números ou clientes fictícios), mas faça diagnósticos, cruzamentos, cálculos de gap, alavancas táticas e recomendações estratégicas profundas para ajudar na tomada de decisão.
+4. Faturado e Pendente devem ser analisados com clareza.
+5. Formatação para WhatsApp: use *negrito* com UM asterisco, tópicos claros e objetivos (pode usar até 25–35 linhas quando a pergunta pedir estratégia ou análise detalhada). Termine com "🎯 *Plano de Ação Recomendado:*" com ações práticas imediatas.
+
+DOSSIÊ DE DADOS EM TEMPO REAL (${escIA.nome}):
+${dossieExecutivo}`;
+
+    // Tenta Gemini se houver chave configurada no ambiente ou D1
+    let apiKey = env?.GEMINI_API_KEY || env?.GOOGLE_AI_KEY;
+    if (!apiKey && env?.DB) {
+      try {
+        const row = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'gemini_api_key'").first();
+        if (row && row.valor) apiKey = row.valor;
+      } catch (e) {}
+    }
+    if (apiKey) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        const histTxt = (historico || []).map((h) => `${h.role === 'user' ? 'Executivo' : 'Jota'}: ${h.content}`).join('\n');
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: `${sysExec}\n\n${histTxt ? '--- HISTÓRICO RECENTE ---\n' + histTxt + '\n\n' : ''}--- PERGUNTA ATUAL DO EXECUTIVO ---\n"${texto}"` }] }],
+            generationConfig: { temperature: 0.25, maxOutputTokens: 1400 }
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const txtG = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (txtG) return txtG.trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, '');
+        }
+      } catch (e) {}
+    }
+
+    if (env?.AI) {
+      try {
+        const r = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
+          messages: [{ role: 'system', content: sysExec }, ...(historico || []), { role: 'user', content: texto }],
+          max_tokens: 1300,
+          temperature: 0.25
+        });
+        const s = String((r && (r.response || r.result)) || '').trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, '');
+        if (s) return s;
+      } catch (e) {}
+    }
+  }
+
   const sys = `Você é o JOTA, o assistente do +MIX da Triunfante no WhatsApp: colega de vendas animado e direto, que usa a linguagem do futebol da Champions Triunfante quando cabe. Responde em português do Brasil como um gerente comercial experiente.
 Quem fala com você: ${titulo(c.nome)}, ${c.papel}${c.filial ? ' da filial ' + c.filial : ' (diretoria nacional: sem filial citada = Brasil todo)'}${c.grupo ? ', grupo ' + c.grupo : ''}.
 REGRAS: use SÓ os números do RESUMO abaixo, exatamente como estão; nunca invente, estime ou projete; sem o dado, diga que não tem e sugira uma pergunta que o Jota responde (ex.: "hoje", "zerados", "por supervisor", "vendedor Nome", "falta", "liga", "+mix", "quem compra Oreo", "compromisso", "devoluções", "pênaltis", "incentivo").
-NUNCA prometa o que você não faz: você NÃO é programável, NÃO envia relatório automático, NÃO muda equipe nem cadastro, NÃO "vai considerar" nada; se pedirem isso, diga que anotou e que a diretoria decide. Nunca mostre dado de fora da equipe/filial de quem pergunta. Cobrança (Liga, eficácia, zerados) = só varejo de campo; para mostrar roteiro e clientes, todos os canais. Faturado e pendente sempre separados. Formato WhatsApp: *negrito* com UM asterisco; no máximo 10 linhas; termine com "🎯 *Sugestão do Jota:*" e UMA ação concreta.
-RESUMO: ${base.slice(0, 6000)}`;
-  try { const r = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', { messages: [{ role: 'system', content: sys }, ...historico, { role: 'user', content: texto }], max_tokens: 600 }); const s = String((r && (r.response || r.result)) || '').trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, ''); return s || null; } catch (e) { return null; }
+NUNCA prometa o que você não faz: você NÃO é programável, NÃO envia relatório automático, NÃO muda equipe nem cadastro, NÃO "vai considerar" nada; se pedirem isso, diga que anotou e que a diretoria decide. Nunca mostre dado de fora da equipe/filial de quem pergunta. Cobrança (Liga, eficácia, zerados) = só varejo de campo; para mostrar roteiro e clientes, todos os canais. Faturado e pendente sempre separados. Formato WhatsApp: *negrito* com UM asterisco; no máximo 12 linhas; termine com "🎯 *Sugestão do Jota:*" e UMA ação concreta.
+RESUMO: ${baseResumo.slice(0, 6000)}`;
+  try { const r = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', { messages: [{ role: 'system', content: sys }, ...historico, { role: 'user', content: texto }], max_tokens: 700 }); const s = String((r && (r.response || r.result)) || '').trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, ''); return s || null; } catch (e) { return null; }
 }

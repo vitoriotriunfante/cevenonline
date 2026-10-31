@@ -343,7 +343,7 @@ export async function respTagCampanhas(B, E, v, t = '', c = null) {
 
   // VISÃO EXECUTIVA (Gerente / Diretoria, 28/10/2026): hierarquia gerencial é SUPERVISOR -> VENDEDOR!
   if (porSup.size > 1) {
-    const cargo = c && c.papel === 'gerente' ? 'Gerente ' : c && c.papel === 'diretoria' ? 'Diretor ' : '';
+    const cargo = c && c.papel === 'gerente' ? 'Gerente ' : c && (c.papel === 'diretoria' || c.papel === 'ceo') ? 'Diretor ' : '';
     const nomeTrat = c && c.nome ? `${cargo}${titulo(String(c.nome).split(' ')[0])}` : (cargo || 'Gerente');
     const linhasSup = [...porSup.values()].sort((a, b) => b.hoje - a.hoje).map((s) => {
       const codStr = s.cod ? `${s.cod} - ` : '';

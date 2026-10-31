@@ -84,7 +84,7 @@ export const normArq = (s) => sem(s).replace(/[^A-Z0-9]+/g, '_');
 export async function respRelatorio(B, c, t) {
   // VAZAMENTO 26/10/2026: o supervisor Rodrigo Farias recebeu o CONSOLIDADO NACIONAL (arquivo do Vitorio). Relatorio do WhatsApp: diretoria ve o consolidado,
   // gerente ve o da filial/grupo dele; supervisor e vendedor NAO recebem relatorio (perguntam a propria equipe).
-  if (c.papel !== 'diretoria' && c.papel !== 'gerente') return 'Os relatórios automáticos do WhatsApp são da gerência. Para a sua equipe, me pergunte "como está minha equipe?", "hoje" ou "zerados" que eu respondo na hora.';
+  if (c.papel !== 'diretoria' && c.papel !== 'ceo' && c.papel !== 'gerente') return 'Os relatórios automáticos do WhatsApp são da gerência. Para a sua equipe, me pergunte "como está minha equipe?", "hoje" ou "zerados" que eu respondo na hora.';
   let ciclo = CICLOS.find(([re]) => re.test(t));
   if (!ciclo && /ONTEM|COMO FECHOU/.test(t)) ciclo = CICLOS[5];
   if (!ciclo) { const h = R.horaSP(); ciclo = h >= 19 ? CICLOS[5] : h >= 17 ? CICLOS[4] : h >= 15 ? CICLOS[3] : h >= 12 ? CICLOS[2] : h >= 10 ? CICLOS[1] : CICLOS[0]; }
@@ -107,7 +107,7 @@ export async function respRelatorio(B, c, t) {
       if (G.length && tem(G)) s += 3; if (PN.length && tem(PN)) s += 2; if (!G.length && x === normArq(`${ciclo[1]}__${F}.md`)) s += 1; return s; };
     alvo = arqs.map((n) => [n, sc(n)]).filter((x) => x[1] >= 0).sort((a, b) => b[1] - a[1])[0];
     alvo = alvo && alvo[0];
-  } else if (c.papel === 'diretoria') alvo = arqs.find((n) => /VITORIO/i.test(n));
+  } else if (c.papel === 'diretoria' || c.papel === 'ceo') alvo = arqs.find((n) => /VITORIO/i.test(n));
   if (!alvo && ciclo[1] === '10_00' && ['TBE', 'TCG'].includes(c.filial)) return `${c.filial} não tem Marca Própria no catálogo (regra do relatório das 10:00); por isso não há relatório de MP para a filial.`;
   if (!alvo) return `Não achei o seu relatório das ${ciclo[2]}.`;
   const txt = await B.raw(`${dir}/${alvo}`);
