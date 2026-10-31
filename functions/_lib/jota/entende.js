@@ -407,6 +407,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // AUDITORIA 26/10/2026 (Priscila, Leandro, Vitorio): "digitados/citados do mes" = pedidos do mes dia a dia; faturamento do mes / faturamento e positivacao /
   // faturamento atualizado = resumo completo; "como esta a rota hoje" = hoje so varejo de rota.
   if (/DIGITAD|CITAD/.test(t) && /\bMES\b|OUTUBRO|NOVEMBRO|DEZEMBRO/.test(t) && !pedePeriodo(t)) return respPeriodoDias(B, E, t, { de: 1, ate: null });
+  // PRIMEIRA PESSOA = ELE MESMO (Gabriel/TCV, 31/10/2026: "como estou no mes" depois de falar do setor 342 abriu a Marines; "geral do mes" tambem): nunca herda vendedor
+  if (!/\d/.test(t) && !E.rca && /^(BOM DIA |BOA TARDE |BOA NOITE )?(JOTA )?(COMO )?(EU )?(ESTOU|ESTAMOS|TO)\b(?! (COM|VENDO))|\bGERAL DO MES\b|RESULTADO DA MINHA EQUIPE NO MES|MINHA EQUIPE (NO |DO )?(MES|GERAL)|EQUIPE GERAL/.test(t)) return respResumo(B, E);
   if (/FATURAMENTO|FATURADO/.test(t) && (/POSITIVA/.test(t) || /\bMES\b|OUTUBRO|COMO (EU )?(ESTOU|TO|ESTAMOS)|ATUALIZAD/.test(t)) && !/PREMIA|KPI|INDUSTRIA|SEMANA|PASSADO|ANTERIOR/.test(t) && !pedePeriodo(t)) return respResumo(B, E);
   // PERGUNTA DIRETA SOBRE FILIAL OU BRASIL HOJE (Vitório, 29/10/2026: "venda brasil atualizada agora", "Venda Brasil Hoje", "TBe hoje"):
   // Se perguntar por filial específica ou Brasil de forma direta, responde o resumo do dia daquele escopo

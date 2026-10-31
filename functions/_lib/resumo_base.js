@@ -11,8 +11,8 @@
 // META OFICIAL = tela "Filiais" do CEVEN (admin/filiais/hierarquia), gravada em meta_hierarquia por filial e vendedor (27/10/2026); sem ela, a do painel do vendedor
 const CAMPOS = `CAST(json_extract(dashboard_json, '$.financeiro.faturado') AS REAL) AS fat,
                 CAST(json_extract(dashboard_json, '$.financeiro.pendente') AS REAL) AS pend,
-                /* meta = so a lista oficial (31/10/2026): quem nao esta nela nao soma meta do painel; o faturado dele continua somando */
-                COALESCE((SELECT mh.meta FROM meta_hierarquia mh WHERE mh.filial = varredura_central_rca.filial_sigla AND mh.rca = varredura_central_rca.rca_codigo), 0) AS meta,
+                /* meta = lista oficial; quem nao esta nela usa a cascata do gerente (ver metaCascata). Conferido com o GEROT em 31/10/2026: 10 de 11 filiais batem exato */
+                (SELECT mh.meta FROM meta_hierarquia mh WHERE mh.filial = varredura_central_rca.filial_sigla AND mh.rca = varredura_central_rca.rca_codigo) AS meta,
                 CAST(json_extract(dashboard_json, '$.positivacao.realizado') AS REAL) AS pos,
                 CAST(json_extract(dashboard_json, '$.positivacao.meta') AS REAL) AS pmeta,   /* positivacao: a da tela Filiais esta incoerente (API 146, TCV 846); fica a do painel */
                 CAST(COALESCE(json_extract(produtividade_json, '$.dia.dig_pedido'), 0) AS REAL) AS dig,
@@ -30,6 +30,17 @@ export async function universoArvore(env) {
 // + so codigo que EXISTE no CEVEN (26/10/2026): rota vaga sem representante (TCG 466, TSJ 3...) tem meta no painel do CEVEN mas nao tem vendedor -> fora de meta e totais
 // 31/10/2026: a marca canal_ceven.existe = 0 nao tira mais ninguem do total (tirava R$ 1,3 mi de meta oficial e R$ 202 mil de venda real)
 const SO_ARVORE = ' AND EXISTS (SELECT 1 FROM arvore_supervisores a WHERE a.rca = varredura_central_rca.rca_codigo AND a.filial = varredura_central_rca.filial_sigla)';
+
+// meta de quem esta so na cascata do gerente (ABC 207, MCD 1123, TCG 1132...): FILIAL|RCA -> meta, da cascata mais recente de cada filial
+async function metaCascata(env) {
+  const m = new Map();
+  try {
+    const { results } = await env.DB.prepare('SELECT c.filial, c.json FROM cascata_dia c WHERE c.data_ref = (SELECT MAX(x.data_ref) FROM cascata_dia x WHERE x.filial = c.filial)').all();
+    for (const r of results || []) { let j = null; try { j = JSON.parse(r.json); } catch { continue; }
+      for (const s of j.supervisores || []) for (const v of (s.tabelas && s.tabelas.faturamento) || []) if (v && v.id != null) m.set(String(r.filial).toUpperCase() + '|' + v.id, Number(v.meta) || 0); }
+  } catch { /* sem cascata: fica so a lista oficial */ }
+  return m;
+}
 
 let cacheResumo = { exp: 0, dataRef: null, res: null };
 let tabelaMetaHierarquiaGarantida = false;
@@ -58,6 +69,7 @@ export async function calculaResumoMes(env, dataRef) {
     ).bind(dataRef, dataRef, ...faltam).all();
     for (const p of prev || []) if (p.tem) anterior.set(String(p.r), p);   // ordenado por dia: o mais recente vence
   }
+  const metaCasc = await metaCascata(env);
   const porFilial = {};
   const nova = () => ({ faturado: 0, pendente: 0, metaFaturado: 0, positivados: 0, metaPositivados: 0, digitado: 0, rcas: 0 });
   const total = nova();
@@ -81,7 +93,7 @@ export async function calculaResumoMes(env, dataRef) {
     const a = porFilial[sig] || (porFilial[sig] = nova());
     for (const alvo of [a, total]) {
       alvo.faturado += Number(src.fat) || 0; alvo.pendente += Number(src.pend) || 0;
-      alvo.metaFaturado += Number(src.meta) || 0; alvo.positivados += Number(src.pos) || 0; alvo.metaPositivados += Number(src.pmeta) || 0;
+      alvo.metaFaturado += Number(src.meta ?? metaCasc.get(sig + '|' + l.r)) || 0; alvo.positivados += Number(src.pos) || 0; alvo.metaPositivados += Number(src.pmeta) || 0;
       alvo.rcas++;
     }
   }
