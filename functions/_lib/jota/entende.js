@@ -262,7 +262,11 @@ async function respFichaCliente(B, E, t, achado) {
   try { const r = B.env && B.env.DB ? await B.env.DB.prepare('SELECT json, atualizado_em FROM historico_cliente WHERE filial = ? AND id_cliente = ?').bind(String(v.filial).toLowerCase() + '1', String(x.id_cliente)).first() : null; if (r) { h = JSON.parse(r.json); h.lido = r.atualizado_em; } } catch (e) { h = null; }
   const dBr = (d) => d ? String(d).slice(8, 10) + '/' + String(d).slice(5, 7) + '/' + String(d).slice(0, 4) : 'sem data';
   const cab = `🏪 *${nome}* (#${x.id_cliente} · ${v.filial} · ${vn(v)})`;
-  if (!h) return [cab, 'Ainda não tenho os itens e pedidos deste cliente na base: o histórico é gravado conforme ele é analisado na coleta.', '', SUGESTAO + `peça "o que oferecer" para ver a lista do +MIX dele.`].join('\n');
+  // Sem pedido no historico (Fora de Hora/TPA, 31/10/2026: o app do CEVEN tambem vem vazio): diz isso e mostra as visitas do mes, com a justificativa
+  if (!h) {
+    const vis = (v.roteiroMes || []).filter((y) => String(y.id_cliente) === String(x.id_cliente) && (y.motivo_nao_visita || y.checkin_horario || /VISITADO|EFETIVADO|JUSTIFICADO/.test(String(y.status || '')))).sort((a, b) => String(b.data_visita).localeCompare(String(a.data_visita)));
+    return [cab, 'O CEVEN não mostra pedidos deste cliente no histórico.', ...(vis.length ? ['', '*Visitas do mês:*', ...vis.slice(0, 6).map((y) => `• ${dBr(y.data_visita)} · ${titulo(String(y.status || 'sem status'))}${y.motivo_nao_visita ? ' · ' + y.motivo_nao_visita : ''}`)] : ['Sem visita registrada no mês.']), '', SUGESTAO + 'peça "o que oferecer" para ver a lista do +MIX dele.'].join('\n');
+  }
   const itens = (h.skus_ultima_venda || []).map((s) => `• ${titulo(s.descricao)}: ${N(s.quantidade)} un. · ${R$(s.total)}`);
   const parou = (h.skus_parou || []).map((s) => `• ${titulo(s.descricao)}`);
   const ultima = `Última compra: *${dBr(h.ultima_compra_data)}* · ${R$(h.ultima_compra_valor)}`;
@@ -754,12 +758,14 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
       }
       const lista = nao.slice(ini, fim);
       const sobra = nao.length - fim;
+      // ULTIMA COMPRA VEM DOS PEDIDOS (31/10/2026: a data do roteiro mostrava compra que o historico do CEVEN nao tem): 1 linha da ficha por cliente listado
+      if (B.env && B.env.DB) await Promise.all(lista.map(async (y) => { try { const r = await B.env.DB.prepare("SELECT json_extract(json, '$.ult') u FROM ficha_cliente WHERE filial = ? AND id_cliente = ?").bind(String(v.filial), String(y.c.id_cliente)).first(); y.u = r && r.u ? String(r.u).slice(0, 10) : null; y.d = y.u ? Math.round((Date.parse(hojeSP()) - Date.parse(y.u)) / 864e5) : null; y.semPed = !y.u; } catch (e) { /* fica a data do roteiro */ } }));
       return [`📉 *Curva negativa — ${v.rca} - ${titulo(v.nome)}* (${v.filial})` + (ini > 0 ? ` _(continuação: ${ini + 1}º ao ${Math.min(fim, nao.length)}º)_` : ''),
         `Carteira do mês: *${cli.size} clientes* · já compraram: *${cli.size - nao.length}* · *ainda não compraram: ${nao.length}*`,
         // duas bases do CEVEN com contas diferentes (Igor/TBL, 31/10/2026: 49 de 51 no roteiro x 31 de 44 no painel): mostra as duas, nunca uma so
         v.pos != null && v.metaPos != null ? `_Painel do CEVEN: positivação ${v.pos} de ${Math.round(v.metaPos)}. Esta lista segue o roteiro do mês, que é outra conta._` : '', '',
         ...(lista.length ? ['_Cliente · Última compra · Dias sem compra_'] : []),
-        ...lista.map((x) => `${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} · ${x.u ? x.u.slice(8, 10) + '/' + x.u.slice(5, 7) + ' · ' + x.d + ' dias' : '— · +60 dias'}`),
+        ...lista.map((x) => `${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} · ${x.u ? x.u.slice(8, 10) + '/' + x.u.slice(5, 7) + ' · ' + x.d + ' dias' : x.semPed ? 'sem pedido no histórico' : '— · +60 dias'}`),
         sobra > 0 ? `… e mais ${sobra} (peça "ver mais")` : '', '',
         SUGESTAO + (sobra > 0 ? 'começar por quem comprou há menos tempo: é mais fácil de recuperar.' : (ini > 0 ? 'lista completa entregue.' : 'começar por quem comprou há menos tempo: é mais fácil de recuperar.'))].filter((x) => x !== '').join('\n');
     }
