@@ -210,6 +210,40 @@ export function foraDoEscopoContato(c, texto) {
   return null;
 }
 
+// FICHA DO CLIENTE NA CONVERSA (Vitorio, 31/10/2026: "ele pergunta a curva negativa... aparece um cliente... vai querer saber o que vendeu e o que oferecer"): acha o cliente
+// na carteira de quem pergunta, pelo nome ou codigo, e segue com ele nas perguntas seguintes. Le UMA linha de historico_cliente pela chave primaria (filial, id_cliente).
+function clienteNaCarteira(E, txt) {
+  const t = sem(String(txt || '')).trim(), cod = (t.match(/\bCLIENTE\s*#?\s*(\d{3,7})\b|^#(\d{3,7})\b/) || []).slice(1).find(Boolean);
+  if (!t) return null;
+  let achou = null;
+  for (const v of E.vend || []) for (const x of v.roteiroMes || []) {
+    if (cod && String(x.id_cliente) === cod) return { c: x, v };
+    for (const nome of [x.nome_cliente, x.razao_social]) { const n = sem(String(nome || '')).trim(); if (n.length >= 5 && (t === n || t.includes(n)) && (!achou || n.length > achou.n)) achou = { c: x, v, n }; }
+  }
+  return achou;
+}
+const FICHA_ITENS = /O QUE (ELE |ELA |ESSE CLIENTE |O CLIENTE )?(COMPROU|COMPRA|LEVOU)|QUE (ELE |ELA )?(COMPROU|LEVOU)|QUANTO (ELE |ELA )?COMPROU|PRODUTOS? (DELE|DELA)|SKUS?\b/;
+const FICHA_OFERTA = /OFERECER|OFERTA|SUGESTAO DE (PRODUTO|VENDA)|\+ ?MIX (DELE|DELA|DESSE)|O QUE (POSSO |DA PRA |DEVO )?(VENDER|LEVAR)/;
+const FICHA_PEDIDOS = /(ULTIMOS?|ULTIMAS?) (PEDIDOS?|COMPRAS?|VISITAS?)|PEDIDOS? (DELE|DELA|DESSE)|HISTORICO/;
+async function respFichaCliente(B, E, t, achado) {
+  const { c: x, v } = achado, nome = titulo(x.nome_cliente || x.razao_social || 'cliente');
+  const oferta = () => respOferecer(B, E, `OFERECER ${String(x.cnpj || '').replace(/\D/g, '')}`).catch(() => null);
+  if (FICHA_OFERTA.test(t)) return (await oferta()) || `🧺 *${nome}*: o +MIX não tem lista para este cliente agora.`;
+  let h = null;
+  try { const r = B.env && B.env.DB ? await B.env.DB.prepare('SELECT json, atualizado_em FROM historico_cliente WHERE filial = ? AND id_cliente = ?').bind(String(v.filial).toLowerCase() + '1', String(x.id_cliente)).first() : null; if (r) { h = JSON.parse(r.json); h.lido = r.atualizado_em; } } catch (e) { h = null; }
+  const dBr = (d) => d ? String(d).slice(8, 10) + '/' + String(d).slice(5, 7) + '/' + String(d).slice(0, 4) : 'sem data';
+  const cab = `🏪 *${nome}* (#${x.id_cliente} · ${v.filial} · ${vn(v)})`;
+  if (!h) return [cab, 'Ainda não tenho os itens e pedidos deste cliente na base: o histórico é gravado conforme ele é analisado na coleta.', '', SUGESTAO + `peça "o que oferecer" para ver a lista do +MIX dele.`].join('\n');
+  const itens = (h.skus_ultima_venda || []).map((s) => `• ${titulo(s.descricao)}: ${N(s.quantidade)} un. · ${R$(s.total)}`);
+  const parou = (h.skus_parou || []).map((s) => `• ${titulo(s.descricao)}`);
+  const ultima = `Última compra: *${dBr(h.ultima_compra_data)}* · ${R$(h.ultima_compra_valor)}`;
+  if (FICHA_PEDIDOS.test(t)) {
+    const P = (h.ultimas_visitas || []).filter((p) => p.num_pedido);
+    return [cab, ultima, '', P.length ? '*Últimos pedidos:*' : 'Sem pedidos nas últimas visitas gravadas.', ...P.map((p) => `• ${dBr(p.data_visita)} · nº ${p.num_pedido} · ${R$(p.total_clube)} · ${titulo(String(p.status_pedido || 'sem status'))}${(p.itens_cortados || []).length ? ` · ${p.itens_cortados.length} item(ns) cortado(s)` : ''}`), '', SUGESTAO + 'peça "o que oferecer" para a próxima visita.'].join('\n');
+  }
+  if (FICHA_ITENS.test(t)) return [cab, ultima, '', itens.length ? '*O que comprou na última compra:*' : 'Sem itens gravados da última compra.', ...itens.slice(0, 15), ...(parou.length ? ['', '*Comprava e parou:*', ...parou.slice(0, 8)] : []), '', SUGESTAO + 'peça "o que oferecer" para a próxima visita.'].join('\n');
+  return [cab, ultima, ...(itens.length ? ['', '*Última compra:*', ...itens.slice(0, 8)] : []), ...(parou.length ? ['', '*Comprava e parou:*', ...parou.slice(0, 5)] : []), '', SUGESTAO + 'peça "o que oferecer" ou "últimos pedidos dele".'].join('\n');
+}
 export async function respostaInterna(B, c, texto, anteriores) {
   let t = sem(texto);
   // "Sugestao" sozinha (27/10/2026, Thiago/Sueli/Rodrigo: a IA inventava uma resposta): pede a sugestao
@@ -407,6 +441,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // AUDITORIA 26/10/2026 (Priscila, Leandro, Vitorio): "digitados/citados do mes" = pedidos do mes dia a dia; faturamento do mes / faturamento e positivacao /
   // faturamento atualizado = resumo completo; "como esta a rota hoje" = hoje so varejo de rota.
   if (/DIGITAD|CITAD/.test(t) && /\bMES\b|OUTUBRO|NOVEMBRO|DEZEMBRO/.test(t) && !pedePeriodo(t)) return respPeriodoDias(B, E, t, { de: 1, ate: null });
+  // CLIENTE CITADO OU DA CONVERSA: nome/codigo na carteira de quem pergunta; "o que comprou", "o que oferecer", "ultimos pedidos" seguem com ele. "Meus pedidos" e do proprio vendedor.
+  if (!/\bMEUS?\b|\bMINHAS?\b/.test(t)) {
+    let fichaCli = clienteNaCarteira(E, t);
+    if (!fichaCli && (FICHA_ITENS.test(t) || FICHA_OFERTA.test(t) || FICHA_PEDIDOS.test(t))) for (const a of anteriores || []) { fichaCli = clienteNaCarteira(E, a); if (fichaCli) break; }
+    if (fichaCli) return respFichaCliente(B, E, t, fichaCli);
+  }
   // PRIMEIRA PESSOA = ELE MESMO (Gabriel/TCV, 31/10/2026: "como estou no mes" depois de falar do setor 342 abriu a Marines; "geral do mes" tambem): nunca herda vendedor
   if (!/\d/.test(t) && !E.rca && /^(BOM DIA |BOA TARDE |BOA NOITE )?(JOTA )?(COMO )?(EU )?(ESTOU|ESTAMOS|TO)\b(?! (COM|VENDO))|\bGERAL DO MES\b|RESULTADO DA MINHA EQUIPE NO MES|MINHA EQUIPE (NO |DO )?(MES|GERAL)|EQUIPE GERAL/.test(t)) return respResumo(B, E);
   if (/FATURAMENTO|FATURADO/.test(t) && (/POSITIVA/.test(t) || /\bMES\b|OUTUBRO|COMO (EU )?(ESTOU|TO|ESTAMOS)|ATUALIZAD/.test(t)) && !/PREMIA|KPI|INDUSTRIA|SEMANA|PASSADO|ANTERIOR/.test(t) && !pedePeriodo(t)) return respResumo(B, E);
