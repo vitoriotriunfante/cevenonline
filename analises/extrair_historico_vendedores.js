@@ -91,8 +91,15 @@ async function main() {
     console.log(`🔁 2a passada: ${pendentes.length} RCAs sem resposta na 1a, agora com ate 180 s cada`);
     for (const r of pendentes.splice(0)) { await espera(1500); await processa(r, 180000, true); }
   }
+  // 3a PASSADA (Vitorio, 31/10/2026: "simplesmente nao le e foda-se?"): tenta de novo no fim, com 5 min cada, e lista TODOS os que ficaram sem ler
+  if (falhas.length) {
+    const denovo = falhas.splice(0).map((x) => { const [sig, id] = x.split(' '); return rcas.find((r) => r.sigla === sig && String(r.id) === id); }).filter(Boolean);
+    console.log(`🔁 3a passada: ${denovo.length} RCAs, ate 5 min cada`);
+    const lim3 = Date.now() + 40 * 60000;
+    for (const r of denovo) { if (Date.now() > lim3) { falhas.push(`${r.sigla} ${r.id} (tempo da 3a passada)`); continue; } await espera(3000); await processa(r, 300000, true); }
+  }
   console.log(`✅ Pedidos gravados: ${pedidos} (de ${menor} a ${maior}) | itens ${itens} | RCAs sem pedido no período ${semPedido} | falhas ${falhas.length}`);
-  if (falhas.length) console.log('   Falhas: ' + falhas.slice(0, 40).join(', '));
+  if (falhas.length) console.log('   Falhas: ' + falhas.join(', '));
   db.close();
   if (!pedidos) { console.error('❌ ZERO pedidos gravados: o CEVEN recusou ou mudou o formato. NÃO é sucesso.'); process.exit(1); }
   if (falhas.length > rcas.length * 0.05) { console.error(`❌ ${falhas.length} de ${rcas.length} RCAs falharam (mais de 5%).`); process.exit(1); }

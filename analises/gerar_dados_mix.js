@@ -151,8 +151,10 @@ async function main() {
   carteira.delete('__corte');
   // MEDICAO CORRETA (Vitorio, 20/10/2026: "o +MIX nao deveria constar os produtos que o cliente ja compra... se o cara comprar o D, amanha so aparece o E"):
   // a recomendacao tem que ser a do DIA DA VISITA, gravada ANTES dela. Entram como alvo tambem os clientes da ROTA DE HOJE (mesmo sem compra no mes).
+  // CARTEIRA TODA EM 5 DIAS (31/10/2026: quem nao comprou no mes, justo a curva negativa, ficava sem lista): 1/5 da carteira por dia; a lista dos outros dias fica guardada em mix_rec
+  const diaRodizio = Math.floor(Date.parse(hojeSP + 'T12:00:00Z') / 864e5) % 5, vezDoCliente = (cn) => Number(String(cn).slice(-6, -2)) % 5 === diaRodizio;
   { const ja = new Set(alvo.map((o) => o.filial + '|' + o.cnpj));
-    for (const [k, m] of carteira) { const [f, r] = k.split('|'); for (const c of m.values()) if (c.hoje && !ja.has(f + '|' + c.cnpj)) { ja.add(f + '|' + c.cnpj); alvo.push({ filial: f, id: c.id, rca: r, cnpj: c.cnpj, nome: c.nome, rota_hoje: true, q1: new Set(), q2: new Set(), peds: new Set(), pedsQ: { q1: new Set(), q2: new Set() }, valor: 0, antes: new Set(), skusPed: new Map() }); } } }
+    for (const [k, m] of carteira) { const [f, r] = k.split('|'); for (const c of m.values()) if ((c.hoje || vezDoCliente(c.cnpj)) && !ja.has(f + '|' + c.cnpj)) { ja.add(f + '|' + c.cnpj); alvo.push({ filial: f, id: c.id, rca: r, cnpj: c.cnpj, nome: c.nome, rota_hoje: true, q1: new Set(), q2: new Set(), peds: new Set(), pedsQ: { q1: new Set(), q2: new Set() }, valor: 0, antes: new Set(), skusPed: new Map() }); } } }
   console.log(`alvos do +MIX (positivados no mes + rota de hoje): ${alvo.length}`);
   console.log(`carteiras lidas: ${carteira.size} (${[...carteira.values()].filter((m) => m.size).length} com clientes)`);
   let ok = 0, semCoord = 0, falha = 0, idx = 0, reus = 0;
