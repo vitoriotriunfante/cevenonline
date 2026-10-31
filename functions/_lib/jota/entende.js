@@ -225,6 +225,23 @@ function clienteNaCarteira(E, txt) {
 const FICHA_ITENS = /O QUE (ELE |ELA |ESSE CLIENTE |O CLIENTE )?(COMPROU|COMPRA|LEVOU)|QUE (ELE |ELA )?(COMPROU|LEVOU)|QUANTO (ELE |ELA )?COMPROU|PRODUTOS? (DELE|DELA)|SKUS?\b/;
 const FICHA_OFERTA = /OFERECER|OFERTA|SUGESTAO DE (PRODUTO|VENDA)|\+ ?MIX (DELE|DELA|DESSE)|O QUE (POSSO |DA PRA |DEVO )?(VENDER|LEVAR)/;
 const FICHA_PEDIDOS = /(ULTIMOS?|ULTIMAS?) (PEDIDOS?|COMPRAS?|VISITAS?)|PEDIDOS? (DELE|DELA|DESSE)|HISTORICO/;
+async function respResumoVendedores(B, E, V, modo, t) {
+  const db = B.env && B.env.DB; if (!db || !V.length) return null;
+  const linhas = await Promise.all(V.slice(0, 150).map((v) => db.prepare('SELECT json FROM ficha_cliente WHERE filial = ? AND id_cliente = ?').bind(String(v.filial), '_VEND_' + v.rca).first().then((r) => (r ? { v, j: JSON.parse(r.json) } : null)).catch(() => null)));
+  const ok = linhas.filter(Boolean); if (!ok.length) return null;
+  const nomeEsc = V.length === 1 ? vn(V[0]) : E.nome;
+  if (modo === 'gap') {
+    const L = ok.flatMap(({ v, j }) => (j.gaps || []).map((g) => ({ ...g, v }))).sort((a, b) => b.gap - a.gap);
+    if (!L.length) return `📉 *Gap por cliente — ${nomeEsc}*: nenhum cliente abaixo da média dos 3 meses.`;
+    return [`📉 *Maiores gaps de clientes — ${nomeEsc}*`, `_Mês atual x média dos 3 meses anteriores (${ok[0].j.meses || ''}), pelos pedidos não cancelados_`, '', ...L.slice(0, 20).map((g, i) => `${i + 1}. *${titulo(g.nome)}* (#${g.id})${V.length > 1 ? ' · ' + vn(g.v) : ''}\n   Média ${R$(g.media)} · mês ${R$(g.mes)} · gap *${R$(g.gap)}*`), ...(L.length > 20 ? [`… e mais ${L.length - 20}`] : []), '', SUGESTAO + `começar por ${titulo(L[0].nome)}; peça o nome do cliente para ver o que ele comprou e parou.`].join('\n');
+  }
+  const P = ok.flatMap(({ v, j }) => (j.cortes || []).map((c) => ({ ...c, v }))).sort((a, b) => String(b.data).localeCompare(String(a.data)));
+  if (!P.length) return `✂️ *Cortes do mês — ${nomeEsc}*: nenhum pedido com corte nos dados de ontem para trás.`;
+  const prod = new Map(); for (const c of P) for (const i of c.itens || []) { const x = prod.get(i.d) || { q: 0, n: 0 }; x.q += Number(i.q) || 0; x.n++; prod.set(i.d, x); }
+  const top = [...prod].sort((a, b) => b[1].n - a[1].n);
+  if (/PRODUTO|\bMIX\b|\bSKU|ITENS|QUAIS/.test(t) || V.length > 1) return [`✂️ *Cortes do mês — ${nomeEsc}*: *${P.length}* pedidos · ${prod.size} produtos`, '', '*Produtos mais cortados:*', ...top.slice(0, 15).map(([d, x]) => `• ${titulo(d)}: ${x.n} pedido(s) · ${N(x.q)} un.`), '', SUGESTAO + 'cite o setor para ver pedido a pedido.'].join('\n');
+  return [`✂️ *Cortes do mês — ${nomeEsc}*: *${P.length}* pedidos`, '', ...P.slice(0, 15).map((c) => `• ${String(c.data).slice(8, 10)}/${String(c.data).slice(5, 7)} · nº ${c.num} · ${titulo(c.cli)} · ${titulo(c.cat || '')}\n   ${(c.itens || []).slice(0, 6).map((i) => `${titulo(i.d)} (${N(i.q)})`).join(', ')}`), ...(P.length > 15 ? [`… e mais ${P.length - 15}`] : []), '', SUGESTAO + 'conferir com o cliente o que precisa voltar no próximo pedido.'].join('\n');
+}
 async function respFichaCliente(B, E, t, achado) {
   const { c: x, v } = achado, nome = titulo(x.nome_cliente || x.razao_social || 'cliente');
   const oferta = () => respOferecer(B, E, `OFERECER ${String(x.cnpj || '').replace(/\D/g, '')}`).catch(() => null);
@@ -238,7 +255,7 @@ async function respFichaCliente(B, E, t, achado) {
     const cab2 = `🏪 *${nome}* (#${x.id_cliente} · ${v.filial} · ${vn(v)})`;
     if (!Ps.length) return [cab2, E.rca ? 'Não tenho pedido deste cliente com o seu código no histórico.' : 'Não tenho pedido deste cliente no histórico.', '', SUGESTAO + 'peça "o que oferecer".'].join('\n');
     const ult2 = `Última compra: *${dBr2(Ps[0].data)}* · ${R$(Ps[0].valor)}`, itens2 = (Ps[0].itens || []).map((s) => `• ${titulo(s.d)}: ${N(s.q)} un. · ${R$(s.v)}`), parou2 = (fic.parou || []).filter((s) => !E.rca || String(s.rca) === String(E.rca)).map((s) => `• ${titulo(s.d)} · última: ${dBr2(s.ult)}`);
-    if (FICHA_PEDIDOS.test(t)) return [cab2, '', '*Últimos pedidos:*', ...Ps.map((p) => `• ${dBr2(p.data)} · nº ${p.num} · ${R$(p.valor)} · ${titulo(String(p.status || 'sem status'))}${p.cortado > 0 ? ` · cortado ${R$(p.cortado)}` : ''}${E.rca ? '' : ` · ${p.rca}`}`), '', SUGESTAO + 'peça "o que oferecer" para a próxima visita.'].join('\n');
+    if (FICHA_PEDIDOS.test(t)) return [cab2, '', '*Últimos pedidos:*', ...Ps.map((p) => `• ${dBr2(p.data)} · nº ${p.num} · ${R$(p.valor)} · ${titulo(String(p.status || 'sem status'))}${p.cortado > 0 ? ` · cortado ${R$(p.cortado)}` : ''}${(p.cortes || []).length ? `\n   ✂️ ${titulo(p.cat || 'Corte')}: ${p.cortes.slice(0, 6).map((i) => titulo(i.d)).join(', ')}` : ''}${E.rca ? '' : ` · ${p.rca}`}`), '', SUGESTAO + 'peça "o que oferecer" para a próxima visita.'].join('\n');
     return [cab2, ult2, ...(itens2.length ? ['', '*O que comprou na última compra:*', ...itens2.slice(0, FICHA_ITENS.test(t) ? 25 : 8)] : []), ...(parou2.length ? ['', '*Comprava e não compra há mais de 60 dias:*', ...parou2.slice(0, 8)] : []), '', SUGESTAO + 'peça "o que oferecer" ou "últimos pedidos dele".'].join('\n');
   }
   let h = null;
@@ -285,9 +302,14 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/GESTAO DE CAMPO|SUPERVISORES EM CAMPO|EM ROTA \(RET\)|RANKING DE ATIVIDADE/.test(t) || (/COMPROMISSO|\bRET\b/.test(t) && /POR FILIAL|RANKING|PERCENT|%/.test(t))) return respGestaoCampo(B, await carregaEscopo(B, esc));
   // LISTA de pedidos por status do escopo (bloqueados, liberados sem faturar, com corte): antes da Operacao, que so da o total (26/10/2026)
   // + pendentes/nao faturados (Jefferson: "pedidos pendentes do vendedor 128, de quais clientes"; Andrey COD 103: "quais sao os clientes que estao no pendente?")
-  const ehPerguntaStatusPedidos = ((/PEDIDOS?/.test(t) && /BLOQUEAD|LIBERAD|CORTAD|COM CORTE|SEM FATURAR|NAO FATUR|PENDENTE/.test(t))
-    || /(DETALHE|QUAIS|LISTA).{0,25}CORTE/.test(t)
-    || /CLIENTES? (QUE ESTAO |NO |EM |COM )?PENDENTES?|QUAIS (SAO OS )?CLIENTES?.*PENDENTE|CLIENTES PENDENTES|QUEM (ESTA|TA) NO PENDENTE|QUEM (ESTA|TA) PENDENTE/i.test(t)
+  // CORTES E GAP POR CLIENTE (31/10/2026): vem dos pedidos do Data Lake, 1 linha por vendedor em ficha_cliente (id _VEND_<rca>). Jorge/TCV "corte do setor 363"; Rudinei/diretoria "clientes com maior gap x media dos ultimos 3 meses"
+  { const ehCorte = /\bCORTES?\b|CORTAD/.test(t) && !/\d{7,}|DEVOL/.test(t) && !/\bHOJE\b|\bHJ\b/.test(t);
+    const ehGapCli = /\bGAPS?\b|MAIOR(ES)? QUEDAS?|CAIU MAIS|CAIRAM MAIS/.test(t) && /CLIENTE|MEDIA|\d MESES/.test(t);
+    if (ehCorte || ehGapCli) { const Ec = await carregaEscopo(B, esc); let pc = achaPessoa(Ec, t);
+      if (!pc && ehGapCli) for (const a of anteriores || []) { pc = achaPessoa(Ec, sem(String(a))); if (pc) break; }
+      const r = await respResumoVendedores(B, Ec, pc && pc.tipo === 'vend' ? [pc.alvo] : Ec.vend, ehGapCli ? 'gap' : 'corte', t); if (r) return r; } }
+  const ehPerguntaStatusPedidos =((/PEDIDOS?/.test(t) && /BLOQUEAD|LIBERAD|CORTAD|COM CORTE|SEM FATURAR|NAO FATUR|PENDENTE/.test(t))
+    || /(DETALHE|QUAIS|LISTA).{0,25}CORTE/.test(t)    || /CLIENTES? (QUE ESTAO |NO |EM |COM )?PENDENTES?|QUAIS (SAO OS )?CLIENTES?.*PENDENTE|CLIENTES PENDENTES|QUEM (ESTA|TA) NO PENDENTE|QUEM (ESTA|TA) PENDENTE/i.test(t)
     || (/QUAIS (SAO )?(OS )?(PEDIDOS|CLIENTES)/.test(t) && /PENDENTE|LIBERAD|BLOQUEAD/.test(t))) && !/[0-9]{7,}/.test(t);
 
   if (ehPerguntaStatusPedidos) {

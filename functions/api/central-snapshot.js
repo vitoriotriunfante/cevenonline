@@ -66,10 +66,7 @@ export async function onRequestGet({ env, request }) {
               if (vp > (r.produtividade.dia.total_programado || 0)) r.produtividade.dia.total_programado = vp;
               const ef = Number(v.eficacia_hoje_pct) || 0;
               if (ef > 0) {
-                r.produtividade.dia.eficacia_pct = ef;
-                if (!(r.produtividade.dia.positivacao > 0)) {
-                  r.produtividade.dia.positivacao = Math.max(1, Math.round(vr * ef / 100));
-                }
+                r.produtividade.dia.eficacia_pct = ef;   // positivacao do dia nao e mais estimada por visitas x eficacia (31/10/2026: proibido inventar dado)
               }
             }
           }
