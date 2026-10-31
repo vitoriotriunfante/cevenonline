@@ -453,6 +453,9 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // AUDITORIA 26/10/2026 (Priscila, Leandro, Vitorio): "digitados/citados do mes" = pedidos do mes dia a dia; faturamento do mes / faturamento e positivacao /
   // faturamento atualizado = resumo completo; "como esta a rota hoje" = hoje so varejo de rota.
   if (/DIGITAD|CITAD/.test(t) && /\bMES\b|OUTUBRO|NOVEMBRO|DEZEMBRO/.test(t) && !pedePeriodo(t)) return respPeriodoDias(B, E, t, { de: 1, ate: null });
+  // Vitorio, 31/10/2026: "sell-out = venda... ele quer saber o que ele vendeu"; comissao/holerite: ainda em organizacao, aponta para a Liga
+  t = t.replace(/\bSELL.?OUT\b/g, 'VENDAS');
+  if (/COMISS|HOLERITE/.test(t)) return '💰 A *comissão em R$* está sendo organizada e em breve estará no ar aqui no Jota.\n\nEnquanto isso, você já pode ver sua *posição e seus lances na Liga Champions Triunfante*: peça "liga" ou "meus lances".';
   // POSITIVACAO/VENDA DE HOJE (Diego/TBE, 31/10/2026: "positivacao e venda TBE hoje" respondeu o mes): "hoje" manda; o mes vai numa linha so
   if (/POSITIV/.test(t) && /\b(HOJE|HJ)\b/.test(t) && !/\bMES\b|QUEM|QUAIS|FALTA|ROTA|SEM COMPRA/.test(t) && !achaPessoa(E, t)) {
     let posHoje = 0, tem = false;
