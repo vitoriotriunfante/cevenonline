@@ -34,14 +34,47 @@ export async function onRequestPost({ request, env }) {
   const d = ev && ev.data;
   if (!d || !d.key || d.key.fromMe) return new Response('ok');
   const jid = String(d.key.remoteJid || '');
+  const seco = u.searchParams.get('seco') === '1';
+
+  // 30/10/2026: MONITORAMENTO DE GRUPOS (ex.: Projeto Locomotiva). O Jota registra o histórico de mensagens dos grupos no Inbox (/contatos),
+  // mas permanece em modo silencioso (não responde automaticamente dentro do grupo enquanto as regras de envio não forem ativadas).
+  if (jid.endsWith('@g.us')) {
+    const msgIdGrp = d.key && d.key.id;
+    let txtGrp = String((d.message && (d.message.conversation || (d.message.extendedTextMessage && d.message.extendedTextMessage.text) || (d.message.imageMessage && d.message.imageMessage.caption))) || '').trim();
+    if (!txtGrp && d.message && (d.message.audioMessage || d.message.pttMessage)) txtGrp = '[🎙️ Áudio enviado no grupo]';
+    if (!txtGrp && d.message && d.message.imageMessage) txtGrp = '[📸 Imagem enviada no grupo]';
+    if (!txtGrp && d.message && d.message.stickerMessage) txtGrp = '[🎨 Figurinha no grupo]';
+    if (!txtGrp) return new Response('ok (grupo sem texto)');
+    try {
+      await tabelas(env.DB);
+      if (msgIdGrp) {
+        const dup = await env.DB.prepare("SELECT id FROM bot_msgs WHERE msg_id = ? AND quando >= datetime('now', '-5 minutes') LIMIT 1").bind(msgIdGrp).first();
+        if (dup) return new Response('ok (grupo dup)');
+      }
+      const partRaw = String(d.key.participant || d.key.senderPn || d.participant || '').split('@')[0];
+      const partCel = so(partRaw);
+      let autorNome = d.pushName || partCel || 'Participante';
+      if (partCel && partCel.startsWith('55')) {
+        const vsP = variantes(partCel);
+        const cPart = await env.DB.prepare(`SELECT nome, papel, filial FROM bot_contatos WHERE celular IN (${vsP.map(() => '?').join(',')}) LIMIT 1`).bind(...vsP).first();
+        if (cPart && cPart.nome) autorNome = `${titulo(cPart.nome)}${cPart.papel ? ' (' + cPart.papel + ')' : ''}`;
+      }
+      const cGrp = await env.DB.prepare('SELECT nome FROM bot_contatos WHERE celular = ? LIMIT 1').bind(jid).first();
+      const nomeGrupo = (cGrp && cGrp.nome) || d.groupSubject || d.subject || 'Grupo WhatsApp';
+      await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, msg_id, tipo) VALUES (?,?,?,?,?,?)')
+        .bind(jid, nomeGrupo, 'in', `👤 ${autorNome}: ${txtGrp}`.slice(0, 2000), msgIdGrp || null, 'grupo_msg').run();
+    } catch (e) {}
+    return new Response('ok (grupo monitorado)');
+  }
+
   // 25/10/2026: mensagens chegam tambem como "@lid" (identificador anonimo do WhatsApp). Antes eram DESCARTADAS sem gravar (supervisores que escreveram ficaram sem resposta).
-  // O telefone real vem em key.senderPn / key.remoteJidAlt (Evolution v2). Grupo, status e canal continuam ignorados.
+  // O telefone real vem em key.senderPn / key.remoteJidAlt (Evolution v2). Status e canal continuam ignorados.
   if (!/@(s\.whatsapp\.net|lid)$/.test(jid)) return new Response('ok');
 
   // DEDUPLICAÇÃO DE MENSAGENS (28/10/2026): o Evolution envia webhook duplicado (ex.: uma via JID normal e outra via @lid 8s depois).
   // Se o msg_id já foi recebido nos últimos 5 minutos, ignora imediatamente para não responder 2 vezes nem bugar o usuário.
   const msgId = d.key && d.key.id;
-  if (msgId && !u.searchParams.get('seco')) {
+  if (msgId && !seco) {
     try {
       const ja = await env.DB.prepare("SELECT id FROM bot_msgs WHERE msg_id = ? AND quando >= datetime('now', '-5 minutes') LIMIT 1").bind(msgId).first();
       if (ja) return new Response('ok (duplicada)');
@@ -60,7 +93,6 @@ export async function onRequestPost({ request, env }) {
     texto = '[imagem recebida sem legenda]';
   }
   if (!texto && !audio && !ehSticker) return new Response('ok');
-  const seco = u.searchParams.get('seco') === '1';
   let cel = so(seco && u.searchParams.get('como') ? u.searchParams.get('como') : (jidTel || jid).split('@')[0]);
 
   // Se cel ainda for um @lid anônimo (não tem DDI 55 ou tem > 13 dígitos): tenta mapear pelo histórico recente de msg_id ou perfil

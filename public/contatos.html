@@ -624,6 +624,7 @@ input:focus, select:focus { border-color: var(--azul); }
         </div>
         <div class="filter-chips">
           <span class="chip active" data-filtro="todos">Todos</span>
+          <span class="chip" data-filtro="grupos">🚂 Grupos Locomotiva</span>
           <span class="chip chip-bad" data-filtro="problemas">⚠️ Reclamadas / Falhas</span>
           <span class="chip" data-filtro="avaliados">⭐ Avaliados</span>
           <span class="chip" data-filtro="ia">🤖 IA Genérica</span>
@@ -774,10 +775,13 @@ input:focus, select:focus { border-color: var(--azul); }
   <div id="tab-contatos-gestao" class="view-pane">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
       <div>
-        <h2 style="margin:0 0 4px; font-size:18px;">👥 Contatos Ativos & Cadastrados</h2>
-        <span class="header-sub">Diretoria, Gerentes, Supervisores e Vendedores autorizados a usar o assistente</span>
+        <h2 style="margin:0 0 4px; font-size:18px;">👥 Contatos Ativos, Cadastrados & Grupos</h2>
+        <span class="header-sub">Diretoria, CEO, Gerentes, Supervisores, Vendedores e Grupos Locomotiva conectados ao JOTA</span>
       </div>
-      <button class="pri" id="btn-toggle-novo-contato">+ Novo Contato Manual</button>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="btn-sync-grupos" style="border-color:var(--azul); color:var(--azul); background:rgba(56,189,248,0.1);">🚂 Sincronizar Grupos do WhatsApp</button>
+        <button class="pri" id="btn-toggle-novo-contato">+ Novo Contato Manual</button>
+      </div>
     </div>
 
     <!-- FORMULÁRIO RETRÁTIL DE CADASTRO -->
@@ -800,6 +804,7 @@ input:focus, select:focus { border-color: var(--azul); }
             <option value="diretoria">Diretoria</option>
             <option value="ceo">CEO</option>
             <option value="vendedor">Vendedor</option>
+            <option value="grupo">Grupo WhatsApp</option>
           </select>
         </div>
         <div>
@@ -883,6 +888,7 @@ input:focus, select:focus { border-color: var(--azul); }
           <span class="chip bc-chip-papel" data-papel="vendedor">🎒 Vendedores</span>
           <span class="chip bc-chip-papel" data-papel="diretoria">👑 Diretoria</span>
           <span class="chip bc-chip-papel" data-papel="ceo">🏛️ CEO</span>
+          <span class="chip bc-chip-papel" data-papel="grupo">🚂 Grupos Locomotiva</span>
           <span class="chip bc-chip-papel" data-papel="individual">📱 Número Individual</span>
         </div>
       </div>
@@ -1242,6 +1248,7 @@ function agruparERenderizarConversas() {
       const match = (ch.quem + ' ' + ch.celular + ' ' + ch.filial + ' ' + ch.papel).toLowerCase().includes(busca);
       if (!match) return false;
     }
+    if (FILTRO_CHATS === 'grupos') return ch.papel === 'grupo' || String(ch.celular || '').endsWith('@g.us');
     if (FILTRO_CHATS === 'problemas') return ch.temProblema || ch.temReclamacao;
     if (FILTRO_CHATS === 'avaliados') return ch.piorNota != null;
     if (FILTRO_CHATS === 'ia') return ch.temIA;
@@ -1865,12 +1872,12 @@ function renderizarGestaoContatos() {
   tbody.innerHTML = filtrados.map((c) => `
     <tr>
       <td><b>${esc(tit(c.nome))}</b></td>
-      <td>${esc(c.papel)}</td>
+      <td>${esc(c.papel === 'grupo' ? '🚂 Grupo' : c.papel)}</td>
       <td>${esc(c.filial || 'Todas')}${c.grupo ? ' · ' + esc(tit(c.grupo)) : ''}</td>
       <td style="color:var(--txt-mut); font-size:12px;">
-        ${c.papel === 'vendedor' ? 'RCA ' + esc(c.rca || '?') + (c.supervisor ? ' · ' + esc(tit(c.supervisor)) : '') : c.papel === 'supervisor' ? 'Equipe própria' : '—'}
+        ${c.papel === 'vendedor' ? 'RCA ' + esc(c.rca || '?') + (c.supervisor ? ' · ' + esc(tit(c.supervisor)) : '') : c.papel === 'supervisor' ? 'Equipe própria' : c.papel === 'grupo' ? 'Grupo WhatsApp' : '—'}
       </td>
-      <td>+${esc(c.celular)}</td>
+      <td>${String(c.celular || '').endsWith('@g.us') ? esc(c.celular) : '+' + esc(c.celular)}</td>
       <td>
         <span class="tag-badge ${c.situacao === 'ativo' ? 'pronta' : 'erro'}">${esc(c.situacao)}</span>
       </td>
@@ -1926,6 +1933,25 @@ $('cad-filtro-papel').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-filial').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-situacao').onchange = () => renderizarGestaoContatos();
 
+if ($('btn-sync-grupos')) {
+  $('btn-sync-grupos').onclick = async () => {
+    const btn = $('btn-sync-grupos');
+    const txtOrig = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Sincronizando grupos...';
+    try {
+      const r = await api('POST', '/api/jota-contatos', { acao: 'sincronizar_grupos' });
+      aviso(`✅ ${r.total || 0} grupo(s) sincronizado(s) com sucesso do WhatsApp!`, 'ok');
+      await carregarTudo();
+    } catch (e) {
+      aviso('Erro ao sincronizar grupos: ' + e.message, 'erro');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = txtOrig;
+    }
+  };
+}
+
 $('btn-toggle-novo-contato').onclick = () => {
   const box = $('box-form-contato');
   box.style.display = box.style.display === 'none' ? 'block' : 'none';
@@ -1937,8 +1963,9 @@ $('btn-toggle-novo-contato').onclick = () => {
 };
 $('f-cancelar-btn').onclick = () => { $('box-form-contato').style.display = 'none'; };
 $('f-salvar-btn').onclick = async () => {
-  const cel = $('f-cel').value.replace(/\D/g, '');
-  if (cel.length < 10) { aviso('Informe um celular válido com DDD', 'erro'); return; }
+  const rawCel = $('f-cel').value.trim();
+  const cel = rawCel.endsWith('@g.us') ? rawCel : rawCel.replace(/\D/g, '');
+  if (!rawCel.endsWith('@g.us') && cel.length < 10) { aviso('Informe um celular válido com DDD ou JID do grupo (@g.us)', 'erro'); return; }
   try {
     await api('POST', '/api/jota-contatos', {
       acao: 'salvar',
@@ -2159,7 +2186,10 @@ function obterDestinatariosComunicado() {
     const ativos = (DADOS_CONTATOS.contatos || []).filter((c) => c.situacao === 'ativo' || c.ativo === 1);
     for (const c of ativos) {
       if (!papeisAtivos.includes(c.papel)) continue;
-      if (!todasFiliais && c.papel !== 'diretoria' && c.papel !== 'ceo' && !BC_FILIAIS_SEL.has(c.filial)) continue;
+      if (!todasFiliais && c.papel !== 'diretoria' && c.papel !== 'ceo') {
+        const filsContato = [c.filial, ...(c.papel === 'grupo' && c.grupo ? String(c.grupo).split(',') : [])].map((x) => String(x || '').trim()).filter(Boolean);
+        if (!filsContato.some((f) => BC_FILIAIS_SEL.has(f))) continue;
+      }
       if (!porCel.has(c.celular)) porCel.set(c.celular, c);
     }
   }

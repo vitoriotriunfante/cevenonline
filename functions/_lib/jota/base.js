@@ -46,7 +46,12 @@ export async function tabelas(db) {
 }
 export async function enviar(env, numero, texto) {
   if (!env.EVO_URL || !env.EVO_KEY) return { ok: false, erro: 'EVO_URL/EVO_KEY nao configurados' };
-  const d = so(numero);
+  const s = String(numero || '').trim();
+  if (s.endsWith('@g.us')) {
+    const rG = await R.evolution(R.evoCfg(env), '/message/sendText', { number: s, text: texto });
+    return { ok: rG.ok, status: rG.status, erro: rG.erro, resposta: rG.resposta };
+  }
+  const d = so(s);
   if (!d) return { ok: false, erro: 'numero vazio ou invalido' };
   const r = await R.evolution(R.evoCfg(env), '/message/sendText', { number: d, text: texto });
   if (r.ok) return { ok: true, status: r.status };

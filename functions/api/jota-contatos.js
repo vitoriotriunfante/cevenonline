@@ -13,10 +13,24 @@ import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 
 const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Equipe-Senha', 'Cache-Control': 'no-store' };
-const PAPEIS = ['ceo', 'diretoria', 'gerente', 'supervisor', 'vendedor'];
+const PAPEIS = ['ceo', 'diretoria', 'gerente', 'supervisor', 'vendedor', 'grupo'];
 const FILIAIS = ['TPH', 'ABC', 'API', 'TBL', 'TCV', 'TSJ', 'TCA', 'TBE', 'TPA', 'MCD', 'TCG'];
 const so = (x) => String(x || '').replace(/\D/g, '');
 const j = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: CORS });
+
+function detectarFiliaisDoGrupo(nome) {
+  const n = String(nome || '').toUpperCase();
+  const achadas = [];
+  for (const f of FILIAIS) {
+    if (new RegExp(`\\b${f}\\b`).test(n)) achadas.push(f);
+  }
+  if (!achadas.length) {
+    if (/LONDRINA/.test(n)) achadas.push('TBL');
+    if (/CUIAB/.test(n)) achadas.push('TCA');
+    if (/ESTEIO/.test(n) && !achadas.length) achadas.push('TBE');
+  }
+  return achadas;
+}
 
 async function garante(db) {
   await db.prepare(`CREATE TABLE IF NOT EXISTS bot_contatos (celular TEXT PRIMARY KEY, nome TEXT, papel TEXT, filial TEXT, grupo TEXT, supervisor TEXT, ativo INTEGER DEFAULT 1, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)`).run();
@@ -73,10 +87,36 @@ export async function onRequestPost({ request, env }) {
     const enviados = []; for (const g of ger) { if (await enviar(env, g.celular, texto)) enviados.push(g.nome); }
     return j({ ok: true, enviados });
   }
+  if (b.acao === 'sincronizar_grupos') {
+    const cfg = R.evoCfg(env);
+    if (!cfg.url || !cfg.key) return j({ erro: 'Evolution API nao configurada' }, 500);
+    const rG = await R.evolutionGet(cfg, '/group/fetchAllGroups', { getParticipants: 'false' }, 30000);
+    if (!rG.ok || !Array.isArray(rG.resposta)) {
+      return j({ erro: 'Falha ao consultar grupos na Evolution API', status: rG.status, detalhe: rG.erro || rG.resposta }, 502);
+    }
+    const gruposSincronizados = [];
+    for (const g of rG.resposta) {
+      const jid = String(g.id || '').trim();
+      const nomeG = String(g.subject || g.name || 'Grupo WhatsApp').trim();
+      if (!jid.endsWith('@g.us')) continue;
+      const fils = detectarFiliaisDoGrupo(nomeG);
+      const filialPrincipal = fils[0] || null;
+      const grupoExtras = fils.length > 1 ? fils.join(',') : null;
+      await env.DB.prepare(`INSERT INTO bot_contatos (celular, nome, papel, filial, grupo, ativo, situacao, atualizado_em) VALUES (?, ?, 'grupo', ?, ?, 1, 'ativo', CURRENT_TIMESTAMP)
+        ON CONFLICT(celular) DO UPDATE SET nome=excluded.nome, papel='grupo', filial=COALESCE(excluded.filial, bot_contatos.filial), grupo=COALESCE(excluded.grupo, bot_contatos.grupo), atualizado_em=CURRENT_TIMESTAMP`)
+        .bind(jid, nomeG, filialPrincipal, grupoExtras).run();
+      gruposSincronizados.push({ jid, nome: nomeG, filial: filialPrincipal, filiais: fils, tamanho: g.size || null });
+    }
+    return j({ ok: true, total: gruposSincronizados.length, grupos: gruposSincronizados });
+  }
   if (b.acao === 'disparo_individual') {
-    let cel = so(b.celular);
-    if (cel.startsWith('0')) cel = cel.replace(/^0+/, '');
-    if ((cel.length === 10 || cel.length === 11) && !cel.startsWith('55')) cel = '55' + cel;
+    const rawCel = String(b.celular || '').trim();
+    const ehGrupo = rawCel.endsWith('@g.us');
+    let cel = ehGrupo ? rawCel : so(rawCel);
+    if (!ehGrupo) {
+      if (cel.startsWith('0')) cel = cel.replace(/^0+/, '');
+      if ((cel.length === 10 || cel.length === 11) && !cel.startsWith('55')) cel = '55' + cel;
+    }
     const texto = String(b.texto || '').trim();
     const nome = String(b.nome || 'Contato').trim();
     const tipo = String(b.tipo || 'comunicado_diretoria').trim();
@@ -84,13 +124,15 @@ export async function onRequestPost({ request, env }) {
     const audioBase64 = b.audio_base64 ? String(b.audio_base64).trim() : '';
 
     if (!cel || (!texto && !anexo && !audioBase64)) {
-      return j({ erro: 'celular e conteúdo (texto, anexo ou áudio) são obrigatórios' }, 400);
+      return j({ erro: 'celular/grupo e conteúdo (texto, anexo ou áudio) são obrigatórios' }, 400);
     }
 
     const cfg = R.evoCfg(env);
     const alts = [cel];
-    if (cel.length === 13 && cel.startsWith('55') && cel[4] === '9') alts.push(cel.slice(0, 4) + cel.slice(5));
-    if (cel.length === 12 && cel.startsWith('55')) alts.push(cel.slice(0, 4) + '9' + cel.slice(4));
+    if (!ehGrupo) {
+      if (cel.length === 13 && cel.startsWith('55') && cel[4] === '9') alts.push(cel.slice(0, 4) + cel.slice(5));
+      if (cel.length === 12 && cel.startsWith('55')) alts.push(cel.slice(0, 4) + '9' + cel.slice(4));
+    }
 
     const evoTry = async (caminho, payloadBuilder) => {
       for (const num of alts) {
@@ -153,16 +195,18 @@ export async function onRequestPost({ request, env }) {
     } catch (e) {}
     return j({ ok, celular: cel });
   }
-  const cel = so(b.celular);
-  if (cel.length < 12 || cel.length > 13 || !cel.startsWith('55')) return j({ erro: 'celular deve ter DDI 55 + DDD + numero (ex.: 5541999998888)' }, 400);
+  const rawId = String(b.celular || '').trim();
+  const ehGrpSalvar = rawId.endsWith('@g.us');
+  const cel = ehGrpSalvar ? rawId : so(rawId);
+  if (!ehGrpSalvar && (cel.length < 12 || cel.length > 13 || !cel.startsWith('55'))) return j({ erro: 'celular deve ter DDI 55 + DDD + numero (ex.: 5541999998888)' }, 400);
   const antes = await env.DB.prepare('SELECT * FROM bot_contatos WHERE celular = ?').bind(cel).first();
   const log = (acao, depois) => env.DB.prepare('INSERT INTO bot_contatos_log (celular, acao, antes, depois) VALUES (?,?,?,?)').bind(cel, acao, JSON.stringify(antes || null), JSON.stringify(depois || null)).run();
   const acao = String(b.acao || '');
   if (acao === 'salvar') {
     const papel = String(b.papel || '').toLowerCase();
     if (!PAPEIS.includes(papel)) return j({ erro: 'papel invalido' }, 400);
-    const filial = (papel === 'diretoria' || papel === 'ceo') ? null : String(b.filial || '').toUpperCase();
-    if (papel !== 'diretoria' && papel !== 'ceo' && !FILIAIS.includes(filial)) return j({ erro: 'filial obrigatoria para ' + papel }, 400);
+    const filial = (papel === 'diretoria' || papel === 'ceo') ? null : String(b.filial || '').toUpperCase() || null;
+    if (papel !== 'diretoria' && papel !== 'ceo' && papel !== 'grupo' && !FILIAIS.includes(filial)) return j({ erro: 'filial obrigatoria para ' + papel }, 400);
     const nome = String(b.nome || '').trim().toUpperCase(); if (!nome) return j({ erro: 'nome obrigatorio' }, 400);
     const sup = papel === 'supervisor' ? String(b.supervisor || nome).trim().toUpperCase() : papel === 'vendedor' ? String(b.supervisor || '').trim().toUpperCase() || null : null;
     const grupo = b.grupo ? String(b.grupo).trim().toUpperCase() : null, rca = papel === 'vendedor' ? so(b.rca) || null : null;

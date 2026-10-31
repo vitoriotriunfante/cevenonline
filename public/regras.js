@@ -45,10 +45,20 @@
       return { ok: r.ok, status: r.status, resposta: j };
     } catch (e) { return { ok: false, status: 0, erro: String(e && e.message || e) }; }
   }
+  async function evolutionGet(cfg, caminho, query, ms) {
+    const base = String(cfg && cfg.url || '').replace(/\/$/, '');
+    if (!base || !cfg.key) return { ok: false, status: 0, erro: 'Evolution não configurada' };
+    try {
+      const qs = query ? '?' + new URLSearchParams(query).toString() : '';
+      const r = await fetch(`${base}${caminho}/${cfg.instancia || 'ceven-noc'}${qs}`, { method: 'GET', headers: { apikey: cfg.key }, signal: AbortSignal.timeout(ms || 20000) });
+      let j = null; try { j = await r.json(); } catch (e) {}
+      return { ok: r.ok, status: r.status, resposta: j };
+    } catch (e) { return { ok: false, status: 0, erro: String(e && e.message || e) }; }
+  }
   const evoCfg = (env) => ({ url: env.EVO_URL, key: env.EVO_KEY, instancia: env.EVO_INSTANCE || 'ceven-noc' });
-  const enviarTexto = (cfg, numero, texto) => evolution(cfg, '/message/sendText', { number: String(numero).replace(/\D/g, ''), text: texto });
+  const enviarTexto = (cfg, numero, texto) => evolution(cfg, '/message/sendText', { number: String(numero).includes('@g.us') ? String(numero).trim() : String(numero).replace(/\D/g, ''), text: texto });
 
-  const R = { CANAIS_VAREJO, CANAIS_AS, CANAIS_GESTAO, SKU_IGNORADO, ehVarejo, ehAS, ehGestao, canalCurto, relogioSP, hojeSP, horaSP, brl, evolution, evoCfg, enviarTexto };
+  const R = { CANAIS_VAREJO, CANAIS_AS, CANAIS_GESTAO, SKU_IGNORADO, ehVarejo, ehAS, ehGestao, canalCurto, relogioSP, hojeSP, horaSP, brl, evolution, evolutionGet, evoCfg, enviarTexto };
   if (typeof module !== 'undefined' && module.exports) module.exports = R;
   raiz.REGRAS = R;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

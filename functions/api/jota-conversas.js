@@ -22,10 +22,34 @@ export async function onRequestGet({ request, env }) {
     FROM bot_msgs m LEFT JOIN bot_contatos c ON c.celular = m.celular WHERE m.quando >= datetime('now', ?) AND m.direcao IN ('in','out','erro') ORDER BY m.celular, m.id`).bind(`-${dias} days`).all();
   const conv = []; const pend = new Map();
   for (const r of results || []) {
-    if (r.direcao === 'in') { const x = { quando: r.quando, celular: r.celular, quem: r.nome || r.celular, papel: r.papel || 'não cadastrado', filial: r.filial || '', cadastrado: !!r.nome && r.ativo === 1, pergunta: r.texto, resposta: null, tipo: r.nome ? 'sem resposta' : 'não cadastrado', ajudou: null }; conv.push(x); pend.set(r.celular, x); }
-    else { const x = pend.get(r.celular); if (x && x.resposta == null) { x.resposta = String(r.texto || '').slice(0, 600); x.tipo = r.direcao === 'erro' ? 'erro de envio' : (r.tipo || 'pronta'); x.ajudou = r.ajudou; x.nota = r.nota; pend.delete(r.celular); } }
+    const ehGrp = String(r.celular || '').endsWith('@g.us') || r.papel === 'grupo' || r.tipo === 'grupo_msg';
+    if (r.direcao === 'in') {
+      const x = {
+        quando: r.quando,
+        celular: r.celular,
+        quem: r.nome || r.celular,
+        papel: ehGrp ? 'grupo' : (r.papel || 'não cadastrado'),
+        filial: r.filial || '',
+        cadastrado: ehGrp ? true : (!!r.nome && r.ativo === 1),
+        pergunta: r.texto,
+        resposta: ehGrp ? '🚂 Monitorado no grupo (modo silencioso)' : null,
+        tipo: ehGrp ? 'grupo_msg' : (r.nome ? 'sem resposta' : 'não cadastrado'),
+        ajudou: ehGrp ? 1 : null
+      };
+      conv.push(x);
+      if (!ehGrp) pend.set(r.celular, x);
+    } else {
+      const x = pend.get(r.celular);
+      if (x && x.resposta == null) {
+        x.resposta = String(r.texto || '').slice(0, 600);
+        x.tipo = r.direcao === 'erro' ? 'erro de envio' : (r.tipo || 'pronta');
+        x.ajudou = r.ajudou;
+        x.nota = r.nota;
+        pend.delete(r.celular);
+      }
+    }
   }
-  for (const x of conv) x.nao_ajudou = x.ajudou === 0 || (x.nota != null && x.nota <= 2) || ['ia', 'ajuda', 'erro de envio', 'sem resposta'].includes(x.tipo);
+  for (const x of conv) x.nao_ajudou = x.tipo !== 'grupo_msg' && (x.ajudou === 0 || (x.nota != null && x.nota <= 2) || ['ia', 'ajuda', 'erro de envio', 'sem resposta'].includes(x.tipo));
   const notas = conv.filter((x) => x.nota != null).map((x) => x.nota);
   // SUGESTOES com retorno (Vitorio, 25/10/2026: "e a minha sugestao, vai fazer o que com ela?"): situacao nova|feita|nao_vai|atencao + o que foi feito
   for (const col of ['situacao TEXT', 'resposta TEXT', 'feito_em TEXT']) { try { await env.DB.prepare(`ALTER TABLE bot_sugestoes ADD COLUMN ${col}`).run(); } catch (e) { /* ja existe */ } }
