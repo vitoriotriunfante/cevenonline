@@ -318,7 +318,8 @@ async function getJson(url, tentativas = 2) {
         return obj;
       })();
       chamada.catch(() => {});
-      const res = await Promise.race([chamada, new Promise((resolve) => setTimeout(() => { anotaFalha(url, 'limite_14s'); resolve(null); }, 14000))]);
+      let relogio14;   // desligado ao terminar: senao dispara 14 s depois de uma chamada que DEU CERTO e a marca como falha
+      const res = await Promise.race([chamada, new Promise((resolve) => { relogio14 = setTimeout(() => { anotaFalha(url, 'limite_14s'); resolve(null); }, 14000); })]).finally(() => clearTimeout(relogio14));
       if (res === 'RETRY') continue;
       return res;
     } catch (e) {
