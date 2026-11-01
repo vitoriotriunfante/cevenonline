@@ -316,7 +316,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
       const NM = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'], hj = hojeSP(), iNm = NM.findIndex((n) => new RegExp('\\b' + n + '\\b').test(t));
       const passado = new Date(Date.parse(hj.slice(0, 7) + '-15T12:00:00Z') - 30 * 864e5).toISOString().slice(0, 7), mesPedido = iNm >= 0 ? hj.slice(0, 4) + '-' + String(iNm + 1).padStart(2, '0') : null;
       const ym = /MES (ANTERIOR|PASSADO)/.test(t) || (/COMO FECH(AMOS|OU O MES|EI)/.test(t) && !mesPedido && Number(hj.slice(8)) <= 5) ? passado : mesPedido;
-      if (ym && ym < hj.slice(0, 7) && /FECH|RESULTADO|FATUR|ACUMUL/.test(t) && !/INDUSTRIA|FORNECEDOR|PRODUTO|CLIENTE/.test(t) && B.env && B.env.DB) {
+      if (ym && ym >= '2026-10' && ym < hj.slice(0, 7) && /FECH|RESULTADO|FATUR|ACUMUL/.test(t) && !/INDUSTRIA|FORNECEDOR|PRODUTO|CLIENTE/.test(t) && B.env && B.env.DB) {
         const Em = await carregaEscopo(B, esc), chaves = new Set(Em.vend.concat(Em.ocultos || []).map((v) => v.filial + '|' + v.rca));
         const u = await B.env.DB.prepare('SELECT MAX(data_ref) d FROM varredura_central_rca WHERE data_ref >= ? AND data_ref <= ?').bind(ym + '-01', ym + '-31').first();
         if (u && u.d) {
