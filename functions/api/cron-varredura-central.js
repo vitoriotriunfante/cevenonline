@@ -150,6 +150,8 @@ async function tokenDoAdmin(env) {
 // MEDIDO (13/10): view-as tambem tem cota (~100 chamadas/min por usuario admin; 429 com Retry-After ~30 s). Por isso: no maximo ~90 por rodada, os MAIS ANTIGOS primeiro
 // (ciclo completo de 550 em ~12 min), e ao primeiro 429 PARA e nao insiste.
 let banAdminAte = 0;
+// chave do vendedor: filial + codigo (Vitorio, 31/10/2026: o mesmo codigo existe em varias filiais, ex.: 2 e 1035)
+const kr = (r) => String(r.filial || '').toUpperCase() + '|' + r.codigo;
 async function dashboardsAdmin(env, lista, prazoMs) {
   const mapa = new Map();
   if (Date.now() < banAdminAte) return mapa;
@@ -168,7 +170,7 @@ async function dashboardsAdmin(env, lista, prazoMs) {
         if (r.status === 429) { banAdminAte = Date.now() + (Number(r.headers.get('retry-after')) || 40) * 1000; proximo = lista.length; return; }
         if (!r.ok) continue;
         const j = await r.json();
-        if (j && j.financeiro) mapa.set(String(rca.codigo), j);
+        if (j && j.financeiro) mapa.set(kr(rca), j);
       } catch { /* proximo */ }
     }
   }));
@@ -220,7 +222,7 @@ async function hierarquiaAdmin(env) {
     try { await gravaMetaHierarquia(env, lista); } catch { /* sem gravar: fica a ultima gravada */ }
     const mapa = new Map();
     for (const f of lista) for (const s of f.supervisores || []) for (const v of s.vendedores || []) {
-      mapa.set(String(v.id), { bruto: Number(v.faturado) || 0, pend: Number(v.a_faturar) || 0, meta: Number(v.meta_financeira) || 0, pmeta: Number(v.meta_positivacao) || 0, preal: Number(v.positivado) || 0 });
+      mapa.set(String(f.sigla || '').toUpperCase().slice(0, 3) + '|' + v.id, { bruto: Number(v.faturado) || 0, pend: Number(v.a_faturar) || 0, meta: Number(v.meta_financeira) || 0, pmeta: Number(v.meta_positivacao) || 0, preal: Number(v.positivado) || 0 });
     }
     return mapa.size > 100 ? mapa : null;   // lista pequena demais = resposta suspeita: nao confia
   } catch { return null; }
@@ -335,7 +337,7 @@ function upsertParcial(env, dataRef, rca, campos) {
   const sets = [...cols.map((c) => `${c} = excluded.${c}`), 'updated_at = CURRENT_TIMESTAMP', ...(comRoteiro ? ['roteiro_em = CURRENT_TIMESTAMP'] : []), ...(comProd ? ['prod_em = CURRENT_TIMESTAMP'] : [])].join(', ');
   return env.DB.prepare(
     `INSERT INTO varredura_central_rca (${insCols.join(', ')}) VALUES (${marcas})
-     ON CONFLICT (rca_codigo, data_ref) DO UPDATE SET ${sets}`
+     ON CONFLICT DO UPDATE SET ${sets}`
   ).bind(String(rca.codigo), String(rca.filial || '').toUpperCase(), dataRef, ...cols.map((c) => campos[c]));
 }
 
@@ -480,10 +482,10 @@ export async function onRequestGet({ env, request }) {
   let rcas = [...rcasRaw];
   // LISTA = banco (representantes) + PLANILHA (tv-mostra): vendedor novo entra na planilha antes de entrar no banco
   try {
-    const jaTem = new Set(rcas.map((r) => String(r.codigo)));
+    const jaTem = new Set(rcas.map(kr));
     const mp = await (await fetch(new URL('/api/tv-mostra', request.url), { signal: AbortSignal.timeout(8000) })).json();
     for (const [sg, lista] of Object.entries((mp && mp.filiais) || {})) for (const x of Array.isArray(lista) ? lista : []) {
-      if (x && x.rca != null && !jaTem.has(String(x.rca))) { rcas.push({ codigo: String(x.rca), filial: String(sg).toUpperCase() }); jaTem.add(String(x.rca)); }
+      if (x && x.rca != null && !jaTem.has(String(sg).toUpperCase() + '|' + x.rca)) { rcas.push({ codigo: String(x.rca), filial: String(sg).toUpperCase() }); jaTem.add(String(sg).toUpperCase() + '|' + x.rca); }
     }
   } catch { /* sem planilha: segue so com o banco */ }
 
@@ -514,7 +516,7 @@ export async function onRequestGet({ env, request }) {
   const temRoteiroEm = await garanteRoteiroEm(env);
   const temProdEm = await garanteProdEm(env);
   const { results: estado } = await env.DB.prepare(
-    `SELECT rca_codigo,
+    `SELECT rca_codigo, filial_sigla,
             COALESCE(json_array_length(roteiro_json), 0) AS n_rota,
             (SELECT COUNT(*) FROM json_each(COALESCE(roteiro_json, '[]')) WHERE json_extract(value, '$.status') NOT IN ('ABERTO', 'AGENDADO')) AS n_feitas_rot,
             CAST(COALESCE(json_extract(produtividade_json, '$.dia.positivacao'), 0) AS REAL) AS pos,
@@ -534,7 +536,7 @@ export async function onRequestGet({ env, request }) {
             updated_at AS ua
        FROM varredura_central_rca WHERE data_ref = ?`
   ).bind(dataRef).all();
-  const ant = new Map((estado || []).map((e) => [String(e.rca_codigo), e]));
+  const ant = new Map((estado || []).map((e) => [String(e.filial_sigla).toUpperCase() + '|' + e.rca_codigo, e]));
   // VISITAS DO GERENTE x ROTEIRO GRAVADO (26/10/2026): a cascata do gerente (cota separada) diz quantas visitas cada vendedor ja fez hoje; se for mais do que o roteiro
   // gravado mostra, o roteiro esta atrasado e vai primeiro (e dele que nascem os lances). Sem cascata do dia, segue a ordem antiga.
   const feitasGer = new Map();
@@ -544,8 +546,8 @@ export async function onRequestGet({ env, request }) {
     await gravaCascatas(env, dataRef, 15000);
   } catch (e) { /* segue com a existente */ }
   try {
-    const { results: cs } = await env.DB.prepare('SELECT json FROM cascata_dia WHERE data_ref = ?').bind(dataRef).all();
-    for (const c of cs || []) { const j = JSON.parse(c.json); for (const s of j.supervisores || []) for (const v of (s.tabelas && s.tabelas.produtividade) || []) if (v && v.id != null) feitasGer.set(String(v.id), Number(v.visit_real_hoje) || 0); }
+    const { results: cs } = await env.DB.prepare('SELECT filial, json FROM cascata_dia WHERE data_ref = ?').bind(dataRef).all();
+    for (const c of cs || []) { const j = JSON.parse(c.json); for (const s of j.supervisores || []) for (const v of (s.tabelas && s.tabelas.produtividade) || []) if (v && v.id != null) feitasGer.set(String(c.filial).toUpperCase() + '|' + v.id, Number(v.visit_real_hoje) || 0); }
   } catch (e) { /* tabela ainda nao existe no primeiro tick */ }
 
   // RECUPERACAO SOZINHA (31/10/2026: das 14:31 em diante o tick fez 48 chamadas com 0 sucesso por rodada e a base parou, enquanto a varredura completa funcionava): 2 ticks seguidos sem nenhum sucesso = esta rodada vai pela completa
@@ -586,8 +588,8 @@ export async function onRequestGet({ env, request }) {
       // Agora: so quem ainda nao esta gravado hoje (ou todos, com ?forcar=1), em fatias de 20 RCAs, gravando cada fatia assim que volta, ate o orcamento de tempo; a proxima rodada continua de onde parou.
       // forcar NAO recomeca do primeiro RCA (11/10/2026: so os ~20 primeiros eram atualizados a cada chamada): vai primeiro quem nunca foi gravado,
       // depois quem esta sem dashboard, depois o mais antigo; assim cada chamada avanca e a proxima continua dali.
-      const ordem = (r) => { const a = ant.get(String(r.codigo)); return !a ? '0' : (a.sem_dash ? '1' : '2') + String(a.ua || ''); };
-      const faltam = (forcar ? [...rcas] : rcas.filter((r) => !ant.has(String(r.codigo)))).sort((x, y) => ordem(x).localeCompare(ordem(y)));
+      const ordem = (r) => { const a = ant.get(kr(r)); return !a ? '0' : (a.sem_dash ? '1' : '2') + String(a.ua || ''); };
+      const faltam = (forcar ? [...rcas] : rcas.filter((r) => !ant.has(kr(r)))).sort((x, y) => ordem(x).localeCompare(ordem(y)));
       let ok = 0, comFalha = 0, feitos = 0;
       for (let i = 0; i < faltam.length && Date.now() - t0 < ORCAMENTO_TICK_MS; i += 20) {
         const fatia = faltam.slice(i, i + 20);
@@ -625,7 +627,7 @@ export async function onRequestGet({ env, request }) {
     const prazo = t0 + ORCAMENTO_TICK_MS;
     const quente = [], semRota = [];
     for (const rca of rcas) {
-      const a = ant.get(String(rca.codigo));
+      const a = ant.get(kr(rca));
       // linha SEM produtividade ou SEM rota (falha anterior) tambem e quente: antes parecia 'sem rota e sem venda' e ficava na fila de 1/3 (11/10/2026)
       if (!a || a.sem_prod || a.sem_rota || a.n_rota > 0 || a.pos > 0 || a.dig > 0) quente.push(rca); else semRota.push(rca);
     }
@@ -639,9 +641,9 @@ export async function onRequestGet({ env, request }) {
     if (hier) {
       const dif = (a, b) => Math.abs((Number(a) || 0) - (Number(b) || 0)) >= 0.5;
       for (const rca of rcas) {
-        const h = hier.get(String(rca.codigo)), a = ant.get(String(rca.codigo));
+        const h = hier.get(kr(rca)), a = ant.get(kr(rca));
         if (!h || !a || a.sem_dash || a.d_bruto == null) continue;
-        const cod = String(rca.codigo), assinatura = JSON.stringify(h);
+        const cod = kr(rca), assinatura = JSON.stringify(h);
         if (dif(h.bruto, a.d_bruto) || dif(h.pend, a.d_pend) || dif(h.meta, a.d_meta) || dif(h.pmeta, a.d_pmeta) || dif(h.preal, a.d_preal)) {
           if (hierVisto.get(cod) === assinatura) dashIgual.add(cod);   // ja rebuscado para este mesmo valor: a diferenca restante e do cache do painel admin
           else { dashMudou.push(rca); hierVisto.set(cod, assinatura); }
@@ -653,13 +655,13 @@ export async function onRequestGet({ env, request }) {
     // 0. LACUNA DE DASHBOARD PRIMEIRO (11/10/2026): a etapa fria fica no fim e com o CEVEN limitando (429) nunca chegava a rodar; 217 RCAs ficaram o dia sem meta/faturado
     // (o /incentivo deixava esses vendedores de fora). Agora ate 15 por tick logo no inicio: ~15 chamadas, fecha a lacuna em ~30 min sem estourar a cota.
     // 0a. DASHBOARD DE TODOS PELO ADMIN (sem a trava): grava meta/faturado/devolucao/pendente/positivacao de TODOS e descobre quem teve PEDIDO NOVO ou DEVOLUCAO NOVA.
-    const maisAntigosPrimeiro = rcas.slice().sort((x, y) => { const k = (r) => { const a = ant.get(String(r.codigo)); return !a ? '' : String(a.ua || ''); }; return k(x).localeCompare(k(y)); }).slice(0, noiteTodos ? 200 : 70);   // 21/10/2026: 90 -> 70 (Vitorio: "da uma baixada"); a varredura usava quase toda a cota do admin e o app dele dava Too Many Requests
+    const maisAntigosPrimeiro = rcas.slice().sort((x, y) => { const k = (r) => { const a = ant.get(kr(r)); return !a ? '' : String(a.ua || ''); }; return k(x).localeCompare(k(y)); }).slice(0, noiteTodos ? 200 : 70);   // 21/10/2026: 90 -> 70 (Vitorio: "da uma baixada"); a varredura usava quase toda a cota do admin e o app dele dava Too Many Requests
     const dashAdm = await dashboardsAdmin(env, maisAntigosPrimeiro, noiteTodos ? 60000 : 35000);
     const admMudou = new Set(), devMudou = new Set();
     const viaAdmin = dashAdm.size > 0 || Date.now() < banAdminAte || tokenAdmin.v != null;   // caminho do admin ativo (mesmo sem ler nada por estar em espera de cota)
     if (viaAdmin) {
       for (const rca of rcas) {
-        const cod = String(rca.codigo), d = dashAdm.get(cod), a = ant.get(cod);
+        const cod = kr(rca), d = dashAdm.get(cod), a = ant.get(cod);
         if (!d) continue;
         stmts.push(upsertParcial(env, dataRef, rca, { dashboard_json: JSON.stringify(d) }));
         if (a) {
@@ -673,7 +675,7 @@ export async function onRequestGet({ env, request }) {
     }
     contagem.admin = { lidos: dashAdm.size, pedido_novo: admMudou.size, devolucao_nova: devMudou.size };
     {
-      const semDashPri = viaAdmin ? [] : rcas.filter((rca) => { const a = ant.get(String(rca.codigo)); return a && a.sem_dash; });
+      const semDashPri = viaAdmin ? [] : rcas.filter((rca) => { const a = ant.get(kr(rca)); return a && a.sem_dash; });
       const lacuna = viaAdmin ? [] : semDashPri.concat(dashMudou).slice(0, 60);   // sem dashboard primeiro; depois quem a hierarquia diz que mudou
       const ds = await poolLimitado(lacuna.map((rca) => () => getJson(urlRca('dashboard', rca), 1)), concAtual, Date.now() + 10000);
       lacuna.forEach((rca, i) => { if (ds[i]) { contagem.fria++; stmts.push(upsertParcial(env, dataRef, rca, { dashboard_json: JSON.stringify(ds[i]) })); } });
@@ -684,28 +686,28 @@ export async function onRequestGet({ env, request }) {
     // Do MAIS ANTIGO para o mais novo (quem nunca foi gravado primeiro): se o CEVEN estiver lento e o prazo cortar a etapa, quem ficou de fora vai primeiro no proximo tick.
     // GUIADO POR MUDANCA (13/10/2026 10:50): o CEVEN passou a limitar por IP (2 chamadas e 429 por ~60 s). ~300 chamadas por rodada nao fecham mais. Com a hierarquia do admin
     // (1 chamada, tempo real) sabemos QUEM mudou: produtividade so de quem mudou + quem nunca foi lido + um rodizio curto de seguranca. Sem hierarquia, volta ao comportamento antigo.
-    const idsMudou = new Set(dashMudou.map((r) => String(r.codigo)));
-    const kBase = (r) => { const a = ant.get(String(r.codigo)); return !a ? '0' : (a.sem_prod ? '1' : '2') + String(a.pe || ''); };
+    const idsMudou = new Set(dashMudou.map((r) => kr(r)));
+    const kBase = (r) => { const a = ant.get(kr(r)); return !a ? '0' : (a.sem_prod ? '1' : '2') + String(a.pe || ''); };
     let candidatos;
     if (viaAdmin) {
       // cota de /api/rca/*: ~3 a 4 chamadas por minuto => ~8 por rodada. Primeiro PEDIDO NOVO ou VISITA NOVA HOJE, depois nunca lidos hoje, depois o mais antigo.
       const ordem = (r) => {
-        const cod = String(r.codigo), a = ant.get(cod);
+        const cod = kr(r), a = ant.get(cod);
         const temVisitaNova = (feitasGer.get(cod) || 0) > (Number(a && a.n_feitas_rot) || 0);
         return (admMudou.has(cod) || temVisitaNova) ? '0' : (!a || a.sem_prod) ? '1' : '2' + String(a.pe || '');
       };
       candidatos = rcas.slice().sort((x, y) => ordem(x).localeCompare(ordem(y))).slice(0, 16);
     } else if (hier) {
-      const prioritarios = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return idsMudou.has(String(r.codigo)) || !a || a.sem_prod; });
-      const idsPri = new Set(prioritarios.map((r) => String(r.codigo)));
-      const rodizio = quente.filter((r) => !idsPri.has(String(r.codigo))).sort((x, y) => kBase(x).localeCompare(kBase(y))).slice(0, 40);
-      const rodizioSemRota = semRota.filter((r) => !idsPri.has(String(r.codigo)) && ((Number(r.codigo) || 0) % 8) === (ciclo % 8));
+      const prioritarios = rcas.filter((r) => { const a = ant.get(kr(r)); return idsMudou.has(kr(r)) || !a || a.sem_prod; });
+      const idsPri = new Set(prioritarios.map((r) => kr(r)));
+      const rodizio = quente.filter((r) => !idsPri.has(kr(r))).sort((x, y) => kBase(x).localeCompare(kBase(y))).slice(0, 40);
+      const rodizioSemRota = semRota.filter((r) => !idsPri.has(kr(r)) && ((Number(r.codigo) || 0) % 8) === (ciclo % 8));
       candidatos = prioritarios.concat(rodizio, rodizioSemRota);
     } else {
       candidatos = quente.concat(semRota.filter((_, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA));
     }
     const alvoProd = candidatos
-      .sort((x, y) => { const k = (r) => { const a = ant.get(String(r.codigo)); return !a ? '0' : (a.sem_prod ? '1' : '2') + String(a.pe || ''); }; return k(x).localeCompare(k(y)); });   // sem linha, depois sem produtividade, depois o mais antigo
+      .sort((x, y) => { const k = (r) => { const a = ant.get(kr(r)); return !a ? '0' : (a.sem_prod ? '1' : '2') + String(a.pe || ''); }; return k(x).localeCompare(k(y)); });   // sem linha, depois sem produtividade, depois o mais antigo
     contagem.semRota = Math.max(0, alvoProd.length - quente.length);
     contagem.alvoProd = alvoProd.length;
     // PRAZO na etapa 1 (05/10/2026): antes nao tinha; com o CEVEN mais lento a etapa passava de 150 s, a funcao era cortada ANTES de gravar e a varredura parava por 30+ min.
@@ -721,7 +723,7 @@ export async function onRequestGet({ env, request }) {
         if (!p) { contagem.falhas++; return; }
         contagem.quente++;
         stmts.push(upsertParcial(env, dataRef, rca, { produtividade_json: JSON.stringify(p) }));
-        const a = ant.get(String(rca.codigo));
+        const a = ant.get(kr(rca));
         const pos = num(p?.dia?.positivacao), dig = num(p?.dia?.dig_pedido);
         if (!a || a.sem_rota || pos !== num(a.pos) || dig !== num(a.dig)) mudou.push(rca);   // pedido novo (ou RCA novo): busca a rota agora
       });
@@ -734,20 +736,20 @@ export async function onRequestGet({ env, request }) {
       const r = rotasEvento[i];
       if (!Array.isArray(r)) return;
       contagem.evento++;
-      jaBuscouRota.add(String(rca.codigo));
+      jaBuscouRota.add(kr(rca));
       stmts.push(upsertParcial(env, dataRef, rca, { roteiro_json: JSON.stringify(r) }));
     });
 
     // 2b. QUEM ESTA VENDENDO (pos > 0 ou digitado > 0): roteiro renovado a cada rodada, os mais velhos primeiro (ate 40). E dele que saem os gols de CLIENTE
     // (resgate, mix, quinzenas, pedido na rota); com a rota velha o gol so aparecia minutos depois, ou nunca (13/10/2026).
     if (temRoteiroEm && !viaAdmin && Date.now() - t0 < 55000) {   // so se a rodada ainda esta cedo: passar de 170 s faz o agendador cortar tudo
-      const vendendo = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return a && (a.pos > 0 || a.dig > 0) && !jaBuscouRota.has(String(r.codigo)); })
-        .sort((x, y) => String((ant.get(String(x.codigo)) || {}).roteiro_em || '').localeCompare(String((ant.get(String(y.codigo)) || {}).roteiro_em || ''))).slice(0, 40);
+      const vendendo = rcas.filter((r) => { const a = ant.get(kr(r)); return a && (a.pos > 0 || a.dig > 0) && !jaBuscouRota.has(kr(r)); })
+        .sort((x, y) => String((ant.get(kr(x)) || {}).roteiro_em || '').localeCompare(String((ant.get(kr(y)) || {}).roteiro_em || ''))).slice(0, 40);
       const rv = await poolLimitado(vendendo.map((rca) => () => getJson(urlRca('roteiro-hoje', rca), 1)), concAtual, Date.now() + 14000);
       vendendo.forEach((rca, i) => {
         if (!Array.isArray(rv[i])) return;
         contagem.vendendo = (contagem.vendendo || 0) + 1;
-        jaBuscouRota.add(String(rca.codigo));
+        jaBuscouRota.add(kr(rca));
         stmts.push(upsertParcial(env, dataRef, rca, { roteiro_json: JSON.stringify(rv[i]) }));
       });
     }
@@ -757,21 +759,21 @@ export async function onRequestGet({ env, request }) {
     if (viaAdmin && temRoteiroEm && Date.now() - t0 < 70000) {
       // PEDIDO PRIMEIRO (26/10/2026, Vitorio: "olha o tanto de lance que ja era para ter saido"): as 08:55, 41 vendedores com pedido e so 11 com o pedido no roteiro gravado;
       // sem roteiro novo nao nasce lance. Agora vai primeiro quem VENDEU e tem a produtividade mais nova que o roteiro (pedido ainda fora da rota gravada); depois o mais velho.
-      const atrasado = (a) => (feitasGer.get(String(a.rca_codigo)) || 0) > (Number(a.n_feitas_rot) || 0) ? '0' : (a.pos > 0 || a.dig > 0) && String(a.pe || '') > String(a.roteiro_em || '') ? '1' : '2';   // 0 = gerente ve visita nova; 1 = vendeu
-      const comRota = rcas.filter((r) => { const a = ant.get(String(r.codigo)); return a && (a.n_rota > 0 || a.pos > 0 || a.dig > 0 || (feitasGer.get(String(r.codigo)) || 0) > (Number(a.n_feitas_rot) || 0)) && !jaBuscouRota.has(String(r.codigo)); })
-        .sort((x, y) => { const k = (r) => { const a = ant.get(String(r.codigo)) || {}; return atrasado(a) + String(a.roteiro_em || ''); }; return k(x).localeCompare(k(y)); }).slice(0, 40);   // 26/10/2026: 10 -> 40. Medido: rodadas de ~30 chamadas terminavam em 20 s (de 115) com 0-6 recusas; o limite era nosso. A pausa do 429 freia sozinha
+      const atrasado = (a) => (feitasGer.get(String(a.filial_sigla).toUpperCase() + '|' + a.rca_codigo) || 0) > (Number(a.n_feitas_rot) || 0) ? '0' : (a.pos > 0 || a.dig > 0) && String(a.pe || '') > String(a.roteiro_em || '') ? '1' : '2';   // 0 = gerente ve visita nova; 1 = vendeu
+      const comRota = rcas.filter((r) => { const a = ant.get(kr(r)); return a && (a.n_rota > 0 || a.pos > 0 || a.dig > 0 || (feitasGer.get(kr(r)) || 0) > (Number(a.n_feitas_rot) || 0)) && !jaBuscouRota.has(kr(r)); })
+        .sort((x, y) => { const k = (r) => { const a = ant.get(kr(r)) || {}; return atrasado(a) + String(a.roteiro_em || ''); }; return k(x).localeCompare(k(y)); }).slice(0, 40);   // 26/10/2026: 10 -> 40. Medido: rodadas de ~30 chamadas terminavam em 20 s (de 115) com 0-6 recusas; o limite era nosso. A pausa do 429 freia sozinha
       const rr = await poolLimitado(comRota.map((rca) => () => getJson(urlRca('roteiro-hoje', rca), 1)), concAtual, Math.min(Date.now() + 45000, t0 + PRAZO_GLOBAL_MS - 20000));
       comRota.forEach((rca, i) => {
         if (!Array.isArray(rr[i])) return;
         contagem.rota_renovada = (contagem.rota_renovada || 0) + 1;
-        jaBuscouRota.add(String(rca.codigo));
+        jaBuscouRota.add(kr(rca));
         stmts.push(upsertParcial(env, dataRef, rca, { roteiro_json: JSON.stringify(rr[i]) }));
       });
       await gravaLote(env, stmts.splice(0));
     }
 
     // 3. MORNA: rota de todos, em fatias (so quem ainda nao foi buscado por evento)
-    const fatiaRota = viaAdmin ? [] : rcas.filter((rca, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA && !jaBuscouRota.has(String(rca.codigo)));
+    const fatiaRota = viaAdmin ? [] : rcas.filter((rca, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA && !jaBuscouRota.has(kr(rca)));
     const rotas = await poolLimitado(fatiaRota.map((rca) => () => getJson(urlRca('roteiro-hoje', rca))), concAtual, prazo);
     fatiaRota.forEach((rca, i) => {
       if (!Array.isArray(rotas[i])) return;
@@ -784,18 +786,18 @@ export async function onRequestGet({ env, request }) {
     // atrasada em relacao ao WhatsApp, que le o CEVEN ao vivo. Com 1/3 fica em ~7 min).
     // DASHBOARD: quem esta SEM dashboard hoje vai primeiro (ate 30 por tick) + a fatia normal de 1/10. Antes so a fatia 1/10 entrava e ficava atras das ~200 devolucoes,
     // que consumiam os 30 s: 195 de 596 RCAs ficaram sem meta/faturado do mes (11/10/2026).
-    const semDash = rcas.filter((rca) => { const a = ant.get(String(rca.codigo)); return a && a.sem_dash; }).slice(0, 30);
-    const idsDash = new Set(semDash.map((r) => String(r.codigo)));
-    const fatiaDash = viaAdmin ? [] : semDash.concat(rcas.filter((rca, i) => i % FATIAS_FRIA === ciclo % FATIAS_FRIA && !idsDash.has(String(rca.codigo)) && !dashIgual.has(String(rca.codigo))));   // identico na hierarquia = pula
+    const semDash = rcas.filter((rca) => { const a = ant.get(kr(rca)); return a && a.sem_dash; }).slice(0, 30);
+    const idsDash = new Set(semDash.map((r) => kr(r)));
+    const fatiaDash = viaAdmin ? [] : semDash.concat(rcas.filter((rca, i) => i % FATIAS_FRIA === ciclo % FATIAS_FRIA && !idsDash.has(kr(rca)) && !dashIgual.has(kr(rca))));   // identico na hierarquia = pula
     // QUEM ESTA SEM DEVOLUCAO HOJE VAI PRIMEIRO, em qualquer modo (26/10/2026: no modo admin so entrava quem 'mudou' e 274 de 562 vendedores passaram o dia sem
     // devolucao gravada; o WhatsApp das 17:00 ficou esperando a base completar e nao saiu). Ate 25 por rodada, antes da fatia normal.
-    const semDev = rcas.filter((rca) => { const a = ant.get(String(rca.codigo)); return !a || a.sem_dev; }).slice(0, 25), idsSemDev = new Set(semDev.map((r) => String(r.codigo)));
+    const semDev = rcas.filter((rca) => { const a = ant.get(kr(rca)); return !a || a.sem_dev; }).slice(0, 25), idsSemDev = new Set(semDev.map((r) => kr(r)));
     const fatiaDev0 = viaAdmin
-      ? rcas.filter((rca) => devMudou.has(String(rca.codigo))).slice(0, 6)
+      ? rcas.filter((rca) => devMudou.has(kr(rca))).slice(0, 6)
       : hier
-      ? rcas.filter((rca, i) => idsMudou.has(String(rca.codigo)) || i % (FATIAS_DEV * 2) === ciclo % (FATIAS_DEV * 2))   // com a hierarquia: quem mudou + 1/6 por rodada
+      ? rcas.filter((rca, i) => idsMudou.has(kr(rca)) || i % (FATIAS_DEV * 2) === ciclo % (FATIAS_DEV * 2))   // com a hierarquia: quem mudou + 1/6 por rodada
       : rcas.filter((rca, i) => i % FATIAS_DEV === ciclo % FATIAS_DEV);
-    const fatiaDev = semDev.concat(fatiaDev0.filter((rca) => !idsSemDev.has(String(rca.codigo))));
+    const fatiaDev = semDev.concat(fatiaDev0.filter((rca) => !idsSemDev.has(kr(rca))));
     // A etapa FRIA tem FATIA PROPRIA de tempo (05/10/2026): com o prazo geral, as etapas 1 a 3 consumiam os 100 s e a fria nunca rodava, entao painel (faturado do mes)
     // e devolucoes ficavam congelados no dado da varredura completa (ex.: TPA R$ 42 mil na Executiva contra R$ 133 mil no CEVEN).
     const prazoFria = Date.now() + 30000;
@@ -809,7 +811,7 @@ export async function onRequestGet({ env, request }) {
     const folga = Math.max(0, t0 + PRAZO_GLOBAL_MS - 8000 - Date.now());   // 8 s para gravar, telemetria e responder
     const frias = [...(await buscaFria(itensDev, Math.min(20000, folga * 0.5))), ...(await buscaFria(itensDash, Math.min(20000, folga * 0.4)))];
     const camposPorRca = new Map();
-    const campo = (rca) => { const k = String(rca.codigo); if (!camposPorRca.has(k)) camposPorRca.set(k, { rca, campos: {} }); return camposPorRca.get(k).campos; };
+    const campo = (rca) => { const k = kr(rca); if (!camposPorRca.has(k)) camposPorRca.set(k, { rca, campos: {} }); return camposPorRca.get(k).campos; };
     itensFria.forEach((it, i) => { const r = frias[i]; if (it.tipo === 'dashboard' && r) campo(it.rca).dashboard_json = JSON.stringify(r); if (it.tipo === 'devolucoes' && Array.isArray(r)) campo(it.rca).devolucoes_json = JSON.stringify(r); });
     for (const { rca, campos } of camposPorRca.values()) { contagem.fria++; stmts.push(upsertParcial(env, dataRef, rca, campos)); }
     await gravaLote(env, stmts.splice(0));
@@ -820,9 +822,9 @@ export async function onRequestGet({ env, request }) {
     // ROTEIRO DO MES (26/10/2026): quem ainda nao tem o do dia, ate 40 (madrugada) ou 8 (dia) por rodada
     if (await garanteRoteiroMes(env) && Date.now() - t0 < 80000) {
       try {
-        const { results: semMes } = await env.DB.prepare('SELECT rca_codigo FROM varredura_central_rca WHERE data_ref = ? AND roteiro_mes_json IS NULL').bind(dataRef).all();
-        const falta = new Set((semMes || []).map((x) => String(x.rca_codigo)));
-        const alvo = rcas.filter((r) => falta.has(String(r.codigo))).slice(0, madrugada ? 40 : 8);
+        const { results: semMes } = await env.DB.prepare('SELECT rca_codigo, filial_sigla FROM varredura_central_rca WHERE data_ref = ? AND roteiro_mes_json IS NULL').bind(dataRef).all();
+        const falta = new Set((semMes || []).map((x) => String(x.filial_sigla).toUpperCase() + '|' + x.rca_codigo));
+        const alvo = rcas.filter((r) => falta.has(kr(r))).slice(0, madrugada ? 40 : 8);
         const rm = await poolLimitado(alvo.map((rca) => () => getJson(urlRca('roteiro-mes', rca), 1)), concAtual, Math.min(Date.now() + 25000, t0 + PRAZO_GLOBAL_MS - 15000));
         alvo.forEach((rca, i) => { if (Array.isArray(rm[i])) { stmts.push(upsertParcial(env, dataRef, rca, { roteiro_mes_json: JSON.stringify(rm[i]) })); contagem.roteiro_mes = (contagem.roteiro_mes || 0) + 1; } });
         await gravaLote(env, stmts.splice(0));

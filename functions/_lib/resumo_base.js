@@ -64,10 +64,10 @@ export async function calculaResumoMes(env, dataRef) {
   if (faltam.length) {
     const ph = faltam.map(() => '?').join(',');
     const { results: prev } = await env.DB.prepare(
-      `SELECT rca_codigo AS r, data_ref AS dia, ${CAMPOS} FROM varredura_central_rca
+      `SELECT rca_codigo AS r, filial_sigla AS f, data_ref AS dia, ${CAMPOS} FROM varredura_central_rca
         WHERE data_ref < ? AND data_ref >= date(?, '-7 days') AND dashboard_json IS NOT NULL AND dashboard_json != 'null' AND rca_codigo IN (${ph}) ORDER BY data_ref`
     ).bind(dataRef, dataRef, ...faltam).all();
-    for (const p of prev || []) if (p.tem) anterior.set(String(p.r), p);   // ordenado por dia: o mais recente vence
+    for (const p of prev || []) if (p.tem) anterior.set(String(p.f).toUpperCase() + '|' + p.r, p);   // ordenado por dia: o mais recente vence
   }
   const metaCasc = await metaCascata(env);
   const porFilial = {};
@@ -85,7 +85,7 @@ export async function calculaResumoMes(env, dataRef) {
     let src = l;
     if (l.tem) deHoje++;
     else {
-      const p = anterior.get(String(l.r));
+      const p = anterior.get(String(l.f).toUpperCase() + '|' + l.r);
       if (p) { src = p; anteriores++; if (!maisAntiga || p.dia < maisAntiga) maisAntiga = p.dia; }
       else { semLeitura++; continue; }
     }
