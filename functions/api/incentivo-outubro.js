@@ -17,7 +17,11 @@ export async function onRequestGet({ request, env }) {
   try {
     const cfg = await (await fetch(new URL('/incentivo_outubro_2026.json', url.origin))).json();
     const eq = await (await fetch(new URL('/api/tv-mostra', url.origin))).json();
-    const ref = await env.DB.prepare('SELECT MAX(data_ref) d FROM varredura_central_rca').first();
+    // FOTO DE OUTUBRO (auditoria 01/11/2026): com MAX(data_ref) a tela passou a ler novembro (0 positivacoes). O incentivo e de outubro: nunca le depois de 31/10.
+    const ref = await env.DB.prepare("SELECT MAX(data_ref) d FROM varredura_central_rca WHERE data_ref <= '2026-10-31'").first();
+    // GATILHO 1 vale ate 17/10: mede a linha daquele dia, nao a do fechamento. Sem linha em 17/10 = sem prova = nao ganha.
+    const { results: r17 } = await env.DB.prepare("SELECT rca_codigo r, filial_sigla f, json_extract(dashboard_json,'$.positivacao.meta') m, json_extract(dashboard_json,'$.positivacao.realizado') p FROM varredura_central_rca WHERE data_ref = '2026-10-17' AND dashboard_json IS NOT NULL").all();
+    const foto17 = new Map((r17 || []).map((x) => [x.f + '|' + x.r, x]));
     const dia = ref && ref.d; if (!dia) return new Response(JSON.stringify({ erro: 'sem varredura do CEVEN no banco' }), { status: 503, headers: CORS });
     const { results } = await env.DB.prepare("SELECT rca_codigo r, filial_sigla f, json_extract(dashboard_json,'$.positivacao.meta') m, json_extract(dashboard_json,'$.positivacao.realizado') p, updated_at u FROM varredura_central_rca WHERE data_ref = ? AND dashboard_json IS NOT NULL").bind(dia).all();
     let dash = new Map((results || []).map((x) => [x.f + '|' + x.r, x]));
@@ -40,9 +44,9 @@ export async function onRequestGet({ request, env }) {
         if (!varejo.has(canal)) { if (canal === 'AS' || canal === 'PET AS') fora.as++; else fora.outros++; continue; }
         const d = dash.get(sig + '|' + x.rca);
         if (!d || d.m == null || d.p == null) { fora.sem_dashboard.push({ filial: sig, rca: String(x.rca), nome: x.nome }); continue; }
-        const meta = Number(d.m) || 0, real = Number(d.p) || 0;
-        vend.push({ filial: sig, grupo: x.grupo || '', gerente: x.gerente || '', rca: String(x.rca), nome: x.nome, supervisor: x.supervisor || '', canal, meta, real, pct: pct(real, meta),
-          g1: meta > 0 && real >= meta * cfg.gatilho1.pct / 100, g2: meta > 0 && real >= meta * cfg.gatilho2.pct / 100,
+        const meta = Number(d.m) || 0, real = Number(d.p) || 0, d17 = foto17.get(sig + '|' + x.rca), meta17 = d17 ? Number(d17.m) || 0 : 0, real17 = d17 ? Number(d17.p) || 0 : 0;
+        vend.push({ filial: sig, grupo: x.grupo || '', gerente: x.gerente || '', rca: String(x.rca), nome: x.nome, supervisor: x.supervisor || '', canal, meta, real, pct: pct(real, meta), meta_17: d17 ? meta17 : null, real_17: d17 ? real17 : null,
+          g1: meta17 > 0 && real17 >= meta17 * cfg.gatilho1.pct / 100, g2: meta > 0 && real >= meta * cfg.gatilho2.pct / 100,
           falta_g1: meta > 0 ? Math.max(0, Math.ceil(meta * cfg.gatilho1.pct / 100 - 1e-9) - real) : null,
           falta_g2: meta > 0 ? Math.max(0, Math.ceil(meta * cfg.gatilho2.pct / 100 - 1e-9) - real) : null });
       }
@@ -50,11 +54,11 @@ export async function onRequestGet({ request, env }) {
     // META 27.000 E DE TODOS (Vitorio, 12/10/2026: "27 mil nao e so a meta de varejo"): o total nacional, a filial e o supervisor SOMAM a positivacao e a meta de TODOS os RCAs
     // do CEVEN (AS, representantes, ocultos, fora da Gestao). So o PREMIO INDIVIDUAL (gatilho 1 e 2) fica restrito a `vend` (varejo, ativo, nao representante). Promotor nunca entra.
     const porRca = new Map();
-    for (const [k, lista] of Object.entries(eq.filiais || {})) for (const x of lista || []) if (x && x.rca != null) porRca.set(String(x.rca), { x, sig: sigDe(k) });
+    for (const [k, lista] of Object.entries(eq.filiais || {})) for (const x of lista || []) if (x && x.rca != null) porRca.set(sigDe(k) + '|' + x.rca, { x, sig: sigDe(k) });
     const todos = []; const naSoma = { as: 0, representantes: 0, ocultos: 0, fora_da_gestao: 0, outros: 0 };
     for (const [chave, d] of dash) {
       const [fil, rca] = chave.split('|');
-      const it = porRca.get(String(rca)), x = it && it.x;
+      const it = porRca.get(chave), x = it && it.x;
       if (x && /^(PROMOTOR|PROMO|P)$/i.test(String(x.vinculo || ''))) continue;
       if (d.m == null || d.p == null) continue;
       todos.push({ filial: (it && it.sig) || fil, grupo: (x && x.grupo) || '', gerente: (x && x.gerente) || '', rca: String(rca), nome: (x && x.nome) || '', supervisor: (x && x.supervisor) || '', meta: Number(d.m) || 0, real: Number(d.p) || 0 });
