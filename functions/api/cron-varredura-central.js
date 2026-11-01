@@ -234,8 +234,13 @@ const T = { chamadas: 0, ok: 0, r429: 0, r401: 0, falhas: 0 };
 // Cada falha fica em coleta_falhas com vendedor, indicador e motivo ate a mesma leitura dar certo. /api/frescor mostra.
 const falhasTick = new Map(), okTick = new Set();
 const chaveFalha = (url) => { const m = /\/rca\/([\w-]+)\?filial=([a-z]+)1&id=(\w+)/i.exec(String(url)); return m ? `${m[2].toUpperCase()}|${m[3]}|${m[1]}` : null; };
-function anotaFalha(url, motivo) { const k = chaveFalha(url); if (k) { falhasTick.set(k, motivo); okTick.delete(k); } }
-function anotaOk(url) { const k = chaveFalha(url); if (k) { okTick.add(k); falhasTick.delete(k); } }
+// DISJUNTOR (medido em 30/10/2026, 11:21 as 13:xx: 62 rodadas de 48 chamadas, 0 sucesso, sem 429 nem erro, ~132 s cada: /api/rca pendurado). 6 tempos esgotados seguidos em /api/rca = para 60 s em vez de gastar a rodada.
+let esgotadosSeguidos = 0;
+function anotaFalha(url, motivo) {
+  const k = chaveFalha(url); if (k) { falhasTick.set(k, motivo); okTick.delete(k); }
+  if (/\/api\/rca\//.test(String(url)) && (motivo === 'limite_14s' || motivo === 'TimeoutError') && ++esgotadosSeguidos >= 6) { banRcaAte = Math.max(banRcaAte, Date.now() + 60000); esgotadosSeguidos = 0; }
+}
+function anotaOk(url) { const k = chaveFalha(url); if (k) { okTick.add(k); falhasTick.delete(k); } esgotadosSeguidos = 0; }
 async function gravaFalhas(env) {
   try {
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS coleta_falhas (filial TEXT NOT NULL, rca TEXT NOT NULL, indicador TEXT NOT NULL, motivo TEXT, vezes INTEGER, primeira TEXT, ultima TEXT, PRIMARY KEY (filial, rca, indicador))').run();
