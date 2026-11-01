@@ -513,6 +513,11 @@ export async function onRequestGet({ env, request }) {
   // MEDIDO (docs/BASE_UNICA.md): a rota do dia ja esta pronta as 00:07; ~600 vendedores a 3-4 chamadas/min levam horas, por isso comeca 00:30.
   const rel = R.relogioSP(), agBr = agoraBrasilia(), madrugada = rel.dow !== 0 && !agBr.feriado && rel.min >= 30 && rel.min < 6 * 60;
   const noiteTodos = foraDoHorario() && !madrugada;   // Vitorio, 31/10/2026: "pode ler de meia em meia hora, mas tem que ler todos": 3 rodadas seguidas a cada 30 min, 200 dashboards cada, cobrem os ~580
+  // FREIO DE CUSTO NAO ATRASA A LEITURA PELO GERENTE (01/11/2026, "tempo real"): de dia, com o freio segurando a rodada, ainda le cascata, rota e painel (poucas linhas, sobrescritas). O resto obedece ao freio.
+  if (!forcar && !filialParam && !env.TESTE_SEM_HORARIO && !madrugada && !foraDoHorario() && !rodaAgora(2, undefined, await freioCusto(env))) {
+    const dr = dataHojeBrasilia();
+    try { await gravaCascatas(env, dr, 15000); const rg = await gravaRotasGerente(env, dr, 25000); return resp({ status: 'SO_GERENTE_FREIO', rota_gerente: rg }); } catch (e) { return resp({ status: 'SO_GERENTE_FREIO', erro: String(e.message || e).slice(0, 80) }); }
+  }
   if (!forcar && !filialParam && !env.TESTE_SEM_HORARIO && !madrugada && !rodaAgora(noiteTodos ? 6 : 2, undefined, await freioCusto(env))) return resp({ status: 'FORA_DO_HORARIO', regra: 'antes das 06h, depois das 21h, domingo e feriado: a cada 30 min' });
 
   // lock global do WhatsApp (prioridade sobre TV/CFTV)
