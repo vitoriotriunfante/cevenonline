@@ -1892,7 +1892,9 @@ function gerarCardsPedidosHtml(pendentes) {
       </div>
     `;
   }
+  const verdes = pendentes.filter((p) => p.linha_corporativa === 'ATIVO');
   return `
+    ${verdes.length ? `<button class="ok btn-aprovar-verdes" data-cels="${esc(verdes.map((p) => p.celular).join(','))}" style="width:100%; justify-content:center; margin-bottom:12px; padding:12px; font-size:14px;">✅ Aprovar todos os verdes (${verdes.length})</button>` : ''}
     <div class="grid-cards">
       ${pendentes.map((p) => `
         <div class="card-item" style="border-left:4px solid ${p.linha_corporativa === 'ATIVO' ? '#22c55e' : p.linha_corporativa === 'SUSPENSO' ? '#f59e0b' : '#ef4444'};">
@@ -1921,6 +1923,21 @@ function gerarCardsPedidosHtml(pendentes) {
 
 function vincularBotoesPedidos(rootEl) {
   if (!rootEl) return;
+  // APROVAR EM LOTE (Vitorio, 01/11/2026): todos os de linha corporativa ativa. Um por vez, com pausa, porque cada aprovacao manda a boas-vindas no WhatsApp.
+  rootEl.querySelectorAll('.btn-aprovar-verdes').forEach((b) => {
+    b.onclick = async () => {
+      const cels = b.dataset.cels.split(',').filter(Boolean);
+      if (!confirm(`Aprovar ${cels.length} pedidos com linha corporativa ativa? Cada pessoa recebe a mensagem de boas-vindas no WhatsApp.`)) return;
+      b.disabled = true; let ok = 0; const erros = [];
+      for (const celular of cels) {
+        b.textContent = `Aprovando ${ok + erros.length + 1} de ${cels.length}...`;
+        try { await api('POST', '/api/jota-contatos', { acao: 'aprovar', celular }); ok++; } catch (e) { erros.push(celular); }
+        await new Promise((res) => setTimeout(res, 1500));
+      }
+      aviso(erros.length ? `${ok} aprovados; ${erros.length} falharam e continuam na lista.` : `${ok} aprovados.`, erros.length ? 'erro' : 'ok');
+      await carregarTudo();
+    };
+  });
   rootEl.querySelectorAll('.btn-aprovar-acesso').forEach((b) => {
     b.onclick = async () => {
       try {
