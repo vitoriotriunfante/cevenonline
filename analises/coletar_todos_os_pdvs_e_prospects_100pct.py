@@ -98,13 +98,14 @@ print(f" - Vendedores com rota ativa hoje: {len(rcas_com_rota)}")
 print(f" - Total de PDVs na rota hoje: {len(pdvs_hoje)}")
 
 # 3. Coletar Prospects de TODOS os vendedores com rota (SEM FILTRO DE CNAE)
-print(f"\n--- CONSULTANDO RADAR DE PROSPECTS PARA TODOS OS {len(rcas_com_rota)} VENDEDORES COM ROTA ---")
+# TODOS os vendedores, com ou sem rota hoje (01/11/2026): sem hoje=1 o CEVEN responde pela carteira. Com hoje=1 eram 74 vendedores em dia util e 0 em fim de semana.
+print(f"\n--- CONSULTANDO RADAR DE PROSPECTS PARA TODOS OS {len(vendedores)} VENDEDORES ---")
 prospects_coletados = []
 cnpjs_prospects_vistos = set()
 
 def fetch_prospects(v):
     fil_sigla, rca_id, rca_nome, sup_nome, ger_nome, seg_nome = v
-    url = f"{BASE_URL}/api/ceven/prospeccao-roteiro?cod_rca={rca_id}&hoje=1&max=120&token={TOKEN}"
+    url = f"{BASE_URL}/api/ceven/prospeccao-roteiro?cod_rca={rca_id}&max=120&token={TOKEN}"
     try:
         r = requests.get(url, headers=HEADERS, verify=False, timeout=15)
         if r.status_code == 200:
@@ -172,12 +173,12 @@ def buscar_prospects_com_espera(vendedores, rodadas=None, espera_s=60, lote_sond
 
 t1 = time.time()
 if True:
-    for v, pro_list in buscar_prospects_com_espera(rcas_com_rota):
+    for v, pro_list in buscar_prospects_com_espera(vendedores):
         fil_sigla, rca_id, rca_nome, sup_nome, ger_nome, seg_nome = v
         for p in pro_list:
             cnpj_num = str(p.get('cnpj', '')).replace('.', '').replace('/', '').replace('-', '').strip()
-            if cnpj_num and cnpj_num not in cnpjs_prospects_vistos:
-                cnpjs_prospects_vistos.add(cnpj_num)
+            if cnpj_num and (fil_sigla, rca_id, cnpj_num) not in cnpjs_prospects_vistos:   # por vendedor: o mesmo prospect pode servir a mais de um
+                cnpjs_prospects_vistos.add((fil_sigla, rca_id, cnpj_num))
                 cnpj_fmt = f"{cnpj_num[:2]}.{cnpj_num[2:5]}.{cnpj_num[5:8]}/{cnpj_num[8:12]}-{cnpj_num[12:14]}" if len(cnpj_num) == 14 else cnpj_num
                 prospects_coletados.append({
                     '#': len(prospects_coletados) + 1,
