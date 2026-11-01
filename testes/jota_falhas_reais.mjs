@@ -10,6 +10,7 @@ const VEND = { nome: 'VENDEDOR TESTE', papel: 'vendedor', filial: 'ABC', rca: '2
 const WAS = { nome: 'WASHINGTON FLORES DA ROSA', papel: 'supervisor', filial: 'API', supervisor: 'WASHINGTON FLORES DA ROSA' };
 const SUE = { nome: 'SUELI APARECIDA TEIXEIRA POLLI', papel: 'supervisor', filial: 'API', supervisor: 'SUELI APARECIDA TEIXEIRA POLLI' };
 const P = [
+  [DIR, 'Como está a equipe da Priscila de TPH em positivação?'], [ALEX, 'Como eu a meta da colgate da equipe'], [ALEX, 'Do mês'], [DIR, 'Mas só da vendedora Josiane?'], [DIR, 'Quantos clientes a vendedora Luciana positivou com Arcor ?'], [DIR, 'meta da filial TCA'],
   [ALEX, 'Como estou na liga?'], [SUE, 'Quais clientes que não tem venda da Paola Franco?'], [SUE, 'Quais clientes Edinei não vendeu'], [ALEX, 'Qual roteiro da equipe hoje'], [DIR, 'Custo até agora no cloudfare'], [ALEX, 'Num brasileirão, é só contabilizado por pedidos faturados?'],
   [WAS, 'Fechamento time nível Brasil'], [WAS, 'Como esta minha posição ranking nível Brasil supervisor?'], [WAS, 'fechamento'],
   [DIR, 'batemos a meta?'], [DIR, 'faturou?'], [DIR, 'quanto faturado?'], [DIR, 'faturamento acumulado mês'], [DIR, 'como fechamos?'], [DIR, 'fechamento do mes? como estamos no acumulado'],
@@ -24,9 +25,10 @@ const npxDir = path.join(process.env.LOCALAPPDATA || '', 'npm-cache', '_npx'), W
 const lit = (v) => v == null ? 'NULL' : typeof v === 'number' ? String(v) : "'" + String(v).replace(/'/g, "''") + "'";
 const DB = { prepare(sql) { let a = []; const roda = () => { if (!/^\s*(SELECT|WITH)/i.test(sql)) return []; let i = 0; const q = sql.replace(/\?(\d+)?/g, (_, n) => lit(a[n ? n - 1 : i++])); const r = spawnSync(process.execPath, [WR, 'd1', 'execute', 'ceven_noc_d1', '--remote', '--json', '--command', q], { encoding: 'utf8', maxBuffer: 1 << 28, env: { ...process.env, NO_COLOR: '1' } }); try { return JSON.parse(r.stdout)[0].results; } catch { return []; } }; const o = { bind(...x) { a = x; return o; }, async all() { return { results: roda() }; }, async first() { return roda()[0] || null; }, async run() { return { meta: {} }; } }; return o; } };
 const f = process.argv[2];
+const ANT = { 'Do mês': ['positivação'] };
 for (const [c, q] of P) {
   if (f && !q.includes(f)) continue;
-  try { const r = await _teste.respostaPronta(_teste.criaBase(ORIGIN, { DB }), c, q, []); console.log(`[${c.papel}] ${q}\n  => ${r == null ? '(SEM RESPOSTA PRONTA: vai para a IA)' : String(r).replace(/\n+/g, ' / ').slice(0, 260)}`); }
+  try { const r = await _teste.respostaPronta(_teste.criaBase(ORIGIN, { DB }), c, q, ANT[q] || []); console.log(`[${c.papel}] ${q}\n  => ${r == null ? '(SEM RESPOSTA PRONTA: vai para a IA)' : String(r).replace(/\n+/g, ' / ').slice(0, 260)}`); }
   catch (e) { console.log(`[${c.papel}] ${q}\n  => ERRO ${e.message}`); }
 }
 limpa();
