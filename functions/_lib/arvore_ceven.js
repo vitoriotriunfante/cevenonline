@@ -282,6 +282,21 @@ export async function gravaRotasGerente(env, dataRef, prazoMs = 25000) {
     }
   }));
   res.nao_lidos_prazo = fila.length - k;
+  // PAINEL DO GERENTE, EM PARALELO: /api/gerente/dashboard-cascata traz faturado, devolucao, pendente, metas e positivacao de cada vendedor. NADA le daqui ainda.
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS painel_gerente_dia (data_ref TEXT NOT NULL, filial TEXT NOT NULL, json TEXT NOT NULL, lido_em TEXT NOT NULL, PRIMARY KEY (data_ref, filial))').run();
+  res.paineis = 0;
+  for (let i = 0; i < GERENTES.length; i += 6) await Promise.all(GERENTES.slice(i, i + 6).map(async (g) => {
+    try {
+      const tk = await tokenGerente(g, env.CEVEN_GERENTE_SENHA);
+      if (!tk) { falha('painel_login'); return; }
+      const r = await fetch(`${CEVEN}/api/gerente/dashboard-cascata?filial=${g.filialKey}`, { headers: { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(10000) });
+      if (!r.ok) { falha('painel_http' + r.status); return; }
+      const j = await r.json();
+      if (!j || !Array.isArray(j.supervisores)) { falha('painel_formato'); return; }
+      res.paineis++;
+      await env.DB.prepare("INSERT INTO painel_gerente_dia (data_ref, filial, json, lido_em) VALUES (?, ?, ?, datetime('now')) ON CONFLICT (data_ref, filial) DO UPDATE SET json = excluded.json, lido_em = excluded.lido_em").bind(dataRef, g.sigla, JSON.stringify(j)).run();
+    } catch (e) { falha('painel_' + String((e && e.name) || 'erro')); }
+  }));
   return res;
 }
 

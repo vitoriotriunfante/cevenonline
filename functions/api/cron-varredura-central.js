@@ -677,6 +677,8 @@ export async function onRequestGet({ env, request }) {
     }
     const stmts = [];
     const contagem = { quente: 0, evento: 0, rota: 0, semRota: 0, fria: 0, falhas: 0 };
+    // No INICIO da rodada: as rodadas levam ~120 s e no fim esta leitura seria pulada (auditoria 01/11/2026)
+    try { contagem.rota_gerente = await gravaRotasGerente(env, dataRef, 25000); } catch (e) { contagem.rota_gerente = { erro: String(e.message || e).slice(0, 80) }; }
     const jaBuscouRota = new Set();
 
     // -1. QUEM MUDOU (hierarquia do painel admin): dashboard so de quem teve o bruto, o a faturar, a meta ou a positivacao alterados.
@@ -886,7 +888,6 @@ export async function onRequestGet({ env, request }) {
     if (Date.now() - t0 < 90000) { try { contagem.pedidos_dia = await coletaPedidosDoDia(env, dataRef); } catch (e) { contagem.pedidos_dia = { erro: String(e.message || e).slice(0, 80) }; } }
     if (!env.TESTE_SEM_HORARIO && Date.now() - t0 < 95000) { try { contagem.macro = await coletaMacroForaArvore(env); } catch (e) { contagem.macro = { erro: String(e.message || e).slice(0, 80) }; } }
     if (Date.now() - t0 < 95000) { try { contagem.recheca = await rechecaAbertosPorVendedor(env, noiteTodos ? 90 : 15, t0 + 150000);   /* todos os ~250 vendedores com pedido aberto: ~30 min de dia e a cada 30 min de noite (31/10/2026) */ } catch (e) { contagem.recheca = { erro: String(e.message || e).slice(0, 80) }; } }
-    if (Date.now() - t0 < 120000) { try { contagem.rota_gerente = await gravaRotasGerente(env, dataRef, Math.min(25000, t0 + 150000 - Date.now())); } catch (e) { contagem.rota_gerente = { erro: String(e.message || e).slice(0, 80) }; } }
     await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);
     // ALARME DE 15 MIN (Vitorio, 01/11/2026): faturado ou chamada do gerente acima do limite avisa a diretoria, no maximo 1 vez por hora. So no horario de dia.
     if (!noiteTodos && !filialParam) { try {
