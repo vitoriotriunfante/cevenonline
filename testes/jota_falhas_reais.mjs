@@ -11,6 +11,7 @@ const WAS = { nome: 'WASHINGTON FLORES DA ROSA', papel: 'supervisor', filial: 'A
 const SUE = { nome: 'SUELI APARECIDA TEIXEIRA POLLI', papel: 'supervisor', filial: 'API', supervisor: 'SUELI APARECIDA TEIXEIRA POLLI' };
 const CAR = { nome: 'CARLOS CAMARGO', papel: 'supervisor', filial: 'TCV', supervisor: 'CARLOS CAMARGO' };
 const P = [
+  [DIR, 'Você só mostrou os bloqueados?'], [DIR, 'De novo você divagou na resposta.'], [ALEX, 'Clientes vendedor  x hoje'], [DIR, 'clientes vendedor hoje'], [ALEX, 'De onde vc puxou a  meta ?'], [ALEX, 'top jota'], [ALEX, 'Você não me passou a meta, só informou o significado'], [ALEX, 'Devolução vendedor 309'], [ALEX, 'Como está minha equipe hoje'],
   [WAS, 'No Brasil qual a minha posição no AS'], [WAS, 'minha posição no Brasil no varejo'],
   [DIR, 'Como está a equipe da Priscila de TPH em positivação?'], [ALEX, 'Como eu a meta da colgate da equipe'], [ALEX, 'Do mês'], [DIR, 'Mas só da vendedora Josiane?'], [DIR, 'Quantos clientes a vendedora Luciana positivou com Arcor ?'], [DIR, 'meta da filial TCA'],
   [ALEX, 'Como estou na liga?'], [SUE, 'Quais clientes que não tem venda da Paola Franco?'], [SUE, 'Quais clientes Edinei não vendeu'], [ALEX, 'Qual roteiro da equipe hoje'], [DIR, 'Custo até agora no cloudfare'], [ALEX, 'Num brasileirão, é só contabilizado por pedidos faturados?'],

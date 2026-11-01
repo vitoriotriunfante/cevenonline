@@ -352,6 +352,11 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (mMt && !ger.test(mMt[1]) && !FILIAIS.includes(mMt[1])) { const Em = await carregaEscopo(B, esc), rm = await respMetasIndustria(B, Em, t, achaPessoa(Em, t)); if (rm && !/Nenhuma meta/.test(rm)) return rm; return `Não tenho meta de *${titulo(mMt[1])}* cadastrada na Premiação para ${Em.nome} neste mês.`; } }
     // POSITIVOU COM MARCA: quantos clientes do vendedor compraram a marca
     { const mPc = t.match(/POSITIVOU COM ([A-Z]{3,})/); if (mPc) { const Ep = await carregaEscopo(B, esc), r = await respIndustria(B, Ep, mPc[1] + ' POR VENDEDOR ' + t, achaPessoa(Ep, t)); if (r) return r; } }
+    // SABATINA 01/11/2026: reclamacao sobre a resposta anterior nao recebe outro numero; pedido sem o nome de quem pede o nome; origem da meta tem resposta propria
+    if (/^\W*(VOCE|VC|MAS VOCE|MAS VC) (SO |NAO |RESPONDEU|DIVAGOU|MOSTROU)|FOI ISSO QUE PERGUNTEI|NAO E ISSO QUE|DE NOVO VOCE|PRECISA AJ?USTAR AS RESPOSTAS/.test(t) && !/\b\d{2,}\b/.test(t)) return 'Entendi, a resposta anterior não atendeu, e registrei isso. Me diga em uma linha o que você quer ver: quem (filial, supervisor ou vendedor), qual indicador e qual período.';
+    if (/^\W*CLIENTES?\s+(X\s+)?VENDEDORA?(\s+X)?(\s+HOJE)?\W*$|VENDEDORA?\s+X\b/.test(t)) return 'Qual vendedor? Troque o X pelo código ou nome. Exemplo: *clientes vendedor 228 hoje*.';
+    if (/DE ONDE .*(PUXOU|TIROU|VEIO|VEM).*META/.test(t)) return 'A meta vem do CEVEN: a vigente hoje na hierarquia da tela Filiais, a mesma do supervisor e do gerente. A soma dos vendedores dá a meta da equipe e da filial.';
+    if (/^\W*TOP JOTA\W*$|^\W*JA GASTAMOS TUDO ISSO\W*$/.test(t)) return 'Não entendi essa. Me diga quem (filial, supervisor ou vendedor) e o que quer ver, como *ranking da minha equipe*.';
     if (/ROTEIRO DA (MINHA )?EQUIPE/.test(t)) return reenvia('faltam visitar');
     if (/CLOUDFLARE|CLOUDFARE/.test(t)) return 'Custo de sistema não é dado do CEVEN, então não tenho aqui. Posso te passar vendas, metas, rota e clientes.';
     const semAlvo = !/\b(VENDEDOR|RCA|SUPERVISOR|CLIENTE|INDUSTRIA|PRODUTO|HOJE)\b|\bDE [A-Z]{4,}\b/.test(t);
