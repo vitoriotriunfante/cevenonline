@@ -3,7 +3,7 @@ import fs from 'fs'; import os from 'os'; import path from 'path'; import { file
 const raiz = fileURLToPath(new URL('..', import.meta.url)), tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'motor_'));
 const copia = (n) => { let s = fs.readFileSync(path.join(raiz, 'functions/_lib/jota', n), 'utf8'); s = s.replace(/(['"])[^'"]*public\/regras\.js\1/g, `'${pathToFileURL(path.join(raiz, 'public/regras.js')).href}'`).replace(/(from\s+)(['"])(\.[^'"]+)\.js\2/g, '$1$2$3.mjs$2'); fs.writeFileSync(path.join(tmp, n.replace(/\.js$/, '.mjs')), s); };
 ['motor_ficha.js', 'base.js', 'escopo.js'].forEach(copia);
-const { fichaDaPergunta, respondeFicha } = await import(pathToFileURL(path.join(tmp, 'motor_ficha.mjs')).href);
+const { fichaDaPergunta, respondeFicha, confereFicha } = await import(pathToFileURL(path.join(tmp, 'motor_ficha.mjs')).href);
 
 // 1) CASOS FIXOS: soma e ordem conferidas a mao
 const V = [
@@ -23,6 +23,10 @@ ok(/2 - Bia/.test(r('devolução vendedor 2')) && /R\$ 50/.test(r('devolução v
 ok(r('devolução vendedor 99') === '', 'codigo que nao esta no escopo: sem resposta');
 ok(fichaDaPergunta('venda de bally por cliente') === null, 'assunto fora do motor nao recebe resposta parecida');
 ok(respondeFicha({ ...E, supervisor: 'SUP A', nacional: false, filiais: ['TBL'] }, fichaDaPergunta('faturado por supervisor')) === null, 'supervisor nao abre outros supervisores');
+ok(confereFicha({ indicadores: ['faturado'], sujeito: 'vendedor', pessoa: 'Maria' }, 'faturado do Joao') === null, 'pessoa inventada derruba a ficha');
+ok(confereFicha({ indicadores: ['faturado'], marca: 'Colgate' }, 'faturado da colgate').marca === 'Colgate', 'marca escrita passa');
+ok(confereFicha({ indicadores: ['inventado'] }, 'x') === null, 'indicador fora da lista derruba');
+ok(confereFicha({ indicadores: ['meta'], entendeu: false }, 'meta') === null, 'nao entendeu nao vira ficha');
 
 // 2) PERGUNTAS REAIS: quantas o motor assume e como o caminho atual respondeu (arquivo local, com dados pessoais: nunca commitar)
 const arq = process.argv[2] || path.join(raiz, 'scratch/auditoria_completa_perguntas.json');

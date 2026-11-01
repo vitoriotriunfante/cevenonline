@@ -64,3 +64,29 @@ export function respondeFicha(E0, f) {
 }
 function agrupaLista(V, chave) { const m = new Map(); for (const v of V) { const k = chave(v); if (!m.has(k)) m.set(k, []); m.get(k).push(v); } return m; }
 export { agrupa };
+
+// ---------- FICHA PELA IA: a IA so classifica; o codigo confere cada campo contra a propria pergunta. Campo inventado derruba a ficha. ----------
+const IND_IA = ['faturado', 'pendente', 'devolucao', 'positivacao', 'digitado', 'meta', 'visitas', 'eficacia', 'pedidos', 'cortes', 'clientes', 'rota', 'liga', 'mix', 'ret', 'prospects'];
+const SYS_FICHA = `Você classifica perguntas de uma equipe comercial de distribuidora. NÃO responda a pergunta e NÃO cite números. Devolva SOMENTE JSON:
+{"indicadores":[${IND_IA.map((x) => `"${x}"`).join(',')}],"sujeito":"eu|filial|supervisor|vendedor|cliente|brasil","filial":"","pessoa":"","codigo":"","cliente":"","marca":"","periodo":"mes_atual|hoje|ontem|mes_passado|mes_citado|semana","mes":"","comparacao":"nenhuma|ranking|mes_passado|meta","abertura":"nenhuma|filial|supervisor|vendedor|cliente|produto|motivo","ordem":"nenhuma|melhor|pior","quantidade":0,"entendeu":true}
+Regras: use só os indicadores da pergunta. Copie nomes, códigos e marcas exatamente como escritos; se não estiverem escritos, deixe vazio. "fechamento" nos primeiros dias do mês é mes_passado. Pergunta fora desses assuntos: "entendeu":false.`;
+
+export function confereFicha(j, texto) {
+  if (!j || typeof j !== 'object' || j.entendeu === false) return null;
+  const t = sem(texto), naPergunta = (v) => !v || t.includes(sem(v));
+  const indicadores = (Array.isArray(j.indicadores) ? j.indicadores : []).filter((x) => IND_IA.includes(x));
+  if (!indicadores.length) return null;
+  if (!naPergunta(j.pessoa) || !naPergunta(j.codigo) || !naPergunta(j.cliente) || !naPergunta(j.marca) || !naPergunta(j.filial)) return null;   // inventou: nao usa
+  if (j.codigo && !/^\d{1,7}$/.test(String(j.codigo))) return null;
+  const um = (v, L, p) => (L.includes(v) ? v : p);
+  return { indicadores, sujeito: um(j.sujeito, ['eu', 'filial', 'supervisor', 'vendedor', 'cliente', 'brasil'], 'eu'), filial: String(j.filial || '').toUpperCase(), pessoa: j.pessoa || '', codigo: String(j.codigo || ''), cliente: j.cliente || '', marca: j.marca || '', periodo: um(j.periodo, ['mes_atual', 'hoje', 'ontem', 'mes_passado', 'mes_citado', 'semana'], 'mes_atual'), mes: j.mes || '', comparacao: um(j.comparacao, ['nenhuma', 'ranking', 'mes_passado', 'meta'], 'nenhuma'), abertura: um(j.abertura, ['nenhuma', 'filial', 'supervisor', 'vendedor', 'cliente', 'produto', 'motivo'], 'nenhuma'), ordem: um(j.ordem, ['nenhuma', 'melhor', 'pior'], 'nenhuma'), quantidade: Number(j.quantidade) || 0 };
+}
+const MODELO_FICHA = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+export async function fichaPorIA(env, texto) {
+  if (!env || !env.AI) return null;
+  try {
+    const r = await env.AI.run(MODELO_FICHA, { messages: [{ role: 'system', content: SYS_FICHA }, { role: 'user', content: String(texto).slice(0, 300) }], max_tokens: 200, temperature: 0 });
+    const j = typeof (r && r.response) === 'object' ? r.response : JSON.parse((String((r && (r.response ?? r.result)) || '').match(/\{[\s\S]*\}/) || ['null'])[0]);
+    return { bruta: j, ficha: confereFicha(j, texto) };
+  } catch (e) { return null; }
+}
