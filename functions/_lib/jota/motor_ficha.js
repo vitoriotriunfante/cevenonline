@@ -113,7 +113,7 @@ export async function fichaPorIA(env, texto) {
   if (!env || !env.AI) return null;
   try {
     const r = await env.AI.run(MODELO_FICHA, { messages: [{ role: 'system', content: SYS_FICHA }, { role: 'user', content: q }], max_tokens: 200, temperature: 0 });
-    const j = typeof (r && r.response) === 'object' ? r.response : JSON.parse((String((r && (r.response ?? r.result)) || '').match(/{[sS]*}/) || ['null'])[0]);
+    const j = typeof (r && r.response) === 'object' ? r.response : JSON.parse((String((r && (r.response ?? r.result)) || '').match(/\{[\s\S]*\}/) || ['null'])[0]);
     return { modelo: 'cloudflare', bruta: j, ficha: confereFicha(j, q) };
   } catch (e) { return null; }
 }
