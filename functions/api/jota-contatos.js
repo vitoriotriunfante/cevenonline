@@ -56,8 +56,10 @@ export async function onRequestGet({ request, env }) {
   const { results: exc } = await env.DB.prepare('SELECT * FROM bot_sem_acesso_excluidos').all().catch(() => ({ results: [] }));
   // LINHA CORPORATIVA (Vitorio, 01/11/2026): lista da operadora no D1 (linha_corporativa, pelos 8 ultimos digitos). Sinaliza na hora de liberar: ATIVO, SUSPENSO ou null = nao corporativa.
   const { results: lc } = await env.DB.prepare('SELECT fim8, status FROM linha_corporativa').all().catch(() => ({ results: [] }));
+  const { results: pil } = await env.DB.prepare('SELECT celular FROM jota_piloto').all().catch(() => ({ results: [] }));
+  const PIL = new Set((pil || []).map((x) => x.celular));   // estrelinha: vendedores do piloto da proatividade (jota_piloto)
   const LC = new Map((lc || []).map((x) => [x.fim8, x.status])), linhaDe = (cel) => LC.get(String(cel || '').replace(/\D/g, '').slice(-8)) || null;
-  return j({ sem_acesso_excluidos: exc || [], contatos: (results || []).map((c) => ({ ...c, situacao: situacao(c), linha_corporativa: linhaDe(c.celular), perguntas: (U.get(c.celular) || {}).n || 0, ultima: (U.get(c.celular) || {}).ult || null })), supervisores_arvore: arv || [], papeis: PAPEIS, filiais: FILIAIS });
+  return j({ sem_acesso_excluidos: exc || [], contatos: (results || []).map((c) => ({ ...c, situacao: situacao(c), linha_corporativa: linhaDe(c.celular), piloto: PIL.has(c.celular), perguntas: (U.get(c.celular) || {}).n || 0, ultima: (U.get(c.celular) || {}).ult || null })), supervisores_arvore: arv || [], papeis: PAPEIS, filiais: FILIAIS });
 }
 
 async function enviar(env, numero, texto) {

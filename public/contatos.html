@@ -1900,7 +1900,7 @@ function gerarCardsPedidosHtml(pendentes) {
         <div class="card-item" style="border-left:4px solid ${p.linha_corporativa === 'ATIVO' ? '#22c55e' : p.linha_corporativa === 'SUSPENSO' ? '#f59e0b' : '#ef4444'};">
           <div class="card-header">
             <div>
-              <div class="card-title">${esc(tit(p.nome))}</div>
+              <div class="card-title">${p.piloto ? '⭐ ' : ''}${esc(tit(p.nome))}</div>
               <div class="card-sub">${esc(p.papel)} · Filial ${esc(p.filial || '—')}${p.rca ? ' · Setor/RCA ' + esc(p.rca) : ''}${p.supervisor ? ' · Sup. ' + esc(tit(p.supervisor)) : ''}</div>
             </div>
             <span class="tag-badge ia">Aguardando OK</span>
