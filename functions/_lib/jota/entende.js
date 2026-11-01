@@ -335,7 +335,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (/NAO POSITIVEI|QUE FALTA(M)? POSITIVAR|MINHA CURVA/.test(t)) return reenvia(`curva negativa do ${eu}`);
       if (/^\W*MEUS CORTES\W*$/.test(t)) return reenvia(`cortes do ${eu}`);
     }
-    if (/\bCHAMPIONS?\b/.test(t) && !/CLIENTE/.test(t)) return respLiga(B, await carregaEscopo(B, esc), null, 'LIGA');
+    if (/\bCHAMPIONS?\b|\bLIGA\b|BRASILEIRAO/.test(t) && !/CLIENTE|CONTABIL|REGRA|COMO FUNCIONA|O QUE E/.test(t)) return respLiga(B, await carregaEscopo(B, esc), null, 'LIGA');
+    // SABATINA 01/11/2026 (perguntas reais, respostas de outro assunto): sem "hoje", "nao vendeu" e a carteira do mes, nunca a rota do dia
+    { const mNv = t.match(/^\W*(?:QUAIS )?CLIENTES?(?: QUE)?(?: [A-Z ]*?)?\b(?:NAO VENDEU|NAO TEM VENDA|SEM VENDA|SEM COMPRA)\b(.*)$|^\W*QUAIS CLIENTES ([A-Z ]+?) NAO VENDEU\W*$/);
+      if (mNv && !/\bHOJE\b|\bHJ\b|\bROTA\b/.test(t)) { const quem = String(mNv[2] || mNv[1] || '').replace(/\b(DA|DO|DE|VENDEDORA?|NO|MES)\b/g, ' ').replace(/[^A-Z0-9 ]/g, ' ').trim(); if (quem) return reenvia('curva negativa do vendedor ' + quem); } }
+    if (/ROTEIRO DA (MINHA )?EQUIPE/.test(t)) return reenvia('visitas de hoje');
+    if (/CLOUDFLARE|CLOUDFARE/.test(t)) return 'Custo de sistema não é dado do CEVEN, então não tenho aqui. Posso te passar vendas, metas, rota e clientes.';
     const semAlvo = !/\b(VENDEDOR|RCA|SUPERVISOR|CLIENTE|INDUSTRIA|PRODUTO|HOJE)\b|\bDE [A-Z]{4,}\b/.test(t);
     if (semAlvo && /BATE(MOS|U|RAM) A META|^\W*FATUROU\W*$|^\W*(QUANTO )?(ESTA )?FATURADO\W*$|QUANTO FATURAMOS/.test(t)) return respResumo(B, await carregaEscopo(B, esc));
     if (/VENDEDORA? X\b/.test(t)) return 'Qual vendedor? Troque o X pelo código ou nome. Exemplo: *clientes vendedor 228 hoje*.';
