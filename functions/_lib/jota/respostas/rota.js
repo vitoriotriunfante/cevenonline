@@ -429,6 +429,21 @@ export async function respRotaHojeCompleta(B, v, soSemCompra = false) {
     '', 'Boas vendas! _Peça "+mix" para o que oferecer a quem não comprou._'].join('\n');
 }
 
+// "MINHA ROTA" DO VENDEDOR (Vitorio, 01/11/2026): como esta o mes, quantos clientes hoje, quem ja comprou e quem nao, numerados; ele digita o numero e recebe a ficha do cliente.
+export async function respMinhaRota(B, v) {
+  const { rota, sem: semC, valorMes } = await semCompraNaRota(B, v);
+  const mes = [`📊 *Seu mês:* faturado ${R$(v.fat || 0)} + pendente ${R$(v.pend || 0)} de ${R$(v.meta || 0)}`, `👥 Positivação: ${v.pos || 0} de ${Math.round(v.metaPos || 0)}`];
+  if (!rota.length) return [`📋 *${vn(v)}*`, ...mes, '', 'Você não tem clientes na rota de hoje.'].join('\n');
+  const semMap = new Map(semC.map((x) => [String(x.c.id_cliente), x])), nao = rota.filter((c) => semMap.has(String(c.id_cliente))), ja = rota.filter((c) => !semMap.has(String(c.id_cliente)));
+  const nome = (c) => titulo(c.nome_cliente || c.razao_social || 'cliente');
+  let i = 0; const linha = (c, fim) => `${++i}. ${nome(c)} (#${c.id_cliente}) · ${fim}`;
+  const L = [`📋 *${vn(v)}* — rota de hoje: *${rota.length} clientes*`, ...mes];
+  if (nao.length) L.push('', `*Ainda não compraram no mês (${nao.length}):*`, ...nao.map((c) => { const d = semMap.get(String(c.id_cliente)).dias; return linha(c, d == null ? 'sem compra em 60 dias' : `${d} dias sem compra`); }));
+  if (ja.length) L.push('', `*Já compraram no mês (${ja.length}):*`, ...ja.map((c) => { const r = valorMes.get(String(c.id_cliente)); return linha(c, r ? R$(r) : 'já comprou'); }));
+  L.push('', '*Digite o número* do cliente para ver a ficha dele.');
+  return L.join('\n');
+}
+
 // "CLIENTES DO VENDEDOR" (Vitorio, 27/10/2026: "perguntei apenas sobre clientes... o que acha que eu quero saber? se ele comprou ou nao, se nao comprou a quantos dias
 // e se ja visitei... e os que ja compraram, quantos"; "clientes tamara ontem" vinha so com o total; "acumulado" vinha o resumo do vendedor).
 // periodo: 'hoje' (rota de hoje), 'ontem' (rota do ultimo dia com venda) ou 'mes' (carteira do mes). Sem dado novo: so base (roteiro, vendas item a item, historico +MIX).

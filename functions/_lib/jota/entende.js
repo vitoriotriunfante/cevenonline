@@ -16,7 +16,7 @@ import { respGestaoCampo, respOperacao, respRecorrenciaLances, respRelatorio } f
 import { respJustificativas, respOferecer, respSemDado } from './respostas/oportunidades.js';
 import { pedePeriodo, respClientesSemComprar, respComparaMes, respDiasSemPedido, respPeriodoDias, respPositivadosMesAnterior } from './respostas/periodos.js';
 import { respDiaVendedor, respFalta, respHoje, respMensagensPorVendedor, respTodosVendedores, totaisOficiais, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
-import { respAVisitar, respCheckinEquipe, respClientesVend, respDiaEquipe, respRotaFiltro, respSemVisita, respMixRotaHoje, respRecorrenciaClientes, respTagSeparadoPorSupervisor, respRotaHojeCompleta, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
+import { respAVisitar, respCheckinEquipe, respClientesVend, respDiaEquipe, respRotaFiltro, respSemVisita, respMixRotaHoje, respMinhaRota, respRecorrenciaClientes, respTagSeparadoPorSupervisor, respRotaHojeCompleta, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
 import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo, respPreco, respPedidoNumero, respPedidosStatus, respProduto, respRecuperacao, respTopProdutos } from './respostas/vendas.js';
 import { respSegmentoCnae, respPastas, respEstrategiaFabio, respProspeccaoMapas } from './respostas/segmentos_pastas.js';
 
@@ -302,10 +302,24 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (/^\W*(\+ ?MIX|MAIS ?MIX|O QUE (EU )?(POSSO |DEVO )?OFERECER)\W*$/.test(t)) return 'Para qual cliente? Mande assim: *o que oferecer para* e o nome ou o código do cliente.';
       const eu = `VENDEDOR ${rcaV}`;
       if (/QUANTO VENDI|VENDI HOJE|MINHAS? VENDAS? (DE )?HOJE/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respDiaVendedor(B, Ev, v); }
-      if (/MINHA ROTA|^\W*ROTA( DE)? HOJE\W*$/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respRotaHojeCompleta(B, v); }
+      if (/MINHA ROTA|^\W*ROTA( DE)? HOJE\W*$/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respMinhaRota(B, v); }
+      // numero da lista da "minha rota": abre a ficha daquele cliente (o numero e o #codigo vem da ultima mensagem enviada)
+      if (/^\s*\d{1,3}\s*$/.test(t) && B.ultOut && /Digite o número/i.test(B.ultOut)) {
+        const mL = String(B.ultOut).match(new RegExp('^' + t.trim() + '\\. .*\\(#(\\d+)\\)', 'm'));
+        if (!mL) return 'Esse número não está na lista. Peça *minha rota* de novo.';
+        const Ev = await carregaEscopo(B, esc), achado = clienteNaCarteira(Ev, '#' + mL[1]);
+        if (achado) return respFichaCliente(B, Ev, t, achado);
+        return `Não achei o cliente #${mL[1]} na sua carteira do mês.`;
+      }
+      // status dos pedidos do proprio vendedor, da linha do tempo gravada no D1, com a hora da ultima conferencia no CEVEN
+      if (/STATUS DOS? (MEUS )?PEDIDOS?|^\W*MEUS (ULTIMOS )?PEDIDOS\W*$|PEDIDOS? (JA )?(LIBERAD|BLOQUEAD|FATURAD)\w*\W*$/.test(t) && B.env && B.env.DB) {
+        const { results: Pd } = await B.env.DB.prepare("SELECT num, id_cliente, data_pedido, status, valor, confirmado_em FROM pedido_status WHERE filial = ? AND rca = ? AND data_pedido >= date('now', '-3 hours', '-7 days') AND data_pedido <= date('now', '-3 hours') ORDER BY data_pedido DESC, num DESC LIMIT 30").bind(fil, String(rcaV)).all();
+        if (!Pd || !Pd.length) return 'Não tenho pedido seu dos últimos 7 dias na base.';
+        const ic = (s) => /FATURAD/.test(s) ? '✅' : /BLOQUEAD/.test(s) ? '🚫' : /LIBERAD/.test(s) ? '🟢' : /CANCELAD/.test(s) ? '❌' : '⏳';
+        return ['📦 *Seus pedidos, últimos 7 dias*', ...Pd.map((p) => `${ic(String(p.status))} ${String(p.data_pedido).slice(8, 10)}/${String(p.data_pedido).slice(5, 7)} · nº ${p.num} · ${R$(p.valor || 0)} · ${titulo(String(p.status).replace(/_/g, ' '))}`), '', '_Status da última conferência no CEVEN; pode ter mudado depois dela._'].join('\n');
+      }
       if (/NAO POSITIVEI|QUE FALTA(M)? POSITIVAR|MINHA CURVA/.test(t)) return reenvia(`curva negativa do ${eu}`);
       if (/^\W*MEUS CORTES\W*$/.test(t)) return reenvia(`cortes do ${eu}`);
-      if (/^\W*MEUS (ULTIMOS )?PEDIDOS\W*$/.test(t)) return reenvia(`pedidos do ${eu}`);
     }
     if (/\bCHAMPIONS?\b/.test(t) && !/CLIENTE/.test(t)) return respLiga(B, await carregaEscopo(B, esc), null, 'LIGA');
     const semAlvo = !/\b(VENDEDOR|RCA|SUPERVISOR|CLIENTE|INDUSTRIA|PRODUTO|HOJE)\b|\bDE [A-Z]{4,}\b/.test(t);
