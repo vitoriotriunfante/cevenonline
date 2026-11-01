@@ -9,7 +9,9 @@ const PAT = { nome: 'PATRICIA CHAVES MACHADO', papel: 'supervisor', filial: 'TBE
 const VEND = { nome: 'VENDEDOR TESTE', papel: 'vendedor', filial: 'ABC', rca: '228' };
 const WAS = { nome: 'WASHINGTON FLORES DA ROSA', papel: 'supervisor', filial: 'API', supervisor: 'WASHINGTON FLORES DA ROSA' };
 const SUE = { nome: 'SUELI APARECIDA TEIXEIRA POLLI', papel: 'supervisor', filial: 'API', supervisor: 'SUELI APARECIDA TEIXEIRA POLLI' };
+const CAR = { nome: 'CARLOS CAMARGO', papel: 'supervisor', filial: 'TCV', supervisor: 'CARLOS CAMARGO' };
 const P = [
+  [WAS, 'No Brasil qual a minha posição no AS'], [WAS, 'minha posição no Brasil no varejo'],
   [DIR, 'Como está a equipe da Priscila de TPH em positivação?'], [ALEX, 'Como eu a meta da colgate da equipe'], [ALEX, 'Do mês'], [DIR, 'Mas só da vendedora Josiane?'], [DIR, 'Quantos clientes a vendedora Luciana positivou com Arcor ?'], [DIR, 'meta da filial TCA'],
   [ALEX, 'Como estou na liga?'], [SUE, 'Quais clientes que não tem venda da Paola Franco?'], [SUE, 'Quais clientes Edinei não vendeu'], [ALEX, 'Qual roteiro da equipe hoje'], [DIR, 'Custo até agora no cloudfare'], [ALEX, 'Num brasileirão, é só contabilizado por pedidos faturados?'],
   [WAS, 'Fechamento time nível Brasil'], [WAS, 'Como esta minha posição ranking nível Brasil supervisor?'], [WAS, 'fechamento'],
