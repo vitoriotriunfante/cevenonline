@@ -316,6 +316,9 @@ export async function respostaInterna(B, c, texto, anteriores) {
     if (rcaV) {
       if (/^\W*(\+ ?MIX|MAIS ?MIX|O QUE (EU )?(POSSO |DEVO )?OFERECER)\W*$/.test(t)) return 'Para qual cliente? Mande assim: *o que oferecer para* e o nome ou o código do cliente.';
       const eu = `VENDEDOR ${rcaV}`;
+      // PEDIDOS REAIS DOS VENDEDORES (cadastro, 01/11/2026): varios assuntos na mesma mensagem nao podem virar um so; comissao + clientes sem compra responde os dois
+      if ((t.match(/,/g) || []).length >= 3) return 'Consigo te ajudar com tudo isso, um assunto por vez. Mande por exemplo:\n• *minha rota*\n• *clientes sem compra*\n• *meus pedidos*\n• *quanto falta*\n• *minhas devoluções*\n• *metas das indústrias*\n• *liga*';
+      if (/COMISS/.test(t) && /SEM (COMPRA|VENDA)|NAO COMPR/.test(t)) { const cn = await reenvia(`curva negativa do ${eu}`); return `💰 A *comissão em R$* ainda não está no ar aqui no Jota.\n\n${cn}`; }
       if (/(QUANTO VENDI|MINHAS? VENDAS?).*\b(MES|ACUMULADO)\b/.test(t)) return reenvia(`como esta o ${eu}`);   // "no mes" nao e o digitado de hoje (teste com vendas de outubro, 01/11/2026)
       if (/QUANTO VENDI|VENDI HOJE|MINHAS? VENDAS? (DE )?HOJE/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respDiaVendedor(B, Ev, v); }
       if (/MINHA ROTA|^\W*ROTA( DE)? HOJE\W*$/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respMinhaRota(B, v); }
@@ -328,7 +331,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
         return `Não achei o cliente #${mL[1]} na sua carteira do mês.`;
       }
       // status dos pedidos do proprio vendedor, da linha do tempo gravada no D1, com a hora da ultima conferencia no CEVEN
-      if (/STATUS DOS? (MEUS )?PEDIDOS?|^\W*MEUS (ULTIMOS )?PEDIDOS\W*$|PEDIDOS? (JA )?(LIBERAD|BLOQUEAD|FATURAD)\w*\W*$/.test(t) && B.env && B.env.DB) {
+      if (/STATUS D[EO]S? (MEUS )?PEDIDOS?|^\W*MEUS (ULTIMOS )?PEDIDOS\W*$|PEDIDOS? (JA )?(LIBERAD|BLOQUEAD|FATURAD)\w*\W*$/.test(t) && B.env && B.env.DB) {
         const { results: Pd } = await B.env.DB.prepare("SELECT num, id_cliente, data_pedido, status, valor, confirmado_em FROM pedido_status WHERE filial = ? AND rca = ? AND data_pedido >= date('now', '-3 hours', '-7 days') AND data_pedido <= date('now', '-3 hours') ORDER BY data_pedido DESC, num DESC LIMIT 30").bind(fil, String(rcaV)).all();
         if (!Pd || !Pd.length) return 'Não tenho pedido seu dos últimos 7 dias na base.';
         const ic = (s) => /FATURAD/.test(s) ? '✅' : /BLOQUEAD/.test(s) ? '🚫' : /LIBERAD/.test(s) ? '🟢' : /CANCELAD/.test(s) ? '❌' : '⏳';
@@ -349,7 +352,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     // EQUIPE CITADA + POSITIVACAO: o indicador da pergunta manda (Priscila/TPH recebia o digitado do dia)
     { const mEq = t.match(/EQUIPE D[AOE] ([A-Z]{3,})/); if (mEq && /POSITIVA/.test(t)) { const Eq = await carregaEscopo(B, esc), L = Eq.vend.filter((v) => sem(v.supervisor || '').includes(mEq[1])); if (L.length) { const r = L.reduce((a, v) => ({ p: a.p + (Number(v.pos) || 0), m: a.m + (Number(v.metaPos) || 0) }), { p: 0, m: 0 }); return [`👥 *Positivação — Equipe ${titulo(mEq[1])}* (${[...new Set(L.map((v) => v.filial))].join(', ')})`, `*${N(r.p)} de ${N(Math.round(r.m))}*${r.m > 0 ? ` (${pctTxt(r.p / r.m * 100)})` : ''} · faltam ${N(Math.max(0, Math.round(r.m - r.p)))}`, ...L.slice().sort((x, y) => (Number(x.pos) || 0) / (Number(x.metaPos) || 1) - (Number(y.pos) || 0) / (Number(y.metaPos) || 1)).slice(0, 15).map((v) => `• ${vn(v)}: ${N(v.pos || 0)} de ${N(Math.round(v.metaPos || 0))}`)].join('\n'); } } }
     // MARCA NA META: "meta da colgate", "meta condor do setor 18" vao para as metas por industria, nunca para a meta geral
-    { const mMt = t.match(/\bMETA (?:DA |DE |DO )?([A-Z]{4,})\b/), ger = /^(FILIAL|EQUIPE|GERAL|FATURAMENTO|POSITIVACAO|RECORRENCIA|PREMIACAO|MENSAL|TOTAL|VENDEDOR|SUPERVISOR|BRASIL|HOJE|ESTA|ESSA|DESTE|CADA|PARA|AINDA|NOVEMBRO|OUTUBRO)$/;
+    { const mMt = t.match(/\bMETA (?:DA |DE |DO )?([A-Z]{4,})\b/), ger = /^(DIARIAMENTE|DIARIA|DIARIO|SEMANAL|FILIAL|EQUIPE|GERAL|FATURAMENTO|POSITIVACAO|RECORRENCIA|PREMIACAO|MENSAL|TOTAL|VENDEDOR|SUPERVISOR|BRASIL|HOJE|ESTA|ESSA|DESTE|CADA|PARA|AINDA|NOVEMBRO|OUTUBRO)$/;
       if (mMt && !ger.test(mMt[1]) && !FILIAIS.includes(mMt[1])) { const Em = await carregaEscopo(B, esc), rm = await respMetasIndustria(B, Em, t, achaPessoa(Em, t)); if (rm && !/Nenhuma meta/.test(rm) && sem(rm).includes(mMt[1])) return rm; return `Não tenho meta de *${titulo(mMt[1])}* cadastrada na Premiação para ${Em.nome} neste mês.`; } }
     // POSITIVOU COM MARCA: quantos clientes do vendedor compraram a marca
     { const mPc = t.match(/POSITIVOU COM ([A-Z]{3,})/); if (mPc) { const Ep = await carregaEscopo(B, esc), r = await respIndustria(B, Ep, mPc[1] + ' POR VENDEDOR ' + t, achaPessoa(Ep, t)); if (r) return r; } }
