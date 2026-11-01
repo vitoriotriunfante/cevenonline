@@ -222,7 +222,7 @@ export async function aplicaArvore(env, corpo) {
 // (cota separada). Gravada inteira em cascata_dia (1 linha por filial por dia; 11 linhas por rodada, custo desprezivel).
 // Usos: numero unico de visitas (/api/totais-dia) e saber QUEM teve visita/venda nova para buscar so o roteiro desses (lances).
 const tokGer = new Map();   // filialKey -> { tk, ate }
-async function tokenGerente(g, senha) {
+export async function tokenGerente(g, senha) {
   const m = tokGer.get(g.filialKey);
   if (m && Date.now() < m.ate) return m.tk;
   const lr = await fetch(`${CEVEN}/api/gerente-auth/login`, { method: 'POST', headers: UA, body: JSON.stringify({ filial: g.filialKey, nome: g.loginNome, password: senha }), signal: AbortSignal.timeout(15000) });

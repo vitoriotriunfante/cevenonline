@@ -26,7 +26,7 @@ import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
 import { garanteTabelasPedido, gravaStatusPedidos } from '../_lib/pedido_status.js';   // pedidos do dia, com ou sem rota (31/10/2026)
 import { coletaSupervisores } from '../_lib/supervisores_coleta.js';   // compromissos e RET na base (26/10/2026)
-import { gravaCascatas } from '../_lib/arvore_ceven.js';   // cascata do gerente (visitas/eficacia de hoje de todos), cota separada (26/10/2026)
+import { gravaCascatas, tokenGerente, GERENTES } from '../_lib/arvore_ceven.js';   // cascata do gerente (visitas/eficacia de hoje de todos), cota separada (26/10/2026)
 export { CEVEN_APP_SECRET };
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Secret': CEVEN_APP_SECRET };
@@ -474,13 +474,16 @@ export async function onRequestGet({ env, request }) {
     await mede('produtividade', `${CEVEN}/api/rca/produtividade?filial=tbl1&id=185`, HDR);
     const tk = await tokenDoAdmin(env).catch(() => null); out.token_admin = !!tk;
     if (tk) await mede('view_as', `${CEVEN}/api/admin/view-as/rca/dashboard?filial=tbl1&id=185`, { ...HDR, Authorization: `Bearer ${tk}` });
-    // Chamadas em bloco por supervisor (01/11/2026): rota e devolucao vem em bloco? Devolve status e amostra dos campos, sem valores.
-    if (tk) { try {
-      const c = await env.DB.prepare("SELECT json FROM cascata_dia WHERE filial = 'TBL' ORDER BY data_ref DESC LIMIT 1").first(), sup = c && (JSON.parse(c.json).supervisores || [])[0];
-      if (sup) for (const [n, u] of [['sup_roteiro_mes', `/api/supervisor/roteiro-mes?filial=tbl1&id=${sup.supervisorId}`], ['sup_rcas', `/api/supervisor/rcas?filial=tbl1&id=${sup.supervisorId}`], ['ver_sup_roteiro_mes', `/api/admin/view-as/supervisor/roteiro-mes?filial=tbl1&id=${sup.supervisorId}`], ['ver_sup_devolucoes', `/api/admin/view-as/supervisor/devolucoes?filial=tbl1&id=${sup.supervisorId}`]]) {
-        try { const r = await fetch(CEVEN + u, { headers: { ...HDR, Authorization: `Bearer ${tk}` }, signal: AbortSignal.timeout(15000) }), x = await r.text(); let campos = null, itens = null; try { const j = JSON.parse(x), a = Array.isArray(j) ? j : null; itens = a ? a.length : null; campos = Object.keys((a ? a[0] : j) || {}); } catch { /* nao e JSON */ } out[n] = { http: r.status, bytes: x.length, itens, campos }; } catch (e) { out[n] = { erro: e.name }; }
+    // Chamadas em bloco do GERENTE (01/11/2026, Vitorio: "cada gerente ve tudo"; rotas lidas do app do CEVEN): devolve status, tamanho e nomes dos campos, sem valores.
+    try {
+      const g = GERENTES.find((x) => x.sigla === 'TBL'), tg = await tokenGerente(g, env.CEVEN_GERENTE_SENHA); out.token_gerente = !!tg;
+      const c = await env.DB.prepare("SELECT json FROM cascata_dia WHERE filial = 'TBL' ORDER BY data_ref DESC LIMIT 1").first(), sup = c && (JSON.parse(c.json).supervisores || [])[0], f = g.filialKey, sid = sup && sup.supervisorId;
+      const forma = (v, n = 0) => Array.isArray(v) ? { itens: v.length, item: forma(v[0], n + 1) } : v && typeof v === 'object' && n < 4 ? Object.fromEntries(Object.entries(v).slice(0, 40).map(([k, x]) => [k, forma(x, n + 1)])) : typeof v;
+      for (const [n, u] of [['roteiro_hoje', `/api/gerente/supervisor/roteiro-hoje?filial=${f}&supervisorId=${sid}`], ['roteiro_mes', `/api/gerente/supervisor/roteiro-mes?filial=${f}&supervisorId=${sid}`], ['dashboard_cascata', `/api/gerente/dashboard-cascata?filial=${f}`], ['hierarquia_filiais', '/api/gerente/hierarquia-filiais'], ['cascata_todas', '/api/gerente/tabelas-cascata-todas-filiais']]) {
+        const t = Date.now();
+        try { const r = await fetch(CEVEN + u, { headers: { ...HDR, Authorization: 'Bearer ' + tg }, signal: AbortSignal.timeout(20000) }), x = await r.text(); let j = null; try { j = JSON.parse(x); } catch { /* nao e JSON */ } out[n] = { http: r.status, ms: Date.now() - t, bytes: x.length, limite: r.headers.get('x-ratelimit-limit'), resta: r.headers.get('x-ratelimit-remaining'), forma: forma(j) }; } catch (e) { out[n] = { erro: e.name }; }
       }
-    } catch { out.supervisor = 'sem cascata'; } }
+    } catch (e) { out.gerente = String(e.message || e).slice(0, 80); }
     return new Response(JSON.stringify(out), { headers: cors });
   }
   const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: cors });
