@@ -3,12 +3,13 @@
 // O QUE É: RECUPERACAO dos lances "Pedido na Rota" que faltaram na Liga de outubro (auditoria 01/11/2026). Mesmo metodo de liga-repara-devolucao.js.
 // CAUSA: o lance exigia o status POSITIVADO da rota, que vem do Clube da Venda. Positivado = tem pedido (Vitorio). Corrigido em tv-vendedor.js em 01/11/2026.
 // O QUE FAZ: cliente da rota do dia, com check-in e pedido do mesmo vendedor no dia (pedido_status, nao cancelado), sem lance pedido_rota: cria o lance no dia do pedido.
-//   Nunca chama o CEVEN e nunca assume: sem pedido gravado, sem check-in ou fora de quem joga a Liga = nada. So cobre "Pedido na Rota" (+1); gols que dependem do historico nao entram.
+//   Nunca chama o CEVEN e nunca assume: sem pedido gravado, sem check-in ou fora de quem joga a Liga = nada. Cobre Pedido na Rota (+1), Defesa (+3) e Resgate de Inativo (+6); gols que dependem do historico do cliente nao entram.
 // MODOS: padrao = ENSAIO, so mostra o que mudaria. ?grava=1 grava em tv_lances e no dia fechado e atualiza o total do fechamento. Protegido pela chave administrativa (?chave=).
 // =========================================================================
 import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
 import { ehFeriado, ehFimDeSemana } from '../_lib/feriados.js';
 import { ehRepresentante } from '../_lib/participacao.js';
+import { lancesFaltantes } from '../_lib/lances_faltantes.js';
 
 const cors = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
 const j = (x, s = 200) => new Response(JSON.stringify(x, null, 1), { status: s, headers: cors });
@@ -28,28 +29,15 @@ export async function onRequestGet({ env, request }) {
   const lances = [];
   for (const { d: dia } of dr || []) {
     if (ehFimDeSemana(dia) || ehFeriado(dia)) continue;
-    const { results: P } = await env.DB.prepare("SELECT filial f, rca r, id_cliente c, num, status s, valor v FROM pedido_status WHERE data_pedido = ? AND status NOT LIKE '%CANCEL%'").bind(dia).all();
-    const { results: Ro } = await env.DB.prepare('SELECT filial_sigla f, rca_codigo r, roteiro_json j FROM varredura_central_rca WHERE data_ref = ? AND roteiro_json IS NOT NULL').bind(dia).all();
-    const { results: Lc } = await env.DB.prepare("SELECT filial, chave FROM tv_lances WHERE dia = ? AND chave LIKE 'pedido_rota|%'").bind(dia).all();
-    const tem = new Set((Lc || []).map((l) => l.filial + '|' + l.chave));
-    const rota = new Map();
-    for (const v of Ro || []) { let a = null; try { a = JSON.parse(v.j); } catch { continue; } for (const c of Array.isArray(a) ? a : []) rota.set(`${String(v.f).toUpperCase()}|${v.r}|${c.id_cliente}`, c); }
-    const vistos = new Set();
-    for (const p of P || []) {
-      const k = `${p.f}|${p.r}|${p.c}`; if (vistos.has(k)) continue; vistos.add(k);
-      const c = rota.get(k), v = vend.get(p.f + '|' + String(p.r)), chave = `pedido_rota|${p.r}|${p.c}`;
-      if (!c || !c.checkin_horario || !v || tem.has(p.f + '|' + chave)) continue;
-      if (ehRepresentante(v) || v.mostra === false || /^(VAGO|GERENTE|RCA\b|VENDA )/i.test(String(v.nome || ''))) continue;   // so quem joga a Liga
-      lances.push({ dia, f: p.f, rca: String(p.r), v, cid: String(p.c), cliente: c.nome_cliente || c.razao_social || null, chave, obs: `PEDIDO DE HOJE: ${p.num} · ${p.s || 'sem status'} · ${brl(p.v)} | check-in ${c.checkin_horario} [RECUPERADO 01/11: rota estava como ${c.status}; positivado = tem pedido]` });
-    }
+    for (const l of await lancesFaltantes(env, dia, vend)) { if (ehRepresentante(l.v) || l.v.mostra === false || /^(VAGO|GERENTE|RCA |VENDA )/i.test(String(l.v.nome || ''))) continue; lances.push(l); }   // so quem joga a Liga
   }
-  const porFilial = {}, porVend = {};
-  for (const l of lances) { porFilial[l.f] = (porFilial[l.f] || 0) + 1; const k = `${l.f} ${l.rca} - ${l.v.nome}`; porVend[k] = (porVend[k] || 0) + 1; }
-  const saida = { modo: grava ? 'GRAVA' : 'ENSAIO', de, ate, lances_a_criar: lances.length, pontos_cada: 1, por_filial: porFilial, por_vendedor: Object.fromEntries(Object.entries(porVend).sort((a, b) => b[1] - a[1])) };
+  const porFilial = {}, porVend = {}, porTipo = {};
+  for (const l of lances) { porFilial[l.f] = (porFilial[l.f] || 0) + 1; porTipo[l.tipo] = (porTipo[l.tipo] || 0) + 1; const k = `${l.f} ${l.rca} - ${l.v.nome}`; porVend[k] = (porVend[k] || 0) + 1; }
+  const saida = { modo: grava ? 'GRAVA' : 'ENSAIO', de, ate, lances_a_criar: lances.length, por_tipo: porTipo, por_filial: porFilial, por_vendedor: Object.fromEntries(Object.entries(porVend).sort((a, b) => b[1] - a[1])) };
   if (!grava) return j(saida);
 
   const iso = new Date().toISOString(), st = lances.map((l) => env.DB.prepare(`INSERT OR IGNORE INTO tv_lances (dia, filial, chave, nivel, rca, vendedor, supervisor, cliente_id, cliente, motivo, dias_sem_compra, ultima_compra, tempo_visita, obs, hora_sp, visto_em, baseline)
-    VALUES (?, ?, ?, 'pedido_rota', ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, ?, '23:59:00', ?, 0)`).bind(l.dia, l.f, l.chave, l.rca, l.v.nome || null, l.v.supervisor || null, l.cid, l.cliente, l.obs.slice(0, 700), iso));
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, ?, '23:59:00', ?, 0)`).bind(l.dia, l.f, l.chave, l.nivel, l.rca, l.v.nome || null, l.v.supervisor || null, l.cid, l.cliente, l.obs.slice(0, 700), iso));
   for (let i = 0; i < st.length; i += 80) await env.DB.batch(st.slice(i, i + 80));
   const fechamento = [];
   for (const dia of [...new Set(lances.map((l) => l.dia))].sort()) {
