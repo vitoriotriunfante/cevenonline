@@ -14,10 +14,15 @@ const P = [
   [ALEX, 'como está a atualização do meu time pra este fechamento de outubro'], [ALEX, 'quanto falta de panasonic valor financeiro'], [ALEX, 'relatorio vendedor'], [ALEX, 'como estou no champion'], [PAT, 'como estou no champion'],
   [VEND, 'quanto vendi hoje'], [VEND, 'minha rota de hoje'], [VEND, 'quais clientes faltam visitar'], [VEND, 'clientes que não positivei'], [VEND, '+mix'], [VEND, 'o que oferecer'], [VEND, 'meus cortes'], [VEND, 'meus pedidos'], [VEND, 'como fechei setembro'], [VEND, 'quanto falta para a minha meta'],
 ];
+// D1 de producao SO LEITURA: sem isso, respostas que dependem do banco caem em outro caminho e o teste acusa erro que nao existe. Qualquer escrita e recusada.
+import { spawnSync } from 'child_process'; import fs from 'fs'; import path from 'path';
+const npxDir = path.join(process.env.LOCALAPPDATA || '', 'npm-cache', '_npx'), WR = fs.readdirSync(npxDir).map((d) => path.join(npxDir, d, 'node_modules/wrangler/bin/wrangler.js')).find((x) => fs.existsSync(x));
+const lit = (v) => v == null ? 'NULL' : typeof v === 'number' ? String(v) : "'" + String(v).replace(/'/g, "''") + "'";
+const DB = { prepare(sql) { let a = []; const roda = () => { if (!/^\s*(SELECT|WITH)/i.test(sql)) return []; let i = 0; const q = sql.replace(/\?(\d+)?/g, (_, n) => lit(a[n ? n - 1 : i++])); const r = spawnSync(process.execPath, [WR, 'd1', 'execute', 'ceven_noc_d1', '--remote', '--json', '--command', q], { encoding: 'utf8', maxBuffer: 1 << 28, env: { ...process.env, NO_COLOR: '1' } }); try { return JSON.parse(r.stdout)[0].results; } catch { return []; } }; const o = { bind(...x) { a = x; return o; }, async all() { return { results: roda() }; }, async first() { return roda()[0] || null; }, async run() { return { meta: {} }; } }; return o; } };
 const f = process.argv[2];
 for (const [c, q] of P) {
   if (f && !q.includes(f)) continue;
-  try { const r = await _teste.respostaPronta(_teste.criaBase(ORIGIN, {}), c, q, []); console.log(`[${c.papel}] ${q}\n  => ${r == null ? '(SEM RESPOSTA PRONTA: vai para a IA)' : String(r).replace(/\n+/g, ' / ').slice(0, 260)}`); }
+  try { const r = await _teste.respostaPronta(_teste.criaBase(ORIGIN, { DB }), c, q, []); console.log(`[${c.papel}] ${q}\n  => ${r == null ? '(SEM RESPOSTA PRONTA: vai para a IA)' : String(r).replace(/\n+/g, ' / ').slice(0, 260)}`); }
   catch (e) { console.log(`[${c.papel}] ${q}\n  => ERRO ${e.message}`); }
 }
 limpa();

@@ -15,9 +15,11 @@ export async function vendasEscopo(B, E) {
   const arqs = await Promise.all(E.filiais.map((f) => B.raw(`public/vendas_mes/${f}.json`).then((t) => { try { return t ? { f, ...JSON.parse(t) } : null; } catch (e) { return null; } })));
   const ok = arqs.filter(Boolean); if (!ok.length) return null;
   const restrito = E.grupo || E.supervisor || E.rca, rcas = new Set(E.vend.concat(E.ocultos || []).map((v) => v.filial + '|' + v.rca));
+  // DATA FUTURA NAO E VENDA (auditoria 01/11/2026): no dia 01/11 o arquivo tinha R$ 3 milhoes em linhas de 03 a 26/11, e o JOTA dizia "vendas de novembro" com o CEVEN em R$ 0
+  const hojeNum = Number(hojeSP().replace(/-/g, ''));
   const linhas = [], prod = {}, cli = {}; let ate = '';
   for (const a of ok) { if (a.ate > ate) ate = a.ate; for (const [k, v] of Object.entries(a.produtos || {})) if (!prod[k] || (!prod[k][1] && v[1])) prod[k] = v; for (const [k, v] of Object.entries(a.clientes || {})) cli[a.f + '|' + k] = v;
-    for (const l of a.l || []) if (!restrito || rcas.has(a.f + '|' + l[1])) linhas.push({ f: a.f, d: l[0], r: l[1], c: l[2], p: l[3], q: l[4], v: l[5] }); }
+    for (const l of a.l || []) if (l[0] <= hojeNum && (!restrito || rcas.has(a.f + '|' + l[1]))) linhas.push({ f: a.f, d: l[0], r: l[1], c: l[2], p: l[3], q: l[4], v: l[5] }); }
   return { linhas, prod, cli, ate, filiais: ok.map((a) => a.f) };
 }
 export const dIso = (n) => { const s = String(n); return `${s.slice(6, 8)}/${s.slice(4, 6)}`; };
@@ -26,7 +28,7 @@ export function periodoDe(t, V) {
   if (/\bONTEM\b/.test(t)) return { nome: 'ontem (' + dIso(ult) + ')', ok: (l) => l.d === ult, aviso: '' };
   if (/\bHOJE\b|\bHJ\b/.test(t)) return { nome: 'ontem (' + dIso(ult) + ')', ok: (l) => l.d === ult, aviso: '_Item a item vai até ontem; o de hoje entra na madrugada._' };
   if (/SEMANA/.test(t) && !/SEMANA(L|IS)|POR SEMANA|SEMANA A SEMANA|CADA SEMANA|DIA DA SEMANA/.test(t)) { const lim = Number(new Date(Date.UTC(+String(ult).slice(0, 4), +String(ult).slice(4, 6) - 1, +String(ult).slice(6, 8) - 6)).toISOString().slice(0, 10).replace(/-/g, '')); return { nome: 'últimos 7 dias', ok: (l) => l.d >= lim, aviso: '' }; }
-  return { nome: 'no mês (até ' + dIso(ult) + ')', ok: () => true, aviso: '' };
+  return { nome: ult ? 'no mês (até ' + dIso(ult) + ')' : 'no mês', ok: () => true, aviso: '' };
 }
 // PALAVRAS GENERICAS NUNCA IDENTIFICAM INDUSTRIA NEM PRODUTO (26/10/2026: "o Brasil estava com 3 milhoes de devolucao" virou "Heinz Brasil"; "vendemos 45 milhoes" virou "Empresa Brasileira De")
 export const GENERICAS = /^(SEM|NAO|BRASIL|BRASILEIRA|BRASILEIRO|BRASILEIRAS|EMPRESA|EMPRESAS|INDUSTRIA|INDUSTRIAS|ALIMENTOS|ALIMENTO|COMERCIO|DISTRIBUIDORA|DISTRIBUICAO|PRODUTOS|PRODUTO|GRUPO|LTDA|NACIONAL|CIA|COMPANHIA|DOCES|BEBIDAS|MES|DIA|HOJE|MILHOES|MILHAO|REAIS|VENDA|VENDAS|VENDEMOS|DEVOLUCAO|DEVOLUCOES|VER|VEJA|OLHA|MOSTRA|ABRIR|ABRE|MAIS)$/;
@@ -91,14 +93,14 @@ export async function respIndustria(B, E, t, pessoa) {
   if (!L.length) return `🏭 *${nomeI}* — ${E.nome}, ${per.nome}: nenhuma venda encontrada.`;
   const tot = L.reduce((a, l) => a + l.v, 0), clis = new Set(L.map((l) => l.f + '|' + l.c));
   const todosCli = new Set(V.linhas.filter(per.ok).map((l) => l.f + '|' + l.c));
-  const porVend = /VENDEDOR|CARTEIRA|POR VEND/.test(t) || E.supervisor || E.grupo;
-  const chave = E.nacional ? (l) => l.f : porVend ? (l) => l.f + '|' + l.r : (l) => { const v = E.vend.find((x) => x.filial === l.f && x.rca === l.r); return (v && v.supervisor) || 'sem supervisor'; };
+  const porVend = /VENDEDOR|CARTEIRA|POR VEND/.test(t) || E.supervisor || E.grupo, porSup = /POR SUPERVIS/.test(t);
+  const chave = porSup ? (l) => { const v = E.vend.find((x) => x.filial === l.f && x.rca === l.r); return (v && v.supervisor) || 'sem supervisor'; } : E.nacional ? (l) => l.f : porVend ? (l) => l.f + '|' + l.r : (l) => { const v = E.vend.find((x) => x.filial === l.f && x.rca === l.r); return (v && v.supervisor) || 'sem supervisor'; };
   const vend = new Map(E.vend.map((v) => [v.filial + '|' + v.rca, vn(v)]));
   const G = [...somaPor(L, chave)].sort((a, b) => b[1].cli.size - a[1].cli.size);
   const SK = [...somaPor(L, (l) => l.p)].sort((a, b) => b[1].cli.size - a[1].cli.size).slice(0, 5);
   const ex = await extrasTempo(B, E, L, t, (l, pm) => I.includes(((pm || V.prod)[l.p] || [])[1]) && (!pessoa || pessoa.tipo !== 'vend' || (l.f === pessoa.alvo.filial && l.r === pessoa.alvo.rca)));
   return [`🏭 *${nomeI}* — ${E.nome}, ${per.nome}`, `Faturado: *${R$(tot)}* · positivação: *${N(clis.size)} clientes* (${P(clis.size, todosCli.size)} dos que compraram algo)`, '',
-    `*Por ${E.nacional ? 'filial' : porVend ? 'vendedor' : 'supervisor'} (clientes · R$):*`, ...G.slice(0, 12).map(([k, x]) => `• ${E.nacional ? k : porVend ? (vend.get(k) || 'RCA ' + k.split('|')[1]) : nome2(k)}: ${x.cli.size} cli. · ${R$(x.v)}`),
+    `*Por ${porSup ? 'supervisor' : E.nacional ? 'filial' : porVend ? 'vendedor' : 'supervisor'} (clientes · R$):*`, ...G.slice(0, 12).map(([k, x]) => `• ${porSup ? nome2(k) : E.nacional ? k : porVend ? (vend.get(k) || 'RCA ' + k.split('|')[1]) : nome2(k)}: ${x.cli.size} cli. · ${R$(x.v)}`),
     '*SKUs que mais positivam:*', ...SK.map(([c, x]) => `• ${titulo((V.prod[c] || [''])[0])}: ${x.cli.size} cli.`), ...ex, '', SUGESTAO + `peça "quem comprava ${nomeI} e parou" para a lista de recuperação.`].join('\n');
 }
 // RECUPERACAO (26/10/2026, Cristiano/TSJ: "Quem comprava TRIDENT GARRAFA e parou" so recebeu a contagem da filial): lista NOMINAL, do escopo de quem pergunta

@@ -330,6 +330,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
       const NM = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'], hj = hojeSP(), iNm = NM.findIndex((n) => new RegExp('\\b' + n + '\\b').test(t));
       const passado = new Date(Date.parse(hj.slice(0, 7) + '-15T12:00:00Z') - 30 * 864e5).toISOString().slice(0, 7), mesPedido = iNm >= 0 ? hj.slice(0, 4) + '-' + String(iNm + 1).padStart(2, '0') : null;
       const ym = /MES (ANTERIOR|PASSADO)/.test(t) || (/COMO FECH(AMOS|OU O MES|EI)/.test(t) && !mesPedido && Number(hj.slice(8)) <= 5) ? passado : mesPedido;
+      if (ym && ym < '2026-10' && /FECH/.test(t)) return `Só tenho fechamento conferido a partir de outubro/2026. De ${titulo(NM[Number(ym.slice(5)) - 1])} não tenho a foto do mês, então não vou passar número.`;
       if (ym && ym >= '2026-10' && ym < hj.slice(0, 7) && /FECH|RESULTADO|FATUR|ACUMUL/.test(t) && !/INDUSTRIA|FORNECEDOR|PRODUTO|CLIENTE/.test(t) && B.env && B.env.DB) {
         const Em = await carregaEscopo(B, esc), chaves = new Set(Em.vend.concat(Em.ocultos || []).map((v) => v.filial + '|' + v.rca));
         const u = await B.env.DB.prepare('SELECT MAX(data_ref) d FROM varredura_central_rca WHERE data_ref >= ? AND data_ref <= ?').bind(ym + '-01', ym + '-31').first();
@@ -347,6 +348,17 @@ export async function respostaInterna(B, c, texto, anteriores) {
       const S = [...agrupa(Es.vend, (v) => supChave(v, Es.nacional))].filter(([k]) => supReal(k) && !/^VAGO/.test(k)).filter(([, x]) => dev || x.metaPos > 0)
         .sort((a, b) => dev ? b[1].dev - a[1].dev : a[1].pos / a[1].metaPos - b[1].pos / b[1].metaPos).slice(0, 10);
       if (S.length) return [`🔻 *Supervisores — ${dev ? 'maior devolução no mês' : 'menor positivação'} · ${Es.nome}*`, ...S.map(([k, x], i) => `${i + 1}. ${supNome(k)} — ${dev ? R$(x.dev) : `${x.pos} de ${Math.round(x.metaPos)} (${pctTxt(x.pos / x.metaPos * 100)})`}`)].join('\n');
+    }
+    // MARCA OU INDUSTRIA CITADA: "venda de bally por supervisor", "resumo de grassi", "quanto falta de panasonic". Antes caia no total geral, como se a marca nao tivesse sido pedida (auditoria 01/11/2026)
+    {
+      const mq = t.match(/\b(?:VENDAS?|RESUMO|FALTA|FATURAMENTO|FATURADO)\b.*?\bDE ([A-Z0-9]{4,})\b/), termo = mq && mq[1];
+      if (termo && !FILIAIS.includes(termo) && !/^(HOJE|ONTEM|META|METAS|VENDAS?|CLIENTES?|VENDEDOR(ES)?|SUPERVISOR(ES)?|POSITIVACAO|DEVOLUCAO|PEDIDOS?|ROTA|JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO|SEMANA|CADA|TODAS?|TODOS?|FILIAIS?|EQUIPE|VALOR|FINANCEIRO)$/.test(termo)) {
+        const Em = await carregaEscopo(B, esc), { vendasEscopo, achaIndustria, achaProdutos } = await import('./respostas/vendas.js'), Vm = await vendasEscopo(B, Em).catch(() => null);
+        if (Vm && /\bFALTA\b/.test(t)) { const rm = await respMetasIndustria(B, Em, t, null); if (rm && !/Nenhuma meta/.test(rm)) return rm; }
+        if (Vm && achaIndustria(termo, Vm)) { const r = await respIndustria(B, Em, t, null); if (r) return r; }
+        if (Vm && achaProdutos(termo, Vm, Em)) { const r = await respProduto(B, Em, t, null); if (r) return r; }
+        if (Vm) return `🔎 Não achei *${titulo(termo)}* nas vendas de ${Em.nome} neste mês. O mês acabou de começar, ou o nome no catálogo é outro. Tente pelo código do produto.`;
+      }
     }
     // produto ou marca em VARIAS filiais: uma resposta por filial, nunca so a primeira (Rudinei, 31/10/2026)
     const fsCit = [...new Set([...t.matchAll(new RegExp(FRX.source, 'g'))].map((m) => m[1]))], prod = (t.match(/\b(?:VENDA|VENDEU|VENDAS)\b.*?\bDE ([A-Z0-9]{3,})\b/) || [])[1];
