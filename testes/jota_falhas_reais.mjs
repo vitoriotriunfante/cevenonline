@@ -8,8 +8,9 @@ const ALEX = { nome: 'ALEX SANDRO SOARES ELIAS', papel: 'supervisor', filial: 'T
 const PAT = { nome: 'PATRICIA CHAVES MACHADO', papel: 'supervisor', filial: 'TBE', supervisor: 'PATRICIA CHAVES MACHADO' };
 const VEND = { nome: 'VENDEDOR TESTE', papel: 'vendedor', filial: 'ABC', rca: '228' };
 const WAS = { nome: 'WASHINGTON FLORES DA ROSA', papel: 'supervisor', filial: 'API', supervisor: 'WASHINGTON FLORES DA ROSA' };
+const SUE = { nome: 'SUELI APARECIDA TEIXEIRA POLLI', papel: 'supervisor', filial: 'API', supervisor: 'SUELI APARECIDA TEIXEIRA POLLI' };
 const P = [
-  [ALEX, 'Como estou na liga?'], [ALEX, 'Quais clientes que não tem venda da Paola Franco?'], [ALEX, 'Quais clientes Edinei não vendeu'], [ALEX, 'Qual roteiro da equipe hoje'], [DIR, 'Custo até agora no cloudfare'], [ALEX, 'Num brasileirão, é só contabilizado por pedidos faturados?'],
+  [ALEX, 'Como estou na liga?'], [SUE, 'Quais clientes que não tem venda da Paola Franco?'], [SUE, 'Quais clientes Edinei não vendeu'], [ALEX, 'Qual roteiro da equipe hoje'], [DIR, 'Custo até agora no cloudfare'], [ALEX, 'Num brasileirão, é só contabilizado por pedidos faturados?'],
   [WAS, 'Fechamento time nível Brasil'], [WAS, 'Como esta minha posição ranking nível Brasil supervisor?'], [WAS, 'fechamento'],
   [DIR, 'batemos a meta?'], [DIR, 'faturou?'], [DIR, 'quanto faturado?'], [DIR, 'faturamento acumulado mês'], [DIR, 'como fechamos?'], [DIR, 'fechamento do mes? como estamos no acumulado'],
   [DIR, 'pessoal disse que já faturou tudo e o jota não leu'], [DIR, 'onde atacar positivação'], [DIR, 'qual equipe de supervisão está pior em relação à positivação?'], [DIR, 'qual a equipe de supervisão que está pior em relação à devolução?'], [DIR, 'me manda o resultado de agora aberto por filial'],
