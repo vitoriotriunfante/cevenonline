@@ -444,6 +444,12 @@ export async function respMinhaRota(B, v) {
   const L = [`📋 *${vn(v)}* — rota de hoje: *${rota.length} clientes*`, ...mes];
   if (nao.length) L.push('', `*Ainda não compraram no mês (${nao.length}):*`, ...nao.map((c) => { const d = semMap.get(String(c.id_cliente)).dias; return linha(c, d == null ? 'sem compra em 60 dias' : d === 0 ? 'última compra hoje, ainda não consta no mês' : `${d} dias sem compra`); }));
   if (ja.length) L.push('', `*Já compraram no mês (${ja.length}):*`, ...ja.map((c) => { const r = valorMes.get(String(c.id_cliente)); return linha(c, r ? R$(r) : 'já comprou'); }));
+  // "COMECE POR X E OFERECA Y" (proatividade, 01/11/2026): quem esta ha mais tempo sem comprar, ainda sem check-in, com a lista do +MIX. Sem lista, nao sugere nada.
+  let M = {}; try { M = JSON.parse(await B.raw(`public/mix_rec/${v.filial}.json`) || '{}').clientes || {}; } catch (e) { M = {}; }
+  const recDe = (c) => (M[String(c.cnpj || '').replace(/\D/g, '')] || {}).rec || [];
+  const diasDe = (c) => { const d = semMap.get(String(c.id_cliente)).dias; return d == null ? 9999 : d; };
+  const primeiro = nao.filter((c) => !c.checkin_horario && recDe(c).length).sort((a, b) => diasDe(b) - diasDe(a))[0];
+  if (primeiro) L.push('', `🎯 *Comece por:* ${nome(primeiro)} (#${primeiro.id_cliente})`, `Ofereça: ${recDe(primeiro).slice(0, 3).map(([, n]) => titulo(n)).join(', ')}`);
   L.push('', '*Digite o número* do cliente para ver a ficha dele.');
   return L.join('\n');
 }
