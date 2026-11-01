@@ -26,7 +26,7 @@ import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
 import { garanteTabelasPedido, gravaStatusPedidos } from '../_lib/pedido_status.js';   // pedidos do dia, com ou sem rota (31/10/2026)
 import { coletaSupervisores } from '../_lib/supervisores_coleta.js';   // compromissos e RET na base (26/10/2026)
-import { gravaCascatas, tokenGerente, GERENTES } from '../_lib/arvore_ceven.js';   // cascata do gerente (visitas/eficacia de hoje de todos), cota separada (26/10/2026)
+import { gravaCascatas, gravaRotasGerente, tokenGerente, GERENTES } from '../_lib/arvore_ceven.js';   // cascata do gerente (visitas/eficacia de hoje de todos), cota separada (26/10/2026)
 export { CEVEN_APP_SECRET };
 const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
 const HDR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Secret': CEVEN_APP_SECRET };
@@ -478,7 +478,7 @@ export async function onRequestGet({ env, request }) {
     try {
       const g = GERENTES.find((x) => x.sigla === 'TBL'), tg = await tokenGerente(g, env.CEVEN_GERENTE_SENHA); out.token_gerente = !!tg;
       const c = await env.DB.prepare("SELECT json FROM cascata_dia WHERE filial = 'TBL' ORDER BY data_ref DESC LIMIT 1").first(), sup = c && (JSON.parse(c.json).supervisores || [])[0], f = g.filialKey, sid = sup && sup.supervisorId;
-      const forma = (v, n = 0) => Array.isArray(v) ? { itens: v.length, item: forma(v[0], n + 1) } : v && typeof v === 'object' && n < 4 ? Object.fromEntries(Object.entries(v).slice(0, 40).map(([k, x]) => [k, forma(x, n + 1)])) : typeof v;
+      const forma = (v, n = 0) => Array.isArray(v) ? { itens: v.length, item: forma(v[0], n + 1) } : v && typeof v === 'object' && n < 7 ? Object.fromEntries(Object.entries(v).slice(0, 40).map(([k, x]) => [k, forma(x, n + 1)])) : typeof v;
       for (const [n, u] of [['roteiro_hoje', `/api/gerente/supervisor/roteiro-hoje?filial=${f}&supervisorId=${sid}`], ['roteiro_mes', `/api/gerente/supervisor/roteiro-mes?filial=${f}&supervisorId=${sid}`], ['dashboard_cascata', `/api/gerente/dashboard-cascata?filial=${f}`], ['hierarquia_filiais', '/api/gerente/hierarquia-filiais'], ['cascata_todas', '/api/gerente/tabelas-cascata-todas-filiais']]) {
         const t = Date.now();
         try { const r = await fetch(CEVEN + u, { headers: { ...HDR, Authorization: 'Bearer ' + tg }, signal: AbortSignal.timeout(20000) }), x = await r.text(); let j = null; try { j = JSON.parse(x); } catch { /* nao e JSON */ } out[n] = { http: r.status, ms: Date.now() - t, bytes: x.length, limite: r.headers.get('x-ratelimit-limit'), resta: r.headers.get('x-ratelimit-remaining'), forma: forma(j) }; } catch (e) { out[n] = { erro: e.name }; }
@@ -886,6 +886,7 @@ export async function onRequestGet({ env, request }) {
     if (Date.now() - t0 < 90000) { try { contagem.pedidos_dia = await coletaPedidosDoDia(env, dataRef); } catch (e) { contagem.pedidos_dia = { erro: String(e.message || e).slice(0, 80) }; } }
     if (!env.TESTE_SEM_HORARIO && Date.now() - t0 < 95000) { try { contagem.macro = await coletaMacroForaArvore(env); } catch (e) { contagem.macro = { erro: String(e.message || e).slice(0, 80) }; } }
     if (Date.now() - t0 < 95000) { try { contagem.recheca = await rechecaAbertosPorVendedor(env, noiteTodos ? 90 : 15, t0 + 150000);   /* todos os ~250 vendedores com pedido aberto: ~30 min de dia e a cada 30 min de noite (31/10/2026) */ } catch (e) { contagem.recheca = { erro: String(e.message || e).slice(0, 80) }; } }
+    if (Date.now() - t0 < 120000) { try { contagem.rota_gerente = await gravaRotasGerente(env, dataRef, Math.min(25000, t0 + 150000 - Date.now())); } catch (e) { contagem.rota_gerente = { erro: String(e.message || e).slice(0, 80) }; } }
     await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);
     // ALARME DE 15 MIN (Vitorio, 01/11/2026): faturado ou chamada do gerente acima do limite avisa a diretoria, no maximo 1 vez por hora. So no horario de dia.
     if (!noiteTodos && !filialParam) { try {

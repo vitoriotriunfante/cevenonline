@@ -20,5 +20,17 @@ export async function onRequestGet({ env }) {
     for (const x of vs || []) { const c = mapa.get(x.f + '|' + x.r); if (!c || Math.abs(c.t - em(x.prod_em)) > 300000) continue; let p = null; try { p = JSON.parse(x.p); } catch { continue; } if (!p || !p.dia || !p.mes) continue; cmp('visitas_plan_hoje', c.v.visit_plan_hoje, p.dia.total_programado); cmp('visitas_real_hoje', c.v.visit_real_hoje, p.dia.visitas_na_rota); cmp('eficacia_hoje', c.v.eficacia_hoje_pct, p.dia.eficacia_pct); cmp('visitas_plan_mes', c.v.visit_plan_mes, p.mes.visit_plan); cmp('visitas_real_mes', c.v.visit_real_mes, p.mes.visit_real); }
     comparacao = conta;
   } catch { /* sem cascata ou colunas */ }
-  return new Response(JSON.stringify({ dia, limite_min: 15, ...r, cascata, falhas, comparacao }), { headers: CORS });
+  // ROTA: gerente x leitura individual, por vendedor, com as duas leituras a ate 5 min uma da outra.
+  let rota_gerente = null;
+  try {
+    const { results: gs } = await env.DB.prepare('SELECT filial, json, lido_em FROM rota_gerente_dia WHERE data_ref = ?').bind(dia).all();
+    const { results: vs } = await env.DB.prepare('SELECT filial_sigla f, rca_codigo r, roteiro_json j, roteiro_em e FROM varredura_central_rca WHERE data_ref = ? AND roteiro_em IS NOT NULL').bind(dia).all();
+    const em = (t) => Date.parse(String(t).replace(' ', 'T') + 'Z'), por = new Map();
+    let pior = 0, visitas = 0, campos = null;
+    for (const g of gs || []) { pior = Math.max(pior, (Date.now() - em(g.lido_em)) / 60000); for (const x of JSON.parse(g.json)) { visitas++; campos = campos || Object.keys(x); const k = g.filial + '|' + x.id_representante, o = por.get(k) || { n: 0, t: em(g.lido_em) }; o.n++; por.set(k, o); } }
+    let comparados = 0, iguais = 0;
+    for (const v of vs || []) { const o = por.get(v.f + '|' + v.r); if (!o || Math.abs(o.t - em(v.e)) > 300000) continue; let a = null; try { a = JSON.parse(v.j); } catch { continue; } if (!Array.isArray(a)) continue; comparados++; if (a.length === o.n) iguais++; }
+    rota_gerente = { supervisores: (gs || []).length, visitas, pior_min: Math.round(pior), vendedores: por.size, comparados, iguais, campos };
+  } catch { /* tabela nasce na primeira rodada */ }
+  return new Response(JSON.stringify({ dia, limite_min: 15, ...r, cascata, falhas, comparacao, rota_gerente }), { headers: CORS });
 }

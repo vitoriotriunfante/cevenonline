@@ -254,6 +254,37 @@ export async function gravaCascatas(env, dataRef, prazoMs = 30000) {
   return res;
 }
 
+// ROTA PELO GERENTE, EM PARALELO (Vitorio, 01/11/2026: "cada gerente ve tudo"): /api/gerente/supervisor/roteiro-hoje traz a rota da equipe de cada supervisor numa chamada,
+// fora da cota de /api/rca/*. Grava so em rota_gerente_dia: NADA le daqui ainda. /api/frescor compara com a leitura individual; a troca da fonte so depois de os numeros baterem.
+export async function gravaRotasGerente(env, dataRef, prazoMs = 25000) {
+  if (!env.CEVEN_GERENTE_SENHA || !env.DB) return { status: 'SEM_SEGREDO_OU_D1' };
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS rota_gerente_dia (data_ref TEXT NOT NULL, filial TEXT NOT NULL, supervisor_id TEXT NOT NULL, json TEXT NOT NULL, lido_em TEXT NOT NULL, PRIMARY KEY (data_ref, filial, supervisor_id))').run();
+  const { results } = await env.DB.prepare('SELECT filial, json FROM cascata_dia WHERE data_ref = ?').bind(dataRef).all();
+  const fila = [], fim = Date.now() + prazoMs, res = { supervisores: 0, lidos: 0, visitas: 0, falhas: {} };
+  for (const c of results || []) { const g = GERENTES.find((x) => x.sigla === c.filial); let j = null; try { j = JSON.parse(c.json); } catch { continue; } if (g && j) for (const s of j.supervisores || []) if (s.supervisorId != null) fila.push({ g, id: s.supervisorId }); }
+  res.supervisores = fila.length;
+  const falha = (m) => { res.falhas[m] = (res.falhas[m] || 0) + 1; };
+  let k = 0;
+  await Promise.all(Array.from({ length: 6 }, async () => {   // teto de 6 simultaneas
+    while (k < fila.length && Date.now() < fim) {
+      const { g, id } = fila[k++];
+      try {
+        const tk = await tokenGerente(g, env.CEVEN_GERENTE_SENHA);
+        if (!tk) { falha('login'); continue; }
+        const r = await fetch(`${CEVEN}/api/gerente/supervisor/roteiro-hoje?filial=${g.filialKey}&supervisorId=${id}`, { headers: { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(10000) });
+        if (r.status === 401) tokGer.delete(g.filialKey);
+        if (!r.ok) { falha('http' + r.status); continue; }
+        const a = await r.json();
+        if (!Array.isArray(a)) { falha('formato'); continue; }
+        res.lidos++; res.visitas += a.length;
+        await env.DB.prepare("INSERT INTO rota_gerente_dia (data_ref, filial, supervisor_id, json, lido_em) VALUES (?, ?, ?, ?, datetime('now')) ON CONFLICT (data_ref, filial, supervisor_id) DO UPDATE SET json = excluded.json, lido_em = excluded.lido_em").bind(dataRef, g.sigla, String(id), JSON.stringify(a)).run();
+      } catch (e) { falha(String((e && e.name) || 'erro')); }
+    }
+  }));
+  res.nao_lidos_prazo = fila.length - k;
+  return res;
+}
+
 export async function gravaCascataFilial(env, filialSigla, dataRef, prazoMs = 10000) {
   if (!env.CEVEN_GERENTE_SENHA || !env.DB) return null;
   const sig = String(filialSigla || '').toUpperCase().slice(0, 3);
