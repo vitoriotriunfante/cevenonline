@@ -72,6 +72,6 @@ function idadeMediaFilial(fKey) {
 
 function macroDaFilial(sigla) { return macroFora.get(sigla) || null; }
 function resumo() { return { ligada: LIGADA, ...contagem, max_idade_s: MAX_IDADE_S }; }
-function limpar() { mapa.clear(); contagem.base = contagem.ceven = contagem.velho = contagem.filiais = contagem.rcas = 0; }
+function limpar() { mapa.clear(); macroFora.clear();contagem.base = contagem.ceven = contagem.velho = contagem.filiais = contagem.rcas = 0; }
 
 module.exports = { macroDaFilial, carregarBase, lerBase, lerBaseReserva, resumo, limpar, MAX_IDADE_S, idadeMediaFilial };

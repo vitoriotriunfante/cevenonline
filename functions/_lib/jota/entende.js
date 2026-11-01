@@ -627,7 +627,8 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
         const mes = hojeSP().slice(0, 7), hoje = hojeSP(), { results: mf } = await B.env.DB.prepare('SELECT filial, rca, dev_mes, notas_json FROM macro_fora_arvore WHERE mes = ?').bind(mes).all();
         const X = (mf || []).filter((x) => E.filiais.includes(x.filial) && !Em.vend.some((v) => v.filial === x.filial && String(v.rca) === String(x.rca))); const devH = X.reduce((a, x) => a + JSON.parse(x.notas_json || '[]').filter((n) => n.d === hoje).reduce((s, n) => s + (Number(n.v) || 0), 0), 0), devM = X.reduce((a, x) => a + (Number(x.dev_mes) || 0), 0);
         const ehHoje = /HOJE|\bHJ\b/.test(t), v = ehHoje ? devH : devM;
-        if (v > 0) extra = `\n\n➕ *Códigos não monitorados (ex.: código 2 de cada filial):* ${R$(v)} ${ehHoje ? 'hoje' : 'no mês'}, fora dos valores acima.`;
+        const vs = Em.vend.reduce((a, x) => a + (Number(ehHoje ? x.devHoje : x.dev) || 0), 0);
+        if (v > 0) extra = `\n\n🧮 *TOTAL ${ehHoje ? 'de hoje' : 'do mês'}: ${R$(vs + v)}* (vendedores ${R$(vs)} + códigos não monitorados, ex.: código 2 de cada filial, ${R$(v)}).`;
       } catch (e) { /* tabela ainda sem dado */ } }
       return base + extra; }
   }
