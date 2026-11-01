@@ -7,7 +7,9 @@ const RUD = { nome: 'RUDINEI RIZATTI', papel: 'diretoria', filial: null, grupo: 
 const ALEX = { nome: 'ALEX SANDRO SOARES ELIAS', papel: 'supervisor', filial: 'TBE', supervisor: 'ALEX SANDRO SOARES ELIAS' };
 const PAT = { nome: 'PATRICIA CHAVES MACHADO', papel: 'supervisor', filial: 'TBE', supervisor: 'PATRICIA CHAVES MACHADO' };
 const VEND = { nome: 'VENDEDOR TESTE', papel: 'vendedor', filial: 'ABC', rca: '228' };
+const WAS = { nome: 'WASHINGTON FLORES DA ROSA', papel: 'supervisor', filial: 'API', supervisor: 'WASHINGTON FLORES DA ROSA' };
 const P = [
+  [WAS, 'Fechamento time nível Brasil'], [WAS, 'Como esta minha posição ranking nível Brasil supervisor?'], [WAS, 'fechamento'],
   [DIR, 'batemos a meta?'], [DIR, 'faturou?'], [DIR, 'quanto faturado?'], [DIR, 'faturamento acumulado mês'], [DIR, 'como fechamos?'], [DIR, 'fechamento do mes? como estamos no acumulado'],
   [DIR, 'pessoal disse que já faturou tudo e o jota não leu'], [DIR, 'onde atacar positivação'], [DIR, 'qual equipe de supervisão está pior em relação à positivação?'], [DIR, 'qual a equipe de supervisão que está pior em relação à devolução?'], [DIR, 'me manda o resultado de agora aberto por filial'],
   [RUD, 'me passe como foi a venda por vendedor de bally em tcv, tph, tbl e tca'], [RUD, 'venda de bally por supervisor'], [RUD, 'venda por indústria de cada filial'], [RUD, 'resumo de grassi'], [RUD, 'como está a venda do grupo triunfante neste momento ?'], [RUD, 'gap pelos 3 meses'],

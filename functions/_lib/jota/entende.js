@@ -293,6 +293,19 @@ export async function respostaInterna(B, c, texto, anteriores) {
     : fil ? { nome: supervisor ? 'Equipe ' + nome2(supervisor) + ' (' + fil + ')' : fil + (grupo ? ' · ' + titulo(grupo) : ''), filiais: [fil], grupo: supervisor ? null : grupo, supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
   if (/^(OI+|OLA+|E AI|AJUDA|MENU|INICIO|COMECAR|BOM DIA+|BOA TARDE|BOA NOITE)\b[ !?.]*$|O QUE (VOCE|VC) (SABE|FAZ|RESPONDE)|^AJUDA/.test(t)) return respAjuda(c);
   if (/O QUE (E|EH|SIGNIFICA)|COMO FUNCIONA|COMO (E|EH) CALCULAD|QUE QUER DIZER|DEFINICAO/.test(t)) { const g = respGlossario(t); if (g) return g; }
+  // POSICAO DO SUPERVISOR NO BRASIL (Washington/API, 01/11/2026: "Fechamento time nivel Brasil", "minha posicao ranking nivel Brasil supervisor"): a posicao e dele; os numeros dos outros nao aparecem.
+  if (c.papel === 'supervisor' && c.supervisor && B.env && B.env.DB && ((/RANKING|POSICAO|COLOCACAO|\bLUGAR\b/.test(t) && /BRASIL|SUPERVISOR/.test(t)) || (/FECHAMENTO/.test(t) && /BRASIL/.test(t)))) {
+    const hj = hojeSP(), NMs = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'], fechado = Number(hj.slice(8)) <= 5 || /FECHAMENTO/.test(t) && Number(hj.slice(8)) <= 5;
+    const ym = fechado ? new Date(Date.parse(hj.slice(0, 7) + '-15T12:00:00Z') - 30 * 864e5).toISOString().slice(0, 7) : hj.slice(0, 7);
+    const u = await B.env.DB.prepare('SELECT MAX(data_ref) d FROM varredura_central_rca WHERE data_ref >= ? AND data_ref <= ?').bind(ym + '-01', ym + '-31').first();
+    if (u && u.d) {
+      const { results: L } = await B.env.DB.prepare("SELECT a.sup_nome s, v.filial_sigla f, json_extract(v.dashboard_json,'$.financeiro.faturado_bruto') b, json_extract(v.dashboard_json,'$.financeiro.devolucao') dv, json_extract(v.dashboard_json,'$.financeiro.meta') m, json_extract(v.dashboard_json,'$.positivacao.realizado') pr, json_extract(v.dashboard_json,'$.positivacao.meta') pm FROM varredura_central_rca v JOIN arvore_supervisores a ON a.filial = v.filial_sigla AND a.rca = CAST(v.rca_codigo AS TEXT) WHERE v.data_ref = ? AND v.dashboard_json IS NOT NULL").bind(u.d).all();
+      const G = new Map(); for (const x of L || []) { if (!x.s || /^(VAGO|GERENTE|SEM SUPERVISOR)/i.test(x.s)) continue; const k = x.f + '|' + sem(x.s), o = G.get(k) || { liq: 0, m: 0, pr: 0, pm: 0 }; o.liq += (Number(x.b) || 0) - (Number(x.dv) || 0); o.m += Number(x.m) || 0; o.pr += Number(x.pr) || 0; o.pm += Number(x.pm) || 0; G.set(k, o); }
+      const R1 = [...G].filter(([, o]) => o.m > 0).sort((a, b) => b[1].liq / b[1].m - a[1].liq / a[1].m), R2 = [...G].filter(([, o]) => o.pm > 0).sort((a, b) => b[1].pr / b[1].pm - a[1].pr / a[1].pm), eu = String(c.filial).toUpperCase() + '|' + sem(c.supervisor), i1 = R1.findIndex(([k]) => k === eu), i2 = R2.findIndex(([k]) => k === eu), me = G.get(eu);
+      if (me && i1 >= 0 && me.liq > 0) return [`🏁 *${fechado ? 'Fechamento de ' + NMs[Number(ym.slice(5)) - 1] : 'Mês até agora'} — Equipe ${nome2(c.supervisor)} (${c.filial})* (foto de ${u.d.split('-').reverse().join('/')})`, `💰 Faturado líquido: *${R$(me.liq)}* de ${R$(me.m)} → *${pctTxt(me.liq / me.m * 100)}*`, `👥 Positivação: *${me.pr}* de ${Math.round(me.pm)} (${pctTxt(me.pr / me.pm * 100)})`, '', `🏆 *Sua posição entre os supervisores do Brasil:*`, `• Meta de faturamento: *${i1 + 1}º de ${R1.length}*`, i2 >= 0 ? `• Positivação: *${i2 + 1}º de ${R2.length}*` : ''].filter(Boolean).join('\n');
+      return `Não tenho o fechamento da sua equipe na foto de ${u.d.split('-').reverse().join('/')}, então não vou passar posição.`;
+    }
+  }
   const foraEscopo = foraDoEscopoContato(c, texto);
   if (foraEscopo) return foraEscopo;
   // ENTRADA DIRETA (auditoria 01/11/2026): perguntas reais que a cadeia de regras abaixo mandava para a resposta errada. Prova: testes/jota_falhas_reais.mjs
@@ -330,7 +343,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     {
       const NM = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'], hj = hojeSP(), iNm = NM.findIndex((n) => new RegExp('\\b' + n + '\\b').test(t));
       const passado = new Date(Date.parse(hj.slice(0, 7) + '-15T12:00:00Z') - 30 * 864e5).toISOString().slice(0, 7), mesPedido = iNm >= 0 ? hj.slice(0, 4) + '-' + String(iNm + 1).padStart(2, '0') : null;
-      const ym = /MES (ANTERIOR|PASSADO)/.test(t) || (/COMO FECH(AMOS|OU O MES|EI)/.test(t) && !mesPedido && Number(hj.slice(8)) <= 5) ? passado : mesPedido;
+      const ym = /MES (ANTERIOR|PASSADO)/.test(t) || ((/COMO FECH(AMOS|OU O MES|EI)/.test(t) || (/\bFECHAMENTO\b/.test(t) && !/COMO ESTAMOS|ACUMULAD|\bHOJE\b/.test(t))) && !mesPedido && Number(hj.slice(8)) <= 5) ? passado : mesPedido;
       if (ym && ym < '2026-10' && /FECH/.test(t)) return `Só tenho fechamento conferido a partir de outubro/2026. De ${titulo(NM[Number(ym.slice(5)) - 1])} não tenho a foto do mês, então não vou passar número.`;
       if (ym && ym >= '2026-10' && ym < hj.slice(0, 7) && /FECH|RESULTADO|FATUR|ACUMUL/.test(t) && !/INDUSTRIA|FORNECEDOR|PRODUTO|CLIENTE/.test(t) && B.env && B.env.DB) {
         const Em = await carregaEscopo(B, esc), chaves = new Set(Em.vend.concat(Em.ocultos || []).map((v) => v.filial + '|' + v.rca));
