@@ -1,4 +1,4 @@
-import { rodaAgora, freioCusto, agoraBrasilia } from '../_lib/horario_reduzido.js';   // custo Cloudflare: fora do horario, 1 rodada a cada 30 min (25/10/2026)
+import { rodaAgora, foraDoHorario, freioCusto, agoraBrasilia } from '../_lib/horario_reduzido.js';   // custo Cloudflare: fora do horario, 1 rodada a cada 30 min (25/10/2026)
 // =========================================================================
 // FICHA DO ARQUIVO
 // O QUE É: varredura CENTRAL dos RCAs no CEVEN, gravada em varredura_central_rca (migration 0006). Todas as telas e o
@@ -460,7 +460,8 @@ export async function onRequestGet({ env, request }) {
   // so era lida no pico da manha, com 429: as 08h ainda faltavam vendedores. Durante o dia so rele quem teve pedido novo (camada quente).
   // MEDIDO (docs/BASE_UNICA.md): a rota do dia ja esta pronta as 00:07; ~600 vendedores a 3-4 chamadas/min levam horas, por isso comeca 00:30.
   const rel = R.relogioSP(), agBr = agoraBrasilia(), madrugada = rel.dow !== 0 && !agBr.feriado && rel.min >= 30 && rel.min < 6 * 60;
-  if (!forcar && !filialParam && !env.TESTE_SEM_HORARIO && !madrugada && !rodaAgora(2, undefined, await freioCusto(env))) return resp({ status: 'FORA_DO_HORARIO', regra: 'antes das 06h, depois das 21h, domingo e feriado: a cada 30 min' });
+  const noiteTodos = foraDoHorario() && !madrugada;   // Vitorio, 31/10/2026: "pode ler de meia em meia hora, mas tem que ler todos": 3 rodadas seguidas a cada 30 min, 200 dashboards cada, cobrem os ~580
+  if (!forcar && !filialParam && !env.TESTE_SEM_HORARIO && !madrugada && !rodaAgora(noiteTodos ? 6 : 2, undefined, await freioCusto(env))) return resp({ status: 'FORA_DO_HORARIO', regra: 'antes das 06h, depois das 21h, domingo e feriado: a cada 30 min' });
 
   // lock global do WhatsApp (prioridade sobre TV/CFTV)
   if (!forcar && !filialParam) {
@@ -651,8 +652,8 @@ export async function onRequestGet({ env, request }) {
     // 0. LACUNA DE DASHBOARD PRIMEIRO (11/10/2026): a etapa fria fica no fim e com o CEVEN limitando (429) nunca chegava a rodar; 217 RCAs ficaram o dia sem meta/faturado
     // (o /incentivo deixava esses vendedores de fora). Agora ate 15 por tick logo no inicio: ~15 chamadas, fecha a lacuna em ~30 min sem estourar a cota.
     // 0a. DASHBOARD DE TODOS PELO ADMIN (sem a trava): grava meta/faturado/devolucao/pendente/positivacao de TODOS e descobre quem teve PEDIDO NOVO ou DEVOLUCAO NOVA.
-    const maisAntigosPrimeiro = rcas.slice().sort((x, y) => { const k = (r) => { const a = ant.get(String(r.codigo)); return !a ? '' : String(a.ua || ''); }; return k(x).localeCompare(k(y)); }).slice(0, 70);   // 21/10/2026: 90 -> 70 (Vitorio: "da uma baixada"); a varredura usava quase toda a cota do admin e o app dele dava Too Many Requests
-    const dashAdm = await dashboardsAdmin(env, maisAntigosPrimeiro, 35000);
+    const maisAntigosPrimeiro = rcas.slice().sort((x, y) => { const k = (r) => { const a = ant.get(String(r.codigo)); return !a ? '' : String(a.ua || ''); }; return k(x).localeCompare(k(y)); }).slice(0, noiteTodos ? 200 : 70);   // 21/10/2026: 90 -> 70 (Vitorio: "da uma baixada"); a varredura usava quase toda a cota do admin e o app dele dava Too Many Requests
+    const dashAdm = await dashboardsAdmin(env, maisAntigosPrimeiro, noiteTodos ? 60000 : 35000);
     const admMudou = new Set(), devMudou = new Set();
     const viaAdmin = dashAdm.size > 0 || Date.now() < banAdminAte || tokenAdmin.v != null;   // caminho do admin ativo (mesmo sem ler nada por estar em espera de cota)
     if (viaAdmin) {
