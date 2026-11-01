@@ -400,13 +400,14 @@ async function coletaMacroForaArvore(env, limite = 3) {
 
 // RECHECAGEM ATE FATURAR (Vitorio, 31/10/2026: "pedido que identifiquei como bloqueado tenho que checar ate ele virar faturado"; 810 "bloqueados", a maioria ja faturada, quase geraram ligacao
 // a todos os gerentes). Era 4 clientes por rodada para 3 mil em aberto. Agora 1 chamada por vendedor atualiza TODOS os pedidos abertos dele; vai primeiro quem tem o pedido checado ha mais tempo.
-async function rechecaAbertosPorVendedor(env, limite = 6) {
+async function rechecaAbertosPorVendedor(env, limite = 6, prazo = Infinity) {
   if (Date.now() < banRcaAte) return { pulado: 'cota' };
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS recheca_fila (filial TEXT NOT NULL, rca TEXT NOT NULL, em TEXT, PRIMARY KEY (filial, rca))').run();
   const { results: V } = await env.DB.prepare("SELECT p.filial, p.rca, COALESCE(f.em, '') ult FROM pedido_status p LEFT JOIN recheca_fila f ON f.filial = p.filial AND f.rca = p.rca WHERE p.final = 0 AND p.data_pedido >= date('now', '-15 days') GROUP BY p.filial, p.rca ORDER BY ult, MIN(CASE WHEN p.status LIKE 'BLOQ%' THEN 0 ELSE 1 END) LIMIT ?").bind(limite).all();
   let lidos = 0, mudaram = 0;
   const FINAL = /FATURAD|CANCELAD|DEVOLVID/i;
   for (const x of V || []) {
+    if (Date.now() > prazo) break;
     const r = await fetch(`${CEVEN}/api/rca/historico-vendedor?filial=${String(x.filial).toLowerCase()}1&id=${x.rca}&expandido=true`, { headers: HDR, signal: AbortSignal.timeout(20000) }).catch(() => null);
     if (!r) continue;
     if (r.status === 429) { banRcaAte = Date.now() + ((Number(r.headers.get('x-ratelimit-reset')) || 30) + 2) * 1000; break; }
@@ -835,7 +836,7 @@ export async function onRequestGet({ env, request }) {
     }
     if (Date.now() - t0 < 90000) { try { contagem.pedidos_dia = await coletaPedidosDoDia(env, dataRef); } catch (e) { contagem.pedidos_dia = { erro: String(e.message || e).slice(0, 80) }; } }
     if (!env.TESTE_SEM_HORARIO && Date.now() - t0 < 95000) { try { contagem.macro = await coletaMacroForaArvore(env); } catch (e) { contagem.macro = { erro: String(e.message || e).slice(0, 80) }; } }
-    if (Date.now() - t0 < 95000) { try { contagem.recheca = await rechecaAbertosPorVendedor(env); } catch (e) { contagem.recheca = { erro: String(e.message || e).slice(0, 80) }; } }
+    if (Date.now() - t0 < 95000) { try { contagem.recheca = await rechecaAbertosPorVendedor(env, noiteTodos ? 90 : 15, t0 + 150000);   /* todos os ~250 vendedores com pedido aberto: ~30 min de dia e a cada 30 min de noite (31/10/2026) */ } catch (e) { contagem.recheca = { erro: String(e.message || e).slice(0, 80) }; } }
     await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);
     let mapa = 'pulado';
     if (Date.now() - t0 < 85000) {
