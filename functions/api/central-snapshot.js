@@ -42,7 +42,8 @@ export async function onRequestGet({ env, request }) {
       // SE CASCATA ESTIVER VELHA (> 5 MIN) OU NAO EXISTIR PARA HOJE: busca na hora para esta filial!
       const idadeCascata = c && c.atualizado_em ? Math.round((agora - Date.parse(String(c.atualizado_em).replace(' ', 'T') + 'Z')) / 1000) : Infinity;
       let j = null;
-      if (!c || idadeCascata > 300) {
+      // SO PARA HOJE (auditoria 01/11/2026): consultar dia antigo gravava a cascata de AGORA por cima da daquele dia (em 01/11, a de 30/10 e 31/10 viraram dados de novembro)
+      if (dia === hojeSP() && (!c || idadeCascata > 300)) {
         try { j = await gravaCascataFilial(env, filial, dia, 5000); } catch {}
       }
       if (!j && c) {
