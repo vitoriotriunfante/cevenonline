@@ -442,7 +442,7 @@ export async function respMinhaRota(B, v) {
   const nome = (c) => titulo(c.nome_cliente || c.razao_social || 'cliente');
   let i = 0; const linha = (c, fim) => `${++i}. ${nome(c)} (#${c.id_cliente}) · ${fim}`;
   const L = [`📋 *${vn(v)}* — rota de hoje: *${rota.length} clientes*`, ...mes];
-  if (nao.length) L.push('', `*Ainda não compraram no mês (${nao.length}):*`, ...nao.map((c) => { const d = semMap.get(String(c.id_cliente)).dias; return linha(c, d == null ? 'sem compra em 60 dias' : `${d} dias sem compra`); }));
+  if (nao.length) L.push('', `*Ainda não compraram no mês (${nao.length}):*`, ...nao.map((c) => { const d = semMap.get(String(c.id_cliente)).dias; return linha(c, d == null ? 'sem compra em 60 dias' : d === 0 ? 'última compra hoje, ainda não consta no mês' : `${d} dias sem compra`); }));
   if (ja.length) L.push('', `*Já compraram no mês (${ja.length}):*`, ...ja.map((c) => { const r = valorMes.get(String(c.id_cliente)); return linha(c, r ? R$(r) : 'já comprou'); }));
   L.push('', '*Digite o número* do cliente para ver a ficha dele.');
   return L.join('\n');

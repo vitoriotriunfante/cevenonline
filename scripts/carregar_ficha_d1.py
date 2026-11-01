@@ -96,7 +96,13 @@ print('total enviado', total)
 inicio = datetime.datetime.utcnow().isoformat() + 'Z'
 try:
     P = [{'filial': r['filial'], 'rca': str(r['rca_codigo']), 'cnpj': str(r['cnpj']), 'dados': {'razao': r['razao_social'], 'fantasia': r['nome_fantasia'], 'cnae': r['cnae_desc'], 'end': r['endereco'], 'bairro': r['bairro'], 'mun': r['municipio'], 'tel': r['telefone'], 'km': r['distancia_km'], 'motivo': r['motivo'], 'lat': r['latitude'], 'lon': r['longitude']}} for r in db.execute('SELECT * FROM prospects_mapa_radar')]
-    print('prospects', len(P))
+    # COMPARA COM OS CADASTROS (pedido do Vitorio): quem ja e cliente ou ja tem cadastro no LinkUp nao e prospect. Nada e apagado do que ja foi gravado; so nao entra de novo.
+    so_dig = lambda x: ''.join(ch for ch in str(x or '') if ch.isdigit())
+    ja = {so_dig(r[0]) for r in db.execute('SELECT cnpj FROM clientes_completo')}
+    try: ja |= {so_dig(r[0]) for r in db.execute('SELECT cpf_cnpj FROM cadastros_linkup')}
+    except sqlite3.OperationalError as e: print('sem cadastros_linkup:', e)
+    antes = len(P); P = [p for p in P if so_dig(p['cnpj']) not in ja]
+    print('prospects', len(P), 'de', antes, '; ja eram cliente ou cadastro:', antes - len(P))
     if P and not ENSAIO:
         # ACUMULA (Vitorio, 31/10/2026: "os prospects se repetem ao longo dos dias, nao precisaria gravar de novo"): o coletor le so a rota do dia e apaga a tabela dele; aqui nada e apagado e o repetido nao regrava
         for i in range(0, len(P), 200): chama('POST', '', {'prospects': P[i:i + 200]})
