@@ -328,13 +328,14 @@ async function gravaLote(env, stmts) {
 }
 
 // UPSERT parcial: so as colunas informadas mudam; as demais ficam como estavam. Linha nova entra com o que veio.
+const colLeitura = true;   // colunas dash_em e dev_em: migrations/0009
 function upsertParcial(env, dataRef, rca, campos) {
   const cols = Object.keys(campos);
   const comRoteiro = colRoteiroEm === true && cols.includes('roteiro_json');
   const comProd = colProdEm === true && cols.includes('produtividade_json');
-  const insCols = ['rca_codigo', 'filial_sigla', 'data_ref', ...cols, 'updated_at', ...(comRoteiro ? ['roteiro_em'] : []), ...(comProd ? ['prod_em'] : [])];
-  const marcas = ['?', '?', '?', ...cols.map(() => '?'), 'CURRENT_TIMESTAMP', ...(comRoteiro ? ['CURRENT_TIMESTAMP'] : []), ...(comProd ? ['CURRENT_TIMESTAMP'] : [])].join(', ');
-  const sets = [...cols.map((c) => `${c} = excluded.${c}`), 'updated_at = CURRENT_TIMESTAMP', ...(comRoteiro ? ['roteiro_em = CURRENT_TIMESTAMP'] : []), ...(comProd ? ['prod_em = CURRENT_TIMESTAMP'] : [])].join(', ');
+  const insCols = ['rca_codigo', 'filial_sigla', 'data_ref', ...cols, 'updated_at', ...(comRoteiro ? ['roteiro_em'] : []), ...(comProd ? ['prod_em'] : []), ...(colLeitura && cols.includes('dashboard_json') ? ['dash_em'] : []), ...(colLeitura && cols.includes('devolucoes_json') ? ['dev_em'] : [])];
+  const marcas = ['?', '?', '?', ...cols.map(() => '?'), 'CURRENT_TIMESTAMP', ...(comRoteiro ? ['CURRENT_TIMESTAMP'] : []), ...(comProd ? ['CURRENT_TIMESTAMP'] : []), ...(colLeitura && cols.includes('dashboard_json') ? ['CURRENT_TIMESTAMP'] : []), ...(colLeitura && cols.includes('devolucoes_json') ? ['CURRENT_TIMESTAMP'] : [])].join(', ');
+  const sets = [...cols.map((c) => `${c} = excluded.${c}`), 'updated_at = CURRENT_TIMESTAMP', ...(comRoteiro ? ['roteiro_em = CURRENT_TIMESTAMP'] : []), ...(comProd ? ['prod_em = CURRENT_TIMESTAMP'] : []), ...(colLeitura && cols.includes('dashboard_json') ? ['dash_em = CURRENT_TIMESTAMP'] : []), ...(colLeitura && cols.includes('devolucoes_json') ? ['dev_em = CURRENT_TIMESTAMP'] : [])].join(', ');
   return env.DB.prepare(
     `INSERT INTO varredura_central_rca (${insCols.join(', ')}) VALUES (${marcas})
      ON CONFLICT DO UPDATE SET ${sets}`
@@ -516,7 +517,7 @@ export async function onRequestGet({ env, request }) {
   const temRoteiroEm = await garanteRoteiroEm(env);
   const temProdEm = await garanteProdEm(env);
   const { results: estado } = await env.DB.prepare(
-    `SELECT rca_codigo, filial_sigla,
+    `SELECT rca_codigo, filial_sigla, dash_em,
             COALESCE(json_array_length(roteiro_json), 0) AS n_rota,
             (SELECT COUNT(*) FROM json_each(COALESCE(roteiro_json, '[]')) WHERE json_extract(value, '$.status') NOT IN ('ABERTO', 'AGENDADO')) AS n_feitas_rot,
             CAST(COALESCE(json_extract(produtividade_json, '$.dia.positivacao'), 0) AS REAL) AS pos,
@@ -657,7 +658,7 @@ export async function onRequestGet({ env, request }) {
     // 0a. DASHBOARD DE TODOS PELO ADMIN (sem a trava): grava meta/faturado/devolucao/pendente/positivacao de TODOS e descobre quem teve PEDIDO NOVO ou DEVOLUCAO NOVA.
     // Quem a hierarquia diz que mudou vem primeiro (auditoria 31/10/2026: updated_at anda com qualquer gravacao, e dashboard velho de R$ 785 mil ficava no fim da fila)
     const idsMudouDash = new Set(dashMudou.map(kr));
-    const maisAntigosPrimeiro = rcas.slice().sort((x, y) => { const k = (r) => { const a = ant.get(kr(r)); return (idsMudouDash.has(kr(r)) ? '0' : '1') + (!a ? '' : String(a.ua || '')); }; return k(x).localeCompare(k(y)); }).slice(0, noiteTodos ? 200 : 70);   // 21/10/2026: 90 -> 70 (Vitorio: "da uma baixada"); a varredura usava quase toda a cota do admin e o app dele dava Too Many Requests
+    const maisAntigosPrimeiro = rcas.slice().sort((x, y) => { const k = (r) => { const a = ant.get(kr(r)); return (idsMudouDash.has(kr(r)) ? '0' : '1') + (!a ? '' : String(a.dash_em || '')); }; return k(x).localeCompare(k(y)); }).slice(0, noiteTodos ? 200 : 70);   // 21/10/2026: 90 -> 70 (Vitorio: "da uma baixada"); a varredura usava quase toda a cota do admin e o app dele dava Too Many Requests
     const dashAdm = await dashboardsAdmin(env, maisAntigosPrimeiro, noiteTodos ? 60000 : 35000);
     const admMudou = new Set(), devMudou = new Set();
     const viaAdmin = dashAdm.size > 0 || Date.now() < banAdminAte || tokenAdmin.v != null;   // caminho do admin ativo (mesmo sem ler nada por estar em espera de cota)
