@@ -78,7 +78,14 @@ export async function onRequestGet({ env, request }) {
       const { results: mh } = await env.DB.prepare('SELECT rca, meta, meta_pos FROM meta_hierarquia WHERE filial = ?').bind(filial).all();
       for (const x of mh || []) if (rcas[String(x.rca)]) { rcas[String(x.rca)].meta_hier = Number(x.meta) || 0; rcas[String(x.rca)].meta_pos_hier = Number(x.meta_pos) || 0; }
     } catch { /* tabela ainda nao existe: fica a cascata */ }
-    const outJson = JSON.stringify({ filial, dia, gerado_em: new Date().toISOString(), total: Object.keys(rcas).length, rcas });
+    // MACRO SOMA TUDO (Vitorio, 31/10/2026: "macro numero e macro numero, tem que somar"): devolucao de quem nao tem linha na base; quem tem linha ja entra pela lista dele
+    let macro_fora = null;
+    try {
+      const { results: mf } = await env.DB.prepare('SELECT rca, dev_mes, notas_json FROM macro_fora_arvore WHERE filial = ? AND mes = ?').bind(filial, String(dia).slice(0, 7)).all();
+      const X = (mf || []).filter((x) => !(rcas[String(x.rca)] && rcas[String(x.rca)].devolucoes != null));
+      macro_fora = { dev_dia: X.reduce((a, x) => a + parse(x.notas_json || '[]').filter((n) => n.d === dia).reduce((s, n) => s + (Number(n.v) || 0), 0), 0), dev_mes: X.reduce((a, x) => a + (Number(x.dev_mes) || 0), 0) };
+    } catch { /* tabela ainda sem dado */ }
+    const outJson = JSON.stringify({ filial, dia, gerado_em: new Date().toISOString(), total: Object.keys(rcas).length, rcas, macro_fora });
     if (Object.keys(rcas).length > 0) memSnap.set(chaveMem, { exp: Date.now() + 20000, json: outJson });
     return new Response(outJson, { headers: cors });
   } catch (e) { return new Response(JSON.stringify({ erro: String(e.message || e).slice(0, 300) }), { status: 500, headers: cors }); }

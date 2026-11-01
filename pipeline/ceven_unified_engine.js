@@ -540,6 +540,11 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
     return filialResult[chave];
   };
 
+  // MACRO SOMA TUDO (Vitorio, 31/10/2026): devolucao de codigos fora da arvore. Filial dividida: sem gerente dono, entra so no total geral (nunca rateia).
+  for (const [, meta] of Object.entries(FILIAIS_MAP)) {
+    const mf = fonteBase.macroDaFilial(meta.sigla); const v = (mf && Number(mf.dev_dia)) || 0;
+    if (subdivididas.has(meta.sigla)) filialResult[meta.sigla].devMacroSemGerente = v; else filialResult[meta.sigla].devolucoesValor += v;
+  }
   const rcasComPedido = [];
   // MOTOR LE A BASE (Vitorio, 15/10/2026: "resolve!!!"): o 17:00 e o 18:30 sairam zerados porque o motor perguntava ao CEVEN o historico de cada cliente
   // na hora do envio (429). Inativos reativados e recorrencia vem dos LANCES do dia (Resgate de Inativo e Defesa da Recorrencia, conferidos e com prova);
@@ -1216,6 +1221,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
     totBloqQtd += r.bloqueadosQtd;
     totDev += r.devolucoesValor; totDevFaltam += r.devFaltam || 0;
   });
+  Object.values(filialVendas).forEach(f => { totDev += f.devMacroSemGerente || 0; });
 
   const pctGeralCom = totVj > 0 ? ((totVjCom / totVj) * 100).toFixed(1).replace('.', ',') : '0,0';
   const pctGeralSem = totVj > 0 ? ((totVjSem / totVj) * 100).toFixed(1).replace('.', ',') : '0,0';

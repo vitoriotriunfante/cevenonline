@@ -12,6 +12,7 @@ const MAX_IDADE_S = Number(process.env.CEVEN_FONTE_MAX_IDADE_S || 2700);   // 15
 const PARTE = { produtividade: 'produtividade', dashboard: 'dashboard', devolucoes: 'devolucoes', 'roteiro-hoje': 'roteiro' };
 
 const mapa = new Map(); // 'tbl1|123' -> { idade_s, produtividade, dashboard, devolucoes, roteiro }
+const macroFora = new Map();
 const contagem = { base: 0, ceven: 0, velho: 0, filiais: 0, rcas: 0 };
 
 async function carregarBase(chavesFilial, dia) { // chavesFilial = ['tbl1', 'tph1', ...] (as mesmas do FILIAIS_MAP)
@@ -24,6 +25,7 @@ async function carregarBase(chavesFilial, dia) { // chavesFilial = ['tbl1', 'tph
       const j = await r.json();
       if (!j || !j.rcas) return;
       contagem.filiais++;
+      if (j.macro_fora) macroFora.set(sigla, j.macro_fora);
       for (const [rca, v] of Object.entries(j.rcas)) { mapa.set(`${fKey}|${rca}`, v); contagem.rcas++; }
     } catch (e) { /* sem base para essa filial: o motor pergunta ao CEVEN, como antes */ }
   }));
@@ -68,7 +70,8 @@ function idadeMediaFilial(fKey) {
   return n > 0 ? Math.round(soma / n) : null;
 }
 
+function macroDaFilial(sigla) { return macroFora.get(sigla) || null; }
 function resumo() { return { ligada: LIGADA, ...contagem, max_idade_s: MAX_IDADE_S }; }
 function limpar() { mapa.clear(); contagem.base = contagem.ceven = contagem.velho = contagem.filiais = contagem.rcas = 0; }
 
-module.exports = { carregarBase, lerBase, lerBaseReserva, resumo, limpar, MAX_IDADE_S, idadeMediaFilial };
+module.exports = { macroDaFilial, carregarBase, lerBase, lerBaseReserva, resumo, limpar, MAX_IDADE_S, idadeMediaFilial };

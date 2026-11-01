@@ -625,7 +625,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
     { const Em = { ...E, vend: E.vend.filter((v) => String(v.rca) !== '2') }; const base = respDevolucao(Em, t); let extra = '';
       if (!E.supervisor && !E.rca && B.env && B.env.DB) { try {
         const mes = hojeSP().slice(0, 7), hoje = hojeSP(), { results: mf } = await B.env.DB.prepare('SELECT filial, rca, dev_mes, notas_json FROM macro_fora_arvore WHERE mes = ?').bind(mes).all();
-        const X = (mf || []).filter((x) => E.filiais.includes(x.filial)); const devH = X.reduce((a, x) => a + JSON.parse(x.notas_json || '[]').filter((n) => n.d === hoje).reduce((s, n) => s + (Number(n.v) || 0), 0), 0), devM = X.reduce((a, x) => a + (Number(x.dev_mes) || 0), 0);
+        const X = (mf || []).filter((x) => E.filiais.includes(x.filial) && !Em.vend.some((v) => v.filial === x.filial && String(v.rca) === String(x.rca))); const devH = X.reduce((a, x) => a + JSON.parse(x.notas_json || '[]').filter((n) => n.d === hoje).reduce((s, n) => s + (Number(n.v) || 0), 0), 0), devM = X.reduce((a, x) => a + (Number(x.dev_mes) || 0), 0);
         const ehHoje = /HOJE|\bHJ\b/.test(t), v = ehHoje ? devH : devM;
         if (v > 0) extra = `\n\n➕ *Códigos não monitorados (ex.: código 2 de cada filial):* ${R$(v)} ${ehHoje ? 'hoje' : 'no mês'}, fora dos valores acima.`;
       } catch (e) { /* tabela ainda sem dado */ } }
