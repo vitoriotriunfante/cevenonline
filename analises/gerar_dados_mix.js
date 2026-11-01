@@ -346,7 +346,9 @@ async function main() {
     const dbv = new Database(path.join(__dirname, 'pedidos_historico_ceven.db'), { readonly: true });
     const SQLV = `SELECT ph.filial_sigla f, CAST(ph.rca_id AS TEXT) r, ph.id_cliente c, ph.nome_cliente n, substr(ph.data_pedido,1,10) d, i.codprod cod, i.descricao des, i.quantidade q, i.valor_total v
       FROM pedidos_historico ph JOIN pedidos_historico_itens i ON i.chave_pedido = ph.chave
-      WHERE i.tipo_registro = 'VENDA' AND i.codprod <> '12229' AND i.codprod <> '' AND substr(ph.data_pedido,1,10) >= ? AND substr(ph.data_pedido,1,10) <= ?`;
+      WHERE i.tipo_registro = 'VENDA' AND i.codprod <> '12229' AND i.codprod <> '' AND COALESCE(ph.status_pedido, '') NOT LIKE '%CANCEL%' AND substr(ph.data_pedido,1,10) >= ? AND substr(ph.data_pedido,1,10) <= ?`;
+    // DIAGNOSTICO (01/11/2026): itens de outubro R$ 105 mi x bruto do CEVEN R$ 85 mi. Mostra no log do Actions o valor por status do mes anterior e o maior pedido.
+    try { const ini = new Date(INI + 'T12:00:00Z'); ini.setUTCMonth(ini.getUTCMonth() - 1); const ym = ini.toISOString().slice(0, 7); console.log('itens por status ' + ym + ':', JSON.stringify(dbv.prepare("SELECT COALESCE(ph.status_pedido,'') s, COUNT(DISTINCT ph.chave) p, ROUND(SUM(i.valor_total)) v FROM pedidos_historico ph JOIN pedidos_historico_itens i ON i.chave_pedido = ph.chave WHERE i.tipo_registro = 'VENDA' AND substr(ph.data_pedido,1,7) = ? GROUP BY 1 ORDER BY 3 DESC").all(ym))); } catch (e) { console.log('diagnostico de status falhou: ' + e.message); }
     const rows = dbv.prepare(SQLV).all(INI, ATE);
     // MES ANTERIOR inteiro, mesmo formato (Vitorio, 25/10/2026: "comparacao com mes passado... mes passado com esse mes ate agora... o negocio e complexo")
     const iniAnt = (() => { const d = new Date(INI + 'T12:00:00Z'); d.setUTCMonth(d.getUTCMonth() - 1); return d.toISOString().slice(0, 10); })();
