@@ -244,6 +244,7 @@ function anotaOk(url) { const k = chaveFalha(url); if (k) { okTick.add(k); falha
 async function gravaFalhas(env) {
   try {
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS coleta_falhas (filial TEXT NOT NULL, rca TEXT NOT NULL, indicador TEXT NOT NULL, motivo TEXT, vezes INTEGER, primeira TEXT, ultima TEXT, PRIMARY KEY (filial, rca, indicador))').run();
+    await env.DB.prepare("DELETE FROM coleta_falhas WHERE ultima < datetime('now','-1 day')").run();
     const { results } = await env.DB.prepare('SELECT filial, rca, indicador FROM coleta_falhas').all();
     const resolvidas = (results || []).filter((x) => okTick.has(`${x.filial}|${x.rca}|${x.indicador}`));   // so apaga o que existia: custo D1 = linhas gravadas
     const st = [...falhasTick].map(([k, motivo]) => { const [f, r, i] = k.split('|'); return env.DB.prepare("INSERT INTO coleta_falhas (filial, rca, indicador, motivo, vezes, primeira, ultima) VALUES (?,?,?,?,1,datetime('now'),datetime('now')) ON CONFLICT (filial, rca, indicador) DO UPDATE SET motivo = excluded.motivo, vezes = vezes + 1, ultima = excluded.ultima").bind(f, r, i, motivo); })
@@ -264,9 +265,22 @@ async function abreTick(env, modo, rcas) {
 async function salvaBan(env) {
   try { await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('ceven_ban_ate', ?, 'bloqueio de /api/rca/* (429) ate este instante (ms)', CURRENT_TIMESTAMP) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = CURRENT_TIMESTAMP").bind(banRcaAte).run(); } catch { /* nunca derruba */ }
 }
+// REENVIO DO WHATSAPP (01/11/2026): resposta do JOTA que nao saiu com o servidor fora volta a cada rodada, por ate 2 horas. Depois disso e velha demais: sai da fila com o erro ja registrado.
+async function reenviaFila(env) {
+  try {
+    const { results } = await env.DB.prepare("SELECT id, celular, numero, nome, texto, tipo FROM bot_envio_fila WHERE criado_em > datetime('now','-2 hours') ORDER BY id LIMIT 20").all();
+    for (const m of results || []) {
+      const r = await R.enviarTexto(R.evoCfg(env), m.numero, m.texto).catch(() => null);
+      if (!r || !r.ok) { await env.DB.prepare('UPDATE bot_envio_fila SET tentativas = tentativas + 1 WHERE id = ?').bind(m.id).run(); break; }   // servidor ainda fora: tenta na proxima rodada
+      await env.DB.batch([env.DB.prepare('DELETE FROM bot_envio_fila WHERE id = ?').bind(m.id), env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,'out',?,?)").bind(m.celular, m.nome, String(m.texto).slice(0, 4000), m.tipo)]);
+    }
+    await env.DB.prepare("DELETE FROM bot_envio_fila WHERE criado_em <= datetime('now','-2 hours')").run();
+  } catch { /* sem fila: nada a reenviar */ }
+}
 async function registraTick(env, modo, rcas, gravados, duracaoMs) {
   await salvaBan(env);
   await gravaFalhas(env);
+  await reenviaFila(env);
   try {
     if (tickId) {
       await env.DB.prepare('UPDATE saude_coleta SET modo = ?, rcas = ?, gravados = ?, chamadas = ?, ok = ?, r429 = ?, r401 = ?, falhas = ?, duracao_ms = ? WHERE id = ?')

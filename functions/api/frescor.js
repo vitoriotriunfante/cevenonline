@@ -7,7 +7,7 @@ export async function onRequestGet({ env }) {
   const dia = new Date(Date.now() - 3 * 3600000).toISOString().slice(0, 10), linha = (c) => `SUM(${c} IS NULL) ${c}_nunca, SUM(${c} < datetime('now','-15 minutes')) ${c}_acima15, ROUND((julianday('now') - julianday(MIN(${c}))) * 1440) ${c}_pior_min`;
   const r = await env.DB.prepare(`SELECT COUNT(*) vendedores, ${['dash_em', 'dev_em', 'prod_em', 'roteiro_em'].map(linha).join(', ')} FROM varredura_central_rca WHERE data_ref = ?`).bind(dia).first();
   let falhas = null, cascata = null;
-  try { falhas = (await env.DB.prepare("SELECT indicador, motivo, COUNT(*) vendedores, SUM(vezes) vezes, MAX(ultima) ultima FROM coleta_falhas GROUP BY indicador, motivo ORDER BY vendedores DESC").all()).results; } catch { /* tabela nasce na primeira rodada */ }
+  try { falhas = (await env.DB.prepare("SELECT indicador, motivo, COUNT(*) vendedores, SUM(vezes) vezes, MAX(ultima) ultima FROM coleta_falhas WHERE ultima > datetime('now','-60 minutes') GROUP BY indicador, motivo ORDER BY vendedores DESC").all()).results; } catch { /* tabela nasce na primeira rodada */ }
   try { cascata = await env.DB.prepare("SELECT COUNT(*) filiais, SUM(atualizado_em < datetime('now','-15 minutes')) acima15, ROUND((julianday('now') - julianday(MIN(atualizado_em))) * 1440) pior_min FROM cascata_dia WHERE data_ref = ?").bind(dia).first(); } catch { /* sem cascata */ }
   // PROVA ANTES DE TROCAR A FONTE: compara a chamada do gerente com a leitura individual feita ate 5 min dela. So isso diz se os numeros sao o mesmo numero.
   let comparacao = null;

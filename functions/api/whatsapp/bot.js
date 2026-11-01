@@ -297,7 +297,7 @@ export async function onRequestPost({ request, env }) {
   const partes = String(resp).split('\n⟪⟫\n').filter((x) => x.trim());
   let e = { ok: true };
   const numEnvio = (c && c.celular) ? c.celular : (destino && !destino.endsWith('@lid') ? destino.replace(/\D/g, '') : cel);
-  for (let i = 0; i < partes.length; i++) { if (i) await new Promise((ok) => setTimeout(ok, 1200)); const ei = await enviar(env, numEnvio, partes[i]); if (!ei.ok) e = ei; }
+  for (let i = 0; i < partes.length; i++) { if (i) await new Promise((ok) => setTimeout(ok, 1200)); const ei = await enviar(env, numEnvio, partes[i]); if (!ei.ok) { e = ei; try { await env.DB.prepare('CREATE TABLE IF NOT EXISTS bot_envio_fila (id INTEGER PRIMARY KEY AUTOINCREMENT, celular TEXT, numero TEXT, nome TEXT, texto TEXT, tipo TEXT, tentativas INTEGER DEFAULT 0, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)').run(); await env.DB.prepare('INSERT INTO bot_envio_fila (celular, numero, nome, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, String(numEnvio), c ? c.nome : null, partes[i], tipo).run(); } catch (x) { /* fica o registro de erro abaixo */ } } }
   resp = partes.join('\n\n');
   if (!e.ok) { try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'falha de envio: ' + String(e.status || '') + ' ' + String(e.erro || JSON.stringify(e.resposta || '')).slice(0, 500)).run(); } catch (x) {} }
   await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, e.ok ? 'out' : 'erro', resp.slice(0, 4000), tipo).run();
