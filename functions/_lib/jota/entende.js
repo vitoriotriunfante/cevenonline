@@ -298,6 +298,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // ENTRADA DIRETA (auditoria 01/11/2026): perguntas reais que a cadeia de regras abaixo mandava para a resposta errada. Prova: testes/jota_falhas_reais.mjs
   {
     const reenvia = (q) => respostaPronta(B, c, q, []);
+    if (/BALLY/.test(t)) return reenvia(t.replace(/BALLY/g, 'BALY'));   // o catalogo escreve BALY (energetico da Bebidas Grassi); o time escreve Bally
     if (rcaV) {
       if (/^\W*(\+ ?MIX|MAIS ?MIX|O QUE (EU )?(POSSO |DEVO )?OFERECER)\W*$/.test(t)) return 'Para qual cliente? Mande assim: *o que oferecer para* e o nome ou o código do cliente.';
       const eu = `VENDEDOR ${rcaV}`;
