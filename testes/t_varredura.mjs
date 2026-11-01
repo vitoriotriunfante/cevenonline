@@ -105,6 +105,23 @@ export default async function (ok) {
   ok(r.status === 'OCUPADO', 'trava recente de uma rodada em andamento (20 s) nao e furada');
   db._db.exec('UPDATE varredura_slot SET dono = NULL WHERE id = 1');
 
+  // 5b) CEVEN TRAVADO (01/11/2026): /api/rca nao responde. A rodada acaba, o disjuntor corta as chamadas, a falha fica gravada e a rodada seguinte tenta de novo
+  {
+    const vivo = setInterval(() => {}, 1000);   // AbortSignal.timeout nao segura o Node aberto sozinho
+    const orig = globalThis.fetch; let abertas = 0;
+    globalThis.fetch = (url, o = {}) => { const c = new URL(url).pathname; if (c === '/api/tv-mostra') return Promise.resolve({ ok: true, json: async () => ({ filiais: {} }), text: async () => '{"filiais":{}}' }); if (c === '/api/cron-mapa-executivo') return Promise.resolve({ ok: true, status: 200, json: async () => ({}), text: async () => '{}' }); abertas++; return new Promise((_, rej) => { if (o.signal) o.signal.addEventListener('abort', () => rej(Object.assign(new Error('t'), { name: 'TimeoutError' }))); }); };
+    const t0 = Date.now(); const r1 = await rodar(db), ms = Date.now() - t0, n1 = abertas;
+    ok(r1.modo === 'tick' && ms < 100000, `com o CEVEN travado a rodada termina dentro do prazo (${Math.round(ms / 1000)} s)`);
+    ok(n1 <= 12, `o disjuntor corta as chamadas ao CEVEN travado (${n1} chamadas)`);
+    const nf = db._db.prepare('SELECT COUNT(*) n FROM coleta_falhas').get().n;
+    ok(nf > 0, `a falha fica gravada por vendedor e indicador (${nf} linhas)`);
+    abertas = 0; await rodar(db);
+    ok(abertas > 0, `a rodada seguinte tenta de novo, sem herdar o disjuntor (${abertas} chamadas)`);
+    globalThis.fetch = orig; clearInterval(vivo);
+    db._db.prepare('DELETE FROM coleta_falhas').run();
+    db._db.exec('UPDATE varredura_slot SET dono = NULL WHERE id = 1');
+  }
+
   // 6) falha do CEVEN nao apaga o que ja estava gravado
   const antes = db._db.prepare("SELECT produtividade_json FROM varredura_central_rca WHERE rca_codigo = '3'").get().produtividade_json;
   reg = ativaCevenFalso({ ...estado, 3: { n_rota: 5, pos: 99, dig: 99 } }, { falha: (ep, id) => id === '3' });

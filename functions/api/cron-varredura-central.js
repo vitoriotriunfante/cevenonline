@@ -235,10 +235,10 @@ const T = { chamadas: 0, ok: 0, r429: 0, r401: 0, falhas: 0 };
 const falhasTick = new Map(), okTick = new Set();
 const chaveFalha = (url) => { const m = /\/rca\/([\w-]+)\?filial=([a-z]+)1&id=(\w+)/i.exec(String(url)); return m ? `${m[2].toUpperCase()}|${m[3]}|${m[1]}` : null; };
 // DISJUNTOR (medido em 30/10/2026, 11:21 as 13:xx: 62 rodadas de 48 chamadas, 0 sucesso, sem 429 nem erro, ~132 s cada: /api/rca pendurado). 6 tempos esgotados seguidos em /api/rca = para 60 s em vez de gastar a rodada.
-let esgotadosSeguidos = 0;
+let esgotadosSeguidos = 0, disjuntorAte = 0;   // so vale dentro da rodada: nao vai para ceven_ban_ate, senao a rodada seguinte e a recuperacao nem tentam (01/11/2026: recuperacao com 0 chamadas)
 function anotaFalha(url, motivo) {
   const k = chaveFalha(url); if (k) { falhasTick.set(k, motivo); okTick.delete(k); }
-  if (/\/api\/rca\//.test(String(url)) && (motivo === 'limite_14s' || motivo === 'TimeoutError') && ++esgotadosSeguidos >= 6) { banRcaAte = Math.max(banRcaAte, Date.now() + 60000); esgotadosSeguidos = 0; }
+  if (/\/api\/rca\//.test(String(url)) && (motivo === 'limite_14s' || motivo === 'TimeoutError') && ++esgotadosSeguidos >= 6) { disjuntorAte = Date.now() + 60000; esgotadosSeguidos = 0; }
 }
 function anotaOk(url) { const k = chaveFalha(url); if (k) { okTick.add(k); falhasTick.delete(k); } esgotadosSeguidos = 0; }
 async function gravaFalhas(env) {
@@ -303,6 +303,7 @@ async function registraTick(env, modo, rcas, gravados, duracaoMs) {
 async function getJson(url, tentativas = 2) {
   for (let t = 0; t < tentativas; t++) {
     try {
+      if (/\/api\/rca\//.test(url) && Date.now() < disjuntorAte) { T.bloqueadas = (T.bloqueadas || 0) + 1; return null; }
       if (/\/api\/rca\//.test(url) && Date.now() < banRcaAte) {
         // PACING: cota do CEVEN ~3 chamadas por janela de ~60 s. Se a janela abre ainda dentro desta rodada, espera e chama (rende ~6 por rodada em vez de 3); senao, pula.
         const resta = banRcaAte - Date.now();
@@ -641,6 +642,7 @@ export async function onRequestGet({ env, request }) {
 
   // CONTADORES SO DEPOIS DE TER A TRAVA (12/10/2026): antes eram zerados por qualquer requisicao, inclusive as que voltavam OCUPADO, e corrompiam a contagem da rodada em andamento.
   T.chamadas = T.ok = T.r429 = T.r401 = T.falhas = 0;
+  disjuntorAte = 0; esgotadosSeguidos = 0;
   tickFim = Date.now() + PRAZO_GLOBAL_MS - 15000;
   concAtual = (await lerEstado(env)).conc;
   try {
