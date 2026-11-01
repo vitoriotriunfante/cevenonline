@@ -210,7 +210,7 @@ async function lerCentral(env, id, maxIdadeMs, filial) {
   if (!env || !env.DB) return null;
   try {
     const row = await env.DB.prepare(
-      'SELECT roteiro_json, produtividade_json, dashboard_json, updated_at, filial_sigla FROM varredura_central_rca WHERE rca_codigo = ? AND data_ref = ? AND (? = '' OR filial_sigla = ?)'
+      'SELECT roteiro_json, produtividade_json, dashboard_json, updated_at, filial_sigla FROM varredura_central_rca WHERE rca_codigo = ? AND data_ref = ? AND (length(?) = 0 OR filial_sigla = ?)'
     ).bind(String(id), dataHojeBrasilia(), String(filial || '').replace(/1$/, '').toUpperCase(), String(filial || '').replace(/1$/, '').toUpperCase()).first();
     if (!row || !row.updated_at) return null;
     const idade = Date.now() - Date.parse(String(row.updated_at).replace(' ', 'T') + 'Z');

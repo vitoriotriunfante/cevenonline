@@ -641,7 +641,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   }
   // PROJECAO (regra do Vitorio: nunca estimar/projetar): diz que nao projeta e mostra quanto precisa por dia
   // TENDENCIA liberada (Vitorio, 26/10/2026: "e matematica pura... so deixa claro que isso e tendencia"): ritmo de faturado+pendente x dias uteis, sempre rotulado
-  if (/PROJE|PREVISAO|TENDENCIA|VAMOS FECHAR|VAI FECHAR|QUANTO (VAMOS|VAI|IREMOS) FECHAR|FECHAMENTO DO MES|ESTIMATIVA/.test(t)) return respTendencia(B, E);
+  if (/PROJE|PREVISAO|TENDENCIA|VAMOS FECHAR|VAI FECHAR|QUANTO (VAMOS|VAI|IREMOS) FECHAR|FECHAMENTO DO MES|ESTIMATIVA/.test(t) && !/ACUMULAD/.test(t)) return respTendencia(B, E);
   if (/PERDENDO VENDA|PERDEMOS VENDA|ONDE (ESTAMOS )?PERDE|OPORTUNIDADES?\b/.test(t) && !/\+ ?MIX|MAIS ?MIX/.test(t)) return '🔎 *Onde estamos perdendo venda* (o que mais caiu contra o mês passado até o mesmo dia):\n\n' + await respComparaMes(B, E, 'MES PASSADO', null);
   if (/OFERECER|O QUE (EU )?(POSSO |DEVO )?(VENDER|LEVAR) (PRO|PARA|NO|NA)|SUGESTAO PARA O CLIENTE|(LEVAR|SUGERIR) (PRO|PARA O|PARA A|NO|NA) |PRODUTOS? (LEVAR|OFERECER|SUGERIR)/.test(t)) { const r = await respOferecer(B, E, t); if (r) return r; }
   // ATALHOS NUMÉRICOS 1, 2, 3... (Vitório, 29/10/2026: "para ver do vendedor X digite 1, do vendedor Y digite 2... bora ajudar"):
