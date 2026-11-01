@@ -150,7 +150,11 @@ export function respDevolucao(E, t = '') {
   const V = E.vend.filter((v) => v.dev > 0).sort((a, b) => b.dev - a.dev); const tot = E.vend.reduce((a, v) => a + v.dev, 0);
   const G = [...agrupa(E.vend, (v) => E.nacional ? v.filial : supChave(v, false))].filter(([, y]) => y.dev > 0).sort((a, b) => b[1].dev - a[1].dev);
   const notas = E.vend.flatMap((v) => v.devolucoes.map((d) => ({ ...d, vend: v.nome }))).filter((d) => d && (d.valor || d.vl_total || d.total));
-  return [`↩️ *Devoluções no mês — ${E.nome}*: *${R$(tot)}*`, `*Por ${E.nacional ? 'filial' : 'supervisor'}:*`, ...G.slice(0, 10).map(([k, y]) => `• ${E.nacional ? k : nome2(k)}: ${R$(y.dev)}`), '*Vendedores com mais devolução:*', ...V.slice(0, 8).map((v) => `• ${vn(v)}${E.nacional ? ' ' + v.filial : ''}: ${R$(v.dev)}`),
+  return [`↩️ *Devoluções no mês — ${E.nome}*: *${R$(tot)}*`, `*Por ${E.nacional ? 'filial' : 'supervisor'}:*`, ...G.slice(0, 10).map(([k, y]) => `• ${E.nacional ? k : nome2(k)}: ${R$(y.dev)}`),
+    // pediu a abertura por supervisor no Brasil (sabatina 01/11/2026); "nao pediu" avisa que o total e de todos os motivos, em vez de parecer filtrado
+    ...(E.nacional && /SUPERVISOR/.test(t) ? ['*Por supervisor:*', ...[...agrupa(E.vend, (v) => supChave(v, true))].filter(([k, y]) => supReal(k) && y.dev > 0).sort((a, b) => b[1].dev - a[1].dev).slice(0, 15).map(([k, y]) => `• ${supNome(k)}: ${R$(y.dev)}`)] : []),
+    ...(/NAO PEDIU/.test(t) ? ['_Atenção: estes totais incluem todos os motivos, não só "cliente não pediu". Peça *devoluções por motivo* para a separação no Brasil._'] : []),
+    '*Vendedores com mais devolução:*', ...V.slice(0, 8).map((v) => `• ${vn(v)}${E.nacional ? ' ' + v.filial : ''}: ${R$(v.dev)}`),
     notas.length ? `_${notas.length} nota(s) detalhadas na base._` : '',
     '_Fonte: painel do CEVEN, só vendedores ativos. O GEROT mostra mais porque soma também devoluções lançadas em contas internas (ex.: VENDA EMPRESA) e códigos que não são de vendedor._', '', SUGESTAO + (V[0] ? `entender as devoluções de ${nome2(V[0].nome)} (${R$(V[0].dev)}).` : 'sem devoluções relevantes.')].filter(Boolean).join('\n');
 }
