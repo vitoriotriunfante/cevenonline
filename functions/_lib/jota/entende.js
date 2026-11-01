@@ -349,7 +349,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     { const mEq = t.match(/EQUIPE D[AOE] ([A-Z]{3,})/); if (mEq && /POSITIVA/.test(t)) { const Eq = await carregaEscopo(B, esc), L = Eq.vend.filter((v) => sem(v.supervisor || '').includes(mEq[1])); if (L.length) { const r = L.reduce((a, v) => ({ p: a.p + (Number(v.pos) || 0), m: a.m + (Number(v.metaPos) || 0) }), { p: 0, m: 0 }); return [`👥 *Positivação — Equipe ${titulo(mEq[1])}* (${[...new Set(L.map((v) => v.filial))].join(', ')})`, `*${N(r.p)} de ${N(Math.round(r.m))}*${r.m > 0 ? ` (${pctTxt(r.p / r.m * 100)})` : ''} · faltam ${N(Math.max(0, Math.round(r.m - r.p)))}`, ...L.slice().sort((x, y) => (Number(x.pos) || 0) / (Number(x.metaPos) || 1) - (Number(y.pos) || 0) / (Number(y.metaPos) || 1)).slice(0, 15).map((v) => `• ${vn(v)}: ${N(v.pos || 0)} de ${N(Math.round(v.metaPos || 0))}`)].join('\n'); } } }
     // MARCA NA META: "meta da colgate", "meta condor do setor 18" vao para as metas por industria, nunca para a meta geral
     { const mMt = t.match(/\bMETA (?:DA |DE |DO )?([A-Z]{4,})\b/), ger = /^(FILIAL|EQUIPE|GERAL|FATURAMENTO|POSITIVACAO|RECORRENCIA|PREMIACAO|MENSAL|TOTAL|VENDEDOR|SUPERVISOR|BRASIL|HOJE|ESTA|ESSA|DESTE|CADA|PARA|AINDA|NOVEMBRO|OUTUBRO)$/;
-      if (mMt && !ger.test(mMt[1]) && !FILIAIS.includes(mMt[1])) { const Em = await carregaEscopo(B, esc), rm = await respMetasIndustria(B, Em, t, achaPessoa(Em, t)); if (rm && !/Nenhuma meta/.test(rm)) return rm; return `Não tenho meta de *${titulo(mMt[1])}* cadastrada na Premiação para ${Em.nome} neste mês.`; } }
+      if (mMt && !ger.test(mMt[1]) && !FILIAIS.includes(mMt[1])) { const Em = await carregaEscopo(B, esc), rm = await respMetasIndustria(B, Em, t, achaPessoa(Em, t)); if (rm && !/Nenhuma meta/.test(rm) && sem(rm).includes(mMt[1])) return rm; return `Não tenho meta de *${titulo(mMt[1])}* cadastrada na Premiação para ${Em.nome} neste mês.`; } }
     // POSITIVOU COM MARCA: quantos clientes do vendedor compraram a marca
     { const mPc = t.match(/POSITIVOU COM ([A-Z]{3,})/); if (mPc) { const Ep = await carregaEscopo(B, esc), r = await respIndustria(B, Ep, mPc[1] + ' POR VENDEDOR ' + t, achaPessoa(Ep, t)); if (r) return r; } }
     // SABATINA 01/11/2026: reclamacao sobre a resposta anterior nao recebe outro numero; pedido sem o nome de quem pede o nome; origem da meta tem resposta propria
@@ -357,6 +357,18 @@ export async function respostaInterna(B, c, texto, anteriores) {
     if (/^\W*CLIENTES?\s+(X\s+)?VENDEDORA?(\s+X)?(\s+HOJE)?\W*$|VENDEDORA?\s+X\b/.test(t)) return 'Qual vendedor? Troque o X pelo código ou nome. Exemplo: *clientes vendedor 228 hoje*.';
     if (/DE ONDE .*(PUXOU|TIROU|VEIO|VEM).*META/.test(t)) return 'A meta vem do CEVEN: a vigente hoje na hierarquia da tela Filiais, a mesma do supervisor e do gerente. A soma dos vendedores dá a meta da equipe e da filial.';
     if (/^\W*TOP JOTA\W*$|^\W*JA GASTAMOS TUDO ISSO\W*$/.test(t)) return 'Não entendi essa. Me diga quem (filial, supervisor ou vendedor) e o que quer ver, como *ranking da minha equipe*.';
+    // +MIX com vendedor ou equipe: o relatorio do +MIX, nunca as metas da Premiacao
+    if (/\bMIX\b/.test(t) && /DESEMPENHO/.test(t)) { const Ex = await carregaEscopo(B, esc), mx = await respMix(B, Ex, t); if (mx) return mx; }
+    // MARCA: "quem nao comprou Mars" e recuperacao; "item mais vendido de Mondelez" e a venda da marca, nunca a meta
+    { const mN = t.match(/QUEM NAO COMPROU ([A-Z0-9]{3,})/); if (mN) return reenvia(t.replace(/QUEM NAO COMPROU/, 'QUEM COMPRAVA').replace(mN[1], mN[1] + ' E PAROU'));
+      const mI = t.match(/(?:ITEM|ITENS|PRODUTOS?) MAIS VENDID\w* (?:DE|DA|DO) ([A-Z0-9]{3,})/); if (mI) { const Ei = await carregaEscopo(B, esc), ri = await respIndustria(B, Ei, t, null); if (ri) return ri; const rp = await respProduto(B, Ei, t, null); if (rp) return rp; } }
+    // DEVOLUCAO "CLIENTE NAO PEDIU": so as notas com esse motivo oficial lido do CEVEN (devolucao_nota_motivo). Nota sem motivo lido fica de fora e a resposta avisa.
+    if (/DEVOLU/.test(t) && /NAO PEDIU/.test(t) && B.env && B.env.DB) {
+      const Ed = await carregaEscopo(B, esc), { results: Mo } = await B.env.DB.prepare('SELECT rca, nota, nao_pediu FROM devolucao_nota_motivo').all(), mot = new Map((Mo || []).map((x) => [x.rca + '|' + x.nota, x.nao_pediu]));
+      const porV = [], porG = new Map(); let tot = 0, semMotivo = 0;
+      for (const v of Ed.vend) { let s = 0; for (const n of v.devolucoes || []) { const k = v.rca + '|' + n.numnota, val = Number(n.vl_devolvido) || 0; if (!mot.has(k)) { if (val > 0) semMotivo++; continue; } if (mot.get(k) === 1) s += val; } if (s > 0) { tot += s; porV.push([v, s]); const g = Ed.nacional ? v.filial : supChave(v, false); porG.set(g, (porG.get(g) || 0) + s); } }
+      return [`↩️ *Devolução "cliente não pediu" no mês — ${Ed.nome}*: *${R$(tot)}*`, `*Por ${Ed.nacional ? 'filial' : 'supervisor'}:*`, ...[...porG].sort((a, b) => b[1] - a[1]).slice(0, 11).map(([k, x]) => `• ${Ed.nacional ? k : nome2(k)}: ${R$(x)}`), '*Vendedores:*', ...porV.sort((a, b) => b[1] - a[1]).slice(0, 10).map(([v, x]) => `• ${vn(v)}${Ed.nacional ? ' ' + v.filial : ''}: ${R$(x)}`), semMotivo ? `_${N(semMotivo)} nota(s) ainda sem motivo lido não entram nesta conta._` : ''].filter(Boolean).join('\n');
+    }
     if (/ROTEIRO DA (MINHA )?EQUIPE/.test(t)) return reenvia('faltam visitar');
     if (/CLOUDFLARE|CLOUDFARE/.test(t)) return 'Custo de sistema não é dado do CEVEN, então não tenho aqui. Posso te passar vendas, metas, rota e clientes.';
     const semAlvo = !/\b(VENDEDOR|RCA|SUPERVISOR|CLIENTE|INDUSTRIA|PRODUTO|HOJE)\b|\bDE [A-Z]{4,}\b/.test(t);
@@ -725,7 +737,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     if (/MOTIVO|POR QUE|PORQUE/.test(t) && !/DEVOLU\w*\s+(DE\s+)?(HOJE|HJ)\b/.test(t)) { const m = await respDevMotivos(B); if (m) { const tot = E.vend.reduce((s, v) => s + (v.dev || 0), 0); return m + `
 _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem só as notas cujo motivo já foi lido; o resto ainda não tem motivo na base._`; } }
     // devolucao do VENDEDOR citado (ou da conversa) e do GERENTE citado (grupo) (27/10/2026: "devolucao do vendedor 1067", "apenas da MCD do gerente Adriano" -> Brasil)
-    const pd = achaPessoa(E, t), gd = (t.match(/GERENTE\s+([A-Z]{3,})/) || [])[1];
+    const gd = (t.match(/GERENTE\s+([A-Z]{3,})/) || [])[1], pd = gd ? null : achaPessoa(E, t);   // gerente citado nao vira o vendedor de mesmo nome
     if (pd && pd.tipo === 'vend') return respDevolucao({ ...E, nome: vn(pd.alvo), vend: [pd.alvo], nacional: false, filiais: [pd.alvo.filial] }, t);
     if (gd && E.vend.some((v) => sem(v.grupo || '') === gd)) return respDevolucao({ ...E, nome: `${E.vend.find((v) => sem(v.grupo || '') === gd).filial} · ${titulo(gd)}`, vend: E.vend.filter((v) => sem(v.grupo || '') === gd), nacional: false }, t);
     // TOTAL INCLUI QUEM NAO E MONITORADO (31/10/2026): codigo 2 sai da lista de vendedores (a linha dele na base mistura filiais) e entra pela tabela com filial certa

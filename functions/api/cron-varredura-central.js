@@ -536,7 +536,9 @@ export async function onRequestGet({ env, request }) {
     const dr = dataHojeBrasilia();
     try { await gravaCascatas(env, dr, 15000); const rg = await gravaRotasGerente(env, dr, 25000); return resp({ status: 'SO_GERENTE_FREIO', rota_gerente: rg }); } catch (e) { return resp({ status: 'SO_GERENTE_FREIO', erro: String(e.message || e).slice(0, 80) }); }
   }
-  if (!forcar && !filialParam && !env.TESTE_SEM_HORARIO && !madrugada && !rodaAgora(noiteTodos ? 6 : 2, undefined, await freioCusto(env))) return resp({ status: 'FORA_DO_HORARIO', regra: 'antes das 06h, depois das 21h, domingo e feriado: a cada 30 min' });
+  let tentarDeNovo = false;
+  try { tentarDeNovo = !!(await env.DB.prepare("SELECT 1 x FROM coleta_estado WHERE chave = 'coleta_sem_ceven' AND atualizado_em > datetime('now','-3 hours')").first()); } catch { /* sem a tabela: segue o horario */ }
+  if (!tentarDeNovo && !forcar && !filialParam && !env.TESTE_SEM_HORARIO && !madrugada && !rodaAgora(noiteTodos ? 6 : 2, undefined, await freioCusto(env))) return resp({ status: 'FORA_DO_HORARIO', regra: 'antes das 06h, depois das 21h, domingo e feriado: a cada 30 min' });
 
   // lock global do WhatsApp (prioridade sobre TV/CFTV)
   if (!forcar && !filialParam) {
@@ -545,6 +547,16 @@ export async function onRequestGet({ env, request }) {
       const idadeLockMs = Date.now() - new Date(lock.criado_em + 'Z').getTime();
       if (idadeLockMs < 20 * 60 * 1000) return resp({ status: 'PULADO_WHATSAPP_ATIVO', dono: lock.dono, idade_lock_s: Math.round(idadeLockMs / 1000) });
     }
+  }
+
+  // RODADA QUE NAO ALCANCA O CEVEN (01/11/2026; 30/10: 62 rodadas perdidas): testa antes de gastar a rodada. Sem resposta em 6 s = encerra e marca; a proxima tentativa vem em 2 min, mesmo fora do horario. Volta a responder = limpa a marca.
+  if (!forcar && !filialParam && !env.TESTE_SEM_HORARIO) {
+    const alcanca = await fetch(CEVEN + '/', { headers: HDR, signal: AbortSignal.timeout(6000) }).then((r) => r.status < 500).catch(() => false);
+    if (!alcanca) {
+      try { await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('coleta_sem_ceven', ?, 'rodada nao alcancou o CEVEN', datetime('now')) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = excluded.atualizado_em").bind(Date.now()).run(); } catch { /* segue */ }
+      return resp({ status: 'SEM_ALCANCE_CEVEN', colo: request.cf && request.cf.colo });
+    }
+    if (tentarDeNovo) { try { await env.DB.prepare("DELETE FROM coleta_estado WHERE chave = 'coleta_sem_ceven'").run(); } catch { /* segue */ } }
   }
 
   const { results: rcasRaw } = await env.DB.prepare(
