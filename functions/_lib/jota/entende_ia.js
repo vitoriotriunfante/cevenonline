@@ -30,7 +30,6 @@ export const CATALOGO = {
   cortes: ['cortes de hoje {lugar}', 'cortes e pedidos bloqueados'],
   compromisso: ['quem não fez RET hoje {lugar}?', 'compromisso do dia / RET dos supervisores'],
   carteira: ['quanto tem na carteira {lugar}?', 'pendente / a faturar / ainda não faturado'],
-  incentivo: ['incentivo {lugar}', 'incentivo/bônus/prêmio extra do mês (110%, gatilho)'],
   mix: ['+mix {lugar}', 'uso do +MIX (ferramenta de sugestão de produtos)'],
   marca_propria: ['marca própria', 'vendas de marca própria (Zipoca, Skive, Calira, Mitbit, Bellarone)'],
   produto: ['quem compra {produto} {lugar}?', 'vendas de um produto: clientes, vendedores'],
