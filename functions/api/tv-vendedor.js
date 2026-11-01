@@ -315,6 +315,14 @@ export async function onRequestGet({ request, env }) {
     const minDe = (s) => { const [a, b] = String(s).slice(0, 5).split(':').map(Number); return a * 60 + (b || 0); };
     const futuro = (ck) => ck && String(ck).slice(0, 5) > hm && (hm < '10:00' || minDe(ck) - minDe(hm) > 180);
     if (Array.isArray(rot) && rot.some((c) => (c.data_visita && String(c.data_visita).slice(0, 10) !== hojeSP) || futuro(c.checkin_horario))) { rot = []; rotaAntiga = true; }
+    // POSITIVADO = TEM PEDIDO (Vitorio, 01/11/2026): o status da rota vem do Clube da Venda e nao decide. Cliente com pedido do vendedor hoje, nao cancelado, esta positivado. Em 30/10: 32 clientes com check-in e pedido sem lance.
+    if (Array.isArray(rot) && rot.length && env && env.DB) {
+      try {
+        const { results: comPedido } = await env.DB.prepare("SELECT DISTINCT id_cliente FROM pedido_status WHERE filial = ? AND rca = ? AND data_pedido = ? AND status NOT LIKE '%CANCEL%'").bind(String(filial || '').replace(/1$/, '').toUpperCase(), String(id), hojeSP).all();
+        const ids = new Set((comPedido || []).map((x) => String(x.id_cliente)));
+        for (const c of rot) if (ids.has(String(c.id_cliente)) && !['POSITIVADO', 'EFETIVADO'].includes(c.status)) { c.status_clube = c.status; c.status = 'POSITIVADO'; }
+      } catch { /* sem a tabela: fica o status recebido */ }
+    }
     // PRODUTIVIDADE DE ONTEM x VENDA DE HOJE (13/10/2026 08:30): esta regra zerava TODO vendedor com venda antes das 10h e roteiro ainda sem check-in. Em 13/10 isso descartou vendas
     // reais (TBE 312 R$ 8,6 mil, TCG 476, TBL 186...) e nenhum gol saiu o dia todo. Agora so zera se o 'dia' for IGUAL ao de um dia anterior ja gravado na base (dado velho de verdade).
     if (!rotaAntiga && hm < '10:00' && prod && prod.dia && Array.isArray(rot) && rot.length > 0 && !rot.some((c) => c.checkin_horario) && (Number(prod.dia.visitas_na_rota) > 0 || Number(prod.dia.dig_pedido) > 0 || Number(prod.dia.positivacao) > 0)) {
