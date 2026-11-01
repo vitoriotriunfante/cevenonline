@@ -295,6 +295,49 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/O QUE (E|EH|SIGNIFICA)|COMO FUNCIONA|COMO (E|EH) CALCULAD|QUE QUER DIZER|DEFINICAO/.test(t)) { const g = respGlossario(t); if (g) return g; }
   const foraEscopo = foraDoEscopoContato(c, texto);
   if (foraEscopo) return foraEscopo;
+  // ENTRADA DIRETA (auditoria 01/11/2026): perguntas reais que a cadeia de regras abaixo mandava para a resposta errada. Prova: testes/jota_falhas_reais.mjs
+  {
+    const reenvia = (q) => respostaPronta(B, c, q, []);
+    if (rcaV) {
+      if (/^\W*(\+ ?MIX|MAIS ?MIX|O QUE (EU )?(POSSO |DEVO )?OFERECER)\W*$/.test(t)) return 'Para qual cliente? Mande assim: *o que oferecer para* e o nome ou o código do cliente.';
+      const eu = `VENDEDOR ${rcaV}`;
+      if (/QUANTO VENDI|VENDI HOJE|MINHAS? VENDAS? (DE )?HOJE/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respDiaVendedor(B, Ev, v); }
+      if (/MINHA ROTA|^\W*ROTA( DE)? HOJE\W*$/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respRotaHojeCompleta(B, v); }
+      if (/NAO POSITIVEI|QUE FALTA(M)? POSITIVAR|MINHA CURVA/.test(t)) return reenvia(`curva negativa do ${eu}`);
+      if (/^\W*MEUS CORTES\W*$/.test(t)) return reenvia(`cortes do ${eu}`);
+      if (/^\W*MEUS (ULTIMOS )?PEDIDOS\W*$/.test(t)) return reenvia(`pedidos do ${eu}`);
+    }
+    if (/\bCHAMPIONS?\b/.test(t) && !/CLIENTE/.test(t)) return respLiga(B, await carregaEscopo(B, esc), null, 'LIGA');
+    const semAlvo = !/\b(VENDEDOR|RCA|SUPERVISOR|CLIENTE|INDUSTRIA|PRODUTO|HOJE)\b|\bDE [A-Z]{4,}\b/.test(t);
+    if (semAlvo && /BATE(MOS|U|RAM) A META|^\W*FATUROU\W*$|^\W*(QUANTO )?(ESTA )?FATURADO\W*$|QUANTO FATURAMOS/.test(t)) return respResumo(B, await carregaEscopo(B, esc));
+    if (/VENDEDORA? X\b/.test(t)) return 'Qual vendedor? Troque o X pelo código ou nome. Exemplo: *clientes vendedor 228 hoje*.';
+    // FECHAMENTO DE UM MES: a ultima foto gravada daquele mes no D1, com a meta vigente naquele dia. Nada calculado por fora (Alex, Vitorio, 31/10 e 01/11/2026)
+    {
+      const NM = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'], hj = hojeSP(), iNm = NM.findIndex((n) => new RegExp('\\b' + n + '\\b').test(t));
+      const passado = new Date(Date.parse(hj.slice(0, 7) + '-15T12:00:00Z') - 30 * 864e5).toISOString().slice(0, 7), mesPedido = iNm >= 0 ? hj.slice(0, 4) + '-' + String(iNm + 1).padStart(2, '0') : null;
+      const ym = /MES (ANTERIOR|PASSADO)/.test(t) || (/COMO FECH(AMOS|OU O MES|EI)/.test(t) && !mesPedido && Number(hj.slice(8)) <= 5) ? passado : mesPedido;
+      if (ym && ym < hj.slice(0, 7) && /FECH|RESULTADO|FATUR|ACUMUL/.test(t) && !/INDUSTRIA|FORNECEDOR|PRODUTO|CLIENTE/.test(t) && B.env && B.env.DB) {
+        const Em = await carregaEscopo(B, esc), chaves = new Set(Em.vend.concat(Em.ocultos || []).map((v) => v.filial + '|' + v.rca));
+        const u = await B.env.DB.prepare('SELECT MAX(data_ref) d FROM varredura_central_rca WHERE data_ref >= ? AND data_ref <= ?').bind(ym + '-01', ym + '-31').first();
+        if (u && u.d) {
+          const { results: fm2 } = await B.env.DB.prepare("SELECT filial_sigla f, rca_codigo r, json_extract(dashboard_json,'$.financeiro.faturado_bruto') b, json_extract(dashboard_json,'$.financeiro.devolucao') dv, json_extract(dashboard_json,'$.financeiro.pendente') p, json_extract(dashboard_json,'$.financeiro.meta') m, json_extract(dashboard_json,'$.positivacao.realizado') pr, json_extract(dashboard_json,'$.positivacao.meta') pm FROM varredura_central_rca WHERE data_ref = ? AND dashboard_json IS NOT NULL").bind(u.d).all();
+          const L = (fm2 || []).filter((x) => esc.nacional || chaves.has(x.f + '|' + x.r)), s = (k) => L.reduce((a, x) => a + (Number(x[k]) || 0), 0), liq = s('b') - s('dv'), meta = s('m'), pos = s('pr'), mp = s('pm');
+          if (L.length && s('b') > 0) return [`🏁 *Fechamento de ${titulo(NM[Number(ym.slice(5)) - 1])} — ${esc.nome}* (foto de ${u.d.split('-').reverse().join('/')})`, `💰 Faturado líquido: *${R$(liq)}* de ${R$(meta)}${meta > 0 ? ` → *${pctTxt(liq / meta * 100)}*` : ''}`, `(bruto ${R$(s('b'))} − devolução ${R$(s('dv'))})`, `⏳ Ficou pendente: ${R$(s('p'))}`, `👥 Positivação: *${Math.round(pos)}* de ${Math.round(mp)}${mp > 0 ? ` (${pctTxt(pos / mp * 100)})` : ''}`].join('\n');
+        }
+      }
+    }
+    if (/COMO FECHAMOS|COMO FECHOU O MES/.test(t) && !/\b(HOJE|DIA)\b/.test(t) && Number(hojeSP().slice(8)) <= 5) return reenvia('resultado do mes passado');
+    // "qual supervisor esta pior em positivacao/devolucao": o criterio e o da pergunta, nunca % de faturamento
+    if (/SUPERVIS/.test(t) && /PIOR|MAIS ATRAS/.test(t) && /POSITIVA|DEVOLU/.test(t)) {
+      const Es = await carregaEscopo(B, esc), dev = /DEVOLU/.test(t);
+      const S = [...agrupa(Es.vend, (v) => supChave(v, Es.nacional))].filter(([k]) => supReal(k) && !/^VAGO/.test(k)).filter(([, x]) => dev || x.metaPos > 0)
+        .sort((a, b) => dev ? b[1].dev - a[1].dev : a[1].pos / a[1].metaPos - b[1].pos / b[1].metaPos).slice(0, 10);
+      if (S.length) return [`🔻 *Supervisores — ${dev ? 'maior devolução no mês' : 'menor positivação'} · ${Es.nome}*`, ...S.map(([k, x], i) => `${i + 1}. ${supNome(k)} — ${dev ? R$(x.dev) : `${x.pos} de ${Math.round(x.metaPos)} (${pctTxt(x.pos / x.metaPos * 100)})`}`)].join('\n');
+    }
+    // produto ou marca em VARIAS filiais: uma resposta por filial, nunca so a primeira (Rudinei, 31/10/2026)
+    const fsCit = [...new Set([...t.matchAll(new RegExp(FRX.source, 'g'))].map((m) => m[1]))], prod = (t.match(/\b(?:VENDA|VENDEU|VENDAS)\b.*?\bDE ([A-Z0-9]{3,})\b/) || [])[1];
+    if (fsCit.length > 1 && prod && !FILIAIS.includes(prod)) { const R = []; for (const f of fsCit) R.push(await reenvia(`quem compra ${prod} ${f}`)); return R.join('\n\n'); }
+  }
   if (/DIVERGENC/.test(t) && (c.papel === 'diretoria' || c.papel === 'ceo')) return respDivergencias(B);
   if (/BOLA CHEIA/.test(t)) return respBola(B, esc);
   if (/SEMANA/.test(t) && /COMPROMISSO|\bRETS?\b|SUPERVISOR/.test(t)) return respSemana(B, await carregaEscopo(B, esc));
