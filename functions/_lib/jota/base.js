@@ -68,6 +68,8 @@ export async function enviar(env, numero, texto) {
   const d = so(s);
   if (!d) return { ok: false, erro: 'numero vazio ou invalido' };
   let r = await R.evolution(R.evoCfg(env), '/message/sendText', { number: d, text: texto });
+  // SERVIDOR DO WHATSAPP FORA (01/11/2026: Vitorio perguntou, o JOTA respondeu certo e o erro 530 perdeu a mensagem): tenta de novo em 5 s e 15 s. Nao repete erro 4xx (numero invalido, por exemplo).
+  for (const ms of [5000, 15000]) { if (r.ok || !(Number(r.status) >= 500 || !r.status)) break; await new Promise((ok) => setTimeout(ok, ms)); r = await R.evolution(R.evoCfg(env), '/message/sendText', { number: d, text: texto }); }
   if (r.ok) return { ok: true, status: r.status };
   // falha passageira da Evolution (31/10/2026: 4 respostas nao chegaram; Franco: "ja que voce nao quer responder meu bom dia"): tenta de novo antes de desistir
   if (!r.status || r.status >= 500) {
