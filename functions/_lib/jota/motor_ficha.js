@@ -125,3 +125,15 @@ export async function fichaPorIA(env, texto) {
     return { modelo: 'cloudflare', erro_gemini: erroGemini, bruta: j, ficha: confereFicha(j, q) };
   } catch (e) { return null; }
 }
+
+// ---------- DA FICHA PARA A RESPOSTA: a ficha vira uma pergunta padrao, respondida pelas funcoes ja conferidas. Sem pergunta padrao para o caso = null (fica o caminho atual). ----------
+export function perguntaPadrao(f) {
+  if (!f) return null;
+  const [i, i2] = f.indicadores, quem = f.codigo || f.pessoa, v = quem ? `vendedor ${[f.codigo, f.pessoa].filter(Boolean).join(' ')}` : '', fil = f.filial ? ` ${f.filial}` : '', dia = f.periodo === 'hoje' ? ' hoje' : f.periodo === 'ontem' ? ' ontem' : '';
+  const alvo = f.sujeito === 'vendedor' ? `${v}${fil}` : f.sujeito === 'supervisor' ? `supervisor ${f.pessoa}${fil}` : f.sujeito === 'brasil' ? 'brasil' : fil.trim();
+  if ((f.sujeito === 'vendedor' && !quem) || (f.sujeito === 'supervisor' && !f.pessoa) || i2 && !(i === 'faturado' && i2 === 'pendente')) return null;
+  if (f.periodo === 'mes_passado' || f.periodo === 'mes_citado') return i === 'geral' ? `como fechamos${f.mes ? ' ' + f.mes : ''} ${alvo}`.trim() : null;
+  if (f.marca) return i === 'meta' ? `como está a meta da ${f.marca} ${alvo}`.trim() : i === 'faturado' ? `venda de ${f.marca} ${alvo}`.trim() : null;
+  const M = { geral: `como está ${alvo}${dia}`, faturado: `como está ${alvo}`, pendente: `quanto tem na carteira ${alvo}`, meta: `quanto falta pra meta ${alvo}`, devolucao: `devoluções ${alvo}${dia}`, positivacao: `positivação ${alvo}`, digitado: `hoje ${alvo}`, clientes: `clientes ${alvo}${dia}`, rota: `quais clientes o ${alvo} visitou hoje`, visitas: `visitas de hoje ${alvo}`, recorrencia: `recorrência ${alvo}`, curva_negativa: `curva negativa do ${alvo}`, liga: `liga ${alvo}`, mix: `+mix ${alvo}`, status_pedido: `pedidos bloqueados ${alvo}` };
+  return M[i] ? M[i].replace(/\s+/g, ' ').trim() : null;
+}
