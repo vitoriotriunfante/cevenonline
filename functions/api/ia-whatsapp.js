@@ -1,4 +1,6 @@
 export async function onRequestPost({ request, env }) {
+  // DESLIGADO (auditoria 01/11/2026): este chat respondia com texto fixo, valores-padrao e cadastro falso. Regra inviolavel 1: nada inventado. O canal e o JOTA no WhatsApp.
+  return new Response(JSON.stringify({ resposta: 'Este chat foi desativado. Use o JOTA no WhatsApp.' }), { headers: { 'Content-Type': 'application/json' } });
   try {
     const body = await request.json();
     const { mensagem, rca_codigo = '181', filial = 'TBL' } = body;
