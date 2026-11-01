@@ -1895,7 +1895,7 @@ function gerarCardsPedidosHtml(pendentes) {
   return `
     <div class="grid-cards">
       ${pendentes.map((p) => `
-        <div class="card-item" style="border-left:4px solid var(--amarelo);">
+        <div class="card-item" style="border-left:4px solid ${p.linha_corporativa === 'ATIVO' ? '#22c55e' : p.linha_corporativa === 'SUSPENSO' ? '#f59e0b' : '#ef4444'};">
           <div class="card-header">
             <div>
               <div class="card-title">${esc(tit(p.nome))}</div>
@@ -1903,6 +1903,7 @@ function gerarCardsPedidosHtml(pendentes) {
             </div>
             <span class="tag-badge ia">Aguardando OK</span>
           </div>
+          <div style="margin:6px 0; padding:5px 8px; border-radius:6px; font-size:12.5px; font-weight:700; color:#fff; background:${p.linha_corporativa === 'ATIVO' ? '#15803d' : p.linha_corporativa === 'SUSPENSO' ? '#b45309' : '#b91c1c'};">${p.linha_corporativa === 'ATIVO' ? '🟢 Linha corporativa ativa' : p.linha_corporativa === 'SUSPENSO' ? '🟠 Linha corporativa SUSPENSA' : '🔴 NÃO é linha corporativa'}</div>
           <div style="font-size:12.5px; color:var(--txt-mut); line-height:1.5;">
             <div><b>Celular:</b> +${esc(p.celular)}${p.cpf ? ' · <b>CPF:</b> ' + esc(p.cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4')) : ''}</div>
             <div><b>Pedido em:</b> ${esc(String(p.atualizado_em || p.criado_em || '').slice(0, 16))}</div>

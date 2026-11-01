@@ -316,6 +316,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     if (rcaV) {
       if (/^\W*(\+ ?MIX|MAIS ?MIX|O QUE (EU )?(POSSO |DEVO )?OFERECER)\W*$/.test(t)) return 'Para qual cliente? Mande assim: *o que oferecer para* e o nome ou o código do cliente.';
       const eu = `VENDEDOR ${rcaV}`;
+      if (/(QUANTO VENDI|MINHAS? VENDAS?).*\b(MES|ACUMULADO)\b/.test(t)) return reenvia(`como esta o ${eu}`);   // "no mes" nao e o digitado de hoje (teste com vendas de outubro, 01/11/2026)
       if (/QUANTO VENDI|VENDI HOJE|MINHAS? VENDAS? (DE )?HOJE/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respDiaVendedor(B, Ev, v); }
       if (/MINHA ROTA|^\W*ROTA( DE)? HOJE\W*$/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respMinhaRota(B, v); }
       // numero da lista da "minha rota": abre a ficha daquele cliente (o numero e o #codigo vem da ultima mensagem enviada)
