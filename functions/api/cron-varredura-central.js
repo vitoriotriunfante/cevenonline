@@ -474,6 +474,13 @@ export async function onRequestGet({ env, request }) {
     await mede('produtividade', `${CEVEN}/api/rca/produtividade?filial=tbl1&id=185`, HDR);
     const tk = await tokenDoAdmin(env).catch(() => null); out.token_admin = !!tk;
     if (tk) await mede('view_as', `${CEVEN}/api/admin/view-as/rca/dashboard?filial=tbl1&id=185`, { ...HDR, Authorization: `Bearer ${tk}` });
+    // Chamadas em bloco por supervisor (01/11/2026): rota e devolucao vem em bloco? Devolve status e amostra dos campos, sem valores.
+    if (tk) { try {
+      const c = await env.DB.prepare("SELECT json FROM cascata_dia WHERE filial = 'TBL' ORDER BY data_ref DESC LIMIT 1").first(), sup = c && (JSON.parse(c.json).supervisores || [])[0];
+      if (sup) for (const [n, u] of [['sup_roteiro_mes', `/api/supervisor/roteiro-mes?filial=tbl1&id=${sup.supervisorId}`], ['sup_rcas', `/api/supervisor/rcas?filial=tbl1&id=${sup.supervisorId}`], ['ver_sup_roteiro_mes', `/api/admin/view-as/supervisor/roteiro-mes?filial=tbl1&id=${sup.supervisorId}`], ['ver_sup_devolucoes', `/api/admin/view-as/supervisor/devolucoes?filial=tbl1&id=${sup.supervisorId}`]]) {
+        try { const r = await fetch(CEVEN + u, { headers: { ...HDR, Authorization: `Bearer ${tk}` }, signal: AbortSignal.timeout(15000) }), x = await r.text(); let campos = null, itens = null; try { const j = JSON.parse(x), a = Array.isArray(j) ? j : null; itens = a ? a.length : null; campos = Object.keys((a ? a[0] : j) || {}); } catch { /* nao e JSON */ } out[n] = { http: r.status, bytes: x.length, itens, campos }; } catch (e) { out[n] = { erro: e.name }; }
+      }
+    } catch { out.supervisor = 'sem cascata'; } }
     return new Response(JSON.stringify(out), { headers: cors });
   }
   const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: cors });
@@ -877,6 +884,18 @@ export async function onRequestGet({ env, request }) {
     if (!env.TESTE_SEM_HORARIO && Date.now() - t0 < 95000) { try { contagem.macro = await coletaMacroForaArvore(env); } catch (e) { contagem.macro = { erro: String(e.message || e).slice(0, 80) }; } }
     if (Date.now() - t0 < 95000) { try { contagem.recheca = await rechecaAbertosPorVendedor(env, noiteTodos ? 90 : 15, t0 + 150000);   /* todos os ~250 vendedores com pedido aberto: ~30 min de dia e a cada 30 min de noite (31/10/2026) */ } catch (e) { contagem.recheca = { erro: String(e.message || e).slice(0, 80) }; } }
     await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);
+    // ALARME DE 15 MIN (Vitorio, 01/11/2026): faturado ou chamada do gerente acima do limite avisa a diretoria, no maximo 1 vez por hora. So no horario de dia.
+    if (!noiteTodos && !filialParam) { try {
+      const f = await env.DB.prepare("SELECT SUM(dash_em IS NULL OR dash_em < datetime('now','-15 minutes')) dash, (SELECT COUNT(*) FROM cascata_dia WHERE data_ref = ?1 AND atualizado_em < datetime('now','-15 minutes')) casc FROM varredura_central_rca WHERE data_ref = ?1").bind(dataRef).first();
+      if (f && (f.dash > 0 || f.casc > 0)) {
+        const av = await env.DB.prepare("SELECT valor FROM coleta_estado WHERE chave = 'aviso_atraso_em'").first();
+        if (!av || Date.now() - Number(av.valor) > 3600000) {
+          await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('aviso_atraso_em', ?, 'ultimo aviso de atraso acima de 15 min', datetime('now')) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = excluded.atualizado_em").bind(Date.now()).run();
+          const eu = await env.DB.prepare("SELECT celular FROM bot_contatos WHERE nome = 'VITORIO' AND papel = 'diretoria' LIMIT 1").first();
+          if (eu) await R.enviarTexto(R.evoCfg(env), eu.celular, `⚠️ *Dados acima de 15 min:* faturado de ${f.dash} vendedores e ${f.casc} filiais na chamada do gerente.`);
+        }
+      }
+    } catch { /* o aviso nunca derruba a coleta */ } }
     let mapa = 'pulado';
     if (Date.now() - t0 < 85000) {
       try { const rm = await fetch(new URL('/api/cron-mapa-executivo', request.url), { signal: AbortSignal.timeout(30000) }); const jm = await rm.json().catch(() => ({})); mapa = jm.status || String(rm.status); } catch { mapa = 'falhou'; }
