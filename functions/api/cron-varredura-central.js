@@ -328,7 +328,15 @@ async function gravaLote(env, stmts) {
 }
 
 // UPSERT parcial: so as colunas informadas mudam; as demais ficam como estavam. Linha nova entra com o que veio.
-const colLeitura = true;   // colunas dash_em e dev_em: migrations/0009
+// hora da ultima leitura real de cada parte (Vitorio, 01/11/2026: 15 min no maximo); updated_at anda com qualquer gravacao e nao prova nada. Criada como prod_em.
+let colLeitura = false;
+async function garanteColLeitura(env) {
+  if (colLeitura) return;
+  const { results } = await env.DB.prepare("SELECT name FROM pragma_table_info('varredura_central_rca') WHERE name IN ('dash_em', 'dev_em')").all();
+  const tem = new Set((results || []).map((r) => r.name));
+  for (const c of ['dash_em', 'dev_em']) if (!tem.has(c)) await env.DB.prepare(`ALTER TABLE varredura_central_rca ADD COLUMN ${c} TEXT`).run();
+  colLeitura = true;
+}
 function upsertParcial(env, dataRef, rca, campos) {
   const cols = Object.keys(campos);
   const comRoteiro = colRoteiroEm === true && cols.includes('roteiro_json');
@@ -447,6 +455,7 @@ export async function onRequestGet({ env, request }) {
   const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: cors });
 
   const t0 = Date.now();
+  await garanteColLeitura(env);
   const dataRef = dataHojeBrasilia();
   const urlParams = new URL(request.url).searchParams;
   const forcar = urlParams.has('forcar');
