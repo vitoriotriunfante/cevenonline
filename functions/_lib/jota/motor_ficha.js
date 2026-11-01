@@ -86,7 +86,7 @@ export function confereFicha(j, texto) {
   const t = sem(texto), naPergunta = (v) => !v || t.includes(sem(v));
   const indicadores = (Array.isArray(j.indicadores) ? j.indicadores : []).filter((x) => IND_IA.includes(x));
   if (!indicadores.length || indicadores.length > 3) return null;   // listou quase todos = nao entendeu (01/11/2026: 50 de 225 fichas)
-  if (/JOTA/.test(sem(j.pessoa))) return null;
+  if (/\bJOTA\b/.test(sem(j.pessoa))) return null;
   if (!naPergunta(j.pessoa) || !naPergunta(j.codigo) || !naPergunta(j.cliente) || !naPergunta(j.marca) || !naPergunta(j.filial)) return null;   // inventou: nao usa
   if (j.codigo && !/^\d{1,12}$/.test(String(j.codigo))) return null;
   const um = (v, L, p) => (L.includes(v) ? v : p);
