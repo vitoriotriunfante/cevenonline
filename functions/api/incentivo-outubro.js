@@ -14,6 +14,8 @@ const pct = (r, m) => (m > 0 ? Math.round((r / m) * 1000) / 10 : null); // sem m
 
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
+  // FORA DO AR (Vitorio, 01/11/2026: "tire do ar"). Para voltar, remover esta linha.
+  return new Response(JSON.stringify({ erro: 'incentivo de outubro fora do ar' }), { status: 410, headers: CORS });
   try {
     const cfg = await (await fetch(new URL('/incentivo_outubro_2026.json', url.origin))).json();
     const eq = await (await fetch(new URL('/api/tv-mostra', url.origin))).json();
