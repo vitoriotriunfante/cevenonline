@@ -166,12 +166,12 @@ async function dashboardsAdmin(env, lista, prazoMs) {
       const rca = lista[k];
       try {
         const r = await fetch(`${CEVEN}/api/admin/view-as/rca/dashboard?filial=${String(rca.filial || '').toLowerCase()}1&id=${rca.codigo}`, { headers: { ...HDR, Authorization: `Bearer ${tk}` }, signal: AbortSignal.timeout(8000) });
-        if (r.status === 401 || r.status === 403) { tokenAdmin = { v: null, ate: 0 }; return; }
-        if (r.status === 429) { banAdminAte = Date.now() + (Number(r.headers.get('retry-after')) || 40) * 1000; proximo = lista.length; return; }
-        if (!r.ok) continue;
+        if (r.status === 401 || r.status === 403) { anotaFalha(r.url, 'http' + r.status); tokenAdmin = { v: null, ate: 0 }; return; }
+        if (r.status === 429) { anotaFalha(r.url, 'http429'); banAdminAte = Date.now() + (Number(r.headers.get('retry-after')) || 40) * 1000; proximo = lista.length; return; }
+        if (!r.ok) { anotaFalha(r.url, 'http' + r.status); continue; }
         const j = await r.json();
-        if (j && j.financeiro) mapa.set(kr(rca), j);
-      } catch { /* proximo */ }
+        if (j && j.financeiro) { mapa.set(kr(rca), j); anotaOk(r.url); } else anotaFalha(r.url, 'sem_financeiro');
+      } catch (e) { anotaFalha(`/rca/dashboard?filial=${String(rca.filial || '').toLowerCase()}1&id=${rca.codigo}`, String((e && e.name) || 'erro')); }
     }
   }));
   return mapa;
@@ -230,6 +230,23 @@ async function hierarquiaAdmin(env) {
 
 // TELEMETRIA (12/10/2026): cada tick grava 1 linha em saude_coleta (chamadas, 429, 401, falhas) para o painel /saude e para os alertas. Zera a cada rodada.
 const T = { chamadas: 0, ok: 0, r429: 0, r401: 0, falhas: 0 };
+// FALHA NUNCA EM SILENCIO (Vitorio, 01/11/2026: "uma chamada da erro, vc nao resolve e simplesmente ignora"; medido: ~7% das chamadas sem resultado e painel com 0 falhas).
+// Cada falha fica em coleta_falhas com vendedor, indicador e motivo ate a mesma leitura dar certo. /api/frescor mostra.
+const falhasTick = new Map(), okTick = new Set();
+const chaveFalha = (url) => { const m = /\/rca\/([\w-]+)\?filial=([a-z]+)1&id=(\w+)/i.exec(String(url)); return m ? `${m[2].toUpperCase()}|${m[3]}|${m[1]}` : null; };
+function anotaFalha(url, motivo) { const k = chaveFalha(url); if (k) { falhasTick.set(k, motivo); okTick.delete(k); } }
+function anotaOk(url) { const k = chaveFalha(url); if (k) { okTick.add(k); falhasTick.delete(k); } }
+async function gravaFalhas(env) {
+  try {
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS coleta_falhas (filial TEXT NOT NULL, rca TEXT NOT NULL, indicador TEXT NOT NULL, motivo TEXT, vezes INTEGER, primeira TEXT, ultima TEXT, PRIMARY KEY (filial, rca, indicador))').run();
+    const { results } = await env.DB.prepare('SELECT filial, rca, indicador FROM coleta_falhas').all();
+    const resolvidas = (results || []).filter((x) => okTick.has(`${x.filial}|${x.rca}|${x.indicador}`));   // so apaga o que existia: custo D1 = linhas gravadas
+    const st = [...falhasTick].map(([k, motivo]) => { const [f, r, i] = k.split('|'); return env.DB.prepare("INSERT INTO coleta_falhas (filial, rca, indicador, motivo, vezes, primeira, ultima) VALUES (?,?,?,?,1,datetime('now'),datetime('now')) ON CONFLICT (filial, rca, indicador) DO UPDATE SET motivo = excluded.motivo, vezes = vezes + 1, ultima = excluded.ultima").bind(f, r, i, motivo); })
+      .concat(resolvidas.map((x) => env.DB.prepare('DELETE FROM coleta_falhas WHERE filial = ? AND rca = ? AND indicador = ?').bind(x.filial, x.rca, x.indicador)));
+    for (let i = 0; i < st.length; i += 80) await env.DB.batch(st.slice(i, i + 80));
+  } catch { /* telemetria nunca derruba a coleta */ }
+  falhasTick.clear(); okTick.clear();
+}
 let tickId = null;
 async function abreTick(env, modo, rcas) {
   tickId = null;
@@ -244,6 +261,7 @@ async function salvaBan(env) {
 }
 async function registraTick(env, modo, rcas, gravados, duracaoMs) {
   await salvaBan(env);
+  await gravaFalhas(env);
   try {
     if (tickId) {
       await env.DB.prepare('UPDATE saude_coleta SET modo = ?, rcas = ?, gravados = ?, chamadas = ?, ok = ?, r429 = ?, r401 = ?, falhas = ?, duracao_ms = ? WHERE id = ?')
@@ -281,20 +299,26 @@ async function getJson(url, tentativas = 2) {
         if (r.status === 429) {
           T.r429++;
           const waitS = Number(r.headers.get('retry-after')) || 60;
+          anotaFalha(url, 'http429');
           if (/\/api\/rca\//.test(url)) { banRcaAte = Math.max(banRcaAte, Date.now() + waitS * 1000); return null; }   // /api/rca: bloqueado ate o Retry-After; nao insiste
           pausaAte = Math.max(pausaAte, Date.now() + Math.min(waitS, 30) * 1000);
           return 'RETRY';
         }
-        if (!r.ok) { T.falhas++; return null; }
+        if (!r.ok) { T.falhas++; anotaFalha(url, 'http' + r.status); return null; }
         const txt = await r.text();
+        if (!txt) { T.ok++; anotaFalha(url, 'corpo_vazio'); return null; }
+        const obj = JSON.parse(txt);   // antes de contar como certa: resposta invalida e falha
         T.ok++;
-        return txt ? JSON.parse(txt) : null;
+        anotaOk(url);
+        return obj;
       })();
       chamada.catch(() => {});
-      const res = await Promise.race([chamada, new Promise((resolve) => setTimeout(() => resolve(null), 14000))]);
+      const res = await Promise.race([chamada, new Promise((resolve) => setTimeout(() => { anotaFalha(url, 'limite_14s'); resolve(null); }, 14000))]);
       if (res === 'RETRY') continue;
       return res;
-    } catch {
+    } catch (e) {
+      T.falhas++;
+      anotaFalha(url, String((e && e.name) || 'erro'));
       if (t === tentativas - 1) return null;
       await new Promise((res) => setTimeout(res, 1000));
     }
