@@ -646,7 +646,7 @@ export async function onRequestGet({ env, request }) {
         const cod = kr(rca), assinatura = JSON.stringify(h);
         if (dif(h.bruto, a.d_bruto) || dif(h.pend, a.d_pend) || dif(h.meta, a.d_meta) || dif(h.pmeta, a.d_pmeta) || dif(h.preal, a.d_preal)) {
           if (hierVisto.get(cod) === assinatura) dashIgual.add(cod);   // ja rebuscado para este mesmo valor: a diferenca restante e do cache do painel admin
-          else { dashMudou.push(rca); hierVisto.set(cod, assinatura); }
+          else dashMudou.push(rca);   // hierVisto so depois de ler: quem nao coube na rodada continua na frente da fila
         } else dashIgual.add(cod);
       }
     }
@@ -655,10 +655,13 @@ export async function onRequestGet({ env, request }) {
     // 0. LACUNA DE DASHBOARD PRIMEIRO (11/10/2026): a etapa fria fica no fim e com o CEVEN limitando (429) nunca chegava a rodar; 217 RCAs ficaram o dia sem meta/faturado
     // (o /incentivo deixava esses vendedores de fora). Agora ate 15 por tick logo no inicio: ~15 chamadas, fecha a lacuna em ~30 min sem estourar a cota.
     // 0a. DASHBOARD DE TODOS PELO ADMIN (sem a trava): grava meta/faturado/devolucao/pendente/positivacao de TODOS e descobre quem teve PEDIDO NOVO ou DEVOLUCAO NOVA.
-    const maisAntigosPrimeiro = rcas.slice().sort((x, y) => { const k = (r) => { const a = ant.get(kr(r)); return !a ? '' : String(a.ua || ''); }; return k(x).localeCompare(k(y)); }).slice(0, noiteTodos ? 200 : 70);   // 21/10/2026: 90 -> 70 (Vitorio: "da uma baixada"); a varredura usava quase toda a cota do admin e o app dele dava Too Many Requests
+    // Quem a hierarquia diz que mudou vem primeiro (auditoria 31/10/2026: updated_at anda com qualquer gravacao, e dashboard velho de R$ 785 mil ficava no fim da fila)
+    const idsMudouDash = new Set(dashMudou.map(kr));
+    const maisAntigosPrimeiro = rcas.slice().sort((x, y) => { const k = (r) => { const a = ant.get(kr(r)); return (idsMudouDash.has(kr(r)) ? '0' : '1') + (!a ? '' : String(a.ua || '')); }; return k(x).localeCompare(k(y)); }).slice(0, noiteTodos ? 200 : 70);   // 21/10/2026: 90 -> 70 (Vitorio: "da uma baixada"); a varredura usava quase toda a cota do admin e o app dele dava Too Many Requests
     const dashAdm = await dashboardsAdmin(env, maisAntigosPrimeiro, noiteTodos ? 60000 : 35000);
     const admMudou = new Set(), devMudou = new Set();
     const viaAdmin = dashAdm.size > 0 || Date.now() < banAdminAte || tokenAdmin.v != null;   // caminho do admin ativo (mesmo sem ler nada por estar em espera de cota)
+    for (const r of dashMudou) if (dashAdm.has(kr(r)) || !viaAdmin) hierVisto.set(kr(r), JSON.stringify(hier.get(kr(r))));
     if (viaAdmin) {
       for (const rca of rcas) {
         const cod = kr(rca), d = dashAdm.get(cod), a = ant.get(cod);
