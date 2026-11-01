@@ -127,3 +127,9 @@ Vitório: "se estou falando de uma filial precisa falar sobre ela... se eu peço
 - **Meta:** lista oficial (`meta_hierarquia`) + cascata do gerente para quem não está nela. A fonte é o CEVEN; o GEROT é apoio. Em 31/10: R$ 80.007.705 contra R$ 80.043.662 do GEROT (API, R$ 35.957, sem explicação).
 - **Vazio do CEVEN:** `historico-cliente` com HTTP 200 e corpo vazio = sem histórico no CEVEN (o app mostra igual). `data_ultima_compra` do roteiro não é confiável.
 - **Incidente:** das 14:31 às 15:41 o tick fez 48 chamadas com 0 sucesso; a causa não foi descoberta. Tick travado agora cai na varredura completa e avisa no WhatsApp. `?diag=1` testa os caminhos.
+
+## Decisões de 01/11/2026 (leitura pelo gerente e medição)
+- Chamadas em bloco do gerente lidas do app do CEVEN: `/api/gerente/supervisor/roteiro-hoje` e `roteiro-mes` (rota por supervisor), `/api/gerente/dashboard-cascata` (faturado, devolução, pendente, metas e positivação por vendedor). `tabelas-cascata-todas-filiais` e `hierarquia-filiais` dão 403 com o login de gerente.
+- Gravadas em paralelo em `rota_gerente_dia` e `painel_gerente_dia`. Nenhuma tela lê delas ainda. `/api/frescor` compara com a leitura individual; a troca da fonte só depois de bater com venda real.
+- Falhas do coletor ficam em `coleta_falhas`. Disjuntor: 6 tempos esgotados seguidos em `/api/rca` param essas chamadas por 60 s. Medido em 30/10: 62 rodadas sem sucesso, das 11:21 às 13h, sem nenhum erro registrado.
+- O freio de custo não atrasa a leitura pelo gerente. Positivado = tem pedido; o status da rota vem do Clube da Venda e não decide lance.
