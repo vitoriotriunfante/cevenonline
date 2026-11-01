@@ -23,7 +23,7 @@ const SITE = 'https://ceven-cftv-matrix.pages.dev';
 const INICIO_REAL = '2026-10-21';   // primeiro dia com a lista gravada ANTES das visitas
 const hojeSP = require('../public/regras.js').hojeSP();
 const MES = process.argv[2] || hojeSP.slice(0, 7);
-const ATE = (() => { const d = new Date(hojeSP + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 1); const o = d.toISOString().slice(0, 10); return o.slice(0, 7) === MES ? o : `${MES}-31`; })();
+const ATE = (() => { const d = new Date(hojeSP + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 1); const o = d.toISOString().slice(0, 10); return o.slice(0, 7) === MES ? o : MES === hojeSP.slice(0, 7) ? hojeSP : `${MES}-31`; })();   // dia 1: hoje, nunca o dia 31 (01/11/2026: 'ate 2026-11-31' deixava entrar pedido com data futura)
 const INI = `${MES}-01`;
 // PRODUTO NOVO = nao comprou nos 60 dias antes do mes (Vitorio, 20/10/2026: "produto tem que ser recomprado a cada 60 dias no maximo; 90 dias ja e galinha morta")
 const ANTES = (() => { const d = new Date(INI + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 60); return d.toISOString().slice(0, 10); })();

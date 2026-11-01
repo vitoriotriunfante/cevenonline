@@ -105,13 +105,13 @@ export function confereFicha(j, texto) {
   return { indicadores, sujeito: um(j.sujeito, ['eu', 'filial', 'supervisor', 'vendedor', 'cliente', 'pedido', 'brasil'], 'eu'), filial: String(j.filial || '').toUpperCase(), pessoa: j.pessoa || '', codigo: String(j.codigo || ''), cliente: j.cliente || '', marca: j.marca || '', periodo: um(j.periodo, ['mes_atual', 'hoje', 'ontem', 'mes_passado', 'mes_citado', 'semana'], 'mes_atual'), mes: j.mes || '', comparacao: um(j.comparacao, ['nenhuma', 'ranking', 'mes_passado', 'meta'], 'nenhuma'), abertura: um(j.abertura, ['nenhuma', 'filial', 'supervisor', 'vendedor', 'cliente', 'produto', 'motivo'], 'nenhuma'), ordem: um(j.ordem, ['nenhuma', 'melhor', 'pior'], 'nenhuma'), quantidade: Number(j.quantidade) || 0 };
 }
 const MODELO_FICHA = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
-export async function fichaPorIA(env, texto) {
+export async function fichaPorIA(env, texto, soCloudflare = false) {
   const q = String(texto).slice(0, 300);
   // Gemini primeiro, como o JOTA ja faz (entende_ia.js); sem ele, o modelo da Cloudflare. A chave nunca sai daqui.
   let erroGemini = null;
   let chave = env && (env.GEMINI_API_KEY || env.GOOGLE_AI_KEY);
-  if (!chave && env && env.DB) { try { const row = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'gemini_api_key'").first(); chave = row && row.valor; } catch (e) { /* sem chave */ } }
-  if (chave) {
+  if (!chave && !soCloudflare && env && env.DB) { try { const row = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'gemini_api_key'").first(); chave = row && row.valor; } catch (e) { /* sem chave */ } }
+  if (chave && !soCloudflare) {
     try {
       const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + chave, { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(15000), body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: `${SYS_FICHA}\n\nPergunta:\n"${q}"` }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0 } }) });
       if (r.ok) { const d = await r.json(), j = JSON.parse(d.candidates[0].content.parts[0].text); return { modelo: 'gemini', bruta: j, ficha: confereFicha(j, q) }; }
@@ -127,8 +127,12 @@ export async function fichaPorIA(env, texto) {
 }
 
 // ---------- DA FICHA PARA A RESPOSTA: a ficha vira uma pergunta padrao, respondida pelas funcoes ja conferidas. Sem pergunta padrao para o caso = null (fica o caminho atual). ----------
-export function perguntaPadrao(f) {
+export function perguntaPadrao(f, texto = '') {
   if (!f) return null;
+  // SO QUANDO A FICHA CABE INTEIRA: detalhe que a pergunta padrao perderia (abertura, ordem, comparacao, motivo, lista) fica com o caminho atual (conferencia de 01/11/2026)
+  if (f.abertura !== 'nenhuma' || f.ordem !== 'nenhuma' || f.comparacao !== 'nenhuma' || f.quantidade || f.periodo === 'semana' || f.cliente || f.sujeito === 'cliente' || f.sujeito === 'pedido') return null;
+  if (/NAO PEDIU|MOTIVO|SEM VISITA|ZERAD|LISTA|MEDIA|COMPARA|RANKING|POSICAO|PARADO|PAROU/.test(sem(texto))) return null;
+  if (f.periodo === 'ontem' && !['clientes', 'devolucao'].includes(f.indicadores[0])) return null;
   const [i, i2] = f.indicadores, quem = f.codigo || f.pessoa, v = quem ? `vendedor ${[f.codigo, f.pessoa].filter(Boolean).join(' ')}` : '', fil = f.filial ? ` ${f.filial}` : '', dia = f.periodo === 'hoje' ? ' hoje' : f.periodo === 'ontem' ? ' ontem' : '';
   const alvo = f.sujeito === 'vendedor' ? `${v}${fil}` : f.sujeito === 'supervisor' ? `supervisor ${f.pessoa}${fil}` : f.sujeito === 'brasil' ? 'brasil' : fil.trim();
   if ((f.sujeito === 'vendedor' && !quem) || (f.sujeito === 'supervisor' && !f.pessoa) || i2 && !(i === 'faturado' && i2 === 'pendente')) return null;

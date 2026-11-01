@@ -21,6 +21,7 @@
 import { enviar, sem, so, tabelas, titulo, variantes } from '../../_lib/jota/base.js';
 import { respondeIA, respostaPronta } from '../../_lib/jota/entende.js';
 import { entendePorIA } from '../../_lib/jota/entende_ia.js';
+import { fichaPorIA, perguntaPadrao } from '../../_lib/jota/motor_ficha.js';
 import { aceitaTraducao } from '../../_lib/jota/base.js';
 import { criaBase } from '../../_lib/jota/fontes.js';
 import { RECLAMACAO, cadastraPorCodigo, ehSaudacao, enviarFigurinha, figurinhaPara, humaniza, primeiroNome, respSaudacao, TODAS_FIGURINHAS, transcreveAudio, varia } from '../../_lib/jota/persona.js';
@@ -268,7 +269,11 @@ export async function onRequestPost({ request, env }) {
   if (!resp && seco && u.searchParams.get('sem_ia') === '1') return new Response('(sem resposta pronta)', { status: 404 });
   // ENTENDER COM IA (25/10/2026): a IA traduz a pergunta para um formato que o Jota ja responde; o numero sai do codigo, nunca da IA
   if ((!resp || resp.fraca) && !(seco && u.searchParams.get('sem_ia') === '1')) {
-    const ent = await entendePorIA(env, c, texto);
+    // MOTOR POR FICHA (01/11/2026): so entra onde hoje nao ha resposta boa. A ficha que nao cabe inteira na pergunta padrao segue para o tradutor antigo.
+    try { const fi = await fichaPorIA(env, texto, true), pp = fi && perguntaPadrao(fi.ficha, texto); if (pp) { const rf = await respostaPronta(B, c, pp, anteriores); if (aceitaTraducao(resp, rf, pp, fi.ficha)) { resp = `_Entendi: "${pp}"_
+
+` + rf; tipo = 'ficha_ia'; } } } catch (e) { /* segue o caminho antigo */ }
+    const ent = tipo === 'ficha_ia' ? null : await entendePorIA(env, c, texto);
     if (ent) { try { const r2 = await respostaPronta(B, c, ent.pergunta, anteriores); if (aceitaTraducao(resp, r2, ent.pergunta, ent.ficha)) { resp = `_Entendi: "${ent.pergunta}"_
 
 ` + r2; tipo = 'entendida_ia'; } } catch (e) {} }
