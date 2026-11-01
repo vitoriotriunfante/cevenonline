@@ -266,6 +266,8 @@ async function salvaBan(env) {
   try { await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('ceven_ban_ate', ?, 'bloqueio de /api/rca/* (429) ate este instante (ms)', CURRENT_TIMESTAMP) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = CURRENT_TIMESTAMP").bind(banRcaAte).run(); } catch { /* nunca derruba */ }
 }
 // REENVIO DO WHATSAPP (01/11/2026): resposta do JOTA que nao saiu com o servidor fora volta a cada rodada, por ate 2 horas. Depois disso e velha demais: sai da fila com o erro ja registrado.
+// DE ONDE A RODADA SAI (01/11/2026): disparada pelo agendador todas as chamadas travaram; disparada de fora, responderam. O CEVEN trava quem vem de fora do Brasil.
+async function saidaDaRodada() { try { const t = await (await fetch('https://www.cloudflare.com/cdn-cgi/trace', { signal: AbortSignal.timeout(4000) })).text(); return ((t.match(/colo=(w+)/) || [])[1] || '?') + '/' + ((t.match(/loc=(w+)/) || [])[1] || '?'); } catch { return 'sem_resposta'; } }
 async function reenviaFila(env) {
   try {
     const { results } = await env.DB.prepare("SELECT id, celular, numero, nome, texto, tipo FROM bot_envio_fila WHERE criado_em > datetime('now','-2 hours') ORDER BY id LIMIT 20").all();
@@ -916,7 +918,7 @@ export async function onRequestGet({ env, request }) {
     // ROTA E PAINEL DO GERENTE NO FIM DA RODADA (01/11/2026): no inicio, os 25 s comiam o prazo da produtividade (40 s) e ela deixava de rodar. Em dia util a rodada leva ~40 s; so fica de fora quando a rodada estoura.
     if (Date.now() - t0 < 135000) { try { contagem.rota_gerente = await gravaRotasGerente(env, dataRef, Math.min(25000, t0 + 160000 - Date.now())); } catch (e) { contagem.rota_gerente = { erro: String(e.message || e).slice(0, 80) }; } } else contagem.rota_gerente = 'pulado_prazo';
     // DIAGNOSTICO: o que a ultima rodada fez, etapa por etapa (antes so ficavam os totais, e "0 sucesso" nao dizia onde)
-    try { await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('ultima_rodada', ?, 'contagem da ultima rodada', datetime('now')) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = excluded.atualizado_em").bind(JSON.stringify({ ms: Date.now() - t0, ...contagem }).slice(0, 3000)).run(); } catch { /* nunca derruba */ }
+    try { await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('ultima_rodada', ?, 'contagem da ultima rodada', datetime('now')) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = excluded.atualizado_em").bind(JSON.stringify({ ms: Date.now() - t0, chamador: request.headers.get('user-agent'), entrada_colo: request.cf && request.cf.colo, entrada_pais: request.cf && request.cf.country, saida: await saidaDaRodada(), ...contagem }).slice(0, 3000)).run(); } catch { /* nunca derruba */ }
     await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);
     // ALARME DE 15 MIN (Vitorio, 01/11/2026): faturado ou chamada do gerente acima do limite avisa a diretoria, no maximo 1 vez por hora. So no horario de dia.
     if (!noiteTodos && !filialParam) { try {
