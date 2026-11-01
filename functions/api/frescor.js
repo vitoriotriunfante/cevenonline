@@ -44,5 +44,7 @@ export async function onRequestGet({ env }) {
     for (const v of vs || []) { const o = por.get(v.f + '|' + v.r); if (!o || Math.abs(o.t - em(v.e)) > 300000) continue; let d = null; try { d = JSON.parse(v.j); } catch { continue; } if (!d || !d.financeiro) continue; cmp('faturado', o.x.faturado, d.financeiro.faturado); cmp('devolucao', o.x.devolucao, d.financeiro.devolucao); cmp('pendente', o.x.pendente, d.financeiro.pendente); cmp('meta', o.x.meta_financeira, d.financeiro.meta); cmp('positivado', o.x.positivado, d.positivacao && d.positivacao.realizado); }
     painel_gerente = { filiais: (gs || []).length, vendedores: por.size, pior_min: Math.round(pior), conta };
   } catch { /* tabela nasce na primeira rodada */ }
-  return new Response(JSON.stringify({ dia, limite_min: 15, ...r, cascata, falhas, comparacao, rota_gerente, painel_gerente }), { headers: CORS });
+  let ultima_rodada = null;
+  try { const x = await env.DB.prepare("SELECT valor, atualizado_em FROM coleta_estado WHERE chave = 'ultima_rodada'").first(); if (x) ultima_rodada = { em: x.atualizado_em, ...JSON.parse(x.valor) }; } catch { /* ainda nao rodou */ }
+  return new Response(JSON.stringify({ dia, limite_min: 15, ...r, cascata, falhas, comparacao, rota_gerente, painel_gerente, ultima_rodada }), { headers: CORS });
 }
