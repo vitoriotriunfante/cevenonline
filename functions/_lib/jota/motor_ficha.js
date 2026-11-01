@@ -84,6 +84,12 @@ Exemplos:
 "quanto falta da meta condor do setor 18" => {"indicadores":["meta"],"sujeito":"vendedor","codigo":"18","marca":"condor"}
 "sugestão: trazer a quantidade de clientes" => {"entendeu":false}
 "Você não me passou a meta, não é isso que espero" => {"entendeu":false}
+"como minha equipe está no Brasileirão" => {"indicadores":["liga"],"sujeito":"eu"}
+"vendedores zerados hoje" => {"indicadores":["digitado"],"sujeito":"eu","periodo":"hoje","abertura":"vendedor","ordem":"pior"}
+"clientes TAMARA, TCV ontem" => {"indicadores":["clientes"],"sujeito":"vendedor","pessoa":"TAMARA","filial":"TCV","periodo":"ontem"}
+"o cliente P J Palhano já comprou?" => {"indicadores":["faturado"],"sujeito":"cliente","cliente":"P J Palhano"}
+"Hoje" => {"indicadores":["geral"],"sujeito":"eu","periodo":"hoje"}
+Pergunta sem assunto claro ("Já gastamos tudo isso?", "top jota"): {"entendeu":false}. Nunca use "geral" para adivinhar.
 Reclamação, agradecimento ou sugestão: {"entendeu":false}.
 Regras: use só os indicadores da pergunta. "Jota" é o assistente, nunca é pessoa. Copie nomes, códigos e marcas exatamente como escritos; se não estiverem escritos, deixe vazio. "fechamento" nos primeiros dias do mês é mes_passado. Pergunta fora desses assuntos: "entendeu":false.`;
 
@@ -102,18 +108,20 @@ const MODELO_FICHA = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 export async function fichaPorIA(env, texto) {
   const q = String(texto).slice(0, 300);
   // Gemini primeiro, como o JOTA ja faz (entende_ia.js); sem ele, o modelo da Cloudflare. A chave nunca sai daqui.
+  let erroGemini = null;
   let chave = env && (env.GEMINI_API_KEY || env.GOOGLE_AI_KEY);
   if (!chave && env && env.DB) { try { const row = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'gemini_api_key'").first(); chave = row && row.valor; } catch (e) { /* sem chave */ } }
   if (chave) {
     try {
       const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + chave, { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(15000), body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: `${SYS_FICHA}\n\nPergunta:\n"${q}"` }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0 } }) });
       if (r.ok) { const d = await r.json(), j = JSON.parse(d.candidates[0].content.parts[0].text); return { modelo: 'gemini', bruta: j, ficha: confereFicha(j, q) }; }
-    } catch (e) { /* cai no outro modelo */ }
+      erroGemini = 'http' + r.status;
+    } catch (e) { erroGemini = String((e && e.name) || 'erro'); }
   }
   if (!env || !env.AI) return null;
   try {
     const r = await env.AI.run(MODELO_FICHA, { messages: [{ role: 'system', content: SYS_FICHA }, { role: 'user', content: q }], max_tokens: 200, temperature: 0 });
     const j = typeof (r && r.response) === 'object' ? r.response : JSON.parse((String((r && (r.response ?? r.result)) || '').match(/\{[\s\S]*\}/) || ['null'])[0]);
-    return { modelo: 'cloudflare', bruta: j, ficha: confereFicha(j, q) };
+    return { modelo: 'cloudflare', erro_gemini: erroGemini, bruta: j, ficha: confereFicha(j, q) };
   } catch (e) { return null; }
 }
