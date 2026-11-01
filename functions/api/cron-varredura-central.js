@@ -267,7 +267,7 @@ async function salvaBan(env) {
 }
 // REENVIO DO WHATSAPP (01/11/2026): resposta do JOTA que nao saiu com o servidor fora volta a cada rodada, por ate 2 horas. Depois disso e velha demais: sai da fila com o erro ja registrado.
 // DE ONDE A RODADA SAI (01/11/2026): disparada pelo agendador todas as chamadas travaram; disparada de fora, responderam. O CEVEN trava quem vem de fora do Brasil.
-async function saidaDaRodada() { try { const t = await (await fetch('https://www.cloudflare.com/cdn-cgi/trace', { signal: AbortSignal.timeout(4000) })).text(); return ((t.match(/colo=(w+)/) || [])[1] || '?') + '/' + ((t.match(/loc=(w+)/) || [])[1] || '?'); } catch { return 'sem_resposta'; } }
+async function saidaDaRodada() { try { const t = await (await fetch('https://www.cloudflare.com/cdn-cgi/trace', { signal: AbortSignal.timeout(4000) })).text(); return ((t.match(/colo=(\w+)/) || [])[1] || '?') + '/' + ((t.match(/loc=(\w+)/) || [])[1] || '?'); } catch { return 'sem_resposta'; } }
 async function reenviaFila(env) {
   try {
     const { results } = await env.DB.prepare("SELECT id, celular, numero, nome, texto, tipo FROM bot_envio_fila WHERE criado_em > datetime('now','-2 hours') ORDER BY id LIMIT 20").all();
