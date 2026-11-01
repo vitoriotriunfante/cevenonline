@@ -7,6 +7,7 @@ import { sn } from './escopo.js';
 import { FILIAIS, FRX, N, R$, SUGESTAO, VAREJO, fraca, hojeSP, nome2, sem, titulo, vn } from './base.js';
 const x0 = (V) => (V[0] ? V[0].v.rca : '');
 import { PAL, achaPessoa, agrupa, carregaEscopo, pctTxt, supChave, supNome, supReal } from './escopo.js';
+import { confereIA } from './confere_ia.js';
 import { SEM_HISTORICO, respCarteira, respComparar, respDobradinha, respInfoEquipe, respMaiorGap, respMetaBatida, respPontosPerdidos, respRankingGerentes, respRankingSupervisores, respRitmo, respTendencia } from './respostas/gestao.js';
 import { respBola, respDevMotivos, respDivergencias, respIncentivoOficial, respLigaAs, respSemana } from './respostas/indicadores.js';
 import { respAjuda, respCompromisso, respGlossario, respLances, respLiga, respMix } from './respostas/liga_mix.js';
@@ -937,6 +938,7 @@ export async function respondeIA(env, B, c, texto, historico) {
   const escIA = ec.rcaV ? { nome: nome2(c.nome) + ' (RCA ' + ec.rcaV + ')', filiais: [ec.fil], grupo: null, supervisor: null, rca: ec.rcaV, nacional: false }
     : ec.fil ? { nome: ec.supervisor ? 'Equipe ' + nome2(ec.supervisor) + ' (' + ec.fil + ')' : ec.fil + (ec.grupo ? ' · ' + titulo(ec.grupo) : ''), filiais: [ec.fil], grupo: ec.supervisor ? null : ec.grupo, supervisor: ec.supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
 
+  const fonteIA = (base) => [base, texto, ...(historico || []).map((h) => h.content), hojeSP().split('-').reverse().join('/').slice(0, 5)].join('\n');
   let escopoCarregado = null;
   try { escopoCarregado = await carregaEscopo(B, escIA); } catch (e) {}
 
@@ -1005,7 +1007,7 @@ ${dossieExecutivo}`;
           const data = await res.json();
           const cand = data?.candidates?.[0];
           const txtG = (cand?.content?.parts || []).map((p) => p.text || '').join('');
-          if (txtG && cand.finishReason !== 'MAX_TOKENS') return txtG.trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, '');
+          if (txtG && cand.finishReason !== 'MAX_TOKENS' && confereIA(txtG, fonteIA(dossieExecutivo)).ok) return txtG.trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, '');
         }
       } catch (e) {}
     }
@@ -1018,7 +1020,7 @@ ${dossieExecutivo}`;
           temperature: 0.25
         });
         const s = String((r && (r.response || r.result)) || '').trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, '');
-        if (s) return s;
+        if (s && confereIA(s, fonteIA(dossieExecutivo)).ok) return s;
       } catch (e) {}
     }
   }
@@ -1028,5 +1030,5 @@ Quem fala com você: ${titulo(c.nome)}, ${c.papel}${c.filial ? ' da filial ' + c
 REGRAS: use SÓ os números do RESUMO abaixo, exatamente como estão; nunca invente, estime ou projete; sem o dado, diga que não tem e sugira uma pergunta que o Jota responde (ex.: "hoje", "zerados", "por supervisor", "vendedor Nome", "falta", "liga", "+mix", "quem compra Oreo", "compromisso", "devoluções", "pênaltis", "incentivo").
 NUNCA prometa o que você não faz: você NÃO é programável, NÃO envia relatório automático, NÃO muda equipe nem cadastro, NÃO "vai considerar" nada; se pedirem isso, diga que anotou e que a diretoria decide. Nunca mostre dado de fora da equipe/filial de quem pergunta. Cobrança (Liga, eficácia, zerados) = só varejo de campo; para mostrar roteiro e clientes, todos os canais. Faturado e pendente sempre separados. Formato WhatsApp: *negrito* com UM asterisco; no máximo 12 linhas; termine com "🎯 *Sugestão do Jota:*" e UMA ação concreta.
 RESUMO: ${baseResumo.slice(0, 6000)}`;
-  try { const r = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', { messages: [{ role: 'system', content: sys }, ...historico, { role: 'user', content: texto }], max_tokens: 700 }); const s = String((r && (r.response || r.result)) || '').trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, ''); return s || null; } catch (e) { return null; }
+  try { const r = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', { messages: [{ role: 'system', content: sys }, ...historico, { role: 'user', content: texto }], max_tokens: 700 }); const s = String((r && (r.response || r.result)) || '').trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, ''); return s && confereIA(s, fonteIA(baseResumo)).ok ? s : null; } catch (e) { return null; }
 }

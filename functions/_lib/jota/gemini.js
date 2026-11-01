@@ -5,6 +5,8 @@
 // responder perguntas executivas de gerentes e diretores (ex.: Fábio/TBL).
 // =========================================================================
 
+import { confereIA } from './confere_ia.js';
+
 export async function analisaEstrategiaComGemini({ env, B, c, texto, E, dadosContexto }) {
   let apiKey = env.GEMINI_API_KEY || env.GOOGLE_AI_KEY;
   if (!apiKey && env.DB) {
@@ -50,7 +52,7 @@ Regras fundamentais:
         const data = await res.json();
         const cand = data?.candidates?.[0];
         const textoGerado = (cand?.content?.parts || []).map((p) => p.text || '').join('');
-        if (textoGerado && cand.finishReason !== 'MAX_TOKENS') return textoGerado.trim();
+        if (textoGerado && cand.finishReason !== 'MAX_TOKENS' && confereIA(textoGerado, JSON.stringify(dadosContexto) + texto).ok) return textoGerado.trim();
       }
     } catch (e) {
       console.error('Erro ao chamar Gemini API:', e);
@@ -69,7 +71,7 @@ Regras fundamentais:
         temperature: 0.2
       });
       const s = String((r && (r.response || r.result)) || '').trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, '');
-      if (s) return s;
+      if (s && confereIA(s, JSON.stringify(dadosContexto) + texto).ok) return s;
     } catch (e) {
       console.error('Erro ao chamar Workers AI Generativo:', e);
     }
