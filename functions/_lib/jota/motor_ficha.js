@@ -66,20 +66,31 @@ function agrupaLista(V, chave) { const m = new Map(); for (const v of V) { const
 export { agrupa };
 
 // ---------- FICHA PELA IA: a IA so classifica; o codigo confere cada campo contra a propria pergunta. Campo inventado derruba a ficha. ----------
-const IND_IA = ['faturado', 'pendente', 'devolucao', 'positivacao', 'digitado', 'meta', 'visitas', 'eficacia', 'pedidos', 'cortes', 'clientes', 'rota', 'liga', 'mix', 'ret', 'prospects'];
+const IND_IA = ['geral', 'faturado', 'pendente', 'devolucao', 'positivacao', 'digitado', 'meta', 'visitas', 'eficacia', 'pedidos', 'cortes', 'clientes', 'rota', 'liga', 'mix', 'ret', 'prospects'];
 const SYS_FICHA = `Você classifica perguntas de uma equipe comercial de distribuidora. NÃO responda a pergunta e NÃO cite números. Devolva SOMENTE JSON:
-{"indicadores":[${IND_IA.map((x) => `"${x}"`).join(',')}],"sujeito":"eu|filial|supervisor|vendedor|cliente|brasil","filial":"","pessoa":"","codigo":"","cliente":"","marca":"","periodo":"mes_atual|hoje|ontem|mes_passado|mes_citado|semana","mes":"","comparacao":"nenhuma|ranking|mes_passado|meta","abertura":"nenhuma|filial|supervisor|vendedor|cliente|produto|motivo","ordem":"nenhuma|melhor|pior","quantidade":0,"entendeu":true}
-Regras: use só os indicadores da pergunta. Copie nomes, códigos e marcas exatamente como escritos; se não estiverem escritos, deixe vazio. "fechamento" nos primeiros dias do mês é mes_passado. Pergunta fora desses assuntos: "entendeu":false.`;
+{"indicadores":["um ou dois da lista"],"sujeito":"eu|filial|supervisor|vendedor|cliente|pedido|brasil","filial":"","pessoa":"","codigo":"","cliente":"","marca":"","periodo":"mes_atual|hoje|ontem|mes_passado|mes_citado|semana","mes":"","comparacao":"nenhuma|ranking|mes_passado|meta","abertura":"nenhuma|filial|supervisor|vendedor|cliente|produto|motivo","ordem":"nenhuma|melhor|pior","quantidade":0,"entendeu":true}
+Lista de indicadores: ${IND_IA.join(', ')}. "geral" = a pessoa quer a situação sem citar indicador ("como está").
+Exemplos:
+"como está minha equipe?" => {"indicadores":["geral"],"sujeito":"eu","periodo":"mes_atual"}
+"como está meu vendedor 346, Eduardo Alves?" => {"indicadores":["geral"],"sujeito":"vendedor","codigo":"346","pessoa":"Eduardo Alves"}
+"como está o vendedor Ivan da filial TBL?" => {"indicadores":["geral"],"sujeito":"vendedor","pessoa":"Ivan","filial":"TBL"}
+"Jota e a Vanessa, 324, quanto faturou hoje?" => {"indicadores":["faturado"],"sujeito":"vendedor","codigo":"324","pessoa":"Vanessa","periodo":"hoje"}
+"item mais vendido de Mondelez em TSJ" => {"indicadores":["faturado"],"sujeito":"filial","filial":"TSJ","marca":"Mondelez","abertura":"produto","ordem":"melhor"}
+"pedido 59000514" => {"indicadores":["pedidos"],"sujeito":"pedido","codigo":"59000514"}
+"fechamento time nível Brasil" => {"indicadores":["geral"],"sujeito":"eu","periodo":"mes_passado","comparacao":"ranking"}
+"Bom dia" => {"entendeu":false}
+Regras: use só os indicadores da pergunta. "Jota" é o assistente, nunca é pessoa. Copie nomes, códigos e marcas exatamente como escritos; se não estiverem escritos, deixe vazio. "fechamento" nos primeiros dias do mês é mes_passado. Pergunta fora desses assuntos: "entendeu":false.`;
 
 export function confereFicha(j, texto) {
   if (!j || typeof j !== 'object' || j.entendeu === false) return null;
   const t = sem(texto), naPergunta = (v) => !v || t.includes(sem(v));
   const indicadores = (Array.isArray(j.indicadores) ? j.indicadores : []).filter((x) => IND_IA.includes(x));
-  if (!indicadores.length) return null;
+  if (!indicadores.length || indicadores.length > 3) return null;   // listou quase todos = nao entendeu (01/11/2026: 50 de 225 fichas)
+  if (/JOTA/.test(sem(j.pessoa))) return null;
   if (!naPergunta(j.pessoa) || !naPergunta(j.codigo) || !naPergunta(j.cliente) || !naPergunta(j.marca) || !naPergunta(j.filial)) return null;   // inventou: nao usa
-  if (j.codigo && !/^\d{1,7}$/.test(String(j.codigo))) return null;
+  if (j.codigo && !/^\d{1,12}$/.test(String(j.codigo))) return null;
   const um = (v, L, p) => (L.includes(v) ? v : p);
-  return { indicadores, sujeito: um(j.sujeito, ['eu', 'filial', 'supervisor', 'vendedor', 'cliente', 'brasil'], 'eu'), filial: String(j.filial || '').toUpperCase(), pessoa: j.pessoa || '', codigo: String(j.codigo || ''), cliente: j.cliente || '', marca: j.marca || '', periodo: um(j.periodo, ['mes_atual', 'hoje', 'ontem', 'mes_passado', 'mes_citado', 'semana'], 'mes_atual'), mes: j.mes || '', comparacao: um(j.comparacao, ['nenhuma', 'ranking', 'mes_passado', 'meta'], 'nenhuma'), abertura: um(j.abertura, ['nenhuma', 'filial', 'supervisor', 'vendedor', 'cliente', 'produto', 'motivo'], 'nenhuma'), ordem: um(j.ordem, ['nenhuma', 'melhor', 'pior'], 'nenhuma'), quantidade: Number(j.quantidade) || 0 };
+  return { indicadores, sujeito: um(j.sujeito, ['eu', 'filial', 'supervisor', 'vendedor', 'cliente', 'pedido', 'brasil'], 'eu'), filial: String(j.filial || '').toUpperCase(), pessoa: j.pessoa || '', codigo: String(j.codigo || ''), cliente: j.cliente || '', marca: j.marca || '', periodo: um(j.periodo, ['mes_atual', 'hoje', 'ontem', 'mes_passado', 'mes_citado', 'semana'], 'mes_atual'), mes: j.mes || '', comparacao: um(j.comparacao, ['nenhuma', 'ranking', 'mes_passado', 'meta'], 'nenhuma'), abertura: um(j.abertura, ['nenhuma', 'filial', 'supervisor', 'vendedor', 'cliente', 'produto', 'motivo'], 'nenhuma'), ordem: um(j.ordem, ['nenhuma', 'melhor', 'pior'], 'nenhuma'), quantidade: Number(j.quantidade) || 0 };
 }
 const MODELO_FICHA = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 export async function fichaPorIA(env, texto) {
