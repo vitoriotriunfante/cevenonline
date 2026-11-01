@@ -360,7 +360,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     // +MIX com vendedor ou equipe: o relatorio do +MIX, nunca as metas da Premiacao
     if (/\bMIX\b/.test(t) && /DESEMPENHO/.test(t)) { const Ex = await carregaEscopo(B, esc), mx = await respMix(B, Ex, t); if (mx) return mx; }
     // MARCA: "quem nao comprou Mars" e recuperacao; "item mais vendido de Mondelez" e a venda da marca, nunca a meta
-    { const mN = t.match(/QUEM NAO COMPROU ([A-Z0-9]{3,})/); if (mN) return reenvia(t.replace(/QUEM NAO COMPROU/, 'QUEM COMPRAVA').replace(mN[1], mN[1] + ' E PAROU'));
+    { const mN = t.match(/QUEM NAO COMPROU ([A-Z0-9]{3,})/); if (mN) { const Er = await carregaEscopo(B, esc), rr = await respRecuperacao(B, Er, t); if (rr) return rr; }
       const mI = t.match(/(?:ITEM|ITENS|PRODUTOS?) MAIS VENDID\w* (?:DE|DA|DO) ([A-Z0-9]{3,})/); if (mI) { const Ei = await carregaEscopo(B, esc), ri = await respIndustria(B, Ei, t, null); if (ri) return ri; const rp = await respProduto(B, Ei, t, null); if (rp) return rp; } }
     // DEVOLUCAO "CLIENTE NAO PEDIU": so as notas com esse motivo oficial lido do CEVEN (devolucao_nota_motivo). Nota sem motivo lido fica de fora e a resposta avisa.
     if (/DEVOLU/.test(t) && /NAO PEDIU/.test(t) && B.env && B.env.DB) {
