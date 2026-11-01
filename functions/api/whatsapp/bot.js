@@ -174,7 +174,9 @@ export async function onRequestPost({ request, env }) {
           const nomeP = String(texto).replace(/\b(COD(IGO)?|SETOR|EQUIPE|AREA|SUPERVISORA?|COORDENADORA?( DE VENDAS)?)\b\.?/gi, ' ').replace(/[\d\-:–]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || d.pushName || null;
           let filP = null; try { const m = await (await fetch(u.origin + '/api/tv-mostra')).json(); const tk = sem(nomeP || '').split(' ').filter((w) => w.length > 2);
             for (const [k, L] of Object.entries(m.filiais || {})) for (const v of L) { const nv = sem(v.nome).split(' '); if (tk.filter((w) => nv.includes(w)).length >= 2) filP = k.split('_')[0]; } } catch (e) {}
-          await env.DB.prepare("INSERT OR IGNORE INTO bot_contatos (celular, nome, papel, filial, ativo, situacao) VALUES (?,?,?,?,0,'pendente')").bind(cel, nomeP ? nomeP.toUpperCase() : null, 'supervisor', filP).run();
+          // so vira pedido com telefone de verdade e texto que parece nome (01/11/2026: audio "me mandar a relacao dos clientes..." entrou como nome, com ID interno do WhatsApp no lugar do numero)
+          const parecePedido = /^55\d{10,11}$/.test(cel) && nomeP && nomeP.split(' ').length <= 6 && !/\b(ME|MANDAR|MANDA|QUAL|QUAIS|QUANTO|COMO|RELACAO|FALTA|CLIENTES?|PASSA|PRECISO|QUERO)\b/.test(sem(nomeP));
+          if (parecePedido) await env.DB.prepare("INSERT OR IGNORE INTO bot_contatos (celular, nome, papel, filial, ativo, situacao) VALUES (?,?,?,?,0,'pendente')").bind(cel, nomeP.toUpperCase(), 'supervisor', filP).run();
         } catch (e) { /* aviso no WhatsApp continua */ } }
         const ja = await env.DB.prepare("SELECT COUNT(*) n FROM bot_msgs WHERE celular = ? AND direcao = 'out' AND date(quando,'-3 hours') = date('now','-3 hours')").bind(cel).first().catch(() => ({ n: 1 }));
         if (!ja || !ja.n) {

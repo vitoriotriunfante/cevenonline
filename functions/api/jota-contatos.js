@@ -215,7 +215,8 @@ export async function onRequestPost({ request, env }) {
   const rawId = String(b.celular || '').trim();
   const ehGrpSalvar = rawId.endsWith('@g.us');
   const cel = ehGrpSalvar ? rawId : so(rawId);
-  if (!ehGrpSalvar && (cel.length < 12 || cel.length > 13 || !cel.startsWith('55'))) return j({ erro: 'celular deve ter DDI 55 + DDD + numero (ex.: 5541999998888)' }, 400);
+  // recusar e desativar valem para qualquer cadastro: ID interno do WhatsApp (15 digitos) entrou como pedido e nao saia da lista (01/11/2026)
+  if (!ehGrpSalvar && !['recusar', 'desativar'].includes(String(b.acao || '')) && (cel.length < 12 || cel.length > 13 || !cel.startsWith('55'))) return j({ erro: 'celular deve ter DDI 55 + DDD + numero (ex.: 5541999998888)' }, 400);
   const antes = await env.DB.prepare('SELECT * FROM bot_contatos WHERE celular = ?').bind(cel).first();
   const log = (acao, depois) => env.DB.prepare('INSERT INTO bot_contatos_log (celular, acao, antes, depois) VALUES (?,?,?,?)').bind(cel, acao, JSON.stringify(antes || null), JSON.stringify(depois || null)).run();
   const acao = String(b.acao || '');
