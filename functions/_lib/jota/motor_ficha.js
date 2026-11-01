@@ -106,10 +106,7 @@ export async function fichaPorIA(env, texto) {
   if (!chave && env && env.DB) { try { const row = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'gemini_api_key'").first(); chave = row && row.valor; } catch (e) { /* sem chave */ } }
   if (chave) {
     try {
-      const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + chave, { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(15000), body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: SYS_FICHA + '
-
-Pergunta:
-"' + q + '"' }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0 } }) });
+      const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + chave, { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(15000), body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: `${SYS_FICHA}\n\nPergunta:\n"${q}"` }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0 } }) });
       if (r.ok) { const d = await r.json(), j = JSON.parse(d.candidates[0].content.parts[0].text); return { modelo: 'gemini', bruta: j, ficha: confereFicha(j, q) }; }
     } catch (e) { /* cai no outro modelo */ }
   }
