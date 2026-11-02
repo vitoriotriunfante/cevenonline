@@ -347,6 +347,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (mNv && !/\bHOJE\b|\bHJ\b|\bROTA\b/.test(t)) { const quem = (mNv[1] + ' ' + mNv[2]).replace(/\b(DA|DO|DE|VENDEDORA?|NO|MES)\b/g, ' ').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); if (quem) return reenvia('curva negativa do vendedor ' + quem); } }
     // CONTINUACAO DA CONVERSA (sabatina 01/11/2026): "Do mes", "Mes todo" repetem a ultima pergunta no mes; "Mas so da Josiane?" abre a pessoa citada
     { const ultQ = (anteriores || []).length ? sem(String(anteriores[0] || '')).replace(/\b(HOJE|HJ|ONTEM)\b/g, ' ').trim() : '';
+      // "Mes passado" sozinho (Sueli/API, 01/11/2026): e o fechamento gravado, aberto por vendedor se a conversa vinha nos vendedores; nunca a comparacao com o mes que acabou de comecar
+      if (/^\W*(E )?((O|DO|NO) )?MES (PASSADO|ANTERIOR)\W*$/.test(t)) return reenvia((anteriores || []).slice(0, 2).some((a) => /VENDEDOR|RANKING/.test(sem(String(a)))) ? 'fechamento do mes passado por vendedores' : 'fechamento do mes passado');
       if (/^\W*(DO MES|MES TODO|NO MES)\W*$/.test(t)) return ultQ && ultQ !== t.trim() ? respostaPronta(B, c, ultQ + ' no mes', []) : respResumo(B, await carregaEscopo(B, esc));
       // "sim, gostaria de saber se faturou o pedido": continua pedindo o numero; "desses clientes, algum na rota de hoje?" usa a ultima pergunta
       if (/^\W*(SIM\W+)?.*(FATUROU|FATURADO) O PEDIDO\W*$/.test(t)) return rcaV ? reenvia('status dos pedidos') : 'Me passa o número do pedido que eu confiro. Exemplo: *pedido 59000514*.';
@@ -385,15 +387,23 @@ export async function respostaInterna(B, c, texto, anteriores) {
     {
       const NM = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'], hj = hojeSP(), iNm = NM.findIndex((n) => new RegExp('\\b' + n + '\\b').test(t));
       const passado = new Date(Date.parse(hj.slice(0, 7) + '-15T12:00:00Z') - 30 * 864e5).toISOString().slice(0, 7), mesPedido = iNm >= 0 ? hj.slice(0, 4) + '-' + String(iNm + 1).padStart(2, '0') : null;
-      const ym = /MES (ANTERIOR|PASSADO)/.test(t) || ((/COMO FECH(AMOS|OU O MES|EI)/.test(t) || (/\bFECHAMENTO\b/.test(t) && !/COMO ESTAMOS|ACUMULAD|\bHOJE\b/.test(t))) && !mesPedido && Number(hj.slice(8)) <= 5) ? passado : mesPedido;
+      const ym = /MES (ANTERIOR|PASSADO)/.test(t) || ((/COMO FECH(AMOS|EI|OU (O MES|O TIME|A EQUIPE|MEU TIME|MINHA EQUIPE))/.test(t) || (/\bFECHAMENTO\b/.test(t) && !/COMO ESTAMOS|ACUMULAD|\bHOJE\b/.test(t))) && !mesPedido && Number(hj.slice(8)) <= 5) ? passado : mesPedido;
       if (ym && ym < '2026-10' && /FECH/.test(t)) return `Só tenho fechamento conferido a partir de outubro/2026. De ${titulo(NM[Number(ym.slice(5)) - 1])} não tenho a foto do mês, então não vou passar número.`;
-      if (ym && ym >= '2026-10' && ym < hj.slice(0, 7) && /FECH|RESULTADO|FATUR|ACUMUL/.test(t) && !/INDUSTRIA|FORNECEDOR|PRODUTO|CLIENTE/.test(t) && B.env && B.env.DB) {
+      const porVend = /\bVENDEDORES\b|\bRANKING\b/.test(t) && !/LIGA|CHAMPI/.test(t);
+      if (ym && ym >= '2026-10' && ym < hj.slice(0, 7) && (/FECH|RESULTADO|FATUR|ACUMUL/.test(t) || porVend) && !/INDUSTRIA|FORNECEDOR|PRODUTO|CLIENTE/.test(t) && B.env && B.env.DB) {
         const Em = await carregaEscopo(B, esc), chaves = new Set(Em.vend.concat(Em.ocultos || []).map((v) => v.filial + '|' + v.rca));
         const u = await B.env.DB.prepare('SELECT MAX(data_ref) d FROM varredura_central_rca WHERE data_ref >= ? AND data_ref <= ?').bind(ym + '-01', ym + '-31').first();
         if (u && u.d) {
           const { results: fm2 } = await B.env.DB.prepare("SELECT filial_sigla f, rca_codigo r, json_extract(dashboard_json,'$.financeiro.faturado_bruto') b, json_extract(dashboard_json,'$.financeiro.devolucao') dv, json_extract(dashboard_json,'$.financeiro.pendente') p, json_extract(dashboard_json,'$.financeiro.meta') m, json_extract(dashboard_json,'$.positivacao.realizado') pr, json_extract(dashboard_json,'$.positivacao.meta') pm FROM varredura_central_rca WHERE data_ref = ? AND dashboard_json IS NOT NULL").bind(u.d).all();
           const L = (fm2 || []).filter((x) => esc.nacional || chaves.has(x.f + '|' + x.r)), s = (k) => L.reduce((a, x) => a + (Number(x[k]) || 0), 0), liq = s('b') - s('dv'), meta = s('m'), pos = s('pr'), mp = s('pm');
-          if (L.length && s('b') > 0) return [`🏁 *Fechamento de ${titulo(NM[Number(ym.slice(5)) - 1])} — ${esc.nome}* (foto de ${u.d.split('-').reverse().join('/')})`, `💰 Faturado líquido: *${R$(liq)}* de ${R$(meta)}${meta > 0 ? ` → *${pctTxt(liq / meta * 100)}*` : ''}`, `(bruto ${R$(s('b'))} − devolução ${R$(s('dv'))})`, `⏳ Ficou pendente: ${R$(s('p'))}`, `👥 Positivação: *${Math.round(pos)}* de ${Math.round(mp)}${mp > 0 ? ` (${pctTxt(pos / mp * 100)})` : ''}`].join('\n');
+          const liqV = (x) => (Number(x.b) || 0) - (Number(x.dv) || 0), semMeta = L.filter((x) => !(Number(x.m) > 0)).reduce((a, x) => a + liqV(x), 0);
+          const cab = [`🏁 *Fechamento de ${titulo(NM[Number(ym.slice(5)) - 1])} — ${esc.nome}* (foto de ${u.d.split('-').reverse().join('/')})`, `💰 Faturado líquido: *${R$(liq)}* de ${R$(meta)}${meta > 0 ? ` → *${pctTxt(liq / meta * 100)}*` : ''}`, `(bruto ${R$(s('b'))} − devolução ${R$(s('dv'))})`, `⏳ Ficou pendente: ${R$(s('p'))}`, `👥 Positivação: *${Math.round(pos)}* de ${Math.round(mp)}${mp > 0 ? ` (${pctTxt(pos / mp * 100)})` : ''}`, semMeta > 0 ? `_O faturado inclui ${R$(semMeta)} de quem não tem meta._` : ''].filter(Boolean);
+          if (L.length && s('b') > 0 && porVend && !esc.nacional && !esc.rca) {   // por vendedor, da mesma foto (Sueli/API, 01/11/2026: "e os vendedores" veio 0,0% de novembro)
+            const pv = new Map(Em.vend.concat(Em.ocultos || []).map((v) => [v.filial + '|' + v.rca, v])), nomeV = (x) => { const v = pv.get(x.f + '|' + x.r); return v ? vn(v) : 'RCA ' + x.r; };
+            const cm = L.filter((x) => Number(x.m) > 0).sort((a, b) => liqV(b) / b.m - liqV(a) / a.m), sm = L.filter((x) => !(Number(x.m) > 0)).sort((a, b) => liqV(b) - liqV(a));
+            return [...cab, '', ...cm.map((x, i) => `${i + 1}. ${nomeV(x)} — *${pctTxt(liqV(x) / x.m * 100)}* · ${R$(liqV(x))} de ${R$(x.m)} · 👥 ${Math.round(Number(x.pr) || 0)} de ${Math.round(Number(x.pm) || 0)}`), ...sm.map((x) => `• ${nomeV(x)} — sem meta · ${R$(liqV(x))} · 👥 ${Math.round(Number(x.pr) || 0)}`)].join('\n');
+          }
+          if (L.length && s('b') > 0) return cab.join('\n');
         }
       }
     }

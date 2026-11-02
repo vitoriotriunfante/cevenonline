@@ -101,6 +101,8 @@ export function respRanking(E, t) {
   const fmt = (v) => (pos ? `*${N(v.pos)}* de ${N(v.metaPos)} clientes (${P(v.pos, v.metaPos)})` : hoje ? `*${R$(v.dig)}* em ${v.ped} ped.` : `*${pctTxt(v.pct)}* · ${R$(v.fat)} de ${R$(v.meta)}`);
   const S = V.slice().sort((a, b) => val(b) - val(a));
   if (!S.length) return `Não achei vendedores ${as ? 'AS' : 'de varejo'} com dado para esse ranking em ${E.nome}.`;
+  // inicio de mes: ranking de todo mundo com 0,0% nao e ranking, e nao ha quem "reconhecer" (Sueli/API, 01/11/2026)
+  if (!pos && !hoje && !S.some((v) => Number(v.fat) > 0)) return `📭 ${E.nome}: ninguém faturou neste mês ainda, então não há ranking.\nPara o mês que fechou, peça *fechamento do mês passado por vendedores*.`;
   const crit = pos ? 'positivação do mês (% da meta de clientes)' : hoje ? 'digitado hoje' : '% da meta faturada no mês';
   const lin = (v, i) => `${i + 1}. ${vn(v)}${E.nacional ? ' · ' + v.filial : ''} — ${fmt(v)}`;
   const L = [`🏅 *${E.nome} — ${querMelhor && !querPior ? n + ' melhores' : querPior && !querMelhor ? n + ' mais atrás' : 'ranking'}, ${as ? 'AS' : 'varejo'}*`, `_Critério: ${crit}._`];
