@@ -21,6 +21,14 @@ Este repositório tem **dois projetos independentes** que compartilham os mesmos
 2. **Meta:** só `functions/api/cron-varredura-central.js` fala com o CEVEN; tudo é gravado no **D1**; TV, Matriz, celular, WhatsApp, Liga, JOTA e +MIX leem só do D1.
 3. **Trava:** `testes/rodar_testes.mjs` (roda antes de toda publicação) falha se aparecer arquivo NOVO chamando o CEVEN ou banco NOVO fora do D1. A base `docs/mapa_dados_base.json` só encolhe; nunca acrescentar sem o Vitório pedir.
 
+## 🧭 O QUE O CEVEN TEM — OLHAR ANTES DE AFIRMAR (Vitório, 02/11/2026)
+
+1. **Tudo nasce no CEVEN do VENDEDOR** (visitas, rota, cálculos). O supervisor vê o que o vendedor vê; o gerente vê o que os dois veem. Nunca dizer que um dado depende do login de gerente ou admin sem medir.
+2. **Antes de afirmar o que o CEVEN tem, ou de dizer "não dá" ou "depende de":** ler `C:\Users\vitorio.neto\Documents\CEVEN TELAS E ENDPOINTS` (telas e gravações por perfil, documentação dos endpoints) e medir com uma chamada. Os .har têm credenciais: nunca exibir valores.
+3. **Falha no CEVEN se resolve aqui, por outro caminho:** não devolver para o Vitório o que dá para descobrir na pasta, no código ou no D1.
+4. **Antes de dizer "pode liberar":** cruzar `linha_corporativa`, testar os comandos que a mensagem promete e a pergunta óbvia do momento.
+5. **Resposta curta:** o resultado, o que falta e a única decisão dele.
+
 ## 🌐 PREMISSA INEGOCIÁVEL — TUDO RODA ONLINE (Vitório, 23/09/2026)
 
 **O projeto CEVEN várias telas roda ONLINE. Nada — nenhum dado, arquivo, cálculo, publicação ou execução — pode depender do computador do Vitório (nem de qualquer computador pessoal).**
