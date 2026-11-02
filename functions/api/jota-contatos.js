@@ -35,6 +35,7 @@ function detectarFiliaisDoGrupo(nome) {
 
 async function garante(db) {
   await garanteTabelasEIndicesJota(db);
+  await db.prepare('CREATE TABLE IF NOT EXISTS bot_envio_fila (id INTEGER PRIMARY KEY AUTOINCREMENT, celular TEXT, numero TEXT, nome TEXT, texto TEXT, tipo TEXT, tentativas INTEGER DEFAULT 0, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)').run();
   // supervisores da arvore que NAO devem aparecer em 'Sem acesso' (gerente, inativo...): decisao do Vitorio pela tela (26/10/2026)
   await db.prepare('CREATE TABLE IF NOT EXISTS bot_sem_acesso_excluidos (filial TEXT NOT NULL, sup_id TEXT NOT NULL, sup_nome TEXT, motivo TEXT, em TEXT DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (filial, sup_id))').run();
   await db.prepare('CREATE TABLE IF NOT EXISTS bot_contatos_log (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, acao TEXT, antes TEXT, depois TEXT)').run();
@@ -113,6 +114,16 @@ export async function onRequestPost({ request, env }) {
       gruposSincronizados.push({ jid, nome: nomeG, filial: filialPrincipal, filiais: fils, tamanho: g.size || null });
     }
     return j({ ok: true, total: gruposSincronizados.length, grupos: gruposSincronizados });
+  }
+  // CONTROLE DA MENSAGEM DE LIBERACAO pela tela (Vitorio, 02/11/2026: "eu preciso poder controlar tudo"): reenviar poe na fila com o numero atual do contato; cancelar tira da fila
+  if (b.acao === 'reenviar_liberacao' || b.acao === 'cancelar_fila') {
+    const celR = so(b.celular);
+    await env.DB.prepare("DELETE FROM bot_envio_fila WHERE celular = ? AND tipo = 'boas_vindas_aprovacao'").bind(celR).run();
+    if (b.acao === 'cancelar_fila') return j({ ok: true });
+    const u = await env.DB.prepare("SELECT nome, texto FROM bot_msgs WHERE celular = ? AND tipo = 'boas_vindas_aprovacao' ORDER BY id DESC LIMIT 1").bind(celR).first();
+    if (!u) return j({ erro: 'nenhuma mensagem de liberacao para esse numero' }, 404);
+    await env.DB.prepare("INSERT INTO bot_envio_fila (celular, numero, nome, texto, tipo) VALUES (?, ?, ?, ?, 'boas_vindas_aprovacao')").bind(celR, celR, u.nome, String(u.texto).replace(/^\[NAO ENTREGUE[^\]]*\] /, '')).run();
+    return j({ ok: true });
   }
   if (b.acao === 'disparo_individual') {
     const rawCel = String(b.celular || '').trim();

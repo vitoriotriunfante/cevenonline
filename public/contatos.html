@@ -1990,6 +1990,16 @@ function renderizarPedidosAcesso(pendentes) {
   const tbodyMsgs = $('pedidos-msgs-corpo');
   if (tbodyMsgs) {
     const msgsAcesso = (DADOS_CONVERSAS?.disparos || []).filter((d) => d.categoria === 'acesso');
+    // controle da liberacao: a lista vem do mais novo para o mais velho, entao so a linha mais recente de cada pessoa ganha os botoes
+    const naFila = new Map((DADOS_CONVERSAS?.fila || []).filter((f) => f.tipo === 'boas_vindas_aprovacao').map((f) => [f.celular, f])), vistos = new Set();
+    const statusAcesso = (d) => {
+      const base = d.ok ? '<span class="tag-badge pronta">✅ Enviado</span>' : '<span class="tag-badge erro">⚠️ Falhou</span>';
+      if (d.ciclo !== 'boas_vindas_aprovacao' || vistos.has(d.celular)) return base;
+      vistos.add(d.celular);
+      const f = naFila.get(d.celular), bt = (ac, txt) => `<button class="btn-liberacao" data-ac="${ac}" data-cel="${esc(d.celular)}" style="display:block; margin-top:6px; background:transparent; color:var(--txt-mut); border:1px solid var(--borda); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px;">${txt}</button>`;
+      if (f) return `<span class="tag-badge ia">⏳ Na fila · ${esc(f.tentativas)} tentativa(s)</span>${bt('cancelar_fila', 'Cancelar')}`;
+      return base + bt('reenviar_liberacao', 'Reenviar');
+    };
     if (!msgsAcesso.length) {
       tbodyMsgs.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--txt-dim); padding:20px;">Nenhuma mensagem automática de credenciamento/acesso enviada no período.</td></tr>`;
     } else {
@@ -2000,9 +2010,16 @@ function renderizarPedidosAcesso(pendentes) {
           <td><b>${esc(tit(d.quem))}</b><div style="font-size:11px; color:var(--txt-dim);">+${esc(d.celular)}</div></td>
           <td>${esc(d.filial || '—')} · ${esc(d.papel || '—')}</td>
           <td style="max-width:420px; white-space:pre-wrap; font-size:12px; color:var(--txt-mut);">${esc(d.texto.slice(0, 240))}${d.texto.length > 240 ? '…' : ''}</td>
-          <td>${d.ok ? '<span class="tag-badge pronta">✅ Enviado</span>' : '<span class="tag-badge erro">⚠️ Falhou</span>'}</td>
+          <td>${statusAcesso(d)}</td>
         </tr>
       `).join('');
+      tbodyMsgs.querySelectorAll('.btn-liberacao').forEach((b) => {
+        b.onclick = async () => {
+          b.disabled = true;
+          try { await api('POST', '/api/jota-contatos', { acao: b.dataset.ac, celular: b.dataset.cel }); aviso(b.dataset.ac === 'cancelar_fila' ? 'Tirado da fila.' : 'Na fila: sai na próxima rodada.', 'ok'); await carregarTudo(); }
+          catch (e) { b.disabled = false; aviso('Erro: ' + e.message, 'erro'); }
+        };
+      });
     }
   }
 }
