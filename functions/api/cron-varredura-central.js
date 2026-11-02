@@ -563,7 +563,18 @@ export async function onRequestGet({ env, request }) {
       try { await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('coleta_sem_ceven', ?, 'rodada nao alcancou o CEVEN', datetime('now')) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = excluded.atualizado_em").bind(Date.now()).run(); } catch { /* segue */ }
       return resp({ status: 'SEM_ALCANCE_CEVEN', colo: request.cf && request.cf.colo });
     }
-    if (tentarDeNovo) { try { await env.DB.prepare("DELETE FROM coleta_estado WHERE chave = 'coleta_sem_ceven'").run(); } catch { /* segue */ } }
+    // INSTABILIDADE DO CEVEN (Vitorio, 02/11/2026: "assim que voltar pegar tudo"): site no ar com login dando 500 tambem conta. Enquanto o login nao volta, testa a cada 2 min;
+    // quando volta, segue rodando a cada 2 min (os mais antigos primeiro) ate ninguem de hoje ficar com painel atrasado. So entao limpa a marca.
+    const loginOk = !!(await tokenDoAdmin(env));
+    if (!loginOk) {
+      try { await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('coleta_sem_ceven', ?, 'login do CEVEN falhando', datetime('now')) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, motivo = excluded.motivo, atualizado_em = excluded.atualizado_em").bind(Date.now()).run(); } catch { /* segue */ }
+      if (!madrugada && !rodaAgora(noiteTodos ? 6 : 2, undefined, await freioCusto(env))) return resp({ status: 'SEM_LOGIN_CEVEN', colo: request.cf && request.cf.colo });
+    } else if (tentarDeNovo) {
+      try {
+        const atras = await env.DB.prepare("SELECT COUNT(*) n FROM varredura_central_rca WHERE data_ref = ? AND (dash_em IS NULL OR dash_em < datetime('now','-30 minutes'))").bind(dataHojeBrasilia()).first();
+        if (!atras || !atras.n) await env.DB.prepare("DELETE FROM coleta_estado WHERE chave = 'coleta_sem_ceven'").run();
+      } catch { /* segue */ }
+    }
   }
 
   const { results: rcasRaw } = await env.DB.prepare(
