@@ -270,12 +270,14 @@ async function salvaBan(env) {
 async function saidaDaRodada() { try { const t = await (await fetch('https://www.cloudflare.com/cdn-cgi/trace', { signal: AbortSignal.timeout(4000) })).text(); return ((t.match(/colo=(\w+)/) || [])[1] || '?') + '/' + ((t.match(/loc=(\w+)/) || [])[1] || '?'); } catch { return 'sem_resposta'; } }
 async function reenviaFila(env) {
   try {
-    const { results } = await env.DB.prepare("SELECT id, celular, numero, nome, texto, tipo FROM bot_envio_fila WHERE criado_em > datetime('now','-2 hours') ORDER BY id LIMIT 20").all();
+    const { results } = await env.DB.prepare("SELECT id, celular, numero, nome, texto, tipo FROM bot_envio_fila WHERE criado_em > datetime('now','-2 hours') ORDER BY tentativas, id LIMIT 20").all();   // menos tentativas primeiro: numero ruim nao trava a fila dos outros (02/11/2026)
     for (const m of results || []) {
       const r = await R.enviarTexto(R.evoCfg(env), m.numero, m.texto).catch(() => null);
       if (!r || !r.ok) { await env.DB.prepare('UPDATE bot_envio_fila SET tentativas = tentativas + 1 WHERE id = ?').bind(m.id).run(); break; }   // servidor ainda fora: tenta na proxima rodada
       await env.DB.batch([env.DB.prepare('DELETE FROM bot_envio_fila WHERE id = ?').bind(m.id), env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,'out',?,?)").bind(m.celular, m.nome, String(m.texto).slice(0, 4000), m.tipo)]);
     }
+    // desistiu depois de 2 horas: fica "Falhou" no painel da Central, nunca some calado
+    await env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) SELECT celular, nome, 'erro', '[NAO ENTREGUE apos ' || tentativas || ' tentativas] ' || substr(texto, 1, 3900), tipo FROM bot_envio_fila WHERE criado_em <= datetime('now','-2 hours')").run();
     await env.DB.prepare("DELETE FROM bot_envio_fila WHERE criado_em <= datetime('now','-2 hours')").run();
   } catch { /* sem fila: nada a reenviar */ }
 }
