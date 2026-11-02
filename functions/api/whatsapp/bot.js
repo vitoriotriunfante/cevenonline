@@ -285,9 +285,13 @@ export async function onRequestPost({ request, env }) {
     const historico = (hist || []).slice(1).reverse().map((h) => ({ role: h.direcao === 'in' ? 'user' : 'assistant', content: h.texto }));
     resp = await respondeIA(env, B, c, texto, historico); if (resp) tipo = 'ia';
   }
-  if (!resp) { resp = respAjuda(c); tipo = 'ajuda'; }
+  // sem resposta: avisa que esta em treinamento e anota a pergunta como sugestao (Vitorio, 02/11/2026)
+  if (!resp) {
+    resp = '⚽ Estou em treinamento e ainda não sei responder isso. Anotei o seu pedido para aprender.\n\n' + respAjuda(c); tipo = 'ajuda';
+    if (!seco) try { await env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(cel, c.nome, c.papel, c.filial || '', `[SEM RESPOSTA] ${String(texto).slice(0, 1400)}`, '').run(); } catch (e) {}
+  }
   if (tipo === 'pronta') resp = humaniza(resp, c, primeiraDoDia);
-  if (['pronta', 'ia'].includes(tipo) && resp && !/o que faltou/.test(resp) && !/Digite o número/.test(resp) && !/⟪⟫/.test(resp)) resp += '\n\n_Nota de 1 a 5 para essa resposta? Ou escreva "sugestão: ..."_';
+  if (['pronta', 'ia', 'ficha_ia', 'entendida_ia'].includes(tipo) && resp && !/o que faltou/.test(resp) && !/Digite o número/.test(resp) && !/⟪⟫/.test(resp)) resp += '\n\n_⚽ Jota em treinamento. Nota de 1 a 5 para essa resposta? Ou escreva "sugestão: ..."_';
   if (audio && audio.texto) resp = `🎙️ _Entendi: "${audio.texto.slice(0, 200)}"_\n\n` + resp;
   if (seco) return new Response(resp + (u.searchParams.get('fig') === '1' ? `\n\n[figurinha: ${figurinhaPara(resp, tipo) || 'nenhuma'} · tipo: ${tipo}]` : ''), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
   // TRAVA DE ESCOPO (26/10/2026, vazamento do consolidado para um supervisor): nada do consolidado nacional sai para quem nao e diretoria/ceo, venha de onde vier a resposta
