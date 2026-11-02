@@ -497,6 +497,11 @@ export async function onRequestGet({ env, request }) {
   if (new URL(request.url).searchParams.get('diag') === '1') {
     const out = {}, mede = async (nome, url, h) => { const t = Date.now(); try { const r = await fetch(url, { headers: h, signal: AbortSignal.timeout(15000) }); const x = await r.text(); out[nome] = { http: r.status, ms: Date.now() - t, bytes: x.length, reset: r.headers.get('x-ratelimit-reset') }; } catch (e) { out[nome] = { erro: e.name, ms: Date.now() - t }; } };
     await mede('produtividade', `${CEVEN}/api/rca/produtividade?filial=tbl1&id=185`, HDR);
+    // resposta real dos logins (02/11/2026): "login falhou" sem o status nao diz se e senha, bloqueio ou fora do ar. Nao devolve token nem senha.
+    out.saida = await saidaDaRodada();
+    const provaLogin = async (nome, url, corpo) => { const t = Date.now(); try { const r = await fetch(url, { method: 'POST', headers: { ...HDR, 'Content-Type': 'application/json' }, body: JSON.stringify(corpo), signal: AbortSignal.timeout(15000) }); const x = r.ok ? '' : (await r.text()).slice(0, 120); out[nome] = { http: r.status, ms: Date.now() - t, msg: x, retry: r.headers.get('retry-after') }; } catch (e) { out[nome] = { erro: String(e.message || e).slice(0, 80), ms: Date.now() - t }; } };
+    await provaLogin('login_admin', `${CEVEN}/api/admin/login`, { username: env.CEVEN_ADMIN_USER, password: env.CEVEN_ADMIN_PASS });
+    { const gT = GERENTES.find((x) => x.sigla === 'TBL'); await provaLogin('login_gerente', `${CEVEN}/api/gerente-auth/login`, { filial: gT.filialKey, nome: gT.loginNome, password: env.CEVEN_GERENTE_SENHA }); }
     const tk = await tokenDoAdmin(env).catch(() => null); out.token_admin = !!tk;
     if (tk) await mede('view_as', `${CEVEN}/api/admin/view-as/rca/dashboard?filial=tbl1&id=185`, { ...HDR, Authorization: `Bearer ${tk}` });
     // Chamadas em bloco do GERENTE (01/11/2026, Vitorio: "cada gerente ve tudo"; rotas lidas do app do CEVEN): devolve status, tamanho e nomes dos campos, sem valores.
