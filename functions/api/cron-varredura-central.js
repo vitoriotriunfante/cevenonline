@@ -159,6 +159,8 @@ async function dashboardsAdmin(env, lista, prazoMs) {
   if (!lista.length || (!tk && !env.CEVEN_ADMIN_USER)) return mapa;
   // LOGIN DO ADMIN CAIU (Vitorio, 02/11/2026: "entra vendedor por vendedor"): le pelo caminho do proprio vendedor, que nao pede login. Mesmo formato. Ao primeiro 429 para e nao insiste.
   if (!tk && Date.now() < banRcaAte) return mapa;
+  // a cota de /api/rca/* e uma so: rodada sim, painel; rodada nao, rota e produtividade (as duas na mesma rodada zeraram a gravacao em 02/11/2026)
+  if (!tk && Math.floor(Date.now() / 120000) % 2) return mapa;
   const prazo = Date.now() + prazoMs;
   let proximo = 0;
   if (!tk) {
