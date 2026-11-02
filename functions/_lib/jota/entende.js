@@ -313,6 +313,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
   {
     const reenvia = (q) => respostaPronta(B, c, q, []);
     if (/\bBALLY\b/.test(t)) return reenvia(t.replace(/\bBALLY\b/g, 'BALY'));   // o catalogo escreve BALY (energetico da Bebidas Grassi); o time escreve Bally
+    // MES QUE JA FECHOU, em qualquer jeito de perguntar ("como foi outubro", "bati a meta em outubro?", "quanto vendi mes passado", "fechei a meta?"): o fechamento gravado, nunca o mes que comecou (02/11/2026)
+    { const mMes = t.match(/\b(JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO)\b|\bMES (PASSADO|ANTERIOR)\b/), mesesN = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
+      const hjM = Number(hojeSP().slice(5, 7)), nomeMes = mMes && mMes[1], jaFechou = mMes && (!nomeMes || mesesN.indexOf(nomeMes) + 1 < hjM);
+      const geral = !/CLIENTE|INDUSTRIA|FORNECEDOR|PRODUTO|MARCA|LIGA|CHAMPI|COMPARA|RELACAO|\bX\b/.test(t) && (rcaV || !/VENDEDOR/.test(t));
+      if (jaFechou && geral && (/COMO FOI|BATI|BATEU|BATEMOS|VENDI|VENDEMOS|\bFIZ\b|FIZEMOS|POSITIV|\bMETA\b/.test(t) || new RegExp('^\\W*(E )?(' + nomeMes + ')\\W*$').test(t))) return reenvia(nomeMes ? `fechamento de ${nomeMes}` : 'fechamento do mes passado');
+      if (/^\W*(FECHEI|FECHAMOS|BATI|BATEMOS) A META\W*$/.test(t) && Number(hojeSP().slice(8)) <= 5) return reenvia('fechamento do mes passado'); }
     if (rcaV) {
       if (/^\W*(\+ ?MIX|MAIS ?MIX|O QUE (EU )?(POSSO |DEVO )?OFERECER)\W*$/.test(t)) return 'Para qual cliente? Mande assim: *o que oferecer para* e o nome ou o código do cliente.';
       const eu = `VENDEDOR ${rcaV}`;
