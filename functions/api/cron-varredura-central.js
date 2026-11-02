@@ -156,24 +156,26 @@ async function dashboardsAdmin(env, lista, prazoMs) {
   const mapa = new Map();
   if (Date.now() < banAdminAte) return mapa;
   const tk = await tokenDoAdmin(env);
-  if (!lista.length) return mapa;
+  if (!lista.length || (!tk && !env.CEVEN_ADMIN_USER)) return mapa;
   // LOGIN DO ADMIN CAIU (Vitorio, 02/11/2026: "entra vendedor por vendedor"): le pelo caminho do proprio vendedor, que nao pede login. Mesmo formato. Ao primeiro 429 para e nao insiste.
   if (!tk && Date.now() < banRcaAte) return mapa;
   const prazo = Date.now() + prazoMs;
   let proximo = 0;
   if (!tk) {
+    let falhasSeguidas = 0;
     await Promise.all(Array.from({ length: 2 }, async () => {
       while (true) {
+        if (falhasSeguidas >= 4) return;   // CEVEN travado: nao gasta a rodada insistindo
         const k = proximo++;
         if (k >= lista.length || Date.now() > prazo) return;
         const rca = lista[k];
         try {
           const r = await fetch(urlRca('dashboard', rca), { headers: HDR, signal: AbortSignal.timeout(8000) });
           if (r.status === 429) { anotaFalha(r.url, 'http429'); banRcaAte = Date.now() + (Number(r.headers.get('retry-after')) || 40) * 1000; proximo = lista.length; return; }
-          if (!r.ok) { anotaFalha(r.url, 'http' + r.status); continue; }
+          if (!r.ok) { falhasSeguidas++; anotaFalha(r.url, 'http' + r.status); continue; }
           const j = await r.json();
-          if (j && j.financeiro) { mapa.set(kr(rca), j); anotaOk(r.url); } else anotaFalha(r.url, 'sem_financeiro');
-        } catch (e) { anotaFalha(urlRca('dashboard', rca), String((e && e.name) || 'erro')); }
+          if (j && j.financeiro) { falhasSeguidas = 0; mapa.set(kr(rca), j); anotaOk(r.url); } else anotaFalha(r.url, 'sem_financeiro');
+        } catch (e) { falhasSeguidas++; anotaFalha(urlRca('dashboard', rca), String((e && e.name) || 'erro')); }
       }
     }));
     return mapa;
