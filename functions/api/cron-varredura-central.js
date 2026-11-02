@@ -784,7 +784,8 @@ export async function onRequestGet({ env, request }) {
     const maisAntigosPrimeiro = rcas.slice().sort((x, y) => { const k = (r) => { const a = ant.get(kr(r)); return (idsMudouDash.has(kr(r)) ? '0' : '1') + (!a ? '' : String(a.dash_em || '')); }; return k(x).localeCompare(k(y)); }).slice(0, noiteTodos ? 200 : 70);   // 21/10/2026: 90 -> 70 (Vitorio: "da uma baixada"); a varredura usava quase toda a cota do admin e o app dele dava Too Many Requests
     const dashAdm = await dashboardsAdmin(env, maisAntigosPrimeiro, noiteTodos ? 60000 : 35000);
     const admMudou = new Set(), devMudou = new Set();
-    const viaAdmin = dashAdm.size > 0 || Date.now() < banAdminAte || tokenAdmin.v != null;   // caminho do admin ativo (mesmo sem ler nada por estar em espera de cota)
+    // caminho do admin ativo (mesmo sem ler nada por estar em espera de cota). Painel lido pelo caminho do vendedor, com o login caido, NAO conta: rota e produtividade seguem normais (02/11/2026)
+    const viaAdmin = Date.now() < banAdminAte || tokenAdmin.v != null;
     for (const r of dashMudou) if (dashAdm.has(kr(r)) || !viaAdmin) hierVisto.set(kr(r), JSON.stringify(hier.get(kr(r))));
     if (viaAdmin) {
       for (const rca of rcas) {
