@@ -156,9 +156,28 @@ async function dashboardsAdmin(env, lista, prazoMs) {
   const mapa = new Map();
   if (Date.now() < banAdminAte) return mapa;
   const tk = await tokenDoAdmin(env);
-  if (!tk || !lista.length) return mapa;
+  if (!lista.length) return mapa;
+  // LOGIN DO ADMIN CAIU (Vitorio, 02/11/2026: "entra vendedor por vendedor"): le pelo caminho do proprio vendedor, que nao pede login. Mesmo formato. Ao primeiro 429 para e nao insiste.
+  if (!tk && Date.now() < banRcaAte) return mapa;
   const prazo = Date.now() + prazoMs;
   let proximo = 0;
+  if (!tk) {
+    await Promise.all(Array.from({ length: 2 }, async () => {
+      while (true) {
+        const k = proximo++;
+        if (k >= lista.length || Date.now() > prazo) return;
+        const rca = lista[k];
+        try {
+          const r = await fetch(urlRca('dashboard', rca), { headers: HDR, signal: AbortSignal.timeout(8000) });
+          if (r.status === 429) { anotaFalha(r.url, 'http429'); banRcaAte = Date.now() + (Number(r.headers.get('retry-after')) || 40) * 1000; proximo = lista.length; return; }
+          if (!r.ok) { anotaFalha(r.url, 'http' + r.status); continue; }
+          const j = await r.json();
+          if (j && j.financeiro) { mapa.set(kr(rca), j); anotaOk(r.url); } else anotaFalha(r.url, 'sem_financeiro');
+        } catch (e) { anotaFalha(urlRca('dashboard', rca), String((e && e.name) || 'erro')); }
+      }
+    }));
+    return mapa;
+  }
   await Promise.all(Array.from({ length: 4 }, async () => {
     while (true) {
       const k = proximo++;
@@ -568,7 +587,7 @@ export async function onRequestGet({ env, request }) {
     const loginOk = !!(await tokenDoAdmin(env));
     if (!loginOk) {
       try { await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('coleta_sem_ceven', ?, 'login do CEVEN falhando', datetime('now')) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, motivo = excluded.motivo, atualizado_em = excluded.atualizado_em").bind(Date.now()).run(); } catch { /* segue */ }
-      if (!madrugada && !rodaAgora(noiteTodos ? 6 : 2, undefined, await freioCusto(env))) return resp({ status: 'SEM_LOGIN_CEVEN', colo: request.cf && request.cf.colo });
+      // nao encerra a rodada: os paineis seguem pelo caminho do vendedor (dashboardsAdmin)
     } else if (tentarDeNovo) {
       try {
         const atras = await env.DB.prepare("SELECT COUNT(*) n FROM varredura_central_rca WHERE data_ref = ? AND (dash_em IS NULL OR dash_em < datetime('now','-30 minutes'))").bind(dataHojeBrasilia()).first();
