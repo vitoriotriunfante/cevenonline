@@ -112,6 +112,7 @@ export async function respPeriodoDias(B, E, t, per) {
   const tot = L.reduce((a, x) => a + (x[1] || 0), 0);
   if (per.ontem) {   /* ontem: total + por vendedor (equipe) ou so o total (vendedor) */
     const Lo = V.linhas.filter((l) => l.d === ult), pv = new Map();
+    if (!Lo.length) return `🧾 *Ontem — ${E.nome}*: sem pedido item a item na base.`;   /* nunca "Ontem (/)" (02/11/2026) */
     for (const l of Lo) { const k = l.f + '|' + l.r; const x = pv.get(k) || { v: 0, cli: new Set() }; x.v += l.v; x.cli.add(l.c); pv.set(k, x); }
     const nomeV = (k) => { const v = E.vend.find((y) => y.filial + '|' + y.rca === k); return v ? vn(v) : 'RCA ' + k.split('|')[1]; };
     return [`🧾 *Ontem (${dIso(ult)}) — ${E.nome}*: *${R$(tot)}* em pedidos · ${new Set(Lo.map((l) => l.f + '|' + l.c)).size} clientes`,

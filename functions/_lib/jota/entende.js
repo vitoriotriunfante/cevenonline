@@ -318,7 +318,20 @@ export async function respostaInterna(B, c, texto, anteriores) {
       const eu = `VENDEDOR ${rcaV}`;
       // PEDIDOS REAIS DOS VENDEDORES (cadastro, 01/11/2026): varios assuntos na mesma mensagem nao podem virar um so; comissao + clientes sem compra responde os dois
       if ((t.match(/,/g) || []).length >= 3) return 'Consigo te ajudar com tudo isso, um assunto por vez. Mande por exemplo:\n• *minha rota*\n• *clientes sem compra*\n• *meus pedidos*\n• *quanto falta*\n• *minhas devoluções*\n• *metas das indústrias*\n• *liga*';
-      if (/COMISS/.test(t) && /SEM (COMPRA|VENDA)|NAO COMPR/.test(t)) { const cn = await reenvia(`curva negativa do ${eu}`); return `💰 A *comissão em R$* ainda não está no ar aqui no Jota.\n\n${cn}`; }
+      // sem roteiro do mes (AS, Marcos/TCV) nao ha lista de clientes sem compra: dizer, nunca devolver visitas no lugar
+      const curvaOuDirecao = async () => { const r = await reenvia(`curva negativa do ${eu}`); return /Curva negativa/.test(String(r)) ? r : 'A lista de *clientes sem compra* depende do roteiro do mês, que não tenho para a sua carteira. Sua positivação: *quantos clientes falta positivar*.'; };
+      // PEDIDOS DO CADASTRO (02/11/2026): assunto que nao temos recebe direcao, nunca o painel geral no lugar
+      if (/ACELERADOR/.test(t)) return 'A *positivação dos aceleradores* ainda não está separada aqui no Jota. O que tenho por marca: *metas das indústrias*. Sua positivação geral: *quantos clientes falta positivar*.';
+      if ((/PENDENTE/.test(t) && /DIGIT|\bDIG\b/.test(t)) || /O QUE DIG(ITEI)?\b/.test(t)) { const st = await reenvia('status dos pedidos'); return `Os seus pedidos e o status de cada um na última conferência:\n\n${st}`; }
+      if (/PEDIDOS? CANCELAD/.test(t) && B.env && B.env.DB) {
+        const { results: Pc } = await B.env.DB.prepare("SELECT num, data_pedido, valor FROM pedido_status WHERE filial = ? AND rca = ? AND status = 'CANCELADO' AND data_pedido >= date('now', '-3 hours', '-30 days') ORDER BY data_pedido DESC, num DESC LIMIT 30").bind(fil, String(rcaV)).all();
+        if (!Pc || !Pc.length) return 'Não tenho pedido seu cancelado nos últimos 30 dias na base.';
+        return ['❌ *Seus pedidos cancelados, últimos 30 dias*', ...Pc.map((p) => `• ${String(p.data_pedido).slice(8, 10)}/${String(p.data_pedido).slice(5, 7)} · nº ${p.num} · ${R$(p.valor || 0)}`)].join('\n');
+      }
+      if (/^\W*(MEU )?TICKET( MEDIO)?\W*$/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return v.ped ? `🧾 *Ticket médio de hoje — ${vn(v)}*: *${R$(v.dig / v.ped)}* (${R$(v.dig)} ÷ ${N(v.ped)} pedidos)` : `🧾 *Ticket médio de hoje — ${vn(v)}*: ainda sem pedido hoje.`; }
+      if (/COMISS/.test(t) && /SELL.?OUT|POSITIVA|RESULTADO|VENDAS?\b/.test(t) && !/SEM (COMPRA|VENDA)|NAO COMPR/.test(t)) { const r = await reenvia(`como esta o ${eu}`); return `💰 A *comissão em R$* ainda não está no ar aqui no Jota. O resto:\n\n${r}`; }
+      if (/COMISS/.test(t) && /SEM (COMPRA|VENDA)|NAO COMPR/.test(t)) { const cn = await curvaOuDirecao(); return `💰 A *comissão em R$* ainda não está no ar aqui no Jota.\n\n${cn}`; }
+      if (/^\W*(CLIENTES? )?SEM (COMPRAS?|VENDAS?)\W*$/.test(t)) return curvaOuDirecao();
       if (/(QUANTO VENDI|MINHAS? VENDAS?).*\b(MES|ACUMULADO)\b/.test(t)) return reenvia(`como esta o ${eu}`);   // "no mes" nao e o digitado de hoje (teste com vendas de outubro, 01/11/2026)
       if (/QUANTO VENDI|VENDI HOJE|MINHAS? VENDAS? (DE )?HOJE/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respDiaVendedor(B, Ev, v); }
       if (/MINHA ROTA|^\W*ROTA( DE)? HOJE\W*$/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respMinhaRota(B, v); }
@@ -390,7 +403,10 @@ export async function respostaInterna(B, c, texto, anteriores) {
       const ym = /MES (ANTERIOR|PASSADO)/.test(t) || ((/COMO FECH(AMOS|EI|OU (O MES|O TIME|A EQUIPE|MEU TIME|MINHA EQUIPE))/.test(t) || (/\bFECHAMENTO\b/.test(t) && !/COMO ESTAMOS|ACUMULAD|\bHOJE\b/.test(t))) && !mesPedido && Number(hj.slice(8)) <= 5) ? passado : mesPedido;
       if (ym && ym < '2026-10' && /FECH/.test(t)) return `Só tenho fechamento conferido a partir de outubro/2026. De ${titulo(NM[Number(ym.slice(5)) - 1])} não tenho a foto do mês, então não vou passar número.`;
       const porVend = /\bVENDEDORES\b|\bRANKING\b/.test(t) && !/LIGA|CHAMPI/.test(t);
-      if (ym && ym >= '2026-10' && ym < hj.slice(0, 7) && (/FECH|RESULTADO|FATUR|ACUMUL/.test(t) || porVend) && !/INDUSTRIA|FORNECEDOR|PRODUTO|CLIENTE/.test(t) && B.env && B.env.DB) {
+      const semMes = t.replace(/\b(DE |DO |EM |NO )?(MES (ANTERIOR|PASSADO)|JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO)\b/g, ' ');
+      // vendas/rendimento de um mes fechado = o fechamento oficial, um numero so (Laura e Alex, cadastro 02/11/2026)
+      const pedeMes = /VEND[AI]|RENDIMENTO|DESEMPENHO/.test(t) && !/COMPARA|\bX\b|RELACAO|ESTE MES|ESSE MES/.test(t) && !/\b(DE|DA|DO) [A-Z]{4,}/.test(semMes) && (rcaV || !/VENDEDOR/.test(t));
+      if (ym && ym >= '2026-10' && ym < hj.slice(0, 7) && (/FECH|RESULTADO|FATUR|ACUMUL/.test(t) || porVend || pedeMes) && !/INDUSTRIA|FORNECEDOR|PRODUTO|CLIENTE/.test(t) && B.env && B.env.DB) {
         const Em = await carregaEscopo(B, esc), chaves = new Set(Em.vend.concat(Em.ocultos || []).map((v) => v.filial + '|' + v.rca));
         const u = await B.env.DB.prepare('SELECT MAX(data_ref) d FROM varredura_central_rca WHERE data_ref >= ? AND data_ref <= ?').bind(ym + '-01', ym + '-31').first();
         if (u && u.d) {
@@ -399,9 +415,9 @@ export async function respostaInterna(B, c, texto, anteriores) {
           const liqV = (x) => (Number(x.b) || 0) - (Number(x.dv) || 0);
           const cab = [`🏁 *Fechamento de ${titulo(NM[Number(ym.slice(5)) - 1])} — ${esc.nome}* (foto de ${u.d.split('-').reverse().join('/')})`, `💰 Faturado líquido: *${R$(liq)}* de ${R$(meta)}${meta > 0 ? ` → *${pctTxt(liq / meta * 100)}*` : ''}`, `(bruto ${R$(s('b'))} − devolução ${R$(s('dv'))})`, `⏳ Ficou pendente: ${R$(s('p'))}`, `👥 Positivação: *${Math.round(pos)}* de ${Math.round(mp)}${mp > 0 ? ` (${pctTxt(pos / mp * 100)})` : ''}`];
           if (L.length && s('b') > 0 && porVend && !esc.nacional && !esc.rca) {   // por vendedor, da mesma foto (Sueli/API, 01/11/2026: "e os vendedores" veio 0,0% de novembro)
-            const pv = new Map(Em.vend.concat(Em.ocultos || []).map((v) => [v.filial + '|' + v.rca, v])), nomeV = (x) => { const v = pv.get(x.f + '|' + x.r); return v ? vn(v) : 'RCA ' + x.r; };
+            const pv = new Map(Em.vend.concat(Em.ocultos || []).map((v) => [v.filial + '|' + v.rca, v])), nomeV = (x) => { const v = pv.get(x.f + '|' + x.r); return v ? vn(v) : 'RCA ' + x.r; }, ehSup = (x) => /^SUP/i.test(String((pv.get(x.f + '|' + x.r) || {}).canal || ''));
             const cm = L.filter((x) => Number(x.m) > 0).sort((a, b) => liqV(b) / b.m - liqV(a) / a.m), sm = L.filter((x) => !(Number(x.m) > 0)).sort((a, b) => liqV(b) - liqV(a));
-            return [...cab, '', ...cm.map((x, i) => `${i + 1}. ${nomeV(x)} — *${pctTxt(liqV(x) / x.m * 100)}* · ${R$(liqV(x))} de ${R$(x.m)} · 👥 ${Math.round(Number(x.pr) || 0)} de ${Math.round(Number(x.pm) || 0)}`), ...sm.map((x) => `• ${nomeV(x)} — sem meta cadastrada · ${R$(liqV(x))} · 👥 ${Math.round(Number(x.pr) || 0)}`)].join('\n');
+            return [...cab, '', ...cm.map((x, i) => `${i + 1}. ${nomeV(x)} — *${pctTxt(liqV(x) / x.m * 100)}* · ${R$(liqV(x))} de ${R$(x.m)} · 👥 ${Math.round(Number(x.pr) || 0)} de ${Math.round(Number(x.pm) || 0)}${ehSup(x) ? ' · _meta cadastrada para o supervisor_' : ''}`), ...sm.map((x) => `• ${nomeV(x)} — sem meta cadastrada · ${R$(liqV(x))} · 👥 ${Math.round(Number(x.pr) || 0)}`)].join('\n');
           }
           if (L.length && s('b') > 0) return cab.join('\n');
         }
@@ -527,7 +543,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     return respRecorrenciaLances(B, pr && pr.tipo === 'vend' ? { ...Er, nome: vn(pr.alvo), vend: [pr.alvo] } : Er);
   }
   // PEDIDOS ENTREGUES / CANHOTO / STATUS DE ENTREGA FISICA (Vitório, 30/10/2026: acionar o app NEXUS)
-  if (/(FOI|JA) ENTREGUE|STATUS (DA )?ENTREGA|COMPROVANTE (DE )?ENTREGA|CANHOTO|ENTREGOU O PEDIDO|O PEDIDO JA CHEGOU|ENTREGA DO PEDIDO/.test(t) || /PEDIDO \d+.*ENTREGUE/.test(t)) {
+  if (/(FOI|JA) ENTREGUE|STATUS (DA )?ENTREGA|PREVISAO D[AE] ENTREGA|RECEBER A MERCADORIA|COMPROVANTE (DE )?ENTREGA|CANHOTO|ENTREGOU O PEDIDO|O PEDIDO JA CHEGOU|ENTREGA DO PEDIDO/.test(t) || /PEDIDO \d+.*ENTREGUE/.test(t)) {
     return [
       '📦 *Status de Entrega e Canhoto*',
       '',
