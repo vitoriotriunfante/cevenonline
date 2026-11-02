@@ -319,7 +319,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
       // PEDIDOS REAIS DOS VENDEDORES (cadastro, 01/11/2026): varios assuntos na mesma mensagem nao podem virar um so; comissao + clientes sem compra responde os dois
       if ((t.match(/,/g) || []).length >= 3) return 'Consigo te ajudar com tudo isso, um assunto por vez. Mande por exemplo:\n• *minha rota*\n• *clientes sem compra*\n• *meus pedidos*\n• *quanto falta*\n• *minhas devoluções*\n• *metas das indústrias*\n• *liga*';
       // sem roteiro do mes (AS, Marcos/TCV) nao ha lista de clientes sem compra: dizer, nunca devolver visitas no lugar
-      const curvaOuDirecao = async () => { const r = await reenvia(`curva negativa do ${eu}`); return /Curva negativa/.test(String(r)) ? r : 'A lista de *clientes sem compra* depende do roteiro do mês, que não tenho para a sua carteira. Sua positivação: *quantos clientes falta positivar*.'; };
+      const curvaOuDirecao = async () => { const r = await reenvia(`curva negativa do ${eu}`); return /Curva negativa/.test(String(r)) ? r : 'A lista de *clientes sem compra* depende do roteiro do mês, que ainda não está na base hoje para a sua carteira (é lido ao longo do dia). Tente de novo mais tarde.'; };
       // PEDIDOS DO CADASTRO (02/11/2026): assunto que nao temos recebe direcao, nunca o painel geral no lugar
       if (/ACELERADOR/.test(t)) return 'A *positivação dos aceleradores* ainda não está separada aqui no Jota. O que tenho por marca: *metas das indústrias*. Sua positivação geral: *quantos clientes falta positivar*.';
       if ((/PENDENTE/.test(t) && /DIGIT|\bDIG\b/.test(t)) || /O QUE DIG(ITEI)?\b/.test(t)) { const st = await reenvia('status dos pedidos'); return `Os seus pedidos e o status de cada um na última conferência:\n\n${st}`; }
@@ -347,10 +347,14 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (/STATUS D[EO]S? (MEUS )?PEDIDOS?|^\W*MEUS (ULTIMOS )?PEDIDOS\W*$|PEDIDOS? (JA )?(LIBERAD|BLOQUEAD|FATURAD)\w*\W*$/.test(t) && B.env && B.env.DB) {
         const { results: Pd } = await B.env.DB.prepare("SELECT num, id_cliente, data_pedido, status, valor, confirmado_em FROM pedido_status WHERE filial = ? AND rca = ? AND data_pedido >= date('now', '-3 hours', '-7 days') AND data_pedido <= date('now', '-3 hours') ORDER BY data_pedido DESC, num DESC LIMIT 30").bind(fil, String(rcaV)).all();
         if (!Pd || !Pd.length) return 'Não tenho pedido seu dos últimos 7 dias na base.';
+        // "pedidos bloqueados" traz so os bloqueados (a mensagem de liberacao promete isso; 02/11/2026)
+        const stPed = (t.match(/LIBERAD|BLOQUEAD|FATURAD/) || [])[0];
+        if (stPed) { const Pf = Pd.filter((p) => String(p.status).toUpperCase().includes(stPed)); const rot = stPed.toLowerCase() + 'o'; if (!Pf.length) return `Nenhum pedido seu ${rot} nos últimos 7 dias, na última conferência no CEVEN.`; Pd.length = 0; Pd.push(...Pf); }
         const ic = (s) => /FATURAD/.test(s) ? '✅' : /BLOQUEAD/.test(s) ? '🚫' : /LIBERAD/.test(s) ? '🟢' : /CANCELAD/.test(s) ? '❌' : '⏳';
         return ['📦 *Seus pedidos, últimos 7 dias*', ...Pd.map((p) => `${ic(String(p.status))} ${String(p.data_pedido).slice(8, 10)}/${String(p.data_pedido).slice(5, 7)} · nº ${p.num} · ${R$(p.valor || 0)} · ${titulo(String(p.status).replace(/_/g, ' '))}`), '', '_Status da última conferência no CEVEN; pode ter mudado depois dela._'].join('\n');
       }
-      if (/NAO POSITIVEI|QUE FALTA(M)? POSITIVAR|MINHA CURVA/.test(t)) return reenvia(`curva negativa do ${eu}`);
+      if (/NAO POSITIVEI|QUE FALTA(M)? POSITIVAR|MINHA CURVA|^\W*CURVA NEGATIVA\W*$/.test(t)) return curvaOuDirecao();
+      { const mCl = t.match(/^\W*(?:CLIENTE\s*)?#?\s*(\d{3,})\W*$/); if (mCl && /CLIENTE|#/.test(t)) { const Ev = await carregaEscopo(B, esc), achado = clienteNaCarteira(Ev, '#' + mCl[1]); return achado ? respFichaCliente(B, Ev, t, achado) : `Não achei o cliente #${mCl[1]} na sua carteira do mês.`; } }
       if (/^\W*MEUS CORTES\W*$/.test(t)) return reenvia(`cortes do ${eu}`);
     }
     if (/BRASILEIRAO|\bLIGA\b/.test(t) && /CONTABIL/.test(t)) return respGlossario('LIGA') || null;

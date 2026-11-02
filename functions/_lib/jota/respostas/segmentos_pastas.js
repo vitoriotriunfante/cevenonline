@@ -321,9 +321,9 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
                V.find((v) => String(v.rca) === codCitado) ||
                (E.vend || []).find((v) => String(v.rca) === codCitado);
   } else if (E.rca) {
-    alvoVend = V.find((v) => String(v.rca) === String(E.rca) && v.filial === E.filiais[0]);
+    alvoVend = V.find((v) => String(v.rca) === String(E.rca) && v.filial === E.filiais[0]) || (E.vend || []).find((v) => String(v.rca) === String(E.rca));   // vendedor sem rota hoje tambem ve os prospects dele (02/11/2026)
   } else if (E.vend && E.vend.length === 1) {
-    alvoVend = V.find((v) => String(v.rca) === String(E.vend[0].rca) && v.filial === E.vend[0].filial);
+    alvoVend = V.find((v) => String(v.rca) === String(E.vend[0].rca) && v.filial === E.vend[0].filial) || E.vend[0];
   }
 
   // Base unica: so le a base; a chamada ao CEVEN daqui foi retirada em 31/10/2026 (docs/BASE_UNICA.md)
