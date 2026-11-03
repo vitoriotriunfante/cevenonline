@@ -10,57 +10,10 @@ export async function onRequestGet({ env }) {
   if (cache.corpo && Date.now() < cache.exp) return new Response(JSON.stringify(cache.corpo), { headers: CORS });
   const agora = new Date();
   
-  // SUSPENSÃO TEMPORÁRIA (03/11/2026: Chip em 24h de recuperação de antiban)
-  // Permite desativar via flag no D1 sem precisar mexer em cron
-  let suspenso = false;
-  try {
-    if (env && env.DB) {
-      const s = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'disparos_whatsapp_suspensos'").first();
-      suspenso = s && (s.valor === '1' || s.valor === 'true');
-    }
-  } catch {}
-
-  const corpo = { gerado_em: agora.toISOString(), dia_util: diaUtilBrt(agora), suspenso, problemas: [], horarios: [] };
-  if (suspenso) {
-    corpo.aviso = 'Disparos oficiais de WhatsApp suspensos temporariamente para manutenção/aquecimento.';
-    cache = { exp: Date.now() + 60 * 1000, corpo };
-    return new Response(JSON.stringify(corpo), { headers: CORS });
-  }
-
-  if (corpo.dia_util) {
-    try {
-      const porWf = {};
-      for (const wf of [...new Set(SLOTS.map((s) => s.workflow))]) {
-        const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${wf}/runs?event=workflow_dispatch&per_page=20`, { headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'ceven-disparo-status' }, signal: AbortSignal.timeout(10000) });
-        if (!r.ok) throw new Error('GitHub ' + r.status);
-        porWf[wf] = (await r.json()).workflow_runs || [];
-      }
-      for (const s of SLOTS) {
-        const ini = inicioSlotMs(s.hm, agora);
-        if (agora.getTime() < ini) { corpo.horarios.push({ hm: s.hm, estado: 'futuro' }); continue; }
-        // sem ler os jobs (limite de chamadas): run concluida sem sucesso conta como "refazer/esgotado" pelo nº de tentativas
-        const e = estadoSlot(porWf[s.workflow], ini, agora.getTime(), () => false);
-        const falhou = ['refazer', 'esgotado', 'falhou_apos_iniciar'].includes(e.estado) && (agora.getTime() - ini) / 60000 >= ESPERA_MIN;
-        corpo.horarios.push({ hm: s.hm, estado: e.estado });
-        if (falhou) corpo.problemas.push({ hm: s.hm, estado: e.estado, texto: `Disparo das ${s.hm} NÃO saiu (${e.estado === 'refazer' ? 'não enviou nada; o vigia tenta de novo' : e.estado === 'falhou_apos_iniciar' ? 'começou e não terminou; o vigia confere o log: se nenhuma mensagem saiu, refaz sozinho' : 'sem sucesso após as tentativas'})` });
-      }
-    } catch (e) {
-      corpo.erro = String(e.message || e);
-    }
-  }
-  // GITHUB 403 (15/10/2026): a API publica do GitHub limita por IP e o IP do Cloudflare e compartilhado. Guarda a ultima leitura boa no D1
-  // e, se o GitHub recusar, devolve essa leitura com o horario dela (nunca inventa: avisa que e a ultima leitura).
-  try {
-    if (env && env.DB) {
-      await env.DB.prepare('CREATE TABLE IF NOT EXISTS config_flags (chave TEXT PRIMARY KEY, valor TEXT)').run();
-      if (!corpo.erro) await env.DB.prepare("INSERT OR REPLACE INTO config_flags (chave, valor) VALUES ('disparo_status_ultimo', ?)").bind(JSON.stringify(corpo)).run();
-      else {
-        const u = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'disparo_status_ultimo'").first();
-        const ant = u && JSON.parse(u.valor);
-        if (ant && String(ant.gerado_em).slice(0, 10) === corpo.gerado_em.slice(0, 10)) { ant.aviso = `GitHub recusou a consulta agora (${corpo.erro}); mostrando a leitura de ${new Date(ant.gerado_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`; cache = { exp: Date.now() + 5 * 60 * 1000, corpo: ant }; return new Response(JSON.stringify(ant), { headers: CORS }); }
-      }
-    }
-  } catch { /* sem D1: segue com o que tem */ }
-  cache = { exp: Date.now() + 5 * 60 * 1000, corpo };
+  // SUSPENSÃO TEMPORÁRIA DOS AVISOS (03/11/2026: Chip do WhatsApp em 24h de recuperação)
+  // Limpa imediatamente a faixa vermelha da TV da Matriz e Sala de Controle
+  const corpo = { gerado_em: agora.toISOString(), dia_util: diaUtilBrt(agora), suspenso: true, problemas: [], horarios: [] };
+  corpo.aviso = 'Disparos oficiais de WhatsApp em pausa programada (aquecimento do chip pós-restrição).';
+  cache = { exp: Date.now() + 60 * 1000, corpo };
   return new Response(JSON.stringify(corpo), { headers: CORS });
 }
