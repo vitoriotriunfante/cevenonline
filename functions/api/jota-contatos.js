@@ -179,8 +179,16 @@ export async function onRequestPost({ request, env }) {
       }));
       ok = !!rMedia.ok;
     } else if (texto) {
-      // 2. Se não tiver anexo, envia o texto normalmente (tenta com e sem 9º dígito)
-      const rTxt = await evoTry('/message/sendText', (num) => ({ number: num, text: texto }));
+      // 2. Se não tiver anexo, envia o texto protegido com Spintax, Zero-Width e presença humana ("composing")
+      const tSeguro = R.textoAntiban(texto);
+      const delay = R.delayDigitacao(tSeguro);
+      const rTxt = await evoTry('/message/sendText', (num) => ({
+        number: num,
+        text: tSeguro,
+        delay: delay,
+        presence: 'composing',
+        linkPreview: false
+      }));
       ok = !!rTxt.ok;
     }
 

@@ -9,7 +9,24 @@ let cache = { exp: 0, corpo: null };
 export async function onRequestGet({ env }) {
   if (cache.corpo && Date.now() < cache.exp) return new Response(JSON.stringify(cache.corpo), { headers: CORS });
   const agora = new Date();
-  const corpo = { gerado_em: agora.toISOString(), dia_util: diaUtilBrt(agora), problemas: [], horarios: [] };
+  
+  // SUSPENSÃO TEMPORÁRIA (03/11/2026: Chip em 24h de recuperação de antiban)
+  // Permite desativar via flag no D1 sem precisar mexer em cron
+  let suspenso = false;
+  try {
+    if (env && env.DB) {
+      const s = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'disparos_whatsapp_suspensos'").first();
+      suspenso = s && (s.valor === '1' || s.valor === 'true');
+    }
+  } catch {}
+
+  const corpo = { gerado_em: agora.toISOString(), dia_util: diaUtilBrt(agora), suspenso, problemas: [], horarios: [] };
+  if (suspenso) {
+    corpo.aviso = 'Disparos oficiais de WhatsApp suspensos temporariamente para manutenção/aquecimento.';
+    cache = { exp: Date.now() + 60 * 1000, corpo };
+    return new Response(JSON.stringify(corpo), { headers: CORS });
+  }
+
   if (corpo.dia_util) {
     try {
       const porWf = {};

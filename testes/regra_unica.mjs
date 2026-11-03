@@ -50,7 +50,7 @@ for (const p of PASTAS) for (const f of arquivos(p)) {
 // a própria biblioteca tem que existir e ser coerente
 const R = (await import('../public/regras.js')).default;
 const ok = R && R.CANAIS_VAREJO.join() === 'VJ,PET VJ,FARMA,ESP' && R.ehVarejo('pet vj') && !R.ehVarejo('AS') && R.canalCurto('PET AS') === 'AS'
-  && /^\d{4}-\d{2}-\d{2}$/.test(R.hojeSP()) && R.relogioSP(new Date('2026-10-26T02:30:00Z')).dia === '2026-10-25' && R.brl(1234.6) === 'R$ 1.235';
+  && /^\d{4}-\d{2}-\d{2}$/.test(R.hojeSP()) && R.relogioSP(new Date('2026-10-26T02:30:00Z')).dia === '2026-10-25' && R.brl(1234.6) === 'R$ 1.235' && typeof R.gaussianJitterMs === 'function' && typeof R.textoAntiban === 'function';
 if (!ok) falhas.push('public/regras.js: a biblioteca não passou na conferência básica');
 if (falhas.length) { console.log(`❌ REGRA ÚNICA VIOLADA (${falhas.length}):\n  ` + falhas.join('\n  ')); process.exit(1); }
 console.log(`✅ regra única: ${lidos} arquivos conferidos, nenhuma regra reescrita fora de public/regras.js`);

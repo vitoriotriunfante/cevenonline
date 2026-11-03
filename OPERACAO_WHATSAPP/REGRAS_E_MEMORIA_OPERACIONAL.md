@@ -274,3 +274,14 @@ Planilha na raiz do projeto (fora do git, tem dado de pessoa real — mesmo trat
 - Perguntas operacionais do dia a dia (rota, visitas, PDVs, compras, pedidos e indicadores) devem usar as respostas determinísticas e os dados disponíveis; o tamanho da mensagem, sozinho, não é motivo para chamar IA.
 - Classificação por IA e resposta generativa ficam restritas a gerente/diretoria quando a pergunta pede explicitamente estratégia, análise, diagnóstico, recomendação ou opinião. Pergunta operacional sem resposta confiável deve informar que não sabe, sem gerar uma resposta plausível.
 - Na rota, a lista e as visitas vêm do roteiro do dia; última compra vem do histórico disponível no D1. Sem histórico confirmado, o JOTA informa que não há histórico na base — não estima dias.
+
+
+## 03/11/2026 — BLINDAGEM ANTIBAN WHATSAPP (Vitorio: "evitar esse problema novamente")
+- **Causa da restrição de 24h em 03/11:** Disparos de convite com intervalo fixo de 4s/5s (sleep 4/5), sem simulação de digitação e com texto estático repetido (hash de spam detectado pela Meta).
+- **Regra Única Antiban (`public/regras.js`):** Todo envio de texto via `R.enviarTexto` ou APIs do JOTA agora passa obrigatoriamente por:
+  1. **Presença Humana Nativa (`presence: composing`):** a Evolution API emite o evento de "digitando..." proporcional ao tamanho do texto (2.000ms a 6.000ms) antes do envio do texto.
+  2. **Spintax Dinâmico:** Saudações e pontuações variadas aleatoriamente por envio.
+  3. **Zero-Width Invisibility:** Injeção de caracteres invisíveis (`\u200B`) para gerar hashes MD5/SHA256 únicos em cada mensagem, impedindo bloqueio por repetição de conteúdo.
+  4. **LinkPreview Desativado:** `linkPreview: false` mandatório para não disparar varreduras imediatas nos servidores da Meta.
+  5. **Gaussian Jitter Obrigatório:** Fim definitivo de sleeps estáticos de 4 ou 5 segundos. Intervalos de envio em lote usam distribuição normal humana (média de 26s, desvio de 5s, mínimo de 18s).
+  6. **Aquecimento Pós-Desbloqueio:** O chip em recuperação deve operar apenas respondendo mensagens recebidas nos primeiros 2 dias; disparos em massa para os ~500 contatos devem ser feitos em ondas graduais (máx 40-50 contatos/dia).

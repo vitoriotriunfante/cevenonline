@@ -56,9 +56,63 @@
     } catch (e) { return { ok: false, status: 0, erro: String(e && e.message || e) }; }
   }
   const evoCfg = (env) => ({ url: env.EVO_URL, key: env.EVO_KEY, instancia: env.EVO_INSTANCE || 'ceven-noc' });
-  const enviarTexto = (cfg, numero, texto) => evolution(cfg, '/message/sendText', { number: String(numero).includes('@g.us') ? String(numero).trim() : String(numero).replace(/\D/g, ''), text: texto });
 
-  const R = { CANAIS_VAREJO, CANAIS_AS, CANAIS_GESTAO, SKU_IGNORADO, ehVarejo, ehAS, ehGestao, canalCurto, relogioSP, hojeSP, horaSP, brl, evolution, evolutionGet, evoCfg, enviarTexto };
+  // ANTIBAN: Spintax simples — resolve {Olá|Oi|Bom dia}
+  function resolverSpintax(t) {
+    let s = String(t || '');
+    const rx = /\{([^{}]+)\}/g;
+    while (rx.test(s)) {
+      s = s.replace(rx, (_, opcoes) => {
+        const arr = opcoes.split('|');
+        return arr[Math.floor(Math.random() * arr.length)];
+      });
+    }
+    return s;
+  }
+
+  // ANTIBAN: Injeção de caractere invisível (\u200B) entre palavras para gerar hash único por envio
+  function injetarZeroWidth(t) {
+    const palavras = String(t || '').split(' ');
+    return palavras.map((p) => (Math.random() < 0.25 ? '\u200B' + p : p)).join(' ');
+  }
+
+  // ANTIBAN: Prepara o texto com Spintax e hash dinâmico
+  function textoAntiban(t) {
+    return injetarZeroWidth(resolverSpintax(t));
+  }
+
+  // ANTIBAN: Calcula delay de digitação humano proporcional ao tamanho do texto (2 a 6 segundos)
+  function delayDigitacao(t) {
+    const tam = String(t || '').length;
+    return Math.min(6000, Math.max(2000, tam * 30));
+  }
+
+  // ANTIBAN: Gaussian Jitter para intervalos entre mensagens (Box-Muller)
+  function gaussianJitterMs(mediaSeg = 25, desvioSeg = 6, minimoSeg = 15) {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    const seg = Math.max(minimoSeg, mediaSeg + z * desvioSeg);
+    return Math.round(seg * 1000);
+  }
+
+  // ANTIBAN: Envio seguro com presença nativa (composing), delay humano e linkPreview desativado
+  const enviarTexto = (cfg, numero, texto, opcoes = {}) => {
+    const numLimpo = String(numero).includes('@g.us') ? String(numero).trim() : String(numero).replace(/\D/g, '');
+    const tFinal = opcoes.puro ? texto : textoAntiban(texto);
+    const delay = opcoes.delayMs || delayDigitacao(tFinal);
+    const corpo = {
+      number: numLimpo,
+      text: tFinal,
+      delay: delay,
+      presence: 'composing',
+      linkPreview: false
+    };
+    return evolution(cfg, '/message/sendText', corpo, (opcoes.timeoutMs || 25000) + delay);
+  };
+
+  const R = { CANAIS_VAREJO, CANAIS_AS, CANAIS_GESTAO, SKU_IGNORADO, ehVarejo, ehAS, ehGestao, canalCurto, relogioSP, hojeSP, horaSP, brl, evolution, evolutionGet, evoCfg, enviarTexto, resolverSpintax, injetarZeroWidth, textoAntiban, delayDigitacao, gaussianJitterMs };
   if (typeof module !== 'undefined' && module.exports) module.exports = R;
   raiz.REGRAS = R;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

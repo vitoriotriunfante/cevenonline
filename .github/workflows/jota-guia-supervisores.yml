@@ -75,7 +75,13 @@ jobs:
             RESP=$(curl -fsS -m 40 -X POST -H "X-Evo-Key: $EVO_KEY" "$B?celular=$CEL")
             echo "  Resultado: $RESP"
             I=$((I + 1))
-            sleep 5
+
+            # Antiban Gaussian Jitter (variação humana entre 18s e 35s, nunca sleep fixo)
+            if [ $I -le $TOTAL ]; then
+              ESPERA=$(python3 -c "import random; print(max(18, int(random.gauss(26, 5))))")
+              echo "  [Antiban] Hesitação humana segura: aguardando ${ESPERA}s..."
+              sleep $ESPERA
+            fi
           done
 
           echo "Disparo concluído com sucesso!"

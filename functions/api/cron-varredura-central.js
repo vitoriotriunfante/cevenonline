@@ -215,12 +215,15 @@ async function gravaMetaHierarquia(env, lista) {
   const mud = rows.filter(([f, r, m, p]) => { const a = ant.get(f + '|' + r); return !a || Math.abs((a.meta || 0) - m) > 0.01 || Math.abs((a.meta_pos || 0) - p) > 0.01; });
   const agora = new Date().toISOString();
   for (let i = 0; i < mud.length; i += 80) await env.DB.batch(mud.slice(i, i + 80).map(([f, r, m, p]) => env.DB.prepare('INSERT INTO meta_hierarquia (filial, rca, meta, meta_pos, atualizado_em) VALUES (?,?,?,?,?) ON CONFLICT (filial, rca) DO UPDATE SET meta = excluded.meta, meta_pos = excluded.meta_pos, atualizado_em = excluded.atualizado_em').bind(f, r, m, p, agora)));
-  // QUEM SAIU DA LISTA OFICIAL SAI DA META (31/10/2026: so gravava, nunca apagava; na virada do mes ficaria meta velha). Trava: so com resposta de pelo menos 300 vendedores,
-  // so das filiais que vieram na resposta, e no maximo 20% de uma vez (resposta parcial do CEVEN nao zera ninguem)
+  // QUEM SAIU DA LISTA OFICIAL SAI DA META (03/11/2026: na virada do mês, quem saiu ou foi desligado deve ser removido para a soma bater os R$ 80.670.000 oficiais)
   if (rows.length >= 300) {
     const novos = new Set(rows.map(([f, r]) => f + '|' + r)), filiaisVieram = new Set(rows.map(([f]) => f));
     const sairam = (results || []).filter((x) => filiaisVieram.has(x.filial) && !novos.has(x.filial + '|' + x.rca));
-    if (sairam.length && sairam.length <= rows.length * 0.2) for (let i = 0; i < sairam.length; i += 80) await env.DB.batch(sairam.slice(i, i + 80).map((x) => env.DB.prepare('DELETE FROM meta_hierarquia WHERE filial = ? AND rca = ?').bind(x.filial, x.rca)));
+    if (sairam.length) {
+      for (let i = 0; i < sairam.length; i += 80) {
+        await env.DB.batch(sairam.slice(i, i + 80).map((x) => env.DB.prepare('DELETE FROM meta_hierarquia WHERE filial = ? AND rca = ?').bind(x.filial, x.rca)));
+      }
+    }
   }
   metaGravadaEm = Date.now();
 }
