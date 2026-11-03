@@ -268,3 +268,9 @@ Planilha na raiz do projeto (fora do git, tem dado de pessoa real — mesmo trat
 - O endereço só pelo IP não abre: o servidor (Caddy) exige o nome `137-131-147-223.sslip.io` para o HTTPS.
 - Login da Oracle tem verificação em 2 etapas pelo app autenticador do celular ("Vitorio's Phone-2").
 - O endereço antigo do Railway (evolution-api-production-8999.up.railway.app) e a Green API não são mais usados.
+
+## 03/11/2026 — JOTA: IA só para estratégia explícita
+
+- Perguntas operacionais do dia a dia (rota, visitas, PDVs, compras, pedidos e indicadores) devem usar as respostas determinísticas e os dados disponíveis; o tamanho da mensagem, sozinho, não é motivo para chamar IA.
+- Classificação por IA e resposta generativa ficam restritas a gerente/diretoria quando a pergunta pede explicitamente estratégia, análise, diagnóstico, recomendação ou opinião. Pergunta operacional sem resposta confiável deve informar que não sabe, sem gerar uma resposta plausível.
+- Na rota, a lista e as visitas vêm do roteiro do dia; última compra vem do histórico disponível no D1. Sem histórico confirmado, o JOTA informa que não há histórico na base — não estima dias.

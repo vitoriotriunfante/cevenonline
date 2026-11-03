@@ -185,19 +185,45 @@ export function respCheckinEquipe(E) {
 // quantidade e quais clientes nao compraram ainda esse mes... os outros ja compraram, se quiser a lista me pergunte... se ele quiser o +mix desses clientes
 // pergunta apenas 'mais mix' e vc ja entende"). Comprou no mes = vendas item a item (ate ontem) + positivado hoje na rota. Dias sem compra = historico do +MIX.
 export async function semCompraNaRota(B, v) {
-  const mes = hojeSP().slice(0, 7), R0 = (v.rotaHoje || []).filter((c) => !/FORA/i.test(String(c.status || '')));
+  const R0 = (v.rotaHoje || []).filter((c) => !/FORA/i.test(String(c.status || '')));
   const { vendasEscopo } = await import('./vendas.js');
   const VM = await vendasEscopo(B, { filiais: [v.filial], rca: v.rca, vend: [v] }).catch(() => null);
   const valorMes = new Map(); for (const l of ((VM && VM.linhas) || []).filter((l) => String(l.r) === String(v.rca))) valorMes.set(String(l.c), (valorMes.get(String(l.c)) || 0) + l.v);   /* R$ comprado no mes por cliente */
   const compraram = new Set(valorMes.keys());
+  const ultimasCompras = new Map();
+  let historicoCompleto = false;
+  if (B.env && B.env.DB && R0.length) {
+    try {
+      const ids = [...new Set(R0.map((c) => String(c.id_cliente)))];
+      for (let i = 0; i < ids.length; i += 80) {
+        const lote = ids.slice(i, i + 80);
+        const { results } = await B.env.DB.prepare(`SELECT id_cliente, json_extract(json, '$.ult') AS ultima_compra FROM ficha_cliente WHERE filial = ? AND id_cliente IN (${lote.map(() => '?').join(',')})`)
+          .bind(String(v.filial), ...lote).all();
+        for (const r of results || []) {
+          const d = String(r.ultima_compra || '').slice(0, 10);
+          if (/^\d{4}-\d{2}-\d{2}$/.test(d) && d >= '2020-01-01' && d <= hojeSP()) ultimasCompras.set(String(r.id_cliente), d);
+        }
+      }
+      historicoCompleto = true;
+    } catch (e) {
+      historicoCompleto = false;
+    }
+  }
   let H = {}; try { H = JSON.parse(await B.raw(`public/mix_hist/${v.filial}.json`) || '{}').c || {}; } catch (e) { H = {}; }
-  const ult = (cnpj) => { const x = H[String(cnpj || '').replace(/\D/g, '')]; if (!x) return null; const m = String(x).split(',').map((p) => p.split(':')[1]).filter(Boolean).sort().pop(); return m ? `20${m.slice(0, 2)}-${m.slice(2, 4)}-${m.slice(4, 6)}` : null; };
+  const ult = (c) => {
+    const daFicha = ultimasCompras.get(String(c.id_cliente));
+    if (daFicha) return daFicha;
+    const x = H[String(c.cnpj || '').replace(/\D/g, '')];
+    if (!x) return null;
+    const m = String(x).split(',').map((p) => p.split(':')[1]).filter(Boolean).sort().pop();
+    return m ? `20${m.slice(0, 2)}-${m.slice(2, 4)}-${m.slice(4, 6)}` : null;
+  };
   const vistos = new Set(), rota = [];
   for (const c of R0) { const k = String(c.id_cliente); if (vistos.has(k)) continue; vistos.add(k); rota.push(c); }
-  const comprou = (c) => compraram.has(String(c.id_cliente)) || /POSITIVADO|EFETIVADO/i.test(String(c.status || '')) || String(c.data_ultima_compra || '').slice(0, 7) === mes;
-  const sem = rota.filter((c) => !comprou(c)).map((c) => { const u = ult(c.cnpj); return { c, u, dias: u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) : null }; })
+  const comprou = (c) => compraram.has(String(c.id_cliente)) || /POSITIVADO|EFETIVADO/i.test(String(c.status || ''));
+  const sem = rota.filter((c) => !comprou(c)).map((c) => { const u = ult(c); return { c, u, dias: u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) : null }; })
     .sort((a, b) => (b.dias ?? 999) - (a.dias ?? 999));
-  return { rota, sem, valorMes };
+  return { rota, sem, valorMes, historicoCompleto };
 }
 export async function respRotaHojeResumo(B, E, v) {
   if (v) {
@@ -205,7 +231,7 @@ export async function respRotaHojeResumo(B, E, v) {
     if (!rota.length) return `${vn(v)} (${v.filial}) não tem clientes na rota de hoje.`;
     return [`📋 *${vn(v)}* (${v.filial}) — *${rota.length} clientes* na rota de hoje.`, '',
       sem.length ? `Destes, *${sem.length} ainda não compraram no mês:*` : '✅ Todos já compraram no mês.', ...(sem.length ? ['_Cliente · Dias sem compra_'] : []),
-      ...sem.slice(0, 25).map((x) => `${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} · ${x.dias == null ? '+60 dias' : x.dias + ' dias'}`),   /* formato limpo (27/10/2026) */
+      ...sem.slice(0, 25).map((x) => `${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} · ${x.dias == null ? 'sem histórico na base' : x.dias + ' dias'}`),
       '', `Os outros *${rota.length - sem.length}* já compraram no mês; se quiser a lista, me pergunte.`, '', 'Boas vendas e foco no +MIX! _Peça "+mix" que eu trago o que oferecer para esses clientes._'].join('\n');
   }
   const L = [], tot = { r: 0, s: 0 };
@@ -418,7 +444,7 @@ export const respRecorrenciaClientes = respTagCampanhas;
 export async function respRotaHojeCompleta(B, v, soSemCompra = false) {
   // FORMATO COMPACTO (Vitorio, 27/10/2026: "ficou confuso... mini legenda no inicio, separar quem nao comprou e quem ja comprou, foco em quem nao comprou...
   // Nome · ⏳ · ❌ 28 dias · 🏷️ 1 ou 2 tags"; quem ja comprou: "Nome · ⏳ · ✔️ (R$) · 🏷️").
-  const { rota, sem: semC, valorMes } = await semCompraNaRota(B, v);
+  const { rota, sem: semC, valorMes, historicoCompleto } = await semCompraNaRota(B, v);
   if (!rota.length) return `${vn(v)} (${v.filial}) não tem clientes na rota de hoje.`;
   const semMap = new Map(semC.map((x) => [String(x.c.id_cliente), x]));
   // tags: Recorrencia primeiro (e a que conta na Premiacao), depois as outras; no maximo 2
@@ -426,12 +452,13 @@ export async function respRotaHojeCompleta(B, v, soSemCompra = false) {
   const st = (c) => { const s = String(c.status || '').toUpperCase(); return /POSITIVADO|EFETIVADO/.test(s) ? '✅' : /VISITADO|JUSTIFICADO/.test(s) ? '👣' : '⏳'; };
   const nome = (c) => titulo(c.nome_cliente || c.razao_social || 'cliente');
   const nao = rota.filter((c) => semMap.has(String(c.id_cliente))), ja = rota.filter((c) => !semMap.has(String(c.id_cliente)));
-  const linhaNao = (c) => { const x = semMap.get(String(c.id_cliente)), tg = tags(c); return `${nome(c)} · ${st(c)} · ❌ ${x.dias == null ? '+60' : x.dias} dias` + (tg ? ` · 🏷️ ${tg}` : ''); };
+  const linhaNao = (c) => { const x = semMap.get(String(c.id_cliente)), tg = tags(c); return `${nome(c)} · ${st(c)} · ❌ ${x.dias == null ? 'sem histórico na base' : x.dias + ' dias sem compra'}` + (tg ? ` · 🏷️ ${tg}` : ''); };
   const linhaJa = (c) => { const r = valorMes.get(String(c.id_cliente)), tg = tags(c); return `${nome(c)} · ${st(c)} · ✔️${r ? ' ' + R$(r) : ''}` + (tg ? ` · 🏷️ ${tg}` : ''); };
   return [`📋 *${vn(v)}* (${v.filial}) — rota de hoje: *${rota.length} clientes* · *${nao.length} ainda sem compra no mês*`,
     '_⏳ a visitar · 👣 visitado · ✅ vendeu hoje · ❌ sem compra (dias) · ✔️ já comprou no mês (R$) · 🏷️ tags_',
     ...(nao.length ? ['', `*Ainda não compraram no mês (${nao.length}):*`, ...nao.map(linhaNao)] : ['', '✅ Todos da rota de hoje já compraram no mês.']),
     ...(!soSemCompra && ja.length ? ['', `*Já compraram no mês (${ja.length}):*`, ...ja.sort((a, b) => (valorMes.get(String(b.id_cliente)) || 0) - (valorMes.get(String(a.id_cliente)) || 0)).map(linhaJa)] : []),
+    ...(!historicoCompleto && semC.some((x) => x.dias == null) ? ['', '_Não consegui confirmar a última compra de todos os clientes; não estimei os dias sem histórico._'] : []),
     '', 'Boas vendas! _Peça "+mix" para o que oferecer a quem não comprou._'].join('\n');
 }
 
@@ -444,7 +471,7 @@ export async function respMinhaRota(B, v) {
   const nome = (c) => titulo(c.nome_cliente || c.razao_social || 'cliente');
   let i = 0; const linha = (c, fim) => `${++i}. ${nome(c)} (#${c.id_cliente}) · ${fim}`;
   const L = [`📋 *${vn(v)}* — rota de hoje: *${rota.length} clientes*`, ...mes];
-  if (nao.length) L.push('', `*Ainda não compraram no mês (${nao.length}):*`, ...nao.map((c) => { const d = semMap.get(String(c.id_cliente)).dias; return linha(c, d == null ? 'sem compra em 60 dias' : d === 0 ? 'última compra hoje, ainda não consta no mês' : `${d} dias sem compra`); }));
+  if (nao.length) L.push('', `*Ainda não compraram no mês (${nao.length}):*`, ...nao.map((c) => { const d = semMap.get(String(c.id_cliente)).dias; return linha(c, d == null ? 'sem histórico de compra na base' : d === 0 ? 'última compra hoje, ainda não consta no mês' : `${d} dias sem compra`); }));
   if (ja.length) L.push('', `*Já compraram no mês (${ja.length}):*`, ...ja.map((c) => { const r = valorMes.get(String(c.id_cliente)); return linha(c, r ? R$(r) : 'já comprou'); }));
   // "COMECE POR X E OFERECA Y" (proatividade, 01/11/2026): quem esta ha mais tempo sem comprar, ainda sem check-in, com a lista do +MIX. Sem lista, nao sugere nada.
   let M = {}; try { M = JSON.parse(await B.raw(`public/mix_rec/${v.filial}.json`) || '{}').clientes || {}; } catch (e) { M = {}; }

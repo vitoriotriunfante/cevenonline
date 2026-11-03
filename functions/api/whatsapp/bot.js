@@ -28,6 +28,11 @@ import { RECLAMACAO, cadastraPorCodigo, ehSaudacao, enviarFigurinha, figurinhaPa
 import { respAjuda } from '../../_lib/jota/respostas/liga_mix.js';
 import { respClientesDia } from '../../_lib/jota/respostas/rota.js';
 
+function podeUsarIAPraEstrategia(papel, texto) {
+  const ehExecutivo = papel === 'diretoria' || papel === 'ceo' || papel === 'gerente';
+  return ehExecutivo && /\b(ESTRATEG(IA|ICO|ICA|IAS)|PLANO DE ACAO|PLANO COMERCIAL|COMO (PODEMOS|DEVEMOS|VAMOS|EU POSSO|FAZER PARA) (MELHORAR|RECUPERAR|VIRAR|AUMENTAR|CRESCER|ACELERAR|DESTRAVAR|REVERTER|BATER)|ONDE (DEVEMOS|PODEMOS|PRECISAMOS) (FOCAR|ATACAR|ATUAR|MELHORAR)|QUAL (A MELHOR|SUA) (ESTRATEGIA|SUGESTAO|RECOMENDACAO|IDEIA|OPINIAO|ANALISE)|ME D[AE] UMA (SUGESTAO|IDEIA|ESTRATEGIA|ANALISE|ORIENTACAO)|O QUE VOCE (ACHA|SUGERE|RECOMENDA|PENSA|INDICARIA|FARIA)|POR QUE (CAIU|ESTAMOS ABAIXO|NAO ESTAMOS BATENDO)|DIAGNOSTICO|CONSULTORIA|GARGALO|PONTOS? FRACOS?|PONTOS? FORTES?|ANALISE (EXECUTIVA|ESTRATEGICA|CRITICA))\b/i.test(sem(texto));
+}
+
 export async function onRequestPost({ request, env }) {
   const u = new URL(request.url);
   if (!env.BOT_WEBHOOK_KEY || u.searchParams.get('k') !== env.BOT_WEBHOOK_KEY) return new Response('nao autorizado', { status: 401 });
@@ -207,11 +212,7 @@ export async function onRequestPost({ request, env }) {
   const B = criaBase(u.origin, env);
   let resp = null, tipo = 'pronta';
   const tN = sem(texto);
-  const ehExecutivo = c.papel === 'diretoria' || c.papel === 'ceo' || c.papel === 'gerente';
-  const ehPerguntaEstrategicaOuConsultiva = ehExecutivo && (
-    /\b(ESTRATEG(IA|ICO|ICA|IAS)|PLANO DE ACAO|PLANO COMERCIAL|COMO (PODEMOS|DEVEMOS|VAMOS|EU POSSO|FAZER PARA) (MELHORAR|RECUPERAR|VIRAR|AUMENTAR|CRESCER|ACELERAR|DESTRAVAR|REVERTER|BATER)|ONDE (DEVEMOS|PODEMOS|PRECISAMOS) (FOCAR|ATACAR|ATUAR|MELHORAR)|QUAL (A MELHOR|SUA) (ESTRATEGIA|SUGESTAO|RECOMENDACAO|IDEIA|OPINIAO|ANALISE)|ME D[AE] UMA (SUGESTAO|IDEIA|ESTRATEGIA|ANALISE|ORIENTACAO)|O QUE VOCE (ACHA|SUGERE|RECOMENDA|PENSA|INDICARIA|FARIA)|POR QUE (CAIU|ESTAMOS ABAIXO|NAO ESTAMOS BATENDO)|DIAGNOSTICO|CONSULTORIA|GARGALO|PONTOS? FRACOS?|PONTOS? FORTES?|ANALISE (EXECUTIVA|ESTRATEGICA|CRITICA))\b/i.test(tN)
-    || (texto.trim().split(/\s+/).length >= 10 && /\?/.test(texto) && /\b(COMO|POR QUE|PORQUE|QUAL|O QUE|ONDE|DEVO|PODEMOS|SUGERE|ACHA)\b/i.test(tN) && !/^(QUAIS|QUANTOS) (CLIENTES|PEDIDOS|VENDEDORES)/i.test(tN))
-  );
+  const ehPerguntaEstrategicaOuConsultiva = podeUsarIAPraEstrategia(c.papel, texto);
   const jaFalou = await env.DB.prepare("SELECT COUNT(*) n, SUM(CASE WHEN direcao = 'out' AND date(quando, '-3 hours') = date('now', '-3 hours') THEN 1 ELSE 0 END) hoje FROM bot_msgs WHERE celular = ?").bind(cel).first().catch(() => ({ n: 1, hoje: 1 }));
   const primeiraVez = !jaFalou || !(jaFalou.n > 1), primeiraDoDia = !jaFalou || !(jaFalou.hoje > 0);
   // reclamacao: marca a ultima resposta como "nao ajudou" (vai para o painel de conversas)
@@ -270,7 +271,7 @@ export async function onRequestPost({ request, env }) {
   if (!resp) try { resp = await respostaPronta(B, c, texto, anteriores); } catch (e) { resp = null; if (seco) return new Response('ERRO: ' + String(e && e.stack || e), { status: 500 }); try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'erro: ' + String(e && e.stack || e).slice(0, 1500)).run(); } catch (x) {} }
   if (!resp && seco && u.searchParams.get('sem_ia') === '1') return new Response('(sem resposta pronta)', { status: 404 });
   // ENTENDER COM IA (25/10/2026): a IA traduz a pergunta para um formato que o Jota ja responde; o numero sai do codigo, nunca da IA
-  if ((!resp || resp.fraca) && !(seco && u.searchParams.get('sem_ia') === '1')) {
+  if ((!resp || resp.fraca) && ehPerguntaEstrategicaOuConsultiva && !(seco && u.searchParams.get('sem_ia') === '1')) {
     // MOTOR POR FICHA (01/11/2026): so entra onde hoje nao ha resposta boa. A ficha que nao cabe inteira na pergunta padrao segue para o tradutor antigo.
     try { const fi = await fichaPorIA(env, texto, true), pp = fi && perguntaPadrao(fi.ficha, texto); if (pp) { const rf = await respostaPronta(B, c, pp, anteriores); if (aceitaTraducao(resp, rf, pp, fi.ficha)) { resp = `_Entendi: "${pp}"_
 
@@ -281,7 +282,7 @@ export async function onRequestPost({ request, env }) {
 ` + r2; tipo = 'entendida_ia'; } } catch (e) {} }
   }
   if (resp && resp.fraca) resp = String(resp);
-  if (!resp) {
+  if (!resp && ehPerguntaEstrategicaOuConsultiva) {
     const historico = (hist || []).slice(1).reverse().map((h) => ({ role: h.direcao === 'in' ? 'user' : 'assistant', content: h.texto }));
     resp = await respondeIA(env, B, c, texto, historico); if (resp) tipo = 'ia';
   }
@@ -334,4 +335,4 @@ export async function onRequestPost({ request, env }) {
 }
 export async function onRequestGet() { return new Response('JOTA (+MIX): use POST (webhook da Evolution)', { status: 200 }); }
 // exportado so para o simulador de perguntas (testes/t_jota.mjs)
-export const _teste = { respostaPronta, criaBase, respClientesDia, aceitaTraducao };
+export const _teste = { respostaPronta, criaBase, respClientesDia, aceitaTraducao, podeUsarIAPraEstrategia };

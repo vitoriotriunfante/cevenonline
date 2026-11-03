@@ -48,20 +48,64 @@ export function respSemDado(t) {
   }
   return null;
 }
+function parseIdCliente(t) {
+  const s = String(t || '');
+  const m = s.match(/(?:^|\D)(?:CLIENTE|LOJA|MERCADO|SUPERMERCADO|POSTO)?\s*#?\s*(\d{3,7})(?:\D|$)/i) || s.match(/(?:^|\D)#(\d{3,7})(?:\D|$)/i);
+  return m ? String(m[1]) : null;
+}
+
+async function resolveClienteNoEscopo(B, E, idCliente) {
+  if (!idCliente) return null;
+  const id = String(idCliente).replace(/\D/g, '');
+  if (!id) return null;
+  const porId = (v) => String(v && v.id_cliente) === id || String(v && v.id) === id;
+  for (const v of E.vend || []) {
+    const x = (v.roteiroMes || []).find((c) => porId(c));
+    if (x) return { cnpj: String(x.cnpj || '').replace(/\D/g, ''), nome: x.nome_cliente || x.razao_social || 'cliente', filial: v.filial, rca: v.rca };
+    if (porId(v)) return { cnpj: String(v.cnpj || '').replace(/\D/g, ''), nome: v.nome || v.razao_social || 'cliente', filial: v.filial, rca: v.rca };
+  }
+  const db = B && B.env && B.env.DB;
+  if (!db) return null;
+  const vistos = new Set();
+  for (const v of E.vend || []) {
+    const filialKey = String(v.filial || '').toLowerCase() + '1';
+    if (vistos.has(filialKey)) continue;
+    vistos.add(filialKey);
+    try {
+      const r = await db.prepare('SELECT json FROM historico_cliente WHERE filial = ? AND id_cliente = ?').bind(filialKey, id).first();
+      if (r && r.json) {
+        const h = JSON.parse(r.json);
+        const cnpj = String(h.cnpj || h.cliente_cnpj || h.codigo_cnpj || '').replace(/\D/g, '');
+        if (cnpj) return { cnpj, nome: h.nome_cliente || h.razao_social || h.cliente || 'cliente', filial: v.filial, rca: v.rca };
+      }
+    } catch { /* sem histórico: cai para o caminho normal */ }
+  }
+  return null;
+}
+
 // O QUE OFERECER PARA O CLIENTE X = lista do +MIX daquele cliente (mesma do app do CEVEN; ja tira o que ele comprou nos ultimos 60 dias)
 export async function respOferecer(B, E, t) {
   const arqs = await Promise.all(E.filiais.map((f) => B.raw(`public/mix_rec/${f}.json`).then((x) => { try { return x ? { f, ...JSON.parse(x) } : null; } catch (e) { return null; } })));
   const ok = arqs.filter(Boolean); if (!ok.length) return null;
   const rcas = (E.grupo || E.supervisor || E.rca) ? new Set(E.vend.map((v) => v.filial + '|' + v.rca)) : null;
-  const toks = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !FILIAIS.includes(w) && !/^(QUE|CLIENTE|LOJA|MERCADO|SUPERMERCADO|POSTO)$/.test(w));
+  const tNorm = String(t || '').toUpperCase();
+  const toks = tNorm.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PARADAS.has(w) && !FILIAIS.includes(w) && !/^(QUE|CLIENTE|LOJA|MERCADO|SUPERMERCADO|POSTO)$/.test(w));
   const num = (t.replace(/\D+/g, ' ').match(/\b\d{14}\b/) || [])[0];
+  const idCliente = parseIdCliente(t) || (num && num.length >= 3 && num.length <= 7 ? num : null);
+  const cli = idCliente ? await resolveClienteNoEscopo(B, E, idCliente) : null;
+  const cnpjCli = cli && cli.cnpj ? cli.cnpj : null;
+  const clienteExplicito = !!(cli && cli.cnpj) || toks.filter((w) => !/^(OFERECER|MIX|MAIS|CLIENTE|LOJA|MERCADO|SUPERMERCADO|POSTO|PARA|QUE|PRO|CODIGO|CÓDIGO)$/.test(w)).length >= 2;
   let best = null, bs = 0;
   for (const a of ok) for (const [cnpj, c] of Object.entries(a.clientes || {})) {
-    if (rcas && !rcas.has(a.f + '|' + c.rca)) continue;
-    const n = sem(c.n); const sc = (num && cnpj === num ? 10 : 0) + toks.filter((w) => n.split(/[^A-Z0-9]+/).includes(w)).length;
+    if (rcas && !rcas.has(a.f + '|' + c.rca) && !clienteExplicito) continue;
+    const n = sem(c.n).toUpperCase();
+    const sc = (num && cnpj === num ? 10 : 0) + (cnpjCli && cnpj === cnpjCli ? 15 : 0) + toks.filter((w) => n.split(/[^A-Z0-9]+/).includes(w)).length;
     if (sc > bs) { bs = sc; best = { f: a.f, cnpj, c }; }
   }
-  if (!best || bs < Math.min(2, toks.length)) return null;
+  if (!best || bs < Math.min(2, toks.length)) {
+    if (cli && cli.cnpj && !Object.keys((ok.find((a) => a.f === cli.filial) || {}).clientes || {}).includes(cli.cnpj)) return `🧺 *${titulo(cli.nome)}* (${cli.filial}${cli.rca ? ' · RCA ' + cli.rca : ''}): o +MIX ainda não tem sugestão para este cliente neste momento.`;
+    return null;
+  }
   const v = E.vend.find((x) => x.filial === best.f && String(x.rca) === String(best.c.rca));
   const rec = best.c.rec || [];
   if (!rec.length) return `🧺 *${titulo(best.c.n)}* (${best.f}${v ? ' · ' + vn(v) : ''}): o +MIX não tem produto novo para sugerir agora (ele já compra o que os parecidos compram).`;

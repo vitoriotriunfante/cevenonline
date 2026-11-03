@@ -40,6 +40,13 @@ export function juntaComAnterior(texto, anteriores) {
   if (/\bBRASIL\b|\b(TPH|ABC|API|TBL|TCV|TSJ|TCA|TBE|TPA|MCD|TCG)\b/.test(t)) antSemPer = sem(antSemPer).replace(/\b(TPH|ABC|API|TBL|TCV|TSJ|TCA|TBE|TPA|MCD|TCG|BRASIL)\b/g, ' ').replace(/\s+/g, ' ');
   return antSemPer + ' ' + texto;
 }
+function pessoaVendedoraAnterior(E, anteriores) {
+  for (const pergunta of anteriores || []) {
+    const pessoa = achaPessoa(E, sem(String(pergunta)));
+    if (pessoa && pessoa.tipo === 'vend') return pessoa;
+  }
+  return null;
+}
 export async function respostaPronta(B, c, texto0, anteriores) {
   // ESTADO DA CONVERSA (dialogue state tracking / slot carryover, 27/10/2026): cada campo (filial, vendedor) e HERDADO da conversa ate a pessoa citar outro ou
   // abrir o escopo (Brasil, "minha equipe", "por filial"). Vale 2 h. Brasil zera filial e vendedor; filial nova zera vendedor de outra filial.
@@ -320,7 +327,6 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (jaFechou && geral && (/COMO FOI|BATI|BATEU|BATEMOS|VENDI|VENDEMOS|\bFIZ\b|FIZEMOS|POSITIV|\bMETA\b/.test(t) || new RegExp('^\\W*(E )?(' + nomeMes + ')\\W*$').test(t))) return reenvia(nomeMes ? `fechamento de ${nomeMes}` : 'fechamento do mes passado');
       if (/^\W*(FECHEI|FECHAMOS|BATI|BATEMOS) A META\W*$/.test(t) && Number(hojeSP().slice(8)) <= 5) return reenvia('fechamento do mes passado'); }
     if (rcaV) {
-      if (/^\W*(\+ ?MIX|MAIS ?MIX|O QUE (EU )?(POSSO |DEVO )?OFERECER)\W*$/.test(t)) return 'Para qual cliente? Mande assim: *o que oferecer para* e o nome ou o código do cliente.';
       const eu = `VENDEDOR ${rcaV}`;
       // PEDIDOS REAIS DOS VENDEDORES (cadastro, 01/11/2026): varios assuntos na mesma mensagem nao podem virar um so; comissao + clientes sem compra responde os dois
       if ((t.match(/,/g) || []).length >= 3) return 'Consigo te ajudar com tudo isso, um assunto por vez. Mande por exemplo:\n• *minha rota*\n• *clientes sem compra*\n• *meus pedidos*\n• *quanto falta*\n• *minhas devoluções*\n• *metas das indústrias*\n• *liga*';
@@ -492,7 +498,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     || (/QUAIS (SAO )?(OS )?(PEDIDOS|CLIENTES)/.test(t) && /PENDENTE|LIBERAD|BLOQUEAD/.test(t))) && !/[0-9]{7,}/.test(t);
 
   if (ehPerguntaStatusPedidos) {
-    const Ep = await carregaEscopo(B, esc), pp = achaPessoa(Ep, t);
+    const Ep = await carregaEscopo(B, esc), pp = achaPessoa(Ep, t) || (/\b(ELA|ELE|DELA|DELE)\b/.test(t) ? pessoaVendedoraAnterior(Ep, anteriores) : null);
     const tipoAlvo = /CORTE/.test(t) ? 'CORTE' : (/BLOQUEAD/.test(t) && /LIBERAD/.test(t)) ? 'BLOQUEADOS_E_LIBERADOS' : /BLOQUEAD/.test(t) ? 'BLOQUEADO' : (/PENDENTE|LIBERAD|NAO FATUR|SEM FATURAR/.test(t) && !/BLOQUEAD/.test(t)) ? 'LIBERADO' : t;
     return respPedidosStatus(B, pp && pp.tipo === 'vend' ? { ...Ep, nacional: false, nome: vn(pp.alvo), vend: [pp.alvo], ocultos: [] } : Ep, tipoAlvo);
   }
@@ -598,11 +604,47 @@ export async function respostaInterna(B, c, texto, anteriores) {
     if (antTag) return respTagSeparadoPorSupervisor(B, Ev, sem(antTag));
     return `📋 Para eu abrir a lista completa certinho, me diz o que você quer ver (ex: "curva negativa vendedor 125").`;
   }
+  const E = await carregaEscopo(B, esc);
+  const clienteOfertaContexto = async () => {
+    const fontes = [t, ...(anteriores || []), ...(B.ultOut ? [B.ultOut] : [])];
+    for (const fonte of fontes) {
+      const raw = String(fonte || '').trim();
+      if (!raw) continue;
+      const candidatos = [];
+      const textoCliente = raw
+        .replace(/^\s*(?:CLIENTE|LOJA|MERCADO|SUPERMERCADO|POSTO)\s+/i, '')
+        .replace(/^\s*(?:O QUE|QUERO|ME PASSA|ME MOSTRA|ME MOSTRE|ME DIZ)\s+/i, '')
+        .replace(/\b(?:\+\s*MIX|MAIS\s*MIX|O QUE (?:EU )?(?:POSSO |DEVO )?OFERECER|OFERECER)\b.*$/i, '')
+        .replace(/\b(?:CLIENTE|LOJA|MERCADO|SUPERMERCADO|POSTO)\b\s*/gi, ' ')
+        .replace(/\s+#?\d{3,7}\b/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (textoCliente && textoCliente.length >= 4 && !/^\b(?:COMO|QUEM|QUAL|ONDE|PARA|POR|PORQUE|SE|E|ENQUANTO|ROTA|HOJE|VISITA|META|VENDEDOR|SUPERVISOR|CLIENTES?)\b/i.test(textoCliente)) {
+        candidatos.push(textoCliente);
+      }
+      const rawBase = raw.replace(/[.!?]+$/g, '').trim();
+      if (rawBase && rawBase.length >= 4 && !/^\b(?:COMO|QUEM|QUAL|ONDE|PARA|POR|PORQUE|SE|E|ENQUANTO|ROTA|HOJE|VISITA|META|VENDEDOR|SUPERVISOR|CLIENTES?|MIX|MAIS MIX|OFERECER|O QUE)\b/i.test(rawBase)) {
+        candidatos.push(rawBase);
+      }
+      for (const candidato of [...new Set(candidatos)]) {
+        const r = await respOferecer(B, E, `OFERECER ${candidato}`);
+        if (r && !/^Para qual cliente\?/i.test(r)) return r;
+      }
+      const achado = clienteNaCarteira(E, fonte);
+      if (achado) return respFichaCliente(B, E, `OFERECER ${String(achado.c.cnpj || achado.c.id_cliente || '').replace(/\D/g, '')}`, achado);
+    }
+    return null;
+  };
+  if (/^\W*(\+ ?MIX|MAIS ?MIX|O QUE (EU )?(POSSO |DEVO )?OFERECER)\W*$/.test(t)) {
+    const r = await clienteOfertaContexto();
+    if (r) return r;
+    return 'Para qual cliente? Mande assim: *o que oferecer para* e o nome ou o código do cliente.';
+  }
   // "+MIX" logo depois de "rota de hoje": o que oferecer aos clientes da rota que ainda nao compraram no mes (Vitorio, 27/10/2026: 'ele pergunta apenas mais mix e vc ja entende')
   // "+ mix" chega como "MIX" depois da normalizacao (27/10/2026: foi para o Brasil todo); "dos 3", "desses clientes" tambem
   // "+mix" + vendedor da conversa (o estado completa o texto com "vendedor 352 TCV"): mix da rota de hoje dele
   if (/^\W*(\+ ?)?(MIX|MAIS ?MIX)\b/.test(t) && !/METAS?\b|PREMIA|INDUSTRIA|EQUIPE|FILIAL|BRASIL/.test(t)) { const Ea = await carregaEscopo(B, esc), pa = achaPessoa(Ea, t); if (pa && pa.tipo === 'vend') return respMixRotaHoje(B, pa.alvo); }
-  if (/^\W*(\+ ?)?(MIX|MAIS ?MIX)\W*(DELES|DESSES|DESTES|PARA ELES|DESSES CLIENTES|DOS \d+|DELA|DELE)?\W*$|^(E )?O MIX (DELES|DESSES|DOS \d+)/.test(t) && (anteriores || []).length) { const ant = sem(String(anteriores[0] || '')); if (/ROTA|CLIENTES?|HOJE|VISITA|VENDEDOR|COMO ESTA/.test(ant)) {   /* 27/10/2026: "clientes giovana tlb hoje" -> "+mix" ia para o Brasil (so aceitava "rota") */ const Ea = await carregaEscopo(B, esc); const pa = achaPessoa(Ea, ant) || (Ea.rca && Ea.vend[0] ? { tipo: 'vend', alvo: Ea.vend[0] } : null); if (pa && pa.tipo === 'vend') return respMixRotaHoje(B, pa.alvo); } }
+  if (/^\W*(\+ ?)?(MIX|MAIS ?MIX)\W*(DELES|DESSES|DESTES|PARA ELES|DESSES CLIENTES|DOS \d+|DELA|DELE)?(?:\s+(TBL|TCV|TCA|MCD|TCG|API|TBE|TPA|TSJ|ABC|TPH))?\W*$|^(E )?O MIX (DELES|DESSES|DOS \d+)/.test(t) && (anteriores || []).length) { const ant = sem(String(anteriores[0] || '')); if (/ROTA|CLIENTES?|HOJE|VISITA|VENDEDOR|COMO ESTA/.test(ant)) {   /* 27/10/2026: "clientes giovana tlb hoje" -> "+mix" ia para o Brasil (so aceitava "rota") */ const Ea = await carregaEscopo(B, esc); const pa = achaPessoa(Ea, ant) || pessoaVendedoraAnterior(Ea, anteriores) || (Ea.rca && Ea.vend[0] ? { tipo: 'vend', alvo: Ea.vend[0] } : null); if (pa && pa.tipo === 'vend') return respMixRotaHoje(B, pa.alvo); } }
   // META DE MIX / FASEAMENTO / TICKET = KPIs da Premiacao, do vendedor citado ou da equipe (31/10/2026: "qual a meta de faseamento?" ficava sem resposta; "meta do mix da minha equipe" caia no ticket do dia)
   if (/\bMETAS?\b/.test(t) && /\bMIX\b|FASEAMENTO|FASIAMENTO|FASAMENTO|TICKET/.test(t) && !/\+ ?MIX|MAIS ?MIX/.test(t)) {
     const Ek = await carregaEscopo(B, esc); const rk = await respKpisPremiacao(B, Ek, t, achaPessoa(Ek, t)); if (rk) return rk;
@@ -639,7 +681,6 @@ export async function respostaInterna(B, c, texto, anteriores) {
     ].join('\n');
   }
   { const sd = respSemDado(t); if (sd) return sd; }
-  const E = await carregaEscopo(B, esc);
   const ppCheck = achaPessoa(E, t);
   if (ppCheck && ppCheck.outroSupervisor && c.papel === 'supervisor') {
     const nome = nome2(c.nome);
@@ -780,7 +821,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     if (/MOTIVO|POR QUE|PORQUE/.test(t) && !/DEVOLU\w*\s+(DE\s+)?(HOJE|HJ)\b/.test(t)) { const m = await respDevMotivos(B); if (m) { const tot = E.vend.reduce((s, v) => s + (v.dev || 0), 0); return m + `
 _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem só as notas cujo motivo já foi lido; o resto ainda não tem motivo na base._`; } }
     // devolucao do VENDEDOR citado (ou da conversa) e do GERENTE citado (grupo) (27/10/2026: "devolucao do vendedor 1067", "apenas da MCD do gerente Adriano" -> Brasil)
-    const gd = (t.match(/GERENTE\s+([A-Z]{3,})/) || [])[1], pd = gd ? null : achaPessoa(E, t);   // gerente citado nao vira o vendedor de mesmo nome
+    const gd = (t.match(/GERENTE\s+([A-Z]{3,})/) || [])[1], pd = gd ? null : achaPessoa(E, t) || (/\b(ELA|ELE|DELA|DELE)\b/.test(t) ? pessoaVendedoraAnterior(E, anteriores) : null);   // gerente citado nao vira o vendedor de mesmo nome
     if (pd && pd.tipo === 'vend') return respDevolucao({ ...E, nome: vn(pd.alvo), vend: [pd.alvo], nacional: false, filiais: [pd.alvo.filial] }, t);
     if (gd && E.vend.some((v) => sem(v.grupo || '') === gd)) return respDevolucao({ ...E, nome: `${E.vend.find((v) => sem(v.grupo || '') === gd).filial} · ${titulo(gd)}`, vend: E.vend.filter((v) => sem(v.grupo || '') === gd), nacional: false }, t);
     // TOTAL INCLUI QUEM NAO E MONITORADO (31/10/2026): codigo 2 sai da lista de vendedores (a linha dele na base mistura filiais) e entra pela tabela com filial certa
@@ -863,7 +904,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   // Vitorio: "misturando mes com dia"). Hoje/visitar/rota + nao comprou = so a rota de hoje; "quais clientes vai visitar hoje" = rota completa com compra e tags.
   { const hojeRota = /(VISITAR|VISITA|ROTA|PASSAR).{0,30}\b(HOJE|HJ)\b|\b(HOJE|HJ)\b.{0,40}(VISITAR|ROTA)|VAI VISITAR|IRA VISITAR|VAO SER VISITAD|^CLIENTES? .{0,40}\b(HOJE|HJ)\b/.test(t);   /* "cliente da Luciana de API hoje" (27/10/2026) */
     if (pessoa && pessoa.tipo === 'vend' && hojeRota && /NAO (COMPR|POSITIV|VEND)|SEM COMPRA|AINDA NAO/.test(t)) return respRotaHojeCompleta(B, pessoa.alvo, true);
-    if (pessoa && pessoa.tipo === 'vend' && hojeRota && /QUA(L|IS)|QUE CLIENTES|LISTA|^CLIENTES?\b|^(A )?ROTA\b/.test(t) && !/VISITOU|VISITADOS|JUSTIF|CHE?C?K|HORARIO|MOTIVO/.test(t)) return respRotaHojeCompleta(B, pessoa.alvo, false); }
+    if (pessoa && pessoa.tipo === 'vend' && hojeRota && (/QUA(L|IS)|QUE CLIENTES|LISTA|^CLIENTES?\b|^(A )?ROTA\b|COMO (ESTA|TA|ANDA|VAI).{0,30}\bROTA\b/.test(t)) && !/VISITOU|VISITADOS|JUSTIF|CHE?C?K|HORARIO|MOTIVO/.test(t)) return respRotaHojeCompleta(B, pessoa.alvo, false); }
   // DIA x MES DO VENDEDOR (27/10/2026): "como foi o dia do X" = so hoje; "e o mes?" / "como foi o mes" = resumo do mes dele (respVendedor)
   if (pessoa && pessoa.tipo === 'vend' && /\bE (O |NO )?MES\W*$|^(E )?(O |NO |DO )?MES\W*$|COMO (FOI|ESTA|TA|VAI) O MES/.test(t) && !/NAO VEND|NAO COMPR|CURVA|SEM VENDA/.test(t)) return respVendedor(B, E, pessoa.alvo);
   if (pessoa && pessoa.tipo === 'vend' && /COMO FOI O DIA|O DIA D[AOE]\b|COMO FOI (HOJE|O DIA)/.test(t) && !/LIGA|BRASILEIRAO|CHAMPIONS/.test(t)) return respDiaVendedor(B, E, pessoa.alvo);
