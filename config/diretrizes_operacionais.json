@@ -1,23 +1,23 @@
 {
   "versao": "1.0",
   "descricao": "Diretrizes Operacionais Diárias do CEVEN NOC — Parametrização Dinâmica de Campo",
-  "data_vigencia": "2026-10-30",
+  "data_vigencia": "2026-11-04",
   "cnae_foco": {
-    "codigo": "4771",
-    "descricao": "Comércio varejista de produtos farmacêuticos, sem manipulação de fórmulas",
-    "justificativa": "Rotação automática seg-sex — CNAE nacional #5 entre os 5 candidatos com amostra >= 20 (108 clientes na amostra nacional).",
+    "codigo": "4639",
+    "descricao": "Comércio atacadista de produtos alimentícios em geral",
+    "justificativa": "Rotação automática seg-sex — CNAE nacional #3 entre os 5 candidatos com amostra >= 20 (132 clientes na amostra nacional).",
     "ratios_por_filial": {
-      "TBE": 1.07,
-      "TSJ": 1.07,
-      "MCD": 1.2,
-      "TPH": 4,
-      "TCG": 1.13,
-      "TPA": 1.07,
-      "API": 1.85,
-      "TCV": 1.13,
-      "ABC": 1.72,
-      "TCA": 2.57,
-      "TBL": 1.26
+      "TBE": 4,
+      "TSJ": 1.08,
+      "MCD": 1.04,
+      "TPH": 1.75,
+      "TCG": 1,
+      "TPA": 1.08,
+      "API": 2.04,
+      "TCV": 1.25,
+      "ABC": 1,
+      "TCA": 1.08,
+      "TBL": 1.17
     }
   },
   "produtos_foco": [
