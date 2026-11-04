@@ -1,10 +1,10 @@
 # FICHA DO ARQUIVO
-# O QUE É: "atualiza TUDO" — roda pipeline/orquestrador_diario.js (9 extratores),
-#     popula analises/pedidos_historico_ceven.db inteiro.
+# O QUE É: atualiza os dados operacionais do Data Lake sem bloquear a publicação do histórico expandido,
+#     popula analises/pedidos_historico_ceven.db e entrega a etapa longa ao workflow de histórico expandido.
 # RODA: todo dia às 03:00 BRT (cron abaixo) ou manual via workflow_dispatch.
 # LÊ do Google Drive: pedidos_historico_ceven.db (se existir; senão cria do zero).
-# ESCREVE no Google Drive: pedidos_historico_ceven.db atualizado (upload sempre no
-#     final, mesmo se algum dos 9 passos falhar — "if: always()").
+# ESCREVE no Google Drive: pedidos_historico_ceven.db atualizado somente se os 10
+#     extratores terminarem sem falha. Se algum falhar, preserva a última cópia boa.
 # USADO POR: ceven-cron-marca-propria.yml (10:00) depende do banco já atualizado aqui.
 # DEPENDE DE: secrets GDRIVE_SA_JSON e GDRIVE_FOLDER_ID.
 # ÚLTIMA REVISÃO: 23/09/2026 (Node 24 + npm ci; corrigido YAML invalido "gdrive:" solto
@@ -86,27 +86,21 @@ jobs:
           rclone copy gdrive:pedidos_historico_ceven.db analises/ || echo "Banco não encontrado no Drive ainda, vai ser criado do zero."
 
       - name: Rodar orquestrador diário
+        id: orquestrador
         run: node pipeline/orquestrador_diario.js
-        continue-on-error: true
 
       - name: Subir banco de dados atualizado pro Google Drive
-        if: always()
-        run: rclone copy analises/pedidos_historico_ceven.db gdrive:/
+        id: upload
+        if: success()
+        run: |
+          rclone copy analises/pedidos_historico_ceven.db gdrive:/
+          rclone copy analises/hierarquia_completa_ceven.json gdrive:/
 
       - name: Resumo
         if: always()
-        run: echo "Atualização do data lake concluída (ver logs acima pra detalhes por etapa)."
-
-      - name: Disparar o gerador do Brasileirão (dataset online, com o banco já atualizado)
-        if: always()
-        continue-on-error: true
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run brasileirao-dataset.yml --ref ${{ github.ref_name }}
-
-      - name: Disparar o dataset do +MIX (tela /mix, com o banco ja atualizado)
-        if: always()
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run mix-dataset.yml --ref ${{ github.ref_name }}
+          ORQUESTRADOR: ${{ steps.orquestrador.outcome }}
+          UPLOAD: ${{ steps.upload.outcome }}
+        run: |
+          echo "Orquestrador: $ORQUESTRADOR"
+          echo "Upload do banco: $UPLOAD"

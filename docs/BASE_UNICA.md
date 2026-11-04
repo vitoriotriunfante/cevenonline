@@ -69,6 +69,12 @@ Fontes: `varredura_central_rca` (roteiro de cada dia, 29/09 a 26/10) e `piloto_p
 | `CEVEN OFFLINE/CEVEN_3_Celulares_Isolado.*` | abre o CEVEN no navegador | só quando aberto | fora do escopo da base |
 | `CEVEN TELAS E ENDPOINTS/07_ENG_PIPELINE/*.py` | extratores manuais | não | aposentar |
 
+### Etapas do Data Lake e cobertura de prospects (03/11/2026)
+- O extrator de histórico expandido dos vendedores roda em workflow separado, após o Data Lake operacional, para que suas retentativas não impeçam a publicação das demais tabelas.
+- Cada vendedor recebe estado de coleta de prospects por data: `ok` (inclusive lista vazia) ou `sem_retorno`. Sem retorno não equivale a zero prospects.
+- O D1 só substitui a lista de um vendedor quando a coleta daquele dia terminou; falha ou ausência de estado nunca é apresentada pelo JOTA como lista vazia.
+- A carga de ficha no D1 exige estados da coleta do dia para todo RCA listado em `rca_segmentos`; banco antigo ou incompleto é recusado antes de gravar.
+
 ## 5c. Inventário: cada informação do CEVEN e se está GRAVADA na base (26/10/2026)
 "Gravado" = fica no D1 e é atualizado; "não" = cada um busca ao vivo e nada fica. Tabelas criadas e **vazias** (nunca alimentadas): `clientes_historico_compras`, `roteiros_visitas`, `prospects_receita`, `linkup_cadastros_preparados`, `devolucoes_auditoria`, `pedidos_faturados_itens`.
 | Informação | Endpoint | Gravado? | O que fazer |
@@ -133,3 +139,11 @@ Vitório: "se estou falando de uma filial precisa falar sobre ela... se eu peço
 - Gravadas em paralelo em `rota_gerente_dia` e `painel_gerente_dia`. Nenhuma tela lê delas ainda. `/api/frescor` compara com a leitura individual; a troca da fonte só depois de bater com venda real.
 - Falhas do coletor ficam em `coleta_falhas`. Disjuntor: 6 tempos esgotados seguidos em `/api/rca` param essas chamadas por 60 s. Medido em 30/10: 62 rodadas sem sucesso, das 11:21 às 13h, sem nenhum erro registrado.
 - O freio de custo não atrasa a leitura pelo gerente. Positivado = tem pedido; o status da rota vem do Clube da Venda e não decide lance.
+
+## Decisão de 03/11/2026 — histórico diário e fonte única
+- O histórico de pedidos e itens precisa continuar disponível diariamente, inclusive períodos anteriores, para vendedores, WhatsApp, JOTA, +MIX e Brasileirão/Champions.
+- A base canônica de leitura será o D1. A coleta diária deve ser incremental e persistente; uma reconciliação histórica completa não pode bloquear a atualização nem a publicação dos leitores.
+- Somente o coletor central deve consultar o CEVEN. Jobs de processamento podem ser distribuídos, mas leem do D1 e gravam resultados no D1.
+- SQLite/Google Drive permanece como legado e origem da carga inicial até a paridade dos dados e a migração de cada leitor serem verificadas. Não desligar nem apagar esse fluxo antes da validação.
+- Estado medido em 03/11: 17 arquivos de automação, 15 Functions sob demanda e 155 arquivos manuais ainda chamam o CEVEN; portanto, o coletor único é a meta da migração, não o estado atual.
+- O histórico item a item consumido por +MIX ainda está no SQLite; o D1 atual não o substitui. A carga inicial e a troca dos leitores continuam pendentes.

@@ -37,7 +37,7 @@ const orq = ler(join(RAIZ, 'pipeline/orquestrador_diario.js'));
 const worker = ler(join(RAIZ, 'worker-cron/src/index.js'));
 function quemRoda(f) {
   if (f.startsWith('functions/api/cron-') && worker.includes(f.replace('functions', '').replace('.js', ''))) return 'cron do site (worker-cron)';
-  if (f.startsWith('functions/')) return 'site (Cloudflare)';
+  if (f.startsWith('functions/')) return 'Cloudflare Function (sob demanda)';
   if (f.startsWith('.github/')) return 'GitHub Actions';
   const nome = f.split('/').pop();
   if (wf.includes(f) || wf.includes(nome)) return 'GitHub Actions (workflow)';
@@ -52,21 +52,25 @@ const RX_D1 = /\b(INSERT(?:\s+OR\s+\w+)?\s+INTO|REPLACE\s+INTO|UPDATE|DELETE\s+F
 const RX_DB = /['"`]([A-Za-z0-9_\-]+\.db)['"`]/g;
 const RX_DRIVE = /rclone\s+(copy|sync|copyto)\s+[^\n]*gdrive:[^\n]*/g;
 const RX_JSON = /writeFileSync\([^)]*?['"`]([A-Za-z0-9_\-\/]+\.json)['"`]/g;
+const RX_SQLITE = /better-sqlite3|import sqlite3|sqlite3\.connect|new Database\(/;
+const RX_D1_BINDING = /\b(?:env|ctx\.env|context\.env)\.DB\b/;
 
 const mapa = [];
 for (const pasta of PASTAS) for (const p of arquivos(join(RAIZ, pasta))) {
   const f = rel(p), t = ler(p), linhas = t.split('\n');
   const codigo = linhas.filter((l) => !/^\s*(\/\/|\*|\/\*|#|<!--)/.test(l)).join('\n');
   const ceven = RX_CEVEN.test(codigo) && !f.startsWith('public/') ? [...new Set((codigo.match(RX_EP) || []).map((e) => e.replace(/\$\{[^}]*\}|\/\d+/g, '/{id}').replace(/[/.]+$/, '')))].sort() : [];
-  const usaD1 = !/better-sqlite3|import sqlite3|sqlite3\.connect|new Database\(/.test(codigo);   // banco LOCAL so se o arquivo usa SQLite; o resto escreve no D1
+  const usaD1 = RX_D1_BINDING.test(codigo);
+  const usaSqlite = RX_SQLITE.test(codigo);
   const tabs = [...new Set([...codigo.matchAll(RX_D1)].map((m) => m[2].toLowerCase()).filter((x) => !['set', 'or', 'into', 'from', 'excluded'].includes(x)))].sort();
-  const d1 = usaD1 ? tabs : [], tabSqlite = usaD1 ? [] : tabs;
+  const d1 = usaD1 ? tabs : [], tabSqlite = usaSqlite && !usaD1 ? tabs : [];
+  const tabDesconhecida = !usaD1 && !usaSqlite ? tabs : [];
   const dbs = [...new Set([...codigo.matchAll(RX_DB)].map((m) => m[1]))].sort();
   const drive = [...new Set([...codigo.matchAll(RX_DRIVE)].map((m) => m[0].replace(/\s+/g, ' ').slice(0, 90)))];
   const json = [...new Set([...codigo.matchAll(RX_JSON)].map((m) => m[1]))].sort();
   const chamaCeven = RX_CEVEN.test(codigo) && !f.startsWith('public/');
   if (!chamaCeven && !tabs.length && !dbs.length && !drive.length && !json.length) continue;
-  mapa.push({ f, roda: quemRoda(f), chamaCeven, ceven, d1, tabSqlite, dbs, drive, json });
+  mapa.push({ f, roda: quemRoda(f), chamaCeven, ceven, d1, tabSqlite, tabDesconhecida, dbs, drive, json });
 }
 
 const MODO = process.argv[2] || '';
@@ -80,8 +84,10 @@ if (MODO === '--verificar') {
   console.log(`ok — ${atual.ceven.length} arquivos chamam o CEVEN (base: ${base.ceven.length}); nenhum novo`); process.exit(0);
 }
 
-const roda = (m) => m.roda !== 'manual';
-const ativos = mapa.filter((m) => m.chamaCeven && roda(m)), manuais = mapa.filter((m) => m.chamaCeven && !roda(m));
+const roda = (m) => m.roda.startsWith('cron do site') || m.roda.startsWith('GitHub Actions');
+const ativos = mapa.filter((m) => m.chamaCeven && roda(m));
+const sobDemanda = mapa.filter((m) => m.chamaCeven && m.roda === 'Cloudflare Function (sob demanda)');
+const manuais = mapa.filter((m) => m.chamaCeven && m.roda === 'manual');
 const tabD1 = new Map(); mapa.forEach((m) => m.d1.forEach((t) => tabD1.set(t, [...(tabD1.get(t) || []), m.f])));
 const tabDb = new Map(); mapa.forEach((m) => m.dbs.forEach((t) => tabDb.set(t, [...(tabDb.get(t) || []), m.f])));
 let md = `# MAPA DOS DADOS — GERADO DO CÓDIGO\n\n> **Não editar à mão.** Gerado por \`node scripts/mapa_dados.mjs\` em ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).\n\n`;
@@ -93,8 +99,11 @@ md += `\n### 2b. Bancos SQLite (FORA da base única)\n| Banco | Usado por |\n|--
 [...tabDb].sort().forEach(([t, fs]) => { md += `| \`${t}\` | ${[...new Set(fs)].map((x) => '`' + x + '`').join(', ')} |\n`; });
 md += `\n### 2b2. Tabelas gravadas nesses bancos SQLite (FORA da base única)\n| Tabela | Escrita por |\n|---|---|\n`;
 { const t = new Map(); mapa.forEach((m) => m.tabSqlite.forEach((x) => t.set(x, [...(t.get(x) || []), m.f]))); [...t].sort().forEach(([x, fs]) => { md += `| \`${x}\` | ${[...new Set(fs)].map((y) => '`' + y + '`').join(', ')} |\n`; }); }
+md += `\n### 2b3. SQL sem destino identificado automaticamente\n| Tabela | Referenciada por |\n|---|---|\n`;
+{ const t = new Map(); mapa.forEach((m) => m.tabDesconhecida.forEach((x) => t.set(x, [...(t.get(x) || []), m.f]))); [...t].sort().forEach(([x, fs]) => { md += `| \`${x}\` | ${[...new Set(fs)].map((y) => '`' + y + '`').join(', ')} |\n`; }); }
 md += `\n### 2c. Google Drive (FORA da base única)\n`; mapa.filter((m) => m.drive.length).forEach((m) => { md += `- \`${m.f}\`: ${m.drive.map((d) => '`' + d + '`').join('; ')}\n`; });
 md += `\n### 2d. Arquivos JSON gerados para o site\n`; mapa.filter((m) => m.json.length && !m.f.startsWith('functions/')).forEach((m) => { md += `- \`${m.f}\` (${m.roda}): ${m.json.map((d) => '`' + d + '`').join(', ')}\n`; });
-md += `\n## 3. Chamam o CEVEN mas só rodam à mão (${manuais.length})\n${manuais.map((m) => '`' + m.f + '`').join(', ')}\n`;
+md += `\n## 3. Chamam o CEVEN sob demanda pelo site (${sobDemanda.length})\n${sobDemanda.map((m) => '`' + m.f + '`').join(', ')}\n`;
+md += `\n## 4. Chamam o CEVEN mas só rodam à mão (${manuais.length})\n${manuais.map((m) => '`' + m.f + '`').join(', ')}\n`;
 writeFileSync(join(RAIZ, 'docs', 'MAPA_DADOS_GERADO.md'), md);
-console.log(`mapa gerado: ${ativos.length} rodam sozinhos chamando o CEVEN; ${manuais.length} manuais; ${tabD1.size} tabelas D1; ${tabDb.size} bancos SQLite`);
+console.log(`mapa gerado: ${ativos.length} automações, ${sobDemanda.length} chamadas sob demanda, ${manuais.length} manuais; ${tabD1.size} tabelas D1, ${tabDb.size} bancos SQLite`);

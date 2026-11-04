@@ -328,15 +328,32 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
 
   // Base unica: so le a base; a chamada ao CEVEN daqui foi retirada em 31/10/2026 (docs/BASE_UNICA.md)
   if (alvoVend) {
-    // PROSPECTS REAIS (31/10/2026): prospects_mapa, gravada do Data Lake (lista do CEVEN). Antes usava pontos da rota e mostrava cliente da carteira como se fosse novo.
-    let prs = [];
-    try { const db = B.env && B.env.DB; if (db) { const { results } = await db.prepare('SELECT cnpj, json FROM prospects_mapa WHERE filial = ? AND rca = ?').bind(String(alvoVend.filial), String(alvoVend.rca)).all(); prs = (results || []).map((r) => ({ cnpj: r.cnpj, ...JSON.parse(r.json) })).sort((a, b) => (a.km ?? 999) - (b.km ?? 999)); } } catch (e) { prs = []; }
+    const db = B.env && B.env.DB;
+    if (!db) return `📍 *Prospects — ${vn(alvoVend)}*: a base de prospecção não está disponível agora; não vou afirmar que está sem pontos.`;
+    let status;
+    try {
+      status = await db.prepare('SELECT data_ref, estado, total FROM prospects_coleta_status WHERE filial = ? AND rca = ?')
+        .bind(String(alvoVend.filial), String(alvoVend.rca)).first();
+    } catch (e) {
+      return `📍 *Prospects — ${vn(alvoVend)}*: não consegui consultar o estado da coleta; não vou afirmar que está sem pontos.`;
+    }
+    if (!status || status.data_ref !== hojeSP() || status.estado !== 'ok') {
+      return `📍 *Prospects — ${vn(alvoVend)}*: a coleta de hoje não confirmou a lista desse vendedor. Pode estar pendente; não vou afirmar que está sem pontos.`;
+    }
+    let prs;
+    try {
+      const { results } = await db.prepare('SELECT cnpj, json FROM prospects_mapa WHERE filial = ? AND rca = ?')
+        .bind(String(alvoVend.filial), String(alvoVend.rca)).all();
+      prs = (results || []).map((r) => ({ cnpj: r.cnpj, ...JSON.parse(r.json) })).sort((a, b) => (a.km ?? 999) - (b.km ?? 999));
+    } catch (e) {
+      return `📍 *Prospects — ${vn(alvoVend)}*: falha ao ler a lista da base; não vou afirmar que está sem pontos.`;
+    }
     if (filtroSeg && prs.length) { const fi = prs.filter((p) => filtroSeg.test(p.cnae || '') || filtroSeg.test(p.razao || '') || filtroSeg.test(p.fantasia || '')); if (fi.length) prs = fi; }
     if (prs.length) return [
       `📍 *Prospects — ${vn(alvoVend)}* (${alvoVend.filial})${nomeFiltroSeg ? ` [Foco: ${nomeFiltroSeg}]` : ''}`, `${prs.length} na lista do CEVEN; os 5 mais perto da rota:`, '',
       ...prs.slice(0, 5).map((p, i) => `${i + 1}. *${titulo(p.fantasia || p.razao || 'Sem nome')}* (${p.cnae || 'sem CNAE'})\n   📍 CNPJ: ${p.cnpj}${p.km != null ? ' · ' + String(p.km).replace('.', ',') + ' km' : ''}${p.tel ? '\n   📞 ' + p.tel : ''}${p.lat && p.lon ? '\n   🌐 https://maps.google.com/?q=' + p.lat + ',' + p.lon : ''}`),
       '', SUGESTAO + 'passar nesses pontos durante a rota e cadastrar no LinkUp.'].join('\n');
-    return `📍 *Prospecção no Mapa — ${vn(alvoVend)}*: sem pontos de prospecção na base para este vendedor agora.`;
+    return `📍 *Prospecção no Mapa — ${vn(alvoVend)}*: a coleta de hoje foi concluída e confirmou 0 prospects.`;
   }
 
   // Visão equipe / supervisor

@@ -1,6 +1,6 @@
 /**
  * FICHA DO ARQUIVO
- * O QUE É: orquestrador que roda os 9 extratores (analises/*.js e *.py) na ordem certa
+ * O QUE É: orquestrador que roda os 9 extratores operacionais (analises/*.js e *.py) na ordem certa
  *          (PDVs depende de hierarquia; produtividade depende de PDVs) e popula TODAS
  *          as tabelas de analises/pedidos_historico_ceven.db. Continua mesmo se um passo
  *          falhar (não trava os outros), e reporta no final o que funcionou/não funcionou.
@@ -13,8 +13,8 @@
  *            a API ao vivo direto — ver pipeline/ceven_unified_engine.js).
  * DEPENDE DE: o workflow que chama isso já baixou o banco do Google Drive antes (senão
  *             cria do zero) e faz upload de volta depois — ver ceven-cron-datalake.yml.
- * FRESCOR ESPERADO: 1x/dia. Se um passo aparecer "❌" no resumo final, só aquela tabela
- *                   ficou desatualizada — as outras 8 continuam valendo.
+ * FRESCOR ESPERADO: 1x/dia. Se um passo aparecer "❌" no resumo final, o processo sai
+ *                   com erro; o workflow preserva a última cópia íntegra e não dispara leitores.
  *
  * Uso manual: node pipeline/orquestrador_diario.js
  */
@@ -28,8 +28,6 @@ const PASSOS = [
   { nome: 'PDVs + Prospects (base do dia)', cmd: 'python', args: ['coletar_todos_os_pdvs_e_prospects_100pct.py'] },
   { nome: 'Produtividade/Dashboard/RET ao vivo', cmd: 'python', args: ['extrair_produtividade_ret_dashboard_todos.py'] },
   { nome: 'Histórico de Pedidos', cmd: 'node', args: ['extrair_historico_completo_11_filiais.js'] },
-  // 19/10/2026 (Vitório: 'tudo precisa estar gravado'): historico do VENDEDOR expandido (todos os pedidos dos ultimos meses, com SKUs), RCA a RCA
-  { nome: 'Histórico do Vendedor (expandido, RCA a RCA)', cmd: 'node', args: ['extrair_historico_vendedores.js'] },
   { nome: 'Devoluções + LinkUp', cmd: 'node', args: ['extrair_tudo_devolucoes_cadastros.js'] },
   { nome: 'Segmentos/Canal Real dos RCAs', cmd: 'node', args: ['extrair_segmentos_rcas.js'] },
   { nome: 'Metas e Produtividade dos RCAs', cmd: 'node', args: ['extrair_metas_dashboard_rcas.js'] },

@@ -25,6 +25,23 @@ def chama(metodo, sufixo='', corpo=None):
 
 db = sqlite3.connect('file:%s?mode=ro' % sys.argv[1], uri=True)
 db.row_factory = sqlite3.Row
+data_ref = hoje.isoformat()
+try:
+    status_prospects = list(db.execute(
+        'SELECT filial, rca_codigo, estado, total_prospects FROM prospects_coleta_status WHERE data_ref = ?',
+        (data_ref,)
+    ))
+    esperados = {(str(r['filial_sigla']), str(r['rca_id'])) for r in db.execute(
+        'SELECT filial_sigla, rca_id FROM rca_segmentos'
+    )}
+except sqlite3.OperationalError as e:
+    raise RuntimeError(f'coleta de prospects de hoje não está registrada no Data Lake: {e}') from e
+registrados = {(str(r['filial']), str(r['rca_codigo'])) for r in status_prospects}
+if not status_prospects or esperados - registrados:
+    faltantes = len(esperados - registrados)
+    raise RuntimeError(f'coleta de prospects de hoje incompleta: {faltantes} vendedores sem estado registrado')
+if any(r['estado'] not in ('ok', 'sem_retorno') for r in status_prospects):
+    raise RuntimeError('coleta de prospects contém estado inválido; D1 não será atualizado')
 fichas = {}
 mes_atual = hoje.strftime('%Y-%m')
 def mes_antes(n):
@@ -103,8 +120,26 @@ try:
     except sqlite3.OperationalError as e: print('sem cadastros_linkup:', e)
     antes = len(P); P = [p for p in P if so_dig(p['cnpj']) not in ja]
     print('prospects', len(P), 'de', antes, '; ja eram cliente ou cadastro:', antes - len(P))
-    if P and not ENSAIO:
-        # ACUMULA (Vitorio, 31/10/2026: "os prospects se repetem ao longo dos dias, nao precisaria gravar de novo"): o coletor le so a rota do dia e apaga a tabela dele; aqui nada e apagado e o repetido nao regrava
-        for i in range(0, len(P), 200): chama('POST', '', {'prospects': P[i:i + 200]})
+    por_rca = {}
+    for p in P:
+        por_rca.setdefault((p['filial'], p['rca']), []).append(p)
+    for status in status_prospects:
+        chave = (str(status['filial']), str(status['rca_codigo']))
+        lote = por_rca.get(chave, [])
+        if len(lote) > 200:
+            raise RuntimeError(f'RCA {chave[0]} {chave[1]} excede 200 prospects; nenhuma atualização D1 deve ocorrer')
+        estado = 'ok' if status['estado'] == 'ok' else 'sem_retorno'
+        if not ENSAIO:
+            chama('POST', '', {
+                'prospects': lote,
+                'prospects_status': [{
+                    'filial': chave[0],
+                    'rca': chave[1],
+                    'data_ref': data_ref,
+                    'estado': estado,
+                    'total': len(lote) if estado == 'ok' else None
+                }]
+            })
+    print('estados de prospects enviados', len(status_prospects), '; sem retorno:', sum(r['estado'] == 'sem_retorno' for r in status_prospects))
 except sqlite3.OperationalError as e:
     print('sem prospects:', e)

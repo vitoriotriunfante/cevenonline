@@ -1,5 +1,5 @@
 # FICHA DO ARQUIVO
-# O QUE É: depois do Data Lake, leva ficha dos clientes e prospects do banco do Drive para o D1 (scripts/carregar_ficha_d1.py). Só envia o que mudou.
+# O QUE É: depois da etapa operacional do Data Lake, leva fichas e estado da coleta de prospects do Drive para o D1.
 # NÃO mexe no Data Lake nem nos disparos de WhatsApp: é um workflow separado, só leitura do Drive.
 name: Ficha dos clientes no D1
 
@@ -11,6 +11,7 @@ on:
 
 jobs:
   carregar:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:

@@ -9,8 +9,9 @@ const hoje = new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Sao_Paulo' })
 const dataUltimaCompra = new Date(Date.parse(`${hoje}T12:00:00Z`) - 84 * 864e5).toISOString().slice(0, 10);
 const hojeNumero = Number(hoje.replace(/-/g, ''));
 const clientes = [
-  { id_cliente: '1001', nome_cliente: 'Mercearia Sao Francisco', cnpj: '11111111111111', data_visita: hoje, data_ultima_compra: hoje, status: 'ABERTO', focos: [] },
-  { id_cliente: '1002', nome_cliente: 'Mercado Berte', cnpj: '22222222222222', data_visita: hoje, status: 'ABERTO', focos: [] }
+  { id_cliente: '1001', nome_cliente: 'Mercearia Sao Francisco', cnpj: '11111111111111', data_visita: hoje, data_ultima_compra: hoje, status: 'VISITADO', checkin_horario: '09:00', focos: [{ industria_foco: 'Bon' }, { industria_foco: 'Toffees' }] },
+  { id_cliente: '1002', nome_cliente: 'Mercado Berte', cnpj: '22222222222222', data_visita: hoje, status: 'POSITIVADO', focos: [] },
+  { id_cliente: '1003', nome_cliente: 'Mercado Sem Historico', cnpj: '33333333333333', data_visita: hoje, status: 'ABERTO', focos: [] }
 ];
 const fichas = [
   { id_cliente: '1001', ultima_compra: dataUltimaCompra },
@@ -72,12 +73,25 @@ try {
     'Como está a rota da vendedora 352 de TCV hoje?',
     []
   ));
-  assert.match(resposta, /rota de hoje: \*2 clientes\*/i);
+  assert.match(resposta, /rota de hoje: \*3 clientes\*/i);
   assert.match(resposta, /Mercearia Sao Francisco/);
   assert.match(resposta, /84 dias sem compra/);
   assert.match(resposta, /Mercado Berte/);
   assert.match(resposta, /Já compraram no mês/);
   assert.doesNotMatch(resposta, /visitas \d+ de \d+|zerados|faturado|plano de ação/i);
+
+  const minhaRota = String(await J._teste.respostaPronta(
+    B,
+    { nome: 'TAMARA GUEDES', papel: 'vendedor', filial: 'TCV', rca: '352' },
+    'minha rota hoje',
+    []
+  ));
+  assert.match(minhaRota, /3 clientes/);
+  assert.match(minhaRota, /👣 visitado/);
+  assert.match(minhaRota, /🏷️ Bon, Toffees/);
+  assert.match(minhaRota, /⏳ a visitar/);
+  assert.match(minhaRota, /sem histórico de compra na base/);
+  assert.doesNotMatch(minhaRota, /\+60 dias/);
   console.log('ok — rota é determinística; IA restrita a pedidos explícitos de estratégia de gerência/diretoria');
 } finally {
   J.limpa();

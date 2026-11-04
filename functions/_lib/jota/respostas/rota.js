@@ -469,7 +469,19 @@ export async function respMinhaRota(B, v) {
   if (!rota.length) return [`📋 *${vn(v)}*`, ...mes, '', 'Você não tem clientes na rota de hoje.'].join('\n');
   const semMap = new Map(semC.map((x) => [String(x.c.id_cliente), x])), nao = rota.filter((c) => semMap.has(String(c.id_cliente))), ja = rota.filter((c) => !semMap.has(String(c.id_cliente)));
   const nome = (c) => titulo(c.nome_cliente || c.razao_social || 'cliente');
-  let i = 0; const linha = (c, fim) => `${++i}. ${nome(c)} (#${c.id_cliente}) · ${fim}`;
+  const situacaoVisita = (c) => {
+    const s = String(c.status || '').toUpperCase();
+    if (/POSITIVADO|EFETIVADO/.test(s)) return '✅ vendeu hoje';
+    if (/JUSTIFICADO/.test(s)) return '⚠️ justificado';
+    if (c.checkin_horario || /VISITADO/.test(s)) return '👣 visitado';
+    if (/ABERTO|AGENDADO/.test(s)) return '⏳ a visitar';
+    return s || 'sem status de visita';
+  };
+  const tags = (c) => {
+    const itens = Array.isArray(c.focos) ? [...new Set(c.focos.map((f) => String(f?.industria_foco || '').trim()).filter(Boolean))] : [];
+    return itens.length ? ` · 🏷️ ${itens.join(', ')}` : '';
+  };
+  let i = 0; const linha = (c, fim) => `${++i}. ${nome(c)} (#${c.id_cliente}) · ${situacaoVisita(c)} · ${fim}${tags(c)}`;
   const L = [`📋 *${vn(v)}* — rota de hoje: *${rota.length} clientes*`, ...mes];
   if (nao.length) L.push('', `*Ainda não compraram no mês (${nao.length}):*`, ...nao.map((c) => { const d = semMap.get(String(c.id_cliente)).dias; return linha(c, d == null ? 'sem histórico de compra na base' : d === 0 ? 'última compra hoje, ainda não consta no mês' : `${d} dias sem compra`); }));
   if (ja.length) L.push('', `*Já compraram no mês (${ja.length}):*`, ...ja.map((c) => { const r = valorMes.get(String(c.id_cliente)); return linha(c, r ? R$(r) : 'já comprou'); }));
@@ -493,7 +505,7 @@ export async function respClientesVend(B, v, periodo) {
   const porCli = new Map(); for (const l of Lv) { const x = porCli.get(String(l.c)) || { v: 0, dias: new Set() }; x.v += l.v; x.dias.add(l.d); porCli.set(String(l.c), x); }
   let H = {}; try { H = JSON.parse(await B.raw(`public/mix_hist/${v.filial}.json`) || '{}').c || {}; } catch (e) { H = {}; }
   const ultH = (cnpj) => { const x = H[String(cnpj || '').replace(/\D/g, '')]; if (!x) return null; const m = String(x).split(',').map((p) => p.split(':')[1]).filter(Boolean).sort().pop(); return m ? `20${m.slice(0, 2)}-${m.slice(2, 4)}-${m.slice(4, 6)}` : null; };
-  const diasSem = (c) => { const u = ultH(c.cnpj); return u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) + ' dias' : '+60 dias'; };
+  const diasSem = (c) => { const u = ultH(c.cnpj); return u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) + ' dias' : 'sem histórico de compra na base'; };
   const nome = (c) => titulo(c.nome_cliente || c.razao_social || 'cliente');
   const visitou = (c) => !!c.checkin_horario || /VISITADO|JUSTIFICADO|POSITIVADO|EFETIVADO/i.test(String(c.status || ''));
   const comprouMes = (c) => porCli.has(String(c.id_cliente)) || /POSITIVADO|EFETIVADO/i.test(String(c.status || ''));

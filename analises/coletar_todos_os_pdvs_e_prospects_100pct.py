@@ -5,6 +5,7 @@ import openpyxl
 import os
 import json
 import time
+import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -22,6 +23,7 @@ FILIAIS_MAP = {
 db_path = os.path.join(os.path.dirname(__file__), 'pedidos_historico_ceven.db')
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
+data_ref = (datetime.datetime.utcnow() - datetime.timedelta(hours=3)).date().isoformat()
 
 print("="*80)
 print("INICIANDO COLETA INTEGRAL (100% DOS VENDEDORES E TODAS AS CATEGORIAS/CNAES)")
@@ -118,6 +120,7 @@ def fetch_prospects(v):
     return (v, [], False)
 
 PROSPECTS_SEM_RETORNO = []  # vendedores cujo calculo nao ficou pronto em nenhuma rodada: SEM DADO (nunca zero)
+PROSPECTS_COM_RETORNO = set()
 
 def buscar_prospects_com_espera(vendedores, rodadas=None, espera_s=60, lote_sonda=30):
     """O CEVEN calcula os prospects de forma assincrona e em FILA: a 1a chamada ACIONA o calculo e o 'pronto'
@@ -175,6 +178,7 @@ t1 = time.time()
 if True:
     for v, pro_list in buscar_prospects_com_espera(vendedores):
         fil_sigla, rca_id, rca_nome, sup_nome, ger_nome, seg_nome = v
+        PROSPECTS_COM_RETORNO.add((str(fil_sigla), str(rca_id)))
         for p in pro_list:
             cnpj_num = str(p.get('cnpj', '')).replace('.', '').replace('/', '').replace('-', '').strip()
             if cnpj_num and (fil_sigla, rca_id, cnpj_num) not in cnpjs_prospects_vistos:   # por vendedor: o mesmo prospect pode servir a mais de um
@@ -215,6 +219,8 @@ t_prospects = time.time() - t1
 print(f"Prospects consultados em {t_prospects:.2f}s:")
 print(f" - Total de prospects únicos capturados: {len(prospects_coletados)}")
 print(f" - Vendedores SEM retorno de prospects após 3 rodadas (sem dado, não zero): {len(PROSPECTS_SEM_RETORNO)}")
+if PROSPECTS_SEM_RETORNO:
+    print(f"::warning::Coleta de prospects incompleta em {len(PROSPECTS_SEM_RETORNO)} vendedores; esses casos serão marcados como sem retorno, nunca como lista vazia.")
 
 # 4. Atualizar o Excel EXPANSAO_CADASTROS_E_PROSPECTS.xlsx (espelho legivel dos mesmos
 # dados que vao pro SQLite abaixo -- nao pode ser bloqueante: se o arquivo nao existir
@@ -303,6 +309,31 @@ for pr in prospects_coletados:
         pr.get('Fonte Geo')
     ))
 
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS prospects_coleta_status (
+        filial TEXT NOT NULL,
+        rca_codigo TEXT NOT NULL,
+        data_ref TEXT NOT NULL,
+        estado TEXT NOT NULL,
+        total_prospects INTEGER,
+        PRIMARY KEY (filial, rca_codigo, data_ref)
+    )
+""")
+cursor.execute("DELETE FROM prospects_coleta_status WHERE data_ref = ?", (data_ref,))
+totais_por_rca = {}
+for pr in prospects_coletados:
+    chave = (str(pr['Filial']), str(pr['RCA Código']))
+    totais_por_rca[chave] = totais_por_rca.get(chave, 0) + 1
+sem_retorno = {(str(v[0]), str(v[1])) for v in PROSPECTS_SEM_RETORNO}
+cursor.executemany(
+    "INSERT INTO prospects_coleta_status (filial, rca_codigo, data_ref, estado, total_prospects) VALUES (?,?,?,?,?)",
+    [
+        (str(v[0]), str(v[1]), data_ref, 'sem_retorno' if (str(v[0]), str(v[1])) in sem_retorno else 'ok',
+         None if (str(v[0]), str(v[1])) in sem_retorno else totais_por_rca.get((str(v[0]), str(v[1])), 0))
+        for v in vendedores
+    ]
+)
+
 conn.commit()
 print("Base SQLite atualizada com sucesso!")
 
@@ -315,5 +346,5 @@ with open(os.path.join(os.path.dirname(__file__), 'PROSPECTS_RADAR_11_FILIAIS_HO
 
 print("\nArquivos JSON de backup atualizados.")
 print("="*80)
-print("COLETA INTEGRAL CONCLUÍDA COM SUCESSO!")
+print("COLETA DE PDVs E PROSPECTS CONCLUÍDA" + (" COM PENDÊNCIAS EXPLICITADAS" if PROSPECTS_SEM_RETORNO else " COM SUCESSO"))
 print("="*80)

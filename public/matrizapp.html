@@ -2051,15 +2051,10 @@ function autoScrollPaineis() {
     p.scrollTop = excesso * fase;
   });
 }
-// Faixa vermelha: disparo oficial de WhatsApp que nao saiu (05/10/2026: o das 17h nao saiu e ninguem foi avisado)
+// Faixa vermelha: removida da TV (03/11/2026, Vitório: "tirar esse aviso do whatsapp de vez na TV... são projetos totalmente diferentes... deixando o aviso na aba saúde já tá ótimo")
 async function checaDisparos() {
-  const el = $('faixa-disparo'); if (!el) return;
-  try {
-    const j = await (await fetch('/api/disparo-status?t=' + Date.now(), {cache: 'no-store'})).json();
-    const p = (j && j.problemas) || [];
-    el.style.display = p.length ? '' : 'none';
-    el.textContent = p.length ? '⚠ ' + p.map(x => x.texto).join(' · ') : '';
-  } catch { el.style.display = 'none'; }
+  const el = $('faixa-disparo');
+  if (el) el.style.display = 'none';
 }
 checaDisparos(); setInterval(checaDisparos, 5 * 60 * 1000);
 setInterval(autoScrollPaineis, 80);
