@@ -1451,7 +1451,8 @@ async function enviarWhatsapp(numero, texto, tentativas = 3) {
 
   for (let i = 1; i <= tentativas; i++) {
     try {
-      const res = await R.evolution({ url: EVO_URL, key: EVO_KEY, instancia: EVO_INSTANCE }, '/message/sendText', { number: numero, text: texto }, 15000);
+      const cfg = { url: EVO_URL, key: EVO_KEY, instancia: EVO_INSTANCE };
+      const res = await R.enviarTexto(cfg, numero, texto);
       if (!res.ok) throw new Error(res.erro || ('Evolution respondeu HTTP ' + res.status));
       await registrarNoPainel(numero, texto, true);
       return { sucesso: true, id: res.resposta?.key?.id || 'OK' };
