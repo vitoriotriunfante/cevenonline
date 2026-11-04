@@ -613,17 +613,40 @@ export async function respDiaEquipe(B, E) {
 
 // VENDEDORES SEM NENHUMA VISITA HOJE, na hierarquia (Vitorio, 27/10/2026: "so queria saber os sem nenhuma visita ainda... como sou da diretoria, teria que mostrar
 // a hierarquia filial, supervisor, vendedor"; Evandro: "lista completa dos vendedores sem visita, hoje, por filial")
+// Evandro (04/11/2026): separar e agrupar Varejo e AS em blocos distintos (separados por --- ou seções claras)
 export function respSemVisita(E) {
   const V = E.vend.filter((v) => v.visP > 0 && !v.visF);
   if (!V.length) return `✅ *${E.nome}*: todo vendedor com rota hoje já fez pelo menos uma visita.`;
-  const porF = new Map(); for (const v of V) { const f = porF.get(v.filial) || new Map(); const s = v.supervisor || 'sem supervisor'; (f.get(s) || f.set(s, []).get(s)).push(v); porF.set(v.filial, f); }
-  const L = [`🚶 *Sem nenhuma visita hoje — ${E.nome}*: *${V.length}* vendedor(es) com rota (${hojeSP().slice(8, 10)}/${hojeSP().slice(5, 7)})`];
-  for (const [f, S] of [...porF].sort((a, b) => [...b[1].values()].flat().length - [...a[1].values()].flat().length)) {
-    if (E.nacional) L.push('', `*${f}* (${[...S.values()].flat().length})`);
-    for (const [s, vs] of S) L.push(`${E.nacional ? '  ' : ''}_${sn(s)}_: ` + vs.map((v) => `${vn(v)} (0/${v.visP})`).join(' · '));
-  }
-  L.push('', SUGESTAO + 'ligar para os supervisores com mais vendedores parados; peça "clientes <vendedor>" para ver a rota de um.');
-  return L.join('\n');
+
+  const ehAS = (v) => /^(AS|FARMA|KEY|ATACADO)\b/i.test(String(v.canal || '').trim()) || /\bAS\b/i.test(String(v.supervisor || ''));
+  const Varejo = V.filter((v) => !ehAS(v));
+  const AS = V.filter(ehAS);
+
+  const montaBloco = (tituloCanal, lista) => {
+    if (!lista.length) return `📍 *${tituloCanal}*: todos com rota hoje já fizeram visita.`;
+    const porF = new Map();
+    for (const v of lista) {
+      const f = porF.get(v.filial) || new Map();
+      const s = v.supervisor || 'sem supervisor';
+      (f.get(s) || f.set(s, []).get(s)).push(v);
+      porF.set(v.filial, f);
+    }
+    const L = [`🚶 *${tituloCanal} — Sem visita hoje* (${lista.length} vendedores):`];
+    for (const [f, S] of [...porF].sort((a, b) => [...b[1].values()].flat().length - [...a[1].values()].flat().length)) {
+      L.push('', `*${f}* (${[...S.values()].flat().length})`);
+      for (const [s, vs] of S) {
+        L.push(`  _${sn(s)}_: ` + vs.map((v) => `${vn(v)} (0/${v.visP})`).join(' · '));
+      }
+    }
+    return L.join('\n');
+  };
+
+  const partes = [];
+  if (Varejo.length) partes.push(montaBloco('VAREJO', Varejo));
+  if (AS.length) partes.push(montaBloco('AS (AUTOSSERVIÇO)', AS));
+
+  const resposta = partes.join('\n\n---\n\n') + '\n\n' + SUGESTAO + 'ligar para os supervisores com mais vendedores parados; peça "clientes <vendedor>" para ver a rota de um.';
+  return resposta;
 }
 
 // CLIENTES NA ROTA DE HOJE, VISITADOS E SEM VENDA, PARADOS HA MAIS DE N DIAS (Vitorio, 27/10/2026: "quantos e quais clientes que nao compram a mais de 30 dias tem na

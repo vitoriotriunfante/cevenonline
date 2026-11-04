@@ -1923,26 +1923,25 @@ function gerarCardsPedidosHtml(pendentes) {
 
 function vincularBotoesPedidos(rootEl) {
   if (!rootEl) return;
-  // APROVAR EM LOTE (Vitorio, 01/11/2026): todos os de linha corporativa ativa. Um por vez, com pausa, porque cada aprovacao manda a boas-vindas no WhatsApp.
+  // APROVAR EM LOTE (04/11/2026): Apenas ativa no banco D1, NUNCA dispara WhatsApp ativo (risco critico de ban)
   rootEl.querySelectorAll('.btn-aprovar-verdes').forEach((b) => {
     b.onclick = async () => {
       const cels = b.dataset.cels.split(',').filter(Boolean);
-      if (!confirm(`Aprovar ${cels.length} pedidos com linha corporativa ativa? Cada pessoa recebe a mensagem de boas-vindas no WhatsApp.`)) return;
+      if (!confirm(`Aprovar ${cels.length} pedidos com linha corporativa ativa no sistema? (Não envia mensagens ativas no WhatsApp)`)) return;
       b.disabled = true; let ok = 0; const erros = [];
       for (const celular of cels) {
         b.textContent = `Aprovando ${ok + erros.length + 1} de ${cels.length}...`;
         try { await api('POST', '/api/jota-contatos', { acao: 'aprovar', celular }); ok++; } catch (e) { erros.push(celular); }
-        await new Promise((res) => setTimeout(res, 1500));
       }
-      aviso(erros.length ? `${ok} aprovados; ${erros.length} falharam e continuam na lista.` : `${ok} aprovados.`, erros.length ? 'erro' : 'ok');
+      aviso(erros.length ? `${ok} aprovados; ${erros.length} falharam.` : `${ok} aprovados com sucesso!`, erros.length ? 'erro' : 'ok');
       await carregarTudo();
     };
   });
   rootEl.querySelectorAll('.btn-aprovar-acesso').forEach((b) => {
     b.onclick = async () => {
       try {
-        const r = await api('POST', '/api/jota-contatos', { acao: 'aprovar', celular: b.dataset.cel });
-        aviso(r.avisado ? 'Aprovado! Mensagem de boas-vindas enviada no WhatsApp.' : 'Aprovado com sucesso!', 'ok');
+        await api('POST', '/api/jota-contatos', { acao: 'aprovar', celular: b.dataset.cel });
+        aviso('Acesso aprovado no sistema!', 'ok');
         await carregarTudo();
       } catch (e) {
         aviso('Erro ao aprovar: ' + e.message, 'erro');

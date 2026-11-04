@@ -261,27 +261,10 @@ export async function onRequestPost({ request, env }) {
   const muda = async (ativo, sit) => { await env.DB.prepare('UPDATE bot_contatos SET ativo = ?, situacao = ?, atualizado_em = CURRENT_TIMESTAMP WHERE celular = ?').bind(ativo, sit, cel).run(); await log(acao, { situacao: sit }); };
   if (acao === 'aprovar' || acao === 'ativar') {
     await muda(1, 'ativo');
-    let avisado = false;
-    if (acao === 'aprovar') {
-      const p = String(antes.nome || '').split(' ')[0];
-      const pNome = p.charAt(0) + p.slice(1).toLowerCase();
-      const msgLib = antes.papel === 'vendedor'
-        ? `Fala, *${pNome}*! Seu acesso corporativo ao *Jota* ⚽ foi *aprovado e liberado*! 🚀\n\nAgora você pode me consultar a qualquer momento (por texto ou *áudio* 🎙️). Seguem as instruções do que me pedir no dia a dia:\n\n📍 *ROTA & CLIENTES*\n• *"minha rota hoje"* → clientes programados e quem falta visitar\n• *"curva negativa"* → seus clientes que ainda não compraram no mês\n• *"prospecção"* → novos clientes no mapa da sua rota de hoje\n\n💰 *METAS & PEDIDOS*\n• *"como estou?"* → seu faturado, pendente, positivação e falta pra meta\n• *"pedidos pendentes"* → seus pedidos liberados aguardando faturamento\n• *"pedidos bloqueados"* → pedidos retidos no crédito\n\n📦 *+MIX & PRODUTOS*\n• *"+mix"* → oportunidades de mix para oferecer nos clientes\n• *"cliente #código"* → histórico de compras e SKUs daquele cliente\n\n⚠️ *Estou em treinamento:* posso errar ou ainda não saber algo. Se isso acontecer, escreva *"sugestão: ..."* que eu anoto e a gente vai ajustando.\n\n⚠️ *IMPORTANTE:* Para que eu consiga te responder e suas mensagens não caiam no filtro de spam, é *OBRIGATÓRIO SALVAR ESTE NÚMERO* nos contatos do seu celular agora como *Jota (+MIX)*!
-
-👉 *Assim que salvar, me responda aqui com a palavra:* *SIM*
-
-Bora pra cima bater meta! ⚠️ *OBRIGATÓRIO SALVAR ESTE NÚMERO:* Salve este contato no seu celular agora como *Jota (+MIX)* para não perder o acesso, e me responda aqui com a palavra: *SIM*.
-
-_Meu DNA é Triunfante!_ 💪`
-        : `Fala, ${pNome}! Seu acesso ao *Jota* foi liberado ⚽\nVocê vê ${antes.papel === 'supervisor' ? 'a sua equipe' : antes.papel === 'gerente' ? 'a sua filial' : 'os seus dados'}.\n\nExperimenta: "como está minha equipe?", "zerados", "faltam visitar", "vendedor Nome", "liga".\n_Meu DNA é Triunfante!_`;
-      avisado = await enviar(env, cel, msgLib);
-      // falhou: entra na fila de reenvio (cron-varredura-central) e tenta sozinho por 2 horas; ninguem precisa pedir (Vitorio, 02/11/2026)
-      if (!avisado) try { await env.DB.prepare("INSERT INTO bot_envio_fila (celular, numero, nome, texto, tipo) VALUES (?, ?, ?, ?, 'boas_vindas_aprovacao')").bind(cel, cel, antes.nome, msgLib).run(); } catch (e) {}
-      try {
-        await env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?, ?, ?, ?, 'boas_vindas_aprovacao')").bind(cel, antes.nome, avisado ? 'out' : 'erro', msgLib).run();
-      } catch (e) {}
-    }
-    return j({ ok: true, avisado });
+    // SEGURANCA TOTAL ANTIBAN (04/11/2026): NUNCA disparar mensagem ativa de WhatsApp na aprovacao!
+    // Vendedores aprovados usam o Jota quando eles mesmos mandarem mensagem (receptivo 100%).
+    // Disparar WhatsApp ativo para dezenas de contatos sem conversa aberta causa bloqueio imediato pelo WhatsApp.
+    return j({ ok: true, avisado: false });
   }
   if (acao === 'recusar') { await muda(0, 'recusado'); return j({ ok: true }); }
   if (acao === 'desativar') { await muda(0, 'inativo'); return j({ ok: true }); }

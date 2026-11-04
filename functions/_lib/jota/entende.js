@@ -754,8 +754,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
     (/\b(STATUS|RESUMO|SITUACAO)\s+(DA\s+)?(ROTA|VISITAS?)\b/.test(t))
   );
   if (ehRotaHojeGeral && !achaPessoa(E, t)) return respHoje(B, E, t);
-  // AUDITORIA 27/10 (Vitorio e Evandro): sem visita na hierarquia; clientes da filial/equipe; rota de hoje filtrada (parados ha N dias, visitados sem venda)
-  if (/SEM (NENHUMA )?VISITA|NENHUMA VISITA|NAO (FEZ|FIZERAM) (NENHUMA )?VISITA/.test(t) && /VENDEDOR|LISTA|QUEM|QUAIS|POR FILIAL/.test(t)) return respSemVisita(E);
+  // AUDITORIA 27/10 e 04/11 (Evandro Servat: "Quais vendedores nao visitaram clientes até 10h, por filial"): sem visita na hierarquia
+  if (/SEM (NENHUMA )?VISITA|NENHUMA VISITA|NAO (FEZ|FIZERAM|VISITOU|VISITARAM) (NENHUMA )?VISITA|NAO VISITARAM CLIENTES/i.test(t) && /VENDEDOR|LISTA|QUEM|QUAIS|POR FILIAL/i.test(t)) return respSemVisita(E);
   if (/CLIENTES (DOS VENDEDORES|DA FILIAL|DA EQUIPE|DA MINHA EQUIPE)/.test(t) && !/ROTA DE HOJE.{0,40}VISITOU|PAROU|COMPRAVA/.test(t)) return respRotaHojeResumo(B, E, null);
   if (/ROTA/.test(t) && /\bHOJE\b|\bHJ\b/.test(t) && /\d{1,3}\s*DIAS|VISITOU E NAO VENDEU|VISITADO E NAO VENDEU|JA VISITOU/.test(t) && !/VENDEDORA?\s+\d|VENDEDORA?\s+[A-Z]{3,}/.test(t)) return respRotaFiltro(B, E, t);
   // RESULTADO / RESUMO DA EQUIPE (Sueli API, 29/10/2026: "Resultado da equipe")
