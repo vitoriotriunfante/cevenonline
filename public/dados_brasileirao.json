@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-11-04T23:33:46.751742Z",
+  "gerado_em": "2026-11-04T23:48:33.067038Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -22,7 +22,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 41597,
+  "total_lances_auditados": 41603,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -382,9 +382,9 @@
       "vitorias": 0,
       "empates": 14,
       "derrotas": 2,
-      "gp": 1668,
+      "gp": 1681,
       "gc": 2271,
-      "sg": -603,
+      "sg": -590,
       "aprov": 29.2,
       "super_pedidos": 21,
       "inativos_resgatados": 46,
@@ -854,9 +854,9 @@
       "vitorias": 0,
       "empates": 14,
       "derrotas": 2,
-      "gp": 1668,
+      "gp": 1681,
       "gc": 2219,
-      "sg": -551,
+      "sg": -538,
       "aprov": 29.2,
       "forma": [
         "D",
@@ -4779,9 +4779,9 @@
       "vitorias": 0,
       "empates": 11,
       "derrotas": 4,
-      "gp": 912,
+      "gp": 916,
       "gc": 895,
-      "sg": 17,
+      "sg": 21,
       "aprov": 24.4,
       "forma": [
         "D",
@@ -7379,9 +7379,9 @@
       "vitorias": 0,
       "empates": 1,
       "derrotas": 14,
-      "gp": 175,
+      "gp": 184,
       "gc": 344,
-      "sg": -169,
+      "sg": -160,
       "aprov": 2.2,
       "forma": [
         "D",
@@ -15208,9 +15208,9 @@
       "derrotas": 6,
       "pts_tabela": 20,
       "aprov": 41.7,
-      "gp": 148,
+      "gp": 150,
       "gc": 61,
-      "sg": 87,
+      "sg": 89,
       "super_pedidos": 1,
       "inativos_resgatados": 4,
       "forma": [
@@ -21733,9 +21733,9 @@
       "derrotas": 10,
       "pts_tabela": 7,
       "aprov": 15.6,
-      "gp": 125,
+      "gp": 126,
       "gc": 292,
-      "sg": -167,
+      "sg": -166,
       "super_pedidos": 0,
       "inativos_resgatados": 3,
       "forma": [
@@ -21778,9 +21778,9 @@
       "derrotas": 9,
       "pts_tabela": 7,
       "aprov": 14.6,
-      "gp": 62,
+      "gp": 63,
       "gc": 55,
-      "sg": 7,
+      "sg": 8,
       "super_pedidos": 0,
       "inativos_resgatados": 2,
       "forma": [
@@ -24646,6 +24646,51 @@
       "pos_filial_ant": 48
     },
     {
+      "rca": "1025",
+      "nome": "TIAGO RANGEL",
+      "filial": "TPA",
+      "supervisor": "RAFAEL DA SILVA CARPENA",
+      "gerente": "Radke / Leandro",
+      "canal": "VAREJO",
+      "jogos": 16,
+      "vitorias": 0,
+      "empates": 3,
+      "derrotas": 13,
+      "pts_tabela": 3,
+      "aprov": 6.2,
+      "gp": 66,
+      "gc": 153,
+      "sg": -87,
+      "super_pedidos": 1,
+      "inativos_resgatados": 2,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "E",
+        "D",
+        "D",
+        "D",
+        "E",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "E"
+      ],
+      "streak": 0,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 268,
+      "pos_filial": 14,
+      "pos_brasil_ant": 277,
+      "pos_filial_ant": 14
+    },
+    {
       "rca": "432",
       "nome": "JESUS DA SILVA SOUZA",
       "filial": "MCD",
@@ -24685,7 +24730,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 268,
+      "pos_brasil": 269,
       "pos_filial": 28,
       "pos_brasil_ant": 268,
       "pos_filial_ant": 28
@@ -24730,7 +24775,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 269,
+      "pos_brasil": 270,
       "pos_filial": 29,
       "pos_brasil_ant": 270,
       "pos_filial_ant": 29
@@ -24775,7 +24820,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 270,
+      "pos_brasil": 271,
       "pos_filial": 50,
       "pos_brasil_ant": 271,
       "pos_filial_ant": 49
@@ -24820,7 +24865,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 271,
+      "pos_brasil": 272,
       "pos_filial": 15,
       "pos_brasil_ant": 273,
       "pos_filial_ant": 15
@@ -24865,7 +24910,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 272,
+      "pos_brasil": 273,
       "pos_filial": 27,
       "pos_brasil_ant": 274,
       "pos_filial_ant": 27
@@ -24910,7 +24955,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 273,
+      "pos_brasil": 274,
       "pos_filial": 25,
       "pos_brasil_ant": 275,
       "pos_filial_ant": 27
@@ -25409,51 +25454,6 @@
       "pos_filial": 10,
       "pos_brasil_ant": 110,
       "pos_filial_ant": 10
-    },
-    {
-      "rca": "1025",
-      "nome": "TIAGO RANGEL",
-      "filial": "TPA",
-      "supervisor": "RAFAEL DA SILVA CARPENA",
-      "gerente": "Radke / Leandro",
-      "canal": "VAREJO",
-      "jogos": 15,
-      "vitorias": 0,
-      "empates": 2,
-      "derrotas": 13,
-      "pts_tabela": 2,
-      "aprov": 4.4,
-      "gp": 57,
-      "gc": 153,
-      "sg": -96,
-      "super_pedidos": 1,
-      "inativos_resgatados": 2,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "E",
-        "D",
-        "D",
-        "D",
-        "E",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "J"
-      ],
-      "streak": 0,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 274,
-      "pos_filial": 14,
-      "pos_brasil_ant": 277,
-      "pos_filial_ant": 14
     },
     {
       "rca": "58",
@@ -30050,7 +30050,7 @@
         "supervisor": "CRISTIANO RODRIGUES MACHADO",
         "gerente": "Saldanha",
         "meta_mes": 350000,
-        "pct_hoje": 6.9,
+        "pct_hoje": 9.9,
         "fases": [
           {
             "n": 1,
@@ -39354,6 +39354,139 @@
         "pos_filial_ant": 6
       },
       {
+        "rca": "1054",
+        "nome": "ADRIANO IGNEZ DOS REIS",
+        "filial": "TBL",
+        "supervisor": "CRISTIANE DE FREITAS DUARTE",
+        "gerente": "Fábio",
+        "meta_mes": 268816,
+        "pct_hoje": 1.5,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-11-07",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-11-14",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-11-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 30,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-11-30",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": -4,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": -4,
+            "jogada": true,
+            "resultado": "J",
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 0,
+        "vitorias": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "pts_tabela": 0,
+        "aprov": 0,
+        "forma": [
+          "J"
+        ],
+        "pontos": 0,
+        "pts_lances": -4,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 72,
+        "pos_filial": 2,
+        "pos_brasil_ant": null,
+        "pos_filial_ant": null
+      },
+      {
         "rca": "57",
         "nome": "MARCUS PAULO FERREIRA DA CRUZ",
         "filial": "TPH",
@@ -39481,7 +39614,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 72,
+        "pos_brasil": 73,
         "pos_filial": 14,
         "pos_brasil_ant": 123,
         "pos_filial_ant": 22
@@ -39614,7 +39747,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 73,
+        "pos_brasil": 74,
         "pos_filial": 10,
         "pos_brasil_ant": 99,
         "pos_filial_ant": 12
@@ -39747,7 +39880,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 74,
+        "pos_brasil": 75,
         "pos_filial": 11,
         "pos_brasil_ant": 47,
         "pos_filial_ant": 6
@@ -39880,7 +40013,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 75,
+        "pos_brasil": 76,
         "pos_filial": 11,
         "pos_brasil_ant": 56,
         "pos_filial_ant": 10
@@ -40013,7 +40146,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 76,
+        "pos_brasil": 77,
         "pos_filial": 15,
         "pos_brasil_ant": 49,
         "pos_filial_ant": 10
@@ -40146,7 +40279,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 77,
+        "pos_brasil": 78,
         "pos_filial": 16,
         "pos_brasil_ant": 126,
         "pos_filial_ant": 25
@@ -40279,7 +40412,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 78,
+        "pos_brasil": 79,
         "pos_filial": 17,
         "pos_brasil_ant": 54,
         "pos_filial_ant": 12
@@ -40412,7 +40545,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 79,
+        "pos_brasil": 80,
         "pos_filial": 18,
         "pos_brasil_ant": 55,
         "pos_filial_ant": 13
@@ -40545,7 +40678,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 80,
+        "pos_brasil": 81,
         "pos_filial": 10,
         "pos_brasil_ant": 57,
         "pos_filial_ant": 8
@@ -40678,7 +40811,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 81,
+        "pos_brasil": 82,
         "pos_filial": 11,
         "pos_brasil_ant": 58,
         "pos_filial_ant": 9
@@ -40811,7 +40944,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 82,
+        "pos_brasil": 83,
         "pos_filial": 12,
         "pos_brasil_ant": 61,
         "pos_filial_ant": 12
@@ -40944,7 +41077,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 83,
+        "pos_brasil": 84,
         "pos_filial": 12,
         "pos_brasil_ant": 63,
         "pos_filial_ant": 12
@@ -41077,7 +41210,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 84,
+        "pos_brasil": 85,
         "pos_filial": 13,
         "pos_brasil_ant": 64,
         "pos_filial_ant": 13
@@ -41210,7 +41343,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 85,
+        "pos_brasil": 86,
         "pos_filial": 4,
         "pos_brasil_ant": 65,
         "pos_filial_ant": 4
@@ -41343,7 +41476,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 86,
+        "pos_brasil": 87,
         "pos_filial": 5,
         "pos_brasil_ant": 67,
         "pos_filial_ant": 6
@@ -41476,7 +41609,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 87,
+        "pos_brasil": 88,
         "pos_filial": 6,
         "pos_brasil_ant": 68,
         "pos_filial_ant": 7
@@ -41609,7 +41742,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 88,
+        "pos_brasil": 89,
         "pos_filial": 7,
         "pos_brasil_ant": 69,
         "pos_filial_ant": 8
@@ -41742,7 +41875,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 89,
+        "pos_brasil": 90,
         "pos_filial": 8,
         "pos_brasil_ant": 73,
         "pos_filial_ant": 12
@@ -41875,7 +42008,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 90,
+        "pos_brasil": 91,
         "pos_filial": 4,
         "pos_brasil_ant": 74,
         "pos_filial_ant": 3
@@ -42008,7 +42141,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 91,
+        "pos_brasil": 92,
         "pos_filial": 5,
         "pos_brasil_ant": 75,
         "pos_filial_ant": 4
@@ -42141,7 +42274,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 92,
+        "pos_brasil": 93,
         "pos_filial": 6,
         "pos_brasil_ant": 76,
         "pos_filial_ant": 5
@@ -42274,7 +42407,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 93,
+        "pos_brasil": 94,
         "pos_filial": 7,
         "pos_brasil_ant": 78,
         "pos_filial_ant": 7
@@ -42407,7 +42540,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 94,
+        "pos_brasil": 95,
         "pos_filial": 7,
         "pos_brasil_ant": 79,
         "pos_filial_ant": 3
@@ -42540,7 +42673,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 95,
+        "pos_brasil": 96,
         "pos_filial": 8,
         "pos_brasil_ant": 81,
         "pos_filial_ant": 5
@@ -42673,7 +42806,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 96,
+        "pos_brasil": 97,
         "pos_filial": 9,
         "pos_brasil_ant": 84,
         "pos_filial_ant": 8
@@ -42806,7 +42939,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 97,
+        "pos_brasil": 98,
         "pos_filial": 10,
         "pos_brasil_ant": 86,
         "pos_filial_ant": 10
@@ -42939,7 +43072,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 98,
+        "pos_brasil": 99,
         "pos_filial": 11,
         "pos_brasil_ant": 90,
         "pos_filial_ant": 8
@@ -43072,7 +43205,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 99,
+        "pos_brasil": 100,
         "pos_filial": 12,
         "pos_brasil_ant": 91,
         "pos_filial_ant": 9
@@ -43205,7 +43338,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 100,
+        "pos_brasil": 101,
         "pos_filial": 13,
         "pos_brasil_ant": 92,
         "pos_filial_ant": 10
@@ -43338,7 +43471,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 101,
+        "pos_brasil": 102,
         "pos_filial": 12,
         "pos_brasil_ant": 96,
         "pos_filial_ant": 9
@@ -43471,7 +43604,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 102,
+        "pos_brasil": 103,
         "pos_filial": 13,
         "pos_brasil_ant": 53,
         "pos_filial_ant": 8
@@ -43604,7 +43737,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 103,
+        "pos_brasil": 104,
         "pos_filial": 14,
         "pos_brasil_ant": 97,
         "pos_filial_ant": 10
@@ -43737,7 +43870,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 104,
+        "pos_brasil": 105,
         "pos_filial": 15,
         "pos_brasil_ant": 100,
         "pos_filial_ant": 13
@@ -43870,7 +44003,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 105,
+        "pos_brasil": 106,
         "pos_filial": 16,
         "pos_brasil_ant": 101,
         "pos_filial_ant": 14
@@ -44003,7 +44136,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 106,
+        "pos_brasil": 107,
         "pos_filial": 1,
         "pos_brasil_ant": 104,
         "pos_filial_ant": 1
@@ -44136,7 +44269,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 107,
+        "pos_brasil": 108,
         "pos_filial": 2,
         "pos_brasil_ant": 105,
         "pos_filial_ant": 2
@@ -44269,7 +44402,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 108,
+        "pos_brasil": 109,
         "pos_filial": 3,
         "pos_brasil_ant": 106,
         "pos_filial_ant": 3
@@ -44402,7 +44535,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 109,
+        "pos_brasil": 110,
         "pos_filial": 4,
         "pos_brasil_ant": 107,
         "pos_filial_ant": 4
@@ -44535,7 +44668,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 110,
+        "pos_brasil": 111,
         "pos_filial": 5,
         "pos_brasil_ant": 108,
         "pos_filial_ant": 5
@@ -44668,7 +44801,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 111,
+        "pos_brasil": 112,
         "pos_filial": 6,
         "pos_brasil_ant": 109,
         "pos_filial_ant": 6
@@ -44801,7 +44934,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 112,
+        "pos_brasil": 113,
         "pos_filial": 7,
         "pos_brasil_ant": 110,
         "pos_filial_ant": 7
@@ -44934,7 +45067,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 113,
+        "pos_brasil": 114,
         "pos_filial": 8,
         "pos_brasil_ant": 111,
         "pos_filial_ant": 8
@@ -45067,7 +45200,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 114,
+        "pos_brasil": 115,
         "pos_filial": 9,
         "pos_brasil_ant": 112,
         "pos_filial_ant": 9
@@ -45200,7 +45333,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 115,
+        "pos_brasil": 116,
         "pos_filial": 10,
         "pos_brasil_ant": 113,
         "pos_filial_ant": 10
@@ -45333,7 +45466,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 116,
+        "pos_brasil": 117,
         "pos_filial": 11,
         "pos_brasil_ant": 114,
         "pos_filial_ant": 11
@@ -45466,7 +45599,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 117,
+        "pos_brasil": 118,
         "pos_filial": 19,
         "pos_brasil_ant": 116,
         "pos_filial_ant": 15
@@ -45599,7 +45732,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 118,
+        "pos_brasil": 119,
         "pos_filial": 20,
         "pos_brasil_ant": 118,
         "pos_filial_ant": 17
@@ -45732,7 +45865,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 119,
+        "pos_brasil": 120,
         "pos_filial": 21,
         "pos_brasil_ant": 119,
         "pos_filial_ant": 18
@@ -45865,7 +45998,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 120,
+        "pos_brasil": 121,
         "pos_filial": 22,
         "pos_brasil_ant": 120,
         "pos_filial_ant": 19
@@ -45998,7 +46131,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 121,
+        "pos_brasil": 122,
         "pos_filial": 23,
         "pos_brasil_ant": 121,
         "pos_filial_ant": 20
@@ -46131,7 +46264,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 122,
+        "pos_brasil": 123,
         "pos_filial": 24,
         "pos_brasil_ant": 122,
         "pos_filial_ant": 21
@@ -46264,7 +46397,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 123,
+        "pos_brasil": 124,
         "pos_filial": 8,
         "pos_brasil_ant": 127,
         "pos_filial_ant": 7
@@ -46397,7 +46530,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 124,
+        "pos_brasil": 125,
         "pos_filial": 9,
         "pos_brasil_ant": 130,
         "pos_filial_ant": 10
@@ -46530,7 +46663,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 125,
+        "pos_brasil": 126,
         "pos_filial": 10,
         "pos_brasil_ant": 133,
         "pos_filial_ant": 13
@@ -46663,7 +46796,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 126,
+        "pos_brasil": 127,
         "pos_filial": 9,
         "pos_brasil_ant": 70,
         "pos_filial_ant": 9
@@ -46796,7 +46929,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 127,
+        "pos_brasil": 128,
         "pos_filial": 10,
         "pos_brasil_ant": 71,
         "pos_filial_ant": 10
@@ -46929,7 +47062,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 128,
+        "pos_brasil": 129,
         "pos_filial": 11,
         "pos_brasil_ant": 128,
         "pos_filial_ant": 8
@@ -47062,7 +47195,7 @@
         "pts_lances": -7,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 129,
+        "pos_brasil": 130,
         "pos_filial": 25,
         "pos_brasil_ant": 134,
         "pos_filial_ant": 26
@@ -47195,7 +47328,7 @@
         "pts_lances": -4,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 130,
+        "pos_brasil": 131,
         "pos_filial": 11,
         "pos_brasil_ant": 66,
         "pos_filial_ant": 5
@@ -47328,143 +47461,10 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 131,
+        "pos_brasil": 132,
         "pos_filial": 26,
         "pos_brasil_ant": 117,
         "pos_filial_ant": 16
-      },
-      {
-        "rca": "1054",
-        "nome": "ADRIANO IGNEZ DOS REIS",
-        "filial": "TBL",
-        "supervisor": "CRISTIANE DE FREITAS DUARTE",
-        "gerente": "Fábio",
-        "meta_mes": 268816,
-        "pct_hoje": -0.6,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-11-07",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-11-14",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-11-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 30,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-11-30",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": -4,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": -4,
-            "jogada": true,
-            "resultado": "J",
-            "pts_tabela": 0
-          },
-          {
-            "n": 2,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 3,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 4,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 0,
-        "vitorias": 0,
-        "empates": 0,
-        "derrotas": 0,
-        "pts_tabela": 0,
-        "aprov": 0,
-        "forma": [
-          "J"
-        ],
-        "pontos": 0,
-        "pts_lances": -4,
-        "pts_faseamento": 0,
-        "pts_bonus": 0,
-        "pos_brasil": 132,
-        "pos_filial": 2,
-        "pos_brasil_ant": null,
-        "pos_filial_ant": null
       },
       {
         "rca": "13",
@@ -49137,7 +49137,7 @@
         "total_vendedores": 8,
         "com_meta": 8,
         "meta_mes": 4500000,
-        "pct_hoje": 3.2,
+        "pct_hoje": 3.5,
         "fases": [
           {
             "n": 1,
