@@ -1,15 +1,15 @@
 🏢 *FILIAL TPH — GESTÃO DE CAMPO*
-📅 03/11/2026 • Gerente: Fábio
+📅 04/11/2026 • Gerente: Fábio
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 *PAINEL DE ATIVIDADES (5 SUPERVISORES):*
-📝 Compromissos: *2 de 5* lançados
-🚗 Em Rota (RET): *1 de 5* em campo
+📝 Compromissos: *4 de 5* lançados
+🚗 Em Rota (RET): *2 de 5* em campo
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 👤 *AILTON LUIZ ARENDT JUNIOR*
-📝 Compromisso: ❌ Não lançado
+📝 Compromisso: ✅ Lançado
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
 👤 *CRISTIAN EDUARDO RAFFAELLI*
@@ -18,14 +18,16 @@
 
 👤 *EDI CARLOS MEIRA*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 08:39)
-└ 👥 RCA: MAICO ADILTON PRESTES
-└ 📍 1 PDV visitado • 📸 1 foto • Score: 93%
+🚗 Rota (RET): ✅ Em campo (início às 08:56)
+└ 👥 RCA: JANAINA FARIA
+└ 📍 1 PDV visitado • 📸 2 fotos • Score: 64%
 
 👤 *PRISCILA A D NASCIMENTO STRAPASSON*
 📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
+🚗 Rota (RET): ✅ Em campo (início às 09:33)
+└ 👥 RCA: VICTORIA DE MENEZES RIBEIRO
+└ 📍 3 PDVs visitados • 📸 2 fotos • Score: 67%
 
 👤 *EDERSON SUONSKI*
-📝 Compromisso: ❌ Não lançado
+📝 Compromisso: ✅ Lançado
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
