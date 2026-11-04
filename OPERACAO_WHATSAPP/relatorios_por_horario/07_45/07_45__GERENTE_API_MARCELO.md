@@ -1,37 +1,37 @@
 🌅 *ABERTURA MATINAL — API (07:45)*
-📅 sexta-feira, 30/10/2026
+📅 quarta-feira, 04/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 28 • Visitas: 400 (média 14,3/vendedor)
-Sem compra +30d: 116 (29,0%) • Recorrência: 41 (10,3%)
+👥 Vendedores: 28 • Visitas: 435 (média 15,5/vendedor)
+Sem compra +30d: 115 (26,4%) • Recorrência: 80 (18,4%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *API — MARCELO* • 30/10/2026
+📍 *API — MARCELO* • 04/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 108  •  🟡 Preventivo: 0
+🔴 Última Chance: 0  •  🟡 Preventivo: 115
 
-👤 *WASHINGTON FLORES DA ROSA* (38 em risco)
-  🔴 ZINCO FERRAGENS HIDRAULICA E ELETRICA ME (244) — 21/09
-  🔴 MAXIFARMA (244) — 05/12
-  🔴 PANIFICADORA DEGUSTI (244) — 31/07
-  🔴 POSTO CAYMAN (244) — 05/09
-  🔴 CASA DE PAES KAROA (244) — 21/09
-  _+33 outros_
+👤 *WASHINGTON FLORES DA ROSA* (35 em risco)
+  🟡 FORTE DISTRIBUIDORA DE BEBIDAS LTDA (244) — 30/09
+  🟡 CASA CHINA (244) — 14/09
+  🟡 GULA MUNDO MIX (244) — 02/10
+  🟡 ACOUGUE LF (244) — 24/09
+  🟡 MERCEARIA KAU (245) — 05/12
+  _+30 outros_
 
-👤 *RODRIGO FARIAS* (52 em risco)
-  🔴 MERCADO RIBEIRO LTDA (241) — 12/08
-  🔴 PONTAROLO MERCADO E ACOUGUE LTDA (241) — 31/07
-  🔴 MERCADO DO MARCOS (241) — 05/12
-  🔴 SM SAO JOSE (241) — 12/09
-  🔴 BIG BRILHO (241) — 05/12
-  _+47 outros_
+👤 *RODRIGO FARIAS* (69 em risco)
+  🟡 FARMACIA PAULO CEZAR (239) — 30/07
+  🟡 POSTO MANU (241) — 26/09
+  🟡 SABORES DO CAMPO (241) — 31/07
+  🟡 CASA DE CARNES SAO JOAO (241) — 31/07
+  🟡 MERCADO HARMIM (241) — 11/09
+  _+64 outros_
 
-👤 *SUELI APARECIDA TEIXEIRA POLLI* (18 em risco)
-  🔴 POSTO ROTTA 400 (249) — 25/09
-  🔴 MERCADO VALIGUARA (249) — 12/09
-  🔴 MILLENIUM DOCES (529) — 29/06
-  🔴 PANIFICADORA SANTA CRUZ (529) — 25/09
-  🔴 BARAO CONVENIENCIA (529) — 03/07
-  _+13 outros_
+👤 *SUELI APARECIDA TEIXEIRA POLLI* (11 em risco)
+  🟡 PARTEKA (249) — 31/08
+  🟡 ACOUGUE CIUS (249) — 28/09
+  🟡 SUPERMERCADO FANELLI (1074) — 03/10
+  🟡 POSTO PRO TORK PIRAI DO SUL (1074) — 05/12
+  🟡 POSTO 090 (1074) — 31/08
+  _+6 outros_

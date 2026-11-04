@@ -1,22 +1,22 @@
 🚨 *ALERTA DE PDVs EM RISCO — 07:45*
-📅 30/10/2026 • 2ª quinzena do mês
+📅 04/11/2026 • 1ª quinzena do mês
 🏢 *Grupo Triunfante — 11 Filiais*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🔴 *Última Chance do Mês:* 1143 PDVs (2ª quinzena, +30d sem compra — não tem mais visita este mês)
-🟡 *Alerta Preventivo:* 0 PDVs (1ª quinzena, +30d sem compra — ainda tem a 2ª visita do mês)
+🔴 *Última Chance do Mês:* 0 PDVs (2ª quinzena, +30d sem compra — não tem mais visita este mês)
+🟡 *Alerta Preventivo:* 1211 PDVs (1ª quinzena, +30d sem compra — ainda tem a 2ª visita do mês)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 *POR FILIAL:*
 
-📍 *TPH:* 🔴 291 • 🟡 0
-📍 *TBL:* 🔴 184 • 🟡 0
-📍 *API:* 🔴 108 • 🟡 0
-📍 *TSJ:* 🔴 99 • 🟡 0
-📍 *ABC:* 🔴 94 • 🟡 0
-📍 *TBE:* 🔴 87 • 🟡 0
-📍 *TPA:* 🔴 78 • 🟡 0
-📍 *TCA:* 🔴 65 • 🟡 0
-📍 *TCG:* 🔴 49 • 🟡 0
-📍 *TCV:* 🔴 49 • 🟡 0
-📍 *MCD:* 🔴 39 • 🟡 0
+📍 *TPH:* 🔴 0 • 🟡 307
+📍 *TBL:* 🔴 0 • 🟡 154
+📍 *API:* 🔴 0 • 🟡 115
+📍 *TCA:* 🔴 0 • 🟡 114
+📍 *TPA:* 🔴 0 • 🟡 105
+📍 *MCD:* 🔴 0 • 🟡 92
+📍 *TBE:* 🔴 0 • 🟡 88
+📍 *ABC:* 🔴 0 • 🟡 81
+📍 *TSJ:* 🔴 0 • 🟡 67
+📍 *TCG:* 🔴 0 • 🟡 54
+📍 *TCV:* 🔴 0 • 🟡 34

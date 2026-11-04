@@ -1,28 +1,41 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 sexta-feira, 30/10/2026
+📅 quarta-feira, 04/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 20 • Visitas: 113 (média 5,7/vendedor)
-Sem compra +30d: 22 (21,6%) • Recorrência: 5 (4,9%)
+👥 Vendedores: 18 • Visitas: 198 (média 11,0/vendedor)
+Sem compra +30d: 59 (29,8%) • Recorrência: 15 (7,6%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — CLEVERSON* • 30/10/2026
+📍 *MCD — CLEVERSON* • 04/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 14  •  🟡 Preventivo: 0
+🔴 Última Chance: 0  •  🟡 Preventivo: 59
 
-👤 *TIAGO MARTINES OTAVIANO* (9 em risco)
-  🔴 MERCEARIA NATAL (413) — 24/08
-  🔴 MERCADO SANTA FELICIDADE (413) — 25/09
-  🔴 DROGARIAS LEVI (420) — 27/08
-  🔴 POSTO FAROESTE (1061) — 03/05
-  🔴 MERCEARIA MERY (1061) — 28/08
-  _+4 outros_
+👤 *TIAGO MARTINES OTAVIANO* (11 em risco)
+  🟡 CORONEL BEER (413) — 30/09
+  🟡 MANGOLE CONVENIENCIA (420) — 20/08
+  🟡 MINI MERCADO BOM PRECO (450) — 24/09
+  🟡 PANIF E CONF JARDIM (450) — 14/09
+  🟡 CELEIRO (1061) — 19/08
+  _+6 outros_
 
-👤 *JONATAS DA SILVA DE OLIVEIRA* (5 em risco)
-  🔴 POSTO PIONEIRO (441) — 05/12
-  🔴 DROGARIA REAL 3 (442) — 05/12
-  🔴 EMPORIO NOBRE (453) — 17/09
-  🔴 MERCADO TREVO (1060) — 05/12
-  🔴 SUPERMERCADO MIYAKE (1063) — 31/08
+👤 *THIAGO DA SILVA CONEGUNDES* (4 em risco)
+  🟡 ULTRA FARMA TOTAL (1068) — 05/09
+  🟡 MERCEARIA E CONVENIENCIA BOLICHUS (1068) — 23/09
+  🟡 SEU MARTINS (433) — 05/12
+  🟡 NAVESA (433) — 25/09
+
+👤 *Vendedores ligados direto ao gerente* (40 em risco)
+  🟡 CENTRAL DE DISTRIBUICAO DOIS IRMAOS (1070) — 05/12
+  🟡 CONVENIENCIA CERRADO (1070) — 05/12
+  🟡 MERCEARIA DA PONTE 02 (1070) — 05/12
+  🟡 MERCADO DA PONTE (1070) — 05/12
+  🟡 MERCEARIA RODRIGUES (1070) — 05/12
+  _+35 outros_
+
+👤 *JONATAS DA SILVA DE OLIVEIRA* (4 em risco)
+  🟡 MERCADO POPULAR (429) — 05/12
+  🟡 CD NAVIRAI (441) — 05/12
+  🟡 C VALE (441) — 12/09
+  🟡 H P M - MERCEARIA E LANCHONETE (1063) — 01/01

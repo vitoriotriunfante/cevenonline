@@ -1,37 +1,41 @@
 🌅 *ABERTURA MATINAL — TSJ (07:45)*
-📅 sexta-feira, 30/10/2026
+📅 quarta-feira, 04/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 22 • Visitas: 311 (média 14,1/vendedor)
-Sem compra +30d: 109 (35,0%) • Recorrência: 23 (7,4%)
+👥 Vendedores: 24 • Visitas: 338 (média 14,1/vendedor)
+Sem compra +30d: 67 (19,8%) • Recorrência: 35 (10,4%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TSJ — SALDANHA* • 30/10/2026
+📍 *TSJ — SALDANHA* • 04/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 99  •  🟡 Preventivo: 0
+🔴 Última Chance: 0  •  🟡 Preventivo: 67
 
-👤 *ANA CRISTINA DOS SANTOS YAMATO* (27 em risco)
-  🔴 CGS ALIMENTICIOS LTDA (5) — 21/09
-  🔴 MERCADINHO VALE OURO (8) — 05/12
-  🔴 SUPERMERCADO THAUAN (8) — 05/12
-  🔴 BAR DO ELDO (8) — 28/09
-  🔴 RG PIT STOP (10) — 21/09
-  _+22 outros_
+👤 *ANA CRISTINA DOS SANTOS YAMATO* (20 em risco)
+  🟡 EMPORIO DB (5) — 30/09
+  🟡 SUPERMERCADO BIOMA (5) — 10/09
+  🟡 SUPERMERCADO JK (5) — 05/12
+  🟡 PADARIA GAZZO (8) — 28/09
+  🟡 AQUI TEM (33) — 24/09
+  _+15 outros_
 
-👤 *JULIO CESAR SOARES DE PAULO* (29 em risco)
-  🔴 ESTACAO MIRAGLIA CAFE E EMPORIO (7) — 28/05
-  🔴 LANCHANETA MC JOM (7) — 21/09
-  🔴 LANCHONETE DO DANIEL (7) — 31/08
-  🔴 SUPERMERCADO SUPIMPA (7) — 31/07
-  🔴 CAMPOS CLEAN PRODUTOS DE LIMPEZA (7) — 21/07
-  _+24 outros_
+👤 *JULIO CESAR SOARES DE PAULO* (11 em risco)
+  🟡 ANNECY POUSADA (7) — 31/08
+  🟡 KATATAU PADARIA E MERCEARIA (25) — 27/08
+  🟡 SAMUEL SOUZA LIMA 04313670351 (25) — 21/09
+  🟡 BOI DE OURO (25) — 26/09
+  🟡 BOUTIQUE DA CARNE DRINK (1023) — 24/09
+  _+6 outros_
 
-👤 *VICTOR HUGO FONSECA CARVALHO* (43 em risco)
-  🔴 COMERCIAL ANTUNES SP (16) — 05/12
-  🔴 SUPERMERCADOS ALBUQUERQUE SOUZA LTDA (16) — 18/08
-  🔴 MERCEARIA CUNHA (16) — 28/07
-  🔴 MERCEARIA BENFICA (16) — 23/09
-  🔴 MERCEARIA E QUITANDA E E LTDA ME (16) — 29/06
-  _+38 outros_
+👤 *Venda empresa (interno)* (2 em risco)
+  🟡 FUNCIONARIO-COORD.VENDAS (2) — 05/12
+  🟡 TRIUNFANTE CORPORATIVO (2) — 05/12
+
+👤 *VICTOR HUGO FONSECA CARVALHO* (34 em risco)
+  🟡 ENCANTO FLORES E PRESENTES (16) — 31/07
+  🟡 JOSE BATISTA RODRIGUES ARAUJO84276762634 (16) — 29/07
+  🟡 JACINTO SANTANA FERREIRA (23) — 11/09
+  🟡 PADOKA (23) — 19/02
+  🟡 ADEGA SANTA CECILIA (23) — 27/08
+  _+29 outros_
