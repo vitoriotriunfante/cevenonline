@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-11-04T21:48:42.718502Z",
+  "gerado_em": "2026-11-04T22:03:48.624256Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -22,7 +22,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 41515,
+  "total_lances_auditados": 41533,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -32,9 +32,9 @@
       "vitorias": 5,
       "empates": 11,
       "derrotas": 0,
-      "gp": 12409,
+      "gp": 12414,
       "gc": 3463,
-      "sg": 8946,
+      "sg": 8951,
       "aprov": 54.2,
       "super_pedidos": 49,
       "inativos_resgatados": 192,
@@ -67,9 +67,9 @@
       "vitorias": 3,
       "empates": 13,
       "derrotas": 0,
-      "gp": 8834,
+      "gp": 8839,
       "gc": 4970,
-      "sg": 3864,
+      "sg": 3869,
       "aprov": 45.8,
       "super_pedidos": 56,
       "inativos_resgatados": 190,
@@ -137,9 +137,9 @@
       "vitorias": 0,
       "empates": 16,
       "derrotas": 0,
-      "gp": 8606,
+      "gp": 8627,
       "gc": 2412,
-      "sg": 6194,
+      "sg": 6215,
       "aprov": 33.3,
       "super_pedidos": 27,
       "inativos_resgatados": 127,
@@ -207,11 +207,11 @@
       "vitorias": 0,
       "empates": 16,
       "derrotas": 0,
-      "gp": 8030,
+      "gp": 8040,
       "gc": 3047,
-      "sg": 4983,
+      "sg": 4993,
       "aprov": 33.3,
-      "super_pedidos": 31,
+      "super_pedidos": 32,
       "inativos_resgatados": 144,
       "forma": [
         "E",
@@ -242,9 +242,9 @@
       "vitorias": 0,
       "empates": 16,
       "derrotas": 0,
-      "gp": 11571,
-      "gc": 9257,
-      "sg": 2314,
+      "gp": 11572,
+      "gc": 9277,
+      "sg": 2295,
       "aprov": 33.3,
       "super_pedidos": 35,
       "inativos_resgatados": 209,
@@ -312,9 +312,9 @@
       "vitorias": 0,
       "empates": 16,
       "derrotas": 0,
-      "gp": 3948,
+      "gp": 3958,
       "gc": 4007,
-      "sg": -59,
+      "sg": -49,
       "aprov": 33.3,
       "super_pedidos": 64,
       "inativos_resgatados": 51,
@@ -422,9 +422,9 @@
       "vitorias": 5,
       "empates": 11,
       "derrotas": 0,
-      "gp": 12409,
+      "gp": 12414,
       "gc": 3463,
-      "sg": 8946,
+      "sg": 8951,
       "aprov": 54.2,
       "forma": [
         "E",
@@ -458,9 +458,9 @@
       "vitorias": 3,
       "empates": 13,
       "derrotas": 0,
-      "gp": 8834,
+      "gp": 8839,
       "gc": 4970,
-      "sg": 3864,
+      "sg": 3869,
       "aprov": 45.8,
       "forma": [
         "E",
@@ -530,9 +530,9 @@
       "vitorias": 1,
       "empates": 15,
       "derrotas": 0,
-      "gp": 8606,
+      "gp": 8627,
       "gc": 2412,
-      "sg": 6194,
+      "sg": 6215,
       "aprov": 37.5,
       "forma": [
         "E",
@@ -602,9 +602,9 @@
       "vitorias": 0,
       "empates": 16,
       "derrotas": 0,
-      "gp": 8030,
+      "gp": 8040,
       "gc": 3047,
-      "sg": 4983,
+      "sg": 4993,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -710,9 +710,9 @@
       "vitorias": 0,
       "empates": 16,
       "derrotas": 0,
-      "gp": 2525,
+      "gp": 2535,
       "gc": 2356,
-      "sg": 169,
+      "sg": 179,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -746,9 +746,9 @@
       "vitorias": 0,
       "empates": 16,
       "derrotas": 0,
-      "gp": 4151,
-      "gc": 4261,
-      "sg": -110,
+      "gp": 4152,
+      "gc": 4281,
+      "sg": -129,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -892,9 +892,9 @@
       "vitorias": 13,
       "empates": 3,
       "derrotas": 0,
-      "gp": 4308,
+      "gp": 4309,
       "gc": 892,
-      "sg": 3416,
+      "sg": 3417,
       "aprov": 87.5,
       "forma": [
         "V",
@@ -914,9 +914,74 @@
         "V",
         "V"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 150,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 1,
       "pos_ant": 1
     },
@@ -953,9 +1018,74 @@
         "V",
         "V"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 100,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 2,
       "pos_ant": 2
     },
@@ -970,9 +1100,9 @@
       "vitorias": 12,
       "empates": 4,
       "derrotas": 0,
-      "gp": 4322,
+      "gp": 4326,
       "gc": 1842,
-      "sg": 2480,
+      "sg": 2484,
       "aprov": 83.3,
       "forma": [
         "E",
@@ -992,9 +1122,74 @@
         "V",
         "V"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 135,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 3,
       "pos_ant": 3
     },
@@ -1031,9 +1226,74 @@
         "E",
         "V"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 145,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 4,
       "pos_ant": 4
     },
@@ -1070,50 +1330,76 @@
         "E",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 155,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 1,
       "pos_ant": 1
-    },
-    {
-      "supervisor": "KLEBERSON BATISTA LIDUARIO",
-      "filial": "TBL",
-      "canal": "VAREJO",
-      "gerente": "Fábio",
-      "total_vendedores": 6,
-      "jogos": 16,
-      "pts_tabela": 33,
-      "vitorias": 9,
-      "empates": 6,
-      "derrotas": 1,
-      "gp": 2403,
-      "gc": 704,
-      "sg": 1699,
-      "aprov": 68.8,
-      "forma": [
-        "E",
-        "E",
-        "E",
-        "D",
-        "V",
-        "V",
-        "V",
-        "V",
-        "E",
-        "E",
-        "V",
-        "E",
-        "V",
-        "V",
-        "V",
-        "V"
-      ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 5,
-      "pos_ant": 5
     },
     {
       "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA",
@@ -1148,11 +1434,180 @@
         "V",
         "V"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 6,
+      "plus_lideranca": 115,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 5,
       "pos_ant": 6
+    },
+    {
+      "supervisor": "KLEBERSON BATISTA LIDUARIO",
+      "filial": "TBL",
+      "canal": "VAREJO",
+      "gerente": "Fábio",
+      "total_vendedores": 6,
+      "jogos": 16,
+      "pts_tabela": 33,
+      "vitorias": 9,
+      "empates": 6,
+      "derrotas": 1,
+      "gp": 2408,
+      "gc": 704,
+      "sg": 1704,
+      "aprov": 68.8,
+      "forma": [
+        "E",
+        "E",
+        "E",
+        "D",
+        "V",
+        "V",
+        "V",
+        "V",
+        "E",
+        "E",
+        "V",
+        "E",
+        "V",
+        "V",
+        "V",
+        "V"
+      ],
+      "plus_lideranca": 75,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 6,
+      "pos_ant": 5
     },
     {
       "supervisor": "JULIO CESAR SOARES DE PAULO",
@@ -1187,9 +1642,74 @@
         "D",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 105,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 7,
       "pos_ant": 7
     },
@@ -1226,9 +1746,74 @@
         "E",
         "V"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 110,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 8,
       "pos_ant": 9
     },
@@ -1243,9 +1828,9 @@
       "vitorias": 7,
       "empates": 9,
       "derrotas": 0,
-      "gp": 2380,
+      "gp": 2390,
       "gc": 790,
-      "sg": 1590,
+      "sg": 1600,
       "aprov": 62.5,
       "forma": [
         "E",
@@ -1265,9 +1850,74 @@
         "E",
         "V"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 60,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 9,
       "pos_ant": 10
     },
@@ -1304,9 +1954,74 @@
         "E",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 155,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 10,
       "pos_ant": 8
     },
@@ -1343,9 +2058,74 @@
         "V",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 55,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 11,
       "pos_ant": 15
     },
@@ -1382,9 +2162,74 @@
         "E",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 135,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 12,
       "pos_ant": 12
     },
@@ -1421,9 +2266,74 @@
         "E",
         "V"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 145,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 13,
       "pos_ant": 14
     },
@@ -1460,9 +2370,74 @@
         "E",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 0,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 14,
       "pos_ant": 13
     },
@@ -1499,9 +2474,74 @@
         "E",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 10,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 15,
       "pos_ant": 16
     },
@@ -1538,9 +2578,74 @@
         "E",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 75,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 2,
       "pos_ant": 2
     },
@@ -1577,9 +2682,74 @@
         "E",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 150,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 16,
       "pos_ant": 17
     },
@@ -1623,6 +2793,110 @@
       "pos_ant": 11
     },
     {
+      "supervisor": "RODRIGO FARIAS",
+      "filial": "API",
+      "canal": "VAREJO",
+      "gerente": "Marcelo",
+      "total_vendedores": 13,
+      "jogos": 16,
+      "pts_tabela": 18,
+      "vitorias": 1,
+      "empates": 15,
+      "derrotas": 0,
+      "gp": 2794,
+      "gc": 1268,
+      "sg": 1526,
+      "aprov": 37.5,
+      "forma": [
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "V",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E"
+      ],
+      "plus_lideranca": 115,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 18,
+      "pos_ant": 18
+    },
+    {
       "supervisor": "EDI CARLOS MEIRA",
       "filial": "TPH",
       "canal": "VAREJO",
@@ -1655,50 +2929,76 @@
         "V",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 18,
-      "pos_ant": 19
-    },
-    {
-      "supervisor": "RODRIGO FARIAS",
-      "filial": "API",
-      "canal": "VAREJO",
-      "gerente": "Marcelo",
-      "total_vendedores": 13,
-      "jogos": 16,
-      "pts_tabela": 18,
-      "vitorias": 1,
-      "empates": 15,
-      "derrotas": 0,
-      "gp": 2778,
-      "gc": 1268,
-      "sg": 1510,
-      "aprov": 37.5,
-      "forma": [
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "V",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E"
-      ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 110,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 19,
-      "pos_ant": 18
+      "pos_ant": 19
     },
     {
       "supervisor": "CRISTIANO RODRIGUES MACHADO",
@@ -1733,9 +3033,74 @@
         "E",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 80,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 3,
       "pos_ant": 3
     },
@@ -1772,11 +3137,180 @@
         "E",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 40,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 20,
       "pos_ant": 20
+    },
+    {
+      "supervisor": "CLEOMAR DINIZ BARBOSA",
+      "filial": "MCD",
+      "canal": "VAREJO",
+      "gerente": "Adriano",
+      "total_vendedores": 8,
+      "jogos": 16,
+      "pts_tabela": 16,
+      "vitorias": 0,
+      "empates": 16,
+      "derrotas": 0,
+      "gp": 1294,
+      "gc": 1013,
+      "sg": 281,
+      "aprov": 33.3,
+      "forma": [
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E"
+      ],
+      "plus_lideranca": 115,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 21,
+      "pos_ant": 21
     },
     {
       "supervisor": "MAICON DION NOVAIS SILVA",
@@ -1811,89 +3345,76 @@
         "E",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 21,
-      "pos_ant": 22
-    },
-    {
-      "supervisor": "CLEOMAR DINIZ BARBOSA",
-      "filial": "MCD",
-      "canal": "VAREJO",
-      "gerente": "Adriano",
-      "total_vendedores": 8,
-      "jogos": 15,
-      "pts_tabela": 15,
-      "vitorias": 0,
-      "empates": 15,
-      "derrotas": 0,
-      "gp": 1284,
-      "gc": 1013,
-      "sg": 271,
-      "aprov": 33.3,
-      "forma": [
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 30,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 22,
-      "pos_ant": 21
-    },
-    {
-      "supervisor": "JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR",
-      "filial": "TCA",
-      "canal": "VAREJO",
-      "gerente": "Becher",
-      "total_vendedores": 12,
-      "jogos": 16,
-      "pts_tabela": 14,
-      "vitorias": 0,
-      "empates": 14,
-      "derrotas": 2,
-      "gp": 2054,
-      "gc": 1443,
-      "sg": 611,
-      "aprov": 29.2,
-      "forma": [
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "D",
-        "E",
-        "E",
-        "D",
-        "E"
-      ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 23,
-      "pos_ant": 26
+      "pos_ant": 22
     },
     {
       "supervisor": "TIAGO SANTOS CORREA",
@@ -1928,10 +3449,75 @@
         "E",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 24,
+      "plus_lideranca": 120,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 23,
       "pos_ant": 24
     },
     {
@@ -1967,11 +3553,180 @@
         "E",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 25,
+      "plus_lideranca": 100,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 24,
       "pos_ant": 23
+    },
+    {
+      "supervisor": "JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR",
+      "filial": "TCA",
+      "canal": "VAREJO",
+      "gerente": "Becher",
+      "total_vendedores": 12,
+      "jogos": 16,
+      "pts_tabela": 14,
+      "vitorias": 0,
+      "empates": 14,
+      "derrotas": 2,
+      "gp": 2054,
+      "gc": 1443,
+      "sg": 611,
+      "aprov": 29.2,
+      "forma": [
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "D",
+        "E",
+        "E",
+        "D",
+        "E"
+      ],
+      "plus_lideranca": 55,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 25,
+      "pos_ant": 26
     },
     {
       "supervisor": "DELINLSON ANTONIO LIMA SILVA",
@@ -2006,9 +3761,74 @@
         "E",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 55,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 26,
       "pos_ant": 25
     },
@@ -2045,9 +3865,74 @@
         "D",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 140,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 4,
       "pos_ant": 4
     },
@@ -2084,37 +3969,102 @@
         "E",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 100,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 27,
       "pos_ant": 27
     },
     {
-      "supervisor": "YASMIM PRISCILA DA SILVA",
-      "filial": "TCA",
-      "canal": "AS",
-      "gerente": "Becher",
-      "total_vendedores": 7,
+      "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
+      "filial": "TPH",
+      "canal": "VAREJO",
+      "gerente": "Fábio",
+      "total_vendedores": 8,
       "jogos": 16,
       "pts_tabela": 13,
       "vitorias": 0,
       "empates": 13,
       "derrotas": 3,
-      "gp": 471,
-      "gc": 10,
-      "sg": 461,
+      "gp": 1104,
+      "gc": 1569,
+      "sg": -465,
       "aprov": 27.1,
       "forma": [
-        "E",
-        "D",
         "D",
         "E",
         "E",
         "E",
         "E",
+        "D",
         "E",
         "D",
+        "E",
         "E",
         "E",
         "E",
@@ -2123,11 +4073,76 @@
         "E",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 5,
-      "pos_ant": 5
+      "plus_lideranca": 85,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 28,
+      "pos_ant": 28
     },
     {
       "supervisor": "CARLOS ALAGUEZ DA SILVA",
@@ -2162,37 +4177,102 @@
         "D",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 28,
+      "plus_lideranca": 75,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 29,
       "pos_ant": 29
     },
     {
-      "supervisor": "PRISCILA A D NASCIMENTO STRAPASSON",
-      "filial": "TPH",
-      "canal": "VAREJO",
-      "gerente": "Fábio",
-      "total_vendedores": 8,
+      "supervisor": "YASMIM PRISCILA DA SILVA",
+      "filial": "TCA",
+      "canal": "AS",
+      "gerente": "Becher",
+      "total_vendedores": 7,
       "jogos": 16,
       "pts_tabela": 13,
       "vitorias": 0,
       "empates": 13,
       "derrotas": 3,
-      "gp": 1103,
-      "gc": 1549,
-      "sg": -446,
+      "gp": 471,
+      "gc": 10,
+      "sg": 461,
       "aprov": 27.1,
       "forma": [
+        "E",
+        "D",
         "D",
         "E",
         "E",
         "E",
         "E",
-        "D",
         "E",
         "D",
-        "E",
         "E",
         "E",
         "E",
@@ -2201,11 +4281,76 @@
         "E",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 29,
-      "pos_ant": 28
+      "plus_lideranca": 50,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 5,
+      "pos_ant": 5
     },
     {
       "supervisor": "MISSAID MAINARDES RAMOS",
@@ -2240,9 +4385,74 @@
         "D",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 35,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 6,
       "pos_ant": 6
     },
@@ -2279,9 +4489,74 @@
         "E",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 20,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 30,
       "pos_ant": 32
     },
@@ -2318,9 +4593,74 @@
         "E",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 140,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 31,
       "pos_ant": 30
     },
@@ -2357,50 +4697,76 @@
         "E",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 80,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 7,
       "pos_ant": 9
-    },
-    {
-      "supervisor": "CRISTIAN EDUARDO RAFFAELLI",
-      "filial": "TPH",
-      "canal": "AS",
-      "gerente": "Fábio",
-      "total_vendedores": 7,
-      "jogos": 16,
-      "pts_tabela": 11,
-      "vitorias": 0,
-      "empates": 11,
-      "derrotas": 5,
-      "gp": 464,
-      "gc": 31,
-      "sg": 433,
-      "aprov": 22.9,
-      "forma": [
-        "E",
-        "E",
-        "D",
-        "E",
-        "D",
-        "E",
-        "E",
-        "D",
-        "D",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "D",
-        "E"
-      ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 8,
-      "pos_ant": 10
     },
     {
       "supervisor": "ROGERIO DORNELLES PASSOS",
@@ -2435,206 +4801,180 @@
         "E",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 65,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 32,
       "pos_ant": 31
     },
     {
-      "supervisor": "LUCAS RAMOS MONTAGNHANI",
+      "supervisor": "CRISTIAN EDUARDO RAFFAELLI",
       "filial": "TPH",
       "canal": "AS",
-      "gerente": "Vagner",
-      "total_vendedores": 6,
-      "jogos": 15,
-      "pts_tabela": 10,
-      "vitorias": 1,
-      "empates": 7,
-      "derrotas": 7,
-      "gp": 421,
-      "gc": 44,
-      "sg": 377,
-      "aprov": 22.2,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "E",
-        "D",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "D",
-        "V",
-        "E",
-        "D",
-        "J"
-      ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 9,
-      "pos_ant": 8
-    },
-    {
-      "supervisor": "ROBERTO OTFINOSKI",
-      "filial": "TCV",
-      "canal": "AS",
-      "gerente": "Leonardo",
-      "total_vendedores": 4,
+      "gerente": "Fábio",
+      "total_vendedores": 7,
       "jogos": 16,
-      "pts_tabela": 10,
-      "vitorias": 1,
-      "empates": 7,
-      "derrotas": 8,
-      "gp": 245,
-      "gc": 74,
-      "sg": 171,
-      "aprov": 20.8,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "E",
-        "E",
-        "V",
-        "D",
-        "E",
-        "E",
-        "E",
-        "E",
-        "D",
-        "D",
-        "D",
-        "E"
-      ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 10,
-      "pos_ant": 13
-    },
-    {
-      "supervisor": "MARCIO ROSA SOBRAL BATISTA",
-      "filial": "ABC",
-      "canal": "VAREJO",
-      "gerente": "Marcos",
-      "total_vendedores": 4,
-      "jogos": 15,
-      "pts_tabela": 10,
-      "vitorias": 1,
-      "empates": 7,
-      "derrotas": 7,
-      "gp": 474,
-      "gc": 403,
-      "sg": 71,
-      "aprov": 22.2,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "E",
-        "E",
-        "D",
-        "D",
-        "V",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "D",
-        "J"
-      ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 33,
-      "pos_ant": 34
-    },
-    {
-      "supervisor": "ALESSANDRO JUNIOR LOPES",
-      "filial": "API",
-      "canal": "AS",
-      "gerente": "Marcelo",
-      "total_vendedores": 4,
-      "jogos": 16,
-      "pts_tabela": 10,
+      "pts_tabela": 11,
       "vitorias": 0,
-      "empates": 10,
-      "derrotas": 6,
-      "gp": 455,
-      "gc": 69,
-      "sg": 386,
-      "aprov": 20.8,
-      "forma": [
-        "E",
-        "E",
-        "E",
-        "D",
-        "E",
-        "D",
-        "E",
-        "E",
-        "E",
-        "E",
-        "D",
-        "D",
-        "E",
-        "D",
-        "D",
-        "E"
-      ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 11,
-      "pos_ant": 11
-    },
-    {
-      "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
-      "filial": "TCV",
-      "canal": "AS",
-      "gerente": "Leonardo",
-      "total_vendedores": 4,
-      "jogos": 15,
-      "pts_tabela": 10,
-      "vitorias": 0,
-      "empates": 10,
+      "empates": 11,
       "derrotas": 5,
-      "gp": 360,
-      "gc": 12,
-      "sg": 348,
-      "aprov": 22.2,
+      "gp": 464,
+      "gc": 31,
+      "sg": 433,
+      "aprov": 22.9,
       "forma": [
         "E",
         "E",
         "D",
         "E",
-        "E",
-        "D",
         "D",
         "E",
         "E",
         "D",
+        "D",
+        "E",
         "E",
         "E",
         "E",
         "E",
         "D",
-        "J"
+        "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 12,
-      "pos_ant": 7
+      "plus_lideranca": 5,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 8,
+      "pos_ant": 10
     },
     {
       "supervisor": "JONATHAN FERNANDES",
@@ -2669,10 +5009,75 @@
         "E",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 34,
+      "plus_lideranca": 150,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 33,
       "pos_ant": 33
     },
     {
@@ -2708,167 +5113,596 @@
         "E",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 35,
+      "plus_lideranca": 150,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 34,
       "pos_ant": 35
     },
     {
-      "supervisor": "LEANDRO MARINHO ABRANCHES",
+      "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
       "filial": "TCV",
       "canal": "AS",
       "gerente": "Leonardo",
       "total_vendedores": 4,
       "jogos": 15,
-      "pts_tabela": 9,
+      "pts_tabela": 10,
       "vitorias": 0,
-      "empates": 9,
-      "derrotas": 6,
-      "gp": 255,
-      "gc": 40,
-      "sg": 215,
-      "aprov": 20.0,
+      "empates": 10,
+      "derrotas": 5,
+      "gp": 360,
+      "gc": 12,
+      "sg": 348,
+      "aprov": 22.2,
       "forma": [
         "E",
         "E",
         "D",
         "E",
-        "D",
-        "D",
-        "E",
-        "E",
-        "E",
-        "E",
-        "D",
         "E",
         "D",
         "D",
         "E",
-        "J"
-      ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 13,
-      "pos_ant": 12
-    },
-    {
-      "supervisor": "EDSON RODRIGO LINIA",
-      "filial": "TCG",
-      "canal": "VAREJO",
-      "gerente": "Danilo",
-      "total_vendedores": 7,
-      "jogos": 15,
-      "pts_tabela": 9,
-      "vitorias": 0,
-      "empates": 9,
-      "derrotas": 6,
-      "gp": 380,
-      "gc": 490,
-      "sg": -110,
-      "aprov": 20.0,
-      "forma": [
-        "E",
-        "D",
-        "E",
-        "D",
-        "D",
         "E",
         "D",
         "E",
         "E",
         "E",
         "E",
-        "E",
-        "E",
-        "D",
         "D",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 36,
-      "pos_ant": 38
+      "plus_lideranca": 145,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 9,
+      "pos_ant": 7
     },
     {
-      "supervisor": "LEONARDO MANOSSO DE GODOI",
-      "filial": "TBL",
-      "canal": "VAREJO",
-      "gerente": "Fábio",
-      "total_vendedores": 6,
-      "jogos": 15,
-      "pts_tabela": 9,
-      "vitorias": 0,
-      "empates": 9,
-      "derrotas": 6,
-      "gp": 1195,
-      "gc": 1446,
-      "sg": -251,
-      "aprov": 20.0,
-      "forma": [
-        "D",
-        "E",
-        "E",
-        "D",
-        "D",
-        "D",
-        "E",
-        "D",
-        "E",
-        "E",
-        "E",
-        "E",
-        "D",
-        "E",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 37,
-      "pos_ant": 37
-    },
-    {
-      "supervisor": "EDERSON SUONSKI",
-      "filial": "TPH",
-      "canal": "VAREJO",
-      "gerente": "Fábio",
-      "total_vendedores": 10,
+      "supervisor": "ALESSANDRO JUNIOR LOPES",
+      "filial": "API",
+      "canal": "AS",
+      "gerente": "Marcelo",
+      "total_vendedores": 4,
       "jogos": 16,
-      "pts_tabela": 9,
+      "pts_tabela": 10,
       "vitorias": 0,
-      "empates": 9,
-      "derrotas": 7,
-      "gp": 974,
-      "gc": 1529,
-      "sg": -555,
-      "aprov": 18.8,
+      "empates": 10,
+      "derrotas": 6,
+      "gp": 460,
+      "gc": 69,
+      "sg": 391,
+      "aprov": 20.8,
       "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "E",
-        "D",
-        "E",
-        "E",
-        "E",
         "E",
         "E",
         "E",
         "D",
         "E",
+        "D",
+        "E",
+        "E",
+        "E",
+        "E",
+        "D",
+        "D",
+        "E",
+        "D",
         "D",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 38,
-      "pos_ant": 39
+      "plus_lideranca": 140,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 10,
+      "pos_ant": 11
+    },
+    {
+      "supervisor": "LUCAS RAMOS MONTAGNHANI",
+      "filial": "TPH",
+      "canal": "AS",
+      "gerente": "Vagner",
+      "total_vendedores": 6,
+      "jogos": 15,
+      "pts_tabela": 10,
+      "vitorias": 1,
+      "empates": 7,
+      "derrotas": 7,
+      "gp": 421,
+      "gc": 44,
+      "sg": 377,
+      "aprov": 22.2,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "E",
+        "D",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "D",
+        "V",
+        "E",
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 130,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 11,
+      "pos_ant": 8
+    },
+    {
+      "supervisor": "ROBERTO OTFINOSKI",
+      "filial": "TCV",
+      "canal": "AS",
+      "gerente": "Leonardo",
+      "total_vendedores": 4,
+      "jogos": 16,
+      "pts_tabela": 10,
+      "vitorias": 1,
+      "empates": 7,
+      "derrotas": 8,
+      "gp": 245,
+      "gc": 74,
+      "sg": 171,
+      "aprov": 20.8,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "E",
+        "E",
+        "V",
+        "D",
+        "E",
+        "E",
+        "E",
+        "E",
+        "D",
+        "D",
+        "D",
+        "E"
+      ],
+      "plus_lideranca": 30,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 12,
+      "pos_ant": 13
+    },
+    {
+      "supervisor": "MARCIO ROSA SOBRAL BATISTA",
+      "filial": "ABC",
+      "canal": "VAREJO",
+      "gerente": "Marcos",
+      "total_vendedores": 4,
+      "jogos": 15,
+      "pts_tabela": 10,
+      "vitorias": 1,
+      "empates": 7,
+      "derrotas": 7,
+      "gp": 474,
+      "gc": 403,
+      "sg": 71,
+      "aprov": 22.2,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "E",
+        "E",
+        "D",
+        "D",
+        "V",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 20,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 35,
+      "pos_ant": 34
     },
     {
       "supervisor": "HAMILTON RICARDO DOS SANTOS MENDES",
@@ -2903,11 +5737,596 @@
         "D",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 39,
+      "plus_lideranca": 140,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 36,
       "pos_ant": 36
+    },
+    {
+      "supervisor": "LEANDRO MARINHO ABRANCHES",
+      "filial": "TCV",
+      "canal": "AS",
+      "gerente": "Leonardo",
+      "total_vendedores": 4,
+      "jogos": 15,
+      "pts_tabela": 9,
+      "vitorias": 0,
+      "empates": 9,
+      "derrotas": 6,
+      "gp": 255,
+      "gc": 40,
+      "sg": 215,
+      "aprov": 20.0,
+      "forma": [
+        "E",
+        "E",
+        "D",
+        "E",
+        "D",
+        "D",
+        "E",
+        "E",
+        "E",
+        "E",
+        "D",
+        "E",
+        "D",
+        "D",
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 110,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 13,
+      "pos_ant": 12
+    },
+    {
+      "supervisor": "EDERSON SUONSKI",
+      "filial": "TPH",
+      "canal": "VAREJO",
+      "gerente": "Fábio",
+      "total_vendedores": 10,
+      "jogos": 16,
+      "pts_tabela": 9,
+      "vitorias": 0,
+      "empates": 9,
+      "derrotas": 7,
+      "gp": 974,
+      "gc": 1529,
+      "sg": -555,
+      "aprov": 18.8,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "E",
+        "D",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "D",
+        "E",
+        "D",
+        "E"
+      ],
+      "plus_lideranca": 90,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 37,
+      "pos_ant": 39
+    },
+    {
+      "supervisor": "LEONARDO MANOSSO DE GODOI",
+      "filial": "TBL",
+      "canal": "VAREJO",
+      "gerente": "Fábio",
+      "total_vendedores": 6,
+      "jogos": 15,
+      "pts_tabela": 9,
+      "vitorias": 0,
+      "empates": 9,
+      "derrotas": 6,
+      "gp": 1195,
+      "gc": 1446,
+      "sg": -251,
+      "aprov": 20.0,
+      "forma": [
+        "D",
+        "E",
+        "E",
+        "D",
+        "D",
+        "D",
+        "E",
+        "D",
+        "E",
+        "E",
+        "E",
+        "E",
+        "D",
+        "E",
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 75,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 38,
+      "pos_ant": 37
+    },
+    {
+      "supervisor": "EDSON RODRIGO LINIA",
+      "filial": "TCG",
+      "canal": "VAREJO",
+      "gerente": "Danilo",
+      "total_vendedores": 7,
+      "jogos": 15,
+      "pts_tabela": 9,
+      "vitorias": 0,
+      "empates": 9,
+      "derrotas": 6,
+      "gp": 380,
+      "gc": 490,
+      "sg": -110,
+      "aprov": 20.0,
+      "forma": [
+        "E",
+        "D",
+        "E",
+        "D",
+        "D",
+        "E",
+        "D",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "D",
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 0,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 39,
+      "pos_ant": 38
+    },
+    {
+      "supervisor": "LUIZ AUGUSTO RAMOS",
+      "filial": "TPH",
+      "canal": "VAREJO",
+      "gerente": "Vagner",
+      "total_vendedores": 9,
+      "jogos": 15,
+      "pts_tabela": 7,
+      "vitorias": 0,
+      "empates": 7,
+      "derrotas": 8,
+      "gp": 743,
+      "gc": 1296,
+      "sg": -553,
+      "aprov": 15.6,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "E",
+        "D",
+        "E",
+        "D",
+        "E",
+        "E",
+        "E",
+        "D",
+        "E",
+        "D",
+        "E",
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 160,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 40,
+      "pos_ant": 40
     },
     {
       "supervisor": "ARILDO ZAGO",
@@ -2942,9 +6361,74 @@
         "D",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 110,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 14,
       "pos_ant": 14
     },
@@ -2981,89 +6465,76 @@
         "D",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 70,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 15,
       "pos_ant": 15
-    },
-    {
-      "supervisor": "LUIZ AUGUSTO RAMOS",
-      "filial": "TPH",
-      "canal": "VAREJO",
-      "gerente": "Vagner",
-      "total_vendedores": 9,
-      "jogos": 15,
-      "pts_tabela": 7,
-      "vitorias": 0,
-      "empates": 7,
-      "derrotas": 8,
-      "gp": 743,
-      "gc": 1296,
-      "sg": -553,
-      "aprov": 15.6,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "E",
-        "D",
-        "E",
-        "D",
-        "E",
-        "E",
-        "E",
-        "D",
-        "E",
-        "D",
-        "E",
-        "D",
-        "J"
-      ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 40,
-      "pos_ant": 40
-    },
-    {
-      "supervisor": "NEIVA CLEONICE SERRA ISOPPO",
-      "filial": "TBE",
-      "canal": "AS",
-      "gerente": "Diego",
-      "total_vendedores": 3,
-      "jogos": 15,
-      "pts_tabela": 6,
-      "vitorias": 1,
-      "empates": 3,
-      "derrotas": 11,
-      "gp": 224,
-      "gc": 14,
-      "sg": 210,
-      "aprov": 13.3,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "E",
-        "E",
-        "V",
-        "E",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "J"
-      ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 16,
-      "pos_ant": 17
     },
     {
       "supervisor": "JORGE BONI",
@@ -3098,10 +6569,75 @@
         "D",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 17,
+      "plus_lideranca": 150,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 16,
       "pos_ant": 16
     },
     {
@@ -3137,11 +6673,180 @@
         "D",
         "E"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 85,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 41,
       "pos_ant": 41
+    },
+    {
+      "supervisor": "NEIVA CLEONICE SERRA ISOPPO",
+      "filial": "TBE",
+      "canal": "AS",
+      "gerente": "Diego",
+      "total_vendedores": 3,
+      "jogos": 15,
+      "pts_tabela": 6,
+      "vitorias": 1,
+      "empates": 3,
+      "derrotas": 11,
+      "gp": 224,
+      "gc": 14,
+      "sg": 210,
+      "aprov": 13.3,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "E",
+        "E",
+        "V",
+        "E",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 40,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 17,
+      "pos_ant": 17
     },
     {
       "supervisor": "LUIS THIAGO VIRTUOSO BOEIRA",
@@ -3176,9 +6881,74 @@
         "D",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 135,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 18,
       "pos_ant": 18
     },
@@ -3215,9 +6985,74 @@
         "D",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 140,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 19,
       "pos_ant": 19
     },
@@ -3254,9 +7089,74 @@
         "D",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 35,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 20,
       "pos_ant": 20
     },
@@ -3293,9 +7193,74 @@
         "D",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 80,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 21,
       "pos_ant": 21
     },
@@ -3332,50 +7297,76 @@
         "D",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 65,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
       "pos": 22,
       "pos_ant": 22
-    },
-    {
-      "supervisor": "AILTON LUIZ ARENDT JUNIOR",
-      "filial": "TPH",
-      "canal": "AS",
-      "gerente": "Fábio",
-      "total_vendedores": 4,
-      "jogos": 15,
-      "pts_tabela": 1,
-      "vitorias": 0,
-      "empates": 1,
-      "derrotas": 14,
-      "gp": 49,
-      "gc": 116,
-      "sg": -67,
-      "aprov": 2.2,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "E",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "J"
-      ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 23,
-      "pos_ant": 23
     },
     {
       "supervisor": "RAFAEL DA SILVA CARPENA",
@@ -3410,11 +7401,284 @@
         "D",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
+      "plus_lideranca": 135,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
       "pos": 42,
       "pos_ant": 42
+    },
+    {
+      "supervisor": "AILTON LUIZ ARENDT JUNIOR",
+      "filial": "TPH",
+      "canal": "AS",
+      "gerente": "Fábio",
+      "total_vendedores": 4,
+      "jogos": 15,
+      "pts_tabela": 1,
+      "vitorias": 0,
+      "empates": 1,
+      "derrotas": 14,
+      "gp": 49,
+      "gc": 116,
+      "sg": -67,
+      "aprov": 2.2,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "E",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 40,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 23,
+      "pos_ant": 23
+    },
+    {
+      "supervisor": "JEFERSON ANTONIO HOESER",
+      "filial": "TPA",
+      "canal": "AS",
+      "gerente": "Radke / Leandro",
+      "total_vendedores": 1,
+      "jogos": 15,
+      "pts_tabela": 0,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 15,
+      "gp": 18,
+      "gc": 50,
+      "sg": -32,
+      "aprov": 0.0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 130,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 24,
+      "pos_ant": 24
     },
     {
       "supervisor": "SAMUEL PALHANO DE OLIVEIRA",
@@ -3449,11 +7713,180 @@
         "D",
         "J"
       ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 24,
+      "plus_lideranca": 115,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 25,
       "pos_ant": 25
+    },
+    {
+      "supervisor": "VALDCLEY DE CAMPOS SILVA",
+      "filial": "TCA",
+      "canal": "AS",
+      "gerente": "Becher",
+      "total_vendedores": 5,
+      "jogos": 15,
+      "pts_tabela": 0,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 15,
+      "gp": 15,
+      "gc": 24,
+      "sg": -9,
+      "aprov": 0.0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 55,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 26,
+      "pos_ant": 26
     },
     {
       "supervisor": "LEANDRO AVILA XAVIER",
@@ -3491,7 +7924,7 @@
       "plus_lideranca": null,
       "plus_detalhe": null,
       "plus_pendente": null,
-      "pos": 25,
+      "pos": 27,
       "pos_ant": 27
     },
     {
@@ -3610,84 +8043,6 @@
       "plus_pendente": null,
       "pos": 45,
       "pos_ant": 45
-    },
-    {
-      "supervisor": "VALDCLEY DE CAMPOS SILVA",
-      "filial": "TCA",
-      "canal": "AS",
-      "gerente": "Becher",
-      "total_vendedores": 5,
-      "jogos": 15,
-      "pts_tabela": 0,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 15,
-      "gp": 15,
-      "gc": 24,
-      "sg": -9,
-      "aprov": 0.0,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "J"
-      ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 26,
-      "pos_ant": 26
-    },
-    {
-      "supervisor": "JEFERSON ANTONIO HOESER",
-      "filial": "TPA",
-      "canal": "AS",
-      "gerente": "Radke / Leandro",
-      "total_vendedores": 1,
-      "jogos": 15,
-      "pts_tabela": 0,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 15,
-      "gp": 18,
-      "gc": 50,
-      "sg": -32,
-      "aprov": 0.0,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "J"
-      ],
-      "plus_lideranca": null,
-      "plus_detalhe": null,
-      "plus_pendente": null,
-      "pos": 27,
-      "pos_ant": 24
     },
     {
       "supervisor": "EDUARDO CABRAL SOARES DA SILVA",
@@ -4778,10 +9133,10 @@
       "derrotas": 2,
       "pts_tabela": 41,
       "aprov": 85.4,
-      "gp": 473,
+      "gp": 483,
       "gc": 119,
-      "sg": 354,
-      "super_pedidos": 0,
+      "sg": 364,
+      "super_pedidos": 1,
       "inativos_resgatados": 6,
       "forma": [
         "V",
@@ -6398,9 +10753,9 @@
       "derrotas": 2,
       "pts_tabela": 34,
       "aprov": 70.8,
-      "gp": 392,
+      "gp": 393,
       "gc": 32,
-      "sg": 360,
+      "sg": 361,
       "super_pedidos": 0,
       "inativos_resgatados": 6,
       "forma": [
@@ -7118,9 +11473,9 @@
       "derrotas": 3,
       "pts_tabela": 30,
       "aprov": 66.7,
-      "gp": 296,
+      "gp": 300,
       "gc": 91,
-      "sg": 205,
+      "sg": 209,
       "super_pedidos": 1,
       "inativos_resgatados": 8,
       "forma": [
@@ -8828,9 +13183,9 @@
       "derrotas": 7,
       "pts_tabela": 25,
       "aprov": 52.1,
-      "gp": 325,
+      "gp": 330,
       "gc": 334,
-      "sg": -9,
+      "sg": -4,
       "super_pedidos": 5,
       "inativos_resgatados": 6,
       "forma": [
@@ -10898,9 +15253,9 @@
       "derrotas": 6,
       "pts_tabela": 20,
       "aprov": 41.7,
-      "gp": 185,
+      "gp": 201,
       "gc": 125,
-      "sg": 60,
+      "sg": 76,
       "super_pedidos": 0,
       "inativos_resgatados": 4,
       "forma": [
@@ -14396,6 +18751,51 @@
       "pos_filial_ant": 25
     },
     {
+      "rca": "462",
+      "nome": "LUIZ ANTONIO DE AFENSOR",
+      "filial": "MCD",
+      "supervisor": "CLEOMAR DINIZ BARBOSA",
+      "gerente": "Adriano",
+      "canal": "VAREJO",
+      "jogos": 16,
+      "vitorias": 4,
+      "empates": 0,
+      "derrotas": 12,
+      "pts_tabela": 12,
+      "aprov": 25.0,
+      "gp": 169,
+      "gc": 170,
+      "sg": -1,
+      "super_pedidos": 1,
+      "inativos_resgatados": 1,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "V",
+        "V",
+        "D",
+        "D",
+        "V",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "V"
+      ],
+      "streak": 2,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 189,
+      "pos_filial": 16,
+      "pos_brasil_ant": 209,
+      "pos_filial_ant": 19
+    },
+    {
       "rca": "238",
       "nome": "AQUINELE ROBERTA DA SILVA",
       "filial": "API",
@@ -14660,8 +19060,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 189,
-      "pos_filial": 16,
+      "pos_brasil": 190,
+      "pos_filial": 17,
       "pos_brasil_ant": 189,
       "pos_filial_ant": 15
     },
@@ -14705,8 +19105,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 190,
-      "pos_filial": 17,
+      "pos_brasil": 191,
+      "pos_filial": 18,
       "pos_brasil_ant": 221,
       "pos_filial_ant": 21
     },
@@ -14750,7 +19150,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 191,
+      "pos_brasil": 192,
       "pos_filial": 7,
       "pos_brasil_ant": 190,
       "pos_filial_ant": 7
@@ -14795,7 +19195,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 192,
+      "pos_brasil": 193,
       "pos_filial": 21,
       "pos_brasil_ant": 197,
       "pos_filial_ant": 22
@@ -14840,7 +19240,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 193,
+      "pos_brasil": 194,
       "pos_filial": 22,
       "pos_brasil_ant": 191,
       "pos_filial_ant": 21
@@ -15020,7 +19420,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 194,
+      "pos_brasil": 195,
       "pos_filial": 5,
       "pos_brasil_ant": 193,
       "pos_filial_ant": 5
@@ -15065,7 +19465,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 195,
+      "pos_brasil": 196,
       "pos_filial": 9,
       "pos_brasil_ant": 194,
       "pos_filial_ant": 9
@@ -15110,7 +19510,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 196,
+      "pos_brasil": 197,
       "pos_filial": 22,
       "pos_brasil_ant": 200,
       "pos_filial_ant": 24
@@ -15155,7 +19555,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 197,
+      "pos_brasil": 198,
       "pos_filial": 26,
       "pos_brasil_ant": 226,
       "pos_filial_ant": 34
@@ -15173,9 +19573,9 @@
       "derrotas": 9,
       "pts_tabela": 11,
       "aprov": 22.9,
-      "gp": 59,
+      "gp": 64,
       "gc": 0,
-      "sg": 59,
+      "sg": 64,
       "super_pedidos": 0,
       "inativos_resgatados": 0,
       "forma": [
@@ -15245,7 +19645,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 198,
+      "pos_brasil": 199,
       "pos_filial": 10,
       "pos_brasil_ant": 195,
       "pos_filial_ant": 10
@@ -15335,7 +19735,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 199,
+      "pos_brasil": 200,
       "pos_filial": 8,
       "pos_brasil_ant": 204,
       "pos_filial_ant": 9
@@ -15380,8 +19780,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 200,
-      "pos_filial": 18,
+      "pos_brasil": 201,
+      "pos_filial": 19,
       "pos_brasil_ant": 196,
       "pos_filial_ant": 16
     },
@@ -15425,7 +19825,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 201,
+      "pos_brasil": 202,
       "pos_filial": 9,
       "pos_brasil_ant": 198,
       "pos_filial_ant": 8
@@ -15470,7 +19870,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 202,
+      "pos_brasil": 203,
       "pos_filial": 11,
       "pos_brasil_ant": 199,
       "pos_filial_ant": 11
@@ -15515,7 +19915,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 203,
+      "pos_brasil": 204,
       "pos_filial": 23,
       "pos_brasil_ant": 208,
       "pos_filial_ant": 23
@@ -15609,51 +20009,6 @@
       "pos_filial": 9,
       "pos_brasil_ant": 57,
       "pos_filial_ant": 8
-    },
-    {
-      "rca": "462",
-      "nome": "LUIZ ANTONIO DE AFENSOR",
-      "filial": "MCD",
-      "supervisor": "CLEOMAR DINIZ BARBOSA",
-      "gerente": "Adriano",
-      "canal": "VAREJO",
-      "jogos": 16,
-      "vitorias": 3,
-      "empates": 1,
-      "derrotas": 12,
-      "pts_tabela": 10,
-      "aprov": 20.8,
-      "gp": 159,
-      "gc": 170,
-      "sg": -11,
-      "super_pedidos": 1,
-      "inativos_resgatados": 1,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "V",
-        "V",
-        "D",
-        "D",
-        "V",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "E"
-      ],
-      "streak": 2,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 204,
-      "pos_filial": 19,
-      "pos_brasil_ant": 209,
-      "pos_filial_ant": 19
     },
     {
       "rca": "131",
@@ -21428,9 +25783,9 @@
       "derrotas": 13,
       "pts_tabela": 2,
       "aprov": 4.4,
-      "gp": 182,
-      "gc": 604,
-      "sg": -422,
+      "gp": 183,
+      "gc": 624,
+      "sg": -441,
       "super_pedidos": 0,
       "inativos_resgatados": 4,
       "forma": [
@@ -26354,6 +30709,139 @@
         "pos_filial_ant": 11
       },
       {
+        "rca": "280",
+        "nome": "ARICLEIA DO ROCIO STOFELA",
+        "filial": "API",
+        "supervisor": "ALESSANDRO JUNIOR LOPES",
+        "gerente": "Marcelo",
+        "meta_mes": 390222,
+        "pct_hoje": 0.4,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-11-07",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-11-14",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-11-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 30,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-11-30",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 23,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 23,
+            "jogada": true,
+            "resultado": "V",
+            "pts_tabela": 3
+          },
+          {
+            "n": 2,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 1,
+        "vitorias": 1,
+        "empates": 0,
+        "derrotas": 0,
+        "pts_tabela": 3,
+        "aprov": 100.0,
+        "forma": [
+          "V"
+        ],
+        "pontos": 23,
+        "pts_lances": 23,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 7,
+        "pos_filial": 1,
+        "pos_brasil_ant": 22,
+        "pos_filial_ant": 6
+      },
+      {
         "rca": "209",
         "nome": "NEIL ALEXANDER ZOZ",
         "filial": "ABC",
@@ -26481,7 +30969,7 @@
         "pts_lances": 22,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 7,
+        "pos_brasil": 8,
         "pos_filial": 1,
         "pos_brasil_ant": 4,
         "pos_filial_ant": 1
@@ -26614,7 +31102,7 @@
         "pts_lances": 21,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 8,
+        "pos_brasil": 9,
         "pos_filial": 2,
         "pos_brasil_ant": 2,
         "pos_filial_ant": 1
@@ -26747,7 +31235,7 @@
         "pts_lances": 21,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 9,
+        "pos_brasil": 10,
         "pos_filial": 2,
         "pos_brasil_ant": 60,
         "pos_filial_ant": 11
@@ -26880,8 +31368,8 @@
         "pts_lances": 19,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 10,
-        "pos_filial": 1,
+        "pos_brasil": 11,
+        "pos_filial": 2,
         "pos_brasil_ant": 7,
         "pos_filial_ant": 1
       },
@@ -27013,143 +31501,10 @@
         "pts_lances": 18,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 11,
+        "pos_brasil": 12,
         "pos_filial": 3,
         "pos_brasil_ant": 11,
         "pos_filial_ant": 3
-      },
-      {
-        "rca": "280",
-        "nome": "ARICLEIA DO ROCIO STOFELA",
-        "filial": "API",
-        "supervisor": "ALESSANDRO JUNIOR LOPES",
-        "gerente": "Marcelo",
-        "meta_mes": 390222,
-        "pct_hoje": 0.4,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-11-07",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-11-14",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-11-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 30,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-11-30",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": 18,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 18,
-            "jogada": true,
-            "resultado": "V",
-            "pts_tabela": 3
-          },
-          {
-            "n": 2,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 3,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 4,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 1,
-        "vitorias": 1,
-        "empates": 0,
-        "derrotas": 0,
-        "pts_tabela": 3,
-        "aprov": 100.0,
-        "forma": [
-          "V"
-        ],
-        "pontos": 18,
-        "pts_lances": 18,
-        "pts_faseamento": 0,
-        "pts_bonus": 0,
-        "pos_brasil": 12,
-        "pos_filial": 2,
-        "pos_brasil_ant": 22,
-        "pos_filial_ant": 6
       },
       {
         "rca": "341",
@@ -27956,7 +32311,7 @@
         "supervisor": "MISSAID MAINARDES RAMOS",
         "gerente": "Marcos",
         "meta_mes": 366506,
-        "pct_hoje": 4.1,
+        "pct_hoje": 4.5,
         "fases": [
           {
             "n": 1,
@@ -28621,7 +32976,7 @@
         "supervisor": "JEFFERSON POLETTO",
         "gerente": "Vagner",
         "meta_mes": 256462,
-        "pct_hoje": 1.5,
+        "pct_hoje": 2,
         "fases": [
           {
             "n": 1,
@@ -32871,6 +37226,139 @@
         "pos_filial_ant": 13
       },
       {
+        "rca": "431",
+        "nome": "JACKSON MARQUES DA SILVA",
+        "filial": "MCD",
+        "supervisor": "THIAGO DA SILVA CONEGUNDES",
+        "gerente": "Cleverson",
+        "meta_mes": 364301,
+        "pct_hoje": 6.2,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-11-07",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-11-14",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-11-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 30,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-11-30",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "J",
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 0,
+        "vitorias": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "pts_tabela": 0,
+        "aprov": 0,
+        "forma": [
+          "J"
+        ],
+        "pontos": 0,
+        "pts_lances": 0,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 56,
+        "pos_filial": 2,
+        "pos_brasil_ant": 45,
+        "pos_filial_ant": 3
+      },
+      {
         "rca": "93",
         "nome": "ALAIS APARECIDA TELES",
         "filial": "TPH",
@@ -32998,143 +37486,10 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 56,
+        "pos_brasil": 57,
         "pos_filial": 12,
         "pos_brasil_ant": 37,
         "pos_filial_ant": 9
-      },
-      {
-        "rca": "431",
-        "nome": "JACKSON MARQUES DA SILVA",
-        "filial": "MCD",
-        "supervisor": "THIAGO DA SILVA CONEGUNDES",
-        "gerente": "Cleverson",
-        "meta_mes": 364301,
-        "pct_hoje": 5.5,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-11-07",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-11-14",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-11-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 30,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-11-30",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": true,
-            "resultado": "J",
-            "pts_tabela": 0
-          },
-          {
-            "n": 2,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 3,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 4,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 0,
-        "vitorias": 0,
-        "empates": 0,
-        "derrotas": 0,
-        "pts_tabela": 0,
-        "aprov": 0,
-        "forma": [
-          "J"
-        ],
-        "pontos": 0,
-        "pts_lances": 0,
-        "pts_faseamento": 0,
-        "pts_bonus": 0,
-        "pos_brasil": 57,
-        "pos_filial": 2,
-        "pos_brasil_ant": 45,
-        "pos_filial_ant": 3
       },
       {
         "rca": "96",
@@ -44195,7 +48550,7 @@
           }
         ],
         "aprov": 33.3,
-        "pts_lances_equipe": 33,
+        "pts_lances_equipe": 38,
         "pos": 3,
         "pos_ant": 11
       },
@@ -44398,7 +48753,7 @@
         "total_vendedores": 6,
         "com_meta": 6,
         "meta_mes": 1978035,
-        "pct_hoje": 5.5,
+        "pct_hoje": 5.6,
         "fases": [
           {
             "n": 1,
@@ -45166,7 +49521,7 @@
         "total_vendedores": 3,
         "com_meta": 3,
         "meta_mes": 510719,
-        "pct_hoje": 5.2,
+        "pct_hoje": 5.4,
         "fases": [
           {
             "n": 1,
