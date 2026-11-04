@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-11-04T12:03:29.977067Z",
+  "gerado_em": "2026-11-04T12:18:28.102231Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -22,7 +22,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 39901,
+  "total_lances_auditados": 39924,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -32,9 +32,9 @@
       "vitorias": 5,
       "empates": 11,
       "derrotas": 0,
-      "gp": 11957,
-      "gc": 3339,
-      "sg": 8618,
+      "gp": 11962,
+      "gc": 3343,
+      "sg": 8619,
       "aprov": 54.2,
       "super_pedidos": 46,
       "inativos_resgatados": 191,
@@ -68,8 +68,8 @@
       "empates": 12,
       "derrotas": 0,
       "gp": 8386,
-      "gc": 4698,
-      "sg": 3688,
+      "gc": 4702,
+      "sg": 3684,
       "aprov": 46.7,
       "super_pedidos": 54,
       "inativos_resgatados": 189,
@@ -97,15 +97,15 @@
     {
       "sigla": "TCV",
       "total_vendedores": 47,
-      "jogos": 15,
-      "pts_tabela": 17,
+      "jogos": 16,
+      "pts_tabela": 18,
       "vitorias": 1,
-      "empates": 14,
+      "empates": 15,
       "derrotas": 0,
-      "gp": 9892,
+      "gp": 9911,
       "gc": 2372,
-      "sg": 7520,
-      "aprov": 37.8,
+      "sg": 7539,
+      "aprov": 37.5,
       "super_pedidos": 35,
       "inativos_resgatados": 105,
       "forma": [
@@ -124,7 +124,7 @@
         "E",
         "E",
         "E",
-        "J"
+        "E"
       ],
       "pos": 3,
       "pos_ant": 3
@@ -137,9 +137,9 @@
       "vitorias": 0,
       "empates": 16,
       "derrotas": 0,
-      "gp": 8040,
+      "gp": 8051,
       "gc": 2304,
-      "sg": 5736,
+      "sg": 5747,
       "aprov": 33.3,
       "super_pedidos": 27,
       "inativos_resgatados": 125,
@@ -242,9 +242,9 @@
       "vitorias": 0,
       "empates": 15,
       "derrotas": 0,
-      "gp": 11073,
+      "gp": 11087,
       "gc": 8758,
-      "sg": 2315,
+      "sg": 2329,
       "aprov": 33.3,
       "super_pedidos": 35,
       "inativos_resgatados": 203,
@@ -277,9 +277,9 @@
       "vitorias": 0,
       "empates": 15,
       "derrotas": 0,
-      "gp": 3353,
+      "gp": 3354,
       "gc": 2966,
-      "sg": 387,
+      "sg": 388,
       "aprov": 33.3,
       "super_pedidos": 23,
       "inativos_resgatados": 121,
@@ -347,9 +347,9 @@
       "vitorias": 0,
       "empates": 14,
       "derrotas": 1,
-      "gp": 2169,
+      "gp": 2170,
       "gc": 1967,
-      "sg": 202,
+      "sg": 203,
       "aprov": 31.1,
       "super_pedidos": 38,
       "inativos_resgatados": 39,
@@ -382,9 +382,9 @@
       "vitorias": 0,
       "empates": 14,
       "derrotas": 2,
-      "gp": 1572,
-      "gc": 2143,
-      "sg": -571,
+      "gp": 1573,
+      "gc": 2160,
+      "sg": -587,
       "aprov": 29.2,
       "super_pedidos": 21,
       "inativos_resgatados": 43,
@@ -422,9 +422,9 @@
       "vitorias": 5,
       "empates": 11,
       "derrotas": 0,
-      "gp": 11957,
-      "gc": 3339,
-      "sg": 8618,
+      "gp": 11962,
+      "gc": 3343,
+      "sg": 8619,
       "aprov": 54.2,
       "forma": [
         "E",
@@ -459,8 +459,8 @@
       "empates": 12,
       "derrotas": 0,
       "gp": 8386,
-      "gc": 4698,
-      "sg": 3688,
+      "gc": 4702,
+      "sg": 3684,
       "aprov": 46.7,
       "forma": [
         "E",
@@ -484,19 +484,19 @@
       "pos_ant": 2
     },
     {
-      "nome": "Marcelo",
+      "nome": "Leonardo",
       "filiais": [
-        "API"
+        "TCV"
       ],
-      "total_vendedores": 41,
+      "total_vendedores": 47,
       "jogos": 16,
       "pts_tabela": 18,
       "vitorias": 1,
       "empates": 15,
       "derrotas": 0,
-      "gp": 8040,
-      "gc": 2304,
-      "sg": 5736,
+      "gp": 9911,
+      "gc": 2372,
+      "sg": 7539,
       "aprov": 37.5,
       "forma": [
         "E",
@@ -517,23 +517,23 @@
         "E"
       ],
       "pos": 3,
-      "pos_ant": 4
+      "pos_ant": 3
     },
     {
-      "nome": "Leonardo",
+      "nome": "Marcelo",
       "filiais": [
-        "TCV"
+        "API"
       ],
-      "total_vendedores": 47,
-      "jogos": 15,
-      "pts_tabela": 17,
+      "total_vendedores": 41,
+      "jogos": 16,
+      "pts_tabela": 18,
       "vitorias": 1,
-      "empates": 14,
+      "empates": 15,
       "derrotas": 0,
-      "gp": 9892,
-      "gc": 2372,
-      "sg": 7520,
-      "aprov": 37.8,
+      "gp": 8051,
+      "gc": 2304,
+      "sg": 5747,
+      "aprov": 37.5,
       "forma": [
         "E",
         "E",
@@ -550,10 +550,10 @@
         "E",
         "E",
         "E",
-        "J"
+        "E"
       ],
       "pos": 4,
-      "pos_ant": 3
+      "pos_ant": 4
     },
     {
       "nome": "Becher",
@@ -674,9 +674,9 @@
       "vitorias": 0,
       "empates": 15,
       "derrotas": 0,
-      "gp": 3353,
+      "gp": 3354,
       "gc": 2966,
-      "sg": 387,
+      "sg": 388,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -746,9 +746,9 @@
       "vitorias": 0,
       "empates": 15,
       "derrotas": 0,
-      "gp": 3885,
+      "gp": 3899,
       "gc": 4047,
-      "sg": -162,
+      "sg": -148,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -818,9 +818,9 @@
       "vitorias": 0,
       "empates": 14,
       "derrotas": 1,
-      "gp": 2169,
+      "gp": 2170,
       "gc": 1967,
-      "sg": 202,
+      "sg": 203,
       "aprov": 31.1,
       "forma": [
         "E",
@@ -854,9 +854,9 @@
       "vitorias": 0,
       "empates": 14,
       "derrotas": 2,
-      "gp": 1572,
-      "gc": 2117,
-      "sg": -545,
+      "gp": 1573,
+      "gc": 2134,
+      "sg": -561,
       "aprov": 29.2,
       "forma": [
         "D",
@@ -882,6 +882,110 @@
   ],
   "supervisores": [
     {
+      "supervisor": "GESSANDRO SPEROTTO",
+      "filial": "TCV",
+      "canal": "VAREJO",
+      "gerente": "Leonardo",
+      "total_vendedores": 9,
+      "jogos": 16,
+      "pts_tabela": 40,
+      "vitorias": 12,
+      "empates": 4,
+      "derrotas": 0,
+      "gp": 3783,
+      "gc": 632,
+      "sg": 3151,
+      "aprov": 83.3,
+      "forma": [
+        "V",
+        "V",
+        "V",
+        "E",
+        "V",
+        "V",
+        "V",
+        "E",
+        "V",
+        "V",
+        "V",
+        "V",
+        "V",
+        "E",
+        "V",
+        "E"
+      ],
+      "plus_lideranca": 100,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 1,
+      "pos_ant": 2
+    },
+    {
       "supervisor": "VICTOR HUGO FONSECA CARVALHO",
       "filial": "TSJ",
       "canal": "VAREJO",
@@ -892,9 +996,9 @@
       "vitorias": 12,
       "empates": 3,
       "derrotas": 0,
-      "gp": 4090,
-      "gc": 858,
-      "sg": 3232,
+      "gp": 4091,
+      "gc": 862,
+      "sg": 3229,
       "aprov": 86.7,
       "forma": [
         "V",
@@ -982,112 +1086,8 @@
         }
       },
       "plus_pendente": false,
-      "pos": 1,
-      "pos_ant": 1
-    },
-    {
-      "supervisor": "GESSANDRO SPEROTTO",
-      "filial": "TCV",
-      "canal": "VAREJO",
-      "gerente": "Leonardo",
-      "total_vendedores": 9,
-      "jogos": 15,
-      "pts_tabela": 39,
-      "vitorias": 12,
-      "empates": 3,
-      "derrotas": 0,
-      "gp": 3771,
-      "gc": 632,
-      "sg": 3139,
-      "aprov": 86.7,
-      "forma": [
-        "V",
-        "V",
-        "V",
-        "E",
-        "V",
-        "V",
-        "V",
-        "E",
-        "V",
-        "V",
-        "V",
-        "V",
-        "V",
-        "E",
-        "V",
-        "J"
-      ],
-      "plus_lideranca": 100,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-21": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-22": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-23": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-26": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-27": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-28": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-29": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-30": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-11-03": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-11-04": {
-          "compromisso": 5,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
       "pos": 2,
-      "pos_ant": 2
+      "pos_ant": 1
     },
     {
       "supervisor": "ANA CRISTINA DOS SANTOS YAMATO",
@@ -1100,9 +1100,9 @@
       "vitorias": 11,
       "empates": 4,
       "derrotas": 0,
-      "gp": 4156,
+      "gp": 4160,
       "gc": 1792,
-      "sg": 2364,
+      "sg": 2368,
       "aprov": 82.2,
       "forma": [
         "E",
@@ -1226,7 +1226,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 140,
+      "plus_lideranca": 145,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1290,7 +1290,7 @@
         },
         "2026-11-04": {
           "compromisso": 5,
-          "ret": 0
+          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -1413,8 +1413,8 @@
       "empates": 5,
       "derrotas": 1,
       "gp": 2579,
-      "gc": 842,
-      "sg": 1737,
+      "gc": 846,
+      "sg": 1733,
       "aprov": 71.1,
       "forma": [
         "E",
@@ -2595,9 +2595,9 @@
       "vitorias": 3,
       "empates": 12,
       "derrotas": 0,
-      "gp": 2783,
+      "gp": 2790,
       "gc": 1138,
-      "sg": 1645,
+      "sg": 1652,
       "aprov": 46.7,
       "forma": [
         "E",
@@ -2699,9 +2699,9 @@
       "vitorias": 3,
       "empates": 10,
       "derrotas": 2,
-      "gp": 1500,
+      "gp": 1501,
       "gc": 1141,
-      "sg": 359,
+      "sg": 360,
       "aprov": 42.2,
       "forma": [
         "E",
@@ -2907,9 +2907,9 @@
       "vitorias": 3,
       "empates": 8,
       "derrotas": 4,
-      "gp": 1390,
+      "gp": 1395,
       "gc": 839,
-      "sg": 551,
+      "sg": 556,
       "aprov": 37.8,
       "forma": [
         "E",
@@ -3137,7 +3137,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 35,
+      "plus_lideranca": 40,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 0,
@@ -3200,7 +3200,7 @@
           "ret": 0
         },
         "2026-11-04": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3345,7 +3345,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 25,
+      "plus_lideranca": 30,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -3408,7 +3408,7 @@
           "ret": 0
         },
         "2026-11-04": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3843,9 +3843,9 @@
       "vitorias": 0,
       "empates": 13,
       "derrotas": 3,
-      "gp": 697,
+      "gp": 708,
       "gc": 311,
-      "sg": 386,
+      "sg": 397,
       "aprov": 27.1,
       "forma": [
         "D",
@@ -4260,8 +4260,8 @@
       "empates": 12,
       "derrotas": 4,
       "gp": 897,
-      "gc": 846,
-      "sg": 51,
+      "gc": 855,
+      "sg": 42,
       "aprov": 25.0,
       "forma": [
         "D",
@@ -4489,7 +4489,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 135,
+      "plus_lideranca": 140,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 0,
@@ -4553,7 +4553,7 @@
         },
         "2026-11-04": {
           "compromisso": 5,
-          "ret": 0
+          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -4769,6 +4769,110 @@
       "pos_ant": 32
     },
     {
+      "supervisor": "JONATHAN FERNANDES",
+      "filial": "TPH",
+      "canal": "VAREJO",
+      "gerente": "Vagner",
+      "total_vendedores": 9,
+      "jogos": 15,
+      "pts_tabela": 10,
+      "vitorias": 0,
+      "empates": 10,
+      "derrotas": 5,
+      "gp": 939,
+      "gc": 1153,
+      "sg": -214,
+      "aprov": 22.2,
+      "forma": [
+        "D",
+        "E",
+        "E",
+        "E",
+        "D",
+        "D",
+        "D",
+        "E",
+        "D",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 150,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-03": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 33,
+      "pos_ant": 33
+    },
+    {
       "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
       "filial": "TCV",
       "canal": "AS",
@@ -4871,110 +4975,6 @@
       "plus_pendente": false,
       "pos": 7,
       "pos_ant": 7
-    },
-    {
-      "supervisor": "JONATHAN FERNANDES",
-      "filial": "TPH",
-      "canal": "VAREJO",
-      "gerente": "Vagner",
-      "total_vendedores": 9,
-      "jogos": 15,
-      "pts_tabela": 10,
-      "vitorias": 0,
-      "empates": 10,
-      "derrotas": 5,
-      "gp": 939,
-      "gc": 1153,
-      "sg": -214,
-      "aprov": 22.2,
-      "forma": [
-        "D",
-        "E",
-        "E",
-        "E",
-        "D",
-        "D",
-        "D",
-        "E",
-        "D",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 145,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-22": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-23": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-26": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-27": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-28": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-29": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-30": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-11-03": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-11-04": {
-          "compromisso": 5,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 33,
-      "pos_ant": 33
     },
     {
       "supervisor": "LUCAS RAMOS MONTAGNHANI",
@@ -5404,8 +5404,8 @@
       "empates": 9,
       "derrotas": 6,
       "gp": 287,
-      "gc": 639,
-      "sg": -352,
+      "gc": 643,
+      "sg": -356,
       "aprov": 20.0,
       "forma": [
         "D",
@@ -6131,9 +6131,9 @@
       "vitorias": 0,
       "empates": 8,
       "derrotas": 7,
-      "gp": 916,
+      "gp": 925,
       "gc": 1488,
-      "sg": -572,
+      "sg": -563,
       "aprov": 17.8,
       "forma": [
         "D",
@@ -7171,9 +7171,9 @@
       "vitorias": 0,
       "empates": 2,
       "derrotas": 13,
-      "gp": 102,
+      "gp": 103,
       "gc": 20,
-      "sg": 82,
+      "sg": 83,
       "aprov": 4.4,
       "forma": [
         "D",
@@ -7297,7 +7297,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 60,
+      "plus_lideranca": 65,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 0,
@@ -7360,7 +7360,7 @@
           "ret": 0
         },
         "2026-11-04": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -7379,9 +7379,9 @@
       "vitorias": 0,
       "empates": 1,
       "derrotas": 14,
-      "gp": 161,
-      "gc": 324,
-      "sg": -163,
+      "gp": 162,
+      "gc": 328,
+      "sg": -166,
       "aprov": 2.2,
       "forma": [
         "D",
@@ -7609,7 +7609,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 120,
+      "plus_lideranca": 125,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -7672,7 +7672,7 @@
           "ret": 5
         },
         "2026-11-04": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -8407,15 +8407,15 @@
       "supervisor": "ANA CRISTINA DOS SANTOS YAMATO",
       "gerente": "Saldanha",
       "canal": "VAREJO",
-      "jogos": 15,
+      "jogos": 16,
       "vitorias": 13,
-      "empates": 2,
+      "empates": 3,
       "derrotas": 0,
-      "pts_tabela": 47,
-      "aprov": 104.4,
-      "gp": 413,
+      "pts_tabela": 48,
+      "aprov": 100.0,
+      "gp": 416,
       "gc": 32,
-      "sg": 381,
+      "sg": 384,
       "super_pedidos": 0,
       "inativos_resgatados": 6,
       "forma": [
@@ -8434,7 +8434,7 @@
         "V",
         "V",
         "V",
-        "J"
+        "E"
       ],
       "streak": 13,
       "bonus_constancia": 0,
@@ -8581,6 +8581,51 @@
       "pos_filial_ant": 1
     },
     {
+      "rca": "359",
+      "nome": "GILMAR POTERIKO",
+      "filial": "TCV",
+      "supervisor": "GESSANDRO SPEROTTO",
+      "gerente": "Leonardo",
+      "canal": "VAREJO",
+      "jogos": 16,
+      "vitorias": 14,
+      "empates": 0,
+      "derrotas": 2,
+      "pts_tabela": 45,
+      "aprov": 93.8,
+      "gp": 715,
+      "gc": 82,
+      "sg": 633,
+      "super_pedidos": 11,
+      "inativos_resgatados": 3,
+      "forma": [
+        "V",
+        "V",
+        "V",
+        "D",
+        "V",
+        "V",
+        "V",
+        "D",
+        "V",
+        "V",
+        "V",
+        "V",
+        "V",
+        "V",
+        "V",
+        "V"
+      ],
+      "streak": 8,
+      "bonus_constancia": 0,
+      "semanas_invictas": 1,
+      "bonus_semana_invicta": 3,
+      "pos_brasil": 12,
+      "pos_filial": 4,
+      "pos_brasil_ant": 13,
+      "pos_filial_ant": 4
+    },
+    {
       "rca": "23",
       "nome": "ERICA CRISTINA JACOT",
       "filial": "TSJ",
@@ -8620,7 +8665,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 2,
       "bonus_semana_invicta": 6,
-      "pos_brasil": 12,
+      "pos_brasil": 13,
       "pos_filial": 4,
       "pos_brasil_ant": 11,
       "pos_filial_ant": 4
@@ -8665,55 +8710,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 1,
       "bonus_semana_invicta": 3,
-      "pos_brasil": 13,
-      "pos_filial": 4,
-      "pos_brasil_ant": 15,
-      "pos_filial_ant": 5
-    },
-    {
-      "rca": "359",
-      "nome": "GILMAR POTERIKO",
-      "filial": "TCV",
-      "supervisor": "GESSANDRO SPEROTTO",
-      "gerente": "Leonardo",
-      "canal": "VAREJO",
-      "jogos": 15,
-      "vitorias": 13,
-      "empates": 0,
-      "derrotas": 2,
-      "pts_tabela": 42,
-      "aprov": 93.3,
-      "gp": 703,
-      "gc": 82,
-      "sg": 621,
-      "super_pedidos": 11,
-      "inativos_resgatados": 3,
-      "forma": [
-        "V",
-        "V",
-        "V",
-        "D",
-        "V",
-        "V",
-        "V",
-        "D",
-        "V",
-        "V",
-        "V",
-        "V",
-        "V",
-        "V",
-        "V",
-        "J"
-      ],
-      "streak": 7,
-      "bonus_constancia": 0,
-      "semanas_invictas": 1,
-      "bonus_semana_invicta": 3,
       "pos_brasil": 14,
       "pos_filial": 5,
-      "pos_brasil_ant": 13,
-      "pos_filial_ant": 4
+      "pos_brasil_ant": 15,
+      "pos_filial_ant": 5
     },
     {
       "rca": "42",
@@ -8728,9 +8728,9 @@
       "derrotas": 1,
       "pts_tabela": 42,
       "aprov": 87.5,
-      "gp": 946,
+      "gp": 947,
       "gc": 170,
-      "sg": 776,
+      "sg": 777,
       "super_pedidos": 2,
       "inativos_resgatados": 15,
       "forma": [
@@ -9796,6 +9796,51 @@
       "pos_filial_ant": 10
     },
     {
+      "rca": "5",
+      "nome": "ISAC GABRIEL PEREIRA NUNES",
+      "filial": "TSJ",
+      "supervisor": "ANA CRISTINA DOS SANTOS YAMATO",
+      "gerente": "Saldanha",
+      "canal": "VAREJO",
+      "jogos": 16,
+      "vitorias": 9,
+      "empates": 6,
+      "derrotas": 1,
+      "pts_tabela": 36,
+      "aprov": 75.0,
+      "gp": 416,
+      "gc": 63,
+      "sg": 353,
+      "super_pedidos": 6,
+      "inativos_resgatados": 5,
+      "forma": [
+        "V",
+        "V",
+        "V",
+        "V",
+        "E",
+        "E",
+        "V",
+        "E",
+        "E",
+        "E",
+        "V",
+        "V",
+        "D",
+        "V",
+        "V",
+        "E"
+      ],
+      "streak": 4,
+      "bonus_constancia": 0,
+      "semanas_invictas": 1,
+      "bonus_semana_invicta": 3,
+      "pos_brasil": 36,
+      "pos_filial": 11,
+      "pos_brasil_ant": 38,
+      "pos_filial_ant": 11
+    },
+    {
       "rca": "268",
       "nome": "ANDERSON KOSOWSKI",
       "filial": "API",
@@ -9880,7 +9925,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 36,
+      "pos_brasil": 37,
       "pos_filial": 5,
       "pos_brasil_ant": 36,
       "pos_filial_ant": 5
@@ -9925,7 +9970,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 37,
+      "pos_brasil": 38,
       "pos_filial": 5,
       "pos_brasil_ant": 37,
       "pos_filial_ant": 5
@@ -9970,55 +10015,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 38,
+      "pos_brasil": 39,
       "pos_filial": 6,
       "pos_brasil_ant": 42,
       "pos_filial_ant": 6
-    },
-    {
-      "rca": "5",
-      "nome": "ISAC GABRIEL PEREIRA NUNES",
-      "filial": "TSJ",
-      "supervisor": "ANA CRISTINA DOS SANTOS YAMATO",
-      "gerente": "Saldanha",
-      "canal": "VAREJO",
-      "jogos": 15,
-      "vitorias": 9,
-      "empates": 5,
-      "derrotas": 1,
-      "pts_tabela": 35,
-      "aprov": 77.8,
-      "gp": 415,
-      "gc": 63,
-      "sg": 352,
-      "super_pedidos": 6,
-      "inativos_resgatados": 5,
-      "forma": [
-        "V",
-        "V",
-        "V",
-        "V",
-        "E",
-        "E",
-        "V",
-        "E",
-        "E",
-        "E",
-        "V",
-        "V",
-        "D",
-        "V",
-        "V",
-        "J"
-      ],
-      "streak": 4,
-      "bonus_constancia": 0,
-      "semanas_invictas": 1,
-      "bonus_semana_invicta": 3,
-      "pos_brasil": 39,
-      "pos_filial": 11,
-      "pos_brasil_ant": 38,
-      "pos_filial_ant": 11
     },
     {
       "rca": "409",
@@ -10709,8 +10709,8 @@
       "pts_tabela": 32,
       "aprov": 71.1,
       "gp": 335,
-      "gc": 74,
-      "sg": 261,
+      "gc": 78,
+      "sg": 257,
       "super_pedidos": 2,
       "inativos_resgatados": 5,
       "forma": [
@@ -11069,8 +11069,8 @@
       "pts_tabela": 30,
       "aprov": 66.7,
       "gp": 383,
-      "gc": 105,
-      "sg": 278,
+      "gc": 109,
+      "sg": 274,
       "super_pedidos": 1,
       "inativos_resgatados": 18,
       "forma": [
@@ -11821,6 +11821,51 @@
       "pos_filial_ant": 3
     },
     {
+      "rca": "1046",
+      "nome": "ROSIMEIRE FERNANDES GONCALVES",
+      "filial": "TPH",
+      "supervisor": "EDERSON SUONSKI",
+      "gerente": "Fábio",
+      "canal": "VAREJO",
+      "jogos": 16,
+      "vitorias": 7,
+      "empates": 7,
+      "derrotas": 2,
+      "pts_tabela": 28,
+      "aprov": 58.3,
+      "gp": 303,
+      "gc": 100,
+      "sg": 203,
+      "super_pedidos": 0,
+      "inativos_resgatados": 7,
+      "forma": [
+        "E",
+        "E",
+        "E",
+        "E",
+        "V",
+        "E",
+        "V",
+        "V",
+        "E",
+        "V",
+        "V",
+        "V",
+        "D",
+        "V",
+        "D",
+        "E"
+      ],
+      "streak": 3,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 76,
+      "pos_filial": 6,
+      "pos_brasil_ant": 78,
+      "pos_filial_ant": 6
+    },
+    {
       "rca": "464",
       "nome": "CINTIA RENATA DA CRUZ",
       "filial": "MCD",
@@ -11905,7 +11950,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 76,
+      "pos_brasil": 77,
       "pos_filial": 7,
       "pos_brasil_ant": 75,
       "pos_filial_ant": 7
@@ -11995,7 +12040,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 77,
+      "pos_brasil": 78,
       "pos_filial": 16,
       "pos_brasil_ant": 84,
       "pos_filial_ant": 17
@@ -12040,55 +12085,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 78,
+      "pos_brasil": 79,
       "pos_filial": 8,
       "pos_brasil_ant": 77,
       "pos_filial_ant": 8
-    },
-    {
-      "rca": "1046",
-      "nome": "ROSIMEIRE FERNANDES GONCALVES",
-      "filial": "TPH",
-      "supervisor": "EDERSON SUONSKI",
-      "gerente": "Fábio",
-      "canal": "VAREJO",
-      "jogos": 15,
-      "vitorias": 7,
-      "empates": 6,
-      "derrotas": 2,
-      "pts_tabela": 27,
-      "aprov": 60.0,
-      "gp": 294,
-      "gc": 100,
-      "sg": 194,
-      "super_pedidos": 0,
-      "inativos_resgatados": 7,
-      "forma": [
-        "E",
-        "E",
-        "E",
-        "E",
-        "V",
-        "E",
-        "V",
-        "V",
-        "E",
-        "V",
-        "V",
-        "V",
-        "D",
-        "V",
-        "D",
-        "J"
-      ],
-      "streak": 3,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 79,
-      "pos_filial": 6,
-      "pos_brasil_ant": 78,
-      "pos_filial_ant": 6
     },
     {
       "rca": "17",
@@ -15016,6 +15016,51 @@
       "pos_filial_ant": 13
     },
     {
+      "rca": "529",
+      "nome": "PAOLA DE PAULA FRANCO",
+      "filial": "API",
+      "supervisor": "SUELI APARECIDA TEIXEIRA POLLI",
+      "gerente": "Marcelo",
+      "canal": "VAREJO",
+      "jogos": 16,
+      "vitorias": 4,
+      "empates": 8,
+      "derrotas": 4,
+      "pts_tabela": 20,
+      "aprov": 41.7,
+      "gp": 155,
+      "gc": 35,
+      "sg": 120,
+      "super_pedidos": 0,
+      "inativos_resgatados": 4,
+      "forma": [
+        "D",
+        "D",
+        "E",
+        "D",
+        "E",
+        "E",
+        "V",
+        "V",
+        "E",
+        "V",
+        "E",
+        "E",
+        "V",
+        "D",
+        "E",
+        "E"
+      ],
+      "streak": 2,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 130,
+      "pos_filial": 17,
+      "pos_brasil_ant": 131,
+      "pos_filial_ant": 17
+    },
+    {
       "rca": "59",
       "nome": "ALEXSSANDRO HENRIQUE TAVARES HEY",
       "filial": "TPH",
@@ -15151,6 +15196,51 @@
       "pos_filial_ant": 5
     },
     {
+      "rca": "325",
+      "nome": "CLEITON DUARTE DE CARVALHO",
+      "filial": "TCV",
+      "supervisor": "VAGO - GABRIEL",
+      "gerente": "Leonardo",
+      "canal": "VAREJO",
+      "jogos": 16,
+      "vitorias": 5,
+      "empates": 4,
+      "derrotas": 7,
+      "pts_tabela": 19,
+      "aprov": 39.6,
+      "gp": 168,
+      "gc": 85,
+      "sg": 83,
+      "super_pedidos": 0,
+      "inativos_resgatados": 3,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "V",
+        "E",
+        "V",
+        "E",
+        "E",
+        "V",
+        "D",
+        "V",
+        "V",
+        "E"
+      ],
+      "streak": 2,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 131,
+      "pos_filial": 22,
+      "pos_brasil_ant": 135,
+      "pos_filial_ant": 22
+    },
+    {
       "rca": "161",
       "nome": "JANAINA BOEIRA RECH",
       "filial": "TPA",
@@ -15190,55 +15280,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 130,
+      "pos_brasil": 132,
       "pos_filial": 1,
       "pos_brasil_ant": 129,
       "pos_filial_ant": 1
-    },
-    {
-      "rca": "325",
-      "nome": "CLEITON DUARTE DE CARVALHO",
-      "filial": "TCV",
-      "supervisor": "VAGO - GABRIEL",
-      "gerente": "Leonardo",
-      "canal": "VAREJO",
-      "jogos": 16,
-      "vitorias": 5,
-      "empates": 4,
-      "derrotas": 7,
-      "pts_tabela": 19,
-      "aprov": 39.6,
-      "gp": 161,
-      "gc": 85,
-      "sg": 76,
-      "super_pedidos": 0,
-      "inativos_resgatados": 3,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "V",
-        "E",
-        "V",
-        "E",
-        "E",
-        "V",
-        "D",
-        "V",
-        "V",
-        "E"
-      ],
-      "streak": 2,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 131,
-      "pos_filial": 22,
-      "pos_brasil_ant": 135,
-      "pos_filial_ant": 22
     },
     {
       "rca": "210",
@@ -15329,51 +15374,6 @@
       "pos_filial": 9,
       "pos_brasil_ant": 30,
       "pos_filial_ant": 9
-    },
-    {
-      "rca": "529",
-      "nome": "PAOLA DE PAULA FRANCO",
-      "filial": "API",
-      "supervisor": "SUELI APARECIDA TEIXEIRA POLLI",
-      "gerente": "Marcelo",
-      "canal": "VAREJO",
-      "jogos": 15,
-      "vitorias": 4,
-      "empates": 7,
-      "derrotas": 4,
-      "pts_tabela": 19,
-      "aprov": 42.2,
-      "gp": 150,
-      "gc": 35,
-      "sg": 115,
-      "super_pedidos": 0,
-      "inativos_resgatados": 4,
-      "forma": [
-        "D",
-        "D",
-        "E",
-        "D",
-        "E",
-        "E",
-        "V",
-        "V",
-        "E",
-        "V",
-        "E",
-        "E",
-        "V",
-        "D",
-        "E",
-        "J"
-      ],
-      "streak": 2,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 132,
-      "pos_filial": 17,
-      "pos_brasil_ant": 131,
-      "pos_filial_ant": 17
     },
     {
       "rca": "78",
@@ -17266,6 +17266,51 @@
       "pos_filial_ant": 19
     },
     {
+      "rca": "298",
+      "nome": "RONALDO FERREIRA BICA",
+      "filial": "TBE",
+      "supervisor": "PATRICIA CHAVES MACHADO",
+      "gerente": "Diego",
+      "canal": "VAREJO",
+      "jogos": 16,
+      "vitorias": 4,
+      "empates": 3,
+      "derrotas": 9,
+      "pts_tabela": 15,
+      "aprov": 31.2,
+      "gp": 98,
+      "gc": 95,
+      "sg": 3,
+      "super_pedidos": 0,
+      "inativos_resgatados": 5,
+      "forma": [
+        "V",
+        "D",
+        "D",
+        "V",
+        "V",
+        "V",
+        "D",
+        "E",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "E",
+        "E"
+      ],
+      "streak": 3,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 169,
+      "pos_filial": 6,
+      "pos_brasil_ant": 174,
+      "pos_filial_ant": 6
+    },
+    {
       "rca": "125",
       "nome": "CLAUDIO EIZO BRANCO",
       "filial": "TPH",
@@ -17305,7 +17350,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 169,
+      "pos_brasil": 170,
       "pos_filial": 23,
       "pos_brasil_ant": 168,
       "pos_filial_ant": 23
@@ -17350,7 +17395,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 170,
+      "pos_brasil": 171,
       "pos_filial": 24,
       "pos_brasil_ant": 169,
       "pos_filial_ant": 24
@@ -17395,7 +17440,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 171,
+      "pos_brasil": 172,
       "pos_filial": 7,
       "pos_brasil_ant": 170,
       "pos_filial_ant": 7
@@ -17413,9 +17458,9 @@
       "derrotas": 10,
       "pts_tabela": 14,
       "aprov": 29.2,
-      "gp": 147,
+      "gp": 153,
       "gc": 50,
-      "sg": 97,
+      "sg": 103,
       "super_pedidos": 1,
       "inativos_resgatados": 4,
       "forma": [
@@ -17440,7 +17485,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 172,
+      "pos_brasil": 173,
       "pos_filial": 22,
       "pos_brasil_ant": 192,
       "pos_filial_ant": 24
@@ -17530,7 +17575,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 173,
+      "pos_brasil": 174,
       "pos_filial": 11,
       "pos_brasil_ant": 171,
       "pos_filial_ant": 11
@@ -17575,55 +17620,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 174,
+      "pos_brasil": 175,
       "pos_filial": 23,
       "pos_brasil_ant": 173,
       "pos_filial_ant": 22
-    },
-    {
-      "rca": "298",
-      "nome": "RONALDO FERREIRA BICA",
-      "filial": "TBE",
-      "supervisor": "PATRICIA CHAVES MACHADO",
-      "gerente": "Diego",
-      "canal": "VAREJO",
-      "jogos": 15,
-      "vitorias": 4,
-      "empates": 2,
-      "derrotas": 9,
-      "pts_tabela": 14,
-      "aprov": 31.1,
-      "gp": 97,
-      "gc": 95,
-      "sg": 2,
-      "super_pedidos": 0,
-      "inativos_resgatados": 5,
-      "forma": [
-        "V",
-        "D",
-        "D",
-        "V",
-        "V",
-        "V",
-        "D",
-        "E",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "E",
-        "J"
-      ],
-      "streak": 3,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 175,
-      "pos_filial": 6,
-      "pos_brasil_ant": 174,
-      "pos_filial_ant": 6
     },
     {
       "rca": "215",
@@ -17896,6 +17896,51 @@
       "pos_filial_ant": 6
     },
     {
+      "rca": "477",
+      "nome": "ELISANDRA GOMES VILLANOVA",
+      "filial": "TCG",
+      "supervisor": "ELIENAY VIANA DA SILVA",
+      "gerente": "Danilo",
+      "canal": "AS",
+      "jogos": 16,
+      "vitorias": 1,
+      "empates": 11,
+      "derrotas": 4,
+      "pts_tabela": 14,
+      "aprov": 29.2,
+      "gp": 62,
+      "gc": 0,
+      "sg": 62,
+      "super_pedidos": 0,
+      "inativos_resgatados": 0,
+      "forma": [
+        "D",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "V",
+        "E",
+        "D",
+        "E",
+        "D",
+        "E",
+        "D",
+        "E",
+        "E",
+        "E"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 39,
+      "pos_filial": 1,
+      "pos_brasil_ant": 43,
+      "pos_filial_ant": 1
+    },
+    {
       "rca": "367",
       "nome": "DOUGLAS RODRIGUES FRUTUOSO",
       "filial": "TCA",
@@ -17935,7 +17980,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 39,
+      "pos_brasil": 40,
       "pos_filial": 4,
       "pos_brasil_ant": 39,
       "pos_filial_ant": 4
@@ -17980,7 +18025,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 40,
+      "pos_brasil": 41,
       "pos_filial": 10,
       "pos_brasil_ant": 40,
       "pos_filial_ant": 10
@@ -18025,7 +18070,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 41,
+      "pos_brasil": 42,
       "pos_filial": 11,
       "pos_brasil_ant": 41,
       "pos_filial_ant": 11
@@ -18070,7 +18115,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 42,
+      "pos_brasil": 43,
       "pos_filial": 4,
       "pos_brasil_ant": 42,
       "pos_filial_ant": 4
@@ -18344,51 +18389,6 @@
       "pos_filial": 24,
       "pos_brasil_ant": 185,
       "pos_filial_ant": 24
-    },
-    {
-      "rca": "477",
-      "nome": "ELISANDRA GOMES VILLANOVA",
-      "filial": "TCG",
-      "supervisor": "ELIENAY VIANA DA SILVA",
-      "gerente": "Danilo",
-      "canal": "AS",
-      "jogos": 15,
-      "vitorias": 1,
-      "empates": 10,
-      "derrotas": 4,
-      "pts_tabela": 13,
-      "aprov": 28.9,
-      "gp": 61,
-      "gc": 0,
-      "sg": 61,
-      "super_pedidos": 0,
-      "inativos_resgatados": 0,
-      "forma": [
-        "D",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "V",
-        "E",
-        "D",
-        "E",
-        "D",
-        "E",
-        "D",
-        "E",
-        "E",
-        "J"
-      ],
-      "streak": 1,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 43,
-      "pos_filial": 1,
-      "pos_brasil_ant": 43,
-      "pos_filial_ant": 1
     },
     {
       "rca": "365",
@@ -19034,8 +19034,8 @@
       "pts_tabela": 11,
       "aprov": 24.4,
       "gp": 360,
-      "gc": 291,
-      "sg": 69,
+      "gc": 300,
+      "sg": 60,
       "super_pedidos": 1,
       "inativos_resgatados": 7,
       "forma": [
@@ -20641,6 +20641,51 @@
       "pos_filial_ant": 25
     },
     {
+      "rca": "115",
+      "nome": "MAICO ADILTON PRESTES",
+      "filial": "TPH",
+      "supervisor": "EDI CARLOS MEIRA",
+      "gerente": "Fábio",
+      "canal": "VAREJO",
+      "jogos": 16,
+      "vitorias": 2,
+      "empates": 3,
+      "derrotas": 11,
+      "pts_tabela": 9,
+      "aprov": 18.8,
+      "gp": 73,
+      "gc": 213,
+      "sg": -140,
+      "super_pedidos": 0,
+      "inativos_resgatados": 3,
+      "forma": [
+        "D",
+        "E",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "V",
+        "E",
+        "D",
+        "D",
+        "V",
+        "E"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 219,
+      "pos_filial": 31,
+      "pos_brasil_ant": 226,
+      "pos_filial_ant": 34
+    },
+    {
       "rca": "1140",
       "nome": "JEFFERSON DE SOUZA PIRES",
       "filial": "TSJ",
@@ -20680,7 +20725,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 219,
+      "pos_brasil": 220,
       "pos_filial": 21,
       "pos_brasil_ant": 219,
       "pos_filial_ant": 21
@@ -20725,8 +20770,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 220,
-      "pos_filial": 31,
+      "pos_brasil": 221,
+      "pos_filial": 32,
       "pos_brasil_ant": 220,
       "pos_filial_ant": 31
     },
@@ -20770,7 +20815,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 221,
+      "pos_brasil": 222,
       "pos_filial": 21,
       "pos_brasil_ant": 221,
       "pos_filial_ant": 21
@@ -20815,8 +20860,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 222,
-      "pos_filial": 32,
+      "pos_brasil": 223,
+      "pos_filial": 33,
       "pos_brasil_ant": 222,
       "pos_filial_ant": 32
     },
@@ -20905,7 +20950,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 223,
+      "pos_brasil": 224,
       "pos_filial": 26,
       "pos_brasil_ant": 223,
       "pos_filial_ant": 26
@@ -20950,7 +20995,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 224,
+      "pos_brasil": 225,
       "pos_filial": 6,
       "pos_brasil_ant": 224,
       "pos_filial_ant": 6
@@ -20995,8 +21040,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 225,
-      "pos_filial": 33,
+      "pos_brasil": 226,
+      "pos_filial": 34,
       "pos_brasil_ant": 225,
       "pos_filial_ant": 33
     },
@@ -21044,51 +21089,6 @@
       "pos_filial": 1,
       "pos_brasil_ant": 63,
       "pos_filial_ant": 1
-    },
-    {
-      "rca": "115",
-      "nome": "MAICO ADILTON PRESTES",
-      "filial": "TPH",
-      "supervisor": "EDI CARLOS MEIRA",
-      "gerente": "Fábio",
-      "canal": "VAREJO",
-      "jogos": 15,
-      "vitorias": 2,
-      "empates": 2,
-      "derrotas": 11,
-      "pts_tabela": 8,
-      "aprov": 17.8,
-      "gp": 68,
-      "gc": 213,
-      "sg": -145,
-      "super_pedidos": 0,
-      "inativos_resgatados": 3,
-      "forma": [
-        "D",
-        "E",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "V",
-        "E",
-        "D",
-        "D",
-        "V",
-        "J"
-      ],
-      "streak": 1,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 226,
-      "pos_filial": 34,
-      "pos_brasil_ant": 226,
-      "pos_filial_ant": 34
     },
     {
       "rca": "280",
@@ -22891,51 +22891,6 @@
       "pos_filial_ant": 40
     },
     {
-      "rca": "160",
-      "nome": "LEONARDO BITTENCOURT DOS SANTOS",
-      "filial": "TPA",
-      "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
-      "gerente": "Radke / Leandro",
-      "canal": "VAREJO",
-      "jogos": 16,
-      "vitorias": 1,
-      "empates": 2,
-      "derrotas": 13,
-      "pts_tabela": 5,
-      "aprov": 10.4,
-      "gp": 30,
-      "gc": 85,
-      "sg": -55,
-      "super_pedidos": 0,
-      "inativos_resgatados": 2,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "V",
-        "D",
-        "D",
-        "D",
-        "E",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "E"
-      ],
-      "streak": 1,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 246,
-      "pos_filial": 10,
-      "pos_brasil_ant": 255,
-      "pos_filial_ant": 11
-    },
-    {
       "rca": "475",
       "nome": "CRISTIANE CORREA DA SILVA",
       "filial": "TCG",
@@ -22975,7 +22930,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 247,
+      "pos_brasil": 246,
       "pos_filial": 16,
       "pos_brasil_ant": 246,
       "pos_filial_ant": 16
@@ -23020,7 +22975,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 248,
+      "pos_brasil": 247,
       "pos_filial": 41,
       "pos_brasil_ant": 247,
       "pos_filial_ant": 41
@@ -23065,8 +23020,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 249,
-      "pos_filial": 11,
+      "pos_brasil": 248,
+      "pos_filial": 10,
       "pos_brasil_ant": 248,
       "pos_filial_ant": 10
     },
@@ -23110,7 +23065,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 250,
+      "pos_brasil": 249,
       "pos_filial": 17,
       "pos_brasil_ant": 249,
       "pos_filial_ant": 17
@@ -23155,7 +23110,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 251,
+      "pos_brasil": 250,
       "pos_filial": 42,
       "pos_brasil_ant": 250,
       "pos_filial_ant": 42
@@ -23290,7 +23245,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 252,
+      "pos_brasil": 251,
       "pos_filial": 43,
       "pos_brasil_ant": 261,
       "pos_filial_ant": 46
@@ -23335,7 +23290,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 253,
+      "pos_brasil": 252,
       "pos_filial": 44,
       "pos_brasil_ant": 251,
       "pos_filial_ant": 43
@@ -23740,7 +23695,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 254,
+      "pos_brasil": 253,
       "pos_filial": 26,
       "pos_brasil_ant": 252,
       "pos_filial_ant": 26
@@ -23785,7 +23740,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 255,
+      "pos_brasil": 254,
       "pos_filial": 12,
       "pos_brasil_ant": 253,
       "pos_filial_ant": 12
@@ -23830,10 +23785,55 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 256,
+      "pos_brasil": 255,
       "pos_filial": 26,
       "pos_brasil_ant": 254,
       "pos_filial_ant": 26
+    },
+    {
+      "rca": "160",
+      "nome": "LEONARDO BITTENCOURT DOS SANTOS",
+      "filial": "TPA",
+      "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
+      "gerente": "Radke / Leandro",
+      "canal": "VAREJO",
+      "jogos": 15,
+      "vitorias": 1,
+      "empates": 1,
+      "derrotas": 13,
+      "pts_tabela": 4,
+      "aprov": 8.9,
+      "gp": 30,
+      "gc": 89,
+      "sg": -59,
+      "super_pedidos": 0,
+      "inativos_resgatados": 2,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "V",
+        "D",
+        "D",
+        "D",
+        "E",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "J"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 256,
+      "pos_filial": 11,
+      "pos_brasil_ant": 255,
+      "pos_filial_ant": 11
     },
     {
       "rca": "1055",
@@ -24073,9 +24073,9 @@
       "derrotas": 11,
       "pts_tabela": 4,
       "aprov": 8.9,
-      "gp": 59,
-      "gc": 88,
-      "sg": -29,
+      "gp": 60,
+      "gc": 92,
+      "sg": -32,
       "super_pedidos": 0,
       "inativos_resgatados": 1,
       "forma": [
@@ -33105,6 +33105,139 @@
         "pos_filial_ant": 6
       },
       {
+        "rca": "477",
+        "nome": "ELISANDRA GOMES VILLANOVA",
+        "filial": "TCG",
+        "supervisor": "ELIENAY VIANA DA SILVA",
+        "gerente": "Danilo",
+        "meta_mes": 165000,
+        "pct_hoje": 4.5,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-11-07",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-11-14",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-11-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 30,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-11-30",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 2,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 2,
+            "jogada": true,
+            "resultado": "E",
+            "pts_tabela": 1
+          },
+          {
+            "n": 2,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 1,
+        "vitorias": 0,
+        "empates": 1,
+        "derrotas": 0,
+        "pts_tabela": 1,
+        "aprov": 33.3,
+        "forma": [
+          "E"
+        ],
+        "pontos": 2,
+        "pts_lances": 2,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 24,
+        "pos_filial": 1,
+        "pos_brasil_ant": 28,
+        "pos_filial_ant": 1
+      },
+      {
         "rca": "351",
         "nome": "SILVANO AUGUSTINHO DA SILVA JUNIOR",
         "filial": "TCV",
@@ -33232,7 +33365,7 @@
         "pts_lances": 2,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 24,
+        "pos_brasil": 25,
         "pos_filial": 2,
         "pos_brasil_ant": 23,
         "pos_filial_ant": 2
@@ -33365,7 +33498,7 @@
         "pts_lances": 2,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 25,
+        "pos_brasil": 26,
         "pos_filial": 4,
         "pos_brasil_ant": 24,
         "pos_filial_ant": 4
@@ -33498,7 +33631,7 @@
         "pts_lances": 2,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 26,
+        "pos_brasil": 27,
         "pos_filial": 5,
         "pos_brasil_ant": 25,
         "pos_filial_ant": 5
@@ -33631,7 +33764,7 @@
         "pts_lances": 2,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 27,
+        "pos_brasil": 28,
         "pos_filial": 6,
         "pos_brasil_ant": 26,
         "pos_filial_ant": 6
@@ -33764,143 +33897,10 @@
         "pts_lances": 2,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 28,
+        "pos_brasil": 29,
         "pos_filial": 7,
         "pos_brasil_ant": 27,
         "pos_filial_ant": 7
-      },
-      {
-        "rca": "477",
-        "nome": "ELISANDRA GOMES VILLANOVA",
-        "filial": "TCG",
-        "supervisor": "ELIENAY VIANA DA SILVA",
-        "gerente": "Danilo",
-        "meta_mes": 165000,
-        "pct_hoje": 4.5,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-11-07",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-11-14",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-11-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 30,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-11-30",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": 1,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 1,
-            "jogada": true,
-            "resultado": "E",
-            "pts_tabela": 1
-          },
-          {
-            "n": 2,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 3,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 4,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 1,
-        "vitorias": 0,
-        "empates": 1,
-        "derrotas": 0,
-        "pts_tabela": 1,
-        "aprov": 33.3,
-        "forma": [
-          "E"
-        ],
-        "pontos": 1,
-        "pts_lances": 1,
-        "pts_faseamento": 0,
-        "pts_bonus": 0,
-        "pos_brasil": 29,
-        "pos_filial": 1,
-        "pos_brasil_ant": 28,
-        "pos_filial_ant": 1
       },
       {
         "rca": "26",
@@ -49549,7 +49549,7 @@
           }
         ],
         "aprov": 0,
-        "pts_lances_equipe": 1,
+        "pts_lances_equipe": 2,
         "pos": 12,
         "pos_ant": 12
       },
