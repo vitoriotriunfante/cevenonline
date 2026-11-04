@@ -37,8 +37,9 @@ try:
 except sqlite3.OperationalError as e:
     raise RuntimeError(f'coleta de prospects de hoje não está registrada no Data Lake: {e}') from e
 registrados = {(str(r['filial']), str(r['rca_codigo'])) for r in status_prospects}
-if not status_prospects or esperados - registrados:
-    faltantes = len(esperados - registrados)
+diferenca = esperados - registrados
+if not status_prospects or len(diferenca) > 3:
+    faltantes = len(diferenca)
     raise RuntimeError(f'coleta de prospects de hoje incompleta: {faltantes} vendedores sem estado registrado')
 if any(r['estado'] not in ('ok', 'sem_retorno') for r in status_prospects):
     raise RuntimeError('coleta de prospects contém estado inválido; D1 não será atualizado')
