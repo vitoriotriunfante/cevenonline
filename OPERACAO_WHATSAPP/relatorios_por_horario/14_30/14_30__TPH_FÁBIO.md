@@ -3,9 +3,9 @@
 📍 *FILIAL TPH — FÁBIO*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 53.327,08
-📦 *Pedidos Colocados:* 83 pedidos
-📍 *Visitas Realizadas:* 209 de 526 (39,7%)
+💰 *Total Digitado Hoje:* R$ 63.911,57
+📦 *Pedidos Colocados:* 90 pedidos
+📍 *Visitas Realizadas:* 210 de 526 (39,9%)
 👥 *Vendedores Varejo com Pedido:* 19 de 28 (68%)
 ✂️ *Cortes nos Pedidos de Hoje:* R$ 210,25 (2 pedidos afetados)
 🔒 *Pedidos Bloqueados Hoje:* R$ 17.334,27 (27 pedidos retidos)

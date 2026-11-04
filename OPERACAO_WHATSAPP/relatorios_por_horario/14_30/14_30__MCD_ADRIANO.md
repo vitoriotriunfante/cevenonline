@@ -3,12 +3,12 @@
 📍 *FILIAL MCD — ADRIANO*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 25.812,33
-📦 *Pedidos Colocados:* 25 pedidos
-📍 *Visitas Realizadas:* 87 de 152 (57,2%)
+💰 *Total Digitado Hoje:* R$ 26.871,65
+📦 *Pedidos Colocados:* 27 pedidos
+📍 *Visitas Realizadas:* 89 de 152 (58,6%)
 👥 *Vendedores Varejo com Pedido:* 10 de 21 (48%)
 ✂️ *Cortes nos Pedidos de Hoje:* R$ 183,18 (2 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 328,12 (1 pedidos retidos)
+🔒 *Pedidos Bloqueados Hoje:* R$ 607,97 (2 pedidos retidos)
 🚛 *Devoluções Entradas Hoje:* R$ 0,00
 
 ⚠️ *DETALHE DOS CORTES DE HOJE:*
@@ -33,7 +33,7 @@ _(Visitas realizadas sem conversão de pedido)_
   ▫️ Cód. 1133 • ADILSON DE SOUZA NUNES JUNIOR: *0 visitas feitas* (de 4 na rota) • R$ 0
 
 👤 *Supervisor: CLEOMAR DINIZ BARBOSA* (4 zerados)
-  ▫️ Cód. 415 • CIL FARNEY BARBOSA DE ALCANTARA: *2 visitas feitas* (de 3 na rota) • R$ 0
+  ▫️ Cód. 415 • CIL FARNEY BARBOSA DE ALCANTARA: *3 visitas feitas* (de 3 na rota) • R$ 0
   ▫️ Cód. 426 • FRANCIELE BRUNETTO FRANCA: *0 visitas feitas* (de 7 na rota) • R$ 0
   ▫️ Cód. 447 • ROBERTO DE SENNA PEREIRA: *4 visitas feitas* (de 6 na rota) • R$ 0
   ▫️ Cód. 455 • VALQUIRIA DE FATIMA LEITE GONCALVES: *3 visitas feitas* (de 9 na rota) • R$ 0
