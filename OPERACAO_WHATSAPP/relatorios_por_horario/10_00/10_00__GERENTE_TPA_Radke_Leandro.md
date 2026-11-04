@@ -1,38 +1,16 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 TPA — RADKE / LEANDRO • 03/11/2026
+📍 TPA — RADKE / LEANDRO • 04/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/11/2026 a 03/11/2026)*
+*ACUMULADO DO MÊS (01/11/2026 a 04/11/2026)*
 💰 R$ 0,00 • 0 PDVs • ✂️ R$ 0,00 (0 un)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU NO ÚLTIMO DIA DE VENDA — SÁBADO (31/10/2026)*
-💰 R$ 1.147,30 • 2 PDVs positivados
-👤 DOUGLAS CRISTIANO DOS SANTOS — R$ 1.063,72 (1 PDVs)
-👤 ROGERIO DORNELLES PASSOS — R$ 83,58 (1 PDVs)
+*COMO FECHOU ONTEM (03/11/2026)*
+💰 R$ 0,00 • 0 PDVs positivados
 
-🚨 *ZERADOS EM MARCA PRÓPRIA NO ÚLTIMO DIA DE VENDA — SÁBADO (13)*
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (1)*
 _(fez pedido nesse dia, mas nenhum item era marca própria)_
 
-👤 *ANDERSON GIOVANI FERREIRA BOLTER*
-  • EDUARDO PAPEN MENDES — nunca vendeu MP
-  • TIAGO MORAES DA SILVA — 110d sem vender MP
-  • RENATA THEISEN LEMOS — 109d sem vender MP
-  • BRENDA MARQUES DOS SANTOS — 6d sem vender MP
-
-👤 *DOUGLAS CRISTIANO DOS SANTOS*
-  • RUTH VARGAS GANZER — 113d sem vender MP
-
-👤 *GERENTE TPA*
-  • CARLOS ALEXANDRE ROSA — nunca vendeu MP
-
-👤 *RAFAEL DA SILVA CARPENA*
-  • CHRISTIAN KOHLRAUSCH MOTTA — 113d sem vender MP
-  • BRUNO SPENGLER — 82d sem vender MP
-  • DEIVID MACHADO HOMEM — 55d sem vender MP
-  • TIAGO RANGEL — 4d sem vender MP
-
 👤 *ROGERIO DORNELLES PASSOS*
-  • EDUARDO BATISTA PINTO — 6d sem vender MP
-  • ORLI CLOVIS OLIVEIRA COSTA — 6d sem vender MP
-  • JOEL MENDES DOS SANTOS — 5d sem vender MP
+  • PAULO BRITES MENDIETA — -19d sem vender MP

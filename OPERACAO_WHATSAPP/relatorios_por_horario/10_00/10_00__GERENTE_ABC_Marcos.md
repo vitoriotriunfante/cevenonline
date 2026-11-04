@@ -1,24 +1,25 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 ABC — MARCOS • 03/11/2026
+📍 ABC — MARCOS • 04/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/11/2026 a 03/11/2026)*
-💰 R$ 152,78 • 1 PDVs • ✂️ R$ 0,00 (0 un)
-👤 IVONEI PEDRO DE MOURA — R$ 152,78 (1 PDVs)
+*ACUMULADO DO MÊS (01/11/2026 a 04/11/2026)*
+💰 R$ 267,82 • 3 PDVs • ✂️ R$ 0,00 (0 un)
+👤 IVONEI PEDRO DE MOURA — R$ 267,82 (3 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU NO ÚLTIMO DIA DE VENDA — SÁBADO (31/10/2026)*
-💰 R$ 0,00 • 0 PDVs positivados
+*COMO FECHOU ONTEM (03/11/2026)*
+💰 R$ 179,69 • 2 PDVs positivados
+👤 IVONEI PEDRO DE MOURA — R$ 179,69 (2 PDVs)
 
-🚨 *ZERADOS EM MARCA PRÓPRIA NO ÚLTIMO DIA DE VENDA — SÁBADO (4)*
+🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (4)*
 _(fez pedido nesse dia, mas nenhum item era marca própria)_
 
 👤 *EDER LUCAS DAS FLORES DE OLIVEIRA*
-  • WILLIAN PATRICK VIEIRA DOS SANTOS — 35d sem vender MP
+  • JOAO GABRIEL TAVARES DA LUZ — 51d sem vender MP
+  • CARLOS AUGUSTO CUETO — -2d sem vender MP
 
-👤 *GILBERTO GOMES DOMINGOS*
-  • NEIL ALEXANDER ZOZ — nunca vendeu MP
+👤 *IVONEI PEDRO DE MOURA*
+  • GILSON DE ALMEIDA ALVES — 5d sem vender MP
 
-👤 *MARCIO ROSA SOBRAL BATISTA*
-  • LEONIDAS JOSE PORTELLA — nunca vendeu MP
-  • RICARDO PEREIRA DA SILVA — nunca vendeu MP
+👤 *MISSAID MAINARDES RAMOS*
+  • ADRIOMAR JOSE RE — nunca vendeu MP
