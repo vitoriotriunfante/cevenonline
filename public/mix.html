@@ -74,8 +74,23 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
 </style></head>
 <body><div class="wrap">
   <header>
-    <div><h1>🧩 Uso do +MIX</h1><div class="sub" id="sub">carregando…</div></div>
-    <div class="sub">Estudo · não pontua na Liga</div>
+    <div>
+      <h1>🧩 Uso do +MIX</h1>
+      <div class="sub" id="sub">carregando…</div>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:4px 10px;">
+        <span style="font-size:12px; font-weight:700; color:var(--mut);">MÊS:</span>
+        <select id="selMes" style="background:transparent; border:0; color:var(--tx); font-weight:800; font-size:13.5px; cursor:pointer; outline:none; padding:4px 2px;">
+          <option value="atual">Novembro/2026 (atual em andamento)</option>
+          <option value="2026-10">Outubro/2026 (fechamento oficial auditado)</option>
+        </select>
+      </div>
+      <button id="btnAuditoriaMix" style="background:rgba(16,185,129,0.15); border:1px solid #10B981; color:#6EE7B7; font-weight:800; border-radius:10px; padding:7px 14px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+        📊 Auditoria Oficial (Remuneração & Prêmio)
+      </button>
+      <div class="sub" style="margin:0;">Estudo · não pontua na Liga</div>
+    </div>
   </header>
   <nav class="tabs" id="tabs">
     <button data-s="resumo" class="on">Resumo</button><button data-s="cubo">Explorar</button><button data-s="graf">Gráficos</button><button data-s="comp">Comparar vendedores</button>
@@ -154,6 +169,233 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
     </div>
   </section>
   <div class="leg" id="defs"></div>
+
+  <!-- MODAL AUDITORIA OFICIAL CEVEN (OUTUBRO/2026) -->
+  <div id="modalAuditoria" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; overflow-y:auto; padding:20px; backdrop-filter:blur(4px);">
+    <div style="max-width:1100px; margin:20px auto; background:#0B132B; border:1px solid #1E293B; border-radius:16px; padding:24px; color:#F8FAFC; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); position:relative;">
+      <button id="fecharModalAuditoria" style="position:absolute; top:18px; right:18px; background:rgba(255,255,255,0.1); border:0; color:#CBD5E1; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:16px; font-weight:800; display:flex; align-items:center; justify-content:center;">✕</button>
+      <div style="display:inline-block; font-size:10px; font-weight:800; letter-spacing:0.8px; color:#34D399; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); padding:3px 8px; border-radius:6px; margin-bottom:8px;">AUDITORIA OFICIAL CEVEN · REMUNERAÇÃO, META E PRÊMIO (OUTUBRO/2026)</div>
+      <h2 style="font-size:22px; font-weight:900; color:#FFFFFF; margin:0 0 4px; text-transform:none; letter-spacing:normal;">Como o Uso do +Mix Aumenta o Salário, o Batimento de Meta e o Prêmio (G1/G2)</h2>
+      <div style="font-size:12.5px; color:#94A3B8; margin-bottom:18px; line-height:1.4;">Auditoria real em 298 vendedores de Varejo e 22.128 clientes positivados até 30/10/2026 (10.636 clientes com lista +Mix gravada antes da visita; 3.056 clientes converteram 6.159 novos SKUs).</div>
+      <div id="modalAuditoriaCorpo">
+      <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:14px;">
+        <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:10px 12px;">
+          <div style="font-size:10px; font-weight:800; color:#6EE7B7; text-transform:uppercase;">Vendedores com Prêmio (Q4 vs Q1)</div>
+          <div style="font-size:21px; font-weight:900; color:#FFFFFF; margin-top:2px;">94,5% vs 61,1%</div>
+          <div style="font-size:11px; color:#A7F3D0;">+33,4 p.p. de chance de ganhar G1/G2</div>
+        </div>
+        <div style="background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.3); border-radius:10px; padding:10px 12px;">
+          <div style="font-size:10px; font-weight:800; color:#93C5FD; text-transform:uppercase;">Faturamento Médio / Vendedor</div>
+          <div style="font-size:21px; font-weight:900; color:#FFFFFF; margin-top:2px;">R$ 150,4k vs R$ 101,4k</div>
+          <div style="font-size:11px; color:#BFDBFE;">+48,3% de venda e comissão direta</div>
+        </div>
+        <div style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:10px; padding:10px 12px;">
+          <div style="font-size:10px; font-weight:800; color:#FCD34D; text-transform:uppercase;">% Meta de Faturamento</div>
+          <div style="font-size:21px; font-weight:900; color:#FFFFFF; margin-top:2px;">112,3% vs 95,1%</div>
+          <div style="font-size:11px; color:#FDE68A;">Quem converte +Mix passa dos 100%</div>
+        </div>
+        <div style="background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.3); border-radius:10px; padding:10px 12px;">
+          <div style="font-size:10px; font-weight:800; color:#D8B4FE; text-transform:uppercase;">Potencial (+0,3 SKU / Cliente)</div>
+          <div style="font-size:21px; font-weight:900; color:#FFFFFF; margin-top:2px;">+R$ 937,1 mil/mês</div>
+          <div style="font-size:11px; color:#E9D5FF;">Se 3 em cada 10 clientes levarem +1 item</div>
+        </div>
+      </div>
+
+      <div style="font-size:11.5px; font-weight:800; color:#6EE7B7; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">1. Impacto na Remuneração por Volume de Conversão do +Mix (4 Quartis da Equipe · Outubro/2026)</div>
+      <div style="overflow-x:auto; margin-bottom:14px;">
+        <table class="modal-table" style="width:100%; border-collapse:collapse; font-size:11.5px;">
+          <thead>
+            <tr style="border-bottom:2px solid rgba(255,255,255,0.15); color:#94A3B8; text-transform:uppercase; font-size:10.5px;">
+              <th style="padding:6px 8px; text-align:left;">Grupo de Conversão (+Mix no Mês)</th>
+              <th style="padding:6px 8px; text-align:center;">SKUs Novos via +Mix</th>
+              <th style="padding:6px 8px; text-align:center;">Clientes Posit.</th>
+              <th style="padding:6px 8px; text-align:right;">Faturado / Vend.</th>
+              <th style="padding:6px 8px; text-align:center;">% Meta Fat.</th>
+              <th style="padding:6px 8px; text-align:center;">% Meta Posit.</th>
+              <th style="padding:6px 8px; text-align:center; color:#6EE7B7;">Ganham Prêmio (G1/G2)</th>
+              <th style="padding:6px 8px; text-align:center;">Pontos Liga</th>
+            </tr>
+          </thead>
+          <tbody style="color:#E2E8F0;">
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+              <td style="padding:6px 8px; font-weight:700; color:#F87171;">1º Quartil — Baixa Conversão (74 RCAs)</td>
+              <td style="padding:6px 8px; text-align:center;">0 a 7 SKUs (méd. 3,2)</td>
+              <td style="padding:6px 8px; text-align:center;">39,8 PDVs</td>
+              <td style="padding:6px 8px; text-align:right;">R$ 101.434</td>
+              <td style="padding:6px 8px; text-align:center; color:#F87171; font-weight:700;">95,1%</td>
+              <td style="padding:6px 8px; text-align:center; color:#F87171;">73,7%</td>
+              <td style="padding:6px 8px; text-align:center; font-weight:800; color:#F87171;">61,1%</td>
+              <td style="padding:6px 8px; text-align:center;">11,5 pts</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+              <td style="padding:6px 8px; font-weight:700; color:#FCD34D;">2º Quartil — Conversão Média-Baixa (75 RCAs)</td>
+              <td style="padding:6px 8px; text-align:center;">7 a 17 SKUs (méd. 11,9)</td>
+              <td style="padding:6px 8px; text-align:center;">70,2 PDVs</td>
+              <td style="padding:6px 8px; text-align:right;">R$ 113.325</td>
+              <td style="padding:6px 8px; text-align:center; color:#FCD34D; font-weight:700;">103,3%</td>
+              <td style="padding:6px 8px; text-align:center; color:#34D399;">98,8%</td>
+              <td style="padding:6px 8px; text-align:center; font-weight:800; color:#FCD34D;">84,2%</td>
+              <td style="padding:6px 8px; text-align:center;">14,9 pts</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+              <td style="padding:6px 8px; font-weight:700; color:#93C5FD;">3º Quartil — Conversão Média-Alta (74 RCAs)</td>
+              <td style="padding:6px 8px; text-align:center;">17 a 29 SKUs (méd. 22,1)</td>
+              <td style="padding:6px 8px; text-align:center;">85,0 PDVs</td>
+              <td style="padding:6px 8px; text-align:right;">R$ 146.903</td>
+              <td style="padding:6px 8px; text-align:center; color:#34D399; font-weight:700;">111,8%</td>
+              <td style="padding:6px 8px; text-align:center; color:#34D399;">98,8%</td>
+              <td style="padding:6px 8px; text-align:center; font-weight:800; color:#34D399;">92,0%</td>
+              <td style="padding:6px 8px; text-align:center;">21,4 pts</td>
+            </tr>
+            <tr style="background:rgba(16,185,129,0.08);">
+              <td style="padding:6px 8px; font-weight:800; color:#34D399;">4º Quartil — Alta Conversão +Mix (75 RCAs)</td>
+              <td style="padding:6px 8px; text-align:center; font-weight:800; color:#34D399;">29 a 136 SKUs (méd. 44,2)</td>
+              <td style="padding:6px 8px; text-align:center; font-weight:700;">97,6 PDVs</td>
+              <td style="padding:6px 8px; text-align:right; font-weight:800; color:#34D399;">R$ 150.402</td>
+              <td style="padding:6px 8px; text-align:center; color:#34D399; font-weight:800;">112,3%</td>
+              <td style="padding:6px 8px; text-align:center; color:#34D399; font-weight:700;">93,0%</td>
+              <td style="padding:6px 8px; text-align:center; font-weight:900; color:#34D399; font-size:12.5px;">94,5%</td>
+              <td style="padding:6px 8px; text-align:center; font-weight:800; color:#38BDF8;">20,0 pts</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="font-size:11.5px; font-weight:800; color:#FCD34D; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">2. Top 10 Exemplos Reais — Vendedores que Usam Forte o +Mix, Batem Meta e Levam Prêmio (Outubro/2026)</div>
+      <div style="overflow-x:auto;">
+        <table class="modal-table" style="width:100%; border-collapse:collapse; font-size:11px;">
+          <thead>
+            <tr style="border-bottom:2px solid rgba(255,255,255,0.15); color:#94A3B8; text-transform:uppercase; font-size:10px;">
+              <th style="padding:5px 6px; text-align:left;">Filial · RCA</th>
+              <th style="padding:5px 6px; text-align:left;">Vendedor</th>
+              <th style="padding:5px 6px; text-align:center;">Clientes</th>
+              <th style="padding:5px 6px; text-align:center; color:#38BDF8;">Uso +Mix (%)</th>
+              <th style="padding:5px 6px; text-align:center; color:#34D399;">Novos SKUs via +Mix</th>
+              <th style="padding:5px 6px; text-align:center;">Mix / Cli</th>
+              <th style="padding:5px 6px; text-align:center;">% Meta Fat.</th>
+              <th style="padding:5px 6px; text-align:center;">% Meta Posit.</th>
+              <th style="padding:5px 6px; text-align:center; color:#FCD34D;">Prêmio</th>
+            </tr>
+          </thead>
+          <tbody style="color:#E2E8F0;">
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+              <td style="padding:5px 6px; font-weight:700;">TSJ · 1128</td>
+              <td style="padding:5px 6px; font-weight:700;">JOSE APARECIDO DA SILVA</td>
+              <td style="padding:5px 6px; text-align:center;">86</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#38BDF8;">52,7%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#34D399;">136 SKUs</td>
+              <td style="padding:5px 6px; text-align:center;">12,4</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">105,1%</td>
+              <td style="padding:5px 6px; text-align:center;">71,3%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#6EE7B7;">✅ G1</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+              <td style="padding:5px 6px; font-weight:700;">TCA · 378</td>
+              <td style="padding:5px 6px; font-weight:700;">MOISES SENABIO GASPAR</td>
+              <td style="padding:5px 6px; text-align:center;">134</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#38BDF8;">54,7%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#34D399;">123 SKUs</td>
+              <td style="padding:5px 6px; text-align:center;">7,9</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">136,5%</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">113,6%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:900; color:#FCD34D;">🏆 G2 (Máx)</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+              <td style="padding:5px 6px; font-weight:700;">TSJ · 42</td>
+              <td style="padding:5px 6px; font-weight:700;">MONICA SALDANHA DE BRITO</td>
+              <td style="padding:5px 6px; text-align:center;">164</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#38BDF8;">27,8%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#34D399;">84 SKUs</td>
+              <td style="padding:5px 6px; text-align:center;">21,4</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">186,8%</td>
+              <td style="padding:5px 6px; text-align:center;">94,0%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#6EE7B7;">✅ G1</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+              <td style="padding:5px 6px; font-weight:700;">TPH · 65</td>
+              <td style="padding:5px 6px; font-weight:700;">SIRLENE DE FATIMA BORGES</td>
+              <td style="padding:5px 6px; text-align:center;">132</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#38BDF8;">50,6%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#34D399;">79 SKUs</td>
+              <td style="padding:5px 6px; text-align:center;">9,7</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">128,0%</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">189,2%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:900; color:#FCD34D;">🏆 G2 (Máx)</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+              <td style="padding:5px 6px; font-weight:700;">TBL · 1134</td>
+              <td style="padding:5px 6px; font-weight:700;">LIDIANE APARECIDA BARBOSA</td>
+              <td style="padding:5px 6px; text-align:center;">121</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#38BDF8;">53,2%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#34D399;">74 SKUs</td>
+              <td style="padding:5px 6px; text-align:center;">16,0</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">118,7%</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">106,4%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#6EE7B7;">✅ G1</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+              <td style="padding:5px 6px; font-weight:700;">TCG · 488</td>
+              <td style="padding:5px 6px; font-weight:700;">ERIKSON DE MATOS DIAS</td>
+              <td style="padding:5px 6px; text-align:center;">95</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#38BDF8;">55,2%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#34D399;">72 SKUs</td>
+              <td style="padding:5px 6px; text-align:center;">11,5</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">110,7%</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">100,2%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#6EE7B7;">✅ G1</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+              <td style="padding:5px 6px; font-weight:700;">TBL · 189</td>
+              <td style="padding:5px 6px; font-weight:700;">LUAN CARLOS DE SOUZA</td>
+              <td style="padding:5px 6px; text-align:center;">106</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#38BDF8;">50,0%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#34D399;">59 SKUs</td>
+              <td style="padding:5px 6px; text-align:center;">12,4</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">114,7%</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">108,2%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#6EE7B7;">✅ G1</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+              <td style="padding:5px 6px; font-weight:700;">TPH · 100</td>
+              <td style="padding:5px 6px; font-weight:700;">FLORENTINO PIANA NETO</td>
+              <td style="padding:5px 6px; text-align:center;">115</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#38BDF8;">29,3%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#34D399;">59 SKUs</td>
+              <td style="padding:5px 6px; text-align:center;">9,9</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">101,2%</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">150,8%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:900; color:#FCD34D;">🏆 G2 (Máx)</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+              <td style="padding:5px 6px; font-weight:700;">TCA · 375</td>
+              <td style="padding:5px 6px; font-weight:700;">ROMILDO NUNES DE SOUSA</td>
+              <td style="padding:5px 6px; text-align:center;">94</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#38BDF8;">38,3%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#34D399;">49 SKUs</td>
+              <td style="padding:5px 6px; text-align:center;">11,9</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">136,1%</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">101,1%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#6EE7B7;">✅ G1</td>
+            </tr>
+            <tr>
+              <td style="padding:5px 6px; font-weight:700;">TBL · 187</td>
+              <td style="padding:5px 6px; font-weight:700;">JOSE GERALDO CARNEIRO</td>
+              <td style="padding:5px 6px; text-align:center;">149</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#38BDF8;">26,9%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:800; color:#34D399;">48 SKUs</td>
+              <td style="padding:5px 6px; text-align:center;">14,8</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">103,3%</td>
+              <td style="padding:5px 6px; text-align:center; color:#34D399; font-weight:700;">118,4%</td>
+              <td style="padding:5px 6px; text-align:center; font-weight:900; color:#FCD34D;">🏆 G2 (Máx)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `,
+    action: '<strong>D</div>
+    </div>
+  </div>
+
 </div>
 <script>
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -169,11 +411,16 @@ document.querySelectorAll('#tabs button').forEach((b) => b.onclick = () => {
   if (b.dataset.s === 'graf') graficos(); if (b.dataset.s === 'quinz') quinzenas(); if (b.dataset.s === 'cubo') { if (window._cuboPend) { window._cuboPend = false; filtrosCubo(); } else cubo(); } if (b.dataset.s === 'comp') { if (window._pVend) { const f = window._pVend; window._pVend = null; f(); } else comparar(); }
 });
 
-async function carrega() {
-  for (const u of ['/dados_mix.json?t=' + Date.now()]) {
+let mesSelecionado = 'atual';
+async function carrega(mes) {
+  if (mes) mesSelecionado = mes;
+  const urlBase = mesSelecionado === '2026-10' ? '/dados_mix_2026-10.json' : '/dados_mix.json';
+  $('sub').textContent = 'Carregando dados de ' + (mesSelecionado === '2026-10' ? 'Outubro/2026' : 'Novembro/2026') + '...';
+  D = null;
+  for (const u of [urlBase + '?t=' + Date.now()]) {
     try { const r = await fetch(u, { cache: 'no-store' }); if (r.ok) { D = await r.json(); break; } } catch (e) {}
   }
-  if (!D) { $('sub').textContent = 'Ainda sem dados: o cálculo está rodando. Volte em alguns minutos.'; return; }
+  if (!D) { $('sub').textContent = 'Ainda sem dados para este mês. Volte em alguns minutos.'; return; }
   const R = D.resumo;
   $('sub').textContent = `Mês ${D.mes} · dados até ${D.dados_ate.split('-').reverse().join('/')} · só Varejo · ${nf(R.vendedores)} vendedores · gerado em ${new Date(D.gerado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`;
   $('kpis').innerHTML = [[nf(R.clientes_com_mix), 'clientes que compraram depois de ter a lista gravada'], [nf(R.clientes_que_usaram), 'compraram produto NOVO que estava no +MIX'],
@@ -182,6 +429,24 @@ async function carrega() {
   resumo(); filtros(); tabelaV(); window._cuboPend = true;
   $('defs').innerHTML = Object.entries(D.definicoes || {}).map(([k, v]) => `<b>${esc(k.replace(/_/g, ' '))}:</b> ${esc(v)}`).join('<br>');
 }
+
+// Vincula eventos do seletor e modal
+setTimeout(() => {
+  const sm = $('selMes');
+  if (sm) {
+    sm.onchange = () => carrega(sm.value);
+  }
+  const btnAud = $('btnAuditoriaMix');
+  const mod = $('modalAuditoria');
+  const fch = $('fecharModalAuditoria');
+  if (btnAud && mod) {
+    btnAud.onclick = () => { mod.style.display = 'block'; };
+  }
+  if (fch && mod) {
+    fch.onclick = () => { mod.style.display = 'none'; };
+    mod.onclick = (e) => { if (e.target === mod) mod.style.display = 'none'; };
+  }
+}, 100);
 
 // RESUMO COM FILTROS (Vitorio, 21/10/2026: "nao entendi esses graficos... coloque filtro para ver por CNAE, por filial e etc")
 // Os vendedores do filtro sao divididos em 4 grupos pelo uso do +MIX (do que menos usa ao que mais usa) e cada grafico compara os 4 grupos.
