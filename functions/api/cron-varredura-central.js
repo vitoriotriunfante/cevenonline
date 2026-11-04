@@ -984,7 +984,8 @@ export async function onRequestGet({ env, request }) {
         if (!av || Date.now() - Number(av.valor) > 3600000) {
           await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('aviso_atraso_em', ?, 'ultimo aviso de atraso acima de 15 min', datetime('now')) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = excluded.atualizado_em").bind(Date.now()).run();
           const eu = await env.DB.prepare("SELECT celular FROM bot_contatos WHERE nome = 'VITORIO' AND papel = 'diretoria' LIMIT 1").first();
-          if (eu) await R.enviarTexto(R.evoCfg(env), eu.celular, `⚠️ *Dados acima de 15 min:* faturado de ${f.dash} vendedores e ${f.casc} filiais na chamada do gerente.`);
+          // DESATIVADO (04/11/2026 - Vitorio): alertas tecnicos nao vao pro WhatsApp, ficam estritamente no /saude
+          // if (eu) await R.enviarTexto(...)
         }
       }
     } catch { /* o aviso nunca derruba a coleta */ } }

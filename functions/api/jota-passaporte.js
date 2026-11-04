@@ -114,7 +114,11 @@ export async function onRequestPost({ request, env }) {
     `• *Supervisor:* ${titulo(supervisor)}`,
     `• *Indicadores / Perguntas desejadas:* _"${indicadores.slice(0, 300)}"_`,
     '',
-    `⏳ *Assim que aprovarmos o seu acesso, você receberá aqui mesmo no WhatsApp todas as instruções para usar o Jota no seu dia a dia!* 🚀`,
+    `⚠️ *PASSO OBRIGATÓRIO AGORA:*
+Salve este número nos seus contatos agora como *Jota (+MIX)* e me responda aqui com a palavra: *SIM*.
+_Sem salvar o contato na sua agenda, o WhatsApp não entrega as nossas mensagens e o seu acesso não será ativado._
+
+⏳ *Assim que aprovarmos o seu acesso, você receberá aqui mesmo no WhatsApp todas as instruções para usar o Jota no seu dia a dia!* 🚀`,
     '',
     `_Jota · Meu DNA é Triunfante!_`
   ].join('\n');

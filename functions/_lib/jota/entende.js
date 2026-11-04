@@ -343,6 +343,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (/^\W*(MEU )?TICKET( MEDIO)?\W*$/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return v.ped ? `🧾 *Ticket médio de hoje — ${vn(v)}*: *${R$(v.dig / v.ped)}* (${R$(v.dig)} ÷ ${N(v.ped)} pedidos)` : `🧾 *Ticket médio de hoje — ${vn(v)}*: ainda sem pedido hoje.`; }
       if (/COMISS/.test(t) && /SELL.?OUT|POSITIVA|RESULTADO|VENDAS?\b/.test(t) && !/SEM (COMPRA|VENDA)|NAO COMPR/.test(t)) { const r = await reenvia(`como esta o ${eu}`); return `💰 A *comissão em R$* ainda não está no ar aqui no Jota. O resto:\n\n${r}`; }
       if (/COMISS/.test(t) && /SEM (COMPRA|VENDA)|NAO COMPR/.test(t)) { const cn = await curvaOuDirecao(); return `💰 A *comissão em R$* ainda não está no ar aqui no Jota.\n\n${cn}`; }
+      if (/^\W*(SIM|OK|SALVEI|SALVO|CONFIRMADO)\W*$/i.test(t)) return reenvia(`como esta o ${eu}`);
       if (/^\W*(CLIENTES? )?SEM (COMPRAS?|VENDAS?)\W*$/.test(t)) return curvaOuDirecao();
       if (/(QUANTO VENDI|MINHAS? VENDAS?).*\b(MES|ACUMULADO)\b/.test(t)) return reenvia(`como esta o ${eu}`);   // "no mes" nao e o digitado de hoje (teste com vendas de outubro, 01/11/2026)
       if (/QUANTO VENDI|VENDI HOJE|MINHAS? VENDAS? (DE )?HOJE/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respDiaVendedor(B, Ev, v); }
