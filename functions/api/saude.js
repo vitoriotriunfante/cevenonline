@@ -180,7 +180,7 @@ export async function onRequestGet({ env, request }) {
     if (Math.abs(mm.total.meta_fat - mx.resumo.TODAS.mesMetaFaturado) > 1) add('critico', 'metas', `Matriz (R$ ${metas.matriz_mostra.toLocaleString('pt-BR')}) e Executiva (R$ ${metas.executiva_mostra.toLocaleString('pt-BR')}) mostram metas diferentes.`);
   }
   if (linhas.length && nFilResumo < 11) add('atencao', 'metas', `Resumo do mês com ${nFilResumo}/11 filiais (a Matriz pode estar mostrando meta parcial).`);
-  else if (todas && Math.abs(todas.meta - somaMeta) > Math.max(1000, somaMeta * 0.01)) add('atencao', 'metas', `Meta da Matriz (R$ ${Math.round(todas.meta).toLocaleString('pt-BR')}) difere da soma dos RCAs (R$ ${Math.round(somaMeta).toLocaleString('pt-BR')}); recalcula em até 15 min.`);
+  else if (todas && Math.abs(todas.meta - metas.soma_dos_rcas) > Math.max(1000, metas.soma_dos_rcas * 0.01)) add('atencao', 'metas', `Meta da Matriz (R$ ${Math.round(todas.meta).toLocaleString('pt-BR')}) difere da soma dos RCAs (R$ ${Math.round(metas.soma_dos_rcas).toLocaleString('pt-BR')}); recalcula em até 15 min.`);
 
   // ---------- 7. lances do dia ----------
   const lances = await safe(async () => await env.DB.prepare("SELECT COUNT(*) AS n, MAX(hora_sp) AS ultima FROM tv_lances WHERE dia = ?").bind(dia).first());
