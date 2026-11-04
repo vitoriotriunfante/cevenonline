@@ -73,29 +73,266 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
   canvas{max-height:360px}
 </style></head>
 <body><div class="wrap">
-  <header>
-    <div>
-      <h1>🧩 Uso do +MIX</h1>
-      <div class="sub" id="sub">carregando…</div>
-    </div>
-    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-      <div style="display:flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:4px 10px;">
-        <span style="font-size:12px; font-weight:700; color:var(--mut);">MÊS:</span>
-        <select id="selMes" style="background:transparent; border:0; color:var(--tx); font-weight:800; font-size:13.5px; cursor:pointer; outline:none; padding:4px 2px;">
-          <option value="atual">Novembro/2026 (atual em andamento)</option>
-          <option value="2026-10">Outubro/2026 (fechamento oficial auditado)</option>
+  <header style="margin-bottom:12px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+      <div>
+        <h1 style="display:flex; align-items:center; gap:8px; font-size:24px; font-weight:800; margin:0;">
+          <span>🧩</span> Uso do +MIX
+        </h1>
+        <div class="sub" id="sub" style="margin-top:2px;">carregando…</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:6px 14px;">
+        <span style="font-size:11px; font-weight:800; color:var(--mut); text-transform:uppercase; letter-spacing:0.5px;">Período Analisado:</span>
+        <select id="selMes" style="background:transparent; border:0; color:var(--tx); font-weight:800; font-size:13.5px; cursor:pointer; outline:none; padding:2px;">
+          <option value="atual">Novembro / 2026 (Atual em andamento)</option>
+          <option value="2026-10">Outubro / 2026 (Fechamento consolidado)</option>
         </select>
       </div>
-      <button id="btnAuditoriaMix" style="background:rgba(16,185,129,0.15); border:1px solid #10B981; color:#6EE7B7; font-weight:800; border-radius:10px; padding:7px 14px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
-        📊 Auditoria Oficial (Remuneração & Prêmio)
-      </button>
-      <div class="sub" style="margin:0;">Estudo · não pontua na Liga</div>
     </div>
   </header>
-  <nav class="tabs" id="tabs">
-    <button data-s="resumo" class="on">Resumo</button><button data-s="cubo">Explorar</button><button data-s="graf">Gráficos</button><button data-s="comp">Comparar vendedores</button>
-    <button data-s="vend">Vendedores</button><button data-s="quinz">Quinzenas</button>
+
+  <nav class="tabs" id="tabs" style="border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:16px;">
+    <button data-s="resumo" class="on">📊 Resumo Geral</button>
+    <button data-s="estudo">💎 Estudo de Impacto (Meta & Prêmio)</button>
+    <button data-s="cubo">Explorar</button>
+    <button data-s="graf">Gráficos</button>
+    <button data-s="comp">Comparar Vendedores</button>
+    <button data-s="vend">Lista de Vendedores</button>
+    <button data-s="quinz">Quinzenas</button>
   </nav>
+
+
+  <section id="s-estudo">
+    <div class="insight" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <div>
+        <span class="chip" style="background:rgba(56,189,248,0.15); color:var(--acc); border:1px solid rgba(56,189,248,0.3); margin-right:8px;">AUDITORIA OFICIAL CEVEN</span>
+        <b>Como o Uso do +Mix Aumenta o Salário, o Batimento de Meta e o Prêmio (G1/G2)</b>
+        <div style="font-size:12.5px; color:var(--mut); margin-top:4px;">
+          Auditoria oficial em 298 vendedores de Varejo e 22.128 clientes positivados (10.636 com lista gravada antes da visita; 3.056 converteram 6.159 novos SKUs).
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 CARDS HERO -->
+    <div class="kpis" style="margin-top:14px; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));">
+      <div class="k" style="border-left:4px solid var(--ok);">
+        <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; font-weight:800; color:var(--ok);">Vendedores com Prêmio (Q4 vs Q1)</span>
+        <b style="font-size:28px; margin:4px 0 2px; color:var(--tx);">94,5% <span style="font-size:16px; font-weight:500; color:var(--mut);">vs 61,1%</span></b>
+        <span style="color:var(--ok); font-weight:700;">+33,4 p.p. de chance de ganhar G1/G2</span>
+      </div>
+      <div class="k" style="border-left:4px solid var(--acc);">
+        <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; font-weight:800; color:var(--acc);">Faturamento Médio / Vendedor</span>
+        <b style="font-size:28px; margin:4px 0 2px; color:var(--tx);">R$ 150,4k <span style="font-size:16px; font-weight:500; color:var(--mut);">vs R$ 101,4k</span></b>
+        <span style="color:var(--acc); font-weight:700;">+48,3% de venda e comissão direta</span>
+      </div>
+      <div class="k" style="border-left:4px solid var(--warn);">
+        <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; font-weight:800; color:var(--warn);">% Meta de Faturamento</span>
+        <b style="font-size:28px; margin:4px 0 2px; color:var(--tx);">112,3% <span style="font-size:16px; font-weight:500; color:var(--mut);">vs 95,1%</span></b>
+        <span style="color:var(--warn); font-weight:700;">Quem converte +Mix passa dos 100%</span>
+      </div>
+      <div class="k" style="border-left:4px solid #a855f7;">
+        <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; font-weight:800; color:#c084fc;">Potencial (+0,3 SKU / Cliente)</span>
+        <b style="font-size:28px; margin:4px 0 2px; color:var(--tx);">+R$ 937,1 mil<span style="font-size:16px; font-weight:500; color:var(--mut);">/mês</span></b>
+        <span style="color:#c084fc; font-weight:700;">Se 3 em 10 clientes levarem +1 item</span>
+      </div>
+    </div>
+
+    <!-- TABELA 1: QUARTIS -->
+    <h2>1. Impacto na Remuneração por Volume de Conversão do +Mix (4 Quartis da Equipe)</h2>
+    <div class="box">
+      <table>
+        <thead>
+          <tr>
+            <th class="l">Grupo de Conversão (+Mix no Mês)</th>
+            <th>SKUs Novos via +Mix</th>
+            <th>Clientes Posit.</th>
+            <th>Faturado / Vend.</th>
+            <th>% Meta Fat.</th>
+            <th>% Meta Posit.</th>
+            <th style="color:var(--ok);">Ganham Prêmio (G1/G2)</th>
+            <th>Pontos Liga</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="l" style="font-weight:700; color:var(--bad);">1º Quartil — Baixa Conversão (74 RCAs)</td>
+            <td>0 a 7 SKUs (méd. 3,2)</td>
+            <td>39,8 PDVs</td>
+            <td>R$ 101.434</td>
+            <td style="color:var(--bad); font-weight:800;">95,1%</td>
+            <td style="color:var(--bad);">73,7%</td>
+            <td style="font-weight:900; color:var(--bad);">61,1%</td>
+            <td>11,5 pts</td>
+          </tr>
+          <tr>
+            <td class="l" style="font-weight:700; color:var(--warn);">2º Quartil — Conversão Média-Baixa (75 RCAs)</td>
+            <td>7 a 17 SKUs (méd. 11,9)</td>
+            <td>70,2 PDVs</td>
+            <td>R$ 113.325</td>
+            <td style="color:var(--warn); font-weight:800;">103,3%</td>
+            <td style="color:var(--ok);">98,8%</td>
+            <td style="font-weight:900; color:var(--warn);">84,2%</td>
+            <td>14,9 pts</td>
+          </tr>
+          <tr>
+            <td class="l" style="font-weight:700; color:var(--acc);">3º Quartil — Conversão Média-Alta (74 RCAs)</td>
+            <td>17 a 29 SKUs (méd. 22,1)</td>
+            <td>85,0 PDVs</td>
+            <td>R$ 146.903</td>
+            <td style="color:var(--ok); font-weight:800;">111,8%</td>
+            <td style="color:var(--ok);">98,8%</td>
+            <td style="font-weight:900; color:var(--ok);">92,0%</td>
+            <td>21,4 pts</td>
+          </tr>
+          <tr style="background:rgba(34,197,94,0.06);">
+            <td class="l" style="font-weight:800; color:var(--ok);">4º Quartil — Alta Conversão +Mix (75 RCAs)</td>
+            <td style="font-weight:800; color:var(--ok);">29 a 136 SKUs (méd. 44,2)</td>
+            <td style="font-weight:700;">97,6 PDVs</td>
+            <td style="font-weight:800; color:var(--ok);">R$ 150.402</td>
+            <td style="color:var(--ok); font-weight:900;">112,3%</td>
+            <td style="color:var(--ok); font-weight:800;">93,0%</td>
+            <td style="font-weight:900; color:var(--ok); font-size:14px;">94,5%</td>
+            <td style="font-weight:800; color:var(--acc);">20,0 pts</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="leg">
+        Vendedores divididos em 4 blocos ordenados pelo volume real de conversão de novos SKUs recomendados pelo +MIX.
+      </div>
+    </div>
+
+    <!-- TABELA 2: TOP 10 REAIS -->
+    <h2>2. Top 10 Exemplos Reais — Vendedores que Usam Forte o +Mix, Batem Meta e Levam Prêmio</h2>
+    <div class="box">
+      <table>
+        <thead>
+          <tr>
+            <th class="l">Filial · RCA</th>
+            <th class="l">Vendedor</th>
+            <th>Clientes</th>
+            <th style="color:var(--acc);">Uso +Mix (%)</th>
+            <th style="color:var(--ok);">Novos SKUs via +Mix</th>
+            <th>Mix / Cli</th>
+            <th>% Meta Fat.</th>
+            <th>% Meta Posit.</th>
+            <th style="color:var(--warn);">Prêmio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="l" style="font-weight:700;">TSJ · 1128</td>
+            <td class="l" style="font-weight:700;">JOSE APARECIDO DA SILVA</td>
+            <td>86</td>
+            <td style="font-weight:800; color:var(--acc);">52,7%</td>
+            <td style="font-weight:800; color:var(--ok);">136 SKUs</td>
+            <td>12,4</td>
+            <td style="color:var(--ok); font-weight:800;">105,1%</td>
+            <td>71,3%</td>
+            <td style="font-weight:800; color:var(--ok);"><span class="chip" style="background:rgba(34,197,94,0.15); color:var(--ok);">✅ G1</span></td>
+          </tr>
+          <tr>
+            <td class="l" style="font-weight:700;">TCA · 378</td>
+            <td class="l" style="font-weight:700;">MOISES SENABIO GASPAR</td>
+            <td>134</td>
+            <td style="font-weight:800; color:var(--acc);">54,7%</td>
+            <td style="font-weight:800; color:var(--ok);">123 SKUs</td>
+            <td>7,9</td>
+            <td style="color:var(--ok); font-weight:800;">136,5%</td>
+            <td style="color:var(--ok); font-weight:800;">113,6%</td>
+            <td style="font-weight:900; color:var(--warn);"><span class="chip" style="background:rgba(245,158,11,0.15); color:var(--warn);">🏆 G2 (Máx)</span></td>
+          </tr>
+          <tr>
+            <td class="l" style="font-weight:700;">TSJ · 42</td>
+            <td class="l" style="font-weight:700;">MONICA SALDANHA DE BRITO</td>
+            <td>164</td>
+            <td style="font-weight:800; color:var(--acc);">27,8%</td>
+            <td style="font-weight:800; color:var(--ok);">84 SKUs</td>
+            <td>21,4</td>
+            <td style="color:var(--ok); font-weight:800;">186,8%</td>
+            <td style="color:var(--ok); font-weight:800;">94,0%</td>
+            <td style="font-weight:800; color:var(--ok);"><span class="chip" style="background:rgba(34,197,94,0.15); color:var(--ok);">✅ G1</span></td>
+          </tr>
+          <tr>
+            <td class="l" style="font-weight:700;">TPH · 65</td>
+            <td class="l" style="font-weight:700;">SIRLENE DE FATIMA BORGES</td>
+            <td>132</td>
+            <td style="font-weight:800; color:var(--acc);">50,6%</td>
+            <td style="font-weight:800; color:var(--ok);">79 SKUs</td>
+            <td>9,7</td>
+            <td style="color:var(--ok); font-weight:800;">128,0%</td>
+            <td style="color:var(--ok); font-weight:800;">189,2%</td>
+            <td style="font-weight:900; color:var(--warn);"><span class="chip" style="background:rgba(245,158,11,0.15); color:var(--warn);">🏆 G2 (Máx)</span></td>
+          </tr>
+          <tr>
+            <td class="l" style="font-weight:700;">TBL · 1134</td>
+            <td class="l" style="font-weight:700;">LIDIANE APARECIDA BARBOSA</td>
+            <td>121</td>
+            <td style="font-weight:800; color:var(--acc);">53,2%</td>
+            <td style="font-weight:800; color:var(--ok);">74 SKUs</td>
+            <td>16,0</td>
+            <td style="color:var(--ok); font-weight:800;">118,7%</td>
+            <td style="color:var(--ok); font-weight:800;">106,4%</td>
+            <td style="font-weight:800; color:var(--ok);"><span class="chip" style="background:rgba(34,197,94,0.15); color:var(--ok);">✅ G1</span></td>
+          </tr>
+          <tr>
+            <td class="l" style="font-weight:700;">TCG · 488</td>
+            <td class="l" style="font-weight:700;">ERIKSON DE MATOS DIAS</td>
+            <td>95</td>
+            <td style="font-weight:800; color:var(--acc);">55,2%</td>
+            <td style="font-weight:800; color:var(--ok);">72 SKUs</td>
+            <td>11,5</td>
+            <td style="color:var(--ok); font-weight:800;">110,7%</td>
+            <td style="color:var(--ok); font-weight:800;">100,2%</td>
+            <td style="font-weight:800; color:var(--ok);"><span class="chip" style="background:rgba(34,197,94,0.15); color:var(--ok);">✅ G1</span></td>
+          </tr>
+          <tr>
+            <td class="l" style="font-weight:700;">TBL · 189</td>
+            <td class="l" style="font-weight:700;">LUAN CARLOS DE SOUZA</td>
+            <td>106</td>
+            <td style="font-weight:800; color:var(--acc);">50,0%</td>
+            <td style="font-weight:800; color:var(--ok);">59 SKUs</td>
+            <td>12,4</td>
+            <td style="color:var(--ok); font-weight:800;">114,7%</td>
+            <td style="color:var(--ok); font-weight:800;">108,2%</td>
+            <td style="font-weight:800; color:var(--ok);"><span class="chip" style="background:rgba(34,197,94,0.15); color:var(--ok);">✅ G1</span></td>
+          </tr>
+          <tr>
+            <td class="l" style="font-weight:700;">TPH · 100</td>
+            <td class="l" style="font-weight:700;">FLORENTINO PIANA NETO</td>
+            <td>115</td>
+            <td style="font-weight:800; color:var(--acc);">29,3%</td>
+            <td style="font-weight:800; color:var(--ok);">59 SKUs</td>
+            <td>9,9</td>
+            <td style="color:var(--ok); font-weight:800;">101,2%</td>
+            <td style="color:var(--ok); font-weight:800;">150,8%</td>
+            <td style="font-weight:900; color:var(--warn);"><span class="chip" style="background:rgba(245,158,11,0.15); color:var(--warn);">🏆 G2 (Máx)</span></td>
+          </tr>
+          <tr>
+            <td class="l" style="font-weight:700;">TCA · 375</td>
+            <td class="l" style="font-weight:700;">ROMILDO NUNES DE SOUSA</td>
+            <td>94</td>
+            <td style="font-weight:800; color:var(--acc);">38,3%</td>
+            <td style="font-weight:800; color:var(--ok);">49 SKUs</td>
+            <td>11,9</td>
+            <td style="color:var(--ok); font-weight:800;">136,1%</td>
+            <td style="color:var(--ok); font-weight:800;">101,1%</td>
+            <td style="font-weight:800; color:var(--ok);"><span class="chip" style="background:rgba(34,197,94,0.15); color:var(--ok);">✅ G1</span></td>
+          </tr>
+          <tr>
+            <td class="l" style="font-weight:700;">TBL · 187</td>
+            <td class="l" style="font-weight:700;">JOSE GERALDO CARNEIRO</td>
+            <td>149</td>
+            <td style="font-weight:800; color:var(--acc);">26,9%</td>
+            <td style="font-weight:800; color:var(--ok);">48 SKUs</td>
+            <td>14,8</td>
+            <td style="color:var(--ok); font-weight:800;">103,3%</td>
+            <td style="color:var(--ok); font-weight:800;">118,4%</td>
+            <td style="font-weight:900; color:var(--warn);"><span class="chip" style="background:rgba(245,158,11,0.15); color:var(--warn);">🏆 G2 (Máx)</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
   <section id="s-resumo" class="on">
     <div class="insight"><b>✅ Uso do +MIX REAL desde 21/10.</b> A lista do +MIX de cada cliente é gravada <b>antes da visita</b> (de madrugada). "Usou" = o cliente comprou um produto <b>novo</b> para ele que estava nessa lista gravada <b>antes</b> da compra. Só contam compras de 21/10 em diante, então a base ainda é pequena e fica mais firme a cada dia. Vendedor com menos de 3 clientes nessa condição aparece sem uso.</div>
@@ -170,36 +407,7 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
   </section>
   <div class="leg" id="defs"></div>
 
-  <!-- MODAL AUDITORIA OFICIAL CEVEN (OUTUBRO/2026) -->
-  <div id="modalAuditoria" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; overflow-y:auto; padding:20px; backdrop-filter:blur(4px);">
-    <div style="max-width:1100px; margin:20px auto; background:#0B132B; border:1px solid #1E293B; border-radius:16px; padding:24px; color:#F8FAFC; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); position:relative;">
-      <button id="fecharModalAuditoria" style="position:absolute; top:18px; right:18px; background:rgba(255,255,255,0.1); border:0; color:#CBD5E1; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:16px; font-weight:800; display:flex; align-items:center; justify-content:center;">✕</button>
-      <div style="display:inline-block; font-size:10px; font-weight:800; letter-spacing:0.8px; color:#34D399; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); padding:3px 8px; border-radius:6px; margin-bottom:8px;">AUDITORIA OFICIAL CEVEN · REMUNERAÇÃO, META E PRÊMIO (OUTUBRO/2026)</div>
-      <h2 style="font-size:22px; font-weight:900; color:#FFFFFF; margin:0 0 4px; text-transform:none; letter-spacing:normal;">Como o Uso do +Mix Aumenta o Salário, o Batimento de Meta e o Prêmio (G1/G2)</h2>
-      <div style="font-size:12.5px; color:#94A3B8; margin-bottom:18px; line-height:1.4;">Auditoria real em 298 vendedores de Varejo e 22.128 clientes positivados até 30/10/2026 (10.636 clientes com lista +Mix gravada antes da visita; 3.056 clientes converteram 6.159 novos SKUs).</div>
-      <div id="modalAuditoriaCorpo">
-      <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:14px;">
-        <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:10px 12px;">
-          <div style="font-size:10px; font-weight:800; color:#6EE7B7; text-transform:uppercase;">Vendedores com Prêmio (Q4 vs Q1)</div>
-          <div style="font-size:21px; font-weight:900; color:#FFFFFF; margin-top:2px;">94,5% vs 61,1%</div>
-          <div style="font-size:11px; color:#A7F3D0;">+33,4 p.p. de chance de ganhar G1/G2</div>
-        </div>
-        <div style="background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.3); border-radius:10px; padding:10px 12px;">
-          <div style="font-size:10px; font-weight:800; color:#93C5FD; text-transform:uppercase;">Faturamento Médio / Vendedor</div>
-          <div style="font-size:21px; font-weight:900; color:#FFFFFF; margin-top:2px;">R$ 150,4k vs R$ 101,4k</div>
-          <div style="font-size:11px; color:#BFDBFE;">+48,3% de venda e comissão direta</div>
-        </div>
-        <div style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:10px; padding:10px 12px;">
-          <div style="font-size:10px; font-weight:800; color:#FCD34D; text-transform:uppercase;">% Meta de Faturamento</div>
-          <div style="font-size:21px; font-weight:900; color:#FFFFFF; margin-top:2px;">112,3% vs 95,1%</div>
-          <div style="font-size:11px; color:#FDE68A;">Quem converte +Mix passa dos 100%</div>
-        </div>
-        <div style="background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.3); border-radius:10px; padding:10px 12px;">
-          <div style="font-size:10px; font-weight:800; color:#D8B4FE; text-transform:uppercase;">Potencial (+0,3 SKU / Cliente)</div>
-          <div style="font-size:21px; font-weight:900; color:#FFFFFF; margin-top:2px;">+R$ 937,1 mil/mês</div>
-          <div style="font-size:11px; color:#E9D5FF;">Se 3 em cada 10 clientes levarem +1 item</div>
-        </div>
-      </div>
+  
 
       <div style="font-size:11.5px; font-weight:800; color:#6EE7B7; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">1. Impacto na Remuneração por Volume de Conversão do +Mix (4 Quartis da Equipe · Outubro/2026)</div>
       <div style="overflow-x:auto; margin-bottom:14px;">
@@ -430,22 +638,9 @@ async function carrega(mes) {
   $('defs').innerHTML = Object.entries(D.definicoes || {}).map(([k, v]) => `<b>${esc(k.replace(/_/g, ' '))}:</b> ${esc(v)}`).join('<br>');
 }
 
-// Vincula eventos do seletor e modal
 setTimeout(() => {
   const sm = $('selMes');
-  if (sm) {
-    sm.onchange = () => carrega(sm.value);
-  }
-  const btnAud = $('btnAuditoriaMix');
-  const mod = $('modalAuditoria');
-  const fch = $('fecharModalAuditoria');
-  if (btnAud && mod) {
-    btnAud.onclick = () => { mod.style.display = 'block'; };
-  }
-  if (fch && mod) {
-    fch.onclick = () => { mod.style.display = 'none'; };
-    mod.onclick = (e) => { if (e.target === mod) mod.style.display = 'none'; };
-  }
+  if (sm) sm.onchange = () => carrega(sm.value);
 }, 100);
 
 // RESUMO COM FILTROS (Vitorio, 21/10/2026: "nao entendi esses graficos... coloque filtro para ver por CNAE, por filial e etc")
