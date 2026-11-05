@@ -821,7 +821,7 @@ async function desenhaMapa() {
   const pts = []; MKS.clear(); let n = 0;
   const sit = PROD ? new Map((await situacoes(W, PROD.c)).map((x) => [x.cn, x])) : null;
   const comp = PROD ? await compradores([a, b]) : null;
-  [[a, cor('--a'), v === a ? 'vendA' : 'vendB'], [b, cor('--b'), v === b ? 'vendB' : 'vendA']].forEach(([v, c, tagVend]) => (v.pontos || []).forEach(([la, lo, st, cnpj, tp]) => {
+  [[a, cor('--a'), 'vendA'], [b, cor('--b'), 'vendB']].forEach(([v, c, tagVend]) => (v.pontos || []).forEach(([la, lo, st, cnpj, tp]) => {
     if (la == null || lo == null || isNaN(la) || isNaN(lo) || la < -35 || la > 6 || lo < -75 || lo > -30) return;
     if (tipo && tp && tp !== tipo) return;
     
