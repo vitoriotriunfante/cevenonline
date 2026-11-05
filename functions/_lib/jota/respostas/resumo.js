@@ -237,15 +237,25 @@ export function respTodosVendedores(E) {
   return [`👥 *${E.nome} — vendedor por vendedor* (do mais atrás para o mais à frente)`, '',
     ...V.map(({ v, pct, falta }) => `• *${vn(v)}*: ${pct == null ? 'sem meta' : pctTxt(pct)} da meta · falta ${R$(falta)} · positivação ${v.pos ?? '—'}/${v.metaPos ?? '—'} · hoje ${R$(v.dig)}`),
     '',
-    '📲 *Quer encaminhar a situação individual para cada um?*',
-    'Digite *1* (ou mande *"1 por vendedor"*) que eu te envio uma mensagem individual pronta de cada vendedor para você encaminhar direto a eles no WhatsApp!',
-    '',
-    '_% = (faturado + pendente) ÷ meta, igual ao CEVEN. Peça "vendedor <nome>" para o detalhe de um._'].join('\n');
+    '_% = (faturado + pendente) ÷ meta, igual ao CEVEN. Peça "vendedor <nome>" para ver a ficha completa e encaminhar._'].join('\n');
 }
 
 // MENSAGENS INDIVIDUAIS POR VENDEDOR PARA ENCAMINHAR (Vitorio, 29/10/2026):
 // Quando o supervisor digita 1 (ou "um por um", "1 por vendedor"), envia uma mensagem por vendedor pronta para encaminhar no WhatsApp
 export async function respMensagensPorVendedor(B, E) {
+  // BLOQUEIO DEFINITIVO ANTISPAM: O Jota NUNCA cospe lote de mensagens de equipe de uma vez só no WhatsApp.
+  return [
+    '⚠️ *Envio individual seguro (Antispam)*',
+    '',
+    'Para proteger o número contra bloqueios no WhatsApp e evitar disparos em lote, as mensagens devem ser consultadas por vendedor.',
+    '',
+    '👉 *Peça o vendedor específico:*',
+    'Exemplo: *"vendedor ' + (E.vend && E.vend[0] ? E.vend[0].rca : '123') + '"* ou *"vendedor ' + (E.vend && E.vend[0] ? E.vend[0].nome.split(' ')[0] : 'Nome') + '"*.',
+    'Eu te devolvo a ficha individual pronta para você encaminhar com segurança!'
+  ].join('\n');
+  
+  /* CÓDIGO ANTIGO DE LOTE DESATIVADO PARA PREVENÇÃO DE BAN */
+  const _desativado = async () => {
   const dn = diasUteisRestantes();
   const V = E.vend.filter((v) => v.meta > 0 || v.dig > 0 || v.fat > 0 || v.ped > 0).sort((a, b) => {
     const pa = a.meta ? (a.fat + (a.pend || 0)) / a.meta : 0;
@@ -289,5 +299,6 @@ export async function respMensagensPorVendedor(B, E) {
     msgs.push(card);
   }
 
-  return [`📋 *${E.nome}* — ${msgs.length} mensagens prontas para você encaminhar ao time no WhatsApp:`, ...msgs].join('\n⟪⟫\n');
+  return '';
+  };
 }
