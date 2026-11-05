@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-04 21:57 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-05 00:07 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (16)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -154,7 +154,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 |---|---|
 | `audit_alteracoes_equipe` | `scripts/aplicar_vinculo_representantes.js`, `scripts/incluir_novos_arvore_liga.js` |
 | `bot_msgs` | `pipeline/disparar_guia_supervisores.mjs` |
-| `bot_sugestoes` | `scratch/atualizar_39_sugestoes.mjs`, `scratch/atualizar_sugestoes.mjs` |
+| `bot_sugestoes` | `scratch/atualizar_39_sugestoes.mjs`, `scratch/atualizar_sugestoes.mjs`, `scratch/preparar_update_respostas_perfeitas.mjs` |
 | `cancel` | `.github/workflows/ceven-cron-datalake.yml` |
 | `clientes_historico_compras` | `scripts/sincronizar_filiais_faltantes.js` |
 | `config_equipe_apoio` | `scripts/aplicar_vinculo_representantes.js`, `scripts/incluir_novos_arvore_liga.js` |
@@ -252,8 +252,11 @@ Meta: só `functions/api/cron-varredura-central.js`.
 - `scratch/extrair_hoje_04.mjs` (manual): `scratch/msgs_hoje_04.json`
 - `scratch/extrair_hoje_29.mjs` (manual): `scratch/msgs_hoje_29.json`
 - `scratch/extrair_hoje_30.mjs` (manual): `scratch/msgs_hoje_30.json`
+- `scratch/gerar_auditoria_completa_179.mjs` (manual): `scratch/auditoria_179_detalhada.json`
 - `scratch/listar_39_sugestoes.mjs` (manual): `scratch/todas_sugestoes.json`
 - `scratch/listar_sugestoes.mjs` (manual): `scratch/sugestoes_d1_atual.json`
+- `scratch/mapear_todas_sugestoes.mjs` (manual): `scratch/mapeamento_sugestoes.json`
+- `scratch/preparar_update_respostas_perfeitas.mjs` (manual): `scratch/updates_respostas_calibradas.json`
 - `scratch/processar_auditoria.mjs` (manual): `scratch/auditoria_resultado.json`, `scratch/pares_auditados.json`
 - `scratch/t_incentivo.mjs` (manual): `/inc_out.json`
 

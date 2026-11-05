@@ -402,7 +402,7 @@ const cor = (v) => getComputedStyle(document.documentElement).getPropertyValue(v
 document.querySelectorAll('#tabs button').forEach((b) => b.onclick = () => {
   document.querySelectorAll('#tabs button').forEach((x) => x.classList.toggle('on', x === b));
   document.querySelectorAll('section').forEach((s) => s.classList.toggle('on', s.id === 's-' + b.dataset.s));
-  if (b.dataset.s === 'graf') graficos(); if (b.dataset.s === 'quinz') quinzenas(); if (b.dataset.s === 'cubo') { if (window._cuboPend) { window._cuboPend = false; filtrosCubo(); } else cubo(); } if (b.dataset.s === 'comp') { if (window._pVend) { const f = window._pVend; window._pVend = null; f(); } else comparar(); }
+  if (b.dataset.s === 'graf') graficos(); if (b.dataset.s === 'quinz') quinzenas(); if (b.dataset.s === 'cubo') { if (window._cuboPend) { window._cuboPend = false; filtrosCubo(); } else cubo(); } if (b.dataset.s === 'comp') { if (window._pVend) { const f = window._pVend; window._pVend = null; f(); } else comparar(); setTimeout(() => { if (mapaT) mapaT.invalidateSize(); if (mapa) mapa.invalidateSize(); }, 200); }
 });
 
 let mesSelecionado = '2026-10';
@@ -673,7 +673,9 @@ async function compradores(vs) {   // cnpj -> Set(produtos comprados no mes), so
 // VISITAS DO CLIENTE (22/10/2026: "ele ja visitou? quando foi? podemos ser mais informativos"): ultima visita, proxima e ultima compra
 const CLI = new Map();
 async function cliFilial(f) {
-  if (!CLI.has(f)) CLI.set(f, fetch('mix_cli/' + f + '.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null).catch(() => null));
+  const pastaCli = (mesSelecionado === '2026-10') ? 'mix_cli_2026-10/' : 'mix_cli/';
+  const kCli = pastaCli + f;
+  if (!CLI.has(kCli)) CLI.set(kCli, fetch(pastaCli + f + '.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null).catch(() => null));
   return CLI.get(f);
 }
 const dataOk = (d) => !!d && d >= '2000-01-01';   // CEVEN manda 0001-01-01 quando nao ha compra
@@ -981,15 +983,18 @@ function mapaTodos(L) {
   const pts = [], leg = [];
   L.forEach((v, i) => { const c = pal[i % pal.length]; leg.push(`<span style="color:${c}">●</span> ${esc(v.nome.split(' ').slice(0, 2).join(' '))}`);
     (v.pontos || []).forEach(([la, lo]) => { pts.push([la, lo]); window.L.circleMarker([la, lo], { radius: 3.5, color: c, weight: 1, fillColor: c, fillOpacity: 0.8 }).bindTooltip(v.nome).addTo(mapaT); }); });
-  if (pts.length) mapaT.fitBounds(pts, { padding: [16, 16] }); else mapaT.setView([-23.5, -49], 6);
+  const enquadraT = () => { if (!mapaT) return; mapaT.invalidateSize(); if (pts.length) mapaT.fitBounds(pts, { padding: [16, 16] }); else mapaT.setView([-23.5, -49], 6); };
+  enquadraT(); setTimeout(enquadraT, 150); setTimeout(enquadraT, 600);
   $('mapaTodosLeg').innerHTML = leg.join(' · ') + '<br>Cada cor é um vendedor (ponto = cliente da carteira). Passe o mouse no ponto para ver o nome.';
 }
 
 // ===================== +MIX NO COMPARATIVO (20/10/2026: "como encaixar nessa analise o +MIX") =====================
 const VEND = new Map();
 async function vendFilial(f) {
-  if (!VEND.has(f)) VEND.set(f, fetch('mix_vend/' + f + '.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null).catch(() => null));
-  return VEND.get(f);
+  const pasta = (mesSelecionado === '2026-10') ? 'mix_vend_2026-10/' : 'mix_vend/';
+  const k = pasta + f;
+  if (!VEND.has(k)) VEND.set(k, fetch(pasta + f + '.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null).catch(() => null));
+  return VEND.get(k);
 }
 async function blocoGap(a, b) {
   const F = await vendFilial(a.filial), G = a.filial === b.filial ? F : await vendFilial(b.filial);
