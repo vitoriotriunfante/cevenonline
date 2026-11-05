@@ -39,9 +39,12 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
   .cA{color:var(--a)}.cB{color:var(--b)}
   .compGrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(420px,1fr);gap:20px;align-items:start}@media (min-width:2200px){.compGrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
   #compBox .g2{grid-template-columns:1fr}#compBox .box{overflow-x:visible}#compBox td.l{white-space:normal}
-  #mapaCol{position:sticky;top:64px;height:calc(100vh - 80px);min-height:560px}
-  #mapa{height:calc(100% - 70px);border-radius:12px}
-  #mapaLeg{max-height:66px;overflow:auto}
+  #mapaCol{position:sticky;top:64px;height:calc(100vh - 80px);min-height:560px;transition:all .25s ease}
+  #mapaCol.expandido{position:fixed;top:10px;left:10px;right:10px;bottom:10px;height:auto!important;min-height:0!important;z-index:99999;background:var(--card);border:2px solid var(--acc);border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,0.7);padding:14px;display:flex;flex-direction:column}
+  #mapa{height:calc(100% - 95px);border-radius:12px;flex:1}
+  #mapaCol.expandido #mapa{height:100%!important;flex:1}
+  #mapaLeg{max-height:85px;overflow:auto;padding:6px 10px;background:var(--card2);border:1px solid var(--line);border-radius:10px;margin-top:8px;font-size:12.5px;line-height:1.45}
+  #mapaCol.expandido #mapaLeg{max-height:140px;font-size:13.5px}
   @media (max-width:1100px){.compGrid{grid-template-columns:1fr}#mapaCol{position:static;height:560px}}
   .leaflet-popup-content{font-size:12.5px;line-height:1.4;max-height:340px;overflow:auto;color:#0d1b30}
   .vs{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
@@ -362,7 +365,16 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
     <div class="ctl" style="margin-top:14px"><select id="cA"></select><span>×</span><select id="cB"></select></div>
     <h2>Vendedores parecidos com <span id="paresNome"></span> (para comparar de forma justa)</h2>
     <div class="box"><table id="pares"></table><div class="leg">Distância = entre o centro das duas carteiras. Sobreposição = % dos clientes do vendedor escolhido que estão a até 2 km de algum cliente do outro. Mais parecido = mesma região e carteira de tamanho parecido.</div></div>
-    <div class="compGrid"><div id="compBox"></div><div id="mapaCol"><div id="mapa"></div><div class="leg" id="mapaLeg"></div></div></div>
+    <div class="compGrid"><div id="compBox"></div><div id="mapaCol">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:12px;font-weight:800;color:var(--acc);text-transform:uppercase;letter-spacing:.5px">Mapa Comparativo & Rotas</span>
+          <button id="btnExpMapaComparativo" onclick="toggleExpandMapaComparativo()" style="background:var(--card);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+            ⛶ Expandir mapa
+          </button>
+        </div>
+        <div id="mapa"></div>
+        <div id="mapaLeg"></div>
+      </div></div>
   </section>
 
   <section id="s-vend">
@@ -732,6 +744,7 @@ async function desenhaMapa() {
   const sit = PROD ? new Map((await situacoes(W, PROD.c)).map((x) => [x.cn, x])) : null;
   const comp = PROD ? await compradores([a, b]) : null;
   [[a, cor('--a')], [b, cor('--b')]].forEach(([v, c]) => (v.pontos || []).forEach(([la, lo, st, cnpj, tp]) => {
+    if (la == null || lo == null || isNaN(la) || isNaN(lo) || la < -35 || la > 6 || lo < -75 || lo > -30) return;
     if (tipo && tp && tp !== tipo) return;
     n++;
     let m;
@@ -746,8 +759,20 @@ async function desenhaMapa() {
   enquadra(); setTimeout(enquadra, 120); setTimeout(enquadra, 600);
   const cW = W === a ? 'cA' : 'cB', oW = W === a ? b : a;
   $('mapaLeg').innerHTML = PROD
-    ? `<b>${esc(PROD.n)}</b>${tipo ? ' · só ' + esc(tipo) : ''} · clientes de <b class="${cW}">${esc(W.nome.split(' ')[0])}</b> · ligue e desligue as camadas no quadro do produto · <a href="#" onclick="PROD=null;desenhaMapa();produtoBox();return false">ver todos os produtos</a>`
-    : `<span class="cA">●</span> ${esc(a.nome)} · <span class="cB">●</span> ${esc(b.nome)}${tipo ? ' · só ' + esc(tipo) : ''} (${nf(n)} clientes)<br>cheio = comprou no mês · vazado = não comprou · contorno verde = comprou produto novo do +MIX · <b>clique no cliente</b> para ver o +MIX dele · <b>clique num produto do plano</b> para ver quem compra`;
+    ? `<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div><b>${esc(PROD.n)}</b>${tipo ? ' · só ' + esc(tipo) : ''} | Clientes de <b class="${cW}">${esc(W.nome.split(' ')[0])}</b></div>
+        <div><a href="#" style="color:var(--acc);font-weight:700" onclick="PROD=null;desenhaMapa();produtoBox();return false">✕ Ver todos os produtos</a></div>
+      </div>
+      <div style="margin-top:4px;color:var(--mut)">Use os botões de camadas no quadro acima para filtrar quem compra ou parou de comprar este item.</div>`
+    : `<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        <div><span class="cA" style="font-size:16px">●</span> <b>${esc(a.nome)}</b></div>
+        <div><span class="cB" style="font-size:16px">●</span> <b>${esc(b.nome)}</b></div>
+        <div style="color:var(--mut)">(${nf(n)} clientes na área)</div>
+      </div>
+      <div style="margin-top:4px;font-size:12px;color:var(--mut)">
+        ● Ponto preenchido = comprou no mês | ○ Vazado = sem compra | 🟢 Contorno verde = comprou produto novo do +MIX.<br>
+        <i>💡 Clique num cliente no mapa para ver o perfil dele ou clique num produto da lista para ver quem compra.</i>
+      </div>`;
 }
 function focaCliente(cnpj) {
   const m = MKS.get(cnpj); if (!m || !mapa) return;
@@ -993,6 +1018,19 @@ function pares(a) {
       <td><button class="tab-btn" style="background:var(--acc);color:#04202e;border:0;border-radius:8px;padding:4px 10px;font-weight:700;cursor:pointer" onclick="$('cB').value='${v.filial}|${v.rca}';comparar();window.scrollTo({top:$('compBox').offsetTop-80,behavior:'smooth'})">Comparar</button></td></tr>`).join('') + '</tbody>';
 }
 let mapaT = null;
+function toggleExpandMapaComparativo() {
+  const col = $('mapaCol');
+  const btn = $('btnExpMapaComparativo');
+  if (!col) return;
+  const exp = col.classList.toggle('expandido');
+  if (btn) btn.innerHTML = exp ? '🗗 Reduzir mapa' : '⛶ Expandir mapa';
+  if (mapa) {
+    setTimeout(() => {
+      mapa.invalidateSize();
+    }, 150);
+  }
+}
+
 function toggleExpandMapa() {
   const el = $('mapaTodos');
   const btn = $('btnExpMapaT');
