@@ -1,6 +1,7 @@
 import { ocultosDaEquipe, lanceDeOculto } from '../_lib/equipe_ocultos.js';
 import { ehFeriado, ehFimDeSemana } from '../_lib/feriados.js';
 import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
+import { registraTelemetria } from '../_lib/telemetria.js';
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 // =========================================================================
 // FICHA DO ARQUIVO
@@ -16,7 +17,7 @@ import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 // AVISO: endpoint público (igual ao resto do site). Só guarda texto curto; validado e limitado.
 // =========================================================================
 
-const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
+const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=30' };
 const resp = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: CORS });
 
 function agoraSP() { const c = R.relogioSP(); return { dia: c.dia, hora: c.hms }; }
@@ -25,6 +26,7 @@ const int = (v) => (Number.isFinite(+v) && v !== null && v !== '' ? Math.trunc(+
 
 export async function onRequestGet({ request, env }) {
   if (!env.DB) return resp({ erro: 'banco indisponivel' }, 503);
+  const t0 = Date.now();
   const u = new URL(request.url);
   const filial = (u.searchParams.get('filial') || '').toUpperCase();
   // filial=TODAS (13/10/2026): a TV da MATRIZ so via os lances que ELA mesma detectava (filial MTZ: 119 penaltis, 0 gol) e nunca os GOLS que o coletor grava
@@ -46,6 +48,7 @@ export async function onRequestGet({ request, env }) {
     try { const r2 = await env.DB.prepare('SELECT chave, motivo FROM lances_excluidos_liga WHERE dia = ?').bind(dia).all(); for (const e of r2.results || []) if (e && e.motivo) ex.add(e.chave); } catch { /* tabela ausente: segue sem exclusoes */ }
     const oc = await ocultosDaEquipe(new URL(request.url).origin);
     const limpos = (results || []).filter((r) => !lanceDeOculto(todas ? r : { ...r, filial }, oc) && String(r.hora_sp || '') >= '06:00:00' && !ex.has(String(r.chave || '').replace(/^[A-Z]{3}[|]/, '')) && !ex.has(r.chave));
+    await registraTelemetria(env, 'GET /api/tv-lances', (results || []).length, Date.now() - t0);
     return resp({ dia, filial, lances: limpos });
   } catch (e) {
     return resp({ erro: 'falha ao ler: ' + e.message }, 500);

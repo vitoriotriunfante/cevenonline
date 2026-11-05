@@ -365,7 +365,7 @@ footer .msg { flex: 1 1 220px; min-width: 160px; }
 const P = new URLSearchParams(location.search);
 const FIL = (P.get('filial') || '').toUpperCase();
 const VALID = ['TBL','TPH','TCV','ABC','TCA','MCD','TCG','API','TBE','TPA','TSJ'];
-const CICLO_S = +P.get('ciclo') || 90;          // atualização dos dados
+const CICLO_S = +P.get('ciclo') || 180;          // atualizacao dos dados (180s = 3 min, otimizacao de custo D1)
 const BLOCO_MIN = +P.get('bloco') || 10;        // minutos por bloco na alternância
 const ROTA_S = +P.get('rotacao') || 10;         // segundos por vendedor na ronda
 const INICIO_H = 8, FIM_H = 19, LIMITE_H = 10;  // alternância 08h–19h; regras "10h"
@@ -542,7 +542,7 @@ let somOn = store.get('ceven_tv_som', false);
 // ============================== DADOS ==============================
 async function j(url, ms = 25000) {
   const c = new AbortController(); const t = setTimeout(() => c.abort(), ms);
-  try { const r = await fetch(url, {signal: c.signal, cache: 'no-store'}); if (!r.ok) return null; return await r.json(); }
+  try { const r = await fetch(url, {signal: c.signal}); if (!r.ok) return null; return await r.json(); }
   catch { return null; } finally { clearTimeout(t); }
 }
 const limpaNome = n => String(n || '').replace(/^CLT\s*-\s*/i, '').replace(/^CLT\s+/i, '').trim();
@@ -1402,7 +1402,7 @@ const seg = v => { const m = v.meta || 0; if (!m) return ''; const f = Math.max(
 // zerado = o MESMO veredito de /api/totais-dia (26/10/2026): TV da filial, Matriz e WhatsApp com o mesmo numero. Sem o total unico, cai na conta local.
 var TOTAIS_V = null;
 async function carregaTotais() { try { const r = await fetch('/api/totais-dia?filial=' + encodeURIComponent(FIL), {cache: 'no-store'}); const d = await r.json(); if (d && d.vendedores) TOTAIS_V = new Map(d.vendedores.map(v => [v.rca, v])); } catch (e) {} }
-if (FIL) { carregaTotais(); setInterval(carregaTotais, 60000); }
+if (FIL) { carregaTotais(); setInterval(carregaTotais, 180000); } // a cada 3 min
 function zerado(v) { const t = TOTAIS_V && TOTAIS_V.get(String(v.id)); return t && t.lido ? !!t.zerado : (!TOTAIS_V && v.campo && v.temRota && !(v.dig > 0) && !(v.pos > 0)); }
 const alertasDe = id => ALERTAS.filter(a => a.v.id === id);
 function montaOrdem(vs) {

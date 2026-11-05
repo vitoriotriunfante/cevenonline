@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telemetria e Custos Cloudflare D1</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 24px; }
+    h1 { font-size: 22px; margin-bottom: 4px; color: #38bdf8; }
+    p.sub { font-size: 13px; color: #94a3b8; margin-top: 0; margin-bottom: 24px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .card { background: #1e293b; border-radius: 8px; padding: 16px; border: 1px solid #334155; }
+    .card .val { font-size: 26px; font-weight: bold; color: #f1f5f9; }
+    .card .lbl { font-size: 12px; color: #94a3b8; text-transform: uppercase; margin-top: 4px; }
+    .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .box { background: #1e293b; border-radius: 8px; padding: 20px; border: 1px solid #334155; }
+    h2 { font-size: 16px; color: #cbd5e1; margin-top: 0; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 8px 12px; background: #0f172a; color: #94a3b8; border-bottom: 1px solid #334155; }
+    td { padding: 10px 12px; border-bottom: 1px solid #334155; }
+    tr:hover td { background: #243247; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    .tag-ok { background: #065f46; color: #6ee7b7; }
+    .tag-alerta { background: #854d0e; color: #fef08a; }
+  </style>
+</head>
+<body>
+  <h1>📊 Telemetria de Custos D1 e Ritmo de Lances</h1>
+  <p class="sub">Auditoria em tempo real de linhas lidas, frequência de chamadas da TV e atividade comercial</p>
+
+  <div class="cards">
+    <div class="card">
+      <div class="val" id="valChamadas">-</div>
+      <div class="lbl">Total de Chamadas (Hoje)</div>
+    </div>
+    <div class="card">
+      <div class="val" id="valLinhas">-</div>
+      <div class="lbl">Linhas Lidas no D1</div>
+    </div>
+    <div class="card">
+      <div class="val" id="valLances">-</div>
+      <div class="lbl">Lances Apitados Hoje</div>
+    </div>
+    <div class="card">
+      <div class="val" id="valVendAtivos">-</div>
+      <div class="lbl">Vendedores com Lances</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="box">
+      <h2>📡 Consumo por Rota (Selects e Linhas Escaneadas)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Rota / Endpoint</th>
+            <th class="num">Chamadas</th>
+            <th class="num">Linhas Lidas</th>
+            <th class="num">Média ms</th>
+            <th>Última Execução</th>
+          </tr>
+        </thead>
+        <tbody id="tbRotas">
+          <tr><td colspan="5" style="text-align: center; color: #64748b;">Carregando dados...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="box">
+      <h2>⏰ Distribuição dos Lances por Faixa Horária</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Horário</th>
+            <th class="num">Lances</th>
+            <th class="num">Vendedores</th>
+          </tr>
+        </thead>
+        <tbody id="tbHoras">
+          <tr><td colspan="3" style="text-align: center; color: #64748b;">Carregando dados...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    async function carregar() {
+      try {
+        const r = await fetch('/api/telemetria-custo');
+        const d = await r.json();
+        if (!d || d.erro) return;
+
+        document.getElementById('valChamadas').textContent = (d.resumo?.total_chamadas || 0).toLocaleString('pt-BR');
+        document.getElementById('valLinhas').textContent = (d.resumo?.total_linhas_lidas || 0).toLocaleString('pt-BR');
+
+        let totalLances = 0;
+        let vendsSet = new Set();
+        (d.lances_por_hora || []).forEach(x => {
+          totalLances += x.total_lances || 0;
+        });
+        document.getElementById('valLances').textContent = totalLances.toLocaleString('pt-BR');
+
+        // Renderiza rotas
+        const tbRotas = document.getElementById('tbRotas');
+        if (!d.por_rota || !d.por_rota.length) {
+          tbRotas.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #64748b;">Nenhuma chamada registrada hoje ainda.</td></tr>';
+        } else {
+          tbRotas.innerHTML = d.por_rota.map(r => `
+            <tr>
+              <td style="font-family: monospace; color: #38bdf8;">${r.rota}</td>
+              <td class="num">${(r.chamadas || 0).toLocaleString('pt-BR')}</td>
+              <td class="num" style="font-weight: bold;">${(r.linhas_lidas || 0).toLocaleString('pt-BR')}</td>
+              <td class="num">${r.media_ms || 0} ms</td>
+              <td style="color: #94a3b8; font-size: 12px;">${r.ultimo_acesso ? r.ultimo_acesso.slice(11, 19) : '-'}</td>
+            </tr>
+          `).join('');
+        }
+
+        // Renderiza horas
+        const tbHoras = document.getElementById('tbHoras');
+        if (!d.lances_por_hora || !d.lances_por_hora.length) {
+          tbHoras.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #64748b;">Nenhum lance apitado hoje ainda.</td></tr>';
+        } else {
+          tbHoras.innerHTML = d.lances_por_hora.map(h => `
+            <tr>
+              <td style="font-weight: bold; color: #f8fafc;">${h.faixa_hora}</td>
+              <td class="num" style="color: #34d399; font-weight: bold;">${h.total_lances}</td>
+              <td class="num">${h.vendedores_com_lance}</td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    carregar();
+    setInterval(carregar, 30000);
+  </script>
+</body>
+</html>
