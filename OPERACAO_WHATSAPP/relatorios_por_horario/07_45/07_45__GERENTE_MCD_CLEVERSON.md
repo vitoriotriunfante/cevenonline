@@ -1,41 +1,41 @@
 🌅 *ABERTURA MATINAL — MCD (07:45)*
-📅 quarta-feira, 04/11/2026
+📅 quinta-feira, 05/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 18 • Visitas: 198 (média 11,0/vendedor)
-Sem compra +30d: 59 (29,8%) • Recorrência: 15 (7,6%)
+👥 Vendedores: 19 • Visitas: 190 (média 10,0/vendedor)
+Sem compra +30d: 50 (26,5%) • Recorrência: 20 (10,6%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *MCD — CLEVERSON* • 04/11/2026
+📍 *MCD — CLEVERSON* • 05/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 59
+🔴 Última Chance: 0  •  🟡 Preventivo: 50
 
-👤 *TIAGO MARTINES OTAVIANO* (11 em risco)
-  🟡 CORONEL BEER (413) — 30/09
-  🟡 MANGOLE CONVENIENCIA (420) — 20/08
-  🟡 MINI MERCADO BOM PRECO (450) — 24/09
-  🟡 PANIF E CONF JARDIM (450) — 14/09
-  🟡 CELEIRO (1061) — 19/08
-  _+6 outros_
+👤 *TIAGO MARTINES OTAVIANO* (9 em risco)
+  🟡 SUPERMERCADO STA ANGELA (450) — 05/12
+  🟡 EMPORIO DULAR (450) — 30/09
+  🟡 NOVIDADE IN PET (1061) — 02/10
+  🟡 MERCEARIA DOM AQUINO (1061) — 29/09
+  🟡 POSTO TRADICIONAL (1064) — 31/08
+  _+4 outros_
 
-👤 *THIAGO DA SILVA CONEGUNDES* (4 em risco)
-  🟡 ULTRA FARMA TOTAL (1068) — 05/09
-  🟡 MERCEARIA E CONVENIENCIA BOLICHUS (1068) — 23/09
-  🟡 SEU MARTINS (433) — 05/12
-  🟡 NAVESA (433) — 25/09
+👤 *THIAGO DA SILVA CONEGUNDES* (2 em risco)
+  🟡 JOSE PEREIRA DAMASCENO (1068) — 30/09
+  🟡 CANTINA CAFE (433) — 02/10
 
-👤 *Vendedores ligados direto ao gerente* (40 em risco)
-  🟡 CENTRAL DE DISTRIBUICAO DOIS IRMAOS (1070) — 05/12
-  🟡 CONVENIENCIA CERRADO (1070) — 05/12
-  🟡 MERCEARIA DA PONTE 02 (1070) — 05/12
-  🟡 MERCADO DA PONTE (1070) — 05/12
-  🟡 MERCEARIA RODRIGUES (1070) — 05/12
-  _+35 outros_
+👤 *Vendedores ligados direto ao gerente* (21 em risco)
+  🟡 LOTUS TRANSPORTES LTDA (1070) — 05/12
+  🟡 GERALDO PET SHOP (1070) — 18/09
+  🟡 ANDRE LIBERTY (1070) — 03/05
+  🟡 J M LUBRIFICANTES E PECAS (1070) — 27/05
+  🟡 INOVALOG (1070) — 03/05
+  _+16 outros_
 
-👤 *JONATAS DA SILVA DE OLIVEIRA* (4 em risco)
-  🟡 MERCADO POPULAR (429) — 05/12
-  🟡 CD NAVIRAI (441) — 05/12
-  🟡 C VALE (441) — 12/09
-  🟡 H P M - MERCEARIA E LANCHONETE (1063) — 01/01
+👤 *JONATAS DA SILVA DE OLIVEIRA* (18 em risco)
+  🟡 ALVES E DEMAMANN CAFE LTDA (429) — 05/12
+  🟡 MERCADO ESPERANCA (429) — 05/12
+  🟡 MINI MERCADO ALTAS HORAS (429) — 30/09
+  🟡 SUPERMERCADOS CHAMA (441) — 05/12
+  🟡 JCHAGAS ALIMENTOS LTDA (441) — 30/09
+  _+13 outros_

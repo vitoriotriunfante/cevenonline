@@ -1,37 +1,37 @@
 🌅 *ABERTURA MATINAL — API (07:45)*
-📅 quarta-feira, 04/11/2026
+📅 quinta-feira, 05/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 28 • Visitas: 435 (média 15,5/vendedor)
-Sem compra +30d: 115 (26,4%) • Recorrência: 80 (18,4%)
+👥 Vendedores: 28 • Visitas: 406 (média 14,5/vendedor)
+Sem compra +30d: 116 (28,6%) • Recorrência: 84 (20,7%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *API — MARCELO* • 04/11/2026
+📍 *API — MARCELO* • 05/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 115
+🔴 Última Chance: 0  •  🟡 Preventivo: 114
 
-👤 *WASHINGTON FLORES DA ROSA* (35 em risco)
-  🟡 FORTE DISTRIBUIDORA DE BEBIDAS LTDA (244) — 30/09
-  🟡 CASA CHINA (244) — 14/09
-  🟡 GULA MUNDO MIX (244) — 02/10
-  🟡 ACOUGUE LF (244) — 24/09
-  🟡 MERCEARIA KAU (245) — 05/12
-  _+30 outros_
+👤 *WASHINGTON FLORES DA ROSA* (45 em risco)
+  🟡 OLGA (244) — 24/09
+  🟡 SUPER POPULAR CAJURU (244) — 28/09
+  🟡 MERCASUL (244) — 29/09
+  🟡 BK DISTRIBUIDORA DE PROD LIMP (244) — 17/09
+  🟡 A PRIMOROSA (245) — 05/12
+  _+40 outros_
 
-👤 *RODRIGO FARIAS* (69 em risco)
-  🟡 FARMACIA PAULO CEZAR (239) — 30/07
-  🟡 POSTO MANU (241) — 26/09
-  🟡 SABORES DO CAMPO (241) — 31/07
-  🟡 CASA DE CARNES SAO JOAO (241) — 31/07
-  🟡 MERCADO HARMIM (241) — 11/09
-  _+64 outros_
+👤 *RODRIGO FARIAS* (55 em risco)
+  🟡 SOUZA SUPERMERCADOS (239) — 05/12
+  🟡 LOJA AKI TEM (239) — 05/12
+  🟡 MERCADO JM (241) — 19/09
+  🟡 CASA DO PASTEL (241) — 26/08
+  🟡 BRASEIRO MERCADO E ACOUGUE LTDA (241) — 05/12
+  _+50 outros_
 
-👤 *SUELI APARECIDA TEIXEIRA POLLI* (11 em risco)
-  🟡 PARTEKA (249) — 31/08
-  🟡 ACOUGUE CIUS (249) — 28/09
-  🟡 SUPERMERCADO FANELLI (1074) — 03/10
-  🟡 POSTO PRO TORK PIRAI DO SUL (1074) — 05/12
-  🟡 POSTO 090 (1074) — 31/08
-  _+6 outros_
+👤 *SUELI APARECIDA TEIXEIRA POLLI* (14 em risco)
+  🟡 FARMAIS IRATI (249) — 12/09
+  🟡 RESTAURANTE CORINTIANO II UNICENTRO (249) — 29/09
+  🟡 DROGARIA FARMAIS (249) — 12/09
+  🟡 TIJUCAS CONVENIENCIA (529) — 29/09
+  🟡 BIBI FESTA (529) — 05/12
+  _+9 outros_

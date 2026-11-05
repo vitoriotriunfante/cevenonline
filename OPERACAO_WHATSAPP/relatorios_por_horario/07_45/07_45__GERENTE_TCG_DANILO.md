@@ -1,45 +1,42 @@
 🌅 *ABERTURA MATINAL — TCG (07:45)*
-📅 quarta-feira, 04/11/2026
+📅 quinta-feira, 05/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 20 • Visitas: 200 (média 10,0/vendedor)
-Sem compra +30d: 54 (27,0%) • Recorrência: 48 (24,0%)
+👥 Vendedores: 20 • Visitas: 135 (média 6,8/vendedor)
+Sem compra +30d: 34 (25,2%) • Recorrência: 27 (20,0%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCG — DANILO* • 04/11/2026
+📍 *TCG — DANILO* • 05/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 54
+🔴 Última Chance: 0  •  🟡 Preventivo: 34
 
-👤 *DELINLSON ANTONIO LIMA SILVA* (15 em risco)
-  🟡 PODEROSA MAKE (456) — 30/09
-  🟡 PADARIA DOCE MEL (456) — 12/09
-  🟡 NELSON XAVIER DOS SANTOS EIRELI (456) — 30/09
-  🟡 MERCADO BRASIL (456) — 05/12
-  🟡 IMPERIO VIOLETA (461) — 30/09
-  _+10 outros_
+👤 *DELINLSON ANTONIO LIMA SILVA* (13 em risco)
+  🟡 SHOPPING DA CARNE (456) — 30/09
+  🟡 ARARAS CONVENIENCIA (456) — 30/09
+  🟡 MADALENO MERCADO (456) — 25/09
+  🟡 MERC CONV COLIBRI (456) — 05/12
+  🟡 MERCADO COLIBRI (456) — 05/12
+  _+8 outros_
 
-👤 *EDSON RODRIGO LINIA* (12 em risco)
-  🟡 FARMA TOP (458) — 28/09
-  🟡 CONVENIENCIA E SOVETERIA (458) — 30/09
-  🟡 CELEIRO (458) — 19/08
-  🟡 POSTO JM PAULISTA (458) — 05/12
-  🟡 BOM VIZINHO SUPERMERCADO (474) — 03/10
-  _+7 outros_
+👤 *EDSON RODRIGO LINIA* (7 em risco)
+  🟡 CENTR EMBALEGEM (458) — 05/12
+  🟡 COMERCIAL DIAS (458) — 30/09
+  🟡 MERCADO DA VALE II (458) — 30/09
+  🟡 COMERCIAL BELEN (458) — 27/08
+  🟡 SEIS IRMAOS (458) — 30/09
+  _+2 outros_
 
-👤 *Vendedores ligados direto ao gerente* (18 em risco)
-  🟡 CONVENIENCIA PRIME (489) — 05/12
-  🟡 BROTHER S BAR (489) — 05/12
-  🟡 MERCADO TATYELEN (489) — 30/09
-  🟡 HORTIFRUTI GALEGO (489) — 05/12
-  🟡 MIX COSMETICOS (489) — 05/12
-  _+13 outros_
+👤 *Vendedores ligados direto ao gerente* (3 em risco)
+  🟡 MORENA COSMETICOS (489) — 05/12
+  🟡 MERCEARIA IPE E CIA (489) — 05/12
+  🟡 MERCEARIA SAO CARLOS (489) — 17/09
 
-👤 *TIAGO SANTOS CORREA* (9 em risco)
-  🟡 ALEMAO CONVENIENCIA (486) — 05/12
-  🟡 RESTAURANTE GRAMADAO (486) — 14/09
-  🟡 TOMATE RESTAURANTE (486) — 14/09
-  🟡 CASA DOS DOCES (486) — 05/12
-  🟡 CONVENIENCIA RODRIGUES (488) — 12/09
-  _+4 outros_
+👤 *TIAGO SANTOS CORREA* (11 em risco)
+  🟡 DEISE CRISTINA FERREIRA BRITES 861391851 (473) — 30/09
+  🟡 FARMACIA REAL (486) — 14/09
+  🟡 BELGA BEER MINIMERCADO LTDA (486) — 30/09
+  🟡 JF COVENIECIA (487) — 10/09
+  🟡 ZINHO CONVENIENCIAS (487) — 30/09
+  _+6 outros_

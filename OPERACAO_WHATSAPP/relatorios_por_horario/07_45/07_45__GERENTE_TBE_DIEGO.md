@@ -1,37 +1,37 @@
 🌅 *ABERTURA MATINAL — TBE (07:45)*
-📅 quarta-feira, 04/11/2026
+📅 quinta-feira, 05/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 16 • Visitas: 291 (média 18,2/vendedor)
-Sem compra +30d: 89 (30,6%) • Recorrência: 20 (6,9%)
+👥 Vendedores: 16 • Visitas: 306 (média 19,1/vendedor)
+Sem compra +30d: 104 (34,0%) • Recorrência: 27 (8,8%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TBE — DIEGO* • 04/11/2026
+📍 *TBE — DIEGO* • 05/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 88
+🔴 Última Chance: 0  •  🟡 Preventivo: 102
 
-👤 *HAMILTON RICARDO DOS SANTOS MENDES* (37 em risco)
-  🟡 ZAP COMERCIAL (301) — 31/07
-  🟡 MUNDO 10 (301) — 17/08
-  🟡 LOJAS AVILA (301) — 01/01
-  🟡 ATACADO NASCAR (301) — 05/12
-  🟡 WTS COMERCIO VAREJISTA DE DOCES (301) — 01/01
-  _+32 outros_
+👤 *HAMILTON RICARDO DOS SANTOS MENDES* (38 em risco)
+  🟡 MERCADO ESTRELA (301) — 17/09
+  🟡 MERCADO SANTO ANTONIO (301) — 29/09
+  🟡 JOAO LUIS MORES (301) — 24/09
+  🟡 ROTA 66 (301) — 05/12
+  🟡 MARI CIRNE (301) — 05/12
+  _+33 outros_
 
-👤 *NEIVA CLEONICE SERRA ISOPPO* (6 em risco)
-  🟡 CONDO MERCADO INTELIGENTE (289) — 05/12
-  🟡 CONVENIENCIA E MERCADO ANDREAS (289) — 11/08
-  🟡 ROTA 786 BEBIDAS (289) — 11/09
-  🟡 SUELEN FAUSTTE DAL AGNOL (289) — 21/09
-  🟡 CONFEITARIA SHEKINAH (289) — 24/09
-  _+1 outros_
+👤 *NEIVA CLEONICE SERRA ISOPPO* (8 em risco)
+  🟡 EMILY BIASIBETTI (289) — 29/09
+  🟡 O POINT DO ACAI MELOS (289) — 05/12
+  🟡 MACHADO SILVA (289) — 29/09
+  🟡 SUPER EXXTRA (293) — 31/08
+  🟡 POSTO MARCA DO TEMPO (293) — 27/08
+  _+3 outros_
 
-👤 *PATRICIA CHAVES MACHADO* (45 em risco)
-  🟡 L SALETE GUEDES LTDA (285) — 03/05
-  🟡 MINIMERCADO CARDOSO (285) — 01/01
-  🟡 HENRIQUE DA CUNHA GARCIA (285) — 01/01
-  🟡 RECANTO DAS FRUTAS (285) — 16/07
-  🟡 QUE SEJA DOCE (285) — 21/07
-  _+40 outros_
+👤 *PATRICIA CHAVES MACHADO* (56 em risco)
+  🟡 MERCADO RIGO (285) — 29/09
+  🟡 GOLD COMERCIO DE COMBUSTIVEIS (285) — 18/09
+  🟡 C DE GODOY GONCALVES MARTINS (285) — 25/09
+  🟡 APOLO FILIAL 2 (285) — 11/09
+  🟡 ARSENIO GUILHERME DA ROSA (285) — 01/01
+  _+51 outros_

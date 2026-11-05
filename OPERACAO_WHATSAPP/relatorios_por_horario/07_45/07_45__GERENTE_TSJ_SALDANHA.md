@@ -1,41 +1,43 @@
 🌅 *ABERTURA MATINAL — TSJ (07:45)*
-📅 quarta-feira, 04/11/2026
+📅 quinta-feira, 05/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 24 • Visitas: 338 (média 14,1/vendedor)
-Sem compra +30d: 67 (19,8%) • Recorrência: 35 (10,4%)
+👥 Vendedores: 24 • Visitas: 341 (média 14,2/vendedor)
+Sem compra +30d: 72 (21,1%) • Recorrência: 23 (6,7%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TSJ — SALDANHA* • 04/11/2026
+📍 *TSJ — SALDANHA* • 05/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 67
+🔴 Última Chance: 0  •  🟡 Preventivo: 71
 
-👤 *ANA CRISTINA DOS SANTOS YAMATO* (20 em risco)
-  🟡 EMPORIO DB (5) — 30/09
-  🟡 SUPERMERCADO BIOMA (5) — 10/09
-  🟡 SUPERMERCADO JK (5) — 05/12
-  🟡 PADARIA GAZZO (8) — 28/09
-  🟡 AQUI TEM (33) — 24/09
-  _+15 outros_
+👤 *ANA CRISTINA DOS SANTOS YAMATO* (15 em risco)
+  🟡 MERCADINHO SANTA FE (5) — 18/09
+  🟡 MERCADO ARAUJO (1021) — 03/12
+  🟡 BRUNO BARRETO PAIXAO MERCADO (1021) — 05/12
+  🟡 ROSA CHOQUE BOLSAS E ACESSORIOS (1092) — 05/12
+  🟡 MERCADO MAFF (1092) — 05/06
+  _+10 outros_
 
-👤 *JULIO CESAR SOARES DE PAULO* (11 em risco)
-  🟡 ANNECY POUSADA (7) — 31/08
-  🟡 KATATAU PADARIA E MERCEARIA (25) — 27/08
-  🟡 SAMUEL SOUZA LIMA 04313670351 (25) — 21/09
-  🟡 BOI DE OURO (25) — 26/09
-  🟡 BOUTIQUE DA CARNE DRINK (1023) — 24/09
-  _+6 outros_
+👤 *JULIO CESAR SOARES DE PAULO* (13 em risco)
+  🟡 PADARIA MERCEARIA VILA SANTO ANTONIO (7) — 31/07
+  🟡 MERCEARIA SANTA EDWIRGES (7) — 05/12
+  🟡 52.290.626 ANA KARINA DA SILVA (7) — 05/12
+  🟡 63.287.730 JOSE BENEDITO DO NASCIMENTO (25) — 24/07
+  🟡 JOAO PEREIRA DOS SANTOS FILHO (25) — 29/06
+  _+8 outros_
 
-👤 *Venda empresa (interno)* (2 em risco)
-  🟡 FUNCIONARIO-COORD.VENDAS (2) — 05/12
-  🟡 TRIUNFANTE CORPORATIVO (2) — 05/12
+👤 *Venda empresa (interno)* (1 em risco)
+  🟡 FVO BRASILIA INDUSTRIAL (2) — 03/05
 
-👤 *VICTOR HUGO FONSECA CARVALHO* (34 em risco)
-  🟡 ENCANTO FLORES E PRESENTES (16) — 31/07
-  🟡 JOSE BATISTA RODRIGUES ARAUJO84276762634 (16) — 29/07
-  🟡 JACINTO SANTANA FERREIRA (23) — 11/09
-  🟡 PADOKA (23) — 19/02
-  🟡 ADEGA SANTA CECILIA (23) — 27/08
-  _+29 outros_
+👤 *VICTOR HUGO FONSECA CARVALHO* (41 em risco)
+  🟡 ROOTS COMMERCE (16) — 05/12
+  🟡 TUDO DE BOM (16) — 05/12
+  🟡 KAMEOKA MERCEARIA (16) — 05/12
+  🟡 MERCEARIA TRES MARIAS (16) — 05/12
+  🟡 BAR DO TONINHO (16) — 14/08
+  _+36 outros_
+
+👤 *Vendedores ligados direto ao gerente* (1 em risco)
+  🟡 SAMUEL SOUZA LIMA 04313670351 (1202) — 21/09

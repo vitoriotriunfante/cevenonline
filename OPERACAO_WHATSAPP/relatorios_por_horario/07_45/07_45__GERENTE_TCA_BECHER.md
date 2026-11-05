@@ -1,45 +1,45 @@
 🌅 *ABERTURA MATINAL — TCA (07:45)*
-📅 quarta-feira, 04/11/2026
+📅 quinta-feira, 05/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 27 • Visitas: 287 (média 10,6/vendedor)
-Sem compra +30d: 114 (42,5%) • Recorrência: 52 (19,4%)
+👥 Vendedores: 25 • Visitas: 214 (média 8,6/vendedor)
+Sem compra +30d: 77 (38,1%) • Recorrência: 43 (21,3%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCA — BECHER* • 04/11/2026
+📍 *TCA — BECHER* • 05/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 114
+🔴 Última Chance: 0  •  🟡 Preventivo: 77
 
-👤 *FRANCISCO FRANCO FILHO* (10 em risco)
-  🟡 MERCEARIA SAO CRISTOVO (375) — 23/09
-  🟡 AUTO POSTO AVENIDA (375) — 05/12
-  🟡 CHURRASCARIA CASAGRANDA (375) — 01/01
-  🟡 JS DISTRIBUIDORA (376) — 04/09
-  🟡 MERCADO ALIANCA (376) — 05/12
-  _+5 outros_
+👤 *FRANCISCO FRANCO FILHO* (8 em risco)
+  🟡 G3 (376) — 11/09
+  🟡 G3 (376) — 07/08
+  🟡 G3 (376) — 07/08
+  🟡 GRAN VIA CONVENIENCIA (390) — 25/09
+  🟡 MERCADO FLORIANO (390) — 05/12
+  _+3 outros_
 
 👤 *IVAYR PRINCIPE FREITAS DE MIRANDA* (22 em risco)
-  🟡 MERCEARIA CARVALHO (378) — 23/07
-  🟡 LANCHONETE OZAN (378) — 31/08
-  🟡 SUPERMERCADO MARIN (378) — 14/08
-  🟡 MERCADO S. FRANCISCO (379) — 05/12
-  🟡 MERCADO ADRIANA (379) — 05/12
+  🟡 MERCEARIA E DISTR. OLIVEIRA (378) — 17/09
+  🟡 DROGARIA ULTRA POPULAR (378) — 29/09
+  🟡 MERCADO ALTAS HORAS (378) — 18/08
+  🟡 MERCADO BRASIL (378) — 31/08
+  🟡 EMPORIO BEER 65 (378) — 03/05
   _+17 outros_
 
-👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR* (55 em risco)
-  🟡 CONVENIENCIA XAXIM (380) — 29/08
-  🟡 PANIFICADORA CENTRAL MERCADO E CONV (380) — 05/12
-  🟡 DROGARIA VERDES MARES (380) — 05/12
-  🟡 ULTRA POPULAR (380) — 05/12
-  🟡 EMPORIO POPULAR (380) — 05/12
-  _+50 outros_
+👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR* (23 em risco)
+  🟡 MERCADO 04 IRMAS (380) — 31/08
+  🟡 MERCEARIA ACORICENTRO (380) — 21/07
+  🟡 MERCADO ESTACAO (380) — 27/05
+  🟡 MERCADO BOI BOM (380) — 29/09
+  🟡 PARADA 163 (380) — 31/07
+  _+18 outros_
 
-👤 *MAICON DION NOVAIS SILVA* (27 em risco)
-  🟡 VIVEIRO ESPACO VERDE (372) — 23/09
-  🟡 SORVETERIA ITALIANINHA (372) — 17/02
-  🟡 BELLE VIE CAFE LTDA (372) — 10/08
-  🟡 COMERCIAL GIRASSOL (373) — 14/08
-  🟡 PASQUALL SUPERMERCADOS (373) — 05/12
-  _+22 outros_
+👤 *MAICON DION NOVAIS SILVA* (24 em risco)
+  🟡 PRIME HAMBURGUERIA (372) — 08/09
+  🟡 CONVENIENCIA SELECT (372) — 14/09
+  🟡 SUPERMERCADO ALVORADA (373) — 05/12
+  🟡 POSTO SAPUCAIA (373) — 23/09
+  🟡 AUTO POSTO QUERO QUERO (373) — 18/02
+  _+19 outros_
