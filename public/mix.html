@@ -352,7 +352,12 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
 
   <section id="s-comp">
     <div class="ctl"><select id="cFilial"><option value="">Filial</option></select><select id="cSup"><option value="">Supervisor (todos)</option></select></div>
-    <h2>Todos os vendedores da seleção</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:26px 0 10px">
+      <h2 style="margin:0">Todos os vendedores da seleção</h2>
+      <button id="btnExpMapaT" onclick="toggleExpandMapa()" style="background:var(--card);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+        ⛶ Expandir mapa
+      </button>
+    </div>
     <div class="box"><div id="mapaTodos" style="height:380px;border-radius:12px"></div><div class="leg" id="mapaTodosLeg">Cada cor é um vendedor (ponto = cliente da carteira). Use para ver quem atende a mesma região antes de comparar.</div></div>
     <div class="ctl" style="margin-top:14px"><select id="cA"></select><span>×</span><select id="cB"></select></div>
     <h2>Vendedores parecidos com <span id="paresNome"></span> (para comparar de forma justa)</h2>
@@ -988,14 +993,41 @@ function pares(a) {
       <td><button class="tab-btn" style="background:var(--acc);color:#04202e;border:0;border-radius:8px;padding:4px 10px;font-weight:700;cursor:pointer" onclick="$('cB').value='${v.filial}|${v.rca}';comparar();window.scrollTo({top:$('compBox').offsetTop-80,behavior:'smooth'})">Comparar</button></td></tr>`).join('') + '</tbody>';
 }
 let mapaT = null;
+function toggleExpandMapa() {
+  const el = $('mapaTodos');
+  const btn = $('btnExpMapaT');
+  if (!el) return;
+  const expandido = el.classList.toggle('expandido');
+  if (expandido) {
+    el.style.height = '75vh';
+    if (btn) btn.innerHTML = '🗗 Reduzir mapa';
+  } else {
+    el.style.height = '380px';
+    if (btn) btn.innerHTML = '⛶ Expandir mapa';
+  }
+  if (mapaT) {
+    setTimeout(() => {
+      mapaT.invalidateSize();
+    }, 150);
+  }
+}
+
 function mapaTodos(L) {
   if (!window.L || !$('mapaTodos')) return;
   if (mapaT) { mapaT.remove(); mapaT = null; }
   mapaT = window.L.map('mapaTodos', { minZoom: 3 }); window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(mapaT);
   const pal = ['#38bdf8', '#f59e0b', '#22c55e', '#ef4444', '#a78bfa', '#f472b6', '#14b8a6', '#eab308', '#fb923c', '#60a5fa', '#94a3b8', '#84cc16', '#e879f9', '#2dd4bf', '#f87171'];
   const pts = [], leg = [];
-  L.forEach((v, i) => { const c = pal[i % pal.length]; leg.push(`<span style="color:${c}">●</span> ${esc(v.nome.split(' ').slice(0, 2).join(' '))}`);
-    (v.pontos || []).forEach(([la, lo]) => { pts.push([la, lo]); window.L.circleMarker([la, lo], { radius: 3.5, color: c, weight: 1, fillColor: c, fillOpacity: 0.8 }).bindTooltip(v.nome).addTo(mapaT); }); });
+  L.forEach((v, i) => {
+    const c = pal[i % pal.length];
+    leg.push(`<span style="color:${c}">●</span> ${esc(v.nome.split(' ').slice(0, 2).join(' '))}`);
+    (v.pontos || []).forEach(([la, lo]) => {
+      // Ignorar coordenadas fora do Brasil
+      if (la == null || lo == null || isNaN(la) || isNaN(lo) || la < -35 || la > 6 || lo < -75 || lo > -30) return;
+      pts.push([la, lo]);
+      window.L.circleMarker([la, lo], { radius: 3.5, color: c, weight: 1, fillColor: c, fillOpacity: 0.8 }).bindTooltip(v.nome).addTo(mapaT);
+    });
+  });
   const enquadraT = () => {
     if (!mapaT) return;
     mapaT.invalidateSize();
