@@ -372,7 +372,65 @@ DADOS: até ontem, gerados pelo GitHub (analises/gerar_dados_mix.js -> public/da
             ⛶ Expandir mapa
           </button>
         </div>
-        <div id="mapa"></div>
+        <div style="position:relative;flex:1;min-height:480px;display:flex;flex-direction:column">
+          <div id="mapa" style="width:100%;height:100%;flex:1;border-radius:12px"></div>
+          
+          <!-- PAINEL FLUTUANTE DE CONTROLES NO CANTO SUPERIOR DIREITO DO MAPA -->
+          <div id="mapaFiltrosPainel" style="position:absolute;top:12px;right:12px;z-index:1000;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.5);width:260px;max-width:calc(100% - 24px);backdrop-filter:blur(8px);transition:all .2s ease">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer" onclick="togglePainelFiltros()">
+              <b style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--acc);display:flex;align-items:center;gap:6px">
+                ⚙️ Filtros e Camadas
+              </b>
+              <span id="setaPainelFiltros" style="font-size:11px;color:var(--mut);transition:transform .2s">▼</span>
+            </div>
+            
+            <div id="corpoPainelFiltros" style="padding:12px;display:flex;flex-direction:column;gap:12px;max-height:60vh;overflow-y:auto;font-size:12px">
+              <!-- Seletor de Vendedores Ativos -->
+              <div>
+                <span style="font-weight:700;color:var(--tx);display:block;margin-bottom:6px">Vendedores Visíveis:</span>
+                <label style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer">
+                  <input type="checkbox" id="chkVendA" checked onchange="trocaVisibilidadeVend()">
+                  <span class="cA" style="font-size:14px">●</span> <b id="lblVendA" class="cA">Vendedor A</b>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                  <input type="checkbox" id="chkVendB" checked onchange="trocaVisibilidadeVend()">
+                  <span class="cB" style="font-size:14px">●</span> <b id="lblVendB" class="cB">Vendedor B</b>
+                </label>
+              </div>
+
+              <!-- Filtro de Situação dos Clientes -->
+              <div id="grpFiltroStatusCli">
+                <span style="font-weight:700;color:var(--tx);display:block;margin-bottom:6px">Status da Compra:</span>
+                <label style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer">
+                  <input type="checkbox" id="chkStatusComprou" checked onchange="trocaVisibilidadeVend()">
+                  <span>● Compraram no mês</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer">
+                  <input type="checkbox" id="chkStatusSemCompra" checked onchange="trocaVisibilidadeVend()">
+                  <span>○ Sem compra no mês</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                  <input type="checkbox" id="chkStatusMix" checked onchange="trocaVisibilidadeVend()">
+                  <span style="color:var(--ok)">🟢 Compraram via +MIX</span>
+                </label>
+              </div>
+
+              <!-- Quando um produto específico está selecionado -->
+              <div id="grpFiltroProduto" style="display:none;border-top:1px solid var(--line);padding-top:10px">
+                <span style="font-weight:700;color:var(--tx);display:block;margin-bottom:6px">Camadas do Produto:</span>
+                <div id="listaBotoesCamadasPainel" style="display:flex;flex-direction:column;gap:5px"></div>
+              </div>
+
+              <!-- Filtro de Atividade / Ramo -->
+              <div style="border-top:1px solid var(--line);padding-top:10px">
+                <span style="font-weight:700;color:var(--tx);display:block;margin-bottom:6px">Filtrar por Ramo:</span>
+                <select id="cAtvPainel" onchange="$('cAtv').value = this.value; $('cAtv').dispatchEvent(new Event('change'));" style="width:100%;font-size:12px;padding:6px">
+                  <option value="">Todos os ramos</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
         <div id="mapaLeg"></div>
       </div></div>
   </section>
@@ -738,14 +796,45 @@ const forma = (tipo, cor, borda, bw) => { const s = 18; const b = `stroke="${bor
 async function desenhaMapa() {
   if (!COMP || !window.L) return;
   const { a, b } = COMP, W = COMP.W || a, tipo = $('cAtv') ? $('cAtv').value : '';
+
+  // Atualizar rótulos e seletores do painel flutuante
+  if ($('lblVendA')) $('lblVendA').textContent = esc(a.nome.split(' ').slice(0, 2).join(' '));
+  if ($('lblVendB')) $('lblVendB').textContent = esc(b.nome.split(' ').slice(0, 2).join(' '));
+  if ($('cAtvPainel') && $('cAtv')) {
+    $('cAtvPainel').innerHTML = $('cAtv').innerHTML;
+    $('cAtvPainel').value = $('cAtv').value;
+  }
+  const grpProd = $('grpFiltroProduto');
+  if (grpProd) grpProd.style.display = PROD ? 'block' : 'none';
+  if (PROD && $('listaBotoesCamadasPainel')) {
+    $('listaBotoesCamadasPainel').innerHTML = CAMS.map(([k, t, c]) => {
+      const on = CAM.has(k);
+      return `<label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" ${on ? 'checked' : ''} onchange="trocaCamada('${k}')">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${c}"></span>
+        <span>${t}</span>
+      </label>`;
+    }).join('');
+  }
   if (mapa) { mapa.remove(); mapa = null; }
   mapa = L.map('mapa'); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(mapa);
   const pts = []; MKS.clear(); let n = 0;
   const sit = PROD ? new Map((await situacoes(W, PROD.c)).map((x) => [x.cn, x])) : null;
   const comp = PROD ? await compradores([a, b]) : null;
-  [[a, cor('--a')], [b, cor('--b')]].forEach(([v, c]) => (v.pontos || []).forEach(([la, lo, st, cnpj, tp]) => {
+  [[a, cor('--a'), v === a ? 'vendA' : 'vendB'], [b, cor('--b'), v === b ? 'vendB' : 'vendA']].forEach(([v, c, tagVend]) => (v.pontos || []).forEach(([la, lo, st, cnpj, tp]) => {
     if (la == null || lo == null || isNaN(la) || isNaN(lo) || la < -35 || la > 6 || lo < -75 || lo > -30) return;
     if (tipo && tp && tp !== tipo) return;
+    
+    // Filtrar por vendedor ativo no painel
+    if (tagVend === 'vendA' && !FILTRO_MAPA.vendA) return;
+    if (tagVend === 'vendB' && !FILTRO_MAPA.vendB) return;
+
+    // Filtrar por status geral quando não está em modo de produto
+    if (!PROD) {
+      if (st === 2 && !FILTRO_MAPA.mix) return;
+      if (st === 1 && !FILTRO_MAPA.comprou) return;
+      if (st === 0 && !FILTRO_MAPA.semCompra) return;
+    }
     n++;
     let m;
     if (!PROD) m = L.circleMarker([la, lo], { radius: 5.5, color: st === 2 ? '#22c55e' : c, weight: st === 2 ? 3 : 1.5, fillColor: c, fillOpacity: st ? 0.85 : 0.08 });
@@ -1018,6 +1107,33 @@ function pares(a) {
       <td><button class="tab-btn" style="background:var(--acc);color:#04202e;border:0;border-radius:8px;padding:4px 10px;font-weight:700;cursor:pointer" onclick="$('cB').value='${v.filial}|${v.rca}';comparar();window.scrollTo({top:$('compBox').offsetTop-80,behavior:'smooth'})">Comparar</button></td></tr>`).join('') + '</tbody>';
 }
 let mapaT = null;
+let painelFiltrosAberto = true;
+function togglePainelFiltros() {
+  const corpo = $('corpoPainelFiltros');
+  const seta = $('setaPainelFiltros');
+  if (!corpo) return;
+  painelFiltrosAberto = !painelFiltrosAberto;
+  corpo.style.display = painelFiltrosAberto ? 'flex' : 'none';
+  if (seta) seta.style.transform = painelFiltrosAberto ? 'rotate(0deg)' : 'rotate(-90deg)';
+}
+
+let FILTRO_MAPA = {
+  vendA: true,
+  vendB: true,
+  comprou: true,
+  semCompra: true,
+  mix: true
+};
+
+function trocaVisibilidadeVend() {
+  FILTRO_MAPA.vendA = $('chkVendA') ? $('chkVendA').checked : true;
+  FILTRO_MAPA.vendB = $('chkVendB') ? $('chkVendB').checked : true;
+  FILTRO_MAPA.comprou = $('chkStatusComprou') ? $('chkStatusComprou').checked : true;
+  FILTRO_MAPA.semCompra = $('chkStatusSemCompra') ? $('chkStatusSemCompra').checked : true;
+  FILTRO_MAPA.mix = $('chkStatusMix') ? $('chkStatusMix').checked : true;
+  desenhaMapa();
+}
+
 function toggleExpandMapaComparativo() {
   const col = $('mapaCol');
   const btn = $('btnExpMapaComparativo');
