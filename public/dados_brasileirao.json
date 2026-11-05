@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-11-05T11:18:40.964156Z",
+  "gerado_em": "2026-11-05T11:33:33.137096Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -23,7 +23,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 41638,
+  "total_lances_auditados": 41642,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -177,12 +177,12 @@
       "vitorias": 0,
       "empates": 16,
       "derrotas": 0,
-      "gp": 8429,
+      "gp": 8435,
       "gc": 3338,
-      "sg": 5091,
+      "sg": 5097,
       "aprov": 33.3,
       "super_pedidos": 72,
-      "inativos_resgatados": 240,
+      "inativos_resgatados": 241,
       "forma": [
         "E",
         "E",
@@ -285,9 +285,9 @@
       "vitorias": 0,
       "empates": 16,
       "derrotas": 0,
-      "gp": 3524,
-      "gc": 3159,
-      "sg": 365,
+      "gp": 3528,
+      "gc": 3169,
+      "sg": 359,
       "aprov": 33.3,
       "super_pedidos": 24,
       "inativos_resgatados": 122,
@@ -582,9 +582,9 @@
       "vitorias": 0,
       "empates": 16,
       "derrotas": 0,
-      "gp": 8429,
+      "gp": 8435,
       "gc": 3338,
-      "sg": 5091,
+      "sg": 5097,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -693,9 +693,9 @@
       "vitorias": 0,
       "empates": 16,
       "derrotas": 0,
-      "gp": 3524,
-      "gc": 3159,
-      "sg": 365,
+      "gp": 3528,
+      "gc": 3169,
+      "sg": 359,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -940,7 +940,7 @@
         "V",
         "J"
       ],
-      "plus_lideranca": 150,
+      "plus_lideranca": 155,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1007,7 +1007,7 @@
           "ret": 5
         },
         "2026-11-05": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -1594,7 +1594,7 @@
         "V",
         "J"
       ],
-      "plus_lideranca": 75,
+      "plus_lideranca": 80,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1661,7 +1661,7 @@
           "ret": 0
         },
         "2026-11-05": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2248,7 +2248,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 135,
+      "plus_lideranca": 140,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2315,7 +2315,7 @@
           "ret": 5
         },
         "2026-11-05": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2770,9 +2770,9 @@
       "vitorias": 3,
       "empates": 11,
       "derrotas": 2,
-      "gp": 1645,
+      "gp": 1649,
       "gc": 1228,
-      "sg": 417,
+      "sg": 421,
       "aprov": 41.7,
       "forma": [
         "E",
@@ -2879,9 +2879,9 @@
       "vitorias": 2,
       "empates": 13,
       "derrotas": 1,
-      "gp": 3366,
+      "gp": 3372,
       "gc": 1176,
-      "sg": 2190,
+      "sg": 2196,
       "aprov": 39.6,
       "forma": [
         "E",
@@ -2907,115 +2907,6 @@
       "plus_pendente": null,
       "pos": 17,
       "pos_ant": 17
-    },
-    {
-      "supervisor": "RODRIGO FARIAS",
-      "filial": "API",
-      "canal": "VAREJO",
-      "gerente": "Marcelo",
-      "total_vendedores": 13,
-      "jogos": 16,
-      "pts_tabela": 18,
-      "vitorias": 1,
-      "empates": 15,
-      "derrotas": 0,
-      "gp": 2797,
-      "gc": 1268,
-      "sg": 1529,
-      "aprov": 37.5,
-      "forma": [
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "V",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "E",
-        "J"
-      ],
-      "plus_lideranca": 115,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 0,
-          "ret": 5
-        },
-        "2026-10-22": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-23": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-26": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-27": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-28": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-29": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-30": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-11-03": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-11-04": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-11-05": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 18,
-      "pos_ant": 18
     },
     {
       "supervisor": "EDI CARLOS MEIRA",
@@ -3051,7 +2942,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 110,
+      "plus_lideranca": 120,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -3118,13 +3009,122 @@
           "ret": 5
         },
         "2026-11-05": {
+          "compromisso": 5,
+          "ret": 5
+        }
+      },
+      "plus_pendente": false,
+      "pos": 18,
+      "pos_ant": 19
+    },
+    {
+      "supervisor": "RODRIGO FARIAS",
+      "filial": "API",
+      "canal": "VAREJO",
+      "gerente": "Marcelo",
+      "total_vendedores": 13,
+      "jogos": 16,
+      "pts_tabela": 18,
+      "vitorias": 1,
+      "empates": 15,
+      "derrotas": 0,
+      "gp": 2797,
+      "gc": 1268,
+      "sg": 1529,
+      "aprov": 37.5,
+      "forma": [
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "V",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "J"
+      ],
+      "plus_lideranca": 120,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
           "compromisso": 0,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-05": {
+          "compromisso": 5,
           "ret": 0
         }
       },
       "plus_pendente": false,
       "pos": 19,
-      "pos_ant": 19
+      "pos_ant": 18
     },
     {
       "supervisor": "CRISTIANO RODRIGUES MACHADO",
@@ -5994,7 +5994,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 140,
+      "plus_lideranca": 145,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -6061,7 +6061,7 @@
           "ret": 5
         },
         "2026-11-05": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -6321,7 +6321,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 75,
+      "plus_lideranca": 80,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -6388,7 +6388,7 @@
           "ret": 0
         },
         "2026-11-05": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -7738,7 +7738,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 140,
+      "plus_lideranca": 145,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -7806,7 +7806,7 @@
         },
         "2026-11-05": {
           "compromisso": 5,
-          "ret": 0
+          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -8458,17 +8458,17 @@
       "supervisor": "IVAYR PRINCIPE FREITAS DE MIRANDA",
       "gerente": "Becher",
       "canal": "VAREJO",
-      "jogos": 16,
+      "jogos": 17,
       "vitorias": 15,
-      "empates": 1,
+      "empates": 2,
       "derrotas": 0,
-      "pts_tabela": 55,
-      "aprov": 114.6,
-      "gp": 1018,
+      "pts_tabela": 56,
+      "aprov": 109.8,
+      "gp": 1024,
       "gc": 6,
-      "sg": 1012,
+      "sg": 1018,
       "super_pedidos": 5,
-      "inativos_resgatados": 45,
+      "inativos_resgatados": 46,
       "forma": [
         "V",
         "V",
@@ -8486,7 +8486,7 @@
         "V",
         "E",
         "V",
-        "J"
+        "E"
       ],
       "streak": 14,
       "bonus_constancia": 0,
@@ -13098,6 +13098,52 @@
       "pos_filial_ant": 9
     },
     {
+      "rca": "1152",
+      "nome": "WILLIAM SOUZA MATHIAS",
+      "filial": "TBE",
+      "supervisor": "PATRICIA CHAVES MACHADO",
+      "gerente": "Diego",
+      "canal": "VAREJO",
+      "jogos": 17,
+      "vitorias": 6,
+      "empates": 9,
+      "derrotas": 2,
+      "pts_tabela": 27,
+      "aprov": 52.9,
+      "gp": 156,
+      "gc": 8,
+      "sg": 148,
+      "super_pedidos": 0,
+      "inativos_resgatados": 12,
+      "forma": [
+        "E",
+        "V",
+        "E",
+        "V",
+        "V",
+        "V",
+        "E",
+        "E",
+        "V",
+        "E",
+        "V",
+        "E",
+        "D",
+        "E",
+        "D",
+        "E",
+        "E"
+      ],
+      "streak": 3,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 89,
+      "pos_filial": 3,
+      "pos_brasil_ant": 98,
+      "pos_filial_ant": 3
+    },
+    {
       "rca": "1087",
       "nome": "POLIANA JESSICA DE ALMEIDA",
       "filial": "TBL",
@@ -13138,7 +13184,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 89,
+      "pos_brasil": 90,
       "pos_filial": 12,
       "pos_brasil_ant": 89,
       "pos_filial_ant": 12
@@ -13184,7 +13230,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 90,
+      "pos_brasil": 91,
       "pos_filial": 17,
       "pos_brasil_ant": 90,
       "pos_filial_ant": 17
@@ -13276,7 +13322,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 91,
+      "pos_brasil": 92,
       "pos_filial": 10,
       "pos_brasil_ant": 91,
       "pos_filial_ant": 10
@@ -13322,7 +13368,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 92,
+      "pos_brasil": 93,
       "pos_filial": 9,
       "pos_brasil_ant": 92,
       "pos_filial_ant": 9
@@ -13368,7 +13414,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 93,
+      "pos_brasil": 94,
       "pos_filial": 13,
       "pos_brasil_ant": 93,
       "pos_filial_ant": 13
@@ -13414,7 +13460,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 94,
+      "pos_brasil": 95,
       "pos_filial": 13,
       "pos_brasil_ant": 94,
       "pos_filial_ant": 13
@@ -13460,7 +13506,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 95,
+      "pos_brasil": 96,
       "pos_filial": 18,
       "pos_brasil_ant": 95,
       "pos_filial_ant": 18
@@ -13552,7 +13598,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 96,
+      "pos_brasil": 97,
       "pos_filial": 5,
       "pos_brasil_ant": 96,
       "pos_filial_ant": 5
@@ -13598,56 +13644,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 97,
+      "pos_brasil": 98,
       "pos_filial": 14,
       "pos_brasil_ant": 97,
       "pos_filial_ant": 14
-    },
-    {
-      "rca": "1152",
-      "nome": "WILLIAM SOUZA MATHIAS",
-      "filial": "TBE",
-      "supervisor": "PATRICIA CHAVES MACHADO",
-      "gerente": "Diego",
-      "canal": "VAREJO",
-      "jogos": 16,
-      "vitorias": 6,
-      "empates": 8,
-      "derrotas": 2,
-      "pts_tabela": 26,
-      "aprov": 54.2,
-      "gp": 152,
-      "gc": 8,
-      "sg": 144,
-      "super_pedidos": 0,
-      "inativos_resgatados": 12,
-      "forma": [
-        "E",
-        "V",
-        "E",
-        "V",
-        "V",
-        "V",
-        "E",
-        "E",
-        "V",
-        "E",
-        "V",
-        "E",
-        "D",
-        "E",
-        "D",
-        "E",
-        "J"
-      ],
-      "streak": 3,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 98,
-      "pos_filial": 3,
-      "pos_brasil_ant": 98,
-      "pos_filial_ant": 3
     },
     {
       "rca": "19",
@@ -19814,52 +19814,6 @@
       "pos_filial_ant": 19
     },
     {
-      "rca": "293",
-      "nome": "EDUARDO GERMANO RODRIGUES",
-      "filial": "TBE",
-      "supervisor": "NEIVA CLEONICE SERRA ISOPPO",
-      "gerente": "Diego",
-      "canal": "VAREJO",
-      "jogos": 16,
-      "vitorias": 2,
-      "empates": 6,
-      "derrotas": 8,
-      "pts_tabela": 12,
-      "aprov": 25.0,
-      "gp": 108,
-      "gc": 116,
-      "sg": -8,
-      "super_pedidos": 0,
-      "inativos_resgatados": 6,
-      "forma": [
-        "D",
-        "E",
-        "V",
-        "E",
-        "D",
-        "D",
-        "E",
-        "E",
-        "D",
-        "E",
-        "D",
-        "D",
-        "V",
-        "E",
-        "D",
-        "D",
-        "J"
-      ],
-      "streak": 1,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 194,
-      "pos_filial": 7,
-      "pos_brasil_ant": 194,
-      "pos_filial_ant": 7
-    },
-    {
       "rca": "214",
       "nome": "GILSON DE ALMEIDA ALVES",
       "filial": "ABC",
@@ -19900,10 +19854,56 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 195,
+      "pos_brasil": 194,
       "pos_filial": 21,
       "pos_brasil_ant": 195,
       "pos_filial_ant": 21
+    },
+    {
+      "rca": "293",
+      "nome": "EDUARDO GERMANO RODRIGUES",
+      "filial": "TBE",
+      "supervisor": "NEIVA CLEONICE SERRA ISOPPO",
+      "gerente": "Diego",
+      "canal": "VAREJO",
+      "jogos": 16,
+      "vitorias": 2,
+      "empates": 6,
+      "derrotas": 8,
+      "pts_tabela": 12,
+      "aprov": 25.0,
+      "gp": 108,
+      "gc": 126,
+      "sg": -18,
+      "super_pedidos": 0,
+      "inativos_resgatados": 6,
+      "forma": [
+        "D",
+        "E",
+        "V",
+        "E",
+        "D",
+        "D",
+        "E",
+        "E",
+        "D",
+        "E",
+        "D",
+        "D",
+        "V",
+        "E",
+        "D",
+        "D",
+        "J"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 195,
+      "pos_filial": 7,
+      "pos_brasil_ant": 194,
+      "pos_filial_ant": 7
     },
     {
       "rca": "222",
@@ -30899,7 +30899,7 @@
         "supervisor": "CRISTIANO RODRIGUES MACHADO",
         "gerente": "Saldanha",
         "meta_mes": 350000,
-        "pct_hoje": 9.9,
+        "pct_hoje": 9,
         "fases": [
           {
             "n": 1,
@@ -32229,7 +32229,7 @@
         "supervisor": "ANDERSON FERNANDES CORREIA",
         "gerente": "Marcelo",
         "meta_mes": 410004,
-        "pct_hoje": 3.7,
+        "pct_hoje": 6.6,
         "fases": [
           {
             "n": 1,
@@ -49506,7 +49506,7 @@
         "total_vendedores": 5,
         "com_meta": 5,
         "meta_mes": 1462442,
-        "pct_hoje": 6,
+        "pct_hoje": 6.8,
         "fases": [
           {
             "n": 1,
@@ -49986,7 +49986,7 @@
         "total_vendedores": 8,
         "com_meta": 8,
         "meta_mes": 4500000,
-        "pct_hoje": 3.5,
+        "pct_hoje": 3.4,
         "fases": [
           {
             "n": 1,
