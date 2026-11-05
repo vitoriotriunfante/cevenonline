@@ -410,7 +410,7 @@ async function carrega(mes) {
   if (mes) mesSelecionado = mes;
   const urlBase = mesSelecionado === '2026-10' ? '/dados_mix_2026-10.json' : '/dados_mix.json';
   $('sub').textContent = 'Carregando dados de ' + (mesSelecionado === '2026-10' ? 'Outubro/2026' : 'Novembro/2026') + '...';
-  D = null;
+  D = null; CB = null; VEND.clear(); if (window.CLI) CLI.clear(); if (window.HIST) HIST.clear(); if (window.REC) REC.clear();
   for (const u of [urlBase + '?t=' + Date.now()]) {
     try { const r = await fetch(u, { cache: 'no-store' }); if (r.ok) { D = await r.json(); break; } } catch (e) {}
   }
@@ -441,7 +441,7 @@ function resumo() {
   resumoExtra();
 }
 async function resumoExtra() {
-  if (!CB) { try { CB = await fetch('mix_cubo.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null); } catch (e) { CB = null; } }
+  if (!CB) { try { CB = await fetch(((mesSelecionado === '2026-10') ? 'mix_cubo_2026-10.json?v=' : 'mix_cubo.json?v=') + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null); } catch (e) { CB = null; } }
   if (CB) { const ts = {}; CB.cli.forEach((c) => ts[c[2]] = (ts[c[2]] || 0) + 1); $('rTipo').innerHTML = '<option value="">Todos os tipos de cliente</option>' + Object.entries(ts).sort((a, b) => b[1] - a[1]).map(([t, n]) => `<option value="${esc(t)}">${esc(t)} (${nf(n)})</option>`).join(''); }
   quartis();
 }
@@ -664,7 +664,7 @@ function testeClientes(c, tr) {
 // 'vendedor, esta aparecendo esse produto no +MIX para o cliente X, por que voce nao vende?'")
 let COMP = null, PROD = null; const MKS = new Map();
 async function compradores(vs) {   // cnpj -> Set(produtos comprados no mes), so dos vendedores do comparativo
-  if (!CB) { try { CB = await fetch('mix_cubo.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null); } catch (e) { CB = null; } }
+  if (!CB) { try { CB = await fetch(((mesSelecionado === '2026-10') ? 'mix_cubo_2026-10.json?v=' : 'mix_cubo.json?v=') + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null); } catch (e) { CB = null; } }
   const m = new Map(); if (!CB) return m;
   const ks = new Set(vs.map((v) => v.filial + '|' + v.rca));
   for (const fa of CB.f) { const c = CB.cli[fa[0]]; if (!ks.has(c[0] + '|' + c[1]) || !c[3]) continue; if (!m.has(c[3])) m.set(c[3], new Set()); m.get(c[3]).add(CB.prods[fa[1]][0]); }
@@ -687,10 +687,12 @@ const diasDesde = (d) => dataOk(d) ? Math.round((Date.now() - new Date(d + 'T12:
 // No mapa: forma = situacao de compra (● comprou o produto, ■ comprou outras coisas, ▲ nao comprou nada); borda = alerta (roxa = parou, vermelha = +MIX mostra).
 const HIST = new Map();
 async function histFilial(f) {
-  if (!HIST.has(f)) HIST.set(f, fetch('mix_hist/' + f + '.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null).then((j) => {
+  const pasta = (mesSelecionado === '2026-10') ? 'mix_hist_2026-10/' : 'mix_hist/';
+  const k = pasta + f;
+  if (!HIST.has(k)) HIST.set(k, fetch(pasta + f + '.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null).then((j) => {
     const m = new Map(); if (j && j.c) for (const [cn, s] of Object.entries(j.c)) m.set(cn, new Map(s.split(',').map((x) => { const [c, d] = x.split(':'); return [c, d ? '20' + d.slice(0, 2) + '-' + d.slice(2, 4) + '-' + d.slice(4, 6) : '']; })));
     return m; }).catch(() => new Map()));
-  return HIST.get(f);
+  return HIST.get(k);
 }
 async function comprasCli(vs) {   // cnpj -> [[nome, valor]] do mes, para abrir o cliente
   if (!CB) await compradores(vs);
@@ -768,13 +770,22 @@ async function produtoBox() {
   const rw = res(sw), rf = res(sf);
   const lin = (v, r) => `<tr><td class="l ${v === COMP.a ? 'cA' : 'cB'}">${esc(v.nome)}</td><td>${nf(r.tot)}</td><td>${nf(r.ativos)}</td><td><b>${nf(r.prod)}</b> de ${nf(r.ativos)} (${pc(r.prod / (r.ativos || 1) * 100)})</td><td style="color:#a855f7">${nf(r.parou)}</td><td style="color:#ef4444">${nf(r.mostra)}</td><td>${nf(r.outros)}</td></tr>`;
   const alvo = sw.filter((x) => !x.prod && CAM.has(catDe(x))).sort((p, q) => (!!q.parou - !!p.parou) || (q.mostra - p.mostra) || (q.ativo - p.ativo) || (p.vis[3] || '9999').localeCompare(q.vis[3] || '9999'));
-  const tags = (x) => [x.parou ? `<span class="chip" style="background:#a855f722;color:#a855f7">comprava e parou (${ddmm(x.parou)})</span>` : '', x.mostra ? '<span class="chip" style="background:#ef444422;color:#ef4444">+MIX mostra</span>' : '', x.ativo ? '<span class="chip" style="background:#38bdf822;color:var(--acc)">compra de você, mas não este</span>' : '<span class="chip" style="background:#94a3b822;color:var(--mut)">não comprou nada no mês</span>'].join(' ');
+  const tags = (x) => [x.parou ? `<span class="chip" style="background:#a855f722;color:#a855f7">já comprou este produto antes e parou (${ddmm(x.parou)})</span>` : '', x.mostra ? '<span class="chip" style="background:#ef444422;color:#ef4444">+MIX mostra</span>' : '', x.ativo ? '<span class="chip" style="background:#38bdf822;color:var(--acc)">comprou outros produtos no mês, falta este</span>' : '<span class="chip" style="background:#94a3b822;color:var(--mut)">não comprou nada no mês</span>'].join(' ');
   const forte = alvo.filter((x) => x.parou || x.mostra).length;
   box.innerHTML = `<div class="box" style="margin-top:12px;border-color:#ef4444">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><b style="font-size:16px">${esc(PROD.n)}${tipo ? ' · só ' + esc(tipo) : ''}</b><a href="#" onclick="PROD=null;desenhaMapa();produtoBox();return false">fechar</a></div>
     <table style="margin-top:8px"><thead><tr><th class="l">Vendedor</th><th>Clientes na carteira</th><th>Compraram no mês</th><th>Compraram este produto</th><th>Comprava e parou</th><th>+MIX mostra</th><th>Compra outras coisas, não este</th></tr></thead><tbody>${lin(W, rw)}${lin(F, rf)}</tbody></table>
     <div class="leg">Para ficar igual a ${esc(F.nome.split(' ')[0])} em %, ${esc(W.nome.split(' ')[0])} precisa vender para <b>${nf(Math.max(0, Math.round(rf.prod / (rf.ativos || 1) * rw.ativos) - rw.prod))}</b> clientes a mais. Os mais fáceis: <b style="color:#a855f7">${nf(rw.parou)}</b> já compravam e pararam e <b style="color:#ef4444">${nf(rw.mostra)}</b> têm o produto no +MIX.</div>
-    <div class="ctl" style="margin-top:12px"><b>Camadas:</b> ${CAMS.map(([k, t, c]) => { const n = k === 'outro' ? '' : ` (${nf(sw.filter((x) => catDe(x) === k).length)})`; const on = CAM.has(k);
+    <div class="ctl" style="margin-top:12px">
+      <div style="width:100%;background:var(--card2);padding:10px 14px;border-radius:10px;margin-bottom:8px;font-size:12.5px;line-height:1.5">
+        <b>Entenda o que significa cada situação:</b><br>
+        • <b style="color:#22c55e">✓ Comprou o produto</b>: o cliente comprou este produto neste mês.<br>
+        • <b style="color:#a855f7">✓ Comprava e parou</b>: o cliente tem histórico recente deste item, mas <u>parou de comprar</u> neste mês (recuperação urgente).<br>
+        • <b style="color:#ef4444">✓ +MIX mostra</b>: o cliente tem perfil similar a quem compra e o JOTA recomendou inserir no pedido.<br>
+        • <b style="color:var(--acc)">✓ Compra outras coisas</b>: o cliente compra outros itens da sua pasta, mas ainda não leva este produto.<br>
+        • <b style="color:var(--mut)">✓ Não comprou nada</b>: cliente inativo / sem positivação no mês.
+      </div>
+      <b>Filtrar camadas:</b> ${CAMS.map(([k, t, c]) => { const n = k === 'outro' ? '' : ` (${nf(sw.filter((x) => catDe(x) === k).length)})`; const on = CAM.has(k);
       return `<button onclick="trocaCamada('${k}')" style="cursor:pointer;border-radius:999px;padding:5px 11px;font-weight:700;font-size:12.5px;border:2px solid ${c};background:${on ? c : 'transparent'};color:${on ? '#04121f' : 'var(--tx)'}">${on ? '✓ ' : ''}${t}${n}</button>`; }).join(' ')}</div>
     <h2>Lista de cobrança de ${esc(W.nome.split(' ')[0])} (${nf(alvo.length)} clientes nas camadas ligadas)</h2>
     <table><thead><tr><th class="l">Cliente</th><th class="l">Situação</th><th>Última visita</th><th>Próxima</th><th>Última compra</th></tr></thead><tbody>${alvo.map((x, i) => { const v = x.vis;
@@ -795,8 +806,10 @@ function escolheProduto(c, n) { PROD = { c: String(c), n }; desenhaMapa(); produ
 // +MIX DO CLIENTE (20/10/2026: "se eu clicar no cliente no mapa nao consigo ver o que falta ele comprar que esta no +MIX?")
 const REC = new Map();
 async function recFilial(f) {
-  if (!REC.has(f)) REC.set(f, fetch('mix_rec/' + f + '.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null).catch(() => null));
-  return REC.get(f);
+  const pasta = (mesSelecionado === '2026-10') ? 'mix_rec_2026-10/' : 'mix_rec/';
+  const k = pasta + f;
+  if (!REC.has(k)) REC.set(k, fetch(pasta + f + '.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null).catch(() => null));
+  return REC.get(k);
 }
 async function popupCliente(m, v, cnpj, st) {
   const R = await recFilial(v.filial); const c = R && cnpj ? R.clientes[cnpj] : null;
@@ -816,7 +829,7 @@ function produtos() {
 let chQ = null, QF = null;
 const FXQ = [[1, 3], [4, 7], [8, 12], [13, 20], [21, 40], [41, 99999]];
 async function quinzenas() {
-  if (!CB) { try { CB = await fetch('mix_cubo.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null); } catch (e) { CB = null; } }
+  if (!CB) { try { CB = await fetch(((mesSelecionado === '2026-10') ? 'mix_cubo_2026-10.json?v=' : 'mix_cubo.json?v=') + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null); } catch (e) { CB = null; } }
   if (!CB || !CB.cli.length || CB.cli[0].length < 7) { $('qFx').innerHTML = '<tr><td class="l">Os filtros chegam na próxima atualização dos dados.</td></tr>'; return; }
   if (!QF) {   // um registro por cliente: mix, R$, pedidos, dobradinha, recompra
     const vk = new Map(D.vendedores.map((v) => [v.filial + '|' + v.rca, v]));
@@ -880,7 +893,7 @@ const XPROX = { filial: 'sup', sup: 'vend', vend: 'ind', ramo: 'ind', ind: 'prod
 const pill = (on) => `margin:2px;border-radius:999px;padding:6px 12px;font-weight:700;cursor:pointer;border:1px solid ${on ? 'var(--acc)' : 'var(--line)'};background:${on ? 'var(--acc)' : 'var(--card)'};color:${on ? '#04202e' : 'var(--tx)'}`;
 async function filtrosCubo() {
   $('xTab').innerHTML = '<tr><td class="l">carregando o cubo…</td></tr>';
-  if (!CB) try { CB = await fetch('mix_cubo.json?v=' + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null); } catch (e) { CB = null; }
+  if (!CB) try { CB = await fetch(((mesSelecionado === '2026-10') ? 'mix_cubo_2026-10.json?v=' : 'mix_cubo.json?v=') + encodeURIComponent(D.gerado_em || '')).then((r) => r.ok ? r.json() : null); } catch (e) { CB = null; }
   if (!CB) { $('xTab').innerHTML = '<tr><td class="l">O cubo chega na próxima atualização dos dados.</td></tr>'; $('xHeat').innerHTML = ''; return; }
   const vk = new Map(D.vendedores.map((v) => [v.filial + '|' + v.rca, v]));
   CB.vc = CB.cli.map(([f, r]) => vk.get(f + '|' + r) || { filial: f, rca: r, nome: 'RCA ' + r, supervisor: '' });
@@ -978,13 +991,24 @@ let mapaT = null;
 function mapaTodos(L) {
   if (!window.L || !$('mapaTodos')) return;
   if (mapaT) { mapaT.remove(); mapaT = null; }
-  mapaT = window.L.map('mapaTodos'); window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(mapaT);
+  mapaT = window.L.map('mapaTodos', { minZoom: 3 }); window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(mapaT);
   const pal = ['#38bdf8', '#f59e0b', '#22c55e', '#ef4444', '#a78bfa', '#f472b6', '#14b8a6', '#eab308', '#fb923c', '#60a5fa', '#94a3b8', '#84cc16', '#e879f9', '#2dd4bf', '#f87171'];
   const pts = [], leg = [];
   L.forEach((v, i) => { const c = pal[i % pal.length]; leg.push(`<span style="color:${c}">●</span> ${esc(v.nome.split(' ').slice(0, 2).join(' '))}`);
     (v.pontos || []).forEach(([la, lo]) => { pts.push([la, lo]); window.L.circleMarker([la, lo], { radius: 3.5, color: c, weight: 1, fillColor: c, fillOpacity: 0.8 }).bindTooltip(v.nome).addTo(mapaT); }); });
-  const enquadraT = () => { if (!mapaT) return; mapaT.invalidateSize(); if (pts.length) mapaT.fitBounds(pts, { padding: [16, 16] }); else mapaT.setView([-23.5, -49], 6); };
-  enquadraT(); setTimeout(enquadraT, 150); setTimeout(enquadraT, 600);
+  const enquadraT = () => {
+    if (!mapaT) return;
+    mapaT.invalidateSize();
+    if (pts.length > 0) {
+      mapaT.fitBounds(pts, { padding: [20, 20], maxZoom: 14 });
+    } else {
+      mapaT.setView([-30.03, -51.22], 10);
+    }
+  };
+  enquadraT();
+  setTimeout(enquadraT, 100);
+  setTimeout(enquadraT, 400);
+  setTimeout(enquadraT, 1000);
   $('mapaTodosLeg').innerHTML = leg.join(' · ') + '<br>Cada cor é um vendedor (ponto = cliente da carteira). Passe o mouse no ponto para ver o nome.';
 }
 
