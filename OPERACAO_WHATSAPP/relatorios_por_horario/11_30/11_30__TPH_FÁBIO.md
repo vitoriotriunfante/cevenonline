@@ -1,15 +1,15 @@
 🏢 *FILIAL TPH — GESTÃO DE CAMPO*
-📅 05/11/2026 • Gerente: Fábio
+📅 06/11/2026 • Gerente: Fábio
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 *PAINEL DE ATIVIDADES (5 SUPERVISORES):*
-📝 Compromissos: *4 de 5* lançados
-🚗 Em Rota (RET): *1 de 5* em campo
+📝 Compromissos: *2 de 5* lançados
+🚗 Em Rota (RET): *0 de 5* em campo
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 👤 *AILTON LUIZ ARENDT JUNIOR*
-📝 Compromisso: ✅ Lançado
+📝 Compromisso: ❌ Não lançado
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
 👤 *CRISTIAN EDUARDO RAFFAELLI*
@@ -17,10 +17,8 @@
 🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
 👤 *EDI CARLOS MEIRA*
-📝 Compromisso: ✅ Lançado
-🚗 Rota (RET): ✅ Em campo (início às 08:27)
-└ 👥 RCA: BRUNO AMARAL
-└ 📍 6 PDVs visitados • 📸 6 fotos • Score: 61%
+📝 Compromisso: ❌ Não lançado
+🚗 Rota (RET): ❌ Não iniciou (0 PDVs no sistema)
 
 👤 *PRISCILA A D NASCIMENTO STRAPASSON*
 📝 Compromisso: ✅ Lançado
