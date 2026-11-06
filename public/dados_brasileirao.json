@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-11-06T10:48:28.459871Z",
+  "gerado_em": "2026-11-06T11:03:44.533642Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -24,7 +24,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 43268,
+  "total_lances_auditados": 43270,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -145,9 +145,9 @@
       "vitorias": 0,
       "empates": 17,
       "derrotas": 0,
-      "gp": 9179,
+      "gp": 9184,
       "gc": 2550,
-      "sg": 6629,
+      "sg": 6634,
       "aprov": 33.3,
       "super_pedidos": 28,
       "inativos_resgatados": 132,
@@ -294,8 +294,8 @@
       "empates": 17,
       "derrotas": 0,
       "gp": 3686,
-      "gc": 3318,
-      "sg": 368,
+      "gc": 3322,
+      "sg": 364,
       "aprov": 33.3,
       "super_pedidos": 24,
       "inativos_resgatados": 122,
@@ -560,9 +560,9 @@
       "vitorias": 1,
       "empates": 16,
       "derrotas": 0,
-      "gp": 9179,
+      "gp": 9184,
       "gc": 2550,
-      "sg": 6629,
+      "sg": 6634,
       "aprov": 37.3,
       "forma": [
         "E",
@@ -713,8 +713,8 @@
       "empates": 17,
       "derrotas": 0,
       "gp": 3686,
-      "gc": 3318,
-      "sg": 368,
+      "gc": 3322,
+      "sg": 364,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -2652,9 +2652,9 @@
       "vitorias": 4,
       "empates": 10,
       "derrotas": 3,
-      "gp": 1153,
+      "gp": 1158,
       "gc": 28,
-      "sg": 1125,
+      "sg": 1130,
       "aprov": 43.1,
       "forma": [
         "E",
@@ -4997,7 +4997,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 155,
+      "plus_lideranca": 160,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 0,
@@ -5069,7 +5069,7 @@
         },
         "2026-11-06": {
           "compromisso": 5,
-          "ret": 0
+          "ret": 5
         }
       },
       "plus_pendente": false,
@@ -6114,8 +6114,8 @@
       "empates": 10,
       "derrotas": 7,
       "gp": 879,
-      "gc": 1639,
-      "sg": -760,
+      "gc": 1643,
+      "sg": -764,
       "aprov": 19.6,
       "forma": [
         "E",
@@ -7277,7 +7277,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 155,
+      "plus_lideranca": 160,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -7348,7 +7348,7 @@
           "ret": 0
         },
         "2026-11-06": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -8458,7 +8458,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 125,
+      "plus_lideranca": 130,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -8529,7 +8529,7 @@
           "ret": 5
         },
         "2026-11-06": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -10463,6 +10463,53 @@
       "pos_filial_ant": 5
     },
     {
+      "rca": "268",
+      "nome": "ANDERSON KOSOWSKI",
+      "filial": "API",
+      "supervisor": "ANDERSON FERNANDES CORREIA",
+      "gerente": "Marcelo",
+      "canal": "AS",
+      "jogos": 18,
+      "vitorias": 12,
+      "empates": 4,
+      "derrotas": 2,
+      "pts_tabela": 40,
+      "aprov": 74.1,
+      "gp": 652,
+      "gc": 14,
+      "sg": 638,
+      "super_pedidos": 2,
+      "inativos_resgatados": 1,
+      "forma": [
+        "V",
+        "V",
+        "E",
+        "V",
+        "V",
+        "V",
+        "V",
+        "V",
+        "E",
+        "V",
+        "V",
+        "V",
+        "D",
+        "D",
+        "V",
+        "E",
+        "V",
+        "E"
+      ],
+      "streak": 5,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 2,
+      "pos_filial": 1,
+      "pos_brasil_ant": 3,
+      "pos_filial_ant": 1
+    },
+    {
       "rca": "64",
       "nome": "BRUNO CESAR COSTA",
       "filial": "TPH",
@@ -10504,7 +10551,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 2,
+      "pos_brasil": 3,
       "pos_filial": 1,
       "pos_brasil_ant": 2,
       "pos_filial_ant": 1
@@ -10649,53 +10696,6 @@
       "pos_filial": 8,
       "pos_brasil_ant": 37,
       "pos_filial_ant": 8
-    },
-    {
-      "rca": "268",
-      "nome": "ANDERSON KOSOWSKI",
-      "filial": "API",
-      "supervisor": "ANDERSON FERNANDES CORREIA",
-      "gerente": "Marcelo",
-      "canal": "AS",
-      "jogos": 17,
-      "vitorias": 12,
-      "empates": 3,
-      "derrotas": 2,
-      "pts_tabela": 39,
-      "aprov": 76.5,
-      "gp": 647,
-      "gc": 14,
-      "sg": 633,
-      "super_pedidos": 2,
-      "inativos_resgatados": 1,
-      "forma": [
-        "V",
-        "V",
-        "E",
-        "V",
-        "V",
-        "V",
-        "V",
-        "V",
-        "E",
-        "V",
-        "V",
-        "V",
-        "D",
-        "D",
-        "V",
-        "E",
-        "V",
-        "J"
-      ],
-      "streak": 5,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 3,
-      "pos_filial": 1,
-      "pos_brasil_ant": 3,
-      "pos_filial_ant": 1
     },
     {
       "rca": "1191",
@@ -25986,8 +25986,8 @@
       "pts_tabela": 4,
       "aprov": 7.8,
       "gp": 80,
-      "gc": 250,
-      "sg": -170,
+      "gc": 254,
+      "sg": -174,
       "super_pedidos": 0,
       "inativos_resgatados": 4,
       "forma": [
@@ -31842,7 +31842,7 @@
         "supervisor": "GILBERTO GOMES DOMINGOS",
         "gerente": "Marcos",
         "meta_mes": 265649,
-        "pct_hoje": 9.5,
+        "pct_hoje": 9.3,
         "fases": [
           {
             "n": 1,
@@ -31966,6 +31966,139 @@
         "pos_brasil": 2,
         "pos_filial": 1,
         "pos_brasil_ant": 2,
+        "pos_filial_ant": 1
+      },
+      {
+        "rca": "268",
+        "nome": "ANDERSON KOSOWSKI",
+        "filial": "API",
+        "supervisor": "ANDERSON FERNANDES CORREIA",
+        "gerente": "Marcelo",
+        "meta_mes": 410004,
+        "pct_hoje": 51.4,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-11-07",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-11-14",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-11-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 30,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-11-30",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 41,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 41,
+            "jogada": true,
+            "resultado": "V",
+            "pts_tabela": 3
+          },
+          {
+            "n": 2,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 1,
+        "vitorias": 1,
+        "empates": 0,
+        "derrotas": 0,
+        "pts_tabela": 3,
+        "aprov": 100.0,
+        "forma": [
+          "V"
+        ],
+        "pontos": 41,
+        "pts_lances": 41,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 3,
+        "pos_filial": 1,
+        "pos_brasil_ant": 4,
         "pos_filial_ant": 1
       },
       {
@@ -32096,142 +32229,9 @@
         "pts_lances": 38,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 3,
-        "pos_filial": 1,
-        "pos_brasil_ant": 3,
-        "pos_filial_ant": 1
-      },
-      {
-        "rca": "268",
-        "nome": "ANDERSON KOSOWSKI",
-        "filial": "API",
-        "supervisor": "ANDERSON FERNANDES CORREIA",
-        "gerente": "Marcelo",
-        "meta_mes": 410004,
-        "pct_hoje": 50.9,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-11-07",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-11-14",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-11-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 30,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-11-30",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": 36,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 36,
-            "jogada": true,
-            "resultado": "V",
-            "pts_tabela": 3
-          },
-          {
-            "n": 2,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 3,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 4,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 1,
-        "vitorias": 1,
-        "empates": 0,
-        "derrotas": 0,
-        "pts_tabela": 3,
-        "aprov": 100.0,
-        "forma": [
-          "V"
-        ],
-        "pontos": 36,
-        "pts_lances": 36,
-        "pts_faseamento": 0,
-        "pts_bonus": 0,
         "pos_brasil": 4,
         "pos_filial": 1,
-        "pos_brasil_ant": 4,
+        "pos_brasil_ant": 3,
         "pos_filial_ant": 1
       },
       {
@@ -35433,7 +35433,7 @@
         "supervisor": "MISSAID MAINARDES RAMOS",
         "gerente": "Marcos",
         "meta_mes": 366506,
-        "pct_hoje": 4.6,
+        "pct_hoje": 4.2,
         "fases": [
           {
             "n": 1,
@@ -36364,7 +36364,7 @@
         "supervisor": "ALEX SANDRO SOARES ELIAS",
         "gerente": "Diego",
         "meta_mes": 441981,
-        "pct_hoje": 1.2,
+        "pct_hoje": 1.1,
         "fases": [
           {
             "n": 1,
@@ -36896,7 +36896,7 @@
         "supervisor": "LUIS THIAGO VIRTUOSO BOEIRA",
         "gerente": "Diego",
         "meta_mes": 722386,
-        "pct_hoje": 11.8,
+        "pct_hoje": 11.7,
         "fases": [
           {
             "n": 1,
@@ -43673,6 +43673,139 @@
         "pos_filial_ant": 12
       },
       {
+        "rca": "309",
+        "nome": "ANDERSON BARBOSA MORAES",
+        "filial": "TBE",
+        "supervisor": "ALEX SANDRO SOARES ELIAS",
+        "gerente": "Diego",
+        "meta_mes": 984993,
+        "pct_hoje": 1.3,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-11-07",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-11-14",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-11-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 30,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-11-30",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "J",
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 0,
+        "vitorias": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "pts_tabela": 0,
+        "aprov": 0,
+        "forma": [
+          "J"
+        ],
+        "pontos": 0,
+        "pts_lances": 0,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 91,
+        "pos_filial": 8,
+        "pos_brasil_ant": 91,
+        "pos_filial_ant": 8
+      },
+      {
         "rca": "49",
         "nome": "LUIS FERNANDO ANTUNES",
         "filial": "TPH",
@@ -43800,143 +43933,10 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 91,
+        "pos_brasil": 92,
         "pos_filial": 19,
         "pos_brasil_ant": 90,
         "pos_filial_ant": 19
-      },
-      {
-        "rca": "309",
-        "nome": "ANDERSON BARBOSA MORAES",
-        "filial": "TBE",
-        "supervisor": "ALEX SANDRO SOARES ELIAS",
-        "gerente": "Diego",
-        "meta_mes": 984993,
-        "pct_hoje": 1,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-11-07",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-11-14",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-11-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 30,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-11-30",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": true,
-            "resultado": "J",
-            "pts_tabela": 0
-          },
-          {
-            "n": 2,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 3,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 4,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 0,
-        "vitorias": 0,
-        "empates": 0,
-        "derrotas": 0,
-        "pts_tabela": 0,
-        "aprov": 0,
-        "forma": [
-          "J"
-        ],
-        "pontos": 0,
-        "pts_lances": 0,
-        "pts_faseamento": 0,
-        "pts_bonus": 0,
-        "pos_brasil": 92,
-        "pos_filial": 8,
-        "pos_brasil_ant": 91,
-        "pos_filial_ant": 8
       },
       {
         "rca": "152",
@@ -48195,139 +48195,6 @@
         "pos_filial_ant": 15
       },
       {
-        "rca": "142",
-        "nome": "EDUARDO PAPEN MENDES",
-        "filial": "TPA",
-        "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
-        "gerente": "Radke / Leandro",
-        "meta_mes": 589954,
-        "pct_hoje": -0.1,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-11-07",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-11-14",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-11-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 30,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-11-30",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": true,
-            "resultado": "J",
-            "pts_tabela": 0
-          },
-          {
-            "n": 2,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 3,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 4,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 0,
-        "vitorias": 0,
-        "empates": 0,
-        "derrotas": 0,
-        "pts_tabela": 0,
-        "aprov": 0,
-        "forma": [
-          "J"
-        ],
-        "pontos": 0,
-        "pts_lances": 0,
-        "pts_faseamento": 0,
-        "pts_bonus": 0,
-        "pos_brasil": 125,
-        "pos_filial": 9,
-        "pos_brasil_ant": 124,
-        "pos_filial_ant": 9
-      },
-      {
         "rca": "59",
         "nome": "ALEXSSANDRO HENRIQUE TAVARES HEY",
         "filial": "TPH",
@@ -48455,7 +48322,7 @@
         "pts_lances": -7,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 126,
+        "pos_brasil": 125,
         "pos_filial": 25,
         "pos_brasil_ant": 125,
         "pos_filial_ant": 25
@@ -48588,10 +48455,143 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 127,
+        "pos_brasil": 126,
         "pos_filial": 26,
         "pos_brasil_ant": 126,
         "pos_filial_ant": 26
+      },
+      {
+        "rca": "142",
+        "nome": "EDUARDO PAPEN MENDES",
+        "filial": "TPA",
+        "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
+        "gerente": "Radke / Leandro",
+        "meta_mes": 589954,
+        "pct_hoje": -0.2,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-11-07",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-11-14",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-11-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 30,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-11-30",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "J",
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 0,
+        "vitorias": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "pts_tabela": 0,
+        "aprov": 0,
+        "forma": [
+          "J"
+        ],
+        "pontos": 0,
+        "pts_lances": 0,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 127,
+        "pos_filial": 9,
+        "pos_brasil_ant": 124,
+        "pos_filial_ant": 9
       },
       {
         "rca": "149",
@@ -50257,7 +50257,7 @@
         "total_vendedores": 5,
         "com_meta": 5,
         "meta_mes": 1462442,
-        "pct_hoje": 22.1,
+        "pct_hoje": 22.2,
         "fases": [
           {
             "n": 1,
@@ -50342,7 +50342,7 @@
           }
         ],
         "aprov": 33.3,
-        "pts_lances_equipe": 74,
+        "pts_lances_equipe": 79,
         "pos": 3,
         "pos_ant": 3
       },
@@ -50641,7 +50641,7 @@
         "total_vendedores": 6,
         "com_meta": 6,
         "meta_mes": 1978035,
-        "pct_hoje": 9.3,
+        "pct_hoje": 9.2,
         "fases": [
           {
             "n": 1,
@@ -52081,7 +52081,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 2193476,
-        "pct_hoje": 1.2,
+        "pct_hoje": 1.4,
         "fases": [
           {
             "n": 1,
