@@ -25,3 +25,4 @@ export async function registraTelemetria(env, rota, linhasLidas = 0, ms = 0) {
     // telemetria nunca pode derrubar a rota principal
   }
 }
+

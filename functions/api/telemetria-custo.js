@@ -80,3 +80,4 @@ export async function onRequestGet({ request, env }) {
     return resp({ erro: 'falha ao carregar telemetria: ' + e.message }, 500);
   }
 }
+

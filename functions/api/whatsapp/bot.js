@@ -33,6 +33,8 @@ function podeUsarIAPraEstrategia(papel, texto) {
   return ehExecutivo && /\b(ESTRATEG(IA|ICO|ICA|IAS)|PLANO DE ACAO|PLANO COMERCIAL|COMO (PODEMOS|DEVEMOS|VAMOS|EU POSSO|FAZER PARA) (MELHORAR|RECUPERAR|VIRAR|AUMENTAR|CRESCER|ACELERAR|DESTRAVAR|REVERTER|BATER)|ONDE (DEVEMOS|PODEMOS|PRECISAMOS) (FOCAR|ATACAR|ATUAR|MELHORAR)|QUAL (A MELHOR|SUA) (ESTRATEGIA|SUGESTAO|RECOMENDACAO|IDEIA|OPINIAO|ANALISE)|ME D[AE] UMA (SUGESTAO|IDEIA|ESTRATEGIA|ANALISE|ORIENTACAO)|O QUE VOCE (ACHA|SUGERE|RECOMENDA|PENSA|INDICARIA|FARIA)|POR QUE (CAIU|ESTAMOS ABAIXO|NAO ESTAMOS BATENDO)|DIAGNOSTICO|CONSULTORIA|GARGALO|PONTOS? FRACOS?|PONTOS? FORTES?|ANALISE (EXECUTIVA|ESTRATEGICA|CRITICA))\b/i.test(sem(texto));
 }
 
+import { responderPerguntaGerotIndustria } from './gerot_inteligencia.js';
+
 export async function onRequestPost({ request, env }) {
   const u = new URL(request.url);
   if (!env.BOT_WEBHOOK_KEY || u.searchParams.get('k') !== env.BOT_WEBHOOK_KEY) return new Response('nao autorizado', { status: 401 });
@@ -263,7 +265,12 @@ export async function onRequestPost({ request, env }) {
   const { results: hist } = await env.DB.prepare("SELECT direcao, texto FROM bot_msgs WHERE celular = ? AND direcao IN ('in','out') AND quando >= datetime('now','-6 hours') ORDER BY id DESC LIMIT 7").bind(cel).all();
   const anteriores = (hist || []).filter((h) => h.direcao === 'in').map((h) => h.texto).filter((x) => x !== texto).slice(0, 4);
   B.ultOut = ultOut && ultOut.texto ? ultOut.texto : null;
-  if (!resp && ehPerguntaEstrategicaOuConsultiva) {
+  // CONSULTA OFICIAL GEROT / INDÚSTRIAS / MARCAS / MP
+  const respGerot = await responderPerguntaGerotIndustria(env, texto, c);
+  if (respGerot) {
+    resp = respGerot;
+    tipo = 'gerot_industria';
+  } else if (!resp && ehPerguntaEstrategicaOuConsultiva) {
     const historico = (hist || []).slice(1).reverse().map((h) => ({ role: h.direcao === 'in' ? 'user' : 'assistant', content: h.texto }));
     resp = await respondeIA(env, B, c, texto, historico);
     if (resp) tipo = 'ia';
@@ -282,7 +289,12 @@ export async function onRequestPost({ request, env }) {
 ` + r2; tipo = 'entendida_ia'; } } catch (e) {} }
   }
   if (resp && resp.fraca) resp = String(resp);
-  if (!resp && ehPerguntaEstrategicaOuConsultiva) {
+  // CONSULTA OFICIAL GEROT / INDÚSTRIAS / MARCAS / MP
+  const respGerot = await responderPerguntaGerotIndustria(env, texto, c);
+  if (respGerot) {
+    resp = respGerot;
+    tipo = 'gerot_industria';
+  } else if (!resp && ehPerguntaEstrategicaOuConsultiva) {
     const historico = (hist || []).slice(1).reverse().map((h) => ({ role: h.direcao === 'in' ? 'user' : 'assistant', content: h.texto }));
     resp = await respondeIA(env, B, c, texto, historico); if (resp) tipo = 'ia';
   }
