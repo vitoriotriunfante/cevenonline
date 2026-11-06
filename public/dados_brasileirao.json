@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-11-06T11:18:49.895267Z",
+  "gerado_em": "2026-11-06T11:33:30.749209Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -24,7 +24,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 43278,
+  "total_lances_auditados": 43283,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -35,8 +35,8 @@
       "empates": 12,
       "derrotas": 0,
       "gp": 12869,
-      "gc": 3710,
-      "sg": 9159,
+      "gc": 3715,
+      "sg": 9154,
       "aprov": 52.9,
       "super_pedidos": 49,
       "inativos_resgatados": 192,
@@ -71,9 +71,9 @@
       "vitorias": 3,
       "empates": 14,
       "derrotas": 0,
-      "gp": 9437,
+      "gp": 9443,
       "gc": 5472,
-      "sg": 3965,
+      "sg": 3971,
       "aprov": 45.1,
       "super_pedidos": 56,
       "inativos_resgatados": 196,
@@ -404,9 +404,9 @@
       "vitorias": 0,
       "empates": 15,
       "derrotas": 2,
-      "gp": 1859,
+      "gp": 1860,
       "gc": 2576,
-      "sg": -717,
+      "sg": -716,
       "aprov": 29.4,
       "super_pedidos": 21,
       "inativos_resgatados": 47,
@@ -447,8 +447,8 @@
       "empates": 12,
       "derrotas": 0,
       "gp": 12869,
-      "gc": 3710,
-      "sg": 9159,
+      "gc": 3715,
+      "sg": 9154,
       "aprov": 52.9,
       "forma": [
         "E",
@@ -484,9 +484,9 @@
       "vitorias": 3,
       "empates": 14,
       "derrotas": 0,
-      "gp": 9437,
+      "gp": 9443,
       "gc": 5472,
-      "sg": 3965,
+      "sg": 3971,
       "aprov": 45.1,
       "forma": [
         "E",
@@ -902,9 +902,9 @@
       "vitorias": 0,
       "empates": 15,
       "derrotas": 2,
-      "gp": 1824,
+      "gp": 1825,
       "gc": 2498,
-      "sg": -674,
+      "sg": -673,
       "aprov": 29.4,
       "forma": [
         "D",
@@ -1057,8 +1057,8 @@
       "empates": 4,
       "derrotas": 0,
       "gp": 4537,
-      "gc": 1934,
-      "sg": 2603,
+      "gc": 1939,
+      "sg": 2598,
       "aprov": 84.3,
       "forma": [
         "E",
@@ -1536,7 +1536,7 @@
         "V",
         "J"
       ],
-      "plus_lideranca": 80,
+      "plus_lideranca": 85,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1607,7 +1607,7 @@
           "ret": 0
         },
         "2026-11-06": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2334,7 +2334,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 150,
+      "plus_lideranca": 155,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2405,7 +2405,7 @@
           "ret": 0
         },
         "2026-11-06": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2424,9 +2424,9 @@
       "vitorias": 4,
       "empates": 12,
       "derrotas": 1,
-      "gp": 1699,
+      "gp": 1705,
       "gc": 1140,
-      "sg": 559,
+      "sg": 565,
       "aprov": 47.1,
       "forma": [
         "E",
@@ -2945,7 +2945,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 125,
+      "plus_lideranca": 130,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -3016,7 +3016,7 @@
           "ret": 5
         },
         "2026-11-06": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -3287,7 +3287,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 55,
+      "plus_lideranca": 60,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -3358,7 +3358,7 @@
           "ret": 0
         },
         "2026-11-06": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -5201,9 +5201,9 @@
       "vitorias": 0,
       "empates": 12,
       "derrotas": 5,
-      "gp": 994,
+      "gp": 995,
       "gc": 998,
-      "sg": -4,
+      "sg": -3,
       "aprov": 23.5,
       "forma": [
         "D",
@@ -7961,7 +7961,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 85,
+      "plus_lideranca": 90,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -8032,7 +8032,7 @@
           "ret": 0
         },
         "2026-11-06": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -8189,7 +8189,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 145,
+      "plus_lideranca": 150,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -8260,7 +8260,7 @@
           "ret": 5
         },
         "2026-11-06": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -13565,6 +13565,53 @@
       "pos_filial_ant": 8
     },
     {
+      "rca": "550",
+      "nome": "FABIO SEREIA",
+      "filial": "TBL",
+      "supervisor": "SERGIO LOPES DE OLIVEIRA",
+      "gerente": "Fábio",
+      "canal": "VAREJO",
+      "jogos": 18,
+      "vitorias": 8,
+      "empates": 4,
+      "derrotas": 6,
+      "pts_tabela": 28,
+      "aprov": 51.9,
+      "gp": 455,
+      "gc": 304,
+      "sg": 151,
+      "super_pedidos": 3,
+      "inativos_resgatados": 7,
+      "forma": [
+        "E",
+        "V",
+        "D",
+        "V",
+        "D",
+        "V",
+        "V",
+        "D",
+        "V",
+        "E",
+        "E",
+        "V",
+        "V",
+        "V",
+        "D",
+        "D",
+        "D",
+        "E"
+      ],
+      "streak": 3,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 89,
+      "pos_filial": 11,
+      "pos_brasil_ant": 94,
+      "pos_filial_ant": 11
+    },
+    {
       "rca": "404",
       "nome": "PJ PAULO MARCOS PEREIRA ESTEVES",
       "filial": "TCA",
@@ -13606,7 +13653,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 1,
       "bonus_semana_invicta": 3,
-      "pos_brasil": 89,
+      "pos_brasil": 90,
       "pos_filial": 8,
       "pos_brasil_ant": 89,
       "pos_filial_ant": 8
@@ -13653,7 +13700,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 90,
+      "pos_brasil": 91,
       "pos_filial": 8,
       "pos_brasil_ant": 90,
       "pos_filial_ant": 8
@@ -13700,7 +13747,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 91,
+      "pos_brasil": 92,
       "pos_filial": 9,
       "pos_brasil_ant": 91,
       "pos_filial_ant": 9
@@ -13747,8 +13794,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 92,
-      "pos_filial": 11,
+      "pos_brasil": 93,
+      "pos_filial": 12,
       "pos_brasil_ant": 106,
       "pos_filial_ant": 14
     },
@@ -13813,8 +13860,8 @@
       "pts_tabela": 27,
       "aprov": 52.9,
       "gp": 371,
-      "gc": 188,
-      "sg": 183,
+      "gc": 193,
+      "sg": 178,
       "super_pedidos": 4,
       "inativos_resgatados": 1,
       "forma": [
@@ -13841,7 +13888,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 93,
+      "pos_brasil": 94,
       "pos_filial": 18,
       "pos_brasil_ant": 92,
       "pos_filial_ant": 18
@@ -13888,57 +13935,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 94,
+      "pos_brasil": 95,
       "pos_filial": 18,
       "pos_brasil_ant": 93,
       "pos_filial_ant": 18
-    },
-    {
-      "rca": "550",
-      "nome": "FABIO SEREIA",
-      "filial": "TBL",
-      "supervisor": "SERGIO LOPES DE OLIVEIRA",
-      "gerente": "Fábio",
-      "canal": "VAREJO",
-      "jogos": 17,
-      "vitorias": 8,
-      "empates": 3,
-      "derrotas": 6,
-      "pts_tabela": 27,
-      "aprov": 52.9,
-      "gp": 449,
-      "gc": 304,
-      "sg": 145,
-      "super_pedidos": 3,
-      "inativos_resgatados": 7,
-      "forma": [
-        "E",
-        "V",
-        "D",
-        "V",
-        "D",
-        "V",
-        "V",
-        "D",
-        "V",
-        "E",
-        "E",
-        "V",
-        "V",
-        "V",
-        "D",
-        "D",
-        "D",
-        "J"
-      ],
-      "streak": 3,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 95,
-      "pos_filial": 12,
-      "pos_brasil_ant": 94,
-      "pos_filial_ant": 11
     },
     {
       "rca": "1150",
@@ -22918,6 +22918,53 @@
       "pos_filial_ant": 37
     },
     {
+      "rca": "154",
+      "nome": "ORLI CLOVIS OLIVEIRA COSTA",
+      "filial": "TPA",
+      "supervisor": "ROGERIO DORNELLES PASSOS",
+      "gerente": "Radke / Leandro",
+      "canal": "VAREJO",
+      "jogos": 18,
+      "vitorias": 0,
+      "empates": 8,
+      "derrotas": 10,
+      "pts_tabela": 8,
+      "aprov": 14.8,
+      "gp": 68,
+      "gc": 64,
+      "sg": 4,
+      "super_pedidos": 0,
+      "inativos_resgatados": 2,
+      "forma": [
+        "D",
+        "D",
+        "E",
+        "D",
+        "D",
+        "E",
+        "E",
+        "D",
+        "E",
+        "D",
+        "D",
+        "E",
+        "E",
+        "D",
+        "D",
+        "E",
+        "D",
+        "E"
+      ],
+      "streak": 0,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 234,
+      "pos_filial": 8,
+      "pos_brasil_ant": 238,
+      "pos_filial_ant": 9
+    },
+    {
       "rca": "49",
       "nome": "LUIS FERNANDO ANTUNES",
       "filial": "TPH",
@@ -23006,7 +23053,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 234,
+      "pos_brasil": 235,
       "pos_filial": 38,
       "pos_brasil_ant": 234,
       "pos_filial_ant": 38
@@ -23053,8 +23100,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 235,
-      "pos_filial": 8,
+      "pos_brasil": 236,
+      "pos_filial": 9,
       "pos_brasil_ant": 235,
       "pos_filial_ant": 8
     },
@@ -23241,7 +23288,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 236,
+      "pos_brasil": 237,
       "pos_filial": 13,
       "pos_brasil_ant": 236,
       "pos_filial_ant": 13
@@ -23288,57 +23335,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 237,
+      "pos_brasil": 238,
       "pos_filial": 14,
       "pos_brasil_ant": 237,
       "pos_filial_ant": 14
-    },
-    {
-      "rca": "154",
-      "nome": "ORLI CLOVIS OLIVEIRA COSTA",
-      "filial": "TPA",
-      "supervisor": "ROGERIO DORNELLES PASSOS",
-      "gerente": "Radke / Leandro",
-      "canal": "VAREJO",
-      "jogos": 17,
-      "vitorias": 0,
-      "empates": 7,
-      "derrotas": 10,
-      "pts_tabela": 7,
-      "aprov": 13.7,
-      "gp": 67,
-      "gc": 64,
-      "sg": 3,
-      "super_pedidos": 0,
-      "inativos_resgatados": 2,
-      "forma": [
-        "D",
-        "D",
-        "E",
-        "D",
-        "D",
-        "E",
-        "E",
-        "D",
-        "E",
-        "D",
-        "D",
-        "E",
-        "E",
-        "D",
-        "D",
-        "E",
-        "D",
-        "J"
-      ],
-      "streak": 0,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 238,
-      "pos_filial": 9,
-      "pos_brasil_ant": 238,
-      "pos_filial_ant": 9
     },
     {
       "rca": "53",
@@ -31975,7 +31975,7 @@
         "supervisor": "GILBERTO GOMES DOMINGOS",
         "gerente": "Marcos",
         "meta_mes": 265649,
-        "pct_hoje": 9.3,
+        "pct_hoje": 9.5,
         "fases": [
           {
             "n": 1,
@@ -33438,7 +33438,7 @@
         "supervisor": "ALESSANDRO JUNIOR LOPES",
         "gerente": "Marcelo",
         "meta_mes": 390222,
-        "pct_hoje": 0.5,
+        "pct_hoje": 0.6,
         "fases": [
           {
             "n": 1,
