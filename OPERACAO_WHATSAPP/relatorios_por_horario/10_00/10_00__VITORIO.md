@@ -1,33 +1,33 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📅 05/11/2026
+📅 06/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/11/2026 a 05/11/2026)*
-💰 Faturado: R$ 4.902,22 • 📦 1059 itens • ✅ 21 PDVs
-✂️ Cortes: R$ 6,23 (2 un) • 🚛 Devoluções: R$ 0,00 (0 un)
+*ACUMULADO DO MÊS (01/11/2026 a 06/11/2026)*
+💰 Faturado: R$ 5.246,94 • 📦 1086 itens • ✅ 28 PDVs
+✂️ Cortes: R$ 32,12 (9 un) • 🚛 Devoluções: R$ 537,96 (159 un)
 
-📍 TPH — VAGNER: R$ 374,16 • 1 PDVs • ✂️ R$ 6,23 • 🚛 R$ 0,00
-📍 TPH — FÁBIO: R$ 438,88 • 2 PDVs • ✂️ R$ 0,00 • 🚛 R$ 0,00
+📍 TPH — VAGNER: R$ 374,16 • 1 PDVs • ✂️ R$ 6,30 • 🚛 R$ 0,00
+📍 TPH — FÁBIO: R$ 373,73 • 2 PDVs • ✂️ R$ 6,39 • 🚛 R$ 0,00
 📍 API: R$ 0,00
-📍 TBL — FÁBIO: R$ 126,27 • 2 PDVs • ✂️ R$ 0,00 • 🚛 R$ 0,00
-📍 TCA — BECHER: R$ 1.554,37 • 5 PDVs • ✂️ R$ 0,00 • 🚛 R$ 0,00
-📍 TSJ — SALDANHA: R$ 1.801,38 • 4 PDVs • ✂️ R$ 0,00 • 🚛 R$ 0,00
-📍 TPA: R$ 0,00
-📍 ABC — MARCOS: R$ 267,82 • 3 PDVs • ✂️ R$ 0,00 • 🚛 R$ 0,00 _(só 1 marca)_
+📍 TBL — FÁBIO: R$ 294,66 • 5 PDVs • ✂️ R$ 12,01 • 🚛 R$ 0,00
+📍 TCA — BECHER: R$ 1.672,33 • 6 PDVs • ✂️ R$ 0,00 • 🚛 R$ 0,00
+📍 TSJ — SALDANHA: R$ 1.873,98 • 5 PDVs • ✂️ R$ 0,00 • 🚛 R$ 0,00
+📍 TPA — RADKE / LEANDRO: R$ 21,28 • 1 PDVs • ✂️ R$ 7,42 • 🚛 R$ 0,00
+📍 ABC — MARCOS: R$ 297,46 • 4 PDVs • ✂️ R$ 0,00 • 🚛 R$ 0,00 _(só 1 marca)_
 📍 TCV — LEONARDO: R$ 264,10 • 3 PDVs • ✂️ R$ 0,00 • 🚛 R$ 0,00
 📍 MCD — ADRIANO: R$ 75,24 • 1 PDVs • ✂️ R$ 0,00 • 🚛 R$ 0,00
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (04/11/2026)*
-💰 Faturado: R$ 519,96 • 📦 51 itens • ✅ 5 PDVs
+*COMO FECHOU ONTEM (05/11/2026)*
+💰 Faturado: R$ 185,09 • 📦 55 itens • ✅ 3 PDVs
 
-📍 TPH: R$ 0,00
+📍 TPH — FÁBIO: R$ 27,65 (1 PDVs)
 📍 API: R$ 0,00
-📍 TBL: R$ 0,00
+📍 TBL — FÁBIO: R$ 84,84 (1 PDVs)
 📍 TCA: R$ 0,00
-📍 TSJ — SALDANHA: R$ 167,73 (1 PDVs)
+📍 TSJ — SALDANHA: R$ 72,60 (1 PDVs)
 📍 TPA: R$ 0,00
-📍 ABC — MARCOS: R$ 88,13 (1 PDVs) _(só 1 marca)_
-📍 TCV — LEONARDO: R$ 264,10 (3 PDVs)
+📍 ABC: R$ 0,00 _(só 1 marca)_
+📍 TCV: R$ 0,00
 📍 MCD: R$ 0,00
