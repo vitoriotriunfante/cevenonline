@@ -348,6 +348,17 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (/(QUANTO VENDI|MINHAS? VENDAS?).*\b(MES|ACUMULADO)\b/.test(t)) return reenvia(`como esta o ${eu}`);   // "no mes" nao e o digitado de hoje (teste com vendas de outubro, 01/11/2026)
       if (/QUANTO VENDI|VENDI HOJE|MINHAS? VENDAS? (DE )?HOJE/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respDiaVendedor(B, Ev, v); }
       if (/MINHA ROTA|^\W*ROTA( DE)? HOJE\W*$/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respMinhaRota(B, v); }
+      // MENU DO VENDEDOR (09/11/2026): numero logo depois do menu abre o item; depois de outra lista o numero continua sendo o item daquela lista
+      if (/^\s*\d{1,2}\s*$/.test(t) && B.ultOut && /MENU DO JOTA/.test(B.ultOut)) {
+        const { MENU_VENDEDOR } = await import('./respostas/liga_mix.js');
+        const item = MENU_VENDEDOR[Number(t.trim()) - 1];
+        if (!item) return `Esse número não está no menu. Escolha de 1 a ${MENU_VENDEDOR.length}, ou escreva do seu jeito.`;
+        if (item[1] === '__curva__') return curvaOuDirecao();
+        if (item[1] === '__mixrota__') { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respMixRotaHoje(B, v); return 'Não achei a sua rota de hoje para montar o +MIX.'; }
+        if (item[1] === '__ficha__') return 'Mande o *código do cliente* assim: *cliente #12345* (ou o CNPJ) que eu abro a ficha com o histórico e o que oferecer.';
+        const r = await reenvia(item[1].replace('VENDEDOR', eu));
+        return Number(t.trim()) === 3 ? r + '\n\n_O valor da premiação em R$ (RV) está no CEVEN, em *Premiação › Holerite simulado*; aqui no Jota vai entrar em breve._' : r;
+      }
       // numero da lista da "minha rota": abre a ficha daquele cliente (o numero e o #codigo vem da ultima mensagem enviada)
       if (/^\s*\d{1,3}\s*$/.test(t) && B.ultOut && /Digite o número/i.test(B.ultOut)) {
         const mL = String(B.ultOut).match(new RegExp('^' + t.trim() + '\\. .*\\(#(\\d+)\\)', 'm'));

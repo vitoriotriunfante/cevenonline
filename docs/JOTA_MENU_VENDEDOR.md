@@ -50,3 +50,27 @@ Regras do menu: o vendedor digita o número **ou** escreve do jeito dele; a fras
 - Item 7: rota de outro dia ("segunda-feira", "amanhã").
 - Item 8: status de entrega (31% do cadastro).
 - Trava: não responder a resposta automática de WhatsApp Business.
+
+## 5. Remapeamento e menu no ar (09/11/2026, noite)
+Base nova: **164 perguntas reais de 82 vendedores** (104 mensagens eram só sim/oi/notas) + **229 passaportes** (indicadores desejados).
+
+| Tema | Perguntas | Passaporte |
+|---|---|---|
+| Meta x realizado / como estou | 21% | 35% |
+| Liga / Champions | 16% | 1% |
+| Comissão / RV / premiação | 9% | **52%** |
+| Mês passado / fechamento | 8% | 7% |
+| Pedidos (status, bloqueados, entrega) | 7% | 33% |
+| Mix / o que oferecer | 7% | 21% |
+| Recorrência | 6% | 6% |
+| Rota | 5% | 3% |
+| Clientes sem compra | 4% | 37% |
+| Prospecção | 2% | 1% |
+| Devolução | — | 5% |
+| Ficha de cliente | — | 2% |
+Sem tema (12%): continuação de conversa, cadastro, "tem Toblerone?", "quantos clientes eu tenho", número de pedido, conversa solta.
+
+**Menu no ar** (`functions/_lib/jota/respostas/liga_mix.js` MENU_VENDEDOR; rota dos números em `entende.js`): "menu", "ajuda", "oi" ou pergunta não entendida mostram o menu; o número logo depois do menu abre o item; depois de outra lista o número segue sendo o item daquela lista.
+1 Como estou · 2 Liga · 3 Premiação (metas; RV em R$ ainda no CEVEN › Premiação) · 4 Meus pedidos · 5 Clientes sem compra · 6 +MIX da rota de hoje · 7 Fechamento do mês passado · 8 Recorrência · 9 Minha rota · 10 Prospecção · 11 Devoluções · 12 Ficha de um cliente.
+Teste com dado real (só leitura): `node testes/_t_menu.mjs` — os 12 itens respondem para a Graciela (TCV 1057).
+Falta: RV em R$ (holerite do CEVEN na base), produto ("tem X?"), rota de outro dia, carteira ("quantos clientes tenho").

@@ -8,7 +8,7 @@
 //   listas numeradas; a indústria é reconhecida por PALAVRA INTEIRA (nunca "contém", que casou Condor com Aeroflex em 09/11).
 // =========================================================================
 import { R$, sem, titulo, nome2, FILIAIS, hojeSP } from '../base.js';
-import { DE_PARA_INDUSTRIAS } from '../../../../pipeline/dicionario_industrias.js';
+import { DE_PARA_INDUSTRIAS } from '../dicionario_industrias.js';
 
 const MESES = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
 const NOME_MES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];

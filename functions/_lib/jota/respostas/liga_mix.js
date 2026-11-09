@@ -107,6 +107,28 @@ export const GLOSSARIO = [
   [/LIGA|CHAMPIONS|PONTUA|VITORIA/, '*Liga*: vitória no dia = soma ≥ 11 pontos; lance só vale com prova; fechamento 19h30. Semana invicta +3.'],
 ];
 export function respGlossario(t) { const h = GLOSSARIO.filter(([re]) => re.test(t)).map(([, s]) => s); return h.length ? h.join('\n\n') : null; }
+// MENU DO VENDEDOR (Vitorio, 09/11/2026: "respostas prontas para atender 99% das solicitacoes, tudo com indices").
+// Itens = o que os vendedores mais perguntam (164 perguntas reais de 82 vendedores) e pedem no passaporte (229 cadastros). Ver docs/JOTA_MENU_VENDEDOR.md.
+// O vendedor digita o numero OU escreve do jeito dele; cada numero cai numa resposta pronta (entende.js, MENU_VENDEDOR).
+export const MENU_VENDEDOR = [
+  ['Como estou: meta x realizado, positivação e quanto falta por dia', 'como esta o VENDEDOR'],
+  ['Minha posição na Liga (Champions)', 'liga'],
+  ['Minha premiação: metas e indicadores', 'metas da premiacao'],
+  ['Meus pedidos: status, bloqueados e a faturar', 'status dos pedidos'],
+  ['Clientes sem compra no mês', '__curva__'],
+  ['O que oferecer (+MIX) aos clientes da rota de hoje', '__mixrota__'],
+  ['Fechamento do mês passado', 'fechamento do mes passado'],
+  ['Recorrência: quem falta comprar', 'quais sao meus clientes de recorrencia'],
+  ['Minha rota de hoje', 'minha rota'],
+  ['Prospecção: clientes novos perto da rota', 'prospeccao'],
+  ['Minhas devoluções', 'minhas devolucoes'],
+  ['Ficha de um cliente', '__ficha__'],
+];
+export function respMenuVendedor(c) {
+  const n = titulo(String(c.nome || '').split(' ')[0]);
+  return [`📋 *MENU DO JOTA* — ${n}`, '', ...MENU_VENDEDOR.map(([rot], i) => `*${i + 1}.* ${rot}`), '', '👉 *Digite o número* (ex.: 1) ou escreva do seu jeito.'].join('\n');
+}
 export function respAjuda(c) {
+  if (c && c.papel === 'vendedor') return respMenuVendedor(c);
   return [`Oi, ${titulo(String(c.nome).split(' ')[0])}! Sou o *Jota* ⚽, do +MIX. Pergunte do seu jeito, por exemplo:`, '• "como está?" / "como está TPH?"' + ((c.papel === 'diretoria' || c.papel === 'ceo') ? ' (sem filial = Brasil todo)' : ''), '• "hoje" / "acumulado de hoje da rota"', '• "por supervisor" · "supervisor Nome" · "vendedor Nome"', '• "zerados" · "visitas" · "eficácia"', '• "quanto falta" · "positivação" · "ranking" · "top 10 hoje"', '• "devoluções" · "pênaltis" · "impedimentos" · "liga"', '• "compromisso" · "quem não fez RET"', '• "+mix" · "quem compra Oreo"', '• "o que é positivação?"'].join('\n');
 }
