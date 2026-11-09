@@ -23,6 +23,7 @@ import { rodaAgora, foraDoHorario, freioCusto, agoraBrasilia } from '../_lib/hor
 
 import { proximaConc, lerEstado, gravaEstado, CONC_PADRAO } from '../_lib/concorrencia.js';   // concorrencia adaptativa a cota do CEVEN (12/10/2026)
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
+import { cotaEnvio } from '../_lib/jota/base.js';   // teto antiban do dia tambem na fila (09/11/2026)
 import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
 import { garanteTabelasPedido, gravaStatusPedidos } from '../_lib/pedido_status.js';   // pedidos do dia, com ou sem rota (31/10/2026)
 import { coletaSupervisores } from '../_lib/supervisores_coleta.js';   // compromissos e RET na base (26/10/2026)
@@ -300,6 +301,7 @@ async function reenviaFila(env) {
     let iFila = 0;
     for (const m of results || []) {
       if (iFila++) await R.pausaEntreEnvios(19, 1, 18);   // antiban 09/11/2026: nunca em rajada
+      { const q = await cotaEnvio(env, String(m.numero).replace(/\D/g, '')); if (!q.ok) break; }   // teto do dia: fica na fila
       const r =await R.enviarTexto(R.evoCfg(env), m.numero, m.texto).catch(() => null);
       if (!r || !r.ok) { await env.DB.prepare('UPDATE bot_envio_fila SET tentativas = tentativas + 1 WHERE id = ?').bind(m.id).run(); break; }   // servidor ainda fora: tenta na proxima rodada
       await env.DB.batch([env.DB.prepare('DELETE FROM bot_envio_fila WHERE id = ?').bind(m.id), env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,'out',?,?)").bind(m.celular, m.nome, String(m.texto).slice(0, 4000), m.tipo)]);

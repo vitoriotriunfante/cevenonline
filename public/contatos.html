@@ -1929,7 +1929,7 @@ function vincularBotoesPedidos(rootEl) {
   rootEl.querySelectorAll('.btn-aprovar-verdes').forEach((b) => {
     b.onclick = async () => {
       const cels = b.dataset.cels.split(',').filter(Boolean);
-      if (!confirm(`Aprovar ${cels.length} pedidos com linha corporativa ativa no sistema? (Não envia mensagens ativas no WhatsApp)`)) return;
+      if (!confirm(`Aprovar ${cels.length} pedidos com linha corporativa ativa no sistema? (A mensagem de liberação vai para a fila e sai aos poucos, 2 a cada rodada, com pausa antispam)`)) return;
       b.disabled = true; let ok = 0; const erros = [];
       for (const celular of cels) {
         b.textContent = `Aprovando ${ok + erros.length + 1} de ${cels.length}...`;

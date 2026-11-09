@@ -277,12 +277,9 @@ Bora pra cima bater meta! ⚠️ *OBRIGATÓRIO SALVAR ESTE NÚMERO:* Salve este 
 
 _Meu DNA é Triunfante!_ 💪`
         : `Fala, ${pNome}! Seu acesso ao *Jota* foi liberado ⚽\nVocê vê ${antes.papel === 'supervisor' ? 'a sua equipe' : antes.papel === 'gerente' ? 'a sua filial' : 'os seus dados'}.\n\nExperimenta: "como está minha equipe?", "zerados", "faltam visitar", "vendedor Nome", "liga".\n_Meu DNA é Triunfante!_`;
-      avisado = await enviar(env, cel, msgLib);   // religado 09/11/2026 com o teto antiban (cotaEnvio)
-      // falhou: entra na fila de reenvio (cron-varredura-central) e tenta sozinho por 2 horas; ninguem precisa pedir (Vitorio, 02/11/2026)
-      if (!avisado) try { await env.DB.prepare("INSERT INTO bot_envio_fila (celular, numero, nome, texto, tipo) VALUES (?, ?, ?, ?, 'boas_vindas_aprovacao')").bind(cel, cel, antes.nome, msgLib).run(); } catch (e) {}
-      try {
-        await env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?, ?, ?, ?, 'boas_vindas_aprovacao')").bind(cel, antes.nome, avisado ? 'out' : 'erro', msgLib).run();
-      } catch (e) {}
+      // NUNCA EM RAJADA (09/11/2026: "Aprovar todos" mandaria 10 seguidas): a mensagem entra na fila; a varredura solta
+      // 2 por rodada com pausa humana e respeita o teto do dia. O bot_msgs 'out' e gravado quando sair de fato.
+      try { await env.DB.prepare("DELETE FROM bot_envio_fila WHERE celular = ? AND tipo = 'boas_vindas_aprovacao'").bind(cel).run(); await env.DB.prepare("INSERT INTO bot_envio_fila (celular, numero, nome, texto, tipo) VALUES (?, ?, ?, ?, 'boas_vindas_aprovacao')").bind(cel, cel, antes.nome, msgLib).run(); avisado = 'na_fila'; } catch (e) { avisado = false; }
     }
     return j({ ok: true, avisado });
   }
