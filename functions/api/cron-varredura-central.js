@@ -331,6 +331,12 @@ async function reenviaFila(env) {
     const { results } = await env.DB.prepare(`SELECT id, celular, numero, nome, texto, tipo FROM bot_envio_fila WHERE (tipo NOT IN ${PROATIVAS} OR tipo IS NULL) AND criado_em > datetime('now','-2 hours') OR ${horaComercial ? '' : '0 AND '}tipo IN ${PROATIVAS} AND criado_em > datetime('now','-36 hours') ORDER BY tentativas, id LIMIT 2`).all();   // menos tentativas primeiro: numero ruim nao trava a fila dos outros (02/11/2026); antiban 09/11/2026: no maximo 2 por rodada
     let iFila = 0; diag.lidas = (results || []).length;
     for (const m of results || []) {
+      // confere NA HORA de enviar (09/11/2026: Lincon e Danilo se cadastraram depois da lista e receberam 'procure o seu supervisor')
+      if (m.tipo === 'procure_supervisor') {
+        const cad = await env.DB.prepare('SELECT 1 FROM bot_contatos WHERE substr(celular,-8) = ? LIMIT 1').bind(String(m.numero).replace(/\D/g, '').slice(-8)).first().catch(() => null);
+        const ja = await env.DB.prepare("SELECT 1 FROM bot_msgs WHERE substr(celular,-8) = ? AND direcao = 'out' AND texto LIKE '%Procure o seu supervisor%' LIMIT 1").bind(String(m.numero).replace(/\D/g, '').slice(-8)).first().catch(() => null);
+        if (cad || ja) { await env.DB.prepare('DELETE FROM bot_envio_fila WHERE id = ?').bind(m.id).run(); continue; }
+      }
       if (iFila++) await R.pausaEntreEnvios(19, 1, 18);   // antiban 09/11/2026: nunca em rajada
       { const q = await cotaEnvio(env, String(m.numero).replace(/\D/g, '')); if (!q.ok) { diag.parou = 'teto: ' + q.erro; break; } }   // teto do dia: fica na fila
       const r =await R.enviarTexto(R.evoCfg(env), m.numero, m.texto).catch(() => null);
