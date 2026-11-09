@@ -67,9 +67,9 @@ async function entra(page) {
 }
 
 // marca/desmarca checkboxes do dialogo "Extrair dados" pelo rotulo
-async function ajustaDialogo(page, mes) {
+async function ajustaDialogo(page, mes, modo = 'tudo') {
   const [ano, mm] = mes.split('-'), nomeMes = MESES_PT[Number(mm) - 1];
-  return page.evaluate(({ ano, nomeMes, CAMPOS, CALC }) => {
+  return page.evaluate(({ ano, nomeMes, CAMPOS, CALC, modo }) => {
     const calc = CALC.map((s) => new RegExp(s.src, s.flags));
     const dlg = [...document.querySelectorAll('div,section')].filter((d) => /Extrair dados/.test(d.innerText || '') && /Baixar Excel/.test(d.innerText || '') && /CAMPOS/.test(d.innerText || '')).sort((a, b) => a.innerText.length - b.innerText.length)[0];
     if (!dlg) return { erro: 'dialogo nao encontrado' };
@@ -90,10 +90,10 @@ async function ajustaDialogo(page, mes) {
       if (x.tipo === 'FILT') return true;
       return calc.some((r) => r.test(x.rot));
     };
-    for (const x of caixas) { const q = quer(x); if (x.i.checked !== q) x.i.click(); }
+    for (const x of caixas) { if (modo === 'ler') break; if (modo === 'mes' && x.tipo !== 'PERI') continue; if (modo === 'resto' && x.tipo === 'PERI') continue; const q = quer(x); if (x.i.checked !== q) x.i.click(); }
     const marc = caixas.filter((x) => x.i.checked).map((x) => x.rot);
     return { marcados: marc, calculosDisponiveis: caixas.filter((x) => x.tipo === 'CALC').map((x) => x.rot), temMes: marc.includes(nomeMes), temCampos: CAMPOS.every((c) => marc.includes(c)) };
-  }, { ano, nomeMes, CAMPOS, CALC: CALC.map((r) => ({ src: r.source, flags: r.flags })) });
+  }, { ano, nomeMes, CAMPOS, CALC: CALC.map((r) => ({ src: r.source, flags: r.flags })), modo });
 }
 
 const num = (v) => { if (v == null || v === '') return null; if (typeof v === 'number') return v; const s = String(v).replace(/[R$\s%]/g, '').replace(/\./g, '').replace(',', '.'); const n = Number(s); return isFinite(n) ? n : String(v); };
@@ -143,8 +143,14 @@ async function main() {
         // a janela do mes anterior pode ter ficado aberta: so clica em 'Extrair dados' se ela estiver fechada
         if (!(await page.getByText('Baixar Excel', { exact: true }).first().isVisible().catch(() => false))) await page.getByText('Extrair dados', { exact: true }).first().click({ force: true });
         await page.waitForTimeout(2500);
-        let aj = null;
-        for (let k = 0; k < 4; k++) { aj = await ajustaDialogo(page, mes); await page.waitForTimeout(800); const meses1 = (aj.marcados || []).filter((x) => MESES_PT.includes(x)); if (!aj.erro && aj.temCampos && meses1.length === 1 && meses1[0] === MESES_PT[Number(mes.slice(5)) - 1]) break; }   // a pagina pode redesenhar ao clicar: repete ate estabilizar
+        // em etapas (09/11/2026): clicar no mes redesenha a janela e desmarca os campos
+        let aj = null; const alvo = MESES_PT[Number(mes.slice(5)) - 1];
+        const okDe = (x) => x && !x.erro && x.temCampos && (x.marcados || []).filter((m) => MESES_PT.includes(m)).join() === alvo;
+        for (let k = 0; k < 4 && !okDe(aj); k++) {
+          await ajustaDialogo(page, mes, 'mes'); await page.waitForTimeout(2000);
+          await ajustaDialogo(page, mes, 'resto'); await page.waitForTimeout(1500);
+          aj = await ajustaDialogo(page, mes, 'ler');
+        }
         log('dialogo:', JSON.stringify(aj));
         if (aj.erro || !aj.temMes || !aj.temCampos || (aj.marcados || []).filter((x) => ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'].includes(x)).length !== 1) throw new Error('nao consegui marcar periodo/campos de ' + mes + ': ' + (aj.erro || JSON.stringify(aj.marcados)));
         let d = null;
