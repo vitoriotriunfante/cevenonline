@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-11-09T11:03:44.740603Z",
+  "gerado_em": "2026-11-09T11:18:46.259278Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -25,7 +25,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 44773,
+  "total_lances_auditados": 44775,
   "filiais": [
     {
       "sigla": "TBL",
@@ -35,9 +35,9 @@
       "vitorias": 3,
       "empates": 16,
       "derrotas": 0,
-      "gp": 9872,
-      "gc": 5506,
-      "sg": 4366,
+      "gp": 9875,
+      "gc": 5511,
+      "sg": 4364,
       "aprov": 43.9,
       "super_pedidos": 56,
       "inativos_resgatados": 188,
@@ -458,9 +458,9 @@
       "vitorias": 3,
       "empates": 16,
       "derrotas": 0,
-      "gp": 9872,
-      "gc": 5506,
-      "sg": 4366,
+      "gp": 9875,
+      "gc": 5511,
+      "sg": 4364,
       "aprov": 43.9,
       "forma": [
         "E",
@@ -1230,7 +1230,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 150,
+      "plus_lideranca": 155,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1305,7 +1305,7 @@
           "ret": 0
         },
         "2026-11-09": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2182,7 +2182,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 65,
+      "plus_lideranca": 70,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -2257,7 +2257,7 @@
           "ret": 0
         },
         "2026-11-09": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2395,9 +2395,9 @@
       "vitorias": 6,
       "empates": 12,
       "derrotas": 0,
-      "gp": 2580,
-      "gc": 1388,
-      "sg": 1192,
+      "gp": 2583,
+      "gc": 1393,
+      "sg": 1190,
       "aprov": 55.6,
       "forma": [
         "E",
@@ -5556,7 +5556,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 145,
+      "plus_lideranca": 150,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -5631,7 +5631,7 @@
           "ret": 0
         },
         "2026-11-09": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -5675,7 +5675,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 90,
+      "plus_lideranca": 95,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -5750,7 +5750,7 @@
           "ret": 0
         },
         "2026-11-09": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -5913,7 +5913,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 165,
+      "plus_lideranca": 170,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -5988,7 +5988,7 @@
           "ret": 5
         },
         "2026-11-09": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -8930,7 +8930,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 65,
+      "plus_lideranca": 70,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 0,
@@ -9005,7 +9005,7 @@
           "ret": 0
         },
         "2026-11-09": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -9430,15 +9430,15 @@
       "supervisor": "IGOR RODRIGUES DUARTE",
       "gerente": "Fábio",
       "canal": "VAREJO",
-      "jogos": 18,
+      "jogos": 19,
       "vitorias": 16,
-      "empates": 1,
+      "empates": 2,
       "derrotas": 1,
-      "pts_tabela": 58,
-      "aprov": 107.4,
-      "gp": 661,
+      "pts_tabela": 59,
+      "aprov": 103.5,
+      "gp": 664,
       "gc": 86,
-      "sg": 575,
+      "sg": 578,
       "super_pedidos": 0,
       "inativos_resgatados": 25,
       "forma": [
@@ -9460,7 +9460,7 @@
         "V",
         "V",
         "V",
-        "J"
+        "E"
       ],
       "streak": 14,
       "bonus_constancia": 0,
@@ -16829,8 +16829,8 @@
       "pts_tabela": 22,
       "aprov": 40.7,
       "gp": 591,
-      "gc": 549,
-      "sg": 42,
+      "gc": 554,
+      "sg": 37,
       "super_pedidos": 1,
       "inativos_resgatados": 11,
       "forma": [
@@ -33316,7 +33316,7 @@
         "supervisor": "ALESSANDRO JUNIOR LOPES",
         "gerente": "Marcelo",
         "meta_mes": 390222,
-        "pct_hoje": 1.9,
+        "pct_hoje": 2,
         "fases": [
           {
             "n": 1,
@@ -33450,7 +33450,7 @@
         "supervisor": "GILBERTO GOMES DOMINGOS",
         "gerente": "Marcos",
         "meta_mes": 265649,
-        "pct_hoje": 9.5,
+        "pct_hoje": 9.6,
         "fases": [
           {
             "n": 1,
@@ -51318,7 +51318,7 @@
         "total_vendedores": 4,
         "com_meta": 4,
         "meta_mes": 1440035,
-        "pct_hoje": 10.5,
+        "pct_hoje": 10.6,
         "fases": [
           {
             "n": 1,
