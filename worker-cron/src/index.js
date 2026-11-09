@@ -95,6 +95,15 @@ export default {
         if (dia >= 1 && dia <= 5 && h >= 7 && h <= 20) {
           try { const r = await dispararWorkflow(env, 'brasileirao-dataset.yml', {}); console.log(`[LIGA] brasileirao-dataset.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[LIGA][ERRO] ' + (e && e.message ? e.message : e)); }
         }
+        // GEROT e PROSPECTS (09/11/2026): o `schedule` do GitHub nao disparou nenhuma vez; vao no mesmo relogio de 15 min (:02 :17 :32 :47).
+        // GEROT depois de cada janela: 09h17 11h17 13h17 15h17 17h17 19h17, segunda a sabado. Prospects: 09h32 12h32 15h32, todo dia. Nenhum manda mensagem.
+        const mi = agora.getMinutes();
+        if (dia >= 1 && dia <= 6 && [9, 11, 13, 15, 17, 19].includes(h) && mi >= 15 && mi < 30) {
+          try { const r = await dispararWorkflow(env, 'gerot-coleta.yml', {}); console.log(`[GEROT] gerot-coleta.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[GEROT][ERRO] ' + (e && e.message ? e.message : e)); }
+        }
+        if ([9, 12, 15].includes(h) && mi >= 30 && mi < 45) {
+          try { const r = await dispararWorkflow(env, 'prospects-coleta.yml', {}); console.log(`[PROSPECTS] prospects-coleta.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[PROSPECTS][ERRO] ' + (e && e.message ? e.message : e)); }
+        }
       }
       await rodarTarefaTv(event.cron, tarefaTv);
       return;

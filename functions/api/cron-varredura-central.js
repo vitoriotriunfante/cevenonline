@@ -1074,10 +1074,10 @@ export async function onRequestGet({ env, request }) {
       contagem.supervisores = 'pulado_prazo';
     }
     if (Date.now() - t0 < 90000) { try { contagem.pedidos_dia = await coletaPedidosDoDia(env, dataRef); } catch (e) { contagem.pedidos_dia = { erro: String(e.message || e).slice(0, 80) }; } }
+    // PEDIDOS DO WINTHOR (09/11/2026): logo depois dos pedidos do dia (no fim da rodada, que leva ~145 s, nunca rodava). Todos os vendedores em rodizio: dia 5, noite 60.
+    if (Date.now() - t0 < 95000) { try { contagem.winthor = await coletaPedidosWinthor(env, rcas, noiteTodos ? 60 : 5, t0 + 115000); } catch (e) { contagem.winthor = { erro: String(e.message || e).slice(0, 80) }; } }
     if (!env.TESTE_SEM_HORARIO && Date.now() - t0 < 95000) { try { contagem.macro = await coletaMacroForaArvore(env); } catch (e) { contagem.macro = { erro: String(e.message || e).slice(0, 80) }; } }
     if (Date.now() - t0 < 95000) { try { contagem.recheca = await rechecaAbertosPorVendedor(env, noiteTodos ? 90 : 15, t0 + 150000);   /* todos os ~250 vendedores com pedido aberto: ~30 min de dia e a cada 30 min de noite (31/10/2026) */ } catch (e) { contagem.recheca = { erro: String(e.message || e).slice(0, 80) }; } }
-    // PEDIDOS DO WINTHOR (09/11/2026): todos os vendedores em rodizio; de dia 12 por rodada, de noite 60
-    if (Date.now() - t0 < 110000) { try { contagem.winthor = await coletaPedidosWinthor(env, rcas, noiteTodos ? 60 : 5, t0 + 95000); } catch (e) { contagem.winthor = { erro: String(e.message || e).slice(0, 80) }; } }
     // ROTA E PAINEL DO GERENTE NO FIM DA RODADA (01/11/2026): no inicio, os 25 s comiam o prazo da produtividade (40 s) e ela deixava de rodar. Em dia util a rodada leva ~40 s; so fica de fora quando a rodada estoura.
     if (Date.now() - t0 < 135000) { try { contagem.rota_gerente = await gravaRotasGerente(env, dataRef, Math.min(25000, t0 + 160000 - Date.now())); } catch (e) { contagem.rota_gerente = { erro: String(e.message || e).slice(0, 80) }; } } else contagem.rota_gerente = 'pulado_prazo';
     // DIAGNOSTICO: o que a ultima rodada fez, etapa por etapa (antes so ficavam os totais, e "0 sucesso" nao dizia onde)
