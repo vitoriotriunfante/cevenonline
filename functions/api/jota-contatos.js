@@ -50,7 +50,7 @@ export async function onRequestGet({ request, env }) {
     const negado = await exigeSenhaEquipe(request, env, CORS); if (negado) return negado;
   }
   await garante(env.DB);
-  const { results } = await env.DB.prepare("SELECT c.*, EXISTS (SELECT 1 FROM bot_msgs m WHERE m.celular = c.celular AND m.direcao = 'out' AND m.tipo IN ('boas_vindas_aprovacao','cadastro_passaporte','convite_vendedores','boas_vindas')) AS pedido_salvar FROM bot_contatos c ORDER BY papel, filial, nome").all();   // pedido_salvar: recebeu o pedido de salvar o Jota e responder SIM (09/11/2026)
+  const { results } = await env.DB.prepare("SELECT c.*, EXISTS (SELECT 1 FROM bot_msgs m WHERE m.celular = c.celular AND m.direcao = 'out' AND m.tipo IN ('boas_vindas_aprovacao','cadastro_passaporte','convite_vendedores','boas_vindas')) AS pedido_salvar, (length(replace(replace(replace(COALESCE(c.cpf,''),'.',''),'-',''),' ','')) = 11 AND length(COALESCE(c.indicadores_desejados,'')) >= 5) AS via_link FROM bot_contatos c ORDER BY papel, filial, nome").all();   // pedido_salvar: recebeu o pedido de salvar o Jota e responder SIM (09/11/2026)
   const { results: arv } = await env.DB.prepare('SELECT DISTINCT filial, sup_id, sup_nome FROM arvore_supervisores ORDER BY filial, sup_nome').all().catch(() => ({ results: [] }));
   const { results: uso } = await env.DB.prepare("SELECT celular, COUNT(*) n, MAX(quando) ult FROM bot_msgs WHERE direcao = 'in' GROUP BY celular").all().catch(() => ({ results: [] }));
   const U = new Map((uso || []).map((r) => [r.celular, r]));
@@ -285,5 +285,7 @@ _Meu DNA é Triunfante!_ 💪`
   }
   if (acao === 'recusar') { await muda(0, 'recusado'); return j({ ok: true }); }
   if (acao === 'desativar') { await muda(0, 'inativo'); return j({ ok: true }); }
+  // SUSPENSO (Vitorio, 09/11/2026): acesso parado ate o vendedor responder SIM (salvar o contato). Nao manda nada: o aviso sai quando ELE escrever.
+  if (acao === 'suspender') { await muda(0, 'suspenso'); return j({ ok: true }); }
   return j({ erro: 'acao invalida' }, 400);
 }

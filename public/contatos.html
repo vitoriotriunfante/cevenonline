@@ -893,8 +893,11 @@ header { padding: 10px 20px; background: var(--sidebar); backdrop-filter: none; 
       <input type="text" id="cad-busca" placeholder="Filtrar por nome ou celular..." style="min-width:220px;">
       <select id="cad-filtro-papel"><option value="">Todos os cargos</option></select>
       <select id="cad-filtro-filial"><option value="">Todas as filiais</option></select>
-      <select id="cad-filtro-situacao"><option value="">Qualquer situação</option><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select>
+      <select id="cad-filtro-situacao"><option value="">Qualquer situação</option><option value="ativo">Ativo</option><option value="inativo">Inativo</option><option value="suspenso">Suspenso (aguarda SIM)</option><option value="pendente">Pendente</option><option value="recusado">Recusado</option></select>
+      <select id="cad-filtro-linha" title="Status da linha na base da operadora (linha_corporativa)"><option value="">Linha: todas</option><option value="ATIVO">🟢 Linha corporativa ativa</option><option value="SUSPENSO">🟠 Linha suspensa</option><option value="NENHUMA">🔴 Não é linha corporativa</option></select>
+      <select id="cad-filtro-link" title="Cadastro feito pelo link do Passaporte (CPF + indicadores preenchidos)"><option value="">Link: todos</option><option value="sim">🔗 Entrou pelo link</option><option value="nao">⛔ Sem link</option></select>
       <select id="cad-filtro-salvou" title="Respondeu SIM confirmando que salvou o contato do Jota (lido das conversas)"><option value="">Salvou o Jota? (todos)</option><option value="sim">✅ Confirmou SIM</option><option value="nao">❌ Não confirmou</option><option value="nao_pedido">❌ Recebeu o pedido e não respondeu</option></select>
+      <button id="cad-suspender-filtrados" class="no" title="Suspende (sem enviar mensagem) todos os vendedores ATIVOS da lista filtrada. O aviso sai quando cada um escrever para o Jota; o SIM reativa sozinho.">⏸️ Suspender vendedores ativos filtrados</button>
       <span id="cad-contagem-salvou" style="font-size:12px; color:var(--txt-mut); align-self:center;"></span>
     </div>
 
@@ -907,6 +910,9 @@ header { padding: 10px 20px; background: var(--sidebar); backdrop-filter: none; 
             <th>Filial</th>
             <th>Supervisor / RCA</th>
             <th>Celular</th>
+            <th>Linha</th>
+            <th>Link</th>
+            <th>SIM</th>
             <th>Situação</th>
             <th>Uso do JOTA</th>
             <th style="text-align:right;">Ações</th>
@@ -2106,7 +2112,8 @@ function renderizarGestaoContatos() {
   const fPapel = $('cad-filtro-papel').value;
   const fFilial = $('cad-filtro-filial').value;
   const fSit = $('cad-filtro-situacao').value;
-  const fSalvou = $('cad-filtro-salvou').value;   // 09/11/2026: quem confirmou com SIM que salvou o contato do Jota
+  const fSalvou = $('cad-filtro-salvou').value;
+  const fLinha = ($('cad-filtro-linha') || {}).value || '', fLink = ($('cad-filtro-link') || {}).value || '';   // 09/11/2026: quem confirmou com SIM que salvou o contato do Jota
 
   // Preencher Selects de filtro se vazios
   const selPapel = $('cad-filtro-papel');
@@ -2132,10 +2139,14 @@ function renderizarGestaoContatos() {
     if (fSalvou === 'sim' && !c.salvou_jota) return false;
     if (fSalvou === 'nao' && c.salvou_jota) return false;
     if (fSalvou === 'nao_pedido' && (c.salvou_jota || !c.pedido_salvar)) return false;
+    if (fLinha && (fLinha === 'NENHUMA' ? !!c.linha_corporativa : c.linha_corporativa !== fLinha)) return false;
+    if (fLink === 'sim' && !c.via_link) return false;
+    if (fLink === 'nao' && (c.via_link || c.papel !== 'vendedor')) return false;
     return true;
   });
   { const base = lista.filter((c) => c.papel !== 'grupo' && c.situacao === 'ativo'); const el = $('cad-contagem-salvou'); if (el) el.textContent = `Ativos que confirmaram SIM: ${base.filter((c) => c.salvou_jota).length} de ${base.length} · filtrados: ${filtrados.length}`; }
 
+  window.__cadFiltrados = filtrados;
   const tbody = $('cad-tabela-corpo');
   tbody.innerHTML = filtrados.map((c) => `
     <tr>
@@ -2146,6 +2157,9 @@ function renderizarGestaoContatos() {
         ${c.papel === 'vendedor' ? 'RCA ' + esc(c.rca || '?') + (c.supervisor ? ' · ' + esc(tit(c.supervisor)) : '') : c.papel === 'supervisor' ? 'Equipe própria' : c.papel === 'grupo' ? 'Grupo WhatsApp' : '—'}
       </td>
       <td>${String(c.celular || '').endsWith('@g.us') ? esc(c.celular) : '+' + esc(c.celular)}</td>
+      <td style="white-space:nowrap;font-size:12px;">${String(c.celular || '').endsWith('@g.us') ? '—' : c.linha_corporativa === 'ATIVO' ? '🟢 ativa' : c.linha_corporativa === 'SUSPENSO' ? '🟠 suspensa' : '🔴 não corporativa'}</td>
+      <td style="font-size:12px;">${c.papel !== 'vendedor' ? '—' : c.via_link ? '🔗 link' : '⛔ sem link'}</td>
+      <td style="font-size:12px;">${c.salvou_jota ? '✅' : c.pedido_salvar ? '❌' : '—'}</td>
       <td>
         <span class="tag-badge ${c.situacao === 'ativo' ? 'pronta' : 'erro'}">${esc(c.situacao)}</span>
       </td>
@@ -2153,7 +2167,7 @@ function renderizarGestaoContatos() {
       <td style="text-align:right; white-space:nowrap;">
         <button class="btn-editar-contato" data-cel="${esc(c.celular)}">Editar</button>
         ${c.situacao === 'ativo'
-          ? `<button class="no btn-toggle-ativo" data-cel="${esc(c.celular)}" data-acao="desativar">Desativar</button>`
+          ? `${c.papel === 'vendedor' ? `<button class="btn-toggle-ativo" data-cel="${esc(c.celular)}" data-acao="suspender" title="Suspende até responder SIM">Suspender</button>` : ''}<button class="no btn-toggle-ativo" data-cel="${esc(c.celular)}" data-acao="desativar">Desativar</button>`
           : `<button class="ok btn-toggle-ativo" data-cel="${esc(c.celular)}" data-acao="ativar">Ativar</button>`}
       </td>
     </tr>
@@ -2179,10 +2193,11 @@ function renderizarGestaoContatos() {
     b.onclick = async () => {
       const a = b.dataset.acao;
       const cel = b.dataset.cel;
-      if (!confirm(`${a === 'desativar' ? 'Desativar' : 'Reativar'} o acesso de +${cel}?`)) return;
+      const NOMEA = { desativar: 'Desativar', ativar: 'Reativar', suspender: 'Suspender (até responder SIM)' };
+      if (!confirm(`${NOMEA[a] || a} o acesso de +${cel}?`)) return;
       try {
         await api('POST', '/api/jota-contatos', { acao: a, celular: cel });
-        aviso(`Contato ${a === 'desativar' ? 'desativado' : 'ativado'}.`, 'ok');
+        aviso(`Contato ${a === 'desativar' ? 'desativado' : a === 'suspender' ? 'suspenso' : 'ativado'}.`, 'ok');
         await carregarTudo();
       } catch (e) {
         aviso('Erro: ' + e.message, 'erro');
@@ -2201,6 +2216,17 @@ $('cad-filtro-papel').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-filial').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-situacao').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-salvou').onchange = () => renderizarGestaoContatos();
+$('cad-filtro-linha').onchange = () => renderizarGestaoContatos();
+$('cad-filtro-link').onchange = () => renderizarGestaoContatos();
+$('cad-suspender-filtrados').onclick = async () => {
+  const lista = (window.__cadFiltrados || []).filter((c) => c.papel === 'vendedor' && c.situacao === 'ativo');
+  if (!lista.length) { aviso('Nenhum vendedor ATIVO na lista filtrada.', 'erro'); return; }
+  if (!confirm(`Suspender ${lista.length} vendedor(es) ativo(s) da lista filtrada?
+
+Não envia mensagem agora: o aviso sai quando cada um escrever para o Jota, e o SIM reativa sozinho.`)) return;
+  let ok = 0; for (const c of lista) { try { await api('POST', '/api/jota-contatos', { acao: 'suspender', celular: c.celular }); ok++; } catch (e) {} }
+  aviso(`${ok} vendedor(es) suspenso(s).`, 'ok'); await carregarTudo();
+};
 
 if ($('btn-sync-grupos')) {
   $('btn-sync-grupos').onclick = async () => {

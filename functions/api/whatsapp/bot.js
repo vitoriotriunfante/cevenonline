@@ -116,10 +116,32 @@ export async function onRequestPost({ request, env }) {
   const vs = variantes(cel);
   const c = await env.DB.prepare(`SELECT * FROM bot_contatos WHERE ativo = 1 AND celular IN (${vs.map(() => '?').join(',')}) LIMIT 1`).bind(...vs).first();
   if (c && c.celular) { cel = c.celular; destino = c.celular; }
+  // SUSPENSO (Vitorio, 09/11/2026): vendedor que nao confirmou SIM (salvar o Jota). SIM reativa na hora; outra mensagem = aviso, no maximo 1x por dia.
+  if (!c && !seco) {
+    const sus = await env.DB.prepare(`SELECT * FROM bot_contatos WHERE situacao = 'suspenso' AND celular IN (${vs.map(() => '?').join(',')}) LIMIT 1`).bind(...vs).first().catch(() => null);
+    if (sus) {
+      const t0 = String(texto || '').trim();
+      await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, msg_id) VALUES (?,?,?,?,?)').bind(sus.celular, sus.nome, 'in', t0.slice(0, 2000), d.key.id || null).run().catch(() => {});
+      if (/^\W*(SIM|SALVEI|SALVO|J[AÁ] SALVEI|SIM,? (J[AÁ] )?SALVEI|CONFIRMADO)\W*$/i.test(t0)) {
+        await env.DB.prepare("UPDATE bot_contatos SET ativo = 1, situacao = 'ativo', salvou_jota = COALESCE(salvou_jota, datetime('now')), atualizado_em = CURRENT_TIMESTAMP WHERE celular = ?").bind(sus.celular).run();
+        const ok1 = `✅ Obrigado, *${titulo(String(sus.nome || '').split(' ')[0])}*! Contato confirmado e acesso ao *Jota* reativado. Pode me perguntar o que precisar. ⚽`;
+        const e1 = await enviar(env, sus.celular, ok1); await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(sus.celular, sus.nome, e1.ok ? 'out' : 'erro', ok1, 'suspenso_reativado').run().catch(() => {});
+      } else {
+        const ja = await env.DB.prepare("SELECT 1 FROM bot_msgs WHERE celular = ? AND tipo = 'suspenso_aviso' AND quando > datetime('now','-20 hours') LIMIT 1").bind(sus.celular).first().catch(() => null);
+        if (!ja) {
+          const av = `⚠️ *${titulo(String(sus.nome || '').split(' ')[0])}*, o seu acesso ao *Jota* está *suspenso* até você confirmar o contato.
+
+*OBRIGATÓRIO:* salve este número nos seus contatos como *Jota (+MIX)* e me responda aqui com a palavra *SIM*. Assim que chegar o SIM, o acesso volta na hora.`;
+          const e2 = await enviar(env, sus.celular, av); await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(sus.celular, sus.nome, e2.ok ? 'out' : 'erro', av, 'suspenso_aviso').run().catch(() => {});
+        }
+      }
+      return new Response('ok');
+    }
+  }
   let meuId = null;
   if (!seco) meuId = await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, msg_id) VALUES (?,?,?,?,?)').bind(cel, c ? c.nome : null, 'in', (audio ? '[áudio] ' : '') + (texto || '(não transcrito: ' + (audio && audio.erro) + ')').slice(0, 2000), d.key.id || null).run().then((r) => r && r.meta && r.meta.last_row_id).catch(() => null);
   // SALVOU O CONTATO DO JOTA (Vitorio, 09/11/2026): 'SIM' / 'salvei' depois do pedido marca o contato (ativo ou pendente); painel /contatos filtra
-  if (!seco && /^W*(SIM|SALVEI|SALVO|J[AÁ] SALVEI|SIM,? (J[AÁ] )?SALVEI|CONFIRMADO)W*$/i.test(String(texto || '').trim())) { try { await env.DB.prepare(`UPDATE bot_contatos SET salvou_jota = COALESCE(salvou_jota, datetime('now')) WHERE celular IN (${vs.map(() => '?').join(',')})`).bind(...vs).run(); } catch (x) { /* nunca derruba a resposta */ } }
+  if (!seco && /^\W*(SIM|SALVEI|SALVO|J[AÁ] SALVEI|SIM,? (J[AÁ] )?SALVEI|CONFIRMADO)\W*$/i.test(String(texto || '').trim())) { try { await env.DB.prepare(`UPDATE bot_contatos SET salvou_jota = COALESCE(salvou_jota, datetime('now')) WHERE celular IN (${vs.map(() => '?').join(',')})`).bind(...vs).run(); } catch (x) { /* nunca derruba a resposta */ } }
   if (ehImagem && texto === '[imagem recebida sem legenda]') {
     if (!c) return new Response('ok');
     const msg = `Recebi sua imagem, ${primeiroNome(c)}! 📸 Eu ainda não consigo ler o texto dentro de fotos e prints diretamente. Pode me mandar o *código do cliente* (ex.: #322735), *CNPJ* ou a *razão social* por escrito? Assim eu busco tudo pra você na hora! 🚀`;
@@ -198,7 +220,7 @@ export async function onRequestPost({ request, env }) {
         const ja = await env.DB.prepare("SELECT COUNT(*) n FROM bot_msgs WHERE celular = ? AND direcao = 'out' AND date(quando,'-3 hours') = date('now','-3 hours')").bind(cel).first().catch(() => ({ n: 1 }));
         if (!ja || !ja.n) {
           const msg = ehVendedorP
-            ? `Oi! Eu sou o *Jota* ⚽, do Comercial da Triunfante. Para *vendedor*, o acesso é feito *só pelo Passaporte do Jota* (o link que o seu supervisor enviou no grupo da equipe), com o seu telefone corporativo. Depois de preencher, você recebe a confirmação aqui.`
+            ? `Oi! Eu sou o *Jota* ⚽, do Comercial da Triunfante. *Procure o seu supervisor* para que ele te oriente a fazer o procedimento corretamente.`
             : `Oi! Eu sou o *Jota* ⚽, do Comercial da Triunfante. Ainda não achei seu cadastro. Me manda seu *nome completo* e o *código* de supervisor do CEVEN (ex.: "Fulano de Tal - COD 65"). Já avisei a diretoria; assim que liberar, eu te aviso aqui.`;
           const e1 = await enviar(env, destino, msg);
           await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, d.pushName || null, e1.ok ? 'out' : 'erro', msg).run();

@@ -93,6 +93,12 @@ export async function onRequestPost({ request, env }) {
       atualizado_em = CURRENT_TIMESTAMP
   `).bind(celChave, nome, filial, supervisor, setor, cpfLimpo, indicadores.slice(0, 1000), manterAtivo ? 1 : 0, novaSituacao).run();
 
+  // REGISTRO DE CADA ENVIO DO LINK (Vitorio, 09/11/2026: 'tem que ficar registrado TODOS os dados que eles preencheram'). Nunca sobrescreve.
+  try {
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS passaporte_cadastros (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, nome TEXT, cpf TEXT, rca TEXT, filial TEXT, supervisor TEXT, indicadores TEXT, origem TEXT, dados TEXT)').run();
+    await env.DB.prepare('INSERT INTO passaporte_cadastros (celular, nome, cpf, rca, filial, supervisor, indicadores, origem, dados) VALUES (?,?,?,?,?,?,?,?,?)').bind(celChave, nome, cpfLimpo, setor, filial, supervisor, indicadores.slice(0, 2000), 'link', JSON.stringify(b).slice(0, 4000)).run();
+  } catch (e) {}
+
   // Grava também em bot_sugestoes para aparecer direto no painel de sugestões da diretoria
   try {
     await env.DB.prepare(
