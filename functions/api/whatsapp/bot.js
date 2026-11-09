@@ -147,10 +147,9 @@ export async function onRequestPost({ request, env }) {
     if (seco) return new Response(msg);
     await enviar(env, destino, msg); return new Response('ok');
   }
-  // SEM CADASTRO = SEM RESPOSTA (Vitorio, 09/11/2026: 'vendedor e so via link'; Glacilda pediu pelo WhatsApp e virou supervisor).
-  // Pedido de acesso so pelo link do passaporte; quem decide e o Vitorio em /contatos (Liberar acesso). A mensagem fica gravada (aba 'Sem acesso').
-  if (!c && !seco) return new Response('ok (sem cadastro: pedido de acesso so pelo link do passaporte)');
-  if (!c) {   // (abaixo: fluxo antigo de cadastro pelo WhatsApp, desligado em 09/11/2026; so roda no modo de teste 'seco') — EXCETO o supervisor que se apresenta com "Nome ... COD 123" (codigo da arvore do CEVEN e nome batendo)
+  // QUEM PODE PEDIR ACESSO PELO WHATSAPP (Vitorio, 09/11/2026): SUPERVISOR sim ("Nome - COD", codigo de supervisor da arvore).
+  // VENDEDOR NUNCA: todos, sem excecao, so pelo link do passaporte. Quem decide e o Vitorio em /contatos (Liberar acesso).
+  if (!c) {   // so responde quem esta cadastrado — EXCETO o supervisor que se apresenta com "Nome ... COD 123" (codigo da arvore do CEVEN e nome batendo)
     // Se cel não for um número de telefone real válido (não começa com 55 ou tamanho inválido): é um @lid anônimo. Não envia resposta de cadastro.
     const ehCelReal = cel.startsWith('55') && cel.length >= 12 && cel.length <= 13;
     if (!ehCelReal) return new Response('ok (lid sem cel)');
@@ -158,7 +157,7 @@ export async function onRequestPost({ request, env }) {
     // CADASTRO DE VENDEDOR (Nome Completo / CPF / Setor de Atendimento / Filial / Supervisor):
     const matchCpf = texto.replace(/\D/g, '').match(/\d{11}/);
     const matchFilial = sem(texto).match(/\b(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\b/);
-    if (matchCpf && (matchFilial || /CPF|SETOR|VENDEDOR|PASSAPORTE/i.test(texto) || (texto.match(/\//g) || []).length >= 2)) {
+    if (false && matchCpf && (matchFilial ||   /* desligado 09/11/2026: vendedor so pelo link do passaporte */ /CPF|SETOR|VENDEDOR|PASSAPORTE/i.test(texto) || (texto.match(/\//g) || []).length >= 2)) {
       try {
         try { await env.DB.prepare('ALTER TABLE bot_contatos ADD COLUMN cpf TEXT').run(); } catch (e) {}
         const partes = texto.split(/[\/\n|]+/).map((s) => s.trim()).filter(Boolean);
@@ -183,17 +182,24 @@ export async function onRequestPost({ request, env }) {
       if (!seco && /SUPERVIS|SETOR|EQUIPE|AREA|\bCOD|CODIGO|COORDENADOR|GERENTE/.test(sem(texto)) || ehSaudacao(texto)) {   /* 26/10/2026: 'Boa tarde' de numero desconhecido ficava sem resposta */
         // PENDENTE NA TELA DE CONTATOS (27/10/2026, Gabriel Giroto "COD - 543": o aviso chegava no WhatsApp mas nada aparecia em /contatos para liberar).
         // Grava como pendente; filial deduzida pelo nome na equipe (Gestao + arvore do CEVEN) quando 2 palavras do nome batem. Quem libera e o Vitorio.
+        let ehVendedorP = false;
         if (!ehSaudacao(texto)) { try {
           const nomeP = String(texto).replace(/\b(COD(IGO)?|SETOR|EQUIPE|AREA|SUPERVISORA?|COORDENADORA?( DE VENDAS)?)\b\.?/gi, ' ').replace(/[\d\-:–]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || d.pushName || null;
           let filP = null; try { const m = await (await fetch(u.origin + '/api/tv-mostra')).json(); const tk = sem(nomeP || '').split(' ').filter((w) => w.length > 2);
-            for (const [k, L] of Object.entries(m.filiais || {})) for (const v of L) { const nv = sem(v.nome).split(' '); if (tk.filter((w) => nv.includes(w)).length >= 2) filP = k.split('_')[0]; } } catch (e) {}
+            const nums = String(texto).match(/\b\d{1,5}\b/g) || [];
+            for (const [k, L] of Object.entries(m.filiais || {})) for (const v of L) { const nv = sem(v.nome).split(' '), bate = tk.filter((w) => nv.includes(w)).length;
+              if (bate >= 2) filP = k.split('_')[0];
+              if ((bate >= 1 && nums.includes(String(v.rca))) || bate >= 2) ehVendedorP = true;   // e VENDEDOR (codigo = RCA dele, ou nome de vendedor da Gestao; Glacilda mandou o cod do supervisor 27): nao vira pedido
+            } } catch (e) {}
           // so vira pedido com telefone de verdade e texto que parece nome (01/11/2026: audio "me mandar a relacao dos clientes..." entrou como nome, com ID interno do WhatsApp no lugar do numero)
           const parecePedido = /^55\d{10,11}$/.test(cel) && nomeP && nomeP.split(' ').length <= 6 && !/\b(ME|MANDAR|MANDA|QUAL|QUAIS|QUANTO|COMO|RELACAO|FALTA|CLIENTES?|PASSA|PRECISO|QUERO)\b/.test(sem(nomeP));
-          if (parecePedido) await env.DB.prepare("INSERT OR IGNORE INTO bot_contatos (celular, nome, papel, filial, ativo, situacao) VALUES (?,?,?,?,0,'pendente')").bind(cel, nomeP.toUpperCase(), 'supervisor', filP).run();
+          if (parecePedido && !ehVendedorP) await env.DB.prepare("INSERT OR IGNORE INTO bot_contatos (celular, nome, papel, filial, ativo, situacao) VALUES (?,?,?,?,0,'pendente')").bind(cel, nomeP.toUpperCase(), 'supervisor', filP).run();
         } catch (e) { /* aviso no WhatsApp continua */ } }
         const ja = await env.DB.prepare("SELECT COUNT(*) n FROM bot_msgs WHERE celular = ? AND direcao = 'out' AND date(quando,'-3 hours') = date('now','-3 hours')").bind(cel).first().catch(() => ({ n: 1 }));
         if (!ja || !ja.n) {
-          const msg = `Oi! Eu sou o *Jota* ⚽, do Comercial da Triunfante. Ainda não achei seu cadastro. Me manda seu *nome completo* e o *código* de supervisor do CEVEN (ex.: "Fulano de Tal - COD 65"). Já avisei a diretoria; assim que liberar, eu te aviso aqui.`;
+          const msg = ehVendedorP
+            ? `Oi! Eu sou o *Jota* ⚽, do Comercial da Triunfante. Para *vendedor*, o acesso é feito *só pelo Passaporte do Jota* (o link que o seu supervisor enviou no grupo da equipe), com o seu telefone corporativo. Depois de preencher, você recebe a confirmação aqui.`
+            : `Oi! Eu sou o *Jota* ⚽, do Comercial da Triunfante. Ainda não achei seu cadastro. Me manda seu *nome completo* e o *código* de supervisor do CEVEN (ex.: "Fulano de Tal - COD 65"). Já avisei a diretoria; assim que liberar, eu te aviso aqui.`;
           const e1 = await enviar(env, destino, msg);
           await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, d.pushName || null, e1.ok ? 'out' : 'erro', msg).run();
           for (const tv of ['554187525605']) { try { await enviar(env, tv, `🔔 *Jota — pedido de acesso (não achei na árvore)*\nCelular: ${cel}${d.pushName ? ' (' + d.pushName + ')' : ''}\nMensagem: ${String(texto).slice(0, 300)}`); } catch (e) {} }

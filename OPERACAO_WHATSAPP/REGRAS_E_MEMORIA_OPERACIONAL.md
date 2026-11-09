@@ -287,6 +287,7 @@ Planilha na raiz do projeto (fora do git, tem dado de pessoa real — mesmo trat
   6. **Aquecimento Pós-Desbloqueio:** O chip em recuperação deve operar apenas respondendo mensagens recebidas nos primeiros 2 dias; disparos em massa para os ~500 contatos devem ser feitos em ondas graduais (máx 40-50 contatos/dia).
 
 ## 09/11/2026 — ACESSO SÓ PELO LINK (Vitório)
-- Vendedor pede acesso **só pelo link do passaporte**. Número sem cadastro que escreve no WhatsApp **não recebe resposta** e **não vira pedido** (a mensagem fica na aba "Sem acesso" da Central).
+- **Vendedor: TODOS, sem exceção, só pelo link do passaporte.** Vendedor sem cadastro que escreve no WhatsApp (nome de vendedor da Gestão ou código = RCA dele) **não vira pedido** e recebe só o aviso de que o acesso é pelo Passaporte (sem link na mensagem).
+- **Supervisor pode pedir pela mensagem** ("Nome - COD", código de supervisor da árvore do CEVEN).
 - O passaporte **não bloqueia** número nenhum: quem decide é o Vitório em /contatos (Liberar acesso), olhando a tarja da linha corporativa (ativa / suspensa / não é corporativa).
 - Motivo: a Glacilda (API 283) pediu pelo WhatsApp, o fluxo antigo a gravou como supervisor e a mensagem de liberação saiu errada.
