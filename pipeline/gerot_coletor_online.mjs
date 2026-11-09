@@ -74,20 +74,23 @@ async function ajustaDialogo(page, mes) {
     const dlg = [...document.querySelectorAll('div,section')].filter((d) => /Extrair dados/.test(d.innerText || '') && /Baixar Excel/.test(d.innerText || '') && /CAMPOS/.test(d.innerText || '')).sort((a, b) => a.innerText.length - b.innerText.length)[0];
     if (!dlg) return { erro: 'dialogo nao encontrado' };
     const caixas = [...dlg.querySelectorAll('input[type=checkbox]')].map((i) => ({ i, rot: ((i.closest('label') || i.parentElement || {}).innerText || '').replace(/\s*•\s*$/, '').trim() }));
-    const blocos = [...dlg.querySelectorAll('*')].filter((e) => e.children.length < 3 && /^(PERÍODO|CAMPOS|CÁLCULOS)/i.test((e.innerText || '').trim()));
-    const bloco = (nome) => { const b = blocos.find((e) => new RegExp('^' + nome, 'i').test(e.innerText.trim())); let p = b; while (p && p !== dlg && p.querySelectorAll('input[type=checkbox]').length < 3) p = p.parentElement; return p; };
-    const bPer = bloco('PERÍODO'), bCam = bloco('CAMPOS'), bCal = bloco('CÁLCULOS');
-    const anos = [...(bPer ? bPer.querySelectorAll('*') : [])].filter((e) => /^20\d\d$/.test((e.innerText || '').trim()) && e.children.length === 0);
-    const anoDe = (inp) => { let a = null; for (const e of anos) if (e.compareDocumentPosition(inp) & Node.DOCUMENT_POSITION_FOLLOWING) a = e.innerText.trim(); return a; };
+    // secao de cada caixa = ultimo titulo (PERIODO / CAMPOS / CALCULOS) que aparece ANTES dela na pagina; ano = ultimo "2026"/"2025" antes dela
+    const folhas = [...dlg.querySelectorAll('*')].filter((e) => e.children.length === 0 && (e.innerText || '').trim());
+    const titulos = folhas.filter((e) => /^(PERÍODO|CAMPOS|CÁLCULOS)/i.test(e.innerText.trim()));
+    const anos = folhas.filter((e) => /^20dd$/.test(e.innerText.trim()));
+    const antes = (lista, inp) => { let a = null; for (const e of lista) if (e.compareDocumentPosition(inp) & Node.DOCUMENT_POSITION_FOLLOWING) a = e; return a; };
+    const secao = (inp) => { const t = antes(titulos, inp); return t ? t.innerText.trim().toUpperCase().slice(0, 4) : ''; };
+    const anoDe = (inp) => { const e = antes(anos, inp); return e ? e.innerText.trim() : null; };
     const quer = (x) => {
-      if (bPer && bPer.contains(x.i)) return anoDe(x.i) === ano && x.rot === nomeMes;
-      if (bCam && bCam.contains(x.i)) return CAMPOS.includes(x.rot) || /filtros do topo/i.test(x.rot);
-      if (bCal && bCal.contains(x.i)) return calc.some((r) => r.test(x.rot));
+      const sc = secao(x.i);
+      if (sc === 'PERÍ') return anoDe(x.i) === ano && x.rot === nomeMes;
+      if (sc === 'CAMP') return CAMPOS.includes(x.rot) || /filtros do topo/i.test(x.rot);
+      if (sc === 'CÁLC') return calc.some((r) => r.test(x.rot));
       return x.i.checked;
     };
     for (const x of caixas) { const q = quer(x); if (x.i.checked !== q) x.i.click(); }
     const marc = caixas.filter((x) => x.i.checked).map((x) => x.rot);
-    return { marcados: marc, calculosDisponiveis: caixas.filter((x) => bCal && bCal.contains(x.i)).map((x) => x.rot), temMes: marc.includes(nomeMes) };
+    return { marcados: marc, calculosDisponiveis: caixas.filter((x) => secao(x.i) === 'CÁLC').map((x) => x.rot), secoes: [...new Set(caixas.map((x) => secao(x.i)))], temMes: marc.includes(nomeMes), temCampos: CAMPOS.every((c) => marc.includes(c)) };
   }, { ano, nomeMes, CAMPOS, CALC: CALC.map((r) => ({ src: r.source, flags: r.flags })) });
 }
 
@@ -138,10 +141,15 @@ async function main() {
         await page.waitForTimeout(2500);
         const aj = await ajustaDialogo(page, mes);
         log('dialogo:', JSON.stringify(aj));
-        if (aj.erro || !aj.temMes) throw new Error('nao consegui marcar o periodo ' + mes + ': ' + (aj.erro || ''));
-        const dl = page.waitForEvent('download', { timeout: 600000 });
-        await page.getByText('Baixar Excel', { exact: true }).first().click();
-        const d = await dl; const arq = path.join(SAIDA, `gerot_${mes}.xlsx`); await d.saveAs(arq);
+        if (aj.erro || !aj.temMes || !aj.temCampos) throw new Error('nao consegui marcar periodo/campos de ' + mes + ': ' + (aj.erro || JSON.stringify(aj.marcados)));
+        let d = null;
+        for (const passo of ['direto', 'previa']) {
+          if (passo === 'previa') { log('sem download direto: gerando previa'); await page.getByText('Gerar prévia', { exact: true }).first().click().catch(() => {}); await page.waitForTimeout(20000); }
+          const dl = page.waitForEvent('download', { timeout: 300000 }).catch(() => null);
+          await page.getByText('Baixar Excel', { exact: true }).first().click();
+          d = await dl; if (d) break;
+        }
+        if (!d) throw new Error('GEROT nao gerou o Excel'); const arq = path.join(SAIDA, `gerot_${mes}.xlsx`); await d.saveAs(arq);
         log('excel baixado:', arq, fs.statSync(arq).size, 'bytes');
         const { linhas, colunas } = linhasDoExcel(arq, mes);
         log(`${mes}: ${linhas.length} linhas · colunas: ${colunas.join(' | ')}`);
