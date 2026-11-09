@@ -1,17 +1,12 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 MCD — ADRIANO • 06/11/2026
+📍 MCD — ADRIANO • 09/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/11/2026 a 06/11/2026)*
-💰 R$ 75,24 • 1 PDVs • ✂️ R$ 0,00 (0 un) • 🚛 R$ 251,10
+*ACUMULADO DO MÊS (01/11/2026 a 09/11/2026)*
+💰 R$ 126,06 • 3 PDVs • ✂️ R$ 3,13 (1 un) • 🚛 R$ 286,20
 👤 CLEOMAR DINIZ BARBOSA — R$ 75,24 (1 PDVs)
+👤 CARLOS ALAGUEZ DA SILVA — R$ 50,82 (2 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (05/11/2026)*
+*COMO FECHOU NO ÚLTIMO DIA DE VENDA — SÁBADO (07/11/2026)*
 💰 R$ 0,00 • 0 PDVs positivados
-
-🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (1)*
-_(fez pedido nesse dia, mas nenhum item era marca própria)_
-
-👤 *ALYFER PEREIRA MENDES*
-  • CINTIA RENATA DA CRUZ — 6d sem vender MP

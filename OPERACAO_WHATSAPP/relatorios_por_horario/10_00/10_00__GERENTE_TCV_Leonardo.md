@@ -1,26 +1,18 @@
 🎯 *MARCAS PRÓPRIAS — 10:00*
-📍 TCV — LEONARDO • 06/11/2026
+📍 TCV — LEONARDO • 09/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*ACUMULADO DO MÊS (01/11/2026 a 06/11/2026)*
-💰 R$ 264,10 • 3 PDVs • ✂️ R$ 0,00 (0 un)
+*ACUMULADO DO MÊS (01/11/2026 a 09/11/2026)*
+💰 R$ 291,86 • 4 PDVs • ✂️ R$ 0,00 (0 un)
 👤 VAGO - GABRIEL — R$ 264,10 (3 PDVs)
+👤 GESSANDRO SPEROTTO — R$ 27,76 (1 PDVs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*COMO FECHOU ONTEM (05/11/2026)*
+*COMO FECHOU NO ÚLTIMO DIA DE VENDA — SÁBADO (07/11/2026)*
 💰 R$ 0,00 • 0 PDVs positivados
 
-🚨 *ZERADOS EM MARCA PRÓPRIA ONTEM (6)*
+🚨 *ZERADOS EM MARCA PRÓPRIA NO ÚLTIMO DIA DE VENDA — SÁBADO (1)*
 _(fez pedido nesse dia, mas nenhum item era marca própria)_
 
-👤 *JORGE BONI*
-  • VANEZA DE LIMA KVASNEY — 140d sem vender MP
-  • DANIEL PESSATTO — 42d sem vender MP
-
-👤 *ROBERTO OTFINOSKI*
-  • SILVANO AUGUSTINHO DA SILVA JUNIOR — 143d sem vender MP
-
-👤 *VAGO - GABRIEL*
-  • VITOR VINICIUS OLIVEIRA DA LUZ — 16d sem vender MP
-  • TAMARA GUEDES — -7d sem vender MP
-  • MARINES WELTER VIAR — -25d sem vender MP
+👤 *GESSANDRO SPEROTTO*
+  • EDUARDO ALVES ALBERGHINI — 59d sem vender MP
