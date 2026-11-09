@@ -318,7 +318,47 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (foraEscopo) return foraEscopo;
   // ENTRADA DIRETA (auditoria 01/11/2026): perguntas reais que a cadeia de regras abaixo mandava para a resposta errada. Prova: testes/jota_falhas_reais.mjs
   {
-    const reenvia = (q) => respostaPronta(B, c, q, []);
+    // pergunta interna (o Jota se perguntando) nunca volta para o indice do vendedor
+    const reenvia = async (q) => { const o = B.semIndice; B.semIndice = true; try { return await respostaPronta(B, c, q, []); } finally { B.semIndice = o; } };
+    // INDICE LIMITADO DO VENDEDOR (Vitorio, 09/11/2026: "vai ter um indice quando ele falar alguma coisa... se selecionar o 1 a resposta vai estar pronta...
+    // tudo vai ter indice limitado para o vendedor"). Qualquer texto do vendedor = o indice (com o assunto sugerido); a resposta sai so pelo numero.
+    // Passam direto so o que precisa de dado digitado: codigo/CNPJ do cliente, "tem <produto>", SIM de confirmacao, numero de cliente de uma lista.
+    if (rcaV && !B.semIndice) {
+      const { MENU_VENDEDOR, SUB_VENDEDOR, temaDoTexto, respMenuVendedor } = await import('./respostas/liga_mix.js');
+      const eu = `VENDEDOR ${rcaV}`, ult = String(B.ultOut || '');
+      const interno = async (q) => { const o = B.semIndice; B.semIndice = true; try { return await respostaPronta(B, c, q, []); } finally { B.semIndice = o; } };
+      const nm = t.match(/^\W*(\d{1,2})(?:[.,](\d{1,2}))?\W*$/);
+      const clienteDaLista = nm && !nm[2] && new RegExp('^' + nm[1] + '\\. .*\\(#\\d+\\)', 'm').test(ult);
+      const passa = clienteDaLista || /^\W*(SIM|OK|SALVEI|SALVO|CONFIRMADO)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
+      const rodape = (k) => (SUB_VENDEDOR[k] ? ['', `📌 *Opções do ${k}* 〔${k}〕`, ...SUB_VENDEDOR[k].map(([rot], i) => `*${k}.${i + 1}* ${rot}`), '*0* Voltar ao menu'] : ['', '*0* Voltar ao menu']).join('\n');
+      const abre = async (k, s) => {
+        const item = MENU_VENDEDOR[k - 1];
+        if (!item) return `Esse número não está no menu. Escolha de 1 a ${MENU_VENDEDOR.length}.\n\n` + respMenuVendedor(c);
+        let chave = item[1];
+        if (s != null) { const sub = (SUB_VENDEDOR[k] || [])[s - 1]; if (!sub) return `A opção ${k}.${s} não existe.` + rodape(k); chave = sub[1]; }
+        let r;
+        if (chave === '__curva__') r = await interno(`curva negativa do ${eu}`);
+        else if (chave === '__rv__') r = await interno('meu rv');
+        else if (chave === '__produto__') r = (await interno('metas das industrias')) + '\n\n👉 Para um produto, mande *tem <produto>* (ex.: *tem Toblerone*).';
+        else if (chave === '__ficha__') r = 'Mande o *código do cliente* assim: *cliente #12345* (ou o CNPJ) que eu abro a ficha com o histórico e o que oferecer.';
+        else if (['__carteira__', '__campanhas__', '__mixrota__', '__rota__'].includes(chave)) {
+          const Ev = await carregaEscopo(B, esc), v = Ev.vend[0];
+          r = !v ? 'Não achei os seus dados na base agora.' : chave === '__carteira__' ? await respCarteiraVendedor(B, v) : chave === '__campanhas__' ? await respCampanhasVendedor(B, v) : chave === '__mixrota__' ? await respMixRotaHoje(B, v) : await respMinhaRota(B, v);
+        } else r = await interno(chave.replace('VENDEDOR', eu));
+        return String(r == null ? 'Sem dado agora.' : r) + '\n' + rodape(k);
+      };
+      if (nm && !clienteDaLista) {
+        let k = Number(nm[1]), s = nm[2] != null ? Number(nm[2]) : null;
+        if (k === 0) return respMenuVendedor(c);
+        const mSub = ult.match(/〔(\d{1,2})〕/);
+        if (s == null && mSub && !/MENU DO JOTA/.test(ult)) { s = k; k = Number(mSub[1]); }   // numero logo depois das opcoes de um tema = opcao do tema
+        return abre(k, s);
+      }
+      if (!passa) {
+        const k = temaDoTexto(t);
+        return (k ? `Entendi que você quer o *${k}. ${MENU_VENDEDOR[k - 1][0]}*. Digite *${k}*` + (SUB_VENDEDOR[k] ? ` (ou uma das opções ${k}.1 a ${k}.${SUB_VENDEDOR[k].length})` : '') + ', ou escolha outro número:\n\n' : '') + respMenuVendedor(c);
+      }
+    }
     // RV / COMISSAO / SALARIO DO VENDEDOR (Vitorio, 09/11/2026): 'quando perguntar sobre o RV responde que nao tem os dados, mas da as metas e como esta ate agora'.
     // Antes da regra do mes passado: 'meu RMV do mes passado' recebe o fechamento + o aviso.
     if (rcaV && /COMISS|SALARI|\bRMV\b|\bRV\b|\bGANHOS?\b|REMUNERA|HOLERITE|PREMIACAO DE VENDAS|MINHA PREMIACAO\b/.test(t)) { const euV = `VENDEDOR ${rcaV}`, passado = /MES PASSADO|MES ANTERIOR|OUTUBRO|SETEMBRO/.test(t);
@@ -357,20 +397,6 @@ export async function respostaInterna(B, c, texto, anteriores) {
       { const mP = t.match(/^\W*(?:JOTA\W+)?(?:VOCE |VC )?(?:TEM|TEMOS|VENDE|VENDEMOS)\s+(?:O |A |OS |AS )?([A-Z0-9][A-Z0-9 &]{2,40}?)\W*$/); if (mP && !/CLIENTE|ROTA|META|PEDIDO|LIGA/.test(mP[1])) return reenvia(`quem compra ${mP[1].trim()}`); }
       if (/QUANTOS CLIENTES (EU )?TENHO|MINHA CARTEIRA|TAMANHO DA (MINHA )?CARTEIRA|MEUS CLIENTES\W*$/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respCarteiraVendedor(B, v); }
       if (/^\W*(ACOMPANHAMENTO D[AO]S? |MINHAS? |AS )?(CAMPANHAS?|COMBOS?|PROMOCO?E?S?)( DO MES| DE NOVEMBRO)?\W*$/.test(t) || /ACOMPANHAMENTO DA CAMPANHA/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respCampanhasVendedor(B, v); }
-      // MENU DO VENDEDOR (09/11/2026): numero logo depois do menu abre o item; depois de outra lista o numero continua sendo o item daquela lista
-      if (/^\s*\d{1,2}\s*$/.test(t) && B.ultOut && /MENU DO JOTA/.test(B.ultOut)) {
-        const { MENU_VENDEDOR } = await import('./respostas/liga_mix.js');
-        const item = MENU_VENDEDOR[Number(t.trim()) - 1];
-        if (!item) return `Esse número não está no menu. Escolha de 1 a ${MENU_VENDEDOR.length}, ou escreva do seu jeito.`;
-        if (item[1] === '__curva__') return curvaOuDirecao();
-        if (item[1] === '__rv__') return reenvia('meu rv');
-        if (item[1] === '__produto__') { const m = await reenvia('metas das industrias'); return m + '\n\n👉 Para um produto, mande *tem <produto>* (ex.: *tem Toblerone*).'; }
-        if (item[1] === '__carteira__' || item[1] === '__campanhas__') { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return item[1] === '__carteira__' ? respCarteiraVendedor(B, v) : respCampanhasVendedor(B, v); }
-        if (item[1] === '__mixrota__') { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respMixRotaHoje(B, v); return 'Não achei a sua rota de hoje para montar o +MIX.'; }
-        if (item[1] === '__ficha__') return 'Mande o *código do cliente* assim: *cliente #12345* (ou o CNPJ) que eu abro a ficha com o histórico e o que oferecer.';
-        const r = await reenvia(item[1].replace('VENDEDOR', eu));
-        return r;
-      }
       // numero da lista da "minha rota": abre a ficha daquele cliente (o numero e o #codigo vem da ultima mensagem enviada)
       if (/^\s*\d{1,3}\s*$/.test(t) && B.ultOut && /Digite o número/i.test(B.ultOut)) {
         const mL = String(B.ultOut).match(new RegExp('^' + t.trim() + '\\. .*\\(#(\\d+)\\)', 'm'));

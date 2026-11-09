@@ -333,7 +333,7 @@ export async function onRequestPost({ request, env }) {
     if (!seco) try { await env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(cel, c.nome, c.papel, c.filial || '', `[SEM RESPOSTA] ${String(texto).slice(0, 1400)}`, '').run(); } catch (e) {}
   }
   if (tipo === 'pronta') resp = humaniza(resp, c, primeiraDoDia);
-  if (['pronta', 'ia', 'ficha_ia', 'entendida_ia'].includes(tipo) && resp && !/o que faltou/.test(resp) && !/Digite o número/.test(resp) && !/⟪⟫/.test(resp)) resp += '\n\n_⚽ Jota em treinamento. Nota de 1 a 5 para essa resposta? Ou escreva "sugestão: ..."_';
+  if (!(c && c.papel === 'vendedor') && ['pronta', 'ia', 'ficha_ia', 'entendida_ia'].includes(tipo) && resp && !/o que faltou/.test(resp) && !/Digite o número/.test(resp) && !/⟪⟫/.test(resp)) resp += '\n\n_⚽ Jota em treinamento. Nota de 1 a 5 para essa resposta? Ou escreva "sugestão: ..."_';
   if (audio && audio.texto) resp = `🎙️ _Entendi: "${audio.texto.slice(0, 200)}"_\n\n` + resp;
   if (seco) return new Response(resp + (u.searchParams.get('fig') === '1' ? `\n\n[figurinha: ${figurinhaPara(resp, tipo) || 'nenhuma'} · tipo: ${tipo}]` : ''), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
   // TRAVA DE ESCOPO (26/10/2026, vazamento do consolidado para um supervisor): nada do consolidado nacional sai para quem nao e diretoria/ceo, venha de onde vier a resposta

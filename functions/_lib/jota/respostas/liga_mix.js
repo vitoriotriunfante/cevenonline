@@ -127,6 +127,32 @@ export const MENU_VENDEDOR = [
   ['Minha carteira: quantos clientes tenho', '__carteira__'],
   ['Campanhas do mês', '__campanhas__'],
 ];
+// SUB-INDICES (Vitorio, 09/11/2026: "dentro do que ele pode perguntar tudo com indice tambem... limitado"): temas com variacoes.
+// O vendedor digita 4.2 ou, logo depois da resposta do tema 4, so o 2. 0 = volta ao menu.
+export const SUB_VENDEDOR = {
+  1: [['Quanto vendi hoje', 'quanto vendi hoje'], ['Meta do mês: faturado, pendente e positivação', 'como esta o VENDEDOR'], ['Quanto falta por dia útil', 'quanto falta da meta'], ['Minhas metas por indústria', 'metas das industrias']],
+  2: [['Minha posição na Liga', 'liga'], ['Meus lances de hoje', 'meus lances'], ['Regras da Liga', 'regras da liga']],
+  4: [['Todos os meus pedidos (status)', 'status dos pedidos'], ['Pedidos bloqueados', 'pedidos bloqueados'], ['Pedidos a faturar', 'pedidos pendentes'], ['Pedidos cancelados', 'pedidos cancelados']],
+  9: [['Minha rota de hoje', '__rota__'], ['Quem falta visitar hoje', 'quais clientes faltam visitar']]
+};
+// assunto do texto livre -> indice sugerido (o vendedor so recebe o indice; a resposta sai pelo numero)
+const TEMAS_VENDEDOR = [
+  [3, /COMISS|SALARI|\bRMV\b|\bRV\b|\bGANHOS?\b|REMUNERA|HOLERITE|PREMIACAO/],
+  [7, /MES PASSADO|MES ANTERIOR|OUTUBRO|SETEMBRO|FECHAMENTO/],
+  [5, /SEM VENDA|SEM COMPRA|CURVA|NAO COMPR|NAO POSITIV|INATIV|PARAD/],
+  [8, /RECORR/],
+  [2, /LIGA|CHAMPION|CHANPION|PONTO|PONTUAC|COLOCAC|LUGAR|RANKING|PENALIDADE|REGRA/],
+  [4, /PEDIDO|BLOQUEAD|FATURAR|ENTREG|CORTE|CANCELAD/],
+  [6, /MIX|OFERECER|SUGESTAO DE|QUE VENDER/],
+  [10, /PROSPEC|CLIENTES? NOVOS?|NOVO CLIENTE/],
+  [11, /DEVOLU/],
+  [14, /QUANTOS CLIENTES|CARTEIRA/],
+  [15, /CAMPANHA|COMBO|PROMO/],
+  [13, /INDUSTRI|MARCA|PRODUTO/],
+  [9, /ROTA|ROTEIRO|VISITA/],
+  [1, /META|COTA|COMO ESTOU|COMO ESTAMOS|NUMEROS|RESULTADO|FATURA|POSITIV|VENDI|VENDA|DESEMPENHO|PERFORMANCE/]
+];
+export function temaDoTexto(t) { const x = TEMAS_VENDEDOR.find(([, re]) => re.test(t)); return x ? x[0] : null; }
 export function respMenuVendedor(c) {
   const n = titulo(String(c.nome || '').split(' ')[0]);
   return [`📋 *MENU DO JOTA* — ${n}`, '', ...MENU_VENDEDOR.map(([rot], i) => `*${i + 1}.* ${rot}`), '', '👉 *Digite o número* (ex.: 1) ou escreva do seu jeito.'].join('\n');
