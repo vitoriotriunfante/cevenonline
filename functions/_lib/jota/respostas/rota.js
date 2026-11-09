@@ -184,6 +184,17 @@ export function respCheckinEquipe(E) {
 // ROTA DE HOJE: QUANTOS E QUEM AINDA NAO COMPROU NO MES (Vitorio, 27/10/2026: "quando perguntar quantos clientes na rota de hoje, pense que ele quer saber a
 // quantidade e quais clientes nao compraram ainda esse mes... os outros ja compraram, se quiser a lista me pergunte... se ele quiser o +mix desses clientes
 // pergunta apenas 'mais mix' e vc ja entende"). Comprou no mes = vendas item a item (ate ontem) + positivado hoje na rota. Dias sem compra = historico do +MIX.
+// POSITIVADO = PEDIDO (Vitorio; 09/11/2026): clientes com pedido no mes ate hoje (D1 pedido_status; nunca cancelado nem data futura).
+// Devolve Set de 'FILIAL|id_cliente'. Usado na rota de hoje, nas tags (recorrencia) e em 'visitados que nao compraram'.
+export async function clientesComPedidoNoMes(B, filiais, rca = null) {
+  const out = new Set(); const db = B && B.env && B.env.DB; if (!db || !filiais || !filiais.length) return out;
+  try {
+    const hj = hojeSP(), ini = hj.slice(0, 8) + '01';
+    const { results } = await db.prepare(`SELECT filial, id_cliente FROM pedido_status WHERE filial IN (${filiais.map(() => '?').join(',')}) ${rca ? 'AND rca = ?' : ''} AND data_pedido >= ? AND data_pedido <= ? AND status <> 'CANCELADO'`).bind(...filiais.map(String), ...(rca ? [String(rca)] : []), ini, hj).all();
+    for (const p of results || []) out.add(String(p.filial) + '|' + String(p.id_cliente));
+  } catch (e) { /* sem a tabela: so o faturado */ }
+  return out;
+}
 export async function semCompraNaRota(B, v) {
   const R0 = (v.rotaHoje || []).filter((c) => !/FORA/i.test(String(c.status || '')));
   const { vendasEscopo } = await import('./vendas.js');
@@ -311,6 +322,7 @@ export async function respTagCampanhas(B, E, v, t = '', c = null) {
   const mes = hojeSP().slice(0, 7), dd = (s) => (s && s >= '2000' ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : '—');
   const { vendasEscopo } = await import('./vendas.js'); const VM = await vendasEscopo(B, E).catch(() => null);
   const compraram = new Set(((VM && VM.linhas) || []).map((l) => l.f + '|' + l.c));
+  for (const k of await clientesComPedidoNoMes(B, [...new Set((E.vend || []).map((x) => x.filial))])) compraram.add(k);   // pedido do mes conta (09/11/2026)
   const um = (x) => {
     const hoje = []; const vh = new Set();
     for (const cli of (x.rotaHoje || []).filter(temTag)) { if (vh.has(String(cli.id_cliente))) continue; vh.add(String(cli.id_cliente)); hoje.push(cli); }

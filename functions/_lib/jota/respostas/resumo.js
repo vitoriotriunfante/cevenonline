@@ -159,6 +159,7 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
     let H = {}; try { H = JSON.parse(await B.raw(`public/mix_hist/${v.filial}.json`) || '{}').c || {}; } catch (e) { H = {}; }
     const ultH = (cnpj) => { const x = H[String(cnpj || '').replace(/\D/g, '')]; if (!x) return null; const m = String(x).split(',').map((p) => p.split(':')[1]).filter(Boolean).sort().pop(); return m ? `20${m.slice(0, 2)}-${m.slice(2, 4)}-${m.slice(4, 6)}` : null; };
     const compraram = new Set(((VM && VM.linhas) || []).filter((l) => String(l.r) === String(v.rca)).map((l) => String(l.c)));
+    { const { clientesComPedidoNoMes } = await import('./rota.js'); for (const k of await clientesComPedidoNoMes(B, [v.filial], v.rca)) compraram.add(k.split('|')[1]); }   // pedido do mes conta (09/11/2026)
     for (const r of v.roteiroMes) {
       const k = String(r.id_cliente || r.cnpj || ''); if (!k) continue;
       const c = C.get(k) || { nome: r.nome_cliente || r.razao_social || 'Cliente', vis: '', uc: ultH(r.cnpj) || '', comprou: false };
