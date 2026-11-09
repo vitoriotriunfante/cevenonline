@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-05 02:45 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-09 12:25 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (16)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -56,6 +56,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `config_custo` | `functions/api/custo-freio.js` |
 | `config_equipe_soberana` | `functions/api/equipe-decidir.js`, `functions/api/equipe-salvar.js`, `functions/api/equipe-solicitacoes.js` |
 | `config_flags` | `functions/api/cron-notificacoes-supervisores.js`, `functions/_lib/ceven_admin_token.js` |
+| `d1_telemetria_rotas` | `functions/_lib/telemetria.js` |
 | `descoberta_cursor` | `functions/api/cron-descobre-codigos.js` |
 | `devolucao_nota_motivo` | `functions/api/cron-lances.js` |
 | `equipe_tentativas` | `functions/_lib/senha_equipe.js` |
@@ -92,6 +93,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `tv_ping` | `functions/api/tv-ping.js` |
 | `varredura_central_rca` | `functions/api/cron-varredura-central.js` |
 | `varredura_slot` | `functions/api/cron-varredura-central.js` |
+| `wa_cota` | `functions/_lib/jota/base.js` |
 
 ### 2b. Bancos SQLite (FORA da base única)
 | Banco | Usado por |
@@ -162,6 +164,9 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `consolidado_diario_filial` | `pipeline/github_actions_runner.js` |
 | `consolidado_executivo_live` | `pipeline/2_abertura_diaria.js`, `pipeline/3_sync_horario_intraday.js`, `pipeline/4_consolidar_resumo_executivo.js`, `pipeline/github_actions_runner.js` |
 | `filiais` | `pipeline/1_sync_cadastros_mestre.js` |
+| `gerot_historico_filiais` | `pipeline/gerar_sql_d1.mjs` |
+| `gerot_historico_industrias` | `pipeline/gerar_sql_d1.mjs` |
+| `gerot_historico_supervisores` | `pipeline/gerar_sql_d1.mjs` |
 | `liga_dia_fechado` | `scratch/patch_teste_trava.js` |
 | `liga_fechamento` | `scratch/patch_fecha_2330.js`, `scratch/patch_penalti_motivo.js`, `scratch/patch_teste_trava.js` |
 | `rca_kpis` | `pipeline/2_abertura_diaria.js`, `pipeline/3_sync_horario_intraday.js`, `pipeline/github_actions_runner.js` |
@@ -246,15 +251,19 @@ Meta: só `functions/api/cron-varredura-central.js`.
 - `scratch/audita_gols_hoje.js` (manual): `/gols_falsos.json`
 - `scratch/classificar_auditoria_30.mjs` (manual): `scratch/auditoria_detalhada_30.json`
 - `scratch/cmp_dev.js` (manual): `/dev_ceven.json`
+- `scratch/comparar_arcor_clientes.mjs` (manual): `scratch/novos_arcor_tamara_outubro.json`
 - `scratch/detalhar_perguntas.mjs` (manual): `scratch/auditoria_completa_perguntas.json`
 - `scratch/extrair_auditoria.mjs` (manual): `scratch/dialogos_hoje.json`
 - `scratch/extrair_auditoria_30.mjs` (manual): `scratch/auditoria_hoje_30.json`
 - `scratch/extrair_hoje_04.mjs` (manual): `scratch/msgs_hoje_04.json`
 - `scratch/extrair_hoje_29.mjs` (manual): `scratch/msgs_hoje_29.json`
 - `scratch/extrair_hoje_30.mjs` (manual): `scratch/msgs_hoje_30.json`
+- `scratch/extrair_todos_fornecedores.mjs` (manual): `scratch/fornecedores_unicos.json`
 - `scratch/gerar_auditoria_completa_179.mjs` (manual): `scratch/auditoria_179_detalhada.json`
 - `scratch/listar_39_sugestoes.mjs` (manual): `scratch/todas_sugestoes.json`
 - `scratch/listar_sugestoes.mjs` (manual): `scratch/sugestoes_d1_atual.json`
+- `scratch/mapear_completo.mjs` (manual): `scratch/mapa_gerot.json`
+- `scratch/mapear_menus.mjs` (manual): `scratch/menus_gerot.json`
 - `scratch/mapear_todas_sugestoes.mjs` (manual): `scratch/mapeamento_sugestoes.json`
 - `scratch/preparar_update_respostas_perfeitas.mjs` (manual): `scratch/updates_respostas_calibradas.json`
 - `scratch/processar_auditoria.mjs` (manual): `scratch/auditoria_resultado.json`, `scratch/pares_auditados.json`

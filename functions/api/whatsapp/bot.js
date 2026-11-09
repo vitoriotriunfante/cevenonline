@@ -308,6 +308,8 @@ export async function onRequestPost({ request, env }) {
   }
   // "UM POR UM" (27/10/2026): a resposta pode vir em partes (separador ⟪⟫); cada parte vai numa mensagem, na ordem, com 1,2 s entre elas
   const partes = String(resp).split('\n⟪⟫\n').filter((x) => x.trim());
+  // AVISO "UM POR UM" (Vitorio, 09/11/2026): com a pausa antiban de 18 s+, avisa na primeira mensagem quantas vem e quanto demora
+  if (partes.length > 1) partes[0] = `📨 *Vou te mandar ${partes.length} mensagens, uma por uma* (uns ${Math.max(1, Math.round(partes.length * 22 / 60))} min no total, por segurança do WhatsApp). Fique atento e espere chegar todas.\n\n` + partes[0];
   let e = { ok: true };
   const numEnvio = (c && c.celular) ? c.celular : (destino && !destino.endsWith('@lid') ? destino.replace(/\D/g, '') : cel);
   // ENVIO HUMANO CADENCIADO (Antiban WhatsApp):
