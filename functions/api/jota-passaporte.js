@@ -72,6 +72,27 @@ export async function onRequestPost({ request, env }) {
 
   // Verifica se já existe cadastro ativo para não desativar quem já está liberado
   const vs = variantes(cel);
+  // CONFERE COM A GESTAO DE EQUIPE (Vitorio, 09/11/2026: "fazer apenas com o cadastro correto... relacionar mais de uma informacao e nao apenas o nome").
+  // Cruza filial + RCA + nome: se a pessoa existe na Gestao com outra filial/RCA, grava o da Gestao (o digitado fica em passaporte_cadastros);
+  // se nao bate com ninguem, grava como digitou e marca 'NAO CONFERE' para o Vitorio decidir na liberacao.
+  let filialG = filial, setorG = setor, supG = supervisor, confere = 'NAO CONFERE: vendedor nao encontrado na Gestao de Equipe';
+  try {
+    const semA = (x) => String(x || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+    const pal = semA(nome).split(/[^A-Z]+/).filter((w) => w.length > 2 && !/^(DOS|DAS|DES)$/.test(w));
+    const bate = (v) => semA(v.nome).split(/[^A-Z]+/).filter((w) => pal.includes(w)).length >= Math.min(2, pal.length);
+    const mo = await (await fetch(new URL('/api/tv-mostra', request.url), { signal: AbortSignal.timeout(10000) })).json();
+    const T = []; for (const [k, L] of Object.entries(mo.filiais || {})) for (const v of L) T.push({ ...v, fil: k.split('_')[0] });
+    const exato = T.find((v) => v.fil === filial && String(Number(v.rca)) === String(Number(setor)));
+    if (exato && bate(exato)) { confere = 'ok'; supG = String(exato.supervisor || supervisor).toUpperCase(); setorG = String(exato.rca); }
+    else {
+      const cand = T.filter((v) => bate(v) && (String(Number(v.rca)) === String(Number(setor)) || v.fil === filial));
+      const unico = cand.length === 1 ? cand[0] : (T.filter(bate).length === 1 ? T.filter(bate)[0] : null);
+      if (unico) { filialG = unico.fil; setorG = String(unico.rca); supG = String(unico.supervisor || supervisor).toUpperCase(); confere = `corrigido pela Gestao: digitou ${filial} ${setor}, na Gestao ${unico.fil} ${unico.rca} (${unico.nome})`; }
+      else if (exato) confere = `NAO CONFERE: o RCA ${setor} da ${filial} e de ${exato.nome} na Gestao`;
+    }
+  } catch (e) { confere = 'NAO CONFERIDO: Gestao de Equipe indisponivel'; }
+  try { await env.DB.prepare('ALTER TABLE bot_contatos ADD COLUMN confere_gestao TEXT').run(); } catch (e) {}
+
   const jaExiste = await env.DB.prepare(
     `SELECT celular, ativo, situacao, papel FROM bot_contatos WHERE celular IN (${vs.map(() => '?').join(',')}) LIMIT 1`
   ).bind(...vs).first().catch(() => null);
@@ -91,12 +112,13 @@ export async function onRequestPost({ request, env }) {
       cpf = excluded.cpf,
       indicadores_desejados = excluded.indicadores_desejados,
       atualizado_em = CURRENT_TIMESTAMP
-  `).bind(celChave, nome, filial, supervisor, setor, cpfLimpo, indicadores.slice(0, 1000), manterAtivo ? 1 : 0, novaSituacao).run();
+  `).bind(celChave, nome, filialG, supG, setorG, cpfLimpo, indicadores.slice(0, 1000), manterAtivo ? 1 : 0, novaSituacao).run();
+  try { await env.DB.prepare('UPDATE bot_contatos SET confere_gestao = ? WHERE celular = ?').bind(confere, celChave).run(); } catch (e) {}
 
   // REGISTRO DE CADA ENVIO DO LINK (Vitorio, 09/11/2026: 'tem que ficar registrado TODOS os dados que eles preencheram'). Nunca sobrescreve.
   try {
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS passaporte_cadastros (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, nome TEXT, cpf TEXT, rca TEXT, filial TEXT, supervisor TEXT, indicadores TEXT, origem TEXT, dados TEXT)').run();
-    await env.DB.prepare('INSERT INTO passaporte_cadastros (celular, nome, cpf, rca, filial, supervisor, indicadores, origem, dados) VALUES (?,?,?,?,?,?,?,?,?)').bind(celChave, nome, cpfLimpo, setor, filial, supervisor, indicadores.slice(0, 2000), 'link', JSON.stringify(b).slice(0, 4000)).run();
+    await env.DB.prepare('INSERT INTO passaporte_cadastros (celular, nome, cpf, rca, filial, supervisor, indicadores, origem, dados) VALUES (?,?,?,?,?,?,?,?,?)').bind(celChave, nome, cpfLimpo, setor, filial, supervisor, indicadores.slice(0, 2000), 'link', JSON.stringify({ ...b, confere_gestao: confere }).slice(0, 4000)).run();
   } catch (e) {}
 
   // Grava também em bot_sugestoes para aparecer direto no painel de sugestões da diretoria

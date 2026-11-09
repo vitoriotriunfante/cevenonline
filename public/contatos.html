@@ -1915,6 +1915,7 @@ function gerarCardsPedidosHtml(pendentes) {
             <span class="tag-badge ia">Aguardando OK</span>
           </div>
           <div style="margin:6px 0; padding:5px 8px; border-radius:6px; font-size:12.5px; font-weight:700; color:#fff; background:${p.linha_corporativa === 'ATIVO' ? '#15803d' : p.linha_corporativa === 'SUSPENSO' ? '#b45309' : '#b91c1c'};">${p.linha_corporativa === 'ATIVO' ? '🟢 Linha corporativa ativa' : p.linha_corporativa === 'SUSPENSO' ? '🟠 Linha corporativa SUSPENSA' : /^55\d{10,11}$/.test(String(p.celular)) ? '🔴 NÃO é linha corporativa' : '🔴 Sem telefone válido: recuse este pedido'}</div>
+          ${p.confere_gestao ? `<div title="Conferência do passaporte com a Gestão de Equipe (filial + RCA + nome)" style="margin:6px 0; padding:5px 8px; border-radius:6px; font-size:12.5px; font-weight:700; color:#fff; background:${p.confere_gestao === 'ok' ? '#15803d' : /^corrigido/.test(p.confere_gestao) ? '#b45309' : '#b91c1c'};">${p.confere_gestao === 'ok' ? '✅ Confere com a Gestão de Equipe' : /^corrigido/.test(p.confere_gestao) ? '🛠️ ' + esc(p.confere_gestao) : '⛔ ' + esc(p.confere_gestao)}</div>` : ''}
           <div style="font-size:12.5px; color:var(--txt-mut); line-height:1.5;">
             <div><b>Celular:</b> +${esc(p.celular)}${p.cpf ? ' · <b>CPF:</b> ' + esc(p.cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4')) : ''}</div>
             <div><b>Pedido em:</b> ${esc(String(p.atualizado_em || p.criado_em || '').slice(0, 16))}</div>

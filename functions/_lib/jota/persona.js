@@ -181,6 +181,10 @@ export async function cadastraPorCodigo(env, cel, texto, pushName) {
 
     let nomes = t;
     { const ant = await env.DB.prepare("SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'in' ORDER BY id DESC LIMIT 4").bind(cel).all(); nomes += ' ' + sem((ant.results || []).map((x) => x.texto).join(' ')); }
+    // VENDEDOR NAO ENTRA COMO SUPERVISOR (09/11/2026: "Alais Aparecida teles 93" = vendedora TPH 93 virou supervisor "Gerente Mcd" pelo codigo 93).
+    // Nome batendo com vendedor da Gestao (2+ palavras) E codigo = RCA dele = vendedor: nao cadastra (vendedor so pelo link do passaporte).
+    try { const mo = await (await fetch('https://ceven-cftv-matrix.pages.dev/api/tv-mostra', { signal: AbortSignal.timeout(10000) })).json(); const pal = new Set(nomes.split(/[^A-Z]+/).filter((w) => w.length > 2));
+      for (const L of Object.values(mo.filiais || {})) for (const v of L) { const nv = sem(v.nome).split(/\s+/).filter((w) => w.length > 2 && !/^(DE|DA|DO|DOS|DAS)$/.test(w)); if (nv.filter((w) => pal.has(w)).length >= 2 && numsBusca.has(String(v.rca))) return null; /* nome de vendedor + o codigo dele (RCA) = vendedor */ } } catch (e) { /* sem a lista: segue a conferencia pela arvore */ }
 
     let results = [];
     if (numsBusca.size) {
@@ -199,7 +203,7 @@ export async function cadastraPorCodigo(env, cel, texto, pushName) {
     }
 
     // "VAGO - GABRIEL" (27/10/2026, TCV 543): supervisor novo numa vaga ainda tem o nome da vaga na arvore; confere pelo nome depois do "VAGO -"
-    const ok = (results || []).find((r) => { const p = sem(r.sup_nome).replace(/^CLT\s*-?\s*/, '').replace(/^VAGO\s*-?\s*/, '').split(/\s+/); return p[0] && nomes.includes(p[0]) && (p.length < 2 || p.slice(1).some((w) => w.length > 2 && nomes.includes(w))); }) || (results && results.length === 1 ? results[0] : null);
+    const ok = (results || []).find((r) => { const p = sem(r.sup_nome).replace(/^CLT\s*-?\s*/, '').replace(/^VAGO\s*-?\s*/, '').split(/\s+/); const palN = new Set(nomes.split(/[^A-Z]+/)); return p[0] && !/^(GERENTE|SUPERVISOR|SUPERVISORA|VAGO|VENDA|VENDAS)$/.test(p[0]) && palN.has(p[0]) && (p.length < 2 || p.slice(1).some((w) => w.length > 2 && nomes.includes(w))); });   // 09/11/2026: SEM o 'codigo unico = aceita': o nome TEM que bater (Simone 'Codigo 58' virou Jonatas; Alais '93' virou Gerente Mcd)
     if (!ok) return null;
     const supArv = String(ok.sup_nome).replace(/^CLT\s*-?\s*/i, '').trim();   /* nome do supervisor NA HIERARQUIA (define a equipe) */
     // nome da pessoa: o que ela mandou quando a arvore ainda tem o nome da vaga ("VAGO - GABRIEL" -> "GABRIEL MONTEIRO GIROTO")
