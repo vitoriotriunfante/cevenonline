@@ -34,7 +34,7 @@ function podeUsarIAPraEstrategia(papel, texto) {
   return ehExecutivo && /\b(ESTRATEG(IA|ICO|ICA|IAS)|PLANO DE ACAO|PLANO COMERCIAL|COMO (PODEMOS|DEVEMOS|VAMOS|EU POSSO|FAZER PARA) (MELHORAR|RECUPERAR|VIRAR|AUMENTAR|CRESCER|ACELERAR|DESTRAVAR|REVERTER|BATER)|ONDE (DEVEMOS|PODEMOS|PRECISAMOS) (FOCAR|ATACAR|ATUAR|MELHORAR)|QUAL (A MELHOR|SUA) (ESTRATEGIA|SUGESTAO|RECOMENDACAO|IDEIA|OPINIAO|ANALISE)|ME D[AE] UMA (SUGESTAO|IDEIA|ESTRATEGIA|ANALISE|ORIENTACAO)|O QUE VOCE (ACHA|SUGERE|RECOMENDA|PENSA|INDICARIA|FARIA)|POR QUE (CAIU|ESTAMOS ABAIXO|NAO ESTAMOS BATENDO)|DIAGNOSTICO|CONSULTORIA|GARGALO|PONTOS? FRACOS?|PONTOS? FORTES?|ANALISE (EXECUTIVA|ESTRATEGICA|CRITICA))\b/i.test(sem(texto));
 }
 
-import { responderPerguntaGerotIndustria } from './gerot_inteligencia.js';
+import { respGerotIndustria } from '../../_lib/jota/respostas/gerot_industria.js';   // industria = GEROT (09/11/2026; o antigo gerot_inteligencia.js casava a industria errada)
 
 export async function onRequestPost({ request, env }) {
   const u = new URL(request.url);
@@ -271,7 +271,9 @@ export async function onRequestPost({ request, env }) {
   // CONSULTA OFICIAL GEROT / INDÚSTRIAS / MARCAS / MP
   // DESLIGADA em 09/11/2026: casava a industria errada ("Condor de API" -> AEROFLEX, todos os meses como "Agosto") e passava por cima
   // das respostas certas. Base GEROT no D1 e uma carga unica de 06/11 (feita do PC). Religar so com a coleta online e testes por industria.
-  const respGerot = env.GEROT_JOTA === '1' ? await responderPerguntaGerotIndustria(env, texto, c) : null;
+  // INDUSTRIA PELO GEROT (Vitorio, 09/11/2026): D1 gerot_vendas (coleta online). Testes: testes/gerot_industria.mjs (perguntas reais do Rudinei).
+  // So entra quando a pergunta e de resultado de industria; +MIX, cliente e SKU seguem no caminho deles. Desliga com GEROT_JOTA=0.
+  let respGerot = null; if (env.GEROT_JOTA !== '0') { try { respGerot = await respGerotIndustria(env, texto, c, anteriores[0] || null); } catch (e) { respGerot = null; } }
   if (respGerot) {
     resp = respGerot;
     tipo = 'gerot_industria';

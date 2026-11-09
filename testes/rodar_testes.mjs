@@ -857,6 +857,12 @@ secao('16. Antiban (Vitorio, 09/11/2026, apos 2 banimentos): todo envio de Whats
   ok(!lento.length, 'nenhuma espera fixa curta logo apos envio' + (lento.length ? ': ' + lento.join(', ') : ''));
 }
 
+secao('17. JOTA industria = GEROT (09/11/2026): perguntas reais do Rudinei em testes/gerot_industria.mjs');
+{
+  const r = spawnSync(process.execPath, [join(RAIZ, 'testes', 'gerot_industria.mjs')], { encoding: 'utf8' });
+  ok(r.status === 0, (r.stdout || r.stderr || '').trim().split(/\r?\n/).filter((l) => /FALHOU|GEROT:/.test(l)).join(' | '));
+}
+
 secao('14. Base unica (26/10/2026): nenhum arquivo NOVO chamando o CEVEN e nenhum banco NOVO fora do D1 (scripts/mapa_dados.mjs)');
 {
   const r = spawnSync(process.execPath, [join(RAIZ, 'scripts', 'mapa_dados.mjs'), '--verificar'], { encoding: 'utf8' });

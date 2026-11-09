@@ -47,6 +47,14 @@
 - Prints e o Excel de cada rodada ficam 7 dias nos artefatos do GitHub (conferência).
 - Falta: segredos `GEROT_EMAIL` e `GEROT_SENHA` no GitHub; 1º ensaio; carga do histórico; resposta do JOTA (seção 4, item 2).
 
+## 7. Resposta do JOTA (no ar em 09/11/2026)
+- `functions/_lib/jota/respostas/gerot_industria.js`, chamada em `functions/api/whatsapp/bot.js` (desliga com `GEROT_JOTA=0`).
+- Lê só `gerot_vendas`. Entende indústria (palavra inteira + dicionário), filial, mês, recorte (filial / supervisor / vendedor / supervisor+vendedor) e "sem venda".
+- Escopo: diretoria/ceo = Brasil; gerente = filial; supervisor = equipe; vendedor = ele.
+- "Sem venda" = faturado zero **e** carteira zero; quem só tem carteira aparece à parte.
+- Não entra em +MIX, "quem compra", cliente, SKU.
+- Testes: `testes/gerot_industria.mjs` (22 casos, perguntas reais do Rudinei) dentro de `testes/rodar_testes.mjs`.
+
 ## Histórico
 - 05–06/11/2026: robô e carga única feitos no Antigravity (não registrados na época).
-- 09/11/2026: resposta "Raio-X GEROT" publicada e desligada no mesmo dia; este documento criado.
+- 09/11/2026: resposta "Raio-X GEROT" publicada e desligada no mesmo dia; este documento criado; coleta online no ar (ago–nov carregados: 3.619 / 3.912 / 3.938 / 3.105 linhas; meta de nov = R$ 80.670.000, igual ao GEROT); resposta nova do JOTA no ar.
