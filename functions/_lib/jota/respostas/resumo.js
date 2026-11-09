@@ -108,12 +108,15 @@ export async function respHoje(B, E, t) {
   if (/TICKET/.test(t)) return `🧾 *Ticket médio de hoje — ${E.nome}${rot}*: *${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}* (${R$(tot.dig)} ÷ ${tot.ped} pedidos)`;
   const Vs = V.slice().sort((a, b) => b.dig - a.dig);
   const L = [`📝 *${E.nome} hoje${rot}* (${hora})`, `Digitado: *${R$(tot.dig)}* em *${tot.ped}* pedidos · ticket ${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}`, ...(tot.visP ? [`Visitas da rota: ${tot.visF} de ${tot.visP} (com venda na rota: ${tot.comVenda}) · vendedores zerados: ${tot.zerados}`] : []), ''];
+  let iVs = 0;
   for (const v of Vs.slice(0, 40)) {
+    iVs++;
     const infoVis = v.visP ? ` · visitas ${v.visF}/${v.visP}` : '';
-    L.push(`• ${v.zerado ? '⚠️' : v.dig > 0 ? '✅' : '▫️'} *${vn(v)}*: ${R$(v.dig)} · ${v.ped || 0} ped.${infoVis}`);
+    L.push(`${iVs}. ${v.zerado ? '⚠️' : v.dig > 0 ? '✅' : '▫️'} *${vn(v)}*: ${R$(v.dig)} · ${v.ped || 0} ped.${infoVis}`);
   }
   if (Vs.length > 40) L.push(`… e mais ${Vs.length - 40}`);
   const z = V.filter((v) => v.zerado);
+  L.push('', '👉 *Digite o número* (ex.: 1) para ver a rota e o detalhe do vendedor.');
   L.push('', SUGESTAO + (z.length ? `cobrar quem tem rota e está sem pedido: ${listaNomes(z, 3)}.` : !tot.ped ? 'ainda sem pedido hoje; acompanhar a primeira visita de cada vendedor.' : V.some((v) => !v.ped) ? `ainda sem pedido hoje: ${listaNomes(V.filter((v) => !v.ped), 3)}.` : 'todo mundo com rota já tem pedido; focar em mix por cliente.'));
   return L.join('\n');
 }

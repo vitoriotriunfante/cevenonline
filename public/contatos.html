@@ -894,6 +894,8 @@ header { padding: 10px 20px; background: var(--sidebar); backdrop-filter: none; 
       <select id="cad-filtro-papel"><option value="">Todos os cargos</option></select>
       <select id="cad-filtro-filial"><option value="">Todas as filiais</option></select>
       <select id="cad-filtro-situacao"><option value="">Qualquer situação</option><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select>
+      <select id="cad-filtro-salvou" title="Respondeu SIM confirmando que salvou o contato do Jota (lido das conversas)"><option value="">Salvou o Jota? (todos)</option><option value="sim">✅ Confirmou SIM</option><option value="nao">❌ Não confirmou</option><option value="nao_pedido">❌ Recebeu o pedido e não respondeu</option></select>
+      <span id="cad-contagem-salvou" style="font-size:12px; color:var(--txt-mut); align-self:center;"></span>
     </div>
 
     <div class="table-wrapper">
@@ -2104,6 +2106,7 @@ function renderizarGestaoContatos() {
   const fPapel = $('cad-filtro-papel').value;
   const fFilial = $('cad-filtro-filial').value;
   const fSit = $('cad-filtro-situacao').value;
+  const fSalvou = $('cad-filtro-salvou').value;   // 09/11/2026: quem confirmou com SIM que salvou o contato do Jota
 
   // Preencher Selects de filtro se vazios
   const selPapel = $('cad-filtro-papel');
@@ -2126,13 +2129,17 @@ function renderizarGestaoContatos() {
     if (fPapel && c.papel !== fPapel) return false;
     if (fFilial && c.filial !== fFilial) return false;
     if (fSit && c.situacao !== fSit) return false;
+    if (fSalvou === 'sim' && !c.salvou_jota) return false;
+    if (fSalvou === 'nao' && c.salvou_jota) return false;
+    if (fSalvou === 'nao_pedido' && (c.salvou_jota || !c.pedido_salvar)) return false;
     return true;
   });
+  { const base = lista.filter((c) => c.papel !== 'grupo' && c.situacao === 'ativo'); const el = $('cad-contagem-salvou'); if (el) el.textContent = `Ativos que confirmaram SIM: ${base.filter((c) => c.salvou_jota).length} de ${base.length} · filtrados: ${filtrados.length}`; }
 
   const tbody = $('cad-tabela-corpo');
   tbody.innerHTML = filtrados.map((c) => `
     <tr>
-      <td><b>${c.piloto ? '⭐ ' : ''}${esc(tit(c.nome))}</b></td>
+      <td><b>${c.piloto ? '⭐ ' : ''}${esc(tit(c.nome))}</b> ${c.salvou_jota ? `<span title="Confirmou SIM em ${esc(c.salvou_jota)}">✅ salvou</span>` : c.pedido_salvar ? '<span title="Recebeu o pedido para salvar o contato e não respondeu SIM" style="color:var(--bad,#e55)">❌ não confirmou</span>' : ''}</td>
       <td>${esc(c.papel === 'grupo' ? '🚂 Grupo' : c.papel)}</td>
       <td>${esc(c.filial || 'Todas')}${c.grupo ? ' · ' + esc(tit(c.grupo)) : ''}</td>
       <td style="color:var(--txt-mut); font-size:12px;">
@@ -2193,6 +2200,7 @@ $('cad-busca').oninput = () => renderizarGestaoContatos();
 $('cad-filtro-papel').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-filial').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-situacao').onchange = () => renderizarGestaoContatos();
+$('cad-filtro-salvou').onchange = () => renderizarGestaoContatos();
 
 if ($('btn-sync-grupos')) {
   $('btn-sync-grupos').onclick = async () => {

@@ -47,10 +47,7 @@ async function enviarWhatsApp(numero, texto) {
     return { ok: true, status: 200, ensaio: true };
   }
   const cfg = { url: EVO_URL, key: EVO_KEY, instancia: EVO_INSTANCE };
-  return await R.evolution(cfg, '/message/sendText', {
-    number: String(numero).replace(/\D/g, ''),
-    text: texto
-  });
+  return await R.enviarTexto(cfg, numero, texto);   // antiban 09/11/2026 (antes: sem digitando/hash)
 }
 
 async function main() {
@@ -149,7 +146,7 @@ async function main() {
 
     // Intervalo de segurança anti-spam: 5 segundos entre envios
     if (i < pendentes.length - 1 && !isDryRun) {
-      await sleep(5000);
+      await R.pausaEntreEnvios();   // antiban: nunca 5 s fixo (minimo 18 s)
     }
   }
 

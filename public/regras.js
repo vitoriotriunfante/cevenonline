@@ -112,7 +112,25 @@
     return evolution(cfg, '/message/sendText', corpo, (opcoes.timeoutMs || 25000) + delay);
   };
 
-  const R = { CANAIS_VAREJO, CANAIS_AS, CANAIS_GESTAO, SKU_IGNORADO, ehVarejo, ehAS, ehGestao, canalCurto, relogioSP, hojeSP, horaSP, brl, evolution, evolutionGet, evoCfg, enviarTexto, resolverSpintax, injetarZeroWidth, textoAntiban, delayDigitacao, gaussianJitterMs };
+  // ANTIBAN (09/11/2026): porta unica para figurinha, imagem, documento e audio — mesmo "digitando/gravando" humano do texto,
+  // legenda com hash unico e sem previa de link. Nenhum arquivo chama '/message/sendMedia|sendSticker|sendWhatsAppAudio' direto (teste 16).
+  const ROTAS_MIDIA = ['/message/sendMedia', '/message/sendSticker', '/message/sendWhatsAppAudio'];
+  const enviarMidia = (cfg, caminho, corpo, opcoes = {}) => {
+    if (!ROTAS_MIDIA.includes(caminho)) return Promise.resolve({ ok: false, status: 0, erro: 'rota de midia invalida: ' + caminho });
+    const c = { ...corpo };
+    if (c.number && !String(c.number).includes('@g.us')) c.number = String(c.number).replace(/\D/g, '');
+    if (c.caption) c.caption = opcoes.puro ? c.caption : textoAntiban(c.caption);
+    const delay = opcoes.delayMs || (caminho === '/message/sendSticker' ? 1500 + Math.round(Math.random() * 1500) : delayDigitacao(c.caption || 'x'.repeat(120)));
+    c.delay = delay;
+    c.presence = caminho === '/message/sendWhatsAppAudio' ? 'recording' : 'composing';
+    c.linkPreview = false;
+    return evolution(cfg, caminho, c, (opcoes.timeoutMs || 35000) + delay);
+  };
+
+  // ANTIBAN (09/11/2026): pausa entre envios em LOTE (pessoas diferentes ou varias partes seguidas). Nunca sleep fixo.
+  const pausaEntreEnvios = (mediaSeg = 24, desvioSeg = 5, minimoSeg = 18) => new Promise((ok) => setTimeout(ok, gaussianJitterMs(mediaSeg, desvioSeg, minimoSeg)));
+
+  const R = { CANAIS_VAREJO, CANAIS_AS, CANAIS_GESTAO, SKU_IGNORADO, ehVarejo, ehAS, ehGestao, canalCurto, relogioSP, hojeSP, horaSP, brl, evolution, evolutionGet, evoCfg, enviarTexto, enviarMidia, pausaEntreEnvios, resolverSpintax, injetarZeroWidth, textoAntiban, delayDigitacao, gaussianJitterMs };
   if (typeof module !== 'undefined' && module.exports) module.exports = R;
   raiz.REGRAS = R;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

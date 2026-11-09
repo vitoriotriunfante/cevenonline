@@ -42,7 +42,7 @@ export async function tabelas(db) {
   if (tabelasJotaGarantidas || !db) return;
   try {
     await db.prepare(`CREATE TABLE IF NOT EXISTS bot_contatos (celular TEXT PRIMARY KEY, nome TEXT, papel TEXT, filial TEXT, grupo TEXT, supervisor TEXT, ativo INTEGER DEFAULT 1, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)`).run();
-    for (const c of ['situacao TEXT', 'rca TEXT', 'atualizado_em TEXT']) { try { await db.prepare(`ALTER TABLE bot_contatos ADD COLUMN ${c}`).run(); } catch (e) { /* ja existe */ } }
+    for (const c of ['situacao TEXT', 'rca TEXT', 'atualizado_em TEXT', 'salvou_jota TEXT']) { try { await db.prepare(`ALTER TABLE bot_contatos ADD COLUMN ${c}`).run(); } catch (e) { /* ja existe */ } }
     await db.prepare(`CREATE TABLE IF NOT EXISTS bot_msgs (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, nome TEXT, direcao TEXT, texto TEXT, msg_id TEXT)`).run();
     await db.prepare('CREATE TABLE IF NOT EXISTS bot_sugestoes (id INTEGER PRIMARY KEY AUTOINCREMENT, quando TEXT DEFAULT CURRENT_TIMESTAMP, celular TEXT, nome TEXT, papel TEXT, filial TEXT, texto TEXT, sobre TEXT)').run();
     for (const col of ['tipo TEXT', 'ajudou INTEGER', 'nota INTEGER']) { try { await db.prepare(`ALTER TABLE bot_msgs ADD COLUMN ${col}`).run(); } catch (e) { /* ja existe */ } }
@@ -58,10 +58,31 @@ export async function tabelas(db) {
     tabelasJotaGarantidas = true;
   } catch (e) {}
 }
+// TETO DIARIO ANTIBAN (Vitorio, 09/11/2026; banimentos de 30/10 = 743 saidas e 03/11 = 101 pessoas num dia):
+// resposta a quem escreveu nas ultimas 24 h passa sempre; mensagem que o JOTA INICIA conta na cota do dia:
+// no maximo WA_TETO_PESSOAS (40) pessoas diferentes e WA_TETO_MSGS (300) mensagens. Estourou = nao envia e registra.
+export const TETO_PESSOAS = 40, TETO_MSGS = 300;
+export async function cotaEnvio(env, d) {
+  const db = env && env.DB; if (!db || !d) return { ok: true };
+  try {
+    const vs = variantes(d), ph = vs.map(() => '?').join(',');
+    const resp = await db.prepare(`SELECT 1 FROM bot_msgs WHERE celular IN (${ph}) AND direcao = 'in' AND quando > datetime('now','-24 hours') LIMIT 1`).bind(...vs).first();
+    if (resp) return { ok: true, resposta: true };
+    await db.prepare('CREATE TABLE IF NOT EXISTS wa_cota (dia TEXT, celular TEXT, n INTEGER DEFAULT 0, PRIMARY KEY (dia, celular))').run();
+    const dia = R.hojeSP();
+    const tot = await db.prepare('SELECT COUNT(*) p, COALESCE(SUM(n),0) m, SUM(celular = ?) ja FROM wa_cota WHERE dia = ?').bind(d, dia).first();
+    const tetoP = Number(env.WA_TETO_PESSOAS || TETO_PESSOAS), tetoM = Number(env.WA_TETO_MSGS || TETO_MSGS);
+    if ((tot.m || 0) >= tetoM) return { ok: false, erro: `teto antiban: ${tot.m} mensagens iniciadas hoje (limite ${tetoM})` };
+    if (!tot.ja && (tot.p || 0) >= tetoP) return { ok: false, erro: `teto antiban: ${tot.p} pessoas abordadas hoje (limite ${tetoP})` };
+    await db.prepare('INSERT INTO wa_cota (dia, celular, n) VALUES (?, ?, 1) ON CONFLICT (dia, celular) DO UPDATE SET n = n + 1').bind(dia, d).run();
+    return { ok: true };
+  } catch (e) { return { ok: true }; }   // falha do D1 nunca derruba a resposta
+}
 export async function enviar(env, numero, texto) {
   if (!env.EVO_URL || !env.EVO_KEY) return { ok: false, erro: 'EVO_URL/EVO_KEY nao configurados' };
   const s = String(numero || '').trim();
   const cfg = R.evoCfg(env);
+  if (!s.endsWith('@g.us')) { const q = await cotaEnvio(env, so(s)); if (!q.ok) return { ok: false, status: 429, erro: q.erro, teto: true }; }
   if (s.endsWith('@g.us')) {
     const rG = await R.enviarTexto(cfg, s, texto);
     return { ok: rG.ok, status: rG.status, erro: rG.erro, resposta: rG.resposta };

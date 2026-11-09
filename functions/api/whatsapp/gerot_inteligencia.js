@@ -1,4 +1,4 @@
-import { resolverIndustria } from '../../../../pipeline/dicionario_industrias.js';
+import { resolverIndustria } from '../../../pipeline/dicionario_industrias.js';
 
 export async function responderPerguntaGerotIndustria(env, texto, c) {
   const t = texto.toLowerCase();
@@ -64,3 +64,4 @@ export async function responderPerguntaGerotIndustria(env, texto, c) {
     return null;
   }
 }
+

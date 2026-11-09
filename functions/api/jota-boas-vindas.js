@@ -18,8 +18,9 @@ function texto(c) {
     `Pode escrever do seu jeito ou mandar *áudio* 🎙️ que eu entendo.\n` +
     `Se eu não tiver um dado, eu falo. Número eu não invento.\n\n_Meu DNA é Triunfante!_`;
 }
-async function evo(env, rota, corpo) {
-  return (await R.evolution(R.evoCfg(env), rota, corpo)).ok; // true so se a Evolution aceitou (antes era sempre verdadeiro)
+async function evo(env, rota, corpo) {   // antiban 09/11/2026: texto e figurinha pela porta unica (antes ia sem digitando/hash)
+  if (rota === '/message/sendText') return (await R.enviarTexto(R.evoCfg(env), corpo.number, corpo.text)).ok;
+  return (await R.enviarMidia(R.evoCfg(env), rota, corpo)).ok; // true so se a Evolution aceitou (antes era sempre verdadeiro)
 }
 // autoriza pela chave do JOTA (?k=) OU pela chave da Evolution no header X-Evo-Key (o GitHub ja tem EVO_KEY; sem segredo novo)
 const autorizado = async (request, env) => { const u = new URL(request.url); return (env.BOT_WEBHOOK_KEY && u.searchParams.get('k') === env.BOT_WEBHOOK_KEY) || await chaveEvoValida(request, env); };

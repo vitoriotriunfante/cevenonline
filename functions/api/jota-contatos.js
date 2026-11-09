@@ -10,7 +10,7 @@
 // =========================================================================
 import { exigeSenhaEquipe } from '../_lib/senha_equipe.js';
 import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
-import { tabelas as garanteTabelasEIndicesJota } from '../_lib/jota/base.js';
+import { tabelas as garanteTabelasEIndicesJota, cotaEnvio } from '../_lib/jota/base.js';
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 
 const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Equipe-Senha', 'Cache-Control': 'no-store' };
@@ -50,7 +50,7 @@ export async function onRequestGet({ request, env }) {
     const negado = await exigeSenhaEquipe(request, env, CORS); if (negado) return negado;
   }
   await garante(env.DB);
-  const { results } = await env.DB.prepare('SELECT * FROM bot_contatos ORDER BY papel, filial, nome').all();
+  const { results } = await env.DB.prepare("SELECT c.*, EXISTS (SELECT 1 FROM bot_msgs m WHERE m.celular = c.celular AND m.direcao = 'out' AND m.tipo IN ('boas_vindas_aprovacao','cadastro_passaporte','convite_vendedores','boas_vindas')) AS pedido_salvar FROM bot_contatos c ORDER BY papel, filial, nome").all();   // pedido_salvar: recebeu o pedido de salvar o Jota e responder SIM (09/11/2026)
   const { results: arv } = await env.DB.prepare('SELECT DISTINCT filial, sup_id, sup_nome FROM arvore_supervisores ORDER BY filial, sup_nome').all().catch(() => ({ results: [] }));
   const { results: uso } = await env.DB.prepare("SELECT celular, COUNT(*) n, MAX(quando) ult FROM bot_msgs WHERE direcao = 'in' GROUP BY celular").all().catch(() => ({ results: [] }));
   const U = new Map((uso || []).map((r) => [r.celular, r]));
@@ -65,7 +65,8 @@ export async function onRequestGet({ request, env }) {
 
 async function enviar(env, numero, texto) {
   if (!env.EVO_URL || !env.EVO_KEY) return false;
-  return (await R.evolution(R.evoCfg(env), '/message/sendText', { number: numero, text: texto })).ok;
+  const q = await cotaEnvio(env, String(numero).replace(/\D/g, '')); if (!q.ok) return false;   // teto antiban do dia
+  return (await R.enviarTexto(R.evoCfg(env), numero, texto)).ok;   // antiban 09/11/2026: passava sem digitando/hash
 }
 
 export async function onRequestPost({ request, env }) {
@@ -145,6 +146,7 @@ export async function onRequestPost({ request, env }) {
       return j({ erro: 'celular/grupo e conteúdo (texto, anexo, áudio ou figurinha) são obrigatórios' }, 400);
     }
 
+    if (!ehGrupo) { const q = await cotaEnvio(env, cel); if (!q.ok) return j({ ok: false, celular: cel, erro: q.erro, teto: true }, 429); }   // antiban 09/11/2026
     const cfg = R.evoCfg(env);
     const alts = [cel];
     if (!ehGrupo) {
@@ -154,12 +156,12 @@ export async function onRequestPost({ request, env }) {
 
     const evoTry = async (caminho, payloadBuilder) => {
       for (const num of alts) {
-        const r = await R.evolution(cfg, caminho, payloadBuilder(num), 35000);
+        const r = caminho === '/message/sendText' ? await R.enviarTexto(cfg, num, payloadBuilder(num).text, { puro: true, delayMs: payloadBuilder(num).delay }) : await R.enviarMidia(cfg, caminho, payloadBuilder(num));
         if (r.ok) return r;
       }
       // segunda passada (31/10/2026: 10 de 90 comunicados falharam na mesma manha)
       await new Promise((ok) => setTimeout(ok, 1500));
-      const r2 = await R.evolution(cfg, caminho, payloadBuilder(alts[0]), 35000);
+      const r2 = caminho === '/message/sendText' ? await R.enviarTexto(cfg, alts[0], payloadBuilder(alts[0]).text, { puro: true, delayMs: payloadBuilder(alts[0]).delay }) : await R.enviarMidia(cfg, caminho, payloadBuilder(alts[0]));
       return r2.ok ? r2 : { ok: false };
     };
 
@@ -261,10 +263,28 @@ export async function onRequestPost({ request, env }) {
   const muda = async (ativo, sit) => { await env.DB.prepare('UPDATE bot_contatos SET ativo = ?, situacao = ?, atualizado_em = CURRENT_TIMESTAMP WHERE celular = ?').bind(ativo, sit, cel).run(); await log(acao, { situacao: sit }); };
   if (acao === 'aprovar' || acao === 'ativar') {
     await muda(1, 'ativo');
-    // SEGURANCA TOTAL ANTIBAN (04/11/2026): NUNCA disparar mensagem ativa de WhatsApp na aprovacao!
-    // Vendedores aprovados usam o Jota quando eles mesmos mandarem mensagem (receptivo 100%).
-    // Disparar WhatsApp ativo para dezenas de contatos sem conversa aberta causa bloqueio imediato pelo WhatsApp.
-    return j({ ok: true, avisado: false });
+    // MENSAGEM DE APROVACAO (desligada em 04/11/2026 apos o bloqueio; religada em 09/11/2026 pelo Vitorio): passa pelo teto diario antiban
+    let avisado = false;
+    if (acao === 'aprovar') {
+      const p = String(antes.nome || '').split(' ')[0];
+      const pNome = p.charAt(0) + p.slice(1).toLowerCase();
+      const msgLib = antes.papel === 'vendedor'
+        ? `Fala, *${pNome}*! Seu acesso corporativo ao *Jota* ⚽ foi *aprovado e liberado*! 🚀\n\nAgora você pode me consultar a qualquer momento (por texto ou *áudio* 🎙️). Seguem as instruções do que me pedir no dia a dia:\n\n📍 *ROTA & CLIENTES*\n• *"minha rota hoje"* → clientes programados e quem falta visitar\n• *"curva negativa"* → seus clientes que ainda não compraram no mês\n• *"prospecção"* → novos clientes no mapa da sua rota de hoje\n\n💰 *METAS & PEDIDOS*\n• *"como estou?"* → seu faturado, pendente, positivação e falta pra meta\n• *"pedidos pendentes"* → seus pedidos liberados aguardando faturamento\n• *"pedidos bloqueados"* → pedidos retidos no crédito\n\n📦 *+MIX & PRODUTOS*\n• *"+mix"* → oportunidades de mix para oferecer nos clientes\n• *"cliente #código"* → histórico de compras e SKUs daquele cliente\n\n⚠️ *Estou em treinamento:* posso errar ou ainda não saber algo. Se isso acontecer, escreva *"sugestão: ..."* que eu anoto e a gente vai ajustando.\n\n⚠️ *IMPORTANTE:* Para que eu consiga te responder e suas mensagens não caiam no filtro de spam, é *OBRIGATÓRIO SALVAR ESTE NÚMERO* nos contatos do seu celular agora como *Jota (+MIX)*!
+
+👉 *Assim que salvar, me responda aqui com a palavra:* *SIM*
+
+Bora pra cima bater meta! ⚠️ *OBRIGATÓRIO SALVAR ESTE NÚMERO:* Salve este contato no seu celular agora como *Jota (+MIX)* para não perder o acesso, e me responda aqui com a palavra: *SIM*.
+
+_Meu DNA é Triunfante!_ 💪`
+        : `Fala, ${pNome}! Seu acesso ao *Jota* foi liberado ⚽\nVocê vê ${antes.papel === 'supervisor' ? 'a sua equipe' : antes.papel === 'gerente' ? 'a sua filial' : 'os seus dados'}.\n\nExperimenta: "como está minha equipe?", "zerados", "faltam visitar", "vendedor Nome", "liga".\n_Meu DNA é Triunfante!_`;
+      avisado = await enviar(env, cel, msgLib);   // religado 09/11/2026 com o teto antiban (cotaEnvio)
+      // falhou: entra na fila de reenvio (cron-varredura-central) e tenta sozinho por 2 horas; ninguem precisa pedir (Vitorio, 02/11/2026)
+      if (!avisado) try { await env.DB.prepare("INSERT INTO bot_envio_fila (celular, numero, nome, texto, tipo) VALUES (?, ?, ?, ?, 'boas_vindas_aprovacao')").bind(cel, cel, antes.nome, msgLib).run(); } catch (e) {}
+      try {
+        await env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?, ?, ?, ?, 'boas_vindas_aprovacao')").bind(cel, antes.nome, avisado ? 'out' : 'erro', msgLib).run();
+      } catch (e) {}
+    }
+    return j({ ok: true, avisado });
   }
   if (acao === 'recusar') { await muda(0, 'recusado'); return j({ ok: true }); }
   if (acao === 'desativar') { await muda(0, 'inativo'); return j({ ok: true }); }

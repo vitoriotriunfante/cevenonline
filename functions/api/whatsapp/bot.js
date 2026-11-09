@@ -18,6 +18,7 @@
 // DIVIDIDO EM 25/10/2026 (Vitório: "o arquivo do JOTA está grande demais... qual a solução?"): este arquivo só recebe a mensagem;
 //   entender e responder ficam em functions/_lib/jota/ (um arquivo por assunto). Prova de que nada mudou: testes/jota_igualdade.mjs.
 // =========================================================================
+import R from '../../../public/regras.js'; // antiban: pausa humana entre envios
 import { enviar, sem, so, tabelas, titulo, variantes } from '../../_lib/jota/base.js';
 import { respondeIA, respostaPronta } from '../../_lib/jota/entende.js';
 import { entendePorIA } from '../../_lib/jota/entende_ia.js';
@@ -117,6 +118,8 @@ export async function onRequestPost({ request, env }) {
   if (c && c.celular) { cel = c.celular; destino = c.celular; }
   let meuId = null;
   if (!seco) meuId = await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, msg_id) VALUES (?,?,?,?,?)').bind(cel, c ? c.nome : null, 'in', (audio ? '[áudio] ' : '') + (texto || '(não transcrito: ' + (audio && audio.erro) + ')').slice(0, 2000), d.key.id || null).run().then((r) => r && r.meta && r.meta.last_row_id).catch(() => null);
+  // SALVOU O CONTATO DO JOTA (Vitorio, 09/11/2026): 'SIM' / 'salvei' depois do pedido marca o contato (ativo ou pendente); painel /contatos filtra
+  if (!seco && /^W*(SIM|SALVEI|SALVO|J[AÁ] SALVEI|SIM,? (J[AÁ] )?SALVEI|CONFIRMADO)W*$/i.test(String(texto || '').trim())) { try { await env.DB.prepare(`UPDATE bot_contatos SET salvou_jota = COALESCE(salvou_jota, datetime('now')) WHERE celular IN (${vs.map(() => '?').join(',')})`).bind(...vs).run(); } catch (x) { /* nunca derruba a resposta */ } }
   if (ehImagem && texto === '[imagem recebida sem legenda]') {
     if (!c) return new Response('ok');
     const msg = `Recebi sua imagem, ${primeiroNome(c)}! 📸 Eu ainda não consigo ler o texto dentro de fotos e prints diretamente. Pode me mandar o *código do cliente* (ex.: #322735), *CNPJ* ou a *razão social* por escrito? Assim eu busco tudo pra você na hora! 🚀`;
@@ -289,15 +292,6 @@ export async function onRequestPost({ request, env }) {
 ` + r2; tipo = 'entendida_ia'; } } catch (e) {} }
   }
   if (resp && resp.fraca) resp = String(resp);
-  // CONSULTA OFICIAL GEROT / INDÚSTRIAS / MARCAS / MP
-  const respGerot = await responderPerguntaGerotIndustria(env, texto, c);
-  if (respGerot) {
-    resp = respGerot;
-    tipo = 'gerot_industria';
-  } else if (!resp && ehPerguntaEstrategicaOuConsultiva) {
-    const historico = (hist || []).slice(1).reverse().map((h) => ({ role: h.direcao === 'in' ? 'user' : 'assistant', content: h.texto }));
-    resp = await respondeIA(env, B, c, texto, historico); if (resp) tipo = 'ia';
-  }
   // sem resposta: avisa que esta em treinamento e anota a pergunta como sugestao (Vitorio, 02/11/2026)
   if (!resp) {
     resp = '⚽ Estou em treinamento e ainda não sei responder isso. Anotei o seu pedido para aprender.\n\n' + respAjuda(c); tipo = 'ajuda';
@@ -322,9 +316,8 @@ export async function onRequestPost({ request, env }) {
   // 2. Simulação de digitação real proporcional ao tamanho da mensagem
   for (let i = 0; i < partes.length; i++) {
     if (i) {
-      // Tempo humano de leitura e digitação entre mensagens (8s a 14s)
-      const tempoHumanoMs = Math.round(8000 + Math.random() * 6000);
-      await new Promise((ok) => setTimeout(ok, tempoHumanoMs));
+      // Regra antiban de 03/11 (minimo 18 s, distribuicao humana; 09/11/2026: antes era 8 a 14 s)
+      await R.pausaEntreEnvios(22, 3, 18);
     }
     const ei = await enviar(env, numEnvio, partes[i]); if (!ei.ok) { e = ei; try { await env.DB.prepare('CREATE TABLE IF NOT EXISTS bot_envio_fila (id INTEGER PRIMARY KEY AUTOINCREMENT, celular TEXT, numero TEXT, nome TEXT, texto TEXT, tipo TEXT, tentativas INTEGER DEFAULT 0, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)').run(); await env.DB.prepare('INSERT INTO bot_envio_fila (celular, numero, nome, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, String(numEnvio), c ? c.nome : null, partes[i], tipo).run(); } catch (x) { /* fica o registro de erro abaixo */ } } }
   resp = partes.join('\n\n');
@@ -337,7 +330,7 @@ export async function onRequestPost({ request, env }) {
     // Espaçamento de 1.200 ms entre cada envio para estabilidade na Evolution API
     const lote = TODAS_FIGURINHAS;
     for (let fi = 0; fi < lote.length; fi++) {
-      if (fi) await new Promise((ok) => setTimeout(ok, 1200));
+      if (fi) await new Promise((ok) => setTimeout(ok, R.gaussianJitterMs(4, 1.5, 2.5)));   // antiban 09/11/2026: nunca 1,2 s fixo
       await enviarFigurinha(env, numEnvio, lote[fi]);
     }
     try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, 'figurinha', 'lote_figurinhas', 'figurinhas_lote').run(); } catch (x) {}

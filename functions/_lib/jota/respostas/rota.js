@@ -452,14 +452,15 @@ export async function respRotaHojeCompleta(B, v, soSemCompra = false) {
   const st = (c) => { const s = String(c.status || '').toUpperCase(); return /POSITIVADO|EFETIVADO/.test(s) ? '✅' : /VISITADO|JUSTIFICADO/.test(s) ? '👣' : '⏳'; };
   const nome = (c) => titulo(c.nome_cliente || c.razao_social || 'cliente');
   const nao = rota.filter((c) => semMap.has(String(c.id_cliente))), ja = rota.filter((c) => !semMap.has(String(c.id_cliente)));
-  const linhaNao = (c) => { const x = semMap.get(String(c.id_cliente)), tg = tags(c); return `${nome(c)} · ${st(c)} · ❌ ${x.dias == null ? 'sem histórico na base' : x.dias + ' dias sem compra'}` + (tg ? ` · 🏷️ ${tg}` : ''); };
-  const linhaJa = (c) => { const r = valorMes.get(String(c.id_cliente)), tg = tags(c); return `${nome(c)} · ${st(c)} · ✔️${r ? ' ' + R$(r) : ''}` + (tg ? ` · 🏷️ ${tg}` : ''); };
+  let idxGlobal = 0;
+  const linhaNao = (c) => { idxGlobal++; const x = semMap.get(String(c.id_cliente)), tg = tags(c); return `${idxGlobal}. ${nome(c)} (#${c.id_cliente}) · ${st(c)} · ❌ ${x.dias == null ? 'sem histórico na base' : x.dias + ' dias sem compra'}` + (tg ? ` · 🏷️ ${tg}` : ''); };
+  const linhaJa = (c) => { idxGlobal++; const r = valorMes.get(String(c.id_cliente)), tg = tags(c); return `${idxGlobal}. ${nome(c)} (#${c.id_cliente}) · ${st(c)} · ✔️${r ? ' ' + R$(r) : ''}` + (tg ? ` · 🏷️ ${tg}` : ''); };
   return [`📋 *${vn(v)}* (${v.filial}) — rota de hoje: *${rota.length} clientes* · *${nao.length} ainda sem compra no mês*`,
     '_⏳ a visitar · 👣 visitado · ✅ vendeu hoje · ❌ sem compra (dias) · ✔️ já comprou no mês (R$) · 🏷️ tags_',
     ...(nao.length ? ['', `*Ainda não compraram no mês (${nao.length}):*`, ...nao.map(linhaNao)] : ['', '✅ Todos da rota de hoje já compraram no mês.']),
     ...(!soSemCompra && ja.length ? ['', `*Já compraram no mês (${ja.length}):*`, ...ja.sort((a, b) => (valorMes.get(String(b.id_cliente)) || 0) - (valorMes.get(String(a.id_cliente)) || 0)).map(linhaJa)] : []),
     ...(!historicoCompleto && semC.some((x) => x.dias == null) ? ['', '_Não consegui confirmar a última compra de todos os clientes; não estimei os dias sem histórico._'] : []),
-    '', 'Boas vendas! _Peça "+mix" para o que oferecer a quem não comprou._'].join('\n');
+    '', '👉 *Digite o número* (ex.: 1) para abrir a ficha do cliente e o que oferecer no balcão (+MIX).'].join('\n');
 }
 
 // "MINHA ROTA" DO VENDEDOR (Vitorio, 01/11/2026): como esta o mes, quantos clientes hoje, quem ja comprou e quem nao, numerados; ele digita o numero e recebe a ficha do cliente.

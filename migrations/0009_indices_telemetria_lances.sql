@@ -14,3 +14,4 @@ CREATE TABLE IF NOT EXISTS d1_telemetria_rotas (
   ultimo_em TEXT,
   PRIMARY KEY (rota, data_ref, hora_faixa)
 );
+

@@ -1680,7 +1680,7 @@ async function main() {
         if (destino === 'todos') {
           const r = await enviarWhatsapp(g.whatsapp, msgGerente);
           console.log(`  Abertura+Risco (${g.filial} — ${g.gerente}, ${g.whatsapp}) — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
-          await new Promise(res => setTimeout(res, 30000));
+          await R.pausaEntreEnvios(30, 6, 22);   // antiban 09/11/2026: nunca 30 s fixo
         }
       }
     }
@@ -1771,7 +1771,7 @@ async function main() {
             console.log(`  Diretoria Geral (${tel}) — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
           }
           if (destino === 'todos') {
-            await new Promise(res => setTimeout(res, 30000));
+            await R.pausaEntreEnvios(30, 6, 22);   // antiban 09/11/2026: nunca 30 s fixo
           }
         }
 
@@ -1783,7 +1783,7 @@ async function main() {
             if (rel && rel.texto) {
               const r = await enviarWhatsapp(g.whatsapp, rel.texto);
               console.log(`  [${g.filial}] Enviado para ${g.gerente} — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
-              await new Promise(res => setTimeout(res, 30000));
+              await R.pausaEntreEnvios(30, 6, 22);   // antiban 09/11/2026: nunca 30 s fixo
             }
           }
         } else if (destino === 'dry_run') {
@@ -1830,7 +1830,7 @@ Nada foi enviado aos gerentes: relatório incompleto não sai.`;
         console.log(`  Diretoria Geral (${tel}) — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
       }
       if (destino === 'todos') {
-        await new Promise(res => setTimeout(res, 30000));
+        await R.pausaEntreEnvios(30, 6, 22);   // antiban 09/11/2026: nunca 30 s fixo
       }
     }
 
@@ -1843,7 +1843,7 @@ Nada foi enviado aos gerentes: relatório incompleto não sai.`;
         if (txt) {
           const r = await enviarWhatsapp(g.whatsapp, txt);
           console.log(`  [${g.filial}] Enviado para ${g.gerente} — Status: ${r.sucesso ? 'OK' : 'ERRO'}`);
-          await new Promise(res => setTimeout(res, 30000));
+          await R.pausaEntreEnvios(30, 6, 22);   // antiban 09/11/2026: nunca 30 s fixo
         }
       }
     } else if (destino === 'dry_run') {

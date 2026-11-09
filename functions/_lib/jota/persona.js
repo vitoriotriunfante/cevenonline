@@ -101,11 +101,11 @@ export async function enviarFigurinha(env, numero, nome) {
   if (!env.EVO_URL || !env.EVO_KEY || !nome) return false;
   const d = so(numero);
   if (!d) return false;
-  const r = await R.evolution(R.evoCfg(env), '/message/sendSticker', { number: d, sticker: FIG(nome) });
+  const r = await R.enviarMidia(R.evoCfg(env), '/message/sendSticker', { number: d, sticker: FIG(nome) });
   if (r.ok) return true;
   const alts = variantes(d).filter((v) => v !== d);
   for (const alt of alts) {
-    const rAlt = await R.evolution(R.evoCfg(env), '/message/sendSticker', { number: alt, sticker: FIG(nome) });
+    const rAlt = await R.enviarMidia(R.evoCfg(env), '/message/sendSticker', { number: alt, sticker: FIG(nome) });
     if (rAlt.ok) return true;
   }
   return false;

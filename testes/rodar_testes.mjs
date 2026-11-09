@@ -843,6 +843,20 @@ secao('15. Nenhuma mensagem do JOTA/WhatsApp leva link do site (Vitorio, 26/10/2
   ok(!comLink.length, 'sem link do site no texto das respostas' + (comLink.length ? ': ' + comLink.join(', ') : ''));
 }
 
+secao('16. Antiban (Vitorio, 09/11/2026, apos 2 banimentos): todo envio de WhatsApp passa por R.enviarTexto / R.enviarMidia (public/regras.js)');
+{
+  const lista = (dir) => { const out = []; const anda = (d) => { for (const n of readdirSync(join(RAIZ, d), { withFileTypes: true })) { const p = d + '/' + n.name; if (n.isDirectory()) { if (n.name !== 'node_modules') anda(p); } else if (/\.(m?js)$/.test(n.name)) out.push(p); } }; anda(dir); return out; };
+  const arqs = [...lista('functions'), ...lista('pipeline'), 'analises/gerar_dados_mix.js', 'analises/guarda_custo.js', 'analises/guardar_visitas.js'].filter((a) => { try { ler(a); return true; } catch { return false; } });
+  const fora = arqs.filter((a) => ler(a).split('\n').some((l) => /(R\.evolution\(|fetch\().*\/message\/send|greenapi|green-api|sendMessage\//i.test(l) && !/^\s*\/\//.test(l)));
+  ok(!fora.length, 'nenhum envio direto a Evolution/Green-API fora de public/regras.js' + (fora.length ? ': ' + fora.join(', ') : ''));
+  const R = ler('public/regras.js');
+  ok(/presence: 'composing'/.test(R) && /linkPreview: false/.test(R) && /textoAntiban\(texto\)/.test(R), 'enviarTexto com digitando, hash unico e sem previa de link');
+  const B = ler('functions/_lib/jota/base.js');
+  ok(/await cotaEnvio\(env, so\(s\)\)/.test(B), 'enviar() do JOTA aplica o teto diario (40 pessoas / 300 mensagens iniciadas)');
+  const lento = [...arqs, 'functions/api/whatsapp/bot.js'].filter((a) => /enviar|Whats/i.test(ler(a)) && /setTimeout\([^,]+,\s*(\d{3,5})\)/.test(ler(a)) && [...ler(a).matchAll(/(?:enviar\w*|Whats\w*)\([^)]*\)[^\n]*\n[^\n]*setTimeout\([^,]+,\s*(\d{3,5})\)/g)].some((m) => Number(m[1]) < 18000));
+  ok(!lento.length, 'nenhuma espera fixa curta logo apos envio' + (lento.length ? ': ' + lento.join(', ') : ''));
+}
+
 secao('14. Base unica (26/10/2026): nenhum arquivo NOVO chamando o CEVEN e nenhum banco NOVO fora do D1 (scripts/mapa_dados.mjs)');
 {
   const r = spawnSync(process.execPath, [join(RAIZ, 'scripts', 'mapa_dados.mjs'), '--verificar'], { encoding: 'utf8' });

@@ -5,7 +5,7 @@
 // (Vitório, 30/10/2026: Cleverson MCD, Allison TPH, segmentos por CNPJ).
 // =========================================================================
 
-import { R$, P, N, titulo, nome2, vn, SUGESTAO, sem } from '../base.js';
+import { R$, P, N, titulo, nome2, vn, SUGESTAO, sem, hojeSP } from '../base.js';
 import { analisaEstrategiaComGemini } from '../gemini.js';
 
 // Pastas oficiais parametrizadas

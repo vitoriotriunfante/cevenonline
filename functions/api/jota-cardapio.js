@@ -56,12 +56,12 @@ async function enviarDocumentoHtml(env, numero, c, texto) {
     media: urlCardapio,
     fileName: 'Guia_de_Comandos_Jota.html'
   };
-  const r = await R.evolution(R.evoCfg(env), '/message/sendMedia', corpo);
+  const r = await R.enviarMidia(R.evoCfg(env), '/message/sendMedia', corpo);
   if (r.ok) return { ok: true, status: r.status };
 
   const alts = variantes(d).filter((v) => v !== d);
   for (const alt of alts) {
-    const rAlt = await R.evolution(R.evoCfg(env), '/message/sendMedia', { ...corpo, number: alt });
+    const rAlt = await R.enviarMidia(R.evoCfg(env), '/message/sendMedia', { ...corpo, number: alt });
     if (rAlt.ok) return { ok: true, status: rAlt.status };
   }
   return { ok: false, status: r.status, erro: r.erro, resposta: r.resposta };

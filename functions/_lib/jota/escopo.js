@@ -3,7 +3,7 @@
 // O QUE É: quem pode ver o quê (diretoria, gerente, supervisor, vendedor) e quem é a pessoa citada na pergunta.
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
-import { VAREJO, hojeSP, nome2, sem, so, vn } from './base.js';
+import { FRX, VAREJO, hojeSP, nome2, sem, so, vn } from './base.js';
 
 // vendedores de uma filial (mostrados na Gestao de Equipe) + totais que somam TODOS (macro)
 // codigo do supervisor pelo nome (preenchido ao carregar a equipe) -> supNome/sn mostram 'COD - Nome'
@@ -141,12 +141,12 @@ export function achaPessoa(E, t) {
   const tSemMilhar = t.replace(/R\$\s*[\d.]+(?:,\d+)?/gi, ' ').replace(/\b\d{1,3}\.\d{3}\b/g, ' ').replace(/\b\d{1,2}\/\d{1,2}\b/g, ' ');
   for (const n of (tSemMilhar.match(/\b\d{1,5}\b/g) || []).reverse()) {
     const cand = E.vend.concat(E.ocultos || []).filter((v) => String(v.rca) === n);
-    const explicito = new RegExp(`(RCA|COD|CODIGO|VENDEDORA?|VEND|SETOR)\\.?\\s*${n}\\b`).test(t) || (E.supervisor && !/\b(TOP|DIAS?|ULTIMOS?|PRIMEIROS?|MAIORES|MENORES)\s+\d/.test(t));   /* supervisor: numero do proprio time = vendedor (26/10/2026) */
+    const explicito = new RegExp(`(^|\\W)(RCA|COD|CODIGO|VENDEDORA?|VEND|SETOR|ROTA|PROSPEC|PROSPECCAO|${FRX.source})\\W*\\s*${n}\\b`, 'i').test(t) || (E.supervisor && !/\b(TOP|DIAS?|ULTIMOS?|PRIMEIROS?|MAIORES|MENORES)\s+\d/.test(t));   /* supervisor: numero do proprio time = vendedor (26/10/2026) */
     const bom = cand.map((v) => [v, score(v.nome)]).filter((x) => x[1] || explicito).sort((a, b) => b[1] - a[1]);
     if (bom.length) return { tipo: 'vend', alvo: bom[0][0], empate: [bom[0][0]] };
     // Setor explícito de outro supervisor da mesma filial (28/10/2026: Francisco perguntou "setor 378" e recebia consolidado da equipe)
     // Para vendedores de outros supervisores, EXIGE termo explícito (RCA, COD, SETOR, VENDEDOR) para nunca vazar por número solto/formatação
-    const citouSetorOuRca = new RegExp(`(RCA|COD|CODIGO|VENDEDORA?|VEND|SETOR)\\.?\\s*${n}\\b`).test(t);
+    const citouSetorOuRca = new RegExp(`(^|\\W)(RCA|COD|CODIGO|VENDEDORA?|VEND|SETOR|ROTA|PROSPEC|PROSPECCAO|${FRX.source})\\W*\\s*${n}\\b`, 'i').test(t);
     if (citouSetorOuRca && E.outros && E.outros.length) {
       const o = E.outros.find((v) => String(v.rca) === n);
       if (o) return { tipo: 'vend', alvo: o, empate: [o], outroSupervisor: true };
