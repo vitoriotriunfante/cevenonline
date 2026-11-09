@@ -296,20 +296,24 @@ async function salvaBan(env) {
 // DE ONDE A RODADA SAI (01/11/2026): disparada pelo agendador todas as chamadas travaram; disparada de fora, responderam. O CEVEN trava quem vem de fora do Brasil.
 async function saidaDaRodada() { try { const t = await (await fetch('https://www.cloudflare.com/cdn-cgi/trace', { signal: AbortSignal.timeout(4000) })).text(); return ((t.match(/colo=(\w+)/) || [])[1] || '?') + '/' + ((t.match(/loc=(\w+)/) || [])[1] || '?'); } catch { return 'sem_resposta'; } }
 async function reenviaFila(env) {
+  // DIAGNOSTICO (09/11/2026: 28 mensagens paradas com 0 tentativas): cada rodada grava o que a fila fez em coleta_estado 'fila_rodada'
+  const diag = { quando: new Date().toISOString(), lidas: 0, enviadas: 0, parou: null };
   try {
     const { results } = await env.DB.prepare("SELECT id, celular, numero, nome, texto, tipo FROM bot_envio_fila WHERE criado_em > datetime('now','-2 hours') ORDER BY tentativas, id LIMIT 2").all();   // menos tentativas primeiro: numero ruim nao trava a fila dos outros (02/11/2026); antiban 09/11/2026: no maximo 2 por rodada
-    let iFila = 0;
+    let iFila = 0; diag.lidas = (results || []).length;
     for (const m of results || []) {
       if (iFila++) await R.pausaEntreEnvios(19, 1, 18);   // antiban 09/11/2026: nunca em rajada
-      { const q = await cotaEnvio(env, String(m.numero).replace(/\D/g, '')); if (!q.ok) break; }   // teto do dia: fica na fila
+      { const q = await cotaEnvio(env, String(m.numero).replace(/\D/g, '')); if (!q.ok) { diag.parou = 'teto: ' + q.erro; break; } }   // teto do dia: fica na fila
       const r =await R.enviarTexto(R.evoCfg(env), m.numero, m.texto).catch(() => null);
-      if (!r || !r.ok) { await env.DB.prepare('UPDATE bot_envio_fila SET tentativas = tentativas + 1 WHERE id = ?').bind(m.id).run(); break; }   // servidor ainda fora: tenta na proxima rodada
+      if (!r || !r.ok) { diag.parou = 'envio falhou: ' + (r ? r.status + ' ' + (r.erro || '') : 'sem resposta'); await env.DB.prepare('UPDATE bot_envio_fila SET tentativas = tentativas + 1 WHERE id = ?').bind(m.id).run(); break; }   // servidor ainda fora: tenta na proxima rodada
+      diag.enviadas++;
       await env.DB.batch([env.DB.prepare('DELETE FROM bot_envio_fila WHERE id = ?').bind(m.id), env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,'out',?,?)").bind(m.celular, m.nome, String(m.texto).slice(0, 4000), m.tipo)]);
     }
     // desistiu depois de 2 horas: fica "Falhou" no painel da Central, nunca some calado
     await env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) SELECT celular, nome, 'erro', '[NAO ENTREGUE apos ' || tentativas || ' tentativas] ' || substr(texto, 1, 3900), tipo FROM bot_envio_fila WHERE criado_em <= datetime('now','-2 hours')").run();
     await env.DB.prepare("DELETE FROM bot_envio_fila WHERE criado_em <= datetime('now','-2 hours')").run();
-  } catch { /* sem fila: nada a reenviar */ }
+  } catch (e) { diag.parou = 'erro: ' + String(e && e.message || e).slice(0, 200); }
+  try { await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('fila_rodada', ?, 'o que a fila de reenvio fez na ultima rodada', CURRENT_TIMESTAMP) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = CURRENT_TIMESTAMP").bind(JSON.stringify(diag)).run(); } catch (e) {}
 }
 async function registraTick(env, modo, rcas, gravados, duracaoMs) {
   await salvaBan(env);
