@@ -296,9 +296,11 @@ async function salvaBan(env) {
 async function saidaDaRodada() { try { const t = await (await fetch('https://www.cloudflare.com/cdn-cgi/trace', { signal: AbortSignal.timeout(4000) })).text(); return ((t.match(/colo=(\w+)/) || [])[1] || '?') + '/' + ((t.match(/loc=(\w+)/) || [])[1] || '?'); } catch { return 'sem_resposta'; } }
 async function reenviaFila(env) {
   try {
-    const { results } = await env.DB.prepare("SELECT id, celular, numero, nome, texto, tipo FROM bot_envio_fila WHERE criado_em > datetime('now','-2 hours') ORDER BY tentativas, id LIMIT 20").all();   // menos tentativas primeiro: numero ruim nao trava a fila dos outros (02/11/2026)
+    const { results } = await env.DB.prepare("SELECT id, celular, numero, nome, texto, tipo FROM bot_envio_fila WHERE criado_em > datetime('now','-2 hours') ORDER BY tentativas, id LIMIT 2").all();   // menos tentativas primeiro: numero ruim nao trava a fila dos outros (02/11/2026); antiban 09/11/2026: no maximo 2 por rodada
+    let iFila = 0;
     for (const m of results || []) {
-      const r = await R.enviarTexto(R.evoCfg(env), m.numero, m.texto).catch(() => null);
+      if (iFila++) await R.pausaEntreEnvios(19, 1, 18);   // antiban 09/11/2026: nunca em rajada
+      const r =await R.enviarTexto(R.evoCfg(env), m.numero, m.texto).catch(() => null);
       if (!r || !r.ok) { await env.DB.prepare('UPDATE bot_envio_fila SET tentativas = tentativas + 1 WHERE id = ?').bind(m.id).run(); break; }   // servidor ainda fora: tenta na proxima rodada
       await env.DB.batch([env.DB.prepare('DELETE FROM bot_envio_fila WHERE id = ?').bind(m.id), env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,'out',?,?)").bind(m.celular, m.nome, String(m.texto).slice(0, 4000), m.tipo)]);
     }
@@ -310,7 +312,6 @@ async function reenviaFila(env) {
 async function registraTick(env, modo, rcas, gravados, duracaoMs) {
   await salvaBan(env);
   await gravaFalhas(env);
-  await reenviaFila(env);
   try {
     if (tickId) {
       await env.DB.prepare('UPDATE saude_coleta SET modo = ?, rcas = ?, gravados = ?, chamadas = ?, ok = ?, r429 = ?, r401 = ?, falhas = ?, duracao_ms = ? WHERE id = ?')
@@ -329,6 +330,7 @@ async function registraTick(env, modo, rcas, gravados, duracaoMs) {
     const prox = proximaConc({ conc: concAtual, calmos: est.calmos, chamadas: T.chamadas, r429: T.r429 });
     await gravaEstado(env, prox);
   } catch { /* nunca derruba a coleta */ }
+  await reenviaFila(env);   // por ultimo (09/11/2026): a pausa antiban nunca atrasa o registro da coleta
 }
 async function getJson(url, tentativas = 2) {
   for (let t = 0; t < tentativas; t++) {
