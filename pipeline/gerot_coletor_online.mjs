@@ -139,7 +139,8 @@ async function main() {
     log('posicao do GEROT:', posicao);
     for (const mes of meses) {
       try {
-        await page.getByText('Extrair dados', { exact: true }).first().click();
+        // a janela do mes anterior pode ter ficado aberta: so clica em 'Extrair dados' se ela estiver fechada
+        if (!(await page.getByText('Baixar Excel', { exact: true }).first().isVisible().catch(() => false))) await page.getByText('Extrair dados', { exact: true }).first().click({ force: true });
         await page.waitForTimeout(2500);
         const aj = await ajustaDialogo(page, mes);
         log('dialogo:', JSON.stringify(aj));
@@ -159,12 +160,13 @@ async function main() {
         let enviadas = 0;
         if (!ENSAIO) {
           const { hashes } = await api('GET', '?mes=' + mes);
-          const mudou = linhas.filter((l) => hashes[`${l.filial}|${l.rca}|${l.fornecedor}`] !== l.hash);
+          const mudou = linhas.filter((l) => hashes[`${l.filial}|${l.rca}|${l.fornecedor}|${l.cod_sup == null ? '' : l.cod_sup}`] !== l.hash);
           for (let i = 0; i < mudou.length; i += 200) { await api('POST', '', { linhas: mudou.slice(i, i + 200) }); enviadas += Math.min(200, mudou.length - i); }
           await api('POST', '', { status: { mes, linhas: linhas.length, enviadas, posicao, colunas } });
         }
         log(`${mes}: ${enviadas} linhas novas/alteradas gravadas no D1${ENSAIO ? ' (ensaio: nada gravado)' : ''}`);
         await page.keyboard.press('Escape').catch(() => {});
+        await page.locator('button:has-text("×")').first().click({ timeout: 3000 }).catch(() => {});
         await page.waitForTimeout(1500);
       } catch (e) { falhou = true; log('FALHA', mes, e.message); try { fs.writeFileSync(path.join(SAIDA, `dialogo_${mes}.html`), String(await page.evaluate(() => window.__dlgHtml || ''))); } catch {} await page.screenshot({ path: path.join(SAIDA, `erro_${mes}.png`), fullPage: true }).catch(() => {}); }
     }
