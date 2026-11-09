@@ -315,7 +315,9 @@ async function campanhaSim(env, diag) {
     const p0 = String(k.nome || '').split(' ')[0], nome = p0.charAt(0) + p0.slice(1).toLowerCase();
     const texto = MODELOS_SIM[Math.floor(Math.random() * MODELOS_SIM.length)](nome);
     const r = await R.enviarTexto(R.evoCfg(env), k.celular, texto).catch(() => null);
-    if (!r || !r.ok) { diag.campanha.parou = 'envio falhou: ' + (r ? r.status : 'sem resposta'); break; }
+    // sem confirmacao da Evolution = pode ter chegado: marca como enviado (nao repete) e registra 'nao confirmado' (09/11/2026, duplicata do Lincon)
+    if (!r || !r.status) { diag.campanha.parou = 'sem confirmacao (nao repete)'; await env.DB.batch([env.DB.prepare("UPDATE jota_campanha_sim SET enviado_em = CURRENT_TIMESTAMP WHERE id = ?").bind(k.id), env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,'erro',?,'campanha_sim')").bind(k.celular, k.nome, '[NAO CONFIRMADO: pode ter chegado; nao reenviado] ' + texto)]); break; }
+    if (!r.ok) { diag.campanha.parou = 'envio falhou: ' + r.status; break; }
     await env.DB.batch([env.DB.prepare("UPDATE jota_campanha_sim SET enviado_em = CURRENT_TIMESTAMP WHERE id = ?").bind(k.id), env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,'out',?,'campanha_sim')").bind(k.celular, k.nome, texto)]);
     diag.campanha.enviadas++;
   }
@@ -340,6 +342,9 @@ async function reenviaFila(env) {
       if (iFila++) await R.pausaEntreEnvios(19, 1, 18);   // antiban 09/11/2026: nunca em rajada
       { const q = await cotaEnvio(env, String(m.numero).replace(/\D/g, '')); if (!q.ok) { diag.parou = 'teto: ' + q.erro; break; } }   // teto do dia: fica na fila
       const r =await R.enviarTexto(R.evoCfg(env), m.numero, m.texto).catch(() => null);
+      // SEM CONFIRMACAO NAO REPETE (09/11/2026: Lincon recebeu 2x; a 1a chegou mas a Evolution demorou a responder): mensagem que o Jota inicia
+      // so tenta de novo com erro claro do servidor (5xx). Sem resposta/tempo esgotado = pode ter chegado: sai da fila e fica 'nao confirmado' na Central.
+      if ((!r || !r.status) && PROATIVAS.includes("'" + m.tipo + "'")) { diag.parou = 'sem confirmacao (nao repete)'; await env.DB.batch([env.DB.prepare('DELETE FROM bot_envio_fila WHERE id = ?').bind(m.id), env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,'erro',?,?)").bind(m.celular, m.nome, '[NAO CONFIRMADO: pode ter chegado; nao reenviado para nao duplicar] ' + String(m.texto).slice(0, 3800), m.tipo)]); break; }
       if (!r || !r.ok) { diag.parou = 'envio falhou: ' + (r ? r.status + ' ' + (r.erro || '') : 'sem resposta'); await env.DB.prepare('UPDATE bot_envio_fila SET tentativas = tentativas + 1 WHERE id = ?').bind(m.id).run(); break; }   // servidor ainda fora: tenta na proxima rodada
       diag.enviadas++;
       await env.DB.batch([env.DB.prepare('DELETE FROM bot_envio_fila WHERE id = ?').bind(m.id), env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,'out',?,?)").bind(m.celular, m.nome, String(m.texto).slice(0, 4000), m.tipo)]);
