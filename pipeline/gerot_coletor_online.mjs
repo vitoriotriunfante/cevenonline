@@ -143,7 +143,8 @@ async function main() {
         // a janela do mes anterior pode ter ficado aberta: so clica em 'Extrair dados' se ela estiver fechada
         if (!(await page.getByText('Baixar Excel', { exact: true }).first().isVisible().catch(() => false))) await page.getByText('Extrair dados', { exact: true }).first().click({ force: true });
         await page.waitForTimeout(2500);
-        const aj = await ajustaDialogo(page, mes);
+        let aj = null;
+        for (let k = 0; k < 4; k++) { aj = await ajustaDialogo(page, mes); await page.waitForTimeout(800); const meses1 = (aj.marcados || []).filter((x) => MESES_PT.includes(x)); if (!aj.erro && aj.temCampos && meses1.length === 1 && meses1[0] === MESES_PT[Number(mes.slice(5)) - 1]) break; }   // a pagina pode redesenhar ao clicar: repete ate estabilizar
         log('dialogo:', JSON.stringify(aj));
         if (aj.erro || !aj.temMes || !aj.temCampos || (aj.marcados || []).filter((x) => ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'].includes(x)).length !== 1) throw new Error('nao consegui marcar periodo/campos de ' + mes + ': ' + (aj.erro || JSON.stringify(aj.marcados)));
         let d = null;
