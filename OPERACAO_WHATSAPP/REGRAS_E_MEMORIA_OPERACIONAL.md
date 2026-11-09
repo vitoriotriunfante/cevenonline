@@ -291,3 +291,10 @@ Planilha na raiz do projeto (fora do git, tem dado de pessoa real — mesmo trat
 - **Supervisor pode pedir pela mensagem** ("Nome - COD", código de supervisor da árvore do CEVEN).
 - O passaporte **não bloqueia** número nenhum: quem decide é o Vitório em /contatos (Liberar acesso), olhando a tarja da linha corporativa (ativa / suspensa / não é corporativa).
 - Motivo: a Glacilda (API 283) pediu pelo WhatsApp, o fluxo antigo a gravou como supervisor e a mensagem de liberação saiu errada.
+
+## 09/11/2026 — SUSPENSO ATÉ CONFIRMAR O CONTATO (Vitório)
+- Quem suspende é o Vitório, em /contatos (um a um ou marcando vários). O Claude só identifica e deixa filtrável (linha, link, SIM).
+- Ao suspender, o aviso vai pela **fila** (2 por rodada, pausa humana, teto do dia) com **texto variado** (4 modelos).
+- Vendedor suspenso **não recebe nenhuma mensagem nem resposta** do Jota. Se escrever, recebe só o aviso para salvar o contato e responder SIM (no máximo 1x por dia). SIM = acesso reativado na hora.
+- Envios proativos (piloto) pulam suspenso e inativo.
+- Glacilda (API 283, pediu pela mensagem): perdoada pelo Vitório; fica ativa.
