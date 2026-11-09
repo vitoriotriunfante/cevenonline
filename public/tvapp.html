@@ -1364,7 +1364,9 @@ async function proximoVAR() {
       if (!animStop) mostraDecisaoLance(); // sem vídeo para replay: vai direto pra decisão
     };
     const ptGol = item.tipo === 'gol' ? patrocinadorDoGol(item) : null;   // GOL DO PATROCINADOR (09/11/2026): mesmo gol, video do patrocinador
-    const videoPt = ptGol && ptGol.video && typeof VIDEO_OK === 'object' && VIDEO_OK[ptGol.video] === true ? ptGol.video : null;
+    const videoPt = ptGol && ptGol.video && !(typeof VIDEO_OK === 'object' && VIDEO_OK[ptGol.video] === false) ? ptGol.video : null;   // nao espera o teste do arquivo (10 MB); so descarta se ja falhou
+    if (P.get('lance')) { try { const c0 = item.c || (item.a && item.a.c) || {}; let el = document.getElementById('diag-patro'); if (!el) { el = document.createElement('div'); el.id = 'diag-patro'; el.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99999;background:rgba(0,0,0,.75);color:#fff;font:12px monospace;padding:6px 8px;border-radius:6px;max-width:60vw'; document.body.appendChild(el); }
+      el.textContent = `patrocinadores: ${PATROCINADORES.length} · industrias do pedido: ${(c0.industrias || []).map(x => x.n).join(', ') || 'nenhuma'} · patrocinador: ${ptGol ? ptGol.nome : 'nenhum'} · video: ${videoPt || 'sorteado'} · teste: ${ptGol && typeof VIDEO_OK === 'object' ? VIDEO_OK[ptGol.video] : '-'}`; } catch {} }
     animStop = typeof tocaVideoLance === 'function' ? tocaVideoLance(cv, videoNome, subtipoLance, duracaoAnim, mostraVarRevisando, videoPt) : null;
     if (animStop) return;
 
