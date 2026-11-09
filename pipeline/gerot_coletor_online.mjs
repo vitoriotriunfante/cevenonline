@@ -73,25 +73,26 @@ async function ajustaDialogo(page, mes) {
     const calc = CALC.map((s) => new RegExp(s.src, s.flags));
     const dlg = [...document.querySelectorAll('div,section')].filter((d) => /Extrair dados/.test(d.innerText || '') && /Baixar Excel/.test(d.innerText || '') && /CAMPOS/.test(d.innerText || '')).sort((a, b) => a.innerText.length - b.innerText.length)[0];
     if (!dlg) return { erro: 'dialogo nao encontrado' };
+    window.__dlgHtml = dlg.outerHTML.slice(0, 200000);
     const caixas = [...dlg.querySelectorAll('input[type=checkbox]')].map((i) => ({ i, rot: ((i.closest('label') || i.parentElement || {}).innerText || '').replace(/\s*•\s*$/, '').trim() }));
     // secao de cada caixa = ultimo titulo (PERIODO / CAMPOS / CALCULOS) que aparece ANTES dela na pagina; ano = ultimo "2026"/"2025" antes dela
-    // titulos e anos pelos NOS DE TEXTO (o titulo pode estar em minusculas com CSS uppercase, ou dentro de outro elemento)
-    const textos = []; { const w = document.createTreeWalker(dlg, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) { const t = (n.nodeValue || '').trim(); if (t) textos.push(n); } }
-    const titulos = textos.filter((n) => /^(per[ií]odo|campos|c[aá]lculos)/i.test(n.nodeValue.trim()));
-    const anos = textos.filter((n) => /^20dd$/.test(n.nodeValue.trim()));
-    const antes = (lista, inp) => { let a = null; for (const e of lista) if (e.compareDocumentPosition(inp) & Node.DOCUMENT_POSITION_FOLLOWING) a = e; return a; };
-    const secao = (inp) => { const t = antes(titulos, inp); return t ? t.nodeValue.trim().toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').slice(0, 4) : ''; };
-    const anoDe = (inp) => { const e = antes(anos, inp); return e ? e.nodeValue.trim() : null; };
+    // decide pelo ROTULO de cada caixa (09/11/2026: os titulos das secoes nao aparecem como texto no DOM)
+    const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const TODOS_CAMPOS = ['Mês', 'Data', 'Filial', 'Canal Macro', 'Supervisor', 'Vendedor', 'Fornecedor', 'Rede', 'Cliente', 'Cidade', 'Produto'];
+    // o ano: os meses aparecem primeiro para o ano mais recente (2026 antes de 2025). Conta a ordem de cada nome de mes.
+    const ordemMes = {}; const vezDoAno = (x) => { ordemMes[x.rot] = (ordemMes[x.rot] || 0) + 1; return ordemMes[x.rot]; };
+    const anoAtual = String(new Date().getFullYear()), vezAlvo = ano === anoAtual ? 1 : Number(anoAtual) - Number(ano) + 1;
+    const tipo = (x) => MESES.includes(x.rot) ? 'PERI' : TODOS_CAMPOS.includes(x.rot) ? 'CAMP' : /filtros do topo/i.test(x.rot) ? 'FILT' : 'CALC';
+    caixas.forEach((x) => { x.tipo = tipo(x); if (x.tipo === 'PERI') x.vez = vezDoAno(x); });
     const quer = (x) => {
-      const sc = secao(x.i);
-      if (sc === 'PERI') return anoDe(x.i) === ano && x.rot === nomeMes;
-      if (sc === 'CAMP') return CAMPOS.includes(x.rot) || /filtros do topo/i.test(x.rot);
-      if (sc === 'CALC') return calc.some((r) => r.test(x.rot));
-      return x.i.checked;
+      if (x.tipo === 'PERI') return x.rot === nomeMes && x.vez === vezAlvo;
+      if (x.tipo === 'CAMP') return CAMPOS.includes(x.rot);
+      if (x.tipo === 'FILT') return true;
+      return calc.some((r) => r.test(x.rot));
     };
     for (const x of caixas) { const q = quer(x); if (x.i.checked !== q) x.i.click(); }
     const marc = caixas.filter((x) => x.i.checked).map((x) => x.rot);
-    return { marcados: marc, calculosDisponiveis: caixas.filter((x) => secao(x.i) === 'CALC').map((x) => x.rot), secoes: [...new Set(caixas.map((x) => secao(x.i)))], temMes: marc.includes(nomeMes), temCampos: CAMPOS.every((c) => marc.includes(c)) };
+    return { marcados: marc, calculosDisponiveis: caixas.filter((x) => x.tipo === 'CALC').map((x) => x.rot), temMes: marc.includes(nomeMes), temCampos: CAMPOS.every((c) => marc.includes(c)) };
   }, { ano, nomeMes, CAMPOS, CALC: CALC.map((r) => ({ src: r.source, flags: r.flags })) });
 }
 
@@ -165,7 +166,7 @@ async function main() {
         log(`${mes}: ${enviadas} linhas novas/alteradas gravadas no D1${ENSAIO ? ' (ensaio: nada gravado)' : ''}`);
         await page.keyboard.press('Escape').catch(() => {});
         await page.waitForTimeout(1500);
-      } catch (e) { falhou = true; log('FALHA', mes, e.message); await page.screenshot({ path: path.join(SAIDA, `erro_${mes}.png`), fullPage: true }).catch(() => {}); }
+      } catch (e) { falhou = true; log('FALHA', mes, e.message); try { fs.writeFileSync(path.join(SAIDA, `dialogo_${mes}.html`), String(await page.evaluate(() => window.__dlgHtml || ''))); } catch {} await page.screenshot({ path: path.join(SAIDA, `erro_${mes}.png`), fullPage: true }).catch(() => {}); }
     }
   } catch (e) { falhou = true; log('FALHA', e.message); await page.screenshot({ path: path.join(SAIDA, 'erro_login.png'), fullPage: true }).catch(() => {}); }
   await browser.close();
