@@ -113,6 +113,7 @@ function linhasDoExcel(arq, mes) {
   for (const r of rows.slice(hi + 1)) {
     if (!r || !r.some((c) => c != null && c !== '')) continue;
     const m = iMes >= 0 && r[iMes] ? String(r[iMes]).slice(0, 7) : mes;
+    if (m !== mes) continue;   // 09/11/2026: a janela pode ter outro mes marcado; so vale o mes pedido (senao grava zeros por cima do mes certo)
     const filial = filialDe(r[iFil]); const rca = String(iCv >= 0 ? r[iCv] ?? '' : '').trim() || String(r[iVen] || '').trim();
     const forn = String(r[iFor] || '').trim();
     if (!filial || !rca || !forn || /^total/i.test(forn)) continue;
@@ -144,7 +145,7 @@ async function main() {
         await page.waitForTimeout(2500);
         const aj = await ajustaDialogo(page, mes);
         log('dialogo:', JSON.stringify(aj));
-        if (aj.erro || !aj.temMes || !aj.temCampos) throw new Error('nao consegui marcar periodo/campos de ' + mes + ': ' + (aj.erro || JSON.stringify(aj.marcados)));
+        if (aj.erro || !aj.temMes || !aj.temCampos || (aj.marcados || []).filter((x) => ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'].includes(x)).length !== 1) throw new Error('nao consegui marcar periodo/campos de ' + mes + ': ' + (aj.erro || JSON.stringify(aj.marcados)));
         let d = null;
         for (const passo of ['direto', 'previa']) {
           if (passo === 'previa') { log('sem download direto: gerando previa'); await page.getByText('Gerar prévia', { exact: true }).first().click().catch(() => {}); await page.waitForTimeout(20000); }
