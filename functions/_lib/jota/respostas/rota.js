@@ -307,6 +307,9 @@ export async function respTagCampanhas(B, E, v, t = '', c = null) {
     return { hoje, mesC, comprou, meta };
   };
   const querListaCompleta = /LISTA(GEM)? COMPLETA|TODOS|TODAS|QUAIS|QUEM|QUERO A LISTA|RELACAO COMPLETA|RELAÇÃO COMPLETA|LISTAGEM/i.test(sem(t));
+  // O PROPRIO VENDEDOR (09/11/2026, Graciela TCV 1057: "quais sao meus clientes de recorrencia" recebeu a contagem da 'equipe' de 1 pessoa):
+  // escopo de um vendedor so = a lista dele, sempre
+  if (!v && ((c && c.papel === 'vendedor') || (E.vend && E.vend.length === 1)) && E.vend && E.vend.length) v = E.vend.find((x) => !c || !c.rca || String(x.rca) === String(c.rca)) || E.vend[0];
   if (!v && (/QUANTOS/.test(t) || !/CADA|POR VENDEDOR|QUAIS|LISTA|QUEM/.test(t) || /EQUIPE|TIME|RESUMO|META|MINHA META/i.test(t))) {
     let tag = 0, comp = 0; const hoje = [], porV = [];
     for (const x of E.vend) {
