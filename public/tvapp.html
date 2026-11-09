@@ -2077,6 +2077,8 @@ if (!VALID.includes(FIL)) {
     if (pt) setTimeout(() => enfileira([{key: 'demo_' + pt.id + '_' + Date.now(), nivel: 'gol', subtipo: null, demo: true, v: {id: 'demo', nome: 'DEMONSTRAÇÃO', rca: '', canal: '', filial: pt.filiais.includes(FIL) ? FIL : pt.filiais[0]}, c: {nome: 'Pedido com ' + pt.nome, industrias: [{n: pt.industria, v: 1}]}}]), 8000);
   });
   setInterval(carregaPatrocinadores, 30 * 60 * 1000);
+  // REPETIR UM LANCE REAL DE HOJE (09/11/2026, print para a industria): /tv?filial=API&lance=gol_mix|249|53948 mostra de novo aquele lance (dado real, nao grava nada)
+  { const lk = P.get('lance'); if (lk) { let n = 0; const tenta = () => { const a = (ALERTAS || []).find(x => x.key === lk); if (a) enfileira([a]); else if (n++ < 40) setTimeout(tenta, 3000); }; setTimeout(tenta, 6000); } }
   setInterval(async () => { if (await carregaReps()) render(); }, 10 * 60 * 1000);
   carregaLancesServidor(); setInterval(carregaLancesServidor, 5 * 60 * 1000);
   atualiza(); setInterval(atualiza, CICLO_S * 1000); setInterval(checaVersao, 60000); checaVersao();
