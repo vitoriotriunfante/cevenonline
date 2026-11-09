@@ -87,7 +87,8 @@ def fetch_roteiro(v):
 print("\n--- COLETANDO ROTEIROS DE TODOS OS VENDEDORES (11 FILIAIS) ---")
 t0 = time.time()
 with ThreadPoolExecutor(max_workers=6) as executor:
-    futures = [executor.submit(fetch_roteiro, v) for v in vendedores]
+    # modo incremental de prospects (PROSPECTS_DIRETO_D1): nao precisa do roteiro; nao gasta chamada no CEVEN
+    futures = [] if os.environ.get('PROSPECTS_DIRETO_D1') == '1' else [executor.submit(fetch_roteiro, v) for v in vendedores]
     for fut in as_completed(futures):
         v, rows = fut.result()
         if rows:
@@ -173,6 +174,50 @@ def buscar_prospects_com_espera(vendedores, rodadas=None, espera_s=60, lote_sond
         print(f" - Passada final: {len(prontos)} prontos, {prontos_total}/{total} no total, {len(ainda)} sem retorno")
         pendentes = ainda
     PROSPECTS_SEM_RETORNO.extend(pendentes)
+
+# =========================================================================================================
+# MODO INCREMENTAL DIRETO NO D1 (Vitorio, 09/11/2026: "tem que popular tudo todo dia... se ta travando tem que resolver")
+# Roda sozinho (.github/workflows/prospects-coleta.yml), varias vezes por dia, fora do Data Lake (que estourava 4 h):
+#   so os vendedores que ainda NAO tem a coleta OK hoje; cada um vai para o D1 assim que fica pronto (acumula, nunca apaga;
+#   quem ja e cliente ou tem cadastro no LinkUp nao entra); quem nao vier fica 'sem_retorno' e a proxima rodada tenta de novo.
+# =========================================================================================================
+if os.environ.get('PROSPECTS_DIRETO_D1') == '1':
+    import sys
+    API_D1 = 'https://ceven-cftv-matrix.pages.dev/api/ficha-carga'
+    KEY_D1 = os.environ.get('EVO_KEY', '')
+    def d1(metodo, sufixo, corpo=None):
+        for t in range(3):
+            try:
+                rr = requests.request(metodo, API_D1 + sufixo, headers={'X-Evo-Key': KEY_D1, 'Content-Type': 'application/json', 'User-Agent': 'ceven-prospects'}, data=json.dumps(corpo) if corpo is not None else None, timeout=60)
+                if rr.status_code < 500: return rr.json()
+            except Exception as e:
+                print('D1 tentativa', t + 1, e)
+            time.sleep(5 * (t + 1))
+        raise RuntimeError('D1 nao respondeu')
+    so_dig = lambda x: ''.join(ch for ch in str(x or '') if ch.isdigit())
+    ja_cadastro = set()
+    try: ja_cadastro |= {so_dig(r[0]) for r in conn.execute('SELECT cnpj FROM clientes_completo')}
+    except Exception as e: print('sem clientes_completo:', e)
+    try: ja_cadastro |= {so_dig(r[0]) for r in conn.execute('SELECT cpf_cnpj FROM cadastros_linkup')}
+    except Exception as e: print('sem cadastros_linkup:', e)
+    ok_hoje = set(d1('GET', '?prospects_ok=' + data_ref).get('ok', []))
+    pendentes = [v for v in vendedores if f"{v[0]}|{v[1]}" not in ok_hoje]
+    print(f"Prospects incremental {data_ref}: {len(vendedores)} vendedores, {len(ok_hoje)} ja OK hoje, {len(pendentes)} pendentes")
+    enviados = 0
+    for v, pro_list in buscar_prospects_com_espera(pendentes):
+        fil_sigla, rca_id = str(v[0]), str(v[1])
+        vistos, lote = set(), []
+        for p in pro_list:
+            cnpj_num = so_dig(p.get('cnpj', ''))
+            if not cnpj_num or cnpj_num in vistos or cnpj_num in ja_cadastro: continue
+            vistos.add(cnpj_num)
+            lote.append({'filial': fil_sigla, 'rca': rca_id, 'cnpj': cnpj_num, 'dados': {'razao': p.get('razao') or p.get('nome') or '', 'fantasia': p.get('nome') or p.get('razao') or '', 'cnae': p.get('cnae_desc') or p.get('cnae') or '', 'end': p.get('endereco') or '', 'bairro': p.get('bairro') or '', 'mun': p.get('municipio') or '', 'tel': p.get('telefone') or '', 'km': p.get('dist_km'), 'motivo': p.get('motivo') or '', 'lat': p.get('lat_aprox') or p.get('lat'), 'lon': p.get('lon_aprox') or p.get('lon')}})
+        d1('POST', '', {'prospects': lote[:200], 'prospects_status': [{'filial': fil_sigla, 'rca': rca_id, 'data_ref': data_ref, 'estado': 'ok', 'total': len(lote)}]})
+        enviados += 1
+    for v in PROSPECTS_SEM_RETORNO:
+        d1('POST', '', {'prospects': [], 'prospects_status': [{'filial': str(v[0]), 'rca': str(v[1]), 'data_ref': data_ref, 'estado': 'sem_retorno', 'total': None}]})
+    print(f"Prospects incremental: {enviados} vendedores gravados no D1; {len(PROSPECTS_SEM_RETORNO)} ainda sem retorno (proxima rodada tenta de novo)")
+    sys.exit(0)
 
 t1 = time.time()
 if True:

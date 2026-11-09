@@ -1,0 +1,48 @@
+# FICHA DO ARQUIVO
+# O QUE É: coleta INCREMENTAL de prospects de TODOS os vendedores, todo dia, direto no D1 (Vitorio, 09/11/2026:
+#   "tem que popular tudo todo dia... se ta travando tem que resolver e nao simplesmente ignorar a informacao").
+#   Fora do Data Lake (que estourava 4 h e era cancelado). Cada rodada pega so quem ainda nao veio OK hoje; cada vendedor vai
+#   para o D1 assim que fica pronto; acumula e nunca apaga; quem ja e cliente ou tem cadastro no LinkUp nao entra.
+# Le do Drive SO a hierarquia de vendedores e os cadastros (rca_segmentos, clientes_completo, cadastros_linkup). NAO envia WhatsApp.
+name: Prospects — coleta incremental para o D1
+
+on:
+  schedule:
+    - cron: '30 12,15,18 * * *'   # 09h30, 12h30 e 15h30 de Brasilia, todo dia
+  workflow_dispatch:
+
+concurrency:
+  group: prospects-coleta
+  cancel-in-progress: false
+
+jobs:
+  coletar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 200
+    env:
+      CEVEN_APP_SECRET: ${{ secrets.CEVEN_APP_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar dependencias
+        run: |
+          pip install requests openpyxl
+          curl https://rclone.org/install.sh | sudo bash
+      - name: Ler a hierarquia e os cadastros do Drive (so leitura)
+        env:
+          GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID || '1sqzFpWEKb1WKhT9MksQcQl8RuY94DQum' }}
+        run: |
+          mkdir -p ~/.config/rclone analises
+          echo "$GDRIVE_SA_JSON" > /tmp/gdrive-sa.json
+          printf '[gdrive]\ntype = drive\nscope = drive\nservice_account_file = /tmp/gdrive-sa.json\nroot_folder_id = %s\n' "$GDRIVE_FOLDER_ID" > ~/.config/rclone/rclone.conf
+          ORIGEM="gdrive:pedidos_historico_ceven.db"
+          rclone copy "$ORIGEM" analises/
+      - name: Coletar prospects (so os pendentes de hoje) e gravar no D1
+        env:
+          PROSPECTS_DIRETO_D1: '1'
+          PROSPECTS_MAX_ESPERA_MIN: '170'
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+        run: python analises/coletar_todos_os_pdvs_e_prospects_100pct.py

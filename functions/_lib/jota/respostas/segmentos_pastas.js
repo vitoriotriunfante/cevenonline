@@ -337,20 +337,23 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
     } catch (e) {
       return `📍 *Prospects — ${vn(alvoVend)}*: não consegui consultar o estado da coleta; não vou afirmar que está sem pontos.`;
     }
-    if (!status || status.data_ref !== hojeSP() || status.estado !== 'ok') {
-      return `📍 *Prospects — ${vn(alvoVend)}*: a coleta de hoje não confirmou a lista desse vendedor. Pode estar pendente; não vou afirmar que está sem pontos.`;
-    }
+    // LISTA ACUMULADA (Vitorio, 09/11/2026: "tem que popular tudo todo dia... nao simplesmente ignorar a informacao"): mostra tudo o que ja foi
+    // coletado para o vendedor (prospects_mapa acumula; 'em' = dia em que o ponto apareceu). A coleta de hoje so muda o rodape.
+    const coletaHoje = status && status.data_ref === hojeSP() && status.estado === 'ok';
     let prs;
     try {
-      const { results } = await db.prepare('SELECT cnpj, json FROM prospects_mapa WHERE filial = ? AND rca = ?')
+      const { results } = await db.prepare('SELECT cnpj, json, em FROM prospects_mapa WHERE filial = ? AND rca = ?')
         .bind(String(alvoVend.filial), String(alvoVend.rca)).all();
-      prs = (results || []).map((r) => ({ cnpj: r.cnpj, ...JSON.parse(r.json) })).sort((a, b) => (a.km ?? 999) - (b.km ?? 999));
+      prs = (results || []).map((r) => ({ cnpj: r.cnpj, em: r.em, ...JSON.parse(r.json) })).sort((a, b) => String(b.em || '').localeCompare(String(a.em || '')) || (a.km ?? 999) - (b.km ?? 999));
     } catch (e) {
       return `📍 *Prospects — ${vn(alvoVend)}*: falha ao ler a lista da base; não vou afirmar que está sem pontos.`;
     }
+    const dd = (s) => s ? String(s).slice(8, 10) + '/' + String(s).slice(5, 7) : '';
+    const rodapeColeta = coletaHoje ? `_Coleta de hoje concluída (${status.total || 0} pontos na rota de hoje)._` : `_A coleta de hoje ainda não trouxe a lista desse vendedor; mostrando o que já foi coletado${status && status.data_ref ? ' (última tentativa ' + dd(status.data_ref) + ')' : ''}._`;
+    if (!prs.length && !coletaHoje) return `📍 *Prospects — ${vn(alvoVend)}*: ainda não há nenhum ponto coletado para esse vendedor. ${rodapeColeta}`;
     if (filtroSeg && prs.length) { const fi = prs.filter((p) => filtroSeg.test(p.cnae || '') || filtroSeg.test(p.razao || '') || filtroSeg.test(p.fantasia || '')); if (fi.length) prs = fi; }
     if (prs.length) return [
-      `📍 *Prospects — ${vn(alvoVend)}* (${alvoVend.filial})${nomeFiltroSeg ? ` [Foco: ${nomeFiltroSeg}]` : ''}`, `${prs.length} na lista do CEVEN; os 5 mais perto da rota:`, '',
+      `📍 *Prospects — ${vn(alvoVend)}* (${alvoVend.filial})${nomeFiltroSeg ? ` [Foco: ${nomeFiltroSeg}]` : ''}`, `${prs.length} pontos acumulados do CEVEN (sem repetir); os 5 mais recentes:`, rodapeColeta, '',
       ...prs.slice(0, 5).map((p, i) => `${i + 1}. *${titulo(p.fantasia || p.razao || 'Sem nome')}* (${p.cnae || 'sem CNAE'})\n   📍 CNPJ: ${p.cnpj}${p.km != null ? ' · ' + String(p.km).replace('.', ',') + ' km' : ''}${p.tel ? '\n   📞 ' + p.tel : ''}${p.lat && p.lon ? '\n   🌐 https://maps.google.com/?q=' + p.lat + ',' + p.lon : ''}`),
       '', SUGESTAO + 'passar nesses pontos durante a rota e cadastrar no LinkUp.'].join('\n');
     return `📍 *Prospecção no Mapa — ${vn(alvoVend)}*: a coleta de hoje foi concluída e confirmou 0 prospects.`;

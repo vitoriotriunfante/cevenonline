@@ -16,6 +16,13 @@ const tabelaProspStatus = (db) => db.prepare('CREATE TABLE IF NOT EXISTS prospec
 export async function onRequestGet({ request, env }) {
   if (!(await ok(request, env))) return r({ erro: 'nao autorizado' }, 401);
   await tabela(env.DB);
+  // quem ja tem a coleta de prospects OK no dia (a coleta incremental pula esses; 09/11/2026)
+  const diaOk = String(new URL(request.url).searchParams.get('prospects_ok') || '');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(diaOk)) {
+    await tabelaProspStatus(env.DB);
+    const { results } = await env.DB.prepare("SELECT filial, rca FROM prospects_coleta_status WHERE data_ref = ? AND estado = 'ok'").bind(diaOk).all();
+    return r({ ok: (results || []).map((x) => x.filial + '|' + x.rca) });
+  }
   const f = String(new URL(request.url).searchParams.get('filial') || '').toUpperCase();
   if (!/^[A-Z]{3}$/.test(f)) return r({ erro: 'filial obrigatoria' }, 400);
   const { results } = await env.DB.prepare('SELECT id_cliente, hash FROM ficha_cliente WHERE filial = ?').bind(f).all();
@@ -46,8 +53,9 @@ export async function onRequestPost({ request, env }) {
     if (s.estado !== 'ok' && P.length) return r({ erro: 'coleta sem retorno não pode incluir prospects' }, 400);
     const sql = [];
     if (s.estado === 'ok') {
-      sql.push(env.DB.prepare('DELETE FROM prospects_mapa WHERE filial = ? AND rca = ?').bind(filial, rca));
-      sql.push(...P.map((x) => env.DB.prepare('INSERT INTO prospects_mapa (filial, rca, cnpj, json, em) VALUES (?,?,?,?,?)').bind(filial, rca, String(x.cnpj), JSON.stringify(x.dados), agora)));
+      // ACUMULA, NUNCA APAGA (Vitorio, 01/11 e 09/11/2026: 'popular tudo todo dia' e checar se ja nao tinha): prospect novo entra com a data em que apareceu;
+      // repetido (rotas vizinhas trazem o mesmo CNPJ) so atualiza os dados e mantem a 1a data (em).
+      sql.push(...P.map((x) => env.DB.prepare('INSERT INTO prospects_mapa (filial, rca, cnpj, json, em) VALUES (?,?,?,?,?) ON CONFLICT (filial, rca, cnpj) DO UPDATE SET json = excluded.json').bind(filial, rca, String(x.cnpj), JSON.stringify(x.dados), agora)));
     }
     sql.push(env.DB.prepare('INSERT INTO prospects_coleta_status (filial, rca, data_ref, estado, total, em) VALUES (?,?,?,?,?,?) ON CONFLICT (filial, rca) DO UPDATE SET data_ref = excluded.data_ref, estado = excluded.estado, total = excluded.total, em = excluded.em').bind(filial, rca, String(s.data_ref), s.estado, s.estado === 'ok' ? P.length : null, agora));
     await env.DB.batch(sql);

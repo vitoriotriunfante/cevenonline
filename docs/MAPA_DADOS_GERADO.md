@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-09 18:52 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-09 18:58 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (16)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -10,7 +10,6 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `functions/api/cron-lances.js` | cron do site (worker-cron) | /api/rca, /api/rca/devolucoes/${encodeURIComponent, /api/rca/historico-cliente/${encodeURIComponent |
 | `functions/api/cron-mapa-executivo.js` | cron do site (worker-cron) | /api/rca/historico-cliente//{id} |
 | `functions/api/cron-varredura-central.js` | cron do site (worker-cron) | /api/admin/filiais/hierarquia, /api/admin/login, /api/admin/view-as/rca/dashboard, /api/gerente-auth/login, /api/gerente/dashboard-cascata, /api/gerente/hierarquia-filiais, /api/gerente/supervisor/roteiro-hoje, /api/gerente/supervisor/roteiro-mes, /api/gerente/tabelas-cascata-todas-filiais, /api/rca, /api/rca//{id}, /api/rca/devolucoes, /api/rca/historico-vendedor, /api/rca/produtividade |
-| `analises/coletar_todos_os_pdvs_e_prospects_100pct.py` | GitHub Actions (datalake 03:00) | /api/ceven/prospeccao-roteiro, /api/rca/roteiro-hoje |
 | `analises/extrair_hierarquia_completa.js` | GitHub Actions (datalake 03:00) | /api/gerente-auth/login, /api/gerente/supervisor/rcas, /api/gerente/supervisores |
 | `analises/extrair_historico_completo_11_filiais.js` | GitHub Actions (datalake 03:00) | /api/rca/historico-cliente//{id}, /api/rca/roteiro-hoje, /api/rca/roteiro-mes |
 | `analises/extrair_metas_dashboard_rcas.js` | GitHub Actions (datalake 03:00) | /api/rca/dashboard, /api/rca/produtividade |
@@ -18,6 +17,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `analises/extrair_segmentos_rcas.js` | GitHub Actions (datalake 03:00) | /api/filiais//{id}/representante//{id} |
 | `analises/extrair_tudo_devolucoes_cadastros.js` | GitHub Actions (datalake 03:00) | /api/linkup/solicitacoes, /api/rca/devolucoes, /api/rca/devolucoes//{id} |
 | `analises/gerar_mix_gap_real.js` | GitHub Actions (datalake 03:00) | (monta a URL dinamicamente) |
+| `analises/coletar_todos_os_pdvs_e_prospects_100pct.py` | GitHub Actions (workflow) | /api/ceven/prospeccao-roteiro, /api/rca/roteiro-hoje |
 | `analises/gerar_dados_mix.js` | GitHub Actions (workflow) | /api/rca/roteiro-mes |
 | `pipeline/ceven_header.js` | GitHub Actions (workflow) | (monta a URL dinamicamente) |
 | `pipeline/ceven_unified_engine.js` | GitHub Actions (workflow) | /api/admin/login, /api/filiais//{id}/representante//{id}, /api/rca/dashboard, /api/rca/devolucoes, /api/rca/produtividade, /api/rca/roteiro-hoje |
