@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-09 20:26 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-09 20:52 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (16)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -98,6 +98,8 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `varredura_central_rca` | `functions/api/cron-varredura-central.js` |
 | `varredura_slot` | `functions/api/cron-varredura-central.js` |
 | `wa_cota` | `functions/_lib/jota/base.js` |
+| `winthor_divergencias` | `functions/api/cron-varredura-central.js` |
+| `winthor_fila` | `functions/api/cron-varredura-central.js` |
 
 ### 2b. Bancos SQLite (FORA da base única)
 | Banco | Usado por |

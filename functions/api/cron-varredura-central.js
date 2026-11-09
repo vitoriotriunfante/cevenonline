@@ -535,6 +535,62 @@ async function coletaMacroForaArvore(env, limite = 3) {
 
 // RECHECAGEM ATE FATURAR (Vitorio, 31/10/2026: "pedido que identifiquei como bloqueado tenho que checar ate ele virar faturado"; 810 "bloqueados", a maioria ja faturada, quase geraram ligacao
 // a todos os gerentes). Era 4 clientes por rodada para 3 mil em aberto. Agora 1 chamada por vendedor atualiza TODOS os pedidos abertos dele; vai primeiro quem tem o pedido checado ha mais tempo.
+// PEDIDOS DO WINTHOR (Vitorio, 09/11/2026: botao "P. Winthor" do CEVEN; "popular todos os pedidos do mes... inclusive os digitados direto no Winthor e na loja Mondelez").
+// /api/rca/pedidos-winthor?filial=&id= devolve TODOS os pedidos do mes do vendedor (numero, data, cliente, status, valor, itens). Medido em 09/11: na TSJ
+// faltavam 82 de 242 pedidos no D1 (R$ 49 mil). Passa por TODOS os vendedores da arvore em rodizio (quem foi lido ha mais tempo primeiro);
+// grava em pedido_status so o que e novo ou mudou (status/valor) - custo D1 = linhas gravadas. Itens vao junto (itens_json) para gols e +MIX.
+const STATUS_WINTHOR = { BLOQUEADO: 'BLOQUEADO', LIBERADO: 'LIBERADO', MONTADO: 'MONTADO', FATURADO: 'FATURADO', CANCELADO: 'CANCELADO', DEVOLVIDO: 'DEVOLVIDO' };
+const semW = (x) => String(x || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().trim();
+async function coletaPedidosWinthor(env, rcas, limite = 12, prazo = Infinity) {
+  if (Date.now() < banRcaAte) return { pulado: 'cota' };
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS winthor_fila (filial TEXT NOT NULL, rca TEXT NOT NULL, em TEXT, pedidos INTEGER, PRIMARY KEY (filial, rca))').run();
+  for (const col of ['faltavam INTEGER DEFAULT 0', 'faltavam_valor REAL DEFAULT 0', 'primeira_leitura TEXT', 'mes TEXT']) { try { await env.DB.prepare('ALTER TABLE winthor_fila ADD COLUMN ' + col).run(); } catch (e) { /* ja existe */ } }
+  try { await env.DB.prepare('ALTER TABLE pedido_status ADD COLUMN itens_json TEXT').run(); } catch (e) { /* ja existe */ }
+  try { await env.DB.prepare('ALTER TABLE pedido_status ADD COLUMN origem TEXT').run(); } catch (e) { /* ja existe */ }
+  // LISTA DE DIVERGENCIAS (Vitorio, 09/11/2026: 'quero uma lista para checar 1 a 1 com cod vendedor, cliente e numero do pedido'): pedido que o Winthor tem e o D1 nao tinha
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS winthor_divergencias (num TEXT PRIMARY KEY, filial TEXT, rca TEXT, id_cliente TEXT, cliente TEXT, data_pedido TEXT, valor REAL, status TEXT, achado_em TEXT)').run();
+  const { results: F } = await env.DB.prepare('SELECT filial, rca, em FROM winthor_fila').all();
+  const ult = new Map((F || []).map((x) => [x.filial + '|' + x.rca, x.em || '']));
+  const fila = (rcas || []).filter((r) => r && r.codigo && r.filial).sort((a, b) => String(ult.get(kr(a)) || '').localeCompare(String(ult.get(kr(b)) || ''))).slice(0, limite);
+  const mes = new Date(Date.now() - 3 * 3600000).toISOString().slice(0, 7);
+  let lidos = 0, novos = 0, mudaram = 0;
+  for (const rca of fila) {
+    if (Date.now() > prazo) break;
+    const fil = String(rca.filial).toUpperCase();
+    if (Date.now() < disjuntorAte) break;   // CEVEN travado: o disjuntor da varredura manda (testes/t_varredura.mjs)
+    // mesma porta das outras chamadas (getJson): disjuntor, limite de tempo, cota 429 e pausa
+    const A0 = await getJson(urlRca('pedidos-winthor', rca), 1);
+    if (A0 == null) { if (Date.now() < disjuntorAte || Date.now() < banRcaAte) break; continue; }
+    let A = Array.isArray(A0) ? A0 : [];
+    let novosV = 0, novosValor = 0;
+    if (!Array.isArray(A)) A = [];
+    const P = A.filter((p) => p && p.numeroPedido && String(p.dataPedido || '').slice(0, 7) === mes);
+    const st = [];
+    if (P.length) {
+      const nums = P.map((p) => String(p.numeroPedido));
+      const antes = new Map();
+      for (let i = 0; i < nums.length; i += 90) { const lote = nums.slice(i, i + 90); const { results } = await env.DB.prepare(`SELECT num, status, valor FROM pedido_status WHERE num IN (${lote.map(() => '?').join(',')})`).bind(...lote).all(); for (const r of results || []) antes.set(String(r.num), r); }
+      const agora = new Date().toISOString();
+      for (const p of P) {
+        const num = String(p.numeroPedido), status = STATUS_WINTHOR[semW(p.status)] || semW(p.status || 'SEM STATUS'), valor = Number(p.valor) || null, a = antes.get(num);
+        if (a && a.status === status && (a.valor != null || valor == null)) continue;   // mesmo status (e valor ja gravado): nao regrava
+        const itens = Array.isArray(p.itens) ? JSON.stringify(p.itens.map((i) => ({ c: i.codigo, d: i.descricao, q: i.quantidade, v: i.valor }))).slice(0, 8000) : null;
+        st.push(env.DB.prepare(`INSERT INTO pedido_status (num, filial, rca, id_cliente, data_pedido, status, valor, final, primeiro_em, atualizado_em, rechecado_em, itens_json, origem)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?, 'winthor') ON CONFLICT (num) DO UPDATE SET status = excluded.status, valor = COALESCE(pedido_status.valor, excluded.valor), final = excluded.final,
+          rechecado_em = excluded.rechecado_em, itens_json = COALESCE(excluded.itens_json, pedido_status.itens_json),
+          atualizado_em = CASE WHEN pedido_status.status = excluded.status THEN pedido_status.atualizado_em ELSE excluded.atualizado_em END`)
+          .bind(num, fil, String(rca.codigo), String(p.codigoCliente || ''), String(p.dataPedido).slice(0, 10), status, valor, /FATURAD|CANCELAD|DEVOLVID/.test(status) ? 1 : 0, agora, agora, agora, itens));
+        if (!a || a.status !== status) st.push(env.DB.prepare('INSERT OR IGNORE INTO pedido_status_hist (num, status, visto_em) VALUES (?, ?, ?)').bind(num, status, agora));
+        if (!a) { novos++; novosV++; novosValor += valor || 0; st.push(env.DB.prepare('INSERT OR IGNORE INTO winthor_divergencias (num, filial, rca, id_cliente, cliente, data_pedido, valor, status, achado_em) VALUES (?,?,?,?,?,?,?,?,?)').bind(num, fil, String(rca.codigo), String(p.codigoCliente || ''), String(p.cliente || '').slice(0, 120), String(p.dataPedido).slice(0, 10), valor, status, agora)); } else mudaram++;
+      }
+    }
+    // DUPLO CHECK (Vitorio, 09/11/2026: '1 por 1'): faltavam = pedidos que o Winthor tinha e o D1 nao, acumulado no mes por vendedor
+    st.push(env.DB.prepare("INSERT INTO winthor_fila (filial, rca, em, pedidos, faltavam, faltavam_valor, primeira_leitura, mes) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT (filial, rca) DO UPDATE SET em = excluded.em, pedidos = excluded.pedidos, faltavam = CASE WHEN winthor_fila.mes = excluded.mes THEN winthor_fila.faltavam + excluded.faltavam ELSE excluded.faltavam END, faltavam_valor = CASE WHEN winthor_fila.mes = excluded.mes THEN winthor_fila.faltavam_valor + excluded.faltavam_valor ELSE excluded.faltavam_valor END, primeira_leitura = COALESCE(CASE WHEN winthor_fila.mes = excluded.mes THEN winthor_fila.primeira_leitura END, excluded.primeira_leitura), mes = excluded.mes").bind(fil, String(rca.codigo), new Date().toISOString(), P.length, novosV, novosValor, new Date().toISOString(), mes));
+    for (let i = 0; i < st.length; i += 80) await env.DB.batch(st.slice(i, i + 80));
+    lidos++;
+  }
+  return { lidos, novos, mudaram };
+}
 async function rechecaAbertosPorVendedor(env, limite = 6, prazo = Infinity) {
   if (Date.now() < banRcaAte) return { pulado: 'cota' };
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS recheca_fila (filial TEXT NOT NULL, rca TEXT NOT NULL, em TEXT, PRIMARY KEY (filial, rca))').run();
@@ -1020,6 +1076,8 @@ export async function onRequestGet({ env, request }) {
     if (Date.now() - t0 < 90000) { try { contagem.pedidos_dia = await coletaPedidosDoDia(env, dataRef); } catch (e) { contagem.pedidos_dia = { erro: String(e.message || e).slice(0, 80) }; } }
     if (!env.TESTE_SEM_HORARIO && Date.now() - t0 < 95000) { try { contagem.macro = await coletaMacroForaArvore(env); } catch (e) { contagem.macro = { erro: String(e.message || e).slice(0, 80) }; } }
     if (Date.now() - t0 < 95000) { try { contagem.recheca = await rechecaAbertosPorVendedor(env, noiteTodos ? 90 : 15, t0 + 150000);   /* todos os ~250 vendedores com pedido aberto: ~30 min de dia e a cada 30 min de noite (31/10/2026) */ } catch (e) { contagem.recheca = { erro: String(e.message || e).slice(0, 80) }; } }
+    // PEDIDOS DO WINTHOR (09/11/2026): todos os vendedores em rodizio; de dia 12 por rodada, de noite 60
+    if (Date.now() - t0 < 110000) { try { contagem.winthor = await coletaPedidosWinthor(env, rcas, noiteTodos ? 60 : 5, t0 + 95000); } catch (e) { contagem.winthor = { erro: String(e.message || e).slice(0, 80) }; } }
     // ROTA E PAINEL DO GERENTE NO FIM DA RODADA (01/11/2026): no inicio, os 25 s comiam o prazo da produtividade (40 s) e ela deixava de rodar. Em dia util a rodada leva ~40 s; so fica de fora quando a rodada estoura.
     if (Date.now() - t0 < 135000) { try { contagem.rota_gerente = await gravaRotasGerente(env, dataRef, Math.min(25000, t0 + 160000 - Date.now())); } catch (e) { contagem.rota_gerente = { erro: String(e.message || e).slice(0, 80) }; } } else contagem.rota_gerente = 'pulado_prazo';
     // DIAGNOSTICO: o que a ultima rodada fez, etapa por etapa (antes so ficavam os totais, e "0 sucesso" nao dizia onde)

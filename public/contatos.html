@@ -898,6 +898,7 @@ header { padding: 10px 20px; background: var(--sidebar); backdrop-filter: none; 
       <select id="cad-filtro-gestao" title="Conferência com a Gestão de Equipe e a árvore de supervisores do CEVEN (gerente, supervisor e vendedor)"><option value="">Gestão: todos</option><option value="inc">⚠️ Com inconsistência</option><option value="ok">✅ Confere</option></select>
       <select id="cad-filtro-link" title="Cadastro feito pelo link do Passaporte (CPF + indicadores preenchidos)"><option value="">Link: todos</option><option value="sim">🔗 Entrou pelo link</option><option value="nao">⛔ Sem link</option></select>
       <select id="cad-filtro-salvou" title="Respondeu SIM confirmando que salvou o contato do Jota (lido das conversas)"><option value="">Salvou o Jota? (todos)</option><option value="sim">✅ Confirmou SIM</option><option value="nao">❌ Não confirmou</option><option value="nao_pedido">❌ Recebeu o pedido e não respondeu</option></select>
+      <button id="cad-winthor-div" title="Pedidos que o Winthor (P. Winthor) tem e o D1 não tinha: vendedor, cliente e número do pedido, para conferir 1 a 1">⬇️ Pedidos divergentes Winthor × D1</button>
       <button id="cad-suspender-sel" class="no" title="Suspende os vendedores marcados. O aviso vai pela fila (2 por rodada, com pausa e texto variado); o SIM reativa sozinho.">⏸️ Suspender selecionados (0)</button>
       <span id="cad-contagem-salvou" style="font-size:12px; color:var(--txt-mut); align-self:center;"></span>
     </div>
@@ -2227,6 +2228,19 @@ $('cad-filtro-salvou').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-linha').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-link').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-gestao').onchange = () => renderizarGestaoContatos();
+// PEDIDOS DIVERGENTES WINTHOR x D1 (Vitorio, 09/11/2026): lista para conferir 1 a 1 (vendedor, cliente, numero do pedido), em CSV
+$('cad-winthor-div').onclick = async () => {
+  try {
+    const d = await api('GET', '/api/winthor-divergencias');
+    if (!d.pedidos || !d.pedidos.length) { aviso(`Ainda nenhum pedido divergente no mês ${d.mes} (vendedores já conferidos: ${d.vendedores_lidos}${d.vendedores_total ? ' de ' + d.vendedores_total : ''}).`, 'ok'); return; }
+    const cab = ['Filial', 'Cod. vendedor', 'Cod. cliente', 'Cliente', 'Numero do pedido', 'Data', 'Valor (R$)', 'Status no Winthor', 'Status agora no D1', 'Achado em'];
+    const q = (v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const linhas = d.pedidos.map((p) => [p.filial, p.rca, p.id_cliente, p.cliente, p.num, p.data_pedido, String(p.valor || 0).replace('.', ','), p.status_winthor, p.status_agora || '', String(p.achado_em || '').slice(0, 16).replace('T', ' ')]);
+    const csv = '﻿' + [cab, ...linhas].map((l) => l.map(q).join(';')).join('\r\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = `pedidos_divergentes_winthor_${d.mes}.csv`; a.click(); URL.revokeObjectURL(a.href);
+    aviso(`${d.pedidos_divergentes} pedidos divergentes (R$ ${Math.round(d.valor_divergente).toLocaleString('pt-BR')}) · vendedores conferidos: ${d.vendedores_lidos}${d.vendedores_total ? ' de ' + d.vendedores_total : ''}.`, 'ok');
+  } catch (e) { aviso('Erro: ' + e.message, 'erro'); }
+};
 window.__cadSel = window.__cadSel || new Set();
 const atualizaSel = () => { const b = $('cad-suspender-sel'); if (b) b.textContent = `⏸️ Suspender selecionados (${window.__cadSel.size})`; };
 $('cad-sel-todos').onchange = (e) => { const vis = (window.__cadFiltrados || []).filter((c) => c.papel === 'vendedor' && c.situacao === 'ativo'); vis.forEach((c) => e.target.checked ? window.__cadSel.add(c.celular) : window.__cadSel.delete(c.celular)); renderizarGestaoContatos(); atualizaSel(); };
