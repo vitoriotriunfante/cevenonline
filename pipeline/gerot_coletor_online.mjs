@@ -75,22 +75,23 @@ async function ajustaDialogo(page, mes) {
     if (!dlg) return { erro: 'dialogo nao encontrado' };
     const caixas = [...dlg.querySelectorAll('input[type=checkbox]')].map((i) => ({ i, rot: ((i.closest('label') || i.parentElement || {}).innerText || '').replace(/\s*•\s*$/, '').trim() }));
     // secao de cada caixa = ultimo titulo (PERIODO / CAMPOS / CALCULOS) que aparece ANTES dela na pagina; ano = ultimo "2026"/"2025" antes dela
-    const folhas = [...dlg.querySelectorAll('*')].filter((e) => e.children.length === 0 && (e.innerText || '').trim());
-    const titulos = folhas.filter((e) => /^(PERÍODO|CAMPOS|CÁLCULOS)/i.test(e.innerText.trim()));
-    const anos = folhas.filter((e) => /^20dd$/.test(e.innerText.trim()));
+    // titulos e anos pelos NOS DE TEXTO (o titulo pode estar em minusculas com CSS uppercase, ou dentro de outro elemento)
+    const textos = []; { const w = document.createTreeWalker(dlg, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) { const t = (n.nodeValue || '').trim(); if (t) textos.push(n); } }
+    const titulos = textos.filter((n) => /^(per[ií]odo|campos|c[aá]lculos)/i.test(n.nodeValue.trim()));
+    const anos = textos.filter((n) => /^20dd$/.test(n.nodeValue.trim()));
     const antes = (lista, inp) => { let a = null; for (const e of lista) if (e.compareDocumentPosition(inp) & Node.DOCUMENT_POSITION_FOLLOWING) a = e; return a; };
-    const secao = (inp) => { const t = antes(titulos, inp); return t ? t.innerText.trim().toUpperCase().slice(0, 4) : ''; };
-    const anoDe = (inp) => { const e = antes(anos, inp); return e ? e.innerText.trim() : null; };
+    const secao = (inp) => { const t = antes(titulos, inp); return t ? t.nodeValue.trim().toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').slice(0, 4) : ''; };
+    const anoDe = (inp) => { const e = antes(anos, inp); return e ? e.nodeValue.trim() : null; };
     const quer = (x) => {
       const sc = secao(x.i);
-      if (sc === 'PERÍ') return anoDe(x.i) === ano && x.rot === nomeMes;
+      if (sc === 'PERI') return anoDe(x.i) === ano && x.rot === nomeMes;
       if (sc === 'CAMP') return CAMPOS.includes(x.rot) || /filtros do topo/i.test(x.rot);
-      if (sc === 'CÁLC') return calc.some((r) => r.test(x.rot));
+      if (sc === 'CALC') return calc.some((r) => r.test(x.rot));
       return x.i.checked;
     };
     for (const x of caixas) { const q = quer(x); if (x.i.checked !== q) x.i.click(); }
     const marc = caixas.filter((x) => x.i.checked).map((x) => x.rot);
-    return { marcados: marc, calculosDisponiveis: caixas.filter((x) => secao(x.i) === 'CÁLC').map((x) => x.rot), secoes: [...new Set(caixas.map((x) => secao(x.i)))], temMes: marc.includes(nomeMes), temCampos: CAMPOS.every((c) => marc.includes(c)) };
+    return { marcados: marc, calculosDisponiveis: caixas.filter((x) => secao(x.i) === 'CALC').map((x) => x.rot), secoes: [...new Set(caixas.map((x) => secao(x.i)))], temMes: marc.includes(nomeMes), temCampos: CAMPOS.every((c) => marc.includes(c)) };
   }, { ano, nomeMes, CAMPOS, CALC: CALC.map((r) => ({ src: r.source, flags: r.flags })) });
 }
 
