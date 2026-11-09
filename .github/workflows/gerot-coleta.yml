@@ -1,0 +1,57 @@
+# FICHA DO ARQUIVO
+# O QUE É: coleta ONLINE do GEROT (industria = GEROT, decisao do Vitorio) — sem PC. Ver docs/GEROT_ESTADO_E_PLANO.md.
+#   Depois de cada janela do GEROT (09h15, 11h15, 13h15, 15h15, 17h15, 19h15 de Brasilia), extrai
+#   mes x filial x supervisor x vendedor x fornecedor e grava no D1 (/api/gerot-carga, so o que mudou).
+# NAO envia WhatsApp e NAO chama o CEVEN.
+# Segredos: GEROT_EMAIL, GEROT_SENHA (login do painel) e EVO_KEY (chave das rotas de carga, ja existe).
+name: GEROT — coleta online para o D1
+
+on:
+  schedule:
+    - cron: '15 12,14,16,18,20,22 * * 1-6'   # 09h15 ... 19h15 BRT, segunda a sabado
+  workflow_dispatch:
+    inputs:
+      meses:
+        description: 'Meses (AAAA-MM separados por virgula). Vazio = mes atual (dias 1-5: tambem o anterior)'
+        required: false
+        default: ''
+      ensaio:
+        description: 'Ensaio: baixa e le o Excel, mas nao grava no D1'
+        type: boolean
+        default: false
+
+concurrency:
+  group: gerot-coleta
+  cancel-in-progress: false
+
+jobs:
+  coletar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Instalar dependencias e navegador
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Coletar GEROT
+        env:
+          GEROT_EMAIL: ${{ secrets.GEROT_EMAIL }}
+          GEROT_SENHA: ${{ secrets.GEROT_SENHA }}
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.meses }}" ]; then ARGS="--meses=${{ github.event.inputs.meses }}"; fi
+          if [ "${{ github.event.inputs.ensaio }}" = "true" ]; then ARGS="$ARGS --ensaio"; fi
+          node pipeline/gerot_coletor_online.mjs $ARGS
+      - name: Guardar prints e Excel da coleta (para conferencia)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gerot-coleta-${{ github.run_id }}
+          path: gerot_saida/
+          retention-days: 7
+          if-no-files-found: ignore
