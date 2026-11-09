@@ -74,3 +74,11 @@ Sem tema (12%): continuação de conversa, cadastro, "tem Toblerone?", "quantos 
 1 Como estou · 2 Liga · 3 Premiação (metas; RV em R$ ainda no CEVEN › Premiação) · 4 Meus pedidos · 5 Clientes sem compra · 6 +MIX da rota de hoje · 7 Fechamento do mês passado · 8 Recorrência · 9 Minha rota · 10 Prospecção · 11 Devoluções · 12 Ficha de um cliente.
 Teste com dado real (só leitura): `node testes/_t_menu.mjs` — os 12 itens respondem para a Graciela (TCV 1057).
 Falta: RV em R$ (holerite do CEVEN na base), produto ("tem X?"), rota de outro dia, carteira ("quantos clientes tenho").
+
+## 6. Índice limitado (09/11/2026, noite — regra do Vitório)
+- Para o **vendedor**, tudo passa pelo índice: qualquer texto recebe o índice de volta (com "Entendi que você quer o N" quando o assunto é reconhecido); a resposta pronta sai só pelo número.
+- 15 índices; sub-índices em 1 (hoje, meta, quanto falta, por indústria), 2 (posição, lances, regras), 4 (todos, bloqueados, a faturar, cancelados) e 9 (rota, quem falta visitar). Digita 4.2, ou só 2 logo depois das opções do 4. **0** volta ao menu.
+- Passam direto (precisam de dado digitado): código/CNPJ do cliente, "tem <produto>", "campanha <nome>", SIM de confirmação, número de cliente quando a última resposta é uma lista de clientes.
+- RV/comissão (índice 3): "não tenho os dados do RV" + metas e como está até agora (ou o fechamento, se for mês passado).
+- Sem a nota "de 1 a 5" para vendedor (o número é escolha do índice).
+- Teste em conversa com dado real (só leitura): `node testes/_t_indice.mjs`.
