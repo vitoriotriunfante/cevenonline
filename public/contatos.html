@@ -895,6 +895,7 @@ header { padding: 10px 20px; background: var(--sidebar); backdrop-filter: none; 
       <select id="cad-filtro-filial"><option value="">Todas as filiais</option></select>
       <select id="cad-filtro-situacao"><option value="">Qualquer situação</option><option value="ativo">Ativo</option><option value="inativo">Inativo</option><option value="suspenso">Suspenso (aguarda SIM)</option><option value="pendente">Pendente</option><option value="recusado">Recusado</option></select>
       <select id="cad-filtro-linha" title="Status da linha na base da operadora (linha_corporativa)"><option value="">Linha: todas</option><option value="ATIVO">🟢 Linha corporativa ativa</option><option value="SUSPENSO">🟠 Linha suspensa</option><option value="NENHUMA">🔴 Não é linha corporativa</option></select>
+      <select id="cad-filtro-gestao" title="Conferência com a Gestão de Equipe e a árvore de supervisores do CEVEN (gerente, supervisor e vendedor)"><option value="">Gestão: todos</option><option value="inc">⚠️ Com inconsistência</option><option value="ok">✅ Confere</option></select>
       <select id="cad-filtro-link" title="Cadastro feito pelo link do Passaporte (CPF + indicadores preenchidos)"><option value="">Link: todos</option><option value="sim">🔗 Entrou pelo link</option><option value="nao">⛔ Sem link</option></select>
       <select id="cad-filtro-salvou" title="Respondeu SIM confirmando que salvou o contato do Jota (lido das conversas)"><option value="">Salvou o Jota? (todos)</option><option value="sim">✅ Confirmou SIM</option><option value="nao">❌ Não confirmou</option><option value="nao_pedido">❌ Recebeu o pedido e não respondeu</option></select>
       <button id="cad-suspender-sel" class="no" title="Suspende os vendedores marcados. O aviso vai pela fila (2 por rodada, com pausa e texto variado); o SIM reativa sozinho.">⏸️ Suspender selecionados (0)</button>
@@ -912,6 +913,7 @@ header { padding: 10px 20px; background: var(--sidebar); backdrop-filter: none; 
             <th>Supervisor / RCA</th>
             <th>Celular</th>
             <th>Linha</th>
+            <th>Gestão</th>
             <th>Link</th>
             <th>SIM</th>
             <th>Situação</th>
@@ -2115,7 +2117,7 @@ function renderizarGestaoContatos() {
   const fFilial = $('cad-filtro-filial').value;
   const fSit = $('cad-filtro-situacao').value;
   const fSalvou = $('cad-filtro-salvou').value;
-  const fLinha = ($('cad-filtro-linha') || {}).value || '', fLink = ($('cad-filtro-link') || {}).value || '';   // 09/11/2026: quem confirmou com SIM que salvou o contato do Jota
+  const fLinha = ($('cad-filtro-linha') || {}).value || '', fLink = ($('cad-filtro-link') || {}).value || '', fGest = ($('cad-filtro-gestao') || {}).value || '';   // 09/11/2026: quem confirmou com SIM que salvou o contato do Jota
 
   // Preencher Selects de filtro se vazios
   const selPapel = $('cad-filtro-papel');
@@ -2142,11 +2144,13 @@ function renderizarGestaoContatos() {
     if (fSalvou === 'nao' && c.salvou_jota) return false;
     if (fSalvou === 'nao_pedido' && (c.salvou_jota || !c.pedido_salvar)) return false;
     if (fLinha && (fLinha === 'NENHUMA' ? !!c.linha_corporativa : c.linha_corporativa !== fLinha)) return false;
+    if (fGest === 'inc' && !(c.inconsistencias && c.inconsistencias.length)) return false;
+    if (fGest === 'ok' && (!c.inconsistencias || c.inconsistencias.length || !['vendedor', 'supervisor', 'gerente'].includes(c.papel))) return false;
     if (fLink === 'sim' && !c.via_link) return false;
     if (fLink === 'nao' && (c.via_link || c.papel !== 'vendedor')) return false;
     return true;
   });
-  { const base = lista.filter((c) => c.papel !== 'grupo' && c.situacao === 'ativo'); const el = $('cad-contagem-salvou'); if (el) el.textContent = `Ativos que confirmaram SIM: ${base.filter((c) => c.salvou_jota).length} de ${base.length} · filtrados: ${filtrados.length}`; }
+  { const base = lista.filter((c) => c.papel !== 'grupo' && c.situacao === 'ativo'); const el = $('cad-contagem-salvou'); if (el) el.textContent = `Com inconsistência na Gestão: ${lista.filter((c) => ['ativo','pendente','suspenso'].includes(c.situacao) && c.inconsistencias && c.inconsistencias.length).length} · Ativos que confirmaram SIM: ${base.filter((c) => c.salvou_jota).length} de ${base.length} · filtrados: ${filtrados.length}`; }
 
   window.__cadFiltrados = filtrados;
   const tbody = $('cad-tabela-corpo');
@@ -2161,6 +2165,7 @@ function renderizarGestaoContatos() {
       </td>
       <td>${String(c.celular || '').endsWith('@g.us') ? esc(c.celular) : '+' + esc(c.celular)}</td>
       <td style="white-space:nowrap;font-size:12px;">${String(c.celular || '').endsWith('@g.us') ? '—' : c.linha_corporativa === 'ATIVO' ? '🟢 ativa' : c.linha_corporativa === 'SUSPENSO' ? '🟠 suspensa' : '🔴 não corporativa'}</td>
+      <td style="font-size:12px; max-width:260px;">${!['vendedor', 'supervisor', 'gerente'].includes(c.papel) ? '—' : c.inconsistencias == null ? '<span title="Gestão indisponível agora">…</span>' : c.inconsistencias.length ? `<span style="color:var(--bad,#e55);font-weight:700;">⚠️ ${esc(c.inconsistencias.join(' · '))}</span>` : '✅'}</td>
       <td style="font-size:12px;">${c.papel !== 'vendedor' ? '—' : c.via_link ? '🔗 link' : '⛔ sem link'}</td>
       <td style="font-size:12px;">${c.salvou_jota ? '✅' : c.pedido_salvar ? '❌' : '—'}</td>
       <td>
@@ -2221,6 +2226,7 @@ $('cad-filtro-situacao').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-salvou').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-linha').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-link').onchange = () => renderizarGestaoContatos();
+$('cad-filtro-gestao').onchange = () => renderizarGestaoContatos();
 window.__cadSel = window.__cadSel || new Set();
 const atualizaSel = () => { const b = $('cad-suspender-sel'); if (b) b.textContent = `⏸️ Suspender selecionados (${window.__cadSel.size})`; };
 $('cad-sel-todos').onchange = (e) => { const vis = (window.__cadFiltrados || []).filter((c) => c.papel === 'vendedor' && c.situacao === 'ativo'); vis.forEach((c) => e.target.checked ? window.__cadSel.add(c.celular) : window.__cadSel.delete(c.celular)); renderizarGestaoContatos(); atualizaSel(); };
