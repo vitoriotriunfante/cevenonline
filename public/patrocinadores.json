@@ -1,0 +1,6 @@
+{
+  "_doc": "PATROCINADORES DA LIGA (Vitorio, 09/11/2026). Patrocinador NAO e Marca Propria. Gol normal da Liga (mesma pontuacao) cujo pedido tem a industria do patrocinador, numa filial dele, toca o VIDEO do patrocinador na TV. Novo patrocinador = nova linha aqui (industria = trecho do nome da industria no CEVEN; video em public/animacoes/videos/). Demonstracao: /tv?filial=API&demo=condor.",
+  "patrocinadores": [
+    { "id": "condor", "nome": "CONDOR", "industria": "CONDOR", "filiais": ["API", "TCV"], "video": "/animacoes/videos/gol_condor.mp4", "cor": "#facc15" }
+  ]
+}
