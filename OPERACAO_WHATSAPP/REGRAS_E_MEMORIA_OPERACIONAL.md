@@ -304,3 +304,4 @@ Planilha na raiz do projeto (fora do git, tem dado de pessoa real — mesmo trat
 - Sai pela varredura (`cron-varredura-central.js`, `campanhaSim`): só com a fila de reenvio vazia; seg–sáb 09h–18h; 2 por rodada com pausa de 18 s ou mais; 4 textos variados com **SIM** em negrito e o aviso de suspensão; teto de 40 pessoas/dia espalha pelos dias.
 - Quem responder SIM sai da lista; a suspensão de quem não responder é manual (Vitório, em /contatos).
 - Acompanhar: `coleta_estado` chave `fila_rodada` (campo campanha) e `jota_campanha_sim.enviado_em`.
+- Horário (Vitório, 09/11/2026): mensagem que o Jota INICIA (liberação, suspensão, procure o supervisor, campanha) só seg–sáb 09h–18h; espera até 36 h. Resposta que falhou segue na hora (vence em 2 h). Campanha: 1 por rodada.

@@ -306,7 +306,7 @@ const MODELOS_SIM = [
 ];
 async function campanhaSim(env, diag) {
   const { h, dow } = R.relogioSP(); if (dow === 0 || h < 9 || h >= 18) { diag.campanha = 'fora do horario'; return; }
-  const { results } = await env.DB.prepare("SELECT k.id, k.celular, c.nome FROM jota_campanha_sim k JOIN bot_contatos c ON c.celular = k.celular WHERE k.enviado_em IS NULL AND c.ativo = 1 AND COALESCE(c.situacao,'ativo') = 'ativo' AND c.salvou_jota IS NULL ORDER BY k.ordem, k.id LIMIT 2").all().catch(() => ({ results: [] }));
+  const { results } = await env.DB.prepare("SELECT k.id, k.celular, c.nome FROM jota_campanha_sim k JOIN bot_contatos c ON c.celular = k.celular WHERE k.enviado_em IS NULL AND c.ativo = 1 AND COALESCE(c.situacao,'ativo') = 'ativo' AND c.salvou_jota IS NULL ORDER BY k.ordem, k.id LIMIT 1").all().catch(() => ({ results: [] }));
   diag.campanha = { lidas: (results || []).length, enviadas: 0 };
   let i = 0;
   for (const k of results || []) {
@@ -321,10 +321,14 @@ async function campanhaSim(env, diag) {
   }
 }
 async function reenviaFila(env) {
+  // HORARIO (Vitorio, 09/11/2026: 'nao pode enviar msg depois das 18'): mensagem que o JOTA INICIA so seg-sab 09h-18h e espera ate 36 h;
+  // resposta que falhou (servidor fora) continua saindo na hora e vence em 2 h, como antes.
+  const PROATIVAS = "('boas_vindas_aprovacao','procure_supervisor','suspenso_aviso','campanha_sim')";
+  const rel = R.relogioSP(), horaComercial = rel.dow !== 0 && rel.h >= 9 && rel.h < 18;
   // DIAGNOSTICO (09/11/2026: 28 mensagens paradas com 0 tentativas): cada rodada grava o que a fila fez em coleta_estado 'fila_rodada'
   const diag = { quando: new Date().toISOString(), lidas: 0, enviadas: 0, parou: null };
   try {
-    const { results } = await env.DB.prepare("SELECT id, celular, numero, nome, texto, tipo FROM bot_envio_fila WHERE criado_em > datetime('now','-2 hours') ORDER BY tentativas, id LIMIT 2").all();   // menos tentativas primeiro: numero ruim nao trava a fila dos outros (02/11/2026); antiban 09/11/2026: no maximo 2 por rodada
+    const { results } = await env.DB.prepare(`SELECT id, celular, numero, nome, texto, tipo FROM bot_envio_fila WHERE (tipo NOT IN ${PROATIVAS} OR tipo IS NULL) AND criado_em > datetime('now','-2 hours') OR ${horaComercial ? '' : '0 AND '}tipo IN ${PROATIVAS} AND criado_em > datetime('now','-36 hours') ORDER BY tentativas, id LIMIT 2`).all();   // menos tentativas primeiro: numero ruim nao trava a fila dos outros (02/11/2026); antiban 09/11/2026: no maximo 2 por rodada
     let iFila = 0; diag.lidas = (results || []).length;
     for (const m of results || []) {
       if (iFila++) await R.pausaEntreEnvios(19, 1, 18);   // antiban 09/11/2026: nunca em rajada
@@ -335,8 +339,8 @@ async function reenviaFila(env) {
       await env.DB.batch([env.DB.prepare('DELETE FROM bot_envio_fila WHERE id = ?').bind(m.id), env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,'out',?,?)").bind(m.celular, m.nome, String(m.texto).slice(0, 4000), m.tipo)]);
     }
     // desistiu depois de 2 horas: fica "Falhou" no painel da Central, nunca some calado
-    await env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) SELECT celular, nome, 'erro', '[NAO ENTREGUE apos ' || tentativas || ' tentativas] ' || substr(texto, 1, 3900), tipo FROM bot_envio_fila WHERE criado_em <= datetime('now','-2 hours')").run();
-    await env.DB.prepare("DELETE FROM bot_envio_fila WHERE criado_em <= datetime('now','-2 hours')").run();
+    await env.DB.prepare(`INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) SELECT celular, nome, 'erro', '[NAO ENTREGUE apos ' || tentativas || ' tentativas] ' || substr(texto, 1, 3900), tipo FROM bot_envio_fila WHERE ((tipo NOT IN ${PROATIVAS} OR tipo IS NULL) AND criado_em <= datetime('now','-2 hours')) OR (tipo IN ${PROATIVAS} AND criado_em <= datetime('now','-36 hours'))`).run();
+    await env.DB.prepare(`DELETE FROM bot_envio_fila WHERE ((tipo NOT IN ${PROATIVAS} OR tipo IS NULL) AND criado_em <= datetime('now','-2 hours')) OR (tipo IN ${PROATIVAS} AND criado_em <= datetime('now','-36 hours'))`).run();
   } catch (e) { diag.parou = 'erro: ' + String(e && e.message || e).slice(0, 200); }
   if (!diag.lidas) { try { await campanhaSim(env, diag); } catch (e) { diag.campanha = 'erro: ' + String(e && e.message || e).slice(0, 200); } }
   try { await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('fila_rodada', ?, 'o que a fila de reenvio fez na ultima rodada', CURRENT_TIMESTAMP) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = CURRENT_TIMESTAMP").bind(JSON.stringify(diag)).run(); } catch (e) {}
