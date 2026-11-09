@@ -693,3 +693,38 @@ export async function respRotaFiltro(B, E, t) {
   const cab = `📋 *${E.nome}* — clientes na rota de hoje${soVisitados ? ', já visitados e sem venda,' : ''} parados há mais de ${n} dias: *${tot}*`;
   return tot ? [cab, '_Cliente · Dias sem compra_', ...L].join('\n') : cab.replace(/: \*0\*$/, ': nenhum agora.');
 }
+
+// CAMPANHAS DO VENDEDOR (Vitorio, 09/11/2026, indice 15 do menu): as tags de campanha dos clientes do roteiro do mes (foco por industria),
+// quantos clientes cada uma tem e quantos ja compraram no mes (faturado ou pedido do mes). Recorrencia fica no indice 8.
+export async function respCampanhasVendedor(B, v) {
+  const R = Array.isArray(v.roteiroMes) ? v.roteiroMes : [];
+  if (!R.length) return `🏷️ *Campanhas — ${vn(v)}*: não há roteiro do mês na base para montar as campanhas dos seus clientes.`;
+  const { vendasEscopo } = await import('./vendas.js'); const VM = await vendasEscopo(B, { filiais: [v.filial], rca: v.rca, vend: [v] }).catch(() => null);
+  const compraram = new Set(((VM && VM.linhas) || []).filter((l) => String(l.r) === String(v.rca)).map((l) => String(l.c)));
+  for (const k of await clientesComPedidoNoMes(B, [v.filial], v.rca)) compraram.add(k.split('|')[1]);
+  const T = new Map();
+  for (const c of R) for (const f of c.focos || []) {
+    const tag = titulo(String(f.industria_foco || '').trim()); if (!tag || /recorr/i.test(tag)) continue;
+    if (!T.has(tag)) T.set(tag, new Map()); T.get(tag).set(String(c.id_cliente), c);
+  }
+  if (!T.size) return `🏷️ *Campanhas — ${vn(v)}*: nenhum cliente do seu roteiro do mês tem tag de campanha.`;
+  const L = [...T.entries()].map(([tag, cs]) => { const tot = cs.size, comp = [...cs.keys()].filter((k) => compraram.has(k)).length; return { tag, tot, comp }; }).sort((a, b) => (b.tot - b.comp) - (a.tot - a.comp));
+  return [`🏷️ *Campanhas do mês — ${vn(v)}*`, '_Clientes do seu roteiro do mês com a tag · quantos já compraram (faturado ou pedido)_', '',
+    ...L.map((x, i) => `${i + 1}. *${x.tag}*: ${x.comp} de ${x.tot} clientes já compraram · faltam *${x.tot - x.comp}*`),
+    '', '👉 Peça *"campanha <nome>"* (ex.: campanha ' + L[0].tag.toLowerCase() + ') para ver os clientes que faltam.'].join('\n');
+}
+
+// MINHA CARTEIRA (indice 14 do menu): quantos clientes o vendedor tem no roteiro do mes, a meta de positivacao do CEVEN e quantos ja compraram
+export async function respCarteiraVendedor(B, v) {
+  const R = Array.isArray(v.roteiroMes) ? v.roteiroMes : [];
+  const ids = new Set(R.map((c) => String(c.id_cliente)));
+  const { vendasEscopo } = await import('./vendas.js'); const VM = await vendasEscopo(B, { filiais: [v.filial], rca: v.rca, vend: [v] }).catch(() => null);
+  const compraram = new Set(((VM && VM.linhas) || []).filter((l) => String(l.r) === String(v.rca)).map((l) => String(l.c)));
+  for (const k of await clientesComPedidoNoMes(B, [v.filial], v.rca)) compraram.add(k.split('|')[1]);
+  const jaNaCarteira = [...ids].filter((k) => compraram.has(k)).length;
+  return [`👥 *Minha carteira — ${vn(v)}* (${v.filial})`,
+    ids.size ? `📋 Clientes no seu roteiro do mês: *${ids.size}*` : '📋 Roteiro do mês: sem dado na base',
+    `🎯 Positivação (painel do CEVEN): *${v.pos ?? 'sem dado'}* de ${v.metaPos ?? 'sem dado'} clientes da meta`,
+    ...(ids.size ? [`✅ Do roteiro, já compraram no mês (faturado ou pedido): *${jaNaCarteira}* · faltam *${ids.size - jaNaCarteira}*`] : []),
+    '', '👉 Peça *"clientes sem compra"* para a lista de quem falta.'].join('\n');
+}

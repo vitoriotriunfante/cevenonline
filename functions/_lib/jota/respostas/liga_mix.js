@@ -113,7 +113,7 @@ export function respGlossario(t) { const h = GLOSSARIO.filter(([re]) => re.test(
 export const MENU_VENDEDOR = [
   ['Como estou: meta x realizado, positivação e quanto falta por dia', 'como esta o VENDEDOR'],
   ['Minha posição na Liga (Champions)', 'liga'],
-  ['Minha premiação: metas e indicadores', 'metas da premiacao'],
+  ['Minha premiação / RV: metas e como estou até agora', '__rv__'],
   ['Meus pedidos: status, bloqueados e a faturar', 'status dos pedidos'],
   ['Clientes sem compra no mês', '__curva__'],
   ['O que oferecer (+MIX) aos clientes da rota de hoje', '__mixrota__'],
@@ -123,6 +123,9 @@ export const MENU_VENDEDOR = [
   ['Prospecção: clientes novos perto da rota', 'prospeccao'],
   ['Minhas devoluções', 'minhas devolucoes'],
   ['Ficha de um cliente', '__ficha__'],
+  ['Indústrias e produtos: metas por indústria e "tem <produto>"', '__produto__'],
+  ['Minha carteira: quantos clientes tenho', '__carteira__'],
+  ['Campanhas do mês', '__campanhas__'],
 ];
 export function respMenuVendedor(c) {
   const n = titulo(String(c.nome || '').split(' ')[0]);

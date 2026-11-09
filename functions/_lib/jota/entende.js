@@ -16,7 +16,7 @@ import { respGestaoCampo, respOperacao, respRecorrenciaLances, respRelatorio } f
 import { respJustificativas, respOferecer, respSemDado } from './respostas/oportunidades.js';
 import { pedePeriodo, respClientesSemComprar, respComparaMes, respDiasSemPedido, respPeriodoDias, respPositivadosMesAnterior } from './respostas/periodos.js';
 import { respDiaVendedor, respFalta, respHoje, respMensagensPorVendedor, respTodosVendedores, totaisOficiais, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
-import { respAVisitar, respCheckinEquipe, respClientesVend, respDiaEquipe, respRotaFiltro, respSemVisita, respMixRotaHoje, respMinhaRota, respRecorrenciaClientes, respTagSeparadoPorSupervisor, respRotaHojeCompleta, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
+import { respAVisitar, respCheckinEquipe, respClientesVend, respDiaEquipe, respRotaFiltro, respSemVisita, respMixRotaHoje, respMinhaRota, respCampanhasVendedor, respCarteiraVendedor, respRecorrenciaClientes, respTagSeparadoPorSupervisor, respRotaHojeCompleta, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
 import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo, respPreco, respPedidoNumero, respPedidosStatus, respProduto, respRecuperacao, respTopProdutos } from './respostas/vendas.js';
 import { respSegmentoCnae, respPastas, respEstrategiaFabio, respProspeccaoMapas } from './respostas/segmentos_pastas.js';
 
@@ -319,6 +319,11 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // ENTRADA DIRETA (auditoria 01/11/2026): perguntas reais que a cadeia de regras abaixo mandava para a resposta errada. Prova: testes/jota_falhas_reais.mjs
   {
     const reenvia = (q) => respostaPronta(B, c, q, []);
+    // RV / COMISSAO / SALARIO DO VENDEDOR (Vitorio, 09/11/2026): 'quando perguntar sobre o RV responde que nao tem os dados, mas da as metas e como esta ate agora'.
+    // Antes da regra do mes passado: 'meu RMV do mes passado' recebe o fechamento + o aviso.
+    if (rcaV && /COMISS|SALARI|\bRMV\b|\bRV\b|\bGANHOS?\b|REMUNERA|HOLERITE|PREMIACAO DE VENDAS|MINHA PREMIACAO\b/.test(t)) { const euV = `VENDEDOR ${rcaV}`, passado = /MES PASSADO|MES ANTERIOR|OUTUBRO|SETEMBRO/.test(t);
+      const comoEsta = await reenvia(passado ? 'fechamento do mes passado' : `como esta o ${euV}`), metas = await reenvia('metas da premiacao');
+      return `💰 *Não tenho os dados do RV (premiação em R$) aqui no Jota.* Seguem as suas metas e como você está ${passado ? 'no fechamento do mês passado' : 'até agora'}:\n\n${comoEsta}\n\n${metas}`; }
     if (/\bBALLY\b/.test(t)) return reenvia(t.replace(/\bBALLY\b/g, 'BALY'));   // o catalogo escreve BALY (energetico da Bebidas Grassi); o time escreve Bally
     // MES QUE JA FECHOU, em qualquer jeito de perguntar ("como foi outubro", "bati a meta em outubro?", "quanto vendi mes passado", "fechei a meta?"): o fechamento gravado, nunca o mes que comecou (02/11/2026)
     { const mMes = t.match(/\b(JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO)\b|\bMES (PASSADO|ANTERIOR)\b/), mesesN = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
@@ -348,16 +353,23 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (/(QUANTO VENDI|MINHAS? VENDAS?).*\b(MES|ACUMULADO)\b/.test(t)) return reenvia(`como esta o ${eu}`);   // "no mes" nao e o digitado de hoje (teste com vendas de outubro, 01/11/2026)
       if (/QUANTO VENDI|VENDI HOJE|MINHAS? VENDAS? (DE )?HOJE/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respDiaVendedor(B, Ev, v); }
       if (/MINHA ROTA|^\W*ROTA( DE)? HOJE\W*$/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respMinhaRota(B, v); }
+      // INDICES 13-15 DO MENU (09/11/2026)
+      { const mP = t.match(/^\W*(?:JOTA\W+)?(?:VOCE |VC )?(?:TEM|TEMOS|VENDE|VENDEMOS)\s+(?:O |A |OS |AS )?([A-Z0-9][A-Z0-9 &]{2,40}?)\W*$/); if (mP && !/CLIENTE|ROTA|META|PEDIDO|LIGA/.test(mP[1])) return reenvia(`quem compra ${mP[1].trim()}`); }
+      if (/QUANTOS CLIENTES (EU )?TENHO|MINHA CARTEIRA|TAMANHO DA (MINHA )?CARTEIRA|MEUS CLIENTES\W*$/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respCarteiraVendedor(B, v); }
+      if (/^\W*(ACOMPANHAMENTO D[AO]S? |MINHAS? |AS )?(CAMPANHAS?|COMBOS?|PROMOCO?E?S?)( DO MES| DE NOVEMBRO)?\W*$/.test(t) || /ACOMPANHAMENTO DA CAMPANHA/.test(t)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respCampanhasVendedor(B, v); }
       // MENU DO VENDEDOR (09/11/2026): numero logo depois do menu abre o item; depois de outra lista o numero continua sendo o item daquela lista
       if (/^\s*\d{1,2}\s*$/.test(t) && B.ultOut && /MENU DO JOTA/.test(B.ultOut)) {
         const { MENU_VENDEDOR } = await import('./respostas/liga_mix.js');
         const item = MENU_VENDEDOR[Number(t.trim()) - 1];
         if (!item) return `Esse número não está no menu. Escolha de 1 a ${MENU_VENDEDOR.length}, ou escreva do seu jeito.`;
         if (item[1] === '__curva__') return curvaOuDirecao();
+        if (item[1] === '__rv__') return reenvia('meu rv');
+        if (item[1] === '__produto__') { const m = await reenvia('metas das industrias'); return m + '\n\n👉 Para um produto, mande *tem <produto>* (ex.: *tem Toblerone*).'; }
+        if (item[1] === '__carteira__' || item[1] === '__campanhas__') { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return item[1] === '__carteira__' ? respCarteiraVendedor(B, v) : respCampanhasVendedor(B, v); }
         if (item[1] === '__mixrota__') { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; if (v) return respMixRotaHoje(B, v); return 'Não achei a sua rota de hoje para montar o +MIX.'; }
         if (item[1] === '__ficha__') return 'Mande o *código do cliente* assim: *cliente #12345* (ou o CNPJ) que eu abro a ficha com o histórico e o que oferecer.';
         const r = await reenvia(item[1].replace('VENDEDOR', eu));
-        return Number(t.trim()) === 3 ? r + '\n\n_O valor da premiação em R$ (RV) está no CEVEN, em *Premiação › Holerite simulado*; aqui no Jota vai entrar em breve._' : r;
+        return r;
       }
       // numero da lista da "minha rota": abre a ficha daquele cliente (o numero e o #codigo vem da ultima mensagem enviada)
       if (/^\s*\d{1,3}\s*$/.test(t) && B.ultOut && /Digite o número/i.test(B.ultOut)) {
