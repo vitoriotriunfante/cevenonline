@@ -25,7 +25,9 @@ export function confereContatos(contatos, mostra, arvore) {
         p.push(`${fil} ${c.rca} não existe na Gestão` + (parec.length ? ` (na Gestão: ${parec.slice(0, 3).map((v) => v.fil + ' ' + v.rca).join(', ')})` : ''));
       } else {
         if (!bate(c.nome, ex.nome, 1) && !/^VAGO/i.test(String(ex.nome))) p.push(`nome diferente: na Gestão ${fil} ${ex.rca} é ${ex.nome}`);
-        if (ex.mostra === false) p.push(`Gestão: não mostra${ex.motivo ? ' (' + ex.motivo + ')' : ''}`);
+        // "nao mostra" e da Liga/TV, nao do JOTA (Vitorio, 09/11/2026: "nao misture o jota com o Brasileirao... JOTA tem que responder se for o numero corporativo").
+        // So aponta quem a Gestao marca como DESLIGADO da empresa.
+        if (/DESLIG|DEMIT|RESCIS/i.test(String(ex.motivo || ''))) p.push(`Gestão: ${ex.motivo}`);
         if (ex.supervisor && String(c.supervisor || '').toUpperCase() !== String(ex.supervisor).toUpperCase()) p.push(`supervisor: cadastro "${c.supervisor || '-'}", Gestão "${ex.supervisor}"`);
       }
     } else if (papel === 'supervisor') {
