@@ -1,19 +1,16 @@
 🏢 *BOLETIM DE FECHAMENTO OFICIAL — 18:30*
-📅 06/11/2026
+📅 09/11/2026
 📍 *FILIAL MCD — CLEVERSON*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 62.763,48
-📦 *Pedidos Colocados:* 44 pedidos
-📍 *Visitas Realizadas:* 78 de 102 (76,5%)
-👥 *Vendedores Varejo com Pedido:* 14 de 19 (74%)
-✂️ *Cortes nos Pedidos de Hoje:* R$ 153,09 (1 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 509,60 (1 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 1.933,64
-
-⚠️ *DETALHE DOS CORTES DE HOJE:*
-  ▫️ Cód. 453 • TATIANA MONTANHINI: -R$ 153,09 em  (SKU em falta)
-🟢 *Recuperação de Inativos (+30d):* 1 de 10 PDVs reativados hoje
+💰 *Total Digitado Hoje:* R$ 93.274,85
+📦 *Pedidos Colocados:* 52 pedidos
+📍 *Visitas Realizadas:* 84 de 266 (31,6%)
+👥 *Vendedores Varejo com Pedido:* 10 de 19 (53%)
+✂️ *Cortes nos Pedidos de Hoje:* R$ 0,00 (0 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 9.216,37 (6 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 10.755,69
+🟢 *Recuperação de Inativos (+30d):* 2 de 30 PDVs reativados hoje
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏁 *FECHAMENTO DAS OPERAÇÕES DO DIA CONCLUÍDO.*
