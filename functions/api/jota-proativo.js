@@ -19,7 +19,7 @@ export async function onRequestGet({ env, request }) {
   if (!(await chaveAdminOk(env, request))) return j({ erro: 'nao autorizado' }, 401);
   const u = new URL(request.url), modo = u.searchParams.get('modo') || 'manha', destino = u.searchParams.get('enviar'), so = u.searchParams.get('rca');
   if (!PERGUNTA[modo]) return j({ erro: 'modo: manha, almoco ou fim' }, 400);
-  const { results } = await env.DB.prepare("SELECT c.celular, c.nome, c.papel, c.filial, c.rca, c.supervisor FROM jota_piloto p JOIN bot_contatos c ON c.celular = p.celular WHERE c.papel = 'vendedor'").all();
+  const { results } = await env.DB.prepare("SELECT c.celular, c.nome, c.papel, c.filial, c.rca, c.supervisor FROM jota_piloto p JOIN bot_contatos c ON c.celular = p.celular WHERE c.papel = 'vendedor' AND c.ativo = 1 AND COALESCE(c.situacao,'ativo') = 'ativo'").all();   // suspenso/inativo nao recebe nada (Vitorio, 09/11/2026)
   const alvo = (results || []).filter((c) => !so || String(c.rca) === so);
   const saida = [];
   for (const c of alvo) {

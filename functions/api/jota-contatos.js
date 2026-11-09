@@ -286,6 +286,28 @@ _Meu DNA é Triunfante!_ 💪`
   if (acao === 'recusar') { await muda(0, 'recusado'); return j({ ok: true }); }
   if (acao === 'desativar') { await muda(0, 'inativo'); return j({ ok: true }); }
   // SUSPENSO (Vitorio, 09/11/2026): acesso parado ate o vendedor responder SIM (salvar o contato). Nao manda nada: o aviso sai quando ELE escrever.
-  if (acao === 'suspender') { await muda(0, 'suspenso'); return j({ ok: true }); }
+  if (acao === 'suspender') {
+    await muda(0, 'suspenso');
+    // AVISO DA SUSPENSAO (Vitorio, 09/11/2026: "nao envie tudo de uma vez... respeite o antispam... varie o tipo de msg"): vai para a FILA
+    // (cron-varredura: 2 por rodada, pausa humana, teto do dia) com um de varios textos; o SIM reativa sozinho (bot.js).
+    const p0 = String(antes.nome || '').split(' ')[0], pN = p0.charAt(0) + p0.slice(1).toLowerCase();
+    const MODELOS = [
+      `⚠️ *${pN}*, o seu acesso ao *Jota* foi *suspenso* porque ainda não recebemos a sua confirmação.
+
+Para voltar: salve este número como *Jota (+MIX)* e me responda aqui com a palavra *SIM*.`,
+      `Oi, *${pN}*! Aqui é o *Jota* ⚽. Seu acesso está *suspenso* até você confirmar o contato.
+
+*Obrigatório:* salve este número na sua agenda como *Jota (+MIX)* e responda *SIM*. O acesso volta na hora.`,
+      `*${pN}*, falta só um passo para liberar o *Jota* de novo: salve este número como *Jota (+MIX)* e me mande *SIM*.
+
+Sem isso o acesso fica *suspenso*.`,
+      `Atenção, *${pN}*: o *Jota* está *suspenso* para o seu número. 📵
+
+Salve o contato como *Jota (+MIX)* e responda aqui com *SIM* para reativar.`
+    ];
+    const msgS = MODELOS[Math.floor(Math.random() * MODELOS.length)];
+    try { await env.DB.prepare("DELETE FROM bot_envio_fila WHERE celular = ? AND tipo = 'suspenso_aviso'").bind(cel).run(); await env.DB.prepare("INSERT INTO bot_envio_fila (celular, numero, nome, texto, tipo) VALUES (?, ?, ?, ?, 'suspenso_aviso')").bind(cel, cel, antes.nome, msgS).run(); } catch (e) {}
+    return j({ ok: true, aviso: 'na_fila' });
+  }
   return j({ erro: 'acao invalida' }, 400);
 }

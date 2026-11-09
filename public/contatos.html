@@ -897,7 +897,7 @@ header { padding: 10px 20px; background: var(--sidebar); backdrop-filter: none; 
       <select id="cad-filtro-linha" title="Status da linha na base da operadora (linha_corporativa)"><option value="">Linha: todas</option><option value="ATIVO">🟢 Linha corporativa ativa</option><option value="SUSPENSO">🟠 Linha suspensa</option><option value="NENHUMA">🔴 Não é linha corporativa</option></select>
       <select id="cad-filtro-link" title="Cadastro feito pelo link do Passaporte (CPF + indicadores preenchidos)"><option value="">Link: todos</option><option value="sim">🔗 Entrou pelo link</option><option value="nao">⛔ Sem link</option></select>
       <select id="cad-filtro-salvou" title="Respondeu SIM confirmando que salvou o contato do Jota (lido das conversas)"><option value="">Salvou o Jota? (todos)</option><option value="sim">✅ Confirmou SIM</option><option value="nao">❌ Não confirmou</option><option value="nao_pedido">❌ Recebeu o pedido e não respondeu</option></select>
-      <button id="cad-suspender-filtrados" class="no" title="Suspende (sem enviar mensagem) todos os vendedores ATIVOS da lista filtrada. O aviso sai quando cada um escrever para o Jota; o SIM reativa sozinho.">⏸️ Suspender vendedores ativos filtrados</button>
+      <button id="cad-suspender-sel" class="no" title="Suspende os vendedores marcados. O aviso vai pela fila (2 por rodada, com pausa e texto variado); o SIM reativa sozinho.">⏸️ Suspender selecionados (0)</button>
       <span id="cad-contagem-salvou" style="font-size:12px; color:var(--txt-mut); align-self:center;"></span>
     </div>
 
@@ -905,6 +905,7 @@ header { padding: 10px 20px; background: var(--sidebar); backdrop-filter: none; 
       <table>
         <thead>
           <tr>
+            <th style="width:28px;"><input type="checkbox" id="cad-sel-todos" title="Marcar todos os vendedores ativos da lista filtrada"></th>
             <th>Nome</th>
             <th>Cargo</th>
             <th>Filial</th>
@@ -2150,6 +2151,7 @@ function renderizarGestaoContatos() {
   const tbody = $('cad-tabela-corpo');
   tbody.innerHTML = filtrados.map((c) => `
     <tr>
+      <td>${c.papel === 'vendedor' && c.situacao === 'ativo' ? `<input type="checkbox" class="cad-sel" data-cel="${esc(c.celular)}" ${(window.__cadSel || new Set()).has(c.celular) ? 'checked' : ''}>` : ''}</td>
       <td><b>${c.piloto ? '⭐ ' : ''}${esc(tit(c.nome))}</b> ${c.salvou_jota ? `<span title="Confirmou SIM em ${esc(c.salvou_jota)}">✅ salvou</span>` : c.pedido_salvar ? '<span title="Recebeu o pedido para salvar o contato e não respondeu SIM" style="color:var(--bad,#e55)">❌ não confirmou</span>' : ''}</td>
       <td>${esc(c.papel === 'grupo' ? '🚂 Grupo' : c.papel)}</td>
       <td>${esc(c.filial || 'Todas')}${c.grupo ? ' · ' + esc(tit(c.grupo)) : ''}</td>
@@ -2193,7 +2195,7 @@ function renderizarGestaoContatos() {
     b.onclick = async () => {
       const a = b.dataset.acao;
       const cel = b.dataset.cel;
-      const NOMEA = { desativar: 'Desativar', ativar: 'Reativar', suspender: 'Suspender (até responder SIM)' };
+      const NOMEA = { desativar: 'Desativar', ativar: 'Reativar', suspender: 'Suspender até responder SIM (o aviso vai pela fila)' };
       if (!confirm(`${NOMEA[a] || a} o acesso de +${cel}?`)) return;
       try {
         await api('POST', '/api/jota-contatos', { acao: a, celular: cel });
@@ -2218,14 +2220,18 @@ $('cad-filtro-situacao').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-salvou').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-linha').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-link').onchange = () => renderizarGestaoContatos();
-$('cad-suspender-filtrados').onclick = async () => {
-  const lista = (window.__cadFiltrados || []).filter((c) => c.papel === 'vendedor' && c.situacao === 'ativo');
-  if (!lista.length) { aviso('Nenhum vendedor ATIVO na lista filtrada.', 'erro'); return; }
-  if (!confirm(`Suspender ${lista.length} vendedor(es) ativo(s) da lista filtrada?
+window.__cadSel = window.__cadSel || new Set();
+const atualizaSel = () => { const b = $('cad-suspender-sel'); if (b) b.textContent = `⏸️ Suspender selecionados (${window.__cadSel.size})`; };
+$('cad-sel-todos').onchange = (e) => { const vis = (window.__cadFiltrados || []).filter((c) => c.papel === 'vendedor' && c.situacao === 'ativo'); vis.forEach((c) => e.target.checked ? window.__cadSel.add(c.celular) : window.__cadSel.delete(c.celular)); renderizarGestaoContatos(); atualizaSel(); };
+$('cad-tabela-corpo').addEventListener('change', (e) => { if (!e.target.classList.contains('cad-sel')) return; e.target.checked ? window.__cadSel.add(e.target.dataset.cel) : window.__cadSel.delete(e.target.dataset.cel); atualizaSel(); });
+$('cad-suspender-sel').onclick = async () => {
+  const sel = [...window.__cadSel];
+  if (!sel.length) { aviso('Marque os vendedores na primeira coluna (ou use a caixa do cabeçalho).', 'erro'); return; }
+  if (!confirm(`Suspender ${sel.length} vendedor(es) marcado(s)?
 
-Não envia mensagem agora: o aviso sai quando cada um escrever para o Jota, e o SIM reativa sozinho.`)) return;
-  let ok = 0; for (const c of lista) { try { await api('POST', '/api/jota-contatos', { acao: 'suspender', celular: c.celular }); ok++; } catch (e) {} }
-  aviso(`${ok} vendedor(es) suspenso(s).`, 'ok'); await carregarTudo();
+O aviso vai pela fila: 2 por rodada, com pausa e texto variado (antispam). Leva uns ${Math.max(5, Math.round(sel.length * 2.5))} min para todos receberem. O SIM reativa sozinho.`)) return;
+  let ok = 0; for (const cel of sel) { try { await api('POST', '/api/jota-contatos', { acao: 'suspender', celular: cel }); ok++; window.__cadSel.delete(cel); } catch (e) {} }
+  atualizaSel(); aviso(`${ok} vendedor(es) suspenso(s); avisos na fila.`, 'ok'); await carregarTudo();
 };
 
 if ($('btn-sync-grupos')) {
