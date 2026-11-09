@@ -147,7 +147,10 @@ export async function onRequestPost({ request, env }) {
     if (seco) return new Response(msg);
     await enviar(env, destino, msg); return new Response('ok');
   }
-  if (!c) {   // so responde quem esta cadastrado — EXCETO o supervisor que se apresenta com "Nome ... COD 123" (codigo da arvore do CEVEN e nome batendo)
+  // SEM CADASTRO = SEM RESPOSTA (Vitorio, 09/11/2026: 'vendedor e so via link'; Glacilda pediu pelo WhatsApp e virou supervisor).
+  // Pedido de acesso so pelo link do passaporte; quem decide e o Vitorio em /contatos (Liberar acesso). A mensagem fica gravada (aba 'Sem acesso').
+  if (!c && !seco) return new Response('ok (sem cadastro: pedido de acesso so pelo link do passaporte)');
+  if (!c) {   // (abaixo: fluxo antigo de cadastro pelo WhatsApp, desligado em 09/11/2026; so roda no modo de teste 'seco') — EXCETO o supervisor que se apresenta com "Nome ... COD 123" (codigo da arvore do CEVEN e nome batendo)
     // Se cel não for um número de telefone real válido (não começa com 55 ou tamanho inválido): é um @lid anônimo. Não envia resposta de cadastro.
     const ehCelReal = cel.startsWith('55') && cel.length >= 12 && cel.length <= 13;
     if (!ehCelReal) return new Response('ok (lid sem cel)');
