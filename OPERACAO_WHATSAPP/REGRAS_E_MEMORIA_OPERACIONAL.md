@@ -298,3 +298,9 @@ Planilha na raiz do projeto (fora do git, tem dado de pessoa real — mesmo trat
 - Vendedor suspenso **não recebe nenhuma mensagem nem resposta** do Jota. Se escrever, recebe só o aviso para salvar o contato e responder SIM (no máximo 1x por dia). SIM = acesso reativado na hora.
 - Envios proativos (piloto) pulam suspenso e inativo.
 - Glacilda (API 283, pediu pela mensagem): perdoada pelo Vitório; fica ativa.
+
+## 09/11/2026 — CAMPANHA "CONFIRME COM SIM" (Vitório)
+- 189 ativos sem SIM (59 supervisores, 130 vendedores) em `jota_campanha_sim`. Ordem: quem falou com o Jota nas 24 h (não gasta o teto), supervisores, vendedores.
+- Sai pela varredura (`cron-varredura-central.js`, `campanhaSim`): só com a fila de reenvio vazia; seg–sáb 09h–18h; 2 por rodada com pausa de 18 s ou mais; 4 textos variados com **SIM** em negrito e o aviso de suspensão; teto de 40 pessoas/dia espalha pelos dias.
+- Quem responder SIM sai da lista; a suspensão de quem não responder é manual (Vitório, em /contatos).
+- Acompanhar: `coleta_estado` chave `fila_rodada` (campo campanha) e `jota_campanha_sim.enviado_em`.

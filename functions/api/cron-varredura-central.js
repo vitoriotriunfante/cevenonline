@@ -295,6 +295,31 @@ async function salvaBan(env) {
 // REENVIO DO WHATSAPP (01/11/2026): resposta do JOTA que nao saiu com o servidor fora volta a cada rodada, por ate 2 horas. Depois disso e velha demais: sai da fila com o erro ja registrado.
 // DE ONDE A RODADA SAI (01/11/2026): disparada pelo agendador todas as chamadas travaram; disparada de fora, responderam. O CEVEN trava quem vem de fora do Brasil.
 async function saidaDaRodada() { try { const t = await (await fetch('https://www.cloudflare.com/cdn-cgi/trace', { signal: AbortSignal.timeout(4000) })).text(); return ((t.match(/colo=(\w+)/) || [])[1] || '?') + '/' + ((t.match(/loc=(\w+)/) || [])[1] || '?'); } catch { return 'sem_resposta'; } }
+// CAMPANHA "CONFIRME COM SIM" (Vitorio, 09/11/2026): pede a supervisores e vendedores ativos que ainda nao confirmaram que salvaram o Jota.
+// Em ondas: so quando a fila de reenvio esta vazia; seg-sab 09h-18h; 2 por rodada com pausa humana; teto do dia (40 pessoas) espalha pelos dias;
+// quem ja respondeu SIM (salvou_jota) ou saiu do ativo e pulado. Lista em jota_campanha_sim (ordem: falou nas 24h, supervisor, vendedor).
+const MODELOS_SIM = [
+  (n) => `Oi, *${n}*! Aqui é o *Jota* ⚽.\n\nPreciso que você confirme que *salvou este número* nos seus contatos como *Jota (+MIX)*.\n\n👉 Responda apenas com a palavra:\n\n*SIM*\n\n⚠️ Sem a confirmação, o envio de mensagens do Jota para você será *suspenso* até você responder.`,
+  (n) => `*${n}*, um passo rápido para continuar usando o *Jota* ⚽:\n\n1️⃣ Salve este número como *Jota (+MIX)*\n2️⃣ Me responda aqui só com:\n\n*SIM*\n\n⚠️ Quem não confirmar terá as mensagens do Jota *suspensas* até responder.`,
+  (n) => `Olá, *${n}*! ⚽\n\nPara garantir que as mensagens do *Jota* cheguem até você, confirme que o contato *Jota (+MIX)* está salvo respondendo:\n\n*SIM*\n\n⚠️ Sem essa resposta, os envios ficam *suspensos* até a confirmação.`,
+  (n) => `*${n}*, aqui é o *Jota* (+MIX). 📲\n\n*Confirme que salvou este contato* respondendo apenas:\n\n*SIM*\n\n⚠️ Atenção: sem a confirmação, o Jota vai *suspender* o envio de mensagens para o seu número até você responder.`
+];
+async function campanhaSim(env, diag) {
+  const { h, dow } = R.relogioSP(); if (dow === 0 || h < 9 || h >= 18) { diag.campanha = 'fora do horario'; return; }
+  const { results } = await env.DB.prepare("SELECT k.id, k.celular, c.nome FROM jota_campanha_sim k JOIN bot_contatos c ON c.celular = k.celular WHERE k.enviado_em IS NULL AND c.ativo = 1 AND COALESCE(c.situacao,'ativo') = 'ativo' AND c.salvou_jota IS NULL ORDER BY k.ordem, k.id LIMIT 2").all().catch(() => ({ results: [] }));
+  diag.campanha = { lidas: (results || []).length, enviadas: 0 };
+  let i = 0;
+  for (const k of results || []) {
+    if (i++) await R.pausaEntreEnvios(20, 2, 18);
+    const q = await cotaEnvio(env, String(k.celular).replace(/\D/g, '')); if (!q.ok) { diag.campanha.parou = 'teto: ' + q.erro; break; }
+    const p0 = String(k.nome || '').split(' ')[0], nome = p0.charAt(0) + p0.slice(1).toLowerCase();
+    const texto = MODELOS_SIM[Math.floor(Math.random() * MODELOS_SIM.length)](nome);
+    const r = await R.enviarTexto(R.evoCfg(env), k.celular, texto).catch(() => null);
+    if (!r || !r.ok) { diag.campanha.parou = 'envio falhou: ' + (r ? r.status : 'sem resposta'); break; }
+    await env.DB.batch([env.DB.prepare("UPDATE jota_campanha_sim SET enviado_em = CURRENT_TIMESTAMP WHERE id = ?").bind(k.id), env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,'out',?,'campanha_sim')").bind(k.celular, k.nome, texto)]);
+    diag.campanha.enviadas++;
+  }
+}
 async function reenviaFila(env) {
   // DIAGNOSTICO (09/11/2026: 28 mensagens paradas com 0 tentativas): cada rodada grava o que a fila fez em coleta_estado 'fila_rodada'
   const diag = { quando: new Date().toISOString(), lidas: 0, enviadas: 0, parou: null };
@@ -313,6 +338,7 @@ async function reenviaFila(env) {
     await env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) SELECT celular, nome, 'erro', '[NAO ENTREGUE apos ' || tentativas || ' tentativas] ' || substr(texto, 1, 3900), tipo FROM bot_envio_fila WHERE criado_em <= datetime('now','-2 hours')").run();
     await env.DB.prepare("DELETE FROM bot_envio_fila WHERE criado_em <= datetime('now','-2 hours')").run();
   } catch (e) { diag.parou = 'erro: ' + String(e && e.message || e).slice(0, 200); }
+  if (!diag.lidas) { try { await campanhaSim(env, diag); } catch (e) { diag.campanha = 'erro: ' + String(e && e.message || e).slice(0, 200); } }
   try { await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('fila_rodada', ?, 'o que a fila de reenvio fez na ultima rodada', CURRENT_TIMESTAMP) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = CURRENT_TIMESTAMP").bind(JSON.stringify(diag)).run(); } catch (e) {}
 }
 async function registraTick(env, modo, rcas, gravados, duracaoMs) {
