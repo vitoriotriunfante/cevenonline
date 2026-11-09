@@ -35,8 +35,24 @@ cursor.execute("""
     FROM rca_segmentos s
     ORDER BY s.filial_sigla, s.rca_id
 """)
-vendedores = cursor.fetchall()
-print(f"Total de vendedores na hierarquia oficial: {len(vendedores)}")
+vendedores_antigos = cursor.fetchall()
+# HIERARQUIA ATUAL (Vitorio, 09/11/2026: "precisa buscar a hierarquia atual para popular... os do passado ficam apenas registrados").
+# A lista do Data Lake (rca_segmentos) tinha 646 codigos, inclusive quem ja saiu. Vale a Gestao de Equipe de AGORA (/api/tv-mostra, mostra = SIM).
+# Sem a Gestao, PARA (nunca volta para a lista antiga).
+try:
+    _mo = requests.get('https://ceven-cftv-matrix.pages.dev/api/tv-mostra', timeout=30).json()
+    vendedores = []
+    for _k, _L in (_mo.get('filiais') or {}).items():
+        for _v in _L:
+            if _v.get('mostra') is False or not _v.get('rca'):
+                continue
+            vendedores.append((_k.split('_')[0], str(_v.get('rca')), _v.get('nome') or '', _v.get('supervisor') or '', _v.get('gerente') or '', _v.get('canal') or ''))
+    vendedores = sorted(set(vendedores))
+except Exception as _e:
+    raise SystemExit(f'Gestao de Equipe indisponivel ({_e}); nao uso a hierarquia antiga do Data Lake')
+if not vendedores:
+    raise SystemExit('Gestao de Equipe veio vazia; nao uso a hierarquia antiga do Data Lake')
+print(f"Vendedores da hierarquia ATUAL (Gestao de Equipe, mostra=SIM): {len(vendedores)} (lista antiga do Data Lake: {len(vendedores_antigos)}, fica so no registro)")
 
 # 2. Coletar Roteiros de Hoje de TODOS os vendedores em paralelo
 pdvs_hoje = []
