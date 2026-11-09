@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-11-09T10:48:33.943994Z",
+  "gerado_em": "2026-11-09T11:03:44.740603Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -25,7 +25,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 44769,
+  "total_lances_auditados": 44773,
   "filiais": [
     {
       "sigla": "TBL",
@@ -187,9 +187,9 @@
       "vitorias": 0,
       "empates": 18,
       "derrotas": 0,
-      "gp": 9122,
+      "gp": 9127,
       "gc": 3339,
-      "sg": 5783,
+      "sg": 5788,
       "aprov": 33.3,
       "super_pedidos": 36,
       "inativos_resgatados": 150,
@@ -301,9 +301,9 @@
       "vitorias": 0,
       "empates": 18,
       "derrotas": 0,
-      "gp": 3797,
+      "gp": 3802,
       "gc": 3505,
-      "sg": 292,
+      "sg": 297,
       "aprov": 33.3,
       "super_pedidos": 25,
       "inativos_resgatados": 124,
@@ -614,9 +614,9 @@
       "vitorias": 0,
       "empates": 18,
       "derrotas": 0,
-      "gp": 9122,
+      "gp": 9127,
       "gc": 3339,
-      "sg": 5783,
+      "sg": 5788,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -731,9 +731,9 @@
       "vitorias": 0,
       "empates": 18,
       "derrotas": 0,
-      "gp": 3797,
+      "gp": 3802,
       "gc": 3505,
-      "sg": 292,
+      "sg": 297,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -1706,7 +1706,7 @@
         "E",
         "J"
       ],
-      "plus_lideranca": 175,
+      "plus_lideranca": 180,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -1781,7 +1781,7 @@
           "ret": 5
         },
         "2026-11-09": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -2514,9 +2514,9 @@
       "vitorias": 5,
       "empates": 13,
       "derrotas": 0,
-      "gp": 2019,
+      "gp": 2024,
       "gc": 791,
-      "sg": 1228,
+      "sg": 1233,
       "aprov": 51.9,
       "forma": [
         "E",
@@ -3414,7 +3414,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 120,
+      "plus_lideranca": 125,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 5,
@@ -3489,7 +3489,7 @@
           "ret": 0
         },
         "2026-11-09": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -6032,7 +6032,7 @@
         "D",
         "J"
       ],
-      "plus_lideranca": 145,
+      "plus_lideranca": 150,
       "plus_detalhe": {
         "2026-10-13": {
           "compromisso": 0,
@@ -6107,7 +6107,7 @@
           "ret": 0
         },
         "2026-11-09": {
-          "compromisso": 0,
+          "compromisso": 5,
           "ret": 0
         }
       },
@@ -6235,6 +6235,125 @@
       "pos_ant": 10
     },
     {
+      "supervisor": "HAMILTON RICARDO DOS SANTOS MENDES",
+      "filial": "TBE",
+      "canal": "VAREJO",
+      "gerente": "Diego",
+      "total_vendedores": 7,
+      "jogos": 18,
+      "pts_tabela": 10,
+      "vitorias": 0,
+      "empates": 10,
+      "derrotas": 8,
+      "gp": 900,
+      "gc": 1714,
+      "sg": -814,
+      "aprov": 18.5,
+      "forma": [
+        "E",
+        "D",
+        "D",
+        "E",
+        "E",
+        "E",
+        "E",
+        "D",
+        "E",
+        "E",
+        "E",
+        "D",
+        "D",
+        "E",
+        "D",
+        "D",
+        "E",
+        "D",
+        "J"
+      ],
+      "plus_lideranca": 160,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-14": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-15": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-16": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-19": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-21": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-22": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-23": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-26": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-27": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-28": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-29": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-10-30": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-05": {
+          "compromisso": 5,
+          "ret": 5
+        },
+        "2026-11-06": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-09": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 36,
+      "pos_ant": 36
+    },
+    {
       "supervisor": "CARLOS EDUARDO DA SILVA CAMARGO",
       "filial": "TCV",
       "canal": "AS",
@@ -6352,125 +6471,6 @@
       "plus_pendente": false,
       "pos": 11,
       "pos_ant": 11
-    },
-    {
-      "supervisor": "HAMILTON RICARDO DOS SANTOS MENDES",
-      "filial": "TBE",
-      "canal": "VAREJO",
-      "gerente": "Diego",
-      "total_vendedores": 7,
-      "jogos": 18,
-      "pts_tabela": 10,
-      "vitorias": 0,
-      "empates": 10,
-      "derrotas": 8,
-      "gp": 895,
-      "gc": 1714,
-      "sg": -819,
-      "aprov": 18.5,
-      "forma": [
-        "E",
-        "D",
-        "D",
-        "E",
-        "E",
-        "E",
-        "E",
-        "D",
-        "E",
-        "E",
-        "E",
-        "D",
-        "D",
-        "E",
-        "D",
-        "D",
-        "E",
-        "D",
-        "J"
-      ],
-      "plus_lideranca": 155,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-14": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-15": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-16": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-19": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-10-20": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-21": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-22": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-23": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-26": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-27": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-28": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-29": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-10-30": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-11-03": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-11-04": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-11-05": {
-          "compromisso": 5,
-          "ret": 5
-        },
-        "2026-11-06": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-11-09": {
-          "compromisso": 0,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
-      "pos": 36,
-      "pos_ant": 36
     },
     {
       "supervisor": "LEANDRO MARINHO ABRANCHES",
@@ -16144,6 +16144,54 @@
       "pos_filial_ant": 19
     },
     {
+      "rca": "534",
+      "nome": "KAUE DOS SANTOS",
+      "filial": "ABC",
+      "supervisor": "RODRIGO STELLEO COSTA LEITE",
+      "gerente": "Marcos",
+      "canal": "VAREJO",
+      "jogos": 19,
+      "vitorias": 6,
+      "empates": 6,
+      "derrotas": 7,
+      "pts_tabela": 24,
+      "aprov": 42.1,
+      "gp": 424,
+      "gc": 343,
+      "sg": 81,
+      "super_pedidos": 0,
+      "inativos_resgatados": 5,
+      "forma": [
+        "E",
+        "V",
+        "V",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "V",
+        "D",
+        "E",
+        "E",
+        "D",
+        "E",
+        "V",
+        "V",
+        "E",
+        "V",
+        "E"
+      ],
+      "streak": 2,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 122,
+      "pos_filial": 14,
+      "pos_brasil_ant": 127,
+      "pos_filial_ant": 14
+    },
+    {
       "rca": "128",
       "nome": "RENAN LECHUK",
       "filial": "TPH",
@@ -16186,7 +16234,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 122,
+      "pos_brasil": 123,
       "pos_filial": 11,
       "pos_brasil_ant": 122,
       "pos_filial_ant": 11
@@ -16234,7 +16282,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 123,
+      "pos_brasil": 124,
       "pos_filial": 16,
       "pos_brasil_ant": 123,
       "pos_filial_ant": 16
@@ -16282,7 +16330,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 1,
       "bonus_semana_invicta": 3,
-      "pos_brasil": 124,
+      "pos_brasil": 125,
       "pos_filial": 17,
       "pos_brasil_ant": 124,
       "pos_filial_ant": 17
@@ -16330,7 +16378,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 125,
+      "pos_brasil": 126,
       "pos_filial": 12,
       "pos_brasil_ant": 125,
       "pos_filial_ant": 12
@@ -16378,58 +16426,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 126,
+      "pos_brasil": 127,
       "pos_filial": 18,
       "pos_brasil_ant": 126,
       "pos_filial_ant": 18
-    },
-    {
-      "rca": "534",
-      "nome": "KAUE DOS SANTOS",
-      "filial": "ABC",
-      "supervisor": "RODRIGO STELLEO COSTA LEITE",
-      "gerente": "Marcos",
-      "canal": "VAREJO",
-      "jogos": 18,
-      "vitorias": 6,
-      "empates": 5,
-      "derrotas": 7,
-      "pts_tabela": 23,
-      "aprov": 42.6,
-      "gp": 419,
-      "gc": 343,
-      "sg": 76,
-      "super_pedidos": 0,
-      "inativos_resgatados": 5,
-      "forma": [
-        "E",
-        "V",
-        "V",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "V",
-        "D",
-        "E",
-        "E",
-        "D",
-        "E",
-        "V",
-        "V",
-        "E",
-        "V",
-        "J"
-      ],
-      "streak": 2,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 127,
-      "pos_filial": 14,
-      "pos_brasil_ant": 127,
-      "pos_filial_ant": 14
     },
     {
       "rca": "102",
@@ -22720,6 +22720,54 @@
       "pos_filial_ant": 10
     },
     {
+      "rca": "304",
+      "nome": "CLAUDIO FAYH",
+      "filial": "TBE",
+      "supervisor": "HAMILTON RICARDO DOS SANTOS MENDES",
+      "gerente": "Diego",
+      "canal": "VAREJO",
+      "jogos": 19,
+      "vitorias": 2,
+      "empates": 4,
+      "derrotas": 13,
+      "pts_tabela": 10,
+      "aprov": 17.5,
+      "gp": 158,
+      "gc": 424,
+      "sg": -266,
+      "super_pedidos": 0,
+      "inativos_resgatados": 5,
+      "forma": [
+        "D",
+        "E",
+        "D",
+        "V",
+        "E",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "E",
+        "V",
+        "D",
+        "D",
+        "D",
+        "D",
+        "E"
+      ],
+      "streak": 1,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 220,
+      "pos_filial": 11,
+      "pos_brasil_ant": 226,
+      "pos_filial_ant": 11
+    },
+    {
       "rca": "74",
       "nome": "ALAERCIO FERNANDES DE CAMPOS",
       "filial": "TPH",
@@ -22762,7 +22810,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 220,
+      "pos_brasil": 221,
       "pos_filial": 34,
       "pos_brasil_ant": 220,
       "pos_filial_ant": 34
@@ -22906,7 +22954,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 221,
+      "pos_brasil": 222,
       "pos_filial": 21,
       "pos_brasil_ant": 221,
       "pos_filial_ant": 21
@@ -22954,7 +23002,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 222,
+      "pos_brasil": 223,
       "pos_filial": 26,
       "pos_brasil_ant": 222,
       "pos_filial_ant": 26
@@ -23002,7 +23050,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 223,
+      "pos_brasil": 224,
       "pos_filial": 22,
       "pos_brasil_ant": 223,
       "pos_filial_ant": 22
@@ -23050,7 +23098,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 224,
+      "pos_brasil": 225,
       "pos_filial": 23,
       "pos_brasil_ant": 224,
       "pos_filial_ant": 23
@@ -23098,58 +23146,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 225,
+      "pos_brasil": 226,
       "pos_filial": 35,
       "pos_brasil_ant": 225,
       "pos_filial_ant": 35
-    },
-    {
-      "rca": "304",
-      "nome": "CLAUDIO FAYH",
-      "filial": "TBE",
-      "supervisor": "HAMILTON RICARDO DOS SANTOS MENDES",
-      "gerente": "Diego",
-      "canal": "VAREJO",
-      "jogos": 18,
-      "vitorias": 2,
-      "empates": 3,
-      "derrotas": 13,
-      "pts_tabela": 9,
-      "aprov": 16.7,
-      "gp": 153,
-      "gc": 424,
-      "sg": -271,
-      "super_pedidos": 0,
-      "inativos_resgatados": 5,
-      "forma": [
-        "D",
-        "E",
-        "D",
-        "V",
-        "E",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "E",
-        "V",
-        "D",
-        "D",
-        "D",
-        "D",
-        "J"
-      ],
-      "streak": 1,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 226,
-      "pos_filial": 11,
-      "pos_brasil_ant": 226,
-      "pos_filial_ant": 11
     },
     {
       "rca": "1112",
@@ -49932,7 +49932,7 @@
         "supervisor": "RAFAEL DA SILVA CARPENA",
         "gerente": "Radke / Leandro",
         "meta_mes": 245899,
-        "pct_hoje": -0.4,
+        "pct_hoje": -0.8,
         "fases": [
           {
             "n": 1,
