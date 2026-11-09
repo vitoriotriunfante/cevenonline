@@ -28,7 +28,7 @@ const SO_POR_APELIDO = new Set(['TRIUNFANTE']);
 // interpreta a pergunta (função pura: testada em testes/gerot_industria.mjs)
 // nomes = lista de nomes de fornecedor do GEROT (ex.: 'A - CONDOR SA'); anterior = filtros da pergunta anterior (continuação)
 export function entendeGerot(texto, nomes, hoje = hojeSP(), anterior = null) {
-  const t = ' ' + sem(texto).replace(/\s+/g, ' ') + ' ';
+  const t = ' ' + sem(texto).replace(/\s+/g, ' ').replace(/\bCOTAS?\b/g, 'META') + ' ';   // COTA = META (09/11/2026)
   // indústria: apelido do dicionário (palavra inteira, 3+ letras) ou chave do nome no GEROT
   const achadas = new Set();
   for (const [ap, razao] of Object.entries(DE_PARA_INDUSTRIAS)) {

@@ -97,7 +97,7 @@ export async function respostaPronta(B, c, texto0, anteriores) {
 // e oferecendo proativamente os dados da equipe dele.
 export function foraDoEscopoContato(c, texto) {
   if (!c || !c.papel) return null;
-  const t = sem(texto).trim();
+  const t = sem(texto).trim().replace(/\bCOTAS?\b/g, 'META');   // COTA = META (09/11/2026)
   const fm = t.match(FRX);
 
   // Coisas universais abertas a todos: Champions/Liga, ajuda, glossário, sugestão, horários, regras/regulamento
@@ -289,7 +289,7 @@ async function respFichaCliente(B, E, t, achado) {
   return [cab, ultima, ...(itens.length ? ['', '*Última compra:*', ...itens.slice(0, 8)] : []), ...(parou.length ? ['', '*Comprava e parou:*', ...parou.slice(0, 5)] : []), '', SUGESTAO + 'peça "o que oferecer" ou "últimos pedidos dele".'].join('\n');
 }
 export async function respostaInterna(B, c, texto, anteriores) {
-  let t = sem(texto);
+  let t = sem(texto).replace(/\bCOTAS?\b/g, 'META');   // COTA = META (Vitorio, 09/11/2026: 'quando usam a palavra COTA querem saber da META')
   // "Sugestao" sozinha (27/10/2026, Thiago/Sueli/Rodrigo: a IA inventava uma resposta): pede a sugestao
   if (/^\W*SUGEST(AO|OES|AO DO JOTA)?\W*$/.test(t)) return '💡 Pode mandar! Escreva *"sugestão:"* e o que você quer que eu faça diferente (ex.: "sugestão: mandar a meta de cada vendedor"). Vai direto para o time que me treina.';
   // escopo: gerente = a filial dele; diretoria = a filial citada, senao o Brasil
