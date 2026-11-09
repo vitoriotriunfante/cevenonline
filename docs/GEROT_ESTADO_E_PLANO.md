@@ -43,7 +43,7 @@
 ## 6. Coleta online — construída em 09/11/2026
 - Robô: `pipeline/gerot_coletor_online.mjs` (login por segredo, "Extrair dados" com Mês + Filial + Supervisor + Vendedor + Fornecedor e os cálculos de faturamento, devolução, positivação, meta e carteira; "Baixar Excel").
 - Agenda: `.github/workflows/gerot-coleta.yml` — 09h15, 11h15, 13h15, 15h15, 17h15, 19h15, segunda a sábado; manual com "ensaio" (lê sem gravar) e escolha de meses (ex.: `2026-08,2026-09,2026-10` para o histórico).
-- Gravação: `/api/gerot-carga` → D1 `gerot_vendas` (chave mês+filial+rca+fornecedor+supervisor; só grava o que mudou) e `gerot_coleta_status` (cada carga, com a posição do GEROT e as colunas que vieram).
+- Gravação: `/api/gerot-carga` → D1 `gerot_vendas` (chave mês+filial+rca+supervisor+fornecedor "NOME #código" — a mesma indústria pode ter 2 códigos; só grava o que mudou) e `gerot_coleta_status` (cada carga, com a posição do GEROT e as colunas que vieram).
 - Prints e o Excel de cada rodada ficam 7 dias nos artefatos do GitHub (conferência).
 - Falta: segredos `GEROT_EMAIL` e `GEROT_SENHA` no GitHub; 1º ensaio; carga do histórico; resposta do JOTA (seção 4, item 2).
 

@@ -115,10 +115,13 @@ function linhasDoExcel(arq, mes) {
     const m = iMes >= 0 && r[iMes] ? String(r[iMes]).slice(0, 7) : mes;
     if (m !== mes) continue;   // 09/11/2026: a janela pode ter outro mes marcado; so vale o mes pedido (senao grava zeros por cima do mes certo)
     const filial = filialDe(r[iFil]); const rca = String(iCv >= 0 ? r[iCv] ?? '' : '').trim() || String(r[iVen] || '').trim();
-    const forn = String(r[iFor] || '').trim();
-    if (!filial || !rca || !forn || /^total/i.test(forn)) continue;
+    const fornNome = String(r[iFor] || '').trim();
+    // mesma industria com 2 codigos/CNPJs (ex.: Bagley 25987 e 25991): a chave leva o codigo, para nao apagar uma linha com a outra (09/11/2026)
+    const forn = fornNome && iCf >= 0 && r[iCf] != null && r[iCf] !== '' ? `${fornNome} #${r[iCf]}` : fornNome;
+    if (!filial || !rca || !forn || /^total/i.test(fornNome)) continue;
     const dados = {}; H.forEach((h, k) => { if (!chaves.has(k) && h) dados[h] = num(r[k]); });
     if (iCf >= 0) dados['Cód. fornecedor'] = r[iCf];
+    dados['Fornecedor'] = fornNome;
     const linha = { mes: m, filial, rca, fornecedor: forn, cod_sup: iCs >= 0 ? r[iCs] : null, supervisor: iSup >= 0 ? r[iSup] : null, vendedor: iVen >= 0 ? r[iVen] : null, dados };
     linha.hash = crypto.createHash('md5').update(JSON.stringify([linha.cod_sup, linha.supervisor, linha.vendedor, dados])).digest('hex');
     out.push(linha);
