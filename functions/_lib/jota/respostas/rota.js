@@ -190,6 +190,20 @@ export async function semCompraNaRota(B, v) {
   const VM = await vendasEscopo(B, { filiais: [v.filial], rca: v.rca, vend: [v] }).catch(() => null);
   const valorMes = new Map(); for (const l of ((VM && VM.linhas) || []).filter((l) => String(l.r) === String(v.rca))) valorMes.set(String(l.c), (valorMes.get(String(l.c)) || 0) + l.v);   /* R$ comprado no mes por cliente */
   const compraram = new Set(valorMes.keys());
+  // POSITIVADO = PEDIDO (Vitorio; 09/11/2026: Tamara TCV 352 tinha 7 pedidos hoje e o Jota disse 'ainda nao compraram'):
+  // pedido do mes ate hoje no D1 (pedido_status: liberado, bloqueado, aguardando Winthor ou faturado; nunca cancelado nem com data futura) conta como compra.
+  const pedidoHoje = new Map();
+  if (B.env && B.env.DB) {
+    try {
+      const hj = hojeSP(), ini = hj.slice(0, 8) + '01';
+      const { results } = await B.env.DB.prepare("SELECT id_cliente, data_pedido, status, valor FROM pedido_status WHERE filial = ? AND rca = ? AND data_pedido >= ? AND data_pedido <= ? AND status <> 'CANCELADO'").bind(String(v.filial), String(v.rca), ini, hj).all();
+      for (const p of results || []) {
+        const k = String(p.id_cliente); compraram.add(k);
+        if (!valorMes.has(k)) valorMes.set(k, Number(p.valor) || 0);
+        if (p.data_pedido === hj) pedidoHoje.set(k, (pedidoHoje.get(k) || 0) + (Number(p.valor) || 0));
+      }
+    } catch (e) { /* sem a tabela: fica so o faturado */ }
+  }
   const ultimasCompras = new Map();
   let historicoCompleto = false;
   if (B.env && B.env.DB && R0.length) {
@@ -223,7 +237,7 @@ export async function semCompraNaRota(B, v) {
   const comprou = (c) => compraram.has(String(c.id_cliente)) || /POSITIVADO|EFETIVADO/i.test(String(c.status || ''));
   const sem = rota.filter((c) => !comprou(c)).map((c) => { const u = ult(c); return { c, u, dias: u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) : null }; })
     .sort((a, b) => (b.dias ?? 999) - (a.dias ?? 999));
-  return { rota, sem, valorMes, historicoCompleto };
+  return { rota, sem, valorMes, historicoCompleto, pedidoHoje };
 }
 export async function respRotaHojeResumo(B, E, v) {
   if (v) {
@@ -447,12 +461,12 @@ export const respRecorrenciaClientes = respTagCampanhas;
 export async function respRotaHojeCompleta(B, v, soSemCompra = false) {
   // FORMATO COMPACTO (Vitorio, 27/10/2026: "ficou confuso... mini legenda no inicio, separar quem nao comprou e quem ja comprou, foco em quem nao comprou...
   // Nome · ⏳ · ❌ 28 dias · 🏷️ 1 ou 2 tags"; quem ja comprou: "Nome · ⏳ · ✔️ (R$) · 🏷️").
-  const { rota, sem: semC, valorMes, historicoCompleto } = await semCompraNaRota(B, v);
+  const { rota, sem: semC, valorMes, historicoCompleto, pedidoHoje } = await semCompraNaRota(B, v);
   if (!rota.length) return `${vn(v)} (${v.filial}) não tem clientes na rota de hoje.`;
   const semMap = new Map(semC.map((x) => [String(x.c.id_cliente), x]));
   // tags: Recorrencia primeiro (e a que conta na Premiacao), depois as outras; no maximo 2
   const tags = (c) => { const T = [...new Set((c.focos || []).map((f) => titulo(String(f.industria_foco || '').trim())).filter(Boolean))].sort((a, b) => (/Recorrencia/i.test(b) ? 1 : 0) - (/Recorrencia/i.test(a) ? 1 : 0)); return T.slice(0, 2).join(', '); };
-  const st = (c) => { const s = String(c.status || '').toUpperCase(); return /POSITIVADO|EFETIVADO/.test(s) ? '✅' : /VISITADO|JUSTIFICADO/.test(s) ? '👣' : '⏳'; };
+  const st = (c) => { const s = String(c.status || '').toUpperCase(); return (pedidoHoje && pedidoHoje.has(String(c.id_cliente))) || /POSITIVADO|EFETIVADO/.test(s) ? '✅' : /VISITADO|JUSTIFICADO/.test(s) ? '👣' : '⏳'; };
   const nome = (c) => titulo(c.nome_cliente || c.razao_social || 'cliente');
   const nao = rota.filter((c) => semMap.has(String(c.id_cliente))), ja = rota.filter((c) => !semMap.has(String(c.id_cliente)));
   let idxGlobal = 0;
@@ -468,14 +482,14 @@ export async function respRotaHojeCompleta(B, v, soSemCompra = false) {
 
 // "MINHA ROTA" DO VENDEDOR (Vitorio, 01/11/2026): como esta o mes, quantos clientes hoje, quem ja comprou e quem nao, numerados; ele digita o numero e recebe a ficha do cliente.
 export async function respMinhaRota(B, v) {
-  const { rota, sem: semC, valorMes } = await semCompraNaRota(B, v);
+  const { rota, sem: semC, valorMes, pedidoHoje } = await semCompraNaRota(B, v);
   const mes = [`📊 *Seu mês:* faturado ${R$(v.fat || 0)} + pendente ${R$(v.pend || 0)} de ${R$(v.meta || 0)}`, `👥 Positivação: ${v.pos || 0} de ${Math.round(v.metaPos || 0)}`];
   if (!rota.length) return [`📋 *${vn(v)}*`, ...mes, '', 'Você não tem clientes na rota de hoje.'].join('\n');
   const semMap = new Map(semC.map((x) => [String(x.c.id_cliente), x])), nao = rota.filter((c) => semMap.has(String(c.id_cliente))), ja = rota.filter((c) => !semMap.has(String(c.id_cliente)));
   const nome = (c) => titulo(c.nome_cliente || c.razao_social || 'cliente');
   const situacaoVisita = (c) => {
     const s = String(c.status || '').toUpperCase();
-    if (/POSITIVADO|EFETIVADO/.test(s)) return '✅ vendeu hoje';
+    if ((pedidoHoje && pedidoHoje.has(String(c.id_cliente))) || /POSITIVADO|EFETIVADO/.test(s)) return '✅ vendeu hoje';
     if (/JUSTIFICADO/.test(s)) return '⚠️ justificado';
     if (c.checkin_horario || /VISITADO/.test(s)) return '👣 visitado';
     if (/ABERTO|AGENDADO/.test(s)) return '⏳ a visitar';
