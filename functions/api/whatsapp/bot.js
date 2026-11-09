@@ -269,7 +269,9 @@ export async function onRequestPost({ request, env }) {
   const anteriores = (hist || []).filter((h) => h.direcao === 'in').map((h) => h.texto).filter((x) => x !== texto).slice(0, 4);
   B.ultOut = ultOut && ultOut.texto ? ultOut.texto : null;
   // CONSULTA OFICIAL GEROT / INDÚSTRIAS / MARCAS / MP
-  const respGerot = await responderPerguntaGerotIndustria(env, texto, c);
+  // DESLIGADA em 09/11/2026: casava a industria errada ("Condor de API" -> AEROFLEX, todos os meses como "Agosto") e passava por cima
+  // das respostas certas. Base GEROT no D1 e uma carga unica de 06/11 (feita do PC). Religar so com a coleta online e testes por industria.
+  const respGerot = env.GEROT_JOTA === '1' ? await responderPerguntaGerotIndustria(env, texto, c) : null;
   if (respGerot) {
     resp = respGerot;
     tipo = 'gerot_industria';
