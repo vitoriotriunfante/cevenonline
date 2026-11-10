@@ -129,7 +129,7 @@ export const MENU_VENDEDOR = [
   ['Recorrência: quem falta comprar', 'quais sao meus clientes de recorrencia'],
   ['Minha rota de hoje', 'minha rota'],
   ['Prospecção: clientes novos perto da rota', 'prospeccao'],
-  ['Minhas devoluções', 'minhas devolucoes'],
+  ['Minhas devoluções', '__devol__'],
   ['Ficha de um cliente', '__ficha__'],
   ['Indústrias e produtos: metas por indústria e "tem <produto>"', '__produto__'],
   ['Minha carteira: quantos clientes tenho', '__carteira__'],

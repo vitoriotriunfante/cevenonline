@@ -726,5 +726,5 @@ export async function respCarteiraVendedor(B, v) {
     ids.size ? `📋 Clientes no seu roteiro do mês: *${ids.size}*` : '📋 Roteiro do mês: sem dado na base',
     `🎯 Positivação (painel do CEVEN): *${v.pos ?? 'sem dado'}* de ${v.metaPos ?? 'sem dado'} clientes da meta`,
     ...(ids.size ? [`✅ Do roteiro, já compraram no mês (faturado ou pedido): *${jaNaCarteira}* · faltam *${ids.size - jaNaCarteira}*`] : []),
-    '', '👉 Peça *"clientes sem compra"* para a lista de quem falta.'].join('\n');
+    '', '👉 Digite *5* no menu para a lista de quem falta.'].join('\n');
 }

@@ -340,6 +340,15 @@ export async function respostaInterna(B, c, texto, anteriores) {
         let r;
         if (chave === '__curva__') r = await interno(`curva negativa do ${eu}`);
         else if (chave === '__rv__') r = await interno('meu rv');
+        else if (chave === '__devol__') {
+          // DEVOLUCOES DO VENDEDOR (auditoria Giovana 10/11/2026): as notas dele no mes, com cliente, valor e motivo oficial; sem blocos de equipe
+          const Ev = await carregaEscopo(B, esc), v = Ev.vend[0], mes = hojeSP().slice(0, 7);
+          const N0 = v ? (v.devolucoes || []).filter((n) => String(n.data || '').slice(0, 7) === mes) : [];
+          const mot = new Map(); if (N0.length && B.env && B.env.DB) { try { const { results } = await B.env.DB.prepare('SELECT nota, nao_pediu, motivos FROM devolucao_nota_motivo WHERE rca = ?').bind(String(v.rca)).all(); for (const x of results || []) mot.set(String(x.nota), x); } catch (e) { /* sem motivo */ } }
+          const tot = N0.reduce((s, n) => s + Math.abs(Number(n.vl_devolvido) || 0), 0);
+          r = !v ? 'Não achei os seus dados na base agora.' : !N0.length ? `↩️ *Devoluções no mês — ${vn(v)}*: nenhuma devolução em ${mes.slice(5, 7)}/${mes.slice(0, 4)}.` : [`↩️ *Devoluções no mês — ${vn(v)}*: *${R$(tot)}* em ${N0.length} nota(s)`, '',
+            ...N0.sort((a, b) => String(b.data).localeCompare(String(a.data))).map((n) => { const m = mot.get(String(n.numnota)); const mt = m ? (m.nao_pediu === 1 ? 'cliente não pediu (🟥 −10 na Liga)' : (String(m.motivos || '').replace(/[\[\]"]/g, '').split(',')[0] || 'motivo comercial') + ' (⚽ gol contra −4)') : 'motivo ainda não lido'; return `• ${String(n.data).slice(8, 10)}/${String(n.data).slice(5, 7)} · nota ${n.numnota} · ${titulo(String(n.nomecli || '').replace(/^\d+\s+/, ''))} (#${n.codcli}) · *${R$(Math.abs(Number(n.vl_devolvido) || 0))}* · ${mt}`; })].join('\n');
+        }
         else if (chave === '__liga__') { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; r = v ? await respLiga(B, Ev, v) : 'Não achei os seus dados na base agora.'; }
         else if (chave === '__regras__') { const { respRegrasLiga } = await import('./respostas/liga_mix.js'); r = await respRegrasLiga(B); }
         else if (chave === '__produto__') r = (await interno('metas das industrias')) + '\n\n👉 Para um produto, mande *tem <produto>* (ex.: *tem Toblerone*).';
@@ -1025,6 +1034,8 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
       const { vendasEscopo } = await import('./respostas/vendas.js');
       const VM = await vendasEscopo(B, { filiais: [v.filial], rca: v.rca, vend: [v] }).catch(() => null);
       const compraram = new Set(((VM && VM.linhas) || []).filter((l) => String(l.r) === String(v.rca)).map((l) => String(l.c)));
+      // POSITIVADO = PEDIDO (auditoria Giovana 10/11/2026: curva dizia 23 e a carteira 27): pedido do mes no D1 tambem conta como comprou
+      { const { clientesComPedidoNoMes } = await import('./respostas/rota.js'); for (const k of await clientesComPedidoNoMes(B, [v.filial], v.rca)) compraram.add(k.split('|')[1]); }
       let H = {}; try { H = JSON.parse(await B.raw(`public/mix_hist/${v.filial}.json`) || '{}').c || {}; } catch (e) { H = {}; }
       const ultH = (cnpj) => { const x = H[String(cnpj || '').replace(/\D/g, '')]; if (!x) return null; const m2 = String(x).split(',').map((p) => p.split(':')[1]).filter(Boolean).sort().pop(); return m2 ? `20${m2.slice(0, 2)}-${m2.slice(2, 4)}-${m2.slice(4, 6)}` : null; };
       for (const c of v.roteiroMes) {
