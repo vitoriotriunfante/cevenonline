@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-10 15:35 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-10 17:33 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (16)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -256,6 +256,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 - `scratch/auditar_hoje_08h.mjs` (manual): `scratch/auditoria_hoje_08h.json`
 - `scratch/audita_gols_hoje.js` (manual): `/gols_falsos.json`
 - `scratch/classificar_auditoria_30.mjs` (manual): `scratch/auditoria_detalhada_30.json`
+- `scratch/classifica_sugestoes.mjs` (manual): `scratch/sugestoes_simulacao.json`
 - `scratch/cmp_dev.js` (manual): `/dev_ceven.json`
 - `scratch/comparar_arcor_clientes.mjs` (manual): `scratch/novos_arcor_tamara_outubro.json`
 - `scratch/detalhar_perguntas.mjs` (manual): `scratch/auditoria_completa_perguntas.json`
@@ -273,6 +274,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 - `scratch/mapear_todas_sugestoes.mjs` (manual): `scratch/mapeamento_sugestoes.json`
 - `scratch/preparar_update_respostas_perfeitas.mjs` (manual): `scratch/updates_respostas_calibradas.json`
 - `scratch/processar_auditoria.mjs` (manual): `scratch/auditoria_resultado.json`, `scratch/pares_auditados.json`
+- `scratch/reclassifica_72.mjs` (manual): `scratch/sugestoes_72.json`
 - `scratch/t_incentivo.mjs` (manual): `/inc_out.json`
 
 ## 3. Chamam o CEVEN sob demanda pelo site (15)
