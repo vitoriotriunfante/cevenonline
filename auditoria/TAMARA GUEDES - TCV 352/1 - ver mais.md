@@ -1,25 +1,21 @@
 # 1 - ver mais — Como estou: meta x realizado, positivação e quanto falta por dia (ver mais)
 
 - Vendedor: TAMARA GUEDES (TCV 352)
-- Gerado em: 10/11/2026, 12:36:16 (dados de producao, so leitura)
+- Gerado em: 10/11/2026, 14:53:48 (dados de producao, so leitura)
 - O vendedor digitou: "1" e depois "ver mais"
 
 ## Resposta do Jota
 
 ```
-📌 *Faltam 87 positivações* — 352 - Tamara Guedes (varejo)
+📌 *Faltam 86 positivações* — 352 - Tamara Guedes (varejo)
 
-*Na rota de hoje e sem compra no mês (14):*
+*Na rota de hoje e sem compra no mês (10):*
 _Cliente · Dias sem compra_
 Mercado Sao Miguel Veneza · 84 dias
 Farmacia Zanette · 54 dias
 Panificadora Pani Pao · 28 dias
-Posto Rosario Ii · 28 dias
-Posto Portelcio · 28 dias
-Manain · 28 dias
 Veredas Panificadora · 28 dias
 Uniao Prime Beer · 28 dias
-Mercadinho Da Vila · 14 dias
 Arruda Beer Distribuidora De Bebidas · 14 dias
 Mercado Berte · 14 dias
 Mercado Sao Joao · 14 dias
@@ -65,5 +61,6 @@ Posto Pra Frente Brasil · 06/11 · 67 dias
 *1* Quanto vendi hoje
 *2* Quanto falta por dia útil
 *3* Minhas metas por indústria
+*4* Faseamento (AS): 60% da meta até o dia 20
 *0* Voltar ao menu
 ```

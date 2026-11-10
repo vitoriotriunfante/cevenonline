@@ -17,7 +17,8 @@
 *12.* Ficha de um cliente
 *13.* Indústrias e produtos: metas por indústria e "tem <produto>"
 *14.* Minha carteira: quantos clientes tenho
-*15.* Campanhas do mês
+*15.* Campanhas e TAGs do mês (combos, foco, P11…)
+*16.* Meus cortes: o que cortou e por quê
 
 👉 *Digite o número* (ex.: 1) ou escreva do seu jeito.
 ```

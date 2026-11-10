@@ -1,15 +1,15 @@
 # 5 - ver mais — Clientes sem compra no mês (ver mais)
 
 - Vendedor: TAMARA GUEDES (TCV 352)
-- Gerado em: 10/11/2026, 12:39:49 (dados de producao, so leitura)
+- Gerado em: 10/11/2026, 14:57:44 (dados de producao, so leitura)
 - O vendedor digitou: "5" e depois "ver mais"
 
 ## Resposta do Jota
 
 ```
 📉 *Curva negativa — 352 - Tamara Guedes* (TCV)
-Carteira do mês: *133 clientes* · já compraram: *37* · *ainda não compraram: 96*
-_Painel do CEVEN: positivação 12 de 99. Esta lista segue o roteiro do mês, que é outra conta._
+Carteira do mês: *133 clientes* · já compraram: *41* · *ainda não compraram: 92*
+_Painel do CEVEN: positivação 13 de 99. Esta lista segue o roteiro do mês, que é outra conta._
 _Cliente · Última compra · Dias sem compra_
 Mercado Cisne · 30/10 · 11 dias
 Posto Pra Frente Brasil · 04/09 · 67 dias
@@ -22,7 +22,6 @@ Auto Posto Pra Frente Brasil Ltda · 10/09 · 61 dias
 Posto Bca Ferroeste · 14/09 · 57 dias
 Churrascaria Pasquali · 26/10 · 15 dias
 Mercado Berte · 27/10 · 14 dias
-Posto Portelcio · 13/10 · 28 dias
 Posto Da Santa · 28/10 · 13 dias
 Super Garcia · 28/10 · 13 dias
 Hidrosul · 28/10 · 13 dias
@@ -45,11 +44,9 @@ Posto Xodo · 19/10 · 22 dias
 Santo Adega E Conveniencia · 05/10 · 36 dias
 Elefante Dourado Ltda · 29/09 · 42 dias
 Posto Centro Oeste · 23/10 · 18 dias
-Mercadinho Da Vila · 27/10 · 14 dias
 Arruda Beer Distribuidora De Bebidas · 27/10 · 14 dias
 Espaco Bier · 27/10 · 14 dias
 Sos Bebidas · 27/10 · 14 dias
-Manain · 13/10 · 28 dias
 O Sacolao Economico · 15/10 · 26 dias
 Supermercado Casa Nova · 16/10 · 25 dias
 Mercearia Sao Francisco · 04/08 · 98 dias
@@ -67,7 +64,6 @@ Ronda Panificadora E Confeitaria · 21/10 · 20 dias
 Agropet Central · 21/10 · 20 dias
 Isabel Mezzalira · 21/10 · 20 dias
 Giason Supermercado · 26/10 · 15 dias
-Posto Rosario Ii · 13/10 · 28 dias
 Veredas Panificadora · 13/10 · 28 dias
 Vitoria Lago Ltda · 19/10 · 22 dias
 Peg Leve Bebidas · 19/10 · 22 dias

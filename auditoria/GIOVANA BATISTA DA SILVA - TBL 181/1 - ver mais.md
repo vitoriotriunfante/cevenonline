@@ -1,15 +1,15 @@
 # 1 - ver mais — Como estou: meta x realizado, positivação e quanto falta por dia (ver mais)
 
 - Vendedor: GIOVANA BATISTA DA SILVA (TBL 181)
-- Gerado em: 10/11/2026, 12:36:16 (dados de producao, so leitura)
+- Gerado em: 10/11/2026, 14:58:56 (dados de producao, so leitura)
 - O vendedor digitou: "1" e depois "ver mais"
 
 ## Resposta do Jota
 
 ```
-📌 *Faltam 72 positivações* — 181 - Giovana Silva (varejo)
+📌 *Faltam 70 positivações* — 181 - Giovana Silva (varejo)
 
-*Na rota de hoje e sem compra no mês (7):*
+*Na rota de hoje e sem compra no mês (8):*
 _Cliente · Dias sem compra_
 Auto Posto Trevo · 28 dias
 Conveniencia Das Americas · 28 dias
@@ -17,6 +17,7 @@ Padaria E Confeitaria Puro Sabor Ltda · 28 dias
 Supermercado Paraty · 19 dias
 Mercado Milao · 14 dias
 Consultorio Fonoaudiologico Jessica Zena · 14 dias
+Santos Supermercados · 13 dias
 Mercado Miliozzi · 11 dias
 
 *Já visitados no mês e sem compra (27):*
@@ -53,5 +54,6 @@ Oba Oba Queijos E Iogurtes · 09/11 · +60 dias
 *1* Quanto vendi hoje
 *2* Quanto falta por dia útil
 *3* Minhas metas por indústria
+*4* Faseamento (AS): 60% da meta até o dia 20
 *0* Voltar ao menu
 ```

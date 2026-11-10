@@ -1,7 +1,7 @@
 # 5 - ver mais — Clientes sem compra no mês (ver mais)
 
 - Vendedor: GIOVANA BATISTA DA SILVA (TBL 181)
-- Gerado em: 10/11/2026, 12:39:54 (dados de producao, so leitura)
+- Gerado em: 10/11/2026, 15:02:58 (dados de producao, so leitura)
 - O vendedor digitou: "5" e depois "ver mais"
 
 ## Resposta do Jota
@@ -9,7 +9,7 @@
 ```
 📉 *Curva negativa — 181 - Giovana Batista Da Silva* (TBL)
 Carteira do mês: *125 clientes* · já compraram: *27* · *ainda não compraram: 98*
-_Painel do CEVEN: positivação 25 de 97. Esta lista segue o roteiro do mês, que é outra conta._
+_Painel do CEVEN: positivação 27 de 97. Esta lista segue o roteiro do mês, que é outra conta._
 _Cliente · Última compra · Dias sem compra_
 Comercio De Materiais Fotograficos Tokma · 29/09 · 42 dias
 Fino Sabor · 21/09 · 50 dias
