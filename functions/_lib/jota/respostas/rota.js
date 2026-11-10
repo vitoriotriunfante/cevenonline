@@ -702,6 +702,8 @@ export async function respCampanhasVendedor(B, v, escolha = null, todos = false)
   const { vendasEscopo } = await import('./vendas.js'); const VM = await vendasEscopo(B, { filiais: [v.filial], rca: v.rca, vend: [v] }).catch(() => null);
   const compraram = new Set(((VM && VM.linhas) || []).filter((l) => String(l.r) === String(v.rca)).map((l) => String(l.c)));
   for (const k of await clientesComPedidoNoMes(B, [v.filial], v.rca)) compraram.add(k.split('|')[1]);
+  // MESMA CONTA DA CURVA (5) (auditoria Tamara 10/11/2026: carteira 42 x curva 46): status positivado no roteiro ou ultima compra dentro do mes tambem conta
+  { const m1 = hojeSP().slice(0, 7) + '-01'; for (const c of (Array.isArray(v.roteiroMes) ? v.roteiroMes : [])) if (/POSITIVADO|EFETIVADO/.test(String(c.status || '')) || String(c.data_ultima_compra || '').slice(0, 10) >= m1) compraram.add(String(c.id_cliente)); }
   const T = new Map();
   for (const c of R) for (const f of c.focos || []) {
     const tag = titulo(String(f.industria_foco || '').trim()); if (!tag || /recorr/i.test(tag)) continue;
@@ -733,6 +735,8 @@ export async function respCarteiraVendedor(B, v) {
   const { vendasEscopo } = await import('./vendas.js'); const VM = await vendasEscopo(B, { filiais: [v.filial], rca: v.rca, vend: [v] }).catch(() => null);
   const compraram = new Set(((VM && VM.linhas) || []).filter((l) => String(l.r) === String(v.rca)).map((l) => String(l.c)));
   for (const k of await clientesComPedidoNoMes(B, [v.filial], v.rca)) compraram.add(k.split('|')[1]);
+  // MESMA CONTA DA CURVA (5) (auditoria Tamara 10/11/2026: carteira 42 x curva 46): status positivado no roteiro ou ultima compra dentro do mes tambem conta
+  { const m1 = hojeSP().slice(0, 7) + '-01'; for (const c of (Array.isArray(v.roteiroMes) ? v.roteiroMes : [])) if (/POSITIVADO|EFETIVADO/.test(String(c.status || '')) || String(c.data_ultima_compra || '').slice(0, 10) >= m1) compraram.add(String(c.id_cliente)); }
   const jaNaCarteira = [...ids].filter((k) => compraram.has(k)).length;
   return [`👥 *Minha carteira — ${vn(v)}* (${v.filial})`,
     ids.size ? `📋 Clientes no seu roteiro do mês: *${ids.size}*` : '📋 Roteiro do mês: sem dado na base',
