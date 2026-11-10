@@ -192,7 +192,10 @@ async function main() {
       if (!achou) throw new Error('link Recorrencia nao encontrado');
       await page.waitForTimeout(20000);
       // abre as linhas de cada filial da 'Lista do dia 1' (supervisor/vendedor), duas camadas
-      for (let k = 0; k < 2; k++) { await page.evaluate(() => { for (const b of document.querySelectorAll('table tbody tr td:first-child button, table tbody tr td:first-child [class*=toggle], table tbody tr td:first-child [class*=exp]')) b.click(); }); await page.waitForTimeout(4000); }
+      // 10/11/2026: a seta e um elemento com o texto '▸' (nao botao); 'Recolher tudo' existe, entao tenta 'Expandir tudo' antes
+      await page.evaluate(() => { const e = [...document.querySelectorAll('button,a,span,div')].find((x) => /^Expandir tudo$/i.test((x.innerText || '').trim())); if (e) e.click(); });
+      await page.waitForTimeout(3000);
+      for (let k = 0; k < 3; k++) { const n = await page.evaluate(() => { const S = [...document.querySelectorAll('table *')].filter((x) => x.children.length === 0 && (x.innerText || x.textContent || '').trim() === '▸'); S.forEach((x) => x.click()); return S.length; }); log('recorrencia: abrindo nivel', k + 1, '·', n, 'setas'); if (!n) break; await page.waitForTimeout(5000); }
       // o 'Extrair dados' desta tela tem calculos de recorrencia? (so le a lista, nao baixa)
       let calcRec = null;
       try { await page.getByText('Extrair dados', { exact: true }).first().click({ force: true }); await page.waitForTimeout(3000); calcRec = await ajustaDialogo(page, mesesAlvo()[0], 'ler'); await page.locator('button:has-text("×")').first().click({ timeout: 3000 }).catch(() => {}); } catch (e) { calcRec = { erro: e.message }; }
