@@ -393,3 +393,16 @@ export async function respProspectsPorCnae(B, v, cnae) {
     ...sel.slice(0, 15).map((p, i) => `${i + 1}. *${titulo(p.fantasia || p.razao || 'Sem nome')}*\n   📍 CNPJ: ${p.cnpj}${p.km != null ? ' · ' + String(p.km).replace('.', ',') + ' km' : ''}${p.end ? ' · ' + p.end : ''}${p.tel ? '\n   📞 ' + p.tel : ''}${p.lat && p.lon ? '\n   🌐 https://maps.google.com/?q=' + p.lat + ',' + p.lon : ''}`),
     '', SUGESTAO + 'passar nesses pontos durante a rota e cadastrar no LinkUp.'].join('\n');
 }
+
+// PROSPECCAO DA EQUIPE (menu do supervisor, 13; Vitorio 10/11/2026): pontos acumulados por vendedor; o numero abre os tipos (CNAE) daquele vendedor
+export async function respProspectsEquipe(B, E) {
+  const db = B.env && B.env.DB; if (!db) return `📍 *Prospects — ${E.nome}*: a base de prospecção não está disponível agora.`;
+  const cont = new Map();
+  try { for (const f of E.filiais || []) { const { results } = await db.prepare('SELECT rca, count(*) n FROM prospects_mapa WHERE filial = ? GROUP BY rca').bind(String(f)).all(); for (const r of results || []) cont.set(f + '|' + r.rca, r.n); } }
+  catch (e) { return `📍 *Prospects — ${E.nome}*: falha ao ler a base; não vou afirmar que está sem pontos.`; }
+  const eq = (E.vend || []).filter((v) => v.ehVendedorReal !== false).sort((a, b) => Number(a.rca) - Number(b.rca));
+  const tot = eq.reduce((s, v) => s + (cont.get(v.filial + '|' + v.rca) || 0), 0);
+  return [`📍 *Prospects — ${E.nome}*`, `*${N(tot)}* pontos para prospectar perto das rotas da equipe:`, '',
+    ...eq.map((v, i) => `${i + 1}. *${vn(v)}* — ${N(cont.get(v.filial + '|' + v.rca) || 0)} ponto(s)`),
+    '', '👉 *Digite o número do vendedor* para ver os prospects dele por tipo (CNAE).'].join('\n');
+}

@@ -744,3 +744,32 @@ export async function respCarteiraVendedor(B, v) {
     ...(ids.size ? [`✅ Do roteiro, já compraram no mês (faturado ou pedido): *${jaNaCarteira}* · faltam *${ids.size - jaNaCarteira}*`] : []),
     '', '👉 Digite *5* no menu para a lista de quem falta.'].join('\n');
 }
+
+// CAMPANHAS E TAGS DA EQUIPE (menu do supervisor, 12; Vitorio 10/11/2026): mesma conta do 15 do vendedor, somada por TAG; escolha = uma TAG aberta por vendedor
+export async function respCampanhasEquipe(B, E, escolha = null) {
+  const { vendasEscopo } = await import('./vendas.js');
+  const m1 = hojeSP().slice(0, 7) + '-01', T = new Map();
+  for (const v of (E.vend || [])) {
+    const R = Array.isArray(v.roteiroMes) ? v.roteiroMes : []; if (!R.length) continue;
+    const VM = await vendasEscopo(B, { filiais: [v.filial], rca: v.rca, vend: [v] }).catch(() => null);
+    const comp = new Set(((VM && VM.linhas) || []).filter((l) => String(l.r) === String(v.rca)).map((l) => String(l.c)));
+    for (const k of await clientesComPedidoNoMes(B, [v.filial], v.rca)) comp.add(k.split('|')[1]);
+    for (const c of R) if (/POSITIVADO|EFETIVADO/.test(String(c.status || '')) || String(c.data_ultima_compra || '').slice(0, 10) >= m1) comp.add(String(c.id_cliente));
+    for (const c of R) for (const f of c.focos || []) {
+      const tag = titulo(String(f.industria_foco || '').trim()); if (!tag || /recorr/i.test(tag)) continue;
+      if (!T.has(tag)) T.set(tag, new Map()); const pv = T.get(tag); if (!pv.has(v)) pv.set(v, { tot: new Set(), comp: 0 }); const x = pv.get(v);
+      if (!x.tot.has(String(c.id_cliente))) { x.tot.add(String(c.id_cliente)); if (comp.has(String(c.id_cliente))) x.comp++; }
+    }
+  }
+  if (!T.size) return `🏷️ *Campanhas — ${E.nome}*: nenhum cliente do roteiro do mês da equipe tem tag de campanha.`;
+  const L = [...T.entries()].map(([tag, pv]) => { let tot = 0, comp = 0; for (const x of pv.values()) { tot += x.tot.size; comp += x.comp; } return { tag, pv, tot, comp }; }).sort((a, b) => (b.tot - b.comp) - (a.tot - a.comp));
+  if (escolha) {
+    const x = L.find((y) => y.tag === escolha); if (!x) return `🏷️ Não achei a campanha *${escolha}* na equipe.`;
+    return [`🏷️ *${x.tag} — ${E.nome}*`, `*${x.comp} de ${x.tot}* clientes já compraram · faltam *${x.tot - x.comp}*`, '', '*Por vendedor:*',
+      ...[...x.pv.entries()].sort((a, b) => (b[1].tot.size - b[1].comp) - (a[1].tot.size - a[1].comp)).map(([v, y]) => `• ${vn(v)}: ${y.comp} de ${y.tot.size} · faltam *${y.tot.size - y.comp}*`),
+      '', SUGESTAO + 'para ver os clientes de um vendedor, use o *15* do menu e abra a campanha no menu dele.'].join('\n');
+  }
+  return [`🏷️ *Campanhas e TAGs do mês — ${E.nome}*`, '_Todas as TAGs do roteiro do mês da equipe (combos, foco, P11…), menos recorrência (essa é o 6)_', '',
+    ...L.map((x, i) => `${i + 1}. *${x.tag}*: ${x.comp} de ${x.tot} clientes já compraram · faltam *${x.tot - x.comp}*`),
+    '', '👉 *Digite o número da campanha* para ver por vendedor.'].join('\n');
+}

@@ -35,8 +35,8 @@ export async function respLiga(B, E, alvo, t = '') {
   const fil = E.filiais[0]; const lf = (lg.filiais || []).find((x) => x.sigla === fil);
   const sups = new Set(E.vend.map((v) => v.supervisor));
   return [`🏆 *Champions Triunfante — ${E.nome}*`, lf ? `Filial: *${lf.pos}º de 11*, ${lf.pts_tabela} pts (${lf.vitorias}V ${lf.empates}E ${lf.derrotas}D)` : 'Filial: sem dado',
-    '*Supervisores:*', ...(lg.supervisores || []).filter((x) => x.filial === fil && (!(E.grupo || E.supervisor || E.rca) || sups.has(x.supervisor))).sort((a, b) => a.pos - b.pos).slice(0, 10).map((x) => `${x.pos}º ${nome2(x.supervisor)} — ${x.pts_tabela} pts`),
-    '*Top vendedores da filial:*', ...(lg.vendedores || []).filter((v) => v.filial === fil && (!(E.grupo || E.supervisor || E.rca) || E.vend.some((y) => y.rca === String(v.rca)))).sort((a, b) => a.pos_filial - b.pos_filial).slice(0, 5).map((v) => `${v.pos_filial}º ${vn(v)} — ${v.pts_tabela} pts (${v.pos_brasil}º Brasil)`),
+    (E.supervisor ? '*Você entre os supervisores:*' : '*Supervisores:*'), ...(lg.supervisores || []).filter((x) => x.filial === fil && (!(E.grupo || E.supervisor || E.rca) || sups.has(x.supervisor))).sort((a, b) => a.pos - b.pos).slice(0, 10).map((x) => `${x.pos}º ${nome2(x.supervisor)} — ${x.pts_tabela} pts`),
+    (E.supervisor ? '*Sua equipe:*' : '*Top vendedores da filial:*'), ...(lg.vendedores || []).filter((v) => v.filial === fil && (!(E.grupo || E.supervisor || E.rca) || E.vend.some((y) => y.rca === String(v.rca)))).sort((a, b) => a.pos_filial - b.pos_filial).slice(0, E.supervisor ? 40 : 5).map((v) => `${v.pos_filial}º ${vn(v)} — ${v.pts_tabela} pts (${v.pos_brasil}º Brasil)`),
     ''].join('\n');
 }
 export async function respCompromisso(B, E) {
@@ -162,6 +162,50 @@ const TEMAS_VENDEDOR = [
   [9, /ROTA|ROTEIRO|VISITA/],
   [1, /META|COTA|COMO ESTOU|COMO ESTAMOS|NUMEROS|RESULTADO|FATURA|POSITIV|VENDI|VENDA|DESEMPENHO|PERFORMANCE/]
 ];
+// MENU DO SUPERVISOR (Vitorio, 10/11/2026: 'menu bem parecido com o dos vendedores mas focado na equipe dele e com indices para acessar detalhes').
+// Varredura de 1.682 perguntas de 64 supervisores: equipe hoje/mes, um vendedor, curva, fechamento, recorrencia, liga, pedidos, rota.
+// Liga: so a equipe dele (Vitorio, 10/11/2026). O 15 abre o menu do vendedor escolhido, com os dados dele.
+export const MENU_SUPERVISOR = [
+  ['Minha equipe hoje: digitado, visitas e quem zerou', 'como esta minha equipe hoje'],
+  ['Minha equipe no mês: meta x realizado e quanto falta', 'como esta minha equipe no mes'],
+  ['Liga: minha posição e a da minha equipe', 'liga da minha equipe'],
+  ['Pedidos da equipe: a faturar, bloqueados e cancelados', 'pedidos pendentes da equipe'],
+  ['Clientes sem compra no mês, por vendedor', 'curva negativa da equipe'],
+  ['Recorrência da equipe: meta 80% e quem falta', 'recorrencia da equipe'],
+  ['Fechamento do mês passado da equipe', 'fechamento do mes passado da equipe'],
+  ['Rota de hoje: visitas e quem falta visitar', 'rota de hoje da equipe'],
+  ['Indústrias: metas da equipe por indústria', 'metas das industrias da equipe'],
+  ['Mix e +MIX da equipe', 'mix da equipe'],
+  ['Devoluções da equipe', 'devolucoes da equipe'],
+  ['Campanhas e TAGs da equipe', '__campeq__'],
+  ['Prospecção da equipe', '__prospeq__'],
+  ['Ficha de um cliente', '__ficha__'],
+  ['Abrir um vendedor da equipe (menu dele)', '__vendedor__'],
+];
+export const SUB_SUPERVISOR = {
+  4: [['Pedidos a faturar', 'pedidos pendentes da equipe'], ['Pedidos bloqueados', 'pedidos bloqueados da equipe'], ['Pedidos cancelados', 'pedidos cancelados da equipe']],
+};
+const TEMAS_SUPERVISOR = [
+  [7, /MES PASSADO|MES ANTERIOR|OUTUBRO|SETEMBRO|FECHAMENTO|FECHOU/],
+  [6, /RECORR/],
+  [5, /SEM VENDA|SEM COMPRA|CURVA|NAO COMPR|NAO POSITIV|INATIV|FALTA POSITIVAR/],
+  [3, /LIGA|CHAMPION|PONTO|COLOCAC|LUGAR|RANKING|GOL|LANCE/],
+  [4, /PEDIDO|BLOQUEAD|FATURAR|CANCELAD|PENDENTE/],
+  [11, /DEVOLU/],
+  [8, /ROTA|ROTEIRO|VISITA|CHECK|EFICI|EFICAC/],
+  [10, /\bMIX\b/],
+  [12, /CAMPANHA|\bTAGS?\b|COMBO/],
+  [13, /PROSPEC/],
+  [9, /INDUSTRI|MARCA|FORNECED/],
+  [15, /VENDEDOR|RCA|SETOR/],
+  [1, /HOJE|AGORA|DIA\b/],
+  [2, /EQUIPE|TIME|MES|META|FATUR|RESULTADO|COMO ESTA/],
+];
+export function temaDoTextoSup(t) { const x = TEMAS_SUPERVISOR.find(([, re]) => re.test(t)); return x ? x[0] : null; }
+export function respMenuSupervisor(c) {
+  const n = titulo(String(c.nome || '').split(' ')[0]);
+  return [`📋 *MENU DO JOTA* — ${n} (supervisor)`, '', ...MENU_SUPERVISOR.map(([rot], i) => `*${i + 1}.* ${rot}`), '', '👉 *Digite o número* (ex.: 1) ou escreva do seu jeito.'].join('\n');
+}
 export function temaDoTexto(t) { const x = TEMAS_VENDEDOR.find(([, re]) => re.test(t)); return x ? x[0] : null; }
 export function respMenuVendedor(c) {
   const n = titulo(String(c.nome || '').split(' ')[0]);
@@ -169,5 +213,6 @@ export function respMenuVendedor(c) {
 }
 export function respAjuda(c) {
   if (c && c.papel === 'vendedor') return respMenuVendedor(c);
+  if (c && c.papel === 'supervisor') return respMenuSupervisor(c);   // 10/11/2026: supervisor tambem tem indice
   return [`Oi, ${titulo(String(c.nome).split(' ')[0])}! Sou o *Jota* ⚽, do +MIX. Pergunte do seu jeito, por exemplo:`, '• "como está?" / "como está TPH?"' + ((c.papel === 'diretoria' || c.papel === 'ceo') ? ' (sem filial = Brasil todo)' : ''), '• "hoje" / "acumulado de hoje da rota"', '• "por supervisor" · "supervisor Nome" · "vendedor Nome"', '• "zerados" · "visitas" · "eficácia"', '• "quanto falta" · "positivação" · "ranking" · "top 10 hoje"', '• "devoluções" · "pênaltis" · "impedimentos" · "liga"', '• "compromisso" · "quem não fez RET"', '• "+mix" · "quem compra Oreo"', '• "o que é positivação?"'].join('\n');
 }

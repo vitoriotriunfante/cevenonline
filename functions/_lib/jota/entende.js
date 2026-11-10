@@ -462,6 +462,82 @@ export async function respostaInterna(B, c, texto, anteriores) {
         return (k ? `Entendi que você quer o *${k}. ${MENU_VENDEDOR[k - 1][0]}*. Digite *${k}*` + (SUB_VENDEDOR[k] ? ` e depois o detalhe que quiser` : '') + ', ou escolha outro número:\n\n' : '') + respMenuVendedor(c);
       }
     }
+    // INDICE DO SUPERVISOR (Vitorio, 10/11/2026: 'para os supervisores tambem vamos liberar um menu... focado na equipe dele e com indices para acessar detalhes').
+    // Igual ao do vendedor: o numero abre a resposta pronta; texto livre vira o indice com o assunto sugerido. Passam direto: cliente/CNPJ, 'tem <produto>',
+    // pergunta com codigo de vendedor/setor, e o numero de uma lista que a ultima resposta numerou ('digite o numero').
+    // O 15 abre o menu de um vendedor da equipe dele (modo vendedor, marcador 〔V:FIL:RCA〕); 'menu' volta ao menu do supervisor.
+    if (!rcaV && c && c.papel === 'supervisor' && supervisor && !B.semIndice) {
+      const LM = await import('./respostas/liga_mix.js');
+      const { MENU_SUPERVISOR, SUB_SUPERVISOR, temaDoTextoSup, respMenuSupervisor, respMenuVendedor } = LM;
+      const ult = String(B.ultOut || '');
+      const internoS = async (q) => { const o = B.semIndice; B.semIndice = true; try { return await respostaPronta(B, c, q, []); } finally { B.semIndice = o; } };
+      const nmS = t.match(/^\W*(\d{1,2})(?:[.,](\d{1,2}))?\W*$/);
+      const ehMenu = /^\W*(MENU|INICIO|INDICE|OPCOES|AJUDA|OI|OLA|BOM DIA|BOA TARDE|BOA NOITE)\W*(JOTA)?\W*$/.test(t);
+      const rodapeS = (k) => (SUB_SUPERVISOR[k] ? ['', `📌 *Quer detalhar?* Digite o número 〔S${k}〕`, ...SUB_SUPERVISOR[k].map(([rot], i) => `*${i + 1}* ${rot}`), '*0* Voltar ao menu'] : ['', `*0* Voltar ao menu 〔S${k}〕`]).join('\n');
+      const equipe = async () => { const Ev = await carregaEscopo(B, esc); return (Ev.vend || []).filter((v) => v.ehVendedorReal !== false).sort((a, b) => Number(a.rca) - Number(b.rca)); };
+      // MODO VENDEDOR: o supervisor navega no menu do vendedor escolhido (so vendedor da equipe dele)
+      const mv = ult.match(/〔V:([A-Z]{3}):(\d+)〕/);
+      if (mv && !ehMenu && (nmS || /^\W*(VER MAIS|MAIS|LISTA COMPLETA)\W*$/.test(t))) {
+        const eq = await equipe(), v = eq.find((x) => x.filial === mv[1] && String(x.rca) === mv[2]);
+        if (v) {
+          const cv = { nome: v.nome, papel: 'vendedor', filial: v.filial, rca: String(v.rca), celular: c.celular };
+          const o = B.ultOut; B.ultOut = ult.replace(/\n?_👤 Menu do vendedor[^\n]*〕_?/, '');
+          let r; try { r = await respostaPronta(B, cv, t, []); } finally { B.ultOut = o; }
+          return String(r) + `\n_👤 Menu do vendedor ${vn(v)} · mande *menu* para voltar ao seu 〔V:${v.filial}:${v.rca}〕_`;
+        }
+      }
+      if (ehMenu || (nmS && Number(nmS[1]) === 0 && !nmS[2])) return respMenuSupervisor(c);
+      const abreS = async (k, s) => {
+        const item = MENU_SUPERVISOR[k - 1];
+        if (!item) return `Esse número não está no menu. Escolha de 1 a ${MENU_SUPERVISOR.length}.\n\n` + respMenuSupervisor(c);
+        let chave = item[1];
+        if (s != null) { const sub = (SUB_SUPERVISOR[k] || [])[s - 1]; if (!sub) return `A opção ${k}.${s} não existe.` + rodapeS(k); chave = sub[1]; }
+        let r;
+        if (chave === '__ficha__') r = 'Mande o *código do cliente* assim: *cliente #12345* (ou o CNPJ) que eu abro a ficha com o histórico e o que oferecer.';
+        else if (chave === '__vendedor__') {
+          const eq = await equipe();
+          r = !eq.length ? 'Não achei os vendedores da sua equipe na base agora.' : [`👥 *Sua equipe* (${eq.length} vendedores)`, '', ...eq.map((v, i) => `${i + 1}. *${vn(v)}*`), '', '👉 *Digite o número do vendedor* para abrir o menu dele.'].join('\n');
+        } else if (chave === '__campeq__') { const { respCampanhasEquipe } = await import('./respostas/rota.js'); r = await respCampanhasEquipe(B, await carregaEscopo(B, esc)); }
+        else if (chave === '__prospeq__') { const { respProspectsEquipe } = await import('./respostas/segmentos_pastas.js'); r = await respProspectsEquipe(B, await carregaEscopo(B, esc)); }
+        else r = await internoS(chave);
+        // META DE RECORRENCIA DO GEROT da equipe do supervisor (o vendedor ve a dele no 8)
+        if (/recorrencia/i.test(chave) && B.env && B.env.DB) { try {
+          const g = await B.env.DB.prepare("SELECT objetivo, meta, positivados FROM gerot_recorrencia WHERE mes = ? AND filial = ? AND nivel = 'supervisor' AND upper(nome) LIKE ? ORDER BY em DESC LIMIT 1").bind(hojeSP().slice(0, 7), String(fil || ''), '%' + sem(String(supervisor)).toUpperCase() + '%').first();
+          if (g && g.objetivo != null) r = `🎯 *Meta de recorrência da equipe (GEROT)*: objetivo *${N(g.objetivo)}* · meta 80% = *${N(g.meta || 0)}* · positivados *${N(g.positivados || 0)}*` + (g.meta ? ` (${(g.positivados / g.meta * 100).toFixed(1).replace('.', ',')}% · faltam *${N(Math.max(0, g.meta - g.positivados))}*)` : '') + '\n\n' + String(r);
+        } catch (e) { /* sem GEROT */ } }
+        return String(r == null ? 'Sem dado agora.' : r) + '\n' + rodapeS(k);
+      };
+      if (nmS) {
+        let k = Number(nmS[1]), s = nmS[2] != null ? Number(nmS[2]) : null;
+        const mk = ult.match(/〔S(\d{1,2})〕/);
+        // numero depois da lista da equipe (15) = abre o menu daquele vendedor
+        if (s == null && mk && Number(mk[1]) === 15 && /Digite o número do vendedor/.test(ult) && /Sua equipe/.test(ult)) {
+          const eq = await equipe(), v = eq[k - 1];
+          if (v) return respMenuVendedor({ nome: v.nome }).replace('📋 *MENU DO JOTA* —', `📋 *MENU DO VENDEDOR* — ${vn(v)} ·`) + `\n_👤 Menu do vendedor ${vn(v)} · mande *menu* para voltar ao seu 〔V:${v.filial}:${v.rca}〕_`;
+        }
+        // 5 e 6 (auditoria Victor Hugo 10/11/2026): o numero da lista 'por vendedor' abre aquele vendedor (antes: 5->1 caia no aviso de antispam e 6->1 na rota da equipe)
+        if (s == null && mk && [5, 6].includes(Number(mk[1]))) {
+          const emo = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'], marca = emo[k - 1] || `${k}.`;
+          const lin = ult.split('\n').find((l) => l.startsWith(marca + ' *')), rcaL = lin && (lin.match(/^\S+ \*(\d+) - /) || [])[1];
+          if (rcaL) { const v = (await equipe()).find((x) => String(x.rca) === rcaL);
+            if (v) { const cv = { nome: v.nome, papel: 'vendedor', filial: v.filial, rca: String(v.rca), celular: c.celular }; const o = B.ultOut; B.ultOut = ''; let rr; try { rr = await respostaPronta(B, cv, Number(mk[1]) === 5 ? '5' : '8', []); } finally { B.ultOut = o; }
+              return String(rr) + `\n_👤 Menu do vendedor ${vn(v)} · mande *menu* para voltar ao seu 〔V:${v.filial}:${v.rca}〕_`; } }
+        }
+        // 12: numero da campanha = a TAG por vendedor; 13: numero do vendedor = os prospects dele por tipo (entra no menu do vendedor, item 10)
+        if (s == null && mk && Number(mk[1]) === 12 && /Digite o número da campanha/.test(ult)) { const tg = (ult.match(new RegExp('^' + k + '\\. \\*(.+?)\\*', 'm')) || [])[1]; if (tg) { const { respCampanhasEquipe } = await import('./respostas/rota.js'); return (await respCampanhasEquipe(B, await carregaEscopo(B, esc), tg)) + '\n\n👉 Digite *12* para voltar às campanhas.\n' + rodapeS(12); } }
+        if (s == null && mk && Number(mk[1]) === 13 && /Digite o número do vendedor/.test(ult)) {
+          const eq = await equipe(), v = eq[k - 1];
+          if (v) { const cv = { nome: v.nome, papel: 'vendedor', filial: v.filial, rca: String(v.rca), celular: c.celular }; const o = B.ultOut; B.ultOut = ''; let rr; try { rr = await respostaPronta(B, cv, '10', []); } finally { B.ultOut = o; } return String(rr) + `\n_👤 Menu do vendedor ${vn(v)} · mande *menu* para voltar ao seu 〔V:${v.filial}:${v.rca}〕_`; }
+        }
+        // numero depois das opcoes de um tema = opcao do tema
+        if (s == null && mk && !/MENU DO JOTA/.test(ult) && k <= (SUB_SUPERVISOR[Number(mk[1])] || []).length) { s = k; k = Number(mk[1]); return abreS(k, s); }
+        // numero de uma lista que a ultima resposta numerou (curva/recorrencia/tag por vendedor: 'digite o numero (ex: *1*...)'): segue para a resposta de sempre
+        if (!(s == null && !/MENU DO JOTA/.test(ult) && /digite o número \(ex/i.test(ult))) return abreS(k, s);
+      } else {
+        const passaS = /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /\b(VENDEDOR|VENDEDORA|RCA|SETOR|COD\w*)\W*\d{2,5}\b|\b\d{2,5}\b/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
+        if (!passaS) { const k = temaDoTextoSup(t); return (k ? `Entendi que você quer o *${k}. ${MENU_SUPERVISOR[k - 1][0]}*. Digite *${k}*` + (SUB_SUPERVISOR[k] ? ' e depois o detalhe que quiser' : '') + ', ou escolha outro número:\n\n' : '') + respMenuSupervisor(c); }
+      }
+    }
     // RV / COMISSAO / SALARIO DO VENDEDOR (Vitorio, 09/11/2026): 'quando perguntar sobre o RV responde que nao tem os dados, mas da as metas e como esta ate agora'.
     // Antes da regra do mes passado: 'meu RMV do mes passado' recebe o fechamento + o aviso.
     if (rcaV && /COMISS|SALARI|\bRMV\b|\bRV\b|\bGANHOS?\b|REMUNERA|HOLERITE|PREMIACAO DE VENDAS|MINHA PREMIACAO\b/.test(t)) { const euV = `VENDEDOR ${rcaV}`, passado = /MES PASSADO|MES ANTERIOR|OUTUBRO|SETEMBRO/.test(t);
@@ -1084,9 +1160,13 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
     const ini = hojeSP().slice(0, 7) + '-01';
     const numE = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
     const numL = (i) => numE[i] || `${i + 1}.`;
+    const compEq = new Map(); try { const { vendasEscopo } = await import('./respostas/vendas.js'); const VM = await vendasEscopo(B, E).catch(() => null); for (const l of (VM && VM.linhas) || []) { const k = l.f + '|' + l.r; if (!compEq.has(k)) compEq.set(k, new Set()); compEq.get(k).add(String(l.c)); }
+      const { clientesComPedidoNoMes } = await import('./respostas/rota.js'); for (const fl of new Set(E.vend.map((x) => x.filial))) for (const v of E.vend.filter((x) => x.filial === fl)) for (const k of await clientesComPedidoNoMes(B, [fl], v.rca)) { const kk = fl + '|' + v.rca; if (!compEq.has(kk)) compEq.set(kk, new Set()); compEq.get(kk).add(k.split('|')[1]); } } catch (e) { /* sem vendas: fica a data do roteiro */ }
     const V = E.vend.filter((v) => Array.isArray(v.roteiroMes) && v.roteiroMes.length && (!pessoa || (v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial))).map((v) => {
       const cli = new Map(); for (const c of v.roteiroMes) { const k = String(c.id_cliente); const s = String(c.data_ultima_compra || '').slice(0, 10); const u = (/^\d{4}-\d{2}-\d{2}$/.test(s) && s >= '2020-01-01' && s !== '2025-12-05' && s <= hojeSP()) ? s : ''; if (!cli.has(k) || u > cli.get(k)) cli.set(k, u); }
-      return { v, tot: cli.size, falta: [...cli.values()].filter((u) => !u || u < ini).length };
+      // MESMA CONTA DA CURVA DO VENDEDOR (auditoria Victor Hugo 10/11/2026: Monica 185 na equipe x 158 na curva dela): faturado dele, pedido do mes e status positivado tambem contam
+      const cp = compEq.get(v.filial + '|' + v.rca) || new Set(); for (const c of v.roteiroMes) if (/POSITIVADO|EFETIVADO/.test(String(c.status || ''))) cp.add(String(c.id_cliente));
+      return { v, tot: cli.size, falta: [...cli.entries()].filter(([k, u]) => (!u || u < ini) && !cp.has(k)).length };
     }).filter((x) => x.falta > 0).sort((a, b) => b.falta - a.falta);
     if (!V.length) return `👥 *Quem falta positivar — ${E.nome}*: a carteira do mês ainda não está completa na base (ela é lida vendedor a vendedor ao longo do dia). Tente de novo mais tarde ou cite o vendedor.`;
     return [`👥 *Quem falta positivar — ${E.nome}* (clientes da carteira do mês sem compra no mês)`, `Total: *${V.reduce((a, x) => a + x.falta, 0)}* clientes · ${V.length} vendedor(es)`, '',
