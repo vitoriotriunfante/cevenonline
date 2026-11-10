@@ -709,7 +709,7 @@ export async function respCampanhasVendedor(B, v) {
   }
   if (!T.size) return `🏷️ *Campanhas — ${vn(v)}*: nenhum cliente do seu roteiro do mês tem tag de campanha.`;
   const L = [...T.entries()].map(([tag, cs]) => { const tot = cs.size, comp = [...cs.keys()].filter((k) => compraram.has(k)).length; return { tag, tot, comp }; }).sort((a, b) => (b.tot - b.comp) - (a.tot - a.comp));
-  return [`🏷️ *Campanhas do mês — ${vn(v)}*`, '_Clientes do seu roteiro do mês com a tag · quantos já compraram (faturado ou pedido)_', '',
+  return [`🏷️ *Campanhas e TAGs do mês — ${vn(v)}*`, '_Todas as TAGs do seu roteiro do mês (combos, foco, P11…), menos recorrência (essa é o 8) · quantos clientes já compraram (faturado ou pedido)_', '',
     ...L.map((x, i) => `${i + 1}. *${x.tag}*: ${x.comp} de ${x.tot} clientes já compraram · faltam *${x.tot - x.comp}*`),
     '', '👉 Peça *"campanha <nome>"* (ex.: campanha ' + L[0].tag.toLowerCase() + ') para ver os clientes que faltam.'].join('\n');
 }

@@ -133,7 +133,8 @@ export const MENU_VENDEDOR = [
   ['Ficha de um cliente', '__ficha__'],
   ['Indústrias e produtos: metas por indústria e "tem <produto>"', '__produto__'],
   ['Minha carteira: quantos clientes tenho', '__carteira__'],
-  ['Campanhas do mês', '__campanhas__'],
+  ['Campanhas e TAGs do mês (combos, foco, P11…)', '__campanhas__'],
+  ['Meus cortes: o que cortou e por quê', '__cortes__'],   // 10/11/2026: menu de cortes (Vitorio)
 ];
 // SUB-INDICES (Vitorio, 09/11/2026: "dentro do que ele pode perguntar tudo com indice tambem... limitado"): temas com variacoes.
 // O vendedor digita 4.2 ou, logo depois da resposta do tema 4, so o 2. 0 = volta ao menu.
@@ -150,12 +151,13 @@ const TEMAS_VENDEDOR = [
   [5, /SEM VENDA|SEM COMPRA|CURVA|NAO COMPR|NAO POSITIV|INATIV|PARAD/],
   [8, /RECORR/],
   [2, /LIGA|CHAMPION|CHANPION|PONTO|PONTUAC|COLOCAC|LUGAR|RANKING|PENALIDADE|REGRA/],
-  [4, /PEDIDO|BLOQUEAD|FATURAR|ENTREG|CORTE|CANCELAD/],
+  [16, /CORTE|CORTOU|CORTAD/],
+  [4, /PEDIDO|BLOQUEAD|FATURAR|ENTREG|CANCELAD/],
   [6, /MIX|OFERECER|SUGESTAO DE|QUE VENDER/],
   [10, /PROSPEC|CLIENTES? NOVOS?|NOVO CLIENTE/],
   [11, /DEVOLU/],
   [14, /QUANTOS CLIENTES|CARTEIRA/],
-  [15, /CAMPANHA|COMBO|PROMO/],
+  [15, /CAMPANHA|COMBO|PROMO|\bTAGS?\b|FOCO/],
   [13, /INDUSTRI|MARCA|PRODUTO/],
   [9, /ROTA|ROTEIRO|VISITA/],
   [1, /META|COTA|COMO ESTOU|COMO ESTAMOS|NUMEROS|RESULTADO|FATURA|POSITIV|VENDI|VENDA|DESEMPENHO|PERFORMANCE/]
