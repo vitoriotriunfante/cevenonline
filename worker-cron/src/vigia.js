@@ -16,12 +16,12 @@ export const JANELA_MIN = 45;  // depois disso nao se refaz mais (mensagem velha
 
 // horario oficial (BRT) -> workflow e inputs (espelha GATILHOS de index.js, so os que mandam mensagem de verdade)
 export const SLOTS = [
-  { hm: '07:45', workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '07:45', destino: 'todos' } },
-  { hm: '10:00', workflow: 'ceven-cron-marca-propria.yml', inputs: {} },
-  { hm: '11:30', workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '11:30', destino: 'todos' } },
-  { hm: '14:30', workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '14:30', destino: 'todos' } },
-  { hm: '17:00', workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '17:00', destino: 'todos' } },
-  { hm: '18:30', workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '18:30', destino: 'todos' } }
+  { hm: '07:45', workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '07:45', destino: 'vitorio' } },
+  { hm: '10:00', workflow: 'ceven-cron-marca-propria.yml', inputs: { destino: 'vitorio' } },
+  { hm: '11:30', workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '11:30', destino: 'vitorio' } },
+  { hm: '14:30', workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '14:30', destino: 'vitorio' } },
+  { hm: '17:00', workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '17:00', destino: 'vitorio' } },
+  { hm: '18:30', workflow: 'ceven-cron-whatsapp.yml', inputs: { ciclo: '18:30', destino: 'vitorio' } }
 ];
 const FERIADOS = ['2026-01-01', '2026-02-16', '2026-02-17', '2026-04-03', '2026-04-21', '2026-05-01', '2026-06-04', '2026-09-07', '2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25'];
 
