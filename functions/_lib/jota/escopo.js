@@ -31,6 +31,7 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
       /* meta = a da HIERARQUIA do CEVEN quando houver (tela do supervisor/gerente; 27/10/2026, Thiago/MCD) */ fat: fi.faturado || 0, pend: fi.pendente || 0, meta: r.meta_hier != null ? r.meta_hier : fi.meta || 0, dev: fi.devolucao || 0, pct: (r.meta_hier != null ? r.meta_hier : fi.meta) ? (fi.faturado || 0) / (r.meta_hier != null ? r.meta_hier : fi.meta) * 100 : null,
       pos: po.realizado ?? null, metaPos: po.meta ?? null, dig: pd.dig_pedido || 0, ped: pd.positivacao || 0, visP, visF, comVenda,
       visPlanMes: pm.visit_plan || 0, visRealMes: pm.visit_real || 0,
+      /* 10/11/2026: mix do mes do proprio CEVEN (tela Produtividade) e a hora em que o CEVEN foi lido */ mixMes: (r.produtividade && r.produtividade.mix_mes) || null, lidoEm: snap && snap.gerado_em && r.idade_s != null ? new Date(Date.parse(snap.gerado_em) - r.idade_s * 1000).toISOString() : null,
       /* mes do PROPRIO vendedor, qualquer canal (detalhe do vendedor; os totais de rota seguem quem tem rota) */ roteiroMes: Array.isArray(r.roteiro_mes) ? r.roteiro_mes : null, mesV: { plan: pm.visit_plan ?? null, real: pm.visit_real ?? null, pedRota: pm.ped_rota_mes ?? null, efic: pm.eficiencia_pct ?? null },
       zerado: varejo && ehVendReal && visP > 0 && !vendeuHoje, semVisita: varejo && ehVendReal && visP > 0 && !(visF > 0), devolucoes: Array.isArray(r.devolucoes) ? r.devolucoes : [],
       /* devolucoes que ENTRARAM hoje (mesma regra do WhatsApp 17:00/18:30: d.data === hoje) */

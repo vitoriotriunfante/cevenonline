@@ -145,7 +145,10 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
   const lg = await B.liga(); const lv = lg && (lg.vendedores || []).find((x) => String(x.rca) === v.rca && x.filial === v.filial);
   if (lv) L.push(`🏆 Liga: ${lv.pos_brasil}º no Brasil · ${lv.pos_filial}º na filial · ${lv.pts_tabela} pts (${lv.vitorias}V ${lv.empates}E ${lv.derrotas}D)`);
   const mx = await B.mix(); const mv = mx && (mx.vendedores || []).find((x) => String(x.rca) === v.rca && x.filial === v.filial);
-  if (mv) L.push(`🧺 +MIX: ${String(mv.mix_medio).replace('.', ',')} produtos/cliente · uso ${mv.uso_pct == null ? 'sem dado' : String(mv.uso_pct).replace('.', ',') + '%'}`);
+  // 10/11/2026 (Vitorio: 'essa informacao vem de onde?'): o mix do vendedor e o do CEVEN (Produtividade > Mix do mes), igual a tela dele
+  if (v.mixMes && v.mixMes.clientes_distintos) L.push(`🧺 Mix do mês: ${v.mixMes.skus_distintos} SKUs distintos · ${v.mixMes.clientes_distintos} clientes · ${(v.mixMes.soma_skus_por_cliente / v.mixMes.clientes_distintos).toFixed(1).replace('.', ',')} SKU/cliente`);
+  else if (mv && !v.mixMes) L.push(`🧺 +MIX: ${String(mv.mix_medio).replace('.', ',')} produtos/cliente · uso ${mv.uso_pct == null ? 'sem dado' : String(mv.uso_pct).replace('.', ',') + '%'}`);
+  if (v.lidoEm) L.push(`🕒 Dados do CEVEN lidos às ${new Date(v.lidoEm).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}`);
   const lc = await B.lances(); const hj = lc ? (lc.lances || []).filter((l) => String(l.rca) === v.rca && l.filial === v.filial) : [];
   if (hj.length) { const c = {}; for (const l of hj) c[l.pontos_nome || l.nivel] = (c[l.pontos_nome || l.nivel] || 0) + 1; L.push(`⚽ Hoje na Liga: *${hj.reduce((a, l) => a + (l.pontos || 0), 0)} pontos* em ${hj.length} lance(s) — ` + Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, n]) => `${n}× ${k}`).join(' · ')); }
   // PROATIVO (Vitorio, 26/10/2026: "como faltam 15 positivacoes para ela, esses sao os clientes que ela ja visitou e nao vendeu esse mes... com a data da visita e

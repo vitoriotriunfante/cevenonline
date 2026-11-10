@@ -330,7 +330,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
       const nm = t.match(/^\W*(\d{1,2})(?:[.,](\d{1,2}))?\W*$/);
       const clienteDaLista = nm && !nm[2] && new RegExp('^' + nm[1] + '\\. .*\\(#\\d+\\)', 'm').test(ult);
       const passa = clienteDaLista || /^\W*(SIM|OK|SALVEI|SALVO|CONFIRMADO)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
-      const rodape = (k) => (SUB_VENDEDOR[k] ? ['', `📌 *Opções do ${k}* 〔${k}〕`, ...SUB_VENDEDOR[k].map(([rot], i) => `*${k}.${i + 1}* ${rot}`), '*0* Voltar ao menu'] : ['', '*0* Voltar ao menu']).join('\n');
+      // 10/11/2026 (Vitorio): opcoes do tema numeradas 1, 2, 3 (nao 1.1); o marcador 〔k〕 guarda o tema para o proximo numero e para o "ver mais"
+      const rodape = (k) => (SUB_VENDEDOR[k] ? ['', `📌 *Quer detalhar?* Digite o número 〔${k}〕`, ...SUB_VENDEDOR[k].map(([rot], i) => `*${i + 1}* ${rot}`), '*0* Voltar ao menu'] : ['', `*0* Voltar ao menu 〔${k}〕`]).join('\n');
       const abre = async (k, s) => {
         const item = MENU_VENDEDOR[k - 1];
         if (!item) return `Esse número não está no menu. Escolha de 1 a ${MENU_VENDEDOR.length}.\n\n` + respMenuVendedor(c);
@@ -347,16 +348,23 @@ export async function respostaInterna(B, c, texto, anteriores) {
         } else r = await interno(chave.replace('VENDEDOR', eu));
         return String(r == null ? 'Sem dado agora.' : r) + '\n' + rodape(k);
       };
+      // VER MAIS (10/11/2026: o resumo manda pedir "ver mais" e o indice devolvia o menu): abre a lista que a ultima resposta prometeu
+      if (/^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|LISTA COMPLETA|VER (A )?LISTA|VER (O )?RESTANTE|VER (OS )?OUTROS)\W*$/.test(t)) {
+        const Ev = await carregaEscopo(B, esc), v = Ev.vend[0], mk = ult.match(/〔(\d{1,2})〕/);
+        if (v && /para ver a lista de clientes/.test(ult)) return String(await respVendedor(B, Ev, v, { tudo: true })) + '\n' + rodape(1);
+        if (mk) { const item = MENU_VENDEDOR[Number(mk[1]) - 1]; if (item && !/^__/.test(item[1])) return String(await interno(item[1].replace('VENDEDOR', eu) + ' ver mais')) + '\n' + rodape(Number(mk[1])); }
+      }
       if (nm && !clienteDaLista) {
         let k = Number(nm[1]), s = nm[2] != null ? Number(nm[2]) : null;
         if (k === 0) return respMenuVendedor(c);
         const mSub = ult.match(/〔(\d{1,2})〕/);
-        if (s == null && mSub && !/MENU DO JOTA/.test(ult)) { s = k; k = Number(mSub[1]); }   // numero logo depois das opcoes de um tema = opcao do tema
+        // numero logo depois das opcoes de um tema = opcao do tema; maior que as opcoes (ou tema sem opcoes) = menu principal
+        if (s == null && mSub && !/MENU DO JOTA/.test(ult) && k <= (SUB_VENDEDOR[Number(mSub[1])] || []).length) { s = k; k = Number(mSub[1]); }
         return abre(k, s);
       }
       if (!passa) {
         const k = temaDoTexto(t);
-        return (k ? `Entendi que você quer o *${k}. ${MENU_VENDEDOR[k - 1][0]}*. Digite *${k}*` + (SUB_VENDEDOR[k] ? ` (ou uma das opções ${k}.1 a ${k}.${SUB_VENDEDOR[k].length})` : '') + ', ou escolha outro número:\n\n' : '') + respMenuVendedor(c);
+        return (k ? `Entendi que você quer o *${k}. ${MENU_VENDEDOR[k - 1][0]}*. Digite *${k}*` + (SUB_VENDEDOR[k] ? ` e depois o detalhe que quiser` : '') + ', ou escolha outro número:\n\n' : '') + respMenuVendedor(c);
       }
     }
     // RV / COMISSAO / SALARIO DO VENDEDOR (Vitorio, 09/11/2026): 'quando perguntar sobre o RV responde que nao tem os dados, mas da as metas e como esta ate agora'.

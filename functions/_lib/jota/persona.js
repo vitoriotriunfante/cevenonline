@@ -117,7 +117,7 @@ export function humaniza(resp, c, primeiraDoDia) {
   if (primeiraDoDia) {
     const abre = varia([
       `${cump}, ${n}! Ótimas vendas hoje! 🚀 Já separei pra você:`,
-      `${cump}, ${n}! Um excelente dia e boas vendas pra sua equipe! Olha só:`,
+      (c && c.papel === 'vendedor' ? `${cump}, ${n}! Um excelente dia e boas vendas! Olha só:` : `${cump}, ${n}! Um excelente dia e boas vendas pra sua equipe! Olha só:`),
       `Fala, ${n}! ${cump}! Vamos pra cima hoje. Seguem os números:`,
       `${cump}, ${n}! ${tj.charAt(0).toUpperCase() + tj.slice(1)} por aqui. Bora bater meta!`
     ], c.celular);
