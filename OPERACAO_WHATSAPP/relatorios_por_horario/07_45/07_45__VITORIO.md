@@ -1,64 +1,64 @@
 🌅 *ABERTURA MATINAL DE OPERAÇÃO (07:45)*
-📅 Quinta-feira, 05/11/2026 • Grupo Triunfante
+📅 Terça-feira, 10/11/2026 • Grupo Triunfante
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📌 *PANORAMA GERAL*
-👥 *Vendedores Varejo em Rota:* 313
-📍 *Visitas Planejadas (Varejo):* 4.125 PDVs
-🟡 *Alerta Preventivo:* 1.184 PDVs (29,9% da rota)
-🔄 *Recorrência na rota:* 605 PDVs (15,3%)
+👥 *Vendedores Varejo em Rota:* 321
+📍 *Visitas Planejadas (Varejo):* 4.505 PDVs
+🟡 *Alerta Preventivo:* 1.288 PDVs (30,4% da rota)
+🔄 *Recorrência na rota:* 691 PDVs (16,3%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏢 *POR FILIAL (VAREJO)*
 
-📍 *TPH — FÁBIO*
-• Vendedores: 25 • Visitas: 486
-• Sem compra +30d: 191 (39,3%) • Recorrência: 63 (13,0%)
-
 📍 *TPH — VAGNER*
-• Vendedores: 37 • Visitas: 428
-• Sem compra +30d: 109 (27,5%) • Recorrência: 59 (14,9%)
-
-📍 *TBL — FÁBIO*
-• Vendedores: 26 • Visitas: 423
-• Sem compra +30d: 170 (41,6%) • Recorrência: 82 (20,0%)
+• Vendedores: 37 • Visitas: 512
+• Sem compra +30d: 154 (32,7%) • Recorrência: 91 (19,3%)
 
 📍 *API — MARCELO*
-• Vendedores: 28 • Visitas: 406
-• Sem compra +30d: 116 (28,6%) • Recorrência: 84 (20,7%)
+• Vendedores: 28 • Visitas: 469
+• Sem compra +30d: 133 (29,8%) • Recorrência: 85 (19,1%)
+
+📍 *TPH — FÁBIO*
+• Vendedores: 25 • Visitas: 469
+• Sem compra +30d: 187 (40,0%) • Recorrência: 66 (14,1%)
+
+📍 *TBL — FÁBIO*
+• Vendedores: 27 • Visitas: 431
+• Sem compra +30d: 149 (36,3%) • Recorrência: 61 (14,8%)
 
 📍 *ABC — MARCOS*
-• Vendedores: 25 • Visitas: 387
-• Sem compra +30d: 87 (23,8%) • Recorrência: 46 (12,6%)
+• Vendedores: 25 • Visitas: 397
+• Sem compra +30d: 66 (18,8%) • Recorrência: 62 (17,6%)
 
 📍 *TPA — RADKE / LEANDRO*
-• Vendedores: 20 • Visitas: 372
-• Sem compra +30d: 114 (37,6%) • Recorrência: 73 (24,1%)
-
-📍 *TSJ — SALDANHA*
-• Vendedores: 24 • Visitas: 341
-• Sem compra +30d: 72 (21,1%) • Recorrência: 23 (6,7%)
-
-📍 *TBE — DIEGO*
-• Vendedores: 16 • Visitas: 306
-• Sem compra +30d: 104 (34,0%) • Recorrência: 27 (8,8%)
-
-📍 *TCV — LEONARDO*
-• Vendedores: 28 • Visitas: 280
-• Sem compra +30d: 30 (10,8%) • Recorrência: 49 (17,6%)
+• Vendedores: 21 • Visitas: 352
+• Sem compra +30d: 99 (36,4%) • Recorrência: 55 (20,2%)
 
 📍 *TCA — BECHER*
-• Vendedores: 25 • Visitas: 214
-• Sem compra +30d: 77 (38,1%) • Recorrência: 43 (21,3%)
+• Vendedores: 30 • Visitas: 337
+• Sem compra +30d: 129 (40,4%) • Recorrência: 58 (18,2%)
 
-📍 *MCD — CLEVERSON*
-• Vendedores: 19 • Visitas: 190
-• Sem compra +30d: 50 (26,5%) • Recorrência: 20 (10,6%)
+📍 *TSJ — SALDANHA*
+• Vendedores: 23 • Visitas: 328
+• Sem compra +30d: 70 (21,6%) • Recorrência: 25 (7,7%)
 
-📍 *MCD — ADRIANO*
-• Vendedores: 19 • Visitas: 141
-• Sem compra +30d: 30 (21,3%) • Recorrência: 9 (6,4%)
+📍 *TBE — DIEGO*
+• Vendedores: 17 • Visitas: 315
+• Sem compra +30d: 100 (31,7%) • Recorrência: 31 (9,8%)
+
+📍 *TCV — LEONARDO*
+• Vendedores: 27 • Visitas: 313
+• Sem compra +30d: 50 (16,0%) • Recorrência: 72 (23,0%)
 
 📍 *TCG — DANILO*
-• Vendedores: 20 • Visitas: 135
-• Sem compra +30d: 34 (25,2%) • Recorrência: 27 (20,0%)
+• Vendedores: 20 • Visitas: 216
+• Sem compra +30d: 62 (28,7%) • Recorrência: 52 (24,1%)
+
+📍 *MCD — ADRIANO*
+• Vendedores: 21 • Visitas: 184
+• Sem compra +30d: 41 (24,3%) • Recorrência: 20 (11,8%)
+
+📍 *MCD — CLEVERSON*
+• Vendedores: 19 • Visitas: 164
+• Sem compra +30d: 48 (29,3%) • Recorrência: 13 (7,9%)

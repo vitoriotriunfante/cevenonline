@@ -1,60 +1,56 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 quinta-feira, 05/11/2026
+📅 terça-feira, 10/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 37 • Visitas: 428 (média 11,6/vendedor)
-Sem compra +30d: 109 (27,5%) • Recorrência: 59 (14,9%)
+👥 Vendedores: 37 • Visitas: 512 (média 13,8/vendedor)
+Sem compra +30d: 154 (32,7%) • Recorrência: 91 (19,3%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPH — VAGNER* • 05/11/2026
+📍 *TPH — VAGNER* • 10/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 109
+🔴 Última Chance: 0  •  🟡 Preventivo: 154
 
-👤 *ANDREY CAMILLO PIRAGINE* (10 em risco)
-  🟡 POSTO SHELL (66) — 05/12
-  🟡 SBJ PRODUTOS DE LIMPEZA (66) — 05/12
-  🟡 NAGA IKI (68) — 02/10
-  🟡 ASC COMERCIO E SERVICO DE MERC (70) — 31/07
-  🟡 O BARRACAO 1 99 (72) — 30/07
-  _+5 outros_
+👤 *ANDREY CAMILLO PIRAGINE* (20 em risco)
+  🟡 JOSE ESTEVAO DA SILVA MERCEARIA LTDA (67) — 25/09
+  🟡 IMPERIO DISTRIBUIDORA (67) — 05/12
+  🟡 MERCADO CAMPINA (67) — 09/10
+  🟡 SM MOTTIN (67) — 30/06
+  🟡 SUPERMERCADO HELLENA (67) — 05/12
+  _+15 outros_
 
-👤 *JONATHAN FERNANDES* (30 em risco)
-  🟡 54823527 FABIANO GONCALVES (123) — 03/05
-  🟡 AGROMAPER (123) — 16/09
-  🟡 RHALF CASA DE RACAO (124) — 28/08
-  🟡 AVIARIO RAIZ DE DAVI (124) — 31/08
-  🟡 ROGERIO TORRES (124) — 28/09
-  _+25 outros_
+👤 *JONATHAN FERNANDES* (48 em risco)
+  🟡 PULO DO GATO (123) — 30/09
+  🟡 AGROPECUARIA AGROANIMAL (123) — 30/09
+  🟡 PELOS E PATAS (123) — 05/12
+  🟡 AGROPECUARIA LINDON (123) — 17/09
+  🟡 PET SHOP M E M (124) — 30/09
+  _+43 outros_
 
-👤 *JEFFERSON POLETTO* (11 em risco)
-  🟡 FORTPET (125) — 30/06
-  🟡 MUNDO ANIMAL (125) — 05/12
-  🟡 AVIARIO PAI E FILHO (125) — 28/09
-  🟡 AVIARIO REINO ANIMAL (125) — 05/12
-  🟡 DINO AVIARIO PET SHOP (125) — 31/08
-  _+6 outros_
+👤 *JEFFERSON POLETTO* (13 em risco)
+  🟡 TERRAPET (128) — 05/09
+  🟡 TERRAPET (128) — 28/07
+  🟡 AVIARIO OLIVEIRAS (128) — 30/09
+  🟡 AVI LEPET (128) — 17/09
+  🟡 AU AU MIAU ESTETICA E CUIDADOS (128) — 05/09
+  _+8 outros_
 
-👤 *LUIZ AUGUSTO RAMOS* (36 em risco)
-  🟡 SM XAVIER (74) — 03/07
-  🟡 MERCADO BARON (74) — 18/09
-  🟡 MERCADO XAVIER (74) — 31/07
-  🟡 CONVENIENCIA CORDEIRO SPOT (75) — 05/12
-  🟡 MINI MERCADO ITATIAIA (75) — 10/07
-  _+31 outros_
+👤 *LUIZ AUGUSTO RAMOS* (49 em risco)
+  🟡 LAURITA CENTER MEGA STORE (74) — 15/09
+  🟡 HIPERFARMA (74) — 10/10
+  🟡 RESTAURANTE PANIFICADORA E CONFEITARIA (74) — 05/12
+  🟡 FORTE FARMA (74) — 05/12
+  🟡 FEST BEBIDAS (74) — 20/08
+  _+44 outros_
 
-👤 *RODRIGO DE ARRUDA DARROS* (17 em risco)
-  🟡 MERCEARIA OLIVEIRA (86) — 15/09
-  🟡 MERCEARIA CAMILA LTDA (88) — 30/09
-  🟡 BAR E MERCEARIA RHL LTDA (88) — 30/09
-  🟡 TOPPER LANCHES (88) — 31/07
-  🟡 TO NA PRACA (88) — 05/12
-  _+12 outros_
+👤 *RODRIGO DE ARRUDA DARROS* (23 em risco)
+  🟡 LANCHONETE E REST TABORDA (85) — 05/12
+  🟡 MEGA REAL - MIX SORVETERIA (86) — 30/09
+  🟡 POSTO 090 (86) — 31/08
+  🟡 POSTO MOREIRA (86) — 17/09
+  🟡 LANCHONETE ROTA 277 (87) — 30/06
+  _+18 outros_
 
-👤 *SUPERVISOR 55* (5 em risco)
-  🟡 PANIF ACOUGUE GRAZIELA (110) — 05/12
-  🟡 HOT BURGUI (110) — 27/05
-  🟡 CONVINIENCIA OLIVEIRA (110) — 30/06
-  🟡 PANIF NOVA MORADA (110) — 28/09
-  🟡 DIOVAN DA SILVA TIEDE (110) — 24/09
+👤 *SUPERVISOR 55* (1 em risco)
+  🟡 MERCADO LARA (110) — 11/09

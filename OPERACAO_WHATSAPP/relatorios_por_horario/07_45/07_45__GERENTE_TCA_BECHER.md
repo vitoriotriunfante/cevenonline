@@ -1,45 +1,45 @@
 🌅 *ABERTURA MATINAL — TCA (07:45)*
-📅 quinta-feira, 05/11/2026
+📅 terça-feira, 10/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 25 • Visitas: 214 (média 8,6/vendedor)
-Sem compra +30d: 77 (38,1%) • Recorrência: 43 (21,3%)
+👥 Vendedores: 30 • Visitas: 337 (média 11,2/vendedor)
+Sem compra +30d: 129 (40,4%) • Recorrência: 58 (18,2%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TCA — BECHER* • 05/11/2026
+📍 *TCA — BECHER* • 10/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 77
+🔴 Última Chance: 0  •  🟡 Preventivo: 129
 
-👤 *FRANCISCO FRANCO FILHO* (8 em risco)
-  🟡 G3 (376) — 11/09
-  🟡 G3 (376) — 07/08
-  🟡 G3 (376) — 07/08
-  🟡 GRAN VIA CONVENIENCIA (390) — 25/09
-  🟡 MERCADO FLORIANO (390) — 05/12
-  _+3 outros_
+👤 *FRANCISCO FRANCO FILHO* (19 em risco)
+  🟡 CNV (376) — 14/09
+  🟡 RESTAURANTE E LANCHONETE GUARANY (376) — 03/09
+  🟡 G3 + (376) — 28/09
+  🟡 JOSE ALCEU DA SILVA (376) — 30/09
+  🟡 G3 (376) — 28/07
+  _+14 outros_
 
-👤 *IVAYR PRINCIPE FREITAS DE MIRANDA* (22 em risco)
-  🟡 MERCEARIA E DISTR. OLIVEIRA (378) — 17/09
-  🟡 DROGARIA ULTRA POPULAR (378) — 29/09
-  🟡 MERCADO ALTAS HORAS (378) — 18/08
-  🟡 MERCADO BRASIL (378) — 31/08
-  🟡 EMPORIO BEER 65 (378) — 03/05
-  _+17 outros_
+👤 *IVAYR PRINCIPE FREITAS DE MIRANDA* (29 em risco)
+  🟡 MEGA PLUS CONFEITARIA (378) — 31/08
+  🟡 MERCEARIA POPULAR (378) — 09/09
+  🟡 COMERCIAL VJ ALIMENTOS (378) — 30/09
+  🟡 MERCADO BOM DIA BRASIL (378) — 30/09
+  🟡 PADARIA DRESCH (379) — 03/05
+  _+24 outros_
 
-👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR* (23 em risco)
-  🟡 MERCADO 04 IRMAS (380) — 31/08
-  🟡 MERCEARIA ACORICENTRO (380) — 21/07
-  🟡 MERCADO ESTACAO (380) — 27/05
-  🟡 MERCADO BOI BOM (380) — 29/09
-  🟡 PARADA 163 (380) — 31/07
-  _+18 outros_
+👤 *JOSE FRANCISCO OLIVEIRA SANTOS JUNIOR* (54 em risco)
+  🟡 KIREI COMERCIO DE ALIMENTOS LTDA (380) — 05/12
+  🟡 MERCADO QUERO MAIS (380) — 05/12
+  🟡 MARCOS MORAIS DA SILVA (380) — 23/09
+  🟡 BOUTIQUE DA CARNE (381) — 16/09
+  🟡 SUPERMERCADO LOBAO (384) — 31/08
+  _+49 outros_
 
-👤 *MAICON DION NOVAIS SILVA* (24 em risco)
-  🟡 PRIME HAMBURGUERIA (372) — 08/09
-  🟡 CONVENIENCIA SELECT (372) — 14/09
-  🟡 SUPERMERCADO ALVORADA (373) — 05/12
-  🟡 POSTO SAPUCAIA (373) — 23/09
-  🟡 AUTO POSTO QUERO QUERO (373) — 18/02
-  _+19 outros_
+👤 *MAICON DION NOVAIS SILVA* (27 em risco)
+  🟡 COMERCIAL CHURUPITAS (372) — 08/10
+  🟡 MERCADO IDEAL (372) — 21/09
+  🟡 SUPERMERCADO UNIAO (372) — 25/08
+  🟡 VALE PORTO SEGURO LTDA (372) — 31/08
+  🟡 BOM SABOR RESTAURANTE E LANCHONETE (373) — 27/05
+  _+22 outros_

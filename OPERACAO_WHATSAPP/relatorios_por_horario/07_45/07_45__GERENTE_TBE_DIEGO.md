@@ -1,37 +1,37 @@
 🌅 *ABERTURA MATINAL — TBE (07:45)*
-📅 quinta-feira, 05/11/2026
+📅 terça-feira, 10/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 16 • Visitas: 306 (média 19,1/vendedor)
-Sem compra +30d: 104 (34,0%) • Recorrência: 27 (8,8%)
+👥 Vendedores: 17 • Visitas: 315 (média 18,5/vendedor)
+Sem compra +30d: 100 (31,7%) • Recorrência: 31 (9,8%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TBE — DIEGO* • 05/11/2026
+📍 *TBE — DIEGO* • 10/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 102
+🔴 Última Chance: 0  •  🟡 Preventivo: 100
 
-👤 *HAMILTON RICARDO DOS SANTOS MENDES* (38 em risco)
-  🟡 MERCADO ESTRELA (301) — 17/09
-  🟡 MERCADO SANTO ANTONIO (301) — 29/09
-  🟡 JOAO LUIS MORES (301) — 24/09
-  🟡 ROTA 66 (301) — 05/12
-  🟡 MARI CIRNE (301) — 05/12
-  _+33 outros_
+👤 *HAMILTON RICARDO DOS SANTOS MENDES* (37 em risco)
+  🟡 KRUMMENAUER E RIOS LANCH E RESTAURANTE (301) — 05/10
+  🟡 MINIMERCADO 24H (301) — 31/08
+  🟡 TONINHOS PAPEL E CAFE LTDA (301) — 05/12
+  🟡 BORKS PADARIA (304) — 01/01
+  🟡 VIDA ETERNA COM DE PRODUTOS NATURAIS (304) — 01/01
+  _+32 outros_
 
-👤 *NEIVA CLEONICE SERRA ISOPPO* (8 em risco)
-  🟡 EMILY BIASIBETTI (289) — 29/09
-  🟡 O POINT DO ACAI MELOS (289) — 05/12
-  🟡 MACHADO SILVA (289) — 29/09
-  🟡 SUPER EXXTRA (293) — 31/08
-  🟡 POSTO MARCA DO TEMPO (293) — 27/08
-  _+3 outros_
+👤 *NEIVA CLEONICE SERRA ISOPPO* (9 em risco)
+  🟡 CORTE & SABOR (293) — 29/09
+  🟡 SUPERMECADO GUARANI (293) — 21/09
+  🟡 ELITON KENNEDY GUIMARAES DOS SANTOS (293) — 03/05
+  🟡 MERCADO ACOUGUE E PADARIA DO GAGO (293) — 27/08
+  🟡 MERCADO UNIAO (293) — 30/09
+  _+4 outros_
 
-👤 *PATRICIA CHAVES MACHADO* (56 em risco)
-  🟡 MERCADO RIGO (285) — 29/09
-  🟡 GOLD COMERCIO DE COMBUSTIVEIS (285) — 18/09
-  🟡 C DE GODOY GONCALVES MARTINS (285) — 25/09
-  🟡 APOLO FILIAL 2 (285) — 11/09
-  🟡 ARSENIO GUILHERME DA ROSA (285) — 01/01
-  _+51 outros_
+👤 *PATRICIA CHAVES MACHADO* (54 em risco)
+  🟡 LENIO LUIZ WEBBER (285) — 01/01
+  🟡 MARILENE MOREIRA SCHREIBER (285) — 27/05
+  🟡 LUCIANA PEREIRA COSTA (285) — 01/01
+  🟡 VIVIAN OLIVEIRA WOLTMANN DA SILVA (285) — 27/05
+  🟡 COCCADERIA CO LEROY MERLIN SERTORIO (288) — 01/01
+  _+49 outros_

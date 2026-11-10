@@ -1,45 +1,53 @@
 🌅 *ABERTURA MATINAL — TPH (07:45)*
-📅 quinta-feira, 05/11/2026
+📅 terça-feira, 10/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 Vendedores: 25 • Visitas: 486 (média 19,4/vendedor)
-Sem compra +30d: 191 (39,3%) • Recorrência: 63 (13,0%)
+👥 Vendedores: 25 • Visitas: 469 (média 18,8/vendedor)
+Sem compra +30d: 187 (40,0%) • Recorrência: 66 (14,1%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 *PDVs EM RISCO — 07:45*
-📍 *TPH — FÁBIO* • 05/11/2026
+📍 *TPH — FÁBIO* • 10/11/2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 Última Chance: 0  •  🟡 Preventivo: 189
+🔴 Última Chance: 0  •  🟡 Preventivo: 187
 
-👤 *EDERSON SUONSKI* (57 em risco)
-  🟡 MERCADO LETICIA (111) — 05/12
-  🟡 DISTRIBUIDORA DO GRINGO (111) — 29/09
-  🟡 HIPER FARMA (111) — 05/12
-  🟡 PANIFICADORA DOCE DE LEITE (111) — 29/09
-  🟡 RENAN E RENAN DISTRIBUICAO DE ALIMENTOS (111) — 05/12
-  _+52 outros_
+👤 *EDERSON SUONSKI* (44 em risco)
+  🟡 RESTAURANTE E LANCHONETE BELA VISTA TUNA (111) — 01/07
+  🟡 SM SAO FRANCISCO (111) — 30/09
+  🟡 TUNAS FARMA (111) — 05/12
+  🟡 DUAS IRMAS STRAUB LTDA ME (111) — 05/12
+  🟡 CASA PRESTES (111) — 01/07
+  _+39 outros_
+
+👤 *CRISTIAN EDUARDO RAFFAELLI* (8 em risco)
+  🟡 FARMACIA NISSEI (90) — 05/12
+  🟡 GRUPO SPN (90) — 05/12
+  🟡 FARMACIA PAULO CEZAR PARQUE DOS LAGOS (90) — 05/12
+  🟡 FARMACIA NISSEI (90) — 05/12
+  🟡 DROGARIAS NISSEI (90) — 05/12
+  _+3 outros_
 
 👤 *EDI CARLOS MEIRA* (10 em risco)
-  🟡 POSTOS PELANDA TIBAGI (114) — 29/09
-  🟡 SANTANA E ORELLANA LTDA (115) — 29/09
-  🟡 DAL BO PIZZARIA E RESTAURANTE (116) — 18/09
-  🟡 MERCADO PIONEIRO (117) — 17/09
-  🟡 YZZA PAPELARIA E PRESENTE (117) — 29/09
+  🟡 MERCADO ALVES (115) — 01/01
+  🟡 MERCADO KRUGER (115) — 30/09
+  🟡 PANIFICADORA PROMESSA (115) — 03/10
+  🟡 MEGA REAL - MIX SORVETERIA (118) — 30/09
+  🟡 POSTO 090 (118) — 31/08
   _+5 outros_
 
-👤 *PRISCILA A D NASCIMENTO STRAPASSON* (48 em risco)
-  🟡 COLOSSAL BATEL - SELECT (65) — 30/09
-  🟡 AUTO POSTO APARECIDA (65) — 05/12
-  🟡 AUTO POSTO COLOSSAL - SELECT (65) — 30/09
-  🟡 POSTO BR (65) — 23/09
-  🟡 POSTO PETRO IGUACU (65) — 01/07
-  _+43 outros_
+👤 *PRISCILA A D NASCIMENTO STRAPASSON* (52 em risco)
+  🟡 DISTRIBUIDORA ROCHA (65) — 07/10
+  🟡 MARIA DE SALES ALVES (65) — 27/05
+  🟡 MERCADO KOGA (65) — 05/12
+  🟡 DISTRIBUIDORA PAI E FILHO (65) — 14/08
+  🟡 MERCADO ELIZELI (65) — 05/12
+  _+47 outros_
 
-👤 *Vendedores ligados direto ao gerente* (74 em risco)
-  🟡 HOTEL DORIZON (47) — 05/12
-  🟡 QUALITY (47) — 05/12
-  🟡 RADISON HOTEL CURITIBA (47) — 31/07
-  🟡 VCO COMERCIO DE MEDICAMENTOS LTDA - ME (47) — 05/12
-  🟡 VICCENZA RISTORANTE (47) — 05/12
-  _+69 outros_
+👤 *Vendedores ligados direto ao gerente* (73 em risco)
+  🟡 LANCHONETE DOIS CORACOES (47) — 08/08
+  🟡 CRIADOURO ONCA PINTADA (47) — 30/06
+  🟡 VICENTE HORNUNG RACOES (47) — 24/09
+  🟡 GREICY LOHANA ROSSONI DE LIMA (47) — 23/09
+  🟡 K ALIMENTOS INDUSTRIA DE LATICINIOS LTDA (47) — 05/12
+  _+68 outros_
