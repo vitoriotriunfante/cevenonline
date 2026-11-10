@@ -569,14 +569,16 @@ async function coletaPedidosWinthor(env, rcas, limite = 12, prazo = Infinity) {
     if (P.length) {
       const nums = P.map((p) => String(p.numeroPedido));
       const antes = new Map();
-      for (let i = 0; i < nums.length; i += 90) { const lote = nums.slice(i, i + 90); const { results } = await env.DB.prepare(`SELECT num, status, valor FROM pedido_status WHERE num IN (${lote.map(() => '?').join(',')})`).bind(...lote).all(); for (const r of results || []) antes.set(String(r.num), r); }
+      for (let i = 0; i < nums.length; i += 90) { const lote = nums.slice(i, i + 90); const { results } = await env.DB.prepare(`SELECT num, status, valor, data_pedido FROM pedido_status WHERE num IN (${lote.map(() => '?').join(',')})`).bind(...lote).all(); for (const r of results || []) antes.set(String(r.num), r); }
       const agora = new Date().toISOString();
       for (const p of P) {
         const num = String(p.numeroPedido), status = STATUS_WINTHOR[semW(p.status)] || semW(p.status || 'SEM STATUS'), valor = Number(p.valor) || null, a = antes.get(num);
-        if (a && a.status === status && (a.valor != null || valor == null)) continue;   // mesmo status (e valor ja gravado): nao regrava
+        const dataW = String(p.dataPedido).slice(0, 10);
+        if (a && a.status === status && (a.valor != null || valor == null) && a.data_pedido === dataW) continue;   // mesmo status, valor e data: nao regrava
+        // 10/11/2026: data do pedido = a do Winthor. A leitura da rota grava a data da VISITA do historico (1.076 pedidos de novembro com data futura).
         const itens = Array.isArray(p.itens) ? JSON.stringify(p.itens.map((i) => ({ c: i.codigo, d: i.descricao, q: i.quantidade, v: i.valor }))).slice(0, 8000) : null;
         st.push(env.DB.prepare(`INSERT INTO pedido_status (num, filial, rca, id_cliente, data_pedido, status, valor, final, primeiro_em, atualizado_em, rechecado_em, itens_json, origem)
-          VALUES (?,?,?,?,?,?,?,?,?,?,?,?, 'winthor') ON CONFLICT (num) DO UPDATE SET status = excluded.status, valor = COALESCE(pedido_status.valor, excluded.valor), final = excluded.final,
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?, 'winthor') ON CONFLICT (num) DO UPDATE SET status = excluded.status, valor = COALESCE(pedido_status.valor, excluded.valor), final = excluded.final, data_pedido = excluded.data_pedido,
           rechecado_em = excluded.rechecado_em, itens_json = COALESCE(excluded.itens_json, pedido_status.itens_json),
           atualizado_em = CASE WHEN pedido_status.status = excluded.status THEN pedido_status.atualizado_em ELSE excluded.atualizado_em END`)
           .bind(num, fil, String(rca.codigo), String(p.codigoCliente || ''), String(p.dataPedido).slice(0, 10), status, valor, /FATURAD|CANCELAD|DEVOLVID/.test(status) ? 1 : 0, agora, agora, agora, itens));
