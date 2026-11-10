@@ -11,7 +11,7 @@ import { PARADAS } from './vendas.js';
 // NOME COMERCIAL (Vitorio, 10/11/2026: "Quimica Amparo nao e YPE?"): a marca que o vendedor conhece, nunca a razao social
 const COMERCIAL = [[/AMPARO/, 'Ypê'], [/MASTERFOODS|MARS CHOC|^MARS/, 'Mars'], [/GRASSI|BALLY|BALY/, 'Baly'], [/HEMMER/, 'Hemmer'], [/HEINZ/, 'Heinz'], [/GDC|GOMES DA COSTA/, 'Gomes da Costa'], [/FVO/, 'FVO (pet)'],
   [/TRIUNFANTE BRASIL|MARCA PROPRIA/, 'Marca Própria'], [/TRIUNFANTE CORPORATIVO/, 'Triunfante Corporativo'], [/BAGLEY/, 'Bagley'], [/ARCOR/, 'Arcor'], [/SC JOHNSON/, 'SC Johnson'], [/MARILAN/, 'Marilan'], [/MONDELEZ/, 'Mondelez'], [/FERRERO/, 'Ferrero'],
-  [/RED BULL/, 'Red Bull'], [/PEPSICO/, 'PepsiCo'], [/AB MAURI/, 'AB Mauri (Fleischmann)'], [/ENVISION/, 'Envision (AOC/Philips)'], [/DURACELL/, 'Duracell'], [/COLGATE/, 'Colgate'], [/BOMBRIL/, 'Bombril'], [/SOCOCO/, 'Sococo'], [/DAFRUTA/, 'Dafruta'], [/CONDOR/, 'Condor']];
+  [/RED BULL/, 'Red Bull'], [/PEPSICO/, 'PepsiCo'], [/AB MAURI/, 'AB Mauri (Fleischmann)'], [/ENVISION/, 'Envision (AOC/Philips)'], [/DURACELL/, 'Duracell'], [/COLGATE/, 'Colgate'], [/BOMBRIL/, 'Bombril'], [/SOCOCO/, 'Sococo'], [/DAFRUTA|EMPRESA BRASILEIRA DE BEBIDAS/, 'Dafruta (EBBA)'], [/LINDT/, 'Lindt'], [/NIVEA/, 'Nivea'], [/CONDOR/, 'Condor']];
 export const nomeForn = (n) => { const u = String(n || '').toUpperCase(); for (const [re, nm] of COMERCIAL) if (re.test(u)) return nm; return titulo(String(n || '').replace(/^[A-Z0-9]{1,3}\s*-\s*/i, '').replace(/\(.*?\)|\.{2,}/g, '').replace(/\s+/g, ' ').trim()); };
 export async function respMetasIndustria(B, E, t, pessoa) {
   const RV = await B.rv();
