@@ -422,6 +422,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
           const Ev = await carregaEscopo(B, esc), v = Ev.vend[0];
           r = !v ? 'Não achei os seus dados na base agora.' : chave === '__carteira__' ? await respCarteiraVendedor(B, v) : chave === '__campanhas__' ? await respCampanhasVendedor(B, v) : chave === '__mixrota__' ? await respMixRotaHoje(B, v) : await respMinhaRota(B, v);
         } else r = await interno(chave.replace('VENDEDOR', eu));
+        // META DE RECORRENCIA = GEROT (Vitorio, 10/11/2026: 'a meta de recorrencia tem no GEROT'): lista do dia 1 (recuperacao), meta 80%; a lista da TAG abaixo mostra quem falta
+        if (/recorrencia/i.test(chave) && B.env && B.env.DB) { try {
+          const g = await B.env.DB.prepare("SELECT objetivo, meta, positivados, faturado, em FROM gerot_recorrencia WHERE mes = ? AND filial = ? AND nivel = 'vendedor' AND cod = ? ORDER BY em DESC LIMIT 1").bind(hojeSP().slice(0, 7), String(c.filial || ''), String(rcaV)).first();
+          if (g && g.objetivo != null) r = [`🎯 *Meta de recorrência (GEROT)*: objetivo *${N(g.objetivo)}* clientes · meta 80% = *${N(g.meta || 0)}* · positivados *${N(g.positivados || 0)}*` + (g.meta ? ` (${(g.positivados / g.meta * 100).toFixed(1).replace('.', ',')}% da meta · faltam *${N(Math.max(0, g.meta - g.positivados))}*)` : '') + (g.faturado != null ? ` · ${R$(g.faturado)}` : ''),
+            '_Lista do dia 1º do GEROT: clientes com compra de 31 a 90 dias e nenhuma nos 30 dias antes do dia 1º._', '', String(r)].join('\n');
+        } catch (e) { /* sem GEROT: fica a TAG do CEVEN */ } }
         // vendedor nao tem equipe: tira os blocos de equipe vazios (auditoria 10/11/2026, devolucoes)
         r = String(r == null ? 'Sem dado agora.' : r).split('\n').filter((l, i, a) => !(/^\*(Por supervisor|Vendedores com mais devolu[cç][aã]o):\*$/.test(l) && !/^(•|\d)/.test(a[i + 1] || '')) && !/^_Fonte: painel do CEVEN, só vendedores ativos/.test(l)).join('\n');
         return r + '\n' + rodape(k);

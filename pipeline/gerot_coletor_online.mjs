@@ -202,6 +202,26 @@ async function main() {
       log('recorrencia: calculos do Extrair dados nesta tela:', JSON.stringify(calcRec && calcRec.calculosDisponiveis ? calcRec.calculosDisponiveis.filter((x) => /recorr|recupera|faixa|dias/i.test(x)) : calcRec));
       const rec = await page.evaluate(() => ({ texto: document.body.innerText.slice(0, 120000), tabelas: [...document.querySelectorAll('table')].map((t) => t.outerHTML.slice(0, 300000)), selects: [...document.querySelectorAll('select')].map((s) => [...s.options].map((o) => o.text)) }));
       rec.calculos = calcRec;
+      // GRAVA A 'LISTA DO DIA 1 - RECUPERACAO' (filial > supervisor > vendedor): objetivo, meta 80%, positivados, faturado... so o que mudou
+      try {
+        const ini = rec.texto.indexOf('Lista do dia'), fim = rec.texto.indexOf('Árvore de decomposição', ini), T = ini >= 0 ? rec.texto.slice(ini, fim > 0 ? fim : undefined) : '';
+        const mm = T.match(/antes de 01\/(\d{2})\/(\d{4})/), mes = mm ? `${mm[2]}-${mm[1]}` : null;
+        const n = (x) => { const s = String(x || '').replace(/R\$\s*/, '').replace(/−/g, '-').trim(); if (!s || s === '—') return null; const v = Number(s.replace(/\./g, '').replace(',', '.').replace('%', '')); return isFinite(v) ? v : null; };
+        const linhas = []; let filial = null, sup = null;
+        const re = /^(.+?) · (\d+)(SUPERVISOR|VENDEDOR)?\s*\n\t([^\n]+)/gm; let m;
+        while (mes && (m = re.exec(T))) {
+          const nome = m[1].replace(/^▸\s*/, '').trim(), cod = m[2], tipo = m[3], c = m[4].split('\t');
+          const nivel = !tipo ? 'filial' : tipo === 'SUPERVISOR' ? 'supervisor' : 'vendedor';
+          if (nivel === 'filial') { if (!/^[A-Z]{3}$/.test(nome)) continue; filial = nome; sup = null; }
+          if (nivel === 'supervisor') sup = cod;
+          if (!filial) continue;
+          const x = { mes, filial, nivel, cod: nivel === 'filial' ? filial : cod, nome: nivel === 'filial' ? filial : nome, sup_cod: nivel === 'vendedor' ? sup : null,
+            objetivo: n(c[0]), meta: n(c[1]), positivados: n(c[2]), faturado: n(c[4]), pdvs_afat: n(c[7]), vlr_afat: n(c[8]), pdvs_vend: n(c[9]) };
+          x.hash = crypto.createHash('md5').update(JSON.stringify(x)).digest('hex'); linhas.push(x);
+        }
+        log('recorrencia:', linhas.length, 'linhas lidas (', ['filial', 'supervisor', 'vendedor'].map((k) => k + ' ' + linhas.filter((y) => y.nivel === k).length).join(' · '), ')');
+        if (linhas.length && !ENSAIO) { for (let i = 0; i < linhas.length; i += 200) await api('POST', '', { recorrencia: linhas.slice(i, i + 200) }); log('recorrencia: enviada ao D1'); }
+      } catch (e) { log('recorrencia: falha ao gravar', e.message); }
       fs.writeFileSync(path.join(SAIDA, 'recorrencia.json'), JSON.stringify(rec, null, 1));
       await page.screenshot({ path: path.join(SAIDA, 'recorrencia.png'), fullPage: true }).catch(() => {});
       log('recorrencia: tela lida ·', rec.tabelas.length, 'tabela(s) ·', rec.texto.slice(0, 1500).replace(/\s+/g, ' '));
