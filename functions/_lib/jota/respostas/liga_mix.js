@@ -106,13 +106,21 @@ export const GLOSSARIO = [
   [/DEFESA/, '*Defesa* (+3): venda em cliente com tag RECORRÊNCIA.'],
   [/LIGA|CHAMPIONS|PONTUA|VITORIA/, '*Liga*: vitória no dia = soma ≥ 11 pontos; lance só vale com prova; fechamento 19h30. Semana invicta +3.'],
 ];
+// REGRAS DA LIGA para o vendedor (10/11/2026): o regulamento oficial (public/pontuacao_brasileirao.json), lance por lance
+export async function respRegrasLiga(B) {
+  let R = null; try { R = JSON.parse(await B.raw('public/pontuacao_brasileirao.json') || 'null'); } catch (e) { R = null; }
+  if (!R || !R.pontos_por_lance) return 'Não consegui ler o regulamento da Liga agora.';
+  const f = R.faixas_pontos_liga || {}, L = Object.values(R.pontos_por_lance).filter((x) => x && x.nome && x.pontos != null).sort((a, b) => b.pontos - a.pontos);
+  return ['📜 *Regras da Liga (Champions)*', `Cada dia é uma rodada: *vitória* com ${(f.vitoria || {}).min_pontos ?? 11} pontos ou mais (3 na tabela) · *empate* de 1 a ${((f.vitoria || {}).min_pontos ?? 11) - 1} (1) · *derrota* com 0 ou menos (0).`, '',
+    ...L.map((x) => `${x.pontos > 0 ? '+' : ''}${x.pontos} · ${x.nome}`), '', '_Lance só vale com prova do CEVEN. Fechamento do dia às 19h30._'].join('\n');
+}
 export function respGlossario(t) { const h = GLOSSARIO.filter(([re]) => re.test(t)).map(([, s]) => s); return h.length ? h.join('\n\n') : null; }
 // MENU DO VENDEDOR (Vitorio, 09/11/2026: "respostas prontas para atender 99% das solicitacoes, tudo com indices").
 // Itens = o que os vendedores mais perguntam (164 perguntas reais de 82 vendedores) e pedem no passaporte (229 cadastros). Ver docs/JOTA_MENU_VENDEDOR.md.
 // O vendedor digita o numero OU escreve do jeito dele; cada numero cai numa resposta pronta (entende.js, MENU_VENDEDOR).
 export const MENU_VENDEDOR = [
   ['Como estou: meta x realizado, positivação e quanto falta por dia', 'como esta o VENDEDOR'],
-  ['Minha posição na Liga (Champions)', 'liga'],
+  ['Minha posição na Liga (Champions)', '__liga__'],
   ['Minha premiação / RV: metas e como estou até agora', '__rv__'],
   ['Meus pedidos: status, bloqueados e a faturar', 'status dos pedidos'],
   ['Clientes sem compra no mês', '__curva__'],
@@ -130,10 +138,10 @@ export const MENU_VENDEDOR = [
 // SUB-INDICES (Vitorio, 09/11/2026: "dentro do que ele pode perguntar tudo com indice tambem... limitado"): temas com variacoes.
 // O vendedor digita 4.2 ou, logo depois da resposta do tema 4, so o 2. 0 = volta ao menu.
 export const SUB_VENDEDOR = {
-  1: [['Quanto vendi hoje', 'quanto vendi hoje'], ['Meta do mês: faturado, pendente e positivação', 'como esta o VENDEDOR'], ['Quanto falta por dia útil', 'quanto falta da meta'], ['Minhas metas por indústria', 'metas das industrias']],
-  2: [['Minha posição na Liga', 'liga'], ['Meus lances de hoje', 'meus lances'], ['Regras da Liga', 'regras da liga']],
+  // 10/11/2026 (auditoria da Tamara): 'Meta do mes' saiu (repetia o 1); 9 sem opcoes (o numero depois da rota e o cliente da lista)
+  1: [['Quanto vendi hoje', 'quanto vendi hoje'], ['Quanto falta por dia útil', 'quanto falta da meta'], ['Minhas metas por indústria', 'metas das industrias']],
+  2: [['Minha posição na Liga', '__liga__'], ['Meus lances de hoje', 'meus lances'], ['Regras da Liga', '__regras__']],
   4: [['Todos os meus pedidos (status)', 'status dos pedidos'], ['Pedidos bloqueados', 'pedidos bloqueados'], ['Pedidos a faturar', 'pedidos pendentes'], ['Pedidos cancelados', 'pedidos cancelados']],
-  9: [['Minha rota de hoje', '__rota__'], ['Quem falta visitar hoje', 'quais clientes faltam visitar']]
 };
 // assunto do texto livre -> indice sugerido (o vendedor so recebe o indice; a resposta sai pelo numero)
 const TEMAS_VENDEDOR = [

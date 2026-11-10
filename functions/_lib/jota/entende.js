@@ -340,13 +340,17 @@ export async function respostaInterna(B, c, texto, anteriores) {
         let r;
         if (chave === '__curva__') r = await interno(`curva negativa do ${eu}`);
         else if (chave === '__rv__') r = await interno('meu rv');
+        else if (chave === '__liga__') { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; r = v ? await respLiga(B, Ev, v) : 'Não achei os seus dados na base agora.'; }
+        else if (chave === '__regras__') { const { respRegrasLiga } = await import('./respostas/liga_mix.js'); r = await respRegrasLiga(B); }
         else if (chave === '__produto__') r = (await interno('metas das industrias')) + '\n\n👉 Para um produto, mande *tem <produto>* (ex.: *tem Toblerone*).';
         else if (chave === '__ficha__') r = 'Mande o *código do cliente* assim: *cliente #12345* (ou o CNPJ) que eu abro a ficha com o histórico e o que oferecer.';
         else if (['__carteira__', '__campanhas__', '__mixrota__', '__rota__'].includes(chave)) {
           const Ev = await carregaEscopo(B, esc), v = Ev.vend[0];
           r = !v ? 'Não achei os seus dados na base agora.' : chave === '__carteira__' ? await respCarteiraVendedor(B, v) : chave === '__campanhas__' ? await respCampanhasVendedor(B, v) : chave === '__mixrota__' ? await respMixRotaHoje(B, v) : await respMinhaRota(B, v);
         } else r = await interno(chave.replace('VENDEDOR', eu));
-        return String(r == null ? 'Sem dado agora.' : r) + '\n' + rodape(k);
+        // vendedor nao tem equipe: tira os blocos de equipe vazios (auditoria 10/11/2026, devolucoes)
+        r = String(r == null ? 'Sem dado agora.' : r).split('\n').filter((l, i, a) => !(/^\*(Por supervisor|Vendedores com mais devolu[cç][aã]o):\*$/.test(l) && !/^(•|\d)/.test(a[i + 1] || '')) && !/^_Fonte: painel do CEVEN, só vendedores ativos/.test(l)).join('\n');
+        return r + '\n' + rodape(k);
       };
       // VER MAIS (10/11/2026: o resumo manda pedir "ver mais" e o indice devolvia o menu): abre a lista que a ultima resposta prometeu
       if (/^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|LISTA COMPLETA|VER (A )?LISTA|VER (O )?RESTANTE|VER (OS )?OUTROS)\W*$/.test(t)) {

@@ -82,3 +82,7 @@ Falta: RV em R$ (holerite do CEVEN na base), produto ("tem X?"), rota de outro d
 - RV/comissão (índice 3): "não tenho os dados do RV" + metas e como está até agora (ou o fechamento, se for mês passado).
 - Sem a nota "de 1 a 5" para vendedor (o número é escolha do índice).
 - Teste em conversa com dado real (só leitura): `node testes/_t_indice.mjs`.
+
+## 7. Auditoria por vendedor (10/11/2026)
+- `node testes/_auditoria_menu.mjs FILIAL RCA "NOME"` abre os 15 índices e as opções como o vendedor e grava 1 MD por item em `auditoria/<NOME> - <FILIAL> <RCA>/` (produção, só leitura).
+- Ajustes da 1ª auditoria (Tamara TCV 352): opções do tema numeradas 1, 2, 3; 1 tem 3 opções (hoje, quanto falta, indústrias); 2 = posição do vendedor (não o ranking da filial) e 2.3 = regulamento lance por lance; 9 sem opções (número depois da rota = cliente da lista); devoluções sem blocos de equipe vazios.
