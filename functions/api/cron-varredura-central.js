@@ -304,16 +304,66 @@ const MODELOS_SIM = [
   (n) => `Olá, *${n}*! ⚽\n\nPara garantir que as mensagens do *Jota* cheguem até você, confirme que o contato *Jota (+MIX)* está salvo respondendo:\n\n*SIM*\n\n⚠️ Sem essa resposta, os envios ficam *suspensos* até a confirmação.`,
   (n) => `*${n}*, aqui é o *Jota* (+MIX). 📲\n\n*Confirme que salvou este contato* respondendo apenas:\n\n*SIM*\n\n⚠️ Atenção: sem a confirmação, o Jota vai *suspender* o envio de mensagens para o seu número até você responder.`
 ];
+// VENDEDOR (Vitorio, 10/11/2026: "envie uma msg um por um dizendo que caso nao confirme sera bloqueado... varie uns 6 tipos"): 6 modelos com o aviso de bloqueio.
+const MODELOS_SIM_VEND = [
+  (n) => `Oi, *${n}*! Aqui é o *Jota* ⚽.
+
+Ainda não recebi a sua confirmação de que *salvou este número* como *Jota (+MIX)*.
+
+👉 Responda apenas:
+
+*SIM*
+
+🚫 Sem a confirmação, o seu acesso ao Jota será *bloqueado*.`,
+  (n) => `*${n}*, tudo certo? ⚽
+
+Para manter o seu acesso ao *Jota*, salve este contato como *Jota (+MIX)* e me responda com:
+
+*SIM*
+
+🚫 Quem não confirmar terá o acesso *bloqueado*.`,
+  (n) => `Olá, *${n}*! 📲
+
+Falta só um passo: confirme que o contato *Jota (+MIX)* está salvo no seu celular respondendo:
+
+*SIM*
+
+🚫 Atenção: sem essa resposta o acesso ao Jota será *bloqueado*.`,
+  (n) => `*${n}*, aqui é o *Jota* (+MIX). ⚽
+
+Preciso da sua confirmação: você *salvou este número*?
+
+Responda só com:
+
+*SIM*
+
+🚫 Caso não confirme, o seu acesso será *bloqueado*.`,
+  (n) => `*${n}*, passando para lembrar! 🔔
+
+O *Jota* só continua liberado para quem confirmou que salvou o contato *Jota (+MIX)*.
+
+👉 Me responda:
+
+*SIM*
+
+🚫 Sem a confirmação, o acesso será *bloqueado*.`,
+  (n) => `*${n}*, um aviso importante do *Jota* ⚽:
+
+1️⃣ Salve este número como *Jota (+MIX)*
+2️⃣ Responda aqui: *SIM*
+
+🚫 Se não houver confirmação, o seu acesso ao Jota será *bloqueado*.`
+];
 async function campanhaSim(env, diag) {
   const { h, dow } = R.relogioSP(); if (dow === 0 || h < 9 || h >= 18) { diag.campanha = 'fora do horario'; return; }
-  const { results } = await env.DB.prepare("SELECT k.id, k.celular, c.nome FROM jota_campanha_sim k JOIN bot_contatos c ON c.celular = k.celular WHERE k.enviado_em IS NULL AND c.ativo = 1 AND COALESCE(c.situacao,'ativo') = 'ativo' AND c.salvou_jota IS NULL ORDER BY k.ordem, k.id LIMIT 1").all().catch(() => ({ results: [] }));
+  const { results } = await env.DB.prepare("SELECT k.id, k.celular, c.nome, c.papel FROM jota_campanha_sim k JOIN bot_contatos c ON c.celular = k.celular WHERE k.enviado_em IS NULL AND c.ativo = 1 AND COALESCE(c.situacao,'ativo') = 'ativo' AND c.salvou_jota IS NULL ORDER BY k.ordem, k.id LIMIT 1").all().catch(() => ({ results: [] }));
   diag.campanha = { lidas: (results || []).length, enviadas: 0 };
   let i = 0;
   for (const k of results || []) {
     if (i++) await R.pausaEntreEnvios(20, 2, 18);
     const q = await cotaEnvio(env, String(k.celular).replace(/\D/g, '')); if (!q.ok) { diag.campanha.parou = 'teto: ' + q.erro; break; }
     const p0 = String(k.nome || '').split(' ')[0], nome = p0.charAt(0) + p0.slice(1).toLowerCase();
-    const texto = MODELOS_SIM[Math.floor(Math.random() * MODELOS_SIM.length)](nome);
+    const M = k.papel === 'vendedor' ? MODELOS_SIM_VEND : MODELOS_SIM, texto = M[Math.floor(Math.random() * M.length)](nome);
     const r = await R.enviarTexto(R.evoCfg(env), k.celular, texto).catch(() => null);
     // sem confirmacao da Evolution = pode ter chegado: marca como enviado (nao repete) e registra 'nao confirmado' (09/11/2026, duplicata do Lincon)
     if (!r || !r.status) { diag.campanha.parou = 'sem confirmacao (nao repete)'; await env.DB.batch([env.DB.prepare("UPDATE jota_campanha_sim SET enviado_em = CURRENT_TIMESTAMP WHERE id = ?").bind(k.id), env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,'erro',?,'campanha_sim')").bind(k.celular, k.nome, '[NAO CONFIRMADO: pode ter chegado; nao reenviado] ' + texto)]); break; }
@@ -325,7 +375,7 @@ async function campanhaSim(env, diag) {
 async function reenviaFila(env) {
   // HORARIO (Vitorio, 09/11/2026: 'nao pode enviar msg depois das 18'): mensagem que o JOTA INICIA so seg-sab 09h-18h e espera ate 36 h;
   // resposta que falhou (servidor fora) continua saindo na hora e vence em 2 h, como antes.
-  const PROATIVAS = "('boas_vindas_aprovacao','procure_supervisor','suspenso_aviso','campanha_sim')";
+  const PROATIVAS = "('boas_vindas_aprovacao','procure_supervisor','suspenso_aviso','campanha_sim','linha_invalida')";
   const rel = R.relogioSP(), horaComercial = rel.dow !== 0 && rel.h >= 9 && rel.h < 18;
   // DIAGNOSTICO (09/11/2026: 28 mensagens paradas com 0 tentativas): cada rodada grava o que a fila fez em coleta_estado 'fila_rodada'
   const diag = { quando: new Date().toISOString(), lidas: 0, enviadas: 0, parou: null };
