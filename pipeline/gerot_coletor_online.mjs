@@ -184,12 +184,21 @@ async function main() {
     // RECORRENCIA (Vitorio, 10/11/2026: 'a meta de recorrencia tem no GEROT... e so colocar para ler'): nao existe no 'Extrair dados';
     // abre a tela COBERTURA > Recorrencia e guarda texto, tabelas e print (reconhecimento; nao grava no D1 e nao derruba a coleta)
     try {
-      await page.keyboard.press('Escape').catch(() => {});
+      // 10/11/2026: a janela 'Extrair dados' ficava aberta por cima do menu e o clique dava timeout -> fecha no 'x' e clica pelo DOM
+      for (let k = 0; k < 3 && await page.getByText('Baixar Excel', { exact: true }).first().isVisible().catch(() => false); k++) { await page.keyboard.press('Escape').catch(() => {}); await page.locator('button:has-text("×")').first().click({ timeout: 3000 }).catch(() => {}); await page.waitForTimeout(1500); }
       await page.evaluate(() => { const g = [...document.querySelectorAll('button')].find((b) => /^COBERTURA$/i.test((b.innerText || '').trim())); if (g && /fechado/.test(g.className)) g.click(); });
       await page.waitForTimeout(1000);
-      await page.locator('[data-v="recorrencia"]').first().click({ timeout: 15000 });
+      const achou = await page.evaluate(() => { const a = document.querySelector('[data-v="recorrencia"]'); if (a) a.click(); return !!a; });
+      if (!achou) throw new Error('link Recorrencia nao encontrado');
       await page.waitForTimeout(20000);
-      const rec = await page.evaluate(() => ({ texto: document.body.innerText.slice(0, 60000), tabelas: [...document.querySelectorAll('table')].map((t) => t.outerHTML.slice(0, 80000)), selects: [...document.querySelectorAll('select')].map((s) => [...s.options].map((o) => o.text)) }));
+      // abre as linhas de cada filial da 'Lista do dia 1' (supervisor/vendedor), duas camadas
+      for (let k = 0; k < 2; k++) { await page.evaluate(() => { for (const b of document.querySelectorAll('table tbody tr td:first-child button, table tbody tr td:first-child [class*=toggle], table tbody tr td:first-child [class*=exp]')) b.click(); }); await page.waitForTimeout(4000); }
+      // o 'Extrair dados' desta tela tem calculos de recorrencia? (so le a lista, nao baixa)
+      let calcRec = null;
+      try { await page.getByText('Extrair dados', { exact: true }).first().click({ force: true }); await page.waitForTimeout(3000); calcRec = await ajustaDialogo(page, mesesAlvo()[0], 'ler'); await page.locator('button:has-text("×")').first().click({ timeout: 3000 }).catch(() => {}); } catch (e) { calcRec = { erro: e.message }; }
+      log('recorrencia: calculos do Extrair dados nesta tela:', JSON.stringify(calcRec && calcRec.calculosDisponiveis ? calcRec.calculosDisponiveis.filter((x) => /recorr|recupera|faixa|dias/i.test(x)) : calcRec));
+      const rec = await page.evaluate(() => ({ texto: document.body.innerText.slice(0, 120000), tabelas: [...document.querySelectorAll('table')].map((t) => t.outerHTML.slice(0, 300000)), selects: [...document.querySelectorAll('select')].map((s) => [...s.options].map((o) => o.text)) }));
+      rec.calculos = calcRec;
       fs.writeFileSync(path.join(SAIDA, 'recorrencia.json'), JSON.stringify(rec, null, 1));
       await page.screenshot({ path: path.join(SAIDA, 'recorrencia.png'), fullPage: true }).catch(() => {});
       log('recorrencia: tela lida ·', rec.tabelas.length, 'tabela(s) ·', rec.texto.slice(0, 1500).replace(/\s+/g, ' '));

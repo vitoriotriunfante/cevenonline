@@ -73,6 +73,8 @@ function industriasDoPedido(skus, cat) {
     const v = Number(it.total) || 0;
     if (v <= 0) continue;
     const cod = String(it.codigo);
+    // NUTALL PALITO 9169 (Vitorio, 10/11/2026: 'so esse e a partir de HOJE'): no catalogo e Goncalves, mas conta como Marca Propria nos gols de 10/11/2026 em diante
+    if (cod === '9169' && R.hojeSP() >= '2026-11-10') { ind.set('MARCA PROPRIA TRIUNFANTE', (ind.get('MARCA PROPRIA TRIUNFANTE') || 0) + v); continue; }
     if (cat.i[cod]) ind.set(cat.i[cod], (ind.get(cat.i[cod]) || 0) + v);
     if (cat.c[cod]) ca.set(cat.c[cod], (ca.get(cat.c[cod]) || 0) + v);
   }
