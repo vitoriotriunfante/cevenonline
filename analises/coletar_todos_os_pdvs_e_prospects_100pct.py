@@ -174,12 +174,14 @@ def buscar_prospects_com_espera(vendedores, rodadas=None, espera_s=60, lote_sond
             lista = pendentes                   # aciona todos
         else:
             time.sleep(espera_s)
-            lista = pendentes[:lote_sonda]      # a fila anda na ordem: sonda so os primeiros
+            # 10/11/2026: sondar so os 30 primeiros travava tudo quando esses 30 nunca ficavam prontos (09/11: 159 de 646 na
+            # rodada 50 e mais nada em 2 h). Agora a sonda GIRA: cada rodada olha os 30 seguintes; quem nao ficou pronto vai pro fim.
+            lista = pendentes[:lote_sonda]
         prontos, ainda_lote = passada(lista, rodada)
         for v, pro_list in prontos:
             prontos_total += 1
             yield (v, pro_list)
-        pendentes = ainda_lote + pendentes[len(lista):] if rodada > 1 else ainda_lote
+        pendentes = pendentes[len(lista):] + ainda_lote if rodada > 1 else ainda_lote
         if rodada == 1 or rodada % 10 == 0 or not pendentes:
             print(f" - Rodada {rodada}: {len(prontos)} prontos agora, {prontos_total}/{total} no total, {len(pendentes)} pendentes")
     if pendentes:  # passada final em todos os que sobraram (a fila pode ter andado fora de ordem)
