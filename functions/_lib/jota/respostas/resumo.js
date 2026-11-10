@@ -150,6 +150,8 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
   if (v.mixMes && v.mixMes.clientes_distintos) L.push(`🧺 *Mix do mês (CEVEN):* *${n1(v.mixMes.soma_skus_por_cliente / v.mixMes.clientes_distintos)} produtos diferentes por cliente* · ${v.mixMes.skus_distintos} SKUs em ${v.mixMes.clientes_distintos} clientes`);
   // USO DO +MIX e PRODUTOS QUE MAIS INTRODUZIU (Vitorio, 10/11/2026): do estudo do +MIX (dados_mix.json, pedidos do mes x lista gravada antes da compra)
   if (mv && mv.clientes_com_lista) L.push(`📲 *Uso do +MIX:* ${mv.clientes_usou} de ${mv.clientes_com_lista} clientes compraram produto novo da lista do +MIX${mv.uso_pct != null ? ` (*${n1(mv.uso_pct)}%*)` : ''}`);
+  // OS 5 PRODUTOS QUE O VENDEDOR MAIS VENDE (Vitorio, 10/11/2026: 'colocar os 5 produtos que cada vendedor mais vende apos esse diagnostico'): mais clientes no mes
+  if (mv && Array.isArray(mv.top_skus) && mv.top_skus.length) L.push(`⭐ *Seus 5 produtos mais vendidos no mês:* ` + mv.top_skus.slice(0, 5).map((p, i) => `${i + 1}. ${titulo(p.n || p.c)} (${p.cli} cliente${p.cli > 1 ? 's' : ''})`).join(' · '));
   if (mv && Array.isArray(mv.top_introduzidos) && mv.top_introduzidos.length) L.push(`⭐ *Produtos que você mais introduziu no mês:* ` + mv.top_introduzidos.map((p, i) => `${i + 1}. ${titulo(p.n || p.c)} (${p.cli} cliente${p.cli > 1 ? 's' : ''}${p.via_mix ? ', ' + p.via_mix + ' pelo +MIX' : ''})`).join(' · '));
   if (v.lidoEm) L.push(`🕒 Dados do CEVEN lidos às ${new Date(v.lidoEm).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}`);
   const lc = await B.lances(); const hj = lc ? (lc.lances || []).filter((l) => String(l.rca) === v.rca && l.filial === v.filial) : [];

@@ -349,6 +349,21 @@ export async function respostaInterna(B, c, texto, anteriores) {
           r = !v ? 'Não achei os seus dados na base agora.' : !N0.length ? `↩️ *Devoluções no mês — ${vn(v)}*: nenhuma devolução em ${mes.slice(5, 7)}/${mes.slice(0, 4)}.` : [`↩️ *Devoluções no mês — ${vn(v)}*: *${R$(tot)}* em ${N0.length} nota(s)`, '',
             ...N0.sort((a, b) => String(b.data).localeCompare(String(a.data))).map((n) => { const m = mot.get(String(n.numnota)); const mt = m ? (m.nao_pediu === 1 ? 'cliente não pediu (🟥 −10 na Liga)' : (String(m.motivos || '').replace(/[\[\]"]/g, '').split(',')[0] || 'motivo comercial') + ' (⚽ gol contra −4)') : 'motivo ainda não lido'; return `• ${String(n.data).slice(8, 10)}/${String(n.data).slice(5, 7)} · nota ${n.numnota} · ${titulo(String(n.nomecli || '').replace(/^\d+\s+/, ''))} (#${n.codcli}) · *${R$(Math.abs(Number(n.vl_devolvido) || 0))}* · ${mt}`; })].join('\n');
         }
+        else if (chave === 'fechamento do mes passado') {
+          // FECHAMENTO COM AS INDUSTRIAS (Vitorio, 10/11/2026: 'so tem isso de KPIs? e as industrias? positivacao por industrias?'): GEROT do mes passado, do proprio vendedor
+          { const u0 = B.ultOut; B.ultOut = ''; try { r = await interno(chave); } finally { B.ultOut = u0; } }   // o texto do menu desviava para o historico de pedidos
+          try {
+            const Ev = await carregaEscopo(B, esc), v = Ev.vend[0], d0 = new Date(hojeSP() + 'T12:00:00Z'); d0.setUTCDate(1); d0.setUTCMonth(d0.getUTCMonth() - 1);
+            const mesA = d0.toISOString().slice(0, 7), { nomeForn } = await import('./respostas/metas_industria.js');
+            const { results: G } = v && B.env && B.env.DB ? await B.env.DB.prepare('SELECT dados FROM gerot_vendas WHERE mes = ? AND filial = ? AND rca = ?').bind(mesA, String(v.filial), String(v.rca)).all() : { results: [] };
+            const I = new Map();
+            for (const g of G || []) { let d = {}; try { d = JSON.parse(g.dados || '{}'); } catch (e) { continue; } const nm = nomeForn(d.Fornecedor), x = I.get(nm) || { meta: 0, fat: 0, pos: 0 }; x.meta += Number(d['Meta (R$)']) || 0; x.fat += Number(d['Faturado líquido (R$)']) || 0; x.pos += Number(d['Positivação (filial + CNPJ)']) || 0; I.set(nm, x); }
+            const com = [...I].filter(([, x]) => x.meta > 0).sort((a, b) => b[1].meta - a[1].meta), sem = [...I].filter(([, x]) => !(x.meta > 0) && x.fat > 0).sort((a, b) => b[1].fat - a[1].fat);
+            if (com.length || sem.length) r = String(r) + '\n\n' + [`🏭 *Indústrias em ${['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'][d0.getUTCMonth()]}* (GEROT)`,
+              ...com.map(([nm, x]) => `${x.fat >= x.meta ? '✅' : x.fat >= 0.8 * x.meta ? '🟡' : '🔴'} *${nm}*: ${R$(x.fat)} de ${R$(x.meta)} (${(x.fat / x.meta * 100).toFixed(1).replace('.', ',')}%) · positivação *${N(x.pos)}* clientes`),
+              ...(sem.length ? ['_Sem meta:_ ' + sem.slice(0, 6).map(([nm, x]) => `${nm} ${R$(x.fat)} (${N(x.pos)} cli.)`).join(' · ')] : [])].join('\n');
+          } catch (e) { /* sem GEROT: fica o fechamento do CEVEN */ }
+        }
         else if (chave === '__liga__') { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; r = v ? await respLiga(B, Ev, v) : 'Não achei os seus dados na base agora.'; }
         else if (chave === '__regras__') { const { respRegrasLiga } = await import('./respostas/liga_mix.js'); r = await respRegrasLiga(B); }
         else if (chave === '__produto__') r = (await interno('metas das industrias')) + '\n\n👉 Para um produto, mande *tem <produto>* (ex.: *tem Toblerone*).';
@@ -364,7 +379,9 @@ export async function respostaInterna(B, c, texto, anteriores) {
       // VER MAIS (10/11/2026: o resumo manda pedir "ver mais" e o indice devolvia o menu): abre a lista que a ultima resposta prometeu
       if (/^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|LISTA COMPLETA|VER (A )?LISTA|VER (O )?RESTANTE|VER (OS )?OUTROS)\W*$/.test(t)) {
         const Ev = await carregaEscopo(B, esc), v = Ev.vend[0], mk = ult.match(/〔(\d{1,2})〕/);
-        if (v && /para ver a lista de clientes/.test(ult)) return String(await respVendedor(B, Ev, v, { tudo: true })) + '\n' + rodape(1);
+        if (v && /para ver a lista de clientes/.test(ult)) return String(await respVendedor(B, Ev, v, { tudo: true })) + '\n' + rodape(mk ? Number(mk[1]) : 1);
+        // curva negativa (5): "ver mais" abre o resto da lista (auditoria Giovana 10/11/2026: voltava ao menu)
+        if (mk && MENU_VENDEDOR[Number(mk[1]) - 1] && MENU_VENDEDOR[Number(mk[1]) - 1][1] === '__curva__') return String(await interno(`curva negativa do ${eu} ver mais`)) + '\n' + rodape(Number(mk[1]));
         if (mk) { const item = MENU_VENDEDOR[Number(mk[1]) - 1]; if (item && !/^__/.test(item[1])) return String(await interno(item[1].replace('VENDEDOR', eu) + ' ver mais')) + '\n' + rodape(Number(mk[1])); }
       }
       if (nm && !clienteDaLista) {
@@ -1051,7 +1068,8 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
       const antJaTinhaMais = (anteriores || []).some((a) => /VER MAIS|LISTA COMPLETA|TODOS|COMPLETA|RESTANTE/.test(sem(String(a))));
       let ini = 0, fim = 25;
       if (ehMais) {
-        if (antJaTinhaMais || /RESTANTE|RESTO|OUTROS|PARTE 2|CONTINUA|\b(3[0-9]|4[0-9]|[5-9][0-9]|1[0-9]{2})\b/.test(t)) {
+        // o codigo do vendedor ("VENDEDOR 181") nao e posicao da lista (auditoria Giovana 10/11/2026: pulava do 26º para o 81º)
+        if (antJaTinhaMais || /RESTANTE|RESTO|OUTROS|PARTE 2|CONTINUA|\b(3[0-9]|4[0-9]|[5-9][0-9]|1[0-9]{2})\b/.test(t.replace(/\b(VENDEDOR|RCA|SETOR)\s*\d+/g, ''))) {
           ini = 80;
           fim = nao.length;
         } else {

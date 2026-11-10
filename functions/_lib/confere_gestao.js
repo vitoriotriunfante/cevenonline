@@ -45,3 +45,21 @@ export function confereContatos(contatos, mostra, arvore) {
   }
   return out;
 }
+
+// CANAL DO CONTATO (Vitorio, 10/11/2026: "coluna e filtro se o vendedor e supervisor sao de varejo ou AS"), pela Gestao de Equipe:
+// vendedor = canal dele (filial + RCA); supervisor = canal dos vendedores da equipe dele; gerente/diretoria = sem canal.
+const GRUPO_CANAL = (c) => (/^(AS|PET AS)$/i.test(String(c || '').trim()) ? 'AS' : String(c || '').trim() ? 'Varejo' : '');
+export function mapaCanais(mostra) {
+  const porRca = new Map(), porSup = new Map(), nrm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/\s+/g, ' ').trim();
+  for (const [k, L] of Object.entries((mostra && mostra.filiais) || {})) for (const v of L || []) {
+    const f = k.split('_')[0].toUpperCase(), g = GRUPO_CANAL(v.canal); if (!g) continue;
+    porRca.set(f + '|' + String(v.rca), g);
+    for (const s of [v.supervisor, v.supervisor_gestao]) if (s) { const ks = f + '|' + nrm(s), set = porSup.get(ks) || new Set(); set.add(g); porSup.set(ks, set); }
+  }
+  return (c) => {
+    const f = String(c.filial || '').toUpperCase().split('_')[0], p = String(c.papel || '').toLowerCase();
+    if (p === 'vendedor') return porRca.get(f + '|' + String(c.rca || '')) || '';
+    if (p === 'supervisor') { const s = porSup.get(f + '|' + nrm(c.nome)) || porSup.get(f + '|' + nrm(c.supervisor)); return s ? [...s].sort().join(' + ') : ''; }
+    return '';
+  };
+}

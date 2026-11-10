@@ -11,7 +11,7 @@
 import { exigeSenhaEquipe } from '../_lib/senha_equipe.js';
 import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
 import { tabelas as garanteTabelasEIndicesJota, cotaEnvio } from '../_lib/jota/base.js';
-import { confereContatos } from '../_lib/confere_gestao.js';   // inconsistencias com a Gestao de Equipe e a arvore (09/11/2026)
+import { confereContatos, mapaCanais } from '../_lib/confere_gestao.js';   // inconsistencias com a Gestao de Equipe e a arvore (09/11/2026)
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 
 const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Equipe-Senha', 'Cache-Control': 'no-store' };
@@ -61,8 +61,8 @@ export async function onRequestGet({ request, env }) {
   const { results: pil } = await env.DB.prepare('SELECT celular FROM jota_piloto').all().catch(() => ({ results: [] }));
   const PIL = new Set((pil || []).map((x) => x.celular));   // estrelinha: vendedores do piloto da proatividade (jota_piloto)
   const LC = new Map((lc || []).map((x) => [x.fim8, x.status])), linhaDe = (cel) => LC.get(String(cel || '').replace(/\D/g, '').slice(-8)) || null;
-  let INC = {}; try { const mo = await (await fetch(new URL('/api/tv-mostra', request.url), { signal: AbortSignal.timeout(10000) })).json(); INC = confereContatos((results || []).map((c) => ({ ...c, situacao: situacao(c) })), mo, arv || []); } catch (e) { INC = null; }
-  return j({ sem_acesso_excluidos: exc || [], conferencia_ok: !!INC, contatos: (results || []).map((c) => ({ ...c, inconsistencias: INC ? (INC[c.celular] || []) : null, situacao: situacao(c), linha_corporativa: linhaDe(c.celular), piloto: PIL.has(c.celular), perguntas: (U.get(c.celular) || {}).n || 0, ultima: (U.get(c.celular) || {}).ult || null })), supervisores_arvore: arv || [], papeis: PAPEIS, filiais: FILIAIS });
+  let INC = {}, canalDe = () => ''; try { const mo = await (await fetch(new URL('/api/tv-mostra', request.url), { signal: AbortSignal.timeout(10000) })).json(); canalDe = mapaCanais(mo); INC = confereContatos((results || []).map((c) => ({ ...c, situacao: situacao(c) })), mo, arv || []); } catch (e) { INC = null; }
+  return j({ sem_acesso_excluidos: exc || [], conferencia_ok: !!INC, contatos: (results || []).map((c) => ({ ...c, inconsistencias: INC ? (INC[c.celular] || []) : null, situacao: situacao(c), canal: canalDe(c), linha_corporativa: linhaDe(c.celular), piloto: PIL.has(c.celular), perguntas: (U.get(c.celular) || {}).n || 0, ultima: (U.get(c.celular) || {}).ult || null })), supervisores_arvore: arv || [], papeis: PAPEIS, filiais: FILIAIS });
 }
 
 async function enviar(env, numero, texto) {

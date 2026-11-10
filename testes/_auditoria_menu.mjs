@@ -18,6 +18,8 @@ const menu = await pergunta('menu', '');
 fs.writeFileSync(path.join(dir, '0 - menu.md'), `# Menu do vendedor\n\n\`\`\`\n${menu}\n\`\`\`\n`);
 for (let k = 1; k <= MENU_VENDEDOR.length; k++) {
   const r = await pergunta(String(k), menu); grava(String(k), MENU_VENDEDOR[k - 1][0], `"${k}" logo depois do menu`, r); console.log('ok', k);
+  // VER MAIS (Vitorio, 10/11/2026: 'faltou testar o botao VER MAIS'): se a resposta oferece, pede e grava junto
+  if (/ver mais/i.test(r)) { const rm = await pergunta('ver mais', r); grava(k + ' - ver mais', MENU_VENDEDOR[k - 1][0] + ' (ver mais)', `"${k}" e depois "ver mais"`, rm); console.log('ok', k, 'ver mais'); }
   for (let s = 1; s <= (SUB_VENDEDOR[k] || []).length; s++) { const rs = await pergunta(String(s), r); grava(`${k}.${s}`, SUB_VENDEDOR[k][s - 1][0], `"${k}" e depois "${s}"`, rs); console.log('ok', k + '.' + s); }
 }
 limpa();
