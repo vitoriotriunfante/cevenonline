@@ -308,3 +308,9 @@ Planilha na raiz do projeto (fora do git, tem dado de pessoa real — mesmo trat
 - Passaporte confere com a Gestão de Equipe (09/11/2026): cruza filial + RCA + nome; se a pessoa existe com outra filial/RCA, grava o da Gestão (digitado fica em passaporte_cadastros); se não bate, marca "NAO CONFERE" e o cartão do pedido mostra em vermelho. Supervisor pela mensagem: o nome tem que bater com o do código (sem "código único = aceita").
 - Conferência permanente na aba Contatos (09/11/2026): coluna "Gestão" e filtro "⚠️ Com inconsistência" para gerente, supervisor e vendedor, calculada a cada carregamento (functions/_lib/confere_gestao.js) contra /api/tv-mostra e arvore_supervisores. Só aponta; quem decide é o Vitório.
 - P. Winthor (09/11/2026): a varredura central lê /api/rca/pedidos-winthor de TODOS os vendedores em rodízio (dia 5 por rodada, noite 60) e grava em pedido_status o que é novo ou mudou (com itens). Pedido que o Winthor tem e o D1 não tinha vai para winthor_divergencias; lista em CSV no botão "Pedidos divergentes Winthor × D1" da aba Contatos. Medido na TSJ (4 vendedores): faltavam 82 de 242 pedidos (R$ 49 mil).
+
+## 10/11/2026 — 3ª restrição do WhatsApp ("não será possível iniciar novas conversas", 24 h, 09h27)
+- Causa provável: Jota abrindo conversa com quem não escreveu nem salvou o número (boas-vindas, passaporte, "procure o seu supervisor"); 09/11 teve 139 mensagens iniciadas pelo Jota para 129 pessoas; boas-vindas de ~1.400 caracteres iguais.
+- REGRA NOVA: **o vendedor fala primeiro.** O passaporte não manda mais mensagem: a página mostra o botão wa.me com "SIM". Fila (boas-vindas, procure o supervisor, linha inválida, suspensão) e campanha do SIM só saem para quem escreveu nas últimas 24 h; esperam até 7 dias.
+- Boas-vindas do vendedor: 10 textos curtos; as instruções saem pelo menu.
+- Pausa geral do que o Jota inicia: `config_flags.wa_pausa_proativa_ate` (ISO UTC). Em 10/11 = 2026-11-11T15:00:00Z.
