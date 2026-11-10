@@ -8,7 +8,7 @@ const lit = (v) => v == null ? 'NULL' : typeof v === 'number' ? String(v) : "'" 
 const DB = { prepare(sql) { let a = []; const roda = () => { if (!/^\s*(SELECT|WITH)/i.test(sql)) return []; let i = 0; const q = sql.replace(/\?(\d+)?/g, (_, n) => lit(a[n ? n - 1 : i++])); const r = spawnSync(process.execPath, [WR, 'd1', 'execute', 'ceven_noc_d1', '--remote', '--json', '--command', q], { encoding: 'utf8', maxBuffer: 1 << 28, env: { ...process.env, NO_COLOR: '1' } }); try { return JSON.parse(r.stdout)[0].results; } catch { return []; } }; const o = { bind(...x) { a = x; return o; }, async all() { return { results: roda() }; }, async first() { return roda()[0] || null; }, async run() { return { meta: {} }; } }; return o; } };
 const V = { nome: 'TAMARA GUEDES', papel: 'vendedor', filial: 'TCV', rca: '352' };
 let ult = 'MENU DO JOTA';
-for (const q of ['1','ver mais','2','4','2','ver mais','9','7','0']) {
+for (const q of ['1']) {
   const B = _teste.criaBase(ORIGIN, { DB }); B.ultOut = ult;
   let r; try { r = await _teste.respostaPronta(B, V, q, []); } catch (e) { r = 'ERRO ' + e.message; }
   console.log('\n>>> ' + q + '\n' + String(r).slice(0, 2500));

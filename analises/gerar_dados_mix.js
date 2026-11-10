@@ -253,6 +253,9 @@ async function main() {
     // COMPARATIVO ENTRE VENDEDORES (20/10/2026, estilo da apresentacao de 18/09: "clientes do mesmo perfil, vendas diferentes"): penetracao de cada produto na carteira positivada
     v.skus = v.skus || new Map();
     for (const [c, val] of (o.vsku || new Map())) { const it = v.skus.get(c) || { cli: 0, val: 0 }; it.cli++; it.val += val; v.skus.set(c, it); }
+    // PRODUTOS QUE O VENDEDOR MAIS INTRODUZIU (Vitorio, 10/11/2026): produto novo para o cliente (nao comprado nos 60 dias antes); via_mix = estava na lista do +MIX gravada antes da compra
+    v.intro = v.intro || new Map();
+    for (const c of novos) { const it = v.intro.get(c) || { cli: 0, mix: 0 }; it.cli++; if (novosMix.includes(c)) it.mix++; v.intro.set(c, it); }
     v.cnpjsPos = v.cnpjsPos || new Map(); v.cnpjsPos.set(o.cnpj, novosMix.length ? 2 : 1);
     v.inds = v.inds || new Map();
     for (const ind of new Set([...(o.vsku || new Map()).keys()].map((c) => IND[c]).filter(Boolean))) v.inds.set(ind, (v.inds.get(ind) || 0) + 1);
@@ -280,6 +283,7 @@ async function main() {
     ja_eram_clientes_pct: r1(v.recompra_base / v.clientes * 100),
     carteira: (carteira.get(v.filial + '|' + v.rca) || new Map()).size || null,
     cobertura_pct: (carteira.get(v.filial + '|' + v.rca) || new Map()).size ? r1(v.clientes / carteira.get(v.filial + '|' + v.rca).size * 100) : null,
+    top_introduzidos: [...(v.intro || new Map()).entries()].sort((a, b) => b[1].cli - a[1].cli || b[1].mix - a[1].mix).slice(0, 5).map(([c, x]) => ({ c, n: nomeProd.get(c) || '', cli: x.cli, via_mix: x.mix })),
     top_skus: [...(v.skus || new Map()).entries()].sort((a, b) => b[1].cli - a[1].cli).slice(0, 15).map(([c, x]) => ({ c, n: nomeProd.get(c) || '', cli: x.cli, pct: r1(x.cli / v.clientes * 100), val: Math.round(x.val) })),
     industrias: [...(v.inds || new Map()).entries()].sort((a, b) => b[1] - a[1]).slice(0, 25).map(([n, cli]) => ({ n, cli, pct: r1(cli / v.clientes * 100), val: Math.round((v.indVal || new Map()).get(n) || 0) })),
     // pontos do mapa: [lat, lon, 0 = carteira sem compra no mes | 1 = positivado | 2 = positivado com produto novo do +MIX]
