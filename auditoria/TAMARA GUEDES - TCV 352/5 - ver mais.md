@@ -1,20 +1,19 @@
 # 5 - ver mais — Clientes sem compra no mês (ver mais)
 
 - Vendedor: TAMARA GUEDES (TCV 352)
-- Gerado em: 10/11/2026, 14:57:44 (dados de producao, so leitura)
+- Gerado em: 10/11/2026, 16:52:31 (dados de producao, so leitura)
 - O vendedor digitou: "5" e depois "ver mais"
 
 ## Resposta do Jota
 
 ```
 📉 *Curva negativa — 352 - Tamara Guedes* (TCV)
-Carteira do mês: *133 clientes* · já compraram: *41* · *ainda não compraram: 92*
+Carteira do mês: *133 clientes* · já compraram: *46* · *ainda não compraram: 87*
 _Painel do CEVEN: positivação 13 de 99. Esta lista segue o roteiro do mês, que é outra conta._
 _Cliente · Última compra · Dias sem compra_
 Mercado Cisne · 30/10 · 11 dias
 Posto Pra Frente Brasil · 04/09 · 67 dias
 Pj Cascavel · 29/10 · 12 dias
-Mercado Grando Ltda · 28/10 · 13 dias
 Posto Paravis · 30/10 · 11 dias
 Posto Paravis - Filial I · 20/10 · 21 dias
 Farmacia Medicinal · 06/10 · 35 dias
@@ -44,12 +43,10 @@ Posto Xodo · 19/10 · 22 dias
 Santo Adega E Conveniencia · 05/10 · 36 dias
 Elefante Dourado Ltda · 29/09 · 42 dias
 Posto Centro Oeste · 23/10 · 18 dias
-Arruda Beer Distribuidora De Bebidas · 27/10 · 14 dias
 Espaco Bier · 27/10 · 14 dias
 Sos Bebidas · 27/10 · 14 dias
 O Sacolao Economico · 15/10 · 26 dias
 Supermercado Casa Nova · 16/10 · 25 dias
-Mercearia Sao Francisco · 04/08 · 98 dias
 Big Casa · 07/10 · 34 dias
 Isamaria Lanchonete · 21/10 · 20 dias
 Sondafarma · 22/10 · 19 dias
@@ -59,7 +56,6 @@ Panificadora Elite · 22/10 · 19 dias
 Doces Aparecida · 23/10 · 18 dias
 Nr Com De Alimentos Ltda · 23/10 · 18 dias
 Cacarola Restaurante · 19/10 · 22 dias
-Posto Jardim · 22/09 · 49 dias
 Ronda Panificadora E Confeitaria · 21/10 · 20 dias
 Agropet Central · 21/10 · 20 dias
 Isabel Mezzalira · 21/10 · 20 dias
@@ -84,7 +80,6 @@ Panificadora Pani Pao · 13/10 · 28 dias
 Uniao Prime Beer · 13/10 · 28 dias
 Estacao Bebidas · 28/10 · 13 dias
 Posto Graciani · 17/09 · 54 dias
-Mercado Moretti · 29/10 · 12 dias
 Mercearia Demenech · 02/10 · 39 dias
 Padaria E Confeitaria Super Pao · 16/10 · 25 dias
 Lanchonete Bf · 10/08 · 92 dias
