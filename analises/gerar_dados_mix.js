@@ -123,7 +123,8 @@ async function main() {
   try { hist.exec('ALTER TABLE mix_gap ADD COLUMN capturado_em TEXT'); } catch (e) { /* coluna ja existe */ }
   const insH = hist.prepare('INSERT OR REPLACE INTO mix_gap (dia, filial, rca, cnpj, id_cliente, universo_json, resposta_json, capturado_em) VALUES (?,?,?,?,?,?,?,?)');
   const carteira = new Map(), infoCli = new Map();
-  const rcas = [...new Set(alvo.map((o) => o.filial + '|' + o.rca))];
+  // 10/11/2026: carteira de TODOS os vendedores de varejo ativos (antes so de quem ja tinha pedido no historico: 136 de 357; os outros nunca recebiam +MIX)
+  const rcas = [...new Set([...alvo.map((o) => o.filial + '|' + o.rca), ...[...vend.entries()].filter(([, v]) => v.mostra).map(([k]) => k)])];
   const t0 = Date.now();
   for (let i = 0; i < rcas.length; i++) {
     const [f, r] = rcas[i].split('|');
