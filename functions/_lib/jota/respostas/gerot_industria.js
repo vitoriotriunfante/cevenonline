@@ -29,6 +29,7 @@ const SO_POR_APELIDO = new Set(['TRIUNFANTE']);
 // nomes = lista de nomes de fornecedor do GEROT (ex.: 'A - CONDOR SA'); anterior = filtros da pergunta anterior (continuação)
 export function entendeGerot(texto, nomes, hoje = hojeSP(), anterior = null) {
   const t = ' ' + sem(texto).replace(/\s+/g, ' ').replace(/\bCOTAS?\b/g, 'META') + ' ';   // COTA = META (09/11/2026)
+  if (/^\s*\d{1,2}([.,]\d{1,2})?\s*$/.test(t) || /\bPAINEL\b/.test(t)) return null;   // numero do menu/painel e o PAINEL DAS INDUSTRIAS (10/11/2026) nao sao pergunta de industria
   // indústria: apelido do dicionário (palavra inteira, 3+ letras) ou chave do nome no GEROT
   const achadas = new Set();
   for (const [ap, razao] of Object.entries(DE_PARA_INDUSTRIAS)) {
@@ -98,6 +99,8 @@ export async function respGerotIndustria(env, texto, c, anteriorTexto = null) {
   const ant = anteriorTexto ? entendeGerot(anteriorTexto, nomes) : null;
   const q = entendeGerot(texto, nomes, hojeSP(), ant);
   if (!q) return null;
+  // DIRETORIA SEM INDUSTRIA CITADA = PAINEL DAS INDUSTRIAS navegavel (Rudinei, 09/11/2026; painel_industrias.js, chamado pelo Jota)
+  if (esc.tudo || (esc.filial && !esc.sup && !esc.rca)) return null;   // diretoria E GERENTE (filial dele) vao para o painel; supervisor/vendedor = menu de perguntas prontas. 10/11/2026 (Vitorio: 'o Rudinei vai usar muito o GEROT'): toda pergunta de industria da diretoria vai para o painel (layout do Rudinei + GEROT x CEVEN)
   const mes = q.mes || ult.mes;
   const nm = NOME_MES[Number(mes.slice(5)) - 1];
   // filtros de escopo

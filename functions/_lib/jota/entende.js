@@ -462,6 +462,33 @@ export async function respostaInterna(B, c, texto, anteriores) {
         return (k ? `Entendi que você quer o *${k}. ${MENU_VENDEDOR[k - 1][0]}*. Digite *${k}*` + (SUB_VENDEDOR[k] ? ` e depois o detalhe que quiser` : '') + ', ou escolha outro número:\n\n' : '') + respMenuVendedor(c);
       }
     }
+    // PAINEL DAS INDUSTRIAS DA DIRETORIA (Rudinei, 09/11/2026; Vitorio 10/11/2026 'monta'): 'industrias', 'painel das industrias [de outubro]', 'industrias TPH'
+    // abre o painel; o numero desce Brasil -> Filial -> Industria -> Supervisor -> Vendedor e o 0 sobe. Pergunta com industria citada segue no GEROT de antes.
+    // GERENTE (Vitorio, 10/11/2026: 'do Rudinei, da diretoria e dos gerentes'): o mesmo painel travado na filial dele; nunca o Brasil
+    const ehGerP = c && /^gerente$/i.test(String(c.papel || '')) && /^[A-Z]{3}$/.test(String(c.filial || ''));
+    if (c && (/^(diretoria|ceo)$/i.test(String(c.papel || '')) || ehGerP) && !B.semIndice) {
+      const ultD = String(B.ultOut || ''), mg = ultD.match(/〔G:([^〕]*)〕/), nmD = t.match(/^\W*(\d{1,2})\W*$/);
+      const PI0 = await import('./respostas/painel_industrias.js');
+      const trava = (cam) => (ehGerP ? { ...cam, fil: String(c.filial) } : cam);
+      const PI = { respPainelIndustrias: (env, b, cam) => PI0.respPainelIndustrias(env, b, trava(cam)),
+        respPainelNumero: async (env, b, m, k) => { const p = m.split('|'); if (ehGerP && p[1] && p[1] !== String(c.filial)) return null; const r = await PI0.respPainelNumero(env, b, m, k); if (ehGerP && r && /〔G:[^|]*\|\|/.test(r)) return PI0.respPainelIndustrias(env, b, { mes: p[0], fil: String(c.filial) }); return r; } };
+      if (mg && nmD) { const r = await PI.respPainelNumero(B.env, B, mg[1], Number(nmD[1])); if (r) return r; }
+      const MESES_P = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
+      const ws = t.split(/[^A-Z0-9]+/).filter(Boolean), LIVRE = new Set(['PAINEL', 'DAS', 'DA', 'DE', 'DO', 'DOS', 'AS', 'A', 'O', 'OS', 'E', 'INDUSTRIA', 'INDUSTRIAS', 'PERFORMANCE', 'FILIAL', 'FILIAIS', 'TODAS', 'BRASIL', 'POR', 'COMO', 'ESTA', 'ESTAO', 'MES', 'PASSADO', 'ANTERIOR', 'VENDA', 'VENDAS', 'RESULTADO', 'GEROT', 'JOTA', 'ME', 'MANDA', 'MOSTRA', 'QUERO', 'VER', 'NO', 'NA', 'EM', ...MESES_P, ...FILIAIS]);
+      if (/INDUSTRI|\bPAINEL\b/.test(t) && ws.every((w) => LIVRE.has(w))) {
+        const filP = FILIAIS.find((f) => ws.includes(f)) || null, [ay, am] = hojeSP().split('-').map(Number);
+        let mesP = null; const mi = MESES_P.findIndex((m) => ws.includes(m));
+        if (mi >= 0) mesP = `${mi + 1 > am ? ay - 1 : ay}-${String(mi + 1).padStart(2, '0')}`; else if (/MES PASSADO|MES ANTERIOR/.test(t)) mesP = new Date(Date.UTC(ay, am - 2, 1)).toISOString().slice(0, 7);
+        const r = await PI.respPainelIndustrias(B.env, B, { mes: mesP, fil: filP }); if (r) return r;
+      }
+      // INDUSTRIA CITADA (Condor, Condor da API, Condor de outubro...): mesmo entendimento do GEROT (palavra inteira), aberta no painel
+      if (B.env && B.env.DB) { try {
+        const { entendeGerot } = await import('./respostas/gerot_industria.js'), { nomeForn } = await import('./respostas/metas_industria.js');
+        const { results: NF } = await B.env.DB.prepare("SELECT DISTINCT json_extract(dados,'$.Fornecedor') n FROM gerot_vendas WHERE mes >= ?").bind(hojeSP().slice(0, 4) + '-01').all();
+        const q = entendeGerot(texto, (NF || []).map((x) => x.n).filter(Boolean));
+        if (q && q.industrias.length) { const r = await PI.respPainelIndustrias(B.env, B, { mes: q.mes, fil: q.filiais.length === 1 ? q.filiais[0] : null, ind: nomeForn(q.industrias[0]) }); if (r) return r; }
+      } catch (e) { /* segue a cadeia normal */ } }
+    }
     // INDICE DO SUPERVISOR (Vitorio, 10/11/2026: 'para os supervisores tambem vamos liberar um menu... focado na equipe dele e com indices para acessar detalhes').
     // Igual ao do vendedor: o numero abre a resposta pronta; texto livre vira o indice com o assunto sugerido. Passam direto: cliente/CNPJ, 'tem <produto>',
     // pergunta com codigo de vendedor/setor, e o numero de uma lista que a ultima resposta numerou ('digite o numero').
