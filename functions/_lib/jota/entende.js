@@ -364,6 +364,29 @@ export async function respostaInterna(B, c, texto, anteriores) {
               ...(sem.length ? ['_Sem meta:_ ' + sem.slice(0, 6).map(([nm, x]) => `${nm} ${R$(x.fat)} (${N(x.pos)} cli.)`).join(' · ')] : [])].join('\n');
           } catch (e) { /* sem GEROT: fica o fechamento do CEVEN */ }
         }
+        else if (chave === '__cortes__') {
+          // CORTES DO MES (Vitorio, 10/11/2026: 'nos pedidos tem se foi corte comercial/logistica e o que cortou'): pedido_status do Winthor, do proprio vendedor
+          const Ev = await carregaEscopo(B, esc), v = Ev.vend[0], mes = hojeSP().slice(0, 7);
+          const { results: P } = v && B.env && B.env.DB ? await B.env.DB.prepare("SELECT num, id_cliente, data_pedido, valor, valor_winthor, categoria_corte, itens_json FROM pedido_status WHERE filial = ? AND rca = ? AND substr(data_pedido, 1, 7) = ? AND categoria_corte IN ('COMERCIAL', 'LOGISTICA', 'AMBOS') ORDER BY data_pedido DESC").bind(String(v.filial), String(v.rca), mes).all() : { results: [] };
+          const tipo = { COMERCIAL: 'Corte Comercial', LOGISTICA: 'Corte Logística', AMBOS: 'Comercial + Logística' };
+          const tot = (P || []).reduce((s, p) => s + Math.max(0, (Number(p.valor) || 0) - (Number(p.valor_winthor) || 0)), 0);
+          r = !v ? 'Não achei os seus dados na base agora.' : !(P || []).length ? `✂️ *Cortes no mês — ${vn(v)}*: nenhum pedido com corte em ${mes.slice(5, 7)}/${mes.slice(0, 4)}.` : [`✂️ *Cortes no mês — ${vn(v)}*: *${N(P.length)}* pedido(s) · *${R$(tot)}* cortados`, '',
+            ...P.slice(0, 15).map((p) => { let it = []; try { it = JSON.parse(p.itens_json || '[]'); } catch (e) { /* sem itens */ } const d = String(p.data_pedido);
+              return `• ${d.slice(8, 10)}/${d.slice(5, 7)} · nº ${p.num} · cliente #${p.id_cliente} · ${tipo[p.categoria_corte]} · ${R$(Number(p.valor) || 0)} → *${R$(Number(p.valor_winthor) || 0)}*` + (it.length && Math.abs(it.reduce((t, x) => t + (Number(x.v) || 0), 0) - ((Number(p.valor) || 0) - (Number(p.valor_winthor) || 0))) <= Math.max(5, 0.1 * ((Number(p.valor) || 0) - (Number(p.valor_winthor) || 0))) ? '\n   ✂️ ' + it.map((x) => `${titulo(String(x.d || x.c))} ${N(Number(x.q) || 0)}un ${R$(Number(x.v) || 0)}`).join(' · ') : ''); }),
+            ...(P.length > 15 ? [`_… e mais ${P.length - 15} pedido(s)._`] : [])].join('\n');
+        }
+        else if (chave === '__fase__') {
+          // FASEAMENTO DO AS (Vitorio, 10/11/2026): bater 60% da meta ate o dia 20. Dias uteis seg-sex, sem descontar feriado.
+          const Ev = await carregaEscopo(B, esc), v = Ev.vend[0];
+          if (!v) r = 'Não achei os seus dados na base agora.';
+          else if (!/AS/i.test(v.canal || '')) r = `📐 *Faseamento — ${vn(v)}*: o faseamento (60% da meta até o dia 20) é regra do *AS*. No varejo, veja o *1.2* (quanto falta por dia útil).`;
+          else if (!(v.meta > 0)) r = `📐 *Faseamento — ${vn(v)}*: sem meta do mês na base agora.`;
+          else { const [y, m, d] = hojeSP().split('-').map(Number); let du = 0; for (let i = d; i <= 20; i++) { const w = new Date(Date.UTC(y, m - 1, i)).getUTCDay(); if (w > 0 && w < 6) du++; }
+            const alvo = v.meta * 0.6, fat = v.fat || 0, comPend = fat + (v.pend || 0), falta = Math.max(0, alvo - fat), pc = (x) => (x / v.meta * 100).toFixed(1).replace('.', ',');
+            r = [`📐 *Faseamento — ${vn(v)}*`, `🎯 Meta do mês: ${R$(v.meta)} · alvo até dia 20 (60%): *${R$(alvo)}*`,
+              `💰 Faturado: *${R$(fat)}* (${pc(fat)}%) · com pendente: ${R$(comPend)} (${pc(comPend)}%)`,
+              d > 20 ? (fat >= alvo ? '✅ Faseamento do dia 20 batido.' : `🔴 Faseamento do dia 20 não batido: faltaram ${R$(falta)}.`) : fat >= alvo ? '✅ Faseamento já batido.' : `⏳ Falta *${R$(falta)}* até o dia 20 · *${R$(falta / Math.max(1, du))}* por dia útil (${du} dias, feriado não descontado)`].join('\n'); }
+        }
         else if (chave === '__liga__') { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; r = v ? await respLiga(B, Ev, v) : 'Não achei os seus dados na base agora.'; }
         else if (chave === '__regras__') { const { respRegrasLiga } = await import('./respostas/liga_mix.js'); r = await respRegrasLiga(B); }
         else if (chave === '__produto__') r = (await interno('metas das industrias')) + '\n\n👉 Para um produto, mande *tem <produto>* (ex.: *tem Toblerone*).';

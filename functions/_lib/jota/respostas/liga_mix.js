@@ -139,9 +139,9 @@ export const MENU_VENDEDOR = [
 // O vendedor digita 4.2 ou, logo depois da resposta do tema 4, so o 2. 0 = volta ao menu.
 export const SUB_VENDEDOR = {
   // 10/11/2026 (auditoria da Tamara): 'Meta do mes' saiu (repetia o 1); 9 sem opcoes (o numero depois da rota e o cliente da lista)
-  1: [['Quanto vendi hoje', 'quanto vendi hoje'], ['Quanto falta por dia útil', 'quanto falta da meta'], ['Minhas metas por indústria', 'metas das industrias']],
+  1: [['Quanto vendi hoje', 'quanto vendi hoje'], ['Quanto falta por dia útil', 'quanto falta da meta'], ['Minhas metas por indústria', 'metas das industrias'], ['Faseamento (AS): 60% da meta até o dia 20', '__fase__']],
   2: [['Meus lances de hoje', 'meus lances'], ['Regras da Liga', '__regras__']],   // o 2 ja e a posicao (auditoria Giovana: 2 e 2.1 repetiam)
-  4: [['Pedidos bloqueados', 'pedidos bloqueados'], ['Pedidos a faturar', 'pedidos pendentes'], ['Pedidos cancelados', 'pedidos cancelados']],   // o 4 ja e todos os pedidos
+  4: [['Pedidos bloqueados', 'pedidos bloqueados'], ['Pedidos a faturar', 'pedidos pendentes'], ['Pedidos cancelados', 'pedidos cancelados'], ['Cortes do mês: o que cortou e por quê', '__cortes__']],   // o 4 ja e todos os pedidos
 };
 // assunto do texto livre -> indice sugerido (o vendedor so recebe o indice; a resposta sai pelo numero)
 const TEMAS_VENDEDOR = [
