@@ -356,7 +356,7 @@ O *Jota* só continua liberado para quem confirmou que salvou o contato *Jota (+
 ];
 async function campanhaSim(env, diag) {
   const { h, dow } = R.relogioSP(); if (dow === 0 || h < 9 || h >= 18) { diag.campanha = 'fora do horario'; return; }
-  const { results } = await env.DB.prepare("SELECT k.id, k.celular, c.nome, c.papel FROM jota_campanha_sim k JOIN bot_contatos c ON c.celular = k.celular WHERE k.enviado_em IS NULL AND c.ativo = 1 AND COALESCE(c.situacao,'ativo') = 'ativo' AND c.salvou_jota IS NULL ORDER BY k.ordem, k.id LIMIT 1").all().catch(() => ({ results: [] }));
+  const { results } = await env.DB.prepare("SELECT k.id, k.celular, c.nome, c.papel FROM jota_campanha_sim k JOIN bot_contatos c ON c.celular = k.celular WHERE k.enviado_em IS NULL AND c.ativo = 1 AND COALESCE(c.situacao,'ativo') = 'ativo' AND c.salvou_jota IS NULL AND EXISTS (SELECT 1 FROM bot_msgs i WHERE substr(i.celular,-8) = substr(k.celular,-8) AND i.direcao = 'in' AND i.quando > datetime('now','-24 hours')) ORDER BY k.ordem, k.id LIMIT 1").all().catch(() => ({ results: [] }));
   diag.campanha = { lidas: (results || []).length, enviadas: 0 };
   let i = 0;
   for (const k of results || []) {
@@ -380,7 +380,7 @@ async function reenviaFila(env) {
   // DIAGNOSTICO (09/11/2026: 28 mensagens paradas com 0 tentativas): cada rodada grava o que a fila fez em coleta_estado 'fila_rodada'
   const diag = { quando: new Date().toISOString(), lidas: 0, enviadas: 0, parou: null };
   try {
-    const { results } = await env.DB.prepare(`SELECT id, celular, numero, nome, texto, tipo FROM bot_envio_fila WHERE (tipo NOT IN ${PROATIVAS} OR tipo IS NULL) AND criado_em > datetime('now','-2 hours') OR ${horaComercial ? '' : '0 AND '}tipo IN ${PROATIVAS} AND criado_em > datetime('now','-36 hours') ORDER BY tentativas, id LIMIT 2`).all();   // menos tentativas primeiro: numero ruim nao trava a fila dos outros (02/11/2026); antiban 09/11/2026: no maximo 2 por rodada
+    const { results } = await env.DB.prepare(`SELECT id, celular, numero, nome, texto, tipo FROM bot_envio_fila WHERE (tipo NOT IN ${PROATIVAS} OR tipo IS NULL) AND criado_em > datetime('now','-2 hours') OR ${horaComercial ? '' : '0 AND '}tipo IN ${PROATIVAS} AND criado_em > datetime('now','-7 days') AND EXISTS (SELECT 1 FROM bot_msgs i WHERE substr(i.celular,-8) = substr(bot_envio_fila.numero,-8) AND i.direcao = 'in' AND i.quando > datetime('now','-24 hours')) ORDER BY tentativas, id LIMIT 2`).all();   // RESTRICAO 10/11/2026: o Jota so manda o que ELE inicia para quem escreveu nas ultimas 24 h (nunca abre conversa); espera ate 7 dias o contato escrever   // menos tentativas primeiro: numero ruim nao trava a fila dos outros (02/11/2026); antiban 09/11/2026: no maximo 2 por rodada
     let iFila = 0; diag.lidas = (results || []).length;
     for (const m of results || []) {
       // confere NA HORA de enviar (09/11/2026: Lincon e Danilo se cadastraram depois da lista e receberam 'procure o seu supervisor')

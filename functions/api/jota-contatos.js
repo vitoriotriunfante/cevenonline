@@ -270,14 +270,21 @@ export async function onRequestPost({ request, env }) {
     if (acao === 'aprovar') {
       const p = String(antes.nome || '').split(' ')[0];
       const pNome = p.charAt(0) + p.slice(1).toLowerCase();
+      // BOAS-VINDAS CURTAS E VARIADAS (Vitorio, 10/11/2026, apos a restricao do WhatsApp): 10 textos curtos; as instrucoes saem so quando o vendedor pedir (menu)
+      const BV = [
+        (n) => `Fala, *${n}*! Seu acesso ao *Jota* ⚽ foi liberado. Me mande *menu* quando quiser ver o que eu respondo.`,
+        (n) => `*${n}*, acesso liberado! ✅ Sou o *Jota*. Escreva *menu* para ver as opções.`,
+        (n) => `Oi, *${n}*! Pronto, já pode usar o *Jota* ⚽. É só me mandar *menu*.`,
+        (n) => `*${n}*, tudo certo com o seu acesso ao *Jota*! 🚀 Digite *menu* para começar.`,
+        (n) => `Bem-vindo(a), *${n}*! O *Jota* está liberado para você. Mande *menu* e escolha o número.`,
+        (n) => `*${n}*, seu acesso foi aprovado ⚽. Quando quiser, me escreva *menu*.`,
+        (n) => `Liberado, *${n}*! 👊 Sou o *Jota* (+MIX). Digite *menu* para ver o que eu faço.`,
+        (n) => `Oi, *${n}*! Acesso ao *Jota* ativo. Escreva *menu* para ver as perguntas que eu respondo.`,
+        (n) => `*${n}*, já pode me usar! ⚽ Mande *menu* e eu te mostro as opções.`,
+        (n) => `Tudo pronto, *${n}*! O *Jota* está liberado. Para começar, digite *menu*.`
+      ];
       const msgLib = antes.papel === 'vendedor'
-        ? `Fala, *${pNome}*! Seu acesso corporativo ao *Jota* ⚽ foi *aprovado e liberado*! 🚀\n\nAgora você pode me consultar a qualquer momento (por texto ou *áudio* 🎙️). Seguem as instruções do que me pedir no dia a dia:\n\n📍 *ROTA & CLIENTES*\n• *"minha rota hoje"* → clientes programados e quem falta visitar\n• *"curva negativa"* → seus clientes que ainda não compraram no mês\n• *"prospecção"* → novos clientes no mapa da sua rota de hoje\n\n💰 *METAS & PEDIDOS*\n• *"como estou?"* → seu faturado, pendente, positivação e falta pra meta\n• *"pedidos pendentes"* → seus pedidos liberados aguardando faturamento\n• *"pedidos bloqueados"* → pedidos retidos no crédito\n\n📦 *+MIX & PRODUTOS*\n• *"+mix"* → oportunidades de mix para oferecer nos clientes\n• *"cliente #código"* → histórico de compras e SKUs daquele cliente\n\n⚠️ *Estou em treinamento:* posso errar ou ainda não saber algo. Se isso acontecer, escreva *"sugestão: ..."* que eu anoto e a gente vai ajustando.\n\n⚠️ *IMPORTANTE:* Para que eu consiga te responder e suas mensagens não caiam no filtro de spam, é *OBRIGATÓRIO SALVAR ESTE NÚMERO* nos contatos do seu celular agora como *Jota (+MIX)*!
-
-👉 *Assim que salvar, me responda aqui com a palavra:* *SIM*
-
-Bora pra cima bater meta! ⚠️ *OBRIGATÓRIO SALVAR ESTE NÚMERO:* Salve este contato no seu celular agora como *Jota (+MIX)* para não perder o acesso, e me responda aqui com a palavra: *SIM*.
-
-_Meu DNA é Triunfante!_ 💪`
+        ? BV[Math.floor(Math.random() * BV.length)](pNome)
         : `Fala, ${pNome}! Seu acesso ao *Jota* foi liberado ⚽\nVocê vê ${antes.papel === 'supervisor' ? 'a sua equipe' : antes.papel === 'gerente' ? 'a sua filial' : 'os seus dados'}.\n\nExperimenta: "como está minha equipe?", "zerados", "faltam visitar", "vendedor Nome", "liga".\n_Meu DNA é Triunfante!_`;
       // NUNCA EM RAJADA (09/11/2026: "Aprovar todos" mandaria 10 seguidas): a mensagem entra na fila; a varredura solta
       // 2 por rodada com pausa humana e respeita o teto do dia. O bot_msgs 'out' e gravado quando sair de fato.

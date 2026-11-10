@@ -241,8 +241,11 @@
     <div id="sucesso-view" class="sucesso-box">
       <div class="sucesso-icon">✅⚽</div>
       <h2>Obrigado pelo seu cadastro!</h2>
-      <p>Seus dados foram registrados com sucesso e o <strong>Jota já enviou uma confirmação no seu WhatsApp Corporativo</strong>.</p>
-      <p style="color:#fbbf24; font-size:13.5px;">⏳ Assim que aprovarmos o seu acesso, você receberá no seu WhatsApp todas as instruções para começar a usar!</p>
+      <p>Seus dados foram registrados com sucesso.</p>
+      <p><strong>Falta um passo:</strong> salve o número do Jota nos seus contatos como <strong>Jota (+MIX)</strong> e mande <strong>SIM</strong> para ele pelo seu WhatsApp corporativo.</p>
+      <a id="btn-jota" href="#" style="display:none; margin:14px auto 6px; padding:14px 18px; max-width:320px; border-radius:12px; background:#16a34a; color:#fff; font-weight:700; text-decoration:none; font-size:16px;">📲 Abrir conversa com o Jota e mandar SIM</a>
+      <p id="num-jota" style="font-size:13.5px;"></p>
+      <p style="color:#fbbf24; font-size:13.5px;">⏳ Assim que aprovarmos o seu acesso, o Jota te avisa nessa conversa.</p>
     </div>
 
     <div class="footer">
@@ -299,6 +302,14 @@
         }
         document.getElementById('form-view').style.display = 'none';
         document.getElementById('sucesso-view').style.display = 'block';
+        // O VENDEDOR FALA PRIMEIRO (10/11/2026): botao que abre a conversa com o Jota com "SIM" escrito
+        if (data.numero_jota) {
+          const b = document.getElementById('btn-jota');
+          b.href = 'https://wa.me/' + data.numero_jota + '?text=' + encodeURIComponent('SIM');
+          b.style.display = 'block';
+          const n = data.numero_jota.replace(/^55(\d{2})(\d{4,5})(\d{4})$/, '+55 ($1) $2-$3');
+          document.getElementById('num-jota').textContent = 'Número do Jota: ' + n;
+        }
       } catch (err) {
         erroEl.textContent = err.message;
         erroEl.style.display = 'block';

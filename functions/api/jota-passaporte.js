@@ -151,17 +151,21 @@ _Sem salvar o contato na sua agenda, o WhatsApp não entrega as nossas mensagens
     `_Jota · Meu DNA é Triunfante!_`
   ].join('\n');
 
-  const envio = await enviar(env, celChave, msgObrigado);
-
+  // O VENDEDOR FALA PRIMEIRO (Vitorio, 10/11/2026, apos a restricao do WhatsApp "nao sera possivel iniciar novas conversas"): o Jota NAO manda mais
+  // mensagem para quem acabou de preencher o passaporte. A pagina mostra o botao que abre a conversa com o Jota com "SIM" ja escrito.
+  void msgObrigado; void enviar;
+  let numeroJota = null;
   try {
-    await env.DB.prepare(
-      'INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?, ?, ?, ?, ?)'
-    ).bind(celChave, nome, envio.ok ? 'out' : 'erro', msgObrigado, 'cadastro_passaporte').run();
-  } catch (e) {}
+    const base = String(env.EVO_URL || '').replace(/\/$/, ''), inst = env.EVO_INSTANCE || 'ceven-noc';
+    const r = await fetch(`${base}/instance/fetchInstances?instanceName=${inst}`, { headers: { apikey: env.EVO_KEY }, signal: AbortSignal.timeout(8000) });
+    const j = await r.json().catch(() => null), i0 = Array.isArray(j) ? j[0] : j;
+    numeroJota = String((i0 && (i0.ownerJid || i0.owner || i0.number)) || '').replace(/\D/g, '') || null;
+  } catch (e) { numeroJota = null; }
 
   return new Response(JSON.stringify({
     ok: true,
-    whatsapp_enviado: !!envio.ok,
-    mensagem: 'Cadastro recebido com sucesso! Confira a mensagem do Jota no seu WhatsApp Corporativo.'
+    whatsapp_enviado: false,
+    numero_jota: numeroJota,
+    mensagem: 'Cadastro recebido! Agora toque no botão para abrir a conversa com o Jota e mande o SIM.'
   }), { status: 200, headers: CORS });
 }
