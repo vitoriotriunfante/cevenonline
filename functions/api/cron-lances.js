@@ -216,7 +216,7 @@ function calcAlertas(vs, t) {
         out.push({ chave: `pedido_rota|${v.id}|${c.id}`, nivel: 'pedido_rota', v, c, prova: [provaPedidoHoje(c), (qualificaGol(v.carteira, c) || {}).texto].filter(Boolean).join(' | ') });
       }
       // GOL DE MARCA PROPRIA (a partir de 08/10/2026): pedido do cliente com R$ 50+ de Marca Propria Triunfante
-      { const mp = (c.industrias || []).filter((x) => /MARCA PROPRIA/.test(String(x.n || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''))).reduce((a, x) => a + (Number(x.v) || 0), 0);
+      { const mp = (c.industrias || []).filter((x) => { const nI = String(x.n || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); return /MARCA PROPRIA/.test(nI) && !/NAO E MARCA PROPRIA/.test(nI); /* 10/11/2026 (Vitorio: 'palete nao conta'): TRIUNFANTE (NAO E MARCA PROPRIA) = PALLET 8171 */ }).reduce((a, x) => a + (Number(x.v) || 0), 0);
         if (t.dia >= '2026-10-08' && mp >= 50 && ['POSITIVADO', 'EFETIVADO'].includes(c.status)) out.push({ chave: `gol_marca_propria|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: [`MARCA PROPRIA R$ ${mp.toFixed(2).replace('.', ',')} (minimo R$ 50)`, provaPedidoHoje(c), (qualificaGol(v.carteira, c) || {}).texto].filter(Boolean).join(' | ') }); }
       if (c.dobrouMix) out.push({ chave: `gol_mix|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: [provaPedidoHoje(c), (qualificaGol(v.carteira, c) || {}).texto].filter(Boolean).join(' | ') });
       if (c.dobradinhaQuinzenas) out.push({ chave: `gol_quinzenas|${v.id}|${c.id}`, nivel: 'gol', v, c, prova: [provaPedidoHoje(c), provaQuinzenas(c), (qualificaGol(v.carteira, c) || {}).texto].filter(Boolean).join(' | ') });
@@ -241,7 +241,7 @@ function calcAlertas(vs, t) {
 
     // TRIPLA DE MARCA PROPRIA (a partir de 09/10/2026, Varejo e AS): 3+ clientes diferentes no dia com R$ 50+ de Marca Propria cada. Um lance por vendedor por dia (+10).
     if (t.dia >= '2026-10-09') {
-      const mpDe = (c) => (c.industrias || []).filter((x) => /MARCA PROPRIA/.test(String(x.n || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''))).reduce((a, x) => a + (Number(x.v) || 0), 0);
+      const mpDe = (c) => (c.industrias || []).filter((x) => { const nI = String(x.n || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); return /MARCA PROPRIA/.test(nI) && !/NAO E MARCA PROPRIA/.test(nI); /* 10/11/2026 (Vitorio: 'palete nao conta'): TRIUNFANTE (NAO E MARCA PROPRIA) = PALLET 8171 */ }).reduce((a, x) => a + (Number(x.v) || 0), 0);
       const mpCli = (v.cl || []).filter((c) => ['POSITIVADO', 'EFETIVADO'].includes(c.status) && mpDe(c) >= 50);
       if (mpCli.length >= 3) out.push({ chave: `gol_mp_tripla|${v.id}`, nivel: 'gol', v, prova: `${mpCli.length} clientes com R$ 50+ de MARCA PROPRIA no dia (minimo 3): ` + mpCli.map((c) => `${c.nome} R$ ${mpDe(c).toFixed(2).replace('.', ',')}`).join('; ') });
     }

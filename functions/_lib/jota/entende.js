@@ -290,6 +290,12 @@ async function respFichaCliente(B, E, t, achado) {
 }
 export async function respostaInterna(B, c, texto, anteriores) {
   let t = sem(texto).replace(/\bCOTAS?\b/g, 'META');   // COTA = META (Vitorio, 09/11/2026: 'quando usam a palavra COTA querem saber da META')
+  // CLIENTE POR 'COD' OU CNPJ (sugestoes do Vitorio 06/11/2026: 'historico cliente cod 250900' e o CNPJ viravam '#4000162'):
+  // 'cliente cod/codigo/n 250900' = 'cliente 250900'; CNPJ (14 digitos, com ou sem ponto/barra) acha o codigo na ficha do D1
+  if (/\bCLIENTE\s+(COD(IGO)?|N[UO]M(ERO)?|N)\.?\s*#?\d/.test(t)) t = t.replace(/\bCLIENTE\s+(COD(IGO)?|N[UO]M(ERO)?|N)\.?\s*#?(?=\d)/, 'CLIENTE #');
+  { const cn = (String(texto || '').replace(/[.\-\/]/g, '').match(/\b\d{14}\b/) || [])[0];
+    if (cn && B.env && B.env.DB && /CLIENTE|CNPJ|HIST|FICHA|COMPR/.test(t)) { try { const r = await B.env.DB.prepare('SELECT id_cliente FROM ficha_cliente WHERE json LIKE ? LIMIT 1').bind('%"cnpj":"' + cn + '"%').first();
+      if (r && r.id_cliente) t = 'CLIENTE #' + r.id_cliente; else return `🔎 Não achei nenhum cliente com o CNPJ *${cn}* na base. Confere os números ou me manda o código do cliente.`; } catch (e) { /* segue */ } } }
   // "Sugestao" sozinha (27/10/2026, Thiago/Sueli/Rodrigo: a IA inventava uma resposta): pede a sugestao
   if (/^\W*SUGEST(AO|OES|AO DO JOTA)?\W*$/.test(t)) return '💡 Pode mandar! Escreva *"sugestão:"* e o que você quer que eu faça diferente (ex.: "sugestão: mandar a meta de cada vendedor"). Vai direto para o time que me treina.';
   // escopo: gerente = a filial dele; diretoria = a filial citada, senao o Brasil
@@ -749,6 +755,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     if (ehCorte || ehGapCli) { const Ec = await carregaEscopo(B, esc); let pc = achaPessoa(Ec, t);
       if (!pc && ehGapCli) for (const a of anteriores || []) { pc = achaPessoa(Ec, sem(String(a))); if (pc) break; }
       const r = await respResumoVendedores(B, Ec, pc && pc.tipo === 'vend' ? [pc.alvo] : Ec.vend, ehGapCli ? 'gap' : 'corte', t); if (r) return r; } }
+  if (/\bBLOQUEIO\b|\bBLOQUEAD/.test(t) && !/PEDIDO/.test(t)) t = t + ' PEDIDOS BLOQUEADOS';   // 'quanto com bloqueio comercial?' (Marcelo/API, 10/11/2026)
   const ehPerguntaStatusPedidos =((/PEDIDOS?/.test(t) && /BLOQUEAD|LIBERAD|CORTAD|COM CORTE|SEM FATURAR|NAO FATUR|PENDENTE/.test(t))
     || /(DETALHE|QUAIS|LISTA).{0,25}CORTE/.test(t)    || /CLIENTES? (QUE ESTAO |NO |EM |COM )?PENDENTES?|QUAIS (SAO OS )?CLIENTES?.*PENDENTE|CLIENTES PENDENTES|QUEM (ESTA|TA) NO PENDENTE|QUEM (ESTA|TA) PENDENTE/i.test(t)
     || (/QUAIS (SAO )?(OS )?(PEDIDOS|CLIENTES)/.test(t) && /PENDENTE|LIBERAD|BLOQUEAD/.test(t))) && !/[0-9]{7,}/.test(t);
