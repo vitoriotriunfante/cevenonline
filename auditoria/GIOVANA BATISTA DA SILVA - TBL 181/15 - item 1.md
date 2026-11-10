@@ -1,7 +1,7 @@
 # 15 - item 1 — Campanhas e TAGs do mês (combos, foco, P11…) (item 1 da lista)
 
 - Vendedor: GIOVANA BATISTA DA SILVA (TBL 181)
-- Gerado em: 10/11/2026, 16:58:22 (dados de producao, so leitura)
+- Gerado em: 10/11/2026, 17:21:13 (dados de producao, so leitura)
 - O vendedor digitou: "15" e depois "1"
 
 ## Resposta do Jota

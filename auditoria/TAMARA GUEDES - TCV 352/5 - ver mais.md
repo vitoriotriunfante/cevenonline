@@ -1,7 +1,7 @@
 # 5 - ver mais — Clientes sem compra no mês (ver mais)
 
 - Vendedor: TAMARA GUEDES (TCV 352)
-- Gerado em: 10/11/2026, 16:52:31 (dados de producao, so leitura)
+- Gerado em: 10/11/2026, 17:15:58 (dados de producao, so leitura)
 - O vendedor digitou: "5" e depois "ver mais"
 
 ## Resposta do Jota
