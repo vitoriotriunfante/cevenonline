@@ -1,7 +1,7 @@
 # 5 - ver mais — Clientes sem compra no mês (ver mais)
 
 - Vendedor: GIOVANA BATISTA DA SILVA (TBL 181)
-- Gerado em: 10/11/2026, 12:24:01 (dados de producao, so leitura)
+- Gerado em: 10/11/2026, 12:39:54 (dados de producao, so leitura)
 - O vendedor digitou: "5" e depois "ver mais"
 
 ## Resposta do Jota
