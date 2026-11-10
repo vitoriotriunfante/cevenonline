@@ -7,7 +7,6 @@ import { sn } from '../escopo.js';
 import { N, P, R$, SUGESTAO, VAREJO, diasUteisRestantes, hojeSP, nome2, sem, titulo, vn } from '../base.js';
 import { agrupa, listaNomes, pctTxt, supChave, supNome, supReal } from '../escopo.js';
 import { diasUteisMes } from './gestao.js';
-import { nomeForn } from './metas_industria.js';
 
 // ---------------- RESPOSTAS ----------------
 export async function respResumo(B, E) {
@@ -149,13 +148,6 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
   // 10/11/2026 (Vitorio: 'essa informacao vem de onde?'): o mix do vendedor e o do CEVEN (Produtividade > Mix do mes), igual a tela dele
   const n1 = (x) => (Math.round(x * 10) / 10).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   if (v.mixMes && v.mixMes.clientes_distintos) L.push(`🧺 *Mix do mês (CEVEN):* *${n1(v.mixMes.soma_skus_por_cliente / v.mixMes.clientes_distintos)} produtos diferentes por cliente* · ${v.mixMes.skus_distintos} SKUs em ${v.mixMes.clientes_distintos} clientes`);
-  // META DE MIX (Vitorio, 10/11/2026: 'deixar o MIX dela como META e deixar isso claro'): a Premiacao so tem meta de mix POR INDUSTRIA da pasta (media 3 meses + 5%); nao existe meta geral
-  try {
-    const RV = await B.rv(), nf = (n) => String(n || '').replace(/\s+/g, ' ').replace(/\.+$/, '').trim().toUpperCase();
-    const pasta = new Set(((RV && RV.metas) || []).filter((x) => x[0] === String(v.rca) && x[3] === 1 && x[4] > 0).map((x) => nf(x[2])));
-    const M = ((RV && RV.tmmix) || []).filter((x) => x[0] === String(v.rca) && x[3] > 0 && (!pasta.size || pasta.has(nf(x[1])))).sort((a, b) => b[3] - a[3]);
-    if (M.length) L.push(`🎯 *Meta de mix da Premiação* (produtos diferentes por cliente, em cada indústria): ` + M.slice(0, 5).map((x) => `${nomeForn(x[1])} *${n1(x[3])}*`).join(' · ') + (M.length > 5 ? ` · +${M.length - 5}` : ''));
-  } catch (e) { /* Premiacao fora: segue sem a meta */ }
   // USO DO +MIX e PRODUTOS QUE MAIS INTRODUZIU (Vitorio, 10/11/2026): do estudo do +MIX (dados_mix.json, pedidos do mes x lista gravada antes da compra)
   if (mv && mv.clientes_com_lista) L.push(`📲 *Uso do +MIX:* ${mv.clientes_usou} de ${mv.clientes_com_lista} clientes compraram produto novo da lista do +MIX${mv.uso_pct != null ? ` (*${n1(mv.uso_pct)}%*)` : ''}`);
   if (mv && Array.isArray(mv.top_introduzidos) && mv.top_introduzidos.length) L.push(`⭐ *Produtos que você mais introduziu no mês:* ` + mv.top_introduzidos.map((p, i) => `${i + 1}. ${titulo(p.n || p.c)} (${p.cli} cliente${p.cli > 1 ? 's' : ''}${p.via_mix ? ', ' + p.via_mix + ' pelo +MIX' : ''})`).join(' · '));
