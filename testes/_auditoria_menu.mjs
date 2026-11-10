@@ -20,6 +20,8 @@ for (let k = 1; k <= MENU_VENDEDOR.length; k++) {
   const r = await pergunta(String(k), menu); grava(String(k), MENU_VENDEDOR[k - 1][0], `"${k}" logo depois do menu`, r); console.log('ok', k);
   // VER MAIS (Vitorio, 10/11/2026: 'faltou testar o botao VER MAIS'): se a resposta oferece, pede e grava junto
   if (/ver mais/i.test(r)) { const rm = await pergunta('ver mais', r); grava(k + ' - ver mais', MENU_VENDEDOR[k - 1][0] + ' (ver mais)', `"${k}" e depois "ver mais"`, rm); console.log('ok', k, 'ver mais'); }
+  // LISTA NUMERADA (10/11/2026): no 10 (tipo de prospect) e no 15 (campanha) o numero abre o item 1 da lista
+  if (/Digite o número (do tipo|da campanha)/.test(r)) { const r1 = await pergunta('1', r); grava(k + ' - item 1', MENU_VENDEDOR[k - 1][0] + ' (item 1 da lista)', `"${k}" e depois "1"`, r1); console.log('ok', k, 'item 1'); }
   for (let s = 1; s <= (SUB_VENDEDOR[k] || []).length; s++) { const rs = await pergunta(String(s), r); grava(`${k}.${s}`, SUB_VENDEDOR[k][s - 1][0], `"${k}" e depois "${s}"`, rs); console.log('ok', k + '.' + s); }
 }
 limpa();

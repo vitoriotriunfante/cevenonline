@@ -38,6 +38,8 @@ export async function garanteTabelasPedido(env) {
       env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_pedido_status_final ON pedido_status (final, rechecado_em)'),
       env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_pedido_status_fil_cli ON pedido_status (final, data_pedido, filial, id_cliente)')
     ]);
+    // 10/11/2026 (Vitorio: 'o que cortou, o que mais cortou, de quem cortou, quanto'): lista dos itens cortados [{c,d,q,v}]
+    try { await env.DB.prepare('ALTER TABLE pedido_status ADD COLUMN itens_cortados_json TEXT').run(); } catch (e) { /* ja existe */ }
     tabelasGarantidas = true;
   } catch (e) {}
 }
@@ -56,14 +58,17 @@ export async function gravaStatusPedidos(env, filialKey, rca, idCliente, visitas
   for (const v of V) {
     const num = String(v.num_pedido), status = String(v.status_pedido).toUpperCase().trim(), ant = antes.get(num);
     const cort = Array.isArray(v.itens_cortados) ? v.itens_cortados.length : 0;
+    // valor de cada item cortado: preco do item quando vier; senao o preco unitario do mesmo codigo no pedido (skus); sem preco = v null (nunca inventa)
+    const unit = new Map((Array.isArray(v.skus) ? v.skus : []).filter((x) => Number(x.quantidade) > 0 && Number(x.total) > 0).map((x) => [String(x.codigo), Number(x.total) / Number(x.quantidade)]));
+    const cortJson = cort ? JSON.stringify(v.itens_cortados.map((x) => { const q = Number(x.qt_cortada) || 0, pu = Number(x.preco) > 0 ? Number(x.preco) : unit.get(String(x.codigo)); return { c: String(x.codigo || ''), d: String(x.descricao || ''), q, v: pu ? Math.round(q * pu * 100) / 100 : null }; })) : null;
     // o vendedor lido manda quando o numero do pedido comeca com o codigo dele; sem isso "5500001020" virava RCA 5500, que nao existe (31/10/2026)
     const donoRca = rca && num.startsWith(String(rca)) ? String(rca) : (rcaDoPedido(num) || String(rca));
-    st.push(env.DB.prepare(`INSERT INTO pedido_status (num, filial, rca, id_cliente, data_pedido, status, valor, valor_winthor, categoria_corte, itens_cortados, final, primeiro_em, atualizado_em, rechecado_em)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (num) DO UPDATE SET rca = excluded.rca, status = excluded.status, valor = excluded.valor, valor_winthor = excluded.valor_winthor,
-      categoria_corte = excluded.categoria_corte, itens_cortados = excluded.itens_cortados, final = excluded.final, rechecado_em = excluded.rechecado_em,
+    st.push(env.DB.prepare(`INSERT INTO pedido_status (num, filial, rca, id_cliente, data_pedido, status, valor, valor_winthor, categoria_corte, itens_cortados, final, primeiro_em, atualizado_em, rechecado_em, itens_cortados_json)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (num) DO UPDATE SET rca = excluded.rca, status = excluded.status, valor = excluded.valor, valor_winthor = excluded.valor_winthor,
+      categoria_corte = excluded.categoria_corte, itens_cortados = excluded.itens_cortados, itens_cortados_json = COALESCE(excluded.itens_cortados_json, pedido_status.itens_cortados_json), final = excluded.final, rechecado_em = excluded.rechecado_em,
       atualizado_em = CASE WHEN pedido_status.status = excluded.status THEN pedido_status.atualizado_em ELSE excluded.atualizado_em END`)
       .bind(num, String(filialKey).replace(/1$/, '').toUpperCase(), donoRca, String(idCliente), String(v.data_visita || '').slice(0, 10), status, Number(v.total_clube) || null,
-        Number(v.vl_faturado_winthor) || null, v.categoria_corte || null, cort, STATUS_FINAL.test(status) ? 1 : 0, agora, agora, agora));
+        Number(v.vl_faturado_winthor) || null, v.categoria_corte || null, cort, STATUS_FINAL.test(status) ? 1 : 0, agora, agora, agora, cortJson));
     if (ant !== status) st.push(env.DB.prepare('INSERT OR IGNORE INTO pedido_status_hist (num, status, visto_em) VALUES (?, ?, ?)').bind(num, status, agora));
   }
   // confirmado_em: so aqui, com o pedido vindo do CEVEN (rechecado_em tambem anda quando o pedido nao vem, para a fila nao travar) (31/10/2026)

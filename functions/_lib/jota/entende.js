@@ -365,15 +365,41 @@ export async function respostaInterna(B, c, texto, anteriores) {
           } catch (e) { /* sem GEROT: fica o fechamento do CEVEN */ }
         }
         else if (chave === '__cortes__') {
-          // CORTES DO MES (Vitorio, 10/11/2026: 'nos pedidos tem se foi corte comercial/logistica e o que cortou'): pedido_status do Winthor, do proprio vendedor
+          // CORTES DO MES (Vitorio, 10/11/2026: 'quer saber o que cortou, o que mais cortou, de quem cortou, quanto cortou... subsidios para atuar')
+          // pedido_status do proprio vendedor; itens = lista itens_cortados do CEVEN (itens_cortados_json, gravada desde 10/11/2026). Sem item lido = so o valor do pedido.
           const Ev = await carregaEscopo(B, esc), v = Ev.vend[0], mes = hojeSP().slice(0, 7);
-          const { results: P } = v && B.env && B.env.DB ? await B.env.DB.prepare("SELECT num, id_cliente, data_pedido, valor, valor_winthor, categoria_corte, itens_json FROM pedido_status WHERE filial = ? AND rca = ? AND substr(data_pedido, 1, 7) = ? AND categoria_corte IN ('COMERCIAL', 'LOGISTICA', 'AMBOS') ORDER BY data_pedido DESC").bind(String(v.filial), String(v.rca), mes).all() : { results: [] };
-          const tipo = { COMERCIAL: 'Corte Comercial', LOGISTICA: 'Corte Logística', AMBOS: 'Comercial + Logística' };
-          const tot = (P || []).reduce((s, p) => s + Math.max(0, (Number(p.valor) || 0) - (Number(p.valor_winthor) || 0)), 0);
-          r = !v ? 'Não achei os seus dados na base agora.' : !(P || []).length ? `✂️ *Cortes no mês — ${vn(v)}*: nenhum pedido com corte em ${mes.slice(5, 7)}/${mes.slice(0, 4)}.` : [`✂️ *Cortes no mês — ${vn(v)}*: *${N(P.length)}* pedido(s) · *${R$(tot)}* cortados`, '',
-            ...P.slice(0, 15).map((p) => { let it = []; try { it = JSON.parse(p.itens_json || '[]'); } catch (e) { /* sem itens */ } const d = String(p.data_pedido);
-              return `• ${d.slice(8, 10)}/${d.slice(5, 7)} · nº ${p.num} · cliente #${p.id_cliente} · ${tipo[p.categoria_corte]} · ${R$(Number(p.valor) || 0)} → *${R$(Number(p.valor_winthor) || 0)}*` + (it.length && Math.abs(it.reduce((t, x) => t + (Number(x.v) || 0), 0) - ((Number(p.valor) || 0) - (Number(p.valor_winthor) || 0))) <= Math.max(5, 0.1 * ((Number(p.valor) || 0) - (Number(p.valor_winthor) || 0))) ? '\n   ✂️ ' + it.map((x) => `${titulo(String(x.d || x.c))} ${N(Number(x.q) || 0)}un ${R$(Number(x.v) || 0)}`).join(' · ') : ''); }),
-            ...(P.length > 15 ? [`_… e mais ${P.length - 15} pedido(s)._`] : [])].join('\n');
+          let P = [];
+          if (v && B.env && B.env.DB) { const q = (col) => B.env.DB.prepare("SELECT num, id_cliente, data_pedido, valor, valor_winthor, categoria_corte" + col + " FROM pedido_status WHERE filial = ? AND rca = ? AND substr(data_pedido, 1, 7) = ? AND categoria_corte IN ('COMERCIAL', 'LOGISTICA', 'AMBOS') ORDER BY data_pedido DESC").bind(String(v.filial), String(v.rca), mes).all();
+            try { P = (await q(', itens_cortados_json')).results || []; } catch (e) { P = (await q('')).results || []; } }
+          const tipo = { COMERCIAL: 'Comercial', LOGISTICA: 'Logística', AMBOS: 'Comercial + Logística' };
+          const corte = (p) => Math.max(0, (Number(p.valor) || 0) - (Number(p.valor_winthor) || 0));
+          const nomeCli = new Map((v && Array.isArray(v.roteiroMes) ? v.roteiroMes : []).map((c) => [String(c.id_cliente), titulo(c.nome_cliente || c.razao_social || '')]));
+          const cli = (id) => (nomeCli.get(String(id)) || 'Cliente') + ' (#' + id + ')';
+          if (!v) r = 'Não achei os seus dados na base agora.';
+          else if (!P.length) r = '✂️ *Cortes no mês — ' + vn(v) + '*: nenhum pedido com corte em ' + mes.slice(5, 7) + '/' + mes.slice(0, 4) + '. 👏';
+          else {
+            const tot = P.reduce((s, p) => s + corte(p), 0), porTipo = new Map(), porCli = new Map(), porProd = new Map(); let comItens = 0;
+            for (const p of P) {
+              porTipo.set(p.categoria_corte, (porTipo.get(p.categoria_corte) || { n: 0, v: 0 })); const t = porTipo.get(p.categoria_corte); t.n++; t.v += corte(p);
+              const c = porCli.get(p.id_cliente) || { n: 0, v: 0 }; c.n++; c.v += corte(p); porCli.set(p.id_cliente, c);
+              let it = []; try { it = JSON.parse(p.itens_cortados_json || '[]'); } catch (e) { /* sem itens */ }
+              if (it.length) comItens++;
+              for (const x of it) { const k = x.c || x.d, o = porProd.get(k) || { d: x.d, q: 0, v: 0, ped: 0, semValor: false }; o.q += Number(x.q) || 0; if (x.v != null) o.v += Number(x.v) || 0; else o.semValor = true; o.ped++; porProd.set(k, o); }
+            }
+            const totV = (P.reduce((s, p) => s + (Number(p.valor) || 0), 0)) || 1, pct = (x) => (x / totV * 100).toFixed(1).replace('.', ',') + '%';
+            const prods = [...porProd.values()].sort((a, b) => b.v - a.v || b.q - a.q), clis = [...porCli.entries()].sort((a, b) => b[1].v - a[1].v);
+            const L = ['✂️ *Cortes no mês — ' + vn(v) + '*', '💸 *' + R$(tot) + '* cortados em *' + N(P.length) + '* pedido(s) · ' + pct(tot) + ' do valor desses pedidos', '',
+              '*Por tipo:*', ...[...porTipo.entries()].sort((a, b) => b[1].v - a[1].v).map(([k, x]) => '• ' + tipo[k] + ': ' + R$(x.v) + ' em ' + N(x.n) + ' pedido(s)'), ''];
+            if (prods.length) L.push('*Produtos mais cortados:*', ...prods.slice(0, 8).map((x, i) => (i + 1) + '. ' + titulo(x.d || '') + ' · ' + N(x.q) + ' un' + (x.v > 0 ? ' · ' + R$(x.v) : '') + (x.ped > 1 ? ' · em ' + x.ped + ' pedidos' : '')), '');
+            L.push('*Clientes com mais corte:*', ...clis.slice(0, 5).map(([id, x], i) => (i + 1) + '. ' + cli(id) + ' · ' + R$(x.v) + (x.n > 1 ? ' em ' + x.n + ' pedidos' : '')), '');
+            L.push('*Pedidos:*', ...P.slice(0, 10).map((p) => { const d = String(p.data_pedido); let it = []; try { it = JSON.parse(p.itens_cortados_json || '[]'); } catch (e) { /* */ }
+              return '• ' + d.slice(8, 10) + '/' + d.slice(5, 7) + ' · nº ' + p.num + ' · ' + cli(p.id_cliente) + ' · ' + tipo[p.categoria_corte] + ' · ' + R$(Number(p.valor) || 0) + ' → *' + R$(Number(p.valor_winthor) || 0) + '* (−' + R$(corte(p)) + ')' + (it.length ? '\n   ✂️ ' + it.slice(0, 6).map((x) => titulo(x.d || x.c) + ' ' + N(Number(x.q) || 0) + 'un').join(' · ') + (it.length > 6 ? ' …' : '') : ''); }),
+              ...(P.length > 10 ? ['_… e mais ' + (P.length - 10) + ' pedido(s)._'] : []));
+            if (comItens < P.length) L.push('', '_Produtos cortados lidos em ' + comItens + ' de ' + P.length + ' pedidos (a lista dos itens passou a ser gravada em 10/11; os demais vão aparecendo na próxima leitura do CEVEN)._');
+            const lg = (porTipo.get('LOGISTICA') || { v: 0 }).v + (porTipo.get('AMBOS') || { v: 0 }).v / 2, cm = tot - lg;
+            L.push('', SUGESTAO + (lg >= cm ? 'a maior parte é *logística* (falta no estoque): antes de fechar, confira o item no estoque e ofereça um substituto; avise o cliente do que não vai chegar.' : 'a maior parte é *comercial* (preço, limite ou bloqueio): fale com o supervisor antes de repetir o pedido e confira condição e limite do cliente.') + (clis[0] ? ' Comece por *' + cli(clis[0][0]) + '*.' : ''));
+            r = L.join('\n');
+          }
         }
         else if (chave === '__fase__') {
           // FASEAMENTO DO AS (Vitorio, 10/11/2026): bater 60% da meta ate o dia 20. Dias uteis seg-sex, sem descontar feriado.
@@ -387,6 +413,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
               `💰 Faturado: *${R$(fat)}* (${pc(fat)}%) · com pendente: ${R$(comPend)} (${pc(comPend)}%)`,
               d > 20 ? (fat >= alvo ? '✅ Faseamento do dia 20 batido.' : `🔴 Faseamento do dia 20 não batido: faltaram ${R$(falta)}.`) : fat >= alvo ? '✅ Faseamento já batido.' : `⏳ Falta *${R$(falta)}* até o dia 20 · *${R$(falta / Math.max(1, du))}* por dia útil (${du} dias, feriado não descontado)`].join('\n'); }
         }
+        else if (chave === '__prospect__') { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; const { respProspectsPorCnae } = await import('./respostas/segmentos_pastas.js'); r = v ? await respProspectsPorCnae(B, v, null) : 'Não achei os seus dados na base agora.'; }
         else if (chave === '__liga__') { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; r = v ? await respLiga(B, Ev, v) : 'Não achei os seus dados na base agora.'; }
         else if (chave === '__regras__') { const { respRegrasLiga } = await import('./respostas/liga_mix.js'); r = await respRegrasLiga(B); }
         else if (chave === '__produto__') r = (await interno('metas das industrias')) + '\n\n👉 Para um produto, mande *tem <produto>* (ex.: *tem Toblerone*).';
@@ -405,7 +432,16 @@ export async function respostaInterna(B, c, texto, anteriores) {
         if (v && /para ver a lista de clientes/.test(ult)) return String(await respVendedor(B, Ev, v, { tudo: true })) + '\n' + rodape(mk ? Number(mk[1]) : 1);
         // curva negativa (5): "ver mais" abre o resto da lista (auditoria Giovana 10/11/2026: voltava ao menu)
         if (mk && MENU_VENDEDOR[Number(mk[1]) - 1] && MENU_VENDEDOR[Number(mk[1]) - 1][1] === '__curva__') return String(await interno(`curva negativa do ${eu} ver mais`)) + '\n' + rodape(Number(mk[1]));
+        // campanha aberta pelo numero (15): 'ver mais' = todos os clientes sem compra daquela campanha
+        { const tg = ult.match(/^🏷️ \*(.+?) — .+\*\n\*\d+ de \d+\* clientes já compraram/m); if (v && tg && mk && MENU_VENDEDOR[Number(mk[1]) - 1] && MENU_VENDEDOR[Number(mk[1]) - 1][1] === '__campanhas__') return String(await respCampanhasVendedor(B, v, tg[1], true)) + '\n' + rodape(Number(mk[1])); }
         if (mk) { const item = MENU_VENDEDOR[Number(mk[1]) - 1]; if (item && !/^__/.test(item[1])) return String(await interno(item[1].replace('VENDEDOR', eu) + ' ver mais')) + '\n' + rodape(Number(mk[1])); }
+      }
+      // NUMERO DE UMA LISTA DO TEMA (Vitorio, 10/11/2026): no 15 o numero abre a campanha; no 10 abre o tipo (CNAE) de prospect
+      if (nm && !nm[2] && Number(nm[1]) > 0) {
+        const mk = ult.match(/〔(\d{1,2})〕/), chv = mk && !/MENU DO JOTA/.test(ult) && MENU_VENDEDOR[Number(mk[1]) - 1] ? MENU_VENDEDOR[Number(mk[1]) - 1][1] : '';
+        const linha = (ult.match(new RegExp('^' + nm[1] + '\\. \\*(.+?)\\*', 'm')) || [])[1];
+        if (linha && chv === '__campanhas__' && /Digite o número da campanha/.test(ult)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; return (v ? await respCampanhasVendedor(B, v, linha) : 'Não achei os seus dados na base agora.') + '\n\n👉 Digite *15* para voltar às campanhas.\n' + rodape(Number(mk[1])); }
+        if (linha && chv === '__prospect__' && /pontos para prospectar, por tipo/.test(ult)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; const { respProspectsPorCnae } = await import('./respostas/segmentos_pastas.js'); return (v ? await respProspectsPorCnae(B, v, linha) : 'Não achei os seus dados na base agora.') + '\n\n👉 Digite *10* para voltar aos tipos.\n' + rodape(Number(mk[1])); }
       }
       if (nm && !clienteDaLista) {
         let k = Number(nm[1]), s = nm[2] != null ? Number(nm[2]) : null;

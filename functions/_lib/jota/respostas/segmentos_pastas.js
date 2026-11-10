@@ -370,3 +370,26 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
     '💡 O Jota cruza a localização dos clientes da rota de hoje com a base da Receita e do CEVEN Mapas para indicar estabelecimentos comerciais vizinhos que ainda não compram!'
   ].join('\n');
 }
+
+// PROSPECTS POR TIPO (Vitorio, 10/11/2026: 'na media cada vendedor tem 120... dar a opcao de escolher o tipo de prospect por CNAE', igual ao filtro do mapa do CEVEN).
+// cnae = null -> lista os tipos numerados; cnae = texto -> os pontos daquele tipo (mais perto primeiro). So le prospects_mapa (base unica).
+export async function respProspectsPorCnae(B, v, cnae) {
+  const db = B.env && B.env.DB, cab = `📍 *Prospects — ${vn(v)}* (${v.filial})`;
+  if (!db) return `${cab}: a base de prospecção não está disponível agora; não vou afirmar que está sem pontos.`;
+  let prs;
+  try { const { results } = await db.prepare('SELECT cnpj, json, em FROM prospects_mapa WHERE filial = ? AND rca = ?').bind(String(v.filial), String(v.rca)).all(); prs = (results || []).map((r) => ({ cnpj: r.cnpj, em: r.em, ...JSON.parse(r.json) })); }
+  catch (e) { return `${cab}: falha ao ler a lista da base; não vou afirmar que está sem pontos.`; }
+  if (!prs.length) return `${cab}: ainda não há nenhum ponto coletado para você.`;
+  const tipoDe = (p) => String(p.cnae || 'Sem CNAE').trim();
+  if (!cnae) {
+    const G = new Map(); for (const p of prs) G.set(tipoDe(p), (G.get(tipoDe(p)) || 0) + 1);
+    const L = [...G.entries()].sort((a, b) => b[1] - a[1]);
+    return [cab, `*${N(prs.length)}* pontos para prospectar, por tipo (CNAE):`, '', ...L.slice(0, 20).map(([k, n], i) => `${i + 1}. *${k.length > 70 ? k.slice(0, 67) + '…' : k}* — ${N(n)} ponto(s)`),
+      ...(L.length > 20 ? [`_… e mais ${L.length - 20} tipo(s) com poucos pontos._`] : []), '', '👉 *Digite o número do tipo* para ver os pontos dele.'].join('\n');
+  }
+  const alvo = String(cnae).replace(/…$/, ''), sel = prs.filter((p) => tipoDe(p).startsWith(alvo)).sort((a, b) => (a.km ?? 999) - (b.km ?? 999) || String(b.em || '').localeCompare(String(a.em || '')));
+  if (!sel.length) return `${cab}: não achei pontos do tipo *${alvo}*.`;
+  return [`${cab} — *${titulo(tipoDe(sel[0]))}*`, `${N(sel.length)} ponto(s)${sel.length > 15 ? '; os 15 mais perto da rota' : ''}:`, '',
+    ...sel.slice(0, 15).map((p, i) => `${i + 1}. *${titulo(p.fantasia || p.razao || 'Sem nome')}*\n   📍 CNPJ: ${p.cnpj}${p.km != null ? ' · ' + String(p.km).replace('.', ',') + ' km' : ''}${p.end ? ' · ' + p.end : ''}${p.tel ? '\n   📞 ' + p.tel : ''}${p.lat && p.lon ? '\n   🌐 https://maps.google.com/?q=' + p.lat + ',' + p.lon : ''}`),
+    '', SUGESTAO + 'passar nesses pontos durante a rota e cadastrar no LinkUp.'].join('\n');
+}

@@ -696,7 +696,7 @@ export async function respRotaFiltro(B, E, t) {
 
 // CAMPANHAS DO VENDEDOR (Vitorio, 09/11/2026, indice 15 do menu): as tags de campanha dos clientes do roteiro do mes (foco por industria),
 // quantos clientes cada uma tem e quantos ja compraram no mes (faturado ou pedido do mes). Recorrencia fica no indice 8.
-export async function respCampanhasVendedor(B, v) {
+export async function respCampanhasVendedor(B, v, escolha = null, todos = false) {
   const R = Array.isArray(v.roteiroMes) ? v.roteiroMes : [];
   if (!R.length) return `🏷️ *Campanhas — ${vn(v)}*: não há roteiro do mês na base para montar as campanhas dos seus clientes.`;
   const { vendasEscopo } = await import('./vendas.js'); const VM = await vendasEscopo(B, { filiais: [v.filial], rca: v.rca, vend: [v] }).catch(() => null);
@@ -709,9 +709,21 @@ export async function respCampanhasVendedor(B, v) {
   }
   if (!T.size) return `🏷️ *Campanhas — ${vn(v)}*: nenhum cliente do seu roteiro do mês tem tag de campanha.`;
   const L = [...T.entries()].map(([tag, cs]) => { const tot = cs.size, comp = [...cs.keys()].filter((k) => compraram.has(k)).length; return { tag, tot, comp }; }).sort((a, b) => (b.tot - b.comp) - (a.tot - a.comp));
+  // CAMPANHA ESCOLHIDA PELO NUMERO (Vitorio, 10/11/2026): a TAG exata da lista e a mesma conta da lista (antes 'Skittles' juntava 'Skittles Sem Compras P11': 16 de 66 virava 19 de 97)
+  if (escolha) {
+    const x = L.find((y) => y.tag === escolha); if (!x) return `🏷️ Não achei a campanha *${escolha}* no seu roteiro do mês.`;
+    const cs = [...T.get(x.tag).values()], hojeIds = new Set((v.rotaHoje || []).map((c) => String(c.id_cliente)));
+    const falta = cs.filter((c) => !compraram.has(String(c.id_cliente))), hoje = falta.filter((c) => hojeIds.has(String(c.id_cliente))), resto = falta.filter((c) => !hojeIds.has(String(c.id_cliente)));
+    const dd = (s) => (s && s >= '2000' ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : 'sem compra'), lin = (c) => `• ${titulo(c.nome_cliente || c.razao_social || 'cliente')} (#${c.id_cliente}) · última compra ${dd(String(c.data_ultima_compra || '').slice(0, 10))}`;
+    const lim = todos ? 200 : 20;
+    return [`🏷️ *${x.tag} — ${vn(v)}*`, `*${x.comp} de ${x.tot}* clientes já compraram · faltam *${x.tot - x.comp}*`,
+      ...(hoje.length ? ['', `📍 *Na rota de hoje e sem compra (${hoje.length}):*`, ...hoje.map(lin)] : ['', '_Nenhum cliente dessa campanha sem compra na rota de hoje._']),
+      ...(resto.length ? ['', `*Outros sem compra no mês (${resto.length}):*`, ...resto.slice(0, lim).map(lin), ...(resto.length > lim ? [`_… e mais ${resto.length - lim}. Peça *ver mais*._`] : [])] : []),
+      '', SUGESTAO + (hoje.length ? `comece pelos ${hoje.length} da rota de hoje.` : 'encaixe esses clientes nas próximas visitas.')].join('\n');
+  }
   return [`🏷️ *Campanhas e TAGs do mês — ${vn(v)}*`, '_Todas as TAGs do seu roteiro do mês (combos, foco, P11…), menos recorrência (essa é o 8) · quantos clientes já compraram (faturado ou pedido)_', '',
     ...L.map((x, i) => `${i + 1}. *${x.tag}*: ${x.comp} de ${x.tot} clientes já compraram · faltam *${x.tot - x.comp}*`),
-    '', '👉 Peça *"campanha <nome>"* (ex.: campanha ' + L[0].tag.toLowerCase() + ') para ver os clientes que faltam.'].join('\n');
+    '', '👉 *Digite o número da campanha* para ver os clientes que faltam.'].join('\n');
 }
 
 // MINHA CARTEIRA (indice 14 do menu): quantos clientes o vendedor tem no roteiro do mes, a meta de positivacao do CEVEN e quantos ja compraram
