@@ -181,6 +181,19 @@ async function main() {
         await page.waitForTimeout(1500);
       } catch (e) { falhou = true; log('FALHA', mes, e.message); try { fs.writeFileSync(path.join(SAIDA, `dialogo_${mes}.html`), String(await page.evaluate(() => window.__dlgHtml || ''))); } catch {} await page.screenshot({ path: path.join(SAIDA, `erro_${mes}.png`), fullPage: true }).catch(() => {}); }
     }
+    // RECORRENCIA (Vitorio, 10/11/2026: 'a meta de recorrencia tem no GEROT... e so colocar para ler'): nao existe no 'Extrair dados';
+    // abre a tela COBERTURA > Recorrencia e guarda texto, tabelas e print (reconhecimento; nao grava no D1 e nao derruba a coleta)
+    try {
+      await page.keyboard.press('Escape').catch(() => {});
+      await page.evaluate(() => { const g = [...document.querySelectorAll('button')].find((b) => /^COBERTURA$/i.test((b.innerText || '').trim())); if (g && /fechado/.test(g.className)) g.click(); });
+      await page.waitForTimeout(1000);
+      await page.locator('[data-v="recorrencia"]').first().click({ timeout: 15000 });
+      await page.waitForTimeout(20000);
+      const rec = await page.evaluate(() => ({ texto: document.body.innerText.slice(0, 60000), tabelas: [...document.querySelectorAll('table')].map((t) => t.outerHTML.slice(0, 80000)), selects: [...document.querySelectorAll('select')].map((s) => [...s.options].map((o) => o.text)) }));
+      fs.writeFileSync(path.join(SAIDA, 'recorrencia.json'), JSON.stringify(rec, null, 1));
+      await page.screenshot({ path: path.join(SAIDA, 'recorrencia.png'), fullPage: true }).catch(() => {});
+      log('recorrencia: tela lida ·', rec.tabelas.length, 'tabela(s) ·', rec.texto.slice(0, 1500).replace(/\s+/g, ' '));
+    } catch (e) { log('recorrencia: nao abriu a tela', e.message); await page.screenshot({ path: path.join(SAIDA, 'recorrencia_erro.png'), fullPage: true }).catch(() => {}); }
   } catch (e) { falhou = true; log('FALHA', e.message); await page.screenshot({ path: path.join(SAIDA, 'erro_login.png'), fullPage: true }).catch(() => {}); }
   await browser.close();
   if (falhou) process.exit(1);
