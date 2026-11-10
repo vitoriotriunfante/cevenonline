@@ -68,6 +68,10 @@ export async function cotaEnvio(env, d) {
     const vs = variantes(d), ph = vs.map(() => '?').join(',');
     const resp = await db.prepare(`SELECT 1 FROM bot_msgs WHERE celular IN (${ph}) AND direcao = 'in' AND quando > datetime('now','-24 hours') LIMIT 1`).bind(...vs).first();
     if (resp) return { ok: true, resposta: true };
+    // PAUSA POR RESTRICAO DO WHATSAPP (10/11/2026, 09h27: "nao sera possivel iniciar novas conversas"): ate a data em config_flags 'wa_pausa_proativa_ate'
+    // o Jota so RESPONDE (quem escreveu nas 24 h); nada que ele inicie sai. A mensagem fica na fila ate vencer.
+    const pausa = await db.prepare("SELECT valor FROM config_flags WHERE chave = 'wa_pausa_proativa_ate'").first().catch(() => null);
+    if (pausa && pausa.valor && new Date().toISOString() < String(pausa.valor)) return { ok: false, erro: 'pausa: WhatsApp restringiu o inicio de conversas ate ' + pausa.valor };
     await db.prepare('CREATE TABLE IF NOT EXISTS wa_cota (dia TEXT, celular TEXT, n INTEGER DEFAULT 0, PRIMARY KEY (dia, celular))').run();
     const dia = R.hojeSP();
     const tot = await db.prepare('SELECT COUNT(*) p, COALESCE(SUM(n),0) m, SUM(celular = ?) ja FROM wa_cota WHERE dia = ?').bind(d, dia).first();
