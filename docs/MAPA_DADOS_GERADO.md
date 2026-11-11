@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-11 21:14 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-11 21:30 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (16)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -42,6 +42,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `bot_contexto` | `functions/_lib/jota/fontes.js` |
 | `bot_envio_fila` | `functions/api/cron-varredura-central.js`, `functions/api/jota-contatos.js`, `functions/api/whatsapp/bot.js` |
 | `bot_msgs` | `functions/api/cron-varredura-central.js`, `functions/api/jota-boas-vindas.js`, `functions/api/jota-cardapio.js`, `functions/api/jota-contatos.js`, `functions/api/jota-convite-vendedores.js`, `functions/api/jota-proativo.js`, `functions/api/jota-reenviar.js`, `functions/api/whatsapp/bot.js`, `functions/api/whatsapp/registro.js` |
+| `bot_reproc` | `functions/api/cron-varredura-central.js` |
 | `bot_sem_acesso_excluidos` | `functions/api/jota-contatos.js` |
 | `bot_sugestoes` | `functions/api/jota-conversas.js`, `functions/api/jota-passaporte.js`, `functions/api/whatsapp/bot.js`, `functions/_lib/jota/fontes.js` |
 | `cache_analise_cliente` | `functions/api/tv-vendedor.js` |
