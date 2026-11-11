@@ -649,7 +649,7 @@ async function coletaPedidosWinthor(env, rcas, limite = 12, prazo = Infinity) {
 async function corrigeDatasPorNumero(env, limite = 25, prazo = Infinity) {
   if (Date.now() < banRcaAte) return { pulado: 'cota' };
   try { await env.DB.prepare('ALTER TABLE pedido_status ADD COLUMN data_conferida_em TEXT').run(); } catch (e) { /* ja existe */ }
-  const { results: F } = await env.DB.prepare("SELECT num, filial, rca, data_pedido FROM pedido_status WHERE data_pedido > date('now','-3 hours') AND (data_conferida_em IS NULL OR data_conferida_em < datetime('now','-6 hours')) ORDER BY data_conferida_em IS NOT NULL, data_conferida_em LIMIT ?").bind(limite).all();
+  const { results: F } = await env.DB.prepare("SELECT num, filial, rca, data_pedido FROM pedido_status WHERE (data_pedido > date('now','-3 hours') OR data_pedido IS NULL) AND (data_conferida_em IS NULL OR data_conferida_em < datetime('now','-6 hours')) ORDER BY data_conferida_em IS NOT NULL, data_conferida_em LIMIT ?").bind(limite).all();
   let lidos = 0, corrigidos = 0, semAchar = 0; const st = [], agora = new Date().toISOString();
   for (const x of F || []) {
     if (Date.now() > prazo || Date.now() < disjuntorAte) break;
@@ -1149,8 +1149,9 @@ export async function onRequestGet({ env, request }) {
     if (Date.now() - t0 < 90000) { try { contagem.pedidos_dia = await coletaPedidosDoDia(env, dataRef); } catch (e) { contagem.pedidos_dia = { erro: String(e.message || e).slice(0, 80) }; } }
     // PEDIDOS DO WINTHOR (09/11/2026): logo depois dos pedidos do dia (no fim da rodada, que leva ~145 s, nunca rodava). Todos os vendedores em rodizio: dia 5, noite 60.
     // 10/11/2026: de dia a rodada chegava aqui depois dos 95 s e o Winthor era pulado (65 vendedores/h de manha, 10/h as 10h): agora le sempre, com prazo minimo de 15 s
-    if (Date.now() - t0 < 135000) { try { contagem.winthor = await coletaPedidosWinthor(env, rcas, noiteTodos ? 60 : 5, Math.max(t0 + 115000, Date.now() + 15000)); } catch (e) { contagem.winthor = { erro: String(e.message || e).slice(0, 80) }; }
-      if (Date.now() - t0 < 140000) { try { contagem.datas_por_numero = await corrigeDatasPorNumero(env, noiteTodos ? 80 : 25, Math.max(t0 + 135000, Date.now() + 10000)); } catch (e) { contagem.datas_por_numero = { erro: String(e.message || e).slice(0, 80) }; } } }
+    // 11/11/2026: antes do Winthor (no fim nem sempre sobrava tempo); e o numero de pedidos com data futura/sem data vai na contagem da rodada
+    if (Date.now() - t0 < 125000) { try { contagem.datas_por_numero = await corrigeDatasPorNumero(env, noiteTodos ? 80 : 25, Math.max(t0 + 120000, Date.now() + 10000)); const fz = await env.DB.prepare("SELECT count(*) n FROM pedido_status WHERE data_pedido > date('now','-3 hours') OR (data_pedido IS NULL AND primeiro_em >= '2026-11-01')").first(); contagem.datas_por_numero.faltam = fz ? fz.n : null; } catch (e) { contagem.datas_por_numero = { erro: String(e.message || e).slice(0, 80) }; } }
+    if (Date.now() - t0 < 135000) { try { contagem.winthor = await coletaPedidosWinthor(env, rcas, noiteTodos ? 60 : 5, Math.max(t0 + 115000, Date.now() + 15000)); } catch (e) { contagem.winthor = { erro: String(e.message || e).slice(0, 80) }; } }
     if (!env.TESTE_SEM_HORARIO && Date.now() - t0 < 95000) { try { contagem.macro = await coletaMacroForaArvore(env); } catch (e) { contagem.macro = { erro: String(e.message || e).slice(0, 80) }; } }
     if (Date.now() - t0 < 95000) { try { contagem.recheca = await rechecaAbertosPorVendedor(env, noiteTodos ? 90 : 15, t0 + 150000);   /* todos os ~250 vendedores com pedido aberto: ~30 min de dia e a cada 30 min de noite (31/10/2026) */ } catch (e) { contagem.recheca = { erro: String(e.message || e).slice(0, 80) }; } }
     // ROTA E PAINEL DO GERENTE NO FIM DA RODADA (01/11/2026): no inicio, os 25 s comiam o prazo da produtividade (40 s) e ela deixava de rodar. Em dia util a rodada leva ~40 s; so fica de fora quando a rodada estoura.

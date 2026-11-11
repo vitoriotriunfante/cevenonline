@@ -62,12 +62,15 @@ export async function gravaStatusPedidos(env, filialKey, rca, idCliente, visitas
     const unit = new Map((Array.isArray(v.skus) ? v.skus : []).filter((x) => Number(x.quantidade) > 0 && Number(x.total) > 0).map((x) => [String(x.codigo), Number(x.total) / Number(x.quantidade)]));
     const cortJson = cort ? JSON.stringify(v.itens_cortados.map((x) => { const q = Number(x.qt_cortada) || 0, pu = Number(x.preco) > 0 ? Number(x.preco) : unit.get(String(x.codigo)); return { c: String(x.codigo || ''), d: String(x.descricao || ''), q, v: pu ? Math.round(q * pu * 100) / 100 : null }; })) : null;
     // o vendedor lido manda quando o numero do pedido comeca com o codigo dele; sem isso "5500001020" virava RCA 5500, que nao existe (31/10/2026)
+    // DATA DO PEDIDO (Vitorio, 11/11/2026: 'o que precisamos fazer para corrigir de vez?'): data_visita do historico e a data da VISITA/entrega e pode ser FUTURA.
+    // Data futura nunca vira data do pedido: fica NULL ate o Winthor dizer (leitura do mes ou consulta pelo numero). Sem data o pedido nao pontua.
+    const dv = String(v.data_visita || '').slice(0, 10), hojeBR = new Date(Date.now() - 3 * 3600000).toISOString().slice(0, 10), dataPed = /^\d{4}-\d{2}-\d{2}$/.test(dv) && dv <= hojeBR ? dv : null;
     const donoRca = rca && num.startsWith(String(rca)) ? String(rca) : (rcaDoPedido(num) || String(rca));
     st.push(env.DB.prepare(`INSERT INTO pedido_status (num, filial, rca, id_cliente, data_pedido, status, valor, valor_winthor, categoria_corte, itens_cortados, final, primeiro_em, atualizado_em, rechecado_em, itens_cortados_json)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (num) DO UPDATE SET rca = excluded.rca, status = excluded.status, valor = excluded.valor, valor_winthor = excluded.valor_winthor,
       categoria_corte = excluded.categoria_corte, itens_cortados = excluded.itens_cortados, itens_cortados_json = COALESCE(excluded.itens_cortados_json, pedido_status.itens_cortados_json), final = excluded.final, rechecado_em = excluded.rechecado_em,
       atualizado_em = CASE WHEN pedido_status.status = excluded.status THEN pedido_status.atualizado_em ELSE excluded.atualizado_em END`)
-      .bind(num, String(filialKey).replace(/1$/, '').toUpperCase(), donoRca, String(idCliente), String(v.data_visita || '').slice(0, 10), status, Number(v.total_clube) || null,
+      .bind(num, String(filialKey).replace(/1$/, '').toUpperCase(), donoRca, String(idCliente), dataPed, status, Number(v.total_clube) || null,
         Number(v.vl_faturado_winthor) || null, v.categoria_corte || null, cort, STATUS_FINAL.test(status) ? 1 : 0, agora, agora, agora, cortJson));
     if (ant !== status) st.push(env.DB.prepare('INSERT OR IGNORE INTO pedido_status_hist (num, status, visto_em) VALUES (?, ?, ?)').bind(num, status, agora));
   }
