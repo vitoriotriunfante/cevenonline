@@ -1,7 +1,7 @@
 # M - meio
 
 - Gerente: MARCOS (ABC)
-- Gerado em: 11/11/2026, 14:18:09 (producao, so leitura)
+- Gerado em: 11/11/2026, 15:11:24 (producao, so leitura)
 - Digitou: "bom dia" (momento forcado)
 
 ## Resposta do Jota
@@ -9,20 +9,20 @@
 ```
 🍽️ Marcos, o placar da ABC:
 
-💰 Faturamento: *21,1%* da meta com o a faturar · faturado R$ 685.382 (10,9%) + a faturar R$ 643.013 de R$ 6.290.000
-🚶 Visitas: *221 de 355*
-📝 Vendido hoje: *R$ 270.712* em 114 cliente(s)
-📞 Vendedores com visita e sem pedido: *7* · escreva *zerados* para ver quem são
+💰 Faturamento: *21,4%* da meta com o a faturar · faturado R$ 752.403 (12,0%) + a faturar R$ 591.002 de R$ 6.290.000
+🚶 Visitas: *268 de 356*
+📝 Vendido hoje: *R$ 291.543* em 134 cliente(s)
+📞 Vendedores com visita e sem pedido: *5* · escreva *zerados* para ver quem são
 
 *Supervisores:*
-1. *Eder Lucas* · hoje R$ 19.187 · 70/124 visitas · 23,1% da meta
-2. *Gilberto Gomes* · hoje R$ 26.540 · 9/14 visitas · 5,4% da meta
-3. *Ivonei Pedro* · hoje R$ 23.810 · 51/71 visitas · 30,2% da meta
-4. *Marcio Rosa* · hoje R$ 7.150 · 26/39 visitas · 15,9% da meta
-5. *Missaid Mainardes* · hoje R$ 162.675 · 12/19 visitas · 27,5% da meta
-6. *Rodrigo Stelleo* · hoje R$ 31.350 · 53/88 visitas · 29,7% da meta
+1. *Eder Lucas* · hoje R$ 22.713 · 89/124 visitas · 23,4% da meta
+2. *Gilberto Gomes* · hoje R$ 36.647 · 10/14 visitas · 5,7% da meta
+3. *Ivonei Pedro* · hoje R$ 26.361 · 62/71 visitas · 30,5% da meta
+4. *Marcio Rosa* · hoje R$ 7.150 · 33/40 visitas · 16,3% da meta
+5. *Missaid Mainardes* · hoje R$ 165.487 · 12/19 visitas · 27,6% da meta
+6. *Rodrigo Stelleo* · hoje R$ 33.184 · 62/88 visitas · 29,8% da meta
 
-🏆 Melhor do dia: *Missaid* (R$ 162.675) · 👀 atenção: *Marcio* (R$ 7.150)
+🏆 Melhor do dia: *Missaid* (R$ 165.487) · 👀 atenção: *Marcio* (R$ 7.150)
 
 👉 *Digite o número do supervisor* para abrir a equipe dele.
 
