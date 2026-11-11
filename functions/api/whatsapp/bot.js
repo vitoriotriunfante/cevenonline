@@ -140,6 +140,12 @@ export async function onRequestPost({ request, env }) {
   }
   let meuId = null;
   if (!seco) meuId = await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, msg_id) VALUES (?,?,?,?,?)').bind(cel, c ? c.nome : null, 'in', (audio ? '[áudio] ' : '') + (texto || '(não transcrito: ' + (audio && audio.erro) + ')').slice(0, 2000), d.key.id || null).run().then((r) => r && r.meta && r.meta.last_row_id).catch(() => null);
+  // APROVADO QUE ESCREVEU (Vitorio, 11/11/2026: 'se o cara mandar msg... checa se ja foi aprovado e libera as mensagens'): as boas-vindas guardadas na fila
+  // saem agora, como resposta, antes da resposta da pergunta dele (a fila nao manda nada proativo durante a pausa).
+  if (!seco && c && meuId) { try {
+    const fb = await env.DB.prepare("SELECT id, texto FROM bot_envio_fila WHERE substr(numero,-8) = ? AND tipo = 'boas_vindas_aprovacao' ORDER BY id DESC LIMIT 1").bind(String(c.celular).slice(-8)).first();
+    if (fb && fb.texto) { const eb = await enviar(env, c.celular, String(fb.texto)); await env.DB.prepare('DELETE FROM bot_envio_fila WHERE substr(numero,-8) = ? AND tipo = ?').bind(String(c.celular).slice(-8), 'boas_vindas_aprovacao').run(); await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(c.celular, c.nome, eb.ok ? 'out' : 'erro', String(fb.texto), 'boas_vindas_aprovacao').run(); await R.pausaEntreEnvios(8, 2, 6); }
+  } catch (e) { /* segue para a resposta */ } }
   // SALVOU O CONTATO DO JOTA (Vitorio, 09/11/2026): 'SIM' / 'salvei' depois do pedido marca o contato (ativo ou pendente); painel /contatos filtra
   if (!seco && /^\W*(SIM|SALVEI|SALVO|J[AÁ] SALVEI|SIM,? (J[AÁ] )?SALVEI|CONFIRMADO)\W*$/i.test(String(texto || '').trim())) { try { await env.DB.prepare(`UPDATE bot_contatos SET salvou_jota = COALESCE(salvou_jota, datetime('now')) WHERE celular IN (${vs.map(() => '?').join(',')})`).bind(...vs).run(); } catch (x) { /* nunca derruba a resposta */ } }
   if (ehImagem && texto === '[imagem recebida sem legenda]') {
@@ -184,7 +190,11 @@ export async function onRequestPost({ request, env }) {
       if (!pend) return new Response('ok (sem pedido pelo link: nao responde)');
       const ja = await env.DB.prepare("SELECT 1 FROM bot_msgs WHERE celular = ? AND tipo = 'pendente_aviso' AND quando > datetime('now','-20 hours') LIMIT 1").bind(pend.celular).first().catch(() => null);
       if (!ja) {
-        const av = `Oi, *${titulo(String(pend.nome || '').split(' ')[0])}*! Recebi o seu pedido de acesso ao *Jota* ⚽ e ele está em liberação. Assim que for aprovado, é só me mandar um *bom dia* por aqui.`;
+        // NAO APROVADO (Vitorio, 11/11/2026: 'se nao [aprovado] manda aquela msg do procure seu supervisor para cadastro'): a mensagem guardada na fila para ele
+        // (ex.: linha corporativa suspensa) sai agora como resposta; sem nada na fila, o 'procure o seu supervisor'.
+        const fq = await env.DB.prepare(`SELECT id, texto FROM bot_envio_fila WHERE substr(numero,-8) = ? AND tipo IN ('linha_invalida','procure_supervisor') ORDER BY id DESC LIMIT 1`).bind(String(pend.celular).slice(-8)).first().catch(() => null);
+        const av = fq && fq.texto ? String(fq.texto) : `Oi, *${titulo(String(pend.nome || '').split(' ')[0])}*! Aqui é o *Jota* ⚽. O seu acesso ainda não foi liberado. *Procure o seu supervisor* para que ele te oriente a fazer o cadastro corretamente.`;
+        if (fq) await env.DB.prepare('DELETE FROM bot_envio_fila WHERE id = ?').bind(fq.id).run().catch(() => {});
         const ea = await enviar(env, pend.celular, av);
         await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(pend.celular, pend.nome, ea.ok ? 'out' : 'erro', av, 'pendente_aviso').run().catch(() => {});
       }
@@ -283,7 +293,9 @@ export async function onRequestPost({ request, env }) {
   const sug = (texto.match(/^\s*sugest(?:ã|a)o\s*[:\-]?\s*([\s\S]{3,})/i) || [])[1] || sugMeio || (pediuMotivo && !notaTxt && !ehComandoOuPergunta ? texto : null);
   const ofereceuOpcao1 = ultOut && /digite \*?1\*?/i.test(ultOut.texto || '');
   const ofereceuOpcoesNum = ultOut && /(?:digite\s+(?:o\s+)?n[uú]mero|\bdigite\s+\*?[1-9]\*?|[1-9]️⃣|10️⃣)/i.test(ultOut.texto || '');
-  if (notaTxt && ultOut && ultOut.nota == null && !ofereceuOpcao1 && !ofereceuOpcoesNum && Date.now() - Date.parse(ultOut.quando + 'Z') < 6 * 3600 * 1000) {
+  // 11/11/2026 (Vitorio: 'voltar urgente em todas as msgs para avaliar a resposta e a opcao de sugestao'): 👍/👎 vale sempre (nao briga com o numero do menu); nota 1 a 5 so sem opcoes numeradas
+  const ehEmojiNota = /^\s*(👍|👎)/.test(texto);
+  if (notaTxt && ultOut && ultOut.nota == null && (ehEmojiNota || (!ofereceuOpcao1 && !ofereceuOpcoesNum)) && Date.now() - Date.parse(ultOut.quando + 'Z') < 6 * 3600 * 1000) {
     const nota = Number(notaTxt);
     await env.DB.prepare('UPDATE bot_msgs SET nota = ?, ajudou = ? WHERE id = ?').bind(nota, nota >= 3 ? 1 : 0, ultOut.id).run();
     resp = nota >= 4 ? varia([`Valeu, ${primeiroNome(c)}! Nota ${nota} anotada. 💪`, `Obrigado pela nota ${nota}, ${primeiroNome(c)}! Isso me ajuda a melhorar.`], cel)
@@ -372,7 +384,8 @@ export async function onRequestPost({ request, env }) {
     if (!seco) try { await env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(cel, c.nome, c.papel, c.filial || '', `[SEM RESPOSTA] ${String(texto).slice(0, 1400)}`, '').run(); } catch (e) {}
   }
   if (tipo === 'pronta') resp = humaniza(resp, c, primeiraDoDia);
-  if (!(c && c.papel === 'vendedor') && ['pronta', 'ia', 'ficha_ia', 'entendida_ia'].includes(tipo) && resp && !/o que faltou/.test(resp) && !/Digite o número/.test(resp) && !/⟪⟫/.test(resp)) resp += '\n\n_⚽ Jota em treinamento. Nota de 1 a 5 para essa resposta? Ou escreva "sugestão: ..."_';
+  // AVALIACAO EM TODAS AS RESPOSTAS (Vitorio, 11/11/2026): vendedor, supervisor, gerente e diretoria, inclusive menus e os 3 momentos; 👍/👎 nao briga com o numero do menu
+  if (resp && !['nota', 'agradecimento', 'saudacao_primeira', 'reacao_figurinha', 'bloqueado'].includes(tipo) && !/o que faltou/.test(resp) && !/⟪⟫/.test(resp)) resp += '\n\n_Essa resposta ajudou? Responda 👍 ou 👎 · ou escreva *sugestão:* e o que melhorar_';
   if (audio && audio.texto) resp = `🎙️ _Entendi: "${audio.texto.slice(0, 200)}"_\n\n` + resp;
   if (seco) return new Response(resp + (u.searchParams.get('fig') === '1' ? `\n\n[figurinha: ${figurinhaPara(resp, tipo) || 'nenhuma'} · tipo: ${tipo}]` : ''), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
   // TRAVA DE ESCOPO (26/10/2026, vazamento do consolidado para um supervisor): nada do consolidado nacional sai para quem nao e diretoria/ceo, venha de onde vier a resposta

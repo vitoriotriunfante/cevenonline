@@ -88,11 +88,12 @@ export async function respPainelIndustrias(env, B, cam) {
   if (!env || !env.DB) return null;
   const mes = cam.mes || hojeSP().slice(0, 7), D = dias(mes), nm = NOME_MES[Number(mes.slice(5)) - 1];
   const { L, cevenMes } = await base(env, B, mes, cam.fil || null), cevenOk = !!cevenMes;
-  const mk = `〔G:${mes}|${cam.fil || ''}|${cam.ind || ''}|${cam.sup || ''}|${cam.rca || ''}〕`;
+  // 11/11/2026 (Rudinei: 'condor, Philips, sc Johnson e Baly em TCV'): cam.inds = varias industrias citadas; o painel mostra so elas (6o campo do marcador)
+  const mk = `〔G:${mes}|${cam.fil || ''}|${cam.ind || ''}|${cam.sup || ''}|${cam.rca || ''}|${(cam.inds || []).join(',')}〕`;
   const st = await env.DB.prepare('SELECT posicao FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null);
   const fonte = `_Fonte: GEROT${st && st.posicao ? ' (' + st.posicao.replace(/^Atual\s*·\s*/, 'posição ') + ')' : ''} · meta de clientes: CEVEN${cevenOk ? '' : ' (só no mês atual)'} · média = dias úteis decorridos; necessidade = dias úteis até o dia ${FIM_APURACAO}._`;
   if (!L.length) return `🏭 *Painel das indústrias* · ${nm}\nNão há linha no GEROT para esse recorte e mês. Não vou estimar.\n\n${fonte}`;
-  let rs = L; if (cam.ind) rs = rs.filter((x) => x.ind === cam.ind); if (cam.sup) rs = rs.filter((x) => x.sup === cam.sup); if (cam.rca) rs = rs.filter((x) => x.rca === cam.rca);
+  let rs = cam.inds && cam.inds.length ? L.filter((x) => cam.inds.includes(x.ind)) : L; if (cam.ind) rs = rs.filter((x) => x.ind === cam.ind); if (cam.sup) rs = rs.filter((x) => x.sup === cam.sup); if (cam.rca) rs = rs.filter((x) => x.rca === cam.rca);
   const out = [];
   // NIVEL 4: vendedor
   if (cam.rca) {
@@ -142,15 +143,15 @@ export async function respPainelIndustrias(env, B, cam) {
 
 // numero digitado depois de um nivel do painel: desce (1..n) ou sobe (0)
 export async function respPainelNumero(env, B, marcador, k) {
-  const [mes, fil, ind, sup, rca] = marcador.split('|');
-  if (k === 0) { if (rca) return respPainelIndustrias(env, B, { mes, fil, ind, sup }); if (sup) return respPainelIndustrias(env, B, { mes, fil, ind }); if (ind && fil) return respPainelIndustrias(env, B, { mes, fil }); return respPainelIndustrias(env, B, { mes }); }
+  const [mes, fil, ind, sup, rca, indsTxt] = marcador.split('|'); const inds = indsTxt ? indsTxt.split(',').filter(Boolean) : null;
+  if (k === 0) { if (rca) return respPainelIndustrias(env, B, { mes, fil, ind, sup }); if (sup) return respPainelIndustrias(env, B, { mes, fil, ind }); if (ind && fil) return respPainelIndustrias(env, B, { mes, fil, inds }); return respPainelIndustrias(env, B, { mes, inds }); }
   const { L } = await base(env, B, mes, fil || null);
-  let rs = L; if (ind) rs = rs.filter((x) => x.ind === ind); if (sup) rs = rs.filter((x) => x.sup === sup);
+  let rs = inds ? L.filter((x) => inds.includes(x.ind)) : L; if (ind) rs = rs.filter((x) => x.ind === ind); if (sup) rs = rs.filter((x) => x.sup === sup);
   if (rca) return null;
   if (sup) { const vs = [...agrupa(rs, (x) => x.rca)].map(([k2, v]) => [k2, soma(v)]).sort((a, b) => (b[1].meta ? b[1].fat / b[1].meta : -1) - (a[1].meta ? a[1].fat / a[1].meta : -1) || b[1].fat - a[1].fat); const x = vs[k - 1]; return x ? respPainelIndustrias(env, B, { mes, fil, ind, sup, rca: x[0] }) : null; }
   if (ind && !fil) { const fs2 = [...agrupa(rs, (x) => x.filial)].map(([k2, v]) => [k2, soma(v)]).filter(([, g]) => g.meta > 0 || g.fat || g.cart).map(([k2]) => k2).sort((a, b) => FILIAIS.indexOf(a) - FILIAIS.indexOf(b)); const x = fs2[k - 1]; return x ? respPainelIndustrias(env, B, { mes, fil: x, ind }) : null; }
   if (ind) { const ss = [...agrupa(rs, (x) => x.sup)].map(([k2, v]) => [k2, soma(v)]).sort((a, b) => b[1].fat - a[1].fat); const x = ss[k - 1]; return x ? respPainelIndustrias(env, B, { mes, fil, ind, sup: x[0] }) : null; }
   if (fil) { const is = [...agrupa(rs, (x) => x.ind)].map(([k2, v]) => [k2, soma(v)]).filter(([, g]) => g.meta > 0 || g.fat > 0 || g.cart > 0).sort(ordemInd); const x = is[k - 1]; return x ? respPainelIndustrias(env, B, { mes, fil, ind: x[0] }) : null; }
   const fs = [...agrupa(rs, (x) => x.filial)].map(([k2]) => k2).sort((a, b) => FILIAIS.indexOf(a) - FILIAIS.indexOf(b)); const x = fs[k - 1];
-  return x ? respPainelIndustrias(env, B, { mes, fil: x }) : null;
+  return x ? respPainelIndustrias(env, B, { mes, fil: x, inds }) : null;
 }
