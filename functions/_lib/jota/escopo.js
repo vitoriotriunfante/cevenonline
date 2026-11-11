@@ -13,9 +13,18 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
   const [snap, mostra] = await Promise.all([B.snap(filial), B.mostra()]);
   const eq = new Map(); if (mostra && mostra.filiais) for (const [k, L] of Object.entries(mostra.filiais)) if (k.split('_')[0] === filial) for (const v of L) eq.set(String(v.rca), v);
   const vend = [], ocultos = [], outros = []; const macro = { pedidos: 0, dig: 0, devHoje: 0 };
+  // DIGITADO DO DIA = PEDIDOS GRAVADOS (Vitorio, 11/11/2026, plano aprovado): a produtividade do CEVEN sai pela cota de 3-4 chamadas/min e atrasava horas
+  // (08h45: pedidos gravados R$ 386 mil x produtividade R$ 68 mil). Cada pedido tem numero e valor (pedido_status: Winthor + historico do cliente).
+  // Pedido com data DEPOIS do dia em que apareceu (programado, visita futura) nao e digitado de hoje (11/11: R$ 287 mil assim as 08h45).
+  // Vale o maior dos dois numeros reais (os dois so crescem durante o dia); a produtividade fica como conferencia.
+  const pedHoje = new Map();
+  if (B.env && B.env.DB) { try { B._pedHoje = B._pedHoje || {}; if (!B._pedHoje[filial]) B._pedHoje[filial] = B.env.DB.prepare("SELECT rca, sum(coalesce(valor, 0)) v, count(*) n, count(DISTINCT id_cliente) c FROM pedido_status WHERE filial = ? AND data_pedido = ? AND status <> 'CANCELADO' AND data_pedido <= date(primeiro_em, '-3 hours') GROUP BY rca").bind(filial, hojeSP()).all();
+    for (const x of ((await B._pedHoje[filial]).results || [])) pedHoje.set(String(x.rca), x); } catch (e) { /* sem tabela: fica a produtividade */ } }
   for (const [rca, r] of Object.entries((snap && snap.rcas) || {})) {
     const e = eq.get(rca);
-    const d = r.dashboard || {}, fi = d.financeiro || {}, po = d.positivacao || {}, pd = (r.produtividade && r.produtividade.dia) || {}, pm = (r.produtividade && r.produtividade.mes) || {};
+    const d = r.dashboard || {}, fi = d.financeiro || {}, po = d.positivacao || {}, pm = (r.produtividade && r.produtividade.mes) || {};
+    const pd0 = (r.produtividade && r.produtividade.dia) || {}, ph = pedHoje.get(rca);
+    const pd = ph ? { ...pd0, dig_pedido: Math.max(Number(pd0.dig_pedido) || 0, Number(ph.v) || 0), positivacao: Math.max(Number(pd0.positivacao) || 0, Number(ph.c) || 0), _dig_prod: Number(pd0.dig_pedido) || 0, _dig_ped: Number(ph.v) || 0, _ped_n: ph.n } : pd0;
     macro.pedidos += pd.positivacao || 0; macro.dig += pd.dig_pedido || 0;
     macro.devHoje += (Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).reduce((t, x) => t + Math.abs(parseFloat(x.vl_devolvido || x.valor || 0) || 0), 0);
     if (!e) continue;   // fora da arvore do CEVEN de hoje = nao existe

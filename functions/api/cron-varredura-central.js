@@ -601,7 +601,11 @@ async function coletaPedidosWinthor(env, rcas, limite = 12, prazo = Infinity) {
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS winthor_divergencias (num TEXT PRIMARY KEY, filial TEXT, rca TEXT, id_cliente TEXT, cliente TEXT, data_pedido TEXT, valor REAL, status TEXT, achado_em TEXT)').run();
   const { results: F } = await env.DB.prepare('SELECT filial, rca, em FROM winthor_fila').all();
   const ult = new Map((F || []).map((x) => [x.filial + '|' + x.rca, x.em || '']));
-  const fila = (rcas || []).filter((r) => r && r.codigo && r.filial).sort((a, b) => String(ult.get(kr(a)) || '').localeCompare(String(ult.get(kr(b)) || ''))).slice(0, limite);
+  // PRIORIDADE (Vitorio, 11/11/2026, plano aprovado): quem teve pedido NOVO depois da ultima leitura do Winthor dele vai primeiro (pedido de hoje entra em minutos);
+  // depois, o rodizio de sempre (quem foi lido ha mais tempo).
+  let novo = new Set();
+  try { const { results: N } = await env.DB.prepare("SELECT p.filial f, p.rca r FROM pedido_status p LEFT JOIN winthor_fila w ON w.filial = p.filial AND w.rca = p.rca WHERE p.primeiro_em >= datetime('now', '-1 day') AND (w.em IS NULL OR p.primeiro_em > w.em) GROUP BY 1, 2").all(); novo = new Set((N || []).map((x) => x.f + '|' + x.r)); } catch (e) { /* sem prioridade: rodizio */ }
+  const fila = (rcas || []).filter((r) => r && r.codigo && r.filial).sort((a, b) => (novo.has(kr(b)) - novo.has(kr(a))) || String(ult.get(kr(a)) || '').localeCompare(String(ult.get(kr(b)) || ''))).slice(0, limite);
   const mes = new Date(Date.now() - 3 * 3600000).toISOString().slice(0, 7);
   let lidos = 0, novos = 0, mudaram = 0;
   for (const rca of fila) {
@@ -644,12 +648,13 @@ async function coletaPedidosWinthor(env, rcas, limite = 12, prazo = Infinity) {
   return { lidos, novos, mudaram };
 }
 // DATA DO PEDIDO POR NUMERO (Vitorio, 11/11/2026: 'precisamos acelerar... urgente'): 619 pedidos ficaram com data FUTURA (a rota gravou a data da visita/entrega)
-// e a leitura do mes do Winthor nunca chega neles (a maioria e de fim de outubro). O app do CEVEN consulta 1 pedido pelo numero: pedidos-winthor?...&pedido=NUM.
+// e a leitura do mes do Winthor nunca chega neles (a maioria e de fim de outubro). Criterio (11/11 09h): data do pedido DEPOIS do dia em que o pedido apareceu = errada
+// (897 pedidos: 501 no futuro e 396 ja 'chegaram' e contavam em dias de 02/11 a 11/11). O app do CEVEN consulta 1 pedido pelo numero: pedidos-winthor?...&pedido=NUM.
 // Aqui: pedidos com data futura, 1 chamada por pedido, quem foi conferido ha mais tempo primeiro; grava a data do Winthor (so a data). Sem achar = tenta de novo em 6 h.
 async function corrigeDatasPorNumero(env, limite = 25, prazo = Infinity) {
   if (Date.now() < banRcaAte) return { pulado: 'cota' };
   try { await env.DB.prepare('ALTER TABLE pedido_status ADD COLUMN data_conferida_em TEXT').run(); } catch (e) { /* ja existe */ }
-  const { results: F } = await env.DB.prepare("SELECT num, filial, rca, data_pedido FROM pedido_status WHERE (data_pedido > date('now','-3 hours') OR data_pedido IS NULL) AND (data_conferida_em IS NULL OR data_conferida_em < datetime('now','-6 hours')) ORDER BY data_conferida_em IS NOT NULL, data_conferida_em LIMIT ?").bind(limite).all();
+  const { results: F } = await env.DB.prepare("SELECT num, filial, rca, data_pedido FROM pedido_status WHERE (data_pedido > date(primeiro_em, '-3 hours') OR data_pedido IS NULL) AND (data_conferida_em IS NULL OR data_conferida_em < datetime('now','-6 hours')) ORDER BY data_conferida_em IS NOT NULL, data_conferida_em LIMIT ?").bind(limite).all();
   let lidos = 0, corrigidos = 0, semAchar = 0; const st = [], agora = new Date().toISOString();
   for (const x of F || []) {
     if (Date.now() > prazo || Date.now() < disjuntorAte) break;
@@ -1150,7 +1155,7 @@ export async function onRequestGet({ env, request }) {
     // PEDIDOS DO WINTHOR (09/11/2026): logo depois dos pedidos do dia (no fim da rodada, que leva ~145 s, nunca rodava). Todos os vendedores em rodizio: dia 5, noite 60.
     // 10/11/2026: de dia a rodada chegava aqui depois dos 95 s e o Winthor era pulado (65 vendedores/h de manha, 10/h as 10h): agora le sempre, com prazo minimo de 15 s
     // 11/11/2026: antes do Winthor (no fim nem sempre sobrava tempo); e o numero de pedidos com data futura/sem data vai na contagem da rodada
-    if (Date.now() - t0 < 125000) { try { contagem.datas_por_numero = await corrigeDatasPorNumero(env, noiteTodos ? 80 : 25, Math.max(t0 + 120000, Date.now() + 10000)); const fz = await env.DB.prepare("SELECT count(*) n FROM pedido_status WHERE data_pedido > date('now','-3 hours') OR (data_pedido IS NULL AND primeiro_em >= '2026-11-01')").first(); contagem.datas_por_numero.faltam = fz ? fz.n : null; } catch (e) { contagem.datas_por_numero = { erro: String(e.message || e).slice(0, 80) }; } }
+    if (Date.now() - t0 < 125000) { try { contagem.datas_por_numero = await corrigeDatasPorNumero(env, noiteTodos ? 80 : 25, Math.max(t0 + 120000, Date.now() + 10000)); const fz = await env.DB.prepare("SELECT count(*) n FROM pedido_status WHERE data_pedido > date(primeiro_em, '-3 hours') OR (data_pedido IS NULL AND primeiro_em >= '2026-11-01')").first(); contagem.datas_por_numero.faltam = fz ? fz.n : null; } catch (e) { contagem.datas_por_numero = { erro: String(e.message || e).slice(0, 80) }; } }
     if (Date.now() - t0 < 135000) { try { contagem.winthor = await coletaPedidosWinthor(env, rcas, noiteTodos ? 60 : 5, Math.max(t0 + 115000, Date.now() + 15000)); } catch (e) { contagem.winthor = { erro: String(e.message || e).slice(0, 80) }; } }
     if (!env.TESTE_SEM_HORARIO && Date.now() - t0 < 95000) { try { contagem.macro = await coletaMacroForaArvore(env); } catch (e) { contagem.macro = { erro: String(e.message || e).slice(0, 80) }; } }
     if (Date.now() - t0 < 95000) { try { contagem.recheca = await rechecaAbertosPorVendedor(env, noiteTodos ? 90 : 15, t0 + 150000);   /* todos os ~250 vendedores com pedido aberto: ~30 min de dia e a cada 30 min de noite (31/10/2026) */ } catch (e) { contagem.recheca = { erro: String(e.message || e).slice(0, 80) }; } }
