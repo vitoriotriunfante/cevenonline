@@ -611,15 +611,15 @@ async function coletaPedidosWinthor(env, rcas, limite = 12, prazo = Infinity) {
   try { const { results: N } = await env.DB.prepare("SELECT p.filial f, p.rca r FROM pedido_status p LEFT JOIN winthor_fila w ON w.filial = p.filial AND w.rca = p.rca WHERE p.primeiro_em >= datetime('now', '-1 day') AND (w.em IS NULL OR p.primeiro_em > w.em) GROUP BY 1, 2").all(); novo = new Set((N || []).map((x) => x.f + '|' + x.r)); } catch (e) { /* sem prioridade: rodizio */ }
   // DETECTOR DE PEDIDO NOVO (11/11/2026, 11h34: Gessandro TCV viu o 336 com R$ 0 e 3 pedidos no CEVEN; o Winthor dele era de 05h21): o 'a faturar' do painel
   // do CEVEN (lido a cada 2 min para todos) mudou desde a ultima leitura do Winthor = entrou pedido. A prioridade de cima so via pedido ja conhecido no D1.
-  const pendAgora = new Map();
+  const pendAgora = new Map(), forte = new Map();   // forte = pedido que o D1 nao conhece (R$ que falta); vai na frente de tudo, maior valor primeiro
   try { await env.DB.prepare('ALTER TABLE winthor_fila ADD COLUMN pend_lido REAL').run(); } catch (e) { /* ja existe */ }
   try { const { results: P } = await env.DB.prepare("SELECT v.filial_sigla f, v.rca_codigo r, json_extract(v.dashboard_json,'$.financeiro.pendente') p, w.pend_lido pl FROM varredura_central_rca v LEFT JOIN winthor_fila w ON w.filial = v.filial_sigla AND w.rca = v.rca_codigo WHERE v.data_ref = date('now','-3 hours')").all();
-    for (const x of P || []) { const k = x.f + '|' + x.r, p = Number(x.p) || 0; pendAgora.set(k, p); if (x.pl != null && Math.abs(p - Number(x.pl)) >= 1) novo.add(k); } } catch (e) { /* sem detector: rodizio */ }
+    for (const x of P || []) { const k = x.f + '|' + x.r, p = Number(x.p) || 0; pendAgora.set(k, p); if (x.pl != null && p - Number(x.pl) >= 1) novo.add(k); } } catch (e) { /* sem detector: rodizio */ }   // so quando SOBE (cair = faturou, nao e pedido novo)
   // DETECTOR SEM BASE (11/11/2026, 15h: API 1074 Felipe com R$ 25.856 digitados e R$ 0 para o gerente; 470 de 590 sem pend_lido ainda): o 'a faturar' do CEVEN
   // maior que os pedidos em aberto que o D1 conhece = tem pedido que o Winthor nao trouxe (59 vendedores as 15h). Re-le no maximo a cada 15 min por vendedor.
-  try { const { results: K } = await env.DB.prepare("WITH d AS (SELECT filial_sigla f, rca_codigo r, json_extract(dashboard_json,'$.financeiro.pendente') p FROM varredura_central_rca WHERE data_ref = date('now','-3 hours')), k AS (SELECT filial f, rca r, sum(coalesce(valor, 0)) a FROM pedido_status WHERE final = 0 AND status NOT IN ('CANCELADO','DEVOLVIDO') AND substr(data_pedido, 1, 7) = strftime('%Y-%m', 'now', '-3 hours') GROUP BY 1, 2) SELECT d.f, d.r FROM d LEFT JOIN k ON k.f = d.f AND k.r = d.r LEFT JOIN winthor_fila w ON w.filial = d.f AND w.rca = d.r WHERE d.p - coalesce(k.a, 0) >= 50 AND (w.em IS NULL OR w.em < strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-15 minutes'))").all();
-    for (const x of K || []) novo.add(x.f + '|' + x.r); } catch (e) { /* sem detector: rodizio */ }
-  const fila = (rcas || []).filter((r) => r && r.codigo && r.filial).sort((a, b) => (novo.has(kr(b)) - novo.has(kr(a))) || String(ult.get(kr(a)) || '').localeCompare(String(ult.get(kr(b)) || ''))).slice(0, limite);
+  try { const { results: K } = await env.DB.prepare("WITH d AS (SELECT filial_sigla f, rca_codigo r, json_extract(dashboard_json,'$.financeiro.pendente') p FROM varredura_central_rca WHERE data_ref = date('now','-3 hours')), k AS (SELECT filial f, rca r, sum(coalesce(valor, 0)) a FROM pedido_status WHERE final = 0 AND status NOT IN ('CANCELADO','DEVOLVIDO') AND substr(data_pedido, 1, 7) = strftime('%Y-%m', 'now', '-3 hours') GROUP BY 1, 2) SELECT d.f, d.r, d.p - coalesce(k.a, 0) dif FROM d LEFT JOIN k ON k.f = d.f AND k.r = d.r LEFT JOIN winthor_fila w ON w.filial = d.f AND w.rca = d.r WHERE d.p - coalesce(k.a, 0) >= 50 AND (w.em IS NULL OR w.em < strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-15 minutes'))").all();
+    for (const x of K || []) forte.set(x.f + '|' + x.r, Number(x.dif) || 0); } catch (e) { /* sem detector: rodizio */ }
+  const fila = (rcas || []).filter((r) => r && r.codigo && r.filial).sort((a, b) => ((forte.get(kr(b)) || 0) - (forte.get(kr(a)) || 0)) || (novo.has(kr(b)) - novo.has(kr(a))) || String(ult.get(kr(a)) || '').localeCompare(String(ult.get(kr(b)) || ''))).slice(0, limite);
   const mes = new Date(Date.now() - 3 * 3600000).toISOString().slice(0, 7);
   let lidos = 0, novos = 0, mudaram = 0;
   for (const rca of fila) {
@@ -660,7 +660,7 @@ async function coletaPedidosWinthor(env, rcas, limite = 12, prazo = Infinity) {
     lidos++;
     try { await env.DB.prepare('UPDATE winthor_fila SET pend_lido = ? WHERE filial = ? AND rca = ?').bind(pendAgora.has(fil + '|' + rca.codigo) ? pendAgora.get(fil + '|' + rca.codigo) : null, fil, String(rca.codigo)).run(); } catch (e) { /* base do detector */ }
   }
-  return { lidos, novos, mudaram, prioridade: novo.size };
+  return { lidos, novos, mudaram, prioridade: novo.size, sem_pedido_no_d1: forte.size };
 }
 // DATA DO PEDIDO POR NUMERO (Vitorio, 11/11/2026: 'precisamos acelerar... urgente'): 619 pedidos ficaram com data FUTURA (a rota gravou a data da visita/entrega)
 // e a leitura do mes do Winthor nunca chega neles (a maioria e de fim de outubro). Criterio (11/11 09h): data do pedido DEPOIS do dia em que o pedido apareceu = errada
