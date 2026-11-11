@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-11 12:11 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-11 13:10 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (16)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -55,7 +55,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `conferencia_rca` | `functions/api/cron-conferencia-dia.js` |
 | `config_custo` | `functions/api/custo-freio.js` |
 | `config_equipe_soberana` | `functions/api/equipe-decidir.js`, `functions/api/equipe-salvar.js`, `functions/api/equipe-solicitacoes.js` |
-| `config_flags` | `functions/api/cron-notificacoes-supervisores.js`, `functions/_lib/ceven_admin_token.js` |
+| `config_flags` | `functions/api/cron-notificacoes-supervisores.js`, `functions/api/cron-varredura-central.js`, `functions/_lib/ceven_admin_token.js` |
 | `d1_telemetria_rotas` | `functions/_lib/telemetria.js` |
 | `descoberta_cursor` | `functions/api/cron-descobre-codigos.js` |
 | `devolucao_nota_motivo` | `functions/api/cron-lances.js` |
@@ -64,10 +64,11 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `flash_alerts` | `functions/api/cron-radar-horario.js` |
 | `gerentes_filiais` | `functions/api/whatsapp/gerentes.js` |
 | `gerot_coleta_status` | `functions/api/gerot-carga.js` |
-| `gerot_recorrencia` | `functions/api/gerot-carga.js` |
+| `gerot_recorrencia_pasta` | `functions/api/gerot-carga.js` |
 | `gerot_vendas` | `functions/api/gerot-carga.js` |
 | `historico_cliente` | `functions/api/tv-vendedor.js` |
 | `jota_campanha_sim` | `functions/api/cron-varredura-central.js` |
+| `jota_foco_dia` | `functions/_lib/jota/respostas/momentos.js` |
 | `lances_excluidos_liga` | `functions/_lib/liga_fechamento.js` |
 | `liga_dia_fechado` | `functions/api/liga-repara-devolucao.js`, `functions/api/liga-repara-pedido.js`, `functions/_lib/liga_fechamento.js` |
 | `liga_fechamento` | `functions/api/liga-repara-devolucao.js`, `functions/api/liga-repara-pedido.js`, `functions/_lib/liga_fechamento.js` |
