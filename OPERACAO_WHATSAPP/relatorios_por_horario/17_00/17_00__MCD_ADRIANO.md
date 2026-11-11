@@ -1,29 +1,38 @@
 🏢 *RELATÓRIO OPERACIONAL — 17:00*
-📅 10/11/2026
+📅 11/11/2026
 📍 *FILIAL MCD — ADRIANO*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *Total Digitado Hoje:* R$ 29.213,90
-📦 *Pedidos Colocados:* 38 pedidos
-📍 *Visitas Realizadas:* 113 de 169 (66,9%)
-👥 *Vendedores Varejo com Pedido:* 13 de 20 (65%)
-✂️ *Cortes nos Pedidos de Hoje:* R$ 0,00 (0 pedidos afetados)
-🔒 *Pedidos Bloqueados Hoje:* R$ 11.035,67 (9 pedidos retidos)
-🚛 *Devoluções Entradas Hoje:* R$ 6.044,44
+💰 *Total Digitado Hoje:* R$ 44.240,77
+📦 *Pedidos Colocados:* 28 pedidos
+📍 *Visitas Realizadas:* 100 de 155 (64,5%)
+👥 *Vendedores Varejo com Pedido:* 11 de 20 (55%)
+✂️ *Cortes nos Pedidos de Hoje:* R$ 829,18 (3 pedidos afetados)
+🔒 *Pedidos Bloqueados Hoje:* R$ 30.136,76 (13 pedidos retidos)
+🚛 *Devoluções Entradas Hoje:* R$ 53.441,38
 
-🚨 *Varejo Zerados (17:00):* 7 (35%)
+⚠️ *DETALHE DOS CORTES DE HOJE:*
+  ▫️ Cód. 424 • EVERTON GONCALVES: -R$ 565,48 em  (SKU em falta)
+  ▫️ Cód. 447 • ROBERTO DE SENNA PEREIRA: -R$ 86,10 em  (SKU em falta)
+  ▫️ Cód. 455 • VALQUIRIA DE FATIMA LEITE GONCALVES: -R$ 177,60 em  (SKU em falta)
+
+🚨 *Varejo Zerados (17:00):* 9 (45%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚨 *VENDEDORES DE VAREJO ZERADOS NO HORÁRIO (17:00):*
 _(Visitas realizadas sem conversão de pedido)_
 
-👤 *Supervisor: ALYFER PEREIRA MENDES* (2 zerados)
-  ▫️ Cód. 432 • JESUS DA SILVA SOUZA: *4 visitas feitas* (de 4 na rota) • R$ 0
-  ▫️ Cód. 467 • JOAO CARLOS SOUZA: *0 visitas feitas* (de 3 na rota) • R$ 0
+👤 *Supervisor: ALYFER PEREIRA MENDES* (1 zerados)
+  ▫️ Cód. 467 • JOAO CARLOS SOUZA: *0 visitas feitas* (de 5 na rota) • R$ 0
 
-👤 *Supervisor: CARLOS ALAGUEZ DA SILVA* (5 zerados)
-  ▫️ Cód. 423 • EDMILSON RODRIGES FERREIRA: *0 visitas feitas* (de 9 na rota) • R$ 0
-  ▫️ Cód. 438 • KENEDY LUAN ESPINDOLA MENDES DE ASSIS: *0 visitas feitas* (de 11 na rota) • R$ 0
-  ▫️ Cód. 440 • LUAN FELIPE DE SOUZA MEDEIROS: *7 visitas feitas* (de 9 na rota) • R$ 0
-  ▫️ Cód. 463 • RODRIGO ALBUQUERQUE DE SOUZA: *4 visitas feitas* (de 5 na rota) • R$ 0
-  ▫️ Cód. 1133 • ADILSON DE SOUZA NUNES JUNIOR: *0 visitas feitas* (de 11 na rota) • R$ 0
+👤 *Supervisor: CARLOS ALAGUEZ DA SILVA* (6 zerados)
+  ▫️ Cód. 423 • EDMILSON RODRIGES FERREIRA: *0 visitas feitas* (de 6 na rota) • R$ 0
+  ▫️ Cód. 430 • IGOR ROBERTO JESUS DA SILVA: *7 visitas feitas* (de 7 na rota) • R$ 0
+  ▫️ Cód. 438 • KENEDY LUAN ESPINDOLA MENDES DE ASSIS: *0 visitas feitas* (de 9 na rota) • R$ 0
+  ▫️ Cód. 449 • SAMIRA BARCELOS ALBRES: *4 visitas feitas* (de 13 na rota) • R$ 0
+  ▫️ Cód. 454 • TIEGO RISALDI RAMOS: *8 visitas feitas* (de 9 na rota) • R$ 0
+  ▫️ Cód. 1133 • ADILSON DE SOUZA NUNES JUNIOR: *0 visitas feitas* (de 9 na rota) • R$ 0
+
+👤 *Supervisor: CLEOMAR DINIZ BARBOSA* (2 zerados)
+  ▫️ Cód. 415 • CIL FARNEY BARBOSA DE ALCANTARA: *3 visitas feitas* (de 4 na rota) • R$ 0
+  ▫️ Cód. 452 • TARCISIO GUILHERME BARBOSA: *3 visitas feitas* (de 4 na rota) • R$ 0
