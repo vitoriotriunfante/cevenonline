@@ -16,7 +16,9 @@ const FILIAIS = process.argv.slice(2).length ? process.argv.slice(2) : ['ABC', '
 const dia = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
 // RODADA 2+ (Vitorio, 11/11/2026: 'dois vendedores diferentes por filial... diferente dos que fez na ultima'): AUDIT_EXCLUI=<pasta da rodada anterior>
 // tira os vendedores ja auditados; AUDIT_PASTA = nome da pasta nova.
-const EXCLUI = new Set(); if (process.env.AUDIT_EXCLUI) for (const a of fs.readdirSync(process.env.AUDIT_EXCLUI).filter((x) => /^[A-Z]{3}.md$/.test(x))) for (const m of fs.readFileSync(path.join(process.env.AUDIT_EXCLUI, a), 'utf8').matchAll(/^## Vendedor (d+) - /gm)) EXCLUI.add(a.slice(0, 3) + '|' + m[1]);
+const EXCLUI = new Set(); if (process.env.AUDIT_EXCLUI) for (const a of fs.readdirSync(process.env.AUDIT_EXCLUI).filter((x) => /^[A-Z]{3}\.md$/.test(x))) for (const m of fs.readFileSync(path.join(process.env.AUDIT_EXCLUI, a), 'utf8').matchAll(/^## Vendedor (\d+) - /gm)) EXCLUI.add(a.slice(0, 3) + '|' + m[1]);
+if (process.env.AUDIT_EXCLUI && !EXCLUI.size) throw new Error('AUDIT_EXCLUI sem nenhum vendedor lido: a rodada 2 repetiria os mesmos');
+console.log('vendedores excluidos (rodada anterior):', [...EXCLUI].join(' '));
 const dir = path.join('auditoria', process.env.AUDIT_PASTA || `CASCATA ${dia}`); fs.mkdirSync(dir, { recursive: true });
 const R = (x) => 'R$ ' + Math.round(x || 0).toLocaleString('pt-BR');
 const RUIM = /\bERRO\b|undefined|\bNaN\b|Sem dado agora|\[object Object\]/;
