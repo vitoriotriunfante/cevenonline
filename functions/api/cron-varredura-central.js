@@ -651,6 +651,22 @@ async function coletaPedidosWinthor(env, rcas, limite = 12, prazo = Infinity) {
 // e a leitura do mes do Winthor nunca chega neles (a maioria e de fim de outubro). Criterio (11/11 09h): data do pedido DEPOIS do dia em que o pedido apareceu = errada
 // (897 pedidos: 501 no futuro e 396 ja 'chegaram' e contavam em dias de 02/11 a 11/11). O app do CEVEN consulta 1 pedido pelo numero: pedidos-winthor?...&pedido=NUM.
 // Aqui: pedidos com data futura, 1 chamada por pedido, quem foi conferido ha mais tempo primeiro; grava a data do Winthor (so a data). Sem achar = tenta de novo em 6 h.
+// VIGIA DO WHATSAPP (Vitorio, 11/11/2026: 'vigia do equilibrio... isso esta de acordo com as boas praticas?'): sinais de spam das plataformas
+// (Z-API, Periskope): mandar muito mais do que recebe e erros de envio seguidos. Se aparecer, DESLIGA os 3 momentos (config_flags 'jota_momentos' = off)
+// e grava o motivo; o menu continua respondendo. Religar e manual (Vitorio ou painel). So le o D1, nao chama o CEVEN nem o WhatsApp.
+async function vigiaWhatsApp(env) {
+  const r = await env.DB.prepare("SELECT sum(direcao = 'in') recebidas, sum(direcao IN ('out','figurinha')) enviadas, (SELECT count(*) FROM bot_msgs WHERE direcao = 'erro' AND quando >= datetime('now','-30 minutes')) erros FROM bot_msgs WHERE quando >= datetime('now','-60 minutes')").first();
+  const rec = Number(r && r.recebidas) || 0, env_ = Number(r && r.enviadas) || 0, erros = Number(r && r.erros) || 0;
+  const motivo = (env_ >= 40 && env_ > 1.6 * Math.max(1, rec)) ? `enviadas ${env_} x recebidas ${rec} na ultima hora (mais de 1,6x)` : erros >= 10 ? `${erros} erros de envio em 30 min` : null;
+  await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('wa_equilibrio', ?, ?, datetime('now')) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, motivo = excluded.motivo, atualizado_em = excluded.atualizado_em").bind(JSON.stringify({ recebidas: rec, enviadas: env_, erros }), motivo || 'ok').run().catch(() => {});
+  if (!motivo) return { recebidas: rec, enviadas: env_, erros };
+  const atual = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'jota_momentos'").first().catch(() => null);
+  if (!(atual && /^off$/i.test(String(atual.valor || '')))) {
+    await env.DB.batch([env.DB.prepare("INSERT INTO config_flags (chave, valor) VALUES ('jota_momentos', 'off') ON CONFLICT (chave) DO UPDATE SET valor = 'off'"),
+      env.DB.prepare("INSERT INTO config_flags (chave, valor) VALUES ('jota_momentos_motivo', ?) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor").bind(new Date().toISOString() + ' vigia: ' + motivo)]);
+  }
+  return { recebidas: rec, enviadas: env_, erros, pausou: motivo };
+}
 async function corrigeDatasPorNumero(env, limite = 25, prazo = Infinity) {
   if (Date.now() < banRcaAte) return { pulado: 'cota' };
   try { await env.DB.prepare('ALTER TABLE pedido_status ADD COLUMN data_conferida_em TEXT').run(); } catch (e) { /* ja existe */ }
@@ -1161,6 +1177,7 @@ export async function onRequestGet({ env, request }) {
     if (Date.now() - t0 < 95000) { try { contagem.recheca = await rechecaAbertosPorVendedor(env, noiteTodos ? 90 : 15, t0 + 150000);   /* todos os ~250 vendedores com pedido aberto: ~30 min de dia e a cada 30 min de noite (31/10/2026) */ } catch (e) { contagem.recheca = { erro: String(e.message || e).slice(0, 80) }; } }
     // ROTA E PAINEL DO GERENTE NO FIM DA RODADA (01/11/2026): no inicio, os 25 s comiam o prazo da produtividade (40 s) e ela deixava de rodar. Em dia util a rodada leva ~40 s; so fica de fora quando a rodada estoura.
     if (Date.now() - t0 < 135000) { try { contagem.rota_gerente = await gravaRotasGerente(env, dataRef, Math.min(25000, t0 + 160000 - Date.now())); } catch (e) { contagem.rota_gerente = { erro: String(e.message || e).slice(0, 80) }; } } else contagem.rota_gerente = 'pulado_prazo';
+    try { contagem.vigia_wa = await vigiaWhatsApp(env); } catch (e) { contagem.vigia_wa = { erro: String(e.message || e).slice(0, 80) }; }
     // DIAGNOSTICO: o que a ultima rodada fez, etapa por etapa (antes so ficavam os totais, e "0 sucesso" nao dizia onde)
     try { await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('ultima_rodada', ?, 'contagem da ultima rodada', datetime('now')) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = excluded.atualizado_em").bind(JSON.stringify({ ms: Date.now() - t0, chamador: request.headers.get('user-agent'), entrada_colo: request.cf && request.cf.colo, entrada_pais: request.cf && request.cf.country, saida: await saidaDaRodada(), ...contagem }).slice(0, 3000)).run(); } catch { /* nunca derruba */ }
     await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);

@@ -81,10 +81,13 @@
     return injetarZeroWidth(resolverSpintax(t));
   }
 
-  // ANTIBAN: Calcula delay de digitação humano proporcional ao tamanho do texto (2 a 6 segundos)
+  // ANTIBAN: delay de digitação humano proporcional ao tamanho do texto.
+  // 11/11/2026 (Vitorio: 'simular uma pessoa digitando pensando no PACE real'): 3 a 12 s (era 2 a 6 s; uma mensagem de 10 linhas saia em 6 s),
+  // com variacao de +-20% para nunca repetir o mesmo tempo.
   function delayDigitacao(t) {
     const tam = String(t || '').length;
-    return Math.min(6000, Math.max(2000, tam * 30));
+    const base = Math.min(12000, Math.max(3000, 1500 + tam * 18));
+    return Math.round(base * (0.8 + Math.random() * 0.4));
   }
 
   // ANTIBAN: Gaussian Jitter para intervalos entre mensagens (Box-Muller)

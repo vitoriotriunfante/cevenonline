@@ -175,6 +175,21 @@ export async function onRequestPost({ request, env }) {
     // Se cel não for um número de telefone real válido (não começa com 55 ou tamanho inválido): é um @lid anônimo. Não envia resposta de cadastro.
     const ehCelReal = cel.startsWith('55') && cel.length >= 12 && cel.length <= 13;
     if (!ehCelReal) return new Response('ok (lid sem cel)');
+    // SO RESPONDE QUEM PEDIU PELO LINK (Vitorio, 11/11/2026: 'NAO VAMOS RESPONDER ninguem que nao esteja enviado a solicitacao via link... o botao para ele falar com o Jota').
+    // Sem cadastro = NENHUMA mensagem (antes: 'ainda nao achei seu cadastro' + aviso ao Vitorio). A mensagem fica gravada para o painel.
+    // Pediu pelo link e aguarda liberacao (situacao 'pendente') = no maximo 1 aviso por dia de que o pedido esta em liberacao.
+    if (!seco) {
+      const pend = await env.DB.prepare(`SELECT * FROM bot_contatos WHERE situacao = 'pendente' AND celular IN (${vs.map(() => '?').join(',')}) LIMIT 1`).bind(...vs).first().catch(() => null);
+      await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(pend ? pend.celular : cel, pend ? pend.nome : (d.pushName || null), 'in', String(texto || '').slice(0, 2000), pend ? 'pendente' : 'sem_cadastro').run().catch(() => {});
+      if (!pend) return new Response('ok (sem pedido pelo link: nao responde)');
+      const ja = await env.DB.prepare("SELECT 1 FROM bot_msgs WHERE celular = ? AND tipo = 'pendente_aviso' AND quando > datetime('now','-20 hours') LIMIT 1").bind(pend.celular).first().catch(() => null);
+      if (!ja) {
+        const av = `Oi, *${titulo(String(pend.nome || '').split(' ')[0])}*! Recebi o seu pedido de acesso ao *Jota* ⚽ e ele está em liberação. Assim que for aprovado, é só me mandar um *bom dia* por aqui.`;
+        const ea = await enviar(env, pend.celular, av);
+        await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(pend.celular, pend.nome, ea.ok ? 'out' : 'erro', av, 'pendente_aviso').run().catch(() => {});
+      }
+      return new Response('ok (pendente)');
+    }
 
     // CADASTRO DE VENDEDOR (Nome Completo / CPF / Setor de Atendimento / Filial / Supervisor):
     const matchCpf = texto.replace(/\D/g, '').match(/\d{11}/);
@@ -283,6 +298,18 @@ export async function onRequestPost({ request, env }) {
     // nota repetida (Alex/TBE, 30/10/2026: mandou "5" de novo e recebeu o resumo inteiro da equipe)
     resp = `Nota já anotada, ${primeiroNome(c)}! 💪`;
     tipo = 'nota';
+  }
+  // 3 MOMENTOS DO DIA DO VENDEDOR (diretor 10/11/2026; Vitorio 11/11: 'comecar com todos'): o vendedor cumprimenta e recebe o plano do dia, o meio do dia ou o fechamento.
+  // Chave de desligar: config_flags 'jota_momentos' = 'off' (volta a saudacao de antes). Figurinha so quando ha o que comemorar.
+  if (!resp && ehSaudacao(tN) && !primeiraVez && c && c.papel === 'vendedor' && c.rca && /^[A-Z]{3}$/.test(String(c.filial || ''))) {
+    try {
+      const MO = await import('../../_lib/jota/respostas/momentos.js'), { carregaEscopo } = await import('../../_lib/jota/escopo.js');
+      if (await MO.momentosLigados(B)) {
+        const Ev = await carregaEscopo(B, { nome: c.nome, filiais: [String(c.filial)], grupo: null, supervisor: null, rca: String(c.rca), nacional: false });
+        const m = await MO.respMomento(B, c, Ev);
+        if (m && m.texto) { resp = m.texto; tipo = 'momento_' + m.momento + (m.comemora ? '_comemora' : ''); }
+      }
+    } catch (e) { resp = null; }   // falhou: cai na saudacao de sempre
   }
   if (!resp && ehSaudacao(tN)) { resp = await respSaudacao(B, c, primeiraVez); tipo = primeiraVez ? 'saudacao_primeira' : 'saudacao'; }
   // AGRADECIMENTO (Vitorio, 27/10/2026: "o cara falou blz... blz quer dizer obrigado... era ter mandado uma figurinha"): resposta curta + figurinha, sem dado

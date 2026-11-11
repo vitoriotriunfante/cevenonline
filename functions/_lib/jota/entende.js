@@ -430,7 +430,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
         } else r = await interno(chave.replace('VENDEDOR', eu));
         // META DE RECORRENCIA = GEROT (Vitorio, 10/11/2026: 'a meta de recorrencia tem no GEROT'): lista do dia 1 (recuperacao), meta 80%; a lista da TAG abaixo mostra quem falta
         if (/recorrencia/i.test(chave) && B.env && B.env.DB) { try {
-          const g = await B.env.DB.prepare("SELECT objetivo, meta, positivados, faturado, em FROM gerot_recorrencia WHERE mes = ? AND filial = ? AND nivel = 'vendedor' AND cod = ? ORDER BY em DESC LIMIT 1").bind(hojeSP().slice(0, 7), String(c.filial || ''), String(rcaV)).first();
+          const g = await B.env.DB.prepare("SELECT sum(objetivo) objetivo, sum(meta) meta, sum(positivados) positivados, sum(faturado) faturado, max(em) em, count(*) pastas FROM gerot_recorrencia_pasta WHERE mes = ? AND filial = ? AND nivel = 'vendedor' AND cod = ? HAVING count(*) > 0").bind(hojeSP().slice(0, 7), String(c.filial || ''), String(rcaV)).first();
           if (g && g.objetivo != null) r = [`🎯 *Meta de recorrência (GEROT)*: objetivo *${N(g.objetivo)}* clientes · meta 80% = *${N(g.meta || 0)}* · positivados *${N(g.positivados || 0)}*` + (g.meta ? ` (${(g.positivados / g.meta * 100).toFixed(1).replace('.', ',')}% da meta · faltam *${N(Math.max(0, g.meta - g.positivados))}*)` : '') + (g.faturado != null ? ` · ${R$(g.faturado)}` : ''),
             '_Lista do dia 1º do GEROT: clientes com compra de 31 a 90 dias e nenhuma nos 30 dias antes do dia 1º._', '', String(r)].join('\n');
         } catch (e) { /* sem GEROT: fica a TAG do CEVEN */ } }
@@ -438,6 +438,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
         r = String(r == null ? 'Sem dado agora.' : r).split('\n').filter((l, i, a) => !(/^\*(Por supervisor|Vendedores com mais devolu[cç][aã]o):\*$/.test(l) && !/^(•|\d)/.test(a[i + 1] || '')) && !/^_Fonte: painel do CEVEN, só vendedores ativos/.test(l)).join('\n');
         return r + '\n' + rodape(k);
       };
+      // 3 MOMENTOS (11/11/2026): 'mais' depois do plano/meio/fechamento do dia = o menu completo
+      if (/〔M:/.test(ult) && /^\W*(ESCREVA |VER |QUERO )?MAIS\W*$/.test(t)) return respMenuVendedor(c);
       // VER MAIS (10/11/2026: o resumo manda pedir "ver mais" e o indice devolvia o menu): abre a lista que a ultima resposta prometeu
       if (/^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|LISTA COMPLETA|VER (A )?LISTA|VER (O )?RESTANTE|VER (OS )?OUTROS)\W*$/.test(t)) {
         const Ev = await carregaEscopo(B, esc), v = Ev.vend[0], mk = ult.match(/〔(\d{1,2})〕/);
@@ -535,7 +537,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
         else r = await internoS(chave);
         // META DE RECORRENCIA DO GEROT da equipe do supervisor (o vendedor ve a dele no 8)
         if (/recorrencia/i.test(chave) && B.env && B.env.DB) { try {
-          const g = await B.env.DB.prepare("SELECT objetivo, meta, positivados FROM gerot_recorrencia WHERE mes = ? AND filial = ? AND nivel = 'supervisor' AND upper(nome) LIKE ? ORDER BY em DESC LIMIT 1").bind(hojeSP().slice(0, 7), String(fil || ''), '%' + sem(String(supervisor)).toUpperCase() + '%').first();
+          const g = await B.env.DB.prepare("SELECT objetivo, meta, positivados FROM gerot_recorrencia_pasta WHERE mes = ? AND filial = ? AND nivel = 'supervisor' AND upper(nome) LIKE ? ORDER BY em DESC LIMIT 1").bind(hojeSP().slice(0, 7), String(fil || ''), '%' + sem(String(supervisor)).toUpperCase() + '%').first();
           if (g && g.objetivo != null) r = `🎯 *Meta de recorrência da equipe (GEROT)*: objetivo *${N(g.objetivo)}* · meta 80% = *${N(g.meta || 0)}* · positivados *${N(g.positivados || 0)}*` + (g.meta ? ` (${(g.positivados / g.meta * 100).toFixed(1).replace('.', ',')}% · faltam *${N(Math.max(0, g.meta - g.positivados))}*)` : '') + '\n\n' + String(r);
         } catch (e) { /* sem GEROT */ } }
         return String(r == null ? 'Sem dado agora.' : r) + '\n' + rodapeS(k);

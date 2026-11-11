@@ -103,3 +103,11 @@
 - Z-API — boas práticas contra bloqueio: https://developer.z-api.io/en/tips/best-practices · Periskope — boas práticas: https://docs.periskope.app/get-started/best-practices
 - Evolution API x Cloud API: https://pasqualepillitteri.it/pt/news/12976/integrar-whatsapp-evolution-api-cloud-api-meta
 - Preço do WhatsApp (terceiros; não confirmado na Meta): https://www.courier.com/blog/whatsapp-pricing-changes-october-2026 · https://www.ycloud.com/blog/whatsapp-service-messages-24-hour-window-pricing
+
+## 8. Decisões e entrega (11/11/2026)
+- **Todos os vendedores desde o início** (Vitório): o vendedor fala primeiro; o Jota só responde quem pediu acesso pelo link (sem cadastro = nenhuma mensagem; pendente = 1 aviso por dia).
+- **Proteções**: chave `config_flags.jota_momentos` (`off` = volta à saudação/menu, sem publicar); **vigia** na varredura (enviadas > 1,6× recebidas na última hora com 40+ enviadas, ou 10+ erros em 30 min → desliga e grava o motivo em `jota_momentos_motivo`); digitação humana 3 a 12 s (±20%) e pausa de 18 s+ entre mensagens.
+- **Figurinha só para comemorar** (plano: dia alternado; meio: ritmo do dia batido; fechamento: 3+ clientes de foco viraram pedido).
+- **8 versões** de abertura e de fechamento por momento, trocando a cada dia para o mesmo vendedor.
+- **Dados**: % de faturamento = (faturado + a faturar) / meta, igual ao CEVEN; visitas = check-in individual **ou** rota do gerente; digitado = pedidos gravados; recorrência = GEROT por pasta (`gerot_recorrencia_pasta`, chave com o supervisor: o mesmo vendedor pode ter 2 pastas).
+- Código: `functions/_lib/jota/respostas/momentos.js`; auditoria em `auditoria/<vendedor>/M - plano|meio|fechamento.md`.
