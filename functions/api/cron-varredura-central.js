@@ -669,6 +669,29 @@ async function coletaPedidosWinthor(env, rcas, limite = 12, prazo = Infinity) {
 // VIGIA DO WHATSAPP (Vitorio, 11/11/2026: 'vigia do equilibrio... isso esta de acordo com as boas praticas?'): sinais de spam das plataformas
 // (Z-API, Periskope): mandar muito mais do que recebe e erros de envio seguidos. Se aparecer, DESLIGA os 3 momentos (config_flags 'jota_momentos' = off)
 // e grava o motivo; o menu continua respondendo. Religar e manual (Vitorio ou painel). So le o D1, nao chama o CEVEN nem o WhatsApp.
+// NENHUMA MENSAGEM SEM RESPOSTA (11/11/2026: Rodrigo/API 'Boa tarde' 12h56, Rudinei 12h13 e 1 vendedor ficaram sem resposta e sem erro: a Cloudflare cortou o
+// processamento do webhook). Mensagem de contato LIBERADO com mais de 90 s e menos de 12 min, sem resposta/erro depois e sem mensagem mais nova da pessoa
+// (a mais nova responde tudo junto) = chama o bot de novo (?reproc=<id>), no maximo 2 vezes por mensagem. So resposta: nada proativo.
+async function respondeQuemFicouSemResposta(env, origem, waitUntil) {
+  if (!env.BOT_WEBHOOK_KEY || !origem) return { pulado: 'sem chave' };
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS bot_reproc (id INTEGER PRIMARY KEY, n INTEGER, em TEXT)').run();
+  const { results: R } = await env.DB.prepare(`SELECT m.id, m.celular, m.nome, m.texto, m.msg_id FROM bot_msgs m JOIN bot_contatos c ON c.celular = m.celular AND c.ativo = 1 AND coalesce(c.situacao, '') <> 'pendente'
+    LEFT JOIN bot_reproc r ON r.id = m.id
+    WHERE m.direcao = 'in' AND m.tipo IS NULL AND m.quando BETWEEN datetime('now', '-12 minutes') AND datetime('now', '-90 seconds') AND coalesce(r.n, 0) < 2
+      AND NOT EXISTS (SELECT 1 FROM bot_msgs o WHERE o.celular = m.celular AND o.id > m.id AND o.direcao IN ('out', 'erro', 'figurinha'))
+      AND NOT EXISTS (SELECT 1 FROM bot_msgs n WHERE n.celular = m.celular AND n.id > m.id AND n.direcao = 'in')
+    ORDER BY m.id LIMIT 5`).all();
+  const L = R || [];
+  for (const m of L) {
+    await env.DB.prepare("INSERT INTO bot_reproc (id, n, em) VALUES (?, 1, datetime('now')) ON CONFLICT (id) DO UPDATE SET n = bot_reproc.n + 1, em = excluded.em").bind(m.id).run();
+    const corpo = { event: 'messages.upsert', data: { key: { remoteJid: m.celular + '@s.whatsapp.net', fromMe: false, id: 'reproc-' + m.id + '-' + Date.now() }, pushName: m.nome || '', message: { conversation: String(m.texto || '').replace(/^\[áudio\]\s*/, '') } } };
+    // sem esperar a resposta: o bot leva ate ~40 s (digitacao + momento) e a rodada tem prazo; o fetch segue no waitUntil
+    const p = fetch(`${origem}/api/whatsapp/bot?k=${encodeURIComponent(env.BOT_WEBHOOK_KEY)}&reproc=${m.id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) }).catch(() => null);
+    if (waitUntil) waitUntil(p); else await p;
+  }
+  return { reprocessadas: L.length };
+}
+
 async function vigiaWhatsApp(env) {
   const r = await env.DB.prepare("SELECT sum(direcao = 'in') recebidas, sum(direcao IN ('out','figurinha')) enviadas, (SELECT count(*) FROM bot_msgs WHERE direcao = 'erro' AND quando >= datetime('now','-30 minutes')) erros FROM bot_msgs WHERE quando >= datetime('now','-60 minutes')").first();
   const rec = Number(r && r.recebidas) || 0, env_ = Number(r && r.enviadas) || 0, erros = Number(r && r.erros) || 0;
@@ -730,7 +753,7 @@ async function rechecaAbertosPorVendedor(env, limite = 6, prazo = Infinity) {
   return { lidos, mudaram };
 }
 
-export async function onRequestGet({ env, request }) {
+export async function onRequestGet({ env, request, waitUntil }) {
   const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 (env.DB) não configurado' }), { status: 503, headers: cors });
   // DIAGNOSTICO (?diag=1): uma chamada de cada caminho, com status e tempo, sem gravar nada
@@ -1193,6 +1216,7 @@ export async function onRequestGet({ env, request }) {
     // ROTA E PAINEL DO GERENTE NO FIM DA RODADA (01/11/2026): no inicio, os 25 s comiam o prazo da produtividade (40 s) e ela deixava de rodar. Em dia util a rodada leva ~40 s; so fica de fora quando a rodada estoura.
     if (Date.now() - t0 < 135000) { try { contagem.rota_gerente = await gravaRotasGerente(env, dataRef, Math.min(25000, t0 + 160000 - Date.now())); } catch (e) { contagem.rota_gerente = { erro: String(e.message || e).slice(0, 80) }; } } else contagem.rota_gerente = 'pulado_prazo';
     try { contagem.vigia_wa = await vigiaWhatsApp(env); } catch (e) { contagem.vigia_wa = { erro: String(e.message || e).slice(0, 80) }; }
+    try { contagem.sem_resposta = await respondeQuemFicouSemResposta(env, new URL(request.url).origin, waitUntil); } catch (e) { contagem.sem_resposta = { erro: String(e.message || e).slice(0, 80) }; }
     // DIAGNOSTICO: o que a ultima rodada fez, etapa por etapa (antes so ficavam os totais, e "0 sucesso" nao dizia onde)
     try { await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('ultima_rodada', ?, 'contagem da ultima rodada', datetime('now')) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = excluded.atualizado_em").bind(JSON.stringify({ ms: Date.now() - t0, chamador: request.headers.get('user-agent'), entrada_colo: request.cf && request.cf.colo, entrada_pais: request.cf && request.cf.country, saida: await saidaDaRodada(), ...contagem }).slice(0, 3000)).run(); } catch { /* nunca derruba */ }
     await registraTick(env, 'tick', rcas.length, contagem.quente + contagem.evento + contagem.rota + contagem.fria, Date.now() - t0);

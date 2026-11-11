@@ -36,7 +36,13 @@ function podeUsarIAPraEstrategia(papel, texto) {
 
 import { respGerotIndustria } from '../../_lib/jota/respostas/gerot_industria.js';   // industria = GEROT (09/11/2026; o antigo gerot_inteligencia.js casava a industria errada)
 
-export async function onRequestPost({ request, env }) {
+// REPROCESSO (11/11/2026): responde 'ok' na hora para o cron e termina a resposta em segundo plano (waitUntil), para nao ser cortado de novo pelo tempo da conexao
+export async function onRequestPost(ctx) {
+  const u0 = new URL(ctx.request.url);
+  if (u0.searchParams.get('reproc') && ctx.waitUntil && ctx.env.BOT_WEBHOOK_KEY && u0.searchParams.get('k') === ctx.env.BOT_WEBHOOK_KEY) { ctx.waitUntil(trataMensagem(ctx).catch(() => null)); return new Response('ok (reproc em andamento)'); }
+  return trataMensagem(ctx);
+}
+async function trataMensagem({ request, env }) {
   const u = new URL(request.url);
   if (!env.BOT_WEBHOOK_KEY || u.searchParams.get('k') !== env.BOT_WEBHOOK_KEY) return new Response('nao autorizado', { status: 401 });
   let ev; try { ev = await request.json(); } catch { return new Response('ok'); }
@@ -44,6 +50,10 @@ export async function onRequestPost({ request, env }) {
   if (!d || !d.key || d.key.fromMe) return new Response('ok');
   const jid = String(d.key.remoteJid || '');
   const seco = u.searchParams.get('seco') === '1';
+  // REPROCESSO (11/11/2026, Rodrigo/API 12h56 e Rudinei 12h13 sem resposta e sem erro): a espera de 20 s + o momento da equipe passavam do tempo da conexao
+  // do webhook e a Cloudflare cortava o processamento em silencio. O cron-varredura-central chama ?reproc=<id da mensagem 'in'> para quem ficou sem resposta:
+  // usa a mensagem ja gravada (nao grava de novo), sem a espera de 20 s. Continua sendo so RESPOSTA a quem escreveu (cotaEnvio: ultimos 15 min).
+  const reprocId = !seco && Number(u.searchParams.get('reproc')) > 0 ? Number(u.searchParams.get('reproc')) : null;
 
   // 30/10/2026: MONITORAMENTO DE GRUPOS (ex.: Projeto Locomotiva). O Jota registra o histórico de mensagens dos grupos no Inbox (/contatos),
   // mas permanece em modo silencioso (não responde automaticamente dentro do grupo enquanto as regras de envio não forem ativadas).
@@ -83,7 +93,7 @@ export async function onRequestPost({ request, env }) {
   // DEDUPLICAÇÃO DE MENSAGENS (28/10/2026): o Evolution envia webhook duplicado (ex.: uma via JID normal e outra via @lid 8s depois).
   // Se o msg_id já foi recebido nos últimos 5 minutos, ignora imediatamente para não responder 2 vezes nem bugar o usuário.
   const msgId = d.key && d.key.id;
-  if (msgId && !seco) {
+  if (msgId && !seco && !reprocId) {
     try {
       const ja = await env.DB.prepare("SELECT id FROM bot_msgs WHERE msg_id = ? AND quando >= datetime('now', '-5 minutes') LIMIT 1").bind(msgId).first();
       if (ja) return new Response('ok (duplicada)');
@@ -139,7 +149,11 @@ export async function onRequestPost({ request, env }) {
     }
   }
   let meuId = null;
-  if (!seco) meuId = await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, msg_id) VALUES (?,?,?,?,?)').bind(cel, c ? c.nome : null, 'in', (audio ? '[áudio] ' : '') + (texto || '(não transcrito: ' + (audio && audio.erro) + ')').slice(0, 2000), d.key.id || null).run().then((r) => r && r.meta && r.meta.last_row_id).catch(() => null);
+  if (reprocId) {   // a mensagem ja esta gravada: confere que e desta pessoa e que ninguem respondeu depois
+    const ok = c ? await env.DB.prepare("SELECT id FROM bot_msgs WHERE id = ? AND celular = ? AND direcao = 'in' AND NOT EXISTS (SELECT 1 FROM bot_msgs o WHERE o.celular = bot_msgs.celular AND o.id > bot_msgs.id AND o.direcao IN ('out','erro','figurinha'))").bind(reprocId, cel).first().catch(() => null) : null;
+    if (!ok) return new Response('ok (reproc: ja respondida ou nao confere)');
+    meuId = reprocId;
+  } else if (!seco) meuId = await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, msg_id) VALUES (?,?,?,?,?)').bind(cel, c ? c.nome : null, 'in', (audio ? '[áudio] ' : '') + (texto || '(não transcrito: ' + (audio && audio.erro) + ')').slice(0, 2000), d.key.id || null).run().then((r) => r && r.meta && r.meta.last_row_id).catch(() => null);
   // APROVADO QUE ESCREVEU (Vitorio, 11/11/2026: 'se o cara mandar msg... checa se ja foi aprovado e libera as mensagens'): as boas-vindas guardadas na fila
   // saem agora, como resposta, antes da resposta da pergunta dele (a fila nao manda nada proativo durante a pausa).
   if (!seco && c && meuId) { try {
@@ -263,7 +277,7 @@ export async function onRequestPost({ request, env }) {
   }
   // ESPERA A PESSOA TERMINAR (Vitorio, 26/10/2026: "as pessoas as vezes picam as mensagens... espere um pouco antes de sair respondendo tudo"): 20 s (era 9 s; 26/10 o Allison corrigiu "vendedor 6" para "62" 11 s depois e recebeu 2 respostas);
   // se chegou outra mensagem dela nesse tempo, esta nao responde (a ultima responde tudo junto, com os pedados somados).
-  if (!seco && meuId) {
+  if (!seco && meuId && !reprocId) {
     await new Promise((ok) => setTimeout(ok, 20000));
     const depois = await env.DB.prepare("SELECT id FROM bot_msgs WHERE celular = ? AND direcao = 'in' AND id > ? LIMIT 1").bind(cel, meuId).first().catch(() => null);
     if (depois) return new Response('ok');
