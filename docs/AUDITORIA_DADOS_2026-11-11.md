@@ -98,3 +98,6 @@ Rodadas da varredura central: 14 por hora (média 146 s cada), 778 chamadas OK, 
 | 4 | Painel de frescor + aviso no WhatsApp do Vitório quando um dado parar | ninguém descobrir parada por acaso | aviso testado |
 | 5 | Reparo da Liga às 06h (ensaio + relatório; grava só com OK) | lance que não nasceu por atraso é recuperado | relatório diário |
 | 6 | Tabelas paradas (`mapa_executivo_live`, `rca_kpis`): religar ou tirar dos leitores | nenhuma tela com dado velho | nenhum leitor de tabela parada |
+
+## 9. Pendentes para pensar depois (Vitório, 11/11: "deixe anotado... vamos focar em resolver o que temos HOJE")
+1. **Vendedor que sai da árvore do CEVEN no meio do mês**: continua contando meta e faturado na filial e no supervisor até o fim do mês (como o GEROT)? Hoje sai dos dois. Impacto medido em 11/11: 12 vendedores, R$ 1,63 mi de meta e o faturado já feito (TCA 402: R$ 135 mil). Definir a estratégia antes de mexer.
