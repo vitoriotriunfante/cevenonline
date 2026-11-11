@@ -581,6 +581,23 @@ export async function respostaInterna(B, c, texto, anteriores) {
         if (!passaS) { const k = temaDoTextoSup(t); return (k ? `Entendi que você quer o *${k}. ${MENU_SUPERVISOR[k - 1][0]}*. Digite *${k}*` + (SUB_SUPERVISOR[k] ? ' e depois o detalhe que quiser' : '') + ', ou escolha outro número:\n\n' : '') + respMenuSupervisor(c); }
       }
     }
+    // RESPOSTA OFICIAL DO VENDEDOR PARA QUEM ESTA ACIMA (Vitorio, 11/11/2026: 'cada tipo de pergunta para o vendedor tem que ser a mesma para o andar de cima...
+    // se ele abre o vendedor, tem que ver o que a vendedora ve'): pergunta de supervisor/gerente/diretoria que cita UM vendedor e um assunto do menu do vendedor
+    // = a mesma resposta que o vendedor recebe pelo menu (o mesmo codigo, os mesmos numeros). Ex.: 'prospeccao Tamara TCV 352' = item 10 da Tamara.
+    if (!rcaV && c && c.papel && c.papel !== 'vendedor' && !B.semIndice && /\b(VENDEDORA?|RCA|SETOR|COD)\b|\b\d{2,5}\b|[A-Z]{3,} [A-Z]{3,}/.test(t)) {
+      const E0 = await carregaEscopo(B, esc), pessoa = achaPessoa(E0, t);
+      if (pessoa && pessoa.tipo === 'vend' && !(pessoa.outroSupervisor && c.papel === 'supervisor')) {
+      const { temaDoTexto, MENU_VENDEDOR } = await import('./respostas/liga_mix.js');
+      const sT = String(t).replace(new RegExp('\\b(' + sem(String(pessoa.alvo.nome || '')).split(/\s+/).filter((w) => w.length > 2).join('|') + ')\\b', 'g'), ' ');
+      const k = temaDoTexto(sT);
+      if (k && MENU_VENDEDOR[k - 1]) {
+        const v = pessoa.alvo, cv = { nome: v.nome, papel: 'vendedor', filial: v.filial, rca: String(v.rca), celular: c.celular };
+        const o = B.ultOut; B.ultOut = '';
+        let r; try { r = await respostaPronta(B, cv, String(k), []); } finally { B.ultOut = o; }
+        if (r) return String(r) + `\n_👤 Igual ao que ${vn(v)} vê no item ${k} do menu dele · mande *menu* para voltar ao seu 〔V:${v.filial}:${v.rca}〕_`;
+      }
+      }
+    }
     // RV / COMISSAO / SALARIO DO VENDEDOR (Vitorio, 09/11/2026): 'quando perguntar sobre o RV responde que nao tem os dados, mas da as metas e como esta ate agora'.
     // Antes da regra do mes passado: 'meu RMV do mes passado' recebe o fechamento + o aviso.
     if (rcaV && /COMISS|SALARI|\bRMV\b|\bRV\b|\bGANHOS?\b|REMUNERA|HOLERITE|PREMIACAO DE VENDAS|MINHA PREMIACAO\b/.test(t)) { const euV = `VENDEDOR ${rcaV}`, passado = /MES PASSADO|MES ANTERIOR|OUTUBRO|SETEMBRO/.test(t);
