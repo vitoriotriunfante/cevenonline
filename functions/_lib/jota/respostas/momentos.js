@@ -96,7 +96,8 @@ export async function respMomento(B, c, Ev, momentoForcado = null) {
   const vend = (v.fat || 0) + (v.pend || 0), falta = Math.max(0, (v.meta || 0) - vend), du = diasUteisRestantes(), porDia = du ? falta / du : 0;
   if (momento === 'plano') {
     const g = await recorrenciaGerot(B, v);
-    if (v.meta > 0) L.push(`💰 Faturamento: *${pc(vend, v.meta)}* da meta (${R$(vend)} de ${R$(v.meta)}, com ${R$(v.pend || 0)} a faturar)`);
+    // 11/11 (parecer do analista, item 4): nunca chamar de 'faturamento' a soma; separar faturado e a faturar
+    if (v.meta > 0) L.push(`💰 Vendido: *${pc(vend, v.meta)}* da meta (${R$(vend)} de ${R$(v.meta)}) · faturado ${R$(v.fat || 0)} + a faturar ${R$(v.pend || 0)}`);
     if (v.metaPos) L.push(`👥 Positivação: *${N(v.pos || 0)} de ${N(v.metaPos)}* clientes`);
     if (v.mixMes && v.mixMes.clientes_distintos) L.push(`🧺 Mix: *${(v.mixMes.soma_skus_por_cliente / v.mixMes.clientes_distintos).toFixed(1).replace('.', ',')}* produtos por cliente`);
     if (g && g.meta) L.push(`🔄 Recorrência: *${N(g.positivados || 0)} de ${N(g.meta)}* da meta`);
@@ -221,7 +222,7 @@ export async function respMomentoSupervisor(B, c, Ev, momentoForcado = null) {
   const linhaV = (x, extra) => { lista.push(x.v); return `• *${curto(x.v)}*${extra ? ' · ' + extra : ''}`; };   // 11/11/2026: sem posicao; o numero digitado e o CODIGO do vendedor
   if (momento === 'abertura') {
     // as duas partes explicitas (11/11: o item 2 mostra so o faturado em %; aqui faturado + a faturar, como o CEVEN)
-    if (meta > 0) L.push(`💰 Faturamento: *${pc(vd, meta)}* da meta com o a faturar · faturado ${R$(soma((v) => v.fat))} (${pc(soma((v) => v.fat), meta)}) + a faturar ${R$(soma((v) => v.pend))} de ${R$(meta)}`);
+    if (meta > 0) L.push(`💰 Vendido: *${pc(vd, meta)}* da meta (faturado + a faturar) · faturado ${R$(soma((v) => v.fat))} (${pc(soma((v) => v.fat), meta)}) + a faturar ${R$(soma((v) => v.pend))} de ${R$(meta)}`);
     const vAS = TODOS.filter(ehAS);
     if (vAS.length) { const m = vAS.reduce((a, v) => a + (v.meta || 0), 0), f = vAS.reduce((a, v) => a + (v.fat || 0), 0); if (m > 0) L.push(`📐 Faseamento AS (60% até o dia 20): *${pc(f, m * 0.6)}* do alvo (${R$(f)} de ${R$(m * 0.6)})`); }
     const mp = soma((v) => v.metaPos); if (mp) L.push(`👥 Positivação: *${N(soma((v) => v.pos))} de ${N(mp)}* clientes`);
@@ -293,7 +294,7 @@ export async function respMomentoGerente(B, c, Ev, momentoForcado = null) {
   const S = supervisoresDaEquipe(V), meta = soma(TODOS, (v) => v.meta), vd = soma(TODOS, vend), du = diasUteisRestantes(), porDia = du ? Math.max(0, meta - vd) / du : 0;
   const st = momento === 'abertura' ? await Promise.all(S.map(([s]) => statusSupervisor(B, filial, s))) : [];
   const L = [ABRE_G[momento][ix](n, nomeF), ''];
-  if (meta > 0) L.push(`💰 Faturamento: *${pc(vd, meta)}* da meta com o a faturar · faturado ${R$(soma(TODOS, (v) => v.fat))} (${pc(soma(TODOS, (v) => v.fat), meta)}) + a faturar ${R$(soma(TODOS, (v) => v.pend))} de ${R$(meta)}`);
+  if (meta > 0) L.push(`💰 Vendido: *${pc(vd, meta)}* da meta (faturado + a faturar) · faturado ${R$(soma(TODOS, (v) => v.fat))} (${pc(soma(TODOS, (v) => v.fat), meta)}) + a faturar ${R$(soma(TODOS, (v) => v.pend))} de ${R$(meta)}`);
   const vi = visitas(V), dig = soma(V, (v) => v.dig);
   if (momento === 'abertura') {
     const mp = soma(TODOS, (v) => v.metaPos); if (mp) L.push(`👥 Positivação: *${N(soma(TODOS, (v) => v.pos))} de ${N(mp)}* clientes`);
