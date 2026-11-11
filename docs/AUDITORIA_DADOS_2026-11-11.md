@@ -76,3 +76,25 @@ Rodadas da varredura central: 14 por hora (média 146 s cada), 778 chamadas OK, 
 1. Item 1: o digitado do dia passa a ser a soma dos pedidos do D1 (com o número de cada pedido), e a produtividade vira conferência?
 2. Item 4: qual a fonte oficial quando GEROT e CEVEN divergem — meta (hoje: CEVEN para filial/vendedor, GEROT para indústria) e faturado?
 3. Item 5: religar ou desligar o mapa executivo e o radar antigo?
+
+## 7. GEROT x CEVEN um por um (11/11, 09h)
+**Meta** (571 vendedores): **375 iguais**. A diferença de R$ 1,79 mi tem 3 causas, todas medidas:
+1. **12 vendedores que saíram da árvore do CEVEN no meio do mês** (9 depois de 09/11; MCD 426/428 e TPA 1077 no início): somam **R$ 1,63 mi** de meta. No último dia em que apareceram, a meta deles no CEVEN era **igual** à do GEROT. O GEROT mantém meta e faturado do mês; a nossa soma da filial (só quem está na árvore hoje) perde os dois. Ex.: TCA 402 Maycon Barboza, meta R$ 250 mil e **R$ 135 mil já faturados** (explica quase toda a diferença de faturado da TCA).
+   - MCD 428 Gabriela Vieira Lopes 574.748 · TPH 56 Marco Aurélio Zirhut 315.975 · TCA 402 Maycon Barboza 250.000 · TBL 171 Almir Rogério de Oliveira 187.500 · TCA 1028 Adevane Bandeira 110.000 · TCA 1051 Cristina da Conceição 50.000 · MCD 426 Franciele Brunetto 43.000 · TPH 105 Giulia Teixeira 35.898 · TPA 1077 Bruno Spengler 24.866 · TPH 110 Marcos de Viveiros 16.239 · TPH 76 Arthur Germano 13.273 · TPH 95 André Fernandes 3.795.
+2. **4 vendedores com diferença grande**: TCA 399 (+79.835), ABC 210 (+73.857), TCA 401 (+72.481) — mais meta de indústria no GEROT do que a meta total do CEVEN; MCD 423 (CEVEN 104.735, GEROT 0).
+3. **~90 vendedores com R$ 0 a R$ 2 mil** (quase todos TCV): soma das metas por indústria do GEROT com centavos/arredondamento.
+
+**Faturado**: horário da carga do GEROT (2 em 2 h). Ex. TPA 134 Anderson: R$ 101 mil viraram faturado às 21h36 de 10/11, depois da última carga. TPA 143 Silvia (CEVEN 90.911 x GEROT 1.776) **sem explicação ainda**.
+
+## 8. Plano de execução (aprovado pelo Vitório em 11/11: "OK para tudo")
+| Fase | Entrega | Para quê | Pronto quando |
+|---|---|---|---|
+| 0 | Publicar data do pedido na origem + ficha destravada | dados de pedido e ficha certos | `futuro` = 0 e `ficha_cliente` de hoje |
+| 1 | **Digitado do dia = pedidos gravados** (número + valor) no JOTA e na TV; produtividade vira conferência | vendedor vê o que vendeu na hora | soma do D1 = CEVEN na conferência das 22h37 |
+| 1 | **Fila do Winthor: quem teve pedido novo primeiro** | pedido de hoje entra em minutos, não horas | atraso medido < 30 min |
+| 2 | **Conferência GEROT x CEVEN gravada** (07h30, 19h30): filial × vendedor × indústria; cada diferença com a causa (saiu da árvore, horário da carga, arredondamento, **sem explicação**); aviso > 2% | "entender um por um" todo dia, sem depender de alguém pedir | relatório no WhatsApp do Vitório |
+| 2 | Coletor do GEROT grava o **horário da carga** do GEROT | separar diferença de horário de diferença real | `gerot_coleta_status.carga` preenchido |
+| 3 | Rota do gerente como fonte do roteiro/check-in (individual = plano B), depois de 1 dia comparando | check-in em tempo real sem a cota `/api/rca` | `/api/frescor` igual por 1 dia |
+| 4 | Painel de frescor + aviso no WhatsApp do Vitório quando um dado parar | ninguém descobrir parada por acaso | aviso testado |
+| 5 | Reparo da Liga às 06h (ensaio + relatório; grava só com OK) | lance que não nasceu por atraso é recuperado | relatório diário |
+| 6 | Tabelas paradas (`mapa_executivo_live`, `rca_kpis`): religar ou tirar dos leitores | nenhuma tela com dado velho | nenhum leitor de tabela parada |
