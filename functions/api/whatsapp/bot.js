@@ -311,6 +311,18 @@ export async function onRequestPost({ request, env }) {
       }
     } catch (e) { resp = null; }   // falhou: cai na saudacao de sempre
   }
+  // 3 MOMENTOS DO SUPERVISOR (Vitorio, 11/11/2026: 'manda bala'): abertura da equipe, meio do dia, fechamento; mesma chave de desligar
+  if (!resp && ehSaudacao(tN) && !primeiraVez && c && c.papel === 'supervisor' && /^[A-Z]{3}$/.test(String(c.filial || ''))) {
+    try {
+      const MO = await import('../../_lib/jota/respostas/momentos.js'), { carregaEscopo } = await import('../../_lib/jota/escopo.js');
+      if (await MO.momentosLigados(B)) {
+        const sup = c.supervisor || c.nome;
+        const Ev = await carregaEscopo(B, { nome: 'Equipe ' + titulo(String(sup).split(' ').slice(0, 2).join(' ')) + ' (' + c.filial + ')', filiais: [String(c.filial)], grupo: null, supervisor: sup, nacional: false });
+        const m = await MO.respMomentoSupervisor(B, c, Ev);
+        if (m && m.texto) { resp = m.texto; tipo = 'momento_' + m.momento + (m.comemora ? '_comemora' : m.incentiva ? '_incentiva' : ''); }
+      }
+    } catch (e) { resp = null; }
+  }
   if (!resp && ehSaudacao(tN)) { resp = await respSaudacao(B, c, primeiraVez); tipo = primeiraVez ? 'saudacao_primeira' : 'saudacao'; }
   // AGRADECIMENTO (Vitorio, 27/10/2026: "o cara falou blz... blz quer dizer obrigado... era ter mandado uma figurinha"): resposta curta + figurinha, sem dado
   if (!resp && /^\W*(BLZ|BELEZA|VALEU|VLW|OBRIGAD[OA]|BRIGAD[OA]|OBG|OK|OKAY|OKS|TOP|SHOW|PERFEITO|OTIMO|LEGAL|TMJ|TAMO JUNTO|JOIA|JOINHA|ENTENDI|CERTO|BOA|SHOW DE BOLA|MUITO BOM)( (JOTA|DEMAIS|MESMO|OBRIGAD[OA]|VALEU|TMJ|PARCEIRO|AMIGO))*\W*$/.test(tN)) { resp = varia([`Tamo junto, ${primeiroNome(c)}! ⚽`, `Valeu, ${primeiroNome(c)}! Bora pra cima! 💪`, `É nóis, ${primeiroNome(c)}! Qualquer coisa, chama. ⚽`], Date.now()); tipo = 'agradecimento'; }

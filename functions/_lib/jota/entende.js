@@ -521,6 +521,13 @@ export async function respostaInterna(B, c, texto, anteriores) {
           return String(r) + `\n_👤 Menu do vendedor ${vn(v)} · mande *menu* para voltar ao seu 〔V:${v.filial}:${v.rca}〕_`;
         }
       }
+      // 3 MOMENTOS DO SUPERVISOR (11/11/2026): 'mais' = menu do supervisor; numero de um vendedor da lista = o menu daquele vendedor
+      if (/〔MS:/.test(ult) && /^\W*(ESCREVA |VER |QUERO )?MAIS\W*$/.test(t)) return respMenuSupervisor(c);
+      if (/〔MS:/.test(ult) && nmS && !nmS[2] && Number(nmS[1]) > 0) {
+        const lin = (ult.match(new RegExp('^' + nmS[1] + '\\. \\*(\\d+) - ', 'm')) || [])[1];
+        const v = lin && (await equipe()).find((x) => String(x.rca) === lin);
+        if (v) return respMenuVendedor({ nome: v.nome }).replace('📋 *MENU DO JOTA* —', `📋 *MENU DO VENDEDOR* — ${vn(v)} ·`) + `\n_👤 Menu do vendedor ${vn(v)} · mande *menu* para voltar ao seu 〔V:${v.filial}:${v.rca}〕_`;
+      }
       if (ehMenu || (nmS && Number(nmS[1]) === 0 && !nmS[2])) return respMenuSupervisor(c);
       const abreS = async (k, s) => {
         const item = MENU_SUPERVISOR[k - 1];
