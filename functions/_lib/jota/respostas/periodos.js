@@ -4,6 +4,7 @@
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
 import { sn } from '../escopo.js';
+import { ehFeriado } from '../../feriados.js';
 import { N, R$, SUGESTAO, nome2, sem, so, titulo, vn } from '../base.js';
 import { pessoaReal, supReal } from '../escopo.js';
 import { SEM_VENDAS, achaIndustria, achaProdutos, dIso, nomeIndustria, somaPor, vendasEscopo } from './vendas.js';
@@ -69,7 +70,7 @@ export async function respDiasSemPedido(B, E, t) {
   const [A, Z] = await Promise.all([vendasEscopo(B, E), vendasAnterior(B, E)]); if (!A) return SEM_VENDAS;
   const ult = new Map(); for (const l of [...(Z ? Z.linhas : []), ...A.linhas]) { const k = l.f + '|' + l.r; if ((ult.get(k) || 0) < l.d) ult.set(k, l.d); }
   const ateA = A.linhas.reduce((m, l) => Math.max(m, l.d), 0);
-  const uteis = (d1, d2) => { let n = 0; const a = new Date(Date.UTC(Math.floor(d1 / 10000), Math.floor(d1 / 100) % 100 - 1, d1 % 100)), b = new Date(Date.UTC(Math.floor(d2 / 10000), Math.floor(d2 / 100) % 100 - 1, d2 % 100)); for (let x = new Date(a.getTime() + 864e5); x <= b; x = new Date(x.getTime() + 864e5)) { const w = x.getUTCDay(); if (w > 0 && w < 6) n++; } return n; };
+  const uteis = (d1, d2) => { let n = 0; const a = new Date(Date.UTC(Math.floor(d1 / 10000), Math.floor(d1 / 100) % 100 - 1, d1 % 100)), b = new Date(Date.UTC(Math.floor(d2 / 10000), Math.floor(d2 / 100) % 100 - 1, d2 % 100)); for (let x = new Date(a.getTime() + 864e5); x <= b; x = new Date(x.getTime() + 864e5)) { const w = x.getUTCDay(); if (w > 0 && w < 6 && !ehFeriado(x.toISOString().slice(0, 10))) n++; } return n; };
   const lim = Number((t.match(/(\d+)\s*DIAS?/) || [])[1]) || 3;
   const V = E.vend.filter((v) => v.varejo && pessoaReal(v)).map((v) => ({ v, d: ult.get(v.filial + '|' + v.rca) })).map((x) => ({ ...x, dias: x.d ? uteis(x.d, ateA) : 99 })).filter((x) => x.dias >= lim).sort((a, b) => b.dias - a.dias);
   if (!V.length) return `✅ *${E.nome}*: nenhum vendedor do varejo está há ${lim}+ dias úteis sem pedido (até ${dIso(ateA)}).`;

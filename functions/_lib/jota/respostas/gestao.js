@@ -115,6 +115,6 @@ export async function respTendencia(B, E) {
     falt ? `🎯 Para bater a meta: precisa de *${R$(T.nec)}/dia* nos ${falt} dias úteis que faltam (${T.rit ? (T.nec / T.rit).toFixed(1).replace('.', ',') + 'x o ritmo atual' : 'sem ritmo'})` : '🏁 Último dia útil do mês.',
     '', `*Tendência por ${E.nacional ? 'filial' : E.supervisor ? 'vendedor' : 'supervisor'} (do pior para o melhor):*`,
     ...G.slice(0, 12).map(([k, y, r]) => `• ${nome(k)}: ${r.pct == null ? 'sem meta' : r.pct.toFixed(1).replace('.', ',') + '%'} · precisa ${R$(r.nec)}/dia`),
-    '', '_Dias úteis seg–sex sem feriados; atualiza a cada consulta com o faturado + pendente de agora._',
+    '', '_Dias úteis seg–sex, sem feriados; atualiza a cada consulta com o faturado + pendente de agora._',
     SUGESTAO + (G[0] ? `atacar ${nome(G[0][0])}, a pior tendência.` : 'manter o ritmo.')].join('\n');
 }

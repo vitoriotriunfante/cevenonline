@@ -13,12 +13,13 @@
 // =========================================================================
 import { R$, N, titulo, nome2, FILIAIS, hojeSP } from '../base.js';
 import { nomeForn } from './metas_industria.js';
+import { ehFeriado } from '../../feriados.js';
 
 const NOME_MES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 const F = (d, k) => { const v = d && d[k]; return typeof v === 'number' ? v : (v == null || v === '' ? null : Number(v)); };
 const qd = (x) => (x >= 100 ? N(Math.round(x)) : x.toFixed(1).replace('.', ','));
 const pc = (a, b) => (b ? (a / b * 100).toFixed(1).replace('.', ',') + '%' : '—');
-const uteis = (y, m, d1, d2) => { let n = 0; for (let d = d1; d <= d2; d++) { const w = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); if (w > 0 && w < 6) n++; } return n; };
+const uteis = (y, m, d1, d2) => { let n = 0; for (let d = d1; d <= d2; d++) { const w = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); if (w > 0 && w < 6 && !ehFeriado(`${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`)) n++; } return n; };   // 11/11/2026: feriado (20/11) nao e dia util
 const FIM_APURACAO = 20;
 
 function dias(mes) {

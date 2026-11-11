@@ -4,6 +4,7 @@
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
 import { sn } from './escopo.js';
+import { ehFeriado as ehFeriadoJ } from '../feriados.js';
 import { FILIAIS, FRX, N, R$, SUGESTAO, VAREJO, fraca, hojeSP, nome2, sem, titulo, vn } from './base.js';
 const x0 = (V) => (V[0] ? V[0].v.rca : '');
 import { PAL, achaPessoa, agrupa, carregaEscopo, pctTxt, supChave, supNome, supReal } from './escopo.js';
@@ -417,12 +418,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
           }
         }
         else if (chave === '__fase__') {
-          // FASEAMENTO DO AS (Vitorio, 10/11/2026): bater 60% da meta ate o dia 20. Dias uteis seg-sex, sem descontar feriado.
+          // FASEAMENTO DO AS (Vitorio, 10/11/2026): bater 60% da meta ate o dia 20. Dias uteis seg-sex sem feriado (11/11: 20/11 nao conta).
           const Ev = await carregaEscopo(B, esc), v = Ev.vend[0];
           if (!v) r = 'Não achei os seus dados na base agora.';
           else if (!/AS/i.test(v.canal || '')) r = `📐 *Faseamento — ${vn(v)}*: o faseamento (60% da meta até o dia 20) é regra do *AS*. No varejo, veja o *1.2* (quanto falta por dia útil).`;
           else if (!(v.meta > 0)) r = `📐 *Faseamento — ${vn(v)}*: sem meta do mês na base agora.`;
-          else { const [y, m, d] = hojeSP().split('-').map(Number); let du = 0; for (let i = d; i <= 20; i++) { const w = new Date(Date.UTC(y, m - 1, i)).getUTCDay(); if (w > 0 && w < 6) du++; }
+          else { const [y, m, d] = hojeSP().split('-').map(Number); let du = 0; for (let i = d; i <= 20; i++) { const w = new Date(Date.UTC(y, m - 1, i)).getUTCDay(); if (w > 0 && w < 6 && !ehFeriadoJ(`${y}-${String(m).padStart(2, '0')}-${String(i).padStart(2, '0')}`)) du++; }
             const alvo = v.meta * 0.6, fat = v.fat || 0, comPend = fat + (v.pend || 0), falta = Math.max(0, alvo - fat), pc = (x) => (x / v.meta * 100).toFixed(1).replace('.', ',');
             r = [`📐 *Faseamento — ${vn(v)}*`, `🎯 Meta do mês: ${R$(v.meta)} · alvo até dia 20 (60%): *${R$(alvo)}*`,
               `💰 Faturado: *${R$(fat)}* (${pc(fat)}%) · com pendente: ${R$(comPend)} (${pc(comPend)}%)`,

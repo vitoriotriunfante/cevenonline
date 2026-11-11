@@ -3,7 +3,7 @@
 // O QUE É: utilitários comuns (R$, %, nomes, envio de texto, tabelas do JOTA, data).
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
-import R from '../../../public/regras.js'; // regras unicas (public/regras.js)
+import R from '../../../public/regras.js'; import { ehFeriado } from '../feriados.js'; // regras unicas (public/regras.js)
 
 export const so = (x) => String(x || '').replace(/\D/g, '');
 export const R$ = (n) => n == null || isNaN(n) ? 'sem dado' : 'R$ ' + Math.round(n).toLocaleString('pt-BR');
@@ -117,10 +117,10 @@ export async function enviar(env, numero, texto) {
   return { ok: false, status: r.status, erro: r.erro, resposta: r.resposta };
 }
 export const hojeSP = () => R.hojeSP();
-// dias uteis (seg-sex) que faltam no mes, contando hoje; feriados nao sao descontados (dito na resposta)
+// dias uteis (seg-sex, SEM feriado nacional: 11/11/2026, parecer do analista - 20/11 nao conta) que faltam no mes, contando hoje
 export function diasUteisRestantes() {
   const [y, m, d] = hojeSP().split('-').map(Number); let n = 0;
   const fim = new Date(Date.UTC(y, m, 0)).getUTCDate();
-  for (let i = d; i <= fim; i++) { const w = new Date(Date.UTC(y, m - 1, i)).getUTCDay(); if (w > 0 && w < 6) n++; }
+  for (let i = d; i <= fim; i++) { const w = new Date(Date.UTC(y, m - 1, i)).getUTCDay(); if (w > 0 && w < 6 && !ehFeriado(`${y}-${String(m).padStart(2, '0')}-${String(i).padStart(2, '0')}`)) n++; }
   return n;
 }
