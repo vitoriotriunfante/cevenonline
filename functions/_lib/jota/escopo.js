@@ -64,7 +64,9 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
   // CONFERENCIA AO VIVO DE QUEM TEM VISITA E DIGITADO ZERO (29/10/2026, Vitorio: "olha o tanto de visita que o Maico ja fez"):
   // Quando uma equipe/supervisor e consultado, quem ja fez visitas hoje (visF > 0) mas o snapshot da rodada anterior ainda mostra
   // dig == 0 e ped == 0 pode ter colocado pedidos durante a rota. Recheca a produtividade desses vendedores ao vivo antes de responder.
-  if (supervisor && B.rechecaProdVend) {
+  // DESLIGADO (11/11/2026, auditoria em cascata): so a tela do SUPERVISOR rechecava ao vivo no CEVEN; vendedor e gerente viam outro numero (API 1074 Felipe:
+  // R$ 25.856 no supervisor x R$ 0 e 'zerado' no gerente). Base unica: todos leem o D1; o pedido novo entra pelo detector do Winthor (cron-varredura-central).
+  if (false && supervisor && B.rechecaProdVend) {
     const suspeitos = vend.filter((v) => v.varejo && v.visF > 0 && !(v.dig > 0) && !(v.ped > 0)).slice(0, 8);
     if (suspeitos.length) {
       await Promise.all(suspeitos.map(async (v) => {
