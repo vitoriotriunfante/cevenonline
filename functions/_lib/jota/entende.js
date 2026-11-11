@@ -47,6 +47,15 @@ function pessoaVendedoraAnterior(E, anteriores) {
   }
   return null;
 }
+// ABRIR UM VENDEDOR PELO CODIGO (Vitorio, 11/11/2026: 'o cara digitou o numero do vendedor e a resposta foi a do Menu'): mostra o 'como estou' dele
+// (o item 1 do menu do vendedor, exatamente o que ele ve) e embaixo os itens para aprofundar; o marcador 〔V:〕 segue a navegacao no menu dele.
+async function abreVendedorComoEle(B, c, v) {
+  const { respMenuVendedor } = await import('./respostas/liga_mix.js');
+  const cv = { nome: v.nome, papel: 'vendedor', filial: v.filial, rca: String(v.rca), celular: c && c.celular };
+  const o = B.ultOut; B.ultOut = ''; let r; try { r = await respostaPronta(B, cv, '1', []); } finally { B.ultOut = o; }
+  const sem1 = String(r || '').replace(/\n?📌 \*Quer detalhar\?\*[\s\S]*$/, '').trim();
+  return `${sem1}\n\n${respMenuVendedor({ nome: v.nome }).replace(/^📋 \*MENU DO JOTA\* —[^\n]*/, `📋 *Para aprofundar em ${vn(v)}, digite o número:*`)}\n_👤 Vendedor ${vn(v)} · mande *menu* para voltar ao seu 〔V:${v.filial}:${v.rca}〕_`;
+}
 export async function respostaPronta(B, c, texto0, anteriores) {
   // ESTADO DA CONVERSA (dialogue state tracking / slot carryover, 27/10/2026): cada campo (filial, vendedor) e HERDADO da conversa ate a pessoa citar outro ou
   // abrir o escopo (Brasil, "minha equipe", "por filial"). Vale 2 h. Brasil zera filial e vendedor; filial nova zera vendedor de outra filial.
@@ -472,6 +481,38 @@ export async function respostaInterna(B, c, texto, anteriores) {
     }
     // PAINEL DAS INDUSTRIAS DA DIRETORIA (Rudinei, 09/11/2026; Vitorio 10/11/2026 'monta'): 'industrias', 'painel das industrias [de outubro]', 'industrias TPH'
     // abre o painel; o numero desce Brasil -> Filial -> Industria -> Supervisor -> Vendedor e o 0 sobe. Pergunta com industria citada segue no GEROT de antes.
+    // GERENTE EM CASCATA (Vitorio, 11/11/2026: 'gerente ve resumo dos supervisores... abre por supervisor... depois abre por vendedor'):
+    // 〔MG:〕 numero = o momento do supervisor (igual ao que o supervisor ve); 〔MS:〕 numero = o menu do vendedor; 〔V:〕 = navegando no menu do vendedor
+    if (c && /^gerente$/i.test(String(c.papel || '')) && !B.semIndice) {
+      const ultG = String(B.ultOut || ''), nmG = t.match(/^\W*(\d{1,2})\W*$/), MO = await import('./respostas/momentos.js'), LMg = await import('./respostas/liga_mix.js');
+      const mvG = ultG.match(/〔V:([A-Z]{3}):(\d+)〕/);
+      if (mvG && (nmG || /^\W*(VER MAIS|MAIS|LISTA COMPLETA)\W*$/.test(t)) && mvG[1] === String(c.filial)) {
+        const Eg = await carregaEscopo(B, esc), v = (Eg.vend || []).find((x) => String(x.rca) === mvG[2]);
+        if (v) { const cv = { nome: v.nome, papel: 'vendedor', filial: v.filial, rca: String(v.rca), celular: c.celular }; const o = B.ultOut; B.ultOut = ultG.replace(/\n?_👤 Menu do vendedor[^\n]*〕_?/, ''); let r; try { r = await respostaPronta(B, cv, t, []); } finally { B.ultOut = o; } return String(r) + `\n_👤 Menu do vendedor ${vn(v)} · mande *menu* para voltar 〔V:${v.filial}:${v.rca}〕_`; }
+      }
+      // 11/11/2026 (Cristiano digitou 06 = Jair e recebeu o item 6): o numero e o CODIGO do vendedor da lista ('06', '6', 'vendedor 6')
+      const codG = /〔MS:/.test(ultG) ? (t.match(/^\W*(?:VENDEDORA?\s*|RCA\s*|COD\w*\s*)?0*(\d{1,5})\W*$/) || [])[1] : null;
+      if (codG) {
+        const rcaL = new RegExp('^• \\*' + codG + ' - ', 'm').test(ultG) ? codG : null, Eg = await carregaEscopo(B, esc), v = rcaL && (Eg.vend || []).find((x) => String(x.rca) === rcaL);
+        if (v) return abreVendedorComoEle(B, c, v);
+      }
+      const mg = ultG.match(/〔MG:(\w+)〕/);
+      if (mg && nmG) {
+        const Eg = await carregaEscopo(B, esc), S = MO.supervisoresDaEquipe((Eg.vend || []).filter((v) => v.ehVendedorReal !== false)), sel = S[Number(nmG[1]) - 1];
+        if (sel) { const s = sel[0], cs = { nome: s, papel: 'supervisor', filial: String(c.filial), supervisor: s };
+          const Es = await carregaEscopo(B, { nome: 'Equipe ' + titulo(s.split(' ').slice(0, 2).join(' ')) + ' (' + c.filial + ')', filiais: [String(c.filial)], grupo: null, supervisor: s, nacional: false });
+          const m = await MO.respMomentoSupervisor(B, cs, Es, mg[1] === 'abertura' ? 'abertura' : mg[1]);
+          if (m) return m.texto.replace(/^[^\n]*\n/, `👥 *Equipe ${titulo(s.split(' ').slice(0, 2).join(' '))}* (como o supervisor vê)\n`); }
+      }
+      if (/〔M[GS]:/.test(ultG) && /^\W*(ESCREVA |VER |QUERO )?MAIS\W*$/.test(t)) return LMg.respAjuda(c);
+    }
+    // +MIX SOZINHO PARA GERENTE E DIRETORIA (Vitorio, 11/11/2026: Cleverson MCD mandou '+ mix' e recebeu 1 cliente herdado da conversa): explica que o +MIX
+    // e personalizado por cliente x vendedor, pede o codigo e ja mostra o consolidado da equipe (produtos que mais aparecem e uso real)
+    if (c && /^(gerente|diretoria|ceo)$/i.test(String(c.papel || '')) && !B.semIndice && /^\W*(\+\s*)?(MAIS\s*)?MIX\W*$/.test(t)) {
+      const LMx = await import('./respostas/liga_mix.js'), Ex = await carregaEscopo(B, esc);
+      const cons = await LMx.respMix(B, Ex, 'MIX').catch(() => null);
+      return [`🧺 *${titulo(String(c.nome || '').split(' ')[0])}, o +MIX é personalizado por cliente e vendedor.*`, 'Para ver o de um deles, me mande o *código do vendedor* (ex.: *vendedor 1068*) ou do *cliente* (ex.: *cliente #12345*).', '', cons ? '*Consolidado da ' + (Ex.nome || 'equipe') + ':*\n' + String(cons) : '_O consolidado do +MIX não respondeu agora._'].join('\n');
+    }
     // GERENTE (Vitorio, 10/11/2026: 'do Rudinei, da diretoria e dos gerentes'): o mesmo painel travado na filial dele; nunca o Brasil
     const ehGerP = c && /^gerente$/i.test(String(c.papel || '')) && /^[A-Z]{3}$/.test(String(c.filial || ''));
     if (c && (/^(diretoria|ceo)$/i.test(String(c.papel || '')) || ehGerP) && !B.semIndice) {
@@ -524,10 +565,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
       }
       // 3 MOMENTOS DO SUPERVISOR (11/11/2026): 'mais' = menu do supervisor; numero de um vendedor da lista = o menu daquele vendedor
       if (/〔MS:/.test(ult) && /^\W*(ESCREVA |VER |QUERO )?MAIS\W*$/.test(t)) return respMenuSupervisor(c);
-      if (/〔MS:/.test(ult) && nmS && !nmS[2] && Number(nmS[1]) > 0) {
-        const lin = (ult.match(new RegExp('^' + nmS[1] + '\\. \\*(\\d+) - ', 'm')) || [])[1];
+      // 11/11/2026 (Cristiano TSJ digitou 06 = Jair e recebeu o item 6 do menu): o numero depois do momento e o CODIGO do vendedor ('06', '6', 'vendedor 6')
+      const codMS = /〔MS:/.test(ult) ? (t.match(/^\W*(?:VENDEDORA?\s*|RCA\s*|COD\w*\s*)?0*(\d{1,5})\W*$/) || [])[1] : null;
+      if (codMS) {
+        const lin = new RegExp('^• \\*' + codMS + ' - ', 'm').test(ult) ? codMS : null;
         const v = lin && (await equipe()).find((x) => String(x.rca) === lin);
-        if (v) return respMenuVendedor({ nome: v.nome }).replace('📋 *MENU DO JOTA* —', `📋 *MENU DO VENDEDOR* — ${vn(v)} ·`) + `\n_👤 Menu do vendedor ${vn(v)} · mande *menu* para voltar ao seu 〔V:${v.filial}:${v.rca}〕_`;
+        if (v) return abreVendedorComoEle(B, c, v);
       }
       if (ehMenu || (nmS && Number(nmS[1]) === 0 && !nmS[2])) return respMenuSupervisor(c);
       const abreS = async (k, s) => {
@@ -556,7 +599,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
         // numero depois da lista da equipe (15) = abre o menu daquele vendedor
         if (s == null && mk && Number(mk[1]) === 15 && /Digite o número do vendedor/.test(ult) && /Sua equipe/.test(ult)) {
           const eq = await equipe(), v = eq[k - 1];
-          if (v) return respMenuVendedor({ nome: v.nome }).replace('📋 *MENU DO JOTA* —', `📋 *MENU DO VENDEDOR* — ${vn(v)} ·`) + `\n_👤 Menu do vendedor ${vn(v)} · mande *menu* para voltar ao seu 〔V:${v.filial}:${v.rca}〕_`;
+          if (v) return abreVendedorComoEle(B, c, v);
         }
         // 5 e 6 (auditoria Victor Hugo 10/11/2026): o numero da lista 'por vendedor' abre aquele vendedor (antes: 5->1 caia no aviso de antispam e 6->1 na rota da equipe)
         if (s == null && mk && [5, 6].includes(Number(mk[1]))) {
@@ -577,7 +620,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
         // numero de uma lista que a ultima resposta numerou (curva/recorrencia/tag por vendedor: 'digite o numero (ex: *1*...)'): segue para a resposta de sempre
         if (!(s == null && !/MENU DO JOTA/.test(ult) && /digite o número \(ex/i.test(ult))) return abreS(k, s);
       } else {
-        const passaS = /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /\b(VENDEDOR|VENDEDORA|RCA|SETOR|COD\w*)\W*\d{2,5}\b|\b\d{2,5}\b/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
+        const passaS = /^\W*(ZERAD\w*|SEM PEDIDO|QUEM (ESTA |TA )?ZERAD\w*)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /\b(VENDEDOR|VENDEDORA|RCA|SETOR|COD\w*)\W*\d{2,5}\b|\b\d{2,5}\b/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
         if (!passaS) { const k = temaDoTextoSup(t); return (k ? `Entendi que você quer o *${k}. ${MENU_SUPERVISOR[k - 1][0]}*. Digite *${k}*` + (SUB_SUPERVISOR[k] ? ' e depois o detalhe que quiser' : '') + ', ou escolha outro número:\n\n' : '') + respMenuSupervisor(c); }
       }
     }

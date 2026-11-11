@@ -218,7 +218,7 @@ export async function respMomentoSupervisor(B, c, Ev, momentoForcado = null) {
   const dig = soma((v) => v.dig), prog = linhas.reduce((a, x) => a + x.prog, 0), feitas = linhas.reduce((a, x) => a + x.feitas, 0);
   const fTot = linhas.reduce((a, x) => a + x.foco.length, 0), fOk = linhas.reduce((a, x) => a + x.focoOk, 0);
   const lista = [];
-  const linhaV = (x, extra) => { lista.push(x.v); return `${lista.length}. *${curto(x.v)}*${extra ? ' · ' + extra : ''}`; };
+  const linhaV = (x, extra) => { lista.push(x.v); return `• *${curto(x.v)}*${extra ? ' · ' + extra : ''}`; };   // 11/11/2026: sem posicao; o numero digitado e o CODIGO do vendedor
   if (momento === 'abertura') {
     // as duas partes explicitas (11/11: o item 2 mostra so o faturado em %; aqui faturado + a faturar, como o CEVEN)
     if (meta > 0) L.push(`💰 Faturamento: *${pc(vd, meta)}* da meta com o a faturar · faturado ${R$(soma((v) => v.fat))} (${pc(soma((v) => v.fat), meta)}) + a faturar ${R$(soma((v) => v.pend))} de ${R$(meta)}`);
@@ -244,7 +244,7 @@ export async function respMomentoSupervisor(B, c, Ev, momentoForcado = null) {
     if (ligar.length) { L.push('', '📞 *Ligar agora (rota e sem pedido):*'); for (const x of ligar.slice(0, 5)) L.push(linhaV(x, `${x.feitas} de ${x.prog} visitas · R$ 0`)); }
     const resto = linhas.filter((x) => !ligar.includes(x)).sort((a, b) => (b.dig || 0) - (a.dig || 0));
     if (resto.length) { L.push('', '*Equipe hoje:*'); for (const x of resto.slice(0, 12)) L.push(linhaV(x, `${R$(x.dig)}${x.prog ? ` · ${x.feitas}/${x.prog} visitas` : ''}${x.foco.length ? ` · foco ${x.focoOk}/${x.foco.length}` : ''}`)); }
-    L.push('', '👉 *Digite o número do vendedor* para abrir o menu dele.');
+    L.push('', `👉 *Digite o código do vendedor* (ex.: *${(lista[0] || V[0]).rca}*) para abrir o menu dele.`);
   } else {
     if (!soAS) L.push(`🚶 Visitas: *${feitas} de ${prog}*`);
     L.push(`📝 Vendido hoje: *${R$(dig)}* · positivou *${N(soma((v) => v.ped))}* cliente(s)`);
@@ -254,10 +254,67 @@ export async function respMomentoSupervisor(B, c, Ev, momentoForcado = null) {
     if (top.length) { L.push('', '🏆 *Destaques do dia (para elogiar):*'); for (const x of top) L.push(linhaV(x, `${R$(x.dig)}${x.foco.length ? ` · foco ${x.focoOk}/${x.foco.length}` : ''}`)); }
     const aten = linhas.filter((x) => x.prog && !(x.dig > 0)).slice(0, 4);
     if (aten.length) { L.push('', '👀 *Atenção amanhã (rota e sem pedido hoje):*'); for (const x of aten) L.push(linhaV(x, `${x.feitas} de ${x.prog} visitas`)); }
-    if (lista.length) L.push('', '👉 *Digite o número do vendedor* para abrir o menu dele.');
+    if (lista.length) L.push('', `👉 *Digite o código do vendedor* (ex.: *${(lista[0] || V[0]).rca}*) para abrir o menu dele.`);
   }
   L.push('', FECHA_S[momento][(ix + 3) % 8], '_Quer ver mais? Escreva *mais*._', `〔MS:${momento}〕`);
   const comemora = momento === 'fechamento' ? (fTot > 0 && fOk / fTot >= 0.5) : momento === 'meio' ? (porDia > 0 && dig >= porDia * 0.5) : (ix % 2 === 0);
   const incentiva = !comemora && (momento === 'meio' ? (fTot > 0 && fOk === 0 && dig < porDia * 0.25) : momento === 'fechamento' ? (fTot > 0 && fOk === 0) : false);
   return { texto: L.join('\n'), momento, comemora, incentiva, vendedores: lista.map((v) => ({ filial: v.filial, rca: String(v.rca), nome: v.nome })) };
+}
+
+// =========================================================================
+// 3 MOMENTOS DO GERENTE (Vitorio, 11/11/2026: 'falta o do gerente... ele ve resumo dos supervisores... dai abre por supervisor... depois abre por vendedor')
+//   Mesma base do vendedor e do supervisor. Filial (ou grupo, em TPH/MCD) -> supervisores numerados -> o numero abre o MOMENTO DO SUPERVISOR -> o numero abre o vendedor.
+//   O que os gerentes pedem (144 mensagens): numeros por supervisor, faturado + carteira, venda de hoje, piores vendedores, sem pedido hoje.
+// =========================================================================
+export function supervisoresDaEquipe(V) {
+  const m = new Map();
+  for (const v of V) { const s = String(v.supervisor || 'sem supervisor'); if (!m.has(s)) m.set(s, []); m.get(s).push(v); }
+  return [...m.entries()].filter(([s]) => !/^(sem supervisor|GERENTE)/i.test(s)).sort((a, b) => a[0].localeCompare(b[0]));
+}
+const ABRE_G = {
+  abertura: [(n, f) => `☀️ Bom dia, ${n}! A ${f} começa o dia assim:`, (n, f) => `Bom dia, ${n}! ⚽ O plano da ${f} hoje:`, (n, f) => `☀️ ${n}, bom dia! Onde a ${f} está e onde focar:`, (n, f) => `☀️ Opa, ${n}! Seu ponto de partida na ${f}:`,
+    (n, f) => `Bom dia, ${n}! 💪 A ${f} em poucas linhas:`, (n, f) => `☀️ Bom dia, ${n}! O placar da ${f}:`, (n, f) => `Bom dia, ${n}! 🎯 O dia da ${f} começa aqui:`, (n, f) => `☀️ ${n}, café na mão? A ${f} hoje:`],
+  meio: [(n, f) => `🍽️ ${n}, metade do dia! Como está a ${f}:`, (n, f) => `Opa, ${n}! 🍽️ O parcial da ${f}:`, (n, f) => `🍽️ E aí, ${n}! Onde agir na ${f}:`, (n, f) => `${n}, boa! 🍽️ A manhã da ${f}:`,
+    (n, f) => `🍽️ Oi, ${n}! A ${f} até agora:`, (n, f) => `Fala, ${n}! ⚽ Fim do primeiro tempo da ${f}:`, (n, f) => `🍽️ ${n}, o placar da ${f}:`, (n, f) => `Opa, ${n}! 🍽️ Quem precisa de você na ${f}:`],
+  fechamento: [(n, f) => `🌙 Fechando o dia, ${n}! O balanço da ${f}:`, (n, f) => `🌙 ${n}, apito final na ${f}:`, (n, f) => `Boa, ${n}! 🌙 O dia da ${f} em números:`, (n, f) => `🌙 Fim de jogo, ${n}! A ${f} hoje:`,
+    (n, f) => `${n}, dia batalhado! 🌙 A ${f}:`, (n, f) => `🌙 Oi, ${n}! Como foi o dia da ${f}:`, (n, f) => `🌙 Valeu pelo dia, ${n}! O placar da ${f}:`, (n, f) => `${n}, missão do dia! 🌙 A ${f}:`],
+};
+export async function respMomentoGerente(B, c, Ev, momentoForcado = null) {
+  const V = (Ev && Ev.vend ? Ev.vend : []).filter((v) => v.ehVendedorReal !== false);
+  if (!V.length) return null;
+  const TODOS = ((Ev && Ev.vend) || V).concat((Ev && Ev.ocultos) || []);
+  const filial = String(c.filial || V[0].filial), nomeF = filial + (c.grupo ? ' · ' + titulo(c.grupo) : ''), n = titulo(String(c.nome || '').split(/\s+/)[0]) || 'time';
+  const momento = momentoForcado || qualMomentoEquipe(V), ix = versao({ filial, rca: 'G' + (c.grupo || '') }, momento);
+  const vend = (v) => (v.fat || 0) + (v.pend || 0), soma = (L, f) => L.reduce((a, v) => a + (Number(f(v)) || 0), 0);
+  // visitas = mesma conta do supervisor e do vendedor: check-in individual OU tem_checkin na rota do gerente (11/11: 67 x 69 na equipe do Eder)
+  const RGf = new Map(); try { const { results } = await B.env.DB.prepare('SELECT json FROM rota_gerente_dia WHERE data_ref = ? AND filial = ?').bind(hojeSP(), filial).all(); for (const r of results || []) { let a2 = []; try { a2 = JSON.parse(r.json); } catch (e) { continue; } for (const x of a2) RGf.set(String(x.id_representante) + '|' + String(x.id_cliente), x); } } catch (e) { /* sem rota do gerente */ }
+  const visitas = (L) => { let p = 0, f = 0; for (const v of L) { const vis = new Set(), R = Array.isArray(v.rotaHoje) ? v.rotaHoje.filter((x) => !/FORA/i.test(String(x.status || '')) && !vis.has(String(x.id_cliente)) && vis.add(String(x.id_cliente))) : []; p += R.length; f += R.filter((x) => minHM(x.checkin_horario) != null || Number((RGf.get(String(v.rca) + '|' + String(x.id_cliente)) || {}).tem_checkin) === 1).length; } return { p, f }; };
+  const S = supervisoresDaEquipe(V), meta = soma(TODOS, (v) => v.meta), vd = soma(TODOS, vend), du = diasUteisRestantes(), porDia = du ? Math.max(0, meta - vd) / du : 0;
+  const st = momento === 'abertura' ? await Promise.all(S.map(([s]) => statusSupervisor(B, filial, s))) : [];
+  const L = [ABRE_G[momento][ix](n, nomeF), ''];
+  if (meta > 0) L.push(`💰 Faturamento: *${pc(vd, meta)}* da meta com o a faturar · faturado ${R$(soma(TODOS, (v) => v.fat))} (${pc(soma(TODOS, (v) => v.fat), meta)}) + a faturar ${R$(soma(TODOS, (v) => v.pend))} de ${R$(meta)}`);
+  const vi = visitas(V), dig = soma(V, (v) => v.dig);
+  if (momento === 'abertura') {
+    const mp = soma(TODOS, (v) => v.metaPos); if (mp) L.push(`👥 Positivação: *${N(soma(TODOS, (v) => v.pos))} de ${N(mp)}* clientes`);
+    const vAS = TODOS.filter(ehAS); if (vAS.length) { const m = soma(vAS, (v) => v.meta), f = soma(vAS, (v) => v.fat); if (m > 0) L.push(`📐 Faseamento AS (60% até o dia 20): *${pc(f, m * 0.6)}* do alvo`); }
+    try { const g = await B.env.DB.prepare("SELECT objetivo, meta, positivados FROM gerot_recorrencia_pasta WHERE mes = ? AND filial = ? AND nivel = 'filial' LIMIT 1").bind(hojeSP().slice(0, 7), filial).first(); if (g && g.meta && !c.grupo) L.push(`🔄 Recorrência: *${N(g.positivados || 0)} de ${N(g.meta)}* da meta`); } catch (e) { /* sem GEROT */ }
+    const semComp = S.filter((x, i) => st[i] && st[i].compromisso === false).map(([s]) => titulo(s.split(' ')[0]));
+    if (st.length) L.push(`🗓️ Compromisso: *${S.length - semComp.length} de ${S.length}* supervisores` + (semComp.length ? ` · faltam: ${semComp.join(', ')}` : ' ✅'));
+    if (porDia > 0) L.push(`💡 Para o ritmo da meta, a ${filial} precisa de *${R$(porDia)}* por dia útil.`);
+  } else {
+    if (vi.p) L.push(`🚶 Visitas: *${vi.f} de ${vi.p}*`);
+    L.push(`📝 Vendido hoje: *${R$(dig)}*` + (soma(V, (v) => v.ped) ? ` em ${N(soma(V, (v) => v.ped))} cliente(s)` : ''));
+    const semPed = V.filter((v) => Array.isArray(v.rotaHoje) && v.rotaHoje.some((x) => minHM(x.checkin_horario) != null) && !(v.dig > 0));
+    if (semPed.length) L.push(`📞 Vendedores com visita e sem pedido: *${semPed.length}* · escreva *zerados* para ver quem são`);
+    if (momento === 'fechamento') { try { const lc = await B.lances(); const rcas = new Set(V.map((v) => v.filial + '|' + v.rca)); const hj = lc ? (lc.lances || []).filter((l) => rcas.has(l.filial + '|' + String(l.rca))) : []; if (hj.length) L.push(`⚽ Liga hoje: *${hj.reduce((a, l) => a + (l.pontos || 0), 0)} pontos* da ${filial}`); } catch (e) { /* sem liga */ } }
+  }
+  L.push('', '*Supervisores:*');
+  S.forEach(([s, Vs], i) => { const vs = visitas(Vs), d = soma(Vs, (v) => v.dig), m = soma(Vs, (v) => v.meta);
+    const extra = momento === 'abertura' ? `${m ? pc(soma(Vs, vend), m) + ' da meta' : 'sem meta'}${st[i] && st[i].compromisso === false ? ' · ⏰ sem compromisso' : st[i] && st[i].compromisso ? ' · ✅' : ''}` : `hoje ${R$(d)}${vs.p ? ` · ${vs.f}/${vs.p} visitas` : ''}${m ? ` · ${pc(soma(Vs, vend), m)} da meta` : ''}`;
+    L.push(`${i + 1}. *${titulo(s.split(' ').slice(0, 2).join(' '))}* · ${extra}`); });
+  if (momento !== 'abertura') { const ordem = S.map(([s, Vs]) => [s, soma(Vs, (v) => v.dig)]).sort((a, b) => b[1] - a[1]); if (ordem.length > 1) L.push('', `🏆 Melhor do dia: *${titulo(ordem[0][0].split(' ')[0])}* (${R$(ordem[0][1])}) · 👀 atenção: *${titulo(ordem[ordem.length - 1][0].split(' ')[0])}* (${R$(ordem[ordem.length - 1][1])})`); }
+  L.push('', '👉 *Digite o número do supervisor* para abrir a equipe dele.', '', FECHA_S[momento === 'abertura' ? 'abertura' : momento][(ix + 3) % 8], '_Quer ver mais? Escreva *mais*._', `〔MG:${momento}〕`);
+  const comemora = momento === 'fechamento' ? (porDia > 0 && dig >= porDia) : momento === 'meio' ? (porDia > 0 && dig >= porDia * 0.5) : (ix % 2 === 0);
+  return { texto: L.join('\n'), momento, comemora, incentiva: false, supervisores: S.map(([s]) => s) };
 }

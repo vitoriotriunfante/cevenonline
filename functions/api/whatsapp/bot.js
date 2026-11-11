@@ -323,6 +323,17 @@ export async function onRequestPost({ request, env }) {
       }
     } catch (e) { resp = null; }   // falhou: cai na saudacao de sempre
   }
+  // 3 MOMENTOS DO GERENTE (Vitorio, 11/11/2026: 'falta o do gerente'): filial (ou grupo em TPH/MCD) por supervisor; o numero abre o supervisor e depois o vendedor
+  if (!resp && ehSaudacao(tN) && !primeiraVez && c && c.papel === 'gerente' && /^[A-Z]{3}$/.test(String(c.filial || ''))) {
+    try {
+      const MO = await import('../../_lib/jota/respostas/momentos.js'), { carregaEscopo } = await import('../../_lib/jota/escopo.js');
+      if (await MO.momentosLigados(B)) {
+        const Ev = await carregaEscopo(B, { nome: String(c.filial) + (c.grupo ? ' · ' + titulo(c.grupo) : ''), filiais: [String(c.filial)], grupo: c.grupo || null, supervisor: null, nacional: false });
+        const m = await MO.respMomentoGerente(B, c, Ev);
+        if (m && m.texto) { resp = m.texto; tipo = 'momento_' + m.momento + (m.comemora ? '_comemora' : ''); }
+      }
+    } catch (e) { resp = null; }
+  }
   // 3 MOMENTOS DO SUPERVISOR (Vitorio, 11/11/2026: 'manda bala'): abertura da equipe, meio do dia, fechamento; mesma chave de desligar
   if (!resp && ehSaudacao(tN) && !primeiraVez && c && c.papel === 'supervisor' && /^[A-Z]{3}$/.test(String(c.filial || ''))) {
     try {
