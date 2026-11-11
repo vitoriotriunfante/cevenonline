@@ -41,13 +41,19 @@ export function entendeGerot(texto, nomes, hoje = hojeSP(), anterior = null) {
   // mesma 1ª palavra em nomes diferentes (SUPER FOODS x SUPER SAUDE): se a 2ª palavra de algum estiver na frase, fica só ele
   { const porK = new Map(); for (const n of achadas) { const k = chavesDe(n)[0]; if (!porK.has(k)) porK.set(k, []); porK.get(k).push(n); }
     for (const ns of porK.values()) { if (ns.length < 2) continue; const com2 = ns.filter((n) => { const k2 = chavesDe(n)[1]; return k2 && palavra(t, k2); }); if (com2.length) ns.filter((n) => !com2.includes(n)).forEach((n) => achadas.delete(n)); } }
+  // MARS PET x MARS CHOCO (Vitorio, 11/11/2026: 'nao resolveu mars pet e mars choco'): no GEROT sao MASTERFOODS #13127 (pet) e MASTERFOODS ... CHOC #13136.
+  // 'choco/chocolate' = so a CHOC; 'pet' = so a outra; 'mars' sozinho = as duas.
+  { const ms = [...achadas].filter((n) => /MASTERFOODS/i.test(n));
+    if (ms.length > 1 && /\bCHOC\w*/.test(t)) ms.filter((n) => !/CHOC/i.test(n)).forEach((n) => achadas.delete(n));
+    else if (ms.length > 1 && /\bPET\b/.test(t)) ms.filter((n) => /CHOC/i.test(n)).forEach((n) => achadas.delete(n)); }
   const industrias = [...achadas];
   const porIndustria = /INDUSTRI|FORNECEDOR/.test(t);
   if (!industrias.length && !porIndustria && !(anterior && /^\W*\w+\W*$/.test(sem(texto)))) return null;   // não é pergunta de indústria
   // so resultado da industria (venda, meta, faturado...). "+mix oreo", "quem compra oreo", cliente, SKU continuam no +MIX/ficha
   const soNome = /^\W*[A-Z0-9& ]{2,30}\W*$/.test(sem(texto)) && industrias.length && !!anterior;
   if (/\+ ?MIX|\bMIX\b|QUEM COMPRA|QUEM COMPROU|QUEM PAROU|CLIENTES? |\bSKU|PRODUTO|O QUE OFERECER|#\d/.test(t) && !porIndustria) return null;
-  if (!soNome && !porIndustria && !/VENDA|VENDE|VENDID|META|FATUR|POSITIV|RESULTAD|COMO (ESTA|TA|ANDA|VAI)|PERFORMANCE|DESEMPENHO|CARTEIRA|ATINGI|NUMEROS|SITUACAO/.test(t)) return null;
+  // 11/11/2026 ('mars pet da ABC' caia nas metas antigas): industria citada + filial citada ja e pergunta de industria, mesmo sem verbo
+  if (!soNome && !porIndustria && !(industrias.length && FILIAIS.some((f) => palavra(t, f))) && !/VENDA|VENDE|VENDID|META|FATUR|POSITIV|RESULTAD|COMO (ESTA|TA|ANDA|VAI)|PERFORMANCE|DESEMPENHO|CARTEIRA|ATINGI|NUMEROS|SITUACAO/.test(t)) return null;
   // filiais citadas
   const filiais = FILIAIS.filter((f) => palavra(t, f));
   const todasFiliais = /TODAS AS FILIAIS|CADA FILIAL|POR FILIAL|DAS FILIAIS|\bFILIAIS\b|\bBRASIL\b|GRUPO|TRIUNFANTE/.test(t);

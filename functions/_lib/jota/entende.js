@@ -534,7 +534,9 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (B.env && B.env.DB) { try {
         const { entendeGerot } = await import('./respostas/gerot_industria.js'), { nomeForn } = await import('./respostas/metas_industria.js');
         const { results: NF } = await B.env.DB.prepare("SELECT DISTINCT json_extract(dados,'$.Fornecedor') n FROM gerot_vendas WHERE mes >= ?").bind(hojeSP().slice(0, 4) + '-01').all();
-        const q = entendeGerot(texto, (NF || []).map((x) => x.n).filter(Boolean));
+        const nomesNF = (NF || []).map((x) => x.n).filter(Boolean);
+        // so o nome da industria ('condor', 'mars choco') = a industria no painel (11/11/2026)
+        const q = entendeGerot(texto, nomesNF) || (t.split(/\s+/).filter(Boolean).length <= 3 ? entendeGerot('venda ' + texto, nomesNF) : null);
         // 11/11/2026 (Rudinei): qualquer jeito de pedir industria ('me fale da venda por industria de TCV', varias industrias de uma vez) vai para o painel
         if (q && (q.industrias.length || q.porIndustria)) { const inds = [...new Set(q.industrias.map((x) => nomeForn(x)))]; const r = await PI.respPainelIndustrias(B.env, B, { mes: q.mes, fil: q.filiais.length === 1 ? q.filiais[0] : null, ind: inds.length === 1 ? inds[0] : null, inds: inds.length > 1 ? inds : null }); if (r) return r; }
       } catch (e) { /* segue a cadeia normal */ } }
