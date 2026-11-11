@@ -643,6 +643,27 @@ async function coletaPedidosWinthor(env, rcas, limite = 12, prazo = Infinity) {
   }
   return { lidos, novos, mudaram };
 }
+// DATA DO PEDIDO POR NUMERO (Vitorio, 11/11/2026: 'precisamos acelerar... urgente'): 619 pedidos ficaram com data FUTURA (a rota gravou a data da visita/entrega)
+// e a leitura do mes do Winthor nunca chega neles (a maioria e de fim de outubro). O app do CEVEN consulta 1 pedido pelo numero: pedidos-winthor?...&pedido=NUM.
+// Aqui: pedidos com data futura, 1 chamada por pedido, quem foi conferido ha mais tempo primeiro; grava a data do Winthor (so a data). Sem achar = tenta de novo em 6 h.
+async function corrigeDatasPorNumero(env, limite = 25, prazo = Infinity) {
+  if (Date.now() < banRcaAte) return { pulado: 'cota' };
+  try { await env.DB.prepare('ALTER TABLE pedido_status ADD COLUMN data_conferida_em TEXT').run(); } catch (e) { /* ja existe */ }
+  const { results: F } = await env.DB.prepare("SELECT num, filial, rca, data_pedido FROM pedido_status WHERE data_pedido > date('now','-3 hours') AND (data_conferida_em IS NULL OR data_conferida_em < datetime('now','-6 hours')) ORDER BY data_conferida_em IS NOT NULL, data_conferida_em LIMIT ?").bind(limite).all();
+  let lidos = 0, corrigidos = 0, semAchar = 0; const st = [], agora = new Date().toISOString();
+  for (const x of F || []) {
+    if (Date.now() > prazo || Date.now() < disjuntorAte) break;
+    const A0 = await getJson(urlRca('pedidos-winthor', { filial: x.filial, codigo: x.rca }) + '&pedido=' + encodeURIComponent(x.num), 1);
+    if (A0 == null) { if (Date.now() < disjuntorAte || Date.now() < banRcaAte) break; continue; }
+    lidos++;
+    const p = (Array.isArray(A0) ? A0 : []).find((y) => y && String(y.numeroPedido) === String(x.num));
+    const dataW = p && /^\d{4}-\d{2}-\d{2}/.test(String(p.dataPedido || '')) ? String(p.dataPedido).slice(0, 10) : null;
+    if (dataW && dataW !== x.data_pedido) { corrigidos++; st.push(env.DB.prepare('UPDATE pedido_status SET data_pedido = ?, data_conferida_em = ? WHERE num = ?').bind(dataW, agora, String(x.num))); }
+    else { if (!dataW) semAchar++; st.push(env.DB.prepare('UPDATE pedido_status SET data_conferida_em = ? WHERE num = ?').bind(agora, String(x.num))); }
+  }
+  for (let i = 0; i < st.length; i += 80) await env.DB.batch(st.slice(i, i + 80));
+  return { lidos, corrigidos, semAchar };
+}
 async function rechecaAbertosPorVendedor(env, limite = 6, prazo = Infinity) {
   if (Date.now() < banRcaAte) return { pulado: 'cota' };
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS recheca_fila (filial TEXT NOT NULL, rca TEXT NOT NULL, em TEXT, PRIMARY KEY (filial, rca))').run();
@@ -1128,7 +1149,8 @@ export async function onRequestGet({ env, request }) {
     if (Date.now() - t0 < 90000) { try { contagem.pedidos_dia = await coletaPedidosDoDia(env, dataRef); } catch (e) { contagem.pedidos_dia = { erro: String(e.message || e).slice(0, 80) }; } }
     // PEDIDOS DO WINTHOR (09/11/2026): logo depois dos pedidos do dia (no fim da rodada, que leva ~145 s, nunca rodava). Todos os vendedores em rodizio: dia 5, noite 60.
     // 10/11/2026: de dia a rodada chegava aqui depois dos 95 s e o Winthor era pulado (65 vendedores/h de manha, 10/h as 10h): agora le sempre, com prazo minimo de 15 s
-    if (Date.now() - t0 < 135000) { try { contagem.winthor = await coletaPedidosWinthor(env, rcas, noiteTodos ? 60 : 5, Math.max(t0 + 115000, Date.now() + 15000)); } catch (e) { contagem.winthor = { erro: String(e.message || e).slice(0, 80) }; } }
+    if (Date.now() - t0 < 135000) { try { contagem.winthor = await coletaPedidosWinthor(env, rcas, noiteTodos ? 60 : 5, Math.max(t0 + 115000, Date.now() + 15000)); } catch (e) { contagem.winthor = { erro: String(e.message || e).slice(0, 80) }; }
+      if (Date.now() - t0 < 140000) { try { contagem.datas_por_numero = await corrigeDatasPorNumero(env, noiteTodos ? 80 : 25, Math.max(t0 + 135000, Date.now() + 10000)); } catch (e) { contagem.datas_por_numero = { erro: String(e.message || e).slice(0, 80) }; } } }
     if (!env.TESTE_SEM_HORARIO && Date.now() - t0 < 95000) { try { contagem.macro = await coletaMacroForaArvore(env); } catch (e) { contagem.macro = { erro: String(e.message || e).slice(0, 80) }; } }
     if (Date.now() - t0 < 95000) { try { contagem.recheca = await rechecaAbertosPorVendedor(env, noiteTodos ? 90 : 15, t0 + 150000);   /* todos os ~250 vendedores com pedido aberto: ~30 min de dia e a cada 30 min de noite (31/10/2026) */ } catch (e) { contagem.recheca = { erro: String(e.message || e).slice(0, 80) }; } }
     // ROTA E PAINEL DO GERENTE NO FIM DA RODADA (01/11/2026): no inicio, os 25 s comiam o prazo da produtividade (40 s) e ela deixava de rodar. Em dia util a rodada leva ~40 s; so fica de fora quando a rodada estoura.

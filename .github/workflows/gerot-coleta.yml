@@ -8,7 +8,7 @@ name: GEROT — coleta online para o D1
 
 on:
   schedule:
-    - cron: '15 12,14,16,18,20,22 * * 1-6'   # 09h15 ... 19h15 BRT, segunda a sabado
+    - cron: '15 10,12,14,16,18,20,22 * * 1-6'   # 07h15 (Vitorio 11/11/2026: 'comecar o dia com os dados'), 09h15 ... 19h15 BRT, segunda a sabado
   workflow_dispatch:
     inputs:
       meses:
