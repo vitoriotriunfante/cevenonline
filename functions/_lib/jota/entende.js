@@ -495,6 +495,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (codG) {
         const rcaL = new RegExp('^• \\*' + codG + ' - ', 'm').test(ultG) ? codG : null, Eg = await carregaEscopo(B, esc), v = rcaL && (Eg.vend || []).find((x) => String(x.rca) === rcaL);
         if (v) return abreVendedorComoEle(B, c, v);
+        // nunca devolver vazio (parecer do analista, 11/11/2026: a cascata do gerente respondia 'null')
+        return `🔎 Não achei o vendedor *${codG}* nesta equipe. Digite um dos códigos da lista (ex.: *${(ultG.match(/^• \*(\d+) - /m) || [])[1] || ''}*) ou mande *menu*.`;
       }
       const mg = ultG.match(/〔MG:(\w+)〕/);
       if (mg && nmG) {

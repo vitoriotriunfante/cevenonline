@@ -20,7 +20,7 @@ for (const mo of ['abertura', 'meio', 'fechamento']) {
   if (mo === 'meio') {   // cascata: 1 -> supervisor 1; depois 1 -> vendedor 1 da lista dele
     const fala = async (q, ult) => { const B2 = _teste.criaBase(ORIGIN, { DB }); B2.ultOut = ult; try { return String(await _teste.respostaPronta(B2, c, q, [])); } catch (e) { return 'ERRO ' + e.stack; } };
     const r1 = await fala('1', txt); grava('M - meio - supervisor 1', '"bom dia" e depois "1"', r1); console.log('===== meio -> 1 (supervisor)\n' + r1.slice(0, 700));
-    const r2 = await fala('1', r1); grava('M - meio - supervisor 1 - vendedor 1', '"bom dia", "1" e depois "1"', r2); console.log('===== -> 1 (vendedor)\n' + r2.slice(0, 400));
+    const cod1 = (r1.match(/^• \*(\d+) - /m) || [])[1] || '1'; const r2 = await fala(cod1, r1); grava('M - meio - supervisor 1 - vendedor 1', '"bom dia", "1" e depois o codigo do 1o vendedor da lista', r2); console.log('===== -> 1 (vendedor)\n' + r2.slice(0, 400));
     const r3 = await fala('5', r2); grava('M - meio - supervisor 1 - vendedor 1 - item 5', '"bom dia", "1", "1" e depois "5"', r3); console.log('===== -> 5 (curva do vendedor)\n' + r3.slice(0, 400));
   }
 }
