@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-11-11T10:19:18.316683Z",
+  "gerado_em": "2026-11-11T10:33:36.635836Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -37813,7 +37813,7 @@
         "supervisor": "SUPERVISOR 73",
         "gerente": "Fábio",
         "meta_mes": 131559,
-        "pct_hoje": 22.5,
+        "pct_hoje": 23.5,
         "fases": [
           {
             "n": 1,
@@ -51615,7 +51615,7 @@
         "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
         "gerente": "Radke / Leandro",
         "meta_mes": 965796,
-        "pct_hoje": 6.4,
+        "pct_hoje": 10.9,
         "fases": [
           {
             "n": 1,
@@ -52895,7 +52895,7 @@
         "total_vendedores": 6,
         "com_meta": 6,
         "meta_mes": 692609,
-        "pct_hoje": 12.4,
+        "pct_hoje": 12.6,
         "fases": [
           {
             "n": 1,
@@ -53513,6 +53513,110 @@
         "pos_ant": 17
       },
       {
+        "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
+        "filial": "TPA",
+        "gerente": "Radke / Leandro",
+        "total_vendedores": 5,
+        "com_meta": 5,
+        "meta_mes": 2279294,
+        "pct_hoje": 10.9,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-11-07",
+            "status": "nao_batida",
+            "pct": -0.4,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-11-14",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-11-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 30,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-11-30",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "pontos_faseamento": 0,
+        "jogos": 2,
+        "vitorias": 0,
+        "empates": 1,
+        "derrotas": 1,
+        "pts_tabela": 1,
+        "forma": [
+          "D",
+          "E"
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "resultado": "D",
+            "vitorias_equipe": 0,
+            "total": 5,
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "resultado": "E",
+            "vitorias_equipe": 1,
+            "total": 5,
+            "pts_tabela": 1
+          }
+        ],
+        "aprov": 16.7,
+        "pts_lances_equipe": -47,
+        "pos": 18,
+        "pos_ant": 19
+      },
+      {
         "supervisor": "ARILDO ZAGO",
         "filial": "API",
         "gerente": "Marcelo",
@@ -53613,112 +53717,8 @@
         ],
         "aprov": 33.3,
         "pts_lances_equipe": 26,
-        "pos": 18,
-        "pos_ant": 18
-      },
-      {
-        "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
-        "filial": "TPA",
-        "gerente": "Radke / Leandro",
-        "total_vendedores": 5,
-        "com_meta": 5,
-        "meta_mes": 2279294,
-        "pct_hoje": 9,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-11-07",
-            "status": "nao_batida",
-            "pct": -0.4,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-11-14",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-11-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 30,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-11-30",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "pontos_faseamento": 0,
-        "jogos": 2,
-        "vitorias": 0,
-        "empates": 1,
-        "derrotas": 1,
-        "pts_tabela": 1,
-        "forma": [
-          "D",
-          "E"
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "resultado": "D",
-            "vitorias_equipe": 0,
-            "total": 5,
-            "pts_tabela": 0
-          },
-          {
-            "n": 2,
-            "resultado": "E",
-            "vitorias_equipe": 1,
-            "total": 5,
-            "pts_tabela": 1
-          }
-        ],
-        "aprov": 16.7,
-        "pts_lances_equipe": -47,
         "pos": 19,
-        "pos_ant": 19
+        "pos_ant": 18
       },
       {
         "supervisor": "NEIVA CLEONICE SERRA ISOPPO",
