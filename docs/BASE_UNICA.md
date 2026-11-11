@@ -147,3 +147,6 @@ Vitório: "se estou falando de uma filial precisa falar sobre ela... se eu peço
 - SQLite/Google Drive permanece como legado e origem da carga inicial até a paridade dos dados e a migração de cada leitor serem verificadas. Não desligar nem apagar esse fluxo antes da validação.
 - Estado medido em 03/11: 17 arquivos de automação, 15 Functions sob demanda e 155 arquivos manuais ainda chamam o CEVEN; portanto, o coletor único é a meta da migração, não o estado atual.
 - O histórico item a item consumido por +MIX ainda está no SQLite; o D1 atual não o substitui. A carga inicial e a troca dos leitores continuam pendentes.
+
+## Auditoria de 11/11/2026
+Medida completa (frescor de cada tabela, GEROT x CEVEN por filial, D1 x CEVEN, Liga, robôs) e plano em `docs/AUDITORIA_DADOS_2026-11-11.md`. Correções do dia: data do pedido na origem (`pedido_status.js`), ficha do cliente destravada dos prospects (`carregar_ficha_d1.py`), GEROT às 07h15.

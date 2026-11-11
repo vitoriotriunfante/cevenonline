@@ -38,11 +38,15 @@ except sqlite3.OperationalError as e:
     raise RuntimeError(f'coleta de prospects de hoje não está registrada no Data Lake: {e}') from e
 registrados = {(str(r['filial']), str(r['rca_codigo'])) for r in status_prospects}
 diferenca = esperados - registrados
+# 11/11/2026 (Vitorio: 'TODOS os dados reais e populados'): a coleta de prospects incompleta TRAVAVA a ficha dos clientes inteira (D1 parado desde 08/11:
+# falhas em 06, 10 e 11/11 por '172 vendedores sem estado'). A ficha nao depende de prospects: sempre carrega. Prospects seguem a regra de antes, por vendedor:
+# so entra o vendedor que tem estado do dia ('ok' ou 'sem_retorno'); quem nao tem estado nao recebe nada (o JOTA diz que a coleta de hoje nao trouxe), nunca 'zero'.
 if not status_prospects or len(diferenca) > 3:
-    faltantes = len(diferenca)
-    raise RuntimeError(f'coleta de prospects de hoje incompleta: {faltantes} vendedores sem estado registrado')
-if any(r['estado'] not in ('ok', 'sem_retorno') for r in status_prospects):
-    raise RuntimeError('coleta de prospects contém estado inválido; D1 não será atualizado')
+    print(f'AVISO: coleta de prospects de hoje incompleta: {len(diferenca)} vendedores sem estado; a ficha carrega, os prospects so dos {len(status_prospects)} com estado')
+validos = [r for r in status_prospects if r['estado'] in ('ok', 'sem_retorno')]
+if len(validos) != len(status_prospects):
+    print(f'AVISO: {len(status_prospects) - len(validos)} estados de prospects invalidos ficam de fora')
+status_prospects = validos
 fichas = {}
 mes_atual = hoje.strftime('%Y-%m')
 def mes_antes(n):
