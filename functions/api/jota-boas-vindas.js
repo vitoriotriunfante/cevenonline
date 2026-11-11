@@ -8,6 +8,7 @@
 // =========================================================================
 import { chaveEvoValida } from '../_lib/chave_evo.js';
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
+import { cotaEnvio } from '../_lib/jota/base.js';
 const FIG = 'https://ceven-cftv-matrix.pages.dev/jota/figurinhas/01_oi_eu_sou_o_jota.webp';
 const titulo = (s) => String(s || '').toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
 function texto(c) {
@@ -19,6 +20,8 @@ function texto(c) {
     `Se eu não tiver um dado, eu falo. Número eu não invento.\n\n_Meu DNA é Triunfante!_`;
 }
 async function evo(env, rota, corpo) {   // antiban 09/11/2026: texto e figurinha pela porta unica (antes ia sem digitando/hash)
+  // 11/11/2026 (Vitorio: 'tudo que for proativo nao e pra mandar'): passa pela trava unica (com a pausa, so resposta de quem escreveu nos ultimos 15 min)
+  { const q = await cotaEnvio(env, String(corpo.number || '').replace(/\D/g, '')); if (!q.ok) return false; }
   if (rota === '/message/sendText') return (await R.enviarTexto(R.evoCfg(env), corpo.number, corpo.text)).ok;
   return (await R.enviarMidia(R.evoCfg(env), rota, corpo)).ok; // true so se a Evolution aceitou (antes era sempre verdadeiro)
 }

@@ -10,7 +10,7 @@
 // =========================================================================
 import { chaveEvoValida } from '../_lib/chave_evo.js';
 import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
-import { enviar, variantes, so } from '../_lib/jota/base.js';
+import { enviar, variantes, so, cotaEnvio } from '../_lib/jota/base.js';
 import R from '../../public/regras.js';
 
 const J = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
@@ -56,6 +56,7 @@ async function enviarDocumentoHtml(env, numero, c, texto) {
     media: urlCardapio,
     fileName: 'Guia_de_Comandos_Jota.html'
   };
+  { const q = await cotaEnvio(env, so(d)); if (!q.ok) return { ok: false, status: 429, erro: q.erro }; }   // 11/11/2026: so resposta durante a pausa
   const r = await R.enviarMidia(R.evoCfg(env), '/message/sendMedia', corpo);
   if (r.ok) return { ok: true, status: r.status };
 

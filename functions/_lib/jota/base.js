@@ -66,8 +66,14 @@ export async function cotaEnvio(env, d) {
   const db = env && env.DB; if (!db || !d) return { ok: true };
   try {
     const vs = variantes(d), ph = vs.map(() => '?').join(',');
-    const resp = await db.prepare(`SELECT 1 FROM bot_msgs WHERE celular IN (${ph}) AND direcao = 'in' AND quando > datetime('now','-24 hours') LIMIT 1`).bind(...vs).first();
+    // SO RESPONDER (Vitorio, 11/11/2026: 'TUDO... EXATAMENTE TUDO QUE FOR PROATIVO NESSE PRIMEIRO MOMENTO NAO E PRA MANDAR... so vamos ser reativos'):
+    // com a pausa valendo, so sai mensagem para quem escreveu nos ultimos 15 min (a resposta da pergunta dele); antes eram 24 h, o que deixava
+    // passar aviso, campanha e boas-vindas para quem tinha escrito de manha. Sem pausa, volta a regra das 24 h.
+    const pausa0 = await db.prepare("SELECT valor FROM config_flags WHERE chave = 'wa_pausa_proativa_ate'").first().catch(() => null);
+    const emPausa = !!(pausa0 && pausa0.valor && new Date().toISOString() < String(pausa0.valor));
+    const resp = await db.prepare(`SELECT 1 FROM bot_msgs WHERE celular IN (${ph}) AND direcao = 'in' AND quando > datetime('now', ?) LIMIT 1`).bind(...vs, emPausa ? '-15 minutes' : '-24 hours').first();
     if (resp) return { ok: true, resposta: true };
+    if (emPausa) return { ok: false, erro: 'so resposta: pausa de mensagens proativas ate ' + pausa0.valor };
     // PAUSA POR RESTRICAO DO WHATSAPP (10/11/2026, 09h27: "nao sera possivel iniciar novas conversas"): ate a data em config_flags 'wa_pausa_proativa_ate'
     // o Jota so RESPONDE (quem escreveu nas 24 h); nada que ele inicie sai. A mensagem fica na fila ate vencer.
     const pausa = await db.prepare("SELECT valor FROM config_flags WHERE chave = 'wa_pausa_proativa_ate'").first().catch(() => null);

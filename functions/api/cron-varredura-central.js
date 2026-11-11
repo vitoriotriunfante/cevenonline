@@ -376,7 +376,11 @@ async function reenviaFila(env) {
   // HORARIO (Vitorio, 09/11/2026: 'nao pode enviar msg depois das 18'): mensagem que o JOTA INICIA so seg-sab 09h-18h e espera ate 36 h;
   // resposta que falhou (servidor fora) continua saindo na hora e vence em 2 h, como antes.
   const PROATIVAS = "('boas_vindas_aprovacao','procure_supervisor','suspenso_aviso','campanha_sim','linha_invalida')";
-  const rel = R.relogioSP(), horaComercial = rel.dow !== 0 && rel.h >= 9 && rel.h < 18;
+  // SO RESPONDER (Vitorio, 11/11/2026: 'ate resolver essa questao de antispam... nao vamos enviar msgs? apenas responder?'): com a pausa 'wa_pausa_proativa_ate'
+  // valendo, NENHUMA mensagem que o Jota inicia sai (boas-vindas, procure o supervisor, suspenso, campanha SIM, linha invalida), nem para quem escreveu nas 24 h.
+  // So sai a resposta que falhou (servidor fora) nas ultimas 2 h, porque ela e resposta a uma pergunta.
+  let pausaProativa = false; try { const p = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'wa_pausa_proativa_ate'").first(); pausaProativa = !!(p && p.valor && String(p.valor) > new Date().toISOString().slice(0, 10)); } catch (e) { /* sem flag */ }
+  const rel = R.relogioSP(), horaComercial = rel.dow !== 0 && rel.h >= 9 && rel.h < 18 && !pausaProativa;
   // DIAGNOSTICO (09/11/2026: 28 mensagens paradas com 0 tentativas): cada rodada grava o que a fila fez em coleta_estado 'fila_rodada'
   const diag = { quando: new Date().toISOString(), lidas: 0, enviadas: 0, parou: null };
   try {
@@ -403,7 +407,7 @@ async function reenviaFila(env) {
     await env.DB.prepare(`INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) SELECT celular, nome, 'erro', '[NAO ENTREGUE apos ' || tentativas || ' tentativas] ' || substr(texto, 1, 3900), tipo FROM bot_envio_fila WHERE ((tipo NOT IN ${PROATIVAS} OR tipo IS NULL) AND criado_em <= datetime('now','-2 hours')) OR (tipo IN ${PROATIVAS} AND criado_em <= datetime('now','-36 hours'))`).run();
     await env.DB.prepare(`DELETE FROM bot_envio_fila WHERE ((tipo NOT IN ${PROATIVAS} OR tipo IS NULL) AND criado_em <= datetime('now','-2 hours')) OR (tipo IN ${PROATIVAS} AND criado_em <= datetime('now','-36 hours'))`).run();
   } catch (e) { diag.parou = 'erro: ' + String(e && e.message || e).slice(0, 200); }
-  if (!diag.lidas) { try { await campanhaSim(env, diag); } catch (e) { diag.campanha = 'erro: ' + String(e && e.message || e).slice(0, 200); } }
+  if (!diag.lidas && !pausaProativa) { try { await campanhaSim(env, diag); } catch (e) { diag.campanha = 'erro: ' + String(e && e.message || e).slice(0, 200); } }
   try { await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('fila_rodada', ?, 'o que a fila de reenvio fez na ultima rodada', CURRENT_TIMESTAMP) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = CURRENT_TIMESTAMP").bind(JSON.stringify(diag)).run(); } catch (e) {}
 }
 async function registraTick(env, modo, rcas, gravados, duracaoMs) {

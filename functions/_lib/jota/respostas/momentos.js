@@ -130,5 +130,8 @@ export async function respMomento(B, c, Ev, momentoForcado = null) {
     }
   }
   L.push('', FECHA[momento][(ix + 3) % 8], RODAPE, `〔M:${momento}〕`);
-  return { texto: L.join('\n'), momento, comemora: momento === 'fechamento' ? (foco.length && foco.filter((f) => comprouHoje(f.id) || comprouMes(f.id)).length >= 3) : momento === 'meio' ? (porDia > 0 && (v.dig || 0) >= porDia) : (ix % 2 === 0) };
+  // INCENTIVO (Vitorio, 11/11/2026: 'para incentivar as vezes seria necessario'): figurinha 'bora destravar' quando o dia esta fraco (nunca bronca)
+  const focoOk = foco.filter((f) => comprouHoje(f.id) || comprouMes(f.id)).length;
+  const incentiva = momento === 'meio' ? (foco.length > 0 && focoOk === 0 && porDia > 0 && (v.dig || 0) < porDia * 0.5) : momento === 'fechamento' ? (foco.length > 0 && focoOk === 0) : false;
+  return { texto: L.join('\n'), momento, incentiva, comemora: momento === 'fechamento' ? (foco.length && foco.filter((f) => comprouHoje(f.id) || comprouMes(f.id)).length >= 3) : momento === 'meio' ? (porDia > 0 && (v.dig || 0) >= porDia) : (ix % 2 === 0) };
 }

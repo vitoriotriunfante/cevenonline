@@ -79,7 +79,7 @@ export async function respSaudacao(B, c, primeiraVez) {
 export function figurinhaPara(resp, tipo) {
   if (tipo === 'saudacao_primeira') return '01_oi_eu_sou_o_jota';
   // 3 MOMENTOS (11/11/2026, Vitorio: 'figurinhas sim, mas nao na maioria'): figurinha so quando ha o que comemorar; sem comemorar, nenhuma
-  if (/^momento_/.test(String(tipo || ''))) { if (!/_comemora$/.test(tipo)) return null; return /plano/.test(tipo) ? '03_bom_dia_time' : /meio/.test(tipo) ? '05_bora_positivar' : '07_meta_batida'; }
+  if (/^momento_/.test(String(tipo || ''))) { if (/_incentiva$/.test(tipo)) return '12_bora_destravar'; if (!/_comemora$/.test(tipo)) return null; return /plano/.test(tipo) ? '03_bom_dia_time' : /meio/.test(tipo) ? '05_bora_positivar' : '07_meta_batida'; }
   if (tipo === 'saudacao') return horaSP() < 12 ? '03_bom_dia_time' : '02_conta_comigo';
   if (tipo === 'agradecimento') return '02_conta_comigo';   /* "blz", "valeu", "obrigado" = figurinha (27/10/2026) */
   const r = String(resp || '');

@@ -307,7 +307,7 @@ export async function onRequestPost({ request, env }) {
       if (await MO.momentosLigados(B)) {
         const Ev = await carregaEscopo(B, { nome: c.nome, filiais: [String(c.filial)], grupo: null, supervisor: null, rca: String(c.rca), nacional: false });
         const m = await MO.respMomento(B, c, Ev);
-        if (m && m.texto) { resp = m.texto; tipo = 'momento_' + m.momento + (m.comemora ? '_comemora' : ''); }
+        if (m && m.texto) { resp = m.texto; tipo = 'momento_' + m.momento + (m.comemora ? '_comemora' : m.incentiva ? '_incentiva' : ''); }
       }
     } catch (e) { resp = null; }   // falhou: cai na saudacao de sempre
   }
@@ -402,7 +402,7 @@ export async function onRequestPost({ request, env }) {
     const fig = figurinhaPara(resp, tipo);
     if (fig && e.ok) {
       const ult = await env.DB.prepare("SELECT MAX(quando) q, (SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'figurinha' ORDER BY id DESC LIMIT 1) fig_nome, (SELECT COUNT(*) FROM bot_msgs b WHERE b.celular = ? AND b.direcao = 'out' AND b.id > COALESCE((SELECT MAX(id) FROM bot_msgs x WHERE x.celular = ? AND x.direcao = 'figurinha'), 0)) desde FROM bot_msgs WHERE celular = ? AND direcao = 'figurinha'").bind(cel, cel, cel, cel).first().catch(() => null);
-      const ruim = /precisando reagir|Abaixo do ritmo|ERRO|devolu/i.test(resp) && !/^(saudacao)/.test(tipo);
+      const ruim = /precisando reagir|Abaixo do ritmo|ERRO|devolu/i.test(resp) && !/^(saudacao|momento_)/.test(tipo);
       const ehOutraFigurinha = ult && ult.fig_nome && ult.fig_nome !== fig;
       if (!ruim && (tipo === 'agradecimento' || ehOutraFigurinha || !ult || !ult.q || ult.desde >= 3 || Date.now() - Date.parse(ult.q + 'Z') > 2 * 3600 * 1000)) {
         const ok = await enviarFigurinha(env, numEnvio, fig);
