@@ -15,7 +15,7 @@ Meta da filial (soma dos vendedores + ocultos): R$ 6.650.000 · no momento do ge
 
 ✅ Números iguais nas três telas.
 
-Equipe VAGO - GABRIEL: faturado R$ 85.861 · a faturar R$ 57.185 · meta R$ 620.000 · hoje R$ 19.661 — na filial: R$ 85.861 · R$ 57.185 · R$ 620.000 · R$ 19.661 ✅
+Equipe VAGO - GABRIEL: faturado R$ 85.861 · a faturar R$ 58.029 · meta R$ 620.000 · hoje R$ 25.005 — na filial: R$ 85.861 · R$ 58.029 · R$ 620.000 · R$ 23.709 ❌
 
 ### vendedor: 1 (como estou) ✅
 ```
@@ -32,10 +32,8 @@ Equipe VAGO - GABRIEL: faturado R$ 85.861 · a faturar R$ 57.185 · meta R$ 620.
 ⭐ *Mais vendidos no mês* (nº de clientes que compraram): 1. Turron Many (4 clientes) · 2. Ketchup Tradic Sh Hemmer (3 clientes) · 3. Maionese Tradic Sh Hemmer (3 clientes) · 4. Tabl Choco Amendoim Block (2 clientes) · 5. Ch Plut Baba De Bruxa (2 clientes)
 🆕 *Produtos novos nos clientes* (não compravam há mais de 60 dias): 1. Bl Gelat Mogul 360 Urso Sortid (2 clientes) · 2. Gl Difusor Cha Branco (2 clientes) · 3. Lysoform Desinf Bruto (1 cliente, 1 pelo +MIX) · 4. Pir Plut Expl Melancia (1 cliente) · 5. Pir Plut Expl Maca Verde (1 cliente)
 🕒 Dados do CEVEN lidos às 14:45
-⚽ Hoje na Liga: *-13 pontos* em 2 lance(s) — 1× Cartão Vermelho (Abandono de Campo) · 1× Cartão Amarelo
-📌 *Faltam 72 positivações:* *12* na rota de hoje e *19* já visitados no mês ainda sem compra. Peça *"ver mais"* para ver a lista de clientes.
-
-🎯 *Sugestão do Jo
+⚽ Hoje na Liga: *-10 pontos* em 3 lance(s) — 1× Pedido Feito na Rota OURO · 1× Cartão Vermelho (Abandono de Campo) · 1× Cartão Amarelo
+📌 *Faltam 72 positivações:* *12* na rota de hoje e *19* já visitados no mês ainda sem compra. Peça *"ver mais"* para ver a lista d
 ```
 
 ### vendedor: 5 (sem compra) ✅
@@ -190,12 +188,12 @@ _👤 Igual ao que 342 - Marines Viar (varejo) vê no item 5 do menu dele · man
 ### supervisor: 5 (sem compra da equipe) ✅
 ```
 👥 *Quem falta positivar — Equipe Vago Gabriel (TCV)* (clientes da carteira do mês sem compra no mês)
-Total: *623* clientes · 10 vendedor(es)
+Total: *621* clientes · 10 vendedor(es)
 
 1️⃣ *337 - Sandramara Schuck (varejo)*: *102* de 123 clientes
 2️⃣ *352 - Tamara Guedes (varejo)*: *76* de 133 clientes
 3️⃣ *342 - Marines Viar (varejo)*: *70* de 118 clientes
-4️⃣ *356 - Weslei Zanatta (varejo)*: *64* de 96 clientes
+4️⃣ *356 - Weslei Zanatta (varejo)*: *62* de 96 clientes
 5️⃣ *548 - Tana Morais (varejo)*: *59* de 82 clientes
 6️⃣ *330 - Eduardo Silva (varejo)*: *56* de 89 clientes
 7️⃣ *1093 - Cristiane Chaves (varejo)*: *52* de 93 clientes
@@ -235,7 +233,7 @@ Equipe JORGE BONI: faturado R$ 45.770 · a faturar R$ 117.564 · meta R$ 1.115.0
 ↩️ Devolução no mês: R$ 2.149
 📅 Rota do mês: 3 de 30 visitas (10,0%)
 🏆 Liga: 89º no Brasil · 14º na filial · 5 pts (1V 2E 17D)
-🕒 Dados do CEVEN lidos às 14:40
+🕒 Dados do CEVEN lidos às 15:42
 📌 *Faltam 56 positivações:* *5* na rota de hoje ainda sem compra. Peça *"ver mais"* para ver a lista de clientes.
 
 🎯 *Sugestão do Jota:* precisa de R$ 32.296 por dia útil; priorizar clientes curva A e o +MIX.
@@ -309,7 +307,7 @@ Supermercado Italo · 30/10 · 12 dias
 ↩️ Devolução no mês: R$ 2.149
 📅 Rota do mês: 3 de 30 visitas (10,0%)
 🏆 Liga: 89º no Brasil · 14º na filial · 5 pts (1V 2E 17D)
-🕒 Dados do CEVEN lidos às 14:40
+🕒 Dados do CEVEN lidos às 15:42
 📌 *Faltam 56 positivações:* *5* na rota de hoje ainda sem compra. Peça *"ver mais"* para ver a lista de clientes.
 
 🎯 *Sugestão do Jota:* precisa de R$ 32.296 por dia útil; priorizar clientes curva A e o +MIX.
@@ -374,21 +372,21 @@ Faturado na resposta do vendedor: — · na resposta ao supervisor: —
 ```
 Opa, Gerente! 🍽️ O parcial da TCV:
 
-💰 Faturamento: *20,9%* da meta com o a faturar · faturado R$ 835.962 (12,6%) + a faturar R$ 553.067 de R$ 6.650.000
-🚶 Visitas: *186 de 349*
-📝 Vendido hoje: *R$ 182.735* em 87 cliente(s)
-📞 Vendedores com visita e sem pedido: *7* · escreva *zerados* para ver quem são
+💰 Faturamento: *21,2%* da meta com o a faturar · faturado R$ 865.098 (13,0%) + a faturar R$ 542.218 de R$ 6.650.000
+🚶 Visitas: *206 de 352*
+📝 Vendido hoje: *R$ 202.357* em 95 cliente(s)
+📞 Vendedores com visita e sem pedido: *8* · escreva *zerados* para ver quem são
 
 *Supervisores:*
-1. *Carlos Eduardo* · hoje R$ 0 · 3/21 visitas · 12,3% da meta
-2. *Gessandro Sperotto* · hoje R$ 46.248 · 57/103 visitas · 33,0% da meta
-3. *Giani Gregolin* · hoje R$ 27.339 · 59/86 visitas · 40,3% da meta
+1. *Carlos Eduardo* · hoje R$ 0 · 4/22 visitas · 12,3% da meta
+2. *Gessandro Sperotto* · hoje R$ 47.673 · 61/104 visitas · 33,1% da meta
+3. *Giani Gregolin* · hoje R$ 29.518 · 65/86 visitas · 40,7% da meta
 4. *Jorge Boni* · hoje R$ 788 · 2/14 visitas · 14,6% da meta
 5. *Leandro Marinho* · hoje R$ 0 · 1/11 visitas · 13,5% da meta
-6. *Roberto Otfinoski* · hoje R$ 88.699 · 5/13 visitas · 17,6% da meta
-7. *Vago -* · hoje R$ 19.661 · 59/101 visitas · 23,1% da meta
+6. *Roberto Otfinoski* · hoje R$ 100.669 · 6/14 visitas · 18,7% da meta
+7. *Vago -* · hoje R$ 23.709 · 67/101 visitas · 23,2% da meta
 
-🏆 Melhor do dia: *Roberto* (R$ 88.699) · 👀 atenção: *Leandro* (R$ 0)
+🏆 Melhor do dia: *Roberto* (R$ 100.669) · 👀 atenção: *Leandro* (R$ 0)
 
 👉 *Digite o número do supervisor* para abrir a equipe dele.
 
@@ -399,21 +397,21 @@ _Quer ver mais? Escreva *mais*._
 
 ## diretoria: como está a filial ✅
 ```
-📊 *TCV agora* (14:57)
-💰 Faturado: *R$ 835.962* de R$ 6.650.000 → *12,6%*
-⏳ Pendente: R$ 565.481
-👥 Positivação: 645 de 3.045 (21,2%)
-📝 Digitado hoje: *R$ 41.705* em *91* pedidos
-🚶 Rota do varejo hoje: 190 de 308 visitas · sem nenhuma visita: 0
+📊 *TCV agora* (15:51)
+💰 Faturado: *R$ 865.098* de R$ 6.650.000 → *13,0%*
+⏳ Pendente: R$ 543.283
+👥 Positivação: 669 de 3.045 (22,0%)
+📝 Digitado hoje: *R$ 54.763* em *99* pedidos
+🚶 Rota do varejo hoje: 235 de 308 visitas · sem nenhuma visita: 0
 🏁 Meta batida no mês (fat.+pend.): 0 de 49 vendedores
 ↩️ Devoluções no mês: R$ 63.029
-⚽ Hoje: 18 gol(s) · 1 pênalti(s) · 9 impedimento(s)
+⚽ Hoje: 18 gol(s) · 2 pênalti(s) · 10 impedimento(s)
 🏆 Liga: 3º de 11, 23 pontos (1V 20E 0D)
-⚠️ Zerados hoje (varejo com rota): *3* — 356 - Weslei Zanatta (varejo), 325 - Cleiton Carvalho (varejo), 548 - Tana Morais (varejo)
+⚠️ Zerados hoje (varejo com rota): *2* — 325 - Cleiton Carvalho (varejo), 548 - Tana Morais (varejo)
 ✅ Melhores na meta: 339 - Lucivania Oliveira (varejo) 51,8% · 549 - Alessandra Detofol (varejo) 48,9%
 🔻 Mais atrás: 330 - Eduardo Silva (varejo) -12,3% · 363 - Valdir Dietrich (AS) -0,5%
 
-👀 *Leitura do Jota:* abaixo do ritmo, precisamos reagir (o calendário pede 32% e estamos em 12,6%).
+👀 *Leitura do Jota:* abaixo do ritmo, precisamos reagir (o calendário pede 32% e estamos em 13,0%).
 
 🎯 *Sugestão do Jota:* puxar os mais atrás na meta para fechar o mês.
 _Peça "hoje", "por supervisor", "zerados", "falta", "liga", "ajuda"._
@@ -423,29 +421,29 @@ _Peça "hoje", "por supervisor", "zerados", "falta", "liga", "ajuda"._
 ```
 🏭 *Indústrias — TCV* · novembro
 💰 *Vendas*
-Meta *R$ 6.692.629* · faturado *R$ 684.183* (10,2%) · a faturar R$ 607.470
-Vendido (fat. + a faturar) *R$ 1.291.653* (19,3%) · falta *R$ 6.008.446*
-Média *R$ 97.740*/dia útil · precisa *R$ 751.056*/dia útil (8 até dia 20)
+Meta *R$ 6.692.471* · faturado *R$ 809.108* (12,1%) · a faturar R$ 580.085
+Vendido (fat. + a faturar) *R$ 1.389.192* (20,8%) · falta *R$ 5.883.363*
+Média *R$ 115.587*/dia útil · precisa *R$ 735.420*/dia útil (8 até dia 20)
 👥 *Positivação*
-Meta *10.190* clientes (CEVEN) · positivados *1.425* (14,0%) · faltam *8.765*
-Média *204*/dia útil · precisa *1.096*/dia útil
-🔎 _GEROT x CEVEN:_ positivados GEROT 1.425 x CEVEN 1.633 (+208) · faturado GEROT R$ 684.183 x CEVEN R$ 835.962 (+R$ 151.780)
+Meta *10.190* clientes (CEVEN) · positivados *1.626* (16,0%) · faltam *8.564*
+Média *232*/dia útil · precisa *1.071*/dia útil
+🔎 _GEROT x CEVEN:_ positivados GEROT 1.626 x CEVEN 1.717 (+91) · faturado GEROT R$ 809.108 x CEVEN R$ 865.098 (+R$ 55.991)
 
 *Com meta (11):*
-1. *Arcor*: R$ 204.681 de R$ 2.004.305 (10,2%) · vendido 23,2% · 412/2.210 cli.
-2. *Hemmer*: R$ 150.339 de R$ 1.403.597 (10,7%) · vendido 17,4% · 213/1.500 cli.
-3. *SC Johnson*: R$ 175.339 de R$ 1.272.907 (13,8%) · vendido 22,2% · 205/1.200 cli.
-4. *AB Mauri (Fleischmann)*: R$ 72.429 de R$ 801.618 (9,0%) · vendido 15,9% · 181/1.370 cli.
-5. *Condor*: R$ 30.868 de R$ 711.510 (4,3%) · vendido 10,4% · 112/1.000 cli.
-6. *Bagley*: R$ 25.851 de R$ 299.430 (8,6%) · vendido 15,7% · 181/1.310 cli.
-7. *Baly*: R$ 7.890 de R$ 100.000 (7,9%) · vendido 15,5% · 63/800 cli.
-8. *Envision (AOC/Philips)*: R$ 2.490 de R$ 60.000 (4,2%) · vendido 8,1% · 22/300 cli.
-9. *Marca Própria*: R$ 8.229 de R$ 30.207 (27,2%) · vendido 47,9% · 10 cli.
-10. *Dafruta (EBBA)*: R$ 6.264 de R$ 6.296 (99,5%) · vendido 205,2% · 26 cli.
-11. *Sococo*: R$ -161 de R$ 2.759 (-5,8%) · vendido 22,5%
+1. *Arcor*: R$ 254.704 de R$ 2.004.305 (12,7%) · vendido 23,9% · 463/2.210 cli.
+2. *Hemmer*: R$ 171.220 de R$ 1.403.597 (12,2%) · vendido 20,0% · 244/1.500 cli.
+3. *SC Johnson*: R$ 190.386 de R$ 1.272.907 (15,0%) · vendido 23,6% · 232/1.200 cli.
+4. *AB Mauri (Fleischmann)*: R$ 89.799 de R$ 801.618 (11,2%) · vendido 17,7% · 216/1.370 cli.
+5. *Condor*: R$ 39.702 de R$ 711.510 (5,6%) · vendido 11,9% · 138/1.000 cli.
+6. *Bagley*: R$ 29.580 de R$ 299.430 (9,9%) · vendido 16,0% · 200/1.310 cli.
+7. *Baly*: R$ 8.457 de R$ 100.000 (8,5%) · vendido 16,6% · 67/800 cli.
+8. *Envision (AOC/Philips)*: R$ 2.894 de R$ 60.000 (4,8%) · vendido 7,7% · 26/300 cli.
+9. *Marca Própria*: R$ 12.850 de R$ 30.207 (42,5%) · vendido 47,7% · 11 cli.
+10. *Dafruta (EBBA)*: R$ 6.677 de R$ 6.296 (106,1%) · vendido 205,7% · 28 cli.
+11. *Sococo*: R$ -161 de R$ 2.601 (-6,2%) · vendido 14,8%
 
 *Sem meta cadastrada, com venda (1):*
-12. *Gonçalves*: R$ -36 · _sem meta_
+12. *Gonçalves*: R$ 3.000 · _sem meta_ · 1 cli.
 
 👉 *Digite o número da indústria* para abrir por supervisor · *0* volta ao Brasil
 
