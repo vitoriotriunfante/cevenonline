@@ -98,7 +98,7 @@ export default {
         // GEROT e PROSPECTS (09/11/2026): o `schedule` do GitHub nao disparou nenhuma vez; vao no mesmo relogio de 15 min (:02 :17 :32 :47).
         // GEROT depois de cada janela: 09h17 11h17 13h17 15h17 17h17 19h17, segunda a sabado. Prospects: 09h32 12h32 15h32, todo dia. Nenhum manda mensagem.
         const mi = agora.getMinutes();
-        if (dia >= 1 && dia <= 6 && [9, 11, 13, 15, 17, 19].includes(h) && mi >= 15 && mi < 30) {
+        if (dia >= 1 && dia <= 6 && [7, 9, 11, 13, 15, 17, 19, 21].includes(h) && mi >= 15 && mi < 30) {   // 12/11/2026 (Vitorio: 'GEROT tem que popular de 2 em 2 horas'): +07h17 (o schedule do GitHub nunca disparou a das 07h15) e +21h17 (ultima carga do dia para o batimento da madrugada)
           try { const r = await dispararWorkflow(env, 'gerot-coleta.yml', {}); console.log(`[GEROT] gerot-coleta.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[GEROT][ERRO] ' + (e && e.message ? e.message : e)); }
         }
         if ([9, 12, 15].includes(h) && mi >= 30 && mi < 45) {

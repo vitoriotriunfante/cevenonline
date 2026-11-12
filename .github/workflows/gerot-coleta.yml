@@ -36,7 +36,9 @@ jobs:
       - name: Instalar dependencias e navegador
         run: |
           npm ci --no-audit --no-fund
-          npx playwright install --with-deps chromium
+          # 12/11/2026: em 11/11 11h17 e 13h17 a instalacao caiu por rede do GitHub (security.ubuntu.com) e a coleta nao rodou. Ate 4 tentativas.
+          for t in 1 2 3 4; do npx playwright install --with-deps chromium && break; echo "tentativa $t falhou, nova em 30 s"; sleep 30; sudo apt-get update -qq || true; done
+          npx playwright install chromium
       - name: Coletar GEROT
         env:
           GEROT_EMAIL: ${{ secrets.GEROT_EMAIL }}
