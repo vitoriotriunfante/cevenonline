@@ -509,6 +509,7 @@ async function coletarVendasCompleto(repsMap, dataRef) {
   }
 }
 
+let FONTE_DIGITADO = '';   // 12/11/2026: fonte do digitado no boletim (Clube da Venda = origem; Winthor = codigos que o Clube nao tem)
 async function coletarVendasEZerados(repsValidationMap, dataRef) {
   console.log(`📡 Coletando produtividade e vendedores de varejo para ${dataRef}...`);
   // base relida a cada rodada (26/10/2026)
@@ -557,6 +558,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
   // Winthor + historico, inclui loja Mondelez e digitados no Winthor). A produtividade do CEVEN so vale se essa leitura falhar.
   const somaPed = await lerSite('/api/pedidos-dia?soma=1&dia=' + dataRef);
   const pedPorRca = new Map(); const pedUsados = new Set();
+  FONTE_DIGITADO = somaPed && somaPed.fonte === 'clube+winthor' && somaPed.clube_lido_em ? `_Digitado: Clube da Venda (lido às ${new Date(somaPed.clube_lido_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}) + Winthor._` : (somaPed ? '_Digitado: pedidos do Winthor._' : '');
   if (somaPed && Array.isArray(somaPed.rcas)) for (const x of somaPed.rcas) pedPorRca.set(String(x.filial).toUpperCase() + '_' + x.rca, x);
   else { console.log('⚠️ Base: soma dos pedidos do dia indisponivel'); FALHAS_COLETA++; }
   if (!lancesDia || !Array.isArray(lancesDia.lances)) { console.log('⚠️ Base: lances do dia indisponiveis'); FALHAS_COLETA++; }
@@ -1266,7 +1268,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
       `📅 ${new Date().toLocaleDateString('pt-BR')} • Grupo Triunfante (11 Filiais)`,
       `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
       `📌 *RESULTADO FINANCEIRO DO DIA:*`,
-      `💰 *Total Digitado Hoje:* R$ ${fmtMoeda(totFat)}`,
+      `💰 *Total Digitado Hoje:* R$ ${fmtMoeda(totFat)}` + (FONTE_DIGITADO ? '\n' + FONTE_DIGITADO : ''),
       `📦 *Total de Pedidos Colocados:* ${totPed.toLocaleString('pt-BR')} pedidos`,
       ``,
       `🟢 *CONQUISTAS E RECUPERAÇÃO DE BASE HOJE:*`,
@@ -1333,7 +1335,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
     m += `📅 ${new Date().toLocaleDateString('pt-BR')}\n`;
     m += `📍 *FILIAL ${r.sigla} — ${r.gerente.toUpperCase()}*\n`;
     m += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-    m += `💰 *Total Digitado Hoje:* R$ ${fmtMoeda(r.fat)}\n`;
+    m += `💰 *Total Digitado Hoje:* R$ ${fmtMoeda(r.fat)}\n` + (FONTE_DIGITADO ? FONTE_DIGITADO + '\n' : '');
     m += `📦 *Pedidos Colocados:* ${r.ped} pedidos\n`;
     m += `📍 *Visitas Realizadas:* ${r.vis} de ${r.rot} (${r.efici}%)\n`;
     m += `👥 *Vendedores Varejo com Pedido:* ${r.vjCom} de ${r.vjTotal} (${r.pctCom}%)\n`;

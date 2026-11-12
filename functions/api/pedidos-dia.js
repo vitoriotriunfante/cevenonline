@@ -25,7 +25,16 @@ export async function onRequestGet({ env, request }) {
     try {
       const { results } = await env.DB.prepare("SELECT filial, rca, sum(coalesce(valor, 0)) v, count(*) n, count(DISTINCT id_cliente) c FROM pedido_status WHERE data_pedido = ? AND status <> 'CANCELADO' AND data_pedido <= date(primeiro_em, '-3 hours') GROUP BY filial, rca").bind(dia).all();
       const ult = await env.DB.prepare("SELECT max(atualizado_em) m FROM pedido_status WHERE data_pedido = ?").bind(dia).first();
-      return new Response(JSON.stringify({ dia, atualizado_em: ult && ult.m, rcas: results || [] }), { headers: cors });
+      // CLUBE DA VENDA (12/11/2026): digitado de hoje na ORIGEM (lido a cada 15 min, so leitura de ate 45 min). Quem o Clube tem vale o Clube; codigos que so o Winthor
+      // tem (loja, digitado direto no Winthor) continuam pelo Winthor. Sem Clube fresco: so o Winthor, como antes.
+      let clube = [];
+      try { const { results: C } = await env.DB.prepare("SELECT filial, rca, total_pedido v, ped_total n, lido_em FROM clube_venda_dia WHERE dia = ? AND lido_em >= ?").bind(dia, new Date(Date.now() - 45 * 60000).toISOString()).all(); clube = C || []; } catch { /* tabela ainda nao existe */ }
+      if (clube.length) {
+        const tem = new Set(clube.map((x) => x.filial + '|' + x.rca));
+        const rc = clube.map((x) => ({ filial: x.filial, rca: x.rca, v: Number(x.v) || 0, n: Number(x.n) || 0, fonte: 'clube' })).concat((results || []).filter((x) => !tem.has(x.filial + '|' + x.rca)).map((x) => ({ ...x, fonte: 'winthor' })));
+        return new Response(JSON.stringify({ dia, fonte: 'clube+winthor', clube_lido_em: clube.map((x) => x.lido_em).sort()[0], atualizado_em: ult && ult.m, rcas: rc }), { headers: cors });
+      }
+      return new Response(JSON.stringify({ dia, fonte: 'winthor', atualizado_em: ult && ult.m, rcas: results || [] }), { headers: cors });
     } catch (e) { return new Response(JSON.stringify({ erro: String(e.message || e).slice(0, 200) }), { status: 500, headers: cors }); }
   }
   if (ehSimples) {

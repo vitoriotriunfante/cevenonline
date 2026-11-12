@@ -410,9 +410,13 @@ async function trataMensagem({ request, env }) {
   }
   if (tipo === 'pronta') resp = humaniza(resp, c, primeiraDoDia);
   // ETIQUETA UNICA DA RESERVA (12/11/2026, arquiteto de dados): se algum numero desta resposta veio da ultima leitura real do mes (CEVEN sem resposta hoje), avisa sempre, em qualquer resposta
+  // 12/11/2026: vendas e visitas de HOJE vindas do Clube da Venda (CEVEN fora) — sempre com a hora da leitura
+  if (resp && B && B._clube && !/Clube da Venda/.test(resp)) { const dc = new Date(B._clube); resp += `
+
+_🟢 Vendas e visitas de hoje: Clube da Venda${isNaN(dc) ? '' : ', lido às ' + dc.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}._`; }
   if (resp && B && B._reserva && !/CEVEN sem resposta agora/.test(resp)) { const d = new Date(Date.parse(String(B._reserva).replace(' ', 'T') + (/Z$/.test(String(B._reserva)) ? '' : 'Z'))); resp += `
 
-_⚠️ CEVEN sem resposta agora: números do mês da última leitura real${isNaN(d) ? '' : ' (' + d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + ')'}; visitas de hoje sem leitura._`; }
+_⚠️ CEVEN sem resposta agora: números do mês da última leitura real${isNaN(d) ? '' : ' (' + d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + ')'}${B._clube ? '' : '; visitas de hoje sem leitura'}._`; }
   // AVALIACAO EM TODAS AS RESPOSTAS (Vitorio, 11/11/2026): vendedor, supervisor, gerente e diretoria, inclusive menus e os 3 momentos; 👍/👎 nao briga com o numero do menu
   if (resp && !['nota', 'agradecimento', 'saudacao_primeira', 'reacao_figurinha', 'bloqueado'].includes(tipo) && !/o que faltou/.test(resp) && !/⟪⟫/.test(resp)) resp += '\n\n_Essa resposta ajudou? Responda 👍 ou 👎 · ou escreva *sugestão:* e o que melhorar_';
   if (audio && audio.texto) resp = `🎙️ _Entendi: "${audio.texto.slice(0, 200)}"_\n\n` + resp;

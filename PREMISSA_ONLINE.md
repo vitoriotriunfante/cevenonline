@@ -33,3 +33,9 @@ API do CEVEN · Google Drive · Cloudflare (Pages, Functions, D1) · GitHub (có
 
 ## Dívida: catálogo de produtos depende de planilha baixada (03/10/2026)
 `config/catalogo_produtos_por_filial.json` é gerado por `analises/gerar_catalogo_produtos.py` a partir da planilha "Relação de itens por filial", baixada do CEVEN e rodada no PC. Plano: achar o endpoint do CEVEN que lista os itens por filial (sem estoque) e gerar o catálogo na nuvem (GitHub Actions/Worker), ou colocar a planilha no Google Drive "CEVEN Datalake" e gerar no workflow do Data Lake.
+
+## Dívida: robô do Clube da Venda roda no PC (12/11/2026)
+- **O quê:** `pipeline/clube_coletor.mjs` lê o Relatório de Vendas do Clube da Venda (TradePro) — digitado, pedidos, roteiros e visitas de hoje por vendedor — e grava no D1 (`clube_venda_dia`). Jota, TV (`tv-vendedor`, `totais-dia`) e boletim (`pedidos-dia?soma=1`) usam quando a produtividade do CEVEN de hoje falta (CEVEN fora desde 11/11 17:34).
+- **Onde roda:** tarefa agendada do Windows "CEVEN Clube da Venda" (`RODAR_CLUBE.bat`), a cada 15 min das 07:00 às 20:00. Login em `%USERPROFILE%\.ceven\clube.env`, fora do repositório. Log em `%USERPROFILE%\.ceven\logs\clube.log`.
+- **Por que no PC:** decisão do Vitório ("deixa aqui mesmo... não precisa subir no github as senhas do trade").
+- **Para eliminar:** usuário próprio do TradePro em segredo do GitHub + workflow disparado pelo worker (o robô já lê o login de variável de ambiente). Com o PC desligado, as telas voltam a "sem leitura de hoje" (nunca zero).

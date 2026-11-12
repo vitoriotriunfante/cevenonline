@@ -13,6 +13,7 @@
 //   o número como total (mostra "lidos X de Y"). Nunca inventa nem completa com estimativa.
 // =========================================================================
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
+import { lerClubeFilial, diaDoClube } from '../_lib/clube.js';
 const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=15, s-maxage=15, stale-while-revalidate=10' };
 const FILIAIS = ['TBL', 'TPH', 'TCV', 'ABC', 'TCA', 'MCD', 'TCG', 'API', 'TBE', 'TPA', 'TSJ'];
 const num = (v) => (v == null || v === '' || !isFinite(Number(v)) ? null : Number(v));
@@ -36,7 +37,7 @@ async function calcula(env, request) {
   const m = await (await fetch(new URL('/api/tv-mostra', request.url), { signal: AbortSignal.timeout(20000) })).json();
   if (!m || !m.filiais) throw new Error('Gestão de Equipe indisponível');
   const { results } = await env.DB.prepare('SELECT rca_codigo, filial_sigla, produtividade_json, updated_at FROM varredura_central_rca WHERE data_ref = ?').bind(dia).all();
-  const agora = Date.now(), base = new Map();
+  const agora = Date.now(), base = new Map(), clubeDe = {}; let usouClube = false;
   for (const r of results || []) base.set(String(r.filial_sigla).toUpperCase() + '|' + String(r.rca_codigo), r);
 
   const cascataMap = new Map();
@@ -73,6 +74,8 @@ async function calcula(env, request) {
         idade = Number.isFinite(t) ? Math.round((agora - t) / 1000) : null;
         try { const p = JSON.parse(linha.produtividade_json || 'null'); d = p && p.dia ? p.dia : null; } catch (e) { d = null; }
       }
+      // CLUBE DA VENDA (12/11/2026): sem a produtividade do CEVEN de hoje, visitas e digitado do dia vem do Clube (leitura de ate 45 min)
+      if (!d) { const C = clubeDe[sig] || (clubeDe[sig] = await lerClubeFilial(env, sig, dia)); const c = C && C.rcas.get(String(r.rca)); if (c) { d = diaDoClube(c); usouClube = true; } }
       // lido = produtividade DE HOJE na base ou cascata do gerente viva
       const casc = cascataMap.get(sig + '|' + String(r.rca));
       const lido = !!d;
@@ -103,7 +106,7 @@ async function calcula(env, request) {
   fecha(brasil);
   for (const f of Object.values(filiais)) { fecha(f); Object.values(f.grupos).forEach(fecha); }
   return {
-    dia, gerado_em: new Date().toISOString(), fonte: 'varredura_central_rca.produtividade + Gestão de Equipe (varejo de campo)',
+    dia, gerado_em: new Date().toISOString(), fonte: usouClube ? 'Clube da Venda (visitas e digitado de hoje) + Gestão de Equipe' : 'varredura_central_rca.produtividade + Gestão de Equipe (varejo de campo)',
     regra: 'programadas=total_programado; feitas=visitas_na_rota; zerado=com rota e sem digitado e sem positivação',
     brasil, filiais, faltando: vendedores.filter((v) => !v.lido).map((v) => ({ filial: v.filial, rca: v.rca, nome: v.nome, idade_s: v.idade_s })), vendedores
   };

@@ -1,4 +1,5 @@
 import { foraDoHorario } from '../_lib/horario_reduzido.js';
+import { lerClubeFilial, diaDoClube } from '../_lib/clube.js';
 import { gravaStatusPedidos } from '../_lib/pedido_status.js';   // linha do tempo do status de cada pedido (26/10/2026)
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
@@ -268,7 +269,12 @@ async function lerCentral(env, id, maxIdadeMs, filial, comReserva = false) {
         }
       } catch { /* sem reforco: fica o que a base tem */ }
     }
-    return { rot: rotFinal, prod: prod || null, dash: dashFinal, reforco };
+    // CLUBE DA VENDA (12/11/2026): sem a produtividade do CEVEN de hoje, o DIA (digitado, pedidos, visitas) vem do Clube, so nas TELAS (nunca no coletor de lances)
+    let prodFinal = prod || null;
+    if (comReserva && !prodFinal) {
+      try { const sig = String(row.filial_sigla || filial || '').replace(/1$/, '').toUpperCase(); const C = await lerClubeFilial(env, sig, dataHojeBrasilia()); const c = C && C.rcas.get(String(id)); if (c) { prodFinal = { dia: diaDoClube(c), mes: {} }; reforco = { ...(reforco || {}), dia: { fonte: 'Clube da Venda', em: c.lido_em } }; } } catch { /* sem Clube */ }
+    }
+    return { rot: rotFinal, prod: prodFinal, dash: dashFinal, reforco };
   } catch { return null; }
 }
 

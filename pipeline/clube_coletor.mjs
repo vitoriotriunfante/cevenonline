@@ -4,10 +4,11 @@
 //   "como o CEVEN ta fora pode ser uma alternativa... vamos fazer"). Lê o Relatório de Vendas do dia: filial -> supervisor -> vendedor (total pedido, total faturado,
 //   roteiros, visitas na rota, pedidos na rota/fora/total, média de SKU, eficiência, eficácia). Não clica em nada que altere dado.
 // USO: TP_USER=... TP_PASS=... node pipeline/clube_coletor.mjs [AAAAMMDD] [--saida=arquivo.json] [--enviar]
-//   --enviar: grava no D1 por /api/clube-carga (precisa CLUBE_CARGA_KEY). Sem --enviar, só escreve o JSON (ensaio).
+//   --d1: grava no D1 de producao (tabela clube_venda_dia) pelo wrangler desta maquina. Sem --d1, so escreve o JSON (ensaio).
+// RODA NO PC DO VITORIO (decisao dele, 12/11/2026: 'deixa aqui mesmo... nao precisa subir no github as senhas do trade'): divida registrada em PREMISSA_ONLINE.md.
 // =========================================================================
 import { chromium } from 'playwright';
-import fs from 'fs';
+import fs from 'fs'; import path from 'path'; import os from 'os'; import { spawnSync } from 'child_process';
 const BASE = 'https://grupotriunfante.tradepro.com.br/grupotriunfante/';
 // numero da unidade no Clube -> sigla (tela "Filiais" do Relatório de Vendas)
 const UNIDADES = { 2: 'TCA', 3: 'ABC', 4: 'TCV', 5: 'API', 6: 'TPA', 7: 'TCG', 9: 'TBL', 10: 'TPH', 11: 'MCD', 12: 'TSJ', 13: 'TBE' };
@@ -73,7 +74,18 @@ const porFil = {}; for (const v of vendedores) { const f = porFil[v.filial] || (
 log('vendedores', vendedores.length, 'falhas', falhas.length, 'tempo', res.duracao_s + 's');
 for (const [f, x] of Object.entries(porFil)) log(f, x.vend + ' vend', 'R$ ' + Math.round(x.pedido).toLocaleString('pt-BR'), x.ped + ' ped', x.visitas + '/' + x.roteiros + ' visitas');
 const saida = arg('saida') || `clube_${dia}.json`; fs.writeFileSync(saida, JSON.stringify(res)); log('gravado', saida);
-if (process.argv.includes('--enviar')) {
-  const r = await fetch((process.env.CLUBE_CARGA_URL || 'https://ceven-cftv-matrix.pages.dev') + '/api/clube-carga', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Clube-Key': process.env.CLUBE_CARGA_KEY || '' }, body: JSON.stringify(res) });
-  log('carga', r.status, (await r.text()).slice(0, 300));
+if (process.argv.includes('--d1')) {
+  // grava SO o que mudou (custo D1 = linhas gravadas): ON CONFLICT ... WHERE algum numero mudou
+  const q = (v) => v == null ? 'NULL' : typeof v === 'number' ? String(v) : "'" + String(v).replace(/'/g, "''") + "'";
+  const cols = ['total_pedido', 'total_faturado', 'roteiros', 'visitas_rota', 'ped_rota', 'ped_fora', 'ped_total', 'media_sku', 'eficiencia', 'eficacia'];
+  const L = ['CREATE TABLE IF NOT EXISTS clube_venda_dia (dia TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, sup_cod TEXT, nome TEXT, ' + cols.map((c) => c + ' REAL').join(', ') + ', lido_em TEXT, mudou_em TEXT, PRIMARY KEY (dia, filial, rca));',
+    'CREATE TABLE IF NOT EXISTS clube_coleta_status (id INTEGER PRIMARY KEY AUTOINCREMENT, dia TEXT, lido_em TEXT, vendedores INTEGER, falhas TEXT, duracao_s INTEGER);'];
+  for (const v of vendedores) L.push(`INSERT INTO clube_venda_dia (dia, filial, rca, sup_cod, nome, ${cols.join(', ')}, lido_em, mudou_em) VALUES (${[res.dia, v.filial, v.rca, v.sup_cod, v.nome, ...cols.map((c) => v[c]), res.lido_em, res.lido_em].map(q).join(', ')}) ON CONFLICT (dia, filial, rca) DO UPDATE SET sup_cod = excluded.sup_cod, nome = excluded.nome, ${cols.map((c) => c + ' = excluded.' + c).join(', ')}, lido_em = excluded.lido_em, mudou_em = excluded.mudou_em WHERE ${cols.map((c) => 'coalesce(clube_venda_dia.' + c + ', -1e9) <> coalesce(excluded.' + c + ', -1e9)').join(' OR ')};`);
+  // quem nao mudou: so a hora da leitura (1 UPDATE para todos), para o 'lido as' ser verdade
+  L.push(`UPDATE clube_venda_dia SET lido_em = ${q(res.lido_em)} WHERE dia = ${q(res.dia)} AND (filial || '|' || rca) IN (${vendedores.map((v) => q(v.filial + '|' + v.rca)).join(', ') || "''"});`);
+  L.push(`INSERT INTO clube_coleta_status (dia, lido_em, vendedores, falhas, duracao_s) VALUES (${q(res.dia)}, ${q(res.lido_em)}, ${vendedores.length}, ${q(falhas.join(', '))}, ${res.duracao_s});`);
+  const arqSql = path.join(os.tmpdir(), 'clube_carga.sql'); fs.writeFileSync(arqSql, L.join('\n'));
+  const npxDir = path.join(process.env.LOCALAPPDATA || '', 'npm-cache', '_npx'); const WR = fs.existsSync(npxDir) ? fs.readdirSync(npxDir).map((d) => path.join(npxDir, d, 'node_modules/wrangler/bin/wrangler.js')).find((x) => fs.existsSync(x)) : null;
+  const r = WR ? spawnSync(process.execPath, [WR, 'd1', 'execute', 'ceven_noc_d1', '--remote', '--file', arqSql, '--yes'], { encoding: 'utf8', maxBuffer: 1 << 26, env: { ...process.env, NO_COLOR: '1' } }) : spawnSync('npx', ['wrangler', 'd1', 'execute', 'ceven_noc_d1', '--remote', '--file', arqSql, '--yes'], { encoding: 'utf8', shell: true });
+  log('D1', r.status === 0 ? 'gravado' : 'FALHOU', (r.stdout || '').match(/rows_written[^,]*|Executed[^\n]*/g)?.slice(-2).join(' ') || (r.stderr || '').slice(0, 300));
 }

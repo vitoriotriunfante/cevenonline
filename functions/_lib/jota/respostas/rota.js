@@ -596,7 +596,7 @@ export async function respDiaEquipe(B, E) {
     const lidoMin = Vs.map((v) => v.pedLidoEm).filter(Boolean).sort()[0];
     if (lidoMin) cab.splice(2, 0, `_Pedidos lidos até ${new Date(lidoMin).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })} (leitura mais antiga da equipe)._`);
     // CEVEN fora (12/11/2026): sem as visitas de hoje, 'sem pedido' nao vira cobranca
-    const sugestao = B && B._reserva ? 'o CEVEN está sem resposta: sem as visitas de hoje, quem está sem pedido não deve ser cobrado por isso agora.' : zerados.length
+    const sugestao = B && B._reserva && !B._clube ? 'o CEVEN está sem resposta: sem as visitas de hoje, quem está sem pedido não deve ser cobrado por isso agora.' : zerados.length
       ? `ainda sem pedido hoje: ${zerados.map((z) => nome2(z.nome)).slice(0, 3).join(', ')}.`
       : 'equipe inteira com pedidos digitados hoje! Golaço!';
     return [
