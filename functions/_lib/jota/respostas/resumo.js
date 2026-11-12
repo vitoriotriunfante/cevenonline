@@ -13,12 +13,15 @@ export async function respResumo(B, E) {
   const s = await B.saude();
   const hora = (s && s.hora_sp) || new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
   if (E.nacional) {
-    let F = (s && s.filiais) || [];
+    // BASE UNICA NO BRASIL (12/11/2026, Vitorio 'como esta o Brasil': 9 filiais 'sem dado · R$ 0' e a TSJ com o Brasil todo): o /api/saude soma so a leitura do
+    // CEVEN de HOJE; com o CEVEN fora so a TSJ tinha linha. O Brasil agora sai SEMPRE da mesma base das filiais e dos vendedores (escopo: CEVEN + ultima leitura
+    // real + Clube), vendedores + ocultos (macro soma tudo). O /api/saude fica so para a hora.
+    let F = [];
     // FALLBACK DE SEGURANÇA (29/10/2026, Vitorio: 'Brasil R$ 0 de R$ 0' quando saude falha ou demora):
     // Se s.filiais vier vazio, monta a partir de E.vend e E.porFilial! NUNCA MOSTRAR BRASIL ZERADO!
     if (!F.length && E.vend && E.vend.length) {
       const mapaFil = new Map();
-      for (const v of E.vend) {
+      for (const v of (E.vend || []).concat(E.ocultos || [])) {
         const x = mapaFil.get(v.filial) || { filial: v.filial, faturado: 0, pendente: 0, meta_fat: 0, positivados: 0, meta_pos: 0, digitado_hoje: 0 };
         x.faturado += (v.fat || 0);
         x.pendente += (v.pend || 0);

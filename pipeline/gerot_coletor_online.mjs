@@ -174,6 +174,8 @@ async function main() {
           const mudou = linhas.filter((l) => hashes[`${l.filial}|${l.rca}|${l.fornecedor}|${l.cod_sup == null ? '' : l.cod_sup}`] !== l.hash);
           for (let i = 0; i < mudou.length; i += 200) { await api('POST', '', { linhas: mudou.slice(i, i + 200) }); enviadas += Math.min(200, mudou.length - i); }
           await api('POST', '', { status: { mes, linhas: linhas.length, enviadas, posicao, colunas } });
+          // 12/11/2026: lista completa das chaves desta extracao -> o D1 apaga a linha que sumiu do GEROT (vendedor que trocou de supervisor etc.)
+          if (linhas.length) { const lim = await api('POST', '', { vigentes: { mes, chaves: linhas.map((l) => `${l.filial}|${l.rca}|${l.fornecedor}|${l.cod_sup == null ? '' : l.cod_sup}`) } }).catch((e) => ({ erro: String(e.message || e) })); log('limpeza', mes, JSON.stringify(lim).slice(0, 160)); }
         }
         log(`${mes}: ${enviadas} linhas novas/alteradas gravadas no D1${ENSAIO ? ' (ensaio: nada gravado)' : ''}`);
         await page.keyboard.press('Escape').catch(() => {});

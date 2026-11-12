@@ -109,7 +109,7 @@ if (JU) { const i = { id: idx(JU, 'ID'), co: idx(JU, 'Coordenador'), rep: idx(JU
 const naoSinc = PP ? PP.total : null;
 log('check-in/out', CK ? checkins.length : 'FALHOU', '· justificativas', JU ? justificativas.length + ' de ' + JU.total : 'FALHOU', '· pedidos nao sincronizados com o Winthor', naoSinc == null ? 'FALHOU' : naoSinc);
 await browser.close();
-const res = { fonte: 'Clube da Venda (TradePro) · Relatório de Vendas', dia: `${dia.slice(0, 4)}-${dia.slice(4, 6)}-${dia.slice(6)}`, lido_em: new Date().toISOString(), duracao_s: Math.round((Date.now() - t0) / 1000), filiais, vendedores, falhas };
+const res = { fonte: 'Clube da Venda (TradePro) · Relatório de Vendas', dia: `${dia.slice(0, 4)}-${dia.slice(4, 6)}-${dia.slice(6)}`, lido_em: new Date().toISOString(), duracao_s: Math.round((Date.now() - t0) / 1000), filiais, vendedores, falhas, checkins, justificativas, nao_sinc: naoSinc };
 const porFil = {}; for (const v of vendedores) { const f = porFil[v.filial] || (porFil[v.filial] = { vend: 0, pedido: 0, ped: 0, visitas: 0, roteiros: 0 }); f.vend++; f.pedido += v.total_pedido || 0; f.ped += v.ped_total || 0; f.visitas += v.visitas_rota || 0; f.roteiros += v.roteiros || 0; }
 log('vendedores', vendedores.length, 'falhas', falhas.length, 'tempo', res.duracao_s + 's');
 for (const [f, x] of Object.entries(porFil)) log(f, x.vend + ' vend', 'R$ ' + Math.round(x.pedido).toLocaleString('pt-BR'), x.ped + ' ped', x.visitas + '/' + x.roteiros + ' visitas');

@@ -20,8 +20,12 @@ export function criaBase(origin, env) {
     // VIRADA DO DIA (26/10/2026, 01h): a base de hoje so enche com a primeira coleta; ate la vinha VAZIA e toda pergunta de equipe saia 'R$ 0'
     // com texto quebrado. Agora: base de hoje vazia -> usa o ULTIMO DIA COM DADO REAL (ate 4 dias atras) e marca cache.baseDe para o aviso.
     snap: (f) => memo('snap' + f, async () => {
-      const h = hojeSP(); const s = await api('/api/central-snapshot?filial=' + f + '&dia=' + h);
+      const h = hojeSP(); let s = await api('/api/central-snapshot?filial=' + f + '&dia=' + h);
+      // FALHA NAO E 'BASE VAZIA' (12/11/2026, Brasil: a TBL demorou, voltou null e caiu nos numeros de 11/11 — 'hoje R$ 454 mil' com o Clube em R$ 96 mil):
+      // resposta que nao veio = tenta de novo HOJE (2x); so cai para um dia anterior se o dia de hoje respondeu e veio VAZIO de verdade
+      for (let t = 0; t < 2 && !s; t++) s = await api('/api/central-snapshot?filial=' + f + '&dia=' + h);
       if (s && s.rcas && Object.keys(s.rcas).length) return s;
+      if (!s) return s;
       for (let k = 1; k <= 4; k++) { const d = new Date(Date.parse(h + 'T12:00:00Z') - k * 864e5).toISOString().slice(0, 10); const o = await api('/api/central-snapshot?filial=' + f + '&dia=' + d);
         if (o && o.rcas && Object.keys(o.rcas).length) { cache.baseDe = d; return o; } }
       return s;

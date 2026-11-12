@@ -413,7 +413,7 @@ async function trataMensagem({ request, env }) {
   // 12/11/2026: vendas e visitas de HOJE vindas do Clube da Venda (CEVEN fora) — sempre com a hora da leitura
   if (resp && B && B._clube && !/Clube da Venda/.test(resp)) { const dc = new Date(B._clube); resp += `
 
-_🟢 Vendas e visitas de hoje: Clube da Venda${isNaN(dc) ? '' : ', lido às ' + dc.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}._`; }
+_🟢 Hoje = pedidos COLOCADOS e visitas no Clube da Venda${isNaN(dc) ? '' : ' (lido às ' + dc.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) + ')'}. Pedido colocado ainda não é faturado; faturado e a faturar do mês vêm do CEVEN/GEROT._`; }
   if (resp && B && B._reserva && !/CEVEN sem resposta agora/.test(resp)) { const d = new Date(Date.parse(String(B._reserva).replace(' ', 'T') + (/Z$/.test(String(B._reserva)) ? '' : 'Z'))); resp += `
 
 _⚠️ CEVEN sem resposta agora: números do mês da última leitura real${isNaN(d) ? '' : ' (' + d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + ')'}${B._clube ? '' : '; visitas de hoje sem leitura'}._`; }

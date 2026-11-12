@@ -558,7 +558,7 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
   // Winthor + historico, inclui loja Mondelez e digitados no Winthor). A produtividade do CEVEN so vale se essa leitura falhar.
   const somaPed = await lerSite('/api/pedidos-dia?soma=1&dia=' + dataRef);
   const pedPorRca = new Map(); const pedUsados = new Set();
-  FONTE_DIGITADO = somaPed && somaPed.fonte === 'clube+winthor' && somaPed.clube_lido_em ? `_Digitado: Clube da Venda (lido às ${new Date(somaPed.clube_lido_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}) + Winthor._` : (somaPed ? '_Digitado: pedidos do Winthor._' : '');
+  FONTE_DIGITADO = somaPed && somaPed.fonte === 'clube+winthor' && somaPed.clube_lido_em ? `_Pedidos colocados no Clube da Venda (lido às ${new Date(somaPed.clube_lido_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}) + Winthor. Pedido colocado ainda não é faturado._` : (somaPed ? '_Digitado: pedidos do Winthor._' : '');
   if (somaPed && Array.isArray(somaPed.rcas)) for (const x of somaPed.rcas) pedPorRca.set(String(x.filial).toUpperCase() + '_' + x.rca, x);
   else { console.log('⚠️ Base: soma dos pedidos do dia indisponivel'); FALHAS_COLETA++; }
   if (!lancesDia || !Array.isArray(lancesDia.lances)) { console.log('⚠️ Base: lances do dia indisponiveis'); FALHAS_COLETA++; }
