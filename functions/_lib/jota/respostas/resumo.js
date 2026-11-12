@@ -53,7 +53,9 @@ export async function respResumo(B, E) {
     L.push('', SUGESTAO + (pior ? `olhar ${pior.filial} (${P(pior.faturado || 0, pior.meta_fat)} da meta), a mais atrás no mês.` : 'acompanhar as filiais mais atrás.'), '_Peça uma filial (ex.: "TPH"), "zerados", "hoje", "liga", "ajuda"._');
     return L.join('\n');
   }
-  const fil = E.filiais[0]; const f = s && (s.filiais || []).find((x) => x.filial === fil);
+  // BASE UNICA NA FILIAL (auditoria 12/11/2026): o /api/saude so tem a leitura do CEVEN de hoje (sem Clube nem reserva): o gerente via digitado zero ou o da madrugada.
+  // Agora a filial sai da mesma base dos vendedores (vendedores + ocultos; digitado = macro da filial). s fica so para a hora.
+  const fil = E.filiais[0]; const f = null;
   const V = E.vend;
   const Vtotais = V.concat(E.ocultos || []);
   const G = agrupa(Vtotais, (v) => 'x').get('x') || { fat: 0, pend: 0, meta: 0 };

@@ -212,12 +212,12 @@ const memCascata = new Map();
 async function lerCentral(env, id, maxIdadeMs, filial, comReserva = false) {
   if (!env || !env.DB) return null;
   try {
-    const row = await env.DB.prepare(
+    let row = await env.DB.prepare(
       'SELECT roteiro_json, produtividade_json, dashboard_json, updated_at, filial_sigla, prod_em FROM varredura_central_rca WHERE rca_codigo = ? AND data_ref = ? AND (length(?) = 0 OR filial_sigla = ?)'
     ).bind(String(id), dataHojeBrasilia(), String(filial || '').replace(/1$/, '').toUpperCase(), String(filial || '').replace(/1$/, '').toUpperCase()).first();
-    if (!row || !row.updated_at) return null;
-    const idade = Date.now() - Date.parse(String(row.updated_at).replace(' ', 'T') + 'Z');
-    if (!(idade >= 0 && idade < maxIdadeMs)) return null;
+    // sem linha hoje (CEVEN fora a madrugada inteira; auditoria 12/11/2026): nas TELAS segue vazio para receber a reserva e o Clube abaixo; o coletor de lances nao
+    if (!row || !row.updated_at) { if (!comReserva) return null; row = { filial_sigla: String(filial || '').replace(/1$/, '').toUpperCase(), roteiro_json: null, produtividade_json: null, dashboard_json: null, updated_at: null, prod_em: null }; }
+    else { const idade = Date.now() - Date.parse(String(row.updated_at).replace(' ', 'T') + 'Z'); if (!(idade >= 0 && idade < maxIdadeMs)) return null; }
     const lê = (s) => { try { return s ? JSON.parse(s) : null; } catch { return null; } };
     const rot = lê(row.roteiro_json), dash = lê(row.dashboard_json);
     let prod = lê(row.produtividade_json);

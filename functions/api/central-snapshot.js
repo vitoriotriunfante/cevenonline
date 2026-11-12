@@ -33,7 +33,15 @@ export async function onRequestGet({ env, request }) {
     const agora = Date.now(), rcas = {};
     for (const r of results || []) {
       const t = Date.parse(String(r.updated_at || '').replace(' ', 'T') + 'Z');
-      rcas[r.rca_codigo] = { idade_s: Number.isFinite(t) ? Math.max(0, Math.round((agora - t) / 1000)) : null, produtividade: parse(r.produtividade_json), dashboard: parse(r.dashboard_json), devolucoes: parse(r.devolucoes_json), roteiro: parse(r.roteiro_json), roteiro_mes: parse(r.roteiro_mes_json), prod_em: r.prod_em || null };   // roteiro_mes: 26/10/2026
+      rcas[r.rca_codigo] = { idade_s: Number.isFinite(t) ? Math.max(0, Math.round((agora - t) / 1000)) : null, produtividade: parse(r.produtividade_json), dashboard: parse(r.dashboard_json), devolucoes: parse(r.devolucoes_json), roteiro: parse(r.roteiro_json), roteiro_mes: parse(r.roteiro_mes_json), prod_em: r.prod_em || null, roteiro_em: r.roteiro_em || null };   // roteiro_mes: 26/10/2026
+    }
+    // VENDEDOR SEM LINHA HOJE (auditoria 12/11/2026): a linha do dia so nasce se o CEVEN responder; com o CEVEN fora a madrugada inteira, hoje viria vazio e o JOTA
+    // cairia nos numeros de ontem, sem Clube nem reserva. Quem tinha linha no ultimo dia lido entra vazio, para receber a reserva e o Clube abaixo (nunca inventado).
+    if (dia === hojeSP()) {
+      try {
+        const { results: ul } = await env.DB.prepare('SELECT rca_codigo FROM varredura_central_rca WHERE filial_sigla = ? AND data_ref = (SELECT max(data_ref) FROM varredura_central_rca WHERE filial_sigla = ? AND data_ref < ?)').bind(filial, filial, dia).all();
+        for (const x of ul || []) if (!rcas[x.rca_codigo]) rcas[x.rca_codigo] = { idade_s: null, produtividade: null, dashboard: null, devolucoes: null, roteiro: null, roteiro_mes: null, prod_em: null, sem_linha_hoje: true };
+      } catch { /* segue */ }
     }
     // RESERVA DA ULTIMA LEITURA REAL (Vitorio 12/11/2026: CEVEN em 500 desde 11/11 17:34; revisado pelo arquiteto de dados no mesmo dia):
     // NUNCA por cima do dado de hoje. Vai em campos SEPARADOS, que so quem sabe mostrar a etiqueta usa:
