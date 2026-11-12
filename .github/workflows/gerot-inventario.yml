@@ -1,0 +1,38 @@
+# FICHA DO ARQUIVO
+# O QUE É: inventario SOMENTE LEITURA do GEROT, aba por aba (Vitorio, 12/11/2026: "analise profunda, item por item, indicador por indicador").
+# So manual. NAO grava no D1, NAO envia WhatsApp, NAO chama o CEVEN. Resultado (texto de cada tela, colunas e fotos) fica 7 dias nos artefatos.
+name: GEROT — inventario das abas (so leitura)
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: gerot-coleta
+  cancel-in-progress: false
+
+jobs:
+  inventario:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Instalar dependencias e navegador
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Ler todas as abas do GEROT
+        env:
+          GEROT_EMAIL: ${{ secrets.GEROT_EMAIL }}
+          GEROT_SENHA: ${{ secrets.GEROT_SENHA }}
+        run: node pipeline/gerot_inventario.mjs gerot_inventario
+      - name: Guardar o inventario
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gerot-inventario-${{ github.run_id }}
+          path: gerot_inventario/
+          retention-days: 7
+          if-no-files-found: ignore
