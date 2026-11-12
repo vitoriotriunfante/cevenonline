@@ -112,6 +112,7 @@ async function garanteIndicesOtimizacao(env) {
       env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_cascata_dia_data ON cascata_dia (data_ref)'),
       env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_pedido_status_final_cli ON pedido_status (final, data_pedido, filial, id_cliente)'),
       env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_pedido_status_data ON pedido_status (data_pedido)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_pedido_status_fil_rca_dia ON pedido_status (filial, rca, data_pedido)'),   // 12/11/2026: 482 mi linhas/dia sem ele (tv-vendedor); criado a mao e registrado aqui
       env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_pedido_status_hist_num ON pedido_status_hist (num, visto_em)'),
       env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_tv_lances_dia_filial ON tv_lances (dia, filial)'),
       env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_tv_lances_dia_rca ON tv_lances (dia, rca)'),
@@ -1085,7 +1086,8 @@ export async function onRequestGet({ env, request, waitUntil }) {
     } else {
       candidatos = quente.concat(semRota.filter((_, i) => i % FATIAS_ROTA === ciclo % FATIAS_ROTA));
     }
-    const alvoProd = candidatos
+    // 12/11/2026 (arquiteto): no caminho do admin a ordem ja vem certa (8 de quem mudou + 8 mais atrasados); reordenar por antiguidade jogava quem teve pedido novo para o fim
+    const alvoProd = viaAdmin ? candidatos : candidatos
       .sort((x, y) => { const k = (r) => { const a = ant.get(kr(r)); return !a ? '0' : (a.sem_prod ? '1' : '2') + String(a.pe || ''); }; return k(x).localeCompare(k(y)); });   // sem linha, depois sem produtividade, depois o mais antigo
     contagem.semRota = Math.max(0, alvoProd.length - quente.length);
     contagem.alvoProd = alvoProd.length;

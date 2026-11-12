@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: gerot-coleta
+  group: gerot-inventario   # fila propria (12/11/2026, arquiteto): no grupo da coleta uma execucao nova cancelava a carga pendente. Rodar fora das janelas (:17 das horas impares)
   cancel-in-progress: false
 
 jobs:

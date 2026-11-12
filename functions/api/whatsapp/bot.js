@@ -409,6 +409,10 @@ async function trataMensagem({ request, env }) {
     if (!seco) try { await env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(cel, c.nome, c.papel, c.filial || '', `[SEM RESPOSTA] ${String(texto).slice(0, 1400)}`, '').run(); } catch (e) {}
   }
   if (tipo === 'pronta') resp = humaniza(resp, c, primeiraDoDia);
+  // ETIQUETA UNICA DA RESERVA (12/11/2026, arquiteto de dados): se algum numero desta resposta veio da ultima leitura real do mes (CEVEN sem resposta hoje), avisa sempre, em qualquer resposta
+  if (resp && B && B._reserva && !/CEVEN sem resposta agora/.test(resp)) { const d = new Date(Date.parse(String(B._reserva).replace(' ', 'T') + (/Z$/.test(String(B._reserva)) ? '' : 'Z'))); resp += `
+
+_⚠️ CEVEN sem resposta agora: números do mês da última leitura real${isNaN(d) ? '' : ' (' + d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + ')'}; visitas de hoje sem leitura._`; }
   // AVALIACAO EM TODAS AS RESPOSTAS (Vitorio, 11/11/2026): vendedor, supervisor, gerente e diretoria, inclusive menus e os 3 momentos; 👍/👎 nao briga com o numero do menu
   if (resp && !['nota', 'agradecimento', 'saudacao_primeira', 'reacao_figurinha', 'bloqueado'].includes(tipo) && !/o que faltou/.test(resp) && !/⟪⟫/.test(resp)) resp += '\n\n_Essa resposta ajudou? Responda 👍 ou 👎 · ou escreva *sugestão:* e o que melhorar_';
   if (audio && audio.texto) resp = `🎙️ _Entendi: "${audio.texto.slice(0, 200)}"_\n\n` + resp;

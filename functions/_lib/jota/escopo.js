@@ -22,7 +22,8 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     for (const x of ((await B._pedHoje[filial]).results || [])) pedHoje.set(String(x.rca), x); } catch (e) { /* sem tabela: fica a produtividade */ } }
   for (const [rca, r] of Object.entries((snap && snap.rcas) || {})) {
     const e = eq.get(rca);
-    const d = r.dashboard || {}, fi = d.financeiro || {}, po = d.positivacao || {}, pm = (r.produtividade && r.produtividade.mes) || {};
+    if (!r.dashboard && r.dashboard_reserva && r.reserva && r.reserva.dashboard) { const em = String(r.reserva.dashboard.em || ''); if (!B._reserva || em < B._reserva) B._reserva = em; }   // etiqueta unica no bot.js
+    /* 12/11/2026: sem leitura de hoje, a ultima leitura real do mes (dashboard_reserva, com etiqueta em v.reforco) */ const d = r.dashboard || r.dashboard_reserva || {}, fi = d.financeiro || {}, po = d.positivacao || {}, pm = (r.produtividade && r.produtividade.mes) || {};
     const pd0 = (r.produtividade && r.produtividade.dia) || {}, ph = pedHoje.get(rca);
     const pd = ph ? { ...pd0, dig_pedido: Math.max(Number(pd0.dig_pedido) || 0, Number(ph.v) || 0), positivacao: Math.max(Number(pd0.positivacao) || 0, Number(ph.c) || 0), _dig_prod: Number(pd0.dig_pedido) || 0, _dig_ped: Number(ph.v) || 0, _ped_n: ph.n } : pd0;
     macro.pedidos += pd.positivacao || 0; macro.dig += pd.dig_pedido || 0;
@@ -42,12 +43,12 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
       visPlanMes: pm.visit_plan || 0, visRealMes: pm.visit_real || 0,
       /* 10/11/2026: mix do mes do proprio CEVEN (tela Produtividade) e a hora em que o CEVEN foi lido */ mixMes: (r.produtividade && r.produtividade.mix_mes) || null, lidoEm: snap && snap.gerado_em && r.idade_s != null ? new Date(Date.parse(snap.gerado_em) - r.idade_s * 1000).toISOString() : null,
       /* mes do PROPRIO vendedor, qualquer canal (detalhe do vendedor; os totais de rota seguem quem tem rota) */ roteiroMes: Array.isArray(r.roteiro_mes) ? r.roteiro_mes : null, mesV: { plan: pm.visit_plan ?? null, real: pm.visit_real ?? null, pedRota: pm.ped_rota_mes ?? null, efic: pm.eficiencia_pct ?? null },
-      /* 12/11/2026: CEVEN fora = sem dado, nunca zero */ semDash: !r.dashboard, semRota: !Array.isArray(r.roteiro), reforco: r.reforco || null, /* rota do reforco (roteiro do mes, sem check-in de hoje) nao prova zerado nem falta de visita (12/11/2026) */ zerado: varejo && ehVendReal && visP > 0 && !vendeuHoje && !(r.reforco && r.reforco.roteiro), semVisita: varejo && ehVendReal && visP > 0 && !(visF > 0) && !(r.reforco && r.reforco.roteiro), devolucoes: Array.isArray(r.devolucoes) ? r.devolucoes : [],
+      /* 12/11/2026: CEVEN fora = sem dado, nunca zero */ semDash: !r.dashboard && !r.dashboard_reserva, semRota: !Array.isArray(r.roteiro) && !Array.isArray(r.roteiro_planejado), reforco: r.reserva ? { ...(r.reserva.dashboard ? { financeiro: r.reserva.dashboard } : {}), ...(r.reserva.roteiro ? { roteiro: r.reserva.roteiro } : {}) } : null, /* rota do reforco (roteiro do mes, sem check-in de hoje) nao prova zerado nem falta de visita (12/11/2026) */ zerado: varejo && ehVendReal && visP > 0 && !vendeuHoje && !(r.reserva && r.reserva.roteiro), semVisita: varejo && ehVendReal && visP > 0 && !(visF > 0) && !(r.reserva && r.reserva.roteiro), devolucoes: Array.isArray(r.devolucoes) ? r.devolucoes : [],
       /* devolucoes que ENTRARAM hoje (mesma regra do WhatsApp 17:00/18:30: d.data === hoje) */
       devHojeCli: [...new Set((Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).map((x) => String(x.codcli)))],
       devHoje: (Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).reduce((t, x) => t + Math.abs(parseFloat(x.vl_devolvido || x.valor || 0) || 0), 0),
       vendeuHoje,
-      rotaHoje: Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hojeSP() || /FORA/i.test(String(c.status || ''))) : [],
+      rotaHoje: !Array.isArray(r.roteiro) && Array.isArray(r.roteiro_planejado) ? r.roteiro_planejado.map((c) => ({ ...c, status: 'PLANEJADO', checkin_horario: null, checkout_horario: null })) : Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hojeSP() || /FORA/i.test(String(c.status || ''))) : [],
       aVisitar: Array.isArray(r.roteiro) ? r.roteiro.filter((c) => String(c.data_visita || '').slice(0, 10) === hojeSP() && /^(ABERTO|AGENDADO)$/i.test(String(c.status || '')) && !c.checkin_horario) : [] };
 
     const ehMeuGrupo = !grupo || String(e.grupo || '').toUpperCase() === String(grupo).toUpperCase();

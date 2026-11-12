@@ -34,41 +34,22 @@ export async function onRequestGet({ env, request }) {
       const t = Date.parse(String(r.updated_at || '').replace(' ', 'T') + 'Z');
       rcas[r.rca_codigo] = { idade_s: Number.isFinite(t) ? Math.max(0, Math.round((agora - t) / 1000)) : null, produtividade: parse(r.produtividade_json), dashboard: parse(r.dashboard_json), devolucoes: parse(r.devolucoes_json), roteiro: parse(r.roteiro_json), roteiro_mes: parse(r.roteiro_mes_json) };   // roteiro_mes: 26/10/2026
     }
-    // CEVEN + GEROT, UM COBRE O OUTRO (Vitorio, 12/11/2026: "pedi os dados do CEVEN e do GEROT, nao do CEVEN ou do GEROT... se um nao funciona o outro roda";
-    // o CEVEN devolveu 500 de 11/11 17:34 em diante e o JOTA mostrou "R$ 0 de R$ 93.000" para a Tamara). Nada inventado: cada parte que falta hoje vem de uma leitura real,
-    // com a fonte e a hora em `reforco` (quem mostra diz de onde veio):
-    //  - faturado e carteira pendente do mes = GEROT (soma das industrias do vendedor, posicao gravada);
-    //  - meta, meta e realizado de positivacao = ultima leitura do CEVEN neste mes;
-    //  - rota de hoje = clientes de HOJE no roteiro do mes (ultima leitura do CEVEN; status do momento da leitura).
+    // RESERVA DA ULTIMA LEITURA REAL (Vitorio 12/11/2026: CEVEN em 500 desde 11/11 17:34; revisado pelo arquiteto de dados no mesmo dia):
+    // NUNCA por cima do dado de hoje. Vai em campos SEPARADOS, que so quem sabe mostrar a etiqueta usa:
+    //  - dashboard_reserva = ultima leitura do CEVEN neste mes (com fonte/hora em reserva.dashboard). O motor do WhatsApp nao le esse campo: a trava dele continua valendo.
+    //  - roteiro_planejado = clientes de HOJE no roteiro do mes, SEM status de visita de hoje (nao prova visita nem falta de visita).
+    //  - GEROT NAO vira total do vendedor (incompleto em parte da rede: TCV 352 R$ 4.424 x R$ 14.851).
     try {
       const faltam = Object.entries(rcas).filter(([, r]) => !r.dashboard || !Array.isArray(r.roteiro));
       if (faltam.length) {
         const mes = String(dia).slice(0, 7);
-        const { results: ant } = await env.DB.prepare("SELECT v.rca_codigo, v.data_ref, v.dashboard_json, v.dash_em, v.roteiro_mes_json, v.updated_at FROM varredura_central_rca v WHERE v.filial_sigla = ? AND v.data_ref < ? AND v.data_ref >= ? AND v.data_ref = (SELECT max(x.data_ref) FROM varredura_central_rca x WHERE x.filial_sigla = v.filial_sigla AND x.rca_codigo = v.rca_codigo AND x.data_ref < ? AND x.data_ref >= ? AND x.dashboard_json IS NOT NULL)").bind(filial, dia, mes + '-01', dia, mes + '-01').all();
+        const { results: ant } = await env.DB.prepare("SELECT v.rca_codigo, v.dashboard_json, v.dash_em, v.updated_at FROM varredura_central_rca v WHERE v.filial_sigla = ? AND v.data_ref = (SELECT max(x.data_ref) FROM varredura_central_rca x WHERE x.filial_sigla = v.filial_sigla AND x.rca_codigo = v.rca_codigo AND x.data_ref < ? AND x.data_ref >= ? AND x.dashboard_json IS NOT NULL)").bind(filial, dia, mes + '-01').all();
         const A = new Map((ant || []).map((x) => [String(x.rca_codigo), x]));
-        const G = new Map();
-        try {
-          const { results: gv } = await env.DB.prepare("SELECT rca, sum(coalesce(json_extract(dados,'$.\"Faturado líquido (R$)\"'),0)) fat, sum(coalesce(json_extract(dados,'$.\"Carteira pendente (R$)\"'),0)) pend, sum(coalesce(json_extract(dados,'$.\"Devolução (R$)\"'),0)) dev, max(em) em FROM gerot_vendas WHERE mes = ? AND filial = ? GROUP BY rca").bind(mes, filial).all();
-          for (const g of gv || []) G.set(String(g.rca), g);
-        } catch { /* GEROT sem dado: fica so o CEVEN anterior */ }
         for (const [rca, r] of faltam) {
-          const a = A.get(rca), g = G.get(rca), ref = r.reforco = {};
-          if (!r.dashboard) {
-            const da = a && parse(a.dashboard_json);
-            if (da || g) {
-              const fin = { ...((da && da.financeiro) || {}) };
-              // 12/11/2026 conferido: GEROT = CEVEN em TBL 189 (R$ 67.080), mas so parte das industrias em TCV 352 (R$ 4.424 x R$ 14.851): GEROT so quando nao ha leitura do CEVEN no mes
-              if (g && !da) { fin.faturado = Number(g.fat) || 0; fin.pendente = Number(g.pend) || 0; fin.devolucao = Number(g.dev) || 0; ref.financeiro = { fonte: 'GEROT', em: g.em }; }
-              else ref.financeiro = { fonte: 'CEVEN', em: a.dash_em || a.updated_at };
-              r.dashboard = { ...(da || {}), financeiro: fin };
-              if (da) ref.meta_positivacao = { fonte: 'CEVEN', em: a.dash_em || a.updated_at };
-            }
-          }
-          if (!Array.isArray(r.roteiro)) {
-            const rm = Array.isArray(r.roteiro_mes) ? r.roteiro_mes : (a && parse(a.roteiro_mes_json));
-            if (Array.isArray(rm)) { r.roteiro = rm.filter((c) => c && String(c.data_visita || '').slice(0, 10) === dia); if (!r.roteiro_mes) r.roteiro_mes = rm; ref.roteiro = { fonte: 'CEVEN roteiro do mes', em: a ? a.updated_at : null }; }
-          }
-          if (!Object.keys(ref).length) delete r.reforco;
+          const a = A.get(rca), ref = {};
+          if (!r.dashboard && a) { const da = parse(a.dashboard_json); if (da) { r.dashboard_reserva = da; ref.dashboard = { fonte: 'CEVEN', em: a.dash_em || a.updated_at }; } }
+          if (!Array.isArray(r.roteiro) && Array.isArray(r.roteiro_mes)) { r.roteiro_planejado = r.roteiro_mes.filter((c) => c && String(c.data_visita || '').slice(0, 10) === dia); ref.roteiro = { fonte: 'CEVEN roteiro do mes (planejado, sem status de hoje)' }; }
+          if (Object.keys(ref).length) r.reserva = ref;
         }
       }
     } catch { /* reforco nunca derruba o snapshot */ }
@@ -81,20 +62,20 @@ export async function onRequestGet({ env, request }) {
       const idadeCascata = c && c.atualizado_em ? Math.round((agora - Date.parse(String(c.atualizado_em).replace(' ', 'T') + 'Z')) / 1000) : Infinity;
       let j = null;
       // SO PARA HOJE (auditoria 01/11/2026): consultar dia antigo gravava a cascata de AGORA por cima da daquele dia (em 01/11, a de 30/10 e 31/10 viraram dados de novembro)
-      if (dia === hojeSP() && (!c || idadeCascata > 300)) {
-        try { j = await gravaCascataFilial(env, filial, dia, 5000); } catch {}
-      }
+      // 12/11/2026 (arquiteto): leitor nao chama o CEVEN; a cascata de hoje e gravada pelo coletor no inicio de cada rodada (gravaCascatas). idadeCascata fica so como informacao.
+      void idadeCascata; void gravaCascataFilial;
       if (!j && c) {
         try { j = JSON.parse(c.json); } catch {}
       }
-      if (!j) {
+      let cascataDeHoje = !!j;
+      if (!j) {   // cascata de outro dia: so a META serve; visitas de ontem nunca entram como de hoje (12/11/2026)
         const ult = await env.DB.prepare('SELECT json FROM cascata_dia WHERE filial = ? ORDER BY data_ref DESC LIMIT 1').bind(filial).first();
-        if (ult) try { j = JSON.parse(ult.json); } catch {}
+        if (ult) try { j = JSON.parse(ult.json); cascataDeHoje = false; } catch {}
       }
       if (j) {
         for (const s of j.supervisores || []) {
           for (const v of (s.tabelas && s.tabelas.faturamento) || []) if (v && v.id != null && rcas[String(v.id)]) rcas[String(v.id)].meta_hier = Number(v.meta) || 0;
-          for (const v of (s.tabelas && s.tabelas.produtividade) || []) {
+          for (const v of (cascataDeHoje && s.tabelas && s.tabelas.produtividade) || []) {
             if (v && v.id != null && rcas[String(v.id)]) {
               const r = rcas[String(v.id)];
               if (!r.produtividade) r.produtividade = { dia: {}, mes: {} };

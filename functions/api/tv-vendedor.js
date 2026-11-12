@@ -208,7 +208,7 @@ function dataHojeBrasilia() { return R.hojeSP(); }
 // por todos os RCAs, isso estourava o limite do CEVEN (HTTP 429 para a chave inteira), a varredura central tambem era bloqueada e a base ficava cada vez mais velha.
 // Agora o chamador busca ao vivo SO o pedaco que faltar. maxIdadeMs: 15 min na tela; 30 min no coletor de lances (central=1).
 const memCascata = new Map();
-async function lerCentral(env, id, maxIdadeMs, filial) {
+async function lerCentral(env, id, maxIdadeMs, filial, comReserva = false) {
   if (!env || !env.DB) return null;
   try {
     const row = await env.DB.prepare(
@@ -256,14 +256,14 @@ async function lerCentral(env, id, maxIdadeMs, filial) {
     // CEVEN SEM RESPOSTA (12/11/2026, Vitorio: TV "carregando" e "R$ 0" com o CEVEN em 500 desde 11/11 17:34): mesma regra do central-snapshot —
     // o que falta hoje vem da ULTIMA LEITURA REAL do CEVEN neste mes (dashboard) e dos clientes de HOJE no roteiro do mes; nunca zero, nunca estimativa.
     let reforco = null, rotFinal = Array.isArray(rot) ? rot : null, dashFinal = dash || null;
-    if (!dashFinal || !rotFinal) {
+    // 12/11/2026 (arquiteto): so TELAS (so_base sem hist) usam a reserva; o coletor de lances nunca. Rota planejada nao entra (nao tem status de visita de hoje).
+    if (comReserva && !dashFinal) {
       try {
         const dia = dataHojeBrasilia(), sig = String(row.filial_sigla || filial || '').replace(/1$/, '').toUpperCase();
-        const a = await env.DB.prepare("SELECT dashboard_json, roteiro_mes_json, dash_em, updated_at, data_ref FROM varredura_central_rca WHERE filial_sigla = ? AND rca_codigo = ? AND data_ref < ? AND data_ref >= ? AND dashboard_json IS NOT NULL ORDER BY data_ref DESC LIMIT 1").bind(sig, String(id), dia, dia.slice(0, 7) + '-01').first();
+        const a = await env.DB.prepare("SELECT dashboard_json, dash_em, updated_at, data_ref FROM varredura_central_rca WHERE filial_sigla = ? AND rca_codigo = ? AND data_ref < ? AND data_ref >= ? AND dashboard_json IS NOT NULL ORDER BY data_ref DESC LIMIT 1").bind(sig, String(id), dia, dia.slice(0, 7) + '-01').first();
         if (a) {
           reforco = {};
           if (!dashFinal) { const d = lê(a.dashboard_json); if (d) { dashFinal = d; reforco.dashboard = { fonte: 'CEVEN', em: a.dash_em || a.updated_at }; } }
-          if (!rotFinal) { const rm = lê(a.roteiro_mes_json); if (Array.isArray(rm)) { rotFinal = rm.filter((c) => c && String(c.data_visita || '').slice(0, 10) === dia); reforco.roteiro = { fonte: 'CEVEN roteiro do mes', em: a.updated_at }; } }
           if (!Object.keys(reforco).length) reforco = null;
         }
       } catch { /* sem reforco: fica o que a base tem */ }
@@ -301,7 +301,7 @@ export async function onRequestGet({ request, env }) {
   // SO A BASE (26/10/2026): TV e Matriz pedem so_base=1 e NUNCA vao ao CEVEN. Antes, cada tela aberta com base de +30 min fazia 3 chamadas por vendedor ao CEVEN,
   // gastava a cota (429) e a propria varredura central ficava sem conseguir ler: cada tela mostrava um numero. Quem le o CEVEN e so a varredura central.
   const soBase = url.searchParams.get('so_base') === '1';
-  const central = soBase ? await lerCentral(env, id, 24 * 60 * 60 * 1000, filial) : usarCentral ? await lerCentral(env, id, (foraDoHorario() ? 45 : 30) * 60 * 1000, filial) : null;   /* fora do horario a varredura roda a cada 30 min (25/10/2026) */
+  const central = soBase ? await lerCentral(env, id, 24 * 60 * 60 * 1000, filial, url.searchParams.get('hist') !== '1') : usarCentral ? await lerCentral(env, id, (foraDoHorario() ? 45 : 30) * 60 * 1000, filial) : null;   /* fora do horario a varredura roda a cada 30 min (25/10/2026) */
   if (soBase && !central) return new Response(JSON.stringify({ erro: 'sem dado na base hoje', id: String(id) }), { status: 404, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' } });
   const c = central || {};
   // CEVEN LENTO (15/10/2026 23h: chamadas travando 20 s; a Matriz levava ate 78 s por vendedor e ficava em "carregando"): na coleta central, se a base
