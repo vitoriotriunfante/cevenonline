@@ -73,6 +73,19 @@ export async function onRequestGet({ env, request }) {
       const C = await lerClubeFilial(env, filial, dia);
       if (C && C.fresco) {
         clube_lido_em = C.lido_em;
+        // ROTA COM O CHECK-IN DO CLUBE (12/11/2026; conferencia 11/11: 98,8% dos check-ins iguais ao CEVEN, hora:minuto): quando o roteiro de hoje e da madrugada
+        // (+45 min) ou so o planejado do mes, o status de cada cliente vem do check-in/out do Clube (rede inteira, a cada 15 min). So o JOTA e as telas leem; a Liga nao.
+        let CK = null;
+        try { const { results } = await env.DB.prepare('SELECT rca, cliente, tipo, data_hora FROM clube_checkin WHERE dia = ? AND filial = ?').bind(dia, filial).all(); CK = new Map(); for (const x of results || []) { const k = x.rca + '|' + x.cliente; const y = CK.get(k) || { ci: null, co: null }; const h = String(x.data_hora || '').slice(11, 16); if (x.tipo === 'CHECKIN' && (!y.ci || h < y.ci)) y.ci = h; if (x.tipo === 'CHECKOUT' && (!y.co || h > y.co)) y.co = h; CK.set(k, y); } } catch { CK = null; }
+        if (CK) for (const [rca, r] of Object.entries(rcas)) {
+          if (!C.rcas.get(rca)) continue;
+          const rotVelho = Array.isArray(r.roteiro) && !(Date.now() - Date.parse(String(r.roteiro_em || '').replace(' ', 'T') + 'Z') < 45 * 60000);
+          const base = Array.isArray(r.roteiro) && !rotVelho ? null : Array.isArray(r.roteiro) ? r.roteiro : Array.isArray(r.roteiro_planejado) ? r.roteiro_planejado : null;
+          if (!base) continue;
+          r.roteiro = base.filter((c) => c && String(c.data_visita || '').slice(0, 10) === dia).map((c) => { const y = CK.get(rca + '|' + String(c.id_cliente)); return y && y.ci ? { ...c, status: /POSITIVADO|EFETIVADO/i.test(String(c.status || '')) ? c.status : 'VISITADO', checkin_horario: y.ci, checkout_horario: y.co } : { ...c, status: 'ABERTO', checkin_horario: null, checkout_horario: null }; });
+          r.rota_clube = true; (r.reserva = r.reserva || {}).rota_clube = { fonte: 'Clube da Venda (check-in/out)', em: C.lido_em };
+          if (r.reserva.roteiro) delete r.reserva.roteiro;
+        }
         for (const [rca, r] of Object.entries(rcas)) {
           const c = C.rcas.get(rca); if (!c) continue;
           r.clube = { total_pedido: c.total_pedido, ped_total: c.ped_total, ped_rota: c.ped_rota, ped_fora: c.ped_fora, roteiros: c.roteiros, visitas_rota: c.visitas_rota, eficiencia: c.eficiencia, eficacia: c.eficacia, lido_em: c.lido_em };

@@ -59,7 +59,7 @@ export async function respResumo(B, E) {
   const V = E.vend;
   const Vtotais = V.concat(E.ocultos || []);
   const G = agrupa(Vtotais, (v) => 'x').get('x') || { fat: 0, pend: 0, meta: 0 };
-  const fat = (E.grupo || E.supervisor || E.rca) ? G.fat : f ? f.faturado : null, pend = (E.grupo || E.supervisor || E.rca) ? G.pend : f ? f.pendente : null, meta = (E.grupo || E.supervisor || E.rca) ? G.meta : f ? f.meta_fat : null;
+  const fat = G.fat, pend = G.pend, meta = G.meta;   // base unica (12/11/2026)
   const Vr = V.filter((v) => v.varejo), z = Vr.filter((v) => v.zerado);
   const com = V.filter((v) => v.pct != null).sort((a, b) => (b.pct ?? 0) - (a.pct ?? 0));
   const L = [`📊 *${E.nome} agora* (${hora})`, `💰 Faturado: *${R$(fat)}* de ${R$(meta)} → *${P(fat || 0, meta)}*`, `⏳ Pendente: ${R$(pend)}`];
