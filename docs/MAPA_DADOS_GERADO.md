@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-12 14:21 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-12 18:38 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (16)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -168,6 +168,8 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `bot_sugestoes` | `scratch/atualizar_39_sugestoes.mjs`, `scratch/atualizar_sugestoes.mjs`, `scratch/preparar_update_respostas_perfeitas.mjs` |
 | `cancel` | `.github/workflows/ceven-cron-datalake.yml` |
 | `clientes_historico_compras` | `scripts/sincronizar_filiais_faltantes.js` |
+| `clube_coleta_status` | `pipeline/clube_coletor.mjs` |
+| `clube_venda_dia` | `pipeline/clube_coletor.mjs` |
 | `config_equipe_apoio` | `scripts/aplicar_vinculo_representantes.js`, `scripts/incluir_novos_arvore_liga.js` |
 | `config_equipe_soberana` | `scripts/aplicar_vinculo_representantes.js`, `scripts/incluir_novos_arvore_liga.js`, `scratch/carteira_tbe.js`, `scratch/carteira_tcg_tsj.js` |
 | `consolidado_diario_filial` | `pipeline/github_actions_runner.js` |
