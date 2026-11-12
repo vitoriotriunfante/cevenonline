@@ -603,7 +603,7 @@ const semW = (x) => String(x || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toU
 async function coletaPedidosWinthor(env, rcas, limite = 12, prazo = Infinity) {
   if (Date.now() < banRcaAte) return { pulado: 'cota' };
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS winthor_fila (filial TEXT NOT NULL, rca TEXT NOT NULL, em TEXT, pedidos INTEGER, PRIMARY KEY (filial, rca))').run();
-  for (const col of ['faltavam INTEGER DEFAULT 0', 'faltavam_valor REAL DEFAULT 0', 'primeira_leitura TEXT', 'mes TEXT']) { try { await env.DB.prepare('ALTER TABLE winthor_fila ADD COLUMN ' + col).run(); } catch (e) { /* ja existe */ } }
+  for (const col of ['faltavam INTEGER DEFAULT 0', 'faltavam_valor REAL DEFAULT 0', 'primeira_leitura TEXT', 'mes TEXT', 'vazio_em TEXT']) { try { await env.DB.prepare('ALTER TABLE winthor_fila ADD COLUMN ' + col).run(); } catch (e) { /* ja existe */ } }
   try { await env.DB.prepare('ALTER TABLE pedido_status ADD COLUMN itens_json TEXT').run(); } catch (e) { /* ja existe */ }
   try { await env.DB.prepare('ALTER TABLE pedido_status ADD COLUMN origem TEXT').run(); } catch (e) { /* ja existe */ }
   // LISTA DE DIVERGENCIAS (Vitorio, 09/11/2026: 'quero uma lista para checar 1 a 1 com cod vendedor, cliente e numero do pedido'): pedido que o Winthor tem e o D1 nao tinha
@@ -626,7 +626,7 @@ async function coletaPedidosWinthor(env, rcas, limite = 12, prazo = Infinity) {
     for (const x of K || []) forte.set(x.f + '|' + x.r, Number(x.dif) || 0); } catch (e) { /* sem detector: rodizio */ }
   const fila = (rcas || []).filter((r) => r && r.codigo && r.filial).sort((a, b) => ((forte.get(kr(b)) || 0) - (forte.get(kr(a)) || 0)) || (novo.has(kr(b)) - novo.has(kr(a))) || String(ult.get(kr(a)) || '').localeCompare(String(ult.get(kr(b)) || ''))).slice(0, limite);
   const mes = new Date(Date.now() - 3 * 3600000).toISOString().slice(0, 7);
-  let lidos = 0, novos = 0, mudaram = 0;
+  let lidos = 0, novos = 0, mudaram = 0, vaziosSuspeitos = 0;
   for (const rca of fila) {
     if (Date.now() > prazo) break;
     const fil = String(rca.filial).toUpperCase();
@@ -635,6 +635,12 @@ async function coletaPedidosWinthor(env, rcas, limite = 12, prazo = Infinity) {
     const A0 = await getJson(urlRca('pedidos-winthor', rca), 1);
     if (A0 == null) { if (Date.now() < disjuntorAte || Date.now() < banRcaAte) break; continue; }
     let A = Array.isArray(A0) ? A0 : [];
+    // RESPOSTA VAZIA NAO E LEITURA (auditoria 12/11/2026): com o CEVEN degradado, o P. Winthor devolveu [] para TCV 362, que tinha 5 pedidos de hoje as 08:18,
+    // e o vendedor contava como 'lido' (winthor_fila.em). Lista vazia de quem ja tem pedido no mes no D1 = resposta suspeita: nao marca como lido e conta a parte.
+    if (!A.length) {
+      const temMes = await env.DB.prepare("SELECT 1 FROM pedido_status WHERE filial = ? AND rca = ? AND data_pedido >= ? LIMIT 1").bind(fil, String(rca.codigo), mes + '-01').first().catch(() => null);
+      if (temMes) { vaziosSuspeitos++; const ag = new Date().toISOString(); await env.DB.prepare('INSERT INTO winthor_fila (filial, rca, em, vazio_em) VALUES (?,?,?,?) ON CONFLICT (filial, rca) DO UPDATE SET em = excluded.em, vazio_em = excluded.vazio_em').bind(fil, String(rca.codigo), ag, ag).run().catch(() => {}); continue; }   // vai para o fim da fila (em), mas vazio_em diz que NAO foi leitura valida
+    }
     let novosV = 0, novosValor = 0;
     if (!Array.isArray(A)) A = [];
     const P = A.filter((p) => p && p.numeroPedido && String(p.dataPedido || '').slice(0, 7) === mes);
@@ -660,12 +666,12 @@ async function coletaPedidosWinthor(env, rcas, limite = 12, prazo = Infinity) {
       }
     }
     // DUPLO CHECK (Vitorio, 09/11/2026: '1 por 1'): faltavam = pedidos que o Winthor tinha e o D1 nao, acumulado no mes por vendedor
-    st.push(env.DB.prepare("INSERT INTO winthor_fila (filial, rca, em, pedidos, faltavam, faltavam_valor, primeira_leitura, mes) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT (filial, rca) DO UPDATE SET em = excluded.em, pedidos = excluded.pedidos, faltavam = CASE WHEN winthor_fila.mes = excluded.mes THEN winthor_fila.faltavam + excluded.faltavam ELSE excluded.faltavam END, faltavam_valor = CASE WHEN winthor_fila.mes = excluded.mes THEN winthor_fila.faltavam_valor + excluded.faltavam_valor ELSE excluded.faltavam_valor END, primeira_leitura = COALESCE(CASE WHEN winthor_fila.mes = excluded.mes THEN winthor_fila.primeira_leitura END, excluded.primeira_leitura), mes = excluded.mes").bind(fil, String(rca.codigo), new Date().toISOString(), P.length, novosV, novosValor, new Date().toISOString(), mes));
+    st.push(env.DB.prepare("INSERT INTO winthor_fila (filial, rca, em, pedidos, faltavam, faltavam_valor, primeira_leitura, mes) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT (filial, rca) DO UPDATE SET em = excluded.em, vazio_em = NULL, pedidos = excluded.pedidos, faltavam = CASE WHEN winthor_fila.mes = excluded.mes THEN winthor_fila.faltavam + excluded.faltavam ELSE excluded.faltavam END, faltavam_valor = CASE WHEN winthor_fila.mes = excluded.mes THEN winthor_fila.faltavam_valor + excluded.faltavam_valor ELSE excluded.faltavam_valor END, primeira_leitura = COALESCE(CASE WHEN winthor_fila.mes = excluded.mes THEN winthor_fila.primeira_leitura END, excluded.primeira_leitura), mes = excluded.mes").bind(fil, String(rca.codigo), new Date().toISOString(), P.length, novosV, novosValor, new Date().toISOString(), mes));
     for (let i = 0; i < st.length; i += 80) await env.DB.batch(st.slice(i, i + 80));
     lidos++;
     try { await env.DB.prepare('UPDATE winthor_fila SET pend_lido = ? WHERE filial = ? AND rca = ?').bind(pendAgora.has(fil + '|' + rca.codigo) ? pendAgora.get(fil + '|' + rca.codigo) : null, fil, String(rca.codigo)).run(); } catch (e) { /* base do detector */ }
   }
-  return { lidos, novos, mudaram, prioridade: novo.size, sem_pedido_no_d1: forte.size };
+  return { lidos, novos, mudaram, vazios_suspeitos: vaziosSuspeitos, prioridade: novo.size, sem_pedido_no_d1: forte.size };
 }
 // DATA DO PEDIDO POR NUMERO (Vitorio, 11/11/2026: 'precisamos acelerar... urgente'): 619 pedidos ficaram com data FUTURA (a rota gravou a data da visita/entrega)
 // e a leitura do mes do Winthor nunca chega neles (a maioria e de fim de outubro). Criterio (11/11 09h): data do pedido DEPOIS do dia em que o pedido apareceu = errada

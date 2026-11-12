@@ -22,7 +22,7 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     for (const x of ((await B._pedHoje[filial]).results || [])) pedHoje.set(String(x.rca), x); } catch (e) { /* sem tabela: fica a produtividade */ } }
   // HORA DA LEITURA DOS PEDIDOS (12/11/2026): 'R$ 0 sem pedido hoje' so e verdade ate a hora em que os pedidos do vendedor foram lidos (fila do Winthor)
   const pedLido = new Map();
-  if (B.env && B.env.DB) { try { B._pedLido = B._pedLido || {}; if (!B._pedLido[filial]) B._pedLido[filial] = B.env.DB.prepare('SELECT rca, em FROM winthor_fila WHERE filial = ?').bind(filial).all(); for (const x of ((await B._pedLido[filial]).results || [])) pedLido.set(String(x.rca), x.em); } catch (e) { /* sem fila */ } }
+  if (B.env && B.env.DB) { try { B._pedLido = B._pedLido || {}; if (!B._pedLido[filial]) B._pedLido[filial] = B.env.DB.prepare('SELECT rca, em, vazio_em FROM winthor_fila WHERE filial = ?').bind(filial).all(); for (const x of ((await B._pedLido[filial]).results || [])) if (!x.vazio_em) pedLido.set(String(x.rca), x.em); /* resposta vazia suspeita nao conta como leitura */ } catch (e) { /* sem fila */ } }
   for (const [rca, r] of Object.entries((snap && snap.rcas) || {})) {
     const e = eq.get(rca);
     if (!r.dashboard && r.dashboard_reserva && r.reserva && r.reserva.dashboard) { const em = String(r.reserva.dashboard.em || ''); if (!B._reserva || em < B._reserva) B._reserva = em; }   // etiqueta unica no bot.js
