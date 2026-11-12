@@ -70,6 +70,30 @@ Legenda de cadência: **TR** = tempo real (2–5 min) · **10'** / **30'** / **1
 | Catálogo de indústrias, CNAE, linha corporativa, patrocinadores | **1×/semana** (domingo) ou quando o Vitório mudar |
 | Limpeza: tabelas paradas (`mapa_executivo_live` 24/10, `rca_kpis` 24/09), caches velhos | **1×/semana** |
 
+### 3.6 Fonte de cada dado: CEVEN, GEROT ou Winthor
+Regra: vale a **principal**; se ela não tiver leitura de hoje, entra a **reserva** com a fonte e a hora na tela; a **conferência** grava a diferença das duas.
+Medido em 11–12/11: o GEROT bate com o CEVEN em parte dos vendedores (TBL 189: R$ 67.080 nos dois) e fica **incompleto** em outros (TCV 352: R$ 4.424 × R$ 14.851; TBL 181: R$ 27.327 × R$ 76.874; TPA: 45 vendedores no GEROT × 64 no CEVEN). Por isso o GEROT ainda **não pode ser o total do vendedor**; é principal só onde ele é a única fonte (indústria, recorrência).
+
+| Dado | Principal | Reserva | Conferência |
+|---|---|---|---|
+| Pedidos do dia (digitado, nº de pedidos) | **Winthor** (pedido_status) | produtividade do CEVEN | Winthor × produtividade, 1h |
+| Status / corte / bloqueio do pedido | **Winthor** | histórico do cliente (CEVEN) | — |
+| Faturado e pendente do mês (vendedor, supervisor, filial) | **CEVEN** (dashboard) | última leitura do CEVEN no mês → GEROT (faturado líquido + carteira) só se não houver nenhuma | GEROT × CEVEN, 07:30 e 19:30 |
+| Meta do vendedor / filial | **CEVEN** (hierarquia oficial) | última leitura do mês | GEROT × CEVEN (meta) |
+| Positivação do mês (clientes) | **CEVEN** | última leitura do mês | — (positivação do GEROT é por indústria: não soma) |
+| Faturado, meta, carteira e positivação **por indústria** | **GEROT** | — | CEVEN Premiação, quando houver |
+| Recorrência (meta 80%, TAG) | **GEROT** (tela Recorrência) | TAG do CEVEN no roteiro | — |
+| Devolução (valor) | **CEVEN** (dashboard) | GEROT (devolução) | GEROT × CEVEN |
+| Devolução (nota, motivo "não pediu") | **CEVEN** (`devolucoes/{nota}`) | — (sem nota: o vermelho espera, não pune sem prova) | — |
+| Rota do dia, check-in/out, justificativa | **CEVEN** (rota do gerente) | `rca/roteiro-hoje` → roteiro do mês (lista sem status) | cascata (visitas) × rota |
+| Visitas plan/real, eficácia | **CEVEN** (cascata do gerente) | produtividade do vendedor | — |
+| RET e compromisso | **CEVEN** (admin matriz) | — | — |
+| Prospects | **CEVEN** | último gravado, com a data | — |
+| Histórico do cliente, ficha, +MIX | **CEVEN** (Data Lake D-1 + histórico) | último gravado | — |
+| Árvore e canal | **CEVEN** + Gestão de Equipe (mostra/grupo) | última árvore | divergências na Gestão |
+
+Quando o GEROT ficar completo (todos os vendedores e indústrias, batendo com o CEVEN por 5 dias seguidos na conferência), ele pode passar a reserva oficial do faturado total.
+
 ## 4. Orçamento: cabe na cota?
 - **`/api/rca` (~200/h):** sai a produtividade individual (vem pela cascata e pelo Winthor). Sobram: roteiro só de quem a rota do gerente não mostrou (estimativa a medir: < 30/h), histórico do cliente com pedido novo (~1 por pedido em rota; no pico ~150/h) e notas de devolução (< 10/h). **No pico das 10–11h fica no limite**: histórico do cliente entra em fila, com o Winthor nascendo o gol primeiro (os gols de cliente podem atrasar até 30').
 - **Gerente (cota própria):** rota de ~99 supervisores a cada 10' = ~600 chamadas/h de manhã; a cada 30' = ~200/h à tarde. **A medir** quando o CEVEN voltar (cabeçalho mostra limite 100; falta saber a janela).
