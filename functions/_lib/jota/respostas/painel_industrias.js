@@ -70,7 +70,7 @@ function blocos(g, D, cevenOk) {
   const meta = g.metaPosC, real = g.posG, faltaP = Math.max(0, meta - real);
   L.push('👥 *Positivação*');
   if (meta > 0) L.push(`Meta *${N(meta)}* clientes (CEVEN) · positivados *${N(real)}* (${pc(real, meta)}) · faltam *${N(faltaP)}*`);
-  else L.push(`Positivados *${N(real)}*` + (cevenOk ? ' · _sem meta de clientes no CEVEN_' : ' · _meta de clientes: sem dado (o GEROT não traz; o CEVEN só tem o mês atual)_'));
+  else L.push(`Positivados *${N(real)}*` + ' · _o GEROT não traz meta de clientes por indústria_');
   L.push(`Média *${qd(real / D.decorridos)}*/dia útil` + (!D.passado && meta > 0 && D.restantes ? ` · precisa *${qd(faltaP / D.restantes)}*/dia útil` : ''));
   // AUDITORIA GEROT x CEVEN (Vitorio, 10/11/2026): diferenca entre as fontes aparece, nunca some
   if (cevenOk && g.temC) {
@@ -80,7 +80,8 @@ function blocos(g, D, cevenOk) {
   }
   return L;
 }
-const linhaCurta = (rot, g) => `*${rot}*: ${g.meta > 0 ? `${R$(g.fat)} de ${R$(g.meta)} (${pc(g.fat, g.meta)}) · vendido ${pc(g.fat + g.cart, g.meta)}` : `${R$(g.fat)} · _sem meta_`}${g.metaPosC > 0 ? ` · ${N(g.posG)}/${N(g.metaPosC)} cli.` : g.posG ? ` · ${N(g.posG)} cli.` : ''}`;
+// a faturar em cada linha (Rudinei, 12/11/2026: 'nao ta pegando pedidos a faturar')
+const linhaCurta = (rot, g) => `*${rot}*: ${g.meta > 0 ? `${R$(g.fat)} de ${R$(g.meta)} (${pc(g.fat, g.meta)}) · a faturar ${R$(g.cart)} · vendido ${pc(g.fat + g.cart, g.meta)}` : `${R$(g.fat)} · a faturar ${R$(g.cart)} · _sem meta_`}${g.metaPosC > 0 ? ` · ${N(g.posG)}/${N(g.metaPosC)} cli.` : g.posG ? ` · ${N(g.posG)} cli.` : ''}`;
 const agrupa = (rs, k) => { const m = new Map(); for (const x of rs) { const c = k(x); if (!m.has(c)) m.set(c, []); m.get(c).push(x); } return m; };
 const ordemInd = (a, b) => (b[1].meta > 0) - (a[1].meta > 0) || b[1].meta - a[1].meta || b[1].fat - a[1].fat;
 
@@ -88,11 +89,14 @@ const ordemInd = (a, b) => (b[1].meta > 0) - (a[1].meta > 0) || b[1].meta - a[1]
 export async function respPainelIndustrias(env, B, cam) {
   if (!env || !env.DB) return null;
   const mes = cam.mes || hojeSP().slice(0, 7), D = dias(mes), nm = NOME_MES[Number(mes.slice(5)) - 1];
-  const { L, cevenMes } = await base(env, B, mes, cam.fil || null), cevenOk = !!cevenMes;
+  // INDUSTRIAS SO GEROT (Vitorio, 12/11/2026: 'GEROT x CEVEN e CEVEN x GEROT ta deixando o povo confuso... deixa industrias so pegando dados do GEROT'):
+  // a parte do CEVEN (meta de clientes, positivados e faturado da Premiacao) nao entra mais na resposta; a conferencia das fontes vai para a auditoria noturna.
+  const { L } = await base(env, B, mes, cam.fil || null), cevenOk = false;
+  for (const x of L) { x.metaPosC = 0; x.posC = 0; x.fatC = 0; x.temC = false; }
   // 11/11/2026 (Rudinei: 'condor, Philips, sc Johnson e Baly em TCV'): cam.inds = varias industrias citadas; o painel mostra so elas (6o campo do marcador)
   const mk = `〔G:${mes}|${cam.fil || ''}|${cam.ind || ''}|${cam.sup || ''}|${cam.rca || ''}|${(cam.inds || []).join(',')}〕`;
   const st = await env.DB.prepare('SELECT posicao FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null);
-  const fonte = `_Fonte: GEROT${st && st.posicao ? ' (' + st.posicao.replace(/^Atual\s*·\s*/, 'posição ') + ')' : ''} · meta de clientes: CEVEN${cevenOk ? '' : ' (só no mês atual)'} · média = dias úteis decorridos; necessidade = dias úteis até o dia ${FIM_APURACAO}._`;
+  const fonte = `_Fonte: GEROT${st && st.posicao ? ' (' + st.posicao.replace(/^Atual\s*·\s*/, 'posição ') + ')' : ''} · média = dias úteis decorridos; necessidade = dias úteis até o dia ${FIM_APURACAO}._`;
   if (!L.length) return `🏭 *Painel das indústrias* · ${nm}\nNão há linha no GEROT para esse recorte e mês. Não vou estimar.\n\n${fonte}`;
   let rs = cam.inds && cam.inds.length ? L.filter((x) => cam.inds.includes(x.ind)) : L; if (cam.ind) rs = rs.filter((x) => x.ind === cam.ind); if (cam.sup) rs = rs.filter((x) => x.sup === cam.sup); if (cam.rca) rs = rs.filter((x) => x.rca === cam.rca);
   const out = [];
