@@ -253,7 +253,22 @@ async function lerCentral(env, id, maxIdadeMs, filial) {
         }
       }
     } catch { /* segue com o que a base tem */ }
-    return { rot: Array.isArray(rot) ? rot : null, prod: prod || null, dash: dash || null };
+    // CEVEN SEM RESPOSTA (12/11/2026, Vitorio: TV "carregando" e "R$ 0" com o CEVEN em 500 desde 11/11 17:34): mesma regra do central-snapshot —
+    // o que falta hoje vem da ULTIMA LEITURA REAL do CEVEN neste mes (dashboard) e dos clientes de HOJE no roteiro do mes; nunca zero, nunca estimativa.
+    let reforco = null, rotFinal = Array.isArray(rot) ? rot : null, dashFinal = dash || null;
+    if (!dashFinal || !rotFinal) {
+      try {
+        const dia = dataHojeBrasilia(), sig = String(row.filial_sigla || filial || '').replace(/1$/, '').toUpperCase();
+        const a = await env.DB.prepare("SELECT dashboard_json, roteiro_mes_json, dash_em, updated_at, data_ref FROM varredura_central_rca WHERE filial_sigla = ? AND rca_codigo = ? AND data_ref < ? AND data_ref >= ? AND dashboard_json IS NOT NULL ORDER BY data_ref DESC LIMIT 1").bind(sig, String(id), dia, dia.slice(0, 7) + '-01').first();
+        if (a) {
+          reforco = {};
+          if (!dashFinal) { const d = lê(a.dashboard_json); if (d) { dashFinal = d; reforco.dashboard = { fonte: 'CEVEN', em: a.dash_em || a.updated_at }; } }
+          if (!rotFinal) { const rm = lê(a.roteiro_mes_json); if (Array.isArray(rm)) { rotFinal = rm.filter((c) => c && String(c.data_visita || '').slice(0, 10) === dia); reforco.roteiro = { fonte: 'CEVEN roteiro do mes', em: a.updated_at }; } }
+          if (!Object.keys(reforco).length) reforco = null;
+        }
+      } catch { /* sem reforco: fica o que a base tem */ }
+    }
+    return { rot: rotFinal, prod: prod || null, dash: dashFinal, reforco };
   } catch { return null; }
 }
 
@@ -423,6 +438,8 @@ export async function onRequestGet({ request, env }) {
     });
   }
   const saida = montarTv(id, dash, prod, rot, analisePorCliente);
+  // reforco (12/11/2026): roteiro do mes NAO tem os check-ins de hoje; se gerasse lance, a Liga daria amarelo para todo mundo as 10h. Marcado como rota antiga = nenhum lance nasce dele.
+  if (central && central.reforco) { saida.reforco = central.reforco; if (central.reforco.roteiro) rotaAntiga = true; }
   saida.rota_antiga = rotaAntiga; // true = o CEVEN ainda servia dado de ontem: esta leitura nao gera lance
   // Industrias do DIA do vendedor (uniao dos pedidos de hoje): base do nivel dos gols que nao sao de um cliente so (Super Pedido, Goleada, Relampago, Hat-Trick...)
   const somaDia = (campo) => { const m = new Map(); Object.values(analisePorCliente).forEach((a) => (a[campo] || []).forEach((x) => m.set(x.n, (m.get(x.n) || 0) + x.v))); return [...m.entries()].sort((a, b) => b[1] - a[1]).map(([n, v]) => ({ n, v: Math.round(v * 100) / 100 })); };
