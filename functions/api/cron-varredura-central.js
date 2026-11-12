@@ -703,6 +703,23 @@ async function respondeQuemFicouSemResposta(env, origem, waitUntil) {
   return { reprocessadas: L.length };
 }
 
+// PEDIDOS DO CLUBE QUE NAO CHEGARAM AO WINTHOR (12/11/2026: 1.618 pedidos do dia com "Sincronizado = Nao" no Painel de Pedidos do Clube; o CEVEN e o
+// P. Winthor so mostravam ~160). O robo do Clube grava a contagem em clube_rodada a cada 15 min; aqui avisa o Vitorio, no maximo 1 vez por hora, com a tendencia.
+async function avisoClubeSinc(env) {
+  let ult; try { const { results } = await env.DB.prepare("SELECT lido_em, nao_sinc FROM clube_rodada WHERE nao_sinc IS NOT NULL ORDER BY id DESC LIMIT 2").all(); ult = results || []; } catch { return { pulado: 'sem tabela' }; }
+  if (!ult.length) return { pulado: 'sem leitura' };
+  const a = ult[0], idade = Date.now() - Date.parse(a.lido_em);
+  if (!(idade >= 0 && idade < 40 * 60000) || Number(a.nao_sinc) < 50) return { nao_sinc: a.nao_sinc, aviso: false };
+  const av = await env.DB.prepare("SELECT valor FROM coleta_estado WHERE chave = 'aviso_clube_sinc_em'").first().catch(() => null);
+  if (av && Date.now() - Number(av.valor) < 3600000) return { nao_sinc: a.nao_sinc, aviso: 'ja avisado na ultima hora' };
+  await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('aviso_clube_sinc_em', ?, 'ultimo aviso de pedidos do Clube sem sincronizar', datetime('now')) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, atualizado_em = excluded.atualizado_em").bind(Date.now()).run();
+  const eu = await env.DB.prepare("SELECT celular FROM bot_contatos WHERE nome = 'VITORIO' AND papel = 'diretoria' LIMIT 1").first();
+  const hm = new Date(a.lido_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+  const tend = ult[1] && ult[1].nao_sinc != null ? (a.nao_sinc > ult[1].nao_sinc ? ' (subindo: eram ' + ult[1].nao_sinc + ')' : a.nao_sinc < ult[1].nao_sinc ? ' (caindo: eram ' + ult[1].nao_sinc + ')' : ' (parado)') : '';
+  if (eu) await R.enviarTexto(R.evoCfg(env), eu.celular, `⚠️ *Pedidos do Clube sem chegar ao Winthor:* *${a.nao_sinc}* hoje${tend} · Painel de Pedidos do Clube, "Sincronizado = Não", lido às ${hm}. Sem sincronizar o pedido não é montado nem faturado: vale acionar a TI.`);
+  return { nao_sinc: a.nao_sinc, aviso: true };
+}
+
 async function vigiaWhatsApp(env) {
   const r = await env.DB.prepare("SELECT sum(direcao = 'in') recebidas, sum(direcao IN ('out','figurinha')) enviadas, (SELECT count(*) FROM bot_msgs WHERE direcao = 'erro' AND quando >= datetime('now','-30 minutes')) erros FROM bot_msgs WHERE quando >= datetime('now','-60 minutes')").first();
   const rec = Number(r && r.recebidas) || 0, env_ = Number(r && r.enviadas) || 0, erros = Number(r && r.erros) || 0;
@@ -1233,6 +1250,7 @@ export async function onRequestGet({ env, request, waitUntil }) {
     if (Date.now() - t0 < 95000) { try { contagem.recheca = await rechecaAbertosPorVendedor(env, noiteTodos ? 90 : 15, t0 + 150000);   /* todos os ~250 vendedores com pedido aberto: ~30 min de dia e a cada 30 min de noite (31/10/2026) */ } catch (e) { contagem.recheca = { erro: String(e.message || e).slice(0, 80) }; } }
     // ROTA E PAINEL DO GERENTE NO FIM DA RODADA (01/11/2026): no inicio, os 25 s comiam o prazo da produtividade (40 s) e ela deixava de rodar. Em dia util a rodada leva ~40 s; so fica de fora quando a rodada estoura.
     if (Date.now() - t0 < 135000) { try { contagem.rota_gerente = await gravaRotasGerente(env, dataRef, Math.min(25000, t0 + 160000 - Date.now())); } catch (e) { contagem.rota_gerente = { erro: String(e.message || e).slice(0, 80) }; } } else contagem.rota_gerente = 'pulado_prazo';
+    try { contagem.clube_sinc = await avisoClubeSinc(env); } catch (e) { contagem.clube_sinc = { erro: String(e.message || e).slice(0, 80) }; }
     try { contagem.vigia_wa = await vigiaWhatsApp(env); } catch (e) { contagem.vigia_wa = { erro: String(e.message || e).slice(0, 80) }; }
     try { contagem.sem_resposta = await respondeQuemFicouSemResposta(env, new URL(request.url).origin, waitUntil); } catch (e) { contagem.sem_resposta = { erro: String(e.message || e).slice(0, 80) }; }
     // DIAGNOSTICO: o que a ultima rodada fez, etapa por etapa (antes so ficavam os totais, e "0 sucesso" nao dizia onde)

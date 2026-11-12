@@ -68,6 +68,46 @@ await Promise.all(pags.map(async (pg) => {
     for (const l of L) vendedores.push({ filial: x.sig, sup_cod: x.sup, sup_nome: x.supNome, ...linha(l), rca: l[0] });
   }
 }));
+// 3) RELATORIOS DO DIA DA REDE INTEIRA (12/11/2026, Vitorio: "bora"): check-in/check-out, justificativas e pedidos NAO sincronizados com o Winthor.
+//    Botao "Gerar" sem coordenador/representante = todos. So leitura (nunca clica em Novo/Editar/Excluir).
+const diaBR = `${dia.slice(6)}/${dia.slice(4, 6)}/${dia.slice(0, 4)}`;
+async function relatorio(pg, nomePg, todasPaginas) {
+  try {
+    await pg.goto(BASE + nomePg + '.xhtml', { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {}); await pg.waitForTimeout(4000);
+    for (const id of await pg.evaluate(() => [...document.querySelectorAll('input')].filter((i) => /data(Inicial|Final|Visita)?.*_input$|data_input$/.test(i.id)).map((i) => i.id)).catch(() => [])) await pg.locator(`[id="${id}"]`).fill(diaBR).catch(() => {});
+    await pg.getByRole('button', { name: 'Gerar' }).first().click({ noWaitAfter: true, timeout: 15000 });
+    const ler = () => pg.evaluate(() => { const t = [...document.querySelectorAll('table')].find((x) => x.querySelectorAll('thead th').length > 3 && !/^D$/.test((x.querySelector('thead th') || {}).innerText || '')); if (!t) return null; return { cab: [...t.querySelectorAll('thead th')].map((x) => x.innerText.trim().replace(/\s+/g, ' ')), linhas: [...t.querySelectorAll('tbody tr')].map((r) => [...r.children].map((c) => c.innerText.trim().replace(/\s+/g, ' '))).filter((l) => l.length > 3) }; }).catch(() => null);
+    const pagin = () => pg.evaluate(() => { const p = document.querySelector('.ui-paginator-current'); return p ? p.innerText.replace(/\s+/g, ' ') : ''; }).catch(() => '');
+    let T = null; for (let t = 0; t < 240 && !(T && T.linhas.length); t++) { await pg.waitForTimeout(1000); T = await ler(); if (T && !T.linhas.length && /Nenhum/i.test(await pg.evaluate(() => document.body.innerText).catch(() => ''))) break; }
+    if (!T) return null;
+    const p0 = await pagin(), total = Number((p0.match(/\((\d+)\s*regi/) || [])[1]) || T.linhas.length;
+    const todas = [...T.linhas];
+    if (todasPaginas && total > todas.length) {
+      await pg.evaluate(() => { const s = document.querySelector('.ui-paginator-rpp-options'); if (s) { s.value = s.options[s.options.length - 1].value; s.dispatchEvent(new Event('change', { bubbles: true })); } }).catch(() => {});
+      await pg.waitForTimeout(4000); const T1 = await ler(); todas.length = 0; todas.push(...((T1 && T1.linhas) || []));
+      for (let n = 0; n < 200 && todas.length < total; n++) {
+        const prox = pg.locator('.ui-paginator-next:not(.ui-state-disabled)').first(); if (!(await prox.count())) break;
+        const antes = (await ler() || { linhas: [[]] }).linhas[0].join('|'); await prox.click({ noWaitAfter: true }).catch(() => {});
+        for (let t = 0; t < 30; t++) { await pg.waitForTimeout(700); const Tn = await ler(); if (Tn && Tn.linhas.length && Tn.linhas[0].join('|') !== antes) { todas.push(...Tn.linhas); break; } }
+      }
+    }
+    return { cab: T.cab, linhas: todas, total };
+  } catch (e) { log(nomePg, 'falhou', String(e.message || e).slice(0, 120)); return null; }
+}
+const [CK, JU, PP] = await Promise.all([relatorio(pags[1], 'relatorioCheckinCheckout', false), relatorio(pags[2], 'relatorioJustificativaRoteiro', true), relatorio(pags[3], 'painelPedido', false)]);
+// RCA do Clube -> filial: pelo codigo + nome dos vendedores lidos acima (o mesmo codigo pode existir em 2 filiais)
+const porCod = new Map(); for (const v of vendedores) { if (!porCod.has(v.rca)) porCod.set(v.rca, []); porCod.get(v.rca).push(v); }
+const semAc = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().trim();
+const filialDe = (cod, nome) => { const L = porCod.get(String(cod)) || []; if (L.length === 1) return L[0].filial; const m = L.find((v) => semAc(v.nome) === semAc(nome)); return m ? m.filial : null; };
+const dataIso = (s) => { const m = String(s || '').match(/(\d{2})\/(\d{2})\/(\d{4})\s*(\d{2}:\d{2}(:\d{2})?)?/); return m ? `${m[3]}-${m[2]}-${m[1]}${m[4] ? ' ' + m[4] : ''}` : null; };
+const idx = (T, nome) => T ? T.cab.findIndex((c) => semAc(c) === semAc(nome)) : -1;
+const checkins = [], justificativas = [];
+if (CK) { const i = { cod: idx(CK, 'Código'), tipo: idx(CK, 'Tipo'), dh: idx(CK, 'Data/Hora'), rca: idx(CK, 'ID'), nome: idx(CK, 'Representante'), cli: idx(CK, 'Código Cliente'), cnpj: idx(CK, 'CNPJ'), raz: idx(CK, 'Razão Social'), fan: idx(CK, 'Fantasia') };
+  for (const l of CK.linhas) if (l[i.cod]) checkins.push({ codigo: l[i.cod], tipo: l[i.tipo], data_hora: dataIso(l[i.dh]), rca: l[i.rca], nome: l[i.nome], filial: filialDe(l[i.rca], l[i.nome]), cliente: l[i.cli], cnpj: l[i.cnpj], razao: l[i.raz], fantasia: l[i.fan] }); }
+if (JU) { const i = { id: idx(JU, 'ID'), co: idx(JU, 'Coordenador'), rep: idx(JU, 'Representante'), cli: idx(JU, 'Código Cliente'), cnpj: idx(JU, 'CPF/CNPJ'), raz: idx(JU, 'Razão Social'), fan: idx(JU, 'Fantasia'), dias: idx(JU, 'Dias Sem Comprar'), mot: idx(JU, 'Motivo Não Visita'), dh: idx(JU, 'Data'), obs: idx(JU, 'Observação') };
+  for (const l of JU.linhas) { if (!l[i.id]) continue; const [rc, ...rn] = String(l[i.rep] || '').split(' - '), [sc] = String(l[i.co] || '').split(' - '); justificativas.push({ id: l[i.id], sup_cod: sc.trim(), rca: rc.trim(), nome: rn.join(' - ').trim(), filial: filialDe(rc.trim(), rn.join(' - ')), cliente: l[i.cli], cnpj: l[i.cnpj], razao: l[i.raz], fantasia: l[i.fan], dias_sem_comprar: num(l[i.dias]), motivo: l[i.mot], data_hora: dataIso(l[i.dh]), obs: l[i.obs] || null }); } }
+const naoSinc = PP ? PP.total : null;
+log('check-in/out', CK ? checkins.length : 'FALHOU', '· justificativas', JU ? justificativas.length + ' de ' + JU.total : 'FALHOU', '· pedidos nao sincronizados com o Winthor', naoSinc == null ? 'FALHOU' : naoSinc);
 await browser.close();
 const res = { fonte: 'Clube da Venda (TradePro) · Relatório de Vendas', dia: `${dia.slice(0, 4)}-${dia.slice(4, 6)}-${dia.slice(6)}`, lido_em: new Date().toISOString(), duracao_s: Math.round((Date.now() - t0) / 1000), filiais, vendedores, falhas };
 const porFil = {}; for (const v of vendedores) { const f = porFil[v.filial] || (porFil[v.filial] = { vend: 0, pedido: 0, ped: 0, visitas: 0, roteiros: 0 }); f.vend++; f.pedido += v.total_pedido || 0; f.ped += v.ped_total || 0; f.visitas += v.visitas_rota || 0; f.roteiros += v.roteiros || 0; }
@@ -84,8 +124,18 @@ if (process.argv.includes('--d1')) {
   // quem nao mudou: so a hora da leitura (1 UPDATE para todos), para o 'lido as' ser verdade
   L.push(`UPDATE clube_venda_dia SET lido_em = ${q(res.lido_em)} WHERE dia = ${q(res.dia)} AND (filial || '|' || rca) IN (${vendedores.map((v) => q(v.filial + '|' + v.rca)).join(', ') || "''"});`);
   L.push(`INSERT INTO clube_coleta_status (dia, lido_em, vendedores, falhas, duracao_s) VALUES (${q(res.dia)}, ${q(res.lido_em)}, ${vendedores.length}, ${q(falhas.join(', '))}, ${res.duracao_s});`);
+  // check-in/out e justificativas: cada registro do Clube tem codigo proprio -> INSERT OR IGNORE (so o novo e gravado)
+  L.push('CREATE TABLE IF NOT EXISTS clube_checkin (codigo TEXT, dia TEXT, filial TEXT, rca TEXT, nome TEXT, tipo TEXT, data_hora TEXT, cliente TEXT, cnpj TEXT, razao TEXT, fantasia TEXT, PRIMARY KEY (codigo, rca, tipo, data_hora));   /* 12/11/2026: o codigo do Clube se repete entre vendedores */',
+    'CREATE INDEX IF NOT EXISTS idx_clube_checkin_dia ON clube_checkin (dia, filial, rca);',
+    'CREATE TABLE IF NOT EXISTS clube_justificativa (id TEXT PRIMARY KEY, dia TEXT, filial TEXT, sup_cod TEXT, rca TEXT, nome TEXT, cliente TEXT, cnpj TEXT, razao TEXT, fantasia TEXT, dias_sem_comprar REAL, motivo TEXT, data_hora TEXT, obs TEXT);',
+    'CREATE INDEX IF NOT EXISTS idx_clube_just_dia ON clube_justificativa (dia, filial, rca);',
+    'CREATE TABLE IF NOT EXISTS clube_rodada (id INTEGER PRIMARY KEY AUTOINCREMENT, dia TEXT, lido_em TEXT, vendedores INTEGER, checkins INTEGER, justificativas INTEGER, nao_sinc INTEGER, falhas TEXT, duracao_s INTEGER);');
+  for (const c of checkins) L.push(`INSERT OR IGNORE INTO clube_checkin (codigo, dia, filial, rca, nome, tipo, data_hora, cliente, cnpj, razao, fantasia) VALUES (${[c.codigo, res.dia, c.filial, c.rca, c.nome, c.tipo, c.data_hora, c.cliente, c.cnpj, c.razao, c.fantasia].map(q).join(', ')});`);
+  for (const j of justificativas) L.push(`INSERT OR IGNORE INTO clube_justificativa (id, dia, filial, sup_cod, rca, nome, cliente, cnpj, razao, fantasia, dias_sem_comprar, motivo, data_hora, obs) VALUES (${[j.id, res.dia, j.filial, j.sup_cod, j.rca, j.nome, j.cliente, j.cnpj, j.razao, j.fantasia, j.dias_sem_comprar, j.motivo, j.data_hora, j.obs].map(q).join(', ')});`);
+  L.push(`INSERT INTO clube_rodada (dia, lido_em, vendedores, checkins, justificativas, nao_sinc, falhas, duracao_s) VALUES (${[res.dia, res.lido_em, vendedores.length, CK ? checkins.length : null, JU ? justificativas.length : null, naoSinc, falhas.join(', '), Math.round((Date.now() - t0) / 1000)].map(q).join(', ')});`);
   const arqSql = path.join(os.tmpdir(), 'clube_carga.sql'); fs.writeFileSync(arqSql, L.join('\n'));
   const npxDir = path.join(process.env.LOCALAPPDATA || '', 'npm-cache', '_npx'); const WR = fs.existsSync(npxDir) ? fs.readdirSync(npxDir).map((d) => path.join(npxDir, d, 'node_modules/wrangler/bin/wrangler.js')).find((x) => fs.existsSync(x)) : null;
-  const r = WR ? spawnSync(process.execPath, [WR, 'd1', 'execute', 'ceven_noc_d1', '--remote', '--file', arqSql, '--yes'], { encoding: 'utf8', maxBuffer: 1 << 26, env: { ...process.env, NO_COLOR: '1' } }) : spawnSync('npx', ['wrangler', 'd1', 'execute', 'ceven_noc_d1', '--remote', '--file', arqSql, '--yes'], { encoding: 'utf8', shell: true });
+  // ate 3 tentativas (12/11/2026: a 1a gravacao foi recusada com o D1 ocupado; a 2a passou)
+  let r; for (let t = 1; t <= 3; t++) { r = WR ? spawnSync(process.execPath, [WR, 'd1', 'execute', 'ceven_noc_d1', '--remote', '--file', arqSql, '--yes'], { encoding: 'utf8', maxBuffer: 1 << 26, env: { ...process.env, NO_COLOR: '1' } }) : spawnSync('npx', ['wrangler', 'd1', 'execute', 'ceven_noc_d1', '--remote', '--file', arqSql, '--yes'], { encoding: 'utf8', shell: true }); if (r.status === 0) break; log('D1 tentativa', t, 'falhou; nova em 20 s'); await new Promise((ok) => setTimeout(ok, 20000)); }
   log('D1', r.status === 0 ? 'gravado' : 'FALHOU', (r.stdout || '').match(/rows_written[^,]*|Executed[^\n]*/g)?.slice(-2).join(' ') || (r.stderr || '').slice(0, 300));
 }
