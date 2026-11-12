@@ -496,6 +496,9 @@ export async function respRotaHojeCompleta(B, v, soSemCompra = false) {
 export async function respMinhaRota(B, v) {
   const { rota, sem: semC, valorMes, pedidoHoje } = await semCompraNaRota(B, v);
   const mes = v.semDash ? ['📊 *Seu mês:* sem leitura do CEVEN hoje (o CEVEN não está respondendo); não mostro número velho nem zero.'] : [`📊 *Seu mês:* faturado ${R$(v.fat || 0)} + pendente ${R$(v.pend || 0)} de ${R$(v.meta || 0)}`, `👥 Positivação: ${v.pos || 0} de ${Math.round(v.metaPos || 0)}`];
+  { const rf = v.reforco || {}, h = (x) => { const d = x && x.em ? new Date(Date.parse(String(x.em).replace(' ', 'T') + (/Z|[+-]\d\d:?\d\d$/.test(String(x.em)) ? '' : 'Z'))) : null; return d && !isNaN(d) ? d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '?'; };
+    const notas = []; if (rf.financeiro) notas.push(`mês: ${rf.financeiro.fonte} de ${h(rf.financeiro)}`); if (rf.roteiro) notas.push(`rota: roteiro do mês lido em ${h(rf.roteiro)}`);
+    if (notas.length) mes.push(`_⚠️ CEVEN sem resposta agora · ${notas.join(' · ')}_`); }
   if (!rota.length && v.semRota) return [`📋 *${vn(v)}*`, ...mes, '', '⚠️ A rota de hoje ainda não foi lida: o CEVEN não está respondendo. Assim que voltar, a rota aparece aqui.'].join('\n');
   if (!rota.length) return [`📋 *${vn(v)}*`, ...mes, '', 'Você não tem clientes na rota de hoje.'].join('\n');
   const semMap = new Map(semC.map((x) => [String(x.c.id_cliente), x])), nao = rota.filter((c) => semMap.has(String(c.id_cliente))), ja = rota.filter((c) => !semMap.has(String(c.id_cliente)));
