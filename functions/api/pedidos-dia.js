@@ -19,6 +19,15 @@ export async function onRequestGet({ env, request }) {
   const fil = (u.searchParams.get('filial') || '').toLowerCase();
   const ehSimples = u.searchParams.get('abertos') !== '1' && !u.searchParams.get('num');
   const chaveMem = `${dia}|${fil}`;
+  // ?soma=1 (Vitorio, 12/11/2026: "o numero que tem que puxar e o da aba pedidos Winthor", boletim 18:30 de 11/11 saiu com R$ 1,5 mi contra R$ 5,1 mi):
+  // DIGITADO DO DIA por vendedor = pedidos gravados (Winthor + historico, inclui loja Mondelez e digitados no Winthor), MESMA consulta do JOTA (escopo.js).
+  if (u.searchParams.get('soma') === '1') {
+    try {
+      const { results } = await env.DB.prepare("SELECT filial, rca, sum(coalesce(valor, 0)) v, count(*) n, count(DISTINCT id_cliente) c FROM pedido_status WHERE data_pedido = ? AND status <> 'CANCELADO' AND data_pedido <= date(primeiro_em, '-3 hours') GROUP BY filial, rca").bind(dia).all();
+      const ult = await env.DB.prepare("SELECT max(atualizado_em) m FROM pedido_status WHERE data_pedido = ?").bind(dia).first();
+      return new Response(JSON.stringify({ dia, atualizado_em: ult && ult.m, rcas: results || [] }), { headers: cors });
+    } catch (e) { return new Response(JSON.stringify({ erro: String(e.message || e).slice(0, 200) }), { status: 500, headers: cors }); }
+  }
   if (ehSimples) {
     const c = memPedidosHoje.get(chaveMem);
     if (c && Date.now() < c.exp) return new Response(c.json, { headers: cors });

@@ -42,7 +42,7 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
       visPlanMes: pm.visit_plan || 0, visRealMes: pm.visit_real || 0,
       /* 10/11/2026: mix do mes do proprio CEVEN (tela Produtividade) e a hora em que o CEVEN foi lido */ mixMes: (r.produtividade && r.produtividade.mix_mes) || null, lidoEm: snap && snap.gerado_em && r.idade_s != null ? new Date(Date.parse(snap.gerado_em) - r.idade_s * 1000).toISOString() : null,
       /* mes do PROPRIO vendedor, qualquer canal (detalhe do vendedor; os totais de rota seguem quem tem rota) */ roteiroMes: Array.isArray(r.roteiro_mes) ? r.roteiro_mes : null, mesV: { plan: pm.visit_plan ?? null, real: pm.visit_real ?? null, pedRota: pm.ped_rota_mes ?? null, efic: pm.eficiencia_pct ?? null },
-      zerado: varejo && ehVendReal && visP > 0 && !vendeuHoje, semVisita: varejo && ehVendReal && visP > 0 && !(visF > 0), devolucoes: Array.isArray(r.devolucoes) ? r.devolucoes : [],
+      /* 12/11/2026: CEVEN fora = sem dado, nunca zero */ semDash: !r.dashboard, semRota: !Array.isArray(r.roteiro), zerado: varejo && ehVendReal && visP > 0 && !vendeuHoje, semVisita: varejo && ehVendReal && visP > 0 && !(visF > 0), devolucoes: Array.isArray(r.devolucoes) ? r.devolucoes : [],
       /* devolucoes que ENTRARAM hoje (mesma regra do WhatsApp 17:00/18:30: d.data === hoje) */
       devHojeCli: [...new Set((Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).map((x) => String(x.codcli)))],
       devHoje: (Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).reduce((t, x) => t + Math.abs(parseFloat(x.vl_devolvido || x.valor || 0) || 0), 0),

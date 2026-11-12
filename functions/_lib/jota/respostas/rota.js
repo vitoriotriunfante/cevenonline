@@ -495,7 +495,8 @@ export async function respRotaHojeCompleta(B, v, soSemCompra = false) {
 // "MINHA ROTA" DO VENDEDOR (Vitorio, 01/11/2026): como esta o mes, quantos clientes hoje, quem ja comprou e quem nao, numerados; ele digita o numero e recebe a ficha do cliente.
 export async function respMinhaRota(B, v) {
   const { rota, sem: semC, valorMes, pedidoHoje } = await semCompraNaRota(B, v);
-  const mes = [`📊 *Seu mês:* faturado ${R$(v.fat || 0)} + pendente ${R$(v.pend || 0)} de ${R$(v.meta || 0)}`, `👥 Positivação: ${v.pos || 0} de ${Math.round(v.metaPos || 0)}`];
+  const mes = v.semDash ? ['📊 *Seu mês:* sem leitura do CEVEN hoje (o CEVEN não está respondendo); não mostro número velho nem zero.'] : [`📊 *Seu mês:* faturado ${R$(v.fat || 0)} + pendente ${R$(v.pend || 0)} de ${R$(v.meta || 0)}`, `👥 Positivação: ${v.pos || 0} de ${Math.round(v.metaPos || 0)}`];
+  if (!rota.length && v.semRota) return [`📋 *${vn(v)}*`, ...mes, '', '⚠️ A rota de hoje ainda não foi lida: o CEVEN não está respondendo. Assim que voltar, a rota aparece aqui.'].join('\n');
   if (!rota.length) return [`📋 *${vn(v)}*`, ...mes, '', 'Você não tem clientes na rota de hoje.'].join('\n');
   const semMap = new Map(semC.map((x) => [String(x.c.id_cliente), x])), nao = rota.filter((c) => semMap.has(String(c.id_cliente))), ja = rota.filter((c) => !semMap.has(String(c.id_cliente)));
   const nome = (c) => titulo(c.nome_cliente || c.razao_social || 'cliente');

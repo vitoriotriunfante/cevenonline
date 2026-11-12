@@ -1063,9 +1063,15 @@ export async function onRequestGet({ env, request, waitUntil }) {
       const ordem = (r) => {
         const cod = kr(r), a = ant.get(cod);
         const temVisitaNova = (feitasGer.get(cod) || 0) > (Number(a && a.n_feitas_rot) || 0);
-        return (admMudou.has(cod) || temVisitaNova) ? '0' : (!a || a.sem_prod) ? '1' : '2' + String(a.pe || '');
+        return (admMudou.has(cod) || temVisitaNova) ? '0' + String((a && a.pe) || '') : (!a || a.sem_prod) ? '1' : '2' + String(a.pe || '');
       };
-      candidatos = rcas.slice().sort((x, y) => ordem(x).localeCompare(ordem(y))).slice(0, 16);
+      // NINGUEM FICA SEM LEITURA (Vitorio, 12/11/2026: "eu preciso que tudo seja populado"): em 11/11, 34 de 37 vendedores da TBL ficaram com a produtividade das 07:56 o dia todo,
+      // porque o grupo '0' (pedido/visita nova) nao tinha rodizio e sempre os mesmos 16 das primeiras filiais ganhavam. Agora: dentro do grupo, o mais antigo primeiro, e metade
+      // das vagas da rodada e SEMPRE dos mais atrasados de qualquer filial.
+      const pri = rcas.slice().sort((x, y) => ordem(x).localeCompare(ordem(y))).slice(0, 8);
+      const jaPri = new Set(pri.map(kr));
+      const atrasados = rcas.filter((r) => !jaPri.has(kr(r))).sort((x, y) => kBase(x).localeCompare(kBase(y))).slice(0, 8);
+      candidatos = pri.concat(atrasados);
     } else if (hier) {
       const prioritarios = rcas.filter((r) => { const a = ant.get(kr(r)); return idsMudou.has(kr(r)) || !a || a.sem_prod; });
       const idsPri = new Set(prioritarios.map((r) => kr(r)));

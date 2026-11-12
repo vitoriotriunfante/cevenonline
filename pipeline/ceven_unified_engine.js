@@ -553,6 +553,12 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
   const lerSite = async (rota) => { try { const r = await axios.get(BASE_SITE + rota, { timeout: 90000 }); return r.data; } catch (e) { return null; } };
   const lancesDia = await lerSite('/api/brasileirao-lances?dia=' + dataRef);
   const pedidosDia = await lerSite('/api/pedidos-dia?dia=' + dataRef);
+  // DIGITADO = PEDIDOS GRAVADOS (Vitorio, 12/11/2026: boletim 18:30 de 11/11 saiu com R$ 1,5 mi; os pedidos do dia eram R$ 5,1 mi). Mesma fonte do JOTA (pedido_status:
+  // Winthor + historico, inclui loja Mondelez e digitados no Winthor). A produtividade do CEVEN so vale se essa leitura falhar.
+  const somaPed = await lerSite('/api/pedidos-dia?soma=1&dia=' + dataRef);
+  const pedPorRca = new Map(); const pedUsados = new Set();
+  if (somaPed && Array.isArray(somaPed.rcas)) for (const x of somaPed.rcas) pedPorRca.set(String(x.filial).toUpperCase() + '_' + x.rca, x);
+  else { console.log('⚠️ Base: soma dos pedidos do dia indisponivel'); FALHAS_COLETA++; }
   if (!lancesDia || !Array.isArray(lancesDia.lances)) { console.log('⚠️ Base: lances do dia indisponiveis'); FALHAS_COLETA++; }
   if (!pedidosDia || !Array.isArray(pedidosDia.pedidos)) { console.log('⚠️ Base: pedidos do dia indisponiveis'); FALHAS_COLETA++; }
   const inatPorRca = {}, recPorRca = {};
@@ -592,11 +598,12 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
         const prog = parseInt(dia.total_programado || dia.visitas_programadas || 0, 10);
         const metaFat = parseFloat(fin.meta || 0);
         const metaPos = parseInt(pos.meta || 0, 10);
-        const dig = parseFloat(dia.dig_pedido || 0);
+        const pw = pedPorRca.get(fSigla + '_' + rca.codigo); if (pw) pedUsados.add(fSigla + '_' + rca.codigo);
+        const dig = pedPorRca.size ? (pw ? Number(pw.v) || 0 : 0) : parseFloat(dia.dig_pedido || 0);
         const posDia = parseInt(dia.positivacao || 0, 10);
         const visReal = parseInt(dia.visitas_na_rota || 0, 10);
         const visVend = parseInt(dia.visitas_com_venda || 0, 10);
-        const pedTot = Math.max(parseInt(dia.total_pedidos || 0, 10), posDia, visVend, dig > 0 ? 1 : 0);
+        const pedTot = pedPorRca.size ? (pw ? Number(pw.n) || 0 : 0) : Math.max(parseInt(dia.total_pedidos || 0, 10), posDia, visVend, dig > 0 ? 1 : 0);
 
         // Faturamento e pedidos totais da filial (todos os RCAs/canais)
         resFil.fatTotalDigitado += dig;
@@ -667,6 +674,13 @@ async function coletarVendasEZerados(repsValidationMap, dataRef) {
   }
 
   // 2. Cortes e Pedidos Bloqueados de Hoje — DA BASE (/api/pedidos-dia). Cada PEDIDO entra UMA vez (pelo numero); o dono e o RCA do prefixo do numero.
+  // MACRO SOMA TUDO: pedido de codigo fora da equipe (loja, digitado no Winthor) soma na filial; filial dividida sem gerente dono entra so no total geral (nunca rateia)
+  for (const [k, x] of pedPorRca) {
+    if (pedUsados.has(k)) continue;
+    const sig = String(x.filial).toUpperCase(); if (!filialResult[sig]) continue;
+    if (subdivididas.has(sig)) { filialResult[sig].digMacroSemGerente = (filialResult[sig].digMacroSemGerente || 0) + (Number(x.v) || 0); filialResult[sig].pedMacroSemGerente = (filialResult[sig].pedMacroSemGerente || 0) + (Number(x.n) || 0); }
+    else { filialResult[sig].fatTotalDigitado += Number(x.v) || 0; filialResult[sig].pedidosTotal += Number(x.n) || 0; }
+  }
   console.log(`🔍 Cortes e Bloqueados da base: ${((pedidosDia && pedidosDia.pedidos) || []).length} pedidos de hoje analisados pelo coletor.`);
   const PEDIDOS_APURADOS = new Set();
   const donosPorCodigo = new Map(rcasComPedido.map(x => [String(x.codigo), x]));
@@ -1221,7 +1235,7 @@ function formatarRelatoriosVendas(filialVendas, horaLabel) {
     totBloqQtd += r.bloqueadosQtd;
     totDev += r.devolucoesValor; totDevFaltam += r.devFaltam || 0;
   });
-  Object.values(filialVendas).forEach(f => { totDev += f.devMacroSemGerente || 0; });
+  Object.values(filialVendas).forEach(f => { totDev += f.devMacroSemGerente || 0; totFat += f.digMacroSemGerente || 0; totPed += f.pedMacroSemGerente || 0; });
 
   const pctGeralCom = totVj > 0 ? ((totVjCom / totVj) * 100).toFixed(1).replace('.', ',') : '0,0';
   const pctGeralSem = totVj > 0 ? ((totVjSem / totVj) * 100).toFixed(1).replace('.', ',') : '0,0';
