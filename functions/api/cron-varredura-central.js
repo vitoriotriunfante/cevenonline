@@ -533,9 +533,13 @@ function upsertParcial(env, dataRef, rca, campos) {
 async function coletaPedidosDoDia(env, dataRef) {
   if (Date.now() < banRcaAte) return { pulado: 'cota' };
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS pedido_leitura (data_ref TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, dig REAL, PRIMARY KEY (data_ref, filial, rca))').run();
-  const { results } = await env.DB.prepare(`SELECT v.filial_sigla f, v.rca_codigo r, CAST(json_extract(v.produtividade_json, '$.dia.dig_pedido') AS REAL) d FROM varredura_central_rca v
-    LEFT JOIN pedido_leitura p ON p.data_ref = v.data_ref AND p.filial = v.filial_sigla AND p.rca = v.rca_codigo
-    WHERE v.data_ref = ? AND CAST(json_extract(v.produtividade_json, '$.dia.dig_pedido') AS REAL) > 0 AND (p.dig IS NULL OR p.dig <> CAST(json_extract(v.produtividade_json, '$.dia.dig_pedido') AS REAL)) LIMIT 6`).bind(dataRef).all();
+  // 12/11/2026 (D1 sobrecarregado): o JOIN lia ~233 mil linhas por rodada (93 milhoes/dia). Agora 2 leituras simples do dia (~600 linhas cada) e a comparacao em JS; mesmo resultado.
+  const [{ results: vd }, { results: pl }] = await Promise.all([
+    env.DB.prepare("SELECT filial_sigla f, rca_codigo r, CAST(json_extract(produtividade_json, '$.dia.dig_pedido') AS REAL) d FROM varredura_central_rca WHERE data_ref = ?").bind(dataRef).all(),
+    env.DB.prepare('SELECT filial, rca, dig FROM pedido_leitura WHERE data_ref = ?').bind(dataRef).all()
+  ]);
+  const lido = new Map((pl || []).map((p) => [p.filial + '|' + p.rca, p.dig]));
+  const results = (vd || []).filter((v) => Number(v.d) > 0 && lido.get(v.f + '|' + v.r) !== Number(v.d)).slice(0, 6);
   let lidos = 0, novos = 0;
   for (const x of results || []) {
     const key = String(x.f).toLowerCase() + '1';
