@@ -36,7 +36,7 @@ async function calcula(env, request) {
   const dia = R.hojeSP();
   const m = await (await fetch(new URL('/api/tv-mostra', request.url), { signal: AbortSignal.timeout(20000) })).json();
   if (!m || !m.filiais) throw new Error('Gestão de Equipe indisponível');
-  const { results } = await env.DB.prepare('SELECT rca_codigo, filial_sigla, produtividade_json, updated_at FROM varredura_central_rca WHERE data_ref = ?').bind(dia).all();
+  const { results } = await env.DB.prepare('SELECT rca_codigo, filial_sigla, produtividade_json, updated_at, prod_em FROM varredura_central_rca WHERE data_ref = ?').bind(dia).all();
   const agora = Date.now(), base = new Map(), clubeDe = {}; let usouClube = false;
   for (const r of results || []) base.set(String(r.filial_sigla).toUpperCase() + '|' + String(r.rca_codigo), r);
 
@@ -75,7 +75,7 @@ async function calcula(env, request) {
         try { const p = JSON.parse(linha.produtividade_json || 'null'); d = p && p.dia ? p.dia : null; } catch (e) { d = null; }
       }
       // CLUBE DA VENDA (12/11/2026): sem a produtividade do CEVEN de hoje, visitas e digitado do dia vem do Clube (leitura de ate 45 min)
-      if (!d) { const C = clubeDe[sig] || (clubeDe[sig] = await lerClubeFilial(env, sig, dia)); const c = C && C.rcas.get(String(r.rca)); if (c) { d = diaDoClube(c); usouClube = true; } }
+      if (!d || !(Date.now() - Date.parse(String((linha && linha.prod_em) || '').replace(' ', 'T') + 'Z') < 45 * 60000)) { const C = clubeDe[sig] || (clubeDe[sig] = await lerClubeFilial(env, sig, dia)); const c = C && C.rcas.get(String(r.rca)); if (c) { d = diaDoClube(c); usouClube = true; } }
       // lido = produtividade DE HOJE na base ou cascata do gerente viva
       const casc = cascataMap.get(sig + '|' + String(r.rca));
       const lido = !!d;

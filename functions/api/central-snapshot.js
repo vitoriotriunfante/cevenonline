@@ -33,7 +33,7 @@ export async function onRequestGet({ env, request }) {
     const agora = Date.now(), rcas = {};
     for (const r of results || []) {
       const t = Date.parse(String(r.updated_at || '').replace(' ', 'T') + 'Z');
-      rcas[r.rca_codigo] = { idade_s: Number.isFinite(t) ? Math.max(0, Math.round((agora - t) / 1000)) : null, produtividade: parse(r.produtividade_json), dashboard: parse(r.dashboard_json), devolucoes: parse(r.devolucoes_json), roteiro: parse(r.roteiro_json), roteiro_mes: parse(r.roteiro_mes_json) };   // roteiro_mes: 26/10/2026
+      rcas[r.rca_codigo] = { idade_s: Number.isFinite(t) ? Math.max(0, Math.round((agora - t) / 1000)) : null, produtividade: parse(r.produtividade_json), dashboard: parse(r.dashboard_json), devolucoes: parse(r.devolucoes_json), roteiro: parse(r.roteiro_json), roteiro_mes: parse(r.roteiro_mes_json), prod_em: r.prod_em || null };   // roteiro_mes: 26/10/2026
     }
     // RESERVA DA ULTIMA LEITURA REAL (Vitorio 12/11/2026: CEVEN em 500 desde 11/11 17:34; revisado pelo arquiteto de dados no mesmo dia):
     // NUNCA por cima do dado de hoje. Vai em campos SEPARADOS, que so quem sabe mostrar a etiqueta usa:
@@ -68,7 +68,10 @@ export async function onRequestGet({ env, request }) {
         for (const [rca, r] of Object.entries(rcas)) {
           const c = C.rcas.get(rca); if (!c) continue;
           r.clube = { total_pedido: c.total_pedido, ped_total: c.ped_total, ped_rota: c.ped_rota, ped_fora: c.ped_fora, roteiros: c.roteiros, visitas_rota: c.visitas_rota, eficiencia: c.eficiencia, eficacia: c.eficacia, lido_em: c.lido_em };
-          if (!r.produtividade) { r.produtividade = { dia: diaDoClube(c), mes: r.produtividade_mes_reserva || {} }; (r.reserva = r.reserva || {}).dia_clube = { fonte: 'Clube da Venda', em: c.lido_em }; }
+          // 12/11/2026 (TSJ e TBE: produtividade do CEVEN lida de madrugada, antes da queda, ficou valendo o dia todo — R$ 59 mil x R$ 207 mil no Clube): leitura do CEVEN
+          // de hoje com mais de 45 min perde para o Clube fresco no DIA; o MES continua o do CEVEN
+          const pEm = r.prod_em ? Date.parse(String(r.prod_em).replace(' ', 'T') + 'Z') : NaN, cevenVelho = !(Date.now() - pEm < 45 * 60000);
+          if (!r.produtividade || cevenVelho) { r.produtividade = { dia: diaDoClube(c), mes: (r.produtividade && r.produtividade.mes) || r.produtividade_mes_reserva || {} }; (r.reserva = r.reserva || {}).dia_clube = { fonte: 'Clube da Venda', em: c.lido_em }; }
         }
       }
     } catch { /* sem Clube: fica o que a base tem */ }

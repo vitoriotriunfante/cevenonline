@@ -213,7 +213,7 @@ async function lerCentral(env, id, maxIdadeMs, filial, comReserva = false) {
   if (!env || !env.DB) return null;
   try {
     const row = await env.DB.prepare(
-      'SELECT roteiro_json, produtividade_json, dashboard_json, updated_at, filial_sigla FROM varredura_central_rca WHERE rca_codigo = ? AND data_ref = ? AND (length(?) = 0 OR filial_sigla = ?)'
+      'SELECT roteiro_json, produtividade_json, dashboard_json, updated_at, filial_sigla, prod_em FROM varredura_central_rca WHERE rca_codigo = ? AND data_ref = ? AND (length(?) = 0 OR filial_sigla = ?)'
     ).bind(String(id), dataHojeBrasilia(), String(filial || '').replace(/1$/, '').toUpperCase(), String(filial || '').replace(/1$/, '').toUpperCase()).first();
     if (!row || !row.updated_at) return null;
     const idade = Date.now() - Date.parse(String(row.updated_at).replace(' ', 'T') + 'Z');
@@ -271,8 +271,9 @@ async function lerCentral(env, id, maxIdadeMs, filial, comReserva = false) {
     }
     // CLUBE DA VENDA (12/11/2026): sem a produtividade do CEVEN de hoje, o DIA (digitado, pedidos, visitas) vem do Clube, so nas TELAS (nunca no coletor de lances)
     let prodFinal = prod || null;
-    if (comReserva && !prodFinal) {
-      try { const sig = String(row.filial_sigla || filial || '').replace(/1$/, '').toUpperCase(); const C = await lerClubeFilial(env, sig, dataHojeBrasilia()); const c = C && C.rcas.get(String(id)); if (c) { prodFinal = { dia: diaDoClube(c), mes: {} }; reforco = { ...(reforco || {}), dia: { fonte: 'Clube da Venda', em: c.lido_em } }; } } catch { /* sem Clube */ }
+    const prodVelha = !(Date.now() - Date.parse(String(row.prod_em || '').replace(' ', 'T') + 'Z') < 45 * 60000);   // CEVEN de hoje com +45 min perde para o Clube fresco (12/11/2026)
+    if (comReserva && (!prodFinal || prodVelha)) {
+      try { const sig = String(row.filial_sigla || filial || '').replace(/1$/, '').toUpperCase(); const C = await lerClubeFilial(env, sig, dataHojeBrasilia()); const c = C && C.rcas.get(String(id)); if (c) { prodFinal = { dia: diaDoClube(c), mes: (prodFinal && prodFinal.mes) || {} }; reforco = { ...(reforco || {}), dia: { fonte: 'Clube da Venda', em: c.lido_em } }; } } catch { /* sem Clube */ }
     }
     return { rot: rotFinal, prod: prodFinal, dash: dashFinal, reforco };
   } catch { return null; }
