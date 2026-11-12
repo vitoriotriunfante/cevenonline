@@ -116,7 +116,7 @@ export async function respHoje(B, E, t) {
   }
   if (Vs.length > 40) L.push(`… e mais ${Vs.length - 40}`);
   const z = V.filter((v) => v.zerado);
-  { const lm = V.map((v) => v.pedLidoEm).filter(Boolean).sort()[0]; if (lm) L.splice(2, 0, `_Pedidos lidos até ${new Date(lm).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })} (leitura mais antiga)._`); }
+  { const lm = V.map((v) => v.pedLidoEm).filter(Boolean).sort()[0]; if (lm && !(B && B._clube)) L.splice(2, 0, `_Pedidos lidos até ${new Date(lm).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })} (leitura mais antiga)._`); }
   L.push('', '👉 *Digite o número* (ex.: 1) para ver a rota e o detalhe do vendedor.');
   // CEVEN fora (12/11/2026): sem as visitas de hoje, 'sem pedido' nao vira cobranca
   L.push('', SUGESTAO + (B && B._reserva && !B._clube ? 'o CEVEN está sem resposta: sem as visitas de hoje, quem está sem pedido não deve ser cobrado por isso agora.' : z.length ? `cobrar quem tem rota e está sem pedido: ${listaNomes(z, 3)}.` : !tot.ped ? 'ainda sem pedido hoje; acompanhar a primeira visita de cada vendedor.' : V.some((v) => !v.ped) ? `ainda sem pedido hoje: ${listaNomes(V.filter((v) => !v.ped), 3)}.` : 'todo mundo com rota já tem pedido; focar em mix por cliente.'));
