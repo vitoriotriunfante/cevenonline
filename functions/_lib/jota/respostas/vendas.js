@@ -288,8 +288,10 @@ export async function respPedidosStatus(B, E, t) {
   const P0 = pd.pedidos.filter((p) => (E.nacional || meus.has(p.filial + '|' + p.rca)) && (alvo === 'CORTE' ? (p.itens_cortados || []).length : alvo === 'PENDENTES' ? !/FATURAD|CANCELAD/i.test(String(p.status_pedido || '')) : !alvo || String(p.status_pedido || '').toUpperCase() === alvo));
   // SO O CONFIRMADO (Vitorio, 31/10/2026: "como eu mostro um numero irreal?"): status aberto so entra na lista e no total se foi conferido no CEVEN na ultima hora; o resto e contado a parte, sem valor
   const confLim = Date.now() - 3600000, ehAberto = alvo && alvo !== 'CORTE';
-  const P = ehAberto ? P0.filter((p) => Number(p.analisado_em) >= confLim) : P0;
-  const naoConf = P0.length - P.length;
+  // 12/11/2026 (Vitorio, CEVEN fora: 'se nao tem o pedido, pelo menos nao posso mostrar o consolidado em valores?'): mostra TODOS os abertos, cada um com a hora da
+  // ultima conferencia ao lado (nunca parece 'agora' sem ser); a regra de 31/10 vira informacao: quantos foram conferidos na ultima hora.
+  const P = P0, confHora = ehAberto ? P0.filter((p) => Number(p.analisado_em) >= confLim).length : P0.length;
+  const naoConf = P0.length - confHora;
   const hm = (ms) => new Date(ms).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
 
   let V = null;
@@ -308,7 +310,7 @@ export async function respPedidosStatus(B, E, t) {
   const cabeçalho = ehLiberado ? `💼 *Clientes com Pedidos Pendentes de Faturamento (Liberados) — ${E.nome}*` : ehBloqueado ? `🔒 *Pedidos bloqueados — ${E.nome}*` : `🧾 *Pedidos ${titulo0} — ${E.nome}*`;
   // STATUS COM IDADE (Vitorio, 31/10/2026: "ja ia ligar para todos os gerentes" por uma lista velha): diz quantos foram conferidos na ultima hora; nunca parece "agora" sem ser
   // 10/11/2026 (Marcelo/API 'quanto com bloqueio comercial?'): o CEVEN tem so o status BLOQUEADO, sem o motivo (credito x comercial); nunca afirmar o motivo
-  const L = [cabeçalho, ...(ehBloqueado ? ['_O CEVEN mostra só "bloqueado", sem dizer se é crédito ou comercial._'] : []), `Total: *${P.length} pedido(s)* · *${R$(tot)}*`, ...(ehAberto ? ['_Confirmados no CEVEN na última hora._' + (naoConf ? ` Outros ${naoConf} em conferência ficam de fora.` : '')] : [])];
+  const L = [cabeçalho, ...(ehBloqueado ? ['_O CEVEN mostra só "bloqueado", sem dizer se é crédito ou comercial._'] : []), `Total: *${P.length} pedido(s)* · *${R$(tot)}*`, ...(ehAberto ? [`_Status da última conferência de cada pedido (hora ao lado) · ${confHora} de ${P0.length} conferidos na última hora._`] : [])];
   if (E.nacional) { const pf = new Map(); for (const p of P) { const x = pf.get(p.filial) || { n: 0, v: 0 }; x.n++; x.v += Number(p.total_clube || p.valor) || 0; pf.set(p.filial, x); } L.push('', '*Por filial:*', ...[...pf].sort((a, b) => b[1].v - a[1].v).map(([f, x]) => `• *${f}*: ${x.n} pedido(s) · ${R$(x.v)}`)); }
   L.push('');
   let n = 0;

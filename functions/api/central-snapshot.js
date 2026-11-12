@@ -40,14 +40,18 @@ export async function onRequestGet({ env, request }) {
     //  - roteiro_planejado = clientes de HOJE no roteiro do mes, SEM status de visita de hoje (nao prova visita nem falta de visita).
     //  - GEROT NAO vira total do vendedor (incompleto em parte da rede: TCV 352 R$ 4.424 x R$ 14.851).
     try {
-      const faltam = Object.entries(rcas).filter(([, r]) => !r.dashboard || !Array.isArray(r.roteiro));
+      const faltam = Object.entries(rcas).filter(([, r]) => !r.dashboard || !Array.isArray(r.roteiro) || !Array.isArray(r.roteiro_mes) || !r.produtividade);
       if (faltam.length) {
         const mes = String(dia).slice(0, 7);
-        const { results: ant } = await env.DB.prepare("SELECT v.rca_codigo, v.dashboard_json, v.dash_em, v.updated_at FROM varredura_central_rca v WHERE v.filial_sigla = ? AND v.data_ref = (SELECT max(x.data_ref) FROM varredura_central_rca x WHERE x.filial_sigla = v.filial_sigla AND x.rca_codigo = v.rca_codigo AND x.data_ref < ? AND x.data_ref >= ? AND x.dashboard_json IS NOT NULL)").bind(filial, dia, mes + '-01').all();
+        // 12/11/2026 (Vitorio: "se eu tenho todos os dados dos clientes populados, pq nao consigo calcular?"): roteiro do MES e produtividade do MES tambem vem
+        // da ultima leitura do mes — sao a carteira, as TAGs e as visitas acumuladas ate ontem (a parte de HOJE da produtividade nunca e reaproveitada).
+        const { results: ant } = await env.DB.prepare("SELECT v.rca_codigo, v.dashboard_json, v.dash_em, v.roteiro_mes_json, v.produtividade_json, v.prod_em, v.updated_at, v.data_ref FROM varredura_central_rca v WHERE v.filial_sigla = ? AND v.data_ref = (SELECT max(x.data_ref) FROM varredura_central_rca x WHERE x.filial_sigla = v.filial_sigla AND x.rca_codigo = v.rca_codigo AND x.data_ref < ? AND x.data_ref >= ? AND x.dashboard_json IS NOT NULL)").bind(filial, dia, mes + '-01').all();
         const A = new Map((ant || []).map((x) => [String(x.rca_codigo), x]));
         for (const [rca, r] of faltam) {
           const a = A.get(rca), ref = {};
           if (!r.dashboard && a) { const da = parse(a.dashboard_json); if (da) { r.dashboard_reserva = da; ref.dashboard = { fonte: 'CEVEN', em: a.dash_em || a.updated_at }; } }
+          if (!Array.isArray(r.roteiro_mes) && a) { const rm = parse(a.roteiro_mes_json); if (Array.isArray(rm)) { r.roteiro_mes = rm; ref.roteiro_mes = { fonte: 'CEVEN roteiro do mes', em: a.updated_at }; } }
+          if (!r.produtividade && a) { const pa = parse(a.produtividade_json); if (pa && pa.mes) { r.produtividade_mes_reserva = pa.mes; ref.produtividade_mes = { fonte: 'CEVEN', em: a.prod_em || a.updated_at, ate: a.data_ref }; } }
           if (!Array.isArray(r.roteiro) && Array.isArray(r.roteiro_mes)) { r.roteiro_planejado = r.roteiro_mes.filter((c) => c && String(c.data_visita || '').slice(0, 10) === dia); ref.roteiro = { fonte: 'CEVEN roteiro do mes (planejado, sem status de hoje)' }; }
           if (Object.keys(ref).length) r.reserva = ref;
         }
