@@ -1,4 +1,4 @@
-# Menu em contingência — TCV 352 TAMARA GUEDES (sup. VAGO - GABRIEL) — 12/11/2026, 10:54:50
+# Menu em contingência — TCV 352 TAMARA GUEDES (sup. VAGO - GABRIEL) — 12/11/2026, 11:22:34
 
 ## VENDEDOR 1
 ```
@@ -8,11 +8,13 @@
 👥 Positivação: 30 de 99 (30,3%) · faltam 69 clientes
 📝 Hoje: R$ 0 em 0 pedido(s) · ticket sem pedido hoje
 ↩️ Devolução no mês: R$ 0
+📅 Rota do mês: 84 de 86 visitas (97,7%)
 🏆 Liga: 87º no Brasil · 18º na filial · 36 pts (11V 3E 7D)
 📲 *Uso do +MIX:* 1 de 11 clientes compraram produto novo da lista do +MIX (*9,1%*)
 ⭐ *Mais vendidos no mês* (nº de clientes que compraram): 1. Ch Tortug Huevitos (4 clientes) · 2. Turron Many (3 clientes) · 3. Pepino Burger Agridoce Vd Hemme (3 clientes) · 4. Tabl Rech Avela Choco Block (3 clientes) · 5. Tabl Choco Amendoim Block (3 clientes)
 🆕 *Produtos novos nos clientes* (não compravam há mais de 60 dias): 1. Ch Tortug Huevitos (3 clientes) · 2. Bisc Tortug Rech Baunilha (2 clientes) · 3. Pepino Burger Agridoce Vd Hemme (2 clientes) · 4. Pir Plut Expl Melancia (2 clientes) · 5. Maionese Tradic Bg Hemmer (2 clientes)
 🕒 Dados do CEVEN lidos às 00:12
+📌 *Faltam 69 positivações:* *18* na rota de hoje e *38* já visitados no mês ainda sem compra. Peça *"ver mais"* para ver a lista de clientes.
 
 🎯 *Sugestão do Jota:* precisa de R$ 6.029 por dia útil; priorizar clientes curva A e o +MIX.
 
@@ -111,19 +113,19 @@ _Peça "pênaltis", "impedimentos", "cartões", "gols" para ver quem e por quê.
 👥 Positivação: 30 de 99 (30,3%) · faltam 69 clientes
 📝 Hoje: R$ 0 em 0 pedido(s) · ticket sem pedido hoje
 ↩️ Devolução no mês: R$ 0
+📅 Rota do mês: 84 de 86 visitas (97,7%)
 🏆 Liga: 87º no Brasil · 18º na filial · 36 pts (11V 3E 7D)
 📲 *Uso do +MIX:* 1 de 11 clientes compraram produto novo da lista do +MIX (*9,1%*)
 ⭐ *Mais vendidos no mês* (nº de clientes que compraram): 1. Ch Tortug Huevitos (4 clientes) · 2. Turron Many (3 clientes) · 3. Pepino Burger Agridoce Vd Hemme (3 clientes) · 4. Tabl Rech Avela Choco Block (3 clientes) · 5. Tabl Choco Amendoim Block (3 clientes)
 🆕 *Produtos novos nos clientes* (não compravam há mais de 60 dias): 1. Ch Tortug Huevitos (3 clientes) · 2. Bisc Tortug Rech Baunilha (2 clientes) · 3. Pepino Burger Agridoce Vd Hemme (2 clientes) · 4. Pir Plut Expl Melancia (2 clientes) · 5. Maionese Tradic Bg Hemmer (2 clientes)
 🕒 Dados do CEVEN lidos às 00:12
+📌 *Faltam 69 positivações:* *18* na rota de hoje e *38* já visitados no mês ainda sem compra. Peça *"ver mais"* para ver a lista de clientes.
 
 🎯 *Sugestão do Jota:* precisa de R$ 6.029 por dia útil; priorizar clientes curva A e o +MIX.
 
 🏆 *Metas das indústrias — 352 - Tamara Guedes (varejo)* · novembro · _apuração até 20/11_
 *0 de 9 indústrias* com o faturado já batido · total R$ 4.899 de R$ 93.000 (5,3%) · vendido R$ 19.848 (21,3%)
-🔴 *Arcor*: faturado R$ 3.461 de R$ 44.200 (7,8%) · carteira pendente *R$ 5.997* (total com pedidos: *R$ 9.459* · 21,4%) · positivação 11/90 (12,2%)
-🔴 *Hemmer*: faturado R$ 115 de R$ 13.000 (0,9%) · carteira pendente *R$ 1.818* (total com pedidos: *R$ 1.933* · 14,9%) · positivação 2/61 (3,3%)
-🔴 *AB Mauri (Fleischmann)*:
+🔴 *Arcor*: faturado R$ 3.461 de R$ 44.200 (7,8%) · carteira pendente *R$ 5.997* (total com pedidos: *R$ 9.459* · 21,4%) · positivação 11/9
 ```
 
 ## VENDEDOR 4
@@ -184,7 +186,19 @@ Nenhum pedido seu bloqueado nos últimos 7 dias, na última conferência no CEVE
 
 ## VENDEDOR 4.2
 ```
-🧾 *Pedidos pendentes de faturamento (liberados) — Tamara Guedes (RCA 352)*: nenhum confirmado no CEVEN na última hora (5 ainda em conferência).
+💼 *Clientes com Pedidos Pendentes de Faturamento (Liberados) — Tamara Guedes (RCA 352)*
+Total: *5 pedido(s)* · *R$ 2.273*
+_Status da última conferência de cada pedido (hora ao lado) · 0 de 5 conferidos na última hora._
+
+*352 - Tamara Guedes (varejo)* — 5 pedido(s)
+• Pedido 352001279 (11/11) · cliente #11417 · *R$ 171* · LIBERADO
+• Pedido 352001277 (11/11) · cliente #257458 · *R$ 772* · LIBERADO
+• Pedido 352001278 (11/11) · cliente #257458 · *R$ 92* · LIBERADO
+• Pedido 352001235 (09/11) · cliente #19988 · *R$ 751* · LIBERADO _(lido 11/11 08:03)_
+• Pedido 352001175 (28/10) · cliente #16408 · *R$ 486* · LIBERADO
+
+_Status da última leitura de cada pedido (hora ao lado)._
+💡 *Quer ver também os pedidos bloqueados por crédito?* Digite *1* para ver os bloqueados.
 
 📌 *Quer detalhar?* Digite o número 〔4〕
 *1* Pedidos bloqueados
@@ -216,14 +230,14 @@ Nenhum pedido seu bloqueado nos últimos 7 dias, na última conferência no CEVE
 • Comercial: R$ 83 em 1 pedido(s)
 
 *Clientes com mais corte:*
-1. Cliente (#10305) · R$ 83
+1. Super Parque Verde (#10305) · R$ 83
 
 *Pedidos:*
-• 09/11 · nº 352001239 · Cliente (#10305) · Comercial · R$ 1.567 → *R$ 1.484* (−R$ 83)
+• 09/11 · nº 352001239 · Super Parque Verde (#10305) · Comercial · R$ 1.567 → *R$ 1.484* (−R$ 83)
 
 _Produtos cortados lidos em 0 de 1 pedidos (a lista dos itens passou a ser gravada em 10/11; os demais vão aparecendo na próxima leitura do CEVEN)._
 
-🎯 *Sugestão do Jota:* a maior parte é *comercial* (preço, limite ou bloqueio): fale com o supervisor antes de repetir o pedido e confira condição e limite do cliente. Comece por *Cliente (#10305)*.
+🎯 *Sugestão do Jota:* a maior parte é *comercial* (preço, limite ou bloqueio): fale com o supervisor antes de repetir o pedido e confira condição e limite do cliente. Comece por *Super Parque Verde (#10305)*.
 
 📌 *Quer detalhar?* Digite o número 〔4〕
 *1* Pedidos bloqueados
@@ -235,14 +249,62 @@ _Produtos cortados lidos em 0 de 1 pedidos (a lista dos itens passou a ser grava
 
 ## VENDEDOR 5
 ```
-352 - Tamara Guedes (TCV): sem a produtividade do mês na base agora.
+📉 *Curva negativa — 352 - Tamara Guedes* (TCV)
+Carteira do mês: *133 clientes* · já compraram: *59* · *ainda não compraram: 74*
+_Painel do CEVEN: positivação 30 de 99. Esta lista segue o roteiro do mês, que é outra conta._
+_Cliente · Última compra · Dias sem compra_
+Mercado Cisne · 30/10 · 13 dias
+Posto Paravis · 30/10 · 13 dias
+Posto Paravis - Filial I · 20/10 · 23 dias
+Farmacia Medicinal · 06/10 · 37 dias
+Auto Posto Pra Frente Brasil Ltda · 10/09 · 63 dias
+Posto Bca Ferroeste · 14/09 · 59 dias
+Churrascaria Pasquali · 26/10 · 17 dias
+Mercado Berte · 27/10 · 16 dias
+Hidrosul · 28/10 · 15 dias
+Mercado Wj · 28/10 · 15 dias
+Mercado Popular · 15/10 · 28 dias
+Sergio Portela Volff Mercado · 03/09 · 70 dias
+Boa Vista Supermercado · 12/11 · 0 dias
+Supermercado Calfi · 29/10 · 14 dias
+Comercial Helio · 17/09 · 56 dias
+Mercearia Real Master · 15/10 · 28 dias
+Supermercado Trevisan · 29/10 · 14 dias
+Mercado Costa · 15/10 · 28 dias
+Emporio Da Economia · 29/10 · 14 dias
+Auto Posto Pra Frente Brasil Ltda · 21/08 · 83 dias
+Auto Posto Montfort · 30/10 · 13 dias
+Aac · 02/10 · 41 dias
+Mercado Rei Do Pao · 30/10 · 13 dias
+Posto Xodo · 19/10 · 24 dias
+Elefante Dourado Ltda · 29/09 · 44 dias
+… e mais 49 (peça "ver mais")
+🎯 *Sugestão do Jota:* começar por quem comprou há menos tempo: é mais fácil de recuperar.
 
 *0* Voltar ao menu 〔5〕
 ```
 
 ## VENDEDOR 6
 ```
-🧺 352 - Tamara Guedes (varejo) não tem clientes na rota de hoje.
+🧺 *+MIX — rota de hoje de 352 - Tamara Guedes (varejo)* (19 clientes)
+
+*Ainda sem compra no mês (18) — o que oferecer:*
+Sergio Portela Volff Mercado: Ch Plut Cabeca De Abobora · Bisc Tortug Rech Morango · Ch Plut Baba De Bruxa
+Posto Graciani: Maionese Tradic Bg Hemmer · Turron Many · Raid Aero Base Agua Lm.pm
+Comercial Helio: Raid Aero Base Agua Lm.pm · Tabl Choco Amendoim Block · Tabl Rech Avela Choco Block
+M A Graciani Restaurante Ltda: Raid Aero Base Agua Lm.pm · Maionese Tradic Bg Hemmer · Turron Many
+Farmacia Zanette: Ch Plut Cabeca De Abobora · Ch Plut Baba De Bruxa · Maionese Tradic Bg Hemmer
+Familia Corbari: Ch Tortug Huevitos · Tabl Rech Avela Choco Block · Tortug Brigadeiro
+Mercado Popular: Ch Plut Cabeca De Abobora · Ch Plut Baba De Bruxa · Raid Aero Base Agua Lm.pm
+Lachonete Tropical: Ch Plut Cabeca De Abobora · Ch Plut Baba De Bruxa · Bisc Tortug Rech Morango
+
+*Para levar hoje (mais pedidos pelo +MIX nos 19 clientes da rota):*
+Raid Aero Base Agua Lm.pm · em 9 cliente(s)
+Ferm Biol Fleisc L125.p100 · em 7 cliente(s)
+Ch Plut Cabeca De Abobora · em 6 cliente(s)
+Ch Plut Baba De Bruxa · em 6 cliente(s)
+Turron Many · em 6 cliente(s)
+Bisc Tortug Rech Morango · em 6 cliente(s)
 
 *0* Voltar ao menu 〔6〕
 ```
@@ -270,24 +332,71 @@ _Sem meta:_ Baly R$ 1.669 (7 cli.) · Envision (AOC/Philips) R$ 603 (3 cli.)
 
 ## VENDEDOR 8
 ```
-🎯 *Meta de recorrência (GEROT)*: objetivo *30* clientes · meta 80% = *20* · positivados *4* (20,0% da meta · faltam *16*) · R$ 1.911
+🎯 *Meta de recorrência (GEROT)*: objetivo *30* clientes · meta 80% = *20* · positivados *6* (30,0% da meta · faltam *14*) · R$ 2.251
 _Lista do dia 1º do GEROT: clientes com compra de 31 a 90 dias e nenhuma nos 30 dias antes do dia 1º._
 
-🔄 352 - Tamara Guedes (varejo): nenhum cliente com a tag *Recorrência* no roteiro (hoje e no mês).
+🔄 *Tag: Recorrência — 352 - Tamara Guedes (varejo)*
+Mês: *6 de 24* clientes compraram (meta = 80% = 20 · faltam 14)
+
+*Na rota de hoje (6):*
+_Cliente · Status · Última compra_
+Posto Graciani · Planejado · 14/10
+Sergio Portela Volff Mercado · Planejado · 30/10
+Comercial Helio · Planejado · 30/10
+Supermercado Roma · Planejado · 15/10
+M A Graciani Restaurante Ltda · Planejado · 21/09
+Farmacia Zanette · Planejado · 21/09
+
+*Ainda sem compra no mês (10):*
+_Cliente · Última compra_
+Posto Jardim · 12/09
+Auto Posto Pra Frente Brasil Ltda · 30/10
+Posto Pegoraro Perola Branca · 25/09
+Doces Cascavel · 09/09
+Glm Smart Store 24 Horas Ltda · 14/09
+Giason Supermercado · 23/10
+Mercado Sao Miguel Veneza · 30/09
+Mercado Novo Mundo · 22/10
+Restaurante Do Gaucho · 22/09
+Lanchonete E Mercearia Santa Felicidade · 08/10
+
+*Já compraram no mês (8):*
+✅ Posto Jardim · comprado
+✅ Posto Pandolfi · comprado
+✅ Posto Pra Frente Brasil · comprado
+✅ Restaurante Santa Maria · comprado
+✅ Sabor Do Pao · comprado
+✅ Santo Adega E Conveniencia · comprado
+✅ Mercearia Sao Francisco · comprado
+✅ Posto Sao Cristovao · comprado
 
 *0* Voltar ao menu 〔8〕
 ```
 
 ## VENDEDOR 9
 ```
-📋 *352 - Tamara Guedes (varejo)*
+📋 *352 - Tamara Guedes (varejo)* — rota de hoje: *19 clientes*
 📊 *Seu mês:* faturado R$ 14.851 + pendente R$ 5.802 de R$ 93.000
 👥 Positivação: 30 de 99
-_⚠️ CEVEN sem resposta agora · mês: CEVEN de 11/11, 16:28_
+_⚠️ CEVEN sem resposta agora · mês: CEVEN de 11/11, 16:28 · rota: planejada no roteiro do mês, *sem status de visita de hoje* (📅)_
 
-⚠️ A rota de hoje ainda não foi lida: o CEVEN não está respondendo. Assim que voltar, a rota aparece aqui.
-
-*0* Voltar ao menu 〔9〕
+*Ainda não compraram no mês (18):*
+1. Mercado Popular (#10639) · PLANEJADO · 28 dias sem compra · 🏷️ Bon, Biscuit, Toffees
+2. Lachonete Tropical (#11183) · PLANEJADO · 28 dias sem compra · 🏷️ Bon, Biscuit, Flow
+3. Posto Graciani (#5883) · PLANEJADO · 56 dias sem compra · 🏷️ RECORRENCIA, Bon, Biscuit, Flow
+4. Auto Posto Colina (#12052) · PLANEJADO · 28 dias sem compra · 🏷️ Bon, Biscuit, Flow
+5. Sergio Portela Volff Mercado (#11224) · PLANEJADO · 70 dias sem compra · 🏷️ RECORRENCIA, Bon, Biscuit, Flow
+6. O Sacolao Economico (#8703) · PLANEJADO · 28 dias sem compra · 🏷️ Biscuit, Flow
+7. Boa Vista Supermercado (#15439) · PLANEJADO · última compra hoje, ainda não consta no mês · 🏷️ Bon, Flow
+8. Supermercado Calfi (#249519) · PLANEJADO · 14 dias sem compra · 🏷️ Toffees, Block
+9. Comercial Helio (#19038) · PLANEJADO · 56 dias sem compra · 🏷️ RECORRENCIA, Bon, Biscuit, Flow
+10. Mercearia Real Master (#10782) · PLANEJADO · 28 dias sem compra · 🏷️ Bon, Biscuit, Flow
+11. Supermercado Roma (#20289) · PLANEJADO · 28 dias sem compra · 🏷️ RECORRENCIA, Bon, Biscuit, Flow
+12. Auto Posto Juvinopolis (#18582) · PLANEJADO · 28 dias sem compra · 🏷️ Bon, Biscuit, Flow
+13. M A Graciani Restaurante Ltda (#16715) · PLANEJADO · 56 dias sem compra · 🏷️ RECORRENCIA, Bon, Biscuit, Flow
+14. Supermercado Trevisan (#17541) · PLANEJADO · 14 dias sem compra · 🏷️ Biscuit, Flow, Toffees
+15. Mercado Costa (#9312) · PLANEJADO · 28 dias sem compra · 🏷️ Bon, Biscuit, Flow
+16. Familia Corbari (#372787) · PLANEJAD
 ```
 
 ## VENDEDOR 10
@@ -352,8 +461,9 @@ _✅ batida · 🟡 80% ou mais · 🔴 abaixo de 80% (faturado). Vendido = fatu
 ## VENDEDOR 14
 ```
 👥 *Minha carteira — 352 - Tamara Guedes (varejo)* (TCV)
-📋 Roteiro do mês: sem dado na base
+📋 Clientes no seu roteiro do mês: *133*
 🎯 Positivação (painel do CEVEN): *30* de 99 clientes da meta
+✅ Do roteiro, já compraram no mês (faturado ou pedido): *59* · faltam *74*
 
 👉 Digite *5* no menu para a lista de quem falta.
 
@@ -362,7 +472,16 @@ _✅ batida · 🟡 80% ou mais · 🔴 abaixo de 80% (faturado). Vendido = fatu
 
 ## VENDEDOR 15
 ```
-🏷️ *Campanhas — 352 - Tamara Guedes (varejo)*: não há roteiro do mês na base para montar as campanhas dos seus clientes.
+🏷️ *Campanhas e TAGs do mês — 352 - Tamara Guedes (varejo)*
+_Todas as TAGs do seu roteiro do mês (combos, foco, P11…), menos recorrência (essa é o 8) · quantos clientes já compraram (faturado ou pedido)_
+
+1. *Biscuit*: 53 de 117 clientes já compraram · faltam *64*
+2. *Bon*: 47 de 108 clientes já compraram · faltam *61*
+3. *Flow*: 45 de 105 clientes já compraram · faltam *60*
+4. *Toffees*: 14 de 20 clientes já compraram · faltam *6*
+5. *Block*: 3 de 5 clientes já compraram · faltam *2*
+
+👉 *Digite o número da campanha* para ver os clientes que faltam.
 
 *0* Voltar ao menu 〔15〕
 ```
@@ -376,14 +495,14 @@ _✅ batida · 🟡 80% ou mais · 🔴 abaixo de 80% (faturado). Vendido = fatu
 • Comercial: R$ 83 em 1 pedido(s)
 
 *Clientes com mais corte:*
-1. Cliente (#10305) · R$ 83
+1. Super Parque Verde (#10305) · R$ 83
 
 *Pedidos:*
-• 09/11 · nº 352001239 · Cliente (#10305) · Comercial · R$ 1.567 → *R$ 1.484* (−R$ 83)
+• 09/11 · nº 352001239 · Super Parque Verde (#10305) · Comercial · R$ 1.567 → *R$ 1.484* (−R$ 83)
 
 _Produtos cortados lidos em 0 de 1 pedidos (a lista dos itens passou a ser gravada em 10/11; os demais vão aparecendo na próxima leitura do CEVEN)._
 
-🎯 *Sugestão do Jota:* a maior parte é *comercial* (preço, limite ou bloqueio): fale com o supervisor antes de repetir o pedido e confira condição e limite do cliente. Comece por *Cliente (#10305)*.
+🎯 *Sugestão do Jota:* a maior parte é *comercial* (preço, limite ou bloqueio): fale com o supervisor antes de repetir o pedido e confira condição e limite do cliente. Comece por *Super Parque Verde (#10305)*.
 
 *0* Voltar ao menu 〔16〕
 ```
@@ -392,6 +511,7 @@ _Produtos cortados lidos em 0 de 1 pedidos (a lista dos itens passou a ser grava
 ```
 📋 *Dia da Equipe Vago Gabriel (TCV)* (12/11)
 💰 Digitado hoje: *R$ 108* em *1 pedido(s)* · ticket médio R$ 108
+_Pedidos lidos até 08:20 (leitura mais antiga da equipe)._
 
 • ✅ *330 - Eduardo Silva (varejo)*: R$ 108 · 1 ped.
 • ◻️ *342 - Marines Viar (varejo)*: R$ 0 · sem pedido hoje
@@ -404,14 +524,14 @@ _Produtos cortados lidos em 0 de 1 pedidos (a lista dos itens passou a ser grava
 • ◻️ *548 - Tana Morais (varejo)*: R$ 0 · sem pedido hoje
 • ◻️ *337 - Sandramara Schuck (varejo)*: R$ 0 · sem pedido hoje
 
-🎯 *Sugestão do Jota:* ainda sem pedido hoje: Marines Viar, Cristiane Chaves, Paulo Oliveira.
+🎯 *Sugestão do Jota:* o CEVEN está sem resposta: sem as visitas de hoje, quem está sem pedido não deve ser cobrado por isso agora.
 
 *0* Voltar ao menu 〔S1〕
 ```
 
 ## SUPERVISOR 2
 ```
-📊 *Equipe Vago Gabriel (TCV) agora* (10:56)
+📊 *Equipe Vago Gabriel (TCV) agora* (11:26)
 💰 Faturado: *R$ 108.058* de R$ 620.000 → *17,4%*
 ⏳ Pendente: R$ 37.075
 👥 Positivação: 213 de 845 (25,2%)
@@ -455,29 +575,83 @@ Filial: *3º de 11*, 23 pts (1V 20E 0D)
 
 ## SUPERVISOR 4
 ```
-🧾 *Pedidos pendentes de faturamento (liberados) — Equipe Vago Gabriel (TCV)*: nenhum confirmado no CEVEN na última hora (49 ainda em conferência).
+💼 *Clientes com Pedidos Pendentes de Faturamento (Liberados) — Equipe Vago Gabriel (TCV)*
+Total: *49 pedido(s)* · *R$ 29.555*
+_Status da última conferência de cada pedido (hora ao lado) · 0 de 49 conferidos na última hora._
 
-📌 *Quer detalhar?* Digite o número 〔S4〕
-*1* Pedidos a faturar
-*2* Pedidos bloqueados
-*3* Pedidos cancelados
-*0* Voltar ao menu
+*1093 - Cristiane Chaves (varejo)* — 16 pedido(s)
+• Pedido 1093000594 (11/11) · cliente #398337 · *R$ 2.968* · LIBERADO _(lido 11/11 14:33)_
+• Pedido 1093000586 (11/11) · cliente #390187 · *R$ 924* · LIBERADO
+• Pedido 1093000587 (11/11) · cliente #390187 · *R$ 947* · LIBERADO _(lido 11/11 11:36)_
+• Pedido 1093000591 (11/11) · cliente #3593 · *R$ 531* · LIBERADO _(lido 11/11 14:00)_
+• Pedido 1093000589 (11/11) · cliente #267139 · *R$ 186* · LIBERADO _(lido 11/11 14:35)_
+• Pedido 1093000592 (11/11) · cliente #266951 · *R$ 2.697* · LIBERADO
+• Pedido 1093000593 (11/11) · cliente #266951 · *R$ 2.866* · LIBERADO _(lido 11/11 14:33)_
+• Pedido 1093000588 (11/11) · cliente #265626 · *R$ 223* · LIBERADO _(lido 11/11 12:17)_
+• Pedido 1093000590 (11/11) · cliente #14905 · *R$ 269* · LIBERADO _(lido 11/11 14:00)_
+• Pedido 1093000597 (11/11) · cliente #14737 · *R$ 266* · LIBERADO _(lido 11/11 16:34)_
+• Pedido 1093000595 (11/11) · cliente #10509 · *R$ 497* · LIBERADO
+• Pedido 1093000596 (11/11) · cliente #10509 · *R$ 518* · LIBERADO _(lido 11/11 16:34)_
+• Pedido 1093000582 (10/11) · cliente #265280 · *R$ 937* · LIBERADO
+• Pedido 1093000583 (10/11) · cliente #265280 · *R$ 982* · LIBERADO _(lido 11/11 11:36)_
+• Pedido 1093000584 (10/11) · cliente #19994 · *R$ 576* · LIBERADO
+• Pedido 1093000585 (10/11) · cliente #19994 · *R$ 15* · LIBERADO _(lido 11/11 11:36)_
+*330 - Eduardo Silva (varejo)* — 11 pedido(s)
+• Pedido 330000805 · cliente #259859 · *R$ 108* · LIBERADO
+• Pedido 330000803 (11/11) · cliente #397531 · *R$ 223* · LIBERADO
+• Pedido 330000802 (11/11) · cliente
 ```
 
 ## SUPERVISOR 4.1
 ```
-🧾 *Pedidos pendentes de faturamento (liberados) — Equipe Vago Gabriel (TCV)*: nenhum confirmado no CEVEN na última hora (49 ainda em conferência).
+💼 *Clientes com Pedidos Pendentes de Faturamento (Liberados) — Equipe Vago Gabriel (TCV)*
+Total: *49 pedido(s)* · *R$ 29.555*
+_Status da última conferência de cada pedido (hora ao lado) · 0 de 49 conferidos na última hora._
 
-📌 *Quer detalhar?* Digite o número 〔S4〕
-*1* Pedidos a faturar
-*2* Pedidos bloqueados
-*3* Pedidos cancelados
-*0* Voltar ao menu
+*1093 - Cristiane Chaves (varejo)* — 16 pedido(s)
+• Pedido 1093000594 (11/11) · cliente #398337 · *R$ 2.968* · LIBERADO _(lido 11/11 14:33)_
+• Pedido 1093000586 (11/11) · cliente #390187 · *R$ 924* · LIBERADO
+• Pedido 1093000587 (11/11) · cliente #390187 · *R$ 947* · LIBERADO _(lido 11/11 11:36)_
+• Pedido 1093000591 (11/11) · cliente #3593 · *R$ 531* · LIBERADO _(lido 11/11 14:00)_
+• Pedido 1093000589 (11/11) · cliente #267139 · *R$ 186* · LIBERADO _(lido 11/11 14:35)_
+• Pedido 1093000592 (11/11) · cliente #266951 · *R$ 2.697* · LIBERADO
+• Pedido 1093000593 (11/11) · cliente #266951 · *R$ 2.866* · LIBERADO _(lido 11/11 14:33)_
+• Pedido 1093000588 (11/11) · cliente #265626 · *R$ 223* · LIBERADO _(lido 11/11 12:17)_
+• Pedido 1093000590 (11/11) · cliente #14905 · *R$ 269* · LIBERADO _(lido 11/11 14:00)_
+• Pedido 1093000597 (11/11) · cliente #14737 · *R$ 266* · LIBERADO _(lido 11/11 16:34)_
+• Pedido 1093000595 (11/11) · cliente #10509 · *R$ 497* · LIBERADO
+• Pedido 1093000596 (11/11) · cliente #10509 · *R$ 518* · LIBERADO _(lido 11/11 16:34)_
+• Pedido 1093000582 (10/11) · cliente #265280 · *R$ 937* · LIBERADO
+• Pedido 1093000583 (10/11) · cliente #265280 · *R$ 982* · LIBERADO _(lido 11/11 11:36)_
+• Pedido 1093000584 (10/11) · cliente #19994 · *R$ 576* · LIBERADO
+• Pedido 1093000585 (10/11) · cliente #19994 · *R$ 15* · LIBERADO _(lido 11/11 11:36)_
+*330 - Eduardo Silva (varejo)* — 11 pedido(s)
+• Pedido 330000805 · cliente #259859 · *R$ 108* · LIBERADO
+• Pedido 330000803 (11/11) · cliente #397531 · *R$ 223* · LIBERADO
+• Pedido 330000802 (11/11) · cliente
 ```
 
 ## SUPERVISOR 4.2
 ```
-🧾 *Pedidos bloqueados por crédito — Equipe Vago Gabriel (TCV)*: nenhum confirmado no CEVEN na última hora (7 ainda em conferência).
+🔒 *Pedidos bloqueados — Equipe Vago Gabriel (TCV)*
+_O CEVEN mostra só "bloqueado", sem dizer se é crédito ou comercial._
+Total: *7 pedido(s)* · *R$ 2.886*
+_Status da última conferência de cada pedido (hora ao lado) · 0 de 7 conferidos na última hora._
+
+*356 - Weslei Zanatta (varejo)* — 3 pedido(s)
+• Pedido 356000770 (11/11) · cliente #3185 · *R$ 177* · BLOQUEADO _(lido 11/11 15:25)_
+• Pedido 356000772 (11/11) · cliente #14533 · *R$ 404* · BLOQUEADO _(lido 11/11 16:02)_
+• Pedido 356000758 (09/11) · cliente #262219 · *R$ 208* · BLOQUEADO _(lido 11/11 14:55)_
+*347 - Paulo Oliveira (varejo)* — 2 pedido(s)
+• Pedido 347000929 (11/11) · cliente #266710 · *R$ 308* · BLOQUEADO
+• Pedido 347000935 (11/11) · cliente #15144 · *R$ 433* · BLOQUEADO
+*325 - Cleiton Carvalho (varejo)* — 1 pedido(s)
+• Pedido 325000752 (11/11) · cliente #17473 · *R$ 469* · BLOQUEADO
+*1093 - Cristiane Chaves (varejo)* — 1 pedido(s)
+• Pedido 1093000581 (10/11) · cliente #5147 · *R$ 888* · BLOQUEADO _(lido 11/11 11:36)_
+
+_Status da última leitura de cada pedido (hora ao lado)._
+💡 *Pedidos bloqueados por crédito:* pendência comercial/financeira. Alinhar liberação com a equipe de crédito para seguir para faturamento.
 
 📌 *Quer detalhar?* Digite o número 〔S4〕
 *1* Pedidos a faturar
@@ -488,7 +662,21 @@ Filial: *3º de 11*, 23 pts (1V 20E 0D)
 
 ## SUPERVISOR 5
 ```
-👥 *Quem falta positivar — Equipe Vago Gabriel (TCV)*: a carteira do mês ainda não está completa na base (ela é lida vendedor a vendedor ao longo do dia). Tente de novo mais tarde ou cite o vendedor.
+👥 *Quem falta positivar — Equipe Vago Gabriel (TCV)* (clientes da carteira do mês sem compra no mês)
+Total: *610* clientes · 10 vendedor(es)
+
+1️⃣ *337 - Sandramara Schuck (varejo)*: *102* de 123 clientes
+2️⃣ *352 - Tamara Guedes (varejo)*: *74* de 133 clientes
+3️⃣ *342 - Marines Viar (varejo)*: *70* de 118 clientes
+4️⃣ *356 - Weslei Zanatta (varejo)*: *62* de 96 clientes
+5️⃣ *548 - Tana Morais (varejo)*: *57* de 82 clientes
+6️⃣ *330 - Eduardo Silva (varejo)*: *54* de 89 clientes
+7️⃣ *1093 - Cristiane Chaves (varejo)*: *50* de 93 clientes
+8️⃣ *355 - Vitor Luz (varejo)*: *50* de 75 clientes
+9️⃣ *347 - Paulo Oliveira (varejo)*: *46* de 80 clientes
+🔟 *325 - Cleiton Carvalho (varejo)*: *45* de 95 clientes
+
+🎯 *Sugestão do Jota:* digite o número (ex: *1* ou *2*) para ver a curva negativa daquele vendedor.
 
 *0* Voltar ao menu 〔S5〕
 ```
@@ -496,15 +684,37 @@ Filial: *3º de 11*, 23 pts (1V 20E 0D)
 ## SUPERVISOR 6
 ```
 🔄 *Tag: Recorrência — Equipe Vago Gabriel (TCV)*
-*0 clientes* com a tag no mês · já compraram *0* · faltam *0* para a meta da Premiação (0 = 80%)
+*224 clientes* com a tag no mês · já compraram *51* · faltam *129* para a meta da Premiação (180 = 80%)
 
-📍 Nenhum cliente com a tag sem compra na rota de hoje.
+📍 *Na rota de hoje e ainda sem compra (21):*
+• J G De Aguiar Comercio De Alimentos — *342 - Marines Viar (varejo)*
+• Sorveteria Katieli — *342 - Marines Viar (varejo)*
+• Mister Sabor — *356 - Weslei Zanatta (varejo)*
+• 52.549.572 Cristiane Da Silva Maia — *356 - Weslei Zanatta (varejo)*
+• Papelaria Brasil — *356 - Weslei Zanatta (varejo)*
+• Mercearia J V C — *325 - Cleiton Carvalho (varejo)*
+• Mercado V C Tradicao — *325 - Cleiton Carvalho (varejo)*
+• Gramado Bebidas — *325 - Cleiton Carvalho (varejo)*
+• Posto Graciani — *352 - Tamara Guedes (varejo)*
+• Sergio Portela Volff Mercado — *352 - Tamara Guedes (varejo)*
+• Comercial Helio — *352 - Tamara Guedes (varejo)*
+• Supermercado Roma — *352 - Tamara Guedes (varejo)*
+• M A Graciani Restaurante Ltda — *352 - Tamara Guedes (varejo)*
+• Farmacia Zanette — *352 - Tamara Guedes (varejo)*
+• Cafe Com Pao — *337 - Sandramara Schuck (varejo)*
+• Posto Espigao — *337 - Sandramara Schuck (varejo)*
+• Auto Posto Lamborghini — *337 - Sandramara Schuck (varejo)*
+• Mercearia D Lucia — *337 - Sandramara Schuck (varejo)*
+• Mercado Boresqui — *337 - Sandramara Schuck (varejo)*
+• Mini Mercado Nossa Senhora Aparecida — *337 - Sandramara Schuck (varejo)*
+• Makropel — *330 - Eduardo Silva (varejo)*
 
 👥 *Por vendedor:*
-
-🎯 *Sugestão do Jota:* digite o número (ex: *1* ou *2*) para ver os clientes daquele vendedor.
-
-*0* Voltar ao menu 〔S6〕
+1️⃣ *337 - Sandramara Schuck (varejo)*: mês *6 de 52* (meta 42 · faltam 36) · hoje *6* na rota
+2️⃣ *325 - Cleiton Carvalho (varejo)*: mês *12 de 36* (meta 29 · faltam 17) · hoje *4* na rota
+3️⃣ *352 - Tamara Guedes (varejo)*: mês *6 de 24* (meta 20 · faltam 14) · hoje *6* na rota
+4️⃣ *330 - Eduardo Silva (varejo)*: mês *7 de 23* (meta 19 · faltam 12) · hoje *2* na rota
+5️⃣ *548 
 ```
 
 ## SUPERVISOR 7
@@ -520,8 +730,9 @@ Filial: *3º de 11*, 23 pts (1V 20E 0D)
 
 ## SUPERVISOR 8
 ```
-📝 *Equipe Vago Gabriel (TCV) hoje (varejo de rota)* (10:57)
+📝 *Equipe Vago Gabriel (TCV) hoje (varejo de rota)* (11:27)
 Digitado: *R$ 108* em *1* pedidos · ticket R$ 108
+_Pedidos lidos até 08:20 (leitura mais antiga)._
 
 1. ✅ *330 - Eduardo Silva (varejo)*: R$ 108 · 1 ped.
 2. ▫️ *342 - Marines Viar (varejo)*: R$ 0 · 0 ped.
@@ -536,7 +747,7 @@ Digitado: *R$ 108* em *1* pedidos · ticket R$ 108
 
 👉 *Digite o número* (ex.: 1) para ver a rota e o detalhe do vendedor.
 
-🎯 *Sugestão do Jota:* ainda sem pedido hoje: 342 - Marines Viar (varejo), 1093 - Cristiane Chaves (varejo), 347 - Paulo Oliveira (varejo) +6.
+🎯 *Sugestão do Jota:* o CEVEN está sem resposta: sem as visitas de hoje, quem está sem pedido não deve ser cobrado por isso agora.
 
 *0* Voltar ao menu 〔S8〕
 ```
@@ -599,7 +810,17 @@ _Fonte: painel do CEVEN, só vendedores ativos. O GEROT mostra mais porque soma 
 
 ## SUPERVISOR 12
 ```
-🏷️ *Campanhas — Equipe Vago Gabriel (TCV)*: nenhum cliente do roteiro do mês da equipe tem tag de campanha.
+🏷️ *Campanhas e TAGs do mês — Equipe Vago Gabriel (TCV)*
+_Todas as TAGs do roteiro do mês da equipe (combos, foco, P11…), menos recorrência (essa é o 6)_
+
+1. *Biscuit*: 322 de 798 clientes já compraram · faltam *476*
+2. *Flow*: 291 de 755 clientes já compraram · faltam *464*
+3. *Bon*: 294 de 750 clientes já compraram · faltam *456*
+4. *Toffees*: 63 de 123 clientes já compraram · faltam *60*
+5. *Block*: 15 de 25 clientes já compraram · faltam *10*
+6. *Tort*: 2 de 3 clientes já compraram · faltam *1*
+
+👉 *Digite o número da campanha* para ver por vendedor.
 
 *0* Voltar ao menu 〔S12〕
 ```
