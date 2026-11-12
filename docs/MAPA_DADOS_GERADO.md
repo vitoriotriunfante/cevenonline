@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-12 11:33 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-12 12:52 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (16)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -196,6 +196,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 ### 2d. Arquivos JSON gerados para o site
 - `pipeline/auditoria_sugestoes_rotina.mjs` (manual): `scratch/auditoria_sugestoes_resultado.json`
 - `pipeline/gerot_coletor_online.mjs` (GitHub Actions (workflow)): `recorrencia.json`
+- `pipeline/gerot_inventario.mjs` (GitHub Actions (workflow)): `menu.json`, `telas.json`
 - `analises/gerar_dados_mix.js` (GitHub Actions (workflow)): `dados_mix.json`, `mix_cubo.json`
 - `scripts/analisar_discrepancia_visitas.js` (manual): `scripts/discrepancias_visitas_api.json`
 - `scripts/analisar_endpoints_har.js` (manual): `scripts/endpoints_har_descobertos.json`
