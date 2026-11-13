@@ -1190,7 +1190,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // virava comparacao de produto). Hoje = devolucao entrada hoje; sem "hoje" = mes. Motivos: a lista de motivos.
   if (/\b(MATINAL|RESUMO MATINAL|PAINEL MATINAL|MINHA MATINAL)\b/.test(t)) {
     const p = !E.supervisor && !E.rca ? achaPessoa(E, t) : null;
-    const Em = p && p.tipo === 'sup' ? { ...E, supervisor: p.alvo, nome: `${titulo(p.alvo)} (${E.nome})` } : (p && p.tipo === 'vend' ? { ...E, rca: p.alvo.rca, nome: vn(p.alvo) } : E);
+    const sNome = p && p.tipo === 'sup' ? (p.alvo && p.alvo.nome ? p.alvo.nome : String(p.alvo || '')) : '';
+    const Em = sNome ? { ...E, supervisor: sNome, nome: `${titulo(sNome)} (${E.nome})` } : (p && p.tipo === 'vend' ? { ...E, rca: p.alvo.rca, nome: vn(p.alvo) } : E);
     const r = await respMatinal(B, Em);
     if (r) return r;
   }

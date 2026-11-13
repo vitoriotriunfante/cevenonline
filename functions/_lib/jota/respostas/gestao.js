@@ -293,8 +293,12 @@ export async function respMatinal(B, E) {
   }).filter((x) => x.meta > 0 || x.vend > 0);
   if (E.rca) rows = rows.filter((x) => String(x.rca) === String(E.rca));
   else if (E.supervisor) {
-    const sAlvo = sem(E.supervisor);
-    rows = rows.filter((x) => sem(x.sup).includes(sAlvo) || sAlvo.includes(sem(x.sup)));
+    const sAlvo = sem(typeof E.supervisor === 'object' ? (E.supervisor.nome || '') : E.supervisor);
+    const toks = sAlvo.split(/\s+/).filter((w) => w.length > 2);
+    rows = rows.filter((x) => {
+      const sx = sem(x.sup);
+      return sx.includes(sAlvo) || sAlvo.includes(sx) || (toks.length && toks.every((w) => sx.includes(w)));
+    });
   }
   if (!rows.length) return `☀️ *Matinal — ${E.nome}*: sem dados no GEROT para este escopo agora.`;
   rows.sort((a, b) => a.tendPct - b.tendPct || b.meta - a.meta);
