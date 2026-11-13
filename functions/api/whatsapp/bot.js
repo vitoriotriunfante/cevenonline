@@ -317,6 +317,16 @@ async function trataMensagem({ request, env }) {
       : nota === 3 ? `Anotado, ${primeiroNome(c)}: nota 3. Se quiser, me conta o que deixaria a resposta nota 5 (escreva "sugestão: ...").`
       : `Poxa, ${primeiroNome(c)}, nota ${nota} anotada. *O que faltou ou veio errado?* Me escreve aqui que eu levo direto para o time que me treina.`;
     tipo = 'nota';
+  } else if (/errei a nota/i.test(texto) && ultOut) {
+    const mNova = texto.match(/\b([1-5])\b/);
+    if (mNova) {
+      const nova = Number(mNova[1]);
+      await env.DB.prepare('UPDATE bot_msgs SET nota = ?, ajudou = ? WHERE id = ?').bind(nova, nova >= 3 ? 1 : 0, ultOut.id).run();
+      resp = `Corrigido, ${primeiroNome(c)}! Nota atualizada para *${nova}*. 🙏`;
+    } else {
+      resp = `Sem problema, ${primeiroNome(c)}! Me manda a nova nota de *1 a 5* (ou 👍/👎) para corrigir.`;
+    }
+    tipo = 'nota';
   } else if (sug) {
     await env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(cel, c.nome, c.papel, c.filial || '', sug.slice(0, 1500), (ultIn && ultIn.texto ? String(ultIn.texto).slice(0, 300) : '')).run();
     resp = `Anotado, ${primeiroNome(c)}! Já registrei sua sugestão com o time que me treina. 🙏 Obrigado por ajudar a deixar o Jota melhor!`;
@@ -428,6 +438,7 @@ _🟢 Hoje (Clube da Venda${isNaN(dc) ? '' : ' · ' + dc.toLocaleTimeString('pt-
   // AVALIACAO EM TODAS AS RESPOSTAS (Vitorio, 11/11/2026): vendedor, supervisor, gerente e diretoria, inclusive menus e os 3 momentos; 👍/👎 nao briga com o numero do menu
   if (resp && !['nota', 'agradecimento', 'saudacao_primeira', 'reacao_figurinha', 'bloqueado'].includes(tipo) && !/o que faltou/.test(resp) && !/⟪⟫/.test(resp) && !/MENU DO JOTA/.test(resp)) resp += '\n\n_Essa resposta ajudou? Responda 👍 ou 👎 · ou escreva *sugestão:* e o que melhorar_';
   if (audio && audio.texto) resp = `🎙️ _Entendi: "${audio.texto.slice(0, 200)}"_\n\n` + resp;
+  if (!seco && meuId && !reprocId) { const dep2 = await env.DB.prepare("SELECT id FROM bot_msgs WHERE celular = ? AND direcao = 'in' AND id > ? LIMIT 1").bind(cel, meuId).first().catch(() => null); if (dep2) return new Response('ok (barge-in)'); }
   const limpaTags = (s) => String(s || '').replace(/\s*〔[^〕]+〕/g, '');
   if (seco) return new Response(limpaTags(resp) + (u.searchParams.get('fig') === '1' ? `\n\n[figurinha: ${figurinhaPara(resp, tipo) || 'nenhuma'} · tipo: ${tipo}]` : ''), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
   // TRAVA DE ESCOPO (26/10/2026, vazamento do consolidado para um supervisor): nada do consolidado nacional sai para quem nao e diretoria/ceo, venha de onde vier a resposta

@@ -27,7 +27,7 @@ const CAMPOS_SUP = ['Mês', 'Filial', 'Supervisor'];
 const CAMPOS_FIL = ['Mês', 'Filial'];
 // calculos (colunas) que interessam ao JOTA; o rotulo exato vem do GEROT e e conferido no log
 const CALC = [/^Faturado líquido/i, /^Faturado bruto/i, /^Devolução \(R\$\)/i, /^Positivação \(filial/i, /^Positivação \+ Carteira/i, /^Meta de positivação/i, /^% Meta positivação/i,
-  /^Realizado meta/i, /^Meta \(R\$\)/i, /^% Meta$/i, /^% Meta \(Pos \+ Cart\)/i, /Carteira/i, /^Captação/i, /^Meta clientes/i];
+  /^Realizado meta/i, /^Meta \(R\$\)/i, /^% Meta$/i, /^% Meta \(Pos \+ Cart\)/i, /Carteira/i, /^Captação/i, /^Meta clientes/i, /Tend[eê]ncia/i];
 
 function mesesAlvo() {
   const a = process.argv.find((x) => x.startsWith('--meses='));

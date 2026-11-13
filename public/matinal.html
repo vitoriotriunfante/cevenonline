@@ -42,6 +42,7 @@
     <div class="filters">
       <select id="selFilial"><option value="">Brasil (Todas as filiais)</option></select>
       <select id="selSup"><option value="">Todos os supervisores</option></select>
+      <button id="btnCopiar">📋 Copiar resumo</button>
       <button id="btnAtualizar">Atualizar</button>
     </div>
   </div>
@@ -82,6 +83,7 @@
 
     function clsTend(p) { return p >= 95 ? 'ok' : p >= 75 ? 'warn' : 'bad'; }
 
+    let ultimoDados = null;
     async function carregar() {
       const fil = selFilial.value;
       const sup = selSup.value;
@@ -90,6 +92,7 @@
       if (sup) qs.set('sup', sup);
       const res = await fetch('/api/matinal?' + qs.toString());
       const d = await res.json();
+      ultimoDados = d;
       if (!d.ok) { document.getElementById('statusFonte').textContent = 'Erro ao ler D1: ' + (d.erro || ''); return; }
 
       const emBr = d.fonte.gerotEm ? new Date(d.fonte.gerotEm).toLocaleString('pt-BR') : '—';
@@ -157,6 +160,14 @@
     selFilial.addEventListener('change', () => { selSup.value = ''; carregar(); });
     selSup.addEventListener('change', carregar);
     document.getElementById('btnAtualizar').addEventListener('click', carregar);
+    document.getElementById('btnCopiar').addEventListener('click', async () => {
+      if (!ultimoDados || !ultimoDados.vendedores) return;
+      const rows = ultimoDados.vendedores;
+      const filTxt = selFilial.value || 'Brasil';
+      const top5 = rows.slice(0, 5).map((v, i) => `${i + 1}. ${v.rca} - ${v.vendedor || ''}: ${P(v.tendPct)} tend. · precisa ${R(v.precisaDia)}/d · rota ${v.rotaHoje} cli.`).join('\n');
+      const txt = `☀️ *Matinal ${filTxt}* (${ultimoDados.dias.dec}/${ultimoDados.dias.tot}d úteis)\n💰 ${document.getElementById('kVend').textContent} (${document.getElementById('kMeta').textContent})\n📈 Tendência: ${document.getElementById('kTend').textContent}\n\n🎯 *Prioridades do dia (menor tendência):*\n${top5}`;
+      try { await navigator.clipboard.writeText(txt); document.getElementById('btnCopiar').textContent = '✅ Copiado!'; setTimeout(() => { document.getElementById('btnCopiar').textContent = '📋 Copiar resumo'; }, 2000); } catch {}
+    });
     carregar();
     setInterval(carregar, 5 * 60 * 1000);
   </script>

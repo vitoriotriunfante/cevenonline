@@ -174,3 +174,82 @@ export async function respTendencia(B, E) {
     '', fonteTxt,
     SUGESTAO + (G && G[0] ? `atacar ${nome(G[0][0])}, a pior tendência.` : 'manter o ritmo.')].join('\n');
 }
+
+export async function respMaiorAtrasoMeta(B, E) {
+  if (!B || !B.env || !B.env.DB) return null;
+  const mes = hojeSP().slice(0, 7), { tot, pass } = diasUteisMes(), dec = Math.min(tot, pass + 1), falt = Math.max(1, tot - dec);
+  const fil = (E.filiais || []).length ? E.filiais : ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
+  const qs = fil.map(() => '?').join(',');
+  const { results } = await B.env.DB.prepare(`SELECT filial, rca, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...fil).all().catch(() => ({ results: [] }));
+  let rows = (results || []).map((r) => {
+    let d = {}; try { d = JSON.parse(r.dados || '{}'); } catch {}
+    const meta = Number(d['Meta (R$)']) || 0, fat = Number(d['Faturado líquido (R$)']) || 0, pend = Number(d['Carteira pendente (R$)']) || 0, vend = fat + pend;
+    return { filial: r.filial, rca: r.rca, sup: r.supervisor || '', nome: r.vendedor || '', meta, vend, pct: meta > 0 ? (vend / meta) * 100 : null, falta: Math.max(0, meta - vend) };
+  }).filter((x) => x.meta > 0 && x.falta > 0);
+  if (E.supervisor) {
+    const sAlvo = sem(E.supervisor);
+    rows = rows.filter((x) => sem(x.sup).includes(sAlvo) || sAlvo.includes(sem(x.sup)));
+  }
+  if (!rows.length) return `Não há vendedores com meta em aberto no GEROT para ${E.nome}.`;
+  rows.sort((a, b) => (a.pct ?? 0) - (b.pct ?? 0) || b.falta - a.falta);
+  return [
+    `🐢 *Vendedores com maior atraso para a meta — ${E.nome}*`,
+    `_Critério: menor % vendido (faturado + carteira) no GEROT · ${falt} dia(s) útil(eis) restante(s)_`,
+    '',
+    ...rows.slice(0, 12).map((x, i) => `${i + 1}. *${x.rca} - ${titulo(x.nome)}*${E.nacional ? ' (' + x.filial + ')' : ''}: *${x.pct.toFixed(1).replace('.', ',')}%* (${R$(x.vend)} de ${R$(x.meta)}) · falta ${R$(x.falta)} (${R$(x.falta / falt)}/d)`),
+    '',
+    SUGESTAO + `cobrar plano de ação imediato de *${titulo(rows[0].nome)}* (${rows[0].pct.toFixed(1).replace('.', ',')}%).`
+  ].join('\n');
+}
+
+export async function respBloqueioComercial(B, E) {
+  if (!B || !B.env || !B.env.DB) return null;
+  const fil = (E.filiais || []).length ? E.filiais : ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
+  const qs = fil.map(() => '?').join(',');
+  let sql = `SELECT filial, rca, num, id_cliente, data_pedido, valor, status FROM pedido_status WHERE filial IN (${qs}) AND data_pedido >= date('now', '-3 hours', '-7 days') AND status LIKE '%BLOQUEAD%'`;
+  const bind = [...fil];
+  if (E.rca) { sql += ' AND rca = ?'; bind.push(String(E.rca)); }
+  else if (E.supervisor && E.vend && E.vend.length) {
+    const rcas = E.vend.map((v) => String(v.rca)).filter(Boolean);
+    if (rcas.length) { sql += ` AND rca IN (${rcas.map(() => '?').join(',')})`; bind.push(...rcas); }
+  }
+  sql += ' ORDER BY valor DESC LIMIT 200';
+  const { results } = await B.env.DB.prepare(sql).bind(...bind).all().catch(() => ({ results: [] }));
+  if (!results || !results.length) return `✅ *Bloqueios — ${E.nome}*: nenhum pedido bloqueado nos últimos 7 dias na base.`;
+  const tot = results.reduce((a, p) => a + (Number(p.valor) || 0), 0);
+  const nomeV = (f, r) => { const v = (E.vend || []).find((x) => x.filial === f && String(x.rca) === String(r)); return v ? `${r} - ${titulo(v.nome)}` : `RCA ${r}`; };
+  return [
+    `🚫 *Pedidos bloqueados (últimos 7 dias) — ${E.nome}*`,
+    `Total: *${N(results.length)} pedido(s)* · *${R$(tot)}*`,
+    '',
+    ...results.slice(0, 12).map((p) => `• Ped. *${p.num}* · ${nomeV(p.filial, p.rca)} · cli. #${p.id_cliente} · *${R$(p.valor || 0)}* (${String(p.data_pedido).slice(8, 10)}/${String(p.data_pedido).slice(5, 7)})`),
+    ...(results.length > 12 ? [`_… e mais ${results.length - 12} pedido(s) bloqueado(s)._`] : []),
+    '',
+    SUGESTAO + 'priorizar o destrave dos pedidos de maior valor com o financeiro/comercial.'
+  ].join('\n');
+}
+
+export async function respFaseamentoSemana(B, E, t) {
+  const mSem = String(t || '').match(/\b([1-4])[OA°º]?\s*SEMANA\b/);
+  const hojeD = Number(hojeSP().slice(8, 10));
+  const semNum = mSem ? Number(mSem[1]) : (hojeD <= 7 ? 1 : hojeD <= 14 ? 2 : hojeD <= 21 ? 3 : 4);
+  const pctAlvo = Math.min(100, semNum * 25);
+  let meta = 0, vend = 0;
+  if (B && B.env && B.env.DB && !E.rca && !E.supervisor) {
+    const mes = hojeSP().slice(0, 7), fil = (E.filiais || []).length ? E.filiais : ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
+    const qs = fil.map(() => '?').join(',');
+    const { results } = await B.env.DB.prepare(`SELECT dados FROM gerot_filial_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...fil).all().catch(() => ({ results: [] }));
+    for (const r of results || []) { try { const d = JSON.parse(r.dados || '{}'); meta += Number(d['Meta (R$)']) || 0; vend += (Number(d['Faturado líquido (R$)']) || 0) + (Number(d['Carteira pendente (R$)']) || 0); } catch {} }
+  }
+  if (!meta) { const x = await totaisOficiais(B, E); meta = x.meta; vend = (x.fat || 0) + (x.pend || 0); }
+  if (!meta) return `Sem meta cadastrada para calcular o faseamento de ${E.nome}.`;
+  const alvo = meta * (pctAlvo / 100), diff = vend - alvo;
+  return [
+    `📐 *Faseamento da ${semNum}ª semana — ${E.nome}*`,
+    `🎯 Alvo acumulado da ${semNum}ª semana (${pctAlvo}% da meta): *${R$(alvo)}* (de ${R$(meta)})`,
+    `💰 Realizado (faturado + carteira): *${R$(vend)}* (*${P(vend, meta)}* da meta)`,
+    diff >= 0 ? `✅ *Acima do faseamento em ${R$(diff)}*` : `⏳ *Faltam ${R$(Math.abs(diff))}* para bater o faseamento da ${semNum}ª semana`,
+    '',
+    '_Nota: no AS, a regra oficial de faseamento é 60% da meta até o dia 20; aqui mostramos a referência semanal linear (25%/50%/75%/100%)._'
+  ].join('\n');
+}

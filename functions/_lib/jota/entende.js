@@ -9,7 +9,7 @@ import { FILIAIS, FRX, N, R$, SUGESTAO, VAREJO, fraca, hojeSP, nome2, sem, titul
 const x0 = (V) => (V[0] ? V[0].v.rca : '');
 import { PAL, achaPessoa, agrupa, carregaEscopo, pctTxt, supChave, supNome, supReal } from './escopo.js';
 import { confereIA } from './confere_ia.js';
-import { SEM_HISTORICO, respCarteira, respComparar, respDobradinha, respInfoEquipe, respMaiorGap, respMetaBatida, respPontosPerdidos, respRankingGerentes, respRankingSupervisores, respRitmo, respTendencia } from './respostas/gestao.js';
+import { SEM_HISTORICO, respBloqueioComercial, respCarteira, respComparar, respDobradinha, respFaseamentoSemana, respInfoEquipe, respMaiorAtrasoMeta, respMaiorGap, respMetaBatida, respPontosPerdidos, respRankingGerentes, respRankingSupervisores, respRitmo, respTendencia } from './respostas/gestao.js';
 import { respBola, respDevMotivos, respDivergencias, respIncentivoOficial, respLigaAs, respSemana } from './respostas/indicadores.js';
 import { respAjuda, respCompromisso, respGlossario, respLances, respLiga, respMix } from './respostas/liga_mix.js';
 import { respKpisPremiacao, respMetasIndustria } from './respostas/metas_industria.js';
@@ -723,7 +723,24 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (/^\W*MEUS CORTES\W*$/.test(t)) return reenvia(`cortes do ${eu}`);
     }
     if (/BRASILEIRAO|\bLIGA\b/.test(t) && /CONTABIL/.test(t)) return respGlossario('LIGA') || null;
-    if (/\bCHAMPIONS?\b|\bLIGA\b|BRASILEIRAO/.test(t) && !/CLIENTE|CONTABIL|REGRA|COMO FUNCIONA|O QUE E/.test(t)) return respLiga(B, await carregaEscopo(B, esc), null, 'LIGA');
+    if (/\bCHAMPIONS?\b|\bLIGA\b|BRASILEIRAO|DIFERENCA.*PONTOS?.*CONCORRENT|PONTOS.*CONCORRENT/.test(t) && !/CLIENTE|CONTABIL|REGRA|COMO FUNCIONA|O QUE E/.test(t)) return respLiga(B, await carregaEscopo(B, esc), null, 'LIGA');
+  { const mPed = t.match(/\bPEDIDO\s*(?:N[UOº°.]?|NUMERO)?\s*#?\s*(\d{5,12})\b/);
+    if (mPed && B.env && B.env.DB) {
+      const Ep = await carregaEscopo(B, esc), fil = (Ep.filiais || []).length ? Ep.filiais : FILIAIS, qs = fil.map(() => '?').join(',');
+      let sql = `SELECT filial, rca, num, id_cliente, data_pedido, status, valor, confirmado_em FROM pedido_status WHERE num = ? AND filial IN (${qs})`;
+      const bind = [mPed[1], ...fil];
+      if (Ep.rca) { sql += ' AND rca = ?'; bind.push(String(Ep.rca)); }
+      const p = await B.env.DB.prepare(sql + ' LIMIT 1').bind(...bind).first().catch(() => null);
+      if (p) {
+        const ic = /FATURAD/.test(String(p.status)) ? '✅' : /BLOQUEAD/.test(String(p.status)) ? '🚫' : /LIBERAD/.test(String(p.status)) ? '🟢' : /CANCELAD/.test(String(p.status)) ? '❌' : '⏳';
+        return `${ic} *Pedido ${p.num}* (${p.filial} · RCA ${p.rca} · cli. #${p.id_cliente})\n• Status: *${titulo(String(p.status || '').replace(/_/g, ' '))}*\n• Data do pedido: ${String(p.data_pedido).split('-').reverse().join('/')}\n• Valor: *${R$(p.valor || 0)}*\n${p.confirmado_em ? `• Última conferência: ${p.confirmado_em}` : ''}\n\n_Observação: o status reflete a última conferência no CEVEN (faturado, liberado, bloqueado ou cancelado)._`;
+      }
+      return `🔎 Não achei o pedido *${mPed[1]}* na base recente de ${Ep.nome}. Confere o número ou se pertence a outra filial/carteira?`;
+    }
+  }
+  if (/MAIOR ATRASO|MAIS ATRASAD[OA]S?|PIOR(ES)? ATRASO|ATRASO PARA A META|ATRASADOS? NA META/.test(t)) { const r = await respMaiorAtrasoMeta(B, await carregaEscopo(B, esc)); if (r) return r; }
+  if (/BLOQUEIO COMERCIAL|BLOQUEAD[OA]S? COMERCIAL|QUANTO.*BLOQUEIO/.test(t)) { const r = await respBloqueioComercial(B, await carregaEscopo(B, esc)); if (r) return r; }
+  if (/FASEAMENTO.*SEMANA|SEMANA.*FASEAMENTO|\b[1-4][OA°º]?\s*SEMANA\b/.test(t)) return respFaseamentoSemana(B, await carregaEscopo(B, esc), t);
     // SABATINA 01/11/2026 (perguntas reais, respostas de outro assunto): sem "hoje", "nao vendeu" e a carteira do mes, nunca a rota do dia
     { const mNv = t.match(/^\W*(?:QUAIS )?CLIENTES?(?: QUE)?(.*?)\b(?:NAO VENDEU|NAO TEM VENDA|SEM VENDA|SEM COMPRA)\b(.*)$/);
       if (mNv && !/\bHOJE\b|\bHJ\b|\bROTA\b/.test(t)) { const quem = (mNv[1] + ' ' + mNv[2]).replace(/\b(DA|DO|DE|VENDEDORA?|NO|MES)\b/g, ' ').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); if (quem) return reenvia('curva negativa do vendedor ' + quem); } }
