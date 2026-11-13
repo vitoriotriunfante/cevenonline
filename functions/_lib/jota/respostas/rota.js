@@ -632,9 +632,8 @@ export async function respDiaEquipe(B, E) {
 
   const cab = [
     `📋 *Dia da ${E.nome}* (${hojeSP().slice(8, 10)}/${hojeSP().slice(5, 7)})`,
-    `💰 Digitado hoje: *${R$(totGeral)}* em *${totPed} pedido(s)*`,
-    `🚶 Visitas da rota: *${totVisF} de ${totVisP}* feitas` + (totZeradosRota > 0 ? ` · *${totZeradosRota} vendedor(es) com rota e sem pedido*` : ''),
-    '_Legenda: ⚠️ rota e sem pedido · ✅ pedido digitado · ◻️ sem pedido_',
+    `💰 Digitado hoje: *${R$(totGeral)}* em *${totPed} ${totPed === 1 ? 'pedido' : 'pedidos'}*`,
+    `🚶 Visitas da rota: *${totVisF} de ${totVisP}* feitas` + (totZeradosRota > 0 ? ` · *${totZeradosRota} ${totZeradosRota === 1 ? 'vendedor' : 'vendedores'} com rota e sem pedido*` : ''),
     ''
   ];
 
@@ -642,6 +641,7 @@ export async function respDiaEquipe(B, E) {
     ...cab,
     ...L.map((x) => x.texto),
     '',
+    '_Legenda: ⚠️ rota e sem pedido · ✅ pedido digitado · ◻️ sem pedido_',
     SUGESTAO + (totZeradosRota ? `comece pelos ⚠️ (rota e sem pedido). ` : '') + 'Para abrir um vendedor, mande o *nome* ou o *código* (ex.: "clientes 352"); para o *+MIX* da rota dele, depois mande "+mix"; para receber *cada vendedor em uma mensagem*, mande "um por um".'
   ].join('\n');
 }

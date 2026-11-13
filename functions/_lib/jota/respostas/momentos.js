@@ -154,7 +154,7 @@ export async function respMomento(B, c, Ev, momentoForcado = null) {
     if (momento === 'meio') {
       if (v.meta > 0) L.push(`📊 *Mês:* *${pc(vend, v.meta)}* da meta${v.metaPos ? ` · Positivação: *${N(v.pos || 0)}/${N(v.metaPos)}*` : ''}`);
       if (R.length) L.push(`🚶 Visitas: *${feitas.length} de ${R.length}*` + (R.length - feitas.length ? ` · faltam ${R.length - feitas.length}` : ' · rota concluída'));
-      L.push(`📝 Vendido hoje: *${R$(v.dig || 0)}*` + (v.ped ? ` em ${N(v.ped)} cliente(s)` : ''));
+      L.push(`📝 Vendido hoje: *${R$(v.dig || 0)}*` + (v.ped ? ` em ${N(v.ped)} ${v.ped === 1 ? 'cliente' : 'clientes'}` : ''));
       if (foco.length && fFeitos.length > 0) L.push(`🎯 Foco do dia: *${fFeitos.length} de ${foco.length}* já compraram`);
       const naoVis = foco.filter((f) => !feitas.some((x) => String(x.id_cliente) === f.id) && !comprouHoje(f.id) && !/^Cliente #/.test(f.nome));
       if (porDia > 0) { const fh = Math.max(0, porDia - (v.dig || 0)); L.push(fh > 0 ? `💰 Para o ritmo da meta faltam *${R$(fh)}* hoje` : '💰 Ritmo da meta de hoje: *batido!* 🎉'); }
@@ -284,14 +284,15 @@ export async function respMomentoSupervisor(B, c, Ev, momentoForcado = null) {
   } else if (momento === 'meio') {
     if (meta > 0) L.push(`📊 *Mês:* *${pc(vd, meta)}* da meta${porDia > 0 ? ` · ritmo hoje: *${R$(porDia)}*` : ''}`);
     if (!soAS && prog) L.push(`🚶 Visitas: *${feitas} de ${prog}*`);
-    L.push(`📝 Vendido hoje: *${R$(dig)}*` + (soma((v) => v.ped) ? ` em ${N(soma((v) => v.ped))} cliente(s)` : ''));
+    const pedEq = soma((v) => v.ped);
+    L.push(`📝 Vendido hoje: *${R$(dig)}*` + (pedEq ? ` em ${N(pedEq)} ${pedEq === 1 ? 'cliente' : 'clientes'}` : ''));
     if (fTot && fOk > 0) L.push(`🎯 Foco da equipe: *${fOk} de ${fTot}* clientes já compraram`);
     const ligarRota = linhas.filter((x) => x.prog && x.feitas && !(x.dig > 0) && !/VAGO|SEM VENDEDOR/i.test(String(x.v.nome || ''))).sort((a, b) => b.feitas - a.feitas);
     const ligarSemCk = (!ligarRota.length && minHM(hhmm()) >= 10 * 60) ? linhas.filter((x) => !(x.dig > 0) && !/VAGO|SEM VENDEDOR/i.test(String(x.v.nome || ''))) : [];
     const ligar = ligarRota.length ? ligarRota : ligarSemCk;
     if (ligar.length) { L.push('', ligarRota.length ? '📞 *Ligar agora (rota e sem pedido):*' : '📞 *Ligar agora (sem pedido hoje):*'); for (const x of ligar.slice(0, 5)) L.push(linhaV(x, ligarRota.length ? `${x.feitas} de ${x.prog} visitas · R$ 0` : `sem check-in · R$ 0`)); }
     const resto = linhas.filter((x) => !ligar.includes(x)).sort((a, b) => (b.dig || 0) - (a.dig || 0));
-    if (resto.length) { L.push('', '*Equipe hoje:*'); for (const x of resto.slice(0, 12)) L.push(linhaV(x, `${R$(x.dig)}${x.prog ? ` · ${x.feitas}/${x.prog} visitas` : ''}${x.foco.length && x.focoOk > 0 ? ` · foco ${x.focoOk}/${x.foco.length}` : ''}`)); if (resto.length > 12) L.push(`_+${resto.length - 12} vendedor(es)_`); }
+    if (resto.length) { L.push('', '*Equipe hoje:*'); for (const x of resto.slice(0, 12)) L.push(linhaV(x, `${R$(x.dig)}${x.prog ? ` · ${x.feitas}/${x.prog} visitas` : ''}${x.foco.length && x.focoOk > 0 ? ` · foco ${x.focoOk}/${x.foco.length}` : ''}`)); if (resto.length > 12) { const rem = resto.length - 12; L.push(`_+${rem} ${rem === 1 ? 'vendedor' : 'vendedores'}_`); } }
     L.push('', `👉 *Digite o código do vendedor* (ex.: *${(lista[0] || V[0]).rca}*) para abrir o menu dele.`);
   } else {
     if (!soAS && prog) L.push(`🚶 Visitas: *${feitas} de ${prog}*`);
@@ -345,7 +346,7 @@ export async function respMomentoGerente(B, c, Ev, momentoForcado = null) {
     const ont = await ontemClubeResumo(B, TODOS);
     if (ont) L.push(`📅 *Ontem (${ont.fmt}):* *${R$(ont.val)}* em ${N(ont.ped)} ped.${ont.rot ? ` · ${N(ont.vis)}/${N(ont.rot)} visitas` : ''}`);
   }
-  if (meta > 0) L.push(`💰 *Acumulado:* *${pc(vd, meta)}* da meta (fat. + a fat.) · fat. ${R$(soma(TODOS, (v) => v.fat))} (${pc(soma(TODOS, (v) => v.fat), meta)}) + a fat. ${R$(soma(TODOS, (v) => v.pend))} de ${R$(meta)}`);
+  if (meta > 0) L.push(`💰 *Acumulado:* *${pc(vd, meta)}* da meta (${R$(vd)} de ${R$(meta)}) · fat. ${R$(soma(TODOS, (v) => v.fat))} (${pc(soma(TODOS, (v) => v.fat), meta)}) + a fat. ${R$(soma(TODOS, (v) => v.pend))}`);
   // Mesma fonte de resumo.js para o gerente de filial: macro.dig / macro.pedidos (inclui todos os canais/ocultos)
   const vi = visitas(V);
   const dig = (!c.grupo && Ev && Ev.macro && Ev.macro.dig != null) ? Number(Ev.macro.dig) : soma(TODOS, (v) => v.dig);
@@ -366,7 +367,7 @@ export async function respMomentoGerente(B, c, Ev, momentoForcado = null) {
     if (mp) L.push(`👥 Positivação: *${N(posG)} de ${N(mp)}* clientes`);
     if (porDia > 0) { const fh = Math.max(0, porDia - dig); L.push(fh > 0 ? `🎯 *Ritmo de hoje:* meta *${R$(porDia)}* · faltam *${R$(fh)}*` : `🎯 *Ritmo de hoje:* *batido!* (meta ${R$(porDia)}) 🎉`); }
     if (vi.p) L.push(`🚶 Visitas: *${vi.f} de ${vi.p}*`);
-    L.push(`📝 Digitado hoje: *${R$(dig)}*` + (ped ? ` em *${N(ped)}* pedido(s)` : ''));
+    L.push(`📝 Digitado hoje: *${R$(dig)}*` + (ped ? ` em *${N(ped)}* ${ped === 1 ? 'pedido' : 'pedidos'}` : ''));
     const semPed = V.filter((v) => Array.isArray(v.rotaHoje) && v.rotaHoje.some((x) => minHM(x.checkin_horario) != null) && !(v.dig > 0));
     if (semPed.length) L.push(`📞 Vendedores com visita e sem pedido: *${semPed.length}* · escreva *zerados* para ver quem são`);
     if (momento === 'fechamento') { try { const lc = await B.lances(); const rcas = new Set(V.map((v) => v.filial + '|' + v.rca)); const hj = lc ? (lc.lances || []).filter((l) => rcas.has(l.filial + '|' + String(l.rca))) : []; if (hj.length) L.push(`⚽ Liga hoje: *${hj.reduce((a, l) => a + (l.pontos || 0), 0)} pontos* da ${filial}`); } catch (e) { /* sem liga */ } }

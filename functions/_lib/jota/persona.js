@@ -72,7 +72,7 @@ export async function manchete(B, c) {
       if (c.papel === 'diretoria' || c.papel === 'ceo' || !c.filial) { const t = F.reduce((a, f) => ({ fat: a.fat + (f.faturado || 0), meta: a.meta + (f.meta_fat || 0) }), { fat: 0, meta: 0 }); pct = t.meta ? t.fat / t.meta * 100 : null; nome = 'O grupo'; }
       else if (c.papel === 'gerente' && !c.grupo) { const f = F.find((x) => x.filial === c.filial); if (f) pct = f.meta_fat ? f.faturado / f.meta_fat * 100 : null; nome = 'A ' + c.filial; }
     }
-    if (c.filial) { const lg = await B.liga(); const lf = lg && (lg.filiais || []).find((x) => x.sigla === c.filial); if (lf) liga = `${lf.pos}º na Champions`; }
+    if (c.filial) { const lg = await B.liga(); const lf = lg && (lg.filiais || []).find((x) => x.sigla === c.filial); if (lf) liga = `A ${c.filial} está em *${lf.pos}º* na Liga Champions`; }
     if (pct == null && !liga) return '';
     const { tot, pass } = diasUteisMes(); const esp = tot ? pass / tot * 100 : 0;
     const tom = pct == null ? '' : pct >= esp ? ' 📈 acima do ritmo' : pct >= esp * 0.9 ? `, jogo apertado (o calendário pede ${esp.toFixed(0)}%)` : `, abaixo do ritmo (o calendário pede ${esp.toFixed(0)}%)`;
@@ -89,7 +89,7 @@ export async function respSaudacao(B, c, primeiraVez) {
   const m = await manchete(B, c); if (m) L.push(m);
   if (fds) L.push(d === 0 ? 'Hoje é domingo, as filiais estão paradas. Amanhã às 6h tudo volta a andar. Aproveita o descanso! 🙌' : 'Sábado tem rota mais curta: só algumas equipes rodam.');
   L.push('', varia([`Tô de olho ${papel}. Por onde quer começar?`, `O que você quer ver ${papel.replace(/^n/, 'n')}?`, `Me diz o que precisa que eu busco ${papel}.`], n),
-    fds ? '• "como fechou sexta?"' : '• "como estamos?"', '• "zerados" · "quanto falta pra meta"', '• "liga" · "+mix"', '', '_A sua confiança é meu compromisso. Seu tempo, minha prioridade._');
+    fds ? '• "como fechou sexta?"' : (c.papel === 'vendedor' ? '• "como estou hoje"' : '• "como estamos?"'), '• "zerados" · "quanto falta pra meta"', '• "liga" · "+mix"', '', '_A sua confiança é meu compromisso. Seu tempo, minha prioridade._');
   return L.join('\n');
 }
 // figurinha que combina com a resposta (no maximo 1 a cada 2 h por pessoa: figurinha demais vira spam)
@@ -134,7 +134,13 @@ export function humaniza(resp, c, primeiraDoDia) {
   if (!resp) return resp;
   const n = primeiroNome(c), tj = tempoDeJogo(), cump = cumprimento();
   if (primeiraDoDia) {
-    const abre = varia([
+    const semVendaHoje = /(Hoje|Digitado hoje|Vendido hoje):\s*\*?R\$\s*0\b|Faturado:\s*\*?R\$\s*-/i.test(resp);
+    const abre = semVendaHoje ? varia([
+      `${cump}, ${n}! Bora pra cima hoje. Seguem os números:`,
+      `${cump}, ${n}! Separei o seu placar de agora:`,
+      `Fala, ${n}! ${cump}! Hora de puxar pedido. Olha só:`,
+      `${cump}, ${n}! ${tj.charAt(0).toUpperCase() + tj.slice(1)} por aqui. Vamos destravar:`
+    ], c.celular) : varia([
       `${cump}, ${n}! Ótimas vendas hoje! 🚀 Já separei pra você:`,
       (c && c.papel === 'vendedor' ? `${cump}, ${n}! Um excelente dia e boas vendas! Olha só:` : `${cump}, ${n}! Um excelente dia e boas vendas pra sua equipe! Olha só:`),
       `Fala, ${n}! ${cump}! Vamos pra cima hoje. Seguem os números:`,
