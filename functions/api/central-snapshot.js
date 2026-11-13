@@ -49,7 +49,7 @@ export async function onRequestGet({ env, request }) {
     //  - roteiro_planejado = clientes de HOJE no roteiro do mes, SEM status de visita de hoje (nao prova visita nem falta de visita).
     //  - GEROT NAO vira total do vendedor (incompleto em parte da rede: TCV 352 R$ 4.424 x R$ 14.851).
     try {
-      const faltam = Object.entries(rcas).filter(([, r]) => !r.dashboard || !Array.isArray(r.roteiro) || !Array.isArray(r.roteiro_mes) || !r.produtividade);
+      const faltam = Object.entries(rcas);   // 13/11/2026: todos passam (GEROT de hoje vale para todos; reserva so onde falta)
       if (faltam.length) {
         const mes = String(dia).slice(0, 7);
         // 12/11/2026 (Vitorio: "se eu tenho todos os dados dos clientes populados, pq nao consigo calcular?"): roteiro do MES e produtividade do MES tambem vem
@@ -68,9 +68,9 @@ export async function onRequestGet({ env, request }) {
         for (const [rca, r] of faltam) {
           const a = A.get(rca), ref = {};
           if (!r.dashboard && a) { const da = parse(a.dashboard_json); if (da) { r.dashboard_reserva = da; ref.dashboard = { fonte: 'CEVEN', em: a.dash_em || a.updated_at }; } }
-          if (!r.dashboard && gEm && G.has(rca)) {
-            const emC = ref.dashboard ? Date.parse(String(ref.dashboard.em).replace(' ', 'T') + (/Z$/.test(String(ref.dashboard.em)) ? '' : 'Z')) : 0;
-            if (Date.parse(gEm) > emC) { const g = G.get(rca); const base = r.dashboard_reserva || {}; r.dashboard_reserva = { ...base, financeiro: { ...(base.financeiro || {}), faturado: Number(g.fat) || 0, pendente: Number(g.cart) || 0, devolucao: Number(g.dev) || 0 } }; ref.dashboard = { fonte: 'GEROT (faturado, carteira e devolução) + CEVEN (meta e positivação)', em: gEm }; }
+          if (gEm && G.has(rca)) {   // 13/11/2026 (Vitorio: 'esquece o CEVEN... o GEROT e atualizado, mesmo que de 2 em 2 h'): GEROT de hoje vale para TODOS
+            if (r.dashboard) { r.dashboard_reserva = r.dashboard; r.dashboard = null; }
+            { const g = G.get(rca); const base = r.dashboard_reserva || {}; r.dashboard_reserva = { ...base, financeiro: { ...(base.financeiro || {}), faturado: Number(g.fat) || 0, pendente: Number(g.cart) || 0, devolucao: Number(g.dev) || 0 } }; ref.dashboard = { fonte: 'GEROT (faturado, carteira e devolução) + CEVEN (meta e positivação)', em: gEm }; }
           }
           if (!Array.isArray(r.roteiro_mes) && a) { const rm = parse(a.roteiro_mes_json); if (Array.isArray(rm)) { r.roteiro_mes = rm; ref.roteiro_mes = { fonte: 'CEVEN roteiro do mes', em: a.updated_at }; } }
           if (!r.produtividade && a) { const pa = parse(a.produtividade_json); if (pa && pa.mes) { r.produtividade_mes_reserva = pa.mes; ref.produtividade_mes = { fonte: 'CEVEN', em: a.prod_em || a.updated_at, ate: a.data_ref }; } }
