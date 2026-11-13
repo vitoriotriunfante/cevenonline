@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-12 22:15 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-13 12:01 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (16)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -65,8 +65,11 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `flash_alerts` | `functions/api/cron-radar-horario.js` |
 | `gerentes_filiais` | `functions/api/whatsapp/gerentes.js` |
 | `gerot_coleta_status` | `functions/api/gerot-carga.js` |
+| `gerot_filial_mes` | `functions/api/gerot-carga.js` |
 | `gerot_recorrencia_pasta` | `functions/api/gerot-carga.js` |
+| `gerot_supervisor_mes` | `functions/api/gerot-carga.js` |
 | `gerot_vendas` | `functions/api/gerot-carga.js` |
+| `gerot_vendedor_mes` | `functions/api/gerot-carga.js` |
 | `historico_cliente` | `functions/api/tv-vendedor.js` |
 | `jota_campanha_sim` | `functions/api/cron-varredura-central.js` |
 | `jota_foco_dia` | `functions/_lib/jota/respostas/momentos.js` |
