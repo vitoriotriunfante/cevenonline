@@ -477,7 +477,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
       }
       if (!passa) {
         const k = temaDoTexto(t);
-        return (k ? `Entendi que você quer o *${k}. ${MENU_VENDEDOR[k - 1][0]}*. Digite *${k}*` + (SUB_VENDEDOR[k] ? ` e depois o detalhe que quiser` : '') + ', ou escolha outro número:\n\n' : '') + respMenuVendedor(c);
+        if (k) return abre(k, null);
+        return respMenuVendedor(c);
       }
     }
     // PAINEL DAS INDUSTRIAS DA DIRETORIA (Rudinei, 09/11/2026; Vitorio 10/11/2026 'monta'): 'industrias', 'painel das industrias [de outubro]', 'industrias TPH'
@@ -626,7 +627,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
         if (!(s == null && !/MENU DO JOTA/.test(ult) && /digite o número \(ex/i.test(ult))) return abreS(k, s);
       } else {
         const passaS = /^\W*(ZERAD\w*|SEM PEDIDO|QUEM (ESTA |TA )?ZERAD\w*)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /\b(VENDEDOR|VENDEDORA|RCA|SETOR|COD\w*)\W*\d{2,5}\b|\b\d{2,5}\b/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
-        if (!passaS) { const k = temaDoTextoSup(t); return (k ? `Entendi que você quer o *${k}. ${MENU_SUPERVISOR[k - 1][0]}*. Digite *${k}*` + (SUB_SUPERVISOR[k] ? ' e depois o detalhe que quiser' : '') + ', ou escolha outro número:\n\n' : '') + respMenuSupervisor(c); }
+        if (!passaS) { const k = temaDoTextoSup(t); if (k) return abreS(k, null); return respMenuSupervisor(c); }
       }
     }
     // RESPOSTA OFICIAL DO VENDEDOR PARA QUEM ESTA ACIMA (Vitorio, 11/11/2026: 'cada tipo de pergunta para o vendedor tem que ser a mesma para o andar de cima...

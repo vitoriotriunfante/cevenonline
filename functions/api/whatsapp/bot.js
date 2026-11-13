@@ -419,15 +419,16 @@ async function trataMensagem({ request, env }) {
     resp = '⚽ Estou em treinamento e ainda não sei responder isso. Anotei o seu pedido para aprender.\n\n' + respAjuda(c); tipo = 'ajuda';
     if (!seco) try { await env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(cel, c.nome, c.papel, c.filial || '', `[SEM RESPOSTA] ${String(texto).slice(0, 1400)}`, '').run(); } catch (e) {}
   }
-  if (tipo === 'pronta') resp = humaniza(resp, c, primeiraDoDia);
+  if (tipo === 'pronta' && !/^(📋 \*MENU DO JOTA\*|Entendi que você quer)/i.test(resp)) resp = humaniza(resp, c, primeiraDoDia);
   // 12/11/2026: vendas e visitas de HOJE vindas do Clube da Venda — sempre com a hora da leitura
   if (resp && B && B._clube && !/Clube da Venda/.test(resp)) { const dc = new Date(B._clube); resp += `
 
-_🟢 Hoje = pedidos COLOCADOS e visitas no Clube da Venda${isNaN(dc) ? '' : ' (lido às ' + dc.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) + ')'}. Pedido colocado ainda não é faturado; faturado e a faturar do mês vêm do CEVEN/GEROT._`; }
+_🟢 Hoje (Clube da Venda${isNaN(dc) ? '' : ' · ' + dc.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}): pedidos colocados._`; }
   // AVALIACAO EM TODAS AS RESPOSTAS (Vitorio, 11/11/2026): vendedor, supervisor, gerente e diretoria, inclusive menus e os 3 momentos; 👍/👎 nao briga com o numero do menu
-  if (resp && !['nota', 'agradecimento', 'saudacao_primeira', 'reacao_figurinha', 'bloqueado'].includes(tipo) && !/o que faltou/.test(resp) && !/⟪⟫/.test(resp)) resp += '\n\n_Essa resposta ajudou? Responda 👍 ou 👎 · ou escreva *sugestão:* e o que melhorar_';
+  if (resp && !['nota', 'agradecimento', 'saudacao_primeira', 'reacao_figurinha', 'bloqueado'].includes(tipo) && !/o que faltou/.test(resp) && !/⟪⟫/.test(resp) && !/MENU DO JOTA/.test(resp)) resp += '\n\n_Essa resposta ajudou? Responda 👍 ou 👎 · ou escreva *sugestão:* e o que melhorar_';
   if (audio && audio.texto) resp = `🎙️ _Entendi: "${audio.texto.slice(0, 200)}"_\n\n` + resp;
-  if (seco) return new Response(resp + (u.searchParams.get('fig') === '1' ? `\n\n[figurinha: ${figurinhaPara(resp, tipo) || 'nenhuma'} · tipo: ${tipo}]` : ''), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+  const limpaTags = (s) => String(s || '').replace(/\s*〔[^〕]+〕/g, '');
+  if (seco) return new Response(limpaTags(resp) + (u.searchParams.get('fig') === '1' ? `\n\n[figurinha: ${figurinhaPara(resp, tipo) || 'nenhuma'} · tipo: ${tipo}]` : ''), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
   // TRAVA DE ESCOPO (26/10/2026, vazamento do consolidado para um supervisor): nada do consolidado nacional sai para quem nao e diretoria/ceo, venha de onde vier a resposta
   if (c.papel !== 'diretoria' && c.papel !== 'ceo' && /CONSOLIDADO|11 FILIAIS|GRUPO TRIUNFANTE —|RESULTADO GERAL DA COMPANHIA|DESEMPENHO POR FILIAL/i.test(resp)) {
     try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'BLOQUEADO (escopo): ' + resp.slice(0, 1500)).run(); } catch (x) {}
@@ -448,7 +449,7 @@ _🟢 Hoje = pedidos COLOCADOS e visitas no Clube da Venda${isNaN(dc) ? '' : ' (
       // Regra antiban de 03/11 (minimo 18 s, distribuicao humana; 09/11/2026: antes era 8 a 14 s)
       await R.pausaEntreEnvios(22, 3, 18);
     }
-    const ei = await enviar(env, numEnvio, partes[i]); if (!ei.ok) { e = ei; try { await env.DB.prepare('CREATE TABLE IF NOT EXISTS bot_envio_fila (id INTEGER PRIMARY KEY AUTOINCREMENT, celular TEXT, numero TEXT, nome TEXT, texto TEXT, tipo TEXT, tentativas INTEGER DEFAULT 0, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)').run(); await env.DB.prepare('INSERT INTO bot_envio_fila (celular, numero, nome, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, String(numEnvio), c ? c.nome : null, partes[i], tipo).run(); } catch (x) { /* fica o registro de erro abaixo */ } } }
+    const ei = await enviar(env, numEnvio, limpaTags(partes[i])); if (!ei.ok) { e = ei; try { await env.DB.prepare('CREATE TABLE IF NOT EXISTS bot_envio_fila (id INTEGER PRIMARY KEY AUTOINCREMENT, celular TEXT, numero TEXT, nome TEXT, texto TEXT, tipo TEXT, tentativas INTEGER DEFAULT 0, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)').run(); await env.DB.prepare('INSERT INTO bot_envio_fila (celular, numero, nome, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, String(numEnvio), c ? c.nome : null, limpaTags(partes[i]), tipo).run(); } catch (x) { /* fica o registro de erro abaixo */ } } }
   resp = partes.join('\n\n');
   if (!e.ok) { try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'falha de envio: ' + String(e.status || '') + ' ' + String(e.erro || JSON.stringify(e.resposta || '')).slice(0, 500)).run(); } catch (x) {} }
   await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, e.ok ? 'out' : 'erro', resp.slice(0, 4000), tipo).run();

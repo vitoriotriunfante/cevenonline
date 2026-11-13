@@ -19,7 +19,16 @@ const hhmm = () => new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Pau
 const minHM = (s) => { const m = String(s || '').match(/^(\d{1,2}):(\d{2})/); return m ? +m[1] * 60 + +m[2] : null; };
 const fmtMin = (m) => `${Math.floor(m / 60)}h${String(m % 60).padStart(2, '0')}`;
 const pc = (a, b) => (b ? (a / b * 100).toFixed(1).replace('.', ',') + '%' : '—');
-const nome1 = (v) => titulo(String(v.nome || '').replace(/^CLT\s*-?\s*/i, '').split(/\s+/)[0] || '');
+const nomeLimpo = (raw, fb = 'parceiro') => {
+  const tokens = String(raw || '').replace(/^CLT\s*-?\s*/i, '').trim().split(/\s+/).filter((w) => w && !/^(RCA|ANALISTA|GERENTE|SUPERVISOR|PROMOTOR|VENDEDOR|VENDEDORA|DE|DA|DO|DOS|DAS|E)$/i.test(w) && !/^\d+$/.test(w));
+  return tokens[0] ? titulo(tokens[0]) : fb;
+};
+const nome1 = (v) => nomeLimpo(v && v.nome, 'parceiro');
+const limpaNomeCli = (raw) => {
+  let s = String(raw || '').replace(/\b\d{2,3}[\.\s]\d{3}[\.\s]\d{3}[\/\-\s]?\d{2,4}[\-\s]?\d{0,2}\b/g, '').replace(/\b\d{8,14}\b/g, '').replace(/\s+/g, ' ').trim();
+  if (!s || /^(N\/D|ND|NULL|UNDEFINED|-|\.+)$/i.test(s)) return '';
+  return titulo(s);
+};
 const hashN = (s) => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
 // versao do dia: muda todo dia para o mesmo vendedor (dia do ano + vendedor), nunca a mesma de ontem
 const versao = (v, momento, n = 8) => { const d = new Date(hojeSP() + 'T12:00:00Z'), doy = Math.floor((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 0))) / 864e5); return (doy + hashN(v.filial + v.rca + momento)) % n; };
@@ -29,11 +38,11 @@ export async function momentosLigados(B) {
   try { const r = await B.env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'jota_momentos'").first(); return !(r && /^(off|0|nao|desligado)$/i.test(String(r.valor || ''))); } catch (e) { return true; }
 }
 
-// qual momento: pelo estado da rota (estudo 11/11: 1o check-in 08h36, 54% das visitas ate 12h, ultimo check-out 16h07, 90% ate 17h59)
+// qual momento: fechamento so apos 17h00 (evita "boa noite" as 11h30 em rota curta)
 export function qualMomento(v) {
   const m = minHM(hhmm()), R = Array.isArray(v.rotaHoje) ? v.rotaHoje.filter((c) => !/FORA/i.test(String(c.status || ''))) : [];
   const prog = R.length, feitas = R.filter((c) => minHM(c.checkin_horario) != null).length, frac = prog ? feitas / prog : 0;
-  if (m >= 17 * 60 || (prog && frac >= 0.9)) return 'fechamento';
+  if (m >= 17 * 60) return 'fechamento';
   if (m < 11 * 60 && frac < 0.4) return 'plano';
   return 'meio';
 }
@@ -90,10 +99,10 @@ export async function focoDoDia(B, v, sem) {
     try {
       await db.prepare('CREATE TABLE IF NOT EXISTS jota_foco_dia (dia TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, clientes_json TEXT, em TEXT, PRIMARY KEY (dia, filial, rca))').run();
       const r = await db.prepare('SELECT clientes_json FROM jota_foco_dia WHERE dia = ? AND filial = ? AND rca = ?').bind(dia, String(v.filial), String(v.rca)).first();
-      if (r && r.clientes_json) return JSON.parse(r.clientes_json);
+      if (r && r.clientes_json) return JSON.parse(r.clientes_json).map((x) => ({ ...x, nome: limpaNomeCli(x.nome) || `Cliente #${x.id}` }));
     } catch (e) { /* sem tabela: escolhe na hora */ }
   }
-  const F = escolheFoco(sem).map((x) => ({ id: String(x.c.id_cliente), nome: titulo(x.c.nome_cliente || x.c.razao_social || 'cliente'), dias: x.dias, cnpj: String(x.c.cnpj || '').replace(/\D/g, ''), rec: (x.c.focos || []).some((f) => /RECORR/i.test(f.industria_foco || '')), tag: (x.c.focos || []).map((f) => f.industria_foco).filter((t) => t && !/RECORR/i.test(t))[0] || null }));
+  const F = escolheFoco(sem).map((x) => ({ id: String(x.c.id_cliente), nome: limpaNomeCli(x.c.nome_cliente || x.c.razao_social) || `Cliente #${x.c.id_cliente}`, dias: x.dias, cnpj: String(x.c.cnpj || '').replace(/\D/g, ''), rec: (x.c.focos || []).some((f) => /RECORR/i.test(f.industria_foco || '')), tag: (x.c.focos || []).map((f) => f.industria_foco).filter((t) => t && !/RECORR/i.test(t))[0] || null }));
   if (db && F.length) { try { await db.prepare('INSERT OR IGNORE INTO jota_foco_dia (dia, filial, rca, clientes_json, em) VALUES (?,?,?,?,?)').bind(dia, String(v.filial), String(v.rca), JSON.stringify(F), new Date().toISOString()).run(); } catch (e) { /* segue */ } }
   return F;
 }
@@ -143,18 +152,20 @@ export async function respMomento(B, c, Ev, momentoForcado = null) {
     const RG = await rotaGerente(B, v), R = rota, feitas = R.filter((x) => minHM(x.checkin_horario) != null || Number((RG.get(String(x.id_cliente)) || {}).tem_checkin) === 1), ci = feitas.map((x) => minHM(x.checkin_horario)), co = R.map((x) => minHM(x.checkout_horario)).filter((x) => x != null);
     const fFeitos = foco.filter((f) => comprouHoje(f.id) || comprouMes(f.id));
     if (momento === 'meio') {
-      L.push(`🚶 Visitas: *${feitas.length} de ${R.length}*` + (R.length - feitas.length ? ` · faltam ${R.length - feitas.length}` : ''));
+      if (v.meta > 0) L.push(`📊 *Mês:* *${pc(vend, v.meta)}* da meta${v.metaPos ? ` · Positivação: *${N(v.pos || 0)}/${N(v.metaPos)}*` : ''}`);
+      if (R.length) L.push(`🚶 Visitas: *${feitas.length} de ${R.length}*` + (R.length - feitas.length ? ` · faltam ${R.length - feitas.length}` : ' · rota concluída'));
       L.push(`📝 Vendido hoje: *${R$(v.dig || 0)}*` + (v.ped ? ` em ${N(v.ped)} cliente(s)` : ''));
-      if (foco.length) L.push(`🎯 Foco do dia: *${fFeitos.length} de ${foco.length}* já compraram`);
-      const naoVis = foco.filter((f) => !feitas.some((x) => String(x.id_cliente) === f.id) && !comprouHoje(f.id));
+      if (foco.length && fFeitos.length > 0) L.push(`🎯 Foco do dia: *${fFeitos.length} de ${foco.length}* já compraram`);
+      const naoVis = foco.filter((f) => !feitas.some((x) => String(x.id_cliente) === f.id) && !comprouHoje(f.id) && !/^Cliente #/.test(f.nome));
       if (porDia > 0) { const fh = Math.max(0, porDia - (v.dig || 0)); L.push(fh > 0 ? `💰 Para o ritmo da meta faltam *${R$(fh)}* hoje` : '💰 Ritmo da meta de hoje: *batido!* 🎉'); }
       if (naoVis.length) L.push('', `💡 Na tarde, não esquece: *${naoVis.slice(0, 3).map((f) => f.nome).join('*, *')}*.`);
-      else if (R.length - feitas.length) L.push('', `💡 Restam ${R.length - feitas.length} clientes na rota: cada um é uma chance de positivar.`);
+      else if (R.length > 0 && feitas.length >= R.length) L.push('', '⚡ Rota da manhã concluída! Tarde livre pra puxar inativos no WhatsApp e encaixar pedido extra.');
+      else if (R.length - feitas.length > 0) L.push('', `💡 Restam ${R.length - feitas.length} clientes na rota: cada um é uma chance de positivar.`);
     } else {
-      L.push(`🚶 Visitou *${feitas.length} de ${R.length}* clientes da rota`);
+      if (R.length) L.push(`🚶 Visitou *${feitas.length} de ${R.length}* clientes da rota`);
       if (ci.length && co.length) L.push(`⏱️ Tempo em rota: *${fmtMin(Math.max(...co) - Math.min(...ci))}* (${String(Math.floor(Math.min(...ci) / 60)).padStart(2, '0')}h${String(Math.min(...ci) % 60).padStart(2, '0')} às ${String(Math.floor(Math.max(...co) / 60)).padStart(2, '0')}h${String(Math.max(...co) % 60).padStart(2, '0')})`);
       L.push(`📝 Vendeu hoje: *${R$(v.dig || 0)}*` + (v.ped ? ` · positivou *${N(v.ped)}* cliente(s)` : ''));
-      if (foco.length) L.push(`🎯 Foco do dia: *${fFeitos.length} de ${foco.length}* viraram pedido`);
+      if (foco.length && fFeitos.length > 0) L.push(`🎯 Foco do dia: *${fFeitos.length} de ${foco.length}* viraram pedido`);
       try { const lc = await B.lances(); const hj = lc ? (lc.lances || []).filter((l) => String(l.rca) === String(v.rca) && l.filial === v.filial) : []; if (hj.length) L.push(`⚽ Liga hoje: *${hj.reduce((a, l) => a + (l.pontos || 0), 0)} pontos* em ${hj.length} lance(s)`); } catch (e) { /* sem liga */ }
       const faltaF = foco.filter((f) => !comprouHoje(f.id) && !comprouMes(f.id));
       L.push('', fFeitos.length >= 3 ? `🏆 Dia forte no foco! ${fFeitos.length} dos ${foco.length} clientes compraram.` : faltaF.length ? `💡 Para a próxima visita: *${faltaF.slice(0, 2).map((f) => f.nome).join('* e *')}* seguem sem compra no mês.` : '💡 Amanhã tem rota nova: bora repetir!');
@@ -201,7 +212,7 @@ export function qualMomentoEquipe(V) {
   let prog = 0, feitas = 0;
   for (const v of V) { const R = Array.isArray(v.rotaHoje) ? v.rotaHoje.filter((c) => !/FORA/i.test(String(c.status || ''))) : []; prog += R.length; feitas += R.filter((c) => minHM(c.checkin_horario) != null).length; }
   const frac = prog ? feitas / prog : 0;
-  if (m >= 17 * 60 || (prog && frac >= 0.9)) return 'fechamento';
+  if (m >= 17 * 60) return 'fechamento';
   if (m < 10 * 60 + 30 && frac < 0.4) return 'abertura';
   return 'meio';
 }
@@ -271,18 +282,21 @@ export async function respMomentoSupervisor(B, c, Ev, momentoForcado = null) {
     if (!soAS) { const semCk = linhas.filter((x) => x.prog && !x.feitas); L.push('', `🚶 Rota: *${linhas.filter((x) => x.feitas).length} de ${linhas.filter((x) => x.prog).length}* vendedores já começaram` + (semCk.length ? ` · ainda sem check-in: ${semCk.slice(0, 4).map((x) => curto(x.v)).join(', ')}` : '')); }
     if (porDia > 0) L.push(`💡 Para o ritmo da meta, a equipe precisa de *${R$(porDia)}* por dia útil.`);
   } else if (momento === 'meio') {
-    if (!soAS) L.push(`🚶 Visitas: *${feitas} de ${prog}*`);
+    if (meta > 0) L.push(`📊 *Mês:* *${pc(vd, meta)}* da meta${porDia > 0 ? ` · ritmo hoje: *${R$(porDia)}*` : ''}`);
+    if (!soAS && prog) L.push(`🚶 Visitas: *${feitas} de ${prog}*`);
     L.push(`📝 Vendido hoje: *${R$(dig)}*` + (soma((v) => v.ped) ? ` em ${N(soma((v) => v.ped))} cliente(s)` : ''));
-    if (fTot) L.push(`🎯 Foco da equipe: *${fOk} de ${fTot}* clientes já compraram`);
-    const ligar = linhas.filter((x) => x.prog && x.feitas && !(x.dig > 0)).sort((a, b) => b.feitas - a.feitas);
-    if (ligar.length) { L.push('', '📞 *Ligar agora (rota e sem pedido):*'); for (const x of ligar.slice(0, 5)) L.push(linhaV(x, `${x.feitas} de ${x.prog} visitas · R$ 0`)); }
+    if (fTot && fOk > 0) L.push(`🎯 Foco da equipe: *${fOk} de ${fTot}* clientes já compraram`);
+    const ligarRota = linhas.filter((x) => x.prog && x.feitas && !(x.dig > 0)).sort((a, b) => b.feitas - a.feitas);
+    const ligarSemCk = (!ligarRota.length && minHM(hhmm()) >= 10 * 60) ? linhas.filter((x) => !(x.dig > 0)) : [];
+    const ligar = ligarRota.length ? ligarRota : ligarSemCk;
+    if (ligar.length) { L.push('', ligarRota.length ? '📞 *Ligar agora (rota e sem pedido):*' : '📞 *Ligar agora (sem pedido hoje):*'); for (const x of ligar.slice(0, 5)) L.push(linhaV(x, ligarRota.length ? `${x.feitas} de ${x.prog} visitas · R$ 0` : `sem check-in · R$ 0`)); }
     const resto = linhas.filter((x) => !ligar.includes(x)).sort((a, b) => (b.dig || 0) - (a.dig || 0));
-    if (resto.length) { L.push('', '*Equipe hoje:*'); for (const x of resto.slice(0, 12)) L.push(linhaV(x, `${R$(x.dig)}${x.prog ? ` · ${x.feitas}/${x.prog} visitas` : ''}${x.foco.length ? ` · foco ${x.focoOk}/${x.foco.length}` : ''}`)); }
+    if (resto.length) { L.push('', '*Equipe hoje:*'); for (const x of resto.slice(0, 12)) L.push(linhaV(x, `${R$(x.dig)}${x.prog ? ` · ${x.feitas}/${x.prog} visitas` : ''}${x.foco.length && x.focoOk > 0 ? ` · foco ${x.focoOk}/${x.foco.length}` : ''}`)); if (resto.length > 12) L.push(`_+${resto.length - 12} vendedor(es)_`); }
     L.push('', `👉 *Digite o código do vendedor* (ex.: *${(lista[0] || V[0]).rca}*) para abrir o menu dele.`);
   } else {
-    if (!soAS) L.push(`🚶 Visitas: *${feitas} de ${prog}*`);
+    if (!soAS && prog) L.push(`🚶 Visitas: *${feitas} de ${prog}*`);
     L.push(`📝 Vendido hoje: *${R$(dig)}* · positivou *${N(soma((v) => v.ped))}* cliente(s)`);
-    if (fTot) L.push(`🎯 Foco da equipe: *${fOk} de ${fTot}* viraram pedido`);
+    if (fTot && fOk > 0) L.push(`🎯 Foco da equipe: *${fOk} de ${fTot}* viraram pedido`);
     try { const lc = await B.lances(); const rcas = new Set(V.map((v) => v.filial + '|' + v.rca)); const hj = lc ? (lc.lances || []).filter((l) => rcas.has(l.filial + '|' + String(l.rca))) : []; if (hj.length) L.push(`⚽ Liga hoje: *${hj.reduce((a, l) => a + (l.pontos || 0), 0)} pontos* da equipe em ${hj.length} lance(s)`); } catch (e) { /* sem liga */ }
     const top = linhas.filter((x) => x.dig > 0).sort((a, b) => b.dig - a.dig).slice(0, 3);
     if (top.length) { L.push('', '🏆 *Destaques do dia (para elogiar):*'); for (const x of top) L.push(linhaV(x, `${R$(x.dig)}${x.foco.length ? ` · foco ${x.focoOk}/${x.foco.length}` : ''}`)); }
@@ -318,7 +332,7 @@ export async function respMomentoGerente(B, c, Ev, momentoForcado = null) {
   const V = (Ev && Ev.vend ? Ev.vend : []).filter((v) => v.ehVendedorReal !== false);
   if (!V.length) return null;
   const TODOS = ((Ev && Ev.vend) || V).concat((Ev && Ev.ocultos) || []);
-  const filial = String(c.filial || V[0].filial), nomeF = filial + (c.grupo ? ' · ' + titulo(c.grupo) : ''), n = titulo(String(c.nome || '').split(/\s+/)[0]) || 'time';
+  const filial = String(c.filial || V[0].filial), nomeF = filial + (c.grupo ? ' · ' + titulo(c.grupo) : ''), n = nomeLimpo(c.nome, 'time');
   const momento = momentoForcado || qualMomentoEquipe(V), ix = versao({ filial, rca: 'G' + (c.grupo || '') }, momento);
   const vend = (v) => (v.fat || 0) + (v.pend || 0), soma = (L, f) => L.reduce((a, v) => a + (Number(f(v)) || 0), 0);
   // visitas = mesma conta do supervisor e do vendedor: check-in individual OU tem_checkin na rota do gerente (11/11: 67 x 69 na equipe do Eder)
@@ -332,18 +346,24 @@ export async function respMomentoGerente(B, c, Ev, momentoForcado = null) {
     if (ont) L.push(`📅 *Ontem (${ont.fmt}):* *${R$(ont.val)}* em ${N(ont.ped)} ped.${ont.rot ? ` · ${N(ont.vis)}/${N(ont.rot)} visitas` : ''}`);
   }
   if (meta > 0) L.push(`💰 *Acumulado:* *${pc(vd, meta)}* da meta (fat. + a fat.) · fat. ${R$(soma(TODOS, (v) => v.fat))} (${pc(soma(TODOS, (v) => v.fat), meta)}) + a fat. ${R$(soma(TODOS, (v) => v.pend))} de ${R$(meta)}`);
-  const vi = visitas(V), dig = soma(V, (v) => v.dig);
+  // Mesma fonte de resumo.js para o gerente de filial: macro.dig / macro.pedidos (inclui todos os canais/ocultos)
+  const vi = visitas(V);
+  const dig = (!c.grupo && Ev && Ev.macro && Ev.macro.dig != null) ? Number(Ev.macro.dig) : soma(TODOS, (v) => v.dig);
+  const ped = (!c.grupo && Ev && Ev.macro && Ev.macro.pedidos != null) ? Number(Ev.macro.pedidos) : soma(TODOS, (v) => v.ped);
+  const mp = soma(TODOS, (v) => v.metaPos);
   if (momento === 'abertura') {
     if (porDia > 0) L.push(`🎯 *Projeção de hoje:* a ${filial} precisa de *${R$(porDia)}* para o ritmo (${du}d úteis)`);
-    const mp = soma(TODOS, (v) => v.metaPos); if (mp) L.push(`👥 Positivação: *${N(soma(TODOS, (v) => v.pos))} de ${N(mp)}* clientes`);
+    if (mp) L.push(`👥 Positivação: *${N(soma(TODOS, (v) => v.pos))} de ${N(mp)}* clientes`);
     const vAS = TODOS.filter(ehAS); if (vAS.length) { const m = soma(vAS, (v) => v.meta), f = soma(vAS, (v) => v.fat); if (m > 0) L.push(`📐 Faseamento AS (60% até o dia 20): *${pc(f, m * 0.6)}* do alvo`); }
     try { const g = await B.env.DB.prepare("SELECT objetivo, meta, positivados FROM gerot_recorrencia_pasta WHERE mes = ? AND filial = ? AND nivel = 'filial' LIMIT 1").bind(hojeSP().slice(0, 7), filial).first(); if (g && g.meta && !c.grupo) L.push(`🔄 Recorrência: *${N(g.positivados || 0)} de ${N(g.meta)}* da meta`); } catch (e) { /* sem GEROT */ }
     const semComp = S.filter((x, i) => st[i] && st[i].compromisso === false).map(([s]) => titulo(s.split(' ')[0]));
     if (st.length) L.push(`🗓️ Compromisso: *${S.length - semComp.length} de ${S.length}* supervisores` + (semComp.length ? ` · faltam: ${semComp.join(', ')}` : ' ✅'));
     if (porDia > 0) L.push(`💡 Para o ritmo da meta, a ${filial} precisa de *${R$(porDia)}* por dia útil.`);
   } else {
+    if (mp) L.push(`👥 Positivação: *${N(soma(TODOS, (v) => v.pos))} de ${N(mp)}* clientes`);
+    if (porDia > 0) { const fh = Math.max(0, porDia - dig); L.push(fh > 0 ? `🎯 *Ritmo de hoje:* meta *${R$(porDia)}* · faltam *${R$(fh)}*` : `🎯 *Ritmo de hoje:* *batido!* (meta ${R$(porDia)}) 🎉`); }
     if (vi.p) L.push(`🚶 Visitas: *${vi.f} de ${vi.p}*`);
-    L.push(`📝 Vendido hoje: *${R$(dig)}*` + (soma(V, (v) => v.ped) ? ` em ${N(soma(V, (v) => v.ped))} cliente(s)` : ''));
+    L.push(`📝 Digitado hoje: *${R$(dig)}*` + (ped ? ` em *${N(ped)}* pedido(s)` : ''));
     const semPed = V.filter((v) => Array.isArray(v.rotaHoje) && v.rotaHoje.some((x) => minHM(x.checkin_horario) != null) && !(v.dig > 0));
     if (semPed.length) L.push(`📞 Vendedores com visita e sem pedido: *${semPed.length}* · escreva *zerados* para ver quem são`);
     if (momento === 'fechamento') { try { const lc = await B.lances(); const rcas = new Set(V.map((v) => v.filial + '|' + v.rca)); const hj = lc ? (lc.lances || []).filter((l) => rcas.has(l.filial + '|' + String(l.rca))) : []; if (hj.length) L.push(`⚽ Liga hoje: *${hj.reduce((a, l) => a + (l.pontos || 0), 0)} pontos* da ${filial}`); } catch (e) { /* sem liga */ } }
@@ -401,8 +421,9 @@ export async function respMomentoDiretoria(B, c, Ev, momentoForcado = null) {
   const V = (Ev && Ev.vend ? Ev.vend : []).filter((v) => v.ehVendedorReal !== false);
   const TODOS = ((Ev && Ev.vend) || V).concat((Ev && Ev.ocultos) || []);
   if (!TODOS.length) return null;
-  const n = titulo(String(c.nome || '').split(/\s+/)[0]) || 'time';
-  const momento = momentoForcado || qualMomentoEquipe(V);
+  const n = nomeLimpo(c.nome, 'time');
+  const mNow = minHM(hhmm());
+  const momento = momentoForcado || (mNow < 11 * 60 ? 'abertura' : mNow < 17 * 60 ? 'meio' : 'fechamento');
   const ix = versao({ filial: 'BR', rca: 'DIR' }, momento);
   const vend = (v) => (v.fat || 0) + (v.pend || 0);
   const soma = (L, f) => L.reduce((a, v) => a + (Number(f(v)) || 0), 0);
