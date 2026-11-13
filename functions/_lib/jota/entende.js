@@ -961,7 +961,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     return respProspeccaoMapas(B, Ep, t, achaPessoa(Ep, t));
   }
   if (/MOTIVO|POR ?QUE/.test(t) && /DEVOLU|DEVOLVID|VOLTOU DE MERCADORIA/.test(t)) return respDevMotivos(B);
-  if (/COMPROMISSO|MATINAL|\bRET\b|\bRETS\b|ROTA DO SUPERVISOR/.test(t)) return respCompromisso(B, await carregaEscopo(B, esc));
+  if (/COMPROMISSO|\bRET\b|\bRETS\b|ROTA DO SUPERVISOR/.test(t)) return respCompromisso(B, await carregaEscopo(B, esc));
   if (/PENALTI|PENALIDADE|IMPEDIMENTO|CARTA|VERMELHO|AMARELO|GOL CONTRA|\bGOLS?\b|LANCES?\b|HAT ?TRICK|DEFESAS?\b|CHECK.?IN FORA|FORA DO CLIENTE|00:00|CARTO(ES|ESS)?\b/.test(t) && !/LIGA|CHAMPIONS|CLASSIFICA|PONTOS? (FOMOS|PERDID|PENALIZ)|PENALIZAD/.test(t)) return respLances(B, await carregaEscopo(B, esc), t);
   // "VER MAIS" logo depois de uma lista truncada: re-executa a pergunta anterior completa (28/10/2026)
   if (/^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA)|VER (O )?RESTANTE|VER (OS )?OUTROS|OUTROS \d+|MAIS \d+|CONTINUA(CAO)?|PROXIMOS?)\b/i.test(t)) {
@@ -1188,7 +1188,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
   }
   // DEVOLUCAO TEM RESPOSTA PROPRIA (26/10/2026: "como esta a devolucao hoje?" caia na operacao do dia e listava o DIGITADO; "o Brasil estava com 3 milhoes de devolucao"
   // virava comparacao de produto). Hoje = devolucao entrada hoje; sem "hoje" = mes. Motivos: a lista de motivos.
-  if (/\b(MATINAL|RESUMO MATINAL|PAINEL MATINAL|MINHA MATINAL)\b/.test(t)) { const r = await respMatinal(B, E); if (r) return r; }
+  if (/\b(MATINAL|RESUMO MATINAL|PAINEL MATINAL|MINHA MATINAL)\b/.test(t)) {
+    const p = !E.supervisor && !E.rca ? achaPessoa(E, t) : null;
+    const Em = p && p.tipo === 'sup' ? { ...E, supervisor: p.alvo, nome: `${titulo(p.alvo)} (${E.nome})` } : (p && p.tipo === 'vend' ? { ...E, rca: p.alvo.rca, nome: vn(p.alvo) } : E);
+    const r = await respMatinal(B, Em);
+    if (r) return r;
+  }
   if (/DEVOL/.test(t)) {
     if (/MOTIVO|POR QUE|PORQUE/.test(t) && !/DEVOLU\w*\s+(DE\s+)?(HOJE|HJ)\b/.test(t)) { const m = await respDevMotivos(B); if (m) { const tot = E.vend.reduce((s, v) => s + (v.dev || 0), 0); return m + `
 _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem só as notas cujo motivo já foi lido; o resto ainda não tem motivo na base._`; } }
