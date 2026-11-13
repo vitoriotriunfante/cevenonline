@@ -162,7 +162,7 @@ async function main() {
 
   console.log(`Renderizando ${jobs.length} cards PNG em Playwright...`);
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 900, height: 1200 }, deviceScaleFactor: 2 });
+  const page = await browser.newPage({ viewport: { width: 900, height: 1200 }, deviceScaleFactor: 1.25 });
   const prontos = [];
   for (const job of jobs) {
     await page.setContent(job.html, { waitUntil: 'load' });
@@ -177,24 +177,27 @@ async function main() {
     const path = await import('path');
     const { execSync } = await import('child_process');
     const escSql = (s) => `'${String(s || '').replace(/'/g, "''")}'`;
-    const tmpSql = path.join(os.tmpdir(), `matinal_cards_${Date.now()}.sql`);
-    const stmts = [
-      'CREATE TABLE IF NOT EXISTS matinal_cards (chave TEXT PRIMARY KEY, data TEXT NOT NULL, filial TEXT, cod_sup TEXT, supervisor TEXT, png_b64 TEXT NOT NULL, atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP);'
-    ];
-    for (const c of prontos) {
-      stmts.push(`INSERT INTO matinal_cards (chave, data, filial, cod_sup, supervisor, png_b64, atualizado_em) VALUES (${escSql(c.chave)}, ${escSql(d.hoje)}, ${escSql(c.filial)}, ${escSql(c.cod_sup)}, ${escSql(c.supervisor)}, ${escSql(c.png_b64)}, CURRENT_TIMESTAMP) ON CONFLICT(chave) DO UPDATE SET data=excluded.data, filial=excluded.filial, cod_sup=excluded.cod_sup, supervisor=excluded.supervisor, png_b64=excluded.png_b64, atualizado_em=CURRENT_TIMESTAMP;`);
+    const initSql = path.join(os.tmpdir(), `matinal_init_${Date.now()}.sql`);
+    fs.writeFileSync(initSql, 'CREATE TABLE IF NOT EXISTS matinal_cards (chave TEXT PRIMARY KEY, data TEXT NOT NULL, filial TEXT, cod_sup TEXT, supervisor TEXT, png_b64 TEXT NOT NULL, atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP);\n', 'utf8');
+    execSync(`npx wrangler d1 execute ceven_noc_d1 --remote --file "${initSql}"`, { stdio: 'inherit' });
+    fs.unlinkSync(initSql);
+    console.log(`Gravando ${prontos.length} cards no D1 em lotes de 5...`);
+    for (let i = 0; i < prontos.length; i += 5) {
+      const tmpSql = path.join(os.tmpdir(), `matinal_cards_${Date.now()}_${i}.sql`);
+      const stmts = prontos.slice(i, i + 5).map((c) =>
+        `INSERT INTO matinal_cards (chave, data, filial, cod_sup, supervisor, png_b64, atualizado_em) VALUES (${escSql(c.chave)}, ${escSql(d.hoje)}, ${escSql(c.filial)}, ${escSql(c.cod_sup)}, ${escSql(c.supervisor)}, ${escSql(c.png_b64)}, CURRENT_TIMESTAMP) ON CONFLICT(chave) DO UPDATE SET data=excluded.data, filial=excluded.filial, cod_sup=excluded.cod_sup, supervisor=excluded.supervisor, png_b64=excluded.png_b64, atualizado_em=CURRENT_TIMESTAMP;`
+      );
+      fs.writeFileSync(tmpSql, stmts.join('\n'), 'utf8');
+      execSync(`npx wrangler d1 execute ceven_noc_d1 --remote --file "${tmpSql}"`, { stdio: 'pipe' });
+      fs.unlinkSync(tmpSql);
     }
-    fs.writeFileSync(tmpSql, stmts.join('\n'), 'utf8');
-    console.log(`Gravando ${prontos.length} cards no D1 via wrangler...`);
-    execSync(`npx wrangler d1 execute ceven_noc_d1 --remote --file "${tmpSql}"`, { stdio: 'inherit' });
-    fs.unlinkSync(tmpSql);
     console.log(`OK: ${prontos.length} cards gravados no D1 para ${d.hoje}`);
     return;
   }
 
   console.log(`Enviando ${prontos.length} cards para /api/matinal-cards...`);
-  for (let i = 0; i < prontos.length; i += 10) {
-    const lote = prontos.slice(i, i + 10);
+  for (let i = 0; i < prontos.length; i += 5) {
+    const lote = prontos.slice(i, i + 5);
     const up = await fetch(`${BASE_URL}/api/matinal-cards`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Evo-Key': EVO_KEY },
