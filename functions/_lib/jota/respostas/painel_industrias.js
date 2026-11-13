@@ -61,7 +61,7 @@ const soma = (rs) => rs.reduce((a, x) => ({ meta: a.meta + x.meta, fat: a.fat + 
 
 // os dois blocos do Rudinei
 function blocos(g, D, cevenOk) {
-  const vend = g.fat + g.cart, falta = Math.max(0, g.meta - g.fat);
+  const vend = g.fat + g.cart, falta = Math.max(0, g.meta - vend);
   const L = ['💰 *Vendas*'];
   if (g.meta > 0) L.push(`Meta *${R$(g.meta)}* · faturado *${R$(g.fat)}* (${pc(g.fat, g.meta)}) · a faturar ${R$(g.cart)}`, `Vendido (fat. + a faturar) *${R$(vend)}* (${pc(vend, g.meta)}) · falta *${R$(falta)}*`);
   else L.push(`_Sem meta cadastrada_ · faturado *${R$(g.fat)}* · a faturar ${R$(g.cart)} · vendido *${R$(vend)}*`);

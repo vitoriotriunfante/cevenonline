@@ -117,19 +117,60 @@ export async function respInfoEquipe(env, c, texto) {
 // pura... so deixa claro que isso e tendencia... e da para atualizar diario"). Conta: ritmo = (faturado + pendente) / dias uteis decorridos (hoje conta);
 // tendencia = ritmo x dias uteis do mes. Necessario = (meta - faturado - pendente) / dias uteis que faltam. Seg-sex, sem descontar feriado. Sempre rotulado TENDENCIA.
 export async function respTendencia(B, E) {
-  const x = await totaisOficiais(B, E); if (!x.meta) return 'Sem dado agora.';
+  let x = null, G = null, fonteTxt = '_Dias úteis seg–sex, sem feriados; atualiza a cada consulta com o faturado + pendente de agora._';
   const { tot, pass } = diasUteisMes(), dec = Math.min(tot, pass + 1), falt = Math.max(0, tot - dec);
   const tend = (y) => { const s = (y.fat || 0) + (y.pend || 0); const t = dec ? s / dec * tot : s; return { s, t, pct: y.meta ? t / y.meta * 100 : null, nec: falt ? Math.max(0, y.meta - s) / falt : 0, rit: dec ? s / dec : s }; };
+  if (B && B.env && B.env.DB) {
+    try {
+      const mes = hojeSP().slice(0, 7), db = B.env.DB;
+      const ler = (s) => { try { const d = JSON.parse(s || '{}'); return { meta: Number(d['Meta (R$)']) || 0, fat: Number(d['Faturado líquido (R$)']) || 0, pend: Number(d['Carteira pendente (R$)']) || 0 }; } catch { return { meta: 0, fat: 0, pend: 0 }; } };
+      const somaG = (arr) => arr.reduce((a, b) => ({ meta: a.meta + b.meta, fat: a.fat + b.fat, pend: a.pend + b.pend }), { meta: 0, fat: 0, pend: 0 });
+      const st = await db.prepare('SELECT posicao FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null);
+      const pos = st && st.posicao ? ` (${st.posicao.replace(/^Atual\s*·\s*/, 'posição ')})` : '';
+      if (E.nacional) {
+        const { results } = await db.prepare('SELECT filial, dados FROM gerot_filial_mes WHERE mes = ?').bind(mes).all();
+        if (results && results.length) {
+          const rows = results.map((r) => [r.filial, ler(r.dados)]).filter(([, y]) => y.meta > 0);
+          x = somaG(rows.map(([, y]) => y));
+          G = rows.map(([k, y]) => [k, y, tend(y)]).sort((a, b) => (a[2].pct ?? 0) - (b[2].pct ?? 0));
+        }
+      } else if (!E.supervisor && !E.rca && E.filiais && E.filiais.length === 1) {
+        const fil = E.filiais[0];
+        const fRow = await db.prepare('SELECT dados FROM gerot_filial_mes WHERE mes = ? AND filial = ?').bind(mes, fil).first();
+        const { results: sRows } = await db.prepare('SELECT cod_sup, supervisor, dados FROM gerot_supervisor_mes WHERE mes = ? AND filial = ?').bind(mes, fil).all();
+        if (fRow) {
+          x = ler(fRow.dados);
+          G = (sRows || []).map((r) => [titulo(r.supervisor || r.cod_sup), ler(r.dados)]).filter(([, y]) => y.meta > 0).map(([k, y]) => [k, y, tend(y)]).sort((a, b) => (a[2].pct ?? 0) - (b[2].pct ?? 0));
+        }
+      } else if (E.supervisor && E.filiais && E.filiais.length) {
+        const { results: vRows } = await db.prepare('SELECT rca, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial = ?').bind(mes, E.filiais[0]).all();
+        const alvoSup = sem(E.supervisor);
+        const meus = (vRows || []).filter((r) => sem(r.supervisor || '').includes(alvoSup) || alvoSup.includes(sem(r.supervisor || '')));
+        if (meus.length) {
+          const rows = meus.map((r) => [`${r.rca} - ${titulo(r.vendedor || '')}`, ler(r.dados)]);
+          x = somaG(rows.map(([, y]) => y));
+          G = rows.filter(([, y]) => y.meta > 0).map(([k, y]) => [k, y, tend(y)]).sort((a, b) => (a[2].pct ?? 0) - (b[2].pct ?? 0));
+        }
+      } else if (E.rca && E.filiais && E.filiais.length) {
+        const { results: vRows } = await db.prepare('SELECT rca, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial = ? AND rca = ?').bind(mes, E.filiais[0], String(E.rca)).all();
+        if (vRows && vRows.length) { x = somaG(vRows.map((r) => ler(r.dados))); G = []; }
+      }
+      if (x && x.meta > 0) fonteTxt = `_Fonte: GEROT${pos} · dias úteis seg–sex (sem feriados); tendência = ritmo × ${tot} dias úteis._`;
+    } catch { /* fallback totaisOficiais */ }
+  }
+  if (!x || !x.meta) {
+    x = await totaisOficiais(B, E); if (!x.meta) return 'Sem dado agora.';
+    G = [...agrupa(E.vend, (v) => (E.nacional ? v.filial : E.supervisor ? v.filial + '|' + v.rca : supChave(v, false)))].filter(([k]) => E.nacional || E.supervisor || supReal(k))
+      .map(([k, y]) => [k, y, tend(y)]).filter(([, y]) => y.meta > 0).sort((a, b) => (a[2].pct ?? 0) - (b[2].pct ?? 0));
+  }
   const T = tend(x);
-  const G = [...agrupa(E.vend, (v) => (E.nacional ? v.filial : E.supervisor ? v.filial + '|' + v.rca : supChave(v, false)))].filter(([k]) => E.nacional || E.supervisor || supReal(k))
-    .map(([k, y]) => [k, y, tend(y)]).filter(([, y]) => y.meta > 0).sort((a, b) => (a[2].pct ?? 0) - (b[2].pct ?? 0));
-  const nome = (k) => E.nacional ? k : E.supervisor ? vn(E.vend.find((v) => v.filial + '|' + v.rca === k) || { nome: k }) : supNome(k);
+  const nome = (k) => (fonteTxt.startsWith('_Fonte: GEROT') ? k : (E.nacional ? k : E.supervisor ? vn(E.vend.find((v) => v.filial + '|' + v.rca === k) || { nome: k }) : supNome(k)));
   return [`📈 *TENDÊNCIA de fechamento — ${E.nome}* _(conta, não é número real: mantém o ritmo de hoje até o fim do mês)_`,
-    `💰 Faturado + pendente: *${R$(T.s)}* em ${dec} de ${tot} dias úteis → ritmo de *${R$(T.rit)}/dia*`,
+    `💰 Faturado + carteira: *${R$(T.s)}* em ${dec} de ${tot} dias úteis → ritmo de *${R$(T.rit)}/dia*`,
     `📈 Se mantiver esse ritmo: fecha em *${R$(T.t)}* = *${P(T.t, x.meta)}* da meta (${R$(x.meta)})`,
     falt ? `🎯 Para bater a meta: precisa de *${R$(T.nec)}/dia* nos ${falt} dias úteis que faltam (${T.rit ? (T.nec / T.rit).toFixed(1).replace('.', ',') + 'x o ritmo atual' : 'sem ritmo'})` : '🏁 Último dia útil do mês.',
-    '', `*Tendência por ${E.nacional ? 'filial' : E.supervisor ? 'vendedor' : 'supervisor'} (do pior para o melhor):*`,
-    ...G.slice(0, 12).map(([k, y, r]) => `• ${nome(k)}: ${r.pct == null ? 'sem meta' : r.pct.toFixed(1).replace('.', ',') + '%'} · precisa ${R$(r.nec)}/dia`),
-    '', '_Dias úteis seg–sex, sem feriados; atualiza a cada consulta com o faturado + pendente de agora._',
-    SUGESTAO + (G[0] ? `atacar ${nome(G[0][0])}, a pior tendência.` : 'manter o ritmo.')].join('\n');
+    ...(G && G.length ? ['', `*Tendência por ${E.nacional ? 'filial' : E.supervisor ? 'vendedor' : 'supervisor'} (do pior para o melhor):*`,
+      ...G.slice(0, 12).map(([k, , r]) => `• ${nome(k)}: ${r.pct == null ? 'sem meta' : r.pct.toFixed(1).replace('.', ',') + '%'} · precisa ${R$(r.nec)}/dia`)] : []),
+    '', fonteTxt,
+    SUGESTAO + (G && G[0] ? `atacar ${nome(G[0][0])}, a pior tendência.` : 'manter o ritmo.')].join('\n');
 }

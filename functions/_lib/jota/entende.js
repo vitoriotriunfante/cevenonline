@@ -466,6 +466,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
         const linha = (ult.match(new RegExp('^' + nm[1] + '\\. \\*(.+?)\\*', 'm')) || [])[1];
         if (linha && chv === '__campanhas__' && /Digite o número da campanha/.test(ult)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; return (v ? await respCampanhasVendedor(B, v, linha) : 'Não achei os seus dados na base agora.') + '\n\n👉 Digite *15* para voltar às campanhas.\n' + rodape(Number(mk[1])); }
         if (linha && chv === '__prospect__' && /pontos para prospectar, por tipo/.test(ult)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; const { respProspectsPorCnae } = await import('./respostas/segmentos_pastas.js'); return (v ? await respProspectsPorCnae(B, v, linha) : 'Não achei os seus dados na base agora.') + '\n\n👉 Digite *10* para voltar aos tipos.\n' + rodape(Number(mk[1])); }
+        if (!linha && chv === '__prospect__' && /pontos para prospectar, por tipo/.test(ult)) { const qtd = (ult.match(/^\d+\. \*/gm) || []).length; return `🔢 Só há *${qtd}* tipo(s) nessa lista. Digite um número de *1* a *${qtd}*, ou *0* para ver o menu.\n\n👉 Digite *10* para voltar aos tipos.\n` + rodape(Number(mk[1])); }
       }
       if (nm && !clienteDaLista) {
         let k = Number(nm[1]), s = nm[2] != null ? Number(nm[2]) : null;
@@ -518,6 +519,19 @@ export async function respostaInterna(B, c, texto, anteriores) {
       return [`🧺 *${titulo(String(c.nome || '').split(' ')[0])}, o +MIX é personalizado por cliente e vendedor.*`, 'Para ver o de um deles, me mande o *código do vendedor* (ex.: *vendedor 1068*) ou do *cliente* (ex.: *cliente #12345*).', '', cons ? '*Consolidado da ' + (Ex.nome || 'equipe') + ':*\n' + String(cons) : '_O consolidado do +MIX não respondeu agora._'].join('\n');
     }
     // GERENTE (Vitorio, 10/11/2026: 'do Rudinei, da diretoria e dos gerentes'): o mesmo painel travado na filial dele; nunca o Brasil
+    if (c && /^(diretoria|ceo)$/i.test(String(c.papel || '')) && !B.semIndice) {
+      const ultV = String(B.ultOut || ''), mvD = ultV.match(/〔V:([A-Z]{3}):(\d+)〕/), tOrigD = t.replace(/\s+(?:TBE|TSJ|TPH|ABC|TBL|API|MCD|TCV|TCA|TPA|TCG)\s*$/, ''), nmD0 = tOrigD.match(/^\W*(\d{1,2})\W*$/);
+      if (mvD && (nmD0 || /^\W*(VER MAIS|MAIS|LISTA COMPLETA)\W*$/.test(tOrigD))) {
+        const Ev = await carregaEscopo(B, { nome: mvD[1], filiais: [mvD[1]], grupo: null, supervisor: null, nacional: false });
+        const v = (Ev.vend || []).find((x) => String(x.rca) === mvD[2]);
+        if (v) {
+          const cv = { nome: v.nome, papel: 'vendedor', filial: v.filial, rca: String(v.rca), celular: c.celular };
+          const o = B.ultOut; B.ultOut = ultV.replace(/\n?_👤 [^\n]*〕_?/, '');
+          let r; try { r = await respostaPronta(B, cv, nmD0 ? nmD0[1] : tOrigD, []); } finally { B.ultOut = o; }
+          return String(r) + `\n_👤 Menu do vendedor ${vn(v)} · mande *menu* para voltar 〔V:${v.filial}:${v.rca}〕_`;
+        }
+      }
+    }
     const ehGerP = c && /^gerente$/i.test(String(c.papel || '')) && /^[A-Z]{3}$/.test(String(c.filial || ''));
     if (c && (/^(diretoria|ceo)$/i.test(String(c.papel || '')) || ehGerP) && !B.semIndice) {
       const ultD = String(B.ultOut || ''), mg = ultD.match(/〔G:([^〕]*)〕/), nmD = t.match(/^\W*(\d{1,2})\W*$/);
@@ -638,6 +652,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (pessoa && pessoa.tipo === 'vend' && !(pessoa.outroSupervisor && c.papel === 'supervisor')) {
       const { temaDoTexto, MENU_VENDEDOR } = await import('./respostas/liga_mix.js');
       const sT = String(t).replace(new RegExp('\\b(' + sem(String(pessoa.alvo.nome || '')).split(/\s+/).filter((w) => w.length > 2).join('|') + ')\\b', 'g'), ' ');
+      if (/\b(MENU|INDICE|OPCOES)\b/.test(sT) && !/POSITIV|META|ROTA|DEVOLU|CURVA|LIGA|PROSPEC|CAMPANHA|PEDIDO|MIX|CORTES|CARTEIRA|FASEAMENTO/.test(sT)) return abreVendedorComoEle(B, c, pessoa.alvo);
       const k = temaDoTexto(sT);
       if (k && MENU_VENDEDOR[k - 1]) {
         const v = pessoa.alvo, cv = { nome: v.nome, papel: 'vendedor', filial: v.filial, rca: String(v.rca), celular: c.celular };

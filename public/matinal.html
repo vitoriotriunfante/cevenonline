@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matinal Comercial — CEVEN / Triunfante</title>
+  <style>
+    :root { --bg:#0b1220; --card:#131c2e; --border:#24324d; --txt:#e2e8f0; --muted:#94a3b8; --green:#22c55e; --yellow:#f59e0b; --red:#ef4444; --blue:#38bdf8; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--txt); padding: 18px; }
+    .top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .title h1 { font-size: 1.35rem; font-weight: 700; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; background: #102a1d; color: #86efac; border: 1px solid #166534; padding: 5px 10px; border-radius: 999px; font-size: 0.8rem; margin-top: 4px; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+    select, button { background: var(--card); color: var(--txt); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
+    button:hover { border-color: var(--blue); }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+    .kpi .lbl { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .kpi .val { font-size: 1.55rem; font-weight: 700; margin: 6px 0 4px; }
+    .kpi .sub { font-size: 0.82rem; color: var(--muted); }
+    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .panel-hdr { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #1c2840; white-space: nowrap; }
+    th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; background: #0f1727; }
+    tr:hover { background: #182338; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .pill { padding: 3px 8px; border-radius: 999px; font-weight: 600; font-size: 0.78rem; }
+    .ok { background: #102a1d; color: #4ade80; }
+    .warn { background: #2e2008; color: #fbbf24; }
+    .bad { background: #2e1114; color: #f87171; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="title">
+      <h1>☀️ Painel da Matinal — Time de Vendas</h1>
+      <div class="badge" id="statusFonte">Carregando base D1...</div>
+    </div>
+    <div class="filters">
+      <select id="selFilial"><option value="">Brasil (Todas as filiais)</option></select>
+      <select id="selSup"><option value="">Todos os supervisores</option></select>
+      <button id="btnAtualizar">Atualizar</button>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="lbl">Faturado + Carteira</div><div class="val" id="kVend">—</div><div class="sub" id="kMeta">—</div></div>
+    <div class="kpi"><div class="lbl">Tendência de Fechamento</div><div class="val" id="kTend">—</div><div class="sub" id="kDias">—</div></div>
+    <div class="kpi"><div class="lbl">Positivação</div><div class="val" id="kPos">—</div><div class="sub" id="kPosSub">—</div></div>
+    <div class="kpi"><div class="lbl">Rota Hoje &amp; Bloqueados</div><div class="val" id="kRota">—</div><div class="sub" id="kBloq">—</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-hdr">
+      <span>🎯 Prioridade da Matinal por Vendedor (pior tendência primeiro)</span>
+      <span id="lblCount" style="color:var(--muted);font-size:0.82rem;"></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Filial</th><th>Vendedor</th><th>Supervisor</th>
+            <th class="num">Meta</th><th class="num">Fat. + Cart.</th><th class="num">% Meta</th>
+            <th class="num">Tendência</th><th class="num">Precisa/Dia</th>
+            <th class="num">Positiv.</th><th class="num">Rota Hoje</th><th class="num">Prospects</th><th class="num">Bloqueados</th>
+          </tr>
+        </thead>
+        <tbody id="tbVend"><tr><td colspan="12" style="text-align:center;color:var(--muted);padding:24px;">Carregando dados da Matinal...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const R = (v) => 'R$ ' + Math.round(Number(v) || 0).toLocaleString('pt-BR');
+    const N = (v) => Math.round(Number(v) || 0).toLocaleString('pt-BR');
+    const P = (v) => (Number(v) || 0).toFixed(1).replace('.', ',') + '%';
+    const selFilial = document.getElementById('selFilial');
+    const selSup = document.getElementById('selSup');
+
+    function clsTend(p) { return p >= 95 ? 'ok' : p >= 75 ? 'warn' : 'bad'; }
+
+    async function carregar() {
+      const fil = selFilial.value;
+      const sup = selSup.value;
+      const qs = new URLSearchParams();
+      if (fil) qs.set('filial', fil);
+      if (sup) qs.set('sup', sup);
+      const res = await fetch('/api/matinal?' + qs.toString());
+      const d = await res.json();
+      if (!d.ok) { document.getElementById('statusFonte').textContent = 'Erro ao ler D1: ' + (d.erro || ''); return; }
+
+      const emBr = d.fonte.gerotEm ? new Date(d.fonte.gerotEm).toLocaleString('pt-BR') : '—';
+      document.getElementById('statusFonte').textContent = '🟢 Base D1 (independente do CEVEN) · GEROT: ' + (d.fonte.gerotPosicao || emBr);
+
+      if (selFilial.options.length <= 1 && d.filiais.length) {
+        d.filiais.forEach((f) => {
+          const o = document.createElement('option');
+          o.value = f.filial; o.textContent = f.filial;
+          selFilial.appendChild(o);
+        });
+      }
+      const curSup = selSup.value;
+      selSup.innerHTML = '<option value="">Todos os supervisores</option>';
+      d.supervisores.forEach((s) => {
+        const o = document.createElement('option');
+        o.value = s.cod_sup; o.textContent = (fil ? '' : s.filial + ' · ') + (s.supervisor || s.cod_sup);
+        if (String(s.cod_sup) === String(curSup)) o.selected = true;
+        selSup.appendChild(o);
+      });
+
+      const rows = d.vendedores;
+      const totMeta = rows.reduce((a, x) => a + x.meta, 0);
+      const totVend = rows.reduce((a, x) => a + x.vend, 0);
+      const totTend = rows.reduce((a, x) => a + x.tend, 0);
+      const totPos = rows.reduce((a, x) => a + x.pos, 0);
+      const totMetaPos = rows.reduce((a, x) => a + x.metaPos, 0);
+      const totRota = rows.reduce((a, x) => a + x.rotaHoje, 0);
+      const totBloqQ = rows.reduce((a, x) => a + x.bloqQtd, 0);
+      const totBloqV = rows.reduce((a, x) => a + x.bloqVlr, 0);
+
+      document.getElementById('kVend').textContent = R(totVend);
+      document.getElementById('kMeta').textContent = 'de ' + R(totMeta) + ' (' + P(totMeta ? totVend / totMeta * 100 : 0) + ')';
+      document.getElementById('kTend').textContent = P(totMeta ? totTend / totMeta * 100 : 0);
+      document.getElementById('kDias').textContent = R(totTend) + ' · ' + d.dias.dec + '/' + d.dias.tot + ' dias úteis (' + d.dias.falt + ' rest.)';
+      document.getElementById('kPos').textContent = N(totPos);
+      document.getElementById('kPosSub').textContent = totMetaPos ? ('de ' + N(totMetaPos) + ' (' + P(totPos / totMetaPos * 100) + ')') : 'Meta clientes GEROT não informada';
+      document.getElementById('kRota').textContent = N(totRota) + ' cli. na rota';
+      document.getElementById('kBloq').textContent = totBloqQ + ' ped. bloqueados (' + R(totBloqV) + ')';
+      document.getElementById('lblCount').textContent = rows.length + ' vendedores';
+
+      const tb = document.getElementById('tbVend');
+      if (!rows.length) {
+        tb.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:20px;">Nenhum vendedor encontrado para este filtro.</td></tr>';
+        return;
+      }
+      tb.innerHTML = rows.map((v) => `
+        <tr>
+          <td><strong>${v.filial}</strong></td>
+          <td>${v.rca} - ${v.vendedor || ''}</td>
+          <td style="color:var(--muted)">${v.supervisor || ''}</td>
+          <td class="num">${R(v.meta)}</td>
+          <td class="num">${R(v.vend)}</td>
+          <td class="num">${P(v.pctMeta)}</td>
+          <td class="num"><span class="pill ${clsTend(v.tendPct)}">${P(v.tendPct)}</span></td>
+          <td class="num">${R(v.precisaDia)}/d</td>
+          <td class="num">${N(v.pos)}${v.metaPos ? '/' + N(v.metaPos) : ''}</td>
+          <td class="num">${N(v.rotaHoje)}</td>
+          <td class="num">${N(v.prospects)}</td>
+          <td class="num" style="color:${v.bloqQtd ? '#f87171' : 'var(--muted)'}">${v.bloqQtd ? v.bloqQtd + ' (' + R(v.bloqVlr) + ')' : '0'}</td>
+        </tr>
+      `).join('');
+    }
+
+    selFilial.addEventListener('change', () => { selSup.value = ''; carregar(); });
+    selSup.addEventListener('change', carregar);
+    document.getElementById('btnAtualizar').addEventListener('click', carregar);
+    carregar();
+    setInterval(carregar, 5 * 60 * 1000);
+  </script>
+</body>
+</html>
+

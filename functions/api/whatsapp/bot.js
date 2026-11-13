@@ -304,7 +304,8 @@ async function trataMensagem({ request, env }) {
     || /\b(EQUIPES?|TIMES?|VENDEDOR(ES)?|HOJE|ONTEM|METAS?|FATURADOS?|ROTAS?|VISITAS?|PEDIDOS?|PRODUTOS?|CLIENTES?|SETOR(ES)?|SUPERVISOR(ES)?)\b/i.test(texto.trim());
   const pediuMotivo = ultOut && (/o que faltou ou veio errado/i.test(ultOut.texto || '') && !/obrigado pela nota [45]|valeu.*nota [45]/i.test(ultOut.texto || '')) && (Date.now() - Date.parse(ultOut.quando + 'Z') < 5 * 60 * 1000) && !ehComandoOuPergunta;
   const sugMeio = /fica (a|como) (sugest(ã|a)o|dica)|anot(e|a)( a(í|i))?( isso)?( como)? sugest(ã|a)o|como sugest(ã|a)o|dei uma sugest(ã|a)o|minha sugest(ã|a)o (é|e)/i.test(texto) ? texto : null;
-  const sug = (texto.match(/^\s*sugest(?:ã|a)o\s*[:\-]?\s*([\s\S]{3,})/i) || [])[1] || sugMeio || (pediuMotivo && !notaTxt && !ehComandoOuPergunta ? texto : null);
+  const sugInicio = (texto.match(/^\s*sugest(?:ã|a)o\s*[:\-]?\s*([\s\S]{3,})/i) || [])[1] || (/^\s*sugiro\b/i.test(texto) && texto.trim().length >= 8 ? texto.trim() : null);
+  const sug = sugInicio || sugMeio || (pediuMotivo && !notaTxt && !ehComandoOuPergunta ? texto : null);
   const ofereceuOpcao1 = ultOut && /digite \*?1\*?/i.test(ultOut.texto || '');
   const ofereceuOpcoesNum = ultOut && /(?:digite\s+(?:o\s+)?n[uú]mero|\bdigite\s+\*?[1-9]\*?|[1-9]️⃣|10️⃣)/i.test(ultOut.texto || '');
   // 11/11/2026 (Vitorio: 'voltar urgente em todas as msgs para avaliar a resposta e a opcao de sugestao'): 👍/👎 vale sempre (nao briga com o numero do menu); nota 1 a 5 so sem opcoes numeradas
