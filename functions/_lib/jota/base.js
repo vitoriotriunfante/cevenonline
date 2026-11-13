@@ -122,7 +122,7 @@ export async function enviarImagem(env, numero, media, caption) {
   if (!s.endsWith('@g.us')) { const q = await cotaEnvio(env, so(s)); if (!q.ok) return { ok: false, status: 429, erro: q.erro, teto: true }; }
   const d = s.endsWith('@g.us') ? s : so(s);
   if (!d) return { ok: false, erro: 'numero invalido' };
-  const corpo = { number: d, mediatype: 'image', mimetype: 'image/png', media, caption: String(caption || '').slice(0, 4000) };
+  const corpo = { number: d, mediatype: 'image', mimetype: 'image/png', media: String(media).replace(/^data:[^;]+;base64,/, ''), caption: String(caption || '').slice(0, 4000) };
   let r = await R.enviarMidia(cfg, '/message/sendMedia', corpo);
   if (r.ok) return { ok: true, status: r.status };
   if (!s.endsWith('@g.us')) {

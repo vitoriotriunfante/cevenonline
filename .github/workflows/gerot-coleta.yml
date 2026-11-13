@@ -49,6 +49,11 @@ jobs:
           if [ -n "${{ github.event.inputs.meses }}" ]; then ARGS="--meses=${{ github.event.inputs.meses }}"; fi
           if [ "${{ github.event.inputs.ensaio }}" = "true" ]; then ARGS="$ARGS --ensaio"; fi
           node pipeline/gerot_coletor_online.mjs $ARGS
+      - name: Gerar cards PNG da Matinal (WhatsApp)
+        if: github.event.inputs.ensaio != true
+        env:
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+        run: node scripts/gerar_cards_matinal.mjs || true
       - name: Guardar prints e Excel da coleta (para conferencia)
         if: always()
         uses: actions/upload-artifact@v4

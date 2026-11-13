@@ -335,6 +335,40 @@ export async function respMatinal(B, E) {
   }
 
   const posGerot = stGerot && stGerot.posicao ? ` · GEROT ${stGerot.posicao}` : '';
+  // Tenta usar o card PNG mobile-first pre-gerado em Playwright no D1 (matinal_cards)
+  let cardPng = null;
+  if (!E.rca) {
+    try {
+      const { results: cards } = await B.env.DB.prepare('SELECT chave, filial, cod_sup, supervisor, png_b64 FROM matinal_cards WHERE data = ?').bind(hoje).all();
+      if (cards && cards.length) {
+        if (E.supervisor) {
+          const sAlvo = sem(typeof E.supervisor === 'object' ? (E.supervisor.nome || '') : E.supervisor);
+          const toks = sAlvo.split(/\s+/).filter((w) => w.length > 2);
+          const hit = cards.find((c) => fil.includes(c.filial) && c.chave.startsWith('sup:') && (() => {
+            const sx = sem(c.supervisor || '');
+            return sx && (sx.includes(sAlvo) || sAlvo.includes(sx) || (toks.length && toks.every((w) => sx.includes(w))));
+          })());
+          if (hit) cardPng = hit.png_b64;
+        } else if (!E.nacional && fil.length === 1) {
+          const hit = cards.find((c) => c.chave === `fil:${fil[0]}`);
+          if (hit) cardPng = hit.png_b64;
+        } else if (E.nacional) {
+          const hit = cards.find((c) => c.chave === 'brasil');
+          if (hit) cardPng = hit.png_b64;
+        }
+      }
+    } catch {}
+  }
+  if (cardPng) {
+    B._midia = { tipo: 'image', url: cardPng };
+    return [
+      `☀️ *Matinal — ${E.nome}* (${dec}/${tot} du · faltam ${falt}${posGerot})`,
+      `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*) · 📈 Tendência: *${tendGeral.toFixed(1).replace('.', ',')}%*`,
+      `🎯 *Prioridade nº 1 hoje:* *${rows[0].rca} - ${titulo(rows[0].nome)}* (${rows[0].tendPct.toFixed(0)}% tend. · precisa ${R$(rows[0].precisaDia)}/d)`,
+      `🚫 Bloqueados: *${N(totBloqQtd)}* (${R$(totBloqVlr)})`
+    ].join('\n');
+  }
+
   return [
     `☀️ *Matinal — ${E.nome}* (${dec}/${tot} du · faltam ${falt}${posGerot})`,
     `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*)`,
