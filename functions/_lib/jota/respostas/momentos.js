@@ -10,8 +10,10 @@
 //   Os 5 de foco sao fixados na 1a resposta do dia (jota_foco_dia) para o meio do dia e o fechamento medirem quantos viraram pedido.
 //   Chave de desligar: config_flags 'jota_momentos' = 'off' -> volta a saudacao de antes (menu).
 // =========================================================================
-import { N, R$, hojeSP, titulo, diasUteisRestantes } from '../base.js';
+import { FILIAIS, N, R$, hojeSP, titulo, diasUteisRestantes } from '../base.js';
 import { semCompraNaRota } from './rota.js';
+import { posGerotFiliais } from './resumo.js';
+import { diasUteisMes } from './gestao.js';
 
 const hhmm = () => new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
 const minHM = (s) => { const m = String(s || '').match(/^(\d{1,2}):(\d{2})/); return m ? +m[1] * 60 + +m[2] : null; };
@@ -38,6 +40,33 @@ export function qualMomento(v) {
 
 async function recorrenciaGerot(B, v) {
   try { return await B.env.DB.prepare("SELECT sum(objetivo) objetivo, sum(meta) meta, sum(positivados) positivados FROM gerot_recorrencia_pasta WHERE mes = ? AND filial = ? AND nivel = 'vendedor' AND cod = ? HAVING count(*) > 0").bind(hojeSP().slice(0, 7), String(v.filial), String(v.rca)).first(); } catch (e) { return null; }
+}
+// Resultado do ultimo dia fechado no Clube da Venda (ontem) para compor o planejamento matinal (Vitorio, 13/11/2026)
+async function ontemClubeResumo(B, V, nacional = false) {
+  if (!B || !B.env || !B.env.DB) return null;
+  try {
+    const ult = await B.env.DB.prepare('SELECT MAX(dia) d FROM clube_venda_dia WHERE dia < ? AND total_pedido > 0').bind(hojeSP()).first();
+    const dia = ult && ult.d;
+    if (!dia) return null;
+    const fmt = `${dia.slice(8, 10)}/${dia.slice(5, 7)}`;
+    if (nacional) {
+      const r = await B.env.DB.prepare('SELECT ROUND(SUM(total_pedido), 2) val, SUM(ped_total) ped, SUM(visitas_rota) vis, SUM(roteiros) rot, SUM(CASE WHEN total_pedido > 0 THEN 1 ELSE 0 END) com FROM clube_venda_dia WHERE dia = ?').bind(dia).first();
+      return r ? { fmt, val: Number(r.val || 0), ped: Number(r.ped || 0), vis: Number(r.vis || 0), rot: Number(r.rot || 0), com: Number(r.com || 0) } : null;
+    }
+    const filiais = [...new Set((V || []).map((v) => String(v.filial)).filter(Boolean))];
+    if (!filiais.length) return null;
+    const keys = new Set((V || []).map((v) => `${v.filial}|${v.rca}`));
+    const { results } = await B.env.DB.prepare(`SELECT filial, rca, total_pedido, ped_total, visitas_rota, roteiros FROM clube_venda_dia WHERE dia = ? AND filial IN (${filiais.map(() => '?').join(',')})`).bind(dia, ...filiais).all();
+    const rows = (results || []).filter((r) => keys.has(`${r.filial}|${r.rca}`));
+    return {
+      fmt,
+      val: rows.reduce((a, r) => a + (Number(r.total_pedido) || 0), 0),
+      ped: rows.reduce((a, r) => a + (Number(r.ped_total) || 0), 0),
+      vis: rows.reduce((a, r) => a + (Number(r.visitas_rota) || 0), 0),
+      rot: rows.reduce((a, r) => a + (Number(r.roteiros) || 0), 0),
+      com: rows.filter((r) => Number(r.total_pedido) > 0).length,
+    };
+  } catch (e) { return null; }
 }
 // CHECK-IN PELA ROTA DO GERENTE (plano de 11/11, item 3): /api/gerente/supervisor/roteiro-hoje, cota propria do gerente, lida no fim de cada rodada.
 // Traz status e tem_checkin por cliente (sem horario). Visitado = check-in na leitura individual OU na rota do gerente.
@@ -95,20 +124,21 @@ export async function respMomento(B, c, Ev, momentoForcado = null) {
   // mesma conta do CEVEN e do item 1 do Jota (11/11): % = (faturado + a faturar) / meta; falta = meta - faturado - a faturar
   const vend = (v.fat || 0) + (v.pend || 0), falta = Math.max(0, (v.meta || 0) - vend), du = diasUteisRestantes(), porDia = du ? falta / du : 0;
   if (momento === 'plano') {
-    const g = await recorrenciaGerot(B, v);
+    const [g, ont] = await Promise.all([recorrenciaGerot(B, v), ontemClubeResumo(B, [v])]);
+    if (ont) L.push(`📅 *Ontem (${ont.fmt}):* ${ont.val > 0 ? `*${R$(ont.val)}* em ${N(ont.ped)} ped.` : 'sem pedido no Clube'}${ont.rot ? ` · ${ont.vis}/${ont.rot} visitas` : ''}`);
     // 11/11 (parecer do analista, item 4): nunca chamar de 'faturamento' a soma; separar faturado e a faturar
-    if (v.meta > 0) L.push(`💰 Vendido: *${pc(vend, v.meta)}* da meta (${R$(vend)} de ${R$(v.meta)}) · faturado ${R$(v.fat || 0)} + a faturar ${R$(v.pend || 0)}`);
+    if (v.meta > 0) L.push(`💰 *Acumulado:* *${pc(vend, v.meta)}* da meta (${R$(vend)} de ${R$(v.meta)}) · fat. ${R$(v.fat || 0)} + a fat. ${R$(v.pend || 0)}`);
     if (v.metaPos) L.push(`👥 Positivação: *${N(v.pos || 0)} de ${N(v.metaPos)}* clientes`);
     if (v.mixMes && v.mixMes.clientes_distintos) L.push(`🧺 Mix: *${(v.mixMes.soma_skus_por_cliente / v.mixMes.clientes_distintos).toFixed(1).replace('.', ',')}* produtos por cliente`);
     if (g && g.meta) L.push(`🔄 Recorrência: *${N(g.positivados || 0)} de ${N(g.meta)}* da meta`);
+    if (v.meta > 0) L.push(porDia > 0 ? `🎯 *Projeção de hoje:* precisa de *${R$(porDia)}* para o ritmo da meta (${du}d úteis)` : `🏆 *Meta do mês batida!* Foco hoje em positivação e mix.`);
     if (foco.length) {
       const M = await mixRec(B, v);
-      L.push('', `🎯 *Seus ${foco.length} clientes de foco hoje:*`);
+      L.push('', `📌 *Planejamento — ${foco.length} clientes de foco hoje:*`);
       const usados = new Set(), repNome = new Set(foco.map((f) => f.nome).filter((nm, i, arr) => arr.indexOf(nm) !== i));
       foco.forEach((f, i) => { const recs = (M[f.cnpj] || {}).rec || [], r = recs.find((x) => !usados.has(String(x[0]))) || recs[0]; if (r) usados.add(String(r[0])); L.push(`${i + 1}. ${f.nome}${repNome.has(f.nome) ? ` (#${f.id})` : ''}${f.dias != null ? ` · ${f.dias} dias sem compra` : ''}${f.rec ? ' · 🔄' : f.tag ? ` · ${titulo(f.tag)}` : ''}${r ? ` · ofereça *${titulo(r[1])}*` : ''}`); });
     } else if (rota.length) L.push('', '✅ Todos os clientes da sua rota de hoje já compraram no mês. Hoje é dia de aumentar o mix! 🧺');
     else L.push('', '📅 Você não tem rota hoje no CEVEN.');
-    if (porDia > 0) L.push('', `💡 Para o ritmo da meta, o dia de hoje pede *${R$(porDia)}*.`);
   } else {
     const RG = await rotaGerente(B, v), R = rota, feitas = R.filter((x) => minHM(x.checkin_horario) != null || Number((RG.get(String(x.id_cliente)) || {}).tem_checkin) === 1), ci = feitas.map((x) => minHM(x.checkin_horario)), co = R.map((x) => minHM(x.checkout_horario)).filter((x) => x != null);
     const fFeitos = foco.filter((f) => comprouHoje(f.id) || comprouMes(f.id));
@@ -221,8 +251,11 @@ export async function respMomentoSupervisor(B, c, Ev, momentoForcado = null) {
   const lista = [];
   const linhaV = (x, extra) => { lista.push(x.v); return `• *${curto(x.v)}*${extra ? ' · ' + extra : ''}`; };   // 11/11/2026: sem posicao; o numero digitado e o CODIGO do vendedor
   if (momento === 'abertura') {
+    const ont = await ontemClubeResumo(B, TODOS);
+    if (ont) L.push(`📅 *Ontem (${ont.fmt}):* *${R$(ont.val)}* em ${N(ont.ped)} ped. (${ont.com} vendedores com venda${ont.rot ? ` · ${ont.vis}/${ont.rot} visitas` : ''})`);
     // as duas partes explicitas (11/11: o item 2 mostra so o faturado em %; aqui faturado + a faturar, como o CEVEN)
-    if (meta > 0) L.push(`💰 Vendido: *${pc(vd, meta)}* da meta (faturado + a faturar) · faturado ${R$(soma((v) => v.fat))} (${pc(soma((v) => v.fat), meta)}) + a faturar ${R$(soma((v) => v.pend))} de ${R$(meta)}`);
+    if (meta > 0) L.push(`💰 *Acumulado:* *${pc(vd, meta)}* da meta · fat. ${R$(soma((v) => v.fat))} (${pc(soma((v) => v.fat), meta)}) + a fat. ${R$(soma((v) => v.pend))} de ${R$(meta)}`);
+    if (porDia > 0) L.push(`🎯 *Projeção de hoje:* a equipe precisa de *${R$(porDia)}* para o ritmo (${du}d úteis)`);
     const vAS = TODOS.filter(ehAS);
     if (vAS.length) { const m = vAS.reduce((a, v) => a + (v.meta || 0), 0), f = vAS.reduce((a, v) => a + (v.fat || 0), 0); if (m > 0) L.push(`📐 Faseamento AS (60% até o dia 20): *${pc(f, m * 0.6)}* do alvo (${R$(f)} de ${R$(m * 0.6)})`); }
     const mp = soma((v) => v.metaPos); if (mp) L.push(`👥 Positivação: *${N(soma((v) => v.pos))} de ${N(mp)}* clientes`);
@@ -294,9 +327,14 @@ export async function respMomentoGerente(B, c, Ev, momentoForcado = null) {
   const S = supervisoresDaEquipe(V), meta = soma(TODOS, (v) => v.meta), vd = soma(TODOS, vend), du = diasUteisRestantes(), porDia = du ? Math.max(0, meta - vd) / du : 0;
   const st = momento === 'abertura' ? await Promise.all(S.map(([s]) => statusSupervisor(B, filial, s))) : [];
   const L = [ABRE_G[momento][ix](n, nomeF), ''];
-  if (meta > 0) L.push(`💰 Vendido: *${pc(vd, meta)}* da meta (faturado + a faturar) · faturado ${R$(soma(TODOS, (v) => v.fat))} (${pc(soma(TODOS, (v) => v.fat), meta)}) + a faturar ${R$(soma(TODOS, (v) => v.pend))} de ${R$(meta)}`);
+  if (momento === 'abertura') {
+    const ont = await ontemClubeResumo(B, TODOS);
+    if (ont) L.push(`📅 *Ontem (${ont.fmt}):* *${R$(ont.val)}* em ${N(ont.ped)} ped.${ont.rot ? ` · ${N(ont.vis)}/${N(ont.rot)} visitas` : ''}`);
+  }
+  if (meta > 0) L.push(`💰 *Acumulado:* *${pc(vd, meta)}* da meta (fat. + a fat.) · fat. ${R$(soma(TODOS, (v) => v.fat))} (${pc(soma(TODOS, (v) => v.fat), meta)}) + a fat. ${R$(soma(TODOS, (v) => v.pend))} de ${R$(meta)}`);
   const vi = visitas(V), dig = soma(V, (v) => v.dig);
   if (momento === 'abertura') {
+    if (porDia > 0) L.push(`🎯 *Projeção de hoje:* a ${filial} precisa de *${R$(porDia)}* para o ritmo (${du}d úteis)`);
     const mp = soma(TODOS, (v) => v.metaPos); if (mp) L.push(`👥 Positivação: *${N(soma(TODOS, (v) => v.pos))} de ${N(mp)}* clientes`);
     const vAS = TODOS.filter(ehAS); if (vAS.length) { const m = soma(vAS, (v) => v.meta), f = soma(vAS, (v) => v.fat); if (m > 0) L.push(`📐 Faseamento AS (60% até o dia 20): *${pc(f, m * 0.6)}* do alvo`); }
     try { const g = await B.env.DB.prepare("SELECT objetivo, meta, positivados FROM gerot_recorrencia_pasta WHERE mes = ? AND filial = ? AND nivel = 'filial' LIMIT 1").bind(hojeSP().slice(0, 7), filial).first(); if (g && g.meta && !c.grupo) L.push(`🔄 Recorrência: *${N(g.positivados || 0)} de ${N(g.meta)}* da meta`); } catch (e) { /* sem GEROT */ }
@@ -318,4 +356,146 @@ export async function respMomentoGerente(B, c, Ev, momentoForcado = null) {
   L.push('', '👉 *Digite o número do supervisor* para abrir a equipe dele.', '', FECHA_S[momento === 'abertura' ? 'abertura' : momento][(ix + 3) % 8], '_Quer ver mais? Escreva *mais*._', `〔MG:${momento}〕`);
   const comemora = momento === 'fechamento' ? (porDia > 0 && dig >= porDia) : momento === 'meio' ? (porDia > 0 && dig >= porDia * 0.5) : (ix % 2 === 0);
   return { texto: L.join('\n'), momento, comemora, incentiva: false, supervisores: S.map(([s]) => s) };
+}
+
+// =========================================================================
+// 3 MOMENTOS DA DIRETORIA / CEO (Vitorio, 13/11/2026: "um diretor manda bom dia... o que ele quer saber?")
+//   Visao executiva do Grupo (11 filiais) pela base unica (GEROT + Clube + CEVEN fallback):
+//   faturado + a faturar vs meta e ritmo do calendario, positivacao e recorrencia GEROT, digitado e rota de hoje (Clube),
+//   placar das 11 filiais, lances da Liga, leitura do Jota (pior filial e maior foco de zerados) + atalhos diretos.
+// =========================================================================
+const ABRE_D = {
+  abertura: [
+    (n) => `☀️ Bom dia, ${n}! O grupo começa o dia assim:`,
+    (n) => `☀️ ${n}, bom dia! O placar do Brasil (11 filiais):`,
+    (n) => `Bom dia, ${n}! ⚽ O retrato executivo do grupo hoje:`,
+    (n) => `☀️ Opa, ${n}! Seu briefing de abertura nas 11 filiais:`,
+    (n) => `Bom dia, ${n}! 💪 O grupo em poucas linhas agora:`,
+    (n) => `☀️ ${n}, bom dia! Onde o Brasil está e onde cobrar:`,
+    (n) => `Bom dia, ${n}! 🎯 O dia comercial das 11 filiais:`,
+    (n) => `☀️ ${n}, café na mão? O placar do grupo hoje:`,
+  ],
+  meio: [
+    (n) => `🍽️ ${n}, parcial do dia! Como está o grupo agora:`,
+    (n) => `Opa, ${n}! 🍽️ O pulso das 11 filiais até aqui:`,
+    (n) => `🍽️ E aí, ${n}! O Brasil neste momento:`,
+    (n) => `${n}, boa! 🍽️ O parcial executivo do grupo:`,
+    (n) => `🍽️ Oi, ${n}! O grupo até agora nas 11 filiais:`,
+    (n) => `Fala, ${n}! ⚽ Fim do primeiro tempo no Brasil:`,
+    (n) => `🍽️ ${n}, o placar atualizado do grupo:`,
+    (n) => `Opa, ${n}! 🍽️ Quem puxa e quem precisa de atenção:`,
+  ],
+  fechamento: [
+    (n) => `🌙 Fechando o dia, ${n}! O balanço do grupo:`,
+    (n) => `🌙 ${n}, apito final! Como fecharam as 11 filiais:`,
+    (n) => `Boa, ${n}! 🌙 O fechamento executivo do Brasil:`,
+    (n) => `🌙 Fim de jogo, ${n}! O resultado do grupo hoje:`,
+    (n) => `${n}, dia batalhado! 🌙 O balanço das 11 filiais:`,
+    (n) => `🌙 Oi, ${n}! O placar de fechamento do grupo:`,
+    (n) => `🌙 Valeu pelo dia, ${n}! O resumo do Brasil:`,
+    (n) => `${n}, resumo da noite! 🌙 As 11 filiais hoje:`,
+  ],
+};
+
+export async function respMomentoDiretoria(B, c, Ev, momentoForcado = null) {
+  const V = (Ev && Ev.vend ? Ev.vend : []).filter((v) => v.ehVendedorReal !== false);
+  const TODOS = ((Ev && Ev.vend) || V).concat((Ev && Ev.ocultos) || []);
+  if (!TODOS.length) return null;
+  const n = titulo(String(c.nome || '').split(/\s+/)[0]) || 'time';
+  const momento = momentoForcado || qualMomentoEquipe(V);
+  const ix = versao({ filial: 'BR', rca: 'DIR' }, momento);
+  const vend = (v) => (v.fat || 0) + (v.pend || 0);
+  const soma = (L, f) => L.reduce((a, v) => a + (Number(f(v)) || 0), 0);
+
+  let gFil = new Map(), clubeHoje = new Map();
+  try { gFil = await posGerotFiliais(B); } catch (e) { gFil = new Map(); }
+  try {
+    if (B && B.env && B.env.DB) {
+      const { results } = await B.env.DB.prepare('SELECT filial, SUM(total_pedido) dig, SUM(ped_total) ped FROM clube_venda_dia WHERE dia = ? GROUP BY filial').bind(hojeSP()).all();
+      for (const r of results || []) clubeHoje.set(r.filial, { dig: Number(r.dig || 0), ped: Number(r.ped || 0) });
+    }
+  } catch (e) { /* sem clube hoje */ }
+
+  const Vr = V.filter((v) => v.varejo);
+  const porFil = [];
+  for (const sig of FILIAIS) {
+    const Tf = TODOS.filter((v) => v.filial === sig);
+    const Vf = Vr.filter((v) => v.filial === sig);
+    const gf = gFil.get(sig);
+    const ch = clubeHoje.get(sig);
+    const mF = (gf && gf.meta != null) ? gf.meta : soma(Tf, (v) => v.meta);
+    const fF = (gf && gf.fat != null) ? gf.fat : soma(Tf, (v) => v.fat);
+    const pF = (gf && gf.pend != null) ? gf.pend : soma(Tf, (v) => v.pend);
+    const vdF = fF + pF;
+    const dF = ((Ev.porFilial && Ev.porFilial[sig] && Ev.porFilial[sig].macro && Ev.porFilial[sig].macro.dig) || soma(Tf, (v) => v.dig)) || (ch ? ch.dig : 0);
+    const pedF = (Ev.porFilial && Ev.porFilial[sig] && Ev.porFilial[sig].macro && Ev.porFilial[sig].macro.pedidos) || (ch ? ch.ped : 0);
+    const zF = Vf.filter((v) => v.zerado).length;
+    if (mF > 0 || dF > 0) porFil.push({ sig, mF, fF, pF, vdF, dF, pedF, zF, pct: mF ? vdF / mF : 0 });
+  }
+  const fat = porFil.reduce((a, f) => a + f.fF, 0), pend = porFil.reduce((a, f) => a + f.pF, 0), meta = porFil.reduce((a, f) => a + f.mF, 0), vd = fat + pend;
+  const du = diasUteisRestantes(), porDia = du ? Math.max(0, meta - vd) / du : 0;
+  const { tot, pass } = diasUteisMes(), esp = tot ? (pass / tot * 100) : 0;
+  const prVd = meta ? (vd / meta * 100) : 0;
+
+  let pos = soma(TODOS, (v) => v.pos), mpos = soma(TODOS, (v) => v.metaPos);
+  if (gFil && gFil.size) {
+    let gp = 0, gm = 0;
+    for (const g of gFil.values()) { gp += g.pos || 0; gm += g.metaPos || 0; }
+    if (gp > 0 || gm > 0) { pos = gp; if (gm > 0) mpos = gm; }
+  }
+
+  let recPos = 0, recMeta = 0;
+  try {
+    const gr = await B.env.DB.prepare("SELECT sum(meta) meta, sum(positivados) positivados FROM gerot_recorrencia_pasta WHERE mes = ? AND nivel = 'filial'").bind(hojeSP().slice(0, 7)).first();
+    if (gr && gr.meta) { recPos = Number(gr.positivados || 0); recMeta = Number(gr.meta || 0); }
+  } catch (e) { /* sem recorrencia */ }
+
+  const dig = porFil.reduce((a, f) => a + f.dF, 0) || (Ev.macro && Ev.macro.dig) || soma(V, (v) => v.dig);
+  const ped = porFil.reduce((a, f) => a + f.pedF, 0) || (Ev.macro && Ev.macro.pedidos) || soma(V, (v) => v.ped);
+  const visF = soma(Vr, (v) => v.visF), visP = soma(Vr, (v) => v.visP), zerados = Vr.filter((v) => v.zerado).length;
+
+  const L = [ABRE_D[momento][ix](n), ''];
+  if (new Date(hojeSP() + 'T12:00:00Z').getUTCDay() === 0) L.push('📅 _Hoje é domingo (filiais paradas; números até o último dia útil)._', '');
+  const ont = await ontemClubeResumo(B, TODOS, true);
+  if (ont) L.push(`📅 *Ontem (${ont.fmt}, Clube):* *${R$(ont.val)}* em *${N(ont.ped)}* pedidos` + (ont.rot ? ` · ${N(ont.vis)}/${N(ont.rot)} visitas` : ''));
+
+  if (meta > 0) {
+    L.push(`💰 *Vendido (fat. + a faturar):* *${pc(vd, meta)}* da meta (${R$(vd)} de ${R$(meta)})`);
+    L.push(`   Faturado: ${R$(fat)} (${pc(fat, meta)}) · A faturar: ${R$(pend)}`);
+    const statusRitmo = prVd >= esp ? '📈 acima do ritmo' : prVd >= esp * 0.9 ? '⚖️ jogo apertado' : '⚠️ abaixo do ritmo';
+    L.push(`📊 *Ritmo:* ${statusRitmo} (calendário pede *${esp.toFixed(0)}%*)` + (du && meta > vd ? ` · precisa *${R$(porDia)}/dia útil* (${du}d)` : ''));
+  }
+  if (mpos > 0) L.push(`👥 *Positivação (GEROT):* *${N(pos)} de ${N(mpos)}* (${pc(pos, mpos)})` + (recMeta > 0 ? ` · 🔄 Recorrência: *${N(recPos)} de ${N(recMeta)}* (${pc(recPos, recMeta)})` : ''));
+  L.push(`📝 *Hoje (Clube):* *${R$(dig)}* em *${N(ped)}* pedidos` + (ped ? ` (ticket ${R$(dig / ped)})` : ''));
+  if (visP > 0) L.push(`🚶 *Rota varejo:* *${N(visF)} de ${N(visP)}* visitas · ⚠️ *${zerados}* em rota sem pedido`);
+
+  try {
+    const [lc, lg] = await Promise.all([B.lances(), B.liga()]);
+    const lances = (lc && lc.lances) || [];
+    const lider = lg && lg.filiais && lg.filiais[0];
+    if (lances.length || lider) {
+      const gols = lances.filter((l) => l.nivel === 'gol').length;
+      const pen = lances.filter((l) => l.nivel === 'penalti').length;
+      L.push(`⚽ *Liga:* ${lances.length ? `${gols} gol(s) · ${pen} pênalti(s) hoje` : 'sem lances hoje'}` + (lider ? ` · 🏆 Líder: *${lider.sigla}* (${lider.pts_tabela} pts)` : ''));
+    }
+  } catch (e) { /* sem liga */ }
+
+  // Por filial: 11 filiais ordenadas por % vendido (fat + a faturar / meta)
+  porFil.sort((a, b) => b.pct - a.pct);
+  if (porFil.length) {
+    L.push('', '*Por filial (% vendido · fat. · hoje):*');
+    for (const f of porFil) {
+      L.push(`• *${f.sig}* ${pc(f.vdF, f.mF)} (fat ${pc(f.fF, f.mF)}) · hoje ${R$(f.dF)}` + (visP > 0 ? ` · ${f.zF} zer.` : ''));
+    }
+    const pior = porFil[porFil.length - 1];
+    const maisZer = visP > 0 ? porFil.slice().sort((a, b) => b.zF - a.zF)[0] : null;
+    const obs = [];
+    if (pior) obs.push(`cobrar *${pior.sig}* (${pc(pior.vdF, pior.mF)} da meta, a mais atrás)`);
+    if (maisZer && maisZer.zF > 0 && (!pior || maisZer.sig !== pior.sig)) obs.push(`destravar *${maisZer.sig}* (${maisZer.zF} zerados em rota)`);
+    if (obs.length) L.push('', `💡 *Leitura do Jota:* ${obs.join(' e ')}.`);
+  }
+
+  L.push('', '_Peça uma filial (ex.: "TPH"), "indústrias", "zerados", "liga", "recorrência" ou "+mix"._', `〔MD:${momento}〕`);
+  const comemora = momento === 'fechamento' ? (porDia > 0 && dig >= porDia) : momento === 'meio' ? (porDia > 0 && dig >= porDia * 0.5) : prVd >= esp;
+  return { texto: L.join('\n'), momento, comemora, incentiva: false };
 }

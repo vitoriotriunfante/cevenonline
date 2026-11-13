@@ -5,7 +5,7 @@
 // =========================================================================
 import { sn } from '../escopo.js';
 import { ehFeriado } from '../../feriados.js';
-import { N, R$, SUGESTAO, nome2, sem, so, titulo, vn } from '../base.js';
+import { N, R$, SUGESTAO, hojeSP, nome2, sem, so, titulo, vn } from '../base.js';
 import { pessoaReal, supReal } from '../escopo.js';
 import { SEM_VENDAS, achaIndustria, achaProdutos, dIso, nomeIndustria, somaPor, vendasEscopo } from './vendas.js';
 
@@ -102,9 +102,56 @@ export function pedePeriodo(t) {
   const m = t.match(/(?:DESDE O? ?DIA|DO DIA|A PARTIR DO DIA|DIA)\s*(\d{1,2})\s*(?:PARA CA|PRA CA|ATE HOJE|ATE AGORA|EM DIANTE)/) || t.match(/(?:DE|DO DIA|DIA)\s*(\d{1,2})\s*(?:A|ATE|AO DIA)\s*(\d{1,2})\b/);
   return m ? { de: +m[1], ate: m[2] ? +m[2] : null } : null;
 }
+async function ontemClube(B, E, ultVendasNum) {
+  if (!B || !B.env || !B.env.DB) return null;
+  try {
+    const hoje = hojeSP();
+    const ultRow = await B.env.DB.prepare('SELECT MAX(dia) d FROM clube_venda_dia WHERE dia < ? AND total_pedido > 0').bind(hoje).first();
+    const dia = ultRow && ultRow.d;
+    if (!dia) return null;
+    const diaNum = Number(dia.replace(/-/g, ''));
+    if (ultVendasNum && diaNum <= ultVendasNum) return null;   // vendas_mes ja esta igual ou mais recente
+    const { results } = await B.env.DB.prepare('SELECT filial, rca, nome, total_pedido, ped_total, visitas_rota, roteiros FROM clube_venda_dia WHERE dia = ?').bind(dia).all();
+    const rows = results || [];
+    if (!rows.length) return null;
+    const fmt = `${dia.slice(8, 10)}/${dia.slice(5, 7)}`;
+    const escKeys = new Set(E.vend.concat(E.ocultos || []).map((v) => v.filial + '|' + v.rca));
+    const restrito = Boolean(E.grupo || E.supervisor || E.rca);
+    const filtrados = rows.filter((r) => (E.nacional || E.filiais.includes(r.filial)) && (!restrito || escKeys.has(r.filial + '|' + r.rca)));
+    const tot = filtrados.reduce((a, r) => a + (Number(r.total_pedido) || 0), 0);
+    const ped = filtrados.reduce((a, r) => a + (Number(r.ped_total) || 0), 0);
+    const vis = filtrados.reduce((a, r) => a + (Number(r.visitas_rota) || 0), 0);
+    const rot = filtrados.reduce((a, r) => a + (Number(r.roteiros) || 0), 0);
+    if (E.nacional) {
+      const pf = new Map();
+      for (const r of filtrados) {
+        const x = pf.get(r.filial) || { val: 0, ped: 0, vis: 0, rot: 0 };
+        x.val += Number(r.total_pedido) || 0; x.ped += Number(r.ped_total) || 0;
+        x.vis += Number(r.visitas_rota) || 0; x.rot += Number(r.roteiros) || 0;
+        pf.set(r.filial, x);
+      }
+      const linhasF = [...pf.entries()].sort((a, b) => b[1].val - a[1].val).map(([f, x]) => `• *${f}*: ${R$(x.val)} · ${N(x.ped)} ped.${x.rot ? ` · ${N(x.vis)}/${N(x.rot)} vis.` : ''}`);
+      const topV = filtrados.filter((r) => (Number(r.total_pedido) || 0) > 0).sort((a, b) => b.total_pedido - a.total_pedido).slice(0, 5)
+        .map((r) => `• ${r.filial} · ${r.rca} - ${titulo(r.nome)}: ${R$(r.total_pedido)} (${N(r.ped_total)} ped.)`);
+      return [`🧾 *Ontem (${fmt}) — Brasil* (Clube da Venda): *${R$(tot)}* em *${N(ped)}* pedidos` + (rot ? ` · ${N(vis)}/${N(rot)} visitas` : ''), '', '*Por filial:*', ...linhasF, ...(topV.length ? ['', '*Top 5 vendedores:*', ...topV] : [])].join('\n');
+    }
+    const comVenda = filtrados.filter((r) => (Number(r.total_pedido) || 0) > 0).sort((a, b) => b.total_pedido - a.total_pedido);
+    const nomeV = (r) => { const v = E.vend.find((y) => y.filial === r.filial && String(y.rca) === String(r.rca)); return v ? vn(v) : `${r.rca} - ${titulo(r.nome)}`; };
+    return [`🧾 *Ontem (${fmt}) — ${E.nome}* (Clube da Venda): *${R$(tot)}* em *${N(ped)}* pedidos` + (rot ? ` · ${N(vis)}/${N(rot)} visitas` : ''),
+      ...(E.vend.length > 1 && comVenda.length ? ['', ...comVenda.slice(0, 35).map((r) => `• ${nomeV(r)}: ${R$(r.total_pedido)} · ${N(r.ped_total)} ped.`)] : []),
+      ...(E.vend.length > 1 && comVenda.length > 35 ? [`… e mais ${comVenda.length - 35} vendedores.`] : [])].join('\n');
+  } catch (e) { return null; }
+}
+
 export async function respPeriodoDias(B, E, t, per) {
-  const V = await vendasEscopo(B, E); if (!V) return SEM_VENDAS;
-  const ult = V.linhas.reduce((m, l) => Math.max(m, l.d), 0), ym = Math.floor(ult / 100), hojeD = Number(new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10).replace(/-/g, ''));
+  const V = await vendasEscopo(B, E);
+  const ult = V ? V.linhas.reduce((m, l) => Math.max(m, l.d), 0) : 0;
+  if (per.ontem) {
+    const oc = await ontemClube(B, E, ult);
+    if (oc) return oc;
+  }
+  if (!V) return SEM_VENDAS;
+  const ym = Math.floor(ult / 100), hojeD = Number(new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10).replace(/-/g, ''));
   if (per.ontem) { per.de = ult % 100; per.ate = ult % 100; }   /* "ontem" = ultimo dia com pedido na base item a item (sabado/domingo/feriado pulam) */
   const de = ym * 100 + per.de, ate = per.ate ? ym * 100 + per.ate : hojeD;
   const porD = new Map(); for (const l of V.linhas) if (l.d >= de && l.d <= ate) { const x = porD.get(l.d) || { v: 0, cli: new Set() }; x.v += l.v; x.cli.add(l.f + '|' + l.c); porD.set(l.d, x); }

@@ -9,13 +9,20 @@ import { agrupa, listaNomes, pctTxt, supChave, supNome, supReal } from '../escop
 import { diasUteisMes } from './gestao.js';
 
 // ---------------- RESPOSTAS ----------------
-async function posGerotFiliais(B) {
+export async function posGerotFiliais(B) {
   const m = new Map();
   if (!B || !B.env || !B.env.DB) return m;
   try {
     const mes = hojeSP().slice(0, 7);
-    const { results } = await B.env.DB.prepare("SELECT filial, coalesce(json_extract(dados,'$.\"Positivação (filial + CNPJ)\"'), json_extract(dados,'$.\"Positivação (filial)\"')) pos, coalesce(json_extract(dados,'$.\"Meta de positivação\"'), json_extract(dados,'$.\"Meta clientes\"')) meta_pos FROM gerot_filial_mes WHERE mes = ?").bind(mes).all();
-    for (const r of results || []) if (r.pos != null) m.set(r.filial, { pos: Number(r.pos) || 0, metaPos: r.meta_pos != null ? Number(r.meta_pos) || 0 : null });
+    const { results } = await B.env.DB.prepare("SELECT filial, coalesce(json_extract(dados,'$.\"Positivação (filial + CNPJ)\"'), json_extract(dados,'$.\"Positivação (filial)\"')) pos, coalesce(json_extract(dados,'$.\"Meta de positivação\"'), json_extract(dados,'$.\"Meta clientes\"')) meta_pos, json_extract(dados,'$.\"Faturado líquido (R$)\"') fat, json_extract(dados,'$.\"Carteira pendente (R$)\"') pend, json_extract(dados,'$.\"Meta (R$)\"') meta, json_extract(dados,'$.\"Devolução (R$)\"') dev FROM gerot_filial_mes WHERE mes = ?").bind(mes).all();
+    for (const r of results || []) if (r.pos != null || r.fat != null) m.set(r.filial, {
+      pos: Number(r.pos) || 0,
+      metaPos: r.meta_pos != null ? Number(r.meta_pos) || 0 : null,
+      fat: r.fat != null ? Number(r.fat) : null,
+      pend: r.pend != null ? Number(r.pend) : null,
+      meta: r.meta != null ? Number(r.meta) : null,
+      dev: r.dev != null ? Number(r.dev) : null,
+    });
   } catch { /* tabela ainda nao populada */ }
   return m;
 }

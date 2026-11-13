@@ -19,7 +19,7 @@
 //   entender e responder ficam em functions/_lib/jota/ (um arquivo por assunto). Prova de que nada mudou: testes/jota_igualdade.mjs.
 // =========================================================================
 import R from '../../../public/regras.js'; // antiban: pausa humana entre envios
-import { enviar, sem, so, tabelas, titulo, variantes } from '../../_lib/jota/base.js';
+import { FILIAIS, enviar, sem, so, tabelas, titulo, variantes } from '../../_lib/jota/base.js';
 import { respondeIA, respostaPronta } from '../../_lib/jota/entende.js';
 import { entendePorIA } from '../../_lib/jota/entende_ia.js';
 import { fichaPorIA, perguntaPadrao } from '../../_lib/jota/motor_ficha.js';
@@ -357,6 +357,17 @@ async function trataMensagem({ request, env }) {
         const Ev = await carregaEscopo(B, { nome: 'Equipe ' + titulo(String(sup).split(' ').slice(0, 2).join(' ')) + ' (' + c.filial + ')', filiais: [String(c.filial)], grupo: null, supervisor: sup, nacional: false });
         const m = await MO.respMomentoSupervisor(B, c, Ev);
         if (m && m.texto) { resp = m.texto; tipo = 'momento_' + m.momento + (m.comemora ? '_comemora' : m.incentiva ? '_incentiva' : ''); }
+      }
+    } catch (e) { resp = null; }
+  }
+  // 3 MOMENTOS DA DIRETORIA / CEO (Vitorio, 13/11/2026: briefing executivo das 11 filiais ao dar bom dia/tarde/noite)
+  if (!resp && ehSaudacao(tN) && !primeiraVez && c && (c.papel === 'diretoria' || c.papel === 'ceo')) {
+    try {
+      const MO = await import('../../_lib/jota/respostas/momentos.js'), { carregaEscopo } = await import('../../_lib/jota/escopo.js');
+      if (await MO.momentosLigados(B)) {
+        const Ev = await carregaEscopo(B, { nome: 'Brasil', filiais: FILIAIS, grupo: null, supervisor: null, rca: null, nacional: true });
+        const m = await MO.respMomentoDiretoria(B, c, Ev);
+        if (m && m.texto) { resp = m.texto; tipo = 'momento_' + m.momento + (m.comemora ? '_comemora' : ''); }
       }
     } catch (e) { resp = null; }
   }
