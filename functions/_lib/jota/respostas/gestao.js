@@ -3,9 +3,8 @@
 // O QUE É: carteira, ritmo, gaps, rankings, comparações, dobradinha, aviso de equipe.
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
-import { sn } from '../escopo.js';
 import { N, P, R$, SUGESTAO, hojeSP, nome2, sem, titulo, vn } from '../base.js';
-import { agrupa, pctTxt, pessoaReal, supChave, supNome, supReal } from '../escopo.js';
+import { agrupa, carregaEscopo, pctTxt, pessoaReal, sn, supChave, supNome, supReal } from '../escopo.js';
 import { totaisOficiais } from './resumo.js';
 import { ehFeriado } from '../../feriados.js';
 
@@ -65,10 +64,26 @@ export function respRankingGerentes(E) {
   return [`🧑‍💼 *Ranking dos gerentes* (% da meta faturada; TPH e MCD por gerente)`, ...G.map(([k, x], i) => `${i + 1}. ${k}${x.V[0] && x.V[0].gerente && !k.includes('·') ? ' — ' + titulo(x.V[0].gerente) : ''}: ${pctTxt(x.pct)} · ${R$(x.fat)} · pend. ${R$(x.pend)}`)].join('\n');
 }
 export async function respComparar(B, fs) {
-  const s = await B.saude(); const F = ((s && s.filiais) || []).filter((f) => fs.includes(f.filial));
+  const esc = await carregaEscopo(B, { nome: fs.join(' × '), filiais: fs });
+  const hora = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
+  const gFil = new Map();
+  if (B && B.env && B.env.DB) {
+    try {
+      const mes = hojeSP().slice(0, 7);
+      const { results } = await B.env.DB.prepare("SELECT filial, coalesce(json_extract(dados,'$.\"Positivação (filial + CNPJ)\"'), json_extract(dados,'$.\"Positivação (filial)\"')) pos, coalesce(json_extract(dados,'$.\"Meta de positivação\"'), json_extract(dados,'$.\"Meta clientes\"')) meta_pos FROM gerot_filial_mes WHERE mes = ?").bind(mes).all();
+      for (const r of results || []) if (r.pos != null) gFil.set(r.filial, { pos: Number(r.pos) || 0, metaPos: r.meta_pos != null ? Number(r.meta_pos) || 0 : null });
+    } catch { /* segue com soma */ }
+  }
+  const F = fs.map((sigla) => {
+    const p = esc.porFilial && esc.porFilial[sigla];
+    const vs = p ? (p.vend || []).concat(p.ocultos || []) : [];
+    const g = agrupa(vs, () => 'x').get('x') || { fat: 0, pend: 0, meta: 0, pos: 0, metaPos: 0, dig: 0 };
+    const gf = gFil.get(sigla);
+    return { filial: sigla, faturado: g.fat, pendente: g.pend, meta_fat: g.meta, positivados: gf ? gf.pos : g.pos, meta_pos: gf && gf.metaPos != null ? gf.metaPos : g.metaPos, digitado_hoje: (p && p.macro && p.macro.dig) || g.dig };
+  }).filter((f) => f.meta_fat > 0 || f.faturado > 0 || f.digitado_hoje > 0);
   if (F.length < 2) return null;
   const lin = (r, fn) => `${r}: ` + F.map((f) => `*${f.filial}* ${fn(f)}`).join(' × ');
-  return [`⚖️ *${fs.join(' × ')}* (${s.hora_sp})`, lin('Faturado', (f) => `${P(f.faturado || 0, f.meta_fat)} (${R$(f.faturado)})`), lin('Pendente', (f) => R$(f.pendente)), lin('Positivação', (f) => `${P(f.positivados, f.meta_pos)} (${N(f.positivados)})`), lin('Digitado hoje', (f) => R$(f.digitado_hoje))].join('\n');
+  return [`⚖️ *${fs.join(' × ')}* (${hora})`, lin('Faturado', (f) => `${P(f.faturado || 0, f.meta_fat)} (${R$(f.faturado)})`), lin('Pendente', (f) => R$(f.pendente)), lin('Positivação', (f) => `${P(f.positivados, f.meta_pos)} (${N(f.positivados)})`), lin('Digitado hoje', (f) => R$(f.digitado_hoje))].join('\n');
 }
 export async function respPontosPerdidos(B, E) {
   const lc = await B.lances(); if (!lc) return 'Não consegui ler os lances agora.';

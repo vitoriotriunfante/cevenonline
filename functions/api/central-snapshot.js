@@ -59,18 +59,28 @@ export async function onRequestGet({ env, request }) {
         // A MAIS RECENTE DAS DUAS (13/11/2026, Vitorio: "o melhor e mais atualizado possivel... conecta no GEROT"): com o CEVEN fora desde 11/11 17:34, a ultima leitura dele
         // ficou 2 dias velha e o GEROT carrega a cada ~2 h. Faturado, a faturar (carteira) e devolucao do vendedor vem da fonte MAIS RECENTE; a meta e a positivacao
         // continuam as do CEVEN (o GEROT nao traz a meta de clientes por vendedor). Conferido em 11/11: faturado igual em 327 vendedores; fat. + carteira fecha o total.
-        let G = new Map(), gEm = null;
+        let G = new Map(), GV = new Map(), gEm = null;
         try {
           const st = await env.DB.prepare("SELECT max(em) em FROM gerot_coleta_status WHERE mes = ? AND posicao LIKE ?").bind(mes, '%' + dia.split('-').reverse().join('/') + '%').first();
           gEm = st && st.em;
-          if (gEm) { const { results: gv } = await env.DB.prepare("SELECT rca, sum(coalesce(json_extract(dados,'$.\"Faturado líquido (R$)\"'),0)) fat, sum(coalesce(json_extract(dados,'$.\"Carteira pendente (R$)\"'),0)) cart, sum(coalesce(json_extract(dados,'$.\"Devolução (R$)\"'),0)) dev FROM gerot_vendas WHERE mes = ? AND filial = ? GROUP BY rca").bind(mes, filial).all(); for (const g of gv || []) G.set(String(g.rca), g); }
-        } catch { G = new Map(); }
+          if (gEm) {
+            const { results: gv } = await env.DB.prepare("SELECT rca, sum(coalesce(json_extract(dados,'$.\"Faturado líquido (R$)\"'),0)) fat, sum(coalesce(json_extract(dados,'$.\"Carteira pendente (R$)\"'),0)) cart, sum(coalesce(json_extract(dados,'$.\"Devolução (R$)\"'),0)) dev FROM gerot_vendas WHERE mes = ? AND filial = ? GROUP BY rca").bind(mes, filial).all();
+            for (const g of gv || []) G.set(String(g.rca), g);
+            try {
+              const { results: gvm } = await env.DB.prepare("SELECT rca, max(coalesce(json_extract(dados,'$.\"Positivação (filial + CNPJ)\"'), json_extract(dados,'$.\"Positivação (filial)\"'))) pos, max(coalesce(json_extract(dados,'$.\"Meta de positivação\"'), json_extract(dados,'$.\"Meta clientes\"'))) meta_pos FROM gerot_vendedor_mes WHERE mes = ? AND filial = ? GROUP BY rca").bind(mes, filial).all();
+              for (const v of gvm || []) GV.set(String(v.rca), v);
+            } catch { /* tabela gerot_vendedor_mes ainda nao populada */ }
+          }
+        } catch { G = new Map(); GV = new Map(); }
         for (const [rca, r] of faltam) {
           const a = A.get(rca), ref = {};
           if (!r.dashboard && a) { const da = parse(a.dashboard_json); if (da) { r.dashboard_reserva = da; ref.dashboard = { fonte: 'CEVEN', em: a.dash_em || a.updated_at }; } }
-          if (gEm && G.has(rca)) {   // 13/11/2026 (Vitorio: 'esquece o CEVEN... o GEROT e atualizado, mesmo que de 2 em 2 h'): GEROT de hoje vale para TODOS
+          if (gEm && (G.has(rca) || GV.has(rca))) {   // 13/11/2026 (Vitorio: 'esquece o CEVEN... o GEROT e atualizado, mesmo que de 2 em 2 h'): GEROT de hoje vale para TODOS
             if (r.dashboard) { r.dashboard_reserva = r.dashboard; r.dashboard = null; }
-            { const g = G.get(rca); const base = r.dashboard_reserva || {}; r.dashboard_reserva = { ...base, financeiro: { ...(base.financeiro || {}), faturado: Number(g.fat) || 0, pendente: Number(g.cart) || 0, devolucao: Number(g.dev) || 0 } }; ref.dashboard = { fonte: 'GEROT (faturado, carteira e devolução) + CEVEN (meta e positivação)', em: gEm }; }
+            { const g = G.get(rca) || {}, gv = GV.get(rca) || {}, base = r.dashboard_reserva || {};
+              const posGerot = gv.pos != null ? { realizado: Number(gv.pos) || 0, ...(gv.meta_pos != null ? { meta: Number(gv.meta_pos) || 0 } : {}) } : {};
+              r.dashboard_reserva = { ...base, financeiro: { ...(base.financeiro || {}), ...(G.has(rca) ? { faturado: Number(g.fat) || 0, pendente: Number(g.cart) || 0, devolucao: Number(g.dev) || 0 } : {}) }, positivacao: { ...(base.positivacao || {}), ...posGerot } };
+              ref.dashboard = { fonte: gv.pos != null ? 'GEROT (faturado, carteira, devolução e positivação)' : 'GEROT (faturado, carteira e devolução) + CEVEN (meta e positivação)', em: gEm }; }
           }
           if (!Array.isArray(r.roteiro_mes) && a) { const rm = parse(a.roteiro_mes_json); if (Array.isArray(rm)) { r.roteiro_mes = rm; ref.roteiro_mes = { fonte: 'CEVEN roteiro do mes', em: a.updated_at }; } }
           if (!r.produtividade && a) { const pa = parse(a.produtividade_json); if (pa && pa.mes) { r.produtividade_mes_reserva = pa.mes; ref.produtividade_mes = { fonte: 'CEVEN', em: a.prod_em || a.updated_at, ate: a.data_ref }; } }

@@ -5,12 +5,50 @@
 // =========================================================================
 import { sn } from '../escopo.js';
 import R from '../../../../public/regras.js'; // regras unicas (public/regras.js)
-import { FILIAIS, N, P, R$, SUGESTAO, nome2, sem, titulo, vn } from '../base.js';
+import { FILIAIS, N, P, R$, SUGESTAO, hojeSP, nome2, sem, titulo, vn } from '../base.js';
 import { pctTxt } from '../escopo.js';
 import { respIncentivo } from './liga_mix.js';
 
 // ---------- indicadores das outras telas (TV Executiva, /incentivo, Liga AS, Supervisores, Devolucoes, Bola Cheia, Divergencias) ----------
 export async function respRecorrencia(B, E) {
+  // 13/11/2026: fonte oficial de recorrencia no mes = GEROT (gerot_recorrencia_pasta) no D1; B.exec() fica so como ultimo fallback
+  if (B && B.env && B.env.DB) {
+    try {
+      const mes = hojeSP().slice(0, 7);
+      const filiais = E.filiais && E.filiais.length ? E.filiais : FILIAIS;
+      const ph = filiais.map(() => '?').join(',');
+      const st = await B.env.DB.prepare('SELECT posicao FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null);
+      const pos = st && st.posicao ? String(st.posicao).replace(/^Atual\s*·\s*/, '') : null;
+      if (E.rca || E.supervisor) {
+        const { results: vr } = await B.env.DB.prepare(`SELECT filial, cod, sup, nome, objetivo, meta, positivados, faturado FROM gerot_recorrencia_pasta WHERE mes = ? AND nivel = 'vendedor' AND filial IN (${ph})`).bind(mes, ...filiais).all();
+        const rcas = new Set((E.vend || []).map((v) => String(v.rca)));
+        const rows = (vr || []).filter((r) => rcas.has(String(r.cod)));
+        if (rows.length) {
+          const obj = rows.reduce((a, r) => a + (Number(r.objetivo) || 0), 0);
+          const meta = rows.reduce((a, r) => a + (Number(r.meta) || 0), 0);
+          const posi = rows.reduce((a, r) => a + (Number(r.positivados) || 0), 0);
+          const fat = rows.reduce((a, r) => a + (Number(r.faturado) || 0), 0);
+          const L = [`⭐ *Recorrência (Lista do dia 1) — ${E.nome}*`, `Objetivo: *${N(obj)}* · Meta 80%: *${N(meta)}*`, `Positivados: *${N(posi)}* (${P(posi, meta || obj)}) · Faturado: *${R$(fat)}*`];
+          if (rows.length > 1) rows.slice(0, 12).forEach((r) => L.push(`• ${r.cod} - ${nome2(r.nome || '')}: *${N(r.positivados)}/${N(r.meta || r.objetivo)}* (${P(r.positivados || 0, r.meta || r.objetivo)})`));
+          L.push('', `_Fonte: GEROT${pos ? ' · posição ' + pos : ''}._`);
+          return L.join('\n');
+        }
+      } else {
+        const { results: fr } = await B.env.DB.prepare(`SELECT filial, objetivo, meta, positivados, faturado FROM gerot_recorrencia_pasta WHERE mes = ? AND nivel = 'filial' AND filial IN (${ph})`).bind(mes, ...filiais).all();
+        if (fr && fr.length) {
+          const obj = fr.reduce((a, r) => a + (Number(r.objetivo) || 0), 0);
+          const meta = fr.reduce((a, r) => a + (Number(r.meta) || 0), 0);
+          const posi = fr.reduce((a, r) => a + (Number(r.positivados) || 0), 0);
+          const fat = fr.reduce((a, r) => a + (Number(r.faturado) || 0), 0);
+          const L = [`⭐ *Recorrência (Lista do dia 1) — ${E.nacional ? 'Brasil' : E.filiais[0]}*`, `Objetivo: *${N(obj)}* · Meta 80%: *${N(meta)}*`, `Positivados: *${N(posi)}* (${P(posi, meta || obj)}) · Faturado: *${R$(fat)}*`];
+          if (E.nacional) fr.slice().sort((a, b) => (b.positivados / (b.meta || b.objetivo || 1)) - (a.positivados / (a.meta || a.objetivo || 1))).forEach((r) => L.push(`• ${r.filial}: *${N(r.positivados)}/${N(r.meta || r.objetivo)}* (${P(r.positivados || 0, r.meta || r.objetivo)}) · ${R$(r.faturado)}`));
+          if (E.grupo) L.push('_Visão da filial inteira (GEROT Lista do dia 1)._');
+          L.push('', `_Fonte: GEROT${pos ? ' · posição ' + pos : ''}._`);
+          return L.join('\n');
+        }
+      }
+    } catch { /* fallback abaixo */ }
+  }
   const x = await B.exec(); if (!x || !x.recorrencia) return 'Não consegui ler a recorrência agora.';
   const k = E.nacional ? 'TODAS' : E.filiais[0]; const r = x.recorrencia[k] || {}, s = (x.resumo || {})[k] || {};
   if (r.naRota == null) return `⭐ *Recorrência e resgates — ${E.nacional ? 'Brasil' : k}*: sem dado hoje. Esse número vinha da TV Executiva, desligada em 25/10/2026 (custo da Cloudflare).`;

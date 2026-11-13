@@ -22,6 +22,9 @@ const ENSAIO = process.argv.includes('--ensaio');
 const SAIDA = process.env.GEROT_SAIDA || 'gerot_saida';
 const MESES_PT = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const CAMPOS = ['Mês', 'Filial', 'Supervisor', 'Vendedor', 'Fornecedor'];
+const CAMPOS_VEND = ['Mês', 'Filial', 'Supervisor', 'Vendedor'];
+const CAMPOS_SUP = ['Mês', 'Filial', 'Supervisor'];
+const CAMPOS_FIL = ['Mês', 'Filial'];
 // calculos (colunas) que interessam ao JOTA; o rotulo exato vem do GEROT e e conferido no log
 const CALC = [/^Faturado líquido/i, /^Faturado bruto/i, /^Devolução \(R\$\)/i, /^Positivação \(filial/i, /^Positivação \+ Carteira/i, /^Meta de positivação/i, /^% Meta positivação/i,
   /^Realizado meta/i, /^Meta \(R\$\)/i, /^% Meta$/i, /^% Meta \(Pos \+ Cart\)/i, /Carteira/i, /^Captação/i, /^Meta clientes/i];
@@ -67,7 +70,7 @@ async function entra(page) {
 }
 
 // marca/desmarca checkboxes do dialogo "Extrair dados" pelo rotulo
-async function ajustaDialogo(page, mes, modo = 'tudo') {
+async function ajustaDialogo(page, mes, modo = 'tudo', campos = CAMPOS) {
   const [ano, mm] = mes.split('-'), nomeMes = MESES_PT[Number(mm) - 1];
   return page.evaluate(({ ano, nomeMes, CAMPOS, CALC, modo }) => {
     const calc = CALC.map((s) => new RegExp(s.src, s.flags));
@@ -92,8 +95,8 @@ async function ajustaDialogo(page, mes, modo = 'tudo') {
     };
     for (const x of caixas) { if (modo === 'ler') break; if (modo === 'mes' && x.tipo !== 'PERI') continue; if (modo === 'resto' && x.tipo === 'PERI') continue; const q = quer(x); if (x.i.checked !== q) x.i.click(); }
     const marc = caixas.filter((x) => x.i.checked).map((x) => x.rot);
-    return { marcados: marc, calculosDisponiveis: caixas.filter((x) => x.tipo === 'CALC').map((x) => x.rot), temMes: marc.includes(nomeMes), temCampos: CAMPOS.every((c) => marc.includes(c)) };
-  }, { ano, nomeMes, CAMPOS, CALC: CALC.map((r) => ({ src: r.source, flags: r.flags })), modo });
+    return { marcados: marc, calculosDisponiveis: caixas.filter((x) => x.tipo === 'CALC').map((x) => x.rot), temMes: marc.includes(nomeMes), temCampos: CAMPOS.every((c) => marc.includes(c)) && caixas.filter((x) => x.tipo === 'CAMP' && x.i.checked).length === CAMPOS.length };
+  }, { ano, nomeMes, CAMPOS: campos, CALC: CALC.map((r) => ({ src: r.source, flags: r.flags })), modo });
 }
 
 const num = (v) => { if (v == null || v === '') return null; if (typeof v === 'number') return v; const s = String(v).replace(/[R$\s%]/g, '').replace(/\./g, '').replace(',', '.'); const n = Number(s); return isFinite(n) ? n : String(v); };
@@ -127,6 +130,89 @@ function linhasDoExcel(arq, mes) {
     out.push(linha);
   }
   return { linhas: out, colunas: H };
+}
+
+function linhasVendedorDoExcel(arq, mes) {
+  const w = XLSX.readFile(arq), sh = w.Sheets[w.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(sh, { header: 1, defval: null });
+  const hi = rows.findIndex((r) => r && r.includes('Filial') && r.some((c) => /Vendedor/i.test(String(c || ''))));
+  if (hi < 0) throw new Error('Excel vendedor sem cabecalho Filial/Vendedor: ' + JSON.stringify(rows[0]));
+  const H = rows[hi].map((c) => String(c || '').trim());
+  const ix = (re) => H.findIndex((h) => re.test(h));
+  const iMes = ix(/^Mês$/), iFil = ix(/^Filial$/), iCs = ix(/^Cód\.? supervisor/i), iSup = ix(/^Supervisor$/i), iCv = ix(/^Cód\.? vendedor/i), iVen = ix(/^Vendedor$/i);
+  const chaves = new Set([iMes, iFil, iCs, iSup, iCv, iVen]);
+  const out = [];
+  for (const r of rows.slice(hi + 1)) {
+    if (!r || !r.some((c) => c != null && c !== '')) continue;
+    const m = iMes >= 0 && r[iMes] ? String(r[iMes]).slice(0, 7) : mes;
+    if (m !== mes) continue;
+    const filial = filialDe(r[iFil]); const rca = String(iCv >= 0 ? r[iCv] ?? '' : '').trim() || String(r[iVen] || '').trim();
+    const venNome = String(iVen >= 0 ? r[iVen] || '' : '').trim();
+    if (!filial || !rca || /^total/i.test(venNome) || /^total/i.test(String(r[iFil] || ''))) continue;
+    const dados = {}; H.forEach((h, k) => { if (!chaves.has(k) && h) dados[h] = num(r[k]); });
+    const linha = { mes: m, filial, rca, cod_sup: iCs >= 0 ? r[iCs] : null, supervisor: iSup >= 0 ? r[iSup] : null, vendedor: venNome || null, dados };
+    linha.hash = crypto.createHash('md5').update(JSON.stringify([linha.cod_sup, linha.supervisor, linha.vendedor, dados])).digest('hex');
+    out.push(linha);
+  }
+  return { linhas: out, colunas: H };
+}
+
+function linhasAgregadoDoExcel(arq, mes, nivel) {
+  const w = XLSX.readFile(arq), sh = w.Sheets[w.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(sh, { header: 1, defval: null });
+  const hi = rows.findIndex((r) => r && r.includes('Filial'));
+  if (hi < 0) throw new Error(`Excel ${nivel} sem cabecalho Filial: ` + JSON.stringify(rows[0]));
+  const H = rows[hi].map((c) => String(c || '').trim());
+  const ix = (re) => H.findIndex((h) => re.test(h));
+  const iMes = ix(/^Mês$/), iFil = ix(/^Filial$/), iCs = ix(/^Cód\.? supervisor/i), iSup = ix(/^Supervisor$/i);
+  const chaves = new Set([iMes, iFil, iCs, iSup]);
+  const out = [];
+  for (const r of rows.slice(hi + 1)) {
+    if (!r || !r.some((c) => c != null && c !== '')) continue;
+    const m = iMes >= 0 && r[iMes] ? String(r[iMes]).slice(0, 7) : mes;
+    if (m !== mes) continue;
+    const filial = filialDe(r[iFil]);
+    if (!filial || /^total/i.test(String(r[iFil] || ''))) continue;
+    const dados = {}; H.forEach((h, k) => { if (!chaves.has(k) && h) dados[h] = num(r[k]); });
+    if (nivel === 'supervisor') {
+      const cod_sup = String(iCs >= 0 ? r[iCs] ?? '' : '').trim() || String(iSup >= 0 ? r[iSup] || '' : '').trim();
+      const sup = String(iSup >= 0 ? r[iSup] || '' : '').trim();
+      if (!cod_sup || /^total/i.test(sup)) continue;
+      const linha = { mes: m, filial, cod_sup, supervisor: sup || null, dados };
+      linha.hash = crypto.createHash('md5').update(JSON.stringify([sup, dados])).digest('hex');
+      out.push(linha);
+    } else {
+      const linha = { mes: m, filial, dados };
+      linha.hash = crypto.createHash('md5').update(JSON.stringify(dados)).digest('hex');
+      out.push(linha);
+    }
+  }
+  return out;
+}
+
+async function baixaExcelNivel(page, mes, alvo, campos, arqNome) {
+  if (!(await page.getByText('Baixar Excel', { exact: true }).first().isVisible().catch(() => false))) {
+    await page.getByText('Extrair dados', { exact: true }).first().click({ force: true });
+    await page.waitForTimeout(2000);
+  }
+  let aj = null;
+  const ok = (x) => x && !x.erro && x.temCampos && (x.marcados || []).filter((m) => MESES_PT.includes(m)).join() === alvo;
+  for (let k = 0; k < 4 && !ok(aj); k++) {
+    await ajustaDialogo(page, mes, 'mes', campos); await page.waitForTimeout(1500);
+    await ajustaDialogo(page, mes, 'resto', campos); await page.waitForTimeout(1500);
+    aj = await ajustaDialogo(page, mes, 'ler', campos);
+  }
+  if (!ok(aj)) return null;
+  let d = null;
+  for (const passo of ['direto', 'previa']) {
+    if (passo === 'previa') { await page.getByText('Gerar prévia', { exact: true }).first().click().catch(() => {}); await page.waitForTimeout(15000); }
+    const dl = page.waitForEvent('download', { timeout: 180000 }).catch(() => null);
+    await page.getByText('Baixar Excel', { exact: true }).first().click();
+    d = await dl; if (d) break;
+  }
+  if (!d) return null;
+  const arq = path.join(SAIDA, arqNome); await d.saveAs(arq);
+  return arq;
 }
 
 async function main() {
@@ -178,6 +264,44 @@ async function main() {
           if (linhas.length) { const lim = await api('POST', '', { vigentes: { mes, chaves: linhas.map((l) => `${l.filial}|${l.rca}|${l.fornecedor}|${l.cod_sup == null ? '' : l.cod_sup}`) } }).catch((e) => ({ erro: String(e.message || e) })); log('limpeza', mes, JSON.stringify(lim).slice(0, 160)); }
         }
         log(`${mes}: ${enviadas} linhas novas/alteradas gravadas no D1${ENSAIO ? ' (ensaio: nada gravado)' : ''}`);
+        // PASSO 2 (13/11/2026): extracoes por VENDEDOR, SUPERVISOR e FILIAL (sem Fornecedor) para positivacao deduplicada oficial
+        try {
+          const arqV = await baixaExcelNivel(page, mes, alvo, CAMPOS_VEND, `gerot_vend_${mes}.xlsx`);
+          if (arqV) {
+            const { linhas: lv } = linhasVendedorDoExcel(arqV, mes);
+            log(`${mes} vendedor: ${lv.length} linhas`);
+            if (lv.length && !ENSAIO) {
+              const { hashes: hv } = await api('GET', `?mes=${mes}&vendedor=1`);
+              const mudouV = lv.filter((l) => hv[`${l.filial}|${l.rca}|${l.cod_sup == null ? '' : l.cod_sup}`] !== l.hash);
+              let envV = 0;
+              for (let i = 0; i < mudouV.length; i += 200) { await api('POST', '', { vendedores: mudouV.slice(i, i + 200) }); envV += Math.min(200, mudouV.length - i); }
+              const limV = await api('POST', '', { vigentes_vend: { mes, chaves: lv.map((l) => `${l.filial}|${l.rca}|${l.cod_sup == null ? '' : l.cod_sup}`) } }).catch((e) => ({ erro: String(e.message || e) }));
+              log(`${mes} vendedor: ${envV} gravadas no D1 · limpeza ${JSON.stringify(limV).slice(0, 120)}`);
+            }
+          }
+          const arqS = await baixaExcelNivel(page, mes, alvo, CAMPOS_SUP, `gerot_sup_${mes}.xlsx`);
+          if (arqS) {
+            const ls = linhasAgregadoDoExcel(arqS, mes, 'supervisor');
+            log(`${mes} supervisor: ${ls.length} linhas`);
+            if (ls.length && !ENSAIO) {
+              const { hashes: hs } = await api('GET', `?mes=${mes}&supervisor=1`);
+              const mudouS = ls.filter((l) => hs[`${l.filial}|${l.cod_sup}`] !== l.hash);
+              for (let i = 0; i < mudouS.length; i += 200) await api('POST', '', { supervisores: mudouS.slice(i, i + 200) });
+              log(`${mes} supervisor: ${mudouS.length} gravadas no D1`);
+            }
+          }
+          const arqF = await baixaExcelNivel(page, mes, alvo, CAMPOS_FIL, `gerot_fil_${mes}.xlsx`);
+          if (arqF) {
+            const lf = linhasAgregadoDoExcel(arqF, mes, 'filial');
+            log(`${mes} filial: ${lf.length} linhas`);
+            if (lf.length && !ENSAIO) {
+              const { hashes: hf } = await api('GET', `?mes=${mes}&filial=1`);
+              const mudouF = lf.filter((l) => hf[l.filial] !== l.hash);
+              if (mudouF.length) await api('POST', '', { filiais: mudouF });
+              log(`${mes} filial: ${mudouF.length} gravadas no D1`);
+            }
+          }
+        } catch (ev) { log(`FALHA agregados ${mes}:`, ev.message); }
         await page.keyboard.press('Escape').catch(() => {});
         await page.locator('button:has-text("×")').first().click({ timeout: 3000 }).catch(() => {});
         await page.waitForTimeout(1500);
@@ -232,5 +356,5 @@ async function main() {
   await browser.close();
   if (falhou) process.exit(1);
 }
-export { linhasDoExcel };
+export { linhasDoExcel, linhasVendedorDoExcel };
 if (/gerot_coletor_online.mjs$/.test(process.argv[1] || '')) main().catch((e) => { console.error(e); process.exit(1); });

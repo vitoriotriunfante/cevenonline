@@ -545,8 +545,9 @@ export async function respClientesVend(B, v, periodo) {
   const comprouMes = (c) => porCli.has(String(c.id_cliente)) || /POSITIVADO|EFETIVADO/i.test(String(c.status || ''));
   const carteira = new Map(); for (const c of v.roteiroMes || []) { const k = String(c.id_cliente); if (!carteira.has(k)) carteira.set(k, c); }
   const nComp = [...carteira.values()].filter(comprouMes).length;
-  // dois numeros, cada um com o que e (27/10/2026): positivacao do CEVEN = clientes com FATURAMENTO; carteira com pedido = inclui pedido ainda nao faturado
-  const cab = `👥 Positivação (CEVEN, faturado): *${v.pos ?? '—'} de ${v.metaPos ?? '—'}* · com pedido no mês: *${nComp} de ${carteira.size}* da carteira`;
+  // dois numeros, cada um com o que e (27/10/2026): positivacao oficial = clientes com FATURAMENTO (GEROT/CEVEN); carteira com pedido = inclui pedido ainda nao faturado
+  const fontePos = v.reforco && v.reforco.financeiro && /GEROT.*positiva/i.test(String(v.reforco.financeiro.fonte || '')) ? 'GEROT' : 'CEVEN';
+  const cab = `👥 Positivação (${fontePos}, faturado): *${v.pos ?? '—'} de ${v.metaPos ?? '—'}* · com pedido no mês: *${nComp} de ${carteira.size}* da carteira`;
   if (periodo === 'mes') {
     const comp = [...carteira.values()].filter(comprouMes).map((c) => ({ c, r: (porCli.get(String(c.id_cliente)) || { v: 0 }).v })).sort((a, b) => b.r - a.r);
     const nao = [...carteira.values()].filter((c) => !comprouMes(c));
@@ -747,7 +748,7 @@ export async function respCarteiraVendedor(B, v) {
   const jaNaCarteira = [...ids].filter((k) => compraram.has(k)).length;
   return [`👥 *Minha carteira — ${vn(v)}* (${v.filial})`,
     ids.size ? `📋 Clientes no seu roteiro do mês: *${ids.size}*` : '📋 Roteiro do mês: sem dado na base',
-    `🎯 Positivação (painel do CEVEN): *${v.pos ?? 'sem dado'}* de ${v.metaPos ?? 'sem dado'} clientes da meta`,
+    `🎯 Positivação (painel do ${v.reforco && v.reforco.financeiro && /GEROT.*positiva/i.test(String(v.reforco.financeiro.fonte || '')) ? 'GEROT' : 'CEVEN'}): *${v.pos ?? 'sem dado'}* de ${v.metaPos ?? 'sem dado'} clientes da meta`,
     ...(ids.size ? [`✅ Do roteiro, já compraram no mês (faturado ou pedido): *${jaNaCarteira}* · faltam *${ids.size - jaNaCarteira}*`] : []),
     '', '👉 Digite *5* no menu para a lista de quem falta.'].join('\n');
 }

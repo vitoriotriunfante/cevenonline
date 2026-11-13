@@ -12,7 +12,7 @@
 | Pedido integrado / bloqueio / nº do Winthor | **Clube** (Relatório de Pedido) | P. Winthor | contagem ✅; lista = passo 1 |
 | Faturado, carteira (a faturar), devolução do mês | **GEROT** | última leitura do CEVEN | ✅ no ar (13/11) |
 | Meta R$ do vendedor/filial | **GEROT** (soma das indústrias) · hierarquia gravada | CEVEN | hierarquia gravada (estável no mês) |
-| **Positivação do mês por vendedor** (e meta de clientes) | **GEROT** (painel do vendedor, extração sem fornecedor) | CEVEN 11/11 | ❌ falta extrair = passo 2 |
+| **Positivação do mês por vendedor** (e meta de clientes) | **GEROT** (painel do vendedor, extração sem fornecedor -> `gerot_vendedor_mes`) | CEVEN 11/11 | 🔧 código pronto (13/11): coletor + `/api/gerot-carga` + `central-snapshot`; entra na próxima coleta/deploy |
 | Indústrias, recorrência | **GEROT** | — | ✅ |
 | Cortes, TMF, mix, cobertura, RFV, devoluções por motivo | **GEROT** (abas) | CEVEN | inventário das abas = passo 3 |
 | Venda/positivação do DIA por indústria | **Clube** (tabela por fornecedor) | GEROT D-1 | gravar = passo 1 |
@@ -25,7 +25,7 @@
 
 **Passos (ordem):**
 1. **Lista de pedidos do Clube** no D1 (nº Clube, nº Winthor, valor, operação, origem, bloqueio, sincronizado) + venda do dia por indústria → "Meus pedidos" e "colocado do dia" sem dupla contagem.
-2. **GEROT por vendedor** (extração sem fornecedor): positivação e meta de clientes, faturado/carteira oficiais do vendedor.
+2. **GEROT por vendedor** (extração sem fornecedor, `gerot_vendedor_mes`): implementado no coletor, `/api/gerot-carga` e `central-snapshot.js` em 13/11; falta rodar a próxima coleta e publicar.
 3. **Inventário das abas do GEROT** (workflow pronto, rodar fora das janelas) → clientes, cortes, devoluções por motivo, cobertura.
 4. **Clube: Roteiro Pedido** (rota do dia cliente a cliente) e **Mix de Produtos** (TAGs).
 5. **Liga sobre Clube + GEROT** (gerador novo, ensaio lado a lado com o atual, nova versão das regras, só com OK do Vitório).

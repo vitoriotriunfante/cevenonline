@@ -9,6 +9,26 @@ import { agrupa, listaNomes, pctTxt, supChave, supNome, supReal } from '../escop
 import { diasUteisMes } from './gestao.js';
 
 // ---------------- RESPOSTAS ----------------
+async function posGerotFiliais(B) {
+  const m = new Map();
+  if (!B || !B.env || !B.env.DB) return m;
+  try {
+    const mes = hojeSP().slice(0, 7);
+    const { results } = await B.env.DB.prepare("SELECT filial, coalesce(json_extract(dados,'$.\"Positivação (filial + CNPJ)\"'), json_extract(dados,'$.\"Positivação (filial)\"')) pos, coalesce(json_extract(dados,'$.\"Meta de positivação\"'), json_extract(dados,'$.\"Meta clientes\"')) meta_pos FROM gerot_filial_mes WHERE mes = ?").bind(mes).all();
+    for (const r of results || []) if (r.pos != null) m.set(r.filial, { pos: Number(r.pos) || 0, metaPos: r.meta_pos != null ? Number(r.meta_pos) || 0 : null });
+  } catch { /* tabela ainda nao populada */ }
+  return m;
+}
+async function posGerotSupervisor(B, filial, sup, supCod) {
+  if (!B || !B.env || !B.env.DB || !filial || !sup) return null;
+  try {
+    const mes = hojeSP().slice(0, 7);
+    const { results } = await B.env.DB.prepare("SELECT cod_sup, supervisor, coalesce(json_extract(dados,'$.\"Positivação (filial + CNPJ)\"'), json_extract(dados,'$.\"Positivação (filial)\"')) pos, coalesce(json_extract(dados,'$.\"Meta de positivação\"'), json_extract(dados,'$.\"Meta clientes\"')) meta_pos FROM gerot_supervisor_mes WHERE mes = ? AND filial = ?").bind(mes, filial).all();
+    const sAlvo = sem(sup);
+    const hit = (results || []).find((r) => (supCod && String(r.cod_sup) === String(supCod)) || (r.supervisor && sem(r.supervisor) === sAlvo));
+    return hit && hit.pos != null ? { pos: Number(hit.pos) || 0, metaPos: hit.meta_pos != null ? Number(hit.meta_pos) || 0 : null } : null;
+  } catch { return null; }
+}
 export async function respResumo(B, E) {
   const s = await B.saude();
   const hora = (s && s.hora_sp) || new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
@@ -40,6 +60,8 @@ export async function respResumo(B, E) {
       }
       F = [...mapaFil.values()];
     }
+    const gFil = await posGerotFiliais(B);
+    for (const x of F) { const g = gFil.get(x.filial); if (g) { x.positivados = g.pos; if (g.metaPos != null) x.meta_pos = g.metaPos; } }
     const t = F.reduce((a, f) => ({ fat: a.fat + (f.faturado || 0), pend: a.pend + (f.pendente || 0), meta: a.meta + (f.meta_fat || 0), pos: a.pos + (f.positivados || 0), mpos: a.mpos + (f.meta_pos || 0), dig: a.dig + (f.digitado_hoje || 0) }), { fat: 0, pend: 0, meta: 0, pos: 0, mpos: 0, dig: 0 });
     if (!t.dig && E.macro) t.dig = E.macro.dig || 0;
     const V = E.vend.filter((v) => v.varejo); const z = V.filter((v) => v.zerado);
@@ -63,7 +85,12 @@ export async function respResumo(B, E) {
   const Vr = V.filter((v) => v.varejo), z = Vr.filter((v) => v.zerado);
   const com = V.filter((v) => v.pct != null).sort((a, b) => (b.pct ?? 0) - (a.pct ?? 0));
   const L = [`📊 *${E.nome} agora* (${hora})`, `💰 Faturado: *${R$(fat)}* de ${R$(meta)} → *${P(fat || 0, meta)}*`, `⏳ Pendente: ${R$(pend)}`];
-  if (!(E.grupo || E.supervisor || E.rca) && f) L.push(`👥 Positivação: ${N(f.positivados)} de ${N(f.meta_pos)} (${P(f.positivados, f.meta_pos)})`); else L.push(`👥 Positivação: ${N(G.pos)} de ${N(G.metaPos)} (${P(G.pos, G.metaPos)})`);
+  if (!(E.grupo || E.supervisor || E.rca) && f) L.push(`👥 Positivação: ${N(f.positivados)} de ${N(f.meta_pos)} (${P(f.positivados, f.meta_pos)})`); else {
+    let posVal = G.pos, metaPosVal = G.metaPos;
+    if (!(E.grupo || E.supervisor || E.rca)) { const g = (await posGerotFiliais(B)).get(fil); if (g) { posVal = g.pos; if (g.metaPos != null) metaPosVal = g.metaPos; } }
+    else if (E.supervisor && !E.rca) { const gs = await posGerotSupervisor(B, fil, E.supervisor, V[0] && V[0].supCod); if (gs) { posVal = gs.pos; if (gs.metaPos != null) metaPosVal = gs.metaPos; } }
+    L.push(`👥 Positivação: ${N(posVal)} de ${N(metaPosVal)} (${P(posVal, metaPosVal)})`);
+  }
   L.push(`📝 Digitado hoje: *${R$((E.grupo || E.supervisor || E.rca) ? G.dig : f ? f.digitado_hoje : E.macro.dig)}* em *${N((E.grupo || E.supervisor || E.rca) ? G.ped : E.macro.pedidos)}* pedidos`,
     /* equipe sem rota de varejo (AS): a linha nao aparece (26/10/2026: '0 de 0') */ ...(Vr.reduce((a, v) => a + v.visP, 0) ? [`🚶 Rota do varejo hoje: ${Vr.reduce((a, v) => a + v.visF, 0)} de ${Vr.reduce((a, v) => a + v.visP, 0)} visitas · sem nenhuma visita: ${Vr.filter((v) => v.semVisita).length}`] : []),
     `🏁 Meta batida no mês (fat.+pend.): ${V.filter((v) => v.meta && v.fat + v.pend >= v.meta).length} de ${V.length} vendedores`, `↩️ Devoluções no mês: ${R$(V.reduce((a, v) => a + v.dev, 0))}`);

@@ -24,6 +24,9 @@ async function tabelas(db) {
     // a chave tem o supervisor (sup = sup_cod; '' para filial e supervisor). A tabela antiga (sem pasta) deixou de ser gravada: a 2a pasta apagava a 1a.
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_recorrencia_pasta (mes TEXT NOT NULL, filial TEXT NOT NULL, nivel TEXT NOT NULL, cod TEXT NOT NULL, sup TEXT NOT NULL DEFAULT "", nome TEXT, objetivo INTEGER, meta INTEGER, positivados INTEGER, faturado REAL, pdvs_afat INTEGER, vlr_afat REAL, pdvs_vend INTEGER, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, nivel, cod, sup))'),
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_recorrencia (mes TEXT NOT NULL, filial TEXT NOT NULL, nivel TEXT NOT NULL, cod TEXT NOT NULL, nome TEXT, sup_cod TEXT, objetivo INTEGER, meta INTEGER, positivados INTEGER, faturado REAL, pdvs_afat INTEGER, vlr_afat REAL, pdvs_vend INTEGER, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, nivel, cod))'),
+    db.prepare('CREATE TABLE IF NOT EXISTS gerot_vendedor_mes (mes TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, cod_sup TEXT NOT NULL DEFAULT "", supervisor TEXT, vendedor TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, rca, cod_sup))'),
+    db.prepare('CREATE TABLE IF NOT EXISTS gerot_supervisor_mes (mes TEXT NOT NULL, filial TEXT NOT NULL, cod_sup TEXT NOT NULL, supervisor TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, cod_sup))'),
+    db.prepare('CREATE TABLE IF NOT EXISTS gerot_filial_mes (mes TEXT NOT NULL, filial TEXT NOT NULL, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial))'),
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_coleta_status (id INTEGER PRIMARY KEY AUTOINCREMENT, mes TEXT, linhas INTEGER, enviadas INTEGER, posicao TEXT, colunas TEXT, em TEXT)')
   ]);
 }
@@ -38,6 +41,18 @@ export async function onRequestGet({ request, env }) {
   }
   const mes = String(u.searchParams.get('mes') || '');
   if (!MES.test(mes)) return r({ erro: 'mes obrigatorio (AAAA-MM)' }, 400);
+  if (u.searchParams.get('vendedor') === '1') {
+    const { results } = await env.DB.prepare('SELECT filial, rca, cod_sup, hash FROM gerot_vendedor_mes WHERE mes = ?').bind(mes).all();
+    return r({ hashes: Object.fromEntries((results || []).map((x) => [`${x.filial}|${x.rca}|${x.cod_sup}`, x.hash])) });
+  }
+  if (u.searchParams.get('supervisor') === '1') {
+    const { results } = await env.DB.prepare('SELECT filial, cod_sup, hash FROM gerot_supervisor_mes WHERE mes = ?').bind(mes).all();
+    return r({ hashes: Object.fromEntries((results || []).map((x) => [`${x.filial}|${x.cod_sup}`, x.hash])) });
+  }
+  if (u.searchParams.get('filial') === '1') {
+    const { results } = await env.DB.prepare('SELECT filial, hash FROM gerot_filial_mes WHERE mes = ?').bind(mes).all();
+    return r({ hashes: Object.fromEntries((results || []).map((x) => [x.filial, x.hash])) });
+  }
   const { results } = await env.DB.prepare('SELECT filial, rca, fornecedor, cod_sup, hash FROM gerot_vendas WHERE mes = ?').bind(mes).all();
   return r({ hashes: Object.fromEntries((results || []).map((x) => [`${x.filial}|${x.rca}|${x.fornecedor}|${x.cod_sup}`, x.hash])) });
 }
@@ -74,6 +89,46 @@ export async function onRequestPost({ request, env }) {
     for (let i = 0; i < sai.length; i += 80) await env.DB.batch(sai.slice(i, i + 80).map((x) => env.DB.prepare('DELETE FROM gerot_vendas WHERE mes = ? AND filial = ? AND rca = ? AND fornecedor = ? AND cod_sup = ?').bind(mes, x.filial, x.rca, x.fornecedor, x.cod_sup == null ? '' : x.cod_sup)));
     return r({ ok: true, mes, apagadas: sai.length, vigentes: quer.size, filiais_limpas: [...limpa], filiais_intactas: [...exFil.keys()].filter((fl) => !limpa.has(fl)) });
   }
+  const V = Array.isArray(b.vendedores) ? b.vendedores : [];
+  if (V.length > 200) return r({ erro: 'no maximo 200 vendedores por chamada' }, 400);
+  const vRuins = V.filter((x) => !MES.test(String(x.mes || '')) || !/^[A-Z]{3}$/.test(String(x.filial || '')) || !String(x.rca || '').trim());
+  if (vRuins.length) return r({ erro: 'vendedor sem mes/filial/rca', exemplo: vRuins[0] }, 400);
+  if (V.length) {
+    await env.DB.batch(V.map((x) => env.DB.prepare(
+      'INSERT INTO gerot_vendedor_mes (mes, filial, rca, cod_sup, supervisor, vendedor, dados, hash, em) VALUES (?,?,?,?,?,?,?,?,?) ' +
+      'ON CONFLICT (mes, filial, rca, cod_sup) DO UPDATE SET supervisor = excluded.supervisor, vendedor = excluded.vendedor, dados = excluded.dados, hash = excluded.hash, em = excluded.em WHERE gerot_vendedor_mes.hash IS NOT excluded.hash'
+    ).bind(String(x.mes), String(x.filial), String(x.rca), x.cod_sup == null ? '' : String(x.cod_sup), x.supervisor || null, x.vendedor || null, JSON.stringify(x.dados || {}), String(x.hash || ''), agora)));
+  }
+  if (b.vigentes_vend && MES.test(String(b.vigentes_vend.mes || '')) && Array.isArray(b.vigentes_vend.chaves)) {
+    const mes = String(b.vigentes_vend.mes), quer = new Set(b.vigentes_vend.chaves.map(String));
+    const { results: ex } = await env.DB.prepare('SELECT filial, rca, cod_sup FROM gerot_vendedor_mes WHERE mes = ?').bind(mes).all();
+    const k = (x) => `${x.filial}|${x.rca}|${x.cod_sup == null ? '' : x.cod_sup}`;
+    const porFil = new Map(); for (const c of quer) { const fl = c.split('|')[0]; porFil.set(fl, (porFil.get(fl) || 0) + 1); }
+    const exFil = new Map(); for (const x of ex || []) exFil.set(x.filial, (exFil.get(x.filial) || 0) + 1);
+    const limpa = new Set([...porFil].filter(([, n]) => n >= 10).map(([fl]) => fl));
+    const sai = (ex || []).filter((x) => limpa.has(x.filial) && !quer.has(k(x)));
+    for (let i = 0; i < sai.length; i += 80) await env.DB.batch(sai.slice(i, i + 80).map((x) => env.DB.prepare('DELETE FROM gerot_vendedor_mes WHERE mes = ? AND filial = ? AND rca = ? AND cod_sup = ?').bind(mes, x.filial, x.rca, x.cod_sup == null ? '' : x.cod_sup)));
+    return r({ ok: true, mes, apagadas_vend: sai.length, vigentes_vend: quer.size, filiais_limpas: [...limpa], filiais_intactas: [...exFil.keys()].filter((fl) => !limpa.has(fl)) });
+  }
+  const SUP = Array.isArray(b.supervisores) ? b.supervisores : [];
+  if (SUP.length > 200) return r({ erro: 'no maximo 200 supervisores por chamada' }, 400);
+  if (SUP.length) {
+    const sRuins = SUP.filter((x) => !MES.test(String(x.mes || '')) || !/^[A-Z]{3}$/.test(String(x.filial || '')) || !String(x.cod_sup || '').trim());
+    if (sRuins.length) return r({ erro: 'supervisor sem mes/filial/cod_sup', exemplo: sRuins[0] }, 400);
+    await env.DB.batch(SUP.map((x) => env.DB.prepare(
+      'INSERT INTO gerot_supervisor_mes (mes, filial, cod_sup, supervisor, dados, hash, em) VALUES (?,?,?,?,?,?,?) ' +
+      'ON CONFLICT (mes, filial, cod_sup) DO UPDATE SET supervisor = excluded.supervisor, dados = excluded.dados, hash = excluded.hash, em = excluded.em WHERE gerot_supervisor_mes.hash IS NOT excluded.hash'
+    ).bind(String(x.mes), String(x.filial), String(x.cod_sup), x.supervisor || null, JSON.stringify(x.dados || {}), String(x.hash || ''), agora)));
+  }
+  const FIL = Array.isArray(b.filiais) ? b.filiais : [];
+  if (FIL.length) {
+    const fRuins = FIL.filter((x) => !MES.test(String(x.mes || '')) || !/^[A-Z]{3}$/.test(String(x.filial || '')));
+    if (fRuins.length) return r({ erro: 'filial sem mes/filial', exemplo: fRuins[0] }, 400);
+    await env.DB.batch(FIL.map((x) => env.DB.prepare(
+      'INSERT INTO gerot_filial_mes (mes, filial, dados, hash, em) VALUES (?,?,?,?,?) ' +
+      'ON CONFLICT (mes, filial) DO UPDATE SET dados = excluded.dados, hash = excluded.hash, em = excluded.em WHERE gerot_filial_mes.hash IS NOT excluded.hash'
+    ).bind(String(x.mes), String(x.filial), JSON.stringify(x.dados || {}), String(x.hash || ''), agora)));
+  }
   const RC = Array.isArray(b.recorrencia) ? b.recorrencia.filter((x) => MES.test(String(x.mes || '')) && /^[A-Z]{3}$/.test(String(x.filial || '')) && /^(filial|supervisor|vendedor)$/.test(String(x.nivel || '')) && String(x.cod || '').trim()) : [];
   for (let i = 0; i < RC.length; i += 100) await env.DB.batch(RC.slice(i, i + 100).map((x) => env.DB.prepare(
     'INSERT INTO gerot_recorrencia_pasta (mes, filial, nivel, cod, nome, sup, objetivo, meta, positivados, faturado, pdvs_afat, vlr_afat, pdvs_vend, hash, em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ' +
@@ -85,5 +140,5 @@ export async function onRequestPost({ request, env }) {
       .bind(String(s.mes), Number(s.linhas) || 0, Number(s.enviadas) || 0, String(s.posicao || ''), JSON.stringify(s.colunas || []).slice(0, 4000), agora).run();
     if (Math.random() < 0.05) await env.DB.prepare("DELETE FROM gerot_coleta_status WHERE em < datetime('now','-30 days')").run();
   }
-  return r({ ok: true, linhas: L.length, recorrencia: RC.length });
+  return r({ ok: true, linhas: L.length, vendedores: V.length, supervisores: SUP.length, filiais: FIL.length, recorrencia: RC.length });
 }
