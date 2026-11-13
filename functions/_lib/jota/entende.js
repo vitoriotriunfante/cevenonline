@@ -723,7 +723,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (/^\W*MEUS CORTES\W*$/.test(t)) return reenvia(`cortes do ${eu}`);
     }
     if (/BRASILEIRAO|\bLIGA\b/.test(t) && /CONTABIL/.test(t)) return respGlossario('LIGA') || null;
-    if (/\bCHAMPIONS?\b|\bLIGA\b|BRASILEIRAO|DIFERENCA.*PONTOS?.*CONCORRENT|PONTOS.*CONCORRENT/.test(t) && !/CLIENTE|CONTABIL|REGRA|COMO FUNCIONA|O QUE E/.test(t)) return respLiga(B, await carregaEscopo(B, esc), null, 'LIGA');
+    if (/\bCHAMPIONS?\b|\bLIGA\b|BRASILEIRAO|DIFERENCA.*PONTOS?.*CONCORRENT|PONTOS.*CONCORRENT/.test(t) && !/CLIENTE|CONTABIL|REGRA|COMO FUNCIONA|O QUE E|\bAS\b|ATACADO/.test(t)) return respLiga(B, await carregaEscopo(B, esc), null, t);
   { const mPed = t.match(/\bPEDIDO\s*(?:N[UOº°.]?|NUMERO)?\s*#?\s*(\d{5,12})\b/);
     if (mPed && B.env && B.env.DB) {
       const Ep = await carregaEscopo(B, esc), fil = (Ep.filiais || []).length ? Ep.filiais : FILIAIS, qs = fil.map(() => '?').join(',');

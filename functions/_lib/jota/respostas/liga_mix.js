@@ -29,6 +29,10 @@ export async function respLiga(B, E, alvo, t = '') {
   const lg = await B.liga(); if (!lg) return 'Não consegui ler a Liga agora.';
   if (alvo) { const lv = (lg.vendedores || []).find((x) => String(x.rca) === alvo.rca && x.filial === alvo.filial); if (lv) { const mv = (lv.pos_brasil_ant || lv.pos_brasil) - lv.pos_brasil; return `🏆 *${titulo(lv.nome)}* (${lv.filial}): ${lv.pos_brasil}º no Brasil (${mv > 0 ? '▲' + mv : mv < 0 ? '▼' + -mv : '='} desde o último jogo) · ${lv.pos_filial}º na filial · ${lv.pts_tabela} pts · ${lv.vitorias}V ${lv.empates}E ${lv.derrotas}D · forma ${(lv.forma || []).slice(-5).join('')}${(lv.forma || []).slice(-5).includes('J') ? ' _(V vitória · E empate · D derrota · J = jogo de hoje em andamento)_' : ''}`; } }
   if (E.nacional) {
+    if (/SUPERVIS/.test(t)) {
+      const supsBr = (lg.supervisores || []).filter((x) => !/^GERENTE/i.test(x.supervisor || '')).slice().sort((a, b) => (b.pts_tabela || 0) - (a.pts_tabela || 0) || (a.pos || 999) - (b.pos || 999));
+      return ['🏆 *Champions Triunfante — Ranking de Supervisores (Brasil)*', ...supsBr.slice(0, 20).map((x, i) => `${i + 1}º ${nome2(x.supervisor)} (${x.filial}) — *${x.pts_tabela} pts*`), ''].join('\n');
+    }
     return ['🏆 *Champions Triunfante — Brasil*', '*Filiais:*', ...(lg.filiais || []).slice().sort((a, b) => a.pos - b.pos).map((f) => `${f.pos}º ${f.sigla} — ${f.pts_tabela} pts (${f.vitorias}V ${f.empates}E ${f.derrotas}D)`),
       /* 'classificacao por vendedor' (Vitorio, 26/10/2026) -> top 20 */ `*Top ${/VENDEDOR/.test(t) ? 20 : 5} vendedores (varejo):*`, ...(lg.vendedores || []).filter((v) => v.canal !== 'AS').sort((a, b) => a.pos_brasil - b.pos_brasil).slice(0, /VENDEDOR/.test(t) ? 20 : 5).map((v) => `${v.pos_brasil}º ${vn(v)} ${v.filial} — ${v.pts_tabela} pts`), ''].join('\n');
   }
