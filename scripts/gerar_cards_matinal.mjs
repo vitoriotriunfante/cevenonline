@@ -160,16 +160,17 @@ async function main() {
     html: buildHtml({ titulo: 'Brasil (11 Filiais)', ...sumBr, colunas: ['Filial', ...cols.slice(1)], linhas: filRows })
   });
 
-  console.log(`Renderizando ${jobs.length} cards PNG em Playwright...`);
+  console.log(`Renderizando ${jobs.length} cards JPEG em Playwright...`);
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 900, height: 1200 }, deviceScaleFactor: 1.25 });
+  const page = await browser.newPage({ viewport: { width: 900, height: 1200 }, deviceScaleFactor: 1 });
   const prontos = [];
   for (const job of jobs) {
     await page.setContent(job.html, { waitUntil: 'load' });
-    const buf = await page.locator('#root').screenshot({ type: 'png' });
+    const buf = await page.locator('#root').screenshot({ type: 'jpeg', quality: 86 });
     prontos.push({ chave: job.chave, filial: job.filial, cod_sup: job.cod_sup, supervisor: job.supervisor, png_b64: buf.toString('base64') });
   }
   await browser.close();
+  console.log(`Maior card: ${Math.round(Math.max(...prontos.map((x) => x.png_b64.length)) / 1024)} KB`);
 
   if (localD1) {
     const fs = await import('fs');

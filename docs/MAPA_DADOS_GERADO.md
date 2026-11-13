@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-13 18:52 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-13 19:02 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (16)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -187,6 +187,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `gerot_historico_supervisores` | `pipeline/gerar_sql_d1.mjs` |
 | `liga_dia_fechado` | `scratch/patch_teste_trava.js` |
 | `liga_fechamento` | `scratch/patch_fecha_2330.js`, `scratch/patch_penalti_motivo.js`, `scratch/patch_teste_trava.js` |
+| `matinal_cards` | `scripts/gerar_cards_matinal.mjs` |
 | `rca_kpis` | `pipeline/2_abertura_diaria.js`, `pipeline/3_sync_horario_intraday.js`, `pipeline/github_actions_runner.js` |
 | `representantes` | `pipeline/1_sync_cadastros_mestre.js`, `scripts/adicionar_novos_setores_tbe.js` |
 | `roteiros_visitas` | `pipeline/2_abertura_diaria.js`, `scripts/sincronizar_filiais_faltantes.js` |

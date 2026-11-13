@@ -44,6 +44,10 @@ export async function onRequestPost({ request, env }) {
     );
   }
   if (!stmts.length) return j({ erro: 'nenhum card valido' }, 400);
+  const dtLim = String(body.data || cards[0].data || '');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dtLim)) {
+    stmts.unshift(env.DB.prepare('DELETE FROM matinal_cards WHERE data < ?').bind(dtLim));
+  }
   await env.DB.batch(stmts);
-  return j({ ok: true, gravados: stmts.length });
+  return j({ ok: true, gravados: stmts.length - (dtLim ? 1 : 0) });
 }
