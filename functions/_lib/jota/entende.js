@@ -9,7 +9,7 @@ import { FILIAIS, FRX, N, R$, SUGESTAO, VAREJO, fraca, hojeSP, nome2, sem, titul
 const x0 = (V) => (V[0] ? V[0].v.rca : '');
 import { PAL, achaPessoa, agrupa, carregaEscopo, pctTxt, supChave, supNome, supReal } from './escopo.js';
 import { confereIA } from './confere_ia.js';
-import { SEM_HISTORICO, respBloqueioComercial, respCarteira, respComparar, respDobradinha, respFaseamentoSemana, respInfoEquipe, respMaiorAtrasoMeta, respMaiorGap, respMetaBatida, respPontosPerdidos, respRankingGerentes, respRankingSupervisores, respRitmo, respTendencia } from './respostas/gestao.js';
+import { SEM_HISTORICO, respBloqueioComercial, respCarteira, respComparar, respDobradinha, respFaseamentoSemana, respInfoEquipe, respMaiorAtrasoMeta, respMaiorGap, respMatinal, respMetaBatida, respPontosPerdidos, respRankingGerentes, respRankingSupervisores, respRitmo, respTendencia } from './respostas/gestao.js';
 import { respBola, respDevMotivos, respDivergencias, respIncentivoOficial, respLigaAs, respSemana } from './respostas/indicadores.js';
 import { respAjuda, respCompromisso, respGlossario, respLances, respLiga, respMix } from './respostas/liga_mix.js';
 import { respKpisPremiacao, respMetasIndustria } from './respostas/metas_industria.js';
@@ -1188,6 +1188,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   }
   // DEVOLUCAO TEM RESPOSTA PROPRIA (26/10/2026: "como esta a devolucao hoje?" caia na operacao do dia e listava o DIGITADO; "o Brasil estava com 3 milhoes de devolucao"
   // virava comparacao de produto). Hoje = devolucao entrada hoje; sem "hoje" = mes. Motivos: a lista de motivos.
+  if (/\b(MATINAL|RESUMO MATINAL|PAINEL MATINAL|MINHA MATINAL)\b/.test(t)) { const r = await respMatinal(B, E); if (r) return r; }
   if (/DEVOL/.test(t)) {
     if (/MOTIVO|POR QUE|PORQUE/.test(t) && !/DEVOLU\w*\s+(DE\s+)?(HOJE|HJ)\b/.test(t)) { const m = await respDevMotivos(B); if (m) { const tot = E.vend.reduce((s, v) => s + (v.dev || 0), 0); return m + `
 _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem só as notas cujo motivo já foi lido; o resto ainda não tem motivo na base._`; } }

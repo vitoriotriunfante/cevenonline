@@ -19,7 +19,7 @@
 //   entender e responder ficam em functions/_lib/jota/ (um arquivo por assunto). Prova de que nada mudou: testes/jota_igualdade.mjs.
 // =========================================================================
 import R from '../../../public/regras.js'; // antiban: pausa humana entre envios
-import { FILIAIS, enviar, sem, so, tabelas, titulo, variantes } from '../../_lib/jota/base.js';
+import { FILIAIS, enviar, enviarImagem, sem, so, tabelas, titulo, variantes } from '../../_lib/jota/base.js';
 import { respondeIA, respostaPronta } from '../../_lib/jota/entende.js';
 import { entendePorIA } from '../../_lib/jota/entende_ia.js';
 import { fichaPorIA, perguntaPadrao } from '../../_lib/jota/motor_ficha.js';
@@ -461,7 +461,12 @@ _🟢 Hoje (Clube da Venda${isNaN(dc) ? '' : ' · ' + dc.toLocaleTimeString('pt-
       // Regra antiban de 03/11 (minimo 18 s, distribuicao humana; 09/11/2026: antes era 8 a 14 s)
       await R.pausaEntreEnvios(22, 3, 18);
     }
-    const ei = await enviar(env, numEnvio, limpaTags(partes[i])); if (!ei.ok) { e = ei; try { await env.DB.prepare('CREATE TABLE IF NOT EXISTS bot_envio_fila (id INTEGER PRIMARY KEY AUTOINCREMENT, celular TEXT, numero TEXT, nome TEXT, texto TEXT, tipo TEXT, tentativas INTEGER DEFAULT 0, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)').run(); await env.DB.prepare('INSERT INTO bot_envio_fila (celular, numero, nome, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, String(numEnvio), c ? c.nome : null, limpaTags(partes[i]), tipo).run(); } catch (x) { /* fica o registro de erro abaixo */ } } }
+    let ei = null;
+    if (i === 0 && B._midia && B._midia.tipo === 'image' && B._midia.url && partes.length === 1) {
+      ei = await enviarImagem(env, numEnvio, B._midia.url, limpaTags(partes[i]));
+    }
+    if (!ei || !ei.ok) ei = await enviar(env, numEnvio, limpaTags(partes[i]));
+    if (!ei.ok) { e = ei; try { await env.DB.prepare('CREATE TABLE IF NOT EXISTS bot_envio_fila (id INTEGER PRIMARY KEY AUTOINCREMENT, celular TEXT, numero TEXT, nome TEXT, texto TEXT, tipo TEXT, tentativas INTEGER DEFAULT 0, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)').run(); await env.DB.prepare('INSERT INTO bot_envio_fila (celular, numero, nome, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, String(numEnvio), c ? c.nome : null, limpaTags(partes[i]), tipo).run(); } catch (x) { /* fica o registro de erro abaixo */ } } }
   resp = partes.join('\n\n');
   if (!e.ok) { try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'falha de envio: ' + String(e.status || '') + ' ' + String(e.erro || JSON.stringify(e.resposta || '')).slice(0, 500)).run(); } catch (x) {} }
   await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, e.ok ? 'out' : 'erro', resp.slice(0, 4000), tipo).run();

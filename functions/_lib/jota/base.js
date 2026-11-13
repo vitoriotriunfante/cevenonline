@@ -116,6 +116,23 @@ export async function enviar(env, numero, texto) {
   }
   return { ok: false, status: r.status, erro: r.erro, resposta: r.resposta };
 }
+export async function enviarImagem(env, numero, media, caption) {
+  if (!env.EVO_URL || !env.EVO_KEY || !media) return { ok: false, erro: 'sem config ou midia' };
+  const s = String(numero || '').trim(), cfg = R.evoCfg(env);
+  if (!s.endsWith('@g.us')) { const q = await cotaEnvio(env, so(s)); if (!q.ok) return { ok: false, status: 429, erro: q.erro, teto: true }; }
+  const d = s.endsWith('@g.us') ? s : so(s);
+  if (!d) return { ok: false, erro: 'numero invalido' };
+  const corpo = { number: d, mediatype: 'image', mimetype: 'image/png', media, caption: String(caption || '').slice(0, 4000) };
+  let r = await R.enviarMidia(cfg, '/message/sendMedia', corpo);
+  if (r.ok) return { ok: true, status: r.status };
+  if (!s.endsWith('@g.us')) {
+    for (const alt of variantes(d).filter((v) => v !== d)) {
+      const rAlt = await R.enviarMidia(cfg, '/message/sendMedia', { ...corpo, number: alt });
+      if (rAlt.ok) return { ok: true, status: rAlt.status };
+    }
+  }
+  return { ok: false, status: r.status, erro: r.erro, resposta: r.resposta };
+}
 export const hojeSP = () => R.hojeSP();
 // dias uteis (seg-sex, SEM feriado nacional: 11/11/2026, parecer do analista - 20/11 nao conta) que faltam no mes, contando hoje
 export function diasUteisRestantes() {

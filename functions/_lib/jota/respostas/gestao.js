@@ -253,3 +253,93 @@ export async function respFaseamentoSemana(B, E, t) {
     '_Nota: no AS, a regra oficial de faseamento é 60% da meta até o dia 20; aqui mostramos a referência semanal linear (25%/50%/75%/100%)._'
   ].join('\n');
 }
+
+export async function respMatinal(B, E) {
+  if (!B || !B.env || !B.env.DB) return null;
+  const hoje = hojeSP(), mes = hoje.slice(0, 7), { tot, pass } = diasUteisMes();
+  const dec = Math.min(tot, pass + 1), falt = Math.max(1, tot - dec);
+  const fil = (E.filiais || []).length ? E.filiais : ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
+  const qs = fil.map(() => '?').join(',');
+  const [stGerot, vendRes, rotaRes, pedRes, prospRes] = await Promise.all([
+    B.env.DB.prepare('SELECT posicao, em FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null),
+    B.env.DB.prepare(`SELECT filial, rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...fil).all().catch(() => ({ results: [] })),
+    B.env.DB.prepare(`SELECT filial, rca, json FROM roteiro_dia WHERE data = ? AND filial IN (${qs})`).bind(hoje, ...fil).all().catch(() => ({ results: [] })),
+    B.env.DB.prepare(`SELECT filial, rca, COUNT(*) qtd, SUM(valor) vlr FROM pedido_status WHERE filial IN (${qs}) AND data_pedido >= date('now', '-3 hours', '-7 days') AND status = 'BLOQUEADO' GROUP BY filial, rca`).bind(...fil).all().catch(() => ({ results: [] })),
+    B.env.DB.prepare(`SELECT filial, rca, COUNT(*) qtd FROM prospects_mapa WHERE filial IN (${qs}) GROUP BY filial, rca`).bind(...fil).all().catch(() => ({ results: [] }))
+  ]);
+  const rotaMap = new Map();
+  for (const r of rotaRes.results || []) {
+    let n = 0; try { const p = JSON.parse(r.json || '[]'); n = Array.isArray(p) ? p.length : (Array.isArray(p.clientes) ? p.clientes.length : 0); } catch {}
+    rotaMap.set(`${r.filial}|${r.rca}`, n);
+  }
+  const pedMap = new Map();
+  for (const p of pedRes.results || []) pedMap.set(`${p.filial}|${p.rca}`, { qtd: Number(p.qtd) || 0, vlr: Number(p.vlr) || 0 });
+  const prospMap = new Map();
+  for (const pr of prospRes.results || []) prospMap.set(`${pr.filial}|${pr.rca}`, Number(pr.qtd) || 0);
+
+  let rows = (vendRes.results || []).map((v) => {
+    let d = {}; try { d = JSON.parse(v.dados || '{}'); } catch {}
+    const meta = Number(d['Meta (R$)']) || 0, fat = Number(d['Faturado líquido (R$)']) || 0, pend = Number(d['Carteira pendente (R$)']) || 0;
+    const pos = Number(d['Positivação (filial + CNPJ)']) || 0, metaPos = Number(d['Meta de positivação'] ?? d['Meta clientes']) || 0;
+    const vend = fat + pend, tend = dec ? (vend / dec) * tot : vend, tendPct = meta > 0 ? (tend / meta) * 100 : 0;
+    const k = `${v.filial}|${v.rca}`, ped = pedMap.get(k) || { qtd: 0, vlr: 0 };
+    return {
+      filial: v.filial, rca: v.rca, cod_sup: v.cod_sup, sup: v.supervisor || '', nome: v.vendedor || '',
+      meta, vend, pct: meta > 0 ? (vend / meta) * 100 : 0, tend, tendPct,
+      precisaDia: Math.max(0, meta - vend) / falt,
+      pos, metaPos, rota: rotaMap.get(k) || 0, prospects: prospMap.get(k) || 0,
+      bloqQtd: ped.qtd, bloqVlr: ped.vlr
+    };
+  }).filter((x) => x.meta > 0 || x.vend > 0);
+  if (E.rca) rows = rows.filter((x) => String(x.rca) === String(E.rca));
+  else if (E.supervisor) {
+    const sAlvo = sem(E.supervisor);
+    rows = rows.filter((x) => sem(x.sup).includes(sAlvo) || sAlvo.includes(sem(x.sup)));
+  }
+  if (!rows.length) return `☀️ *Matinal — ${E.nome}*: sem dados no GEROT para este escopo agora.`;
+  rows.sort((a, b) => a.tendPct - b.tendPct || b.meta - a.meta);
+
+  const totMeta = rows.reduce((a, x) => a + x.meta, 0), totVend = rows.reduce((a, x) => a + x.vend, 0);
+  const totTend = rows.reduce((a, x) => a + x.tend, 0), tendGeral = totMeta ? (totTend / totMeta) * 100 : 0;
+  const totPos = rows.reduce((a, x) => a + x.pos, 0), totMetaPos = rows.reduce((a, x) => a + x.metaPos, 0);
+  const totRota = rows.reduce((a, x) => a + x.rota, 0), totProsp = rows.reduce((a, x) => a + x.prospects, 0);
+  const totBloqQtd = rows.reduce((a, x) => a + x.bloqQtd, 0), totBloqVlr = rows.reduce((a, x) => a + x.bloqVlr, 0);
+
+  const topChart = rows.slice(0, 14);
+  if (topChart.length > 1) {
+    const chartCfg = {
+      type: 'horizontalBar',
+      data: {
+        labels: topChart.map((x) => `${x.rca} ${titulo(x.nome).split(' ').slice(0, 2).join(' ')}`.slice(0, 22)),
+        datasets: [{
+          label: '% Tendência da Meta',
+          data: topChart.map((x) => Number(x.tendPct.toFixed(1))),
+          backgroundColor: topChart.map((x) => x.tendPct >= 95 ? '#22c55e' : x.tendPct >= 75 ? '#f59e0b' : '#ef4444')
+        }]
+      },
+      options: {
+        legend: { display: false },
+        title: { display: true, text: `Matinal ${E.nome} (${dec}/${tot} du) - % Tendencia`, fontColor: '#e2e8f0', fontSize: 15 },
+        scales: {
+          xAxes: [{ ticks: { beginAtZero: true, fontColor: '#cbd5e1' }, gridLines: { color: '#24324d' } }],
+          yAxes: [{ ticks: { fontColor: '#e2e8f0', fontSize: 12 }, gridLines: { display: false } }]
+        },
+        plugins: { datalabels: { display: true, anchor: 'end', align: 'right', color: '#e2e8f0', formatter: (v) => v + '%' } }
+      }
+    };
+    B._midia = { tipo: 'image', url: `https://quickchart.io/chart?w=900&h=${Math.max(360, topChart.length * 36 + 110)}&bkg=%230b1220&c=${encodeURIComponent(JSON.stringify(chartCfg))}` };
+  }
+
+  const posGerot = stGerot && stGerot.posicao ? ` · GEROT ${stGerot.posicao}` : '';
+  return [
+    `☀️ *Matinal — ${E.nome}* (${dec}/${tot} du · faltam ${falt}${posGerot})`,
+    `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*)`,
+    `📈 Tendência: *${tendGeral.toFixed(1).replace('.', ',')}%* (*${R$(totTend)}*)`,
+    `👥 Positivação: *${N(totPos)}*${totMetaPos ? ' / ' + N(totMetaPos) + ' (' + P(totPos, totMetaPos) + ')' : ''}`,
+    `🗺️ Rota hoje: *${N(totRota)}* PDVs · *${N(totProsp)}* prospects · 🚫 Bloq.: *${N(totBloqQtd)}* (${R$(totBloqVlr)})`,
+    '',
+    `🎯 *Prioridade (pior tendência primeiro):*`,
+    ...rows.slice(0, 10).map((x, i) => `${i + 1}. *${x.rca} - ${titulo(x.nome)}*: tend. *${x.tendPct.toFixed(0)}%* (${P(x.vend, x.meta)}) · ${R$(x.precisaDia)}/d · rota ${x.rota}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`),
+    ...(rows.length > 10 ? [`_… e mais ${rows.length - 10} vendedor(es) na equipe._`] : [])
+  ].join('\n');
+}
