@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-11-13T18:50:45.089565Z",
+  "gerado_em": "2026-11-13T19:19:12.111370Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -29,7 +29,7 @@
   ],
   "inicio_oficial": "2026-10-13",
   "pre_temporada": false,
-  "total_lances_auditados": 50902,
+  "total_lances_auditados": 50903,
   "filiais": [
     {
       "sigla": "TSJ",
@@ -207,9 +207,9 @@
       "vitorias": 0,
       "empates": 22,
       "derrotas": 0,
-      "gp": 5021,
+      "gp": 5022,
       "gc": 3994,
-      "sg": 1027,
+      "sg": 1028,
       "aprov": 33.3,
       "super_pedidos": 26,
       "inativos_resgatados": 136,
@@ -721,9 +721,9 @@
       "vitorias": 0,
       "empates": 22,
       "derrotas": 0,
-      "gp": 5021,
+      "gp": 5022,
       "gc": 3994,
-      "sg": 1027,
+      "sg": 1028,
       "aprov": 33.3,
       "forma": [
         "E",
@@ -6395,9 +6395,9 @@
       "vitorias": 2,
       "empates": 8,
       "derrotas": 12,
-      "gp": 491,
+      "gp": 492,
       "gc": 10,
-      "sg": 481,
+      "sg": 482,
       "aprov": 21.2,
       "forma": [
         "D",
@@ -19085,6 +19085,58 @@
       "pos_filial_ant": 4
     },
     {
+      "rca": "309",
+      "nome": "ANDERSON BARBOSA MORAES",
+      "filial": "TBE",
+      "supervisor": "ALEX SANDRO SOARES ELIAS",
+      "gerente": "Diego",
+      "canal": "AS",
+      "jogos": 23,
+      "vitorias": 7,
+      "empates": 4,
+      "derrotas": 12,
+      "pts_tabela": 25,
+      "aprov": 36.2,
+      "gp": 148,
+      "gc": 10,
+      "sg": 138,
+      "super_pedidos": 7,
+      "inativos_resgatados": 0,
+      "forma": [
+        "E",
+        "D",
+        "D",
+        "V",
+        "D",
+        "D",
+        "V",
+        "D",
+        "D",
+        "E",
+        "V",
+        "V",
+        "V",
+        "V",
+        "D",
+        "D",
+        "D",
+        "D",
+        "E",
+        "V",
+        "D",
+        "D",
+        "E"
+      ],
+      "streak": 4,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 25,
+      "pos_filial": 2,
+      "pos_brasil_ant": 26,
+      "pos_filial_ant": 2
+    },
+    {
       "rca": "381",
       "nome": "VINICIUS AUGUSTO CONIGLIA",
       "filial": "TCA",
@@ -19339,62 +19391,10 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 25,
+      "pos_brasil": 26,
       "pos_filial": 1,
       "pos_brasil_ant": 25,
       "pos_filial_ant": 1
-    },
-    {
-      "rca": "309",
-      "nome": "ANDERSON BARBOSA MORAES",
-      "filial": "TBE",
-      "supervisor": "ALEX SANDRO SOARES ELIAS",
-      "gerente": "Diego",
-      "canal": "AS",
-      "jogos": 22,
-      "vitorias": 7,
-      "empates": 3,
-      "derrotas": 12,
-      "pts_tabela": 24,
-      "aprov": 36.4,
-      "gp": 147,
-      "gc": 10,
-      "sg": 137,
-      "super_pedidos": 7,
-      "inativos_resgatados": 0,
-      "forma": [
-        "E",
-        "D",
-        "D",
-        "V",
-        "D",
-        "D",
-        "V",
-        "D",
-        "D",
-        "E",
-        "V",
-        "V",
-        "V",
-        "V",
-        "D",
-        "D",
-        "D",
-        "D",
-        "E",
-        "V",
-        "D",
-        "D",
-        "J"
-      ],
-      "streak": 4,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 26,
-      "pos_filial": 2,
-      "pos_brasil_ant": 26,
-      "pos_filial_ant": 2
     },
     {
       "rca": "157",
@@ -40321,6 +40321,140 @@
         "pos_filial_ant": 7
       },
       {
+        "rca": "309",
+        "nome": "ANDERSON BARBOSA MORAES",
+        "filial": "TBE",
+        "supervisor": "ALEX SANDRO SOARES ELIAS",
+        "gerente": "Diego",
+        "meta_mes": 1343644.91,
+        "pct_hoje": 4.3,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-11-07",
+            "status": "nao_batida",
+            "pct": 2,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-11-14",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-11-20",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 30,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-11-30",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "D",
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 17,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 17,
+            "jogada": true,
+            "resultado": "V",
+            "pts_tabela": 3
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 2,
+        "vitorias": 1,
+        "empates": 0,
+        "derrotas": 1,
+        "pts_tabela": 3,
+        "aprov": 50.0,
+        "forma": [
+          "D",
+          "V"
+        ],
+        "pontos": 17,
+        "pts_lances": 17,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 42,
+        "pos_filial": 3,
+        "pos_brasil_ant": 44,
+        "pos_filial_ant": 4
+      },
+      {
         "rca": "55",
         "nome": "FABIO JULIO NUNES",
         "filial": "TPH",
@@ -40449,7 +40583,7 @@
         "pts_lances": 6,
         "pts_faseamento": 10,
         "pts_bonus": 0,
-        "pos_brasil": 42,
+        "pos_brasil": 43,
         "pos_filial": 8,
         "pos_brasil_ant": 42,
         "pos_filial_ant": 8
@@ -40583,144 +40717,10 @@
         "pts_lances": 16,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 43,
-        "pos_filial": 3,
-        "pos_brasil_ant": 43,
-        "pos_filial_ant": 3
-      },
-      {
-        "rca": "309",
-        "nome": "ANDERSON BARBOSA MORAES",
-        "filial": "TBE",
-        "supervisor": "ALEX SANDRO SOARES ELIAS",
-        "gerente": "Diego",
-        "meta_mes": 1343644.91,
-        "pct_hoje": 4.3,
-        "fases": [
-          {
-            "n": 1,
-            "ate": 7,
-            "meta": 20,
-            "pontos": 10,
-            "data": "2026-11-07",
-            "status": "nao_batida",
-            "pct": 2,
-            "ganhou": 0
-          },
-          {
-            "n": 2,
-            "ate": 14,
-            "meta": 40,
-            "pontos": 20,
-            "data": "2026-11-14",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 3,
-            "ate": 20,
-            "meta": 60,
-            "pontos": 30,
-            "data": "2026-11-20",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          },
-          {
-            "n": 4,
-            "ate": 30,
-            "meta": 110,
-            "pontos": 40,
-            "fimDoMes": true,
-            "data": "2026-11-30",
-            "status": "futuro",
-            "pct": null,
-            "ganhou": 0
-          }
-        ],
-        "bonus": [
-          {
-            "id": "quinzena",
-            "ate": 15,
-            "meta": 100,
-            "pontos": 50,
-            "nome": "Meta batida até o dia 15",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          },
-          {
-            "id": "dia25",
-            "ate": 25,
-            "meta": 100,
-            "pontos": 25,
-            "nome": "Meta batida até o dia 25",
-            "status": "em_andamento",
-            "quando": null,
-            "ganhou": 0
-          }
-        ],
-        "semanas": [
-          {
-            "n": 1,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": true,
-            "resultado": "D",
-            "pts_tabela": 0
-          },
-          {
-            "n": 2,
-            "pts_lances": 16,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 16,
-            "jogada": true,
-            "resultado": "V",
-            "pts_tabela": 3
-          },
-          {
-            "n": 3,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          },
-          {
-            "n": 4,
-            "pts_lances": 0,
-            "pts_faseamento": 0,
-            "pts_bonus": 0,
-            "score": 0,
-            "jogada": false,
-            "resultado": null,
-            "pts_tabela": 0
-          }
-        ],
-        "jogos": 2,
-        "vitorias": 1,
-        "empates": 0,
-        "derrotas": 1,
-        "pts_tabela": 3,
-        "aprov": 50.0,
-        "forma": [
-          "D",
-          "V"
-        ],
-        "pontos": 16,
-        "pts_lances": 16,
-        "pts_faseamento": 0,
-        "pts_bonus": 0,
         "pos_brasil": 44,
         "pos_filial": 4,
-        "pos_brasil_ant": 44,
-        "pos_filial_ant": 4
+        "pos_brasil_ant": 43,
+        "pos_filial_ant": 3
       },
       {
         "rca": "370",
@@ -54398,7 +54398,7 @@
           }
         ],
         "aprov": 16.7,
-        "pts_lances_equipe": 40,
+        "pts_lances_equipe": 41,
         "pos": 22,
         "pos_ant": 22
       },
