@@ -56,9 +56,22 @@ export async function onRequestGet({ env, request }) {
         // da ultima leitura do mes — sao a carteira, as TAGs e as visitas acumuladas ate ontem (a parte de HOJE da produtividade nunca e reaproveitada).
         const { results: ant } = await env.DB.prepare("SELECT v.rca_codigo, v.dashboard_json, v.dash_em, v.roteiro_mes_json, v.produtividade_json, v.prod_em, v.updated_at, v.data_ref FROM varredura_central_rca v WHERE v.filial_sigla = ? AND v.data_ref = (SELECT max(x.data_ref) FROM varredura_central_rca x WHERE x.filial_sigla = v.filial_sigla AND x.rca_codigo = v.rca_codigo AND x.data_ref < ? AND x.data_ref >= ? AND x.dashboard_json IS NOT NULL)").bind(filial, dia, mes + '-01').all();
         const A = new Map((ant || []).map((x) => [String(x.rca_codigo), x]));
+        // A MAIS RECENTE DAS DUAS (13/11/2026, Vitorio: "o melhor e mais atualizado possivel... conecta no GEROT"): com o CEVEN fora desde 11/11 17:34, a ultima leitura dele
+        // ficou 2 dias velha e o GEROT carrega a cada ~2 h. Faturado, a faturar (carteira) e devolucao do vendedor vem da fonte MAIS RECENTE; a meta e a positivacao
+        // continuam as do CEVEN (o GEROT nao traz a meta de clientes por vendedor). Conferido em 11/11: faturado igual em 327 vendedores; fat. + carteira fecha o total.
+        let G = new Map(), gEm = null;
+        try {
+          const st = await env.DB.prepare("SELECT max(em) em FROM gerot_coleta_status WHERE mes = ? AND posicao LIKE ?").bind(mes, '%' + dia.split('-').reverse().join('/') + '%').first();
+          gEm = st && st.em;
+          if (gEm) { const { results: gv } = await env.DB.prepare("SELECT rca, sum(coalesce(json_extract(dados,'$.\"Faturado líquido (R$)\"'),0)) fat, sum(coalesce(json_extract(dados,'$.\"Carteira pendente (R$)\"'),0)) cart, sum(coalesce(json_extract(dados,'$.\"Devolução (R$)\"'),0)) dev FROM gerot_vendas WHERE mes = ? AND filial = ? GROUP BY rca").bind(mes, filial).all(); for (const g of gv || []) G.set(String(g.rca), g); }
+        } catch { G = new Map(); }
         for (const [rca, r] of faltam) {
           const a = A.get(rca), ref = {};
           if (!r.dashboard && a) { const da = parse(a.dashboard_json); if (da) { r.dashboard_reserva = da; ref.dashboard = { fonte: 'CEVEN', em: a.dash_em || a.updated_at }; } }
+          if (!r.dashboard && gEm && G.has(rca)) {
+            const emC = ref.dashboard ? Date.parse(String(ref.dashboard.em).replace(' ', 'T') + (/Z$/.test(String(ref.dashboard.em)) ? '' : 'Z')) : 0;
+            if (Date.parse(gEm) > emC) { const g = G.get(rca); const base = r.dashboard_reserva || {}; r.dashboard_reserva = { ...base, financeiro: { ...(base.financeiro || {}), faturado: Number(g.fat) || 0, pendente: Number(g.cart) || 0, devolucao: Number(g.dev) || 0 } }; ref.dashboard = { fonte: 'GEROT (faturado, carteira e devolução) + CEVEN (meta e positivação)', em: gEm }; }
+          }
           if (!Array.isArray(r.roteiro_mes) && a) { const rm = parse(a.roteiro_mes_json); if (Array.isArray(rm)) { r.roteiro_mes = rm; ref.roteiro_mes = { fonte: 'CEVEN roteiro do mes', em: a.updated_at }; } }
           if (!r.produtividade && a) { const pa = parse(a.produtividade_json); if (pa && pa.mes) { r.produtividade_mes_reserva = pa.mes; ref.produtividade_mes = { fonte: 'CEVEN', em: a.prod_em || a.updated_at, ate: a.data_ref }; } }
           if (!Array.isArray(r.roteiro) && Array.isArray(r.roteiro_mes)) { r.roteiro_planejado = r.roteiro_mes.filter((c) => c && String(c.data_visita || '').slice(0, 10) === dia); ref.roteiro = { fonte: 'CEVEN roteiro do mes (planejado, sem status de hoje)' }; }

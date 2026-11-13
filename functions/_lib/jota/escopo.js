@@ -25,7 +25,7 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
   if (B.env && B.env.DB) { try { B._pedLido = B._pedLido || {}; if (!B._pedLido[filial]) B._pedLido[filial] = B.env.DB.prepare('SELECT rca, em, vazio_em FROM winthor_fila WHERE filial = ?').bind(filial).all(); for (const x of ((await B._pedLido[filial]).results || [])) if (!x.vazio_em) pedLido.set(String(x.rca), x.em); /* resposta vazia suspeita nao conta como leitura */ } catch (e) { /* sem fila */ } }
   for (const [rca, r] of Object.entries((snap && snap.rcas) || {})) {
     const e = eq.get(rca);
-    if (!r.dashboard && r.dashboard_reserva && r.reserva && r.reserva.dashboard) { const em = String(r.reserva.dashboard.em || ''); if (!B._reserva || em < B._reserva) B._reserva = em; }   // etiqueta unica no bot.js
+    if (!r.dashboard && r.dashboard_reserva && r.reserva && r.reserva.dashboard) { const em = String(r.reserva.dashboard.em || ''); if (!B._reserva || em < B._reserva) B._reserva = em; (B._reservaFontes = B._reservaFontes || new Set()).add(/^GEROT/.test(String(r.reserva.dashboard.fonte || '')) ? 'GEROT' : 'CEVEN'); }   // etiqueta unica no bot.js
     /* 12/11/2026: sem leitura de hoje, a ultima leitura real do mes (dashboard_reserva, com etiqueta em v.reforco) */ const d = r.dashboard || r.dashboard_reserva || {}, fi = d.financeiro || {}, po = d.positivacao || {}, pm = (r.produtividade && r.produtividade.mes) || r.produtividade_mes_reserva || {};
     const pd0 = (r.produtividade && r.produtividade.dia) || {}, ph = pedHoje.get(rca);
     // CLUBE (12/11/2026): dia vindo do Clube da Venda = DIGITADO de hoje na origem; o Winthor fica como conferencia (_dig_ped), nunca o maior dos dois
