@@ -177,10 +177,10 @@ export function respSupervisor(E, s) {
     '', V.some((v) => v.zerado) ? SUGESTAO + `ligar agora para ${listaNomes(V.filter((v) => v.zerado), 3)} (rota sem pedido hoje).` : SUGESTAO + 'equipe com pedido hoje; foco em mix nos próximos clientes.'].join('\n');
 }
 export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mais": so as listas completas */
-  const dn = diasUteisRestantes(); const falta = Math.max(0, v.meta - v.fat - (v.pend || 0)), faltaPos = v.metaPos != null && v.pos != null ? Math.max(0, v.metaPos - v.pos) : null;
+  const dn = diasUteisRestantes(); const falta = Math.max(0, v.meta - v.fat - (v.pend || 0)), metaPosR = v.metaPos != null ? Math.round(v.metaPos) : null, faltaPos = metaPosR != null && v.pos != null ? Math.max(0, metaPosR - Math.round(v.pos)) : null;
   const L = [`🧑‍💼 *${v.rca} - ${titulo(v.nome)}* — ${v.filial} · sup. ${sn(v.supervisor, v.supCod)} · ${v.canal || 'sem canal'}`,
     `💰 Faturado: *${R$(v.fat)}* + pendente ${R$(v.pend)} de ${R$(v.meta)} → *${pctTxt(v.meta ? (v.fat + (v.pend || 0)) / v.meta * 100 : null)}* da meta (igual ao CEVEN)`, `🎯 Falta: ${R$(falta)}` + (falta && dn ? ` · ${R$(falta / dn)} por dia útil (${dn} dias)` : ''),
-    `👥 Positivação: ${v.pos ?? 'sem dado'} de ${v.metaPos ?? 'sem dado'} (${P(v.pos, v.metaPos)})` + (faltaPos ? ` · faltam ${faltaPos} clientes` : ''),
+    `👥 Positivação: ${v.pos != null ? N(Math.round(v.pos)) : 'sem dado'} de ${metaPosR != null ? N(metaPosR) : 'sem dado'} (${P(v.pos, metaPosR)})` + (faltaPos ? ` · faltam ${N(faltaPos)} clientes` : ''),
     `📝 Hoje: ${R$(v.dig)} em ${v.ped} pedido(s)` + ` · ticket ${v.ped ? R$(v.dig / v.ped) : 'sem pedido hoje'}` + (v.visP ? ` · visitas ${v.visF} de ${v.visP} · com venda ${v.comVenda}` : ''), `↩️ Devolução no mês: ${R$(v.dev)}`];
   if (v.visPlanMes) L.push(`📅 Rota do mês: ${v.visRealMes} de ${v.visPlanMes} visitas (${P(v.visRealMes, v.visPlanMes)})`);
   const lg = await B.liga(); const lv = lg && (lg.vendedores || []).find((x) => String(x.rca) === v.rca && x.filial === v.filial);
