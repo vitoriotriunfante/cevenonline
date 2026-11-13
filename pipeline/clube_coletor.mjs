@@ -138,4 +138,17 @@ if (process.argv.includes('--d1')) {
   // ate 3 tentativas (12/11/2026: a 1a gravacao foi recusada com o D1 ocupado; a 2a passou)
   let r; for (let t = 1; t <= 3; t++) { r = WR ? spawnSync(process.execPath, [WR, 'd1', 'execute', 'ceven_noc_d1', '--remote', '--file', arqSql, '--yes'], { encoding: 'utf8', maxBuffer: 1 << 26, env: { ...process.env, NO_COLOR: '1' } }) : spawnSync('npx', ['wrangler', 'd1', 'execute', 'ceven_noc_d1', '--remote', '--file', arqSql, '--yes'], { encoding: 'utf8', shell: true }); if (r.status === 0) break; log('D1 tentativa', t, 'falhou; nova em 20 s'); await new Promise((ok) => setTimeout(ok, 20000)); }
   log('D1', r.status === 0 ? 'gravado' : 'FALHOU', (r.stdout || '').match(/rows_written[^,]*|Executed[^\n]*/g)?.slice(-2).join(' ') || (r.stderr || '').slice(0, 300));
+  // Fecha automaticamente o dia anterior na 1a rodada da manha (caso o PC tenha dormido antes da meia-noite)
+  if (r.status === 0 && !process.argv.includes('--sem-ontem') && !(process.argv[2] && /^\d{8}$/.test(process.argv[2]))) {
+    const dOnt = new Date(Date.now() - 3 * 3600e3 - 86400e3);
+    if (dOnt.getUTCDay() !== 0) {
+      const ont = dOnt.toISOString().slice(0, 10).replace(/-/g, '');
+      const marca = path.join(os.tmpdir(), `clube_fechou_${ont}.ok`);
+      if (!fs.existsSync(marca)) {
+        log('fechando dia anterior:', ont);
+        const ro = spawnSync(process.execPath, [process.argv[1], ont, '--d1', '--sem-ontem', '--saida=' + path.join(os.tmpdir(), `clube_${ont}.json`)], { encoding: 'utf8', stdio: 'inherit' });
+        if (ro.status === 0) fs.writeFileSync(marca, new Date().toISOString());
+      }
+    }
+  }
 }

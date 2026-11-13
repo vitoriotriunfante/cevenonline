@@ -726,12 +726,8 @@ async function vigiaWhatsApp(env) {
   const motivo = (env_ >= 40 && env_ > 1.6 * Math.max(1, rec)) ? `enviadas ${env_} x recebidas ${rec} na ultima hora (mais de 1,6x)` : erros >= 10 ? `${erros} erros de envio em 30 min` : null;
   await env.DB.prepare("INSERT INTO coleta_estado (chave, valor, motivo, atualizado_em) VALUES ('wa_equilibrio', ?, ?, datetime('now')) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor, motivo = excluded.motivo, atualizado_em = excluded.atualizado_em").bind(JSON.stringify({ recebidas: rec, enviadas: env_, erros }), motivo || 'ok').run().catch(() => {});
   if (!motivo) return { recebidas: rec, enviadas: env_, erros };
-  const atual = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'jota_momentos'").first().catch(() => null);
-  if (!(atual && /^off$/i.test(String(atual.valor || '')))) {
-    await env.DB.batch([env.DB.prepare("INSERT INTO config_flags (chave, valor) VALUES ('jota_momentos', 'off') ON CONFLICT (chave) DO UPDATE SET valor = 'off'"),
-      env.DB.prepare("INSERT INTO config_flags (chave, valor) VALUES ('jota_momentos_motivo', ?) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor").bind(new Date().toISOString() + ' vigia: ' + motivo)]);
-  }
-  return { recebidas: rec, enviadas: env_, erros, pausou: motivo };
+  // 13/11/2026: os 3 Momentos sao apenas RESPOSTAS a quem cumprimenta o Jota (nao sao envio proativo); manter o registro em wa_equilibrio sem desligar jota_momentos.
+  return { recebidas: rec, enviadas: env_, erros, alerta: motivo };
 }
 async function corrigeDatasPorNumero(env, limite = 25, prazo = Infinity) {
   if (Date.now() < banRcaAte) return { pulado: 'cota' };

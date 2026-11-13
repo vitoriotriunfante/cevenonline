@@ -6,6 +6,7 @@
 import R from '../../../public/regras.js'; // regras unicas (public/regras.js)
 import { N, hojeSP, sem, so, titulo, variantes } from './base.js';
 import { diasUteisMes } from './respostas/gestao.js';
+import { posGerotFiliais } from './respostas/resumo.js';
 
 // ---------- PERSONA (MAIS_MIX/JOTA/PERSONA Claude Online.md; Vitorio 25/10/2026: "ta muito direto... quero uma persona... figurinhas... precisa ser mais HUMANO") ----------
 export const FIG = (n) => `https://ceven-cftv-matrix.pages.dev/jota/figurinhas/${n}.webp`;
@@ -51,10 +52,25 @@ export const varia = (lista, chave) => { let h = 0; const k = String(chave || ''
 // manchete pessoal: o numero que importa para QUEM pergunta (filial, grupo, equipe ou Brasil) + posicao na Liga
 export async function manchete(B, c) {
   try {
-    const s = await B.saude(); const F = (s && s.filiais) || [];
     let pct = null, nome = '', liga = '';
-    if (c.papel === 'diretoria' || c.papel === 'ceo' || !c.filial) { const t = F.reduce((a, f) => ({ fat: a.fat + (f.faturado || 0), meta: a.meta + (f.meta_fat || 0) }), { fat: 0, meta: 0 }); pct = t.meta ? t.fat / t.meta * 100 : null; nome = 'O grupo'; }
-    else if (c.papel === 'gerente' && !c.grupo) { const f = F.find((x) => x.filial === c.filial); if (f) pct = f.meta_fat ? f.faturado / f.meta_fat * 100 : null; nome = 'A ' + c.filial; }
+    try {
+      const gFil = await posGerotFiliais(B);
+      if (gFil && gFil.size) {
+        if (c.papel === 'diretoria' || c.papel === 'ceo' || !c.filial) {
+          let vd = 0, meta = 0;
+          for (const g of gFil.values()) { vd += (g.fat || 0) + (g.pend || 0); meta += (g.meta || 0); }
+          if (meta > 0) { pct = vd / meta * 100; nome = 'O grupo'; }
+        } else if (c.papel === 'gerente' && !c.grupo) {
+          const g = gFil.get(c.filial);
+          if (g && g.meta > 0) { pct = ((g.fat || 0) + (g.pend || 0)) / g.meta * 100; nome = 'A ' + c.filial; }
+        }
+      }
+    } catch (e) { /* segue fallback saude */ }
+    if (pct == null) {
+      const s = await B.saude(); const F = (s && s.filiais) || [];
+      if (c.papel === 'diretoria' || c.papel === 'ceo' || !c.filial) { const t = F.reduce((a, f) => ({ fat: a.fat + (f.faturado || 0), meta: a.meta + (f.meta_fat || 0) }), { fat: 0, meta: 0 }); pct = t.meta ? t.fat / t.meta * 100 : null; nome = 'O grupo'; }
+      else if (c.papel === 'gerente' && !c.grupo) { const f = F.find((x) => x.filial === c.filial); if (f) pct = f.meta_fat ? f.faturado / f.meta_fat * 100 : null; nome = 'A ' + c.filial; }
+    }
     if (c.filial) { const lg = await B.liga(); const lf = lg && (lg.filiais || []).find((x) => x.sigla === c.filial); if (lf) liga = `${lf.pos}º na Champions`; }
     if (pct == null && !liga) return '';
     const { tot, pass } = diasUteisMes(); const esp = tot ? pass / tot * 100 : 0;

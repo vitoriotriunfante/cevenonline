@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-13 13:36 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-13 13:56 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (16)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -56,7 +56,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `conferencia_rca` | `functions/api/cron-conferencia-dia.js` |
 | `config_custo` | `functions/api/custo-freio.js` |
 | `config_equipe_soberana` | `functions/api/equipe-decidir.js`, `functions/api/equipe-salvar.js`, `functions/api/equipe-solicitacoes.js` |
-| `config_flags` | `functions/api/cron-notificacoes-supervisores.js`, `functions/api/cron-varredura-central.js`, `functions/_lib/ceven_admin_token.js` |
+| `config_flags` | `functions/api/cron-notificacoes-supervisores.js`, `functions/_lib/ceven_admin_token.js` |
 | `d1_telemetria_rotas` | `functions/_lib/telemetria.js` |
 | `descoberta_cursor` | `functions/api/cron-descobre-codigos.js` |
 | `devolucao_nota_motivo` | `functions/api/cron-lances.js` |
