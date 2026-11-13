@@ -1,4 +1,35 @@
-# MAPA DAS FONTES — Clube, CEVEN, Winthor e GEROT (12/11/2026)
+# MAPA DAS FONTES — Clube, CEVEN, Winthor e GEROT (12/11/2026; arquitetura revista em 13/11/2026)
+
+## 0. ARQUITETURA NOVA (13/11/2026, Vitório: "dá para pegar tudo que precisamos no GEROT e no Clube... e o que não der pega do CEVEN")
+**Clube = o DIA (a cada 15 min) · GEROT = o MÊS e o oficial (a cada ~2 h) · CEVEN = só o que não existe nos outros dois.**
+
+| Dado | Fonte principal | Reserva | Situação em 13/11 |
+|---|---|---|---|
+| Rota do dia (clientes planejados) | **Clube** (Roteiro Pedido) | roteiro do mês gravado (CEVEN) | usa o roteiro do mês; ler o Roteiro Pedido do Clube (passo 4) |
+| Check-in/out (hora), visitas, roteiros por vendedor | **Clube** | CEVEN | ✅ no ar (conferido: 98,8%) |
+| Justificativa de não venda | **Clube** | CEVEN | ✅ gravada; falta usar no Jota/Liga |
+| Pedido colocado hoje (R$, nº) | **Clube** (+ Winthor sem vínculo) | Winthor (P. Winthor) | ✅ total por vendedor; lista pedido a pedido = passo 1 |
+| Pedido integrado / bloqueio / nº do Winthor | **Clube** (Relatório de Pedido) | P. Winthor | contagem ✅; lista = passo 1 |
+| Faturado, carteira (a faturar), devolução do mês | **GEROT** | última leitura do CEVEN | ✅ no ar (13/11) |
+| Meta R$ do vendedor/filial | **GEROT** (soma das indústrias) · hierarquia gravada | CEVEN | hierarquia gravada (estável no mês) |
+| **Positivação do mês por vendedor** (e meta de clientes) | **GEROT** (painel do vendedor, extração sem fornecedor) | CEVEN 11/11 | ❌ falta extrair = passo 2 |
+| Indústrias, recorrência | **GEROT** | — | ✅ |
+| Cortes, TMF, mix, cobertura, RFV, devoluções por motivo | **GEROT** (abas) | CEVEN | inventário das abas = passo 3 |
+| Venda/positivação do DIA por indústria | **Clube** (tabela por fornecedor) | GEROT D-1 | gravar = passo 1 |
+| Clientes: última compra, sem compra no mês, carteira | **GEROT** (dimensão Cliente) · Clube (Carteira de Clientes) | ficha/roteiro do mês gravados | passo 3 |
+| TAGs / campanhas | **Clube** (Mix de Produtos/foco, só leitura) | TAGs do roteiro gravado | testar = passo 4 |
+| RET / compromisso do supervisor | CEVEN admin (está respondendo) | — | ✅ |
+| Prospects | CEVEN | último gravado | sem substituto ainda |
+| Devolução: nota e motivo (Liga) | CEVEN · GEROT (motivo, se a aba tiver) | — | passo 3 |
+| Liga (lances) | **Clube** (check-in, pedido com nº Winthor, justificativa) + GEROT/histórico | CEVEN | gerador novo = passo 5 (com nova versão das regras) |
+
+**Passos (ordem):**
+1. **Lista de pedidos do Clube** no D1 (nº Clube, nº Winthor, valor, operação, origem, bloqueio, sincronizado) + venda do dia por indústria → "Meus pedidos" e "colocado do dia" sem dupla contagem.
+2. **GEROT por vendedor** (extração sem fornecedor): positivação e meta de clientes, faturado/carteira oficiais do vendedor.
+3. **Inventário das abas do GEROT** (workflow pronto, rodar fora das janelas) → clientes, cortes, devoluções por motivo, cobertura.
+4. **Clube: Roteiro Pedido** (rota do dia cliente a cliente) e **Mix de Produtos** (TAGs).
+5. **Liga sobre Clube + GEROT** (gerador novo, ensaio lado a lado com o atual, nova versão das regras, só com OK do Vitório).
+6. Robô do Clube **online** (hoje no PC; o notebook dormiu e perdeu 07:00–07:45 de 13/11).
 
 > Pedido do Vitório (12/11/2026): "agora temos fonte do CLUBE, CEVEN e GEROT... precisa entender de onde pega cada dado e montar um plano para juntar tudo... ou vamos nos perder"; "clube é pedido colocado... não quer dizer que vai ser faturado"; "o CEVEN pega o pedido, depois vai para o Winthor e vira outro número... fora que o CEVEN pega pedidos vindos direto do Winthor e da loja Mondelez".
 > Medido no D1 e nas telas do Clube em 12/11/2026. Este documento manda sobre a seção 3.6 de `PLANO_CADENCIA_DADOS.md`.
