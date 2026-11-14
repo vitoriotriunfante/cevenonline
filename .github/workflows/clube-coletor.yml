@@ -1,0 +1,49 @@
+# FICHA DO ARQUIVO
+# O QUE É: coleta ONLINE do Clube da Venda (TradePro) via /api/clube-carga (sem depender de PC local).
+# Segredos: TP_USER, TP_PASS (login TradePro) e EVO_KEY (ja existente).
+name: Clube da Venda — coleta online para o D1
+
+on:
+  schedule:
+    - cron: '0,30 11-23 * * 1-6'   # a cada 30 min, 08h00-20h30 BRT, segunda a sabado
+  workflow_dispatch:
+
+concurrency:
+  group: clube-coleta
+  cancel-in-progress: false
+
+jobs:
+  coletar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Verificar segredos TradePro
+        id: check
+        env:
+          TP_USER: ${{ secrets.TP_USER }}
+          TP_PASS: ${{ secrets.TP_PASS }}
+        run: |
+          if [ -z "$TP_USER" ] || [ -z "$TP_PASS" ]; then
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "AVISO: segredos TP_USER / TP_PASS ainda nao configurados neste repositorio."
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Instalar dependencias e navegador
+        if: steps.check.outputs.ok == 'true'
+        run: |
+          npm ci --no-audit --no-fund
+          for t in 1 2 3 4; do npx playwright install --with-deps chromium && break; sleep 20; done
+      - name: Coletar Clube da Venda e enviar para /api/clube-carga
+        if: steps.check.outputs.ok == 'true'
+        env:
+          TP_USER: ${{ secrets.TP_USER }}
+          TP_PASS: ${{ secrets.TP_PASS }}
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+          CEVEN_SITE_URL: https://ceven-cftv-matrix.pages.dev
+        run: node pipeline/clube_coletor.mjs --api
+

@@ -8,9 +8,39 @@ import { hojeSP, sem } from './base.js';
 // ---------------- BASE (carregada sob demanda, cada fonte uma vez so) ----------------
 export const REPO = 'vitoriotriunfante/cevenonline';
 export const gh = (p) => fetch(`https://raw.githubusercontent.com/${REPO}/main/${p.split('/').map(encodeURIComponent).join('/')}`, { cf: { cacheTtl: 300, cacheEverything: true }, signal: AbortSignal.timeout(20000) }).then((r) => { if (!r.ok) throw new Error('gh ' + r.status); return r.text(); });
+const HANDLERS_LOCAIS = {
+  '/api/saude': () => import('../../api/saude.js'),
+  '/api/tv-mostra': () => import('../../api/tv-mostra.js'),
+  '/api/central-snapshot': () => import('../../api/central-snapshot.js'),
+  '/api/brasileirao-lances': () => import('../../api/brasileirao-lances.js'),
+  '/api/tv-supervisores': () => import('../../api/tv-supervisores.js'),
+  '/api/pedidos-dia': () => import('../../api/pedidos-dia.js'),
+  '/api/vendedor-detalhe': () => import('../../api/vendedor-detalhe.js'),
+  '/api/mapa-executivo-live': () => import('../../api/mapa-executivo-live.js'),
+  '/api/incentivo-outubro': () => import('../../api/incentivo-outubro.js'),
+  '/api/liga-as': () => import('../../api/liga-as.js'),
+  '/api/tv-supervisores-semana': () => import('../../api/tv-supervisores-semana.js'),
+  '/api/devolucoes-motivos': () => import('../../api/devolucoes-motivos.js'),
+  '/api/bola-cheia': () => import('../../api/bola-cheia.js'),
+  '/api/divergencias': () => import('../../api/divergencias.js'),
+  '/api/cron-lances': () => import('../../api/cron-lances.js'),
+};
 export function criaBase(origin, env) {
   const cache = {};
-  const api = (p) => fetch(origin + p, { signal: AbortSignal.timeout(25000) }).then((r) => r.json()).catch(() => null);
+  const api = async (p) => {
+    const rota = String(p || '').split('?')[0];
+    const loader = env && env.DB && !env.__forcaHttp ? HANDLERS_LOCAIS[rota] : null;
+    if (loader) {
+      try {
+        const mod = await loader();
+        if (mod && typeof mod.onRequestGet === 'function') {
+          const resp = await mod.onRequestGet({ request: new Request(origin + p), env, waitUntil: () => {} });
+          if (resp && resp.ok) return await resp.json();
+        }
+      } catch {}
+    }
+    return fetch(origin + p, { signal: AbortSignal.timeout(25000) }).then((r) => r.json()).catch(() => null);
+  };
   const est = (p) => (env && env.ASSETS ? env.ASSETS.fetch(new Request(origin + p)) : fetch(origin + p)).then((r) => r.json()).catch(() => null);
   const memo = (k, f) => cache[k] || (cache[k] = f());
   return {
