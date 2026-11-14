@@ -266,13 +266,16 @@ export async function respMatinal(B, E) {
   const { hoje, tot, dec, falt } = diasUteisAgora(), mes = hoje.slice(0, 7);
   const fil = (E.filiais || []).length ? E.filiais : ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
   const qs = fil.map(() => '?').join(',');
-  const [stGerot, vendRes, rotaRes, pedRes, prospRes] = await Promise.all([
+  const [stGerot, vendRes, rotaRes, pedRes, prospRes, arvRes] = await Promise.all([
     B.env.DB.prepare('SELECT posicao, em FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null),
     B.env.DB.prepare(`SELECT filial, rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...fil).all().catch(() => ({ results: [] })),
     B.env.DB.prepare(`SELECT filial, rca, json FROM roteiro_dia WHERE data = ? AND filial IN (${qs})`).bind(hoje, ...fil).all().catch(() => ({ results: [] })),
     B.env.DB.prepare(`SELECT filial, rca, COUNT(*) qtd, SUM(valor) vlr FROM pedido_status WHERE filial IN (${qs}) AND data_pedido >= date('now', '-3 hours', '-7 days') AND status = 'BLOQUEADO' GROUP BY filial, rca`).bind(...fil).all().catch(() => ({ results: [] })),
-    B.env.DB.prepare(`SELECT filial, rca, COUNT(*) qtd FROM prospects_mapa WHERE filial IN (${qs}) GROUP BY filial, rca`).bind(...fil).all().catch(() => ({ results: [] }))
+    B.env.DB.prepare(`SELECT filial, rca, COUNT(*) qtd FROM prospects_mapa WHERE filial IN (${qs}) GROUP BY filial, rca`).bind(...fil).all().catch(() => ({ results: [] })),
+    B.env.DB.prepare(`SELECT filial, rca, vend_nome FROM arvore_supervisores WHERE filial IN (${qs})`).bind(...fil).all().catch(() => ({ results: [] }))
   ]);
+  const nomeArv = new Map();
+  for (const a of arvRes.results || []) if (a.vend_nome && !/^\d+$/.test(String(a.vend_nome).trim())) nomeArv.set(`${a.filial}|${a.rca}`, a.vend_nome);
   const rotaMap = new Map();
   for (const r of rotaRes.results || []) {
     let n = 0; try { const p = JSON.parse(r.json || '[]'); n = Array.isArray(p) ? p.length : (Array.isArray(p.clientes) ? p.clientes.length : 0); } catch {}
@@ -289,8 +292,11 @@ export async function respMatinal(B, E) {
     const pos = Number(d['Positivação (filial + CNPJ)']) || 0, metaPos = Number(d['Meta de positivação'] ?? d['Meta clientes']) || 0;
     const vend = fat + pend, tend = dec ? (vend / dec) * tot : vend, tendPct = meta > 0 ? (tend / meta) * 100 : 0;
     const k = `${v.filial}|${v.rca}`, ped = pedMap.get(k) || { qtd: 0, vlr: 0 };
+    const nmRaw = String(v.vendedor || '').trim();
+    const nmArv = nomeArv.get(k);
+    const nome = (!nmRaw || /^\d+$/.test(nmRaw) || nmRaw === String(v.rca)) ? (nmArv || '') : nmRaw;
     return {
-      filial: v.filial, rca: v.rca, cod_sup: v.cod_sup, sup: v.supervisor || '', nome: v.vendedor || '',
+      filial: v.filial, rca: v.rca, cod_sup: v.cod_sup, sup: v.supervisor || '', nome,
       meta, vend, pct: meta > 0 ? (vend / meta) * 100 : 0, tend, tendPct,
       precisaDia: Math.max(0, meta - vend) / falt,
       pos, metaPos, rota: rotaMap.get(k) || 0, prospects: prospMap.get(k) || 0,
@@ -317,6 +323,11 @@ export async function respMatinal(B, E) {
 
   if (E.rca) {
     const x = rows[0];
+    const [ontPed, ontVis, Ev] = await Promise.all([
+      B.env.DB.prepare("SELECT data_pedido d, COUNT(*) qtd, SUM(valor) vlr, COUNT(DISTINCT id_cliente) pos FROM pedido_status WHERE filial = ? AND rca = ? AND data_pedido < ? AND status <> 'CANCELADO' GROUP BY data_pedido ORDER BY data_pedido DESC LIMIT 1").bind(x.filial, String(x.rca), hoje).first().catch(() => null),
+      B.env.DB.prepare("SELECT data_ref d, json_extract(dashboard_json,'$.produtividade.dia.visitas_planejadas') vp, json_extract(dashboard_json,'$.produtividade.dia.visitas_realizadas') vr FROM varredura_central_rca WHERE filial_sigla = ? AND CAST(rca_codigo AS TEXT) = ? AND data_ref < ? ORDER BY data_ref DESC LIMIT 1").bind(x.filial, String(x.rca), hoje).first().catch(() => null),
+      carregaEscopo(B, { ...E, filiais: [x.filial], rca: String(x.rca) }).catch(() => null)
+    ]);
     const rHoje = (rotaRes.results || []).find((r) => r.filial === x.filial && String(r.rca) === String(x.rca));
     let clisHoje = [];
     if (rHoje && rHoje.json) {
@@ -325,25 +336,62 @@ export async function respMatinal(B, E) {
         clisHoje = Array.isArray(p) ? p : (Array.isArray(p.clientes) ? p.clientes : []);
       } catch {}
     }
+    const vEsc = Ev && Ev.vend && Ev.vend[0];
+    const rMes = (vEsc && Array.isArray(vEsc.roteiroMes)) ? vEsc.roteiroMes : [];
+    const lim30 = new Date(Date.parse(hoje + 'T12:00:00Z') - 30 * 864e5).toISOString().slice(0, 10);
+    const m1 = mes + '-01';
+    const rawBase = clisHoje.length ? clisHoje : rMes.filter((c) => !/POSITIVADO|EFETIVADO/.test(String(c.status || '')) && String(c.data_ultima_compra || '').slice(0, 10) < m1);
+    const seenCli = new Map();
+    for (const c of rawBase) if (!seenCli.has(String(c.id_cliente))) seenCli.set(String(c.id_cliente), c);
+    const baseClis = [...seenCli.values()];
+    const mais30 = baseClis.filter((c) => {
+      const u = String(c.data_ultima_compra || '').slice(0, 10);
+      return !u || u < lim30;
+    }).length;
+    const tagCont = new Map();
+    let comTags = 0;
+    for (const c of baseClis) {
+      const fcs = [].concat(c.focos || [], c.tags || [], c.campanhas || []).map((g) => typeof g === 'string' ? g : (g.industria_foco || g.nome || g.tag || '')).filter(Boolean);
+      if (fcs.length) {
+        comTags++;
+        for (const tg of new Set(fcs)) tagCont.set(titulo(tg), (tagCont.get(titulo(tg)) || 0) + 1);
+      }
+    }
+    const topTags = [...tagCont.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([k, q]) => `${k} (${q})`).join(', ');
     clisHoje.sort((a, b) => {
       const aFeito = /EFETIVADO|COMPROU|VISITADO/i.test(String(a.status || '')) ? 1 : 0;
       const bFeito = /EFETIVADO|COMPROU|VISITADO/i.test(String(b.status || '')) ? 1 : 0;
       if (aFeito !== bFeito) return aFeito - bFeito;
-      const aTag = (a.tags || a.campanhas || []).length ? 0 : 1;
-      const bTag = (b.tags || b.campanhas || []).length ? 0 : 1;
+      const aTag = [].concat(a.focos || [], a.tags || [], a.campanhas || []).length ? 0 : 1;
+      const bTag = [].concat(b.focos || [], b.tags || [], b.campanhas || []).length ? 0 : 1;
       return aTag - bTag;
     });
+    const dFmt = (s) => s ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : '';
+    const linhaOntem = ontPed
+      ? `📝 Vendeu *${R$(ontPed.vlr || 0)}* em *${N(ontPed.qtd || 0)}* ped. (*${N(ontPed.pos || 0)}* positivados)` + (ontVis && ontVis.d === ontPed.d && ontVis.vp != null ? ` · 🚶 *${N(ontVis.vr || 0)} de ${N(ontVis.vp)}* visitas` : '')
+      : (ontVis && ontVis.vp != null ? `🚶 Visitas (${dFmt(ontVis.d)}): *${N(ontVis.vr || 0)} de ${N(ontVis.vp)}*` : '_Sem pedidos registrados no último dia._');
+    const dataOnt = (ontPed && ontPed.d) || (ontVis && ontVis.d) || '';
     return [
       `☀️ *Sua Matinal — ${x.rca} - ${titulo(x.nome)}* (${dec}/${tot} du · faltam ${falt})`,
+      '',
+      `*📅 O dia de ontem${dataOnt ? ' (' + dFmt(dataOnt) + ')' : ''}:*`,
+      linhaOntem,
+      '',
+      `*📊 Acumulado do mês:*`,
       `💰 Fat.+Cart.: *${R$(x.vend)}* / ${R$(x.meta)} (*${P(x.vend, x.meta)}*)`,
       `📈 Tendência: *${x.tendPct.toFixed(1).replace('.', ',')}%* · 🎯 Precisa: *${R$(x.precisaDia)}/dia*`,
       `👥 Positivação: *${N(x.pos)}*${x.metaPos ? ' / ' + N(x.metaPos) + ' (' + P(x.pos, x.metaPos) + ')' : ''}`,
-      `🗺️ Rota hoje: *${N(x.rota)}* PDVs · *${N(x.prospects)}* prospects · 🚫 Bloq.: *${N(x.bloqQtd)}* (${R$(x.bloqVlr)})`,
-      ...(clisHoje.length ? ['', '*Clientes na rota de hoje (digite o número para abrir):*', ...clisHoje.slice(0, 12).map((cli, i) => {
-        const tgs = [].concat(cli.tags || cli.campanhas || []).map((g) => typeof g === 'string' ? g : (g.nome || g.tag || '')).filter(Boolean);
+      '',
+      `*🎯 Programado para hoje:*`,
+      clisHoje.length ? `🗺️ Clientes a visitar hoje: *${N(clisHoje.length)}* PDVs` : `🗺️ Rota hoje: *0* PDVs _(sem rota carregada hoje — usando carteira pendente)_`,
+      `⏳ Clientes +30 dias sem compra: *${N(mais30)}*`,
+      `🏷️ Clientes com TAGs pendentes: *${N(comTags)}*${topTags ? ' (' + topTags + ')' : ''}`,
+      `🆕 Prospects perto da rota: *${N(x.prospects)}* · 🚫 Bloqueados: *${N(x.bloqQtd)}* (${R$(x.bloqVlr)})`,
+      ...(clisHoje.length ? ['', '*Principais da rota de hoje (digite o número para abrir):*', ...clisHoje.slice(0, 12).map((cli, i) => {
+        const tgs = [].concat(cli.focos || [], cli.tags || [], cli.campanhas || []).map((g) => typeof g === 'string' ? g : (g.industria_foco || g.nome || g.tag || '')).filter(Boolean);
         const tagStr = tgs.length ? ` [${tgs.slice(0, 2).join(', ')}]` : '';
         return `${i + 1}. ${titulo(cli.nome_cliente || cli.razao_social || 'cliente')} (#${cli.id_cliente})${tagStr}`;
-      }), ...(clisHoje.length > 12 ? [`_… e mais ${clisHoje.length - 12} na rota._`] : []), '', '👉 _Responda o número de um cliente para ver última compra e o que oferecer._'] : ['', '_Sem clientes carregados na rota de hoje._'])
+      }), ...(clisHoje.length > 12 ? [`_… e mais ${clisHoje.length - 12} na rota._`] : []), '', '👉 _Responda o número de um cliente para ver última compra e o que oferecer._'] : [])
     ].join('\n');
   }
 
@@ -397,12 +445,13 @@ export async function respMatinal(B, E) {
       }
     } catch {}
   }
+  const rotVend = (x) => x.nome ? `${x.rca} - ${titulo(x.nome)}` : `RCA ${x.rca}`;
   if (cardPng) {
     B._midia = { tipo: 'image', url: cardPng };
     return [
       `☀️ *Matinal — ${E.nome}* (${dec}/${tot} du · faltam ${falt}${posGerot})`,
       `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*) · 📈 Tendência: *${tendGeral.toFixed(1).replace('.', ',')}%*`,
-      `🎯 *Prioridade nº 1 hoje:* *${rows[0].rca} - ${titulo(rows[0].nome)}* (${rows[0].tendPct.toFixed(0)}% tend. · precisa ${R$(rows[0].precisaDia)}/d)`,
+      `🎯 *Prioridade nº 1 hoje:* *${rotVend(rows[0])}* (${rows[0].tendPct.toFixed(0)}% tend. · precisa ${R$(rows[0].precisaDia)}/d)`,
       `🚫 Bloqueados: *${N(totBloqQtd)}* (${R$(totBloqVlr)})`
     ].join('\n');
   }
@@ -415,7 +464,7 @@ export async function respMatinal(B, E) {
     `🗺️ Rota hoje: *${N(totRota)}* PDVs · *${N(totProsp)}* prospects · 🚫 Bloq.: *${N(totBloqQtd)}* (${R$(totBloqVlr)})`,
     '',
     `🎯 *Prioridade (pior tendência primeiro):*`,
-    ...rows.slice(0, 10).map((x, i) => `${i + 1}. *${x.rca} - ${titulo(x.nome)}*: tend. *${x.tendPct.toFixed(0)}%* (${P(x.vend, x.meta)}) · ${R$(x.precisaDia)}/d · rota ${x.rota}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`),
+    ...rows.slice(0, 10).map((x, i) => `${i + 1}. *${rotVend(x)}*: tend. *${x.tendPct.toFixed(0)}%* (${P(x.vend, x.meta)}) · ${R$(x.precisaDia)}/d · rota ${x.rota}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`),
     ...(rows.length > 10 ? [`_… e mais ${rows.length - 10} vendedor(es) na equipe._`] : [])
   ].join('\n');
 }
