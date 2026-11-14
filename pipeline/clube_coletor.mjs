@@ -94,7 +94,7 @@ async function relatorio(pg, nomePg, todasPaginas) {
     return { cab: T.cab, linhas: todas, total };
   } catch (e) { log(nomePg, 'falhou', String(e.message || e).slice(0, 120)); return null; }
 }
-const [CK, JU, PP] = await Promise.all([relatorio(pags[1], 'relatorioCheckinCheckout', false), relatorio(pags[2], 'relatorioJustificativaRoteiro', true), relatorio(pags[3], 'painelPedido', false)]);
+const [CK, JU, PP] = await Promise.all([relatorio(pags[1], 'relatorioCheckinCheckout', true), relatorio(pags[2], 'relatorioJustificativaRoteiro', true), relatorio(pags[3], 'painelPedido', false)]);
 // RCA do Clube -> filial: pelo codigo + nome dos vendedores lidos acima (o mesmo codigo pode existir em 2 filiais)
 const porCod = new Map(); for (const v of vendedores) { if (!porCod.has(v.rca)) porCod.set(v.rca, []); porCod.get(v.rca).push(v); }
 const semAc = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().trim();
@@ -114,6 +114,15 @@ const porFil = {}; for (const v of vendedores) { const f = porFil[v.filial] || (
 log('vendedores', vendedores.length, 'falhas', falhas.length, 'tempo', res.duracao_s + 's');
 for (const [f, x] of Object.entries(porFil)) log(f, x.vend + ' vend', 'R$ ' + Math.round(x.pedido).toLocaleString('pt-BR'), x.ped + ' ped', x.visitas + '/' + x.roteiros + ' visitas');
 const saida = arg('saida') || `clube_${dia}.json`; fs.writeFileSync(saida, JSON.stringify(res)); log('gravado', saida);
+if (process.argv.includes('--api') && process.env.EVO_KEY) {
+  const baseUrl = process.env.CEVEN_SITE_URL || 'https://ceven-cftv-matrix.pages.dev';
+  const rApi = await fetch(`${baseUrl}/api/clube-carga`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Evo-Key': process.env.EVO_KEY },
+    body: JSON.stringify({ dia: res.dia, lido_em: res.lido_em, vendedores, checkins, justificativas, rodada: { vendedores: vendedores.length, checkins: CK ? checkins.length : null, justificativas: JU ? justificativas.length : null, nao_sinc: naoSinc, falhas: falhas.join(', '), duracao_s: res.duracao_s } })
+  }).then((x) => x.json()).catch((e) => ({ erro: String(e) }));
+  log('API /api/clube-carga', JSON.stringify(rApi));
+}
 if (process.argv.includes('--d1')) {
   // grava SO o que mudou (custo D1 = linhas gravadas): ON CONFLICT ... WHERE algum numero mudou
   const q = (v) => v == null ? 'NULL' : typeof v === 'number' ? String(v) : "'" + String(v).replace(/'/g, "''") + "'";

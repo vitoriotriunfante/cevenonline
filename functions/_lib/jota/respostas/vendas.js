@@ -132,7 +132,7 @@ export async function respRecuperacao(B, E, t) {
   if (citado.length && !G.length) return `🔁 *Recuperação — ${nome}*\n${citado.map(vn).join(', ')}: nenhum cliente parou de comprar ${nome}.`;
   if (!citado.length && G.length > 1) out.push('', '*Por vendedor:* ' + G.map(([kv, L]) => `${vend.get(kv) || 'RCA ' + kv.split('|')[1]}: ${L.length}`).join(' · '));
   for (const [kv, L] of G) { if (!citado.length || G.length > 1) out.push('', `*${vend.get(kv) || 'RCA ' + kv.split('|')[1]}* — ${L.length} cliente(s)`);
-    for (const [k, x] of L.sort((a, b) => b[1].v - a[1].v)) { if (n++ >= MAX) break; out.push(`• ${titulo((V.cli[k] || A.cli[k] || 'Cliente #' + k.split('|')[1]))} (#${k.split('|')[1]}) · ${R$(x.v)} no mês passado`); }
+    for (const [k, x] of L.sort((a, b) => b[1].v - a[1].v)) { if (n++ >= MAX) break; out.push(`${n}. ${titulo((V.cli[k] || A.cli[k] || 'Cliente #' + k.split('|')[1]))} (#${k.split('|')[1]}) · ${R$(x.v)} no mês passado`); }
     if (n >= MAX) { out.push(`… e mais ${totalExibir - MAX} cliente(s).` + (!citado.length ? ` Peça "quem comprava ${nome} e parou" + o nome do vendedor para ver a lista dele.` : '')); break; } }
   return [`🔁 *Recuperação — ${nome}* (${escopoNome})`, `*${N(totalExibir)} clientes*` + (citado.length ? ` de *${escopoNome}*` : '') + ` compraram ${nome} no mês passado e *ainda não compraram este mês*` + (naRotaHoje ? ' — e *estão na rota de hoje*.' : '.'), ...out,
     '', SUGESTAO + (citado.length ? `conversar com ${vn(citado[0])} para recuperar esses clientes esta semana.` : 'distribuir a lista para os vendedores visitarem esta semana.')].join('\n');

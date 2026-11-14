@@ -366,6 +366,13 @@ export async function respMatinal(B, E) {
       const bTag = [].concat(b.focos || [], b.tags || [], b.campanhas || []).length ? 0 : 1;
       return aTag - bTag;
     });
+    const listaAcao = clisHoje.length ? clisHoje : baseClis.slice().sort((a, b) => {
+      const aTag = [].concat(a.focos || [], a.tags || [], a.campanhas || []).length ? 0 : 1;
+      const bTag = [].concat(b.focos || [], b.tags || [], b.campanhas || []).length ? 0 : 1;
+      if (aTag !== bTag) return aTag - bTag;
+      return String(a.data_ultima_compra || '').localeCompare(String(b.data_ultima_compra || ''));
+    });
+    const titLista = clisHoje.length ? '*Principais da rota de hoje (digite o número para abrir):*' : '*Principais pendentes da carteira (digite o número para abrir):*';
     const dFmt = (s) => s ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : '';
     const linhaOntem = ontPed
       ? `📝 Vendeu *${R$(ontPed.vlr || 0)}* em *${N(ontPed.qtd || 0)}* ped. (*${N(ontPed.pos || 0)}* positivados)` + (ontVis && ontVis.d === ontPed.d && ontVis.vp != null ? ` · 🚶 *${N(ontVis.vr || 0)} de ${N(ontVis.vp)}* visitas` : '')
@@ -387,11 +394,11 @@ export async function respMatinal(B, E) {
       `⏳ Clientes +30 dias sem compra: *${N(mais30)}*`,
       `🏷️ Clientes com TAGs pendentes: *${N(comTags)}*${topTags ? ' (' + topTags + ')' : ''}`,
       `🆕 Prospects perto da rota: *${N(x.prospects)}* · 🚫 Bloqueados: *${N(x.bloqQtd)}* (${R$(x.bloqVlr)})`,
-      ...(clisHoje.length ? ['', '*Principais da rota de hoje (digite o número para abrir):*', ...clisHoje.slice(0, 12).map((cli, i) => {
+      ...(listaAcao.length ? ['', titLista, ...listaAcao.slice(0, 10).map((cli, i) => {
         const tgs = [].concat(cli.focos || [], cli.tags || [], cli.campanhas || []).map((g) => typeof g === 'string' ? g : (g.industria_foco || g.nome || g.tag || '')).filter(Boolean);
         const tagStr = tgs.length ? ` [${tgs.slice(0, 2).join(', ')}]` : '';
         return `${i + 1}. ${titulo(cli.nome_cliente || cli.razao_social || 'cliente')} (#${cli.id_cliente})${tagStr}`;
-      }), ...(clisHoje.length > 12 ? [`_… e mais ${clisHoje.length - 12} na rota._`] : []), '', '👉 _Responda o número de um cliente para ver última compra e o que oferecer._'] : [])
+      }), ...(listaAcao.length > 10 ? [`_… e mais ${listaAcao.length - 10} na lista._`] : []), '', '👉 _Responda o número de um cliente para ver última compra e o que oferecer._'] : [])
     ].join('\n');
   }
 
@@ -445,19 +452,31 @@ export async function respMatinal(B, E) {
       }
     } catch {}
   }
+  const rcaList = [...new Set(rows.map((r) => String(r.rca)))].slice(0, 150);
+  let ontEq = null;
+  if (rcaList.length) {
+    const rQs = rcaList.map(() => '?').join(',');
+    ontEq = await B.env.DB.prepare(`SELECT data_pedido d, COUNT(*) qtd, SUM(valor) vlr, COUNT(DISTINCT id_cliente) pos FROM pedido_status WHERE filial IN (${qs}) AND rca IN (${rQs}) AND data_pedido < ? AND status <> 'CANCELADO' GROUP BY data_pedido ORDER BY data_pedido DESC LIMIT 1`).bind(...fil, ...rcaList, hoje).first().catch(() => null);
+  }
+  const dFmtEq = (s) => s ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : '';
+  const linhaOntEq = ontEq ? `📅 *Ontem (${dFmtEq(ontEq.d)}):* *${R$(ontEq.vlr || 0)}* em *${N(ontEq.qtd || 0)}* ped. (*${N(ontEq.pos || 0)}* positivados)` : '';
   const rotVend = (x) => x.nome ? `${x.rca} - ${titulo(x.nome)}` : `RCA ${x.rca}`;
   if (cardPng) {
     B._midia = { tipo: 'image', url: cardPng };
     return [
       `☀️ *Matinal — ${E.nome}* (${dec}/${tot} du · faltam ${falt}${posGerot})`,
+      ...(linhaOntEq ? [linhaOntEq] : []),
       `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*) · 📈 Tendência: *${tendGeral.toFixed(1).replace('.', ',')}%*`,
-      `🎯 *Prioridade nº 1 hoje:* *${rotVend(rows[0])}* (${rows[0].tendPct.toFixed(0)}% tend. · precisa ${R$(rows[0].precisaDia)}/d)`,
-      `🚫 Bloqueados: *${N(totBloqQtd)}* (${R$(totBloqVlr)})`
+      `👥 Positivação: *${N(totPos)}*${totMetaPos ? ' / ' + N(totMetaPos) + ' (' + P(totPos, totMetaPos) + ')' : ''} · 🗺️ Rota: *${N(totRota)}* PDVs · 🚫 Bloq.: *${N(totBloqQtd)}* (${R$(totBloqVlr)})`,
+      '',
+      `🎯 *Prioridades de hoje:*`,
+      ...rows.slice(0, 4).map((x, i) => `${i + 1}. *${rotVend(x)}*: *${x.tendPct.toFixed(0)}%* tend. · precisa ${R$(x.precisaDia)}/d · rota ${x.rota}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`)
     ].join('\n');
   }
 
   return [
     `☀️ *Matinal — ${E.nome}* (${dec}/${tot} du · faltam ${falt}${posGerot})`,
+    ...(linhaOntEq ? [linhaOntEq] : []),
     `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*)`,
     `📈 Tendência: *${tendGeral.toFixed(1).replace('.', ',')}%* (*${R$(totTend)}*)`,
     `👥 Positivação: *${N(totPos)}*${totMetaPos ? ' / ' + N(totMetaPos) + ' (' + P(totPos, totMetaPos) + ')' : ''}`,

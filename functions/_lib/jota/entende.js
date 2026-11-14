@@ -26,7 +26,7 @@ import { respSegmentoCnae, respPastas, respEstrategiaFabio, respProspeccaoMapas 
 // vira a pergunta anterior + o modificador. Comandos completos ("liga", "hoje", "+mix") seguem sozinhos.
 export function juntaComAnterior(texto, anteriores) {
   const t = sem(texto).trim(), ant = (anteriores || []).length ? String(anteriores[0] || '') : '';
-  if (!ant || /^\d{1,5}\W*$/.test(t)) return texto;
+  if (!ant || /^\d{1,5}\W*$/.test(t) || (/〔M:/.test(ant) && /^\W*(ESCREVA |VER |QUERO )?MAIS\W*$/i.test(t))) return texto;
   // pergunta nova e completa (cliente pelo codigo, frase longa com assunto proprio) nao gruda na anterior (27/10/2026: "quero saber APENAS se o cliente codigo 1891
   // comprou" virou a carteira da Nilva)
   if (/\bCLIENTE\b.{0,25}\d{3,}|\bPEDIDO\b.{0,15}\d{7,}/.test(t) || (t.split(/\s+/).length > 9 && !/^(DESSES|DESTES|DELES|DESSAS|DESTAS|DELAS)\b/.test(t))) return texto;
@@ -280,11 +280,13 @@ async function respResumoVendedores(B, E, V, modo, t) {
 async function respFichaCliente(B, E, t, achado) {
   const { c: x, v } = achado, nome = titulo(x.nome_cliente || x.razao_social || 'cliente');
   B._ctxUltCli = { id: String(x.id_cliente), filial: String(v.filial), nome, cnpj: String(x.cnpj || '') };
-  const oferta = () => respOferecer(B, E, `OFERECER ${String(x.cnpj || '').replace(/\D/g, '')}`).catch(() => null);
-  if (FICHA_OFERTA.test(t)) return (await oferta()) || `🧺 *${nome}*: o +MIX não tem lista para este cliente agora.`;
-  // FICHA DO DATA LAKE (31/10/2026): pedidos, itens e o que parou de TODO cliente, 1 linha pela chave primaria; quem pergunta sendo vendedor ve so os pedidos dele
   let fic = null;
   try { const r = B.env && B.env.DB ? await B.env.DB.prepare('SELECT json FROM ficha_cliente WHERE filial = ? AND id_cliente = ?').bind(String(v.filial), String(x.id_cliente)).first() : null; if (r) fic = JSON.parse(r.json); } catch (e) { fic = null; }
+  const cnpjCli = String(x.cnpj || (fic && fic.cnpj) || '').replace(/\D/g, '');
+  if (cnpjCli) B._ctxUltCli.cnpj = cnpjCli;
+  const oferta = () => respOferecer(B, E, `OFERECER ${cnpjCli || String(x.id_cliente)}`).catch(() => null);
+  if (FICHA_OFERTA.test(t)) return (await oferta()) || `🧺 *${nome}*: o +MIX não tem lista para este cliente agora.`;
+  // FICHA DO DATA LAKE (31/10/2026): pedidos, itens e o que parou de TODO cliente, 1 linha pela chave primaria; quem pergunta sendo vendedor ve so os pedidos dele
   if (fic) {
     const dBr2 = (d) => d ? String(d).slice(8, 10) + '/' + String(d).slice(5, 7) + '/' + String(d).slice(0, 4) : 'sem data';
     const Ps = (fic.ped || []).filter((p) => !E.rca || String(p.rca) === String(E.rca));
@@ -319,7 +321,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // 'cliente cod/codigo/n 250900' = 'cliente 250900'; CNPJ (14 digitos, com ou sem ponto/barra) acha o codigo na ficha do D1
   if (/\bCLIENTE\s+(COD(IGO)?|N[UO]M(ERO)?|N)\.?\s*#?\d/.test(t)) t = t.replace(/\bCLIENTE\s+(COD(IGO)?|N[UO]M(ERO)?|N)\.?\s*#?(?=\d)/, 'CLIENTE #');
   { const cn = (String(texto || '').replace(/[.\-\/]/g, '').match(/\b\d{14}\b/) || [])[0];
-    if (cn && B.env && B.env.DB && /CLIENTE|CNPJ|HIST|FICHA|COMPR/.test(t)) { try { const r = await B.env.DB.prepare('SELECT id_cliente FROM ficha_cliente WHERE json LIKE ? LIMIT 1').bind('%"cnpj":"' + cn + '"%').first();
+    const cnpjPuro = /^\s*\d{14}\s*$/.test(String(texto || '').replace(/[.\-\/\s]/g, ''));
+    if (cn && B.env && B.env.DB && (cnpjPuro || /CLIENTE|CNPJ|HIST|FICHA|COMPR/.test(t))) { try { const r = await B.env.DB.prepare('SELECT id_cliente FROM ficha_cliente WHERE json LIKE ? LIMIT 1').bind('%"cnpj":"' + cn + '"%').first();
       if (r && r.id_cliente) t = 'CLIENTE #' + r.id_cliente; else return `🔎 Não achei nenhum cliente com o CNPJ *${cn}* na base. Confere os números ou me manda o código do cliente.`; } catch (e) { /* segue */ } } }
   // "Sugestao" sozinha (27/10/2026, Thiago/Sueli/Rodrigo: a IA inventava uma resposta): pede a sugestao
   if (/^\W*SUGEST(AO|OES|AO DO JOTA)?\W*$/.test(t)) return '💡 Pode mandar! Escreva *"sugestão:"* e o que você quer que eu faça diferente (ex.: "sugestão: mandar a meta de cada vendedor"). Vai direto para o time que me treina.';
@@ -1137,7 +1140,25 @@ export async function respostaInterna(B, c, texto, anteriores) {
     let fichaCli = clienteNaCarteira(E, t);
     if (!fichaCli && (FICHA_ITENS.test(t) || FICHA_OFERTA.test(t) || FICHA_PEDIDOS.test(t) || /\bHISTORIC\w*\b/.test(t))) {
       for (const a of anteriores || []) { fichaCli = clienteNaCarteira(E, a); if (fichaCli) break; }
-      if (!fichaCli && B._ctxUltCli && B._ctxUltCli.id) fichaCli = clienteNaCarteira(E, 'CLIENTE #' + B._ctxUltCli.id);
+      if (!fichaCli && B._ctxUltCli && B._ctxUltCli.id) {
+        fichaCli = clienteNaCarteira(E, 'CLIENTE #' + B._ctxUltCli.id);
+        if (!fichaCli && E.vend && E.vend.length) {
+          const vCli = E.vend.find((x) => String(x.filial) === String(B._ctxUltCli.filial)) || E.vend[0];
+          fichaCli = { v: vCli, c: { id_cliente: B._ctxUltCli.id, nome_cliente: B._ctxUltCli.nome || ('Cliente #' + B._ctxUltCli.id), cnpj: B._ctxUltCli.cnpj || '' } };
+        }
+      }
+    }
+    if (!fichaCli && /\bCLIENTE\s*#(\d{3,7})\b/.test(t) && B.env && B.env.DB) {
+      const idDir = (t.match(/\bCLIENTE\s*#(\d{3,7})\b/) || [])[1];
+      const fil = (E.filiais && E.filiais[0]) || '';
+      try {
+        const rf = await B.env.DB.prepare('SELECT filial, json FROM ficha_cliente WHERE id_cliente = ? AND (? = "" OR filial = ?) LIMIT 1').bind(String(idDir), fil, fil).first();
+        if (rf) {
+          let j = {}; try { j = JSON.parse(rf.json || '{}'); } catch {}
+          const vCli = (E.vend || []).find((x) => x.filial === rf.filial) || (E.vend && E.vend[0]) || { filial: rf.filial, rca: '', nome: E.nome };
+          fichaCli = { v: vCli, c: { id_cliente: String(idDir), nome_cliente: j.nome || ('Cliente #' + idDir), cnpj: j.cnpj || '' } };
+        }
+      } catch {}
     }
     if (fichaCli) return respFichaCliente(B, E, t, fichaCli);
   }
@@ -1468,7 +1489,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   if (/COMPRAVA|PAROU|PARARAM|DEIXOU DE COMPRAR|DEIXARAM DE COMPRAR|RECUPERACAO D|QUEM NAO (COMPRA|COMPROU|COMPRARAM)|NAO (COMPROU|COMPRA|COMPRARAM)|SEM COMPRA D[EAO]|SEM COMPRAR/.test(t)) { const r = await respRecuperacao(B, E, t); if (r) return r; }
   if (/PRODUTOS? (QUE )?MAIS VEND|TOP \d* ?PRODUTOS|\d+ PRODUTOS|QUAL PRODUTO MAIS|MAIS VENDIDOS/.test(t)) return respTopProdutos(B, E, t);
   const codCliDireto = (t.match(/\bCLIENTE\s*#?\s*(\d{3,7})\b/) || t.match(/^#(\d{3,7})\b/) || ((anteriores || []).some((a) => /CLIENTE|#\d+|HIST[OÓ]RI/i.test(String(a))) && t.match(/^\s*#?(\d{4,7})(?:\s+[A-Z]{3})?\s*$/))) ? true : false;
-  const ehPerguntaCliente = codCliDireto || ((/CLIENTE|LOJA|REDE\b/.test(t) || /COMPRA D[OA]|COMPRAS D[OA]|QUANTO COMPROU|O QUE COMPROU|PEDIDOS? D[OA]|HIST[OÓ]RI/.test(t)) && /COMPROU|COMPRA|ULTIMO PEDIDO|SEM COMPRAR|OFERECER|PRODUTOS D|HIST[OÓ]RI|#\d+/.test(t) && !/CLIENTES QUE|QUAIS (OS )?CLIENTES|QUEM/.test(t));
+  const ehPerguntaCliente = codCliDireto || ((/CLIENTE|LOJA|REDE\b/.test(t) || /COMPRA D[OA]|COMPRAS D[OA]|QUANTO COMPROU|O QUE COMPROU|PEDIDOS? D[OA]|ULTIMOS? PEDIDOS?|PEDIDOS? (DELE|DELA)|HIST[OÓ]RI/.test(t)) && /COMPROU|COMPRA|ULTIMOS? PEDIDOS?|SEM COMPRAR|OFERECER|PRODUTOS D|HIST[OÓ]RI|DELE|DELA|#\d+/.test(t) && !/CLIENTES QUE|QUAIS (OS )?CLIENTES|QUEM/.test(t));
   if (ehPerguntaCliente) {
     const r = await respCliente(B, E, t, anteriores);
     if (r) return r;
@@ -1476,7 +1497,8 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
     if (numDigitado) {
       return `🔎 Não encontrei compras para o cliente *#${numDigitado}* nas vendas deste mês em ${E.nome}. Confere se o código é esse mesmo ou me manda a Razão Social / CNPJ por escrito!`;
     }
-    return `🔎 Para eu buscar o histórico certinho desse cliente, me manda o *código dele* (ex.: #252181), *CNPJ* ou a *razão social* por escrito! Como recebi imagem/print, ainda não consigo ler o texto dentro da foto diretamente. Com o código eu puxo todas as compras na hora! 🚀`;
+    if (/\[IMAGEM/i.test(String(texto || ''))) return `🔎 Para eu buscar o histórico certinho desse cliente, me manda o *código dele* (ex.: #252181), *CNPJ* ou a *razão social* por escrito! Como recebi imagem/print, ainda não consigo ler o texto dentro da foto diretamente. Com o código eu puxo todas as compras na hora! 🚀`;
+    return `🔎 Não identifiquei qual cliente você quer consultar. Me manda o *código* (ex.: #252181), *CNPJ* ou *nome do cliente* que eu puxo na hora!`;
   }
   if (/COMPRA|COMPROU|COMPRARAM|VENDEU DE |VENDERAM DE |VENDEU (O|A) |VENDE DE |POSITIVACAO D[OEA]S? |(VENDE MAIS|MAIS VENDE)(?!U)(?!.*(SUPERVISOR|VENDEDOR|FILIAL|GERENTE))|EM QUANTOS CLIENTES|CLIENTES COMPRARAM|PDVS COMPRARAM|SEMANA(L|IS)|MENSA(L|IS)|DIA DA SEMANA|QUAL DIA|QUE DIA|MELHOR DIA|MES A MES|POR SEMANA|SEMANA A SEMANA|POSITIVAND|(SEGUNDA|TERCA|QUARTA|QUINTA|SEXTA|SABADO) OU /.test(t) || /\b(MONDELEZ|MARS|ARCOR|BAGLEY|CONDOR|FERRERO|NESTLE|HERSHEY|FINI|DORI|PEPSICO|KELLOGG|LACTA|DIVERSAO)\b/.test(t)) {
     const ri = await respIndustria(B, E, t, pessoa); if (ri && ri !== SEM_VENDAS) return ri;

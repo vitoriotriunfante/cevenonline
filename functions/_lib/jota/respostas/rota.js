@@ -36,12 +36,12 @@ export function respClientesDia(v, t) {
 // clientes da rota de hoje que ainda faltam visitar (Vitorio, 22/10/2026: "quais clientes ainda faltam visitar hoje?")
 export function respAVisitar(E, pessoa) {
   const dias = (c) => { const d = String(c.data_ultima_compra || '').slice(0, 10); if (!d) return 'sem compra'; const n = Math.round((Date.parse(hojeSP()) - Date.parse(d)) / 864e5); return n + 'd sem compra'; };
-  const cli = (c) => `• ${titulo(c.nome_cliente || c.razao_social || 'cliente ' + c.id_cliente)} (#${c.id_cliente}) · ${dias(c)}` + (Array.isArray(c.focos) && c.focos.length ? ' · ' + c.focos.map((f) => f.industria_foco).join('/') : '');
+  const cli = (c, i) => `${i + 1}. ${titulo(c.nome_cliente || c.razao_social || 'cliente ' + c.id_cliente)} (#${c.id_cliente}) · ${dias(c)}` + (Array.isArray(c.focos) && c.focos.length ? ' · ' + c.focos.map((f) => f.industria_foco).join('/') : '');
   if (pessoa && pessoa.tipo === 'vend') {
     const v = pessoa.alvo; if (!v.varejo && !(v.aVisitar || []).length && !(v.rotaHoje || []).length) return `${v.rca} - ${titulo(v.nome)} (${v.canal || 'sem canal'}) não tem roteiro de visitas hoje.`;
     const A = v.aVisitar;
-    return [`📍 *${v.rca} - ${titulo(v.nome)}* (${v.filial}) — rota de hoje: ${v.visF} de ${v.visP} visitas feitas · *faltam ${A.length}*`, ...A.slice(0, 30).map(cli), A.length > 30 ? `… e mais ${A.length - 30}` : '',
-      '', A.length ? SUGESTAO + `começar pelos parados há mais tempo e pelos com tag de campanha.` : SUGESTAO + 'rota de hoje concluída.'].filter((x) => x !== '').join('\n');
+    return [`📍 *${v.rca} - ${titulo(v.nome)}* (${v.filial}) — rota de hoje: ${v.visF} de ${v.visP} visitas feitas · *faltam ${A.length}*`, ...A.slice(0, 30).map((c, i) => cli(c, i)), A.length > 30 ? `… e mais ${A.length - 30}` : '',
+      '', A.length ? SUGESTAO + `começar pelos parados há mais tempo e pelos com tag de campanha. _Digite o número para abrir o cliente._` : SUGESTAO + 'rota de hoje concluída.'].filter((x) => x !== '').join('\n');
   }
   // VISUALIZAR E TUDO (Vitorio, 26/10/2026: "varejo entra para a cobranca... para visualizar e tudo"): AS e qualquer canal com roteiro entram nesta lista
   const V = E.vend.filter((v) => (v.rotaHoje || []).length && (!pessoa || (v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial)));
@@ -54,10 +54,11 @@ export function respAVisitar(E, pessoa) {
     for (const [f, x] of [...agrupa(V, (v) => v.filial)].map(([f, x]) => [f, x.V.reduce((a, v) => a + v.aVisitar.length, 0)]).sort((a, b) => b[1] - a[1])) L.push(`• ${f}: faltam ${x}`);
   } else {
     const vendsComFalta = V.filter((v) => v.aVisitar.length).sort((a, b) => b.aVisitar.length - a.aVisitar.length);
+    let idxAV = 0;
     for (const v of vendsComFalta.slice(0, 15)) {
       L.push(`*${vn(v)}* — faltam *${v.aVisitar.length}* de ${naRota(v).length}:`);
       for (const c of v.aVisitar.slice(0, 10)) {
-        L.push(`  ${cli(c)}`);
+        L.push(`  ${cli(c, idxAV++)}`);
       }
       if (v.aVisitar.length > 10) L.push(`  … e mais ${v.aVisitar.length - 10} cliente(s)`);
       L.push('');
@@ -549,9 +550,9 @@ export async function respClientesVend(B, v, periodo) {
     const comp = [...carteira.values()].filter(comprouMes).map((c) => ({ c, r: (porCli.get(String(c.id_cliente)) || { v: 0 }).v })).sort((a, b) => b.r - a.r);
     const nao = [...carteira.values()].filter((c) => !comprouMes(c));
     return [`👥 *Clientes no mês — ${vn(v)}* (${v.filial})`, cab, '',
-      `*Já compraram (${comp.length})* — os que mais compraram:`, '_Cliente · Comprado no mês_', ...comp.slice(0, 8).map((x) => `${nome(x.c)} · ${R$(x.r)}`), '',
-      `*Ainda não compraram (${nao.length}):*`, '_Cliente · Visitado no mês? · Dias sem compra_', ...nao.slice(0, 8).map((c) => `${nome(c)} · ${visitou(c) ? 'sim' : 'não'} · ${diasSem(c)}`), '',
-      '_Peça "ver mais" ou "curva negativa do vendedor" para a lista completa._'].join('\n');
+      `*Já compraram (${comp.length})* — os que mais compraram:`, '_Cliente · Comprado no mês_', ...comp.slice(0, 8).map((x, i) => `${i + 1}. ${nome(x.c)} (#${x.c.id_cliente}) · ${R$(x.r)}`), '',
+      `*Ainda não compraram (${nao.length}):*`, '_Cliente · Visitado no mês? · Dias sem compra_', ...nao.slice(0, 8).map((c, i) => `${comp.slice(0, 8).length + i + 1}. ${nome(c)} (#${c.id_cliente}) · ${visitou(c) ? 'sim' : 'não'} · ${diasSem(c)}`), '',
+      '_Digite o número do cliente para ver a ficha, ou peça "ver mais" para a lista completa._'].join('\n');
   }
   if (periodo === 'ontem') {
     const ult = Lv.reduce((m, l) => Math.max(m, l.d), 0); if (!ult) return `${vn(v)}: sem venda item a item na base para ontem.`;
@@ -559,7 +560,7 @@ export async function respClientesVend(B, v, periodo) {
     const rota = []; const vis = new Set(); for (const c of v.roteiroMes || []) if (String(c.data_visita || '').slice(0, 10) === dia && !vis.has(String(c.id_cliente))) { vis.add(String(c.id_cliente)); rota.push(c); }
     const doDia = new Map(); for (const l of Lv.filter((l) => l.d === ult)) doDia.set(String(l.c), (doDia.get(String(l.c)) || 0) + l.v);
     const fora = [...doDia.keys()].filter((k) => !vis.has(k));
-    const L = rota.map((c) => { const r = doDia.get(String(c.id_cliente)); return [r ? 0 : 1, `${nome(c)} · ${r ? '✅ comprou ' + R$(r) : visitou(c) ? '👣 visitado, sem venda' : '⏳ não visitado'} · ${comprouMes(c) ? 'já comprou no mês' : '❌ sem compra no mês (' + diasSem(c) + ')'}`]; }).sort((a, b) => a[0] - b[0]).map((x) => x[1]);
+    const L = rota.map((c) => { const r = doDia.get(String(c.id_cliente)); return [r ? 0 : 1, `${nome(c)} (#${c.id_cliente}) · ${r ? '✅ comprou ' + R$(r) : visitou(c) ? '👣 visitado, sem venda' : '⏳ não visitado'} · ${comprouMes(c) ? 'já comprou no mês' : '❌ sem compra no mês (' + diasSem(c) + ')'}`]; }).sort((a, b) => a[0] - b[0]).map((x, i) => `${i + 1}. ${x[1]}`);
     return [`📋 *Rota de ${dIsoBR(dia)} — ${vn(v)}* (${v.filial}): *${rota.length} clientes* · *${rota.filter((c) => doDia.has(String(c.id_cliente))).length} compraram* · total ${R$([...doDia.values()].reduce((a, b) => a + b, 0))}`,
       cab, '', '_Cliente · Resultado do dia · Compra no mês_', ...L, ...(fora.length ? ['', `_+ ${fora.length} cliente(s) compraram fora da rota nesse dia._`] : [])].join('\n');
   }

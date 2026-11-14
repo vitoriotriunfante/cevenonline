@@ -71,8 +71,10 @@ export async function respResumo(B, E) {
     for (const x of F) { const g = gFil.get(x.filial); if (g) { x.positivados = g.pos; if (g.metaPos != null) x.meta_pos = g.metaPos; } }
     const t = F.reduce((a, f) => ({ fat: a.fat + (f.faturado || 0), pend: a.pend + (f.pendente || 0), meta: a.meta + (f.meta_fat || 0), pos: a.pos + (f.positivados || 0), mpos: a.mpos + (f.meta_pos || 0), dig: a.dig + (f.digitado_hoje || 0) }), { fat: 0, pend: 0, meta: 0, pos: 0, mpos: 0, dig: 0 });
     if (!t.dig && E.macro) t.dig = E.macro.dig || 0;
+    const { tot: duTotBr } = diasUteisMes(), duFaltBr = Math.max(1, diasUteisRestantes()), duDecBr = Math.max(1, duTotBr - duFaltBr + 1);
+    const tendBr = t.meta ? (((t.fat + t.pend) / duDecBr) * duTotBr / t.meta) * 100 : 0;
     const V = E.vend.filter((v) => v.varejo); const z = V.filter((v) => v.zerado);
-    const L = [`📊 *Brasil — 11 filiais* (${hora})`, `💰 Faturado: *${R$(t.fat)}* de ${R$(t.meta)} → *${P(t.fat, t.meta)}*`, `⏳ Pendente: ${R$(t.pend)}`, `👥 Positivação: ${N(t.pos)} de ${N(t.mpos)} (${P(t.pos, t.mpos)})`,
+    const L = [`📊 *Brasil — 11 filiais* (${hora})`, `💰 Faturado: *${R$(t.fat)}* de ${R$(t.meta)} → *${P(t.fat, t.meta)}*`, `⏳ Pendente: ${R$(t.pend)} · 📈 Tendência (GEROT): *${tendBr.toFixed(1).replace('.', ',')}%*`, `👥 Positivação: ${N(t.pos)} de ${N(t.mpos)} (${P(t.pos, t.mpos)})`,
       `📝 Digitado hoje: *${R$(t.dig)}* em *${N((E.macro && E.macro.pedidos) || (E.vend ? E.vend.reduce((a, v) => a + (v.ped || 0), 0) : 0))}* pedidos`, ...(V.some((v) => v.visP > 0) ? [`🚶 Rota do varejo hoje: ${N(V.reduce((a, v) => a + v.visF, 0))} de ${N(V.reduce((a, v) => a + v.visP, 0))} visitas · zerados: ${z.length}`] : []), '', '*Por filial (% da meta faturada):*'];
     for (const f of F.slice().sort((a, b) => (b.faturado / b.meta_fat) - (a.faturado / a.meta_fat))) {
       const zf = V.filter((v) => v.filial === f.filial && v.zerado).length;
@@ -91,7 +93,9 @@ export async function respResumo(B, E) {
   const fat = G.fat, pend = G.pend, meta = G.meta;   // base unica (12/11/2026)
   const Vr = V.filter((v) => v.varejo), z = Vr.filter((v) => v.zerado);
   const com = V.filter((v) => v.pct != null).sort((a, b) => (b.pct ?? 0) - (a.pct ?? 0));
-  const L = [`📊 *${E.nome} agora* (${hora})`, `💰 Faturado: *${R$(fat)}* de ${R$(meta)} → *${P(fat || 0, meta)}*`, `⏳ Pendente: ${R$(pend)}`];
+  const { tot: duTotF } = diasUteisMes(), duFaltF = Math.max(1, diasUteisRestantes()), duDecF = Math.max(1, duTotF - duFaltF + 1);
+  const tendF = meta ? (((fat + pend) / duDecF) * duTotF / meta) * 100 : 0;
+  const L = [`📊 *${E.nome} agora* (${hora})`, `💰 Faturado: *${R$(fat)}* de ${R$(meta)} → *${P(fat || 0, meta)}*`, `⏳ Pendente: ${R$(pend)} · 📈 Tendência (GEROT): *${tendF.toFixed(1).replace('.', ',')}%*`];
   if (!(E.grupo || E.supervisor || E.rca) && f) L.push(`👥 Positivação: ${N(f.positivados)} de ${N(f.meta_pos)} (${P(f.positivados, f.meta_pos)})`); else {
     let posVal = G.pos, metaPosVal = G.metaPos;
     if (!(E.grupo || E.supervisor || E.rca)) { const g = (await posGerotFiliais(B)).get(fil); if (g) { posVal = g.pos; if (g.metaPos != null) metaPosVal = g.metaPos; } }
@@ -132,12 +136,17 @@ export async function respHoje(B, E, t) {
   const rot = soVarejo ? ' (varejo de rota)' : '';
   const sSaude = await B.saude();
   const hora = (sSaude && sSaude.hora_sp) || new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
+  const { tot: duTot } = diasUteisMes(), duFalt = Math.max(1, diasUteisRestantes()), duDec = Math.max(1, duTot - duFalt + (duTot > duFalt ? 0 : 0));
+  const ofi = await totaisOficiais(B, E).catch(() => null);
+  const ofiVend = ofi && ofi.meta ? (ofi.fat + ofi.pend) : 0;
+  const ofiTend = ofi && ofi.meta && duTot ? ((ofiVend / Math.max(1, duTot - (duFalt - 1))) * duTot / ofi.meta) * 100 : 0;
+  const linhaGerot = ofi && ofi.meta ? `📊 Mês (GEROT): *${R$(ofiVend)}* / ${R$(ofi.meta)} (*${P(ofiVend, ofi.meta)}*) · 📈 Tendência: *${ofiTend.toFixed(1).replace('.', ',')}%*` : '';
   if (E.nacional) {
     const G = [...agrupa(V, (v) => v.filial)].sort((a, b) => b[1].dig - a[1].dig);
     const tot = { ...(agrupa(V, () => 'x').get('x') || { dig: 0, ped: 0, visF: 0, visP: 0, comVenda: 0, zerados: 0 }) };
     if (!soVarejo) { tot.dig = E.macro.dig; tot.ped = E.macro.pedidos; for (const g of G) { const m = E.porFilial[g[0]].macro; g[1].dig = m.dig; g[1].ped = m.pedidos; } G.sort((a, b) => b[1].dig - a[1].dig); }
     if (/TICKET/.test(t)) return [`🧾 *Ticket médio de hoje — Brasil${rot}*: *${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}* (${R$(tot.dig)} ÷ ${N(tot.ped)} pedidos)`, ...G.map(([f, x]) => `• ${f}: ${x.ped ? R$(x.dig / x.ped) : 'sem dado'}`)].join('\n');
-    return [`📝 *Hoje no Brasil${rot}* (${hora})`, `Digitado: *${R$(tot.dig)}* em *${N(tot.ped)}* pedidos · ticket ${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}`, ...(tot.visP ? [`Visitas da rota: ${N(tot.visF)} de ${N(tot.visP)} (com venda na rota: ${N(tot.comVenda)}) · zerados: ${tot.zerados}`] : []), '',   /* dia sem rota nao fala de visita nem zerado (Vitorio, 31/10/2026: "hoje e venda") */
+    return [`📝 *Hoje no Brasil${rot}* (${hora})`, `Digitado: *${R$(tot.dig)}* em *${N(tot.ped)}* pedidos · ticket ${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}`, ...(linhaGerot ? [linhaGerot] : []), ...(tot.visP ? [`Visitas da rota: ${N(tot.visF)} de ${N(tot.visP)} (com venda na rota: ${N(tot.comVenda)}) · zerados: ${tot.zerados}`] : []), '',   /* dia sem rota nao fala de visita nem zerado (Vitorio, 31/10/2026: "hoje e venda") */
       ...G.map(([f, x]) => `• *${f}* ${R$(x.dig)} · ${x.ped} ped.` + (tot.visP ? ` · visitas ${x.visF}/${x.visP} · ${x.zerados} zerado(s)` : '')),
       soVarejo ? '' : '_Totais com todos os canais; peça "hoje rota" para só o varejo._', SUGESTAO + (tot.visP ? `ver os zerados da filial com mais vendedores sem pedido: ${(G.slice().sort((a, b) => b[1].zerados - a[1].zerados)[0] || [''])[0]}.` : `acionar a filial com menos venda digitada hoje: ${(G.slice().sort((a, b) => a[1].dig - b[1].dig)[0] || [''])[0]}.`)].filter((x) => x !== null).join('\n');
   }
@@ -146,7 +155,7 @@ export async function respHoje(B, E, t) {
   if (!soVarejo && !E.grupo && !E.supervisor && !E.rca) { tot.dig = E.macro.dig; tot.ped = E.macro.pedidos; }
   if (/TICKET/.test(t)) return `🧾 *Ticket médio de hoje — ${E.nome}${rot}*: *${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}* (${R$(tot.dig)} ÷ ${tot.ped} pedidos)`;
   const Vs = V.slice().sort((a, b) => b.dig - a.dig);
-  const L = [`📝 *${E.nome} hoje${rot}* (${hora})`, `Digitado: *${R$(tot.dig)}* em *${tot.ped}* pedidos · ticket ${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}`, ...(tot.visP ? [`Visitas da rota: ${tot.visF} de ${tot.visP} (com venda na rota: ${tot.comVenda}) · vendedores zerados: ${tot.zerados}`] : []), ''];
+  const L = [`📝 *${E.nome} hoje${rot}* (${hora})`, `Digitado: *${R$(tot.dig)}* em *${tot.ped}* pedidos · ticket ${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}`, ...(linhaGerot ? [linhaGerot] : []), ...(tot.visP ? [`Visitas da rota: ${tot.visF} de ${tot.visP} (com venda na rota: ${tot.comVenda}) · vendedores zerados: ${tot.zerados}`] : []), ''];
   let iVs = 0;
   for (const v of Vs.slice(0, 40)) {
     iVs++;

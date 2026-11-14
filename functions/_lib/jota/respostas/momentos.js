@@ -145,7 +145,7 @@ export async function respMomento(B, c, Ev, momentoForcado = null) {
       const M = await mixRec(B, v);
       L.push('', `📌 *Planejamento — ${foco.length} clientes de foco hoje:*`);
       const usados = new Set(), repNome = new Set(foco.map((f) => f.nome).filter((nm, i, arr) => arr.indexOf(nm) !== i));
-      foco.forEach((f, i) => { const recs = (M[f.cnpj] || {}).rec || [], r = recs.find((x) => !usados.has(String(x[0]))) || recs[0]; if (r) usados.add(String(r[0])); L.push(`${i + 1}. ${f.nome}${repNome.has(f.nome) ? ` (#${f.id})` : ''}${f.dias != null ? ` · ${f.dias} dias sem compra` : ''}${f.rec ? ' · 🔄' : f.tag ? ` · ${titulo(f.tag)}` : ''}${r ? ` · ofereça *${titulo(r[1])}*` : ''}`); });
+      foco.forEach((f, i) => { const recs = (M[f.cnpj] || {}).rec || [], r = recs.find((x) => !usados.has(String(x[0]))) || recs[0]; if (r) usados.add(String(r[0])); L.push(`${i + 1}. ${f.nome} (#${f.id})${f.dias != null ? ` · ${f.dias} dias sem compra` : ''}${f.rec ? ' · 🔄' : f.tag ? ` · ${titulo(f.tag)}` : ''}${r ? ` · ofereça *${titulo(r[1])}*` : ''}`); });
     } else if (rota.length) L.push('', '✅ Todos os clientes da sua rota de hoje já compraram no mês. Hoje é dia de aumentar o mix! 🧺');
     else L.push('', '📅 Você não tem rota hoje no CEVEN.');
   } else {

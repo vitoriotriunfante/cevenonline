@@ -98,14 +98,17 @@ export async function onRequestGet({ env, request }) {
         clube_lido_em = C.lido_em;
         // ROTA COM O CHECK-IN DO CLUBE (12/11/2026; conferencia 11/11: 98,8% dos check-ins iguais ao CEVEN, hora:minuto): quando o roteiro de hoje e da madrugada
         // (+45 min) ou so o planejado do mes, o status de cada cliente vem do check-in/out do Clube (rede inteira, a cada 15 min). So o JOTA e as telas leem; a Liga nao.
-        let CK = null;
-        try { const { results } = await env.DB.prepare('SELECT rca, cliente, tipo, data_hora FROM clube_checkin WHERE dia = ? AND filial = ?').bind(dia, filial).all(); CK = new Map(); for (const x of results || []) { const k = x.rca + '|' + x.cliente; const y = CK.get(k) || { ci: null, co: null }; const h = String(x.data_hora || '').slice(11, 16); if (x.tipo === 'CHECKIN' && (!y.ci || h < y.ci)) y.ci = h; if (x.tipo === 'CHECKOUT' && (!y.co || h > y.co)) y.co = h; CK.set(k, y); } } catch { CK = null; }
+        let CK = null, JU = null;
+        try { const [rCk, rJu] = await Promise.all([
+          env.DB.prepare('SELECT rca, cliente, tipo, data_hora FROM clube_checkin WHERE dia = ? AND filial = ?').bind(dia, filial).all(),
+          env.DB.prepare('SELECT rca, cliente, motivo, obs FROM clube_justificativa WHERE dia = ? AND filial = ?').bind(dia, filial).all().catch(() => ({ results: [] }))
+        ]); CK = new Map(); for (const x of rCk.results || []) { const k = x.rca + '|' + x.cliente; const y = CK.get(k) || { ci: null, co: null }; const h = String(x.data_hora || '').slice(11, 16); if (x.tipo === 'CHECKIN' && (!y.ci || h < y.ci)) y.ci = h; if (x.tipo === 'CHECKOUT' && (!y.co || h > y.co)) y.co = h; CK.set(k, y); } JU = new Map(); for (const j of rJu.results || []) JU.set(j.rca + '|' + j.cliente, { mot: j.motivo || '', obs: j.obs || '' }); } catch { CK = null; JU = null; }
         if (CK) for (const [rca, r] of Object.entries(rcas)) {
           if (!C.rcas.get(rca)) continue;
           const rotVelho = Array.isArray(r.roteiro) && !(Date.now() - Date.parse(String(r.roteiro_em || '').replace(' ', 'T') + 'Z') < 45 * 60000);
           const base = Array.isArray(r.roteiro) && !rotVelho ? null : Array.isArray(r.roteiro) ? r.roteiro : Array.isArray(r.roteiro_planejado) ? r.roteiro_planejado : null;
           if (!base) continue;
-          r.roteiro = base.filter((c) => c && String(c.data_visita || '').slice(0, 10) === dia).map((c) => { const y = CK.get(rca + '|' + String(c.id_cliente)); return y && y.ci ? { ...c, status: /POSITIVADO|EFETIVADO/i.test(String(c.status || '')) ? c.status : 'VISITADO', checkin_horario: y.ci, checkout_horario: y.co } : { ...c, status: 'ABERTO', checkin_horario: null, checkout_horario: null }; });
+          r.roteiro = base.filter((c) => c && String(c.data_visita || '').slice(0, 10) === dia).map((c) => { const k = rca + '|' + String(c.id_cliente), y = CK.get(k), ju = JU && JU.get(k); if (y && y.ci) return { ...c, status: /POSITIVADO|EFETIVADO/i.test(String(c.status || '')) ? c.status : 'VISITADO', checkin_horario: y.ci, checkout_horario: y.co, ...(ju ? { motivo_nao_visita: ju.mot || c.motivo_nao_visita, observacao_nao_visita: ju.obs || c.observacao_nao_visita } : {}) }; if (ju) return { ...c, status: /POSITIVADO|EFETIVADO/i.test(String(c.status || '')) ? c.status : 'JUSTIFICADO', checkin_horario: null, checkout_horario: null, motivo_nao_visita: ju.mot || c.motivo_nao_visita, observacao_nao_visita: ju.obs || c.observacao_nao_visita }; return { ...c, status: 'ABERTO', checkin_horario: null, checkout_horario: null }; });
           r.rota_clube = true; (r.reserva = r.reserva || {}).rota_clube = { fonte: 'Clube da Venda (check-in/out)', em: C.lido_em };
           if (r.reserva.roteiro) delete r.reserva.roteiro;
         }
