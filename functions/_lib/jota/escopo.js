@@ -100,10 +100,14 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
 
 // ESCOPO: { nome, filiais:[...], grupo, nacional }
 export async function carregaEscopo(B, esc) {
+  const k = B ? JSON.stringify([esc.filiais || [], esc.grupo || '', (esc.supervisor && (esc.supervisor.nome || esc.supervisor)) || '', esc.rca || '']) : '';
+  if (B && B._escopoCache && B._escopoCache.has(k)) return B._escopoCache.get(k);
   const partes = await Promise.all(esc.filiais.map((f) => vendedoresDaFilial(B, f, esc.grupo, esc.supervisor, esc.rca)));
   const vend = partes.flatMap((p) => p.vend), ocultos = partes.flatMap((p) => p.ocultos || []), outros = partes.flatMap((p) => p.outros || []);
   const macro = partes.reduce((t, p) => ({ pedidos: t.pedidos + p.macro.pedidos, dig: t.dig + p.macro.dig, devHoje: t.devHoje + p.macro.devHoje }), { pedidos: 0, dig: 0, devHoje: 0 });
-  return { ...esc, vend, ocultos, outros, macro, porFilial: Object.fromEntries(esc.filiais.map((f, i) => [f, partes[i]])) };
+  const res = { ...esc, vend, ocultos, outros, macro, porFilial: Object.fromEntries(esc.filiais.map((f, i) => [f, partes[i]])) };
+  if (B) { B._escopoCache = B._escopoCache || new Map(); B._escopoCache.set(k, res); }
+  return res;
 }
 // chave de supervisor: "NOME|FIL" no Brasil; pseudo-supervisores (sem supervisor, GERENTE X, VAGO) nao entram em ranking nem sugestao
 export const supChave = (v, nac) => (v.supervisor || 'sem supervisor') + (nac ? '|' + v.filial : '');

@@ -3,7 +3,7 @@
 // O QUE É: carteira, ritmo, gaps, rankings, comparações, dobradinha, aviso de equipe.
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
-import { N, P, R$, SUGESTAO, hojeSP, nome2, sem, titulo, vn } from '../base.js';
+import { N, P, R$, SUGESTAO, diasUteisRestantes, hojeSP, nome2, sem, titulo, vn } from '../base.js';
 import { agrupa, carregaEscopo, pctTxt, pessoaReal, sn, supChave, supNome, supReal } from '../escopo.js';
 import { totaisOficiais } from './resumo.js';
 import { ehFeriado } from '../../feriados.js';
@@ -13,6 +13,13 @@ export function diasUteisMes() {
   const [y, m, d] = hojeSP().split('-').map(Number), fim = new Date(Date.UTC(y, m, 0)).getUTCDate(); let tot = 0, pass = 0;
   for (let i = 1; i <= fim; i++) { const w = new Date(Date.UTC(y, m - 1, i)).getUTCDay(); if (w > 0 && w < 6 && !ehFeriado(`${y}-${String(m).padStart(2, '0')}-${String(i).padStart(2, '0')}`)) { tot++; if (i < d) pass++; }   /* feriado nao e dia util (12/10) */ }
   return { tot, pass };
+}
+function diasUteisAgora() {
+  const hoje = hojeSP(), { tot, pass } = diasUteisMes();
+  const [y, m, d] = hoje.split('-').map(Number), w = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  const ehDU = w > 0 && w < 6 && !ehFeriado(hoje);
+  const falt = Math.max(1, diasUteisRestantes()), dec = Math.max(1, Math.min(tot, pass + (ehDU ? 1 : 0)));
+  return { hoje, tot, pass, dec, falt };
 }
 export async function respCarteira(B, E) {
   const x = await totaisOficiais(B, E); if (!x.meta) return 'Sem dado agora.';
@@ -117,8 +124,8 @@ export async function respInfoEquipe(env, c, texto) {
 // pura... so deixa claro que isso e tendencia... e da para atualizar diario"). Conta: ritmo = (faturado + pendente) / dias uteis decorridos (hoje conta);
 // tendencia = ritmo x dias uteis do mes. Necessario = (meta - faturado - pendente) / dias uteis que faltam. Seg-sex, sem descontar feriado. Sempre rotulado TENDENCIA.
 export async function respTendencia(B, E) {
-  let x = null, G = null, fonteTxt = '_Dias úteis seg–sex, sem feriados; atualiza a cada consulta com o faturado + pendente de agora._';
-  const { tot, pass } = diasUteisMes(), dec = Math.min(tot, pass + 1), falt = Math.max(0, tot - dec);
+  let x = null, G = null, fonteTxt = '_Dias úteis seg–sex (sem feriados); atualiza a cada consulta com o faturado + pendente de agora._';
+  const { tot, dec, falt } = diasUteisAgora();
   const tend = (y) => { const s = (y.fat || 0) + (y.pend || 0); const t = dec ? s / dec * tot : s; return { s, t, pct: y.meta ? t / y.meta * 100 : null, nec: falt ? Math.max(0, y.meta - s) / falt : 0, rit: dec ? s / dec : s }; };
   if (B && B.env && B.env.DB) {
     try {
@@ -177,7 +184,7 @@ export async function respTendencia(B, E) {
 
 export async function respMaiorAtrasoMeta(B, E) {
   if (!B || !B.env || !B.env.DB) return null;
-  const mes = hojeSP().slice(0, 7), { tot, pass } = diasUteisMes(), dec = Math.min(tot, pass + 1), falt = Math.max(1, tot - dec);
+  const mes = hojeSP().slice(0, 7), { dec, falt } = diasUteisAgora();
   const fil = (E.filiais || []).length ? E.filiais : ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
   const qs = fil.map(() => '?').join(',');
   const { results } = await B.env.DB.prepare(`SELECT filial, rca, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...fil).all().catch(() => ({ results: [] }));
@@ -256,8 +263,7 @@ export async function respFaseamentoSemana(B, E, t) {
 
 export async function respMatinal(B, E) {
   if (!B || !B.env || !B.env.DB) return null;
-  const hoje = hojeSP(), mes = hoje.slice(0, 7), { tot, pass } = diasUteisMes();
-  const dec = Math.min(tot, pass + 1), falt = Math.max(1, tot - dec);
+  const { hoje, tot, dec, falt } = diasUteisAgora(), mes = hoje.slice(0, 7);
   const fil = (E.filiais || []).length ? E.filiais : ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
   const qs = fil.map(() => '?').join(',');
   const [stGerot, vendRes, rotaRes, pedRes, prospRes] = await Promise.all([
@@ -337,9 +343,7 @@ export async function respMatinal(B, E) {
         const tgs = [].concat(cli.tags || cli.campanhas || []).map((g) => typeof g === 'string' ? g : (g.nome || g.tag || '')).filter(Boolean);
         const tagStr = tgs.length ? ` [${tgs.slice(0, 2).join(', ')}]` : '';
         return `${i + 1}. ${titulo(cli.nome_cliente || cli.razao_social || 'cliente')} (#${cli.id_cliente})${tagStr}`;
-      }), ...(clisHoje.length > 12 ? [`_… e mais ${clisHoje.length - 12} na rota._`] : [])] : ['', '_Sem clientes carregados na rota de hoje._']),
-      '',
-      '👉 _Responda o número de um cliente para ver última compra e o que oferecer._'
+      }), ...(clisHoje.length > 12 ? [`_… e mais ${clisHoje.length - 12} na rota._`] : []), '', '👉 _Responda o número de um cliente para ver última compra e o que oferecer._'] : ['', '_Sem clientes carregados na rota de hoje._'])
     ].join('\n');
   }
 

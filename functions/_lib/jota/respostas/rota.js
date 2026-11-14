@@ -721,11 +721,11 @@ export async function respCampanhasVendedor(B, v, escolha = null, todos = false)
     const x = L.find((y) => y.tag === escolha); if (!x) return `🏷️ Não achei a campanha *${escolha}* no seu roteiro do mês.`;
     const cs = [...T.get(x.tag).values()], hojeIds = new Set((v.rotaHoje || []).map((c) => String(c.id_cliente)));
     const falta = cs.filter((c) => !compraram.has(String(c.id_cliente))), hoje = falta.filter((c) => hojeIds.has(String(c.id_cliente))), resto = falta.filter((c) => !hojeIds.has(String(c.id_cliente)));
-    const dd = (s) => (s && s >= '2000' ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : 'sem compra'), lin = (c) => `• ${titulo(c.nome_cliente || c.razao_social || 'cliente')} (#${c.id_cliente}) · última compra ${dd(String(c.data_ultima_compra || '').slice(0, 10))}`;
+    const dd = (s) => (s && s >= '2000' ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : 'sem compra'), lin = (c, i) => `${i + 1}. ${titulo(c.nome_cliente || c.razao_social || 'cliente')} (#${c.id_cliente}) · última compra ${dd(String(c.data_ultima_compra || '').slice(0, 10))}`;
     const lim = todos ? 200 : 20;
     return [`🏷️ *${x.tag} — ${vn(v)}*`, `*${x.comp} de ${x.tot}* clientes já compraram · faltam *${x.tot - x.comp}*`,
-      ...(hoje.length ? ['', `📍 *Na rota de hoje e sem compra (${hoje.length}):*`, ...hoje.map(lin)] : ['', '_Nenhum cliente dessa campanha sem compra na rota de hoje._']),
-      ...(resto.length ? ['', `*Outros sem compra no mês (${resto.length}):*`, ...resto.slice(0, lim).map(lin), ...(resto.length > lim ? [`_… e mais ${resto.length - lim}. Peça *ver mais*._`] : [])] : []),
+      ...(hoje.length ? ['', `📍 *Na rota de hoje e sem compra (${hoje.length}):*`, ...hoje.map((c, i) => lin(c, i))] : ['', '_Nenhum cliente dessa campanha sem compra na rota de hoje._']),
+      ...(resto.length ? ['', `*Outros sem compra no mês (${resto.length}):*`, ...resto.slice(0, lim).map((c, i) => lin(c, hoje.length + i)), ...(resto.length > lim ? [`_… e mais ${resto.length - lim}. Peça *ver mais*._`] : [])] : []),
       '', SUGESTAO + (hoje.length ? `comece pelos ${hoje.length} da rota de hoje.` : 'encaixe esses clientes nas próximas visitas.')].join('\n');
   }
   return [`🏷️ *Campanhas e TAGs do mês — ${vn(v)}*`, '_Todas as TAGs do seu roteiro do mês (combos, foco, P11…), menos recorrência (essa é o 8) · quantos clientes já compraram (faturado ou pedido)_', '',

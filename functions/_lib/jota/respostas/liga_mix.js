@@ -151,6 +151,7 @@ export const SUB_VENDEDOR = {
 // assunto do texto livre -> indice sugerido (o vendedor so recebe o indice; a resposta sai pelo numero)
 const TEMAS_VENDEDOR = [
   [3, /COMISS|SALARI|\bRMV\b|\bRV\b|\bGANHOS?\b|REMUNERA|HOLERITE|PREMIACAO/],
+  [12, /FICHA\b|DADOS DO CLIENTE|VER CLIENTE|CONSULTAR CLIENTE/],
   [7, /MES PASSADO|MES ANTERIOR|OUTUBRO|SETEMBRO|FECHAMENTO/],
   [5, /SEM VENDA|SEM COMPRA|CURVA|NAO COMPR|NAO POSITIV|INATIV|PARAD/],
   [8, /RECORR/],
@@ -190,6 +191,7 @@ export const SUB_SUPERVISOR = {
   4: [['Pedidos a faturar', 'pedidos pendentes da equipe'], ['Pedidos bloqueados', 'pedidos bloqueados da equipe'], ['Pedidos cancelados', 'pedidos cancelados da equipe']],
 };
 const TEMAS_SUPERVISOR = [
+  [14, /FICHA\b|DADOS DO CLIENTE|VER CLIENTE|CONSULTAR CLIENTE/],
   [7, /MES PASSADO|MES ANTERIOR|OUTUBRO|SETEMBRO|FECHAMENTO|FECHOU/],
   [6, /RECORR/],
   [5, /SEM VENDA|SEM COMPRA|CURVA|NAO COMPR|NAO POSITIV|INATIV|FALTA POSITIVAR/],

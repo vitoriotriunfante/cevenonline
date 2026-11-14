@@ -357,6 +357,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     if (rcaV && !B.semIndice) {
       const { MENU_VENDEDOR, SUB_VENDEDOR, temaDoTexto, respMenuVendedor } = await import('./respostas/liga_mix.js');
       const eu = `VENDEDOR ${rcaV}`, ult = String(B.ultOut || '');
+      if (/〔M:/.test(ult) && /^\W*(ESCREVA |VER |QUERO )?MAIS\W*$/.test(t)) return respMenuVendedor(c);
       const interno = async (q) => { const o = B.semIndice; B.semIndice = true; try { return await respostaPronta(B, c, q, []); } finally { B.semIndice = o; } };
       const nm = t.match(/^\W*(\d{1,2})(?:[.,](\d{1,2}))?\W*$/);
       const emSubmenu = /MENU DO JOTA/.test(ult) || /📌 \*Quer detalhar\?\*/.test(ult);
@@ -453,7 +454,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
         else if (chave === '__liga__') { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; r = v ? await respLiga(B, Ev, v) : 'Não achei os seus dados na base agora.'; }
         else if (chave === '__regras__') { const { respRegrasLiga } = await import('./respostas/liga_mix.js'); r = await respRegrasLiga(B); }
         else if (chave === '__produto__') r = (await interno('metas das industrias')) + '\n\n👉 Para um produto, mande *tem <produto>* (ex.: *tem Toblerone*).';
-        else if (chave === '__ficha__') r = 'Mande o *código do cliente* assim: *cliente #12345* (ou o CNPJ) que eu abro a ficha com o histórico e o que oferecer.';
+        else if (chave === '__ficha__') r = 'Mande o *código*, *CNPJ* ou *nome do cliente* (ex.: *cliente #12345* ou *cliente Mercado Costa*) que eu abro a ficha com o histórico e o que oferecer.';
         else if (['__carteira__', '__campanhas__', '__mixrota__', '__rota__'].includes(chave)) {
           const Ev = await carregaEscopo(B, esc), v = Ev.vend[0];
           r = !v ? 'Não achei os seus dados na base agora.' : chave === '__carteira__' ? await respCarteiraVendedor(B, v) : chave === '__campanhas__' ? await respCampanhasVendedor(B, v) : chave === '__mixrota__' ? await respMixRotaHoje(B, v) : await respMinhaRota(B, v);
@@ -693,7 +694,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     // RV / COMISSAO / SALARIO DO VENDEDOR (Vitorio, 09/11/2026): 'quando perguntar sobre o RV responde que nao tem os dados, mas da as metas e como esta ate agora'.
     // Antes da regra do mes passado: 'meu RMV do mes passado' recebe o fechamento + o aviso.
     if (rcaV && /COMISS|SALARI|\bRMV\b|\bRV\b|\bGANHOS?\b|REMUNERA|HOLERITE|PREMIACAO DE VENDAS|MINHA PREMIACAO\b/.test(t)) { const euV = `VENDEDOR ${rcaV}`, passado = /MES PASSADO|MES ANTERIOR|OUTUBRO|SETEMBRO/.test(t);
-      const comoEsta = await reenvia(passado ? 'fechamento do mes passado' : `como esta o ${euV}`), metas = await reenvia('metas da premiacao');
+      const [comoEsta, metas] = await Promise.all([reenvia(passado ? 'fechamento do mes passado' : `como esta o ${euV}`), reenvia('metas da premiacao')]);
       return `💰 *Não tenho os dados do RV (premiação em R$) aqui no Jota.* Seguem as suas metas e como você está ${passado ? 'no fechamento do mês passado' : 'até agora'}:\n\n${comoEsta}\n\n${metas}`; }
     if (/\bBALLY\b/.test(t)) return reenvia(t.replace(/\bBALLY\b/g, 'BALY'));   // o catalogo escreve BALY (energetico da Bebidas Grassi); o time escreve Bally
     // MES QUE JA FECHOU, em qualquer jeito de perguntar ("como foi outubro", "bati a meta em outubro?", "quanto vendi mes passado", "fechei a meta?"): o fechamento gravado, nunca o mes que comecou (02/11/2026)
@@ -891,6 +892,23 @@ export async function respostaInterna(B, c, texto, anteriores) {
     if (ehCorte || ehGapCli) { const Ec = await carregaEscopo(B, esc); let pc = achaPessoa(Ec, t);
       if (!pc && ehGapCli) for (const a of anteriores || []) { pc = achaPessoa(Ec, sem(String(a))); if (pc) break; }
       const r = await respResumoVendedores(B, Ec, pc && pc.tipo === 'vend' ? [pc.alvo] : Ec.vend, ehGapCli ? 'gap' : 'corte', t); if (r) return r; } }
+  if (/PEDIDOS? CANCELAD/.test(t) && !/[0-9]{7,}/.test(t) && B.env && B.env.DB) {
+    const Ep = await carregaEscopo(B, esc), pp = achaPessoa(Ep, t);
+    const alvos = pp && pp.tipo === 'vend' ? [pp.alvo] : (Ep.vend || []);
+    const fils = [...new Set(alvos.map((v) => String(v.filial)).filter(Boolean))];
+    const rcas = new Set(alvos.map((v) => v.filial + '|' + v.rca));
+    const vnMap = new Map(alvos.map((v) => [v.filial + '|' + v.rca, vn(v)]));
+    if (fils.length) {
+      const { results: Pc } = await B.env.DB.prepare(`SELECT filial, rca, num, data_pedido, valor FROM pedido_status WHERE filial IN (${fils.map(() => '?').join(',')}) AND status = 'CANCELADO' AND data_pedido >= date('now', '-3 hours', '-30 days') ORDER BY data_pedido DESC, num DESC LIMIT 80`).bind(...fils).all().catch(() => ({ results: [] }));
+      const meus = (Pc || []).filter((p) => rcas.has(p.filial + '|' + p.rca));
+      const nmEsc = pp && pp.tipo === 'vend' ? vn(pp.alvo) : Ep.nome;
+      if (!meus.length) return `❌ *Pedidos cancelados (últimos 30 dias) — ${nmEsc}*: nenhum pedido cancelado na base.`;
+      const tot = meus.reduce((s, p) => s + (Number(p.valor) || 0), 0);
+      return [`❌ *Pedidos cancelados (últimos 30 dias) — ${nmEsc}*`, `Total: *${meus.length} pedido(s)* · *${R$(tot)}*`, '',
+        ...meus.slice(0, 25).map((p) => `• ${String(p.data_pedido).slice(8, 10)}/${String(p.data_pedido).slice(5, 7)} · nº ${p.num} · ${R$(p.valor || 0)}${alvos.length > 1 ? ' · ' + (vnMap.get(p.filial + '|' + p.rca) || p.rca) : ''}`),
+        ...(meus.length > 25 ? [`_… e mais ${meus.length - 25} pedido(s)._`] : [])].join('\n');
+    }
+  }
   if (/\bBLOQUEIO\b|\bBLOQUEAD/.test(t) && !/PEDIDO/.test(t)) t = t + ' PEDIDOS BLOQUEADOS';   // 'quanto com bloqueio comercial?' (Marcelo/API, 10/11/2026)
   const ehPerguntaStatusPedidos =((/PEDIDOS?/.test(t) && /BLOQUEAD|LIBERAD|CORTAD|COM CORTE|SEM FATURAR|NAO FATUR|PENDENTE/.test(t))
     || /(DETALHE|QUAIS|LISTA).{0,25}CORTE/.test(t)    || /CLIENTES? (QUE ESTAO |NO |EM |COM )?PENDENTES?|QUAIS (SAO OS )?CLIENTES?.*PENDENTE|CLIENTES PENDENTES|QUEM (ESTA|TA) NO PENDENTE|QUEM (ESTA|TA) PENDENTE/i.test(t)
@@ -1411,7 +1429,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
         // duas bases do CEVEN com contas diferentes (Igor/TBL, 31/10/2026: 49 de 51 no roteiro x 31 de 44 no painel): mostra as duas, nunca uma so
         v.pos != null && v.metaPos != null ? `_Painel do CEVEN: positivação ${v.pos} de ${Math.round(v.metaPos)}. Esta lista segue o roteiro do mês, que é outra conta._` : '', '',
         ...(lista.length ? ['_Cliente · Última compra · Dias sem compra_'] : []),
-        ...lista.map((x) => `${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} · ${x.u ? x.u.slice(8, 10) + '/' + x.u.slice(5, 7) + ' · ' + x.d + ' dias' : x.semPed ? 'sem pedido no histórico' : '— · +60 dias'}`),
+        ...lista.map((x, i) => `${i + 1}. ${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} (#${x.c.id_cliente}) · ${x.u ? x.u.slice(8, 10) + '/' + x.u.slice(5, 7) + ' · ' + x.d + ' dias' : x.semPed ? 'sem pedido no histórico' : '— · +60 dias'}`),
         sobra > 0 ? `… e mais ${sobra} (peça "ver mais")` : '', '',
         SUGESTAO + (sobra > 0 ? 'começar por quem comprou há menos tempo: é mais fácil de recuperar.' : (ini > 0 ? 'lista completa entregue.' : 'começar por quem comprou há menos tempo: é mais fácil de recuperar.'))].filter((x) => x !== '').join('\n');
     }
