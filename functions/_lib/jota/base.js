@@ -88,35 +88,35 @@ export async function cotaEnvio(env, d) {
     return { ok: true };
   } catch (e) { return { ok: true }; }   // falha do D1 nunca derruba a resposta
 }
-export async function enviar(env, numero, texto) {
+export async function enviar(env, numero, texto, opcoes = {}) {
   if (!env.EVO_URL || !env.EVO_KEY) return { ok: false, erro: 'EVO_URL/EVO_KEY nao configurados' };
   const s = String(numero || '').trim();
   const cfg = R.evoCfg(env);
   if (!s.endsWith('@g.us')) { const q = await cotaEnvio(env, so(s)); if (!q.ok) return { ok: false, status: 429, erro: q.erro, teto: true }; }
   if (s.endsWith('@g.us')) {
-    const rG = await R.enviarTexto(cfg, s, texto);
+    const rG = await R.enviarTexto(cfg, s, texto, opcoes);
     return { ok: rG.ok, status: rG.status, erro: rG.erro, resposta: rG.resposta };
   }
   const d = so(s);
   if (!d) return { ok: false, erro: 'numero vazio ou invalido' };
-  let r = await R.enviarTexto(cfg, d, texto);
+  let r = await R.enviarTexto(cfg, d, texto, opcoes);
   // SERVIDOR DO WHATSAPP FORA (01/11/2026: Vitorio perguntou, o JOTA respondeu certo e o erro 530 perdeu a mensagem): tenta de novo em 5 s e 15 s. Nao repete erro 4xx (numero invalido, por exemplo).
-  for (const ms of [5000, 15000]) { if (r.ok || !(Number(r.status) >= 500 || !r.status)) break; await new Promise((ok) => setTimeout(ok, ms)); r = await R.enviarTexto(cfg, d, texto); }
+  for (const ms of [5000, 15000]) { if (r.ok || !(Number(r.status) >= 500 || !r.status)) break; await new Promise((ok) => setTimeout(ok, ms)); r = await R.enviarTexto(cfg, d, texto, opcoes); }
   if (r.ok) return { ok: true, status: r.status };
   // falha passageira da Evolution (31/10/2026: 4 respostas nao chegaram; Franco: "ja que voce nao quer responder meu bom dia"): tenta de novo antes de desistir
   if (!r.status || r.status >= 500) {
     await new Promise((ok) => setTimeout(ok, 1500));
-    r = await R.enviarTexto(cfg, d, texto);
+    r = await R.enviarTexto(cfg, d, texto, opcoes);
     if (r.ok) return { ok: true, status: r.status };
   }
   const alts = variantes(d).filter((v) => v !== d);
   for (const alt of alts) {
-    const rAlt = await R.enviarTexto(cfg, alt, texto);
+    const rAlt = await R.enviarTexto(cfg, alt, texto, opcoes);
     if (rAlt.ok) return { ok: true, status: rAlt.status };
   }
   return { ok: false, status: r.status, erro: r.erro, resposta: r.resposta };
 }
-export async function enviarImagem(env, numero, media, caption) {
+export async function enviarImagem(env, numero, media, caption, opcoes = {}) {
   if (!env.EVO_URL || !env.EVO_KEY || !media) return { ok: false, erro: 'sem config ou midia' };
   const s = String(numero || '').trim(), cfg = R.evoCfg(env);
   if (!s.endsWith('@g.us')) { const q = await cotaEnvio(env, so(s)); if (!q.ok) return { ok: false, status: 429, erro: q.erro, teto: true }; }
@@ -125,11 +125,11 @@ export async function enviarImagem(env, numero, media, caption) {
   const rawMedia = String(media).replace(/^data:[^;]+;base64,/, '');
   const mime = rawMedia.startsWith('/9j/') ? 'image/jpeg' : 'image/png';
   const corpo = { number: d, mediatype: 'image', mimetype: mime, media: rawMedia, caption: String(caption || '').slice(0, 4000) };
-  let r = await R.enviarMidia(cfg, '/message/sendMedia', corpo);
+  let r = await R.enviarMidia(cfg, '/message/sendMedia', corpo, opcoes);
   if (r.ok) return { ok: true, status: r.status };
   if (!s.endsWith('@g.us')) {
     for (const alt of variantes(d).filter((v) => v !== d)) {
-      const rAlt = await R.enviarMidia(cfg, '/message/sendMedia', { ...corpo, number: alt });
+      const rAlt = await R.enviarMidia(cfg, '/message/sendMedia', { ...corpo, number: alt }, opcoes);
       if (rAlt.ok) return { ok: true, status: rAlt.status };
     }
   }

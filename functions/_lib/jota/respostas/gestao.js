@@ -309,6 +309,40 @@ export async function respMatinal(B, E) {
   const totRota = rows.reduce((a, x) => a + x.rota, 0), totProsp = rows.reduce((a, x) => a + x.prospects, 0);
   const totBloqQtd = rows.reduce((a, x) => a + x.bloqQtd, 0), totBloqVlr = rows.reduce((a, x) => a + x.bloqVlr, 0);
 
+  if (E.rca) {
+    const x = rows[0];
+    const rHoje = (rotaRes.results || []).find((r) => r.filial === x.filial && String(r.rca) === String(x.rca));
+    let clisHoje = [];
+    if (rHoje && rHoje.json) {
+      try {
+        const p = JSON.parse(rHoje.json);
+        clisHoje = Array.isArray(p) ? p : (Array.isArray(p.clientes) ? p.clientes : []);
+      } catch {}
+    }
+    clisHoje.sort((a, b) => {
+      const aFeito = /EFETIVADO|COMPROU|VISITADO/i.test(String(a.status || '')) ? 1 : 0;
+      const bFeito = /EFETIVADO|COMPROU|VISITADO/i.test(String(b.status || '')) ? 1 : 0;
+      if (aFeito !== bFeito) return aFeito - bFeito;
+      const aTag = (a.tags || a.campanhas || []).length ? 0 : 1;
+      const bTag = (b.tags || b.campanhas || []).length ? 0 : 1;
+      return aTag - bTag;
+    });
+    return [
+      `☀️ *Sua Matinal — ${x.rca} - ${titulo(x.nome)}* (${dec}/${tot} du · faltam ${falt})`,
+      `💰 Fat.+Cart.: *${R$(x.vend)}* / ${R$(x.meta)} (*${P(x.vend, x.meta)}*)`,
+      `📈 Tendência: *${x.tendPct.toFixed(1).replace('.', ',')}%* · 🎯 Precisa: *${R$(x.precisaDia)}/dia*`,
+      `👥 Positivação: *${N(x.pos)}*${x.metaPos ? ' / ' + N(x.metaPos) + ' (' + P(x.pos, x.metaPos) + ')' : ''}`,
+      `🗺️ Rota hoje: *${N(x.rota)}* PDVs · *${N(x.prospects)}* prospects · 🚫 Bloq.: *${N(x.bloqQtd)}* (${R$(x.bloqVlr)})`,
+      ...(clisHoje.length ? ['', '*Clientes na rota de hoje (digite o número para abrir):*', ...clisHoje.slice(0, 12).map((cli, i) => {
+        const tgs = [].concat(cli.tags || cli.campanhas || []).map((g) => typeof g === 'string' ? g : (g.nome || g.tag || '')).filter(Boolean);
+        const tagStr = tgs.length ? ` [${tgs.slice(0, 2).join(', ')}]` : '';
+        return `${i + 1}. ${titulo(cli.nome_cliente || cli.razao_social || 'cliente')} (#${cli.id_cliente})${tagStr}`;
+      }), ...(clisHoje.length > 12 ? [`_… e mais ${clisHoje.length - 12} na rota._`] : [])] : ['', '_Sem clientes carregados na rota de hoje._']),
+      '',
+      '👉 _Responda o número de um cliente para ver última compra e o que oferecer._'
+    ].join('\n');
+  }
+
   const topChart = rows.slice(0, 14);
   if (topChart.length > 1) {
     const chartCfg = {

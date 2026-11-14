@@ -71,6 +71,8 @@ export async function respostaPronta(B, c, texto0, anteriores) {
   const ehContinuacaoVend = !ehPerguntaRotaGeral && /^(E\b|E O\b|E A\b|E DELE|E DELA|E HOJE|E ONTEM|E NO MES|FALTA|QUANTO FALTA|COMO FOI|COMO ESTA|DETALHE|VER MAIS|MOSTRA(R)? MAIS|RESTANTE|RESTO|OUTROS|\+ ?MIX|MAIS ?MIX)/.test(t0);
   B._ctxVend = !abre && !equipe && !ehSobreOutroTema && ehContinuacaoVend && (!filCit || !ctx.vend || ctx.vend.filial === filCit) ? ctx.vend || null : null;   /* vendedor da conversa só herdado em continuação direta */
   B._ctxAssunto = ctx.assunto || null;
+  B._ctxUltCli = ctx.ultimoCliente || null;
+  B._ctxClientes = Array.isArray(ctx.clientesLista) ? ctx.clientesLista : null;
   B._ultPessoa = null;
   if (B._ctxVend && c.papel !== 'diretoria' && c.papel !== 'ceo') {   /* diretoria/ceo nunca fica amarrada a vendedor de conversa anterior */
     try {
@@ -94,7 +96,19 @@ export async function respostaPronta(B, c, texto0, anteriores) {
     let up = null;
     try { const ec = escopoDoContato(c, sem(texto).match(FRX)); const escX = ec.rcaV ? null : ec.fil ? { nome: ec.fil, filiais: [ec.fil], grupo: ec.supervisor ? null : ec.grupo, supervisor: ec.supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
       if (escX) { const Ex = await carregaEscopo(B, escX); const p = achaPessoa(Ex, sem(texto)); if (p && p.tipo === 'vend' && !/^(GERENTE|VAGO|RCA\b|VENDA )/i.test(String(p.alvo.nome || ''))) up = p.alvo; } } catch (e) { up = null; }
-    const novo = { filial: abre ? null : filCit || (up && up.filial) || ctx.filial || null, vend: abre || equipe ? null : up ? { rca: String(up.rca), filial: up.filial, nome: up.nome } : (filCit && ctx.vend && ctx.vend.filial !== filCit ? null : ctx.vend || null), assunto: t0.slice(0, 200) };
+    const listaCli = [];
+    if (typeof r0 === 'string') {
+      for (const m of r0.matchAll(/^(\d{1,2})\.\s+\*?([^(\n]+?)\*?\s+\(#(\d+)\)/gm)) {
+        listaCli.push({ n: Number(m[1]), nome: m[2].trim(), id: m[3] });
+      }
+    }
+    const novo = {
+      filial: abre ? null : filCit || (up && up.filial) || ctx.filial || null,
+      vend: abre || equipe ? null : up ? { rca: String(up.rca), filial: up.filial, nome: up.nome } : (filCit && ctx.vend && ctx.vend.filial !== filCit ? null : ctx.vend || null),
+      assunto: t0.slice(0, 200),
+      ultimoCliente: B._ctxUltCli || null,
+      clientesLista: listaCli.length ? listaCli : (ctx.clientesLista || null)
+    };
     if (c && c.celular && B.ctxGravar) await B.ctxGravar(c.celular, novo);
   } catch (e) { /* sem estado */ }
   const prefixo = outra && !/Você vê só|alçada|Olá/i.test(r || '') ? outra : '';
@@ -265,6 +279,7 @@ async function respResumoVendedores(B, E, V, modo, t) {
 }
 async function respFichaCliente(B, E, t, achado) {
   const { c: x, v } = achado, nome = titulo(x.nome_cliente || x.razao_social || 'cliente');
+  B._ctxUltCli = { id: String(x.id_cliente), filial: String(v.filial), nome, cnpj: String(x.cnpj || '') };
   const oferta = () => respOferecer(B, E, `OFERECER ${String(x.cnpj || '').replace(/\D/g, '')}`).catch(() => null);
   if (FICHA_OFERTA.test(t)) return (await oferta()) || `🧺 *${nome}*: o +MIX não tem lista para este cliente agora.`;
   // FICHA DO DATA LAKE (31/10/2026): pedidos, itens e o que parou de TODO cliente, 1 linha pela chave primaria; quem pergunta sendo vendedor ve so os pedidos dele
@@ -344,8 +359,13 @@ export async function respostaInterna(B, c, texto, anteriores) {
       const eu = `VENDEDOR ${rcaV}`, ult = String(B.ultOut || '');
       const interno = async (q) => { const o = B.semIndice; B.semIndice = true; try { return await respostaPronta(B, c, q, []); } finally { B.semIndice = o; } };
       const nm = t.match(/^\W*(\d{1,2})(?:[.,](\d{1,2}))?\W*$/);
-      const clienteDaLista = nm && !nm[2] && new RegExp('^' + nm[1] + '\\. .*\\(#\\d+\\)', 'm').test(ult);
-      const passa = clienteDaLista || /^\W*(SIM|OK|SALVEI|SALVO|CONFIRMADO)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
+      const emSubmenu = /MENU DO JOTA/.test(ult) || /📌 \*Quer detalhar\?\*/.test(ult);
+      const idListaUlt = nm && !nm[2] ? (ult.match(new RegExp('^' + nm[1] + '\\.\\s+.*?\\(#(\\d+)\\)', 'm')) || [])[1] : null;
+      const idListaCtx = !idListaUlt && nm && !nm[2] && !emSubmenu && B._ctxClientes ? (B._ctxClientes.find((x) => x.n === Number(nm[1])) || {}).id || null : null;
+      const clienteDaLista = Boolean(idListaUlt || idListaCtx);
+      const ehMatinalOuLance = /\b(MATINAL|RESUMO MATINAL|PAINEL MATINAL|MINHA MATINAL)\b/.test(t) || /\b(PENALTI|PENALTIS|PENALIDADE|IMPEDIMENTO|CARTAO|CARTOES|VERMELHO|AMARELO|GOL CONTRA|HAT ?TRICK|DEFESA|LANCE|LANCES)\b/.test(t);
+      const ehContCliente = Boolean(B._ctxUltCli && (FICHA_ITENS.test(t) || FICHA_OFERTA.test(t) || FICHA_PEDIDOS.test(t) || /\bHISTORIC\w*\b/.test(t)));
+      const passa = clienteDaLista || ehMatinalOuLance || ehContCliente || /^\W*(SIM|OK|SALVEI|SALVO|CONFIRMADO)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
       // 10/11/2026 (Vitorio): opcoes do tema numeradas 1, 2, 3 (nao 1.1); o marcador 〔k〕 guarda o tema para o proximo numero e para o "ver mais"
       const rodape = (k) => (SUB_VENDEDOR[k] ? ['', `📌 *Quer detalhar?* Digite o número 〔${k}〕`, ...SUB_VENDEDOR[k].map(([rot], i) => `*${i + 1}* ${rot}`), '*0* Voltar ao menu'] : ['', `*0* Voltar ao menu 〔${k}〕`]).join('\n');
       const abre = async (k, s) => {
@@ -468,6 +488,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
         if (linha && chv === '__prospect__' && /pontos para prospectar, por tipo/.test(ult)) { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; const { respProspectsPorCnae } = await import('./respostas/segmentos_pastas.js'); return (v ? await respProspectsPorCnae(B, v, linha) : 'Não achei os seus dados na base agora.') + '\n\n👉 Digite *10* para voltar aos tipos.\n' + rodape(Number(mk[1])); }
         if (!linha && chv === '__prospect__' && /pontos para prospectar, por tipo/.test(ult)) { const qtd = (ult.match(/^\d+\. \*/gm) || []).length; return `🔢 Só há *${qtd}* tipo(s) nessa lista. Digite um número de *1* a *${qtd}*, ou *0* para ver o menu.\n\n👉 Digite *10* para voltar aos tipos.\n` + rodape(Number(mk[1])); }
       }
+      if (clienteDaLista) {
+        const idCli = idListaUlt || idListaCtx;
+        const ev = await carregaEscopo(B, esc);
+        const ach = clienteNaCarteira(ev, 'CLIENTE #' + idCli);
+        if (ach) return respFichaCliente(B, ev, 'CLIENTE #' + idCli, ach);
+      }
       if (nm && !clienteDaLista) {
         let k = Number(nm[1]), s = nm[2] != null ? Number(nm[2]) : null;
         if (k === 0) return respMenuVendedor(c);
@@ -479,7 +505,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (!passa) {
         const k = temaDoTexto(t);
         if (k) return abre(k, null);
-        return respMenuVendedor(c);
+        if (!t || /^\W*(MENU|OPCOES|OPCAO|AJUDA|HELP|OI|OLA|BOM DIA|BOA TARDE|BOA NOITE|E AI|FALA)\W*$/.test(t)) return respMenuVendedor(c);
       }
     }
     // PAINEL DAS INDUSTRIAS DA DIRETORIA (Rudinei, 09/11/2026; Vitorio 10/11/2026 'monta'): 'industrias', 'painel das industrias [de outubro]', 'industrias TPH'
@@ -640,8 +666,10 @@ export async function respostaInterna(B, c, texto, anteriores) {
         // numero de uma lista que a ultima resposta numerou (curva/recorrencia/tag por vendedor: 'digite o numero (ex: *1*...)'): segue para a resposta de sempre
         if (!(s == null && !/MENU DO JOTA/.test(ult) && /digite o número \(ex/i.test(ult))) return abreS(k, s);
       } else {
-        const passaS = /^\W*(ZERAD\w*|SEM PEDIDO|QUEM (ESTA |TA )?ZERAD\w*)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /\b(VENDEDOR|VENDEDORA|RCA|SETOR|COD\w*)\W*\d{2,5}\b|\b\d{2,5}\b/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
-        if (!passaS) { const k = temaDoTextoSup(t); if (k) return abreS(k, null); return respMenuSupervisor(c); }
+        const ehMatinalOuLanceS = /\b(MATINAL|RESUMO MATINAL|PAINEL MATINAL|MINHA MATINAL)\b/.test(t) || /\b(PENALTI|PENALTIS|PENALIDADE|IMPEDIMENTO|CARTAO|CARTOES|VERMELHO|AMARELO|GOL CONTRA|HAT ?TRICK|DEFESA|LANCE|LANCES)\b/.test(t);
+        const ehContCliS = Boolean(B._ctxUltCli && (FICHA_ITENS.test(t) || FICHA_OFERTA.test(t) || FICHA_PEDIDOS.test(t) || /\bHISTORIC\w*\b/.test(t)));
+        const passaS = ehMatinalOuLanceS || ehContCliS || /^\W*(ZERAD\w*|SEM PEDIDO|QUEM (ESTA |TA )?ZERAD\w*)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /\b(VENDEDOR|VENDEDORA|RCA|SETOR|COD\w*)\W*\d{2,5}\b|\b\d{2,5}\b/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
+        if (!passaS) { const k = temaDoTextoSup(t); if (k) return abreS(k, null); if (!t || /^\W*(MENU|OPCOES|OPCAO|AJUDA|HELP|OI|OLA|BOM DIA|BOA TARDE|BOA NOITE|E AI|FALA)\W*$/.test(t)) return respMenuSupervisor(c); }
       }
     }
     // RESPOSTA OFICIAL DO VENDEDOR PARA QUEM ESTA ACIMA (Vitorio, 11/11/2026: 'cada tipo de pergunta para o vendedor tem que ser a mesma para o andar de cima...
@@ -1089,7 +1117,10 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // CLIENTE CITADO OU DA CONVERSA: nome/codigo na carteira de quem pergunta; "o que comprou", "o que oferecer", "ultimos pedidos" seguem com ele. "Meus pedidos" e do proprio vendedor.
   if (!/\bMEUS?\b|\bMINHAS?\b/.test(t)) {
     let fichaCli = clienteNaCarteira(E, t);
-    if (!fichaCli && (FICHA_ITENS.test(t) || FICHA_OFERTA.test(t) || FICHA_PEDIDOS.test(t))) for (const a of anteriores || []) { fichaCli = clienteNaCarteira(E, a); if (fichaCli) break; }
+    if (!fichaCli && (FICHA_ITENS.test(t) || FICHA_OFERTA.test(t) || FICHA_PEDIDOS.test(t) || /\bHISTORIC\w*\b/.test(t))) {
+      for (const a of anteriores || []) { fichaCli = clienteNaCarteira(E, a); if (fichaCli) break; }
+      if (!fichaCli && B._ctxUltCli && B._ctxUltCli.id) fichaCli = clienteNaCarteira(E, 'CLIENTE #' + B._ctxUltCli.id);
+    }
     if (fichaCli) return respFichaCliente(B, E, t, fichaCli);
   }
   // PRIMEIRA PESSOA = ELE MESMO (Gabriel/TCV, 31/10/2026: "como estou no mes" depois de falar do setor 342 abriu a Marines; "geral do mes" tambem): nunca herda vendedor

@@ -277,8 +277,9 @@ async function trataMensagem({ request, env }) {
   }
   // ESPERA A PESSOA TERMINAR (Vitorio, 26/10/2026: "as pessoas as vezes picam as mensagens... espere um pouco antes de sair respondendo tudo"): 20 s (era 9 s; 26/10 o Allison corrigiu "vendedor 6" para "62" 11 s depois e recebeu 2 respostas);
   // se chegou outra mensagem dela nesse tempo, esta nao responde (a ultima responde tudo junto, com os pedados somados).
+  const conversaAberta = !seco && await env.DB.prepare("SELECT 1 FROM bot_msgs WHERE celular = ? AND direcao = 'out' AND quando >= datetime('now', '-5 minutes') LIMIT 1").bind(cel).first().catch(() => null);
   if (!seco && meuId && !reprocId) {
-    await new Promise((ok) => setTimeout(ok, 20000));
+    await new Promise((ok) => setTimeout(ok, conversaAberta ? 3500 : 20000));
     const depois = await env.DB.prepare("SELECT id FROM bot_msgs WHERE celular = ? AND direcao = 'in' AND id > ? LIMIT 1").bind(cel, meuId).first().catch(() => null);
     if (depois) return new Response('ok');
     const { results: pend } = await env.DB.prepare("SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'in' AND id <= ? AND id > COALESCE((SELECT MAX(id) FROM bot_msgs WHERE celular = ? AND direcao IN ('out','erro','figurinha')), 0) AND quando >= datetime('now', '-3 minutes') ORDER BY id").bind(cel, meuId, cel).all().catch(() => ({ results: [] }));
@@ -461,11 +462,12 @@ _🟢 Hoje (Clube da Venda${isNaN(dc) ? '' : ' · ' + dc.toLocaleTimeString('pt-
       // Regra antiban de 03/11 (minimo 18 s, distribuicao humana; 09/11/2026: antes era 8 a 14 s)
       await R.pausaEntreEnvios(22, 3, 18);
     }
+    const opEnvio = conversaAberta ? { delayMs: 1200 } : {};
     let ei = null;
     if (i === 0 && B._midia && B._midia.tipo === 'image' && B._midia.url && partes.length === 1) {
-      ei = await enviarImagem(env, numEnvio, B._midia.url, limpaTags(partes[i]));
+      ei = await enviarImagem(env, numEnvio, B._midia.url, limpaTags(partes[i]), opEnvio);
     }
-    if (!ei || !ei.ok) ei = await enviar(env, numEnvio, limpaTags(partes[i]));
+    if (!ei || !ei.ok) ei = await enviar(env, numEnvio, limpaTags(partes[i]), opEnvio);
     if (!ei.ok) { e = ei; try { await env.DB.prepare('CREATE TABLE IF NOT EXISTS bot_envio_fila (id INTEGER PRIMARY KEY AUTOINCREMENT, celular TEXT, numero TEXT, nome TEXT, texto TEXT, tipo TEXT, tentativas INTEGER DEFAULT 0, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)').run(); await env.DB.prepare('INSERT INTO bot_envio_fila (celular, numero, nome, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, String(numEnvio), c ? c.nome : null, limpaTags(partes[i]), tipo).run(); } catch (x) { /* fica o registro de erro abaixo */ } } }
   resp = partes.join('\n\n');
   if (!e.ok) { try { await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto) VALUES (?,?,?,?)').bind(cel, c.nome, 'debug', 'falha de envio: ' + String(e.status || '') + ' ' + String(e.erro || JSON.stringify(e.resposta || '')).slice(0, 500)).run(); } catch (x) {} }
