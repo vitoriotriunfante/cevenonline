@@ -3,6 +3,7 @@
 // Painel e motor do MONITOR.IA (regras declarativas, eventos e simulacao segura).
 // =========================================================================
 import { chaveEvoValida } from '../_lib/chave_evo.js';
+import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
 import { atualizarRegra, listarRegras, simularOnda1 } from '../_lib/monitoria/motor.js';
 
 const J = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
@@ -19,7 +20,9 @@ export async function onRequestGet({ env }) {
 }
 
 export async function onRequestPost({ request, env }) {
-  if (!(await chaveEvoValida(request, env))) return resp({ erro: 'nao autorizado' }, 401);
+  const evoOk = await chaveEvoValida(request, env);
+  const admOk = !evoOk && await chaveAdminOk(env, request);
+  if (!evoOk && !admOk) return resp({ erro: 'nao autorizado' }, 401);
   let body = {};
   try { body = await request.json(); } catch { return resp({ erro: 'json invalido' }, 400); }
   if (body.acao === 'config') return resp(await atualizarRegra(env.DB, body));
