@@ -10,6 +10,7 @@ import {
   emitirEvento,
   simularOnda1,
 } from '../functions/_lib/monitoria/motor.js';
+import { detectarEventos } from '../functions/_lib/monitoria/detector.js';
 
 let ok = 0;
 function teste(nome, cond) {
@@ -90,6 +91,9 @@ teste('emitirEvento garante idempotencia por (event_type, entity_key)', db._even
 
 const bloqueado = await simularOnda1('https://ceven-cftv-matrix.pages.dev', { DB: db }, { enviarVitorio: true, celularVitorio: '5511999999999' });
 teste('simularOnda1 bloqueia envio para numero fora da whitelist do Vitorio', bloqueado.ok === false && /whitelist/i.test(bloqueado.erro));
+
+const bloqDet = await detectarEventos('https://ceven-cftv-matrix.pages.dev', { DB: db }, { enviarVitorio: true, celularVitorio: '5511999999999' });
+teste('detectarEventos bloqueia envio para numero fora da whitelist do Vitorio', bloqDet.ok === false && /whitelist/i.test(bloqDet.erro));
 
 console.log(`RESULTADO MONITOR.IA: ${ok} de ${ok} testes OK`);
 

@@ -53,7 +53,8 @@
       <option value="5566996389884">Vitório Teste (66 99638-9884)</option>
     </select>
     <button onclick="simular(false)">🧪 Simular Onda 1 (D1)</button>
-    <button class="primary" onclick="simular(true)">📲 Testar 1ª Amostra no Meu WhatsApp</button>
+    <button onclick="detectar(false)">⚡ Detectar Eventos (D1)</button>
+    <button class="primary" onclick="detectar(true)">🚨 Enviar Alertas Tempo Real</button>
     <button onclick="pedirChave()">🔑 Chave</button>
   </div>
 </header>
@@ -151,6 +152,16 @@ async function simular(enviar) {
   const res = await postMonitoria(body);
   if (res && res.ok) {
     toast(enviar ? `Enviado (${res.enviados}) para ${res.celular_teste}` : `Simulação concluída: ${res.regras_ativas} regras`);
+    carregar();
+  }
+}
+
+async function detectar(enviar) {
+  const cel = document.getElementById('celTeste').value;
+  toast(enviar ? `Detectando e enviando alertas tempo real para ${cel}...` : 'Varrendo D1 para eventos em tempo real...');
+  const res = await postMonitoria({ acao: 'detectar', enviarVitorio: !!enviar, celularVitorio: cel });
+  if (res && res.ok) {
+    toast(`Eventos: ${res.eventos_processados} · Alertas: ${(res.alertas || []).length} · Enviados: ${res.enviados}`);
     carregar();
   }
 }
