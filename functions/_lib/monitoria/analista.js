@@ -11,6 +11,7 @@ import { diasUteisMes } from '../jota/respostas/gestao.js';
 import {
   NUMEROS_VITORIO,
   listarRegras,
+  marcaPropriaGerot,
   nomeClienteD1,
 } from './motor.js';
 import R from '../../../public/regras.js';
@@ -37,7 +38,7 @@ async function resolveGeminiKey(env) {
   return k;
 }
 
-export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, enviosHoje = []) {
+export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, enviosHoje = [], extras = {}) {
   const { tot, pass } = diasUteisMes();
   const faltam = Math.max(1, tot - pass);
   const espPct = tot ? (pass / tot) * 100 : 0;
@@ -71,9 +72,35 @@ export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, envios
     if (bloqsNovos.length >= 4) break;
   }
 
+  const cortesNovos = [];
+  for (const c of (extras.cortes || [])) {
+    if (c.filial !== filial || !rcas.has(String(c.rca)) || Number(c.valor) < 500 || !(Number(c.itens_cortados) > 0)) continue;
+    const sig = `CORTE:${c.num}`;
+    if (assinaturasJa.has(sig)) continue;
+    const cli = await nomeClienteD1(db, c.filial, c.id_cliente);
+    cortesNovos.push({ num: c.num, rca: c.rca, cliente: cli, valor: Number(c.valor), valor_winthor: Number(c.valor_winthor || 0), itens_cortados: Number(c.itens_cortados), categoria_corte: c.categoria_corte || null, sig });
+    if (cortesNovos.length >= 3) break;
+  }
+
+  const pesoLance = { penalti: 5, vermelho: 4, golcontra: 3, impedimento: 2, amarelo: 1 };
+  const lancesRuins = (extras.lances || [])
+    .filter((l) => l.filial === filial && rcas.has(String(l.rca)) && /^(penalti|vermelho|amarelo|impedimento|golcontra)$/.test(String(l.nivel || '')))
+    .sort((a, b) => (pesoLance[b.nivel] || 0) - (pesoLance[a.nivel] || 0))
+    .map((l) => ({
+      nivel: l.nivel,
+      rca: String(l.rca),
+      vendedor: nome2(l.vendedor || ''),
+      cliente: l.cliente || '',
+      motivo: l.pontos_motivo || l.motivo || '',
+      pontos: l.pontos || 0,
+      sig: `LANCE:${l.nivel}:${l.rca}:${String(l.cliente || '').slice(0, 24)}`,
+    }))
+    .filter((l) => !assinaturasJa.has(l.sig));
+
   const comGap = vs
     .map((v) => {
       const gap = Math.max(0, (v.meta || 0) - (v.fat || 0) - (v.pend || 0));
+      const posPct = v.metaPos > 0 ? ((v.pos || 0) / v.metaPos) * 100 : null;
       return {
         rca: String(v.rca),
         nome: vn(v),
@@ -83,21 +110,35 @@ export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, envios
         dig: v.dig || 0,
         visP: v.visP || 0,
         visF: v.visF || 0,
+        pos: v.pos || 0,
+        metaPos: v.metaPos || 0,
+        posPct,
+        posGap: v.metaPos > 0 ? Math.max(0, v.metaPos - (v.pos || 0)) : 0,
       };
     })
     .sort((a, b) => b.gapDia - a.gapDia);
 
   const emRotaSemPedido = hhmm >= '09:30' ? comGap.filter((x) => x.visF >= 2 && x.dig === 0).slice(0, 4) : [];
   const semCheckin = hhmm >= '09:30' ? comGap.filter((x) => x.visP > 0 && x.visF === 0).slice(0, 4) : [];
+  const posTravada = hhmm >= '10:00' ? [...comGap].filter((x) => x.posPct !== null && x.posPct < espPct * 0.7 && x.posGap > 0).sort((a, b) => b.posGap - a.posGap).slice(0, 4) : [];
   const destaques = [...comGap].filter((x) => x.dig > 0).sort((a, b) => b.dig - a.dig).slice(0, 3);
+  const piorMix = (extras.mixVendedores || [])
+    .filter((m) => m.filial === filial && rcas.has(String(m.rca)) && Number(m.mix_medio) > 0)
+    .sort((a, b) => Number(a.mix_medio) - Number(b.mix_medio))[0] || null;
 
   const sinais = [];
   if (bloqsNovos.length) sinais.push({ tipo: 'BLOQUEIO_CRITICO', sig: bloqsNovos[0].sig, detalhe: bloqsNovos });
+  if (lancesRuins.length) sinais.push({ tipo: 'CHAMPIONS_PENALIDADE', sig: lancesRuins[0].sig, detalhe: lancesRuins.slice(0, 3) });
+  if (cortesNovos.length) sinais.push({ tipo: 'CORTE_PEDIDO', sig: cortesNovos[0].sig, detalhe: cortesNovos });
   if (emRotaSemPedido.length) sinais.push({ tipo: 'EM_ROTA_SEM_PEDIDO', sig: `ROTA0:${emRotaSemPedido.map((x) => x.rca).join(',')}`, detalhe: emRotaSemPedido });
   if (semCheckin.length) sinais.push({ tipo: 'SEM_CHECKIN', sig: `CHECK0:${semCheckin.map((x) => x.rca).join(',')}`, detalhe: semCheckin });
   if (devHoje >= 500) sinais.push({ tipo: 'DEVOLUCAO_HOJE', sig: `DEV:${Math.round(devHoje)}`, detalhe: devHoje });
+  if (posTravada.length) sinais.push({ tipo: 'POSITIVACAO_TRAVADA', sig: `POS:${posTravada.map((x) => x.rca).join(',')}`, detalhe: posTravada });
   if (hhmm >= '11:00' && hhmm < '17:30' && metaDia > 0 && digHoje < metaDia * 0.5) {
     sinais.push({ tipo: 'RITMO_DIA_BAIXO', sig: `RITMO:${hhmm.slice(0, 2)}`, detalhe: { digHoje, metaDia, pctDia } });
+  }
+  if (piorMix && hhmm >= '10:30') {
+    sinais.push({ tipo: 'MIX_BAIXO', sig: `MIX:${piorMix.rca}`, detalhe: { rca: piorMix.rca, nome: piorMix.nome, mix_medio: piorMix.mix_medio, uso_pct: piorMix.uso_pct } });
   }
   if (hhmm >= '07:30' && hhmm < '09:30' && !enviosHoje.length) {
     sinais.push({ tipo: 'ABERTURA_MANHA', sig: 'ABERTURA', detalhe: comGap.slice(0, 3) });
@@ -126,6 +167,7 @@ export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, envios
       pct_meta_dia: pctTxt(pctDia),
       positivacao: posMeta > 0 ? `${posReal}/${posMeta} (${pctTxt((posReal / posMeta) * 100)})` : 'sem meta pos.',
       devolucao_hoje: R$(devHoje),
+      marca_propria_filial_gerot: extras.mpGerot && extras.mpGerot.fat > 0 ? `${R$(extras.mpGerot.fat)} (até ${extras.mpGerot.ate || '—'})` : null,
     },
     sinal_principal: sinalNovo,
     todos_sinais: sinais.map((s) => s.tipo),
@@ -168,6 +210,38 @@ function mensagemFallback(d) {
       `🛑 *Alerta Analista — ${d.supervisor}*`,
       `*${v0.nome}* tem *${v0.visP} PDVs* na rota hoje e ainda está sem check-in às ${d.horario_sp} (precisa *${R$(v0.gapDia)}/dia*).`,
       `👉 *Ação agora:* ligar para *${v0.nomeCurto}* e confirmar início de rota.`,
+    ].join('\n');
+  }
+  if (s.tipo === 'CHAMPIONS_PENALIDADE') {
+    const l0 = s.detalhe[0];
+    return [
+      `⚽ *Alerta Champions — ${d.supervisor}*`,
+      `*${l0.vendedor}* (RCA ${l0.rca}) tomou *${l0.nivel}* no cliente *${l0.cliente || 'PDV'}* (${l0.motivo || 'penalidade'}).`,
+      `👉 *Ação agora:* falar com *${l0.vendedor}* para corrigir na hora e evitar novos descontos na Liga.`,
+    ].join('\n');
+  }
+  if (s.tipo === 'CORTE_PEDIDO') {
+    const c0 = s.detalhe[0];
+    return [
+      `✂️ *Corte em Pedido — ${d.supervisor}*`,
+      `Pedido *#${c0.num}* (${c0.cliente}, RCA ${c0.rca}) teve *${c0.itens_cortados} item(ns) cortado(s)* de *${R$(c0.valor)}*.`,
+      `👉 *Ação agora:* acionar RCA ${c0.rca} para oferecer item substituto ao cliente antes de fechar a carga.`,
+    ].join('\n');
+  }
+  if (s.tipo === 'POSITIVACAO_TRAVADA') {
+    const p0 = s.detalhe[0];
+    return [
+      `👥 *Positivação Travada — ${d.supervisor}*`,
+      `Positivação da equipe em *${r.positivacao}*. *${p0.nome}* está em *${p0.pos}/${p0.metaPos}* (faltam ${p0.posGap} PDVs).`,
+      `👉 *Ação agora:* cobrar de *${p0.nomeCurto}* abertura de novos PDVs já na rota de hoje.`,
+    ].join('\n');
+  }
+  if (s.tipo === 'MIX_BAIXO') {
+    const m0 = s.detalhe;
+    return [
+      `🧺 *Oportunidade +MIX — ${d.supervisor}*`,
+      `RCA *${m0.rca} - ${nome2(m0.nome || '')}* está com média de apenas *${String(m0.mix_medio).replace('.', ',')} produtos/cliente*.`,
+      `👉 *Ação agora:* cobrar uso da lista do +MIX antes de fechar cada pedido hoje.`,
     ].join('\n');
   }
   const g0 = d.top_gaps_dia[0];
@@ -262,7 +336,15 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
 
   const B = criaBase(origin, env);
   const desde = new Date(Date.parse(hoje + 'T12:00:00Z') - 2 * 864e5).toISOString().slice(0, 10);
-  const bloqs = (await db.prepare("SELECT num, filial, rca, id_cliente, data_pedido, valor, categoria_corte FROM pedido_status WHERE status = 'BLOQUEADO' AND data_pedido >= ? ORDER BY valor DESC LIMIT 200").bind(desde).all().catch(() => ({ results: [] }))).results || [];
+  const [bloqsRes, cortesRes, lancesData, mixData] = await Promise.all([
+    db.prepare("SELECT num, filial, rca, id_cliente, data_pedido, valor, categoria_corte FROM pedido_status WHERE status = 'BLOQUEADO' AND data_pedido >= ? ORDER BY valor DESC LIMIT 200").bind(desde).all().catch(() => ({ results: [] })),
+    db.prepare("SELECT num, filial, rca, id_cliente, data_pedido, valor, valor_winthor, itens_cortados, categoria_corte FROM pedido_status WHERE data_pedido >= ? AND itens_cortados > 0 AND valor >= 500 ORDER BY itens_cortados DESC, valor DESC LIMIT 200").bind(desde).all().catch(() => ({ results: [] })),
+    B.lances().catch(() => null),
+    B.mix().catch(() => null),
+  ]);
+  const bloqs = bloqsRes.results || [];
+  const cortes = cortesRes.results || [];
+  const mpCache = {};
 
   const limite = Number(opts.limite || (regra.modo === 'PRODUCAO' ? 12 : 10));
   const maxPorDia = Number(opts.maxPorDia || 4);
@@ -283,7 +365,13 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
     const Es = await carregaEscopo(B, { nome: `${supNomeAlvo} (${s.filial})`, filiais: [s.filial], supervisor: supNomeAlvo }).catch(() => null);
     if (!Es || !Es.vend || !Es.vend.length) continue;
 
-    const dossie = await montarDossieSupervisor(db, Es, s.filial, bloqs, hhmm, enviosHoje);
+    if (!mpCache[s.filial]) mpCache[s.filial] = await marcaPropriaGerot(db, [s.filial]).catch(() => ({ fat: 0, ate: null }));
+    const dossie = await montarDossieSupervisor(db, Es, s.filial, bloqs, hhmm, enviosHoje, {
+      cortes,
+      lances: lancesData?.lances || [],
+      mixVendedores: mixData?.vendedores || [],
+      mpGerot: mpCache[s.filial],
+    });
     if (!dossie) continue;
 
     const decisao = await analisarComIA(env, dossie);

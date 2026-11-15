@@ -16,7 +16,7 @@ export async function onRequestGet({ env }) {
   const db = env.DB;
   const [regras, envios, eventos] = await Promise.all([
     listarRegras(db),
-    db.prepare('SELECT id, regra_id, data, destino_real, papel, filial, rca, modo, bonequinho, status, acao_pos_alerta, enviado_em, substr(texto_preview, 1, 180) preview FROM monitoria_envios ORDER BY id DESC LIMIT 30').all().catch(() => ({ results: [] })),
+    db.prepare('SELECT id, regra_id, data, destino_real, papel, filial, rca, modo, bonequinho, status, acao_pos_alerta, enviado_em, texto_preview preview FROM monitoria_envios ORDER BY id DESC LIMIT 30').all().catch(() => ({ results: [] })),
     db.prepare('SELECT event_type, COUNT(*) total, SUM(CASE WHEN processed_at IS NULL THEN 1 ELSE 0 END) pendentes FROM domain_events GROUP BY event_type').all().catch(() => ({ results: [] })),
   ]);
   return resp({ ok: true, regras, envios: envios.results || [], eventos: eventos.results || [] });

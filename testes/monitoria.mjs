@@ -143,5 +143,27 @@ teste('montarDossieSupervisor silencia quando todos os sinais ja foram alertados
 const bloqAna = await executarAnalistaComercial('https://ceven-cftv-matrix.pages.dev', { DB: db }, { enviarVitorio: true, celularVitorio: '5511999999999' });
 teste('executarAnalistaComercial bloqueia envio fora da whitelist', bloqAna.ok === false && /whitelist/i.test(bloqAna.erro));
 
+const dossieLance = await montarDossieSupervisor(
+  db,
+  { nome: 'Sup Teste (TPH)', vend: [{ nome: 'Joao Silva', rca: '101', papel: 'vendedor', meta: 100000, fat: 40000, pend: 0, dig: 2000, visP: 10, visF: 4, pos: 5, metaPos: 40 }] },
+  'TPH',
+  [],
+  '11:15',
+  [],
+  { lances: [{ filial: 'TPH', rca: '101', nivel: 'penalti', vendedor: 'Joao Silva', cliente: 'Mercado Central', pontos: -5, pontos_motivo: 'Sem positivar' }] }
+);
+teste('montarDossieSupervisor detecta penalidade da Champions no time', dossieLance && dossieLance.sinal_principal.tipo === 'CHAMPIONS_PENALIDADE');
+
+const dossieCorte = await montarDossieSupervisor(
+  db,
+  { nome: 'Sup Teste (TPH)', vend: [{ nome: 'Joao Silva', rca: '101', papel: 'vendedor', meta: 100000, fat: 40000, pend: 0, dig: 2000, visP: 10, visF: 4, pos: 30, metaPos: 40 }] },
+  'TPH',
+  [],
+  '11:15',
+  [],
+  { cortes: [{ num: '101999', filial: 'TPH', rca: '101', id_cliente: '555', valor: 1800, valor_winthor: 1200, itens_cortados: 3 }] }
+);
+teste('montarDossieSupervisor detecta corte de pedido quando sem bloqueio/penalti', dossieCorte && dossieCorte.sinal_principal.tipo === 'CORTE_PEDIDO');
+
 console.log(`RESULTADO MONITOR.IA: ${ok} de ${ok} testes OK`);
 
