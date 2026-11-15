@@ -6,6 +6,7 @@ import { chaveEvoValida } from '../_lib/chave_evo.js';
 import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
 import { atualizarRegra, listarRegras, simularOnda1 } from '../_lib/monitoria/motor.js';
 import { detectarEventos } from '../_lib/monitoria/detector.js';
+import { executarCicloSupervisores } from '../_lib/monitoria/supervisores.js';
 
 const J = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
 const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: J });
@@ -36,7 +37,11 @@ export async function onRequestPost({ request, env }) {
       const origin = new URL(request.url).origin;
       return resp(await detectarEventos(origin, env, body));
     }
-    return resp({ erro: 'acao invalida (use config, simular ou detectar)' }, 400);
+    if (body.acao === 'ciclo_supervisores') {
+      const origin = new URL(request.url).origin;
+      return resp(await executarCicloSupervisores(origin, env, body));
+    }
+    return resp({ erro: 'acao invalida (use config, simular, detectar ou ciclo_supervisores)' }, 400);
   } catch (e) {
     return resp({ ok: false, erro: String((e && e.message) || e) }, 500);
   }

@@ -146,7 +146,7 @@ async function formataV4Acionavel(db, Ev, filial, rca) {
   ].join('\n');
 }
 
-function formataS1Excecao(rawMatinal, Es) {
+export function formataS1Excecao(rawMatinal, Es) {
   const mapaNomes = new Map((Es.vend || []).map((v) => [String(v.rca), vn(v)]));
   const linhas = limpaTexto(rawMatinal)
     .replace(/\*RCA (\d+)\*/g, (_, rca) => `*${mapaNomes.get(rca) || 'RCA ' + rca}*`)
@@ -178,7 +178,7 @@ function formataS1Excecao(rawMatinal, Es) {
   return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
-function formataS2Supervisor(Es) {
+export function formataS2Supervisor(Es) {
   const { tot, pass } = diasUteisMes();
   const esp = tot ? (pass / tot) * 100 : 0;
   const vs = (Es.vend || []).filter((v) => pessoaReal(v) && v.meta > 0);
@@ -293,16 +293,42 @@ async function formataG3Executiva(B, Eg, filial) {
     }
   }
 
-  // Marca Propria so entra se vendas_mes estiver atualizada (<= 2 dias)
-  const vMes = await vendasEscopo(B, Eg).catch(() => null);
-  const ate = vMes && vMes.ate ? Date.parse(vMes.ate + 'T12:00:00Z') : 0;
-  const diffDias = ate ? (Date.parse(hojeSP() + 'T12:00:00Z') - ate) / 864e5 : 99;
-  if (diffDias <= 2) {
-    const mp = limpaTexto(await respMarcaPropriaVivo(B, Eg, 'marca propria').catch(() => ''));
-    if (mp) linhas.push('', mp);
+  const mpGerot = await marcaPropriaGerot(B && B.env && B.env.DB, [filial]);
+  if (mpGerot && mpGerot.fatCart > 0) {
+    linhas.push('', `🏷️ *Marca Própria (GEROT até ${mpGerot.ult}):* *${R$(mpGerot.fatCart)}* · *${N(mpGerot.posCart)}* positivados`);
+    if (mpGerot.sups.length) {
+      linhas.push(...mpGerot.sups.slice(0, 3).map(([sup, x]) => `• ${sup}: ${R$(x.fatCart)} (${N(x.posCart)} pos.)`));
+    }
   }
 
   return linhas.length ? linhas.join('\n') : null;
+}
+
+export async function marcaPropriaGerot(db, filiais) {
+  if (!db || !Array.isArray(filiais) || !filiais.length) return null;
+  const mes = hojeSP().slice(0, 7);
+  const ph = filiais.map(() => '?').join(',');
+  const { results } = await db.prepare(`SELECT filial, rca, supervisor, vendedor, dados, em FROM gerot_vendas WHERE mes = ? AND filial IN (${ph}) AND fornecedor LIKE '%#24318%'`)
+    .bind(mes, ...filiais).all().catch(() => ({ results: [] }));
+  if (!results || !results.length) return null;
+
+  let fatCart = 0, posCart = 0, capDia = 0, ult = '';
+  const porSup = new Map();
+  for (const r of results) {
+    let d = {};
+    try { d = JSON.parse(r.dados || '{}'); } catch { continue; }
+    const fc = Number(d['Faturado + Carteira (R$)']) || 0;
+    const pc = Number(d['Positivação + Carteira']) || 0;
+    const cd = Number(d['Captação Dia (R$)']) || 0;
+    fatCart += fc; posCart += pc; capDia += cd;
+    if (r.em && r.em > ult) ult = r.em;
+    const sup = r.supervisor ? titulo(String(r.supervisor).trim()) : 'Sem supervisor';
+    if (!porSup.has(sup)) porSup.set(sup, { fatCart: 0, posCart: 0 });
+    porSup.get(sup).fatCart += fc;
+    porSup.get(sup).posCart += pc;
+  }
+  const sups = [...porSup.entries()].sort((a, b) => a[1].fatCart - b[1].fatCart);
+  return { fatCart, posCart, capDia, ult: ult ? ult.slice(0, 10) : mes, sups };
 }
 
 export async function simularOnda1(origin, env, opts = {}) {

@@ -54,6 +54,7 @@
     </select>
     <button onclick="simular(false)">🧪 Simular Onda 1 (D1)</button>
     <button onclick="detectar(false)">⚡ Detectar Eventos (D1)</button>
+    <button onclick="cicloSupervisores()">👥 Piloto Supervisores (D1)</button>
     <button class="primary" onclick="detectar(true)">🚨 Enviar Alertas Tempo Real</button>
     <button onclick="pedirChave()">🔑 Chave</button>
   </div>
@@ -162,6 +163,15 @@ async function detectar(enviar) {
   const res = await postMonitoria({ acao: 'detectar', enviarVitorio: !!enviar, celularVitorio: cel });
   if (res && res.ok) {
     toast(`Eventos: ${res.eventos_processados} · Alertas: ${(res.alertas || []).length} · Enviados: ${res.enviados}`);
+    carregar();
+  }
+}
+
+async function cicloSupervisores() {
+  toast('Simulando ciclo S2 nos supervisores ativos...');
+  const res = await postMonitoria({ acao: 'ciclo_supervisores', regra: 'S2', limite: 15 });
+  if (res && res.ok) {
+    toast(`Supervisores: ${res.processados}/${res.supervisores_elegiveis} processados (${res.modo})`);
     carregar();
   }
 }

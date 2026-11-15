@@ -11,6 +11,7 @@ import {
   simularOnda1,
 } from '../functions/_lib/monitoria/motor.js';
 import { detectarEventos } from '../functions/_lib/monitoria/detector.js';
+import { formataS3Travados, formataS5Fechamento, executarCicloSupervisores } from '../functions/_lib/monitoria/supervisores.js';
 
 let ok = 0;
 function teste(nome, cond) {
@@ -94,6 +95,22 @@ teste('simularOnda1 bloqueia envio para numero fora da whitelist do Vitorio', bl
 
 const bloqDet = await detectarEventos('https://ceven-cftv-matrix.pages.dev', { DB: db }, { enviarVitorio: true, celularVitorio: '5511999999999' });
 teste('detectarEventos bloqueia envio para numero fora da whitelist do Vitorio', bloqDet.ok === false && /whitelist/i.test(bloqDet.erro));
+
+const s3Txt = formataS3Travados({
+  nome: 'Equipe Teste',
+  vend: [{ nome: 'Joao Silva', rca: '101', papel: 'vendedor', meta: 10000, visP: 5, visF: 0, dig: 0 }],
+});
+teste('formataS3Travados detecta vendedor com rota sem check-in', typeof s3Txt === 'string' && s3Txt.includes('Joao Silva'));
+teste('formataS3Travados silencia quando nao ha vendedor travado', formataS3Travados({ nome: 'Equipe OK', vend: [{ nome: 'Ana', rca: '102', papel: 'vendedor', meta: 10000, visP: 5, visF: 3, dig: 1200 }] }) === null);
+
+const s5Txt = formataS5Fechamento({
+  nome: 'Equipe Teste',
+  vend: [{ nome: 'Joao Silva', rca: '101', papel: 'vendedor', meta: 10000, visP: 5, visF: 2, dig: 1500 }],
+});
+teste('formataS5Fechamento resume digitado hoje sem falsos zerados', typeof s5Txt === 'string' && s5Txt.includes('Zero vendedores'));
+
+const bloqSup = await executarCicloSupervisores('https://ceven-cftv-matrix.pages.dev', { DB: db }, { regra: 'S2', enviarVitorio: true, celularVitorio: '5511999999999' });
+teste('executarCicloSupervisores bloqueia envio fora da whitelist', bloqSup.ok === false && /whitelist/i.test(bloqSup.erro));
 
 console.log(`RESULTADO MONITOR.IA: ${ok} de ${ok} testes OK`);
 
