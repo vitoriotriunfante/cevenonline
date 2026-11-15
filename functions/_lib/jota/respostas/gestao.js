@@ -430,6 +430,7 @@ export async function respMatinal(B, E) {
   const posGerot = stGerot && stGerot.posicao ? ` · GEROT ${stGerot.posicao}` : '';
   // Tenta usar o card PNG mobile-first pre-gerado em Playwright no D1 (matinal_cards)
   let cardPng = null;
+  let indCardPng = null;
   if (!E.rca) {
     try {
       const { results: cards } = await B.env.DB.prepare(
@@ -440,18 +441,25 @@ export async function respMatinal(B, E) {
           const codAlvo = typeof E.supervisor === 'object' ? String(E.supervisor.cod_sup || '').trim() : '';
           const sAlvo = sem(typeof E.supervisor === 'object' ? (E.supervisor.nome || '') : E.supervisor);
           const toks = sAlvo.split(/\s+/).filter((w) => w.length > 2);
-          const hit = cards.find((c) => fil.includes(c.filial) && c.chave.startsWith('sup:') && (() => {
+          const matchSup = (prefix) => cards.find((c) => fil.includes(c.filial) && c.chave.startsWith(prefix) && (() => {
             if (codAlvo && String(c.cod_sup || '').trim() === codAlvo) return true;
             const sx = sem(c.supervisor || '');
             return sx && (sx.includes(sAlvo) || sAlvo.includes(sx) || (toks.length && toks.every((w) => sx.includes(w))));
           })());
+          const hit = matchSup('sup:');
           if (hit) cardPng = hit.png_b64;
+          const hitInd = matchSup('ind:sup:');
+          if (hitInd) indCardPng = hitInd.png_b64;
         } else if (!E.nacional && fil.length === 1) {
           const hit = cards.find((c) => c.chave === `fil:${fil[0]}`);
           if (hit) cardPng = hit.png_b64;
+          const hitInd = cards.find((c) => c.chave === `ind:fil:${fil[0]}`);
+          if (hitInd) indCardPng = hitInd.png_b64;
         } else if (E.nacional) {
           const hit = cards.find((c) => c.chave === 'brasil');
           if (hit) cardPng = hit.png_b64;
+          const hitInd = cards.find((c) => c.chave === 'ind:brasil');
+          if (hitInd) indCardPng = hitInd.png_b64;
         }
       }
     } catch {}
@@ -467,6 +475,7 @@ export async function respMatinal(B, E) {
   const rotVend = (x) => x.nome ? `${x.rca} - ${titulo(x.nome)}` : `RCA ${x.rca}`;
   if (cardPng) {
     B._midia = { tipo: 'image', url: cardPng };
+    if (indCardPng) B._midiaExtra = { tipo: 'image', url: indCardPng, caption: `🏭 *Resumo de Indústrias — ${E.nome}*` };
     return [
       `☀️ *Matinal — ${E.nome}* (${dec}/${tot} du · faltam ${falt}${posGerot})`,
       ...(linhaOntEq ? [linhaOntEq] : []),

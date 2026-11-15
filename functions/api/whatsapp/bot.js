@@ -466,6 +466,10 @@ _🟢 Hoje (Clube da Venda${isNaN(dc) ? '' : ' · ' + dc.toLocaleTimeString('pt-
     let ei = null;
     if (i === 0 && B._midia && B._midia.tipo === 'image' && B._midia.url && partes.length === 1) {
       ei = await enviarImagem(env, numEnvio, B._midia.url, limpaTags(partes[i]), opEnvio);
+      if (ei && ei.ok && B._midiaExtra && B._midiaExtra.tipo === 'image' && B._midiaExtra.url) {
+        await new Promise((ok) => setTimeout(ok, R.gaussianJitterMs(3.5, 1, 2)));
+        await enviarImagem(env, numEnvio, B._midiaExtra.url, B._midiaExtra.caption || '', opEnvio);
+      }
     }
     if (!ei || !ei.ok) ei = await enviar(env, numEnvio, limpaTags(partes[i]), opEnvio);
     if (!ei.ok) { e = ei; try { await env.DB.prepare('CREATE TABLE IF NOT EXISTS bot_envio_fila (id INTEGER PRIMARY KEY AUTOINCREMENT, celular TEXT, numero TEXT, nome TEXT, texto TEXT, tipo TEXT, tentativas INTEGER DEFAULT 0, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)').run(); await env.DB.prepare('INSERT INTO bot_envio_fila (celular, numero, nome, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, String(numEnvio), c ? c.nome : null, limpaTags(partes[i]), tipo).run(); } catch (x) { /* fica o registro de erro abaixo */ } } }

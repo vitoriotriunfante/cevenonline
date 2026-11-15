@@ -93,6 +93,41 @@ function rowVendHtml(v) {
   </tr>`;
 }
 
+function summarizeInd(rows, dias, gerotPosicao) {
+  const totMeta = rows.reduce((a, x) => a + x.meta, 0);
+  const totVend = rows.reduce((a, x) => a + x.vend, 0);
+  const totTend = totMeta ? rows.reduce((a, x) => a + (x.meta ? x.tend : 0), 0) : 0;
+  const tendPct = totMeta ? (totTend / totMeta) * 100 : 0;
+  const totPos = rows.reduce((a, x) => a + x.pos, 0);
+  const comMeta = rows.filter((x) => x.meta > 0);
+  const emRisco = comMeta.filter((x) => x.tendPct < 80);
+  const faltaTot = Math.max(0, totMeta - totVend);
+  return {
+    subtitulo: `Resumo de Indústrias (GEROT) · GEROT: ${gerotPosicao || 'Atual'}`,
+    kpis: [
+      { lbl: 'Faturado + Carteira', val: R(totVend), sub: totMeta ? `de ${R(totMeta)} (${P((totVend / totMeta) * 100)})` : 'Sem meta cadastrada' },
+      { lbl: 'Tendência Fechamento', val: totMeta ? P(tendPct) : '—', sub: `${R(totTend)} · ${dias.dec}/${dias.tot} du (${dias.falt} rest.)` },
+      { lbl: 'Positivação (Ind.)', val: N(totPos), sub: `${comMeta.length} ind. c/ meta · ${rows.length} total` },
+      { lbl: 'Em Risco (<80% Tend.)', val: `${emRisco.length} de ${comMeta.length}`, sub: totMeta ? `falta ${R(faltaTot)}` : '—' }
+    ]
+  };
+}
+
+function rowIndHtml(x) {
+  const temMeta = x.meta > 0;
+  const pct = temMeta ? (x.vend / x.meta) * 100 : 0;
+  return `<tr>
+    <td><strong>${escHtml(String(x.ind || '').slice(0, 32))}</strong></td>
+    <td class="num">${temMeta ? R(x.meta) : '<span style="color:#64748b">Sem meta</span>'}</td>
+    <td class="num">${R(x.vend)}</td>
+    <td class="num">${temMeta ? P(pct) : '—'}</td>
+    <td class="num">${temMeta ? `<span class="pill ${clsTend(x.tendPct)}">${P(x.tendPct)}</span>` : '—'}</td>
+    <td class="num">${temMeta ? `${R(x.precisaDia)}/d` : '—'}</td>
+    <td class="num">${N(x.pos)}</td>
+    <td class="num">${R(x.pend)}</td>
+  </tr>`;
+}
+
 async function main() {
   const localD1 = process.argv.includes('--local-d1');
   if (!EVO_KEY && !localD1) throw new Error('EVO_KEY nao definido (ou use --local-d1)');
@@ -160,6 +195,39 @@ async function main() {
     chave: 'brasil', filial: 'BR', cod_sup: '', supervisor: '',
     html: buildHtml({ titulo: 'Brasil (11 Filiais)', ...sumBr, colunas: ['Filial', ...cols.slice(1)], linhas: filRows })
   });
+
+  // 4. Cards de Resumo de Industrias (Supervisor, Filial, Brasil) nos mesmos moldes
+  if (d.industrias) {
+    const colsInd = ['Indústria', 'Meta', 'Fat.+Cart.', '% Meta', 'Tendência', 'Precisa/Dia', 'Positiv.', 'Carteira'];
+    const porSup = d.industrias.porSup || {};
+    for (const [, g] of bySup) {
+      if (!g.cod_sup) continue;
+      const rowsInd = porSup[`${g.filial}:${g.cod_sup}`];
+      if (!rowsInd || !rowsInd.length) continue;
+      const sInd = summarizeInd(rowsInd, d.dias, d.fonte.gerotPosicao);
+      jobs.push({
+        chave: `ind:sup:${g.filial}:${g.cod_sup}`, filial: g.filial, cod_sup: g.cod_sup, supervisor: g.supervisor,
+        html: buildHtml({ titulo: `Indústrias — ${g.supervisor} (${g.filial})`, ...sInd, colunas: colsInd, linhas: rowsInd.slice(0, 28).map(rowIndHtml) })
+      });
+    }
+    const porFil = d.industrias.porFilial || {};
+    for (const f of d.filiais) {
+      const rowsInd = porFil[f.filial];
+      if (!rowsInd || !rowsInd.length) continue;
+      const sInd = summarizeInd(rowsInd, d.dias, d.fonte.gerotPosicao);
+      jobs.push({
+        chave: `ind:fil:${f.filial}`, filial: f.filial, cod_sup: '', supervisor: '',
+        html: buildHtml({ titulo: `Indústrias — Filial ${f.filial}`, ...sInd, colunas: colsInd, linhas: rowsInd.slice(0, 28).map(rowIndHtml) })
+      });
+    }
+    if (d.industrias.brasil && d.industrias.brasil.length) {
+      const sInd = summarizeInd(d.industrias.brasil, d.dias, d.fonte.gerotPosicao);
+      jobs.push({
+        chave: 'ind:brasil', filial: 'BR', cod_sup: '', supervisor: '',
+        html: buildHtml({ titulo: 'Indústrias — Brasil (11 Filiais)', ...sInd, colunas: colsInd, linhas: d.industrias.brasil.slice(0, 28).map(rowIndHtml) })
+      });
+    }
+  }
 
   console.log(`Renderizando ${jobs.length} cards JPEG em Playwright...`);
   const browser = await chromium.launch({ headless: true });

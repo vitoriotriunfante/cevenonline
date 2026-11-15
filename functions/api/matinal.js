@@ -3,6 +3,7 @@
 // Painel da Matinal 100% resiliente ao CEVEN (le direto do D1: GEROT + roteiro_dia + pedido_status + prospects_mapa)
 // =========================================================================
 import { ehFeriado, diaSemLance } from '../_lib/feriados.js';
+import { nomeForn } from '../_lib/jota/respostas/metas_industria.js';
 
 const j = (obj, st = 200) => new Response(JSON.stringify(obj), {
   status: st,
@@ -68,7 +69,7 @@ export async function onRequestGet({ request, env }) {
   const dias = diasUteis(hoje);
 
   try {
-    const [stGerot, filRows, supRows, vendRows, rotaRows, pedRows, prospRows, ontRows] = await Promise.all([
+    const [stGerot, filRows, supRows, vendRows, rotaRows, pedRows, prospRows, ontRows, indRows] = await Promise.all([
       env.DB.prepare('SELECT posicao, em FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null),
       env.DB.prepare('SELECT filial, dados, em FROM gerot_filial_mes WHERE mes = ? ORDER BY filial').bind(mes).all(),
       (fil
@@ -94,6 +95,10 @@ export async function onRequestGet({ request, env }) {
       (fil
         ? env.DB.prepare("SELECT filial, rca, COUNT(*) qtd, SUM(valor) vlr, COUNT(DISTINCT CASE WHEN COALESCE(id_cliente,'') <> '' THEN id_cliente END) pos FROM pedido_status WHERE filial = ? AND data_pedido = ? AND UPPER(COALESCE(status,'')) <> 'CANCELADO' GROUP BY filial, rca").bind(fil, ultUtil)
         : env.DB.prepare("SELECT filial, rca, COUNT(*) qtd, SUM(valor) vlr, COUNT(DISTINCT CASE WHEN COALESCE(id_cliente,'') <> '' THEN id_cliente END) pos FROM pedido_status WHERE data_pedido = ? AND UPPER(COALESCE(status,'')) <> 'CANCELADO' GROUP BY filial, rca").bind(ultUtil)
+      ).all().catch(() => ({ results: [] })),
+      (fil
+        ? env.DB.prepare('SELECT filial, cod_sup, supervisor, dados FROM gerot_vendas WHERE mes = ? AND filial = ?').bind(mes, fil)
+        : env.DB.prepare('SELECT filial, cod_sup, supervisor, dados FROM gerot_vendas WHERE mes = ?').bind(mes)
       ).all().catch(() => ({ results: [] }))
     ]);
 
@@ -179,6 +184,55 @@ export async function onRequestGet({ request, env }) {
       })
       .sort((a, b) => a.tendPct - b.tendPct || b.meta - a.meta);
 
+    const accInd = (map, chave, ind, m) => {
+      if (!map.has(chave)) map.set(chave, new Map());
+      const sub = map.get(chave);
+      if (!sub.has(ind)) sub.set(ind, { ind, meta: 0, fat: 0, pend: 0, pos: 0 });
+      const cur = sub.get(ind);
+      cur.meta += m.meta;
+      cur.fat += m.fat;
+      cur.pend += m.pend;
+      cur.pos += m.pos;
+    };
+    const supIndMap = new Map(), filIndMap = new Map(), brIndMap = new Map();
+    for (const r of indRows.results || []) {
+      let d = {};
+      try { d = JSON.parse(r.dados || '{}'); } catch { continue; }
+      const ind = nomeForn(d.Fornecedor);
+      if (!ind) continue;
+      const m = parseDados(r.dados);
+      const codSup = String(r.cod_sup || '').trim();
+      if (codSup) accInd(supIndMap, `${r.filial}:${codSup}`, ind, m);
+      accInd(filIndMap, r.filial, ind, m);
+      accInd(brIndMap, 'brasil', ind, m);
+    }
+    const fmtIndList = (sub) => [...(sub ? sub.values() : [])]
+      .filter((x) => x.meta > 0 || x.fat !== 0 || x.pend !== 0 || x.pos > 0)
+      .map((x) => {
+        const vend = x.fat + x.pend;
+        const tend = dias.dec ? (vend / dias.dec) * dias.tot : vend;
+        const falta = Math.max(0, x.meta - vend);
+        return {
+          ind: x.ind,
+          meta: x.meta,
+          fat: x.fat,
+          pend: x.pend,
+          vend,
+          pctMeta: x.meta ? (vend / x.meta) * 100 : 0,
+          tend,
+          tendPct: x.meta ? (tend / x.meta) * 100 : 0,
+          precisaDia: x.meta ? (dias.falt ? falta / dias.falt : falta) : 0,
+          pos: x.pos
+        };
+      })
+      .sort((a, b) => ((b.meta > 0) - (a.meta > 0)) || (a.meta > 0 && b.meta > 0 ? a.tendPct - b.tendPct || b.meta - a.meta : b.vend - a.vend));
+
+    const industrias = {
+      porSup: Object.fromEntries([...supIndMap.entries()].map(([k, sub]) => [k, fmtIndList(sub)])),
+      porFilial: Object.fromEntries([...filIndMap.entries()].map(([k, sub]) => [k, fmtIndList(sub)])),
+      brasil: fmtIndList(brIndMap.get('brasil'))
+    };
+
     return j({
       ok: true,
       hoje,
@@ -192,7 +246,8 @@ export async function onRequestGet({ request, env }) {
       },
       filiais,
       supervisores,
-      vendedores
+      vendedores,
+      industrias
     });
   } catch (e) {
     return j({ ok: false, erro: e.message }, 500);
