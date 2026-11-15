@@ -14,7 +14,7 @@ import {
 import { detectarEventos } from '../functions/_lib/monitoria/detector.js';
 import { formataS3Travados, formataS5Fechamento, executarCicloSupervisores } from '../functions/_lib/monitoria/supervisores.js';
 import { montarDossieSupervisor, executarAnalistaComercial } from '../functions/_lib/monitoria/analista.js';
-import { auditarLoopFechadoRoi } from '../functions/_lib/monitoria/roi.js';
+import { auditarLoopFechadoRoi, escalonarCasosAbertosGerente } from '../functions/_lib/monitoria/roi.js';
 
 let ok = 0;
 function teste(nome, cond) {
@@ -178,6 +178,35 @@ teste('montarDossieSupervisor nao cobra check-in de vendedor que ja digitou pedi
 
 const roiVazio = await auditarLoopFechadoRoi(db, { vend: [{ rca: '101', dig: 2500 }] }, 'TPH');
 teste('auditarLoopFechadoRoi executa de forma segura sem casos abertos', roiVazio.auditados === 0 && roiVazio.recuperados === 0);
+
+const escVazio = await escalonarCasosAbertosGerente(db, {}, {});
+teste('escalonarCasosAbertosGerente executa de forma segura sem casos >2h', escVazio.avaliados === 0 && escVazio.escalonados === 0);
+
+const dbChurn = {
+  prepare(sql) {
+    return {
+      bind() {
+        return {
+          all: async () => ({ results: sql.includes('cliente_focos') && sql.includes('INATIV') ? [{ rca: '101', id_cliente: '777', tag: 'INATIVO_35D' }] : [] }),
+          first: async () => null,
+          run: async () => ({ meta: { changes: 1 } }),
+        };
+      },
+      all: async () => ({ results: [] }),
+      first: async () => null,
+      run: async () => ({ meta: { changes: 1 } }),
+    };
+  },
+};
+const dossieChurn = await montarDossieSupervisor(
+  dbChurn,
+  { nome: 'Sup Teste (TPH)', vend: [{ nome: 'Joao Silva', rca: '101', papel: 'vendedor', meta: 100000, fat: 40000, pend: 0, dig: 2500, visP: 10, visF: 4, pos: 30, metaPos: 40 }] },
+  'TPH',
+  [],
+  '10:15',
+  []
+);
+teste('montarDossieSupervisor detecta risco de perda/churn via cliente_focos', dossieChurn && dossieChurn.sinal_principal.tipo === 'RISCO_CHURN');
 
 console.log(`RESULTADO MONITOR.IA: ${ok} de ${ok} testes OK`);
 

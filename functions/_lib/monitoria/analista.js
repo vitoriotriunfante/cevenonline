@@ -14,7 +14,7 @@ import {
   listarRegras,
   nomeClienteD1,
 } from './motor.js';
-import { auditarLoopFechadoRoi, registrarCasoRoi } from './roi.js';
+import { auditarLoopFechadoRoi, escalonarCasosAbertosGerente, registrarCasoRoi } from './roi.js';
 import R from '../../../public/regras.js';
 
 const MODELO_WORKERS_AI = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
@@ -178,6 +178,17 @@ export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, envios
   }
   for (const x of emRotaSemPedido) x.clientes_alvo = alvosCli.get(x.rca) || [];
 
+  const { results: churnRows } = await db.prepare(
+    "SELECT rca, id_cliente, tag FROM cliente_focos WHERE filial = ? AND (UPPER(tag) LIKE '%INATIV%' OR UPPER(tag) LIKE '%RECORR%' OR UPPER(tag) LIKE '%CHURN%' OR UPPER(tag) LIKE '%RISCO%') LIMIT 6"
+  ).bind(filial).all().catch(() => ({ results: [] }));
+  const rcaSet = new Set(vs.map((v) => String(v.rca)));
+  const churnAlvos = [];
+  for (const ch of (churnRows || []).filter((x) => rcaSet.has(String(x.rca))).slice(0, 2)) {
+    const nm = await nomeClienteD1(db, filial, ch.id_cliente);
+    const vChurn = vs.find((v) => String(v.rca) === String(ch.rca));
+    churnAlvos.push({ rca: String(ch.rca), vendedor: nome2((vChurn && vChurn.nome) || ch.rca), cliente: nm, tag: ch.tag });
+  }
+
   const sinais = [];
   if (bloqsNovos.length) sinais.push({ tipo: 'BLOQUEIO_CRITICO', sig: bloqsNovos[0].sig, detalhe: bloqsNovos });
   if (cortesNovos.length) sinais.push({ tipo: 'CORTE_PEDIDO', sig: cortesNovos[0].sig, detalhe: cortesNovos });
@@ -187,6 +198,7 @@ export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, envios
   if (devHoje >= 500) sinais.push({ tipo: 'DEVOLUCAO_HOJE', sig: `DEV:${Math.round(devHoje)}`, detalhe: devHoje });
   if (lancesRuins.length) sinais.push({ tipo: 'CHAMPIONS_PENALIDADE', sig: lancesRuins[0].sig, detalhe: lancesRuins.slice(0, 3) });
   if (posTravada.length) sinais.push({ tipo: 'POSITIVACAO_TRAVADA', sig: `POS:${posTravada.map((x) => x.rca).join(',')}`, detalhe: posTravada });
+  if (churnAlvos.length && hhmm >= '09:30') sinais.push({ tipo: 'RISCO_CHURN', sig: `CHURN:${churnAlvos[0].rca}:${churnAlvos[0].cliente}`, detalhe: churnAlvos });
   if (pioresInd.length && hhmm >= '10:00') {
     sinais.push({ tipo: 'INDUSTRIA_ATRASADA', sig: `IND:${pioresInd[0].cod}`, detalhe: pioresInd });
   }
@@ -324,6 +336,15 @@ function mensagemFallback(d) {
       `RCA *${m0.rca} - ${nome2(m0.nome || '')}* está com média de apenas *${String(m0.mix_medio).replace('.', ',')} produtos/cliente*.`,
       '',
       `👉 *Ação agora:* cobrar uso da lista do +MIX antes de fechar cada pedido hoje.`,
+    ].join('\n');
+  }
+  if (s.tipo === 'RISCO_CHURN') {
+    const ch0 = s.detalhe[0];
+    return [
+      `🔄 *Risco de Perda / Recorrência · ${ch0.cliente}*`,
+      `*${ch0.vendedor}* (RCA ${ch0.rca}) tem cliente com alerta *${ch0.tag}* sem pedido ainda.`,
+      '',
+      `👉 *Ação agora:* cobrar de *${ch0.vendedor}* visita e retomada de *${ch0.cliente}* hoje.`,
     ].join('\n');
   }
   const g0 = d.top_gaps_dia[0];
@@ -537,6 +558,11 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
     });
   }
 
+  let escalonamentos = { avaliados: 0, escalonados: 0 };
+  if (regra.modo === 'PRODUCAO' && cfg) {
+    escalonamentos = await escalonarCasosAbertosGerente(db, env, { cfg, maxPorRodada: 3 }).catch(() => ({ avaliados: 0, escalonados: 0 }));
+  }
+
   return {
     ok: true,
     regra: 'ANALISTA',
@@ -546,6 +572,7 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
     silencios_ia: silencios,
     processados: resultados.length,
     enviados_producao: enviadosReal,
+    escalonamentos,
     amostra_vitorio: amostraEnviada,
     resultados,
   };
