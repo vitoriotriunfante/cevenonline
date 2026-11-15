@@ -235,16 +235,20 @@ async function carregar() {
 
   document.getElementById('kpis').innerHTML = [
     { lbl: 'Volume Pós-Alerta (30d)', val: brl(roi.valor_recuperado_total) },
-    { lbl: 'Alertas Resolvidos', val: `${roi.taxa_resolucao_pct}% (${roi.casos_recuperados}/${roi.casos_abertos + roi.casos_recuperados + (roi.casos_expirados || 0)})` },
+    { lbl: 'Alertas Resolvidos', val: `${roi.taxa_resolucao_pct}% (${roi.casos_recuperados}/${roi.casos_abertos + roi.casos_recuperados + (roi.casos_expirados || 0)})${roi.tempo_medio_min != null ? ` · ${roi.tempo_medio_min}m` : ''}` },
     { lbl: 'Em Aberto Hoje', val: brl(roi.valor_em_risco_aberto) },
     { lbl: 'Regras Ativas', val: `${regras.filter((x) => x.ativo === 1).length}/${regras.length}` }
   ].map((k) => `<div class="kpi"><div class="lbl">${k.lbl}</div><div class="val">${k.val}</div></div>`).join('');
 
   document.getElementById('gridOnda1').innerHTML = o1.map(renderRegra).join('');
   document.getElementById('gridOnda2').innerHTML = o2.map(renderRegra).join('');
-  document.getElementById('listaFiliaisRoi').innerHTML = (roi.por_filial && roi.por_filial.length)
+  const blocoFiliais = (roi.por_filial && roi.por_filial.length)
     ? `<div class="envio"><div class="envio-head"><span><strong>Execução por Filial</strong></span><span>${roi.por_filial.map((f) => `${f.filial}: ${f.recuperados}/${f.total} (${brl(f.valor_recuperado)})`).join(' · ')}</span></div></div>`
     : '';
+  const blocoPareto = (roi.pareto_causas && roi.pareto_causas.length)
+    ? `<div class="envio"><div class="envio-head"><span><strong>Pareto 7 dias (Causa Raiz)</strong></span><span>${roi.pareto_causas.map((p) => `${p.tipo}: ${p.recuperados}/${p.total} (${brl(p.risco_total)})`).join(' · ')}</span></div></div>`
+    : '';
+  document.getElementById('listaFiliaisRoi').innerHTML = blocoFiliais + blocoPareto;
   document.getElementById('listaRoi').innerHTML = (roi.recentes || []).map((c) => `
     <div class="envio">
       <div class="envio-head">

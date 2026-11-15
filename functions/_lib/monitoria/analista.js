@@ -360,7 +360,7 @@ function mensagemFallback(d) {
 export async function analisarComIA(env, dossie) {
   const sys = `Você é o Analista Comercial Sênior do MONITOR.IA (distribuidora Triunfante / +MIX).
 Analise o dossiê JSON abaixo de um supervisor de vendas e decida:
-1) Vale mandar mensagem no WhatsApp AGORA para fazê-lo vender mais hoje? (se já atingiu ritmo forte e não há bloqueio/vendedor travado, responda enviar=false)
+1) Vale mandar mensagem no WhatsApp AGORA para fazê-lo vender mais hoje? (se já atingiu ritmo forte e não há bloqueio/vendedor travado, OU se conversa_jota_recente mostrar que o supervisor já está tratando ou justificou o assunto nos últimos 30 min, responda enviar=false)
 2) Se enviar=true, escreva uma mensagem curta (máx 5 linhas), escaneável em 5 segundos no celular, começando a linha 1 pelo problema e valor em R$ (NÃO repita o nome do supervisor no título), citando o nome do vendedor, SEM inventar nenhum número (use APENAS os valores do JSON), com uma linha em branco antes de fechar com "👉 *Ação agora:* ...".
 
 Responda SOMENTE JSON válido:
@@ -460,16 +460,14 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
   let enviadosReal = 0;
   let amostraEnviada = false;
 
-  for (const s of alvos) {
-    if (alertasGerados >= limite) break;
-
+  const avaliaSupervisor = async (s) => {
     const enviosHoje = (await db.prepare("SELECT acao_pos_alerta, enviado_em FROM monitoria_envios WHERE regra_id = 'ANALISTA' AND data = ? AND destino_real = ?")
       .bind(hoje, s.nome).all().catch(() => ({ results: [] }))).results || [];
-    if (enviosHoje.length >= maxPorDia) continue;
+    if (enviosHoje.length >= maxPorDia) return null;
 
     const supNomeAlvo = s.supervisor || s.nome;
     const Es = await carregaEscopo(B, { nome: `${supNomeAlvo} (${s.filial})`, filiais: [s.filial], supervisor: supNomeAlvo }).catch(() => null);
-    if (!Es || !Es.vend || !Es.vend.length) continue;
+    if (!Es || !Es.vend || !Es.vend.length) return null;
 
     if (regra.modo === 'PRODUCAO') {
       await auditarLoopFechadoRoi(db, Es, s.filial);
@@ -481,7 +479,7 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
       mixVendedores: mixData?.vendedores || [],
       rv: rvData,
     });
-    if (!dossie) continue;
+    if (!dossie) return null;
 
     // Cruzamento MONITOR.IA <-> JOTA: le contexto recente do supervisor no JOTA (ultimas 3h em bot_msgs)
     if (s.celular) {
@@ -492,75 +490,84 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
     }
 
     const decisao = await analisarComIA(env, dossie);
-    if (!decisao || !decisao.enviar || !decisao.mensagem) {
-      silencios++;
-      continue;
-    }
+    if (!decisao || !decisao.enviar || !decisao.mensagem) return { silencio: true };
+    return { s, dossie, decisao };
+  };
 
-    let status = 'SIMULADO';
-    let celDestino = 'SIMULACAO';
-    if (regra.modo === 'PRODUCAO' && cfg) {
-      if (enviadosReal > 0) await R.pausaEntreEnvios(4, 1, 2);
-      const rt = await R.enviarTexto(cfg, s.celular, decisao.mensagem);
-      status = rt.ok ? 'ENVIADO' : 'ERRO';
-      celDestino = s.celular;
-      if (rt.ok) {
-        enviadosReal++;
-        // Registra em bot_msgs para que o JOTA saiba o que o MONITOR.IA acabou de cobrar se o supervisor responder no WhatsApp
-        await db.prepare(
-          "INSERT INTO bot_msgs (celular, direcao, texto, tipo) VALUES (?, 'out', ?, 'monitoria_analista')"
-        ).bind(String(s.celular), String(decisao.mensagem).slice(0, 1500)).run().catch(() => {});
+  for (let idx = 0; idx < alvos.length && alertasGerados < limite; idx += 4) {
+    const lote = alvos.slice(idx, idx + 4);
+    const avaliados = await Promise.all(lote.map(avaliaSupervisor));
+    for (const item of avaliados) {
+      if (!item) continue;
+      if (item.silencio) { silencios++; continue; }
+      if (alertasGerados >= limite) break;
+      const { s, dossie, decisao } = item;
+
+      let status = 'SIMULADO';
+      let celDestino = 'SIMULACAO';
+      if (regra.modo === 'PRODUCAO' && cfg) {
+        if (enviadosReal > 0) await R.pausaEntreEnvios(4, 1, 2);
+        const rt = await R.enviarTexto(cfg, s.celular, decisao.mensagem);
+        status = rt.ok ? 'ENVIADO' : 'ERRO';
+        celDestino = s.celular;
+        if (rt.ok) {
+          enviadosReal++;
+          // Registra em bot_msgs para que o JOTA saiba o que o MONITOR.IA acabou de cobrar se o supervisor responder no WhatsApp
+          await db.prepare(
+            "INSERT INTO bot_msgs (celular, direcao, texto, tipo) VALUES (?, 'out', ?, 'monitoria_analista')"
+          ).bind(String(s.celular), String(decisao.mensagem).slice(0, 1500)).run().catch(() => {});
+        }
+      } else if (opts.enviarVitorio && !amostraEnviada && cfg) {
+        const rt = await R.enviarTexto(cfg, celTeste, `🧪 *[SIMULAÇÃO ANALISTA IA · ${s.nome}]*\n\n${decisao.mensagem}`);
+        if (rt.ok) {
+          amostraEnviada = true;
+          status = 'AMOSTRA_VITORIO';
+          celDestino = celTeste;
+        }
       }
-    } else if (opts.enviarVitorio && !amostraEnviada && cfg) {
-      const rt = await R.enviarTexto(cfg, celTeste, `🧪 *[SIMULAÇÃO ANALISTA IA · ${s.nome}]*\n\n${decisao.mensagem}`);
-      if (rt.ok) {
-        amostraEnviada = true;
-        status = 'AMOSTRA_VITORIO';
-        celDestino = celTeste;
+
+      await db.prepare(
+        'INSERT INTO monitoria_envios (regra_id, data, celular, destino_real, papel, filial, rca, modo, bonequinho, status, texto_preview, acao_pos_alerta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      ).bind(
+        'ANALISTA',
+        hoje,
+        celDestino,
+        s.nome,
+        'supervisor',
+        s.filial,
+        '',
+        regra.modo,
+        decisao.motor_ia,
+        status,
+        String(decisao.mensagem).slice(0, 600),
+        dossie.sinal_principal.sig
+      ).run().catch(() => {});
+
+      if (status === 'ENVIADO') {
+        const sp = dossie.sinal_principal;
+        if (sp.tipo === 'BLOQUEIO_CRITICO' && sp.detalhe[0]) {
+          await registrarCasoRoi(db, { data: hoje, filial: s.filial, supervisor: s.nome, tipo: sp.tipo, referencia: sp.detalhe[0].num, rca: sp.detalhe[0].rca, valor_em_risco: sp.detalhe[0].valor, detalhe: sp.detalhe[0].cliente });
+        } else if ((sp.tipo === 'EM_ROTA_SEM_PEDIDO' || sp.tipo === 'SEM_CHECKIN' || sp.tipo === 'OPORTUNIDADE_ROTA') && sp.detalhe[0]) {
+          await registrarCasoRoi(db, { data: hoje, filial: s.filial, supervisor: s.nome, tipo: sp.tipo, referencia: sp.detalhe[0].rca, rca: sp.detalhe[0].rca, valor_em_risco: sp.detalhe[0].gapDia || 0, detalhe: sp.detalhe[0].vendedor || sp.detalhe[0].nome });
+        }
       }
+
+      alertasGerados++;
+      resultados.push({
+        supervisor: s.nome,
+        filial: s.filial,
+        status,
+        sinal: dossie.sinal_principal.tipo,
+        prioridade: decisao.prioridade,
+        motor: decisao.motor_ia,
+        preview: String(decisao.mensagem).slice(0, 260),
+      });
     }
-
-    await db.prepare(
-      'INSERT INTO monitoria_envios (regra_id, data, celular, destino_real, papel, filial, rca, modo, bonequinho, status, texto_preview, acao_pos_alerta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    ).bind(
-      'ANALISTA',
-      hoje,
-      celDestino,
-      s.nome,
-      'supervisor',
-      s.filial,
-      '',
-      regra.modo,
-      decisao.motor_ia,
-      status,
-      String(decisao.mensagem).slice(0, 600),
-      dossie.sinal_principal.sig
-    ).run().catch(() => {});
-
-    if (status === 'ENVIADO') {
-      const sp = dossie.sinal_principal;
-      if (sp.tipo === 'BLOQUEIO_CRITICO' && sp.detalhe[0]) {
-        await registrarCasoRoi(db, { data: hoje, filial: s.filial, supervisor: s.nome, tipo: sp.tipo, referencia: sp.detalhe[0].num, rca: sp.detalhe[0].rca, valor_em_risco: sp.detalhe[0].valor, detalhe: sp.detalhe[0].cliente });
-      } else if ((sp.tipo === 'EM_ROTA_SEM_PEDIDO' || sp.tipo === 'SEM_CHECKIN' || sp.tipo === 'OPORTUNIDADE_ROTA') && sp.detalhe[0]) {
-        await registrarCasoRoi(db, { data: hoje, filial: s.filial, supervisor: s.nome, tipo: sp.tipo, referencia: sp.detalhe[0].rca, rca: sp.detalhe[0].rca, valor_em_risco: sp.detalhe[0].gapDia || 0, detalhe: sp.detalhe[0].vendedor || sp.detalhe[0].nome });
-      }
-    }
-
-    alertasGerados++;
-    resultados.push({
-      supervisor: s.nome,
-      filial: s.filial,
-      status,
-      sinal: dossie.sinal_principal.tipo,
-      prioridade: decisao.prioridade,
-      motor: decisao.motor_ia,
-      preview: String(decisao.mensagem).slice(0, 260),
-    });
   }
 
   let escalonamentos = { avaliados: 0, escalonados: 0 };
   if (regra.modo === 'PRODUCAO' && cfg) {
-    escalonamentos = await escalonarCasosAbertosGerente(db, env, { cfg, maxPorRodada: 3 }).catch(() => ({ avaliados: 0, escalonados: 0 }));
+    escalonamentos = await escalonarCasosAbertosGerente(db, env, { cfg, maxPorRodada: 3, hhmm }).catch(() => ({ avaliados: 0, escalonados: 0 }));
   }
 
   return {
