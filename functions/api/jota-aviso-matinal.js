@@ -49,6 +49,11 @@ const GRUPOS_BASE = [
   { celular: '120363421891740142@g.us', nome: 'Projeto Locomotiva Esteio - TPA' }
 ];
 
+const autorizado = async (request, env) => {
+  const u = new URL(request.url);
+  return (env.BOT_WEBHOOK_KEY && u.searchParams.get('k') === env.BOT_WEBHOOK_KEY) || await chaveEvoValida(request, env);
+};
+
 async function gruposPendentes(env, tipo) {
   const { results: dbGrupos } = await env.DB.prepare(
     "SELECT DISTINCT celular, MAX(nome) AS nome FROM bot_msgs WHERE celular LIKE '%@g.us' AND UPPER(COALESCE(nome,'')) LIKE '%LOCOMOTIVA%' GROUP BY celular"
