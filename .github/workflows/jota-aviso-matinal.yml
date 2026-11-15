@@ -1,0 +1,25 @@
+# Envio seguro (antiban) do lembrete da Matinal com card modelo do Washington para todos os grupos Locomotiva.
+# Disparo manual via workflow_dispatch. Pausa aleatoria de 18-31s entre grupos e idempotencia via bot_msgs.
+name: JOTA — aviso Matinal grupos Locomotiva
+
+on:
+  workflow_dispatch:
+
+jobs:
+  enviar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Enviar para grupos Locomotiva pendentes (18-31s entre grupos)
+        env:
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+        run: |
+          B="https://ceven-cftv-matrix.pages.dev/api/jota-aviso-matinal"
+          LISTA=$(curl -fsS -m 30 -H "X-Evo-Key: $EVO_KEY" "$B" | python3 -c "import json,sys; print(' '.join(json.load(sys.stdin)['pendentes']))")
+          echo "Grupos pendentes: $(echo $LISTA | wc -w)"
+          for jid in $LISTA; do
+            echo "$jid: $(curl -fsS -m 50 -X POST -H "X-Evo-Key: $EVO_KEY" "$B?jid=$jid")"
+            PAUSA=$((18 + RANDOM % 14))
+            echo "Aguardando ${PAUSA}s..."
+            sleep $PAUSA
+          done
