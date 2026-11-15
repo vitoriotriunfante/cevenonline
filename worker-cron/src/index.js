@@ -52,11 +52,13 @@ const TAREFAS_TV = {
   '2-59/15 * * * *': { passos: [{ rota: '/api/cron-faturado-mes', ms: 60000 }] }
 };
 
-async function rodarTarefaTv(cron, tarefa) {
+async function rodarTarefaTv(cron, tarefa, env) {
   for (const passo of tarefa.passos) {
     const inicio = Date.now();
     try {
-      const r = await fetch(BASE_TV + passo.rota, { headers: { 'User-Agent': 'ceven-cron-trigger' }, signal: AbortSignal.timeout(passo.ms) });
+      const headers = { 'User-Agent': 'ceven-cron-trigger' };
+      if (passo.chaveEnv && env && env[passo.chaveEnv]) headers['x-chave'] = env[passo.chaveEnv];
+      const r = await fetch(BASE_TV + passo.rota, { headers, signal: AbortSignal.timeout(passo.ms) });
       console.log(`[TV] cron "${cron}" ${passo.rota} status=${r.status} em ${Date.now() - inicio} ms`);
     } catch (e) {
       console.log(`[TV][ERRO] cron "${cron}" ${passo.rota}: ${e && e.message ? e.message : e}`);
@@ -104,8 +106,14 @@ export default {
         if ([9, 12, 15].includes(h) && mi >= 30 && mi < 45) {
           try { const r = await dispararWorkflow(env, 'prospects-coleta.yml', {}); console.log(`[PROSPECTS] prospects-coleta.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[PROSPECTS][ERRO] ' + (e && e.message ? e.message : e)); }
         }
+        // MONITOR.IA (Analista Comercial): varredura continua a cada 15 min, seg-sab 07:30-18:30 BRT.
+        // Respeita regra.modo no D1 (SIMULACAO_VITORIO por padrao) e regras anti-spam (R.enviarTexto + max 4/dia + sem repetir assinatura).
+        const emExpediente = dia >= 1 && dia <= 6 && ((h === 7 && mi >= 30) || (h >= 8 && h <= 17) || (h === 18 && mi <= 30));
+        if (emExpediente && env.MONITORIA_CRON_KEY) {
+          await rodarTarefaTv(event.cron, { passos: [{ rota: '/api/cron-monitoria?regra=ANALISTA', ms: 120000, chaveEnv: 'MONITORIA_CRON_KEY' }] }, env);
+        }
       }
-      await rodarTarefaTv(event.cron, tarefaTv);
+      await rodarTarefaTv(event.cron, tarefaTv, env);
       return;
     }
     const gatilho = GATILHOS[event.cron];
