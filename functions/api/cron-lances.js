@@ -392,6 +392,106 @@ async function carregaDevolucoes(env, t, filialDoRca) {
   return out;
 }
 
+// Fallback quando a varredura central do CEVEN falha (HTTP 500): usa SOMENTE pedidos aceitos no WinThor (pedido_status)
+// e check-ins reais de GPS (clube_checkin / clube_venda_dia). Nunca usa pedido digitado do Clube para gerar gol.
+async function carregarFallbackWinthorClube(env, dia) {
+  const pedPorRca = new Map();
+  const chkPorRca = new Map();
+  const clubeDiaPorRca = new Map();
+  const [pedRes, chkRes, cluRes] = await Promise.all([
+    env.DB.prepare(
+      "SELECT filial, rca, id_cliente, num, COALESCE(NULLIF(valor_winthor, 0), valor) v, status FROM pedido_status WHERE data_pedido = ? AND UPPER(COALESCE(status, '')) NOT IN ('CANCELADO', 'BLOQUEADO') AND COALESCE(valor_winthor, valor, 0) > 0"
+    ).bind(dia).all().catch(() => ({ results: [] })),
+    env.DB.prepare(
+      "SELECT filial, rca, nome, tipo, data_hora, cliente, fantasia FROM clube_checkin WHERE dia = ? ORDER BY data_hora ASC"
+    ).bind(dia).all().catch(() => ({ results: [] })),
+    env.DB.prepare(
+      "SELECT filial, rca, nome, roteiros, visitas_rota FROM clube_venda_dia WHERE dia = ?"
+    ).bind(dia).all().catch(() => ({ results: [] })),
+  ]);
+  for (const p of pedRes.results || []) {
+    const k = `${String(p.filial || '').toUpperCase()}|${String(p.rca)}`;
+    if (!pedPorRca.has(k)) pedPorRca.set(k, []);
+    pedPorRca.get(k).push(p);
+  }
+  for (const c of chkRes.results || []) {
+    const k = `${String(c.filial || '').toUpperCase()}|${String(c.rca)}`;
+    if (!chkPorRca.has(k)) chkPorRca.set(k, []);
+    chkPorRca.get(k).push(c);
+  }
+  for (const r of cluRes.results || []) {
+    const k = `${String(r.filial || '').toUpperCase()}|${String(r.rca)}`;
+    clubeDiaPorRca.set(k, r);
+  }
+  return { pedPorRca, chkPorRca, clubeDiaPorRca };
+}
+
+function aplicarFallbackWinthorClube(filial, codigo, d, fb) {
+  if (d && !d.erro && Array.isArray(d.clientes) && d.clientes.length > 0 && !(d.falhas && d.falhas.length === 3)) {
+    return d;
+  }
+  const k = `${String(filial).toUpperCase()}|${String(codigo)}`;
+  const peds = fb.pedPorRca.get(k) || [];
+  const chks = fb.chkPorRca.get(k) || [];
+  const clu = fb.clubeDiaPorRca.get(k) || null;
+  if (!peds.length && !chks.length) return d;
+
+  const porCli = new Map();
+  for (const c of chks) {
+    const cid = String(c.cliente || '').trim();
+    if (!cid) continue;
+    if (!porCli.has(cid)) {
+      porCli.set(cid, {
+        id: cid,
+        nome: c.fantasia || `Cliente #${cid}`,
+        status: 'VISITA',
+        checkin_horario: null,
+        checkout_horario: null,
+        tempo_visita: null,
+        recorrencia: null,
+        ultima_compra: null,
+      });
+    }
+    const item = porCli.get(cid);
+    const hms = String(c.data_hora || '').slice(11, 19);
+    if (c.tipo === 'CHECKIN' && hms && !item.checkin_horario) item.checkin_horario = hms;
+    if (c.tipo === 'CHECKOUT' && hms) item.checkout_horario = hms;
+  }
+
+  let digHoje = 0;
+  for (const p of peds) {
+    const val = Number(p.v) || 0;
+    digHoje += val;
+    const cid = String(p.id_cliente || '').trim() || `PED_${p.num}`;
+    if (!porCli.has(cid)) {
+      porCli.set(cid, {
+        id: cid,
+        nome: `Cliente #${cid}`,
+        status: 'POSITIVADO',
+        checkin_horario: null,
+        checkout_horario: null,
+        tempo_visita: null,
+        recorrencia: null,
+        ultima_compra: null,
+      });
+    }
+    const item = porCli.get(cid);
+    item.status = 'POSITIVADO';
+    item.pedido_hoje = { num: p.num, valor: val, status_pedido: p.status };
+  }
+
+  const clientes = [...porCli.values()];
+  const nome = (d && d.nome) || (clu && clu.nome) || (chks[0] && chks[0].nome) || `RCA ${codigo}`;
+  return {
+    ...(d && !d.erro ? d : {}),
+    nome,
+    clientes,
+    dig_hoje: Math.round(digHoje * 100) / 100,
+    pos_hoje: peds.length ? new Set(peds.map((p) => String(p.id_cliente))).size : 0,
+    _fonte_lances: 'winthor_clube_checkin',
+  };
+}
+
 export async function onRequestGet({ env, request }) {
   const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 (env.DB) não configurado' }), { status: 503, headers: cors });
@@ -487,7 +587,10 @@ export async function onRequestGet({ env, request }) {
     }
   } catch { /* sem planilha: segue so com o banco */ }
   for (const r of canalRows) (rcasPorFilial[r.filial] = rcasPorFilial[r.filial] || []).push(r.codigo);
-  const devPorRca = await carregaDevolucoes(env, t, new Map(canalRows.map((r) => [String(r.codigo), r.filial])));
+  const [devPorRca, fbWinthorClube] = await Promise.all([
+    carregaDevolucoes(env, t, new Map(canalRows.map((r) => [String(r.codigo), r.filial]))),
+    carregarFallbackWinthorClube(env, t.dia),
+  ]);
 
   const FUSO1H = ['TCG', 'MCD', 'TCA'];
   let totalNovos = 0, totalFalhas = 0;
@@ -503,8 +606,9 @@ export async function onRequestGet({ env, request }) {
           return { codigo, d };
         })
       );
-      for (const { codigo, d } of resultados) {
-        if (!d || d.erro || (d.falhas && d.falhas.length === 3)) { totalFalhas++; continue; }
+      for (const { codigo, d: dRaw } of resultados) {
+        const d = aplicarFallbackWinthorClube(filial, codigo, dRaw, fbWinthorClube);
+        if (!d || d.erro || (d.falhas && d.falhas.length === 3 && !d._fonte_lances)) { totalFalhas++; continue; }
         const info = canalMapa.get(String(codigo)) || {};
         const v = vend(codigo, info.canal, info.sup, d, info.carteira);
         v.fuso1h = FUSO1H.includes(filial);
