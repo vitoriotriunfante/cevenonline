@@ -1,0 +1,352 @@
+// =========================================================================
+// MONITOR.IA · functions/_lib/monitoria/analista.js
+// Agente Analista Comercial por Varredura Continua (sem hora marcada).
+// O codigo calcula 100% dos numeros e sinais no D1; a IA decide se vale
+// agir agora, escolhe a alavanca de maior impacto e redige o WhatsApp.
+// =========================================================================
+import { hojeSP, R$, nome2, vn } from '../jota/base.js';
+import { criaBase } from '../jota/fontes.js';
+import { carregaEscopo, pctTxt, pessoaReal } from '../jota/escopo.js';
+import { diasUteisMes } from '../jota/respostas/gestao.js';
+import {
+  NUMEROS_VITORIO,
+  listarRegras,
+  nomeClienteD1,
+} from './motor.js';
+import R from '../../../public/regras.js';
+
+const MODELO_WORKERS_AI = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+
+function horaMinSP() {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'America/Sao_Paulo',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date());
+}
+
+async function resolveGeminiKey(env) {
+  let k = env?.GEMINI_API_KEY || env?.GOOGLE_AI_KEY || '';
+  if (!k && env?.DB) {
+    try {
+      const r = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'gemini_api_key'").first();
+      if (r && r.valor) k = String(r.valor);
+    } catch {}
+  }
+  return k;
+}
+
+export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, enviosHoje = []) {
+  const { tot, pass } = diasUteisMes();
+  const faltam = Math.max(1, tot - pass);
+  const espPct = tot ? (pass / tot) * 100 : 0;
+  const vs = (Es.vend || []).filter((v) => pessoaReal(v) && v.meta > 0);
+  if (!vs.length) return null;
+
+  const metaTot = vs.reduce((a, v) => a + (v.meta || 0), 0);
+  const fatTot = vs.reduce((a, v) => a + (v.fat || 0), 0);
+  const pendTot = vs.reduce((a, v) => a + (v.pend || 0), 0);
+  const digHoje = vs.reduce((a, v) => a + (v.dig || 0), 0);
+  const devHoje = vs.reduce((a, v) => a + (v.devHoje || 0), 0);
+  const posReal = vs.reduce((a, v) => a + (v.pos || 0), 0);
+  const posMeta = vs.reduce((a, v) => a + (v.metaPos || 0), 0);
+
+  const gapTot = Math.max(0, metaTot - fatTot - pendTot);
+  const metaDia = gapTot / faltam;
+  const pctReal = metaTot ? (fatTot / metaTot) * 100 : 0;
+  const pctCart = metaTot ? ((fatTot + pendTot) / metaTot) * 100 : 0;
+  const pctDia = metaDia > 0 ? (digHoje / metaDia) * 100 : 0;
+
+  const assinaturasJa = new Set((enviosHoje || []).map((e) => String(e.acao_pos_alerta || '')));
+  const rcas = new Set(vs.map((v) => String(v.rca)));
+
+  const bloqsNovos = [];
+  for (const b of (bloqs || [])) {
+    if (b.filial !== filial || !rcas.has(String(b.rca)) || Number(b.valor) < 500) continue;
+    const sig = `BLOQ:${b.num}`;
+    if (assinaturasJa.has(sig)) continue;
+    const cli = await nomeClienteD1(db, b.filial, b.id_cliente);
+    bloqsNovos.push({ num: b.num, rca: b.rca, cliente: cli, valor: Number(b.valor), data: b.data_pedido, corte: b.categoria_corte || null, sig });
+    if (bloqsNovos.length >= 4) break;
+  }
+
+  const comGap = vs
+    .map((v) => {
+      const gap = Math.max(0, (v.meta || 0) - (v.fat || 0) - (v.pend || 0));
+      return {
+        rca: String(v.rca),
+        nome: vn(v),
+        nomeCurto: nome2(v.nome),
+        pct: v.meta ? ((v.fat || 0) + (v.pend || 0)) / v.meta * 100 : 0,
+        gapDia: gap / faltam,
+        dig: v.dig || 0,
+        visP: v.visP || 0,
+        visF: v.visF || 0,
+      };
+    })
+    .sort((a, b) => b.gapDia - a.gapDia);
+
+  const emRotaSemPedido = hhmm >= '09:30' ? comGap.filter((x) => x.visF >= 2 && x.dig === 0).slice(0, 4) : [];
+  const semCheckin = hhmm >= '09:30' ? comGap.filter((x) => x.visP > 0 && x.visF === 0).slice(0, 4) : [];
+  const destaques = [...comGap].filter((x) => x.dig > 0).sort((a, b) => b.dig - a.dig).slice(0, 3);
+
+  const sinais = [];
+  if (bloqsNovos.length) sinais.push({ tipo: 'BLOQUEIO_CRITICO', sig: bloqsNovos[0].sig, detalhe: bloqsNovos });
+  if (emRotaSemPedido.length) sinais.push({ tipo: 'EM_ROTA_SEM_PEDIDO', sig: `ROTA0:${emRotaSemPedido.map((x) => x.rca).join(',')}`, detalhe: emRotaSemPedido });
+  if (semCheckin.length) sinais.push({ tipo: 'SEM_CHECKIN', sig: `CHECK0:${semCheckin.map((x) => x.rca).join(',')}`, detalhe: semCheckin });
+  if (devHoje >= 500) sinais.push({ tipo: 'DEVOLUCAO_HOJE', sig: `DEV:${Math.round(devHoje)}`, detalhe: devHoje });
+  if (hhmm >= '11:00' && hhmm < '17:30' && metaDia > 0 && digHoje < metaDia * 0.5) {
+    sinais.push({ tipo: 'RITMO_DIA_BAIXO', sig: `RITMO:${hhmm.slice(0, 2)}`, detalhe: { digHoje, metaDia, pctDia } });
+  }
+  if (hhmm >= '07:30' && hhmm < '09:30' && !enviosHoje.length) {
+    sinais.push({ tipo: 'ABERTURA_MANHA', sig: 'ABERTURA', detalhe: comGap.slice(0, 3) });
+  }
+  if (hhmm >= '17:30' && hhmm <= '19:00' && !assinaturasJa.has('FECHAMENTO')) {
+    sinais.push({ tipo: 'FECHAMENTO_DIA', sig: 'FECHAMENTO', detalhe: { digHoje, metaDia, pctDia } });
+  }
+
+  const sinalNovo = sinais.find((s) => !assinaturasJa.has(s.sig));
+  if (!sinalNovo) return null;
+
+  return {
+    supervisor: Es.nome,
+    filial,
+    horario_sp: hhmm,
+    dia_util: `${pass}/${tot} (faltam ${faltam})`,
+    resumo: {
+      meta_mes: R$(metaTot),
+      faturado: R$(fatTot),
+      carteira: R$(pendTot),
+      pct_fat: pctTxt(pctReal),
+      pct_com_carteira: pctTxt(pctCart),
+      esperado_hoje: pctTxt(espPct),
+      meta_dia_necessaria: R$(metaDia),
+      digitado_hoje: R$(digHoje),
+      pct_meta_dia: pctTxt(pctDia),
+      positivacao: posMeta > 0 ? `${posReal}/${posMeta} (${pctTxt((posReal / posMeta) * 100)})` : 'sem meta pos.',
+      devolucao_hoje: R$(devHoje),
+    },
+    sinal_principal: sinalNovo,
+    todos_sinais: sinais.map((s) => s.tipo),
+    top_gaps_dia: comGap.slice(0, 3).map((x) => ({
+      vendedor: x.nome,
+      pct_mes: pctTxt(x.pct),
+      precisa_dia: R$(x.gapDia),
+      digitado_hoje: R$(x.dig),
+      visitas: `${x.visF}/${x.visP}`,
+    })),
+    destaques_hoje: destaques.map((x) => ({ vendedor: x.nome, digitado_hoje: R$(x.dig) })),
+    ja_enviados_hoje: enviosHoje.length,
+  };
+}
+
+function mensagemFallback(d) {
+  const s = d.sinal_principal;
+  const r = d.resumo;
+  if (s.tipo === 'BLOQUEIO_CRITICO') {
+    const b0 = s.detalhe[0];
+    return [
+      `⚠️ *Alerta Analista — ${d.supervisor}*`,
+      `Pedido travado novo de *${R$(b0.valor)}* no cliente *${b0.cliente}* (RCA ${b0.rca} · #${b0.num}).`,
+      `📊 Hoje: *${r.digitado_hoje}* / *${r.meta_dia_necessaria}* (${r.pct_meta_dia}).`,
+      `👉 *Ação agora:* acionar RCA ${b0.rca} para destravar crédito/preço antes do corte.`,
+    ].join('\n');
+  }
+  if (s.tipo === 'EM_ROTA_SEM_PEDIDO') {
+    const v0 = s.detalhe[0];
+    return [
+      `⏳ *Alerta Analista — ${d.supervisor}*`,
+      `*${v0.nome}* já fez *${v0.visF} visita(s)* hoje e segue com *R$ 0* (precisa *${R$(v0.gapDia)}/dia*).`,
+      `📊 Equipe hoje: *${r.digitado_hoje}* / *${r.meta_dia_necessaria}* (${r.pct_meta_dia}).`,
+      `👉 *Ação agora:* ligar para *${v0.nomeCurto}* para destravar objeção/mix no próximo PDV.`,
+    ].join('\n');
+  }
+  if (s.tipo === 'SEM_CHECKIN') {
+    const v0 = s.detalhe[0];
+    return [
+      `🛑 *Alerta Analista — ${d.supervisor}*`,
+      `*${v0.nome}* tem *${v0.visP} PDVs* na rota hoje e ainda está sem check-in às ${d.horario_sp} (precisa *${R$(v0.gapDia)}/dia*).`,
+      `👉 *Ação agora:* ligar para *${v0.nomeCurto}* e confirmar início de rota.`,
+    ].join('\n');
+  }
+  const g0 = d.top_gaps_dia[0];
+  return [
+    `🧠 *Analista Comercial — ${d.supervisor}*`,
+    `Dia ${d.dia_util} · Fat.+Cart.: *${r.pct_com_carteira}* (esp. ${r.esperado_hoje}) · Hoje: *${r.digitado_hoje}* / *${r.meta_dia_necessaria}* (${r.pct_meta_dia}).`,
+    g0 ? `🎯 *Maior alavanca:* *${g0.vendedor}* (precisa *${g0.precisa_dia}/dia*, hoje *${g0.digitado_hoje}*).` : '',
+    `👉 *Ação agora:* cobrar plano de pedido imediato do vendedor #1 de gap e positivação.`,
+  ].filter(Boolean).join('\n');
+}
+
+export async function analisarComIA(env, dossie) {
+  const sys = `Você é o Analista Comercial Sênior do MONITOR.IA (distribuidora Triunfante / +MIX).
+Analise o dossiê JSON abaixo de um supervisor de vendas e decida:
+1) Vale mandar mensagem no WhatsApp AGORA para fazê-lo vender mais hoje? (se já atingiu ritmo forte e não há bloqueio/vendedor travado, responda enviar=false)
+2) Se enviar=true, escreva uma mensagem curta (máx 6 linhas), direta, humana, em português do Brasil, estilo WhatsApp (*negrito* com asterisco simples), SEM inventar nenhum número (use APENAS os valores do JSON) e fechando com 1 ação nominal clara ("👉 *Ação agora:* ...").
+
+Responda SOMENTE JSON válido:
+{"enviar": true, "prioridade": "ALTA", "motivo": "resumo curto", "mensagem": "texto whatsapp"}`;
+
+  const userMsg = JSON.stringify(dossie);
+  const geminiKey = await resolveGeminiKey(env);
+
+  if (geminiKey) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: `${sys}\n\nDossiê:\n${userMsg}` }] }],
+          generationConfig: { responseMimeType: 'application/json', temperature: 0.2 },
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed.enviar === 'boolean') {
+          return { ...parsed, motor_ia: 'gemini-2.5-flash' };
+        }
+      }
+    } catch {}
+  }
+
+  if (env && env.AI) {
+    try {
+      const r = await env.AI.run(MODELO_WORKERS_AI, {
+        messages: [
+          { role: 'system', content: sys },
+          { role: 'user', content: userMsg },
+        ],
+        max_tokens: 380,
+        temperature: 0.2,
+      });
+      const txt = String((r && (r.response ?? r.result)) || '');
+      const parsed = typeof (r && r.response) === 'object' ? r.response : JSON.parse((txt.match(/\{[\s\S]*\}/) || ['null'])[0]);
+      if (parsed && typeof parsed.enviar === 'boolean') {
+        return { ...parsed, motor_ia: MODELO_WORKERS_AI };
+      }
+    } catch {}
+  }
+
+  return {
+    enviar: true,
+    prioridade: dossie.sinal_principal.tipo === 'BLOQUEIO_CRITICO' ? 'ALTA' : 'MEDIA',
+    motivo: dossie.sinal_principal.tipo,
+    mensagem: mensagemFallback(dossie),
+    motor_ia: 'deterministico',
+  };
+}
+
+export async function executarAnalistaComercial(origin, env, opts = {}) {
+  const db = env.DB;
+  const hoje = hojeSP();
+  const hhmm = String(opts.horario_sp || horaMinSP());
+
+  const celTeste = String(opts.celularVitorio || NUMEROS_VITORIO[0]).replace(/\D/g, '');
+  if (opts.enviarVitorio && !NUMEROS_VITORIO.includes(celTeste)) {
+    return { ok: false, erro: 'Numero fora da whitelist de teste do Vitorio' };
+  }
+
+  const regras = await listarRegras(db);
+  const regra = regras.find((r) => r.id === 'ANALISTA') || { id: 'ANALISTA', papel: 'supervisor', modo: 'SIMULACAO_VITORIO', ativo: 1 };
+  if (!opts.forcar && (regra.ativo !== 1 || regra.modo === 'OFF')) {
+    return { ok: true, regra: 'ANALISTA', modo: regra.modo, ativo: regra.ativo, processados: 0, motivo: 'Regra ANALISTA desligada' };
+  }
+
+  const { results: supsDb } = await db.prepare("SELECT celular, nome, filial, supervisor FROM bot_contatos WHERE papel = 'supervisor' AND ativo = 1 AND COALESCE(situacao,'ativo') = 'ativo' ORDER BY filial, nome").all().catch(() => ({ results: [] }));
+  const filtroFiliais = Array.isArray(opts.filiais) && opts.filiais.length ? new Set(opts.filiais.map((f) => String(f).toUpperCase())) : null;
+  const alvos = (supsDb || []).filter((s) => s.filial && (!filtroFiliais || filtroFiliais.has(String(s.filial).toUpperCase())));
+
+  const B = criaBase(origin, env);
+  const desde = new Date(Date.parse(hoje + 'T12:00:00Z') - 2 * 864e5).toISOString().slice(0, 10);
+  const bloqs = (await db.prepare("SELECT num, filial, rca, id_cliente, data_pedido, valor, categoria_corte FROM pedido_status WHERE status = 'BLOQUEADO' AND data_pedido >= ? ORDER BY valor DESC LIMIT 200").bind(desde).all().catch(() => ({ results: [] }))).results || [];
+
+  const limite = Number(opts.limite || (regra.modo === 'PRODUCAO' ? 12 : 10));
+  const maxPorDia = Number(opts.maxPorDia || 4);
+  const cfg = env.EVO_URL && env.EVO_KEY ? R.evoCfg(env) : null;
+
+  const resultados = [];
+  let enviadosReal = 0;
+  let amostraEnviada = false;
+
+  for (const s of alvos) {
+    if (resultados.length >= limite) break;
+
+    const enviosHoje = (await db.prepare("SELECT acao_pos_alerta, enviado_em FROM monitoria_envios WHERE regra_id = 'ANALISTA' AND data = ? AND destino_real = ?")
+      .bind(hoje, s.nome).all().catch(() => ({ results: [] }))).results || [];
+    if (enviosHoje.length >= maxPorDia) continue;
+
+    const supNomeAlvo = s.supervisor || s.nome;
+    const Es = await carregaEscopo(B, { nome: `${supNomeAlvo} (${s.filial})`, filiais: [s.filial], supervisor: supNomeAlvo }).catch(() => null);
+    if (!Es || !Es.vend || !Es.vend.length) continue;
+
+    const dossie = await montarDossieSupervisor(db, Es, s.filial, bloqs, hhmm, enviosHoje);
+    if (!dossie) continue;
+
+    const decisao = await analisarComIA(env, dossie);
+    if (!decisao || !decisao.enviar || !decisao.mensagem) {
+      resultados.push({ supervisor: s.nome, filial: s.filial, status: 'SILENCIO_IA', sinal: dossie.sinal_principal.tipo, motor: decisao?.motor_ia || 'ia' });
+      continue;
+    }
+
+    let status = 'SIMULADO';
+    let celDestino = 'SIMULACAO';
+    if (regra.modo === 'PRODUCAO' && cfg) {
+      if (enviadosReal > 0) await R.pausaEntreEnvios(4, 1, 2);
+      const rt = await R.enviarTexto(cfg, s.celular, decisao.mensagem);
+      status = rt.ok ? 'ENVIADO' : 'ERRO';
+      celDestino = s.celular;
+      if (rt.ok) enviadosReal++;
+    } else if (opts.enviarVitorio && !amostraEnviada && cfg) {
+      const rt = await R.enviarTexto(cfg, celTeste, `🧪 *[SIMULAÇÃO ANALISTA IA · ${s.nome}]*\n\n${decisao.mensagem}`);
+      if (rt.ok) {
+        amostraEnviada = true;
+        status = 'AMOSTRA_VITORIO';
+        celDestino = celTeste;
+      }
+    }
+
+    await db.prepare(
+      'INSERT INTO monitoria_envios (regra_id, data, celular, destino_real, papel, filial, rca, modo, bonequinho, status, texto_preview, acao_pos_alerta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    ).bind(
+      'ANALISTA',
+      hoje,
+      celDestino,
+      s.nome,
+      'supervisor',
+      s.filial,
+      '',
+      regra.modo,
+      decisao.motor_ia,
+      status,
+      String(decisao.mensagem).slice(0, 600),
+      dossie.sinal_principal.sig
+    ).run().catch(() => {});
+
+    resultados.push({
+      supervisor: s.nome,
+      filial: s.filial,
+      status,
+      sinal: dossie.sinal_principal.tipo,
+      prioridade: decisao.prioridade,
+      motor: decisao.motor_ia,
+      preview: String(decisao.mensagem).slice(0, 260),
+    });
+  }
+
+  return {
+    ok: true,
+    regra: 'ANALISTA',
+    modo: regra.modo,
+    horario_sp: hhmm,
+    supervisores_elegiveis: alvos.length,
+    processados: resultados.length,
+    enviados_producao: enviadosReal,
+    amostra_vitorio: amostraEnviada,
+    resultados,
+  };
+}
+

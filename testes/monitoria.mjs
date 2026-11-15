@@ -13,6 +13,7 @@ import {
 } from '../functions/_lib/monitoria/motor.js';
 import { detectarEventos } from '../functions/_lib/monitoria/detector.js';
 import { formataS3Travados, formataS5Fechamento, executarCicloSupervisores } from '../functions/_lib/monitoria/supervisores.js';
+import { montarDossieSupervisor, executarAnalistaComercial } from '../functions/_lib/monitoria/analista.js';
 
 let ok = 0;
 function teste(nome, cond) {
@@ -118,6 +119,29 @@ teste('formataS5Fechamento resume digitado hoje, destaques e zero falsos zerados
 
 const bloqSup = await executarCicloSupervisores('https://ceven-cftv-matrix.pages.dev', { DB: db }, { regra: 'S2', enviarVitorio: true, celularVitorio: '5511999999999' });
 teste('executarCicloSupervisores bloqueia envio fora da whitelist', bloqSup.ok === false && /whitelist/i.test(bloqSup.erro));
+
+const dossie = await montarDossieSupervisor(
+  db,
+  { nome: 'Sup Teste (TPH)', vend: [{ nome: 'Joao Silva', rca: '101', papel: 'vendedor', meta: 100000, fat: 10000, pend: 0, dig: 0, visP: 10, visF: 4 }] },
+  'TPH',
+  [{ num: '1010001', filial: 'TPH', rca: '101', id_cliente: '999', data_pedido: '2026-11-15', valor: 4500 }],
+  '11:15',
+  []
+);
+teste('montarDossieSupervisor prioriza bloqueio critico novo sem repetir assinatura', dossie && dossie.sinal_principal.tipo === 'BLOQUEIO_CRITICO' && dossie.sinal_principal.sig === 'BLOQ:1010001');
+
+const dossieSemRepetir = await montarDossieSupervisor(
+  db,
+  { nome: 'Sup Teste (TPH)', vend: [{ nome: 'Joao Silva', rca: '101', papel: 'vendedor', meta: 100000, fat: 10000, pend: 0, dig: 1000, visP: 10, visF: 4 }] },
+  'TPH',
+  [{ num: '1010001', filial: 'TPH', rca: '101', id_cliente: '999', data_pedido: '2026-11-15', valor: 4500 }],
+  '11:15',
+  [{ acao_pos_alerta: 'BLOQ:1010001' }, { acao_pos_alerta: 'RITMO:11' }]
+);
+teste('montarDossieSupervisor silencia quando todos os sinais ja foram alertados', dossieSemRepetir === null);
+
+const bloqAna = await executarAnalistaComercial('https://ceven-cftv-matrix.pages.dev', { DB: db }, { enviarVitorio: true, celularVitorio: '5511999999999' });
+teste('executarAnalistaComercial bloqueia envio fora da whitelist', bloqAna.ok === false && /whitelist/i.test(bloqAna.erro));
 
 console.log(`RESULTADO MONITOR.IA: ${ok} de ${ok} testes OK`);
 

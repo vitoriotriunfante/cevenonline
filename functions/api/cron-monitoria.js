@@ -6,6 +6,7 @@
 import { chaveEvoValida } from '../_lib/chave_evo.js';
 import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
 import { executarCicloSupervisores } from '../_lib/monitoria/supervisores.js';
+import { executarAnalistaComercial } from '../_lib/monitoria/analista.js';
 
 const J = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
 const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: J });
@@ -27,18 +28,33 @@ async function handle(request, env, body = {}) {
 
     const u = new URL(request.url);
     const origin = u.origin;
-    const regra = (body.regra || u.searchParams.get('regra') || 'auto').toUpperCase();
+    const regra = (body.regra || u.searchParams.get('regra') || 'ANALISTA').toUpperCase();
     const filiaisParam = body.filiais || (u.searchParams.get('filiais') ? u.searchParams.get('filiais').split(',') : null);
     const enviarVitorio = body.enviarVitorio === true || u.searchParams.get('teste') === '1';
+    const limite = body.limite || u.searchParams.get('limite') || undefined;
+    const horarioSp = body.horario_sp || u.searchParams.get('horario_sp') || undefined;
+
+    if (regra === 'ANALISTA' || regra === 'VARREDURA') {
+      return resp(await executarAnalistaComercial(origin, env, {
+        filiais: filiaisParam,
+        enviarVitorio,
+        celularVitorio: body.celularVitorio,
+        forcar: body.forcar === true,
+        limite,
+        horario_sp: horarioSp,
+      }));
+    }
 
     if (regra === 'AUTO') {
-      const rHorario = regraDoHorarioSP();
-      const saida = [];
-      saida.push(await executarCicloSupervisores(origin, env, { regra: 'S4', filiais: filiaisParam, enviarVitorio }));
-      if (rHorario !== 'S4') {
-        saida.push(await executarCicloSupervisores(origin, env, { regra: rHorario, filiais: filiaisParam, enviarVitorio }));
-      }
-      return resp({ ok: true, modo: 'auto', regra_horario: rHorario, ciclos: saida });
+      const analista = await executarAnalistaComercial(origin, env, {
+        filiais: filiaisParam,
+        enviarVitorio,
+        celularVitorio: body.celularVitorio,
+        forcar: body.forcar === true,
+        limite,
+        horario_sp: horarioSp,
+      });
+      return resp({ ok: true, modo: 'auto_varredura', analista });
     }
 
     return resp(await executarCicloSupervisores(origin, env, {
@@ -47,7 +63,7 @@ async function handle(request, env, body = {}) {
       enviarVitorio,
       celularVitorio: body.celularVitorio,
       forcar: body.forcar === true,
-      limite: body.limite,
+      limite,
     }));
   } catch (e) {
     return resp({ ok: false, erro: String((e && e.message) || e) }, 500);

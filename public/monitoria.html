@@ -55,6 +55,7 @@
     <button onclick="simular(false)">🧪 Simular Onda 1 (D1)</button>
     <button onclick="detectar(false)">⚡ Detectar Eventos (D1)</button>
     <button onclick="cicloSupervisores()">👥 Piloto Supervisores (D1)</button>
+    <button onclick="rodarAnalista()">🧠 Analista IA (Varredura)</button>
     <button class="primary" onclick="detectar(true)">🚨 Enviar Alertas Tempo Real</button>
     <button onclick="pedirChave()">🔑 Chave</button>
   </div>
@@ -172,6 +173,15 @@ async function cicloSupervisores() {
   const res = await postMonitoria({ acao: 'ciclo_supervisores', regra: 'S2', limite: 15 });
   if (res && res.ok) {
     toast(`Supervisores: ${res.processados}/${res.supervisores_elegiveis} processados (${res.modo})`);
+    carregar();
+  }
+}
+
+async function rodarAnalista() {
+  toast('Analista Comercial IA varrendo D1...');
+  const res = await postMonitoria({ acao: 'analista', limite: 10 });
+  if (res && res.ok) {
+    toast(`Analista IA: ${res.processados}/${res.supervisores_elegiveis} analisados (${res.modo})`);
     carregar();
   }
 }
