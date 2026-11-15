@@ -147,6 +147,17 @@ async function formataV4Acionavel(db, Ev, filial, rca) {
 }
 
 export function formataS1Excecao(rawMatinal, Es) {
+  const { tot, pass } = diasUteisMes();
+  const faltam = Math.max(1, tot - pass);
+  const vs = (Es.vend || []).filter((v) => pessoaReal(v) && v.meta > 0);
+  const metaTot = vs.reduce((a, v) => a + (v.meta || 0), 0);
+  const fatCart = vs.reduce((a, v) => a + (v.fat || 0) + (v.pend || 0), 0);
+  const gapEquipe = Math.max(0, metaTot - fatCart);
+  const metaDiaEquipe = gapEquipe / faltam;
+  const posReal = vs.reduce((a, v) => a + (v.pos || 0), 0);
+  const posMeta = vs.reduce((a, v) => a + (v.metaPos || 0), 0);
+  const rotaHoje = vs.reduce((a, v) => a + (v.visP || 0), 0);
+
   const mapaNomes = new Map((Es.vend || []).map((v) => [String(v.rca), vn(v)]));
   const linhas = limpaTexto(rawMatinal)
     .replace(/\*RCA (\d+)\*/g, (_, rca) => `*${mapaNomes.get(rca) || 'RCA ' + rca}*`)
@@ -158,57 +169,80 @@ export function formataS1Excecao(rawMatinal, Es) {
     if (/^🗺️\s*Rota hoje:\s*\*0\* PDVs/.test(l)) continue;
     if (l.startsWith('🎯 *Prioridade')) {
       emPrio = true;
-      out.push('🎯 *Foco hoje (vendedores abaixo de 80% de tendência):*');
+      out.push(`📌 *Meta diária p/ 100%:* *${R$(metaDiaEquipe)}/dia* (${faltam} dias úteis)`);
+      if (posMeta > 0) out.push(`👥 *Positivação:* ${posReal}/${posMeta} (${pctTxt((posReal / posMeta) * 100)})${rotaHoje > 0 ? ` · Rota hoje: *${rotaHoje} PDVs*` : ''}`);
+      out.push('', '🎯 *Foco hoje (vendedores abaixo de 80% de tendência):*');
       continue;
     }
-    if (emPrio) {
-      if (/^\d+\.\s/.test(l)) {
-        const m = l.match(/tend\.\s*\*(-?\d+)%\*/);
-        const tend = m ? Number(m[1]) : 0;
-        if (tend < 80 && !/R\$\s*0\/d/.test(l) && qtdPrio < 4) {
-          out.push(l);
-          qtdPrio++;
-        }
-        continue;
+    if (emPrio && /^\d+\.\s/.test(l)) {
+      const m = l.match(/tend\.\s*\*(-?\d+)%\*/);
+      const tend = m ? Number(m[1]) : 0;
+      if (tend < 80 && !/R\$\s*0\/d/.test(l) && qtdPrio < 4) {
+        out.push(l);
+        qtdPrio++;
       }
+      continue;
     }
     out.push(l);
   }
   if (emPrio && qtdPrio === 0) out.push('🟢 _Nenhum vendedor abaixo de 80% de tendência hoje._');
+
+  const pior = vs
+    .map((v) => ({ v, gapDia: Math.max(0, (v.meta || 0) - (v.fat || 0) - (v.pend || 0)) / faltam, pct: v.meta ? ((v.fat || 0) + (v.pend || 0)) / v.meta * 100 : 0 }))
+    .filter((x) => x.gapDia > 0)
+    .sort((a, b) => a.pct - b.pct)[0];
+  if (pior) {
+    out.push('', `👉 *Alinhamento 08h:* fechar compromisso de *${R$(pior.gapDia)}/dia* com *${nome2(pior.v.nome)}* e cobrar positivação na rota.`);
+  }
+  out.push('_Responda *"detalhar [nome]"* para ver clientes e mix sugerido._');
   return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
 export function formataS2Supervisor(Es) {
   const { tot, pass } = diasUteisMes();
+  const faltam = Math.max(1, tot - pass);
   const esp = tot ? (pass / tot) * 100 : 0;
   const vs = (Es.vend || []).filter((v) => pessoaReal(v) && v.meta > 0);
   const metaTot = vs.reduce((a, v) => a + (v.meta || 0), 0);
   const fatTot = vs.reduce((a, v) => a + (v.fat || 0), 0);
+  const pendTot = vs.reduce((a, v) => a + (v.pend || 0), 0);
+  const digHoje = vs.reduce((a, v) => a + (v.dig || 0), 0);
+  const gapTot = Math.max(0, metaTot - fatTot - pendTot);
+  const metaDia = gapTot / faltam;
   const real = metaTot ? (fatTot / metaTot) * 100 : 0;
+  const realCart = metaTot ? ((fatTot + pendTot) / metaTot) * 100 : 0;
   const tom = real >= esp ? '🟢 *No ritmo ou acima.*' : real >= esp * 0.9 ? '🟡 *Ritmo apertado.*' : '🔴 *Abaixo do ritmo — agir hoje.*';
 
   const piores = vs
-    .map((v) => ({ v, gap: Math.max(0, (v.meta || 0) - (v.fat || 0) - (v.pend || 0)), pct: v.meta ? ((v.fat || 0) + (v.pend || 0)) / v.meta * 100 : 0 }))
+    .map((v) => {
+      const gap = Math.max(0, (v.meta || 0) - (v.fat || 0) - (v.pend || 0));
+      return { v, gap, gapDia: gap / faltam, pct: v.meta ? ((v.fat || 0) + (v.pend || 0)) / v.meta * 100 : 0 };
+    })
     .filter((x) => x.gap > 0)
-    .sort((a, b) => a.pct - b.pct)
+    .sort((a, b) => b.gapDia - a.gapDia)
     .slice(0, 5);
   const zeradosMes = vs.filter((v) => (v.fat || 0) === 0 && (v.pend || 0) === 0);
 
   const out = [
     `⏱️ *RET Unificada — ${Es.nome}*`,
-    `Dia ${pass} de ${tot} úteis · Esperado: *${pctTxt(esp)}* · Faturado: *${pctTxt(real)}*`,
+    `Dia ${pass} de ${tot} úteis · Esperado: *${pctTxt(esp)}* · Fat.: *${pctTxt(real)}*${pendTot > 0 ? ` · c/ Cart.: *${pctTxt(realCart)}*` : ''}`,
+    `📝 *Hoje:* *${R$(digHoje)}* digitado · *Precisa:* *${R$(metaDia)}/dia* (${faltam} du)`,
     tom,
   ];
   if (piores.length) {
-    out.push('', '*Top 5 vendedores mais atrás (gap):*');
-    piores.forEach((x, i) => out.push(`${i + 1}. *${vn(x.v)}* — ${pctTxt(x.pct)} · falta *${R$(x.gap)}*`));
+    out.push('', '*Top 5 maiores gaps para recuperar hoje:*');
+    piores.forEach((x, i) => {
+      const rota = x.v.visP > 0 ? ` (${x.v.visF || 0}/${x.v.visP} vis.)` : '';
+      out.push(`${i + 1}. *${vn(x.v)}* — ${pctTxt(x.pct)} · *${R$(x.gapDia)}/dia* · hoje: *${R$(x.v.dig || 0)}*${rota}`);
+    });
   }
   if (zeradosMes.length) {
     out.push('', `⚠️ *Sem faturamento nem carteira no mês:* ${zeradosMes.slice(0, 5).map((v) => vn(v)).join(', ')}`);
   }
   if (piores[0]) {
-    out.push('', `👉 *Ação imediata:* alinhar rota de hoje com *${nome2(piores[0].v.nome)}* agora pela manhã.`);
+    out.push('', `👉 *Ação agora:* ligar para *${nome2(piores[0].v.nome)}* — precisa de *${R$(piores[0].gapDia)}/dia* e digitou *${R$(piores[0].v.dig || 0)}* até agora.`);
   }
+  out.push('_Responda *"industrias"* ou *"detalhar [nome]"* para agir no mix._');
   return out.join('\n');
 }
 
