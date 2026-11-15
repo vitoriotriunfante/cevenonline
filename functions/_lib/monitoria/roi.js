@@ -1,8 +1,7 @@
 // =========================================================================
 // MONITOR.IA · functions/_lib/monitoria/roi.js
-// Loop Fechado e ROI Auditavel: registra cada risco acionado pelo Analista
-// e confere automaticamente nas varreduras seguintes se o pedido destravou
-// ou se o vendedor em rota converteu venda no D1.
+// Loop Fechado e Volume Destravado Auditavel: registra apenas disparos
+// reais de PRODUCAO, expira casos de dias anteriores e audita no D1.
 // =========================================================================
 import { hojeSP } from '../jota/base.js';
 
@@ -28,6 +27,14 @@ export async function garantirTabelaRoi(db) {
   `).run().catch(() => {});
 }
 
+export async function expirarCasosAntigosRoi(db) {
+  if (!db) return;
+  await garantirTabelaRoi(db);
+  const hoje = hojeSP();
+  await db.prepare("UPDATE monitoria_roi SET status = 'EXPIRADO', resolvido_em = CURRENT_TIMESTAMP WHERE status = 'ABERTO' AND data < ?")
+    .bind(hoje).run().catch(() => {});
+}
+
 export async function registrarCasoRoi(db, { data, filial, supervisor, tipo, referencia, rca = '', valor_em_risco = 0, detalhe = '' }) {
   if (!db || !referencia || !tipo) return;
   await garantirTabelaRoi(db);
@@ -48,7 +55,7 @@ export async function registrarCasoRoi(db, { data, filial, supervisor, tipo, ref
 
 export async function auditarLoopFechadoRoi(db, Es, filial) {
   if (!db || !Es) return { auditados: 0, recuperados: 0 };
-  await garantirTabelaRoi(db);
+  await expirarCasosAntigosRoi(db);
   const hoje = hojeSP();
   const { results: abertos } = await db.prepare(
     "SELECT id, tipo, referencia, rca, valor_em_risco FROM monitoria_roi WHERE data = ? AND filial = ? AND status = 'ABERTO'"
@@ -71,8 +78,10 @@ export async function auditarLoopFechadoRoi(db, Es, filial) {
     } else if (c.tipo === 'EM_ROTA_SEM_PEDIDO' || c.tipo === 'SEM_CHECKIN' || c.tipo === 'OPORTUNIDADE_ROTA') {
       const v = vendMap.get(String(c.rca || c.referencia));
       if (v && Number(v.dig) > 0) {
+        const tetoRisco = Number(c.valor_em_risco) > 0 ? Number(c.valor_em_risco) : Number(v.dig);
+        const val = Math.min(Number(v.dig), tetoRisco);
         await db.prepare("UPDATE monitoria_roi SET status = 'RECUPERADO', valor_recuperado = ?, resolvido_em = CURRENT_TIMESTAMP WHERE id = ?")
-          .bind(Number(v.dig), c.id).run().catch(() => {});
+          .bind(val, c.id).run().catch(() => {});
         recuperados++;
       }
     }
@@ -81,31 +90,45 @@ export async function auditarLoopFechadoRoi(db, Es, filial) {
 }
 
 export async function resumoRoiMonitoria(db) {
-  if (!db) return { casos_abertos: 0, casos_recuperados: 0, taxa_resolucao_pct: 0, valor_em_risco_aberto: 0, valor_recuperado_total: 0, recentes: [] };
-  await garantirTabelaRoi(db);
+  if (!db) return { casos_abertos: 0, casos_recuperados: 0, casos_expirados: 0, taxa_resolucao_pct: 0, valor_em_risco_aberto: 0, valor_recuperado_total: 0, por_filial: [], recentes: [] };
+  await expirarCasosAntigosRoi(db);
   const agg = await db.prepare(`
     SELECT
       SUM(CASE WHEN status = 'ABERTO' THEN 1 ELSE 0 END) abertos,
       SUM(CASE WHEN status = 'RECUPERADO' THEN 1 ELSE 0 END) recuperados,
+      SUM(CASE WHEN status = 'EXPIRADO' THEN 1 ELSE 0 END) expirados,
       COALESCE(SUM(CASE WHEN status = 'ABERTO' THEN valor_em_risco ELSE 0 END), 0) risco_aberto,
       COALESCE(SUM(CASE WHEN status = 'RECUPERADO' THEN valor_recuperado ELSE 0 END), 0) recuperado_total
     FROM monitoria_roi
     WHERE data >= date('now', '-30 days')
   `).first().catch(() => null);
+  const { results: porFilial } = await db.prepare(`
+    SELECT filial,
+      SUM(CASE WHEN status = 'RECUPERADO' THEN 1 ELSE 0 END) recuperados,
+      COUNT(*) total,
+      COALESCE(SUM(CASE WHEN status = 'RECUPERADO' THEN valor_recuperado ELSE 0 END), 0) valor_recuperado
+    FROM monitoria_roi
+    WHERE data >= date('now', '-30 days')
+    GROUP BY filial
+    ORDER BY valor_recuperado DESC, recuperados DESC
+    LIMIT 11
+  `).all().catch(() => ({ results: [] }));
   const { results: recentes } = await db.prepare(
     "SELECT data, filial, supervisor, tipo, referencia, rca, valor_em_risco, valor_recuperado, status, detalhe, resolvido_em FROM monitoria_roi ORDER BY id DESC LIMIT 15"
   ).all().catch(() => ({ results: [] }));
 
   const abertos = Number(agg?.abertos || 0);
   const rec = Number(agg?.recuperados || 0);
-  const tot = abertos + rec;
+  const exp = Number(agg?.expirados || 0);
+  const tot = abertos + rec + exp;
   return {
     casos_abertos: abertos,
     casos_recuperados: rec,
+    casos_expirados: exp,
     taxa_resolucao_pct: tot > 0 ? Math.round((rec / tot) * 1000) / 10 : 0,
     valor_em_risco_aberto: Number(agg?.risco_aberto || 0),
     valor_recuperado_total: Number(agg?.recuperado_total || 0),
+    por_filial: porFilial || [],
     recentes: recentes || [],
   };
 }
-

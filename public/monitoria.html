@@ -46,17 +46,9 @@
 </head>
 <body>
 <header>
-  <h1>🤖 MONITOR.IA <span class="pill warn">MODO SEGURO · SIMULACAO_VITORIO</span></h1>
+  <h1>🤖 MONITOR.IA <span id="badgeModo" class="pill warn">MODO SEGURO · SIMULACAO_VITORIO</span></h1>
   <div class="controls">
-    <select id="celTeste" title="Número do Vitório para testes">
-      <option value="554187525605">Vitório Principal (41 8752-5605)</option>
-      <option value="5566996389884">Vitório Teste (66 99638-9884)</option>
-    </select>
-    <button onclick="simular(false)">🧪 Simular Onda 1 (D1)</button>
-    <button onclick="detectar(false)">⚡ Detectar Eventos (D1)</button>
-    <button onclick="cicloSupervisores()">👥 Piloto Supervisores (D1)</button>
-    <button onclick="rodarAnalista()">🧠 Analista IA (Varredura)</button>
-    <button class="primary" onclick="detectar(true)">🚨 Enviar Alertas Tempo Real</button>
+    <button class="primary" onclick="rodarAnalista()">🧠 Rodar Varredura Analista IA</button>
     <button onclick="pedirChave()">🔑 Chave</button>
   </div>
 </header>
@@ -65,24 +57,33 @@
   <section class="kpis" id="kpis"></section>
 
   <section>
-    <h2 class="section-title">Onda 1 · Regras Prioritárias</h2>
-    <div class="grid" id="gridOnda1"></div>
-  </section>
-
-  <section>
-    <h2 class="section-title">Onda 2 · Backlog Planejado</h2>
-    <div class="grid" id="gridOnda2"></div>
-  </section>
-
-  <section>
-    <h2 class="section-title">💰 Loop Fechado · ROI Auditado (Últimos 30 dias no D1)</h2>
+    <h2 class="section-title">📋 Acompanhamento de Alertas &amp; Execução por Filial (Últimos 30 dias no D1)</h2>
+    <div class="envios" id="listaFiliaisRoi" style="margin-bottom:10px;"></div>
     <div class="envios" id="listaRoi"></div>
   </section>
 
   <section>
-    <h2 class="section-title">Últimas Simulações &amp; Envios de Teste (D1)</h2>
+    <h2 class="section-title">📱 Mensagens Geradas pelo Analista IA &amp; Simulações (D1)</h2>
     <div class="envios" id="listaEnvios"></div>
   </section>
+
+  <details style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;">
+    <summary style="cursor:pointer;font-weight:700;color:var(--muted);">⚙️ Controles Técnicos, Testes &amp; Regras (Admin)</summary>
+    <div class="controls" style="margin:14px 0;">
+      <select id="celTeste" title="Número do Vitório para testes">
+        <option value="554187525605">Vitório Principal (41 8752-5605)</option>
+        <option value="5566996389884">Vitório Teste (66 99638-9884)</option>
+      </select>
+      <button onclick="simular(false)">🧪 Simular Onda 1 (D1)</button>
+      <button onclick="detectar(false)">⚡ Detectar Eventos (D1)</button>
+      <button onclick="cicloSupervisores()">👥 Piloto Supervisores (D1)</button>
+      <button class="primary" onclick="detectar(true)">🚨 Enviar Alertas Tempo Real</button>
+    </div>
+    <h2 class="section-title">Onda 1 · Regras Prioritárias</h2>
+    <div class="grid" id="gridOnda1" style="margin-bottom:16px;"></div>
+    <h2 class="section-title">Onda 2 · Backlog Planejado</h2>
+    <div class="grid" id="gridOnda2"></div>
+  </details>
 </main>
 
 <div id="toast"></div>
@@ -222,32 +223,42 @@ async function carregar() {
   const o1 = regras.filter((x) => x.onda === 1);
   const o2 = regras.filter((x) => x.onda === 2);
   const envios = d.envios || [];
-  const roi = d.roi || { casos_abertos: 0, casos_recuperados: 0, taxa_resolucao_pct: 0, valor_em_risco_aberto: 0, valor_recuperado_total: 0, recentes: [] };
+  const roi = d.roi || { casos_abertos: 0, casos_recuperados: 0, casos_expirados: 0, taxa_resolucao_pct: 0, valor_em_risco_aberto: 0, valor_recuperado_total: 0, por_filial: [], recentes: [] };
   const brl = (v) => 'R$ ' + Math.round(Number(v || 0)).toLocaleString('pt-BR');
+  const temProd = regras.some((x) => x.ativo === 1 && x.modo === 'PRODUCAO');
+  const badge = document.getElementById('badgeModo');
+  if (badge) {
+    badge.textContent = temProd ? 'PRODUÇÃO ATIVA' : 'MODO SEGURO · SIMULACAO_VITORIO';
+    badge.className = temProd ? 'pill ok' : 'pill warn';
+  }
+  const waHtml = (txt) => String(txt || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\*([^*\n]+)\*/g, '<strong>$1</strong>');
 
   document.getElementById('kpis').innerHTML = [
-    { lbl: 'R$ Recuperados (30d)', val: brl(roi.valor_recuperado_total) },
-    { lbl: 'Taxa de Resolução', val: `${roi.taxa_resolucao_pct}% (${roi.casos_recuperados}/${roi.casos_abertos + roi.casos_recuperados})` },
-    { lbl: 'R$ em Risco Aberto', val: brl(roi.valor_em_risco_aberto) },
+    { lbl: 'Volume Pós-Alerta (30d)', val: brl(roi.valor_recuperado_total) },
+    { lbl: 'Alertas Resolvidos', val: `${roi.taxa_resolucao_pct}% (${roi.casos_recuperados}/${roi.casos_abertos + roi.casos_recuperados + (roi.casos_expirados || 0)})` },
+    { lbl: 'Em Aberto Hoje', val: brl(roi.valor_em_risco_aberto) },
     { lbl: 'Regras Ativas', val: `${regras.filter((x) => x.ativo === 1).length}/${regras.length}` }
   ].map((k) => `<div class="kpi"><div class="lbl">${k.lbl}</div><div class="val">${k.val}</div></div>`).join('');
 
   document.getElementById('gridOnda1').innerHTML = o1.map(renderRegra).join('');
   document.getElementById('gridOnda2').innerHTML = o2.map(renderRegra).join('');
+  document.getElementById('listaFiliaisRoi').innerHTML = (roi.por_filial && roi.por_filial.length)
+    ? `<div class="envio"><div class="envio-head"><span><strong>Execução por Filial</strong></span><span>${roi.por_filial.map((f) => `${f.filial}: ${f.recuperados}/${f.total} (${brl(f.valor_recuperado)})`).join(' · ')}</span></div></div>`
+    : '';
   document.getElementById('listaRoi').innerHTML = (roi.recentes || []).map((c) => `
     <div class="envio">
       <div class="envio-head">
         <span><strong>${c.tipo}</strong> · ${c.filial} · ${c.supervisor} (${c.detalhe || c.referencia})</span>
-        <span>${c.status === 'RECUPERADO' ? '🟢 RECUPERADO ' + brl(c.valor_recuperado) : '🟡 ABERTO · risco ' + brl(c.valor_em_risco)}</span>
+        <span>${c.status === 'RECUPERADO' ? '🟢 RESOLVIDO ' + brl(c.valor_recuperado) : c.status === 'EXPIRADO' ? '⚪ EXPIRADO' : '🟡 ABERTO · ' + brl(c.valor_em_risco)}</span>
       </div>
-    </div>`).join('') || '<div class="card">Nenhum caso auditado ainda — rode o Analista IA para iniciar o rastreio de ROI.</div>';
+    </div>`).join('') || '<div class="card">Nenhum alerta de produção acompanhado ainda — casos entram aqui apenas quando os disparos estiverem em PRODUCAO.</div>';
   document.getElementById('listaEnvios').innerHTML = envios.map((e) => `
     <div class="envio">
       <div class="envio-head">
         <span><strong>${e.regra_id}</strong> (${e.papel}) → ${e.destino_real}</span>
         <span>${e.status} · ${e.enviado_em || e.data}</span>
       </div>
-      <pre>${(e.preview || '').replace(/</g, '&lt;')}</pre>
+      <pre>${waHtml(e.preview)}</pre>
     </div>`).join('') || '<div class="card">Nenhum envio registrado ainda.</div>';
 }
 

@@ -85,6 +85,7 @@ export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, envios
 
   const assinaturasJa = new Set((enviosHoje || []).map((e) => String(e.acao_pos_alerta || '')));
   const rcas = new Set(vs.map((v) => String(v.rca)));
+  const nomePorRca = new Map(vs.map((v) => [String(v.rca), nome2(v.nome)]));
 
   const bloqsNovos = [];
   for (const b of (bloqs || [])) {
@@ -92,17 +93,19 @@ export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, envios
     const sig = `BLOQ:${b.num}`;
     if (assinaturasJa.has(sig)) continue;
     const cli = await nomeClienteD1(db, b.filial, b.id_cliente);
-    bloqsNovos.push({ num: b.num, rca: b.rca, cliente: cli, valor: Number(b.valor), data: b.data_pedido, corte: b.categoria_corte || null, sig });
+    bloqsNovos.push({ num: b.num, rca: b.rca, vendedor: nomePorRca.get(String(b.rca)) || `RCA ${b.rca}`, cliente: cli, valor: Number(b.valor), data: b.data_pedido, corte: b.categoria_corte || null, sig });
     if (bloqsNovos.length >= 4) break;
   }
 
   const cortesNovos = [];
   for (const c of (extras.cortes || [])) {
     if (c.filial !== filial || !rcas.has(String(c.rca)) || Number(c.valor) < 500 || !(Number(c.itens_cortados) > 0)) continue;
+    const valCortado = Number(c.valor_winthor) > 0 ? Math.max(0, Number(c.valor) - Number(c.valor_winthor)) : Number(c.valor);
+    if (valCortado < 300) continue;
     const sig = `CORTE:${c.num}`;
     if (assinaturasJa.has(sig)) continue;
     const cli = await nomeClienteD1(db, c.filial, c.id_cliente);
-    cortesNovos.push({ num: c.num, rca: c.rca, cliente: cli, valor: Number(c.valor), valor_winthor: Number(c.valor_winthor || 0), itens_cortados: Number(c.itens_cortados), categoria_corte: c.categoria_corte || null, sig });
+    cortesNovos.push({ num: c.num, rca: c.rca, vendedor: nomePorRca.get(String(c.rca)) || `RCA ${c.rca}`, cliente: cli, valor: Number(c.valor), valor_winthor: Number(c.valor_winthor || 0), valor_cortado: valCortado, itens_cortados: Number(c.itens_cortados), categoria_corte: c.categoria_corte || null, sig });
     if (cortesNovos.length >= 3) break;
   }
 
@@ -143,7 +146,7 @@ export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, envios
     .sort((a, b) => b.gapDia - a.gapDia);
 
   const emRotaSemPedido = hhmm >= '09:30' ? comGap.filter((x) => x.visF >= 2 && x.dig === 0).slice(0, 4) : [];
-  const semCheckin = hhmm >= '09:30' ? comGap.filter((x) => x.visP > 0 && x.visF === 0).slice(0, 4) : [];
+  const semCheckin = hhmm >= '09:30' ? comGap.filter((x) => x.visP > 0 && x.visF === 0 && x.dig === 0).slice(0, 4) : [];
   const posTravada = hhmm >= '10:00' ? [...comGap].filter((x) => x.posPct !== null && x.posPct < espPct * 0.7 && x.posGap > 0).sort((a, b) => b.posGap - a.posGap).slice(0, 4) : [];
   const destaques = [...comGap].filter((x) => x.dig > 0).sort((a, b) => b.dig - a.dig).slice(0, 3);
   const piorMix = (extras.mixVendedores || [])
@@ -151,19 +154,9 @@ export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, envios
     .sort((a, b) => Number(a.mix_medio) - Number(b.mix_medio))[0] || null;
   const pioresInd = pioresIndustriasEquipe(extras.rv, rcas, espPct);
 
-  const sinais = [];
-  if (bloqsNovos.length) sinais.push({ tipo: 'BLOQUEIO_CRITICO', sig: bloqsNovos[0].sig, detalhe: bloqsNovos });
-  if (lancesRuins.length) sinais.push({ tipo: 'CHAMPIONS_PENALIDADE', sig: lancesRuins[0].sig, detalhe: lancesRuins.slice(0, 3) });
-  if (cortesNovos.length) sinais.push({ tipo: 'CORTE_PEDIDO', sig: cortesNovos[0].sig, detalhe: cortesNovos });
-  if (emRotaSemPedido.length) sinais.push({ tipo: 'EM_ROTA_SEM_PEDIDO', sig: `ROTA0:${emRotaSemPedido.map((x) => x.rca).join(',')}`, detalhe: emRotaSemPedido });
-  if (semCheckin.length) sinais.push({ tipo: 'SEM_CHECKIN', sig: `CHECK0:${semCheckin.map((x) => x.rca).join(',')}`, detalhe: semCheckin });
-  if (devHoje >= 500) sinais.push({ tipo: 'DEVOLUCAO_HOJE', sig: `DEV:${Math.round(devHoje)}`, detalhe: devHoje });
-  if (posTravada.length) sinais.push({ tipo: 'POSITIVACAO_TRAVADA', sig: `POS:${posTravada.map((x) => x.rca).join(',')}`, detalhe: posTravada });
-  if (pioresInd.length && hhmm >= '10:00') {
-    sinais.push({ tipo: 'INDUSTRIA_ATRASADA', sig: `IND:${pioresInd[0].cod}`, detalhe: pioresInd });
-  }
   const opRota = [];
-  for (const x of comGap.filter((g) => g.dig === 0).slice(0, 3)) {
+  const alvosCli = new Map();
+  for (const x of comGap.filter((g) => g.dig === 0).slice(0, 4)) {
     const vOrig = vs.find((v) => String(v.rca) === x.rca);
     const abertos = (vOrig && Array.isArray(vOrig.aVisitar)) ? vOrig.aVisitar : [];
     const { results: focos } = await db.prepare('SELECT id_cliente, tag FROM cliente_focos WHERE filial = ? AND rca = ? LIMIT 8').bind(filial, x.rca).all().catch(() => ({ results: [] }));
@@ -178,10 +171,24 @@ export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, envios
         cliAlvos.push(`${nm} [${f.tag}]`);
       }
     }
-    if (cliAlvos.length) opRota.push({ rca: x.rca, vendedor: x.nome, gapDia: x.gapDia, clientes: cliAlvos });
+    if (cliAlvos.length) {
+      alvosCli.set(x.rca, cliAlvos);
+      opRota.push({ rca: x.rca, vendedor: x.nome, gapDia: x.gapDia, clientes: cliAlvos });
+    }
   }
-  if (opRota.length && hhmm >= '08:00') {
-    sinais.push({ tipo: 'OPORTUNIDADE_ROTA', sig: `OPROTA:${opRota[0].rca}`, detalhe: opRota });
+  for (const x of emRotaSemPedido) x.clientes_alvo = alvosCli.get(x.rca) || [];
+
+  const sinais = [];
+  if (bloqsNovos.length) sinais.push({ tipo: 'BLOQUEIO_CRITICO', sig: bloqsNovos[0].sig, detalhe: bloqsNovos });
+  if (cortesNovos.length) sinais.push({ tipo: 'CORTE_PEDIDO', sig: cortesNovos[0].sig, detalhe: cortesNovos });
+  if (emRotaSemPedido.length) sinais.push({ tipo: 'EM_ROTA_SEM_PEDIDO', sig: `ROTA0:${emRotaSemPedido.map((x) => x.rca).join(',')}`, detalhe: emRotaSemPedido });
+  if (opRota.length && hhmm >= '08:00') sinais.push({ tipo: 'OPORTUNIDADE_ROTA', sig: `OPROTA:${opRota[0].rca}`, detalhe: opRota });
+  if (semCheckin.length) sinais.push({ tipo: 'SEM_CHECKIN', sig: `CHECK0:${semCheckin.map((x) => x.rca).join(',')}`, detalhe: semCheckin });
+  if (devHoje >= 500) sinais.push({ tipo: 'DEVOLUCAO_HOJE', sig: `DEV:${Math.round(devHoje)}`, detalhe: devHoje });
+  if (lancesRuins.length) sinais.push({ tipo: 'CHAMPIONS_PENALIDADE', sig: lancesRuins[0].sig, detalhe: lancesRuins.slice(0, 3) });
+  if (posTravada.length) sinais.push({ tipo: 'POSITIVACAO_TRAVADA', sig: `POS:${posTravada.map((x) => x.rca).join(',')}`, detalhe: posTravada });
+  if (pioresInd.length && hhmm >= '10:00') {
+    sinais.push({ tipo: 'INDUSTRIA_ATRASADA', sig: `IND:${pioresInd[0].cod}`, detalhe: pioresInd });
   }
   if (hhmm >= '11:00' && hhmm < '17:30' && metaDia > 0 && digHoje < metaDia * 0.5) {
     sinais.push({ tipo: 'RITMO_DIA_BAIXO', sig: `RITMO:${hhmm.slice(0, 2)}`, detalhe: { digHoje, metaDia, pctDia } });
@@ -238,74 +245,93 @@ function mensagemFallback(d) {
   if (s.tipo === 'BLOQUEIO_CRITICO') {
     const b0 = s.detalhe[0];
     return [
-      `⚠️ *Alerta Analista — ${d.supervisor}*`,
-      `Pedido travado novo de *${R$(b0.valor)}* no cliente *${b0.cliente}* (RCA ${b0.rca} · #${b0.num}).`,
+      `⚠️ *Pedido Bloqueado · ${R$(b0.valor)}*`,
+      `Cliente *${b0.cliente}* · *${b0.vendedor || 'RCA ' + b0.rca}* (RCA ${b0.rca} · #${b0.num}).`,
       `📊 Hoje: *${r.digitado_hoje}* / *${r.meta_dia_necessaria}* (${r.pct_meta_dia}).`,
-      `👉 *Ação agora:* acionar RCA ${b0.rca} para destravar crédito/preço antes do corte.`,
+      '',
+      `👉 *Ação agora:* acionar *${b0.vendedor || 'RCA ' + b0.rca}* para destravar crédito/preço antes do corte.`,
     ].join('\n');
   }
   if (s.tipo === 'EM_ROTA_SEM_PEDIDO') {
     const v0 = s.detalhe[0];
+    const alvosTxt = v0.clientes_alvo && v0.clientes_alvo.length ? `\n🎯 Próximos alvos: *${v0.clientes_alvo.join('*, *')}*.` : '';
     return [
-      `⏳ *Alerta Analista — ${d.supervisor}*`,
-      `*${v0.nome}* já fez *${v0.visF} visita(s)* hoje e segue com *R$ 0* (precisa *${R$(v0.gapDia)}/dia*).`,
+      `⏳ *Em Rota Sem Pedido · ${v0.nomeCurto}*`,
+      `*${v0.nome}* já fez *${v0.visF} visitas* hoje com *R$ 0* (precisa *${R$(v0.gapDia)}/dia*).${alvosTxt}`,
       `📊 Equipe hoje: *${r.digitado_hoje}* / *${r.meta_dia_necessaria}* (${r.pct_meta_dia}).`,
-      `👉 *Ação agora:* ligar para *${v0.nomeCurto}* para destravar objeção/mix no próximo PDV.`,
+      '',
+      `👉 *Ação agora:* ligar para *${v0.nomeCurto}* e cobrar pedido nesses alvos agora.`,
+    ].join('\n');
+  }
+  if (s.tipo === 'OPORTUNIDADE_ROTA') {
+    const o0 = s.detalhe[0];
+    return [
+      `🎯 *Alvos Quentes na Rota · ${nome2(o0.vendedor)}*`,
+      `*${o0.vendedor}* (precisa *${R$(o0.gapDia)}/dia*) tem clientes abertos hoje: *${o0.clientes.join('*, *')}*.`,
+      '',
+      `👉 *Ação agora:* direcionar *${nome2(o0.vendedor)}* para fechar pedido nesses clientes.`,
     ].join('\n');
   }
   if (s.tipo === 'SEM_CHECKIN') {
     const v0 = s.detalhe[0];
     return [
-      `🛑 *Alerta Analista — ${d.supervisor}*`,
-      `*${v0.nome}* tem *${v0.visP} PDVs* na rota hoje e ainda está sem check-in às ${d.horario_sp} (precisa *${R$(v0.gapDia)}/dia*).`,
-      `👉 *Ação agora:* ligar para *${v0.nomeCurto}* e confirmar início de rota.`,
+      `🛑 *Sem Check-in às ${d.horario_sp} · ${v0.nomeCurto}*`,
+      `*${v0.nome}* tem *${v0.visP} PDVs* na rota hoje, *0 check-in* e *R$ 0* (precisa *${R$(v0.gapDia)}/dia*).`,
+      '',
+      `👉 *Ação agora:* ligar para *${v0.nomeCurto}* e confirmar início da rota.`,
     ].join('\n');
   }
   if (s.tipo === 'CHAMPIONS_PENALIDADE') {
     const l0 = s.detalhe[0];
     return [
-      `⚽ *Alerta Champions — ${d.supervisor}*`,
-      `*${l0.vendedor}* (RCA ${l0.rca}) tomou *${l0.nivel}* no cliente *${l0.cliente || 'PDV'}* (${l0.motivo || 'penalidade'}).`,
+      `⚽ *Alerta Champions · ${l0.nivel.toUpperCase()}*`,
+      `*${l0.vendedor}* (RCA ${l0.rca}) no cliente *${l0.cliente || 'PDV'}* (${l0.motivo || 'penalidade'}).`,
+      '',
       `👉 *Ação agora:* falar com *${l0.vendedor}* para corrigir na hora e evitar novos descontos na Liga.`,
     ].join('\n');
   }
   if (s.tipo === 'CORTE_PEDIDO') {
     const c0 = s.detalhe[0];
     return [
-      `✂️ *Corte em Pedido — ${d.supervisor}*`,
-      `Pedido *#${c0.num}* (${c0.cliente}, RCA ${c0.rca}) teve *${c0.itens_cortados} item(ns) cortado(s)* de *${R$(c0.valor)}*.`,
-      `👉 *Ação agora:* acionar RCA ${c0.rca} para oferecer item substituto ao cliente antes de fechar a carga.`,
+      `✂️ *Corte de ${R$(c0.valor_cortado || c0.valor)} · #${c0.num}*`,
+      `*${c0.cliente}* · *${c0.vendedor || 'RCA ' + c0.rca}* (RCA ${c0.rca}) · *${c0.itens_cortados} itens cortados* de ${R$(c0.valor)}.`,
+      '',
+      `👉 *Ação agora:* acionar *${c0.vendedor || 'RCA ' + c0.rca}* para substituir SKU cortado antes de fechar a carga.`,
     ].join('\n');
   }
   if (s.tipo === 'POSITIVACAO_TRAVADA') {
     const p0 = s.detalhe[0];
     return [
-      `👥 *Positivação Travada — ${d.supervisor}*`,
-      `Positivação da equipe em *${r.positivacao}*. *${p0.nome}* está em *${p0.pos}/${p0.metaPos}* (faltam ${p0.posGap} PDVs).`,
+      `👥 *Positivação Travada · ${p0.nomeCurto}*`,
+      `Equipe em *${r.positivacao}*. *${p0.nome}* está em *${p0.pos}/${p0.metaPos}* (faltam ${p0.posGap} PDVs).`,
+      '',
       `👉 *Ação agora:* cobrar de *${p0.nomeCurto}* abertura de novos PDVs já na rota de hoje.`,
     ].join('\n');
   }
   if (s.tipo === 'INDUSTRIA_ATRASADA') {
     const i0 = s.detalhe[0];
     return [
-      `🏭 *Indústria Puxando Para Baixo — ${d.supervisor}*`,
-      `*${i0.nome}* está em *${pctTxt(i0.pct)}* na sua equipe (gap de *${R$(i0.gap)}* no mês).`,
+      `🏭 *Indústria Atrasada · ${i0.nome} (${pctTxt(i0.pct)})*`,
+      `*${i0.nome}* está com gap de *${R$(i0.gap)}* no mês na sua equipe.`,
+      '',
       `👉 *Ação agora:* puxar foco de *${i0.nome}* nos pedidos de hoje com o time.`,
     ].join('\n');
   }
   if (s.tipo === 'MIX_BAIXO') {
     const m0 = s.detalhe;
     return [
-      `🧺 *Oportunidade +MIX — ${d.supervisor}*`,
+      `🧺 *Oportunidade +MIX · ${nome2(m0.nome || '')}*`,
       `RCA *${m0.rca} - ${nome2(m0.nome || '')}* está com média de apenas *${String(m0.mix_medio).replace('.', ',')} produtos/cliente*.`,
+      '',
       `👉 *Ação agora:* cobrar uso da lista do +MIX antes de fechar cada pedido hoje.`,
     ].join('\n');
   }
   const g0 = d.top_gaps_dia[0];
   return [
-    `🧠 *Analista Comercial — ${d.supervisor}*`,
-    `Dia ${d.dia_util} · Fat.+Cart.: *${r.pct_com_carteira}* (esp. ${r.esperado_hoje}) · Hoje: *${r.digitado_hoje}* / *${r.meta_dia_necessaria}* (${r.pct_meta_dia}).`,
+    `🧠 *Ritmo do Dia · ${r.pct_meta_dia}*`,
+    `Dia ${d.dia_util} · Fat.+Cart.: *${r.pct_com_carteira}* (esp. ${r.esperado_hoje}) · Hoje: *${r.digitado_hoje}* / *${r.meta_dia_necessaria}*.`,
     g0 ? `🎯 *Maior alavanca:* *${g0.vendedor}* (precisa *${g0.precisa_dia}/dia*, hoje *${g0.digitado_hoje}*).` : '',
+    '',
     `👉 *Ação agora:* cobrar plano de pedido imediato do vendedor #1 de gap e positivação.`,
   ].filter(Boolean).join('\n');
 }
@@ -314,7 +340,7 @@ export async function analisarComIA(env, dossie) {
   const sys = `Você é o Analista Comercial Sênior do MONITOR.IA (distribuidora Triunfante / +MIX).
 Analise o dossiê JSON abaixo de um supervisor de vendas e decida:
 1) Vale mandar mensagem no WhatsApp AGORA para fazê-lo vender mais hoje? (se já atingiu ritmo forte e não há bloqueio/vendedor travado, responda enviar=false)
-2) Se enviar=true, escreva uma mensagem curta (máx 6 linhas), direta, humana, em português do Brasil, estilo WhatsApp (*negrito* com asterisco simples), SEM inventar nenhum número (use APENAS os valores do JSON) e fechando com 1 ação nominal clara ("👉 *Ação agora:* ...").
+2) Se enviar=true, escreva uma mensagem curta (máx 5 linhas), escaneável em 5 segundos no celular, começando a linha 1 pelo problema e valor em R$ (NÃO repita o nome do supervisor no título), citando o nome do vendedor, SEM inventar nenhum número (use APENAS os valores do JSON), com uma linha em branco antes de fechar com "👉 *Ação agora:* ...".
 
 Responda SOMENTE JSON válido:
 {"enviar": true, "prioridade": "ALTA", "motivo": "resumo curto", "mensagem": "texto whatsapp"}`;
@@ -403,16 +429,18 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
   const bloqs = bloqsRes.results || [];
   const cortes = cortesRes.results || [];
 
-  const limite = Number(opts.limite || (regra.modo === 'PRODUCAO' ? 12 : 10));
+  const limite = Number(opts.limite || (regra.modo === 'PRODUCAO' ? 30 : 65));
   const maxPorDia = Number(opts.maxPorDia || 4);
   const cfg = env.EVO_URL && env.EVO_KEY ? R.evoCfg(env) : null;
 
   const resultados = [];
+  let alertasGerados = 0;
+  let silencios = 0;
   let enviadosReal = 0;
   let amostraEnviada = false;
 
   for (const s of alvos) {
-    if (resultados.length >= limite) break;
+    if (alertasGerados >= limite) break;
 
     const enviosHoje = (await db.prepare("SELECT acao_pos_alerta, enviado_em FROM monitoria_envios WHERE regra_id = 'ANALISTA' AND data = ? AND destino_real = ?")
       .bind(hoje, s.nome).all().catch(() => ({ results: [] }))).results || [];
@@ -422,7 +450,9 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
     const Es = await carregaEscopo(B, { nome: `${supNomeAlvo} (${s.filial})`, filiais: [s.filial], supervisor: supNomeAlvo }).catch(() => null);
     if (!Es || !Es.vend || !Es.vend.length) continue;
 
-    await auditarLoopFechadoRoi(db, Es, s.filial);
+    if (regra.modo === 'PRODUCAO') {
+      await auditarLoopFechadoRoi(db, Es, s.filial);
+    }
 
     const dossie = await montarDossieSupervisor(db, Es, s.filial, bloqs, hhmm, enviosHoje, {
       cortes,
@@ -434,7 +464,7 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
 
     const decisao = await analisarComIA(env, dossie);
     if (!decisao || !decisao.enviar || !decisao.mensagem) {
-      resultados.push({ supervisor: s.nome, filial: s.filial, status: 'SILENCIO_IA', sinal: dossie.sinal_principal.tipo, motor: decisao?.motor_ia || 'ia' });
+      silencios++;
       continue;
     }
 
@@ -472,13 +502,16 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
       dossie.sinal_principal.sig
     ).run().catch(() => {});
 
-    const sp = dossie.sinal_principal;
-    if (sp.tipo === 'BLOQUEIO_CRITICO' && sp.detalhe[0]) {
-      await registrarCasoRoi(db, { data: hoje, filial: s.filial, supervisor: s.nome, tipo: sp.tipo, referencia: sp.detalhe[0].num, rca: sp.detalhe[0].rca, valor_em_risco: sp.detalhe[0].valor, detalhe: sp.detalhe[0].cliente });
-    } else if ((sp.tipo === 'EM_ROTA_SEM_PEDIDO' || sp.tipo === 'SEM_CHECKIN' || sp.tipo === 'OPORTUNIDADE_ROTA') && sp.detalhe[0]) {
-      await registrarCasoRoi(db, { data: hoje, filial: s.filial, supervisor: s.nome, tipo: sp.tipo, referencia: sp.detalhe[0].rca, rca: sp.detalhe[0].rca, valor_em_risco: sp.detalhe[0].gapDia || 0, detalhe: sp.detalhe[0].vendedor || sp.detalhe[0].nome });
+    if (status === 'ENVIADO') {
+      const sp = dossie.sinal_principal;
+      if (sp.tipo === 'BLOQUEIO_CRITICO' && sp.detalhe[0]) {
+        await registrarCasoRoi(db, { data: hoje, filial: s.filial, supervisor: s.nome, tipo: sp.tipo, referencia: sp.detalhe[0].num, rca: sp.detalhe[0].rca, valor_em_risco: sp.detalhe[0].valor, detalhe: sp.detalhe[0].cliente });
+      } else if ((sp.tipo === 'EM_ROTA_SEM_PEDIDO' || sp.tipo === 'SEM_CHECKIN' || sp.tipo === 'OPORTUNIDADE_ROTA') && sp.detalhe[0]) {
+        await registrarCasoRoi(db, { data: hoje, filial: s.filial, supervisor: s.nome, tipo: sp.tipo, referencia: sp.detalhe[0].rca, rca: sp.detalhe[0].rca, valor_em_risco: sp.detalhe[0].gapDia || 0, detalhe: sp.detalhe[0].vendedor || sp.detalhe[0].nome });
+      }
     }
 
+    alertasGerados++;
     resultados.push({
       supervisor: s.nome,
       filial: s.filial,
@@ -496,6 +529,7 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
     modo: regra.modo,
     horario_sp: hhmm,
     supervisores_elegiveis: alvos.length,
+    silencios_ia: silencios,
     processados: resultados.length,
     enviados_producao: enviadosReal,
     amostra_vitorio: amostraEnviada,

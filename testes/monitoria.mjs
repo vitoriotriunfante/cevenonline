@@ -164,7 +164,17 @@ const dossieCorte = await montarDossieSupervisor(
   [],
   { cortes: [{ num: '101999', filial: 'TPH', rca: '101', id_cliente: '555', valor: 1800, valor_winthor: 1200, itens_cortados: 3 }] }
 );
-teste('montarDossieSupervisor detecta corte de pedido quando sem bloqueio/penalti', dossieCorte && dossieCorte.sinal_principal.tipo === 'CORTE_PEDIDO');
+teste('montarDossieSupervisor detecta corte de pedido relevante (>=300) quando sem bloqueio', dossieCorte && dossieCorte.sinal_principal.tipo === 'CORTE_PEDIDO');
+
+const dossieSemCheckinComVenda = await montarDossieSupervisor(
+  db,
+  { nome: 'Sup Teste (TPH)', vend: [{ nome: 'Joao Silva', rca: '101', papel: 'vendedor', meta: 100000, fat: 40000, pend: 0, dig: 2500, visP: 10, visF: 0, pos: 30, metaPos: 40 }] },
+  'TPH',
+  [],
+  '10:15',
+  []
+);
+teste('montarDossieSupervisor nao cobra check-in de vendedor que ja digitou pedido hoje', dossieSemCheckinComVenda === null);
 
 const roiVazio = await auditarLoopFechadoRoi(db, { vend: [{ rca: '101', dig: 2500 }] }, 'TPH');
 teste('auditarLoopFechadoRoi executa de forma segura sem casos abertos', roiVazio.auditados === 0 && roiVazio.recuperados === 0);
