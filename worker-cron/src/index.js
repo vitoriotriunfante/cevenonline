@@ -28,6 +28,14 @@ import { vigiarDisparos } from './vigia.js';
 const REPO = 'vitoriotriunfante/cevenonline';
 const REF = 'main';
 
+const FERIADOS_NACIONAIS = new Set([
+  '2026-01-01', '2026-02-16', '2026-02-17', '2026-04-03', '2026-04-21', '2026-05-01',
+  '2026-06-04', '2026-09-07', '2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25',
+  '2027-01-01', '2027-02-08', '2027-02-09', '2027-03-26', '2027-04-21', '2027-05-01',
+  '2027-05-27', '2027-09-07', '2027-10-12', '2027-11-02', '2027-11-15', '2027-11-20', '2027-12-25'
+]);
+const dataHojeSP = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+
 // Mapa oficial de gatilhos cron (UTC) -> { workflow, inputs }
 // Executado com precisão no Cloudflare Pago (Maestro Único)
 const GATILHOS = {
@@ -106,9 +114,10 @@ export default {
         if ([9, 12, 15].includes(h) && mi >= 30 && mi < 45) {
           try { const r = await dispararWorkflow(env, 'prospects-coleta.yml', {}); console.log(`[PROSPECTS] prospects-coleta.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[PROSPECTS][ERRO] ' + (e && e.message ? e.message : e)); }
         }
-        // MONITOR.IA (Analista Comercial): varredura continua a cada 15 min, seg-sab 07:30-18:30 BRT.
-        // Respeita regra.modo no D1 (SIMULACAO_VITORIO por padrao) e regras anti-spam (R.enviarTexto + max 4/dia + sem repetir assinatura).
-        const emExpediente = dia >= 1 && dia <= 6 && ((h === 7 && mi >= 30) || (h >= 8 && h <= 17) || (h === 18 && mi <= 30));
+        // MONITOR.IA (Analista Comercial): varredura continua a cada 15 min, SEGUNDA A SEXTA 07:30-18:30 BRT, excluindo feriados nacionais.
+        // Respeita regra.modo no D1 e regras anti-spam (R.enviarTexto + max 4/dia + sem repetir assinatura).
+        const dataSp = dataHojeSP();
+        const emExpediente = dia >= 1 && dia <= 5 && !FERIADOS_NACIONAIS.has(dataSp) && ((h === 7 && mi >= 30) || (h >= 8 && h <= 17) || (h === 18 && mi <= 30));
         if (emExpediente && env.MONITORIA_CRON_KEY) {
           await rodarTarefaTv(event.cron, { passos: [{ rota: '/api/cron-monitoria?regra=ANALISTA', ms: 120000, chaveEnv: 'MONITORIA_CRON_KEY' }] }, env);
         }
