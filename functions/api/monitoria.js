@@ -20,16 +20,20 @@ export async function onRequestGet({ env }) {
 }
 
 export async function onRequestPost({ request, env }) {
-  const evoOk = await chaveEvoValida(request, env);
-  const admOk = !evoOk && await chaveAdminOk(env, request);
-  if (!evoOk && !admOk) return resp({ erro: 'nao autorizado' }, 401);
-  let body = {};
-  try { body = await request.json(); } catch { return resp({ erro: 'json invalido' }, 400); }
-  if (body.acao === 'config') return resp(await atualizarRegra(env.DB, body));
-  if (body.acao === 'simular') {
-    const origin = new URL(request.url).origin;
-    return resp(await simularOnda1(origin, env, body));
+  try {
+    const evoOk = await chaveEvoValida(request, env);
+    const admOk = !evoOk && await chaveAdminOk(env, request);
+    if (!evoOk && !admOk) return resp({ erro: 'nao autorizado' }, 401);
+    let body = {};
+    try { body = await request.json(); } catch { return resp({ erro: 'json invalido' }, 400); }
+    if (body.acao === 'config') return resp(await atualizarRegra(env.DB, body));
+    if (body.acao === 'simular') {
+      const origin = new URL(request.url).origin;
+      return resp(await simularOnda1(origin, env, body));
+    }
+    return resp({ erro: 'acao invalida (use config ou simular)' }, 400);
+  } catch (e) {
+    return resp({ ok: false, erro: String((e && e.message) || e) }, 500);
   }
-  return resp({ erro: 'acao invalida (use config ou simular)' }, 400);
 }
 

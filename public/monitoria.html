@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MONITOR.IA · Central de Decisão & Disparo</title>
+<style>
+  :root {
+    --bg: #0b101b; --card: #121a2b; --card2: #182338; --border: #253452;
+    --txt: #e8eefc; --muted: #93a4c7; --accent: #38bdf8; --ok: #22c55e; --warn: #f59e0b; --danger: #ef4444;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--txt); }
+  header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; background: #0e1524; position: sticky; top: 0; z-index: 10; }
+  h1 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+  .pill { font-size: 11px; padding: 3px 9px; border-radius: 999px; font-weight: 600; border: 1px solid var(--border); background: var(--card2); color: var(--accent); }
+  .pill.warn { color: var(--warn); border-color: rgba(245,158,11,.4); }
+  .pill.ok { color: var(--ok); border-color: rgba(34,197,94,.4); }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  select, input, button { background: var(--card2); color: var(--txt); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 13px; }
+  button { cursor: pointer; font-weight: 600; transition: .15s; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: #0284c7; border-color: #38bdf8; color: #fff; }
+  button.primary:hover { background: #0369a1; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  main { max-width: 1280px; margin: 0 auto; padding: 20px; display: grid; gap: 22px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+  .kpi .lbl { font-size: 12px; color: var(--muted); }
+  .kpi .val { font-size: 24px; font-weight: 700; margin-top: 4px; }
+  .section-title { font-size: 14px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .card-id { font-weight: 800; font-size: 14px; color: var(--accent); }
+  .card-name { font-weight: 600; font-size: 14px; margin-top: 2px; }
+  .card-meta { font-size: 12px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; }
+  .sticker { width: 54px; height: 54px; object-fit: contain; border-radius: 8px; background: #090d16; border: 1px solid var(--border); padding: 2px; flex-shrink: 0; }
+  .card-actions { display: flex; gap: 8px; align-items: center; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 10px; }
+  .envios { display: grid; gap: 10px; }
+  .envio { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .envio-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .envio pre { margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 13px; line-height: 1.45; color: #dbe6ff; background: #0b1120; padding: 10px; border-radius: 8px; border: 1px solid #1e2b45; }
+  #toast { position: fixed; bottom: 18px; right: 18px; background: #0f172a; border: 1px solid var(--accent); padding: 10px 14px; border-radius: 10px; font-size: 13px; display: none; z-index: 50; max-width: 360px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🤖 MONITOR.IA <span class="pill warn">MODO SEGURO · SIMULACAO_VITORIO</span></h1>
+  <div class="controls">
+    <select id="celTeste" title="Número do Vitório para testes">
+      <option value="554187525605">Vitório Principal (41 8752-5605)</option>
+      <option value="5566996389884">Vitório Teste (66 99638-9884)</option>
+    </select>
+    <button onclick="simular(false)">🧪 Simular Onda 1 (D1)</button>
+    <button class="primary" onclick="simular(true)">📲 Testar 1ª Amostra no Meu WhatsApp</button>
+    <button onclick="pedirChave()">🔑 Chave</button>
+  </div>
+</header>
+
+<main>
+  <section class="kpis" id="kpis"></section>
+
+  <section>
+    <h2 class="section-title">Onda 1 · Regras Prioritárias</h2>
+    <div class="grid" id="gridOnda1"></div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Onda 2 · Backlog Planejado</h2>
+    <div class="grid" id="gridOnda2"></div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Últimas Simulações &amp; Envios de Teste (D1)</h2>
+    <div class="envios" id="listaEnvios"></div>
+  </section>
+</main>
+
+<div id="toast"></div>
+
+<script>
+const MIDIAS = {
+  BOPE_OPERACAO: '/figurinhas/bope/fig_02_operacao.webp',
+  BOPE_TROPA: '/figurinhas/bope/fig_01_tropa.webp',
+  BOPE_GUERRA: '/figurinhas/bope/fig_03_guerra.webp'
+};
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+function chaveSalva() {
+  return localStorage.getItem('monitoria_chave') || '';
+}
+
+function pedirChave() {
+  const k = prompt('Informe a chave administrativa (x-chave) para editar/disparar:', chaveSalva());
+  if (k !== null) {
+    localStorage.setItem('monitoria_chave', k.trim());
+    toast('Chave salva localmente.');
+  }
+}
+
+async function postMonitoria(body) {
+  let k = chaveSalva();
+  if (!k) { pedirChave(); k = chaveSalva(); }
+  if (!k) { toast('Ação cancelada: chave necessária.'); return null; }
+  const r = await fetch('/api/monitoria', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-chave': k },
+    body: JSON.stringify(body)
+  });
+  const d = await r.json().catch(() => ({}));
+  if (r.status === 401) {
+    localStorage.removeItem('monitoria_chave');
+    toast('Chave inválida (401). Clique em Chave para informar novamente.');
+    return null;
+  }
+  return d;
+}
+
+async function salvarModo(id, modo) {
+  const res = await postMonitoria({ acao: 'config', id, modo, ativo: modo !== 'OFF' });
+  if (res && res.ok) {
+    toast(`Regra ${id} atualizada para ${modo}`);
+    carregar();
+  }
+}
+
+async function testarRegra(id) {
+  const cel = document.getElementById('celTeste').value;
+  toast(`Disparando teste ${id} para ${cel}...`);
+  const res = await postMonitoria({ acao: 'simular', enviarVitorio: true, celularVitorio: cel, regras: [id] });
+  if (res && res.ok) {
+    toast(`Regra ${id}: ${res.enviados} enviada(s) para ${res.celular_teste}`);
+    carregar();
+  }
+}
+
+async function simular(enviar) {
+  const cel = document.getElementById('celTeste').value;
+  const body = enviar
+    ? { acao: 'simular', enviarVitorio: true, celularVitorio: cel, regras: ['V1', 'S2', 'G1'], limiteEnvios: 3 }
+    : { acao: 'simular' };
+  toast(enviar ? `Enviando amostra V1/S2/G1 para ${cel}...` : 'Gerando simulação Onda 1 no D1...');
+  const res = await postMonitoria(body);
+  if (res && res.ok) {
+    toast(enviar ? `Enviado (${res.enviados}) para ${res.celular_teste}` : `Simulação concluída: ${res.regras_ativas} regras`);
+    carregar();
+  }
+}
+
+function renderRegra(r) {
+  const img = MIDIAS[r.bonequinho] ? `<img class="sticker" src="${MIDIAS[r.bonequinho]}" alt="${r.bonequinho}" />` : '';
+  const opcoes = ['OFF', 'SIMULACAO_VITORIO', 'PRODUCAO'].map((m) => `<option value="${m}" ${r.modo === m ? 'selected' : ''}>${m}</option>`).join('');
+  return `
+    <div class="card">
+      <div class="card-top">
+        <div>
+          <div class="card-id">${r.id} · ${r.papel.toUpperCase()}</div>
+          <div class="card-name">${r.nome}</div>
+          <div class="card-meta">
+            <span>🕒 ${r.horario}</span>
+            <span>🎭 ${r.bonequinho}</span>
+          </div>
+        </div>
+        ${img}
+      </div>
+      <div class="card-actions">
+        <select onchange="salvarModo('${r.id}', this.value)">${opcoes}</select>
+        ${r.onda === 1 ? `<button onclick="testarRegra('${r.id}')">📲 Testar</button>` : '<span class="pill">Onda 2</span>'}
+      </div>
+    </div>`;
+}
+
+async function carregar() {
+  const r = await fetch('/api/monitoria', { cache: 'no-store' });
+  const d = await r.json().catch(() => ({}));
+  if (!d.ok) return;
+  const regras = d.regras || [];
+  const o1 = regras.filter((x) => x.onda === 1);
+  const o2 = regras.filter((x) => x.onda === 2);
+  const envios = d.envios || [];
+  const enviadosTeste = envios.filter((e) => e.status === 'ENVIADO_TESTE').length;
+
+  document.getElementById('kpis').innerHTML = [
+    { lbl: 'Regras Onda 1', val: o1.length },
+    { lbl: 'Ativas em Simulação', val: o1.filter((x) => x.ativo === 1).length },
+    { lbl: 'Backlog Onda 2', val: o2.length },
+    { lbl: 'Testes Enviados (hist.)', val: enviadosTeste }
+  ].map((k) => `<div class="kpi"><div class="lbl">${k.lbl}</div><div class="val">${k.val}</div></div>`).join('');
+
+  document.getElementById('gridOnda1').innerHTML = o1.map(renderRegra).join('');
+  document.getElementById('gridOnda2').innerHTML = o2.map(renderRegra).join('');
+  document.getElementById('listaEnvios').innerHTML = envios.map((e) => `
+    <div class="envio">
+      <div class="envio-head">
+        <span><strong>${e.regra_id}</strong> (${e.papel}) → ${e.destino_real}</span>
+        <span>${e.status} · ${e.enviado_em || e.data}</span>
+      </div>
+      <pre>${(e.preview || '').replace(/</g, '&lt;')}</pre>
+    </div>`).join('') || '<div class="card">Nenhum envio registrado ainda.</div>';
+}
+
+carregar();
+</script>
+</body>
+</html>
+

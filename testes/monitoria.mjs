@@ -73,7 +73,7 @@ function criaMockDb() {
 
 console.log('== Testes MONITOR.IA Onda 1 ==');
 teste('whitelist contem os dois numeros do Vitorio', NUMEROS_VITORIO.includes('554187525605') && NUMEROS_VITORIO.includes('5566996389884') && NUMEROS_VITORIO.length === 2);
-teste('bonequinhos BOPE mapeados para /figurinhas/bope/', BONEQUINHO_MIDIA.BOPE_OPERACAO.startsWith('/figurinhas/bope/') && BONEQUINHO_MIDIA.BOPE_TROPA.startsWith('/figurinhas/bope/') && BONEQUINHO_MIDIA.BOPE_GUERRA.startsWith('/figurinhas/bope/'));
+teste('bonequinhos BOPE mapeados para stickers .webp em /figurinhas/bope/', BONEQUINHO_MIDIA.BOPE_OPERACAO.endsWith('.webp') && BONEQUINHO_MIDIA.BOPE_TROPA.endsWith('.webp') && BONEQUINHO_MIDIA.BOPE_GUERRA.endsWith('.webp'));
 
 const db = criaMockDb();
 const lista = await listarRegras(db);
