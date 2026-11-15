@@ -8,10 +8,10 @@ import { hojeSP, R$, nome2, vn } from '../jota/base.js';
 import { criaBase } from '../jota/fontes.js';
 import { carregaEscopo, pctTxt, pessoaReal } from '../jota/escopo.js';
 import { diasUteisMes } from '../jota/respostas/gestao.js';
+import { nomeForn } from '../jota/respostas/metas_industria.js';
 import {
   NUMEROS_VITORIO,
   listarRegras,
-  marcaPropriaGerot,
   nomeClienteD1,
 } from './motor.js';
 import R from '../../../public/regras.js';
@@ -36,6 +36,29 @@ async function resolveGeminiKey(env) {
     } catch {}
   }
   return k;
+}
+
+function pioresIndustriasEquipe(RV, rcas, espPct) {
+  if (!RV || !Array.isArray(RV.metas) || !Array.isArray(RV.apu)) return [];
+  const porInd = new Map();
+  for (const [c, codInd, nomeInd, tipo, m] of RV.metas) {
+    if (tipo !== 1 || !(m > 0) || !rcas.has(String(c))) continue;
+    const k = String(codInd);
+    const cur = porInd.get(k) || { cod: k, nome: nomeForn(nomeInd), meta: 0, fat: 0 };
+    cur.meta += Number(m) || 0;
+    porInd.set(k, cur);
+  }
+  for (const a of RV.apu) {
+    const k = String(a[1]);
+    if (!rcas.has(String(a[0])) || !porInd.has(k)) continue;
+    porInd.get(k).fat += Number(a[2]) || 0;
+  }
+  return [...porInd.values()]
+    .filter((x) => x.meta >= 5000)
+    .map((x) => ({ ...x, pct: (x.fat / x.meta) * 100, gap: Math.max(0, x.meta - x.fat) }))
+    .filter((x) => x.pct < espPct * 0.75 && x.gap > 0)
+    .sort((a, b) => b.gap - a.gap)
+    .slice(0, 3);
 }
 
 export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, enviosHoje = [], extras = {}) {
@@ -125,6 +148,7 @@ export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, envios
   const piorMix = (extras.mixVendedores || [])
     .filter((m) => m.filial === filial && rcas.has(String(m.rca)) && Number(m.mix_medio) > 0)
     .sort((a, b) => Number(a.mix_medio) - Number(b.mix_medio))[0] || null;
+  const pioresInd = pioresIndustriasEquipe(extras.rv, rcas, espPct);
 
   const sinais = [];
   if (bloqsNovos.length) sinais.push({ tipo: 'BLOQUEIO_CRITICO', sig: bloqsNovos[0].sig, detalhe: bloqsNovos });
@@ -134,6 +158,9 @@ export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, envios
   if (semCheckin.length) sinais.push({ tipo: 'SEM_CHECKIN', sig: `CHECK0:${semCheckin.map((x) => x.rca).join(',')}`, detalhe: semCheckin });
   if (devHoje >= 500) sinais.push({ tipo: 'DEVOLUCAO_HOJE', sig: `DEV:${Math.round(devHoje)}`, detalhe: devHoje });
   if (posTravada.length) sinais.push({ tipo: 'POSITIVACAO_TRAVADA', sig: `POS:${posTravada.map((x) => x.rca).join(',')}`, detalhe: posTravada });
+  if (pioresInd.length && hhmm >= '10:00') {
+    sinais.push({ tipo: 'INDUSTRIA_ATRASADA', sig: `IND:${pioresInd[0].cod}`, detalhe: pioresInd });
+  }
   if (hhmm >= '11:00' && hhmm < '17:30' && metaDia > 0 && digHoje < metaDia * 0.5) {
     sinais.push({ tipo: 'RITMO_DIA_BAIXO', sig: `RITMO:${hhmm.slice(0, 2)}`, detalhe: { digHoje, metaDia, pctDia } });
   }
@@ -167,7 +194,7 @@ export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, envios
       pct_meta_dia: pctTxt(pctDia),
       positivacao: posMeta > 0 ? `${posReal}/${posMeta} (${pctTxt((posReal / posMeta) * 100)})` : 'sem meta pos.',
       devolucao_hoje: R$(devHoje),
-      marca_propria_filial_gerot: extras.mpGerot && extras.mpGerot.fat > 0 ? `${R$(extras.mpGerot.fat)} (até ${extras.mpGerot.ate || '—'})` : null,
+      piores_industrias_equipe: pioresInd.map((x) => ({ industria: x.nome, atingido: pctTxt(x.pct), gap: R$(x.gap) })),
     },
     sinal_principal: sinalNovo,
     todos_sinais: sinais.map((s) => s.tipo),
@@ -234,6 +261,14 @@ function mensagemFallback(d) {
       `👥 *Positivação Travada — ${d.supervisor}*`,
       `Positivação da equipe em *${r.positivacao}*. *${p0.nome}* está em *${p0.pos}/${p0.metaPos}* (faltam ${p0.posGap} PDVs).`,
       `👉 *Ação agora:* cobrar de *${p0.nomeCurto}* abertura de novos PDVs já na rota de hoje.`,
+    ].join('\n');
+  }
+  if (s.tipo === 'INDUSTRIA_ATRASADA') {
+    const i0 = s.detalhe[0];
+    return [
+      `🏭 *Indústria Puxando Para Baixo — ${d.supervisor}*`,
+      `*${i0.nome}* está em *${pctTxt(i0.pct)}* na sua equipe (gap de *${R$(i0.gap)}* no mês).`,
+      `👉 *Ação agora:* puxar foco de *${i0.nome}* nos pedidos de hoje com o time.`,
     ].join('\n');
   }
   if (s.tipo === 'MIX_BAIXO') {
@@ -336,15 +371,15 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
 
   const B = criaBase(origin, env);
   const desde = new Date(Date.parse(hoje + 'T12:00:00Z') - 2 * 864e5).toISOString().slice(0, 10);
-  const [bloqsRes, cortesRes, lancesData, mixData] = await Promise.all([
+  const [bloqsRes, cortesRes, lancesData, mixData, rvData] = await Promise.all([
     db.prepare("SELECT num, filial, rca, id_cliente, data_pedido, valor, categoria_corte FROM pedido_status WHERE status = 'BLOQUEADO' AND data_pedido >= ? ORDER BY valor DESC LIMIT 200").bind(desde).all().catch(() => ({ results: [] })),
     db.prepare("SELECT num, filial, rca, id_cliente, data_pedido, valor, valor_winthor, itens_cortados, categoria_corte FROM pedido_status WHERE data_pedido >= ? AND itens_cortados > 0 AND valor >= 500 ORDER BY itens_cortados DESC, valor DESC LIMIT 200").bind(desde).all().catch(() => ({ results: [] })),
     B.lances().catch(() => null),
     B.mix().catch(() => null),
+    B.rv().catch(() => null),
   ]);
   const bloqs = bloqsRes.results || [];
   const cortes = cortesRes.results || [];
-  const mpCache = {};
 
   const limite = Number(opts.limite || (regra.modo === 'PRODUCAO' ? 12 : 10));
   const maxPorDia = Number(opts.maxPorDia || 4);
@@ -365,12 +400,11 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
     const Es = await carregaEscopo(B, { nome: `${supNomeAlvo} (${s.filial})`, filiais: [s.filial], supervisor: supNomeAlvo }).catch(() => null);
     if (!Es || !Es.vend || !Es.vend.length) continue;
 
-    if (!mpCache[s.filial]) mpCache[s.filial] = await marcaPropriaGerot(db, [s.filial]).catch(() => ({ fat: 0, ate: null }));
     const dossie = await montarDossieSupervisor(db, Es, s.filial, bloqs, hhmm, enviosHoje, {
       cortes,
       lances: lancesData?.lances || [],
       mixVendedores: mixData?.vendedores || [],
-      mpGerot: mpCache[s.filial],
+      rv: rvData,
     });
     if (!dossie) continue;
 
