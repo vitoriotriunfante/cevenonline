@@ -6,7 +6,7 @@
 import { hojeSP, N, R$, vn } from '../jota/base.js';
 import { criaBase } from '../jota/fontes.js';
 import { carregaEscopo, agrupa, pessoaReal, supChave, supNome, supReal } from '../jota/escopo.js';
-import { emitirEvento, NUMEROS_VITORIO, BONEQUINHO_MIDIA } from './motor.js';
+import { emitirEvento, nomeClienteD1, NUMEROS_VITORIO, BONEQUINHO_MIDIA } from './motor.js';
 import R from '../../../public/regras.js';
 
 const FILIAIS_BR = ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
@@ -107,13 +107,19 @@ export async function detectarEventos(origin, env, opts = {}) {
     }
   }
 
-  // 3. Montar alertas proativos em tempo real (1 por papel)
+  // 3. Montar alertas proativos em tempo real (1 por papel, com escopo estrito e Nome Fantasia)
   const topBloq = (bloqs || [])[0];
   const topCorte = (cortes || [])[0];
-  const bloqsCriticos = (bloqs || []).filter((b) => Number(b.valor) >= 2000).slice(0, 4);
+
+  // Escopo estrito do supervisor de teste (Ederson Suonski - TPH)
+  const Es = await carregaEscopo(B, { nome: 'Equipe Ederson Suonski (TPH)', filiais: ['TPH'], supervisor: 'EDERSON SUONSKI' }).catch(() => null);
+  const rcasSup = new Set((Es && Es.vend ? Es.vend : []).map((v) => String(v.rca)));
+  const bloqsSup = (bloqs || []).filter((b) => b.filial === 'TPH' && rcasSup.has(String(b.rca))).slice(0, 4);
 
   const alertas = [];
   if (topBloq) {
+    const cliNome = await nomeClienteD1(db, topBloq.filial, topBloq.id_cliente);
+    const dtBr = String(topBloq.data_pedido || '').split('-').reverse().slice(0, 2).join('/');
     alertas.push({
       regra: 'V5',
       papel: 'vendedor',
@@ -121,27 +127,35 @@ export async function detectarEventos(origin, env, opts = {}) {
       bonequinho: BONEQUINHO_MIDIA.BOPE_GUERRA,
       texto: [
         `🚫 *Alerta em Tempo Real — Pedido Bloqueado*`,
-        `Pedido *#${topBloq.num}* · Cliente *#${topBloq.id_cliente}* · *${R$(topBloq.valor)}*`,
-        `Data: ${topBloq.data_pedido} (${topBloq.filial})`,
+        `*${cliNome}*`,
+        `Pedido *#${topBloq.num}* · *${R$(topBloq.valor)}* · ${dtBr} (${topBloq.filial})`,
         ``,
         `👉 _Verifique limite/título com o financeiro agora para não perder o faturamento._`,
       ].join('\n'),
     });
   }
-  if (bloqsCriticos.length) {
-    const soma = bloqsCriticos.reduce((a, b) => a + (Number(b.valor) || 0), 0);
+  if (bloqsSup.length) {
+    const soma = bloqsSup.reduce((a, b) => a + (Number(b.valor) || 0), 0);
+    const linhasSup = [];
+    for (let i = 0; i < bloqsSup.length; i++) {
+      const b = bloqsSup[i];
+      const cliNome = await nomeClienteD1(db, b.filial, b.id_cliente);
+      linhasSup.push(`${i + 1}. *${cliNome}* · RCA ${b.rca} · #${b.num} — *${R$(b.valor)}*`);
+    }
     alertas.push({
       regra: 'S4',
       papel: 'supervisor',
-      destino_real: `Supervisão (${bloqsCriticos[0].filial})`,
+      destino_real: 'Ederson Suonski (TPH)',
       bonequinho: BONEQUINHO_MIDIA.BOPE_OPERACAO,
       texto: [
-        `⚠️ *Bloqueios Críticos na Equipe (Tempo Real)*`,
-        `Top ${bloqsCriticos.length} pedidos travados somam *${R$(soma)}*:`,
-        ...bloqsCriticos.map((b, i) => `${i + 1}. #${b.num} (${b.filial} · RCA ${b.rca}) — *${R$(b.valor)}*`),
-        topCorte ? `\n✂️ *Corte recente:* #${topCorte.num} (${topCorte.filial}) · ${topCorte.itens_cortados} item(ns) · ${R$(topCorte.valor)}` : '',
+        `⚠️ *Bloqueios na sua Equipe (TPH — Tempo Real)*`,
+        `${bloqsSup.length} pedido(s) travado(s) somando *${R$(soma)}*:`,
+        ...linhasSup,
+        topCorte && topCorte.filial === 'TPH' && rcasSup.has(String(topCorte.rca))
+          ? `\n✂️ *Corte recente:* #${topCorte.num} (RCA ${topCorte.rca}) · ${topCorte.itens_cortados} item(ns) · ${R$(topCorte.valor)}`
+          : '',
         ``,
-        `👉 _Priorize o destravamento com os vendedores acima antes do corte logístico._`,
+        `👉 _Priorize o destravamento com esses vendedores antes do corte logístico._`,
       ].filter(Boolean).join('\n'),
     });
   }

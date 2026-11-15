@@ -7,8 +7,7 @@ import { hojeSP, N, P, R$, titulo, nome2, vn } from '../jota/base.js';
 import { criaBase } from '../jota/fontes.js';
 import { carregaEscopo, agrupa, pctTxt, pessoaReal, supChave, supNome, supReal } from '../jota/escopo.js';
 import { diasUteisMes, respMatinal } from '../jota/respostas/gestao.js';
-import { respMarcaPropriaVivo } from '../jota/respostas/vendas.js';
-import { respMetasIndustria } from '../jota/respostas/metas_industria.js';
+import { respMarcaPropriaVivo, vendasEscopo } from '../jota/respostas/vendas.js';
 import R from '../../../public/regras.js';
 
 export const NUMEROS_VITORIO = ['554187525605', '5566996389884'];
@@ -26,6 +25,18 @@ const limpaTexto = (s) => String(s || '')
   .replace(/\bBon\b/g, 'Bongusto')
   .replace(/\n{3,}/g, '\n\n')
   .trim();
+
+export async function nomeClienteD1(db, filial, idCliente) {
+  if (!db || !filial || !idCliente) return `#${idCliente}`;
+  try {
+    const row = await db.prepare("SELECT json_extract(json, '$.fantasia') f, json_extract(json, '$.nome') n FROM ficha_cliente WHERE filial = ? AND id_cliente = ? LIMIT 1")
+      .bind(String(filial), String(idCliente)).first();
+    const nm = row && (row.f || row.n);
+    return nm ? `${titulo(String(nm).trim())} (#${idCliente})` : `#${idCliente}`;
+  } catch {
+    return `#${idCliente}`;
+  }
+}
 
 export async function listarRegras(db) {
   const { results } = await db.prepare('SELECT * FROM regras_monitoria ORDER BY onda ASC, id ASC').all().catch(() => ({ results: [] }));
@@ -76,9 +87,10 @@ function formataV1Enxuta(rawMatinal) {
   let emLista = false;
   let countLista = 0;
   for (const l of linhas) {
+    if (/^(🗺️\s*Rota hoje:\s*\*0\*|🏷️\s*Clientes com TAGs|🆕\s*Prospects perto)/.test(l)) continue;
     if (l.startsWith('*Principais pendentes') || l.startsWith('*Clientes da rota')) {
       emLista = true;
-      out.push('*🎯 Top 5 alvos de hoje:*');
+      out.push('', '*🎯 Top 5 alvos de hoje:*');
       continue;
     }
     if (emLista) {
@@ -87,32 +99,83 @@ function formataV1Enxuta(rawMatinal) {
         continue;
       }
       if (l.startsWith('_… e mais')) continue;
-      if (l.startsWith('👉')) { out.push('👉 _Responda 1 a 5 para abrir a ficha e o que oferecer._'); emLista = false; continue; }
+      if (l.startsWith('👉')) { out.push('', '👉 _Responda 1 a 5 para abrir o cliente e o que oferecer._'); emLista = false; continue; }
     }
     out.push(l);
   }
-  return out.join('\n').trim();
+  return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
-async function formataV4Acionavel(db, B, Ev, filial, rca) {
+async function formataV4Acionavel(db, Ev, filial, rca) {
   const v = Ev.vend && Ev.vend[0];
   const nomeV = v ? vn(v) : `${rca} (${filial})`;
-  const { results: rowsFocos } = await db.prepare('SELECT id_cliente, tag FROM cliente_focos WHERE filial = ? AND rca = ? LIMIT 30').bind(filial, rca).all().catch(() => ({ results: [] }));
-  const porCli = new Map();
-  for (const r of rowsFocos || []) {
-    if (!porCli.has(r.id_cliente)) porCli.set(r.id_cliente, new Set());
-    porCli.get(r.id_cliente).add(r.tag);
+  const alvos = [];
+
+  // 1. Prioriza clientes reais da carteira/rota do vendedor no D1 com TAG ou sem compra
+  const cliLista = (v && Array.isArray(v.clientes) ? v.clientes : [])
+    .filter((c) => c && (c.tags && c.tags.length || /SEM_COMPRA|PENDENTE/i.test(String(c.status || ''))))
+    .slice(0, 3);
+  for (const c of cliLista) {
+    const nm = c.fantasia || c.nome || await nomeClienteD1(db, filial, c.id || c.cod);
+    const motivo = (c.tags && c.tags.length) ? c.tags.slice(0, 2).map((t) => limpaTexto(t)).join(', ') : 'Sem compra no mês';
+    alvos.push(`${alvos.length + 1}. *${titulo(String(nm))}* (${motivo})`);
   }
-  const focos = [...porCli.entries()].slice(0, 5).map(([id_cliente, tags]) => ({ id_cliente, tags: [...tags].join(', ') }));
-  const mp = limpaTexto(await respMarcaPropriaVivo(B, Ev, 'marca propria').catch(() => ''));
-  const linhas = [`🎯 *Oportunidades Quentes — ${nomeV}*`];
-  if (focos && focos.length) {
-    linhas.push('', '*Clientes prioritários com TAG ativa:*');
-    focos.forEach((f, i) => linhas.push(`${i + 1}. Cliente #${f.id_cliente} — [${limpaTexto(f.tags)}]`));
+
+  // 2. Fallback para cliente_focos do D1 com Nome Fantasia resolvido
+  if (!alvos.length) {
+    const { results: rowsFocos } = await db.prepare('SELECT id_cliente, tag FROM cliente_focos WHERE filial = ? AND rca = ? LIMIT 15').bind(filial, rca).all().catch(() => ({ results: [] }));
+    const porCli = new Map();
+    for (const r of rowsFocos || []) {
+      if (!porCli.has(r.id_cliente)) porCli.set(r.id_cliente, new Set());
+      porCli.get(r.id_cliente).add(limpaTexto(r.tag));
+    }
+    for (const [idCli, tags] of [...porCli.entries()].slice(0, 3)) {
+      const nm = await nomeClienteD1(db, filial, idCli);
+      alvos.push(`${alvos.length + 1}. *${nm}* — [${[...tags].slice(0, 2).join(', ')}]`);
+    }
   }
-  if (mp) linhas.push('', mp);
-  linhas.push('', '👉 _Responda o código do cliente para ver última compra e mix sugerido._');
-  return linhas.join('\n').trim();
+
+  if (!alvos.length) return null; // Sem oportunidade acionavel = zero spam
+  return [
+    `🎯 *Oportunidades Quentes — ${nomeV}*`,
+    `Clientes da sua carteira prontos para ataque agora:`,
+    '',
+    ...alvos,
+    '',
+    '👉 _Responda 1 a 3 para ver última compra e mix sugerido._',
+  ].join('\n');
+}
+
+function formataS1Excecao(rawMatinal, Es) {
+  const mapaNomes = new Map((Es.vend || []).map((v) => [String(v.rca), vn(v)]));
+  const linhas = limpaTexto(rawMatinal)
+    .replace(/\*RCA (\d+)\*/g, (_, rca) => `*${mapaNomes.get(rca) || 'RCA ' + rca}*`)
+    .split('\n');
+  const out = [];
+  let emPrio = false;
+  let qtdPrio = 0;
+  for (const l of linhas) {
+    if (/^🗺️\s*Rota hoje:\s*\*0\* PDVs/.test(l)) continue;
+    if (l.startsWith('🎯 *Prioridade')) {
+      emPrio = true;
+      out.push('🎯 *Foco hoje (vendedores abaixo de 80% de tendência):*');
+      continue;
+    }
+    if (emPrio) {
+      if (/^\d+\.\s/.test(l)) {
+        const m = l.match(/tend\.\s*\*(-?\d+)%\*/);
+        const tend = m ? Number(m[1]) : 0;
+        if (tend < 80 && !/R\$\s*0\/d/.test(l) && qtdPrio < 4) {
+          out.push(l);
+          qtdPrio++;
+        }
+        continue;
+      }
+    }
+    out.push(l);
+  }
+  if (emPrio && qtdPrio === 0) out.push('🟢 _Nenhum vendedor abaixo de 80% de tendência hoje._');
+  return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
 function formataS2Supervisor(Es) {
@@ -129,7 +192,7 @@ function formataS2Supervisor(Es) {
     .filter((x) => x.gap > 0)
     .sort((a, b) => a.pct - b.pct)
     .slice(0, 5);
-  const zeradosHoje = vs.filter((v) => !(v.dig > 0) && !(v.fat > 0));
+  const zeradosMes = vs.filter((v) => (v.fat || 0) === 0 && (v.pend || 0) === 0);
 
   const out = [
     `⏱️ *RET Unificada — ${Es.nome}*`,
@@ -140,8 +203,8 @@ function formataS2Supervisor(Es) {
     out.push('', '*Top 5 vendedores mais atrás (gap):*');
     piores.forEach((x, i) => out.push(`${i + 1}. *${vn(x.v)}* — ${pctTxt(x.pct)} · falta *${R$(x.gap)}*`));
   }
-  if (zeradosHoje.length) {
-    out.push('', `⚠️ *Sem venda no mês:* ${zeradosHoje.slice(0, 5).map((v) => vn(v)).join(', ')}`);
+  if (zeradosMes.length) {
+    out.push('', `⚠️ *Sem faturamento nem carteira no mês:* ${zeradosMes.slice(0, 5).map((v) => vn(v)).join(', ')}`);
   }
   if (piores[0]) {
     out.push('', `👉 *Ação imediata:* alinhar rota de hoje com *${nome2(piores[0].v.nome)}* agora pela manhã.`);
@@ -149,34 +212,97 @@ function formataS2Supervisor(Es) {
   return out.join('\n');
 }
 
-function limpaPrioridades(raw, Es) {
-  const mapaNomes = new Map((Es.vend || []).map((v) => [String(v.rca), vn(v)]));
-  return limpaTexto(raw)
-    .replace(/\*RCA (\d+)\*/g, (_, rca) => `*${mapaNomes.get(rca) || 'RCA ' + rca}*`)
+function formataG1Executiva(rawMatinal, Eg) {
+  const { tot, pass } = diasUteisMes();
+  const faltam = Math.max(1, tot - pass);
+  const cabecalho = limpaTexto(rawMatinal)
     .split('\n')
-    .filter((l) => !/precisa R\$ 0\/d/.test(l))
-    .join('\n')
-    .trim();
-}
+    .filter((l) => !/^(🎯 \*Prioridades|\d+\.\s|_… e mais|\s*$)/.test(l) && !/Rota(?: hoje)?:\s*\*0\* PDVs/.test(l));
 
-function formataG1Executiva(raw, Eg) {
-  const base = limpaPrioridades(raw, Eg);
   const sups = [...agrupa(Eg.vend, (v) => supChave(v, true))]
     .filter(([k, x]) => supReal(k) && !/^VAGO/.test(k) && x.meta > 0)
-    .sort((a, b) => (a[1].pct ?? 999) - (b[1].pct ?? 999))
-    .slice(0, 3);
-  if (!sups.length) return base;
-  return [base, '', '*Top 3 supervisores mais atrás:*', ...sups.map(([k, x], i) => `${i + 1}. ${supNome(k)} — ${pctTxt(x.pct)} · ${x.zerados} zerado(s)`)].join('\n');
+    .map(([k, x]) => {
+      const gap = Math.max(0, (x.meta || 0) - (x.fat || 0) - (x.pend || 0));
+      const esp = tot ? (pass / tot) * 100 : 1;
+      const tend = x.pct != null && esp ? (x.pct / esp) * 100 : 0;
+      return { k, x, gap, gapDia: gap / faltam, tend };
+    })
+    .sort((a, b) => (a.x.pct ?? 999) - (b.x.pct ?? 999));
+
+  const out = [
+    ...cabecalho,
+    '',
+    '*📊 Supervisores da filial (pior atingimento primeiro):*',
+    ...sups.slice(0, 5).map((s, i) => `${i + 1}. *${supNome(s.k)}* — *${pctTxt(s.x.pct)}* (tend. ${Math.round(s.tend)}%) · precisa *${R$(s.gapDia)}/d* · ${s.x.zerados} zerado(s)`),
+  ];
+  if (sups[0]) {
+    out.push('', `👉 *Ação gerencial:* cobrar plano de reversão de *${supNome(sups[0].k)}* ainda pela manhã.`);
+  }
+  return out.join('\n');
 }
 
-function formataD1Brasil(raw, Ed) {
-  const base = limpaPrioridades(raw, Ed);
-  const fils = [...agrupa(Ed.vend, (v) => v.filial)]
-    .filter(([, x]) => x.meta > 0)
-    .sort((a, b) => (a[1].pct ?? 999) - (b[1].pct ?? 999))
-    .slice(0, 3);
-  if (!fils.length) return base;
-  return [base, '', '*Top 3 filiais mais atrás:*', ...fils.map(([f, x], i) => `${i + 1}. *${f}* — ${pctTxt(x.pct)} (${R$(x.fat)} / ${R$(x.meta)})`)].join('\n');
+async function formataG3Executiva(B, Eg, filial) {
+  const rv = await B.rv().catch(() => null);
+  const rcaSup = new Map((Eg.vend || []).filter((v) => pessoaReal(v)).map((v) => [String(v.rca), supChave(v, true)]));
+  const linhas = [];
+
+  if (rv && Array.isArray(rv.metas) && Array.isArray(rv.apu)) {
+    const porSup = new Map();
+    const porInd = new Map();
+    const apuMap = new Map(rv.apu.map((a) => [`${a[0]}|${a[1]}`, a]));
+
+    for (const m of rv.metas) {
+      const [rca, cnpj, forn, tipo, meta] = m;
+      if (tipo !== 1 || meta <= 0 || !rcaSup.has(rca)) continue;
+      const sup = rcaSup.get(rca);
+      if (!supReal(sup) || /^VAGO/.test(sup)) continue;
+      const a = apuMap.get(`${rca}|${cnpj}`);
+      const fatV = a ? (a[3] || 0) : 0;
+
+      if (!porSup.has(sup)) porSup.set(sup, { meta: 0, real: 0 });
+      porSup.get(sup).meta += meta;
+      porSup.get(sup).real += fatV;
+
+      const indKey = forn || cnpj;
+      if (!porInd.has(indKey)) porInd.set(indKey, { meta: 0, real: 0 });
+      porInd.get(indKey).meta += meta;
+      porInd.get(indKey).real += fatV;
+    }
+
+    const supsRank = [...porSup.entries()]
+      .map(([k, x]) => ({ k, pct: x.meta ? (x.real / x.meta) * 100 : 0, real: x.real, meta: x.meta }))
+      .sort((a, b) => a.pct - b.pct);
+    const indsRank = [...porInd.entries()]
+      .filter(([, x]) => x.meta > 0)
+      .map(([nome, x]) => ({
+        nome: titulo(nome.replace(/^[A-Z]\s*-\s*/i, '').replace(/\b(Industria|Produtos|Eletronicos|Comercio|Alimentos|Ltda|S\.?A\.?)\b/gi, '').replace(/\.+$/, '').trim()),
+        pct: (x.real / x.meta) * 100,
+        gap: Math.max(0, x.meta - x.real),
+      }))
+      .sort((a, b) => a.pct - b.pct);
+
+    if (supsRank.length) {
+      const corte = rv.cutoff && rv.cutoff <= hojeSP() ? rv.cutoff : hojeSP();
+      linhas.push(`🏭 *Indústrias-Chave (Premiação RV) — ${filial}* _(corte ${corte})_`);
+      linhas.push('', '*Por Supervisor (pior atingimento):*');
+      supsRank.slice(0, 4).forEach((s, i) => linhas.push(`${i + 1}. *${supNome(s.k)}* — *${pctTxt(s.pct)}* (${R$(s.real)} / ${R$(s.meta)})`));
+    }
+    if (indsRank.length) {
+      linhas.push('', '*Top 3 indústrias puxando a filial para baixo:*');
+      indsRank.slice(0, 3).forEach((ind, i) => linhas.push(`${i + 1}. *${ind.nome}* — *${pctTxt(ind.pct)}* (gap ${R$(ind.gap)})`));
+    }
+  }
+
+  // Marca Propria so entra se vendas_mes estiver atualizada (<= 2 dias)
+  const vMes = await vendasEscopo(B, Eg).catch(() => null);
+  const ate = vMes && vMes.ate ? Date.parse(vMes.ate + 'T12:00:00Z') : 0;
+  const diffDias = ate ? (Date.parse(hojeSP() + 'T12:00:00Z') - ate) / 864e5 : 99;
+  if (diffDias <= 2) {
+    const mp = limpaTexto(await respMarcaPropriaVivo(B, Eg, 'marca propria').catch(() => ''));
+    if (mp) linhas.push('', mp);
+  }
+
+  return linhas.length ? linhas.join('\n') : null;
 }
 
 export async function simularOnda1(origin, env, opts = {}) {
@@ -196,6 +322,7 @@ export async function simularOnda1(origin, env, opts = {}) {
   let enviados = 0;
 
   const regPreview = async (regra, destinoReal, papel, filial, rca, texto) => {
+    if (!texto) return;
     const midia = BONEQUINHO_MIDIA[regra.bonequinho] || null;
     let status = 'SIMULADO';
     let envioInfo = null;
@@ -210,64 +337,34 @@ export async function simularOnda1(origin, env, opts = {}) {
     amostras.push({ regra: regra.id, nome: regra.nome, horario: regra.horario, modo: regra.modo, destino_real: destinoReal, bonequinho: midia || regra.bonequinho, status, envio: envioInfo, preview: String(texto || '').slice(0, 600) });
   };
 
-  // V1 e V4: Vendedor (352 Tamara Guedes - TCV)
   const rV1 = ativas.find((r) => r.id === 'V1');
   const rV4 = ativas.find((r) => r.id === 'V4');
   if (rV1 || rV4) {
     const Ev = await carregaEscopo(B, { nome: 'Tamara Guedes (TCV)', filiais: ['TCV'], rca: '352' }).catch(() => null);
     if (Ev) {
       if (rV1) await regPreview(rV1, '352 - Tamara Guedes (TCV)', 'vendedor', 'TCV', '352', formataV1Enxuta(await respMatinal(B, Ev)));
-      if (rV4) await regPreview(rV4, '352 - Tamara Guedes (TCV)', 'vendedor', 'TCV', '352', await formataV4Acionavel(db, B, Ev, 'TCV', '352'));
+      if (rV4) await regPreview(rV4, '352 - Tamara Guedes (TCV)', 'vendedor', 'TCV', '352', await formataV4Acionavel(db, Ev, 'TCV', '352'));
     }
   }
 
-  // S1 e S2: Supervisor (Ederson Suonski - TPH)
   const rS1 = ativas.find((r) => r.id === 'S1');
   const rS2 = ativas.find((r) => r.id === 'S2');
   if (rS1 || rS2) {
     const Es = await carregaEscopo(B, { nome: 'Equipe Ederson Suonski (TPH)', filiais: ['TPH'], supervisor: 'EDERSON SUONSKI' }).catch(() => null);
     if (Es) {
-      if (rS1) await regPreview(rS1, 'Ederson Suonski (TPH)', 'supervisor', 'TPH', '', limpaPrioridades(await respMatinal(B, Es), Es));
+      if (rS1) await regPreview(rS1, 'Ederson Suonski (TPH)', 'supervisor', 'TPH', '', formataS1Excecao(await respMatinal(B, Es), Es));
       if (rS2) await regPreview(rS2, 'Ederson Suonski (TPH)', 'supervisor', 'TPH', '', formataS2Supervisor(Es));
     }
   }
 
-  // G1 e G3: Gerente (TCV)
   const rG1 = ativas.find((r) => r.id === 'G1');
   const rG3 = ativas.find((r) => r.id === 'G3');
   if (rG1 || rG3) {
     const Eg = await carregaEscopo(B, { nome: 'TCV', filiais: ['TCV'] }).catch(() => null);
     if (Eg) {
       if (rG1) await regPreview(rG1, 'Gerência TCV', 'gerente', 'TCV', '', formataG1Executiva(await respMatinal(B, Eg), Eg));
-      if (rG3) {
-        const [mp, ind] = await Promise.all([
-          respMarcaPropriaVivo(B, Eg, 'marca propria').catch(() => ''),
-          respMetasIndustria(B, Eg, 'industrias', null).catch(() => ''),
-        ]);
-        await regPreview(rG3, 'Gerência TCV', 'gerente', 'TCV', '', limpaTexto([mp, ind].filter(Boolean).join('\n\n')) || '🏭 *Marca Própria & Indústrias — TCV*\nSem dados no momento.');
-      }
+      if (rG3) await regPreview(rG3, 'Gerência TCV', 'gerente', 'TCV', '', await formataG3Executiva(B, Eg, 'TCV'));
     }
-  }
-
-  // D1: Diretoria (Brasil)
-  const rD1 = ativas.find((r) => r.id === 'D1');
-  if (rD1) {
-    const Ed = await carregaEscopo(B, { nome: 'Brasil', filiais: ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'], nacional: true }).catch(() => null);
-    if (Ed) await regPreview(rD1, 'Diretoria (Brasil)', 'diretoria', 'BR', '', formataD1Brasil(await respMatinal(B, Ed), Ed));
-  }
-
-  // D2: Auditoria & ROI do MONITOR.IA
-  const rD2 = ativas.find((r) => r.id === 'D2');
-  if (rD2) {
-    const { results: stats } = await db.prepare('SELECT status, COUNT(*) q FROM monitoria_envios WHERE data = ? GROUP BY status').bind(hoje).all().catch(() => ({ results: [] }));
-    const { results: evs } = await db.prepare('SELECT COUNT(*) q FROM domain_events').all().catch(() => ({ results: [{ q: 0 }] }));
-    const txt = [
-      `🤖 *Auditoria MONITOR.IA (${hoje})*`,
-      `Regras Onda 1 ativas: *${ativas.length}* (modo seguro SIMULACAO_VITORIO)`,
-      `Eventos de domínio registrados: *${N((evs && evs[0] && evs[0].q) || 0)}*`,
-      ...(stats || []).map((s) => `• ${s.status}: ${N(s.q)}`),
-    ].join('\n');
-    await regPreview(rD2, 'Diretoria (Auditoria)', 'diretoria', 'BR', '', txt);
   }
 
   return { ok: true, data: hoje, regras_ativas: ativas.length, celular_teste: opts.enviarVitorio ? celRaw : 'SIMULACAO', enviados, amostras };
