@@ -462,6 +462,14 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
     });
     if (!dossie) continue;
 
+    // Cruzamento MONITOR.IA <-> JOTA: le contexto recente do supervisor no JOTA (ultimas 3h em bot_msgs)
+    if (s.celular) {
+      const jotaMsgs = (await db.prepare(
+        "SELECT direcao, substr(texto, 1, 180) texto, quando FROM bot_msgs WHERE celular = ? AND direcao IN ('in','out') AND quando >= datetime('now','-3 hours') ORDER BY id DESC LIMIT 4"
+      ).bind(String(s.celular)).all().catch(() => ({ results: [] }))).results || [];
+      if (jotaMsgs.length) dossie.conversa_jota_recente = jotaMsgs.reverse();
+    }
+
     const decisao = await analisarComIA(env, dossie);
     if (!decisao || !decisao.enviar || !decisao.mensagem) {
       silencios++;
@@ -475,7 +483,13 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
       const rt = await R.enviarTexto(cfg, s.celular, decisao.mensagem);
       status = rt.ok ? 'ENVIADO' : 'ERRO';
       celDestino = s.celular;
-      if (rt.ok) enviadosReal++;
+      if (rt.ok) {
+        enviadosReal++;
+        // Registra em bot_msgs para que o JOTA saiba o que o MONITOR.IA acabou de cobrar se o supervisor responder no WhatsApp
+        await db.prepare(
+          "INSERT INTO bot_msgs (celular, direcao, texto, tipo) VALUES (?, 'out', ?, 'monitoria_analista')"
+        ).bind(String(s.celular), String(decisao.mensagem).slice(0, 1500)).run().catch(() => {});
+      }
     } else if (opts.enviarVitorio && !amostraEnviada && cfg) {
       const rt = await R.enviarTexto(cfg, celTeste, `🧪 *[SIMULAÇÃO ANALISTA IA · ${s.nome}]*\n\n${decisao.mensagem}`);
       if (rt.ok) {
