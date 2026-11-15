@@ -8,18 +8,20 @@ import { atualizarRegra, listarRegras, simularOnda1 } from '../_lib/monitoria/mo
 import { detectarEventos } from '../_lib/monitoria/detector.js';
 import { executarCicloSupervisores } from '../_lib/monitoria/supervisores.js';
 import { executarAnalistaComercial } from '../_lib/monitoria/analista.js';
+import { resumoRoiMonitoria } from '../_lib/monitoria/roi.js';
 
 const J = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
 const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: J });
 
 export async function onRequestGet({ env }) {
   const db = env.DB;
-  const [regras, envios, eventos] = await Promise.all([
+  const [regras, envios, eventos, roi] = await Promise.all([
     listarRegras(db),
     db.prepare('SELECT id, regra_id, data, destino_real, papel, filial, rca, modo, bonequinho, status, acao_pos_alerta, enviado_em, texto_preview preview FROM monitoria_envios ORDER BY id DESC LIMIT 30').all().catch(() => ({ results: [] })),
     db.prepare('SELECT event_type, COUNT(*) total, SUM(CASE WHEN processed_at IS NULL THEN 1 ELSE 0 END) pendentes FROM domain_events GROUP BY event_type').all().catch(() => ({ results: [] })),
+    resumoRoiMonitoria(db),
   ]);
-  return resp({ ok: true, regras, envios: envios.results || [], eventos: eventos.results || [] });
+  return resp({ ok: true, regras, envios: envios.results || [], eventos: eventos.results || [], roi });
 }
 
 export async function onRequestPost({ request, env }) {

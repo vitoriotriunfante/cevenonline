@@ -14,6 +14,7 @@ import {
 import { detectarEventos } from '../functions/_lib/monitoria/detector.js';
 import { formataS3Travados, formataS5Fechamento, executarCicloSupervisores } from '../functions/_lib/monitoria/supervisores.js';
 import { montarDossieSupervisor, executarAnalistaComercial } from '../functions/_lib/monitoria/analista.js';
+import { auditarLoopFechadoRoi } from '../functions/_lib/monitoria/roi.js';
 
 let ok = 0;
 function teste(nome, cond) {
@@ -164,6 +165,9 @@ const dossieCorte = await montarDossieSupervisor(
   { cortes: [{ num: '101999', filial: 'TPH', rca: '101', id_cliente: '555', valor: 1800, valor_winthor: 1200, itens_cortados: 3 }] }
 );
 teste('montarDossieSupervisor detecta corte de pedido quando sem bloqueio/penalti', dossieCorte && dossieCorte.sinal_principal.tipo === 'CORTE_PEDIDO');
+
+const roiVazio = await auditarLoopFechadoRoi(db, { vend: [{ rca: '101', dig: 2500 }] }, 'TPH');
+teste('auditarLoopFechadoRoi executa de forma segura sem casos abertos', roiVazio.auditados === 0 && roiVazio.recuperados === 0);
 
 console.log(`RESULTADO MONITOR.IA: ${ok} de ${ok} testes OK`);
 

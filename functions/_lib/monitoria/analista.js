@@ -14,6 +14,7 @@ import {
   listarRegras,
   nomeClienteD1,
 } from './motor.js';
+import { auditarLoopFechadoRoi, registrarCasoRoi } from './roi.js';
 import R from '../../../public/regras.js';
 
 const MODELO_WORKERS_AI = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
@@ -160,6 +161,27 @@ export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, envios
   if (posTravada.length) sinais.push({ tipo: 'POSITIVACAO_TRAVADA', sig: `POS:${posTravada.map((x) => x.rca).join(',')}`, detalhe: posTravada });
   if (pioresInd.length && hhmm >= '10:00') {
     sinais.push({ tipo: 'INDUSTRIA_ATRASADA', sig: `IND:${pioresInd[0].cod}`, detalhe: pioresInd });
+  }
+  const opRota = [];
+  for (const x of comGap.filter((g) => g.dig === 0).slice(0, 3)) {
+    const vOrig = vs.find((v) => String(v.rca) === x.rca);
+    const abertos = (vOrig && Array.isArray(vOrig.aVisitar)) ? vOrig.aVisitar : [];
+    const { results: focos } = await db.prepare('SELECT id_cliente, tag FROM cliente_focos WHERE filial = ? AND rca = ? LIMIT 8').bind(filial, x.rca).all().catch(() => ({ results: [] }));
+    const cliAlvos = [];
+    for (const c of abertos.slice(0, 2)) {
+      const nm = c.fantasia || c.nome || await nomeClienteD1(db, filial, c.codcli || c.id_cliente);
+      cliAlvos.push(nm);
+    }
+    if (!cliAlvos.length && focos && focos.length) {
+      for (const f of focos.slice(0, 2)) {
+        const nm = await nomeClienteD1(db, filial, f.id_cliente);
+        cliAlvos.push(`${nm} [${f.tag}]`);
+      }
+    }
+    if (cliAlvos.length) opRota.push({ rca: x.rca, vendedor: x.nome, gapDia: x.gapDia, clientes: cliAlvos });
+  }
+  if (opRota.length && hhmm >= '08:00') {
+    sinais.push({ tipo: 'OPORTUNIDADE_ROTA', sig: `OPROTA:${opRota[0].rca}`, detalhe: opRota });
   }
   if (hhmm >= '11:00' && hhmm < '17:30' && metaDia > 0 && digHoje < metaDia * 0.5) {
     sinais.push({ tipo: 'RITMO_DIA_BAIXO', sig: `RITMO:${hhmm.slice(0, 2)}`, detalhe: { digHoje, metaDia, pctDia } });
@@ -400,6 +422,8 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
     const Es = await carregaEscopo(B, { nome: `${supNomeAlvo} (${s.filial})`, filiais: [s.filial], supervisor: supNomeAlvo }).catch(() => null);
     if (!Es || !Es.vend || !Es.vend.length) continue;
 
+    await auditarLoopFechadoRoi(db, Es, s.filial);
+
     const dossie = await montarDossieSupervisor(db, Es, s.filial, bloqs, hhmm, enviosHoje, {
       cortes,
       lances: lancesData?.lances || [],
@@ -447,6 +471,13 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
       String(decisao.mensagem).slice(0, 600),
       dossie.sinal_principal.sig
     ).run().catch(() => {});
+
+    const sp = dossie.sinal_principal;
+    if (sp.tipo === 'BLOQUEIO_CRITICO' && sp.detalhe[0]) {
+      await registrarCasoRoi(db, { data: hoje, filial: s.filial, supervisor: s.nome, tipo: sp.tipo, referencia: sp.detalhe[0].num, rca: sp.detalhe[0].rca, valor_em_risco: sp.detalhe[0].valor, detalhe: sp.detalhe[0].cliente });
+    } else if ((sp.tipo === 'EM_ROTA_SEM_PEDIDO' || sp.tipo === 'SEM_CHECKIN' || sp.tipo === 'OPORTUNIDADE_ROTA') && sp.detalhe[0]) {
+      await registrarCasoRoi(db, { data: hoje, filial: s.filial, supervisor: s.nome, tipo: sp.tipo, referencia: sp.detalhe[0].rca, rca: sp.detalhe[0].rca, valor_em_risco: sp.detalhe[0].gapDia || 0, detalhe: sp.detalhe[0].vendedor || sp.detalhe[0].nome });
+    }
 
     resultados.push({
       supervisor: s.nome,

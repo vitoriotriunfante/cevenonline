@@ -75,6 +75,11 @@
   </section>
 
   <section>
+    <h2 class="section-title">💰 Loop Fechado · ROI Auditado (Últimos 30 dias no D1)</h2>
+    <div class="envios" id="listaRoi"></div>
+  </section>
+
+  <section>
     <h2 class="section-title">Últimas Simulações &amp; Envios de Teste (D1)</h2>
     <div class="envios" id="listaEnvios"></div>
   </section>
@@ -217,17 +222,25 @@ async function carregar() {
   const o1 = regras.filter((x) => x.onda === 1);
   const o2 = regras.filter((x) => x.onda === 2);
   const envios = d.envios || [];
-  const enviadosTeste = envios.filter((e) => e.status === 'ENVIADO_TESTE').length;
+  const roi = d.roi || { casos_abertos: 0, casos_recuperados: 0, taxa_resolucao_pct: 0, valor_em_risco_aberto: 0, valor_recuperado_total: 0, recentes: [] };
+  const brl = (v) => 'R$ ' + Math.round(Number(v || 0)).toLocaleString('pt-BR');
 
   document.getElementById('kpis').innerHTML = [
-    { lbl: 'Regras Onda 1', val: o1.length },
-    { lbl: 'Ativas em Simulação', val: o1.filter((x) => x.ativo === 1).length },
-    { lbl: 'Backlog Onda 2', val: o2.length },
-    { lbl: 'Testes Enviados (hist.)', val: enviadosTeste }
+    { lbl: 'R$ Recuperados (30d)', val: brl(roi.valor_recuperado_total) },
+    { lbl: 'Taxa de Resolução', val: `${roi.taxa_resolucao_pct}% (${roi.casos_recuperados}/${roi.casos_abertos + roi.casos_recuperados})` },
+    { lbl: 'R$ em Risco Aberto', val: brl(roi.valor_em_risco_aberto) },
+    { lbl: 'Regras Ativas', val: `${regras.filter((x) => x.ativo === 1).length}/${regras.length}` }
   ].map((k) => `<div class="kpi"><div class="lbl">${k.lbl}</div><div class="val">${k.val}</div></div>`).join('');
 
   document.getElementById('gridOnda1').innerHTML = o1.map(renderRegra).join('');
   document.getElementById('gridOnda2').innerHTML = o2.map(renderRegra).join('');
+  document.getElementById('listaRoi').innerHTML = (roi.recentes || []).map((c) => `
+    <div class="envio">
+      <div class="envio-head">
+        <span><strong>${c.tipo}</strong> · ${c.filial} · ${c.supervisor} (${c.detalhe || c.referencia})</span>
+        <span>${c.status === 'RECUPERADO' ? '🟢 RECUPERADO ' + brl(c.valor_recuperado) : '🟡 ABERTO · risco ' + brl(c.valor_em_risco)}</span>
+      </div>
+    </div>`).join('') || '<div class="card">Nenhum caso auditado ainda — rode o Analista IA para iniciar o rastreio de ROI.</div>';
   document.getElementById('listaEnvios').innerHTML = envios.map((e) => `
     <div class="envio">
       <div class="envio-head">
