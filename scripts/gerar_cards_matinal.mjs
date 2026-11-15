@@ -54,23 +54,24 @@ function buildHtml({ titulo, subtitulo, kpis, colunas, linhas }) {
   </div></body></html>`;
 }
 
-function summarize(rows, dias, gerotPosicao) {
+function summarize(rows, dias, gerotPosicao, ontemData) {
   const totMeta = rows.reduce((a, x) => a + x.meta, 0);
   const totVend = rows.reduce((a, x) => a + x.vend, 0);
   const totTend = rows.reduce((a, x) => a + x.tend, 0);
   const tendPct = totMeta ? (totTend / totMeta) * 100 : 0;
   const totPos = rows.reduce((a, x) => a + x.pos, 0);
   const totMetaPos = rows.reduce((a, x) => a + x.metaPos, 0);
-  const totRota = rows.reduce((a, x) => a + x.rota, 0);
-  const totBloqQ = rows.reduce((a, x) => a + x.bloqQtd, 0);
-  const totBloqV = rows.reduce((a, x) => a + x.bloqVlr, 0);
+  const totOntVlr = rows.reduce((a, x) => a + (x.ontVlr || 0), 0);
+  const totOntQtd = rows.reduce((a, x) => a + (x.ontQtd || 0), 0);
+  const totOntPos = rows.reduce((a, x) => a + (x.ontPos || 0), 0);
+  const ontLbl = ontemData ? `Ontem (${ontemData.slice(8, 10)}/${ontemData.slice(5, 7)})` : 'Ontem (últ. du)';
   return {
     subtitulo: `Base D1 (independente do CEVEN) · GEROT: ${gerotPosicao || 'Atual'}`,
     kpis: [
       { lbl: 'Faturado + Carteira', val: R(totVend), sub: `de ${R(totMeta)} (${totMeta ? P((totVend / totMeta) * 100) : '0%'})` },
       { lbl: 'Tendência Fechamento', val: P(tendPct), sub: `${R(totTend)} · ${dias.dec}/${dias.tot} du (${dias.falt} rest.)` },
       { lbl: 'Positivação', val: N(totPos), sub: `de ${N(totMetaPos)} (${totMetaPos ? P((totPos / totMetaPos) * 100) : '—'})` },
-      { lbl: 'Rota Hoje & Bloq.', val: `${N(totRota)} cli.`, sub: `${N(totBloqQ)} ped. bloq. (${R(totBloqV)})` }
+      { lbl: ontLbl, val: R(totOntVlr), sub: `${N(totOntQtd)} ped. · ${N(totOntPos)} pos.` }
     ]
   };
 }
@@ -112,7 +113,7 @@ async function main() {
   }
   for (const [, g] of bySup) {
     if (!g.rows.length) continue;
-    const sum = summarize(g.rows, d.dias, d.fonte.gerotPosicao);
+    const sum = summarize(g.rows, d.dias, d.fonte.gerotPosicao, d.ontemData);
     jobs.push({
       chave: `sup:${g.filial}:${g.cod_sup || sem(g.supervisor)}`,
       filial: g.filial, cod_sup: g.cod_sup, supervisor: g.supervisor,
@@ -127,7 +128,7 @@ async function main() {
     byFil.get(v.filial).push(v);
   }
   for (const [fil, rows] of byFil) {
-    const sum = summarize(rows, d.dias, d.fonte.gerotPosicao);
+    const sum = summarize(rows, d.dias, d.fonte.gerotPosicao, d.ontemData);
     jobs.push({
       chave: `fil:${fil}`, filial: fil, cod_sup: '', supervisor: '',
       html: buildHtml({ titulo: `Filial ${fil} (Top 20 prioridade)`, ...sum, colunas: cols, linhas: rows.slice(0, 20).map(rowVendHtml) })
@@ -135,7 +136,7 @@ async function main() {
   }
 
   // 3. Brasil (por filial consolidado)
-  const sumBr = summarize(d.vendedores, d.dias, d.fonte.gerotPosicao);
+  const sumBr = summarize(d.vendedores, d.dias, d.fonte.gerotPosicao, d.ontemData);
   const filRows = (d.filiais || []).slice().sort((a, b) => a.tendPct - b.tendPct).map((f) => {
     const sub = byFil.get(f.filial) || [];
     const rota = sub.reduce((a, x) => a + x.rota, 0), prosp = sub.reduce((a, x) => a + x.prospects, 0);
@@ -182,16 +183,32 @@ async function main() {
     fs.writeFileSync(initSql, 'CREATE TABLE IF NOT EXISTS matinal_cards (chave TEXT PRIMARY KEY, data TEXT NOT NULL, filial TEXT, cod_sup TEXT, supervisor TEXT, png_b64 TEXT NOT NULL, atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP);\n', 'utf8');
     execSync(`npx wrangler d1 execute ceven_noc_d1 --remote --file "${initSql}"`, { stdio: 'inherit' });
     fs.unlinkSync(initSql);
-    console.log(`Gravando ${prontos.length} cards no D1 em lotes de 5...`);
-    for (let i = 0; i < prontos.length; i += 5) {
-      const tmpSql = path.join(os.tmpdir(), `matinal_cards_${Date.now()}_${i}.sql`);
-      const stmts = prontos.slice(i, i + 5).map((c) =>
-        `INSERT INTO matinal_cards (chave, data, filial, cod_sup, supervisor, png_b64, atualizado_em) VALUES (${escSql(c.chave)}, ${escSql(d.hoje)}, ${escSql(c.filial)}, ${escSql(c.cod_sup)}, ${escSql(c.supervisor)}, ${escSql(c.png_b64)}, CURRENT_TIMESTAMP) ON CONFLICT(chave) DO UPDATE SET data=excluded.data, filial=excluded.filial, cod_sup=excluded.cod_sup, supervisor=excluded.supervisor, png_b64=excluded.png_b64, atualizado_em=CURRENT_TIMESTAMP;`
-      );
-      fs.writeFileSync(tmpSql, stmts.join('\n'), 'utf8');
+    console.log(`Gravando ${prontos.length} cards no D1 (chunks <= 60KB)...`);
+    const stmts = [];
+    for (const c of prontos) {
+      const b64 = c.png_b64;
+      const primeiro = b64.slice(0, 60000);
+      stmts.push(`INSERT INTO matinal_cards (chave, data, filial, cod_sup, supervisor, png_b64, atualizado_em) VALUES (${escSql(c.chave)}, ${escSql(d.hoje)}, ${escSql(c.filial)}, ${escSql(c.cod_sup)}, ${escSql(c.supervisor)}, ${escSql(primeiro)}, CURRENT_TIMESTAMP) ON CONFLICT(chave) DO UPDATE SET data=excluded.data, filial=excluded.filial, cod_sup=excluded.cod_sup, supervisor=excluded.supervisor, png_b64=excluded.png_b64, atualizado_em=CURRENT_TIMESTAMP;`);
+      for (let off = 60000; off < b64.length; off += 60000) {
+        stmts.push(`UPDATE matinal_cards SET png_b64 = png_b64 || ${escSql(b64.slice(off, off + 60000))} WHERE chave = ${escSql(c.chave)};`);
+      }
+    }
+    let lote = [], bytes = 0, idx = 0;
+    const flushLote = () => {
+      if (!lote.length) return;
+      const tmpSql = path.join(os.tmpdir(), `matinal_cards_${Date.now()}_${idx++}.sql`);
+      fs.writeFileSync(tmpSql, lote.join('\n'), 'utf8');
       execSync(`npx wrangler d1 execute ceven_noc_d1 --remote --file "${tmpSql}"`, { stdio: 'pipe' });
       fs.unlinkSync(tmpSql);
+      lote = [];
+      bytes = 0;
+    };
+    for (const s of stmts) {
+      if (bytes + s.length > 400000) flushLote();
+      lote.push(s);
+      bytes += s.length + 1;
     }
+    flushLote();
     console.log(`OK: ${prontos.length} cards gravados no D1 para ${d.hoje}`);
     return;
   }

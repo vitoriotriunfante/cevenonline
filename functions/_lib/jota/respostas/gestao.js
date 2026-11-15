@@ -432,12 +432,16 @@ export async function respMatinal(B, E) {
   let cardPng = null;
   if (!E.rca) {
     try {
-      const { results: cards } = await B.env.DB.prepare('SELECT chave, filial, cod_sup, supervisor, png_b64 FROM matinal_cards WHERE data = ?').bind(hoje).all();
+      const { results: cards } = await B.env.DB.prepare(
+        'SELECT chave, filial, cod_sup, supervisor, png_b64 FROM matinal_cards WHERE data = COALESCE((SELECT MAX(data) FROM matinal_cards WHERE data <= ?), (SELECT MAX(data) FROM matinal_cards))'
+      ).bind(hoje).all();
       if (cards && cards.length) {
         if (E.supervisor) {
+          const codAlvo = typeof E.supervisor === 'object' ? String(E.supervisor.cod_sup || '').trim() : '';
           const sAlvo = sem(typeof E.supervisor === 'object' ? (E.supervisor.nome || '') : E.supervisor);
           const toks = sAlvo.split(/\s+/).filter((w) => w.length > 2);
           const hit = cards.find((c) => fil.includes(c.filial) && c.chave.startsWith('sup:') && (() => {
+            if (codAlvo && String(c.cod_sup || '').trim() === codAlvo) return true;
             const sx = sem(c.supervisor || '');
             return sx && (sx.includes(sAlvo) || sAlvo.includes(sx) || (toks.length && toks.every((w) => sx.includes(w))));
           })());

@@ -2,7 +2,7 @@
 // API: GET /api/matinal?filial=XXX&sup=YYY
 // Painel da Matinal 100% resiliente ao CEVEN (le direto do D1: GEROT + roteiro_dia + pedido_status + prospects_mapa)
 // =========================================================================
-import { ehFeriado } from '../_lib/feriados.js';
+import { ehFeriado, diaSemLance } from '../_lib/feriados.js';
 
 const j = (obj, st = 200) => new Response(JSON.stringify(obj), {
   status: st,
@@ -11,6 +11,17 @@ const j = (obj, st = 200) => new Response(JSON.stringify(obj), {
 
 function hojeSP() {
   return new Date(Date.now() - 3 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+function ultimoDiaUtil(hoje) {
+  const [y, m, d] = hoje.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  for (let i = 0; i < 15; i++) {
+    dt.setUTCDate(dt.getUTCDate() - 1);
+    const iso = dt.toISOString().slice(0, 10);
+    if (!diaSemLance(iso)) return iso;
+  }
+  return hoje;
 }
 
 function diasUteis(hoje) {
@@ -52,11 +63,12 @@ export async function onRequestGet({ request, env }) {
   const fil = (u.searchParams.get('filial') || '').toUpperCase().trim();
   const sup = (u.searchParams.get('sup') || '').trim();
   const hoje = hojeSP();
+  const ultUtil = ultimoDiaUtil(hoje);
   const mes = hoje.slice(0, 7);
   const dias = diasUteis(hoje);
 
   try {
-    const [stGerot, filRows, supRows, vendRows, rotaRows, pedRows, prospRows] = await Promise.all([
+    const [stGerot, filRows, supRows, vendRows, rotaRows, pedRows, prospRows, ontRows] = await Promise.all([
       env.DB.prepare('SELECT posicao, em FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null),
       env.DB.prepare('SELECT filial, dados, em FROM gerot_filial_mes WHERE mes = ? ORDER BY filial').bind(mes).all(),
       (fil
@@ -78,6 +90,10 @@ export async function onRequestGet({ request, env }) {
       (fil
         ? env.DB.prepare('SELECT filial, rca, COUNT(*) qtd FROM prospects_mapa WHERE filial = ? GROUP BY filial, rca').bind(fil)
         : env.DB.prepare('SELECT filial, rca, COUNT(*) qtd FROM prospects_mapa GROUP BY filial, rca')
+      ).all().catch(() => ({ results: [] })),
+      (fil
+        ? env.DB.prepare("SELECT filial, rca, COUNT(*) qtd, SUM(valor) vlr, COUNT(DISTINCT CASE WHEN COALESCE(id_cliente,'') <> '' THEN id_cliente END) pos FROM pedido_status WHERE filial = ? AND data_pedido = ? AND UPPER(COALESCE(status,'')) <> 'CANCELADO' GROUP BY filial, rca").bind(fil, ultUtil)
+        : env.DB.prepare("SELECT filial, rca, COUNT(*) qtd, SUM(valor) vlr, COUNT(DISTINCT CASE WHEN COALESCE(id_cliente,'') <> '' THEN id_cliente END) pos FROM pedido_status WHERE data_pedido = ? AND UPPER(COALESCE(status,'')) <> 'CANCELADO' GROUP BY filial, rca").bind(ultUtil)
       ).all().catch(() => ({ results: [] }))
     ]);
 
@@ -105,6 +121,15 @@ export async function onRequestGet({ request, env }) {
       prospMap.set(`${pr.filial}|${pr.rca}`, Number(pr.qtd) || 0);
     }
 
+    const ontMap = new Map();
+    for (const o of ontRows.results || []) {
+      ontMap.set(`${o.filial}|${o.rca}`, {
+        qtd: Number(o.qtd) || 0,
+        vlr: Number(o.vlr) || 0,
+        pos: Number(o.pos) || 0
+      });
+    }
+
     const filiais = (filRows.results || []).map((f) => {
       const m = parseDados(f.dados);
       const vend = m.fat + m.pend;
@@ -128,6 +153,7 @@ export async function onRequestGet({ request, env }) {
         const falta = Math.max(0, m.meta - vend);
         const k = `${v.filial}|${v.rca}`;
         const p = pedMap.get(k) || { bloqQtd: 0, bloqVlr: 0, libQtd: 0, libVlr: 0 };
+        const ont = ontMap.get(k) || { qtd: 0, vlr: 0, pos: 0 };
         return {
           filial: v.filial,
           rca: v.rca,
@@ -145,7 +171,10 @@ export async function onRequestGet({ request, env }) {
           bloqQtd: p.bloqQtd,
           bloqVlr: p.bloqVlr,
           libQtd: p.libQtd,
-          libVlr: p.libVlr
+          libVlr: p.libVlr,
+          ontQtd: ont.qtd,
+          ontVlr: ont.vlr,
+          ontPos: ont.pos
         };
       })
       .sort((a, b) => a.tendPct - b.tendPct || b.meta - a.meta);
@@ -153,6 +182,7 @@ export async function onRequestGet({ request, env }) {
     return j({
       ok: true,
       hoje,
+      ontemData: ultUtil,
       mes,
       dias,
       fonte: {
