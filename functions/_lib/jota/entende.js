@@ -368,7 +368,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
       const idListaUlt = nm && !nm[2] ? (ult.match(new RegExp('^' + nm[1] + '\\.\\s+.*?\\(#(\\d+)\\)', 'm')) || [])[1] : null;
       const idListaCtx = !idListaUlt && nm && !nm[2] && !emSubmenu && B._ctxClientes ? (B._ctxClientes.find((x) => x.n === Number(nm[1])) || {}).id || null : null;
       const clienteDaLista = Boolean(idListaUlt || idListaCtx);
-      const ehMatinalOuLance = /\b(MATINAL|RESUMO MATINAL|PAINEL MATINAL|MINHA MATINAL)\b/.test(t) || /\b(PENALTI|PENALTIS|PENALIDADE|IMPEDIMENTO|CARTAO|CARTOES|VERMELHO|AMARELO|GOL CONTRA|HAT ?TRICK|DEFESA|LANCE|LANCES)\b/.test(t);
+      const ehMatinalOuLance = /\b(MATINAL|RESUMO MATINAL|PAINEL MATINAL|MINHA MATINAL)\b|\b(CARD|CARDS) (DA EQUIPE|DO TIME|DA FILIAL|DO SUPERVISOR|DA SUPERVISORA|DE VENDAS|DO BRASIL|MATINAL|INDUSTRIA\w*)|\b(MEU|MANDA|ENVIA|GERA|VER|MOSTRA) (O )?CARD\b|^\W*CARD\W*$/.test(t) || /\b(PENALTI|PENALTIS|PENALIDADE|IMPEDIMENTO|CARTAO|CARTOES|VERMELHO|AMARELO|GOL CONTRA|HAT ?TRICK|DEFESA|LANCE|LANCES)\b/.test(t);
       const ehContCliente = Boolean(B._ctxUltCli && (FICHA_ITENS.test(t) || FICHA_OFERTA.test(t) || FICHA_PEDIDOS.test(t) || /\bHISTORIC\w*\b/.test(t)));
       const passa = clienteDaLista || ehMatinalOuLance || ehContCliente || /^\W*(SIM|OK|SALVEI|SALVO|CONFIRMADO)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
       // 10/11/2026 (Vitorio): opcoes do tema numeradas 1, 2, 3 (nao 1.1); o marcador 〔k〕 guarda o tema para o proximo numero e para o "ver mais"
@@ -671,7 +671,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
         // numero de uma lista que a ultima resposta numerou (curva/recorrencia/tag por vendedor: 'digite o numero (ex: *1*...)'): segue para a resposta de sempre
         if (!(s == null && !/MENU DO JOTA/.test(ult) && /digite o número \(ex/i.test(ult))) return abreS(k, s);
       } else {
-        const ehMatinalOuLanceS = /\b(MATINAL|RESUMO MATINAL|PAINEL MATINAL|MINHA MATINAL)\b/.test(t) || /\b(PENALTI|PENALTIS|PENALIDADE|IMPEDIMENTO|CARTAO|CARTOES|VERMELHO|AMARELO|GOL CONTRA|HAT ?TRICK|DEFESA|LANCE|LANCES)\b/.test(t);
+        const ehMatinalOuLanceS = /\b(MATINAL|RESUMO MATINAL|PAINEL MATINAL|MINHA MATINAL)\b|\b(CARD|CARDS) (DA EQUIPE|DO TIME|DA FILIAL|DO SUPERVISOR|DA SUPERVISORA|DE VENDAS|DO BRASIL|MATINAL|INDUSTRIA\w*)|\b(MEU|MANDA|ENVIA|GERA|VER|MOSTRA) (O )?CARD\b|^\W*CARD\W*$/.test(t) || /\b(PENALTI|PENALTIS|PENALIDADE|IMPEDIMENTO|CARTAO|CARTOES|VERMELHO|AMARELO|GOL CONTRA|HAT ?TRICK|DEFESA|LANCE|LANCES)\b/.test(t);
         const ehContCliS = Boolean(B._ctxUltCli && (FICHA_ITENS.test(t) || FICHA_OFERTA.test(t) || FICHA_PEDIDOS.test(t) || /\bHISTORIC\w*\b/.test(t)));
         const passaS = ehMatinalOuLanceS || ehContCliS || /^\W*(ZERAD\w*|SEM PEDIDO|QUEM (ESTA |TA )?ZERAD\w*)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /\b(VENDEDOR|VENDEDORA|RCA|SETOR|COD\w*)\W*\d{2,5}\b|\b\d{2,5}\b/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
         if (!passaS) { const k = temaDoTextoSup(t); if (k) return abreS(k, null); if (!t || /^\W*(MENU|OPCOES|OPCAO|AJUDA|HELP|OI|OLA|BOM DIA|BOA TARDE|BOA NOITE|E AI|FALA)\W*$/.test(t)) return respMenuSupervisor(c); }
@@ -1259,7 +1259,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   }
   // DEVOLUCAO TEM RESPOSTA PROPRIA (26/10/2026: "como esta a devolucao hoje?" caia na operacao do dia e listava o DIGITADO; "o Brasil estava com 3 milhoes de devolucao"
   // virava comparacao de produto). Hoje = devolucao entrada hoje; sem "hoje" = mes. Motivos: a lista de motivos.
-  if (/\b(MATINAL|RESUMO MATINAL|PAINEL MATINAL|MINHA MATINAL)\b/.test(t)) {
+  if (/\b(MATINAL|RESUMO MATINAL|PAINEL MATINAL|MINHA MATINAL)\b|\b(CARD|CARDS) (DA EQUIPE|DO TIME|DA FILIAL|DO SUPERVISOR|DA SUPERVISORA|DE VENDAS|DO BRASIL|MATINAL|INDUSTRIA\w*)|\b(MEU|MANDA|ENVIA|GERA|VER|MOSTRA) (O )?CARD\b|^\W*CARD\W*$/.test(t)) {
     const p = !E.supervisor && !E.rca ? achaPessoa(E, t) : null;
     const sNome = p && p.tipo === 'sup' ? (p.alvo && p.alvo.nome ? p.alvo.nome : String(p.alvo || '')) : '';
     const Em = sNome ? { ...E, supervisor: sNome, nome: `${titulo(sNome)} (${E.nome})` } : (p && p.tipo === 'vend' ? { ...E, rca: p.alvo.rca, nome: vn(p.alvo) } : E);
