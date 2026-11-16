@@ -30,8 +30,8 @@ import { respAjuda } from '../../_lib/jota/respostas/liga_mix.js';
 import { respClientesDia } from '../../_lib/jota/respostas/rota.js';
 
 function podeUsarIAPraEstrategia(papel, texto) {
-  const ehExecutivo = papel === 'diretoria' || papel === 'ceo' || papel === 'gerente';
-  return ehExecutivo && /\b(ESTRATEG(IA|ICO|ICA|IAS)|PLANO DE ACAO|PLANO COMERCIAL|COMO (PODEMOS|DEVEMOS|VAMOS|EU POSSO|FAZER PARA) (MELHORAR|RECUPERAR|VIRAR|AUMENTAR|CRESCER|ACELERAR|DESTRAVAR|REVERTER|BATER)|ONDE (DEVEMOS|PODEMOS|PRECISAMOS) (FOCAR|ATACAR|ATUAR|MELHORAR)|QUAL (A MELHOR|SUA) (ESTRATEGIA|SUGESTAO|RECOMENDACAO|IDEIA|OPINIAO|ANALISE)|ME D[AE] UMA (SUGESTAO|IDEIA|ESTRATEGIA|ANALISE|ORIENTACAO)|O QUE VOCE (ACHA|SUGERE|RECOMENDA|PENSA|INDICARIA|FARIA)|POR QUE (CAIU|ESTAMOS ABAIXO|NAO ESTAMOS BATENDO)|DIAGNOSTICO|CONSULTORIA|GARGALO|PONTOS? FRACOS?|PONTOS? FORTES?|ANALISE (EXECUTIVA|ESTRATEGICA|CRITICA))\b/i.test(sem(texto));
+  const papelOk = ['diretoria', 'ceo', 'gerente', 'supervisor', 'vendedor', 'admin'].includes(String(papel || '').toLowerCase());
+  return papelOk && /\b(ESTRATEG(IA|ICO|ICA|IAS)|PLANO DE ACAO|PLANO COMERCIAL|COMO (PODEMOS|DEVEMOS|VAMOS|EU POSSO|FAZER PARA) (MELHORAR|RECUPERAR|VIRAR|AUMENTAR|CRESCER|ACELERAR|DESTRAVAR|REVERTER|BATER)|ONDE (DEVEMOS|PODEMOS|PRECISAMOS) (FOCAR|ATACAR|ATUAR|MELHORAR)|QUAL (A MELHOR|SUA) (ESTRATEGIA|SUGESTAO|RECOMENDACAO|IDEIA|OPINIAO|ANALISE)|ME D[AE] UMA (SUGESTAO|IDEIA|ESTRATEGIA|ANALISE|ORIENTACAO)|O QUE VOCE (ACHA|SUGERE|RECOMENDA|PENSA|INDICARIA|FARIA)|POR QUE (CAIU|ESTAMOS ABAIXO|NAO ESTAMOS BATENDO)|DIAGNOSTICO|CONSULTORIA|GARGALO|PONTOS? FRACOS?|PONTOS? FORTES?|ANALISE (EXECUTIVA|ESTRATEGICA|CRITICA)|MARGEM|DESCONTO|BONIFICACAO|CORTES?)\b/i.test(sem(texto));
 }
 
 import { respGerotIndustria } from '../../_lib/jota/respostas/gerot_industria.js';   // industria = GEROT (09/11/2026; o antigo gerot_inteligencia.js casava a industria errada)
@@ -427,6 +427,14 @@ async function trataMensagem({ request, env }) {
 ` + r2; tipo = 'entendida_ia'; } } catch (e) {} }
   }
   if (resp && resp.fraca) resp = String(resp);
+  // Se nenhuma regra pronta atendeu, aciona o Analista IA antes de cair no menu/treinamento
+  if (!resp && !(seco && u.searchParams.get('sem_ia') === '1') && !/^\s*(MENU|AJUDA|\?|0)\s*$/i.test(tN)) {
+    try {
+      const historico = (hist || []).slice(1).reverse().map((h) => ({ role: h.direcao === 'in' ? 'user' : 'assistant', content: h.texto }));
+      const rIA = await respondeIA(env, B, c, texto, historico);
+      if (rIA) { resp = rIA; tipo = 'ia'; }
+    } catch (e) {}
+  }
   // sem resposta: avisa que esta em treinamento e anota a pergunta como sugestao (Vitorio, 02/11/2026)
   if (!resp) {
     resp = '⚽ Estou em treinamento e ainda não sei responder isso. Anotei o seu pedido para aprender.\n\n' + respAjuda(c); tipo = 'ajuda';

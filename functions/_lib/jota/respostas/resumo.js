@@ -30,10 +30,17 @@ async function posGerotSupervisor(B, filial, sup, supCod) {
   if (!B || !B.env || !B.env.DB || !filial || !sup) return null;
   try {
     const mes = hojeSP().slice(0, 7);
-    const { results } = await B.env.DB.prepare("SELECT cod_sup, supervisor, coalesce(json_extract(dados,'$.\"Positivação (filial + CNPJ)\"'), json_extract(dados,'$.\"Positivação (filial)\"')) pos, coalesce(json_extract(dados,'$.\"Meta de positivação\"'), json_extract(dados,'$.\"Meta clientes\"')) meta_pos FROM gerot_supervisor_mes WHERE mes = ? AND filial = ?").bind(mes, filial).all();
+    const { results } = await B.env.DB.prepare("SELECT cod_sup, supervisor, coalesce(json_extract(dados,'$.\"Positivação (filial + CNPJ)\"'), json_extract(dados,'$.\"Positivação (filial)\"')) pos, coalesce(json_extract(dados,'$.\"Meta de positivação\"'), json_extract(dados,'$.\"Meta clientes\"')) meta_pos, json_extract(dados,'$.\"Faturado líquido (R$)\"') fat, json_extract(dados,'$.\"Carteira pendente (R$)\"') pend, json_extract(dados,'$.\"Meta (R$)\"') meta, json_extract(dados,'$.\"Devolução (R$)\"') dev FROM gerot_supervisor_mes WHERE mes = ? AND filial = ?").bind(mes, filial).all();
     const sAlvo = sem(sup);
     const hit = (results || []).find((r) => (supCod && String(r.cod_sup) === String(supCod)) || (r.supervisor && sem(r.supervisor) === sAlvo));
-    return hit && hit.pos != null ? { pos: Number(hit.pos) || 0, metaPos: hit.meta_pos != null ? Number(hit.meta_pos) || 0 : null } : null;
+    return hit && (hit.pos != null || hit.fat != null) ? {
+      pos: Number(hit.pos) || 0,
+      metaPos: hit.meta_pos != null ? Number(hit.meta_pos) || 0 : null,
+      fat: hit.fat != null ? Number(hit.fat) : null,
+      pend: hit.pend != null ? Number(hit.pend) : null,
+      meta: hit.meta != null ? Number(hit.meta) : null,
+      dev: hit.dev != null ? Number(hit.dev) : null,
+    } : null;
   } catch { return null; }
 }
 export async function respResumo(B, E) {
@@ -68,7 +75,16 @@ export async function respResumo(B, E) {
       F = [...mapaFil.values()];
     }
     const gFil = await posGerotFiliais(B);
-    for (const x of F) { const g = gFil.get(x.filial); if (g) { x.positivados = g.pos; if (g.metaPos != null) x.meta_pos = g.metaPos; } }
+    for (const x of F) {
+      const g = gFil.get(x.filial);
+      if (g) {
+        if (g.meta != null && g.meta > 0) x.meta_fat = g.meta;
+        if (g.fat != null) x.faturado = g.fat;
+        if (g.pend != null) x.pendente = g.pend;
+        x.positivados = g.pos;
+        if (g.metaPos != null) x.meta_pos = g.metaPos;
+      }
+    }
     const t = F.reduce((a, f) => ({ fat: a.fat + (f.faturado || 0), pend: a.pend + (f.pendente || 0), meta: a.meta + (f.meta_fat || 0), pos: a.pos + (f.positivados || 0), mpos: a.mpos + (f.meta_pos || 0), dig: a.dig + (f.digitado_hoje || 0) }), { fat: 0, pend: 0, meta: 0, pos: 0, mpos: 0, dig: 0 });
     if (!t.dig && E.macro) t.dig = E.macro.dig || 0;
     const { tot: duTotBr } = diasUteisMes(), duFaltBr = Math.max(1, diasUteisRestantes()), duDecBr = Math.max(1, duTotBr - duFaltBr + 1);
@@ -90,21 +106,38 @@ export async function respResumo(B, E) {
   const V = E.vend;
   const Vtotais = V.concat(E.ocultos || []);
   const G = agrupa(Vtotais, (v) => 'x').get('x') || { fat: 0, pend: 0, meta: 0 };
-  const fat = G.fat, pend = G.pend, meta = G.meta;   // base unica (12/11/2026)
+  let fat = G.fat, pend = G.pend, meta = G.meta, devTotal = V.reduce((a, v) => a + v.dev, 0);
+  let posVal = G.pos, metaPosVal = G.metaPos;
+  if (!(E.grupo || E.supervisor || E.rca)) {
+    const g = (await posGerotFiliais(B)).get(fil);
+    if (g) {
+      if (g.meta != null && g.meta > 0) meta = g.meta;
+      if (g.fat != null) fat = g.fat;
+      if (g.pend != null) pend = g.pend;
+      if (g.dev != null) devTotal = g.dev;
+      posVal = g.pos;
+      if (g.metaPos != null) metaPosVal = g.metaPos;
+    }
+  } else if (E.supervisor && !E.rca) {
+    const gs = await posGerotSupervisor(B, fil, E.supervisor, V[0] && V[0].supCod);
+    if (gs) {
+      if (gs.meta != null && gs.meta > 0) meta = gs.meta;
+      if (gs.fat != null) fat = gs.fat;
+      if (gs.pend != null) pend = gs.pend;
+      if (gs.dev != null) devTotal = gs.dev;
+      posVal = gs.pos;
+      if (gs.metaPos != null) metaPosVal = gs.metaPos;
+    }
+  }
   const Vr = V.filter((v) => v.varejo), z = Vr.filter((v) => v.zerado);
   const com = V.filter((v) => v.pct != null).sort((a, b) => (b.pct ?? 0) - (a.pct ?? 0));
   const { tot: duTotF } = diasUteisMes(), duFaltF = Math.max(1, diasUteisRestantes()), duDecF = Math.max(1, duTotF - duFaltF + 1);
   const tendF = meta ? (((fat + pend) / duDecF) * duTotF / meta) * 100 : 0;
   const L = [`📊 *${E.nome} agora* (${hora})`, `💰 Faturado: *${R$(fat)}* de ${R$(meta)} → *${P(fat || 0, meta)}*`, `⏳ Pendente: ${R$(pend)} · 📈 Tendência (GEROT): *${tendF.toFixed(1).replace('.', ',')}%*`];
-  if (!(E.grupo || E.supervisor || E.rca) && f) L.push(`👥 Positivação: ${N(f.positivados)} de ${N(f.meta_pos)} (${P(f.positivados, f.meta_pos)})`); else {
-    let posVal = G.pos, metaPosVal = G.metaPos;
-    if (!(E.grupo || E.supervisor || E.rca)) { const g = (await posGerotFiliais(B)).get(fil); if (g) { posVal = g.pos; if (g.metaPos != null) metaPosVal = g.metaPos; } }
-    else if (E.supervisor && !E.rca) { const gs = await posGerotSupervisor(B, fil, E.supervisor, V[0] && V[0].supCod); if (gs) { posVal = gs.pos; if (gs.metaPos != null) metaPosVal = gs.metaPos; } }
-    L.push(`👥 Positivação: ${N(posVal)} de ${N(metaPosVal)} (${P(posVal, metaPosVal)})`);
-  }
+  L.push(`👥 Positivação: ${N(posVal)} de ${N(metaPosVal)} (${P(posVal, metaPosVal)})`);
   L.push(`📝 Digitado hoje: *${R$((E.grupo || E.supervisor || E.rca) ? G.dig : f ? f.digitado_hoje : E.macro.dig)}* em *${N((E.grupo || E.supervisor || E.rca) ? G.ped : E.macro.pedidos)}* pedidos`,
     /* equipe sem rota de varejo (AS): a linha nao aparece (26/10/2026: '0 de 0') */ ...(Vr.reduce((a, v) => a + v.visP, 0) ? [`🚶 Rota do varejo hoje: ${Vr.reduce((a, v) => a + v.visF, 0)} de ${Vr.reduce((a, v) => a + v.visP, 0)} visitas · sem nenhuma visita: ${Vr.filter((v) => v.semVisita).length}`] : []),
-    `🏁 Meta batida no mês (fat.+pend.): ${V.filter((v) => v.meta && v.fat + v.pend >= v.meta).length} de ${V.length} vendedores`, `↩️ Devoluções no mês: ${R$(V.reduce((a, v) => a + v.dev, 0))}`);
+    `🏁 Meta batida no mês (fat.+pend.): ${V.filter((v) => v.meta && v.fat + v.pend >= v.meta).length} de ${V.length} vendedores`, `↩️ Devoluções no mês: ${R$(devTotal)}`);
   const lc = await B.lances(); if (lc) { const Lf = (lc.lances || []).filter((l) => l.filial === fil && (!(E.grupo || E.supervisor || E.rca) || V.some((v) => v.rca === String(l.rca)))); L.push(`⚽ Hoje: ${Lf.filter((l) => l.nivel === 'gol').length} gol(s) · ${Lf.filter((l) => l.nivel === 'penalti').length} pênalti(s) · ${Lf.filter((l) => l.nivel === 'impedimento').length} impedimento(s)`); }
   if (!(E.grupo || E.supervisor || E.rca)) { const Gr = [...agrupa(V.filter((v) => v.grupo), (v) => v.grupo)]; if (Gr.length > 1) { L.push('*Por gerente:*'); for (const [g, x] of Gr) L.push(`• ${titulo(g)}: ${R$(x.fat)} (${pctTxt(x.pct)}) · pend. ${R$(x.pend)} · ${x.zerados} zerado(s)`); } }
   const lg = await B.liga(); const lf = lg && (lg.filiais || []).find((x) => x.sigla === fil); if (lf) L.push(`🏆 Liga: ${lf.pos}º de 11, ${lf.pts_tabela} pontos (${lf.vitorias}V ${lf.empates}E ${lf.derrotas}D)`);
@@ -254,7 +287,22 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
 export async function totaisOficiais(B, E) {
   const Vtotais = E.vend.concat(E.ocultos || []);
   const x = { ...(agrupa(Vtotais, () => 'x').get('x') || { fat: 0, pend: 0, meta: 0, pos: 0, metaPos: 0 }) };
-  if (E.grupo || E.supervisor || E.rca) return x;   /* grupo (TPH/MCD) ou equipe do supervisor: soma dos vendedores */
+  if (E.grupo || E.rca) return x;   /* grupo (TPH/MCD) ou vendedor: soma dos vendedores */
+  if (E.supervisor) {
+    const gs = await posGerotSupervisor(B, E.filiais[0], E.supervisor, E.vend[0] && E.vend[0].supCod);
+    if (gs && gs.meta > 0) {
+      x.fat = gs.fat ?? x.fat; x.pend = gs.pend ?? x.pend; x.meta = gs.meta;
+      x.pos = gs.pos ?? x.pos; x.metaPos = gs.metaPos ?? x.metaPos;
+      x.pct = x.meta ? x.fat / x.meta * 100 : null;
+    }
+    return x;
+  }
+  const gFil = await posGerotFiliais(B);
+  const gf = E.filiais.map((sig) => gFil.get(sig)).filter((g) => g && g.meta > 0);
+  if (gf.length) {
+    x.fat = gf.reduce((a, g) => a + (g.fat || 0), 0); x.pend = gf.reduce((a, g) => a + (g.pend || 0), 0); x.meta = gf.reduce((a, g) => a + (g.meta || 0), 0);
+    x.pos = gf.reduce((a, g) => a + (g.pos || 0), 0); x.metaPos = gf.reduce((a, g) => a + (g.metaPos || 0), 0); x.pct = x.meta ? x.fat / x.meta * 100 : null; return x;
+  }
   const s = await B.saude(); const F = ((s && s.filiais) || []).filter((f) => E.filiais.includes(f.filial)); if (!F.length) return x;
   x.fat = F.reduce((a, f) => a + (f.faturado || 0), 0); x.pend = F.reduce((a, f) => a + (f.pendente || 0), 0); x.meta = F.reduce((a, f) => a + (f.meta_fat || 0), 0);
   x.pos = F.reduce((a, f) => a + (f.positivados || 0), 0); x.metaPos = F.reduce((a, f) => a + (f.meta_pos || 0), 0); x.pct = x.meta ? x.fat / x.meta * 100 : null; return x;

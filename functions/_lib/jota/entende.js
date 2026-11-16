@@ -1376,6 +1376,9 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
       SUGESTAO + 'peça "rota de hoje do vendedor <nome>" para ver os clientes da rota dele.'
     ].join('\n');
   }
+  if (E.rca && !pessoa && E.vend.length === 1 && /FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA|\bINATIV(OS?|AS?)?\b/.test(t)) {
+    pessoa = { tipo: 'vend', alvo: E.vend[0] };
+  }
   if (/FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA|\bINATIV(OS?|AS?)?\b/.test(t) && !(pessoa && pessoa.tipo === 'vend')) {
     const ini = hojeSP().slice(0, 7) + '-01';
     const numE = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
@@ -1611,17 +1614,16 @@ export async function respondeIA(env, B, c, texto, historico) {
 
   const ehExecutivo = c.papel === 'diretoria' || c.papel === 'ceo' || c.papel === 'gerente' || c.papel === 'admin';
 
-  if (ehExecutivo) {
-    // quem falta positivar, por vendedor (31/10/2026: sem isso a estrategia so dizia "levantar a lista"); a pergunta passa pelo mesmo escopo de quem perguntou
+  // Analista Sênior (Multi-IA) plugado para todos os cargos, sempre restrito ao escopo (escIA) de quem perguntou
+  {
     let baseFaltaPos = '';
-    // so com filial: no Brasil le as 11 carteiras e a funcao era cortada sem responder (Rudinei, 31/10/2026, 15:01); no maximo 8 s
-    if (ec.fil) try { baseFaltaPos = String(await Promise.race([respostaPronta(B, c, `quem falta positivar em ${ec.fil}`, []), new Promise((ok) => setTimeout(() => ok(''), 8000))]) || ''); } catch (e) {}
-    const dossieExecutivo = [
+    if (ehExecutivo && ec.fil) try { baseFaltaPos = String(await Promise.race([respostaPronta(B, c, `quem falta positivar em ${ec.fil}`, []), new Promise((ok) => setTimeout(() => ok(''), 8000))]) || ''); } catch (e) {}
+    const dossieBase = [
       baseFaltaPos ? `=== CLIENTES DA CARTEIRA SEM COMPRA NO MÊS, POR VENDEDOR (roteiro do mês; é outra conta, não é a positivação do painel) ===\n${baseFaltaPos}` : '',
       `=== RESUMO DO MÊS (${escIA.nome}) ===\n${baseResumo}`,
       baseHoje ? `=== RESULTADO DE HOJE / ROTA ===\n${baseHoje}` : '',
       baseFalta ? `=== RITMO E QUANTO FALTA PRA META ===\n${baseFalta}` : '',
-      baseSup ? `=== ABERTURA POR SUPERVISOR / EQUIPE ===\n${baseSup}` : '',
+      baseSup && !ec.rcaV ? `=== ABERTURA POR SUPERVISOR / EQUIPE ===\n${baseSup}` : '',
       baseLiga ? `=== LIGA / CHAMPIONS TRIUNFANTE ===\n${baseLiga}` : ''
     ].filter(Boolean).join('\n\n').slice(0, 12000);
 
@@ -1633,10 +1635,23 @@ export async function respondeIA(env, B, c, texto, historico) {
 
     try {
       const senior = await respondeAnalistaSenior({
-        env, B, c, texto, historico, escIA, dossieBase: dossieExecutivo, dossieComplementar, fonteIA
+        env, B, c, texto, historico, escIA, dossieBase, dossieComplementar, fonteIA
       });
       if (senior && senior.texto) return senior.texto;
     } catch (e) {}
+  }
+
+  if (ehExecutivo) {
+    let baseFaltaPos = '';
+    if (ec.fil) try { baseFaltaPos = String(await Promise.race([respostaPronta(B, c, `quem falta positivar em ${ec.fil}`, []), new Promise((ok) => setTimeout(() => ok(''), 8000))]) || ''); } catch (e) {}
+    const dossieExecutivo = [
+      baseFaltaPos ? `=== CLIENTES DA CARTEIRA SEM COMPRA NO MÊS, POR VENDEDOR (roteiro do mês; é outra conta, não é a positivação do painel) ===\n${baseFaltaPos}` : '',
+      `=== RESUMO DO MÊS (${escIA.nome}) ===\n${baseResumo}`,
+      baseHoje ? `=== RESULTADO DE HOJE / ROTA ===\n${baseHoje}` : '',
+      baseFalta ? `=== RITMO E QUANTO FALTA PRA META ===\n${baseFalta}` : '',
+      baseSup ? `=== ABERTURA POR SUPERVISOR / EQUIPE ===\n${baseSup}` : '',
+      baseLiga ? `=== LIGA / CHAMPIONS TRIUNFANTE ===\n${baseLiga}` : ''
+    ].filter(Boolean).join('\n\n').slice(0, 12000);
 
     const sysExec = `Você é o JOTA ⚽, Estrategista e Diretor Comercial Inteligente do Grupo Triunfante (+MIX & CEVEN).
 Quem está conversando com você agora é um EXECUTIVO: ${titulo(c.nome)} (Cargo: ${c.papel.toUpperCase()}${c.filial ? ' — Filial ' + c.filial : ' — Visão Nacional Brasil 11 Filiais'}${c.grupo ? ' · Grupo ' + c.grupo : ''}).

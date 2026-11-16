@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-14 12:20 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-16 01:16 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (16)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -41,7 +41,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `bot_contatos_log` | `functions/api/jota-contatos.js` |
 | `bot_contexto` | `functions/_lib/jota/fontes.js` |
 | `bot_envio_fila` | `functions/api/cron-varredura-central.js`, `functions/api/jota-contatos.js`, `functions/api/whatsapp/bot.js` |
-| `bot_msgs` | `functions/api/cron-varredura-central.js`, `functions/api/jota-boas-vindas.js`, `functions/api/jota-cardapio.js`, `functions/api/jota-contatos.js`, `functions/api/jota-convite-vendedores.js`, `functions/api/jota-proativo.js`, `functions/api/jota-reenviar.js`, `functions/api/whatsapp/bot.js`, `functions/api/whatsapp/registro.js` |
+| `bot_msgs` | `functions/api/cron-varredura-central.js`, `functions/api/jota-aviso-matinal.js`, `functions/api/jota-boas-vindas.js`, `functions/api/jota-cardapio.js`, `functions/api/jota-contatos.js`, `functions/api/jota-convite-vendedores.js`, `functions/api/jota-proativo.js`, `functions/api/jota-reenviar.js`, `functions/api/whatsapp/bot.js`, `functions/api/whatsapp/registro.js`, `functions/_lib/monitoria/analista.js` |
 | `bot_reproc` | `functions/api/cron-varredura-central.js` |
 | `bot_sem_acesso_excluidos` | `functions/api/jota-contatos.js` |
 | `bot_sugestoes` | `functions/api/jota-conversas.js`, `functions/api/jota-passaporte.js`, `functions/api/whatsapp/bot.js`, `functions/_lib/jota/fontes.js` |
@@ -49,6 +49,10 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `cache_resposta` | `functions/_lib/cache_borda.js`, `functions/_lib/jota/fontes.js` |
 | `canal_ceven` | `functions/api/divergencias.js`, `functions/_lib/arvore_ceven.js`, `scratch/patch_canal_ceven.js`, `scratch/patch_canal_ocultos_super.js` |
 | `cascata_dia` | `functions/_lib/arvore_ceven.js` |
+| `clube_checkin` | `functions/api/clube-carga.js` |
+| `clube_justificativa` | `functions/api/clube-carga.js` |
+| `clube_rodada` | `functions/api/clube-carga.js` |
+| `clube_venda_dia` | `functions/api/clube-carga.js` |
 | `codigos_descobertos` | `functions/api/cron-descobre-codigos.js` |
 | `coleta_estado` | `functions/api/cron-fechamento-dia.js`, `functions/api/cron-varredura-central.js`, `functions/_lib/concorrencia.js` |
 | `coleta_falhas` | `functions/api/cron-varredura-central.js` |
@@ -60,6 +64,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `d1_telemetria_rotas` | `functions/_lib/telemetria.js` |
 | `descoberta_cursor` | `functions/api/cron-descobre-codigos.js` |
 | `devolucao_nota_motivo` | `functions/api/cron-lances.js` |
+| `domain_events` | `functions/_lib/monitoria/motor.js` |
 | `equipe_tentativas` | `functions/_lib/senha_equipe.js` |
 | `ficha_cliente` | `functions/api/ficha-carga.js` |
 | `flash_alerts` | `functions/api/cron-radar-horario.js` |
@@ -71,6 +76,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `gerot_vendas` | `functions/api/gerot-carga.js` |
 | `gerot_vendedor_mes` | `functions/api/gerot-carga.js` |
 | `historico_cliente` | `functions/api/tv-vendedor.js` |
+| `jota_aprendizados` | `functions/_lib/jota/aprendizado.js` |
 | `jota_campanha_sim` | `functions/api/cron-varredura-central.js` |
 | `jota_foco_dia` | `functions/_lib/jota/respostas/momentos.js` |
 | `lances_excluidos_liga` | `functions/_lib/liga_fechamento.js` |
@@ -80,6 +86,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `mapa_executivo_live` | `functions/api/cron-mapa-executivo.js` |
 | `matinal_cards` | `functions/api/matinal-cards.js` |
 | `meta_hierarquia` | `functions/api/cron-varredura-central.js` |
+| `monitoria_envios` | `functions/_lib/monitoria/analista.js`, `functions/_lib/monitoria/detector.js`, `functions/_lib/monitoria/motor.js`, `functions/_lib/monitoria/supervisores.js` |
 | `notif_envio_log` | `functions/api/cron-notificacoes-supervisores.js` |
 | `notif_lance_enviado` | `functions/api/cron-notificacoes-supervisores.js` |
 | `painel_gerente_dia` | `functions/_lib/arvore_ceven.js` |
@@ -93,6 +100,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `rca_kpis` | `functions/api/cron-radar-horario.js` |
 | `recheca_fila` | `functions/api/cron-varredura-central.js` |
 | `recorrencia_resumo_live` | `functions/api/cron-mapa-executivo.js` |
+| `regras_monitoria` | `functions/_lib/monitoria/motor.js` |
 | `resumo_executivo_live` | `functions/api/cron-faturado-mes.js`, `functions/api/cron-mapa-executivo.js` |
 | `rota_gerente_dia` | `functions/_lib/arvore_ceven.js` |
 | `saude_coleta` | `functions/api/cron-varredura-central.js` |
@@ -168,7 +176,8 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | Tabela | Referenciada por |
 |---|---|
 | `audit_alteracoes_equipe` | `scripts/aplicar_vinculo_representantes.js`, `scripts/incluir_novos_arvore_liga.js` |
-| `bot_msgs` | `pipeline/disparar_guia_supervisores.mjs` |
+| `bot_contexto` | `scratch/auditar_tamara_vinicius_fabiana.mjs` |
+| `bot_msgs` | `functions/_lib/monitoria/roi.js`, `pipeline/disparar_guia_supervisores.mjs` |
 | `bot_sugestoes` | `scratch/atualizar_39_sugestoes.mjs`, `scratch/atualizar_sugestoes.mjs`, `scratch/preparar_update_respostas_perfeitas.mjs` |
 | `cancel` | `.github/workflows/ceven-cron-datalake.yml` |
 | `clientes_historico_compras` | `scripts/sincronizar_filiais_faltantes.js` |
@@ -188,6 +197,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `liga_dia_fechado` | `scratch/patch_teste_trava.js` |
 | `liga_fechamento` | `scratch/patch_fecha_2330.js`, `scratch/patch_penalti_motivo.js`, `scratch/patch_teste_trava.js` |
 | `matinal_cards` | `scripts/gerar_cards_matinal.mjs` |
+| `monitoria_roi` | `functions/_lib/monitoria/roi.js` |
 | `rca_kpis` | `pipeline/2_abertura_diaria.js`, `pipeline/3_sync_horario_intraday.js`, `pipeline/github_actions_runner.js` |
 | `representantes` | `pipeline/1_sync_cadastros_mestre.js`, `scripts/adicionar_novos_setores_tbe.js` |
 | `roteiros_visitas` | `pipeline/2_abertura_diaria.js`, `scripts/sincronizar_filiais_faltantes.js` |

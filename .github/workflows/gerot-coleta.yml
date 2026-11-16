@@ -20,6 +20,10 @@ on:
         description: 'Ensaio: baixa e le o Excel, mas nao grava no D1'
         type: boolean
         default: false
+      gerar_cards:
+        description: 'Gerar 242 cards PNG da Matinal no D1 (automatico so 07h15 e dom 20h15)'
+        type: boolean
+        default: false
 
 concurrency:
   group: gerot-coleta
@@ -51,7 +55,7 @@ jobs:
           if [ "${{ github.event.inputs.ensaio }}" = "true" ]; then ARGS="$ARGS --ensaio"; fi
           node pipeline/gerot_coletor_online.mjs $ARGS
       - name: Gerar cards PNG da Matinal (WhatsApp)
-        if: github.event.inputs.ensaio != true
+        if: github.event.inputs.ensaio != true && (github.event.schedule == '15 10 * * 1-6' || github.event.schedule == '15 23 * * 0' || github.event.inputs.gerar_cards == true)
         env:
           EVO_KEY: ${{ secrets.EVO_KEY }}
         run: node scripts/gerar_cards_matinal.mjs || true

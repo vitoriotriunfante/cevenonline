@@ -8,7 +8,7 @@
 //   4) Anthropic Claude -> 5) Cloudflare Workers AI (Llama 3.3 70B).
 //   Sempre validado por confereIA() para garantir zero números inventados.
 // =========================================================================
-import { hojeSP, R$, N, titulo } from './base.js';
+import { hojeSP, R$, N, sem, titulo } from './base.js';
 import { confereIA } from './confere_ia.js';
 import { nomeForn } from './respostas/metas_industria.js';
 import { carregarContextoAprendido } from './aprendizado.js';
@@ -36,26 +36,42 @@ async function montarComplemento360(env, escIA) {
   const filiais = Array.isArray(escIA?.filiais) ? escIA.filiais : [];
   const qs = filiais.map(() => '?').join(',');
   const temFil = filiais.length > 0 && !escIA.nacional;
+  const soRca = escIA?.rca ? String(escIA.rca) : null;
+  const soSup = !soRca && escIA?.supervisor ? String(escIA.supervisor) : null;
 
   const [filGerotRows, supGerotRows, indRows, bloqRows, aprendizados] = await Promise.all([
-    (temFil
-      ? db.prepare(`SELECT filial, dados FROM gerot_filial_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...filiais)
-      : db.prepare('SELECT filial, dados FROM gerot_filial_mes WHERE mes = ?').bind(mes)
-    ).all().catch(() => ({ results: [] })),
-    (temFil
-      ? db.prepare(`SELECT filial, supervisor, dados FROM gerot_supervisor_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...filiais)
-      : db.prepare('SELECT filial, supervisor, dados FROM gerot_supervisor_mes WHERE mes = ?').bind(mes)
-    ).all().catch(() => ({ results: [] })),
-    (temFil
-      ? db.prepare(`SELECT filial, dados FROM gerot_vendas WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...filiais)
-      : db.prepare('SELECT filial, dados FROM gerot_vendas WHERE mes = ?').bind(mes)
-    ).all().catch(() => ({ results: [] })),
-    (temFil
-      ? db.prepare(`SELECT status, COUNT(*) qtd, SUM(valor) vlr FROM pedido_status WHERE filial IN (${qs}) AND data_pedido >= date('now', '-3 hours', '-7 days') AND status IN ('BLOQUEADO','CANCELADO') GROUP BY status`).bind(...filiais)
-      : db.prepare("SELECT status, COUNT(*) qtd, SUM(valor) vlr FROM pedido_status WHERE data_pedido >= date('now', '-3 hours', '-7 days') AND status IN ('BLOQUEADO','CANCELADO') GROUP BY status")
-    ).all().catch(() => ({ results: [] })),
+    soRca || soSup
+      ? Promise.resolve({ results: [] })
+      : (temFil
+        ? db.prepare(`SELECT filial, dados FROM gerot_filial_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...filiais)
+        : db.prepare('SELECT filial, dados FROM gerot_filial_mes WHERE mes = ?').bind(mes)
+      ).all().catch(() => ({ results: [] })),
+    soRca
+      ? Promise.resolve({ results: [] })
+      : (temFil
+        ? db.prepare(`SELECT filial, cod_sup, supervisor, dados FROM gerot_supervisor_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...filiais)
+        : db.prepare('SELECT filial, cod_sup, supervisor, dados FROM gerot_supervisor_mes WHERE mes = ?').bind(mes)
+      ).all().catch(() => ({ results: [] })),
+    soRca && filiais[0]
+      ? db.prepare('SELECT filial, rca, cod_sup, supervisor, dados FROM gerot_vendas WHERE mes = ? AND filial = ? AND rca = ?').bind(mes, filiais[0], soRca).all().catch(() => ({ results: [] }))
+      : (temFil
+        ? db.prepare(`SELECT filial, rca, cod_sup, supervisor, dados FROM gerot_vendas WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...filiais)
+        : db.prepare('SELECT filial, rca, cod_sup, supervisor, dados FROM gerot_vendas WHERE mes = ?').bind(mes)
+      ).all().catch(() => ({ results: [] })),
+    soRca && filiais[0]
+      ? db.prepare("SELECT status, COUNT(*) qtd, SUM(valor) vlr FROM pedido_status WHERE filial = ? AND rca = ? AND data_pedido >= date('now', '-3 hours', '-7 days') AND status IN ('BLOQUEADO','CANCELADO') GROUP BY status").bind(filiais[0], soRca).all().catch(() => ({ results: [] }))
+      : (temFil
+        ? db.prepare(`SELECT status, COUNT(*) qtd, SUM(valor) vlr FROM pedido_status WHERE filial IN (${qs}) AND data_pedido >= date('now', '-3 hours', '-7 days') AND status IN ('BLOQUEADO','CANCELADO') GROUP BY status`).bind(...filiais)
+        : db.prepare("SELECT status, COUNT(*) qtd, SUM(valor) vlr FROM pedido_status WHERE data_pedido >= date('now', '-3 hours', '-7 days') AND status IN ('BLOQUEADO','CANCELADO') GROUP BY status")
+      ).all().catch(() => ({ results: [] })),
     carregarContextoAprendido(db, 6)
   ]);
+
+  const supMatches = (supNomeRow) => {
+    if (!soSup) return true;
+    const a = sem(soSup), b = sem(supNomeRow || '');
+    return a && b && (a === b || b.includes(a) || a.includes(b));
+  };
 
   let gMeta = 0, gFat = 0, gCart = 0, gPos = 0, gMetaPos = 0, gDev = 0, gCorte = 0, gDesc = 0, gBonif = 0;
   const gFiliais = [];
@@ -73,14 +89,40 @@ async function montarComplemento360(env, escIA) {
   gFiliais.sort((a, b) => a.pctVend - b.pctVend);
 
   const gSups = [];
+  const supCodsAlvo = new Set();
   for (const r of supGerotRows.results || []) {
+    if (soSup && !supMatches(r.supervisor)) continue;
+    if (r.cod_sup) supCodsAlvo.add(String(r.cod_sup));
     let d = {};
     try { d = JSON.parse(r.dados || '{}'); } catch { continue; }
     const meta = Number(d['Meta (R$)']) || 0, fat = Number(d['Faturado líquido (R$)']) || 0, cart = Number(d['Carteira pendente (R$)']) || 0;
+    if (soSup) {
+      gMeta += meta; gFat += fat; gCart += cart;
+      gPos += Number(d['Positivação (filial + CNPJ)']) || 0;
+      gMetaPos += Number(d['Meta de positivação'] ?? d['Meta clientes']) || 0;
+      gDev += Number(d['Devolução (R$)']) || 0;
+      gCorte += Number(d['Cortes total (R$)'] ?? d['Corte total (R$)']) || 0;
+      gDesc += Number(d['Desconto (R$)']) || 0;
+      gBonif += Number(d['Bonificação a tabela (R$)']) || 0;
+    }
     if (meta <= 0) continue;
     gSups.push({ filial: r.filial, sup: r.supervisor, meta, fat, cart, vend: fat + cart, pctVend: ((fat + cart) / meta) * 100 });
   }
   gSups.sort((a, b) => a.pctVend - b.pctVend);
+
+  const indFiltradas = (indRows.results || []).filter((r) => {
+    if (!soSup) return true;
+    return (r.cod_sup && supCodsAlvo.has(String(r.cod_sup))) || supMatches(r.supervisor);
+  });
+  if (soRca) {
+    for (const r of indFiltradas) {
+      let d = {}; try { d = JSON.parse(r.dados || '{}'); } catch { continue; }
+      gMeta += Number(d['Meta (R$)']) || 0;
+      gFat += Number(d['Faturado líquido (R$)']) || 0;
+      gCart += Number(d['Carteira pendente (R$)']) || 0;
+      gDev += Number(d['Devolução (R$)']) || 0;
+    }
+  }
 
   const extrasGerot = [
     gDev > 0 ? `Devolução: ${R$(gDev)}` : '',
@@ -97,26 +139,55 @@ async function montarComplemento360(env, escIA) {
   ].filter(Boolean).join('\n') : '';
 
   const porInd = new Map();
-  for (const r of indRows.results || []) {
+  for (const r of indFiltradas) {
     let d = {};
     try { d = JSON.parse(r.dados || '{}'); } catch { continue; }
     const ind = nomeForn(d.Fornecedor);
     if (!ind) continue;
-    const cur = porInd.get(ind) || { ind, meta: 0, fat: 0, pend: 0, pos: 0 };
-    cur.meta += Number(d['Meta (R$)']) || 0;
-    cur.fat += Number(d['Faturado líquido (R$)']) || 0;
-    cur.pend += Number(d['Carteira pendente (R$)']) || 0;
-    cur.pos += Number(d['Positivação (filial + CNPJ)']) || 0;
+    const fil = String(r.filial || '').trim();
+    const meta = Number(d['Meta (R$)']) || 0;
+    const fat = Number(d['Faturado líquido (R$)']) || 0;
+    const pend = Number(d['Carteira pendente (R$)']) || 0;
+    const pos = Number(d['Positivação (filial + CNPJ)']) || 0;
+    const cur = porInd.get(ind) || { ind, meta: 0, fat: 0, pend: 0, pos: 0, porFil: new Map() };
+    cur.meta += meta;
+    cur.fat += fat;
+    cur.pend += pend;
+    cur.pos += pos;
+    if (fil && meta > 0) {
+      const f = cur.porFil.get(fil) || { filial: fil, meta: 0, vend: 0 };
+      f.meta += meta;
+      f.vend += fat + pend;
+      cur.porFil.set(fil, f);
+    }
     porInd.set(ind, cur);
   }
-  const topInd = [...porInd.values()]
-    .filter((x) => x.meta > 0)
-    .map((x) => ({ ...x, vend: x.fat + x.pend, pct: ((x.fat + x.pend) / x.meta) * 100, gap: Math.max(0, x.meta - (x.fat + x.pend)) }))
-    .sort((a, b) => a.pct - b.pct || b.meta - a.meta)
+  const minMetaInd = escIA.nacional ? 20000 : 3000;
+  const todasInd = [...porInd.values()].filter((x) => x.meta > 0);
+  const relevantesInd = todasInd.filter((x) => x.meta >= minMetaInd);
+  const baseInd = relevantesInd.length >= 3 ? relevantesInd : todasInd;
+  const topInd = baseInd
+    .map((x) => {
+      const vend = x.fat + x.pend;
+      const pct = (vend / x.meta) * 100;
+      const gap = Math.max(0, x.meta - vend);
+      const filGaps = [...x.porFil.values()]
+        .map((f) => ({ ...f, pct: (f.vend / f.meta) * 100, gap: Math.max(0, f.meta - f.vend) }))
+        .filter((f) => f.gap > 0)
+        .sort((a, b) => b.gap - a.gap)
+        .slice(0, 4);
+      return { ...x, vend, pct, gap, filGaps };
+    })
+    .sort((a, b) => a.pct - b.pct || b.gap - a.gap)
     .slice(0, 12);
 
   const indTxt = topInd.length
-    ? '=== INDÚSTRIAS COM MAIOR GAP NO ESCOPO (GEROT) ===\n' + topInd.map((x) => `• ${x.ind}: Meta ${R$(x.meta)} | Fat+Cart ${R$(x.vend)} (${x.pct.toFixed(1)}%) | Falta ${R$(x.gap)} | Posit ${N(x.pos)}`).join('\n')
+    ? '=== INDÚSTRIAS COM MAIOR GAP NO ESCOPO (GEROT · COM FILIAIS) ===\n' + topInd.map((x) => {
+      const filStr = x.filGaps.length > 1 || (escIA.nacional && x.filGaps.length)
+        ? ` | Filiais no gap: ${x.filGaps.map((f) => `${f.filial} ${f.pct.toFixed(0)}% (falta ${R$(f.gap)})`).join(', ')}`
+        : '';
+      return `• ${x.ind}: Meta ${R$(x.meta)} | Fat+Cart ${R$(x.vend)} (${x.pct.toFixed(1)}%) | Falta ${R$(x.gap)} | Posit ${N(x.pos)}${filStr}`;
+    }).join('\n')
     : '';
 
   const bloqTxt = (bloqRows.results || []).length
@@ -201,28 +272,43 @@ export async function respondeAnalistaSenior({ env, B, c, texto, historico, escI
   const dossie = [extra360, usaSoGerot ? (dossieComplementar || '') : dossieBase].filter(Boolean).join('\n\n').slice(0, 16000);
   const horaBrt = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', hour12: false });
 
-  const sysPrompt = `Você é o JOTA Sênior ⚽, Consultor Executivo e Analista Comercial de Elite do Grupo Triunfante (+MIX & CEVEN).
+  const papelNorm = String(c.papel || '').toLowerCase();
+  const ehExec = ['diretoria', 'ceo', 'gerente', 'admin'].includes(papelNorm);
+  const instrucaoFormato = ehExec
+    ? `6. Formatação WhatsApp: use *negrito* com UM asterisco apenas em títulos e números-chave. NÃO inclua rodapé de avaliação ("Essa resposta ajudou?"). Estruture em:
+   - 📊 *Diagnóstico Executivo* (causa-raiz baseada nos números)
+   - 🔍 *Onde está o Gap / Alavanca* (equipes, indústrias com filiais ou bloqueios prioritários)
+   - 🎯 *Plano de Ação Imediato* (3 a 5 ações práticas com meta numérica real)
+   Termine convidando: "_Quer abrir algum detalhe por filial, supervisor ou indústria? Só pedir!_"`
+    : `6. Formatação WhatsApp: seja direto, parceiro e prático (no máximo 15 linhas), usando *negrito* com UM asterisco apenas em títulos e números-chave. NÃO inclua rodapé de avaliação ("Essa resposta ajudou?"). Entregue:
+   - O dado real que a pessoa pediu (do escopo dela, sem vazar dados de fora)
+   - 💡 *O que fazer agora* (2 a 3 ideias práticas baseadas nos números)
+   Termine com: "_Quer saber mais algum detalhe ou abrir a lista? Só chamar!_"`;
+
+  const sysPrompt = `Você é o JOTA Sênior ⚽, Parceiro Comercial e Analista de Elite do Grupo Triunfante (+MIX & CEVEN).
 Você está atendendo: ${titulo(c.nome)} (Cargo: ${String(c.papel || '').toUpperCase()}${c.filial ? ' — Filial ' + c.filial : ' — Visão Nacional Brasil 11 Filiais'}${c.grupo ? ' · Grupo ' + c.grupo : ''}).
 
 REGRAS DE OURO (INVIOLÁVEIS):
-1. Responda a perguntas complexas ("cabeludas") com profundidade analítica: cruzando equipes/supervisores, indústrias, bloqueios, positivação e ritmo diário.
+1. Responda diretamente ao que foi perguntado com profundidade analítica: cruzando equipes/supervisores, indústrias, bloqueios, positivação e ritmo diário (sempre dentro do escopo de quem perguntou).
 2. Use o bloco "RESUMO OFICIAL GEROT" como fonte principal para Meta, Faturado, Carteira Pendente e % de atingimento (nunca misture com números antigos do CEVEN quando houver GEROT).
-3. NUNCA invente números, percentuais ou clientes que não estejam no DOSSIÊ abaixo. Se faltar algum dado granular para responder 100%, diga exatamente o que falta e entregue a melhor análise possível com os números reais disponíveis.
-3. Agora é ${hojeSP().split('-').reverse().join('/')}, ${horaBrt}h em Brasília: use a saudação correta.
-4. Formatação WhatsApp: use *negrito* com UM asterisco apenas em títulos e números-chave. Estruture em:
-   - 📊 *Diagnóstico Executivo* (causa-raiz baseada nos números)
-   - 🔍 *Onde está o Gap / Alavanca* (equipes, indústrias ou bloqueios prioritários)
-   - 🎯 *Plano de Ação Imediato* (3 a 5 ações práticas com meta numérica real)
+3. Sempre que citar uma indústria em análise nacional/multi-filial, CITE OBRIGATORIAMENTE as filiais específicas que puxam o gap (pois o mix e o desempenho variam muito entre filiais).
+4. NUNCA invente números, percentuais ou clientes que não estejam no DOSSIÊ abaixo. Se faltar algum dado granular para responder 100%, diga exatamente o que falta e entregue a melhor análise possível com os números reais disponíveis.
+5. Agora é ${hojeSP().split('-').reverse().join('/')}, ${horaBrt}h em Brasília: use a saudação correta.
+${instrucaoFormato}
 
 DOSSIÊ 360° EM TEMPO REAL (${escIA.nome}):
 ${dossie}`;
 
-  const histTxt = (historico || []).map((h) => `${h.role === 'user' ? 'Executivo' : 'Jota'}: ${h.content}`).join('\n');
+  const stripRodape = (s) => String(s || '')
+    .replace(/\n*_?Essa resposta ajudou\?[\s\S]*$/i, '')
+    .replace(/\n*_?🟢 Hoje \(Clube da Venda[\s\S]*$/i, '')
+    .trim();
+  const histTxt = (historico || []).map((h) => `${h.role === 'user' ? 'Executivo' : 'Jota'}: ${stripRodape(h.content)}`).join('\n');
   const userPrompt = `${histTxt ? '--- HISTÓRICO RECENTE ---\n' + histTxt + '\n\n' : ''}--- PERGUNTA DO EXECUTIVO ---\n"${texto}"`;
   const fullPrompt = `${sysPrompt}\n\n${userPrompt}`;
   const fonteValidacao = fonteIA(dossie);
 
-  const limpar = (s) => s.trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, '');
+  const limpar = (s) => stripRodape(s).replace(/\*\*/g, '*').replace(/^#+\s*/gm, '').trim();
   const validar = (txt) => txt && confereIA(txt, fonteValidacao).ok;
 
   const [geminiKey, openaiKey, anthropicKey] = await Promise.all([

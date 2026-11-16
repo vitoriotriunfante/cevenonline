@@ -23,6 +23,24 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
   // HORA DA LEITURA DOS PEDIDOS (12/11/2026): 'R$ 0 sem pedido hoje' so e verdade ate a hora em que os pedidos do vendedor foram lidos (fila do Winthor)
   const pedLido = new Map();
   if (B.env && B.env.DB) { try { B._pedLido = B._pedLido || {}; if (!B._pedLido[filial]) B._pedLido[filial] = B.env.DB.prepare('SELECT rca, em, vazio_em FROM winthor_fila WHERE filial = ?').bind(filial).all(); for (const x of ((await B._pedLido[filial]).results || [])) if (!x.vazio_em) pedLido.set(String(x.rca), x.em); /* resposta vazia suspeita nao conta como leitura */ } catch (e) { /* sem fila */ } }
+  // GEROT OFICIAL POR VENDEDOR (15/11/2026): meta, faturado liquido, carteira pendente e devolucao do mes vem do GEROT (gerot_vendas) quando disponivel
+  const gerotVend = new Map();
+  if (B.env && B.env.DB) {
+    try {
+      B._gerotVend = B._gerotVend || {};
+      if (!B._gerotVend[filial]) B._gerotVend[filial] = B.env.DB.prepare('SELECT rca, dados FROM gerot_vendas WHERE mes = ? AND filial = ?').bind(hojeSP().slice(0, 7), filial).all();
+      for (const x of ((await B._gerotVend[filial]).results || [])) {
+        let d = {}; try { d = JSON.parse(x.dados || '{}'); } catch { continue; }
+        const rcaKey = String(x.rca || ''); if (!rcaKey) continue;
+        const g = gerotVend.get(rcaKey) || { meta: 0, fat: 0, pend: 0, dev: 0 };
+        g.meta += Number(d['Meta (R$)']) || 0;
+        g.fat += Number(d['Faturado líquido (R$)']) || 0;
+        g.pend += Number(d['Carteira pendente (R$)']) || 0;
+        g.dev += Number(d['Devolução (R$)']) || 0;
+        gerotVend.set(rcaKey, g);
+      }
+    } catch (e) { /* sem gerot_vendas: fica CEVEN */ }
+  }
   for (const [rca, r] of Object.entries((snap && snap.rcas) || {})) {
     const e = eq.get(rca);
     if (!r.dashboard && r.dashboard_reserva && r.reserva && r.reserva.dashboard) { const em = String(r.reserva.dashboard.em || ''); if (!B._reserva || em < B._reserva) B._reserva = em; (B._reservaFontes = B._reservaFontes || new Set()).add(/^GEROT/.test(String(r.reserva.dashboard.fonte || '')) ? 'GEROT' : 'CEVEN'); }   // etiqueta unica no bot.js
@@ -42,8 +60,13 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     const visF = (varejo && ehVendReal) ? (pd.visitas_na_rota || 0) : 0;
     const comVenda = (varejo && ehVendReal) ? (pd.visitas_com_venda || 0) : 0;
     const vendeuHoje = (pd.dig_pedido || 0) > 0 || (pd.positivacao || 0) > 0 || (pd.visitas_com_venda || 0) > 0;
+    const gv = gerotVend.get(rca);
+    const metaFinal = gv && gv.meta > 0 ? gv.meta : (r.meta_hier != null ? r.meta_hier : fi.meta || 0);
+    const fatFinal = gv ? gv.fat : (fi.faturado || 0);
+    const pendFinal = gv ? gv.pend : (fi.pendente || 0);
+    const devFinal = gv ? gv.dev : (fi.devolucao || 0);
     const vObj = { filial, rca, nome: nomeVend, supervisor: e.supervisor || '', supCod: e.sup_cod || '', grupo: e.grupo || '', gerente: e.gerente || '', canal: e.canal || '', varejo, ehVendedorReal: ehVendReal,
-      /* meta = a da HIERARQUIA do CEVEN quando houver (tela do supervisor/gerente; 27/10/2026, Thiago/MCD) */ fat: fi.faturado || 0, pend: fi.pendente || 0, meta: r.meta_hier != null ? r.meta_hier : fi.meta || 0, dev: fi.devolucao || 0, pct: (r.meta_hier != null ? r.meta_hier : fi.meta) ? (fi.faturado || 0) / (r.meta_hier != null ? r.meta_hier : fi.meta) * 100 : null,
+      /* GEROT oficial quando disponivel; fallback para CEVEN */ fat: fatFinal, pend: pendFinal, meta: metaFinal, dev: devFinal, pct: metaFinal ? (fatFinal / metaFinal) * 100 : null,
       pos: po.realizado ?? null, metaPos: po.meta ?? null, dig: pd.dig_pedido || 0, ped: pd.positivacao || 0, visP, visF, comVenda,
       visPlanMes: pm.visit_plan || 0, visRealMes: pm.visit_real || 0,
       /* 10/11/2026: mix do mes do proprio CEVEN (tela Produtividade) e a hora em que o CEVEN foi lido */ mixMes: (r.produtividade && r.produtividade.mix_mes) || null, lidoEm: snap && snap.gerado_em && r.idade_s != null ? new Date(Date.parse(snap.gerado_em) - r.idade_s * 1000).toISOString() : null,
