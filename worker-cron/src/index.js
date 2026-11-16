@@ -121,6 +121,10 @@ export default {
         if (emExpediente && env.MONITORIA_CRON_KEY) {
           await rodarTarefaTv(event.cron, { passos: [{ rota: '/api/cron-monitoria?regra=ANALISTA', ms: 120000, chaveEnv: 'MONITORIA_CRON_KEY' }] }, env);
         }
+        // CURADOR JOTA (Aprendizado Contínuo): roda 19h15 BRT (seg-sex, sem feriados), analisa interações/sugestões/👎 e envia resumo ao Vitório.
+        if (dia >= 1 && dia <= 5 && !FERIADOS_NACIONAIS.has(dataSp) && h === 19 && mi >= 15 && mi < 30 && env.MONITORIA_CRON_KEY) {
+          await rodarTarefaTv(event.cron, { passos: [{ rota: '/api/cron-aprendizado', ms: 120000, chaveEnv: 'MONITORIA_CRON_KEY' }] }, env);
+        }
       }
       await rodarTarefaTv(event.cron, tarefaTv, env);
       return;

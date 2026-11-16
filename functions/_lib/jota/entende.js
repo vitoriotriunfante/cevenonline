@@ -9,6 +9,7 @@ import { FILIAIS, FRX, N, R$, SUGESTAO, VAREJO, fraca, hojeSP, nome2, sem, titul
 const x0 = (V) => (V[0] ? V[0].v.rca : '');
 import { PAL, achaPessoa, agrupa, carregaEscopo, pctTxt, supChave, supNome, supReal } from './escopo.js';
 import { confereIA } from './confere_ia.js';
+import { respondeAnalistaSenior } from './analista_senior.js';
 import { SEM_HISTORICO, respBloqueioComercial, respCarteira, respComparar, respDobradinha, respFaseamentoSemana, respInfoEquipe, respMaiorAtrasoMeta, respMaiorGap, respMatinal, respMetaBatida, respPontosPerdidos, respRankingGerentes, respRankingSupervisores, respRitmo, respTendencia } from './respostas/gestao.js';
 import { respBola, respDevMotivos, respDivergencias, respIncentivoOficial, respLigaAs, respSemana } from './respostas/indicadores.js';
 import { respAjuda, respCompromisso, respGlossario, respLances, respLiga, respMix } from './respostas/liga_mix.js';
@@ -1608,7 +1609,7 @@ export async function respondeIA(env, B, c, texto, historico) {
     try { baseLiga = await respLiga(B, escopoCarregado, null, 'LIGA'); } catch (e) {}
   }
 
-  const ehExecutivo = c.papel === 'diretoria' || c.papel === 'ceo' || c.papel === 'gerente';
+  const ehExecutivo = c.papel === 'diretoria' || c.papel === 'ceo' || c.papel === 'gerente' || c.papel === 'admin';
 
   if (ehExecutivo) {
     // quem falta positivar, por vendedor (31/10/2026: sem isso a estrategia so dizia "levantar a lista"); a pergunta passa pelo mesmo escopo de quem perguntou
@@ -1623,6 +1624,13 @@ export async function respondeIA(env, B, c, texto, historico) {
       baseSup ? `=== ABERTURA POR SUPERVISOR / EQUIPE ===\n${baseSup}` : '',
       baseLiga ? `=== LIGA / CHAMPIONS TRIUNFANTE ===\n${baseLiga}` : ''
     ].filter(Boolean).join('\n\n').slice(0, 12000);
+
+    try {
+      const senior = await respondeAnalistaSenior({
+        env, B, c, texto, historico, escIA, dossieBase: dossieExecutivo, fonteIA
+      });
+      if (senior && senior.texto) return senior.texto;
+    } catch (e) {}
 
     const sysExec = `Você é o JOTA ⚽, Estrategista e Diretor Comercial Inteligente do Grupo Triunfante (+MIX & CEVEN).
 Quem está conversando com você agora é um EXECUTIVO: ${titulo(c.nome)} (Cargo: ${c.papel.toUpperCase()}${c.filial ? ' — Filial ' + c.filial : ' — Visão Nacional Brasil 11 Filiais'}${c.grupo ? ' · Grupo ' + c.grupo : ''}).
