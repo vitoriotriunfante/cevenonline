@@ -6,10 +6,9 @@
 name: +MIX — dataset diário
 
 on:
-  # CAPTURA DA MADRUGADA (Vitorio, 22/10/2026): 02:00 de Brasilia, de segunda a sexta, so grava a lista do +MIX de cada cliente (antes de qualquer visita).
-  # O dataset continua sendo gerado depois do Data Lake, reaproveitando essas listas.
-  schedule:
-    - cron: '0 5 * * 1-5'
+  # CEVEN DESLIGADO em 16/11/2026 por ordem do Vitorio
+  # schedule:
+  #   - cron: '0 5 * * 1-5'
   workflow_dispatch:
     inputs:
       mes:

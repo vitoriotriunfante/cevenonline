@@ -52,8 +52,11 @@ const GATILHOS = {
 // RELOGIOS DA TV (03/10/2026): antes, o agendador do GitHub chamava estas funcoes e perdia cerca de 2/3 das
 // chamadas (95 de 288 por dia). Agora o Cloudflare chama direto, na hora certa. Cada item e uma chamada
 // HTTP as funcoes do site; os passos de um mesmo gatilho rodam em sequencia.
+// CEVEN DESLIGADO em 16/11/2026 por ordem do Vitorio ("pare imediatamente de buscar toda e qualquer informação no CEVEN... deixe apenas populando GEROT e Clube da Venda").
+const CEVEN_DESLIGADO = true;
+
 const BASE_TV = 'https://ceven-cftv-matrix.pages.dev';
-const TAREFAS_TV = {
+const TAREFAS_TV = CEVEN_DESLIGADO ? {} : {
   '*/2 * * * *':     { passos: [{ rota: '/api/cron-varredura-central', ms: 170000 }, { rota: '/api/cron-piloto-pedidos', ms: 60000 }] },
   '4-59/5 * * * *':  { passos: [{ rota: '/api/cron-lances', ms: 280000 }] },
   '2-59/5 * * * *':  { passos: [{ rota: '/api/cron-mapa-executivo', ms: 60000 }] },
@@ -91,6 +94,22 @@ async function dispararWorkflow(env, workflow, inputs) {
 
 export default {
   async scheduled(event, env, ctx) {
+    if (event.cron === '2-59/15 * * * *') {
+      const agora = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+      const dia = agora.getDay(), h = agora.getHours(), mi = agora.getMinutes();
+      if (dia >= 1 && dia <= 6 && [7, 9, 11, 13, 15, 17, 19, 21].includes(h) && mi >= 15 && mi < 30) {
+        try { const r = await dispararWorkflow(env, 'gerot-coleta.yml', {}); console.log(`[GEROT] gerot-coleta.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[GEROT][ERRO] ' + (e && e.message ? e.message : e)); }
+      }
+      const dataSp = dataHojeSP();
+      if (dia >= 1 && dia <= 5 && !FERIADOS_NACIONAIS.has(dataSp) && h === 19 && mi >= 15 && mi < 30 && env.MONITORIA_CRON_KEY) {
+        await rodarTarefaTv(event.cron, { passos: [{ rota: '/api/cron-aprendizado', ms: 120000, chaveEnv: 'MONITORIA_CRON_KEY' }] }, env);
+      }
+      return;
+    }
+    if (CEVEN_DESLIGADO) {
+      console.log(`[CEVEN_DESLIGADO] Cron "${event.cron}" ignorado.`);
+      return;
+    }
     const tarefaTv = TAREFAS_TV[event.cron];
     if (tarefaTv) {
       // VIGIA dos disparos de WhatsApp (05/10/2026): a cada 2 min confere se o disparo oficial do horario comecou; se nao, refaz 1 vez (ver vigia.js)

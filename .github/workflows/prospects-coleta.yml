@@ -7,8 +7,9 @@
 name: Prospects — coleta incremental para o D1
 
 on:
-  schedule:
-    - cron: '30 12,15,18 * * *'   # 09h30, 12h30 e 15h30 de Brasilia, todo dia
+  # CEVEN DESLIGADO em 16/11/2026 por ordem do Vitorio
+  # schedule:
+  #   - cron: '30 12,15,18 * * *'   # 09h30, 12h30 e 15h30 de Brasilia, todo dia
   workflow_dispatch:
 
 concurrency:
