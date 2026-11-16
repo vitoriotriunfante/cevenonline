@@ -1,3 +1,19 @@
+// TRAVA GLOBAL CEVEN (16/11/2026, ordem do Vitorio): bloqueia qualquer chamada de saída para o CEVEN em todas as Functions.
+if (!globalThis.__cevenFetchBloqueado) {
+  globalThis.__cevenFetchBloqueado = true;
+  const _fetchOrig = globalThis.fetch.bind(globalThis);
+  globalThis.fetch = (input, init) => {
+    const url = typeof input === 'string' ? input : (input && input.url) || '';
+    if (url.includes('ceven.drivetriunfante-locomotiva.com.br')) {
+      return Promise.resolve(new Response(
+        JSON.stringify({ ok: false, status: 'CEVEN_DESLIGADO', erro: 'CEVEN desligado por ordem do Vitorio' }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } }
+      ));
+    }
+    return _fetchOrig(input, init);
+  };
+}
+
 // SENHA DO +MIX (Vitorio, 25/10/2026: "so eu deveria ter acesso a esses dados... coloque senha imediatamente").
 // A tela /mix e todos os dados de cliente (dados_mix, mix_*, vendas_mes*) exigem o cookie dado por
 // /api/mix-login (senha da Diretoria = segredo EQUIPE_SENHA). O public/_routes.json limita este
