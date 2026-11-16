@@ -30,7 +30,10 @@ function soma(acc, v) {
   acc.programadas += v.programadas || 0; acc.feitas += v.feitas || 0;
   if (v.zerado) acc.zerados++;
 }
-const fecha = (a) => { a.completo = a.vendedores > 0 && a.lidos === a.vendedores; return a; };
+const fecha = (a, usouClube = false) => {
+  a.completo = a.vendedores > 0 && (a.lidos === a.vendedores || (usouClube && a.lidos >= Math.ceil(a.vendedores * 0.9)));
+  return a;
+};
 
 async function calcula(env, request) {
   const dia = R.hojeSP();
@@ -103,8 +106,8 @@ async function calcula(env, request) {
     soma(f, v);
     if (v.grupo) soma((f.grupos[v.grupo] = f.grupos[v.grupo] || vazio()), v);
   }
-  fecha(brasil);
-  for (const f of Object.values(filiais)) { fecha(f); Object.values(f.grupos).forEach(fecha); }
+  fecha(brasil, usouClube);
+  for (const f of Object.values(filiais)) { fecha(f, usouClube); Object.values(f.grupos).forEach((g) => fecha(g, usouClube)); }
   return {
     dia, gerado_em: new Date().toISOString(), fonte: usouClube ? 'Clube da Venda (visitas e digitado de hoje) + Gestão de Equipe' : 'varredura_central_rca.produtividade + Gestão de Equipe (varejo de campo)',
     regra: 'programadas=total_programado; feitas=visitas_na_rota; zerado=com rota e sem digitado e sem positivação',

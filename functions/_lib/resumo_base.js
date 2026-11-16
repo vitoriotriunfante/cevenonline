@@ -97,6 +97,51 @@ export async function calculaResumoMes(env, dataRef) {
       alvo.rcas++;
     }
   }
+  // CLUBE DA VENDA (16/11/2026): digitado do dia direto de clube_venda_dia (sem depender do CEVEN).
+  try {
+    const { results: clRows } = await env.DB.prepare(
+      'SELECT UPPER(filial) AS f, SUM(COALESCE(total_pedido, 0)) AS dig FROM clube_venda_dia WHERE dia = ? GROUP BY UPPER(filial)'
+    ).bind(dataRef).all();
+    if (clRows && clRows.length) {
+      total.digitado = 0;
+      for (const r of clRows) {
+        const sig = String(r.f || '').toUpperCase();
+        if (!sig) continue;
+        const a = porFilial[sig] || (porFilial[sig] = nova());
+        a.digitado = Number(r.dig) || 0;
+        total.digitado += a.digitado;
+      }
+    }
+  } catch { /* sem clube_venda_dia: mantem o da base */ }
+
+  // GEROT OFICIAL (16/11/2026): faturado, carteira pendente, meta e positivacao do mes direto de gerot_filial_mes.
+  try {
+    const mes = String(dataRef).slice(0, 7);
+    const { results: gfRows } = await env.DB.prepare(
+      'SELECT UPPER(filial) AS f, dados FROM gerot_filial_mes WHERE mes = ?'
+    ).bind(mes).all();
+    if (gfRows && gfRows.length) {
+      total.faturado = 0; total.pendente = 0; total.metaFaturado = 0; total.positivados = 0; total.metaPositivados = 0;
+      for (const r of gfRows) {
+        const sig = String(r.f || '').toUpperCase();
+        if (!sig) continue;
+        let d = {};
+        try { d = JSON.parse(r.dados || '{}'); } catch { continue; }
+        const a = porFilial[sig] || (porFilial[sig] = nova());
+        a.faturado = Number(d['Faturado líquido (R$)']) || 0;
+        a.pendente = Number(d['Carteira pendente (R$)']) || 0;
+        a.metaFaturado = Number(d['Meta (R$)']) || a.metaFaturado;
+        a.positivados = Number(d['Positivação (filial + CNPJ)'] ?? d['Realizado meta']) || a.positivados;
+        a.metaPositivados = Number(d['Meta de positivação'] ?? d['Meta clientes']) || a.metaPositivados;
+        total.faturado += a.faturado;
+        total.pendente += a.pendente;
+        total.metaFaturado += a.metaFaturado;
+        total.positivados += a.positivados;
+        total.metaPositivados += a.metaPositivados;
+      }
+    }
+  } catch { /* sem gerot_filial_mes: mantem o da base */ }
+
   const res = { dataRef, rcas: linhas.length, deHoje, anteriores, semLeitura, maisAntiga, porFilial, total };
   cacheResumo = { exp: agora + 45 * 1000, dataRef, res };
   return res;
