@@ -57,15 +57,18 @@ async function montarComplemento360(env, escIA) {
     carregarContextoAprendido(db, 6)
   ]);
 
-  let gMeta = 0, gFat = 0, gCart = 0, gPos = 0, gMetaPos = 0;
+  let gMeta = 0, gFat = 0, gCart = 0, gPos = 0, gMetaPos = 0, gDev = 0, gCorte = 0, gDesc = 0, gBonif = 0;
   const gFiliais = [];
   for (const r of filGerotRows.results || []) {
     let d = {};
     try { d = JSON.parse(r.dados || '{}'); } catch { continue; }
     const meta = Number(d['Meta (R$)']) || 0, fat = Number(d['Faturado líquido (R$)']) || 0, cart = Number(d['Carteira pendente (R$)']) || 0;
     const pos = Number(d['Positivação (filial + CNPJ)']) || 0, metaPos = Number(d['Meta de positivação'] ?? d['Meta clientes']) || 0;
+    const dev = Number(d['Devolução (R$)']) || 0, corte = Number(d['Cortes total (R$)'] ?? d['Corte total (R$)']) || 0;
+    const desc = Number(d['Desconto (R$)']) || 0, bonif = Number(d['Bonificação a tabela (R$)']) || 0;
     gMeta += meta; gFat += fat; gCart += cart; gPos += pos; gMetaPos += metaPos;
-    gFiliais.push({ filial: r.filial, meta, fat, cart, vend: fat + cart, pctFat: meta ? (fat / meta) * 100 : 0, pctVend: meta ? ((fat + cart) / meta) * 100 : 0 });
+    gDev += dev; gCorte += corte; gDesc += desc; gBonif += bonif;
+    gFiliais.push({ filial: r.filial, meta, fat, cart, vend: fat + cart, dev, corte, pctFat: meta ? (fat / meta) * 100 : 0, pctVend: meta ? ((fat + cart) / meta) * 100 : 0 });
   }
   gFiliais.sort((a, b) => a.pctVend - b.pctVend);
 
@@ -79,9 +82,16 @@ async function montarComplemento360(env, escIA) {
   }
   gSups.sort((a, b) => a.pctVend - b.pctVend);
 
+  const extrasGerot = [
+    gDev > 0 ? `Devolução: ${R$(gDev)}` : '',
+    gCorte > 0 ? `Cortes: ${R$(gCorte)}` : '',
+    gDesc > 0 ? `Desconto: ${R$(gDesc)}` : '',
+    gBonif > 0 ? `Bonificação: ${R$(gBonif)}` : ''
+  ].filter(Boolean).join(' | ');
+
   const gerotResumoTxt = gMeta > 0 ? [
     `=== RESUMO OFICIAL GEROT (${escIA.nome} · FONTE PRINCIPAL) ===`,
-    `Meta: ${R$(gMeta)} | Faturado: ${R$(gFat)} (${(gFat / gMeta * 100).toFixed(1)}%) | Carteira Pendente: ${R$(gCart)} | Faturado + Carteira: ${R$(gFat + gCart)} (${((gFat + gCart) / gMeta * 100).toFixed(1)}%) | Positivação: ${N(gPos)}${gMetaPos ? ' / ' + N(gMetaPos) : ''}`,
+    `Meta: ${R$(gMeta)} | Faturado: ${R$(gFat)} (${(gFat / gMeta * 100).toFixed(1)}%) | Carteira Pendente: ${R$(gCart)} | Faturado + Carteira: ${R$(gFat + gCart)} (${((gFat + gCart) / gMeta * 100).toFixed(1)}%) | Positivação: ${N(gPos)}${gMetaPos ? ' / ' + N(gMetaPos) : ''}${extrasGerot ? ' | ' + extrasGerot : ''}`,
     `Filiais (pior % Fat+Cart primeiro): ${gFiliais.map((f) => `${f.filial} ${f.pctVend.toFixed(1)}% (Fat ${R$(f.fat)} + Cart ${R$(f.cart)} / Meta ${R$(f.meta)})`).join(' | ')}`,
     gSups.length ? `Piores Supervisores (% Fat+Cart): ${gSups.slice(0, 8).map((s) => `${s.sup} (${s.filial}) ${s.pctVend.toFixed(1)}% (${R$(s.vend)}/${R$(s.meta)})`).join(' | ')}` : ''
   ].filter(Boolean).join('\n') : '';
