@@ -1,5 +1,5 @@
 🏢 *FILIAL TPH — GESTÃO DE CAMPO*
-📅 13/11/2026 • Gerente: Fábio
+📅 16/11/2026 • Gerente: Fábio
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 *PAINEL DE ATIVIDADES (4 SUPERVISORES):*
