@@ -25,6 +25,7 @@ const CAMPOS = ['Mês', 'Filial', 'Supervisor', 'Vendedor', 'Fornecedor'];
 const CAMPOS_VEND = ['Mês', 'Filial', 'Supervisor', 'Vendedor'];
 const CAMPOS_SUP = ['Mês', 'Filial', 'Supervisor'];
 const CAMPOS_FIL = ['Mês', 'Filial'];
+const CAMPOS_CLI = ['Mês', 'Filial', 'Vendedor', 'Cliente'];
 // calculos (colunas) que interessam ao JOTA; o rotulo exato vem do GEROT e e conferido no log
 const CALC = [
   /^Faturado líquido/i, /^Faturado bruto/i, /^Devolução \(R\$\)/i, /^% Devolução/i,
@@ -161,6 +162,37 @@ function linhasVendedorDoExcel(arq, mes) {
     out.push(linha);
   }
   return { linhas: out, colunas: H };
+}
+
+// Excel Mes x Filial x Vendedor x Cliente: chave = filial|rca|cliente (codigo do cliente; sem codigo, o CNPJ). Guarda so os calculos (positivacao, carteira, faturado).
+function linhasClienteDoExcel(arq, mes) {
+  const w = XLSX.readFile(arq), sh = w.Sheets[w.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(sh, { header: 1, defval: null });
+  const hi = rows.findIndex((r) => r && r.includes('Filial'));
+  if (hi < 0) throw new Error('Excel cliente sem cabecalho Filial: ' + JSON.stringify(rows[0]));
+  const H = rows[hi].map((c) => String(c || '').trim());
+  const ix = (re) => H.findIndex((h) => re.test(h));
+  const iMes = ix(/^Mês$/), iFil = ix(/^Filial$/), iCv = ix(/^Cód\.? vendedor/i), iVend = ix(/^Vendedor$/i),
+    iCc = ix(/^Cód\.? cliente/i), iCli = ix(/^Cliente$/i), iCnpj = ix(/CNPJ.*cliente|^CNPJ$|CPF.?CNPJ/i), iCs = ix(/^Cód\.? supervisor/i), iSup = ix(/^Supervisor$/i);
+  const chaves = new Set([iMes, iFil, iCv, iVend, iCc, iCli, iCnpj, iCs, iSup].filter((k) => k >= 0));
+  const linhas = [];
+  for (const r of rows.slice(hi + 1)) {
+    if (!r || !r.some((c) => c != null && c !== '')) continue;
+    const m = iMes >= 0 && r[iMes] ? String(r[iMes]).slice(0, 7) : mes;
+    if (m !== mes) continue;
+    const filial = filialDe(r[iFil]);
+    if (!filial || /^total/i.test(String(r[iFil] || ''))) continue;
+    const rca = String(iCv >= 0 ? r[iCv] ?? '' : '').trim() || (String(iVend >= 0 ? r[iVend] || '' : '').match(/^(\d+)/) || [])[1] || '';
+    const nomeCli = String(iCli >= 0 ? r[iCli] || '' : '').trim();
+    const cnpj = String(iCnpj >= 0 ? r[iCnpj] ?? '' : '').replace(/\D/g, '') || (nomeCli.match(/(\d{11,14})\s*$/) || [])[1] || '';
+    const cliente = String(iCc >= 0 ? r[iCc] ?? '' : '').trim() || cnpj;
+    if (!rca || !cliente || /^total/i.test(nomeCli)) continue;
+    const dados = {}; H.forEach((h, k) => { if (!chaves.has(k) && h) dados[h] = num(r[k]); });
+    const linha = { mes: m, filial, rca, cliente, cnpj: cnpj || null, nome: nomeCli.replace(/\s*[·-]?\s*\d{11,14}\s*$/, '') || null, dados };
+    linha.hash = crypto.createHash('md5').update(JSON.stringify([linha.nome, dados])).digest('hex');
+    linhas.push(linha);
+  }
+  return { cab: H, linhas };
 }
 
 function linhasAgregadoDoExcel(arq, mes, nivel) {
@@ -308,6 +340,22 @@ async function main() {
             }
           }
         } catch (ev) { log(`FALHA agregados ${mes}:`, ev.message); }
+        // PASSO 3 (Vitorio, 16/11/2026: "voce tem todos os clientes no GEROT... na aba da positivacao eu filtrei cliente e filial... cruzar tudo"):
+        // CARTEIRA POR CLIENTE = Mes x Filial x Vendedor x Cliente com positivacao do mes, M-1, 3M, A-1, carteira e faturado.
+        // E a fonte da curva negativa (comprou em M-1/3M e nao comprou no mes), sem depender do roteiro do CEVEN. Falha aqui nao derruba o resto.
+        try {
+          const arqC = await baixaExcelNivel(page, mes, alvo, CAMPOS_CLI, `gerot_cli_${mes}.xlsx`);
+          if (arqC) {
+            const lc = linhasClienteDoExcel(arqC, mes);
+            log(`${mes} cliente: ${lc.linhas.length} linhas · colunas ${JSON.stringify(lc.cab)} · exemplo ${JSON.stringify(lc.linhas.slice(0, 2))}`);
+            if (lc.linhas.length && !ENSAIO) {
+              const { hashes: hc } = await api('GET', `?mes=${mes}&cliente=1`);
+              const mudouC = lc.linhas.filter((l) => (hc || {})[`${l.filial}|${l.rca}|${l.cliente}`] !== l.hash);
+              for (let i = 0; i < mudouC.length; i += 200) await api('POST', '', { clientes: mudouC.slice(i, i + 200) });
+              log(`${mes} cliente: ${mudouC.length} gravadas no D1`);
+            }
+          } else log(`${mes} cliente: Excel nao baixou`);
+        } catch (ec) { log(`FALHA clientes ${mes}:`, ec.message); }
         await page.keyboard.press('Escape').catch(() => {});
         await page.locator('button:has-text("×")').first().click({ timeout: 3000 }).catch(() => {});
         await page.waitForTimeout(1500);

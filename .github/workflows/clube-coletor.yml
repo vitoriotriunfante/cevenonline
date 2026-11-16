@@ -5,7 +5,9 @@ name: Clube da Venda — coleta online para o D1
 
 on:
   schedule:
-    - cron: '0,30 11-23 * * 1-6'   # a cada 30 min, 08h00-20h30 BRT, segunda a sabado
+    # REDUNDANCIA (16/11/2026): o worker-cron dispara em :02 e :32 (07h-20h45); este schedule do GitHub e a reserva em :17 e :47, 06h17-20h47 BRT.
+    # Os dois juntos dao uma leitura a cada ~15 min; se um falhar, o outro segura 30 min. Seg a sab.
+    - cron: '17,47 9-23 * * 1-6'
   workflow_dispatch:
 
 concurrency:
