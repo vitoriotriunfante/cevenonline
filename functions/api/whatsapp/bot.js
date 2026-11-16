@@ -403,7 +403,7 @@ async function trataMensagem({ request, env }) {
   // das respostas certas. Base GEROT no D1 e uma carga unica de 06/11 (feita do PC). Religar so com a coleta online e testes por industria.
   // INDUSTRIA PELO GEROT (Vitorio, 09/11/2026): D1 gerot_vendas (coleta online). Testes: testes/gerot_industria.mjs (perguntas reais do Rudinei).
   // So entra quando a pergunta e de resultado de industria; +MIX, cliente e SKU seguem no caminho deles. Desliga com GEROT_JOTA=0.
-  const ehEstrategiaComplexa = ehPerguntaEstrategicaOuConsultiva && /cruzando|diagn[oó]stico|plano de (guerra|a[cç][aã]o)|destravar|onde est[aá] o (maior )?risco|virar o jogo|priorizar|estrat[eé]g/i.test(texto);
+  const ehEstrategiaComplexa = ehPerguntaEstrategicaOuConsultiva && /cruzando|diagn[oó]stico|plano de (guerra|a[cç][aã]o)|destravar|onde est[aá] o (maior )?risco|virar o jogo|priorizar|estrat[eé]g|compar(e|ar)|oportunidade|produtos?.*mais vend/i.test(texto);
   let respGerot = null; if (env.GEROT_JOTA !== '0' && !ehEstrategiaComplexa) { try { respGerot = await respGerotIndustria(env, texto, c, anteriores[0] || null); } catch (e) { respGerot = null; } }
   if (respGerot) {
     resp = respGerot;

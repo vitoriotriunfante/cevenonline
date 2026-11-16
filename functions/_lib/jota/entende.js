@@ -1482,8 +1482,27 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   // METAS E FATURAMENTO POR INDUSTRIA (Premiação RV / Fornecedores)
   // Vitório, 30/10/2026: Ivayr/TCA perguntou faturamento + pendente da Duracell e caía no geral de carteira!
   // Se a pergunta cita indústria ou "referente a indústria", direciona para as metas da indústria!
+  // CONSULTA DIRETA DE ATUALIZACAO DO BANCO (16/11/2026: Milena perguntou "Qual foi sua ultima atualizacao do banco de dados?")
+  if (/ULTIMA ATUALIZACAO|ATUALIZACAO DO BANCO|QUANDO (FOI )?ATUALIZ|BANCO DE DADOS/.test(t) && B && B.env && B.env.DB) {
+    try {
+      const [gSt, cSt] = await Promise.all([
+        B.env.DB.prepare('SELECT em, linhas, posicao FROM gerot_coleta_status ORDER BY id DESC LIMIT 1').first().catch(() => null),
+        B.env.DB.prepare('SELECT lido_em, vendedores, dia FROM clube_coleta_status ORDER BY id DESC LIMIT 1').first().catch(() => null),
+      ]);
+      const fmtHora = (iso) => {
+        if (!iso) return 'sem registro';
+        const d = new Date(iso);
+        return isNaN(d) ? String(iso) : d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      };
+      const L = ['🕒 *Última atualização das bases:*'];
+      if (gSt) L.push(`• *GEROT (faturamento, carteira, meta):* ${fmtHora(gSt.em)} (${gSt.linhas || 0} linhas · ${gSt.posicao || ''})`);
+      if (cSt) L.push(`• *Clube da Venda (pedidos e visitas hoje):* ${fmtHora(cSt.lido_em)} (${cSt.vendedores || 0} vendedores · dia ${cSt.dia || ''})`);
+      return L.join('\n');
+    } catch {}
+  }
   const temCitacaoIndustria = /POR (INDUSTRIA|FORNECEDOR)|INDUSTRIAS\b|DESEMPENHO DAS INDUSTRIAS|PERFORMANCE (DAS |DE )?(VENDAS )?(POR |DAS )?INDUSTRIA|REFERENTE (A|AO)?\s*(A\s+)?(INDUSTRIA|FORNECEDOR)\b|DA INDUSTRIA|NA INDUSTRIA|\b(DURACELL|AMPARO|HEINZ|MARS|ARCOR|MARILAN|MONDELEZ|NESTLE|GAROTO|COLGATE|RED\s*BULL|MAURI|MAGUARY|EBBA|AJINOMOTO|CONDOR|BR\s*SPICE|LEAO|MEDIX|LINDT|FANTONI|STOLFI|SUPER SAUDE)\b/i.test(t);
-  if (temCitacaoIndustria || (/\bMETAS?\b|KPI|PREMIA/.test(t) && /TICKET|\bMIX\b|FASEAMENTO|FASIAMENTO|FASAMENTO|RECORRENCIA|\bKPIS?\b/.test(t)) || /\bMETAS?\b|OBJETIVOS?\b/.test(t)) {
+  const ehPerguntaProdutoOuRecuperacao = /COMPRAVA|PAROU|PARARAM|DEIXOU DE COMPRAR|DEIXARAM DE COMPRAR|QUEM NAO (COMPRA|COMPROU|COMPRARAM)|NAO (COMPROU|COMPRA|COMPRARAM).*EM |PRODUTOS? (QUE )?MAIS VEND|TOP \d* ?PRODUTOS|MAIS VENDIDOS|COMPAR(E|AR)|OPORTUNIDADES?/.test(t);
+  if (!ehPerguntaProdutoOuRecuperacao && (temCitacaoIndustria || (/\bMETAS?\b|KPI|PREMIA/.test(t) && /TICKET|\bMIX\b|FASEAMENTO|FASIAMENTO|FASAMENTO|RECORRENCIA|\bKPIS?\b/.test(t)) || /\bMETAS?\b|OBJETIVOS?\b/.test(t))) {
     const r = await respMetasIndustria(B, E, t, pessoa);
     if (r) return r;
   }

@@ -100,6 +100,10 @@ export default {
       if (dia >= 1 && dia <= 6 && [7, 9, 11, 13, 15, 17, 19, 21].includes(h) && mi >= 15 && mi < 30) {
         try { const r = await dispararWorkflow(env, 'gerot-coleta.yml', {}); console.log(`[GEROT] gerot-coleta.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[GEROT][ERRO] ' + (e && e.message ? e.message : e)); }
       }
+      // CLUBE DA VENDA (16/11/2026): disparado pelo worker-cron a cada 30 min (:02 e :32, seg-sab 07h-20h45 BRT) para nao depender do schedule do GitHub.
+      if (dia >= 1 && dia <= 6 && h >= 7 && h <= 20 && (mi < 15 || (mi >= 30 && mi < 45))) {
+        try { const r = await dispararWorkflow(env, 'clube-coletor.yml', {}); console.log(`[CLUBE] clube-coletor.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[CLUBE][ERRO] ' + (e && e.message ? e.message : e)); }
+      }
       const dataSp = dataHojeSP();
       if (dia >= 1 && dia <= 5 && !FERIADOS_NACIONAIS.has(dataSp) && h === 19 && mi >= 15 && mi < 30 && env.MONITORIA_CRON_KEY) {
         await rodarTarefaTv(event.cron, { passos: [{ rota: '/api/cron-aprendizado', ms: 120000, chaveEnv: 'MONITORIA_CRON_KEY' }] }, env);

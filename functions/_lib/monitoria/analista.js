@@ -461,9 +461,11 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
   let amostraEnviada = false;
 
   const avaliaSupervisor = async (s) => {
-    const enviosHoje = (await db.prepare("SELECT acao_pos_alerta, enviado_em FROM monitoria_envios WHERE regra_id = 'ANALISTA' AND data = ? AND destino_real = ?")
+    const enviosHoje = (await db.prepare("SELECT acao_pos_alerta, enviado_em FROM monitoria_envios WHERE (regra_id = 'ANALISTA' OR regra_id LIKE 'ANALISTA:%') AND data = ? AND destino_real = ?")
       .bind(hoje, s.nome).all().catch(() => ({ results: [] }))).results || [];
-    if (enviosHoje.length >= maxPorDia) return null;
+    const msgsHoje = s.celular ? (await db.prepare("SELECT count(*) n FROM bot_msgs WHERE tipo = 'monitoria_analista' AND celular = ? AND date(quando, '-3 hours') = ?")
+      .bind(String(s.celular), hoje).first().catch(() => ({ n: 0 }))) : { n: 0 };
+    if (Math.max(enviosHoje.length, Number(msgsHoje?.n || 0)) >= maxPorDia) return null;
 
     const supNomeAlvo = s.supervisor || s.nome;
     const Es = await carregaEscopo(B, { nome: `${supNomeAlvo} (${s.filial})`, filiais: [s.filial], supervisor: supNomeAlvo }).catch(() => null);
@@ -480,6 +482,9 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
       rv: rvData,
     });
     if (!dossie) return null;
+    if (!B._clube && ['SEM_CHECKIN', 'EM_ROTA_SEM_PEDIDO', 'RITMO_DIA_BAIXO'].includes(dossie.sinal_principal?.tipo)) {
+      return { silencio: true };
+    }
 
     // Cruzamento MONITOR.IA <-> JOTA: le contexto recente do supervisor no JOTA (ultimas 3h em bot_msgs)
     if (s.celular) {
@@ -503,45 +508,75 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
       if (alertasGerados >= limite) break;
       const { s, dossie, decisao } = item;
 
+      const regraKey = `ANALISTA:${dossie.sinal_principal.sig}`.slice(0, 80);
       let status = 'SIMULADO';
       let celDestino = 'SIMULACAO';
       if (regra.modo === 'PRODUCAO' && cfg) {
+        // Reserva ANTES de enviar para impedir reenvio duplicado em caso de erro de constraint ou corrida
+        let reservado = false;
+        try {
+          await db.prepare(
+            'INSERT INTO monitoria_envios (regra_id, data, celular, destino_real, papel, filial, rca, modo, bonequinho, status, texto_preview, acao_pos_alerta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+          ).bind(
+            regraKey,
+            hoje,
+            s.celular,
+            s.nome,
+            'supervisor',
+            s.filial,
+            '',
+            regra.modo,
+            decisao.motor_ia,
+            'ENVIANDO',
+            String(decisao.mensagem).slice(0, 600),
+            dossie.sinal_principal.sig
+          ).run();
+          reservado = true;
+        } catch {
+          reservado = false;
+        }
+        if (!reservado) {
+          silencios++;
+          continue;
+        }
         if (enviadosReal > 0) await R.pausaEntreEnvios(4, 1, 2);
         const rt = await R.enviarTexto(cfg, s.celular, decisao.mensagem);
         status = rt.ok ? 'ENVIADO' : 'ERRO';
         celDestino = s.celular;
+        await db.prepare('UPDATE monitoria_envios SET status = ? WHERE regra_id = ? AND data = ? AND celular = ? AND modo = ?')
+          .bind(status, regraKey, hoje, s.celular, regra.modo).run().catch(() => {});
         if (rt.ok) {
           enviadosReal++;
-          // Registra em bot_msgs para que o JOTA saiba o que o MONITOR.IA acabou de cobrar se o supervisor responder no WhatsApp
           await db.prepare(
             "INSERT INTO bot_msgs (celular, direcao, texto, tipo) VALUES (?, 'out', ?, 'monitoria_analista')"
           ).bind(String(s.celular), String(decisao.mensagem).slice(0, 1500)).run().catch(() => {});
         }
-      } else if (opts.enviarVitorio && !amostraEnviada && cfg) {
-        const rt = await R.enviarTexto(cfg, celTeste, `🧪 *[SIMULAÇÃO ANALISTA IA · ${s.nome}]*\n\n${decisao.mensagem}`);
-        if (rt.ok) {
-          amostraEnviada = true;
-          status = 'AMOSTRA_VITORIO';
-          celDestino = celTeste;
+      } else {
+        if (opts.enviarVitorio && !amostraEnviada && cfg) {
+          const rt = await R.enviarTexto(cfg, celTeste, `🧪 *[SIMULAÇÃO ANALISTA IA · ${s.nome}]*\n\n${decisao.mensagem}`);
+          if (rt.ok) {
+            amostraEnviada = true;
+            status = 'AMOSTRA_VITORIO';
+            celDestino = celTeste;
+          }
         }
+        await db.prepare(
+          'INSERT INTO monitoria_envios (regra_id, data, celular, destino_real, papel, filial, rca, modo, bonequinho, status, texto_preview, acao_pos_alerta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        ).bind(
+          regraKey,
+          hoje,
+          celDestino,
+          s.nome,
+          'supervisor',
+          s.filial,
+          '',
+          regra.modo,
+          decisao.motor_ia,
+          status,
+          String(decisao.mensagem).slice(0, 600),
+          dossie.sinal_principal.sig
+        ).run().catch(() => {});
       }
-
-      await db.prepare(
-        'INSERT INTO monitoria_envios (regra_id, data, celular, destino_real, papel, filial, rca, modo, bonequinho, status, texto_preview, acao_pos_alerta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-      ).bind(
-        'ANALISTA',
-        hoje,
-        celDestino,
-        s.nome,
-        'supervisor',
-        s.filial,
-        '',
-        regra.modo,
-        decisao.motor_ia,
-        status,
-        String(decisao.mensagem).slice(0, 600),
-        dossie.sinal_principal.sig
-      ).run().catch(() => {});
 
       if (status === 'ENVIADO') {
         const sp = dossie.sinal_principal;
@@ -566,7 +601,8 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
   }
 
   let escalonamentos = { avaliados: 0, escalonados: 0 };
-  if (regra.modo === 'PRODUCAO' && cfg) {
+  // Escalonamento automatico para gerentes travado por padrao (16/11/2026, Vitorio: apenas supervisores a principio)
+  if (opts.escalonarGerente === true && regra.modo === 'PRODUCAO' && cfg) {
     escalonamentos = await escalonarCasosAbertosGerente(db, env, { cfg, maxPorRodada: 3, hhmm }).catch(() => ({ avaliados: 0, escalonados: 0 }));
   }
 
