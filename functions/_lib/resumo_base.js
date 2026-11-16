@@ -59,15 +59,14 @@ export async function calculaResumoMes(env, dataRef) {
     `SELECT rca_codigo AS r, filial_sigla AS f, ${CAMPOS} FROM varredura_central_rca WHERE data_ref = ?${F}`
   ).bind(dataRef).all();
   const linhas = hoje || [];
-  const faltam = linhas.filter((l) => !l.tem).map((l) => String(l.r));
+  const faltamSet = new Set(linhas.filter((l) => !l.tem).map((l) => String(l.r)));
   const anterior = new Map();
-  if (faltam.length) {
-    const ph = faltam.map(() => '?').join(',');
+  if (faltamSet.size) {
     const { results: prev } = await env.DB.prepare(
       `SELECT rca_codigo AS r, filial_sigla AS f, data_ref AS dia, ${CAMPOS} FROM varredura_central_rca
-        WHERE data_ref < ? AND data_ref >= date(?, '-7 days') AND dashboard_json IS NOT NULL AND dashboard_json != 'null' AND rca_codigo IN (${ph}) ORDER BY data_ref`
-    ).bind(dataRef, dataRef, ...faltam).all();
-    for (const p of prev || []) if (p.tem) anterior.set(String(p.f).toUpperCase() + '|' + p.r, p);   // ordenado por dia: o mais recente vence
+        WHERE data_ref < ? AND data_ref >= date(?, '-7 days') AND dashboard_json IS NOT NULL AND dashboard_json != 'null' ORDER BY data_ref`
+    ).bind(dataRef, dataRef).all();
+    for (const p of prev || []) if (p.tem && faltamSet.has(String(p.r))) anterior.set(String(p.f).toUpperCase() + '|' + p.r, p);   // ordenado por dia: o mais recente vence
   }
   const metaCasc = await metaCascata(env);
   const porFilial = {};
