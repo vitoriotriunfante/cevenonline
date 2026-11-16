@@ -37,7 +37,15 @@ async function montarComplemento360(env, escIA) {
   const qs = filiais.map(() => '?').join(',');
   const temFil = filiais.length > 0 && !escIA.nacional;
 
-  const [indRows, bloqRows, aprendizados] = await Promise.all([
+  const [filGerotRows, supGerotRows, indRows, bloqRows, aprendizados] = await Promise.all([
+    (temFil
+      ? db.prepare(`SELECT filial, dados FROM gerot_filial_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...filiais)
+      : db.prepare('SELECT filial, dados FROM gerot_filial_mes WHERE mes = ?').bind(mes)
+    ).all().catch(() => ({ results: [] })),
+    (temFil
+      ? db.prepare(`SELECT filial, supervisor, dados FROM gerot_supervisor_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...filiais)
+      : db.prepare('SELECT filial, supervisor, dados FROM gerot_supervisor_mes WHERE mes = ?').bind(mes)
+    ).all().catch(() => ({ results: [] })),
     (temFil
       ? db.prepare(`SELECT filial, dados FROM gerot_vendas WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...filiais)
       : db.prepare('SELECT filial, dados FROM gerot_vendas WHERE mes = ?').bind(mes)
@@ -48,6 +56,35 @@ async function montarComplemento360(env, escIA) {
     ).all().catch(() => ({ results: [] })),
     carregarContextoAprendido(db, 6)
   ]);
+
+  let gMeta = 0, gFat = 0, gCart = 0, gPos = 0, gMetaPos = 0;
+  const gFiliais = [];
+  for (const r of filGerotRows.results || []) {
+    let d = {};
+    try { d = JSON.parse(r.dados || '{}'); } catch { continue; }
+    const meta = Number(d['Meta (R$)']) || 0, fat = Number(d['Faturado líquido (R$)']) || 0, cart = Number(d['Carteira pendente (R$)']) || 0;
+    const pos = Number(d['Positivação (filial + CNPJ)']) || 0, metaPos = Number(d['Meta de positivação'] ?? d['Meta clientes']) || 0;
+    gMeta += meta; gFat += fat; gCart += cart; gPos += pos; gMetaPos += metaPos;
+    gFiliais.push({ filial: r.filial, meta, fat, cart, vend: fat + cart, pctFat: meta ? (fat / meta) * 100 : 0, pctVend: meta ? ((fat + cart) / meta) * 100 : 0 });
+  }
+  gFiliais.sort((a, b) => a.pctVend - b.pctVend);
+
+  const gSups = [];
+  for (const r of supGerotRows.results || []) {
+    let d = {};
+    try { d = JSON.parse(r.dados || '{}'); } catch { continue; }
+    const meta = Number(d['Meta (R$)']) || 0, fat = Number(d['Faturado líquido (R$)']) || 0, cart = Number(d['Carteira pendente (R$)']) || 0;
+    if (meta <= 0) continue;
+    gSups.push({ filial: r.filial, sup: r.supervisor, meta, fat, cart, vend: fat + cart, pctVend: ((fat + cart) / meta) * 100 });
+  }
+  gSups.sort((a, b) => a.pctVend - b.pctVend);
+
+  const gerotResumoTxt = gMeta > 0 ? [
+    `=== RESUMO OFICIAL GEROT (${escIA.nome} · FONTE PRINCIPAL) ===`,
+    `Meta: ${R$(gMeta)} | Faturado: ${R$(gFat)} (${(gFat / gMeta * 100).toFixed(1)}%) | Carteira Pendente: ${R$(gCart)} | Faturado + Carteira: ${R$(gFat + gCart)} (${((gFat + gCart) / gMeta * 100).toFixed(1)}%) | Positivação: ${N(gPos)}${gMetaPos ? ' / ' + N(gMetaPos) : ''}`,
+    `Filiais (pior % Fat+Cart primeiro): ${gFiliais.map((f) => `${f.filial} ${f.pctVend.toFixed(1)}% (Fat ${R$(f.fat)} + Cart ${R$(f.cart)} / Meta ${R$(f.meta)})`).join(' | ')}`,
+    gSups.length ? `Piores Supervisores (% Fat+Cart): ${gSups.slice(0, 8).map((s) => `${s.sup} (${s.filial}) ${s.pctVend.toFixed(1)}% (${R$(s.vend)}/${R$(s.meta)})`).join(' | ')}` : ''
+  ].filter(Boolean).join('\n') : '';
 
   const porInd = new Map();
   for (const r of indRows.results || []) {
@@ -80,7 +117,7 @@ async function montarComplemento360(env, escIA) {
     ? `=== APRENDIZADOS RECENTES DO CAMPO (CURADOR JOTA) ===\n${aprendizados}`
     : '';
 
-  return [indTxt, bloqTxt, aprTxt].filter(Boolean).join('\n\n');
+  return [gerotResumoTxt, indTxt, bloqTxt, aprTxt].filter(Boolean).join('\n\n');
 }
 
 async function chamarGemini(apiKey, model, promptCompleto, thinkingBudget = 1024) {
@@ -147,17 +184,20 @@ async function chamarAnthropic(apiKey, sysPrompt, userPrompt) {
   return String(data?.content?.[0]?.text || '').trim() || null;
 }
 
-export async function respondeAnalistaSenior({ env, B, c, texto, historico, escIA, dossieBase, fonteIA }) {
+export async function respondeAnalistaSenior({ env, B, c, texto, historico, escIA, dossieBase, fonteIA, dossieComplementar }) {
   const extra360 = await montarComplemento360(env, escIA);
-  const dossie = [dossieBase, extra360].filter(Boolean).join('\n\n').slice(0, 16000);
+  // Se o GEROT oficial esta disponivel, NAO mistura com resumo/meta/faturado antigos do CEVEN
+  const usaSoGerot = extra360.includes('=== RESUMO OFICIAL GEROT');
+  const dossie = [extra360, usaSoGerot ? (dossieComplementar || '') : dossieBase].filter(Boolean).join('\n\n').slice(0, 16000);
   const horaBrt = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', hour12: false });
 
   const sysPrompt = `Você é o JOTA Sênior ⚽, Consultor Executivo e Analista Comercial de Elite do Grupo Triunfante (+MIX & CEVEN).
 Você está atendendo: ${titulo(c.nome)} (Cargo: ${String(c.papel || '').toUpperCase()}${c.filial ? ' — Filial ' + c.filial : ' — Visão Nacional Brasil 11 Filiais'}${c.grupo ? ' · Grupo ' + c.grupo : ''}).
 
 REGRAS DE OURO (INVIOLÁVEIS):
-1. Responda a perguntas complexas ("cabeludas") com profundidade analítica: cruzando equipes, indústrias, bloqueios, positivação e ritmo diário.
-2. NUNCA invente números, percentuais ou clientes que não estejam no DOSSIÊ abaixo. Se faltar algum dado granular para responder 100%, diga exatamente o que falta e entregue a melhor análise possível com os números reais disponíveis.
+1. Responda a perguntas complexas ("cabeludas") com profundidade analítica: cruzando equipes/supervisores, indústrias, bloqueios, positivação e ritmo diário.
+2. Use o bloco "RESUMO OFICIAL GEROT" como fonte principal para Meta, Faturado, Carteira Pendente e % de atingimento (nunca misture com números antigos do CEVEN quando houver GEROT).
+3. NUNCA invente números, percentuais ou clientes que não estejam no DOSSIÊ abaixo. Se faltar algum dado granular para responder 100%, diga exatamente o que falta e entregue a melhor análise possível com os números reais disponíveis.
 3. Agora é ${hojeSP().split('-').reverse().join('/')}, ${horaBrt}h em Brasília: use a saudação correta.
 4. Formatação WhatsApp: use *negrito* com UM asterisco apenas em títulos e números-chave. Estruture em:
    - 📊 *Diagnóstico Executivo* (causa-raiz baseada nos números)

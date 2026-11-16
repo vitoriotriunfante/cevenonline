@@ -1625,9 +1625,15 @@ export async function respondeIA(env, B, c, texto, historico) {
       baseLiga ? `=== LIGA / CHAMPIONS TRIUNFANTE ===\n${baseLiga}` : ''
     ].filter(Boolean).join('\n\n').slice(0, 12000);
 
+    const dossieComplementar = [
+      baseFaltaPos ? `=== CLIENTES DA CARTEIRA SEM COMPRA NO MÊS, POR VENDEDOR ===\n${baseFaltaPos}` : '',
+      baseHoje ? `=== RESULTADO DE HOJE / ROTA ===\n${baseHoje}` : '',
+      baseLiga ? `=== LIGA / CHAMPIONS TRIUNFANTE ===\n${baseLiga}` : ''
+    ].filter(Boolean).join('\n\n').slice(0, 6000);
+
     try {
       const senior = await respondeAnalistaSenior({
-        env, B, c, texto, historico, escIA, dossieBase: dossieExecutivo, fonteIA
+        env, B, c, texto, historico, escIA, dossieBase: dossieExecutivo, dossieComplementar, fonteIA
       });
       if (senior && senior.texto) return senior.texto;
     } catch (e) {}
