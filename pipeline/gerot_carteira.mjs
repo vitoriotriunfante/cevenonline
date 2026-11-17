@@ -50,7 +50,8 @@ function porPedido(arq) {
         status: I.st >= 0 ? String(r[I.st] || '').trim() || null : null, situacao: I.sit >= 0 ? String(r[I.sit] || '').trim() || null : null, motivo: I.mot >= 0 ? String(r[I.mot] || '').trim() || null : null,
         cliente: I.cli >= 0 ? String(r[I.cli] || '').trim() || null : null, cnpj: I.cnpj >= 0 ? String(r[I.cnpj] ?? '').replace(/\D/g, '') || null : null,
         status_cliente: I.stc >= 0 ? String(r[I.stc] || '').trim() || null : null, positivado: I.posm >= 0 ? String(r[I.posm] || '').trim() || null : null,
-        rca: (ven.match(/^\s*(\d+)/) || [])[1] || null, vendedor: ven.replace(/^\s*\d+\s*-\s*/, '').trim() || null, sup_cod: (sup.match(/^\s*(\d+)/) || [])[1] || null,
+        // 17/11/2026: a planilha traz so o nome do vendedor; o pedido comeca com o codigo dele (98,7% dos 23.424 pedidos do GEROT)
+        rca: (ven.match(/^\s*(\d+)/) || [])[1] || (pedido.length > 6 ? String(Number(pedido.slice(0, -6))) : null), vendedor: ven.replace(/^\s*\d+\s*-\s*/, '').trim() || null, sup_cod: (sup.match(/^\s*(\d+)/) || [])[1] || null,
         valor: 0, itens: 0, qped: 0, qfat: 0, fornecedores: [] };
       P.set(k, x);
     }
