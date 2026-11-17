@@ -765,6 +765,9 @@ export async function respostaInterna(B, c, texto, anteriores) {
       }
       // status dos pedidos do proprio vendedor, da linha do tempo gravada no D1, com a hora da ultima conferencia no CEVEN
       if (/STATUS D[EO]S? (MEUS )?PEDIDOS?|^\W*MEUS (ULTIMOS )?PEDIDOS\W*$|PEDIDOS? (JA )?(LIBERAD|BLOQUEAD|FATURAD)\w*\W*$/.test(t) && B.env && B.env.DB) {
+        // PEDIDOS PELO GEROT (Vitorio, 17/11/2026: "mostrando pedidos do dia 12? ja nao mostrei que tem todos os pedidos no GEROT?"): pedido x NF do GEROT
+        // (faturado ou na carteira) + o dia de hoje pelo Clube. A linha do tempo antiga (pedido_status, do CEVEN) so entra se o GEROT nao tiver nada do vendedor.
+        if (!/BLOQUEAD|LIBERAD/.test(t)) { const rg = await (await import('./respostas/pedidos_gerot.js')).respPedidosGerot(B, fil, String(rcaV), /FATURAD/.test(t)).catch(() => null); if (rg) return rg; }
         const { results: Pd } = await B.env.DB.prepare("SELECT num, id_cliente, data_pedido, status, valor, confirmado_em FROM pedido_status WHERE filial = ? AND rca = ? AND data_pedido >= date('now', '-3 hours', '-7 days') AND data_pedido <= date('now', '-3 hours') ORDER BY data_pedido DESC, num DESC LIMIT 30").bind(fil, String(rcaV)).all();
         if (!Pd || !Pd.length) return 'Não tenho pedido seu dos últimos 7 dias na base.';
         // "pedidos bloqueados" traz so os bloqueados (a mensagem de liberacao promete isso; 02/11/2026)
@@ -1636,7 +1639,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   if (/LIGA (DO |DOS |DA )?AS\b|LIGA DO ATACADO/.test(t) || (pessoa && pessoa.tipo === 'vend' && /^(AS|PET AS)$/.test(pessoa.alvo.canal) && /LIGA|PONTOS|POSICAO|CHAMPIONS/.test(t))) return respLigaAs(B, E, pessoa);
   if (/LIGA|CHAMPION|CHMAPION|CHAMPIOS|CAMPIONS|CHAMPI|CLASSIFICA|TABELA|POSICAO|PONTOS|PONTUACAO|COLOCAD|COLOCACAO|BRASILEIRAO/.test(t) && !(/POSITIVA|FATURA/.test(t) && /RANKING|POR VENDEDOR|ABERTA/.test(t))) return respLiga(B, E, pessoa && pessoa.tipo === 'vend' ? pessoa.alvo : null, t);
   if (/FALTA(M)? (SER )?VISITA|NAO (FOI |FORAM )?VISITAD|AINDA (NAO )?(FORAM )?VISITAD|CLIENTES? (EM )?ABERTO|PENDENTES? (DE |NA )?(VISITA|ROTA)|SEM VISITA AINDA|CLIENTES? (NA|DA) ROTA|FALTA VISITAR|FALTAM VISITAR|QUEM FALTA VISITAR/.test(t)) return respAVisitar(E, pessoa);
-  if (pessoa && pessoa.tipo === 'sup' && /ZERAD|ZEROU|SEM PEDIDO/.test(t)) return respZerados({ ...E, nome: 'Equipe ' + nome2(pessoa.alvo.nome), vend: E.vend.filter((v) => v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial) });
+  if (pessoa && pessoa.tipo === 'sup' && /ZERAD|ZEROU|SEM PEDIDO/.test(t)) return respZerados({ ...E, nome: 'Equipe ' + nome2(pessoa.alvo.nome), vend: E.vend.filter((v) => v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial) }, B);
   if (pessoa && pessoa.tipo === 'sup' && /MAIS VENDEU|MAIS VENDE/.test(t)) pessoa = null;
   if (pessoa) {
     if (pessoa.outroSupervisor && c.papel === 'supervisor') {
@@ -1663,7 +1666,8 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
     }
     return (await respVendedor(B, E, pessoa.alvo)) + amb;
   }
-  if (/ZERAD|ZEROU|SEM PEDIDO|SEM VENDA|NAO VENDEU|NAO VENDERAM|NINGUEM VENDEU/.test(t)) return respZerados(E);
+  if (/VISITAD\w* SEM COMPRA|VISITOU E NAO COMPR|30 DIAS SEM COMPRA/.test(t)) { const { respVisitadosSemCompra } = await import('./respostas/rota.js'); return respVisitadosSemCompra(E, B); }
+  if (/ZERAD|ZEROU|SEM PEDIDO|SEM VENDA|NAO VENDEU|NAO VENDERAM|NINGUEM VENDEU/.test(t)) return respZerados(E, B);
   if (/POSITIV/.test(t) && /QUANTOS|QUANTO/.test(t) && !/110/.test(t)) return respPositivacao(B, E);
   // PEDIDO POR NUMERO (Ivayr/TCA, 26/10/2026: "ja faturou o pedido 1190000030" -> recebeu o resumo da equipe). O numero/status do pedido ainda NAO esta na base (D1);
   // fica no banco do Data Lake, que esta sendo levado para o D1. Ate la: diz a verdade e registra o pedido para a diretoria.

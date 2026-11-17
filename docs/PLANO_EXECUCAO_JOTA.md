@@ -29,9 +29,9 @@
 - **Divulgação:** depois de 2 dias com casos-chave 100% (supervisores primeiro).
 
 ## Status (atualizar a cada entrega)
-- [ ] 1 Roteador por intenção
-- [ ] 2 Respostas das intenções
-- [ ] 3 GEROT Carteira/Devoluções/Cortes/Pedidos/Recorrência — mapa feito (Carteira Total: 50.729 linhas, 24 colunas)
+- [~] 1 Roteador por intenção — no ar 17/11 (pare, sugestão, contestação, matinal/bom dia de alguém, tendência, positivação, uma indústria, rota sem compra, cortes). Corrigido no mesmo dia: "venda do Brasil" virava indústria (Fvo Brasilia).
+- [~] 2 Respostas das intenções — no ar 17/11: Brasil/tendência/positivação SÓ GEROT (`respostas/gerot_painel.js`: fat + carteira, ritmo = captação ÷ meta ideal do GEROT, captação M-1 até o mesmo dia, faturado M-1/3M/A-1, positivação M-1/3M/A-1/Bench); "precisa por dia útil" até o FIM DO MÊS (dia 20 é só faseamento AS); começo do dia do vendedor (rota × 20 visitas, 2 cadastros perto da rota, 5 clientes × 3 itens, lista completa); zerados com a lista dos sem visita; disparo manual da Central passa a pausa "só responder" (teto antiban mantido).
+- [~] 3 GEROT — mapa feito (Carteira Total: 50.729 linhas, 24 colunas). 17/11: coletor pede positivação A-1/Bench, % meta fat+cart, mix, pedidos faturados; histórico nov/25 carregado (A-1); **pedidos do mês um por linha** (`gerot_pedido`: data, vendedor, cliente, pedido, NF, faturado, carteira) → "meus pedidos" do vendedor (`respostas/pedidos_gerot.js`). Falta: bloqueio/motivo (Carteira Total), Devoluções, Cortes, Recorrência.
 - [ ] 4 Régua na publicação
 - [ ] 5 Imagens sob demanda (aguarda decisão da chave do GitHub)
 - [ ] 6 MONITOR.IA simulação

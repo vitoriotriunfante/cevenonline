@@ -33,6 +33,21 @@ async function achaPessoaTolerante(B, t, filCit) {
   return null;
 }
 
+// PROSPECTS DE UM VENDEDOR (prospects_mapa): quantos por tipo + os 10 mais perto da rota, numa resposta so (sem depender do numero digitado depois)
+async function prospectsDoVendedor(B, v) {
+  const cab = `📍 *Prospects — ${vn(v)}* (${v.filial})`;
+  if (!B.env || !B.env.DB) return `${cab}: a base de prospecção não está disponível agora.`;
+  let P = [];
+  try { P = ((await B.env.DB.prepare('SELECT cnpj, json FROM prospects_mapa WHERE filial = ? AND rca = ?').bind(String(v.filial), String(v.rca)).all()).results || []).map((r) => { try { return { cnpj: r.cnpj, ...JSON.parse(r.json) }; } catch (e) { return null; } }).filter(Boolean); } catch (e) { return `${cab}: falha ao ler a base; não vou afirmar que está sem pontos.`; }
+  if (!P.length) return `${cab}: ainda não há nenhum ponto coletado para esse vendedor.`;
+  const tipo = (p) => titulo(String(p.cnae || 'Sem CNAE').replace(/^[\d.\-/ ]+/, '').replace(/^COM[EÉ]RCIO VAREJISTA DE /i, '').replace(/^Com[eé]rcio Varejista De /i, '').toLowerCase());
+  const G = new Map(); for (const p of P) G.set(tipo(p), (G.get(tipo(p)) || 0) + 1);
+  const perto = P.slice().sort((a, b) => (a.km ?? 999) - (b.km ?? 999)).slice(0, 10);
+  return [cab, `*${N(P.length)}* pontos para prospectar perto da rota.`, '', '*Por tipo:*', ...[...G.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, n]) => `• ${k.slice(0, 60)}: ${N(n)}`),
+    '', '*Os 10 mais perto da rota:*', ...perto.map((p, i) => `${i + 1}. *${titulo(String(p.fantasia || p.razao || 'Sem nome').toLowerCase())}* · ${tipo(p).slice(0, 40)}\n   ${[p.end, p.bairro].filter(Boolean).map((s) => titulo(String(s).toLowerCase())).join(', ')}${p.km != null ? ` · ${String(p.km).replace('.', ',')} km da rota` : ''}${p.tel ? ` · 📞 ${p.tel}` : ''}`),
+    '', `_O vendedor vê os mesmos pontos no item 10 do menu dele (por tipo, com mapa)._`].join('\n');
+}
+
 async function escopoSupervisor(B, nomeSup, filial) {
   return carregaEscopo(B, { nome: 'Equipe ' + titulo(String(nomeSup).split(' ').slice(0, 2).join(' ')) + ' (' + filial + ')', filiais: [filial], grupo: null, supervisor: nomeSup, nacional: false });
 }
@@ -83,12 +98,30 @@ export async function rotearIntencao(B, c, t, info) {
     }
     if (!r && /^MATINAL/.test(mPess[1])) return `🔎 Não achei *${titulo(mPess[3].replace(FIL_RX, '').trim().toLowerCase())}*${filCit ? ` na ${filCit}` : ''}. Confere o nome (ex.: "matinal Yasmim de TCA") ou mande o código do supervisor.`;
   }
+  // G2 · PROSPECCAO DE ALGUEM (Vitorio, 17/11/2026: "por que nao ta buscando os prospects / prospeccao do Vinicius de TCA?" — virava o card do vendedor)
+  const mPro = t.match(/^\W*(?:PROSPEC\w*|PROSPECT\w*|CADASTROS? NOVOS?|PONTOS? (?:PARA|PRA) PROSPECTAR)\s+(?:D[AOE]S?\s+)?(.+?)\W*$/);
+  if (acima && mPro && mPro[1].replace(FIL_RX, '').replace(/\b(DE|DA|DO|EM|NA|NO)\b/g, '').trim().length >= 3) {
+    const r = await achaPessoaTolerante(B, mPro[1], filCit);
+    if (r && r.varios) return `Encontrei mais de uma pessoa com esse nome: ${r.varios.map((x) => x.tipo === 'sup' ? `supervisor *${titulo(x.alvo)}* (${x.filial})` : `*${vn(x.alvo)}* (${x.filial})`).join(' · ')}. Repita com a filial (ex.: "prospecção Vinicius de TCA").`;
+    if (r && r.tipo === 'vend') return (r.outraFilial ? `_${vn(r.alvo)} é da ${r.alvo.filial}, não da ${r.outraFilial}._\n\n` : '') + await prospectsDoVendedor(B, r.alvo);
+    if (r && r.tipo === 'sup') {
+      const nomeSup = typeof r.alvo === 'object' ? (r.alvo.nome || '') : r.alvo, fl = r.filial || filCit;
+      const { respProspectsEquipe } = await import('./respostas/segmentos_pastas.js'); return respProspectsEquipe(B, await escopoSupervisor(B, nomeSup, fl));
+    }
+    if (!r) return `🔎 Não achei *${titulo(mPro[1].replace(FIL_RX, '').trim().toLowerCase())}*${filCit ? ` na ${filCit}` : ''}. Confere o nome (ex.: "prospecção Vinicius de TCA").`;
+  }
   // B1 · MATINAL do proprio vendedor = o plano do dia dele (o mesmo do "bom dia"), nunca a matinal antiga do "ontem 13/11"
   if (papel === 'vendedor' && rcaV && /^\W*(MINHA\s+)?MATINAL\W*$/.test(t)) {
     const Ev = await carregaEscopo(B, esc); const m = await (await MO()).respMomento(B, c, Ev, HORA() < 11 ? 'plano' : HORA() < 15 ? 'meio' : 'fechamento');
     if (m && m.texto) return m.texto;
   }
 
+  // E5 · VISITADOS HOJE E 30+ DIAS SEM COMPRAR (Vitorio, 17/11/2026: "o cara visitou o cliente, nao compra a 30 dias e vamos fazer o que com isso?")
+  if (acima && /VISITAD\w* SEM COMPRA|VISITOU E NAO COMPR|30\+? DIAS SEM COMPRA/.test(t)) {
+    const fil = filCit || (papel === 'gerente' ? c.filial : null);
+    const E = await carregaEscopo(B, fil ? { nome: fil, filiais: [fil], grupo: null } : (papel === 'diretoria' || papel === 'ceo') ? { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true } : esc);
+    const { respVisitadosSemCompra } = await import('./respostas/rota.js'); const r = await respVisitadosSemCompra(E, B); if (r) return r;
+  }
   // C11 · TENDENCIA DAS FILIAIS / DO BRASIL (nunca presa na filial da pergunta anterior)
   if (acima && (papel === 'diretoria' || papel === 'ceo') && /TENDENCIA/.test(t) && /\b(FILIAIS|BRASIL|TODAS|REDE|GERAL)\b/.test(t) && !filCit) {
     const { respTendencia } = await import('./respostas/gestao.js');

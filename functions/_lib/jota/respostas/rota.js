@@ -68,21 +68,67 @@ export function respAVisitar(E, pessoa) {
   L.push(pior && pior.aVisitar.length ? SUGESTAO + `${nome2(pior.nome)} tem ${pior.aVisitar.length} clientes por visitar.` : SUGESTAO + 'rota do dia concluída.');
   return L.join('\n');
 }
-export function respZerados(E) {
-  const Z = E.vend.filter((v) => v.zerado), SV = E.vend.filter((v) => v.semVisita);
-  if (!Z.length) return `✅ *Zerados hoje — ${E.nome}: 0.* Nenhum vendedor do varejo com rota está sem pedido agora.`;
-  const G = [...agrupa(Z, (v) => supChave(v, E.nacional))].sort((a, b) => b[1].V.length - a[1].V.length);
-  const L = [`⚠️ *Zerados hoje — ${E.nome}* (varejo com rota e sem pedido): *${Z.length}* · sem nenhuma visita: ${SV.length}`, ''];
-  for (const [s, x] of G.slice(0, 15)) L.push(`*${supNome(s)}*: ` + x.V.map((v) => `${vn(v)} (${v.visF}/${v.visP} vis.)`).join(', '));
-  if (G.length > 15) L.push(`… e mais ${G.length - 15} supervisores`);
-  // 17/11/2026 (Vitorio: "onde esta nessa lista os 8 vendedores sem visitas de TCA? nao consegui encontrar"): o numero do cabecalho vem com os nomes
+// ZERADOS (Vitorio, 17/11/2026: "zerados tem que mostrar TODOS do varejo... sem visita separado para dar mais visibilidade, e penalti pior que tudo...
+// nao vender e uma coisa, nao visitar e pior de tudo... dos visitados, quantos clientes estao sem venda a mais de 30 dias, e a opcao de ver eles").
+// Ordem: 1) SEM NENHUMA VISITA (o pior) 2) TODOS os zerados do varejo (visitou e nao vendeu), com quantos clientes visitados hoje estao 30+ dias sem comprar
+// (Clube: justificativa do dia com dias sem comprar). Sem corte de lista. Detalhe dos clientes: "visitados sem compra 30 dias".
+async function justif30(B, E) {
+  const M = new Map(); if (!B || !B.env || !B.env.DB) return M;
+  try {
+    const fil = E.filiais && E.filiais.length ? E.filiais : [...new Set(E.vend.map((v) => v.filial))];
+    const { results } = await B.env.DB.prepare(`SELECT filial, rca, cliente, fantasia, razao, dias_sem_comprar d, motivo, obs FROM clube_justificativa WHERE dia = ? AND filial IN (${fil.map(() => '?').join(',')}) AND CAST(dias_sem_comprar AS INTEGER) > 30 ORDER BY CAST(dias_sem_comprar AS INTEGER) DESC`).bind(hojeSP(), ...fil).all();
+    for (const r of results || []) { const k = r.filial + '|' + r.rca; if (!M.has(k)) M.set(k, []); if (!M.get(k).some((x) => String(x.cliente) === String(r.cliente))) M.get(k).push(r); }
+  } catch (e) { /* sem Clube: sem a contagem */ }
+  return M;
+}
+export async function respZerados(E, B = null) {
+  const VJ = E.vend.filter((v) => v.varejo && pessoaReal(v));
+  const SV = VJ.filter((v) => v.semVisita), Z = VJ.filter((v) => v.zerado && !v.semVisita);
+  if (!Z.length && !SV.length) return `✅ *Zerados hoje — ${E.nome}: 0.* Todo o varejo com rota já visitou e vendeu.`;
+  const J = await justif30(B, E), j30 = (v) => (J.get(v.filial + '|' + v.rca) || []).length;
+  const L = [`⚠️ *Zerados hoje — ${E.nome}* (varejo com rota)`, `🚨 Sem nenhuma visita: *${SV.length}* · 🟡 visitou e não vendeu: *${Z.length}*`];
+  const bloco = (lista, fmt) => { const G = [...agrupa(lista, (v) => supChave(v, E.nacional))].sort((a, b) => b[1].V.length - a[1].V.length); for (const [k, x] of G) { L.push(`*${supNome(k)}* (${x.V.length}):`); for (const v of x.V) L.push(fmt(v)); } };
   if (SV.length) {
-    const GS = [...agrupa(SV, (v) => supChave(v, E.nacional))].sort((a, b) => b[1].V.length - a[1].V.length);
-    L.push('', `🚫 *Sem nenhuma visita hoje (${SV.length}):*`);
-    for (const [s, x] of GS.slice(0, 15)) L.push(`*${supNome(s)}*: ` + x.V.map((v) => `${vn(v)} (0/${v.visP} vis.${v.dig > 0 || v.ped > 0 ? ' · tem pedido' : ''})`).join(', '));
-    if (GS.length > 15) L.push(`… e mais ${GS.length - 15} supervisores`);
+    L.push('', `🚨 *SEM NENHUMA VISITA (${SV.length})* — o pior: rota parada`);
+    bloco(SV, (v) => `• ${vn(v)} · 0 de ${v.visP} clientes${v.dig > 0 || v.ped > 0 ? ' · tem pedido (fora da rota)' : ''}`);
   }
-  L.push('', SUGESTAO + `começar por ${supNome((G.find(([k]) => supReal(k)) || G[0])[0])}: ${G[0][1].V.length} zerado(s).`);
+  if (Z.length) {
+    L.push('', `🟡 *VISITOU E NÃO VENDEU (${Z.length})*`);
+    bloco(Z, (v) => `• ${vn(v)} · ${v.visF} de ${v.visP} visitas${j30(v) ? ` · *${j30(v)} visitado(s) há 30+ dias sem comprar*` : ''}`);
+  }
+  const tot30 = VJ.reduce((a, v) => a + j30(v), 0), z30 = Z.reduce((a, v) => a + j30(v), 0);
+  if (tot30) L.push('', `📌 No varejo de ${E.nome}, *${tot30} cliente(s)* visitados hoje estão há mais de 30 dias sem comprar${z30 ? ` (${z30} deles com os zerados acima)` : ''}. Escreva *visitados sem compra* para ver quem são e o que fazer.`);
+  const pior = SV.length ? SV : Z;
+  L.push('', SUGESTAO + (SV.length ? `ligar agora para quem está sem nenhuma visita: ${listaNomes(SV, 3)}.` : `começar pelos zerados com cliente parado: ${listaNomes(Z.slice().sort((a, b) => j30(b) - j30(a)), 3)}.`));
+  void pior;
+  return L.join('\n');
+}
+// O QUE FAZER COM O CLIENTE VISITADO QUE NAO COMPRA HA 30+ DIAS: acao pelo motivo que o vendedor registrou no Clube (regra fixa, sem inventar)
+const ACAO_MOTIVO = [
+  [/ESTOQUE/, 'oferecer o que ele não tem (mix novo / +MIX) e combinar o próximo pedido'],
+  [/AUSENTE|COMPRADOR|DONO|RESPONSAVEL/, 'ligar hoje para o comprador e agendar retorno'],
+  [/PRECO|CONCORR/, 'supervisor avaliar condição/preço com o vendedor'],
+  [/DIGITAR|DIGITA/, 'cobrar a digitação do pedido hoje'],
+  [/FECHAD|ENCERR/, 'confirmar se fechou mesmo (supervisor); se fechou, pedir a inativação e tirar da rota'],
+  [/SEM INTERESSE|NAO QUER/, 'supervisor ir junto na próxima visita com oferta/condição'],
+  [/NAO ENTREGUE|ENTREGA/, 'ver com a logística a entrega do pedido anterior e avisar o cliente'],
+  [/FINANCEIR|CREDITO|LIMITE|BLOQUE|INADIMPL/, 'ver o financeiro/limite com o supervisor'],
+  [/SEM DINHEIRO|CAIXA/, 'oferecer pedido menor ou prazo; voltar na data combinada'],
+];
+const acaoDe = (m) => { const t = sem(String(m || '')); const a = ACAO_MOTIVO.find(([re]) => re.test(t)); return a ? a[1] : 'supervisor conversar com o vendedor sobre esse cliente'; };
+export async function respVisitadosSemCompra(E, B) {
+  const J = await justif30(B, E), VJ = E.vend.filter((v) => v.varejo && pessoaReal(v));
+  const L = [`📌 *Visitados hoje e 30+ dias sem comprar — ${E.nome}*`];
+  let n = 0;
+  for (const v of VJ.slice().sort((a, b) => (J.get(b.filial + '|' + b.rca) || []).length - (J.get(a.filial + '|' + a.rca) || []).length)) {
+    const cs = J.get(v.filial + '|' + v.rca) || []; if (!cs.length) continue;
+    L.push('', `*${vn(v)}* (${cs.length}):`);
+    for (const c of cs) { n++; L.push(`• ${titulo(String(c.fantasia || c.razao || 'Cliente #' + c.cliente).toLowerCase())} (#${c.cliente}) · *${N(c.d)} dias* · ${titulo(String(c.motivo || 'sem motivo').toLowerCase())}
+   👉 ${acaoDe(c.motivo)}`); }
+  }
+  if (!n) return `✅ *${E.nome}*: nenhum cliente visitado hoje está há mais de 30 dias sem comprar (Clube da Venda).`;
+  L.splice(1, 0, `*${n}* cliente(s) · ação pelo motivo que o vendedor registrou no Clube`);
+  L.push('', '_Clube da Venda · justificativas de hoje._');
   return L.join('\n');
 }
 export function respVisitas(E) {
