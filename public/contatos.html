@@ -2593,7 +2593,7 @@ if ($('bc-btn-enviar')) {
     btnCanc.style.display = 'inline-flex';
     boxProg.style.display = 'block';
 
-    let enviadosOk = 0;
+    let enviadosOk = 0, cortadosTeto = 0;
     let falhas = 0;
 
     for (let i = 0; i < dests.length; i++) {
@@ -2624,6 +2624,8 @@ if ($('bc-btn-enviar')) {
         if (r.ok) enviadosOk++;
         else falhas++;
       } catch (e) {
+        // TETO ANTIBAN (Vitorio, 17/11/2026: "respeita o teto... passou das mensagens vc corta"): bateu no teto do dia = para aqui; o resto fica para amanha
+        if (/teto antiban/i.test(String(e && e.message || ''))) { cortadosTeto = dests.length - i; break; }
         falhas++;
       }
 
@@ -2634,7 +2636,9 @@ if ($('bc-btn-enviar')) {
 
     btnEnv.disabled = false;
     btnCanc.style.display = 'none';
-    txtProg.textContent = ENVIO_LOTE_CANCELADO
+    txtProg.textContent = cortadosTeto
+      ? `🛑 Teto antiban do dia atingido: ${enviadosOk} enviado(s) · ${cortadosTeto} cortado(s) — envie esses amanhã (${falhas} falha(s)).`
+      : ENVIO_LOTE_CANCELADO
       ? `Envio interrompido: ${enviadosOk} enviado(s), ${falhas} falha(s).`
       : `✅ Disparo concluído! ${enviadosOk} enviado(s) com sucesso (${falhas} falha(s)).`;
     aviso(`Disparo finalizado: ${enviadosOk} mensagem(ns) enviada(s)!`, enviadosOk > 0 ? 'ok' : 'erro');
