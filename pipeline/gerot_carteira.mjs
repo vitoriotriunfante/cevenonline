@@ -28,6 +28,25 @@ async function api(metodo, sufixo, corpo) {
 const num = (v) => { if (v == null || v === '') return 0; if (typeof v === 'number') return v; const s = String(v).replace(/[R$\s]/g, ''); const n = Number(s.includes(',') ? s.replace(/\./g, '').replace(',', '.') : s); return Number.isFinite(n) ? n : 0; };
 const dataISO = (v) => { if (v == null || v === '') return null; if (typeof v === 'number') return new Date(Math.round((v - 25569) * 864e5)).toISOString().slice(0, 10); const t = String(v).trim(); let m = t.match(/^(\d{2})\/(\d{2})\/(\d{4})/); if (m) return `${m[3]}-${m[2]}-${m[1]}`; m = t.match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[0] : null; };
 
+// VENDEDOR DO PEDIDO: Gestao de Equipe (/api/tv-mostra) por filial + nome. Ordem: codigo escrito na planilha > nome igual na filial > nome parecido
+// (todas as palavras de um contidas no outro) e unico na filial > comeco do numero do pedido, so se esse codigo for da filial e o nome bater. Senao: null.
+const semAc = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/^(CLT|PJ)\s*-?\s+/, '').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+let EQ = new Map();   // filial -> [{ rca, n }]
+async function carregaEquipe() {
+  try { const m = await (await fetch((process.env.SITE_CFTV || 'https://ceven-cftv-matrix.pages.dev') + '/api/tv-mostra', { signal: AbortSignal.timeout(30000) })).json();
+    for (const [f, lista] of Object.entries(m.filiais || {})) for (const v of lista || []) if (v && v.rca != null) { const fil = String(f).toUpperCase().slice(0, 3); if (!EQ.has(fil)) EQ.set(fil, []); EQ.get(fil).push({ rca: String(v.rca), n: semAc(v.nome) }); }
+  } catch (e) { log('sem a Gestao de Equipe: vendedor so pelo codigo escrito na planilha'); }
+}
+const bate = (a, b) => { if (!a || !b) return false; if (a === b) return true; const wa = a.split(' '), wb = b.split(' '); const [p, q] = wa.length <= wb.length ? [wa, wb] : [wb, wa]; return p.length >= 2 && p.every((w) => q.includes(w)); };
+function rcaDoVendedor(filial, ven, pedido) {
+  const cod = (String(ven).match(/^\s*(\d+)\s*-/) || [])[1]; if (cod) return cod;
+  const n = semAc(String(ven).replace(/^\s*\d+\s*-\s*/, '')), L = EQ.get(filial) || [];
+  const igual = L.filter((x) => x.n === n); if (igual.length === 1) return igual[0].rca;
+  const par = L.filter((x) => bate(x.n, n)); if (par.length === 1) return par[0].rca;
+  const pre = pedido.length > 6 ? String(Number(pedido.slice(0, -6))) : null, v = pre && L.find((x) => x.rca === pre);
+  return v && (!n || bate(v.n, n) || v.n.split(' ')[0] === n.split(' ')[0]) ? pre : null;
+}
+
 function porPedido(arq) {
   const w = XLSX.readFile(arq), sh = w.Sheets[w.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(sh, { header: 1, defval: null });
@@ -50,8 +69,9 @@ function porPedido(arq) {
         status: I.st >= 0 ? String(r[I.st] || '').trim() || null : null, situacao: I.sit >= 0 ? String(r[I.sit] || '').trim() || null : null, motivo: I.mot >= 0 ? String(r[I.mot] || '').trim() || null : null,
         cliente: I.cli >= 0 ? String(r[I.cli] || '').trim() || null : null, cnpj: I.cnpj >= 0 ? String(r[I.cnpj] ?? '').replace(/\D/g, '') || null : null,
         status_cliente: I.stc >= 0 ? String(r[I.stc] || '').trim() || null : null, positivado: I.posm >= 0 ? String(r[I.posm] || '').trim() || null : null,
-        // 17/11/2026: a planilha traz so o nome do vendedor; o pedido comeca com o codigo dele (98,7% dos 23.424 pedidos do GEROT)
-        rca: (ven.match(/^\s*(\d+)/) || [])[1] || (pedido.length > 6 ? String(Number(pedido.slice(0, -6))) : null), vendedor: ven.replace(/^\s*\d+\s*-\s*/, '').trim() || null, sup_cod: (sup.match(/^\s*(\d+)/) || [])[1] || null,
+        // 17/11/2026 (Vitorio: "nao leve como verdade absoluta... o que diferencia e a filial"): o codigo do vendedor sai do NOME dele NA FILIAL (Gestao de Equipe);
+        // o comeco do numero do pedido so e aceito quando e um vendedor daquela filial E o nome bate; sem isso, fica sem vendedor (nunca o vendedor errado)
+        rca: rcaDoVendedor(filial, ven, pedido), vendedor: ven.replace(/^\s*\d+\s*-\s*/, '').trim() || null, sup_cod: (sup.match(/^\s*(\d+)/) || [])[1] || null,
         valor: 0, itens: 0, qped: 0, qfat: 0, fornecedores: [] };
       P.set(k, x);
     }
@@ -84,6 +104,7 @@ try {
   await b.click({ timeout: 15000 });
   const d = await dl; if (!d) throw new Error('exportar nao gerou arquivo em 4 min');
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gerot-cart-')), arq = path.join(tmp, 'carteira.xlsx'); await d.saveAs(arq);
+  await carregaEquipe();
   const { L, cab, linhas } = porPedido(arq);
   fs.rmSync(tmp, { recursive: true, force: true });
   log(`carteira: ${linhas} itens · ${L.length} pedidos · colunas ${JSON.stringify(cab)} · com status ${L.filter((x) => x.status).length} · com vendedor ${L.filter((x) => x.rca).length}`);
