@@ -1,0 +1,30 @@
+# FICHA DO ARQUIVO
+# O QUE E: mapa do DETALHAMENTO das telas Devolucoes e Cortes do GEROT (caminho por motivo / pedido). SO LEITURA, so manual.
+#   Log so com cabecalhos, colunas, tipos de linha e contagens (repositorio publico). Nada anexado, nada gravado.
+name: GEROT — mapa do detalhamento (devolucoes e cortes)
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: gerot-coleta
+  cancel-in-progress: false
+
+jobs:
+  mapear:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Instalar dependencias e navegador
+        run: |
+          npm ci --no-audit --no-fund
+          for t in 1 2 3 4; do npx playwright install --with-deps chromium && break; sleep 20; done
+      - name: Mapear detalhamento
+        env:
+          GEROT_EMAIL: ${{ secrets.GEROT_EMAIL }}
+          GEROT_SENHA: ${{ secrets.GEROT_SENHA }}
+        run: node pipeline/gerot_detalhe_mapa.mjs
