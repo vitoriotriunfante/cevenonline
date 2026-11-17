@@ -116,7 +116,7 @@ export async function respRegrasLiga(B) {
   if (!R || !R.pontos_por_lance) return 'Não consegui ler o regulamento da Liga agora.';
   const f = R.faixas_pontos_liga || {}, L = Object.values(R.pontos_por_lance).filter((x) => x && x.nome && x.pontos != null).sort((a, b) => b.pontos - a.pontos);
   return ['📜 *Regras da Liga (Champions)*', `Cada dia é uma rodada: *vitória* com ${(f.vitoria || {}).min_pontos ?? 11} pontos ou mais (3 na tabela) · *empate* de 1 a ${((f.vitoria || {}).min_pontos ?? 11) - 1} (1) · *derrota* com 0 ou menos (0).`, '',
-    ...L.map((x) => `${x.pontos > 0 ? '+' : ''}${x.pontos} · ${x.nome}`), '', '_Lance só vale com prova do CEVEN. Fechamento do dia às 19h30._'].join('\n');
+    ...L.map((x) => `${x.pontos > 0 ? '+' : ''}${x.pontos} · ${x.nome}`), '', '_Lance só vale com prova (Clube da Venda + GEROT). Fechamento do dia às 19h30._'].join('\n');
 }
 export function respGlossario(t) { const h = GLOSSARIO.filter(([re]) => re.test(t)).map(([, s]) => s); return h.length ? h.join('\n\n') : null; }
 // MENU DO VENDEDOR (Vitorio, 09/11/2026: "respostas prontas para atender 99% das solicitacoes, tudo com indices").

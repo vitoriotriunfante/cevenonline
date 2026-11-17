@@ -306,13 +306,13 @@ export async function respPedidosStatus(B, E, t) {
   const ehLiberado = alvo === 'LIBERADO';
   const ehBloqueado = alvo === 'BLOQUEADO';
   const titulo0 = alvo === 'CORTE' ? 'com corte' : ehBloqELiber ? 'bloqueados e liberados' : ehLiberado ? 'pendentes de faturamento (liberados)' : ehBloqueado ? 'bloqueados por crédito' : alvo === 'PENDENTES' ? 'ainda não faturados' : alvo ? alvo.toLowerCase() + 's' : 'de hoje';
-  if (!P.length) return `🧾 *Pedidos ${titulo0} — ${E.nome}*: ${naoConf ? `nenhum confirmado no CEVEN na última hora (${naoConf} ainda em conferência).` : 'nenhum na base agora.'}`;
+  if (!P.length) return `🧾 *Pedidos ${titulo0} — ${E.nome}*: ${naoConf ? `nenhum confirmado na última hora (${naoConf} ainda em conferência).` : 'nenhum na base agora.'}`;
   const porV = new Map(); for (const p of P) { const k = p.filial + '|' + p.rca; if (!porV.has(k)) porV.set(k, []); porV.get(k).push(p); }
   const tot = P.reduce((a, p) => a + (Number(p.total_clube || p.valor) || 0), 0);
   const cabeçalho = ehLiberado ? `💼 *Clientes com Pedidos Pendentes de Faturamento (Liberados) — ${E.nome}*` : ehBloqueado ? `🔒 *Pedidos bloqueados — ${E.nome}*` : `🧾 *Pedidos ${titulo0} — ${E.nome}*`;
   // STATUS COM IDADE (Vitorio, 31/10/2026: "ja ia ligar para todos os gerentes" por uma lista velha): diz quantos foram conferidos na ultima hora; nunca parece "agora" sem ser
   // 10/11/2026 (Marcelo/API 'quanto com bloqueio comercial?'): o CEVEN tem so o status BLOQUEADO, sem o motivo (credito x comercial); nunca afirmar o motivo
-  const L = [cabeçalho, ...(ehBloqueado ? ['_O CEVEN mostra só "bloqueado", sem dizer se é crédito ou comercial._'] : []), `Total: *${P.length} pedido(s)* · *${R$(tot)}*`, ...(ehAberto ? [`_Status da última conferência de cada pedido (hora ao lado) · ${confHora} de ${P0.length} conferidos na última hora._`] : [])];
+  const L = [cabeçalho, ...(ehBloqueado ? ['_A base mostra só "bloqueado", sem dizer se é crédito ou comercial._'] : []), `Total: *${P.length} pedido(s)* · *${R$(tot)}*`, ...(ehAberto ? [`_Status da última conferência de cada pedido (hora ao lado) · ${confHora} de ${P0.length} conferidos na última hora._`] : [])];
   if (E.nacional) { const pf = new Map(); for (const p of P) { const x = pf.get(p.filial) || { n: 0, v: 0 }; x.n++; x.v += Number(p.total_clube || p.valor) || 0; pf.set(p.filial, x); } L.push('', '*Por filial:*', ...[...pf].sort((a, b) => b[1].v - a[1].v).map(([f, x]) => `• *${f}*: ${x.n} pedido(s) · ${R$(x.v)}`)); }
   L.push('');
   let n = 0;

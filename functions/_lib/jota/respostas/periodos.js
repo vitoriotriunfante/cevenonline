@@ -62,7 +62,7 @@ export async function respComparaMes(B, E, t, pessoa) {
     }
     if (D.length) L.push('', SUGESTAO + `entender a queda de ${nomeK(D[0][0])} (${delta(D[0][1], D[0][2])}) antes do fechamento.`);
   }
-  L.push('_Régua: valor dos pedidos item a item (não é o faturado líquido do CEVEN)._');
+  L.push('_Régua: valor dos pedidos item a item (não é o faturado líquido do GEROT)._');
   return L.join('\n');
 }
 // DIAS SEM PEDIDO (pelas datas dos pedidos item a item; ultimos 60 dias = mes atual + anterior)

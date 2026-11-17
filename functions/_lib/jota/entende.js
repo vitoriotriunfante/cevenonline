@@ -305,7 +305,7 @@ async function respFichaCliente(B, E, t, achado) {
   // Sem pedido no historico (Fora de Hora/TPA, 31/10/2026: o app do CEVEN tambem vem vazio): diz isso e mostra as visitas do mes, com a justificativa
   if (!h) {
     const vis = (v.roteiroMes || []).filter((y) => String(y.id_cliente) === String(x.id_cliente) && (y.motivo_nao_visita || y.checkin_horario || /VISITADO|EFETIVADO|JUSTIFICADO/.test(String(y.status || '')))).sort((a, b) => String(b.data_visita).localeCompare(String(a.data_visita)));
-    return [cab, 'O CEVEN não mostra pedidos deste cliente no histórico.', ...(vis.length ? ['', '*Visitas do mês:*', ...vis.slice(0, 6).map((y) => `• ${dBr(y.data_visita)} · ${titulo(String(y.status || 'sem status'))}${y.motivo_nao_visita ? ' · ' + y.motivo_nao_visita : ''}`)] : ['Sem visita registrada no mês.']), '', SUGESTAO + 'peça "o que oferecer" para ver a lista do +MIX dele.'].join('\n');
+    return [cab, 'Não há pedidos deste cliente no histórico.', ...(vis.length ? ['', '*Visitas do mês:*', ...vis.slice(0, 6).map((y) => `• ${dBr(y.data_visita)} · ${titulo(String(y.status || 'sem status'))}${y.motivo_nao_visita ? ' · ' + y.motivo_nao_visita : ''}`)] : ['Sem visita registrada no mês.']), '', SUGESTAO + 'peça "o que oferecer" para ver a lista do +MIX dele.'].join('\n');
   }
   const itens = (h.skus_ultima_venda || []).map((s) => `• ${titulo(s.descricao)}: ${N(s.quantidade)} un. · ${R$(s.total)}`);
   const parou = (h.skus_parou || []).map((s) => `• ${titulo(s.descricao)}`);
@@ -823,7 +823,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     // SABATINA 01/11/2026: reclamacao sobre a resposta anterior nao recebe outro numero; pedido sem o nome de quem pede o nome; origem da meta tem resposta propria
     if (/^\W*(VOCE|VC|MAS VOCE|MAS VC) (SO |NAO |RESPONDEU|DIVAGOU|MOSTROU)|FOI ISSO QUE PERGUNTEI|NAO E ISSO QUE|DE NOVO VOCE|PRECISA AJ?USTAR AS RESPOSTAS/.test(t) && !/\b\d{2,}\b/.test(t)) return 'Entendi, a resposta anterior não atendeu, e registrei isso. Me diga em uma linha o que você quer ver: quem (filial, supervisor ou vendedor), qual indicador e qual período.';
     if (/^\W*CLIENTES?\s+(X\s+)?VENDEDORA?(\s+X)?(\s+HOJE)?\W*$|VENDEDORA?\s+X\b/.test(t)) return 'Qual vendedor? Troque o X pelo código ou nome. Exemplo: *clientes vendedor 228 hoje*.';
-    if (/DE ONDE .*(PUXOU|TIROU|VEIO|VEM).*META/.test(t)) return 'A meta vem do CEVEN: a vigente hoje na hierarquia da tela Filiais, a mesma do supervisor e do gerente. A soma dos vendedores dá a meta da equipe e da filial.';
+    if (/DE ONDE .*(PUXOU|TIROU|VEIO|VEM).*META/.test(t)) return 'A meta vem do GEROT: a meta do mês cadastrada para cada vendedor; a do supervisor, do gerente e da filial é a soma dos vendedores.';
     if (/^\W*TOP JOTA\W*$|^\W*JA GASTAMOS TUDO ISSO\W*$/.test(t)) return 'Não entendi essa. Me diga quem (filial, supervisor ou vendedor) e o que quer ver, como *ranking da minha equipe*.';
     // +MIX com vendedor ou equipe: o relatorio do +MIX, nunca as metas da Premiacao
     if (/\bMIX\b/.test(t) && /DESEMPENHO/.test(t)) { const Ex = await carregaEscopo(B, esc), mx = await respMix(B, Ex, t); if (mx) return mx; }
@@ -838,7 +838,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
       return [`↩️ *Devolução "cliente não pediu" no mês — ${Ed.nome}*: *${R$(tot)}*`, `*Por ${Ed.nacional ? 'filial' : 'supervisor'}:*`, ...[...porG].sort((a, b) => b[1] - a[1]).slice(0, 11).map(([k, x]) => `• ${Ed.nacional ? k : nome2(k)}: ${R$(x)}`), '*Vendedores:*', ...porV.sort((a, b) => b[1] - a[1]).slice(0, 10).map(([v, x]) => `• ${vn(v)}${Ed.nacional ? ' ' + v.filial : ''}: ${R$(x)}`), semMotivo ? `_${N(semMotivo)} nota(s) ainda sem motivo lido não entram nesta conta._` : ''].filter(Boolean).join('\n');
     }
     if (/ROTEIRO DA (MINHA )?EQUIPE/.test(t)) return reenvia('faltam visitar');
-    if (/CLOUDFLARE|CLOUDFARE/.test(t)) return 'Custo de sistema não é dado do CEVEN, então não tenho aqui. Posso te passar vendas, metas, rota e clientes.';
+    if (/CLOUDFLARE|CLOUDFARE/.test(t)) return 'Custo de sistema não é dado de vendas, então não tenho aqui. Posso te passar vendas, metas, rota e clientes.';
     const semAlvo = !/\b(VENDEDOR|RCA|SUPERVISOR|CLIENTE|INDUSTRIA|PRODUTO|HOJE)\b|\bDE [A-Z]{4,}\b/.test(t);
     if (semAlvo && /BATE(MOS|U|RAM) A META|^\W*FATUROU\W*$|^\W*(QUANTO )?(ESTA )?FATURADO\W*$|QUANTO FATURAMOS/.test(t)) return respResumo(B, await carregaEscopo(B, esc));
     if (/VENDEDORA? X\b/.test(t)) return 'Qual vendedor? Troque o X pelo código ou nome. Exemplo: *clientes vendedor 228 hoje*.';
@@ -898,7 +898,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/ATESTADO|DEMITID|DESLIGAD|FERIAS|AFASTAD|LICENCA|DESCONSIDER|SAIU DA EMPRESA|PEDIU DEMISSAO/.test(t) && c.papel !== 'vendedor') return respInfoEquipe(B.env, c, texto);
   if (/DOBRADINHA|DUAS QUINZENAS/.test(t)) return respDobradinha(B, await carregaEscopo(B, esc));
   if (/HISTORICO DIARIO/.test(t)) return SEM_HISTORICO;
-  if (/HORARIOS? DAS? ATUALIZA|QUANDO (VOCE|VC) ATUALIZA|DE QUANTO EM QUANTO/.test(t)) return '⏱️ *Atualizações:* a base do CEVEN é lida a cada 2 min (06h–21h, seg–sáb; fora disso a cada 30 min). Lances da Liga a cada 5 min. Vendas item a item: toda madrugada (até ontem). Relatórios do WhatsApp: 07:45, 10:00, 11:30, 14:30, 17:00 e 18:30.';
+  if (/HORARIOS? DAS? ATUALIZA|QUANDO (VOCE|VC) ATUALIZA|DE QUANTO EM QUANTO/.test(t)) return '⏱️ *Atualizações:* o dia (pedidos, visitas, check-in e justificativas) vem do *Clube da Venda*, lido a cada 30 min (de madrugada, de hora em hora); o mês (faturado, carteira, metas, positivação, pedidos) vem do *GEROT*, carregado a cada ~2 h (07h15 às 19h15).';
   const ehMP = /MARCAS? PROPRIAS?|NOSSAS MARCAS|ZIPOCA|CALIRA|MITBIT|BELLARONE|SKIVE/.test(t);
   // RELATORIO AUTOMATICO so para diretoria/gerente pedindo O RELATORIO (27/10/2026: supervisor com "relatorio de positivacao por industria do Fabio" e
   // "como foi a venda do vendedor 60 ontem" recebia "os relatorios automaticos sao da gerencia"). "Ontem" com equipe/vendedor = pedidos de ontem (abaixo).
@@ -992,7 +992,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     return [
       '🔄 *Regra da Meta de Recorrência (Premiação e Liga)*',
       '',
-      '• *Como o cliente é escolhido:* são os clientes com a tag RECORRÊNCIA na carteira do CEVEN — clientes chave que compraram com frequência nos últimos meses e têm histórico de compra recorrente.',
+      '• *Como o cliente é escolhido:* são os clientes com a tag RECORRÊNCIA nos Clientes Foco — clientes chave que compraram com frequência nos últimos meses e têm histórico de compra recorrente.',
       '• *Meta da Premiação:* o vendedor e a equipe precisam positivar no mínimo *80%* dos clientes com a tag RECORRÊNCIA até o fechamento do mês (vale 10% da pontuação total da premiação).',
       '• *Na Liga:* cada venda faturada em cliente de recorrência conta como lance de *DEFESA* (+3 pontos para o seu time na rodada).',
       '',
@@ -1013,7 +1013,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
       '',
       'Para conferir se um pedido já foi entregue ao cliente ou visualizar a foto do canhoto assinado, consulte diretamente o *aplicativo NEXUS* da equipe de logística/entregas.',
       '',
-      '💡 O Jota acompanha pedidos faturados, carteira e positivação no CEVEN; a confirmação de rota física e canhotos de entrega ficam disponíveis em tempo real diretamente no NEXUS.'
+      '💡 O Jota acompanha pedidos faturados, carteira e positivação no GEROT e o dia no Clube da Venda; a confirmação de rota física e canhotos de entrega ficam disponíveis em tempo real diretamente no NEXUS.'
     ].join('\n');
   }
   // PASTAS DE INDÚSTRIAS POR GERENTE / SUPERVISOR / VENDEDOR (Vitório, 30/10/2026: Cleverson MCD / Allison TPH)
@@ -1258,9 +1258,9 @@ export async function respostaInterna(B, c, texto, anteriores) {
     try { await B.registraPedido('divergencia', texto, c.nome, c); } catch (e) {}
     const x = await totaisOficiais(B, E);
     return [`🔎 *Anotei a divergência para conferir hoje, ${titulo(String(c.nome || '').split(' ')[0])}.* De onde vêm os meus números (${E.nome}):`,
-      `• *Faturado e pendente:* painel de cada vendedor no CEVEN (atualiza ao longo do dia): ${R$(x.fat)} + ${R$(x.pend)}`,
-      `• *Meta:* a da hierarquia do CEVEN (tela do supervisor/gerente): ${R$(x.meta)}`,
-      `• *Positivação:* clientes com faturamento no mês, do CEVEN: ${N(x.pos)} de ${N(x.metaPos)}`,
+      `• *Faturado e pendente:* GEROT (carga a cada ~2 h): ${R$(x.fat)} + ${R$(x.pend)}`,
+      `• *Meta:* a cadastrada no GEROT para cada vendedor (a mesma do supervisor e do gerente): ${R$(x.meta)}`,
+      `• *Positivação:* clientes com faturamento no mês, do GEROT: ${N(x.pos)} de ${N(x.metaPos)}`,
       '', 'Me diga *qual número* e *qual valor* você vê (ou mande o print) que eu comparo vendedor a vendedor.'].join('\n');
   }
   // EQUIPE (Vitorio, 27/10/2026): "como esta o dia da minha equipe" = 1 mensagem, 1 linha por vendedor (rota) + sugestao do que pedir; "panorama da minha equipe" =
@@ -1557,7 +1557,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
       `Visitas planejadas: *${m.plan}* · realizadas: *${m.real}*` + (m.efic != null ? ` (eficiência ${String(m.efic).replace('.', ',')}%)` : ''),
       `Pedidos na rota: *${m.pedRota}*` + (semVenda != null ? ` → *${semVenda} visitas sem venda* no mês` : ''),
       `Positivação do mês: ${v.pos ?? 'sem dado'} de ${v.metaPos != null ? Math.round(v.metaPos) : 'sem meta'} clientes`,
-      '', '_A lista cliente a cliente do mês (a curva negativa) depende do roteiro do mês, que ainda não está gravado na base; os números acima são do CEVEN._',
+      '',
       '', SUGESTAO + (semVenda ? `rever com ${nome2(v.nome)} as ${semVenda} visitas sem venda do mês.` : 'manter o ritmo.')].join('\n');
   }
   // motivos de nao venda NO PERIODO (mes, semana, mes passado) ou do grupo: resumo noturno; os de HOJE seguem para a rota do dia

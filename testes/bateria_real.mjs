@@ -13,10 +13,13 @@ const M = sql(`SELECT m.celular, m.quando, m.texto, c.nome, c.papel, c.filial, c
 // fora da bateria: avaliacao (👍/👎), sugestao, pare, so emoji, vazio, audio sem transcricao, numero solto de menu (depende da tela anterior)
 const fora = (t) => !t || t.length < 3 || /^\s*(👍|👎|ok|obrigad|valeu|sim|nao|não)\W*$/i.test(t) || /^\W*sugest/i.test(t) || /^\W*(pare|para|chega)\W*$/i.test(t) || /^\W*\d{1,2}(\.\d)?\W*$/.test(t) || /^\[(imagem|figurinha|sticker|documento)/i.test(t);
 const porPessoa = new Map();
-for (const m of M) { if (!m.papel || fora(String(m.texto || '').trim())) continue; if (!porPessoa.has(m.celular)) porPessoa.set(m.celular, { c: { nome: m.nome, papel: m.papel, filial: m.filial, rca: m.rca, grupo: m.grupo, celular: m.celular, filiais: m.papel === 'diretoria' ? [] : undefined }, q: [] }); porPessoa.get(m.celular).q.push(String(m.texto).replace(/^\[áudio\]\s*/i, '').trim()); }
+for (const m of M) { if (!m.papel || m.papel === 'grupo' || fora(String(m.texto || '').trim())) continue;   /* grupo = conversa entre pessoas, nao pergunta ao Jota */ if (!porPessoa.has(m.celular)) porPessoa.set(m.celular, { c: { nome: m.nome, papel: m.papel, filial: m.filial, rca: m.rca, grupo: m.grupo, celular: m.celular, filiais: m.papel === 'diretoria' ? [] : undefined }, q: [] }); porPessoa.get(m.celular).q.push(String(m.texto).replace(/^\[áudio\]\s*/i, '').trim()); }
 const hora = new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
 let tot = 0, ok = 0; const porRegra = {}, porPapel = {}, falhas = [];
-for (const [, p] of porPessoa) {
+// 6 pessoas em paralelo (cada uma na ordem da propria conversa); parcial gravado a cada lote
+const PESSOAS = [...porPessoa.values()]; let prox = 0;
+async function trabalhador() { while (prox < PESSOAS.length) await umaPessoa(PESSOAS[prox++]); }
+async function umaPessoa(p) {
   const Q = [...new Set(p.q)];
   for (let i = 0; i < Q.length; i += 5) {
     const lote = Q.slice(i, i + 5);
@@ -30,8 +33,10 @@ for (const [, p] of porPessoa) {
       falhas.push({ papel: p.c.papel, quem: `${p.c.nome} ${p.c.filial || ''}`, pergunta: x.pergunta, regras: vazio ? ['VAZIO'] : bloq.map((f) => `${f.id} ${f.detalhe || ''}`), resposta: resp.slice(0, 500) });
     }
     process.stdout.write(`\r${ok}/${tot}`);
+    fs.mkdirSync('saida_auditoria', { recursive: true }); fs.writeFileSync('saida_auditoria/BATERIA_PARCIAL.json', JSON.stringify({ tot, ok, porPapel, porRegra, falhas }));
   }
 }
+await Promise.all(Array.from({ length: 6 }, trabalhador));
 console.log(`\nAPROVADAS ${ok} de ${tot} (${(ok / Math.max(1, tot) * 100).toFixed(1)}%) · reprovadas ${tot - ok} (${((tot - ok) / Math.max(1, tot) * 100).toFixed(1)}%)`);
 console.log('por papel', JSON.stringify(porPapel)); console.log('por regra', JSON.stringify(porRegra));
 fs.mkdirSync('saida_auditoria', { recursive: true });

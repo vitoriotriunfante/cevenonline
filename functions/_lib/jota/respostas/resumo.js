@@ -221,7 +221,7 @@ export async function respHoje(B, E, t) {
   { const lm = V.map((v) => v.pedLidoEm).filter(Boolean).sort()[0]; if (lm && !(B && B._clube)) L.splice(2, 0, `_Pedidos lidos até ${new Date(lm).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })} (leitura mais antiga)._`); }
   L.push('', '👉 *Digite o número* (ex.: 1) para ver a rota e o detalhe do vendedor.');
   // CEVEN fora (12/11/2026): sem as visitas de hoje, 'sem pedido' nao vira cobranca
-  L.push('', SUGESTAO + (B && B._reserva && !B._clube ? 'o CEVEN está sem resposta: sem as visitas de hoje, quem está sem pedido não deve ser cobrado por isso agora.' : z.length ? `cobrar quem tem rota e está sem pedido: ${listaNomes(z, 3)}.` : !tot.ped ? 'ainda sem pedido hoje; acompanhar a primeira visita de cada vendedor.' : V.some((v) => !v.ped) ? `ainda sem pedido hoje: ${listaNomes(V.filter((v) => !v.ped), 3)}.` : 'todo mundo com rota já tem pedido; focar em mix por cliente.'));
+  L.push('', SUGESTAO + (B && B._reserva && !B._clube ? 'ainda sem a leitura das visitas de hoje (Clube da Venda): quem está sem pedido não deve ser cobrado por isso agora.' : z.length ? `cobrar quem tem rota e está sem pedido: ${listaNomes(z, 3)}.` : !tot.ped ? 'ainda sem pedido hoje; acompanhar a primeira visita de cada vendedor.' : V.some((v) => !v.ped) ? `ainda sem pedido hoje: ${listaNomes(V.filter((v) => !v.ped), 3)}.` : 'todo mundo com rota já tem pedido; focar em mix por cliente.'));
   return L.join('\n');
 }
 
@@ -256,7 +256,7 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
   const dn = diasUteisRestantes(); const falta = Math.max(0, v.meta - v.fat - (v.pend || 0)), metaPosR = v.metaPos != null ? Math.round(v.metaPos) : null, faltaPos = metaPosR != null && v.pos != null ? Math.max(0, metaPosR - Math.round(v.pos)) : null;
   const L = [`🧑‍💼 *${v.rca} - ${titulo(v.nome)}* — ${v.filial} · sup. ${sn(v.supervisor, v.supCod)} · ${v.canal || 'sem canal'}`,
     `💰 Faturado: *${R$(v.fat)}* + pendente ${R$(v.pend)} de ${R$(v.meta)} → *${pctTxt(v.meta ? (v.fat + (v.pend || 0)) / v.meta * 100 : null)}* da meta`, `🎯 Falta: ${R$(falta)}` + (falta && dn ? ` · ${R$(falta / dn)} por dia útil (${dn} dias)` : ''),
-    `👥 Positivação: ${v.pos != null ? N(Math.round(v.pos)) : 'sem dado'} de ${metaPosR != null ? N(metaPosR) : 'sem dado'} (${P(v.pos, metaPosR)})` + (faltaPos ? ` · faltam ${N(faltaPos)} ${faltaPos === 1 ? 'cliente' : 'clientes'}` : ''),
+    (v.pos == null && metaPosR == null ? '👥 Positivação: sem dado agora' : `👥 Positivação: ${v.pos != null ? N(Math.round(v.pos)) : '—'} de ${metaPosR != null ? N(metaPosR) : '—'}${v.pos != null && metaPosR ? ` (${P(v.pos, metaPosR)})` : ''}`) + (faltaPos ? ` · faltam ${N(faltaPos)} ${faltaPos === 1 ? 'cliente' : 'clientes'}` : ''),
     /* 17/11/2026 (regua R03 as 06h: 'Hoje: R$ 0' antes da 1a leitura do Clube): sem leitura do dia, nunca zero */
     !DC ? `📝 Hoje: aguardando a 1ª leitura do Clube (a partir das 7h)` : `📝 Hoje: ${R$(v.dig)} em ${v.ped} ${v.ped === 1 ? 'pedido' : 'pedidos'}` + ` · ticket ${v.ped ? R$(v.dig / v.ped) : 'sem pedido hoje'}` + (v.visP ? ` · visitas ${v.visF} de ${v.visP} · com venda ${v.comVenda}` : ''), `↩️ Devolução no mês: ${R$(v.dev)}`];
   if (v.visPlanMes) L.push(`📅 Rota do mês: ${v.visRealMes} de ${v.visPlanMes} visitas (${P(v.visRealMes, v.visPlanMes)})`);
@@ -265,7 +265,7 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
   const mx = await B.mix(); const mv = mx && (mx.vendedores || []).find((x) => String(x.rca) === v.rca && x.filial === v.filial);
   // 10/11/2026 (Vitorio: 'essa informacao vem de onde?'): o mix do vendedor e o do CEVEN (Produtividade > Mix do mes), igual a tela dele
   const n1 = (x) => (Math.round(x * 10) / 10).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  if (v.mixMes && v.mixMes.clientes_distintos) L.push(`🧺 *Mix do mês (CEVEN):* *${n1(v.mixMes.soma_skus_por_cliente / v.mixMes.clientes_distintos)} produtos diferentes por cliente* · ${v.mixMes.skus_distintos} SKUs em ${v.mixMes.clientes_distintos} clientes`);
+  if (v.mixMes && v.mixMes.clientes_distintos) L.push(`🧺 *Mix do mês:* *${n1(v.mixMes.soma_skus_por_cliente / v.mixMes.clientes_distintos)} produtos diferentes por cliente* · ${v.mixMes.skus_distintos} SKUs em ${v.mixMes.clientes_distintos} clientes`);
   // USO DO +MIX e PRODUTOS QUE MAIS INTRODUZIU (Vitorio, 10/11/2026): do estudo do +MIX (dados_mix.json, pedidos do mes x lista gravada antes da compra)
   if (mv && mv.clientes_com_lista) L.push(`📲 *Uso do +MIX:* ${mv.clientes_usou} de ${mv.clientes_com_lista} clientes compraram produto novo da lista do +MIX${mv.uso_pct != null ? ` (*${n1(mv.uso_pct)}%*)` : ''}`);
   // OS 5 PRODUTOS QUE O VENDEDOR MAIS VENDE (Vitorio, 10/11/2026: 'colocar os 5 produtos que cada vendedor mais vende apos esse diagnostico'): mais clientes no mes
@@ -496,7 +496,7 @@ export function respTodosVendedores(E) {
   return [`👥 *${E.nome} — vendedor por vendedor* (do mais atrás para o mais à frente)`, '',
     ...V.map(({ v, pct, falta }) => `• *${vn(v)}*: ${pct == null ? 'sem meta' : pctTxt(pct)} da meta · falta ${R$(falta)} · positivação ${v.pos ?? '—'}/${v.metaPos ?? '—'} · hoje ${R$(v.dig)}`),
     '',
-    '_% = (faturado + pendente) ÷ meta, igual ao CEVEN. Peça "vendedor <nome>" para ver a ficha completa e encaminhar._'].join('\n');
+    '_% = (faturado + pendente) ÷ meta. Peça "vendedor <nome>" para ver a ficha completa e encaminhar._'].join('\n');
 }
 
 // MENSAGENS INDIVIDUAIS POR VENDEDOR PARA ENCAMINHAR (Vitorio, 29/10/2026):

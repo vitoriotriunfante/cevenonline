@@ -29,7 +29,7 @@ Regras fundamentais:
       {
         role: 'user',
         parts: [
-          { text: `${promptSistema}\n\n--- DADOS REAIS DO CEVEN ---\n${JSON.stringify(dadosContexto, null, 2)}\n\n--- PERGUNTA DO GESTOR (${c.nome} - ${c.papel} ${c.filial || ''}) ---\n"${texto}"` }
+          { text: `${promptSistema}\n\n--- DADOS REAIS (GEROT e Clube da Venda) ---\n${JSON.stringify(dadosContexto, null, 2)}\n\n--- PERGUNTA DO GESTOR (${c.nome} - ${c.papel} ${c.filial || ''}) ---\n"${texto}"` }
         ]
       }
     ],
@@ -65,7 +65,7 @@ Regras fundamentais:
       const r = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
         messages: [
           { role: 'system', content: promptSistema },
-          { role: 'user', content: `--- DADOS REAIS DO CEVEN ---\n${JSON.stringify(dadosContexto, null, 2)}\n\n--- PERGUNTA DO GESTOR (${c.nome} - ${c.papel} ${c.filial || ''}) ---\n"${texto}"` }
+          { role: 'user', content: `--- DADOS REAIS (GEROT e Clube da Venda) ---\n${JSON.stringify(dadosContexto, null, 2)}\n\n--- PERGUNTA DO GESTOR (${c.nome} - ${c.papel} ${c.filial || ''}) ---\n"${texto}"` }
         ],
         max_tokens: 1200,
         temperature: 0.2

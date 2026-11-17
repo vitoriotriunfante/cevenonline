@@ -188,7 +188,7 @@ export async function respPositivacao(B, E) {
     ...G.map(([k, y]) => `• ${E.nacional || porVend ? k : nome2(k)}: ${N(y.pos)} de ${N(y.metaPos)} (${P(y.pos, y.metaPos)}) · faltam ${N(Math.max(0, y.metaPos - y.pos))}`), '', SUGESTAO + (G.length ? `o mais atrás é ${E.nacional || porVend ? G[G.length - 1][0] : nome2(G[G.length - 1][0])}.` : 'sem meta de positivação cadastrada.'),
     E.nacional
       // BRASIL (Vitorio, 26/10/2026): deixar claro por que a soma passa da meta do grupo (27.000 PDVs) e o que nao entra
-      ? '⚠️ _Atenção: esta é a *soma do CEVEN* (vendedor a vendedor). Ela fica *maior que a meta do grupo de 27.000 PDVs*, porque há filiais com mais de uma pasta: o mesmo cliente comprado por duas pastas conta duas vezes. Também *não entram* os PDVs com pedido ainda pendente de faturamento._'
+      ? '⚠️ _Atenção: esta é a *soma vendedor a vendedor*. Ela fica *maior que a meta do grupo de 27.000 PDVs*, porque há filiais com mais de uma pasta: o mesmo cliente comprado por duas pastas conta duas vezes. Também *não entram* os PDVs com pedido ainda pendente de faturamento._'
       : '_Total = oficial da filial (igual à TV); a lista soma os vendedores mostrados._',
     E.nacional ? '❓ _Quer aberto por *supervisor* de alguma filial? É só pedir, ex.: "positivação TPH por supervisor"._' : !E.supervisor ? '❓ _Quer aberto por *vendedor* de algum supervisor? Ex.: "positivação do supervisor Nome"._' : ''].filter((x) => x !== '').join('\n');
 }
@@ -626,7 +626,7 @@ export async function respClientesVend(B, v, periodo) {
   const carteira = new Map(); for (const c of v.roteiroMes || []) { const k = String(c.id_cliente); if (!carteira.has(k)) carteira.set(k, c); }
   const nComp = [...carteira.values()].filter(comprouMes).length;
   // dois numeros, cada um com o que e (27/10/2026): positivacao oficial = clientes com FATURAMENTO (GEROT/CEVEN); carteira com pedido = inclui pedido ainda nao faturado
-  const fontePos = v.reforco && v.reforco.financeiro && /GEROT.*positiva/i.test(String(v.reforco.financeiro.fonte || '')) ? 'GEROT' : 'CEVEN';
+  const fontePos = v.reforco && v.reforco.financeiro && /GEROT.*positiva/i.test(String(v.reforco.financeiro.fonte || '')) ? 'GEROT' : 'base';
   const cab = `👥 Positivação (${fontePos}, faturado): *${v.pos ?? '—'} de ${v.metaPos ?? '—'}* · com pedido no mês: *${nComp} de ${carteira.size}* da carteira`;
   if (periodo === 'mes') {
     const comp = [...carteira.values()].filter(comprouMes).map((c) => ({ c, r: (porCli.get(String(c.id_cliente)) || { v: 0 }).v })).sort((a, b) => b.r - a.r);
@@ -677,7 +677,7 @@ export async function respDiaEquipe(B, E) {
     const lidoMin = Vs.map((v) => v.pedLidoEm).filter(Boolean).sort()[0];
     if (lidoMin && !(B && B._clube)) cab.splice(2, 0, `_Pedidos lidos até ${new Date(lidoMin).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })} (leitura mais antiga da equipe)._`);
     // CEVEN fora (12/11/2026): sem as visitas de hoje, 'sem pedido' nao vira cobranca
-    const sugestao = B && B._reserva && !B._clube ? 'o CEVEN está sem resposta: sem as visitas de hoje, quem está sem pedido não deve ser cobrado por isso agora.' : zerados.length
+    const sugestao = B && B._reserva && !B._clube ? 'ainda sem a leitura das visitas de hoje (Clube da Venda): quem está sem pedido não deve ser cobrado por isso agora.' : zerados.length
       ? `ainda sem pedido hoje: ${zerados.map((z) => nome2(z.nome)).slice(0, 3).join(', ')}.`
       : 'equipe inteira com pedidos digitados hoje! Golaço!';
     return [
@@ -849,7 +849,7 @@ export async function respCarteiraVendedor(B, v) {
   const jaNaCarteira = [...ids].filter((k) => compraram.has(k)).length;
   return [`👥 *Minha carteira — ${vn(v)}* (${v.filial})`,
     ids.size ? `📋 Clientes no seu roteiro do mês: *${ids.size}*` : '📋 Roteiro do mês: sem dado na base',
-    `🎯 Positivação (painel do ${v.reforco && v.reforco.financeiro && /GEROT.*positiva/i.test(String(v.reforco.financeiro.fonte || '')) ? 'GEROT' : 'CEVEN'}): *${v.pos ?? 'sem dado'}* de ${v.metaPos ?? 'sem dado'} clientes da meta`,
+    `🎯 Positivação (painel do ${v.reforco && v.reforco.financeiro && /GEROT.*positiva/i.test(String(v.reforco.financeiro.fonte || '')) ? 'GEROT' : 'base'}): *${v.pos ?? 'sem dado'}* de ${v.metaPos ?? 'sem dado'} clientes da meta`,
     ...(ids.size ? [`✅ Do roteiro, já compraram no mês (faturado ou pedido): *${jaNaCarteira}* · faltam *${ids.size - jaNaCarteira}*`] : []),
     '', '👉 Digite *5* no menu para a lista de quem falta.'].join('\n');
 }

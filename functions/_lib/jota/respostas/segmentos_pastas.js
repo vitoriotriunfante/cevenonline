@@ -367,7 +367,7 @@ export async function respProspeccaoMapas(B, E, t, pessoa) {
     '• Me pergunte: *"prospecção vendedor <código>"* (ex: "prospecção vendedor 115")',
     '• Ou cite o nome: *"prospects da rota do Claudio"*',
     '',
-    '💡 O Jota cruza a localização dos clientes da rota de hoje com a base da Receita e do CEVEN Mapas para indicar estabelecimentos comerciais vizinhos que ainda não compram!'
+    '💡 O Jota cruza a localização dos clientes da rota de hoje com a base da Receita para indicar estabelecimentos comerciais vizinhos que ainda não compram!'
   ].join('\n');
 }
 
