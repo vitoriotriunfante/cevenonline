@@ -5,6 +5,11 @@ name: Clube — mapa das telas (so leitura)
 
 on:
   workflow_dispatch:
+    inputs:
+      paginas:
+        description: "telas .xhtml separadas por virgula (vazio = procura rota/cliente)"
+        required: false
+        default: ""
 
 jobs:
   mapear:
@@ -23,4 +28,5 @@ jobs:
         env:
           TP_USER: ${{ secrets.TP_USER }}
           TP_PASS: ${{ secrets.TP_PASS }}
+          PAGINAS: ${{ github.event.inputs.paginas }}
         run: node pipeline/clube_mapa_telas.mjs

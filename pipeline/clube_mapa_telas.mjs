@@ -19,12 +19,19 @@ const links = await page.evaluate(() => [...document.querySelectorAll('a[href*="
 const unicos = [...new Map(links.map((x) => [x.h, x])).values()];
 log('telas do menu:', JSON.stringify(unicos.map((x) => `${x.h}=${x.t}`)));
 // as que podem ter a rota/roteiro/agenda/visita: abre, tenta "Gerar" com a data de hoje, registra colunas e quantidade de linhas
-for (const x of unicos.filter((u) => /rot|rota|agenda|visita|roteiro|planej|cliente/i.test(u.h + ' ' + u.t)).slice(0, 12)) {
+// 17/11/2026, 2a rodada: so as telas de pedido/rota que o 1o mapa achou (PAGINAS=a.xhtml,b.xhtml); registra os botoes e tenta os de busca
+const PAG = (process.env.PAGINAS || '').split(',').map((s) => s.trim()).filter(Boolean);
+const alvoT = PAG.length ? unicos.filter((u) => PAG.includes(u.h)).concat(PAG.filter((h) => !unicos.some((u) => u.h === h)).map((h) => ({ h, t: '' }))) : unicos.filter((u) => /rot|rota|agenda|visita|roteiro|planej|cliente/i.test(u.h + ' ' + u.t)).slice(0, 12);
+for (const x of alvoT) {
   try {
     await page.goto(BASE + x.h, { waitUntil: 'domcontentloaded', timeout: 60000 }); await page.waitForTimeout(4000);
     for (const id of await page.evaluate(() => [...document.querySelectorAll('input')].filter((i) => /data.*_input$/i.test(i.id)).map((i) => i.id)).catch(() => [])) await page.locator(`[id="${id}"]`).fill(diaBR).catch(() => {});
-    const gerar = page.getByRole('button', { name: /Gerar|Pesquisar|Buscar|Filtrar/ }).first();
-    if (await gerar.count()) { await gerar.click({ noWaitAfter: true, timeout: 10000 }).catch(() => {}); await page.waitForTimeout(12000); }
+    const botoes = await page.evaluate(() => [...document.querySelectorAll('button, input[type=submit], input[type=button], a.ui-button')].map((b) => (b.innerText || b.value || b.title || '').trim()).filter((s) => s && s.length < 30)).catch(() => []);
+    log(`[${x.h}] botoes: ${JSON.stringify([...new Set(botoes)])}`);
+    const gerar = page.locator('button, input[type=submit], input[type=button], a.ui-button').filter({ hasText: /Gerar|Pesquisar|Buscar|Filtrar|Consultar|Exibir|Listar|Atualizar/i }).first();
+    const alt = page.locator('input[type=submit][value*="esquisar" i], input[type=submit][value*="erar" i], input[type=button][value*="esquisar" i]').first();
+    const alvoB = (await gerar.count()) ? gerar : (await alt.count()) ? alt : null;
+    if (alvoB) { await alvoB.click({ noWaitAfter: true, timeout: 10000 }).catch(() => {}); await page.waitForTimeout(25000); }
     const T = await page.evaluate(() => [...document.querySelectorAll('table')].map((t) => ({ cab: [...t.querySelectorAll('thead th')].map((c) => c.innerText.trim().replace(/\s+/g, ' ')).filter(Boolean), n: t.querySelectorAll('tbody tr').length })).filter((t) => t.cab.length >= 3));
     const pag = await page.evaluate(() => { const p = document.querySelector('.ui-paginator-current'); return p ? p.innerText.replace(/\s+/g, ' ') : ''; }).catch(() => '');
     const filtros = await page.evaluate(() => [...document.querySelectorAll('label')].map((l) => l.innerText.trim()).filter((s) => s && s.length < 40).slice(0, 25)).catch(() => []);
