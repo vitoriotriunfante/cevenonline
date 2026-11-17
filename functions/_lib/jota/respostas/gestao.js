@@ -435,7 +435,8 @@ export async function respMatinal(B, E) {
   if (!E.rca) {
     try {
       const { results: cards } = await B.env.DB.prepare(
-        'SELECT chave, filial, cod_sup, supervisor, png_b64 FROM matinal_cards WHERE data = COALESCE((SELECT MAX(data) FROM matinal_cards WHERE data <= ?), (SELECT MAX(data) FROM matinal_cards))'
+        // 17/11/2026 (Vitorio 05:49: texto de 17/11 com a IMAGEM de 15/11): so a imagem gerada HOJE; sem imagem do dia, vai so o texto (que esta certo)
+        'SELECT chave, filial, cod_sup, supervisor, png_b64 FROM matinal_cards WHERE data = ?'
       ).bind(hoje).all();
       if (cards && cards.length) {
         if (E.supervisor) {

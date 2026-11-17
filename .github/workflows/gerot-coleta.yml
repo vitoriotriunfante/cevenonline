@@ -55,7 +55,8 @@ jobs:
           if [ "${{ github.event.inputs.ensaio }}" = "true" ]; then ARGS="$ARGS --ensaio"; fi
           node pipeline/gerot_coletor_online.mjs $ARGS
       - name: Gerar cards PNG da Matinal (WhatsApp)
-        if: github.event.inputs.ensaio != true && (github.event.schedule == '15 10 * * 1-6' || github.event.schedule == '15 23 * * 0' || github.event.inputs.gerar_cards == true)
+        # 17/11/2026 (Vitorio: texto da matinal de 17/11 com a imagem de 15/11): a imagem acompanha cada carga do GEROT, nao so as 07h15
+        if: github.event.inputs.ensaio != 'true'
         env:
           EVO_KEY: ${{ secrets.EVO_KEY }}
         run: node scripts/gerar_cards_matinal.mjs || true

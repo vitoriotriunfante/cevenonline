@@ -64,14 +64,16 @@ function summarize(rows, dias, gerotPosicao, ontemData) {
   const totOntVlr = rows.reduce((a, x) => a + (x.ontVlr || 0), 0);
   const totOntQtd = rows.reduce((a, x) => a + (x.ontQtd || 0), 0);
   const totOntPos = rows.reduce((a, x) => a + (x.ontPos || 0), 0);
-  const ontLbl = ontemData ? `Ontem (${ontemData.slice(8, 10)}/${ontemData.slice(5, 7)})` : 'Ontem (últ. du)';
+  // 17/11/2026: 'ontem' = ultimo dia util com venda (Clube), com o dia da semana; nunca o domingo
+  const DSEM = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+  const ontLbl = ontemData ? `Último dia útil (${DSEM[new Date(ontemData + 'T12:00:00Z').getUTCDay()]} ${ontemData.slice(8, 10)}/${ontemData.slice(5, 7)})` : 'Último dia útil';
   return {
     subtitulo: `Base D1 (independente do CEVEN) · GEROT: ${gerotPosicao || 'Atual'}`,
     kpis: [
       { lbl: 'Faturado + Carteira', val: R(totVend), sub: `de ${R(totMeta)} (${totMeta ? P((totVend / totMeta) * 100) : '0%'})` },
       { lbl: 'Tendência Fechamento', val: P(tendPct), sub: `${R(totTend)} · ${dias.dec}/${dias.tot} du (${dias.falt} rest.)` },
       { lbl: 'Positivação', val: N(totPos), sub: `de ${N(totMetaPos)} (${totMetaPos ? P((totPos / totMetaPos) * 100) : '—'})` },
-      { lbl: ontLbl, val: R(totOntVlr), sub: `${N(totOntQtd)} ped. · ${N(totOntPos)} pos.` }
+      { lbl: ontLbl, val: R(totOntVlr), sub: `${N(totOntQtd)} pedidos` + (totOntPos ? ` · ${N(totOntPos)} pos.` : '') }
     ]
   };
 }

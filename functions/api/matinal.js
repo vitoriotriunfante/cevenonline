@@ -64,7 +64,9 @@ export async function onRequestGet({ request, env }) {
   const fil = (u.searchParams.get('filial') || '').toUpperCase().trim();
   const sup = (u.searchParams.get('sup') || '').trim();
   const hoje = hojeSP();
-  const ultUtil = ultimoDiaUtil(hoje);
+  // 17/11/2026 (Vitorio: matinal do Gessandro com 'Ontem (13/11)' e rota zerada): ultimo dia UTIL (seg-sab) com venda no Clube; reserva = a regra antiga
+  let ultUtil = ultimoDiaUtil(hoje);
+  try { const uu = await env.DB.prepare("SELECT max(dia) d FROM clube_venda_dia WHERE dia < ? AND strftime('%w', dia) <> '0' AND total_pedido > 0").bind(hoje).first(); if (uu && uu.d) ultUtil = uu.d; } catch (e) { /* sem Clube: regra antiga */ }
   const mes = hoje.slice(0, 7);
   const dias = diasUteis(hoje);
 
@@ -81,8 +83,9 @@ export async function onRequestGet({ request, env }) {
         : env.DB.prepare('SELECT filial, rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? ORDER BY filial, vendedor').bind(mes)
       ).all(),
       (fil
-        ? env.DB.prepare('SELECT filial, rca, json FROM roteiro_dia WHERE data = ? AND filial = ?').bind(hoje, fil)
-        : env.DB.prepare('SELECT filial, rca, json FROM roteiro_dia WHERE data = ?').bind(hoje)
+        /* rota do dia = roteiros do Clube de hoje (a tabela roteiro_dia nunca existiu) */
+        ? env.DB.prepare('SELECT filial, rca, roteiros n FROM clube_venda_dia WHERE dia = ? AND filial = ?').bind(hoje, fil)
+        : env.DB.prepare('SELECT filial, rca, roteiros n FROM clube_venda_dia WHERE dia = ?').bind(hoje)
       ).all().catch(() => ({ results: [] })),
       (fil
         ? env.DB.prepare("SELECT filial, rca, status, COUNT(*) qtd, SUM(valor) vlr FROM pedido_status WHERE filial = ? AND data_pedido >= date('now', '-3 hours', '-7 days') AND status IN ('BLOQUEADO','LIBERADO') GROUP BY filial, rca, status").bind(fil)
@@ -93,8 +96,9 @@ export async function onRequestGet({ request, env }) {
         : env.DB.prepare('SELECT filial, rca, COUNT(*) qtd FROM prospects_mapa GROUP BY filial, rca')
       ).all().catch(() => ({ results: [] })),
       (fil
-        ? env.DB.prepare("SELECT filial, rca, COUNT(*) qtd, SUM(valor) vlr, COUNT(DISTINCT CASE WHEN COALESCE(id_cliente,'') <> '' THEN id_cliente END) pos FROM pedido_status WHERE filial = ? AND data_pedido = ? AND UPPER(COALESCE(status,'')) <> 'CANCELADO' GROUP BY filial, rca").bind(fil, ultUtil)
-        : env.DB.prepare("SELECT filial, rca, COUNT(*) qtd, SUM(valor) vlr, COUNT(DISTINCT CASE WHEN COALESCE(id_cliente,'') <> '' THEN id_cliente END) pos FROM pedido_status WHERE data_pedido = ? AND UPPER(COALESCE(status,'')) <> 'CANCELADO' GROUP BY filial, rca").bind(ultUtil)
+        /* 'ontem' = o ultimo dia util pelo Clube (pedido_status parou em 13/11 com o CEVEN fora); positivados do dia o Clube nao tem: fica null */
+        ? env.DB.prepare('SELECT filial, rca, SUM(ped_total) qtd, SUM(total_pedido) vlr, NULL pos FROM clube_venda_dia WHERE filial = ? AND dia = ? GROUP BY filial, rca').bind(fil, ultUtil)
+        : env.DB.prepare('SELECT filial, rca, SUM(ped_total) qtd, SUM(total_pedido) vlr, NULL pos FROM clube_venda_dia WHERE dia = ? GROUP BY filial, rca').bind(ultUtil)
       ).all().catch(() => ({ results: [] })),
       (fil
         ? env.DB.prepare('SELECT filial, cod_sup, supervisor, dados FROM gerot_vendas WHERE mes = ? AND filial = ?').bind(mes, fil)
@@ -104,11 +108,7 @@ export async function onRequestGet({ request, env }) {
 
     const rotaMap = new Map();
     for (const r of rotaRows.results || []) {
-      let clientes = 0;
-      try {
-        const parsed = JSON.parse(r.json || '[]');
-        clientes = Array.isArray(parsed) ? parsed.length : (Array.isArray(parsed.clientes) ? parsed.clientes.length : 0);
-      } catch { clientes = 0; }
+      const clientes = Number(r.n) || 0;
       rotaMap.set(`${r.filial}|${r.rca}`, clientes);
     }
 
