@@ -49,6 +49,12 @@ jobs:
           EVO_KEY: ${{ secrets.EVO_KEY }}
           CEVEN_SITE_URL: https://ceven-cftv-matrix.pages.dev
         run: node pipeline/clube_coletor.mjs --api
+      - name: Arvore de supervisores (CEVEN admin, so se passou de 45 min)
+        # 17/11/2026 (Vitorio: "a arvore precisa bater no CEVEN e no GEROT"): quem renovava era o coletor de lances antigo, parado desde 13/11
+        if: steps.check.outputs.ok == 'true'
+        continue-on-error: true
+        run: |
+          curl -s --max-time 120 "https://ceven-cftv-matrix.pages.dev/api/cron-arvore?so_se_velha=1" | head -c 400 || true
       - name: Liga — lances do dia (Clube + GEROT)
         # 17/11/2026 (Vitorio: "colocar no ar urgente a Champions"): /api/liga-clube grava os lances de hoje que ja aconteceram (INSERT OR IGNORE)
         if: steps.check.outputs.ok == 'true'

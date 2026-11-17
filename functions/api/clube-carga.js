@@ -66,7 +66,7 @@ export async function onRequestPost({ request, env }) {
   }
   // 17/11/2026: pedido_status (lido por ~15 respostas do JOTA) volta a ter dado: pedido do Clube + status do GEROT
   let sinc = null;
-  if (Array.isArray(body.pedidos) && body.pedidos.length) { try { const { sincronizaPedidoStatus } = await import('../_lib/pedido_status_fontes.js'); sinc = await sincronizaPedidoStatus(env, new Date(Date.parse(dia) - 7 * 864e5).toISOString().slice(0, 10)); } catch (e) { sinc = { erro: String(e && e.message || e).slice(0, 160) }; } }
+  if (Array.isArray(body.pedidos) && body.pedidos.length) { try { const { sincronizaPedidoStatus } = await import('../_lib/pedido_status_fontes.js'); sinc = await sincronizaPedidoStatus(env, dia);   /* so o dia (17/11: 7 dias de uma vez sobrecarregou o D1 logo apos a carga) */ } catch (e) { sinc = { erro: String(e && e.message || e).slice(0, 160) }; } }
   return resp({ ok: true, dia, gravados: stmts.length, pedido_status: sinc });
 }
 

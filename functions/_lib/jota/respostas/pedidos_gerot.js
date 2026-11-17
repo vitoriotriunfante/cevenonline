@@ -50,7 +50,7 @@ export async function respPedidosGerot(B, filial, rca, soFaturados = false) {
   const linha = (x) => {
     const cli = titulo(String(x.nome || '').toLowerCase()).slice(0, 32) || 'cliente #' + x.cliente;
     if (x.ct) { const st = [x.ct.status, x.ct.situacao].filter(Boolean).map((s) => titulo(String(s).toLowerCase())).filter((s, i, a) => a.indexOf(s) === i).join(' · '), bloq = /BLOQ/i.test(`${x.ct.status} ${x.ct.situacao}`) || !!x.ct.motivo;
-      return `${bloq ? '🚫' : '⏳'} ${dm(x.data)} · nº ${x.pedido} · ${cli} · ${R$(x.ct.valor)} · ${st || 'na carteira'}${x.ct.motivo ? ` · motivo: ${titulo(String(x.ct.motivo).toLowerCase())}` : ''}`; }
+      return `${bloq ? '🚫' : '⏳'} ${dm(x.data)} · nº ${x.pedido} · ${cli}${x.cl ? ` · ${R$(x.cl.total)}` : ''} · ${st || 'na carteira'}${x.ct.motivo ? ` · motivo: ${titulo(String(x.ct.motivo).toLowerCase())}` : ''}`; }
     if (x.cl && !x.nfs.length && !x.fat) return `${/RECUSAD/i.test(x.cl.bloq) ? '🚫' : '🟡'} ${dm(x.data)} · nº ${x.pedido} · ${cli} · ${R$(x.cl.total)} · ${/RECUSAD/i.test(x.cl.bloq) ? titulo(x.cl.bloq.toLowerCase()) : x.cl.semWinthor ? 'ainda não chegou ao Winthor' : 'no Winthor, aguardando a carteira'}`;
     if (!x.nfs.length && !x.fat) return temCart ? `❔ ${dm(x.data)} · nº ${x.pedido} · ${cli} · sem nota fiscal e fora da carteira do GEROT (cancelado ou faturado depois da carga)` : `⏳ ${dm(x.data)} · nº ${x.pedido} · ${cli} · sem nota fiscal ainda`;
     if (x.fat < 0) return `↩️ ${dm(x.data)} · nº ${x.pedido} · ${cli} · devolução ${R$(-x.fat)}${x.nfs.length ? ` (NF ${x.nfs.slice(0, 2).join(', ')})` : ''}`;
@@ -59,7 +59,7 @@ export async function respPedidosGerot(B, filial, rca, soFaturados = false) {
   const out = [`📦 *Seus pedidos${soFaturados ? ' faturados' : ''}, últimos 7 dias* (Clube + GEROT)`];
   if (!L.length) out.push('Nenhum pedido nesse recorte no GEROT.'); else out.push(...L.slice(0, 25).map(linha));
   if (L.length > 25) out.push(`… e mais ${L.length - 25} pedido(s)`);
-  const tf = L.reduce((a, x) => a + Math.max(0, x.fat), 0), nCart = L.filter((x) => x.ct || (!x.nfs.length && !x.fat)).length, vCart = L.reduce((a, x) => a + (x.ct ? x.ct.valor : 0), 0);
+  const tf = L.reduce((a, x) => a + Math.max(0, x.fat), 0), nCart = L.filter((x) => x.ct || (!x.nfs.length && !x.fat)).length, vCart = L.reduce((a, x) => a + (x.ct && x.cl ? x.cl.total : 0), 0);   /* 17/11: so o valor do Clube (o da Carteira Total esta errado) */
   out.push('', `Total: *${N(L.length)}* pedido(s) · faturado ${R$(tf)}${nCart ? ` · *${N(nCart)}* sem nota fiscal${vCart ? ` (${R$(vCart)} na carteira)` : ''}` : ''}`);
   // hoje pelo Clube (o GEROT so mostra o pedido quando ele entra na carteira)
   try {
@@ -94,7 +94,7 @@ export async function respPedidoGerot(B, E, num) {
     const rca = (c && c.rca) || (ps[0] && ps[0].rca), cli = titulo(String((c && c.cliente) || (ps[0] && ps[0].nome) || '').toLowerCase());
     out.push(`🧾 *Pedido ${num}* (${f}) · vendedor ${rca || '?'}${cli ? ` · ${cli}` : ''}${en ? ` · pedido de ${dm(en)}` : ''}`);
     if (c) out.push(`📌 *Na carteira:* ${[c.status, c.situacao].filter(Boolean).map((s) => titulo(String(s).toLowerCase())).filter((s, i, a) => a.indexOf(s) === i).join(' · ') || 'em aberto'}${c.motivo ? `\n🚫 *Motivo do bloqueio:* ${titulo(String(c.motivo).toLowerCase())}` : ''}`,
-      `💰 Valor em aberto: ${R$(c.valor)} · ${N(c.itens)} item(ns)${c.origem ? ` · origem ${c.origem}` : ''}`);
+      `📦 ${N(c.itens)} item(ns) em aberto${c.origem ? ` · origem ${c.origem}` : ''}`);   /* 17/11: sem o valor da Carteira Total (esta errado) */
     let fat = 0, dev = 0; const nfs = [];
     for (const p of ps) { let d = {}; try { d = JSON.parse(p.dados || '{}'); } catch (e) { d = {}; } const v = Number(d['Faturado líquido (R$)']) || 0; if (v >= 0) fat += v; else dev += -v; if (p.nf && !nfs.includes(p.nf)) nfs.push(`${p.nf} (${dm(p.data)})`); }
     if (nfs.length || fat) out.push(`✅ *Faturado:* ${R$(fat)}${nfs.length ? ` · NF ${nfs.slice(0, 4).join(', ')}` : ''}${dev ? ` · ↩️ devolução ${R$(dev)}` : ''}`);

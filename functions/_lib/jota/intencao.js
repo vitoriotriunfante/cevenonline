@@ -142,6 +142,12 @@ export async function rotearIntencao(B, c, t, info) {
       if (r && r.tipo === 'vend') v = r.alvo; }
     if (v) { const { respOndeEsta } = await MO(); return respOndeEsta(B, v); }
   }
+  // D2b · VARIOS ASSUNTOS NUMA MENSAGEM SO (17/11/2026, Sebastian TPA 315: "faturamento, a faturar, positivando, devolucao, rota do mes" virou a lista de pedidos):
+  // 2 ou mais indicadores do mes = o card "como estou" (o item 1 do menu), que traz todos eles
+  if (papel === 'vendedor' && rcaV && info.interno) {
+    const temas = [/FATURAMENTO|FATURADO\b/, /A FATURAR|PENDENTE|CARTEIRA/, /POSITIVA/, /DEVOLU/, /ROTA DO MES|VISITAS DO MES/, /\bMETAS?\b/].filter((re) => re.test(t)).length;
+    if (temas >= 2 && !/\b\d{7,}\b/.test(t)) return info.interno('como estou');
+  }
   // B1 · MATINAL do proprio vendedor = o plano do dia dele (o mesmo do "bom dia"), nunca a matinal antiga do "ontem 13/11"
   if (papel === 'vendedor' && rcaV && /^\W*(MINHA\s+)?MATINAL\W*$/.test(t)) {
     const Ev = await carregaEscopo(B, esc); const m = await (await MO()).respMomento(B, c, Ev, HORA() < 11 ? 'plano' : HORA() < 15 ? 'meio' : 'fechamento');

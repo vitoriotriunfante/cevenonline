@@ -283,6 +283,16 @@ export async function onRequestPost({ request, env }) {
         (n) => `*${n}*, já pode me usar! ⚽ Mande *menu* e eu te mostro as opções.`,
         (n) => `Tudo pronto, *${n}*! O *Jota* está liberado. Para começar, digite *menu*.`
       ];
+      // 17/11/2026 (Vitorio: "nesses casos nao tem que mandar o menu e explicar o que ele tem de acesso? se nao o cara vai ficar perguntando um monte de besteira"):
+      // a aprovacao leva o MENU do papel dele + uma linha do que ele enxerga. Continua na fila antiban (uma mensagem so).
+      let menuPapel = '';
+      try { const LM = await import('../_lib/jota/respostas/liga_mix.js'); if (antes.papel === 'vendedor') menuPapel = LM.respMenuVendedor(antes); else if (antes.papel === 'supervisor') menuPapel = LM.respMenuSupervisor(antes); } catch (e) { menuPapel = ''; }
+      const veTxt = antes.papel === 'vendedor' ? 'os *seus* números: mês (GEROT), dia (Clube da Venda), rota, clientes, pedidos e Liga' : antes.papel === 'supervisor' ? 'a *sua equipe*, vendedor por vendedor' : antes.papel === 'gerente' ? 'a *sua filial*' : 'os seus dados';
+      if (menuPapel) {
+        const msgMenu = `✅ *${pNome}*, seu acesso ao *Jota* ⚽ foi liberado!\nVocê vê ${veTxt}.\n\n${menuPapel}`;
+        try { await env.DB.prepare("DELETE FROM bot_envio_fila WHERE celular = ? AND tipo = 'boas_vindas_aprovacao'").bind(cel).run(); await env.DB.prepare("INSERT INTO bot_envio_fila (celular, numero, nome, texto, tipo) VALUES (?, ?, ?, ?, 'boas_vindas_aprovacao')").bind(cel, cel, antes.nome || '', msgMenu).run(); avisado = 'na_fila'; } catch (e) { /* segue o texto curto */ }
+        return j({ ok: true, avisado });
+      }
       const msgLib = antes.papel === 'vendedor'
         ? BV[Math.floor(Math.random() * BV.length)](pNome)
         : `Fala, ${pNome}! Seu acesso ao *Jota* foi liberado ⚽\nVocê vê ${antes.papel === 'supervisor' ? 'a sua equipe' : antes.papel === 'gerente' ? 'a sua filial' : 'os seus dados'}.\n\nExperimenta: "como está minha equipe?", "zerados", "faltam visitar", "vendedor Nome", "liga".\n_Meu DNA é Triunfante!_`;

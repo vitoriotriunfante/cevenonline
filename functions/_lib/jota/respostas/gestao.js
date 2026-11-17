@@ -285,7 +285,7 @@ export async function respMatinal(B, E) {
     B.env.DB.prepare('SELECT posicao, em FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null),
     B.env.DB.prepare(`SELECT filial, rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...fil).all().catch(() => ({ results: [] })),
     /* 16/11/2026 (mapa de dados: 'Rota 0 PDVs' em 57 respostas — a tabela roteiro_dia nao existe): rota do dia = roteiros do Clube de hoje */ B.env.DB.prepare(`SELECT filial, rca, roteiros n FROM clube_venda_dia WHERE dia = ? AND filial IN (${qs})`).bind(hoje, ...fil).all().catch(() => ({ results: [] })),
-    /* 17/11/2026: bloqueados = Carteira Total do GEROT (situacao 'Bloqueado Comercial/Financeiro'), nao a linha do tempo parada do CEVEN */ B.env.DB.prepare(`SELECT filial, rca, COUNT(*) qtd, SUM(valor) vlr FROM gerot_carteira WHERE filial IN (${qs}) AND situacao LIKE 'Bloqueado%' GROUP BY filial, rca`).bind(...fil).all().catch(() => ({ results: [] })),
+    /* 17/11/2026: bloqueados = Carteira Total do GEROT (situacao 'Bloqueado Comercial/Financeiro'), nao a linha do tempo parada do CEVEN */ B.env.DB.prepare(`SELECT c.filial, c.rca, COUNT(*) qtd, SUM(p.total) vlr FROM gerot_carteira c LEFT JOIN clube_pedido p ON p.filial = c.filial AND p.pedido_winthor = c.pedido WHERE c.filial IN (${qs}) AND c.situacao LIKE 'Bloqueado%' GROUP BY c.filial, c.rca`).bind(...fil)   /* valor = total do pedido no Clube (o da Carteira Total esta errado, 17/11) */.all().catch(() => ({ results: [] })),
     B.env.DB.prepare(`SELECT filial, rca, COUNT(*) qtd FROM prospects_mapa WHERE filial IN (${qs}) GROUP BY filial, rca`).bind(...fil).all().catch(() => ({ results: [] })),
     B.env.DB.prepare(`SELECT filial, rca, vend_nome FROM arvore_supervisores WHERE filial IN (${qs})`).bind(...fil).all().catch(() => ({ results: [] }))
   ]);
@@ -507,7 +507,7 @@ export async function respMatinal(B, E) {
       `☀️ *Matinal — ${E.nome}* (${dec}/${tot} du · faltam ${falt}${posGerot})`,
       ...(linhaOntEq ? [linhaOntEq] : []),
       (totMeta ? `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*) · 📈 Ritmo: *${tendGeral.toFixed(1).replace('.', ',')}%*` : `💰 Fat.+Cart.: *${R$(totVend)}* · _meta do mês não cadastrada no GEROT para esta equipe_`),
-      `👥 Positivação: *${N(totPos)}*${totMetaPos ? ' / ' + N(totMetaPos) + ' (' + P(totPos, totMetaPos) + ')' : ''} · ${rotaTxt('🗺️ Rota:')} · 🚫 Bloq.: *${N(totBloqQtd)}* (${R$(totBloqVlr)})`,
+      `👥 Positivação: *${N(totPos)}*${totMetaPos ? ' / ' + N(totMetaPos) + ' (' + P(totPos, totMetaPos) + ')' : ''} · ${rotaTxt('🗺️ Rota:')} · 🚫 Bloqueados: *${N(totBloqQtd)}* pedido(s)`,
       '',
       `🎯 *Prioridades de hoje:*`,
       ...prio().slice(0, 4).map((x, i) => `${i + 1}. *${rotVend(x)}*: ritmo *${x.tendPct.toFixed(0)}%* · precisa ${R$(x.precisaDia)}/d · rota ${x.rota}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`)
@@ -520,7 +520,7 @@ export async function respMatinal(B, E) {
     (totMeta ? `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*)` : `💰 Fat.+Cart.: *${R$(totVend)}* · _meta do mês não cadastrada no GEROT para esta equipe_`),
     ...(totMeta ? [`📈 Ritmo (GEROT): *${tendGeral.toFixed(1).replace('.', ',')}%* do ideal`] : []),
     `👥 Positivação: *${N(totPos)}*${totMetaPos ? ' / ' + N(totMetaPos) + ' (' + P(totPos, totMetaPos) + ')' : ''}`,
-    `${rotaTxt('🗺️ Rota hoje:')} · *${N(totProsp)}* prospects · 🚫 Bloq.: *${N(totBloqQtd)}* (${R$(totBloqVlr)})`,
+    `${rotaTxt('🗺️ Rota hoje:')} · *${N(totProsp)}* prospects · 🚫 Bloqueados: *${N(totBloqQtd)}* pedido(s)`,
     '',
     `🎯 *Prioridade (pior tendência primeiro):*`,
     ...prio().slice(0, 10).map((x, i) => `${i + 1}. *${rotVend(x)}*: ritmo *${x.tendPct.toFixed(0)}%* (${P(x.vend, x.meta)}) · ${R$(x.precisaDia)}/d · rota ${x.rota}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`),
