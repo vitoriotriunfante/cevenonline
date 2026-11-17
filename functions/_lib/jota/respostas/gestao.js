@@ -304,7 +304,8 @@ export async function respMatinal(B, E) {
     let d = {}; try { d = JSON.parse(v.dados || '{}'); } catch {}
     const meta = Number(d['Meta (R$)']) || 0, fat = Number(d['Faturado líquido (R$)']) || 0, pend = Number(d['Carteira pendente (R$)']) || 0;
     const pos = Number(d['Positivação (filial + CNPJ)']) || 0, metaPos = Number(d['Meta de positivação'] ?? d['Meta clientes']) || 0;
-    const vend = fat + pend, tend = dec ? (vend / dec) * tot : vend, tendPct = meta > 0 ? (tend / meta) * 100 : 0;
+    const cap = d['Captação (R$)'] == null ? null : Number(d['Captação (R$)']), ideal = Number(d['Meta Ideal captação (R$)']) || 0;   // 17/11/2026: ritmo do GEROT
+    const vend = fat + pend, tend = cap != null && ideal > 0 ? meta * cap / ideal : dec ? (vend / dec) * tot : vend, tendPct = meta > 0 ? (tend / meta) * 100 : 0;
     const k = `${v.filial}|${v.rca}`, ped = pedMap.get(k) || { qtd: 0, vlr: 0 };
     const nmRaw = String(v.vendedor || '').trim();
     const nmArv = nomeArv.get(k);
@@ -321,12 +322,18 @@ export async function respMatinal(B, E) {
   else if (E.supervisor) {
     const sAlvo = sem(typeof E.supervisor === 'object' ? (E.supervisor.nome || '') : E.supervisor);
     const toks = sAlvo.split(/\s+/).filter((w) => w.length > 2);
-    rows = rows.filter((x) => {
+    // 17/11/2026 (bateria real: matinal de 14 supervisores "sem dados no GEROT"): o GEROT abrevia o nome ("PRISCILA A D NASCIMENTO STRAPASSON",
+    // "ALLISON ANTONIO FAGUNDES M PINHEIRO"). Casa primeiro pelo CODIGO do supervisor; sem codigo, pelo primeiro + ultimo nome.
+    const cods = new Set((E.vend || []).map((v) => String(v.supCod || '')).filter(Boolean));
+    const porCod = cods.size ? rows.filter((x) => cods.has(String(x.cod_sup))) : [];
+    const pu = (s) => { const w = sem(s).replace(/^(CLT|PJ)\s+/, '').split(/\s+/).filter((x) => x.length > 1); return w.length ? w[0] + '|' + w[w.length - 1] : ''; };
+    rows = porCod.length ? porCod : rows.filter((x) => {
       const sx = sem(x.sup);
-      return sx.includes(sAlvo) || sAlvo.includes(sx) || (toks.length && toks.every((w) => sx.includes(w)));
+      return sx.includes(sAlvo) || sAlvo.includes(sx) || (toks.length && toks.every((w) => sx.includes(w))) || (pu(x.sup) && pu(x.sup) === pu(sAlvo));
     });
   }
   if (!rows.length) return `☀️ *Matinal — ${E.nome}*: sem dados no GEROT para este escopo agora.`;
+  const prio = () => rows.filter((x) => x.meta > 0 && !/\bVAGO\b/i.test(x.nome));   // 17/11/2026 (bateria real): 'Vago' e vendedor sem meta nao sao prioridade
   rows.sort((a, b) => a.tendPct - b.tendPct || b.meta - a.meta);
 
   const totMeta = rows.reduce((a, x) => a + x.meta, 0), totVend = rows.reduce((a, x) => a + x.vend, 0);
@@ -499,11 +506,11 @@ export async function respMatinal(B, E) {
     return [
       `☀️ *Matinal — ${E.nome}* (${dec}/${tot} du · faltam ${falt}${posGerot})`,
       ...(linhaOntEq ? [linhaOntEq] : []),
-      (totMeta ? `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*) · 📈 Tendência: *${tendGeral.toFixed(1).replace('.', ',')}%*` : `💰 Fat.+Cart.: *${R$(totVend)}* · _meta do mês não cadastrada no GEROT para esta equipe_`),
+      (totMeta ? `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*) · 📈 Ritmo: *${tendGeral.toFixed(1).replace('.', ',')}%*` : `💰 Fat.+Cart.: *${R$(totVend)}* · _meta do mês não cadastrada no GEROT para esta equipe_`),
       `👥 Positivação: *${N(totPos)}*${totMetaPos ? ' / ' + N(totMetaPos) + ' (' + P(totPos, totMetaPos) + ')' : ''} · ${rotaTxt('🗺️ Rota:')} · 🚫 Bloq.: *${N(totBloqQtd)}* (${R$(totBloqVlr)})`,
       '',
       `🎯 *Prioridades de hoje:*`,
-      ...rows.slice(0, 4).map((x, i) => `${i + 1}. *${rotVend(x)}*: *${x.tendPct.toFixed(0)}%* tend. · precisa ${R$(x.precisaDia)}/d · rota ${x.rota}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`)
+      ...prio().slice(0, 4).map((x, i) => `${i + 1}. *${rotVend(x)}*: ritmo *${x.tendPct.toFixed(0)}%* · precisa ${R$(x.precisaDia)}/d · rota ${x.rota}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`)
     ].join('\n');
   }
 
@@ -511,12 +518,12 @@ export async function respMatinal(B, E) {
     `☀️ *Matinal — ${E.nome}* (${dec}/${tot} du · faltam ${falt}${posGerot})`,
     ...(linhaOntEq ? [linhaOntEq] : []),
     (totMeta ? `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*)` : `💰 Fat.+Cart.: *${R$(totVend)}* · _meta do mês não cadastrada no GEROT para esta equipe_`),
-    ...(totMeta ? [`📈 Tendência: *${tendGeral.toFixed(1).replace('.', ',')}%* (*${R$(totTend)}*)`] : []),
+    ...(totMeta ? [`📈 Ritmo (GEROT): *${tendGeral.toFixed(1).replace('.', ',')}%* do ideal`] : []),
     `👥 Positivação: *${N(totPos)}*${totMetaPos ? ' / ' + N(totMetaPos) + ' (' + P(totPos, totMetaPos) + ')' : ''}`,
     `${rotaTxt('🗺️ Rota hoje:')} · *${N(totProsp)}* prospects · 🚫 Bloq.: *${N(totBloqQtd)}* (${R$(totBloqVlr)})`,
     '',
     `🎯 *Prioridade (pior tendência primeiro):*`,
-    ...rows.slice(0, 10).map((x, i) => `${i + 1}. *${rotVend(x)}*: tend. *${x.tendPct.toFixed(0)}%* (${P(x.vend, x.meta)}) · ${R$(x.precisaDia)}/d · rota ${x.rota}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`),
+    ...prio().slice(0, 10).map((x, i) => `${i + 1}. *${rotVend(x)}*: ritmo *${x.tendPct.toFixed(0)}%* (${P(x.vend, x.meta)}) · ${R$(x.precisaDia)}/d · rota ${x.rota}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`),
     ...(rows.length > 10 ? [`_… e mais ${rows.length - 10} vendedor(es) na equipe._`] : [])
   ].join('\n');
 }

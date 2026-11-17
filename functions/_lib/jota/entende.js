@@ -795,7 +795,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
         const ic = /FATURAD/.test(String(p.status)) ? '✅' : /BLOQUEAD/.test(String(p.status)) ? '🚫' : /LIBERAD/.test(String(p.status)) ? '🟢' : /CANCELAD/.test(String(p.status)) ? '❌' : '⏳';
         return `${ic} *Pedido ${p.num}* (${p.filial} · RCA ${p.rca} · cli. #${p.id_cliente})\n• Status: *${titulo(String(p.status || '').replace(/_/g, ' '))}*\n• Data do pedido: ${String(p.data_pedido).split('-').reverse().join('/')}\n• Valor: *${R$(p.valor || 0)}*\n${p.confirmado_em ? `• Última conferência: ${p.confirmado_em}` : ''}\n\n_Status da última conferência registrada._`;
       }
-      return `🔎 Não achei o pedido *${mPed[1]}* na base recente de ${Ep.nome}. Confere o número ou se pertence a outra filial/carteira?`;
+      return (await import('./respostas/pedidos_gerot.js')).msgPedidoNaoEncontrado(B, mPed[1]);
     }
   }
   if (/MAIOR ATRASO|MAIS ATRASAD[OA]S?|PIOR(ES)? ATRASO|ATRASO PARA A META|ATRASADOS? NA META/.test(t)) { const r = await respMaiorAtrasoMeta(B, await carregaEscopo(B, esc)); if (r) return r; }

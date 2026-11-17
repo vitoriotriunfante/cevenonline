@@ -596,7 +596,7 @@ export async function respMinhaRota(B, v) {
   };
   void situacaoVisita; void tags;
   let i = 0; const linha = (c, fim) => `${++i}. ${nome(c)} (#${c.id_cliente}) · ${emojiVisita(c, pedidoHoje)} · ${fim}${tagsCurtas(c)}`;
-  const L = [`📋 *${vn(v)}* — rota de hoje: *${rota.length} clientes*`, ...mes, '', LEGENDA_ROTA];
+  const L = [`📋 *${vn(v)}* — rota de hoje: *${rota.length} clientes* · *${nao.length} sem compra no mês*`, '', LEGENDA_ROTA];   /* 17/11/2026 (bateria real): rota de hoje comeca pelo dia, sem o bloco do mes */
   if (nao.length) L.push('', `*Ainda não compraram no mês (${nao.length}):*`, ...nao.map((c) => linha(c, diasTxt(semMap.get(String(c.id_cliente)).dias))));
   if (ja.length) L.push('', `*Já compraram no mês (${ja.length}):*`, ...ja.map((c) => { const r = valorMes.get(String(c.id_cliente)); return linha(c, r ? R$(r) : '✔️'); }));
   // "COMECE POR X E OFERECA Y" (proatividade, 01/11/2026): quem esta ha mais tempo sem comprar, ainda sem check-in, com a lista do +MIX. Sem lista, nao sugere nada.

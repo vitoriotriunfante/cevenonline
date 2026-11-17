@@ -95,3 +95,10 @@ export async function respPedidoGerot(B, E, num) {
   out.push(`_GEROT (Carteira Total + Pedidos)${pos ? ` · carga ${pos}` : ''}._`);
   return out.join('\n');
 }
+
+// PEDIDO QUE AINDA NAO ESTA NO GEROT (17/11/2026, bateria real: "nao achei" sem explicar). Uma mensagem so para todas as rotas.
+export async function msgPedidoNaoEncontrado(B, num) {
+  let em = null;
+  try { const r = await B.env.DB.prepare('SELECT MAX(em) em FROM gerot_carteira').first(); em = r && r.em ? new Date(r.em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) : null; } catch (e) { /* sem hora */ }
+  return `🔎 *Pedido ${num}*: ainda não aparece no GEROT${em ? ` (última carga às ${em})` : ''}, nem na carteira nem nos faturados.\n• Pedido digitado hoje entra na próxima carga (a cada ~2 h).\n• Se for mais antigo, confere o número (o mesmo número pode existir em outra filial).`;
+}

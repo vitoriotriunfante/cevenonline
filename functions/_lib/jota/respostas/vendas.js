@@ -246,7 +246,7 @@ export async function respPedidoNumero(B, E, t) {
         H.length > 1 ? '🕒 *Linha do tempo:* ' + H.map((h) => `${h.status} ${dt(h.visto_em)}`).join(' → ') : ''].filter(Boolean).join('\n');
     }
   }
-  if (!P) return `🔎 *Pedido ${num}*: não está na base de hoje. A base lê o pedido de cada cliente positivado dos vendedores acompanhados (Liga), alguns minutos depois de o pedido entrar; pedido de outro dia ou de código fora desse acompanhamento ainda não aparece aqui. _Anotei para a diretoria._`;
+  if (!P) return (await import('./pedidos_gerot.js')).msgPedidoNaoEncontrado(B, num);   // 17/11/2026: mensagem unica, com a hora da carga do GEROT
   if (!meu(P)) return `🔎 O pedido ${num} não é da sua equipe.`;
   const v = E.vend.concat(E.ocultos || []).find((x) => x.filial === P.filial && String(x.rca) === String(P.rca));
   const corte = (P.itens_cortados || []).length ? `✂️ *Corte:* ${P.categoria_corte || 'sim'} · ${P.itens_cortados.length} item(ns) cortado(s)` + (P.vl_perdido_logistica ? ` · ${R$(P.vl_perdido_logistica)} perdido` : '') : `✂️ Corte: ${P.categoria_corte || 'sem corte'}`;

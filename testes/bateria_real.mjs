@@ -36,7 +36,7 @@ async function umaPessoa(p) {
     fs.mkdirSync('saida_auditoria', { recursive: true }); fs.writeFileSync('saida_auditoria/BATERIA_PARCIAL.json', JSON.stringify({ tot, ok, porPapel, porRegra, falhas }));
   }
 }
-await Promise.all(Array.from({ length: 6 }, trabalhador));
+await Promise.all(Array.from({ length: 2 }, trabalhador));   // 17/11: 6 em paralelo sobrecarregou o D1 (usuarios reais no mesmo minuto)
 console.log(`\nAPROVADAS ${ok} de ${tot} (${(ok / Math.max(1, tot) * 100).toFixed(1)}%) · reprovadas ${tot - ok} (${((tot - ok) / Math.max(1, tot) * 100).toFixed(1)}%)`);
 console.log('por papel', JSON.stringify(porPapel)); console.log('por regra', JSON.stringify(porRegra));
 fs.mkdirSync('saida_auditoria', { recursive: true });

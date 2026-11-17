@@ -68,11 +68,16 @@ export async function rotearIntencao(B, c, t, info) {
     return `Anotado, ${nome2(c.nome || '').split(' ')[0] || ''}! Sua sugestão foi registrada e vai para quem cuida do Jota. 🙏`;
   }
   // A7 · CONTESTACAO do dado (sem pedir outro dado) — confirma, registra e pergunta o que esperava; nunca devolve card
-  if (/\b(NAO PROCEDE|NAO CONFERE|NAO E ISSO|NAO FOI ISSO( QUE)?( EU)? PERGUNTEI|ESTA ERRAD[OA]|TA ERRAD[OA]|DADO ERRADO|NUMERO ERRADO|INFORMACAO ERRADA|UMA MERDA|CAGADA|RESPONDEU (PRA|PARA) .{1,40} DE UM JEITO|RESPONDEU ERRADO|NAO BATE)\b/.test(t) && !/\?\s*$/.test(t)) {
+  if (/\b(ESTAO ERRAD[OA]S|NAO TEM (O )?(PQ|PORQUE|POR QUE)|E DO CANAL|NAO TEM O KPI|COMPRA E CENTRALIZADA|INFORMACAO .{0,30}INCORRET[OA]|ESTA INCORRET[OA]|TA DE BRINCADEIRA|DE BRINCADEIRA|NAO PROCEDE|NAO CONFERE|NAO E ISSO|NAO FOI ISSO( QUE)?( EU)? PERGUNTEI|ESTA ERRAD[OA]|TA ERRAD[OA]|DADO ERRADO|NUMERO ERRADO|INFORMACAO ERRADA|UMA MERDA|CAGADA|RESPONDEU (PRA|PARA) .{1,40} DE UM JEITO|RESPONDEU ERRADO|NAO BATE)\b/.test(t) && !/\?\s*$/.test(t)) {
     try { await B.env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(c.celular || '', c.nome || '', papel, c.filial || '', t.slice(0, 1000), 'contestacao').run(); } catch (e) { /* segue */ }
     return `Entendi, ${nome2(c.nome || '').split(' ')[0] || ''}. Registrei para conferir. Me diz em uma linha o que você esperava ver (ex.: "quero os clientes sem compra da rota de hoje") que eu respondo certo.`;
   }
   // A2 · MENU de outro papel (diretoria pedindo "menu do supervisor")
+  if (/^\W*(MENU|MENU DO JOTA|MENU JOTA|JOTA MENU|O MENU)\W*$/.test(t)) {   // 17/11/2026 (bateria real: 'Menu do jota' vinha vazio ou com card)
+    const LM = await import('./respostas/liga_mix.js');
+    if (papel === 'vendedor' && LM.respMenuVendedor) return LM.respMenuVendedor(c);
+    if (papel === 'supervisor' && LM.respMenuSupervisor) return LM.respMenuSupervisor(c);
+  }
   if (acima && /^\W*MENU\s+(DO|DA|DE)\s+(SUPERVISOR|SUPERVISORA)\W*$/.test(t)) { const { respMenuSupervisor } = await import('./respostas/liga_mix.js'); return respMenuSupervisor({ ...c, papel: 'supervisor' }); }
   if (acima && /^\W*MENU\s+(DO|DA|DE)\s+(VENDEDOR|VENDEDORA)\W*$/.test(t)) { const { respMenuVendedor } = await import('./respostas/liga_mix.js'); return respMenuVendedor({ ...c, papel: 'vendedor' }); }
 
@@ -119,7 +124,7 @@ export async function rotearIntencao(B, c, t, info) {
     if (papel === 'gerente') { const Ev = await carregaEscopo(B, esc); const m = await (await MO()).respMomentoGerente(B, c, Ev, mo).catch(() => null); if (m && m.texto) return m.texto + rodMenu; }
   }
   // D1 · "QUANTO VENDI HOJE" do proprio vendedor = o dia dele (Clube), nunca o card do mes (auditoria 17/11/2026: R05 periodo trocado)
-  if (papel === 'vendedor' && rcaV && /\b(QUANTO|O QUE)\b.*\bVENDI\b.*\bHOJE\b|\bMINHA VENDA (DE )?HOJE\b|\bMEU DIA\b|^\W*HOJE\W*$/.test(t)) {
+  if (papel === 'vendedor' && rcaV && /\b(QUANTO|O QUE)\b.*\bVENDI\b.*\bHOJE\b|\bMINHAS? VENDAS? (DE |DO )?(HOJE|DIA)\b|\bVENDAS? (DE |DO )?(HOJE|DIA)\b|\bVENDAS?\b.*\bHOJE\b|\bMEU DIA\b|^\W*HOJE\W*$/.test(t)) {
     const Ev = await carregaEscopo(B, esc), v = Ev && Ev.vend && Ev.vend[0];
     if (v) { const { respDiaVendedor } = await import('./respostas/resumo.js'); const r = await respDiaVendedor(B, Ev, v).catch(() => null); if (r) return r; }
   }
