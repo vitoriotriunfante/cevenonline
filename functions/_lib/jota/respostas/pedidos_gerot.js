@@ -12,7 +12,6 @@ export async function respPedidosGerot(B, filial, rca, soFaturados = false) {
   const hoje = hojeSP(), de = new Date(Date.parse(hoje) - 7 * 864e5).toISOString().slice(0, 10);
   let R = [];
   try { R = (await db.prepare('SELECT pedido, nf, data, nome, cliente, dados, em FROM gerot_pedido WHERE filial = ? AND rca = ? AND data >= ? ORDER BY data DESC, pedido DESC LIMIT 200').bind(String(filial), String(rca), de).all()).results || []; } catch (e) { return null; }
-  if (!R.length) return null;
   const P = new Map();
   for (const r of R) {
     let d = {}; try { d = JSON.parse(r.dados || '{}'); } catch (e) { d = {}; }
@@ -33,6 +32,16 @@ export async function respPedidosGerot(B, filial, rca, soFaturados = false) {
       x.ct = { status: c.status, situacao: c.situacao, motivo: c.motivo, valor: Number(c.valor) || 0 };
     }
   } catch (e) { /* sem a tabela ainda: fica so o 'Pedidos' */ }
+  // PEDIDOS DO CLUBE (17/11/2026): o pedido aparece na hora em que e digitado, antes de chegar ao GEROT (valor e situacao no Winthor)
+  try {
+    const { results: K } = await db.prepare('SELECT pedido, pedido_winthor, cliente, razao, total, tipo_bloqueio, dia FROM clube_pedido WHERE filial = ? AND rca = ? AND dia >= ?').bind(String(filial), String(rca), de).all();
+    for (const k of K || []) {
+      const n = k.pedido_winthor && Number(k.pedido_winthor) > 0 ? String(k.pedido_winthor) : String(k.pedido);
+      let x = P.get(n); if (!x) { x = { pedido: n, data: k.dia, nome: k.razao, cliente: k.cliente, fat: 0, cart: 0, nfs: [] }; P.set(n, x); }
+      x.cl = { total: Number(k.total) || 0, bloq: k.tipo_bloqueio || '', semWinthor: !(k.pedido_winthor && Number(k.pedido_winthor) > 0) };
+    }
+  } catch (e) { /* sem clube_pedido ainda */ }
+  if (!P.size) return null;
   let L = [...P.values()].sort((a, b) => String(b.data).localeCompare(String(a.data)) || String(b.pedido).localeCompare(String(a.pedido)));
   if (soFaturados) L = L.filter((x) => x.fat > 0);
   const dm = (s) => (s ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : '--/--');
@@ -42,11 +51,12 @@ export async function respPedidosGerot(B, filial, rca, soFaturados = false) {
     const cli = titulo(String(x.nome || '').toLowerCase()).slice(0, 32) || 'cliente #' + x.cliente;
     if (x.ct) { const st = [x.ct.status, x.ct.situacao].filter(Boolean).map((s) => titulo(String(s).toLowerCase())).filter((s, i, a) => a.indexOf(s) === i).join(' · '), bloq = /BLOQ/i.test(`${x.ct.status} ${x.ct.situacao}`) || !!x.ct.motivo;
       return `${bloq ? '🚫' : '⏳'} ${dm(x.data)} · nº ${x.pedido} · ${cli} · ${R$(x.ct.valor)} · ${st || 'na carteira'}${x.ct.motivo ? ` · motivo: ${titulo(String(x.ct.motivo).toLowerCase())}` : ''}`; }
+    if (x.cl && !x.nfs.length && !x.fat) return `${/RECUSAD/i.test(x.cl.bloq) ? '🚫' : '🟡'} ${dm(x.data)} · nº ${x.pedido} · ${cli} · ${R$(x.cl.total)} · ${/RECUSAD/i.test(x.cl.bloq) ? titulo(x.cl.bloq.toLowerCase()) : x.cl.semWinthor ? 'ainda não chegou ao Winthor' : 'no Winthor, aguardando a carteira'}`;
     if (!x.nfs.length && !x.fat) return temCart ? `❔ ${dm(x.data)} · nº ${x.pedido} · ${cli} · sem nota fiscal e fora da carteira do GEROT (cancelado ou faturado depois da carga)` : `⏳ ${dm(x.data)} · nº ${x.pedido} · ${cli} · sem nota fiscal ainda`;
     if (x.fat < 0) return `↩️ ${dm(x.data)} · nº ${x.pedido} · ${cli} · devolução ${R$(-x.fat)}${x.nfs.length ? ` (NF ${x.nfs.slice(0, 2).join(', ')})` : ''}`;
     return `✅ ${dm(x.data)} · nº ${x.pedido} · ${cli} · faturado ${R$(x.fat)}${x.nfs.length ? ` (NF ${x.nfs.slice(0, 2).join(', ')})` : ''}`;
   };
-  const out = [`📦 *Seus pedidos${soFaturados ? ' faturados' : ''}, últimos 7 dias* (GEROT)`];
+  const out = [`📦 *Seus pedidos${soFaturados ? ' faturados' : ''}, últimos 7 dias* (Clube + GEROT)`];
   if (!L.length) out.push('Nenhum pedido nesse recorte no GEROT.'); else out.push(...L.slice(0, 25).map(linha));
   if (L.length > 25) out.push(`… e mais ${L.length - 25} pedido(s)`);
   const tf = L.reduce((a, x) => a + Math.max(0, x.fat), 0), nCart = L.filter((x) => x.ct || (!x.nfs.length && !x.fat)).length, vCart = L.reduce((a, x) => a + (x.ct ? x.ct.valor : 0), 0);
@@ -57,7 +67,7 @@ export async function respPedidosGerot(B, filial, rca, soFaturados = false) {
     if (c) out.push(`🟢 Hoje (Clube da Venda${c.lido_em ? ' · ' + new Date(c.lido_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) : ''}): *${N(c.ped_total || 0)}* pedido(s) · ${R$(c.total_pedido || 0)}`);
   } catch (e) { /* sem Clube: fica so o GEROT */ }
   let pos = null; try { const st = await db.prepare("SELECT MAX(em) em FROM gerot_pedido WHERE filial = ? AND rca = ?").bind(String(filial), String(rca)).first(); pos = st && st.em ? new Date(st.em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : null; } catch (e) { /* sem hora */ }
-  out.push(`_GEROT${pos ? ' · carga ' + pos : ''} · ✅ faturado${temCart ? ' · ⏳ na carteira · 🚫 bloqueado (status e motivo da Carteira Total)' : ' · ⏳ sem nota fiscal ainda'} · ↩️ devolução._`);
+  out.push(`_GEROT${pos ? ' · carga ' + pos : ''} · ✅ faturado${temCart ? ' · ⏳ na carteira · 🚫 bloqueado (status e motivo da Carteira Total)' : ' · ⏳ sem nota fiscal ainda'} · 🟡 digitado (Clube), ainda fora da carteira · ↩️ devolução._`);
   return out.join('\n');
 }
 

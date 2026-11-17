@@ -50,6 +50,8 @@ export async function calculaLances(env, origin, dia) {
   // 17/11/2026: no 'Pedidos' do GEROT a data do pedido JA FATURADO e a do faturamento; a data do pedido vem da ENTRADA na Carteira Total (guardada em gerot_pedido_entrada)
   const pedC = new Map(); const addC = (r) => { const k = `${r.filial}|${r.rca}|${String(r.cnpj || '').replace(/\D/g, '')}`; if (!r.rca || !r.cnpj) return; if (!pedC.has(k)) pedC.set(k, []); if (!pedC.get(k).includes(r.pedido)) pedC.get(k).push(r.pedido); };
   for (const sql of ['SELECT filial, rca, cnpj, pedido FROM gerot_pedido_entrada WHERE entrada = ?', 'SELECT filial, rca, cnpj, pedido FROM gerot_carteira WHERE entrada = ?']) { try { const { results } = await db.prepare(sql).bind(dia).all(); for (const r of results || []) addC(r); } catch (e) { /* tabela ainda vazia */ } }
+  // 17/11/2026: PEDIDO DO CLUBE (Relatorio de Pedido): vendedor + cliente + dia, na hora — a prova mais direta de 'comprou na visita'
+  const pedCl = new Map(); try { const { results } = await db.prepare('SELECT filial, rca, cliente, pedido, pedido_winthor FROM clube_pedido WHERE dia = ?').bind(dia).all(); for (const r of results || []) { const k = r.filial + '|' + r.rca + '|' + r.cliente, n = r.pedido_winthor && Number(r.pedido_winthor) > 0 ? r.pedido_winthor : r.pedido; if (!pedCl.has(k)) pedCl.set(k, []); pedCl.get(k).push(n); } } catch (e) { /* dia sem a tabela */ }
   // VISITAS por vendedor: cliente -> entrada/saida
   const vis = new Map();
   for (const c of CK || []) {
@@ -61,7 +63,7 @@ export async function calculaLances(env, origin, dia) {
   }
   const jus = new Map(); for (const j of JU || []) { const k = `${j.filial}|${j.rca}`; if (!jus.has(k)) jus.set(k, new Map()); jus.get(k).set(String(j.cliente), j); }
   // ULTIMA COMPRA ANTES DO DIA (resgate de inativo): ficha do cliente (historico ate 11/11) + pedidos do GEROT antes do dia
-  const vendidos = []; for (const [k, M] of vis) for (const x of M.values()) if (ped.has(`${k}|${x.id}`) || (x.cnpj && pedC.has(`${k}|${x.cnpj}`))) vendidos.push({ fil: k.slice(0, 3), id: x.id });
+  const vendidos = []; for (const [k, M] of vis) for (const x of M.values()) if (pedCl.has(`${k}|${x.id}`) || ped.has(`${k}|${x.id}`) || (x.cnpj && pedC.has(`${k}|${x.cnpj}`))) vendidos.push({ fil: k.slice(0, 3), id: x.id });
   // DOBRADINHA DAS QUINZENAS (G04): cliente com pedido hoje (2a quinzena) e pedido na 1a quinzena do mesmo mes (data do GEROT: faturamento ou entrada na carteira;
   // faturado depois do dia 15 nao conta = na duvida, sem gol)
   const q1 = new Map();
@@ -95,7 +97,7 @@ export async function calculaLances(env, origin, dia) {
     // VENDA NA VISITA (so com prova): pedido do dia no GEROT, pedido com entrada no dia na carteira (CNPJ), ou o vendedor cuja conta do Clube fecha exata
     // (visitados sem justificativa = pedidos na rota do Clube)
     const Jv = jus.get(k) || new Map(), semJus = [...M.values()].filter((x) => x.ini && !Jv.has(x.id)), clubeOk = semJus.length > 0 && semJus.length === (Number(d.ped_rota) || 0);
-    const pedDe = (x) => (ped.get(`${k}|${x.id}`) || pedC.get(`${k}|${x.cnpj}`) || [])[0] || null;
+    const pedDe = (x) => (pedCl.get(`${k}|${x.id}`) || ped.get(`${k}|${x.id}`) || pedC.get(`${k}|${x.cnpj}`) || [])[0] || null;
     const venda = (x) => !!pedDe(x) || (clubeOk && !Jv.has(x.id));
     const feitas = V.length, comVenda = V.filter(venda).length, dig = Number(d.total_pedido) || 0;
     // clientes visitados com pedido: pedido na rota, defesa, resgate
