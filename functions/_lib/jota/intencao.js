@@ -131,6 +131,13 @@ export async function rotearIntencao(B, c, t, info) {
   if (/POSITIVA/.test(t) && /(COMPARA|MES(ES)? ANTERIOR|MES PASSADO|MELHOR|PIOR|OUTUBRO|CARTEIRA|BRASIL|FILIAIS|COMO ESTA|COMO ESTAMOS|\bA-?1\b|BENCH|\b3M\b|\bM-?1\b)/.test(t) && (papel === 'diretoria' || papel === 'ceo' || papel === 'gerente')) {
     const r = await respPositivacaoComparada(B, filCit || (papel === 'gerente' ? c.filial : null)); if (r) return r;
   }
+  // F2 · METAS DAS INDUSTRIAS do vendedor / da equipe = painel do GEROT (17/11/2026, auditoria: liam a Premiacao/RV, fora do ar, com 'apuracao ate 20/11')
+  if ((papel === 'vendedor' || papel === 'supervisor') && /^\W*(METAS? DAS? INDUSTRIAS?( DA EQUIPE)?|MINHAS INDUSTRIAS|INDUSTRIAS( DA EQUIPE)?)\W*$/.test(t)) {
+    const Ev = await carregaEscopo(B, esc), v0 = Ev && Ev.vend && Ev.vend[0];
+    const PI = await import('./respostas/painel_industrias.js');
+    if (papel === 'vendedor' && v0) { const r = await PI.respPainelIndustrias(B.env, B, { fil: v0.filial, rca: String(v0.rca) }).catch(() => null); if (r) return r; }
+    if (papel === 'supervisor' && v0 && v0.supCod) { const r = await PI.respPainelIndustrias(B.env, B, { fil: v0.filial, sup: String(v0.supCod) }).catch(() => null); if (r) return r; }
+  }
   // F1 · UMA INDUSTRIA ("como estamos de Gonçalves em TBL", "meta da Arcor") — pelo GEROT, no escopo de quem pergunta
   if (/\b(COMO ESTAMOS|COMO ESTA|COMO TA|META|VENDEMOS|VENDA|RESULTADO)\b/.test(t) && !/CLIENTE|PEDIDO|\bLIGA\b/.test(t)) {
     const r = await respUmaIndustria(B, c, t, filCit, esc); if (r) return r;

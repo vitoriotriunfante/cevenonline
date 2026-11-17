@@ -59,16 +59,31 @@ const soma = (rs) => rs.reduce((a, x) => ({ meta: a.meta + x.meta, fat: a.fat + 
   { meta: 0, fat: 0, cart: 0, posG: 0, metaPosC: 0, posC: 0, fatC: 0, temC: false });
 
 // os dois blocos do Rudinei
-function blocos(g, D, cevenOk) {
+// POSITIVACAO REAL de varias industrias juntas (17/11/2026, auditoria: o total somava a positivacao de cada industria e o cliente que comprou de 3 industrias contava 3 vezes;
+// TPH mostrava 3.967 com 1.750 clientes reais). Brasil/filial/equipe/vendedor = clientes distintos do GEROT (gerot_*_mes), com a meta de positivacao.
+export async function posReal(env, mes, cam) {
+  try {
+    const db = env.DB, P = '"Positivação (filial + CNPJ)"', M = '"Meta de positivação"';
+    const sel = (t) => `SELECT SUM(json_extract(dados, '$.${P}')) p, SUM(json_extract(dados, '$.${M}')) m FROM ${t} WHERE mes = ?`;
+    let r;
+    if (cam.rca) r = await db.prepare(sel('gerot_vendedor_mes') + ' AND filial = ? AND rca = ?').bind(mes, cam.fil, String(cam.rca)).first();
+    else if (cam.sup) r = await db.prepare(sel('gerot_supervisor_mes') + ' AND filial = ? AND cod_sup = ?').bind(mes, cam.fil, String(cam.sup)).first();
+    else if (cam.fil) r = await db.prepare(sel('gerot_filial_mes') + ' AND filial = ?').bind(mes, cam.fil).first();
+    else r = await db.prepare(sel('gerot_filial_mes')).bind(mes).first();
+    return r && r.p != null ? { pos: Number(r.p) || 0, meta: Number(r.m) || 0 } : null;
+  } catch (e) { return null; }
+}
+function blocos(g, D, cevenOk, pr) {
   const vend = g.fat + g.cart, falta = Math.max(0, g.meta - vend);
   const L = ['💰 *Vendas*'];
   if (g.meta > 0) L.push(`Meta *${R$(g.meta)}* · faturado *${R$(g.fat)}* (${pc(g.fat, g.meta)}) · a faturar ${R$(g.cart)}`, `Vendido (fat. + a faturar) *${R$(vend)}* (${pc(vend, g.meta)}) · falta *${R$(falta)}*`);
   else L.push(`_Sem meta cadastrada_ · faturado *${R$(g.fat)}* · a faturar ${R$(g.cart)} · vendido *${R$(vend)}*`);
   L.push(`Média *${R$(g.fat / D.decorridos)}*/dia útil` + (D.passado ? ' (mês fechado)' : g.meta > 0 ? (D.restantes ? ` · precisa *${R$(falta / D.restantes)}*/dia útil (${D.restantes} até o fim do mês)` : ' · último dia do mês') : ''));
   // positivação: realizado GEROT; meta de clientes do CEVEN
-  const meta = g.metaPosC, real = g.posG, faltaP = Math.max(0, meta - real);
-  L.push('👥 *Positivação*');
-  if (meta > 0) L.push(`Meta *${N(meta)}* clientes (CEVEN) · positivados *${N(real)}* (${pc(real, meta)}) · faltam *${N(faltaP)}*`);
+  const meta = pr ? pr.meta : g.metaPosC, real = pr ? pr.pos : g.posG, faltaP = Math.max(0, meta - real);
+  L.push(pr ? '👥 *Positivação* _(clientes distintos)_' : '👥 *Positivação*');
+  if (pr === null) { L.push('_clientes distintos: sem a linha do GEROT agora (a soma por indústria repete o cliente, por isso não é mostrada)_'); return L; }
+  if (meta > 0) L.push(`Meta *${N(meta)}* clientes${pr ? '' : ' (CEVEN)'} · positivados *${N(real)}* (${pc(real, meta)}) · faltam *${N(faltaP)}*`);
   else L.push(`Positivados *${N(real)}*` + ' · _o GEROT não traz meta de clientes por indústria_');
   L.push(`Média *${qd(real / D.decorridos)}*/dia útil` + (!D.passado && meta > 0 && D.restantes ? ` · precisa *${qd(faltaP / D.restantes)}*/dia útil` : ''));
   // AUDITORIA GEROT x CEVEN (Vitorio, 10/11/2026): diferenca entre as fontes aparece, nunca some
@@ -99,6 +114,19 @@ export async function respPainelIndustrias(env, B, cam) {
   if (!L.length) return `🏭 *Painel das indústrias* · ${nm}\nNão há linha no GEROT para esse recorte e mês. Não vou estimar.\n\n${fonte}`;
   let rs = cam.inds && cam.inds.length ? L.filter((x) => cam.inds.includes(x.ind)) : L; if (cam.ind) rs = rs.filter((x) => x.ind === cam.ind); if (cam.sup) rs = rs.filter((x) => x.sup === cam.sup); if (cam.rca) rs = rs.filter((x) => x.rca === cam.rca);
   const out = [];
+  const prM = cam.ind ? undefined : (cam.inds && cam.inds.length ? null : await posReal(env, mes, cam));   // positivacao real (clientes distintos) quando ha varias industrias juntas
+  // TODAS AS INDUSTRIAS DE UM VENDEDOR OU DE UMA EQUIPE (17/11/2026, auditoria: o item 13 do vendedor e o 9 do supervisor liam a Premiacao/RV, fora do ar;
+  // agora a mesma fonte do painel da diretoria = GEROT). Sem navegacao por numero: para uma industria, o nome dela.
+  if ((cam.rca || cam.sup) && !cam.ind && cam.fil) {
+    if (!rs.length) return null;
+    const x0 = rs[0] || {}, quem = cam.rca ? `${cam.rca} - ${nome2(x0.vend || '')}` : `Equipe ${nome2(x0.supNome || '')}`;
+    const is = [...agrupa(rs, (x) => x.ind)].map(([k, v]) => [k, soma(v)]).filter(([, g]) => g.meta > 0 || g.fat > 0 || g.cart > 0).sort(ordemInd);
+    const com = is.filter(([, g]) => g.meta > 0), semM = is.filter(([, g]) => !(g.meta > 0));
+    out.push(`🏭 *Indústrias — ${quem}* (${cam.fil}) · ${nm}`, ...blocos(soma(rs), D, cevenOk, prM), '', `*Com meta (${com.length}):*`, ...com.map(([k, g], i) => `${i + 1}. ${linhaCurta(k, g)}`));
+    if (semM.length) out.push('', `*Sem meta cadastrada, com venda (${semM.length}):*`, ...semM.map(([k, g], i) => `${com.length + i + 1}. ${linhaCurta(k, g)}`));
+    out.push('', fonte);
+    return out.join('\n');
+  }
   // NIVEL 4: vendedor
   if (cam.rca) {
     const x0 = rs[0] || {}; out.push(`🏭 *${cam.ind} — ${cam.rca} - ${nome2(x0.vend || '')}* (${cam.fil}) · ${nm}`, ...blocos(soma(rs), D, cevenOk), '', '*0* Voltar ao supervisor');
@@ -132,13 +160,13 @@ export async function respPainelIndustrias(env, B, cam) {
     // NIVEL 1: filial -> industrias (com meta primeiro; depois as sem meta, todas com venda)
     const is = [...agrupa(rs, (x) => x.ind)].map(([k, v]) => [k, soma(v)]).filter(([, g]) => g.meta > 0 || g.fat > 0 || g.cart > 0).sort(ordemInd);
     const com = is.filter(([, g]) => g.meta > 0), semM = is.filter(([, g]) => !(g.meta > 0));
-    out.push(`🏭 *Indústrias — ${cam.fil}* · ${nm}`, ...blocos(soma(rs), D, cevenOk), '', `*Com meta (${com.length}):*`, ...com.map(([k, g], i) => `${i + 1}. ${linhaCurta(k, g)}`));
+    out.push(`🏭 *Indústrias — ${cam.fil}* · ${nm}`, ...blocos(soma(rs), D, cevenOk, prM), '', `*Com meta (${com.length}):*`, ...com.map(([k, g], i) => `${i + 1}. ${linhaCurta(k, g)}`));
     if (semM.length) out.push('', `*Sem meta cadastrada, com venda (${semM.length}):*`, ...semM.map(([k, g], i) => `${com.length + i + 1}. ${linhaCurta(k, g)}`));
     out.push('', '👉 *Digite o número da indústria* para abrir por supervisor · *0* volta ao Brasil');
   } else {
     // NIVEL 0: Brasil -> filiais
     const fs = [...agrupa(rs, (x) => x.filial)].map(([k, v]) => [k, soma(v)]).sort((a, b) => FILIAIS.indexOf(a[0]) - FILIAIS.indexOf(b[0]));
-    out.push(`🏭 *Painel das indústrias — Brasil* · ${nm}`, ...blocos(soma(rs), D, cevenOk), '', '*Filiais:*', ...fs.map(([k, g], i) => `${i + 1}. ${linhaCurta(k, g)}`),
+    out.push(`🏭 *Painel das indústrias — Brasil* · ${nm}`, ...blocos(soma(rs), D, cevenOk, prM), '', '*Filiais:*', ...fs.map(([k, g], i) => `${i + 1}. ${linhaCurta(k, g)}`),
       '', '👉 *Digite o número da filial* para abrir as indústrias dela. Para outro mês: *painel das indústrias de outubro*.');
   }
   out.push('', fonte, mk);

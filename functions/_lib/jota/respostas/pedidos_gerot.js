@@ -60,3 +60,38 @@ export async function respPedidosGerot(B, filial, rca, soFaturados = false) {
   out.push(`_GEROT${pos ? ' · carga ' + pos : ''} · ✅ faturado${temCart ? ' · ⏳ na carteira · 🚫 bloqueado (status e motivo da Carteira Total)' : ' · ⏳ sem nota fiscal ainda'} · ↩️ devolução._`);
   return out.join('\n');
 }
+
+// PEDIDO PELO NUMERO (GEROT): Carteira Total (status, situacao, motivo de bloqueio, valor, itens) + 'Pedidos' (NF, faturado, devolucao) + data de entrada.
+// O mesmo numero pode existir em mais de uma filial: mostra so o que e do escopo de quem pergunta. Sem linha no GEROT devolve null (segue a base antiga).
+export async function respPedidoGerot(B, E, num) {
+  const db = B.env && B.env.DB; if (!db || !num) return null;
+  let C = [], P = [], EN = [];
+  try {
+    [C, P, EN] = await Promise.all([
+      db.prepare('SELECT filial, rca, vendedor, entrada, origem, status, situacao, motivo, cliente, valor, itens, qfat, em FROM gerot_carteira WHERE pedido = ?').bind(String(num)).all().then((r) => r.results || []),
+      db.prepare('SELECT filial, rca, nf, data, nome, cliente, dados FROM gerot_pedido WHERE pedido = ?').bind(String(num)).all().then((r) => r.results || []),
+      db.prepare('SELECT filial, rca, entrada FROM gerot_pedido_entrada WHERE pedido = ?').bind(String(num)).all().then((r) => r.results || []).catch(() => []),
+    ]);
+  } catch (e) { return null; }
+  if (!C.length && !P.length) return null;
+  const meu = (f, r) => E.nacional || (E.vend || []).concat(E.ocultos || []).some((v) => v.filial === f && String(v.rca) === String(r)) || (!E.supervisor && !E.rca && (E.filiais || []).includes(f) && !E.grupo);
+  const fils = [...new Set([...C.map((x) => x.filial), ...P.map((x) => x.filial)])].filter((f) => meu(f, (C.find((x) => x.filial === f) || P.find((x) => x.filial === f) || {}).rca));
+  if (!fils.length) return `🔎 O pedido ${num} não é da sua equipe.`;
+  const dm = (s) => (s ? `${String(s).slice(8, 10)}/${String(s).slice(5, 7)}` : '--/--');
+  const out = [];
+  for (const f of fils) {
+    const c = C.find((x) => x.filial === f), ps = P.filter((x) => x.filial === f), en = (EN.find((x) => x.filial === f) || {}).entrada || (c && c.entrada);
+    const rca = (c && c.rca) || (ps[0] && ps[0].rca), cli = titulo(String((c && c.cliente) || (ps[0] && ps[0].nome) || '').toLowerCase());
+    out.push(`🧾 *Pedido ${num}* (${f}) · vendedor ${rca || '?'}${cli ? ` · ${cli}` : ''}${en ? ` · pedido de ${dm(en)}` : ''}`);
+    if (c) out.push(`📌 *Na carteira:* ${[c.status, c.situacao].filter(Boolean).map((s) => titulo(String(s).toLowerCase())).filter((s, i, a) => a.indexOf(s) === i).join(' · ') || 'em aberto'}${c.motivo ? `\n🚫 *Motivo do bloqueio:* ${titulo(String(c.motivo).toLowerCase())}` : ''}`,
+      `💰 Valor em aberto: ${R$(c.valor)} · ${N(c.itens)} item(ns)${c.origem ? ` · origem ${c.origem}` : ''}`);
+    let fat = 0, dev = 0; const nfs = [];
+    for (const p of ps) { let d = {}; try { d = JSON.parse(p.dados || '{}'); } catch (e) { d = {}; } const v = Number(d['Faturado líquido (R$)']) || 0; if (v >= 0) fat += v; else dev += -v; if (p.nf && !nfs.includes(p.nf)) nfs.push(`${p.nf} (${dm(p.data)})`); }
+    if (nfs.length || fat) out.push(`✅ *Faturado:* ${R$(fat)}${nfs.length ? ` · NF ${nfs.slice(0, 4).join(', ')}` : ''}${dev ? ` · ↩️ devolução ${R$(dev)}` : ''}`);
+    if (!c && !nfs.length && !fat) out.push('⏳ Sem nota fiscal e fora da carteira na última carga do GEROT (pode ter sido cancelado ou faturado depois da carga).');
+    out.push('');
+  }
+  let pos = null; try { const st = await db.prepare('SELECT MAX(em) em FROM gerot_carteira').first(); pos = st && st.em ? new Date(st.em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : null; } catch (e) { /* sem hora */ }
+  out.push(`_GEROT (Carteira Total + Pedidos)${pos ? ` · carga ${pos}` : ''}._`);
+  return out.join('\n');
+}

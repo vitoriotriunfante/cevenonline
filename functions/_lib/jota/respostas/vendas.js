@@ -231,6 +231,8 @@ export async function respMarcaPropriaVivo(B, E, t) {
 // Escopo: so pedido de vendedor que a pessoa enxerga. Fora da base = diz a verdade.
 export async function respPedidoNumero(B, E, t) {
   const num = (t.match(/\d{7,}/) || [''])[0]; if (!num) return null;
+  // 17/11/2026: pedido pelo GEROT (Carteira Total + Pedidos) primeiro; a base antiga (CEVEN) so se o GEROT nao tiver o numero
+  { const r = await (await import('./pedidos_gerot.js')).respPedidoGerot(B, E, num).catch(() => null); if (r) return r; }
   const pd = await B.pedidosDia(); const P = ((pd && pd.pedidos) || []).find((p) => String(p.num) === num);
   const meu = (p) => E.nacional || E.vend.concat(E.ocultos || []).some((v) => v.filial === p.filial && String(v.rca) === String(p.rca));
   if (!P) {   /* pedido de outro dia: linha do tempo do status (pedido_status, desde 26/10/2026) */
