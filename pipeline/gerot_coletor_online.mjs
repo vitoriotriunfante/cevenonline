@@ -33,7 +33,10 @@ const CALC = [
   /^Positivação \(filial/i, /^Positivação \+ Carteira/i, /^Positivação M-1/i, /^Positivação 3M/i, /^Positivação do dia/i,
   /^Meta de positivação/i, /^% Meta positivação/i, /^Realizado meta/i, /^Meta \(R\$\)/i, /^% Meta$/i, /^% Meta \(Pos \+ Cart\)/i,
   /Carteira/i, /^Pedidos na carteira/i, /^Captação/i, /^Meta ideal captação/i, /^% Meta ideal/i, /^Necessidade dia/i,
-  /^Corte/i, /^Margem de contribuição/i, /^Impostos PIS/i, /^Meta clientes/i, /Tend[eê]ncia/i
+  /^Corte/i, /^Margem de contribuição/i, /^Impostos PIS/i, /^Meta clientes/i, /Tend[eê]ncia/i,
+  // 17/11/2026 (Vitorio: 'minhas perguntas de positivacao, que e o meu foco'): comparativos da positivacao e meta de fat + carteira
+  /^Positivação A-1/i, /^Positivação Bench/i, /^% Bench positivação/i, /^% Meta \(Fat \+ Cart\)/i, /^Positivação \+ Captação/i, /^% Meta \(Pos \+ Capt\)/i,
+  /^Pedidos faturados/i, /^SKU \/ Cliente/i, /^Fat por Cliente/i
 ];
 
 function mesesAlvo() {
