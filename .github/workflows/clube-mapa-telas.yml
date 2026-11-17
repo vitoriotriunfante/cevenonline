@@ -1,0 +1,26 @@
+# FICHA DO ARQUIVO
+# O QUE E: mapa das telas do Clube da Venda (TradePro) procurando a rota do dia com os nomes (plano do JOTA, bloco D). SO LEITURA, so manual.
+#   Log so com nomes de tela, colunas e contagens (repositorio publico). Nada anexado, nada gravado.
+name: Clube — mapa das telas (so leitura)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  mapear:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Instalar dependencias e navegador
+        run: |
+          npm ci --no-audit --no-fund
+          for t in 1 2 3 4; do npx playwright install --with-deps chromium && break; sleep 20; done
+      - name: Mapear telas
+        env:
+          TP_USER: ${{ secrets.TP_USER }}
+          TP_PASS: ${{ secrets.TP_PASS }}
+        run: node pipeline/clube_mapa_telas.mjs
