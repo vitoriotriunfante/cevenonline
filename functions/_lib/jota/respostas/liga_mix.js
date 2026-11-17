@@ -177,7 +177,8 @@ export const MENU_SUPERVISOR = [
   ['Pedidos da equipe: a faturar, bloqueados e cancelados', 'pedidos pendentes da equipe'],
   ['Clientes sem compra no mês, por vendedor', 'curva negativa da equipe'],
   ['Recorrência da equipe: meta 80% e quem falta', 'recorrencia da equipe'],
-  ['Fechamento do mês passado da equipe', 'fechamento do mes passado da equipe'],
+  // 16/11/2026 (Vitorio: 'do dia!!!'): o 7 e o FECHAMENTO DO DIA da equipe; o mes passado segue por texto ('fechamento de outubro', 'mes passado')
+  ['Fechamento do dia da equipe: quem vendeu, quem ficou sem pedido e por quê', '__fechdia__'],
   ['Rota de hoje: visitas e quem falta visitar', 'rota de hoje da equipe'],
   ['Indústrias: metas da equipe por indústria', 'metas das industrias da equipe'],
   ['Mix e +MIX da equipe', 'mix da equipe'],
@@ -192,7 +193,7 @@ export const SUB_SUPERVISOR = {
 };
 const TEMAS_SUPERVISOR = [
   [14, /FICHA\b|DADOS DO CLIENTE|VER CLIENTE|CONSULTAR CLIENTE/],
-  [7, /MES PASSADO|MES ANTERIOR|OUTUBRO|SETEMBRO|FECHAMENTO|FECHOU/],
+  [7, /FECHAMENTO( D[OE] (DIA|HOJE))?\W*$|FECHAMENTO D[OE] (DIA|HOJE)|COMO FOI O DIA/],
   [6, /RECORR/],
   [5, /SEM VENDA|SEM COMPRA|CURVA|NAO COMPR|NAO POSITIV|INATIV|FALTA POSITIVAR/],
   [3, /LIGA|CHAMPION|PONTO|COLOCAC|LUGAR|RANKING|GOL|LANCE/],

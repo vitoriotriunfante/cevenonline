@@ -8,7 +8,9 @@ import { FRX, VAREJO, hojeSP, nome2, sem, so, vn } from './base.js';
 // vendedores de uma filial (mostrados na Gestao de Equipe) + totais que somam TODOS (macro)
 // codigo do supervisor pelo nome (preenchido ao carregar a equipe) -> supNome/sn mostram 'COD - Nome'
 export const SUPCOD = new Map();
-export const sn = (nome, cod) => { const c = cod || SUPCOD.get(sem(nome)); return (c ? c + ' - ' : '') + nome2(nome); };
+// 16/11/2026 (regua R15): 'VAGO GABRIEL' na Gestao de Equipe = vaga coberta pelo Gabriel; o nome mostrado e o de quem cobre (nunca 'Vago Gabriel')
+const semVago = (n) => { const s = String(n || '').replace(/^\s*VAGO\s*(\(\s*SUP\s*\)\s*)?/i, '').trim(); return /[A-Za-zÀ-ú]{3,}/.test(s) ? s : String(n || ''); };
+export const sn = (nome, cod) => { const c = cod || SUPCOD.get(sem(nome)); return (c ? c + ' - ' : '') + nome2(semVago(nome)); };
 export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
   const [snap, mostra] = await Promise.all([B.snap(filial), B.mostra()]);
   const eq = new Map(); if (mostra && mostra.filiais) for (const [k, L] of Object.entries(mostra.filiais)) if (k.split('_')[0] === filial) for (const v of L) eq.set(String(v.rca), v);

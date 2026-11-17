@@ -4,6 +4,7 @@
 // O codigo calcula 100% dos numeros e sinais no D1; a IA decide se vale
 // agir agora, escolhe a alavanca de maior impacto e redige o WhatsApp.
 // =========================================================================
+import { pausaProativa } from './trava_envio.js';
 import { hojeSP, R$, nome2, vn } from '../jota/base.js';
 import { criaBase } from '../jota/fontes.js';
 import { carregaEscopo, pctTxt, pessoaReal } from '../jota/escopo.js';
@@ -536,6 +537,11 @@ export async function executarAnalistaComercial(origin, env, opts = {}) {
           reservado = false;
         }
         if (!reservado) {
+          silencios++;
+          continue;
+        }
+        if (await pausaProativa(db)) {   // 16/11/2026: pausa 'so resposta' vale tambem para a monitoria
+          await db.prepare('UPDATE monitoria_envios SET status = ? WHERE regra_id = ? AND data = ? AND celular = ? AND modo = ?').bind('BLOQUEADO_PAUSA', regraKey, hoje, s.celular, regra.modo).run().catch(() => {});
           silencios++;
           continue;
         }

@@ -3,6 +3,7 @@
 // Loop Fechado e Volume Destravado Auditavel: registra apenas disparos
 // reais de PRODUCAO, expira casos de dias anteriores e audita no D1.
 // =========================================================================
+import { pausaProativa } from './trava_envio.js';
 import { hojeSP, R$ } from '../jota/base.js';
 import R from '../../../public/regras.js';
 
@@ -130,6 +131,7 @@ export async function escalonarCasosAbertosGerente(db, env, { cfg = null, maxPor
       `👉 *Ação agora:* cobrar retorno de *${c.supervisor}* para destravar antes do fechamento do dia.`,
     ].join('\n');
 
+    if (await pausaProativa(db)) continue;   // 16/11/2026: pausa 'so resposta' vale tambem para o escalonamento
     if (escalonados > 0) await R.pausaEntreEnvios(4, 1, 2);
     const rt = await R.enviarTexto(cfg, ger.celular, msg);
     if (rt && rt.ok) {

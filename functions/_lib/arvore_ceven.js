@@ -300,6 +300,33 @@ export async function gravaRotasGerente(env, dataRef, prazoMs = 25000) {
   return res;
 }
 
+// TESTE DE CONEXAO DO GERENTE (Vitorio, 16/11/2026: "o CEVEN voltou mas apenas para os gerentes... uma unidade por vez"): SO LEITURA, nao grava nada.
+// Devolve status/tempo do login e da cascata e as contagens; nunca devolve senha nem token.
+export async function diagGerente(env, filialSigla) {
+  const sig = String(filialSigla || '').toUpperCase().slice(0, 3), g = GERENTES.find((x) => x.sigla === sig);
+  if (!g) return { filial: sig, erro: 'filial desconhecida' };
+  if (!env.CEVEN_GERENTE_SENHA) return { filial: sig, erro: 'sem segredo CEVEN_GERENTE_SENHA' };
+  const out = { filial: sig, gerente: g.loginNome };
+  let t0 = Date.now(), tk = null;
+  try {
+    const lr = await fetch(`${CEVEN}/api/gerente-auth/login`, { method: 'POST', headers: UA, body: JSON.stringify({ filial: g.filialKey, nome: g.loginNome, password: env.CEVEN_GERENTE_SENHA }), signal: AbortSignal.timeout(20000) });
+    out.login = { status: lr.status, ms: Date.now() - t0 };
+    if (lr.ok) { const lj = await lr.json().catch(() => null); tk = lj && (lj.access_token || lj.token); out.login.token = !!tk; } else out.login.corpo = (await lr.text().catch(() => '')).slice(0, 160);
+  } catch (e) { out.login = { erro: String(e && e.message || e).slice(0, 160), ms: Date.now() - t0 }; }
+  if (!tk) return out;
+  t0 = Date.now();
+  try {
+    const r = await fetch(`${CEVEN}/api/gerente/tabelas-cascata?filial=${g.filialKey}`, { headers: { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET }, signal: AbortSignal.timeout(30000) });
+    out.cascata = { status: r.status, ms: Date.now() - t0 };
+    if (r.ok) {
+      const j = await r.json().catch(() => null), S = j && Array.isArray(j.supervisores) ? j.supervisores : [];
+      out.cascata.supervisores = S.length;
+      out.cascata.vendedores = S.reduce((a, s) => a + (Array.isArray(s.vendedores) ? s.vendedores.length : Array.isArray(s.rcas) ? s.rcas.length : 0), 0);
+      out.cascata.chaves = j ? Object.keys(j).slice(0, 12) : [];
+    } else out.cascata.corpo = (await r.text().catch(() => '')).slice(0, 160);
+  } catch (e) { out.cascata = { erro: String(e && e.message || e).slice(0, 160), ms: Date.now() - t0 }; }
+  return out;
+}
 export async function gravaCascataFilial(env, filialSigla, dataRef, prazoMs = 10000) {
   if (!env.CEVEN_GERENTE_SENHA || !env.DB) return null;
   const sig = String(filialSigla || '').toUpperCase().slice(0, 3);

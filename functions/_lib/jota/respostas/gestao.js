@@ -269,7 +269,7 @@ export async function respMatinal(B, E) {
   const [stGerot, vendRes, rotaRes, pedRes, prospRes, arvRes] = await Promise.all([
     B.env.DB.prepare('SELECT posicao, em FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null),
     B.env.DB.prepare(`SELECT filial, rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...fil).all().catch(() => ({ results: [] })),
-    B.env.DB.prepare(`SELECT filial, rca, json FROM roteiro_dia WHERE data = ? AND filial IN (${qs})`).bind(hoje, ...fil).all().catch(() => ({ results: [] })),
+    /* 16/11/2026 (mapa de dados: 'Rota 0 PDVs' em 57 respostas — a tabela roteiro_dia nao existe): rota do dia = roteiros do Clube de hoje */ B.env.DB.prepare(`SELECT filial, rca, roteiros n FROM clube_venda_dia WHERE dia = ? AND filial IN (${qs})`).bind(hoje, ...fil).all().catch(() => ({ results: [] })),
     B.env.DB.prepare(`SELECT filial, rca, COUNT(*) qtd, SUM(valor) vlr FROM pedido_status WHERE filial IN (${qs}) AND data_pedido >= date('now', '-3 hours', '-7 days') AND status = 'BLOQUEADO' GROUP BY filial, rca`).bind(...fil).all().catch(() => ({ results: [] })),
     B.env.DB.prepare(`SELECT filial, rca, COUNT(*) qtd FROM prospects_mapa WHERE filial IN (${qs}) GROUP BY filial, rca`).bind(...fil).all().catch(() => ({ results: [] })),
     B.env.DB.prepare(`SELECT filial, rca, vend_nome FROM arvore_supervisores WHERE filial IN (${qs})`).bind(...fil).all().catch(() => ({ results: [] }))
@@ -278,8 +278,7 @@ export async function respMatinal(B, E) {
   for (const a of arvRes.results || []) if (a.vend_nome && !/^\d+$/.test(String(a.vend_nome).trim())) nomeArv.set(`${a.filial}|${a.rca}`, a.vend_nome);
   const rotaMap = new Map();
   for (const r of rotaRes.results || []) {
-    let n = 0; try { const p = JSON.parse(r.json || '[]'); n = Array.isArray(p) ? p.length : (Array.isArray(p.clientes) ? p.clientes.length : 0); } catch {}
-    rotaMap.set(`${r.filial}|${r.rca}`, n);
+    rotaMap.set(`${r.filial}|${r.rca}`, Number(r.n) || 0);
   }
   const pedMap = new Map();
   for (const p of pedRes.results || []) pedMap.set(`${p.filial}|${p.rca}`, { qtd: Number(p.qtd) || 0, vlr: Number(p.vlr) || 0 });
@@ -318,6 +317,8 @@ export async function respMatinal(B, E) {
   const totMeta = rows.reduce((a, x) => a + x.meta, 0), totVend = rows.reduce((a, x) => a + x.vend, 0);
   const totTend = rows.reduce((a, x) => a + x.tend, 0), tendGeral = totMeta ? (totTend / totMeta) * 100 : 0;
   const totPos = rows.reduce((a, x) => a + x.pos, 0), totMetaPos = rows.reduce((a, x) => a + x.metaPos, 0);
+  const temRotaHoje = (rotaRes.results || []).length > 0;   // sem leitura do Clube de hoje: nunca 'Rota 0'
+  const rotaTxt = (pre) => temRotaHoje ? `${pre} *${N(rows.reduce((a, x) => a + x.rota, 0))}* PDVs` : `${pre} aguardando a 1ª leitura do Clube`;
   const totRota = rows.reduce((a, x) => a + x.rota, 0), totProsp = rows.reduce((a, x) => a + x.prospects, 0);
   const totBloqQtd = rows.reduce((a, x) => a + x.bloqQtd, 0), totBloqVlr = rows.reduce((a, x) => a + x.bloqVlr, 0);
 
@@ -468,10 +469,12 @@ export async function respMatinal(B, E) {
   let ontEq = null;
   if (rcaList.length) {
     const rQs = rcaList.map(() => '?').join(',');
-    ontEq = await B.env.DB.prepare(`SELECT data_pedido d, COUNT(*) qtd, SUM(valor) vlr, COUNT(DISTINCT id_cliente) pos FROM pedido_status WHERE filial IN (${qs}) AND rca IN (${rQs}) AND data_pedido < ? AND status <> 'CANCELADO' GROUP BY data_pedido ORDER BY data_pedido DESC LIMIT 1`).bind(...fil, ...rcaList, hoje).first().catch(() => null);
+    // 16/11/2026 ('Ontem (15/11)' = domingo em 25 respostas; pedido_status parado em 14/11): ultimo dia UTIL (seg-sab) com venda, pelo Clube
+    ontEq = await B.env.DB.prepare(`SELECT dia d, SUM(ped_total) qtd, SUM(total_pedido) vlr FROM clube_venda_dia WHERE filial IN (${qs}) AND rca IN (${rQs}) AND dia < ? AND strftime('%w', dia) <> '0' GROUP BY dia HAVING SUM(total_pedido) > 0 ORDER BY dia DESC LIMIT 1`).bind(...fil, ...rcaList, hoje).first().catch(() => null);
   }
   const dFmtEq = (s) => s ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : '';
-  const linhaOntEq = ontEq ? `📅 *Ontem (${dFmtEq(ontEq.d)}):* *${R$(ontEq.vlr || 0)}* em *${N(ontEq.qtd || 0)}* ped. (*${N(ontEq.pos || 0)}* positivados)` : '';
+  const DSEM = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+  const linhaOntEq = ontEq ? `📅 *Último dia útil (${DSEM[new Date(ontEq.d + 'T12:00:00Z').getUTCDay()]} ${dFmtEq(ontEq.d)}):* *${R$(ontEq.vlr || 0)}* em *${N(ontEq.qtd || 0)}* pedidos` : '';
   const rotVend = (x) => x.nome ? `${x.rca} - ${titulo(x.nome)}` : `RCA ${x.rca}`;
   if (cardPng) {
     B._midia = { tipo: 'image', url: cardPng };
@@ -480,7 +483,7 @@ export async function respMatinal(B, E) {
       `☀️ *Matinal — ${E.nome}* (${dec}/${tot} du · faltam ${falt}${posGerot})`,
       ...(linhaOntEq ? [linhaOntEq] : []),
       `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*) · 📈 Tendência: *${tendGeral.toFixed(1).replace('.', ',')}%*`,
-      `👥 Positivação: *${N(totPos)}*${totMetaPos ? ' / ' + N(totMetaPos) + ' (' + P(totPos, totMetaPos) + ')' : ''} · 🗺️ Rota: *${N(totRota)}* PDVs · 🚫 Bloq.: *${N(totBloqQtd)}* (${R$(totBloqVlr)})`,
+      `👥 Positivação: *${N(totPos)}*${totMetaPos ? ' / ' + N(totMetaPos) + ' (' + P(totPos, totMetaPos) + ')' : ''} · ${rotaTxt('🗺️ Rota:')} · 🚫 Bloq.: *${N(totBloqQtd)}* (${R$(totBloqVlr)})`,
       '',
       `🎯 *Prioridades de hoje:*`,
       ...rows.slice(0, 4).map((x, i) => `${i + 1}. *${rotVend(x)}*: *${x.tendPct.toFixed(0)}%* tend. · precisa ${R$(x.precisaDia)}/d · rota ${x.rota}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`)
@@ -493,7 +496,7 @@ export async function respMatinal(B, E) {
     `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*)`,
     `📈 Tendência: *${tendGeral.toFixed(1).replace('.', ',')}%* (*${R$(totTend)}*)`,
     `👥 Positivação: *${N(totPos)}*${totMetaPos ? ' / ' + N(totMetaPos) + ' (' + P(totPos, totMetaPos) + ')' : ''}`,
-    `🗺️ Rota hoje: *${N(totRota)}* PDVs · *${N(totProsp)}* prospects · 🚫 Bloq.: *${N(totBloqQtd)}* (${R$(totBloqVlr)})`,
+    `${rotaTxt('🗺️ Rota hoje:')} · *${N(totProsp)}* prospects · 🚫 Bloq.: *${N(totBloqQtd)}* (${R$(totBloqVlr)})`,
     '',
     `🎯 *Prioridade (pior tendência primeiro):*`,
     ...rows.slice(0, 10).map((x, i) => `${i + 1}. *${rotVend(x)}*: tend. *${x.tendPct.toFixed(0)}%* (${P(x.vend, x.meta)}) · ${R$(x.precisaDia)}/d · rota ${x.rota}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`),

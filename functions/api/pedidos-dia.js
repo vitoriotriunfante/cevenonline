@@ -28,7 +28,7 @@ export async function onRequestGet({ env, request }) {
       // CLUBE DA VENDA (12/11/2026): digitado de hoje na ORIGEM (lido a cada 15 min, so leitura de ate 45 min). Quem o Clube tem vale o Clube; codigos que so o Winthor
       // tem (loja, digitado direto no Winthor) continuam pelo Winthor. Sem Clube fresco: so o Winthor, como antes.
       let clube = [];
-      try { const { results: C } = await env.DB.prepare("SELECT filial, rca, total_pedido v, ped_total n, lido_em FROM clube_venda_dia WHERE dia = ? AND lido_em >= ?").bind(dia, new Date(Date.now() - 45 * 60000).toISOString()).all(); clube = C || []; } catch { /* tabela ainda nao existe */ }
+      try { const { results: C } = await env.DB.prepare("SELECT filial, rca, total_pedido v, ped_total n, lido_em FROM clube_venda_dia WHERE dia = ?").bind(dia).all(); clube = C || []; } catch { /* tabela ainda nao existe */ }
       if (clube.length) {
         const tem = new Set(clube.map((x) => x.filial + '|' + x.rca));
         const rc = clube.map((x) => ({ filial: x.filial, rca: x.rca, v: Number(x.v) || 0, n: Number(x.n) || 0, fonte: 'clube' })).concat((results || []).filter((x) => !tem.has(x.filial + '|' + x.rca)).map((x) => ({ ...x, fonte: 'winthor' })));

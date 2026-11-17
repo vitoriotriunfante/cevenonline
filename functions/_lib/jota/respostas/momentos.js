@@ -85,6 +85,65 @@ async function rotaGerente(B, v) {
     for (const r of results || []) { let a = []; try { a = JSON.parse(r.json); } catch (e) { continue; } for (const c of a) if (String(c.id_representante) === String(v.rca)) M.set(String(c.id_cliente), c); } } catch (e) { /* sem tabela */ }
   return M;
 }
+// DIA DO VENDEDOR CLIENTE A CLIENTE PELO CLUBE (Vitorio, 16/11/2026: "vendeu para 3 e para quais nao vendeu? quais deixou na mesa? quais nem visitou?").
+// Fonte unica do dia: clube_venda_dia (totais), clube_checkin (quem foi visitado e a hora) e clube_justificativa (quem nao comprou e por que).
+// Com pedido = visitado sem justificativa; os nomes so aparecem quando essa conta bate exatamente com 'pedidos na rota' do Clube (nunca deduz).
+export async function diaClube(B, v) {
+  if (!B.env || !B.env.DB) return null;
+  const db = B.env.DB, dia = hojeSP(), rca = String(v.rca), fil = String(v.filial);
+  try {
+    const t = await db.prepare('SELECT total_pedido, ped_total, ped_rota, ped_fora, roteiros, visitas_rota, lido_em FROM clube_venda_dia WHERE dia = ? AND filial = ? AND rca = ?').bind(dia, fil, rca).first();
+    if (!t) return null;
+    const [{ results: C }, { results: J }] = await Promise.all([
+      db.prepare("SELECT tipo, data_hora, cliente, fantasia, razao FROM clube_checkin WHERE dia = ? AND filial = ? AND rca = ? ORDER BY data_hora").bind(dia, fil, rca).all(),
+      db.prepare('SELECT data_hora, cliente, fantasia, razao, dias_sem_comprar, motivo FROM clube_justificativa WHERE dia = ? AND filial = ? AND rca = ? ORDER BY data_hora').bind(dia, fil, rca).all(),
+    ]);
+    const vis = new Map();
+    for (const c of C || []) { const k = String(c.cliente || ''); if (!k) continue; const x = vis.get(k) || { id: k, nome: limpaNomeCli(c.fantasia || c.razao) || `Cliente #${k}`, ini: null, fim: null }; const h = String(c.data_hora || '').slice(11, 16); if (/IN/i.test(c.tipo) && !x.ini) x.ini = h; if (/OUT/i.test(c.tipo)) x.fim = h; vis.set(k, x); }
+    const jus = new Map();
+    for (const j of J || []) { const k = String(j.cliente || ''); if (k) jus.set(k, { id: k, nome: limpaNomeCli(j.fantasia || j.razao) || `Cliente #${k}`, dias: j.dias_sem_comprar, motivo: titulo(String(j.motivo || '').toLowerCase()) }); }
+    const semPed = [...jus.values()].sort((a, b) => (Number(b.dias) || 0) - (Number(a.dias) || 0));
+    const visSemJus = [...vis.values()].filter((x) => !jus.has(x.id));
+    const comPed = Number(t.ped_rota) === visSemJus.length ? visSemJus : null;
+    const naoVis = Math.max(0, (Number(t.roteiros) || 0) - (Number(t.visitas_rota) || 0));
+    // NOMES DE QUEM FICOU SEM VISITA: rota planejada de hoje no roteiro do mes gravado (ultima leitura do CEVEN); so vale se o total bate com 'roteiros' do Clube
+    let naoVisNomes = null;
+    if (naoVis > 0) {
+      try {
+        const rm = await db.prepare("SELECT roteiro_mes_json j FROM varredura_central_rca WHERE rca_codigo = ? AND filial_sigla = ? AND roteiro_mes_json IS NOT NULL ORDER BY data_ref DESC LIMIT 1").bind(rca, fil).first();
+        const arr = rm && rm.j ? JSON.parse(rm.j) : null, lista = Array.isArray(arr) ? arr : (arr && Object.values(arr).find(Array.isArray)) || [];
+        const hoje = lista.filter((c) => String(c.data_visita || '').slice(0, 10) === dia);
+        if (hoje.length === Number(t.roteiros)) naoVisNomes = hoje.filter((c) => !vis.has(String(c.id_cliente))).map((c) => ({ id: String(c.id_cliente), nome: limpaNomeCli(c.nome_cliente || c.razao_social) || `Cliente #${c.id_cliente}`, end: titulo(String(c.endereco || '').toLowerCase()), ult: c.data_ultima_compra ? String(c.data_ultima_compra).slice(0, 10) : null }));
+      } catch (e) { /* sem roteiro do mes: fica so a quantidade */ }
+    }
+    return { t, vis: [...vis.values()], semPed, comPed, naoVis, naoVisNomes, lido: t.lido_em ? new Date(t.lido_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) : null };
+  } catch (e) { return null; }
+}
+export function linhasDiaClube(D, momento) {
+  const t = D.t, L = [];
+  L.push(`🚶 Rota: visitou *${N(t.visitas_rota || 0)} de ${N(t.roteiros || 0)}*` + (D.naoVis ? ` · *${N(D.naoVis)} sem visita*` : ' · rota completa'));
+  L.push(`📝 Vendeu *${R$(t.total_pedido || 0)}* em *${N(t.ped_total || 0)}* pedido(s)` + (t.ped_fora ? ` (${N(t.ped_fora)} fora da rota)` : ''));
+  if (D.comPed && D.comPed.length) L.push(`✅ Com pedido: ${D.comPed.map((x) => x.nome).join(', ')}`);
+  if (D.semPed.length) {
+    L.push('', `🟡 *Visitou e não vendeu (${D.semPed.length}):*`);
+    for (const x of D.semPed.slice(0, 6)) L.push(`• ${x.nome} (#${x.id})${x.dias != null && Number(x.dias) > 0 ? ` · *${N(x.dias)} dias sem comprar*` : ''} · ${x.motivo}`);
+    if (D.semPed.length > 6) L.push(`• e mais ${D.semPed.length - 6}`);
+  }
+  if (D.naoVisNomes && D.naoVisNomes.length) {
+    const dd = (s) => { const d = Math.round((Date.parse(hojeSP()) - Date.parse(s)) / 864e5); return d > 0 ? ` · ${d} dias sem comprar` : ''; };
+    L.push('', `🔴 *Na rota e sem visita (${D.naoVisNomes.length}):*`);
+    for (const x of D.naoVisNomes.slice(0, 8)) L.push(`• ${x.nome} (#${x.id})${x.end ? ` · ${x.end}` : ''}${x.ult ? dd(x.ult) : ''}`);
+    if (D.naoVisNomes.length > 8) L.push(`• e mais ${D.naoVisNomes.length - 8}`);
+  }
+  const parado = D.semPed.find((x) => Number(x.dias) > 30);
+  const acao = parado ? `👉 *${momento === 'meio' ? 'Hoje à tarde' : 'Amanhã cedo'}:* ligar para *${parado.nome}* (${N(parado.dias)} dias sem comprar) e marcar o pedido.`
+    : D.naoVis ? `👉 *${momento === 'meio' ? 'Hoje à tarde' : 'Amanhã'}:* ${D.naoVisNomes && D.naoVisNomes.length ? `visitar ou ligar para *${D.naoVisNomes.slice(0, 2).map((x) => x.nome).join('* e *')}*` : `${N(D.naoVis)} cliente(s) da rota ficaram sem visita: encaixar ou ligar`}.`
+    : D.semPed.length ? `👉 *Próxima visita:* ${D.semPed.length} cliente(s) visitados sem pedido; ligar para quem estava com comprador ausente.` : null;
+  if (acao) L.push('', acao);
+  if (D.lido) L.push(`_Clube da Venda · ${D.lido}_`);
+  return { L, temPerda: !!(D.semPed.length || D.naoVis) };
+}
+
 async function mixRec(B, v) { try { return JSON.parse(await B.raw(`public/mix_rec/${v.filial}.json`) || '{}').clientes || {}; } catch (e) { return {}; } }
 
 // 5 de foco: da rota de hoje, sem compra no mes; primeiro TAG recorrencia, depois outra TAG, depois mais tempo sem compra
@@ -149,6 +208,15 @@ export async function respMomento(B, c, Ev, momentoForcado = null) {
     } else if (rota.length) L.push('', '✅ Todos os clientes da sua rota de hoje já compraram no mês. Hoje é dia de aumentar o mix! 🧺');
     else L.push('', '📅 Você não tem rota hoje no CEVEN.');
   } else {
+    const DC = await diaClube(B, v);
+    if (DC) {
+      if (v.meta > 0) L.push(`📊 *Mês:* *${pc(vend, v.meta)}* da meta${v.metaPos ? ` · Positivação: *${N(v.pos || 0)}/${N(v.metaPos)}*` : ''}`);
+      const { L: LC, temPerda } = linhasDiaClube(DC, momento);
+      L.push(...LC);
+      if (momento === 'meio' && porDia > 0) { const fh = Math.max(0, porDia - (Number(DC.t.total_pedido) || 0)); L.splice(3, 0, fh > 0 ? `💰 Para o ritmo da meta faltam *${R$(fh)}* hoje` : '💰 Ritmo da meta de hoje: *batido!*'); }
+      L.push('', RODAPE, `〔M:${momento}〕`);
+      return { texto: L.join('\n'), momento, incentiva: false, comemora: !temPerda && (Number(DC.t.ped_total) || 0) > 0 };
+    }
     const RG = await rotaGerente(B, v), R = rota, feitas = R.filter((x) => minHM(x.checkin_horario) != null || Number((RG.get(String(x.id_cliente)) || {}).tem_checkin) === 1), ci = feitas.map((x) => minHM(x.checkin_horario)), co = R.map((x) => minHM(x.checkout_horario)).filter((x) => x != null);
     const fFeitos = foco.filter((f) => comprouHoje(f.id) || comprouMes(f.id));
     if (momento === 'meio') {

@@ -370,7 +370,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
       const clienteDaLista = Boolean(idListaUlt || idListaCtx);
       const ehMatinalOuLance = /\b(MATINAL|RESUMO MATINAL|PAINEL MATINAL|MINHA MATINAL)\b|\b(CARD|CARDS) (DA EQUIPE|DO TIME|DA FILIAL|DO SUPERVISOR|DA SUPERVISORA|DE VENDAS|DO BRASIL|MATINAL|INDUSTRIA\w*)|\b(MEU|MANDA|ENVIA|GERA|VER|MOSTRA) (O )?CARD\b|^\W*CARD\W*$/.test(t) || /\b(PENALTI|PENALTIS|PENALIDADE|IMPEDIMENTO|CARTAO|CARTOES|VERMELHO|AMARELO|GOL CONTRA|HAT ?TRICK|DEFESA|LANCE|LANCES)\b/.test(t);
       const ehContCliente = Boolean(B._ctxUltCli && (FICHA_ITENS.test(t) || FICHA_OFERTA.test(t) || FICHA_PEDIDOS.test(t) || /\bHISTORIC\w*\b/.test(t)));
-      const passa = clienteDaLista || ehMatinalOuLance || ehContCliente || /^\W*(SIM|OK|SALVEI|SALVO|CONFIRMADO)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
+      const passa = /\b\d{7,11}\b/.test(t) /* 16/11/2026: numero de pedido nunca e opcao de menu */ || clienteDaLista || ehMatinalOuLance || ehContCliente || /^\W*(SIM|OK|SALVEI|SALVO|CONFIRMADO)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
       // 10/11/2026 (Vitorio): opcoes do tema numeradas 1, 2, 3 (nao 1.1); o marcador 〔k〕 guarda o tema para o proximo numero e para o "ver mais"
       const rodape = (k) => (SUB_VENDEDOR[k] ? ['', `📌 *Quer detalhar?* Digite o número 〔${k}〕`, ...SUB_VENDEDOR[k].map(([rot], i) => `*${i + 1}* ${rot}`), '*0* Voltar ao menu'] : ['', `*0* Voltar ao menu 〔${k}〕`]).join('\n');
       const abre = async (k, s) => {
@@ -388,7 +388,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
           const mot = new Map(); if (N0.length && B.env && B.env.DB) { try { const { results } = await B.env.DB.prepare('SELECT nota, nao_pediu, motivos FROM devolucao_nota_motivo WHERE rca = ?').bind(String(v.rca)).all(); for (const x of results || []) mot.set(String(x.nota), x); } catch (e) { /* sem motivo */ } }
           const tot = N0.reduce((s, n) => s + Math.abs(Number(n.vl_devolvido) || 0), 0);
           r = !v ? 'Não achei os seus dados na base agora.' : !N0.length ? `↩️ *Devoluções no mês — ${vn(v)}*: nenhuma devolução em ${mes.slice(5, 7)}/${mes.slice(0, 4)}.` : [`↩️ *Devoluções no mês — ${vn(v)}*: *${R$(tot)}* em ${N0.length} nota(s)`, '',
-            ...N0.sort((a, b) => String(b.data).localeCompare(String(a.data))).map((n) => { const m = mot.get(String(n.numnota)); const mt = m ? (m.nao_pediu === 1 ? 'cliente não pediu (🟥 −10 na Liga)' : (String(m.motivos || '').replace(/[\[\]"]/g, '').split(',')[0] || 'motivo comercial') + ' (⚽ gol contra −4)') : 'motivo ainda não lido'; return `• ${String(n.data).slice(8, 10)}/${String(n.data).slice(5, 7)} · nota ${n.numnota} · ${titulo(String(n.nomecli || '').replace(/^\d+\s+/, ''))} (#${n.codcli}) · *${R$(Math.abs(Number(n.vl_devolvido) || 0))}* · ${mt}`; })].join('\n');
+            ...N0.sort((a, b) => String(b.data).localeCompare(String(a.data))).map((n) => { const m = mot.get(String(n.numnota)); const mt = m ? (m.nao_pediu === 1 ? 'cliente não pediu (🟥 −10 na Liga)' : ((mo) => mo + (/SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD|PEDIDO DUPLICADO|RECUSOU MERC|PRECO DIFERENTE/.test(mo) ? ' (⚽ gol contra −4)' : ' (não gera lance na Liga)'))(String(m.motivos || '').replace(/[\[\]"]/g, '').split(',')[0] || 'motivo não informado')) : 'motivo ainda não lido'; return `• ${String(n.data).slice(8, 10)}/${String(n.data).slice(5, 7)} · nota ${n.numnota} · ${titulo(String(n.nomecli || '').replace(/^\d+\s+/, ''))} (#${n.codcli}) · *${R$(Math.abs(Number(n.vl_devolvido) || 0))}* · ${mt}`; })].join('\n');
         }
         else if (chave === 'fechamento do mes passado') {
           // FECHAMENTO COM AS INDUSTRIAS (Vitorio, 10/11/2026: 'so tem isso de KPIs? e as industrias? positivacao por industrias?'): GEROT do mes passado, do proprio vendedor
@@ -635,6 +635,11 @@ export async function respostaInterna(B, c, texto, anteriores) {
           const eq = await equipe();
           r = !eq.length ? 'Não achei os vendedores da sua equipe na base agora.' : [`👥 *Sua equipe* (${eq.length} vendedores)`, '', ...eq.map((v, i) => `${i + 1}. *${vn(v)}*`), '', '👉 *Digite o número do vendedor* para abrir o menu dele.'].join('\n');
         } else if (chave === '__campeq__') { const { respCampanhasEquipe } = await import('./respostas/rota.js'); r = await respCampanhasEquipe(B, await carregaEscopo(B, esc)); }
+        else if (chave === '__fechdia__') {
+          const MOs = await import('./respostas/momentos.js'), sup = c.supervisor || c.nome;
+          const Es = await carregaEscopo(B, { nome: 'Equipe ' + titulo(String(sup).split(' ').slice(0, 2).join(' ')) + ' (' + c.filial + ')', filiais: [String(c.filial)], grupo: null, supervisor: sup, nacional: false });
+          const m = await MOs.respMomentoSupervisor(B, c, Es, 'fechamento'); r = m && m.texto ? m.texto : null;
+        }
         else if (chave === '__prospeq__') { const { respProspectsEquipe } = await import('./respostas/segmentos_pastas.js'); r = await respProspectsEquipe(B, await carregaEscopo(B, esc)); }
         else r = await internoS(chave);
         // META DE RECORRENCIA DO GEROT da equipe do supervisor (o vendedor ve a dele no 8)
@@ -673,8 +678,9 @@ export async function respostaInterna(B, c, texto, anteriores) {
       } else {
         const ehMatinalOuLanceS = /\b(MATINAL|RESUMO MATINAL|PAINEL MATINAL|MINHA MATINAL)\b|\b(CARD|CARDS) (DA EQUIPE|DO TIME|DA FILIAL|DO SUPERVISOR|DA SUPERVISORA|DE VENDAS|DO BRASIL|MATINAL|INDUSTRIA\w*)|\b(MEU|MANDA|ENVIA|GERA|VER|MOSTRA) (O )?CARD\b|^\W*CARD\W*$/.test(t) || /\b(PENALTI|PENALTIS|PENALIDADE|IMPEDIMENTO|CARTAO|CARTOES|VERMELHO|AMARELO|GOL CONTRA|HAT ?TRICK|DEFESA|LANCE|LANCES)\b/.test(t);
         const ehContCliS = Boolean(B._ctxUltCli && (FICHA_ITENS.test(t) || FICHA_OFERTA.test(t) || FICHA_PEDIDOS.test(t) || /\bHISTORIC\w*\b/.test(t)));
-        const passaS = ehMatinalOuLanceS || ehContCliS || /^\W*(ZERAD\w*|SEM PEDIDO|QUEM (ESTA |TA )?ZERAD\w*)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /\b(VENDEDOR|VENDEDORA|RCA|SETOR|COD\w*)\W*\d{2,5}\b|\b\d{2,5}\b/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
-        if (!passaS) { const k = temaDoTextoSup(t); if (k) return abreS(k, null); if (!t || /^\W*(MENU|OPCOES|OPCAO|AJUDA|HELP|OI|OLA|BOM DIA|BOA TARDE|BOA NOITE|E AI|FALA)\W*$/.test(t)) return respMenuSupervisor(c); }
+        const passaS = /\b\d{7,11}\b/.test(t) /* 16/11/2026: numero de pedido */ || ehMatinalOuLanceS || ehContCliS || /^\W*(ZERAD\w*|SEM PEDIDO|QUEM (ESTA |TA )?ZERAD\w*)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /\b(VENDEDOR|VENDEDORA|RCA|SETOR|COD\w*)\W*\d{2,5}\b|\b\d{2,5}\b/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
+        let citaVend = false; if (!passaS && /[A-Z]{4,}/.test(t)) { try { const ps = achaPessoa(await carregaEscopo(B, esc), t); citaVend = !!(ps && ps.tipo === 'vend'); } catch (e) { citaVend = false; } }   // 16/11/2026 (Sueli: 'Karina ja vendeu hoje' -> equipe inteira)
+        if (!passaS && !citaVend) { const k = temaDoTextoSup(t); if (k) return abreS(k, null); if (!t || /^\W*(MENU|OPCOES|OPCAO|AJUDA|HELP|OI|OLA|BOM DIA|BOA TARDE|BOA NOITE|E AI|FALA)\W*$/.test(t)) return respMenuSupervisor(c); }
       }
     }
     // RESPOSTA OFICIAL DO VENDEDOR PARA QUEM ESTA ACIMA (Vitorio, 11/11/2026: 'cada tipo de pergunta para o vendedor tem que ser a mesma para o andar de cima...
@@ -686,11 +692,13 @@ export async function respostaInterna(B, c, texto, anteriores) {
       const { temaDoTexto, MENU_VENDEDOR } = await import('./respostas/liga_mix.js');
       const sT = String(t).replace(new RegExp('\\b(' + sem(String(pessoa.alvo.nome || '')).split(/\s+/).filter((w) => w.length > 2).join('|') + ')\\b', 'g'), ' ');
       if (/\b(MENU|INDICE|OPCOES)\b/.test(sT) && !/POSITIV|META|ROTA|DEVOLU|CURVA|LIGA|PROSPEC|CAMPANHA|PEDIDO|MIX|CORTES|CARTEIRA|FASEAMENTO/.test(sT)) return abreVendedorComoEle(B, c, pessoa.alvo);
+      // 16/11/2026 (Vitorio: 'Venda Tamara TCV hoje' / 'Quanto a Tamara vendeu hoje' -> caia no item 1 = ficha do MES): pergunta do DIA = o dia cliente a cliente
+      if (/\b(HOJE|HJ)\b/.test(sT) && /VEND|DIGIT|PEDID|POSITIV|FEZ|FOI O DIA/.test(sT) && !/\bMES\b|SEMANA|CURVA|ROTA DE HOJE|QUAIS CLIENTES|LIGA|CHAMPI/.test(sT)) return respDiaVendedor(B, E0, pessoa.alvo);
       const k = temaDoTexto(sT);
       if (k && MENU_VENDEDOR[k - 1]) {
         const v = pessoa.alvo, cv = { nome: v.nome, papel: 'vendedor', filial: v.filial, rca: String(v.rca), celular: c.celular };
         const o = B.ultOut; B.ultOut = '';
-        let r; try { r = await respostaPronta(B, cv, String(k), []); } finally { B.ultOut = o; }
+        let r; try { r = await respostaPronta(B, cv, MENU_VENDEDOR[k - 1][1] === '__curva__' ? `curva negativa do VENDEDOR ${v.rca}` : String(k), []); } finally { B.ultOut = o; }   // 16/11/2026: o '5' solto caia na ficha
         if (r) return String(r) + `\n_👤 Igual ao que ${vn(v)} vê no item ${k} do menu dele · mande *menu* para voltar ao seu 〔V:${v.filial}:${v.rca}〕_`;
       }
       }
@@ -1356,7 +1364,8 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
     if (pessoa && pessoa.tipo === 'vend' && hojeRota && (/QUA(L|IS)|QUE CLIENTES|LISTA|^CLIENTES?\b|^(A )?ROTA\b|COMO (ESTA|TA|ANDA|VAI).{0,30}\bROTA\b/.test(t)) && !/VISITOU|VISITADOS|JUSTIF|CHE?C?K|HORARIO|MOTIVO/.test(t)) return respRotaHojeCompleta(B, pessoa.alvo, false); }
   // DIA x MES DO VENDEDOR (27/10/2026): "como foi o dia do X" = so hoje; "e o mes?" / "como foi o mes" = resumo do mes dele (respVendedor)
   if (pessoa && pessoa.tipo === 'vend' && /\bE (O |NO )?MES\W*$|^(E )?(O |NO |DO )?MES\W*$|COMO (FOI|ESTA|TA|VAI) O MES/.test(t) && !/NAO VEND|NAO COMPR|CURVA|SEM VENDA/.test(t)) return respVendedor(B, E, pessoa.alvo);
-  if (pessoa && pessoa.tipo === 'vend' && /COMO FOI O DIA|O DIA D[AOE]\b|COMO FOI (HOJE|O DIA)/.test(t) && !/LIGA|BRASILEIRAO|CHAMPIONS/.test(t)) return respDiaVendedor(B, E, pessoa.alvo);
+  // 16/11/2026 (Vitorio: 'Quanto a Tamara de TCV vendeu hoje' -> veio a ficha do MES): pergunta do dia de um vendedor = so o dia, cliente a cliente
+  if (pessoa && pessoa.tipo === 'vend' && (/COMO FOI O DIA|O DIA D[AOE]\b|COMO FOI (HOJE|O DIA)/.test(t) || (/\bHOJE\b/.test(t) && /VENDEU|VENDIDO|VENDA|DIGITOU|DIGITADO|PEDIDOS?|POSITIVOU|FEZ/.test(t) && !/\bMES\b|SEMANA|QUAIS CLIENTES|ROTA DE HOJE/.test(t))) && !/LIGA|BRASILEIRAO|CHAMPIONS/.test(t)) return respDiaVendedor(B, E, pessoa.alvo);
   // MES DO VENDEDOR (26/10/2026, Missaid: "desde o dia 1 ate hoje, quantos clientes o setor 1108 nao vendeu, a curva negativa" -> respondia so o dia)
   // POSITIVACAO DOS SEM COMPRA / QUEM FALTA POSITIVAR (Gessandro Sperotto: "Como está a positivação dos sem compra de hoje")
   if (/POSITIVACAO DOS SEM COMPRA|SEM COMPRA(S)? (DE )?HOJE|CLIENTES SEM COMPRA DE HOJE/.test(t)) {
@@ -1404,6 +1413,16 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   );
   if (ehCurvaOuInativoVend) {
     const v = pessoa.alvo, m = v.mesV || {};
+    // REDUNDANCIA (Vitorio, 16/11/2026: "Curva negativa vendedora Tamara" -> 'sem a produtividade do mes na base'): sem o roteiro do mes na leitura de hoje,
+    // usa o ultimo roteiro do mes gravado no D1 (varredura_central_rca), com a data da leitura no rodape. Nunca responde 'sem dado' se existe leitura gravada.
+    let rmLidoEm = null;
+    if (!(Array.isArray(v.roteiroMes) && v.roteiroMes.length) && B.env && B.env.DB) {
+      try {
+        const rm = await B.env.DB.prepare("SELECT roteiro_mes_json j, data_ref FROM varredura_central_rca WHERE rca_codigo = ? AND filial_sigla = ? AND roteiro_mes_json IS NOT NULL AND substr(data_ref, 1, 7) = ? ORDER BY data_ref DESC LIMIT 1").bind(String(v.rca), String(v.filial), hojeSP().slice(0, 7)).first();
+        const arr = rm && rm.j ? JSON.parse(rm.j) : null, lista = Array.isArray(arr) ? arr : (arr && Object.values(arr).find(Array.isArray)) || [];
+        if (lista.length) { v.roteiroMes = lista; rmLidoEm = rm.data_ref; }
+      } catch (e) { /* sem roteiro gravado */ }
+    }
     // CURVA NEGATIVA = clientes da carteira do mes (roteiro do mes) que ainda NAO compraram neste mes (data da ultima compra antes do dia 1)
     if (Array.isArray(v.roteiroMes) && v.roteiroMes.length) {
       // 27/10/2026: a data_ultima_compra do roteiro vem com valor-padrao do CEVEN (01/01/1900, 05/12/2025) -> "46.320 dias". Agora: comprou no mes = vendas item
@@ -1432,6 +1451,15 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
         cli.set(k, x);
       }
       const nao = [...cli.entries()].filter(([k, x]) => !x.comprou && !compraram.has(k)).map(([k, x]) => { const u = x.ultData || ultH(x.c.cnpj); return { c: x.c, u, d: u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) : null }; }).sort((a, b) => (a.d ?? 999) - (b.d ?? 999));
+      // 16/11/2026 (Tamara: 'Auto Posto Pra Frente · 13/11 · 3 dias' na curva negativa): ultima compra da ficha DENTRO do mes = comprou; sai da lista antes de paginar
+      if (B.env && B.env.DB && nao.length) {
+        try {
+          const ids = nao.map((y) => String(y.c.id_cliente)), ult = new Map();
+          for (let i = 0; i < ids.length; i += 80) { const p = ids.slice(i, i + 80); const { results } = await B.env.DB.prepare(`SELECT id_cliente, json_extract(json, '$.ult') u FROM ficha_cliente WHERE filial = ? AND id_cliente IN (${p.map(() => '?').join(',')})`).bind(String(v.filial), ...p).all(); for (const r of results || []) if (r.u) ult.set(String(r.id_cliente), String(r.u).slice(0, 10)); }
+          for (let i = nao.length - 1; i >= 0; i--) { const u = ult.get(String(nao[i].c.id_cliente)); if (u && u >= mes + '-01') { compraram.add(String(nao[i].c.id_cliente)); nao.splice(i, 1); } else if (u) { nao[i].u = u; nao[i].d = Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5); } }
+          nao.sort((a, b) => (a.d ?? 999) - (b.d ?? 999));
+        } catch (e) { /* sem ficha: fica a conta do roteiro */ }
+      }
       const ehMais = /VER MAIS|LISTA COMPLETA|TODOS|COMPLETA|RESTANTE|RESTO|OUTROS|MAIS \d+/.test(t);
       const antJaTinhaMais = (anteriores || []).some((a) => /VER MAIS|LISTA COMPLETA|TODOS|COMPLETA|RESTANTE/.test(sem(String(a))));
       let ini = 0, fim = 25;
@@ -1452,10 +1480,11 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
       return [`📉 *Curva negativa — ${v.rca} - ${titulo(v.nome)}* (${v.filial})` + (ini > 0 ? ` _(continuação: ${ini + 1}º ao ${Math.min(fim, nao.length)}º)_` : ''),
         `Carteira do mês: *${cli.size} clientes* · já compraram: *${cli.size - nao.length}* · *ainda não compraram: ${nao.length}*`,
         // duas bases do CEVEN com contas diferentes (Igor/TBL, 31/10/2026: 49 de 51 no roteiro x 31 de 44 no painel): mostra as duas, nunca uma so
-        v.pos != null && v.metaPos != null ? `_Painel do CEVEN: positivação ${v.pos} de ${Math.round(v.metaPos)}. Esta lista segue o roteiro do mês, que é outra conta._` : '', '',
+        '', // 16/11/2026 (Vitorio): nada de nota tecnica de fonte na resposta ao time
         ...(lista.length ? ['_Cliente · Última compra · Dias sem compra_'] : []),
         ...lista.map((x, i) => `${i + 1}. ${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} (#${x.c.id_cliente}) · ${x.u ? x.u.slice(8, 10) + '/' + x.u.slice(5, 7) + ' · ' + x.d + ' dias' : x.semPed ? 'sem pedido no histórico' : '— · +60 dias'}`),
-        sobra > 0 ? `… e mais ${sobra} (peça "ver mais")` : '', '',
+        sobra > 0 ? `… e mais ${sobra} (peça "ver mais")` : '',
+        '',
         SUGESTAO + (sobra > 0 ? 'começar por quem comprou há menos tempo: é mais fácil de recuperar.' : (ini > 0 ? 'lista completa entregue.' : 'começar por quem comprou há menos tempo: é mais fácil de recuperar.'))].filter((x) => x !== '').join('\n');
     }
     if (m.plan == null) return `${v.rca} - ${titulo(v.nome)} (${v.filial}): sem a produtividade do mês na base agora.`;
@@ -1579,7 +1608,8 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   if (/POSITIV/.test(t) && /QUANTOS|QUANTO/.test(t) && !/110/.test(t)) return respPositivacao(B, E);
   // PEDIDO POR NUMERO (Ivayr/TCA, 26/10/2026: "ja faturou o pedido 1190000030" -> recebeu o resumo da equipe). O numero/status do pedido ainda NAO esta na base (D1);
   // fica no banco do Data Lake, que esta sendo levado para o D1. Ate la: diz a verdade e registra o pedido para a diretoria.
-  if (/PEDIDO\D{0,12}\d{7,}|\b\d{9,11}\b.{0,20}(FATUROU|FATURADO|STATUS)/.test(t)) { const rp = await respPedidoNumero(B, E, t); if (rp && rp.includes('não está na base')) { try { await B.registraPedido('pedido_por_numero', texto, c.nome, c); } catch (e) {} } if (rp) return rp; }
+  // 16/11/2026: numero sozinho (ex.: '530001089') = o pedido
+  if (/PEDIDO\D{0,12}\d{7,}|\b\d{9,11}\b.{0,20}(FATUROU|FATURADO|STATUS)|^\W*\d{9,11}\W*$/.test(t)) { const rp = await respPedidoNumero(B, E, t); if (rp && rp.includes('não está na base')) { try { await B.registraPedido('pedido_por_numero', texto, c.nome, c); } catch (e) {} } if (rp) return rp; }
   // CEO, 26/10/2026: "quantos clientes a Triunfante ja vendeu esse mes de outubro" caiu no "hoje" -> clientes que compraram no mes = positivacao do mes
   if (/QUANTOS CLIENTES|CLIENTES (JA )?(COMPRARAM|POSITIVAD|ATENDID)|CLIENTES? (QUE )?(A \w+ )?(JA )?(VENDEU|VENDEMOS|VENDERAM)/.test(t) && !/PRODUTO|SKU|INDUSTRIA|PAROU|NAO COMPR|SEM COMPR/.test(t)) return respPositivacao(B, E);
   if (/QUANTO FALTA|FALTA (PARA|PRA|BATER)|\bFALTA\b|POR DIA UTIL|\bMN\b|PRECISA (VENDER|FATURAR)|POR DIA PRA|COMO BATER|BATER A META/.test(t)) return respFalta(B, E);

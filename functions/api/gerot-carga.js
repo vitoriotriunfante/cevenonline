@@ -27,6 +27,8 @@ async function tabelas(db) {
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_vendedor_mes (mes TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, cod_sup TEXT NOT NULL DEFAULT "", supervisor TEXT, vendedor TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, rca, cod_sup))'),
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_supervisor_mes (mes TEXT NOT NULL, filial TEXT NOT NULL, cod_sup TEXT NOT NULL, supervisor TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, cod_sup))'),
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_filial_mes (mes TEXT NOT NULL, filial TEXT NOT NULL, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial))'),
+    // 16/11/2026: carteira por cliente (Mes x Filial x Vendedor x Cliente) = fonte da curva negativa e de 'quem nao comprou'
+    db.prepare('CREATE TABLE IF NOT EXISTS gerot_cliente_mes (mes TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, cliente TEXT NOT NULL, cnpj TEXT, nome TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, rca, cliente))'),
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_coleta_status (id INTEGER PRIMARY KEY AUTOINCREMENT, mes TEXT, linhas INTEGER, enviadas INTEGER, posicao TEXT, colunas TEXT, em TEXT)')
   ]);
 }
@@ -48,6 +50,10 @@ export async function onRequestGet({ request, env }) {
   if (u.searchParams.get('supervisor') === '1') {
     const { results } = await env.DB.prepare('SELECT filial, cod_sup, hash FROM gerot_supervisor_mes WHERE mes = ?').bind(mes).all();
     return r({ hashes: Object.fromEntries((results || []).map((x) => [`${x.filial}|${x.cod_sup}`, x.hash])) });
+  }
+  if (u.searchParams.get('cliente') === '1') {
+    const { results } = await env.DB.prepare('SELECT filial, rca, cliente, hash FROM gerot_cliente_mes WHERE mes = ?').bind(mes).all();
+    return r({ hashes: Object.fromEntries((results || []).map((x) => [`${x.filial}|${x.rca}|${x.cliente}`, x.hash])) });
   }
   if (u.searchParams.get('filial') === '1') {
     const { results } = await env.DB.prepare('SELECT filial, hash FROM gerot_filial_mes WHERE mes = ?').bind(mes).all();
@@ -88,6 +94,16 @@ export async function onRequestPost({ request, env }) {
     const sai = (ex || []).filter((x) => limpa.has(x.filial) && !quer.has(k(x)));
     for (let i = 0; i < sai.length; i += 80) await env.DB.batch(sai.slice(i, i + 80).map((x) => env.DB.prepare('DELETE FROM gerot_vendas WHERE mes = ? AND filial = ? AND rca = ? AND fornecedor = ? AND cod_sup = ?').bind(mes, x.filial, x.rca, x.fornecedor, x.cod_sup == null ? '' : x.cod_sup)));
     return r({ ok: true, mes, apagadas: sai.length, vigentes: quer.size, filiais_limpas: [...limpa], filiais_intactas: [...exFil.keys()].filter((fl) => !limpa.has(fl)) });
+  }
+  const C = Array.isArray(b.clientes) ? b.clientes : [];
+  if (C.length > 200) return r({ erro: 'no maximo 200 clientes por chamada' }, 400);
+  if (C.length) {
+    const ok = C.filter((x) => MES.test(String(x.mes || '')) && /^[A-Z]{3}$/.test(String(x.filial || '')) && String(x.rca || '').trim() && String(x.cliente || '').trim());
+    await env.DB.batch(ok.map((x) => env.DB.prepare(
+      'INSERT INTO gerot_cliente_mes (mes, filial, rca, cliente, cnpj, nome, dados, hash, em) VALUES (?,?,?,?,?,?,?,?,?) ' +
+      'ON CONFLICT (mes, filial, rca, cliente) DO UPDATE SET cnpj = excluded.cnpj, nome = excluded.nome, dados = excluded.dados, hash = excluded.hash, em = excluded.em WHERE gerot_cliente_mes.hash IS NOT excluded.hash'
+    ).bind(String(x.mes), String(x.filial), String(x.rca), String(x.cliente), x.cnpj || null, x.nome || null, JSON.stringify(x.dados || {}), String(x.hash || ''), agora)));
+    if (!b.vendedores && !b.linhas && !b.supervisores && !b.filiais && !b.status) return r({ ok: true, clientes: ok.length, recusados: C.length - ok.length });
   }
   const V = Array.isArray(b.vendedores) ? b.vendedores : [];
   if (V.length > 200) return r({ erro: 'no maximo 200 vendedores por chamada' }, 400);

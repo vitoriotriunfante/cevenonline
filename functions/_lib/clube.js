@@ -18,10 +18,12 @@ export async function lerClubeFilial(env, filial, dia) {
     const m = new Map();
     for (const r of results || []) {
       const idade = Date.now() - Date.parse(String(r.lido_em || ''));
-      if (idade >= 0 && idade <= CLUBE_MAX_IDADE_MS) m.set(String(r.rca), r);
+      // 16/11/2026 (Vitorio 21:32 'Pedidos brasil hoje' -> R$ 0: o robo do Clube para as 20:45 e a regra de 45 min devolvia o CEVEN da madrugada):
+      // vale a ULTIMA leitura de HOJE do Clube (a hora vai junto em lido_em); 'fresco' continua dizendo se tem menos de 45 min.
+      if (idade >= 0) m.set(String(r.rca), r);
     }
     const lido = (results || []).map((r) => r.lido_em).filter(Boolean).sort().pop() || null;
-    v = { rcas: m, lido_em: lido, fresco: m.size > 0 };
+    v = { rcas: m, lido_em: lido, fresco: m.size > 0 && !!lido && Date.now() - Date.parse(lido) <= CLUBE_MAX_IDADE_MS };
   } catch { v = null; }   // tabela ainda nao existe
   mem.set(k, { exp: Date.now() + 20000, v });
   return v;

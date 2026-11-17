@@ -3,6 +3,7 @@
 // Ciclo completo de operacao para Supervisores (S1, S2, S3, S4, S5).
 // Respeita modo (OFF | SIMULACAO_VITORIO | PRODUCAO) e trava de idempotencia.
 // =========================================================================
+import { pausaProativa } from './trava_envio.js';
 import { hojeSP, N, R$, nome2, vn } from '../jota/base.js';
 import { criaBase } from '../jota/fontes.js';
 import { carregaEscopo, pctTxt, pessoaReal } from '../jota/escopo.js';
@@ -167,7 +168,7 @@ export async function executarCicloSupervisores(origin, env, opts = {}) {
         .bind(regraId, hoje, s.celular).first().catch(() => null);
       if (ja) continue;
 
-      if (cfg) {
+      if (cfg && !(await pausaProativa(db))) {   // 16/11/2026: pausa 'so resposta' vale tambem para o piloto de supervisores
         if (enviadosReal > 0) await R.pausaEntreEnvios(4, 1, 2);
         if (midia && midia.endsWith('.webp')) {
           await R.enviarMidia(cfg, '/message/sendSticker', { number: s.celular, sticker: origin + midia });

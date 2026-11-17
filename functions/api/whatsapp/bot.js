@@ -19,7 +19,7 @@
 //   entender e responder ficam em functions/_lib/jota/ (um arquivo por assunto). Prova de que nada mudou: testes/jota_igualdade.mjs.
 // =========================================================================
 import R from '../../../public/regras.js'; // antiban: pausa humana entre envios
-import { FILIAIS, enviar, enviarImagem, sem, so, tabelas, titulo, variantes } from '../../_lib/jota/base.js';
+import { FILIAIS, enviar, enviarImagem, hojeSP, sem, so, tabelas, titulo, variantes } from '../../_lib/jota/base.js';
 import { respondeIA, respostaPronta } from '../../_lib/jota/entende.js';
 import { entendePorIA } from '../../_lib/jota/entende_ia.js';
 import { fichaPorIA, perguntaPadrao } from '../../_lib/jota/motor_ficha.js';
@@ -337,48 +337,52 @@ async function trataMensagem({ request, env }) {
     resp = `Nota já anotada, ${primeiroNome(c)}! 💪`;
     tipo = 'nota';
   }
+  // FECHAMENTO DO DIA (Vitorio, 16/11/2026: supervisor TBE escreveu 'Fechamento' as 18:16 e recebeu o fechamento de OUTUBRO; 'Fechamento do dia 16/11' veio um painel '0 de 0 (sem dado)'):
+  // 'fechamento' sem mes citado, 'fechamento do dia/de hoje' ou 'fechamento do dia DD/MM' = o momento FECHAMENTO do papel de quem pergunta.
+  const ehFechDia = /^\W*(O\s+)?FECHAMENTO(\s+(DO\s+DIA|DE\s+HOJE|DO\s+DIA\s+DE\s+HOJE|HOJE))?(\s+(DO\s+DIA\s+)?\d{1,2}\/\d{1,2}(\/\d{2,4})?)?\W*$/.test(tN) && (!/\d{1,2}\/\d{1,2}/.test(tN) || (() => { const m = tN.match(/(\d{1,2})\/(\d{1,2})/); const h = hojeSP(); return m && Number(m[1]) === Number(h.slice(8)) && Number(m[2]) === Number(h.slice(5, 7)); })());
+  const momF = ehFechDia ? 'fechamento' : null;
   // 3 MOMENTOS DO DIA DO VENDEDOR (diretor 10/11/2026; Vitorio 11/11: 'comecar com todos'): o vendedor cumprimenta e recebe o plano do dia, o meio do dia ou o fechamento.
   // Chave de desligar: config_flags 'jota_momentos' = 'off' (volta a saudacao de antes). Figurinha so quando ha o que comemorar.
-  if (!resp && ehSaudacao(tN) && !primeiraVez && c && c.papel === 'vendedor' && c.rca && /^[A-Z]{3}$/.test(String(c.filial || ''))) {
+  if (!resp && (ehSaudacao(tN) || ehFechDia) && (!primeiraVez || ehFechDia) && c && c.papel === 'vendedor' && c.rca && /^[A-Z]{3}$/.test(String(c.filial || ''))) {
     try {
       const MO = await import('../../_lib/jota/respostas/momentos.js'), { carregaEscopo } = await import('../../_lib/jota/escopo.js');
       if (await MO.momentosLigados(B)) {
         const Ev = await carregaEscopo(B, { nome: c.nome, filiais: [String(c.filial)], grupo: null, supervisor: null, rca: String(c.rca), nacional: false });
-        const m = await MO.respMomento(B, c, Ev);
+        const m = await MO.respMomento(B, c, Ev, momF);
         if (m && m.texto) { resp = m.texto; tipo = 'momento_' + m.momento + (m.comemora ? '_comemora' : m.incentiva ? '_incentiva' : ''); }
       }
     } catch (e) { resp = null; }   // falhou: cai na saudacao de sempre
   }
   // 3 MOMENTOS DO GERENTE (Vitorio, 11/11/2026: 'falta o do gerente'): filial (ou grupo em TPH/MCD) por supervisor; o numero abre o supervisor e depois o vendedor
-  if (!resp && ehSaudacao(tN) && !primeiraVez && c && c.papel === 'gerente' && /^[A-Z]{3}$/.test(String(c.filial || ''))) {
+  if (!resp && (ehSaudacao(tN) || ehFechDia) && (!primeiraVez || ehFechDia) && c && c.papel === 'gerente' && /^[A-Z]{3}$/.test(String(c.filial || ''))) {
     try {
       const MO = await import('../../_lib/jota/respostas/momentos.js'), { carregaEscopo } = await import('../../_lib/jota/escopo.js');
       if (await MO.momentosLigados(B)) {
         const Ev = await carregaEscopo(B, { nome: String(c.filial) + (c.grupo ? ' · ' + titulo(c.grupo) : ''), filiais: [String(c.filial)], grupo: c.grupo || null, supervisor: null, nacional: false });
-        const m = await MO.respMomentoGerente(B, c, Ev);
+        const m = await MO.respMomentoGerente(B, c, Ev, momF);
         if (m && m.texto) { resp = m.texto; tipo = 'momento_' + m.momento + (m.comemora ? '_comemora' : ''); }
       }
     } catch (e) { resp = null; }
   }
   // 3 MOMENTOS DO SUPERVISOR (Vitorio, 11/11/2026: 'manda bala'): abertura da equipe, meio do dia, fechamento; mesma chave de desligar
-  if (!resp && ehSaudacao(tN) && !primeiraVez && c && c.papel === 'supervisor' && /^[A-Z]{3}$/.test(String(c.filial || ''))) {
+  if (!resp && (ehSaudacao(tN) || ehFechDia) && (!primeiraVez || ehFechDia) && c && c.papel === 'supervisor' && /^[A-Z]{3}$/.test(String(c.filial || ''))) {
     try {
       const MO = await import('../../_lib/jota/respostas/momentos.js'), { carregaEscopo } = await import('../../_lib/jota/escopo.js');
       if (await MO.momentosLigados(B)) {
         const sup = c.supervisor || c.nome;
         const Ev = await carregaEscopo(B, { nome: 'Equipe ' + titulo(String(sup).split(' ').slice(0, 2).join(' ')) + ' (' + c.filial + ')', filiais: [String(c.filial)], grupo: null, supervisor: sup, nacional: false });
-        const m = await MO.respMomentoSupervisor(B, c, Ev);
+        const m = await MO.respMomentoSupervisor(B, c, Ev, momF);
         if (m && m.texto) { resp = m.texto; tipo = 'momento_' + m.momento + (m.comemora ? '_comemora' : m.incentiva ? '_incentiva' : ''); }
       }
     } catch (e) { resp = null; }
   }
   // 3 MOMENTOS DA DIRETORIA / CEO (Vitorio, 13/11/2026: briefing executivo das 11 filiais ao dar bom dia/tarde/noite)
-  if (!resp && ehSaudacao(tN) && !primeiraVez && c && (c.papel === 'diretoria' || c.papel === 'ceo')) {
+  if (!resp && (ehSaudacao(tN) || ehFechDia) && (!primeiraVez || ehFechDia) && c && (c.papel === 'diretoria' || c.papel === 'ceo')) {
     try {
       const MO = await import('../../_lib/jota/respostas/momentos.js'), { carregaEscopo } = await import('../../_lib/jota/escopo.js');
       if (await MO.momentosLigados(B)) {
         const Ev = await carregaEscopo(B, { nome: 'Brasil', filiais: FILIAIS, grupo: null, supervisor: null, rca: null, nacional: true });
-        const m = await MO.respMomentoDiretoria(B, c, Ev);
+        const m = await MO.respMomentoDiretoria(B, c, Ev, momF);
         if (m && m.texto) { resp = m.texto; tipo = 'momento_' + m.momento + (m.comemora ? '_comemora' : ''); }
       }
     } catch (e) { resp = null; }

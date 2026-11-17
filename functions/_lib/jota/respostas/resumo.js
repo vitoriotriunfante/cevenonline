@@ -219,6 +219,19 @@ export function respSupervisor(E, s) {
     '', V.some((v) => v.zerado) ? SUGESTAO + `ligar agora para ${listaNomes(V.filter((v) => v.zerado), 3)} (rota sem pedido hoje).` : SUGESTAO + 'equipe com pedido hoje; foco em mix nos próximos clientes.'].join('\n');
 }
 export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mais": so as listas completas */
+  // 16/11/2026 (Vitorio: "vc ainda ta usando merda de dados do CEVEN"): MES = GEROT (faturado, carteira, meta, devolucao, POSITIVACAO e meta de positivacao);
+  // DIA = Clube (digitado, pedidos, rota, visitas). O CEVEN so entra se o GEROT nao tiver o vendedor. Rodape com a fonte e a hora de cada um.
+  let gPos = null, gPosEm = null, DC = null;
+  if (B.env && B.env.DB) {
+    try {
+      const g = await B.env.DB.prepare("SELECT json_extract(dados, '$.\"Positivação (filial + CNPJ)\"') p, json_extract(dados, '$.\"Meta de positivação\"') m, em FROM gerot_vendedor_mes WHERE mes = ? AND filial = ? AND rca = ? ORDER BY (json_extract(dados, '$.\"Meta de positivação\"') IS NULL), em DESC LIMIT 1").bind(hojeSP().slice(0, 7), String(v.filial), String(v.rca)).first();
+      if (g && g.p != null) { gPos = { p: Number(g.p) || 0, m: g.m != null ? Number(g.m) : null }; }
+      const st = await B.env.DB.prepare('SELECT posicao FROM gerot_coleta_status ORDER BY id DESC LIMIT 1').first(); gPosEm = st && st.posicao ? String(st.posicao).replace(/^Atual\s*·\s*/i, '') : null;
+    } catch (e) { /* sem GEROT: fica o painel */ }
+    try { const { diaClube } = await import('./momentos.js'); DC = await diaClube(B, v); } catch (e) { DC = null; }
+  }
+  if (gPos) { v = { ...v, pos: gPos.p, metaPos: gPos.m != null ? gPos.m : v.metaPos }; }
+  if (DC) { const t = DC.t; v = { ...v, dig: Number(t.total_pedido) || 0, ped: Number(t.ped_total) || 0, visP: Number(t.roteiros) || 0, visF: Number(t.visitas_rota) || 0, comVenda: Number(t.ped_rota) || 0 }; }
   const dn = diasUteisRestantes(); const falta = Math.max(0, v.meta - v.fat - (v.pend || 0)), metaPosR = v.metaPos != null ? Math.round(v.metaPos) : null, faltaPos = metaPosR != null && v.pos != null ? Math.max(0, metaPosR - Math.round(v.pos)) : null;
   const L = [`🧑‍💼 *${v.rca} - ${titulo(v.nome)}* — ${v.filial} · sup. ${sn(v.supervisor, v.supCod)} · ${v.canal || 'sem canal'}`,
     `💰 Faturado: *${R$(v.fat)}* + pendente ${R$(v.pend)} de ${R$(v.meta)} → *${pctTxt(v.meta ? (v.fat + (v.pend || 0)) / v.meta * 100 : null)}* da meta`, `🎯 Falta: ${R$(falta)}` + (falta && dn ? ` · ${R$(falta / dn)} por dia útil (${dn} dias)` : ''),
@@ -236,7 +249,7 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
   // OS 5 PRODUTOS QUE O VENDEDOR MAIS VENDE (Vitorio, 10/11/2026: 'colocar os 5 produtos que cada vendedor mais vende apos esse diagnostico'): mais clientes no mes
   if (mv && Array.isArray(mv.top_skus) && mv.top_skus.length) L.push(`⭐ *Mais vendidos no mês* (nº de clientes que compraram): ` + mv.top_skus.slice(0, 5).map((p, i) => `${i + 1}. ${titulo(p.n || p.c)} (${p.cli} cliente${p.cli > 1 ? 's' : ''})`).join(' · '));
   if (mv && Array.isArray(mv.top_introduzidos) && mv.top_introduzidos.length) L.push(`🆕 *Produtos novos nos clientes* (não compravam há mais de 60 dias): ` + mv.top_introduzidos.map((p, i) => `${i + 1}. ${titulo(p.n || p.c)} (${p.cli} cliente${p.cli > 1 ? 's' : ''}${p.via_mix ? ', ' + p.via_mix + ' pelo +MIX' : ''})`).join(' · '));
-  if (v.lidoEm) L.push(`🕒 Dados do CEVEN lidos às ${new Date(v.lidoEm).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}`);
+  L.push(`🕒 Fontes: mês ${gPos || v.meta ? `GEROT${gPosEm ? ' ' + gPosEm : ''}` : 'sem GEROT'} · hoje ${DC && DC.lido ? `Clube ${DC.lido}` : 'Clube ainda sem leitura hoje'}`);
   const lc = await B.lances(); const hj = lc ? (lc.lances || []).filter((l) => String(l.rca) === v.rca && l.filial === v.filial) : [];
   if (hj.length) { const c = {}; for (const l of hj) c[l.pontos_nome || l.nivel] = (c[l.pontos_nome || l.nivel] || 0) + 1; L.push(`⚽ Hoje na Liga: *${hj.reduce((a, l) => a + (l.pontos || 0), 0)} pontos* em ${hj.length} lance(s) — ` + Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, n]) => `${n}× ${k}`).join(' · ')); }
   // PROATIVO (Vitorio, 26/10/2026: "como faltam 15 positivacoes para ela, esses sao os clientes que ela ja visitou e nao vendeu esse mes... com a data da visita e
@@ -281,7 +294,9 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
       L.push(`📌 *Faltam ${faltaPos} positivações:* ` + parts.join(' e ') + ' ainda sem compra. Peça *"ver mais"* para ver a lista de clientes.');
     }
   } else if (opt.tudo) return `${vn(v)}: sem positivação faltando ou sem o roteiro do mês na base.`;
-  L.push('', SUGESTAO + (v.zerado ? 'está com rota e sem pedido hoje: ligar já.' : falta > 0 ? `precisa de ${R$(falta / Math.max(dn, 1))} por dia útil; priorizar clientes curva A e o +MIX.` : 'meta financeira batida; buscar positivação e mix.'));
+  // acao concreta do dia (cliente parado ou sem visita, pelo Clube); sem isso, a conta do mes
+  let acao = null; if (DC) { try { const { linhasDiaClube } = await import('./momentos.js'); acao = linhasDiaClube(DC, 'fechamento').L.find((x) => /^👉/.test(x)); } catch (e) { acao = null; } }
+  L.push('', acao || (SUGESTAO + (falta > 0 ? `precisa de ${R$(falta / Math.max(dn, 1))} por dia útil; peça "como foi o dia" para ver quem ficou sem pedido.` : 'meta financeira batida; buscar positivação e mix.')));
   return L.join('\n');
 }
 export async function totaisOficiais(B, E) {
@@ -332,6 +347,38 @@ export async function respFalta(B, E) {
 export async function respDiaVendedor(B, E, v) {
   const lc = await B.lances(); const hj = lc ? (lc.lances || []).filter((l) => String(l.rca) === v.rca && l.filial === v.filial) : [];
   const c = {}; for (const l of hj) c[l.pontos_nome || l.nivel] = (c[l.pontos_nome || l.nivel] || 0) + 1;
+  // 16/11/2026 (avaliacao 'escola Ambev' da resposta do Alex: 2/10 — "numero sem referencia, sem quem ficou na mesa, sem acao"):
+  // o dia vem do Clube cliente a cliente, com a meta do dia como referencia e a acao no fim.
+  try {
+    const { diaClube, linhasDiaClube } = await import('./momentos.js');
+    const D = await diaClube(B, v);
+    if (D) {
+      const du = diasUteisRestantes(), falta = Math.max(0, (v.meta || 0) - (v.fat || 0) - (v.pend || 0)), metaDia = du && v.meta ? falta / du : null, dig = Number(D.t.total_pedido) || 0;
+      const L = [`📝 *${vn(v)}* (${v.filial}) — *hoje*`];
+      if (metaDia) L.push(`🎯 Meta do dia: *${R$(metaDia)}* → vendeu *${R$(dig)}* (${Math.round(dig / metaDia * 100)}%) ${dig >= metaDia ? '🟢' : dig >= metaDia * 0.7 ? '🟡' : '🔴'}`);
+      else if (v.meta && falta === 0) L.push('🏆 Meta do mês já batida (faturado + a faturar).');
+      const hh = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', hour: '2-digit', hour12: false }).format(new Date()));
+      const LD = linhasDiaClube(D, hh < 15 ? 'meio' : 'fechamento').L, iAcao = LD.findIndex((x) => /^👉/.test(x));
+      // INDUSTRIAS (Vitorio, 16/11/2026: "ja nao conseguimos incluir dados da industria?"): GEROT do mes por vendedor x industria; as 3 maiores faltas em R$
+      let LI = [];
+      try {
+        const { limpaNome } = await import('./gerot_industria.js');
+        const { results: GI } = await B.env.DB.prepare("SELECT fornecedor f, json_extract(dados, '$.\"Meta (R$)\"') m, json_extract(dados, '$.\"Faturado líquido (R$)\"') fa, json_extract(dados, '$.\"Carteira pendente (R$)\"') ca, json_extract(dados, '$.\"Positivação (filial + CNPJ)\"') p FROM gerot_vendas WHERE mes = ? AND filial = ? AND rca = ?").bind(hojeSP().slice(0, 7), String(v.filial), String(v.rca)).all();
+        const nomeI = (f) => titulo(limpaNome(f).replace(/\s*#\d+\s*$/, '').replace(/\b(LTDA|LTD|S\.?A\.?|S\/A|DO BRASIL|BRASIL|INDUSTRIA|IND|COMERCIO|COM|DIST|DISTRIBUIDORA|ALIMENTOS|E)\b\.?/gi, ' ').replace(/[.]+/g, ' ').replace(/\s+/g, ' ').trim().split(' ').slice(0, 2).join(' '));
+        const I = (GI || []).filter((x) => Number(x.m) > 0).map((x) => { const vend = (Number(x.fa) || 0) + (Number(x.ca) || 0); return { n: nomeI(x.f), m: Number(x.m), vend, falta: Math.max(0, Number(x.m) - vend), p: Number(x.p) || 0 }; }).sort((a, b) => b.falta - a.falta);
+        if (I.length) {
+          const bat = I.filter((x) => x.falta === 0).map((x) => x.n);
+          LI = ['', `🏭 *Indústrias no mês* (fat. + a faturar · meta):`, ...I.filter((x) => x.falta > 0).slice(0, 3).map((x) => `• *${x.n}*: ${R$(x.vend)} de ${R$(x.m)} (${Math.round(x.vend / x.m * 100)}%) · faltam *${R$(x.falta)}* · ${N(x.p)} clientes`)];
+          if (bat.length) LI.push(`✅ Meta batida: ${bat.join(', ')}`);
+        }
+      } catch (e) { LI = []; }
+      if (iAcao >= 0) LD.splice(LD[iAcao - 1] === '' ? iAcao - 1 : iAcao, 0, ...LI); else LD.push(...LI);
+      L.push(...LD);
+      if (hj.length) L.push(`⚽ Liga hoje: *${hj.reduce((a, l) => a + (l.pontos || 0), 0)} pontos* (${Object.entries(c).map(([k, n]) => `${n}× ${k}`).join(' · ')})`);
+      L.push('', '_Peça "e o mês?" para o acumulado do mês._');
+      return L.join('\n');
+    }
+  } catch (e) { /* sem Clube: segue o resumo de antes */ }
   return [`📝 *${vn(v)}* (${v.filial}) — *hoje*`,
     `Digitado: *${R$(v.dig)}* em ${v.ped} pedido(s)` + (v.ped ? ` · ticket ${R$(v.dig / v.ped)}` : ''),
     v.visP ? `Visitas: ${v.visF} de ${v.visP} · com venda: ${v.comVenda}` : '',
