@@ -9,9 +9,10 @@
 import { respostaPronta } from '../_lib/jota/entende.js';
 import { criaBase } from '../_lib/jota/fontes.js';
 import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
+import { chaveEvoValida } from '../_lib/chave_evo.js';
 
 export async function onRequestPost({ request, env }) {
-  if (!(await chaveAdminOk(env, request))) return new Response(JSON.stringify({ erro: 'nao autorizado' }), { status: 401 });
+  if (!(await chaveAdminOk(env, request)) && !(await chaveEvoValida(request, env))) return new Response(JSON.stringify({ erro: 'nao autorizado' }), { status: 401 });
   const b = await request.json().catch(() => ({}));
   const c = b && b.contato; if (!c || !c.papel) return new Response(JSON.stringify({ erro: 'contato com papel obrigatorio' }), { status: 400 });
   const out = [];

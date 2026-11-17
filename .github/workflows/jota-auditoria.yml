@@ -1,0 +1,25 @@
+# FICHA DO ARQUIVO
+# O QUE E: AUDITORIA POR PAPEL do JOTA (vendedor, supervisor, gerente, diretoria) 2x por dia, perguntas SECAS ao JOTA de producao (/api/jota-seco: nada enviado).
+#   Relatorio no D1 (/api/jota-auditoria); o log publico mostra SO contagens (repositorio publico). Vitorio, 17/11/2026: "ultra mega auditoria".
+#   O GitHub atrasa/pula schedule: e reserva; tambem pode ser disparado a mao.
+name: JOTA — auditoria por papel
+
+on:
+  schedule:
+    - cron: '30 9 * * 1-6'    # 06h30 BRT
+    - cron: '0 16 * * 1-6'    # 13h00 BRT
+  workflow_dispatch:
+
+jobs:
+  auditar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Auditoria por papel
+        env:
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+        run: node testes/auditoria_papeis.mjs
