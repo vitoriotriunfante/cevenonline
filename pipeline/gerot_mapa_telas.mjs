@@ -9,7 +9,7 @@ import XLSX from 'xlsx';
 import fs from 'fs'; import path from 'path'; import os from 'os';
 
 const EMAIL = process.env.GEROT_EMAIL, SENHA = process.env.GEROT_SENHA;
-const ALVO = /carteira|pedido|devolu|corte|recorr|troca/i;
+const ALVO = /devolu|corte|^pedidos|recorr/i;   // 17/11/2026: so as telas que faltam (Carteira Total ja e lida pela pipeline/gerot_carteira.mjs)
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 
 const browser = await chromium.launch({ headless: true, args: ['--disable-blink-features=AutomationControlled'] });
@@ -38,8 +38,10 @@ for (const it of itens.filter((x) => ALVO.test(x.v + ' ' + x.t))) {
     await page.waitForTimeout(15000);
     const botoes = await page.evaluate(() => [...document.querySelectorAll('button,a')].map((b) => (b.innerText || '').trim()).filter((s) => /exportar|baixar|excel|planilha|extrair/i.test(s)));
     log(`[${it.v}] ${it.t} · botoes: ${JSON.stringify([...new Set(botoes)])}`);
-    const b = page.getByText(/Exportar planilha/i).first();
-    if (!(await b.count())) { log(`[${it.v}] sem "Exportar planilha"`); continue; }
+    // 17/11/2026 (plano bloco E): Devolucoes/Cortes/Pedidos/Recorrencia so tem "Exportar Excel" (tabela da tela, com o detalhamento aberto)
+    let b = page.getByText(/Exportar planilha/i).first();
+    if (!(await b.count())) b = page.getByText(/^Exportar Excel$/i).first();
+    if (!(await b.count())) { log(`[${it.v}] sem botao de exportar`); continue; }
     const dl = page.waitForEvent('download', { timeout: 180000 }).catch(() => null);
     await b.click({ timeout: 15000 }).catch(() => {});
     const d = await dl;
