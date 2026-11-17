@@ -36,6 +36,9 @@ async function tabelas(db) {
     // 17/11/2026: CARTEIRA TOTAL por pedido (pipeline/gerot_carteira.mjs): status, situacao, motivo de bloqueio e valor do que esta em aberto
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_carteira (filial TEXT NOT NULL, pedido TEXT NOT NULL, rca TEXT, vendedor TEXT, sup_cod TEXT, entrada TEXT, origem TEXT, status TEXT, situacao TEXT, motivo TEXT, cliente TEXT, cnpj TEXT, status_cliente TEXT, positivado TEXT, valor REAL, itens INTEGER, qped REAL, qfat REAL, fornecedores TEXT, hash TEXT, em TEXT, PRIMARY KEY (filial, pedido))'),
     db.prepare('CREATE INDEX IF NOT EXISTS ix_gerot_carteira_rca ON gerot_carteira (filial, rca)'),
+    // 17/11/2026: DATA DO PEDIDO guardada para sempre (a carteira perde o pedido quando ele fatura, e no 'Pedidos' a data vira a do faturamento) = base da Liga sem o CEVEN
+    db.prepare('CREATE TABLE IF NOT EXISTS gerot_pedido_entrada (filial TEXT NOT NULL, pedido TEXT NOT NULL, rca TEXT, cnpj TEXT, entrada TEXT, visto_em TEXT, PRIMARY KEY (filial, pedido))'),
+    db.prepare('CREATE INDEX IF NOT EXISTS ix_gerot_pedido_entrada_dia ON gerot_pedido_entrada (entrada, filial, rca)'),
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_horario (id INTEGER PRIMARY KEY AUTOINCREMENT, lido_em TEXT, ok INTEGER, ultima TEXT, carga TEXT, posicao TEXT, segundos INTEGER, erro TEXT)'),
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_coleta_status (id INTEGER PRIMARY KEY AUTOINCREMENT, mes TEXT, linhas INTEGER, enviadas INTEGER, posicao TEXT, colunas TEXT, em TEXT)')
   ]);
@@ -125,6 +128,8 @@ export async function onRequestPost({ request, env }) {
       'INSERT INTO gerot_carteira (filial, pedido, rca, vendedor, sup_cod, entrada, origem, status, situacao, motivo, cliente, cnpj, status_cliente, positivado, valor, itens, qped, qfat, fornecedores, hash, em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ' +
       'ON CONFLICT (filial, pedido) DO UPDATE SET rca = excluded.rca, vendedor = excluded.vendedor, sup_cod = excluded.sup_cod, entrada = excluded.entrada, origem = excluded.origem, status = excluded.status, situacao = excluded.situacao, motivo = excluded.motivo, cliente = excluded.cliente, cnpj = excluded.cnpj, status_cliente = excluded.status_cliente, positivado = excluded.positivado, valor = excluded.valor, itens = excluded.itens, qped = excluded.qped, qfat = excluded.qfat, fornecedores = excluded.fornecedores, hash = excluded.hash, em = excluded.em WHERE gerot_carteira.hash IS NOT excluded.hash'
     ).bind(String(x.filial), String(x.pedido), t(x.rca, 12), t(x.vendedor), t(x.sup_cod, 12), t(x.entrada, 10), t(x.origem, 40), t(x.status, 60), t(x.situacao, 60), t(x.motivo, 200), t(x.cliente), t(x.cnpj, 14), t(x.status_cliente, 40), t(x.positivado, 20), Number(x.valor) || 0, Number(x.itens) || 0, Number(x.qped) || 0, Number(x.qfat) || 0, JSON.stringify(x.fornecedores || []).slice(0, 600), String(x.hash || ''), agora)));
+    await env.DB.batch(ok.filter((x) => x.entrada).map((x) => env.DB.prepare('INSERT INTO gerot_pedido_entrada (filial, pedido, rca, cnpj, entrada, visto_em) VALUES (?,?,?,?,?,?) ON CONFLICT (filial, pedido) DO UPDATE SET rca = COALESCE(excluded.rca, gerot_pedido_entrada.rca), cnpj = COALESCE(excluded.cnpj, gerot_pedido_entrada.cnpj) WHERE gerot_pedido_entrada.rca IS NOT excluded.rca OR gerot_pedido_entrada.cnpj IS NOT excluded.cnpj')
+      .bind(String(x.filial), String(x.pedido), t(x.rca, 12), t(x.cnpj, 14), t(x.entrada, 10), agora)));
     return r({ ok: true, carteira: ok.length, recusados: CT.length - ok.length });
   }
   const CR = Array.isArray(b.carteira_remover) ? b.carteira_remover : [];

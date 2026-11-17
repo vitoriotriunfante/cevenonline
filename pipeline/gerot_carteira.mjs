@@ -87,7 +87,8 @@ let falhou = false;
 try {
   const ctx = await browser.newContext({ viewport: { width: 1600, height: 1000 }, acceptDownloads: true, ignoreHTTPSErrors: true });
   const page = await ctx.newPage();
-  await page.goto('https://gerot.triunfanteadmvendas.com.br:8009/login', { waitUntil: 'domcontentloaded', timeout: 120000 });
+  // 17/11/2026 15h40: o GEROT demorou mais de 2 min para abrir o login e a carga caiu; ate 3 tentativas
+  for (let t = 1; t <= 3; t++) { try { await page.goto('https://gerot.triunfanteadmvendas.com.br:8009/login', { waitUntil: 'domcontentloaded', timeout: 120000 }); break; } catch (e) { log(`login do GEROT nao abriu (tentativa ${t})`); if (t === 3) throw e; await page.waitForTimeout(20000); } }
   await page.waitForTimeout(4000);
   if (await page.$('#lgEmail')) { if (!EMAIL || !SENHA) throw new Error('GEROT_EMAIL / GEROT_SENHA nao configurados'); await page.fill('#lgEmail', EMAIL); await page.fill('#lgSenha', SENHA); await page.click('#lgBtn'); }
   let pronto = false;
