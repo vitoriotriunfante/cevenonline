@@ -1,0 +1,34 @@
+# FICHA DO ARQUIVO
+# O QUE É: teste de horario do GEROT (Vitorio, 16/11/2026): de hora em hora, das 06h as 20h (Brasilia), seg a sab, le "Ultima atualizacao" e "carga"
+#   do painel e grava no D1 (tabela gerot_horario). SO LEITURA; nao baixa Excel. Mesma fila do coletor (nunca duas sessoes do GEROT juntas).
+# Segredos: GEROT_EMAIL, GEROT_SENHA, EVO_KEY (ja existem).
+name: GEROT — teste de horario (so leitura)
+
+on:
+  schedule:
+    - cron: '5 9-23 * * 1-6'   # :05 de cada hora, 06h05-20h05 BRT, segunda a sabado
+  workflow_dispatch:
+
+concurrency:
+  group: gerot-coleta
+  cancel-in-progress: false
+
+jobs:
+  ler:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Instalar dependencias e navegador
+        run: |
+          npm ci --no-audit --no-fund
+          for t in 1 2 3 4; do npx playwright install --with-deps chromium && break; sleep 20; done
+      - name: Ler a hora da ultima carga do GEROT
+        env:
+          GEROT_EMAIL: ${{ secrets.GEROT_EMAIL }}
+          GEROT_SENHA: ${{ secrets.GEROT_SENHA }}
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+        run: node pipeline/gerot_horario.mjs

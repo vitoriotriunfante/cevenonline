@@ -187,7 +187,8 @@ function linhasClienteDoExcel(arq, mes) {
     const cnpj = String(iCnpj >= 0 ? r[iCnpj] ?? '' : '').replace(/\D/g, '') || (nomeCli.match(/(\d{11,14})\s*$/) || [])[1] || '';
     const cliente = String(iCc >= 0 ? r[iCc] ?? '' : '').trim() || cnpj;
     if (!rca || !cliente || /^total/i.test(nomeCli)) continue;
-    const dados = {}; H.forEach((h, k) => { if (!chaves.has(k) && h) dados[h] = num(r[k]); });
+    // so as colunas que o JOTA usa e que nao mudam a toa (arquiteto, 16/11/2026: 'Positivacao do dia', 'Captacao' e 'Necessidade dia' mudam todo dia e regravariam tudo)
+    const dados = {}; H.forEach((h, k) => { if (!chaves.has(k) && h && /^Positiva[cç][aã]o (\(filial|M-1|3M|A-1)|^Positiva[cç][aã]o \+ Carteira|^Faturado l[ií]quido|^Carteira pendente|^Devolu[cç][aã]o \(R\$\)/i.test(h)) dados[h] = num(r[k]); });
     const linha = { mes: m, filial, rca, cliente, cnpj: cnpj || null, nome: nomeCli.replace(/\s*[·-]?\s*\d{11,14}\s*$/, '') || null, dados };
     linha.hash = crypto.createHash('md5').update(JSON.stringify([linha.nome, dados])).digest('hex');
     linhas.push(linha);
