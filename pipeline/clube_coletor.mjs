@@ -57,7 +57,7 @@ for (const [fi, sig] of Object.entries(UNIDADES)) {
   for (const s of sups || []) tarefas.push({ sig, fi, sup: s[0], supNome: s[1] });
 }
 // 2) vendedores de cada supervisor, 4 abas em paralelo
-const pags = [p0, ...(await Promise.all([1, 2, 3].map(() => ctx.newPage())))];
+const pags = [p0, ...(await Promise.all([1, 2, 3, 4].map(() => ctx.newPage())))];   // 4a: Relatorio de Pedido (17/11/2026)
 const vendedores = [], falhas = [];
 let k = 0;
 await Promise.all(pags.map(async (pg) => {
@@ -94,7 +94,8 @@ async function relatorio(pg, nomePg, todasPaginas) {
     return { cab: T.cab, linhas: todas, total };
   } catch (e) { log(nomePg, 'falhou', String(e.message || e).slice(0, 120)); return null; }
 }
-const [CK, JU, PP] = await Promise.all([relatorio(pags[1], 'relatorioCheckinCheckout', true), relatorio(pags[2], 'relatorioJustificativaRoteiro', true), relatorio(pags[3], 'painelPedido', false)]);
+// 17/11/2026: RELATORIO DE PEDIDO = cada pedido do dia com vendedor, cliente, total, confirmado, tipo de bloqueio e datas (o 'comprou na visita' exato, na hora)
+const [CK, JU, PP, PD] = await Promise.all([relatorio(pags[1], 'relatorioCheckinCheckout', true), relatorio(pags[2], 'relatorioJustificativaRoteiro', true), relatorio(pags[3], 'painelPedido', false), relatorio(pags[4], 'relatorioPedido', true)]);
 // RCA do Clube -> filial: pelo codigo + nome dos vendedores lidos acima (o mesmo codigo pode existir em 2 filiais)
 const porCod = new Map(); for (const v of vendedores) { if (!porCod.has(v.rca)) porCod.set(v.rca, []); porCod.get(v.rca).push(v); }
 const semAc = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().trim();
@@ -104,6 +105,11 @@ const idx = (T, nome) => T ? T.cab.findIndex((c) => semAc(c) === semAc(nome)) : 
 const checkins = [], justificativas = [];
 if (CK) { const i = { cod: idx(CK, 'Código'), tipo: idx(CK, 'Tipo'), dh: idx(CK, 'Data/Hora'), rca: idx(CK, 'ID'), nome: idx(CK, 'Representante'), cli: idx(CK, 'Código Cliente'), cnpj: idx(CK, 'CNPJ'), raz: idx(CK, 'Razão Social'), fan: idx(CK, 'Fantasia') };
   for (const l of CK.linhas) if (l[i.cod]) checkins.push({ codigo: l[i.cod], tipo: l[i.tipo], data_hora: dataIso(l[i.dh]), rca: l[i.rca], nome: l[i.nome], filial: filialDe(l[i.rca], l[i.nome]), cliente: l[i.cli], cnpj: l[i.cnpj], razao: l[i.raz], fantasia: l[i.fan] }); }
+const pedidos = [];
+if (PD) { const i = { id: idx(PD, 'ID'), rep: idx(PD, 'Representante'), ped: idx(PD, 'Pedido'), pw: idx(PD, 'Pedido Winthor'), cli: idx(PD, 'Cliente'), raz: idx(PD, 'Razão Social'), tot: idx(PD, 'Total'), sinc: idx(PD, 'Sincronizado'), conf: idx(PD, 'Confirmado'), ori: idx(PD, 'Origem'), bloq: idx(PD, 'Tipo Bloqueio'), di: idx(PD, 'Data Inicial'), de: idx(PD, 'Data Emissão'), dr: idx(PD, 'Data de Recebimento'), dl: idx(PD, 'Data Liberação') };
+  for (const l of PD.linhas) { if (!l[i.ped] && !l[i.id]) continue; const [rc, ...rn] = String(l[i.rep] || '').split(' - '); const rca = String(rc || '').trim().replace(/\D/g, '');
+    pedidos.push({ id: l[i.id], pedido: String(l[i.ped] || '').replace(/\D/g, '') || null, pedido_winthor: String(l[i.pw] || '').replace(/\D/g, '') || null, rca, nome: rn.join(' - ').trim(), filial: filialDe(rca, rn.join(' - ')), cliente: String(l[i.cli] || '').replace(/\D/g, '') || null, razao: l[i.raz] || null, total: num(l[i.tot]), sincronizado: l[i.sinc] || null, confirmado: l[i.conf] || null, origem: l[i.ori] || null, tipo_bloqueio: l[i.bloq] || null, data_inicial: dataIso(l[i.di]), data_emissao: dataIso(l[i.de]), data_recebimento: dataIso(l[i.dr]), data_liberacao: dataIso(l[i.dl]) }); } }
+log('relatorio de pedido', PD ? pedidos.length + ' de ' + PD.total + ' · colunas ' + JSON.stringify(PD.cab) : 'FALHOU');
 if (JU) { const i = { id: idx(JU, 'ID'), co: idx(JU, 'Coordenador'), rep: idx(JU, 'Representante'), cli: idx(JU, 'Código Cliente'), cnpj: idx(JU, 'CPF/CNPJ'), raz: idx(JU, 'Razão Social'), fan: idx(JU, 'Fantasia'), dias: idx(JU, 'Dias Sem Comprar'), mot: idx(JU, 'Motivo Não Visita'), dh: idx(JU, 'Data'), obs: idx(JU, 'Observação') };
   for (const l of JU.linhas) { if (!l[i.id]) continue; const [rc, ...rn] = String(l[i.rep] || '').split(' - '), [sc] = String(l[i.co] || '').split(' - '); justificativas.push({ id: l[i.id], sup_cod: sc.trim(), rca: rc.trim(), nome: rn.join(' - ').trim(), filial: filialDe(rc.trim(), rn.join(' - ')), cliente: l[i.cli], cnpj: l[i.cnpj], razao: l[i.raz], fantasia: l[i.fan], dias_sem_comprar: num(l[i.dias]), motivo: l[i.mot], data_hora: dataIso(l[i.dh]), obs: l[i.obs] || null }); } }
 const naoSinc = PP ? PP.total : null;
@@ -119,7 +125,7 @@ if (process.argv.includes('--api') && process.env.EVO_KEY) {
   const rApi = await fetch(`${baseUrl}/api/clube-carga`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Evo-Key': process.env.EVO_KEY },
-    body: JSON.stringify({ dia: res.dia, lido_em: res.lido_em, vendedores, checkins, justificativas, rodada: { vendedores: vendedores.length, checkins: CK ? checkins.length : null, justificativas: JU ? justificativas.length : null, nao_sinc: naoSinc, falhas: falhas.join(', '), duracao_s: res.duracao_s } })
+    body: JSON.stringify({ dia: res.dia, lido_em: res.lido_em, vendedores, pedidos, checkins, justificativas, rodada: { vendedores: vendedores.length, checkins: CK ? checkins.length : null, justificativas: JU ? justificativas.length : null, nao_sinc: naoSinc, falhas: falhas.join(', '), duracao_s: res.duracao_s } })
   }).then((x) => x.json()).catch((e) => ({ erro: String(e) }));
   log('API /api/clube-carga', JSON.stringify(rApi));
 }

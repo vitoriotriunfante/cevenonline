@@ -42,6 +42,17 @@ export async function onRequestPost({ request, env }) {
         .bind(String(j.id), dia, j.filial || null, j.sup_cod || null, j.rca || null, j.nome || null, j.cliente || null, j.cnpj || null, j.razao || null, j.fantasia || null, j.dias_sem_comprar ?? null, j.motivo || null, j.data_hora || null, j.obs || null)
     );
   }
+  // 17/11/2026: PEDIDOS DO DIA do Clube (Relatorio de Pedido): um por pedido, so grava o que mudou
+  if (Array.isArray(body.pedidos) && body.pedidos.length) {
+    await db.prepare('CREATE TABLE IF NOT EXISTS clube_pedido (filial TEXT NOT NULL, pedido TEXT NOT NULL, dia TEXT, rca TEXT, id TEXT, pedido_winthor TEXT, cliente TEXT, razao TEXT, total REAL, confirmado TEXT, sincronizado TEXT, origem TEXT, tipo_bloqueio TEXT, data_inicial TEXT, data_emissao TEXT, data_recebimento TEXT, data_liberacao TEXT, hash TEXT, lido_em TEXT, PRIMARY KEY (filial, pedido))').run();
+    await db.prepare('CREATE INDEX IF NOT EXISTS ix_clube_pedido_dia ON clube_pedido (dia, filial, rca, cliente)').run();
+    for (const x of body.pedidos) {
+      if (!x || !x.filial || !(x.pedido || x.id)) continue;
+      const h = [x.pedido_winthor, x.total, x.confirmado, x.sincronizado, x.tipo_bloqueio, x.data_emissao, x.data_liberacao, x.cliente, x.rca].join('|');
+      stmts.push(db.prepare('INSERT INTO clube_pedido (filial, pedido, dia, rca, id, pedido_winthor, cliente, razao, total, confirmado, sincronizado, origem, tipo_bloqueio, data_inicial, data_emissao, data_recebimento, data_liberacao, hash, lido_em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT (filial, pedido) DO UPDATE SET rca = excluded.rca, pedido_winthor = excluded.pedido_winthor, cliente = excluded.cliente, razao = excluded.razao, total = excluded.total, confirmado = excluded.confirmado, sincronizado = excluded.sincronizado, origem = excluded.origem, tipo_bloqueio = excluded.tipo_bloqueio, data_emissao = excluded.data_emissao, data_recebimento = excluded.data_recebimento, data_liberacao = excluded.data_liberacao, hash = excluded.hash, lido_em = excluded.lido_em WHERE clube_pedido.hash IS NOT excluded.hash')
+        .bind(String(x.filial), String(x.pedido || 'ID' + x.id), dia, x.rca || null, x.id ? String(x.id) : null, x.pedido_winthor || null, x.cliente || null, x.razao ? String(x.razao).slice(0, 120) : null, Number(x.total) || 0, x.confirmado || null, x.sincronizado || null, x.origem || null, x.tipo_bloqueio || null, x.data_inicial || null, x.data_emissao || null, x.data_recebimento || null, x.data_liberacao || null, h, lidoEm));
+    }
+  }
   if (body.rodada) {
     const rd = body.rodada;
     stmts.push(
