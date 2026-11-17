@@ -285,7 +285,7 @@ export async function respMatinal(B, E) {
     B.env.DB.prepare('SELECT posicao, em FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null),
     B.env.DB.prepare(`SELECT filial, rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...fil).all().catch(() => ({ results: [] })),
     /* 16/11/2026 (mapa de dados: 'Rota 0 PDVs' em 57 respostas — a tabela roteiro_dia nao existe): rota do dia = roteiros do Clube de hoje */ B.env.DB.prepare(`SELECT filial, rca, roteiros n FROM clube_venda_dia WHERE dia = ? AND filial IN (${qs})`).bind(hoje, ...fil).all().catch(() => ({ results: [] })),
-    B.env.DB.prepare(`SELECT filial, rca, COUNT(*) qtd, SUM(valor) vlr FROM pedido_status WHERE filial IN (${qs}) AND data_pedido >= date('now', '-3 hours', '-7 days') AND status = 'BLOQUEADO' GROUP BY filial, rca`).bind(...fil).all().catch(() => ({ results: [] })),
+    /* 17/11/2026: bloqueados = Carteira Total do GEROT (situacao 'Bloqueado Comercial/Financeiro'), nao a linha do tempo parada do CEVEN */ B.env.DB.prepare(`SELECT filial, rca, COUNT(*) qtd, SUM(valor) vlr FROM gerot_carteira WHERE filial IN (${qs}) AND situacao LIKE 'Bloqueado%' GROUP BY filial, rca`).bind(...fil).all().catch(() => ({ results: [] })),
     B.env.DB.prepare(`SELECT filial, rca, COUNT(*) qtd FROM prospects_mapa WHERE filial IN (${qs}) GROUP BY filial, rca`).bind(...fil).all().catch(() => ({ results: [] })),
     B.env.DB.prepare(`SELECT filial, rca, vend_nome FROM arvore_supervisores WHERE filial IN (${qs})`).bind(...fil).all().catch(() => ({ results: [] }))
   ]);
