@@ -63,6 +63,13 @@ jobs:
           GEROT_SENHA: ${{ secrets.GEROT_SENHA }}
           EVO_KEY: ${{ secrets.EVO_KEY }}
         run: node pipeline/gerot_carteira.mjs
+      - name: Liga — lances do dia (Clube + GEROT)
+        # 17/11/2026 (Vitorio: "colocar no ar urgente a Champions"): /api/liga-clube grava os lances de hoje que ja aconteceram (INSERT OR IGNORE)
+        if: github.event.inputs.ensaio != 'true'
+        continue-on-error: true
+        env:
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+        run: curl -s --max-time 150 -H "X-Evo-Key: $EVO_KEY" "https://ceven-cftv-matrix.pages.dev/api/liga-clube?grava=1" | head -c 600 || true
       - name: Gerar cards PNG da Matinal (WhatsApp)
         # 17/11/2026 (Vitorio: 'nao e a cada carga... e se o cara perguntar... nao gaste a toa'): imagem so sob demanda (matinal-card.yml); aqui so se pedido a mao
         if: github.event.inputs.ensaio != 'true' && github.event.inputs.gerar_cards == 'true'
