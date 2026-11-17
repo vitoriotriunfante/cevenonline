@@ -40,8 +40,8 @@ for (const it of itens.filter((x) => ALVO.test(x.v + ' ' + x.t))) {
     log(`[${it.v}] ${it.t} · botoes: ${JSON.stringify([...new Set(botoes)])}`);
     // 17/11/2026 (2a rodada): o "Exportar Excel" nao baixa nada; lista os CAMPOS e CALCULOS do "Extrair dados" desta tela (procurando o MOTIVO da devolucao/corte)
     try {
-      await page.getByText('Extrair dados', { exact: true }).first().click({ force: true, timeout: 10000 }); await page.waitForTimeout(3000);
-      const rot = await page.evaluate(() => { const dlg = [...document.querySelectorAll('div,section')].filter((d) => /Extrair dados/.test(d.innerText || '') && /Baixar Excel/.test(d.innerText || '')).sort((a, b) => a.innerText.length - b.innerText.length)[0]; return dlg ? [...dlg.querySelectorAll('input[type=checkbox]')].map((i) => ((i.closest('label') || i.parentElement || {}).innerText || '').trim()).filter((s) => s && !/^(Janeiro|Fevereiro|Março|Abril|Maio|Junho|Julho|Agosto|Setembro|Outubro|Novembro|Dezembro)$/.test(s)) : null; });
+      await page.getByText('Extrair dados', { exact: true }).first().click({ force: true, timeout: 10000 }); await page.waitForTimeout(6000);
+      const rot = await page.evaluate(() => { const dlg = [...document.querySelectorAll('div,section')].filter((d) => /Extrair dados/.test(d.innerText || '') && /Baixar Excel/.test(d.innerText || '') && /CAMPOS/.test(d.innerText || '') && d.querySelector('input[type=checkbox]')).sort((a, b) => a.innerText.length - b.innerText.length)[0]; return dlg ? [...dlg.querySelectorAll('input[type=checkbox]')].map((i) => ((i.closest('label') || i.parentElement || {}).innerText || '').trim()).filter((s) => s && !/^(Janeiro|Fevereiro|Março|Abril|Maio|Junho|Julho|Agosto|Setembro|Outubro|Novembro|Dezembro)$/.test(s)) : null; });
       log(`[${it.v}] EXTRAIR DADOS · campos/calculos: ${JSON.stringify(rot)}`);
       await page.keyboard.press('Escape').catch(() => {}); await page.locator('button:has-text("×")').first().click({ timeout: 3000 }).catch(() => {}); await page.waitForTimeout(1500);
     } catch (e) { log(`[${it.v}] extrair dados: ${String(e.message || e).slice(0, 100)}`); }
