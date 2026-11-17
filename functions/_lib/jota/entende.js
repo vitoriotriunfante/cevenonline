@@ -442,7 +442,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
             L.push('*Pedidos:*', ...P.slice(0, 10).map((p) => { const d = String(p.data_pedido); let it = []; try { it = JSON.parse(p.itens_cortados_json || '[]'); } catch (e) { /* */ }
               return '• ' + d.slice(8, 10) + '/' + d.slice(5, 7) + ' · nº ' + p.num + ' · ' + cli(p.id_cliente) + ' · ' + tipo[p.categoria_corte] + ' · ' + R$(Number(p.valor) || 0) + ' → *' + R$(Number(p.valor_winthor) || 0) + '* (−' + R$(corte(p)) + ')' + (it.length ? '\n   ✂️ ' + it.slice(0, 6).map((x) => titulo(x.d || x.c) + ' ' + N(Number(x.q) || 0) + 'un').join(' · ') + (it.length > 6 ? ' …' : '') : ''); }),
               ...(P.length > 10 ? ['_… e mais ' + (P.length - 10) + ' pedido(s)._'] : []));
-            if (comItens < P.length) L.push('', '_Produtos cortados lidos em ' + comItens + ' de ' + P.length + ' pedidos (a lista dos itens passou a ser gravada em 10/11; os demais vão aparecendo na próxima leitura do CEVEN)._');
+            if (comItens < P.length) L.push('', '_Produtos cortados lidos em ' + comItens + ' de ' + P.length + ' pedidos._');
             const lg = (porTipo.get('LOGISTICA') || { v: 0 }).v + (porTipo.get('AMBOS') || { v: 0 }).v / 2, cm = tot - lg;
             L.push('', SUGESTAO + (lg >= cm ? 'a maior parte é *logística* (falta no estoque): antes de fechar, confira o item no estoque e ofereça um substituto; avise o cliente do que não vai chegar.' : 'a maior parte é *comercial* (preço, limite ou bloqueio): fale com o supervisor antes de repetir o pedido e confira condição e limite do cliente.') + (clis[0] ? ' Comece por *' + cli(clis[0][0]) + '*.' : ''));
             r = L.join('\n');
@@ -761,9 +761,9 @@ export async function respostaInterna(B, c, texto, anteriores) {
         if (!Pd || !Pd.length) return 'Não tenho pedido seu dos últimos 7 dias na base.';
         // "pedidos bloqueados" traz so os bloqueados (a mensagem de liberacao promete isso; 02/11/2026)
         const stPed = (t.match(/LIBERAD|BLOQUEAD|FATURAD/) || [])[0];
-        if (stPed) { const Pf = Pd.filter((p) => String(p.status).toUpperCase().includes(stPed)); const rot = stPed.toLowerCase() + 'o'; if (!Pf.length) return `Nenhum pedido seu ${rot} nos últimos 7 dias, na última conferência no CEVEN.`; Pd.length = 0; Pd.push(...Pf); }
+        if (stPed) { const Pf = Pd.filter((p) => String(p.status).toUpperCase().includes(stPed)); const rot = stPed.toLowerCase() + 'o'; if (!Pf.length) return `Nenhum pedido seu ${rot} nos últimos 7 dias, na última conferência.`; Pd.length = 0; Pd.push(...Pf); }
         const ic = (s) => /FATURAD/.test(s) ? '✅' : /BLOQUEAD/.test(s) ? '🚫' : /LIBERAD/.test(s) ? '🟢' : /CANCELAD/.test(s) ? '❌' : '⏳';
-        return ['📦 *Seus pedidos, últimos 7 dias*', ...Pd.map((p) => `${ic(String(p.status))} ${String(p.data_pedido).slice(8, 10)}/${String(p.data_pedido).slice(5, 7)} · nº ${p.num} · ${R$(p.valor || 0)} · ${titulo(String(p.status).replace(/_/g, ' '))}`), '', '_Status da última conferência no CEVEN; pode ter mudado depois dela._'].join('\n');
+        return ['📦 *Seus pedidos, últimos 7 dias*', ...Pd.map((p) => `${ic(String(p.status))} ${String(p.data_pedido).slice(8, 10)}/${String(p.data_pedido).slice(5, 7)} · nº ${p.num} · ${R$(p.valor || 0)} · ${titulo(String(p.status).replace(/_/g, ' '))}`), '', '_Status da última conferência; pode ter mudado depois dela._'].join('\n');
       }
       if (/NAO POSITIVEI|QUE FALTA(M)? POSITIVAR|MINHA CURVA|^\W*CURVA NEGATIVA\W*$/.test(t)) return curvaOuDirecao();
       { const mCl = t.match(/^\W*(?:CLIENTE\s*)?#?\s*(\d{3,})\W*$/); if (mCl && /CLIENTE|#/.test(t)) { const Ev = await carregaEscopo(B, esc), achado = clienteNaCarteira(Ev, '#' + mCl[1]); return achado ? respFichaCliente(B, Ev, t, achado) : `Não achei o cliente #${mCl[1]} na sua carteira do mês.`; } }
@@ -1428,6 +1428,31 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
         const arr = rm && rm.j ? JSON.parse(rm.j) : null, lista = Array.isArray(arr) ? arr : (arr && Object.values(arr).find(Array.isArray)) || [];
         if (lista.length) { v.roteiroMes = lista; rmLidoEm = rm.data_ref; }
       } catch (e) { /* sem roteiro gravado */ }
+    }
+    // CURVA NEGATIVA PELO GEROT (17/11/2026, Vitorio: "voce tem a carteira do vendedor no GEROT e o cara nao comprou ainda"): carteira por cliente
+    // (gerot_cliente_mes) = a mesma conta da positivacao oficial. Sem compra no mes E sem pedido a faturar ('Positivacao + Carteira' = 0).
+    // Ordem: quem comprou no mes passado primeiro (mais facil de recuperar), depois pela media dos ultimos 3 meses. O roteiro gravado fica de reserva.
+    if (B.env && B.env.DB) {
+      try {
+        const { results: GC } = await B.env.DB.prepare('SELECT cliente, nome, dados FROM gerot_cliente_mes WHERE mes = ? AND filial = ? AND rca = ?').bind(hojeSP().slice(0, 7), String(v.filial), String(v.rca)).all();
+        if (GC && GC.length) {
+          const num = (d, k) => Number(d[k]) || 0;
+          const C = GC.map((x) => { let d = {}; try { d = JSON.parse(x.dados || '{}'); } catch (e) { d = {}; } return { id: String(x.cliente), nome: titulo(String(x.nome || 'Cliente').toLowerCase()), pos: num(d, 'Positivação (filial + CNPJ)'), posCart: num(d, 'Positivação + Carteira'), m1: num(d, 'Positivação M-1'), m3: num(d, 'Positivação 3M (média)'), cart: num(d, 'Carteira pendente (R$)') }; });
+          const comp = C.filter((x) => x.pos > 0).length, soCart = C.filter((x) => !(x.pos > 0) && x.posCart > 0).length;
+          const nao = C.filter((x) => !(x.pos > 0) && !(x.posCart > 0)).sort((a, b) => (b.m1 - a.m1) || (b.m3 - a.m3));
+          const ult = new Map();
+          try { const ids = nao.slice(0, 80).map((x) => x.id); if (ids.length) { const { results } = await B.env.DB.prepare(`SELECT id_cliente, json_extract(json, '$.ult') u FROM ficha_cliente WHERE filial = ? AND id_cliente IN (${ids.map(() => '?').join(',')})`).bind(String(v.filial), ...ids).all(); for (const r of results || []) if (r.u) ult.set(String(r.id_cliente), String(r.u).slice(0, 10)); } } catch (e) { /* sem ficha */ }
+          const ehMaisG = /VER MAIS|LISTA COMPLETA|TODOS|COMPLETA|RESTANTE|RESTO|OUTROS|MAIS \d+/.test(t);
+          const ini = ehMaisG ? 25 : 0, fim = ehMaisG ? nao.length : Math.min(25, nao.length), lista = nao.slice(ini, fim);
+          const dd = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}`, dias = (s) => Math.round((Date.parse(hojeSP()) - Date.parse(s)) / 864e5);
+          return [`📉 *Curva negativa — ${v.rca} - ${titulo(v.nome)}* (${v.filial})` + (ini ? ` _(continuação)_` : ''),
+            `Carteira: *${C.length} clientes* · compraram no mês: *${comp}* · com pedido a faturar: *${soCart}* · *sem compra e sem pedido: ${nao.length}*`, '',
+            ...(lista.length ? ['_Cliente · comprou no mês passado? · última compra_'] : ['✅ Todos os clientes da carteira compraram ou têm pedido a faturar.']),
+            ...lista.map((x, i) => { const u = ult.get(x.id), uOk = u && u < hojeSP().slice(0, 7) + '-01'; /* data da ficha so se for antes do mes (o GEROT manda) */ return `${ini + i + 1}. ${x.nome} (#${x.id})${x.m1 > 0 ? ` · 🔁 comprou em ${['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'][(Number(hojeSP().slice(5, 7)) + 10) % 12]}` : x.m3 > 0 ? ' · comprou nos últimos 3 meses' : ''}${uOk ? ` · ${dd(u)} (${dias(u)} dias)` : ''}`; }),
+            !ehMaisG && nao.length > fim ? `… e mais ${nao.length - fim} (peça "ver mais")` : '', '',
+            SUGESTAO + (nao.some((x) => x.m1 > 0) ? `começar pelos que compraram no mês passado (🔁): é o cliente mais fácil de recuperar.` : 'começar por quem comprou há menos tempo.')].filter((x) => x !== '').join('\n');
+        }
+      } catch (e) { /* sem GEROT por cliente: segue o roteiro gravado */ }
     }
     // CURVA NEGATIVA = clientes da carteira do mes (roteiro do mes) que ainda NAO compraram neste mes (data da ultima compra antes do dia 1)
     if (Array.isArray(v.roteiroMes) && v.roteiroMes.length) {

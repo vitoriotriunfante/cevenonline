@@ -236,7 +236,8 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
   const L = [`🧑‍💼 *${v.rca} - ${titulo(v.nome)}* — ${v.filial} · sup. ${sn(v.supervisor, v.supCod)} · ${v.canal || 'sem canal'}`,
     `💰 Faturado: *${R$(v.fat)}* + pendente ${R$(v.pend)} de ${R$(v.meta)} → *${pctTxt(v.meta ? (v.fat + (v.pend || 0)) / v.meta * 100 : null)}* da meta`, `🎯 Falta: ${R$(falta)}` + (falta && dn ? ` · ${R$(falta / dn)} por dia útil (${dn} dias)` : ''),
     `👥 Positivação: ${v.pos != null ? N(Math.round(v.pos)) : 'sem dado'} de ${metaPosR != null ? N(metaPosR) : 'sem dado'} (${P(v.pos, metaPosR)})` + (faltaPos ? ` · faltam ${N(faltaPos)} ${faltaPos === 1 ? 'cliente' : 'clientes'}` : ''),
-    `📝 Hoje: ${R$(v.dig)} em ${v.ped} ${v.ped === 1 ? 'pedido' : 'pedidos'}` + ` · ticket ${v.ped ? R$(v.dig / v.ped) : 'sem pedido hoje'}` + (v.visP ? ` · visitas ${v.visF} de ${v.visP} · com venda ${v.comVenda}` : ''), `↩️ Devolução no mês: ${R$(v.dev)}`];
+    /* 17/11/2026 (regua R03 as 06h: 'Hoje: R$ 0' antes da 1a leitura do Clube): sem leitura do dia, nunca zero */
+    !DC ? `📝 Hoje: aguardando a 1ª leitura do Clube (a partir das 7h)` : `📝 Hoje: ${R$(v.dig)} em ${v.ped} ${v.ped === 1 ? 'pedido' : 'pedidos'}` + ` · ticket ${v.ped ? R$(v.dig / v.ped) : 'sem pedido hoje'}` + (v.visP ? ` · visitas ${v.visF} de ${v.visP} · com venda ${v.comVenda}` : ''), `↩️ Devolução no mês: ${R$(v.dev)}`];
   if (v.visPlanMes) L.push(`📅 Rota do mês: ${v.visRealMes} de ${v.visPlanMes} visitas (${P(v.visRealMes, v.visPlanMes)})`);
   const lg = await B.liga(); const lv = lg && (lg.vendedores || []).find((x) => String(x.rca) === v.rca && x.filial === v.filial);
   if (lv) L.push(`🏆 Liga: ${lv.pos_brasil}º no Brasil · ${lv.pos_filial}º na filial · ${lv.pts_tabela} pts (${lv.vitorias}V ${lv.empates}E ${lv.derrotas}D)`);

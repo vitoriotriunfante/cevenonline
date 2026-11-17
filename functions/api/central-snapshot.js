@@ -56,6 +56,10 @@ export async function onRequestGet({ env, request }) {
         // da ultima leitura do mes — sao a carteira, as TAGs e as visitas acumuladas ate ontem (a parte de HOJE da produtividade nunca e reaproveitada).
         const { results: ant } = await env.DB.prepare("SELECT v.rca_codigo, v.dashboard_json, v.dash_em, v.roteiro_mes_json, v.produtividade_json, v.prod_em, v.updated_at, v.data_ref FROM varredura_central_rca v WHERE v.filial_sigla = ? AND v.data_ref = (SELECT max(x.data_ref) FROM varredura_central_rca x WHERE x.filial_sigla = v.filial_sigla AND x.rca_codigo = v.rca_codigo AND x.data_ref < ? AND x.data_ref >= ? AND x.dashboard_json IS NOT NULL)").bind(filial, dia, mes + '-01').all();
         const A = new Map((ant || []).map((x) => [String(x.rca_codigo), x]));
+        // 17/11/2026 (menu 9 'rota de hoje' e 6 '+MIX' sem rota): a linha mais recente com dashboard nao tem mais o roteiro do mes (CEVEN fora desde 11/11);
+        // o roteiro do mes vem da ultima leitura que o TEM, no mes — dele sai a rota PLANEJADA de hoje, e o Clube marca visitado/justificado.
+        const RM = new Map();
+        try { const { results: rmx } = await env.DB.prepare("SELECT v.rca_codigo, v.roteiro_mes_json, v.updated_at FROM varredura_central_rca v WHERE v.filial_sigla = ? AND v.roteiro_mes_json IS NOT NULL AND v.data_ref = (SELECT max(x.data_ref) FROM varredura_central_rca x WHERE x.filial_sigla = v.filial_sigla AND x.rca_codigo = v.rca_codigo AND x.data_ref >= ? AND x.roteiro_mes_json IS NOT NULL)").bind(filial, mes + '-01').all(); for (const x of rmx || []) RM.set(String(x.rca_codigo), x); } catch (e) { /* sem roteiro do mes */ }
         // A MAIS RECENTE DAS DUAS (13/11/2026, Vitorio: "o melhor e mais atualizado possivel... conecta no GEROT"): com o CEVEN fora desde 11/11 17:34, a ultima leitura dele
         // ficou 2 dias velha e o GEROT carrega a cada ~2 h. Faturado, a faturar (carteira) e devolucao do vendedor vem da fonte MAIS RECENTE; a meta e a positivacao
         // continuam as do CEVEN (o GEROT nao traz a meta de clientes por vendedor). Conferido em 11/11: faturado igual em 327 vendedores; fat. + carteira fecha o total.
@@ -83,6 +87,7 @@ export async function onRequestGet({ env, request }) {
               ref.dashboard = { fonte: gv.pos != null ? 'GEROT (faturado, carteira, devolução e positivação)' : 'GEROT (faturado, carteira e devolução) + CEVEN (meta e positivação)', em: gEm }; }
           }
           if (!Array.isArray(r.roteiro_mes) && a) { const rm = parse(a.roteiro_mes_json); if (Array.isArray(rm)) { r.roteiro_mes = rm; ref.roteiro_mes = { fonte: 'CEVEN roteiro do mes', em: a.updated_at }; } }
+          if (!Array.isArray(r.roteiro_mes) && RM.has(String(rca))) { const x = RM.get(String(rca)), rm = parse(x.roteiro_mes_json); if (Array.isArray(rm)) { r.roteiro_mes = rm; ref.roteiro_mes = { fonte: 'roteiro do mes', em: x.updated_at }; } }
           if (!r.produtividade && a) { const pa = parse(a.produtividade_json); if (pa && pa.mes) { r.produtividade_mes_reserva = pa.mes; ref.produtividade_mes = { fonte: 'CEVEN', em: a.prod_em || a.updated_at, ate: a.data_ref }; } }
           if (!Array.isArray(r.roteiro) && Array.isArray(r.roteiro_mes)) { r.roteiro_planejado = r.roteiro_mes.filter((c) => c && String(c.data_visita || '').slice(0, 10) === dia); ref.roteiro = { fonte: 'CEVEN roteiro do mes (planejado, sem status de hoje)' }; }
           if (Object.keys(ref).length) r.reserva = ref;

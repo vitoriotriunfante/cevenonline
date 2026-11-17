@@ -510,7 +510,7 @@ export async function respRotaHojeCompleta(B, v, soSemCompra = false) {
 export async function respMinhaRota(B, v) {
   const { rota, sem: semC, valorMes, pedidoHoje } = await semCompraNaRota(B, v);
   const mes = v.semDash ? ['📊 *Seu mês:* sem leitura recente no momento.'] : [`📊 *Seu mês:* faturado ${R$(v.fat || 0)} + pendente ${R$(v.pend || 0)} de ${R$(v.meta || 0)}`, `👥 Positivação: ${v.pos || 0} de ${Math.round(v.metaPos || 0)}`];
-  if (!rota.length && v.semRota) return [`📋 *${vn(v)}*`, ...mes, '', '⚠️ A rota de hoje ainda não foi lida: o CEVEN não está respondendo. Assim que voltar, a rota aparece aqui.'].join('\n');
+  if (!rota.length && v.semRota) return [`📋 *${vn(v)}*`, ...mes, '', '⚠️ A rota de hoje ainda não foi lida. Peça de novo daqui a pouco.'].join('\n');
   if (!rota.length) return [`📋 *${vn(v)}*`, ...mes, '', 'Você não tem clientes na rota de hoje.'].join('\n');
   const semMap = new Map(semC.map((x) => [String(x.c.id_cliente), x])), nao = rota.filter((c) => semMap.has(String(c.id_cliente))), ja = rota.filter((c) => !semMap.has(String(c.id_cliente)));
   const nome = (c) => titulo(c.nome_cliente || c.razao_social || 'cliente');
@@ -749,6 +749,27 @@ export async function respCampanhasVendedor(B, v, escolha = null, todos = false)
 
 // MINHA CARTEIRA (indice 14 do menu): quantos clientes o vendedor tem no roteiro do mes, a meta de positivacao do CEVEN e quantos ja compraram
 export async function respCarteiraVendedor(B, v) {
+  // CARTEIRA PELO GEROT (17/11/2026, regua: item 14 respondia "Roteiro do mes: sem dado na base"): carteira por cliente do GEROT, a mesma conta da curva (5)
+  if (B.env && B.env.DB) {
+    try {
+      const { results: GC } = await B.env.DB.prepare('SELECT dados FROM gerot_cliente_mes WHERE mes = ? AND filial = ? AND rca = ?').bind(hojeSP().slice(0, 7), String(v.filial), String(v.rca)).all();
+      if (GC && GC.length) {
+        const D = GC.map((x) => { try { return JSON.parse(x.dados || '{}'); } catch (e) { return {}; } });
+        const n = (d, k) => Number(d[k]) || 0;
+        const comp = D.filter((d) => n(d, 'Positivação (filial + CNPJ)') > 0).length, cart = D.filter((d) => !(n(d, 'Positivação (filial + CNPJ)') > 0) && n(d, 'Positivação + Carteira') > 0).length;
+        const m1 = D.filter((d) => n(d, 'Positivação M-1') > 0).length, semNada = D.length - comp - cart;
+        const voltou = D.filter((d) => n(d, 'Positivação (filial + CNPJ)') > 0 && !(n(d, 'Positivação M-1') > 0)).length;
+        return [`👥 *Minha carteira — ${vn(v)}* (${v.filial})`,
+          `📋 *${N(D.length)} clientes* na carteira`,
+          `✅ Compraram no mês: *${N(comp)}*` + (voltou ? ` (${N(voltou)} não tinham comprado no mês passado)` : ''),
+          `⏳ Com pedido a faturar: *${N(cart)}*`,
+          `🔴 Sem compra e sem pedido: *${N(semNada)}*`,
+          `📅 Compraram no mês passado: *${N(m1)}*`,
+          v.metaPos ? `🎯 Positivação: *${N(comp)}* de ${N(Math.round(v.metaPos))} da meta (${Math.round(comp / v.metaPos * 100)}%)` : '',
+          '', `👉 Digite *5* no menu para a lista de quem falta.`].filter((x) => x !== '').join('\n');
+      }
+    } catch (e) { /* sem GEROT por cliente: segue o roteiro */ }
+  }
   const R = Array.isArray(v.roteiroMes) ? v.roteiroMes : [];
   const ids = new Set(R.map((c) => String(c.id_cliente)));
   const { vendasEscopo } = await import('./vendas.js'); const VM = await vendasEscopo(B, { filiais: [v.filial], rca: v.rca, vend: [v] }).catch(() => null);
