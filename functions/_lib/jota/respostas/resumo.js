@@ -344,6 +344,36 @@ export async function respFalta(B, E) {
   return L.join('\n');
 }
 
+// O DIA AINDA NAO COMECOU (17/11/2026, regua no menu do supervisor as 06h: "vendeu R$ 0 (0%) 🔴", "11 zerados", "apito final... atencao amanha" as 6 da manha).
+// Antes das 7h, ou sem nenhuma visita nem venda na equipe, o 'hoje' e a rota PLANEJADA + o ultimo dia util; nunca zerado, farol vermelho ou fechamento.
+export async function respPreDia(B, E) {
+  if (!B || !B.env || !B.env.DB || !E || !(E.vend || []).length) return null;
+  const h = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', hour: '2-digit', hour12: false }).format(new Date()));
+  const V = E.vend.filter((v) => v.ehVendedorReal !== false), fil = [...new Set(V.map((v) => v.filial))], qs = fil.map(() => '?').join(','), hoje = hojeSP();
+  const ks = new Set(V.map((v) => v.filial + '|' + v.rca));
+  let C = [];
+  try { C = (await B.env.DB.prepare(`SELECT filial, rca, total_pedido, ped_total, roteiros, visitas_rota, lido_em FROM clube_venda_dia WHERE dia = ? AND filial IN (${qs})`).bind(hoje, ...fil).all()).results || []; } catch (e) { C = []; }
+  C = C.filter((x) => ks.has(x.filial + '|' + x.rca));
+  const dig = C.reduce((a, x) => a + (Number(x.total_pedido) || 0), 0), vis = C.reduce((a, x) => a + (Number(x.visitas_rota) || 0), 0);
+  if (!(h < 7 || (C.length && dig === 0 && vis === 0 && h < 10))) return null;
+  // antes da rota, o que o supervisor precisa e a MATINAL (a reuniao com o time), nao "espere as 7h" (Vitorio, 17/11/2026)
+  // a matinal e a de sempre (card do dia + card de industrias + texto), com os dados de hoje
+  try { const { respMatinal } = await import('./gestao.js'); const r = await respMatinal(B, E); if (r) return r; } catch (e) { /* segue o texto curto */ }
+  const rot = C.reduce((a, x) => a + (Number(x.roteiros) || 0), 0), comRota = C.filter((x) => Number(x.roteiros) > 0).length;
+  const lido = C.map((x) => x.lido_em).filter(Boolean).sort().pop();
+  let ont = null;
+  try { ont = await B.env.DB.prepare(`SELECT dia d, SUM(ped_total) n, SUM(total_pedido) v FROM clube_venda_dia WHERE filial IN (${qs}) AND dia < ? AND strftime('%w', dia) <> '0' GROUP BY dia HAVING SUM(total_pedido) > 0 ORDER BY dia DESC LIMIT 1`).bind(...fil, hoje).first(); } catch (e) { ont = null; }
+  let ontV = null;
+  if (ont && ont.d) { try { const { results } = await B.env.DB.prepare(`SELECT filial, rca, total_pedido v, ped_total n FROM clube_venda_dia WHERE dia = ? AND filial IN (${qs})`).bind(ont.d, ...fil).all(); const R = (results || []).filter((x) => ks.has(x.filial + '|' + x.rca)); ontV = { v: R.reduce((a, x) => a + (Number(x.v) || 0), 0), n: R.reduce((a, x) => a + (Number(x.n) || 0), 0) }; } catch (e) { ontV = null; } }
+  const DSEM = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+  const hora = lido ? new Date(lido).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) : null;
+  return [`☀️ *${E.nome || 'Equipe'} — o dia ainda não começou*`,
+    rot ? `🗺️ Rota de hoje: *${N(rot)}* visitas planejadas · ${N(comRota)} vendedor(es) com rota` : (C.length ? '🗺️ Ninguém da equipe com rota hoje.' : '🗺️ Rota de hoje: aguardando a 1ª leitura do Clube'),
+    ont && ontV ? `📅 Último dia útil (${DSEM[new Date(ont.d + 'T12:00:00Z').getUTCDay()]} ${ont.d.slice(8, 10)}/${ont.d.slice(5, 7)}): *${R$(ontV.v)}* em *${N(ontV.n)}* pedidos` : '',
+    '', `👉 As visitas começam às 7h. Peça "equipe hoje" depois para ver o andamento, ou "matinal" para o mês.`,
+    hora ? `_Clube da Venda · ${hora}_` : ''].filter((x) => x !== '').join('\n');
+}
+
 // DIA DA EQUIPE (Vitorio, 16/11/2026, Allison/TPH: "Como foi a venda da minha equipe hj?" -> veio o painel do MES; avaliacao 'escola Ambev' da resposta
 // do Alex: 2/10 — "numero sem referencia, sem quem ficou na mesa, sem acao"). Dia pelo Clube (ultima leitura, com a hora), meta do dia pelo GEROT
 // (meta - faturado - carteira) / dias uteis restantes. Vendedores do pior para o melhor; clientes parados que ficaram na mesa; acao com dono e cliente.

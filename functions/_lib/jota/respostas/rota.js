@@ -159,7 +159,7 @@ export function respDevolucao(E, t = '') {
     ...(/NAO PEDIU/.test(t) ? ['_Atenção: estes totais incluem todos os motivos, não só "cliente não pediu". Peça *devoluções por motivo* para a separação no Brasil._'] : []),
     '*Vendedores com mais devolução:*', ...V.slice(0, 8).map((v) => `• ${vn(v)}${E.nacional ? ' ' + v.filial : ''}: ${R$(v.dev)}`),
     notas.length ? `_${notas.length} nota(s) detalhadas na base._` : '',
-    '_Fonte: painel do CEVEN, só vendedores ativos. O GEROT mostra mais porque soma também devoluções lançadas em contas internas (ex.: VENDA EMPRESA) e códigos que não são de vendedor._', '', SUGESTAO + (V[0] ? `entender as devoluções de ${nome2(V[0].nome)} (${R$(V[0].dev)}).` : 'sem devoluções relevantes.')].filter(Boolean).join('\n');
+    '', '', SUGESTAO + (V[0] ? `entender as devoluções de ${nome2(V[0].nome)} (${R$(V[0].dev)}).` : 'sem devoluções relevantes.')].filter(Boolean).join('\n');
 }
 
 // CHECK-IN / CHECK-OUT DA EQUIPE (26/10/2026, Anderson/TPA: "consegue relatorio de chek in e chek out da equipe" -> o JOTA recusou; Vitorio: "pq nao fornecer isso
@@ -275,14 +275,15 @@ export async function respMixRotaHoje(B, v) {
   const recDe = (c) => (M[String(c.cnpj || '').replace(/\D/g, '')] || {}).rec || [];
   const L = [`🧺 *+MIX — rota de hoje de ${vn(v)}* (${rota.length} clientes)`];
   if (sem.length) {
+    // 17/11/2026 (Tamara: "Horrivel o layout. Nao consegui ler"): um bloco por cliente, um produto por linha
     L.push('', `*Ainda sem compra no mês (${sem.length}) — o que oferecer:*`);
-    for (const x of sem.slice(0, 8)) { const r = recDe(x.c); L.push(`${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')}: ${r.length ? r.slice(0, 3).map(([, nome]) => titulo(nome)).join(' · ') : 'sem sugestão nova no +MIX'}`); }
+    for (const x of sem.slice(0, 8)) { const r = recDe(x.c); L.push('', `🏪 *${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')}*`, ...(r.length ? r.slice(0, 3).map(([, nome]) => `   • ${titulo(nome)}`) : ['   • sem sugestão nova no +MIX'])); }
   }
   // itens que mais aparecem nas listas do +MIX de TODOS os clientes da rota de hoje (inclusive quem ja comprou no mes): sugestao simples para levar
   const cont = new Map();
   for (const c of rota) for (const [cod, nome] of recDe(c).slice(0, 10)) { const k = String(cod); const x = cont.get(k) || { nome, n: 0 }; x.n++; cont.set(k, x); }
   const top = [...cont.values()].sort((a, b) => b.n - a.n).slice(0, 6);
-  if (top.length) L.push('', `*Para levar hoje (mais pedidos pelo +MIX nos ${rota.length} clientes da rota):*`, ...top.map((x) => `${titulo(x.nome)} · em ${x.n} cliente(s)`));
+  if (top.length) L.push('', `📦 *Leve na bolsa hoje* (os que mais aparecem nos ${rota.length} clientes da rota):`, ...top.map((x) => `   • ${titulo(x.nome)} — ${x.n} cliente${x.n > 1 ? 's' : ''}`));
   if (!sem.length && !top.length) return `🧺 Todos os clientes da rota de hoje de ${vn(v)} já compraram no mês e o +MIX não tem sugestão nova para eles.`;
   return L.join('\n');
 }

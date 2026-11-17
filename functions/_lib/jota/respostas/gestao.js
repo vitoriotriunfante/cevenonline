@@ -425,7 +425,8 @@ export async function respMatinal(B, E) {
         plugins: { datalabels: { display: true, anchor: 'end', align: 'right', color: '#e2e8f0', formatter: (v) => v + '%' } }
       }
     };
-    B._midia = { tipo: 'image', url: `https://quickchart.io/chart?w=900&h=${Math.max(360, topChart.length * 36 + 110)}&bkg=%230b1220&c=${encodeURIComponent(JSON.stringify(chartCfg))}` };
+    // 17/11/2026 (Vitorio: 'essa merda de imagem'): o grafico de barras NAO e a matinal; o formato e o card do dia + o card de industrias. Sem card do dia, so o texto.
+    void chartCfg;
   }
 
   const posGerot = stGerot && stGerot.posicao ? ` · GEROT ${stGerot.posicao}` : '';
@@ -483,7 +484,7 @@ export async function respMatinal(B, E) {
     return [
       `☀️ *Matinal — ${E.nome}* (${dec}/${tot} du · faltam ${falt}${posGerot})`,
       ...(linhaOntEq ? [linhaOntEq] : []),
-      `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*) · 📈 Tendência: *${tendGeral.toFixed(1).replace('.', ',')}%*`,
+      (totMeta ? `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*) · 📈 Tendência: *${tendGeral.toFixed(1).replace('.', ',')}%*` : `💰 Fat.+Cart.: *${R$(totVend)}* · _meta do mês não cadastrada no GEROT para esta equipe_`),
       `👥 Positivação: *${N(totPos)}*${totMetaPos ? ' / ' + N(totMetaPos) + ' (' + P(totPos, totMetaPos) + ')' : ''} · ${rotaTxt('🗺️ Rota:')} · 🚫 Bloq.: *${N(totBloqQtd)}* (${R$(totBloqVlr)})`,
       '',
       `🎯 *Prioridades de hoje:*`,
@@ -494,8 +495,8 @@ export async function respMatinal(B, E) {
   return [
     `☀️ *Matinal — ${E.nome}* (${dec}/${tot} du · faltam ${falt}${posGerot})`,
     ...(linhaOntEq ? [linhaOntEq] : []),
-    `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*)`,
-    `📈 Tendência: *${tendGeral.toFixed(1).replace('.', ',')}%* (*${R$(totTend)}*)`,
+    (totMeta ? `💰 Fat.+Cart.: *${R$(totVend)}* / ${R$(totMeta)} (*${P(totVend, totMeta)}*)` : `💰 Fat.+Cart.: *${R$(totVend)}* · _meta do mês não cadastrada no GEROT para esta equipe_`),
+    ...(totMeta ? [`📈 Tendência: *${tendGeral.toFixed(1).replace('.', ',')}%* (*${R$(totTend)}*)`] : []),
     `👥 Positivação: *${N(totPos)}*${totMetaPos ? ' / ' + N(totMetaPos) + ' (' + P(totPos, totMetaPos) + ')' : ''}`,
     `${rotaTxt('🗺️ Rota hoje:')} · *${N(totProsp)}* prospects · 🚫 Bloq.: *${N(totBloqQtd)}* (${R$(totBloqVlr)})`,
     '',

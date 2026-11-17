@@ -17,7 +17,7 @@ import { respKpisPremiacao, respMetasIndustria } from './respostas/metas_industr
 import { respGestaoCampo, respOperacao, respRecorrenciaLances, respRelatorio } from './respostas/operacao.js';
 import { respJustificativas, respOferecer, respSemDado } from './respostas/oportunidades.js';
 import { pedePeriodo, respClientesSemComprar, respComparaMes, respDiasSemPedido, respPeriodoDias, respPositivadosMesAnterior } from './respostas/periodos.js';
-import { respHojeEquipe, respDiaVendedor, respFalta, respHoje, respMensagensPorVendedor, respTodosVendedores, totaisOficiais, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
+import { respHojeEquipe, respPreDia, respDiaVendedor, respFalta, respHoje, respMensagensPorVendedor, respTodosVendedores, totaisOficiais, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
 import { respAVisitar, respCheckinEquipe, respClientesVend, respDiaEquipe, respRotaFiltro, respSemVisita, respMixRotaHoje, respMinhaRota, respCampanhasVendedor, respCarteiraVendedor, respRecorrenciaClientes, respTagSeparadoPorSupervisor, respRotaHojeCompleta, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
 import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo, respPreco, respPedidoNumero, respPedidosStatus, respProduto, respRecuperacao, respTopProdutos } from './respostas/vendas.js';
 import { respSegmentoCnae, respPastas, respEstrategiaFabio, respProspeccaoMapas } from './respostas/segmentos_pastas.js';
@@ -64,6 +64,7 @@ export async function respostaPronta(B, c, texto0, anteriores) {
   const ctx = (c && c.celular && B.ctxLer ? await B.ctxLer(c.celular) : null) || {};
   let texto = juntaComAnterior(String(texto0 || '').replace(/\bvendedores gerados\b/gi, 'vendedores zerados'), anteriores);   /* audio: "gerados" = zerados (27/10/2026) */
   const t0 = sem(texto), filCit = (t0.match(FRX) || [])[1] || null;
+  B._t0 = sem(String(texto0 || '')).trim();   // 17/11/2026: a pergunta ORIGINAL (sem a filial da conversa colada no fim) para o roteador por intencao
   const abre = /\bBRASIL\b|TODAS AS FILIAIS|NACIONAL|GRUPO TODO|\bREDE\b|POR FILIAL/.test(t0);
   const ehPerguntaRotaGeral = /^(ROTA|VISITAS?|VENDAS?(\s*X\s*ROTA)?)\s*(HOJE|HJ)?$/i.test(t0) || /\b(VENDAS?\s*X\s*ROTA|ROTA\s*HOJE|ROTA\s*HJ|VISITAS?\s*HOJE)\b/i.test(t0);
   const equipe = ehPerguntaRotaGeral || /\bEQUIPE\b|\bTIME\b|\bFILIAL\b|DOS VENDEDORES|TODOS (OS )?VENDEDORES|POR SUPERVISOR|POR VENDEDOR|UM POR UM|ZERADOS|RANKING|SEM VISITA|SEM NENHUMA VISITA/.test(t0);
@@ -336,6 +337,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // 16/11/2026 (Allison/TPH 20:02: "Como foi a venda da minha equipe hj?" -> painel do MES): 'hj' = hoje; supervisor/gerente perguntando do DIA da equipe
   // (sem citar vendedor nem mes) = o dia da equipe pelo Clube, com meta do dia, pior vendedor primeiro e quem ficou na mesa.
   t = t.replace(/\bHJ\b/g, 'HOJE');
+  // ROTEADOR POR INTENCAO (17/11/2026, plano bloco 1): reconhece a intencao e chama UMA resposta; o que nao reconhece segue o roteamento antigo
+  { const { rotearIntencao } = await import('./intencao.js'); const ri = await rotearIntencao(B, c, (B._t0 && t.startsWith(B._t0) ? B._t0 : t).replace(/\bHJ\b/g, 'HOJE'), { esc, rcaV, fil, interno: (q) => { B._t0 = null; return respostaInterna(B, c, q, anteriores); } }).catch(() => null); if (ri) return ri; }
+  // 17/11/2026: antes de o dia comecar (antes das 7h, ou sem visita nem venda), pergunta do DIA da equipe = rota planejada + ultimo dia util
+  if (!rcaV && (c.papel === 'supervisor' || c.papel === 'gerente') && /\b(HOJE|ZERAD\w*|ROTA|VISITAS?|SEM PEDIDO|FECHAMENTO DO DIA)\b/.test(t) && !/\bMES\b|CURVA|LIGA|CHAMPI|DEVOLU|RECORR|INDUSTRIA|PEDIDO\D{0,6}\d/.test(t)) {
+    try { const E0 = await carregaEscopo(B, esc), ps = achaPessoa(E0, t); if (!(ps && ps.tipo === 'vend')) { const pd = await respPreDia(B, E0); if (pd) return pd; } } catch (e) { /* segue */ }
+  }
   if (!rcaV && (c.papel === 'supervisor' || c.papel === 'gerente') && /\bHOJE\b/.test(t) && /EQUIPE|TIME|MEU|MINHA|VENDA|VENDEU|VENDEMOS|NUMEROS|RESULTADO|DIGITAD|COMO (ESTA|FOI|TA)|ATUALIZ/.test(t) && !/\bMES\b|CURVA|LIGA|CHAMPI|ROTA DE HOJE|ZERAD|DEVOLU|BLOQUEAD|RECORR|INDUSTRIA|PEDIDO\D{0,6}\d/.test(t)) {
     try { const E0 = await carregaEscopo(B, esc), ps = achaPessoa(E0, t); if (!(ps && ps.tipo === 'vend')) { const r = await respHojeEquipe(B, E0); if (r) return r; } } catch (e) { /* segue o caminho de antes */ }
   }
@@ -644,7 +651,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
         else if (chave === '__fechdia__') {
           const MOs = await import('./respostas/momentos.js'), sup = c.supervisor || c.nome;
           const Es = await carregaEscopo(B, { nome: 'Equipe ' + titulo(String(sup).split(' ').slice(0, 2).join(' ')) + ' (' + c.filial + ')', filiais: [String(c.filial)], grupo: null, supervisor: sup, nacional: false });
-          const m = await MOs.respMomentoSupervisor(B, c, Es, 'fechamento'); r = m && m.texto ? m.texto : null;
+          const pd = await respPreDia(B, Es);   // 17/11/2026: fechamento do dia antes de o dia comecar = o dia ainda nao comecou
+          const m = pd ? null : await MOs.respMomentoSupervisor(B, c, Es, 'fechamento'); r = pd || (m && m.texto ? m.texto : null);
         }
         else if (chave === '__prospeq__') { const { respProspectsEquipe } = await import('./respostas/segmentos_pastas.js'); r = await respProspectsEquipe(B, await carregaEscopo(B, esc)); }
         else r = await internoS(chave);
@@ -1398,6 +1406,26 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
     const ini = hojeSP().slice(0, 7) + '-01';
     const numE = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
     const numL = (i) => numE[i] || `${i + 1}.`;
+    // CURVA DA EQUIPE PELO GEROT (17/11/2026, regua: supervisor API via 964 clientes pelo roteiro antigo): carteira por cliente do GEROT, mesma conta da curva do
+    // vendedor (5): sem compra no mes e sem pedido a faturar. Por vendedor, do maior para o menor, com os 3 primeiros clientes a recuperar (os que compraram no mes passado).
+    if (B.env && B.env.DB) {
+      try {
+        const VV = E.vend.filter((v) => v.ehVendedorReal !== false && (!pessoa || (v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial)));
+        const fls = [...new Set(VV.map((v) => v.filial))];
+        if (VV.length && fls.length) {
+          const { results: GC } = await B.env.DB.prepare(`SELECT filial, rca, cliente, nome, dados FROM gerot_cliente_mes WHERE mes = ? AND filial IN (${fls.map(() => '?').join(',')})`).bind(hojeSP().slice(0, 7), ...fls).all();
+          const por = new Map(); for (const x of GC || []) { const k = x.filial + '|' + x.rca; if (!por.has(k)) por.set(k, []); let d = {}; try { d = JSON.parse(x.dados || '{}'); } catch (e) { d = {}; } por.get(k).push({ id: x.cliente, nome: titulo(String(x.nome || 'Cliente').toLowerCase()), pos: Number(d['Positivação (filial + CNPJ)']) || 0, pc: Number(d['Positivação + Carteira']) || 0, m1: Number(d['Positivação M-1']) || 0 }); }
+          const L0 = VV.map((v) => { const C = por.get(v.filial + '|' + v.rca) || []; const nao = C.filter((c) => !(c.pos > 0) && !(c.pc > 0)).sort((a, b) => b.m1 - a.m1); return { v, tot: C.length, nao }; }).filter((x) => x.tot > 0);
+          if (L0.length) {
+            const ord = L0.filter((x) => x.nao.length).sort((a, b) => b.nao.length - a.nao.length);
+            const tot = L0.reduce((a, x) => a + x.tot, 0), falta = L0.reduce((a, x) => a + x.nao.length, 0), voltaM1 = L0.reduce((a, x) => a + x.nao.filter((c) => c.m1 > 0).length, 0);
+            return [`👥 *Quem falta positivar — ${E.nome}*`, `Carteira: *${N(tot)}* clientes · *sem compra e sem pedido no mês: ${N(falta)}*` + (voltaM1 ? ` · ${N(voltaM1)} deles compraram no mês passado 🔁` : ''), '',
+              ...ord.slice(0, 15).map((x, i) => `${numL(i)} *${vn(x.v)}*: *${x.nao.length}* de ${x.tot}` + (x.nao[0] && x.nao[0].m1 > 0 ? ` · ex.: ${x.nao.filter((c) => c.m1 > 0).slice(0, 2).map((c) => c.nome).join(', ')}` : '')),
+              ord.length > 15 ? `… e mais ${ord.length - 15} vendedores` : '', '', SUGESTAO + `digite o número (ex: *1*) para ver a lista daquele vendedor; comece pelos 🔁 (compraram no mês passado).`].filter((x) => x !== '').join('\n');
+          }
+        }
+      } catch (e) { /* sem GEROT por cliente: segue o roteiro */ }
+    }
     const compEq = new Map(); try { const { vendasEscopo } = await import('./respostas/vendas.js'); const VM = await vendasEscopo(B, E).catch(() => null); for (const l of (VM && VM.linhas) || []) { const k = l.f + '|' + l.r; if (!compEq.has(k)) compEq.set(k, new Set()); compEq.get(k).add(String(l.c)); }
       const { clientesComPedidoNoMes } = await import('./respostas/rota.js'); for (const fl of new Set(E.vend.map((x) => x.filial))) for (const v of E.vend.filter((x) => x.filial === fl)) for (const k of await clientesComPedidoNoMes(B, [fl], v.rca)) { const kk = fl + '|' + v.rca; if (!compEq.has(kk)) compEq.set(kk, new Set()); compEq.get(kk).add(k.split('|')[1]); } } catch (e) { /* sem vendas: fica a data do roteiro */ }
     const V = E.vend.filter((v) => Array.isArray(v.roteiroMes) && v.roteiroMes.length && (!pessoa || (v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial))).map((v) => {

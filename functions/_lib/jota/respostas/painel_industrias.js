@@ -8,7 +8,7 @@
 // FONTES (Vitorio, 10/11/2026: 'auditar GEROT x CEVEN e CEVEN x GEROT... pegar das duas fontes'):
 //   GEROT (D1 gerot_vendas) = meta R$, faturado, carteira, positivação realizada; CEVEN (Premiação) = meta de clientes e positivação do CEVEN.
 //   Quando as duas fontes divergem, mostra as duas (nunca escolhe uma em silêncio). O GEROT não traz meta de clientes (vazia de ago a nov/2026).
-// DIAS: média = dias úteis (seg-sex) decorridos do dia 1 até ontem; necessidade = dias úteis de hoje até o dia 20 (fim da apuração).
+// DIAS: média = dias úteis (seg-sex) decorridos do dia 1 até ontem; necessidade = dias úteis de hoje até o FIM DO MÊS (17/11/2026, Vitório: "até dia 20? de onde tirou isso" — dia 20 é só o faseamento do AS).
 // Nunca inventa: sem dado = "sem dado".
 // =========================================================================
 import { R$, N, titulo, nome2, FILIAIS, hojeSP } from '../base.js';
@@ -20,13 +20,12 @@ const F = (d, k) => { const v = d && d[k]; return typeof v === 'number' ? v : (v
 const qd = (x) => (x >= 100 ? N(Math.round(x)) : x.toFixed(1).replace('.', ','));
 const pc = (a, b) => (b ? (a / b * 100).toFixed(1).replace('.', ',') + '%' : '—');
 const uteis = (y, m, d1, d2) => { let n = 0; for (let d = d1; d <= d2; d++) { const w = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); if (w > 0 && w < 6 && !ehFeriado(`${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`)) n++; } return n; };   // 11/11/2026: feriado (20/11) nao e dia util
-const FIM_APURACAO = 20;
 
 function dias(mes) {
   const hoje = hojeSP(), [y, m] = mes.split('-').map(Number), fimMes = new Date(Date.UTC(y, m, 0)).getUTCDate();
   if (hoje.slice(0, 7) !== mes) return { passado: true, decorridos: uteis(y, m, 1, fimMes), restantes: 0 };   // mes fechado: media sobre os dias uteis do mes inteiro
   const d = Number(hoje.slice(8, 10));
-  return { passado: false, decorridos: Math.max(1, uteis(y, m, 1, d - 1)), restantes: d <= FIM_APURACAO ? uteis(y, m, d, FIM_APURACAO) : 0 };
+  return { passado: false, decorridos: Math.max(1, uteis(y, m, 1, d - 1)), restantes: uteis(y, m, d, fimMes) };
 }
 
 // carrega GEROT + CEVEN do mes e devolve linhas normalizadas por vendedor x industria
@@ -65,7 +64,7 @@ function blocos(g, D, cevenOk) {
   const L = ['💰 *Vendas*'];
   if (g.meta > 0) L.push(`Meta *${R$(g.meta)}* · faturado *${R$(g.fat)}* (${pc(g.fat, g.meta)}) · a faturar ${R$(g.cart)}`, `Vendido (fat. + a faturar) *${R$(vend)}* (${pc(vend, g.meta)}) · falta *${R$(falta)}*`);
   else L.push(`_Sem meta cadastrada_ · faturado *${R$(g.fat)}* · a faturar ${R$(g.cart)} · vendido *${R$(vend)}*`);
-  L.push(`Média *${R$(g.fat / D.decorridos)}*/dia útil` + (D.passado ? ' (mês fechado)' : g.meta > 0 ? (D.restantes ? ` · precisa *${R$(falta / D.restantes)}*/dia útil (${D.restantes} até dia ${FIM_APURACAO})` : ' · apuração encerrada') : ''));
+  L.push(`Média *${R$(g.fat / D.decorridos)}*/dia útil` + (D.passado ? ' (mês fechado)' : g.meta > 0 ? (D.restantes ? ` · precisa *${R$(falta / D.restantes)}*/dia útil (${D.restantes} até o fim do mês)` : ' · último dia do mês') : ''));
   // positivação: realizado GEROT; meta de clientes do CEVEN
   const meta = g.metaPosC, real = g.posG, faltaP = Math.max(0, meta - real);
   L.push('👥 *Positivação*');
@@ -96,7 +95,7 @@ export async function respPainelIndustrias(env, B, cam) {
   // 11/11/2026 (Rudinei: 'condor, Philips, sc Johnson e Baly em TCV'): cam.inds = varias industrias citadas; o painel mostra so elas (6o campo do marcador)
   const mk = `〔G:${mes}|${cam.fil || ''}|${cam.ind || ''}|${cam.sup || ''}|${cam.rca || ''}|${(cam.inds || []).join(',')}〕`;
   const st = await env.DB.prepare('SELECT posicao FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null);
-  const fonte = `_Fonte: GEROT${st && st.posicao ? ' (' + st.posicao.replace(/^Atual\s*·\s*/, 'posição ') + ')' : ''} · média = dias úteis decorridos; necessidade = dias úteis até o dia ${FIM_APURACAO}._`;
+  const fonte = `_Fonte: GEROT${st && st.posicao ? ' (' + st.posicao.replace(/^Atual\s*·\s*/, 'posição ') + ')' : ''} · média = dias úteis decorridos; necessidade = dias úteis até o fim do mês._`;
   if (!L.length) return `🏭 *Painel das indústrias* · ${nm}\nNão há linha no GEROT para esse recorte e mês. Não vou estimar.\n\n${fonte}`;
   let rs = cam.inds && cam.inds.length ? L.filter((x) => cam.inds.includes(x.ind)) : L; if (cam.ind) rs = rs.filter((x) => x.ind === cam.ind); if (cam.sup) rs = rs.filter((x) => x.sup === cam.sup); if (cam.rca) rs = rs.filter((x) => x.rca === cam.rca);
   const out = [];

@@ -300,6 +300,7 @@ const FECHA_S = {
 };
 
 export async function respMomentoSupervisor(B, c, Ev, momentoForcado = null) {
+  if (momentoForcado === 'fechamento') { try { const { respPreDia } = await import('./resumo.js'); const pd = await respPreDia(B, Ev); if (pd) return { texto: pd, momento: 'fechamento', comemora: false, incentiva: false }; } catch (e) { /* segue */ } }   // 17/11/2026
   const V = (Ev && Ev.vend ? Ev.vend : []).filter((v) => v.ehVendedorReal !== false).sort((a, b) => Number(a.rca) - Number(b.rca));
   if (!V.length) return null;
   const nomeSup = c.supervisor || c.nome, filial = String(c.filial || V[0].filial), n = titulo(String(c.nome || '').split(/\s+/)[0]) || 'time';
