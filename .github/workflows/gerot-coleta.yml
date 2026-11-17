@@ -54,6 +54,15 @@ jobs:
           if [ -n "${{ github.event.inputs.meses }}" ]; then ARGS="--meses=${{ github.event.inputs.meses }}"; fi
           if [ "${{ github.event.inputs.ensaio }}" = "true" ]; then ARGS="$ARGS --ensaio"; fi
           node pipeline/gerot_coletor_online.mjs $ARGS
+      - name: Carteira Total (status e bloqueio de cada pedido em aberto)
+        # 17/11/2026: pipeline/gerot_carteira.mjs; falha aqui nao derruba a coleta; log so com contagens
+        if: github.event.inputs.ensaio != 'true'
+        continue-on-error: true
+        env:
+          GEROT_EMAIL: ${{ secrets.GEROT_EMAIL }}
+          GEROT_SENHA: ${{ secrets.GEROT_SENHA }}
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+        run: node pipeline/gerot_carteira.mjs
       - name: Gerar cards PNG da Matinal (WhatsApp)
         # 17/11/2026 (Vitorio: 'nao e a cada carga... e se o cara perguntar... nao gaste a toa'): imagem so sob demanda (matinal-card.yml); aqui so se pedido a mao
         if: github.event.inputs.ensaio != 'true' && github.event.inputs.gerar_cards == 'true'

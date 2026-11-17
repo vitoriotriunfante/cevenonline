@@ -33,6 +33,9 @@ async function tabelas(db) {
     // 17/11/2026 (Vitorio: 'mostrando pedidos do dia 12? ja nao mostrei que tem todos os pedidos no GEROT?'): um pedido por linha (pedido x NF), do 'Extrair dados'
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_pedido (mes TEXT NOT NULL, filial TEXT NOT NULL, pedido TEXT NOT NULL, nf TEXT NOT NULL DEFAULT "", rca TEXT, cliente TEXT, cnpj TEXT, nome TEXT, data TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, pedido, nf))'),
     db.prepare('CREATE INDEX IF NOT EXISTS ix_gerot_pedido_rca ON gerot_pedido (filial, rca, data)'),
+    // 17/11/2026: CARTEIRA TOTAL por pedido (pipeline/gerot_carteira.mjs): status, situacao, motivo de bloqueio e valor do que esta em aberto
+    db.prepare('CREATE TABLE IF NOT EXISTS gerot_carteira (filial TEXT NOT NULL, pedido TEXT NOT NULL, rca TEXT, vendedor TEXT, sup_cod TEXT, entrada TEXT, origem TEXT, status TEXT, situacao TEXT, motivo TEXT, cliente TEXT, cnpj TEXT, status_cliente TEXT, positivado TEXT, valor REAL, itens INTEGER, qped REAL, qfat REAL, fornecedores TEXT, hash TEXT, em TEXT, PRIMARY KEY (filial, pedido))'),
+    db.prepare('CREATE INDEX IF NOT EXISTS ix_gerot_carteira_rca ON gerot_carteira (filial, rca)'),
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_horario (id INTEGER PRIMARY KEY AUTOINCREMENT, lido_em TEXT, ok INTEGER, ultima TEXT, carga TEXT, posicao TEXT, segundos INTEGER, erro TEXT)'),
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_coleta_status (id INTEGER PRIMARY KEY AUTOINCREMENT, mes TEXT, linhas INTEGER, enviadas INTEGER, posicao TEXT, colunas TEXT, em TEXT)')
   ]);
@@ -45,6 +48,10 @@ export async function onRequestGet({ request, env }) {
   if (u.searchParams.get('status') === '1') {
     const { results } = await env.DB.prepare('SELECT mes, linhas, enviadas, posicao, colunas, em FROM gerot_coleta_status ORDER BY id DESC LIMIT 20').all();
     return r({ cargas: results || [] });
+  }
+  if (u.searchParams.get('carteira') === '1') {
+    const { results } = await env.DB.prepare('SELECT filial, pedido, hash FROM gerot_carteira').all();
+    return r({ hashes: Object.fromEntries((results || []).map((x) => [`${x.filial}|${x.pedido}`, x.hash])) });
   }
   const mes = String(u.searchParams.get('mes') || '');
   if (!MES.test(mes)) return r({ erro: 'mes obrigatorio (AAAA-MM)' }, 400);
@@ -108,6 +115,24 @@ export async function onRequestPost({ request, env }) {
     const h = b.horario;
     await env.DB.prepare('INSERT INTO gerot_horario (lido_em, ok, ultima, carga, posicao, segundos, erro) VALUES (?,?,?,?,?,?,?)').bind(String(h.lido_em || agora), h.ok ? 1 : 0, h.ultima ? String(h.ultima).slice(0, 60) : null, h.carga ? String(h.carga).slice(0, 40) : null, h.posicao ? String(h.posicao).slice(0, 40) : null, Number(h.segundos) || null, h.erro ? String(h.erro).slice(0, 200) : null).run();
     return r({ ok: true, horario: true });
+  }
+  const CT = Array.isArray(b.carteira) ? b.carteira : [];
+  if (CT.length > 200) return r({ erro: 'no maximo 200 pedidos de carteira por chamada' }, 400);
+  if (CT.length) {
+    const ok = CT.filter((x) => /^[A-Z]{3}$/.test(String(x.filial || '')) && String(x.pedido || '').trim());
+    const t = (v, n = 120) => (v == null || v === '' ? null : String(v).slice(0, n));
+    await env.DB.batch(ok.map((x) => env.DB.prepare(
+      'INSERT INTO gerot_carteira (filial, pedido, rca, vendedor, sup_cod, entrada, origem, status, situacao, motivo, cliente, cnpj, status_cliente, positivado, valor, itens, qped, qfat, fornecedores, hash, em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ' +
+      'ON CONFLICT (filial, pedido) DO UPDATE SET rca = excluded.rca, vendedor = excluded.vendedor, sup_cod = excluded.sup_cod, entrada = excluded.entrada, origem = excluded.origem, status = excluded.status, situacao = excluded.situacao, motivo = excluded.motivo, cliente = excluded.cliente, cnpj = excluded.cnpj, status_cliente = excluded.status_cliente, positivado = excluded.positivado, valor = excluded.valor, itens = excluded.itens, qped = excluded.qped, qfat = excluded.qfat, fornecedores = excluded.fornecedores, hash = excluded.hash, em = excluded.em WHERE gerot_carteira.hash IS NOT excluded.hash'
+    ).bind(String(x.filial), String(x.pedido), t(x.rca, 12), t(x.vendedor), t(x.sup_cod, 12), t(x.entrada, 10), t(x.origem, 40), t(x.status, 60), t(x.situacao, 60), t(x.motivo, 200), t(x.cliente), t(x.cnpj, 14), t(x.status_cliente, 40), t(x.positivado, 20), Number(x.valor) || 0, Number(x.itens) || 0, Number(x.qped) || 0, Number(x.qfat) || 0, JSON.stringify(x.fornecedores || []).slice(0, 600), String(x.hash || ''), agora)));
+    return r({ ok: true, carteira: ok.length, recusados: CT.length - ok.length });
+  }
+  const CR = Array.isArray(b.carteira_remover) ? b.carteira_remover : [];
+  if (CR.length > 400) return r({ erro: 'no maximo 400 remocoes por chamada' }, 400);
+  if (CR.length) {
+    const ok = CR.map((k) => String(k).split('|')).filter(([f, pd]) => /^[A-Z]{3}$/.test(f || '') && pd);
+    await env.DB.batch(ok.map(([f, pd]) => env.DB.prepare('DELETE FROM gerot_carteira WHERE filial = ? AND pedido = ?').bind(f, pd)));
+    return r({ ok: true, removidos: ok.length });
   }
   const PD = Array.isArray(b.pedidos) ? b.pedidos : [];
   if (PD.length > 200) return r({ erro: 'no maximo 200 pedidos por chamada' }, 400);
