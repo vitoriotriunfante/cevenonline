@@ -35,5 +35,31 @@
 - [ ] 4 Régua na publicação
 - [ ] 5 Imagens sob demanda (aguarda decisão da chave do GitHub)
 - [ ] 6 MONITOR.IA simulação
-- [ ] 7 Liga desde 11/11
+- [x] 7 Liga desde 11/11 — no ar 17/11 pelo Clube + GEROT (ver abaixo)
 - [ ] 8 Bateria completa
+
+## Fim do dia 17/11 — auditoria por papel e plano reajustado
+
+**Auditoria por papel (17/11, ~19h):** `testes/auditoria_papeis.mjs` pergunta SECO ao JOTA de produção (`/api/jota-seco`, nada enviado) e passa na régua. Resultado em `docs/AUDITORIA_PAPEIS_2026-11-17.md`:
+vendedor 14/14 · supervisor 10/11 (o 11º é rigor da régua: lista por vendedor com exemplos) · gerente 9/9 · diretoria 14/14.
+**Amarração:** a Tamara vista por ela, pelo supervisor e pela diretoria traz os MESMOS números.
+Menus: vendedor 15/16 e supervisor 14/15 (os reprovados eram falso positivo da régua).
+
+**Corrigido na auditoria:** "bom dia" do vendedor devolvia o menu (agora = o começo do dia dele, o mesmo da diretoria); "quanto vendi hoje" vinha com o mês; "pedido 352001310" dava "não achei" (havia 2 rotas; agora as duas leem o GEROT); indústrias do vendedor/equipe liam a Premiação (fora do ar, "apuração até 20/11"); positivação de várias indústrias somava o cliente várias vezes (TPH 3.967 × 1.750 reais).
+
+**Liga (bloco 7) — NO AR 17/11:** `/api/liga-clube` (Clube + GEROT, mesmas chaves/provas do coletor antigo). 12, 13 e 16/11 gravados e refechados (cópia do fechamento anterior em `liga_fechamento_copia`); hoje grava sozinho depois de cada leitura do Clube e carga do GEROT. Venda na visita só com prova (pedido datado no GEROT, entrada no dia na Carteira Total, ou conta exata do Clube). Pênalti só com dias sem comprar provados.
+Fora (sem fonte): marca própria / tripla / dobrou o mix / bonificação (itens do pedido), meta do 1º tempo, impedimento de GPS (Clube sem coordenada), devoluções, dobradinha das quinzenas. 12 e 13/11 ficaram parciais (pedido já faturado só tem a data do faturamento); daqui em diante a data de entrada fica guardada (`gerot_pedido_entrada`).
+**Vendedor do pedido (Vitório, 17/11):** o número do pedido NÃO é prova do vendedor (10, 100 e 1000 podem ter o mesmo número; o que diferencia é a filial). Carteira: vendedor pelo nome na filial (Gestão de Equipe); o começo do número só vale se o nome confirmar.
+
+### O que falta para o JOTA nota máxima (ordem)
+| # | Bloco | Pronto quando |
+|---|---|---|
+| A | **Régua na publicação**: `publicar_tv.js` roda a auditoria por papel (modo rápido) e cancela se cair abaixo do último resultado | publicar com regressão = cancelado |
+| B | **Auditoria diária automática** 06h30 e 13h (GitHub Actions → `/api/jota-seco`), relatório no D1 + aviso ao Vitório só se piorar | 2 dias seguidos sem regressão |
+| C | **Bateria completa** com TODAS as perguntas reais de 16 e 17/11 (bot_msgs) pelo `/api/jota-seco` | < 5% reprovadas, casos-chave 100% |
+| D | **Rota de hoje com nomes pelo Clube** (hoje vem do roteiro do mês gravado pelo CEVEN em 11/11) | começo do dia e "sem visita" sem CEVEN |
+| E | **GEROT Devoluções** (motivo por nota) → "minhas devoluções", gol contra e vermelho da Liga | devolução por motivo nas 4 visões + Liga |
+| F | **Itens do pedido** (GEROT com Produto) → marca própria / tripla / dobrou o mix da Liga e "+MIX" com o que o cliente comprou | lances de MP de volta |
+| G | **Liga: meta do 1º tempo** (leituras do Clube ao longo do dia) e **quinzenas** (entrada guardada) | todos os gols com fonte |
+| H | **MONITOR.IA em simulação** (grava o que mandaria, não envia) | 1 dia lido pelo Vitório + 2 supervisores |
+| I | **Imagens sob demanda** (chave do GitHub no site — decisão do Vitório) | matinal com cards em ~2 min |

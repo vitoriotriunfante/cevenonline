@@ -110,6 +110,19 @@ export async function rotearIntencao(B, c, t, info) {
     }
     if (!r) return `🔎 Não achei *${titulo(mPro[1].replace(FIL_RX, '').trim().toLowerCase())}*${filCit ? ` na ${filCit}` : ''}. Confere o nome (ex.: "prospecção Vinicius de TCA").`;
   }
+  // B2 · "BOM DIA" DE QUEM ESCREVE = o comeco do dia dele, o MESMO que a diretoria recebe em "bom dia da Tamara" (17/11/2026, auditoria por papel:
+  // a Tamara mandava "bom dia" e recebia o menu). O menu continua a um "menu" de distancia.
+  if (/^\W*(BOM DIA|BOA TARDE|BOA NOITE|OI|OLA|E AI)(\s+JOTA)?\W*$/.test(t)) {
+    const h = HORA(), mo = h < 11 ? 'plano' : h < 15 ? 'meio' : 'fechamento', rodMenu = '\n\n📋 Digite *menu* para ver tudo o que eu respondo.';
+    if (papel === 'vendedor' && rcaV) { const Ev = await carregaEscopo(B, esc); const m = await (await MO()).respMomento(B, c, Ev, mo).catch(() => null); if (m && m.texto) return m.texto + rodMenu; }
+    if (papel === 'supervisor') { const Ev = await carregaEscopo(B, esc); const { respMatinal } = await import('./respostas/gestao.js'); const r = await respMatinal(B, Ev).catch(() => null); if (r) return r + rodMenu; }
+    if (papel === 'gerente') { const Ev = await carregaEscopo(B, esc); const m = await (await MO()).respMomentoGerente(B, c, Ev, mo).catch(() => null); if (m && m.texto) return m.texto + rodMenu; }
+  }
+  // D1 · "QUANTO VENDI HOJE" do proprio vendedor = o dia dele (Clube), nunca o card do mes (auditoria 17/11/2026: R05 periodo trocado)
+  if (papel === 'vendedor' && rcaV && /\b(QUANTO|O QUE)\b.*\bVENDI\b.*\bHOJE\b|\bMINHA VENDA (DE )?HOJE\b|\bMEU DIA\b|^\W*HOJE\W*$/.test(t)) {
+    const Ev = await carregaEscopo(B, esc), v = Ev && Ev.vend && Ev.vend[0];
+    if (v) { const { respDiaVendedor } = await import('./respostas/resumo.js'); const r = await respDiaVendedor(B, Ev, v).catch(() => null); if (r) return r; }
+  }
   // B1 · MATINAL do proprio vendedor = o plano do dia dele (o mesmo do "bom dia"), nunca a matinal antiga do "ontem 13/11"
   if (papel === 'vendedor' && rcaV && /^\W*(MINHA\s+)?MATINAL\W*$/.test(t)) {
     const Ev = await carregaEscopo(B, esc); const m = await (await MO()).respMomento(B, c, Ev, HORA() < 11 ? 'plano' : HORA() < 15 ? 'meio' : 'fechamento');
