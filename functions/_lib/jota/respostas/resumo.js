@@ -343,6 +343,56 @@ export async function respFalta(B, E) {
   return L.join('\n');
 }
 
+// DIA DA EQUIPE (Vitorio, 16/11/2026, Allison/TPH: "Como foi a venda da minha equipe hj?" -> veio o painel do MES; avaliacao 'escola Ambev' da resposta
+// do Alex: 2/10 — "numero sem referencia, sem quem ficou na mesa, sem acao"). Dia pelo Clube (ultima leitura, com a hora), meta do dia pelo GEROT
+// (meta - faturado - carteira) / dias uteis restantes. Vendedores do pior para o melhor; clientes parados que ficaram na mesa; acao com dono e cliente.
+export async function respHojeEquipe(B, E) {
+  if (!B || !B.env || !B.env.DB || !E || !(E.vend || []).length) return null;
+  const V = E.vend.filter((v) => v.ehVendedorReal !== false);
+  if (!V.length) return null;
+  const fil = [...new Set(V.map((v) => v.filial))], hoje = hojeSP(), qs = fil.map(() => '?').join(',');
+  let C = [], J = [];
+  try {
+    [C, J] = await Promise.all([
+      B.env.DB.prepare(`SELECT filial, rca, total_pedido, ped_total, ped_rota, roteiros, visitas_rota, lido_em FROM clube_venda_dia WHERE dia = ? AND filial IN (${qs})`).bind(hoje, ...fil).all().then((r) => r.results || []),
+      B.env.DB.prepare(`SELECT filial, rca, cliente, fantasia, razao, dias_sem_comprar, motivo FROM clube_justificativa WHERE dia = ? AND filial IN (${qs})`).bind(hoje, ...fil).all().then((r) => r.results || []),
+    ]);
+  } catch (e) { return null; }
+  if (!C.length) return null;   // sem leitura do Clube hoje: segue a resposta de antes
+  const cl = new Map(C.map((x) => [x.filial + '|' + x.rca, x])), lido = C.map((x) => x.lido_em).filter(Boolean).sort().pop();
+  const du = diasUteisRestantes() || 1;
+  const L0 = V.map((v) => {
+    const c = cl.get(v.filial + '|' + v.rca) || null, dig = c ? Number(c.total_pedido) || 0 : 0;
+    const falta = Math.max(0, (v.meta || 0) - (v.fat || 0) - (v.pend || 0)), metaDia = v.meta ? falta / du : 0;
+    const jus = J.filter((j) => j.filial === v.filial && String(j.rca) === String(v.rca));
+    return { v, c, dig, ped: c ? Number(c.ped_total) || 0 : 0, rot: c ? Number(c.roteiros) || 0 : 0, vis: c ? Number(c.visitas_rota) || 0 : 0, metaDia, pct: metaDia ? dig / metaDia : (dig > 0 ? 9 : null), jus };
+  });
+  const tDig = L0.reduce((a, x) => a + x.dig, 0), tMeta = L0.reduce((a, x) => a + x.metaDia, 0), tPed = L0.reduce((a, x) => a + x.ped, 0);
+  const tRot = L0.reduce((a, x) => a + x.rot, 0), tVis = L0.reduce((a, x) => a + x.vis, 0);
+  const far = (p) => p == null ? '⚪' : p >= 1 ? '🟢' : p >= 0.7 ? '🟡' : '🔴';
+  const hora = lido ? new Date(lido).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) : '';
+  const L = [`📋 *${E.nome || 'Equipe'} — hoje*`];
+  L.push(tMeta ? `🎯 Meta do dia: *${R$(tMeta)}* → vendeu *${R$(tDig)}* (${Math.round(tDig / tMeta * 100)}%) ${far(tDig / tMeta)} · *${N(tPed)}* pedidos` : `📝 Vendeu *${R$(tDig)}* em *${N(tPed)}* pedidos`);
+  if (tRot) L.push(`🚶 Rota: *${N(tVis)} de ${N(tRot)}* visitas` + (tRot - tVis > 0 ? ` · *${N(tRot - tVis)} sem visita*` : ' · completa'));
+  const ord = [...L0].sort((a, b) => (a.pct ?? -1) - (b.pct ?? -1));
+  L.push('', '*Por vendedor (pior primeiro):*');
+  for (const x of ord.slice(0, 15)) {
+    const sp = x.jus.length ? ` · ${x.jus.length} justif.` : '';
+    L.push(`${far(x.pct)} *${x.v.rca} - ${titulo(nome2(x.v.nome))}*: ${R$(x.dig)}${x.metaDia ? ` de ${R$(x.metaDia)}` : ''} · ${N(x.ped)} ped.` + (x.rot ? ` · ${x.vis}/${x.rot} vis.` : '') + sp);
+  }
+  if (ord.length > 15) L.push(`… e mais ${ord.length - 15} vendedores`);
+  const parados = J.filter((j) => Number(j.dias_sem_comprar) > 30 && L0.some((x) => x.v.filial === j.filial && String(x.v.rca) === String(j.rca))).sort((a, b) => Number(b.dias_sem_comprar) - Number(a.dias_sem_comprar));
+  if (parados.length) {
+    L.push('', `🟡 *Ficaram na mesa (visitados, sem pedido, +30 dias sem comprar): ${parados.length}*`);
+    for (const j of parados.slice(0, 5)) { const vv = L0.find((x) => x.v.filial === j.filial && String(x.v.rca) === String(j.rca)); L.push(`• ${titulo(String(j.fantasia || j.razao || 'Cliente').toLowerCase())} (#${j.cliente}) · ${N(j.dias_sem_comprar)} dias · ${titulo(String(j.motivo || '').toLowerCase())} · ${vv ? vv.v.rca : j.rca}`); }
+  }
+  const pior = ord.find((x) => x.metaDia && (x.pct ?? 0) < 0.7);
+  const acao = parados[0] ? `ligar com o *${parados[0].rca}* para *${titulo(String(parados[0].fantasia || parados[0].razao || 'cliente').toLowerCase())}* (${N(parados[0].dias_sem_comprar)} dias sem comprar)` : pior ? `falar com *${pior.v.rca} - ${titulo(nome2(pior.v.nome))}*: ${R$(pior.dig)} de ${R$(pior.metaDia)} hoje` : null;
+  if (acao) L.push('', `👉 *Agora:* ${acao}.`);
+  L.push(`_Clube da Venda · ${hora}_`);
+  return L.join('\n');
+}
+
 // "COMO FOI O DIA DO VENDEDOR X" (Vitorio, 27/10/2026: "as vezes a pessoa quer saber uma informacao basica... menos e mais"): so o dia. O mes vem em "e o mes?".
 export async function respDiaVendedor(B, E, v) {
   const lc = await B.lances(); const hj = lc ? (lc.lances || []).filter((l) => String(l.rca) === v.rca && l.filial === v.filial) : [];

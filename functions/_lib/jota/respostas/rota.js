@@ -324,7 +324,18 @@ export async function respTagCampanhas(B, E, v, t = '', c = null) {
   const { vendasEscopo } = await import('./vendas.js'); const VM = await vendasEscopo(B, E).catch(() => null);
   const compraram = new Set(((VM && VM.linhas) || []).map((l) => l.f + '|' + l.c));
   for (const k of await clientesComPedidoNoMes(B, [...new Set((E.vend || []).map((x) => x.filial))])) compraram.add(k);   // pedido do mes conta (09/11/2026)
+  // TAGS DO ADMIN 'CLIENTES FOCO' (Vitorio, 16/11/2026: "as tags vc tem aqui .../admin... as tags devem ser consideradas"): cliente_focos (filial + CNPJ + campanha),
+  // gravado de madrugada e 2x ao dia. O cliente tem a tag se o roteiro diz OU se o CNPJ dele esta na lista do admin para a filial.
+  const tagSet = new Set();
+  try { const F = [...new Set((E.vend || []).map((x) => x.filial))]; if (F.length && B.env && B.env.DB) { const { results } = await B.env.DB.prepare(`SELECT filial, id_cliente, tag FROM cliente_focos WHERE filial IN (${F.map(() => '?').join(',')})`).bind(...F).all(); for (const r of results || []) if (tagRegex.test(sem(String(r.tag || '')))) tagSet.add(r.filial + '|' + String(r.id_cliente).replace(/\D/g, '')); } } catch (e) { /* sem tabela */ }
+  const temTagV = (x) => (cli) => temTag(cli) || tagSet.has(x.filial + '|' + String(cli.cnpj || '').replace(/\D/g, ''));
+  // carteira do mes sem a leitura de hoje (CEVEN fora): o ultimo roteiro do mes gravado no D1, so para quem esta sendo perguntado
+  const garanteMes = async (x) => { if (Array.isArray(x.roteiroMes) && x.roteiroMes.length) return; try { const rm = await B.env.DB.prepare("SELECT roteiro_mes_json j FROM varredura_central_rca WHERE rca_codigo = ? AND filial_sigla = ? AND roteiro_mes_json IS NOT NULL AND substr(data_ref, 1, 7) = ? ORDER BY data_ref DESC LIMIT 1").bind(String(x.rca), String(x.filial), mes).first(); const arr = rm && rm.j ? JSON.parse(rm.j) : null; const l = Array.isArray(arr) ? arr : (arr && Object.values(arr).find(Array.isArray)) || []; if (l.length) x.roteiroMes = l; } catch (e) { /* sem roteiro */ } };
+  if (v) await garanteMes(v); else if ((E.vend || []).length <= 15) for (const x of E.vend) await garanteMes(x);
+  // comprou no mes = tambem a ultima compra da ficha do cliente dentro do mes (as vendas gravadas pararam em 11/11 com o CEVEN fora)
+  try { for (const x of (v ? [v] : (E.vend || []).slice(0, 15))) { const ids = [...new Set((x.roteiroMes || []).filter(temTagV(x)).map((cli) => String(cli.id_cliente)))]; for (let i = 0; i < ids.length; i += 80) { const pp = ids.slice(i, i + 80); const { results } = await B.env.DB.prepare(`SELECT id_cliente, json_extract(json, '$.ult') u FROM ficha_cliente WHERE filial = ? AND id_cliente IN (${pp.map(() => '?').join(',')})`).bind(String(x.filial), ...pp).all(); for (const r of results || []) if (r.u && String(r.u).slice(0, 10) >= mes + '-01') compraram.add(x.filial + '|' + r.id_cliente); } } } catch (e) { /* sem ficha */ }
   const um = (x) => {
+    const temTag = temTagV(x);
     const hoje = []; const vh = new Set();
     for (const cli of (x.rotaHoje || []).filter(temTag)) { if (vh.has(String(cli.id_cliente))) continue; vh.add(String(cli.id_cliente)); hoje.push(cli); }
     const mesC = new Map(); for (const cli of (x.roteiroMes || []).filter(temTag)) { const k = String(cli.id_cliente), u = String(cli.data_ultima_compra || '').slice(0, 10); const y = mesC.get(k) || { c: cli, u: '', comp: false }; if (u > y.u) y.u = u; if (/POSITIVADO|EFETIVADO/i.test(String(cli.status || ''))) y.comp = true; mesC.set(k, y); }
@@ -378,7 +389,9 @@ export async function respTagCampanhas(B, E, v, t = '', c = null) {
   }
   if (v) {
     const r = um(v);
-    if (!r.hoje.length && !r.mesC.size) return `🔄 ${vn(v)}: nenhum cliente com a tag *${tagInfo.label}* no roteiro (hoje e no mês).`;
+    // 16/11/2026 (Renan TPH 128 e regua R08: 'nenhum cliente com a tag' junto de 'faltam 18' da meta do GEROT): sem a tag no roteiro nao quer dizer que
+    // nao ha clientes de recorrencia — a lista oficial e a do GEROT (Recorrencia, 'Lista do dia 1º'), que ainda nao esta gravada cliente a cliente.
+    if (!r.hoje.length && !r.mesC.size) return `🔄 ${vn(v)}: a lista de clientes da recorrência deste mês ainda não chegou aqui cliente a cliente. Por enquanto, peça a *curva negativa* (clientes sem compra no mês) — os da recorrência estão dentro dela.`;
     const hj = new Set(r.hoje.map((cli) => String(cli.id_cliente)));
     const naoMes = [...r.mesC.values()].filter((y) => !(y.u >= mes + '-01') && !hj.has(String(y.c.id_cliente)));
     const jaComp = [...r.mesC.values()].filter((y) => y.u >= mes + '-01');

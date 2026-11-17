@@ -17,7 +17,7 @@ import { respKpisPremiacao, respMetasIndustria } from './respostas/metas_industr
 import { respGestaoCampo, respOperacao, respRecorrenciaLances, respRelatorio } from './respostas/operacao.js';
 import { respJustificativas, respOferecer, respSemDado } from './respostas/oportunidades.js';
 import { pedePeriodo, respClientesSemComprar, respComparaMes, respDiasSemPedido, respPeriodoDias, respPositivadosMesAnterior } from './respostas/periodos.js';
-import { respDiaVendedor, respFalta, respHoje, respMensagensPorVendedor, respTodosVendedores, totaisOficiais, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
+import { respHojeEquipe, respDiaVendedor, respFalta, respHoje, respMensagensPorVendedor, respTodosVendedores, totaisOficiais, respPorSupervisor, respResumo, respSupervisor, respVendedor } from './respostas/resumo.js';
 import { respAVisitar, respCheckinEquipe, respClientesVend, respDiaEquipe, respRotaFiltro, respSemVisita, respMixRotaHoje, respMinhaRota, respCampanhasVendedor, respCarteiraVendedor, respRecorrenciaClientes, respTagSeparadoPorSupervisor, respRotaHojeCompleta, respRotaHojeResumo, respClientesDia, respDevolucao, respPositivacao, respRanking, respVisitas, respZerados } from './respostas/rota.js';
 import { SEM_VENDAS, naoVende, respCliente, respIndustria, respMarcaPropriaVivo, respPreco, respPedidoNumero, respPedidosStatus, respProduto, respRecuperacao, respTopProdutos } from './respostas/vendas.js';
 import { respSegmentoCnae, respPastas, respEstrategiaFabio, respProspeccaoMapas } from './respostas/segmentos_pastas.js';
@@ -333,6 +333,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
   const { fil, grupo, supervisor, rcaV, preso } = escopoDoContato(c, fm);
   const esc = rcaV ? { nome: nome2(c.nome) + ' (RCA ' + rcaV + ')', filiais: [fil], grupo: null, supervisor: null, rca: rcaV, nacional: false }
     : fil ? { nome: supervisor ? 'Equipe ' + nome2(supervisor) + ' (' + fil + ')' : fil + (grupo ? ' · ' + titulo(grupo) : ''), filiais: [fil], grupo: supervisor ? null : grupo, supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
+  // 16/11/2026 (Allison/TPH 20:02: "Como foi a venda da minha equipe hj?" -> painel do MES): 'hj' = hoje; supervisor/gerente perguntando do DIA da equipe
+  // (sem citar vendedor nem mes) = o dia da equipe pelo Clube, com meta do dia, pior vendedor primeiro e quem ficou na mesa.
+  t = t.replace(/\bHJ\b/g, 'HOJE');
+  if (!rcaV && (c.papel === 'supervisor' || c.papel === 'gerente') && /\bHOJE\b/.test(t) && /EQUIPE|TIME|MEU|MINHA|VENDA|VENDEU|VENDEMOS|NUMEROS|RESULTADO|DIGITAD|COMO (ESTA|FOI|TA)|ATUALIZ/.test(t) && !/\bMES\b|CURVA|LIGA|CHAMPI|ROTA DE HOJE|ZERAD|DEVOLU|BLOQUEAD|RECORR|INDUSTRIA|PEDIDO\D{0,6}\d/.test(t)) {
+    try { const E0 = await carregaEscopo(B, esc), ps = achaPessoa(E0, t); if (!(ps && ps.tipo === 'vend')) { const r = await respHojeEquipe(B, E0); if (r) return r; } } catch (e) { /* segue o caminho de antes */ }
+  }
   if (/^(OI+|OLA+|E AI|AJUDA|MENU|INICIO|COMECAR|BOM DIA+|BOA TARDE|BOA NOITE)\b[ !?.]*$|O QUE (VOCE|VC) (SABE|FAZ|RESPONDE)|^AJUDA/.test(t)) return respAjuda(c);
   if (/O QUE (E|EH|SIGNIFICA)|COMO FUNCIONA|COMO (E|EH) CALCULAD|QUE QUER DIZER|DEFINICAO/.test(t)) { const g = respGlossario(t); if (g) return g; }
   // POSICAO DO SUPERVISOR NO BRASIL (Washington/API, 01/11/2026: "Fechamento time nivel Brasil", "minha posicao ranking nivel Brasil supervisor"): a posicao e dele; os numeros dos outros nao aparecem.

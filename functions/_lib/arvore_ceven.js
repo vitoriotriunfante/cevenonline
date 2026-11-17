@@ -300,6 +300,59 @@ export async function gravaRotasGerente(env, dataRef, prazoMs = 25000) {
   return res;
 }
 
+// CLIENTES FOCO / TAGS (Vitorio, 16/11/2026: "as tags vc tem aqui .../admin... no gerot temos a lista completa... mas as tags devem ser consideradas"):
+// le o admin 'Clientes Foco' (paginado) e grava em cliente_focos (filial, rca, id_cliente = CNPJ, tag = campanha). So tags ATIVAS; INSERT OR IGNORE
+// (nunca apaga+regrava: custo do D1). gravar=false devolve so o formato (chaves do item) e a contagem por campanha.
+export async function cargaClientesFoco(env, gravar = false) {
+  const tk = await tokenAdmin(env);
+  if (!tk) return { erro: 'login admin do CEVEN falhou' };
+  const H = { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET };
+  const sig = (f) => String(f || '').toUpperCase().replace(/\d+$/, '').slice(0, 3);
+  const pick = (o, ...ks) => { for (const k of ks) if (o && o[k] != null && o[k] !== '') return o[k]; return null; };
+  const out = { paginas: 0, itens: 0, ativos: 0, chaves: null, porCampanha: {}, gravados: 0, erros: [] };
+  const linhas = [];
+  let completo = false;
+  for (let p = 1; p <= 300; p++) {
+    let j = null;
+    // 16/11/2026: na 1a carga o CEVEN cortou na pagina 101 (429). Ritmo de 0,6 s entre paginas e ate 4 novas tentativas no 429 (espera crescente).
+    if (p > 1) await new Promise((ok) => setTimeout(ok, 600));
+    let r = null;
+    try {
+      for (let t = 0; t < 5; t++) { r = await fetch(`${CEVEN}/api/admin/clientes-foco?page=${p}&limit=500`, { headers: H, signal: AbortSignal.timeout(30000) }); if (r.status !== 429) break; await new Promise((ok) => setTimeout(ok, 3000 * (t + 1))); }
+      if (!r.ok) { out.erros.push(`pagina ${p}: ${r.status}`); break; } j = await r.json();
+    } catch (e) { out.erros.push(`pagina ${p}: ${String(e && e.message || e).slice(0, 80)}`); break; }
+    const I = (j && Array.isArray(j.items)) ? j.items : [];
+    out.paginas = p; out.itens += I.length; if (!out.chaves && I[0]) out.chaves = Object.keys(I[0]);
+    for (const x of I) {
+      const ativo = pick(x, 'ativo', 'active', 'is_active'); if (ativo === false || ativo === 0 || /^(nao|não|false|0)$/i.test(String(ativo))) continue;
+      const cnpj = String(pick(x, 'cnpj', 'cnpj_cliente', 'cpf_cnpj') || '').replace(/\D/g, ''); if (!cnpj) continue;
+      const tag = String(pick(x, 'industria_foco', 'campanha', 'nome_campanha', 'tag') || '').trim().toUpperCase(); if (!tag) continue;
+      const fil = sig(pick(x, 'filial', 'filial_sigla', 'sigla', 'filial_key')); if (!/^[A-Z]{3}$/.test(fil)) continue;
+      const rca = String(pick(x, 'id_vendedor', 'cod_vendedor', 'codusur', 'rca', 'id_representante', 'vendedor') || '').replace(/\D/g, '');
+      out.ativos++; out.porCampanha[tag] = (out.porCampanha[tag] || 0) + 1;
+      linhas.push([fil, rca, cnpj, tag]);
+    }
+    if (!I.length || (j && j.pages && p >= Number(j.pages))) { completo = !out.erros.length; break; }
+  }
+  out.completo = completo;
+  if (gravar && linhas.length) {
+    const agora = new Date().toISOString();
+    for (let i = 0; i < linhas.length; i += 80) {
+      const res = await env.DB.batch(linhas.slice(i, i + 80).map(([f, r, c, t]) => env.DB.prepare("INSERT OR IGNORE INTO cliente_focos (filial, rca, id_cliente, tag, origem, atualizado_em) VALUES (?, ?, ?, ?, 'admin_clientes_foco', ?)").bind(f, r, c, t, agora)));
+      for (const x of res || []) out.gravados += (x && x.meta && x.meta.changes) || 0;
+    }
+    // AS TAGS MUDAM (Vitorio, 16/11/2026): com a leitura COMPLETA, sai do D1 o que saiu do admin (so as de origem admin; leitura parcial nunca apaga)
+    if (completo) {
+      const quer = new Set(linhas.map((x) => x.join('|')));
+      const { results: ex } = await env.DB.prepare("SELECT filial, rca, id_cliente, tag FROM cliente_focos WHERE origem = 'admin_clientes_foco'").all();
+      const sai = (ex || []).filter((x) => !quer.has([x.filial, x.rca, x.id_cliente, x.tag].join('|')));
+      for (let i = 0; i < sai.length; i += 80) await env.DB.batch(sai.slice(i, i + 80).map((x) => env.DB.prepare('DELETE FROM cliente_focos WHERE filial = ? AND rca = ? AND id_cliente = ? AND tag = ?').bind(x.filial, x.rca, x.id_cliente, x.tag)));
+      out.removidos = sai.length;
+    }
+  }
+  return out;
+}
+
 // TESTE DE CONEXAO DO GERENTE (Vitorio, 16/11/2026: "o CEVEN voltou mas apenas para os gerentes... uma unidade por vez"): SO LEITURA, nao grava nada.
 // Devolve status/tempo do login e da cascata e as contagens; nunca devolve senha nem token.
 export async function diagGerente(env, filialSigla) {

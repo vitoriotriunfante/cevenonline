@@ -1,0 +1,29 @@
+# FICHA DO ARQUIVO
+# O QUE É: carga das TAGs do admin 'Clientes Foco' (RECORRENCIA e campanhas) para o D1 (cliente_focos). Vitorio, 16/11/2026: "tem que ver na madrugada...
+#   e durante o dia umas duas vezes... as tags mudam". Chama /api/diag-clientes-foco?gravar=1 (o site le o CEVEN admin e grava; com leitura completa,
+#   tambem tira as tags que sairam). NAO envia WhatsApp. O log mostra so contagens.
+# Segredo: EVO_KEY (ja existe).
+name: TAGs Clientes Foco — carga para o D1
+
+on:
+  schedule:
+    - cron: '0 6 * * 1-6'    # 03h00 BRT (madrugada)
+    - cron: '0 14 * * 1-6'   # 11h00 BRT
+    - cron: '0 18 * * 1-6'   # 15h00 BRT
+  workflow_dispatch:
+
+concurrency:
+  group: tags-clientes-foco
+  cancel-in-progress: false
+
+jobs:
+  carregar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Carregar TAGs (site le o admin e grava no D1)
+        env:
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+        run: |
+          curl -s -m 840 -H "X-Evo-Key: $EVO_KEY" "https://ceven-cftv-matrix.pages.dev/api/diag-clientes-foco?gravar=1" \
+            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const j=JSON.parse(s);console.log(JSON.stringify({paginas:j.paginas,itens:j.itens,ativos:j.ativos,completo:j.completo,gravados:j.gravados,removidos:j.removidos,erros:j.erros,erro:j.erro}))}catch(e){console.log('resposta inesperada');process.exit(1)}})"
