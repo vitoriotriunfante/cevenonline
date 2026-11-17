@@ -1,0 +1,30 @@
+# FICHA DO ARQUIVO
+# O QUE É: mapa das telas do GEROT que ainda nao extraimos (Carteira Total, Pedidos, Devolucoes, Cortes, Recorrencia). SO LEITURA, so manual.
+#   O log mostra apenas nomes de colunas e quantidade de linhas (repositorio publico). Nada anexado, nada gravado.
+name: GEROT — mapa das telas (so leitura)
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: gerot-coleta
+  cancel-in-progress: false
+
+jobs:
+  mapear:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Instalar dependencias e navegador
+        run: |
+          npm ci --no-audit --no-fund
+          for t in 1 2 3 4; do npx playwright install --with-deps chromium && break; sleep 20; done
+      - name: Mapear telas
+        env:
+          GEROT_EMAIL: ${{ secrets.GEROT_EMAIL }}
+          GEROT_SENHA: ${{ secrets.GEROT_SENHA }}
+        run: node pipeline/gerot_mapa_telas.mjs
