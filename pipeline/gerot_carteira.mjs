@@ -79,6 +79,10 @@ function porPedido(arq) {
     const f = I.forn >= 0 ? String(r[I.forn] || '').trim() : ''; if (f && !x.fornecedores.includes(f) && x.fornecedores.length < 8) x.fornecedores.push(f);
   }
   const L = [...P.values()].map((x) => ({ ...x, valor: Math.round(x.valor * 100) / 100, hash: crypto.createHash('md5').update(JSON.stringify([x.status, x.situacao, x.motivo, Math.round(x.valor * 100), x.itens, x.qfat, x.rca, x.entrada])).digest('hex') }));
+  // 17/11/2026: o valor somado deu 25-82x o total do pedido no Clube. Log SO DO FORMATO (digitos trocados por 9, nada de valor) de Valor item, Qt Pedida e Caixas
+  const fmt = (v) => (v == null ? 'null' : typeof v === 'number' ? 'numero' + (Number.isInteger(v) ? '-inteiro' : '-decimal') : String(v).replace(/[0-9]/g, '9').slice(0, 20));
+  const amostra = rows.slice(hi + 1, hi + 400).filter(Boolean); const tipos = (k) => { const m = {}; for (const r of amostra) { const f = fmt(k >= 0 ? r[k] : null); m[f] = (m[f] || 0) + 1; } return JSON.stringify(Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 4)); };
+  log('formato Valor item', tipos(I.val), '· Qt Pedida', tipos(I.qped), '· Caixas', tipos(H.findIndex((h) => /^Caixas$/i.test(h))));
   return { L, cab: H, linhas: rows.length - hi - 1 };
 }
 
