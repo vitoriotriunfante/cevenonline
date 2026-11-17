@@ -18,7 +18,7 @@ import R from '../../public/regras.js';
 import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
 import { chaveEvoValida } from '../_lib/chave_evo.js';
 import { ocultosDaEquipe, lanceDeOculto } from '../_lib/equipe_ocultos.js';
-import { diaSemLance } from '../_lib/feriados.js';
+import { diaSemLance, ehFeriado } from '../_lib/feriados.js';
 import { fechaDia } from '../_lib/liga_fechamento.js';
 
 const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
@@ -33,6 +33,7 @@ const hhmmss = (min) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${Stri
 const lote = async (db, sql, ids, extra = []) => { const out = []; for (let i = 0; i < ids.length; i += 80) { const p = ids.slice(i, i + 80); const { results } = await db.prepare(sql.replace('(?)', `(${p.map(() => '?').join(',')})`)).bind(...extra, ...p).all(); out.push(...(results || [])); } return out; };
 
 export async function calculaLances(env, origin, dia) {
+  const hojeAgora = R.relogioSP();
   const db = env.DB, ocultos = await ocultosDaEquipe(origin).catch(() => new Set());
   // EQUIPE (Gestao de Equipe via /api/tv-mostra): nome, supervisor, canal; quem nao participa da Liga fica fora
   const eq = new Map(); const semLances = new Set();
@@ -47,7 +48,7 @@ export async function calculaLances(env, origin, dia) {
   const { results: PD } = await db.prepare('SELECT filial, rca, cliente, pedido, dados FROM gerot_pedido WHERE data = ?').bind(dia).all();
   const ped = new Map(); for (const p of PD || []) { const k = `${p.filial}|${p.rca}|${p.cliente}`; if (!ped.has(k)) ped.set(k, []); if (!ped.get(k).includes(p.pedido)) ped.get(k).push(p.pedido); }
   // 17/11/2026: no 'Pedidos' do GEROT a data do pedido JA FATURADO e a do faturamento; a data do pedido vem da ENTRADA na Carteira Total (guardada em gerot_pedido_entrada)
-  const pedC = new Map(); const addC = (r) => { const k = `${r.filial}|${r.rca}|${String(r.cnpj || '').replace(/D/g, '')}`; if (!r.rca || !r.cnpj) return; if (!pedC.has(k)) pedC.set(k, []); if (!pedC.get(k).includes(r.pedido)) pedC.get(k).push(r.pedido); };
+  const pedC = new Map(); const addC = (r) => { const k = `${r.filial}|${r.rca}|${String(r.cnpj || '').replace(/\D/g, '')}`; if (!r.rca || !r.cnpj) return; if (!pedC.has(k)) pedC.set(k, []); if (!pedC.get(k).includes(r.pedido)) pedC.get(k).push(r.pedido); };
   for (const sql of ['SELECT filial, rca, cnpj, pedido FROM gerot_pedido_entrada WHERE entrada = ?', 'SELECT filial, rca, cnpj, pedido FROM gerot_carteira WHERE entrada = ?']) { try { const { results } = await db.prepare(sql).bind(dia).all(); for (const r of results || []) addC(r); } catch (e) { /* tabela ainda vazia */ } }
   // VISITAS por vendedor: cliente -> entrada/saida
   const vis = new Map();
@@ -60,7 +61,14 @@ export async function calculaLances(env, origin, dia) {
   }
   const jus = new Map(); for (const j of JU || []) { const k = `${j.filial}|${j.rca}`; if (!jus.has(k)) jus.set(k, new Map()); jus.get(k).set(String(j.cliente), j); }
   // ULTIMA COMPRA ANTES DO DIA (resgate de inativo): ficha do cliente (historico ate 11/11) + pedidos do GEROT antes do dia
-  const vendidos = []; for (const [k, M] of vis) for (const x of M.values()) if (ped.has(`${k}|${x.id}`)) vendidos.push({ fil: k.slice(0, 3), id: x.id });
+  const vendidos = []; for (const [k, M] of vis) for (const x of M.values()) if (ped.has(`${k}|${x.id}`) || (x.cnpj && pedC.has(`${k}|${x.cnpj}`))) vendidos.push({ fil: k.slice(0, 3), id: x.id });
+  // DOBRADINHA DAS QUINZENAS (G04): cliente com pedido hoje (2a quinzena) e pedido na 1a quinzena do mesmo mes (data do GEROT: faturamento ou entrada na carteira;
+  // faturado depois do dia 15 nao conta = na duvida, sem gol)
+  const q1 = new Map();
+  if (Number(dia.slice(8, 10)) >= 16) for (const fil of [...new Set(vendidos.map((x) => x.fil))]) {
+    const ids = [...new Set(vendidos.filter((x) => x.fil === fil).map((x) => x.id))];
+    for (const r of await lote(db, 'SELECT cliente, MIN(data) d, MIN(pedido) p FROM gerot_pedido WHERE filial = ? AND data >= ? AND data <= ? AND cliente IN (?) GROUP BY cliente', ids, [fil, dia.slice(0, 8) + '01', dia.slice(0, 8) + '15']).catch(() => [])) q1.set(fil + '|' + r.cliente, { d: r.d, p: r.p });
+  }
   const ult = new Map();
   for (const fil of [...new Set(vendidos.map((x) => x.fil))]) {
     const ids = [...new Set(vendidos.filter((x) => x.fil === fil).map((x) => x.id))];
@@ -111,6 +119,15 @@ export async function calculaLances(env, origin, dia) {
     if (cedo) add({ chave: `gol_relampago|${e.rca}`, nivel: 'gol', obs: `check-in as ${cedo.ini.hms} (antes das ${limR / 60}h)${fonte}`, hora_sp: hhmmss(cedo.ini.min) });
     const acrIni = (fuso ? 17 : 16) * 60 + 30, acrFim = (fuso ? 19 : 18) * 60, tarde = V.slice().reverse().find((x) => x.ini.min >= acrIni && x.ini.min <= acrFim && venda(x));   /* regulamento: PEDIDO fechado no fim do expediente */
     if (tarde) add({ chave: `gol_acrescimos|${e.rca}`, nivel: 'gol', obs: `check-in as ${tarde.ini.hms} (janela ${Math.floor(acrIni / 60)}h${String(acrIni % 60).padStart(2, '0')} ate ${acrFim / 60}h00)${fonte}`, hora_sp: hhmmss(tarde.ini.min) });
+    // dobradinha: o cliente visitado com pedido hoje que ja tinha comprado na 1a quinzena
+    for (const x of V.filter(venda)) { const a = q1.get(`${d.filial}|${x.id}`), pn = pedDe(x); if (a && pn) add({ chave: `gol_quinzenas|${e.rca}|${x.id}`, nivel: 'gol', cliente_id: x.id, cliente: x.nome, obs: `PEDIDO DE HOJE: ${pn} · GEROT | QUINZENAS: 1a quinzena pedido ${a.p} em ${a.d.slice(8, 10)}/${a.d.slice(5, 7)} · 2a quinzena hoje${fonte}`, hora_sp: hhmmss(Math.max(x.ini.min, 6 * 60)) }); }
+    // META DO 1o TEMPO (so ao vivo, antes das 14h: o digitado do Clube NAQUELE momento >= meta proporcional do dia, a mesma conta do coletor antigo)
+    if (dia === hojeAgora.dia && hojeAgora.min < 14 * 60 && V.length) {
+      const mf1 = metaFat.get(k), [yy, mm] = dia.split('-').map(Number), fimM = new Date(Date.UTC(yy, mm, 0)).getUTCDate();
+      let totU = 0, ateH = 0; for (let dd = 1; dd <= fimM; dd++) { const iso = `${dia.slice(0, 8)}${String(dd).padStart(2, '0')}`, w = new Date(iso + 'T12:00:00Z').getUTCDay(); if (w > 0 && w < 6 && !ehFeriado(iso)) { totU++; if (iso <= dia) ateH++; } }
+      const metaDia = mf1 && mf1.meta > 0 && totU ? mf1.meta / totU * ateH : 0;
+      if (metaDia > 0 && dig >= metaDia) add({ chave: `gol_meta1t|${e.rca}`, nivel: 'gol', obs: `digitado R$ ${Math.round(dig).toLocaleString('pt-BR')} >= meta proporcional do dia R$ ${Math.round(metaDia).toLocaleString('pt-BR')}; check-in as ${V[V.length - 1].ini.hms}${fonte}`, hora_sp: hhmmss(hojeAgora.min) });
+    }
     const mf = metaFat.get(k);
     if (mf && mf.meta > 0 && mf.fat >= mf.meta && !campeaoJa.has(k)) add({ chave: `gol_campeao|${e.rca}|${dia.slice(0, 7)}`, nivel: 'gol', obs: `faturado do mes ${brl(mf.fat)} >= meta ${brl(mf.meta)} | FONTE: GEROT`, hora_sp: '19:00:00' });
     if (!campo) continue;
