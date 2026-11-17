@@ -42,7 +42,7 @@ export function juntaComAnterior(texto, anteriores) {
   if (/\bBRASIL\b|\b(TPH|ABC|API|TBL|TCV|TSJ|TCA|TBE|TPA|MCD|TCG)\b/.test(t)) antSemPer = sem(antSemPer).replace(/\b(TPH|ABC|API|TBL|TCV|TSJ|TCA|TBE|TPA|MCD|TCG|BRASIL)\b/g, ' ').replace(/\s+/g, ' ');
   return antSemPer + ' ' + texto;
 }
-function pessoaVendedoraAnterior(E, anteriores) {
+export function pessoaVendedoraAnterior(E, anteriores) {
   for (const pergunta of anteriores || []) {
     const pessoa = achaPessoa(E, sem(String(pergunta)));
     if (pessoa && pessoa.tipo === 'vend') return pessoa;
@@ -338,7 +338,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // (sem citar vendedor nem mes) = o dia da equipe pelo Clube, com meta do dia, pior vendedor primeiro e quem ficou na mesa.
   t = t.replace(/\bHJ\b/g, 'HOJE');
   // ROTEADOR POR INTENCAO (17/11/2026, plano bloco 1): reconhece a intencao e chama UMA resposta; o que nao reconhece segue o roteamento antigo
-  { const { rotearIntencao } = await import('./intencao.js'); const ri = await rotearIntencao(B, c, (B._t0 && t.startsWith(B._t0) ? B._t0 : t).replace(/\bHJ\b/g, 'HOJE'), { esc, rcaV, fil, interno: (q) => { B._t0 = null; return respostaInterna(B, c, q, anteriores); } }).catch(() => null); if (ri) return ri; }
+  { const { rotearIntencao } = await import('./intencao.js'); const ri = await rotearIntencao(B, c, (B._t0 && t.startsWith(B._t0) ? B._t0 : t).replace(/\bHJ\b/g, 'HOJE'), { esc, rcaV, fil, anteriores, interno: (q) => { B._t0 = null; return respostaInterna(B, c, q, anteriores); } }).catch(() => null); if (ri) return ri; }
   // 17/11/2026: antes de o dia comecar (antes das 7h, ou sem visita nem venda), pergunta do DIA da equipe = rota planejada + ultimo dia util
   if (!rcaV && (c.papel === 'supervisor' || c.papel === 'gerente') && /\b(HOJE|ZERAD\w*|ROTA|VISITAS?|SEM PEDIDO|FECHAMENTO DO DIA)\b/.test(t) && !/\bMES\b|CURVA|LIGA|CHAMPI|DEVOLU|RECORR|INDUSTRIA|PEDIDO\D{0,6}\d/.test(t)) {
     try { const E0 = await carregaEscopo(B, esc), ps = achaPessoa(E0, t); if (!(ps && ps.tipo === 'vend')) { const pd = await respPreDia(B, E0); if (pd) return pd; } } catch (e) { /* segue */ }

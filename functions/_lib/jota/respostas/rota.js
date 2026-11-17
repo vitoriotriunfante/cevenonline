@@ -123,11 +123,11 @@ export async function respVisitadosSemCompra(E, B) {
   for (const v of VJ.slice().sort((a, b) => (J.get(b.filial + '|' + b.rca) || []).length - (J.get(a.filial + '|' + a.rca) || []).length)) {
     const cs = J.get(v.filial + '|' + v.rca) || []; if (!cs.length) continue;
     L.push('', `*${vn(v)}* (${cs.length}):`);
-    for (const c of cs) { n++; L.push(`• ${titulo(String(c.fantasia || c.razao || 'Cliente #' + c.cliente).toLowerCase())} (#${c.cliente}) · *${N(c.d)} dias* · ${titulo(String(c.motivo || 'sem motivo').toLowerCase())}
+    for (const c of cs) { n++; L.push(`• ${titulo(String(c.fantasia || c.razao || 'Cliente #' + c.cliente).toLowerCase())} (#${c.cliente}) · ${N(c.d)} · ${titulo(String(c.motivo || 'sem motivo').toLowerCase())}
    👉 ${acaoDe(c.motivo)}`); }
   }
   if (!n) return `✅ *${E.nome}*: nenhum cliente visitado hoje está há mais de 30 dias sem comprar (Clube da Venda).`;
-  L.splice(1, 0, `*${n}* cliente(s) · ação pelo motivo que o vendedor registrou no Clube`);
+  L.splice(1, 0, `*${n}* cliente(s) · _nº = dias sem compra · motivo do Clube · 👉 o que fazer_`);
   L.push('', '_Clube da Venda · justificativas de hoje._');
   return L.join('\n');
 }
@@ -550,15 +550,29 @@ export async function respRotaHojeCompleta(B, v, soSemCompra = false) {
   const nome = (c) => titulo(c.nome_cliente || c.razao_social || 'cliente');
   const nao = rota.filter((c) => semMap.has(String(c.id_cliente))), ja = rota.filter((c) => !semMap.has(String(c.id_cliente)));
   let idxGlobal = 0;
-  const linhaNao = (c) => { idxGlobal++; const x = semMap.get(String(c.id_cliente)), tg = tags(c); return `${idxGlobal}. ${nome(c)} (#${c.id_cliente}) · ${st(c)} · ❌ ${x.dias == null ? 'sem histórico na base' : x.dias + ' dias sem compra'}` + (tg ? ` · 🏷️ ${tg}` : ''); };
-  const linhaJa = (c) => { idxGlobal++; const r = valorMes.get(String(c.id_cliente)), tg = tags(c); return `${idxGlobal}. ${nome(c)} (#${c.id_cliente}) · ${st(c)} · ✔️${r ? ' ' + R$(r) : ''}` + (tg ? ` · 🏷️ ${tg}` : ''); };
+  void st; void tags;
+  const linhaNao = (c) => { idxGlobal++; const x = semMap.get(String(c.id_cliente)); return `${idxGlobal}. ${nome(c)} (#${c.id_cliente}) · ${emojiVisita(c, pedidoHoje)} · ${diasTxt(x.dias)}${tagsCurtas(c)}`; };
+  const linhaJa = (c) => { idxGlobal++; const r = valorMes.get(String(c.id_cliente)); return `${idxGlobal}. ${nome(c)} (#${c.id_cliente}) · ${emojiVisita(c, pedidoHoje)} · ${r ? R$(r) : '✔️'}${tagsCurtas(c)}`; };
   return [`📋 *${vn(v)}* (${v.filial}) — rota de hoje: *${rota.length} clientes* · *${nao.length} ainda sem compra no mês*`,
-    '_⏳ a visitar · 👣 visitado · ✅ vendeu hoje · ❌ sem compra (dias) · ✔️ já comprou no mês (R$) · 🏷️ tags_',
+    LEGENDA_ROTA,
     ...(nao.length ? ['', `*Ainda não compraram no mês (${nao.length}):*`, ...nao.map(linhaNao)] : ['', '✅ Todos da rota de hoje já compraram no mês.']),
     ...(!soSemCompra && ja.length ? ['', `*Já compraram no mês (${ja.length}):*`, ...ja.sort((a, b) => (valorMes.get(String(b.id_cliente)) || 0) - (valorMes.get(String(a.id_cliente)) || 0)).map(linhaJa)] : []),
     ...(!historicoCompleto && semC.some((x) => x.dias == null) ? ['', '_Não consegui confirmar a última compra de todos os clientes; não estimei os dias sem histórico._'] : []),
     '', '👉 *Digite o número* (ex.: 1) para abrir a ficha do cliente e o que oferecer no balcão (+MIX).'].join('\n');
 }
+
+// PADRAO DE LISTA DE CLIENTES (Vitorio, 27/10 e 17/11/2026: "legenda no inicio e so os emojis embaixo... dias sem compra apenas o numero... foco na informacao"):
+// uma legenda no topo; cada linha = numero. Nome (#codigo) · situacao (emoji) · dias sem compra (so o numero) ou R$ do mes · 🏷️ tag.
+export const LEGENDA_ROTA = '_⏳ a visitar · 👣 visitou · ⚠️ justificou · ✅ vendeu hoje · nº = dias sem compra · 🆕 sem compra registrada · 🏷️ tag_';
+export function emojiVisita(c, pedidoHoje) {
+  const s = String(c.status || '').toUpperCase();
+  if ((pedidoHoje && pedidoHoje.has(String(c.id_cliente))) || /POSITIVADO|EFETIVADO/.test(s)) return '✅';
+  if (/JUSTIFICADO/.test(s)) return '⚠️';
+  if (c.checkin_horario || /VISITADO/.test(s)) return '👣';
+  return '⏳';
+}
+export const tagsCurtas = (c) => { const T = [...new Set((c.focos || []).map((f) => titulo(String(f && f.industria_foco || '').trim().toLowerCase())).filter(Boolean))].sort((a, b) => (/Recorr/i.test(b) ? 1 : 0) - (/Recorr/i.test(a) ? 1 : 0)); return T.length ? ' · 🏷️ ' + T.slice(0, 2).join(', ') : ''; };
+export const diasTxt = (d) => (d == null ? '🆕' : d === 0 ? 'hoje' : String(d));
 
 // "MINHA ROTA" DO VENDEDOR (Vitorio, 01/11/2026): como esta o mes, quantos clientes hoje, quem ja comprou e quem nao, numerados; ele digita o numero e recebe a ficha do cliente.
 export async function respMinhaRota(B, v) {
@@ -580,10 +594,11 @@ export async function respMinhaRota(B, v) {
     const itens = Array.isArray(c.focos) ? [...new Set(c.focos.map((f) => String(f?.industria_foco || '').trim()).filter(Boolean))] : [];
     return itens.length ? ` · 🏷️ ${itens.join(', ')}` : '';
   };
-  let i = 0; const linha = (c, fim) => `${++i}. ${nome(c)} (#${c.id_cliente}) · ${situacaoVisita(c)} · ${fim}${tags(c)}`;
-  const L = [`📋 *${vn(v)}* — rota de hoje: *${rota.length} clientes*`, ...mes];
-  if (nao.length) L.push('', `*Ainda não compraram no mês (${nao.length}):*`, ...nao.map((c) => { const d = semMap.get(String(c.id_cliente)).dias; return linha(c, d == null ? 'sem histórico de compra na base' : d === 0 ? 'última compra hoje, ainda não consta no mês' : `${d} dias sem compra`); }));
-  if (ja.length) L.push('', `*Já compraram no mês (${ja.length}):*`, ...ja.map((c) => { const r = valorMes.get(String(c.id_cliente)); return linha(c, r ? R$(r) : 'já comprou'); }));
+  void situacaoVisita; void tags;
+  let i = 0; const linha = (c, fim) => `${++i}. ${nome(c)} (#${c.id_cliente}) · ${emojiVisita(c, pedidoHoje)} · ${fim}${tagsCurtas(c)}`;
+  const L = [`📋 *${vn(v)}* — rota de hoje: *${rota.length} clientes*`, ...mes, '', LEGENDA_ROTA];
+  if (nao.length) L.push('', `*Ainda não compraram no mês (${nao.length}):*`, ...nao.map((c) => linha(c, diasTxt(semMap.get(String(c.id_cliente)).dias))));
+  if (ja.length) L.push('', `*Já compraram no mês (${ja.length}):*`, ...ja.map((c) => { const r = valorMes.get(String(c.id_cliente)); return linha(c, r ? R$(r) : '✔️'); }));
   // "COMECE POR X E OFERECA Y" (proatividade, 01/11/2026): quem esta ha mais tempo sem comprar, ainda sem check-in, com a lista do +MIX. Sem lista, nao sugere nada.
   let M = {}; try { M = JSON.parse(await B.raw(`public/mix_rec/${v.filial}.json`) || '{}').clientes || {}; } catch (e) { M = {}; }
   const recDe = (c) => (M[String(c.cnpj || '').replace(/\D/g, '')] || {}).rec || [];

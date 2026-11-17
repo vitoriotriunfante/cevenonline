@@ -147,12 +147,20 @@ export async function onRequestGet({ request, env }) {
   const porTipo = {}; for (const l of L) { const t = l.chave.split('|')[0]; porTipo[t] = (porTipo[t] || 0) + 1; }
   const porFilial = {}; for (const l of L) porFilial[l.filial] = (porFilial[l.filial] || 0) + 1;
   const saida = { dia, vendedores_clube: c.vendedores, pedidos_gerot_no_dia: c.pedidos_gerot, lances: L.length, por_tipo: porTipo, por_filial: porFilial };
+  { const ver = String(u.searchParams.get('ver') || '').toUpperCase(); if (/^[A-Z]{3}\|\d+$/.test(ver)) saida.do_vendedor = c.L.filter((l) => `${l.filial}|${l.rca}` === ver).map((l) => ({ chave: l.chave, hora: l.hora_sp, obs: String(l.obs || '').slice(0, 160) })); }
   if (u.searchParams.get('grava') === '1') {
     const iso = new Date().toISOString(), t = (v, n = 200) => (v == null ? null : String(v).slice(0, n));
     const st = L.map((l) => env.DB.prepare('INSERT OR IGNORE INTO tv_lances (dia, filial, chave, nivel, rca, vendedor, supervisor, cliente_id, cliente, motivo, dias_sem_compra, ultima_compra, tempo_visita, obs, hora_sp, visto_em, baseline) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)')
       .bind(dia, l.filial, l.chave, l.nivel, t(l.rca, 20), t(l.vendedor), t(l.supervisor), t(l.cliente_id, 30), t(l.cliente), t(l.motivo), l.dias_sem_compra == null ? null : Math.trunc(l.dias_sem_compra), t(l.ultima_compra, 10), t(l.tempo_visita, 8), t(l.obs, 700), l.hora_sp, iso));
     let novos = 0; for (let i = 0; i < st.length; i += 80) { const rs = await env.DB.batch(st.slice(i, i + 80)); novos += rs.filter((r) => r.meta && r.meta.changes === 1).length; }
     saida.gravados_novos = novos;
+    // CARTAO DE ROTA REFEITO A CADA RODADA (17/11/2026: Tatiana MCD 453 levou amarelo + vermelho as 13h com visitas desde 08:05 — o aparelho sincronizou depois):
+    // vale a hora do check-in; se a visita apareceu depois, o cartao gravado por este motor sai. Cartao de outro motor (sem 'FONTE: Clube') nao e tocado.
+    const vale = new Set(c.L.filter((l) => /^(ven10|vis11)\|/.test(l.chave)).map((l) => l.filial + '#' + l.chave));
+    const { results: cart } = await env.DB.prepare("SELECT filial, chave FROM tv_lances WHERE dia = ? AND (chave LIKE 'ven10|%' OR chave LIKE 'vis11|%') AND obs LIKE '%FONTE: Clube%'").bind(dia).all();
+    const sai = (cart || []).filter((x) => !vale.has(x.filial + '#' + x.chave));
+    if (sai.length) await env.DB.batch(sai.map((x) => env.DB.prepare('DELETE FROM tv_lances WHERE dia = ? AND filial = ? AND chave = ?').bind(dia, x.filial, x.chave)));
+    saida.cartoes_retirados = sai.map((x) => x.filial + ' ' + x.chave);
   }
   if (u.searchParams.get('refecha') === '1' && dia < hoje) {
     // copia do fechamento anterior antes de refazer (nada se perde)

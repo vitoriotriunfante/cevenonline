@@ -10,7 +10,7 @@
 //   Os 5 de foco sao fixados na 1a resposta do dia (jota_foco_dia) para o meio do dia e o fechamento medirem quantos viraram pedido.
 //   Chave de desligar: config_flags 'jota_momentos' = 'off' -> volta a saudacao de antes (menu).
 // =========================================================================
-import { FILIAIS, N, R$, hojeSP, titulo, diasUteisRestantes } from '../base.js';
+import { FILIAIS, N, R$, hojeSP, titulo, diasUteisRestantes, vn } from '../base.js';
 import { semCompraNaRota } from './rota.js';
 import { posGerotFiliais } from './resumo.js';
 import { diasUteisMes } from './gestao.js';
@@ -119,20 +119,47 @@ export async function diaClube(B, v) {
     return { t, vis: [...vis.values()], semPed, comPed, naoVis, naoVisNomes, lido: t.lido_em ? new Date(t.lido_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) : null };
   } catch (e) { return null; }
 }
+// ONDE ESTA / ROTA DE HOJE DE UM VENDEDOR (Vitorio, 17/11/2026: "onde esta a Fernanda de TSJ" veio o card do mes; "gostei muito mais da resposta" do Cleverson
+// = visitas com horario e motivo). Fonte: Clube de hoje (check-in/out + justificativas). Venda por cliente so com prova (pedido do dia no GEROT ou na carteira).
+export async function respOndeEsta(B, v) {
+  const D = await diaClube(B, v);
+  if (!D) return `📍 *${vn(v)}* (${v.filial}): sem leitura do Clube da Venda hoje ainda.`;
+  const db = B.env.DB, dia = hojeSP(), fil = String(v.filial), rca = String(v.rca);
+  const comPed = new Set((D.comPed || []).map((x) => String(x.id)));
+  try {
+    const { results } = await db.prepare('SELECT cliente FROM gerot_pedido WHERE filial = ? AND rca = ? AND data = ?').bind(fil, rca, dia).all(); for (const r of results || []) comPed.add(String(r.cliente));
+  } catch (e) { /* sem GEROT do dia */ }
+  const jus = new Map(D.semPed.map((x) => [String(x.id), x]));
+  const V = D.vis.filter((x) => x.ini).sort((a, b) => a.ini.localeCompare(b.ini)), ult = V[V.length - 1];
+  const t = D.t, L = [`📍 *${vn(v)}* (${v.filial}) · hoje`];
+  if (ult) L.push(ult.fim && ult.fim >= ult.ini ? `Último check-out às *${ult.fim}* em *${ult.nome}* (#${ult.id})` : `*Agora em ${ult.nome}* (#${ult.id}) · check-in às ${ult.ini}, sem check-out ainda`);
+  else L.push('*Nenhum check-in hoje* até a última leitura do Clube.');
+  L.push(`🚶 Visitou *${N(t.visitas_rota || 0)} de ${N(t.roteiros || 0)}* da rota · 📝 ${R$(t.total_pedido || 0)} em ${N(t.ped_total || 0)} pedido(s)`);
+  if (V.length) {
+    L.push('', '_✅ vendeu · ⚠️ não vendeu (motivo) · 👣 visitou_');
+    for (const x of V) { const j = jus.get(String(x.id)); L.push(`${x.ini}${x.fim ? '–' + x.fim : ''} ${comPed.has(String(x.id)) ? '✅' : j ? '⚠️' : '👣'} ${x.nome} (#${x.id})${!comPed.has(String(x.id)) && j ? ` · ${j.motivo}` : ''}`); }
+  }
+  if (D.naoVisNomes && D.naoVisNomes.length) L.push('', `⏳ *Falta visitar (${D.naoVisNomes.length}):* ${D.naoVisNomes.slice(0, 10).map((x) => `${x.nome} (#${x.id})`).join(', ')}`);
+  else if (D.naoVis) L.push('', `⏳ *Falta visitar:* ${N(D.naoVis)} cliente(s) da rota`);
+  if (D.lido) L.push('', `_Clube da Venda · ${D.lido}_`);
+  return L.join('\n');
+}
+
 export function linhasDiaClube(D, momento) {
   const t = D.t, L = [];
   L.push(`🚶 Rota: visitou *${N(t.visitas_rota || 0)} de ${N(t.roteiros || 0)}*` + (D.naoVis ? ` · *${N(D.naoVis)} sem visita*` : ' · rota completa'));
   L.push(`📝 Vendeu *${R$(t.total_pedido || 0)}* em *${N(t.ped_total || 0)}* pedido(s)` + (t.ped_fora ? ` (${N(t.ped_fora)} fora da rota)` : ''));
   if (D.comPed && D.comPed.length) L.push(`✅ Com pedido: ${D.comPed.map((x) => x.nome).join(', ')}`);
   if (D.semPed.length) {
-    L.push('', `🟡 *Visitou e não vendeu (${D.semPed.length}):*`);
-    for (const x of D.semPed.slice(0, 6)) L.push(`• ${x.nome} (#${x.id})${x.dias != null && Number(x.dias) > 0 ? ` · *${N(x.dias)} dias sem comprar*` : ''} · ${x.motivo}`);
+    L.push('', `🟡 *Visitou e não vendeu (${D.semPed.length})* _· nº = dias sem compra · motivo_`);
+    for (const x of D.semPed.slice(0, 6)) L.push(`• ${x.nome} (#${x.id}) · ${x.dias != null && Number(x.dias) > 0 ? N(x.dias) : '🆕'} · ${x.motivo}`);
     if (D.semPed.length > 6) L.push(`• e mais ${D.semPed.length - 6}`);
   }
   if (D.naoVisNomes && D.naoVisNomes.length) {
     const dd = (s) => { const d = Math.round((Date.parse(hojeSP()) - Date.parse(s)) / 864e5); return d > 0 ? ` · ${d} dias sem comprar` : ''; };
-    L.push('', `🔴 *Na rota e sem visita (${D.naoVisNomes.length}):*`);
-    for (const x of D.naoVisNomes.slice(0, 8)) L.push(`• ${x.nome} (#${x.id})${x.end ? ` · ${x.end}` : ''}${x.ult ? dd(x.ult) : ''}`);
+    L.push('', `🔴 *Na rota e sem visita (${D.naoVisNomes.length})* _· nº = dias sem compra_`);
+    const dn = (u) => { const d = u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) : null; return d != null && d > 0 ? String(d) : '🆕'; };
+    void dd; for (const x of D.naoVisNomes.slice(0, 8)) L.push(`• ${x.nome} (#${x.id}) · ${dn(x.ult)}`);
     if (D.naoVisNomes.length > 8) L.push(`• e mais ${D.naoVisNomes.length - 8}`);
   }
   const parado = D.semPed.find((x) => Number(x.dias) > 30);
@@ -232,7 +259,7 @@ export async function respMomento(B, c, Ev, momentoForcado = null) {
     }
     if (foco.length) {
       const M = await mixRec(B, v);
-      L.push('', `📌 *${foco.length} clientes de foco hoje* (sem compra no mês):`);
+      L.push('', `📌 *${foco.length} clientes de foco hoje* (sem compra no mês)`, '_nº = dias sem compra · 🔄 recorrência · 🏷️ tag · 🛒 o que oferecer_');
       const usados = new Set();
       foco.forEach((f, i) => {
         // 3 itens por cliente (Vitorio, 17/11/2026: "sugerir uns 3 itens para cada cliente... no maximo uns 5 clientes"); primeiro os que ainda nao sugeri a outro cliente
@@ -240,7 +267,7 @@ export async function respMomento(B, c, Ev, momentoForcado = null) {
         for (const x of recs) { if (its.length >= 3) break; if (!its.includes(x)) its.push(x); }
         its.forEach((x) => usados.add(String(x[0])));
         const dUlt = f.dias != null ? new Date(Date.parse(hojeSP()) - f.dias * 864e5).toISOString().slice(0, 10) : null;
-        L.push(`*${i + 1}. ${f.nome}* (#${f.id})${f.dias != null ? ` · ${f.dias} dias sem compra (última ${dUlt.slice(8, 10)}/${dUlt.slice(5, 7)})` : ''}${f.rec ? ' · 🔄 recorrência' : f.tag ? ` · 🏷️ ${titulo(f.tag)}` : ''}`);
+        void dUlt; L.push(`*${i + 1}. ${f.nome}* (#${f.id}) · ${f.dias != null ? f.dias : '🆕'}${f.rec ? ' · 🔄' : f.tag ? ` · 🏷️ ${titulo(f.tag)}` : ''}`);
         if (its.length) L.push(`   🛒 ${its.map((x) => titulo(x[1])).join(' · ')}`);
       });
       if (sem.length > foco.length) L.push('', `📋 São *${N(sem.length)}* sem compra no mês na rota de hoje — escreva *sem compra hoje* para a lista completa.`);

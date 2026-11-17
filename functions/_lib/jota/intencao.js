@@ -123,6 +123,20 @@ export async function rotearIntencao(B, c, t, info) {
     const Ev = await carregaEscopo(B, esc), v = Ev && Ev.vend && Ev.vend[0];
     if (v) { const { respDiaVendedor } = await import('./respostas/resumo.js'); const r = await respDiaVendedor(B, Ev, v).catch(() => null); if (r) return r; }
   }
+  // G4 · ONDE ESTA / ROTA DE HOJE / VISITAS DE ALGUEM (Vitorio, 17/11/2026: "onde esta a Fernanda de TSJ" veio o card do mes e "rota dela hoje" virou a filial;
+  // "gostei muito mais da resposta" do Cleverson = visitas com horario e motivo). "dela/dele" = a pessoa da pergunta anterior.
+  if (acima && /\b(ONDE (ESTA|TA|ANDA|FICA|SE ENCONTRA)|LOCALIZA\w*|ROTA (DE HOJE )?(D[AOE]|DELA|DELE)|VISITAS? (DE HOJE )?(D[AOE]|DELA|DELE)|QUEM (ELA|ELE) VISITOU)\b/.test(t) && !/\b(EQUIPE|FILIAL|TIME|BRASIL)\b/.test(t)) {
+    let v = null;
+    if (/\b(ELA|ELE|DELA|DELE)\b/.test(t)) {
+      const { pessoaVendedoraAnterior } = await import('./entende.js');
+      const Eb = await carregaEscopo(B, (papel === 'diretoria' || papel === 'ceo') ? { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true } : esc);
+      const pa = pessoaVendedoraAnterior(Eb, info.anteriores || []); if (pa) v = pa.alvo;
+    }
+    if (!v) { const r = await achaPessoaTolerante(B, t.replace(/\b(ONDE|ESTA|TA|ANDA|FICA|SE|ENCONTRA|AGORA|LOCALIZACAO|LOCALIZA|ROTA|VISITAS?|DE|DA|DO|HOJE|QUEM|VISITOU)\b/g, ' ').replace(/\s+/g, ' ').trim(), filCit).catch(() => null);
+      if (r && r.varios) return `Encontrei mais de uma pessoa: ${r.varios.map((x) => x.tipo === 'sup' ? `supervisor *${titulo(x.alvo)}* (${x.filial})` : `*${vn(x.alvo)}* (${x.filial})`).join(' · ')}. Repita com a filial.`;
+      if (r && r.tipo === 'vend') v = r.alvo; }
+    if (v) { const { respOndeEsta } = await MO(); return respOndeEsta(B, v); }
+  }
   // B1 · MATINAL do proprio vendedor = o plano do dia dele (o mesmo do "bom dia"), nunca a matinal antiga do "ontem 13/11"
   if (papel === 'vendedor' && rcaV && /^\W*(MINHA\s+)?MATINAL\W*$/.test(t)) {
     const Ev = await carregaEscopo(B, esc); const m = await (await MO()).respMomento(B, c, Ev, HORA() < 11 ? 'plano' : HORA() < 15 ? 'meio' : 'fechamento');
