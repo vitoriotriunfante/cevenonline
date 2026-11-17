@@ -59,11 +59,4 @@ jobs:
         env:
           EVO_KEY: ${{ secrets.EVO_KEY }}
         run: node scripts/gerar_cards_matinal.mjs || true
-      - name: Guardar prints e Excel da coleta (para conferencia)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: gerot-coleta-${{ github.run_id }}
-          path: gerot_saida/
-          retention-days: 7
-          if-no-files-found: ignore
+      # 16/11/2026: o repositorio e PUBLICO — artefatos (Excel e prints do GEROT) ficavam abertos por 7 dias. Removido: nada da empresa sai como artefato.

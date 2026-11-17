@@ -347,7 +347,8 @@ async function main() {
           const arqC = await baixaExcelNivel(page, mes, alvo, CAMPOS_CLI, `gerot_cli_${mes}.xlsx`);
           if (arqC) {
             const lc = linhasClienteDoExcel(arqC, mes);
-            log(`${mes} cliente: ${lc.linhas.length} linhas · colunas ${JSON.stringify(lc.cab)} · exemplo ${JSON.stringify(lc.linhas.slice(0, 2))}`);
+            // REPOSITORIO PUBLICO (16/11/2026): o log do GitHub e publico — so contagens e nomes de colunas, nunca cliente, CNPJ ou valor
+            log(`${mes} cliente: ${lc.linhas.length} linhas · colunas ${JSON.stringify(lc.cab)} · com codigo ${lc.linhas.filter((l) => /^d+$/.test(l.cliente)).length} · com CNPJ ${lc.linhas.filter((l) => l.cnpj).length}`);
             if (lc.linhas.length && !ENSAIO) {
               const { hashes: hc } = await api('GET', `?mes=${mes}&cliente=1`);
               const mudouC = lc.linhas.filter((l) => (hc || {})[`${l.filial}|${l.rca}|${l.cliente}`] !== l.hash);
