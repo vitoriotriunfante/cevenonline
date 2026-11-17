@@ -75,6 +75,13 @@ export function respZerados(E) {
   const L = [`⚠️ *Zerados hoje — ${E.nome}* (varejo com rota e sem pedido): *${Z.length}* · sem nenhuma visita: ${SV.length}`, ''];
   for (const [s, x] of G.slice(0, 15)) L.push(`*${supNome(s)}*: ` + x.V.map((v) => `${vn(v)} (${v.visF}/${v.visP} vis.)`).join(', '));
   if (G.length > 15) L.push(`… e mais ${G.length - 15} supervisores`);
+  // 17/11/2026 (Vitorio: "onde esta nessa lista os 8 vendedores sem visitas de TCA? nao consegui encontrar"): o numero do cabecalho vem com os nomes
+  if (SV.length) {
+    const GS = [...agrupa(SV, (v) => supChave(v, E.nacional))].sort((a, b) => b[1].V.length - a[1].V.length);
+    L.push('', `🚫 *Sem nenhuma visita hoje (${SV.length}):*`);
+    for (const [s, x] of GS.slice(0, 15)) L.push(`*${supNome(s)}*: ` + x.V.map((v) => `${vn(v)} (0/${v.visP} vis.${v.dig > 0 || v.ped > 0 ? ' · tem pedido' : ''})`).join(', '));
+    if (GS.length > 15) L.push(`… e mais ${GS.length - 15} supervisores`);
+  }
   L.push('', SUGESTAO + `começar por ${supNome((G.find(([k]) => supReal(k)) || G[0])[0])}: ${G[0][1].V.length} zerado(s).`);
   return L.join('\n');
 }

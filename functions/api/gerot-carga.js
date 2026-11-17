@@ -30,6 +30,9 @@ async function tabelas(db) {
     // 16/11/2026: carteira por cliente (Mes x Filial x Vendedor x Cliente) = fonte da curva negativa e de 'quem nao comprou'
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_cliente_mes (mes TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, cliente TEXT NOT NULL, cnpj TEXT, nome TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, rca, cliente))'),
     // 16/11/2026: teste de horario do GEROT (pipeline/gerot_horario.mjs): uma linha por leitura, so as horas que o painel mostra
+    // 17/11/2026 (Vitorio: 'mostrando pedidos do dia 12? ja nao mostrei que tem todos os pedidos no GEROT?'): um pedido por linha (pedido x NF), do 'Extrair dados'
+    db.prepare('CREATE TABLE IF NOT EXISTS gerot_pedido (mes TEXT NOT NULL, filial TEXT NOT NULL, pedido TEXT NOT NULL, nf TEXT NOT NULL DEFAULT "", rca TEXT, cliente TEXT, cnpj TEXT, nome TEXT, data TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, pedido, nf))'),
+    db.prepare('CREATE INDEX IF NOT EXISTS ix_gerot_pedido_rca ON gerot_pedido (filial, rca, data)'),
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_horario (id INTEGER PRIMARY KEY AUTOINCREMENT, lido_em TEXT, ok INTEGER, ultima TEXT, carga TEXT, posicao TEXT, segundos INTEGER, erro TEXT)'),
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_coleta_status (id INTEGER PRIMARY KEY AUTOINCREMENT, mes TEXT, linhas INTEGER, enviadas INTEGER, posicao TEXT, colunas TEXT, em TEXT)')
   ]);
@@ -52,6 +55,10 @@ export async function onRequestGet({ request, env }) {
   if (u.searchParams.get('supervisor') === '1') {
     const { results } = await env.DB.prepare('SELECT filial, cod_sup, hash FROM gerot_supervisor_mes WHERE mes = ?').bind(mes).all();
     return r({ hashes: Object.fromEntries((results || []).map((x) => [`${x.filial}|${x.cod_sup}`, x.hash])) });
+  }
+  if (u.searchParams.get('pedido') === '1') {
+    const { results } = await env.DB.prepare('SELECT filial, pedido, nf, hash FROM gerot_pedido WHERE mes = ?').bind(mes).all();
+    return r({ hashes: Object.fromEntries((results || []).map((x) => [`${x.filial}|${x.pedido}|${x.nf}`, x.hash])) });
   }
   if (u.searchParams.get('cliente') === '1') {
     const { results } = await env.DB.prepare('SELECT filial, rca, cliente, hash FROM gerot_cliente_mes WHERE mes = ?').bind(mes).all();
@@ -101,6 +108,16 @@ export async function onRequestPost({ request, env }) {
     const h = b.horario;
     await env.DB.prepare('INSERT INTO gerot_horario (lido_em, ok, ultima, carga, posicao, segundos, erro) VALUES (?,?,?,?,?,?,?)').bind(String(h.lido_em || agora), h.ok ? 1 : 0, h.ultima ? String(h.ultima).slice(0, 60) : null, h.carga ? String(h.carga).slice(0, 40) : null, h.posicao ? String(h.posicao).slice(0, 40) : null, Number(h.segundos) || null, h.erro ? String(h.erro).slice(0, 200) : null).run();
     return r({ ok: true, horario: true });
+  }
+  const PD = Array.isArray(b.pedidos) ? b.pedidos : [];
+  if (PD.length > 200) return r({ erro: 'no maximo 200 pedidos por chamada' }, 400);
+  if (PD.length) {
+    const ok = PD.filter((x) => MES.test(String(x.mes || '')) && /^[A-Z]{3}$/.test(String(x.filial || '')) && String(x.pedido || '').trim());
+    await env.DB.batch(ok.map((x) => env.DB.prepare(
+      'INSERT INTO gerot_pedido (mes, filial, pedido, nf, rca, cliente, cnpj, nome, data, dados, hash, em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?) ' +
+      'ON CONFLICT (mes, filial, pedido, nf) DO UPDATE SET rca = excluded.rca, cliente = excluded.cliente, cnpj = excluded.cnpj, nome = excluded.nome, data = excluded.data, dados = excluded.dados, hash = excluded.hash, em = excluded.em WHERE gerot_pedido.hash IS NOT excluded.hash'
+    ).bind(String(x.mes), String(x.filial), String(x.pedido), String(x.nf || ''), x.rca ? String(x.rca) : null, x.cliente ? String(x.cliente) : null, x.cnpj || null, x.nome || null, x.data || null, JSON.stringify(x.dados || {}), String(x.hash || ''), agora)));
+    return r({ ok: true, pedidos: ok.length, recusados: PD.length - ok.length });
   }
   const C = Array.isArray(b.clientes) ? b.clientes : [];
   if (C.length > 200) return r({ erro: 'no maximo 200 clientes por chamada' }, 400);

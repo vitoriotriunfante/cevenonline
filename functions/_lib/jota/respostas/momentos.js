@@ -144,6 +144,23 @@ export function linhasDiaClube(D, momento) {
   return { L, temPerda: !!(D.semPed.length || D.naoVis) };
 }
 
+// CADASTROS PERTO DA ROTA DE HOJE: prospects do vendedor (prospects_mapa) mais perto de algum cliente da rota de hoje (distancia em linha reta).
+// Sem coordenada na rota, vale a distancia da rota gravada no proprio prospect (km).
+const MIN_VISITAS = 20;
+const curtaPal = (s, n) => (s.length <= n ? s : s.slice(0, n).replace(/\s+\S*$/, '') + '…');
+async function prospectsPerto(B, v, rota, n) {
+  if (!B.env || !B.env.DB) return [];
+  let P = [];
+  try { const { results } = await B.env.DB.prepare('SELECT cnpj, json FROM prospects_mapa WHERE filial = ? AND rca = ?').bind(String(v.filial), String(v.rca)).all(); P = (results || []).map((r) => { try { return { cnpj: r.cnpj, ...JSON.parse(r.json) }; } catch (e) { return null; } }).filter(Boolean); } catch (e) { return []; }
+  const R = (rota || []).map((c) => ({ lat: Number(c.latitude), lon: Number(c.longitude), nome: limpaNomeCli(c.nome_cliente || c.razao_social) || `Cliente #${c.id_cliente}` })).filter((c) => c.lat && c.lon && Math.abs(c.lat) <= 34 && Math.abs(c.lon) <= 74);
+  const km = (a, b, c, d) => { const r = Math.PI / 180, x = Math.sin((c - a) * r / 2) ** 2 + Math.cos(a * r) * Math.cos(c * r) * Math.sin((d - b) * r / 2) ** 2; return 12742 * Math.asin(Math.sqrt(x)); };
+  for (const p of P) {
+    const la = Number(p.lat), lo = Number(p.lon); if (!R.length || !la || !lo) continue;
+    for (const c of R) { const d = km(la, lo, c.lat, c.lon); if (p.dist == null || d < p.dist) { p.dist = d; p.perto = c.nome; } }
+  }
+  return P.filter((p) => p.dist != null || p.km != null).sort((a, b) => (a.dist ?? a.km ?? 999) - (b.dist ?? b.km ?? 999)).slice(0, n);
+}
+
 async function mixRec(B, v) { try { return JSON.parse(await B.raw(`public/mix_rec/${v.filial}.json`) || '{}').clientes || {}; } catch (e) { return {}; } }
 
 // 5 de foco: da rota de hoje, sem compra no mes; primeiro TAG recorrencia, depois outra TAG, depois mais tempo sem compra
@@ -200,13 +217,36 @@ export async function respMomento(B, c, Ev, momentoForcado = null) {
     if (v.mixMes && v.mixMes.clientes_distintos) L.push(`🧺 Mix: *${(v.mixMes.soma_skus_por_cliente / v.mixMes.clientes_distintos).toFixed(1).replace('.', ',')}* produtos por cliente`);
     if (g && g.meta) L.push(`🔄 Recorrência: *${N(g.positivados || 0)} de ${N(g.meta)}* da meta`);
     if (v.meta > 0) L.push(porDia > 0 ? `🎯 *Projeção de hoje:* precisa de *${R$(porDia)}* para o ritmo da meta (${du}d úteis)` : `🏆 *Meta do mês batida!* Foco hoje em positivação e mix.`);
+    // ROTA x 20 VISITAS (Vitorio, 17/11/2026: "varejo tem que ter no minimo 20 visitas por dia... sugerir pelo menos uns 2 cadastros proximos a rota").
+    // Tamanho da rota = Clube da Venda de hoje (roteiros); sem leitura do Clube, a rota do mes gravada. Cadastros = prospects_mapa mais perto dos clientes de hoje.
+    let nRota = rota.length;
+    try { const cv = await B.env.DB.prepare('SELECT roteiros FROM clube_venda_dia WHERE dia = ? AND filial = ? AND rca = ?').bind(hojeSP(), String(v.filial), String(v.rca)).first(); if (cv && Number(cv.roteiros) > 0) nRota = Number(cv.roteiros); } catch (e) { /* fica a rota do mes */ }
+    if (v.varejo && nRota > 0 && nRota < MIN_VISITAS) {
+      const PR = await prospectsPerto(B, v, rota, 2);
+      L.push('', `🚶 *Rota de hoje: ${N(nRota)} clientes* · no varejo são *${MIN_VISITAS} visitas por dia* → encaixe mais *${MIN_VISITAS - nRota}*:`);
+      if (PR.length) {
+        L.push(`📍 *${PR.length === 1 ? '1 cadastro novo' : PR.length + ' cadastros novos'} perto da rota:*`);
+        for (const p of PR) L.push(`• *${titulo(p.fantasia || p.razao || 'Sem nome')}*${p.cnae ? ` · ${curtaPal(titulo(String(p.cnae).replace(/^[\d.\-/ ]+/, '').replace(/^Com[eé]rcio Varejista De /i, '')), 40)}` : ''}\n   ${[p.end, p.bairro].filter(Boolean).map((s) => titulo(String(s).toLowerCase())).join(', ')}${p.dist != null ? ` · ${String(p.dist.toFixed(1)).replace('.', ',')} km de ${p.perto}` : p.km != null ? ` · ${String(p.km).replace('.', ',')} km da rota` : ''}${p.tel ? `\n   📞 ${p.tel}` : ''}`);
+      }
+      L.push(`📞 Para completar: clientes da carteira sem compra no mês — escreva *curva negativa*.`);
+    }
     if (foco.length) {
       const M = await mixRec(B, v);
-      L.push('', `📌 *Planejamento — ${foco.length} clientes de foco hoje:*`);
-      const usados = new Set(), repNome = new Set(foco.map((f) => f.nome).filter((nm, i, arr) => arr.indexOf(nm) !== i));
-      foco.forEach((f, i) => { const recs = (M[f.cnpj] || {}).rec || [], r = recs.find((x) => !usados.has(String(x[0]))) || recs[0]; if (r) usados.add(String(r[0])); L.push(`${i + 1}. ${f.nome} (#${f.id})${f.dias != null ? ` · ${f.dias} dias sem compra` : ''}${f.rec ? ' · 🔄' : f.tag ? ` · ${titulo(f.tag)}` : ''}${r ? ` · ofereça *${titulo(r[1])}*` : ''}`); });
+      L.push('', `📌 *${foco.length} clientes de foco hoje* (sem compra no mês):`);
+      const usados = new Set();
+      foco.forEach((f, i) => {
+        // 3 itens por cliente (Vitorio, 17/11/2026: "sugerir uns 3 itens para cada cliente... no maximo uns 5 clientes"); primeiro os que ainda nao sugeri a outro cliente
+        const recs = (M[f.cnpj] || {}).rec || [], its = recs.filter((x) => !usados.has(String(x[0]))).slice(0, 3);
+        for (const x of recs) { if (its.length >= 3) break; if (!its.includes(x)) its.push(x); }
+        its.forEach((x) => usados.add(String(x[0])));
+        const dUlt = f.dias != null ? new Date(Date.parse(hojeSP()) - f.dias * 864e5).toISOString().slice(0, 10) : null;
+        L.push(`*${i + 1}. ${f.nome}* (#${f.id})${f.dias != null ? ` · ${f.dias} dias sem compra (última ${dUlt.slice(8, 10)}/${dUlt.slice(5, 7)})` : ''}${f.rec ? ' · 🔄 recorrência' : f.tag ? ` · 🏷️ ${titulo(f.tag)}` : ''}`);
+        if (its.length) L.push(`   🛒 ${its.map((x) => titulo(x[1])).join(' · ')}`);
+      });
+      if (sem.length > foco.length) L.push('', `📋 São *${N(sem.length)}* sem compra no mês na rota de hoje — escreva *sem compra hoje* para a lista completa.`);
     } else if (rota.length) L.push('', '✅ Todos os clientes da sua rota de hoje já compraram no mês. Hoje é dia de aumentar o mix! 🧺');
-    else L.push('', '📅 Você não tem rota hoje no CEVEN.');
+    else if (nRota > 0) L.push('', `📅 Rota de hoje no Clube da Venda: *${N(nRota)} clientes* (a lista nominal ainda não foi lida).`);
+    else L.push('', '📅 Sem rota de hoje gravada.');
   } else {
     const DC = await diaClube(B, v);
     if (DC) {

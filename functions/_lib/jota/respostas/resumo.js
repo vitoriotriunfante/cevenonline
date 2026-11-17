@@ -7,6 +7,13 @@ import { sn } from '../escopo.js';
 import { N, P, R$, SUGESTAO, VAREJO, diasUteisRestantes, hojeSP, nome2, sem, titulo, vn } from '../base.js';
 import { agrupa, listaNomes, pctTxt, supChave, supNome, supReal } from '../escopo.js';
 import { diasUteisMes } from './gestao.js';
+// RITMO DO GEROT (17/11/2026, Vitorio: "ta errado sua tendencia"): captacao do mes / meta ideal de captacao de hoje, a regua do proprio GEROT.
+// Vale para o Brasil e para a filial inteira (gerot_filial_mes). Sem esses campos devolve null e a resposta mostra a conta antiga.
+async function ritmoGerot(B, E) {
+  if (!(E.nacional || (!E.supervisor && !E.rca && !E.grupo && (E.filiais || []).length === 1))) return null;
+  try { const G = await (await import('./gerot_painel.js')).lerGerotMes(B, E.nacional ? null : E.filiais); const x = G && (E.nacional ? G.T : G.F[0]); return x && x.cap != null && x.ideal ? x.cap / x.ideal * 100 : null; } catch (e) { return null; }
+}
+const txtRitmo = (r) => `📈 Ritmo (GEROT): *${r.toFixed(1).replace('.', ',')}%* do ideal`;
 
 // ---------------- RESPOSTAS ----------------
 export async function posGerotFiliais(B) {
@@ -90,6 +97,18 @@ export async function respResumo(B, E) {
     const { tot: duTotBr } = diasUteisMes(), duFaltBr = Math.max(1, diasUteisRestantes()), duDecBr = Math.max(1, duTotBr - duFaltBr + 1);
     const tendBr = t.meta ? (((t.fat + t.pend) / duDecBr) * duTotBr / t.meta) * 100 : 0;
     const V = E.vend.filter((v) => v.varejo); const z = V.filter((v) => v.zerado);
+    // BRASIL PELO GEROT (Vitorio, 17/11/2026: "ta errado sua tendencia... incluir pendentes (carteira)... comparativos... e positivacao, que e o meu foco"):
+    // mes = GEROT (faturado + carteira, ritmo de captacao do GEROT, mes passado ate o mesmo dia, meses fechados, positivacao com A-1/3M/M-1/Bench); hoje = Clube.
+    const PG = await import('./gerot_painel.js'), GB = await PG.lerGerotMes(B).catch(() => null);
+    if (GB && GB.T.fat != null) {
+      const digF = new Map(F.map((f) => [f.filial, f.digitado_hoje || 0]));
+      const ord = GB.F.slice().sort((a, b) => ((b.cap || 0) / (b.ideal || 1)) - ((a.cap || 0) / (a.ideal || 1))), pior = ord[ord.length - 1];
+      return [`📊 *Brasil — 11 filiais* (${hora})`, ...PG.linhasVendas(GB, GB.T), ...PG.linhasPositivacao(GB, GB.T),
+        `📝 Hoje (Clube): *${R$(t.dig)}* em *${N((E.macro && E.macro.pedidos) || (E.vend ? E.vend.reduce((a, v) => a + (v.ped || 0), 0) : 0))}* pedidos`, ...(V.some((v) => v.visP > 0) ? [`🚶 Rota do varejo hoje: ${N(V.reduce((a, v) => a + v.visF, 0))} de ${N(V.reduce((a, v) => a + v.visP, 0))} visitas · zerados: ${z.length}`] : []),
+        '', '*Por filial (melhor ritmo primeiro):*', ...ord.map((f) => PG.linhaFilial(f) + ` · hoje ${R$(digF.get(f.filial) || 0)}`),
+        '', SUGESTAO + (pior && pior.ideal ? `olhar ${pior.filial} (ritmo ${((pior.cap || 0) / pior.ideal * 100).toFixed(1).replace('.', ',')}% do ideal), a mais atrás no mês.` : 'acompanhar as filiais mais atrás.'),
+        '_Peça uma filial (ex.: "TPH"), "positivação", "tendência", "zerados", "hoje", "liga"._', PG.fonteGerot(GB)].join('\n');
+    }
     const L = [`📊 *Brasil — 11 filiais* (${hora})`, `💰 Faturado: *${R$(t.fat)}* de ${R$(t.meta)} → *${P(t.fat, t.meta)}*`, `⏳ Pendente: ${R$(t.pend)} · 📈 Tendência (GEROT): *${tendBr.toFixed(1).replace('.', ',')}%*`, `👥 Positivação: ${N(t.pos)} de ${N(t.mpos)} (${P(t.pos, t.mpos)})`,
       `📝 Digitado hoje: *${R$(t.dig)}* em *${N((E.macro && E.macro.pedidos) || (E.vend ? E.vend.reduce((a, v) => a + (v.ped || 0), 0) : 0))}* pedidos`, ...(V.some((v) => v.visP > 0) ? [`🚶 Rota do varejo hoje: ${N(V.reduce((a, v) => a + v.visF, 0))} de ${N(V.reduce((a, v) => a + v.visP, 0))} visitas · zerados: ${z.length}`] : []), '', '*Por filial (% da meta faturada):*'];
     for (const f of F.slice().sort((a, b) => (b.faturado / b.meta_fat) - (a.faturado / a.meta_fat))) {
@@ -133,7 +152,8 @@ export async function respResumo(B, E) {
   const com = V.filter((v) => v.pct != null).sort((a, b) => (b.pct ?? 0) - (a.pct ?? 0));
   const { tot: duTotF } = diasUteisMes(), duFaltF = Math.max(1, diasUteisRestantes()), duDecF = Math.max(1, duTotF - duFaltF + 1);
   const tendF = meta ? (((fat + pend) / duDecF) * duTotF / meta) * 100 : 0;
-  const L = [`📊 *${E.nome} agora* (${hora})`, `💰 Faturado: *${R$(fat)}* de ${R$(meta)} → *${P(fat || 0, meta)}*`, `⏳ Pendente: ${R$(pend)} · 📈 Tendência (GEROT): *${tendF.toFixed(1).replace('.', ',')}%*`];
+  const ritF = await ritmoGerot(B, E);
+  const L = [`📊 *${E.nome} agora* (${hora})`, `💰 Faturado: *${R$(fat)}* de ${R$(meta)} → *${P(fat || 0, meta)}*`, `⏳ Pendente: ${R$(pend)} · ` + (ritF != null ? txtRitmo(ritF) : `📈 Tendência (GEROT): *${tendF.toFixed(1).replace('.', ',')}%*`)];
   L.push(`👥 Positivação: ${N(posVal)} de ${N(metaPosVal)} (${P(posVal, metaPosVal)})`);
   L.push(`📝 Digitado hoje: *${R$((E.grupo || E.supervisor || E.rca) ? G.dig : f ? f.digitado_hoje : E.macro.dig)}* em *${N((E.grupo || E.supervisor || E.rca) ? G.ped : E.macro.pedidos)}* pedidos`,
     /* equipe sem rota de varejo (AS): a linha nao aparece (26/10/2026: '0 de 0') */ ...(Vr.reduce((a, v) => a + v.visP, 0) ? [`🚶 Rota do varejo hoje: ${Vr.reduce((a, v) => a + v.visF, 0)} de ${Vr.reduce((a, v) => a + v.visP, 0)} visitas · sem nenhuma visita: ${Vr.filter((v) => v.semVisita).length}`] : []),
@@ -173,7 +193,8 @@ export async function respHoje(B, E, t) {
   const ofi = await totaisOficiais(B, E).catch(() => null);
   const ofiVend = ofi && ofi.meta ? (ofi.fat + ofi.pend) : 0;
   const ofiTend = ofi && ofi.meta && duTot ? ((ofiVend / Math.max(1, duTot - (duFalt - 1))) * duTot / ofi.meta) * 100 : 0;
-  const linhaGerot = ofi && ofi.meta ? `📊 Mês (GEROT): *${R$(ofiVend)}* / ${R$(ofi.meta)} (*${P(ofiVend, ofi.meta)}*) · 📈 Tendência: *${ofiTend.toFixed(1).replace('.', ',')}%*` : '';
+  const ritO = await ritmoGerot(B, E);
+  const linhaGerot = ofi && ofi.meta ? `📊 Mês (GEROT): *${R$(ofiVend)}* / ${R$(ofi.meta)} (*${P(ofiVend, ofi.meta)}*) · ` + (ritO != null ? txtRitmo(ritO) : `📈 Tendência: *${ofiTend.toFixed(1).replace('.', ',')}%*`) : '';
   if (E.nacional) {
     const G = [...agrupa(V, (v) => v.filial)].sort((a, b) => b[1].dig - a[1].dig);
     const tot = { ...(agrupa(V, () => 'x').get('x') || { dig: 0, ped: 0, visF: 0, visP: 0, comVenda: 0, zerados: 0 }) };

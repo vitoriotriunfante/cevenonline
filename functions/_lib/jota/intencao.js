@@ -95,7 +95,7 @@ export async function rotearIntencao(B, c, t, info) {
     const E = await carregaEscopo(B, { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true }); const r = await respTendencia(B, E); if (r) return r;
   }
   // C4 · POSITIVACAO COMPARADA (Brasil/filial): faturado + carteira e o mes anterior, pelo GEROT (nunca a base de vendas parada)
-  if (/POSITIVA/.test(t) && /(COMPARA|MES(ES)? ANTERIOR|MES PASSADO|MELHOR|PIOR|OUTUBRO|CARTEIRA)/.test(t) && (papel === 'diretoria' || papel === 'ceo' || papel === 'gerente')) {
+  if (/POSITIVA/.test(t) && /(COMPARA|MES(ES)? ANTERIOR|MES PASSADO|MELHOR|PIOR|OUTUBRO|CARTEIRA|BRASIL|FILIAIS|COMO ESTA|COMO ESTAMOS|\bA-?1\b|BENCH|\b3M\b|\bM-?1\b)/.test(t) && (papel === 'diretoria' || papel === 'ceo' || papel === 'gerente')) {
     const r = await respPositivacaoComparada(B, filCit || (papel === 'gerente' ? c.filial : null)); if (r) return r;
   }
   // F1 · UMA INDUSTRIA ("como estamos de Gonçalves em TBL", "meta da Arcor") — pelo GEROT, no escopo de quem pergunta
@@ -116,6 +116,8 @@ export async function rotearIntencao(B, c, t, info) {
 // POSITIVACAO: Brasil ou filial, com a carteira e o mes anterior (GEROT gerot_filial_mes)
 async function respPositivacaoComparada(B, filial) {
   if (!B.env || !B.env.DB) return null;
+  // 17/11/2026: a positivacao com todos os comparativos do GEROT (A-1, 3M, M-1, Bench, do dia) sai do modulo unico gerot_painel.js
+  { const { respPositivacaoGerot } = await import('./respostas/gerot_painel.js'); const r = await respPositivacaoGerot(B, filial ? [filial] : null).catch(() => null); if (r) return r; }
   const mes = hojeSP().slice(0, 7);
   let R = []; try { R = (await B.env.DB.prepare('SELECT filial, dados FROM gerot_filial_mes WHERE mes = ?').bind(mes).all()).results || []; } catch (e) { return null; }
   if (filial) R = R.filter((x) => x.filial === filial);
@@ -138,9 +140,10 @@ async function respUmaIndustria(B, c, t, filCit, esc) {
   const mes = hojeSP().slice(0, 7);
   let F = []; try { F = (await B.env.DB.prepare('SELECT DISTINCT fornecedor FROM gerot_vendas WHERE mes = ?').bind(mes).all()).results || []; } catch (e) { return null; }
   const STOP = /^(LTDA|LTD|S\/?A|SA|DO|DA|DE|DOS|BRASIL|INDUSTRIA|IND|COMERCIO|COM|DIST|DISTRIBUIDORA|ALIMENTOS|ALIM|PRODUTOS|E|EIRELI|ME|GRUPO)$/;
-  const toks = t.split(/\s+/).filter((w) => w.length >= 5 && !PALAVRAS_COMANDO.test(w) && !FIL_RX.test(w) && !/^(ESTAMOS|RESULTADO|VENDEMOS|QUANTO|META|METAS)$/.test(w));
+  const toks = t.split(/\s+/).filter((w) => w.length >= 5 && !PALAVRAS_COMANDO.test(w) && !FIL_RX.test(w) && !/^(ESTAMOS|RESULTADO|VENDEMOS|QUANTO|META|METAS|BRASIL|BRASILEIRO|AGORA|HOJE|ONTEM|VENDA|VENDAS|VENDIDO|GERAL|TODAS|TODOS|FILIAIS|FILIAL|SEMANA|POSITIVACAO|CLIENTES|CLIENTE|TENDENCIA|FATURAMENTO|FATURADO|CARTEIRA|PEDIDOS|PEDIDO|RITMO|NUMEROS|COMPARADA|COMPARADO|ANTERIOR|ANTERIORES|PASSADO|MESES|ATUAL|EQUIPE|SUPERVISOR|VENDEDOR|VENDEDORES|GERENTE|DIRETORIA|INDUSTRIAS|INDUSTRIA)$/.test(w));
+  // 17/11/2026 ("Venda do Brasil agora" virou 'Fvo Brasilia'): palavra geral nunca vira nome de industria; parecido (1 letra) so com 6+ letras
   if (!toks.length) return null;
-  const achou = F.map((x) => x.fornecedor).filter((f) => { const ws = sem(String(f).replace(/^[A-Z]\s*-\s*/, '').replace(/#\d+/, '')).split(/[\s.]+/).filter((w) => w.length >= 4 && !STOP.test(w)); return toks.some((tk) => ws.some((w) => w === tk || (w.length >= 5 && (tk.startsWith(w) || w.startsWith(tk))) || lev(w, tk) <= 1)); });
+  const achou = F.map((x) => x.fornecedor).filter((f) => { const ws = sem(String(f).replace(/^[A-Z]\s*-\s*/, '').replace(/#\d+/, '')).split(/[\s.]+/).filter((w) => w.length >= 4 && !STOP.test(w)); return toks.some((tk) => ws.some((w) => w === tk || (w.length >= 5 && (tk.startsWith(w) || w.startsWith(tk))) || (tk.length >= 6 && lev(w, tk) <= 1))); });
   if (!achou.length || achou.length > 4) return null;
   const fil = filCit ? [filCit] : (esc && esc.filiais) || FILIAIS;
   const qs = fil.map(() => '?').join(','), qf = achou.map(() => '?').join(',');

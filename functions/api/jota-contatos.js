@@ -148,7 +148,7 @@ export async function onRequestPost({ request, env }) {
       return j({ erro: 'celular/grupo e conteúdo (texto, anexo, áudio ou figurinha) são obrigatórios' }, 400);
     }
 
-    if (!ehGrupo) { const q = await cotaEnvio(env, cel); if (!q.ok) return j({ ok: false, celular: cel, erro: q.erro, teto: true }, 429); }   // antiban 09/11/2026
+    if (!ehGrupo) { const q = await cotaEnvio(env, cel, { manual: true }); if (!q.ok) return j({ ok: false, celular: cel, erro: q.erro, teto: true }, 429); }   // antiban 09/11/2026
     const cfg = R.evoCfg(env);
     const alts = [cel];
     if (!ehGrupo) {

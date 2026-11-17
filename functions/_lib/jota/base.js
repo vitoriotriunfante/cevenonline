@@ -62,7 +62,9 @@ export async function tabelas(db) {
 // resposta a quem escreveu nas ultimas 24 h passa sempre; mensagem que o JOTA INICIA conta na cota do dia:
 // no maximo WA_TETO_PESSOAS (40) pessoas diferentes e WA_TETO_MSGS (300) mensagens. Estourou = nao envia e registra.
 export const TETO_PESSOAS = 40, TETO_MSGS = 300;
-export async function cotaEnvio(env, d) {
+// opts.manual (17/11/2026, Vitorio: disparo da Central com "0 enviados, 1 falha"): envio feito A MAO pela diretoria na Central (comunicado, numero individual)
+// nao e proativo do Jota: passa pela pausa "so responder", mas continua contando no teto antiban do dia.
+export async function cotaEnvio(env, d, opts = {}) {
   const db = env && env.DB; if (!db || !d) return { ok: true };
   try {
     const vs = variantes(d), ph = vs.map(() => '?').join(',');
@@ -73,11 +75,11 @@ export async function cotaEnvio(env, d) {
     const emPausa = !!(pausa0 && pausa0.valor && new Date().toISOString() < String(pausa0.valor));
     const resp = await db.prepare(`SELECT 1 FROM bot_msgs WHERE celular IN (${ph}) AND direcao = 'in' AND quando > datetime('now', ?) LIMIT 1`).bind(...vs, emPausa ? '-15 minutes' : '-24 hours').first();
     if (resp) return { ok: true, resposta: true };
-    if (emPausa) return { ok: false, erro: 'so resposta: pausa de mensagens proativas ate ' + pausa0.valor };
+    if (emPausa && !opts.manual) return { ok: false, erro: 'so resposta: pausa de mensagens proativas ate ' + pausa0.valor };
     // PAUSA POR RESTRICAO DO WHATSAPP (10/11/2026, 09h27: "nao sera possivel iniciar novas conversas"): ate a data em config_flags 'wa_pausa_proativa_ate'
     // o Jota so RESPONDE (quem escreveu nas 24 h); nada que ele inicie sai. A mensagem fica na fila ate vencer.
     const pausa = await db.prepare("SELECT valor FROM config_flags WHERE chave = 'wa_pausa_proativa_ate'").first().catch(() => null);
-    if (pausa && pausa.valor && new Date().toISOString() < String(pausa.valor)) return { ok: false, erro: 'pausa: WhatsApp restringiu o inicio de conversas ate ' + pausa.valor };
+    if (!opts.manual && pausa && pausa.valor && new Date().toISOString() < String(pausa.valor)) return { ok: false, erro: 'pausa: WhatsApp restringiu o inicio de conversas ate ' + pausa.valor };
     await db.prepare('CREATE TABLE IF NOT EXISTS wa_cota (dia TEXT, celular TEXT, n INTEGER DEFAULT 0, PRIMARY KEY (dia, celular))').run();
     const dia = R.hojeSP();
     const tot = await db.prepare('SELECT COUNT(*) p, COALESCE(SUM(n),0) m, SUM(celular = ?) ja FROM wa_cota WHERE dia = ?').bind(d, dia).first();
@@ -92,7 +94,8 @@ export async function enviar(env, numero, texto, opcoes = {}) {
   if (!env.EVO_URL || !env.EVO_KEY) return { ok: false, erro: 'EVO_URL/EVO_KEY nao configurados' };
   const s = String(numero || '').trim();
   const cfg = R.evoCfg(env);
-  if (!s.endsWith('@g.us')) { const q = await cotaEnvio(env, so(s)); if (!q.ok) return { ok: false, status: 429, erro: q.erro, teto: true }; }
+  // reenvioAutorizado: so /api/jota-reenviar (chave interna) usa, quando o Vitorio autoriza reenviar a resposta certa a quem perguntou (17/11/2026)
+  if (!s.endsWith('@g.us') && !opcoes.reenvioAutorizado) { const q = await cotaEnvio(env, so(s)); if (!q.ok) return { ok: false, status: 429, erro: q.erro, teto: true }; }
   if (s.endsWith('@g.us')) {
     const rG = await R.enviarTexto(cfg, s, texto, opcoes);
     return { ok: rG.ok, status: rG.status, erro: rG.erro, resposta: rG.resposta };
@@ -119,7 +122,8 @@ export async function enviar(env, numero, texto, opcoes = {}) {
 export async function enviarImagem(env, numero, media, caption, opcoes = {}) {
   if (!env.EVO_URL || !env.EVO_KEY || !media) return { ok: false, erro: 'sem config ou midia' };
   const s = String(numero || '').trim(), cfg = R.evoCfg(env);
-  if (!s.endsWith('@g.us')) { const q = await cotaEnvio(env, so(s)); if (!q.ok) return { ok: false, status: 429, erro: q.erro, teto: true }; }
+  // reenvioAutorizado: so /api/jota-reenviar (chave interna) usa, quando o Vitorio autoriza reenviar a resposta certa a quem perguntou (17/11/2026)
+  if (!s.endsWith('@g.us') && !opcoes.reenvioAutorizado) { const q = await cotaEnvio(env, so(s)); if (!q.ok) return { ok: false, status: 429, erro: q.erro, teto: true }; }
   const d = s.endsWith('@g.us') ? s : so(s);
   if (!d) return { ok: false, erro: 'numero invalido' };
   const rawMedia = String(media).replace(/^data:[^;]+;base64,/, '');
