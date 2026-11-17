@@ -7,7 +7,8 @@ on:
   schedule:
     # REDUNDANCIA (16/11/2026): o worker-cron dispara em :02 e :32 (07h-20h45); este schedule do GitHub e a reserva em :17 e :47, 06h17-20h47 BRT.
     # Os dois juntos dao uma leitura a cada ~15 min; se um falhar, o outro segura 30 min. Seg a sab.
-    - cron: '17,47 9-23 * * 1-6'
+    - cron: '17 3-8 * * 1-6'      # 17/11/2026 (Vitorio: 'pq popular so as 07... ja tem todos os dados'): o Clube ja tem a rota do dia de madrugada — de hora em hora, 00h17-05h17 BRT
+    - cron: '17,47 9-23 * * 1-6'  # depois, de 30 em 30 min (06h17-20h47 BRT); o worker-cron tambem dispara em :02 e :32 a partir das 07h
   workflow_dispatch:
 
 concurrency:
