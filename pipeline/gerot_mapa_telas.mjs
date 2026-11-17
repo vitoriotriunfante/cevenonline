@@ -9,7 +9,7 @@ import XLSX from 'xlsx';
 import fs from 'fs'; import path from 'path'; import os from 'os';
 
 const EMAIL = process.env.GEROT_EMAIL, SENHA = process.env.GEROT_SENHA;
-const ALVO = /devolu|corte|^pedidos|recorr/i;   // 17/11/2026: so as telas que faltam (Carteira Total ja e lida pela pipeline/gerot_carteira.mjs)
+const ALVO = /devolu|corte/i;   // 17/11/2026: so Devolucoes e Cortes (procurando o motivo no Extrair dados)
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 
 const browser = await chromium.launch({ headless: true, args: ['--disable-blink-features=AutomationControlled'] });
@@ -38,6 +38,14 @@ for (const it of itens.filter((x) => ALVO.test(x.v + ' ' + x.t))) {
     await page.waitForTimeout(15000);
     const botoes = await page.evaluate(() => [...document.querySelectorAll('button,a')].map((b) => (b.innerText || '').trim()).filter((s) => /exportar|baixar|excel|planilha|extrair/i.test(s)));
     log(`[${it.v}] ${it.t} · botoes: ${JSON.stringify([...new Set(botoes)])}`);
+    // 17/11/2026 (2a rodada): o "Exportar Excel" nao baixa nada; lista os CAMPOS e CALCULOS do "Extrair dados" desta tela (procurando o MOTIVO da devolucao/corte)
+    try {
+      await page.getByText('Extrair dados', { exact: true }).first().click({ force: true, timeout: 10000 }); await page.waitForTimeout(3000);
+      const rot = await page.evaluate(() => { const dlg = [...document.querySelectorAll('div,section')].filter((d) => /Extrair dados/.test(d.innerText || '') && /Baixar Excel/.test(d.innerText || '')).sort((a, b) => a.innerText.length - b.innerText.length)[0]; return dlg ? [...dlg.querySelectorAll('input[type=checkbox]')].map((i) => ((i.closest('label') || i.parentElement || {}).innerText || '').trim()).filter((s) => s && !/^(Janeiro|Fevereiro|Março|Abril|Maio|Junho|Julho|Agosto|Setembro|Outubro|Novembro|Dezembro)$/.test(s)) : null; });
+      log(`[${it.v}] EXTRAIR DADOS · campos/calculos: ${JSON.stringify(rot)}`);
+      await page.keyboard.press('Escape').catch(() => {}); await page.locator('button:has-text("×")').first().click({ timeout: 3000 }).catch(() => {}); await page.waitForTimeout(1500);
+    } catch (e) { log(`[${it.v}] extrair dados: ${String(e.message || e).slice(0, 100)}`); }
+    if (process.env.SO_CAMPOS) continue;
     // 17/11/2026 (plano bloco E): Devolucoes/Cortes/Pedidos/Recorrencia so tem "Exportar Excel" (tabela da tela, com o detalhamento aberto)
     let b = page.getByText(/Exportar planilha/i).first();
     if (!(await b.count())) b = page.getByText(/^Exportar Excel$/i).first();

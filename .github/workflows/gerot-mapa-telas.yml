@@ -27,4 +27,5 @@ jobs:
         env:
           GEROT_EMAIL: ${{ secrets.GEROT_EMAIL }}
           GEROT_SENHA: ${{ secrets.GEROT_SENHA }}
+          SO_CAMPOS: "1"
         run: node pipeline/gerot_mapa_telas.mjs
