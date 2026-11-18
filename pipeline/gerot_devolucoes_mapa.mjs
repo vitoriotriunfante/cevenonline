@@ -1,9 +1,9 @@
 // =========================================================================
 // FICHA DO ARQUIVO: pipeline/gerot_devolucoes_mapa.mjs   (gerot-devolucoes.yml com modo=mapa; manual)
-// O QUE E: mapa de como os niveis (chips) da tela Devolucoes do GEROT se combinam, para abrir MOTIVO -> PEDIDO (e chegar no vendedor pelo pedido).
-//   1a rodada (18/11/2026): os chips sao UM nivel por vez; o nivel Pedido traz NF venda, NF devolucao e datas na linha, ate 200 linhas.
-//   2a rodada: rotulos fixos da linha do Pedido, fim da lista e o que abre ao expandir.
-// REPOSITORIO PUBLICO: o log tem so o cabecalho, rotulos fixos e contagens. Nada de cliente, nota ou valor.
+// O QUE E: mapa de como os niveis (chips) da tela Devolucoes do GEROT se combinam, para chegar no VENDEDOR de cada devolucao por motivo.
+//   1a rodada (18/11/2026): os chips sao UM nivel por vez. 2a: o nivel Pedido traz pedido, data do faturamento, valor e data da devolucao
+//   (sem motivo), mostra 200 de 1.000+ linhas e abre em produtos. 3a (esta): o que abre embaixo de Motivo > Filial e embaixo de Vendedor.
+// REPOSITORIO PUBLICO: o log tem so cabecalhos, rotulos fixos e contagens. Nada de cliente, nota ou valor.
 // =========================================================================
 import { chromium } from 'playwright';
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
@@ -17,26 +17,33 @@ await page.evaluate(() => [...document.querySelectorAll('button,div,span')].filt
 await page.waitForTimeout(1500);
 await page.evaluate(() => { const a = document.querySelector('[data-v="devolucoes"]'); if (a) { a.scrollIntoView(); a.click(); } });
 await page.waitForTimeout(15000);
-const clica = (nome) => page.evaluate((n) => { const sec = [...document.querySelectorAll('div,section')].filter((d) => /^\s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0]; const b = sec && [...sec.querySelectorAll('button')].find((x) => (x.innerText || '').trim().replace(/^\d+\s*/, '') === n); if (b) { b.click(); return true; } return false; }, nome);
+const SEC = `[...document.querySelectorAll('div,section')].filter((d) => /^\\s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0]`;
+const clica = (nome) => page.evaluate(([n, S]) => { const sec = eval(S); const b = sec && [...sec.querySelectorAll('button')].find((x) => (x.innerText || '').trim().replace(/^\d+\s*/, '') === n); if (b) { b.click(); return true; } return false; }, [nome, SEC]);
+// expande a linha i (0 = primeira) e devolve a forma das linhas seguintes (palavras viram A, digitos 9; ficam so rotulos conhecidos)
+const expande = (i) => page.evaluate(([idx, S]) => {
+  const sec = eval(S), trs = [...sec.querySelectorAll('table tbody tr')], tr = trs[idx]; if (!tr) return { erro: 'sem linha ' + idx };
+  const b = [...tr.querySelectorAll('button,span,i,td')].find((x) => /^[▸▶►]$/.test((x.innerText || '').trim())) || tr.querySelector('button'); if (b) b.click(); return { ok: !!b, antes: trs.length };
+}, [i, SEC]);
+const forma = (de, n) => page.evaluate(([d, q, S]) => {
+  const sec = eval(S), trs = [...sec.querySelectorAll('table tbody tr')];
+  const K = /^(FILIAL|MOTIVO|VENDEDOR|CLIENTE|PRODUTO|PEDIDO|NOTA|DEVOLU\w*|SUPERVISOR|GERENTE|FORNECEDOR|DATA|NF|VENDA|FATURADO|DEVOLVIDO|TCV|TPH|TSJ|TBL|TBE|TCA|TCG|API|ABC|MCD|TPA)$/i;
+  return { linhas: trs.length, th: [...sec.querySelectorAll('thead th')].map((x) => x.innerText.trim().replace(/\s+/g, ' ')).slice(0, 3), formas: trs.slice(d, d + q).map((tr) => String(tr.innerText || '').replace(/[A-Za-zÀ-ú]{2,}/g, (w) => (K.test(w) ? w : 'A')).replace(/\d/g, '9').replace(/\s+/g, ' ').slice(0, 140)) };
+}, [de, n, SEC]);
 
-await clica('Pedido'); await page.waitForTimeout(8000);
-const P = await page.evaluate(() => {
-  const sec = [...document.querySelectorAll('div,section')].filter((d) => /^\s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0]; if (!sec) return null;
-  const trs = [...sec.querySelectorAll('table tbody tr')], txt = trs.map((tr) => [...tr.querySelectorAll('td')].map((td) => (td.innerText || '').trim()));
-  const freq = {}; for (const L of txt) for (const w of new Set(String(L[0] || '').split(/[\s·|:]+/).filter(Boolean))) freq[w] = (freq[w] || 0) + 1;
-  const fixo = new Set(Object.entries(freq).filter(([w, n]) => n > trs.length * 0.6 && !/\d/.test(w)).map(([w]) => w));
-  const molde = (t) => String(t || '').split(/(\s+|·|\||:)/).map((w) => (fixo.has(w) || /^(\s+|·|\||:)$/.test(w) || w === '') ? w : /^\d+([./]\d+)*$/.test(w) ? '9' : /\d/.test(w) ? '9x' : 'A').join('').replace(/A( A)+/g, 'A…').slice(0, 200);
-  const ult = trs[trs.length - 1];
-  const mais = [...sec.querySelectorAll('button,a,span,div')].filter((b) => b.children.length === 0).map((b) => (b.innerText || '').trim()).filter((t) => /mais|carregar|pr[oó]xim|todos|exibindo|de \d+/i.test(t)).map((t) => t.replace(/\d/g, '9')).slice(0, 6);
-  return { linhas: trs.length, fixos: [...fixo].slice(0, 30), moldes: txt.slice(0, 4).map((L) => molde(L[0])), col2_3: txt.slice(0, 3).map((L) => [L[1], L[2]].map((x) => String(x || '').replace(/\d/g, '9'))), ultima: molde(ult && ult.innerText), mais };
-});
-log('pedido', JSON.stringify(P));
-await page.evaluate(() => { const sec = [...document.querySelectorAll('div,section')].filter((d) => /^\s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0]; const tr = sec && sec.querySelector('table tbody tr'); const b = tr && ([...tr.querySelectorAll('button,span,i,td')].find((x) => /^[▸▶►]$/.test((x.innerText || '').trim())) || tr.querySelector('button')); if (b) b.click(); });
-await page.waitForTimeout(5000);
-log('pedido expandido', JSON.stringify(await page.evaluate(() => {
-  const sec = [...document.querySelectorAll('div,section')].filter((d) => /^\s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0];
-  const trs = [...sec.querySelectorAll('table tbody tr')];
-  const K = /^(FILIAL|MOTIVO|VENDEDOR|CLIENTE|PRODUTO|PEDIDO|NOTA|DEVOLU\w*|SUPERVISOR|GERENTE|FORNECEDOR|EMISS\w*|DATA|NF|VENDA)$/i;
-  return { linhas: trs.length, filhos: trs.slice(1, 4).map((tr) => String(tr.innerText || '').replace(/[A-Za-zÀ-ú]{3,}/g, (w) => (K.test(w) ? w : 'A')).replace(/\d/g, '9').slice(0, 200)) };
-})));
+// A) MOTIVO -> expande o 1o motivo -> expande a 1a filial -> o que vem embaixo?
+await clica('Motivo'); await page.waitForTimeout(7000);
+log('A motivo', JSON.stringify(await forma(0, 2)));
+log('A expande motivo', JSON.stringify(await expande(0))); await page.waitForTimeout(5000);
+log('A filhos do motivo', JSON.stringify(await forma(1, 3)));
+log('A expande filial', JSON.stringify(await expande(1))); await page.waitForTimeout(5000);
+log('A netos (embaixo da filial)', JSON.stringify(await forma(2, 4)));
+log('A expande neto', JSON.stringify(await expande(2))); await page.waitForTimeout(5000);
+log('A bisnetos', JSON.stringify(await forma(3, 4)));
+// B) VENDEDOR -> expande o 1o -> o que vem embaixo?
+await clica('Vendedor'); await page.waitForTimeout(7000);
+log('B vendedor', JSON.stringify(await forma(0, 2)));
+log('B expande vendedor', JSON.stringify(await expande(0))); await page.waitForTimeout(5000);
+log('B filhos do vendedor', JSON.stringify(await forma(1, 4)));
+log('B expande filho', JSON.stringify(await expande(1))); await page.waitForTimeout(5000);
+log('B netos', JSON.stringify(await forma(2, 4)));
 await browser.close();
