@@ -18,14 +18,14 @@ await page.waitForTimeout(1500);
 await page.evaluate(() => { const a = document.querySelector('[data-v="devolucoes"]'); if (a) { a.scrollIntoView(); a.click(); } });
 await page.waitForTimeout(15000);
 const SEC = `[...document.querySelectorAll('div,section')].filter((d) => /^\\s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0]`;
-const clica = (nome) => page.evaluate(([n, S]) => { const sec = eval(S); const b = sec && [...sec.querySelectorAll('button')].find((x) => (x.innerText || '').trim().replace(/^\d+\s*/, '') === n); if (b) { b.click(); return true; } return false; }, [nome, SEC]);
+const clica = (nome) => page.evaluate(([n, S]) => { const sec = [...document.querySelectorAll('div,section')].filter((d) => /^\s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0]; const b = sec && [...sec.querySelectorAll('button')].find((x) => (x.innerText || '').trim().replace(/^\d+\s*/, '') === n); if (b) { b.click(); return true; } return false; }, [nome, SEC]);
 // expande a linha i (0 = primeira) e devolve a forma das linhas seguintes (palavras viram A, digitos 9; ficam so rotulos conhecidos)
 const expande = (i) => page.evaluate(([idx, S]) => {
-  const sec = eval(S), trs = [...sec.querySelectorAll('table tbody tr')], tr = trs[idx]; if (!tr) return { erro: 'sem linha ' + idx };
+  const sec = [...document.querySelectorAll('div,section')].filter((d) => /^\s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0], trs = [...sec.querySelectorAll('table tbody tr')], tr = trs[idx]; if (!tr) return { erro: 'sem linha ' + idx };
   const b = [...tr.querySelectorAll('button,span,i,td')].find((x) => /^[▸▶►]$/.test((x.innerText || '').trim())) || tr.querySelector('button'); if (b) b.click(); return { ok: !!b, antes: trs.length };
 }, [i, SEC]);
 const forma = (de, n) => page.evaluate(([d, q, S]) => {
-  const sec = eval(S), trs = [...sec.querySelectorAll('table tbody tr')];
+  const sec = [...document.querySelectorAll('div,section')].filter((d) => /^\s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0], trs = [...sec.querySelectorAll('table tbody tr')];
   const K = /^(FILIAL|MOTIVO|VENDEDOR|CLIENTE|PRODUTO|PEDIDO|NOTA|DEVOLU\w*|SUPERVISOR|GERENTE|FORNECEDOR|DATA|NF|VENDA|FATURADO|DEVOLVIDO|TCV|TPH|TSJ|TBL|TBE|TCA|TCG|API|ABC|MCD|TPA)$/i;
   return { linhas: trs.length, th: [...sec.querySelectorAll('thead th')].map((x) => x.innerText.trim().replace(/\s+/g, ' ')).slice(0, 3), formas: trs.slice(d, d + q).map((tr) => String(tr.innerText || '').replace(/[A-Za-zÀ-ú]{2,}/g, (w) => (K.test(w) ? w : 'A')).replace(/\d/g, '9').replace(/\s+/g, ' ').slice(0, 140)) };
 }, [de, n, SEC]);
