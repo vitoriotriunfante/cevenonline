@@ -127,7 +127,9 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
 export async function carregaEscopo(B, esc) {
   const k = B ? JSON.stringify([esc.filiais || [], esc.grupo || '', (esc.supervisor && (esc.supervisor.nome || esc.supervisor)) || '', esc.rca || '']) : '';
   if (B && B._escopoCache && B._escopoCache.has(k)) return B._escopoCache.get(k);
-  const partes = await Promise.all(esc.filiais.map((f) => vendedoresDaFilial(B, f, esc.grupo, esc.supervisor, esc.rca)));
+  let partes = await Promise.all(esc.filiais.map((f) => vendedoresDaFilial(B, f, esc.grupo, esc.supervisor, esc.rca)));
+  // 18/11/2026: vendedor sumiu (leitura falhou com o D1 ocupado) -> tenta de novo uma vez antes de dizer 'nao achei os seus dados'
+  if (esc.rca && !partes.some((p) => (p.vend || []).length || (p.ocultos || []).length)) { await new Promise((ok) => setTimeout(ok, 700)); partes = await Promise.all(esc.filiais.map((f) => vendedoresDaFilial(B, f, esc.grupo, esc.supervisor, esc.rca))); }
   const vend = partes.flatMap((p) => p.vend), ocultos = partes.flatMap((p) => p.ocultos || []), outros = partes.flatMap((p) => p.outros || []);
   const macro = partes.reduce((t, p) => ({ pedidos: t.pedidos + p.macro.pedidos, dig: t.dig + p.macro.dig, devHoje: t.devHoje + p.macro.devHoje }), { pedidos: 0, dig: 0, devHoje: 0 });
   const res = { ...esc, vend, ocultos, outros, macro, porFilial: Object.fromEntries(esc.filiais.map((f, i) => [f, partes[i]])) };

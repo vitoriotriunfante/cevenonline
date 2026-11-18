@@ -201,7 +201,12 @@ export async function rotearIntencao(B, c, t, info) {
       const r = await (await G()).respVisitasClube(B, e, por).catch(() => null); if (r) return r;
     }
     // devolucao por motivo (tela do GEROT; Vitorio 18/11: "vc nao abriu por motivo quando eu pedi!!!")
-    if (/DEVOLU/.test(t) && /MOTIVO|NAO PEDIU/.test(t)) { const e = await escG(); const r = await (await G()).respDevolucaoMotivo(B, e.filiais, e.nome).catch(() => null); if (r) return r; }
+    if (/DEVOLU/.test(t) && /MOTIVO|NAO PEDIU/.test(t)) {
+      // 18/11/2026: supervisor/grupo ou "por vendedor" (filial) = aberto por vendedor (Motivo > Filial > Supervisor > Vendedor do GEROT); sem a carga por vendedor, cai no motivo x filial
+      const e = await escG();
+      if ((e.rcas && e.rcas.length) || (/VENDEDOR/.test(t) && e.filiais.length === 1)) { const r = await (await G()).respDevolucaoMotivoVend(B, e).catch(() => null); if (r) return r; }
+      const r = await (await G()).respDevolucaoMotivo(B, e.filiais, e.nome).catch(() => null); if (r) return r;
+    }
     // devolucao com o numero do GEROT (Vitorio, 18/11: "devolucoes tambem vc esta pegando o numero correto?"); codigo de vendedor citado soma as filiais
     if (/DEVOLU/.test(t) && !/MOTIVO|NAO PEDIU|\b(HOJE|HJ)\b/.test(t)) {
       const e = await escG(); const mR = t.match(/\b(?:VENDEDOR|RCA|COD(?:IGO)?(?: DE VENDEDOR)?)\s*(?:COD\.?\s*)?(\d{1,5})\b/);
@@ -239,6 +244,8 @@ export async function rotearIntencao(B, c, t, info) {
   if (papel === 'vendedor' && rcaV) {
     const Ev = await carregaEscopo(B, esc), v = Ev.vend[0];
     if (v && /SEM COMPRA|NAO COMPR|AINDA NAO/.test(t) && /\b(HOJE|HJ|ROTA|VISITA)\b/.test(t)) { const { respRotaHojeCompleta } = await import('./respostas/rota.js'); const r = await respRotaHojeCompleta(B, v, true); if (r) return r; }
+    // 18/11/2026: "minhas devolucoes por motivo" do vendedor = o motivo de cada devolucao dele (GEROT)
+    if (v && /DEVOLU/.test(t) && /MOTIVO|NAO PEDIU|POR QUE|PORQUE/.test(t)) { const { respDevolucaoMotivoVend } = await import('./respostas/gestao_gerot.js'); const r = await respDevolucaoMotivoVend(B, { filiais: [v.filial], rcas: [String(v.rca)], nome: `${v.rca} - ${v.nome}` }).catch(() => null); if (r) return r; }
     // 18/11/2026: "quem falta visitar hoje" do vendedor = so os que faltam (rota do Clube + check-in do Clube), nao a rota inteira
     if (v && /FALTA(M)? (SER )?VISITA|QUEM FALTA|A VISITAR|NAO VISITEI|AINDA NAO VISITEI/.test(t) && !/SUPERVISOR|EQUIPE|TIME/.test(t)) { const { respFaltaVisitar } = await import('./respostas/rota.js'); const r = await respFaltaVisitar(B, v); if (r) return r; }
     if (v && /QUANTOS CLIENTES/.test(t) && /\b(HOJE|HJ|ROTA)\b/.test(t)) { const { respMinhaRota } = await import('./respostas/rota.js'); const r = await respMinhaRota(B, v); if (r) return r; }

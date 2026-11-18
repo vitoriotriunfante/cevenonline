@@ -234,3 +234,27 @@ export async function respCortesGestao(B, e) {
   L.push('', `_GEROT · tela Cortes (comercial × logístico é o motivo que o GEROT dá). Peça "cortes por indústria" ou "meus cortes" para o pedido._`);
   return L.join(String.fromCharCode(10));
 }
+
+// ---------- DEVOLUCAO POR MOTIVO POR VENDEDOR (Motivo > Filial > Supervisor > Vendedor no GEROT; gerot_devolucao_motivo_vend) ----------
+// esc: { filiais:[uma], rcas?:[...], nome }. Vendedor = so ele; supervisor/grupo = a equipe aberta por vendedor; filial = os vendedores com mais devolucao.
+export async function respDevolucaoMotivoVend(B, esc) {
+  const db = B.env && B.env.DB; if (!db) return null;
+  const fil = esc.filiais && esc.filiais[0]; if (!fil) return null;
+  const R = esc.rcas && esc.rcas.length ? esc.rcas.map(String) : null;
+  let X = [], em = null;
+  try { X = (await db.prepare(`SELECT motivo, rca, vendedor, valor, clientes, em FROM gerot_devolucao_motivo_vend WHERE mes = ? AND filial = ?${R ? ` AND rca IN (${qs(R)})` : ''}`).bind(mesAtual(), fil, ...(R || [])).all()).results || []; } catch (e) { return null; }
+  if (!X.length) return null;
+  em = X.reduce((a, x) => (x.em > a ? x.em : a), '');
+  const tot = X.reduce((a, x) => a + (Number(x.valor) || 0), 0), um = R && R.length === 1;
+  const mot = new Map(); for (const x of X) mot.set(x.motivo, (mot.get(x.motivo) || 0) + (Number(x.valor) || 0));
+  const marca = (m) => (LIGA_VERMELHO.test(m) ? '🟥' : LIGA_GOLCONTRA.test(m) ? '⚽' : '•');
+  const L = [`↩️ *Devolução por motivo — ${esc.nome}* · ${mesAtual().slice(5)}/${mesAtual().slice(0, 4)}`, `Total *${R$(tot)}*`, '_🟥 = cartão vermelho na Liga · ⚽ = gol contra na Liga_', ''];
+  for (const [m, v] of [...mot].sort((a, b) => b[1] - a[1]).slice(0, 10)) L.push(`${marca(m)} ${titulo(String(m).toLowerCase())}: *${R$(v)}* (${pc(v, tot)})`);
+  if (!um) {
+    const pv = new Map(); for (const x of X) { const o = pv.get(x.rca) || { nome: `${x.rca} - ${nomeCurto(x.vendedor)}`, v: 0, m: new Map() }; o.v += Number(x.valor) || 0; o.m.set(x.motivo, (o.m.get(x.motivo) || 0) + (Number(x.valor) || 0)); pv.set(x.rca, o); }
+    L.push('', '*Por vendedor (maior motivo):*');
+    for (const o of [...pv.values()].sort((a, b) => b.v - a.v).slice(0, 12)) { const [m1, v1] = [...o.m].sort((a, b) => b[1] - a[1])[0]; L.push(`• *${o.nome}*: ${R$(o.v)} · ${marca(m1)} ${titulo(String(m1).toLowerCase())} ${R$(v1)}`); }
+  }
+  L.push('', `_GEROT · tela Devoluções (motivo › filial › supervisor › vendedor)${em ? ' · lido ' + new Date(em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}._`);
+  return L.join(String.fromCharCode(10));
+}

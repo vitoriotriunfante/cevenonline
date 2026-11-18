@@ -42,7 +42,8 @@ export function criaBase(origin, env) {
     return fetch(origin + p, { signal: AbortSignal.timeout(25000) }).then((r) => r.json()).catch(() => null);
   };
   const est = (p) => (env && env.ASSETS ? env.ASSETS.fetch(new Request(origin + p)) : fetch(origin + p)).then((r) => r.json()).catch(() => null);
-  const memo = (k, f) => cache[k] || (cache[k] = f());
+  // 18/11/2026: leitura que falhou (null/erro) nao fica guardada — a proxima chamada tenta de novo (auditoria: 'Nao achei os seus dados' com o D1 ocupado)
+  const memo = (k, f) => cache[k] || (cache[k] = Promise.resolve().then(f).then((v) => { if (v == null) delete cache[k]; return v; }, (e) => { delete cache[k]; throw e; }));
   return {
     env,
     saude: () => memo('saude', () => api('/api/saude')),
