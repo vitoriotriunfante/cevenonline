@@ -127,6 +127,15 @@ export async function onRequestPost({ request, env }) {
     await env.DB.prepare('INSERT INTO gerot_horario (lido_em, ok, ultima, carga, posicao, segundos, erro) VALUES (?,?,?,?,?,?,?)').bind(String(h.lido_em || agora), h.ok ? 1 : 0, h.ultima ? String(h.ultima).slice(0, 60) : null, h.carga ? String(h.carga).slice(0, 40) : null, h.posicao ? String(h.posicao).slice(0, 40) : null, Number(h.segundos) || null, h.erro ? String(h.erro).slice(0, 200) : null).run();
     return r({ ok: true, horario: true });
   }
+  // 18/11/2026: DEVOLUCAO POR MOTIVO ATE O VENDEDOR (Motivo -> Filial -> Supervisor -> Vendedor na tela Devolucoes): grava so o que mudou
+  const DV = Array.isArray(b.devmotivo_vend) ? b.devmotivo_vend : [];
+  if (DV.length) {
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS gerot_devolucao_motivo_vend (mes TEXT NOT NULL, motivo TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, sup_cod TEXT, vendedor TEXT, valor REAL, clientes INTEGER, em TEXT, PRIMARY KEY (mes, motivo, filial, rca))').run();
+    const ok = DV.filter((x) => x && x.motivo && /^[A-Z]{3}$/.test(String(x.filial || '')) && /^\d+$/.test(String(x.rca || '')) && MES.test(String(x.mes || ''))).slice(0, 400);
+    await env.DB.batch(ok.map((x) => env.DB.prepare('INSERT INTO gerot_devolucao_motivo_vend (mes, motivo, filial, rca, sup_cod, vendedor, valor, clientes, em) VALUES (?,?,?,?,?,?,?,?,?) ON CONFLICT (mes, motivo, filial, rca) DO UPDATE SET sup_cod = excluded.sup_cod, vendedor = excluded.vendedor, valor = excluded.valor, clientes = excluded.clientes, em = excluded.em WHERE gerot_devolucao_motivo_vend.valor IS NOT excluded.valor OR gerot_devolucao_motivo_vend.clientes IS NOT excluded.clientes')
+      .bind(String(x.mes), String(x.motivo).slice(0, 80), String(x.filial), String(x.rca), x.sup_cod ? String(x.sup_cod).slice(0, 12) : null, x.vendedor ? String(x.vendedor).slice(0, 80) : null, Number(x.valor) || 0, Math.round(Number(x.clientes) || 0), agora)));
+    return r({ ok: true, devmotivo_vend: ok.length });
+  }
   // 18/11/2026: DEVOLUCAO POR MOTIVO (tela Devolucoes do GEROT; pipeline/gerot_devolucoes.mjs): foto do mes, trocada a cada leitura
   const DM = Array.isArray(b.devmotivo) ? b.devmotivo : [];
   if (DM.length) {

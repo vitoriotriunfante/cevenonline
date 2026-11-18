@@ -65,6 +65,51 @@ try {
     const r = await fetch(API, { method: 'POST', headers: { 'X-Evo-Key': KEY, 'Content-Type': 'application/json', 'User-Agent': 'ceven-gerot' }, body: JSON.stringify({ devmotivo: out.slice(i, i + 200), devmotivo_mes: mes, devmotivo_primeiro: i === 0 }), signal: AbortSignal.timeout(60000) });
     log('gravado', r.status);
   }
+  // 2a FASE (18/11/2026, DEV_VEND=1): Motivo -> Filial -> Supervisor -> Vendedor (mapa 3). Abre cada filial e cada supervisor embaixo dos motivos e grava
+  // a devolucao por motivo DE CADA VENDEDOR (gerot_devolucao_motivo_vend). Log publico: so contagens.
+  if (process.env.DEV_VEND === '1') {
+    const t0 = Date.now(), abertos = new Set();
+    for (let guard = 0; guard < 2500 && Date.now() - t0 < 25 * 60000; guard++) {
+      const alvo = await page.evaluate((ja) => {
+        const sec = [...document.querySelectorAll('div,section')].filter((d) => /^\s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0]; if (!sec) return null;
+        const trs = [...sec.querySelectorAll('table tbody tr')];
+        const info = (tr) => { const t = String((tr.querySelector('td') || {}).innerText || '').replace(/\s+/g, ' ').replace(/^[▸▾]\s*/, '').trim(); const m = t.match(/^(.*?)\s*·\s*(\d+)\s*(FILIAL|SUPERVISOR|VENDEDOR)\s*$/); return m ? { l: { FILIAL: 1, SUPERVISOR: 2, VENDEDOR: 3 }[m[3]], nome: m[1], cod: m[2] } : { l: 0, nome: t, cod: '' }; };
+        const caminho = [];
+        for (let i = 0; i < trs.length; i++) {
+          const x = info(trs[i]); caminho[x.l] = x.nome + '#' + x.cod; caminho.length = x.l + 1;
+          if (x.l !== 1 && x.l !== 2) continue;
+          const k = caminho.join('>'); if (ja.includes(k)) continue;
+          const prox = trs[i + 1]; if (prox && info(prox).l > x.l) continue;   // ja aberto
+          const b = [...trs[i].querySelectorAll('button,span,i,td')].find((y) => /^[▸▶►]$/.test((y.innerText || '').trim())) || trs[i].querySelector('button');
+          if (b) { b.click(); return k; }
+        }
+        return null;
+      }, [...abertos]);
+      if (!alvo) break;
+      abertos.add(alvo); await page.waitForTimeout(900);
+    }
+    const V = await page.evaluate(() => {
+      const sec = [...document.querySelectorAll('div,section')].filter((d) => /^\s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0]; if (!sec) return null;
+      const t = sec.querySelector('table'), th = [...t.querySelectorAll('thead th')].map((x) => x.innerText.trim().replace(/\s+/g, ' ').toUpperCase());
+      return { th, linhas: [...t.querySelectorAll('tbody tr')].map((tr) => [...tr.querySelectorAll('td')].map((td) => (td.innerText || '').trim().replace(/\s+/g, ' '))) };
+    });
+    const out2 = []; let mot = null, fil = null, sup = null;
+    if (V) {
+      const iD = V.th.findIndex((h) => /^DEVOLU/.test(h)), iC = V.th.findIndex((h) => /CLIENTES/.test(h));
+      for (const L of V.linhas) {
+        const rot = String(L[0] || '').replace(/^[▸▾]\s*/, '').trim(), m = rot.match(/^(.*?)\s*·\s*(\d+)\s*(FILIAL|SUPERVISOR|VENDEDOR)\s*$/);
+        if (!m) { mot = rot.toUpperCase(); fil = null; sup = null; continue; }
+        if (m[3] === 'FILIAL') { fil = (m[1].match(/^([A-Z]{3})\b/) || [])[1] || null; sup = null; }
+        else if (m[3] === 'SUPERVISOR') sup = m[2];
+        else if (mot && fil) out2.push({ mes, motivo: mot, filial: fil, sup_cod: sup, rca: m[2], vendedor: m[1], valor: num(L[iD]), clientes: num(L[iC]) });
+      }
+    }
+    log(`devolucao por motivo x vendedor: ${abertos.size} niveis abertos em ${Math.round((Date.now() - t0) / 1000)} s · ${out2.length} linhas motivo x vendedor · ${new Set(out2.map((x) => x.filial + x.rca)).size} vendedores`);
+    for (let i = 0; i < out2.length; i += 300) {
+      const r = await fetch(API, { method: 'POST', headers: { 'X-Evo-Key': KEY, 'Content-Type': 'application/json', 'User-Agent': 'ceven-gerot' }, body: JSON.stringify({ devmotivo_vend: out2.slice(i, i + 300) }), signal: AbortSignal.timeout(60000) });
+      log('gravado vendedor', r.status);
+    }
+  }
 } catch (e) { falhou = true; log('FALHA devolucoes:', String(e && e.message || e).slice(0, 200)); }
 await browser.close();
 process.exit(falhou ? 1 : 0);

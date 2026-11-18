@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       modo:
-        description: 'vazio = coleta; mapa = so o mapa dos niveis (pipeline/gerot_devolucoes_mapa.mjs)'
+        description: 'vazio = coleta; vendedor = coleta + motivo por vendedor (demora ~20 min); mapa = so o mapa dos niveis'
         required: false
         default: ''
 
@@ -18,7 +18,7 @@ concurrency:
 jobs:
   devolucoes:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,4 +34,4 @@ jobs:
           GEROT_SENHA: ${{ secrets.GEROT_SENHA }}
           EVO_KEY: ${{ secrets.EVO_KEY }}
         run: |
-          if [ "${{ inputs.modo }}" = "mapa" ]; then node pipeline/gerot_devolucoes_mapa.mjs; else node pipeline/gerot_devolucoes.mjs; fi
+          if [ "${{ inputs.modo }}" = "mapa" ]; then node pipeline/gerot_devolucoes_mapa.mjs; elif [ "${{ inputs.modo }}" = "vendedor" ]; then DEV_VEND=1 node pipeline/gerot_devolucoes.mjs; else node pipeline/gerot_devolucoes.mjs; fi
