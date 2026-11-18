@@ -1481,6 +1481,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
           const nao = C.filter((x) => !(x.pos > 0) && !(x.posCart > 0)).sort((a, b) => (b.m1 - a.m1) || (b.m3 - a.m3));
           const ult = new Map();
           try { const ids = nao.slice(0, 80).map((x) => x.id); if (ids.length) { const { results } = await B.env.DB.prepare(`SELECT id_cliente, json_extract(json, '$.ult') u FROM ficha_cliente WHERE filial = ? AND id_cliente IN (${ids.map(() => '?').join(',')})`).bind(String(v.filial), ...ids).all(); for (const r of results || []) if (r.u) ult.set(String(r.id_cliente), String(r.u).slice(0, 10)); } } catch (e) { /* sem ficha */ }
+          try { const { ultimaCompraGerot } = await import('./respostas/rota.js'); await ultimaCompraGerot(B, v.filial, nao.slice(0, 80).map((x) => x.id), ult); } catch (e) { /* so a ficha */ }   // 18/11: ultima compra tambem pelo GEROT
           const ehMaisG = /VER MAIS|LISTA COMPLETA|TODOS|COMPLETA|RESTANTE|RESTO|OUTROS|MAIS \d+/.test(t);
           const ini = ehMaisG ? 25 : 0, fim = ehMaisG ? nao.length : Math.min(25, nao.length), lista = nao.slice(ini, fim);
           const dd = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}`, dias = (s) => Math.round((Date.parse(hojeSP()) - Date.parse(s)) / 864e5);
@@ -1526,6 +1527,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
         try {
           const ids = nao.map((y) => String(y.c.id_cliente)), ult = new Map();
           for (let i = 0; i < ids.length; i += 80) { const p = ids.slice(i, i + 80); const { results } = await B.env.DB.prepare(`SELECT id_cliente, json_extract(json, '$.ult') u FROM ficha_cliente WHERE filial = ? AND id_cliente IN (${p.map(() => '?').join(',')})`).bind(String(v.filial), ...p).all(); for (const r of results || []) if (r.u) ult.set(String(r.id_cliente), String(r.u).slice(0, 10)); }
+          try { const { ultimaCompraGerot } = await import('./respostas/rota.js'); await ultimaCompraGerot(B, v.filial, ids, ult); } catch (e) { /* so a ficha */ }   // 18/11: ultima compra tambem pelo GEROT
           for (let i = nao.length - 1; i >= 0; i--) { const u = ult.get(String(nao[i].c.id_cliente)); if (u && u >= mes + '-01') { compraram.add(String(nao[i].c.id_cliente)); nao.splice(i, 1); } else if (u) { nao[i].u = u; nao[i].d = Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5); } }
           nao.sort((a, b) => (a.d ?? 999) - (b.d ?? 999));
         } catch (e) { /* sem ficha: fica a conta do roteiro */ }
@@ -1546,7 +1548,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
       const lista = nao.slice(ini, fim);
       const sobra = nao.length - fim;
       // ULTIMA COMPRA VEM DOS PEDIDOS (31/10/2026: a data do roteiro mostrava compra que o historico do CEVEN nao tem): 1 linha da ficha por cliente listado
-      if (B.env && B.env.DB) await Promise.all(lista.map(async (y) => { try { const r = await B.env.DB.prepare("SELECT json_extract(json, '$.ult') u FROM ficha_cliente WHERE filial = ? AND id_cliente = ?").bind(String(v.filial), String(y.c.id_cliente)).first(); y.u = r && r.u ? String(r.u).slice(0, 10) : null; y.d = y.u ? Math.round((Date.parse(hojeSP()) - Date.parse(y.u)) / 864e5) : null; y.semPed = !y.u; } catch (e) { /* fica a data do roteiro */ } }));
+      if (B.env && B.env.DB) await Promise.all(lista.map(async (y) => { try { const r = await B.env.DB.prepare("SELECT json_extract(json, '$.ult') u FROM ficha_cliente WHERE filial = ? AND id_cliente = ?").bind(String(v.filial), String(y.c.id_cliente)).first(); y.u = r && r.u ? String(r.u).slice(0, 10) : null; try { const { ultimaCompraGerot } = await import('./respostas/rota.js'); const mm = await ultimaCompraGerot(B, v.filial, [String(y.c.id_cliente)], new Map(y.u ? [[String(y.c.id_cliente), y.u]] : [])); y.u = mm.get(String(y.c.id_cliente)) || y.u; } catch (e2) { /* so a ficha */ } y.d = y.u ? Math.round((Date.parse(hojeSP()) - Date.parse(y.u)) / 864e5) : null; y.semPed = !y.u; } catch (e) { /* fica a data do roteiro */ } }));
       return [`📉 *Curva negativa — ${v.rca} - ${titulo(v.nome)}* (${v.filial})` + (ini > 0 ? ` _(continuação: ${ini + 1}º ao ${Math.min(fim, nao.length)}º)_` : ''),
         `Carteira do mês: *${cli.size} clientes* · já compraram: *${cli.size - nao.length}* · *ainda não compraram: ${nao.length}*`,
         // duas bases do CEVEN com contas diferentes (Igor/TBL, 31/10/2026: 49 de 51 no roteiro x 31 de 44 no painel): mostra as duas, nunca uma so

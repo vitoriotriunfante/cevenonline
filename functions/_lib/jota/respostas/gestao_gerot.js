@@ -202,7 +202,10 @@ export async function respGapClientes(B, e) {
     `Desses, *${N(T.zer)}* ainda não faturaram nada no mês.`];
   if (porF.length) L.push('', '*Por filial (clientes · falta):*', ...porF.map((x) => `• *${x.filial}*: ${N(x.n)} · ${R$(x.gap)}`));
   L.push('', `*Maiores gaps:*`, '_Cliente · vendedor · este mês · média · falta_');
-  for (const x of top) L.push(`• ${titulo(String(x.nome || 'cliente ' + x.cliente).toLowerCase())} (#${x.cliente}) · ${F.length > 1 ? x.filial + ' ' : ''}${x.rca || x.rca2 || '—'} · ${R$(x.atual)} · ${R$(x.media)} · *${R$(x.media - x.atual)}*`);
+  // vendedor = 'codigo - Nome' (gerot_vendedor_mes do mes); o GEROT guarda meses antigos como 'H|NOME' -> mostra o nome
+  const NV = new Map(); try { for (const r of (await db.prepare(`SELECT filial, rca, MAX(vendedor) v FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs(F)}) GROUP BY filial, rca`).bind(m0, ...F).all()).results || []) NV.set(r.filial + '|' + r.rca, r.v); } catch (e2) { /* so o codigo */ }
+  const vend = (x) => { const r = String(x.rca || x.rca2 || ''); if (!r) return '—'; if (r.startsWith('H|')) return nomeCurto(r.slice(2)); const n = NV.get(x.filial + '|' + r); return n ? r + ' - ' + nomeCurto(n) : r; };
+  for (const x of top) L.push(`• ${titulo(String(x.nome || 'cliente ' + x.cliente).toLowerCase())} (#${x.cliente}) · ${F.length > 1 ? x.filial + ' ' : ''}${vend(x)} · ${R$(x.atual)} · ${R$(x.media)} · *${R$(x.media - x.atual)}*`);
   L.push('', `_GEROT · faturado líquido por cliente; média dos meses fechados ${mm}. "Falta" é quanto falta para voltar à média, não é projeção._`);
   return L.join(String.fromCharCode(10));
 }

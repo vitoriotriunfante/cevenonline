@@ -40,7 +40,9 @@ export function respAVisitar(E, pessoa) {
   if (pessoa && pessoa.tipo === 'vend') {
     const v = pessoa.alvo; if (!v.varejo && !(v.aVisitar || []).length && !(v.rotaHoje || []).length) return `${v.rca} - ${titulo(v.nome)} (${v.canal || 'sem canal'}) não tem roteiro de visitas hoje.`;
     const A = v.aVisitar;
-    return [`📍 *${v.rca} - ${titulo(v.nome)}* (${v.filial}) — rota de hoje: ${v.visF} de ${v.visP} visitas feitas · *faltam ${A.length}*`, ...A.slice(0, 30).map((c, i) => cli(c, i)), A.length > 30 ? `… e mais ${A.length - 30}` : '',
+    // 18/11/2026: formato combinado (legenda no topo; embaixo so emoji/numero de dias sem compra)
+    const dN = (c) => { const d = String(c.data_ultima_compra || '').slice(0, 10); return d ? Math.max(0, Math.round((Date.parse(hojeSP()) - Date.parse(d)) / 864e5)) : null; };
+    return [`📍 *${v.rca} - ${titulo(v.nome)}* (${v.filial}) — faltam *${A.length}* de ${(v.rotaHoje || []).length} na rota de hoje · ${v.visF} visitada(s)`, A.length ? '_⏳ a visitar · nº = dias sem compra · 🆕 sem compra registrada · 🏷️ tag_' : '', ...A.sort((x, y) => (dN(y) ?? 9999) - (dN(x) ?? 9999)).slice(0, 30).map((c, i) => `${i + 1}. ${titulo(c.nome_cliente || c.razao_social || 'cliente ' + c.id_cliente)} (#${c.id_cliente}) · ⏳ · ${diasTxt(dN(c))}${tagsCurtas(c)}`), A.length > 30 ? `… e mais ${A.length - 30}` : '',
       '', A.length ? SUGESTAO + `começar pelos parados há mais tempo e pelos com tag de campanha. _Digite o número para abrir o cliente._` : SUGESTAO + 'rota de hoje concluída.'].filter((x) => x !== '').join('\n');
   }
   // VISUALIZAR E TUDO (Vitorio, 26/10/2026: "varejo entra para a cobranca... para visualizar e tudo"): AS e qualquer canal com roteiro entram nesta lista
@@ -282,6 +284,12 @@ export async function semCompraNaRota(B, v) {
           const d = String(r.ultima_compra || '').slice(0, 10);
           if (/^\d{4}-\d{2}-\d{2}$/.test(d) && d >= '2020-01-01' && d <= hojeSP()) ultimasCompras.set(String(r.id_cliente), d);
         }
+        // 18/11/2026: ULTIMA COMPRA PELO GEROT (pedidos de ago em diante, gerot_pedido). A ficha estava velha (TCV 352 Big Casa: ficha '42 dias' x GEROT 27/10 = 22 dias).
+        // Vale a data mais recente das duas fontes.
+        try {
+          const { results: GP } = await B.env.DB.prepare(`SELECT cliente, MAX(data) d FROM gerot_pedido WHERE filial = ? AND cliente IN (${lote.map(() => '?').join(',')}) GROUP BY cliente`).bind(String(v.filial), ...lote).all();
+          for (const r of GP || []) { const d = String(r.d || '').slice(0, 10); if (/^\d{4}-\d{2}-\d{2}$/.test(d) && d <= hojeSP() && !(ultimasCompras.get(String(r.cliente)) > d)) ultimasCompras.set(String(r.cliente), d); }
+        } catch (e) { /* sem GEROT: fica a ficha */ }
       }
       historicoCompleto = true;
     } catch (e) {
@@ -882,4 +890,36 @@ export async function respCampanhasEquipe(B, E, escolha = null) {
   return [`🏷️ *Campanhas e TAGs do mês — ${E.nome}*`, '_Todas as TAGs do roteiro do mês da equipe (combos, foco, P11…), menos recorrência (essa é o 6)_', '',
     ...L.map((x, i) => `${i + 1}. *${x.tag}*: ${x.comp} de ${x.tot} clientes já compraram · faltam *${x.tot - x.comp}*`),
     '', '👉 *Digite o número da campanha* para ver por vendedor.'].join('\n');
+}
+
+// "QUEM FALTA VISITAR HOJE" do vendedor (18/11/2026): mesma conta da "minha rota" (semCompraNaRota: rota do Clube, check-in do Clube, pedido do mes e ultima compra
+// da ficha) — so os ⏳. Antes os dias vinham da ultima compra gravada pelo CEVEN e nao batiam com a "minha rota" (Posto Pegoraro: comprou no mes x '22 dias').
+export async function respFaltaVisitar(B, v) {
+  const { rota, sem: semC, valorMes, pedidoHoje } = await semCompraNaRota(B, v);
+  if (!rota.length) return `📍 *${vn(v)}* — sem clientes na rota de hoje.`;
+  const semMap = new Map(semC.map((x) => [String(x.c.id_cliente), x]));
+  const falta = rota.filter((c) => emojiVisita(c, pedidoHoje) === '⏳');
+  const dias = (c) => { const x = semMap.get(String(c.id_cliente)); return x ? x.dias : -1; };
+  falta.sort((a, b) => (dias(b) ?? 9999) - (dias(a) ?? 9999));
+  const fim = (c) => { const x = semMap.get(String(c.id_cliente)); if (x) return diasTxt(x.dias); const r = valorMes.get(String(c.id_cliente)); return r ? R$(r) : '✔️'; };
+  const L = [`📍 *${vn(v)}* — faltam *${falta.length}* de ${rota.length} na rota de hoje`];
+  if (!falta.length) return [...L, '✅ Rota de hoje toda visitada.'].join('\n');
+  L.push('_⏳ a visitar · nº = dias sem compra · 🆕 sem compra registrada · R$ = já comprou no mês · 🏷️ tag_', '');
+  falta.slice(0, 30).forEach((c, i) => L.push(`${i + 1}. ${titulo(c.nome_cliente || c.razao_social || 'cliente')} (#${c.id_cliente}) · ⏳ · ${fim(c)}${tagsCurtas(c)}`));
+  if (falta.length > 30) L.push(`… e mais ${falta.length - 30}`);
+  L.push('', '*Digite o número* do cliente para ver a ficha dele.');
+  return L.join('\n');
+}
+
+// ULTIMA COMPRA = a mais recente entre a ficha e os pedidos do GEROT (18/11/2026; a ficha estava velha). Altera e devolve o mapa id_cliente -> 'AAAA-MM-DD'.
+export async function ultimaCompraGerot(B, filial, ids, mapa = new Map()) {
+  if (!B || !B.env || !B.env.DB || !ids || !ids.length) return mapa;
+  try {
+    for (let i = 0; i < ids.length; i += 80) {
+      const p = ids.slice(i, i + 80).map(String);
+      const { results } = await B.env.DB.prepare(`SELECT cliente, MAX(data) d FROM gerot_pedido WHERE filial = ? AND cliente IN (${p.map(() => '?').join(',')}) GROUP BY cliente`).bind(String(filial), ...p).all();
+      for (const r of results || []) { const d = String(r.d || '').slice(0, 10); if (/^\d{4}-\d{2}-\d{2}$/.test(d) && d <= hojeSP() && !(String(mapa.get(String(r.cliente)) || '') > d)) mapa.set(String(r.cliente), d); }
+    }
+  } catch (e) { /* sem GEROT: fica a ficha */ }
+  return mapa;
 }
