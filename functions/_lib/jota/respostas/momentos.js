@@ -108,15 +108,29 @@ export async function diaClube(B, v) {
     const visSemJus = [...vis.values()].filter((x) => !jus.has(x.id));
     const comPed = Number(t.ped_rota) === visSemJus.length ? visSemJus : null;
     const naoVis = Math.max(0, (Number(t.roteiros) || 0) - (Number(t.visitas_rota) || 0));
-    // NOMES DE QUEM FICOU SEM VISITA: rota planejada de hoje no roteiro do mes gravado (ultima leitura do CEVEN); so vale se o total bate com 'roteiros' do Clube
+    // NOMES DE QUEM FICOU SEM VISITA (18/11/2026): rota do dia do CLUBE (clube_roteiro); visitado = check-in OU justificativa OU pedido do Clube (a conta do Clube);
+    // ultima compra = a mais recente entre ficha e GEROT. Sem a rota do Clube, o roteiro do mes gravado. So vale se o total bate com o do Clube (nunca deduz).
     let naoVisNomes = null;
     if (naoVis > 0) {
       try {
-        const rm = await db.prepare("SELECT roteiro_mes_json j FROM varredura_central_rca WHERE rca_codigo = ? AND filial_sigla = ? AND roteiro_mes_json IS NOT NULL ORDER BY data_ref DESC LIMIT 1").bind(rca, fil).first();
-        const arr = rm && rm.j ? JSON.parse(rm.j) : null, lista = Array.isArray(arr) ? arr : (arr && Object.values(arr).find(Array.isArray)) || [];
-        const hoje = lista.filter((c) => String(c.data_visita || '').slice(0, 10) === dia);
-        if (hoje.length === Number(t.roteiros)) naoVisNomes = hoje.filter((c) => !vis.has(String(c.id_cliente))).map((c) => ({ id: String(c.id_cliente), nome: limpaNomeCli(c.nome_cliente || c.razao_social) || `Cliente #${c.id_cliente}`, end: titulo(String(c.endereco || '').toLowerCase()), ult: c.data_ultima_compra ? String(c.data_ultima_compra).slice(0, 10) : null }));
-      } catch (e) { /* sem roteiro do mes: fica so a quantidade */ }
+        const [{ results: RT }, { results: PDc }] = await Promise.all([
+          db.prepare('SELECT cliente, fantasia, razao, endereco, bairro, cidade FROM clube_roteiro WHERE dia = ? AND filial = ? AND rca = ?').bind(dia, fil, rca).all().catch(() => ({ results: [] })),
+          db.prepare('SELECT DISTINCT cliente FROM clube_pedido WHERE dia = ? AND filial = ? AND rca = ?').bind(dia, fil, rca).all().catch(() => ({ results: [] })),
+        ]);
+        let hoje = (RT || []).map((c) => ({ id_cliente: String(c.cliente), nome_cliente: c.fantasia || c.razao, endereco: [c.endereco, c.bairro, c.cidade].filter(Boolean).join(', ') }));
+        if (!hoje.length) {
+          const rm = await db.prepare("SELECT roteiro_mes_json j FROM varredura_central_rca WHERE rca_codigo = ? AND filial_sigla = ? AND roteiro_mes_json IS NOT NULL ORDER BY data_ref DESC LIMIT 1").bind(rca, fil).first();
+          const arr = rm && rm.j ? JSON.parse(rm.j) : null, lista = Array.isArray(arr) ? arr : (arr && Object.values(arr).find(Array.isArray)) || [];
+          hoje = lista.filter((c) => String(c.data_visita || '').slice(0, 10) === dia);
+        }
+        const comPedHoje = new Set((PDc || []).map((x) => String(x.cliente)));
+        const falta = hoje.filter((c) => !vis.has(String(c.id_cliente)) && !jus.has(String(c.id_cliente)) && !comPedHoje.has(String(c.id_cliente)));
+        if (hoje.length === Number(t.roteiros) && falta.length === naoVis) {
+          const { ultimaCompraGerot } = await import('./rota.js');
+          const U = await ultimaCompraGerot(B, fil, falta.map((c) => String(c.id_cliente)), new Map(falta.filter((c) => c.data_ultima_compra).map((c) => [String(c.id_cliente), String(c.data_ultima_compra).slice(0, 10)])));
+          naoVisNomes = falta.map((c) => ({ id: String(c.id_cliente), nome: limpaNomeCli(c.nome_cliente || c.razao_social) || `Cliente #${c.id_cliente}`, end: titulo(String(c.endereco || '').toLowerCase()), ult: U.get(String(c.id_cliente)) || null }));
+        }
+      } catch (e) { /* sem rota: fica so a quantidade */ }
     }
     return { t, vis: [...vis.values()], semPed, comPed, naoVis, naoVisNomes, lido: t.lido_em ? new Date(t.lido_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) : null };
   } catch (e) { return null; }
