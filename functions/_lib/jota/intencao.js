@@ -160,6 +160,36 @@ export async function rotearIntencao(B, c, t, info) {
     const E = await carregaEscopo(B, fil ? { nome: fil, filiais: [fil], grupo: null } : (papel === 'diretoria' || papel === 'ceo') ? { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true } : esc);
     const { respVisitadosSemCompra } = await import('./respostas/rota.js'); const r = await respVisitadosSemCompra(E, B); if (r) return r;
   }
+  // H · GESTAO PELO GEROT E PELO CLUBE (18/11/2026: perguntas de Vitorio, Evandro Servat e Paulo Micheleto) — escopo de quem pergunta
+  if (acima) {
+    const G = () => import('./respostas/gestao_gerot.js');
+    const escG = async () => {
+      if (papel === 'diretoria' || papel === 'ceo') return { filiais: filCit ? [filCit] : FILIAIS, nome: filCit || 'Brasil', nacional: !filCit };
+      const Ev = await carregaEscopo(B, esc), V = (Ev && Ev.vend) || [];
+      if (papel === 'gerente') return { filiais: [c.filial], nome: Ev && Ev.nome || c.filial, rcas: c.grupo ? V.map((v) => String(v.rca)) : null };
+      return { filiais: [c.filial], nome: Ev && Ev.nome || 'Equipe', rcas: V.map((v) => String(v.rca)), supCod: (V.find((v) => v.supCod) || {}).supCod || null };
+    };
+    // margem: so diretoria e gerente (Evandro, 18/11: "disponibilizar apenas para diretoria e gerentes")
+    if (/\bMARGE[MN]/.test(t) && (papel === 'diretoria' || papel === 'ceo' || papel === 'gerente')) { const e = await escG(); const r = await (await G()).respMargemGerot(B, e.filiais, e.nome).catch(() => null); if (r) return r; }
+    // percentual de atingimento por filial (Micheleto, 17/11: virava texto generico da IA)
+    if ((papel === 'diretoria' || papel === 'ceo') && /ATINGIMENTO|PERCENTUAL (DA META|DE META|DE ATINGIMENTO)|% DA META/.test(t) && !filCit) { const { respBrasilGerot } = await import('./respostas/gerot_painel.js'); const r = await respBrasilGerot(B, null).catch(() => null); if (r) return r; }
+    // carteira por status / motivo (Micheleto, 18/11: "bloqueio financeiro, bloqueio comercial e todos os outros motivos")
+    if (/CARTEIRA|PEDIDOS? (EM CARTEIRA|PENDENTES?|BLOQUEAD)|BLOQUEIO (FINANCEIRO|COMERCIAL)/.test(t) && /STATUS|MOTIVO|BLOQUE|ABERT|SITUACAO/.test(t) && !/\b\d{7,}\b/.test(t)) { const e = await escG(); const r = await (await G()).respCarteiraStatus(B, e.filiais, e.rcas, e.nome).catch(() => null); if (r) return r; }
+    // justificativas de nao venda pelo Clube (Vitorio, 18/11: "pq ate dia 16?" e "aberto por vendedor x justificativa e justificativa x vendedor")
+    if (/JUSTIFICATIVA|MOTIVOS? DE NAO VENDA|NAO VENDA/.test(t)) { const e = await escG(); const modo = /(POR|X|×) ?VENDEDOR|VENDEDOR(ES)? ?(X|×|POR)|POR VENDEDOR/.test(t) ? 'vendedor' : /(POR|X|×) ?(MOTIVO|JUSTIFICATIVA)|JUSTIFICATIVA ?(X|×)/.test(t) ? 'just' : 'motivo'; const r = await (await G()).respJustificativas(B, e, modo).catch(() => null); if (r) return r; }
+    // visitas / plano de visitas / aderencia pelo Clube (Evandro, 18/11: "abrir por filial, supervisor ou vendedor; rota do dia e acumulado do mes")
+    if (/\bVISITAS?\b|PLANO DE VISITA|ADERENCIA/.test(t) && !/\b(ONDE|ELA|ELE|DELA|DELE)\b/.test(t) && !/SEM COMPRA|SEM VENDA|VISITADOS/.test(t)) {
+      const e = await escG(); const por = /POR VENDEDOR|VENDEDORES/.test(t) ? 'vendedor' : /POR SUPERVISOR|SUPERVISORES/.test(t) ? 'supervisor' : e.nacional ? 'filial' : papel === 'supervisor' ? 'vendedor' : 'supervisor';
+      const r = await (await G()).respVisitasClube(B, e, por).catch(() => null); if (r) return r;
+    }
+    // devolucao com o numero do GEROT (Vitorio, 18/11: "devolucoes tambem vc esta pegando o numero correto?"); codigo de vendedor citado soma as filiais
+    if (/DEVOLU/.test(t) && !/MOTIVO|NAO PEDIU|\b(HOJE|HJ)\b/.test(t)) {
+      const e = await escG(); const mR = t.match(/\b(?:VENDEDOR|RCA|COD(?:IGO)?(?: DE VENDEDOR)?)\s*(?:COD\.?\s*)?(\d{1,5})\b/);
+      const r = await (await G()).respDevolucaoGerot(B, mR ? { filiais: e.filiais, rca: mR[1], nome: `vendedor ${mR[1]}${filCit ? ' (' + filCit + ')' : ''}` } : { ...e, supCod: papel === 'supervisor' ? e.supCod : null }).catch(() => null); if (r) return r;
+    }
+    // faturado ate a data x mes passado ate a mesma data (Vitorio e Evandro, 18/11)
+    if (/ATE A DATA|ATE HOJE|ATE O DIA|MESMO DIA|MESMA DATA/.test(t) || (/COMPARA/.test(t) && /MES (ANTERIOR|PASSADO)|OUTUBRO/.test(t) && /FATURA|VENDA/.test(t))) { const e = await escG(); const r = await (await G()).respAteData(B, e.filiais, e.nome).catch(() => null); if (r) return r; }
+  }
   // C11 · TENDENCIA DAS FILIAIS / DO BRASIL (nunca presa na filial da pergunta anterior)
   if (acima && (papel === 'diretoria' || papel === 'ceo') && /TENDENCIA/.test(t) && /\b(FILIAIS|BRASIL|TODAS|REDE|GERAL)\b/.test(t) && !filCit) {
     const { respTendencia } = await import('./respostas/gestao.js');
