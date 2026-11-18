@@ -121,14 +121,17 @@ export async function respCortesGerot(B, filial, rcas, titulo0) {
   let P = [], F = [];
   try {
     P = (await db.prepare(`SELECT pedido, data, nome, rca, SUM(json_extract(dados, '$."Corte comercial (R$)"')) com, SUM(json_extract(dados, '$."Corte logístico (R$)"')) log FROM gerot_pedido WHERE mes = ? AND filial = ? AND rca IN (${q}) GROUP BY pedido HAVING com > 0 OR log > 0 ORDER BY (com + log) DESC`).bind(mes, String(filial), ...rcas.map(String)).all()).results || [];
-    F = (await db.prepare(`SELECT fornecedor, SUM(json_extract(dados, '$."Corte comercial (R$)"')) com, SUM(json_extract(dados, '$."Corte logístico (R$)"')) log FROM gerot_vendas WHERE mes = ? AND filial = ? AND rca IN (${q}) GROUP BY fornecedor HAVING com > 0 OR log > 0 ORDER BY (com + log) DESC LIMIT 6`).bind(mes, String(filial), ...rcas.map(String)).all()).results || [];
+    F = (await db.prepare(`SELECT fornecedor, SUM(json_extract(dados, '$."Corte comercial (R$)"')) com, SUM(json_extract(dados, '$."Corte logístico (R$)"')) log FROM gerot_vendas WHERE mes = ? AND filial = ? AND rca IN (${q}) GROUP BY fornecedor HAVING com > 0 OR log > 0 ORDER BY (com + log) DESC`).bind(mes, String(filial), ...rcas.map(String)).all()).results || [];
   } catch (e) { return null; }
-  const tc = P.reduce((a, x) => a + (Number(x.com) || 0), 0), tl = P.reduce((a, x) => a + (Number(x.log) || 0), 0);
+  // 17/11/2026: no pedido o GEROT traz o corte zerado; o total do mes e a soma por industria (gerot_vendas)
+  const tc = F.reduce((a, x) => a + (Number(x.com) || 0), 0), tl = F.reduce((a, x) => a + (Number(x.log) || 0), 0);
+  let nomeF = (n) => titulo(String(n || '').replace(/^[A-Z]\s*-\s*/, '').replace(/#\d+/, '').toLowerCase()).trim();
+  try { const { nomeForn } = await import('./metas_industria.js'); if (nomeForn) { const cru = nomeF; nomeF = (n) => nomeForn(n) || cru(n); } } catch (e) { /* nome cru */ }
   if (!P.length && !F.length) return `✂️ *Cortes do mês — ${titulo0}*: nenhum corte no GEROT em ${mes.slice(5)}/${mes.slice(0, 4)}. 👏`;
   const dm = (s) => (s ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : '--/--');
   const L = [`✂️ *Cortes do mês — ${titulo0}*`, `Total *${R$(tc + tl)}* · comercial *${R$(tc)}* · logístico *${R$(tl)}*`,
     '_Comercial = decisão de venda (preço, crédito, regra); logístico = faltou o produto no estoque._'];
-  if (F.length) L.push('', '*Indústrias que mais cortaram:*', ...F.map((x) => `• ${titulo(String(x.fornecedor || '').replace(/^[A-Z]\s*-\s*/, '').toLowerCase()).slice(0, 34)}: ${R$((Number(x.com) || 0) + (Number(x.log) || 0))} (com. ${R$(x.com || 0)} · log. ${R$(x.log || 0)})`));
+  if (F.length) L.push('', '*Indústrias que mais cortaram:*', ...F.slice(0, 6).map((x) => `• ${String(nomeF(x.fornecedor)).slice(0, 34)}: ${R$((Number(x.com) || 0) + (Number(x.log) || 0))} (com. ${R$(x.com || 0)} · log. ${R$(x.log || 0)})`));
   if (P.length) L.push('', `*Pedidos com corte (${N(P.length)})${P.length > 10 ? ' — os 10 maiores' : ''}:*`, ...P.slice(0, 10).map((x) => `• ${dm(x.data)} · nº ${x.pedido} · ${titulo(String(x.nome || '').toLowerCase()).slice(0, 30)} · ${R$((Number(x.com) || 0) + (Number(x.log) || 0))}${Number(x.com) > 0 && Number(x.log) > 0 ? ' (com. + log.)' : Number(x.com) > 0 ? ' (comercial)' : ' (logístico)'}`));
   L.push('', '_GEROT · cortes do mês por pedido e por indústria._');
   return L.join('\n');
