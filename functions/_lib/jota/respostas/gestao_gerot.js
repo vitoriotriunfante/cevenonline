@@ -138,7 +138,8 @@ export async function respAteData(B, filiais, nome) {
   const lim1 = `${m1}-${dia}`;
   let A = [], P = [];
   try {
-    const q = (mes, ate) => db.prepare(`SELECT filial, SUM(json_extract(dados, '$."Faturado líquido (R$)"')) f FROM gerot_pedido WHERE mes = ? AND data <= ? AND filial IN (${qs(F)}) GROUP BY filial`).bind(mes, ate, ...F).all();
+    // 18/11/2026: faturado por FILIAL x DIA do GEROT (a soma pelos pedidos deixava de fora notas sem pedido)
+    const q = (mes, ate) => db.prepare(`SELECT filial, SUM(json_extract(dados, '$."Faturado líquido (R$)"')) f FROM gerot_filial_dia WHERE mes = ? AND data <= ? AND filial IN (${qs(F)}) GROUP BY filial`).bind(mes, ate, ...F).all();
     A = (await q(m0, hoje)).results || []; P = (await q(m1, lim1)).results || [];
   } catch (e) { return null; }
   if (!P.length) return `📊 *Até a data — ${nome}*: ainda não tenho os pedidos de ${m1.slice(5)}/${m1.slice(0, 4)} do GEROT para comparar.`;

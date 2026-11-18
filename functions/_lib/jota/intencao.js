@@ -188,7 +188,7 @@ export async function rotearIntencao(B, c, t, info) {
       const r = await (await G()).respDevolucaoGerot(B, mR ? { filiais: e.filiais, rca: mR[1], nome: `vendedor ${mR[1]}${filCit ? ' (' + filCit + ')' : ''}` } : { ...e, supCod: papel === 'supervisor' ? e.supCod : null }).catch(() => null); if (r) return r;
     }
     // faturado ate a data x mes passado ate a mesma data (Vitorio e Evandro, 18/11)
-    if (/ATE A DATA|ATE HOJE|ATE O DIA|MESMO DIA|MESMA DATA/.test(t) || (/COMPARA/.test(t) && /MES (ANTERIOR|PASSADO)|OUTUBRO/.test(t) && /FATURA|VENDA/.test(t))) { const e = await escG(); const r = await (await G()).respAteData(B, e.filiais, e.nome).catch(() => null); if (r) return r; }
+    if (/ATE A DATA|ATE HOJE|ATE O DIA|MESMO DIA|MESMA DATA/.test(t) || (/COMPARA/.test(t) && /MES (ANTERIOR|PASSADO)|OUTUBRO/.test(t) && /FATURA|VENDA/.test(t))) { return '📊 *Faturado até a data × mês passado*: estou carregando o faturado *dia a dia* do GEROT (novembro e outubro) para essa conta sair exata — fica pronta ainda hoje. Por enquanto: peça *tendência* (captação do mês × mesmo dia do mês passado).'; }   // 18/11: a soma pelos pedidos deixava de fora notas sem pedido (R$ 744 mil x ~R$ 20 mi)
   }
   // C11 · TENDENCIA DAS FILIAIS / DO BRASIL (nunca presa na filial da pergunta anterior)
   if (acima && (papel === 'diretoria' || papel === 'ceo') && /TENDENCIA/.test(t) && /\b(FILIAIS|BRASIL|TODAS|REDE|GERAL)\b/.test(t) && !filCit) {

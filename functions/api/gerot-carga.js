@@ -39,6 +39,8 @@ async function tabelas(db) {
     // 17/11/2026: DATA DO PEDIDO guardada para sempre (a carteira perde o pedido quando ele fatura, e no 'Pedidos' a data vira a do faturamento) = base da Liga sem o CEVEN
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_pedido_entrada (filial TEXT NOT NULL, pedido TEXT NOT NULL, rca TEXT, cnpj TEXT, entrada TEXT, visto_em TEXT, PRIMARY KEY (filial, pedido))'),
     db.prepare('CREATE INDEX IF NOT EXISTS ix_gerot_pedido_entrada_dia ON gerot_pedido_entrada (entrada, filial, rca)'),
+    // 18/11/2026: faturado (e todos os calculos) por FILIAL x DIA = 'ate a data' x mes passado
+    db.prepare('CREATE TABLE IF NOT EXISTS gerot_filial_dia (mes TEXT NOT NULL, filial TEXT NOT NULL, data TEXT NOT NULL, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (filial, data))'),
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_horario (id INTEGER PRIMARY KEY AUTOINCREMENT, lido_em TEXT, ok INTEGER, ultima TEXT, carga TEXT, posicao TEXT, segundos INTEGER, erro TEXT)'),
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_coleta_status (id INTEGER PRIMARY KEY AUTOINCREMENT, mes TEXT, linhas INTEGER, enviadas INTEGER, posicao TEXT, colunas TEXT, em TEXT)')
   ]);
@@ -65,6 +67,10 @@ export async function onRequestGet({ request, env }) {
   if (u.searchParams.get('supervisor') === '1') {
     const { results } = await env.DB.prepare('SELECT filial, cod_sup, hash FROM gerot_supervisor_mes WHERE mes = ?').bind(mes).all();
     return r({ hashes: Object.fromEntries((results || []).map((x) => [`${x.filial}|${x.cod_sup}`, x.hash])) });
+  }
+  if (u.searchParams.get('dia') === '1') {
+    const { results } = await env.DB.prepare('SELECT filial, data, hash FROM gerot_filial_dia WHERE mes = ?').bind(mes).all();
+    return r({ hashes: Object.fromEntries((results || []).map((x) => [`${x.filial}|${x.data}`, x.hash])) });
   }
   if (u.searchParams.get('pedido') === '1') {
     const { results } = await env.DB.prepare('SELECT filial, pedido, nf, hash FROM gerot_pedido WHERE mes = ?').bind(mes).all();
@@ -118,6 +124,13 @@ export async function onRequestPost({ request, env }) {
     const h = b.horario;
     await env.DB.prepare('INSERT INTO gerot_horario (lido_em, ok, ultima, carga, posicao, segundos, erro) VALUES (?,?,?,?,?,?,?)').bind(String(h.lido_em || agora), h.ok ? 1 : 0, h.ultima ? String(h.ultima).slice(0, 60) : null, h.carga ? String(h.carga).slice(0, 40) : null, h.posicao ? String(h.posicao).slice(0, 40) : null, Number(h.segundos) || null, h.erro ? String(h.erro).slice(0, 200) : null).run();
     return r({ ok: true, horario: true });
+  }
+  const DI = Array.isArray(b.dias) ? b.dias : [];
+  if (DI.length > 200) return r({ erro: 'no maximo 200 dias por chamada' }, 400);
+  if (DI.length) {
+    const ok = DI.filter((x) => MES.test(String(x.mes || '')) && /^[A-Z]{3}$/.test(String(x.filial || '')) && /^\d{4}-\d{2}-\d{2}$/.test(String(x.data || '')));
+    await env.DB.batch(ok.map((x) => env.DB.prepare('INSERT INTO gerot_filial_dia (mes, filial, data, dados, hash, em) VALUES (?,?,?,?,?,?) ON CONFLICT (filial, data) DO UPDATE SET mes = excluded.mes, dados = excluded.dados, hash = excluded.hash, em = excluded.em WHERE gerot_filial_dia.hash IS NOT excluded.hash').bind(String(x.mes), String(x.filial), String(x.data), JSON.stringify(x.dados || {}), String(x.hash || ''), agora)));
+    return r({ ok: true, dias: ok.length, recusados: DI.length - ok.length });
   }
   const CT = Array.isArray(b.carteira) ? b.carteira : [];
   if (CT.length > 200) return r({ erro: 'no maximo 200 pedidos de carteira por chamada' }, 400);

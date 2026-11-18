@@ -28,6 +28,8 @@ const CAMPOS_FIL = ['Mês', 'Filial'];
 const CAMPOS_CLI = ['Mês', 'Filial', 'Vendedor', 'Cliente'];
 // 17/11/2026: um pedido por linha (Data x Filial x Vendedor x Cliente x Pedido x NF) = 'meus pedidos' do JOTA sem o CEVEN
 const CAMPOS_PED = ['Mês', 'Data', 'Filial', 'Vendedor', 'Cliente', 'Pedido', 'Nota fiscal'];
+// 18/11/2026: FATURADO POR DIA E FILIAL (o 'ate a data' x mes passado; a soma pelos pedidos deixava de fora notas sem pedido)
+const CAMPOS_DIA = ['Mês', 'Data', 'Filial'];
 // calculos (colunas) que interessam ao JOTA; o rotulo exato vem do GEROT e e conferido no log
 const CALC = [
   /^Faturado líquido/i, /^Faturado bruto/i, /^Devolução \(R\$\)/i, /^% Devolução/i,
@@ -170,6 +172,26 @@ function linhasVendedorDoExcel(arq, mes) {
 }
 
 // Excel Mes x Filial x Vendedor x Cliente: chave = filial|rca|cliente (codigo do cliente; sem codigo, o CNPJ). Guarda so os calculos (positivacao, carteira, faturado).
+// FILIAL x DIA: todos os calculos numericos do dia (faturado, devolucao, captacao do dia...)
+function linhasDiaDoExcel(arq, mes) {
+  const w = XLSX.readFile(arq), sh = w.Sheets[w.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(sh, { header: 1, defval: null });
+  const hi = rows.findIndex((r) => r && r.includes('Filial'));
+  if (hi < 0) throw new Error('Excel dia sem cabecalho Filial');
+  const H = rows[hi].map((c) => String(c || '').trim()), ix = (re) => H.findIndex((h) => re.test(h));
+  const iMes = ix(/^Mês$/), iData = ix(/^Data$/i), iFil = ix(/^Filial$/);
+  const dataISO = (v) => { if (v == null || v === '') return null; if (typeof v === 'number') return new Date(Math.round((v - 25569) * 864e5)).toISOString().slice(0, 10); const t = String(v).trim(); let m = t.match(/^(\d{2})\/(\d{2})\/(\d{4})/); if (m) return m[3] + '-' + m[2] + '-' + m[1]; m = t.match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[0] : null; };
+  const L = [];
+  for (const r of rows.slice(hi + 1)) {
+    if (!r || !r.some((c) => c != null && c !== '')) continue;
+    const m = iMes >= 0 && r[iMes] ? String(r[iMes]).slice(0, 7) : mes; if (m !== mes) continue;
+    const filial = String(r[iFil] || '').trim().slice(0, 3).toUpperCase(), data = dataISO(iData >= 0 ? r[iData] : null);
+    if (!/^[A-Z]{3}$/.test(filial) || !data) continue;
+    const dados = {}; H.forEach((h, k) => { if (k !== iMes && k !== iData && k !== iFil && h && !/^C[oó]d\./i.test(h)) { const v = num(r[k]); if (v != null && !Number.isNaN(v)) dados[h] = v; } });
+    const linha = { mes: m, filial, data, dados }; linha.hash = crypto.createHash('md5').update(JSON.stringify(dados)).digest('hex'); L.push(linha);
+  }
+  return { linhas: L, cab: H };
+}
 // PEDIDOS: uma linha por pedido x NF; data em ISO; so os calculos de valor do pedido
 function linhasPedidoDoExcel(arq, mes) {
   const w = XLSX.readFile(arq), sh = w.Sheets[w.SheetNames[0]];
@@ -388,6 +410,20 @@ async function main() {
             }
           } else log(`${mes} cliente: Excel nao baixou`);
         } catch (ec) { log(`FALHA clientes ${mes}:`, ec.message); }
+        // PASSO 3b (18/11/2026): FATURADO POR DIA E FILIAL. Log publico: so contagem.
+        try {
+          const arqD = await baixaExcelNivel(page, mes, alvo, CAMPOS_DIA, 'gerot_dia_' + mes + '.xlsx');
+          if (arqD) {
+            const ld = linhasDiaDoExcel(arqD, mes);
+            log(mes + ' dia: ' + ld.linhas.length + ' linhas (filial x dia)');
+            if (ld.linhas.length && !ENSAIO) {
+              const { hashes: hd } = await api('GET', '?mes=' + mes + '&dia=1');
+              const mudouD = ld.linhas.filter((l) => (hd || {})[l.filial + '|' + l.data] !== l.hash);
+              for (let i = 0; i < mudouD.length; i += 200) await api('POST', '', { dias: mudouD.slice(i, i + 200) });
+              log(mes + ' dia: ' + mudouD.length + ' gravadas no D1');
+            }
+          } else log(mes + ' dia: Excel nao baixou');
+        } catch (eD) { log('FALHA dia ' + mes + ':', eD.message); }
         // PASSO 4 (17/11/2026): PEDIDOS do mes, um por linha (data, vendedor, cliente, pedido, NF, faturado, carteira). Log publico: so contagem e colunas.
         try {
           const arqP = await baixaExcelNivel(page, mes, alvo, CAMPOS_PED, 'gerot_ped_' + mes + '.xlsx');
