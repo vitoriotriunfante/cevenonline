@@ -17,7 +17,7 @@ export function respClientesDia(v, t) {
   const st = (c) => String(c.status || '').toUpperCase();
   const vendeu = (c) => /POSITIVADO|EFETIVADO/.test(st(c));
   const visitou = (c) => !!c.checkin_horario || /VISITADO|JUSTIFICADO|POSITIVADO|EFETIVADO/.test(st(c));
-  const linha = (c) => `• ${titulo(c.nome_cliente || c.razao_social || 'cliente')} (#${c.id_cliente}) — ${st(c) || 'sem status'}` + (c.checkin_horario ? ` · ${c.checkin_horario}–${c.checkout_horario || '…'} (${c.tempo_visita || '?'})` : '') + (c.motivo_nao_visita ? ` · motivo: *${titulo(c.motivo_nao_visita)}*` : '') + (c.observacao_nao_visita ? ` · obs.: "${c.observacao_nao_visita}"` : '');
+  const linha = (c) => `• ${titulo(c.nome_cliente || c.razao_social || 'cliente')} (#${c.id_cliente}) — ${st(c) || 'sem status'}` + (c.checkin_horario ? ` · ${c.checkin_horario}–${c.checkout_horario || '…'}${(() => { if (c.tempo_visita) return ` (${c.tempo_visita})`; const a = String(c.checkin_horario).match(/^(\d{1,2}):(\d{2})/), b = String(c.checkout_horario || '').match(/^(\d{1,2}):(\d{2})/); if (!a || !b) return ''; const m = (+b[1] * 60 + +b[2]) - (+a[1] * 60 + +a[2]); return m >= 0 ? ` (${m} min)` : ''; })()}` : '') + (c.motivo_nao_visita ? ` · motivo: *${titulo(c.motivo_nao_visita)}*` : '') + (c.observacao_nao_visita ? ` · obs.: "${c.observacao_nao_visita}"` : '');
   const fora = R.filter((c) => /FORA/.test(st(c))), rota = R.filter((c) => !/FORA/.test(st(c)));
   const cab = `📋 *${v.rca} - ${titulo(v.nome)}* (${v.filial} · sup. ${sn(v.supervisor, v.supCod)}) — rota de hoje: ${rota.filter(visitou).length} visitados de ${rota.length} · com venda ${rota.filter(vendeu).length}` + (fora.length ? ` · fora da rota ${fora.length}` : '');
   let L, sug;
