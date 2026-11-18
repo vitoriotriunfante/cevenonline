@@ -30,20 +30,10 @@ const forma = (de, n) => page.evaluate(([d, q, S]) => {
   return { linhas: trs.length, th: [...sec.querySelectorAll('thead th')].map((x) => x.innerText.trim().replace(/\s+/g, ' ')).slice(0, 3), formas: trs.slice(d, d + q).map((tr) => String(tr.innerText || '').replace(/[A-Za-zÀ-ú]{2,}/g, (w) => (K.test(w) ? w : 'A')).replace(/\d/g, '9').replace(/\s+/g, ' ').slice(0, 140)) };
 }, [de, n, SEC]);
 
-// A) MOTIVO -> expande o 1o motivo -> expande a 1a filial -> o que vem embaixo?
+// C) (4a rodada, 18/11/2026) MOTIVO > Filial > Supervisor > Vendedor > ? > ? — o que abre embaixo do VENDEDOR (procura a data da devolucao)
 await clica('Motivo'); await page.waitForTimeout(7000);
-log('A motivo', JSON.stringify(await forma(0, 2)));
-log('A expande motivo', JSON.stringify(await expande(0))); await page.waitForTimeout(5000);
-log('A filhos do motivo', JSON.stringify(await forma(1, 3)));
-log('A expande filial', JSON.stringify(await expande(1))); await page.waitForTimeout(5000);
-log('A netos (embaixo da filial)', JSON.stringify(await forma(2, 4)));
-log('A expande neto', JSON.stringify(await expande(2))); await page.waitForTimeout(5000);
-log('A bisnetos', JSON.stringify(await forma(3, 4)));
-// B) VENDEDOR -> expande o 1o -> o que vem embaixo?
-await clica('Vendedor'); await page.waitForTimeout(7000);
-log('B vendedor', JSON.stringify(await forma(0, 2)));
-log('B expande vendedor', JSON.stringify(await expande(0))); await page.waitForTimeout(5000);
-log('B filhos do vendedor', JSON.stringify(await forma(1, 4)));
-log('B expande filho', JSON.stringify(await expande(1))); await page.waitForTimeout(5000);
-log('B netos', JSON.stringify(await forma(2, 4)));
+for (const [n, rot] of [[0, 'motivo'], [1, 'filial'], [2, 'supervisor'], [3, 'vendedor'], [4, 'nivel 5'], [5, 'nivel 6']]) {
+  log(`C expande ${rot}`, JSON.stringify(await expande(n))); await page.waitForTimeout(5000);
+  log(`C embaixo de ${rot}`, JSON.stringify(await forma(n + 1, 3)));
+}
 await browser.close();
