@@ -70,16 +70,28 @@ export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, envios
   const vs = (Es.vend || []).filter((v) => pessoaReal(v) && v.meta > 0);
   if (!vs.length) return null;
 
-  const metaTot = vs.reduce((a, v) => a + (v.meta || 0), 0);
-  const fatTot = vs.reduce((a, v) => a + (v.fat || 0), 0);
-  const pendTot = vs.reduce((a, v) => a + (v.pend || 0), 0);
+  let metaTot = vs.reduce((a, v) => a + (v.meta || 0), 0);
+  let fatTot = vs.reduce((a, v) => a + (v.fat || 0), 0);
+  let pendTot = vs.reduce((a, v) => a + (v.pend || 0), 0);
   const digHoje = vs.reduce((a, v) => a + (v.dig || 0), 0);
   const devHoje = vs.reduce((a, v) => a + (v.devHoje || 0), 0);
-  const posReal = vs.reduce((a, v) => a + (v.pos || 0), 0);
-  const posMeta = vs.reduce((a, v) => a + (v.metaPos || 0), 0);
+  let posReal = vs.reduce((a, v) => a + (v.pos || 0), 0);
+  let posMeta = vs.reduce((a, v) => a + (v.metaPos || 0), 0);
 
-  const gapTot = Math.max(0, metaTot - fatTot - pendTot);
-  const metaDia = gapTot / faltam;
+  let gapTot = Math.max(0, metaTot - fatTot - pendTot);
+  let metaDia = gapTot / faltam;
+  // 18/11/2026 (base unica): numeros do mes do supervisor = os do GEROT (mesmos do "bom dia" do JOTA): meta, faturado, carteira e necessidade/dia de captacao
+  let gerotSup = null;
+  try {
+    const sc = (vs.find((v) => v.supCod) || {}).supCod;
+    if (sc) { const r = await db.prepare('SELECT dados FROM gerot_supervisor_mes WHERE mes = ? AND filial = ? AND cod_sup = ?').bind(hojeSP().slice(0, 7), filial, String(sc)).first(); if (r) { const d = JSON.parse(r.dados || '{}'); const n = (k) => (d[k] == null ? null : Number(d[k]) || 0); gerotSup = { meta: n('Meta (R$)'), fat: n('Faturado líquido (R$)'), cart: n('Carteira pendente (R$)'), nec: n('Necessidade dia captação (R$)'), pos: n('Positivação (filial + CNPJ)'), metaPos: n('Meta de positivação') }; } }
+  } catch (e) { gerotSup = null; }
+  if (gerotSup && gerotSup.meta) {
+    metaTot = gerotSup.meta; fatTot = gerotSup.fat || 0; pendTot = gerotSup.cart || 0;
+    gapTot = Math.max(0, metaTot - fatTot - pendTot);
+    metaDia = gerotSup.nec != null ? gerotSup.nec : gapTot / faltam;
+    if (gerotSup.metaPos) { posReal = gerotSup.pos || 0; posMeta = gerotSup.metaPos; }
+  }
   const pctReal = metaTot ? (fatTot / metaTot) * 100 : 0;
   const pctCart = metaTot ? ((fatTot + pendTot) / metaTot) * 100 : 0;
   const pctDia = metaDia > 0 ? (digHoje / metaDia) * 100 : 0;

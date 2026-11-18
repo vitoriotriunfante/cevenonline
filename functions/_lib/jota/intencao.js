@@ -200,6 +200,10 @@ export async function rotearIntencao(B, c, t, info) {
       const r = await (await G()).respDevolucaoGerot(B, mR ? { filiais: e.filiais, rca: mR[1], nome: `vendedor ${mR[1]}${filCit ? ' (' + filCit + ')' : ''}` } : { ...e, supCod: papel === 'supervisor' ? e.supCod : null }).catch(() => null); if (r) return r;
     }
     // faturado ate a data x mes passado ate a mesma data (Vitorio e Evandro, 18/11)
+    // 18/11 (Vitorio: "cortes tambem tem por motivo"): cortes da gestao pelo GEROT, comercial x logistico, aberto por filial/supervisor/vendedor
+    if (/\bCORTES?\b|CORTAD/.test(t) && !/\d{7,}|DEVOL|\bHOJE\b|\bHJ\b|INDUSTRIA|FORNECEDOR|PEDIDOS?\b|CLIENTE/.test(t)) { const e = await escG(); const r = await (await G()).respCortesGestao(B, e).catch(() => null); if (r) return r; }
+    // 18/11 (Evandro): gap de cada cliente contra a media dos 3 meses (GEROT por cliente)
+    if ((/\bGAP\b/.test(t) || (/CLIENTE/.test(t) && /ABAIXO DA MEDIA|MEDIA (DOS )?(ULTIMOS )?(3|TRES) MESES|MEDIA (DE )?3 ?M\b|\b3 ?M\b/.test(t))) && !/POSITIVA/.test(t)) { const e = await escG(); const r = await (await G()).respGapClientes(B, e).catch(() => null); if (r) return r; }
     if (/ATE A DATA|ATE HOJE|ATE O DIA|MESMO DIA|MESMA DATA/.test(t) || (/COMPARA/.test(t) && /MES (ANTERIOR|PASSADO)|OUTUBRO/.test(t) && /FATURA|VENDA/.test(t))) { const e = await escG(); const r = await (await G()).respAteData(B, e.filiais, e.nome).catch(() => null); if (r) return r; }   // 18/11: pelo faturado por FILIAL x DIA do GEROT (gerot_filial_dia; out = R$ 80,48 mi igual a tela)
   }
   // C11 · TENDENCIA DAS FILIAIS / DO BRASIL (nunca presa na filial da pergunta anterior)

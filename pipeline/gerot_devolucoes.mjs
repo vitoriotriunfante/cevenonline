@@ -57,6 +57,8 @@ try {
     const reg = { valor: num(L[iDev]), notas: num(L[iNot]), clientes: num(L[iCli]) };
     if (mF && motivo) out.push({ mes, motivo, filial: mF[1], ...reg }); else if (!mF) { motivo = rot.toUpperCase(); out.push({ mes, motivo, filial: '', ...reg }); }
   }
+  // 18/11/2026: notas por filial vinham 1/2 (valor e clientes batem com o total): mostra o texto cru das 3 primeiras celulas de notas de filial (so numero)
+  log('notas (texto cru, filial):', JSON.stringify(T.linhas.filter((L) => /FILIAL/.test(L[0] || '')).slice(0, 3).map((L) => [L.length, L[iNot], L[iNot + 1]])), '· th', T.th.length);
   const nM = out.filter((x) => !x.filial).length, nF = out.filter((x) => x.filial).length;
   log(`devolucao por motivo: ${nM} motivos · ${nF} linhas motivo x filial · colunas ${JSON.stringify(T.th.slice(0, 8))}`);
   if (nM) for (let i = 0; i < out.length; i += 200) {

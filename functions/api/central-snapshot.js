@@ -103,6 +103,9 @@ export async function onRequestGet({ env, request }) {
         clube_lido_em = C.lido_em;
         // ROTA COM O CHECK-IN DO CLUBE (12/11/2026; conferencia 11/11: 98,8% dos check-ins iguais ao CEVEN, hora:minuto): quando o roteiro de hoje e da madrugada
         // (+45 min) ou so o planejado do mes, o status de cada cliente vem do check-in/out do Clube (rede inteira, a cada 15 min). So o JOTA e as telas leem; a Liga nao.
+        // ROTA DO DIA COM OS NOMES DO CLUBE (18/11/2026, Roteiro Consolidado Geral, clube_roteiro): a lista de clientes de hoje sai do Clube; do CEVEN fica so o que o Clube nao tem (focos, ultima compra)
+        const RT = new Map();
+        try { const { results } = await env.DB.prepare('SELECT rca, cliente, nome, razao, fantasia, cnpj, endereco, bairro, cidade, recorrencia FROM clube_roteiro WHERE dia = ? AND filial = ?').bind(dia, filial).all(); for (const x of results || []) { const k = String(x.rca); if (!RT.has(k)) RT.set(k, []); RT.get(k).push(x); } } catch (e) { /* sem tabela: fica a rota do CEVEN */ }
         let CK = null, JU = null, FC = null;
         try { const [rCk, rJu, rFc] = await Promise.all([
           env.DB.prepare('SELECT rca, cliente, tipo, data_hora FROM clube_checkin WHERE dia = ? AND filial = ?').bind(dia, filial).all(),
@@ -112,10 +115,13 @@ export async function onRequestGet({ env, request }) {
         if (CK) for (const [rca, r] of Object.entries(rcas)) {
           if (!C.rcas.get(rca)) continue;
           const rotVelho = Array.isArray(r.roteiro) && !(Date.now() - Date.parse(String(r.roteiro_em || '').replace(' ', 'T') + 'Z') < 45 * 60000);
-          const base = Array.isArray(r.roteiro) && !rotVelho ? null : Array.isArray(r.roteiro) ? r.roteiro : Array.isArray(r.roteiro_planejado) ? r.roteiro_planejado : null;
+          const base0 = Array.isArray(r.roteiro) && !rotVelho ? null : Array.isArray(r.roteiro) ? r.roteiro : Array.isArray(r.roteiro_planejado) ? r.roteiro_planejado : null;
+          const rtC = RT.get(String(rca));
+          const base = rtC && rtC.length && (!Array.isArray(r.roteiro) || rotVelho) ? rtC.map((x) => { const ce = (base0 || []).find((c) => String(c.id_cliente) === String(x.cliente)) || (Array.isArray(r.roteiro_mes) ? r.roteiro_mes.find((c) => String(c.id_cliente) === String(x.cliente)) : null) || {};
+            return { ...ce, id_cliente: String(x.cliente), nome_cliente: x.fantasia || x.razao || ce.nome_cliente, razao_social: x.razao || ce.razao_social, cnpj: x.cnpj || ce.cnpj, endereco: [x.endereco, x.bairro, x.cidade].filter(Boolean).join(', ') || ce.endereco, recorrencia: x.recorrencia || ce.recorrencia, data_visita: dia, status: /POSITIVADO|EFETIVADO|VISITADO|JUSTIFICADO/i.test(String(ce.status || '')) && String(ce.data_visita || '').slice(0, 10) === dia ? ce.status : 'AGENDADO', _rota: 'clube' }; }) : base0;
           if (!base) continue;
           r.roteiro = base.filter((c) => c && String(c.data_visita || '').slice(0, 10) === dia).map((c) => { const k = rca + '|' + String(c.id_cliente), y = CK.get(k), ju = JU && JU.get(k), focosDb = FC && FC.get(k), focos = (Array.isArray(c.focos) && c.focos.length) ? c.focos : (focosDb || c.focos); if (y && y.ci) return { ...c, ...(focos ? { focos } : {}), status: /POSITIVADO|EFETIVADO/i.test(String(c.status || '')) ? c.status : 'VISITADO', checkin_horario: y.ci, checkout_horario: y.co, ...(ju ? { motivo_nao_visita: ju.mot || c.motivo_nao_visita, observacao_nao_visita: ju.obs || c.observacao_nao_visita } : {}) }; if (ju) return { ...c, ...(focos ? { focos } : {}), status: /POSITIVADO|EFETIVADO/i.test(String(c.status || '')) ? c.status : 'JUSTIFICADO', checkin_horario: null, checkout_horario: null, motivo_nao_visita: ju.mot || c.motivo_nao_visita, observacao_nao_visita: ju.obs || c.observacao_nao_visita }; return { ...c, ...(focos ? { focos } : {}), status: 'ABERTO', checkin_horario: null, checkout_horario: null }; });
-          r.rota_clube = true; (r.reserva = r.reserva || {}).rota_clube = { fonte: 'Clube da Venda (check-in/out)', em: C.lido_em };
+          r.rota_clube = true; (r.reserva = r.reserva || {}).rota_clube = { fonte: rtC && rtC.length ? 'Clube da Venda (rota do dia e check-in/out)' : 'Clube da Venda (check-in/out)', em: C.lido_em };
           if (r.reserva.roteiro) delete r.reserva.roteiro;
         }
         for (const [rca, r] of Object.entries(rcas)) {

@@ -166,10 +166,68 @@ export async function respDevolucaoMotivo(B, filiais, nome) {
   try { R = (await db.prepare('SELECT motivo, valor, notas, clientes, em FROM gerot_devolucao_motivo WHERE mes = ? AND filial = ? ORDER BY valor DESC').bind(mesAtual(), uma).all()).results || []; em = R[0] && R[0].em; } catch (e) { return null; }
   if (!R.length) return null;
   const tot = R.reduce((a, x) => a + (Number(x.valor) || 0), 0), notas = R.reduce((a, x) => a + (Number(x.notas) || 0), 0);
-  const L = [`↩️ *Devolução por motivo — ${nome}* · ${mesAtual().slice(5)}/${mesAtual().slice(0, 4)}`, `Total *${R$(tot)}* em *${N(notas)}* notas`, '_🟥 = cartão vermelho na Liga · ⚽ = gol contra na Liga_', ''];
-  for (const x of R.slice(0, 14)) L.push(`${LIGA_VERMELHO.test(x.motivo) ? '🟥' : LIGA_GOLCONTRA.test(x.motivo) ? '⚽' : '•'} ${titulo(String(x.motivo).toLowerCase())}: *${R$(x.valor)}* (${pc(x.valor, tot)}) · ${N(x.notas)} nota(s) · ${N(x.clientes)} cliente(s)`);
+  const L = [`↩️ *Devolução por motivo — ${nome}* · ${mesAtual().slice(5)}/${mesAtual().slice(0, 4)}`, uma ? `Total *${R$(tot)}*` : `Total *${R$(tot)}* em *${N(notas)}* notas`, '_🟥 = cartão vermelho na Liga · ⚽ = gol contra na Liga_', ''];
+  for (const x of R.slice(0, 14)) L.push(`${LIGA_VERMELHO.test(x.motivo) ? '🟥' : LIGA_GOLCONTRA.test(x.motivo) ? '⚽' : '•'} ${titulo(String(x.motivo).toLowerCase())}: *${R$(x.valor)}* (${pc(x.valor, tot)})${uma ? '' : ` · ${N(x.notas)} nota(s)`} · ${N(x.clientes)} cliente(s)`   /* 18/11: notas por filial nao bate com o total do GEROT (valor e clientes batem); fica fora ate corrigir a leitura */);
   if (R.length > 14) L.push(`… e mais ${R.length - 14} motivo(s)`);
   if (!uma) { try { const { results: F } = await db.prepare("SELECT filial, valor FROM gerot_devolucao_motivo WHERE mes = ? AND motivo = 'CLIENTE NAO PEDIU' AND filial <> '' ORDER BY valor DESC").bind(mesAtual()).all(); if (F && F.length) L.push('', '*"Cliente não pediu" por filial:* ' + F.map((x) => `${x.filial} ${R$(x.valor)}`).join(' · ')); } catch (e) { /* sem filial */ } }
   L.push('', `_GEROT · tela Devoluções, por motivo${em ? ' · lido ' + new Date(em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}. Peça "devolução por motivo TPH" para uma filial._`);
+  return L.join(String.fromCharCode(10));
+}
+
+// ---------- GAP POR CLIENTE x MEDIA DOS 3 MESES (Evandro Servat, 18/11/2026) ----------
+// Media mensal do faturado liquido do cliente nos 3 meses fechados (GEROT, gerot_cliente_mes) x o que ele ja faturou neste mes.
+// "Falta" = quanto falta para o cliente voltar a media (nao e projecao). So entra mes que o GEROT tem; a resposta diz quais.
+export async function respGapClientes(B, e) {
+  const db = B.env && B.env.DB; if (!db) return null;
+  const m0 = mesAtual(), [y, m] = m0.split('-').map(Number), M = [1, 2, 3].map((k) => new Date(Date.UTC(y, m - 1 - k, 1)).toISOString().slice(0, 7));
+  const F = e.filiais && e.filiais.length ? e.filiais : FILIAIS, R = e.rcas && e.rcas.length ? e.rcas.map(String) : null;
+  let tem = [];
+  try { tem = ((await db.prepare(`SELECT DISTINCT mes FROM gerot_cliente_mes WHERE mes IN (${qs(M)}) AND filial = ?`).bind(...M, F[0]).all()).results || []).map((x) => x.mes).sort(); } catch (e2) { return null; }
+  if (!tem.length) return `📉 *Gap por cliente — ${e.nome}*: ainda não tenho os meses ${M.map((x) => x.slice(5)).join(', ')} por cliente do GEROT.`;
+  const FAT = `json_extract(dados, '$."Faturado líquido (R$)"')`;
+  const filtro = `mes IN (${qs([m0, ...tem])}) AND filial IN (${qs(F)})${R ? ` AND rca IN (${qs(R)})` : ''}`, binds = [m0, ...tem, ...F, ...(R || [])];
+  const G = `SELECT filial, cliente, MAX(nome) nome, MAX(CASE WHEN mes = '${m0}' THEN rca END) rca, MAX(rca) rca2, SUM(CASE WHEN mes = '${m0}' THEN ${FAT} ELSE 0 END) atual, SUM(CASE WHEN mes <> '${m0}' THEN ${FAT} ELSE 0 END) / ${tem.length}.0 media FROM gerot_cliente_mes WHERE ${filtro} GROUP BY filial, cliente HAVING media > 0 AND atual < media`;
+  let T = null, top = [], porF = [];
+  try {
+    [T, top, porF] = await Promise.all([
+      db.prepare(`SELECT COUNT(*) n, SUM(media - atual) gap, SUM(CASE WHEN atual <= 0 THEN 1 ELSE 0 END) zer FROM (${G})`).bind(...binds).first(),
+      db.prepare(`${G} ORDER BY (media - atual) DESC LIMIT 15`).bind(...binds).all().then((x) => x.results || []),
+      F.length > 1 ? db.prepare(`SELECT filial, COUNT(*) n, SUM(media - atual) gap FROM (${G}) GROUP BY filial ORDER BY gap DESC`).bind(...binds).all().then((x) => x.results || []) : Promise.resolve([]),
+    ]);
+  } catch (e2) { return null; }
+  if (!T || !T.n) return `📉 *Gap por cliente — ${e.nome}*: nenhum cliente abaixo da média mensal de ${tem.map((x) => x.slice(5)).join(', ')}.`;
+  const dia = hojeSP().slice(8, 10), mm = tem.map((x) => x.slice(5) + '/' + x.slice(2, 4)).join(', ');
+  const L = [`📉 *Clientes abaixo da média de ${tem.length === 3 ? '3 meses' : tem.length + ' mês(es)'} — ${e.nome}*`,
+    `*${N(T.n)}* clientes faturaram menos este mês (até o dia ${dia}) do que a média mensal de ${mm} · faltam *${R$(T.gap)}* para voltarem à média`,
+    `Desses, *${N(T.zer)}* ainda não faturaram nada no mês.`];
+  if (porF.length) L.push('', '*Por filial (clientes · falta):*', ...porF.map((x) => `• *${x.filial}*: ${N(x.n)} · ${R$(x.gap)}`));
+  L.push('', `*Maiores gaps:*`, '_Cliente · vendedor · este mês · média · falta_');
+  for (const x of top) L.push(`• ${titulo(String(x.nome || 'cliente ' + x.cliente).toLowerCase())} (#${x.cliente}) · ${F.length > 1 ? x.filial + ' ' : ''}${x.rca || x.rca2 || '—'} · ${R$(x.atual)} · ${R$(x.media)} · *${R$(x.media - x.atual)}*`);
+  L.push('', `_GEROT · faturado líquido por cliente; média dos meses fechados ${mm}. "Falta" é quanto falta para voltar à média, não é projeção._`);
+  return L.join(String.fromCharCode(10));
+}
+
+// ---------- CORTES DA GESTAO (comercial x logistico — o "motivo" do corte no GEROT) ----------
+// Vitorio, 18/11/2026: "cortes tambem tem por motivo igual o CEVEN". A tela Cortes do GEROT abre o corte em COMERCIAL e LOGISTICO (nao ha outro motivo nela).
+// Brasil = por filial; filial = por supervisor; supervisor/grupo = por vendedor. Mesmo numero da tela (gerot_*_mes).
+export async function respCortesGestao(B, e) {
+  const db = B.env && B.env.DB; if (!db) return null;
+  const mes = mesAtual(), F = e.filiais && e.filiais.length ? e.filiais : FILIAIS;
+  const C = `SUM(json_extract(dados, '$."Corte comercial (R$)"')) com, SUM(json_extract(dados, '$."Corte logístico (R$)"')) log, SUM(json_extract(dados, '$."Faturado bruto (R$)"')) bru`;
+  let R = [], por = '';
+  try {
+    if (e.rcas && e.rcas.length) { por = 'vendedor'; R = (await db.prepare(`SELECT rca || ' - ' || vendedor k, ${C} FROM gerot_vendedor_mes WHERE mes = ? AND filial = ? AND rca IN (${qs(e.rcas)}) GROUP BY rca`).bind(mes, F[0], ...e.rcas.map(String)).all()).results || []; }
+    else if (F.length === 1) { por = 'supervisor'; R = (await db.prepare(`SELECT cod_sup || ' - ' || supervisor k, ${C} FROM gerot_supervisor_mes WHERE mes = ? AND filial = ? GROUP BY cod_sup`).bind(mes, F[0]).all()).results || []; }
+    else { por = 'filial'; R = (await db.prepare(`SELECT filial k, ${C} FROM gerot_filial_mes WHERE mes = ? AND filial IN (${qs(F)}) GROUP BY filial`).bind(mes, ...F).all()).results || []; }
+  } catch (e2) { return null; }
+  R = R.map((x) => ({ ...x, com: Number(x.com) || 0, log: Number(x.log) || 0, bru: Number(x.bru) || 0 })).filter((x) => x.com + x.log > 0).sort((a, b) => (b.com + b.log) - (a.com + a.log));
+  const tc = R.reduce((a, x) => a + x.com, 0), tl = R.reduce((a, x) => a + x.log, 0), tb = R.reduce((a, x) => a + x.bru, 0);
+  if (!R.length) return `✂️ *Cortes do mês — ${e.nome}*: nenhum corte no GEROT em ${mes.slice(5)}/${mes.slice(0, 4)}. 👏`;
+  const nomeK = (k) => por === 'filial' ? `*${k}*` : String(k).replace(/^(\d+) - (.*)$/, (m, c, n) => `${c} - ${nomeCurto(n)}`);
+  const L = [`✂️ *Cortes do mês — ${e.nome}*`, `Total *${R$(tc + tl)}*${tb ? ` (${pc(tc + tl, tb)} do faturado bruto)` : ''}`, `• Comercial: *${R$(tc)}* (${pc(tc, tc + tl)})`, `• Logístico: *${R$(tl)}* (${pc(tl, tc + tl)})`,
+    '_Comercial = decisão de venda (preço, crédito, regra) · logístico = faltou produto no estoque._', '', `*Por ${por} (total · comercial · logístico):*`];
+  for (const x of R.slice(0, 15)) L.push(`• ${nomeK(x.k)}: ${R$(x.com + x.log)} · ${R$(x.com)} · ${R$(x.log)}`);
+  if (R.length > 15) L.push(`… e mais ${R.length - 15}`);
+  L.push('', `_GEROT · tela Cortes (comercial × logístico é o motivo que o GEROT dá). Peça "cortes por indústria" ou "meus cortes" para o pedido._`);
   return L.join(String.fromCharCode(10));
 }

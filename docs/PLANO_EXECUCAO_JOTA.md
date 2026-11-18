@@ -63,3 +63,9 @@ Fora (sem fonte): marca própria / tripla / dobrou o mix / bonificação (itens 
 | G | **Liga: meta do 1º tempo** (leituras do Clube ao longo do dia) e **quinzenas** (entrada guardada) | todos os gols com fonte |
 | H | **MONITOR.IA em simulação** (grava o que mandaria, não envia) | 1 dia lido pelo Vitório + 2 supervisores |
 | I | **Imagens sob demanda** (chave do GitHub no site — decisão do Vitório) | matinal com cards em ~2 min |
+
+## 18/11 — andamento (perguntas do Evandro, do Micheleto e do Vitório)
+- **No ar:** margem (só diretoria/gerente) · % de atingimento por filial · carteira por situação e motivo · plano de visitas e aderência por filial/supervisor/vendedor · justificativas vendedor × motivo e motivo × vendedor (Clube, todos os dias carregados) · devolução pelo GEROT (R$ 2.306.455 = tela) · **devolução por motivo** Brasil e por filial (29 motivos, 161 linhas motivo × filial; 🟥/⚽ marcam o que é cartão/gol contra na Liga) · faturado **até a data** × mês passado × **média dos 3 meses** (gerot_filial_dia; agosto e setembro carregando 18/11) · bom dia cascateado supervisor/gerente/diretoria.
+- **Bloco D (rota com nomes) — coleta no ar:** `pipeline/clube_roteiro.mjs` (passo do clube-coletor; Roteiro Consolidado Geral, Excel por filial, relê a cada 3 h) grava `clube_roteiro`; `central-snapshot.js` passa a montar a rota de hoje a partir dele (do CEVEN fica só focos/última compra).
+- **Devolução por motivo — notas por filial:** valor e clientes por filial somam o total do Brasil; a coluna de notas por filial vem 1/2 (errada). Fora da resposta até corrigir a leitura (log do próximo run mostra o texto cru).
+- **Falta:** gap por cliente × média 3M (gerot_cliente_mes ago–out) · Liga MP/tripla/mix/bonificação (Produto) e impedimento GPS · MONITOR.IA dossiê só Clube+GEROT e simulação · auditoria ampla de novo (meta >95%) · decisão do Vitório: 13 vendedores só no GEROT e Cristiano 1098.
