@@ -12,6 +12,8 @@
 // =========================================================================
 import { FILIAIS, N, R$, hojeSP, titulo, diasUteisRestantes, vn } from '../base.js';
 import { semCompraNaRota } from './rota.js';
+// 18/11/2026: VISITA NA ROTA = a conta do Clube: check-in OU justificativa OU pedido do Clube no cliente (API 268: 4 visitas = 4 pedidos, nenhum check-in)
+const visitouC = (c) => minHM(c.checkin_horario) != null || /VISITADO|JUSTIFICADO|POSITIVADO|EFETIVADO/i.test(String(c.status || ''));
 import { posGerotFiliais } from './resumo.js';
 import { diasUteisMes } from './gestao.js';
 
@@ -41,7 +43,7 @@ export async function momentosLigados(B) {
 // qual momento: fechamento so apos 17h00 (evita "boa noite" as 11h30 em rota curta)
 export function qualMomento(v) {
   const m = minHM(hhmm()), R = Array.isArray(v.rotaHoje) ? v.rotaHoje.filter((c) => !/FORA/i.test(String(c.status || ''))) : [];
-  const prog = R.length, feitas = R.filter((c) => minHM(c.checkin_horario) != null).length, frac = prog ? feitas / prog : 0;
+  const prog = R.length, feitas = R.filter((c) => visitouC(c)).length, frac = prog ? feitas / prog : 0;
   if (m >= 17 * 60) return 'fechamento';
   if (m < 11 * 60 && frac < 0.4) return 'plano';
   return 'meio';
@@ -285,7 +287,7 @@ export async function respMomento(B, c, Ev, momentoForcado = null) {
       L.push('', RODAPE, `〔M:${momento}〕`);
       return { texto: L.join('\n'), momento, incentiva: false, comemora: !temPerda && (Number(DC.t.ped_total) || 0) > 0 };
     }
-    const RG = await rotaGerente(B, v), R = rota, feitas = R.filter((x) => minHM(x.checkin_horario) != null || Number((RG.get(String(x.id_cliente)) || {}).tem_checkin) === 1), ci = feitas.map((x) => minHM(x.checkin_horario)), co = R.map((x) => minHM(x.checkout_horario)).filter((x) => x != null);
+    const RG = await rotaGerente(B, v), R = rota, feitas = R.filter((x) => visitouC(x) || Number((RG.get(String(x.id_cliente)) || {}).tem_checkin) === 1), ci = feitas.map((x) => minHM(x.checkin_horario)), co = R.map((x) => minHM(x.checkout_horario)).filter((x) => x != null);
     const fFeitos = foco.filter((f) => comprouHoje(f.id) || comprouMes(f.id));
     if (momento === 'meio') {
       if (v.meta > 0) L.push(`📊 *Mês:* *${pc(vend, v.meta)}* da meta${v.metaPos ? ` · Positivação: *${N(v.pos || 0)}/${N(v.metaPos)}*` : ''}`);
@@ -346,7 +348,7 @@ async function recorrenciaEquipe(B, filial, nomeSup) {
 export function qualMomentoEquipe(V) {
   const m = minHM(hhmm());
   let prog = 0, feitas = 0;
-  for (const v of V) { const R = Array.isArray(v.rotaHoje) ? v.rotaHoje.filter((c) => !/FORA/i.test(String(c.status || ''))) : []; prog += R.length; feitas += R.filter((c) => minHM(c.checkin_horario) != null).length; }
+  for (const v of V) { const R = Array.isArray(v.rotaHoje) ? v.rotaHoje.filter((c) => !/FORA/i.test(String(c.status || ''))) : []; prog += R.length; feitas += R.filter((c) => visitouC(c)).length; }
   const frac = prog ? feitas / prog : 0;
   if (m >= 17 * 60) return 'fechamento';
   if (m < 10 * 60 + 30 && frac < 0.4) return 'abertura';
@@ -385,7 +387,7 @@ export async function respMomentoSupervisor(B, c, Ev, momentoForcado = null) {
     if (Array.isArray(v.rotaHoje) && v.rotaHoje.length) {
       const RG = await rotaGerente(B, v);
       const { rota, sem, pedidoHoje } = await semCompraNaRota(B, v).catch(() => ({ rota: [], sem: [], pedidoHoje: new Map() }));
-      x.prog = rota.length; x.feitas = rota.filter((r) => minHM(r.checkin_horario) != null || Number((RG.get(String(r.id_cliente)) || {}).tem_checkin) === 1).length;
+      x.prog = rota.length; x.feitas = rota.filter((r) => visitouC(r) || Number((RG.get(String(r.id_cliente)) || {}).tem_checkin) === 1).length;
       x.foco = await focoDoDia(B, v, sem);
       const semIds = new Set(sem.map((s) => String(s.c.id_cliente)));
       x.focoOk = x.foco.filter((f) => (pedidoHoje && pedidoHoje.has(f.id)) || !semIds.has(f.id)).length;
@@ -475,7 +477,7 @@ export async function respMomentoGerente(B, c, Ev, momentoForcado = null) {
   const vend = (v) => (v.fat || 0) + (v.pend || 0), soma = (L, f) => L.reduce((a, v) => a + (Number(f(v)) || 0), 0);
   // visitas = mesma conta do supervisor e do vendedor: check-in individual OU tem_checkin na rota do gerente (11/11: 67 x 69 na equipe do Eder)
   const RGf = new Map(); try { const { results } = await B.env.DB.prepare('SELECT json FROM rota_gerente_dia WHERE data_ref = ? AND filial = ?').bind(hojeSP(), filial).all(); for (const r of results || []) { let a2 = []; try { a2 = JSON.parse(r.json); } catch (e) { continue; } for (const x of a2) RGf.set(String(x.id_representante) + '|' + String(x.id_cliente), x); } } catch (e) { /* sem rota do gerente */ }
-  const visitas = (L) => { let p = 0, f = 0; for (const v of L) { const vis = new Set(), R = Array.isArray(v.rotaHoje) ? v.rotaHoje.filter((x) => !/FORA/i.test(String(x.status || '')) && !vis.has(String(x.id_cliente)) && vis.add(String(x.id_cliente))) : []; p += R.length; f += R.filter((x) => minHM(x.checkin_horario) != null || Number((RGf.get(String(v.rca) + '|' + String(x.id_cliente)) || {}).tem_checkin) === 1).length; } return { p, f }; };
+  const visitas = (L) => { let p = 0, f = 0; for (const v of L) { const vis = new Set(), R = Array.isArray(v.rotaHoje) ? v.rotaHoje.filter((x) => !/FORA/i.test(String(x.status || '')) && !vis.has(String(x.id_cliente)) && vis.add(String(x.id_cliente))) : []; p += R.length; f += R.filter((x) => visitouC(x) || Number((RGf.get(String(v.rca) + '|' + String(x.id_cliente)) || {}).tem_checkin) === 1).length; } return { p, f }; };
   const S = supervisoresDaEquipe(V), meta = soma(TODOS, (v) => v.meta), vd = soma(TODOS, vend), du = diasUteisRestantes(), porDia = du ? Math.max(0, meta - vd) / du : 0;
   const st = momento === 'abertura' ? await Promise.all(S.map(([s]) => statusSupervisor(B, filial, s))) : [];
   const L = [ABRE_G[momento][ix](n, nomeF), ''];
