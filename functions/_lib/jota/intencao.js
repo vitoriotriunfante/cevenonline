@@ -90,6 +90,8 @@ export async function rotearIntencao(B, c, t, info) {
     if (r && (r.tipo === 'sup')) {
       const nomeSup = typeof r.alvo === 'object' ? (r.alvo.nome || '') : r.alvo, fl = r.filial || filCit || (r.E.vend.find((v) => sem(v.supervisor) === sem(nomeSup)) || {}).filial;
       const Es = await escopoSupervisor(B, nomeSup, fl);
+      // 18/11/2026: "bom dia do <supervisor>" = o mesmo bom dia consolidado que ele recebe; "matinal do <supervisor>" = os cards da reuniao
+      if (/BOM DIA|BOA TARDE|BOA NOITE/.test(mPess[1])) { const V = (Es && Es.vend) || []; const r2 = await (await import('./respostas/bomdia_gestao.js')).respBomDiaGestao(B, 'supervisor', { nome: Es.nome, filiais: [fl], supCod: (V.find((v) => v.supCod) || {}).supCod || null, rcas: V.map((v) => String(v.rca)), primeiro: '' }).catch(() => null); if (r2) return (r.outraFilial ? `_${titulo(nomeSup)} é da ${fl}, não da ${r.outraFilial}._\n\n` : '') + `👤 *Como ${titulo(nomeSup)} vê:*\n\n` + r2; }
       const { respMatinal } = await import('./respostas/gestao.js');
       const txt = await respMatinal(B, Es);
       if (txt) return (r.outraFilial ? `_${titulo(nomeSup)} é da ${fl}, não da ${r.outraFilial}._\n\n` : '') + txt;
@@ -120,8 +122,16 @@ export async function rotearIntencao(B, c, t, info) {
   if (/^\W*(BOM DIA|BOA TARDE|BOA NOITE|OI|OLA|E AI)(\s+JOTA)?\W*$/.test(t)) {
     const h = HORA(), mo = h < 11 ? 'plano' : h < 15 ? 'meio' : 'fechamento', rodMenu = '\n\n📋 Digite *menu* para ver tudo o que eu respondo.';
     if (papel === 'vendedor' && rcaV) { const Ev = await carregaEscopo(B, esc); const m = await (await MO()).respMomento(B, c, Ev, mo).catch(() => null); if (m && m.texto) return m.texto + rodMenu; }
-    if (papel === 'supervisor') { const Ev = await carregaEscopo(B, esc); const { respMatinal } = await import('./respostas/gestao.js'); const r = await respMatinal(B, Ev).catch(() => null); if (r) return r + rodMenu; }
-    if (papel === 'gerente') { const Ev = await carregaEscopo(B, esc); const m = await (await MO()).respMomentoGerente(B, c, Ev, mo).catch(() => null); if (m && m.texto) return m.texto + rodMenu; }
+    // 18/11/2026 (Vitorio: "pq nao temos o mesmo bom dia cascateado? supervisor / gerente / diretoria... o que um CEO diria?"): bom dia consolidado
+    // do nivel de quem pergunta (matinal continua sendo os cards da reuniao)
+    if (papel === 'supervisor' || papel === 'gerente' || papel === 'diretoria' || papel === 'ceo') {
+      const { respBomDiaGestao } = await import('./respostas/bomdia_gestao.js');
+      let r = null;
+      if (papel === 'supervisor') { const Ev = await carregaEscopo(B, esc), V = (Ev && Ev.vend) || []; r = await respBomDiaGestao(B, 'supervisor', { nome: Ev && Ev.nome || 'Equipe', filiais: [c.filial], supCod: (V.find((v) => v.supCod) || {}).supCod || null, rcas: V.map((v) => String(v.rca)), primeiro: c.nome }).catch(() => null); }
+      else if (papel === 'gerente') r = await respBomDiaGestao(B, 'gerente', { nome: c.filial, filiais: [c.filial], primeiro: c.nome }).catch(() => null);
+      else r = await respBomDiaGestao(B, 'diretoria', { nome: 'Brasil — 11 filiais', filiais: FILIAIS, primeiro: c.nome }).catch(() => null);
+      if (r) return r;
+    }
   }
   // D1 · "QUANTO VENDI HOJE" do proprio vendedor = o dia dele (Clube), nunca o card do mes (auditoria 17/11/2026: R05 periodo trocado)
   if (papel === 'vendedor' && rcaV && /\b(QUANTO|O QUE)\b.*\bVENDI\b.*\bHOJE\b|\bMINHAS? VENDAS? (DE |DO )?(HOJE|DIA)\b|\bVENDAS? (DE |DO )?(HOJE|DIA)\b|\bVENDAS?\b.*\bHOJE\b|\bMEU DIA\b|^\W*HOJE\W*$/.test(t)) {
