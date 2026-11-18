@@ -303,7 +303,9 @@ export async function semCompraNaRota(B, v) {
   };
   const vistos = new Set(), rota = [];
   for (const c of R0) { const k = String(c.id_cliente); if (vistos.has(k)) continue; vistos.add(k); rota.push(c); }
-  const comprou = (c) => compraram.has(String(c.id_cliente)) || /POSITIVADO|EFETIVADO/i.test(String(c.status || ''));
+  // 18/11/2026: pedido no mes (data do pedido no GEROT/Clube) = comprou no mes (Big Casa: pedido 17/11 aparecia em 'ainda nao comprou' com '1 dia')
+  const iniMes = hojeSP().slice(0, 8) + '01';
+  const comprou = (c) => compraram.has(String(c.id_cliente)) || /POSITIVADO|EFETIVADO/i.test(String(c.status || '')) || String(ultimasCompras.get(String(c.id_cliente)) || '') >= iniMes;
   const sem = rota.filter((c) => !comprou(c)).map((c) => { const u = ult(c); return { c, u, dias: u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) : null }; })
     .sort((a, b) => (b.dias ?? 999) - (a.dias ?? 999));
   return { rota, sem, valorMes, historicoCompleto, pedidoHoje };
