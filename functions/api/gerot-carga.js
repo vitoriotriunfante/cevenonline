@@ -12,6 +12,8 @@
 // Nao chama o CEVEN.
 // =========================================================================
 import { chaveEvoValida } from '../_lib/chave_evo.js';
+// 18/11/2026: colunas da Liga (mp, nforn, skus) criadas uma vez por instancia
+let colunasLiga = false;
 const J = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
 const r = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: J });
 const MES = /^\d{4}-\d{2}$/;
@@ -143,16 +145,18 @@ export async function onRequestPost({ request, env }) {
     return r({ ok: true, dias: ok.length, recusados: DI.length - ok.length });
   }
   const CT = Array.isArray(b.carteira) ? b.carteira : [];
+  // 18/11/2026: marca propria, industrias e SKUs por pedido (Liga: gol de marca propria / tripla / industrias do pedido). Colunas novas, criadas uma vez.
+  if (CT.length && !colunasLiga) { for (const sql of ['ALTER TABLE gerot_carteira ADD COLUMN mp REAL', 'ALTER TABLE gerot_carteira ADD COLUMN nforn INTEGER', 'ALTER TABLE gerot_carteira ADD COLUMN skus INTEGER', 'ALTER TABLE gerot_pedido_entrada ADD COLUMN mp REAL', 'ALTER TABLE gerot_pedido_entrada ADD COLUMN nforn INTEGER', 'ALTER TABLE gerot_pedido_entrada ADD COLUMN skus INTEGER']) { try { await env.DB.prepare(sql).run(); } catch (e) { /* ja existe */ } } colunasLiga = true; }
   if (CT.length > 200) return r({ erro: 'no maximo 200 pedidos de carteira por chamada' }, 400);
   if (CT.length) {
     const ok = CT.filter((x) => /^[A-Z]{3}$/.test(String(x.filial || '')) && String(x.pedido || '').trim());
     const t = (v, n = 120) => (v == null || v === '' ? null : String(v).slice(0, n));
     await env.DB.batch(ok.map((x) => env.DB.prepare(
-      'INSERT INTO gerot_carteira (filial, pedido, rca, vendedor, sup_cod, entrada, origem, status, situacao, motivo, cliente, cnpj, status_cliente, positivado, valor, itens, qped, qfat, fornecedores, hash, em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ' +
-      'ON CONFLICT (filial, pedido) DO UPDATE SET rca = excluded.rca, vendedor = excluded.vendedor, sup_cod = excluded.sup_cod, entrada = excluded.entrada, origem = excluded.origem, status = excluded.status, situacao = excluded.situacao, motivo = excluded.motivo, cliente = excluded.cliente, cnpj = excluded.cnpj, status_cliente = excluded.status_cliente, positivado = excluded.positivado, valor = excluded.valor, itens = excluded.itens, qped = excluded.qped, qfat = excluded.qfat, fornecedores = excluded.fornecedores, hash = excluded.hash, em = excluded.em WHERE gerot_carteira.hash IS NOT excluded.hash'
-    ).bind(String(x.filial), String(x.pedido), t(x.rca, 12), t(x.vendedor), t(x.sup_cod, 12), t(x.entrada, 10), t(x.origem, 40), t(x.status, 60), t(x.situacao, 60), t(x.motivo, 200), t(x.cliente), t(x.cnpj, 14), t(x.status_cliente, 40), t(x.positivado, 20), Number(x.valor) || 0, Number(x.itens) || 0, Number(x.qped) || 0, Number(x.qfat) || 0, JSON.stringify(x.fornecedores || []).slice(0, 600), String(x.hash || ''), agora)));
-    await env.DB.batch(ok.filter((x) => x.entrada).map((x) => env.DB.prepare('INSERT INTO gerot_pedido_entrada (filial, pedido, rca, cnpj, entrada, visto_em) VALUES (?,?,?,?,?,?) ON CONFLICT (filial, pedido) DO UPDATE SET rca = COALESCE(excluded.rca, gerot_pedido_entrada.rca), cnpj = COALESCE(excluded.cnpj, gerot_pedido_entrada.cnpj) WHERE gerot_pedido_entrada.rca IS NOT excluded.rca OR gerot_pedido_entrada.cnpj IS NOT excluded.cnpj')
-      .bind(String(x.filial), String(x.pedido), t(x.rca, 12), t(x.cnpj, 14), t(x.entrada, 10), agora)));
+      'INSERT INTO gerot_carteira (filial, pedido, rca, vendedor, sup_cod, entrada, origem, status, situacao, motivo, cliente, cnpj, status_cliente, positivado, valor, itens, qped, qfat, fornecedores, hash, em, mp, nforn, skus) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ' +
+      'ON CONFLICT (filial, pedido) DO UPDATE SET rca = excluded.rca, vendedor = excluded.vendedor, sup_cod = excluded.sup_cod, entrada = excluded.entrada, origem = excluded.origem, status = excluded.status, situacao = excluded.situacao, motivo = excluded.motivo, cliente = excluded.cliente, cnpj = excluded.cnpj, status_cliente = excluded.status_cliente, positivado = excluded.positivado, valor = excluded.valor, itens = excluded.itens, qped = excluded.qped, qfat = excluded.qfat, fornecedores = excluded.fornecedores, hash = excluded.hash, em = excluded.em, mp = excluded.mp, nforn = excluded.nforn, skus = excluded.skus WHERE gerot_carteira.hash IS NOT excluded.hash'
+    ).bind(String(x.filial), String(x.pedido), t(x.rca, 12), t(x.vendedor), t(x.sup_cod, 12), t(x.entrada, 10), t(x.origem, 40), t(x.status, 60), t(x.situacao, 60), t(x.motivo, 200), t(x.cliente), t(x.cnpj, 14), t(x.status_cliente, 40), t(x.positivado, 20), Number(x.valor) || 0, Number(x.itens) || 0, Number(x.qped) || 0, Number(x.qfat) || 0, JSON.stringify(x.fornecedores || []).slice(0, 600), String(x.hash || ''), agora, x.mp == null ? null : Number(x.mp) || 0, x.nforn == null ? null : Number(x.nforn) || 0, x.skus == null ? null : Number(x.skus) || 0)));
+    await env.DB.batch(ok.filter((x) => x.entrada).map((x) => env.DB.prepare('INSERT INTO gerot_pedido_entrada (filial, pedido, rca, cnpj, entrada, visto_em, mp, nforn, skus) VALUES (?,?,?,?,?,?,?,?,?) ON CONFLICT (filial, pedido) DO UPDATE SET rca = COALESCE(excluded.rca, gerot_pedido_entrada.rca), cnpj = COALESCE(excluded.cnpj, gerot_pedido_entrada.cnpj), mp = MAX(COALESCE(gerot_pedido_entrada.mp, 0), COALESCE(excluded.mp, 0)), nforn = MAX(COALESCE(gerot_pedido_entrada.nforn, 0), COALESCE(excluded.nforn, 0)), skus = MAX(COALESCE(gerot_pedido_entrada.skus, 0), COALESCE(excluded.skus, 0)) WHERE gerot_pedido_entrada.rca IS NOT excluded.rca OR gerot_pedido_entrada.cnpj IS NOT excluded.cnpj OR COALESCE(excluded.mp, 0) > COALESCE(gerot_pedido_entrada.mp, 0) OR COALESCE(excluded.nforn, 0) > COALESCE(gerot_pedido_entrada.nforn, 0) OR COALESCE(excluded.skus, 0) > COALESCE(gerot_pedido_entrada.skus, 0)')
+      .bind(String(x.filial), String(x.pedido), t(x.rca, 12), t(x.cnpj, 14), t(x.entrada, 10), agora, x.mp == null ? null : Number(x.mp) || 0, x.nforn == null ? null : Number(x.nforn) || 0, x.skus == null ? null : Number(x.skus) || 0)));   // 18/11: mp/nforn/skus = o MAIOR ja visto (a carteira perde itens quando fatura parcial)
     return r({ ok: true, carteira: ok.length, recusados: CT.length - ok.length });
   }
   const CR = Array.isArray(b.carteira_remover) ? b.carteira_remover : [];

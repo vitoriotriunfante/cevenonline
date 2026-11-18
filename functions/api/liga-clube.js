@@ -50,6 +50,10 @@ export async function calculaLances(env, origin, dia) {
   // 17/11/2026: no 'Pedidos' do GEROT a data do pedido JA FATURADO e a do faturamento; a data do pedido vem da ENTRADA na Carteira Total (guardada em gerot_pedido_entrada)
   const pedC = new Map(); const addC = (r) => { const k = `${r.filial}|${r.rca}|${String(r.cnpj || '').replace(/\D/g, '')}`; if (!r.rca || !r.cnpj) return; if (!pedC.has(k)) pedC.set(k, []); if (!pedC.get(k).includes(r.pedido)) pedC.get(k).push(r.pedido); };
   for (const sql of ['SELECT filial, rca, cnpj, pedido FROM gerot_pedido_entrada WHERE entrada = ?', 'SELECT filial, rca, cnpj, pedido FROM gerot_carteira WHERE entrada = ?']) { try { const { results } = await db.prepare(sql).bind(dia).all(); for (const r of results || []) addC(r); } catch (e) { /* tabela ainda vazia */ } }
+  // 18/11/2026: MARCA PROPRIA DO PEDIDO DO DIA pelos itens da Carteira Total do GEROT (mp = R$ de TRIUNFANTE BRASIL sem o palete 8171; o maior valor ja visto do pedido)
+  const mpPorPed = new Map();
+  for (const sql of ['SELECT filial, rca, cnpj, pedido, mp FROM gerot_pedido_entrada WHERE entrada = ? AND mp > 0', 'SELECT filial, rca, cnpj, pedido, mp FROM gerot_carteira WHERE entrada = ? AND mp > 0']) { try { const { results } = await db.prepare(sql).bind(dia).all(); for (const r of results || []) { const kp = r.filial + '|' + r.pedido; const o = mpPorPed.get(kp); if (!o || Number(r.mp) > o.mp) mpPorPed.set(kp, { k: `${r.filial}|${r.rca}|${String(r.cnpj || '').replace(/\D/g, '')}`, pedido: r.pedido, mp: Number(r.mp) || 0 }); } } catch (e) { /* coluna mp ainda nao existe */ } }
+  const mpPed = new Map(); for (const o of mpPorPed.values()) { const x = mpPed.get(o.k) || { mp: 0, pedido: o.pedido }; x.mp += o.mp; mpPed.set(o.k, x); }
   // 17/11/2026: PEDIDO DO CLUBE (Relatorio de Pedido): vendedor + cliente + dia, na hora — a prova mais direta de 'comprou na visita'
   const pedCl = new Map(); try { const { results } = await db.prepare('SELECT filial, rca, cliente, pedido, pedido_winthor FROM clube_pedido WHERE dia = ?').bind(dia).all(); for (const r of results || []) { const k = r.filial + '|' + r.rca + '|' + r.cliente, n = r.pedido_winthor && Number(r.pedido_winthor) > 0 ? r.pedido_winthor : r.pedido; if (!pedCl.has(k)) pedCl.set(k, []); pedCl.get(k).push(n); } } catch (e) { /* dia sem a tabela */ }
   // VISITAS por vendedor: cliente -> entrada/saida
@@ -123,6 +127,11 @@ export async function calculaLances(env, origin, dia) {
     if (tarde) add({ chave: `gol_acrescimos|${e.rca}`, nivel: 'gol', obs: `check-in as ${tarde.ini.hms} (janela ${Math.floor(acrIni / 60)}h${String(acrIni % 60).padStart(2, '0')} ate ${acrFim / 60}h00)${fonte}`, hora_sp: hhmmss(tarde.ini.min) });
     // dobradinha: o cliente visitado com pedido hoje que ja tinha comprado na 1a quinzena
     for (const x of V.filter(venda)) { const a = q1.get(`${d.filial}|${x.id}`), pn = pedDe(x); if (a && pn) add({ chave: `gol_quinzenas|${e.rca}|${x.id}`, nivel: 'gol', cliente_id: x.id, cliente: x.nome, obs: `PEDIDO DE HOJE: ${pn} · GEROT | QUINZENAS: 1a quinzena pedido ${a.p} em ${a.d.slice(8, 10)}/${a.d.slice(5, 7)} · 2a quinzena hoje${fonte}`, hora_sp: hhmmss(Math.max(x.ini.min, 6 * 60)) }); }
+    // GOL DE MARCA PROPRIA (R$ 50+ de MP no pedido do cliente visitado) e TRIPLA (3+ clientes assim no dia) — 18/11/2026, itens da Carteira Total do GEROT
+    { const mpCli = [];
+      for (const x of V.filter(venda)) { const m = x.cnpj ? mpPed.get(`${k}|${x.cnpj}`) : null; if (!m || m.mp < 50) continue; mpCli.push({ x, m });
+        add({ chave: `gol_marca_propria|${e.rca}|${x.id}`, nivel: 'gol', cliente_id: x.id, cliente: x.nome, obs: `MARCA PROPRIA R$ ${m.mp.toFixed(2).replace('.', ',')} (minimo R$ 50) | PEDIDO DE HOJE: ${m.pedido} · GEROT Carteira Total | check-in ${x.ini.hms}${fonte}`, hora_sp: hhmmss(Math.max(x.ini.min, 6 * 60)) }); }
+      if (mpCli.length >= 3) add({ chave: `gol_mp_tripla|${e.rca}`, nivel: 'gol', obs: `${mpCli.length} clientes com R$ 50+ de MARCA PROPRIA no dia (minimo 3): ` + mpCli.map(({ x, m }) => `${x.nome} R$ ${m.mp.toFixed(2).replace('.', ',')}`).join('; ') + fonte, hora_sp: hhmmss(Math.max(mpCli[mpCli.length - 1].x.ini.min, 6 * 60)) }); }
     // META DO 1o TEMPO (so ao vivo, antes das 14h: o digitado do Clube NAQUELE momento >= meta proporcional do dia, a mesma conta do coletor antigo)
     if (dia === hojeAgora.dia && hojeAgora.min < 14 * 60 && V.length) {
       const mf1 = metaFat.get(k), [yy, mm] = dia.split('-').map(Number), fimM = new Date(Date.UTC(yy, mm, 0)).getUTCDate();

@@ -55,7 +55,7 @@ function porPedido(arq) {
   const H = rows[hi].map((c) => String(c || '').trim()), ix = (re) => H.findIndex((h) => re.test(h));
   const I = { ent: ix(/^Entrada$/i), fil: ix(/^Filial$/i), ped: ix(/^Pedido$/i), ori: ix(/^Origem$/i), st: ix(/^Status$/i), sit: ix(/^Situa[cç][aã]o$/i), mot: ix(/^Motivo Bloqueio$/i),
     cli: ix(/^Cliente$/i), cnpj: ix(/^CNPJ Cliente$/i), stc: ix(/^Status Cliente$/i), posm: ix(/^Positivado no m[eê]s$/i), sup: ix(/^Supervisor$/i), ven: ix(/^Vendedor$/i),
-    forn: ix(/^Fornecedor$/i), qped: ix(/^Qt Pedida$/i), qfat: ix(/^Qt a Faturar$/i), val: ix(/^Valor item$/i) };
+    forn: ix(/^Fornecedor$/i), qped: ix(/^Qt Pedida$/i), qfat: ix(/^Qt a Faturar$/i), val: ix(/^Valor item$/i), sku: ix(/^SKU$/i), prod: ix(/^Produto$/i) };
   const P = new Map();
   for (const r of rows.slice(hi + 1)) {
     if (!r || !r.some((c) => c != null && c !== '')) continue;
@@ -72,13 +72,19 @@ function porPedido(arq) {
         // 17/11/2026 (Vitorio: "nao leve como verdade absoluta... o que diferencia e a filial"): o codigo do vendedor sai do NOME dele NA FILIAL (Gestao de Equipe);
         // o comeco do numero do pedido so e aceito quando e um vendedor daquela filial E o nome bate; sem isso, fica sem vendedor (nunca o vendedor errado)
         rca: rcaDoVendedor(filial, ven, pedido), vendedor: ven.replace(/^\s*\d+\s*-\s*/, '').trim() || null, sup_cod: (sup.match(/^\s*(\d+)/) || [])[1] || null,
-        valor: 0, itens: 0, qped: 0, qfat: 0, fornecedores: [] };
+        valor: 0, itens: 0, qped: 0, qfat: 0, fornecedores: [], mp: 0, _f: new Set(), _s: new Set() };
       P.set(k, x);
     }
-    x.valor += num(I.val >= 0 ? r[I.val] : 0); x.itens++; x.qped += num(I.qped >= 0 ? r[I.qped] : 0); x.qfat += num(I.qfat >= 0 ? r[I.qfat] : 0);
+    // 18/11/2026: o "Valor item" do GEROT vem em CENTAVOS (varios pedidos davam exatamente 100,00x o total do Clube) -> divide por 100
+    const vItem = num(I.val >= 0 ? r[I.val] : 0) / 100;
+    x.valor += vItem; x.itens++;
+    // MARCA PROPRIA (Liga): fornecedor TRIUNFANTE BRASIL, sem o palete (SKU 8171 'TRIUNFANTE (NAO E MARCA PROPRIA)', regra de 10/11/2026)
+    { const fN = String(I.forn >= 0 ? r[I.forn] || '' : '').toUpperCase(), sk = String(I.sku >= 0 ? r[I.sku] ?? '' : '').replace(/\D/g, ''), pN = String(I.prod >= 0 ? r[I.prod] || '' : '').toUpperCase();
+      if (/TRIUNFANTE BRASIL|MARCA PROPRIA/.test(fN) && sk !== '8171' && !/PALLET|PALETE/.test(pN)) x.mp += vItem;
+      if (fN && vItem > 0) x._f.add(fN); if (sk && vItem > 0) x._s.add(sk); } x.qped += num(I.qped >= 0 ? r[I.qped] : 0); x.qfat += num(I.qfat >= 0 ? r[I.qfat] : 0);
     const f = I.forn >= 0 ? String(r[I.forn] || '').trim() : ''; if (f && !x.fornecedores.includes(f) && x.fornecedores.length < 8) x.fornecedores.push(f);
   }
-  const L = [...P.values()].map((x) => ({ ...x, valor: Math.round(x.valor * 100) / 100, hash: crypto.createHash('md5').update(JSON.stringify([x.status, x.situacao, x.motivo, Math.round(x.valor * 100), x.itens, x.qfat, x.rca, x.entrada])).digest('hex') }));
+  const L = [...P.values()].map(({ _f, _s, ...x }) => ({ ...x, valor: Math.round(x.valor * 100) / 100, mp: Math.round(x.mp * 100) / 100, nforn: _f.size, skus: _s.size, hash: crypto.createHash('md5').update(JSON.stringify([x.status, x.situacao, x.motivo, Math.round(x.valor * 100), x.itens, x.qfat, x.rca, x.entrada, Math.round(x.mp * 100), _f.size, _s.size, 'c100'])).digest('hex') }));
   // 17/11/2026: o valor somado deu 25-82x o total do pedido no Clube. Log SO DO FORMATO (digitos trocados por 9, nada de valor) de Valor item, Qt Pedida e Caixas
   const fmt = (v) => (v == null ? 'null' : typeof v === 'number' ? 'numero' + (Number.isInteger(v) ? '-inteiro' : '-decimal') : String(v).replace(/[0-9]/g, '9').slice(0, 20));
   const amostra = rows.slice(hi + 1, hi + 400).filter(Boolean); const tipos = (k) => { const m = {}; for (const r of amostra) { const f = fmt(k >= 0 ? r[k] : null); m[f] = (m[f] || 0) + 1; } return JSON.stringify(Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 4)); };
