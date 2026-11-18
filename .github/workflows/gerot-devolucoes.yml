@@ -5,6 +5,11 @@ name: GEROT — Devolucao por motivo (manual)
 
 on:
   workflow_dispatch:
+    inputs:
+      modo:
+        description: 'vazio = coleta; mapa = so o mapa dos niveis (pipeline/gerot_devolucoes_mapa.mjs)'
+        required: false
+        default: ''
 
 concurrency:
   group: gerot-coleta
@@ -28,4 +33,5 @@ jobs:
           GEROT_EMAIL: ${{ secrets.GEROT_EMAIL }}
           GEROT_SENHA: ${{ secrets.GEROT_SENHA }}
           EVO_KEY: ${{ secrets.EVO_KEY }}
-        run: node pipeline/gerot_devolucoes.mjs
+        run: |
+          if [ "${{ inputs.modo }}" = "mapa" ]; then node pipeline/gerot_devolucoes_mapa.mjs; else node pipeline/gerot_devolucoes.mjs; fi
