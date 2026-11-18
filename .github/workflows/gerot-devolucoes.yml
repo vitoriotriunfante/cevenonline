@@ -1,0 +1,31 @@
+# FICHA DO ARQUIVO
+# O QUE É: so a DEVOLUCAO POR MOTIVO do GEROT (pipeline/gerot_devolucoes.mjs), disparo manual. A coleta normal (gerot-coleta.yml) ja roda este passo depois dela.
+#   Log so com contagens e nomes de colunas (repositorio publico). Nada anexado.
+name: GEROT — Devolucao por motivo (manual)
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: gerot-coleta
+  cancel-in-progress: false
+
+jobs:
+  devolucoes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Instalar dependencias e navegador
+        run: |
+          npm ci --no-audit --no-fund
+          for t in 1 2 3 4; do npx playwright install --with-deps chromium && break; sleep 30; done
+      - name: Devolucao por motivo
+        env:
+          GEROT_EMAIL: ${{ secrets.GEROT_EMAIL }}
+          GEROT_SENHA: ${{ secrets.GEROT_SENHA }}
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+        run: node pipeline/gerot_devolucoes.mjs

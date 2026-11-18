@@ -182,6 +182,8 @@ export async function rotearIntencao(B, c, t, info) {
       const e = await escG(); const por = /POR VENDEDOR|VENDEDORES/.test(t) ? 'vendedor' : /POR SUPERVISOR|SUPERVISORES/.test(t) ? 'supervisor' : e.nacional ? 'filial' : papel === 'supervisor' ? 'vendedor' : 'supervisor';
       const r = await (await G()).respVisitasClube(B, e, por).catch(() => null); if (r) return r;
     }
+    // devolucao por motivo (tela do GEROT; Vitorio 18/11: "vc nao abriu por motivo quando eu pedi!!!")
+    if (/DEVOLU/.test(t) && /MOTIVO|NAO PEDIU/.test(t)) { const e = await escG(); const r = await (await G()).respDevolucaoMotivo(B, e.filiais, e.nome).catch(() => null); if (r) return r; }
     // devolucao com o numero do GEROT (Vitorio, 18/11: "devolucoes tambem vc esta pegando o numero correto?"); codigo de vendedor citado soma as filiais
     if (/DEVOLU/.test(t) && !/MOTIVO|NAO PEDIU|\b(HOJE|HJ)\b/.test(t)) {
       const e = await escG(); const mR = t.match(/\b(?:VENDEDOR|RCA|COD(?:IGO)?(?: DE VENDEDOR)?)\s*(?:COD\.?\s*)?(\d{1,5})\b/);

@@ -151,3 +151,20 @@ export async function respAteData(B, filiais, nome) {
   L.push('', '_GEROT · faturado líquido pela data da nota, do dia 1º até o mesmo dia nos dois meses._');
   return L.join('\n');
 }
+
+// ---------- DEVOLUCAO POR MOTIVO (tela Devolucoes do GEROT) ----------
+const LIGA_VERMELHO = /CLIENTE NAO PEDIU/, LIGA_GOLCONTRA = /SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD|PEDIDO DUPLICADO|RECUSOU MERC|PRECO DIFERENTE/;
+export async function respDevolucaoMotivo(B, filiais, nome) {
+  const db = B.env && B.env.DB; if (!db) return null;
+  const uma = filiais && filiais.length === 1 ? filiais[0] : '';
+  let R = [], em = null;
+  try { R = (await db.prepare('SELECT motivo, valor, notas, clientes, em FROM gerot_devolucao_motivo WHERE mes = ? AND filial = ? ORDER BY valor DESC').bind(mesAtual(), uma).all()).results || []; em = R[0] && R[0].em; } catch (e) { return null; }
+  if (!R.length) return null;
+  const tot = R.reduce((a, x) => a + (Number(x.valor) || 0), 0), notas = R.reduce((a, x) => a + (Number(x.notas) || 0), 0);
+  const L = [`↩️ *Devolução por motivo — ${nome}* · ${mesAtual().slice(5)}/${mesAtual().slice(0, 4)}`, `Total *${R$(tot)}* em *${N(notas)}* notas`, '_🟥 = cartão vermelho na Liga · ⚽ = gol contra na Liga_', ''];
+  for (const x of R.slice(0, 14)) L.push(`${LIGA_VERMELHO.test(x.motivo) ? '🟥' : LIGA_GOLCONTRA.test(x.motivo) ? '⚽' : '•'} ${titulo(String(x.motivo).toLowerCase())}: *${R$(x.valor)}* (${pc(x.valor, tot)}) · ${N(x.notas)} nota(s) · ${N(x.clientes)} cliente(s)`);
+  if (R.length > 14) L.push(`… e mais ${R.length - 14} motivo(s)`);
+  if (!uma) { try { const { results: F } = await db.prepare("SELECT filial, valor FROM gerot_devolucao_motivo WHERE mes = ? AND motivo = 'CLIENTE NAO PEDIU' AND filial <> '' ORDER BY valor DESC").bind(mesAtual()).all(); if (F && F.length) L.push('', '*"Cliente não pediu" por filial:* ' + F.map((x) => `${x.filial} ${R$(x.valor)}`).join(' · ')); } catch (e) { /* sem filial */ } }
+  L.push('', `_GEROT · tela Devoluções, por motivo${em ? ' · lido ' + new Date(em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}. Peça "devolução por motivo TPH" para uma filial._`);
+  return L.join(String.fromCharCode(10));
+}

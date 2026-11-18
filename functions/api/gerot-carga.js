@@ -125,6 +125,16 @@ export async function onRequestPost({ request, env }) {
     await env.DB.prepare('INSERT INTO gerot_horario (lido_em, ok, ultima, carga, posicao, segundos, erro) VALUES (?,?,?,?,?,?,?)').bind(String(h.lido_em || agora), h.ok ? 1 : 0, h.ultima ? String(h.ultima).slice(0, 60) : null, h.carga ? String(h.carga).slice(0, 40) : null, h.posicao ? String(h.posicao).slice(0, 40) : null, Number(h.segundos) || null, h.erro ? String(h.erro).slice(0, 200) : null).run();
     return r({ ok: true, horario: true });
   }
+  // 18/11/2026: DEVOLUCAO POR MOTIVO (tela Devolucoes do GEROT; pipeline/gerot_devolucoes.mjs): foto do mes, trocada a cada leitura
+  const DM = Array.isArray(b.devmotivo) ? b.devmotivo : [];
+  if (DM.length) {
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS gerot_devolucao_motivo (mes TEXT NOT NULL, motivo TEXT NOT NULL, filial TEXT NOT NULL DEFAULT "", valor REAL, notas INTEGER, clientes INTEGER, em TEXT, PRIMARY KEY (mes, motivo, filial))').run();
+    const mesD = String(b.devmotivo_mes || ''); if (!MES.test(mesD)) return r({ erro: 'devmotivo_mes obrigatorio' }, 400);
+    if (b.devmotivo_primeiro) await env.DB.prepare('DELETE FROM gerot_devolucao_motivo WHERE mes = ?').bind(mesD).run();
+    const ok = DM.filter((x) => x && x.motivo).slice(0, 400);
+    await env.DB.batch(ok.map((x) => env.DB.prepare('INSERT OR REPLACE INTO gerot_devolucao_motivo (mes, motivo, filial, valor, notas, clientes, em) VALUES (?,?,?,?,?,?,?)').bind(mesD, String(x.motivo).slice(0, 80), String(x.filial || '').slice(0, 3), Number(x.valor) || 0, Math.round(Number(x.notas) || 0), Math.round(Number(x.clientes) || 0), agora)));
+    return r({ ok: true, devmotivo: ok.length });
+  }
   const DI = Array.isArray(b.dias) ? b.dias : [];
   if (DI.length > 200) return r({ erro: 'no maximo 200 dias por chamada' }, 400);
   if (DI.length) {

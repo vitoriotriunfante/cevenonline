@@ -63,6 +63,15 @@ jobs:
           GEROT_SENHA: ${{ secrets.GEROT_SENHA }}
           EVO_KEY: ${{ secrets.EVO_KEY }}
         run: node pipeline/gerot_carteira.mjs
+      - name: Devolucao por motivo (tela Devolucoes do GEROT)
+        # 18/11/2026: o Extrair dados nao tem motivo; a tela tem (pipeline/gerot_devolucoes.mjs). Log so com contagens.
+        if: github.event.inputs.ensaio != 'true'
+        continue-on-error: true
+        env:
+          GEROT_EMAIL: ${{ secrets.GEROT_EMAIL }}
+          GEROT_SENHA: ${{ secrets.GEROT_SENHA }}
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+        run: node pipeline/gerot_devolucoes.mjs
       - name: Liga — lances do dia (Clube + GEROT)
         # 17/11/2026 (Vitorio: "colocar no ar urgente a Champions"): /api/liga-clube grava os lances de hoje que ja aconteceram (INSERT OR IGNORE)
         if: github.event.inputs.ensaio != 'true'
