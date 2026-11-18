@@ -284,12 +284,8 @@ export async function semCompraNaRota(B, v) {
           const d = String(r.ultima_compra || '').slice(0, 10);
           if (/^\d{4}-\d{2}-\d{2}$/.test(d) && d >= '2020-01-01' && d <= hojeSP()) ultimasCompras.set(String(r.id_cliente), d);
         }
-        // 18/11/2026: ULTIMA COMPRA PELO GEROT (pedidos de ago em diante, gerot_pedido). A ficha estava velha (TCV 352 Big Casa: ficha '42 dias' x GEROT 27/10 = 22 dias).
-        // Vale a data mais recente das duas fontes.
-        try {
-          const { results: GP } = await B.env.DB.prepare(`SELECT cliente, MAX(data) d FROM gerot_pedido WHERE filial = ? AND cliente IN (${lote.map(() => '?').join(',')}) GROUP BY cliente`).bind(String(v.filial), ...lote).all();
-          for (const r of GP || []) { const d = String(r.d || '').slice(0, 10); if (/^\d{4}-\d{2}-\d{2}$/.test(d) && d <= hojeSP() && !(ultimasCompras.get(String(r.cliente)) > d)) ultimasCompras.set(String(r.cliente), d); }
-        } catch (e) { /* sem GEROT: fica a ficha */ }
+        // 18/11/2026: ultima compra = data do PEDIDO mais recente (ficha, GEROT pela entrada do pedido, Clube) — mesma conta de todas as listas
+        await ultimaCompraGerot(B, v.filial, lote, ultimasCompras);
       }
       historicoCompleto = true;
     } catch (e) {
@@ -911,14 +907,21 @@ export async function respFaltaVisitar(B, v) {
   return L.join('\n');
 }
 
-// ULTIMA COMPRA = a mais recente entre a ficha e os pedidos do GEROT (18/11/2026; a ficha estava velha). Altera e devolve o mapa id_cliente -> 'AAAA-MM-DD'.
+// ULTIMA COMPRA = DATA DO PEDIDO mais recente (18/11/2026): no GEROT a data do pedido faturado e a da NOTA (Posto Pegoraro: pediu 17/11, faturou 18/11 e aparecia
+// '0 dias'). Vale a ENTRADA do pedido (gerot_pedido_entrada, desde 17/11) ou, sem ela, a data da nota; o pedido do Clube (clube_pedido) e a ficha. A mais recente.
+// Altera e devolve o mapa id_cliente -> 'AAAA-MM-DD'.
 export async function ultimaCompraGerot(B, filial, ids, mapa = new Map()) {
   if (!B || !B.env || !B.env.DB || !ids || !ids.length) return mapa;
+  const poe = (cli, d0) => { const d = String(d0 || '').slice(0, 10); if (/^\d{4}-\d{2}-\d{2}$/.test(d) && d <= hojeSP() && !(String(mapa.get(String(cli)) || '') > d)) mapa.set(String(cli), d); };
   try {
     for (let i = 0; i < ids.length; i += 80) {
-      const p = ids.slice(i, i + 80).map(String);
-      const { results } = await B.env.DB.prepare(`SELECT cliente, MAX(data) d FROM gerot_pedido WHERE filial = ? AND cliente IN (${p.map(() => '?').join(',')}) GROUP BY cliente`).bind(String(filial), ...p).all();
-      for (const r of results || []) { const d = String(r.d || '').slice(0, 10); if (/^\d{4}-\d{2}-\d{2}$/.test(d) && d <= hojeSP() && !(String(mapa.get(String(r.cliente)) || '') > d)) mapa.set(String(r.cliente), d); }
+      const p = ids.slice(i, i + 80).map(String), q = p.map(() => '?').join(',');
+      const [{ results: G }, { results: C }] = await Promise.all([
+        B.env.DB.prepare(`SELECT p.cliente, MAX(COALESCE(e.entrada, p.data)) d FROM gerot_pedido p LEFT JOIN gerot_pedido_entrada e ON e.filial = p.filial AND e.pedido = p.pedido WHERE p.filial = ? AND p.cliente IN (${q}) GROUP BY p.cliente`).bind(String(filial), ...p).all(),
+        B.env.DB.prepare(`SELECT cliente, MAX(dia) d FROM clube_pedido WHERE filial = ? AND cliente IN (${q}) GROUP BY cliente`).bind(String(filial), ...p).all().catch(() => ({ results: [] })),
+      ]);
+      for (const r of G || []) poe(r.cliente, r.d);
+      for (const r of C || []) poe(r.cliente, r.d);
     }
   } catch (e) { /* sem GEROT: fica a ficha */ }
   return mapa;

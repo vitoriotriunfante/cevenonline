@@ -104,7 +104,11 @@ export async function diaClube(B, v) {
     for (const c of C || []) { const k = String(c.cliente || ''); if (!k) continue; const x = vis.get(k) || { id: k, nome: limpaNomeCli(c.fantasia || c.razao) || `Cliente #${k}`, ini: null, fim: null }; const h = String(c.data_hora || '').slice(11, 16); if (/IN/i.test(c.tipo) && !x.ini) x.ini = h; if (/OUT/i.test(c.tipo)) x.fim = h; vis.set(k, x); }
     const jus = new Map();
     for (const j of J || []) { const k = String(j.cliente || ''); if (k) jus.set(k, { id: k, nome: limpaNomeCli(j.fantasia || j.razao) || `Cliente #${k}`, dias: j.dias_sem_comprar, motivo: titulo(String(j.motivo || '').toLowerCase()) }); }
-    const semPed = [...jus.values()].sort((a, b) => (Number(b.dias) || 0) - (Number(a.dias) || 0));
+    // 18/11/2026: "visitou e nao vendeu" = justificou e NAO tem pedido do Clube hoje (Ronda #12812: justificou e fez pedido depois); dias sem compra = data do
+    // PEDIDO mais recente (mesma conta da "minha rota"; o numero do proprio Clube nao batia: Ronda 8 x 26, Thays 8 x 12)
+    let pedHojeCli = new Set(); try { pedHojeCli = new Set(((await db.prepare('SELECT DISTINCT cliente FROM clube_pedido WHERE dia = ? AND filial = ? AND rca = ?').bind(dia, fil, rca).all()).results || []).map((x) => String(x.cliente))); } catch (e) { /* sem pedidos */ }
+    try { const { ultimaCompraGerot } = await import('./rota.js'); const ids = [...jus.keys()], U = await ultimaCompraGerot(B, fil, ids, new Map()); for (const x of jus.values()) { const u = U.get(x.id); if (u && u < dia) x.dias = Math.max(0, Math.round((Date.parse(dia) - Date.parse(u)) / 864e5)); else if (!u) x.dias = null; } } catch (e) { /* fica o numero do Clube */ }
+    const semPed = [...jus.values()].filter((x) => !pedHojeCli.has(x.id)).sort((a, b) => (b.dias ?? 9999) - (a.dias ?? 9999));
     const visSemJus = [...vis.values()].filter((x) => !jus.has(x.id));
     const comPed = Number(t.ped_rota) === visSemJus.length ? visSemJus : null;
     const naoVis = Math.max(0, (Number(t.roteiros) || 0) - (Number(t.visitas_rota) || 0));
@@ -175,7 +179,7 @@ export function linhasDiaClube(D, momento) {
   if (D.naoVisNomes && D.naoVisNomes.length) {
     const dd = (s) => { const d = Math.round((Date.parse(hojeSP()) - Date.parse(s)) / 864e5); return d > 0 ? ` · ${d} dias sem comprar` : ''; };
     L.push('', `🔴 *Na rota e sem visita (${D.naoVisNomes.length})* _· nº = dias sem compra_`);
-    const dn = (u) => { const d = u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) : null; return d != null && d > 0 ? String(d) : '🆕'; };
+    const dn = (u) => { const d = u ? Math.round((Date.parse(hojeSP()) - Date.parse(u)) / 864e5) : null; return d == null ? '🆕' : d > 0 ? String(d) : 'pediu hoje'; };
     void dd; for (const x of D.naoVisNomes.slice(0, 8)) L.push(`• ${x.nome} (#${x.id}) · ${dn(x.ult)}`);
     if (D.naoVisNomes.length > 8) L.push(`• e mais ${D.naoVisNomes.length - 8}`);
   }
