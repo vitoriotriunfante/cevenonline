@@ -28,13 +28,18 @@ try {
   await page.waitForTimeout(8000);
   // abre cada motivo (seta da linha de 1o nivel), um por vez
   const nMot = await page.evaluate(() => { const sec = [...document.querySelectorAll('div,section')].filter((d) => /^\s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0]; return sec ? sec.querySelectorAll('table tbody tr').length : 0; });
-  for (let i = 0; i < nMot + 60; i++) {
-    const abriu = await page.evaluate(() => {
+  // 18/11/2026: a tela redesenha a tabela a cada clique (a marca na linha se perdia e so o 1o motivo abria): abre o i-esimo MOTIVO pela posicao,
+  // so se a linha seguinte ainda nao e de filial
+  for (let i = 0; i < nMot; i++) {
+    await page.evaluate((idx) => {
       const sec = [...document.querySelectorAll('div,section')].filter((d) => /^\s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0]; if (!sec) return false;
-      for (const tr of sec.querySelectorAll('table tbody tr')) { if (tr.dataset.aberto) continue; if (/FILIAL/.test(tr.innerText || '')) continue; const b = [...tr.querySelectorAll('button,span,i,td')].find((x) => /^▸$/.test((x.innerText || '').trim())); tr.dataset.aberto = '1'; if (b) { b.click(); return true; } }
-      return false;
-    });
-    if (!abriu) break; await page.waitForTimeout(1200);
+      const trs = [...sec.querySelectorAll('table tbody tr')], mot = trs.filter((tr) => !/FILIAL/.test(tr.innerText || ''));
+      const tr = mot[idx]; if (!tr) return false; const prox = tr.nextElementSibling;
+      if (prox && /FILIAL/.test(prox.innerText || '')) return false;   // ja aberto
+      const b = [...tr.querySelectorAll('button,span,i,td')].find((x) => /^[▸▶►]$/.test((x.innerText || '').trim())) || tr.querySelector('button');
+      if (b) { b.click(); return true; } return false;
+    }, i);
+    await page.waitForTimeout(1500);
   }
   await page.waitForTimeout(3000);
   const T = await page.evaluate(() => {
