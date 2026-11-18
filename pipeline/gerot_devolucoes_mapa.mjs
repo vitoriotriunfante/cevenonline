@@ -26,10 +26,21 @@ const estado = () => page.evaluate(() => {
 });
 const clica = (nome) => page.evaluate((n) => { const sec = [...document.querySelectorAll('div,section')].filter((d) => /^\s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0]; const b = sec && [...sec.querySelectorAll('button')].find((x) => (x.innerText || '').trim().replace(/^\d+\s*/, '') === n); if (b) { b.click(); return true; } return false; }, nome);
 log('inicial', JSON.stringify(await estado()));
-for (const passo of ['Motivo', 'Filial', 'Pedido', 'Vendedor', 'Pedido', 'Motivo']) {
-  const ok = await clica(passo); await page.waitForTimeout(6000);
-  log(`clique ${passo} (${ok ? 'achou' : 'nao achou'})`, JSON.stringify(await estado()));
-}
-// botoes/menus extras da secao (ordem dos niveis, limpar, exportar)
-log('outros botoes', JSON.stringify(await page.evaluate(() => { const sec = [...document.querySelectorAll('div,section')].filter((d) => /^\s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0]; return sec ? [...sec.querySelectorAll('button,select,input,a')].map((x) => (x.innerText || x.value || x.title || x.getAttribute('aria-label') || '').trim().slice(0, 30)).filter((x) => x && !/^[▸▾]$/.test(x)) : []; })));
+// 2a rodada (18/11/2026): nivel PEDIDO — rotulos fixos da linha (palavras que aparecem em >60% das linhas; o resto vira A/9), fim da lista e o que abre ao expandir
+await clica('Pedido'); await page.waitForTimeout(8000);
+const P = await page.evaluate(() => {
+  const sec = [...document.querySelectorAll('div,section')].filter((d) => /^s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0]; if (!sec) return null;
+  const trs = [...sec.querySelectorAll('table tbody tr')], txt = trs.map((tr) => [...tr.querySelectorAll('td')].map((td) => (td.innerText || '').trim()));
+  const freq = {}; for (const L of txt) for (const w of new Set(String(L[0] || '').split(/[s·|:]+/).filter(Boolean))) freq[w] = (freq[w] || 0) + 1;
+  const fixo = new Set(Object.entries(freq).filter(([w, n]) => n > trs.length * 0.6 && !/d/.test(w)).map(([w]) => w));
+  const molde = (t) => String(t || '').split(/(s+|·|||:)/).map((w) => (fixo.has(w) || /^(s+|·|||:)$/.test(w) || w === '') ? w : /^d+([./]d+)*$/.test(w) ? '9' : /d/.test(w) ? '9x' : 'A').join('').replace(/A( A)+/g, 'A…').slice(0, 160);
+  const ult = trs[trs.length - 1];
+  const fora = [...sec.querySelectorAll('button,a,span')].map((b) => (b.innerText || '').trim()).filter((t) => /mais|carregar|pr[oó]xim|todos|ver /i.test(t)).slice(0, 5);
+  return { linhas: trs.length, fixos: [...fixo].slice(0, 30), moldes: txt.slice(0, 4).map((L) => molde(L[0])), colunas_2_3: txt.slice(0, 3).map((L) => [L[1], L[2]].map((x) => String(x || '').replace(/d/g, '9'))), ultima: molde(ult && ult.innerText), botoes_mais: fora };
+});
+log('pedido', JSON.stringify(P));
+// expande a 1a linha
+await page.evaluate(() => { const sec = [...document.querySelectorAll('div,section')].filter((d) => /^s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0]; const tr = sec && sec.querySelector('table tbody tr'); const b = tr && ([...tr.querySelectorAll('button,span,i,td')].find((x) => /^[▸▶►]$/.test((x.innerText || '').trim())) || tr.querySelector('button')); if (b) b.click(); });
+await page.waitForTimeout(5000);
+log('pedido expandido', JSON.stringify(await page.evaluate(() => { const sec = [...document.querySelectorAll('div,section')].filter((d) => /^s*Detalhamento/.test(d.innerText || '') && d.querySelector('table')).sort((a, b) => a.innerText.length - b.innerText.length)[0]; const trs = [...sec.querySelectorAll('table tbody tr')]; return { linhas: trs.length, filhos: trs.slice(1, 4).map((tr) => String(tr.innerText || '').replace(/[A-Za-zÀ-ú]{4,}/g, (w) => (/^(FILIAL|MOTIVO|VENDEDOR|CLIENTE|PRODUTO|PEDIDO|NOTA|DEVOLUw*|SUPERVISOR|GERENTE|FORNECEDOR)$/i.test(w) ? w : 'A')).replace(/d/g, '9').slice(0, 160)) }; })));
 await browser.close();
