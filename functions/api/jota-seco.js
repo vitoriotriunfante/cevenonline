@@ -19,7 +19,7 @@ export async function onRequestPost({ request, env }) {
   const feitas = [];   // conversa: true = cada pergunta leva as anteriores (a mais recente primeiro), como no WhatsApp
   for (const q of (Array.isArray(b.perguntas) ? b.perguntas : []).slice(0, 6)) {
     const B = criaBase(new URL(request.url).origin, env), t0 = Date.now();
-    let r = null; try { r = await respostaPronta(B, { ...c }, String(q), b.conversa ? feitas.slice().reverse() : []); feitas.push(String(q)); } catch (e) { r = 'ERRO: ' + String(e && e.message || e).slice(0, 200); }
+    let r = null; try { r = await respostaPronta(B, { ...c }, String(q), b.conversa ? feitas.slice().reverse() : []); feitas.push(String(q)); if (typeof r === 'string') { const { acabamento } = await import('../_lib/jota/acabamento.js'); r = await acabamento(B, env, r); } } catch (e) { r = 'ERRO: ' + String(e && e.message || e).slice(0, 200); }
     out.push({ pergunta: q, resposta: r == null ? null : String(r), ms: Date.now() - t0 });
   }
   return new Response(JSON.stringify(out), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
