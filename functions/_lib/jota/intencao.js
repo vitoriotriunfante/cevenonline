@@ -186,7 +186,15 @@ export async function rotearIntencao(B, c, t, info) {
     // carteira por status / motivo (Micheleto, 18/11: "bloqueio financeiro, bloqueio comercial e todos os outros motivos")
     if (/CARTEIRA|PEDIDOS? (EM CARTEIRA|PENDENTES?|BLOQUEAD)|BLOQUEIO (FINANCEIRO|COMERCIAL)/.test(t) && /STATUS|MOTIVO|BLOQUE|ABERT|SITUACAO/.test(t) && !/\b\d{7,}\b/.test(t)) { const e = await escG(); const r = await (await G()).respCarteiraStatus(B, e.filiais, e.rcas, e.nome).catch(() => null); if (r) return r; }
     // justificativas de nao venda pelo Clube (Vitorio, 18/11: "pq ate dia 16?" e "aberto por vendedor x justificativa e justificativa x vendedor")
-    if (/JUSTIFICATIVA|MOTIVOS? DE NAO VENDA|NAO VENDA/.test(t)) { const e = await escG(); const modo = /(POR|X|×) ?VENDEDOR|VENDEDOR(ES)? ?(X|×|POR)|POR VENDEDOR/.test(t) ? 'vendedor' : /(POR|X|×) ?(MOTIVO|JUSTIFICATIVA)|JUSTIFICATIVA ?(X|×)/.test(t) ? 'just' : 'motivo'; const r = await (await G()).respJustificativas(B, e, modo).catch(() => null); if (r) return r; }
+    if (/JUSTIFICATIVA|MOTIVOS? DE NAO VENDA|NAO VENDA/.test(t)) {
+      // 18/11/2026: a ORDEM das palavras decide: "vendedor x justificativa"/"por vendedor" = cada vendedor com os motivos dele; "justificativa x vendedor"/"por motivo" = cada motivo com quem mais usa
+      const iV = t.search(/VENDEDOR/), iJ = t.search(/JUSTIFICATIVA|MOTIVO/), cruz = /\b(X|×|POR)\b/.test(t);
+      const modo = /POR (MOTIVO|JUSTIFICATIVA)/.test(t) ? 'just' : /POR VENDEDOR/.test(t) ? 'vendedor' : cruz && iV >= 0 && iJ >= 0 ? (iJ < iV ? 'just' : 'vendedor') : iV >= 0 ? 'vendedor' : 'motivo';
+      // leitura do Clube falhou (D1 ocupado): tenta de novo; se falhar outra vez avisa — nunca cai na resposta antiga do CEVEN ("ate 16/11"), que e outro numero
+      const e = await escG(); let r = await (await G()).respJustificativas(B, e, modo).catch(() => null);
+      if (!r) r = await (await G()).respJustificativas(B, e, modo).catch(() => null);
+      return r || '⏳ Não consegui ler as justificativas do Clube da Venda agora. Pergunte de novo em 1 minuto.';
+    }
     // visitas / plano de visitas / aderencia pelo Clube (Evandro, 18/11: "abrir por filial, supervisor ou vendedor; rota do dia e acumulado do mes")
     if (/\bVISITAS?\b|PLANO DE VISITA|ADERENCIA/.test(t) && !/\b(ONDE|ELA|ELE|DELA|DELE)\b/.test(t) && !/SEM COMPRA|SEM VENDA|VISITADOS/.test(t)) {
       const e = await escG(); const por = /POR VENDEDOR|VENDEDORES/.test(t) ? 'vendedor' : /POR SUPERVISOR|SUPERVISORES/.test(t) ? 'supervisor' : e.nacional ? 'filial' : papel === 'supervisor' ? 'vendedor' : 'supervisor';
