@@ -737,8 +737,10 @@ function statFilial(sig) {
   // enquanto a abertura do WhatsApp e a base davam 4.131 (292 vendedores com rota). Agora o universo e o mesmo: todo vendedor de campo com rota hoje.
   const vs = vendedores(sig), vsTodos = reps(sig).map(r => vend(sig, r)).filter(v => v.tem), campo = vsTodos.filter(v => v.campo && v.temRota), t = sp(), depois10 = t.h >= LIMITE_H, ehTarde = t.h >= 15;
   const s = (a, f) => a.reduce((x, v) => x + (f(v) || 0), 0);
-  const pen = ALERTAS.filter(a => a.sig === sig && a.nivel === 'penalti').length;
-  const gols = ALERTAS.filter(a => a.sig === sig && (a.nivel === 'gol' || a.nivel === 'hattrick')).length;
+  // 18/11/2026: gols e penaltis do DIA INTEIRO gravados no servidor (Liga do Clube + GEROT grava em lote a cada leitura); vale o maior entre a tela e o servidor
+  const SC = (SRV_CONT || {})[sig] || { gols: 0, pen: 0 };
+  const pen = Math.max(SC.pen, ALERTAS.filter(a => a.sig === sig && a.nivel === 'penalti').length);
+  const gols = Math.max(SC.gols, ALERTAS.filter(a => a.sig === sig && (a.nivel === 'gol' || a.nivel === 'hattrick')).length);
   const TF = TOTAIS && TOTAIS.filiais && TOTAIS.filiais[sig];   // numero unico da filial (/api/totais-dia)
   const nZer = TF ? TF.zerados : campo.filter(zerado).length, nSemVis = campo.filter(v => v.feitas === 0).length;
   const mt = METAS && METAS.filiais[sig];
@@ -828,14 +830,19 @@ const ROTULO_SRV = { marca_propria: '⭐ GOL DE MARCA PRÓPRIA!', mp_tripla: '�
   dobradinha_quinzenas: 'dobradinha das quinzenas!', super_pedido: 'Super Pedido!', conversao: 'Máquina de Conversão!', relampago: 'Gol Relâmpago!', acrescimos: 'Gol nos Acréscimos!',
   meta1tempo: 'Meta do 1º Tempo batida!', goleada: 'Goleada!', campeao: 'Campeão da Rodada: 100% da meta do mês!', hattrick: 'Hat-Trick!' };
 let EXIB_SRV = new Set(store.get('ceven_exib_srv_MTZ_' + HOJE0, []));
+// 18/11/2026: contagem do dia por filial vinda do servidor + 1a leitura da sessao nao inunda o VAR (so o que tem ate 15 min); depois, todo lance NOVO para a tela entra,
+// qualquer que seja a hora dele (a Liga do Clube grava em lote, com a hora do check-in)
+var SRV_CONT = {}; let primeiraSrv = true;
 async function carregaGolsServidor() {
   try {
     const agoraS = secDe(sp().hms), desdeS = Math.max(0, agoraS - 15 * 60);
-    const hh = (x) => String(Math.floor(x / 3600)).padStart(2, '0') + ':' + String(Math.floor((x % 3600) / 60)).padStart(2, '0') + ':00';
-    const d = await j('/api/tv-lances?filial=TODAS&desde=' + hh(desdeS), 15000); if (!d || !Array.isArray(d.lances)) return;
+    const d = await j('/api/tv-lances?filial=TODAS', 20000); if (!d || !Array.isArray(d.lances)) return;
+    for (const k of Object.keys(SRV_CONT)) delete SRV_CONT[k];
+    for (const r of d.lances) { const sg = String(r.filial || '').toUpperCase(), o = SRV_CONT[sg] || (SRV_CONT[sg] = { gols: 0, pen: 0 }); if (r.nivel === 'gol' || r.nivel === 'hattrick') o.gols++; else if (r.nivel === 'penalti') o.pen++; }
     let entrou = 0;
     for (const r of d.lances) {
       if (Number(r.baseline)) continue;
+      if (primeiraSrv && secDe(r.hora_sp) < desdeS) { EXIB_SRV.add(String(r.filial || '').toUpperCase() + '|' + String(r.chave || '')); continue; }
       const ch = String(r.chave || ''), tipo0 = ch.split('|')[0], sig = String(r.filial || '').toUpperCase();
       const grave = /^(ver_dev|golcontra_dev)$/.test(tipo0);
       const sub = SUB_DO_SRV[tipo0];
@@ -859,6 +866,7 @@ async function carregaGolsServidor() {
       if (!LOG.some((e) => e.key === a.key)) LOG.push({ key: a.key, t: r.hora_sp, nivel: a.nivel, rca: r.rca, vendedor: v.nome, supervisor: v.sup || '', sig, cliente: c && c.nome, motivo: r.motivo, obs: r.obs || '', ao_ligar: false });
       entrou++;
     }
+    primeiraSrv = false;
     store.set('ceven_exib_srv_MTZ_' + HOJE0, [...EXIB_SRV]);
     if (entrou) { ESPERA.sort((x, y) => y.score - x.score); store.set(K.log + HOJE0, LOG); liberaEspera(); }
   } catch (e) { /* sem servidor: tenta de novo no proximo minuto */ }
