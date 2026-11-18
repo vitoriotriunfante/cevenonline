@@ -186,7 +186,8 @@ export async function rotearIntencao(B, c, t, info) {
     const Ev = await carregaEscopo(B, esc), v = Ev.vend[0];
     if (v && /SEM COMPRA|NAO COMPR|AINDA NAO/.test(t) && /\b(HOJE|HJ|ROTA|VISITA)\b/.test(t)) { const { respRotaHojeCompleta } = await import('./respostas/rota.js'); const r = await respRotaHojeCompleta(B, v, true); if (r) return r; }
     if (v && /QUANTOS CLIENTES/.test(t) && /\b(HOJE|HJ|ROTA)\b/.test(t)) { const { respMinhaRota } = await import('./respostas/rota.js'); const r = await respMinhaRota(B, v); if (r) return r; }
-    if (v && /^\W*(MEUS?\s+)?CORTES?\W*$/.test(t) && info.interno) return info.interno('16');
+    // 17/11/2026 (auditoria ampla: 13 vendedores receberam a ficha de um cliente): direto na resposta de cortes do GEROT (o '16' fora do menu abria outra coisa)
+    if (v && /^\W*(MEUS?\s+)?CORTES?( DO MES)?\W*$/.test(t)) { const { vn: vnf } = await import('./base.js'); const r = await (await import('./respostas/pedidos_gerot.js')).respCortesGerot(B, v.filial, [v.rca], vnf(v)).catch(() => null); if (r) return r; }
   }
   return null;
 }

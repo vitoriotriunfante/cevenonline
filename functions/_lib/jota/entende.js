@@ -422,6 +422,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
           // CORTES DO MES (Vitorio, 10/11/2026: 'quer saber o que cortou, o que mais cortou, de quem cortou, quanto cortou... subsidios para atuar')
           // pedido_status do proprio vendedor; itens = lista itens_cortados do CEVEN (itens_cortados_json, gravada desde 10/11/2026). Sem item lido = so o valor do pedido.
           const Ev = await carregaEscopo(B, esc), v = Ev.vend[0], mes = hojeSP().slice(0, 7);
+          // 17/11/2026: cortes pelo GEROT (comercial x logistico por pedido e por industria); a linha do tempo do CEVEN so se o GEROT nao responder
+          if (v) { const rg = await (await import('./respostas/pedidos_gerot.js')).respCortesGerot(B, v.filial, [v.rca], vn(v)).catch(() => null); if (rg) { r = rg; } }
           let P = [];
           if (v && B.env && B.env.DB) { const q = (col) => B.env.DB.prepare("SELECT num, id_cliente, data_pedido, valor, valor_winthor, categoria_corte" + col + " FROM pedido_status WHERE filial = ? AND rca = ? AND substr(data_pedido, 1, 7) = ? AND categoria_corte IN ('COMERCIAL', 'LOGISTICA', 'AMBOS') ORDER BY data_pedido DESC").bind(String(v.filial), String(v.rca), mes).all();
             try { P = (await q(', itens_cortados_json')).results || []; } catch (e) { P = (await q('')).results || []; } }
@@ -429,7 +431,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
           const corte = (p) => Math.max(0, (Number(p.valor) || 0) - (Number(p.valor_winthor) || 0));
           const nomeCli = new Map((v && Array.isArray(v.roteiroMes) ? v.roteiroMes : []).map((c) => [String(c.id_cliente), titulo(c.nome_cliente || c.razao_social || '')]));
           const cli = (id) => (nomeCli.get(String(id)) || 'Cliente') + ' (#' + id + ')';
-          if (!v) r = 'Não achei os seus dados na base agora.';
+          if (r && /Cortes do mês/.test(String(r))) { /* ja respondido pelo GEROT */ }
+          else if (!v) r = 'Não achei os seus dados na base agora.';
           else if (!P.length) r = '✂️ *Cortes no mês — ' + vn(v) + '*: nenhum pedido com corte em ' + mes.slice(5, 7) + '/' + mes.slice(0, 4) + '. 👏';
           else {
             const tot = P.reduce((s, p) => s + corte(p), 0), porTipo = new Map(), porCli = new Map(), porProd = new Map(); let comItens = 0;
@@ -1426,7 +1429,10 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
             const tot = L0.reduce((a, x) => a + x.tot, 0), falta = L0.reduce((a, x) => a + x.nao.length, 0), voltaM1 = L0.reduce((a, x) => a + x.nao.filter((c) => c.m1 > 0).length, 0);
             return [`👥 *Quem falta positivar — ${E.nome}*`, `Carteira: *${N(tot)}* clientes · *sem compra e sem pedido no mês: ${N(falta)}*` + (voltaM1 ? ` · ${N(voltaM1)} deles compraram no mês passado 🔁` : ''), '',
               ...ord.slice(0, 15).map((x, i) => `${numL(i)} *${vn(x.v)}*: *${x.nao.length}* de ${x.tot}` + (x.nao[0] && x.nao[0].m1 > 0 ? ` · ex.: ${x.nao.filter((c) => c.m1 > 0).slice(0, 2).map((c) => c.nome).join(', ')}` : '')),
-              ord.length > 15 ? `… e mais ${ord.length - 15} vendedores` : '', '', SUGESTAO + `digite o número (ex: *1*) para ver a lista daquele vendedor; comece pelos 🔁 (compraram no mês passado).`].filter((x) => x !== '').join('\n');
+              ord.length > 15 ? `… e mais ${ord.length - 15} vendedores` : '',
+              // 17/11/2026 (auditoria ampla: supervisor pediu "quem falta positivar" e nao veio nenhum cliente): os clientes a recuperar primeiro, da equipe toda
+              ...(() => { const R = ord.flatMap((x) => x.nao.filter((c) => c.m1 > 0).map((c) => ({ c, v: x.v }))).slice(0, 8); return R.length ? ['', '🔁 *Recuperar primeiro (compraram no mês passado):*', ...R.map((y) => `• ${y.c.nome} (#${y.c.id}) · ${vn(y.v)}`)] : []; })(),
+              '', SUGESTAO + `digite o número (ex: *1*) para ver a lista daquele vendedor; comece pelos 🔁 (compraram no mês passado).`].filter((x, i, a) => x !== '' || (a[i + 1] && /^🔁|^🎯/.test(a[i + 1]))).join('\n');
           }
         }
       } catch (e) { /* sem GEROT por cliente: segue o roteiro */ }

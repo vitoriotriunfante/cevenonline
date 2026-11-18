@@ -333,7 +333,10 @@ export async function respMatinal(B, E) {
     });
   }
   if (!rows.length) return `☀️ *Matinal — ${E.nome}*: sem dados no GEROT para este escopo agora.`;
-  const prio = () => rows.filter((x) => x.meta > 0 && !/\bVAGO\b/i.test(x.nome));   // 17/11/2026 (bateria real): 'Vago' e vendedor sem meta nao sao prioridade
+  // 17/11/2026 (auditoria ampla): sem venda no mes e sem rota hoje (ferias/afastado?) = linha propria, nao prioridade
+  const parado = (x) => x.meta > 0 && !(x.vend > 0) && !(x.rota > 0);
+  const prio = () => rows.filter((x) => x.meta > 0 && !/\bVAGO\b/i.test(x.nome) && !parado(x));   // 17/11/2026 (bateria real): 'Vago' e vendedor sem meta nao sao prioridade
+  const linhaParados = () => { const P = rows.filter((x) => parado(x) && !/\bVAGO\b/i.test(x.nome)); return P.length ? ['', `⚪ *Sem venda no mês e sem rota hoje (${P.length}):* ${P.slice(0, 6).map((x) => rotVend(x)).join(', ')}${P.length > 6 ? ' e mais ' + (P.length - 6) : ''}`] : []; };
   rows.sort((a, b) => a.tendPct - b.tendPct || b.meta - a.meta);
 
   const totMeta = rows.reduce((a, x) => a + x.meta, 0), totVend = rows.reduce((a, x) => a + x.vend, 0);
@@ -510,7 +513,8 @@ export async function respMatinal(B, E) {
       `👥 Positivação: *${N(totPos)}*${totMetaPos ? ' / ' + N(totMetaPos) + ' (' + P(totPos, totMetaPos) + ')' : ''} · ${rotaTxt('🗺️ Rota:')} · 🚫 Bloqueados: *${N(totBloqQtd)}* pedido(s)`,
       '',
       `🎯 *Prioridades de hoje:*`,
-      ...prio().slice(0, 4).map((x, i) => `${i + 1}. *${rotVend(x)}*: ritmo *${x.tendPct.toFixed(0)}%* · precisa ${R$(x.precisaDia)}/d · rota ${x.rota}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`)
+      ...prio().slice(0, 4).map((x, i) => `${i + 1}. *${rotVend(x)}*: ritmo *${x.tendPct.toFixed(0)}%* · precisa ${R$(x.precisaDia)}/d · rota ${x.rota}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`),
+      ...linhaParados()
     ].join('\n');
   }
 
@@ -524,6 +528,7 @@ export async function respMatinal(B, E) {
     '',
     `🎯 *Prioridade (pior tendência primeiro):*`,
     ...prio().slice(0, 10).map((x, i) => `${i + 1}. *${rotVend(x)}*: ritmo *${x.tendPct.toFixed(0)}%* (${P(x.vend, x.meta)}) · ${R$(x.precisaDia)}/d · rota ${x.rota}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`),
-    ...(rows.length > 10 ? [`_… e mais ${rows.length - 10} vendedor(es) na equipe._`] : [])
+    ...(rows.length > 10 ? [`_… e mais ${rows.length - 10} vendedor(es) na equipe._`] : []),
+    ...linhaParados(),
   ].join('\n');
 }

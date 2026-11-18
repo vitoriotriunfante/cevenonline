@@ -112,3 +112,24 @@ export async function msgPedidoNaoEncontrado(B, num) {
   try { const r = await B.env.DB.prepare('SELECT MAX(em) em FROM gerot_carteira').first(); em = r && r.em ? new Date(r.em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) : null; } catch (e) { /* sem hora */ }
   return `🔎 *Pedido ${num}*: ainda não aparece no GEROT${em ? ` (última carga às ${em})` : ''}, nem na carteira nem nos faturados.\n• Pedido digitado hoje entra na próxima carga (a cada ~2 h).\n• Se for mais antigo, confere o número (o mesmo número pode existir em outra filial).`;
 }
+
+// CORTES DO MES PELO GEROT (17/11/2026; Vitorio: "cortes tambem tem por motivo igual o CEVEN"): comercial x logistico por pedido (gerot_pedido) e por industria
+// (gerot_vendas). Escopo: um vendedor (rca) ou uma lista de vendedores da equipe. Sem corte no mes: diz isso. Nada estimado.
+export async function respCortesGerot(B, filial, rcas, titulo0) {
+  const db = B.env && B.env.DB; if (!db || !rcas || !rcas.length) return null;
+  const mes = hojeSP().slice(0, 7), q = rcas.map(() => '?').join(',');
+  let P = [], F = [];
+  try {
+    P = (await db.prepare(`SELECT pedido, data, nome, rca, SUM(json_extract(dados, '$."Corte comercial (R$)"')) com, SUM(json_extract(dados, '$."Corte logístico (R$)"')) log FROM gerot_pedido WHERE mes = ? AND filial = ? AND rca IN (${q}) GROUP BY pedido HAVING com > 0 OR log > 0 ORDER BY (com + log) DESC`).bind(mes, String(filial), ...rcas.map(String)).all()).results || [];
+    F = (await db.prepare(`SELECT fornecedor, SUM(json_extract(dados, '$."Corte comercial (R$)"')) com, SUM(json_extract(dados, '$."Corte logístico (R$)"')) log FROM gerot_vendas WHERE mes = ? AND filial = ? AND rca IN (${q}) GROUP BY fornecedor HAVING com > 0 OR log > 0 ORDER BY (com + log) DESC LIMIT 6`).bind(mes, String(filial), ...rcas.map(String)).all()).results || [];
+  } catch (e) { return null; }
+  const tc = P.reduce((a, x) => a + (Number(x.com) || 0), 0), tl = P.reduce((a, x) => a + (Number(x.log) || 0), 0);
+  if (!P.length && !F.length) return `✂️ *Cortes do mês — ${titulo0}*: nenhum corte no GEROT em ${mes.slice(5)}/${mes.slice(0, 4)}. 👏`;
+  const dm = (s) => (s ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : '--/--');
+  const L = [`✂️ *Cortes do mês — ${titulo0}*`, `Total *${R$(tc + tl)}* · comercial *${R$(tc)}* · logístico *${R$(tl)}*`,
+    '_Comercial = decisão de venda (preço, crédito, regra); logístico = faltou o produto no estoque._'];
+  if (F.length) L.push('', '*Indústrias que mais cortaram:*', ...F.map((x) => `• ${titulo(String(x.fornecedor || '').replace(/^[A-Z]\s*-\s*/, '').toLowerCase()).slice(0, 34)}: ${R$((Number(x.com) || 0) + (Number(x.log) || 0))} (com. ${R$(x.com || 0)} · log. ${R$(x.log || 0)})`));
+  if (P.length) L.push('', `*Pedidos com corte (${N(P.length)})${P.length > 10 ? ' — os 10 maiores' : ''}:*`, ...P.slice(0, 10).map((x) => `• ${dm(x.data)} · nº ${x.pedido} · ${titulo(String(x.nome || '').toLowerCase()).slice(0, 30)} · ${R$((Number(x.com) || 0) + (Number(x.log) || 0))}${Number(x.com) > 0 && Number(x.log) > 0 ? ' (com. + log.)' : Number(x.com) > 0 ? ' (comercial)' : ' (logístico)'}`));
+  L.push('', '_GEROT · cortes do mês por pedido e por indústria._');
+  return L.join('\n');
+}

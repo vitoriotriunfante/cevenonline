@@ -134,7 +134,7 @@ export async function respOndeEsta(B, v) {
   const t = D.t, L = [`📍 *${vn(v)}* (${v.filial}) · hoje`];
   if (ult) L.push(ult.fim && ult.fim >= ult.ini ? `Último check-out às *${ult.fim}* em *${ult.nome}* (#${ult.id})` : `*Agora em ${ult.nome}* (#${ult.id}) · check-in às ${ult.ini}, sem check-out ainda`);
   else L.push('*Nenhum check-in hoje* até a última leitura do Clube.');
-  L.push(`🚶 Visitou *${N(t.visitas_rota || 0)} de ${N(t.roteiros || 0)}* da rota · 📝 ${R$(t.total_pedido || 0)} em ${N(t.ped_total || 0)} pedido(s)`);
+  L.push((Number(t.roteiros) > 0 ? `🚶 Visitou *${N(t.visitas_rota || 0)} de ${N(t.roteiros || 0)}* da rota` : '🚶 *Sem rota hoje*') + ` · 📝 ${R$(t.total_pedido || 0)} em ${N(t.ped_total || 0)} pedido(s)`);
   if (V.length) {
     L.push('', '_✅ vendeu · ⚠️ não vendeu (motivo) · 👣 visitou_');
     for (const x of V) { const j = jus.get(String(x.id)); L.push(`${x.ini}${x.fim ? '–' + x.fim : ''} ${comPed.has(String(x.id)) ? '✅' : j ? '⚠️' : '👣'} ${x.nome} (#${x.id})${!comPed.has(String(x.id)) && j ? ` · ${j.motivo}` : ''}`); }
@@ -147,7 +147,8 @@ export async function respOndeEsta(B, v) {
 
 export function linhasDiaClube(D, momento) {
   const t = D.t, L = [];
-  L.push(`🚶 Rota: visitou *${N(t.visitas_rota || 0)} de ${N(t.roteiros || 0)}*` + (D.naoVis ? ` · *${N(D.naoVis)} sem visita*` : ' · rota completa'));
+  // 17/11/2026 (auditoria ampla: 'visitou 0 de 0 · rota completa'): sem rota no Clube = 'sem rota hoje'
+  L.push(!(Number(t.roteiros) > 0) ? '🚶 *Sem rota hoje* no Clube da Venda' : `🚶 Rota: visitou *${N(t.visitas_rota || 0)} de ${N(t.roteiros || 0)}*` + (D.naoVis ? ` · *${N(D.naoVis)} sem visita*` : ' · rota completa'));
   L.push(`📝 Vendeu *${R$(t.total_pedido || 0)}* em *${N(t.ped_total || 0)}* pedido(s)` + (t.ped_fora ? ` (${N(t.ped_fora)} fora da rota)` : ''));
   if (D.comPed && D.comPed.length) L.push(`✅ Com pedido: ${D.comPed.map((x) => x.nome).join(', ')}`);
   if (D.semPed.length) {
