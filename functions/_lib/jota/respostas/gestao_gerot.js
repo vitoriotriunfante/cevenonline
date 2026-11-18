@@ -73,34 +73,42 @@ export async function respCarteiraStatus(B, filiais, rcas, nome) {
 // ---------- JUSTIFICATIVAS DE NAO VENDA (Clube da Venda) ----------
 // esc: { filiais, rcas, nome, porVendedor }. modo: 'motivo' (padrao) | 'vendedor' (vendedor x justificativa) | 'just' (justificativa x vendedor)
 export async function respJustificativas(B, esc, modo = 'motivo') {
+  // 18/11/2026 (Vitorio: "justificativas de nao venda: dia, mes, acumulado / vendedor - supervisor - gerente - diretoria"): HOJE e NO MES lado a lado, em todas as visoes
   const db = B.env && B.env.DB; if (!db) return null;
-  const F = esc.filiais && esc.filiais.length ? esc.filiais : FILIAIS, ini = mesAtual() + '-01';
+  const F = esc.filiais && esc.filiais.length ? esc.filiais : FILIAIS, ini = mesAtual() + '-01', hoje = hojeSP();
   const fr = esc.rcas && esc.rcas.length ? ` AND rca IN (${qs(esc.rcas)})` : '';
-  let J0 = [], V0 = [], d0 = null;
+  let J0 = [], V0 = [], d0 = null, JH = [];
   try {
-    J0 = (await db.prepare(`SELECT filial, rca, nome, motivo, COUNT(*) n FROM clube_justificativa WHERE dia >= ? AND filial IN (${qs(F)})${fr} GROUP BY filial, rca, motivo`).bind(ini, ...F, ...(esc.rcas || [])).all()).results || [];
-    V0 = (await db.prepare(`SELECT filial, rca, SUM(roteiros) rot FROM clube_venda_dia WHERE dia >= ? AND filial IN (${qs(F)})${fr} GROUP BY filial, rca`).bind(ini, ...F, ...(esc.rcas || [])).all()).results || [];
-    d0 = (await db.prepare('SELECT MIN(dia) a, MAX(dia) b FROM clube_justificativa WHERE dia >= ?').bind(ini).first()) || null;
+    J0 = (await db.prepare(`SELECT filial, rca, MAX(nome) nome, motivo, COUNT(*) n, SUM(CASE WHEN dia = ? THEN 1 ELSE 0 END) h FROM clube_justificativa WHERE dia >= ? AND filial IN (${qs(F)})${fr} GROUP BY filial, rca, motivo`).bind(hoje, ini, ...F, ...(esc.rcas || [])).all()).results || [];
+    V0 = (await db.prepare(`SELECT SUM(roteiros) rot, SUM(CASE WHEN dia = ? THEN roteiros ELSE 0 END) rh FROM clube_venda_dia WHERE dia >= ? AND filial IN (${qs(F)})${fr}`).bind(hoje, ini, ...F, ...(esc.rcas || [])).all()).results || [];
+    d0 = (await db.prepare('SELECT MIN(dia) a, MAX(dia) b, COUNT(DISTINCT dia) n FROM clube_justificativa WHERE dia >= ?').bind(ini).first()) || null;
+    if (esc.rcas && esc.rcas.length === 1) JH = (await db.prepare('SELECT cliente, fantasia, razao, motivo, data_hora, dias_sem_comprar FROM clube_justificativa WHERE dia = ? AND filial = ? AND rca = ? ORDER BY data_hora').bind(hoje, F[0], String(esc.rcas[0])).all()).results || [];
   } catch (e) { return null; }
   if (!J0.length) return `📋 *Motivos de não venda — ${esc.nome}*: nenhuma justificativa no Clube da Venda neste mês.`;
-  const per = d0 && d0.a ? `${d0.a.slice(8, 10)}/${d0.a.slice(5, 7)} a ${d0.b.slice(8, 10)}/${d0.b.slice(5, 7)}` : '';
-  const tot = J0.reduce((a, x) => a + x.n, 0), rot = V0.reduce((a, x) => a + (Number(x.rot) || 0), 0);
-  const mot = new Map(); for (const x of J0) { const m = titulo(String(x.motivo || 'sem motivo').toLowerCase()); mot.set(m, (mot.get(m) || 0) + x.n); }
-  const vend = new Map(); for (const x of J0) { const k = x.filial + '|' + x.rca; const o = vend.get(k) || { nome: `${x.rca} - ${nomeCurto(x.nome)}${F.length > 1 ? ' (' + x.filial + ')' : ''}`, n: 0, m: new Map() }; o.n += x.n; const m = titulo(String(x.motivo || 'sem motivo').toLowerCase()); o.m.set(m, (o.m.get(m) || 0) + x.n); vend.set(k, o); }
-  const L = [`📋 *Motivos de não venda — ${esc.nome}* · Clube da Venda${per ? ' (' + per + ')' : ''}`, `Justificativas: *${N(tot)}*${rot ? ` · visitas planejadas na rota: ${N(rot)} (${pc(tot, rot)})` : ''}`];
+  const per = d0 && d0.a ? `${d0.a.slice(8, 10)}/${d0.a.slice(5, 7)} a ${d0.b.slice(8, 10)}/${d0.b.slice(5, 7)}, ${d0.n} dias com leitura` : '';
+  const tot = J0.reduce((a, x) => a + x.n, 0), toth = J0.reduce((a, x) => a + (Number(x.h) || 0), 0);
+  const rot = V0.reduce((a, x) => a + (Number(x.rot) || 0), 0), roth = V0.reduce((a, x) => a + (Number(x.rh) || 0), 0);
+  const tit = (m) => titulo(String(m || 'sem motivo').toLowerCase());
+  const mot = new Map(); for (const x of J0) { const m = tit(x.motivo), o = mot.get(m) || { n: 0, h: 0 }; o.n += x.n; o.h += Number(x.h) || 0; mot.set(m, o); }
+  const vend = new Map(); for (const x of J0) { const k = x.filial + '|' + x.rca; const o = vend.get(k) || { nome: `${x.rca} - ${nomeCurto(x.nome)}${F.length > 1 ? ' (' + x.filial + ')' : ''}`, n: 0, h: 0, m: new Map() }; o.n += x.n; o.h += Number(x.h) || 0; const m = tit(x.motivo), y = o.m.get(m) || { n: 0, h: 0 }; y.n += x.n; y.h += Number(x.h) || 0; o.m.set(m, y); vend.set(k, o); }
+  const hm = (o) => `hoje *${N(o.h)}* · mês *${N(o.n)}*`;
+  const L = [`📋 *Motivos de não venda — ${esc.nome}*`,
+    `*Hoje:* ${N(toth)} justificativa(s)${roth ? ` de ${N(roth)} visitas planejadas (${pc(toth, roth)})` : ''}`,
+    `*No mês:* ${N(tot)}${rot ? ` de ${N(rot)} visitas planejadas (${pc(tot, rot)})` : ''}${per ? ` · _${per}_` : ''}`];
   if (modo === 'vendedor') {
-    L.push('', '*Vendedor × justificativa (quem mais justificou):*');
-    for (const o of [...vend.values()].sort((a, b) => b.n - a.n).slice(0, 15)) L.push(`• *${o.nome}*: ${N(o.n)} — ${[...o.m].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([m, n]) => `${m} ${n}`).join(' · ')}`);
+    L.push('', '*Vendedor × justificativa* _(hoje · mês)_:');
+    for (const o of [...vend.values()].sort((a, b) => b.n - a.n).slice(0, 15)) L.push(`• *${o.nome}*: ${hm(o)} — ${[...o.m].sort((a, b) => b[1].n - a[1].n).slice(0, 3).map(([m, y]) => `${m} ${y.n}${y.h ? ` (${y.h} hoje)` : ''}`).join(' · ')}`);
   } else if (modo === 'just') {
-    L.push('', '*Justificativa × vendedor (quem mais usou cada motivo):*');
-    for (const [m, n] of [...mot].sort((a, b) => b[1] - a[1]).slice(0, 8)) { const top = [...vend.values()].map((o) => [o.nome, o.m.get(m) || 0]).filter(([, q]) => q).sort((a, b) => b[1] - a[1]).slice(0, 3); L.push(`• *${m}* (${N(n)}): ${top.map(([nm, q]) => `${nm} ${q}`).join(' · ')}`); }
+    L.push('', '*Justificativa × vendedor* _(quem mais usou no mês)_:');
+    for (const [m, o] of [...mot].sort((a, b) => b[1].n - a[1].n).slice(0, 8)) { const top = [...vend.values()].map((v) => [v.nome, (v.m.get(m) || { n: 0 }).n]).filter(([, q]) => q).sort((a, b) => b[1] - a[1]).slice(0, 3); L.push(`• *${m}* (${hm(o)}): ${top.map(([nm, q]) => `${nm} ${q}`).join(' · ')}`); }
   } else {
-    L.push('', '*Motivos:*', ...[...mot].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([m, n]) => `• ${m}: ${N(n)} (${pc(n, tot)})`));
-    if (F.length > 1) { const pf = new Map(); for (const x of J0) pf.set(x.filial, (pf.get(x.filial) || 0) + x.n); L.push('', '*Por filial:*', [...pf].sort((a, b) => b[1] - a[1]).map(([f, n]) => `${f} ${N(n)}`).join(' · ')); }
-    L.push('', '*Quem mais justificou:*', ...[...vend.values()].sort((a, b) => b.n - a.n).slice(0, 5).map((o) => `• ${o.nome}: ${N(o.n)} · mais "${[...o.m].sort((a, b) => b[1] - a[1])[0][0]}"`));
+    L.push('', '*Motivos* _(hoje · mês)_:', ...[...mot].sort((a, b) => b[1].n - a[1].n).slice(0, 10).map(([m, o]) => `• ${m}: ${N(o.h)} · ${N(o.n)} (${pc(o.n, tot)})`));
+    if (F.length > 1) { const pf = new Map(); for (const x of J0) { const o = pf.get(x.filial) || { n: 0, h: 0 }; o.n += x.n; o.h += Number(x.h) || 0; pf.set(x.filial, o); } L.push('', '*Por filial* _(hoje · mês)_:', [...pf].sort((a, b) => b[1].n - a[1].n).map(([f, o]) => `${f} ${N(o.h)}·${N(o.n)}`).join(' · ')); }
+    if (!(esc.rcas && esc.rcas.length === 1)) L.push('', '*Quem mais justificou* _(hoje · mês)_:', ...[...vend.values()].sort((a, b) => b.n - a.n).slice(0, 5).map((o) => `• ${o.nome}: ${N(o.h)} · ${N(o.n)} · mais "${[...o.m].sort((a, b) => b[1].n - a[1].n)[0][0]}"`));
   }
-  L.push('', '_Peça "justificativas por vendedor" (vendedor × motivo) ou "justificativas por motivo" (motivo × vendedor)._');
-  return L.join('\n');
+  if (JH.length) L.push('', `*Hoje, cliente a cliente (${JH.length}):*`, ...JH.slice(0, 15).map((j) => `• ${String(j.data_hora || '').slice(11, 16)} · ${titulo(String(j.fantasia || j.razao || 'cliente').toLowerCase())} (#${j.cliente}) · ${tit(j.motivo)}`));
+  L.push('', esc.rcas && esc.rcas.length === 1 ? '_Clube da Venda._' : '_Clube da Venda · peça "justificativas por vendedor" (vendedor × motivo) ou "justificativas por motivo" (motivo × vendedor)._');
+  return L.join(String.fromCharCode(10));
 }
 
 // ---------- VISITAS (Clube da Venda): hoje e no mes, por filial / supervisor / vendedor ----------

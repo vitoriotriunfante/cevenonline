@@ -322,10 +322,16 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // CLIENTE POR 'COD' OU CNPJ (sugestoes do Vitorio 06/11/2026: 'historico cliente cod 250900' e o CNPJ viravam '#4000162'):
   // 'cliente cod/codigo/n 250900' = 'cliente 250900'; CNPJ (14 digitos, com ou sem ponto/barra) acha o codigo na ficha do D1
   if (/\bCLIENTE\s+(COD(IGO)?|N[UO]M(ERO)?|N)\.?\s*#?\d/.test(t)) t = t.replace(/\bCLIENTE\s+(COD(IGO)?|N[UO]M(ERO)?|N)\.?\s*#?(?=\d)/, 'CLIENTE #');
-  { const cn = (String(texto || '').replace(/[.\-\/]/g, '').match(/\b\d{14}\b/) || [])[0];
-    const cnpjPuro = /^\s*\d{14}\s*$/.test(String(texto || '').replace(/[.\-\/\s]/g, ''));
-    if (cn && B.env && B.env.DB && (cnpjPuro || /CLIENTE|CNPJ|HIST|FICHA|COMPR/.test(t))) { try { const r = await B.env.DB.prepare('SELECT id_cliente FROM ficha_cliente WHERE json LIKE ? LIMIT 1').bind('%"cnpj":"' + cn + '"%').first();
-      if (r && r.id_cliente) t = 'CLIENTE #' + r.id_cliente; else return `🔎 Não achei nenhum cliente com o CNPJ *${cn}* na base. Confere os números ou me manda o código do cliente.`; } catch (e) { /* segue */ } } }
+  { // 18/11/2026 (Fernando/TPH: "077327225000113 tudo que foi vendido" caiu na IA generica): CNPJ com um zero a mais na frente (15 digitos) vale;
+    // "esse cliente" sem codigo = o CNPJ da mensagem anterior; procura tambem nos clientes do GEROT (ago em diante), nao so na ficha
+    const doTexto = (s) => { const m = String(s || '').replace(/[.\-\/]/g, '').match(/\b0?\d{14}\b/); return m ? (m[0].length === 15 ? m[0].slice(1) : m[0]) : null; };
+    let cn = doTexto(texto);
+    if (!cn && /\b(ESSE|DESSE|ESTE|DESTE|MESMO|NESSE|NESTE) CLIENTE\b/.test(t) && anteriores && anteriores.length) for (const a of anteriores.slice(0, 3)) { cn = doTexto(a); if (cn) break; }
+    const cnpjPuro = /^\s*0?\d{14}\s*$/.test(String(texto || '').replace(/[.\-\/\s]/g, ''));
+    if (cn && B.env && B.env.DB && (cnpjPuro || /CLIENTE|CNPJ|HIST|FICHA|COMPR|VEND/.test(t))) { try {
+      let r = await B.env.DB.prepare('SELECT id_cliente FROM ficha_cliente WHERE json LIKE ? LIMIT 1').bind('%"cnpj":"' + cn + '"%').first();
+      if (!(r && r.id_cliente)) { const g = await B.env.DB.prepare('SELECT cliente FROM gerot_cliente_mes WHERE cnpj = ? ORDER BY mes DESC LIMIT 1').bind(cn).first().catch(() => null); if (g && g.cliente) r = { id_cliente: g.cliente }; }
+      if (r && r.id_cliente) t = 'CLIENTE #' + r.id_cliente; else return `🔎 Não achei nenhum cliente com o CNPJ *${cn}* nas vendas de agosto para cá (GEROT) nem na ficha. Confere os números ou me manda o código do cliente.`; } catch (e) { /* segue */ } } }
   // "Sugestao" sozinha (27/10/2026, Thiago/Sueli/Rodrigo: a IA inventava uma resposta): pede a sugestao
   if (/^\W*SUGEST(AO|OES|AO DO JOTA)?\W*$/.test(t)) return '💡 Pode mandar! Escreva *"sugestão:"* e o que você quer que eu faça diferente (ex.: "sugestão: mandar a meta de cada vendedor"). Vai direto para o time que me treina.';
   // escopo: gerente = a filial dele; diretoria = a filial citada, senao o Brasil
