@@ -136,19 +136,24 @@ export async function respAteData(B, filiais, nome) {
   const F = filiais && filiais.length ? filiais : FILIAIS, hoje = hojeSP(), dia = hoje.slice(8, 10);
   const m0 = mesAtual(), [y, m] = m0.split('-').map(Number), m1 = new Date(Date.UTC(y, m - 2, 1)).toISOString().slice(0, 7);
   const lim1 = `${m1}-${dia}`;
-  let A = [], P = [];
+  let A = [], P = [], M3 = [];
   try {
     // 18/11/2026: faturado por FILIAL x DIA do GEROT (a soma pelos pedidos deixava de fora notas sem pedido)
     const q = (mes, ate) => db.prepare(`SELECT filial, SUM(json_extract(dados, '$."Faturado líquido (R$)"')) f FROM gerot_filial_dia WHERE mes = ? AND data <= ? AND filial IN (${qs(F)}) GROUP BY filial`).bind(mes, ate, ...F).all();
     A = (await q(m0, hoje)).results || []; P = (await q(m1, lim1)).results || [];
+    // Evandro, 18/11/2026: "media dos ultimos 3 meses ate a data" -> M-1, M-2 e M-3 ate o mesmo dia; so entra mes que o GEROT tem
+    for (const k of [1, 2, 3]) { const mk = new Date(Date.UTC(y, m - 1 - k, 1)).toISOString().slice(0, 7); const r = (await q(mk, mk + '-' + dia)).results || []; if (r.length) M3.push({ mes: mk, r }); }
   } catch (e) { return null; }
   if (!P.length) return `📊 *Até a data — ${nome}*: ainda não tenho os pedidos de ${m1.slice(5)}/${m1.slice(0, 4)} do GEROT para comparar.`;
   const mapa = new Map(); for (const x of A) mapa.set(x.filial, { a: Number(x.f) || 0, p: 0 }); for (const x of P) { const o = mapa.get(x.filial) || { a: 0, p: 0 }; o.p = Number(x.f) || 0; mapa.set(x.filial, o); }
   const ta = [...mapa.values()].reduce((s, o) => s + o.a, 0), tp = [...mapa.values()].reduce((s, o) => s + o.p, 0);
   const dl = (a, b) => { if (!b) return ''; const d = (a / b - 1) * 100; return `${d >= 0 ? '▲ +' : '▼ '}${d.toFixed(1).replace('.', ',')}%`; };
   const L = [`📊 *Faturado até o dia ${dia} — ${nome}*`, `Este mês: *${R$(ta)}* · mês passado até o dia ${dia}: ${R$(tp)} → *${dl(ta, tp)}*`];
-  if (mapa.size > 1) L.push('', '*Por filial:*', ...[...mapa].sort((a, b) => (b[1].a / (b[1].p || 1)) - (a[1].a / (a[1].p || 1))).map(([f, o]) => `• *${f}*: ${R$(o.a)} · mês passado ${R$(o.p)} · ${dl(o.a, o.p)}`));
-  L.push('', '_GEROT · faturado líquido pela data da nota, do dia 1º até o mesmo dia nos dois meses._');
+  const med = new Map(); for (const { r } of M3) for (const x of r) med.set(x.filial, (med.get(x.filial) || 0) + (Number(x.f) || 0) / M3.length);
+  const tm = [...med.values()].reduce((s2, v) => s2 + v, 0);
+  if (M3.length) L.push(`Média de ${M3.length === 3 ? '3 meses' : M3.length + ' mês(es) (' + M3.map((x) => x.mes.slice(5)).join(', ') + ')'} até o dia ${dia}: ${R$(tm)} → *${dl(ta, tm)}*`);
+  if (mapa.size > 1) L.push('', '*Por filial:*', ...[...mapa].sort((a, b) => (b[1].a / (b[1].p || 1)) - (a[1].a / (a[1].p || 1))).map(([f, o]) => `• *${f}*: ${R$(o.a)} · mês passado ${R$(o.p)} ${dl(o.a, o.p)}${med.has(f) ? ' · média ' + R$(med.get(f)) + ' ' + dl(o.a, med.get(f)) : ''}`));
+  L.push('', '_GEROT · faturado líquido pela data da nota, do dia 1º até o mesmo dia em cada mês._');
   return L.join('\n');
 }
 

@@ -49,6 +49,17 @@ jobs:
           EVO_KEY: ${{ secrets.EVO_KEY }}
           CEVEN_SITE_URL: https://ceven-cftv-matrix.pages.dev
         run: node pipeline/clube_coletor.mjs --api
+      - name: Rota do dia com os nomes (Clube, Roteiro Consolidado Geral; so rele depois de 3 h)
+        # 18/11/2026 (plano do JOTA, bloco D): a rota nominal das 11 filiais sai do Clube, nao do CEVEN
+        if: steps.check.outputs.ok == 'true'
+        continue-on-error: true
+        timeout-minutes: 8
+        env:
+          TP_USER: ${{ secrets.TP_USER }}
+          TP_PASS: ${{ secrets.TP_PASS }}
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+          CEVEN_SITE_URL: https://ceven-cftv-matrix.pages.dev
+        run: node pipeline/clube_roteiro.mjs --api
       - name: Arvore de supervisores (CEVEN admin, so se passou de 45 min)
         # 17/11/2026 (Vitorio: "a arvore precisa bater no CEVEN e no GEROT"): quem renovava era o coletor de lances antigo, parado desde 13/11
         if: steps.check.outputs.ok == 'true'
