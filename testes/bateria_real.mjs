@@ -14,7 +14,8 @@ const M = sql(`SELECT m.celular, m.quando, m.texto, c.nome, c.papel, c.filial, c
 const fora = (t) => !t || t.length < 3 || /^\s*(👍|👎|ok|obrigad|valeu|sim|nao|não)\W*$/i.test(t) || /^\W*sugest/i.test(t) || /^\W*(pare|para|chega)\W*$/i.test(t) || /^\W*\d{1,2}(\.\d)?\W*$/.test(t) || /^\[(imagem|figurinha|sticker|documento)/i.test(t);
 const porPessoa = new Map();
 for (const m of M) { if (!m.papel || m.papel === 'grupo' || fora(String(m.texto || '').trim())) continue;   /* grupo = conversa entre pessoas, nao pergunta ao Jota */ if (!porPessoa.has(m.celular)) porPessoa.set(m.celular, { c: { nome: m.nome, papel: m.papel, filial: m.filial, rca: m.rca, grupo: m.grupo, celular: m.celular, filiais: m.papel === 'diretoria' ? [] : undefined }, q: [] }); porPessoa.get(m.celular).q.push(String(m.texto).replace(/^\[áudio\]\s*/i, '').trim()); }
-const hora = new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+// 21/11/2026: hora da RESPOSTA (fixada no inicio, a R03 reprovava leitura fresca do Clube)
+const horaAgora = () => new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
 let tot = 0, ok = 0; const porRegra = {}, porPapel = {}, falhas = [];
 // 6 pessoas em paralelo (cada uma na ordem da propria conversa); parcial gravado a cada lote
 const PESSOAS = [...porPessoa.values()]; let prox = 0;
@@ -26,7 +27,7 @@ async function umaPessoa(p) {
     const rs = await fetch(`${SITE}/api/jota-seco?chave=${encodeURIComponent(CHAVE)}`, { method: 'POST', headers: { 'Content-Type': 'application/json; charset=utf-8' }, body: JSON.stringify({ contato: p.c, perguntas: lote, conversa: true }), signal: AbortSignal.timeout(290000) }).then((x) => x.json()).catch((e) => lote.map((q) => ({ pergunta: q, resposta: 'ERRO: ' + e.message })));
     for (const x of Array.isArray(rs) ? rs : []) {
       tot++; const pp = (porPapel[p.c.papel] = porPapel[p.c.papel] || { ok: 0, total: 0 }); pp.total++;
-      const resp = String(x.resposta || ''), v = avaliar(x.pergunta, resp, { papel: p.c.papel, hora }) || [];
+      const resp = String(x.resposta || ''), v = avaliar(x.pergunta, resp, { papel: p.c.papel, hora: horaAgora() }) || [];
       const bloq = v.filter((f) => f.severidade === 'bloqueia'), vazio = !resp.trim() || /^ERRO/.test(resp);
       if (!bloq.length && !vazio) { ok++; pp.ok++; continue; }
       for (const f of (vazio ? [{ id: 'VAZIO' }] : bloq)) porRegra[f.id] = (porRegra[f.id] || 0) + 1;
