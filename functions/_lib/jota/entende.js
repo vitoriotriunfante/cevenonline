@@ -1256,7 +1256,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   ) && !/POSITIVA|RECORRENCIA|MIX|LIGA|ZERAD|ROTA|VISITA|PREMIA|META DE |INDUSTRIA|DEVOLU|PEDIDO|HISTORIC/.test(t);
   if (ehEquipePorVendedor) return respTodosVendedores(E);
   // CLIENTES POSITIVADOS EM SETEMBRO / MÊS PASSADO (Washington API, 28/10/2026: "Clientes positivados em setembro, vendedora Ana, todos")
-  if (/POSITIVAD.*(SETEMBRO|MES PASSADO|MES ANTERIOR)|(CLIENTES?|QUEM|QUAIS).*(COMPROU|COMPRARAM|POSITIVOU|POSITIVARAM).*(SETEMBRO|MES PASSADO|MES ANTERIOR)|(SETEMBRO|MES PASSADO|MES ANTERIOR).*(POSITIVAD|COMPRARAM|COMPROU)/.test(t)) {
+  if (/POSITIVAD.*(SETEMBRO|MES PASSADO|MES ANTERIOR)|(CLIENTES?|QUEM|QUAIS).*(COMPROU|COMPRARAM|POSITIVOU|POSITIVARAM).*(SETEMBRO|MES PASSADO|MES ANTERIOR)|(SETEMBRO|MES PASSADO|MES ANTERIOR).*(POSITIVAD|COMPRARAM|COMPROU)/.test(t) && !/E NAO (COMPR|POSITIV)|NAO (COMPROU|COMPRARAM|POSITIVOU|POSITIVARAM) (ESTE|NESTE|ESSE|NESSE)|AINDA NAO/.test(t)) {   /* 21/11: 'comprou mes passado e nao este' = curva negativa (abaixo) */
     const pr = achaPessoa(E, t);
     return respPositivadosMesAnterior(B, E, t, pr);
   }
@@ -1414,7 +1414,7 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
   if (E.rca && !pessoa && E.vend.length === 1 && /FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA|\bINATIV(OS?|AS?)?\b/.test(t)) {
     pessoa = { tipo: 'vend', alvo: E.vend[0] };
   }
-  if (/FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA|\bINATIV(OS?|AS?)?\b/.test(t) && !(pessoa && pessoa.tipo === 'vend')) {
+  if (/FALTA(M)? (SER )?POSITIV|FALTA POSITIVAR|AINDA NAO (COMPROU|COMPRARAM|POSITIV)|NAO POSITIVAD|CURVA NEGATIVA|E NAO (COMPROU|COMPRARAM|POSITIV)|\bINATIV(OS?|AS?)?\b/.test(t) && !(pessoa && pessoa.tipo === 'vend')) {
     const ini = hojeSP().slice(0, 7) + '-01';
     const numE = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
     const numL = (i) => numE[i] || `${i + 1}.`;
@@ -1427,6 +1427,14 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
         if (VV.length && fls.length) {
           const { results: GC } = await B.env.DB.prepare(`SELECT filial, rca, cliente, nome, dados FROM gerot_cliente_mes WHERE mes = ? AND filial IN (${fls.map(() => '?').join(',')})`).bind(hojeSP().slice(0, 7), ...fls).all();
           const por = new Map(); for (const x of GC || []) { const k = x.filial + '|' + x.rca; if (!por.has(k)) por.set(k, []); let d = {}; try { d = JSON.parse(x.dados || '{}'); } catch (e) { d = {}; } por.get(k).push({ id: x.cliente, nome: titulo(String(x.nome || 'Cliente').toLowerCase()), pos: Number(d['Positivação (filial + CNPJ)']) || 0, pc: Number(d['Positivação + Carteira']) || 0, m1: Number(d['Positivação M-1']) || 0 }); }
+          // 21/11/2026 (Diego/TBE: 'vc disse 400 e na lista dele tem mais de 900'): quem comprou no MES PASSADO e nao tem nenhum movimento neste mes nao tinha
+          // linha no GEROT do mes e ficava de fora (460 x 1.068 do GEROT). Entra com a linha do mes passado, no vendedor que vendeu para ele.
+          try {
+            const [yy, mm] = hojeSP().slice(0, 7).split('-').map(Number), mAnt = new Date(Date.UTC(yy, mm - 2, 1)).toISOString().slice(0, 7);
+            const ja = new Set((GC || []).map((x) => x.filial + '|' + x.cliente));
+            const { results: GA } = await B.env.DB.prepare(`SELECT filial, rca, cliente, nome, json_extract(dados, '$."Faturado líquido (R$)"') f FROM gerot_cliente_mes WHERE mes = ? AND filial IN (${fls.map(() => '?').join(',')})`).bind(mAnt, ...fls).all();
+            for (const x of GA || []) { if (!(Number(x.f) > 0) || ja.has(x.filial + '|' + x.cliente)) continue; ja.add(x.filial + '|' + x.cliente); const k = x.filial + '|' + x.rca; if (!por.has(k)) por.set(k, []); por.get(k).push({ id: x.cliente, nome: titulo(String(x.nome || 'Cliente').toLowerCase()), pos: 0, pc: 0, m1: 1 }); }
+          } catch (e) { /* sem o mes passado: fica a carteira do mes */ }
           const L0 = VV.map((v) => { const C = por.get(v.filial + '|' + v.rca) || []; const nao = C.filter((c) => !(c.pos > 0) && !(c.pc > 0)).sort((a, b) => b.m1 - a.m1); return { v, tot: C.length, nao }; }).filter((x) => x.tot > 0);
           if (L0.length) {
             const ord = L0.filter((x) => x.nao.length).sort((a, b) => b.nao.length - a.nao.length);
