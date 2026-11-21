@@ -398,7 +398,7 @@ async function trataMensagem({ request, env }) {
   if (!seco && msgId && jid && !(ultOut && ultOut.tipo === 'monitoria_piloto') && /^\W*(BLZ|BELEZA|VALEU|VLW|OBRIGAD[OA]|BRIGAD[OA]|OBG|OK|OKAY|OKS|TOP|SHOW|PERFEITO|OTIMO|LEGAL|TMJ|TAMO JUNTO|JOIA|JOINHA|ENTENDI|CERTO|SHOW DE BOLA|MUITO BOM)( (JOTA|DEMAIS|MESMO|OBRIGAD[OA]|VALEU|TMJ|PARCEIRO|AMIGO))*\W*$/.test(tN)) {
     try {
       const cfgR = env.EVO_URL && env.EVO_KEY ? R.evoCfg(env) : null;
-      const rr = cfgR ? await R.evolution(cfgR, '/message/sendReaction', { key: { remoteJid: jid, fromMe: false, id: msgId }, reaction: '👍' }) : null;
+      const rr = cfgR ? await R.enviarReacao(cfgR, jid, msgId, '👍') : null;
       if (rr && rr.ok) { await env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,'out','[reação 👍]','reacao')").bind(cel, c.nome).run().catch(() => {}); return new Response('ok'); }
     } catch (e) { /* segue com texto */ }
   }

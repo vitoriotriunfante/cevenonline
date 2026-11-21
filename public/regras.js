@@ -131,9 +131,11 @@
   };
 
   // ANTIBAN (09/11/2026): pausa entre envios em LOTE (pessoas diferentes ou varias partes seguidas). Nunca sleep fixo.
+  // 21/11/2026: REACAO numa mensagem recebida (o JOTA da 👍 em 'ok/valeu/obrigado', como uma pessoa faz)
+  const enviarReacao = (cfg, remoteJid, msgId, emoji = '👍') => evolution(cfg, '/message/sendReaction', { key: { remoteJid, fromMe: false, id: msgId }, reaction: emoji });
   const pausaEntreEnvios = (mediaSeg = 24, desvioSeg = 5, minimoSeg = 18) => new Promise((ok) => setTimeout(ok, gaussianJitterMs(mediaSeg, desvioSeg, minimoSeg)));
 
-  const R = { CANAIS_VAREJO, CANAIS_AS, CANAIS_GESTAO, SKU_IGNORADO, ehVarejo, ehAS, ehGestao, canalCurto, relogioSP, hojeSP, horaSP, brl, evolution, evolutionGet, evoCfg, enviarTexto, enviarMidia, pausaEntreEnvios, resolverSpintax, injetarZeroWidth, textoAntiban, delayDigitacao, gaussianJitterMs };
+  const R = { CANAIS_VAREJO, CANAIS_AS, CANAIS_GESTAO, SKU_IGNORADO, ehVarejo, ehAS, ehGestao, canalCurto, relogioSP, hojeSP, horaSP, brl, evolution, evolutionGet, evoCfg, enviarTexto, enviarMidia, enviarReacao, pausaEntreEnvios, resolverSpintax, injetarZeroWidth, textoAntiban, delayDigitacao, gaussianJitterMs };
   if (typeof module !== 'undefined' && module.exports) module.exports = R;
   raiz.REGRAS = R;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
