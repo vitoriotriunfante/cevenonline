@@ -196,7 +196,7 @@ export async function rotearIntencao(B, c, t, info) {
       const M = await B.mostra(); const grupos = new Map();
       for (const [k, L] of Object.entries((M && M.filiais) || {})) for (const v of L || []) if (v.grupo) grupos.set(sem(v.grupo), { fil: k.split('_')[0], g: v.grupo });
       // grupo so com 'grupo'/'gerente' na frase ou colado na filial ('do Vagner de TPH'): 'Fabio' tambem e nome de vendedor
-      const gk = [...grupos.keys()].find((g) => g.length >= 4 && (!filCit || grupos.get(g).fil === filCit) && (new RegExp('\\b(GRUPO|GERENTE)\\s+(D[OAE]\\s+)?' + g + '\\b').test(t) || new RegExp('\\b' + g + '\\s+(DE|DA|DO|EM|NA|NO)\\s+' + grupos.get(g).fil + '\\b').test(t) || new RegExp('\\b' + g + '\\s+' + grupos.get(g).fil + '\\b').test(t)));
+      const gk = [...grupos.keys()].find((g) => g.length >= 4 && (!filCit || grupos.get(g).fil === filCit) && (new RegExp('\\b(GRUPO|GERENTE)\\s+(D[OAE]\\s+)?' + g + '\\b').test(t) || new RegExp('\\b' + g + '\\s+(DE|DA|DO|EM|NA|NO)\\s+' + grupos.get(g).fil + '\\b').test(t) || new RegExp('\\b' + g + '\\s+' + grupos.get(g).fil + '\\b').test(t) || new RegExp('\\b' + grupos.get(g).fil + '\\s+(D[OAE]|DO GERENTE|DO GRUPO)\\s+' + g + '\\b').test(t)));   // 21/11: 'TPA do Radke'
       if (gk) {
         const { fil, g } = grupos.get(gk); const { respostaPronta } = await import('./entende.js');
         const q = t.replace(new RegExp('\\b(D[OAE]\\s+)?(GRUPO\\s+)?(GERENTE\\s+)?' + gk + '\\b', 'g'), ' ').replace(FIL_RX, ' ').replace(/\s+/g, ' ').trim();
