@@ -50,24 +50,32 @@ export async function respMargemGerot(B, filiais, nome) {
 
 // ---------- CARTEIRA POR STATUS E MOTIVO (Carteira Total) ----------
 export async function respCarteiraStatus(B, filiais, rcas, nome) {
+  // 21/11/2026 (Vitorio: "bloqueados... infelizmente nao pensou que tinha que ter o valor"): R$ de cada status e motivo = TOTAL DO PEDIDO no Clube da Venda
+  // (o que o vendedor digitou; 89% dos bloqueados tem). O 'Valor item' da Carteira Total do GEROT nao fecha (sai de 2x a 10x menor), por isso nao e usado.
   const db = B.env && B.env.DB; if (!db) return null;
   const F = filiais && filiais.length ? filiais : FILIAIS;
   let R = [], V = [];
   try {
-    R = (await db.prepare(`SELECT filial, situacao, COALESCE(NULLIF(motivo, ''), '') motivo, COUNT(*) n FROM gerot_carteira WHERE filial IN (${qs(F)})${rcas && rcas.length ? ` AND rca IN (${qs(rcas)})` : ''} GROUP BY filial, situacao, motivo`).bind(...F, ...(rcas || [])).all()).results || [];
+    R = (await db.prepare(`SELECT c.filial, c.situacao, COALESCE(NULLIF(c.motivo, ''), '') motivo, COUNT(*) n, SUM(p.total) v, SUM(p.total IS NULL) sv FROM gerot_carteira c LEFT JOIN (SELECT filial, pedido_winthor, MAX(total) total FROM clube_pedido GROUP BY filial, pedido_winthor) p ON p.filial = c.filial AND p.pedido_winthor = c.pedido WHERE c.filial IN (${qs(F)})${rcas && rcas.length ? ` AND c.rca IN (${qs(rcas)})` : ''} GROUP BY c.filial, c.situacao, motivo`).bind(...F, ...(rcas || [])).all()).results || [];
     V = (await db.prepare(`SELECT filial, dados FROM gerot_filial_mes WHERE mes = ? AND filial IN (${qs(F)})`).bind(mesAtual(), ...F).all()).results || [];
   } catch (e) { return null; }
   if (!R.length) return `💼 *Carteira — ${nome}*: nenhum pedido em aberto na Carteira Total do GEROT.`;
-  const porSit = new Map(); for (const r of R) { const s = titulo(String(r.situacao || 'Sem situação').toLowerCase()); const x = porSit.get(s) || { n: 0, mot: new Map(), fil: new Map() }; x.n += r.n; if (r.motivo) x.mot.set(titulo(r.motivo.toLowerCase()), (x.mot.get(titulo(r.motivo.toLowerCase())) || 0) + r.n); x.fil.set(r.filial, (x.fil.get(r.filial) || 0) + r.n); porSit.set(s, x); }
+  const porSit = new Map();
+  for (const r of R) {
+    const s = titulo(String(r.situacao || 'Sem situação').toLowerCase()); const x = porSit.get(s) || { n: 0, v: 0, sv: 0, mot: new Map(), fil: new Map() };
+    x.n += r.n; x.v += Number(r.v) || 0; x.sv += Number(r.sv) || 0;
+    if (r.motivo) { const m = titulo(r.motivo.toLowerCase()), y = x.mot.get(m) || { n: 0, v: 0 }; y.n += r.n; y.v += Number(r.v) || 0; x.mot.set(m, y); }
+    const z = x.fil.get(r.filial) || { n: 0, v: 0 }; z.n += r.n; z.v += Number(r.v) || 0; x.fil.set(r.filial, z); porSit.set(s, x);
+  }
   const tot = R.reduce((a, r) => a + r.n, 0), val = V.reduce((a, r) => a + (Number(J(r.dados)['Carteira pendente (R$)']) || 0), 0);
   const L = [`💼 *Carteira em aberto por status — ${nome}*`, `*${N(tot)}* pedidos${!(rcas && rcas.length) && val ? ` · carteira pendente ${R$(val)} (GEROT)` : ''}`, ''];
-  for (const [s, x] of [...porSit].sort((a, b) => b[1].n - a[1].n)) {
-    L.push(`${/BLOQ/i.test(s) ? '🚫' : /LIBER/i.test(s) ? '🟢' : '⏳'} *${s}*: ${N(x.n)} (${pc(x.n, tot)})`);
-    for (const [m, n] of [...x.mot].sort((a, b) => b[1] - a[1]).slice(0, 5)) L.push(`   • ${m}: ${N(n)}`);
-    if (F.length > 1 && /BLOQ/i.test(s)) L.push(`   _por filial: ${[...x.fil].sort((a, b) => b[1] - a[1]).map(([f, n]) => `${f} ${n}`).join(' · ')}_`);
+  for (const [s, x] of [...porSit].sort((a, b) => (/BLOQ/i.test(b[0]) - /BLOQ/i.test(a[0])) || b[1].n - a[1].n)) {
+    L.push(`${/BLOQ/i.test(s) ? '🚫' : /LIBER/i.test(s) ? '🟢' : '⏳'} *${s}*: ${N(x.n)} pedidos · *${R$(x.v)}*${x.sv ? ` _(${N(x.sv)} sem valor)_` : ''}`);
+    for (const [m, y] of [...x.mot].sort((a, b) => b[1].v - a[1].v).slice(0, 6)) L.push(`   • ${m}: ${N(y.n)} · ${R$(y.v)}`);
+    if (F.length > 1 && /BLOQ/i.test(s)) L.push(`   _por filial: ${[...x.fil].sort((a, b) => b[1].v - a[1].v).map(([f, z]) => `${f} ${R$(z.v)}`).join(' · ')}_`);
   }
-  L.push('', '_Carteira Total do GEROT (pedidos em aberto, com status e motivo do bloqueio). Valor por pedido: peça o número do pedido._');
-  return L.join('\n');
+  L.push('', '_Status e motivo: Carteira Total do GEROT · R$: total do pedido no Clube da Venda ("sem valor" = pedido que não passou pelo Clube). Valor de um pedido: mande o número._');
+  return L.join(String.fromCharCode(10));
 }
 
 // ---------- JUSTIFICATIVAS DE NAO VENDA (Clube da Venda) ----------
@@ -161,8 +169,13 @@ export async function respAteData(B, filiais, nome) {
   const tm = [...med.values()].reduce((s2, v) => s2 + v, 0);
   if (M3.length) L.push(`Média de ${M3.length === 3 ? '3 meses' : M3.length + ' mês(es) (' + M3.map((x) => x.mes.slice(5)).join(', ') + ')'} até o dia ${dia}: ${R$(tm)} → *${dl(ta, tm)}*`);
   // 21/11/2026 (Evandro: "compare o faturamento REAL MAIS PENDENTE de hoje com a media dos ultimos 3 meses ate a data"): faturado + carteira pendente de agora
-  let cart = 0; try { const r = await db.prepare(`SELECT SUM(json_extract(dados, '$."Carteira pendente (R$)"')) c FROM gerot_filial_mes WHERE mes = ? AND filial IN (${qs(F)})`).bind(m0, ...F).first(); cart = Number(r && r.c) || 0; } catch (e) { cart = 0; }
-  if (cart) L.push('', `*Real + pendente de hoje:* ${R$(ta)} + ${R$(cart)} = *${R$(ta + cart)}* → vs mês passado até o dia ${dl(ta + cart, tp)}${M3.length ? ` · vs média ${dl(ta + cart, tm)}` : ''}`, '_Nos meses anteriores conta só o faturado até o dia: o GEROT não guarda a carteira que estava pendente naquela data._');
+  // 21/11/2026 (Vitorio: "coloca a tendencia correta"): real + pendente de hoje e a TENDENCIA do GEROT (captacao do mes / meta ideal de hoje) — a mesma regua do card do Brasil
+  let G = null; try { G = await db.prepare(`SELECT SUM(json_extract(dados, '$."Carteira pendente (R$)"')) c, SUM(json_extract(dados, '$."Meta (R$)"')) m, SUM(json_extract(dados, '$."Captação (R$)"')) cap, SUM(json_extract(dados, '$."Meta Ideal captação (R$)"')) ideal FROM gerot_filial_mes WHERE mes = ? AND filial IN (${qs(F)})`).bind(m0, ...F).first(); } catch (e) { G = null; }
+  if (G && Number(G.m) > 0) {
+    const cart = Number(G.c) || 0, meta = Number(G.m), cap = Number(G.cap) || 0, ideal = Number(G.ideal) || 0, rit = ideal ? cap / ideal * 100 : null;
+    L.push('', `*Real + pendente de hoje:* ${R$(ta)} + ${R$(cart)} = *${R$(ta + cart)}* · *${(((ta + cart) / meta) * 100).toFixed(1).replace('.', ',')}%* da meta (${R$(meta)})`);
+    if (rit != null) L.push(`📈 *Tendência (GEROT):* captação ${R$(cap)} = *${rit.toFixed(1).replace('.', ',')}%* do ideal para hoje (${R$(ideal)}) → no ritmo de hoje fecha em *${rit.toFixed(1).replace('.', ',')}%* da meta`);
+  }
   if (mapa.size > 1) L.push('', '*Por filial:*', ...[...mapa].sort((a, b) => (b[1].a / (b[1].p || 1)) - (a[1].a / (a[1].p || 1))).map(([f, o]) => `• *${f}*: ${R$(o.a)} · mês passado ${R$(o.p)} ${dl(o.a, o.p)}${med.has(f) ? ' · média ' + R$(med.get(f)) + ' ' + dl(o.a, med.get(f)) : ''}`));
   L.push('', '_GEROT · faturado líquido pela data da nota, do dia 1º até o mesmo dia em cada mês._');
   return L.join('\n');

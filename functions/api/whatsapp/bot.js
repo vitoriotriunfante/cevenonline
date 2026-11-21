@@ -393,6 +393,15 @@ async function trataMensagem({ request, env }) {
   if (!resp && ehSaudacao(tN)) { resp = await respSaudacao(B, c, primeiraVez); tipo = primeiraVez ? 'saudacao_primeira' : 'saudacao'; }
   // AGRADECIMENTO (Vitorio, 27/10/2026: "o cara falou blz... blz quer dizer obrigado... era ter mandado uma figurinha"): resposta curta + figurinha, sem dado
   if (!resp && /^\W*(BLZ|BELEZA|VALEU|VLW|OBRIGAD[OA]|BRIGAD[OA]|OBG|OK|OKAY|OKS|TOP|SHOW|PERFEITO|OTIMO|LEGAL|TMJ|TAMO JUNTO|JOIA|JOINHA|ENTENDI|CERTO|BOA|SHOW DE BOLA|MUITO BOM)( (JOTA|DEMAIS|MESMO|OBRIGAD[OA]|VALEU|TMJ|PARCEIRO|AMIGO))*\W*$/.test(tN)) { resp = varia([`Tamo junto, ${primeiroNome(c)}! ⚽`, `Valeu, ${primeiroNome(c)}! Bora pra cima! 💪`, `É nóis, ${primeiroNome(c)}! Qualquer coisa, chama. ⚽`], Date.now()); tipo = 'agradecimento'; }
+  // 21/11/2026 (Vitorio: "como o humano faz? clica na mensagem e da joinha"): agradecimento ou confirmacao curta ("ok", "valeu", "obrigado") = o JOTA
+  // REAGE com 👍 na mensagem da pessoa, sem mandar texto. Se a reacao falhar, segue a resposta em texto de sempre.
+  if (!seco && msgId && jid && !(ultOut && ultOut.tipo === 'monitoria_piloto') && /^\W*(BLZ|BELEZA|VALEU|VLW|OBRIGAD[OA]|BRIGAD[OA]|OBG|OK|OKAY|OKS|TOP|SHOW|PERFEITO|OTIMO|LEGAL|TMJ|TAMO JUNTO|JOIA|JOINHA|ENTENDI|CERTO|SHOW DE BOLA|MUITO BOM)( (JOTA|DEMAIS|MESMO|OBRIGAD[OA]|VALEU|TMJ|PARCEIRO|AMIGO))*\W*$/.test(tN)) {
+    try {
+      const cfgR = env.EVO_URL && env.EVO_KEY ? R.evoCfg(env) : null;
+      const rr = cfgR ? await R.evolution(cfgR, '/message/sendReaction', { key: { remoteJid: jid, fromMe: false, id: msgId }, reaction: '👍' }) : null;
+      if (rr && rr.ok) { await env.DB.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,'out','[reação 👍]','reacao')").bind(cel, c.nome).run().catch(() => {}); return new Response('ok'); }
+    } catch (e) { /* segue com texto */ }
+  }
   // CARINHO / CORAÇÃO (Francisco Franco, 28/10/2026: mandou coraçãozinho e o Jota acolhe carinhosamente)
   if (!resp && (/[❤️♥️💕💖💗💓💞💘🥰😍😘]/.test(texto) || (/^[\s\p{Emoji_Presentation}\p{Extended_Pictographic}]*$/u.test(texto) && /[❤️♥️💕💖💗💓💞💘🥰😍😘]/u.test(texto)))) {
     resp = varia([
