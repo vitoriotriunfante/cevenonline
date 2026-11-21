@@ -68,7 +68,8 @@ for (const pasta of PASTAS) for (const p of arquivos(join(RAIZ, pasta))) {
   const dbs = [...new Set([...codigo.matchAll(RX_DB)].map((m) => m[1]))].sort();
   const drive = [...new Set([...codigo.matchAll(RX_DRIVE)].map((m) => m[0].replace(/\s+/g, ' ').slice(0, 90)))];
   const json = [...new Set([...codigo.matchAll(RX_JSON)].map((m) => m[1]))].sort();
-  const chamaCeven = RX_CEVEN.test(codigo) && !f.startsWith('public/');
+  // 21/11/2026: functions/_middleware.js e a TRAVA que BLOQUEIA o CEVEN (16/11, ordem do Vitorio) — cita o endereco para barrar, nao chama
+  const chamaCeven = RX_CEVEN.test(codigo) && !f.startsWith('public/') && f !== 'functions/_middleware.js';
   if (!chamaCeven && !tabs.length && !dbs.length && !drive.length && !json.length) continue;
   mapa.push({ f, roda: quemRoda(f), chamaCeven, ceven, d1, tabSqlite, tabDesconhecida, dbs, drive, json });
 }

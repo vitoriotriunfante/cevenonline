@@ -277,10 +277,11 @@ secao('5. Agenda do Worker (wrangler.toml x index.js)');
   const cronsToml = [...bloco.matchAll(/"([0-9*\/, -]+ [0-9*\/, -]+ [0-9*] [0-9*] [0-9*,\/-]+)"/g)].map(m => m[1]).sort();
   const js = ler('worker-cron/src/index.js');
   const cronsJs = [...js.matchAll(/'([0-9*\/, -]+ [0-9*\/, -]+ [0-9*] [0-9*] [0-9*,\/-]+)'\s*:/g)].map(m => m[1]).sort();
-  ok(cronsToml.length >= 8, `wrangler.toml tem os gatilhos (${cronsToml.length})`);
-  ok(JSON.stringify(cronsToml) === JSON.stringify(cronsJs), 'gatilhos do wrangler.toml e do index.js sao os mesmos (se mudar um, tem que mudar o outro)');
+  // 21/11/2026: desde 16/11 (CEVEN desligado por ordem do Vitorio) o Worker tem UM relogio, de 15 em 15 min (GEROT, Clube, Liga, MONITOR.IA piloto)
+  ok(JSON.stringify(cronsToml) === JSON.stringify(['2-59/15 * * * *']), `wrangler.toml tem so o relogio de 15 em 15 min (CEVEN desligado) — tem: ${cronsToml.join(', ')}`);
+  ok(/const CEVEN_DESLIGADO = true;/.test(js), 'index.js com CEVEN_DESLIGADO = true (os gatilhos antigos do CEVEN ficam no codigo, desligados)');
   ok(!cronsToml.some(c => /\* \* 1-5$/.test(c)), 'nenhum gatilho usa dia da semana 1-5 (no Cloudflare 1 = domingo)');
-  ok(cronsToml.filter(c => /\* \* 2-6$/.test(c)).length === 6, 'os 6 gatilhos comerciais usam 2-6 (segunda a sexta)');
+  ok(!cronsToml.some(c => /^\*\/2 /.test(c)), 'nenhum relogio de 2 em 2 min (era o da varredura do CEVEN)');
 }
 
 // ---------------------------------------------------------------- 5b. relogios da TV no Worker
@@ -290,17 +291,13 @@ secao('5b. Relogios da TV no Worker (varredura, lances, mapa, faturado)');
   const original = globalThis.fetch;
   const chamadas = [];
   globalThis.fetch = async (url) => { chamadas.push(String(url)); return { status: 200 }; };
-  const esperado = {
-    '*/2 * * * *': ['/api/cron-varredura-central', '/api/cron-piloto-pedidos'],
-    '4-59/5 * * * *': ['/api/cron-lances'],
-    '2-59/5 * * * *': ['/api/cron-mapa-executivo'],
-    '2-59/15 * * * *': ['/api/cron-faturado-mes']
-  };
-  for (const [cron, rotas] of Object.entries(esperado)) {
+  // 21/11/2026: com o CEVEN desligado, os gatilhos antigos da TV nao chamam nada; o relogio de 15 min so dispara workflows e o MONITOR.IA piloto
+  for (const cron of ['*/2 * * * *', '4-59/5 * * * *', '2-59/5 * * * *']) {
     chamadas.length = 0;
     await w.scheduled({ cron }, {}, {});
-    ok(JSON.stringify(chamadas.filter((u) => !u.startsWith('https://api.github.com'))) === JSON.stringify(rotas.map(x => 'https://ceven-cftv-matrix.pages.dev' + x)), `gatilho "${cron}" chama ${rotas.join(' e ')}, nessa ordem`);
+    ok(!chamadas.some((u) => /ceven-cftv-matrix\.pages\.dev\/api\/cron-(varredura|lances|mapa|piloto)/.test(u)), `gatilho antigo "${cron}" nao chama a varredura do CEVEN (desligado)`);
   }
+  { const src = ler('worker-cron/src/index.js'); ok(src.includes("'/api/monitoria-piloto?filial=' + f") && /for \(const f of \[/.test(src), 'MONITOR.IA piloto: o relogio chama uma filial por vez'); }
   { const src = ler('worker-cron/src/index.js'); ok(src.includes("event.cron === '2-59/15 * * * *'") && src.includes("dispararWorkflow(env, 'brasileirao-dataset.yml'") && src.includes('h >= 7 && h <= 20'), 'Liga ao vivo: o relogio de 15 em 15 min dispara brasileirao-dataset.yml (seg-sex, 07h-20h45 BRT)');
   }
   // os 4 workflows manuais da TV foram apagados em 25/10/2026 (duplicavam o relogio da Cloudflare); fica o do datalake
@@ -468,7 +465,7 @@ secao('8c. Varredura central em camadas: pedido a cada 2 min, resto em fatias, t
   const t = (await import(pathToFileURL(join(RAIZ, 'testes', 't_varredura.mjs')).href)).default;
   await t(ok);
   const toml = ler('worker-cron/wrangler.toml'), idx = ler('worker-cron/src/index.js');
-  ok(toml.includes('"*/2 * * * *"') && idx.includes("'*/2 * * * *'") && idx.includes('/api/cron-varredura-central'), 'o relogio do Worker chama a varredura central a cada 2 minutos (wrangler.toml e index.js iguais)');
+  ok(!toml.includes('"*/2 * * * *"') && /CEVEN_DESLIGADO = true/.test(idx), 'varredura central do CEVEN sem relogio enquanto o CEVEN esta desligado (16/11/2026)');
 }
 
 // ---------------------------------------------------------------- 8d. WhatsApp: TPH e MCD divididos por gerente em todos os ciclos
