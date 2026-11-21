@@ -331,3 +331,37 @@ export async function respMixGerot(B, esc, mes0, pediuMeta) {
   atual.sort((a, b) => Number(a.m) - Number(b.m));
   return [`🧺 *Mix de produto — ${esc.nome}* (${nm(mes)}) · ${rot.toLowerCase()}, do menor para o maior`, ...atual.slice(0, 40).map((x) => { const p = prev.get(x.filial + '|' + x.k); return `• ${rot === 'Por filial' ? x.k : tit(x.k)}: *${mx(x.m)}*${x.p != null ? ' · ' + N(x.p) + ' cli.' : ''} · ${nm(ant)} ${mx(p)}${seta(x.m, p)}`; }), ...(atual.length > 40 ? [`… e mais ${atual.length - 40}`] : []), ...metaTxt, '', rod, '_Peça "mix do vendedor 123" para abrir um deles._'].join('\n');
 }
+
+// ---------- CURVA NEGATIVA DE UMA INDUSTRIA (GEROT Cliente x Industria) ----------
+// 21/11/2026 (bateria real: Gessandro TCV 'curva negativa de Bonobon do setor 336'; supervisor TPH 'curva negativa da industria Leao'):
+// cliente que comprou a industria no MES PASSADO e ainda nao comprou neste mes (sem faturado e sem carteira dela). Lista por vendedor. Nada estimado.
+export async function respCurvaIndustria(B, esc, industrias) {
+  const db = B.env && B.env.DB; if (!db) return null;
+  const mes = mesAtual(), F = esc.filiais && esc.filiais.length ? esc.filiais : FILIAIS;
+  const cods = [...new Set(industrias.map((f) => (String(f).match(/#(\d+)/) || [])[1]).filter(Boolean))];
+  const nomeInd = [...new Set(industrias.map((f) => titulo(String(f).replace(/^[A-Z]\s*-\s*/, '').replace(/#\d+/, '').replace(/\b(LTDA|S\.?A\.?|SA)\b\.?/gi, '').toLowerCase()).trim()))].join(' / ');
+  if (!cods.length) return null;
+  let tem = null; try { tem = await db.prepare('SELECT 1 x FROM gerot_cliente_forn_mes WHERE mes = ? LIMIT 1').bind(mes).first(); } catch (e) { tem = null; }
+  if (!tem) return `📉 *Curva negativa — ${nomeInd}* (${esc.nome})\nO cruzamento *cliente × indústria* do GEROT entra na próxima carga (de 2 em 2 horas). Assim que chegar, respondo quem comprou ${nomeInd} no mês passado e ainda não comprou neste.`;
+  const P = '$."Positivação (filial + CNPJ)"', PM = '$."Positivação M-1"', CA = '$."Carteira pendente (R$)"', FA = '$."Faturado líquido (R$)"';
+  let w = `f.mes = ? AND f.forn_cod IN (${qs(cods)}) AND f.filial IN (${qs(F)})`; const args = [mes, ...cods, ...F];
+  if (esc.rca) { w += ' AND f.rca = ?'; args.push(String(esc.rca)); } else if (esc.rcas && esc.rcas.length) { w += ` AND f.rca IN (${qs(esc.rcas)})`; args.push(...esc.rcas); }
+  let R = [];
+  try {
+    R = (await db.prepare(`SELECT f.filial, f.rca, f.cliente, MAX(c.nome) nome, MAX(v.vendedor) vend, SUM(COALESCE(json_extract(f.dados, '${PM}'), 0)) m1, SUM(COALESCE(json_extract(f.dados, '${P}'), 0)) p, SUM(COALESCE(json_extract(f.dados, '${CA}'), 0)) ca, SUM(COALESCE(json_extract(f.dados, '${FA}'), 0)) fa
+      FROM gerot_cliente_forn_mes f LEFT JOIN gerot_cliente_mes c ON c.mes = f.mes AND c.filial = f.filial AND c.rca = f.rca AND c.cliente = f.cliente
+      LEFT JOIN gerot_vendedor_mes v ON v.mes = f.mes AND v.filial = f.filial AND v.rca = f.rca
+      WHERE ${w} GROUP BY f.filial, f.rca, f.cliente`).bind(...args).all()).results || [];
+  } catch (e) { return null; }
+  const base = R.filter((x) => Number(x.m1) > 0), falta = base.filter((x) => !(Number(x.p) > 0) && !(Number(x.ca) > 0) && !(Number(x.fa) > 0));
+  const pos = await fontesG(db), rod = `_GEROT${pos ? ' (' + pos + ')' : ''} · comprou ${nomeInd} no mês passado e ainda não comprou neste (sem faturado e sem carteira dela)._`;
+  if (!base.length) return `📉 *Curva negativa — ${nomeInd}* (${esc.nome}): ninguém comprou ${nomeInd} no mês passado neste recorte.\n${rod}`;
+  if (!falta.length) return `📉 *Curva negativa — ${nomeInd}* (${esc.nome}): os *${N(base.length)}* clientes que compraram no mês passado já compraram ou têm pedido em carteira. ✅\n${rod}`;
+  const porV = new Map(); for (const x of falta) { const k = `${x.rca} - ${titulo(String(x.vend || '').toLowerCase()).split(' ').slice(0, 2).join(' ')}${esc.nacional || F.length > 1 ? ' (' + x.filial + ')' : ''}`; if (!porV.has(k)) porV.set(k, []); porV.get(k).push(x); }
+  const L = [`📉 *Curva negativa — ${nomeInd}* (${esc.nome})`, `*${N(falta.length)}* de ${N(base.length)} clientes que compraram no mês passado ainda não compraram (${pc(falta.length, base.length)}).`, ''];
+  const grupos = [...porV.entries()].sort((a, b) => b[1].length - a[1].length);
+  if (esc.rca || grupos.length === 1) { const [k, xs] = grupos[0]; L.push(`*${k}:*`, ...xs.slice(0, 40).map((x) => `• ${titulo(String(x.nome || 'cliente ' + x.cliente).toLowerCase())} (#${x.cliente})`), ...(xs.length > 40 ? [`… e mais ${xs.length - 40}`] : [])); }
+  else { L.push('*Por vendedor:*', ...grupos.slice(0, 30).map(([k, xs]) => `• ${k}: *${xs.length}*`), ...(grupos.length > 30 ? [`… e mais ${grupos.length - 30} vendedores`] : []), '', '_Peça "curva negativa de ' + nomeInd.split(' ')[0] + ' do setor 123" para a lista de clientes._'); }
+  L.push('', rod);
+  return L.join('\n');
+}

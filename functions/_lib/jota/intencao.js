@@ -105,6 +105,23 @@ export async function rotearIntencao(B, c, t, info) {
       if (e) { const r = await respMixGerot(B, e, mesQ, /\bMETA\b/.test(t)); if (r) return /\bROTA\b/.test(t) ? r + '\n_Para a rota de hoje, peça *minha rota*._' : r; }
     } catch (err) { /* segue o roteamento normal */ }
   }
+  // A4 · CURVA NEGATIVA DE UMA INDUSTRIA (bateria real 21/11: Gessandro 'curva negativa de Bonobon do setor 336', 'curva negativa da industria Leao'):
+  //   GEROT Cliente x Industria: comprou a industria no mes passado e ainda nao comprou neste (sem faturado e sem carteira dela)
+  if (/CURVA NEGATIVA|NAO COMPRARAM|NAO COMPROU|SEM COMPRA|FALTA(M)? POSITIVAR|QUEM FALTA|PARARAM DE COMPRAR/.test(t) && !/\b\d{7,}\b/.test(t) && B.env && B.env.DB) {
+    try {
+      const ind = await industriasCitadas(B, t);
+      if (ind.length) {
+        const { respCurvaIndustria } = await import('./respostas/gestao_gerot.js');
+        const mR = t.match(/\b(?:VENDEDORA?|RCA|SETOR|COD(?:IGO)?)\s*(\d{1,5})\b/);
+        let e;
+        if (papel === 'vendedor' && c.rca) e = { filiais: [c.filial], rca: String(c.rca), nome: `${c.rca} - ${nome2(c.nome || '')}` };
+        else if (mR) e = { filiais: filCit ? [filCit] : (papel === 'diretoria' || papel === 'ceo') ? FILIAIS : [c.filial], rca: mR[1], nome: `setor ${mR[1]}` };
+        else if (papel === 'diretoria' || papel === 'ceo') e = { filiais: filCit ? [filCit] : FILIAIS, nome: filCit || 'Brasil', nacional: !filCit };
+        else { const Ev = await carregaEscopo(B, esc), V = (Ev && Ev.vend) || []; e = papel === 'gerente' && !c.grupo ? { filiais: [c.filial], nome: c.filial } : { filiais: [c.filial], nome: (Ev && Ev.nome) || 'Equipe', rcas: V.map((v) => String(v.rca)) }; }
+        const r = await respCurvaIndustria(B, e, ind); if (r) return r;
+      }
+    } catch (err) { /* segue o roteamento normal */ }
+  }
   // A7 · CONTESTACAO do dado (sem pedir outro dado) — confirma, registra e pergunta o que esperava; nunca devolve card
   if (/\b(ESTAO ERRAD[OA]S|NAO TEM (O )?(PQ|PORQUE|POR QUE)|E DO CANAL|NAO TEM O KPI|COMPRA E CENTRALIZADA|INFORMACAO .{0,30}INCORRET[OA]|ESTA INCORRET[OA]|TA DE BRINCADEIRA|DE BRINCADEIRA|NAO PROCEDE|NAO CONFERE|NAO E ISSO|NAO FOI ISSO( QUE)?( EU)? (PERGUNTEI|PEDI)|ESTA ERRAD[OA]|TA ERRAD[OA]|DADO ERRADO|NUMERO ERRADO|INFORMACAO ERRADA|UMA MERDA|CAGADA|RESPONDEU (PRA|PARA) .{1,40} DE UM JEITO|RESPONDEU ERRADO|NAO BATE)\b/.test(t) && !/\?\s*$/.test(t)) {
     try { await B.env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(c.celular || '', c.nome || '', papel, c.filial || '', t.slice(0, 1000), 'contestacao').run(); } catch (e) { /* segue */ }
@@ -379,6 +396,21 @@ async function respPositivacaoComparada(B, filial) {
   if (!filial && L.length > 1) { out.push('', '*Por filial (faturado + carteira · mês passado):*'); for (const x of L.sort((a, b) => (b.pc / (b.m1 || 1)) - (a.pc / (a.m1 || 1)))) out.push(`• *${x.f}*: ${N(x.pc)}${x.meta ? ` de ${N(x.meta)}` : ''} · mês passado ${N(x.m1)} (${pct(x.pc, x.m1)})`); }
   out.push('_GEROT_');
   return out.filter((x) => x !== '').join('\n');
+}
+
+// 21/11/2026: industria(s) citada(s) por marca (planilha de marcas) ou palavra do nome do fornecedor no GEROT -> ['NOME #cod', ...] (mesma regra de respUmaIndustria)
+async function industriasCitadas(B, t) {
+  const mes = hojeSP().slice(0, 7);
+  let F = []; try { F = (await B.env.DB.prepare('SELECT DISTINCT fornecedor FROM gerot_vendas WHERE mes = ?').bind(mes).all()).results || []; } catch (e) { return []; }
+  const STOP = /^(LTDA|LTD|S\/?A|SA|DO|DA|DE|DOS|BRASIL|INDUSTRIA|IND|COMERCIO|COM|DIST|DISTRIBUIDORA|ALIMENTOS|ALIM|PRODUTOS|E|EIRELI|ME|GRUPO)$/;
+  const toks = t.split(/\s+/).filter((w) => w.length >= 4 && !PALAVRAS_COMANDO.test(w) && !FIL_RX.test(w) && !/^(CURVA|NEGATIVA|CLIENTES?|COMPRARAM|COMPROU|POSITIVAR|POSITIVADOS?|FALTA|FALTAM|SETOR|VENDEDORA?|EQUIPE|INDUSTRIAS?|MARCA|QUAIS|QUEM|AINDA|PRECISO|TRAVADO|TRAVADOS|PENDENCIA|ESTAO|DESSE|DESTE|MINHA|MINHAS|MEUS?|PASSADO|ANTERIOR|MESES|TRIUNFANTE|GRUPO|SUPERVISOR|GERENTE|FILIAL|BRASIL|LISTA|HOJE|ROTA)$/.test(w));
+  let cods = new Set();
+  try { const { MARCAS } = await import('./marcas.js'); const tt = ' ' + t.replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ') + ' ';
+    cods = new Set(MARCAS.filter(([m]) => m.length >= 3 && tt.includes(' ' + m.replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ') + ' ')).map(([, cod]) => String(cod))); } catch (e) { /* sem marcas */ }
+  if (cods.size) return F.map((x) => x.fornecedor).filter((f) => [...cods].some((cod) => String(f).includes('#' + cod)));
+  if (!toks.length) return [];
+  const achou = F.map((x) => x.fornecedor).filter((f) => { const ws = sem(String(f).replace(/^[A-Z]\s*-\s*/, '').replace(/#\d+/, '')).split(/[\s.]+/).filter((w) => w.length >= 4 && !STOP.test(w)); return toks.some((tk) => ws.some((w) => w === tk || (w.length >= 5 && (tk.startsWith(w) || w.startsWith(tk))) || (tk.length >= 6 && lev(w, tk) <= 1))); });
+  return achou.length <= 4 ? achou : [];
 }
 
 // UMA INDUSTRIA: acha o fornecedor no GEROT por palavra do nome (tolerante: "Gonçalves" = "GONCALV"); soma no escopo (Brasil, filial, equipe ou vendedor)
