@@ -44,7 +44,7 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     } catch (e) { /* sem gerot_vendas: fica CEVEN */ }
   }
   for (const [rca, r] of Object.entries((snap && snap.rcas) || {})) {
-    const e = eq.get(rca);
+    let e = eq.get(rca);
     if (!r.dashboard && r.dashboard_reserva && r.reserva && r.reserva.dashboard) { const em = String(r.reserva.dashboard.em || ''); if (!B._reserva || em < B._reserva) B._reserva = em; (B._reservaFontes = B._reservaFontes || new Set()).add(/^GEROT/.test(String(r.reserva.dashboard.fonte || '')) ? 'GEROT' : 'CEVEN'); }   // etiqueta unica no bot.js
     /* 12/11/2026: sem leitura de hoje, a ultima leitura real do mes (dashboard_reserva, com etiqueta em v.reforco) */ const d = r.dashboard || r.dashboard_reserva || {}, fi = d.financeiro || {}, po = d.positivacao || {}, pm = (r.produtividade && r.produtividade.mes) || r.produtividade_mes_reserva || {};
     const pd0 = (r.produtividade && r.produtividade.dia) || {}, ph = pedHoje.get(rca);
@@ -53,7 +53,9 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     const pd = pd0 && pd0._fonte === 'clube' ? { ...pd0, /* nº de PEDIDOS do dia no Clube (as telas dizem 'N pedido(s)') */ positivacao: Number(pd0.total_pedidos) || 0, _dig_ped: ph ? Number(ph.v) || 0 : 0, _ped_n: ph ? ph.n : 0 } : ph ? { ...pd0, dig_pedido: Math.max(Number(pd0.dig_pedido) || 0, Number(ph.v) || 0), positivacao: Math.max(Number(pd0.positivacao) || 0, Number(ph.c) || 0), _dig_prod: Number(pd0.dig_pedido) || 0, _dig_ped: Number(ph.v) || 0, _ped_n: ph.n } : pd0;
     macro.pedidos += pd.positivacao || 0; macro.dig += pd.dig_pedido || 0;
     macro.devHoje += (Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).reduce((t, x) => t + Math.abs(parseFloat(x.vl_devolvido || x.valor || 0) || 0), 0);
-    if (!e) continue;   // fora da arvore do CEVEN de hoje = nao existe
+    // 21/11/2026 (Vitorio: 'numero e numero... perguntou tem que responder independente se ta vago ou nao'): quem nao esta na Gestao de Equipe ENTRA nos numeros
+    // (marcado como fora da Gestao); so fica de fora quem nao tem nenhum numero. Ocultar vale so para a Champions.
+    if (!e) { if (!(gerotVend.has(rca) || r.dashboard || r.dashboard_reserva || r.produtividade)) continue; e = { nome: d.nome || '', supervisor: '', sup_cod: '', canal: '', grupo: '', mostra: true, foraGestao: true }; }
     if (e.supervisor && e.sup_cod) SUPCOD.set(sem(e.supervisor), e.sup_cod);
     const varejo = VAREJO.has(String(e.canal || '').toUpperCase());
     const nomeVend = e.nome || d.nome || 'RCA ' + rca;
@@ -91,7 +93,9 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
       continue;
     }
     // 12/11/2026 (TPA 1159 Vinicius Branco, liberado no Jota: "Nao achei os seus dados"): oculto/novo na arvore some das LISTAS, mas o proprio vendedor (soRca) sempre se ve
-    const destino = e.mostra === false && !soRca ? ocultos : vend;
+    // 21/11/2026 (Vitorio): oculto na Gestao continua nos numeros e nas listas do JOTA ('os vagos eu tiro apenas da champions via aprovacao da diretoria')
+    vObj.oculto = e.mostra === false; vObj.foraGestao = !!e.foraGestao;
+    const destino = vend;
     destino.push(vObj);
   }
   // CONFERENCIA AO VIVO DE QUEM TEM VISITA E DIGITADO ZERO (29/10/2026, Vitorio: "olha o tanto de visita que o Maico ja fez"):
