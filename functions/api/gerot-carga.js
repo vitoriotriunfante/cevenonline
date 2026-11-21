@@ -31,6 +31,8 @@ async function tabelas(db) {
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_filial_mes (mes TEXT NOT NULL, filial TEXT NOT NULL, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial))'),
     // 16/11/2026: carteira por cliente (Mes x Filial x Vendedor x Cliente) = fonte da curva negativa e de 'quem nao comprou'
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_cliente_mes (mes TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, cliente TEXT NOT NULL, cnpj TEXT, nome TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, rca, cliente))'),
+    // 21/11/2026: CLIENTE x INDUSTRIA (curva negativa por industria); so linhas com algum numero; nome/CNPJ ficam em gerot_cliente_mes
+    db.prepare('CREATE TABLE IF NOT EXISTS gerot_cliente_forn_mes (mes TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, cliente TEXT NOT NULL, forn_cod TEXT NOT NULL, fornecedor TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, rca, cliente, forn_cod))'),
     // 16/11/2026: teste de horario do GEROT (pipeline/gerot_horario.mjs): uma linha por leitura, so as horas que o painel mostra
     // 17/11/2026 (Vitorio: 'mostrando pedidos do dia 12? ja nao mostrei que tem todos os pedidos no GEROT?'): um pedido por linha (pedido x NF), do 'Extrair dados'
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_pedido (mes TEXT NOT NULL, filial TEXT NOT NULL, pedido TEXT NOT NULL, nf TEXT NOT NULL DEFAULT "", rca TEXT, cliente TEXT, cnpj TEXT, nome TEXT, data TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, pedido, nf))'),
@@ -77,6 +79,10 @@ export async function onRequestGet({ request, env }) {
   if (u.searchParams.get('pedido') === '1') {
     const { results } = await env.DB.prepare('SELECT filial, pedido, nf, hash FROM gerot_pedido WHERE mes = ?').bind(mes).all();
     return r({ hashes: Object.fromEntries((results || []).map((x) => [`${x.filial}|${x.pedido}|${x.nf}`, x.hash])) });
+  }
+  if (u.searchParams.get('clienteforn') === '1') {
+    const { results } = await env.DB.prepare('SELECT filial, rca, cliente, forn_cod, hash FROM gerot_cliente_forn_mes WHERE mes = ?').bind(mes).all();
+    return r({ hashes: Object.fromEntries((results || []).map((x) => [`${x.filial}|${x.rca}|${x.cliente}|${x.forn_cod}`, x.hash])) });
   }
   if (u.searchParams.get('cliente') === '1') {
     const { results } = await env.DB.prepare('SELECT filial, rca, cliente, hash FROM gerot_cliente_mes WHERE mes = ?').bind(mes).all();
@@ -201,6 +207,16 @@ export async function onRequestPost({ request, env }) {
       'ON CONFLICT (mes, filial, pedido, nf) DO UPDATE SET rca = excluded.rca, cliente = excluded.cliente, cnpj = excluded.cnpj, nome = excluded.nome, data = excluded.data, dados = excluded.dados, hash = excluded.hash, em = excluded.em WHERE gerot_pedido.hash IS NOT excluded.hash'
     ).bind(String(x.mes), String(x.filial), String(x.pedido), String(x.nf || ''), x.rca ? String(x.rca) : null, x.cliente ? String(x.cliente) : null, x.cnpj || null, x.nome || null, x.data || null, JSON.stringify(x.dados || {}), String(x.hash || ''), agora)));
     return r({ ok: true, pedidos: ok.length, recusados: PD.length - ok.length });
+  }
+  const CF = Array.isArray(b.clientes_forn) ? b.clientes_forn : [];
+  if (CF.length > 200) return r({ erro: 'no maximo 200 linhas cliente x industria por chamada' }, 400);
+  if (CF.length) {
+    const ok = CF.filter((x) => MES.test(String(x.mes || '')) && /^[A-Z]{3}$/.test(String(x.filial || '')) && String(x.rca || '').trim() && String(x.cliente || '').trim() && String(x.forn_cod || '').trim());
+    await env.DB.batch(ok.map((x) => env.DB.prepare(
+      'INSERT INTO gerot_cliente_forn_mes (mes, filial, rca, cliente, forn_cod, fornecedor, dados, hash, em) VALUES (?,?,?,?,?,?,?,?,?) ' +
+      'ON CONFLICT (mes, filial, rca, cliente, forn_cod) DO UPDATE SET fornecedor = excluded.fornecedor, dados = excluded.dados, hash = excluded.hash, em = excluded.em WHERE gerot_cliente_forn_mes.hash IS NOT excluded.hash'
+    ).bind(String(x.mes), String(x.filial), String(x.rca), String(x.cliente), String(x.forn_cod).slice(0, 40), x.fornecedor ? String(x.fornecedor).slice(0, 80) : null, JSON.stringify(x.dados || {}), String(x.hash || ''), agora)));
+    return r({ ok: true, clientes_forn: ok.length, recusados: CF.length - ok.length });
   }
   const C = Array.isArray(b.clientes) ? b.clientes : [];
   if (C.length > 200) return r({ erro: 'no maximo 200 clientes por chamada' }, 400);

@@ -26,6 +26,8 @@ const CAMPOS_VEND = ['Mês', 'Filial', 'Supervisor', 'Vendedor'];
 const CAMPOS_SUP = ['Mês', 'Filial', 'Supervisor'];
 const CAMPOS_FIL = ['Mês', 'Filial'];
 const CAMPOS_CLI = ['Mês', 'Filial', 'Vendedor', 'Cliente'];
+// 21/11/2026 (bateria real: 'curva negativa da industria Leao', 'curva negativa de Bonobon do setor 336'): CLIENTE x INDUSTRIA
+const CAMPOS_CLIF = ['Mês', 'Filial', 'Vendedor', 'Cliente', 'Fornecedor'];
 // 17/11/2026: um pedido por linha (Data x Filial x Vendedor x Cliente x Pedido x NF) = 'meus pedidos' do JOTA sem o CEVEN
 const CAMPOS_PED = ['Mês', 'Data', 'Filial', 'Vendedor', 'Cliente', 'Pedido', 'Nota fiscal'];
 // 18/11/2026: FATURADO POR DIA E FILIAL (o 'ate a data' x mes passado; a soma pelos pedidos deixava de fora notas sem pedido)
@@ -217,7 +219,7 @@ function linhasPedidoDoExcel(arq, mes) {
   }
   return { linhas, cab: H };
 }
-function linhasClienteDoExcel(arq, mes) {
+function linhasClienteDoExcel(arq, mes, comForn) {
   const w = XLSX.readFile(arq), sh = w.Sheets[w.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(sh, { header: 1, defval: null });
   const hi = rows.findIndex((r) => r && r.includes('Filial'));
@@ -226,7 +228,7 @@ function linhasClienteDoExcel(arq, mes) {
   const ix = (re) => H.findIndex((h) => re.test(h));
   const iMes = ix(/^Mês$/), iFil = ix(/^Filial$/), iCv = ix(/^Cód\.? vendedor/i), iVend = ix(/^Vendedor$/i),
     iCc = ix(/^Cód\.? cliente/i), iCli = ix(/^Cliente$/i), iCnpj = ix(/CNPJ.*cliente|^CNPJ$|CPF.?CNPJ/i), iCs = ix(/^Cód\.? supervisor/i), iSup = ix(/^Supervisor$/i);
-  const chaves = new Set([iMes, iFil, iCv, iVend, iCc, iCli, iCnpj, iCs, iSup].filter((k) => k >= 0));
+  const chaves = new Set([iMes, iFil, iCv, iVend, iCc, iCli, iCnpj, iCs, iSup, iCf, iFor, iCnf].filter((k) => k >= 0));
   const linhas = [];
   for (const r of rows.slice(hi + 1)) {
     if (!r || !r.some((c) => c != null && c !== '')) continue;
@@ -412,6 +414,20 @@ async function main() {
             }
           } else log(`${mes} cliente: Excel nao baixou`);
         } catch (ec) { log(`FALHA clientes ${mes}:`, ec.message); }
+        // PASSO 3c (21/11/2026): CLIENTE x INDUSTRIA (curva negativa por industria). Log publico: so contagens. Falha aqui nao derruba o resto.
+        try {
+          const arqCF = await baixaExcelNivel(page, mes, alvo, CAMPOS_CLIF, 'gerot_clif_' + mes + '.xlsx');
+          if (arqCF) {
+            const lf2 = linhasClienteDoExcel(arqCF, mes, true);
+            log(mes + ' cliente x industria: ' + lf2.linhas.length + ' linhas · colunas ' + JSON.stringify(lf2.cab));
+            if (lf2.linhas.length && !ENSAIO) {
+              const { hashes: hcf } = await api('GET', '?mes=' + mes + '&clienteforn=1');
+              const mudouCF = lf2.linhas.filter((l) => (hcf || {})[l.filial + '|' + l.rca + '|' + l.cliente + '|' + l.forn_cod] !== l.hash);
+              for (let i = 0; i < mudouCF.length; i += 200) await api('POST', '', { clientes_forn: mudouCF.slice(i, i + 200) });
+              log(mes + ' cliente x industria: ' + mudouCF.length + ' gravadas no D1');
+            }
+          } else log(mes + ' cliente x industria: Excel nao baixou');
+        } catch (eCF) { log('FALHA cliente x industria ' + mes + ':', eCF.message); }
         // PASSO 3b (18/11/2026): FATURADO POR DIA E FILIAL. Log publico: so contagem.
         try {
           const arqD = await baixaExcelNivel(page, mes, alvo, CAMPOS_DIA, 'gerot_dia_' + mes + '.xlsx');
