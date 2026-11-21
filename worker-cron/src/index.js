@@ -97,7 +97,13 @@ export default {
     if (event.cron === '2-59/15 * * * *') {
       const agora = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
       const dia = agora.getDay(), h = agora.getHours(), mi = agora.getMinutes();
-      if (dia >= 1 && dia <= 6 && [7, 9, 11, 13, 15, 17, 19, 21].includes(h) && mi >= 15 && mi < 30) {
+      // GEROT (21/11/2026, Vitorio: 'le ele de 20 em 20 minutos'): SONDA de 15 em 15 min, seg-sab 06h-21h45 BRT (gerot-horario.yml, ~1 min, so le
+      // 'Ultima atualizacao'). Mudou desde a ultima coleta -> a propria sonda dispara gerot-coleta.yml. Medido 17-21/11: o GEROT atualiza nas horas PARES (~hh:33).
+      if (dia >= 1 && dia <= 6 && h >= 6 && h <= 21) {
+        try { const r = await dispararWorkflow(env, 'gerot-horario.yml', {}); console.log(`[GEROT] sonda status=${r.status} ${r.body}`); } catch (e) { console.log('[GEROT][ERRO] ' + (e && e.message ? e.message : e)); }
+      }
+      // reserva: coleta fixa 07h17 e 21h17 mesmo se a sonda falhar (comeco do dia e ultima carga para a madrugada)
+      if (dia >= 1 && dia <= 6 && [7, 21].includes(h) && mi >= 15 && mi < 30) {
         try { const r = await dispararWorkflow(env, 'gerot-coleta.yml', {}); console.log(`[GEROT] gerot-coleta.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[GEROT][ERRO] ' + (e && e.message ? e.message : e)); }
       }
       // CLUBE DA VENDA (16/11/2026): disparado pelo worker-cron a cada 30 min (:02 e :32, seg-sab 07h-20h45 BRT) para nao depender do schedule do GitHub.

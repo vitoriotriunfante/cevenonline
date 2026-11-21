@@ -30,7 +30,8 @@ const Q = {
   gerente: ['Como está a filial?', 'tendência', 'positivação', 'zerados', 'hoje', 'visitados sem compra', 'liga da filial', 'bom dia', 'margem', 'devolução por motivo', 'cortes', 'faturamento até a data', 'carteira por status'],
   diretoria: ['Brasil agora', 'Hoje no Brasil', 'Venda do Brasil agora', 'Tendência das filiais?', 'Positivação no Brasil comparada', 'Indústrias de TPH', 'Zerados TCA', 'Visitados sem compra TCA', 'Prospecção Vinicius de TCA', 'Como estamos de Mars Pet em TPH', 'Bom dia da Tamara de TCV', 'Matinal Washington de API', 'onde está a Fernanda de TSJ', 'Liga', 'bom dia', 'margem por filial', '% de atingimento por filial', 'devolução por motivo', 'cortes por filial', 'faturamento até a data contra a média dos 3 meses', 'gap dos clientes contra a média de 3 meses TPH', 'justificativas por vendedor TCV', 'plano de visitas por filial', 'carteira por status e motivo'],
 };
-const hora = new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+// 21/11/2026: a hora e a da RESPOSTA (a rodada leva horas; fixada no inicio, a R03 reprovou 278 respostas com leitura fresca do Clube)
+const horaAgora = () => new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
 const res = { porPapel: {}, porRegra: {}, falhas: [], tot: 0, ok: 0 };
 const fila = pessoas.map((p) => ({ p, q: [...Q[p.papel], ...p.extra] }));
 let prox = 0;
@@ -42,7 +43,7 @@ async function trabalhador() {
       const rs = await fetch(`${SITE}/api/jota-seco?chave=${encodeURIComponent(CHAVE)}`, { method: 'POST', headers: { 'Content-Type': 'application/json; charset=utf-8' }, body: JSON.stringify({ contato: p.c, perguntas: lote }), signal: AbortSignal.timeout(290000) }).then((x) => x.json()).catch((e) => lote.map((x) => ({ pergunta: x, resposta: 'ERRO: ' + e.message })));
       for (const x of Array.isArray(rs) ? rs : []) {
         res.tot++; const pp = (res.porPapel[p.papel] = res.porPapel[p.papel] || { ok: 0, total: 0 }); pp.total++;
-        const resp = String(x.resposta || ''), v = avaliar(x.pergunta, resp, { papel: p.papel, hora }) || [];
+        const resp = String(x.resposta || ''), v = avaliar(x.pergunta, resp, { papel: p.papel, hora: horaAgora() }) || [];
         const bloq = v.filter((f) => f.severidade === 'bloqueia'), vazio = !resp.trim() || /^ERRO/.test(resp);
         if (!bloq.length && !vazio) { res.ok++; pp.ok++; continue; }
         for (const f of (vazio ? [{ id: 'VAZIO' }] : bloq)) res.porRegra[f.id] = (res.porRegra[f.id] || 0) + 1;

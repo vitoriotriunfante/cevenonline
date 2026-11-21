@@ -38,6 +38,12 @@ async function main() {
   if (KEY) {
     const resp = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Evo-Key': KEY }, body: JSON.stringify({ horario: r }) }).then((x) => x.text()).catch((e) => 'erro ' + e.message);
     log('D1:', String(resp).slice(0, 160));
+    // 21/11/2026: SONDA -> o GEROT mudou desde a ultima coleta: dispara a coleta completa (uma vez por atualizacao; o site decide em /api/gerot-carga)
+    let j = {}; try { j = JSON.parse(resp); } catch (e) { j = {}; }
+    if (j.coletar && process.env.GITHUB_TOKEN && process.env.GITHUB_REPOSITORY) {
+      const d = await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/actions/workflows/gerot-coleta.yml/dispatches`, { method: 'POST', headers: { Authorization: `Bearer ${process.env.GITHUB_TOKEN}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json', 'User-Agent': 'gerot-sonda' }, body: JSON.stringify({ ref: 'main' }) }).then((x) => x.status).catch((e) => 'erro ' + e.message);
+      log('GEROT mudou -> coleta disparada:', d);
+    } else log('GEROT sem mudanca desde a ultima coleta');
   }
 }
 main().catch((e) => { console.error(e); process.exit(1); });

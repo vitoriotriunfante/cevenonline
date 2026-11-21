@@ -125,7 +125,24 @@ export async function onRequestPost({ request, env }) {
   if (b.horario && typeof b.horario === 'object') {
     const h = b.horario;
     await env.DB.prepare('INSERT INTO gerot_horario (lido_em, ok, ultima, carga, posicao, segundos, erro) VALUES (?,?,?,?,?,?,?)').bind(String(h.lido_em || agora), h.ok ? 1 : 0, h.ultima ? String(h.ultima).slice(0, 60) : null, h.carga ? String(h.carga).slice(0, 40) : null, h.posicao ? String(h.posicao).slice(0, 40) : null, Number(h.segundos) || null, h.erro ? String(h.erro).slice(0, 200) : null).run();
-    return r({ ok: true, horario: true });
+    // 21/11/2026 (Vitorio: 'le ele de 20 em 20 minutos'): a SONDA (15 em 15 min) diz se o GEROT mudou desde a ultima coleta.
+    // Mudou e ainda nao pedimos coleta para essa atualizacao (ou pedimos ha mais de 45 min sem ela chegar) -> coletar:true, uma vez por atualizacao.
+    const hm = (s) => { const m = String(s || '').match(/(\d{2}\/\d{2}\/\d{2})\s+(\d{1,2}:\d{2})/); return m ? m[1] + ' ' + m[2].padStart(5, '0') : ''; };
+    const nova = hm(h.ultima);
+    let coletar = false, ultColeta = '';
+    if (nova) {
+      const st = await env.DB.prepare('SELECT posicao FROM gerot_coleta_status ORDER BY id DESC LIMIT 1').first().catch(() => null);
+      ultColeta = hm(st && st.posicao);
+      if (nova !== ultColeta) {
+        const p = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'gerot_coleta_pedida'").first().catch(() => null);
+        let ped = {}; try { ped = JSON.parse((p && p.valor) || '{}'); } catch (e) { ped = {}; }
+        if (ped.ultima !== nova || Date.now() - Date.parse(ped.em || 0) > 45 * 60e3) {
+          coletar = true;
+          await env.DB.prepare("INSERT OR REPLACE INTO config_flags (chave, valor) VALUES ('gerot_coleta_pedida', ?)").bind(JSON.stringify({ ultima: nova, em: agora })).run();
+        }
+      }
+    }
+    return r({ ok: true, horario: true, ultima: nova, ultima_coletada: ultColeta, coletar });
   }
   // 18/11/2026: DEVOLUCAO POR MOTIVO ATE O VENDEDOR (Motivo -> Filial -> Supervisor -> Vendedor na tela Devolucoes): grava so o que mudou
   const DV = Array.isArray(b.devmotivo_vend) ? b.devmotivo_vend : [];

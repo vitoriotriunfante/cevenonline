@@ -74,7 +74,8 @@ jobs:
         # 18/11/2026: motivo por VENDEDOR (Motivo > Filial > Supervisor > Vendedor, ~16 min) so nas rodadas das 13h e das 17h (BRT)
         run: |
           H=$(TZ=America/Sao_Paulo date +%H)
-          if [ "$H" = "13" ] || [ "$H" = "17" ]; then DEV_VEND=1 node pipeline/gerot_devolucoes.mjs; else node pipeline/gerot_devolucoes.mjs; fi
+          # 21/11/2026: com a sonda a coleta das 12h33/16h33 do GEROT comeca ~12h50/16h50 -> chega aqui as 12h ou 13h / 16h ou 17h (uma coleta so por janela de 2 h)
+          if [ "$H" = "12" ] || [ "$H" = "13" ] || [ "$H" = "16" ] || [ "$H" = "17" ]; then DEV_VEND=1 node pipeline/gerot_devolucoes.mjs; else node pipeline/gerot_devolucoes.mjs; fi
       - name: Liga — lances do dia (Clube + GEROT)
         # 17/11/2026 (Vitorio: "colocar no ar urgente a Champions"): /api/liga-clube grava os lances de hoje que ja aconteceram (INSERT OR IGNORE)
         if: github.event.inputs.ensaio != 'true'

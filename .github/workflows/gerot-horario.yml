@@ -2,12 +2,18 @@
 # O QUE É: teste de horario do GEROT (Vitorio, 16/11/2026): de 30 em 30 min, das 06h as 20h35 (Brasilia), seg a sab, le "Ultima atualizacao" e "carga"
 #   do painel e grava no D1 (tabela gerot_horario). SO LEITURA; nao baixa Excel. Mesma fila do coletor (nunca duas sessoes do GEROT juntas).
 # Segredos: GEROT_EMAIL, GEROT_SENHA, EVO_KEY (ja existem).
-name: GEROT — teste de horario (so leitura)
+# 21/11/2026: virou a SONDA do GEROT. O schedule do GitHub so disparou 2x por dia (nao 30x); quem dispara agora e o worker-cron,
+#   de 15 em 15 min, seg-sab 06h-21h45 BRT. Se o GEROT mudou desde a ultima coleta, a sonda dispara gerot-coleta.yml (uma vez por atualizacao).
+name: GEROT — sonda de atualizacao (so leitura)
 
 on:
   schedule:
-    - cron: '5,35 9-23 * * 1-6'   # de 30 em 30 min (Vitorio, 16/11/2026), 06h05-20h35 BRT, segunda a sabado
+    - cron: '5,35 9-23 * * 1-6'   # reserva; o disparo de verdade vem do worker-cron
   workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
 
 concurrency:
   group: gerot-coleta
@@ -31,4 +37,5 @@ jobs:
           GEROT_EMAIL: ${{ secrets.GEROT_EMAIL }}
           GEROT_SENHA: ${{ secrets.GEROT_SENHA }}
           EVO_KEY: ${{ secrets.EVO_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node pipeline/gerot_horario.mjs
