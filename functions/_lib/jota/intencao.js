@@ -185,16 +185,69 @@ export async function rotearIntencao(B, c, t, info) {
     const E = await carregaEscopo(B, fil ? { nome: fil, filiais: [fil], grupo: null } : (papel === 'diretoria' || papel === 'ceo') ? { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true } : esc);
     const { respVisitadosSemCompra } = await import('./respostas/rota.js'); const r = await respVisitadosSemCompra(E, B); if (r) return r;
   }
+  // H3 · FILIAL x INDUSTRIA (Rudinei, 12-13/11/2026)
+  if ((papel === 'diretoria' || papel === 'ceo') && /FILIAL\s*(X|×|POR|E)\s*INDUSTRIA|INDUSTRIAS?\s*(X|×|POR|DE)\s*(CADA\s+)?FILIA|POR INDUSTRIA (DE|EM) CADA FILIAL|INDUSTRIA DE CADA FILIAL|CADA FILIAL POR INDUSTRIA/.test(t)) {
+    const { respFilialXIndustria } = await import('./respostas/gestao_gerot.js'); const r = await respFilialXIndustria(B, null).catch(() => null); if (r) return r;
+  }
+  // H2 · GRUPO DE GERENTE (21/11/2026, Rudinei: "me passe a venda do Vagner de TPH" devolvia a filial inteira): TPH e MCD sao divididas por gerente no
+  // campo 'grupo' da Gestao de Equipe. Citou o grupo = a MESMA resposta que o gerente daquele grupo recebe (base unica).
+  if ((papel === 'diretoria' || papel === 'ceo') && !info.dentroGrupo) {
+    try {
+      const M = await B.mostra(); const grupos = new Map();
+      for (const [k, L] of Object.entries((M && M.filiais) || {})) for (const v of L || []) if (v.grupo) grupos.set(sem(v.grupo), { fil: k.split('_')[0], g: v.grupo });
+      // grupo so com 'grupo'/'gerente' na frase ou colado na filial ('do Vagner de TPH'): 'Fabio' tambem e nome de vendedor
+      const gk = [...grupos.keys()].find((g) => g.length >= 4 && (!filCit || grupos.get(g).fil === filCit) && (new RegExp('\\b(GRUPO|GERENTE)\\s+(D[OAE]\\s+)?' + g + '\\b').test(t) || new RegExp('\\b' + g + '\\s+(DE|DA|DO|EM|NA|NO)\\s+' + grupos.get(g).fil + '\\b').test(t) || new RegExp('\\b' + g + '\\s+' + grupos.get(g).fil + '\\b').test(t)));
+      if (gk) {
+        const { fil, g } = grupos.get(gk); const { respostaPronta } = await import('./entende.js');
+        const q = t.replace(new RegExp('\\b(D[OAE]\\s+)?(GRUPO\\s+)?(GERENTE\\s+)?' + gk + '\\b', 'g'), ' ').replace(FIL_RX, ' ').replace(/\s+/g, ' ').trim();
+        const r = await respostaPronta({ ...B, _semIntencaoGrupo: true }, { ...c, papel: 'gerente', filial: fil, grupo: g }, /VENDEDOR|SUPERVISOR|INDUSTRI|POSITIV|ZERAD|DEVOLU|CORTE|JUSTIFIC/.test(q) ? q : 'como está a filial', []);
+        if (r) return `👔 *Grupo ${titulo(String(g).toLowerCase())} — ${fil}* _(o que o gerente do grupo vê)_\n\n` + String(r);
+      }
+    } catch (e) { /* segue */ }
+  }
+  // H1 · VENDEDOR PELO NOME QUE NAO ESTA NA GESTAO DE EQUIPE (21/11/2026, Rudinei: "venda do Paulo Cholet vendedor de TPA" abriu o 163 - Paulo Brites;
+  // o Cholet e o 1194, que esta no GEROT e nao na Gestao). So quando NENHUM vendedor da Gestao tem todos os nomes citados e o GEROT tem exatamente um.
+  if (acima && B.env && B.env.DB) {
+    const mN = t.match(/\b(?:VENDA|VENDAS|RESULTADO|COMO ESTA|COMO TA|META|NUMEROS?)\s+(?:D[OAE]S?\s+)?(?:VENDEDORA?\s+)?([A-Z]{3,}(?:\s+[A-Z]{3,}){1,3})/);
+    const toks = mN ? mN[1].split(/\s+/).filter((w) => w.length >= 4 && !/^(VENDEDORA?|FILIAL|HOJE|MES|BRASIL|TODOS?|EQUIPE|GRUPO|SUPERVISOR|GERENTE|INDUSTRIAS?)$/.test(w) && !FIL_RX.test(w)) : [];
+    if (toks.length >= 2) {
+      const filN = filCit || ((papel === 'gerente' || papel === 'supervisor') ? String(c.filial || '') : '');
+      const Eg = await carregaEscopo(B, filN ? { nome: filN, filiais: [filN], grupo: null } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true }).catch(() => null);
+      const naGestao = Eg && [...(Eg.vend || []), ...(Eg.ocultos || [])].some((v) => toks.every((tk) => sem(v.nome).includes(tk)));
+      if (Eg && !naGestao) {
+        let G = []; try { G = (await B.env.DB.prepare(`SELECT filial, rca, MAX(vendedor) nome, SUM(json_extract(dados, '$."Meta (R$)"')) m, SUM(json_extract(dados, '$."Faturado líquido (R$)"')) f, SUM(json_extract(dados, '$."Carteira pendente (R$)"')) p, SUM(json_extract(dados, '$."Positivação (filial + CNPJ)"')) pos, SUM(json_extract(dados, '$."Meta de positivação"')) mp FROM gerot_vendedor_mes WHERE mes = ?${filN ? ' AND filial = ?' : ''} AND ${toks.map(() => 'UPPER(vendedor) LIKE ?').join(' AND ')} GROUP BY filial, rca`).bind(hojeSP().slice(0, 7), ...(filN ? [filN] : []), ...toks.map((tk) => '%' + tk + '%')).all()).results || []; } catch (e) { G = []; }
+        if (G.length === 1) {
+          const x = G[0], m = Number(x.m) || 0, f = Number(x.f) || 0, p = Number(x.p) || 0;
+          return [`🧑‍💼 *${x.rca} - ${titulo(String(x.nome || '').replace(/^\s*\d+\s*-\s*/, '').toLowerCase())}* — ${x.filial}`,
+            `💰 Faturado *${R$(f)}*${p ? ` + pendente ${R$(p)}` : ''}${m ? ` de ${R$(m)} → *${(f / m * 100).toFixed(1).replace('.', ',')}%* da meta` : ' · sem meta no GEROT'}`,
+            ...(Number(x.mp) ? [`👥 Positivação: ${N(x.pos)} de ${N(Math.ceil(Number(x.mp)))}`] : []),
+            '', '⚠️ _Este vendedor está no GEROT mas não está na Gestão de Equipe: por isso não aparece nas listas, na TV nem na Liga. Se ele é da equipe, inclua-o na Gestão de Equipe._'].join(String.fromCharCode(10));
+        }
+      }
+    }
+  }
   // H0 · VENDEDORES DE UMA FILIAL / DA EQUIPE (21/11/2026, Rudinei: "me passe a venda dos vendedores de TPA" e "TPA por vendedor" devolviam o card da filial)
   if (acima && /\b(POR VENDEDOR|VENDEDORES|CADA VENDEDOR|TODOS OS VENDEDORES)\b/.test(t) && !/JUSTIFICATIV|DEVOLU|CORTE|POSITIV|ADERENCIA|VISITA|ZERAD|RANKING|LIGA|CARTEIRA|MOTIVO|QUANTOS|INDUSTRI|MARGEM|SEM COMPRA|NAO COMPR/.test(t) && (filCit || papel === 'gerente' || papel === 'supervisor')) {
-    const E0 = await carregaEscopo(B, filCit && (papel === 'diretoria' || papel === 'ceo') ? { nome: filCit, filiais: [filCit], grupo: null } : esc);
-    const V0 = (E0.vend || []).filter((v) => v.ehVendedorReal !== false && Number(v.meta) > 0).sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1));
-    if (V0.length) {
-      const fat = V0.reduce((a, v) => a + (Number(v.fat) || 0), 0), meta = V0.reduce((a, v) => a + (Number(v.meta) || 0), 0);
-      const L = [`👥 *Vendedores — ${E0.nome}* · ${N(V0.length)} com meta`, `Soma: *${R$(fat)}* de ${R$(meta)} (${meta ? (fat / meta * 100).toFixed(1).replace('.', ',') : '—'}%) · _% da meta faturada no mês (GEROT)_`, ''];
-      V0.forEach((v, i) => L.push(`${i + 1}. ${vn(v)} — *${v.pct == null ? '—' : v.pct.toFixed(1).replace('.', ',') + '%'}* · ${R$(v.fat)} de ${R$(v.meta)}${v.pend ? ` · pend. ${R$(v.pend)}` : ''}`));
-      L.push('', '_Peça "vendedor <nome>" para abrir um deles._');
-      return L.join(String.fromCharCode(10));
+    // 21/11/2026 (Vitorio: "quem te disse para fazer isso?"): TODOS os vendedores do GEROT no escopo, com e sem meta — a soma e o total da filial/equipe
+    const fil0 = filCit || String(c.filial || '');
+    if (fil0 && B.env && B.env.DB) {
+      let sup0 = null, rcas0 = null;
+      if (papel === 'supervisor' || (papel === 'gerente' && c.grupo)) { const E0 = await carregaEscopo(B, esc); if (papel === 'supervisor') sup0 = ((E0.vend || []).find((v) => v.supCod) || {}).supCod || null; if (!sup0) rcas0 = [...(E0.vend || []), ...(E0.ocultos || [])].map((v) => String(v.rca)); }
+      const mes0 = hojeSP().slice(0, 7), K = (k) => `SUM(json_extract(dados, '$."${k}"'))`;
+      let W = 'mes = ? AND filial = ?', bnd = [mes0, fil0];
+      if (sup0) { W += ' AND cod_sup = ?'; bnd.push(String(sup0)); } else if (rcas0 && rcas0.length) { W += ` AND rca IN (${rcas0.map(() => '?').join(',')})`; bnd.push(...rcas0); }
+      let G0 = []; try { G0 = (await B.env.DB.prepare(`SELECT rca, MAX(vendedor) nome, ${K('Meta (R$)')} m, ${K('Faturado líquido (R$)')} f, ${K('Carteira pendente (R$)')} p FROM gerot_vendedor_mes WHERE ${W} GROUP BY rca`).bind(...bnd).all()).results || []; } catch (e) { G0 = []; }
+      G0 = G0.filter((x) => Number(x.m) || Number(x.f) || Number(x.p));
+      if (G0.length) {
+        const pc0 = (x) => (Number(x.m) > 0 ? Number(x.f) / Number(x.m) * 100 : null);
+        G0.sort((a, b) => (pc0(b) ?? -1) - (pc0(a) ?? -1) || (Number(b.f) || 0) - (Number(a.f) || 0));
+        const fat = G0.reduce((a, x) => a + (Number(x.f) || 0), 0), meta = G0.reduce((a, x) => a + (Number(x.m) || 0), 0), pend = G0.reduce((a, x) => a + (Number(x.p) || 0), 0);
+        const nomeE = sup0 || (rcas0 && rcas0.length) ? `Equipe ${titulo(String(c.supervisor || c.nome || '').toLowerCase()).split(' ').slice(0, 2).join(' ')} (${fil0})` : fil0;
+        const L = [`👥 *Vendedores — ${nomeE}* · ${N(G0.length)}`, `Total: *${R$(fat)}* de ${R$(meta)} (${meta ? (fat / meta * 100).toFixed(1).replace('.', ',') : '—'}%) · pend. ${R$(pend)}`, '_% da meta faturada no mês (GEROT)_', ''];
+        G0.forEach((x, i) => { const pp = pc0(x); L.push(`${i + 1}. ${x.rca} - ${titulo(String(x.nome || '').replace(/^\s*\d+\s*-\s*/, '').toLowerCase()).split(' ').slice(0, 2).join(' ')} — ${pp == null ? '_sem meta_' : '*' + pp.toFixed(1).replace('.', ',') + '%*'} · ${R$(x.f)}${Number(x.m) ? ' de ' + R$(x.m) : ''}${Number(x.p) ? ` · pend. ${R$(x.p)}` : ''}`); });
+        L.push('', '_Peça "vendedor <nome>" para abrir um deles._');
+        return L.join(String.fromCharCode(10));
+      }
     }
   }
   // H · GESTAO PELO GEROT E PELO CLUBE (18/11/2026: perguntas de Vitorio, Evandro Servat e Paulo Micheleto) — escopo de quem pergunta
@@ -321,7 +374,9 @@ async function respUmaIndustria(B, c, t, filCit, esc) {
   if (!toks.length && !porMarca.length) return null;
   const achou = porMarca.length ? porMarca : F.map((x) => x.fornecedor).filter((f) => { const ws = sem(String(f).replace(/^[A-Z]\s*-\s*/, '').replace(/#\d+/, '')).split(/[\s.]+/).filter((w) => w.length >= 4 && !STOP.test(w)); return toks.some((tk) => ws.some((w) => w === tk || (w.length >= 5 && (tk.startsWith(w) || w.startsWith(tk))) || (tk.length >= 6 && lev(w, tk) <= 1))); });
   if (!achou.length || achou.length > 4) return null;
-  const fil = filCit ? [filCit] : (esc && esc.filiais) || FILIAIS;
+  // 21/11/2026 (Rudinei: 'venda de Baly de TPH, TBL, TCV e TCA' so mostrava TPH): todas as filiais citadas
+  const filsCit = [...new Set(t.match(new RegExp(FIL_RX.source, 'g')) || [])];
+  const fil = filsCit.length > 1 ? filsCit : filCit ? [filCit] : (esc && esc.filiais) || FILIAIS;
   const qs = fil.map(() => '?').join(','), qf = achou.map(() => '?').join(',');
   let R = []; try { R = (await B.env.DB.prepare(`SELECT filial, rca, supervisor, json_extract(dados, '$."Meta (R$)"') m, json_extract(dados, '$."Faturado líquido (R$)"') fa, json_extract(dados, '$."Carteira pendente (R$)"') ca, json_extract(dados, '$."Positivação (filial + CNPJ)"') p FROM gerot_vendas WHERE mes = ? AND filial IN (${qs}) AND fornecedor IN (${qf})`).bind(mes, ...fil, ...achou).all()).results || []; } catch (e) { return null; }
   if (esc && esc.supervisor) { const sa = sem(esc.supervisor); R = R.filter((x) => sem(x.supervisor || '').includes(sa.split(' ')[0])); }
@@ -332,10 +387,10 @@ async function respUmaIndustria(B, c, t, filCit, esc) {
   const tot = R.reduce((a, x) => ({ m: a.m + (Number(x.m) || 0), fa: a.fa + (Number(x.fa) || 0), ca: a.ca + (Number(x.ca) || 0), p: a.p + (Number(x.p) || 0) }), { m: 0, fa: 0, ca: 0, p: 0 });
   const nome = titulo(String(achou[0]).replace(/^[A-Z]\s*-\s*/, '').replace(/\s*#\d+.*$/, '').toLowerCase());
   const pct = (a, b) => (b ? Math.round(a / b * 100) + '%' : '—');
-  const out = [`🏭 *${nome} — ${filCit || (esc && esc.nome) || 'Brasil'}* · ${mes.slice(5)}/${mes.slice(0, 4)}`,
+  const out = [`🏭 *${nome} — ${filsCit.length > 1 ? filsCit.join(', ') : filCit || (esc && esc.nome) || 'Brasil'}* · ${mes.slice(5)}/${mes.slice(0, 4)}`,
     tot.m ? `💰 Faturado *${R$(tot.fa)}* + a faturar ${R$(tot.ca)} = *${R$(tot.fa + tot.ca)}* de ${R$(tot.m)} (*${pct(tot.fa + tot.ca, tot.m)}*)` : `💰 Faturado *${R$(tot.fa)}* + a faturar ${R$(tot.ca)} · _sem meta no GEROT_`,
     `👥 Clientes que compraram: *${N(tot.p)}*`];
-  if (!filCit && !(esc && (esc.supervisor || esc.rca)) && fil.length > 1) { const pf = new Map(); for (const x of R) { const y = pf.get(x.filial) || { m: 0, v: 0 }; y.m += Number(x.m) || 0; y.v += (Number(x.fa) || 0) + (Number(x.ca) || 0); pf.set(x.filial, y); } out.push('', '*Por filial:*', ...[...pf.entries()].sort((a, b) => (a[1].v / (a[1].m || 1)) - (b[1].v / (b[1].m || 1))).map(([f, y]) => `• *${f}*: ${R$(y.v)}${y.m ? ` de ${R$(y.m)} (${pct(y.v, y.m)})` : ''}`)); }
+  if ((!filCit || filsCit.length > 1) && !(esc && (esc.supervisor || esc.rca)) && fil.length > 1) { const pf = new Map(); for (const x of R) { const y = pf.get(x.filial) || { m: 0, v: 0 }; y.m += Number(x.m) || 0; y.v += (Number(x.fa) || 0) + (Number(x.ca) || 0); pf.set(x.filial, y); } out.push('', '*Por filial:*', ...[...pf.entries()].sort((a, b) => (a[1].v / (a[1].m || 1)) - (b[1].v / (b[1].m || 1))).map(([f, y]) => `• *${f}*: ${R$(y.v)}${y.m ? ` de ${R$(y.m)} (${pct(y.v, y.m)})` : ''}`)); }
   else { const ps = new Map(); for (const x of R) { const k = titulo(nome2(x.supervisor || 'sem supervisor')); const y = ps.get(k) || { m: 0, v: 0 }; y.m += Number(x.m) || 0; y.v += (Number(x.fa) || 0) + (Number(x.ca) || 0); ps.set(k, y); } if (ps.size > 1) out.push('', '*Por supervisor:*', ...[...ps.entries()].sort((a, b) => (a[1].v / (a[1].m || 1)) - (b[1].v / (b[1].m || 1))).map(([k, y]) => `• *${k}*: ${R$(y.v)}${y.m ? ` de ${R$(y.m)} (${pct(y.v, y.m)})` : ''}`)); }
   out.push('_GEROT_');
   return out.join('\n');

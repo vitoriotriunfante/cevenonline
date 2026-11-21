@@ -160,6 +160,9 @@ export async function respAteData(B, filiais, nome) {
   const med = new Map(); for (const { r } of M3) for (const x of r) med.set(x.filial, (med.get(x.filial) || 0) + (Number(x.f) || 0) / M3.length);
   const tm = [...med.values()].reduce((s2, v) => s2 + v, 0);
   if (M3.length) L.push(`Média de ${M3.length === 3 ? '3 meses' : M3.length + ' mês(es) (' + M3.map((x) => x.mes.slice(5)).join(', ') + ')'} até o dia ${dia}: ${R$(tm)} → *${dl(ta, tm)}*`);
+  // 21/11/2026 (Evandro: "compare o faturamento REAL MAIS PENDENTE de hoje com a media dos ultimos 3 meses ate a data"): faturado + carteira pendente de agora
+  let cart = 0; try { const r = await db.prepare(`SELECT SUM(json_extract(dados, '$."Carteira pendente (R$)"')) c FROM gerot_filial_mes WHERE mes = ? AND filial IN (${qs(F)})`).bind(m0, ...F).first(); cart = Number(r && r.c) || 0; } catch (e) { cart = 0; }
+  if (cart) L.push('', `*Real + pendente de hoje:* ${R$(ta)} + ${R$(cart)} = *${R$(ta + cart)}* → vs mês passado até o dia ${dl(ta + cart, tp)}${M3.length ? ` · vs média ${dl(ta + cart, tm)}` : ''}`, '_Nos meses anteriores conta só o faturado até o dia: o GEROT não guarda a carteira que estava pendente naquela data._');
   if (mapa.size > 1) L.push('', '*Por filial:*', ...[...mapa].sort((a, b) => (b[1].a / (b[1].p || 1)) - (a[1].a / (a[1].p || 1))).map(([f, o]) => `• *${f}*: ${R$(o.a)} · mês passado ${R$(o.p)} ${dl(o.a, o.p)}${med.has(f) ? ' · média ' + R$(med.get(f)) + ' ' + dl(o.a, med.get(f)) : ''}`));
   L.push('', '_GEROT · faturado líquido pela data da nota, do dia 1º até o mesmo dia em cada mês._');
   return L.join('\n');
@@ -264,5 +267,25 @@ export async function respDevolucaoMotivoVend(B, esc) {
     for (const o of [...pv.values()].sort((a, b) => b.v - a.v).slice(0, 12)) { const [m1, v1] = [...o.m].sort((a, b) => b[1] - a[1])[0]; L.push(`• *${o.nome}*: ${R$(o.v)} · ${marca(m1)} ${titulo(String(m1).toLowerCase())} ${R$(v1)}`); }
   }
   L.push('', `_GEROT · tela Devoluções (motivo › filial › supervisor › vendedor)${em ? ' · lido ' + new Date(em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}._`);
+  return L.join(String.fromCharCode(10));
+}
+
+// ---------- FILIAL x INDUSTRIA (Rudinei, 12 e 13/11/2026: "resumo de vendas por filial x industria" / "como esta a venda por industria de cada filial") ----------
+// Uma linha por filial: % (faturado + a faturar / meta) e as 6 industrias de maior meta com o % de cada uma. GEROT (gerot_vendas).
+export async function respFilialXIndustria(B, filiais) {
+  const db = B.env && B.env.DB; if (!db) return null;
+  const F = filiais && filiais.length ? filiais : FILIAIS, mes = mesAtual();
+  const K = (k) => `SUM(json_extract(dados, '$."${k}"'))`;
+  let R = []; try { R = (await db.prepare(`SELECT filial, fornecedor, ${K('Meta (R$)')} m, ${K('Faturado líquido (R$)')} f, ${K('Carteira pendente (R$)')} c FROM gerot_vendas WHERE mes = ? AND filial IN (${qs(F)}) GROUP BY filial, fornecedor`).bind(mes, ...F).all()).results || []; } catch (e) { return null; }
+  if (!R.length) return null;
+  let nomeF = (n) => titulo(String(n || '').replace(/^[A-Z]\s*-\s*/, '').replace(/#\d+.*$/, '').toLowerCase()).trim().split(' ').slice(0, 2).join(' ');
+  try { const { nomeForn } = await import('./metas_industria.js'); if (nomeForn) { const cru = nomeF; nomeF = (n) => nomeForn(n) || cru(n); } } catch (e) { /* nome cru */ }
+  const pf = new Map(); for (const x of R) { const o = pf.get(x.filial) || { m: 0, v: 0, ind: [] }; const m = Number(x.m) || 0, v = (Number(x.f) || 0) + (Number(x.c) || 0); o.m += m; o.v += v; if (m > 0) o.ind.push({ n: nomeF(x.fornecedor), m, v }); pf.set(x.filial, o); }
+  const p = (v, m) => (m ? Math.round(v / m * 100) + '%' : '—');
+  const L = [`🏭 *Filial × indústria* · ${mes.slice(5)}/${mes.slice(0, 4)}`, '_% = (faturado + a faturar) ÷ meta · as 6 indústrias de maior meta de cada filial_', ''];
+  for (const [f, o] of [...pf].sort((a, b) => (b[1].v / (b[1].m || 1)) - (a[1].v / (a[1].m || 1)))) {
+    L.push(`*${f}* ${p(o.v, o.m)}: ${o.ind.sort((a, b) => b.m - a.m).slice(0, 6).map((x) => `${x.n} ${p(x.v, x.m)}`).join(' · ')}`);
+  }
+  L.push('', '_GEROT · peça "indústrias de TPH" para todas as indústrias de uma filial._');
   return L.join(String.fromCharCode(10));
 }

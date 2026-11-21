@@ -469,8 +469,8 @@ async function trataMensagem({ request, env }) {
   { const { acabamento } = await import('../../_lib/jota/acabamento.js'); resp = await acabamento(B, env, resp); }
   // AVALIACAO EM TODAS AS RESPOSTAS (Vitorio, 11/11/2026): vendedor, supervisor, gerente e diretoria, inclusive menus e os 3 momentos; 👍/👎 nao briga com o numero do menu
   // 21/11/2026 (auditoria UI/UX: 1.175 pedidos de avaliacao, 73 notas): pede avaliacao 1 vez por dia por pessoa
-  let jaPediuNota = false; try { jaPediuNota = !!(await env.DB.prepare("SELECT 1 FROM bot_msgs WHERE celular = ? AND direcao = 'out' AND texto LIKE '%Essa resposta ajudou?%' AND date(quando, '-3 hours') = date('now', '-3 hours') LIMIT 1").bind(cel).first()); } catch (e) { jaPediuNota = false; }
-  if (resp && !jaPediuNota && !['nota', 'agradecimento', 'saudacao_primeira', 'reacao_figurinha', 'bloqueado'].includes(tipo) && !/o que faltou/.test(resp) && !/⟪⟫/.test(resp) && !/MENU DO JOTA/.test(resp)) resp += '\n\n_Essa resposta ajudou? Responda 👍 ou 👎 · ou escreva *sugestão:* e o que melhorar_';
+  // 21/11/2026: Vitorio — avaliacao em TODA resposta (no inicio e o que mede a qualidade)
+  if (resp && !['nota', 'agradecimento', 'saudacao_primeira', 'reacao_figurinha', 'bloqueado'].includes(tipo) && !/o que faltou/.test(resp) && !/⟪⟫/.test(resp) && !/MENU DO JOTA/.test(resp)) resp += '\n\n_Essa resposta ajudou? Responda 👍 ou 👎 · ou escreva *sugestão:* e o que melhorar_';
   if (audio && audio.texto) resp = `🎙️ _Entendi: "${audio.texto.slice(0, 200)}"_\n\n` + resp;
   if (!seco && meuId && !reprocId) { const dep2 = await env.DB.prepare("SELECT id FROM bot_msgs WHERE celular = ? AND direcao = 'in' AND id > ? LIMIT 1").bind(cel, meuId).first().catch(() => null); if (dep2) return new Response('ok (barge-in)'); }
   const limpaTags = (s) => String(s || '').replace(/\s*〔[^〕]+〕/g, '');
