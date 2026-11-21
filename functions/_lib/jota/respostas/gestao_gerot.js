@@ -140,8 +140,8 @@ export async function respVisitasClube(B, esc, por) {
   if (por === 'supervisor' && esc.supNomes) for (const [k, o] of grp) { const nm = esc.supNomes.get(k); if (nm) o.nome = nm; }
   const L = [`🚶 *Plano de visitas — ${esc.nome}*`, (th.r ? `*Hoje:* ${N(th.v)} de ${N(th.r)} visitas (${pc(th.v, th.r)}) · com pedido na rota ${N(th.p)} (eficácia ${pc(th.p, th.r)})` : `*Hoje:* sem rota planejada no Clube da Venda${[0, 6].includes(new Date(hojeSP() + 'T12:00:00Z').getUTCDay()) ? ' (fim de semana)' : ''}.`),
     `*Mês${d0 && d0.a ? ' (desde ' + d0.a.slice(8, 10) + '/' + d0.a.slice(5, 7) + ')' : ''}:* ${N(tm.v)} de ${N(tm.r)} visitas (${pc(tm.v, tm.r)}) · com pedido ${N(tm.p)} (${pc(tm.p, tm.r)})`, '',
-    `*Por ${por} — menor aderência no mês primeiro (mês · hoje):*`];
-  for (const o of [...grp.values()].filter((o) => o.m.r > 0).sort((a, b) => (a.m.v / a.m.r) - (b.m.v / b.m.r)).slice(0, 15)) L.push(`• ${o.nome}: ${pc(o.m.v, o.m.r)} (${N(o.m.v)}/${N(o.m.r)}) · hoje ${N(o.h.v)}/${N(o.h.r)}`);
+    `*Por ${por} — menor aderência no mês primeiro (mês${th.r ? ' · hoje' : ''}):*`];
+  for (const o of [...grp.values()].filter((o) => o.m.r > 0).sort((a, b) => (a.m.v / a.m.r) - (b.m.v / b.m.r)).slice(0, 15)) L.push(`• ${o.nome}: ${pc(o.m.v, o.m.r)} (${N(o.m.v)}/${N(o.m.r)})${o.h.r ? ` · hoje ${N(o.h.v)}/${N(o.h.r)}` : ''}`);
   L.push('', `_Clube da Venda${lido ? ' · ' + new Date(lido).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) : ''} · aderência = visitas feitas ÷ planejadas na rota. Peça por filial, por supervisor ou por vendedor._`);
   return L.join('\n');
 }
