@@ -1,5 +1,5 @@
 # FICHA DO ARQUIVO
-# O QUE É: mapa das telas do GEROT que ainda nao extraimos (Carteira Total, Pedidos, Devolucoes, Cortes, Recorrencia). SO LEITURA, so manual.
+# O QUE É: mapa de TODAS as telas do GEROT (21/11/2026): rotulos e colunas de cada exportacao. SO LEITURA, so manual.
 #   O log mostra apenas nomes de colunas e quantidade de linhas (repositorio publico). Nada anexado, nada gravado.
 name: GEROT — mapa das telas (so leitura)
 
@@ -13,7 +13,7 @@ concurrency:
 jobs:
   mapear:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -27,5 +27,5 @@ jobs:
         env:
           GEROT_EMAIL: ${{ secrets.GEROT_EMAIL }}
           GEROT_SENHA: ${{ secrets.GEROT_SENHA }}
-          SO_CAMPOS: "1"
+          SO_EXPORT: "1"   # 21/11/2026: TODAS as telas, todas as exportacoes + rotulos (sem numeros)
         run: node pipeline/gerot_mapa_telas.mjs
