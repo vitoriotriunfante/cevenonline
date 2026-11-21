@@ -401,13 +401,11 @@ export async function respostaInterna(B, c, texto, anteriores) {
         if (chave === '__curva__') r = await interno(`curva negativa do ${eu}`);
         else if (chave === '__rv__') r = await interno('meu rv');
         else if (chave === '__devol__') {
-          // DEVOLUCOES DO VENDEDOR (auditoria Giovana 10/11/2026): as notas dele no mes, com cliente, valor e motivo oficial; sem blocos de equipe
-          const Ev = await carregaEscopo(B, esc), v = Ev.vend[0], mes = hojeSP().slice(0, 7);
-          const N0 = v ? (v.devolucoes || []).filter((n) => String(n.data || '').slice(0, 7) === mes) : [];
-          const mot = new Map(); if (N0.length && B.env && B.env.DB) { try { const { results } = await B.env.DB.prepare('SELECT nota, nao_pediu, motivos FROM devolucao_nota_motivo WHERE rca = ?').bind(String(v.rca)).all(); for (const x of results || []) mot.set(String(x.nota), x); } catch (e) { /* sem motivo */ } }
-          const tot = N0.reduce((s, n) => s + Math.abs(Number(n.vl_devolvido) || 0), 0);
-          r = !v ? 'Não achei os seus dados na base agora.' : !N0.length ? `↩️ *Devoluções no mês — ${vn(v)}*: nenhuma devolução em ${mes.slice(5, 7)}/${mes.slice(0, 4)}.` : [`↩️ *Devoluções no mês — ${vn(v)}*: *${R$(tot)}* em ${N0.length} nota(s)`, '',
-            ...N0.sort((a, b) => String(b.data).localeCompare(String(a.data))).map((n) => { const m = mot.get(String(n.numnota)); const mt = m ? (m.nao_pediu === 1 ? 'cliente não pediu (🟥 −10 na Liga)' : ((mo) => mo + (/SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD|PEDIDO DUPLICADO|RECUSOU MERC|PRECO DIFERENTE/.test(mo) ? ' (⚽ gol contra −4)' : ' (não gera lance na Liga)'))(String(m.motivos || '').replace(/[\[\]"]/g, '').split(',')[0] || 'motivo não informado')) : 'motivo ainda não lido'; return `• ${String(n.data).slice(8, 10)}/${String(n.data).slice(5, 7)} · nota ${n.numnota} · ${titulo(String(n.nomecli || '').replace(/^\d+\s+/, ''))} (#${n.codcli}) · *${R$(Math.abs(Number(n.vl_devolvido) || 0))}* · ${mt}`; })].join('\n');
+          // 21/11/2026 (auditoria dos analistas): as notas do CEVEN pararam em 11/11 e o menu dizia 'nenhuma' com R$ 1.418 a R$ 7.514 no GEROT.
+          // Agora = GEROT: por motivo (Motivo > Filial > Supervisor > Vendedor) e, sem a abertura, o total do vendedor no mes (o mesmo numero do 'como estou').
+          const Ev = await carregaEscopo(B, esc), v = Ev.vend[0];
+          if (!v) r = 'Não achei os seus dados na base agora.';
+          else { const G = await import('./respostas/gestao_gerot.js'); r = await G.respDevolucaoMotivoVend(B, { filiais: [v.filial], rcas: [String(v.rca)], nome: vn(v) }).catch(() => null) || await G.respDevolucaoGerot(B, { filiais: [v.filial], rca: String(v.rca), nome: vn(v) }).catch(() => null) || `↩️ *Devoluções no mês — ${vn(v)}*: nenhuma devolução no GEROT neste mês.`; }
         }
         else if (chave === 'fechamento do mes passado') {
           // FECHAMENTO COM AS INDUSTRIAS (Vitorio, 10/11/2026: 'so tem isso de KPIs? e as industrias? positivacao por industrias?'): GEROT do mes passado, do proprio vendedor

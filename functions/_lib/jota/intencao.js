@@ -296,15 +296,22 @@ async function respUmaIndustria(B, c, t, filCit, esc) {
   let F = []; try { F = (await B.env.DB.prepare('SELECT DISTINCT fornecedor FROM gerot_vendas WHERE mes = ?').bind(mes).all()).results || []; } catch (e) { return null; }
   const STOP = /^(LTDA|LTD|S\/?A|SA|DO|DA|DE|DOS|BRASIL|INDUSTRIA|IND|COMERCIO|COM|DIST|DISTRIBUIDORA|ALIMENTOS|ALIM|PRODUTOS|E|EIRELI|ME|GRUPO)$/;
   const toks = t.split(/\s+/).filter((w) => w.length >= 5 && !PALAVRAS_COMANDO.test(w) && !FIL_RX.test(w) && !/^(ESTAMOS|RESULTADO|VENDEMOS|QUANTO|META|METAS|BRASIL|BRASILEIRO|AGORA|HOJE|ONTEM|VENDA|VENDAS|VENDIDO|GERAL|TODAS|TODOS|FILIAIS|FILIAL|SEMANA|POSITIVACAO|CLIENTES|CLIENTE|TENDENCIA|FATURAMENTO|FATURADO|CARTEIRA|PEDIDOS|PEDIDO|RITMO|NUMEROS|COMPARADA|COMPARADO|ANTERIOR|ANTERIORES|PASSADO|MESES|ATUAL|EQUIPE|SUPERVISOR|VENDEDOR|VENDEDORES|GERENTE|DIRETORIA|INDUSTRIAS|INDUSTRIA)$/.test(w));
+  // 21/11/2026 (planilha "Industrias - Marcas Comerciais" do Vitorio): MARCA citada (Baly, Ype, Scotch-Brite, Leao...) -> industria pelo codigo do fornecedor
+  let porMarca = [];
+  try { const { MARCAS } = await import('./marcas.js'); const tt = ' ' + t.replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ') + ' ';
+    const cods = new Set(MARCAS.filter(([m]) => m.length >= 3 && tt.includes(' ' + m.replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ') + ' ')).map(([, cod]) => cod));
+    if (cods.size) porMarca = F.map((x) => x.fornecedor).filter((f) => [...cods].some((cod) => String(f).includes('#' + cod))); } catch (e) { porMarca = []; }
   // 17/11/2026 ("Venda do Brasil agora" virou 'Fvo Brasilia'): palavra geral nunca vira nome de industria; parecido (1 letra) so com 6+ letras
-  if (!toks.length) return null;
-  const achou = F.map((x) => x.fornecedor).filter((f) => { const ws = sem(String(f).replace(/^[A-Z]\s*-\s*/, '').replace(/#\d+/, '')).split(/[\s.]+/).filter((w) => w.length >= 4 && !STOP.test(w)); return toks.some((tk) => ws.some((w) => w === tk || (w.length >= 5 && (tk.startsWith(w) || w.startsWith(tk))) || (tk.length >= 6 && lev(w, tk) <= 1))); });
+  if (!toks.length && !porMarca.length) return null;
+  const achou = porMarca.length ? porMarca : F.map((x) => x.fornecedor).filter((f) => { const ws = sem(String(f).replace(/^[A-Z]\s*-\s*/, '').replace(/#\d+/, '')).split(/[\s.]+/).filter((w) => w.length >= 4 && !STOP.test(w)); return toks.some((tk) => ws.some((w) => w === tk || (w.length >= 5 && (tk.startsWith(w) || w.startsWith(tk))) || (tk.length >= 6 && lev(w, tk) <= 1))); });
   if (!achou.length || achou.length > 4) return null;
   const fil = filCit ? [filCit] : (esc && esc.filiais) || FILIAIS;
   const qs = fil.map(() => '?').join(','), qf = achou.map(() => '?').join(',');
   let R = []; try { R = (await B.env.DB.prepare(`SELECT filial, rca, supervisor, json_extract(dados, '$."Meta (R$)"') m, json_extract(dados, '$."Faturado líquido (R$)"') fa, json_extract(dados, '$."Carteira pendente (R$)"') ca, json_extract(dados, '$."Positivação (filial + CNPJ)"') p FROM gerot_vendas WHERE mes = ? AND filial IN (${qs}) AND fornecedor IN (${qf})`).bind(mes, ...fil, ...achou).all()).results || []; } catch (e) { return null; }
   if (esc && esc.supervisor) { const sa = sem(esc.supervisor); R = R.filter((x) => sem(x.supervisor || '').includes(sa.split(' ')[0])); }
   if (esc && esc.rca) R = R.filter((x) => String(x.rca) === String(esc.rca));
+  // 21/11/2026: marca citada sem venda no escopo = dizer onde ela vende (antes caia em outra resposta ou mostrava zero)
+  if (!R.length && porMarca.length) { let onde = []; try { onde = ((await B.env.DB.prepare(`SELECT filial FROM gerot_vendas WHERE mes = ? AND fornecedor IN (${qf}) GROUP BY filial HAVING SUM(json_extract(dados, '$."Faturado líquido (R$)"')) > 0`).bind(mes, ...achou).all()).results || []).map((x) => x.filial); } catch (e) { onde = []; } const nmF = titulo(String(achou[0]).replace(/^[A-Z]\s*-\s*/, '').replace(/#\d+/, '').toLowerCase()).trim(); return `🏭 *${nmF}* não tem venda nem meta em ${fil.length === 1 ? fil[0] : 'este escopo'} neste mês.${onde.length ? ` Vende em: *${onde.join(', ')}*. Pergunte, por exemplo, "como estamos de ${nmF.split(' ')[0]} em ${onde[0]}".` : ''}`; }
   if (!R.length) return null;
   const tot = R.reduce((a, x) => ({ m: a.m + (Number(x.m) || 0), fa: a.fa + (Number(x.fa) || 0), ca: a.ca + (Number(x.ca) || 0), p: a.p + (Number(x.p) || 0) }), { m: 0, fa: 0, ca: 0, p: 0 });
   const nome = titulo(String(achou[0]).replace(/^[A-Z]\s*-\s*/, '').replace(/\s*#\d+.*$/, '').toLowerCase());

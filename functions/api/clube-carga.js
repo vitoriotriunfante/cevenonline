@@ -47,7 +47,7 @@ export async function onRequestPost({ request, env }) {
     if (!j || !j.id) continue;
     stmts.push(
       db.prepare('INSERT OR IGNORE INTO clube_justificativa (id, dia, filial, sup_cod, rca, nome, cliente, cnpj, razao, fantasia, dias_sem_comprar, motivo, data_hora, obs) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
-        .bind(String(j.id), dia, j.filial || null, j.sup_cod || null, j.rca || null, j.nome || null, j.cliente || null, j.cnpj || null, j.razao || null, j.fantasia || null, j.dias_sem_comprar ?? null, j.motivo || null, j.data_hora || null, j.obs || null)
+        .bind(String(j.id), /^\d{4}-\d{2}-\d{2}/.test(String(j.data_hora || '')) ? String(j.data_hora).slice(0, 10) : dia, j.filial || null,   /* 21/11/2026: dia = quando a justificativa foi feita (antes: dia da coleta; 324 no dia errado e penalti com justificativa de outubro) */ j.sup_cod || null, j.rca || null, j.nome || null, j.cliente || null, j.cnpj || null, j.razao || null, j.fantasia || null, j.dias_sem_comprar ?? null, j.motivo || null, j.data_hora || null, j.obs || null)
     );
   }
   // 17/11/2026: PEDIDOS DO DIA do Clube (Relatorio de Pedido): um por pedido, so grava o que mudou
