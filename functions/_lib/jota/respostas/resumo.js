@@ -200,7 +200,7 @@ export async function respHoje(B, E, t) {
     const tot = { ...(agrupa(V, () => 'x').get('x') || { dig: 0, ped: 0, visF: 0, visP: 0, comVenda: 0, zerados: 0 }) };
     if (!soVarejo) { tot.dig = E.macro.dig; tot.ped = E.macro.pedidos; for (const g of G) { const m = E.porFilial[g[0]].macro; g[1].dig = m.dig; g[1].ped = m.pedidos; } G.sort((a, b) => b[1].dig - a[1].dig); }
     if (/TICKET/.test(t)) return [`🧾 *Ticket médio de hoje — Brasil${rot}*: *${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}* (${R$(tot.dig)} ÷ ${N(tot.ped)} pedidos)`, ...G.map(([f, x]) => `• ${f}: ${x.ped ? R$(x.dig / x.ped) : 'sem dado'}`)].join('\n');
-    return [`📝 *Hoje no Brasil${rot}* (${hora})`, `Digitado: *${R$(tot.dig)}* em *${N(tot.ped)}* pedidos · ticket ${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}`, ...(linhaGerot ? [linhaGerot] : []), ...(tot.visP ? [`Visitas da rota: ${N(tot.visF)} de ${N(tot.visP)} (com venda na rota: ${N(tot.comVenda)}) · zerados: ${tot.zerados}`] : []), '',   /* dia sem rota nao fala de visita nem zerado (Vitorio, 31/10/2026: "hoje e venda") */
+    return [`📝 *Hoje no Brasil${rot}* (${hora})`, `Digitado: *${R$(tot.dig)}* em *${N(tot.ped)}* pedidos${tot.ped ? ' · ticket ' + R$(tot.dig / tot.ped) : ''}`, ...(linhaGerot ? [linhaGerot] : []), ...(tot.visP ? [`Visitas da rota: ${N(tot.visF)} de ${N(tot.visP)} (com venda na rota: ${N(tot.comVenda)}) · zerados: ${tot.zerados}`] : []), '',   /* dia sem rota nao fala de visita nem zerado (Vitorio, 31/10/2026: "hoje e venda") */
       ...G.map(([f, x]) => `• *${f}* ${R$(x.dig)} · ${x.ped} ped.` + (tot.visP ? ` · visitas ${x.visF}/${x.visP} · ${x.zerados} zerado(s)` : '')),
       soVarejo ? '' : '_Totais com todos os canais; peça "hoje rota" para só o varejo._', SUGESTAO + (tot.visP ? `ver os zerados da filial com mais vendedores sem pedido: ${(G.slice().sort((a, b) => b[1].zerados - a[1].zerados)[0] || [''])[0]}.` : `acionar a filial com menos venda digitada hoje: ${(G.slice().sort((a, b) => a[1].dig - b[1].dig)[0] || [''])[0]}.`)].filter((x) => x !== null).join('\n');
   }
@@ -209,7 +209,7 @@ export async function respHoje(B, E, t) {
   if (!soVarejo && !E.grupo && !E.supervisor && !E.rca) { tot.dig = E.macro.dig; tot.ped = E.macro.pedidos; }
   if (/TICKET/.test(t)) return `🧾 *Ticket médio de hoje — ${E.nome}${rot}*: *${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}* (${R$(tot.dig)} ÷ ${tot.ped} pedidos)`;
   const Vs = V.slice().sort((a, b) => b.dig - a.dig);
-  const L = [`📝 *${E.nome} hoje${rot}* (${hora})`, `Digitado: *${R$(tot.dig)}* em *${tot.ped}* pedidos · ticket ${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}`, ...(linhaGerot ? [linhaGerot] : []), ...(tot.visP ? [`Visitas da rota: ${tot.visF} de ${tot.visP} (com venda na rota: ${tot.comVenda}) · vendedores zerados: ${tot.zerados}`] : []), ''];
+  const L = [`📝 *${E.nome} hoje${rot}* (${hora})`, `Digitado: *${R$(tot.dig)}* em *${tot.ped}* pedidos${tot.ped ? ' · ticket ' + R$(tot.dig / tot.ped) : ''}`, ...(linhaGerot ? [linhaGerot] : []), ...(tot.visP ? [`Visitas da rota: ${tot.visF} de ${tot.visP} (com venda na rota: ${tot.comVenda}) · vendedores zerados: ${tot.zerados}`] : []), ''];
   let iVs = 0;
   for (const v of Vs.slice(0, 40)) {
     iVs++;

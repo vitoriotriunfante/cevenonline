@@ -138,7 +138,7 @@ export async function respVisitasClube(B, esc, por) {
   for (const x of H) { const o = grp.get(chave(x)); if (o) o.h = soma([o.h, x]); }
   // nome do supervisor (Gestao de Equipe via escopo, se veio)
   if (por === 'supervisor' && esc.supNomes) for (const [k, o] of grp) { const nm = esc.supNomes.get(k); if (nm) o.nome = nm; }
-  const L = [`🚶 *Plano de visitas — ${esc.nome}*`, `*Hoje:* ${N(th.v)} de ${N(th.r)} visitas (${pc(th.v, th.r)}) · com pedido na rota ${N(th.p)} (eficácia ${pc(th.p, th.r)})`,
+  const L = [`🚶 *Plano de visitas — ${esc.nome}*`, (th.r ? `*Hoje:* ${N(th.v)} de ${N(th.r)} visitas (${pc(th.v, th.r)}) · com pedido na rota ${N(th.p)} (eficácia ${pc(th.p, th.r)})` : `*Hoje:* sem rota planejada no Clube da Venda${[0, 6].includes(new Date(hojeSP() + 'T12:00:00Z').getUTCDay()) ? ' (fim de semana)' : ''}.`),
     `*Mês${d0 && d0.a ? ' (desde ' + d0.a.slice(8, 10) + '/' + d0.a.slice(5, 7) + ')' : ''}:* ${N(tm.v)} de ${N(tm.r)} visitas (${pc(tm.v, tm.r)}) · com pedido ${N(tm.p)} (${pc(tm.p, tm.r)})`, '',
     `*Por ${por} — menor aderência no mês primeiro (mês · hoje):*`];
   for (const o of [...grp.values()].filter((o) => o.m.r > 0).sort((a, b) => (a.m.v / a.m.r) - (b.m.v / b.m.r)).slice(0, 15)) L.push(`• ${o.nome}: ${pc(o.m.v, o.m.r)} (${N(o.m.v)}/${N(o.m.r)}) · hoje ${N(o.h.v)}/${N(o.h.r)}`);
@@ -363,5 +363,32 @@ export async function respCurvaIndustria(B, esc, industrias) {
   if (esc.rca || grupos.length === 1) { const [k, xs] = grupos[0]; L.push(`*${k}:*`, ...xs.slice(0, 40).map((x) => `• ${titulo(String(x.nome || 'cliente ' + x.cliente).toLowerCase())} (#${x.cliente})`), ...(xs.length > 40 ? [`… e mais ${xs.length - 40}`] : [])); }
   else { L.push('*Por vendedor:*', ...grupos.slice(0, 30).map(([k, xs]) => `• ${k}: *${xs.length}*`), ...(grupos.length > 30 ? [`… e mais ${grupos.length - 30} vendedores`] : []), '', '_Peça "curva negativa de ' + nomeInd.split(' ')[0] + ' do setor 123" para a lista de clientes._'); }
   L.push('', rod);
+  return L.join('\n');
+}
+
+// ---------- FICHA DO CLIENTE PELO GEROT (quando nao comprou no mes) ----------
+// 21/11/2026 (bateria real: 'quem e o cliente 07426738000164' -> 'nao encontrei'): o cliente existe no GEROT; mostra quem atende, meses com compra e ultimo pedido.
+export async function fichaClienteGerot(B, filiais, cod) {
+  const db = B.env && B.env.DB; if (!db || !cod) return null;
+  const F = filiais && filiais.length ? filiais : FILIAIS;
+  let R = [], P = [];
+  try {
+    R = (await db.prepare(`SELECT mes, filial, rca, cnpj, nome, json_extract(dados, '$."Faturado líquido (R$)"') fa, json_extract(dados, '$."Carteira pendente (R$)"') ca, json_extract(dados, '$."Positivação (filial + CNPJ)"') p, json_extract(dados, '$."Positivação M-1"') m1, json_extract(dados, '$."Positivação A-1"') a1 FROM gerot_cliente_mes WHERE cliente = ? AND filial IN (${qs(F)}) ORDER BY mes DESC`).bind(String(cod), ...F).all()).results || [];
+    if (!R.length) return null;
+    P = (await db.prepare(`SELECT data, pedido, json_extract(dados, '$."Faturado líquido (R$)"') fa FROM gerot_pedido WHERE cliente = ? AND filial IN (${qs(F)}) AND data IS NOT NULL ORDER BY data DESC LIMIT 5`).bind(String(cod), ...F).all()).results || [];
+  } catch (e) { return null; }
+  const u = R[0], mesAt = mesAtual();
+  const vend = String(u.rca || '').includes('|') ? titulo(String(u.rca).split('|')[1].toLowerCase()) + ' (' + String(u.rca).split('|')[0] + ')' : u.rca;
+  const comp = R.filter((x) => Number(x.fa) > 0 || Number(x.p) > 0);
+  const nmM = (m) => `${m.slice(5)}/${m.slice(2, 4)}`;
+  const dBr = (d) => String(d).slice(8, 10) + '/' + String(d).slice(5, 7) + '/' + String(d).slice(2, 4);
+  const pos = await fontesG(db);
+  const L = [`🏪 *${titulo(String(u.nome || 'Cliente').toLowerCase())}* (#${cod}${u.cnpj ? ' · CNPJ ' + u.cnpj : ''}) — ${u.filial}`, `👤 Vendedor no GEROT: ${vend}`];
+  const at = R.find((x) => x.mes === mesAt);
+  L.push(at && (Number(at.fa) > 0 || Number(at.ca) > 0) ? `📦 Este mês: faturado ${R$(at.fa || 0)}${Number(at.ca) ? ' + carteira ' + R$(at.ca) : ''}` : '📦 *Este mês: sem compra e sem pedido em carteira.*');
+  if (comp.length) L.push(`🗓️ Meses com compra (GEROT): ${comp.slice(0, 6).map((x) => `${nmM(x.mes)} ${R$(x.fa || 0)}`).join(' · ')}`);
+  else if (R.some((x) => Number(x.m1) > 0 || Number(x.a1) > 0)) L.push(`🗓️ Comprou ${R.some((x) => Number(x.m1) > 0) ? 'no mês anterior a ' + nmM(R.find((x) => Number(x.m1) > 0).mes) : 'há um ano (mesmo mês de ' + (Number(R.find((x) => Number(x.a1) > 0).mes.slice(0, 4)) - 1) + ')'}; sem compra nos meses que tenho carregados.`);
+  if (P.length) L.push(`🧾 Últimos pedidos: ${P.map((x) => `${dBr(x.data)} nº ${x.pedido}`).join(' · ')}`);
+  L.push('', `_GEROT${pos ? ' (' + pos + ')' : ''} · meses carregados: ${[...new Set(R.map((x) => nmM(x.mes)))].join(', ')}._`);
   return L.join('\n');
 }

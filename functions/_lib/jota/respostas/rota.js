@@ -187,7 +187,7 @@ export async function respPositivacao(B, E) {
     } catch (e) {}
   }
   return [`👥 *Positivação — ${E.nome}* (clientes com faturamento no mês)`, ...(oficial ? [oficial] : []), `*${N(x.pos)} de ${N(x.metaPos)}* (${P(x.pos, x.metaPos)}) · faltam ${N(Math.max(0, x.metaPos - x.pos))} → ${N(Math.ceil(Math.max(0, x.metaPos - x.pos) / Math.max(dn, 1)))} por dia útil`, '',
-    ...G.map(([k, y]) => `• ${E.nacional || porVend ? k : nome2(k)}: ${N(y.pos)} de ${N(y.metaPos)} (${P(y.pos, y.metaPos)}) · faltam ${N(Math.max(0, y.metaPos - y.pos))}`), '', SUGESTAO + (G.length ? `o mais atrás é ${E.nacional || porVend ? G[G.length - 1][0] : nome2(G[G.length - 1][0])}.` : 'sem meta de positivação cadastrada.'),
+    /* 21/11/2026 (R17 'Rcas Inativos: 0 de 0 (sem dado)'): grupo sem positivacao e sem meta nao tem numero para mostrar */ ...G.filter(([, y]) => Number(y.pos) || Number(y.metaPos)).map(([k, y]) => `• ${E.nacional || porVend ? k : nome2(k)}: ${N(y.pos)}${Number(y.metaPos) ? ` de ${N(y.metaPos)} (${P(y.pos, y.metaPos)}) · faltam ${N(Math.max(0, y.metaPos - y.pos))}` : ' _(sem meta)_'}`), '', SUGESTAO + (G.length ? `o mais atrás é ${E.nacional || porVend ? G[G.length - 1][0] : nome2(G[G.length - 1][0])}.` : 'sem meta de positivação cadastrada.'),
     E.nacional
       // BRASIL (Vitorio, 26/10/2026): deixar claro por que a soma passa da meta do grupo (27.000 PDVs) e o que nao entra
       ? '⚠️ _Atenção: esta é a *soma vendedor a vendedor*. Ela fica *maior que a meta do grupo de 27.000 PDVs*, porque há filiais com mais de uma pasta: o mesmo cliente comprado por duas pastas conta duas vezes. Também *não entram* os PDVs com pedido ainda pendente de faturamento._'

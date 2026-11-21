@@ -1638,6 +1638,8 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
     if (r) return r;
     const numDigitado = (t.match(/#?(\d{3,7})\b/) || [])[1];
     if (numDigitado) {
+      // 21/11/2026 (bateria real: Cristiane TBL 'quem e o cliente 07426738000164' -> 'nao encontrei'; o cliente esta no GEROT, so nao comprou no mes): historico do GEROT
+      try { const { fichaClienteGerot } = await import('./respostas/gestao_gerot.js'); const fg = await fichaClienteGerot(B, E.filiais && E.filiais.length ? E.filiais : null, numDigitado); if (fg) return fg; } catch (e) { /* segue */ }
       return `🔎 Não encontrei compras para o cliente *#${numDigitado}* nas vendas deste mês em ${E.nome}. Confere se o código é esse mesmo ou me manda a Razão Social / CNPJ por escrito!`;
     }
     if (/\[IMAGEM/i.test(String(texto || ''))) return `🔎 Para eu buscar o histórico certinho desse cliente, me manda o *código dele* (ex.: #252181), *CNPJ* ou a *razão social* por escrito! Como recebi imagem/print, ainda não consigo ler o texto dentro da foto diretamente. Com o código eu puxo todas as compras na hora! 🚀`;
