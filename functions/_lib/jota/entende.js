@@ -1433,13 +1433,16 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
             const [yy, mm] = hojeSP().slice(0, 7).split('-').map(Number), mAnt = new Date(Date.UTC(yy, mm - 2, 1)).toISOString().slice(0, 7);
             const ja = new Set((GC || []).map((x) => x.filial + '|' + x.cliente));
             const { results: GA } = await B.env.DB.prepare(`SELECT filial, rca, cliente, nome, json_extract(dados, '$."Faturado líquido (R$)"') f FROM gerot_cliente_mes WHERE mes = ? AND filial IN (${fls.map(() => '?').join(',')})`).bind(mAnt, ...fls).all();
+            // 'comprou no mes passado' = o MES PASSADO INTEIRO (o campo 'Positivacao M-1' do GEROT e so ate a mesma data: 516 x 911 em TBE)
+            const comprouAnt = new Set((GA || []).filter((x) => Number(x.f) > 0).map((x) => x.filial + '|' + x.cliente));
+            for (const [k0, L0x] of por) { const f0 = k0.split('|')[0]; for (const c0 of L0x) c0.m1 = comprouAnt.has(f0 + '|' + c0.id) ? 1 : 0; }
             for (const x of GA || []) { if (!(Number(x.f) > 0) || ja.has(x.filial + '|' + x.cliente)) continue; ja.add(x.filial + '|' + x.cliente); const k = x.filial + '|' + x.rca; if (!por.has(k)) por.set(k, []); por.get(k).push({ id: x.cliente, nome: titulo(String(x.nome || 'Cliente').toLowerCase()), pos: 0, pc: 0, m1: 1 }); }
           } catch (e) { /* sem o mes passado: fica a carteira do mes */ }
           const L0 = VV.map((v) => { const C = por.get(v.filial + '|' + v.rca) || []; const nao = C.filter((c) => !(c.pos > 0) && !(c.pc > 0)).sort((a, b) => b.m1 - a.m1); return { v, tot: C.length, nao }; }).filter((x) => x.tot > 0);
           if (L0.length) {
             const ord = L0.filter((x) => x.nao.length).sort((a, b) => b.nao.length - a.nao.length);
             const tot = L0.reduce((a, x) => a + x.tot, 0), falta = L0.reduce((a, x) => a + x.nao.length, 0), voltaM1 = L0.reduce((a, x) => a + x.nao.filter((c) => c.m1 > 0).length, 0);
-            return [`👥 *Quem falta positivar — ${E.nome}*`, `Carteira: *${N(tot)}* clientes · *sem compra e sem pedido no mês: ${N(falta)}*` + (voltaM1 ? ` · ${N(voltaM1)} deles compraram no mês passado 🔁` : ''), '',
+            return [`👥 *Quem falta positivar — ${E.nome}*`, `Carteira: *${N(tot)}* clientes · *sem compra e sem pedido no mês: ${N(falta)}*` + (voltaM1 ? ` · ${N(voltaM1)} deles compraram no mês passado (mês inteiro) 🔁` : ''), '',
               ...ord.slice(0, 15).map((x, i) => `${numL(i)} *${vn(x.v)}*: *${x.nao.length}* de ${x.tot}` + (x.nao[0] && x.nao[0].m1 > 0 ? ` · ex.: ${x.nao.filter((c) => c.m1 > 0).slice(0, 2).map((c) => c.nome).join(', ')}` : '')),
               ord.length > 15 ? `… e mais ${ord.length - 15} vendedores` : '',
               // 17/11/2026 (auditoria ampla: supervisor pediu "quem falta positivar" e nao veio nenhum cliente): os clientes a recuperar primeiro, da equipe toda
