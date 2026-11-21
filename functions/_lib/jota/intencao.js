@@ -67,6 +67,10 @@ export async function rotearIntencao(B, c, t, info) {
     try { await B.env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(c.celular || '', c.nome || '', papel, c.filial || '', t.slice(0, 1000), 'sugestao').run(); } catch (e) { /* segue */ }
     return `Anotado, ${nome2(c.nome || '').split(' ')[0] || ''}! Sua sugestão foi registrada e vai para quem cuida do Jota. 🙏`;
   }
+  // A9 · FERIADO (auditoria 21/11: em 20/11 o JOTA mostrou 0% vermelho e '42 zerados' num dia sem rota): pergunta do DIA em feriado nacional = avisa, sem cobrar
+  if (/\b(HOJE|ZERAD\w*|ROTA|VISITA\w*|BOM DIA|MATINAL|FECHAMENTO DO DIA|QUANTO VENDI)\b/.test(t) && !/\b(MES|ONTEM|SEMANA)\b/.test(t)) {
+    try { const { ehFeriado } = await import('../feriados.js'); const hj = hojeSP(); if (ehFeriado(hj)) return `📅 Hoje (${hj.slice(8, 10)}/${hj.slice(5, 7)}) é *feriado nacional*: sem rota e sem cobrança do dia. Os dias úteis do mês já não contam hoje.\n\nPergunte do *mês* (ex.: "como estou no mês") ou de *ontem*.`; } catch (e) { /* segue */ }
+  }
   // A8 · RESPOSTA A UM ALERTA DO MONITOR.IA (piloto 21/11/2026): "ok/feito" ou "nao procede" ate 4 h depois do alerta = registra no alerta e confirma
   if (c.celular && B.env && B.env.DB && /^\W*(OK|OKAY|FEITO|JA TRATEI|TRATADO|NAO PROCEDE|NAO PROCEDENTE|ESTA ERRADO|TA ERRADO|ERRADO)\W*$/.test(t)) {
     try {

@@ -31,7 +31,7 @@ import { respClientesDia } from '../../_lib/jota/respostas/rota.js';
 
 function podeUsarIAPraEstrategia(papel, texto) {
   const papelOk = ['diretoria', 'ceo', 'gerente', 'supervisor', 'vendedor', 'admin'].includes(String(papel || '').toLowerCase());
-  return papelOk && /\b(ESTRATEG(IA|ICO|ICA|IAS)|PLANO DE ACAO|PLANO COMERCIAL|COMO (PODEMOS|DEVEMOS|VAMOS|EU POSSO|FAZER PARA) (MELHORAR|RECUPERAR|VIRAR|AUMENTAR|CRESCER|ACELERAR|DESTRAVAR|REVERTER|BATER)|ONDE (DEVEMOS|PODEMOS|PRECISAMOS) (FOCAR|ATACAR|ATUAR|MELHORAR)|QUAL (A MELHOR|SUA) (ESTRATEGIA|SUGESTAO|RECOMENDACAO|IDEIA|OPINIAO|ANALISE)|ME D[AE] UMA (SUGESTAO|IDEIA|ESTRATEGIA|ANALISE|ORIENTACAO)|O QUE VOCE (ACHA|SUGERE|RECOMENDA|PENSA|INDICARIA|FARIA)|POR QUE (CAIU|ESTAMOS ABAIXO|NAO ESTAMOS BATENDO)|DIAGNOSTICO|CONSULTORIA|GARGALO|PONTOS? FRACOS?|PONTOS? FORTES?|ANALISE (EXECUTIVA|ESTRATEGICA|CRITICA)|MARGEM|DESCONTO|BONIFICACAO|CORTES?)\b/i.test(sem(texto));
+  return papelOk && /\b(ESTRATEG(IA|ICO|ICA|IAS)|PLANO DE ACAO|PLANO COMERCIAL|COMO (PODEMOS|DEVEMOS|VAMOS|EU POSSO|FAZER PARA) (MELHORAR|RECUPERAR|VIRAR|AUMENTAR|CRESCER|ACELERAR|DESTRAVAR|REVERTER|BATER)|ONDE (DEVEMOS|PODEMOS|PRECISAMOS) (FOCAR|ATACAR|ATUAR|MELHORAR)|QUAL (A MELHOR|SUA) (ESTRATEGIA|SUGESTAO|RECOMENDACAO|IDEIA|OPINIAO|ANALISE)|ME D[AE] UMA (SUGESTAO|IDEIA|ESTRATEGIA|ANALISE|ORIENTACAO)|O QUE VOCE (ACHA|SUGERE|RECOMENDA|PENSA|INDICARIA|FARIA)|POR QUE (CAIU|ESTAMOS ABAIXO|NAO ESTAMOS BATENDO)|DIAGNOSTICO|CONSULTORIA|GARGALO|PONTOS? FRACOS?|PONTOS? FORTES?|ANALISE (EXECUTIVA|ESTRATEGICA|CRITICA))\b/i.test(sem(texto));   // 21/11/2026 (auditoria): MARGEM, DESCONTO, BONIFICACAO e CORTES sairam daqui — tem resposta pronta pelo GEROT; a IA respondia 'nao disponivel'
 }
 
 import { respGerotIndustria } from '../../_lib/jota/respostas/gerot_industria.js';   // industria = GEROT (09/11/2026; o antigo gerot_inteligencia.js casava a industria errada)
@@ -297,7 +297,8 @@ async function trataMensagem({ request, env }) {
   // Busca a última resposta OUT real (ignora figurinhas)
   const ultOut = await env.DB.prepare("SELECT id, texto, nota, quando, tipo FROM bot_msgs WHERE celular = ? AND direcao = 'out' ORDER BY id DESC LIMIT 1").bind(cel).first().catch(() => null);
   const ultIn = await env.DB.prepare("SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'in' ORDER BY id DESC LIMIT 1 OFFSET 1").bind(cel).first().catch(() => null);
-  const notaTxt = (texto.trim().match(/^(?:nota\s*)?([1-5])(?:\s*(?:\/\s*5|estrelas?))?[!. ]*$/i) || [])[1] || (/^\s*(👍|👍🏻|👍🏼|👍🏽)\s*$/.test(texto) ? '5' : /^\s*(👎|👎🏻|👎🏼|👎🏽)\s*$/.test(texto) ? '1' : null);
+  // 21/11/2026 (auditoria: 9 pessoas, o '2' do menu do Washington virou 'nota 2'): numero so vale como nota com a palavra 'nota', '/5' ou 'estrelas'; o rodape pede 👍/👎
+  const notaTxt = (texto.trim().match(/^(?:nota\s*([1-5])|([1-5])\s*(?:\/\s*5|estrelas?))[!. ]*$/i) || []).slice(1).find(Boolean) || (/^\s*(👍|👍🏻|👍🏼|👍🏽)\s*$/.test(texto) ? '5' : /^\s*(👎|👎🏻|👎🏼|👎🏽)\s*$/.test(texto) ? '1' : null);
   // Se a última mensagem que o Jota mandou pediu o motivo ("o que faltou ou veio errado"), a próxima mensagem É O MOTIVO/SUGESTÃO!
   // pedido de dado nao vira "sugestao" (auditoria 01/11/2026: "curva negativa completa do vendedor 123" recebeu "Anotado"); reclamacao continua indo para o time
   const pedeDado = /\b(CURVA|LISTA|CLIENTES?|PEDIDOS?|SETOR|VENDEDORA?|EQUIPE|POSITIV\w*)\b/i.test(sem(texto)) && !/ERRAD|RUIM|NAO ESTA CERT/i.test(sem(texto));
@@ -445,6 +446,11 @@ async function trataMensagem({ request, env }) {
     if (!seco) try { await env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(cel, c.nome, c.papel, c.filial || '', `[SEM RESPOSTA] ${String(texto).slice(0, 1400)}`, '').run(); } catch (e) {}
   }
   if (tipo === 'pronta' && !/^(📋 \*MENU DO JOTA\*|Entendi que você quer)/i.test(resp)) resp = humaniza(resp, c, primeiraDoDia);
+  // 21/11/2026 (auditoria UI/UX: 'ver mais' devolvia a MESMA mensagem em 23 de 43 pedidos): pediu 'mais' e a resposta e igual a anterior = avisa que ja e tudo
+  if (resp && ultOut && /^\W*(ver mais|mais|mostra(r)? mais|lista completa|ver (o )?restante|ver (os )?outros|continua(cao)?|proximos?)\W*$/i.test(String(texto || '').normalize('NFD').replace(/[̀-ͯ]/g, ''))) {
+    const norm = (s) => String(s || '').replace(/〔[^〕]*〕/g, '').replace(/_🟢 Hoje[^\n]*_/g, '').replace(/_Quer ver mais\?[^\n]*_/g, '').replace(/\s+/g, ' ').trim().slice(0, 600);
+    if (norm(resp) && norm(resp) === norm(ultOut.texto)) resp = '📋 Essa resposta já está completa: não tem mais itens para mostrar.\n\nPara outra lista, me diga qual (ex.: *clientes sem compra*, *zerados da equipe*, *justificativas por vendedor*).';
+  }
   // 18/11/2026: ACABAMENTO UNICO (rodape do Clube, hora da leitura nos zeros do dia, sem 'Vago', singular) — o mesmo da auditoria seca
   { const { acabamento } = await import('../../_lib/jota/acabamento.js'); resp = await acabamento(B, env, resp); }
   // AVALIACAO EM TODAS AS RESPOSTAS (Vitorio, 11/11/2026): vendedor, supervisor, gerente e diretoria, inclusive menus e os 3 momentos; 👍/👎 nao briga com o numero do menu
