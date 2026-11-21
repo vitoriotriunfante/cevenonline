@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-11-21T19:48:50.010488Z",
+  "gerado_em": "2026-11-21T20:18:24.977796Z",
   "conceito": "Cada Dia é um Jogo — pontuação real por tipo de lance (config/pontuacao_brasileirao.json)",
   "config_pontuacao_versao": null,
   "dias_rodada": [
@@ -451,7 +451,7 @@
     },
     {
       "sigla": "TPA",
-      "total_vendedores": 44,
+      "total_vendedores": 48,
       "jogos": 27,
       "pts_tabela": 25,
       "vitorias": 0,
@@ -1108,7 +1108,7 @@
       "pos_ant": 12
     },
     {
-      "nome": "Radke / Leandro",
+      "nome": "Radke",
       "filiais": [
         "TPA"
       ],
@@ -1152,7 +1152,54 @@
         "E"
       ],
       "pos": 13,
-      "pos_ant": 11
+      "pos_ant": null
+    },
+    {
+      "nome": "Leandro",
+      "filiais": [
+        "TPA"
+      ],
+      "total_vendedores": 21,
+      "jogos": 27,
+      "pts_tabela": 9,
+      "vitorias": 0,
+      "empates": 9,
+      "derrotas": 18,
+      "gp": 692,
+      "gc": 264,
+      "sg": 428,
+      "aprov": 11.1,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "E",
+        "D",
+        "D",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E",
+        "E"
+      ],
+      "pos": 14,
+      "pos_ant": null
     },
     {
       "nome": "Natalia Gallo",
@@ -1198,7 +1245,7 @@
         "D",
         "D"
       ],
-      "pos": 14,
+      "pos": 15,
       "pos_ant": null
     }
   ],
@@ -4596,7 +4643,7 @@
       "supervisor": "ROGERIO DORNELLES PASSOS",
       "filial": "TPA",
       "canal": "VAREJO",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "total_vendedores": 6,
       "jogos": 27,
       "pts_tabela": 28,
@@ -7935,7 +7982,7 @@
       "supervisor": "RAFAEL DA SILVA CARPENA",
       "filial": "TPA",
       "canal": "VAREJO",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "total_vendedores": 3,
       "jogos": 27,
       "pts_tabela": 16,
@@ -8094,7 +8141,7 @@
       "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
       "filial": "TPA",
       "canal": "VAREJO",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "total_vendedores": 7,
       "jogos": 27,
       "pts_tabela": 16,
@@ -10529,8 +10576,8 @@
       "supervisor": "EDUARDO CABRAL SOARES DA SILVA",
       "filial": "TPA",
       "canal": "VAREJO",
-      "gerente": "",
-      "total_vendedores": 8,
+      "gerente": "Leandro",
+      "total_vendedores": 10,
       "jogos": 27,
       "pts_tabela": 8,
       "vitorias": 0,
@@ -10847,7 +10894,7 @@
       "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
       "filial": "TPA",
       "canal": "AS",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "total_vendedores": 5,
       "jogos": 27,
       "pts_tabela": 5,
@@ -11480,10 +11527,169 @@
       "pos_ant": 23
     },
     {
+      "supervisor": "LEANDRO AVILA XAVIER",
+      "filial": "TPA",
+      "canal": "AS",
+      "gerente": "Leandro",
+      "total_vendedores": 8,
+      "jogos": 27,
+      "pts_tabela": 2,
+      "vitorias": 0,
+      "empates": 2,
+      "derrotas": 25,
+      "gp": 81,
+      "gc": 0,
+      "sg": 81,
+      "aprov": 2.5,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "E",
+        "E"
+      ],
+      "plus_lideranca": 20,
+      "plus_detalhe": {
+        "2026-10-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-14": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-15": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-19": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-20": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-21": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-22": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-23": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-26": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-27": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-28": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-29": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-10-30": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-03": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-04": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-05": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-06": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-09": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-10": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-11": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-12": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-13": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-16": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-17": {
+          "compromisso": 0,
+          "ret": 0
+        },
+        "2026-11-18": {
+          "compromisso": 5,
+          "ret": 0
+        },
+        "2026-11-19": {
+          "compromisso": 5,
+          "ret": 0
+        }
+      },
+      "plus_pendente": false,
+      "pos": 25,
+      "pos_ant": 26
+    },
+    {
       "supervisor": "SAMUEL PALHANO DE OLIVEIRA",
       "filial": "TPA",
       "canal": "AS",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "total_vendedores": 1,
       "jogos": 27,
       "pts_tabela": 0,
@@ -11635,14 +11841,14 @@
         }
       },
       "plus_pendente": false,
-      "pos": 25,
+      "pos": 26,
       "pos_ant": 24
     },
     {
       "supervisor": "JEFERSON ANTONIO HOESER",
       "filial": "TPA",
       "canal": "AS",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "total_vendedores": 1,
       "jogos": 27,
       "pts_tabela": 0,
@@ -11794,7 +12000,7 @@
         }
       },
       "plus_pendente": false,
-      "pos": 26,
+      "pos": 27,
       "pos_ant": 27
     },
     {
@@ -11953,167 +12159,8 @@
         }
       },
       "plus_pendente": false,
-      "pos": 27,
-      "pos_ant": 25
-    },
-    {
-      "supervisor": "LEANDRO AVILA XAVIER",
-      "filial": "TPA",
-      "canal": "AS",
-      "gerente": "",
-      "total_vendedores": 2,
-      "jogos": 27,
-      "pts_tabela": 0,
-      "vitorias": 0,
-      "empates": 0,
-      "derrotas": 27,
-      "gp": 26,
-      "gc": 0,
-      "sg": 26,
-      "aprov": 0.0,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D"
-      ],
-      "plus_lideranca": 20,
-      "plus_detalhe": {
-        "2026-10-13": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-14": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-15": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-16": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-19": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-20": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-21": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-22": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-23": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-26": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-27": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-28": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-29": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-10-30": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-11-03": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-11-04": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-11-05": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-11-06": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-11-09": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-11-10": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-11-11": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-11-12": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-11-13": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-11-16": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-11-17": {
-          "compromisso": 0,
-          "ret": 0
-        },
-        "2026-11-18": {
-          "compromisso": 5,
-          "ret": 0
-        },
-        "2026-11-19": {
-          "compromisso": 5,
-          "ret": 0
-        }
-      },
-      "plus_pendente": false,
       "pos": 28,
-      "pos_ant": 26
+      "pos_ant": 25
     },
     {
       "supervisor": "SUPERVISOR 53",
@@ -20684,7 +20731,7 @@
       "nome": "JANAINA BOEIRA RECH",
       "filial": "TPA",
       "supervisor": "ROGERIO DORNELLES PASSOS",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 9,
@@ -22084,7 +22131,7 @@
       "nome": "PAULO BRITES MENDIETA",
       "filial": "TPA",
       "supervisor": "ROGERIO DORNELLES PASSOS",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 8,
@@ -22532,7 +22579,7 @@
       "nome": "BRENDA MARQUES DOS SANTOS",
       "filial": "TPA",
       "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 8,
@@ -22924,7 +22971,7 @@
       "nome": "EDUARDO BATISTA PINTO",
       "filial": "TPA",
       "supervisor": "ROGERIO DORNELLES PASSOS",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 6,
@@ -24212,7 +24259,7 @@
       "nome": "DAVID LUIZ ROMEIRA BOMBARDELLI",
       "filial": "TPA",
       "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 6,
@@ -24268,7 +24315,7 @@
       "nome": "ORLI CLOVIS OLIVEIRA COSTA",
       "filial": "TPA",
       "supervisor": "ROGERIO DORNELLES PASSOS",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 5,
@@ -24492,7 +24539,7 @@
       "nome": "ALEXSANDRO VALDIR DA SILVA VASQUES",
       "filial": "TPA",
       "supervisor": "ROGERIO DORNELLES PASSOS",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 7,
@@ -24996,7 +25043,7 @@
       "nome": "JOEL MENDES DOS SANTOS",
       "filial": "TPA",
       "supervisor": "ROGERIO DORNELLES PASSOS",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 5,
@@ -25780,7 +25827,7 @@
       "nome": "RENATA THEISEN LEMOS",
       "filial": "TPA",
       "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 6,
@@ -25892,7 +25939,7 @@
       "nome": "LUCA FERNANDO RAPACK TEIXEIRA",
       "filial": "TPA",
       "supervisor": "EDUARDO CABRAL SOARES DA SILVA",
-      "gerente": "",
+      "gerente": "Leandro",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 5,
@@ -26340,7 +26387,7 @@
       "nome": "ROMULO MICHAEL SEEFELDT",
       "filial": "TPA",
       "supervisor": "RAFAEL DA SILVA CARPENA",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 5,
@@ -26788,7 +26835,7 @@
       "nome": "TIAGO RANGEL",
       "filial": "TPA",
       "supervisor": "RAFAEL DA SILVA CARPENA",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 4,
@@ -27180,7 +27227,7 @@
       "nome": "ELTON ARAUJO GALVAO",
       "filial": "TPA",
       "supervisor": "EDUARDO CABRAL SOARES DA SILVA",
-      "gerente": "",
+      "gerente": "Leandro",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 4,
@@ -27460,7 +27507,7 @@
       "nome": "RINALDO DA SILVA",
       "filial": "TPA",
       "supervisor": "RAFAEL DA SILVA CARPENA",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 3,
@@ -28692,7 +28739,7 @@
       "nome": "MARCIO SOARES DA SILVEIRA",
       "filial": "TPA",
       "supervisor": "EDUARDO CABRAL SOARES DA SILVA",
-      "gerente": "",
+      "gerente": "Leandro",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 2,
@@ -28804,7 +28851,7 @@
       "nome": "EDUARDO PAPEN MENDES",
       "filial": "TPA",
       "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "AS",
       "jogos": 27,
       "vitorias": 1,
@@ -29364,7 +29411,7 @@
       "nome": "JOAO VICENTE BERNARDES",
       "filial": "TPA",
       "supervisor": "EDUARDO CABRAL SOARES DA SILVA",
-      "gerente": "",
+      "gerente": "Leandro",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 2,
@@ -29756,7 +29803,7 @@
       "nome": "GIOVANE ANDRE DE MELLO",
       "filial": "TPA",
       "supervisor": "LEANDRO AVILA XAVIER",
-      "gerente": "",
+      "gerente": "Leandro",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 3,
@@ -30316,7 +30363,7 @@
       "nome": "ELTON CHAVES DE MELLO",
       "filial": "TPA",
       "supervisor": "EDUARDO CABRAL SOARES DA SILVA",
-      "gerente": "",
+      "gerente": "Leandro",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 2,
@@ -30652,7 +30699,7 @@
       "nome": "RODRIGO DE OLIVEIRA CANABARRO",
       "filial": "TPA",
       "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "AS",
       "jogos": 27,
       "vitorias": 2,
@@ -31156,7 +31203,7 @@
       "nome": "ANDERSON DE FRAGA SOUZA DA ROSA",
       "filial": "TPA",
       "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "AS",
       "jogos": 27,
       "vitorias": 2,
@@ -32332,7 +32379,7 @@
       "nome": "CHRISTIAN KOHLRAUSCH MOTTA",
       "filial": "TPA",
       "supervisor": "RAFAEL DA SILVA CARPENA",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "AS",
       "jogos": 27,
       "vitorias": 1,
@@ -32668,7 +32715,7 @@
       "nome": "SILVIA ELIANE DE OLIVEIRA",
       "filial": "TPA",
       "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "AS",
       "jogos": 27,
       "vitorias": 0,
@@ -32780,7 +32827,7 @@
       "nome": "ELISANGELA RIBEIRO DE BORBA",
       "filial": "TPA",
       "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "AS",
       "jogos": 27,
       "vitorias": 1,
@@ -32948,7 +32995,7 @@
       "nome": "LEONARDO BITTENCOURT DOS SANTOS",
       "filial": "TPA",
       "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 1,
@@ -33112,67 +33159,11 @@
       "pos_filial_ant": 11
     },
     {
-      "rca": "1209",
-      "nome": "LEANDRO AQUINO",
-      "filial": "TPA",
-      "supervisor": "LEANDRO AVILA XAVIER",
-      "gerente": "",
-      "canal": "AS",
-      "jogos": 27,
-      "vitorias": 0,
-      "empates": 6,
-      "derrotas": 21,
-      "pts_tabela": 6,
-      "aprov": 7.4,
-      "gp": 26,
-      "gc": 0,
-      "sg": 26,
-      "super_pedidos": 0,
-      "inativos_resgatados": 0,
-      "forma": [
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "D",
-        "E",
-        "D",
-        "E",
-        "E",
-        "D",
-        "E",
-        "D",
-        "D",
-        "D",
-        "E",
-        "E"
-      ],
-      "streak": 0,
-      "bonus_constancia": 0,
-      "semanas_invictas": 0,
-      "bonus_semana_invicta": 0,
-      "pos_brasil": 97,
-      "pos_filial": 7,
-      "pos_brasil_ant": 99,
-      "pos_filial_ant": 8
-    },
-    {
       "rca": "1172",
       "nome": "CRISTIANE MONTEIRO ANACLETO",
       "filial": "TPA",
       "supervisor": "EDUARDO CABRAL SOARES DA SILVA",
-      "gerente": "",
+      "gerente": "Leandro",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 0,
@@ -33222,6 +33213,62 @@
       "pos_filial": 20,
       "pos_brasil_ant": 277,
       "pos_filial_ant": 21
+    },
+    {
+      "rca": "1209",
+      "nome": "LEANDRO AQUINO",
+      "filial": "TPA",
+      "supervisor": "LEANDRO AVILA XAVIER",
+      "gerente": "Leandro",
+      "canal": "AS",
+      "jogos": 27,
+      "vitorias": 0,
+      "empates": 6,
+      "derrotas": 21,
+      "pts_tabela": 6,
+      "aprov": 7.4,
+      "gp": 26,
+      "gc": 0,
+      "sg": 26,
+      "super_pedidos": 0,
+      "inativos_resgatados": 0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "E",
+        "D",
+        "E",
+        "E",
+        "D",
+        "E",
+        "D",
+        "D",
+        "D",
+        "E",
+        "E"
+      ],
+      "streak": 0,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 97,
+      "pos_filial": 7,
+      "pos_brasil_ant": 99,
+      "pos_filial_ant": 8
     },
     {
       "rca": "58",
@@ -33396,8 +33443,8 @@
       "nome": "CLAUDIO FERNANDO FONTOURA",
       "filial": "TPA",
       "supervisor": "LEANDRO AVILA XAVIER",
-      "gerente": "",
-      "canal": "VAREJO",
+      "gerente": "Leandro",
+      "canal": "AS",
       "jogos": 27,
       "vitorias": 1,
       "empates": 2,
@@ -33442,8 +33489,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 281,
-      "pos_filial": 21,
+      "pos_brasil": 100,
+      "pos_filial": 8,
       "pos_brasil_ant": 295,
       "pos_filial_ant": 24
     },
@@ -33498,7 +33545,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 100,
+      "pos_brasil": 101,
       "pos_filial": 14,
       "pos_brasil_ant": 92,
       "pos_filial_ant": 15
@@ -33554,7 +33601,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 101,
+      "pos_brasil": 102,
       "pos_filial": 15,
       "pos_brasil_ant": 85,
       "pos_filial_ant": 14
@@ -33610,7 +33657,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 102,
+      "pos_brasil": 103,
       "pos_filial": 6,
       "pos_brasil_ant": 87,
       "pos_filial_ant": 5
@@ -33666,7 +33713,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 282,
+      "pos_brasil": 281,
       "pos_filial": 25,
       "pos_brasil_ant": 258,
       "pos_filial_ant": 25
@@ -33722,7 +33769,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 283,
+      "pos_brasil": 282,
       "pos_filial": 17,
       "pos_brasil_ant": 260,
       "pos_filial_ant": 17
@@ -33732,7 +33779,7 @@
       "nome": "TIAGO MORAES DA SILVA",
       "filial": "TPA",
       "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 1,
@@ -33778,8 +33825,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 284,
-      "pos_filial": 22,
+      "pos_brasil": 283,
+      "pos_filial": 21,
       "pos_brasil_ant": 262,
       "pos_filial_ant": 18
     },
@@ -33834,7 +33881,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 103,
+      "pos_brasil": 104,
       "pos_filial": 9,
       "pos_brasil_ant": 89,
       "pos_filial_ant": 9
@@ -33844,7 +33891,7 @@
       "nome": "IGOR LUIS MACIEL",
       "filial": "TPA",
       "supervisor": "LEANDRO AVILA XAVIER",
-      "gerente": "",
+      "gerente": "Leandro",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 0,
@@ -33890,8 +33937,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 285,
-      "pos_filial": 23,
+      "pos_brasil": 284,
+      "pos_filial": 22,
       "pos_brasil_ant": 319,
       "pos_filial_ant": 31
     },
@@ -33900,7 +33947,7 @@
       "nome": "TIAGO MORAES DA SILVA",
       "filial": "TPA",
       "supervisor": "EDUARDO CABRAL SOARES DA SILVA",
-      "gerente": "",
+      "gerente": "Leandro",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 0,
@@ -33946,8 +33993,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 286,
-      "pos_filial": 24,
+      "pos_brasil": 285,
+      "pos_filial": 23,
       "pos_brasil_ant": 289,
       "pos_filial_ant": 22
     },
@@ -34002,7 +34049,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 287,
+      "pos_brasil": 286,
       "pos_filial": 29,
       "pos_brasil_ant": 271,
       "pos_filial_ant": 26
@@ -34058,7 +34105,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 288,
+      "pos_brasil": 287,
       "pos_filial": 18,
       "pos_brasil_ant": 290,
       "pos_filial_ant": 18
@@ -34114,7 +34161,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 289,
+      "pos_brasil": 288,
       "pos_filial": 30,
       "pos_brasil_ant": 282,
       "pos_filial_ant": 30
@@ -34170,7 +34217,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 104,
+      "pos_brasil": 105,
       "pos_filial": 11,
       "pos_brasil_ant": 90,
       "pos_filial_ant": 11
@@ -34180,7 +34227,7 @@
       "nome": "RUTH VARGAS GANZER",
       "filial": "TPA",
       "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "AS",
       "jogos": 27,
       "vitorias": 1,
@@ -34226,8 +34273,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 105,
-      "pos_filial": 8,
+      "pos_brasil": 106,
+      "pos_filial": 9,
       "pos_brasil_ant": 91,
       "pos_filial_ant": 6
     },
@@ -34236,8 +34283,8 @@
       "nome": "PAULO SERGIO MENDES",
       "filial": "TPA",
       "supervisor": "LEANDRO AVILA XAVIER",
-      "gerente": "",
-      "canal": "VAREJO",
+      "gerente": "Leandro",
+      "canal": "AS",
       "jogos": 27,
       "vitorias": 1,
       "empates": 1,
@@ -34282,8 +34329,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 290,
-      "pos_filial": 25,
+      "pos_brasil": 107,
+      "pos_filial": 10,
       "pos_brasil_ant": 317,
       "pos_filial_ant": 29
     },
@@ -34338,7 +34385,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 106,
+      "pos_brasil": 108,
       "pos_filial": 12,
       "pos_brasil_ant": 94,
       "pos_filial_ant": 12
@@ -34394,7 +34441,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 291,
+      "pos_brasil": 289,
       "pos_filial": 50,
       "pos_brasil_ant": 325,
       "pos_filial_ant": 56
@@ -34450,7 +34497,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 292,
+      "pos_brasil": 290,
       "pos_filial": 51,
       "pos_brasil_ant": 267,
       "pos_filial_ant": 47
@@ -34460,7 +34507,7 @@
       "nome": "LEANDRO AQUINIO",
       "filial": "TPA",
       "supervisor": "SAMUEL PALHANO DE OLIVEIRA",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "AS",
       "jogos": 27,
       "vitorias": 0,
@@ -34506,8 +34553,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 107,
-      "pos_filial": 9,
+      "pos_brasil": 109,
+      "pos_filial": 11,
       "pos_brasil_ant": 96,
       "pos_filial_ant": 7
     },
@@ -34562,7 +34609,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 108,
+      "pos_brasil": 110,
       "pos_filial": 22,
       "pos_brasil_ant": 104,
       "pos_filial_ant": 16
@@ -34618,7 +34665,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 293,
+      "pos_brasil": 291,
       "pos_filial": 31,
       "pos_brasil_ant": 283,
       "pos_filial_ant": 31
@@ -34674,7 +34721,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 294,
+      "pos_brasil": 292,
       "pos_filial": 32,
       "pos_brasil_ant": 272,
       "pos_filial_ant": 27
@@ -34730,7 +34777,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 295,
+      "pos_brasil": 293,
       "pos_filial": 26,
       "pos_brasil_ant": 292,
       "pos_filial_ant": 26
@@ -34740,7 +34787,7 @@
       "nome": "ALEX SILVEIRA DE AVILA",
       "filial": "TPA",
       "supervisor": "EDUARDO CABRAL SOARES DA SILVA",
-      "gerente": "",
+      "gerente": "Leandro",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 1,
@@ -34786,8 +34833,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 296,
-      "pos_filial": 26,
+      "pos_brasil": 294,
+      "pos_filial": 24,
       "pos_brasil_ant": 315,
       "pos_filial_ant": 27
     },
@@ -34842,7 +34889,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 109,
+      "pos_brasil": 111,
       "pos_filial": 12,
       "pos_brasil_ant": 98,
       "pos_filial_ant": 12
@@ -34898,7 +34945,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 110,
+      "pos_brasil": 112,
       "pos_filial": 13,
       "pos_brasil_ant": 100,
       "pos_filial_ant": 13
@@ -34954,7 +35001,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 111,
+      "pos_brasil": 113,
       "pos_filial": 13,
       "pos_brasil_ant": 107,
       "pos_filial_ant": 13
@@ -35010,7 +35057,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 112,
+      "pos_brasil": 114,
       "pos_filial": 7,
       "pos_brasil_ant": 101,
       "pos_filial_ant": 6
@@ -35066,7 +35113,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 113,
+      "pos_brasil": 115,
       "pos_filial": 23,
       "pos_brasil_ant": null,
       "pos_filial_ant": null
@@ -35076,7 +35123,7 @@
       "nome": "CARLOS ALEXANDRE ROSA",
       "filial": "TPA",
       "supervisor": "GERENTE TPA",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "AS",
       "jogos": 27,
       "vitorias": 0,
@@ -35122,8 +35169,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 114,
-      "pos_filial": 10,
+      "pos_brasil": 116,
+      "pos_filial": 12,
       "pos_brasil_ant": 102,
       "pos_filial_ant": 9
     },
@@ -35132,7 +35179,7 @@
       "nome": "JEFERSON ANTONIO HOERSER",
       "filial": "TPA",
       "supervisor": "JEFERSON ANTONIO HOESER",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "AS",
       "jogos": 27,
       "vitorias": 0,
@@ -35178,8 +35225,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 115,
-      "pos_filial": 11,
+      "pos_brasil": 117,
+      "pos_filial": 13,
       "pos_brasil_ant": 109,
       "pos_filial_ant": 11
     },
@@ -35234,7 +35281,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 297,
+      "pos_brasil": 295,
       "pos_filial": 33,
       "pos_brasil_ant": 279,
       "pos_filial_ant": 29
@@ -35290,7 +35337,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 298,
+      "pos_brasil": 296,
       "pos_filial": 52,
       "pos_brasil_ant": 280,
       "pos_filial_ant": 49
@@ -35346,7 +35393,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 299,
+      "pos_brasil": 297,
       "pos_filial": 53,
       "pos_brasil_ant": 281,
       "pos_filial_ant": 50
@@ -35402,7 +35449,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 300,
+      "pos_brasil": 298,
       "pos_filial": 27,
       "pos_brasil_ant": 299,
       "pos_filial_ant": 25
@@ -35458,7 +35505,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 116,
+      "pos_brasil": 118,
       "pos_filial": 7,
       "pos_brasil_ant": 111,
       "pos_filial_ant": 8
@@ -35514,7 +35561,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 117,
+      "pos_brasil": 119,
       "pos_filial": 24,
       "pos_brasil_ant": null,
       "pos_filial_ant": null
@@ -35570,7 +35617,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 118,
+      "pos_brasil": 120,
       "pos_filial": 8,
       "pos_brasil_ant": 103,
       "pos_filial_ant": 7
@@ -35580,8 +35627,8 @@
       "nome": "RAFAEL PORTIGLIOTTI",
       "filial": "TPA",
       "supervisor": "LEANDRO AVILA XAVIER",
-      "gerente": "",
-      "canal": "VAREJO",
+      "gerente": "Leandro",
+      "canal": "AS",
       "jogos": 27,
       "vitorias": 0,
       "empates": 2,
@@ -35626,8 +35673,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 301,
-      "pos_filial": 27,
+      "pos_brasil": 121,
+      "pos_filial": 14,
       "pos_brasil_ant": 318,
       "pos_filial_ant": 30
     },
@@ -35682,7 +35729,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 302,
+      "pos_brasil": 299,
       "pos_filial": 19,
       "pos_brasil_ant": 304,
       "pos_filial_ant": 20
@@ -35738,7 +35785,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 119,
+      "pos_brasil": 122,
       "pos_filial": 8,
       "pos_brasil_ant": 117,
       "pos_filial_ant": 9
@@ -35794,7 +35841,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 303,
+      "pos_brasil": 300,
       "pos_filial": 28,
       "pos_brasil_ant": null,
       "pos_filial_ant": null
@@ -35850,7 +35897,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 304,
+      "pos_brasil": 301,
       "pos_filial": 34,
       "pos_brasil_ant": 291,
       "pos_filial_ant": 34
@@ -35906,7 +35953,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 305,
+      "pos_brasil": 302,
       "pos_filial": 54,
       "pos_brasil_ant": 293,
       "pos_filial_ant": 53
@@ -35962,7 +36009,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 120,
+      "pos_brasil": 123,
       "pos_filial": 6,
       "pos_brasil_ant": 120,
       "pos_filial_ant": 6
@@ -35972,8 +36019,8 @@
       "nome": "MARCIANO VALESAN",
       "filial": "TPA",
       "supervisor": "LEANDRO AVILA XAVIER",
-      "gerente": "",
-      "canal": "VAREJO",
+      "gerente": "Leandro",
+      "canal": "AS",
       "jogos": 27,
       "vitorias": 0,
       "empates": 1,
@@ -36018,8 +36065,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 306,
-      "pos_filial": 28,
+      "pos_brasil": 124,
+      "pos_filial": 15,
       "pos_brasil_ant": 294,
       "pos_filial_ant": 23
     },
@@ -36074,7 +36121,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 121,
+      "pos_brasil": 125,
       "pos_filial": 9,
       "pos_brasil_ant": 112,
       "pos_filial_ant": 9
@@ -36130,7 +36177,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 122,
+      "pos_brasil": 126,
       "pos_filial": 10,
       "pos_brasil_ant": 122,
       "pos_filial_ant": 12
@@ -36186,7 +36233,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 123,
+      "pos_brasil": 127,
       "pos_filial": 11,
       "pos_brasil_ant": 113,
       "pos_filial_ant": 10
@@ -36242,7 +36289,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 307,
+      "pos_brasil": 303,
       "pos_filial": 55,
       "pos_brasil_ant": null,
       "pos_filial_ant": null
@@ -36298,7 +36345,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 124,
+      "pos_brasil": 128,
       "pos_filial": 9,
       "pos_brasil_ant": 114,
       "pos_filial_ant": 8
@@ -36354,7 +36401,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 125,
+      "pos_brasil": 129,
       "pos_filial": 16,
       "pos_brasil_ant": 115,
       "pos_filial_ant": 16
@@ -36410,7 +36457,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 126,
+      "pos_brasil": 130,
       "pos_filial": 10,
       "pos_brasil_ant": 116,
       "pos_filial_ant": 10
@@ -36420,7 +36467,7 @@
       "nome": "DEIVID MACHADO HOMEM",
       "filial": "TPA",
       "supervisor": "RAFAEL DA SILVA CARPENA",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "AS",
       "jogos": 27,
       "vitorias": 0,
@@ -36466,8 +36513,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 127,
-      "pos_filial": 12,
+      "pos_brasil": 131,
+      "pos_filial": 16,
       "pos_brasil_ant": 128,
       "pos_filial_ant": 13
     },
@@ -36476,7 +36523,7 @@
       "nome": "BRUNO JOSE LORENZON POSPICHIL",
       "filial": "TPA",
       "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 0,
@@ -36522,8 +36569,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 308,
-      "pos_filial": 29,
+      "pos_brasil": 304,
+      "pos_filial": 25,
       "pos_brasil_ant": 296,
       "pos_filial_ant": 25
     },
@@ -36532,7 +36579,7 @@
       "nome": "LEONARDO BITTENCOURT DOS SANTOS",
       "filial": "TPA",
       "supervisor": "LEANDRO AVILA XAVIER",
-      "gerente": "",
+      "gerente": "Leandro",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 0,
@@ -36578,8 +36625,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 309,
-      "pos_filial": 30,
+      "pos_brasil": 305,
+      "pos_filial": 26,
       "pos_brasil_ant": 297,
       "pos_filial_ant": 26
     },
@@ -36634,7 +36681,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 310,
+      "pos_brasil": 306,
       "pos_filial": 27,
       "pos_brasil_ant": 329,
       "pos_filial_ant": 31
@@ -36690,7 +36737,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 311,
+      "pos_brasil": 307,
       "pos_filial": 35,
       "pos_brasil_ant": 298,
       "pos_filial_ant": 35
@@ -36746,7 +36793,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 312,
+      "pos_brasil": 308,
       "pos_filial": 28,
       "pos_brasil_ant": 332,
       "pos_filial_ant": 32
@@ -36802,7 +36849,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 313,
+      "pos_brasil": 309,
       "pos_filial": 36,
       "pos_brasil_ant": 300,
       "pos_filial_ant": 36
@@ -36858,7 +36905,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 128,
+      "pos_brasil": 132,
       "pos_filial": 10,
       "pos_brasil_ant": 119,
       "pos_filial_ant": 10
@@ -36914,7 +36961,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 314,
+      "pos_brasil": 310,
       "pos_filial": 18,
       "pos_brasil_ant": 305,
       "pos_filial_ant": 18
@@ -36970,7 +37017,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 315,
+      "pos_brasil": 311,
       "pos_filial": 19,
       "pos_brasil_ant": 308,
       "pos_filial_ant": 21
@@ -37026,7 +37073,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 129,
+      "pos_brasil": 133,
       "pos_filial": 11,
       "pos_brasil_ant": null,
       "pos_filial_ant": null
@@ -37082,7 +37129,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 130,
+      "pos_brasil": 134,
       "pos_filial": 12,
       "pos_brasil_ant": 121,
       "pos_filial_ant": 11
@@ -37138,7 +37185,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 316,
+      "pos_brasil": 312,
       "pos_filial": 29,
       "pos_brasil_ant": 310,
       "pos_filial_ant": 28
@@ -37194,7 +37241,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 317,
+      "pos_brasil": 313,
       "pos_filial": 30,
       "pos_brasil_ant": 309,
       "pos_filial_ant": 27
@@ -37250,7 +37297,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 318,
+      "pos_brasil": 314,
       "pos_filial": 31,
       "pos_brasil_ant": 311,
       "pos_filial_ant": 29
@@ -37306,7 +37353,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 319,
+      "pos_brasil": 315,
       "pos_filial": 32,
       "pos_brasil_ant": 312,
       "pos_filial_ant": 30
@@ -37362,17 +37409,73 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 320,
+      "pos_brasil": 316,
       "pos_filial": 28,
       "pos_brasil_ant": 313,
       "pos_filial_ant": 28
     },
     {
-      "rca": "1210",
-      "nome": "ELISANGELA RIBEIRO DE BORBA",
+      "rca": "1158",
+      "nome": "SIMONE PEREIRA SINHORELLI",
+      "filial": "TPA",
+      "supervisor": "EDUARDO CABRAL SOARES DA SILVA",
+      "gerente": "Leandro",
+      "canal": "VAREJO",
+      "jogos": 27,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 27,
+      "pts_tabela": 0,
+      "aprov": 0.0,
+      "gp": 0,
+      "gc": 0,
+      "sg": 0,
+      "super_pedidos": 0,
+      "inativos_resgatados": 0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D"
+      ],
+      "streak": 0,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 317,
+      "pos_filial": 27,
+      "pos_brasil_ant": null,
+      "pos_filial_ant": null
+    },
+    {
+      "rca": "1159",
+      "nome": "VINICIUS BRANCO ALMEIDA",
       "filial": "TPA",
       "supervisor": "LEANDRO AVILA XAVIER",
-      "gerente": "",
+      "gerente": "Leandro",
       "canal": "AS",
       "jogos": 27,
       "vitorias": 0,
@@ -37418,8 +37521,176 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 131,
-      "pos_filial": 13,
+      "pos_brasil": 135,
+      "pos_filial": 17,
+      "pos_brasil_ant": null,
+      "pos_filial_ant": null
+    },
+    {
+      "rca": "1160",
+      "nome": "RONALDO STAUBUS GOMES",
+      "filial": "TPA",
+      "supervisor": "EDUARDO CABRAL SOARES DA SILVA",
+      "gerente": "Leandro",
+      "canal": "VAREJO",
+      "jogos": 27,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 27,
+      "pts_tabela": 0,
+      "aprov": 0.0,
+      "gp": 0,
+      "gc": 0,
+      "sg": 0,
+      "super_pedidos": 0,
+      "inativos_resgatados": 0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D"
+      ],
+      "streak": 0,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 318,
+      "pos_filial": 28,
+      "pos_brasil_ant": null,
+      "pos_filial_ant": null
+    },
+    {
+      "rca": "1194",
+      "nome": "PAULO SERGIO FARIAS CHOLET",
+      "filial": "TPA",
+      "supervisor": "LEANDRO AVILA XAVIER",
+      "gerente": "Leandro",
+      "canal": "AS",
+      "jogos": 27,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 27,
+      "pts_tabela": 0,
+      "aprov": 0.0,
+      "gp": 0,
+      "gc": 0,
+      "sg": 0,
+      "super_pedidos": 0,
+      "inativos_resgatados": 0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D"
+      ],
+      "streak": 0,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 136,
+      "pos_filial": 18,
+      "pos_brasil_ant": null,
+      "pos_filial_ant": null
+    },
+    {
+      "rca": "1210",
+      "nome": "ELISANGELA RIBEIRO DE BORBA",
+      "filial": "TPA",
+      "supervisor": "LEANDRO AVILA XAVIER",
+      "gerente": "Leandro",
+      "canal": "AS",
+      "jogos": 27,
+      "vitorias": 0,
+      "empates": 0,
+      "derrotas": 27,
+      "pts_tabela": 0,
+      "aprov": 0.0,
+      "gp": 0,
+      "gc": 0,
+      "sg": 0,
+      "super_pedidos": 0,
+      "inativos_resgatados": 0,
+      "forma": [
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D",
+        "D"
+      ],
+      "streak": 0,
+      "bonus_constancia": 0,
+      "semanas_invictas": 0,
+      "bonus_semana_invicta": 0,
+      "pos_brasil": 137,
+      "pos_filial": 19,
       "pos_brasil_ant": 124,
       "pos_filial_ant": 12
     },
@@ -37474,7 +37745,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 132,
+      "pos_brasil": 138,
       "pos_filial": 25,
       "pos_brasil_ant": 125,
       "pos_filial_ant": 18
@@ -37530,7 +37801,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 133,
+      "pos_brasil": 139,
       "pos_filial": 26,
       "pos_brasil_ant": null,
       "pos_filial_ant": null
@@ -37586,7 +37857,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 321,
+      "pos_brasil": 319,
       "pos_filial": 56,
       "pos_brasil_ant": null,
       "pos_filial_ant": null
@@ -37642,7 +37913,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 134,
+      "pos_brasil": 140,
       "pos_filial": 11,
       "pos_brasil_ant": 126,
       "pos_filial_ant": 11
@@ -37698,7 +37969,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 135,
+      "pos_brasil": 141,
       "pos_filial": 7,
       "pos_brasil_ant": 127,
       "pos_filial_ant": 7
@@ -37754,7 +38025,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 136,
+      "pos_brasil": 142,
       "pos_filial": 17,
       "pos_brasil_ant": 129,
       "pos_filial_ant": 18
@@ -37764,7 +38035,7 @@
       "nome": "JONATHAN DIELLO HUFFERMANN",
       "filial": "TPA",
       "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
-      "gerente": "Radke / Leandro",
+      "gerente": "Radke",
       "canal": "VAREJO",
       "jogos": 27,
       "vitorias": 0,
@@ -37810,8 +38081,8 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 322,
-      "pos_filial": 31,
+      "pos_brasil": 320,
+      "pos_filial": 29,
       "pos_brasil_ant": null,
       "pos_filial_ant": null
     },
@@ -37866,7 +38137,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 323,
+      "pos_brasil": 321,
       "pos_filial": 57,
       "pos_brasil_ant": 322,
       "pos_filial_ant": 55
@@ -37922,7 +38193,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 324,
+      "pos_brasil": 322,
       "pos_filial": 23,
       "pos_brasil_ant": 323,
       "pos_filial_ant": 24
@@ -37978,7 +38249,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 325,
+      "pos_brasil": 323,
       "pos_filial": 24,
       "pos_brasil_ant": 327,
       "pos_filial_ant": 26
@@ -38034,7 +38305,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 326,
+      "pos_brasil": 324,
       "pos_filial": 58,
       "pos_brasil_ant": 328,
       "pos_filial_ant": 57
@@ -38090,7 +38361,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 327,
+      "pos_brasil": 325,
       "pos_filial": 20,
       "pos_brasil_ant": 330,
       "pos_filial_ant": 21
@@ -38146,7 +38417,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 328,
+      "pos_brasil": 326,
       "pos_filial": 37,
       "pos_brasil_ant": 331,
       "pos_filial_ant": 37
@@ -38202,7 +38473,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 329,
+      "pos_brasil": 327,
       "pos_filial": 38,
       "pos_brasil_ant": 333,
       "pos_filial_ant": 38
@@ -38258,7 +38529,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 330,
+      "pos_brasil": 328,
       "pos_filial": 39,
       "pos_brasil_ant": 334,
       "pos_filial_ant": 39
@@ -38314,7 +38585,7 @@
       "bonus_constancia": 0,
       "semanas_invictas": 0,
       "bonus_semana_invicta": 0,
-      "pos_brasil": 331,
+      "pos_brasil": 329,
       "pos_filial": 21,
       "pos_brasil_ant": 336,
       "pos_filial_ant": 22
@@ -42329,7 +42600,7 @@
         "nome": "LEANDRO AQUINO",
         "filial": "TPA",
         "supervisor": "LEANDRO AVILA XAVIER",
-        "gerente": "",
+        "gerente": "Leandro",
         "meta_mes": 0,
         "pct_hoje": null,
         "fases": [
@@ -44759,7 +45030,7 @@
         "nome": "EDUARDO PAPEN MENDES",
         "filial": "TPA",
         "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER",
-        "gerente": "Radke / Leandro",
+        "gerente": "Radke",
         "meta_mes": 584954,
         "pct_hoje": 28.1,
         "fases": [
@@ -45974,7 +46245,7 @@
         "nome": "RODRIGO DE OLIVEIRA CANABARRO",
         "filial": "TPA",
         "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
-        "gerente": "Radke / Leandro",
+        "gerente": "Radke",
         "meta_mes": 248535,
         "pct_hoje": 9.6,
         "fases": [
@@ -47050,6 +47321,141 @@
         "pos_filial_ant": 9
       },
       {
+        "rca": "1170",
+        "nome": "CLAUDIO FERNANDO FONTOURA",
+        "filial": "TPA",
+        "supervisor": "LEANDRO AVILA XAVIER",
+        "gerente": "Leandro",
+        "meta_mes": 0,
+        "pct_hoje": null,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-11-07",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-11-14",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-11-20",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 30,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-11-30",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "perdido",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "D",
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 2,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 2,
+            "jogada": true,
+            "resultado": "E",
+            "pts_tabela": 1
+          },
+          {
+            "n": 3,
+            "pts_lances": 16,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 16,
+            "jogada": true,
+            "resultado": "V",
+            "pts_tabela": 3
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 3,
+        "vitorias": 1,
+        "empates": 1,
+        "derrotas": 1,
+        "pts_tabela": 4,
+        "aprov": 44.4,
+        "forma": [
+          "D",
+          "E",
+          "V"
+        ],
+        "pontos": 18,
+        "pts_lances": 18,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 65,
+        "pos_filial": 4,
+        "pos_brasil_ant": null,
+        "pos_filial_ant": null
+      },
+      {
         "rca": "20",
         "nome": "VALTER DE SOUZA FILHO",
         "filial": "TSJ",
@@ -47179,7 +47585,7 @@
         "pts_lances": 17,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 65,
+        "pos_brasil": 66,
         "pos_filial": 7,
         "pos_brasil_ant": 38,
         "pos_filial_ant": 5
@@ -47314,7 +47720,7 @@
         "pts_lances": 15,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 66,
+        "pos_brasil": 67,
         "pos_filial": 8,
         "pos_brasil_ant": 53,
         "pos_filial_ant": 7
@@ -47449,7 +47855,7 @@
         "pts_lances": 12,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 67,
+        "pos_brasil": 68,
         "pos_filial": 12,
         "pos_brasil_ant": null,
         "pos_filial_ant": null
@@ -47584,7 +47990,7 @@
         "pts_lances": 4,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 68,
+        "pos_brasil": 69,
         "pos_filial": 8,
         "pos_brasil_ant": 52,
         "pos_filial_ant": 6
@@ -47719,7 +48125,7 @@
         "pts_lances": 29,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 69,
+        "pos_brasil": 70,
         "pos_filial": 13,
         "pos_brasil_ant": 116,
         "pos_filial_ant": 17
@@ -47854,7 +48260,7 @@
         "pts_lances": 19,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 70,
+        "pos_brasil": 71,
         "pos_filial": 14,
         "pos_brasil_ant": 44,
         "pos_filial_ant": 8
@@ -47989,7 +48395,7 @@
         "pts_lances": 15,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 71,
+        "pos_brasil": 72,
         "pos_filial": 3,
         "pos_brasil_ant": 115,
         "pos_filial_ant": 7
@@ -47999,7 +48405,7 @@
         "nome": "CHRISTIAN KOHLRAUSCH MOTTA",
         "filial": "TPA",
         "supervisor": "RAFAEL DA SILVA CARPENA",
-        "gerente": "Radke / Leandro",
+        "gerente": "Radke",
         "meta_mes": 266232,
         "pct_hoje": 12.5,
         "fases": [
@@ -48124,8 +48530,8 @@
         "pts_lances": 14,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 72,
-        "pos_filial": 4,
+        "pos_brasil": 73,
+        "pos_filial": 5,
         "pos_brasil_ant": 113,
         "pos_filial_ant": 10
       },
@@ -48259,10 +48665,145 @@
         "pts_lances": 12,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 73,
+        "pos_brasil": 74,
         "pos_filial": 4,
         "pos_brasil_ant": 128,
         "pos_filial_ant": 11
+      },
+      {
+        "rca": "1163",
+        "nome": "PAULO SERGIO MENDES",
+        "filial": "TPA",
+        "supervisor": "LEANDRO AVILA XAVIER",
+        "gerente": "Leandro",
+        "meta_mes": 0,
+        "pct_hoje": null,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-11-07",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-11-14",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-11-20",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 30,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-11-30",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "perdido",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "D",
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "D",
+            "pts_tabela": 0
+          },
+          {
+            "n": 3,
+            "pts_lances": 12,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 12,
+            "jogada": true,
+            "resultado": "V",
+            "pts_tabela": 3
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 3,
+        "vitorias": 1,
+        "empates": 0,
+        "derrotas": 2,
+        "pts_tabela": 3,
+        "aprov": 33.3,
+        "forma": [
+          "D",
+          "D",
+          "V"
+        ],
+        "pontos": 12,
+        "pts_lances": 12,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 75,
+        "pos_filial": 6,
+        "pos_brasil_ant": null,
+        "pos_filial_ant": null
       },
       {
         "rca": "354",
@@ -48394,7 +48935,7 @@
         "pts_lances": 11,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 74,
+        "pos_brasil": 76,
         "pos_filial": 9,
         "pos_brasil_ant": 47,
         "pos_filial_ant": 6
@@ -48529,7 +49070,7 @@
         "pts_lances": 11,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 75,
+        "pos_brasil": 77,
         "pos_filial": 15,
         "pos_brasil_ant": 85,
         "pos_filial_ant": 12
@@ -48664,7 +49205,7 @@
         "pts_lances": 0,
         "pts_faseamento": 10,
         "pts_bonus": 0,
-        "pos_brasil": 76,
+        "pos_brasil": 78,
         "pos_filial": 7,
         "pos_brasil_ant": 49,
         "pos_filial_ant": 6
@@ -48799,7 +49340,7 @@
         "pts_lances": 10,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 77,
+        "pos_brasil": 79,
         "pos_filial": 3,
         "pos_brasil_ant": 108,
         "pos_filial_ant": 5
@@ -48934,7 +49475,7 @@
         "pts_lances": 3,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 78,
+        "pos_brasil": 80,
         "pos_filial": 16,
         "pos_brasil_ant": null,
         "pos_filial_ant": null
@@ -49069,7 +49610,7 @@
         "pts_lances": -2,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 79,
+        "pos_brasil": 81,
         "pos_filial": 9,
         "pos_brasil_ant": 119,
         "pos_filial_ant": 11
@@ -49204,7 +49745,7 @@
         "pts_lances": -6,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 80,
+        "pos_brasil": 82,
         "pos_filial": 5,
         "pos_brasil_ant": 126,
         "pos_filial_ant": 10
@@ -49339,7 +49880,7 @@
         "pts_lances": -6,
         "pts_faseamento": 20,
         "pts_bonus": 0,
-        "pos_brasil": 81,
+        "pos_brasil": 83,
         "pos_filial": 4,
         "pos_brasil_ant": 60,
         "pos_filial_ant": 3
@@ -49474,7 +50015,7 @@
         "pts_lances": 14,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 82,
+        "pos_brasil": 84,
         "pos_filial": 10,
         "pos_brasil_ant": 57,
         "pos_filial_ant": 8
@@ -49484,7 +50025,7 @@
         "nome": "ELISANGELA RIBEIRO DE BORBA",
         "filial": "TPA",
         "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
-        "gerente": "Radke / Leandro",
+        "gerente": "Radke",
         "meta_mes": 299852,
         "pct_hoje": 2.6,
         "fases": [
@@ -49609,8 +50150,8 @@
         "pts_lances": 13,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 83,
-        "pos_filial": 5,
+        "pos_brasil": 85,
+        "pos_filial": 7,
         "pos_brasil_ant": 64,
         "pos_filial_ant": 4
       },
@@ -49744,7 +50285,7 @@
         "pts_lances": 9,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 84,
+        "pos_brasil": 86,
         "pos_filial": 11,
         "pos_brasil_ant": 70,
         "pos_filial_ant": 9
@@ -49879,10 +50420,145 @@
         "pts_lances": 9,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 85,
+        "pos_brasil": 87,
         "pos_filial": 11,
         "pos_brasil_ant": 72,
         "pos_filial_ant": 9
+      },
+      {
+        "rca": "1166",
+        "nome": "RAFAEL PORTIGLIOTTI",
+        "filial": "TPA",
+        "supervisor": "LEANDRO AVILA XAVIER",
+        "gerente": "Leandro",
+        "meta_mes": 0,
+        "pct_hoje": null,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-11-07",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-11-14",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-11-20",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 30,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-11-30",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "perdido",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "D",
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 5,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 5,
+            "jogada": true,
+            "resultado": "E",
+            "pts_tabela": 1
+          },
+          {
+            "n": 3,
+            "pts_lances": 4,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 4,
+            "jogada": true,
+            "resultado": "E",
+            "pts_tabela": 1
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 3,
+        "vitorias": 0,
+        "empates": 2,
+        "derrotas": 1,
+        "pts_tabela": 2,
+        "aprov": 22.2,
+        "forma": [
+          "D",
+          "E",
+          "E"
+        ],
+        "pontos": 9,
+        "pts_lances": 9,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 88,
+        "pos_filial": 8,
+        "pos_brasil_ant": null,
+        "pos_filial_ant": null
       },
       {
         "rca": "353",
@@ -50014,7 +50690,7 @@
         "pts_lances": 8,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 86,
+        "pos_brasil": 89,
         "pos_filial": 12,
         "pos_brasil_ant": 75,
         "pos_filial_ant": 10
@@ -50149,7 +50825,7 @@
         "pts_lances": 8,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 87,
+        "pos_brasil": 90,
         "pos_filial": 17,
         "pos_brasil_ant": 71,
         "pos_filial_ant": 10
@@ -50284,7 +50960,7 @@
         "pts_lances": 7,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 88,
+        "pos_brasil": 91,
         "pos_filial": 7,
         "pos_brasil_ant": 59,
         "pos_filial_ant": 7
@@ -50419,7 +51095,7 @@
         "pts_lances": 6,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 89,
+        "pos_brasil": 92,
         "pos_filial": 5,
         "pos_brasil_ant": 91,
         "pos_filial_ant": 4
@@ -50554,7 +51230,7 @@
         "pts_lances": 3,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 90,
+        "pos_brasil": 93,
         "pos_filial": 10,
         "pos_brasil_ant": 61,
         "pos_filial_ant": 7
@@ -50689,7 +51365,7 @@
         "pts_lances": 10,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 91,
+        "pos_brasil": 94,
         "pos_filial": 18,
         "pos_brasil_ant": 62,
         "pos_filial_ant": 9
@@ -50824,17 +51500,152 @@
         "pts_lances": 7,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 92,
+        "pos_brasil": 95,
         "pos_filial": 11,
         "pos_brasil_ant": 66,
         "pos_filial_ant": 10
+      },
+      {
+        "rca": "1169",
+        "nome": "MARCIANO VALESAN",
+        "filial": "TPA",
+        "supervisor": "LEANDRO AVILA XAVIER",
+        "gerente": "Leandro",
+        "meta_mes": 0,
+        "pct_hoje": null,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-11-07",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-11-14",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-11-20",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 30,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-11-30",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "perdido",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 6,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 6,
+            "jogada": true,
+            "resultado": "E",
+            "pts_tabela": 1
+          },
+          {
+            "n": 2,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "D",
+            "pts_tabela": 0
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "J",
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 2,
+        "vitorias": 0,
+        "empates": 1,
+        "derrotas": 1,
+        "pts_tabela": 1,
+        "aprov": 16.7,
+        "forma": [
+          "E",
+          "D",
+          "J"
+        ],
+        "pontos": 6,
+        "pts_lances": 6,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 96,
+        "pos_filial": 9,
+        "pos_brasil_ant": null,
+        "pos_filial_ant": null
       },
       {
         "rca": "143",
         "nome": "SILVIA ELIANE DE OLIVEIRA",
         "filial": "TPA",
         "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
-        "gerente": "Radke / Leandro",
+        "gerente": "Radke",
         "meta_mes": 399700,
         "pct_hoje": 25.4,
         "fases": [
@@ -50959,8 +51770,8 @@
         "pts_lances": 5,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 93,
-        "pos_filial": 6,
+        "pos_brasil": 97,
+        "pos_filial": 10,
         "pos_brasil_ant": 68,
         "pos_filial_ant": 5
       },
@@ -51094,7 +51905,7 @@
         "pts_lances": 5,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 94,
+        "pos_brasil": 98,
         "pos_filial": 19,
         "pos_brasil_ant": 87,
         "pos_filial_ant": 13
@@ -51229,7 +52040,7 @@
         "pts_lances": 5,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 95,
+        "pos_brasil": 99,
         "pos_filial": 8,
         "pos_brasil_ant": 88,
         "pos_filial_ant": 9
@@ -51364,7 +52175,7 @@
         "pts_lances": 5,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 96,
+        "pos_brasil": 100,
         "pos_filial": 13,
         "pos_brasil_ant": 90,
         "pos_filial_ant": 13
@@ -51499,7 +52310,7 @@
         "pts_lances": 5,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 97,
+        "pos_brasil": 101,
         "pos_filial": 8,
         "pos_brasil_ant": 69,
         "pos_filial_ant": 8
@@ -51634,7 +52445,7 @@
         "pts_lances": 5,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 98,
+        "pos_brasil": 102,
         "pos_filial": 9,
         "pos_brasil_ant": 92,
         "pos_filial_ant": 11
@@ -51769,7 +52580,7 @@
         "pts_lances": 5,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 99,
+        "pos_brasil": 103,
         "pos_filial": 20,
         "pos_brasil_ant": 95,
         "pos_filial_ant": 14
@@ -51779,7 +52590,7 @@
         "nome": "CARLOS ALEXANDRE ROSA",
         "filial": "TPA",
         "supervisor": "GERENTE TPA",
-        "gerente": "Radke / Leandro",
+        "gerente": "Radke",
         "meta_mes": 1004455,
         "pct_hoje": 2.8,
         "fases": [
@@ -51904,8 +52715,8 @@
         "pts_lances": 3,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 100,
-        "pos_filial": 7,
+        "pos_brasil": 104,
+        "pos_filial": 11,
         "pos_brasil_ant": 73,
         "pos_filial_ant": 6
       },
@@ -52039,7 +52850,7 @@
         "pts_lances": 2,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 101,
+        "pos_brasil": 105,
         "pos_filial": 21,
         "pos_brasil_ant": 76,
         "pos_filial_ant": 11
@@ -52174,7 +52985,7 @@
         "pts_lances": 2,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 102,
+        "pos_brasil": 106,
         "pos_filial": 22,
         "pos_brasil_ant": null,
         "pos_filial_ant": null
@@ -52184,7 +52995,7 @@
         "nome": "DEIVID MACHADO HOMEM",
         "filial": "TPA",
         "supervisor": "RAFAEL DA SILVA CARPENA",
-        "gerente": "Radke / Leandro",
+        "gerente": "Radke",
         "meta_mes": 245899,
         "pct_hoje": 9,
         "fases": [
@@ -52309,8 +53120,8 @@
         "pts_lances": 2,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 103,
-        "pos_filial": 8,
+        "pos_brasil": 107,
+        "pos_filial": 12,
         "pos_brasil_ant": 114,
         "pos_filial_ant": 11
       },
@@ -52444,7 +53255,7 @@
         "pts_lances": 1,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 104,
+        "pos_brasil": 108,
         "pos_filial": 6,
         "pos_brasil_ant": 82,
         "pos_filial_ant": 3
@@ -52579,7 +53390,7 @@
         "pts_lances": -1,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 105,
+        "pos_brasil": 109,
         "pos_filial": 11,
         "pos_brasil_ant": 83,
         "pos_filial_ant": 10
@@ -52714,7 +53525,7 @@
         "pts_lances": -3,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 106,
+        "pos_brasil": 110,
         "pos_filial": 6,
         "pos_brasil_ant": 117,
         "pos_filial_ant": 6
@@ -52849,7 +53660,7 @@
         "pts_lances": -9,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 107,
+        "pos_brasil": 111,
         "pos_filial": 7,
         "pos_brasil_ant": 84,
         "pos_filial_ant": 4
@@ -52984,7 +53795,7 @@
         "pts_lances": -10,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 108,
+        "pos_brasil": 112,
         "pos_filial": 12,
         "pos_brasil_ant": 120,
         "pos_filial_ant": 12
@@ -52994,7 +53805,7 @@
         "nome": "JEFERSON ANTONIO HOERSER",
         "filial": "TPA",
         "supervisor": "JEFERSON ANTONIO HOESER",
-        "gerente": "Radke / Leandro",
+        "gerente": "Radke",
         "meta_mes": 859891,
         "pct_hoje": 0.5,
         "fases": [
@@ -53119,8 +53930,8 @@
         "pts_lances": -15,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 109,
-        "pos_filial": 9,
+        "pos_brasil": 113,
+        "pos_filial": 13,
         "pos_brasil_ant": 123,
         "pos_filial_ant": 12
       },
@@ -53254,7 +54065,7 @@
         "pts_lances": -15,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 110,
+        "pos_brasil": 114,
         "pos_filial": 8,
         "pos_brasil_ant": 124,
         "pos_filial_ant": 9
@@ -53389,7 +54200,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 111,
+        "pos_brasil": 115,
         "pos_filial": 10,
         "pos_brasil_ant": 86,
         "pos_filial_ant": 8
@@ -53524,7 +54335,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 112,
+        "pos_brasil": 116,
         "pos_filial": 11,
         "pos_brasil_ant": 89,
         "pos_filial_ant": 10
@@ -53534,7 +54345,7 @@
         "nome": "RUTH VARGAS GANZER",
         "filial": "TPA",
         "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
-        "gerente": "Radke / Leandro",
+        "gerente": "Radke",
         "meta_mes": 365411,
         "pct_hoje": 8.6,
         "fases": [
@@ -53659,8 +54470,8 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 113,
-        "pos_filial": 10,
+        "pos_brasil": 117,
+        "pos_filial": 14,
         "pos_brasil_ant": 93,
         "pos_filial_ant": 7
       },
@@ -53794,7 +54605,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 114,
+        "pos_brasil": 118,
         "pos_filial": 12,
         "pos_brasil_ant": 94,
         "pos_filial_ant": 12
@@ -53929,7 +54740,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 115,
+        "pos_brasil": 119,
         "pos_filial": 9,
         "pos_brasil_ant": 96,
         "pos_filial_ant": 9
@@ -54064,7 +54875,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 116,
+        "pos_brasil": 120,
         "pos_filial": 14,
         "pos_brasil_ant": 97,
         "pos_filial_ant": 14
@@ -54199,7 +55010,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 117,
+        "pos_brasil": 121,
         "pos_filial": 23,
         "pos_brasil_ant": 98,
         "pos_filial_ant": 15
@@ -54334,7 +55145,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 118,
+        "pos_brasil": 122,
         "pos_filial": 12,
         "pos_brasil_ant": 99,
         "pos_filial_ant": 12
@@ -54469,7 +55280,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 119,
+        "pos_brasil": 123,
         "pos_filial": 10,
         "pos_brasil_ant": 100,
         "pos_filial_ant": 10
@@ -54604,7 +55415,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 120,
+        "pos_brasil": 124,
         "pos_filial": 24,
         "pos_brasil_ant": 102,
         "pos_filial_ant": 16
@@ -54739,7 +55550,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 121,
+        "pos_brasil": 125,
         "pos_filial": 13,
         "pos_brasil_ant": 103,
         "pos_filial_ant": 13
@@ -54874,7 +55685,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 122,
+        "pos_brasil": 126,
         "pos_filial": 15,
         "pos_brasil_ant": 104,
         "pos_filial_ant": 15
@@ -55009,7 +55820,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 123,
+        "pos_brasil": 127,
         "pos_filial": 9,
         "pos_brasil_ant": 105,
         "pos_filial_ant": 5
@@ -55144,7 +55955,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 124,
+        "pos_brasil": 128,
         "pos_filial": 10,
         "pos_brasil_ant": 106,
         "pos_filial_ant": 6
@@ -55154,7 +55965,7 @@
         "nome": "LEANDRO AQUINIO",
         "filial": "TPA",
         "supervisor": "SAMUEL PALHANO DE OLIVEIRA",
-        "gerente": "Radke / Leandro",
+        "gerente": "Radke",
         "meta_mes": 511907,
         "pct_hoje": -2.4,
         "fases": [
@@ -55279,8 +56090,8 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 125,
-        "pos_filial": 11,
+        "pos_brasil": 129,
+        "pos_filial": 15,
         "pos_brasil_ant": 107,
         "pos_filial_ant": 8
       },
@@ -55414,7 +56225,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 126,
+        "pos_brasil": 130,
         "pos_filial": 16,
         "pos_brasil_ant": 109,
         "pos_filial_ant": 16
@@ -55549,7 +56360,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 127,
+        "pos_brasil": 131,
         "pos_filial": 11,
         "pos_brasil_ant": null,
         "pos_filial_ant": null
@@ -55684,17 +56495,17 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 128,
+        "pos_brasil": 132,
         "pos_filial": 17,
         "pos_brasil_ant": 111,
         "pos_filial_ant": 18
       },
       {
-        "rca": "1210",
-        "nome": "ELISANGELA RIBEIRO DE BORBA",
+        "rca": "1159",
+        "nome": "VINICIUS BRANCO ALMEIDA",
         "filial": "TPA",
         "supervisor": "LEANDRO AVILA XAVIER",
-        "gerente": "",
+        "gerente": "Leandro",
         "meta_mes": 0,
         "pct_hoje": null,
         "fases": [
@@ -55819,8 +56630,278 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 129,
-        "pos_filial": 12,
+        "pos_brasil": 133,
+        "pos_filial": 16,
+        "pos_brasil_ant": null,
+        "pos_filial_ant": null
+      },
+      {
+        "rca": "1194",
+        "nome": "PAULO SERGIO FARIAS CHOLET",
+        "filial": "TPA",
+        "supervisor": "LEANDRO AVILA XAVIER",
+        "gerente": "Leandro",
+        "meta_mes": 0,
+        "pct_hoje": null,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-11-07",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-11-14",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-11-20",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 30,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-11-30",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "perdido",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "D",
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "D",
+            "pts_tabela": 0
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "J",
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 2,
+        "vitorias": 0,
+        "empates": 0,
+        "derrotas": 2,
+        "pts_tabela": 0,
+        "aprov": 0.0,
+        "forma": [
+          "D",
+          "D",
+          "J"
+        ],
+        "pontos": 0,
+        "pts_lances": 0,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 134,
+        "pos_filial": 17,
+        "pos_brasil_ant": null,
+        "pos_filial_ant": null
+      },
+      {
+        "rca": "1210",
+        "nome": "ELISANGELA RIBEIRO DE BORBA",
+        "filial": "TPA",
+        "supervisor": "LEANDRO AVILA XAVIER",
+        "gerente": "Leandro",
+        "meta_mes": 0,
+        "pct_hoje": null,
+        "fases": [
+          {
+            "n": 1,
+            "ate": 7,
+            "meta": 20,
+            "pontos": 10,
+            "data": "2026-11-07",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 2,
+            "ate": 14,
+            "meta": 40,
+            "pontos": 20,
+            "data": "2026-11-14",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 3,
+            "ate": 20,
+            "meta": 60,
+            "pontos": 30,
+            "data": "2026-11-20",
+            "status": "sem_meta",
+            "pct": null,
+            "ganhou": 0
+          },
+          {
+            "n": 4,
+            "ate": 30,
+            "meta": 110,
+            "pontos": 40,
+            "fimDoMes": true,
+            "data": "2026-11-30",
+            "status": "futuro",
+            "pct": null,
+            "ganhou": 0
+          }
+        ],
+        "bonus": [
+          {
+            "id": "quinzena",
+            "ate": 15,
+            "meta": 100,
+            "pontos": 50,
+            "nome": "Meta batida até o dia 15",
+            "status": "perdido",
+            "quando": null,
+            "ganhou": 0
+          },
+          {
+            "id": "dia25",
+            "ate": 25,
+            "meta": 100,
+            "pontos": 25,
+            "nome": "Meta batida até o dia 25",
+            "status": "em_andamento",
+            "quando": null,
+            "ganhou": 0
+          }
+        ],
+        "semanas": [
+          {
+            "n": 1,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "D",
+            "pts_tabela": 0
+          },
+          {
+            "n": 2,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "D",
+            "pts_tabela": 0
+          },
+          {
+            "n": 3,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": true,
+            "resultado": "J",
+            "pts_tabela": 0
+          },
+          {
+            "n": 4,
+            "pts_lances": 0,
+            "pts_faseamento": 0,
+            "pts_bonus": 0,
+            "score": 0,
+            "jogada": false,
+            "resultado": null,
+            "pts_tabela": 0
+          }
+        ],
+        "jogos": 2,
+        "vitorias": 0,
+        "empates": 0,
+        "derrotas": 2,
+        "pts_tabela": 0,
+        "aprov": 0.0,
+        "forma": [
+          "D",
+          "D",
+          "J"
+        ],
+        "pontos": 0,
+        "pts_lances": 0,
+        "pts_faseamento": 0,
+        "pts_bonus": 0,
+        "pos_brasil": 135,
+        "pos_filial": 18,
         "pos_brasil_ant": 112,
         "pos_filial_ant": 9
       },
@@ -55954,7 +57035,7 @@
         "pts_lances": 0,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 130,
+        "pos_brasil": 136,
         "pos_filial": 25,
         "pos_brasil_ant": null,
         "pos_filial_ant": null
@@ -56089,7 +57170,7 @@
         "pts_lances": -10,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 131,
+        "pos_brasil": 137,
         "pos_filial": 26,
         "pos_brasil_ant": 121,
         "pos_filial_ant": 18
@@ -56224,7 +57305,7 @@
         "pts_lances": -10,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 132,
+        "pos_brasil": 138,
         "pos_filial": 7,
         "pos_brasil_ant": 118,
         "pos_filial_ant": 7
@@ -56359,7 +57440,7 @@
         "pts_lances": -20,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 133,
+        "pos_brasil": 139,
         "pos_filial": 11,
         "pos_brasil_ant": 122,
         "pos_filial_ant": 8
@@ -56494,7 +57575,7 @@
         "pts_lances": -23,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 134,
+        "pos_brasil": 140,
         "pos_filial": 13,
         "pos_brasil_ant": 125,
         "pos_filial_ant": 13
@@ -56629,7 +57710,7 @@
         "pts_lances": -56,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 135,
+        "pos_brasil": 141,
         "pos_filial": 2,
         "pos_brasil_ant": 127,
         "pos_filial_ant": 2
@@ -56639,7 +57720,7 @@
         "nome": "ANDERSON DE FRAGA SOUZA DA ROSA",
         "filial": "TPA",
         "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
-        "gerente": "Radke / Leandro",
+        "gerente": "Radke",
         "meta_mes": 965796,
         "pct_hoje": 26.4,
         "fases": [
@@ -56764,8 +57845,8 @@
         "pts_lances": -80,
         "pts_faseamento": 0,
         "pts_bonus": 0,
-        "pos_brasil": 136,
-        "pos_filial": 13,
+        "pos_brasil": 142,
+        "pos_filial": 19,
         "pos_brasil_ant": 129,
         "pos_filial_ant": 13
       }
@@ -59238,8 +60319,8 @@
       {
         "supervisor": "LEANDRO AVILA XAVIER",
         "filial": "TPA",
-        "gerente": "",
-        "total_vendedores": 2,
+        "gerente": "Leandro",
+        "total_vendedores": 8,
         "com_meta": 0,
         "meta_mes": 0,
         "pct_hoje": null,
@@ -59324,33 +60405,33 @@
             "n": 1,
             "resultado": "E",
             "vitorias_equipe": 1,
-            "total": 2,
+            "total": 8,
             "pts_tabela": 1
           },
           {
             "n": 2,
             "resultado": "D",
             "vitorias_equipe": 0,
-            "total": 2,
+            "total": 8,
             "pts_tabela": 0
           },
           {
             "n": 3,
             "resultado": "E",
-            "vitorias_equipe": 1,
-            "total": 2,
+            "vitorias_equipe": 3,
+            "total": 8,
             "pts_tabela": 1
           }
         ],
         "aprov": 22.2,
-        "pts_lances_equipe": 22,
+        "pts_lances_equipe": 67,
         "pos": 23,
         "pos_ant": 24
       },
       {
         "supervisor": "DOUGLAS CRISTIANO DOS SANTOS",
         "filial": "TPA",
-        "gerente": "Radke / Leandro",
+        "gerente": "Radke",
         "total_vendedores": 5,
         "com_meta": 5,
         "meta_mes": 2279294,
@@ -59686,7 +60767,7 @@
       {
         "supervisor": "JEFERSON ANTONIO HOESER",
         "filial": "TPA",
-        "gerente": "Radke / Leandro",
+        "gerente": "Radke",
         "total_vendedores": 1,
         "com_meta": 1,
         "meta_mes": 859891,
@@ -59798,7 +60879,7 @@
       {
         "supervisor": "SAMUEL PALHANO DE OLIVEIRA",
         "filial": "TPA",
-        "gerente": "Radke / Leandro",
+        "gerente": "Radke",
         "total_vendedores": 1,
         "com_meta": 1,
         "meta_mes": 511907,
