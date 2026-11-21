@@ -316,7 +316,9 @@ async function main() {
   let falhou = false;
   try {
     const txt = await entra(page);
-    const posicao = (txt.match(/Atual\s*·\s*\d{2}\/\d{2}\/\d{4}/) || txt.match(/Última atualização:[^\n]+/) || [''])[0];
+    // 21/11/2026 (Vitorio: 'inclua o horario da atualizacao quando citar o GEROT'): a barra lateral diz 'Ultima atualizacao: 21/11/26 16:34h' -> guarda a hora junto
+    const ultAt = (txt.match(/Última atualização:\s*([\d/]+\s+\d{1,2}:\d{2})/) || [])[1] || '';
+    const posicao = ((txt.match(/Atual\s*·\s*\d{2}\/\d{2}\/\d{4}/) || txt.match(/Última atualização:[^\n]+/) || [''])[0]) + (ultAt ? ' · atualizado ' + ultAt : '');
     log('posicao do GEROT:', posicao);
     for (const mes of meses) {
       try {
