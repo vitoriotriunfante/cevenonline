@@ -5,7 +5,7 @@
 //   Cada pergunta passa pelo MESMO JOTA (respostaPronta) com o perfil do contato. Grava no historico (bot_msgs, tipo 'reenvio').
 // PROTECAO: chave interna (functions/_lib/chave_admin_jota.js).
 // =========================================================================
-import { enviar, variantes } from '../_lib/jota/base.js';
+import { enviar, enviarImagem, variantes } from '../_lib/jota/base.js';
 import { respostaPronta } from '../_lib/jota/entende.js';
 import { criaBase } from '../_lib/jota/fontes.js';
 import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
@@ -19,8 +19,14 @@ export async function onRequestPost({ request, env }) {
   const B = criaBase(new URL(request.url).origin, env), partes = [];
   for (const q of (b.perguntas || []).slice(0, 4)) { let r = null; try { r = await respostaPronta(B, c, String(q), []); } catch (e) { r = null; } partes.push(r ? `❓ _${q}_\n\n${String(r)}` : `❓ _${q}_\n\nsem resposta`); }
   const texto = b.texto || [b.abertura || '', ...partes].filter(Boolean).join('\n\n━━━━━━━━━━━━━━━\n\n');
-  if (b.ensaio !== false) return new Response(JSON.stringify({ contato: c.nome, texto }), { headers: J });
-  const e = await enviar(env, c.celular, texto);
+  if (b.ensaio !== false) return new Response(JSON.stringify({ contato: c.nome, texto, imagem: !!(B._midia && B._midia.url), imagem2: !!(B._midiaExtra && B._midiaExtra.url) }), { headers: J });
+  // 17/11/2026: com 'imagens: true' vai como o JOTA manda (1a imagem com o texto, 2a imagem em seguida); 'autorizado: true' passa a pausa (decisao do Vitorio)
+  const op = b.autorizado === true ? { reenvioAutorizado: true } : {};
+  let e;
+  if (b.imagens === true && B._midia && B._midia.tipo === 'image' && B._midia.url) {
+    e = await enviarImagem(env, c.celular, B._midia.url, texto, op);
+    if (e && e.ok && B._midiaExtra && B._midiaExtra.url) { await enviarImagem(env, c.celular, B._midiaExtra.url, B._midiaExtra.caption || '', op); }
+  } else e = await enviar(env, c.celular, texto, op);
   await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(c.celular, c.nome, e.ok ? 'out' : 'erro', texto.slice(0, 4000), 'reenvio').run();
   return new Response(JSON.stringify({ enviado: !!e.ok, contato: c.nome, detalhe: e }), { headers: J });
 }

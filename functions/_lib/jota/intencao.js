@@ -67,6 +67,17 @@ export async function rotearIntencao(B, c, t, info) {
     try { await B.env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(c.celular || '', c.nome || '', papel, c.filial || '', t.slice(0, 1000), 'sugestao').run(); } catch (e) { /* segue */ }
     return `Anotado, ${nome2(c.nome || '').split(' ')[0] || ''}! Sua sugestão foi registrada e vai para quem cuida do Jota. 🙏`;
   }
+  // A8 · RESPOSTA A UM ALERTA DO MONITOR.IA (piloto 21/11/2026): "ok/feito" ou "nao procede" ate 4 h depois do alerta = registra no alerta e confirma
+  if (c.celular && B.env && B.env.DB && /^\W*(OK|OKAY|FEITO|JA TRATEI|TRATADO|NAO PROCEDE|NAO PROCEDENTE|ESTA ERRADO|TA ERRADO|ERRADO)\W*$/.test(t)) {
+    try {
+      const a = await B.env.DB.prepare("SELECT id, regra_id FROM monitoria_envios WHERE celular = ? AND regra_id LIKE 'PILOTO:%' AND status = 'ENVIADO' AND enviado_em > ? ORDER BY id DESC LIMIT 1").bind(String(c.celular), new Date(Date.now() - 4 * 3600e3).toISOString()).first();
+      if (a) {
+        const ok = /^\W*(OK|OKAY|FEITO|JA TRATEI|TRATADO)\W*$/.test(t);
+        await B.env.DB.prepare('UPDATE monitoria_envios SET acao_pos_alerta = ? WHERE id = ?').bind(ok ? 'FEITO' : 'NAO_PROCEDE', a.id).run();
+        return ok ? '✅ Anotado: alerta tratado. Obrigado!' : '📝 Anotado como *não procede*. Vou conferir esse alerta com a diretoria. Se quiser, me diga em uma frase o que estava errado.';
+      }
+    } catch (e) { /* segue o roteamento normal */ }
+  }
   // A7 · CONTESTACAO do dado (sem pedir outro dado) — confirma, registra e pergunta o que esperava; nunca devolve card
   if (/\b(ESTAO ERRAD[OA]S|NAO TEM (O )?(PQ|PORQUE|POR QUE)|E DO CANAL|NAO TEM O KPI|COMPRA E CENTRALIZADA|INFORMACAO .{0,30}INCORRET[OA]|ESTA INCORRET[OA]|TA DE BRINCADEIRA|DE BRINCADEIRA|NAO PROCEDE|NAO CONFERE|NAO E ISSO|NAO FOI ISSO( QUE)?( EU)? PERGUNTEI|ESTA ERRAD[OA]|TA ERRAD[OA]|DADO ERRADO|NUMERO ERRADO|INFORMACAO ERRADA|UMA MERDA|CAGADA|RESPONDEU (PRA|PARA) .{1,40} DE UM JEITO|RESPONDEU ERRADO|NAO BATE)\b/.test(t) && !/\?\s*$/.test(t)) {
     try { await B.env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(c.celular || '', c.nome || '', papel, c.filial || '', t.slice(0, 1000), 'contestacao').run(); } catch (e) { /* segue */ }

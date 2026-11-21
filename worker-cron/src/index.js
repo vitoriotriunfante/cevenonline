@@ -105,6 +105,18 @@ export default {
         try { const r = await dispararWorkflow(env, 'clube-coletor.yml', {}); console.log(`[CLUBE] clube-coletor.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[CLUBE][ERRO] ' + (e && e.message ? e.message : e)); }
       }
       const dataSp = dataHojeSP();
+      // LIGA (21/11/2026): a classificacao parou em 16/11 (o disparo estava no ramo do CEVEN desligado). Recalculada de 30 em 30 min, seg-sab 07h-20h45 BRT,
+      // a partir dos lances do Clube + GEROT (brasileirao-dataset.yml le /api/brasileirao-lances; nao precisa do CEVEN)
+      if (dia >= 1 && dia <= 6 && h >= 7 && h <= 20 && ((mi >= 15 && mi < 30) || mi >= 45)) {
+        try { const r = await dispararWorkflow(env, 'brasileirao-dataset.yml', {}); console.log(`[LIGA] brasileirao-dataset.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[LIGA][ERRO] ' + (e && e.message ? e.message : e)); }
+      }
+      // MONITOR.IA PILOTO (21/11/2026): seg-sex 09h-20h BRT, UMA filial por chamada (65 supervisores numa chamada estourava a CPU, erro 1102).
+      // O site decide a janela pela hora local da filial e se ENVIA (liberacao propria monitoria_liberada_ate) ou so GRAVA (sombra).
+      if (dia >= 1 && dia <= 5 && !FERIADOS_NACIONAIS.has(dataSp) && h >= 9 && h <= 20 && env.MONITORIA_CRON_KEY) {
+        for (const f of ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ']) {
+          await rodarTarefaTv(event.cron, { passos: [{ rota: '/api/monitoria-piloto?filial=' + f, ms: 60000, chaveEnv: 'MONITORIA_CRON_KEY' }] }, env);
+        }
+      }
       if (dia >= 1 && dia <= 5 && !FERIADOS_NACIONAIS.has(dataSp) && h === 19 && mi >= 15 && mi < 30 && env.MONITORIA_CRON_KEY) {
         await rodarTarefaTv(event.cron, { passos: [{ rota: '/api/cron-aprendizado', ms: 120000, chaveEnv: 'MONITORIA_CRON_KEY' }] }, env);
       }
