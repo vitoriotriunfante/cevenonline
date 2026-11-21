@@ -110,7 +110,7 @@ header h1 { font-size: 16px; font-weight: 700; margin: 0; letter-spacing: 0.02em
 
 /* CONTEUDO GERAL */
 main { flex: 1; display: flex; flex-direction: column; }
-.view-pane { padding: 16px 20px; display: none; width: 100%; max-width: 1500px; margin: 0 auto; }
+.view-pane { padding: 12px 10px; display: none; width: 100%; max-width: none; margin: 0; }   /* 21/11/2026: usa a tela toda (antes 1500px e a tabela cortava as acoes) */
 .view-pane.active { display: block; }
 
 /* INBOX MASTER-DETAIL PARA CONVERSAS */
@@ -891,6 +891,8 @@ header { padding: 10px 20px; background: var(--sidebar); backdrop-filter: none; 
     <!-- FILTROS DA TABELA DE CONTATOS -->
     <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
       <input type="text" id="cad-busca" placeholder="Filtrar por nome ou celular..." style="min-width:220px;">
+      <input type="text" id="cad-filtro-rca" placeholder="RCA (código)" title="Código do vendedor no sistema (RCA)" style="width:110px;">
+      <button type="button" id="cad-ver-suspensas" title="Contatos ativos no JOTA com a linha corporativa SUSPENSA" style="background:#b45309;color:#fff;border:0;border-radius:6px;padding:6px 10px;font-weight:700;cursor:pointer;">🟠 Linhas suspensas</button>
       <select id="cad-filtro-papel"><option value="">Todos os cargos</option></select>
       <select id="cad-filtro-filial"><option value="">Todas as filiais</option></select>
       <select id="cad-filtro-situacao"><option value="">Qualquer situação</option><option value="ativo">Ativo</option><option value="inativo">Inativo</option><option value="suspenso">Suspenso (aguarda SIM)</option><option value="pendente">Pendente</option><option value="recusado">Recusado</option></select>
@@ -913,7 +915,8 @@ header { padding: 10px 20px; background: var(--sidebar); backdrop-filter: none; 
             <th>Cargo</th>
             <th>Filial</th>
             <th>Canal</th>
-            <th>Supervisor / RCA</th>
+            <th>Supervisor</th>
+            <th>RCA</th>
             <th>Celular</th>
             <th>Linha</th>
             <th>Gestão</th>
@@ -2142,6 +2145,7 @@ function renderizarGestaoContatos() {
 
   const filtrados = lista.filter((c) => {
     if (busca && !(c.nome + ' ' + c.celular).toLowerCase().includes(busca)) return false;
+    { const fr = (($('cad-filtro-rca') || {}).value || '').replace(/\D/g, ''); if (fr && String(c.rca || '') !== fr) return false; }
     if (fPapel && c.papel !== fPapel) return false;
     if (fFilial && c.filial !== fFilial) return false;
     if (fSit && c.situacao !== fSit) return false;
@@ -2158,20 +2162,20 @@ function renderizarGestaoContatos() {
   });
   { const base = lista.filter((c) => c.papel !== 'grupo' && c.situacao === 'ativo'); const el = $('cad-contagem-salvou'); if (el) el.textContent = `Com inconsistência na Gestão: ${lista.filter((c) => ['ativo','pendente','suspenso'].includes(c.situacao) && c.inconsistencias && c.inconsistencias.length).length} · Ativos que confirmaram SIM: ${base.filter((c) => c.salvou_jota).length} de ${base.length} · filtrados: ${filtrados.length}`; }
 
+  { const bs = $('cad-ver-suspensas'); if (bs) { const nS = lista.filter((c) => c.situacao === 'ativo' && c.linha_corporativa === 'SUSPENSO').length; bs.textContent = `🟠 Linhas suspensas (${nS})`; bs.style.display = nS ? '' : 'none'; } }
   window.__cadFiltrados = filtrados;
   const tbody = $('cad-tabela-corpo');
   tbody.innerHTML = filtrados.map((c) => `
-    <tr>
+    <tr${c.linha_corporativa === 'SUSPENSO' && c.situacao === 'ativo' ? ' style="background:rgba(245,158,11,0.16); box-shadow: inset 4px 0 0 #f59e0b;" title="Linha corporativa SUSPENSA (lista da operadora de 21/11/2026)"' : ''}>
       <td>${c.papel === 'vendedor' && c.situacao === 'ativo' ? `<input type="checkbox" class="cad-sel" data-cel="${esc(c.celular)}" ${(window.__cadSel || new Set()).has(c.celular) ? 'checked' : ''}>` : ''}</td>
       <td><b>${c.piloto ? '⭐ ' : ''}${esc(tit(c.nome))}</b> ${c.salvou_jota ? `<span title="Confirmou SIM em ${esc(c.salvou_jota)}">✅ salvou</span>` : c.pedido_salvar ? '<span title="Recebeu o pedido para salvar o contato e não respondeu SIM" style="color:var(--bad,#e55)">❌ não confirmou</span>' : ''}</td>
       <td>${esc(c.papel === 'grupo' ? '🚂 Grupo' : c.papel)}</td>
       <td>${esc(c.filial || 'Todas')}${c.grupo ? ' · ' + esc(tit(c.grupo)) : ''}</td>
       <td style="white-space:nowrap;font-size:12px;">${c.canal ? (c.canal.includes('AS') && !c.canal.includes('Varejo') ? '🏬 ' : '🛒 ') + esc(c.canal) : '—'}</td>
-      <td style="color:var(--txt-mut); font-size:12px;">
-        ${c.papel === 'vendedor' ? 'RCA ' + esc(c.rca || '?') + (c.supervisor ? ' · ' + esc(tit(c.supervisor)) : '') : c.papel === 'supervisor' ? 'Equipe própria' : c.papel === 'grupo' ? 'Grupo WhatsApp' : '—'}
-      </td>
+      <td style="color:var(--txt-mut); font-size:12px;">${c.papel === 'vendedor' ? (c.supervisor ? esc(tit(c.supervisor)) : '—') : c.papel === 'supervisor' ? 'Equipe própria' : c.papel === 'grupo' ? 'Grupo WhatsApp' : '—'}</td>
+      <td style="font-size:12px; font-weight:700;">${c.papel === 'vendedor' ? esc(c.rca || '?') : '—'}</td>
       <td>${String(c.celular || '').endsWith('@g.us') ? esc(c.celular) : '+' + esc(c.celular)}</td>
-      <td style="white-space:nowrap;font-size:12px;">${String(c.celular || '').endsWith('@g.us') ? '—' : c.linha_corporativa === 'ATIVO' ? '🟢 ativa' : c.linha_corporativa === 'SUSPENSO' ? '🟠 suspensa' : '🔴 não corporativa'}</td>
+      <td style="white-space:nowrap;font-size:12px;">${String(c.celular || '').endsWith('@g.us') ? '—' : c.linha_corporativa === 'ATIVO' ? '🟢 ativa' : c.linha_corporativa === 'SUSPENSO' ? '<b style="color:#f59e0b">🟠 SUSPENSA</b>' : '🔴 não corporativa'}</td>
       <td style="font-size:12px; max-width:260px;">${!['vendedor', 'supervisor', 'gerente'].includes(c.papel) ? '—' : c.inconsistencias == null ? '<span title="Gestão indisponível agora">…</span>' : c.inconsistencias.length ? `<span style="color:var(--bad,#e55);font-weight:700;">⚠️ ${esc(c.inconsistencias.join(' · '))}</span>` : '✅'}</td>
       <td style="font-size:12px;">${c.papel !== 'vendedor' ? '—' : c.via_link ? '🔗 link' : '⛔ sem link'}</td>
       <td style="font-size:12px;">${c.salvou_jota ? '✅' : c.pedido_salvar ? '❌' : '—'}</td>
@@ -2227,6 +2231,8 @@ function atualizarSupervisoresForm(filial, sel) {
 }
 $('f-filial').onchange = () => atualizarSupervisoresForm($('f-filial').value, '');
 $('cad-busca').oninput = () => renderizarGestaoContatos();
+if ($('cad-filtro-rca')) $('cad-filtro-rca').oninput = () => renderizarGestaoContatos();
+if ($('cad-ver-suspensas')) $('cad-ver-suspensas').onclick = () => { const fl = $('cad-filtro-linha'), fs = $('cad-filtro-situacao'); if (fl) fl.value = fl.value === 'SUSPENSO' ? '' : 'SUSPENSO'; if (fs) fs.value = fl && fl.value ? 'ativo' : ''; renderizarGestaoContatos(); };
 $('cad-filtro-papel').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-filial').onchange = () => renderizarGestaoContatos();
 $('cad-filtro-situacao').onchange = () => renderizarGestaoContatos();
