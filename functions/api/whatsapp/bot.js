@@ -289,6 +289,8 @@ async function trataMensagem({ request, env }) {
   let resp = null, tipo = 'pronta';
   const tN = sem(texto);
   const ehPerguntaEstrategicaOuConsultiva = podeUsarIAPraEstrategia(c.papel, texto);
+  // 21/11/2026 (auditoria + Diego/TBE: a IA livre disse '424 clientes' quando o GEROT tem 1.068, e 'meta Mondelez R$ 7,4 mi' = meta da filial): IA escrevendo numero so com jota_ia_livre = on
+  let iaLivre = false; try { const f = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'jota_ia_livre'").first(); iaLivre = !!(f && String(f.valor) === 'on'); } catch (e) { iaLivre = false; }
   const jaFalou = await env.DB.prepare("SELECT COUNT(*) n, SUM(CASE WHEN direcao = 'out' AND date(quando, '-3 hours') = date('now', '-3 hours') THEN 1 ELSE 0 END) hoje FROM bot_msgs WHERE celular = ?").bind(cel).first().catch(() => ({ n: 1, hoje: 1 }));
   const primeiraVez = !jaFalou || !(jaFalou.n > 1), primeiraDoDia = !jaFalou || !(jaFalou.hoje > 0);
   // reclamacao: marca a ultima resposta como "nao ajudou" (vai para o painel de conversas)
@@ -413,7 +415,7 @@ async function trataMensagem({ request, env }) {
   if (respGerot) {
     resp = respGerot;
     tipo = 'gerot_industria';
-  } else if (!resp && ehPerguntaEstrategicaOuConsultiva) {
+  } else if (!resp && ehPerguntaEstrategicaOuConsultiva && iaLivre) {
     const historico = (hist || []).slice(1).reverse().map((h) => ({ role: h.direcao === 'in' ? 'user' : 'assistant', content: h.texto }));
     resp = await respondeIA(env, B, c, texto, historico);
     if (resp) tipo = 'ia';
@@ -433,7 +435,11 @@ async function trataMensagem({ request, env }) {
   }
   if (resp && resp.fraca) resp = String(resp);
   // Se nenhuma regra pronta atendeu, aciona o Analista IA antes de cair no menu/treinamento
-  if (!resp && !(seco && u.searchParams.get('sem_ia') === '1') && !/^\s*(MENU|AJUDA|\?|0)\s*$/i.test(tN)) {
+  // sem a IA livre: pergunta aberta = o consolidado do JOTA (bom dia para quem gere, 'como estou' para o vendedor), numeros do GEROT/Clube
+  if (!resp && !iaLivre && !/^\s*(MENU|AJUDA|\?|0)\s*$/i.test(tN) && /\b(CENARIO|MEU MES|NOSSO MES|RESUMO|DIAGNOSTICO|PANORAMA|VISAO GERAL|COMO (ESTAMOS|ESTOU|ESTA)|SITUACAO|ANALISE|ESTRATEG\w*|PLANO|GAP|ONDE (FOCAR|ATUAR|ATACAR))\b/.test(tN)) {
+    try { const q0 = c.papel === 'vendedor' ? 'como estou' : 'bom dia'; const r0 = await respostaPronta(B, c, q0, []); if (r0) { resp = `_Entendi como: "${q0}"_\n\n` + String(r0); tipo = 'consolidado'; } } catch (e) { /* segue */ }
+  }
+  if (!resp && iaLivre && !(seco && u.searchParams.get('sem_ia') === '1') && !/^\s*(MENU|AJUDA|\?|0)\s*$/i.test(tN)) {
     try {
       const historico = (hist || []).slice(1).reverse().map((h) => ({ role: h.direcao === 'in' ? 'user' : 'assistant', content: h.texto }));
       const rIA = await respondeIA(env, B, c, texto, historico);
