@@ -302,3 +302,32 @@ export async function respFilialXIndustria(B, filiais) {
   L.push('', '_GEROT · peça "indústrias de TPH" para todas as indústrias de uma filial._');
   return L.join(String.fromCharCode(10));
 }
+
+// ---------- MIX DE PRODUTO (GEROT "SKU / Cliente (mix)") ----------
+// 21/11/2026 (bateria real: "mix do vendedor Jaime", "meta de mix do 1131 em outubro", "minha rota e mix"): o mix e do GEROT, por nivel (nunca media de media).
+// esc: { filiais, rca } vendedor · { filiais, rcas } equipe · { filiais:[1] } filial por supervisor · { nacional } por filial. mes = 'AAAA-MM' (padrao: atual).
+export async function respMixGerot(B, esc, mes0, pediuMeta) {
+  const db = B.env && B.env.DB; if (!db) return null;
+  const mes = mes0 || mesAtual(), d0 = new Date(mes + '-15T12:00:00Z'); d0.setUTCMonth(d0.getUTCMonth() - 1);
+  const ant = d0.toISOString().slice(0, 7), K = '"SKU / Cliente (mix)"', KP = '"Positivação (filial + CNPJ)"', F = esc.filiais && esc.filiais.length ? esc.filiais : FILIAIS;
+  const nm = (m) => ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'][Number(m.slice(5)) - 1];
+  const mx = (v) => (v == null || v === '' ? '—' : Number(v).toFixed(2).replace('.', ','));
+  const seta = (a, b) => (a == null || b == null ? '' : Number(a) > Number(b) ? ' ▲' : Number(a) < Number(b) ? ' ▼' : ' =');
+  let R = [], rot = '';
+  try {
+    if (esc.rca) { R = (await db.prepare(`SELECT mes, filial, rca || ' - ' || vendedor k, json_extract(dados, '$.${K}') m, json_extract(dados, '$.${KP}') p FROM gerot_vendedor_mes WHERE mes IN (?, ?) AND rca = ? AND filial IN (${qs(F)})`).bind(mes, ant, String(esc.rca), ...F).all()).results || []; rot = ''; }
+    else if (esc.rcas && esc.rcas.length) { R = (await db.prepare(`SELECT mes, filial, rca || ' - ' || vendedor k, json_extract(dados, '$.${K}') m, json_extract(dados, '$.${KP}') p FROM gerot_vendedor_mes WHERE mes IN (?, ?) AND filial = ? AND rca IN (${qs(esc.rcas)})`).bind(mes, ant, F[0], ...esc.rcas).all()).results || []; rot = 'Por vendedor'; }
+    else if (F.length === 1) { R = (await db.prepare(`SELECT mes, filial, cod_sup || ' - ' || supervisor k, json_extract(dados, '$.${K}') m, json_extract(dados, '$.${KP}') p FROM gerot_supervisor_mes WHERE mes IN (?, ?) AND filial = ?`).bind(mes, ant, F[0]).all()).results || []; rot = 'Por supervisor'; }
+    else { R = (await db.prepare(`SELECT mes, filial, filial k, json_extract(dados, '$.${K}') m, json_extract(dados, '$.${KP}') p FROM gerot_filial_mes WHERE mes IN (?, ?) AND filial IN (${qs(F)})`).bind(mes, ant, ...F).all()).results || []; rot = 'Por filial'; }
+  } catch (e) { return null; }
+  const atual = R.filter((x) => x.mes === mes && x.m != null), prev = new Map(R.filter((x) => x.mes === ant).map((x) => [x.filial + '|' + x.k, x.m]));
+  if (!atual.length) return `🧺 *Mix de produto — ${esc.nome}* (${nm(mes)}): o GEROT não tem mix para esse ${esc.rca ? 'vendedor' : 'recorte'} no mês.`;
+  const tit = (s) => titulo(String(s).toLowerCase()).replace(/^(\d+) - /, '$1 - ');
+  const pos = await fontesG(db), rod = `_GEROT${pos ? ' (' + pos + ')' : ''} · mix = produtos diferentes por cliente positivado (SKU/cliente)._`;
+  const metaTxt = pediuMeta ? ['', '_A *meta* de mix ainda não vem na extração do GEROT que eu leio; mostro o realizado e o mês anterior._'] : [];
+  if (esc.rca) {
+    return [`🧺 *Mix de produto — ${esc.nome}* (${nm(mes)})`, ...atual.map((x) => { const p = prev.get(x.filial + '|' + x.k); return `• ${tit(x.k)}${atual.length > 1 || esc.nacional ? ' (' + x.filial + ')' : ''}: *${mx(x.m)}* produtos/cliente${x.p != null ? ' · ' + N(x.p) + ' clientes' : ''} · ${nm(ant)}: ${mx(p)}${seta(x.m, p)}`; }), ...metaTxt, '', rod].join('\n');
+  }
+  atual.sort((a, b) => Number(a.m) - Number(b.m));
+  return [`🧺 *Mix de produto — ${esc.nome}* (${nm(mes)}) · ${rot.toLowerCase()}, do menor para o maior`, ...atual.slice(0, 40).map((x) => { const p = prev.get(x.filial + '|' + x.k); return `• ${rot === 'Por filial' ? x.k : tit(x.k)}: *${mx(x.m)}*${x.p != null ? ' · ' + N(x.p) + ' cli.' : ''} · ${nm(ant)} ${mx(p)}${seta(x.m, p)}`; }), ...(atual.length > 40 ? [`… e mais ${atual.length - 40}`] : []), ...metaTxt, '', rod, '_Peça "mix do vendedor 123" para abrir um deles._'].join('\n');
+}

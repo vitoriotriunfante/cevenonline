@@ -82,8 +82,31 @@ export async function rotearIntencao(B, c, t, info) {
       }
     } catch (e) { /* segue o roteamento normal */ }
   }
+  // A5 · MIX DE PRODUTO = KPI do GEROT "SKU / Cliente (mix)" (bateria real 21/11: "mix do vendedor Jaime", "meta mix", "mix atual e do mes anterior",
+  //   "como esta minha rota e mix?" caiam na rota ou no fechamento). O +MIX (o que oferecer) continua no caminho dele.
+  if (/\bMIX\b/.test(t) && !/\+ ?MIX|MAIS ?MIX|OFERECER|OFERTA|SUGEST|QUEM COMPRA|LIGA|CHAMPIONS|DOBROU|INCENTIVO|PREMIA/.test(t) && !/\b\d{7,}\b/.test(t) && B.env && B.env.DB) {
+    try {
+      const { respMixGerot } = await import('./respostas/gestao_gerot.js');
+      const mR = t.match(/\b(?:VENDEDORA?|RCA|SETOR|COD(?:IGO)?)\s*(\d{1,5})\b/);
+      let e = null;
+      if (papel === 'vendedor' && c.rca && !mR) e = { filiais: [c.filial], rca: String(c.rca), nome: `${c.rca} - ${nome2(c.nome || '')}` };
+      else if (mR) e = { filiais: filCit ? [filCit] : (papel === 'diretoria' || papel === 'ceo') ? FILIAIS : [c.filial], rca: mR[1], nome: `vendedor ${mR[1]}` };
+      else if (acima) {
+        const p = await achaPessoaTolerante(B, t.replace(/\b(MIX|META|DE|DO|DA|ATUAL|MES|ANTERIOR|PASSADO|PRODUTO|VENDEDORA?|COMO|ESTA|QUAL|O|A|E|EQUIPE|FILIAL|SUPERVISOR)\b/g, ' ').replace(/\s+/g, ' ').trim(), filCit).catch(() => null);
+        if (p && !p.varios && p.tipo === 'vend') e = { filiais: [p.alvo.filial], rca: String(p.alvo.rca), nome: `${p.alvo.rca} - ${nome2(p.alvo.nome || '')}` };
+        else if (papel === 'diretoria' || papel === 'ceo') e = { filiais: filCit ? [filCit] : FILIAIS, nome: filCit || 'Brasil', nacional: !filCit };
+        else { const Ev = await carregaEscopo(B, esc), V = (Ev && Ev.vend) || []; e = papel === 'gerente' && !c.grupo ? { filiais: [c.filial], nome: c.filial } : { filiais: [c.filial], nome: (Ev && Ev.nome) || 'Equipe', rcas: V.map((v) => String(v.rca)) }; }
+      }
+      const MESES = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
+      const iM = MESES.findIndex((m) => new RegExp('\\b' + m + '\\b').test(t)), hj = hojeSP();
+      let mesQ = null;
+      if (iM >= 0) mesQ = `${iM + 1 > Number(hj.slice(5, 7)) ? Number(hj.slice(0, 4)) - 1 : hj.slice(0, 4)}-${String(iM + 1).padStart(2, '0')}`;
+      else if (/MES (PASSADO|ANTERIOR)|ULTIMO MES/.test(t) && !/ATUAL/.test(t)) { const d = new Date(hj.slice(0, 7) + '-15T12:00:00Z'); d.setUTCMonth(d.getUTCMonth() - 1); mesQ = d.toISOString().slice(0, 7); }
+      if (e) { const r = await respMixGerot(B, e, mesQ, /\bMETA\b/.test(t)); if (r) return /\bROTA\b/.test(t) ? r + '\n_Para a rota de hoje, peça *minha rota*._' : r; }
+    } catch (err) { /* segue o roteamento normal */ }
+  }
   // A7 · CONTESTACAO do dado (sem pedir outro dado) — confirma, registra e pergunta o que esperava; nunca devolve card
-  if (/\b(ESTAO ERRAD[OA]S|NAO TEM (O )?(PQ|PORQUE|POR QUE)|E DO CANAL|NAO TEM O KPI|COMPRA E CENTRALIZADA|INFORMACAO .{0,30}INCORRET[OA]|ESTA INCORRET[OA]|TA DE BRINCADEIRA|DE BRINCADEIRA|NAO PROCEDE|NAO CONFERE|NAO E ISSO|NAO FOI ISSO( QUE)?( EU)? PERGUNTEI|ESTA ERRAD[OA]|TA ERRAD[OA]|DADO ERRADO|NUMERO ERRADO|INFORMACAO ERRADA|UMA MERDA|CAGADA|RESPONDEU (PRA|PARA) .{1,40} DE UM JEITO|RESPONDEU ERRADO|NAO BATE)\b/.test(t) && !/\?\s*$/.test(t)) {
+  if (/\b(ESTAO ERRAD[OA]S|NAO TEM (O )?(PQ|PORQUE|POR QUE)|E DO CANAL|NAO TEM O KPI|COMPRA E CENTRALIZADA|INFORMACAO .{0,30}INCORRET[OA]|ESTA INCORRET[OA]|TA DE BRINCADEIRA|DE BRINCADEIRA|NAO PROCEDE|NAO CONFERE|NAO E ISSO|NAO FOI ISSO( QUE)?( EU)? (PERGUNTEI|PEDI)|ESTA ERRAD[OA]|TA ERRAD[OA]|DADO ERRADO|NUMERO ERRADO|INFORMACAO ERRADA|UMA MERDA|CAGADA|RESPONDEU (PRA|PARA) .{1,40} DE UM JEITO|RESPONDEU ERRADO|NAO BATE)\b/.test(t) && !/\?\s*$/.test(t)) {
     try { await B.env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(c.celular || '', c.nome || '', papel, c.filial || '', t.slice(0, 1000), 'contestacao').run(); } catch (e) { /* segue */ }
     return `Entendi, ${nome2(c.nome || '').split(' ')[0] || ''}. Registrei para conferir. Me diz em uma linha o que você esperava ver (ex.: "quero os clientes sem compra da rota de hoje") que eu respondo certo.`;
   }
