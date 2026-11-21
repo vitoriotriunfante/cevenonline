@@ -34,11 +34,12 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
       for (const x of ((await B._gerotVend[filial]).results || [])) {
         let d = {}; try { d = JSON.parse(x.dados || '{}'); } catch { continue; }
         const rcaKey = String(x.rca || ''); if (!rcaKey) continue;
-        const g = gerotVend.get(rcaKey) || { meta: 0, fat: 0, pend: 0, dev: 0 };
+        const g = gerotVend.get(rcaKey) || { meta: 0, fat: 0, pend: 0, dev: 0, nec: null };
         g.meta += Number(d['Meta (R$)']) || 0;
         g.fat += Number(d['Faturado líquido (R$)']) || 0;
         g.pend += Number(d['Carteira pendente (R$)']) || 0;
         g.dev += Number(d['Devolução (R$)']) || 0;
+        if (d['Necessidade dia captação (R$)'] != null) g.nec = (g.nec || 0) + (Number(d['Necessidade dia captação (R$)']) || 0);   // 21/11/2026: 'precisa por dia' = o do GEROT
         gerotVend.set(rcaKey, g);
       }
     } catch (e) { /* sem gerot_vendas: fica CEVEN */ }
@@ -70,7 +71,7 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     const pendFinal = gv ? gv.pend : (fi.pendente || 0);
     const devFinal = gv ? gv.dev : (fi.devolucao || 0);
     const vObj = { filial, rca, nome: nomeVend, supervisor: e.supervisor || '', supCod: e.sup_cod || '', grupo: e.grupo || '', gerente: e.gerente || '', canal: e.canal || '', varejo, ehVendedorReal: ehVendReal,
-      /* GEROT oficial quando disponivel; fallback para CEVEN */ fat: fatFinal, pend: pendFinal, meta: metaFinal, dev: devFinal, pct: metaFinal ? (fatFinal / metaFinal) * 100 : null,
+      /* GEROT oficial quando disponivel; fallback para CEVEN */ fat: fatFinal, pend: pendFinal, meta: metaFinal, dev: devFinal, necDia: gv && gv.nec != null ? gv.nec : null, pct: metaFinal ? ((fatFinal + (pendFinal || 0)) / metaFinal) * 100 : null,   /* 21/11/2026: % da meta = (faturado + pendente) / meta em TODAS as visoes (vendedor via 89%, supervisor 43,9% so faturado) */
       pos: po.realizado ?? null, metaPos: po.meta ?? null, dig: pd.dig_pedido || 0, ped: pd.positivacao || 0, visP, visF, comVenda,
       visPlanMes: pm.visit_plan || 0, visRealMes: pm.visit_real || 0,
       /* 10/11/2026: mix do mes do proprio CEVEN (tela Produtividade) e a hora em que o CEVEN foi lido */ mixMes: (r.produtividade && r.produtividade.mix_mes) || null, lidoEm: snap && snap.gerado_em && r.idade_s != null ? new Date(Date.parse(snap.gerado_em) - r.idade_s * 1000).toISOString() : null,
@@ -175,7 +176,7 @@ export function agrupa(V, chave) {
     }
     m.set(k, x);
   }
-  for (const x of m.values()) x.pct = x.meta ? x.fat / x.meta * 100 : null;
+  for (const x of m.values()) x.pct = x.meta ? (x.fat + (x.pend || 0)) / x.meta * 100 : null;
   return m;
 }
 export const pctTxt = (x) => x == null ? 'sem dado' : x.toFixed(1).replace('.', ',') + '%';

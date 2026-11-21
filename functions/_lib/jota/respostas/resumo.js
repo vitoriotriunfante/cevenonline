@@ -153,7 +153,7 @@ export async function respResumo(B, E) {
   const { tot: duTotF } = diasUteisMes(), duFaltF = Math.max(1, diasUteisRestantes()), duDecF = Math.max(1, duTotF - duFaltF + 1);
   const tendF = meta ? (((fat + pend) / duDecF) * duTotF / meta) * 100 : 0;
   const ritF = await ritmoGerot(B, E);
-  const L = [`📊 *${E.nome} agora* (${hora})`, `💰 Faturado: *${R$(fat)}* de ${R$(meta)} → *${P(fat || 0, meta)}*`, `⏳ Pendente: ${R$(pend)} · ` + (ritF != null ? txtRitmo(ritF) : `📈 Tendência (GEROT): *${tendF.toFixed(1).replace('.', ',')}%*`)];
+  const L = [`📊 *${E.nome} agora* (${hora})`, `💰 Faturado: *${R$(fat)}* + pendente ${R$(pend)} de ${R$(meta)} → *${P((fat || 0) + (pend || 0), meta)}* da meta`, `⏳ Pendente: ${R$(pend)} · ` + (ritF != null ? txtRitmo(ritF) : `📈 Tendência (GEROT): *${tendF.toFixed(1).replace('.', ',')}%*`)];
   L.push(`👥 Positivação: ${N(posVal)} de ${N(metaPosVal)} (${P(posVal, metaPosVal)})`);
   L.push(`📝 Digitado hoje: *${R$((E.grupo || E.supervisor || E.rca) ? G.dig : f ? f.digitado_hoje : E.macro.dig)}* em *${N((E.grupo || E.supervisor || E.rca) ? G.ped : E.macro.pedidos)}* pedidos`,
     /* equipe sem rota de varejo (AS): a linha nao aparece (26/10/2026: '0 de 0') */ ...(Vr.reduce((a, v) => a + v.visP, 0) ? [`🚶 Rota do varejo hoje: ${Vr.reduce((a, v) => a + v.visF, 0)} de ${Vr.reduce((a, v) => a + v.visP, 0)} visitas · sem nenhuma visita: ${Vr.filter((v) => v.semVisita).length}`] : []),
@@ -228,7 +228,7 @@ export async function respHoje(B, E, t) {
 export function respPorSupervisor(E) {
   const S = [...agrupa(E.vend, (v) => supChave(v, E.nacional))].filter(([k]) => supReal(k)).sort((a, b) => (b[1].pct ?? -1) - (a[1].pct ?? -1));
   if (!S.length) return `Sem dados por supervisor de ${E.nome} agora.`;
-  const L = [`👥 *${E.nome} por supervisor* (% da meta faturada)`, ...S.map(([s, x]) => `• *${supNome(s)}* ${pctTxt(x.pct)} · ${R$(x.fat)} · pend. ${R$(x.pend)} · hoje ${R$(x.dig)} · ${x.zerados} zerado(s)`)];
+  const L = [`👥 *${E.nome} por supervisor* (% da meta: faturado + pendente)`, ...S.map(([s, x]) => `• *${supNome(s)}* ${pctTxt(x.pct)} · ${R$(x.fat)} · pend. ${R$(x.pend)} · hoje ${R$(x.dig)} · ${x.zerados} zerado(s)`)];
   const pior = S[S.length - 1]; L.push('', SUGESTAO + `conversar com ${supNome(pior[0])} (${pctTxt(pior[1].pct)}), o mais atrás.`, '_Peça "supervisor Nome" para ver os vendedores dele._');
   return L.join('\n');
 }
@@ -255,7 +255,7 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
   if (DC) { const t = DC.t; v = { ...v, dig: Number(t.total_pedido) || 0, ped: Number(t.ped_total) || 0, visP: Number(t.roteiros) || 0, visF: Number(t.visitas_rota) || 0, comVenda: Number(t.ped_rota) || 0 }; }
   const dn = diasUteisRestantes(); const falta = Math.max(0, v.meta - v.fat - (v.pend || 0)), metaPosR = v.metaPos != null ? Math.round(v.metaPos) : null, faltaPos = metaPosR != null && v.pos != null ? Math.max(0, metaPosR - Math.round(v.pos)) : null;
   const L = [`🧑‍💼 *${v.rca} - ${titulo(v.nome)}* — ${v.filial} · sup. ${sn(v.supervisor, v.supCod)} · ${v.canal || 'sem canal'}`,
-    `💰 Faturado: *${R$(v.fat)}* + pendente ${R$(v.pend)} de ${R$(v.meta)} → *${pctTxt(v.meta ? (v.fat + (v.pend || 0)) / v.meta * 100 : null)}* da meta`, `🎯 Falta: ${R$(falta)}` + (falta && dn ? ` · ${R$(falta / dn)} por dia útil (${dn} dias)` : ''),
+    `💰 Faturado: *${R$(v.fat)}* + pendente ${R$(v.pend)} de ${R$(v.meta)} → *${pctTxt(v.meta ? (v.fat + (v.pend || 0)) / v.meta * 100 : null)}* da meta`, `🎯 Falta: ${R$(falta)}` + (falta && dn ? ` · ${R$(v.necDia != null ? v.necDia : falta / dn)} por dia útil (${dn} dias)` : ''),
     (v.pos == null && metaPosR == null ? '👥 Positivação: sem dado agora' : `👥 Positivação: ${v.pos != null ? N(Math.round(v.pos)) : '—'} de ${metaPosR != null ? N(metaPosR) : '—'}${v.pos != null && metaPosR ? ` (${P(v.pos, metaPosR)})` : ''}`) + (faltaPos ? ` · faltam ${N(faltaPos)} ${faltaPos === 1 ? 'cliente' : 'clientes'}` : ''),
     /* 17/11/2026 (regua R03 as 06h: 'Hoje: R$ 0' antes da 1a leitura do Clube): sem leitura do dia, nunca zero */
     !DC ? `📝 Hoje: aguardando a 1ª leitura do Clube (a partir das 7h)` : `📝 Hoje: ${R$(v.dig)} em ${v.ped} ${v.ped === 1 ? 'pedido' : 'pedidos'}` + ` · ticket ${v.ped ? R$(v.dig / v.ped) : 'sem pedido hoje'}` + (v.visP ? ` · visitas ${v.visF} de ${v.visP} · com venda ${v.comVenda}` : ''), `↩️ Devolução no mês: ${R$(v.dev)}`];
@@ -330,7 +330,7 @@ export async function totaisOficiais(B, E) {
     if (gs && gs.meta > 0) {
       x.fat = gs.fat ?? x.fat; x.pend = gs.pend ?? x.pend; x.meta = gs.meta;
       x.pos = gs.pos ?? x.pos; x.metaPos = gs.metaPos ?? x.metaPos;
-      x.pct = x.meta ? x.fat / x.meta * 100 : null;
+      x.pct = x.meta ? (x.fat + (x.pend || 0)) / x.meta * 100 : null;
     }
     return x;
   }
@@ -338,11 +338,11 @@ export async function totaisOficiais(B, E) {
   const gf = E.filiais.map((sig) => gFil.get(sig)).filter((g) => g && g.meta > 0);
   if (gf.length) {
     x.fat = gf.reduce((a, g) => a + (g.fat || 0), 0); x.pend = gf.reduce((a, g) => a + (g.pend || 0), 0); x.meta = gf.reduce((a, g) => a + (g.meta || 0), 0);
-    x.pos = gf.reduce((a, g) => a + (g.pos || 0), 0); x.metaPos = gf.reduce((a, g) => a + (g.metaPos || 0), 0); x.pct = x.meta ? x.fat / x.meta * 100 : null; return x;
+    x.pos = gf.reduce((a, g) => a + (g.pos || 0), 0); x.metaPos = gf.reduce((a, g) => a + (g.metaPos || 0), 0); x.pct = x.meta ? (x.fat + (x.pend || 0)) / x.meta * 100 : null; return x;
   }
   const s = await B.saude(); const F = ((s && s.filiais) || []).filter((f) => E.filiais.includes(f.filial)); if (!F.length) return x;
   x.fat = F.reduce((a, f) => a + (f.faturado || 0), 0); x.pend = F.reduce((a, f) => a + (f.pendente || 0), 0); x.meta = F.reduce((a, f) => a + (f.meta_fat || 0), 0);
-  x.pos = F.reduce((a, f) => a + (f.positivados || 0), 0); x.metaPos = F.reduce((a, f) => a + (f.meta_pos || 0), 0); x.pct = x.meta ? x.fat / x.meta * 100 : null; return x;
+  x.pos = F.reduce((a, f) => a + (f.positivados || 0), 0); x.metaPos = F.reduce((a, f) => a + (f.meta_pos || 0), 0); x.pct = x.meta ? (x.fat + (x.pend || 0)) / x.meta * 100 : null; return x;
 }
 export async function respFalta(B, E) {
   const dn = diasUteisRestantes(); const x = await totaisOficiais(B, E);

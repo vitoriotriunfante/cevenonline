@@ -159,7 +159,7 @@ export function respRanking(E, t) {
   if (!S.length) return `Não achei vendedores ${as ? 'AS' : 'de varejo'} com dado para esse ranking em ${E.nome}.`;
   // inicio de mes: ranking de todo mundo com 0,0% nao e ranking, e nao ha quem "reconhecer" (Sueli/API, 01/11/2026)
   if (!pos && !hoje && !S.some((v) => Number(v.fat) > 0)) return `📭 ${E.nome}: ninguém faturou neste mês ainda, então não há ranking.\nPara o mês que fechou, peça *fechamento do mês passado por vendedores*.`;
-  const crit = pos ? 'positivação do mês (% da meta de clientes)' : hoje ? 'digitado hoje' : '% da meta faturada no mês';
+  const crit = pos ? 'positivação do mês (% da meta de clientes)' : hoje ? 'digitado hoje' : '% da meta no mês (faturado + pendente)';
   const lin = (v, i) => `${i + 1}. ${vn(v)}${E.nacional ? ' · ' + v.filial : ''} — ${fmt(v)}`;
   const L = [`🏅 *${E.nome} — ${querMelhor && !querPior ? n + ' melhores' : querPior && !querMelhor ? n + ' mais atrás' : 'ranking'}, ${as ? 'AS' : 'varejo'}*`, `_Critério: ${crit}._`];
   if (querMelhor) L.push('', ...S.slice(0, n).map(lin));

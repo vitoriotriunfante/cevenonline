@@ -64,11 +64,11 @@ export function respMaiorGap(E) {
 }
 export function respRankingSupervisores(E) {
   const S = [...agrupa(E.vend, (v) => supChave(v, true))].filter(([k]) => supReal(k) && !/^VAGO/.test(k)).filter(([, x]) => x.meta > 0).sort((a, b) => (b[1].pct ?? -1) - (a[1].pct ?? -1));
-  return [`👥 *Ranking dos supervisores — ${E.nome}* (% da meta faturada)`, '*Melhores:*', ...S.slice(0, 10).map(([k, x], i) => `${i + 1}. ${supNome(k)} — ${pctTxt(x.pct)} · ${R$(x.fat)}`), '*Mais atrás:*', ...S.slice(-8).reverse().map(([k, x]) => `• ${supNome(k)} — ${pctTxt(x.pct)} · ${x.zerados} zerado(s)`)].join('\n');
+  return [`👥 *Ranking dos supervisores — ${E.nome}* (% da meta: faturado + pendente)`, '*Melhores:*', ...S.slice(0, 10).map(([k, x], i) => `${i + 1}. ${supNome(k)} — ${pctTxt(x.pct)} · ${R$(x.fat)}`), '*Mais atrás:*', ...S.slice(-8).reverse().map(([k, x]) => `• ${supNome(k)} — ${pctTxt(x.pct)} · ${x.zerados} zerado(s)`)].join('\n');
 }
 export function respRankingGerentes(E) {
   const G = [...agrupa(E.vend, (v) => v.filial + (v.grupo ? ' · ' + titulo(v.grupo) : ''))].filter(([, x]) => x.meta > 0).sort((a, b) => (b[1].pct ?? -1) - (a[1].pct ?? -1));
-  return [`🧑‍💼 *Ranking dos gerentes* (% da meta faturada; TPH e MCD por gerente)`, ...G.map(([k, x], i) => `${i + 1}. ${k}${x.V[0] && x.V[0].gerente && !k.includes('·') ? ' — ' + titulo(x.V[0].gerente) : ''}: ${pctTxt(x.pct)} · ${R$(x.fat)} · pend. ${R$(x.pend)}`)].join('\n');
+  return [`🧑‍💼 *Ranking dos gerentes* (% da meta: faturado + pendente; TPH, MCD e TPA por gerente)`, ...G.map(([k, x], i) => `${i + 1}. ${k}${x.V[0] && x.V[0].gerente && !k.includes('·') ? ' — ' + titulo(x.V[0].gerente) : ''}: ${pctTxt(x.pct)} · ${R$(x.fat)} · pend. ${R$(x.pend)}`)].join('\n');
 }
 export async function respComparar(B, fs) {
   const esc = await carregaEscopo(B, { nome: fs.join(' × '), filiais: fs });
@@ -313,7 +313,7 @@ export async function respMatinal(B, E) {
     return {
       filial: v.filial, rca: v.rca, cod_sup: v.cod_sup, sup: v.supervisor || '', nome,
       meta, vend, pct: meta > 0 ? (vend / meta) * 100 : 0, tend, tendPct,
-      precisaDia: Math.max(0, meta - vend) / falt,
+      precisaDia: d['Necessidade dia captação (R$)'] != null ? Math.max(0, Number(d['Necessidade dia captação (R$)']) || 0) : Math.max(0, meta - vend) / falt,   // 21/11/2026: a mesma conta do GEROT em todas as visoes
       pos, metaPos, rota: rotaMap.get(k) || 0, prospects: prospMap.get(k) || 0,
       bloqQtd: ped.qtd, bloqVlr: ped.vlr
     };
