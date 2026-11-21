@@ -457,7 +457,7 @@ async function trataMensagem({ request, env }) {
   if (resp && ['diretoria', 'ceo', 'gerente', 'supervisor'].includes(String(c.papel || '')) && /^\s*(_Entendi como:[^\n]*\n+)?📊 \*([A-Z]{3} agora|Brasil — 11 filiais)\*/.test(String(resp)) && /\b(VENDEDOR(ES)?|SUPERVISOR(ES)?|INDUSTRI\w*|CLIENTES?|GRUPO|GERENTE|EQUIPE D[OAE])\b/.test(tN) && !/\b(COMO (ESTA|ESTAMOS)( A)? (FILIAL|VENDA|NOSSA)|RESUMO|BOM DIA)\b/.test(tN)) {
     const fs0 = (tN.match(/\b(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\b/) || [])[1] || (c.papel === 'diretoria' || c.papel === 'ceo' ? '' : String(c.filial || ''));
     const F0 = fs0 || 'TPH';
-    resp = `🤔 Quero te responder certo. Você quis dizer:\n\n• *vendedores de ${F0}* (todos, % da meta)\n• *${F0} por supervisor*\n• *indústrias de ${F0}*\n• *${F0}* (resumo da filial)\n${/GRUPO|GERENTE/.test(tN) ? `• *grupo <nome do gerente> ${F0}* (ex.: grupo Vagner TPH)\n` : ''}\nÉ só mandar uma dessas frases.`;
+    resp = `🤔 Quero te responder certo. Você quis dizer:\n\n• *vendedores de ${F0}* (todos, % da meta)\n• *${F0} por supervisor*\n• *indústrias de ${F0}*\n• *${F0}* (resumo da filial)\n\nÉ só mandar uma dessas frases.`;
     tipo = 'modo_seguro';
   }
   // 21/11/2026 (auditoria UI/UX: 'ver mais' devolvia a MESMA mensagem em 23 de 43 pedidos): pediu 'mais' e a resposta e igual a anterior = avisa que ja e tudo
