@@ -452,6 +452,14 @@ async function trataMensagem({ request, env }) {
     if (!seco) try { await env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(cel, c.nome, c.papel, c.filial || '', `[SEM RESPOSTA] ${String(texto).slice(0, 1400)}`, '').run(); } catch (e) {}
   }
   if (tipo === 'pronta' && !/^(📋 \*MENU DO JOTA\*|Entendi que você quer)/i.test(resp)) resp = humaniza(resp, c, primeiraDoDia);
+  // 21/11/2026 MODO SEGURO (Vitorio: 'o CEO vai me demitir'): a pergunta pedia vendedor/supervisor/industria/cliente/grupo e a resposta e o card generico da
+  // filial ou do Brasil = o JOTA nao entendeu; em vez de entregar outra coisa, oferece as opcoes que ele responde certo
+  if (resp && ['diretoria', 'ceo', 'gerente', 'supervisor'].includes(String(c.papel || '')) && /^\s*(_Entendi como:[^\n]*\n+)?📊 \*([A-Z]{3} agora|Brasil — 11 filiais)\*/.test(String(resp)) && /\b(VENDEDOR(ES)?|SUPERVISOR(ES)?|INDUSTRI\w*|CLIENTES?|GRUPO|GERENTE|EQUIPE D[OAE])\b/.test(tN) && !/\b(COMO (ESTA|ESTAMOS)( A)? (FILIAL|VENDA|NOSSA)|RESUMO|BOM DIA)\b/.test(tN)) {
+    const fs0 = (tN.match(/\b(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ)\b/) || [])[1] || (c.papel === 'diretoria' || c.papel === 'ceo' ? '' : String(c.filial || ''));
+    const F0 = fs0 || 'TPH';
+    resp = `🤔 Quero te responder certo. Você quis dizer:\n\n• *vendedores de ${F0}* (todos, % da meta)\n• *${F0} por supervisor*\n• *indústrias de ${F0}*\n• *${F0}* (resumo da filial)\n${/GRUPO|GERENTE/.test(tN) ? `• *grupo <nome do gerente> ${F0}* (ex.: grupo Vagner TPH)\n` : ''}\nÉ só mandar uma dessas frases.`;
+    tipo = 'modo_seguro';
+  }
   // 21/11/2026 (auditoria UI/UX: 'ver mais' devolvia a MESMA mensagem em 23 de 43 pedidos): pediu 'mais' e a resposta e igual a anterior = avisa que ja e tudo
   if (resp && ultOut && /^\W*(ver mais|mais|mostra(r)? mais|lista completa|ver (o )?restante|ver (os )?outros|continua(cao)?|proximos?)\W*$/i.test(String(texto || '').normalize('NFD').replace(/[̀-ͯ]/g, ''))) {
     const norm = (s) => String(s || '').replace(/〔[^〕]*〕/g, '').replace(/_🟢 Hoje[^\n]*_/g, '').replace(/_Quer ver mais\?[^\n]*_/g, '').replace(/\s+/g, ' ').trim().slice(0, 600);
@@ -460,7 +468,9 @@ async function trataMensagem({ request, env }) {
   // 18/11/2026: ACABAMENTO UNICO (rodape do Clube, hora da leitura nos zeros do dia, sem 'Vago', singular) — o mesmo da auditoria seca
   { const { acabamento } = await import('../../_lib/jota/acabamento.js'); resp = await acabamento(B, env, resp); }
   // AVALIACAO EM TODAS AS RESPOSTAS (Vitorio, 11/11/2026): vendedor, supervisor, gerente e diretoria, inclusive menus e os 3 momentos; 👍/👎 nao briga com o numero do menu
-  if (resp && !['nota', 'agradecimento', 'saudacao_primeira', 'reacao_figurinha', 'bloqueado'].includes(tipo) && !/o que faltou/.test(resp) && !/⟪⟫/.test(resp) && !/MENU DO JOTA/.test(resp)) resp += '\n\n_Essa resposta ajudou? Responda 👍 ou 👎 · ou escreva *sugestão:* e o que melhorar_';
+  // 21/11/2026 (auditoria UI/UX: 1.175 pedidos de avaliacao, 73 notas): pede avaliacao 1 vez por dia por pessoa
+  let jaPediuNota = false; try { jaPediuNota = !!(await env.DB.prepare("SELECT 1 FROM bot_msgs WHERE celular = ? AND direcao = 'out' AND texto LIKE '%Essa resposta ajudou?%' AND date(quando, '-3 hours') = date('now', '-3 hours') LIMIT 1").bind(cel).first()); } catch (e) { jaPediuNota = false; }
+  if (resp && !jaPediuNota && !['nota', 'agradecimento', 'saudacao_primeira', 'reacao_figurinha', 'bloqueado'].includes(tipo) && !/o que faltou/.test(resp) && !/⟪⟫/.test(resp) && !/MENU DO JOTA/.test(resp)) resp += '\n\n_Essa resposta ajudou? Responda 👍 ou 👎 · ou escreva *sugestão:* e o que melhorar_';
   if (audio && audio.texto) resp = `🎙️ _Entendi: "${audio.texto.slice(0, 200)}"_\n\n` + resp;
   if (!seco && meuId && !reprocId) { const dep2 = await env.DB.prepare("SELECT id FROM bot_msgs WHERE celular = ? AND direcao = 'in' AND id > ? LIMIT 1").bind(cel, meuId).first().catch(() => null); if (dep2) return new Response('ok (barge-in)'); }
   const limpaTags = (s) => String(s || '').replace(/\s*〔[^〕]+〕/g, '');
@@ -485,7 +495,8 @@ async function trataMensagem({ request, env }) {
       // Regra antiban de 03/11 (minimo 18 s, distribuicao humana; 09/11/2026: antes era 8 a 14 s)
       await R.pausaEntreEnvios(22, 3, 18);
     }
-    const opEnvio = conversaAberta ? { delayMs: 1200 } : {};
+    // 21/11/2026 (1a pergunta: 39 s de media): resposta a quem perguntou sai sem o 'digitando' simulado; a pausa antiban fica so para o que o JOTA inicia
+    const opEnvio = { delayMs: conversaAberta ? 600 : 1200 };
     let ei = null;
     if (i === 0 && B._midia && B._midia.tipo === 'image' && B._midia.url && partes.length === 1) {
       ei = await enviarImagem(env, numEnvio, B._midia.url, limpaTags(partes[i]), opEnvio);
@@ -516,7 +527,8 @@ async function trataMensagem({ request, env }) {
       const ult = await env.DB.prepare("SELECT MAX(quando) q, (SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'figurinha' ORDER BY id DESC LIMIT 1) fig_nome, (SELECT COUNT(*) FROM bot_msgs b WHERE b.celular = ? AND b.direcao = 'out' AND b.id > COALESCE((SELECT MAX(id) FROM bot_msgs x WHERE x.celular = ? AND x.direcao = 'figurinha'), 0)) desde FROM bot_msgs WHERE celular = ? AND direcao = 'figurinha'").bind(cel, cel, cel, cel).first().catch(() => null);
       const ruim = /precisando reagir|Abaixo do ritmo|ERRO|devolu/i.test(resp) && !/^(saudacao|momento_)/.test(tipo);
       const ehOutraFigurinha = ult && ult.fig_nome && ult.fig_nome !== fig;
-      if (!ruim && (tipo === 'agradecimento' || ehOutraFigurinha || !ult || !ult.q || ult.desde >= 3 || Date.now() - Date.parse(ult.q + 'Z') > 2 * 3600 * 1000)) {
+      // 21/11/2026 (auditoria UI/UX): no maximo 1 figurinha por dia por pessoa
+      if (!ruim && (!ult || !ult.q || new Date(Date.parse(ult.q + 'Z') - 3 * 3600e3).toISOString().slice(0, 10) !== new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10))) {
         const ok = await enviarFigurinha(env, numEnvio, fig);
         if (ok) await env.DB.prepare('INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?,?,?,?,?)').bind(cel, c.nome, 'figurinha', fig, tipo).run();
       }

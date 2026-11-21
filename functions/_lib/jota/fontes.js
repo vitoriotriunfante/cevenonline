@@ -25,9 +25,21 @@ const HANDLERS_LOCAIS = {
   '/api/divergencias': () => import('../../api/divergencias.js'),
   '/api/cron-lances': () => import('../../api/cron-lances.js'),
 };
+// 21/11/2026 (2a pergunta levava ~16 s: cada pergunta relia a filial inteira): leitura da filial (central-snapshot) e da Gestao de Equipe (tv-mostra)
+// guardada por 3 min na instancia; a pergunta seguinte reaproveita. Os dados de origem mudam de 15 em 15 min (Clube) e de 2 em 2 h (GEROT).
+const CACHE_LEITURA = new Map(), TTL_LEITURA = 180000, ROTAS_CACHE = /^\/api\/(central-snapshot|tv-mostra)$/;
 export function criaBase(origin, env) {
   const cache = {};
   const api = async (p) => {
+    const rota0 = String(p || '').split('?')[0];
+    if (ROTAS_CACHE.test(rota0)) {
+      const c0 = CACHE_LEITURA.get(p); if (c0 && Date.now() - c0.em < TTL_LEITURA) return c0.v;
+      const v = await apiSemCache(p); if (v != null) { CACHE_LEITURA.set(p, { em: Date.now(), v }); if (CACHE_LEITURA.size > 60) CACHE_LEITURA.delete(CACHE_LEITURA.keys().next().value); }
+      return v;
+    }
+    return apiSemCache(p);
+  };
+  const apiSemCache = async (p) => {
     const rota = String(p || '').split('?')[0];
     const loader = env && env.DB && !env.__forcaHttp ? HANDLERS_LOCAIS[rota] : null;
     if (loader) {

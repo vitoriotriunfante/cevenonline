@@ -149,7 +149,7 @@ export function humaniza(resp, c, primeiraDoDia) {
     return abre + '\n\n' + resp;
   }
   // Durante o dia: se a resposta não começar com saudação, adiciona uma abertura amigável
-  if (!/^(BOM DIA|BOA TARDE|BOA NOITE|FALA|OPA|VALEU|OBRIGAD|OI\b)/i.test(resp.trim())) {
+  if (false && !/^(BOM DIA|BOA TARDE|BOA NOITE|FALA|OPA|VALEU|OBRIGAD|OI\b)/i.test(resp.trim())) {   // 21/11/2026 (auditoria UI/UX): sem 'Na mão, Fulano:' em toda resposta
     const intro = varia([
       `Aqui está, ${n}:`,
       `Na mão, ${n}:`,

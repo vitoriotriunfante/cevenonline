@@ -185,6 +185,18 @@ export async function rotearIntencao(B, c, t, info) {
     const E = await carregaEscopo(B, fil ? { nome: fil, filiais: [fil], grupo: null } : (papel === 'diretoria' || papel === 'ceo') ? { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true } : esc);
     const { respVisitadosSemCompra } = await import('./respostas/rota.js'); const r = await respVisitadosSemCompra(E, B); if (r) return r;
   }
+  // H0 · VENDEDORES DE UMA FILIAL / DA EQUIPE (21/11/2026, Rudinei: "me passe a venda dos vendedores de TPA" e "TPA por vendedor" devolviam o card da filial)
+  if (acima && /\b(POR VENDEDOR|VENDEDORES|CADA VENDEDOR|TODOS OS VENDEDORES)\b/.test(t) && !/JUSTIFICATIV|DEVOLU|CORTE|POSITIV|ADERENCIA|VISITA|ZERAD|RANKING|LIGA|CARTEIRA|MOTIVO|QUANTOS|INDUSTRI|MARGEM|SEM COMPRA|NAO COMPR/.test(t) && (filCit || papel === 'gerente' || papel === 'supervisor')) {
+    const E0 = await carregaEscopo(B, filCit && (papel === 'diretoria' || papel === 'ceo') ? { nome: filCit, filiais: [filCit], grupo: null } : esc);
+    const V0 = (E0.vend || []).filter((v) => v.ehVendedorReal !== false && Number(v.meta) > 0).sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1));
+    if (V0.length) {
+      const fat = V0.reduce((a, v) => a + (Number(v.fat) || 0), 0), meta = V0.reduce((a, v) => a + (Number(v.meta) || 0), 0);
+      const L = [`👥 *Vendedores — ${E0.nome}* · ${N(V0.length)} com meta`, `Soma: *${R$(fat)}* de ${R$(meta)} (${meta ? (fat / meta * 100).toFixed(1).replace('.', ',') : '—'}%) · _% da meta faturada no mês (GEROT)_`, ''];
+      V0.forEach((v, i) => L.push(`${i + 1}. ${vn(v)} — *${v.pct == null ? '—' : v.pct.toFixed(1).replace('.', ',') + '%'}* · ${R$(v.fat)} de ${R$(v.meta)}${v.pend ? ` · pend. ${R$(v.pend)}` : ''}`));
+      L.push('', '_Peça "vendedor <nome>" para abrir um deles._');
+      return L.join(String.fromCharCode(10));
+    }
+  }
   // H · GESTAO PELO GEROT E PELO CLUBE (18/11/2026: perguntas de Vitorio, Evandro Servat e Paulo Micheleto) — escopo de quem pergunta
   if (acima) {
     const G = () => import('./respostas/gestao_gerot.js');
