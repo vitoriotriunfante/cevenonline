@@ -106,6 +106,10 @@ export default {
       if (dia >= 1 && dia <= 6 && [7, 21].includes(h) && mi >= 15 && mi < 30) {
         try { const r = await dispararWorkflow(env, 'gerot-coleta.yml', {}); console.log(`[GEROT] gerot-coleta.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[GEROT][ERRO] ' + (e && e.message ? e.message : e)); }
       }
+      // AUDITORIA DO JOTA (21/11/2026, plano bloco B): o schedule do GitHub atrasava 7 h (06h30 rodava 13h54). 06h32 e 13h02 BRT, seg-sab.
+      if (dia >= 1 && dia <= 6 && ((h === 6 && mi >= 30 && mi < 45) || (h === 13 && mi < 15))) {
+        try { const r = await dispararWorkflow(env, 'jota-auditoria.yml', {}); console.log(`[AUDITORIA] jota-auditoria.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[AUDITORIA][ERRO] ' + (e && e.message ? e.message : e)); }
+      }
       // CLUBE DA VENDA (16/11/2026): disparado pelo worker-cron a cada 30 min (:02 e :32, seg-sab 07h-20h45 BRT) para nao depender do schedule do GitHub.
       if (dia >= 1 && dia <= 6 && h >= 7 && h <= 20 && (mi < 15 || (mi >= 30 && mi < 45))) {
         try { const r = await dispararWorkflow(env, 'clube-coletor.yml', {}); console.log(`[CLUBE] clube-coletor.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[CLUBE][ERRO] ' + (e && e.message ? e.message : e)); }

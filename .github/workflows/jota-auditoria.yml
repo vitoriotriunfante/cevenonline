@@ -6,7 +6,7 @@ name: JOTA — auditoria por papel
 
 on:
   schedule:
-    - cron: '30 9 * * 1-6'    # 06h30 BRT
+    - cron: '30 9 * * 1-6'    # 06h30 BRT (reserva; o disparo de verdade vem do worker-cron desde 21/11/2026)
     - cron: '0 16 * * 1-6'    # 13h00 BRT
   workflow_dispatch:
 

@@ -20,6 +20,13 @@ export async function onRequestPost({ request, env }) {
   await env.DB.prepare('INSERT INTO jota_auditoria (em, origem, ok, total, resumo_json, falhas_json, amarracao_json) VALUES (?,?,?,?,?,?,?)')
     .bind(new Date().toISOString(), String(b.origem || 'manual').slice(0, 40), ok, total, JSON.stringify(b.resumo), JSON.stringify((b.falhas || []).slice(0, 200)).slice(0, 900000), JSON.stringify(b.amarracao || {})).run();
   const piorou = !!(ant && ant.total && total && ok / total < ant.ok / ant.total);
+  // 21/11/2026 (plano bloco B: 'aviso ao Vitorio so se piorar'): so para o Vitorio (proativo liberado so para ele), so quando piora
+  if (piorou) {
+    const pc = (a, t) => (t ? ((100 * a) / t).toFixed(1).replace('.', ',') : '-') + '%';
+    const por = Object.entries(b.resumo).map(([p, x]) => `${p} ${x.ok}/${x.total}`).join(' · ');
+    const txt = `⚠️ *Auditoria do JOTA piorou*\nAgora: ${ok}/${total} (${pc(ok, total)}) · antes: ${ant.ok}/${ant.total} (${pc(ant.ok, ant.total)})\n${por}\n_Detalhe: /api/jota-auditoria (origem ${String(b.origem || 'manual').slice(0, 40)})_`;
+    try { const { enviar } = await import('../_lib/jota/base.js'); await enviar(env, '554187525605', txt); } catch (e) { /* aviso nao derruba a gravacao */ }
+  }
   return j({ ok: true, aprovadas: ok, total, anterior: ant ? `${ant.ok}/${ant.total}` : null, piorou });
 }
 

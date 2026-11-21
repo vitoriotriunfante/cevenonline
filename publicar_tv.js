@@ -50,6 +50,8 @@ execSync(`npx wrangler pages deploy public --project-name ceven-cftv-matrix --br
       if (d.version === versao) {
         console.log('NO AR:', d.version, '- as TVs abertas recarregam sozinhas em ate 30s.');
         // REGUA DEPOIS DE PUBLICAR (17/11/2026, plano do JOTA bloco A): auditoria por papel no JOTA ja publicado; se piorar em relacao a ultima, avisa em destaque
+        // 21/11/2026: a regua nunca rodava (JOTA_CHAVE so existia no arquivo local da chave admin) -> le de la quando nao vier no ambiente
+        if (!process.env.JOTA_CHAVE && !process.env.EVO_KEY) { try { const k = fs.readFileSync(path.join(require('os').tmpdir(), '.tk'), 'utf8').trim(); if (k) process.env.JOTA_CHAVE = k; } catch {} }
         if ((process.env.JOTA_CHAVE || process.env.EVO_KEY) && fs.existsSync(path.join(__dirname, 'testes', 'auditoria_papeis.mjs'))) {
           try { execSync('node testes/auditoria_papeis.mjs', { stdio: 'inherit', cwd: __dirname, env: { ...process.env, CI: '1' } }); }
           catch (e) { console.log('\n!!!!! AUDITORIA DO JOTA PIOROU DEPOIS DESTA PUBLICACAO — conferir /api/jota-auditoria e corrigir ou voltar a versao anterior !!!!!\n'); process.exitCode = 2; }
