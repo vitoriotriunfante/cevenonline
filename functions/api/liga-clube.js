@@ -63,6 +63,12 @@ export async function calculaLances(env, origin, dia, conferir = false) {
   const mpPorPed = new Map();
   for (const sql of ['SELECT filial, rca, cnpj, pedido, mp, skus FROM gerot_pedido_entrada WHERE entrada = ? AND (mp > 0 OR skus > 0)', 'SELECT filial, rca, cnpj, pedido, mp, skus FROM gerot_carteira WHERE entrada = ? AND (mp > 0 OR skus > 0)']) { try { const { results } = await db.prepare(sql).bind(dia).all(); for (const r of results || []) { const kp = r.filial + '|' + r.pedido; const o = mpPorPed.get(kp), cn = String(r.cnpj || '').replace(/\D/g, ''); mpPorPed.set(kp, { k: `${r.filial}|${r.rca}|${cn}`, filial: r.filial, cnpj: cn, pedido: r.pedido, mp: Math.max(Number(r.mp) || 0, o ? o.mp : 0), skus: Math.max(Number(r.skus) || 0, o ? o.skus : 0) }); } } catch (e) { /* colunas ainda nao existem */ } }
   const mpPed = new Map(); for (const o of mpPorPed.values()) { const x = mpPed.get(o.k) || { mp: 0, pedido: o.pedido, skus: 0, pedSkus: o.pedido }; x.mp += o.mp; if (o.skus > x.skus) { x.skus = o.skus; x.pedSkus = o.pedido; } mpPed.set(o.k, x); }
+  // 22/11/2026 (auditoria dos agentes: o 'maior valor ja visto' guardou leituras da formula antiga, multiplicadas por 3 a 9): a MP do pedido nunca passa
+  //   da MP do cliente NO MES pelo GEROT (cliente x industria, 24318 Triunfante: faturado + carteira). Sem esse dado = sem prova = sem gol.
+  { const capMp = new Map();
+    try { const { results } = await db.prepare(`SELECT f.filial, f.rca, m.cnpj, COALESCE(json_extract(f.dados, '$."Faturado líquido (R$)"'), 0) + COALESCE(json_extract(f.dados, '$."Carteira pendente (R$)"'), 0) v FROM gerot_cliente_forn_mes f JOIN gerot_cliente_mes m ON m.mes = f.mes AND m.filial = f.filial AND m.rca = f.rca AND m.cliente = f.cliente WHERE f.mes = ? AND f.forn_cod = '24318'`).bind(dia.slice(0, 7)).all();
+      for (const r of results || []) { const kk = `${r.filial}|${r.rca}|${String(r.cnpj || '').replace(/\D/g, '')}`; capMp.set(kk, (capMp.get(kk) || 0) + (Number(r.v) || 0)); } } catch (e) { /* sem cruzamento: nenhum gol de MP */ }
+    for (const [kk, x] of mpPed) { const cap = capMp.get(kk); x.mp = cap == null ? 0 : Math.min(x.mp, cap); } }
   // DOBROU O MIX (mesma regra de tv-vendedor.js mixDobrado): SKUs do pedido de hoje x media de SKUs dos pedidos ANTERIORES do cliente.
   // gerot_pedido_entrada guarda os SKUs por pedido desde 18/11/2026; sem pedido anterior gravado = sem gol (nunca estimado)
   const mixHist = new Map();
