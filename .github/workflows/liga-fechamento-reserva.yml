@@ -1,0 +1,27 @@
+# FICHA DO ARQUIVO
+# O QUE E: RESERVA do fechamento do dia da Liga e da Semana Invicta. O disparo principal e o worker-cron (22h17 BRT, seg-sex).
+#   As duas rotas sao idempotentes: se o worker ja fechou, aqui so confirma ("JA_FECHADO"). Inventario de 22/11/2026: "o fechamento das 22:17
+#   e a classificacao nao tem reserva". Tambem refaz a classificacao (brasileirao-dataset) depois de fechar. Log publico: so status.
+name: Liga — fechamento (reserva)
+
+on:
+  schedule:
+    - cron: '47 1 * * 2-6'   # 22h47 BRT de seg a sex (01h47 UTC do dia seguinte)
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  fechar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Fechar o dia e conferir a semana invicta
+        run: |
+          curl -s --max-time 280 "https://ceven-cftv-matrix.pages.dev/api/cron-fechamento-dia" | grep -o '"status":"[A-Z_]*"' | sort | uniq -c || true
+          curl -s --max-time 280 "https://ceven-cftv-matrix.pages.dev/api/cron-semana-invicta" | grep -o '"status":"[A-Z_]*"' || true
+      - name: Refazer a classificacao
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run brasileirao-dataset.yml --repo "${{ github.repository }}" --ref main || true
