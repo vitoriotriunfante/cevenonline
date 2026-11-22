@@ -5,6 +5,11 @@ name: GEROT — mapa das telas (so leitura)
 
 on:
   workflow_dispatch:
+    inputs:
+      alvo:
+        description: 'Regex das telas (vazio = todas)'
+        required: false
+        default: ''
 
 concurrency:
   group: gerot-coleta
@@ -27,5 +32,6 @@ jobs:
         env:
           GEROT_EMAIL: ${{ secrets.GEROT_EMAIL }}
           GEROT_SENHA: ${{ secrets.GEROT_SENHA }}
+          GEROT_ALVO: ${{ github.event.inputs.alvo }}
           SO_EXPORT: "1"   # 21/11/2026: TODAS as telas, todas as exportacoes + rotulos (sem numeros)
         run: node pipeline/gerot_mapa_telas.mjs

@@ -56,10 +56,11 @@ for (const it of itens.filter((x) => ALVO.test(x.v + ' ' + x.t))) {
     const nb = await bs.count();
     if (!nb) { log(`[${it.v}] sem botao de exportar`); continue; }
     for (let k = 0; k < nb; k++) {
-      const dl = page.waitForEvent('download', { timeout: 180000 }).catch(() => null);
+      // 21/11/2026: botao de grafico nao baixa nada; 3 min por botao estourou o tempo (as telas da Visao Campo ficaram de fora) -> 45 s
+      const dl = page.waitForEvent('download', { timeout: Number(process.env.ESPERA_MS || 45000) }).catch(() => null);
       await bs.nth(k).scrollIntoViewIfNeeded().catch(() => {}); await bs.nth(k).click({ timeout: 15000 }).catch(() => {});
       const d = await dl;
-      if (!d) { log(`[${it.v}] exportar #${k + 1} nao gerou arquivo em 3 min`); continue; }
+      if (!d) { log(`[${it.v}] exportar #${k + 1} nao gerou arquivo`); continue; }
       const arq = path.join(tmp, `${it.v}_${k}_${Date.now()}`); await d.saveAs(arq);
       const w = XLSX.readFile(arq);
       for (const nm of w.SheetNames) {
