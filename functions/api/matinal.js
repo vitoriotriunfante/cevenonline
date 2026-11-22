@@ -91,9 +91,9 @@ export async function onRequestGet({ request, env }) {
         : env.DB.prepare('SELECT filial, rca, roteiros n FROM clube_venda_dia WHERE dia = ?').bind(hoje)
       ).all().catch(() => ({ results: [] })),
       (fil
-        /* 21/11/2026: bloqueados = Carteira Total do GEROT (pedido_status parou em 13/11 com o CEVEN fora); R$ = total do pedido no Clube, igual a "pedidos bloqueados" */
-        ? env.DB.prepare("SELECT c.filial, c.rca, 'BLOQUEADO' status, COUNT(*) qtd, SUM(p.total) vlr FROM (SELECT DISTINCT filial, pedido, rca FROM gerot_carteira WHERE situacao LIKE 'Bloqueado%' AND filial = ?) c LEFT JOIN (SELECT filial, pedido_winthor, MAX(total) total FROM clube_pedido GROUP BY filial, pedido_winthor) p ON p.filial = c.filial AND p.pedido_winthor = c.pedido GROUP BY c.filial, c.rca").bind(fil)
-        : env.DB.prepare("SELECT c.filial, c.rca, 'BLOQUEADO' status, COUNT(*) qtd, SUM(p.total) vlr FROM (SELECT DISTINCT filial, pedido, rca FROM gerot_carteira WHERE situacao LIKE 'Bloqueado%') c LEFT JOIN (SELECT filial, pedido_winthor, MAX(total) total FROM clube_pedido GROUP BY filial, pedido_winthor) p ON p.filial = c.filial AND p.pedido_winthor = c.pedido GROUP BY c.filial, c.rca")
+        /* 21/11/2026: bloqueados = Carteira Total do GEROT (pedido_status parou em 13/11 com o CEVEN fora); R$ = o do GEROT (preco x qt a faturar), nunca o Clube */
+        ? env.DB.prepare("SELECT filial, rca, 'BLOQUEADO' status, COUNT(*) qtd, SUM(valor) vlr FROM gerot_carteira WHERE situacao LIKE 'Bloqueado%' AND filial = ? GROUP BY filial, rca").bind(fil)
+        : env.DB.prepare("SELECT filial, rca, 'BLOQUEADO' status, COUNT(*) qtd, SUM(valor) vlr FROM gerot_carteira WHERE situacao LIKE 'Bloqueado%' GROUP BY filial, rca")
       ).all().catch(() => ({ results: [] })),
       (fil
         ? env.DB.prepare('SELECT filial, rca, COUNT(*) qtd FROM prospects_mapa WHERE filial = ? GROUP BY filial, rca').bind(fil)
