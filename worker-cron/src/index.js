@@ -120,6 +120,10 @@ export default {
       if (dia >= 1 && dia <= 6 && h >= 7 && h <= 20 && ((mi >= 15 && mi < 30) || mi >= 45)) {
         try { const r = await dispararWorkflow(env, 'brasileirao-dataset.yml', {}); console.log(`[LIGA] brasileirao-dataset.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[LIGA][ERRO] ' + (e && e.message ? e.message : e)); }
       }
+      // VIGIA DAS FONTES (22/11/2026, Vitorio: 'tudo tem redundancia?'): avisa no WhatsApp quando Clube, GEROT, CEVEN ou lances param. Seg-sab 07h-21h.
+      if (dia >= 1 && dia <= 6 && h >= 7 && h <= 21 && env.MONITORIA_CRON_KEY) {
+        await rodarTarefaTv(event.cron, { passos: [{ rota: '/api/vigia-fontes', ms: 60000, chaveEnv: 'MONITORIA_CRON_KEY' }] }, env);
+      }
       // FECHAMENTO DA LIGA (22/11/2026, auditoria: 17, 18 e 19/11 nunca fecharam — o fechamento era chamado pelo cron-lances, desligado em 16/11).
       //   22h17 BRT seg-sex, depois da coleta das 21h17 (que grava os lances do dia). Idempotente; fecha tambem dia util anterior ainda aberto.
       if (dia >= 1 && dia <= 5 && h === 22 && mi >= 15 && mi < 30) {

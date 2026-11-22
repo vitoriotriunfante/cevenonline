@@ -1,0 +1,21 @@
+﻿# FICHA DO ARQUIVO
+# O QUE E: RESERVA do vigia das fontes (functions/api/vigia-fontes.js). O disparo principal e o worker-cron (a cada 15 min);
+#   esta reserva roda pelo GitHub a cada 30 min e NAO marca a passagem do agendador: se o worker-cron parar, ela avisa o Vitorio.
+#   Vitorio, 22/11/2026: "vamos correr o risco de ficar fora? tudo tem redundancia?". Log publico: so o numero de avisos.
+name: Vigia das fontes (reserva)
+
+on:
+  schedule:
+    - cron: '17,47 10-23 * * 1-6'   # 07h17 a 20h47 BRT, seg-sab
+  workflow_dispatch:
+
+jobs:
+  vigiar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Conferir as fontes
+        env:
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+        run: |
+          curl -s --max-time 60 -H "X-Evo-Key: $EVO_KEY" "https://ceven-cftv-matrix.pages.dev/api/vigia-fontes?externo=1" | grep -o '"avisos": *[0-9]*' || true

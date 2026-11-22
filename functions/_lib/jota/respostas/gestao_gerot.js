@@ -36,10 +36,11 @@ export async function respDevolucaoGerot(B, esc) {
 }
 
 // ---------- MARGEM (so diretoria e gerente) ----------
-export async function respMargemGerot(B, filiais, nome) {
+export async function respMargemGerot(B, filiais, nome, rcas = null) {
   const db = B.env && B.env.DB; if (!db) return null;
   const F = filiais && filiais.length ? filiais : FILIAIS;
-  let R = []; try { R = (await db.prepare(`SELECT filial, dados FROM gerot_filial_mes WHERE mes = ? AND filial IN (${qs(F)})`).bind(mesAtual(), ...F).all()).results || []; } catch (e) { return null; }
+  // 22/11/2026 (auditoria: gerente de GRUPO via a margem da filial inteira): com rcas, soma so os vendedores do grupo/equipe
+  let R = []; try { R = rcas && rcas.length ? ((await db.prepare(`SELECT filial, json_object('Margem de contribuição (R$)', SUM(json_extract(dados, '$.\"Margem de contribuição (R$)\"')), 'Faturado líquido (R$)', SUM(json_extract(dados, '$.\"Faturado líquido (R$)\"'))) dados FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs(F)}) AND rca IN (${qs(rcas)}) GROUP BY filial`).bind(mesAtual(), ...F, ...rcas.map(String)).all()).results || []) : ((await db.prepare(`SELECT filial, dados FROM gerot_filial_mes WHERE mes = ? AND filial IN (${qs(F)})`).bind(mesAtual(), ...F).all()).results || []); } catch (e) { return null; }
   const L = R.map((r) => { const d = J(r.dados); return { f: r.filial, m: Number(d['Margem de contribuição (R$)']) || 0, fat: Number(d['Faturado líquido (R$)']) || 0 }; }).filter((x) => x.fat || x.m);
   if (!L.length) return `💹 *Margem — ${nome}*: sem a margem no GEROT agora.`;
   const tm = L.reduce((a, x) => a + x.m, 0), tf = L.reduce((a, x) => a + x.fat, 0), pos = await fontesG(db);

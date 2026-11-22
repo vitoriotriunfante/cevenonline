@@ -71,7 +71,7 @@ export async function rotearIntencao(B, c, t, info) {
   if (/\b(HOJE|ZERAD\w*|ROTA|VISITA\w*|BOM DIA|MATINAL|FECHAMENTO DO DIA|QUANTO VENDI)\b/.test(t) && !/\b(MES|ONTEM|SEMANA)\b/.test(t)) {
     try { const { ehFeriado } = await import('../feriados.js'); const hj = hojeSP();
       // 22/11/2026 (regua de domingo: 'R$ 0', '0 de 0', 'sem rota gravada'): domingo nao tem rota (Vitorio: 'domingo sem rota') — avisa como no feriado
-      if (new Date(hj + 'T12:00:00Z').getUTCDay() === 0 && !/\b(ULTIMO DIA|SEXTA|SABADO|MATINAL)\b/.test(t) && !/LIGA|CHAMPIONS|PONTUA|CARTAO|CARTOES|MIX|RECORR|META|DEVOLU|PENDENT|FATURA|CARTEIRA|BLOQUE|POSITIVA|INDUSTRI|SEM COMPRA|CURVA|NO MES|DO MES|MES PASSADO|OUTUBRO|NOVEMBRO|SETEMBRO|ULTIMOS? \d+ DIAS/.test(t))   /* 22/11/2026 (bateria real): domingo so barra pergunta do DIA; assunto do mes/liga/mix segue para a resposta normal */ return `📅 Hoje (${hj.slice(8, 10)}/${hj.slice(5, 7)}) é *domingo*: sem rota e sem cobrança do dia.\n\nPergunte do *mês* (ex.: "como estou no mês") ou de *sábado* (ex.: "como foi sábado").`;
+      if (new Date(hj + 'T12:00:00Z').getUTCDay() === 0 && !/\b(ULTIMO DIA|SEXTA|SABADO|MATINAL)\b/.test(t) && !/COMO (ESTOU|EU ESTOU|TO|EU TO|Q EU TO|QUE EU TO|TA MEU|ESTA MEU)|LIGA|CHAMPIONS|PONTUA|CARTAO|CARTOES|MIX|RECORR|META|DEVOLU|PENDENT|FATURA|CARTEIRA|BLOQUE|POSITIVA|INDUSTRI|SEM COMPRA|CURVA|NO MES|DO MES|MES PASSADO|OUTUBRO|NOVEMBRO|SETEMBRO|ULTIMOS? \d+ DIAS/.test(t))   /* 22/11/2026 (bateria real): domingo so barra pergunta do DIA; assunto do mes/liga/mix segue para a resposta normal */ return `📅 Hoje (${hj.slice(8, 10)}/${hj.slice(5, 7)}) é *domingo*: sem rota e sem cobrança do dia.\n\nPergunte do *mês* (ex.: "como estou no mês") ou de *sábado* (ex.: "como foi sábado").`;
       if (ehFeriado(hj)) return `📅 Hoje (${hj.slice(8, 10)}/${hj.slice(5, 7)}) é *feriado nacional*: sem rota e sem cobrança do dia. Os dias úteis do mês já não contam hoje.\n\nPergunte do *mês* (ex.: "como estou no mês") ou de *ontem*.`; } catch (e) { /* segue */ }
   }
   // A8 · RESPOSTA A UM ALERTA DO MONITOR.IA (piloto 21/11/2026): "ok/feito" ou "nao procede" ate 4 h depois do alerta = registra no alerta e confirma
@@ -133,7 +133,7 @@ export async function rotearIntencao(B, c, t, info) {
     } catch (err) { /* segue */ }
   }
   // A3 · CARTEIRA E BLOQUEADOS POR NIVEL (Vitorio, 22/11/2026: 'carteira total' caia na industria 'Total Quimica' e 'carteira API' no resumo antigo)
-  if ((acima || (papel === 'vendedor' && rcaV)) && (/\bCARTEIRA\b/.test(t) || /\bBLOQUEAD|BLOQUEIO (FINANCEIRO|COMERCIAL)/.test(t) || (papel === 'vendedor' && /STATUS DOS PEDIDOS|MEUS PEDIDOS|PEDIDOS? (PENDENTES?|A FATURAR|LIBERADOS?|MONTADOS?)/.test(t))) && !/CARTEIRA DE CLIENTES?|QUANTOS CLIENTES|CLIENTES? (DA|NA) CARTEIRA|CLIENTES? BLOQUEAD|\b\d{7,}\b|POSITIVA|VISITAD|SEM COMPRA/.test(t)) {
+  if ((acima || (papel === 'vendedor' && rcaV)) && (/\bCARTEIRA\b/.test(t) || /\bBLOQUEAD|BLOQUEIO (FINANCEIRO|COMERCIAL)/.test(t) || (papel === 'vendedor' && /TRAVAD|STATUS DOS PEDIDOS|MEUS PEDIDOS|PEDIDOS? (PENDENTES?|A FATURAR|LIBERADOS?|MONTADOS?)/.test(t))) && !/CARTEIRA DE CLIENTES?|QUANTOS CLIENTES|CLIENTES? (DA|NA) CARTEIRA|CLIENTES? BLOQUEAD|\b\d{7,}\b|POSITIVA|VISITAD|SEM COMPRA/.test(t)) {
     try {
       const pp = papel === 'ceo' ? 'diretoria' : papel;
       let e;
@@ -346,7 +346,7 @@ export async function rotearIntencao(B, c, t, info) {
       return { filiais: [c.filial], nome: Ev && Ev.nome || 'Equipe', rcas: V.map((v) => String(v.rca)), supCod: (V.find((v) => v.supCod) || {}).supCod || null };
     };
     // margem: so diretoria e gerente (Evandro, 18/11: "disponibilizar apenas para diretoria e gerentes")
-    if (/\bMARGE[MN]/.test(t) && (papel === 'diretoria' || papel === 'ceo' || papel === 'gerente')) { const e = await escG(); const r = await (await G()).respMargemGerot(B, e.filiais, e.nome).catch(() => null); if (r) return r; }
+    if (/\bMARGE[MN]/.test(t) && (papel === 'diretoria' || papel === 'ceo' || papel === 'gerente')) { const e = await escG(); const r = await (await G()).respMargemGerot(B, e.filiais, e.nome, e.rcas).catch(() => null); if (r) return r; }
     // percentual de atingimento por filial (Micheleto, 17/11: virava texto generico da IA)
     if ((papel === 'diretoria' || papel === 'ceo') && /ATINGIMENTO|PERCENTUAL (DA META|DE META|DE ATINGIMENTO)|% DA META/.test(t) && !filCit) { const { respBrasilGerot } = await import('./respostas/gerot_painel.js'); const r = await respBrasilGerot(B, null).catch(() => null); if (r) return r; }
     // carteira por status / motivo (Micheleto, 18/11: "bloqueio financeiro, bloqueio comercial e todos os outros motivos")
