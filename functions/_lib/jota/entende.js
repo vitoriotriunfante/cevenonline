@@ -1440,6 +1440,21 @@ _Devolução do mês no painel do CEVEN (${E.nome}): *${R$(tot)}*. Os motivos ac
             for (const [k0, L0x] of por) { const f0 = k0.split('|')[0]; for (const c0 of L0x) c0.m1 = comprouAnt.has(f0 + '|' + c0.id) ? 1 : 0; }
             for (const x of GA || []) { if (!(Number(x.f) > 0) || ja.has(x.filial + '|' + x.cliente)) continue; ja.add(x.filial + '|' + x.cliente); const k = x.filial + '|' + x.rca; if (!por.has(k)) por.set(k, []); por.get(k).push({ id: x.cliente, nome: titulo(String(x.nome || 'Cliente').toLowerCase()), pos: 0, pc: 0, m1: 1 }); }
           } catch (e) { /* sem o mes passado: fica a carteira do mes */ }
+          // 21/11/2026 (Diego/TBE de novo: 3.357 sem compra x 911 da lista dele): o GEROT tem o MESMO cliente em varios codigos (o vendedor atual, 'H|' de quem saiu,
+          // vago...). Cliente que comprou em QUALQUER codigo da filial esta positivado; e cada cliente conta UMA vez, num vendedor so
+          // (quem vendeu; senao o codigo atual, nunca o 'H|'). TBE 21/11: 3.289 clientes, 1.144 positivados (= GEROT da filial), 911 de outubro sem compra.
+          {
+            const dono = new Map();
+            for (const [k, L] of por) for (const c of L) {
+              const kc = k.slice(0, 3) + '|' + c.id, d0 = dono.get(kc), comp = c.pos > 0 || c.pc > 0, hist = /^[A-Z]{3}\|H\|/.test(k);
+              if (!d0) { dono.set(kc, { k, c, comp, hist, m1: c.m1 }); continue; }
+              d0.m1 = Math.max(d0.m1, c.m1);
+              if ((comp && !d0.comp) || (!comp && !d0.comp && d0.hist && !hist)) Object.assign(d0, { k, c, comp, hist });
+            }
+            for (const L of por.values()) L.length = 0;
+            for (const d0 of dono.values()) { d0.c.m1 = d0.m1; if (d0.comp) { d0.c.pos = Math.max(d0.c.pos, 1); } por.get(d0.k).push(d0.c); }
+            for (const [k, L] of [...por]) if (!L.length) por.delete(k);
+          }
           // 21/11/2026 (Vitorio: 'numero e numero'): filial/Brasil = TODOS os codigos do GEROT (inclusive quem nao tem leitura no Clube nem esta na Gestao); equipe = os vendedores dela
           const VVx = VV.slice(); if (!pessoa && !E.supervisor && !E.rca && !E.grupo) { const tem = new Set(VV.map((v) => v.filial + '|' + v.rca)); for (const k of por.keys()) if (!tem.has(k)) { const f0 = k.slice(0, 3), r0 = k.slice(4); VVx.push({ filial: f0, rca: r0.startsWith('H|') ? 'hist.' : r0, nome: r0.startsWith('H|') ? r0.slice(2) + ' (saiu)' : 'RCA ' + r0, foraGestao: true, _k: k }); } }
           const L0 = VVx.map((v) => { const C = por.get(v._k || (v.filial + '|' + v.rca)) || []; const nao = C.filter((c) => !(c.pos > 0) && !(c.pc > 0)).sort((a, b) => b.m1 - a.m1); return { v, tot: C.length, nao }; }).filter((x) => x.tot > 0);
