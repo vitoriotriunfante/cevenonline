@@ -49,7 +49,7 @@ export async function respMargemGerot(B, filiais, nome) {
 }
 
 // ---------- CARTEIRA POR STATUS E MOTIVO (Carteira Total) ----------
-export async function respCarteiraStatus(B, filiais, rcas, nome, soBloq) {
+export async function respCarteiraStatus(B, filiais, rcas, nome, soBloq, porFil) {
   // 21/11/2026: R$ de cada status e motivo = o do GEROT (Valor item = preco unitario em centavos x Qt a faturar). Nunca o Clube (pedido do Clube pode ser cortado/reprovado).
   const db = B.env && B.env.DB; if (!db) return null;
   const F = filiais && filiais.length ? filiais : FILIAIS;
@@ -79,7 +79,7 @@ export async function respCarteiraStatus(B, filiais, rcas, nome, soBloq) {
   const bN = sits.reduce((a, [, x]) => a + x.n, 0), bV = sits.reduce((a, [, x]) => a + x.v, 0);
   if (soBloq && !sits.length) return `🚫 *Pedidos bloqueados — ${nome}*: nenhum pedido bloqueado na Carteira Total do GEROT agora. ✅`;
   const L = soBloq ? [`🚫 *Pedidos bloqueados — ${nome}*: *${N(bN)}* pedidos${usaG ? ` · *${R$(bV)}*` : ''}`, ''] : [`💼 *Carteira em aberto por status — ${nome}*`, `*${N(tot)}* pedidos${!(rcas && rcas.length) && val ? ` · carteira pendente ${R$(val)} (GEROT)` : ''}`,
-    ...(() => { const fat = [...porSit].filter(([s]) => /MONTAD|LIBERAD/i.test(s)).reduce((a, [, x]) => a + x.v, 0), aN = [...porSit].reduce((a, [, x]) => a + x.atr, 0), aV = [...porSit].reduce((a, [, x]) => a + x.atrv, 0); return [`${usaG ? `✅ Faturável (montado + liberado): *${R$(fat)}*` : ''}${aN ? ` · ⏰ em atraso (8 dias ou mais): ${N(aN)} pedidos${usaG ? ' · ' + R$(aV) : ''}` : ''}`]; })(), ''];
+    ...(() => { const fat = [...porSit].filter(([s]) => /MONTAD|LIBERAD/i.test(s)).reduce((a, [, x]) => a + x.v, 0), aN = [...porSit].reduce((a, [, x]) => a + x.atr, 0), aV = [...porSit].reduce((a, [, x]) => a + x.atrv, 0); return [`${usaG ? `✅ Faturável (montado + liberado): *${R$(fat)}*` : ''}${aN ? `${usaG ? ' · ' : ''}⏰ em atraso (8 dias ou mais): ${N(aN)} pedidos${usaG ? ' · ' + R$(aV) : ''}` : ''}`]; })(), ''];
   for (const [s, x] of sits.sort((a, b) => (/BLOQ/i.test(b[0]) - /BLOQ/i.test(a[0])) || b[1].n - a[1].n)) {
     L.push(`${/BLOQ/i.test(s) ? '🚫' : /LIBER/i.test(s) ? '🟢' : '⏳'} *${s}*: ${N(x.n)} pedidos${usaG ? ` · *${R$(x.v)}*` : ''}`);
     const ms = [...x.mot].sort((a, b) => b[1].v - a[1].v || b[1].n - a[1].n);
@@ -87,8 +87,45 @@ export async function respCarteiraStatus(B, filiais, rcas, nome, soBloq) {
     if (ms.length > 8) L.push(`   _… e mais ${ms.length - 8} motivo(s)_`);
     if (F.length > 1 && /BLOQ/i.test(s)) L.push(`   _por filial: ${[...x.fil].sort((a, b) => b[1].v - a[1].v || b[1].n - a[1].n).map(([f, z]) => `${f} ${usaG ? R$(z.v) : N(z.n)}`).join(' · ')}_`);
   }
+  // 22/11/2026 (Vitorio: "Pedidos Bloqueados abertos por filial" veio igual ao anterior): quadro filial x situacao
+  if (porFil && F.length > 1) {
+    const fs = new Map(); for (const r of R) { if (soBloq && !/BLOQ/i.test(r.situacao)) continue; const o = fs.get(r.filial) || { com: 0, fin: 0, out: 0, n: 0, v: 0 }; const k = /COMERC/i.test(r.situacao) ? 'com' : /FINANC/i.test(r.situacao) ? 'fin' : 'out'; o[k] += r.n; o.n += r.n; o.v += Number(r.v) || 0; fs.set(r.filial, o); }
+    L.push('', '*Por filial:*', ...[...fs].sort((a, b) => b[1].v - a[1].v || b[1].n - a[1].n).map(([f, o]) => `• *${f}*: ${N(o.n)} ped.${usaG ? ' · *' + R$(o.v) + '*' : ''} (comercial ${N(o.com)} · financeiro ${N(o.fin)}${soBloq ? '' : ' · outros ' + N(o.out)})`));
+  }
   if (resto.length) L.push('', `_Resto da carteira: ${resto.sort((a, b) => b[1].n - a[1].n).map(([s, x]) => `${s.toLowerCase()} ${N(x.n)}`).join(' · ')} — peça *carteira por status* para ver tudo._`);
   L.push('', usaG ? '_Carteira Total do GEROT (status, motivo e R$). Valor de um pedido: mande o número._' : '_Carteira Total do GEROT (status e motivo). O R$ por situação entra na próxima carga do GEROT._');
+  return L.join(String.fromCharCode(10));
+}
+
+// ---------- QUEM PEDIU (Clube da Venda: pedido colocado) ----------
+// 22/11/2026 (Vitorio, domingo: "Quem pediu por vendedor?" caiu no 'estou em treinamento'): hoje; se hoje nao tem pedido, o ultimo dia que teve.
+// R$ = valor COLOCADO no Clube (pode ser cortado/reprovado depois; faturado e carteira sao do GEROT).
+export async function respQuemPediu(B, esc) {
+  const db = B.env && B.env.DB; if (!db) return null;
+  const F = esc.filiais && esc.filiais.length ? esc.filiais : FILIAIS, hoje = hojeSP();
+  const fr = esc.rcas && esc.rcas.length ? ` AND rca IN (${qs(esc.rcas)})` : '';
+  let dia = null, P = [], NM = [];
+  try {
+    const d = await db.prepare(`SELECT MAX(dia) d FROM clube_pedido WHERE dia <= ? AND filial IN (${qs(F)})${fr}`).bind(hoje, ...F, ...(esc.rcas || [])).first();
+    dia = d && d.d; if (!dia) return `🧾 *Quem pediu — ${esc.nome}*: nenhum pedido no Clube da Venda nos últimos dias.`;
+    P = (await db.prepare(`SELECT filial, rca, COUNT(DISTINCT pedido) n, COUNT(DISTINCT cliente) c, SUM(total) v FROM clube_pedido WHERE dia = ? AND filial IN (${qs(F)})${fr} GROUP BY filial, rca`).bind(dia, ...F, ...(esc.rcas || [])).all()).results || [];
+    NM = (await db.prepare(`SELECT filial, rca, MAX(vendedor) nome FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs(F)}) GROUP BY filial, rca`).bind(dia.slice(0, 7), ...F).all()).results || [];
+  } catch (e) { return null; }
+  const nm = new Map(NM.map((x) => [x.filial + '|' + x.rca, x.nome]));
+  const nomeV = (x) => `${x.rca} - ${nomeCurto(String(nm.get(x.filial + '|' + x.rca) || '').replace(/^\s*\d+\s*-\s*/, '')) || 'sem nome no GEROT'}${F.length > 1 ? ' (' + x.filial + ')' : ''}`;
+  const tn = P.reduce((a, x) => a + x.n, 0), tc = P.reduce((a, x) => a + x.c, 0), tv = P.reduce((a, x) => a + (Number(x.v) || 0), 0);
+  const dd = `${dia.slice(8, 10)}/${dia.slice(5, 7)}`;
+  const L = [`🧾 *Quem pediu — ${esc.nome}* · ${dia === hoje ? 'hoje' : dd}`,
+    ...(dia !== hoje ? [`_Hoje (${hoje.slice(8, 10)}/${hoje.slice(5, 7)}) ainda sem pedido no Clube; mostrando o último dia com pedido._`] : []),
+    `*${N(P.length)}* vendedores · *${N(tn)}* pedidos · ${N(tc)} clientes · *${R$(tv)}* colocados`, ''];
+  if (F.length > 1 && !(esc.rcas && esc.rcas.length)) {
+    const pf = new Map(); for (const x of P) { const o = pf.get(x.filial) || { q: 0, n: 0, v: 0 }; o.q++; o.n += x.n; o.v += Number(x.v) || 0; pf.set(x.filial, o); }
+    L.push('*Por filial:*', ...[...pf].sort((a, b) => b[1].v - a[1].v).map(([f, o]) => `• *${f}*: ${N(o.q)} vend. · ${N(o.n)} ped. · ${R$(o.v)}`), '');
+  }
+  const S = P.sort((a, b) => (Number(b.v) || 0) - (Number(a.v) || 0)), lim = 40;
+  L.push('*Por vendedor (maior R$ primeiro):*', ...S.slice(0, lim).map((x, i) => `${i + 1}. ${nomeV(x)} — ${N(x.n)} ped. · ${N(x.c)} cli. · *${R$(x.v)}*`));
+  if (S.length > lim) L.push(`_… e mais ${S.length - lim} vendedores — peça por filial (ex.: "quem pediu TPH")._`);
+  L.push('', '_Clube da Venda: pedido colocado. O valor pode mudar com corte ou bloqueio; faturado e carteira vêm do GEROT._');
   return L.join(String.fromCharCode(10));
 }
 

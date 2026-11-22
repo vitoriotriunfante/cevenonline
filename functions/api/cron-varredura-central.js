@@ -790,6 +790,17 @@ export async function onRequestGet({ env, request, waitUntil }) {
     try { return await diagCeven(); } finally { globalThis.fetch = fetchTrava; }
   }
   async function diagCeven() {
+    // 22/11/2026 (Vitorio: 'vc vai entrar na filial de cada um deles... vao ser 11 chamados'): ?diag=1&gerentes=1 = so o login + 1 painel de CADA gerente
+    if (new URL(request.url).searchParams.get('gerentes') === '1') {
+      const res = [];
+      for (const g of GERENTES) {
+        const t = Date.now(); let tk = null, http = null, sups = null;
+        try { tk = await tokenGerente(g, env.CEVEN_GERENTE_SENHA); } catch (e) { http = String(e.message || e).slice(0, 60); }
+        if (tk) { try { const r = await fetch(`${CEVEN}/api/gerente/dashboard-cascata?filial=${g.filialKey}`, { headers: { ...HDR, Authorization: `Bearer ${tk}` }, signal: AbortSignal.timeout(20000) }); http = r.status; if (r.ok) { const j = await r.json(); sups = (j.supervisores || j.data?.supervisores || []).length; } } catch (e) { http = e.name; } }
+        res.push({ sigla: g.sigla, grupo: g.grupo || null, login: !!tk, painel: http, supervisores: sups, ms: Date.now() - t });
+      }
+      return new Response(JSON.stringify({ quando: new Date().toISOString(), gerentes: res }, null, 1), { headers: { ...cors, 'Content-Type': 'application/json' } });
+    }
     const out = {}, mede = async (nome, url, h) => { const t = Date.now(); try { const r = await fetch(url, { headers: h, signal: AbortSignal.timeout(15000) }); const x = await r.text(); out[nome] = { http: r.status, ms: Date.now() - t, bytes: x.length, reset: r.headers.get('x-ratelimit-reset') }; } catch (e) { out[nome] = { erro: e.name, ms: Date.now() - t }; } };
     await mede('produtividade', `${CEVEN}/api/rca/produtividade?filial=tbl1&id=185`, HDR);
     // resposta real dos logins (02/11/2026): "login falhou" sem o status nao diz se e senha, bloqueio ou fora do ar. Nao devolve token nem senha.
