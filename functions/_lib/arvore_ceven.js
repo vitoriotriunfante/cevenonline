@@ -412,11 +412,14 @@ export async function coletaGpsGerentes(env, dia, prazoMs = 200000) {
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS ceven_gps_visita (dia TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, cliente TEXT NOT NULL, cli_lat REAL, cli_lon REAL, ci_lat REAL, ci_lon REAL, co_lat REAL, co_lon REAL, checkin TEXT, checkout TEXT, tempo TEXT, hash TEXT, lido_em TEXT, PRIMARY KEY (dia, filial, rca, cliente))').run();
   const fim = Date.now() + prazoMs, res = { filiais: 0, supervisores: 0, visitas_gps: 0, gravadas: 0, falhas: {} };
   const falha = (m) => { res.falhas[m] = (res.falhas[m] || 0) + 1; };
-  await Promise.all(GERENTES.map(async (g) => {
+  // 22/11/2026 (revisao): 11 filiais ao mesmo tempo levavam 429 do CEVEN. 2 filiais por vez, 1,2 s entre chamadas e 1 nova tentativa no 429 (~90/min).
+  const espera = (ms) => new Promise((ok) => setTimeout(ok, ms)), fila0 = GERENTES.slice(); let ig = 0;
+  const pega = async (url, H) => { let r = await fetch(url, { headers: H, signal: AbortSignal.timeout(20000) }); if (r.status === 429) { await espera(20000); r = await fetch(url, { headers: H, signal: AbortSignal.timeout(20000) }); } await espera(1200); return r; };
+  await Promise.all(Array.from({ length: 2 }, async () => { while (ig < fila0.length && Date.now() < fim) { const g = fila0[ig++]; await (async () => {
     try {
       const tk = await tokenGerente(g, env.CEVEN_GERENTE_SENHA); if (!tk) return falha(g.sigla + ':login');
       const H = { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET };
-      const p = await fetch(`${CEVEN}/api/gerente/dashboard-cascata?filial=${g.filialKey}`, { headers: H, signal: AbortSignal.timeout(20000) });
+      const p = await pega(`${CEVEN}/api/gerente/dashboard-cascata?filial=${g.filialKey}`, H);
       if (!p.ok) return falha(g.sigla + ':painel' + p.status);
       const sups = ((await p.json()).supervisores || []).map((s) => s.supervisorId).filter((x) => x != null);
       res.filiais++; res.supervisores += sups.length;
@@ -424,7 +427,7 @@ export async function coletaGpsGerentes(env, dia, prazoMs = 200000) {
       for (const id of sups) {
         if (Date.now() > fim) { falha('prazo'); break; }
         try {
-          const r = await fetch(`${CEVEN}/api/gerente/supervisor/roteiro-hoje?filial=${g.filialKey}&supervisorId=${id}`, { headers: H, signal: AbortSignal.timeout(15000) });
+          const r = await pega(`${CEVEN}/api/gerente/supervisor/roteiro-hoje?filial=${g.filialKey}&supervisorId=${id}`, H);
           if (!r.ok) { falha('rot' + r.status); continue; }
           const a = await r.json(); if (!Array.isArray(a)) continue;
           for (const v of a) {
@@ -440,7 +443,7 @@ export async function coletaGpsGerentes(env, dia, prazoMs = 200000) {
         for (const x of out || []) res.gravadas += (x && x.meta && x.meta.changes) || 0;
       }
     } catch (e) { falha(g.sigla + ':' + String((e && e.message) || e).slice(0, 30)); }
-  }));
+  })(); } }));
   return res;
 }
 

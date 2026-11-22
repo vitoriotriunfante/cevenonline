@@ -128,7 +128,12 @@ export default {
       }
       // CEVEN DO ADMIN (22/11/2026, Vitorio: 'RETs, compromissos e tags... tem que vir do admin'): compromisso/RET a cada 15 min e TAGs 2x/dia (a funcao decide). Seg-sab 06h-20h.
       if (dia >= 1 && dia <= 6 && h >= 6 && h <= 20 && env.MONITORIA_CRON_KEY) {
-        await rodarTarefaTv(event.cron, { passos: [{ rota: '/api/cron-ceven-admin', ms: 280000, chaveEnv: 'MONITORIA_CRON_KEY' }] }, env);
+        // 22/11/2026: cada parte numa chamada propria (as TAGs levam minutos e cortavam o resto)
+        await Promise.all([
+          rodarTarefaTv(event.cron, { passos: [{ rota: '/api/cron-ceven-admin?so=sup', ms: 120000, chaveEnv: 'MONITORIA_CRON_KEY' }, { rota: '/api/cron-ceven-admin?so=gps', ms: 280000, chaveEnv: 'MONITORIA_CRON_KEY' }] }, env),
+          rodarTarefaTv(event.cron, { passos: [{ rota: '/api/cron-ceven-admin?so=dev', ms: 280000, chaveEnv: 'MONITORIA_CRON_KEY' }] }, env),
+          rodarTarefaTv(event.cron, { passos: [{ rota: '/api/cron-ceven-admin?so=tags', ms: 600000, chaveEnv: 'MONITORIA_CRON_KEY' }] }, env)
+        ]);
       }
       // MONITOR.IA PILOTO (21/11/2026): seg-sex 09h-20h BRT, UMA filial por chamada (65 supervisores numa chamada estourava a CPU, erro 1102).
       // O site decide a janela pela hora local da filial e se ENVIA (liberacao propria monitoria_liberada_ate) ou so GRAVA (sombra).

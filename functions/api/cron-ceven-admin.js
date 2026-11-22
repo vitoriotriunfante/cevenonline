@@ -18,23 +18,23 @@ export async function onRequest({ request, env }) {
   const k = request.headers.get('x-chave') || new URL(request.url).searchParams.get('chave') || '';
   if (!(await chaveAdminOk(env, request)) && !(env.MONITORIA_CRON_KEY && k === env.MONITORIA_CRON_KEY)) return J({ erro: 'nao autorizado' }, 401);
   const u = new URL(request.url), forcar = u.searchParams.get('forcar') === '1', out = { em: new Date().toISOString() };
-  const so = u.searchParams.get('so') || '';
-  if (!so) try { out.supervisores = await coletaSupervisores(env, forcar); } catch (e) { out.supervisores = { erro: String(e.message || e).slice(0, 80) }; }
-  // TAGs: 2x por dia (06h e 13h BRT) ou ?tags=1
+  // 22/11/2026 (revisao): cada parte e uma chamada propria do agendador (so=sup | tags | gps | dev); sem 'so' roda tudo (uso manual).
+  //   As TAGs (120 paginas, minutos) juntas das outras estouravam o tempo e cortavam compromisso/GPS/devolucao.
+  const so = u.searchParams.get('so') || '', quer = (x) => !so || so === x;
   const rel = R.relogioSP(), marca = rel.dia + (rel.h >= 13 ? 'T' : 'M');
-  let ult = null; try { ult = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'tags_admin_carga'").first(); } catch (e) {}
-  if (!so && u.searchParams.get('tags') === '1' || !so && (rel.h >= 6 && (!ult || ult.valor !== marca))) {
-    try {
-      const r = await cargaClientesFoco(env, true);
-      out.tags = { ativos: r.ativos, gravados: r.gravados, completo: r.completo, paginas: r.paginas, erros: (r.erros || []).slice(0, 3) };
-      if (r.completo) await env.DB.prepare("INSERT INTO config_flags (chave, valor) VALUES ('tags_admin_carga', ?) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor").bind(marca).run();
-    } catch (e) { out.tags = { erro: String(e.message || e).slice(0, 80) }; }
+  if (quer('sup')) { try { out.supervisores = await coletaSupervisores(env, forcar); } catch (e) { out.supervisores = { erro: String(e.message || e).slice(0, 80) }; } }
+  if (quer('tags')) {
+    let ult = null; try { ult = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'tags_admin_carga'").first(); } catch (e) {}
+    if (u.searchParams.get('tags') === '1' || (rel.h >= 6 && (!ult || ult.valor !== marca))) {
+      try {
+        const r = await cargaClientesFoco(env, true);
+        out.tags = { ativos: r.ativos, gravados: r.gravados, completo: r.completo, paginas: r.paginas, erros: (r.erros || []).slice(0, 3) };
+        if (r.completo) await env.DB.prepare("INSERT INTO config_flags (chave, valor) VALUES ('tags_admin_carga', ?) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor").bind(marca).run();
+      } catch (e) { out.tags = { erro: String(e.message || e).slice(0, 80) }; }
+    } else out.tags = 'ja_carregadas_neste_turno';
   }
-  // GPS das visitas de hoje pelo CEVEN de cada GERENTE (impedimento por GPS da Liga): 07h-20h ou ?gps=1
-  // GPS (gerentes) e DEVOLUCOES (admin como o vendedor) em paralelo: cotas diferentes, cabe no tempo do agendador (280 s)
-  const A = await import('../_lib/arvore_ceven.js'), P = [];
-  if ((!so || so === 'gps') && (u.searchParams.get('gps') === '1' || (rel.h >= 7 && rel.h <= 20))) P.push(A.coletaGpsGerentes(env, rel.dia, 150000).then((x) => { out.gps = x; }, (e) => { out.gps = { erro: String(e.message || e).slice(0, 80) }; }));
-  if ((!so || so === 'dev') && (u.searchParams.get('dev') === '1' || (rel.h >= 6 && rel.h <= 20))) P.push(A.coletaDevolucoesAdmin(env, rel.dia, Number(u.searchParams.get('max')) || 40, 150000).then((x) => { out.devolucoes = x; }, (e) => { out.devolucoes = { erro: String(e.message || e).slice(0, 80) }; }));
-  await Promise.all(P);
+  const A = await import('../_lib/arvore_ceven.js');
+  if (quer('gps') && (u.searchParams.get('gps') === '1' || (rel.h >= 7 && rel.h <= 20))) { try { out.gps = await A.coletaGpsGerentes(env, rel.dia, 200000); } catch (e) { out.gps = { erro: String(e.message || e).slice(0, 80) }; } }
+  if (quer('dev') && (u.searchParams.get('dev') === '1' || (rel.h >= 6 && rel.h <= 20))) { try { out.devolucoes = await A.coletaDevolucoesAdmin(env, rel.dia, Number(u.searchParams.get('max')) || 40, 200000); } catch (e) { out.devolucoes = { erro: String(e.message || e).slice(0, 80) }; } }
   return J(out);
 }
