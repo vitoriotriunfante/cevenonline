@@ -180,8 +180,11 @@ export async function executarCuradoriaAprendizado(env, opcoes = {}) {
   }
 
   let enviados = 0;
+  // 21/11/2026 (Vitorio: '159 sugestoes sem tratamento... o robozinho se perdeu'): o resumo diario diz quantas estao paradas no painel
+  const pend = await db.prepare("SELECT COUNT(*) n, MIN(quando) desde FROM bot_sugestoes WHERE situacao IS NULL OR situacao = 'nova'").first().catch(() => null);
   if (opcoes.enviar !== false && gravados > 0) {
     const linhas = [
+      ...(pend && pend.n ? [`📥 *Sugestões sem tratamento no painel: ${pend.n}* (desde ${String(pend.desde || '').slice(8, 10)}/${String(pend.desde || '').slice(5, 7)}) — /contatos › Sugestões`, ''] : []),
       `🧠 *CURADOR JOTA — Aprendizado Diário (${hoje.split('-').reverse().join('/')})*`,
       `Sinais nas últimas 24h: *${amostra.sugestoes.length}* sugestões/falhas · *${amostra.negativos.length}* 👎 · *${amostra.semResposta.length}* sem resposta.`,
       '',
@@ -194,5 +197,5 @@ export async function executarCuradoriaAprendizado(env, opcoes = {}) {
     }
   }
 
-  return { ok: true, hoje, totalSinais, gravados, enviados, itens };
+  return { ok: true, hoje, totalSinais, gravados, enviados, sugestoes_sem_tratamento: pend ? pend.n : null, itens };
 }

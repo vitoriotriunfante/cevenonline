@@ -64,7 +64,7 @@ export async function rotearIntencao(B, c, t, info) {
   if (/^\W*(PARE|PARA|CHEGA|STOP|CANCELA|CANCELAR|PARE DE MANDAR)\W*$/.test(t)) return 'Ok, parei. Quando quiser, é só perguntar.';
   // A6 · SUGESTAO (com ou sem dois pontos) — registra e agradece; nunca vira consulta
   if (/^\W*SUGEST(AO|OES)?\b/.test(t) && t.replace(/^\W*SUGEST(AO|OES)?\W*/, '').length > 3) {
-    try { await B.env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(c.celular || '', c.nome || '', papel, c.filial || '', t.slice(0, 1000), 'sugestao').run(); } catch (e) { /* segue */ }
+    if (!B.seco) try { await B.env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(c.celular || '', c.nome || '', papel, c.filial || '', t.slice(0, 1000), 'sugestao').run(); } catch (e) { /* segue */ }
     return `Anotado, ${nome2(c.nome || '').split(' ')[0] || ''}! Sua sugestão foi registrada e vai para quem cuida do Jota. 🙏`;
   }
   // A9 · FERIADO (auditoria 21/11: em 20/11 o JOTA mostrou 0% vermelho e '42 zerados' num dia sem rota): pergunta do DIA em feriado nacional = avisa, sem cobrar
@@ -124,7 +124,7 @@ export async function rotearIntencao(B, c, t, info) {
   }
   // A7 · CONTESTACAO do dado (sem pedir outro dado) — confirma, registra e pergunta o que esperava; nunca devolve card
   if (/\b(ESTAO ERRAD[OA]S|NAO TEM (O )?(PQ|PORQUE|POR QUE)|E DO CANAL|NAO TEM O KPI|COMPRA E CENTRALIZADA|INFORMACAO .{0,30}INCORRET[OA]|ESTA INCORRET[OA]|TA DE BRINCADEIRA|DE BRINCADEIRA|NAO PROCEDE|NAO CONFERE|NAO E ISSO|NAO FOI ISSO( QUE)?( EU)? (PERGUNTEI|PEDI)|ESTA ERRAD[OA]|TA ERRAD[OA]|DADO ERRADO|NUMERO ERRADO|INFORMACAO ERRADA|UMA MERDA|CAGADA|RESPONDEU (PRA|PARA) .{1,40} DE UM JEITO|RESPONDEU ERRADO|NAO BATE)\b/.test(t) && !/\?\s*$/.test(t)) {
-    try { await B.env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(c.celular || '', c.nome || '', papel, c.filial || '', t.slice(0, 1000), 'contestacao').run(); } catch (e) { /* segue */ }
+    if (!B.seco) try { await B.env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(c.celular || '', c.nome || '', papel, c.filial || '', t.slice(0, 1000), 'contestacao').run(); } catch (e) { /* segue */ }
     return `Entendi, ${nome2(c.nome || '').split(' ')[0] || ''}. Registrei para conferir. Me diz em uma linha o que você esperava ver (ex.: "quero os clientes sem compra da rota de hoje") que eu respondo certo.`;
   }
   // A2 · MENU de outro papel (diretoria pedindo "menu do supervisor")

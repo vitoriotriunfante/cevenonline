@@ -4,6 +4,7 @@
 // Disparado pelo worker-cron às 19h15 BRT (seg-sex, sem feriados) ou manual.
 // =========================================================================
 import { chaveEvoValida } from '../_lib/chave_evo.js';
+import { chaveAdminOk } from '../_lib/chave_admin_jota.js';
 import { executarCuradoriaAprendizado, carregarContextoAprendido } from '../_lib/jota/aprendizado.js';
 
 const j = (obj, st = 200) => new Response(JSON.stringify(obj, null, 2), {
@@ -16,6 +17,7 @@ async function autorizado(request, env) {
   const k = u.searchParams.get('k') || request.headers.get('X-Cron-Key') || '';
   if (env.MONITORIA_CRON_KEY && k === env.MONITORIA_CRON_KEY) return true;
   if (env.BOT_WEBHOOK_KEY && k === env.BOT_WEBHOOK_KEY) return true;
+  if (await chaveAdminOk(env, request).catch(() => false)) return true;   // 21/11/2026: conferir o curador a mao (?chave=)
   return await chaveEvoValida(request, env);
 }
 
